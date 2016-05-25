@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\client\script\ui\control\bargraph.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\client\script\ui\control\bargraph.py
 import uiprimitives
 import uicontrols
 import uicls
@@ -49,6 +50,7 @@ class BarGraph(uiprimitives.Container):
         uicontrols.Frame(parent=self, color=COLOR_FRAME)
         uiprimitives.Sprite(parent=self.backgroundCont, name='backgroundStripes', align=uiconst.TOTOP, height=500, texturePath='res:/UI/Texture/Bargraph/background_stripes.dds', ignoreSize=True, color=backgroundColor)
         self.barCont = uiprimitives.Container(parent=self.graphCont, name='barCont', align=uiconst.TOALL, padding=(2, 2, 1, 1), clipChildren=True)
+        return
 
     def _CreateBars(self, numBars):
         self.barCont.Flush()
@@ -93,26 +95,28 @@ class BarGraph(uiprimitives.Container):
         if self.busy:
             self.queuedValues = values
             return
-        self.queuedValues = None
-        self.busy = True
-        updateInterval = self.UPDATEINTERVAL_NORMAL
-        maxValue = max(values)
-        lenValues = len(values)
-        if self.numBars != lenValues:
-            if self.setValuesThread:
-                self.setValuesThread.kill()
-            self._CreateBars(lenValues)
-            updateInterval = self.UPDATEINTERVAL_NEWBARS
-        YAXISRESCALEVALUE = 1
-        while YAXISRESCALEVALUE < maxValue:
-            YAXISRESCALEVALUE *= 10
+        else:
+            self.queuedValues = None
+            self.busy = True
+            updateInterval = self.UPDATEINTERVAL_NORMAL
+            maxValue = max(values)
+            lenValues = len(values)
+            if self.numBars != lenValues:
+                if self.setValuesThread:
+                    self.setValuesThread.kill()
+                self._CreateBars(lenValues)
+                updateInterval = self.UPDATEINTERVAL_NEWBARS
+            YAXISRESCALEVALUE = 1
+            while YAXISRESCALEVALUE < maxValue:
+                YAXISRESCALEVALUE *= 10
 
-        YAXISRESCALEVALUE *= 0.1
-        if maxValue > self.maxValue or maxValue < self.maxValue - 1.3 * YAXISRESCALEVALUE:
-            self.maxValue = int(math.ceil(float(maxValue) / YAXISRESCALEVALUE)) * YAXISRESCALEVALUE
-            self._CreateYAxis()
-        self.setValuesThread = uthread.new(self._SetValues, values)
-        uthread.new(self._EnforceUpdateInterval, updateInterval)
+            YAXISRESCALEVALUE *= 0.1
+            if maxValue > self.maxValue or maxValue < self.maxValue - 1.3 * YAXISRESCALEVALUE:
+                self.maxValue = int(math.ceil(float(maxValue) / YAXISRESCALEVALUE)) * YAXISRESCALEVALUE
+                self._CreateYAxis()
+            self.setValuesThread = uthread.new(self._SetValues, values)
+            uthread.new(self._EnforceUpdateInterval, updateInterval)
+            return
 
     def _EnforceUpdateInterval(self, updateInterval):
         blue.pyos.synchro.SleepWallclock(updateInterval)
@@ -136,20 +140,22 @@ class BarGraph(uiprimitives.Container):
                 if not self or self.destroyed:
                     return
 
-    def ShowTimeIndicator(self, value, animate = True):
+    def ShowTimeIndicator(self, value, animate=True):
         if value is None:
             return
-        if self.barWidth is None:
+        elif self.barWidth is None:
             return
-        self.timeIndicatorValue = value
-        l, t, w, h = self.graphCont.GetAbsolute()
-        self.timeIndicator.state = uiconst.UI_DISABLED
-        self.timeIndicator.SetAlpha(1.0)
-        p = self.barCont.padLeft
-        self.timeIndicator.left = p + int(value * self.barWidth * self.numBars)
-        self.timeIndicator.height = h
-        if animate and self.timeIndicatorThread is None:
-            self.timeIndicatorThread = uthread.new(self._AnimateTimeIndicator)
+        else:
+            self.timeIndicatorValue = value
+            l, t, w, h = self.graphCont.GetAbsolute()
+            self.timeIndicator.state = uiconst.UI_DISABLED
+            self.timeIndicator.SetAlpha(1.0)
+            p = self.barCont.padLeft
+            self.timeIndicator.left = p + int(value * self.barWidth * self.numBars)
+            self.timeIndicator.height = h
+            if animate and self.timeIndicatorThread is None:
+                self.timeIndicatorThread = uthread.new(self._AnimateTimeIndicator)
+            return
 
     def _AnimateTimeIndicator(self):
         x = 0.0
@@ -166,6 +172,7 @@ class BarGraph(uiprimitives.Container):
         if self.timeIndicatorThread is not None:
             self.timeIndicatorThread.kill()
             self.timeIndicatorThread = None
+        return
 
 
 class Bar(uiprimitives.Container):
@@ -194,6 +201,7 @@ class Bar(uiprimitives.Container):
          -self.BARHEIGHT,
          self.width,
          self.BARHEIGHT), state=uiconst.UI_DISABLED, padLeft=1)
+        return
 
     def SetValue(self, rawValue, maxRawValue, *args):
         if self.morphThread:

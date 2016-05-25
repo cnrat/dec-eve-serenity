@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\packages\carbonui\util\cameraUtils.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\packages\carbonui\util\cameraUtils.py
 import geo2
 import mathCommon
 import math
@@ -25,7 +26,7 @@ def ReverseCameraYaw(yaw):
     return yaw
 
 
-def GetAngleFromEntityToCamera(entity, overrideYaw = None, offset = None):
+def GetAngleFromEntityToCamera(entity, overrideYaw=None, offset=None):
     activeCamera = sm.GetService('cameraClient').GetActiveCamera()
     cameraYaw = -activeCamera.yaw
     if overrideYaw:

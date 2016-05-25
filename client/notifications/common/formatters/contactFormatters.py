@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\packages\notifications\common\formatters\contactFormatters.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\packages\notifications\common\formatters\contactFormatters.py
 from notifications.common.formatters.baseFormatter import BaseNotificationFormatter
 import eve.common.lib.appConst as appConst
 import localization
@@ -27,13 +28,13 @@ class BaseContactFormatter(BaseNotificationFormatter):
         return level
 
     @staticmethod
-    def MakeData(relationShipID, message = ''):
+    def MakeData(relationShipID, message=''):
         data = {'level': relationShipID,
          'message': message}
         return data
 
     @staticmethod
-    def MakeSampleData(variant = 0):
+    def MakeSampleData(variant=0):
         return BaseContactFormatter.MakeData(relationShipID=appConst.contactNeutralStanding, message='This is a sample')
 
 

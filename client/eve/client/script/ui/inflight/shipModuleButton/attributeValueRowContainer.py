@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\client\script\ui\inflight\shipModuleButton\attributeValueRowContainer.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\client\script\ui\inflight\shipModuleButton\attributeValueRowContainer.py
 from carbonui.primitives.container import Container
 from eve.client.script.ui.control.eveIcon import Icon
 from eve.client.script.ui.control.eveLabel import EveLabelSmall
@@ -22,7 +23,7 @@ class AttributeValueRowContainer(Container):
         if loadOnStartup:
             self.Load(self.attributeValues)
 
-    def Load(self, attributeValues, mouseExitFunc = None, onClickFunc = None):
+    def Load(self, attributeValues, mouseExitFunc=None, onClickFunc=None):
         if not attributeValues:
             return
         self.attributeValues = attributeValues
@@ -54,29 +55,31 @@ class AttributeValueRowContainer(Container):
     def _OnResize(self, *args):
         if not self.attributeValues or not self.doWidthAdjustments:
             return
-        emptyAttributes = [ attributeID for attributeID, value in self.attributeValues if value is None ]
-        nonEmptyAttributes = [ attributeID for attributeID, value in self.attributeValues if value is not None ]
-        if not emptyAttributes or not nonEmptyAttributes:
-            return
-        absWidth = self.absoluteRight - self.absoluteLeft
-        containerPercentage = 1.0 / len(self.attributeValues)
-        defaultGivenWidth = containerPercentage * absWidth
-        extraNeeded = 0
-        for attributeID in nonEmptyAttributes:
-            cont = self.innerContainers.get(attributeID)
-            extraNeeded = max(extraNeeded, cont.label.textwidth + cont.label.left - defaultGivenWidth)
-
-        if not extraNeeded and not self.hasAdjustedWidth:
-            return
-        percentageNeeded = extraNeeded / float(absWidth)
-        noneEmptyWidth = containerPercentage + percentageNeeded
-        emptyWidth = (1.0 - noneEmptyWidth * len(nonEmptyAttributes)) / len(emptyAttributes)
-        self.SetContWidth(nonEmptyAttributes, noneEmptyWidth)
-        self.SetContWidth(emptyAttributes, emptyWidth)
-        if extraNeeded:
-            self.hasAdjustedWidth = True
         else:
-            self.hasAdjustedWidth = False
+            emptyAttributes = [ attributeID for attributeID, value in self.attributeValues if value is None ]
+            nonEmptyAttributes = [ attributeID for attributeID, value in self.attributeValues if value is not None ]
+            if not emptyAttributes or not nonEmptyAttributes:
+                return
+            absWidth = self.absoluteRight - self.absoluteLeft
+            containerPercentage = 1.0 / len(self.attributeValues)
+            defaultGivenWidth = containerPercentage * absWidth
+            extraNeeded = 0
+            for attributeID in nonEmptyAttributes:
+                cont = self.innerContainers.get(attributeID)
+                extraNeeded = max(extraNeeded, cont.label.textwidth + cont.label.left - defaultGivenWidth)
+
+            if not extraNeeded and not self.hasAdjustedWidth:
+                return
+            percentageNeeded = extraNeeded / float(absWidth)
+            noneEmptyWidth = containerPercentage + percentageNeeded
+            emptyWidth = (1.0 - noneEmptyWidth * len(nonEmptyAttributes)) / len(emptyAttributes)
+            self.SetContWidth(nonEmptyAttributes, noneEmptyWidth)
+            self.SetContWidth(emptyAttributes, emptyWidth)
+            if extraNeeded:
+                self.hasAdjustedWidth = True
+            else:
+                self.hasAdjustedWidth = False
+            return
 
     def SetContWidth(self, attributeIDs, newValue):
         for attributeID in attributeIDs:
@@ -84,3 +87,5 @@ class AttributeValueRowContainer(Container):
             if not cont:
                 continue
             cont.width = newValue
+
+        return

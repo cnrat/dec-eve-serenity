@@ -1,9 +1,10 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\packages\eveprefs\inmemory.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\packages\eveprefs\inmemory.py
 from . import BaseIniFile, strip_spaces
 
 class InMemoryIniFile(BaseIniFile):
 
-    def __init__(self, seq = (), **keyvals):
+    def __init__(self, seq=(), **keyvals):
         totaldict = dict(seq, **keyvals)
         self.keyval = strip_spaces(totaldict)
 

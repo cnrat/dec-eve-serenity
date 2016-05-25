@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\client\script\ui\inflight\bracketsAndTargets\targetOnBracket.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\client\script\ui\inflight\bracketsAndTargets\targetOnBracket.py
 import uiprimitives
 import uicontrols
 import trinity
@@ -81,7 +82,7 @@ class TargetOnBracket(uiprimitives.Container):
         self.targetingArrows.StopAnimations()
         self.KillTimerAnimation()
 
-    def ChangeLineOpacity(self, faded = True, *args):
+    def ChangeLineOpacity(self, faded=True, *args):
         if faded:
             self.lines.opacity = 0.1
             self.circle.SetAlpha(0.2)

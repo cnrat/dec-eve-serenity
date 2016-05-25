@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\packages\localizationBSD\exporters\localizationPickleExporter.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\packages\localizationBSD\exporters\localizationPickleExporter.py
 import localizationExporter
 from . import LocalizationExporterError
 from ..wrappers.messageGroup import MessageGroup
@@ -24,7 +25,7 @@ class LocalizationPickleExporter(localizationExporter.LocalizationExporterBase):
     FIELD_MAX_REVISION = 'maxRevision'
 
     @classmethod
-    def ExportWithProjectSettings(cls, projectID, exportLocation, exportFileName, getSubmittedOnly = True, bsdBranchID = None, **kwargs):
+    def ExportWithProjectSettings(cls, projectID, exportLocation, exportFileName, getSubmittedOnly=True, bsdBranchID=None, **kwargs):
         if not exportLocation or not exportFileName:
             raise LocalizationExporterError('Filepath strings are incomplete. exportLocation, exportFileName: %s, %s.' % (exportLocation, exportFileName))
         exportedFilenames = []
@@ -39,7 +40,7 @@ class LocalizationPickleExporter(localizationExporter.LocalizationExporterBase):
         return exportedFilenames
 
     @classmethod
-    def ExportWithProjectSettingsToZipFileObject(cls, projectID, fileObject, exportFileName, getSubmittedOnly = True, bsdBranchID = None):
+    def ExportWithProjectSettingsToZipFileObject(cls, projectID, fileObject, exportFileName, getSubmittedOnly=True, bsdBranchID=None):
         exportedFilenames = []
         zipDataFile = zipfile.ZipFile(fileObject, 'w')
         pickleDataDict = cls._WriteLocalizationDataToDicts(getSubmittedOnly, projectID, bsdBranchID)
@@ -52,7 +53,7 @@ class LocalizationPickleExporter(localizationExporter.LocalizationExporterBase):
         return (zipDataFile, exportedFilenames)
 
     @classmethod
-    def GetResourceNamesWithProjectSettings(cls, projectID, exportLocation, exportFileName, getSubmittedOnly = True, bsdBranchID = None, **kwargs):
+    def GetResourceNamesWithProjectSettings(cls, projectID, exportLocation, exportFileName, getSubmittedOnly=True, bsdBranchID=None, **kwargs):
         filenameList = []
         fileName = exportFileName + cls.PICKLE_MAIN + cls.PICKLE_EXT
         mainPicklePath = os.path.abspath(os.path.join(exportLocation, fileName)) if exportLocation is not None else fileName
@@ -66,7 +67,7 @@ class LocalizationPickleExporter(localizationExporter.LocalizationExporterBase):
         return filenameList
 
     @classmethod
-    def _WriteLocalizationDataToDicts(cls, getSubmittedOnly, projectID, bsdBranchID = None):
+    def _WriteLocalizationDataToDicts(cls, getSubmittedOnly, projectID, bsdBranchID=None):
         pickleDataDict = {}
         dbzlocalization = sm.GetService('DB2').GetSchema('zlocalization')
         languageIDToCode = {}

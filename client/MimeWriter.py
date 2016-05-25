@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\carbon\common\stdlib\MimeWriter.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\carbon\common\stdlib\MimeWriter.py
 import mimetools
 __all__ = ['MimeWriter']
 
@@ -8,7 +9,7 @@ class MimeWriter:
         self._fp = fp
         self._headers = []
 
-    def addheader(self, key, value, prefix = 0):
+    def addheader(self, key, value, prefix=0):
         lines = value.split('\n')
         while lines and not lines[-1]:
             del lines[-1]
@@ -30,7 +31,7 @@ class MimeWriter:
         self._fp.writelines(self._headers)
         self._headers = []
 
-    def startbody(self, ctype, plist = [], prefix = 1):
+    def startbody(self, ctype, plist=[], prefix=1):
         for name, value in plist:
             ctype = ctype + ';\n %s="%s"' % (name, value)
 
@@ -39,7 +40,7 @@ class MimeWriter:
         self._fp.write('\n')
         return self._fp
 
-    def startmultipartbody(self, subtype, boundary = None, plist = [], prefix = 1):
+    def startmultipartbody(self, subtype, boundary=None, plist=[], prefix=1):
         self._boundary = boundary or mimetools.choose_boundary()
         return self.startbody('multipart/' + subtype, [('boundary', self._boundary)] + plist, prefix=prefix)
 

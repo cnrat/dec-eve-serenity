@@ -1,7 +1,11 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\client\script\ui\services\marketsvc.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\client\script\ui\services\marketsvc.py
 import functools
 import itertools
 import evetypes
+import marketutil
+import structures
+from eve.common.script.sys.idCheckers import IsStation
 from service import *
 import util
 import blue
@@ -119,6 +123,7 @@ class MarketQuote(Service):
 
         sm.services['objectCaching'].InvalidateCachedMethodCall('marketProxy', 'GetSystemAsks')
         sm.services['objectCaching'].InvalidateCachedMethodCall('marketProxy', 'GetStationAsks')
+        return
 
     def OnSkillsChanged(self, skillInfos):
         typeIDs = {const.typeRetail,
@@ -155,8 +160,7 @@ class MarketQuote(Service):
                 factionID = sm.GetService('faction').GetFaction(stationOwnerID)
                 factionChar = sm.GetService('standing').GetStanding(factionID, eve.session.charid) or 0.0
             corpChar = sm.GetService('standing').GetStanding(stationOwnerID, eve.session.charid) or 0.0
-        weightedStanding = (0.7 * factionChar + 0.3 * corpChar) / 10.0
-        commissionPercentage = commissionPercentage * 2.0 ** (-2 * weightedStanding)
+        commissionPercentage = commissionPercentage - factionChar * 0.0003 - corpChar * 0.0002
         tax = util.KeyVal()
         tax.amt = commissionPercentage * orderValue
         tax.percentage = commissionPercentage
@@ -165,8 +169,8 @@ class MarketQuote(Service):
             tax.percentage = -1.0
         return tax
 
-    def CanTradeAtStation(self, bid, stationID, retList = None):
-        limits = self.GetSkillLimits()
+    def CanTradeAtStation(self, bid, stationID, retList=None):
+        limits = self.GetSkillLimits(stationID)
         if bid:
             jumps = self.GetStationDistance(stationID)
             if retList is not None:
@@ -183,11 +187,10 @@ class MarketQuote(Service):
                 return True
         return False
 
-    def GetStationDistance(self, stationID, getFastestRoute = True):
-        if session.stationid == stationID:
+    def GetStationDistance(self, stationID, getFastestRoute=True):
+        if stationID in (session.stationid, session.structureid):
             return -1
-        station = sm.GetService('ui').GetStation(stationID)
-        solarSystemID = station.solarSystemID
+        solarSystemID = self.GetSolarSystemForMarketLocation(stationID)
         regionID = sm.GetService('map').GetRegionForSolarSystem(solarSystemID)
         if regionID != session.regionid:
             return const.rangeRegion
@@ -197,49 +200,43 @@ class MarketQuote(Service):
             jumps = self.clientPathfinderService.GetAutopilotJumpCount(session.solarsystemid2, solarSystemID)
         if jumps >= 1:
             return jumps
-        return 0
 
     def GetRegionBest(self):
         return self.GetMarketProxy().GetRegionBest()
 
-    def GetSkillLimits(self):
-        limits = {}
-        currentOpen = 0
+    def GetBaseTax(self, stationID):
+        if IsStation(stationID):
+            return const.marketCommissionPercentage
+        else:
+            return sm.RemoteSvc('structureSettings').CharacterGetSetting(stationID, structures.SETTING_MARKET_TAX)
+
+    def GetSkillLimits(self, stationID):
+        return marketutil.GetSkillLimits(lambda : self.GetBaseTax(stationID), lambda typeIDs: self.GetMarketSkills(), self.GetBaseTax, IsStation(stationID))
+
+    def GetMarketSkills(self):
         myskills = sm.GetService('skills').MySkillLevelsByID()
-        retailLevel = myskills.get(const.typeRetail, 0)
-        tradeLevel = myskills.get(const.typeTrade, 0)
-        wholeSaleLevel = myskills.get(const.typeWholesale, 0)
-        accountingLevel = myskills.get(const.typeAccounting, 0)
-        brokerLevel = myskills.get(const.typeBrokerRelations, 0)
-        tycoonLevel = myskills.get(const.typeTycoon, 0)
-        marginTradingLevel = myskills.get(const.typeMarginTrading, 0)
-        marketingLevel = myskills.get(const.typeMarketing, 0)
-        procurementLevel = myskills.get(const.typeProcurement, 0)
-        visibilityLevel = myskills.get(const.typeVisibility, 0)
-        daytradingLevel = myskills.get(const.typeDaytrading, 0)
-        maxOrderCount = 5 + tradeLevel * 4 + retailLevel * 8 + wholeSaleLevel * 16 + tycoonLevel * 32
-        limits['cnt'] = maxOrderCount
-        commissionPercentage = const.marketCommissionPercentage / 100.0
-        commissionPercentage *= 1 - brokerLevel * 0.05
-        commissionPercentage = facwarCommon.GetAdjustedFeePercentage(session.solarsystemid2, session.warfactionid, commissionPercentage)
-        transactionTax = const.mktTransactionTax / 100.0
-        transactionTax *= 1 - accountingLevel * 0.1
-        limits['fee'] = commissionPercentage
-        limits['acc'] = transactionTax
-        limits['ask'] = jumpsPerSkillLevel[marketingLevel]
-        limits['bid'] = jumpsPerSkillLevel[procurementLevel]
-        limits['vis'] = jumpsPerSkillLevel[visibilityLevel]
-        limits['mod'] = jumpsPerSkillLevel[daytradingLevel]
-        limits['esc'] = 0.75 ** marginTradingLevel
-        return limits
+        skillLevels = util.KeyVal()
+        skillLevels.retail = myskills.get(const.typeRetail, 0)
+        skillLevels.trade = myskills.get(const.typeTrade, 0)
+        skillLevels.wholeSale = myskills.get(const.typeWholesale, 0)
+        skillLevels.accounting = myskills.get(const.typeAccounting, 0)
+        skillLevels.broker = myskills.get(const.typeBrokerRelations, 0)
+        skillLevels.tycoon = myskills.get(const.typeTycoon, 0)
+        skillLevels.margin = myskills.get(const.typeMarginTrading, 0)
+        skillLevels.marketing = myskills.get(const.typeMarketing, 0)
+        skillLevels.procurement = myskills.get(const.typeProcurement, 0)
+        skillLevels.visibility = myskills.get(const.typeVisibility, 0)
+        skillLevels.daytrading = myskills.get(const.typeDaytrading, 0)
+        return skillLevels
 
     def GetMarketProxy(self):
         return sm.ProxySvc('marketProxy')
 
-    def BuyStuff(self, stationID, typeID, price, quantity, orderRange = None, minVolume = 1, duration = 0, useCorp = False):
+    def BuyStuff(self, stationID, typeID, price, quantity, orderRange=None, minVolume=1, duration=0, useCorp=False):
         if orderRange is None:
             orderRange = const.rangeStation
         self.PlaceOrder(stationID, typeID, price, quantity, 1, orderRange, None, minVolume, duration, useCorp)
+        return
 
     def BuyMulti(self, stationID, itemList, useCorp):
         ordersCreated = self.GetMarketProxy().BuyMultipleItems(stationID, itemList, useCorp)
@@ -248,7 +245,7 @@ class MarketQuote(Service):
     def SellMulti(self, itemList, useCorp, duration):
         self.GetMarketProxy().PlaceMultiSellOrder(itemList, useCorp, duration)
 
-    def PlaceOrder(self, stationID, typeID, price, quantity, bid, orderRange, itemID = None, minVolume = 1, duration = 14, useCorp = False, located = None):
+    def PlaceOrder(self, stationID, typeID, price, quantity, bid, orderRange, itemID=None, minVolume=1, duration=14, useCorp=False, located=None):
         price = round(price, 2)
         if price > 9223372036854.0:
             raise ValueError('Price can not exceed %s', 9223372036854.0)
@@ -265,7 +262,7 @@ class MarketQuote(Service):
         self.GetMarketProxy().ModifyCharOrder(order.orderID, newPrice, order.bid, order.stationID, order.solarSystemID, order.price, order.range, order.volRemaining, order.issueDate)
 
     def GetStationAsks(self):
-        if session.stationid is None:
+        if session.stationid is None and session.structureid is None:
             raise AttributeError('Must be in station')
         return self.GetMarketProxy().GetStationAsks()
 
@@ -315,7 +312,7 @@ class MarketQuote(Service):
              0]))
         return history
 
-    def GetAveragePrice(self, typeID, days = 7):
+    def GetAveragePrice(self, typeID, days=7):
         history = self.GetPriceHistory(typeID)
         now = blue.os.GetWallclockTime()
         averagePrice = -1.0
@@ -341,7 +338,7 @@ class MarketQuote(Service):
     def GetCorporationOrders(self):
         return self.GetMarketProxy().GetCorporationOrders()
 
-    def DumpQuotes(self, typeID, amount = 1):
+    def DumpQuotes(self, typeID, amount=1):
         typeName = evetypes.GetName(typeID)
         print '\n\nCurrently in station %s in solarsystem %s in constellation %s\n' % (session.stationid, session.solarsystemid2, session.constellationid)
         print 'Trying to buy %s units of %s from current position' % (amount, typeName)
@@ -386,12 +383,16 @@ class MarketQuote(Service):
                  bid.stationID,
                  numJumps)
 
-    def GetBestBid(self, typeID, locationID = None):
+        return
+
+    def GetBestBid(self, typeID, locationID=None):
         self.RefreshOrderCache(typeID)
         self.RefreshJumps(typeID, locationID=locationID)
         bids = self.orderCache[typeID][1]
         if len(bids) > 0:
             return bids[0]
+        else:
+            return None
 
     def GetSellCountEstimate(self, typeID, stationID, price, maxToSell):
         estimate = 0
@@ -405,34 +406,59 @@ class MarketQuote(Service):
 
         return min(estimate, maxToSell)
 
-    def GetMatchableBids(self, typeID, stationID, amount):
-        station = sm.GetService('ui').GetStation(stationID)
-        solarSystemID = station.solarSystemID
+    def GetMatchableBids(self, typeID, stationID, amount, solarSystemID=None):
+        if solarSystemID is None:
+            solarSystemID = self.GetSolarSystemForMarketLocation(stationID)
         self.RefreshOrderCache(typeID)
         self.RefreshJumps(typeID, locationID=solarSystemID)
         bids = self.orderCache[typeID][1]
         if len(bids) == 0:
             return bids
-        candidates = dbutil.RowList([], bids.columns)
-        jmpIdx = bids.columns.index('jumps')
-        rngIdx = bids.columns.index('range')
-        minIdx = bids.columns.index('minVolume')
-        volIdx = bids.columns.index('volRemaining')
-        staIdx = bids.columns.index('stationID')
-        for x in bids:
-            if (x[jmpIdx] <= x[rngIdx] or x[rngIdx] == const.rangeStation and x[staIdx] == stationID) and (x[minIdx] <= amount or x[volIdx] < x[minIdx] and amount == x[volIdx]):
-                candidates.append(x)
+        else:
+            candidates = dbutil.RowList([], bids.columns)
+            jmpIdx = bids.columns.index('jumps')
+            rngIdx = bids.columns.index('range')
+            minIdx = bids.columns.index('minVolume')
+            volIdx = bids.columns.index('volRemaining')
+            staIdx = bids.columns.index('stationID')
+            for x in bids:
+                if (x[jmpIdx] <= x[rngIdx] or x[rngIdx] == const.rangeStation and x[staIdx] == stationID) and (x[minIdx] <= amount or x[volIdx] < x[minIdx] and amount == x[volIdx]):
+                    candidates.append(x)
 
-        return candidates
+            return candidates
 
-    def GetBestMatchableBid(self, typeID, stationID, amount = 1):
-        bids = self.GetMatchableBids(typeID, stationID, amount)
+    def GetSolarSystemForMarketLocation(self, stationID):
+        if util.IsStation(stationID):
+            station = sm.GetService('ui').GetStation(stationID)
+            return station.solarSystemID
+        else:
+            structure = sm.GetService('invCache').GetInventoryFromId(stationID).GetItem()
+            return structure.locationID
+
+    def GetBestMatchableBid(self, typeID, stationID, amount=1, solarSystemID=None):
+        bids = self.GetMatchableBids(typeID, stationID, amount, solarSystemID=solarSystemID)
         try:
             return bids[0]
         except IndexError:
             return None
 
-    def GetBestAverageAsk(self, typeID, bidRange = None, amount = 1, locationID = None):
+        return None
+
+    def GetBestPrice(self, typeID, item, stacksize, solarSystemID):
+        stationID = sm.GetService('invCache').GetStationIDOfItem(item)
+        bestMatchableBid = self.GetBestMatchableBid(typeID, stationID, stacksize, solarSystemID=solarSystemID)
+        if bestMatchableBid:
+            return bestMatchableBid.price
+        return self.GetAveragePrice(typeID)
+
+    def GetOfficeFolderInfo(self, item):
+        self.stationID, officeFolderID, officeID = sm.GetService('invCache').GetStationIDOfficeFolderIDOfficeIDOfItem(item)
+        if officeFolderID is not None:
+            return [officeFolderID, officeID]
+        else:
+            return
+
+    def GetBestAverageAsk(self, typeID, bidRange=None, amount=1, locationID=None):
         self.RefreshOrderCache(typeID)
         self.RefreshJumps(typeID, locationID=locationID)
         if bidRange is None:
@@ -444,70 +470,70 @@ class MarketQuote(Service):
         asks = self.orderCache[typeID][0]
         if len(asks) == 0:
             return
-        candidates = {}
-        if bidRange == const.rangeRegion:
-            for x in asks:
-                if x.volRemaining >= amount:
-                    if x.stationID in candidates:
-                        candidates[x.stationID].append(x)
-                    else:
-                        candidates[x.stationID] = [x]
-
-        elif bidRange == const.rangeConstellation:
-            for x in asks:
-                if x.volRemaining >= amount and x.constellationID == session.constellationid:
-                    if x.stationID in candidates:
-                        candidates[x.stationID].append(x)
-                    else:
-                        candidates[x.stationID] = [x]
-
-        elif bidRange == const.rangeSolarSystem or session.stationid is None:
-            for x in asks:
-                if x.volRemaining >= amount and x.solarSystemID == session.solarsystemid2:
-                    if x.stationID in candidates:
-                        candidates[x.stationID].append(x)
-                    else:
-                        candidates[x.stationID] = [x]
-
         else:
-            for x in asks:
-                if x.volRemaining >= amount and x.stationID == session.stationid:
-                    if x.stationID in candidates:
-                        candidates[x.stationID].append(x)
-                    else:
-                        candidates[x.stationID] = [x]
+            candidates = {}
+            if bidRange == const.rangeRegion:
+                for x in asks:
+                    if x.volRemaining >= amount:
+                        if x.stationID in candidates:
+                            candidates[x.stationID].append(x)
+                        else:
+                            candidates[x.stationID] = [x]
 
-        resultList = []
-        amount = saveAmount
-        for stationID, askList in candidates.iteritems():
-            saveAmount = amount
-            averagePrice = 0.0
-            cumulatedVolume = 0
-            for ask in askList:
-                solarsystemID = ask.solarSystemID
-                available = min(ask.volRemaining, saveAmount)
-                cumulatedVolume += available
-                saveAmount -= available
-                averagePrice += available * ask.price
-                if saveAmount == 0:
-                    break
+            elif bidRange == const.rangeConstellation:
+                for x in asks:
+                    if x.volRemaining >= amount and x.constellationID == session.constellationid:
+                        if x.stationID in candidates:
+                            candidates[x.stationID].append(x)
+                        else:
+                            candidates[x.stationID] = [x]
 
-            if cumulatedVolume < amount:
-                continue
-            averagePrice = averagePrice / cumulatedVolume
-            resultList.append([averagePrice, stationID, solarsystemID])
+            elif bidRange == const.rangeSolarSystem or session.stationid is None:
+                for x in asks:
+                    if x.volRemaining >= amount and x.solarSystemID == session.solarsystemid2:
+                        if x.stationID in candidates:
+                            candidates[x.stationID].append(x)
+                        else:
+                            candidates[x.stationID] = [x]
 
-        if len(resultList) == 0:
-            return
-        resultList.sort()
-        return resultList[0]
+            else:
+                for x in asks:
+                    if x.volRemaining >= amount and x.stationID == session.stationid:
+                        if x.stationID in candidates:
+                            candidates[x.stationID].append(x)
+                        else:
+                            candidates[x.stationID] = [x]
 
-    def GetBestAskInRange(self, typeID, stationID, bidRange = None, amount = 1):
+            resultList = []
+            amount = saveAmount
+            for stationID, askList in candidates.iteritems():
+                saveAmount = amount
+                averagePrice = 0.0
+                cumulatedVolume = 0
+                for ask in askList:
+                    solarsystemID = ask.solarSystemID
+                    available = min(ask.volRemaining, saveAmount)
+                    cumulatedVolume += available
+                    saveAmount -= available
+                    averagePrice += available * ask.price
+                    if saveAmount == 0:
+                        break
+
+                if cumulatedVolume < amount:
+                    continue
+                averagePrice = averagePrice / cumulatedVolume
+                resultList.append([averagePrice, stationID, solarsystemID])
+
+            if len(resultList) == 0:
+                return
+            resultList.sort()
+            return resultList[0]
+
+    def GetBestAskInRange(self, typeID, stationID, bidRange=None, amount=1):
         if bidRange is None:
             bidRange = const.rangeRegion
         self.LogInfo('[GetBestAskInRange]', 'typeID:', typeID, 'range:', bidRange, 'amount:', amount)
-        station = sm.GetService('ui').GetStation(stationID)
-        solarSystemID = station.solarSystemID
+        solarSystemID = self.GetSolarSystemForMarketLocation(stationID)
         self.RefreshOrderCache(typeID)
         self.RefreshJumps(typeID, locationID=solarSystemID)
         asks = self.orderCache[typeID][0]
@@ -519,7 +545,9 @@ class MarketQuote(Service):
             if jumps <= bidRange and x.volRemaining >= amount:
                 return x
 
-    def GetBestAskPriceInStationAndNumberOrders(self, typeID, stationID, amount = 1):
+        return
+
+    def GetBestAskPriceInStationAndNumberOrders(self, typeID, stationID, amount=1):
         self.RefreshOrderCache(typeID)
         asks = self.orderCache[typeID][0]
         asksInStation = filter(lambda x: x.stationID == stationID, asks)
@@ -534,7 +562,7 @@ class MarketQuote(Service):
 
         return (None, None)
 
-    def GetBestBidInRange(self, typeID, askRange = None, locationID = None, amount = 1):
+    def GetBestBidInRange(self, typeID, askRange=None, locationID=None, amount=1):
         if askRange is None:
             askRange = const.rangeRegion
         if locationID is None:
@@ -551,42 +579,43 @@ class MarketQuote(Service):
         bids = self.orderCache[typeID][1]
         if len(bids) == 0:
             return
-        if askRange == const.rangeStation:
-            stationID = locationID
-            solarsystemID = sm.RemoteSvc('map').GetStationExtraInfo()[0].Index('stationID')[stationID].solarSystemID
-            constellationID = sm.GetService('map').GetItem(solarsystemID).locationID
-        elif askRange == const.rangeSolarSystem:
-            solarsystemID = locationID
-            constellationID = sm.GetService('map').GetItem(solarsystemID).locationID
-        elif askRange == const.rangeConstellation:
-            constellationID = locationID
-        stationIdx = bids.columns.index('stationID')
-        rangeIdx = bids.columns.index('range')
-        solIdx = bids.columns.index('solarSystemID')
-        conIdx = bids.columns.index('constellationID')
-        minIdx = bids.columns.index('minVolume')
-        found = 0
-        i = 0
-        for x in bids:
-            bidRange = x[rangeIdx]
-            if askRange == const.rangeStation and amount >= x[minIdx] and (x[stationIdx] == stationID or bidRange == const.rangeSolarSystem and x[solIdx] == solarsystemID or bidRange == const.rangeConstellation and x[conIdx] == constellationID or bidRange == const.rangeRegion):
-                found = 1
-                break
-            elif askRange == const.rangeSolarSystem and amount >= x[minIdx] and (bidRange in [const.rangeStation, const.rangeSolarSystem] and x[solIdx] == solarsystemID or bidRange == const.rangeConstellation and x[conIdx] == constellationID or bidRange == const.rangeRegion):
-                found = 1
-                break
-            elif askRange == const.rangeConstellation and amount >= x[minIdx] and (bidRange in [const.rangeStation, const.rangeSolarSystem, const.rangeConstellation] and x[conIdx] == constellationID or bidRange == const.rangeRegion):
-                found = 1
-                break
-            elif askRange == const.rangeRegion and amount >= x[minIdx]:
-                found = 1
-                break
-            i += 1
+        else:
+            if askRange == const.rangeStation:
+                stationID = locationID
+                solarsystemID = sm.RemoteSvc('map').GetStationExtraInfo()[0].Index('stationID')[stationID].solarSystemID
+                constellationID = sm.GetService('map').GetItem(solarsystemID).locationID
+            elif askRange == const.rangeSolarSystem:
+                solarsystemID = locationID
+                constellationID = sm.GetService('map').GetItem(solarsystemID).locationID
+            elif askRange == const.rangeConstellation:
+                constellationID = locationID
+            stationIdx = bids.columns.index('stationID')
+            rangeIdx = bids.columns.index('range')
+            solIdx = bids.columns.index('solarSystemID')
+            conIdx = bids.columns.index('constellationID')
+            minIdx = bids.columns.index('minVolume')
+            found = 0
+            i = 0
+            for x in bids:
+                bidRange = x[rangeIdx]
+                if askRange == const.rangeStation and amount >= x[minIdx] and (x[stationIdx] == stationID or bidRange == const.rangeSolarSystem and x[solIdx] == solarsystemID or bidRange == const.rangeConstellation and x[conIdx] == constellationID or bidRange == const.rangeRegion):
+                    found = 1
+                    break
+                elif askRange == const.rangeSolarSystem and amount >= x[minIdx] and (bidRange in [const.rangeStation, const.rangeSolarSystem] and x[solIdx] == solarsystemID or bidRange == const.rangeConstellation and x[conIdx] == constellationID or bidRange == const.rangeRegion):
+                    found = 1
+                    break
+                elif askRange == const.rangeConstellation and amount >= x[minIdx] and (bidRange in [const.rangeStation, const.rangeSolarSystem, const.rangeConstellation] and x[conIdx] == constellationID or bidRange == const.rangeRegion):
+                    found = 1
+                    break
+                elif askRange == const.rangeRegion and amount >= x[minIdx]:
+                    found = 1
+                    break
+                i += 1
 
-        if not found:
-            return
-        self.LogInfo('[GetBestBidInRange] found:', bids[i])
-        return bids[i]
+            if not found:
+                return
+            self.LogInfo('[GetBestBidInRange] found:', bids[i])
+            return bids[i]
 
     def GetOrders(self, typeID):
         self.RefreshOrderCache(typeID)
@@ -654,7 +683,7 @@ class MarketQuote(Service):
          'filename': localization.GetByLabel('UI/Map/StarMap/lblBoldName', name=filename),
          'directory': localization.GetByLabel('UI/Map/StarMap/lblBoldName', name=directory)})
 
-    def GetOrder(self, orderID, typeID = None):
+    def GetOrder(self, orderID, typeID=None):
         if typeID is not None:
             self.RefreshOrderCache(typeID)
             self.RefreshJumps(typeID)
@@ -668,7 +697,9 @@ class MarketQuote(Service):
                 if order.orderID == orderID:
                     return order
 
-    def RefreshJumps(self, typeID, refreshOrders = 0, locationID = None):
+        return
+
+    def RefreshJumps(self, typeID, refreshOrders=0, locationID=None):
         if refreshOrders:
             self.RefreshOrderCache(typeID)
         asks = self.orderCache[typeID][0]
@@ -680,8 +711,9 @@ class MarketQuote(Service):
         for row in itertools.chain(asks, bids):
             row.jumps = getJumpCountFunc(row.solarSystemID)
 
-        asks.sort(lambda x, y, headers = asks.columns: SortAsks(x, y, headers))
-        bids.sort(lambda x, y, headers = asks.columns: SortBids(x, y, headers))
+        asks.sort(lambda x, y, headers=asks.columns: SortAsks(x, y, headers))
+        bids.sort(lambda x, y, headers=bids.columns: SortBids(x, y, headers))
+        return
 
     def ClearAll(self):
         self.orderCache = {}
@@ -691,7 +723,7 @@ class MarketQuote(Service):
             self.RefreshOrderCache(typeID)
             self.RefreshJumps(typeID)
 
-    def RefreshOrderCache(self, typeID, forceUpdate = 0):
+    def RefreshOrderCache(self, typeID, forceUpdate=0):
         self.LogInfo('[RefreshOrderCache] Refreshing', typeID)
         orders = self.GetMarketProxy().GetOrders(typeID)
         version = sm.GetService('objectCaching').GetCachedMethodCallVersion(None, 'marketProxy', 'GetOrders', (typeID,))
@@ -701,3 +733,4 @@ class MarketQuote(Service):
         asks, bids = orders[0], orders[1]
         self.orderCache[typeID] = [asks, bids, version]
         self.LogInfo('[RefreshOrderCache] Refresh done:', len(orders[0]), 'asks and', len(orders[1]), 'bids')
+        return

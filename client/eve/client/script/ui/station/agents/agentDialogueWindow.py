@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\client\script\ui\station\agents\agentDialogueWindow.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\client\script\ui\station\agents\agentDialogueWindow.py
 import blue
 from carbonui.primitives.flowcontainer import FlowContainer
 from eve.client.script.ui.control.buttons import Button
@@ -38,6 +39,7 @@ class AgentDialogueWindow(uicontrols.Window):
         agentID = attributes.agentID
         if agentID is not None:
             self.SetAgentID(agentID)
+        return
 
     def InitializeBrowsers(self):
         self.sr.briefingBrowser = uicontrols.Edit(parent=self.sr.leftPane, padding=(const.defaultPadding,
@@ -65,13 +67,13 @@ class AgentDialogueWindow(uicontrols.Window):
             sm.StartService('agents').InteractWith(self.sr.agentID, maximize=False)
             self.RefreshBrowsers()
 
-    def OnAgentMissionChange(self, action, agentID, tutorialID = None):
+    def OnAgentMissionChange(self, action, agentID, tutorialID=None):
         if not self.destroyed:
             if action == const.agentMissionModified and self.sr.agentID == agentID:
                 sm.StartService('agents').InteractWith(self.sr.agentID)
                 self.RefreshBrowsers()
 
-    def DefineButtons(self, buttons, okLabel = None, okFunc = 'default', args = 'self', cancelLabel = None, cancelFunc = 'default', okModalResult = 'default', default = None):
+    def DefineButtons(self, buttons, okLabel=None, okFunc='default', args='self', cancelLabel=None, cancelFunc='default', okModalResult='default', default=None):
         if okLabel is None:
             okLabel = localization.GetByLabel('UI/Generic/OK')
         if cancelLabel is None:
@@ -196,6 +198,7 @@ class AgentDialogueWindow(uicontrols.Window):
                 each[5] = each[4] == default
 
         self.buttonCache = btns
+        return
 
     def _InsertButtons(self, buttons, where):
         for btnData in buttons:
@@ -203,7 +206,7 @@ class AgentDialogueWindow(uicontrols.Window):
 
         self.sr.rightPaneBottom.state = uiconst.UI_PICKCHILDREN
 
-    def AddButton(self, label, func, args = None, fixedWidth = None, isModalResult = False, isDefault = False, isCancel = False, hint = None):
+    def AddButton(self, label, func, args=None, fixedWidth=None, isModalResult=False, isDefault=False, isCancel=False, hint=None):
         Button(parent=self.sr.rightPaneBottom, align=uiconst.NOALIGN, label=label, func=func, args=args, btn_modalresult=isModalResult, btn_default=isDefault, btn_cancel=isCancel, name='%s_Btn' % label, hint=hint)
 
     def GetButtonByLabel(self, buttonLabel):
@@ -229,27 +232,29 @@ class AgentDialogueWindow(uicontrols.Window):
         self.htmlCache[where] = html
 
     @telemetry.ZONE_METHOD
-    def LoadHTML(self, html, where = 'briefingBrowser', hideBackground = 0, newThread = 1):
+    def LoadHTML(self, html, where='briefingBrowser', hideBackground=0, newThread=1):
         if self.destroyed:
             return
-        if not self.viewMode and where == 'objectiveBrowser':
-            self.SetDoublePaneView()
-        elif not self.viewMode:
-            self.SetSinglePaneView()
-        targetContainer = self.sr.Get(where, None)
-        if not targetContainer:
-            return
-        self.ShowLoad()
-        self.htmlCache[where] = html
-        targetContainer.sr.hideBackground = hideBackground
-        targetContainer.sr.scrollcontrols.state = uiconst.UI_DISABLED
-        while targetContainer.IsLoading():
-            blue.pyos.synchro.Yield()
+        else:
+            if not self.viewMode and where == 'objectiveBrowser':
+                self.SetDoublePaneView()
+            elif not self.viewMode:
+                self.SetSinglePaneView()
+            targetContainer = self.sr.Get(where, None)
+            if not targetContainer:
+                return
+            self.ShowLoad()
+            self.htmlCache[where] = html
+            targetContainer.sr.hideBackground = hideBackground
+            targetContainer.sr.scrollcontrols.state = uiconst.UI_DISABLED
+            while targetContainer.IsLoading():
+                blue.pyos.synchro.Yield()
 
-        targetContainer.LoadHTML(html, newThread=newThread)
+            targetContainer.LoadHTML(html, newThread=newThread)
+            return
 
     @telemetry.ZONE_METHOD
-    def SetSinglePaneView(self, briefingHtml = None):
+    def SetSinglePaneView(self, briefingHtml=None):
         if self.viewMode == 'SinglePaneView':
             if briefingHtml:
                 self.LoadHTML(briefingHtml, 'briefingBrowser')
@@ -274,7 +279,7 @@ class AgentDialogueWindow(uicontrols.Window):
             self.LoadHTML(self.htmlCache['briefingBrowser'], 'briefingBrowser')
 
     @telemetry.ZONE_METHOD
-    def SetDoublePaneView(self, briefingHtml = None, objectiveHtml = None):
+    def SetDoublePaneView(self, briefingHtml=None, objectiveHtml=None):
         if self.viewMode == 'DoublePaneView':
             if briefingHtml:
                 self.LoadHTML(briefingHtml, 'briefingBrowser')

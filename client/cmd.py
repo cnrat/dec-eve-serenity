@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\carbon\common\stdlib\cmd.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\carbon\common\stdlib\cmd.py
 import string
 __all__ = ['Cmd']
 PROMPT = '(Cmd) '
@@ -17,7 +18,7 @@ class Cmd:
     nohelp = '*** No help on %s'
     use_rawinput = 1
 
-    def __init__(self, completekey = 'tab', stdin = None, stdout = None):
+    def __init__(self, completekey='tab', stdin=None, stdout=None):
         import sys
         if stdin is not None:
             self.stdin = stdin
@@ -29,8 +30,9 @@ class Cmd:
             self.stdout = sys.stdout
         self.cmdqueue = []
         self.completekey = completekey
+        return
 
-    def cmdloop(self, intro = None):
+    def cmdloop(self, intro=None):
         self.preloop()
         if self.use_rawinput and self.completekey:
             try:
@@ -77,6 +79,8 @@ class Cmd:
                 except ImportError:
                     pass
 
+        return
+
     def precmd(self, line):
         return line
 
@@ -93,19 +97,20 @@ class Cmd:
         line = line.strip()
         if not line:
             return (None, None, line)
-        if line[0] == '?':
-            line = 'help ' + line[1:]
-        elif line[0] == '!':
-            if hasattr(self, 'do_shell'):
-                line = 'shell ' + line[1:]
-            else:
-                return (None, None, line)
-        i, n = 0, len(line)
-        while i < n and line[i] in self.identchars:
-            i = i + 1
+        else:
+            if line[0] == '?':
+                line = 'help ' + line[1:]
+            elif line[0] == '!':
+                if hasattr(self, 'do_shell'):
+                    line = 'shell ' + line[1:]
+                else:
+                    return (None, None, line)
+            i, n = 0, len(line)
+            while i < n and line[i] in self.identchars:
+                i = i + 1
 
-        cmd, arg = line[:i], line[i:].strip()
-        return (cmd, arg, line)
+            cmd, arg = line[:i], line[i:].strip()
+            return (cmd, arg, line)
 
     def onecmd(self, line):
         cmd, arg, line = self.parseline(line)
@@ -123,6 +128,7 @@ class Cmd:
                 return self.default(line)
 
             return func(arg)
+            return
 
     def emptyline(self):
         if self.lastcmd:
@@ -163,6 +169,8 @@ class Cmd:
             return self.completion_matches[state]
         except IndexError:
             return
+
+        return
 
     def get_names(self):
         return dir(self.__class__)
@@ -227,7 +235,7 @@ class Cmd:
             self.columnize(cmds, maxcol - 1)
             self.stdout.write('\n')
 
-    def columnize(self, list, displaywidth = 80):
+    def columnize(self, list, displaywidth=80):
         if not list:
             self.stdout.write('<empty>\n')
             return

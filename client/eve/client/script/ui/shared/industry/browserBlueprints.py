@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\client\script\ui\shared\industry\browserBlueprints.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\client\script\ui\shared\industry\browserBlueprints.py
 from collections import defaultdict
 from carbonui.const import TOTOP
 from carbonui.primitives.container import Container
@@ -38,6 +39,7 @@ class BrowserBlueprints(Container):
         self.isInitialized = False
         self.jobData = None
         self.solarsystemIDbyFacilityID = {}
+        return
 
     def SetFocus(self, *args):
         if self.isInitialized:
@@ -85,15 +87,18 @@ class BrowserBlueprints(Container):
         self.UpdateScroll()
 
     @telemetry.ZONE_METHOD
-    def OnActivitySelected(self, itemID, activityID = None):
+    def OnActivitySelected(self, itemID, activityID=None):
         if not self.isInitialized or activityID is None:
             return
-        for node in self.scroll.GetNodes():
-            node.selected = node.bpData.blueprintID == itemID
-            self.scroll.UpdateSelection(node)
-            if node.panel is None:
-                continue
-            node.panel.OnActivitySelected(itemID, activityID)
+        else:
+            for node in self.scroll.GetNodes():
+                node.selected = node.bpData.blueprintID == itemID
+                self.scroll.UpdateSelection(node)
+                if node.panel is None:
+                    continue
+                node.panel.OnActivitySelected(itemID, activityID)
+
+            return
 
     def OnBlueprintReload(self, ownerID):
         if self.destroyed or not self.isInitialized:
@@ -104,14 +109,17 @@ class BrowserBlueprints(Container):
     def OnIndustryJob(self, jobID, ownerID, blueprintID, installerID, status, successfulRuns):
         if not self.isInitialized:
             return
-        for node in self.scroll.GetNodes():
-            if node.bpData.blueprintID == blueprintID:
-                if status < industry.STATUS_COMPLETED:
-                    node.bpData.jobID = jobID
-                else:
-                    node.bpData.jobID = None
-                if node.panel:
-                    node.panel.OnJobStateChanged(status)
+        else:
+            for node in self.scroll.GetNodes():
+                if node.bpData.blueprintID == blueprintID:
+                    if status < industry.STATUS_COMPLETED:
+                        node.bpData.jobID = jobID
+                    else:
+                        node.bpData.jobID = None
+                    if node.panel:
+                        node.panel.OnJobStateChanged(status)
+
+            return
 
     def OnFilterEdit(self):
         self.UpdateScroll()
@@ -151,6 +159,7 @@ class BrowserBlueprints(Container):
             return settings.user.ui.Get('BrowserBlueprintsInvLocationCorp', None)
         else:
             return settings.user.ui.Get('BrowserBlueprintsInvLocation', None)
+            return None
 
     def _GetFacilitySortKey(self, option):
         _, facilityID = option
@@ -203,6 +212,7 @@ class BrowserBlueprints(Container):
             return -1
         else:
             return cmp(idx1, idx2)
+            return
 
     def GetSelectedFacilityID(self):
         facilityID = self.facilityCombo.GetValue()
@@ -223,6 +233,7 @@ class BrowserBlueprints(Container):
         if len(options) != 1:
             options.insert(0, (localization.GetByLabel('UI/Industry/AllInventoryLocations'), (None, None)))
         self.invLocationCombo.LoadOptions(options, select=self.GetDefaultInvLocationSelection())
+        return
 
     def OnOwnerCombo(self, combo, key, value):
         settings.user.ui.Set('IndustryBlueprintBrowserOwner', value)
@@ -288,6 +299,7 @@ class BrowserBlueprints(Container):
                  1))
 
         self.categoryGroupCombo.LoadOptions(options, select=self.GetDefaultCategoryGroup())
+        return
 
     def GetGroupsByCategories(self, blueprints):
         ids = defaultdict(set)
@@ -311,22 +323,24 @@ class BrowserBlueprints(Container):
     def UpdateScroll(self):
         if self.IsHidden() or self.destroyed:
             return None
-        self.scroll.ShowLoading()
-        facilityID = self.GetDefaultFacilitySelection()
-        blueprints, facilities = self.GetBlueprintsData(facilityID)
-        self.UpdateFacilityCombo(facilities)
-        self.UpdateInvLocationCombo(blueprints)
-        self.scroll.HideLoading()
-        if not len(blueprints):
-            self.scroll.LoadContent(noContentHint=localization.GetByLabel('UI/Industry/NoBlueprintsFound'))
+        else:
+            self.scroll.ShowLoading()
+            facilityID = self.GetDefaultFacilitySelection()
+            blueprints, facilities = self.GetBlueprintsData(facilityID)
+            self.UpdateFacilityCombo(facilities)
+            self.UpdateInvLocationCombo(blueprints)
+            self.scroll.HideLoading()
+            if not len(blueprints):
+                self.scroll.LoadContent(noContentHint=localization.GetByLabel('UI/Industry/NoBlueprintsFound'))
+                return None
+            showFacility = facilityID == FACILITY_ALL
+            showLocation = self.invLocationCombo.GetValue() == (None, None)
+            scrollList = self.GetScrollList(blueprints, showFacility, showLocation)
+            self.scroll.sr.defaultColumnWidth = BlueprintEntry.GetDefaultColumnWidth()
+            self.scroll.sr.fixedColumns = BlueprintEntry.GetFixedColumns(self.viewModeButtons.GetViewMode())
+            self.scroll.LoadContent(contentList=scrollList, headers=BlueprintEntry.GetHeaders(showFacility=showFacility, showLocation=showLocation), noContentHint=localization.GetByLabel('UI/Industry/NoBlueprintsFound'))
+            self.UpdateSelectedEntry()
             return None
-        showFacility = facilityID == FACILITY_ALL
-        showLocation = self.invLocationCombo.GetValue() == (None, None)
-        scrollList = self.GetScrollList(blueprints, showFacility, showLocation)
-        self.scroll.sr.defaultColumnWidth = BlueprintEntry.GetDefaultColumnWidth()
-        self.scroll.sr.fixedColumns = BlueprintEntry.GetFixedColumns(self.viewModeButtons.GetViewMode())
-        self.scroll.LoadContent(contentList=scrollList, headers=BlueprintEntry.GetHeaders(showFacility=showFacility, showLocation=showLocation), noContentHint=localization.GetByLabel('UI/Industry/NoBlueprintsFound'))
-        self.UpdateSelectedEntry()
 
     def GetFilteredBlueprints(self, blueprints):
         jumpsCache = {}
@@ -352,7 +366,7 @@ class BrowserBlueprints(Container):
 
         return ret
 
-    def GetScrollList(self, blueprints, showFacility = True, showLocation = True):
+    def GetScrollList(self, blueprints, showFacility=True, showLocation=True):
         scrollList = []
         jumpsAndBlueprints = self.GetFilteredBlueprints(blueprints)
         for jumps, bpData in jumpsAndBlueprints:
@@ -368,6 +382,7 @@ class BrowserBlueprints(Container):
             return sm.GetService('blueprintSvc').GetCorporationBlueprints(facilityID)
         else:
             return sm.GetService('blueprintSvc').GetCharacterBlueprints(facilityID)
+            return
 
     def IsFilteredOut(self, bpData):
         filterText = self.filterEdit.GetValue().strip().lower()
@@ -409,7 +424,7 @@ class BrowserBlueprints(Container):
         if key >= uiconst.VK_0 and key <= uiconst.VK_9 or key == uiconst.VK_BACK:
             sm.ScatterEvent('OnBlueprintBrowserNumericInput', key, flag)
 
-    def SelectActivity(self, bpData, activityID = None):
+    def SelectActivity(self, bpData, activityID=None):
         self.callback(bpData, activityID)
 
     def UpdateOwnerCombo(self):
@@ -421,3 +436,4 @@ class BrowserBlueprints(Container):
              'res:/UI/Texture/classes/Industry/iconCorp.png'))
         select = settings.user.ui.Get('IndustryBlueprintBrowserOwner', OWNER_ME)
         self.ownerCombo.LoadOptions(options, select=select)
+        return

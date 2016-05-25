@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\packages\notifications\client\contactNotificationAdapter.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\packages\notifications\client\contactNotificationAdapter.py
 from notifications.common.notification import Notification
 import blue
 import localization
@@ -24,5 +25,3 @@ class ContactNotificationAdapter(object):
     def OnContactAddedToWatchlist(self, charID, isOnline):
         if isOnline:
             self.OnContactLoggedOn(charID)
-        else:
-            self.OnContactLoggedOff(charID)

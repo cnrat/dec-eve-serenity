@@ -1,8 +1,9 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\client\script\ui\shared\industry\views\outcomeItemContainer.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\client\script\ui\shared\industry\views\outcomeItemContainer.py
 from carbonui.const import CENTER
 from carbonui.primitives.container import Container
 from carbonui.primitives.gradientSprite import GradientSprite
-from carbonui.primitives.sprite import Sprite, VideoSprite
+from carbonui.primitives.sprite import Sprite, StreamingVideoSprite
 from eve.client.script.ui.control.eveIcon import Icon
 from eve.client.script.ui.control.eveLabel import EveLabelLargeBold
 from eve.client.script.ui.control.themeColored import FrameThemeColored, FillThemeColored
@@ -59,6 +60,7 @@ class OutcomeItemContainer(Container):
         self.itemPattern = Sprite(bgParent=self.bgCont, texturePath='res:/UI/Texture/Classes/Industry/Output/itemBgColor.png')
         self.UpdateState()
         self.AnimEntry()
+        return
 
     def OnIndustryViewExpandCollapse(self):
         if not self.previewCont or self.jobData and self.jobData.activityID != industry.MANUFACTURING:
@@ -88,72 +90,74 @@ class OutcomeItemContainer(Container):
         if not self.jobData:
             self.previewCont.Hide()
             return
-        typeID = self.jobData.GetProductTypeID()
-        if IsPreviewable(typeID) and self.jobData.activityID == industry.MANUFACTURING:
-            self.previewCont.Show()
-            self.iconCont.Hide()
-            newModel = self.previewCont.PreviewType(typeID)
-            if newModel:
-                self.previewContFill.Show()
-                self.previewContFill.opacity = 1.0
-                self.previewCont.AnimEntry(1.5, 0.0, 0.5, -0.3)
-                self.previewCont.sceneContainer.scene.sunDirection = (-0.5, -1.0, -1.0)
-            self.bg.Hide()
-            self.qtyLabel.top = 86
-            self.leftProbabilityGradient.Hide()
-            self.rightProbabilityGradient.Hide()
         else:
-            self.iconCont.Show()
-            self.previewCont.Hide()
-            self.bg.Show()
-            self.qtyLabel.top = 42
-            if self.jobData.activityID == industry.RESEARCH_MATERIAL:
-                self.icon.LoadIcon('res:/UI/Texture/Classes/Industry/iconME.png')
-                self.icon.width = self.icon.height = 17
-                self.techIcon.texturePath = None
-            elif self.jobData.activityID == industry.RESEARCH_TIME:
-                self.icon.LoadIcon('res:/UI/Texture/Classes/Industry/iconTE.png')
-                self.techIcon.texturePath = None
-                self.icon.width = self.icon.height = 16
-            else:
-                isCopy = self.jobData.activityID in (industry.COPYING, industry.INVENTION)
-                oldTypeID = self.icon.typeID
-                self.icon.LoadIconByTypeID(typeID, ignoreSize=True, isCopy=isCopy)
-                self.icon.width = self.icon.height = 64
-                texturePath, hint = GetTechLevelIconPathAndHint(typeID)
-                self.techIcon.texturePath = texturePath
-                self.techIcon.hint = hint
-                if oldTypeID != typeID:
-                    uicore.animations.FadeTo(self.icon, 0.0, 1.0, duration=0.6)
-            if self.jobData.activityID == industry.INVENTION:
-                width = self.jobData.probability * 160
-                color = GetJobColor(self.jobData)
-                for gradient in (self.leftProbabilityGradient, self.rightProbabilityGradient):
-                    gradient.Show()
-                    gradient.SetRGBA(*color)
-                    uicore.animations.MorphScalar(gradient, 'width', gradient.width, width, duration=0.6)
-
-            else:
+            typeID = self.jobData.GetProductTypeID()
+            if IsPreviewable(typeID) and self.jobData.activityID == industry.MANUFACTURING:
+                self.previewCont.Show()
+                self.iconCont.Hide()
+                newModel = self.previewCont.PreviewType(typeID)
+                if newModel:
+                    self.previewContFill.Show()
+                    self.previewContFill.opacity = 1.0
+                    self.previewCont.AnimEntry(1.5, 0.0, 0.5, -0.3)
+                    self.previewCont.sceneContainer.scene.sunDirection = (-0.5, -1.0, -1.0)
+                self.bg.Hide()
+                self.qtyLabel.top = 86
                 self.leftProbabilityGradient.Hide()
                 self.rightProbabilityGradient.Hide()
-        if self.jobData and self.jobData.product:
-            self.iconCont.opacity = 1.0
-            uicore.animations.FadeTo(self.bgCont, self.bgCont.opacity, 1.0, duration=0.3)
-            self.errorFrame.Hide()
-        else:
-            self.iconCont.opacity = 0.0
-            uicore.animations.FadeTo(self.bgCont, 0.3, 1.0, duration=2.0, curveType=uiconst.ANIM_WAVE, loops=uiconst.ANIM_REPEAT)
-            self.errorFrame.Show()
-        self.UpdateOutputQty()
-        self.StopVideo()
-        if self.jobData.status == industry.STATUS_DELIVERED:
-            self.PlayVideoDelivered()
+            else:
+                self.iconCont.Show()
+                self.previewCont.Hide()
+                self.bg.Show()
+                self.qtyLabel.top = 42
+                if self.jobData.activityID == industry.RESEARCH_MATERIAL:
+                    self.icon.LoadIcon('res:/UI/Texture/Classes/Industry/iconME.png')
+                    self.icon.width = self.icon.height = 17
+                    self.techIcon.texturePath = None
+                elif self.jobData.activityID == industry.RESEARCH_TIME:
+                    self.icon.LoadIcon('res:/UI/Texture/Classes/Industry/iconTE.png')
+                    self.techIcon.texturePath = None
+                    self.icon.width = self.icon.height = 16
+                else:
+                    isCopy = self.jobData.activityID in (industry.COPYING, industry.INVENTION)
+                    oldTypeID = self.icon.typeID
+                    self.icon.LoadIconByTypeID(typeID, ignoreSize=True, isCopy=isCopy)
+                    self.icon.width = self.icon.height = 64
+                    texturePath, hint = GetTechLevelIconPathAndHint(typeID)
+                    self.techIcon.texturePath = texturePath
+                    self.techIcon.hint = hint
+                    if oldTypeID != typeID:
+                        uicore.animations.FadeTo(self.icon, 0.0, 1.0, duration=0.6)
+                if self.jobData.activityID == industry.INVENTION:
+                    width = self.jobData.probability * 160
+                    color = GetJobColor(self.jobData)
+                    for gradient in (self.leftProbabilityGradient, self.rightProbabilityGradient):
+                        gradient.Show()
+                        gradient.SetRGBA(*color)
+                        uicore.animations.MorphScalar(gradient, 'width', gradient.width, width, duration=0.6)
+
+                else:
+                    self.leftProbabilityGradient.Hide()
+                    self.rightProbabilityGradient.Hide()
+            if self.jobData and self.jobData.product:
+                self.iconCont.opacity = 1.0
+                uicore.animations.FadeTo(self.bgCont, self.bgCont.opacity, 1.0, duration=0.3)
+                self.errorFrame.Hide()
+            else:
+                self.iconCont.opacity = 0.0
+                uicore.animations.FadeTo(self.bgCont, 0.3, 1.0, duration=2.0, curveType=uiconst.ANIM_WAVE, loops=uiconst.ANIM_REPEAT)
+                self.errorFrame.Show()
+            self.UpdateOutputQty()
+            self.StopVideo()
+            if self.jobData.status == industry.STATUS_DELIVERED:
+                self.PlayVideoDelivered()
+            return
 
     def PlayVideoDelivered(self):
-        self.PlayVideo('res:/video/Industry/deliveredIntro.bk2', 'res:/video/Industry/deliveredOutro.bk2', industryUIConst.GetActivityColor(self.jobData.activityID))
+        self.PlayVideo('res:/video/Industry/deliveredIntro.webm', 'res:/video/Industry/deliveredOutro.webm', industryUIConst.GetActivityColor(self.jobData.activityID))
 
     def PlayVideoFailed(self):
-        self.PlayVideo('res:/video/Industry/failedIntro.bk2', 'res:/video/Industry/failedOutro.bk2', industryUIConst.COLOR_NOTREADY)
+        self.PlayVideo('res:/video/Industry/failedIntro.webm', 'res:/video/Industry/failedOutro.webm', industryUIConst.COLOR_NOTREADY)
 
     def StopVideo(self):
         if self.videoThread:
@@ -165,13 +169,13 @@ class OutcomeItemContainer(Container):
 
     def _PlayVideo(self, introPath, outroPath, color):
         self.videoCont.Flush()
-        videoSprite = VideoSprite(parent=self.videoCont, align=uiconst.TOALL, spriteEffect=trinity.TR2_SFX_COPY, videoPath=introPath, color=color)
+        videoSprite = StreamingVideoSprite(parent=self.videoCont, align=uiconst.TOALL, spriteEffect=trinity.TR2_SFX_COPY, videoPath=introPath, color=color)
         while not videoSprite.isFinished:
             blue.synchro.Yield()
 
         blue.synchro.SleepWallclock(3000)
         videoSprite.Close()
-        videoSprite = VideoSprite(parent=self.videoCont, align=uiconst.TOALL, spriteEffect=trinity.TR2_SFX_COPY, videoPath=outroPath, color=color)
+        videoSprite = StreamingVideoSprite(parent=self.videoCont, align=uiconst.TOALL, spriteEffect=trinity.TR2_SFX_COPY, videoPath=outroPath, color=color)
         while not videoSprite.isFinished:
             blue.synchro.Yield()
 
@@ -180,8 +184,9 @@ class OutcomeItemContainer(Container):
     def GetMenu(self):
         if not self.jobData.product:
             return None
-        abstractInfo = KeyVal(bpData=self.GetBpData())
-        return sm.GetService('menu').GetMenuFormItemIDTypeID(None, self.jobData.product.typeID, ignoreMarketDetails=False, abstractInfo=abstractInfo)
+        else:
+            abstractInfo = KeyVal(bpData=self.GetBpData())
+            return sm.GetService('menu').GetMenuFormItemIDTypeID(None, self.jobData.product.typeID, ignoreMarketDetails=False, abstractInfo=abstractInfo)
 
     def LoadIconContTooltipPanel(self, tooltipPanel, *args):
         if self.jobData.activityID in (industry.RESEARCH_TIME, industry.RESEARCH_MATERIAL):
@@ -195,11 +200,12 @@ class OutcomeItemContainer(Container):
         typeID = self.jobData.GetProductTypeID()
         if not typeID:
             return
-        if isinstance(self.jobData.product, industry.Blueprint):
-            bpData = self.jobData.product.GetCopy()
         else:
-            bpData = None
-        return [KeyVal(__guid__='uicls.GenericDraggableForTypeID', typeID=typeID, label=evetypes.GetName(typeID), bpData=bpData)]
+            if isinstance(self.jobData.product, industry.Blueprint):
+                bpData = self.jobData.product.GetCopy()
+            else:
+                bpData = None
+            return [KeyVal(__guid__='uicls.GenericDraggableForTypeID', typeID=typeID, label=evetypes.GetName(typeID), bpData=bpData)]
 
     def UpdateOutputQty(self):
         if not self.jobData or not self.jobData.product:
@@ -216,7 +222,8 @@ class OutcomeItemContainer(Container):
     def GetBpData(self):
         if not isinstance(self.jobData.product, industry.Blueprint):
             return None
-        return self.jobData.product.GetCopy()
+        else:
+            return self.jobData.product.GetCopy()
 
     def OnIconContClick(self, *args):
         if not self.jobData:

@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\client\script\ui\shared\vgs\loading.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\client\script\ui\shared\vgs\loading.py
 from carbonui import const as uiconst
 from carbonui.primitives.container import Container
 from carbonui.primitives.containerAutoSize import ContainerAutoSize
@@ -16,6 +17,7 @@ class VgsLoadingPanel(Container):
         VgsLoadingWheel(parent=wheelWrap, align=uiconst.CENTER)
         labelWrap = ContainerAutoSize(parent=mainCont, align=uiconst.TOTOP)
         VgsLabelLarge(parent=labelWrap, align=uiconst.CENTER, text=text)
+        return
 
 
 class VgsLoadingWheel(Container):

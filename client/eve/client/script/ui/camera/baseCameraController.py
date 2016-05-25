@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\client\script\ui\camera\baseCameraController.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\client\script\ui\camera\baseCameraController.py
 import math
 from achievements.common.achievementConst import AchievementConsts
 from achievements.common.eventExceptionEater import AchievementEventExceptionEater
@@ -9,6 +10,7 @@ import trinity
 import carbonui.const as uiconst
 from eve.client.script.ui.util.uix import GetBallparkRecord
 from eve.client.script.parklife import states
+from eve.common.script.sys.eveCfg import InSpace
 import geo2
 import uthread
 import blue
@@ -21,6 +23,8 @@ class BaseCameraController(object):
         self.zoomAchievementCompleted = False
         self.rotateAchievementCompleted = False
         self.cameraStillSpinning = False
+        self.enablePickTransparent = False
+        return
 
     def OnMouseEnter(self, *args):
         pass
@@ -45,6 +49,7 @@ class BaseCameraController(object):
         if isRightBtn:
             uthread.new(sm.GetService('target').CancelTargetOrder)
         self.mouseDownPos = None
+        return
 
     def IsMouseDragged(self):
         mt = self.GetMouseTravel()
@@ -62,22 +67,24 @@ class BaseCameraController(object):
     def GetCamera(self):
         return sm.GetService('sceneManager').GetRegisteredCamera(self.cameraID)
 
-    def GetPick(self, x = None, y = None):
+    def GetPick(self, x=None, y=None):
         if not trinity.app.IsActive():
             return (None, None)
-        sceneMan = sm.GetService('sceneManager')
-        if sceneMan.IsLoadingScene('default'):
+        else:
+            sceneMan = sm.GetService('sceneManager')
+            if sceneMan.IsLoadingScene('default'):
+                return (None, None)
+            x = x or uicore.uilib.x
+            y = y or uicore.uilib.y
+            scene = sceneMan.GetRegisteredScene('default')
+            x, y = uicore.ScaleDpi(x), uicore.ScaleDpi(y)
+            if scene:
+                camera = self.GetCamera()
+                filter = trinity.Tr2PickType.PICK_TYPE_PICKING | trinity.Tr2PickType.PICK_TYPE_OPAQUE | (trinity.Tr2PickType.PICK_TYPE_TRANSPARENT if self.enablePickTransparent else 0)
+                pick = scene.PickObject(x, y, camera.projectionMatrix, camera.viewMatrix, trinity.device.viewport, filter)
+                if pick:
+                    return ('scene', pick)
             return (None, None)
-        x = x or uicore.uilib.x
-        y = y or uicore.uilib.y
-        scene = sceneMan.GetRegisteredScene('default')
-        x, y = uicore.ScaleDpi(x), uicore.ScaleDpi(y)
-        if scene:
-            camera = self.GetCamera()
-            pick = scene.PickObject(x, y, camera.projectionMatrix, camera.viewMatrix, trinity.device.viewport)
-            if pick:
-                return ('scene', pick)
-        return (None, None)
 
     def GetPickVector(self):
         x = int(uicore.uilib.x * uicore.desktop.dpiScaling)
@@ -122,8 +129,11 @@ class BaseCameraController(object):
             return int(v.Length())
         else:
             return None
+            return None
 
     def CheckInSceneCursorPicked(self, pickobject):
+        if not InSpace():
+            return
         if sm.IsServiceRunning('scenario') and sm.GetService('scenario').IsActive():
             self.isMovingSceneCursor = sm.GetService('scenario').GetPickAxis()
         elif pickobject and sm.GetService('posAnchor').IsActive() and pickobject.name[:6] == 'cursor':
@@ -135,7 +145,8 @@ class BaseCameraController(object):
             if sm.GetService('posAnchor').IsActive():
                 sm.GetService('posAnchor').StopMovingCursor()
             return True
-        return False
+        else:
+            return False
 
     def CheckMoveSceneCursor(self):
         if not self.isMovingSceneCursor or not uicore.uilib.leftbtn:
@@ -182,6 +193,8 @@ class BaseCameraController(object):
 
         except Exception as e:
             LogException(e)
+
+        return
 
     def RecordOrbitForAchievements(self):
         with AchievementEventExceptionEater():

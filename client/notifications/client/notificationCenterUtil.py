@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\packages\notifications\client\notificationCenterUtil.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\packages\notifications\client\notificationCenterUtil.py
 from notifications.client.notificationSettings.notificationSettingConst import ExpandAlignmentConst
 
 class ExpandEvaluator:
@@ -69,6 +70,7 @@ class AlignmentTransitioner:
         self.neededHorizontalAlignment = None
         self.SetAlignments(verticalAlignment=verticalAlignment, horizontalAlignment=horizontalAlignment)
         self.expandEvaluator = expandEvaluator
+        return
 
     def SetAlignments(self, verticalAlignment, horizontalAlignment):
         self.verticalAlignment = verticalAlignment
@@ -84,6 +86,7 @@ class AlignmentTransitioner:
             self.neededHorizontalAlignment = self.horizontalAlignment
         else:
             self.neededHorizontalAlignment = None
+        return
 
     def CheckVerticalAlignBackNeeded(self):
         expand = self.expandEvaluator

@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\packages\probescanning\const.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\packages\probescanning\const.py
 import inventorycommon.const
 import dogma.const
 MAX_PROBES = 8
@@ -24,15 +25,15 @@ probeScanGroupDronesAndProbes = 32
 probeScanGroupCelestials = 64
 probeScanGroupAnomalies = 128
 probeScanGroups = {}
-probeScanGroups[probeScanGroupScrap] = set([inventorycommon.const.groupAuditLogSecureContainer,
+probeScanGroups[probeScanGroupScrap] = {inventorycommon.const.groupAuditLogSecureContainer,
  inventorycommon.const.groupBiomass,
  inventorycommon.const.groupCargoContainer,
  inventorycommon.const.groupFreightContainer,
  inventorycommon.const.groupSecureCargoContainer,
- inventorycommon.const.groupWreck])
-probeScanGroups[probeScanGroupSignatures] = set([inventorycommon.const.groupCosmicSignature])
-probeScanGroups[probeScanGroupAnomalies] = set([inventorycommon.const.groupCosmicAnomaly])
-probeScanGroups[probeScanGroupShips] = set([inventorycommon.const.groupAssaultShip,
+ inventorycommon.const.groupWreck}
+probeScanGroups[probeScanGroupSignatures] = {inventorycommon.const.groupCosmicSignature}
+probeScanGroups[probeScanGroupAnomalies] = {inventorycommon.const.groupCosmicAnomaly}
+probeScanGroups[probeScanGroupShips] = {inventorycommon.const.groupAssaultShip,
  inventorycommon.const.groupAttackBattlecruiser,
  inventorycommon.const.groupBattlecruiser,
  inventorycommon.const.groupBattleship,
@@ -53,6 +54,7 @@ probeScanGroups[probeScanGroupShips] = set([inventorycommon.const.groupAssaultSh
  inventorycommon.const.groupExhumer,
  inventorycommon.const.groupExpeditionFrigate,
  inventorycommon.const.groupForceReconShip,
+ inventorycommon.const.groupForceAux,
  inventorycommon.const.groupFreighter,
  inventorycommon.const.groupFrigate,
  inventorycommon.const.groupHeavyAssaultShip,
@@ -74,8 +76,8 @@ probeScanGroups[probeScanGroupShips] = set([inventorycommon.const.groupAssaultSh
  inventorycommon.const.groupTacticalDestroyer,
  inventorycommon.const.groupTitan,
  inventorycommon.const.groupTransportShip,
- inventorycommon.const.groupStrategicCruiser])
-probeScanGroups[probeScanGroupStructures] = set([inventorycommon.const.groupConstructionPlatform,
+ inventorycommon.const.groupStrategicCruiser}
+probeScanGroups[probeScanGroupStructures] = {inventorycommon.const.groupConstructionPlatform,
  inventorycommon.const.groupStationUpgradePlatform,
  inventorycommon.const.groupStationImprovementPlatform,
  inventorycommon.const.groupMobileWarpDisruptor,
@@ -123,12 +125,11 @@ probeScanGroups[probeScanGroupStructures] = set([inventorycommon.const.groupCons
  inventorycommon.const.groupSiphonPseudoSilo,
  inventorycommon.const.groupMobileScanInhibitor,
  inventorycommon.const.groupMobileMicroJumpUnit,
- inventorycommon.const.groupEncounterSurveillanceSystem])
-probeScanGroups[probeScanGroupDronesAndProbes] = set([inventorycommon.const.groupCapDrainDrone,
+ inventorycommon.const.groupEncounterSurveillanceSystem,
+ inventorycommon.const.groupStructureCitadel}
+probeScanGroups[probeScanGroupDronesAndProbes] = {inventorycommon.const.groupCapDrainDrone,
  inventorycommon.const.groupCombatDrone,
  inventorycommon.const.groupElectronicWarfareDrone,
- inventorycommon.const.groupFighterDrone,
- inventorycommon.const.groupFighterBomber,
  inventorycommon.const.groupLogisticDrone,
  inventorycommon.const.groupMiningDrone,
  inventorycommon.const.groupProximityDrone,
@@ -139,14 +140,17 @@ probeScanGroups[probeScanGroupDronesAndProbes] = set([inventorycommon.const.grou
  inventorycommon.const.groupScannerProbe,
  inventorycommon.const.groupSurveyProbe,
  inventorycommon.const.groupSalvageDrone,
- inventorycommon.const.groupWarpDisruptionProbe])
-probeScanGroups[probeScanGroupCelestials] = set([inventorycommon.const.groupAsteroidBelt,
+ inventorycommon.const.groupWarpDisruptionProbe,
+ inventorycommon.const.groupLightFighter,
+ inventorycommon.const.groupSupportFighter,
+ inventorycommon.const.groupHeavyFighter}
+probeScanGroups[probeScanGroupCelestials] = {inventorycommon.const.groupAsteroidBelt,
  inventorycommon.const.groupForceField,
  inventorycommon.const.groupMoon,
  inventorycommon.const.groupPlanet,
  inventorycommon.const.groupStargate,
  inventorycommon.const.groupSun,
- inventorycommon.const.groupStation])
+ inventorycommon.const.groupStation}
 probeScanCosmicSignatureAttributes = {dogma.const.attributeScanGravimetricStrength,
  dogma.const.attributeScanLadarStrength,
  dogma.const.attributeScanMagnetometricStrength,

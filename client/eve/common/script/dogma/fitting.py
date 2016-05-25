@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\common\script\dogma\fitting.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\common\script\dogma\fitting.py
 from dogma.effects import Effect
 
 class LauncherFittedEffect(Effect):
@@ -51,10 +52,24 @@ class SubSystemFittedEffect(Effect):
     __effectIDs__ = ['effectSubSystem']
 
     def Start(self, env, dogmaLM, itemID, shipID, charID, otherID, targetID):
-        return 1
+        pass
 
     def Stop(self, env, dogmaLM, itemID, shipID, charID, otherID, targetID):
-        return 1
+        pass
 
     def RestrictedStop(self, env, dogmaLM, itemID, shipID, charID, otherID, targetID):
-        return 1
+        pass
+
+
+class ServiceSlotFittedEffect(Effect):
+    __guid__ = 'dogmaXP.ServiceSlotFittedEffect'
+    __effectIDs__ = ['effectServiceSlot']
+
+    def Start(self, env, dogmaLM, itemID, shipID, charID, otherID, targetID):
+        pass
+
+    def Stop(self, env, dogmaLM, itemID, shipID, charID, otherID, targetID):
+        pass
+
+    def RestrictedStop(self, env, dogmaLM, itemID, shipID, charID, otherID, targetID):
+        pass

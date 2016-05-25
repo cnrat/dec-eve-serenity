@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\carbon\common\lib\jinja2\loaders.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\carbon\common\lib\jinja2\loaders.py
 import os
 import sys
 import weakref
@@ -35,7 +36,7 @@ class BaseLoader(object):
         raise TypeError('this loader cannot iterate over all templates')
 
     @internalcode
-    def load(self, environment, name, globals = None):
+    def load(self, environment, name, globals=None):
         code = None
         if globals is None:
             globals = {}
@@ -54,7 +55,7 @@ class BaseLoader(object):
 
 class FileSystemLoader(BaseLoader):
 
-    def __init__(self, searchpath, encoding = 'utf-8'):
+    def __init__(self, searchpath, encoding='utf-8'):
         if isinstance(searchpath, basestring):
             searchpath = [searchpath]
         self.searchpath = list(searchpath)
@@ -83,6 +84,7 @@ class FileSystemLoader(BaseLoader):
             return (contents, filename, uptodate)
 
         raise TemplateNotFound(template)
+        return
 
     def list_templates(self):
         found = set()
@@ -100,7 +102,7 @@ class FileSystemLoader(BaseLoader):
 
 class PackageLoader(BaseLoader):
 
-    def __init__(self, package_name, package_path = 'templates', encoding = 'utf-8'):
+    def __init__(self, package_name, package_path='templates', encoding='utf-8'):
         from pkg_resources import DefaultProvider, ResourceManager, get_provider
         provider = get_provider(package_name)
         self.encoding = encoding
@@ -159,7 +161,9 @@ class DictLoader(BaseLoader):
         if template in self.mapping:
             source = self.mapping[template]
             return (source, None, lambda : source != self.mapping.get(template))
-        raise TemplateNotFound(template)
+        else:
+            raise TemplateNotFound(template)
+            return None
 
     def list_templates(self):
         return sorted(self.mapping)
@@ -181,7 +185,7 @@ class FunctionLoader(BaseLoader):
 
 class PrefixLoader(BaseLoader):
 
-    def __init__(self, mapping, delimiter = '/'):
+    def __init__(self, mapping, delimiter='/'):
         self.mapping = mapping
         self.delimiter = delimiter
 
@@ -202,7 +206,7 @@ class PrefixLoader(BaseLoader):
             raise TemplateNotFound(template)
 
     @internalcode
-    def load(self, environment, name, globals = None):
+    def load(self, environment, name, globals=None):
         loader, local_name = self.get_loader(name)
         try:
             return loader.load(environment, local_name)
@@ -233,7 +237,7 @@ class ChoiceLoader(BaseLoader):
         raise TemplateNotFound(template)
 
     @internalcode
-    def load(self, environment, name, globals = None):
+    def load(self, environment, name, globals=None):
         for loader in self.loaders:
             try:
                 return loader.load(environment, name, globals)
@@ -278,7 +282,7 @@ class ModuleLoader(BaseLoader):
         return ModuleLoader.get_template_key(name) + '.py'
 
     @internalcode
-    def load(self, environment, name, globals = None):
+    def load(self, environment, name, globals=None):
         key = self.get_template_key(name)
         module = '%s.%s' % (self.package_name, key)
         mod = getattr(self.module, module, None)

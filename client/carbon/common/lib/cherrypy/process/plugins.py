@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\carbon\common\lib\cherrypy\process\plugins.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\carbon\common\lib\cherrypy\process\plugins.py
 import os
 import re
 import signal as _signal
@@ -20,11 +21,15 @@ class SimplePlugin(object):
             if method is not None:
                 self.bus.subscribe(channel, method)
 
+        return
+
     def unsubscribe(self):
         for channel in self.bus.listeners:
             method = getattr(self, channel, None)
             if method is not None:
                 self.bus.unsubscribe(channel, method)
+
+        return
 
 
 class SignalHandler(object):
@@ -49,7 +54,7 @@ class SignalHandler(object):
             self.handlers['SIGINT'] = self._jython_SIGINT_handler
         self._previous_handlers = {}
 
-    def _jython_SIGINT_handler(self, signum = None, frame = None):
+    def _jython_SIGINT_handler(self, signum=None, frame=None):
         self.bus.log('Keyboard Interrupt: shutting down bus')
         self.bus.exit()
 
@@ -75,7 +80,9 @@ class SignalHandler(object):
             except ValueError:
                 self.bus.log('Unable to restore %s handler %r.' % (signame, handler), level=40, traceback=True)
 
-    def set_handler(self, signal, listener = None):
+        return
+
+    def set_handler(self, signal, listener=None):
         if isinstance(signal, basestring):
             signum = getattr(_signal, signal, None)
             if signum is None:
@@ -93,8 +100,9 @@ class SignalHandler(object):
         if listener is not None:
             self.bus.log('Listening for %s.' % signame)
             self.bus.subscribe(signame, listener)
+        return
 
-    def _handle_signal(self, signum = None, frame = None):
+    def _handle_signal(self, signum=None, frame=None):
         signame = self.signals[signum]
         self.bus.log('Caught signal %s.' % signame)
         self.bus.publish(signame)
@@ -115,7 +123,7 @@ except ImportError:
 
 class DropPrivileges(SimplePlugin):
 
-    def __init__(self, bus, umask = None, uid = None, gid = None):
+    def __init__(self, bus, umask=None, uid=None, gid=None):
         SimplePlugin.__init__(self, bus)
         self.finalized = False
         self.uid = uid
@@ -133,6 +141,7 @@ class DropPrivileges(SimplePlugin):
             elif isinstance(val, basestring):
                 val = pwd.getpwnam(val)[2]
         self._uid = val
+        return
 
     uid = property(_get_uid, _set_uid, doc='The uid under which to run. Availability: Unix.')
 
@@ -147,6 +156,7 @@ class DropPrivileges(SimplePlugin):
             elif isinstance(val, basestring):
                 val = grp.getgrnam(val)[2]
         self._gid = val
+        return
 
     gid = property(_get_gid, _set_gid, doc='The gid under which to run. Availability: Unix.')
 
@@ -162,6 +172,7 @@ class DropPrivileges(SimplePlugin):
                 val = None
 
         self._umask = val
+        return
 
     umask = property(_get_umask, _set_umask, doc='The default permission mode for newly created files and directories.\n        \n        Usually expressed in octal format, for example, ``0644``.\n        Availability: Unix, Windows.\n        ')
 
@@ -198,13 +209,14 @@ class DropPrivileges(SimplePlugin):
             old_umask = os.umask(self.umask)
             self.bus.log('umask old: %03o, new: %03o' % (old_umask, self.umask))
         self.finalized = True
+        return
 
     start.priority = 77
 
 
 class Daemonizer(SimplePlugin):
 
-    def __init__(self, bus, stdin = '/dev/null', stdout = '/dev/null', stderr = '/dev/null'):
+    def __init__(self, bus, stdin='/dev/null', stdout='/dev/null', stderr='/dev/null'):
         SimplePlugin.__init__(self, bus)
         self.stdin = stdin
         self.stdout = stdout
@@ -297,7 +309,7 @@ class PerpetualTimer(threading._Timer):
 
 class BackgroundTask(threading.Thread):
 
-    def __init__(self, interval, function, args = [], kwargs = {}):
+    def __init__(self, interval, function, args=[], kwargs={}):
         threading.Thread.__init__(self)
         self.interval = interval
         self.function = function
@@ -329,12 +341,13 @@ class Monitor(SimplePlugin):
     frequency = 60
     thread = None
 
-    def __init__(self, bus, callback, frequency = 60, name = None):
+    def __init__(self, bus, callback, frequency=60, name=None):
         SimplePlugin.__init__(self, bus)
         self.callback = callback
         self.frequency = frequency
         self.thread = None
         self.name = name
+        return
 
     def start(self):
         if self.frequency > 0:
@@ -347,6 +360,7 @@ class Monitor(SimplePlugin):
                 self.bus.log('Started monitor thread %r.' % threadname)
             else:
                 self.bus.log('Monitor thread %r already started.' % threadname)
+        return
 
     start.priority = 70
 
@@ -362,6 +376,7 @@ class Monitor(SimplePlugin):
                     self.thread.join()
                 self.bus.log('Stopped thread %r.' % name)
             self.thread = None
+        return
 
     def graceful(self):
         self.stop()
@@ -373,7 +388,7 @@ class Autoreloader(Monitor):
     frequency = 1
     match = '.*'
 
-    def __init__(self, bus, frequency = 1, match = '.*'):
+    def __init__(self, bus, frequency=1, match='.*'):
         self.mtimes = {}
         self.files = set()
         self.match = match
@@ -383,6 +398,7 @@ class Autoreloader(Monitor):
         if self.thread is None:
             self.mtimes = {}
         Monitor.start(self)
+        return
 
     start.priority = 70
 
@@ -422,6 +438,8 @@ class Autoreloader(Monitor):
                     self.bus.restart()
                     return
 
+        return
+
 
 class ThreadManager(SimplePlugin):
     threads = None
@@ -446,6 +464,7 @@ class ThreadManager(SimplePlugin):
         i = self.threads.pop(thread_ident, None)
         if i is not None:
             self.bus.publish('stop_thread', i)
+        return
 
     def stop(self):
         for thread_ident, i in self.threads.items():

@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\carbon\client\script\movement\inputMap.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\carbon\client\script\movement\inputMap.py
 import geo2
 STATIC_MOVEMENT_STATES_FILE = 'res:/Animation/movementStates.yaml'
 
@@ -17,6 +18,7 @@ class InputMap:
         self.timeToTransition = 0
         self.timeToInterrupt = 0
         self.runToggle = False
+        return
 
     def GetDesiredState(self, x, z, mbMove):
         inputState = (int(x), int(z), int(mbMove))
@@ -51,3 +53,4 @@ class InputMap:
                     return
             if hasattr(mode, 'SetMetaState'):
                 mode.SetMetaState(metaStateIndex, baseSpeed)
+        return

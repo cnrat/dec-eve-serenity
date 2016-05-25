@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\carbon\client\script\animation\animationController.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\carbon\client\script\animation\animationController.py
 import log
 INVALID_TRACK_ID = -1
 
@@ -18,6 +19,7 @@ class AnimationController(object):
         self._MapEventTrackNames()
         self._MapControlParameterValues()
         self.Run()
+        return
 
     def Run(self):
         pass
@@ -52,26 +54,30 @@ class AnimationController(object):
         if name not in self.controlParameterIDs:
             log.LogError('Attempting to set a value to an invalid control parameter %s!' % name)
             return
-        cpID = self.controlParameterIDs[name]
-        if self.controlParameterValues[cpID] != args and self.animationNetwork is not None:
-            self.controlParameterValues[cpID] = args
-            self.animationNetwork.SetControlParameterByID(cpID, args)
+        else:
+            cpID = self.controlParameterIDs[name]
+            if self.controlParameterValues[cpID] != args and self.animationNetwork is not None:
+                self.controlParameterValues[cpID] = args
+                self.animationNetwork.SetControlParameterByID(cpID, args)
+            return
 
-    def GetControlParameter(self, name, forceLookup = False):
+    def GetControlParameter(self, name, forceLookup=False):
         name = 'ControlParameters|' + name
         cpID = self.controlParameterIDs.get(name)
         value = self.controlParameterValues.get(cpID)
         if value is not None:
             return value
-        self.controlParameterValues[id] = self.animationNetwork.GetControlParameterValueByID(cpID)
-        log.LogError('Attempted to get a control parameter value %s, but it does not exist!' % name)
+        else:
+            self.controlParameterValues[id] = self.animationNetwork.GetControlParameterValueByID(cpID)
+            log.LogError('Attempted to get a control parameter value %s, but it does not exist!' % name)
+            return
 
-    def GetAllControlParameterValues(self, force = False):
+    def GetAllControlParameterValues(self, force=False):
         if force is True:
             self._MapControlParameterValues()
         return self.controlParameterValues
 
-    def GetAllControlParameterValuesByName(self, force = False):
+    def GetAllControlParameterValuesByName(self, force=False):
         if force is True:
             self._MapControlParameterValues()
         nameDict = {}
@@ -87,6 +93,7 @@ class AnimationController(object):
                 self.animationNetwork.BroadcastRequestByID(bcID)
             else:
                 log.LogError('Attempted to broadcast the %s request, but it does not exist!' % name)
+        return
 
     def SetTargetController(self, animationController):
         self.targetController = animationController
@@ -113,7 +120,9 @@ class AnimationController(object):
             for priority, behavior in self.behaviors:
                 behavior.Update(self)
 
-    def AddBehavior(self, behavior, priority = 100):
+        return
+
+    def AddBehavior(self, behavior, priority=100):
         self.behaviors.append((priority, behavior))
         self.behaviors.sort()
         behavior.OnAdd(self)
@@ -127,6 +136,7 @@ class AnimationController(object):
 
         if toRemove is not None:
             self.behaviors.remove(toRemove)
+        return
 
     def ResetBehaviors(self):
         for priority, behavior in self.behaviors:

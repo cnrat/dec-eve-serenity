@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\packages\carbonui\uianimations.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\packages\carbonui\uianimations.py
 from carbonui.util.color import Color
 import trinity
 import math
@@ -16,13 +17,13 @@ class UIAnimations(object):
     def __init__(self):
         self.curvesByObjectIDAttrName = {}
 
-    def CreateCurveSet(self, useRealTime = True):
+    def CreateCurveSet(self, useRealTime=True):
         curveSet = trinity.TriCurveSet()
         curveSet.useRealTime = useRealTime
         trinity.device.curveSets.append(curveSet)
         return curveSet
 
-    def Play(self, curve, obj, attrName, loops = 1, callback = None, sleep = False, curveSet = None):
+    def Play(self, curve, obj, attrName, loops=1, callback=None, sleep=False, curveSet=None):
         curve.cycle = loops is uiconst.ANIM_REPEAT or loops > 1
         if not curveSet:
             curveSet = self.CreateCurveSet(useRealTime=True)
@@ -71,6 +72,7 @@ class UIAnimations(object):
         if curveSet and curveSet.object:
             curveSet.callback = None
             curveSet.object.Stop()
+        return
 
     @telemetry.ZONE_METHOD
     def StopAllAnimations(self, obj):
@@ -89,30 +91,33 @@ class UIAnimations(object):
         wr = self.curvesByObjectIDAttrName.get(key, None)
         if wr:
             return wr.object
+        else:
+            return
 
     def OnWeakRefLost(self, key):
         self.curvesByObjectIDAttrName.pop(key, None)
+        return
 
     def GetMaxTimeOffset(self, curveSet):
         return max([ getattr(curve, 'timeOffset', 0.0) for curve in curveSet.curves ])
 
-    def MorphScalar(self, obj, attrName, startVal = 0.0, endVal = 1.0, duration = 0.75, loops = 1, curveType = uiconst.ANIM_SMOOTH, callback = None, sleep = False, curveSet = None, timeOffset = 0.0):
+    def MorphScalar(self, obj, attrName, startVal=0.0, endVal=1.0, duration=0.75, loops=1, curveType=uiconst.ANIM_SMOOTH, callback=None, sleep=False, curveSet=None, timeOffset=0.0):
         curve = self.GetScalar(startVal, endVal, duration, curveType, timeOffset=timeOffset)
         return self.Play(curve, obj, attrName, loops, callback, sleep, curveSet)
 
-    def MorphVector2(self, obj, attrName, startVal = (0.0, 0.0), endVal = (1.0, 1.0), duration = 0.75, loops = 1, curveType = uiconst.ANIM_SMOOTH, callback = None, sleep = False, timeOffset = 0.0):
+    def MorphVector2(self, obj, attrName, startVal=(0.0, 0.0), endVal=(1.0, 1.0), duration=0.75, loops=1, curveType=uiconst.ANIM_SMOOTH, callback=None, sleep=False, timeOffset=0.0):
         curve = self.GetVector2(startVal, endVal, duration, curveType, timeOffset=timeOffset)
         return self.Play(curve, obj, attrName, loops, callback, sleep)
 
-    def MorphVector3(self, obj, attrName, startVal = (0.0, 0.0), endVal = (1.0, 1.0), duration = 0.75, loops = 1, curveType = uiconst.ANIM_SMOOTH, callback = None, sleep = False, timeOffset = 0.0):
+    def MorphVector3(self, obj, attrName, startVal=(0.0, 0.0), endVal=(1.0, 1.0), duration=0.75, loops=1, curveType=uiconst.ANIM_SMOOTH, callback=None, sleep=False, timeOffset=0.0):
         curve = self.GetVector3(startVal, endVal, duration, curveType, timeOffset=timeOffset)
         return self.Play(curve, obj, attrName, loops, callback, sleep)
 
-    def MorphQuaternion(self, obj, attrName, startVal = (0.0, 0.0), endVal = (1.0, 1.0), duration = 0.75, loops = 1, curveType = uiconst.ANIM_SMOOTH, callback = None, sleep = False, timeOffset = 0.0):
+    def MorphQuaternion(self, obj, attrName, startVal=(0.0, 0.0), endVal=(1.0, 1.0), duration=0.75, loops=1, curveType=uiconst.ANIM_SMOOTH, callback=None, sleep=False, timeOffset=0.0):
         curve = self.GetQuaternion(startVal, endVal, duration, curveType, timeOffset=timeOffset)
         return self.Play(curve, obj, attrName, loops, callback, sleep)
 
-    def FadeTo(self, obj, startVal = 0.0, endVal = 1.0, duration = 0.75, loops = 1, curveType = uiconst.ANIM_SMOOTH, callback = None, sleep = False, curveSet = None, timeOffset = 0.0):
+    def FadeTo(self, obj, startVal=0.0, endVal=1.0, duration=0.75, loops=1, curveType=uiconst.ANIM_SMOOTH, callback=None, sleep=False, curveSet=None, timeOffset=0.0):
         if hasattr(obj, 'opacity'):
             curve = self.GetScalar(startVal, endVal, duration, curveType, timeOffset=timeOffset)
             attrName = 'opacity'
@@ -128,21 +133,21 @@ class UIAnimations(object):
             attrName = 'color'
         return self.Play(curve, obj, attrName, loops, callback, sleep, curveSet=curveSet)
 
-    def FadeIn(self, obj, endVal = 1.0, duration = 0.75, loops = 1, curveType = uiconst.ANIM_SMOOTH, callback = None, sleep = False, curveSet = None, timeOffset = 0.0):
+    def FadeIn(self, obj, endVal=1.0, duration=0.75, loops=1, curveType=uiconst.ANIM_SMOOTH, callback=None, sleep=False, curveSet=None, timeOffset=0.0):
         startVal = getattr(obj, 'opacity', 0.0)
         return self.FadeTo(obj, startVal, endVal, duration, loops, curveType, callback, sleep, curveSet=curveSet, timeOffset=timeOffset)
 
-    def FadeOut(self, obj, duration = 0.75, loops = 1, curveType = uiconst.ANIM_SMOOTH, callback = None, sleep = False, curveSet = None, timeOffset = 0.0):
+    def FadeOut(self, obj, duration=0.75, loops=1, curveType=uiconst.ANIM_SMOOTH, callback=None, sleep=False, curveSet=None, timeOffset=0.0):
         startVal = getattr(obj, 'opacity', 0.0)
         return self.FadeTo(obj, startVal, 0.0, duration, loops, curveType, callback, sleep, curveSet=curveSet, timeOffset=timeOffset)
 
-    def BlinkIn(self, obj, startVal = 0.0, endVal = 1.0, duration = 0.1, loops = 3, curveType = uiconst.ANIM_LINEAR, callback = None, sleep = False, timeOffset = 0.0):
+    def BlinkIn(self, obj, startVal=0.0, endVal=1.0, duration=0.1, loops=3, curveType=uiconst.ANIM_LINEAR, callback=None, sleep=False, timeOffset=0.0):
         return self.FadeTo(obj, startVal, endVal, duration, loops, curveType, callback, sleep, timeOffset=timeOffset)
 
-    def BlinkOut(self, obj, startVal = 1.0, endVal = 0.0, duration = 0.1, loops = 3, curveType = uiconst.ANIM_LINEAR, callback = None, sleep = False, timeOffset = 0.0):
+    def BlinkOut(self, obj, startVal=1.0, endVal=0.0, duration=0.1, loops=3, curveType=uiconst.ANIM_LINEAR, callback=None, sleep=False, timeOffset=0.0):
         return self.FadeTo(obj, startVal, endVal, duration, loops, curveType, callback, sleep, timeOffset=timeOffset)
 
-    def MoveTo(self, obj, startPos = None, endPos = None, duration = 0.5, loops = 1, curveType = uiconst.ANIM_SMOOTH, callback = None, sleep = False, timeOffset = 0.0, curveSet = None):
+    def MoveTo(self, obj, startPos=None, endPos=None, duration=0.5, loops=1, curveType=uiconst.ANIM_SMOOTH, callback=None, sleep=False, timeOffset=0.0, curveSet=None):
         if not startPos:
             startPos = (obj.displayX, obj.displayY)
         if not endPos:
@@ -152,76 +157,76 @@ class UIAnimations(object):
         curve = self.GetScalar(startPos[1], endPos[1], duration, curveType, timeOffset=timeOffset)
         return self.Play(curve, obj, 'top', loops, callback, sleep, curveSet=curveSet)
 
-    def MoveInFromLeft(self, obj, amount = 30, duration = 0.5, loops = 1, curveType = uiconst.ANIM_SMOOTH, callback = None, sleep = False, curveSet = None, timeOffset = 0.0):
+    def MoveInFromLeft(self, obj, amount=30, duration=0.5, loops=1, curveType=uiconst.ANIM_SMOOTH, callback=None, sleep=False, curveSet=None, timeOffset=0.0):
         curve = self.GetScalar(obj.left - amount, obj.left, duration, curveType, timeOffset=timeOffset)
         return self.Play(curve, obj, 'left', loops, callback, sleep, curveSet=curveSet)
 
-    def MoveInFromRight(self, obj, amount = 30, duration = 0.5, loops = 1, curveType = uiconst.ANIM_SMOOTH, callback = None, sleep = False, curveSet = None, timeOffset = 0.0):
+    def MoveInFromRight(self, obj, amount=30, duration=0.5, loops=1, curveType=uiconst.ANIM_SMOOTH, callback=None, sleep=False, curveSet=None, timeOffset=0.0):
         curve = self.GetScalar(obj.left + amount, obj.left, duration, curveType, timeOffset=timeOffset)
         return self.Play(curve, obj, 'left', loops, callback, sleep, curveSet=curveSet)
 
-    def MoveInFromTop(self, obj, amount = 30, duration = 0.5, loops = 1, curveType = uiconst.ANIM_SMOOTH, callback = None, sleep = False, timeOffset = 0.0):
+    def MoveInFromTop(self, obj, amount=30, duration=0.5, loops=1, curveType=uiconst.ANIM_SMOOTH, callback=None, sleep=False, timeOffset=0.0):
         curve = self.GetScalar(obj.top - amount, obj.top, duration, curveType, timeOffset=timeOffset)
         return self.Play(curve, obj, 'top', loops, callback, sleep)
 
-    def MoveInFromBottom(self, obj, amount = 30, duration = 0.5, loops = 1, curveType = uiconst.ANIM_SMOOTH, callback = None, sleep = False, timeOffset = 0.0):
+    def MoveInFromBottom(self, obj, amount=30, duration=0.5, loops=1, curveType=uiconst.ANIM_SMOOTH, callback=None, sleep=False, timeOffset=0.0):
         curve = self.GetScalar(obj.top + amount, obj.top, duration, curveType, timeOffset=timeOffset)
         return self.Play(curve, obj, 'top', loops, callback, sleep)
 
-    def MoveOutLeft(self, obj, amount = 30, duration = 0.5, loops = 1, curveType = uiconst.ANIM_SMOOTH, callback = None, sleep = False, timeOffset = 0.0):
+    def MoveOutLeft(self, obj, amount=30, duration=0.5, loops=1, curveType=uiconst.ANIM_SMOOTH, callback=None, sleep=False, timeOffset=0.0):
         curve = self.GetScalar(obj.left, obj.left - amount, duration, curveType, timeOffset=timeOffset)
         return self.Play(curve, obj, 'left', loops, callback, sleep)
 
-    def MoveOutRight(self, obj, amount = 30, duration = 0.5, loops = 1, curveType = uiconst.ANIM_SMOOTH, callback = None, sleep = False, timeOffset = 0.0):
+    def MoveOutRight(self, obj, amount=30, duration=0.5, loops=1, curveType=uiconst.ANIM_SMOOTH, callback=None, sleep=False, timeOffset=0.0):
         curve = self.GetScalar(obj.left, obj.left + amount, duration, curveType, timeOffset=timeOffset)
         return self.Play(curve, obj, 'left', loops, callback, sleep)
 
-    def MoveOutTop(self, obj, amount = 30, duration = 0.5, loops = 1, curveType = uiconst.ANIM_SMOOTH, callback = None, sleep = False, timeOffset = 0.0):
+    def MoveOutTop(self, obj, amount=30, duration=0.5, loops=1, curveType=uiconst.ANIM_SMOOTH, callback=None, sleep=False, timeOffset=0.0):
         curve = self.GetScalar(obj.top, obj.top - amount, duration, curveType, timeOffset=timeOffset)
         return self.Play(curve, obj, 'top', loops, callback, sleep)
 
-    def MoveOutBottom(self, obj, amount = 30, duration = 0.5, loops = 1, curveType = uiconst.ANIM_SMOOTH, callback = None, sleep = False, timeOffset = 0.0):
+    def MoveOutBottom(self, obj, amount=30, duration=0.5, loops=1, curveType=uiconst.ANIM_SMOOTH, callback=None, sleep=False, timeOffset=0.0):
         curve = self.GetScalar(obj.top, obj.top + amount, duration, curveType, timeOffset=timeOffset)
         return self.Play(curve, obj, 'top', loops, callback, sleep)
 
-    def Tr2DScaleTo(self, obj, startScale = (0.0, 0.0), endScale = (1.0, 1.0), duration = 0.5, loops = 1, curveType = uiconst.ANIM_SMOOTH, callback = None, sleep = False, timeOffset = 0.0, curveSet = None):
+    def Tr2DScaleTo(self, obj, startScale=(0.0, 0.0), endScale=(1.0, 1.0), duration=0.5, loops=1, curveType=uiconst.ANIM_SMOOTH, callback=None, sleep=False, timeOffset=0.0, curveSet=None):
         curve = self.GetVector2(startScale, endScale, duration, curveType, timeOffset=timeOffset)
         return self.Play(curve, obj, 'scale', loops, callback, sleep, curveSet=curveSet)
 
-    def Tr2DScaleIn(self, obj, scaleCenter = (0.0, 0.0), duration = 0.5, loops = 1, curveType = uiconst.ANIM_SMOOTH, callback = None, sleep = False, timeOffset = 0.0, curveSet = None):
+    def Tr2DScaleIn(self, obj, scaleCenter=(0.0, 0.0), duration=0.5, loops=1, curveType=uiconst.ANIM_SMOOTH, callback=None, sleep=False, timeOffset=0.0, curveSet=None):
         obj.scaleCenter = scaleCenter
         return self.Tr2DScaleTo(obj, (0.0, 0.0), (1.0, 1.0), duration, loops, curveType, callback, sleep, timeOffset, curveSet=curveSet)
 
-    def Tr2DScaleOut(self, obj, startScale = (0.0, 0.0), endScale = (1.0, 1.0), duration = 0.5, loops = 1, curveType = uiconst.ANIM_SMOOTH, callback = None, sleep = False, timeOffset = 0.0, curveSet = None):
+    def Tr2DScaleOut(self, obj, startScale=(0.0, 0.0), endScale=(1.0, 1.0), duration=0.5, loops=1, curveType=uiconst.ANIM_SMOOTH, callback=None, sleep=False, timeOffset=0.0, curveSet=None):
         return self.Tr2DScaleTo(obj, obj.scale, (0.0, 0.0), duration, loops, curveType, callback, sleep, timeOffset, curveSet=curveSet)
 
-    def Tr2DFlipIn(self, obj, startScale = (0.0, 0.0), endScale = (1.0, 1.0), duration = 0.5, loops = 1, curveType = uiconst.ANIM_SMOOTH, callback = None, sleep = False, timeOffset = 0.0):
+    def Tr2DFlipIn(self, obj, startScale=(0.0, 0.0), endScale=(1.0, 1.0), duration=0.5, loops=1, curveType=uiconst.ANIM_SMOOTH, callback=None, sleep=False, timeOffset=0.0):
         self.Tr2DScaleTo(obj, (1.0, 0.0), (1.0, 1.0), duration, loops, curveType, callback, timeOffset)
         curve = self.GetScalar(0.0, 1.0, duration, curveType, timeOffset=timeOffset)
         return self.Play(curve, obj, 'scalingRotation', loops, callback, sleep)
 
-    def Tr2DFlipOut(self, obj, startScale = (1.0, 1.0), endScale = (0.0, 0.0), duration = 0.5, loops = 1, curveType = uiconst.ANIM_SMOOTH, callback = None, sleep = False, timeOffset = 0.0):
+    def Tr2DFlipOut(self, obj, startScale=(1.0, 1.0), endScale=(0.0, 0.0), duration=0.5, loops=1, curveType=uiconst.ANIM_SMOOTH, callback=None, sleep=False, timeOffset=0.0):
         self.Tr2DScaleTo(obj, startScale, endScale, duration, loops, curveType, callback, timeOffset)
         curve = self.GetScalar(1.0, 0.0, duration, curveType, timeOffset=timeOffset)
         return self.Play(curve, obj, 'scalingRotation', loops, callback, sleep)
 
-    def Tr2DSquashOut(self, obj, duration = 0.5, loops = 1, curveType = uiconst.ANIM_SMOOTH, callback = None, sleep = False, timeOffset = 0.0):
+    def Tr2DSquashOut(self, obj, duration=0.5, loops=1, curveType=uiconst.ANIM_SMOOTH, callback=None, sleep=False, timeOffset=0.0):
         obj.scalingRotation = 0.5
         obj.scalingCenter = (0.5, 0.5)
         curve = self.GetVector2((1.0, 1.0), (0.0, 1.0), duration, curveType=uiconst.ANIM_SMOOTH, timeOffset=timeOffset)
         return self.Play(curve, obj, 'scale', loops, callback, sleep)
 
-    def Tr2DSquashIn(self, obj, duration = 0.5, loops = 1, curveType = uiconst.ANIM_SMOOTH, callback = None, sleep = False, timeOffset = 0.0):
+    def Tr2DSquashIn(self, obj, duration=0.5, loops=1, curveType=uiconst.ANIM_SMOOTH, callback=None, sleep=False, timeOffset=0.0):
         obj.scalingRotation = 0.5
         obj.scalingCenter = (0.5, 0.5)
         curve = self.GetVector2((0.0, 1.0), (1.0, 1.0), duration, curveType, timeOffset=timeOffset)
         return self.Play(curve, obj, 'scale', loops, callback, sleep)
 
-    def Tr2DRotateTo(self, obj, startAngle = 0.0, endAngle = 2 * math.pi, duration = 0.5, loops = 1, curveType = uiconst.ANIM_SMOOTH, callback = None, sleep = False, timeOffset = 0.0, curveSet = None):
+    def Tr2DRotateTo(self, obj, startAngle=0.0, endAngle=2 * math.pi, duration=0.5, loops=1, curveType=uiconst.ANIM_SMOOTH, callback=None, sleep=False, timeOffset=0.0, curveSet=None):
         curve = self.GetScalar(startAngle, endAngle, duration, curveType, timeOffset=timeOffset)
         return self.Play(curve, obj, 'rotation', loops, callback, sleep, curveSet=curveSet)
 
-    def SpColorMorphTo(self, obj, startColor = None, endColor = Color.BLUE, duration = 0.5, loops = 1, curveType = uiconst.ANIM_SMOOTH, callback = None, sleep = False, timeOffset = 0.0, includeAlpha = True, attrName = 'color'):
+    def SpColorMorphTo(self, obj, startColor=None, endColor=Color.BLUE, duration=0.5, loops=1, curveType=uiconst.ANIM_SMOOTH, callback=None, sleep=False, timeOffset=0.0, includeAlpha=True, attrName='color'):
         if startColor is None:
             startColor = obj.GetRGBA()
         if not includeAlpha:
@@ -236,62 +241,62 @@ class UIAnimations(object):
         curve = self.GetColor(startColor, endColor, duration, curveType, timeOffset=timeOffset)
         return self.Play(curve, obj, attrName, loops, callback, sleep)
 
-    def SpColorMorphToBlack(self, obj, duration = 0.5, loops = 1, curveType = uiconst.ANIM_SMOOTH, callback = None, sleep = False, timeOffset = 0.0):
+    def SpColorMorphToBlack(self, obj, duration=0.5, loops=1, curveType=uiconst.ANIM_SMOOTH, callback=None, sleep=False, timeOffset=0.0):
         return self.SpColorMorphTo(obj, obj.GetRGBA(), Color.BLACK, duration, loops, curveType, callback, sleep, timeOffset)
 
-    def SpColorMorphToWhite(self, obj, duration = 0.5, loops = 1, curveType = uiconst.ANIM_SMOOTH, callback = None, sleep = False, timeOffset = 0.0):
+    def SpColorMorphToWhite(self, obj, duration=0.5, loops=1, curveType=uiconst.ANIM_SMOOTH, callback=None, sleep=False, timeOffset=0.0):
         return self.SpColorMorphTo(obj, obj.GetRGBA(), Color.WHITE, duration, loops, curveType, callback, sleep, timeOffset)
 
-    def SpGlowFadeTo(self, obj, startColor = (0.8, 0.8, 1.0, 0.3), endColor = (0, 0, 0, 0), glowFactor = 0.8, glowExpand = 3.0, duration = 0.5, loops = 1, curveType = uiconst.ANIM_SMOOTH, callback = None, sleep = False, curveSet = None, timeOffset = 0.0):
+    def SpGlowFadeTo(self, obj, startColor=(0.8, 0.8, 1.0, 0.3), endColor=(0, 0, 0, 0), glowFactor=0.8, glowExpand=3.0, duration=0.5, loops=1, curveType=uiconst.ANIM_SMOOTH, callback=None, sleep=False, curveSet=None, timeOffset=0.0):
         obj.glowFactor = glowFactor
         obj.glowExpand = glowExpand
         curve = self.GetColor(startColor, endColor, duration, curveType, timeOffset=timeOffset)
         return self.Play(curve, obj, 'glowColor', loops, callback, sleep, curveSet=curveSet)
 
-    def SpGlowFadeIn(self, obj, glowColor = (0.8, 0.8, 1.0, 0.3), glowFactor = 0.8, glowExpand = 3.0, duration = 0.5, loops = 1, curveType = uiconst.ANIM_SMOOTH, callback = None, sleep = False, curveSet = None, timeOffset = 0.0):
+    def SpGlowFadeIn(self, obj, glowColor=(0.8, 0.8, 1.0, 0.3), glowFactor=0.8, glowExpand=3.0, duration=0.5, loops=1, curveType=uiconst.ANIM_SMOOTH, callback=None, sleep=False, curveSet=None, timeOffset=0.0):
         return self.SpGlowFadeTo(obj, (0, 0, 0, 0), glowColor, glowFactor, glowExpand, duration, loops, curveType, callback, sleep, curveSet=curveSet, timeOffset=timeOffset)
 
-    def SpGlowFadeOut(self, obj, glowColor = (0.8, 0.8, 1.0, 0.3), glowFactor = 0.8, glowExpand = 3.0, duration = 0.5, loops = 1, curveType = uiconst.ANIM_SMOOTH, callback = None, sleep = False, curveSet = None, timeOffset = 0.0):
+    def SpGlowFadeOut(self, obj, glowColor=(0.8, 0.8, 1.0, 0.3), glowFactor=0.8, glowExpand=3.0, duration=0.5, loops=1, curveType=uiconst.ANIM_SMOOTH, callback=None, sleep=False, curveSet=None, timeOffset=0.0):
         return self.SpGlowFadeTo(obj, glowColor, (0, 0, 0, 0), glowFactor, glowExpand, duration, loops, curveType, callback, sleep, curveSet=curveSet, timeOffset=timeOffset)
 
-    def SpShadowMoveTo(self, obj, startPos = (0.0, 0.0), endPos = (10.0, 10.0), color = None, duration = 0.5, loops = 1, curveType = uiconst.ANIM_SMOOTH, callback = None, sleep = False, timeOffset = 0.0):
+    def SpShadowMoveTo(self, obj, startPos=(0.0, 0.0), endPos=(10.0, 10.0), color=None, duration=0.5, loops=1, curveType=uiconst.ANIM_SMOOTH, callback=None, sleep=False, timeOffset=0.0):
         obj.shadowColor = color or (0.0, 0.0, 0.0, 0.5)
         curve = self.GetVector2(startPos, endPos, duration, curveType, timeOffset=timeOffset)
         return self.Play(curve, obj, 'shadowOffset', loops, callback, sleep)
 
-    def SpShadowAppear(self, obj, offset = (10.0, 10.0), color = None, duration = 0.5, loops = 1, curveType = uiconst.ANIM_SMOOTH, callback = None, sleep = False, timeOffset = 0.0):
+    def SpShadowAppear(self, obj, offset=(10.0, 10.0), color=None, duration=0.5, loops=1, curveType=uiconst.ANIM_SMOOTH, callback=None, sleep=False, timeOffset=0.0):
         color = color or (0.0, 0.0, 0.0, 0.5)
         return self.SpShadowMoveTo(obj, (0.0, 0.0), offset, color, duration, loops, curveType, callback, sleep, timeOffset)
 
-    def SpShadowDisappear(self, obj, duration = 0.5, loops = 1, curveType = uiconst.ANIM_SMOOTH, callback = None, sleep = False, timeOffset = 0.0):
+    def SpShadowDisappear(self, obj, duration=0.5, loops=1, curveType=uiconst.ANIM_SMOOTH, callback=None, sleep=False, timeOffset=0.0):
         return self.SpShadowMoveTo(obj, obj.shadowOffset, (0.0, 0.0), None, duration, loops, curveType, callback, sleep, timeOffset)
 
-    def SpSecondaryTextureRotate(self, obj, startVal = 0.0, endVal = 2 * math.pi, duration = 2.0, loops = 1, curveType = uiconst.ANIM_SMOOTH, callback = None, sleep = False, timeOffset = 0.0):
+    def SpSecondaryTextureRotate(self, obj, startVal=0.0, endVal=2 * math.pi, duration=2.0, loops=1, curveType=uiconst.ANIM_SMOOTH, callback=None, sleep=False, timeOffset=0.0):
         curve = self.GetScalar(startVal, endVal, duration, curveType, timeOffset=timeOffset)
         return self.Play(curve, obj, 'rotationSecondary', loops, callback, sleep)
 
-    def SpSecondaryTextureScale(self, obj, startVal = (1.0, 1.0), endVal = (0.0, 0.0), duration = 1.0, loops = 1, curveType = uiconst.ANIM_SMOOTH, callback = None, sleep = False, timeOffset = 0.0):
+    def SpSecondaryTextureScale(self, obj, startVal=(1.0, 1.0), endVal=(0.0, 0.0), duration=1.0, loops=1, curveType=uiconst.ANIM_SMOOTH, callback=None, sleep=False, timeOffset=0.0):
         curve = self.GetVector2(startVal, endVal, duration, curveType, timeOffset=timeOffset)
         return self.Play(curve, obj, 'scaleSecondary', loops, callback, sleep)
 
-    def SpTunnelTo(self, obj, startVal = (1.0, 1.0), endVal = (0.0, 0.0), texturePath = None, duration = 0.5, loops = 1, curveType = uiconst.ANIM_SMOOTH, callback = None, sleep = False, timeOffset = 0.0):
+    def SpTunnelTo(self, obj, startVal=(1.0, 1.0), endVal=(0.0, 0.0), texturePath=None, duration=0.5, loops=1, curveType=uiconst.ANIM_SMOOTH, callback=None, sleep=False, timeOffset=0.0):
         if not texturePath:
             texturePath = 'res:/UI/Texture/Classes/Animations/radialGradient.png'
         obj.SetSecondaryTexturePath(texturePath)
         obj.spriteEffect = trinity.TR2_SFX_MODULATE
         return self.SpSecondaryTextureScale(obj, startVal, endVal, duration=duration, loops=loops, curveType=curveType, callback=callback, sleep=sleep, timeOffset=timeOffset)
 
-    def SpTunnelIn(self, obj, duration = 1.0, loops = 1, curveType = uiconst.ANIM_SMOOTH, callback = None, sleep = False, timeOffset = 0.0):
+    def SpTunnelIn(self, obj, duration=1.0, loops=1, curveType=uiconst.ANIM_SMOOTH, callback=None, sleep=False, timeOffset=0.0):
         self.SpTunnelTo(obj, (3.0, 3.0), (0.0, 0.0), duration=duration, loops=loops, curveType=curveType, callback=callback, sleep=sleep, timeOffset=timeOffset)
 
-    def SpTunnelOut(self, obj, duration = 1.0, loops = 1, curveType = uiconst.ANIM_SMOOTH, callback = None, sleep = False, timeOffset = 0.0):
+    def SpTunnelOut(self, obj, duration=1.0, loops=1, curveType=uiconst.ANIM_SMOOTH, callback=None, sleep=False, timeOffset=0.0):
         self.SpTunnelTo(obj, (0.0, 0.0), (3.0, 3.0), duration=duration, loops=loops, curveType=curveType, callback=callback, sleep=sleep, timeOffset=timeOffset)
 
-    def SpSecondaryTextureMove(self, obj, startVal = (-1.0, -1.0), endVal = (0, 0), duration = 1.0, loops = 1, curveType = uiconst.ANIM_SMOOTH, callback = None, sleep = False, timeOffset = 0.0):
+    def SpSecondaryTextureMove(self, obj, startVal=(-1.0, -1.0), endVal=(0, 0), duration=1.0, loops=1, curveType=uiconst.ANIM_SMOOTH, callback=None, sleep=False, timeOffset=0.0):
         curve = self.GetVector2(startVal, endVal, duration, curveType, timeOffset=timeOffset)
         return self.Play(curve, obj, 'translationSecondary', loops, callback, sleep)
 
-    def SpMaskTo(self, obj, startVal = (-1.0, 0.0), endVal = (2.0, 0.0), texturePath = None, rotation = 0.0, duration = 0.5, loops = 1, curveType = uiconst.ANIM_SMOOTH, callback = None, sleep = False, timeOffset = 0.0):
+    def SpMaskTo(self, obj, startVal=(-1.0, 0.0), endVal=(2.0, 0.0), texturePath=None, rotation=0.0, duration=0.5, loops=1, curveType=uiconst.ANIM_SMOOTH, callback=None, sleep=False, timeOffset=0.0):
         if not texturePath:
             texturePath = 'res:/UI/Texture/Classes/Animations/maskToGradient.png'
         obj.SetSecondaryTexturePath(texturePath)
@@ -300,13 +305,13 @@ class UIAnimations(object):
         obj.rotationSecondary = rotation
         return self.SpSecondaryTextureMove(obj, startVal, endVal, duration=duration, loops=loops, curveType=curveType, callback=callback, sleep=sleep, timeOffset=timeOffset)
 
-    def SpMaskIn(self, obj, rotation = math.pi * 0.75, duration = 0.5, loops = 1, curveType = uiconst.ANIM_SMOOTH, callback = None, sleep = False, timeOffset = 0.0):
+    def SpMaskIn(self, obj, rotation=math.pi * 0.75, duration=0.5, loops=1, curveType=uiconst.ANIM_SMOOTH, callback=None, sleep=False, timeOffset=0.0):
         return self.SpMaskTo(obj, startVal=(-1.0, 0.0), endVal=(1.0, 0.0), rotation=rotation, duration=duration, loops=loops, curveType=curveType, callback=callback, sleep=sleep, timeOffset=timeOffset)
 
-    def SpMaskOut(self, obj, rotation = -math.pi * 0.25, duration = 0.5, loops = 1, curveType = uiconst.ANIM_SMOOTH, callback = None, sleep = False, timeOffset = 0.0):
+    def SpMaskOut(self, obj, rotation=-math.pi * 0.25, duration=0.5, loops=1, curveType=uiconst.ANIM_SMOOTH, callback=None, sleep=False, timeOffset=0.0):
         return self.SpMaskTo(obj, startVal=(1.0, 0.0), endVal=(-1.0, 0.0), rotation=rotation, duration=duration, loops=loops, curveType=curveType, callback=callback, sleep=sleep, timeOffset=timeOffset)
 
-    def SpSwoopBlink(self, obj, startVal = (-1.0, 0.0), endVal = (2.0, 0.0), texturePath = None, rotation = 0.75 * math.pi, duration = 0.5, loops = 1, curveType = uiconst.ANIM_LINEAR, callback = None, sleep = False, timeOffset = 0.0):
+    def SpSwoopBlink(self, obj, startVal=(-1.0, 0.0), endVal=(2.0, 0.0), texturePath=None, rotation=0.75 * math.pi, duration=0.5, loops=1, curveType=uiconst.ANIM_LINEAR, callback=None, sleep=False, timeOffset=0.0):
         if not texturePath:
             texturePath = 'res:/UI/Texture/Classes/Animations/swoopGradient.png'
         obj.SetSecondaryTexturePath(texturePath)
@@ -314,7 +319,7 @@ class UIAnimations(object):
         obj.rotationSecondary = rotation
         return self.SpSecondaryTextureMove(obj, startVal, endVal, duration=duration, loops=loops, curveType=curveType, callback=callback, sleep=sleep, timeOffset=timeOffset)
 
-    def GetScalar(self, startValue, endValue, duration, curveType = uiconst.ANIM_SMOOTH, timeOffset = 0.0):
+    def GetScalar(self, startValue, endValue, duration, curveType=uiconst.ANIM_SMOOTH, timeOffset=0.0):
         if curveType is uiconst.ANIM_RANDOM:
             curve = trinity.Tr2ScalarExprCurve()
         else:
@@ -354,11 +359,11 @@ class UIAnimations(object):
             curve.endValue = startValue
         return curve
 
-    def GetVector2(self, startValue, endValue, duration, curveType = uiconst.ANIM_SMOOTH, timeOffset = 0.0):
+    def GetVector2(self, startValue, endValue, duration, curveType=uiconst.ANIM_SMOOTH, timeOffset=0.0):
         curve = trinity.Tr2Vector2Curve()
         return self._GetVector(curve, startValue, endValue, duration, curveType, timeOffset)
 
-    def GetVector3(self, startValue, endValue, duration, curveType = uiconst.ANIM_SMOOTH, timeOffset = 0.0):
+    def GetVector3(self, startValue, endValue, duration, curveType=uiconst.ANIM_SMOOTH, timeOffset=0.0):
         curve = trinity.Tr2Vector3Curve()
         if isinstance(curveType, (list, tuple)):
             numPoints = float(len(curveType))
@@ -370,7 +375,7 @@ class UIAnimations(object):
         else:
             return self._GetVector(curve, startValue, endValue, duration, curveType, timeOffset)
 
-    def _GetVector(self, curve, startValue, endValue, duration, curveType = uiconst.ANIM_SMOOTH, timeOffset = 0.0):
+    def _GetVector(self, curve, startValue, endValue, duration, curveType=uiconst.ANIM_SMOOTH, timeOffset=0.0):
         curve.length = duration
         if not isinstance(curveType, (list, tuple)):
             curve.startValue = startValue
@@ -402,7 +407,7 @@ class UIAnimations(object):
     def GetOvershotAmount(self, curveType):
         return uiconst.ANIM_OVERSHOT_TYPES.index(curveType) * 0.2 + 0.1
 
-    def GetQuaternion(self, startValue, endValue, duration, curveType = uiconst.ANIM_SMOOTH, timeOffset = 0.0):
+    def GetQuaternion(self, startValue, endValue, duration, curveType=uiconst.ANIM_SMOOTH, timeOffset=0.0):
         curve = trinity.Tr2QuaternionCurve()
         curve.length = duration
         if not isinstance(curveType, (list, tuple)):
@@ -426,7 +431,7 @@ class UIAnimations(object):
             curve.endValue = startValue
         return curve
 
-    def GetColor(self, startValue, endValue, duration, curveType = uiconst.ANIM_LINEAR, timeOffset = 0.0):
+    def GetColor(self, startValue, endValue, duration, curveType=uiconst.ANIM_LINEAR, timeOffset=0.0):
         curve = trinity.Tr2ColorCurve()
         curve.length = duration
         curve.timeOffset = timeOffset

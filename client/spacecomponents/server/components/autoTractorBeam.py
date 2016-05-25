@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\packages\spacecomponents\server\components\autoTractorBeam.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\packages\spacecomponents\server\components\autoTractorBeam.py
 from eveexceptions import UserError
 from dogma.const import effectTractorBeamCan
 from spacecomponents.common.componentConst import AUTO_TRACTOR_BEAM_CLASS
@@ -24,6 +25,7 @@ class AutoTractorBeam(Component):
         self.SubscribeToMessage('OnRemovedFromSpace', self.OnRemovedFromSpace)
         self.SubscribeToMessage(MSG_ON_BALLPARK_RELEASE, self.OnBallparkRelease)
         self.SetIntervalInSeconds(self.attributes.cycleTimeSeconds)
+        return
 
     def SetBallpark(self, ballpark):
         self.ballpark = ballpark
@@ -49,14 +51,16 @@ class AutoTractorBeam(Component):
         if not helper.IsActiveComponent(self.componentRegistry, self.typeID, self.itemID):
             self.DeactivateTractorBeam()
             return
-        if self.IsTractorBeamActive():
-            if self.HasTargetArrived():
-                logger.debug('%s target has arrived %s', self.itemID, self.targetID)
-                self.DeactivateTractorBeam()
         else:
-            targetID = self.FindValidTarget()
-            if targetID is not None:
-                self.ActivateTractorBeam(targetID)
+            if self.IsTractorBeamActive():
+                if self.HasTargetArrived():
+                    logger.debug('%s target has arrived %s', self.itemID, self.targetID)
+                    self.DeactivateTractorBeam()
+            else:
+                targetID = self.FindValidTarget()
+                if targetID is not None:
+                    self.ActivateTractorBeam(targetID)
+            return
 
     def TractorBeamWorker(self):
         if self.IsWorkerThreadActive():
@@ -88,6 +92,7 @@ class AutoTractorBeam(Component):
         logger.debug('%s deactivated tractor beam and unlocked %s', self.itemID, self.targetID)
         self.targetID = None
         self.ballpark.RemoveBubbleKeepAliveBall(self.itemID)
+        return
 
     @TimedFunction('SpaceComponent::AutoTractorBeam::FindValidTarget')
     def FindValidTarget(self):

@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\packages\watchdog\utils\bricks.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\packages\watchdog\utils\bricks.py
 import sys
 import collections
 from .compat import queue
@@ -8,6 +9,7 @@ class SkipRepeatsQueue(queue.Queue):
     def _init(self, maxsize):
         queue.Queue._init(self, maxsize)
         self._last_item = None
+        return
 
     def _put(self, item):
         if item != self._last_item:
@@ -47,12 +49,13 @@ if sys.version_info >= (2, 6, 0):
 
     class OrderedSet(collections.MutableSet):
 
-        def __init__(self, iterable = None):
+        def __init__(self, iterable=None):
             self.end = end = []
             end += [None, end, end]
             self.map = {}
             if iterable is not None:
                 self |= iterable
+            return
 
         def __len__(self):
             return len(self.map)
@@ -86,7 +89,7 @@ if sys.version_info >= (2, 6, 0):
                 yield curr[KEY]
                 curr = curr[PREV]
 
-        def pop(self, last = True):
+        def pop(self, last=True):
             if not self:
                 raise KeyError('set is empty')
             key = next(reversed(self)) if last else next(iter(self))

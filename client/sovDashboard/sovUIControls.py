@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\packages\sovDashboard\sovUIControls.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\packages\sovDashboard\sovUIControls.py
 from carbon.common.script.util.timerstuff import AutoTimer
 from carbonui.primitives.container import Container
 import carbonui.const as uiconst
@@ -36,56 +37,58 @@ class SovStructureStatusBase(Container):
     def UpdateLabel(self):
         pass
 
-    def UpdateStructureInfo(self, structureInfo, animate = True):
+    def UpdateStructureInfo(self, structureInfo, animate=True):
         self.structureInfo = structureInfo
         self.LoadStructureState(fullLoad=False, animate=animate)
 
-    def LoadStructureState(self, fullLoad = True, animate = True):
+    def LoadStructureState(self, fullLoad=True, animate=True):
         if self.destroyed:
             return
-        self.UpdateLabel()
-        structureStatus = CalculateStructureStatusFromStructureInfo(self.structureInfo)
-        statusColor = dashboardConst.PRIMARYCOLOR_BY_STATUS[structureStatus]
-        if structureStatus in (dashboardConst.STATUS_VULNERABLE, dashboardConst.STATUS_VULNERABLE_OVERTIME):
-            self.statusBar.lineWidth = 1.0
-            self.statusBar.display = True
-            graphData = []
-            proportion = 1.0 / float(self.vulnerableSegments)
-            for i in xrange(self.vulnerableSegments):
-                if i % 2:
-                    graphData.append(GraphSegmentParams(proportion, (0.0, 0.0, 0.0, 0.0)))
-                else:
-                    graphData.append(GraphSegmentParams(proportion, statusColor))
-
-            self.statusBar.LoadGraphData(graphData, animateIn=self.animateChange)
-        elif structureStatus == dashboardConst.STATUS_REINFORCED:
-            self.statusBar.lineWidth = 1.0
-            self.statusBar.display = True
-            graphData = []
-            proportion = 1.0 / float(self.reinforcedSegments)
-            for i in xrange(self.reinforcedSegments):
-                if i % 2:
-                    graphData.append(GraphSegmentParams(proportion, (0.0, 0.0, 0.0, 0.0)))
-                else:
-                    graphData.append(GraphSegmentParams(proportion, statusColor))
-
-            self.statusBar.LoadGraphData(graphData, animateIn=self.animateChange)
-        elif structureStatus == dashboardConst.STATUS_NODEFIGHT:
-            self.statusBar.lineWidth = 2.0
-            self.statusBar.display = True
-            campaignState = self.structureInfo.get('campaignState', None)
-            graphData = self.GetGraphData(campaignState)
-            if isinstance(self, SovStructureStatusCircular):
-                graphData.reverse()
-            if fullLoad or len(self.statusBar.segments) != len(graphData):
-                self.statusBar.LoadGraphData(graphData, animateIn=self.animateChange)
-            else:
-                self.statusBar.UpdateGraphData(graphData, animate=animate)
-            if self.statusLabel and not self.statusLabel.display:
-                self.statusBar.padTop = (self.height - self.statusBar.height) / 2
-            self.statusBar.display = True
         else:
-            self.statusBar.display = False
+            self.UpdateLabel()
+            structureStatus = CalculateStructureStatusFromStructureInfo(self.structureInfo)
+            statusColor = dashboardConst.PRIMARYCOLOR_BY_STATUS[structureStatus]
+            if structureStatus in (dashboardConst.STATUS_VULNERABLE, dashboardConst.STATUS_VULNERABLE_OVERTIME):
+                self.statusBar.lineWidth = 1.0
+                self.statusBar.display = True
+                graphData = []
+                proportion = 1.0 / float(self.vulnerableSegments)
+                for i in xrange(self.vulnerableSegments):
+                    if i % 2:
+                        graphData.append(GraphSegmentParams(proportion, (0.0, 0.0, 0.0, 0.0)))
+                    else:
+                        graphData.append(GraphSegmentParams(proportion, statusColor))
+
+                self.statusBar.LoadGraphData(graphData, animateIn=self.animateChange)
+            elif structureStatus == dashboardConst.STATUS_REINFORCED:
+                self.statusBar.lineWidth = 1.0
+                self.statusBar.display = True
+                graphData = []
+                proportion = 1.0 / float(self.reinforcedSegments)
+                for i in xrange(self.reinforcedSegments):
+                    if i % 2:
+                        graphData.append(GraphSegmentParams(proportion, (0.0, 0.0, 0.0, 0.0)))
+                    else:
+                        graphData.append(GraphSegmentParams(proportion, statusColor))
+
+                self.statusBar.LoadGraphData(graphData, animateIn=self.animateChange)
+            elif structureStatus == dashboardConst.STATUS_NODEFIGHT:
+                self.statusBar.lineWidth = 2.0
+                self.statusBar.display = True
+                campaignState = self.structureInfo.get('campaignState', None)
+                graphData = self.GetGraphData(campaignState)
+                if isinstance(self, SovStructureStatusCircular):
+                    graphData.reverse()
+                if fullLoad or len(self.statusBar.segments) != len(graphData):
+                    self.statusBar.LoadGraphData(graphData, animateIn=self.animateChange)
+                else:
+                    self.statusBar.UpdateGraphData(graphData, animate=animate)
+                if self.statusLabel and not self.statusLabel.display:
+                    self.statusBar.padTop = (self.height - self.statusBar.height) / 2
+                self.statusBar.display = True
+            else:
+                self.statusBar.display = False
+            return
 
     def GetSortedScoresAndTeamIDs(self, scoreByTeamID):
 
@@ -204,9 +207,11 @@ class SovStatusTimeLabel(EveLabelMedium):
         if self.destroyed:
             self.timeThread = None
             return
-        if not self.parent or not self.parent.display or not self.display:
+        elif not self.parent or not self.parent.display or not self.display:
             return
-        self.UpdateTime()
+        else:
+            self.UpdateTime()
+            return
 
     def UpdateTime(self):
         currentStatus = CalculateStructureStatusFromStructureInfo(self.structureInfo)
@@ -220,3 +225,4 @@ class SovStatusTimeLabel(EveLabelMedium):
     def Close(self):
         EveLabelMedium.Close(self)
         self.timeThread = None
+        return

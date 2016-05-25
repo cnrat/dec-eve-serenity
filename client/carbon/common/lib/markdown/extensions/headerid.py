@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\carbon\common\lib\markdown\extensions\headerid.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\carbon\common\lib\markdown\extensions\headerid.py
 import markdown
 from markdown.util import etree
 import re
@@ -68,7 +69,7 @@ class HeaderIdTreeprocessor(markdown.treeprocessors.Treeprocessor):
                 force = self._str2bool(self.md.Meta['header_forceid'][0])
         return (level, force)
 
-    def _str2bool(self, s, default = False):
+    def _str2bool(self, s, default=False):
         s = str(s)
         if s.lower() in ('0', 'f', 'false', 'off', 'no', 'n'):
             return False
@@ -98,7 +99,7 @@ class HeaderIdExtension(markdown.Extension):
         self.processor.IDs = []
 
 
-def makeExtension(configs = None):
+def makeExtension(configs=None):
     return HeaderIdExtension(configs=configs)
 
 

@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\common\script\sys\rowset.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\common\script\sys\rowset.py
 import _weakref
 import __builtin__
 import types
@@ -33,7 +34,7 @@ class Rowset():
     __immutable__ = weakref.WeakKeyDictionary()
     RowClass = utilRow
 
-    def __init__(self, hd = None, li = None, RowClass = utilRow):
+    def __init__(self, hd=None, li=None, RowClass=utilRow):
         if hd is None:
             hd = []
         if li is None:
@@ -41,6 +42,7 @@ class Rowset():
         self.header = hd
         self.lines = li
         self.RowClass = RowClass
+        return
 
     def Clone(self):
         return Rowset(copy.copy(self.header), copy.copy(self.lines), self.RowClass)
@@ -102,8 +104,6 @@ class Rowset():
             if self.lines[i][h] == value:
                 return i
 
-        return -1
-
     def Select(self, *selection, **options):
         return Select(selection, self.header, self.lines, options)
 
@@ -116,12 +116,14 @@ class Rowset():
         if type(v) == types.InstanceType:
             self[i] = v.line
             return
-        if len(v):
-            if len(v) > len(self.header):
-                raise RuntimeError('Too many columns, got %s, fields are %s' % (len(v), self.header))
-            self.lines[i] = list(v) + [None] * (len(self.header) - len(v))
         else:
-            self.lines[i] = [None] * len(self.header)
+            if len(v):
+                if len(v) > len(self.header):
+                    raise RuntimeError('Too many columns, got %s, fields are %s' % (len(v), self.header))
+                self.lines[i] = list(v) + [None] * (len(self.header) - len(v))
+            else:
+                self.lines[i] = [None] * len(self.header)
+            return
 
     def __getslice__(self, i, j):
         return Rowset(self.header, self.lines[i:j], self.RowClass)
@@ -131,13 +133,14 @@ class Rowset():
             raise RuntimeError('Immutable Rowsets may not be modified')
         del self.lines[index]
 
-    def sort(self, f = None):
+    def sort(self, f=None):
         if self in self.__immutable__:
             raise RuntimeError('Immutable Rowsets may not be modified')
         if f is not None:
             self.lines.sort(f)
         else:
             self.lines.sort()
+        return
 
     def extend(self, other):
         if self in self.__immutable__:
@@ -171,12 +174,12 @@ class Rowset():
             self.lines.append([None] * len(self.header))
         return self[-1]
 
-    def Sort(self, colname, asc = 1):
+    def Sort(self, colname, asc=1):
         ret = self[:]
         if asc:
-            ret.lines.sort(lambda a, b, colid = self.header.index(colname): -(a[colid] < b[colid]))
+            ret.lines.sort(lambda a, b, colid=self.header.index(colname): -(a[colid] < b[colid]))
         else:
-            ret.lines.sort(lambda b, a, colid = self.header.index(colname): -(a[colid] < b[colid]))
+            ret.lines.sort(lambda b, a, colid=self.header.index(colname): -(a[colid] < b[colid]))
         return ret
 
     def Index(self, colname):
@@ -194,7 +197,7 @@ class Rowset():
         else:
             return IndexRowset(self.header, self.lines, colname)
 
-    def Filter(self, colname, colname2 = None):
+    def Filter(self, colname, colname2=None):
         if self in self.__immutable__:
             k = (colname, colname2)
             uthread.Lock(self, '__immutable__', k)
@@ -239,7 +242,7 @@ class IndexRowset():
     RowClass = utilRow
     stacktraceCnt = 0
 
-    def __init__(self, header = None, li = (), idName = None, RowClass = utilRow, dict = None):
+    def __init__(self, header=None, li=(), idName=None, RowClass=utilRow, dict=None):
         if dict is not None:
             self.items = dict
         elif header is not None and li is not None:
@@ -250,6 +253,7 @@ class IndexRowset():
         self.header = header
         self.RowClass = RowClass
         self.idName = idName
+        return
 
     def GetKeyColumn(self):
         return self.idName
@@ -329,6 +333,7 @@ class IndexRowset():
                 self.items[ind] = line
             else:
                 self.items[ind] = rowLine
+        return
 
     def __delitem__(self, ind):
         if self in self.__immutable__:
@@ -346,7 +351,7 @@ class IndexRowset():
             sys.exc_clear()
             return defValue
 
-    def UpdateLI(self, lines, indexName, overWrite = 0):
+    def UpdateLI(self, lines, indexName, overWrite=0):
         if self in self.__immutable__:
             raise RuntimeError('Immutable IndexRowsets may not be modified')
         ind = self.header.index(indexName)
@@ -377,7 +382,7 @@ class FilterRowset():
     __immutable__ = weakref.WeakKeyDictionary()
     RowClass = utilRow
 
-    def __init__(self, header = None, li = None, idName = None, RowClass = utilRow, idName2 = None, dict = None):
+    def __init__(self, header=None, li=None, idName=None, RowClass=utilRow, idName2=None, dict=None):
         items = {}
         self.RowClass = RowClass
         if dict is not None:
@@ -406,6 +411,7 @@ class FilterRowset():
         self.header = header
         self.idName = idName
         self.idName2 = idName2
+        return
 
     def Clone(self):
         return FilterRowset(copy.copy(self.header), None, self.idName, self.RowClass, self.idName2, dict=copy.deepcopy(self.items))
@@ -442,7 +448,8 @@ class FilterRowset():
     def __getitem__(self, i):
         if self.idName2:
             return IndexRowset(self.header, None, self.idName2, self.RowClass, self.items.get(i, {}))
-        return Rowset(self.header, self.items.get(i, []), self.RowClass)
+        else:
+            return Rowset(self.header, self.items.get(i, []), self.RowClass)
 
     def __len__(self):
         return len(self.items)
@@ -454,12 +461,14 @@ class FilterRowset():
     def GetIndexKeys(self):
         if self.idName2 is not None:
             return (self.idName, self.idName2)
-        return (self.idName,)
+        else:
+            return (self.idName,)
 
-    def GetLines(self, idValue, idValue2 = None):
+    def GetLines(self, idValue, idValue2=None):
         if self.idName2 is not None:
             return self.items[idValue][idValue2]
-        return self.items[idValue]
+        else:
+            return self.items[idValue]
 
 
 class SparseRowsetIterator2():
@@ -478,7 +487,7 @@ class SparseRowsetIterator2():
 class SparseRowsetIterator():
     RowClass = utilRow
 
-    def __init__(self, header, iterator, RowClass = utilRow):
+    def __init__(self, header, iterator, RowClass=utilRow):
         self.header = header
         self.RowClass = RowClass
         self.iterator = iterator
@@ -503,7 +512,7 @@ class SparseRowsetProvider():
      'SelectByUniqueColumnValues': []}
     RowClass = utilRow
 
-    def __init__(self, hd = None, li = None, primaryKeys = [], RowClass = utilRow):
+    def __init__(self, hd=None, li=None, primaryKeys=[], RowClass=utilRow):
         if hd is None:
             hd = []
         if li is None:
@@ -523,6 +532,7 @@ class SparseRowsetProvider():
         self.__MultiAdd(li, 0)
         self.RowClass = RowClass
         self.realRowCount = len(self)
+        return
 
     def GetPKForIndex(self, index):
         return self.__itemFromPos[index]
@@ -551,7 +561,7 @@ class SparseRowsetProvider():
             return primaryKey[0]
         return primaryKey
 
-    def __MultiAdd(self, lines, notify = 1, notificationParams = {}):
+    def __MultiAdd(self, lines, notify=1, notificationParams={}):
         for line in lines:
             primaryKey = self.GeneratePKForLine(line)
             self.__items[primaryKey] = line
@@ -561,7 +571,9 @@ class SparseRowsetProvider():
                 change = self.__GetChangeDictFromLines(old, new)
                 self.FireUpdateNotification(change, primaryKey, notificationParams)
 
-    def FireUpdateNotification(self, change, changePKIndexValue, notificationParams = {}):
+        return
+
+    def FireUpdateNotification(self, change, changePKIndexValue, notificationParams={}):
         if not len(change):
             log.LogTraceback('Illegal update notification')
             return False
@@ -659,6 +671,7 @@ class SparseRowsetProvider():
         self.__itemFromPos.remove(pk)
         del self.__items[pk]
         self.FireUpdateNotification(change, pk)
+        return
 
     def itervalues(self):
         return SparseRowsetIterator(self.header, self.__items.itervalues(), self.RowClass)
@@ -669,21 +682,22 @@ class SparseRowsetProvider():
     def __iter__(self):
         return IndexOrFilterRowsetIterator(self, self.__items.iterkeys())
 
-    def sort(self, f = None):
+    def sort(self, f=None):
         raise RuntimeError('NotSupported')
 
     def extend(self, other):
         raise RuntimeError('NotSupported')
 
-    def remove(self, row, notificationParams = {}):
+    def remove(self, row, notificationParams={}):
         pk = row.primaryKey
         old, new = self.RowClass(self.header, self.__items[pk]), None
         change = self.__GetChangeDictFromLines(old, new)
         self.__itemFromPos.remove(pk)
         del self.__items[pk]
         self.FireUpdateNotification(change, pk, notificationParams)
+        return
 
-    def update(self, pk, row, notificationParams = {}):
+    def update(self, pk, row, notificationParams={}):
         old, new = self.RowClass(self.header, self.__items[pk]), row
         change = self.__GetChangeDictFromLines(old, new)
         self.__items[pk] = row.line
@@ -695,16 +709,16 @@ class SparseRowsetProvider():
     def InsertNew(self, *args):
         raise RuntimeError('NotSupported')
 
-    def Sort(self, colname, asc = 1):
+    def Sort(self, colname, asc=1):
         raise RuntimeError('NotSupported')
 
     def Index(self, colname):
         raise RuntimeError('NotSupported')
 
-    def Filter(self, colname, colname2 = None):
+    def Filter(self, colname, colname2=None):
         raise RuntimeError('NotSupported')
 
-    def append(self, row, notificationParams = {}):
+    def append(self, row, notificationParams={}):
         if type(row) == type([]):
             if len(row) != len(self.header):
                 raise RuntimeError('Invalid row length for appending', self, row)
@@ -720,7 +734,7 @@ class SparseRowset():
     __passbyvalue__ = 1
     RowClass = utilRow
 
-    def __init__(self, serverRowset, RowClass = utilRow, listener = None):
+    def __init__(self, serverRowset, RowClass=utilRow, listener=None):
         self.serverRowset = serverRowset
         self.header = self.serverRowset.header
         self.__linesByKey = {}
@@ -729,19 +743,22 @@ class SparseRowset():
         self.__listeners = {}
         if listener is not None:
             self.AddListener(listener)
+        return
 
     def __isclass(self, obj):
         dict = dir(obj)
         if dict is None or not len(dict):
             return
-        if '__klass__' in dict:
+        elif '__klass__' in dict:
             return 1
-        if '__methods__' in dict:
+        elif '__methods__' in dict:
             return 1
-        if '__class__' in dict:
+        elif '__class__' in dict:
             return 1
-        import log
-        log.general.Log('__isclass debug info %s' % dict, log.LGINFO)
+        else:
+            import log
+            log.general.Log('__isclass debug info %s' % dict, log.LGINFO)
+            return
 
     def AddListener(self, listener):
         if not self.__isclass(listener):
@@ -769,6 +786,7 @@ class SparseRowset():
         self.__linesByKey = {}
         self.__keyFromPos = [None] * length
         self.serverRowset.RegisterObjectChangeHandler(self)
+        return
 
     def OnObjectChanged(self, conn, old, updatedattributes, *args, **keywords):
         change = keywords['change']
@@ -859,11 +877,14 @@ class SparseRowset():
 
         if fetchSize < 1:
             return
-        i = startPos
-        for newIndex, newLine in self.serverRowset.Fetch(startPos, fetchSize):
-            self.__linesByKey[newIndex] = newLine
-            self.__keyFromPos[i] = newIndex
-            i += 1
+        else:
+            i = startPos
+            for newIndex, newLine in self.serverRowset.Fetch(startPos, fetchSize):
+                self.__linesByKey[newIndex] = newLine
+                self.__keyFromPos[i] = newIndex
+                i += 1
+
+            return
 
     def FetchByKey(self, primaryKeys):
         request = []
@@ -934,7 +955,7 @@ class SparseRowset():
     def __delitem__(self, index):
         raise RuntimeError('NotSupported')
 
-    def sort(self, f = None):
+    def sort(self, f=None):
         raise RuntimeError('NotSupported')
 
     def extend(self, other):
@@ -949,13 +970,13 @@ class SparseRowset():
     def InsertNew(self, *args):
         raise RuntimeError('NotSupported')
 
-    def Sort(self, colname, asc = 1):
+    def Sort(self, colname, asc=1):
         raise RuntimeError('NotSupported')
 
     def Index(self, colname):
         raise RuntimeError('NotSupported')
 
-    def Filter(self, colname, colname2 = None):
+    def Filter(self, colname, colname2=None):
         raise RuntimeError('NotSupported')
 
     def append(self, row):
@@ -985,7 +1006,7 @@ class RowDict(dict):
     __passbyvalue__ = 1
     slots = ['columns', 'header', 'key']
 
-    def __init__(self, rowList, key, columns = None):
+    def __init__(self, rowList, key, columns=None):
         dict.__init__(self)
         rows, self.columns, self.header = RowsInit(rowList, columns)
         if key not in self.columns:
@@ -1011,6 +1032,7 @@ class RowDict(dict):
         if self.header is None:
             self.header = row.__header__
         self[row[self.key]] = row
+        return
 
 
 class RowList(list):
@@ -1018,7 +1040,7 @@ class RowList(list):
     __passbyvalue__ = 1
     slots = ['header', 'columns']
 
-    def __init__(self, rowList, columns = None):
+    def __init__(self, rowList, columns=None):
         list.__init__(self)
         rows, self.columns, self.header = RowsInit(rowList, columns)
         self[:] = rows
@@ -1031,13 +1053,14 @@ class RowList(list):
         if self.header is None:
             self.header = row.__header__
         list.append(self, row)
+        return
 
 
 class IndexedRows(dict):
     __guid__ = 'util.IndexedRows'
     __passbyvalue__ = 1
 
-    def __init__(self, rows = [], keys = None):
+    def __init__(self, rows=[], keys=None):
         self.InsertMany(keys, rows)
 
     def InsertMany(self, keys, rows):
@@ -1058,7 +1081,7 @@ class IndexedRowLists(dict):
     __guid__ = 'util.IndexedRowLists'
     __passbyvalue__ = 1
 
-    def __init__(self, rows = [], keys = None):
+    def __init__(self, rows=[], keys=None):
         self.header = []
         self.InsertMany(keys, rows)
 

@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\packages\shipskins\__init__.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\packages\shipskins\__init__.py
 from .static import License, Skin, SkinMaterial, SkinStaticData
 from .storage import AppliedSkinStorage, LicensedSkin, LicensedSkinStorage, SkinAlreadyLicensed, SkinNotLicensed
 from util import repr, Base

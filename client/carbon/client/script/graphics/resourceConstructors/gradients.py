@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\carbon\client\script\graphics\resourceConstructors\gradients.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\carbon\client\script\graphics\resourceConstructors\gradients.py
 import blue
 import trinity
 import struct
@@ -87,7 +88,7 @@ def Bezier(a, b, c, d, u):
     return v_add(v_add(v_mul(b, math.pow(v, 3)), v_mul(b1, u * 3.0 * math.pow(v, 2))), v_add(v_mul(c1, v * 3.0 * math.pow(u, 2)), v_mul(c, math.pow(u, 3))))
 
 
-def SampleGradient(divs, points, x, interpMode = 'linear'):
+def SampleGradient(divs, points, x, interpMode='linear'):
     if x < divs[0]:
         return points[0]
     elif x >= divs[-1]:
@@ -236,7 +237,7 @@ def GradientRadial(paramString):
     return texture
 
 
-def SampleGradient2D(subdivsX, subdivsY, pointsX, pointsY, x, y, interpMode = 'linear'):
+def SampleGradient2D(subdivsX, subdivsY, pointsX, pointsY, x, y, interpMode='linear'):
     indexX, indexY = (0, 0)
     minX, minY, maxX, maxY = (0, 0, 1, 1)
     found = False

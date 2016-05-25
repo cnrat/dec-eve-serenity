@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\common\script\dogma\baseDogma.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\common\script\dogma\baseDogma.py
 import carbon.common.script.sys.service as service
 from eve.common.script.sys.eveCfg import IsCharacter
 
@@ -29,7 +30,6 @@ class BaseDogma(service.Service):
         affectedAttributeID = arg1[1][1]
         affectType = arg1[0]
         env.dogmaLM.RemoveOwnerRequiredSkillModifier(affectType, affectedOwnerID, affectedSkillID, affectedAttributeID, affectingModuleID, affectingAttributeID)
-        return 1
 
     def AddLocationRequiredSkillModifier(self, env, arg1, arg2):
         affectingModuleID = env.itemID
@@ -39,7 +39,6 @@ class BaseDogma(service.Service):
         affectedAttributeID = arg1[1][1]
         affectType = arg1[0]
         env.dogmaLM.AddLocationRequiredSkillModifier(affectType, affectedLocationID, affectedSkillID, affectedAttributeID, affectingModuleID, affectingAttributeID)
-        return 1
 
     def RemoveLocationRequiredSkillModifier(self, env, arg1, arg2):
         affectingModuleID = env.itemID
@@ -49,7 +48,6 @@ class BaseDogma(service.Service):
         affectedAttributeID = arg1[1][1]
         affectType = arg1[0]
         env.dogmaLM.RemoveLocationRequiredSkillModifier(affectType, affectedLocationID, affectedSkillID, affectedAttributeID, affectingModuleID, affectingAttributeID)
-        return 1
 
     def AddGangRequiredSkillModifier(self, env, arg1, arg2):
         affectingModuleID = env.itemID
@@ -60,7 +58,6 @@ class BaseDogma(service.Service):
         affectedAttributeID = arg1[1][1]
         affectType = arg1[0]
         env.dogmaLM.AddGangRequiredSkillModifier(env.shipID, affectType, affectedSkillID, affectedAttributeID, affectingModuleID, affectingAttributeID)
-        return 1
 
     def AddGangGroupModifier(self, env, arg1, arg2):
         affectingModuleID = env.itemID
@@ -91,7 +88,6 @@ class BaseDogma(service.Service):
         affectedAttributeID = arg1[1][1]
         affectType = arg1[0]
         env.dogmaLM.RemoveGangRequiredSkillModifier(env.shipID, affectType, affectedSkillID, affectedAttributeID, affectingModuleID, affectingAttributeID)
-        return 1
 
     def AddGangShipModifier(self, env, arg1, arg2):
         affectingModuleID = env.itemID
@@ -121,11 +117,12 @@ class BaseDogma(service.Service):
         affectType = arg1[0]
         if affectedModuleID == 0:
             return 1
-        if affectedModuleID is None:
+        elif affectedModuleID is None:
             self.LogWarn('AffectedModuleID is None.  Env:', env)
             return
-        env.dogmaLM.AddModifier(affectType, affectedModuleID, affectedAttributeID, affectingModuleID, affectingAttributeID)
-        return 1
+        else:
+            env.dogmaLM.AddModifier(affectType, affectedModuleID, affectedAttributeID, affectingModuleID, affectingAttributeID)
+            return 1
 
     def RemoveItemModifier(self, env, arg1, arg2):
         affectingModuleID = env.itemID
@@ -134,7 +131,6 @@ class BaseDogma(service.Service):
         affectedAttributeID = arg1[1][1]
         affectType = arg1[0]
         env.dogmaLM.RemoveModifier(affectType, affectedModuleID, affectedAttributeID, affectingModuleID, affectingAttributeID)
-        return 1
 
     def AddOwnerModifier(self, env, arg1, arg2):
         pass
@@ -177,7 +173,6 @@ class BaseDogma(service.Service):
         dogmaLM = env.dogmaLM
         if IsCharacter(env.charID):
             dogmaLM.CheckSkillRequirementsForType(env.charID, env.itemTypeID, arg1)
-        return 1
 
     def UserError(self, env, arg1, arg2):
         dogmaLM = env.dogmaLM

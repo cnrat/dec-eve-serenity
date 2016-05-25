@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\carbon\common\script\cef\componentViews\physicalPortalComponentView.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\carbon\common\script\cef\componentViews\physicalPortalComponentView.py
 from carbon.common.script.cef.baseComponentView import BaseComponentView
 
 class PhysicalPortalComponentView(BaseComponentView):
@@ -21,6 +22,7 @@ class PhysicalPortalComponentView(BaseComponentView):
         cls._AddInput(cls.SCALE_Y, 1.0, cls.RECIPE, const.cef.COMPONENTDATA_FLOAT_TYPE, displayName='Y Scale')
         cls._AddInput(cls.SCALE_Z, 1.0, cls.RECIPE, const.cef.COMPONENTDATA_FLOAT_TYPE, displayName='Z Scale')
         cls._AddInput((cls.CELL_A, cls.CELL_B), (None, None), cls.SPAWN_ONLY, const.cef.COMPONENTDATA_PORTAL_CELL_TYPE, displayName='Cells')
+        return None
 
 
 PhysicalPortalComponentView.SetupInputs()

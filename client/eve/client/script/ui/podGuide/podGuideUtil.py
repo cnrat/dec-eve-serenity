@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\client\script\ui\podGuide\podGuideUtil.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\client\script\ui\podGuide\podGuideUtil.py
 from collections import OrderedDict, defaultdict
 import fsdSchemas.binaryLoader as fsdBinaryLoader
 
@@ -53,7 +54,7 @@ def GetCategories():
     return categoryInfo
 
 
-def OpenPodGuide(termID = None):
+def OpenPodGuide(termID=None):
     from eve.client.script.ui.podGuide.podGuideUI import PodGuideWindow
     wnd = PodGuideWindow.GetIfOpen()
     if wnd:

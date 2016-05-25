@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\client\script\ui\inflight\orbitalConfiguration.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\client\script\ui\inflight\orbitalConfiguration.py
 import uicls
 import uiprimitives
 import uicontrols
@@ -56,6 +57,7 @@ class OrbitalConfigurationWindow(uicontrols.Window):
         self.MakeUnResizeable()
         self.Layout()
         self.Redraw()
+        return
 
     def Layout(self):
         self.reinforcementLabel = uicontrols.EveLabelSmall(text=localization.GetByLabel('UI/PI/OrbitalConfigurationWindow/ReinforcementExit'), align=uiconst.TOPLEFT, parent=self.sr.main, state=uiconst.UI_NORMAL, hint=localization.GetByLabel('UI/PI/OrbitalConfigurationWindow/ReinforcementExitTooltip', typeID=self.typeID), left=15, top=13)
@@ -78,13 +80,15 @@ class OrbitalConfigurationWindow(uicontrols.Window):
         btns = [(localization.GetByLabel('UI/Common/Submit'), self.Submit, None), (localization.GetByLabel('UI/Common/Cancel'), self.Cancel, None)]
         uicontrols.ButtonGroup(btns=btns, subalign=uiconst.CENTER, parent=self.footer, line=True, alwaysLite=False)
         self.width = [self.WIDTH_COLLAPSED, self.WIDTH_EXPANDED][int(self.standingsCheckbox.GetValue())]
+        return
 
-    def LayoutTaxInput(self, taxRate, parent, left = 0, top = 0):
+    def LayoutTaxInput(self, taxRate, parent, left=0, top=0):
         taxRateValue = taxRate.value
         taxRateInput = uicontrols.SinglelineEdit(parent=parent, name='taxRateEdit', align=uiconst.TOPLEFT, setvalue='' if taxRateValue is None else str(100 * taxRateValue), width=90, left=left, top=top, idx=0)
         taxRatePercent = uicontrols.EveLabelMedium(align=uiconst.TOPLEFT, text='%', parent=parent, left=left + 97, top=top + 2)
         taxRateInput.FloatMode(minfloat=0, maxfloat=100)
         taxRate.input = taxRateInput
+        return
 
     def OnMouseEnterInteractable(self, obj, *args):
         obj.SetOpacity(self.HOVER_ALPHA)
@@ -131,6 +135,7 @@ class OrbitalConfigurationWindow(uicontrols.Window):
             field.state = uiconst.UI_NORMAL
             field.sr.text.SetAlpha(1)
             self.effects.MorphUIMassSpringDamper(field, 'opacity', 1, dampRatio=0.99)
+        return
 
     def GetTaxRateValue(self, field):
         value = getattr(field, 'hiddenValue', None)

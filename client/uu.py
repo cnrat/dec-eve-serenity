@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\carbon\common\stdlib\uu.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\carbon\common\stdlib\uu.py
 import binascii
 import os
 import sys
@@ -8,7 +9,7 @@ class Error(Exception):
     pass
 
 
-def encode(in_file, out_file, name = None, mode = None):
+def encode(in_file, out_file, name=None, mode=None):
     opened_files = []
     try:
         if in_file == '-':
@@ -44,8 +45,10 @@ def encode(in_file, out_file, name = None, mode = None):
         for f in opened_files:
             f.close()
 
+    return
 
-def decode(in_file, out_file = None, mode = None, quiet = 0):
+
+def decode(in_file, out_file=None, mode=None, quiet=0):
     opened_files = []
     if in_file == '-':
         in_file = sys.stdin
@@ -102,6 +105,8 @@ def decode(in_file, out_file = None, mode = None, quiet = 0):
     finally:
         for f in opened_files:
             f.close()
+
+    return
 
 
 def test():

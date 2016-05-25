@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\devtools\script\form_tournament.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\devtools\script\form_tournament.py
 import operator
 import math
 import dogma.effects
@@ -69,6 +70,7 @@ statusIconWidth = 20
 maxStatusIcons = 6
 effectToIcon = {'warpScramblerMWD': const.iconModuleWarpScramblerMWD,
  'warpScrambler': const.iconModuleWarpScrambler,
+ 'fighterTackle': const.iconModuleFighterTackle,
  'focusedWarpScrambler': const.iconModuleFocusedWarpScrambler,
  'webify': const.iconModuleStasisWeb,
  'electronic': const.iconModuleECM,
@@ -180,6 +182,7 @@ class TournamentWindow(uicontrols.Window):
         self.SetMinSize([self.width, self.height])
         self.MakeUnResizeable()
         self.ConstructLayout()
+        return
 
     def ConstructLayout(self):
         self.tourneyMoniker = util.Moniker('tourneyMgr', session.solarsystemid)
@@ -247,19 +250,14 @@ class TournamentWindow(uicontrols.Window):
 
         scene.envMap1ResPath = 'res:/dx9/scene/universe/%s_cube.dds' % (nebulaID,)
         scene.envMap2ResPath = 'res:/dx9/scene/universe/%s_cube_blur.dds' % (nebulaID,)
+        return
 
     def StartFancyUIClient(self, *args):
         self.FetchTeams()
+        barDetails = self.tourneyMoniker.GetFancyDetails(self.tourneys[self.matchSelect.GetValue()][0])
         neocomLayer = uicore.layer.Get('sidePanels')
         if neocomLayer is not None and neocomLayer.state != uiconst.UI_HIDDEN:
             neocomLayer.state = uiconst.UI_HIDDEN
-        try:
-            slashCmd = sm.RemoteSvc('slash').SlashCmd
-            slashCmd('/dogma %d %d = 24' % (session.charid, const.attributeMaxLockedTargets))
-            slashCmd('/dogma %d %d = 24' % (session.shipid, const.attributeMaxLockedTargets))
-        except:
-            pass
-
         self.startScreen.state = uiconst.UI_HIDDEN
         self.fancyUIWindow.state = uiconst.UI_NORMAL
         self.fancyUI.state = uiconst.UI_NORMAL
@@ -331,9 +329,20 @@ class TournamentWindow(uicontrols.Window):
          11), align=uiconst.TOPLEFT, texturePath='res:/UI/Texture/Tournament/Bar_Full.png')
         self.clockLabel = DropShadowElement(uicontrols.EveCaptionLarge, text='10:00', parent=self.fancyUI, left=0, top=0, color=(1, 1, 1, 1))
         self.clockLabel.left = 1920 / 2 - self.clockLabel.width / 2
-        banContainer = uiprimitives.Container(parent=self.fancyUI, pos=(16, 40, 316, 214), align=uiconst.TOPLEFT, clipChildren=True)
-        DropShadowElement(uicontrols.EveCaptionLarge, text='Ship Bans', parent=banContainer, left=0, top=0)
-        self.bansLabel = DropShadowElement(uicontrols.EveCaptionLarge, text='bans', parent=banContainer, left=0, top=26)
+        self.redBanContainer = uiprimitives.Container(parent=self.fancyUI, pos=(16, 4, 316, 214), align=uiconst.TOPLEFT, clipChildren=True)
+        self.blueBanContainer = uiprimitives.Container(parent=self.fancyUI, pos=(16, 4, 316, 214), align=uiconst.TOPRIGHT, clipChildren=True)
+        DropShadowElement(uicontrols.EveCaptionMedium, text='Ship Bans', parent=self.redBanContainer, align=uiconst.TOPLEFT, left=0, top=2)
+        redHeight = 32
+        for x in barDetails[3][0]:
+            DropShadowElement(uicontrols.EveCaptionSmall, text=evetypes.GetName(x), parent=self.redBanContainer, align=uiconst.TOPLEFT, left=0, top=redHeight)
+            redHeight = redHeight + 20
+
+        DropShadowElement(uicontrols.EveCaptionMedium, text='Ship Bans', parent=self.blueBanContainer, align=uiconst.TOPRIGHT, left=0, top=2)
+        blueHeight = 32
+        for x in barDetails[3][1]:
+            DropShadowElement(uicontrols.EveCaptionSmall, text=evetypes.GetName(x), parent=self.blueBanContainer, align=uiconst.TOPRIGHT, left=0, top=blueHeight)
+            blueHeight = blueHeight + 20
+
         statusIconsWidth = 258 / 2
         shipOffset = statusIconsWidth
         shipWidth = 98
@@ -475,6 +484,7 @@ class TournamentWindow(uicontrols.Window):
         self.maxDPS = float(prefs.GetValue('maxFancyDPS', 4500))
         self.maxCont = float(prefs.GetValue('maxFancyCont', 50))
         uthread.new(self.FancyUIUpdate)
+        return
 
     def SortEffects(self, effectSet):
         desiredOrdering = [86,
@@ -486,8 +496,10 @@ class TournamentWindow(uicontrols.Window):
          const.iconModuleNosferatu,
          const.iconModuleTargetPainter,
          const.iconModuleStasisWeb,
+         const.iconModuleFocusedWarpScrambler,
+         const.iconModuleWarpScramblerMWD,
          const.iconModuleWarpScrambler,
-         const.iconModuleWarpScramblerMWD]
+         const.iconModuleFighterTackle]
         return [ x for x in desiredOrdering if x in effectSet ]
 
     def HarvestStatusEffects(self):
@@ -519,6 +531,7 @@ class TournamentWindow(uicontrols.Window):
         effects = {}
         possibleIcons = [86,
          80,
+         const.iconModuleFocusedWarpScrambler,
          const.iconModuleECM,
          const.iconModuleSensorDamper,
          const.iconModuleTrackingDisruptor,
@@ -527,7 +540,8 @@ class TournamentWindow(uicontrols.Window):
          const.iconModuleTargetPainter,
          const.iconModuleStasisWeb,
          const.iconModuleWarpScrambler,
-         const.iconModuleWarpScramblerMWD]
+         const.iconModuleWarpScramblerMWD,
+         const.iconModuleFighterTackle]
         for shipID in self.updateElements.iterkeys():
             effects[shipID] = [ x for x in possibleIcons if random.random() > 0.5 ]
 
@@ -648,9 +662,6 @@ class TournamentWindow(uicontrols.Window):
             displayTimeSec = max(0, 600 - elapsedTimeSec)
             self.clockLabel.text = '%d:%02d' % (displayTimeSec / 60, displayTimeSec % 60)
             self.clockLabel.left = 1920 / 2 - self.clockLabel.width / 2
-        redBans = '   ' + '\n   '.join((evetypes.GetName(x) for x in barDetails[3][0]))
-        blueBans = '   ' + '\n   '.join((evetypes.GetName(x) for x in barDetails[3][1]))
-        self.bansLabel.text = 'Red Team:\n%s\n\nBlue Team:\n%s' % (redBans, blueBans)
 
     def FancyUIUpdate(self):
         michelle = sm.GetService('michelle')
@@ -741,6 +752,8 @@ class TournamentWindow(uicontrols.Window):
             self.rightTeamBar.width = rightTeamRemainingPointsWidth
             blue.synchro.SleepSim(220)
 
+        return
+
     def Close(self, *args, **kwds):
         if self.fancyUI:
             self.fancyUI.Close()
@@ -753,6 +766,7 @@ class TournamentWindow(uicontrols.Window):
             neocomLayer.state = uiconst.UI_PICKCHILDREN
         sm.GetService('infoPanel').ShowHideSidePanel(hide=False)
         uicontrols.Window.Close(self, *args, **kwds)
+        return
 
     def LockEveryone(self, *args):
         target = sm.GetService('target')

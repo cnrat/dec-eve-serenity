@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\carbon\common\stdlib\pdb.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\carbon\common\stdlib\pdb.py
 import sys
 import linecache
 import cmd
@@ -52,7 +53,7 @@ line_prefix = '\n-> '
 
 class Pdb(bdb.Bdb, cmd.Cmd):
 
-    def __init__(self, completekey = 'tab', stdin = None, stdout = None, skip = None):
+    def __init__(self, completekey='tab', stdin=None, stdout=None, skip=None):
         bdb.Bdb.__init__(self, skip=skip)
         cmd.Cmd.__init__(self, completekey, stdin, stdout)
         if stdout:
@@ -94,6 +95,7 @@ class Pdb(bdb.Bdb, cmd.Cmd):
         self.commands_silent = {}
         self.commands_defining = False
         self.commands_bnum = None
+        return
 
     def reset(self):
         bdb.Bdb.reset(self)
@@ -104,6 +106,7 @@ class Pdb(bdb.Bdb, cmd.Cmd):
         self.stack = []
         self.curindex = 0
         self.curframe = None
+        return
 
     def setup(self, f, t):
         self.forget()
@@ -124,9 +127,11 @@ class Pdb(bdb.Bdb, cmd.Cmd):
     def user_call(self, frame, argument_list):
         if self._wait_for_mainpyfile:
             return
-        if self.stop_here(frame):
-            print >> self.stdout, '--Call--'
-            self.interaction(frame, None)
+        else:
+            if self.stop_here(frame):
+                print >> self.stdout, '--Call--'
+                self.interaction(frame, None)
+            return
 
     def user_line(self, frame):
         if self._wait_for_mainpyfile:
@@ -135,6 +140,7 @@ class Pdb(bdb.Bdb, cmd.Cmd):
             self._wait_for_mainpyfile = 0
         if self.bp_commands(frame):
             self.interaction(frame, None)
+        return
 
     def bp_commands(self, frame):
         if getattr(self, 'currentbp', False) and self.currentbp in self.commands:
@@ -152,14 +158,17 @@ class Pdb(bdb.Bdb, cmd.Cmd):
                 self.cmdloop()
             self.forget()
             return
-        return 1
+        else:
+            return 1
 
     def user_return(self, frame, return_value):
         if self._wait_for_mainpyfile:
             return
-        frame.f_locals['__return__'] = return_value
-        print >> self.stdout, '--Return--'
-        self.interaction(frame, None)
+        else:
+            frame.f_locals['__return__'] = return_value
+            print >> self.stdout, '--Return--'
+            self.interaction(frame, None)
+            return
 
     def user_exception(self, frame, exc_info):
         if self._wait_for_mainpyfile:
@@ -182,6 +191,7 @@ class Pdb(bdb.Bdb, cmd.Cmd):
     def displayhook(self, obj):
         if obj is not None:
             print repr(obj)
+        return
 
     def default(self, line):
         if line[:1] == '!':
@@ -289,7 +299,7 @@ class Pdb(bdb.Bdb, cmd.Cmd):
             self.commands_defining = False
             self.prompt = prompt_back
 
-    def do_break(self, arg, temporary = 0):
+    def do_break(self, arg, temporary=0):
         if not arg:
             if self.breaks:
                 print >> self.stdout, 'Num Type         Disp Enb   Where'
@@ -298,67 +308,69 @@ class Pdb(bdb.Bdb, cmd.Cmd):
                         bp.bpprint(self.stdout)
 
             return
-        filename = None
-        lineno = None
-        cond = None
-        comma = arg.find(',')
-        if comma > 0:
-            cond = arg[comma + 1:].lstrip()
-            arg = arg[:comma].rstrip()
-        colon = arg.rfind(':')
-        funcname = None
-        if colon >= 0:
-            filename = arg[:colon].rstrip()
-            f = self.lookupmodule(filename)
-            if not f:
-                print >> self.stdout, '*** ', repr(filename),
-                print >> self.stdout, 'not found from sys.path'
-                return
-            filename = f
-            arg = arg[colon + 1:].lstrip()
-            try:
-                lineno = int(arg)
-            except ValueError as msg:
-                print >> self.stdout, '*** Bad lineno:', arg
-                return
-
         else:
-            try:
-                lineno = int(arg)
-            except ValueError:
+            filename = None
+            lineno = None
+            cond = None
+            comma = arg.find(',')
+            if comma > 0:
+                cond = arg[comma + 1:].lstrip()
+                arg = arg[:comma].rstrip()
+            colon = arg.rfind(':')
+            funcname = None
+            if colon >= 0:
+                filename = arg[:colon].rstrip()
+                f = self.lookupmodule(filename)
+                if not f:
+                    print >> self.stdout, '*** ', repr(filename),
+                    print >> self.stdout, 'not found from sys.path'
+                    return
+                filename = f
+                arg = arg[colon + 1:].lstrip()
                 try:
-                    func = eval(arg, self.curframe.f_globals, self.curframe_locals)
-                except:
-                    func = arg
+                    lineno = int(arg)
+                except ValueError as msg:
+                    print >> self.stdout, '*** Bad lineno:', arg
+                    return
 
-                try:
-                    if hasattr(func, 'im_func'):
-                        func = func.im_func
-                    code = func.func_code
-                    funcname = code.co_name
-                    lineno = code.co_firstlineno
-                    filename = code.co_filename
-                except:
-                    ok, filename, ln = self.lineinfo(arg)
-                    if not ok:
-                        print >> self.stdout, '*** The specified object',
-                        print >> self.stdout, repr(arg),
-                        print >> self.stdout, 'is not a function'
-                        print >> self.stdout, 'or was not found along sys.path.'
-                        return
-                    funcname = ok
-                    lineno = int(ln)
-
-        if not filename:
-            filename = self.defaultFile()
-        line = self.checkline(filename, lineno)
-        if line:
-            err = self.set_break(filename, line, temporary, cond, funcname)
-            if err:
-                print >> self.stdout, '***', err
             else:
-                bp = self.get_breaks(filename, line)[-1]
-                print >> self.stdout, 'Breakpoint %d at %s:%d' % (bp.number, bp.file, bp.line)
+                try:
+                    lineno = int(arg)
+                except ValueError:
+                    try:
+                        func = eval(arg, self.curframe.f_globals, self.curframe_locals)
+                    except:
+                        func = arg
+
+                    try:
+                        if hasattr(func, 'im_func'):
+                            func = func.im_func
+                        code = func.func_code
+                        funcname = code.co_name
+                        lineno = code.co_firstlineno
+                        filename = code.co_filename
+                    except:
+                        ok, filename, ln = self.lineinfo(arg)
+                        if not ok:
+                            print >> self.stdout, '*** The specified object',
+                            print >> self.stdout, repr(arg),
+                            print >> self.stdout, 'is not a function'
+                            print >> self.stdout, 'or was not found along sys.path.'
+                            return
+                        funcname = ok
+                        lineno = int(ln)
+
+            if not filename:
+                filename = self.defaultFile()
+            line = self.checkline(filename, lineno)
+            if line:
+                err = self.set_break(filename, line, temporary, cond, funcname)
+                if err:
+                    print >> self.stdout, '***', err
+                else:
+                    bp = self.get_breaks(filename, line)[-1]
+                    print >> self.stdout, 'Breakpoint %d at %s:%d' % (bp.number, bp.file, bp.line)
+            return
 
     def defaultFile(self):
         filename = self.curframe.f_code.co_filename
@@ -382,21 +394,22 @@ class Pdb(bdb.Bdb, cmd.Cmd):
             return failed
         if id == '':
             return failed
-        parts = id.split('.')
-        if parts[0] == 'self':
-            del parts[0]
-            if len(parts) == 0:
-                return failed
-        fname = self.defaultFile()
-        if len(parts) == 1:
-            item = parts[0]
         else:
-            f = self.lookupmodule(parts[0])
-            if f:
-                fname = f
-            item = parts[1]
-        answer = find_function(item, fname)
-        return answer or failed
+            parts = id.split('.')
+            if parts[0] == 'self':
+                del parts[0]
+                if len(parts) == 0:
+                    return failed
+            fname = self.defaultFile()
+            if len(parts) == 1:
+                item = parts[0]
+            else:
+                f = self.lookupmodule(parts[0])
+                if f:
+                    fname = f
+                item = parts[1]
+            answer = find_function(item, fname)
+            return answer or failed
 
     def checkline(self, filename, lineno):
         globs = self.curframe.f_globals if hasattr(self, 'curframe') else None
@@ -404,11 +417,12 @@ class Pdb(bdb.Bdb, cmd.Cmd):
         if not line:
             print >> self.stdout, 'End of file'
             return 0
-        line = line.strip()
-        if not line or line[0] == '#' or line[:3] == '"""' or line[:3] == "'''":
-            print >> self.stdout, '*** Blank or comment'
-            return 0
-        return lineno
+        else:
+            line = line.strip()
+            if not line or line[0] == '#' or line[:3] == '"""' or line[:3] == "'''":
+                print >> self.stdout, '*** Blank or comment'
+                return 0
+            return lineno
 
     def do_enable(self, arg):
         args = arg.split()
@@ -466,6 +480,7 @@ class Pdb(bdb.Bdb, cmd.Cmd):
             if not cond:
                 print >> self.stdout, 'Breakpoint', bpnum,
                 print >> self.stdout, 'is now unconditional.'
+        return
 
     def do_ignore(self, arg):
         args = arg.split()
@@ -558,6 +573,7 @@ class Pdb(bdb.Bdb, cmd.Cmd):
             self.curframe_locals = self.curframe.f_locals
             self.print_stack_entry(self.stack[self.curindex])
             self.lineno = None
+        return
 
     do_u = do_up
 
@@ -570,24 +586,22 @@ class Pdb(bdb.Bdb, cmd.Cmd):
             self.curframe_locals = self.curframe.f_locals
             self.print_stack_entry(self.stack[self.curindex])
             self.lineno = None
+        return
 
     do_d = do_down
 
     def do_until(self, arg):
         self.set_until(self.curframe)
-        return 1
 
     do_unt = do_until
 
     def do_step(self, arg):
         self.set_step()
-        return 1
 
     do_s = do_step
 
     def do_next(self, arg):
         self.set_next(self.curframe)
-        return 1
 
     do_n = do_next
 
@@ -603,13 +617,11 @@ class Pdb(bdb.Bdb, cmd.Cmd):
 
     def do_return(self, arg):
         self.set_return(self.curframe)
-        return 1
 
     do_r = do_return
 
     def do_continue(self, arg):
         self.set_continue()
-        return 1
 
     do_c = do_cont = do_continue
 
@@ -642,11 +654,11 @@ class Pdb(bdb.Bdb, cmd.Cmd):
         print >> self.stdout, 'LEAVING RECURSIVE DEBUGGER'
         sys.settrace(self.trace_dispatch)
         self.lastcmd = p.lastcmd
+        return
 
     def do_quit(self, arg):
         self._user_requested_quit = 1
         self.set_quit()
-        return 1
 
     do_q = do_quit
     do_exit = do_quit
@@ -655,7 +667,6 @@ class Pdb(bdb.Bdb, cmd.Cmd):
         print >> self.stdout
         self._user_requested_quit = 1
         self.set_quit()
-        return 1
 
     def do_args(self, arg):
         co = self.curframe.f_code
@@ -755,6 +766,8 @@ class Pdb(bdb.Bdb, cmd.Cmd):
         except KeyboardInterrupt:
             pass
 
+        return
+
     do_l = do_list
 
     def do_whatis(self, arg):
@@ -778,15 +791,17 @@ class Pdb(bdb.Bdb, cmd.Cmd):
         if code:
             print >> self.stdout, 'Function', code.co_name
             return
-        try:
-            code = value.im_func.func_code
-        except:
-            pass
+        else:
+            try:
+                code = value.im_func.func_code
+            except:
+                pass
 
-        if code:
-            print >> self.stdout, 'Method', code.co_name
+            if code:
+                print >> self.stdout, 'Method', code.co_name
+                return
+            print >> self.stdout, type(value)
             return
-        print >> self.stdout, type(value)
 
     def do_alias(self, arg):
         args = arg.split()
@@ -824,7 +839,7 @@ class Pdb(bdb.Bdb, cmd.Cmd):
         except KeyboardInterrupt:
             pass
 
-    def print_stack_entry(self, frame_lineno, prompt_prefix = line_prefix):
+    def print_stack_entry(self, frame_lineno, prompt_prefix=line_prefix):
         frame, lineno = frame_lineno
         if frame is self.curframe:
             print >> self.stdout, '>',
@@ -983,21 +998,24 @@ class Pdb(bdb.Bdb, cmd.Cmd):
     def lookupmodule(self, filename):
         if os.path.isabs(filename) and os.path.exists(filename):
             return filename
-        f = os.path.join(sys.path[0], filename)
-        if os.path.exists(f) and self.canonic(f) == self.mainpyfile:
-            return f
-        root, ext = os.path.splitext(filename)
-        if ext == '':
-            filename = filename + '.py'
-        if os.path.isabs(filename):
-            return filename
-        for dirname in sys.path:
-            while os.path.islink(dirname):
-                dirname = os.readlink(dirname)
+        else:
+            f = os.path.join(sys.path[0], filename)
+            if os.path.exists(f) and self.canonic(f) == self.mainpyfile:
+                return f
+            root, ext = os.path.splitext(filename)
+            if ext == '':
+                filename = filename + '.py'
+            if os.path.isabs(filename):
+                return filename
+            for dirname in sys.path:
+                while os.path.islink(dirname):
+                    dirname = os.readlink(dirname)
 
-            fullname = os.path.join(dirname, filename)
-            if os.path.exists(fullname):
-                return fullname
+                fullname = os.path.join(dirname, filename)
+                if os.path.exists(fullname):
+                    return fullname
+
+            return None
 
     def _runscript(self, filename):
         import __main__
@@ -1012,11 +1030,11 @@ class Pdb(bdb.Bdb, cmd.Cmd):
         self.run(statement)
 
 
-def run(statement, globals = None, locals = None):
+def run(statement, globals=None, locals=None):
     Pdb().run(statement, globals, locals)
 
 
-def runeval(expression, globals = None, locals = None):
+def runeval(expression, globals=None, locals=None):
     return Pdb().runeval(expression, globals, locals)
 
 
@@ -1032,7 +1050,7 @@ def set_trace():
     Pdb().set_trace(sys._getframe().f_back)
 
 
-def post_mortem(t = None):
+def post_mortem(t=None):
     if t is None:
         t = sys.exc_info()[2]
         if t is None:
@@ -1040,6 +1058,7 @@ def post_mortem(t = None):
     p = Pdb()
     p.reset()
     p.interaction(None, t)
+    return
 
 
 def pm():
@@ -1095,6 +1114,8 @@ def main():
             t = sys.exc_info()[2]
             pdb.interaction(None, t)
             print 'Post mortem debugger finished. The ' + mainpyfile + ' will be restarted'
+
+    return
 
 
 if __name__ == '__main__':

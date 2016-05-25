@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\carbon\common\lib\MPI.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\carbon\common\lib\MPI.py
 __docformat__ = 'reStructuredText'
 __author__ = 'Lisandro Dalcin'
 __credits__ = 'MPI Forum, MPICH Team, Open MPI Team.'
@@ -22,7 +23,7 @@ class Pickle(object):
             pkl.load = method(_pickle.load, pkl, cls)
         return pkl
 
-    def __init__(self, protocol = _pickle.HIGH_PROT):
+    def __init__(self, protocol=_pickle.HIGH_PROT):
         self.PROTOCOL = protocol
 
 
@@ -40,7 +41,7 @@ class Marshal(object):
             msh.load = method(_marshal.load, msh, cls)
         return msh
 
-    def __init__(self, protocol = _marshal.VERSION):
+    def __init__(self, protocol=_marshal.VERSION):
         self.PROTOCOL = protocol
 
 
@@ -50,7 +51,7 @@ def Buffer(*args):
     datatype = BYTE
     if args:
         if len(args) == 1:
-            data, = args
+            data = args
         if len(args) == 2:
             data, datatype = args
         elif len(args) == 3:
@@ -83,7 +84,7 @@ DISTRIBUTE_DFLT_DARG = _mpi.DISTRIBUTE_DFLT_DARG
 
 class Datatype(_mpi.Datatype):
 
-    def __init__(self, datatype = None):
+    def __init__(self, datatype=None):
         _mpi.Datatype.__init__(self, datatype)
 
     def Get_extent(self):
@@ -120,11 +121,11 @@ class Datatype(_mpi.Datatype):
         newtype = _mpi.type_hindexed(blocklengths, displacements, self)
         return type(self)(newtype)
 
-    def Create_subarray(self, sizes, subsizes, starts, order = None):
+    def Create_subarray(self, sizes, subsizes, starts, order=None):
         newtype = _mpi.type_subarray(sizes, subsizes, starts, order, self)
         return type(self)(newtype)
 
-    def Create_darray(self, size, rank, gsizes, distribs, dargs, psizes, order = None):
+    def Create_darray(self, size, rank, gsizes, distribs, dargs, psizes, order=None):
         newtype = _mpi.type_darray(size, rank, gsizes, distribs, dargs, psizes, order, self)
         return type(self)(newtype)
 
@@ -213,7 +214,7 @@ def Get_address(location):
     return _mpi.get_address(location)
 
 
-def Alloc_mem(size, info = None):
+def Alloc_mem(size, info=None):
     return _mpi.alloc_mem(size, info)
 
 
@@ -231,7 +232,7 @@ def Detach_buffer():
 
 class Status(_mpi.Status):
 
-    def __init__(self, status = None):
+    def __init__(self, status=None):
         _mpi.Status.__init__(self, status)
 
     def Get_source(self):
@@ -252,12 +253,12 @@ class Status(_mpi.Status):
     def Set_error(self, error):
         self.MPI_ERROR = error
 
-    def Get_count(self, datatype = None):
+    def Get_count(self, datatype=None):
         if datatype is None:
             datatype = BYTE
         return _mpi.get_count(self, datatype)
 
-    def Get_elements(self, datatype = None):
+    def Get_elements(self, datatype=None):
         if datatype is None:
             datatype = BYTE
         return _mpi.get_elements(self, datatype)
@@ -272,47 +273,47 @@ class Status(_mpi.Status):
 
 class Request(_mpi.Request):
 
-    def __init__(self, request = None):
+    def __init__(self, request=None):
         _mpi.Request.__init__(self, request)
 
-    def Wait(self, status = None):
+    def Wait(self, status=None):
         return _mpi.wait(self, status)
 
-    def Test(self, status = None):
+    def Test(self, status=None):
         return _mpi.test(self, status)
 
     def Free(self):
         return _mpi.request_free(self)
 
-    def Get_status(self, status = None):
+    def Get_status(self, status=None):
         return _mpi.request_get_status(self, status)
 
-    def Waitany(requests, status = None):
+    def Waitany(requests, status=None):
         return _mpi.waitany(requests, status)
 
     Waitany = staticmethod(Waitany)
 
-    def Testany(requests, status = None):
+    def Testany(requests, status=None):
         return _mpi.testany(requests, status)
 
     Testany = staticmethod(Testany)
 
-    def Waitall(requests, statuses = None):
+    def Waitall(requests, statuses=None):
         return _mpi.waitall(requests, statuses)
 
     Waitall = staticmethod(Waitall)
 
-    def Testall(requests, statuses = None):
+    def Testall(requests, statuses=None):
         return _mpi.testall(requests, statuses)
 
     Testall = staticmethod(Testall)
 
-    def Waitsome(requests, statuses = None):
+    def Waitsome(requests, statuses=None):
         return _mpi.waitsome(requests, statuses)
 
     Waitsome = staticmethod(Waitsome)
 
-    def Testsome(requests, statuses = None):
+    def Testsome(requests, statuses=None):
         return _mpi.testsome(requests, statuses)
 
     Testsome = staticmethod(Testsome)
@@ -323,7 +324,7 @@ class Request(_mpi.Request):
 
 class Prequest(Request):
 
-    def __init__(self, prequest = None):
+    def __init__(self, prequest=None):
         Request.__init__(self, prequest)
 
     def Start(self):
@@ -339,7 +340,7 @@ REQUEST_NULL = Request(_mpi.REQUEST_NULL)
 
 class Op(_mpi.Op):
 
-    def __new__(cls, op = None, *targs, **kargs):
+    def __new__(cls, op=None, *targs, **kargs):
         newop = _mpi.Op.__new__(cls, op)
         if newop is not op:
             if targs or kargs:
@@ -348,13 +349,13 @@ class Op(_mpi.Op):
                 newop.Init(None, False)
         return newop
 
-    def __init__(self, op = None, *targs, **kargs):
+    def __init__(self, op=None, *targs, **kargs):
         _mpi.Op.__init__(self, op, *targs, **kargs)
 
     def __call__(self, x, y):
         return self.__function(x, y)
 
-    def Init(self, function, commute = False):
+    def Init(self, function, commute=False):
         if callable(function):
             self.__function = function
             self.__commute = bool(commute)
@@ -363,6 +364,7 @@ class Op(_mpi.Op):
                 _mpi.op_create(function, commute, self)
             self.__function = lambda x, y: _mpi._raise(_mpi.ERR_OP)
             self.__commute = bool(commute)
+        return
 
     def Free(self):
         _mpi.op_free(self)
@@ -385,7 +387,7 @@ REPLACE = Op(_mpi.REPLACE, _op.REPLACE, False)
 
 class Info(_mpi.Info):
 
-    def __init__(self, info = None):
+    def __init__(self, info=None):
         _mpi.Info.__init__(self, info)
 
     def __len__(self):
@@ -435,7 +437,7 @@ class Info(_mpi.Info):
     def Delete(self, key):
         _mpi.info_delete(self, key)
 
-    def Get(self, key, maxlen = -1):
+    def Get(self, key, maxlen=-1):
         return _mpi.info_get(self, key, maxlen)
 
     def Get_nkeys(self):
@@ -449,7 +451,7 @@ INFO_NULL = Info(_mpi.INFO_NULL)
 
 class Group(_mpi.Group):
 
-    def __init__(self, group = None):
+    def __init__(self, group=None):
         _mpi.Group.__init__(self, group)
 
     def Get_size(self):
@@ -514,7 +516,7 @@ GROUP_EMPTY = Group(_mpi.GROUP_EMPTY)
 
 class Comm(_mpi.Comm):
 
-    def __init__(self, comm = None):
+    def __init__(self, comm=None):
         _mpi.Comm.__init__(self, comm)
         _mpi.comm_check_any(self)
 
@@ -542,7 +544,7 @@ class Comm(_mpi.Comm):
     def Free(self):
         _mpi.comm_free(self)
 
-    def Send(self, buf, dest = 0, tag = 0):
+    def Send(self, buf, dest=0, tag=0):
         buf, fastmode = _mpi.make_buf(buf)
         if fastmode:
             _mpi.send(buf, dest, tag, self)
@@ -554,8 +556,9 @@ class Comm(_mpi.Comm):
                 buf = None
             _mpi.send_string(buf, dest, tag, self)
             return
+            return
 
-    def Recv(self, buf = None, source = 0, tag = 0, status = None):
+    def Recv(self, buf=None, source=0, tag=0, status=None):
         buf, fastmode = _mpi.make_buf(buf)
         if fastmode:
             _mpi.recv(buf, source, tag, self, status)
@@ -565,8 +568,9 @@ class Comm(_mpi.Comm):
             if source != _mpi.PROC_NULL:
                 buf = self.SERIALIZER.load(buf)
             return buf
+            return None
 
-    def Sendrecv(self, sendbuf, dest = 0, sendtag = 0, recvbuf = None, source = 0, recvtag = 0, status = None):
+    def Sendrecv(self, sendbuf, dest=0, sendtag=0, recvbuf=None, source=0, recvtag=0, status=None):
         sendbuf, sfastmode = _mpi.make_buf(sendbuf)
         recvbuf, rfastmode = _mpi.make_buf(recvbuf)
         if sfastmode or rfastmode:
@@ -582,69 +586,71 @@ class Comm(_mpi.Comm):
             if recvbuf is not None:
                 recvbuf = serializer.load(recvbuf)
             return recvbuf
+            return
 
-    def Sendrecv_replace(self, buf, dest = 0, sendtag = 0, source = 0, recvtag = 0, status = None):
+    def Sendrecv_replace(self, buf, dest=0, sendtag=0, source=0, recvtag=0, status=None):
         _mpi.sendrecv_replace(buf, dest, sendtag, source, recvtag, self, status)
+        return None
 
-    def Isend(self, buf, dest = 0, tag = 0):
+    def Isend(self, buf, dest=0, tag=0):
         request = _mpi.isend(buf, dest, tag, self)
         return Request(request)
 
-    def Irecv(self, buf, source = 0, tag = 0):
+    def Irecv(self, buf, source=0, tag=0):
         request = _mpi.irecv(buf, source, tag, self)
         return Request(request)
 
-    def Probe(self, source = 0, tag = 0, status = None):
+    def Probe(self, source=0, tag=0, status=None):
         return _mpi.probe(source, tag, self, status)
 
-    def Iprobe(self, source = 0, tag = 0, status = None):
+    def Iprobe(self, source=0, tag=0, status=None):
         return _mpi.iprobe(source, tag, self, status)
 
-    def Send_init(self, buf, dest = 0, tag = 0):
+    def Send_init(self, buf, dest=0, tag=0):
         prequest = _mpi.send_init(buf, dest, tag, self)
         return Prequest(prequest)
 
-    def Recv_init(self, buf, source = 0, tag = 0):
+    def Recv_init(self, buf, source=0, tag=0):
         prequest = _mpi.recv_init(buf, source, tag, self)
         return Prequest(prequest)
 
-    def Bsend(self, buf, dest = 0, tag = 0):
+    def Bsend(self, buf, dest=0, tag=0):
         return _mpi.send(buf, dest, tag, self, 'B')
 
-    def Ssend(self, buf, dest = 0, tag = 0):
+    def Ssend(self, buf, dest=0, tag=0):
         return _mpi.send(buf, dest, tag, self, 'S')
 
-    def Rsend(self, buf, dest = 0, tag = 0):
+    def Rsend(self, buf, dest=0, tag=0):
         return _mpi.send(buf, dest, tag, self, 'R')
 
-    def Ibsend(self, buf, dest = 0, tag = 0):
+    def Ibsend(self, buf, dest=0, tag=0):
         request = _mpi.isend(buf, dest, tag, self, 'B')
         return Request(request)
 
-    def Issend(self, buf, dest = 0, tag = 0):
+    def Issend(self, buf, dest=0, tag=0):
         request = _mpi.isend(buf, dest, tag, self, 'S')
         return Request(request)
 
-    def Irsend(self, buf, dest = 0, tag = 0):
+    def Irsend(self, buf, dest=0, tag=0):
         request = _mpi.isend(buf, dest, tag, self, 'R')
         return Request(request)
 
-    def Bsend_init(self, buf, dest = 0, tag = 0):
+    def Bsend_init(self, buf, dest=0, tag=0):
         prequest = _mpi.send_init(buf, dest, tag, self, 'B')
         return Prequest(prequest)
 
-    def Ssend_init(self, buf, dest = 0, tag = 0):
+    def Ssend_init(self, buf, dest=0, tag=0):
         prequest = _mpi.send_init(buf, dest, tag, self, 'S')
         return Prequest(prequest)
 
-    def Rsend_init(self, buf, dest = 0, tag = 0):
+    def Rsend_init(self, buf, dest=0, tag=0):
         prequest = _mpi.send_init(buf, dest, tag, self, 'R')
         return Prequest(prequest)
 
     def Barrier(self):
         _mpi.barrier(self)
 
-    def Bcast(self, buf = None, root = 0):
+    def Bcast(self, buf=None, root=0):
         buf, fastmode = _mpi.make_buf(buf)
         if fastmode:
             _mpi.bcast(buf, root, self)
@@ -664,8 +670,9 @@ class Comm(_mpi.Comm):
             if buf is not None:
                 buf = serializer.load(buf)
             return buf
+            return
 
-    def Gather(self, sendbuf, recvbuf = None, root = 0):
+    def Gather(self, sendbuf, recvbuf=None, root=0):
         sendbuf, sfastmode = _mpi.make_buf(sendbuf)
         recvbuf, rfastmode = _mpi.make_buf(recvbuf)
         if sfastmode or rfastmode:
@@ -684,8 +691,9 @@ class Comm(_mpi.Comm):
             if recvbuf is not None:
                 recvbuf = map(serializer.load, recvbuf)
             return recvbuf
+            return
 
-    def Scatter(self, sendbuf = None, recvbuf = None, root = 0):
+    def Scatter(self, sendbuf=None, recvbuf=None, root=0):
         sendbuf, sfastmode = _mpi.make_buf(sendbuf)
         recvbuf, rfastmode = _mpi.make_buf(recvbuf)
         if sfastmode or rfastmode:
@@ -706,8 +714,9 @@ class Comm(_mpi.Comm):
             if recvbuf is not None:
                 recvbuf = serializer.load(recvbuf)
             return recvbuf
+            return
 
-    def Allgather(self, sendbuf, recvbuf = None):
+    def Allgather(self, sendbuf, recvbuf=None):
         sendbuf, sfastmode = _mpi.make_buf(sendbuf)
         recvbuf, rfastmode = _mpi.make_buf(recvbuf)
         if sfastmode or rfastmode:
@@ -719,8 +728,9 @@ class Comm(_mpi.Comm):
             recvbuf = _mpi.allgather_string(sendbuf, recvbuf, self)
             recvbuf = map(serializer.load, recvbuf)
             return recvbuf
+            return None
 
-    def Alltoall(self, sendbuf, recvbuf = None):
+    def Alltoall(self, sendbuf, recvbuf=None):
         sendbuf, sfastmode = _mpi.make_buf(sendbuf)
         recvbuf, rfastmode = _mpi.make_buf(recvbuf)
         if sfastmode or rfastmode:
@@ -732,8 +742,9 @@ class Comm(_mpi.Comm):
             recvbuf = _mpi.alltoall_string(sendbuf, recvbuf, self)
             recvbuf = map(serializer.load, recvbuf)
             return recvbuf
+            return None
 
-    def Reduce(self, sendbuf, recvbuf = None, op = SUM, root = 0):
+    def Reduce(self, sendbuf, recvbuf=None, op=SUM, root=0):
         sendbuf, sfastmode = _mpi.make_buf(sendbuf)
         recvbuf, rfastmode = _mpi.make_buf(recvbuf)
         if sfastmode or rfastmode:
@@ -746,8 +757,9 @@ class Comm(_mpi.Comm):
                     recvbuf = zip(recvbuf, xrange(len(recvbuf)))
                 recvbuf = reduce(op, recvbuf)
             return recvbuf
+            return
 
-    def Allreduce(self, sendbuf, recvbuf = None, op = SUM):
+    def Allreduce(self, sendbuf, recvbuf=None, op=SUM):
         sendbuf, sfastmode = _mpi.make_buf(sendbuf)
         recvbuf, rfastmode = _mpi.make_buf(recvbuf)
         if sfastmode or rfastmode:
@@ -762,6 +774,7 @@ class Comm(_mpi.Comm):
                 recvbuf = zip(recvbuf, xrange(len(recvbuf)))
             recvbuf = reduce(op, recvbuf)
             return recvbuf
+            return None
 
     def Get_errhandler(self):
         eh = _mpi.comm_get_errhandler(self)
@@ -770,7 +783,7 @@ class Comm(_mpi.Comm):
     def Set_errhandler(self, errhandler):
         _mpi.comm_set_errhandler(self, errhandler)
 
-    def Abort(self, errorcode = 0):
+    def Abort(self, errorcode=0):
         _mpi.comm_abort(self, errorcode)
 
     def Is_inter(self):
@@ -812,22 +825,22 @@ class Comm(_mpi.Comm):
             self._comm = comm
             self._pid = pid
 
-        def Send(self, buf, tag = 0):
+        def Send(self, buf, tag=0):
             return self.comm.Send(buf, self.pid, tag)
 
-        def Recv(self, buf = None, tag = 0):
+        def Recv(self, buf=None, tag=0):
             return self.comm.Recv(buf, self.pid, tag)
 
-        def Bcast(self, buf = None):
+        def Bcast(self, buf=None):
             return self.comm.Bcast(buf, self.pid)
 
-        def Gather(self, sbuf, rbuf = None):
+        def Gather(self, sbuf, rbuf=None):
             return self.comm.Gather(sbuf, rbuf, self.pid)
 
-        def Scatter(self, sbuf = None, rbuf = None):
+        def Scatter(self, sbuf=None, rbuf=None):
             return self.comm.Scatter(sbuf, rbuf, self.pid)
 
-        def Reduce(self, sbuf, rbuf = None, op = SUM):
+        def Reduce(self, sbuf, rbuf=None, op=SUM):
             return self.comm.Reduce(sbuf, rbuf, op, self.pid)
 
         def __lshift__(self, stream):
@@ -839,6 +852,7 @@ class Comm(_mpi.Comm):
             if type(stream) is not list:
                 raise TypeError('output stream must be a list')
             stream.extend(self.Recv(None, self.TAG))
+            return
 
         comm = property(lambda self: self._comm, doc='associated communicator')
         pid = property(lambda self: self._pid, doc='associated process *id*')
@@ -879,7 +893,7 @@ COMM_NULL = Comm(_mpi.COMM_NULL)
 
 class Intracomm(Comm):
 
-    def __init__(self, comm = None):
+    def __init__(self, comm=None):
         Comm.__init__(self, comm)
         _mpi.comm_check_intra(self)
 
@@ -891,25 +905,25 @@ class Intracomm(Comm):
         newcomm = _mpi.comm_create(self, group)
         return Intracomm(newcomm)
 
-    def Split(self, color, key = 0):
+    def Split(self, color, key=0):
         newcomm = _mpi.comm_split(self, color, key)
         return Intracomm(newcomm)
 
-    def Create_intercomm(self, local_leader, peer_comm, remote_leader, tag = 0):
+    def Create_intercomm(self, local_leader, peer_comm, remote_leader, tag=0):
         newcomm = _mpi.intercomm_create(self, local_leader, peer_comm, remote_leader, tag)
         return Intercomm(newcomm)
 
-    def Create_cart(self, dims, periods = None, reorder = False):
+    def Create_cart(self, dims, periods=None, reorder=False):
         if periods is None:
             periods = [False] * len(dims)
         newcomm = _mpi.cart_create(self, dims, periods, reorder)
         return Cartcomm(newcomm)
 
-    def Create_graph(self, index, edges, reorder = False):
+    def Create_graph(self, index, edges, reorder=False):
         newcomm = _mpi.graph_create(self, index, edges, reorder)
         return Graphcomm(newcomm)
 
-    def Scan(self, sendbuf, recvbuf = None, op = SUM):
+    def Scan(self, sendbuf, recvbuf=None, op=SUM):
         sendbuf, sfastmode = _mpi.make_buf(sendbuf)
         recvbuf, rfastmode = _mpi.make_buf(recvbuf)
         if sfastmode or rfastmode:
@@ -925,8 +939,9 @@ class Intracomm(Comm):
 
             recvbuf = self.Scatter(recvbuf, root=0)
             return recvbuf
+            return None
 
-    def Exscan(self, sendbuf, recvbuf = None, op = SUM):
+    def Exscan(self, sendbuf, recvbuf=None, op=SUM):
         sendbuf, sfastmode = _mpi.make_buf(sendbuf)
         recvbuf, rfastmode = _mpi.make_buf(recvbuf)
         if sfastmode or rfastmode:
@@ -944,16 +959,17 @@ class Intracomm(Comm):
                 recvbuf.pop(-1)
             recvbuf = self.Scatter(recvbuf, root=0)
             return recvbuf
+            return
 
-    def Spawn(self, command, args = None, maxprocs = 1, info = None, root = 0):
+    def Spawn(self, command, args=None, maxprocs=1, info=None, root=0):
         newcomm = _mpi.comm_spawn(command, args, maxprocs, info, root, self)
         return Intercomm(newcomm)
 
-    def Accept(self, port_name, info = None, root = 0):
+    def Accept(self, port_name, info=None, root=0):
         newcomm = _mpi.comm_accept(port_name, info, root, self)
         return Intercomm(newcomm)
 
-    def Connect(self, port_name, info = None, root = 0):
+    def Connect(self, port_name, info=None, root=0):
         newcomm = _mpi.comm_connect(port_name, info, root, self)
         return Intercomm(newcomm)
 
@@ -969,7 +985,7 @@ def Compute_dims(nnodes, dims):
 
 class Cartcomm(Intracomm):
 
-    def __init__(self, comm = None):
+    def __init__(self, comm=None):
         Intracomm.__init__(self, comm)
         _mpi.comm_check_cart(self)
 
@@ -1005,7 +1021,7 @@ class Cartcomm(Intracomm):
 
 class Graphcomm(Intracomm):
 
-    def __init__(self, comm = None):
+    def __init__(self, comm=None):
         Intracomm.__init__(self, comm)
         _mpi.comm_check_graph(self)
 
@@ -1034,7 +1050,7 @@ class Graphcomm(Intracomm):
 
 class Intercomm(Comm):
 
-    def __init__(self, comm = None):
+    def __init__(self, comm=None):
         Comm.__init__(self, comm)
         _mpi.comm_check_inter(self)
 
@@ -1053,18 +1069,18 @@ class Intercomm(Comm):
         newcomm = _mpi.comm_create(self, group)
         return Intercomm(newcomm)
 
-    def Split(self, color = 0, key = 0):
+    def Split(self, color=0, key=0):
         newcomm = _mpi.comm_split(self, color, key)
         return Intercomm(newcomm)
 
-    def Merge(self, high = False):
+    def Merge(self, high=False):
         intracomm = _mpi.intercomm_merge(self, high)
         return Intracomm(intracomm)
 
     remote_size = property(_mpi.comm_remote_size, doc='size of remote group')
 
 
-def Open_port(info = None):
+def Open_port(info=None):
     return _mpi.open_port(info)
 
 
@@ -1080,7 +1096,7 @@ def Unpublish_name(service_name, info, port_name):
     return _mpi.unpublish_name(service_name, info, port_name)
 
 
-def Lookup_name(service_name, info = None):
+def Lookup_name(service_name, info=None):
     return _mpi.lookup_name(service_name, info)
 
 
@@ -1094,7 +1110,7 @@ LOCK_SHARED = _mpi.LOCK_SHARED
 
 class Win(_mpi.Win):
 
-    def __init__(self, win = None):
+    def __init__(self, win=None):
         _mpi.Win.__init__(self, win)
 
     def Create(cls, memory, disp, info, comm):
@@ -1119,25 +1135,25 @@ class Win(_mpi.Win):
         group = _mpi.win_get_group(self)
         return Group(group)
 
-    def Put(self, origin_buf, target_rank, target_disp = 0, target_count = -1, target_datatype = None):
+    def Put(self, origin_buf, target_rank, target_disp=0, target_count=-1, target_datatype=None):
         return _mpi.win_put(origin_buf, target_rank, target_disp, target_count, target_datatype, self)
 
-    def Get(self, origin_buf, target_rank, target_disp = 0, target_count = -1, target_datatype = None):
+    def Get(self, origin_buf, target_rank, target_disp=0, target_count=-1, target_datatype=None):
         return _mpi.win_get(origin_buf, target_rank, target_disp, target_count, target_datatype, self)
 
-    def Accumulate(self, origin_buf, target_rank, target_disp = 0, target_count = -1, target_datatype = None, op = SUM):
+    def Accumulate(self, origin_buf, target_rank, target_disp=0, target_count=-1, target_datatype=None, op=SUM):
         return _mpi.win_accumulate(origin_buf, target_rank, target_disp, target_count, target_datatype, op, self)
 
-    def Fence(self, assertion = 0):
+    def Fence(self, assertion=0):
         return _mpi.win_fence(assertion, self)
 
-    def Start(self, group, assertion = 0):
+    def Start(self, group, assertion=0):
         return _mpi.win_start(group, assertion, self)
 
     def Complete(self):
         return _mpi.win_complete(self)
 
-    def Post(self, group, assertion = 0):
+    def Post(self, group, assertion=0):
         return _mpi.win_post(group, assertion, self)
 
     def Wait(self):
@@ -1146,7 +1162,7 @@ class Win(_mpi.Win):
     def Test(self):
         return _mpi.win_test(self)
 
-    def Lock(self, lock_type, rank, assertion = 0):
+    def Lock(self, lock_type, rank, assertion=0):
         return _mpi.win_lock(lock_type, rank, assertion, self)
 
     def Unlock(self, rank):
@@ -1189,10 +1205,10 @@ DISP_CUR = _mpi.DISPLACEMENT_CURRENT
 
 class File(_mpi.File):
 
-    def __init__(self, file = None):
+    def __init__(self, file=None):
         _mpi.File.__init__(self, file)
 
-    def Open(cls, comm, filename, amode = None, info = None):
+    def Open(cls, comm, filename, amode=None, info=None):
         fh = _mpi.file_open(comm, filename, amode, info)
         return cls(fh)
 
@@ -1201,7 +1217,7 @@ class File(_mpi.File):
     def Close(self):
         _mpi.file_close(self)
 
-    def Delete(filename, info = None):
+    def Delete(filename, info=None):
         return _mpi.file_delete(filename, info)
 
     Delete = staticmethod(Delete)
@@ -1229,7 +1245,7 @@ class File(_mpi.File):
         info = _mpi.file_get_info(self)
         return Info(info)
 
-    def Set_view(self, disp = 0, etype = None, filetype = None, datarep = 'native', info = None):
+    def Set_view(self, disp=0, etype=None, filetype=None, datarep='native', info=None):
         if etype is None:
             etype = _mpi.BYTE
         if filetype is None:
@@ -1243,16 +1259,16 @@ class File(_mpi.File):
          Datatype(ftype),
          datarep)
 
-    def Read_at(self, offset, buf, status = None):
+    def Read_at(self, offset, buf, status=None):
         return _mpi.file_read(self, offset, buf, status, 0)
 
-    def Read_at_all(self, offset, buf, status = None):
+    def Read_at_all(self, offset, buf, status=None):
         return _mpi.file_read(self, offset, buf, status, 1)
 
-    def Write_at(self, offset, buf, status = None):
+    def Write_at(self, offset, buf, status=None):
         return _mpi.file_write(self, offset, buf, status, 0)
 
-    def Write_at_all(self, offset, buf, status = None):
+    def Write_at_all(self, offset, buf, status=None):
         return _mpi.file_write(self, offset, buf, status, 1)
 
     def Iread_at(self, offset, buf):
@@ -1263,16 +1279,16 @@ class File(_mpi.File):
         request = _mpi.file_iwrite(self, offset, buf, 0)
         return Request(request)
 
-    def Read(self, buf, status = None):
+    def Read(self, buf, status=None):
         return _mpi.file_read(self, buf, status, 0)
 
-    def Read_all(self, buf, status = None):
+    def Read_all(self, buf, status=None):
         return _mpi.file_read(self, buf, status, 1)
 
-    def Write(self, buf, status = None):
+    def Write(self, buf, status=None):
         return _mpi.file_write(self, buf, status, 0)
 
-    def Write_all(self, buf, status = None):
+    def Write_all(self, buf, status=None):
         return _mpi.file_write(self, buf, status, 1)
 
     def Iread(self, buf):
@@ -1283,7 +1299,7 @@ class File(_mpi.File):
         request = _mpi.file_iwrite(self, buf, 0)
         return Request(request)
 
-    def Seek(self, offset, whence = None):
+    def Seek(self, offset, whence=None):
         return _mpi.file_seek(self, offset, whence, 0)
 
     def Get_position(self):
@@ -1292,10 +1308,10 @@ class File(_mpi.File):
     def Get_byte_offset(self, offset):
         return _mpi.file_get_byte_offset(self, offset)
 
-    def Read_shared(self, buf, status = None):
+    def Read_shared(self, buf, status=None):
         return _mpi.file_read(self, buf, status, 2)
 
-    def Write_shared(self, buf, status = None):
+    def Write_shared(self, buf, status=None):
         return _mpi.file_write(self, buf, status, 2)
 
     def Iread_shared(self, buf):
@@ -1306,13 +1322,13 @@ class File(_mpi.File):
         request = _mpi.file_iwrite(self, buf, 2)
         return Request(request)
 
-    def Read_ordered(self, buf, status = None):
+    def Read_ordered(self, buf, status=None):
         return _mpi.file_read(self, buf, status, 3)
 
-    def Write_ordered(self, buf, status = None):
+    def Write_ordered(self, buf, status=None):
         return _mpi.file_write(self, buf, status, 3)
 
-    def Seek_shared(self, offset, whence = None):
+    def Seek_shared(self, offset, whence=None):
         return _mpi.file_seek(self, offset, whence, 2)
 
     def Get_position_shared(self):
@@ -1321,37 +1337,37 @@ class File(_mpi.File):
     def Read_at_all_begin(self, offset, buf):
         return _mpi.file_read_split(self, offset, buf, None, 1, 0)
 
-    def Read_at_all_end(self, buf, status = None):
+    def Read_at_all_end(self, buf, status=None):
         return _mpi.file_read_split(self, 0, buf, status, 1, 1)
 
     def Write_at_all_begin(self, offset, buf):
         return _mpi.file_write_split(self, offset, buf, None, 1, 0)
 
-    def Write_at_all_end(self, buf, status = None):
+    def Write_at_all_end(self, buf, status=None):
         return _mpi.file_write_split(self, 0, buf, status, 1, 1)
 
     def Read_all_begin(self, buf):
         return _mpi.file_read_split(self, buf, None, 1, 0)
 
-    def Read_all_end(self, buf, status = None):
+    def Read_all_end(self, buf, status=None):
         return _mpi.file_read_split(self, buf, status, 1, 1)
 
     def Write_all_begin(self, buf):
         return _mpi.file_write_split(self, buf, None, 1, 0)
 
-    def Write_all_end(self, buf, status = None):
+    def Write_all_end(self, buf, status=None):
         return _mpi.file_write_split(self, buf, status, 1, 1)
 
     def Read_ordered_begin(self, buf):
         return _mpi.file_read_split(self, buf, None, 3, 0)
 
-    def Read_ordered_end(self, buf, status = None):
+    def Read_ordered_end(self, buf, status=None):
         return _mpi.file_read_split(self, buf, status, 3, 1)
 
     def Write_ordered_begin(self, buf):
         return _mpi.file_write_split(self, buf, None, 3, 0)
 
-    def Write_ordered_end(self, buf, status = None):
+    def Write_ordered_end(self, buf, status=None):
         return _mpi.file_write_split(self, buf, status, 3, 1)
 
     def Get_type_extent(self, datatype):
@@ -1466,7 +1482,7 @@ MAX_DATAREP_STRING = _mpi.MAX_DATAREP_STRING
 
 class Errhandler(_mpi.Errhandler):
 
-    def __init__(self, errhandler = None):
+    def __init__(self, errhandler=None):
         _mpi.Errhandler.__init__(self, errhandler)
 
     def Free(self):
@@ -1602,6 +1618,7 @@ def SWIG(cls):
     del _swig
     del As_swig
     del From_swig
+    return
 
 
 for klass in (Datatype,
@@ -1661,7 +1678,7 @@ def distribute(N, B, i):
     return _mpi.distribute(N, B, i)
 
 
-def pprint(message = None, comm = None, root = 0):
+def pprint(message=None, comm=None, root=0):
     if comm is None:
         comm = COMM_WORLD
     inbuf = comm.SERIALIZER.dump(message)
@@ -1671,9 +1688,12 @@ def pprint(message = None, comm = None, root = 0):
             msg = comm.SERIALIZER.load(i)
             print msg
 
+    return
 
-def rprint(message = None, comm = None, root = 0):
+
+def rprint(message=None, comm=None, root=0):
     if comm is None:
         comm = COMM_WORLD
     if comm.Get_rank() == root:
         print message
+    return

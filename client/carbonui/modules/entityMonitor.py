@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\packages\carbonui\modules\entityMonitor.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\packages\carbonui\modules\entityMonitor.py
 import blue
 import util
 import uthread
@@ -47,7 +48,7 @@ class EntityBrowserCore(Window):
             self.LoadScenes()
             blue.pyos.synchro.SleepWallclock(1000)
 
-    def LoadScenes(self, forceUpdate = False):
+    def LoadScenes(self, forceUpdate=False):
         newScenes = self.entityClient.scenes.iteritems()
         requiresUpdate = False
         if forceUpdate or len(set(self.sceneNodes.keys()) - set(self.entityClient.scenes.keys())) != 0:
@@ -82,16 +83,16 @@ class EntityBrowserCore(Window):
              'RecipeID'])
 
     def GetSceneName(self, sceneID):
-        return 'Scene Name'
+        pass
 
     def GetEntityName(self, entity):
-        return 'Entity Name'
+        pass
 
     def GetEntitySpawnID(self, entity):
-        return 'UNKNOWN'
+        pass
 
     def GetEntityRecipeID(self, entity):
-        return 'UNKNOWN'
+        pass
 
     def GetSceneListEntries(self, data, *args):
         scene = data['scene']

@@ -1,4 +1,6 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\client\script\ui\shared\maps\systemMapSvc.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\client\script\ui\shared\maps\systemMapSvc.py
+from eve.client.script.ui.station import stationServiceConst
 from eve.client.script.ui.camera.systemMapCamera2 import SystemMapCamera2
 import evecamera
 import evetypes
@@ -70,17 +72,19 @@ class SystemMapSvc(service.Service):
      'securityOfficeSvc']
     __update_on_reload__ = 0
 
-    def Run(self, memStream = None):
+    def Run(self, memStream=None):
         self.state = SERVICE_START_PENDING
         self.LogInfo('Starting System Map Client Svc')
         self.Reset()
         self.state = SERVICE_RUNNING
 
-    def Stop(self, memStream = None):
+    def Stop(self, memStream=None):
         if trinity.device is None:
             return
-        self.LogInfo('Map svc')
-        self.Reset()
+        else:
+            self.LogInfo('Map svc')
+            self.Reset()
+            return
 
     def CleanUp(self):
         self.Reset()
@@ -174,15 +178,18 @@ class SystemMapSvc(service.Service):
         if scanner is not None:
             scanner.Refresh()
         sm.GetService('loading').StopCycle()
+        return
 
     def OnSessionChanged(self, isremote, session, change):
         if session.charid is None:
             return
-        if 'solarsystemid' in change:
-            if sm.GetService('viewState').IsViewActive('systemmap'):
-                self.InitMap()
-            else:
-                self.ClearAllBrackets()
+        else:
+            if 'solarsystemid' in change:
+                if sm.GetService('viewState').IsViewActive('systemmap'):
+                    self.InitMap()
+                else:
+                    self.ClearAllBrackets()
+            return
 
     def DoBallsAdded(self, *args, **kw):
         import stackless
@@ -194,7 +201,7 @@ class SystemMapSvc(service.Service):
         finally:
             t.PopTimer(timer)
 
-    def DoBallsAdded_(self, lst, ignoreMoons = 0, ignoreAsteroids = 1):
+    def DoBallsAdded_(self, lst, ignoreMoons=0, ignoreAsteroids=1):
         if sm.GetService('viewState').IsViewActive('systemmap'):
             groupIDs = []
             for ball, slimItem in lst:
@@ -230,25 +237,27 @@ class SystemMapSvc(service.Service):
         scene = sm.GetService('sceneManager').GetRegisteredScene('systemmap')
         if scene is None:
             return
-        if not hasattr(self, 'probeRoutes'):
-            self.probeRoutes = {}
-        scanSvc = sm.GetService('scanSvc')
-        data = scanSvc.GetProbeData()
-        if probeID not in data:
+        else:
+            if not hasattr(self, 'probeRoutes'):
+                self.probeRoutes = {}
+            scanSvc = sm.GetService('scanSvc')
+            data = scanSvc.GetProbeData()
+            if probeID not in data:
+                return
+            probe = data[probeID]
+            route = MapRoute()
+            route.ballScale = 0.4
+            route.timeBase = duration
+            route.scale = SYSTEMMAP_SCALE
+            route.lineColor = (0.0, 1.0, 0.0, 0.1)
+            route.resPath = 'res:/dx9/model/Sprite/ProbeRouteSprite.red'
+            route.name = 'probeRoute_' + str(probeID)
+            route.DrawRoute((probe.pos, probe.destination), usePoints=True, drawLines=True, blinking=False)
+            scene.objects.append(route.model)
+            scene.objects.append(route.lineSet)
+            self.probeRoutes[probeID] = route
+            self.loadProbeAndScanResultTimer = base.AutoTimer(250, self.LoadProbesAndScanResult)
             return
-        probe = data[probeID]
-        route = MapRoute()
-        route.ballScale = 0.4
-        route.timeBase = duration
-        route.scale = SYSTEMMAP_SCALE
-        route.lineColor = (0.0, 1.0, 0.0, 0.1)
-        route.resPath = 'res:/dx9/model/Sprite/ProbeRouteSprite.red'
-        route.name = 'probeRoute_' + str(probeID)
-        route.DrawRoute((probe.pos, probe.destination), usePoints=True, drawLines=True, blinking=False)
-        scene.objects.append(route.model)
-        scene.objects.append(route.lineSet)
-        self.probeRoutes[probeID] = route
-        self.loadProbeAndScanResultTimer = base.AutoTimer(250, self.LoadProbesAndScanResult)
 
     def OnProbeWarpEnd(self, probeID):
         uthread.worker('MapMgr::OnProbeWarpEnd_Thread', self.OnProbeWarpEnd_Thread, probeID)
@@ -265,6 +274,7 @@ class SystemMapSvc(service.Service):
                 scene.objects.remove(route.lineSet)
             del self.probeRoutes[probeID]
         self.loadProbeAndScanResultTimer = base.AutoTimer(250, self.LoadProbesAndScanResult)
+        return
 
     def OnSystemScanBegun(self, *args):
         self.LoadProbesAndScanResult_Delayed()
@@ -287,20 +297,22 @@ class SystemMapSvc(service.Service):
     def OnStateChange(self, itemID, flag, true, *args):
         if not sm.GetService('viewState').IsViewActive('starmap', 'systemmap'):
             return None
-        if flag == state.gbTravelTo:
-            self.broadcastBrackets = self.broadcastBrackets or {}
-            gbID, charID = args
-            if true:
-                self.broadcastBrackets[itemID] = (gbID, sm.GetService('starmap').MakeBroadcastBracket('TravelTo', itemID, charID))
-            else:
-                lastGBID, bracket = self.broadcastBrackets.get(itemID, (None, None))
-                if lastGBID == gbID:
-                    del self.broadcastBrackets[itemID]
-        bracket = self.GetBracket(itemID)
-        if bracket:
-            bracket.OnStateChange(itemID, flag, true, *args)
+        else:
+            if flag == state.gbTravelTo:
+                self.broadcastBrackets = self.broadcastBrackets or {}
+                gbID, charID = args
+                if true:
+                    self.broadcastBrackets[itemID] = (gbID, sm.GetService('starmap').MakeBroadcastBracket('TravelTo', itemID, charID))
+                else:
+                    lastGBID, bracket = self.broadcastBrackets.get(itemID, (None, None))
+                    if lastGBID == gbID:
+                        del self.broadcastBrackets[itemID]
+            bracket = self.GetBracket(itemID)
+            if bracket:
+                bracket.OnStateChange(itemID, flag, true, *args)
+            return None
 
-    def OnBookmarkCreated(self, bookmarkID, comment, itemTypeID = None):
+    def OnBookmarkCreated(self, bookmarkID, comment, itemTypeID=None):
         if sm.GetService('viewState').IsViewActive('systemmap'):
             self.LoadBookmarks()
             sm.GetService('bracket').ResetOverlaps()
@@ -366,6 +378,7 @@ class SystemMapSvc(service.Service):
 
         self.bracketPanels = []
         self.updateDisplayInfomationWorkerRunning = False
+        return
 
     def GetBracket(self, itemID):
         wnd = uicore.layer.systemMapBrackets
@@ -373,7 +386,9 @@ class SystemMapSvc(service.Service):
             if getattr(each, 'IsBracket', 0) and getattr(each, 'itemID', None) == itemID:
                 return each
 
-    def GetSolarsystemHierarchy(self, solarsystemID = None, toplevel = None):
+        return
+
+    def GetSolarsystemHierarchy(self, solarsystemID=None, toplevel=None):
         toplevel = toplevel or (const.groupPlanet,
          const.groupSun,
          const.groupStargate,
@@ -381,48 +396,49 @@ class SystemMapSvc(service.Service):
         solarsystemID = solarsystemID or self.currentSolarsystemID
         if not solarsystemID:
             return ({}, {})
-        if (solarsystemID, toplevel) in self.solarsystemHierarchyData:
+        elif (solarsystemID, toplevel) in self.solarsystemHierarchyData:
             return self.solarsystemHierarchyData[solarsystemID, toplevel]
-        ssData = self.GetSolarsystemData(solarsystemID).Index('itemID')
-        groups = {}
-        noOrbitID = []
-        for id in ssData:
-            each = ssData[id]
-            if evetypes.GetGroupID(each.typeID) in toplevel:
+        else:
+            ssData = self.GetSolarsystemData(solarsystemID).Index('itemID')
+            groups = {}
+            noOrbitID = []
+            for id in ssData:
+                each = ssData[id]
+                if evetypes.GetGroupID(each.typeID) in toplevel:
+                    if each.itemID not in groups:
+                        groups[each.itemID] = []
+                elif each.orbitID is None:
+                    noOrbitID.append(each)
+
+            for each in noOrbitID:
+                if evetypes.GetGroupID(each.typeID) == const.groupSun:
+                    continue
+                pos = trinity.TriVector(each.x, each.y, each.z)
+                lst = []
+                for parentID, orbits in groups.iteritems():
+                    parentItem = ssData[parentID]
+                    parentPos = trinity.TriVector(parentItem.x, parentItem.y, parentItem.z)
+                    dist = (pos - parentPos).Length()
+                    lst.append((dist, parentID))
+
+                lst.sort()
+                groups[lst[0][1]].append(each)
+
+            parentLess = []
+            for id in ssData:
+                each = ssData[id]
                 if each.itemID not in groups:
-                    groups[each.itemID] = []
-            elif each.orbitID is None:
-                noOrbitID.append(each)
+                    if each.orbitID in groups:
+                        groups[each.orbitID].append(each)
+                    elif each.orbitID:
+                        parent = ssData[each.orbitID]
+                        if parent.orbitID in groups:
+                            groups[parent.orbitID].append(each)
+                        else:
+                            parentLess.append(each)
 
-        for each in noOrbitID:
-            if evetypes.GetGroupID(each.typeID) == const.groupSun:
-                continue
-            pos = trinity.TriVector(each.x, each.y, each.z)
-            lst = []
-            for parentID, orbits in groups.iteritems():
-                parentItem = ssData[parentID]
-                parentPos = trinity.TriVector(parentItem.x, parentItem.y, parentItem.z)
-                dist = (pos - parentPos).Length()
-                lst.append((dist, parentID))
-
-            lst.sort()
-            groups[lst[0][1]].append(each)
-
-        parentLess = []
-        for id in ssData:
-            each = ssData[id]
-            if each.itemID not in groups:
-                if each.orbitID in groups:
-                    groups[each.orbitID].append(each)
-                elif each.orbitID:
-                    parent = ssData[each.orbitID]
-                    if parent.orbitID in groups:
-                        groups[parent.orbitID].append(each)
-                    else:
-                        parentLess.append(each)
-
-        self.solarsystemHierarchyData[solarsystemID, toplevel] = (groups, ssData)
-        return (groups, ssData)
+            self.solarsystemHierarchyData[solarsystemID, toplevel] = (groups, ssData)
+            return (groups, ssData)
 
     def ClearAllBrackets(self):
         solarsystem = self.GetCurrentSolarSystem()
@@ -431,8 +447,9 @@ class SystemMapSvc(service.Service):
             each.Close()
 
         self.solarsystemBracketsLoaded = None
+        return
 
-    def ClearBrackets(self, _ui = None, _tf = None):
+    def ClearBrackets(self, _ui=None, _tf=None):
         solarsystem = self.GetCurrentSolarSystem()
         if solarsystem and _tf:
             for tf in solarsystem.children[:]:
@@ -448,111 +465,117 @@ class SystemMapSvc(service.Service):
         self.ClearBrackets('__bookmarkbracket', 'bm_')
         if 'bookmark' not in maputils.GetVisibleSolarsystemBrackets():
             return
-        bookmarks = sm.GetService('bookmarkSvc').GetBookmarks()
-        ballPark = sm.GetService('michelle').GetBallpark()
-        bracketWnd = uicore.layer.systemMapBrackets
-        solarsystem = self.GetCurrentSolarSystem()
-        showhint = maputils.GetHintsOnSolarsystemBrackets()
-        suppressBubbleHints = Scanner.GetIfOpen() is not None
-        showBubbleHint = not suppressBubbleHints and 'bookmark' in showhint
-        for bookmark in bookmarks.itervalues():
-            pos = None
-            if bookmark.locationID != eve.session.solarsystemid2:
-                continue
-            if bookmark.x is None:
-                if bookmark.itemID is not None:
-                    if ballPark and bookmark.itemID in ballPark.balls:
-                        ball = ballPark.balls[bookmark.itemID]
-                        pos = (ball.x, ball.y, ball.z)
-                    elif solarsystem:
-                        for tf in solarsystem.children:
-                            try:
-                                itemID = int(tf.name)
-                            except:
-                                sys.exc_clear()
+        else:
+            bookmarks = sm.GetService('bookmarkSvc').GetBookmarks()
+            ballPark = sm.GetService('michelle').GetBallpark()
+            bracketWnd = uicore.layer.systemMapBrackets
+            solarsystem = self.GetCurrentSolarSystem()
+            showhint = maputils.GetHintsOnSolarsystemBrackets()
+            suppressBubbleHints = Scanner.GetIfOpen() is not None
+            showBubbleHint = not suppressBubbleHints and 'bookmark' in showhint
+            for bookmark in bookmarks.itervalues():
+                pos = None
+                if bookmark.locationID != eve.session.solarsystemid2:
+                    continue
+                if bookmark.x is None:
+                    if bookmark.itemID is not None:
+                        if ballPark and bookmark.itemID in ballPark.balls:
+                            ball = ballPark.balls[bookmark.itemID]
+                            pos = (ball.x, ball.y, ball.z)
+                        elif solarsystem:
+                            for tf in solarsystem.children:
+                                try:
+                                    itemID = int(tf.name)
+                                except:
+                                    sys.exc_clear()
+                                    continue
+
+                                if itemID == bookmark.itemID:
+                                    pos = tf.translation
+                                    break
+                            else:
+                                self.LogError('Didnt find propper item to track for bookmark', bookmark)
                                 continue
 
-                            if itemID == bookmark.itemID:
-                                pos = tf.translation
-                                break
                         else:
-                            self.LogError('Didnt find propper item to track for bookmark', bookmark)
+                            self.LogError('No ballpark or solarsystem to search for transform to track', bookmark)
                             continue
-
                     else:
-                        self.LogError('No ballpark or solarsystem to search for transform to track', bookmark)
+                        self.LogError('Cannot draw bookmark into solarsystem view', bookmark)
                         continue
                 else:
-                    self.LogError('Cannot draw bookmark into solarsystem view', bookmark)
-                    continue
-            else:
-                pos = (bookmark.x, bookmark.y, bookmark.z)
-            if solarsystem and pos:
-                panel = BookmarkBracket()
-                panel.name = '__bookmarkbracket'
-                panel.align = uiconst.NOALIGN
-                panel.state = uiconst.UI_NORMAL
-                panel.width = panel.height = 16
-                panel.dock = 0
-                panel.minDispRange = 0.0
-                panel.maxDispRange = 1e+32
-                panel.inflight = False
-                panel.color = None
-                panel.invisible = False
-                panel.fadeColor = 0
-                panel.OnDblClick = (self.OnBracketDoubleClick, panel)
-                tf = trinity.EveTransform()
-                tf.name = 'bm_%d' % bookmark.bookmarkID
-                solarsystem.children.append(tf)
-                panel.trackTransform = tf
-                tf.translation = geo2.Vector(*pos)
-                panel.Startup(bookmark, showBubbleHint)
-                bracketWnd.children.insert(0, panel)
+                    pos = (bookmark.x, bookmark.y, bookmark.z)
+                if solarsystem and pos:
+                    panel = BookmarkBracket()
+                    panel.name = '__bookmarkbracket'
+                    panel.align = uiconst.NOALIGN
+                    panel.state = uiconst.UI_NORMAL
+                    panel.width = panel.height = 16
+                    panel.dock = 0
+                    panel.minDispRange = 0.0
+                    panel.maxDispRange = 1e+32
+                    panel.inflight = False
+                    panel.color = None
+                    panel.invisible = False
+                    panel.fadeColor = 0
+                    panel.OnDblClick = (self.OnBracketDoubleClick, panel)
+                    tf = trinity.EveTransform()
+                    tf.name = 'bm_%d' % bookmark.bookmarkID
+                    solarsystem.children.append(tf)
+                    panel.trackTransform = tf
+                    tf.translation = geo2.Vector(*pos)
+                    panel.Startup(bookmark, showBubbleHint)
+                    bracketWnd.children.insert(0, panel)
+
+            return
 
     def HighlightItemsWithinProbeRange(self):
         if not sm.GetService('viewState').IsViewActive('systemmap'):
             return
-        timeDiff = blue.os.TimeDiffInMs(self.lastHighlightItemsWithinProbeRange, blue.os.GetWallclockTime())
-        if timeDiff > 200.0:
-            self.lastHighlightItemsWithinProbeRange = blue.os.GetWallclockTime()
         else:
-            return
-        scannerWnd = Scanner.GetIfOpen()
-        bracketWnd = uicore.layer.systemMapBrackets
-        scanSvc = sm.GetService('scanSvc')
-        probeData = scanSvc.GetProbeData()
-        validProbes = [ probeID for probeID, probe in probeData.iteritems() if probe.state != const.probeStateInactive ]
-        reset = not bool(validProbes)
-        inRangeOfProbe = []
-        if scannerWnd:
-            probeControls = scannerWnd.GetProbeSpheres()
-            for probeID in validProbes:
-                if probeID not in probeControls:
-                    continue
-                probeControl = probeControls[probeID]
-                pPos = probeControl.GetPosition()
-                pRange = probeControl.GetRange()
-                for bracket in bracketWnd.children:
-                    cls = getattr(bracket, '__class__', None)
-                    if not cls or not issubclass(cls, SimpleBracket) or issubclass(cls, ProbeBracket):
-                        continue
-                    if bracket.trackTransform:
-                        bPos = geo2.Vector(*bracket.trackTransform.translation)
-                        if pRange > geo2.Vec3Length(pPos - bPos):
-                            inRangeOfProbe.append(bracket)
-
-        else:
-            reset = True
-        for bracket in bracketWnd.children:
-            cls = getattr(bracket, '__class__', None)
-            if not cls or not issubclass(cls, SimpleBracket) or issubclass(cls, ProbeBracket):
-                continue
-            if bracket.name == '__iamherebracket':
-                continue
-            if reset or bracket in inRangeOfProbe:
-                bracket.opacity = 1.0
+            timeDiff = blue.os.TimeDiffInMs(self.lastHighlightItemsWithinProbeRange, blue.os.GetWallclockTime())
+            if timeDiff > 200.0:
+                self.lastHighlightItemsWithinProbeRange = blue.os.GetWallclockTime()
             else:
-                bracket.opacity = 0.4
+                return
+            scannerWnd = Scanner.GetIfOpen()
+            bracketWnd = uicore.layer.systemMapBrackets
+            scanSvc = sm.GetService('scanSvc')
+            probeData = scanSvc.GetProbeData()
+            validProbes = [ probeID for probeID, probe in probeData.iteritems() if probe.state != const.probeStateInactive ]
+            reset = not bool(validProbes)
+            inRangeOfProbe = []
+            if scannerWnd:
+                probeControls = scannerWnd.GetProbeSpheres()
+                for probeID in validProbes:
+                    if probeID not in probeControls:
+                        continue
+                    probeControl = probeControls[probeID]
+                    pPos = probeControl.GetPosition()
+                    pRange = probeControl.GetRange()
+                    for bracket in bracketWnd.children:
+                        cls = getattr(bracket, '__class__', None)
+                        if not cls or not issubclass(cls, SimpleBracket) or issubclass(cls, ProbeBracket):
+                            continue
+                        if bracket.trackTransform:
+                            bPos = geo2.Vector(*bracket.trackTransform.translation)
+                            if pRange > geo2.Vec3Length(pPos - bPos):
+                                inRangeOfProbe.append(bracket)
+
+            else:
+                reset = True
+            for bracket in bracketWnd.children:
+                cls = getattr(bracket, '__class__', None)
+                if not cls or not issubclass(cls, SimpleBracket) or issubclass(cls, ProbeBracket):
+                    continue
+                if bracket.name == '__iamherebracket':
+                    continue
+                if reset or bracket in inRangeOfProbe:
+                    bracket.opacity = 1.0
+                else:
+                    bracket.opacity = 0.4
+
+            return
 
     def LoadProbesAndScanResult(self, *args):
         self.ClearBrackets('__probebracket', 'pr_')
@@ -561,57 +584,59 @@ class SystemMapSvc(service.Service):
         solarsystem = self.GetCurrentSolarSystem()
         if solarsystem is None:
             return
-        if not eve.session.IsItSafe():
+        elif not eve.session.IsItSafe():
             return
-        scanSvc = sm.GetService('scanSvc')
-        if not sm.GetService('viewState').IsViewActive('systemmap'):
-            return
-        bracketWnd = uicore.layer.systemMapBrackets
-        visible = maputils.GetVisibleSolarsystemBrackets()
-        activeProbes = sm.GetService('scanSvc').GetActiveProbes()
-        scannerWnd = Scanner.GetIfOpen()
-        showhint = maputils.GetHintsOnSolarsystemBrackets()
-        suppressBubbleHints = scannerWnd is not None
-        probes = scanSvc.GetProbeData()
-        if const.groupScannerProbe in visible and probes is not None and len(probes) > 0:
-            for probe in probes.itervalues():
-                if scannerWnd and probe.probeID in activeProbes:
-                    continue
-                panel = ProbeBracket()
-                panel.name = '__probebracket'
-                panel.align = uiconst.ABSOLUTE
-                panel.state = uiconst.UI_NORMAL
-                panel.width = panel.height = 16
-                panel.dock = 0
-                panel.minDispRange = 0.0
-                panel.maxDispRange = 1e+32
-                panel.inflight = False
-                panel.color = None
-                panel.invisible = False
-                panel.fadeColor = False
-                panel.showLabel = bracketUtils.SHOWLABELS_ONMOUSEENTER
-                panel.probe = probe
-                tf = trinity.EveTransform()
-                tf.name = 'pr_%d' % probe.probeID
-                solarsystem.children.append(tf)
-                panel.displayName = scanSvc.GetProbeLabel(probe.probeID)
-                panel.showDistance = 0
-                panel.Startup(probe.probeID, probe.typeID, 'ui_38_16_120')
-                bracketWnd.children.insert(0, panel)
-                panel.trackTransform = tf
-                tf.translation = probe.pos
-                slimItem = util.KeyVal()
-                slimItem.jumps = []
-                slimItem.itemID = probe.probeID
-                slimItem.typeID = probe.typeID
-                slimItem.groupID = evetypes.GetGroupID(probe.typeID)
-                slimItem.categoryID = evetypes.GetCategoryID(probe.typeID)
-                if not suppressBubbleHints and slimItem.groupID in showhint:
-                    panel.sr.icon.SetAlign(uiconst.CENTER)
-                    panel.ShowBubble(self.GetBubbleHint(probe.probeID, slimItem, bracket=panel, extended=0))
+        else:
+            scanSvc = sm.GetService('scanSvc')
+            if not sm.GetService('viewState').IsViewActive('systemmap'):
+                return
+            bracketWnd = uicore.layer.systemMapBrackets
+            visible = maputils.GetVisibleSolarsystemBrackets()
+            activeProbes = sm.GetService('scanSvc').GetActiveProbes()
+            scannerWnd = Scanner.GetIfOpen()
+            showhint = maputils.GetHintsOnSolarsystemBrackets()
+            suppressBubbleHints = scannerWnd is not None
+            probes = scanSvc.GetProbeData()
+            if const.groupScannerProbe in visible and probes is not None and len(probes) > 0:
+                for probe in probes.itervalues():
+                    if scannerWnd and probe.probeID in activeProbes:
+                        continue
+                    panel = ProbeBracket()
+                    panel.name = '__probebracket'
+                    panel.align = uiconst.ABSOLUTE
+                    panel.state = uiconst.UI_NORMAL
+                    panel.width = panel.height = 16
+                    panel.dock = 0
+                    panel.minDispRange = 0.0
+                    panel.maxDispRange = 1e+32
+                    panel.inflight = False
+                    panel.color = None
+                    panel.invisible = False
+                    panel.fadeColor = False
+                    panel.showLabel = bracketUtils.SHOWLABELS_ONMOUSEENTER
+                    panel.probe = probe
+                    tf = trinity.EveTransform()
+                    tf.name = 'pr_%d' % probe.probeID
+                    solarsystem.children.append(tf)
+                    panel.displayName = scanSvc.GetProbeLabel(probe.probeID)
+                    panel.showDistance = 0
+                    panel.Startup(probe.probeID, probe.typeID, 'ui_38_16_120')
+                    bracketWnd.children.insert(0, panel)
+                    panel.trackTransform = tf
+                    tf.translation = probe.pos
+                    slimItem = util.KeyVal()
+                    slimItem.jumps = []
+                    slimItem.itemID = probe.probeID
+                    slimItem.typeID = probe.typeID
+                    slimItem.groupID = evetypes.GetGroupID(probe.typeID)
+                    slimItem.categoryID = evetypes.GetCategoryID(probe.typeID)
+                    if not suppressBubbleHints and slimItem.groupID in showhint:
+                        panel.sr.icon.SetAlign(uiconst.CENTER)
+                        panel.ShowBubble(self.GetBubbleHint(probe.probeID, slimItem, bracket=panel, extended=0))
 
-        sm.GetService('viewState').GetView('systemmap').layer.SendMessage(uiconst.UI_MOUSEENTER)
-        self.HighlightItemsWithinProbeRange()
+            sm.GetService('viewState').GetView('systemmap').layer.SendMessage(uiconst.UI_MOUSEENTER)
+            self.HighlightItemsWithinProbeRange()
+            return
 
     def GetSolarsystem(self):
         return getattr(self, 'currentSolarsystem', None)
@@ -621,13 +646,15 @@ class SystemMapSvc(service.Service):
         if bracket is None:
             log.LogTraceback('RefreshBubble: no bracket')
             return
-        if bubble.expanded:
-            bubble.ShowHint(bracket.expandedHint)
         else:
-            bubble.ShowHint(bracket.collapsedHint)
-        bracket.sr.bubble.sr.ExpandBubbleHint = lambda *args: self.ExpandBubbleHint(*args)
+            if bubble.expanded:
+                bubble.ShowHint(bracket.expandedHint)
+            else:
+                bubble.ShowHint(bracket.collapsedHint)
+            bracket.sr.bubble.sr.ExpandBubbleHint = lambda *args: self.ExpandBubbleHint(*args)
+            return
 
-    def ShowRanges(self, on = 1):
+    def ShowRanges(self, on=1):
         scene = sm.GetService('sceneManager').GetRegisteredScene('systemmap')
         if self.rangeCircleTF:
             for each in self.rangeCircleTF.curveSets[:]:
@@ -641,66 +668,68 @@ class SystemMapSvc(service.Service):
         self.rangeCircleTF = None
         if not on:
             return
-        ranges = trinity.EveRootTransform()
-        ranges.name = 'rangeCircleLabels'
-        ranges.scaling = (SYSTEMMAP_SCALE, SYSTEMMAP_SCALE, SYSTEMMAP_SCALE)
-        scene.objects.append(ranges)
-        self.rangeCircleTF = ranges
-        lineSet = self.map.CreateLineSet()
-        for r in [5,
-         10,
-         15,
-         20,
-         25]:
-            color = 0.25
-            if r in (10, 20):
-                color = 0.33
-            radius = r * const.AU
-            self.AddCircle(lineSet, radius * SYSTEMMAP_SCALE, color=color)
-            self.AddRangeLabel(ranges, util.FmtDist(radius, 0), radius)
-
-        lineSet.SubmitChanges()
-        scene.objects.append(lineSet)
-        self.rangeLineSet = lineSet
-        for each in ranges.curveSets[:]:
-            ranges.curveSets.remove(each)
-
-        if eve.session.solarsystemid:
-            t = 0
-            sunBall = sm.GetService('michelle').GetBall(self.solarsystemSunID)
-            while sunBall is None:
-                blue.pyos.synchro.SleepWallclock(1000)
-                sunBall = sm.GetService('michelle').GetBall(self.solarsystemSunID)
-                t += 1
-                if t == 15:
-                    return
-
-            vectorCurve = trinity.TriVectorCurve()
-            vectorCurve.value = (-SYSTEMMAP_SCALE, -SYSTEMMAP_SCALE, -SYSTEMMAP_SCALE)
-            vectorSequencer = trinity.TriVectorSequencer()
-            vectorSequencer.operator = trinity.TRIOP_MULTIPLY
-            vectorSequencer.functions.append(sunBall)
-            vectorSequencer.functions.append(vectorCurve)
-            binding = trinity.TriValueBinding()
-            binding.sourceAttribute = 'value'
-            binding.destinationAttribute = 'translation'
-            binding.scale = 1.0
-            binding.sourceObject = vectorSequencer
-            binding.destinationObject = ranges
-            curveSet = trinity.TriCurveSet()
-            curveSet.name = 'translationCurveSet'
-            curveSet.playOnLoad = True
-            curveSet.curves.append(vectorSequencer)
-            curveSet.bindings.append(binding)
-            ranges.curveSets.append(curveSet)
-            curveSet.Play()
-            lineSet.translationCurve = vectorSequencer
         else:
-            pos = maputils.GetMyPos()
-            vectorCurve = trinity.TriVectorCurve()
-            vectorCurve.value = (pos.x * SYSTEMMAP_SCALE, pos.y * SYSTEMMAP_SCALE, pos.z * SYSTEMMAP_SCALE)
-            ranges.translationCurve = vectorCurve
-            lineSet.translationCurve = vectorCurve
+            ranges = trinity.EveRootTransform()
+            ranges.name = 'rangeCircleLabels'
+            ranges.scaling = (SYSTEMMAP_SCALE, SYSTEMMAP_SCALE, SYSTEMMAP_SCALE)
+            scene.objects.append(ranges)
+            self.rangeCircleTF = ranges
+            lineSet = self.map.CreateLineSet()
+            for r in [5,
+             10,
+             15,
+             20,
+             25]:
+                color = 0.25
+                if r in (10, 20):
+                    color = 0.33
+                radius = r * const.AU
+                self.AddCircle(lineSet, radius * SYSTEMMAP_SCALE, color=color)
+                self.AddRangeLabel(ranges, util.FmtDist(radius, 0), radius)
+
+            lineSet.SubmitChanges()
+            scene.objects.append(lineSet)
+            self.rangeLineSet = lineSet
+            for each in ranges.curveSets[:]:
+                ranges.curveSets.remove(each)
+
+            if eve.session.solarsystemid:
+                t = 0
+                sunBall = sm.GetService('michelle').GetBall(self.solarsystemSunID)
+                while sunBall is None:
+                    blue.pyos.synchro.SleepWallclock(1000)
+                    sunBall = sm.GetService('michelle').GetBall(self.solarsystemSunID)
+                    t += 1
+                    if t == 15:
+                        return
+
+                vectorCurve = trinity.TriVectorCurve()
+                vectorCurve.value = (-SYSTEMMAP_SCALE, -SYSTEMMAP_SCALE, -SYSTEMMAP_SCALE)
+                vectorSequencer = trinity.TriVectorSequencer()
+                vectorSequencer.operator = trinity.TRIOP_MULTIPLY
+                vectorSequencer.functions.append(sunBall)
+                vectorSequencer.functions.append(vectorCurve)
+                binding = trinity.TriValueBinding()
+                binding.sourceAttribute = 'value'
+                binding.destinationAttribute = 'translation'
+                binding.scale = 1.0
+                binding.sourceObject = vectorSequencer
+                binding.destinationObject = ranges
+                curveSet = trinity.TriCurveSet()
+                curveSet.name = 'translationCurveSet'
+                curveSet.playOnLoad = True
+                curveSet.curves.append(vectorSequencer)
+                curveSet.bindings.append(binding)
+                ranges.curveSets.append(curveSet)
+                curveSet.Play()
+                lineSet.translationCurve = vectorSequencer
+            else:
+                pos = maputils.GetMyPos()
+                vectorCurve = trinity.TriVectorCurve()
+                vectorCurve.value = (pos.x * SYSTEMMAP_SCALE, pos.y * SYSTEMMAP_SCALE, pos.z * SYSTEMMAP_SCALE)
+                ranges.translationCurve = vectorCurve
+                lineSet.translationCurve = vectorCurve
+            return
 
     def AddRangeLabel(self, parent, text, radius):
         for x, z in [(0.0, radius),
@@ -713,7 +742,7 @@ class SystemMapSvc(service.Service):
             label.transform.scaling = scale
             label.SetDiffuseColor((0.7, 0.7, 0.7, 1.0))
 
-    def AddCircle(self, lineSet, radius, numberOfPoints = 256, color = 0.35):
+    def AddCircle(self, lineSet, radius, numberOfPoints=256, color=0.35):
         color = (color,
          color,
          color,
@@ -730,122 +759,124 @@ class SystemMapSvc(service.Service):
             idx2 = (idx1 + 1) % numberOfPoints
             lineSet.AddLine(points[idx1], color, points[idx2], color)
 
-    def LoadSolarsystemBrackets(self, reload = 0):
+    def LoadSolarsystemBrackets(self, reload=0):
         if self.solarsystemBracketsLoaded == eve.session.solarsystemid2 and not reload:
             return
-        bracketWnd = uicore.layer.systemMapBrackets
-        bp = sm.GetService('michelle').GetBallpark()
-        groups, ssData = self.GetSolarsystemHierarchy(self.currentSolarsystemID)
-        self.ClearBrackets('__solarsystembracket')
-        self.ClearBrackets('__iamherebracket')
-        solarsystem = self.GetCurrentSolarSystem()
-        if solarsystem is None:
-            return
-        self.solarsystemBracketsLoaded = eve.session.solarsystemid2
-        validGroups = groups
-        inf = 1e+32
-        visible = maputils.GetVisibleSolarsystemBrackets()
-        showhint = maputils.GetHintsOnSolarsystemBrackets()
-        self.bracketPanels = []
-        bracket = Bracket(parent=bracketWnd, name='__iamherebracket', align=uiconst.NOALIGN, state=uiconst.UI_PICKCHILDREN)
-        bubble = BubbleHint(parent=bracket, name='bubblehint', align=uiconst.TOPLEFT, width=0, height=0, idx=0, state=uiconst.UI_PICKCHILDREN)
-        bubble.ShowHint(localization.GetByLabel('UI/Map/StarMap/lblYouAreHere'), 2)
-        bb = trinity.device.GetRenderContext().GetDefaultBackBuffer()
-        if bb.width & 1:
-            bracket.projectBracket.offsetX = 0.5
-        if bb.height & 1:
-            bracket.projectBracket.offsetY = 0.5
-        if eve.session.stationid:
-            pos = maputils.GetMyPos()
-            tf = trinity.EveTransform()
-            tf.name = 'mypos'
-            tf.translation = (pos.x, pos.y, pos.z)
-            solarsystem.children.append(tf)
-            bracket.trackTransform = tf
-        elif eve.session.solarsystemid:
-            sunBall = sm.GetService('michelle').GetBall(self.solarsystemSunID)
-            bracket.trackBall = sunBall
-            bracket.ballTrackingScaling = -SYSTEMMAP_SCALE
-        self.bracketPanels.append(bracket)
-        suppressBubbleHints = Scanner.GetIfOpen() is not None
-        for tf in solarsystem.children:
-            try:
-                itemID = int(tf.name)
-                itemData = ssData[itemID]
-            except:
-                sys.exc_clear()
-                continue
-
-            if bp is not None and bp.slimItems:
-                slimItem = bp.GetInvItem(itemID)
-                if slimItem is None:
-                    self.LogError('slimItem is None but I was expecting it to be something relevant', itemID, session.solarsystemid)
-                    continue
-                ball = bp.GetBall(itemID)
-                if evetypes.GetGroupID(slimItem.typeID) not in visible:
-                    continue
-            else:
-                if evetypes.GetGroupID(itemData.typeID) not in visible:
-                    continue
-                ball = None
-                slimItem = util.KeyVal()
-                slimItem.jumps = []
-                slimItem.itemID = itemData.itemID
-                slimItem.ballID = None
-                slimItem.charID = None
-                slimItem.ownerID = None
-                slimItem.typeID = itemData.typeID
-                slimItem.groupID = evetypes.GetGroupID(itemData.typeID)
-                slimItem.categoryID = evetypes.GetCategoryID(itemData.typeID)
-                slimItem.corpID = getattr(itemData, 'corpID', None)
-                slimItem.locationID = getattr(itemData, 'locationID', None)
-                slimItem.warFactionID = getattr(itemData, 'warFactionID', 0)
-                slimItem.allianceID = getattr(itemData, 'allianceID', None)
-            panel = Bracket(name='__solarsystembracket', align=uiconst.NOALIGN, state=uiconst.UI_NORMAL, width=16, height=16)
-            panel.data = sm.GetService('bracket').GetBracketProps(slimItem, ball)
-            try:
-                displayName = uix.GetSlimItemName(slimItem)
-            except:
-                sys.exc_clear()
-                continue
-
-            if slimItem.groupID == const.groupStation:
-                displayName = uix.EditStationName(displayName, usename=1)
-            _iconNo, _dockType, _minDist, _maxDist, _iconOffset, _logflag = panel.data
-            panel.displayName = displayName
-            bracketWnd.children.insert(0, panel)
-            panel.trackTransform = tf
+        else:
+            bracketWnd = uicore.layer.systemMapBrackets
+            bp = sm.GetService('michelle').GetBallpark()
+            groups, ssData = self.GetSolarsystemHierarchy(self.currentSolarsystemID)
+            self.ClearBrackets('__solarsystembracket')
+            self.ClearBrackets('__iamherebracket')
+            solarsystem = self.GetCurrentSolarSystem()
+            if solarsystem is None:
+                return
+            self.solarsystemBracketsLoaded = eve.session.solarsystemid2
+            validGroups = groups
+            inf = 1e+32
+            visible = maputils.GetVisibleSolarsystemBrackets()
+            showhint = maputils.GetHintsOnSolarsystemBrackets()
+            self.bracketPanels = []
+            bracket = Bracket(parent=bracketWnd, name='__iamherebracket', align=uiconst.NOALIGN, state=uiconst.UI_PICKCHILDREN)
+            bubble = BubbleHint(parent=bracket, name='bubblehint', align=uiconst.TOPLEFT, width=0, height=0, idx=0, state=uiconst.UI_PICKCHILDREN)
+            bubble.ShowHint(localization.GetByLabel('UI/Map/StarMap/lblYouAreHere'), 2)
             bb = trinity.device.GetRenderContext().GetDefaultBackBuffer()
             if bb.width & 1:
-                panel.projectBracket.offsetX = 0.5
+                bracket.projectBracket.offsetX = 0.5
             if bb.height & 1:
-                panel.projectBracket.offsetY = 0.5
-            panel.dock = 0
-            panel.minDispRange = 0.0
-            panel.maxDispRange = 1e+32
-            panel.inflight = False
-            panel.color = None
-            panel.invisible = False
-            panel.updateItem = False
-            panel.fadeColor = 0
-            panel.sr.slimItem = slimItem
-            panel.ssData = itemData
-            panel.groupID = slimItem.groupID
-            panel.ball = ball
-            panel.Startup(slimItem, ball, tf)
-            panel.OnDblClick = (self.OnBracketDoubleClick, panel)
-            if not suppressBubbleHints and slimItem.groupID in showhint:
-                panel.hasBubbleHintShowing = True
-                panel.pickState = uiconst.TR2_SPS_CHILDREN
-                panel.width = panel.height = 800
-                panel.sr.icon.SetAlign(uiconst.CENTER)
-                panel.ShowBubble(self.GetBubbleHint(itemID, slimItem, bracket=panel, extended=0))
-                panel.showLabel = 0
-                if slimItem.groupID in (const.groupStation,):
-                    panel.sr.bubble.sr.ExpandHint = self.ExpandBubbleHint
-            self.bracketPanels.append(panel)
+                bracket.projectBracket.offsetY = 0.5
+            if eve.session.stationid:
+                pos = maputils.GetMyPos()
+                tf = trinity.EveTransform()
+                tf.name = 'mypos'
+                tf.translation = (pos.x, pos.y, pos.z)
+                solarsystem.children.append(tf)
+                bracket.trackTransform = tf
+            elif eve.session.solarsystemid:
+                sunBall = sm.GetService('michelle').GetBall(self.solarsystemSunID)
+                bracket.trackBall = sunBall
+                bracket.ballTrackingScaling = -SYSTEMMAP_SCALE
+            self.bracketPanels.append(bracket)
+            suppressBubbleHints = Scanner.GetIfOpen() is not None
+            for tf in solarsystem.children:
+                try:
+                    itemID = int(tf.name)
+                    itemData = ssData[itemID]
+                except:
+                    sys.exc_clear()
+                    continue
 
-        self.SortBubbles()
+                if bp is not None and bp.slimItems:
+                    slimItem = bp.GetInvItem(itemID)
+                    if slimItem is None:
+                        self.LogError('slimItem is None but I was expecting it to be something relevant', itemID, session.solarsystemid)
+                        continue
+                    ball = bp.GetBall(itemID)
+                    if evetypes.GetGroupID(slimItem.typeID) not in visible:
+                        continue
+                else:
+                    if evetypes.GetGroupID(itemData.typeID) not in visible:
+                        continue
+                    ball = None
+                    slimItem = util.KeyVal()
+                    slimItem.jumps = []
+                    slimItem.itemID = itemData.itemID
+                    slimItem.ballID = None
+                    slimItem.charID = None
+                    slimItem.ownerID = None
+                    slimItem.typeID = itemData.typeID
+                    slimItem.groupID = evetypes.GetGroupID(itemData.typeID)
+                    slimItem.categoryID = evetypes.GetCategoryID(itemData.typeID)
+                    slimItem.corpID = getattr(itemData, 'corpID', None)
+                    slimItem.locationID = getattr(itemData, 'locationID', None)
+                    slimItem.warFactionID = getattr(itemData, 'warFactionID', 0)
+                    slimItem.allianceID = getattr(itemData, 'allianceID', None)
+                panel = Bracket(name='__solarsystembracket', align=uiconst.NOALIGN, state=uiconst.UI_NORMAL, width=16, height=16)
+                panel.data = sm.GetService('bracket').GetBracketProps(slimItem, ball)
+                try:
+                    displayName = uix.GetSlimItemName(slimItem)
+                except:
+                    sys.exc_clear()
+                    continue
+
+                if slimItem.groupID == const.groupStation:
+                    displayName = uix.EditStationName(displayName, usename=1)
+                _iconNo, _dockType, _minDist, _maxDist, _iconOffset, _logflag = panel.data
+                panel.displayName = displayName
+                bracketWnd.children.insert(0, panel)
+                panel.trackTransform = tf
+                bb = trinity.device.GetRenderContext().GetDefaultBackBuffer()
+                if bb.width & 1:
+                    panel.projectBracket.offsetX = 0.5
+                if bb.height & 1:
+                    panel.projectBracket.offsetY = 0.5
+                panel.dock = 0
+                panel.minDispRange = 0.0
+                panel.maxDispRange = 1e+32
+                panel.inflight = False
+                panel.color = None
+                panel.invisible = False
+                panel.updateItem = False
+                panel.fadeColor = 0
+                panel.sr.slimItem = slimItem
+                panel.ssData = itemData
+                panel.groupID = slimItem.groupID
+                panel.ball = ball
+                panel.Startup(slimItem, ball, tf)
+                panel.OnDblClick = (self.OnBracketDoubleClick, panel)
+                if not suppressBubbleHints and slimItem.groupID in showhint:
+                    panel.hasBubbleHintShowing = True
+                    panel.pickState = uiconst.TR2_SPS_CHILDREN
+                    panel.width = panel.height = 800
+                    panel.sr.icon.SetAlign(uiconst.CENTER)
+                    panel.ShowBubble(self.GetBubbleHint(itemID, slimItem, bracket=panel, extended=0))
+                    panel.showLabel = 0
+                    if slimItem.groupID in (const.groupStation,):
+                        panel.sr.bubble.sr.ExpandHint = self.ExpandBubbleHint
+                self.bracketPanels.append(panel)
+
+            self.SortBubbles()
+            return
 
     def LoadBeacons(self):
         self.LoadBallparkItems('__beaconbracket', 'beacon_', [const.groupBeacon], overrideWidthHeight=(800, 800))
@@ -856,71 +887,73 @@ class SystemMapSvc(service.Service):
     def LoadSovereigntyStructures(self):
         self.LoadBallparkItems('__sovereigntybracket', 'sovereignty_', [const.groupSovereigntyClaimMarkers, const.groupSovereigntyDisruptionStructures], overrideWidthHeight=(800, 800))
 
-    def LoadBallparkItems(self, bracketName, bracketPrefix, itemGroupIDs, overrideWidthHeight = None):
+    def LoadBallparkItems(self, bracketName, bracketPrefix, itemGroupIDs, overrideWidthHeight=None):
         solarsystem = self.GetSolarsystem()
         if solarsystem is None:
             log.LogInfo('no solar system (', bracketPrefix, 'Structures)')
             return
-        self.ClearBrackets(bracketName, bracketPrefix)
-        itemGroupIDlist = []
-        visibleGroups = maputils.GetVisibleSolarsystemBrackets()
-        for groupID in itemGroupIDs:
-            if groupID in visibleGroups:
-                itemGroupIDlist.append(groupID)
+        else:
+            self.ClearBrackets(bracketName, bracketPrefix)
+            itemGroupIDlist = []
+            visibleGroups = maputils.GetVisibleSolarsystemBrackets()
+            for groupID in itemGroupIDs:
+                if groupID in visibleGroups:
+                    itemGroupIDlist.append(groupID)
 
-        if not itemGroupIDlist:
-            return
-        ballpark = sm.GetService('michelle').GetBallpark()
-        if ballpark is None:
-            return
-        showhint = maputils.GetHintsOnSolarsystemBrackets()
-        bracketWnd = uicore.layer.systemMapBrackets
-        for itemID, ball in ballpark.balls.iteritems():
+            if not itemGroupIDlist:
+                return
+            ballpark = sm.GetService('michelle').GetBallpark()
             if ballpark is None:
-                break
-            slimItem = ballpark.GetInvItem(itemID)
-            if not slimItem:
-                continue
-            if slimItem.groupID not in itemGroupIDlist:
-                continue
-            panel = Bracket(name=bracketName, align=uiconst.NOALIGN, state=uiconst.UI_NORMAL, width=16, height=16)
-            panel.data = sm.GetService('bracket').GetBracketProps(slimItem, ball)
-            try:
-                displayName = uix.GetSlimItemName(slimItem)
-            except:
-                sys.exc_clear()
-                continue
+                return
+            showhint = maputils.GetHintsOnSolarsystemBrackets()
+            bracketWnd = uicore.layer.systemMapBrackets
+            for itemID, ball in ballpark.balls.iteritems():
+                if ballpark is None:
+                    break
+                slimItem = ballpark.GetInvItem(itemID)
+                if not slimItem:
+                    continue
+                if slimItem.groupID not in itemGroupIDlist:
+                    continue
+                panel = Bracket(name=bracketName, align=uiconst.NOALIGN, state=uiconst.UI_NORMAL, width=16, height=16)
+                panel.data = sm.GetService('bracket').GetBracketProps(slimItem, ball)
+                try:
+                    displayName = uix.GetSlimItemName(slimItem)
+                except:
+                    sys.exc_clear()
+                    continue
 
-            _iconNo, _dockType, _minDist, _maxDist, _iconOffset, _logflag = panel.data
-            panel.displayName = displayName
-            bracketWnd.children.insert(0, panel)
-            tracker = trinity.EveTransform()
-            tracker.name = '%s%d' % (bracketPrefix, itemID)
-            tracker.translation = (ball.x, ball.y, ball.z)
-            solarsystem.children.append(tracker)
-            panel.trackTransform = tracker
-            panel.dock = 0
-            panel.minDispRange = 0.0
-            panel.maxDispRange = 1e+32
-            panel.inflight = False
-            panel.color = None
-            panel.invisible = False
-            panel.updateItem = False
-            panel.fadeColor = 0
-            panel.sr.slimItem = slimItem
-            panel.groupID = slimItem.groupID
-            panel.Startup(slimItem, ball)
-            if slimItem.groupID in showhint:
-                if overrideWidthHeight is not None:
-                    panel.width, panel.height = overrideWidthHeight
-                panel.hasBubbleHintShowing = True
-                panel.pickState = uiconst.TR2_SPS_CHILDREN
-                panel.sr.icon.SetAlign(uiconst.CENTER)
-                panel.ShowBubble(self.GetBubbleHint(itemID, slimItem, bracket=panel, extended=0))
-                panel.showLabel = 0
-                panel.sr.bubble.sr.ExpandHint = self.ExpandBubbleHint
+                _iconNo, _dockType, _minDist, _maxDist, _iconOffset, _logflag = panel.data
+                panel.displayName = displayName
+                bracketWnd.children.insert(0, panel)
+                tracker = trinity.EveTransform()
+                tracker.name = '%s%d' % (bracketPrefix, itemID)
+                tracker.translation = (ball.x, ball.y, ball.z)
+                solarsystem.children.append(tracker)
+                panel.trackTransform = tracker
+                panel.dock = 0
+                panel.minDispRange = 0.0
+                panel.maxDispRange = 1e+32
+                panel.inflight = False
+                panel.color = None
+                panel.invisible = False
+                panel.updateItem = False
+                panel.fadeColor = 0
+                panel.sr.slimItem = slimItem
+                panel.groupID = slimItem.groupID
+                panel.Startup(slimItem, ball)
+                if slimItem.groupID in showhint:
+                    if overrideWidthHeight is not None:
+                        panel.width, panel.height = overrideWidthHeight
+                    panel.hasBubbleHintShowing = True
+                    panel.pickState = uiconst.TR2_SPS_CHILDREN
+                    panel.sr.icon.SetAlign(uiconst.CENTER)
+                    panel.ShowBubble(self.GetBubbleHint(itemID, slimItem, bracket=panel, extended=0))
+                    panel.showLabel = 0
+                    panel.sr.bubble.sr.ExpandHint = self.ExpandBubbleHint
 
-        self.SortBubbles()
+            self.SortBubbles()
+            return
 
     def OnSlimItemChange(self, oldItem, newItem):
         if newItem.groupID in const.sovereigntyClaimStructuresGroups:
@@ -939,232 +972,235 @@ class SystemMapSvc(service.Service):
         solarsystem = self.GetCurrentSolarSystem()
         if solarsystem is None:
             return
-        if not data:
+        elif not data:
             return
-        bracketWnd = uicore.layer.systemMapBrackets
-        for each in data:
-            panel = SimpleBracket()
-            bracketWnd.children.insert(0, panel)
-            panel.name = '__dungeonbracket'
-            panel.align = uiconst.NOALIGN
-            panel.state = uiconst.UI_NORMAL
-            panel.dock = 0
-            panel.minDispRange = 0.0
-            panel.maxDispRange = 1e+32
-            panel.inflight = False
-            panel.color = None
-            panel.invisible = False
-            panel.fadeColor = False
-            tf = trinity.EveTransform()
-            tf.name = 'dg_%s_%s' % (repr(each.name), getattr(each, 'ballID', -1))
-            solarsystem.children.append(tf)
-            panel.trackTransform = tf
-            tf.translation = (each.x, each.y, each.z)
-            panel.displayName = each.name
-            panel.Startup(tf.name, None, None, 'ui_38_16_14')
-            panel.sr.icon.SetAlign(uiconst.CENTER)
-            panel.ShowBubble(each.name)
-            panel.showLabel = 0
+        else:
+            bracketWnd = uicore.layer.systemMapBrackets
+            for each in data:
+                panel = SimpleBracket()
+                bracketWnd.children.insert(0, panel)
+                panel.name = '__dungeonbracket'
+                panel.align = uiconst.NOALIGN
+                panel.state = uiconst.UI_NORMAL
+                panel.dock = 0
+                panel.minDispRange = 0.0
+                panel.maxDispRange = 1e+32
+                panel.inflight = False
+                panel.color = None
+                panel.invisible = False
+                panel.fadeColor = False
+                tf = trinity.EveTransform()
+                tf.name = 'dg_%s_%s' % (repr(each.name), getattr(each, 'ballID', -1))
+                solarsystem.children.append(tf)
+                panel.trackTransform = tf
+                tf.translation = (each.x, each.y, each.z)
+                panel.displayName = each.name
+                panel.Startup(tf.name, None, None, 'ui_38_16_14')
+                panel.sr.icon.SetAlign(uiconst.CENTER)
+                panel.ShowBubble(each.name)
+                panel.showLabel = 0
 
-        self.SortBubbles()
+            self.SortBubbles()
+            return
 
-    def GetBubbleHint(self, itemID, slimItem = None, mapData = None, bracket = None, extended = 0):
+    def GetBubbleHint(self, itemID, slimItem=None, mapData=None, bracket=None, extended=0):
         if extended and getattr(bracket, 'expandedHint', None):
             return bracket.expandedHint
-        if not extended and getattr(bracket, 'collapsedHint', None):
+        elif not extended and getattr(bracket, 'collapsedHint', None):
             return bracket.collapsedHint
-        if eve.session.solarsystemid and slimItem is None:
-            slimItem = sm.GetService('michelle').GetItem(itemID)
-        if slimItem is None and mapData is None:
-            mapData = self.map.GetItem(itemID)
-            if mapData is None:
-                return ''
-        typeID = None
-        groupID = None
-        orbitID = None
-        hint = []
-        if slimItem:
-            groupID = slimItem.groupID
-            typeID = slimItem.typeID
-            displayName = uix.GetSlimItemName(slimItem)
-        if mapData:
-            displayName = mapData.itemName
-            if groupID is None:
-                if hasattr(mapData, 'groupID'):
-                    groupID = mapData.groupID
-                else:
-                    groupID = evetypes.GetGroupID(mapData.typeID)
-            if hasattr(mapData, 'orbitID'):
-                orbitID = mapData.orbitID
-            typeID = mapData.typeID
-        if groupID is None:
-            return hint
-        ball = None
-        transform = None
-        if bracket:
-            ball = bracket.trackBall or getattr(bracket.sr, 'trackBall', None)
-            transform = bracket.trackTransform
-        if groupID == const.groupStation:
-            displayName = self.map.GetStation(itemID).stationName
-            displayName = uix.EditStationName(displayName, usename=1)
-        hint.append(('<b>' + displayName + '</b>', ('OnClick', 'ShowInfo', (typeID, itemID))))
-        import maputils
-        if groupID == const.groupSolarSystem:
-            ss = self.map.GetSecurityStatus(itemID)
-            if ss is not None:
-                hint.append(localization.GetByLabel('UI/Map/StarMap/hintSecurityStatus', level=ss))
         else:
-            distance = maputils.GetDistance(slimItem, mapData, ball, transform)
-            if distance is not None:
-                hint.append(localization.GetByLabel('UI/Map/StarMap/lblDistance', distance=util.FmtDist(distance)))
-        if extended:
-            if groupID == const.groupBeacon:
-                if eve.session.solarsystemid:
-                    beacon = sm.GetService('michelle').GetItem(itemID)
-                    if beacon and hasattr(beacon, 'dunDescriptionID') and beacon.dunDescriptionID:
-                        desc = localization.GetByMessageID(beacon.dunDescriptionID)
-                        hint.append(desc)
-            elif groupID in const.sovereigntyClaimStructuresGroups:
-                if eve.session.solarsystemid:
-                    stateName, stateTimestamp, stateDelay = sm.GetService('pwn').GetStructureState(slimItem)
-                    hint.append(POS_STRUCTURE_STATE[stateName])
-            elif groupID == const.groupSolarSystem:
-                labelPathDict = {const.groupCharacter: 'UI/Common/Groups/CountedGroupCharacter',
-                 const.groupDecorations: 'UI/Common/Groups/CountedGroupDecorations',
-                 const.groupConstellation: 'UI/Common/Groups/CountedGroupConstellation',
-                 const.groupAsteroidBelt: 'UI/Common/Groups/CountedGroupAsteroidBelt',
-                 const.groupStargate: 'UI/Common/Groups/CountedGroupStargate',
-                 const.groupClone: 'UI/Common/Groups/CountedGroupClone',
-                 const.groupRegion: 'UI/Common/Groups/CountedGroupRegion',
-                 const.groupStation: 'UI/Common/Groups/CountedGroupStation',
-                 const.groupMoon: 'UI/Common/Groups/CountedGroupMoon',
-                 const.groupBooster: 'UI/Common/Groups/CountedGroupBooster',
-                 const.groupFaction: 'UI/Common/Groups/CountedGroupFaction',
-                 const.groupSolarSystem: 'UI/Common/Groups/CountedGroupSolarSystem',
-                 const.groupAlliance: 'UI/Common/Groups/CountedGroupAlliance',
-                 const.groupCorporation: 'UI/Common/Groups/CountedGroupCorporation',
-                 const.groupSilo: 'UI/Common/Groups/CountedGroupSilo',
-                 const.groupSecondarySun: 'UI/Common/Groups/CountedGroupSecondarySun'}
-                hint.append('<dotline>')
-                groups, ssData = self.GetSolarsystemHierarchy(itemID, (const.groupPlanet,))
-                for id, orbits in groups.iteritems():
-                    planet = ssData[id]
-                    hint.append((localization.GetByLabel('UI/Map/StarMap/PlanetName', planet=planet.itemID), ('OnClick', 'ShowInfo', (planet.typeID, planet.itemID))))
-                    byGroup = {}
-                    for orbit in orbits:
-                        _groupID = evetypes.GetGroupID(orbit.typeID)
-                        if _groupID not in byGroup:
-                            byGroup[_groupID] = []
-                        byGroup[_groupID].append(orbit)
-
-                    groupEntries = []
-                    for _groupID, orbits in byGroup.iteritems():
-                        if _groupID not in (const.groupStation, const.groupStargate, const.groupSecondarySun):
-                            labelName = labelPathDict.get(_groupID)
-                            groupEntries.append(localization.GetByLabel(labelName, amount=len(orbits)))
-
-                    if len(groupEntries):
-                        hint.append(localization.formatters.FormatGenericList(groupEntries))
-                    for station in byGroup.get(const.groupStation, []):
-                        itemName = self.map.GetStation(station.itemID).stationName
-                        hint.append((uix.EditStationName(itemName, usename=1), ('OnMouseEnter', 'ShowSubhint', ('GetBubbleHint', (station.itemID,
-                            None,
-                            station,
-                            None,
-                            1)))))
-
-                    for stargate in byGroup.get(const.groupStargate, []):
-                        hint.append((stargate.itemName, ('OnClick', 'ShowInfo', (stargate.typeID, stargate.itemID))))
-
+            if eve.session.solarsystemid and slimItem is None:
+                slimItem = sm.GetService('michelle').GetItem(itemID)
+            if slimItem is None and mapData is None:
+                mapData = self.map.GetItem(itemID)
+                if mapData is None:
+                    return ''
+            typeID = None
+            groupID = None
+            orbitID = None
+            hint = []
+            if slimItem:
+                groupID = slimItem.groupID
+                typeID = slimItem.typeID
+                displayName = uix.GetSlimItemName(slimItem)
+            if mapData:
+                displayName = mapData.itemName
+                if groupID is None:
+                    if hasattr(mapData, 'groupID'):
+                        groupID = mapData.groupID
+                    else:
+                        groupID = evetypes.GetGroupID(mapData.typeID)
+                if hasattr(mapData, 'orbitID'):
+                    orbitID = mapData.orbitID
+                typeID = mapData.typeID
+            if groupID is None:
+                return hint
+            ball = None
+            transform = None
+            if bracket:
+                ball = bracket.trackBall or getattr(bracket.sr, 'trackBall', None)
+                transform = bracket.trackTransform
+            if groupID == const.groupStation:
+                displayName = self.map.GetStation(itemID).stationName
+                displayName = uix.EditStationName(displayName, usename=1)
+            hint.append(('<b>' + displayName + '</b>', ('OnClick', 'ShowInfo', (typeID, itemID))))
+            import maputils
+            if groupID == const.groupSolarSystem:
+                ss = self.map.GetSecurityStatus(itemID)
+                if ss is not None:
+                    hint.append(localization.GetByLabel('UI/Map/StarMap/hintSecurityStatus', level=ss))
+            else:
+                distance = maputils.GetDistance(slimItem, mapData, ball, transform)
+                if distance is not None:
+                    hint.append(localization.GetByLabel('UI/Map/StarMap/lblDistance', distance=util.FmtDist(distance)))
+            if extended:
+                if groupID == const.groupBeacon:
+                    if eve.session.solarsystemid:
+                        beacon = sm.GetService('michelle').GetItem(itemID)
+                        if beacon and hasattr(beacon, 'dunDescriptionID') and beacon.dunDescriptionID:
+                            desc = localization.GetByMessageID(beacon.dunDescriptionID)
+                            hint.append(desc)
+                elif groupID in const.sovereigntyClaimStructuresGroups:
+                    if eve.session.solarsystemid:
+                        stateName, stateTimestamp, stateDelay = sm.GetService('pwn').GetStructureState(slimItem)
+                        hint.append(POS_STRUCTURE_STATE[stateName])
+                elif groupID == const.groupSolarSystem:
+                    labelPathDict = {const.groupCharacter: 'UI/Common/Groups/CountedGroupCharacter',
+                     const.groupDecorations: 'UI/Common/Groups/CountedGroupDecorations',
+                     const.groupConstellation: 'UI/Common/Groups/CountedGroupConstellation',
+                     const.groupAsteroidBelt: 'UI/Common/Groups/CountedGroupAsteroidBelt',
+                     const.groupStargate: 'UI/Common/Groups/CountedGroupStargate',
+                     const.groupClone: 'UI/Common/Groups/CountedGroupClone',
+                     const.groupRegion: 'UI/Common/Groups/CountedGroupRegion',
+                     const.groupStation: 'UI/Common/Groups/CountedGroupStation',
+                     const.groupMoon: 'UI/Common/Groups/CountedGroupMoon',
+                     const.groupBooster: 'UI/Common/Groups/CountedGroupBooster',
+                     const.groupFaction: 'UI/Common/Groups/CountedGroupFaction',
+                     const.groupSolarSystem: 'UI/Common/Groups/CountedGroupSolarSystem',
+                     const.groupAlliance: 'UI/Common/Groups/CountedGroupAlliance',
+                     const.groupCorporation: 'UI/Common/Groups/CountedGroupCorporation',
+                     const.groupSilo: 'UI/Common/Groups/CountedGroupSilo',
+                     const.groupSecondarySun: 'UI/Common/Groups/CountedGroupSecondarySun'}
                     hint.append('<dotline>')
+                    groups, ssData = self.GetSolarsystemHierarchy(itemID, (const.groupPlanet,))
+                    for id, orbits in groups.iteritems():
+                        planet = ssData[id]
+                        hint.append((localization.GetByLabel('UI/Map/StarMap/PlanetName', planet=planet.itemID), ('OnClick', 'ShowInfo', (planet.typeID, planet.itemID))))
+                        byGroup = {}
+                        for orbit in orbits:
+                            _groupID = evetypes.GetGroupID(orbit.typeID)
+                            if _groupID not in byGroup:
+                                byGroup[_groupID] = []
+                            byGroup[_groupID].append(orbit)
 
-                hint = hint[:-1]
-            elif groupID == const.groupStation:
-                services = []
-                stationInfo, opservices, _services = sm.GetService('ui').GetStation(itemID, 1)
-                opservDict = {}
-                for each in opservices:
-                    if each.operationID not in opservDict:
-                        opservDict[each.operationID] = []
-                    opservDict[each.operationID].append(each.serviceID)
+                        groupEntries = []
+                        for _groupID, orbits in byGroup.iteritems():
+                            if _groupID not in (const.groupStation, const.groupStargate, const.groupSecondarySun):
+                                labelName = labelPathDict.get(_groupID)
+                                groupEntries.append(localization.GetByLabel(labelName, amount=len(orbits)))
 
-                for info in self.station.GetStationServiceInfo():
-                    for bit in info.serviceIDs:
-                        if bit == const.stationServiceNavyOffices and not self.facwar.CheckOwnerInFaction(stationInfo.ownerID):
-                            continue
-                        if bit == const.stationServiceSecurityOffice and not self.securityOfficeSvc.CanAccessServiceInStation(itemID):
-                            continue
-                        if bit in opservDict[stationInfo.operationID]:
-                            services.append(info.label)
-                            break
+                        if len(groupEntries):
+                            hint.append(localization.formatters.FormatGenericList(groupEntries))
+                        for station in byGroup.get(const.groupStation, []):
+                            itemName = self.map.GetStation(station.itemID).stationName
+                            hint.append((uix.EditStationName(itemName, usename=1), ('OnMouseEnter', 'ShowSubhint', ('GetBubbleHint', (station.itemID,
+                                None,
+                                station,
+                                None,
+                                1)))))
 
-                if services:
-                    services = localization.util.Sort(services)
-                    hint.append('<dotline>')
-                    hint.append((localization.GetByLabel('UI/Map/StarMap/ServicesCaption'), ('OnMouseEnter', 'ShowSubhint', (services,))))
-                agentsByStationID = sm.GetService('agents').GetAgentsByStationID()
-                agentByStation = {}
-                for agent in agentsByStationID[itemID]:
-                    if agent.agentTypeID in (const.agentTypeBasicAgent, const.agentTypeResearchAgent, const.agentTypeFactionalWarfareAgent) and agent.stationID:
-                        if agent.stationID not in agentByStation:
-                            agentByStation[agent.stationID] = []
-                        agentByStation[agent.stationID].append(agent)
+                        for stargate in byGroup.get(const.groupStargate, []):
+                            hint.append((stargate.itemName, ('OnClick', 'ShowInfo', (stargate.typeID, stargate.itemID))))
 
-                agents = []
-                if itemID in agentByStation:
-                    npcDivisions = sm.GetService('agents').GetDivisions()
-                    agentsAtStation = agentByStation[itemID]
-                    for agent in agentsAtStation:
-                        agentsub = []
-                        agentsub.append(localization.GetByLabel('UI/Map/StarMap/DivisionName', divisionName=npcDivisions[agent.divisionID].divisionName))
-                        agentsub.append(localization.GetByLabel('UI/Map/StarMap/AgentLevel', agentLevel=uiutil.GetLevel(agent.level)))
-                        isLimitedToFacWar = False
-                        if agent.agentTypeID == const.agentTypeFactionalWarfareAgent and self.facwar.GetCorporationWarFactionID(agent.corporationID) != session.warfactionid:
-                            isLimitedToFacWar = True
-                        if agent.agentTypeID in (const.agentTypeResearchAgent,
-                         const.agentTypeBasicAgent,
-                         const.agentTypeEventMissionAgent,
-                         const.agentTypeCareerAgent,
-                         const.agentTypeFactionalWarfareAgent) and sm.GetService('standing').CanUseAgent(agent.factionID, agent.corporationID, agent.agentID, agent.level, agent.agentTypeID) and isLimitedToFacWar == False:
-                            agentsub.append(localization.GetByLabel('UI/Map/StarMap/AvailableToYou'))
-                        else:
-                            agentsub.append(localization.GetByLabel('UI/Map/StarMap/NotAvailableToYou'))
-                        agents.append((cfg.eveowners.Get(agent.agentID).name, ('OnMouseEnter', 'ShowSubhint', (agentsub,))))
-
-                if agents:
-                    hint.append('<dotline>')
-                    hint.append((localization.GetByLabel('UI/Map/StarMap/AgentsCaption'), ('OnMouseEnter', 'ShowSubhint', (agents,))))
-                myassets = sm.GetService('assets').GetAll('sysitems', blueprintOnly=0, isCorp=0)
-                for solarsystemID, station in myassets:
-                    if station.stationID == itemID:
                         hint.append('<dotline>')
-                        hint.append((localization.GetByLabel('UI/Map/StarMap/MyAssetsCount', amount=station.itemCount), ('OnClick', 'OpenAssets', (station.stationID,))))
 
-                try:
-                    if (const.corpRoleAccountant | const.corpRoleJuniorAccountant) & eve.session.corprole == 1:
-                        corpassets = sm.GetService('assets').GetAll('sysitems', blueprintOnly=0, isCorp=1)
-                        for solarsystemID, station in myassets:
-                            if station.stationID == itemID:
-                                hint.append('<dotline>')
-                                hint.append(localization.GetByLabel('UI/Map/StarMap/MyAssetsCount', amount=station.itemCount))
+                    hint = hint[:-1]
+                elif groupID == const.groupStation:
+                    services = []
+                    stationInfo, opservices, _services = sm.GetService('ui').GetStation(itemID, 1)
+                    opservDict = {}
+                    for each in opservices:
+                        if each.operationID not in opservDict:
+                            opservDict[each.operationID] = []
+                        opservDict[each.operationID].append(each.serviceID)
 
-                except RuntimeError as what:
-                    if what.args[0] != 'NotSupported':
-                        log.LogException()
-                    sys.exc_clear()
+                    for info in stationServiceConst.serviceData:
+                        for bit in info.serviceIDs:
+                            if bit == const.stationServiceNavyOffices and not self.facwar.CheckOwnerInFaction(stationInfo.ownerID):
+                                continue
+                            if bit == const.stationServiceSecurityOffice and not self.securityOfficeSvc.CanAccessServiceInStation(itemID):
+                                continue
+                            if bit in opservDict[stationInfo.operationID]:
+                                services.append(info.label)
+                                break
 
-                officeData = sm.RemoteSvc('config').GetMapOffices(stationInfo.solarSystemID)
-                offices = []
-                for office in officeData:
-                    if office.stationID == itemID:
-                        offices.append((cfg.eveowners.Get(office.corporationID).name, ('OnClick', 'ShowInfo', (const.groupCorporation, office.corporationID))))
+                    if services:
+                        services = localization.util.Sort(services)
+                        hint.append('<dotline>')
+                        hint.append((localization.GetByLabel('UI/Map/StarMap/ServicesCaption'), ('OnMouseEnter', 'ShowSubhint', (services,))))
+                    agentsByStationID = sm.GetService('agents').GetAgentsByStationID()
+                    agentByStation = {}
+                    for agent in agentsByStationID[itemID]:
+                        if agent.agentTypeID in (const.agentTypeBasicAgent, const.agentTypeResearchAgent, const.agentTypeFactionalWarfareAgent) and agent.stationID:
+                            if agent.stationID not in agentByStation:
+                                agentByStation[agent.stationID] = []
+                            agentByStation[agent.stationID].append(agent)
 
-                if offices:
-                    hint.append('<dotline>')
-                    hint.append((localization.GetByLabel('UI/Map/StarMap/OfficesCaption'), ('OnMouseEnter', 'ShowSubhint', (offices,))))
-        return hint
+                    agents = []
+                    if itemID in agentByStation:
+                        npcDivisions = sm.GetService('agents').GetDivisions()
+                        agentsAtStation = agentByStation[itemID]
+                        for agent in agentsAtStation:
+                            agentsub = []
+                            agentsub.append(localization.GetByLabel('UI/Map/StarMap/DivisionName', divisionName=npcDivisions[agent.divisionID].divisionName))
+                            agentsub.append(localization.GetByLabel('UI/Map/StarMap/AgentLevel', agentLevel=uiutil.GetLevel(agent.level)))
+                            isLimitedToFacWar = False
+                            if agent.agentTypeID == const.agentTypeFactionalWarfareAgent and self.facwar.GetCorporationWarFactionID(agent.corporationID) != session.warfactionid:
+                                isLimitedToFacWar = True
+                            if agent.agentTypeID in (const.agentTypeResearchAgent,
+                             const.agentTypeBasicAgent,
+                             const.agentTypeEventMissionAgent,
+                             const.agentTypeCareerAgent,
+                             const.agentTypeFactionalWarfareAgent) and sm.GetService('standing').CanUseAgent(agent.factionID, agent.corporationID, agent.agentID, agent.level, agent.agentTypeID) and isLimitedToFacWar == False:
+                                agentsub.append(localization.GetByLabel('UI/Map/StarMap/AvailableToYou'))
+                            else:
+                                agentsub.append(localization.GetByLabel('UI/Map/StarMap/NotAvailableToYou'))
+                            agents.append((cfg.eveowners.Get(agent.agentID).name, ('OnMouseEnter', 'ShowSubhint', (agentsub,))))
 
-    def CollapseBubbles(self, ignore = []):
+                    if agents:
+                        hint.append('<dotline>')
+                        hint.append((localization.GetByLabel('UI/Map/StarMap/AgentsCaption'), ('OnMouseEnter', 'ShowSubhint', (agents,))))
+                    myassets = sm.GetService('assets').GetAll('sysitems', blueprintOnly=0, isCorp=0)
+                    for solarsystemID, station in myassets:
+                        if station.stationID == itemID:
+                            hint.append('<dotline>')
+                            hint.append((localization.GetByLabel('UI/Map/StarMap/MyAssetsCount', amount=station.itemCount), ('OnClick', 'OpenAssets', (station.stationID,))))
+
+                    try:
+                        if (const.corpRoleAccountant | const.corpRoleJuniorAccountant) & eve.session.corprole == 1:
+                            corpassets = sm.GetService('assets').GetAll('sysitems', blueprintOnly=0, isCorp=1)
+                            for solarsystemID, station in myassets:
+                                if station.stationID == itemID:
+                                    hint.append('<dotline>')
+                                    hint.append(localization.GetByLabel('UI/Map/StarMap/MyAssetsCount', amount=station.itemCount))
+
+                    except RuntimeError as what:
+                        if what.args[0] != 'NotSupported':
+                            log.LogException()
+                        sys.exc_clear()
+
+                    officeData = sm.RemoteSvc('config').GetMapOffices(stationInfo.solarSystemID)
+                    offices = []
+                    for office in officeData:
+                        if office.stationID == itemID:
+                            offices.append((cfg.eveowners.Get(office.corporationID).name, ('OnClick', 'ShowInfo', (const.groupCorporation, office.corporationID))))
+
+                    if offices:
+                        hint.append('<dotline>')
+                        hint.append((localization.GetByLabel('UI/Map/StarMap/OfficesCaption'), ('OnMouseEnter', 'ShowSubhint', (offices,))))
+            return hint
+
+    def CollapseBubbles(self, ignore=[]):
         bracketWnd = uicore.layer.systemMapBrackets
         for bracket in bracketWnd.children[:]:
             if getattr(bracket, 'IsBracket', 0) and getattr(bracket.sr, 'bubble', None) is not None:
@@ -1174,59 +1210,64 @@ class SystemMapSvc(service.Service):
                 self._ExpandBubbleHint(bracket.sr.bubble, 0)
 
         self.expandingHint = 0
+        return
 
-    def ExpandBubbleHint(self, bubble, expand = 1):
+    def ExpandBubbleHint(self, bubble, expand=1):
         if self.expandingHint:
             return
         uthread.new(self._ExpandBubbleHint, bubble, expand)
 
-    def _ExpandBubbleHint(self, bubble, expand = 1):
+    def _ExpandBubbleHint(self, bubble, expand=1):
         bracket = bubble.parent
         if not bracket:
             return
-        if not expand and util.GetAttrs(bubble, 'sr', 'CollapseCleanup'):
-            force = bubble.sr.CollapseCleanup(bracket)
         else:
-            force = False
-        if bubble.destroyed:
+            if not expand and util.GetAttrs(bubble, 'sr', 'CollapseCleanup'):
+                force = bubble.sr.CollapseCleanup(bracket)
+            else:
+                force = False
+            if bubble.destroyed:
+                return
+            if not force and expand == bubble.expanded:
+                return
+            if expand:
+                uiutil.SetOrder(bracket, 0)
+                blue.pyos.synchro.Yield()
+                self.CollapseBubbles([bracket])
+            self.expandingHint = id(bracket)
+            hint = self.GetBubbleHint(bracket.itemID, getattr(bracket, 'slimItem', None), bracket=bracket, extended=expand)
+            if bubble.destroyed:
+                return
+            currentHint, pointer = bubble.data
+            if hint != currentHint:
+                bubble.ShowHint(hint, pointer)
+            bubble.expanded = expand
+            self.expandingHint = 0
             return
-        if not force and expand == bubble.expanded:
-            return
-        if expand:
-            uiutil.SetOrder(bracket, 0)
-            blue.pyos.synchro.Yield()
-            self.CollapseBubbles([bracket])
-        self.expandingHint = id(bracket)
-        hint = self.GetBubbleHint(bracket.itemID, getattr(bracket, 'slimItem', None), bracket=bracket, extended=expand)
-        if bubble.destroyed:
-            return
-        currentHint, pointer = bubble.data
-        if hint != currentHint:
-            bubble.ShowHint(hint, pointer)
-        bubble.expanded = expand
-        self.expandingHint = 0
 
-    def SortBubbles(self, ignore = []):
+    def SortBubbles(self, ignore=[]):
         last = getattr(self, 'lastBubbleSort', None)
         if last and blue.os.TimeDiffInMs(last, blue.os.GetWallclockTime()) < 500:
             return
-        bracketWnd = uicore.layer.systemMapBrackets
-        order = []
-        cameraParent = sm.GetService('sceneManager').GetRegisteredCamera(evecamera.CAM_SYSTEMMAP).GetCameraParent()
-        if cameraParent is None:
+        else:
+            bracketWnd = uicore.layer.systemMapBrackets
+            order = []
+            cameraParent = sm.GetService('sceneManager').GetRegisteredCamera(evecamera.CAM_SYSTEMMAP).GetCameraParent()
+            if cameraParent is None:
+                return
+            camPos = cameraParent.translation
+            for bracket in bracketWnd.children:
+                if getattr(bracket, 'IsBracket', 0) and getattr(bracket, 'trackTransform', None) is not None and getattr(bracket.sr, 'bubble', None) is not None:
+                    bracketPos = geo2.Vector(*bracket.trackTransform.translation)
+                    order.append((geo2.Vec3LengthSq(camPos - bracketPos), bracket))
+
+            order = uiutil.SortListOfTuples(order)
+            order.reverse()
+            for bracket in order:
+                uiutil.SetOrder(bracket, 0)
+
+            self.lastBubbleSort = blue.os.GetWallclockTime()
             return
-        camPos = cameraParent.translation
-        for bracket in bracketWnd.children:
-            if getattr(bracket, 'IsBracket', 0) and getattr(bracket, 'trackTransform', None) is not None and getattr(bracket.sr, 'bubble', None) is not None:
-                bracketPos = geo2.Vector(*bracket.trackTransform.translation)
-                order.append((geo2.Vec3LengthSq(camPos - bracketPos), bracket))
-
-        order = uiutil.SortListOfTuples(order)
-        order.reverse()
-        for bracket in order:
-            uiutil.SetOrder(bracket, 0)
-
-        self.lastBubbleSort = blue.os.GetWallclockTime()
 
     def GetCurrentSolarSystem(self):
         return self.currentSolarsystem
@@ -1293,7 +1334,7 @@ class SystemMapSvc(service.Service):
         planets.sort()
         return planets[0][1].itemID
 
-    def Add3DCircle(self, orbitem, parent, points = 256):
+    def Add3DCircle(self, orbitem, parent, points=256):
         orbitPos = geo2.Vector(*orbitem.translation)
         parentPos = geo2.Vector(*parent.translation)
         dirVec = orbitPos - parentPos
@@ -1324,6 +1365,7 @@ class SystemMapSvc(service.Service):
     def OnBracketDoubleClick(self, _bracket, *args):
         if _bracket.itemID is not None:
             sm.GetService('viewState').GetView('systemmap').layer.SetInterest(_bracket.itemID)
+        return
 
 
 class BookmarkBracket(SimpleBracket):
@@ -1343,6 +1385,7 @@ class BookmarkBracket(SimpleBracket):
             distance = (trinity.TriVector(*self.trackTransform.translation) - myPos).Length()
             self.ShowBubble([localization.GetByLabel('UI/Map/StarMap/lblBoldName', name=caption), localization.GetByLabel('UI/Map/StarMap/lblDistance', distance=util.FmtDist(distance))])
         xtriui.SimpleBracket.Startup(self, itemID, None, None, iconNo)
+        return
 
     def GetMenu(self, *args):
         bmData = getattr(self, 'bmData', None)
@@ -1350,22 +1393,27 @@ class BookmarkBracket(SimpleBracket):
             m = sm.GetService('menu').CelestialMenu(bmData.itemID, bookmark=bmData)
             m.append((uiutil.MenuLabel('UI/Map/StarMap/EditViewLocation'), sm.GetService('addressbook').EditBookmark, (bmData,)))
             return m
+        else:
+            return
 
     def OnMouseDown(self, *args):
         bookMarkInfo = getattr(self, 'bmData', None)
         if bookMarkInfo is None:
             return
-        sm.GetService('menu').TryExpandActionMenu(itemID=bookMarkInfo.itemID, clickedObject=self, bookmarkInfo=bookMarkInfo)
+        else:
+            sm.GetService('menu').TryExpandActionMenu(itemID=bookMarkInfo.itemID, clickedObject=self, bookmarkInfo=bookMarkInfo)
+            return
 
-    def GetRadialMenuIndicator(self, create = True, *args):
+    def GetRadialMenuIndicator(self, create=True, *args):
         radialMenuSprite = getattr(self, 'radialMenuSprite', None)
         if radialMenuSprite and not radialMenuSprite.destroyed:
             return radialMenuSprite
-        if not create:
+        elif not create:
             return
-        radialMenuSprite = uiprimitives.Sprite(name='radialMenuSprite', parent=self, texturePath='res:/UI/Texture/classes/RadialMenu/bracketHilite.png', pos=(0, 0, 20, 20), color=(0.5, 0.5, 0.5, 0.5), idx=-1, align=uiconst.CENTER)
-        self.radialMenuSprite = radialMenuSprite
-        return radialMenuSprite
+        else:
+            radialMenuSprite = uiprimitives.Sprite(name='radialMenuSprite', parent=self, texturePath='res:/UI/Texture/classes/RadialMenu/bracketHilite.png', pos=(0, 0, 20, 20), color=(0.5, 0.5, 0.5, 0.5), idx=-1, align=uiconst.CENTER)
+            self.radialMenuSprite = radialMenuSprite
+            return radialMenuSprite
 
     def ShowRadialMenuIndicator(self, slimItem, *args):
         mySprite = self.GetRadialMenuIndicator(create=True)

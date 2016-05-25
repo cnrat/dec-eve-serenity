@@ -1,4 +1,6 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\client\script\ui\services\skillQueueSvc.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\client\script\ui\services\skillQueueSvc.py
+from contextlib import contextmanager
 from carbonui.util.various_unsorted import GetAttrs
 import service
 import blue
@@ -11,10 +13,8 @@ import carbonui.const as uiconst
 import uiutil
 import localization
 import evetypes
-from collections import defaultdict
 from util import KeyVal
-from eve.client.script.ui.shared.neocom.skillqueueUI import ShowMultiTrainingMessage
-from uthread import Lock, UnLock
+from uthread import UnLock, ReentrantLock
 
 class SkillQueueService(service.Service):
     __exportedcalls__ = {'SkillInTraining': []}
@@ -31,15 +31,16 @@ class SkillQueueService(service.Service):
         self.skillQueueCache = None
         self.skillplanImporter = None
         self.maxSkillqueueTimeLength = charskills.GetSkillQueueTimeLength(session.userType)
+        return
 
-    def Run(self, memStream = None):
+    def Run(self, memStream=None):
         self.skillQueue, freeSkillPoints = self.skills.GetSkillHandler().GetSkillQueueAndFreePoints()
         if freeSkillPoints is not None and freeSkillPoints > 0:
             self.skills.SetFreeSkillPoints(freeSkillPoints)
+        return
 
     def BeginTransaction(self):
-        Lock('SkillQueueSvc:xActLock')
-        try:
+        with self.ChangeQueueLock():
             sendEvent = False
             skillInTraining = self.SkillInTraining()
             if self.cachedSkillQueue is not None:
@@ -63,61 +64,53 @@ class SkillQueueService(service.Service):
                 self.skillQueue = queueWithTimestamps
             if sendEvent:
                 sm.ScatterEvent('OnSkillQueueRefreshed')
-        finally:
-            UnLock('SkillQueueSvc:xActLock')
+        return
 
     def RollbackTransaction(self):
-        Lock('SkillQueueSvc:xActLock')
-        try:
+        with self.ChangeQueueLock():
             if self.cachedSkillQueue is None:
                 self.LogError('%s: Cannot rollback a skill queue transaction - no transaction was opened!' % session.charid)
                 return
             self.skillQueue = self.cachedSkillQueue
             self.skillQueueCache = None
             self.cachedSkillQueue = None
-        finally:
-            UnLock('SkillQueueSvc:xActLock')
+        return
 
-    def CommitTransaction(self, activate = True):
-        Lock('SkillQueueSvc:xActLock')
-        try:
+    def CommitTransaction(self, activate=True):
+        with self.ChangeQueueLock():
             if self.cachedSkillQueue is None:
                 self.LogError('%s: Cannot commit a skill queue transaction - no transaction was opened!' % session.charid)
                 return
-            self.PrimeCache(True)
-            cachedQueueCache = defaultdict(dict)
+            self.PrimeCache(force=True)
             hasChanges = False
             if len(self.skillQueue) != len(self.cachedSkillQueue):
                 hasChanges = True
             else:
-                for i, skill in enumerate(self.cachedSkillQueue):
-                    cachedQueueCache[skill.trainingTypeID][skill.trainingToLevel] = i
-                    if self.skillQueue[i].trainingTypeID != skill.trainingTypeID or self.skillQueue[i].trainingToLevel != skill.trainingToLevel:
+                for s1, s2 in zip(self.skillQueue, self.cachedSkillQueue):
+                    isSameType = s1.trainingTypeID == s2.trainingTypeID
+                    isSameLevel = s1.trainingToLevel == s2.trainingToLevel
+                    if not isSameType or not isSameLevel:
                         hasChanges = True
+                        break
 
-            scatterEvent = False
-            try:
-                skillHandler = self.skills.GetSkillHandler()
-                self.TrimQueue(hasChanges)
-                queueInfo = {idx:(x.trainingTypeID, x.trainingToLevel) for idx, x in enumerate(self.skillQueue)}
-                if hasChanges or len(self.skillQueue) and self.SkillInTraining() is None:
-                    scatterEvent = True
+            if hasChanges or activate:
+                try:
+                    self.TrimQueue()
+                    queueInfo = {idx:(x.trainingTypeID, x.trainingToLevel) for idx, x in enumerate(self.skillQueue)}
+                    skillHandler = self.skills.GetSkillHandler()
                     skillHandler.SaveNewQueue(queueInfo, activate)
-            except UserError as e:
-                if e.msg == 'UserAlreadyHasSkillInTraining':
-                    scatterEvent = True
-                    ShowMultiTrainingMessage()
-                else:
-                    raise
-            finally:
-                self.cachedSkillQueue = None
-                if scatterEvent:
+                    self.cachedSkillQueue = None
                     sm.ScatterEvent('OnSkillQueueRefreshed')
+                except Exception as e:
+                    msg = getattr(e, 'msg', None)
+                    if msg != 'UserAlreadyHasSkillInTraining':
+                        self.RollbackTransaction()
+                        sm.ScatterEvent('OnSkillQueueRefreshed')
+                    raise
 
-        finally:
-            UnLock('SkillQueueSvc:xActLock')
+        return
 
-    def CheckCanInsertSkillAtPosition(self, skillTypeID, skillLevel, position, check = 0, performLengthTest = True):
+    def CheckCanInsertSkillAtPosition(self, skillTypeID, skillLevel, position, check=0, performLengthTest=True):
         if position is None or position < 0 or position > len(self.skillQueue):
             raise UserError('QueueInvalidPosition')
         self.PrimeCache()
@@ -176,7 +169,7 @@ class SkillQueueService(service.Service):
 
         return ret
 
-    def AddSkillToQueue(self, skillTypeID, skillLevel, position = None):
+    def AddSkillToQueue(self, skillTypeID, skillLevel, position=None):
         if self.FindInQueue(skillTypeID, skillLevel) is not None:
             raise UserError('QueueSkillAlreadyPresent')
         skillQueueLength = len(self.skillQueue)
@@ -200,7 +193,7 @@ class SkillQueueService(service.Service):
 
             self.skillQueueCache = None
         self.AddToCache(skillTypeID, skillLevel, newPos)
-        self.TrimQueue(True)
+        self.TrimQueue()
         return newPos
 
     def RemoveSkillFromQueue(self, skillTypeID, skillLevel):
@@ -224,9 +217,10 @@ class SkillQueueService(service.Service):
         self.PrimeCache()
         if skillTypeID not in self.skillQueueCache:
             return None
-        if skillLevel not in self.skillQueueCache[skillTypeID]:
+        elif skillLevel not in self.skillQueueCache[skillTypeID]:
             return None
-        return self.skillQueueCache[skillTypeID][skillLevel]
+        else:
+            return self.skillQueueCache[skillTypeID][skillLevel]
 
     def MoveSkillToPosition(self, skillTypeID, skillLevel, position):
         self.CheckCanInsertSkillAtPosition(skillTypeID, skillLevel, position)
@@ -245,11 +239,12 @@ class SkillQueueService(service.Service):
             return self.cachedSkillQueue[:]
         else:
             return self.GetQueue()
+            return
 
     def GetNumberOfSkillsInQueue(self):
         return len(self.skillQueue)
 
-    def GetTrainingLengthOfQueue(self, position = None):
+    def GetTrainingLengthOfQueue(self, position=None):
         if position is not None and position < 0:
             raise RuntimeError('Invalid queue position: ', position)
         trainingTime = 0
@@ -279,7 +274,7 @@ class SkillQueueService(service.Service):
     def GetTrainingEndTimeOfQueue(self):
         return blue.os.GetWallclockTime() + self.GetTrainingLengthOfQueue()
 
-    def GetTrainingLengthOfSkill(self, skillTypeID, skillLevel, position = None):
+    def GetTrainingLengthOfSkill(self, skillTypeID, skillLevel, position=None):
         if position is not None and (position < 0 or position > len(self.skillQueue)):
             raise RuntimeError('GetTrainingLengthOfSkill received an invalid position.')
         trainingTime = 0
@@ -310,7 +305,7 @@ class SkillQueueService(service.Service):
         trainingTime += addedTime
         return (long(trainingTime), long(addedTime), isAccelerated)
 
-    def GetTrainingParametersOfSkillInEnvironment(self, skillTypeID, skillLevel, existingSkillPoints = 0, playerAttributeDict = None):
+    def GetTrainingParametersOfSkillInEnvironment(self, skillTypeID, skillLevel, existingSkillPoints=0, playerAttributeDict=None):
         playerCurrentSP = existingSkillPoints
         skillTimeConstant = self.godma.GetTypeAttribute(skillTypeID, const.attributeSkillTimeConstant)
         primaryAttributeID = self.godma.GetTypeAttribute(skillTypeID, const.attributePrimaryAttribute)
@@ -324,23 +319,22 @@ class SkillQueueService(service.Service):
         if skillTimeConstant is None:
             self.LogWarn('GetTrainingLengthOfSkillInEnvironment could not find skill type ID:', skillTypeID, 'via Godma')
             return 0
-        skillPointsToTrain = charskills.GetSPForLevelRaw(skillTimeConstant, skillLevel) - playerCurrentSP
-        if skillPointsToTrain <= 0:
-            return (0, 0)
-        attrDict = playerAttributeDict
-        if attrDict is None:
-            attrDict = self.GetPlayerAttributeDict()
-        playerPrimaryAttribute = attrDict[primaryAttributeID]
-        playerSecondaryAttribute = attrDict[secondaryAttributeID]
-        if playerPrimaryAttribute <= 0 or playerSecondaryAttribute <= 0:
-            raise RuntimeError('GetTrainingLengthOfSkillInEnvironment found a zero attribute value on character', session.charid, 'for attributes [', primaryAttributeID, secondaryAttributeID, ']')
-        trainingRate = charskills.GetSkillPointsPerMinute(playerPrimaryAttribute, playerSecondaryAttribute)
-        trainingTimeInMinutes = float(skillPointsToTrain) / float(trainingRate)
-        return (skillPointsToTrain, trainingTimeInMinutes * const.MIN)
+        else:
+            skillPointsToTrain = charskills.GetSPForLevelRaw(skillTimeConstant, skillLevel) - playerCurrentSP
+            if skillPointsToTrain <= 0:
+                return (0, 0)
+            attrDict = playerAttributeDict
+            if attrDict is None:
+                attrDict = self.GetPlayerAttributeDict()
+            playerPrimaryAttribute = attrDict[primaryAttributeID]
+            playerSecondaryAttribute = attrDict[secondaryAttributeID]
+            if playerPrimaryAttribute <= 0 or playerSecondaryAttribute <= 0:
+                raise RuntimeError('GetTrainingLengthOfSkillInEnvironment found a zero attribute value on character', session.charid, 'for attributes [', primaryAttributeID, secondaryAttributeID, ']')
+            trainingRate = charskills.GetSkillPointsPerMinute(playerPrimaryAttribute, playerSecondaryAttribute)
+            trainingTimeInMinutes = float(skillPointsToTrain) / float(trainingRate)
+            return (skillPointsToTrain, trainingTimeInMinutes * const.MIN)
 
-    def TrimQueue(self, hasChanges):
-        if not hasChanges:
-            return
+    def TrimQueue(self):
         trainingTime = 0
         currentAttributes = self.GetPlayerAttributeDict()
         booster = self.GetAttributeBooster()
@@ -362,6 +356,7 @@ class SkillQueueService(service.Service):
             self.skillQueue = self.skillQueue[:cutoffIndex]
             self.skillQueueCache = None
             eve.Message('skillQueueTrimmed', {'num': len(removedSkills)})
+        return
 
     def GetAttributeBooster(self):
         myGodmaItem = sm.GetService('godma').GetItem(session.charid)
@@ -376,7 +371,7 @@ class SkillQueueService(service.Service):
 
         return currentAttributes
 
-    def GetAddedSpAndAddedTimeForSkill(self, skillTypeID, skillLevel, skillSet, theoreticalSkillPointsDict, trainingTimeOffset, attributeBooster, currentAttributes = None):
+    def GetAddedSpAndAddedTimeForSkill(self, skillTypeID, skillLevel, skillSet, theoreticalSkillPointsDict, trainingTimeOffset, attributeBooster, currentAttributes=None):
         if currentAttributes is None:
             currentAttributes = self.GetPlayerAttributeDict()
         isAccelerated = False
@@ -447,18 +442,21 @@ class SkillQueueService(service.Service):
     def InternalRemoveFromQueue(self, skillTypeID, skillLevel):
         if not len(self.skillQueue):
             return
-        skillPosition = self.FindInQueue(skillTypeID, skillLevel)
-        if skillPosition is None:
-            raise UserError('QueueSkillNotPresent')
-        if skillPosition == len(self.skillQueue):
-            del self.skillQueueCache[skillTypeID][skillLevel]
-            self.skillQueue.pop()
         else:
-            self.skillQueueCache = None
-            self.skillQueue.pop(skillPosition)
+            skillPosition = self.FindInQueue(skillTypeID, skillLevel)
+            if skillPosition is None:
+                raise UserError('QueueSkillNotPresent')
+            if skillPosition == len(self.skillQueue):
+                del self.skillQueueCache[skillTypeID][skillLevel]
+                self.skillQueue.pop()
+            else:
+                self.skillQueueCache = None
+                self.skillQueue.pop(skillPosition)
+            return
 
     def ClearCache(self):
         self.skillQueueCache = None
+        return
 
     def AddToCache(self, skillTypeID, skillLevel, position):
         self.PrimeCache()
@@ -469,7 +467,7 @@ class SkillQueueService(service.Service):
     def GetPlayerAttributeDict(self):
         return self.skills.GetCharacterAttributes()
 
-    def PrimeCache(self, force = False):
+    def PrimeCache(self, force=False):
         if force:
             self.skillQueueCache = None
         if self.skillQueueCache is None:
@@ -479,21 +477,24 @@ class SkillQueueService(service.Service):
                 self.AddToCache(trainingSkill.trainingTypeID, trainingSkill.trainingToLevel, i)
                 i += 1
 
+        return
+
     def GetSkillPointsFromSkillObject(self, skillTypeID, skillInfo):
         if skillInfo is None:
             return 0
-        totalSkillPoints = skillInfo.skillPoints
-        trainingSkill = self.SkillInTraining(skillTypeID)
-        serverQueue = self.GetServerQueue()
-        if trainingSkill and len(serverQueue):
-            trainingRecord = serverQueue[0]
-            spHi = trainingRecord.trainingDestinationSP
-            spm = self.skills.GetSkillpointsPerMinute(skillInfo.typeID)
-            ETA = trainingRecord.trainingEndTime
-            time = ETA - blue.os.GetWallclockTime()
-            secs = time / 10000000L
-            totalSkillPoints = spHi - secs / 60.0 * spm
-        return totalSkillPoints
+        else:
+            totalSkillPoints = skillInfo.skillPoints
+            trainingSkill = self.SkillInTraining(skillTypeID)
+            serverQueue = self.GetServerQueue()
+            if trainingSkill and len(serverQueue):
+                trainingRecord = serverQueue[0]
+                spHi = trainingRecord.trainingDestinationSP
+                spm = self.skills.GetSkillpointsPerMinute(skillInfo.typeID)
+                ETA = trainingRecord.trainingEndTime
+                time = ETA - blue.os.GetWallclockTime()
+                secs = time / 10000000L
+                totalSkillPoints = spHi - secs / 60.0 * spm
+            return totalSkillPoints
 
     def OnServerSkillsChanged(self, skillInfos):
         self.PrimeCache()
@@ -526,69 +527,70 @@ class SkillQueueService(service.Service):
                 skillEntry.trainingStartTime = skillEntry.trainingEndTime = None
 
         sm.ScatterEvent('OnSkillQueueChanged')
+        return
 
     def OnNewSkillQueueSaved(self, newQueue):
         if self.cachedSkillQueue is not None:
             self.cachedSkillQueue = newQueue
         self.skillQueue = newQueue
         sm.ScatterEvent('OnSkillQueueChanged')
+        return
 
     def TrainSkillNow(self, skillTypeID, toSkillLevel, *args):
         inTraining = self.SkillInTraining()
         if inTraining and eve.Message('ConfirmSkillTrainingNow', {'name': evetypes.GetName(inTraining.typeID),
          'lvl': inTraining.skillLevel + 1}, uiconst.OKCANCEL) != uiconst.ID_OK:
             return
-        self.BeginTransaction()
-        commit = True
-        try:
-            if self.FindInQueue(skillTypeID, toSkillLevel) is not None:
-                self.MoveSkillToPosition(skillTypeID, toSkillLevel, 0)
-                eve.Message('SkillQueueStarted')
-            else:
-                self.AddSkillToQueue(skillTypeID, toSkillLevel, 0)
-                text = localization.GetByLabel('UI/SkillQueue/Skills/SkillNameAndLevel', skill=skillTypeID, amount=toSkillLevel)
-                if inTraining:
-                    eve.Message('AddedToQueue', {'skillname': text})
+        else:
+            self.BeginTransaction()
+            try:
+                if self.FindInQueue(skillTypeID, toSkillLevel) is not None:
+                    self.MoveSkillToPosition(skillTypeID, toSkillLevel, 0)
+                    message = ('SkillQueueStarted',)
                 else:
-                    eve.Message('AddedToQueueAndStarted', {'skillname': text})
-        except (UserError, RuntimeError):
-            commit = False
-            raise
-        finally:
-            if commit:
+                    self.AddSkillToQueue(skillTypeID, toSkillLevel, 0)
+                    skillName = localization.GetByLabel('UI/SkillQueue/Skills/SkillNameAndLevel', skill=skillTypeID, amount=toSkillLevel)
+                    if inTraining:
+                        message = ('AddedToQueue', {'skillname': skillName})
+                    else:
+                        message = ('AddedToQueueAndStarted', {'skillname': skillName})
                 self.CommitTransaction()
-            else:
+                eve.Message(*message)
+            except Exception:
                 self.RollbackTransaction()
+                raise
 
-    def AddSkillToEnd(self, skillTypeID, current, nextLevel = None):
+            return
+
+    def AddSkillToEnd(self, skillTypeID, current, nextLevel=None):
         queueLength = self.GetNumberOfSkillsInQueue()
         if queueLength >= charskills.SKILLQUEUE_MAX_NUM_SKILLS:
-            raise UserError('CustomNotify', {'notify': localization.GetByLabel('UI/SkillQueue/QueueIsFull')})
+            raise UserError('QueueTooManySkills', {'num': charskills.SKILLQUEUE_MAX_NUM_SKILLS})
         totalTime = self.GetTrainingLengthOfQueue()
         if totalTime > self.maxSkillqueueTimeLength:
-            raise UserError('CustomNotify', {'notify': localization.GetByLabel('UI/SkillQueue/QueueIsFull')})
-        else:
-            if nextLevel is None:
-                queue = self.GetServerQueue()
-                nextLevel = self.FindNextLevel(skillTypeID, current, queue)
+            raise UserError('QueueTooLong')
+        if nextLevel is None:
+            queue = self.GetServerQueue()
+            nextLevel = self.FindNextLevel(skillTypeID, current, queue)
+        if self.FindInQueue(skillTypeID, nextLevel) is not None:
+            raise UserError('QueueSkillAlreadyPresent')
+        self.BeginTransaction()
+        try:
             self.AddSkillToQueue(skillTypeID, nextLevel)
-            try:
-                self.skills.GetSkillHandler().AddToEndOfSkillQueue(skillTypeID, nextLevel)
-                text = localization.GetByLabel('UI/SkillQueue/Skills/SkillNameAndLevel', skill=skillTypeID, amount=nextLevel)
-                if self.SkillInTraining():
-                    eve.Message('AddedToQueue', {'skillname': text})
-                else:
-                    eve.Message('AddedToQueueAndStarted', {'skillname': text})
-            except UserError as e:
-                self.RemoveSkillFromQueue(skillTypeID, nextLevel)
-                if e.msg == 'UserAlreadyHasSkillInTraining':
-                    ShowMultiTrainingMessage()
-                else:
-                    raise
+            self.CommitTransaction()
+        except Exception:
+            self.RollbackTransaction()
+            raise
 
+        text = localization.GetByLabel('UI/SkillQueue/Skills/SkillNameAndLevel', skill=skillTypeID, amount=nextLevel)
+        if self.SkillInTraining():
+            eve.Message('AddedToQueue', {'skillname': text})
+        else:
+            eve.Message('AddedToQueueAndStarted', {'skillname': text})
         sm.ScatterEvent('OnSkillQueueRefreshed')
+        return
 
-    def FindNextLevel(self, skillTypeID, current, skillQueue = None):
+    def FindNextLevel(self, skillTypeID, current, skillQueue=None):
         if skillQueue is None:
             skillQueue = self.GetServerQueue()
         skillQueue = [ (skill.trainingTypeID, skill.trainingToLevel) for skill in skillQueue ]
@@ -608,7 +610,7 @@ class SkillQueueService(service.Service):
         self.PrimeCache(True)
         sm.ScatterEvent('OnMultipleCharactersTrainingRefreshed')
 
-    def GetMultipleCharacterTraining(self, force = False):
+    def GetMultipleCharacterTraining(self, force=False):
         if force:
             sm.GetService('objectCaching').InvalidateCachedMethodCall('userSvc', 'GetMultiCharactersTrainingSlots')
         return sm.RemoteSvc('userSvc').GetMultiCharactersTrainingSlots()
@@ -620,72 +622,76 @@ class SkillQueueService(service.Service):
         m = []
         if skillInfo is None:
             return m
-        skillLevel = skillInfo.skillLevel
-        if skillLevel is not None:
-            sqWnd = form.SkillQueue.GetIfOpen()
-            if skillLevel < 5:
-                queue = self.GetQueue()
-                nextLevel = self.FindNextLevel(skillTypeID, skillInfo.skillLevel, queue)
-                if not self.SkillInTraining(skillTypeID):
-                    trainingTime, totalTime, _ = self.GetTrainingLengthOfSkill(skillTypeID, skillInfo.skillLevel + 1, 0)
-                    if trainingTime <= 0:
-                        takesText = localization.GetByLabel('UI/SkillQueue/Skills/CompletionImminent')
-                    else:
-                        takesText = localization.GetByLabel('UI/SkillQueue/Skills/SkillTimeLeft', timeLeft=long(trainingTime))
-                    if sqWnd:
-                        if nextLevel < 6 and self.FindInQueue(skillTypeID, skillInfo.skillLevel + 1) is None:
-                            trainText = uiutil.MenuLabel('UI/SkillQueue/AddSkillMenu/AddToFrontOfQueueTime', {'takes': takesText})
-                            m.append((trainText, sqWnd.AddSkillsThroughOtherEntry, (skillTypeID,
-                              0,
+        else:
+            skillLevel = skillInfo.skillLevel
+            if skillLevel is not None:
+                sqWnd = form.SkillQueue.GetIfOpen()
+                if skillLevel < 5:
+                    queue = self.GetQueue()
+                    nextLevel = self.FindNextLevel(skillTypeID, skillInfo.skillLevel, queue)
+                    if not self.SkillInTraining(skillTypeID):
+                        trainingTime, totalTime, _ = self.GetTrainingLengthOfSkill(skillTypeID, skillInfo.skillLevel + 1, 0)
+                        if trainingTime <= 0:
+                            takesText = localization.GetByLabel('UI/SkillQueue/Skills/CompletionImminent')
+                        else:
+                            takesText = localization.GetByLabel('UI/SkillQueue/Skills/SkillTimeLeft', timeLeft=long(trainingTime))
+                        if sqWnd:
+                            if nextLevel < 6 and self.FindInQueue(skillTypeID, skillInfo.skillLevel + 1) is None:
+                                trainText = uiutil.MenuLabel('UI/SkillQueue/AddSkillMenu/AddToFrontOfQueueTime', {'takes': takesText})
+                                m.append((trainText, sqWnd.AddSkillsThroughOtherEntry, (skillTypeID,
+                                  0,
+                                  queue,
+                                  nextLevel,
+                                  1)))
+                        else:
+                            trainText = uiutil.MenuLabel('UI/SkillQueue/AddSkillMenu/TrainNowWithTime', {'skillLevel': skillInfo.skillLevel + 1,
+                             'takes': takesText})
+                            m.append((trainText, self.TrainSkillNow, (skillTypeID, skillInfo.skillLevel + 1)))
+                    if nextLevel < 6:
+                        if sqWnd:
+                            label = uiutil.MenuLabel('UI/SkillQueue/AddSkillMenu/AddToEndOfQueue', {'nextLevel': nextLevel})
+                            m.append((label, sqWnd.AddSkillsThroughOtherEntry, (skillInfo.typeID,
+                              -1,
                               queue,
                               nextLevel,
                               1)))
-                    else:
-                        trainText = uiutil.MenuLabel('UI/SkillQueue/AddSkillMenu/TrainNowWithTime', {'skillLevel': skillInfo.skillLevel + 1,
-                         'takes': takesText})
-                        m.append((trainText, self.TrainSkillNow, (skillTypeID, skillInfo.skillLevel + 1)))
-                if nextLevel < 6:
-                    if sqWnd:
-                        label = uiutil.MenuLabel('UI/SkillQueue/AddSkillMenu/AddToEndOfQueue', {'nextLevel': nextLevel})
-                        m.append((label, sqWnd.AddSkillsThroughOtherEntry, (skillInfo.typeID,
-                          -1,
-                          queue,
-                          nextLevel,
-                          1)))
-                    else:
-                        label = uiutil.MenuLabel('UI/SkillQueue/AddSkillMenu/TrainAfterQueue', {'nextLevel': nextLevel})
-                        m.append((label, self.AddSkillToEnd, (skillInfo.typeID, skillInfo.skillLevel, nextLevel)))
-                if sm.GetService('skills').GetFreeSkillPoints() > 0:
-                    diff = sm.GetService('skills').SkillpointsNextLevel(skillTypeID) + 0.5 - skillInfo.skillPoints
-                    m.append((uiutil.MenuLabel('UI/SkillQueue/AddSkillMenu/ApplySkillPoints'), self.UseFreeSkillPoints, (skillInfo.typeID, diff)))
-            if self.SkillInTraining(skillTypeID):
-                m.append((uiutil.MenuLabel('UI/SkillQueue/AddSkillMenu/AbortTraining'), sm.StartService('skills').AbortTrain))
-        if m:
-            m.append(None)
-        return m
+                        else:
+                            label = uiutil.MenuLabel('UI/SkillQueue/AddSkillMenu/TrainAfterQueue', {'nextLevel': nextLevel})
+                            m.append((label, self.AddSkillToEnd, (skillInfo.typeID, skillInfo.skillLevel, nextLevel)))
+                    if sm.GetService('skills').GetFreeSkillPoints() > 0:
+                        diff = sm.GetService('skills').SkillpointsNextLevel(skillTypeID) + 0.5 - skillInfo.skillPoints
+                        m.append((uiutil.MenuLabel('UI/SkillQueue/AddSkillMenu/ApplySkillPoints'), self.UseFreeSkillPoints, (skillInfo.typeID, diff)))
+                if self.SkillInTraining(skillTypeID):
+                    m.append((uiutil.MenuLabel('UI/SkillQueue/AddSkillMenu/AbortTraining'), sm.StartService('skills').AbortTrain))
+            if m:
+                m.append(None)
+            return m
 
     def UseFreeSkillPoints(self, skillTypeID, diff):
         inTraining = self.SkillInTraining()
         if inTraining is not None and inTraining.typeID == skillTypeID:
             eve.Message('CannotApplyFreePointsWhileTrainingSkill')
             return
-        freeSkillPoints = sm.StartService('skills').GetFreeSkillPoints()
-        text = localization.GetByLabel('UI/SkillQueue/AddSkillMenu/UseSkillPointsWindow', skill=skillTypeID, skillPoints=int(diff))
-        caption = localization.GetByLabel('UI/SkillQueue/AddSkillMenu/ApplySkillPoints')
-        ret = uix.QtyPopup(maxvalue=freeSkillPoints, caption=caption, label=text)
-        if ret is None:
+        else:
+            freeSkillPoints = sm.StartService('skills').GetFreeSkillPoints()
+            text = localization.GetByLabel('UI/SkillQueue/AddSkillMenu/UseSkillPointsWindow', skill=skillTypeID, skillPoints=int(diff))
+            caption = localization.GetByLabel('UI/SkillQueue/AddSkillMenu/ApplySkillPoints')
+            ret = uix.QtyPopup(maxvalue=freeSkillPoints, caption=caption, label=text)
+            if ret is None:
+                return
+            sp = int(ret.get('qty', ''))
+            sm.StartService('skills').ApplyFreeSkillPoints(skillTypeID, sp)
+            sm.GetService('audio').SendUIEvent('st_allocate_skillpoints_play')
             return
-        sp = int(ret.get('qty', ''))
-        sm.StartService('skills').ApplyFreeSkillPoints(skillTypeID, sp)
-        sm.GetService('audio').SendUIEvent('st_allocate_skillpoints_play')
 
-    def SkillInTraining(self, skillTypeID = None):
+    def SkillInTraining(self, skillTypeID=None):
         activeQueue = self.GetServerQueue()
         if len(activeQueue) and activeQueue[0].trainingEndTime:
             if skillTypeID is None or activeQueue[0].trainingTypeID == skillTypeID:
                 return self.skills.GetSkill(activeQueue[0].trainingTypeID)
+        return
 
-    def GetTimeForTraining(self, skillTypeID, toLevel, trainingStartTime = 0):
+    def GetTimeForTraining(self, skillTypeID, toLevel, trainingStartTime=0):
         currentTraining = self.SkillInTraining(skillTypeID)
         skillDict = {}
         if currentTraining:
@@ -710,6 +716,7 @@ class SkillQueueService(service.Service):
             return None
         else:
             return skillQueue[0].trainingEndTime
+            return None
 
     def GetStartOfTraining(self, skillTypeID):
         pass
@@ -726,7 +733,7 @@ class SkillQueueService(service.Service):
                 if draggedNode.inQueue is None:
                     level += 1
             return self.CheckCanInsertSkillAtPosition(draggedNode.skillID, level, checkedIdx, check=1, performLengthTest=False)
-        if draggedNode.__guid__ in ('xtriui.InvItem', 'listentry.InvItem'):
+        elif draggedNode.__guid__ in ('xtriui.InvItem', 'listentry.InvItem'):
             category = GetAttrs(draggedNode, 'rec', 'categoryID')
             if category != const.categorySkill:
                 return
@@ -740,7 +747,7 @@ class SkillQueueService(service.Service):
             if not meetsReq:
                 return False
             return True
-        if draggedNode.__guid__ == 'listentry.SkillTreeEntry':
+        elif draggedNode.__guid__ == 'listentry.SkillTreeEntry':
             typeID = draggedNode.typeID
             if typeID is None:
                 return
@@ -751,6 +758,8 @@ class SkillQueueService(service.Service):
             skill = sm.StartService('skills').GetSkill(typeID)
             level = self.FindNextLevel(typeID, skill.skillLevel, queue)
             return self.CheckCanInsertSkillAtPosition(typeID, level, checkedIdx, check=1, performLengthTest=False)
+        else:
+            return
 
     def IsRemoveAllowed(self, typeID, level):
         try:
@@ -763,3 +772,11 @@ class SkillQueueService(service.Service):
         if self.skillplanImporter is None:
             self.skillplanImporter = ImportSkillPlan()
         return self.skillplanImporter
+
+    @contextmanager
+    def ChangeQueueLock(self):
+        ReentrantLock(self, 'SkillQueueSvc:xActLock')
+        try:
+            yield
+        finally:
+            UnLock(self, 'SkillQueueSvc:xActLock')

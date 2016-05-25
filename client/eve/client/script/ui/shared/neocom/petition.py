@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\client\script\ui\shared\neocom\petition.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\client\script\ui\shared\neocom\petition.py
 import sys
 import blue
 import uiprimitives
@@ -32,15 +33,16 @@ class PetitionSvc(service.Service):
     __dependencies__ = []
     __update_on_reload__ = 0
 
-    def Run(self, memStream = None):
+    def Run(self, memStream=None):
         self.LogInfo('Starting Petitions')
         self.Reset()
 
-    def Stop(self, memStream = None):
+    def Stop(self, memStream=None):
         wnd = self.GetWnd()
         if wnd is not None and not wnd.destroyed:
             wnd.Close()
         self.Reset()
+        return
 
     def ProcessSessionChange(self, isremote, session, change):
         if eve.session.charid is None:
@@ -48,11 +50,14 @@ class PetitionSvc(service.Service):
             if wnd is not None and not wnd.destroyed:
                 wnd.Close()
                 self.mine = None
+        return
 
     def OnNewPetition(self, petitionid):
         if eve.session.charid is None:
             return
-        uthread.pool('PetitionSvc::OnNewPetition', self._OnNewPetition, petitionid)
+        else:
+            uthread.pool('PetitionSvc::OnNewPetition', self._OnNewPetition, petitionid)
+            return
 
     def _OnNewPetition(self, petitionid):
         self.LogInfo('OnNewPetition')
@@ -62,7 +67,9 @@ class PetitionSvc(service.Service):
     def OnClosePetition(self, *args):
         if eve.session.charid is None:
             return
-        uthread.pool('PetitionSvc::OnClosePetition', self._OnClosePetition, *args)
+        else:
+            uthread.pool('PetitionSvc::OnClosePetition', self._OnClosePetition, *args)
+            return
 
     def _OnClosePetition(self, *args):
         self.LogInfo('OnClosePetition')
@@ -72,7 +79,9 @@ class PetitionSvc(service.Service):
     def OnAssignPetition(self, petitionID, assigneeid):
         if eve.session.charid is None:
             return
-        uthread.pool('PetitionSvc::OnAssignPetition', self._OnAssignPetition, petitionID, assigneeid)
+        else:
+            uthread.pool('PetitionSvc::OnAssignPetition', self._OnAssignPetition, petitionID, assigneeid)
+            return
 
     def _OnAssignPetition(self, petitionID, assigneeid):
         self.LogInfo('OnAssignPetition')
@@ -81,7 +90,9 @@ class PetitionSvc(service.Service):
     def OnPetitionCreated(self, *args):
         if eve.session.charid is None:
             return
-        uthread.pool('PetitionSvc::OnPetitionCreated', self._OnPetitionCreated)
+        else:
+            uthread.pool('PetitionSvc::OnPetitionCreated', self._OnPetitionCreated)
+            return
 
     def _OnPetitionCreated(self):
         self.LogInfo('OnPetitionCreated')
@@ -116,34 +127,38 @@ class PetitionSvc(service.Service):
         self.loadingmessages = 0
         self.loadinglogs = 0
         self.read = []
+        return
 
     def Show(self):
         wnd = self.GetWnd(1)
         if wnd is not None and not wnd.destroyed:
             wnd.Maximize()
+        return
 
     def Load(self, args):
         if not session.charid:
             return
-        if args in ('generic', 'rating'):
-            viewwnd = self.GetViewWnd()
-            if viewwnd is not None and viewwnd.sr.viewmessageform:
-                viewwnd.sr.viewmessageform.state = uiconst.UI_HIDDEN
-                if args == 'rating':
-                    self.ShowRating()
-        elif args == 'messages':
-            self.LoadMessages()
-        elif args == 'logs':
-            self.LoadLogs()
-        elif args == 'mypetitions':
-            uthread.new(self.ShowMyPetitions)
-        elif args == 'claimedpetitions':
-            self.ShowClaimedPetitions()
-        elif args in range(6):
-            self.ShowPetitionQueue(args)
-        self.SelectionChange([])
+        else:
+            if args in ('generic', 'rating'):
+                viewwnd = self.GetViewWnd()
+                if viewwnd is not None and viewwnd.sr.viewmessageform:
+                    viewwnd.sr.viewmessageform.state = uiconst.UI_HIDDEN
+                    if args == 'rating':
+                        self.ShowRating()
+            elif args == 'messages':
+                self.LoadMessages()
+            elif args == 'logs':
+                self.LoadLogs()
+            elif args == 'mypetitions':
+                uthread.new(self.ShowMyPetitions)
+            elif args == 'claimedpetitions':
+                self.ShowClaimedPetitions()
+            elif args in range(6):
+                self.ShowPetitionQueue(args)
+            self.SelectionChange([])
+            return
 
-    def GetWnd(self, new = 0):
+    def GetWnd(self, new=0):
         wnd = uicontrols.Window.GetIfOpen(windowID='petitions')
         if not wnd and new:
             wnd = uicontrols.Window.Open(windowID='petitions')
@@ -209,10 +224,11 @@ class PetitionSvc(service.Service):
             wnd.sr.tabs = maintabs
         return wnd
 
-    def SetHint(self, hintstr = None):
+    def SetHint(self, hintstr=None):
         wnd = self.GetWnd()
         if wnd is not None:
             wnd.sr.scroll.ShowHint(hintstr)
+        return
 
     def OnWndMouseDown(self, *args):
         sm.GetService('neocom').BlinkOff('help')
@@ -259,6 +275,7 @@ class PetitionSvc(service.Service):
              localization.GetByLabel('UI/Neocom/Petition/LastUpdate')])
             if not len(scrolllist):
                 self.SetHint(localization.GetByLabel('UI/Neocom/Petition/YouHaveNoPetitions'))
+        return
 
     def ShowClaimedPetitions(self, *args):
         self.LogInfo('ShowClaimedPetitions')
@@ -296,105 +313,107 @@ class PetitionSvc(service.Service):
         wnd = self.GetViewWnd()
         if not wnd or wnd.destroyed:
             return
-        p = wnd.sr.p
-        main = wnd.sr.ratingparent
-        uix.Flush(main)
-        captionPar = uiprimitives.Container(name='captionPar', parent=main, align=uiconst.TOTOP, width=const.defaultPadding)
-        mainCaption = uicontrols.EveCaptionMedium(text=localization.GetByLabel('UI/Neocom/Petition/RateHeader'), parent=captionPar, align=uiconst.RELATIVE, left=const.defaultPadding, top=8)
-        captionPar.height = mainCaption.textheight + 16
-        uiprimitives.Container(name='push', parent=main, align=uiconst.TOLEFT, width=const.defaultPadding)
-        uiprimitives.Container(name='push', parent=main, align=uiconst.TORIGHT, width=const.defaultPadding)
-        t1 = uicontrols.EveLabelMedium(text=localization.GetByLabel('UI/Neocom/Petition/RateScale'), parent=main, align=uiconst.TOTOP, state=uiconst.UI_NORMAL)
-        currentRating = settings.user.ui.Get('petition_rating', None)
-        currentResponseTimeRating = settings.user.ui.Get('petition_responseTimeRating', None)
-        currentHelpfulnessRating = settings.user.ui.Get('petition_helpfulnessRating', None)
-        currentAttitudeRating = settings.user.ui.Get('petition_attitudeRating', None)
-        currentComment = settings.user.ui.Get('petition_ratingcomment', '')
-        currentDateTime = getattr(p, 'ratingDateTime', None)
-        cbParents = []
-        if currentRating is not None:
-            uicontrols.EveLabelMedium(text=localization.GetByLabel('UI/Neocom/Petition/RateYourRating'), parent=main, align=uiconst.TOTOP, state=uiconst.UI_NORMAL)
-            cbParent = uiprimitives.Container(name='cbParent', parent=main, align=uiconst.TOTOP, height=32)
-            left = 0
-            for i in xrange(11):
-                cb = uicontrols.Checkbox(text='', parent=cbParent, configName='rating', retval=i * 10, checked=currentRating == i * 10, groupname='rating', align=uiconst.CENTERLEFT, pos=(left,
-                 0,
-                 20,
-                 18))
-                cbtext = uicontrols.EveLabelMedium(text='%s' % i, parent=cbParent, align=uiconst.CENTERLEFT, state=uiconst.UI_NORMAL)
-                cbtext.left = cb.left + cb.width
-                left = cbtext.left + cbtext.width + 4
-
-            cbParents.append(cbParent)
         else:
-            uicontrols.EveLabelMedium(text=localization.GetByLabel('UI/Neocom/Petition/RateResponseTime'), parent=main, align=uiconst.TOTOP, state=uiconst.UI_NORMAL)
-            cbParent = uiprimitives.Container(name='cbResponseTimeParent', parent=main, align=uiconst.TOTOP, height=32)
-            left = 0
-            wnd.sr.responseTimeRatingCBs = []
-            for i in xrange(11):
-                cb = uicontrols.Checkbox(text='', parent=cbParent, configName='currentResponseTimeRating', retval=i * 10, checked=currentResponseTimeRating == i * 10, groupname='currentResponseTimeRating', align=uiconst.CENTERLEFT, pos=(left,
-                 0,
-                 20,
-                 18), callback=self.OnCheckboxChange)
-                cbtext = uicontrols.EveLabelMedium(text='%s' % i, parent=cbParent, state=uiconst.UI_NORMAL, align=uiconst.CENTERLEFT)
-                cbtext.left = cb.left + cb.width
-                left = cbtext.left + cbtext.width + 4
-                wnd.sr.responseTimeRatingCBs.append(cb)
+            p = wnd.sr.p
+            main = wnd.sr.ratingparent
+            uix.Flush(main)
+            captionPar = uiprimitives.Container(name='captionPar', parent=main, align=uiconst.TOTOP, width=const.defaultPadding)
+            mainCaption = uicontrols.EveCaptionMedium(text=localization.GetByLabel('UI/Neocom/Petition/RateHeader'), parent=captionPar, align=uiconst.RELATIVE, left=const.defaultPadding, top=8)
+            captionPar.height = mainCaption.textheight + 16
+            uiprimitives.Container(name='push', parent=main, align=uiconst.TOLEFT, width=const.defaultPadding)
+            uiprimitives.Container(name='push', parent=main, align=uiconst.TORIGHT, width=const.defaultPadding)
+            t1 = uicontrols.EveLabelMedium(text=localization.GetByLabel('UI/Neocom/Petition/RateScale'), parent=main, align=uiconst.TOTOP, state=uiconst.UI_NORMAL)
+            currentRating = settings.user.ui.Get('petition_rating', None)
+            currentResponseTimeRating = settings.user.ui.Get('petition_responseTimeRating', None)
+            currentHelpfulnessRating = settings.user.ui.Get('petition_helpfulnessRating', None)
+            currentAttitudeRating = settings.user.ui.Get('petition_attitudeRating', None)
+            currentComment = settings.user.ui.Get('petition_ratingcomment', '')
+            currentDateTime = getattr(p, 'ratingDateTime', None)
+            cbParents = []
+            if currentRating is not None:
+                uicontrols.EveLabelMedium(text=localization.GetByLabel('UI/Neocom/Petition/RateYourRating'), parent=main, align=uiconst.TOTOP, state=uiconst.UI_NORMAL)
+                cbParent = uiprimitives.Container(name='cbParent', parent=main, align=uiconst.TOTOP, height=32)
+                left = 0
+                for i in xrange(11):
+                    cb = uicontrols.Checkbox(text='', parent=cbParent, configName='rating', retval=i * 10, checked=currentRating == i * 10, groupname='rating', align=uiconst.CENTERLEFT, pos=(left,
+                     0,
+                     20,
+                     18))
+                    cbtext = uicontrols.EveLabelMedium(text='%s' % i, parent=cbParent, align=uiconst.CENTERLEFT, state=uiconst.UI_NORMAL)
+                    cbtext.left = cb.left + cb.width
+                    left = cbtext.left + cbtext.width + 4
 
-            cbParents.append(cbParent)
-            uicontrols.EveLabelMedium(text=localization.GetByLabel('UI/Neocom/Petition/RateHelpfulness'), parent=main, align=uiconst.TOTOP, state=uiconst.UI_NORMAL)
-            cbParent = uiprimitives.Container(name='cbtHelpfulnessParent', parent=main, align=uiconst.TOTOP, height=32)
-            left = 0
-            wnd.sr.helpfulnessRatingCBs = []
-            for i in xrange(11):
-                cb = uicontrols.Checkbox(text='', parent=cbParent, configName='currentHelpfulnessRating', retval=i * 10, checked=currentHelpfulnessRating == i * 10, groupname='currentHelpfulnessRating', align=uiconst.CENTERLEFT, pos=(left,
-                 0,
-                 20,
-                 18), callback=self.OnCheckboxChange)
-                cbtext = uicontrols.EveLabelMedium(text='%s' % i, parent=cbParent, state=uiconst.UI_NORMAL, align=uiconst.CENTERLEFT)
-                cbtext.left = cb.left + cb.width
-                left = cbtext.left + cbtext.width + 4
-                wnd.sr.helpfulnessRatingCBs.append(cb)
+                cbParents.append(cbParent)
+            else:
+                uicontrols.EveLabelMedium(text=localization.GetByLabel('UI/Neocom/Petition/RateResponseTime'), parent=main, align=uiconst.TOTOP, state=uiconst.UI_NORMAL)
+                cbParent = uiprimitives.Container(name='cbResponseTimeParent', parent=main, align=uiconst.TOTOP, height=32)
+                left = 0
+                wnd.sr.responseTimeRatingCBs = []
+                for i in xrange(11):
+                    cb = uicontrols.Checkbox(text='', parent=cbParent, configName='currentResponseTimeRating', retval=i * 10, checked=currentResponseTimeRating == i * 10, groupname='currentResponseTimeRating', align=uiconst.CENTERLEFT, pos=(left,
+                     0,
+                     20,
+                     18), callback=self.OnCheckboxChange)
+                    cbtext = uicontrols.EveLabelMedium(text='%s' % i, parent=cbParent, state=uiconst.UI_NORMAL, align=uiconst.CENTERLEFT)
+                    cbtext.left = cb.left + cb.width
+                    left = cbtext.left + cbtext.width + 4
+                    wnd.sr.responseTimeRatingCBs.append(cb)
 
-            cbParents.append(cbParent)
-            uicontrols.EveLabelMedium(text=localization.GetByLabel('UI/Neocom/Petition/RateAttitude'), parent=main, align=uiconst.TOTOP, state=uiconst.UI_NORMAL)
-            cbParent = uiprimitives.Container(name='cbAttitudeParent', parent=main, align=uiconst.TOTOP, height=32)
-            left = 0
-            wnd.sr.attitudeRatingCBs = []
-            for i in xrange(11):
-                cb = uicontrols.Checkbox(text='', parent=cbParent, configName='currentAttitudeRating', retval=i * 10, checked=currentAttitudeRating == i * 10, groupname='currentAttitudeRating', align=uiconst.CENTERLEFT, pos=(left,
-                 0,
-                 20,
-                 18), callback=self.OnCheckboxChange)
-                cbtext = uicontrols.EveLabelMedium(text='%s' % i, parent=cbParent, align=uiconst.CENTERLEFT, state=uiconst.UI_NORMAL)
-                cbtext.left = cb.left + cb.width
-                left = cbtext.left + cbtext.width + 4
-                wnd.sr.attitudeRatingCBs.append(cb)
+                cbParents.append(cbParent)
+                uicontrols.EveLabelMedium(text=localization.GetByLabel('UI/Neocom/Petition/RateHelpfulness'), parent=main, align=uiconst.TOTOP, state=uiconst.UI_NORMAL)
+                cbParent = uiprimitives.Container(name='cbtHelpfulnessParent', parent=main, align=uiconst.TOTOP, height=32)
+                left = 0
+                wnd.sr.helpfulnessRatingCBs = []
+                for i in xrange(11):
+                    cb = uicontrols.Checkbox(text='', parent=cbParent, configName='currentHelpfulnessRating', retval=i * 10, checked=currentHelpfulnessRating == i * 10, groupname='currentHelpfulnessRating', align=uiconst.CENTERLEFT, pos=(left,
+                     0,
+                     20,
+                     18), callback=self.OnCheckboxChange)
+                    cbtext = uicontrols.EveLabelMedium(text='%s' % i, parent=cbParent, state=uiconst.UI_NORMAL, align=uiconst.CENTERLEFT)
+                    cbtext.left = cb.left + cb.width
+                    left = cbtext.left + cbtext.width + 4
+                    wnd.sr.helpfulnessRatingCBs.append(cb)
 
-            cbParents.append(cbParent)
-        wnd.sr.ratinghinttext = uicontrols.EveLabelMedium(text='', parent=main, align=uiconst.TOTOP)
-        t2 = uicontrols.EveLabelMedium(text=localization.GetByLabel('UI/Neocom/Petition/RateComment'), parent=main, align=uiconst.TOTOP, state=uiconst.UI_NORMAL)
-        wnd.sr.ratingcomment = uicls.EditPlainText(setvalue=currentComment, parent=main, align=uiconst.TOALL, name='ratingcomment', maxLength=1000, padding=(-const.defaultPadding,
-         4,
-         -const.defaultPadding,
-         0))
-        w, h = wnd.minsize
-        wnd.SetMinSize([max(w, left + 12), 428], 1)
-        if currentDateTime is None:
-            wnd.sr.ratingcomment.OnFocusLost = self.OnTextEditChange
-            uicontrols.ButtonGroup(btns=[[localization.GetByLabel('UI/Generic/Submit'),
-              self.SetRating,
-              None,
-              None]], parent=main, line=0, idx=0)
-        else:
-            for cbParent in cbParents:
-                cbParent.state = uiconst.UI_DISABLED
+                cbParents.append(cbParent)
+                uicontrols.EveLabelMedium(text=localization.GetByLabel('UI/Neocom/Petition/RateAttitude'), parent=main, align=uiconst.TOTOP, state=uiconst.UI_NORMAL)
+                cbParent = uiprimitives.Container(name='cbAttitudeParent', parent=main, align=uiconst.TOTOP, height=32)
+                left = 0
+                wnd.sr.attitudeRatingCBs = []
+                for i in xrange(11):
+                    cb = uicontrols.Checkbox(text='', parent=cbParent, configName='currentAttitudeRating', retval=i * 10, checked=currentAttitudeRating == i * 10, groupname='currentAttitudeRating', align=uiconst.CENTERLEFT, pos=(left,
+                     0,
+                     20,
+                     18), callback=self.OnCheckboxChange)
+                    cbtext = uicontrols.EveLabelMedium(text='%s' % i, parent=cbParent, align=uiconst.CENTERLEFT, state=uiconst.UI_NORMAL)
+                    cbtext.left = cb.left + cb.width
+                    left = cbtext.left + cbtext.width + 4
+                    wnd.sr.attitudeRatingCBs.append(cb)
 
-            wnd.sr.ratingcomment.readonly = 1
-            uicontrols.EveLabelMedium(text=localization.GetByLabel('UI/Neocom/Petition/RateThanks'), parent=main, align=uiconst.TOBOTTOM, idx=0, state=uiconst.UI_NORMAL)
-            t1.state = uiconst.UI_HIDDEN
-            t2.text = localization.GetByLabel('UI/Neocom/Petition/RateYourComments')
-        wnd.sr.ratingtime = blue.os.GetWallclockTime()
+                cbParents.append(cbParent)
+            wnd.sr.ratinghinttext = uicontrols.EveLabelMedium(text='', parent=main, align=uiconst.TOTOP)
+            t2 = uicontrols.EveLabelMedium(text=localization.GetByLabel('UI/Neocom/Petition/RateComment'), parent=main, align=uiconst.TOTOP, state=uiconst.UI_NORMAL)
+            wnd.sr.ratingcomment = uicls.EditPlainText(setvalue=currentComment, parent=main, align=uiconst.TOALL, name='ratingcomment', maxLength=1000, padding=(-const.defaultPadding,
+             4,
+             -const.defaultPadding,
+             0))
+            w, h = wnd.minsize
+            wnd.SetMinSize([max(w, left + 12), 428], 1)
+            if currentDateTime is None:
+                wnd.sr.ratingcomment.OnFocusLost = self.OnTextEditChange
+                uicontrols.ButtonGroup(btns=[[localization.GetByLabel('UI/Generic/Submit'),
+                  self.SetRating,
+                  None,
+                  None]], parent=main, line=0, idx=0)
+            else:
+                for cbParent in cbParents:
+                    cbParent.state = uiconst.UI_DISABLED
+
+                wnd.sr.ratingcomment.readonly = 1
+                uicontrols.EveLabelMedium(text=localization.GetByLabel('UI/Neocom/Petition/RateThanks'), parent=main, align=uiconst.TOBOTTOM, idx=0, state=uiconst.UI_NORMAL)
+                t1.state = uiconst.UI_HIDDEN
+                t2.text = localization.GetByLabel('UI/Neocom/Petition/RateYourComments')
+            wnd.sr.ratingtime = blue.os.GetWallclockTime()
+            return
 
     def OnCheckboxChange(self, *args):
         if not args:
@@ -414,43 +433,45 @@ class PetitionSvc(service.Service):
         wnd = self.GetViewWnd()
         if not wnd or wnd.destroyed:
             return
-        p = wnd.sr.p
-        currentRating = getattr(p, 'rating', None)
-        currentComment = getattr(p, 'ratingComment', '')
-        cbResponseTimeValue = [ cb for cb in wnd.sr.responseTimeRatingCBs if cb.checked ]
-        if not cbResponseTimeValue:
-            wnd.sr.ratinghinttext.text = localization.GetByLabel('UI/Neocom/Petition/RateNotValid')
-            return
-        responseTimeRating = cbResponseTimeValue[0].data['value']
-        cbHelpfulnessValue = [ cb for cb in wnd.sr.helpfulnessRatingCBs if cb.checked ]
-        if not cbHelpfulnessValue:
-            wnd.sr.ratinghinttext.text = localization.GetByLabel('UI/Neocom/Petition/RateNotValid')
-            return
-        helpfulnessRating = cbHelpfulnessValue[0].data['value']
-        cbAttitudeValue = [ cb for cb in wnd.sr.attitudeRatingCBs if cb.checked ]
-        if not cbAttitudeValue:
-            wnd.sr.ratinghinttext.text = localization.GetByLabel('UI/Neocom/Petition/RateNotValid')
-            return
-        attitudeRating = cbAttitudeValue[0].data['value']
-        newComment = wnd.sr.ratingcomment.GetValue()
-        if getattr(p, 'ratingDateTime', None):
-            if currentRating != newRating or currentComment != newComment:
-                sm.RemoteSvc('petitioner').UpdatePetitionRating(p.petitionID, responseTimeRating, helpfulnessRating, attitudeRating, newComment)
-            else:
-                return
         else:
-            sm.RemoteSvc('petitioner').AddPetitionRating(p.petitionID, responseTimeRating, helpfulnessRating, attitudeRating, newComment, wnd.sr.ratingtime)
-        setattr(p, 'responseTimeRating', responseTimeRating)
-        setattr(p, 'helpfulnessRating', helpfulnessRating)
-        setattr(p, 'attitudeRating', attitudeRating)
-        setattr(p, 'ratingComment', newComment)
-        setattr(p, 'ratingDateTime', wnd.sr.ratingtime)
-        settings.user.ui.Set('petition_responseTimeRating', responseTimeRating)
-        settings.user.ui.Set('petition_helpfulnessRating', helpfulnessRating)
-        settings.user.ui.Set('petition_attitudeRating', attitudeRating)
-        settings.user.ui.Set('petition_ratingComment', newComment)
-        self._ReloadVisible()
-        uthread.new(self.ShowRating)
+            p = wnd.sr.p
+            currentRating = getattr(p, 'rating', None)
+            currentComment = getattr(p, 'ratingComment', '')
+            cbResponseTimeValue = [ cb for cb in wnd.sr.responseTimeRatingCBs if cb.checked ]
+            if not cbResponseTimeValue:
+                wnd.sr.ratinghinttext.text = localization.GetByLabel('UI/Neocom/Petition/RateNotValid')
+                return
+            responseTimeRating = cbResponseTimeValue[0].data['value']
+            cbHelpfulnessValue = [ cb for cb in wnd.sr.helpfulnessRatingCBs if cb.checked ]
+            if not cbHelpfulnessValue:
+                wnd.sr.ratinghinttext.text = localization.GetByLabel('UI/Neocom/Petition/RateNotValid')
+                return
+            helpfulnessRating = cbHelpfulnessValue[0].data['value']
+            cbAttitudeValue = [ cb for cb in wnd.sr.attitudeRatingCBs if cb.checked ]
+            if not cbAttitudeValue:
+                wnd.sr.ratinghinttext.text = localization.GetByLabel('UI/Neocom/Petition/RateNotValid')
+                return
+            attitudeRating = cbAttitudeValue[0].data['value']
+            newComment = wnd.sr.ratingcomment.GetValue()
+            if getattr(p, 'ratingDateTime', None):
+                if currentRating != newRating or currentComment != newComment:
+                    sm.RemoteSvc('petitioner').UpdatePetitionRating(p.petitionID, responseTimeRating, helpfulnessRating, attitudeRating, newComment)
+                else:
+                    return
+            else:
+                sm.RemoteSvc('petitioner').AddPetitionRating(p.petitionID, responseTimeRating, helpfulnessRating, attitudeRating, newComment, wnd.sr.ratingtime)
+            setattr(p, 'responseTimeRating', responseTimeRating)
+            setattr(p, 'helpfulnessRating', helpfulnessRating)
+            setattr(p, 'attitudeRating', attitudeRating)
+            setattr(p, 'ratingComment', newComment)
+            setattr(p, 'ratingDateTime', wnd.sr.ratingtime)
+            settings.user.ui.Set('petition_responseTimeRating', responseTimeRating)
+            settings.user.ui.Set('petition_helpfulnessRating', helpfulnessRating)
+            settings.user.ui.Set('petition_attitudeRating', attitudeRating)
+            settings.user.ui.Set('petition_ratingComment', newComment)
+            self._ReloadVisible()
+            uthread.new(self.ShowRating)
+            return
 
     def ShowPetitionQueue(self, queueID):
         if not self.GetIsPetitionee():
@@ -572,6 +593,8 @@ class PetitionSvc(service.Service):
             if each.categoryID == id:
                 return each
 
+        return None
+
     def GetC_String(self, id):
         cat = self.GetCategory(id)
         if cat:
@@ -606,6 +629,7 @@ class PetitionSvc(service.Service):
         else:
             wnd = form.PetitionWindow.Open()
             wnd.CheckHeight()
+        return
 
     def OpenBrowser(self, *args):
         if args:
@@ -615,68 +639,80 @@ class PetitionSvc(service.Service):
         wnd = self.GetWnd()
         if wnd is None or wnd.destroyed:
             return
-        btnparent = wnd.sr.buttons.children[0]
-        for btn in btnparent.children:
-            btn.state = uiconst.UI_HIDDEN
+        else:
+            btnparent = wnd.sr.buttons.children[0]
+            for btn in btnparent.children:
+                btn.state = uiconst.UI_HIDDEN
 
-        if selected:
-            p = selected[0].p
-            tab = wnd.sr.tabs.GetVisible(1)
-            btnparent.children[0].state = uiconst.UI_NORMAL
-            if tab.sr.args == 'claimedpetitions' or tab.sr.args in range(6):
-                if not p.claimed and (p.closed or p.deleted or p.petitionerID != session.charid):
-                    btnparent.children[1].state = uiconst.UI_NORMAL
-            if tab.sr.args == 'mypetitions':
-                if p.closed:
-                    btnparent.children[2].state = uiconst.UI_NORMAL
-                    rateable = getattr(p, 'rateable', 0)
-                    if rateable:
-                        currentDateTime = getattr(p, 'ratingDateTime', None)
-                        if currentDateTime is None or currentDateTime + const.WEEK > blue.os.GetWallclockTime():
-                            btnparent.children[4].state = uiconst.UI_NORMAL
-                elif not p.claimed:
-                    btnparent.children[3].state = uiconst.UI_NORMAL
+            if selected:
+                p = selected[0].p
+                tab = wnd.sr.tabs.GetVisible(1)
+                btnparent.children[0].state = uiconst.UI_NORMAL
+                if tab.sr.args == 'claimedpetitions' or tab.sr.args in range(6):
+                    if not p.claimed and (p.closed or p.deleted or p.petitionerID != session.charid):
+                        btnparent.children[1].state = uiconst.UI_NORMAL
+                if tab.sr.args == 'mypetitions':
+                    if p.closed:
+                        btnparent.children[2].state = uiconst.UI_NORMAL
+                        rateable = getattr(p, 'rateable', 0)
+                        if rateable:
+                            currentDateTime = getattr(p, 'ratingDateTime', None)
+                            if currentDateTime is None or currentDateTime + const.WEEK > blue.os.GetWallclockTime():
+                                btnparent.children[4].state = uiconst.UI_NORMAL
+                    elif not p.claimed:
+                        btnparent.children[3].state = uiconst.UI_NORMAL
+            return
 
     def ShowPetitionClicked(self, *args):
         wnd = self.GetWnd()
         if wnd is None or wnd.destroyed:
             return
-        selected = wnd.sr.scroll.GetSelected()
-        if selected:
-            self.ShowPetition(selected[0].p)
+        else:
+            selected = wnd.sr.scroll.GetSelected()
+            if selected:
+                self.ShowPetition(selected[0].p)
+            return
 
     def ClaimPetitionClicked(self, *args):
         wnd = self.GetWnd()
         if wnd is None or wnd.destroyed:
             return
-        selected = wnd.sr.scroll.GetSelected()
-        if selected:
-            self.ClaimPetition(selected[0].p)
+        else:
+            selected = wnd.sr.scroll.GetSelected()
+            if selected:
+                self.ClaimPetition(selected[0].p)
+            return
 
     def DeletePetitionClicked(self, *args):
         wnd = self.GetWnd()
         if wnd is None or wnd.destroyed:
             return
-        selected = wnd.sr.scroll.GetSelected()
-        if selected:
-            self.DeletePetition(selected[0].p.petitionID)
+        else:
+            selected = wnd.sr.scroll.GetSelected()
+            if selected:
+                self.DeletePetition(selected[0].p.petitionID)
+            return
 
     def CancelPetitionClicked(self, *args):
         wnd = self.GetWnd()
         if wnd is None or wnd.destroyed:
             return
-        selected = wnd.sr.scroll.GetSelected()
-        if selected:
-            self.CancelPetition(selected[0].p.petitionID)
+        else:
+            selected = wnd.sr.scroll.GetSelected()
+            if selected:
+                self.CancelPetition(selected[0].p.petitionID)
+            return
 
     def RatePetitionClicked(self, *args):
         wnd = self.GetWnd()
         if wnd is None or wnd.destroyed:
             return
-        selected = wnd.sr.scroll.GetSelected()
-        if selected:
-            viewwnd = self.ShowPetition(selected[0].p)
-            uthread.new(self.OpenRateView, viewwnd)
+        else:
+            selected = wnd.sr.scroll.GetSelected()
+            if selected:
+                viewwnd = self.ShowPetition(selected[0].p)
+                uthread.new(self.OpenRateView, viewwnd)
+            return
 
     def OpenRateView(self, viewwnd):
         if viewwnd and viewwnd.sr.maintabs.GetSelectedArgs() != 'rating':
@@ -703,13 +739,15 @@ class PetitionSvc(service.Service):
         if not sm.RemoteSvc('petitioner').CreatePetition(subject, petition, categoryID, retval, OocCharacterID, combatLog=combatLog, chatLog=chatLog):
             eve.Message('CannotPostPetition', {'text': localization.GetByLabel('UI/Neocom/Petition/CannotPostPetition4')})
             return
-        self.mine = None
-        if session.charid:
-            self._ShowPanelByName(localization.GetByLabel('UI/Neocom/Petition/MyPetitions'))
         else:
-            eve.Message('PetitionSuccess', {'text': ''})
+            self.mine = None
+            if session.charid:
+                self._ShowPanelByName(localization.GetByLabel('UI/Neocom/Petition/MyPetitions'))
+            else:
+                eve.Message('PetitionSuccess', {'text': ''})
+            return
 
-    def GetViewWnd(self, new = 0):
+    def GetViewWnd(self, new=0):
         wnd = uicontrols.Window.GetIfOpen(windowID='petitionview')
         if not wnd and new:
             wnd = uicontrols.Window.Open(windowID='petitionview')
@@ -878,92 +916,101 @@ class PetitionSvc(service.Service):
         viewwnd = self.GetViewWnd()
         if viewwnd is None or viewwnd.destroyed:
             return
-        for each in viewwnd.sr.refreshitems:
-            if hasattr(each, 'RefreshSize'):
-                each.RefreshSize()
+        else:
+            for each in viewwnd.sr.refreshitems:
+                if hasattr(each, 'RefreshSize'):
+                    each.RefreshSize()
+
+            return
 
     def LoadLogs(self):
         if not self.GetIsPetitionee():
             return
-        viewwnd = self.GetViewWnd()
-        if viewwnd is None or viewwnd.destroyed or self.loadinglogs:
+        else:
+            viewwnd = self.GetViewWnd()
+            if viewwnd is None or viewwnd.destroyed or self.loadinglogs:
+                return
+            if viewwnd is not None and viewwnd.sr.viewmessageform:
+                viewwnd.sr.viewmessageform.state = uiconst.UI_HIDDEN
+            p = viewwnd.sr.p
+            self.loadinglogs = 1
+            plogs = sm.RemoteSvc('petitioner').GetLog(p.petitionID)
+            texts = sm.RemoteSvc('petitioner').GetEvents()
+            textDict = {}
+            for row in texts:
+                textDict[row.eventID] = row.eventText
+
+            rowDescriptor = blue.DBRowDescriptor((('logDateTime', const.DBTYPE_FILETIME),
+             ('characterID', const.DBTYPE_I4),
+             ('userName', const.DBTYPE_WSTR),
+             ('eventID', const.DBTYPE_UI1),
+             ('eventText', const.DBTYPE_STR)))
+            rowset = dbutil.CRowset(rowDescriptor, [])
+            owners = []
+            for pl in plogs:
+                if pl.characterID is not None and pl.characterID not in owners:
+                    owners.append(pl.characterID)
+                rowset.InsertNew([pl.logDateTime,
+                 pl.characterID,
+                 pl.userName,
+                 pl.eventID,
+                 textDict[pl.eventID]])
+
+            if len(owners):
+                cfg.eveowners.Prime(owners)
+            scrolllist = []
+            for pl in rowset:
+                data = util.KeyVal()
+                data.log = pl
+                data.p = p
+                scrolllist.append(listentry.Get('Logfield', data=data))
+
+            viewwnd.sr.scroll.Load(fixedEntryHeight=24, contentList=scrolllist)
+            self.loadinglogs = 0
             return
-        if viewwnd is not None and viewwnd.sr.viewmessageform:
-            viewwnd.sr.viewmessageform.state = uiconst.UI_HIDDEN
-        p = viewwnd.sr.p
-        self.loadinglogs = 1
-        plogs = sm.RemoteSvc('petitioner').GetLog(p.petitionID)
-        texts = sm.RemoteSvc('petitioner').GetEvents()
-        textDict = {}
-        for row in texts:
-            textDict[row.eventID] = row.eventText
-
-        rowDescriptor = blue.DBRowDescriptor((('logDateTime', const.DBTYPE_FILETIME),
-         ('characterID', const.DBTYPE_I4),
-         ('userName', const.DBTYPE_WSTR),
-         ('eventID', const.DBTYPE_UI1),
-         ('eventText', const.DBTYPE_STR)))
-        rowset = dbutil.CRowset(rowDescriptor, [])
-        owners = []
-        for pl in plogs:
-            if pl.characterID is not None and pl.characterID not in owners:
-                owners.append(pl.characterID)
-            rowset.InsertNew([pl.logDateTime,
-             pl.characterID,
-             pl.userName,
-             pl.eventID,
-             textDict[pl.eventID]])
-
-        if len(owners):
-            cfg.eveowners.Prime(owners)
-        scrolllist = []
-        for pl in rowset:
-            data = util.KeyVal()
-            data.log = pl
-            data.p = p
-            scrolllist.append(listentry.Get('Logfield', data=data))
-
-        viewwnd.sr.scroll.Load(fixedEntryHeight=24, contentList=scrolllist)
-        self.loadinglogs = 0
 
     def LoadMessages(self):
         viewwnd = self.GetViewWnd()
         if viewwnd is None or viewwnd.destroyed or self.loadingmessages:
             return
-        p = viewwnd.sr.p
-        viewwnd.sr.lastSender = 0
-        self.loadingmessages = 1
-        pmsgs = sm.RemoteSvc('petitioner').GetPetitionMessages(p.petitionID)
-        owners = []
-        for pm in pmsgs:
-            if pm.senderID is not None and pm.senderID not in owners:
-                owners.append(pm.senderID)
+        else:
+            p = viewwnd.sr.p
+            viewwnd.sr.lastSender = 0
+            self.loadingmessages = 1
+            pmsgs = sm.RemoteSvc('petitioner').GetPetitionMessages(p.petitionID)
+            owners = []
+            for pm in pmsgs:
+                if pm.senderID is not None and pm.senderID not in owners:
+                    owners.append(pm.senderID)
 
-        if len(owners):
-            cfg.eveowners.Prime(owners)
-        scrolllist = []
-        for pm in pmsgs:
-            if viewwnd.sr.lastSender == 0:
-                viewwnd.sr.lastSender = pm.senderID
-            data = util.KeyVal()
-            data.msg = pm
-            data.p = p
-            scrolllist.append(listentry.Get('MessageField', data=data))
+            if len(owners):
+                cfg.eveowners.Prime(owners)
+            scrolllist = []
+            for pm in pmsgs:
+                if viewwnd.sr.lastSender == 0:
+                    viewwnd.sr.lastSender = pm.senderID
+                data = util.KeyVal()
+                data.msg = pm
+                data.p = p
+                scrolllist.append(listentry.Get('MessageField', data=data))
 
-        viewwnd.sr.scroll.Load(contentList=scrolllist)
-        self.loadingmessages = 0
+            viewwnd.sr.scroll.Load(contentList=scrolllist)
+            self.loadingmessages = 0
+            return
 
     def ShowMessage(self, msg, p):
         viewwnd = self.GetViewWnd()
         if viewwnd is None or viewwnd.destroyed:
             return
-        viewwnd.ShowLoad()
-        if viewwnd.sr.lastSender == session.charid or p.closed == 1:
-            viewwnd.sr.viewmessageform.children[3].state = uiconst.UI_HIDDEN
-        viewwnd.sr.viewmessageform.sr.body.SetValue(msg.text.replace('\n', '<br>'), scrolltotop=1)
-        viewwnd.sr.viewmessageform.state = uiconst.UI_PICKCHILDREN
-        self.MarkAsRead(msg.messageID)
-        viewwnd.HideLoad()
+        else:
+            viewwnd.ShowLoad()
+            if viewwnd.sr.lastSender == session.charid or p.closed == 1:
+                viewwnd.sr.viewmessageform.children[3].state = uiconst.UI_HIDDEN
+            viewwnd.sr.viewmessageform.sr.body.SetValue(msg.text.replace('\n', '<br>'), scrolltotop=1)
+            viewwnd.sr.viewmessageform.state = uiconst.UI_PICKCHILDREN
+            self.MarkAsRead(msg.messageID)
+            viewwnd.HideLoad()
+            return
 
     def SendMessage(self, petitionid, *args):
         format = [{'type': 'textedit',
@@ -1005,19 +1052,23 @@ class PetitionSvc(service.Service):
                     eve.Message('MessageNotSentPetitionAlreadyClosed')
                     sys.exc_clear()
 
+        return
+
     def OnPetitionMessage(self, petitionID, charID, messageText, messageID):
         if eve.session.charid is None:
             return
-        viewwnd = self.GetViewWnd()
-        self.mine = None
-        if charID != session.charid and (viewwnd is None or viewwnd.destroyed):
-            if self.GetIsPetitionee():
-                eve.Message('PetPetioneeGotResposne', {'player': charID})
-            else:
-                self.NewMessage(petitionID, messageText.replace('\n', '<br>'), messageID)
         else:
-            self.LoadMessages()
-        sm.GetService('neocom').Blink('help')
+            viewwnd = self.GetViewWnd()
+            self.mine = None
+            if charID != session.charid and (viewwnd is None or viewwnd.destroyed):
+                if self.GetIsPetitionee():
+                    eve.Message('PetPetioneeGotResposne', {'player': charID})
+                else:
+                    self.NewMessage(petitionID, messageText.replace('\n', '<br>'), messageID)
+            else:
+                self.LoadMessages()
+            sm.GetService('neocom').Blink('help')
+            return
 
     def SendMessageOpen(self, sender, *args):
         self.LogInfo('SendMessageOpen')
@@ -1051,7 +1102,9 @@ class PetitionSvc(service.Service):
         viewwnd = self.GetViewWnd()
         if viewwnd is None or viewwnd.destroyed:
             return
-        viewwnd.Close()
+        else:
+            viewwnd.Close()
+            return
 
     def DeletePetition(self, petitionid, *args):
         self.LogInfo('DeletePetition')
@@ -1062,6 +1115,7 @@ class PetitionSvc(service.Service):
             if viewwnd is None or viewwnd.destroyed:
                 return
             viewwnd.Close()
+        return
 
     def CancelPetition(self, petitionid, *args):
         self.LogInfo('CancelPetition')
@@ -1073,6 +1127,7 @@ class PetitionSvc(service.Service):
             if viewwnd is None or viewwnd.destroyed:
                 return
             viewwnd.Close()
+        return
 
     def ClosePetition(self, petitionid, *args):
         self.LogInfo('ClosePetition')
@@ -1081,7 +1136,9 @@ class PetitionSvc(service.Service):
         viewwnd = self.GetViewWnd()
         if viewwnd is None or viewwnd.destroyed:
             return
-        viewwnd.Close()
+        else:
+            viewwnd.Close()
+            return
 
     def UnClaimPetition(self, petitionid, *args):
         self.LogInfo('UnClaimPetition')
@@ -1090,7 +1147,9 @@ class PetitionSvc(service.Service):
         viewwnd = self.GetViewWnd()
         if viewwnd is None or viewwnd.destroyed:
             return
-        viewwnd.Close()
+        else:
+            viewwnd.Close()
+            return
 
     def EscalatePetition(self, postArgs, *args):
         if type(postArgs) != type(()):
@@ -1102,7 +1161,9 @@ class PetitionSvc(service.Service):
         viewwnd = self.GetViewWnd()
         if viewwnd is None or viewwnd.destroyed:
             return
-        viewwnd.Close()
+        else:
+            viewwnd.Close()
+            return
 
     def ClaimPetition(self, p, *args):
         self.LogInfo('ClaimPetition')
@@ -1115,18 +1176,21 @@ class PetitionSvc(service.Service):
             self._ShowPanelByName(localization.GetByLabel('UI/Neocom/Petition/ClaimedPetitions'))
         else:
             eve.Message('PetitionInfo1')
+        return
 
     def _ShowPanelByName(self, panelName, *args):
         self.mine = None
         wnd = self.GetWnd()
         if wnd is not None and not wnd.destroyed:
             wnd.sr.tabs.ShowPanelByName(panelName)
+        return
 
     def _ReloadVisible(self, *args):
         self.mine = None
         wnd = self.GetWnd()
         if wnd is not None and not wnd.destroyed:
             wnd.sr.tabs.ReloadVisible()
+        return
 
 
 class LogField(uicontrols.SE_BaseClassCore):
@@ -1137,6 +1201,7 @@ class LogField(uicontrols.SE_BaseClassCore):
         self.selection = None
         self.sr.subject = uicontrols.EveLabelSmall(text='', parent=self, left=26, top=2, state=uiconst.UI_DISABLED, tabs=[200, 500])
         self.state = uiconst.UI_NORMAL
+        return
 
     def Load(self, node):
         self.sr.node = node
@@ -1170,6 +1235,7 @@ class MessageField(uicontrols.SE_BaseClassCore):
         self.selection = None
         self.sr.subject = uicontrols.EveLabelSmall(text='', parent=self, left=26, top=2, state=uiconst.UI_DISABLED, tabs=[120, 500])
         self.state = uiconst.UI_NORMAL
+        return
 
     def Load(self, node):
         self.sr.node = node
@@ -1186,6 +1252,7 @@ class MessageField(uicontrols.SE_BaseClassCore):
             self.sr.icon.LoadIcon('res:/UI/Texture/WindowIcons/attention.png', True)
         if self.msg.comment == 1:
             self.sr.icon.LoadIcon('res:/ui/Texture/WindowIcons/chatchannel.png', True)
+        return
 
     def GetHeight(self, *args):
         node, width = args
@@ -1197,6 +1264,7 @@ class MessageField(uicontrols.SE_BaseClassCore):
         self.msg = None
         self.p = None
         self.selection = None
+        return
 
     def OnClick(self, *args):
         self.sr.node.scroll.SelectNode(self.sr.node)
@@ -1230,6 +1298,7 @@ class PetitionField(listentry.Generic):
             self.SetOnline(getattr(node.p, 'isOnline', 0))
         elif self.sr.Get('onlinestatus', None):
             self.sr.onlinestatus.state = uiconst.UI_HIDDEN
+        return
 
     def GetMenu(self):
         self.OnClick()
@@ -1245,6 +1314,7 @@ class PetitionField(listentry.Generic):
             color = (0.5, 0.25, 0.0)
         self.sr.onlinestatus.color.SetRGB(*color)
         self.sr.onlinestatus.state = uiconst.UI_DISABLED
+        return
 
     def OnDblClick(self, *args):
         p = self.sr.node.p
@@ -1351,6 +1421,7 @@ class PetitionWindow(uicontrols.Window):
             pass
 
         self.CheckHeight()
+        return
 
     def OpenHelpCenter(self, *args):
         import webbrowser
@@ -1364,6 +1435,7 @@ class PetitionWindow(uicontrols.Window):
                 ops = self.descriptions[value[0]]
             self.sr.mainText.text = ops
             self.CheckHeight()
+        return
 
     def CheckHeight(self):
         totalHeight = sum([ each.height for each in self.sr.formData[0].children if each.align == uiconst.TOTOP ])
@@ -1404,6 +1476,7 @@ class PetitionWindow(uicontrols.Window):
                 self.sr.mainText.text = ops
 
             self.CheckHeight()
+        return
 
     def ConfirmCategory(self, *args):
         result = sm.GetService('form').ProcessForm(self.sr.formData[1], self.sr.formData[2])
@@ -1561,6 +1634,7 @@ class PetitionWindow(uicontrols.Window):
                 picker.SetText(localization.GetByLabel('UI/Neocom/Petition/ReportInfoNotFound'))
         else:
             eve.Message('CustomInfo', {'info': localization.GetByLabel('UI/Neocom/Petition/PleaseType3Letters')})
+        return
 
     def FormatForDropDown(self, entryList):
         newList = []
@@ -1575,46 +1649,48 @@ class PetitionWindow(uicontrols.Window):
     def CreatePetition(self, *args):
         if self.lockPetitioning == True:
             return
-        self.lockPetitioning = True
-        propertyList = []
-        resultDict = sm.GetService('form').ProcessForm(self.sr.formData[1], self.sr.formData[2])
-        combatLog = None
-        chatLog = None
-        categoryID = self.category[0]
-        if resultDict:
-            messages = sm.GetService('LSC').GetChannelMessages()
-            if len(messages):
-                messageText = ''
-                for m in messages:
-                    t, mes = m
-                    messageText += 'Channel: %s\n' % t
-                    for line in mes:
-                        messageText += '[%s] %s> %s\n' % (util.FmtDate(line[3]), line[0], line[1])
-
-                if messageText:
-                    chatLog = messageText
-            combatLog = sm.GetService('logger').GetLog()
-            if chatLog:
-                chatLog = chatLog[-const.petitionMaxChatLogSize:]
-            if combatLog:
-                combatLog = combatLog[-const.petitionMaxCombatLogSize:]
-            for propertyRow in self.properties:
-                if propertyRow.inputType == 'Picker':
-                    value = self.sr.formData[0].sr.Get(propertyRow.propertyName).GetComboValue()
-                    propertyList.append([propertyRow.propertyID, value])
-                else:
-                    propertyList.append([propertyRow.propertyID, resultDict[propertyRow.propertyName]])
-
-            subject = resultDict['subject']
-            petition = resultDict['petition']
-            sm.RemoteSvc('petitioner').CreatePetition(subject, petition, categoryID, None, self.OocCharacterID, chatLog, combatLog, propertyList)
-            sm.ScatterEvent('OnPetitionCreated')
-            eve.Message('CustomInfo', {'info': localization.GetByLabel('UI/Neocom/Petition/Created')})
-            self.CloseByUser()
         else:
-            self.lockPetitioning = False
+            self.lockPetitioning = True
+            propertyList = []
+            resultDict = sm.GetService('form').ProcessForm(self.sr.formData[1], self.sr.formData[2])
+            combatLog = None
+            chatLog = None
+            categoryID = self.category[0]
+            if resultDict:
+                messages = sm.GetService('LSC').GetChannelMessages()
+                if len(messages):
+                    messageText = ''
+                    for m in messages:
+                        t, mes = m
+                        messageText += 'Channel: %s\n' % t
+                        for line in mes:
+                            messageText += '[%s] %s> %s\n' % (util.FmtDate(line[3]), line[0], line[1])
 
-    def GetCategories(self, forcedLanguage = None):
+                    if messageText:
+                        chatLog = messageText
+                combatLog = sm.GetService('logger').GetLog()
+                if chatLog:
+                    chatLog = chatLog[-const.petitionMaxChatLogSize:]
+                if combatLog:
+                    combatLog = combatLog[-const.petitionMaxCombatLogSize:]
+                for propertyRow in self.properties:
+                    if propertyRow.inputType == 'Picker':
+                        value = self.sr.formData[0].sr.Get(propertyRow.propertyName).GetComboValue()
+                        propertyList.append([propertyRow.propertyID, value])
+                    else:
+                        propertyList.append([propertyRow.propertyID, resultDict[propertyRow.propertyName]])
+
+                subject = resultDict['subject']
+                petition = resultDict['petition']
+                sm.RemoteSvc('petitioner').CreatePetition(subject, petition, categoryID, None, self.OocCharacterID, chatLog, combatLog, propertyList)
+                sm.ScatterEvent('OnPetitionCreated')
+                eve.Message('CustomInfo', {'info': localization.GetByLabel('UI/Neocom/Petition/Created')})
+                self.CloseByUser()
+            else:
+                self.lockPetitioning = False
+            return
+
+    def GetCategories(self, forcedLanguage=None):
         parentCategoryDict, childCategoryDict, descriptionDict, self.billingCategories = sm.RemoteSvc('petitioner').GetCategoryHierarchicalInfo()
         parentCategories = [[localization.GetByLabel('UI/Neocom/Petition/SelectParentCategory'), None]]
         childCategoryRetDict = {}

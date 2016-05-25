@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\carbon\common\lib\memorySnapshot.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\carbon\common\lib\memorySnapshot.py
 import blue
 import yaml
 import os
@@ -46,7 +47,7 @@ def ClearMemorySnapshots():
         os.remove(os.path.join(snapShotsFolder, fn))
 
 
-def WriteMemorySnapshot(name = ''):
+def WriteMemorySnapshot(name=''):
     global workingSetStatistic
     CreateSnapshotsFolder()
     frameCounter = blue.os.framesTotal
@@ -99,6 +100,7 @@ def WriteMemorySnapshot(name = ''):
     blue.memoryTracker.SummaryReport(str(summaryFilePath))
     blue.memoryTracker.DumpReportAsText(dumpFilePath)
     print 'Wrote report:', dumpFilePath, 'and', yamlFileName
+    return
 
 
 def LaunchMemorySnapshotInspector():

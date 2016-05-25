@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\common\modules\nice\client\_nastyspace\facwarCommon.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\common\modules\nice\client\_nastyspace\facwarCommon.py
 from eve.common.script.util.facwarCommon import BENEFITS_BY_LEVEL
 from eve.common.script.util.facwarCommon import BENEFIT_MARKETREDUCTION
 from eve.common.script.util.facwarCommon import BENEFIT_PLANETDISTRICTS

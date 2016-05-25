@@ -1,9 +1,10 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\packages\projectdiscovery\client\introduction.py
-import uiprimitives
-import uicontrols
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\packages\projectdiscovery\client\introduction.py
 import carbonui.const as uiconst
-import localization
 import const
+import localization
+import uicontrols
+import uiprimitives
 
 class IntroductionScreen(uicontrols.Window):
     __guid__ = 'ProjectDiscoveryIntroduction'
@@ -15,9 +16,9 @@ class IntroductionScreen(uicontrols.Window):
         super(IntroductionScreen, self).ApplyAttributes(attributes)
         caption = localization.GetByLabel('UI/ProjectDiscovery/IntroductionTextWindowCaption')
         self.SetCaption(caption)
-        self.SetupLayout()
+        self.setup_layout()
 
-    def SetupLayout(self):
+    def setup_layout(self):
         self.SetTopparentHeight(0)
         main = self.GetMainArea()
         main.padding = 5

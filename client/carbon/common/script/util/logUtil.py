@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\carbon\common\script\util\logUtil.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\carbon\common\script\util\logUtil.py
 import logging
 import logmodule
 import sys
@@ -17,7 +18,7 @@ def supersafestr(o):
 
 class LogMixin():
 
-    def __init__(self, logChannel = None, bindObject = None):
+    def __init__(self, logChannel=None, bindObject=None):
         logChannelName = self.GetLogChannelName(logChannel, bindObject)
         self.__logname__ = self.GetLogName(logChannelName)
         self.logChannel = logmodule.GetChannel(logChannelName)
@@ -26,7 +27,7 @@ class LogMixin():
         for each in ('Info', 'Notice', 'Warn', 'Error'):
             self.logContexts[each] = 'Logging::' + each
 
-    def GetLogChannelName(self, logChannelName = None, bindObject = None):
+    def GetLogChannelName(self, logChannelName=None, bindObject=None):
         if type(logChannelName) not in [str, type(None)]:
             raise Exception('logChannelName must be a string!')
         if logChannelName and bindObject:
@@ -133,6 +134,8 @@ class LogMixin():
                 if charsession and not boot.role == 'client':
                     charsession.LogSessionHistory(x, None, 1)
 
+        return
+
     def LogError(self, *args, **keywords):
         argsList = self.ArrangeArguments(*args, **keywords)
         if self.logChannel.IsOpen(logmodule.LGERR) or charsession:
@@ -161,6 +164,8 @@ class LogMixin():
                     self.logChannel.Log(x, logmodule.LGERR, 1)
                 if charsession and not boot.role == 'client':
                     charsession.LogSessionHistory(x, None, 1)
+
+        return
 
     def LogNotice(self, *args, **keywords):
         argsList = self.ArrangeArguments(*args, **keywords)

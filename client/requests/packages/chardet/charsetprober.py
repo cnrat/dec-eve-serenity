@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\packages\requests\packages\chardet\charsetprober.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\packages\requests\packages\chardet\charsetprober.py
 from . import constants
 import re
 
@@ -20,7 +21,7 @@ class CharSetProber:
         return self._mState
 
     def get_confidence(self):
-        return 0.0
+        pass
 
     def filter_high_bit_only(self, aBuf):
         aBuf = re.sub('([\x00-\x7f])+', ' ', aBuf)

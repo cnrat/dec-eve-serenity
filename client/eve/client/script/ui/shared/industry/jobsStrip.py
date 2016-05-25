@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\client\script\ui\shared\industry\jobsStrip.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\client\script\ui\shared\industry\jobsStrip.py
 import math
 from carbonui.primitives.container import Container
 from carbonui.primitives.frame import Frame
@@ -34,6 +35,7 @@ class JobsStrip(Container):
         GradientSprite(bgParent=self, rotation=-math.pi / 2, rgbData=[(0, (0.3, 0.3, 0.3))], alphaData=[(0, 0.3), (1.0, 0.05)])
         FrameThemeColored(bgParent=self, colorType=uiconst.COLORTYPE_UIBASECONTRAST)
         self.UpdateState()
+        return
 
     @telemetry.ZONE_METHOD
     def OnNewJobData(self, jobData):
@@ -72,6 +74,7 @@ class JobsSummary(LayoutGrid):
         self.rangeLabel = Label()
         cell = self.AddCell(self.rangeLabel, cellPadding=(5, 0, 5, 0))
         self.rangeErrorFrame = ErrorFrame(parent=cell, align=uiconst.TOALL, state=uiconst.UI_DISABLED)
+        return
 
     def OnNewJobData(self, jobData):
         self.jobData = jobData

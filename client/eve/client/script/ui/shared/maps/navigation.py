@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\client\script\ui\shared\maps\navigation.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\client\script\ui\shared\maps\navigation.py
 from carbonui.primitives.line import Line
 from eve.client.script.ui.control.eveHint import BubbleHint
 import blue
@@ -34,10 +35,12 @@ class StarMapLayer(uicls.LayerCore):
         self.smoothTranslateCameraTasklet = None
         self.smoothDollyCameraTasklet = None
         self.watchCameraTasklet = None
+        return
 
     def __del__(self):
         if self.watchCameraTasklet is not None:
             self.watchCameraTasklet.kill()
+        return
 
     def ApplyAttributes(self, attributes):
         uicls.LayerCore.ApplyAttributes(self, attributes)
@@ -47,10 +50,12 @@ class StarMapLayer(uicls.LayerCore):
         self.lastPickTime = blue.os.GetWallclockTime()
         self.drag = False
         self.bubbleHint = None
+        return
 
     def Close(self, *args):
         uicls.LayerCore.Close(self, *args)
         self.pickThread = None
+        return
 
     def MoveTF(self, tf, dx, dy):
         camera = sm.GetService('sceneManager').GetRegisteredCamera(evecamera.CAM_STARMAP)
@@ -93,6 +98,7 @@ class StarMapLayer(uicls.LayerCore):
         if self.smoothTranslateCameraTasklet is not None:
             self.smoothTranslateCameraTasklet.kill()
         self.smoothTranslateCameraTasklet = uthread.new(DoMove, dx, dy)
+        return
 
     def SmoothOrbitParent(self, dx, dy):
 
@@ -113,6 +119,7 @@ class StarMapLayer(uicls.LayerCore):
         camera.OrbitParent(-dx * fov * 0.2, dy * fov * 0.2)
         if self.watchCameraTasklet is None:
             self.watchCameraTasklet = uthread.new(WatchCamera, camera)
+        return
 
     def SmoothDollyCamera(self, dy):
         dy *= 2.5
@@ -122,116 +129,126 @@ class StarMapLayer(uicls.LayerCore):
             camera = sm.GetService('sceneManager').GetRegisteredCamera(evecamera.CAM_STARMAP)
             if camera is None:
                 return
-            starmap = sm.GetService('starmap')
-            while True:
-                camera.Dolly(-dy * 0.002 * abs(camera.translationFromParent))
-                camera.translationFromParent = camera.CheckTranslationFromParent(camera.translationFromParent)
-                starmap.OnCameraMoved()
-                dy = dy * friction
-                if int(dy) == 0:
-                    break
-                blue.pyos.synchro.SleepWallclock(10)
+            else:
+                starmap = sm.GetService('starmap')
+                while True:
+                    camera.Dolly(-dy * 0.002 * abs(camera.translationFromParent))
+                    camera.translationFromParent = camera.CheckTranslationFromParent(camera.translationFromParent)
+                    starmap.OnCameraMoved()
+                    dy = dy * friction
+                    if int(dy) == 0:
+                        break
+                    blue.pyos.synchro.SleepWallclock(10)
 
-            starmap.CheckLabelDist()
-            self.mouseStationary = False
+                starmap.CheckLabelDist()
+                self.mouseStationary = False
+                return
 
         if self.smoothDollyCameraTasklet is not None:
             self.smoothDollyCameraTasklet.kill()
         self.smoothDollyCameraTasklet = uthread.new(DoDolly, dy)
+        return
 
     def OnMouseMove(self, *args):
         if not self._isPicked:
             return
-        self.mouseMovedAfterMouseDown = True
-        starmap = sm.GetService('starmap')
-        lib = uicore.uilib
-        dx = lib.dx
-        dy = lib.dy
-        camera = sm.GetService('sceneManager').GetRegisteredCamera(evecamera.CAM_STARMAP)
-        if camera is None:
-            return
-        ctrl = lib.Key(uiconst.VK_CONTROL)
-        shift = lib.Key(uiconst.VK_SHIFT)
-        self.mouseDownRegionID = None
-        if eve.session.role & (service.ROLE_GML | service.ROLE_WORLDMOD):
-            if ctrl and shift and lib.leftbtn and not lib.rightbtn:
-                if self.pickedTF is not None:
-                    self.MoveTF(self.pickedTF, dx, dy)
-                    return
-            if ctrl and shift and not lib.leftbtn and lib.rightbtn:
-                if self.pickedTF is not None:
-                    self.ScaleTF(self.pickedTF, dy)
-                    return
-        drag = False
-        if not lib.leftbtn and lib.rightbtn:
-            drag = True
-        elif lib.leftbtn and not lib.rightbtn:
-            if starmap.IsFlat():
-                drag = True
-        if drag:
-            self.SmoothTranslateCamera(dx, dy)
-        elif lib.leftbtn and lib.rightbtn:
-            modifier = uicore.mouseInputHandler.GetCameraZoomModifier()
-            self.SmoothDollyCamera(modifier * dy)
-        elif lib.leftbtn and not lib.rightbtn:
-            self.SmoothOrbitParent(dx, dy)
         else:
-            regionID = self.PickRegionID()
-            if regionID is not None:
-                label = starmap.GetRegionLabel(regionID)
-                starmap.UpdateLines(regionID)
-        self.drag = drag
+            self.mouseMovedAfterMouseDown = True
+            starmap = sm.GetService('starmap')
+            lib = uicore.uilib
+            dx = lib.dx
+            dy = lib.dy
+            camera = sm.GetService('sceneManager').GetRegisteredCamera(evecamera.CAM_STARMAP)
+            if camera is None:
+                return
+            ctrl = lib.Key(uiconst.VK_CONTROL)
+            shift = lib.Key(uiconst.VK_SHIFT)
+            self.mouseDownRegionID = None
+            if eve.session.role & (service.ROLE_GML | service.ROLE_WORLDMOD):
+                if ctrl and shift and lib.leftbtn and not lib.rightbtn:
+                    if self.pickedTF is not None:
+                        self.MoveTF(self.pickedTF, dx, dy)
+                        return
+                if ctrl and shift and not lib.leftbtn and lib.rightbtn:
+                    if self.pickedTF is not None:
+                        self.ScaleTF(self.pickedTF, dy)
+                        return
+            drag = False
+            if not lib.leftbtn and lib.rightbtn:
+                drag = True
+            elif lib.leftbtn and not lib.rightbtn:
+                if starmap.IsFlat():
+                    drag = True
+            if drag:
+                self.SmoothTranslateCamera(dx, dy)
+            elif lib.leftbtn and lib.rightbtn:
+                modifier = uicore.mouseInputHandler.GetCameraZoomModifier()
+                self.SmoothDollyCamera(modifier * dy)
+            elif lib.leftbtn and not lib.rightbtn:
+                self.SmoothOrbitParent(dx, dy)
+            else:
+                regionID = self.PickRegionID()
+                if regionID is not None:
+                    label = starmap.GetRegionLabel(regionID)
+                    starmap.UpdateLines(regionID)
+            self.drag = drag
+            return
 
     def OverridePick(self, x, y):
         if uicore.uilib.leftbtn or uicore.uilib.rightbtn:
             return self
-        mouseX = uicore.uilib.x
-        mouseY = uicore.uilib.y
-        if self.lastMouseXPick is None:
-            self.lastMouseXPick = mouseX
-            self.lastMouseYPick = mouseY
-            self.mouseStationary = False
-        if abs(mouseX - self.lastMouseXPick) + abs(mouseY - self.lastMouseYPick) == 0:
-            if not self.mouseStationary:
-                self.mouseStationary = True
-                self.pickThread = base.AutoTimer(5, self.CheckPickNew, mouseX, mouseY)
         else:
-            self.mouseStationary = False
-        if not self.lastMousePickTime or blue.os.TimeDiffInMs(self.lastMousePickTime, blue.os.GetWallclockTime()) >= 100:
-            self.lastMouseXPick = mouseX
-            self.lastMouseYPick = mouseY
-            self.lastMousePickTime = blue.os.GetWallclockTime()
-        return self
+            mouseX = uicore.uilib.x
+            mouseY = uicore.uilib.y
+            if self.lastMouseXPick is None:
+                self.lastMouseXPick = mouseX
+                self.lastMouseYPick = mouseY
+                self.mouseStationary = False
+            if abs(mouseX - self.lastMouseXPick) + abs(mouseY - self.lastMouseYPick) == 0:
+                if not self.mouseStationary:
+                    self.mouseStationary = True
+                    self.pickThread = base.AutoTimer(5, self.CheckPickNew, mouseX, mouseY)
+            else:
+                self.mouseStationary = False
+            if not self.lastMousePickTime or blue.os.TimeDiffInMs(self.lastMousePickTime, blue.os.GetWallclockTime()) >= 100:
+                self.lastMouseXPick = mouseX
+                self.lastMouseYPick = mouseY
+                self.lastMousePickTime = blue.os.GetWallclockTime()
+            return self
 
     def CheckPickNew(self, mouseX, mouseY):
         self.pickThread = None
         if self.destroyed:
             return
-        if (mouseX, mouseY) != (uicore.uilib.x, uicore.uilib.y):
+        elif (mouseX, mouseY) != (uicore.uilib.x, uicore.uilib.y):
             return
-        starmap = sm.GetService('starmap')
-        particleID = starmap.PickParticle()
-        if particleID != None and self.hoveringParticleID != particleID:
-            solarsystemID = starmap.GetItemIDFromParticleID(particleID)
-            if solarsystemID:
-                starmap.ShowCursorInterest(solarsystemID, particleID)
-                uthread.new(starmap.UpdateLines, solarsystemID)
-        self.hoveringParticleID = particleID
+        else:
+            starmap = sm.GetService('starmap')
+            particleID = starmap.PickParticle()
+            if particleID != None and self.hoveringParticleID != particleID:
+                solarsystemID = starmap.GetItemIDFromParticleID(particleID)
+                if solarsystemID:
+                    starmap.ShowCursorInterest(solarsystemID, particleID)
+                    uthread.new(starmap.UpdateLines, solarsystemID)
+            self.hoveringParticleID = particleID
+            return
 
     def PickRegionID(self):
         scene = sm.GetService('sceneManager').GetRegisteredScene('starmap')
         if scene is None:
             return
-        x, y = uicore.ScaleDpi(uicore.uilib.x), uicore.ScaleDpi(uicore.uilib.y)
-        projection, view, viewport = uix.GetFullscreenProjectionViewAndViewport()
-        pick = scene.PickObject(x, y, projection, view, viewport)
-        if pick is not None:
-            if hasattr(pick, 'regionID'):
-                return pick.regionID
-            if pick.name[:11] == '__regionDot':
-                return int(pick.name[11:])
+        else:
+            x, y = uicore.ScaleDpi(uicore.uilib.x), uicore.ScaleDpi(uicore.uilib.y)
+            projection, view, viewport = uix.GetFullscreenProjectionViewAndViewport()
+            pick = scene.PickObject(x, y, projection, view, viewport)
+            if pick is not None:
+                if hasattr(pick, 'regionID'):
+                    return pick.regionID
+                if pick.name[:11] == '__regionDot':
+                    return int(pick.name[11:])
+            return
 
-    def ShowBubbleHint(self, particleID, solarsystemID, mapColor = None, extended = 0):
+    def ShowBubbleHint(self, particleID, solarsystemID, mapColor=None, extended=0):
         starmap = sm.GetService('starmap')
         if not extended:
             blue.pyos.synchro.SleepWallclock(25)
@@ -250,36 +267,38 @@ class StarMapLayer(uicls.LayerCore):
         bubblehint = sm.GetService('systemmap').GetBubbleHint(solarsystemID, mapData=mapData, extended=extended)
         if self.destroyed:
             return
-        hint = bubblehint or [mapData.itemName]
-        data = starmap.GetStarData()
-        if particleID in data:
-            hint.append('<line>')
-            hint.append(localization.GetByLabel('UI/Map/Navigation/hintStatistics'))
-            hintFunc, hintArgs = data[particleID]
-            particleData = hintFunc(*hintArgs)
-            if type(particleData) == types.TupleType:
-                for each in particleData:
-                    hint += each
+        else:
+            hint = bubblehint or [mapData.itemName]
+            data = starmap.GetStarData()
+            if particleID in data:
+                hint.append('<line>')
+                hint.append(localization.GetByLabel('UI/Map/Navigation/hintStatistics'))
+                hintFunc, hintArgs = data[particleID]
+                particleData = hintFunc(*hintArgs)
+                if type(particleData) == types.TupleType:
+                    for each in particleData:
+                        hint += each
 
-            else:
-                hint.append(particleData)
-        if hint:
-            bubble = self.GetBubble()
-            if extended:
-                bubble.state = uiconst.UI_DISABLED
-            else:
-                bubble.state = uiconst.UI_HIDDEN
-            bubble.ShowHint(hint, 0)
-            uiutil.SetOrder(bubble.parent, 0)
-            blue.pyos.synchro.Yield()
-            if bubble.destroyed or self.destroyed:
-                return
-            bubble.state = uiconst.UI_NORMAL
-            self.hoveringParticleID = particleID
-        starmap.ShowCursorInterest(solarsystemID)
-        self.state = uiconst.UI_NORMAL
+                else:
+                    hint.append(particleData)
+            if hint:
+                bubble = self.GetBubble()
+                if extended:
+                    bubble.state = uiconst.UI_DISABLED
+                else:
+                    bubble.state = uiconst.UI_HIDDEN
+                bubble.ShowHint(hint, 0)
+                uiutil.SetOrder(bubble.parent, 0)
+                blue.pyos.synchro.Yield()
+                if bubble.destroyed or self.destroyed:
+                    return
+                bubble.state = uiconst.UI_NORMAL
+                self.hoveringParticleID = particleID
+            starmap.ShowCursorInterest(solarsystemID)
+            self.state = uiconst.UI_NORMAL
+            return
 
-    def ExpandBubbleHint(self, bubble, expand = 1):
+    def ExpandBubbleHint(self, bubble, expand=1):
         if not self.destroyed and self.bubbleHint:
             tple, regionID, mapColor, exp = self.bubbleHint
             if not exp:
@@ -307,18 +326,20 @@ class StarMapLayer(uicls.LayerCore):
     def OnClick(self, *args):
         if self.destroyed:
             return
-        if self.mouseMovedAfterMouseDown:
+        elif self.mouseMovedAfterMouseDown:
             return
-        starmap = sm.GetService('starmap')
-        particleID = starmap.PickParticle()
-        if particleID:
-            if particleID == self.hoveringParticleID:
-                solarSystemID = starmap.GetItemIDFromParticleID(particleID)
-                starmap.SetInterest(solarSystemID)
-                return
-        regionID = self.PickRegionID()
-        if regionID is not None and getattr(self, 'mouseDownRegionID', None) == regionID:
-            starmap.SetInterest(regionID)
+        else:
+            starmap = sm.GetService('starmap')
+            particleID = starmap.PickParticle()
+            if particleID:
+                if particleID == self.hoveringParticleID:
+                    solarSystemID = starmap.GetItemIDFromParticleID(particleID)
+                    starmap.SetInterest(solarSystemID)
+                    return
+            regionID = self.PickRegionID()
+            if regionID is not None and getattr(self, 'mouseDownRegionID', None) == regionID:
+                starmap.SetInterest(regionID)
+            return
 
     def OnMouseDown(self, button):
         self.mouseMovedAfterMouseDown = False
@@ -329,6 +350,7 @@ class StarMapLayer(uicls.LayerCore):
             projection, view, viewport = uix.GetFullscreenProjectionViewAndViewport()
             self.pickedTF = scene.PickObject(uicore.ScaleDpi(uicore.uilib.x), uicore.ScaleDpi(uicore.uilib.y), projection, view, viewport)
         self.mouseDownRegionID = self.PickRegionID()
+        return
 
     def OnMouseUp(self, button):
         if not (uicore.uilib.leftbtn or uicore.uilib.rightbtn):
@@ -337,11 +359,11 @@ class StarMapLayer(uicls.LayerCore):
             uicore.layer.main.state = uiconst.UI_PICKCHILDREN
         self.lastTimeLeftMouseWasPressed = blue.os.GetWallclockTime()
         self.pickedTF = None
+        return
 
     def OnMouseWheel(self, *args):
         modifier = uicore.mouseInputHandler.GetCameraZoomModifier()
         self.ZoomBy(modifier * uicore.uilib.dz)
-        return 1
 
     def ZoomBy(self, amount):
         if self.destroyed:
@@ -351,60 +373,63 @@ class StarMapLayer(uicls.LayerCore):
     def OnDblClick(self, *args):
         if self.destroyed:
             return
-        starmap = sm.GetService('starmap')
-        solarSystemID = starmap.PickSolarSystemID()
-        if solarSystemID is not None:
-            starmap.SetInterest(solarSystemID)
+        else:
+            starmap = sm.GetService('starmap')
+            solarSystemID = starmap.PickSolarSystemID()
+            if solarSystemID is not None:
+                starmap.SetInterest(solarSystemID)
+            return
 
     def GetMenu(self):
         if self.drag:
             self.drag = False
             return
-        mapSvc = sm.GetService('map')
-        starmapSvc = sm.GetService('starmap')
-        solarsystemID = starmapSvc.PickSolarSystemID()
-        if solarsystemID is not None:
-            return starmapSvc.GetItemMenu(solarsystemID)
-        regionID = self.PickRegionID()
-        if regionID:
-            return starmapSvc.GetItemMenu(regionID)
-        if blue.os.GetWallclockTimeNow() - self.lastTimeLeftMouseWasPressed < 30000L:
-            return
-        loctations = [(uiutil.MenuLabel('UI/Map/Navigation/menuSolarSystem'), starmapSvc.SetInterest, (eve.session.solarsystemid2, 1)), (uiutil.MenuLabel('UI/Map/Navigation/menuConstellation'), starmapSvc.SetInterest, (eve.session.constellationid, 1)), (uiutil.MenuLabel('UI/Map/Navigation/menuRegion'), starmapSvc.SetInterest, (eve.session.regionid, 1))]
-        panel = [(uiutil.MenuLabel('UI/Map/Navigation/menuSearch'), self.ShowPanel, (localization.GetByLabel('UI/Map/Navigation/menuSearch'),)), (uiutil.MenuLabel('UI/Map/Navigation/menuDisplayMapSettings'), self.ShowPanel, (localization.GetByLabel('UI/Map/Navigation/lblStarMap'),))]
-        m = [(uiutil.MenuLabel('UI/Map/Navigation/menuSelectCurrent'), loctations)]
-        waypoints = starmapSvc.GetWaypoints()
-        if len(waypoints):
-            waypointList = []
-            wpCount = 1
-            for waypointID in waypoints:
-                waypointItem = mapSvc.GetItem(waypointID)
-                caption = uiutil.MenuLabel('UI/Map/Navigation/menuWaypointEntry', {'itemName': waypointItem.itemName,
-                 'wpCount': wpCount})
-                waypointList += [(caption, starmapSvc.SetInterest, (waypointID, 1))]
-                wpCount += 1
+        else:
+            mapSvc = sm.GetService('map')
+            starmapSvc = sm.GetService('starmap')
+            solarsystemID = starmapSvc.PickSolarSystemID()
+            if solarsystemID is not None:
+                return starmapSvc.GetItemMenu(solarsystemID)
+            regionID = self.PickRegionID()
+            if regionID:
+                return starmapSvc.GetItemMenu(regionID)
+            if blue.os.GetWallclockTimeNow() - self.lastTimeLeftMouseWasPressed < 30000L:
+                return
+            loctations = [(uiutil.MenuLabel('UI/Map/Navigation/menuSolarSystem'), starmapSvc.SetInterest, (eve.session.solarsystemid2, 1)), (uiutil.MenuLabel('UI/Map/Navigation/menuConstellation'), starmapSvc.SetInterest, (eve.session.constellationid, 1)), (uiutil.MenuLabel('UI/Map/Navigation/menuRegion'), starmapSvc.SetInterest, (eve.session.regionid, 1))]
+            panel = [(uiutil.MenuLabel('UI/Map/Navigation/menuSearch'), self.ShowPanel, (localization.GetByLabel('UI/Map/Navigation/menuSearch'),)), (uiutil.MenuLabel('UI/Map/Navigation/menuDisplayMapSettings'), self.ShowPanel, (localization.GetByLabel('UI/Map/Navigation/lblStarMap'),))]
+            m = [(uiutil.MenuLabel('UI/Map/Navigation/menuSelectCurrent'), loctations)]
+            waypoints = starmapSvc.GetWaypoints()
+            if len(waypoints):
+                waypointList = []
+                wpCount = 1
+                for waypointID in waypoints:
+                    waypointItem = mapSvc.GetItem(waypointID)
+                    caption = uiutil.MenuLabel('UI/Map/Navigation/menuWaypointEntry', {'itemName': waypointItem.itemName,
+                     'wpCount': wpCount})
+                    waypointList += [(caption, starmapSvc.SetInterest, (waypointID, 1))]
+                    wpCount += 1
 
-            m.append((uiutil.MenuLabel('UI/Map/Navigation/menuSelectWaypoint'), waypointList))
-        m += [None, (uiutil.MenuLabel('UI/Map/Navigation/menuWorldControlPanel'), panel)]
-        if len(starmapSvc.GetWaypoints()) > 0:
-            m.append(None)
-            m.append((uiutil.MenuLabel('UI/Map/Navigation/menuClearWaypoints'), starmapSvc.ClearWaypoints, (None,)))
-            if starmapSvc.genericRoute:
-                m.append((uiutil.MenuLabel('UI/Map/Navigation/menuClearRoute'), starmapSvc.RemoveGenericPath))
-        if eve.session.role & (service.ROLE_GML | service.ROLE_WORLDMOD):
-            landmarkScales = [(uiutil.MenuLabel('UI/Map/Navigation/menuAllImportance'), starmapSvc.LM_DownloadLandmarks, ()),
-             (uiutil.MenuLabel('UI/Map/Navigation/menuImportance', {'level': 0}), starmapSvc.LM_DownloadLandmarks, (0,)),
-             (uiutil.MenuLabel('UI/Map/Navigation/menuImportance', {'level': 1}), starmapSvc.LM_DownloadLandmarks, (1,)),
-             (uiutil.MenuLabel('UI/Map/Navigation/menuImportance', {'level': 2}), starmapSvc.LM_DownloadLandmarks, (2,)),
-             (uiutil.MenuLabel('UI/Map/Navigation/menuImportance', {'level': 3}), starmapSvc.LM_DownloadLandmarks, (3,)),
-             (uiutil.MenuLabel('UI/Map/Navigation/menuImportance', {'level': 4}), starmapSvc.LM_DownloadLandmarks, (4,)),
-             (uiutil.MenuLabel('UI/Map/Navigation/menuImportance', {'level': 5}), starmapSvc.LM_DownloadLandmarks, (5,))]
-            m.append(None)
-            m.append((uiutil.MenuLabel('UI/Map/Navigation/menuGetLandmarks'), landmarkScales))
-            if eve.session.role & service.ROLE_WORLDMOD:
-                m.append((uiutil.MenuLabel('UI/Map/Navigation/menuUpdateLandmarks'), starmapSvc.LM_UploadLandmarks, ()))
-            m.append((uiutil.MenuLabel('UI/Map/Navigation/menuHideLandmarks'), starmapSvc.LM_ClearLandmarks, ()))
-        return m
+                m.append((uiutil.MenuLabel('UI/Map/Navigation/menuSelectWaypoint'), waypointList))
+            m += [None, (uiutil.MenuLabel('UI/Map/Navigation/menuWorldControlPanel'), panel)]
+            if len(starmapSvc.GetWaypoints()) > 0:
+                m.append(None)
+                m.append((uiutil.MenuLabel('UI/Map/Navigation/menuClearWaypoints'), starmapSvc.ClearWaypoints, (None,)))
+                if starmapSvc.genericRoute:
+                    m.append((uiutil.MenuLabel('UI/Map/Navigation/menuClearRoute'), starmapSvc.RemoveGenericPath))
+            if eve.session.role & (service.ROLE_GML | service.ROLE_WORLDMOD):
+                landmarkScales = [(uiutil.MenuLabel('UI/Map/Navigation/menuAllImportance'), starmapSvc.LM_DownloadLandmarks, ()),
+                 (uiutil.MenuLabel('UI/Map/Navigation/menuImportance', {'level': 0}), starmapSvc.LM_DownloadLandmarks, (0,)),
+                 (uiutil.MenuLabel('UI/Map/Navigation/menuImportance', {'level': 1}), starmapSvc.LM_DownloadLandmarks, (1,)),
+                 (uiutil.MenuLabel('UI/Map/Navigation/menuImportance', {'level': 2}), starmapSvc.LM_DownloadLandmarks, (2,)),
+                 (uiutil.MenuLabel('UI/Map/Navigation/menuImportance', {'level': 3}), starmapSvc.LM_DownloadLandmarks, (3,)),
+                 (uiutil.MenuLabel('UI/Map/Navigation/menuImportance', {'level': 4}), starmapSvc.LM_DownloadLandmarks, (4,)),
+                 (uiutil.MenuLabel('UI/Map/Navigation/menuImportance', {'level': 5}), starmapSvc.LM_DownloadLandmarks, (5,))]
+                m.append(None)
+                m.append((uiutil.MenuLabel('UI/Map/Navigation/menuGetLandmarks'), landmarkScales))
+                if eve.session.role & service.ROLE_WORLDMOD:
+                    m.append((uiutil.MenuLabel('UI/Map/Navigation/menuUpdateLandmarks'), starmapSvc.LM_UploadLandmarks, ()))
+                m.append((uiutil.MenuLabel('UI/Map/Navigation/menuHideLandmarks'), starmapSvc.LM_ClearLandmarks, ()))
+            return m
 
     def ShowPanel(self, panelName):
         wnd = MapPalette.Open()

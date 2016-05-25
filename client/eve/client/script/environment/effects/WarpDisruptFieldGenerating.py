@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\client\script\environment\effects\WarpDisruptFieldGenerating.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\client\script\environment\effects\WarpDisruptFieldGenerating.py
 from eve.client.script.environment.effects.GenericEffect import ShipEffect
 
 class WarpDisruptFieldGenerating(ShipEffect):
@@ -12,6 +13,7 @@ class WarpDisruptFieldGenerating(ShipEffect):
             self.realRadius = trigger.graphicInfo.range
         else:
             self.realRadius = self.fxSequencer.GetType(self.moduleTypeID).warpScrambleRange
+        return
 
     def Prepare(self):
         ShipEffect.Prepare(self)

@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\packages\notifications\client\controls\notificationSettingList.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\packages\notifications\client\controls\notificationSettingList.py
 from carbonui.control.scrollContainer import ScrollContainer
 from carbonui.primitives.sprite import Sprite
 from eve.client.script.ui.control.eveLabel import EveLabelMediumBold

@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\common\script\util\eveCommonUtils.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\common\script\util\eveCommonUtils.py
 import math
 import types
 import xml.parsers.expat
@@ -9,6 +10,7 @@ import util
 from dogma.const import attributeAsteroidRadiusUnitSize, attributeAsteroidRadiusGrowthFactor
 from eve.common.lib.appConst import maxAsteroidRadius
 import localization
+from eveuniverse.security import SecurityClassFromLevel
 ASTEROID_EXP_SCALE = 4e-05
 
 def CombatLog_CopyText(mail, *args):
@@ -155,71 +157,73 @@ def GetAttackersAndItemsFromKillMail(mail):
         state = pstate.Get('state', 0)
         if state == 99:
             return
-        if tag == 'doc':
+        elif tag == 'doc':
             return
-        if tag == 'attackers':
-            if state != 0:
-                pstate.Set('state', 99)
-                return
-            pstate.Set('state', 1)
-        elif tag == 'a':
-            if state != 1:
-                pstate.Set('state', 99)
-                return
-            pstate.Set('state', 2)
-            attacker = util.KeyVal()
-            attacker.characterID = attrs.get('c', None)
-            attacker.corporationID = attrs.get('r', None)
-            attacker.allianceID = attrs.get('a', None)
-            attacker.factionID = attrs.get('f', None)
-            attacker.shipTypeID = attrs.get('s', None)
-            attacker.weaponTypeID = attrs.get('w', None)
-            attacker.damageDone = int(float(attrs.get('d', 0)))
-            attacker.secStatusText = attrs.get('t', '0.0')
-            attacker.finalBlow = False
-            attackers.append((attacker.damageDone, attacker))
-        elif tag == 'items':
-            if state != 0 and state != 3:
-                pstate.Set('state', 99)
-                return
-            pstate.Set('state', 4)
-        elif tag == 'i':
-            if state != 4 and state != 5:
-                pstate.Set('state', 99)
-                return
-            item = util.KeyVal()
-            item.typeID = attrs.get('t', None)
-            item.flag = int(float(attrs.get('f', 0)))
-            item.singleton = int(float(attrs.get('s', 0)))
-            item.qtyDropped = int(float(attrs.get('d', 0)))
-            item.qtyDestroyed = int(float(attrs.get('x', 0)))
-            item.contents = []
-            if state == 4:
-                pstate.Set('state', 5)
-                if item.qtyDropped > 0 and item.qtyDestroyed > 0:
-                    item2 = util.KeyVal()
-                    item2.typeID = item.typeID
-                    item2.flag = item.flag
-                    item2.singleton = item.singleton
-                    item2.qtyDropped = item.qtyDropped
-                    item2.qtyDestroyed = 0
-                    item2.contents = []
-                    item.qtyDropped = 0
-                    items.append(item)
-                    items.append(item2)
-                else:
-                    items.append(item)
-                    pstate.Set('lastitem', item)
-            else:
-                pstate.Set('state', 6)
-                litem = pstate.Get('lastitem', None)
-                if litem is not None:
-                    litem.contents.append(item)
-                    pstate.Set('lastitem', litem)
-                else:
-                    pstate.Set('state', 99)
         else:
-            pstate.Set('state', 99)
+            if tag == 'attackers':
+                if state != 0:
+                    pstate.Set('state', 99)
+                    return
+                pstate.Set('state', 1)
+            elif tag == 'a':
+                if state != 1:
+                    pstate.Set('state', 99)
+                    return
+                pstate.Set('state', 2)
+                attacker = util.KeyVal()
+                attacker.characterID = attrs.get('c', None)
+                attacker.corporationID = attrs.get('r', None)
+                attacker.allianceID = attrs.get('a', None)
+                attacker.factionID = attrs.get('f', None)
+                attacker.shipTypeID = attrs.get('s', None)
+                attacker.weaponTypeID = attrs.get('w', None)
+                attacker.damageDone = int(float(attrs.get('d', 0)))
+                attacker.secStatusText = attrs.get('t', '0.0')
+                attacker.finalBlow = False
+                attackers.append((attacker.damageDone, attacker))
+            elif tag == 'items':
+                if state != 0 and state != 3:
+                    pstate.Set('state', 99)
+                    return
+                pstate.Set('state', 4)
+            elif tag == 'i':
+                if state != 4 and state != 5:
+                    pstate.Set('state', 99)
+                    return
+                item = util.KeyVal()
+                item.typeID = attrs.get('t', None)
+                item.flag = int(float(attrs.get('f', 0)))
+                item.singleton = int(float(attrs.get('s', 0)))
+                item.qtyDropped = int(float(attrs.get('d', 0)))
+                item.qtyDestroyed = int(float(attrs.get('x', 0)))
+                item.contents = []
+                if state == 4:
+                    pstate.Set('state', 5)
+                    if item.qtyDropped > 0 and item.qtyDestroyed > 0:
+                        item2 = util.KeyVal()
+                        item2.typeID = item.typeID
+                        item2.flag = item.flag
+                        item2.singleton = item.singleton
+                        item2.qtyDropped = item.qtyDropped
+                        item2.qtyDestroyed = 0
+                        item2.contents = []
+                        item.qtyDropped = 0
+                        items.append(item)
+                        items.append(item2)
+                    else:
+                        items.append(item)
+                        pstate.Set('lastitem', item)
+                else:
+                    pstate.Set('state', 6)
+                    litem = pstate.Get('lastitem', None)
+                    if litem is not None:
+                        litem.contents.append(item)
+                        pstate.Set('lastitem', litem)
+                    else:
+                        pstate.Set('state', 99)
+            else:
+                pstate.Set('state', 99)
+            return
 
     def _xmlTagEnd(tag):
         state = pstate.Get('state', 0)
@@ -289,15 +293,6 @@ def GetItemText(item, qty, itemLocation):
         if qty > 1:
             return localization.GetByLabel('UI/Util/CommonUtils/KillMAilLostStack', item=item.typeID, quantity=qty, itemLocation=itemLocation)
         return localization.GetByLabel('UI/Util/CommonUtils/KillMailLostItem', item=item.typeID, itemLocation=itemLocation)
-
-
-def SecurityClassFromLevel(level):
-    if level <= 0.0:
-        return const.securityClassZeroSec
-    elif level < 0.45:
-        return const.securityClassLowSec
-    else:
-        return const.securityClassHighSec
 
 
 def ComputeRadiusFromQuantity(categoryID, groupID, typeID, quantity, dogma):

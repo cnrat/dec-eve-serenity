@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\packages\reprocessing\ui\factory.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\packages\reprocessing\ui\factory.py
 from reprocessing.ui.containerCreator import ContainerCreator, Containers
 from reprocessing.ui.controller import Controller
 from reprocessing.ui.grouper import GetCategoryGrouper, GetGroupGrouper

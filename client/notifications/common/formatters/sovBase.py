@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\packages\notifications\common\formatters\sovBase.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\packages\notifications\common\formatters\sovBase.py
 from notifications.common.formatters.baseFormatter import BaseNotificationFormatter
 DECLOAK_TIME = 'decloakTime'
 ALLIANCE_ID = 'allianceID'
@@ -7,7 +8,7 @@ SOLAR_SYSTEM_ID = 'solarSystemID'
 
 class SovCaptureBaseNotification(BaseNotificationFormatter):
 
-    def __init__(self, subjectLabel, bodyLabel, localizationInject = None):
+    def __init__(self, subjectLabel, bodyLabel, localizationInject=None):
         BaseNotificationFormatter.__init__(self, subjectLabel=subjectLabel, bodyLabel=bodyLabel)
         self.localization = self.GetLocalizationImpl(localizationInject)
 
@@ -18,7 +19,7 @@ class SovCaptureBaseNotification(BaseNotificationFormatter):
         return data
 
     @staticmethod
-    def MakeSampleData(variant = 0):
+    def MakeSampleData(variant=0):
         return SovCaptureBaseNotification.MakeData(1926, 30004797)
 
     def _FormatSubject(self, data, notification):

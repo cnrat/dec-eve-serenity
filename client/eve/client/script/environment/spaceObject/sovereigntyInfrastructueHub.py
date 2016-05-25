@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\client\script\environment\spaceObject\sovereigntyInfrastructueHub.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\client\script\environment\spaceObject\sovereigntyInfrastructueHub.py
 import blue
 from eve.client.script.environment.spaceObject.playerOwnedStructure import PlayerOwnedStructure
 import eve.common.script.mgt.posConst as pos
@@ -8,12 +9,14 @@ ARMOR_EFFECT = 'effects.StructureRepair'
 
 class SovereigntyInfrastructueHub(PlayerOwnedStructure):
 
-    def LoadModel(self, fileName = None, loadedModel = None):
+    def LoadModel(self, fileName=None, loadedModel=None):
         PlayerOwnedStructure.LoadModel(self, fileName, loadedModel)
         posState = self.typeData['slimItem'].posState
         if posState is None:
             return
-        self.HandleStateChange(posState)
+        else:
+            self.HandleStateChange(posState)
+            return
 
     def OnSlimItemUpdated(self, slimItem):
         self.HandleStateChange(slimItem.posState)
@@ -29,7 +32,9 @@ class SovereigntyInfrastructueHub(PlayerOwnedStructure):
     def ShieldReinforced(self, startEffect):
         fx = self.sm.GetService('FxSequencer')
         fx.OnSpecialFX(self.id, None, None, None, None, SHIELD_EFFECT, False, startEffect, True, repeat=sys.maxint)
+        return
 
     def ArmorReinforced(self, startEffect):
         fx = self.sm.GetService('FxSequencer')
         fx.OnSpecialFX(self.id, None, None, None, None, ARMOR_EFFECT, False, startEffect, True, repeat=sys.maxint)
+        return

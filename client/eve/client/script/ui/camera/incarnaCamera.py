@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\client\script\ui\camera\incarnaCamera.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\client\script\ui\camera\incarnaCamera.py
 import sys
 import log
 import blue
@@ -46,6 +47,7 @@ class IncarnaCamera(cameras.PolarCamera):
         self.updateMouse = False
         self.defaultCursor = uiconst.UICURSOR_POINTER
         self.lastUpdateTime = blue.os.GetWallclockTime()
+        return
 
     def AdjustZoom(self, argument):
         pass
@@ -78,6 +80,7 @@ class IncarnaCamera(cameras.PolarCamera):
         self.SetCursorPos(*self.preClickCursorPos)
         uicore.uilib.UnclipCursor()
         uicore.uilib.ReleaseCapture()
+        return
 
     def SetCursorPos(self, x, y):
         try:
@@ -133,8 +136,9 @@ class IncarnaCamera(cameras.PolarCamera):
             self.secondsSinceLastMouseMoveDelta = 0
         else:
             self.updateMouse = False
+        return
 
-    def AdjustYaw(self, delta, maxRotate = None, ignoreUpdate = True):
+    def AdjustYaw(self, delta, maxRotate=None, ignoreUpdate=True):
         if delta < 0:
             delta = max(delta, -cameras.MAX_MOUSE_DELTA)
         else:
@@ -236,15 +240,18 @@ class IncarnaCamera(cameras.PolarCamera):
                 self.defaultCursor = self.navigationLayer.cursor
         if self.cameraClient is None:
             self.cameraClient = sm.GetService('cameraClient')
+        return
 
     def Reset(self):
         self.audio2Listener = None
         self.navigationLayer = None
         self.ResetBehaviors()
+        return
 
     def ResetLayer(self):
         self.navigationLayer = None
         self.ResetMouseCapture()
+        return
 
     def ResetMouseCapture(self):
         if self.mouseLeftButtonDown or self.mouseRightButtonDown:

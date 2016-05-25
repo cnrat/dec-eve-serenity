@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\packages\carbonui\control\browser\browserSourceWindow.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\packages\carbonui\control\browser\browserSourceWindow.py
 import carbonui.const as uiconst
 import uthread
 import blue
@@ -29,8 +30,9 @@ class BrowserSourceWindowCore(Window):
         url = attributes.browseTo
         if url is not None:
             self.BrowseTo(url)
+        return
 
-    def BrowseTo(self, url = None, *args, **kwargs):
+    def BrowseTo(self, url=None, *args, **kwargs):
         try:
             self.SetCaption(localization.GetByLabel('UI/Browser/HTMLSourceOf', url=url))
         except:
@@ -48,11 +50,13 @@ class BrowserSourceWindowCore(Window):
         if getattr(self, 'browserPane', None):
             self.browserPane.ResizeBrowser()
         self.sizeChanged = False
+        return
 
     def _OnClose(self, *args):
         self.browserPane.browserSession = None
         self.browserSession.Cleanup()
         self.browserSession = None
+        return
 
 
 class BrowserSourceWindowCoreOverride(BrowserSourceWindowCore):

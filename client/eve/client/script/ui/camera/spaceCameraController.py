@@ -1,6 +1,8 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\client\script\ui\camera\spaceCameraController.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\client\script\ui\camera\spaceCameraController.py
 from carbonui import const as uiconst
 from eve.client.script.ui.camera.baseCameraController import BaseCameraController
+from eve.client.script.ui.camera.cameraUtil import IsNewCameraActive
 from eve.client.script.ui.inflight.dungeoneditor import DungeonEditor
 import evecamera
 from evecamera import FOV_MAX, FOV_MIN
@@ -21,6 +23,7 @@ class SpaceCameraController(BaseCameraController):
         self.isRotating = False
         self.fovResetPending = False
         self.isDragEventScattered = False
+        return
 
     def OnMouseDown(self, *args):
         self.mouseDownPos = (uicore.uilib.x, uicore.uilib.y)
@@ -55,6 +58,7 @@ class SpaceCameraController(BaseCameraController):
                 scenario.AddSelected(item.itemID)
             else:
                 scenario.RemoveSelected(item.itemID)
+        return
 
     def OnDblClick(self, *args):
         solarsystemID = session.solarsystemid
@@ -92,6 +96,8 @@ class SpaceCameraController(BaseCameraController):
                             if what.args[0] != 'MonikerSessionCheckFailure':
                                 raise what
 
+        return
+
     def OnMouseUp(self, button, *args):
         sm.ScatterEvent('OnCameraDragEnd')
         self.isDragEventScattered = False
@@ -116,9 +122,11 @@ class SpaceCameraController(BaseCameraController):
         self.mouseDownPos = None
         if self.CheckReleaseSceneCursor():
             return
-        if session.role & service.ROLE_CONTENT:
-            if self.isMovingSceneCursor:
-                self.isMovingSceneCursor = None
+        else:
+            if session.role & service.ROLE_CONTENT:
+                if self.isMovingSceneCursor:
+                    self.isMovingSceneCursor = None
+            return
 
     def ZoomBy(self, amount):
         self.GetCamera().PanCameraBy(amount * 0.001, time=0, cache=True)
@@ -128,7 +136,6 @@ class SpaceCameraController(BaseCameraController):
         modifier = uicore.mouseInputHandler.GetCameraZoomModifier()
         dz = uicore.uilib.dz
         self.ZoomBy(modifier * dz)
-        return 1
 
     def OnMouseMove(self, *args):
         if not self.isPicked:
@@ -152,7 +159,7 @@ class SpaceCameraController(BaseCameraController):
                 self.FOVZoom()
             else:
                 self.ZoomAndOrbit()
-        if leftbtn ^ rightbtn:
+        if leftbtn ^ rightbtn and not IsNewCameraActive():
             if abs(dx) + abs(dy) > 1:
                 sm.GetService('targetTrackingService').MouseTrackInterrupt()
         if not self.isDragEventScattered:
@@ -211,3 +218,4 @@ class SpaceCameraController(BaseCameraController):
 
             self.fovCached = None
         self.fovResetPending = False
+        return

@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\client\script\util\godmarowset.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\client\script\util\godmarowset.py
 import dbutil
 import blue
 import types
@@ -23,7 +24,7 @@ def rowsetIterator(rowset):
 class GodmaRowset(dbutil.CRowset):
     __passbyvalue__ = 1
 
-    def __init__(self, header, rows, rowClass = blue.DBRow):
+    def __init__(self, header, rows, rowClass=blue.DBRow):
         dbutil.CRowset.__init__(self, header, rows)
         self.rowClass = rowClass
 
@@ -48,7 +49,7 @@ class GodmaRowset(dbutil.CRowset):
     def __getslice__(self, i, j):
         return GodmaRowset(self.header, list.__getslice__(self, i, j), rowClass=self.rowClass)
 
-    def pop(self, idx = -1):
+    def pop(self, idx=-1):
         ret = self.__getitem__(idx)
         dbutil.CRowset.pop(self, idx)
         return ret
@@ -56,13 +57,13 @@ class GodmaRowset(dbutil.CRowset):
     def Index(self, columnName):
         return GodmaIndexedRowset(self.header, columnName, dbutil.CRowset.Index(self, columnName), rowClass=self.rowClass)
 
-    def Filter(self, columnName, indexName = None):
+    def Filter(self, columnName, indexName=None):
         return GodmaFilterRowset(self.header, columnName, indexName, dbutil.CRowset.Filter(self, columnName, indexName), rowClass=self.rowClass)
 
 
 class GodmaIndexedRowset(dbutil.CIndexedRowset):
 
-    def __init__(self, header, columnName, ccdict = {}, rowClass = blue.DBRow):
+    def __init__(self, header, columnName, ccdict={}, rowClass=blue.DBRow):
         dbutil.CIndexedRowset.__init__(self, header, columnName)
         self.rowClass = rowClass
         if len(ccdict):
@@ -84,7 +85,7 @@ class GodmaIndexedRowset(dbutil.CIndexedRowset):
             return rowsetIterator(self)
         return dbutil.CIndexedRowset.itervalues(self)
 
-    def get(self, k, d = None):
+    def get(self, k, d=None):
         try:
             ret = self.__getitem__(k)
         except KeyError:
@@ -117,7 +118,7 @@ class GodmaIndexedRowset(dbutil.CIndexedRowset):
 
 class GodmaFilterRowset(dbutil.CFilterRowset):
 
-    def __init__(self, header, columnName, indexName, ccdict = {}, rowClass = blue.DBRow):
+    def __init__(self, header, columnName, indexName, ccdict={}, rowClass=blue.DBRow):
         dbutil.CFilterRowset.__init__(self, header, columnName)
         self.indexName = indexName
         self.rowClass = rowClass
@@ -148,7 +149,7 @@ class GodmaFilterRowset(dbutil.CFilterRowset):
             return rowsetIterator(self)
         return dbutil.CFilterRowset.itervalues(self)
 
-    def get(self, k, d = None):
+    def get(self, k, d=None):
         try:
             ret = self.__getitem__(k)
         except KeyError:

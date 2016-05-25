@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\client\script\ui\inflight\moonscan.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\client\script\ui\inflight\moonscan.py
 from carbonui.control.menuLabel import MenuLabel
 from carbonui.primitives.container import Container
 from carbonui.util.various_unsorted import SortListOfTuples

@@ -1,11 +1,12 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\packages\carbonui\camera\behaviors\linearTransitionBehavior.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\packages\carbonui\camera\behaviors\linearTransitionBehavior.py
 import math
 import cameras
 
 class LinearTransitionBehavior(cameras.CameraBehavior):
     __guid__ = 'cameras.LinearTransitionBehavior'
 
-    def __init__(self, transitionSeconds = 1.0):
+    def __init__(self, transitionSeconds=1.0):
         cameras.CameraBehavior.__init__(self)
         self.transitionSeconds = transitionSeconds
         self.doneTime = 0
@@ -14,6 +15,7 @@ class LinearTransitionBehavior(cameras.CameraBehavior):
         self.changeZ = None
         self.changeYaw = None
         self.changePitch = None
+        return
 
     def ApplyCameraAttributes(self, camera, newPos, newYaw, newPitch, newFov):
         camera.SetPosition(newPos)

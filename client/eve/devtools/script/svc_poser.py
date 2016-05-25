@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\devtools\script\svc_poser.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\devtools\script\svc_poser.py
 import evetypes
 import uicontrols
 import uiprimitives
@@ -23,7 +24,7 @@ ORIENTATION = 1
 class Structure():
     __guid__ = 'poser.Structure'
 
-    def __init__(self, starbase, typeID, options = None):
+    def __init__(self, starbase, typeID, options=None):
         self.starbase = starbase
         self.typeID = typeID
         self.itemID = None
@@ -36,6 +37,7 @@ class Structure():
         self.isControlTower = groupID == const.groupControlTower
         self.isWeapon = self.attr.AttributeExists('chargeGroup1')
         self.isRenameable = groupID in (const.groupMobileLaboratory, const.groupAssemblyArray)
+        return
 
     def Create(self):
         if not self.itemID:
@@ -135,32 +137,34 @@ class Starbase():
             blue.pyos.synchro.SleepSim(100)
             distance = structure.Distance(self.ship) - ball.radius
 
-    def Step(self, s = None, a = 0, title = 'Poser - Starbase Assembly<br>Stage %d of %d'):
+    def Step(self, s=None, a=0, title='Poser - Starbase Assembly<br>Stage %d of %d'):
         bp = self.bp = sm.GetService('michelle').GetBallpark()
         if not bp:
             return
-        ship = self.ship = bp.GetBall(eve.session.shipid)
-        if not ship:
-            return
-        if s is None:
-            Progress(self.title, self.info, 1, 1)
-            return
-        if type(s) == type(0):
-            self.maxsteps = s
-            self.maxamount = a
-            self.step = 0
-            self.title_ = title
-            return
-        self.step += 1
-        if self.maxsteps:
-            self.title = self.title_ % (self.step, self.maxsteps)
         else:
-            self.title = self.title_
-        self.info = s
-        self.done = 0
-        self.Update()
+            ship = self.ship = bp.GetBall(eve.session.shipid)
+            if not ship:
+                return
+            if s is None:
+                Progress(self.title, self.info, 1, 1)
+                return
+            if type(s) == type(0):
+                self.maxsteps = s
+                self.maxamount = a
+                self.step = 0
+                self.title_ = title
+                return
+            self.step += 1
+            if self.maxsteps:
+                self.title = self.title_ % (self.step, self.maxsteps)
+            else:
+                self.title = self.title_
+            self.info = s
+            self.done = 0
+            self.Update()
+            return
 
-    def Update(self, maxamount = 0):
+    def Update(self, maxamount=0):
         if not maxamount:
             maxamount = self.maxamount
         Progress(self.title, self.info, self.done * 1000, maxamount * 1000 + 1)
@@ -170,59 +174,60 @@ class Starbase():
         bp = self.bp = sm.GetService('michelle').GetBallpark()
         if not bp:
             return
-        ship = self.ship = bp.GetBall(eve.session.shipid)
-        if not ship:
-            return
-        ct = None
-        structs = []
-        self.Step(0, 16, 'Poser - Starbase Scan')
-        self.Step('Scanning Area...')
-        i = 1
-        for ballID in bp.balls.iterkeys():
-            blue.pyos.BeNice()
-            i += 1
-            self.Update(i & 15)
-            if ballID:
-                ball = bp.GetBall(ballID)
+        else:
+            ship = self.ship = bp.GetBall(eve.session.shipid)
+            if not ship:
+                return
+            ct = None
+            structs = []
+            self.Step(0, 16, 'Poser - Starbase Scan')
+            self.Step('Scanning Area...')
+            i = 1
+            for ballID in bp.balls.iterkeys():
+                blue.pyos.BeNice()
+                i += 1
+                self.Update(i & 15)
+                if ballID:
+                    ball = bp.GetBall(ballID)
+                    item = bp.GetInvItem(ballID)
+                    if ball and item and item.categoryID == const.categoryStarbase:
+                        if item.groupID == const.groupControlTower:
+                            ct = ballID
+                        else:
+                            structs.append(ballID)
+
+            if not ct:
+                info = 'No control tower found.'
+                raise UserError('CustomInfo', {'info': info})
+            structs.insert(0, ct)
+            self.structures = []
+            ownerID = bp.GetInvItem(ct).ownerID
+            for ballID in structs:
                 item = bp.GetInvItem(ballID)
-                if ball and item and item.categoryID == const.categoryStarbase:
-                    if item.groupID == const.groupControlTower:
-                        ct = ballID
-                    else:
-                        structs.append(ballID)
+                if item.ownerID == ownerID:
+                    options = {}
+                    ball = bp.GetBall(ballID)
+                    if not sm.GetService('pwn').GetStructureState(item)[0] == 'online':
+                        options['offline'] = True
+                    s = Structure(self, item.typeID, options)
+                    s.x = ball.x
+                    s.y = ball.y
+                    s.z = ball.z
+                    s.itemID = ballID
+                    if s.isRenameable:
+                        cfg.evelocations.Prime([ballID])
+                        name = cfg.evelocations.Get(ballID).name
+                        if name != evetypes.GetName(item.typeID):
+                            options['name'] = name
+                    self.structures.append(s)
+                    if s.isControlTower:
+                        self.controltower = ct = s
+                    s.x_ = int(s.x + 0.5) - int(ct.x + 0.5)
+                    s.y_ = int(s.y + 0.5) - int(ct.y + 0.5)
+                    s.z_ = int(s.z + 0.5) - int(ct.z + 0.5)
 
-        if not ct:
-            info = 'No control tower found.'
-            raise UserError('CustomInfo', {'info': info})
-        structs.insert(0, ct)
-        self.structures = []
-        ownerID = bp.GetInvItem(ct).ownerID
-        for ballID in structs:
-            item = bp.GetInvItem(ballID)
-            if item.ownerID == ownerID:
-                options = {}
-                ball = bp.GetBall(ballID)
-                if not sm.GetService('pwn').GetStructureState(item)[0] == 'online':
-                    options['offline'] = True
-                s = Structure(self, item.typeID, options)
-                s.x = ball.x
-                s.y = ball.y
-                s.z = ball.z
-                s.itemID = ballID
-                if s.isRenameable:
-                    cfg.evelocations.Prime([ballID])
-                    name = cfg.evelocations.Get(ballID).name
-                    if name != evetypes.GetName(item.typeID):
-                        options['name'] = name
-                self.structures.append(s)
-                if s.isControlTower:
-                    self.controltower = ct = s
-                s.x_ = int(s.x + 0.5) - int(ct.x + 0.5)
-                s.y_ = int(s.y + 0.5) - int(ct.y + 0.5)
-                s.z_ = int(s.z + 0.5) - int(ct.z + 0.5)
-
-        self.Assemble = self.NoAssemble
-        return self
+            self.Assemble = self.NoAssemble
+            return self
 
     def ImportFromFile(self, filename):
         fh = open(filename, 'r')
@@ -301,7 +306,7 @@ class Starbase():
     def NoAssemble(self):
         raise RuntimeError, 'Cannot Assemble from a live configuration'
 
-    def Assemble(self, stepSelection = {}):
+    def Assemble(self, stepSelection={}):
         bp = self.bp = sm.GetService('michelle').GetBallpark()
         if not bp:
             return
@@ -362,7 +367,7 @@ class Starbase():
             power = 0
         return (cpu, power)
 
-    def GetFuelInfo(self, filter = ()):
+    def GetFuelInfo(self, filter=()):
         fcpu, fpower = self.GetLoad()
         resources = sm.RemoteSvc('posMgr').GetControlTowerFuelRequirements()
         secStatus = sm.GetService('map').securityInfo[eve.session.solarsystemid]
@@ -409,7 +414,7 @@ class Starbase():
 
         return (volumePerCycle, fuel)
 
-    def Fuel(self, desiredCycles = 2147483647, what = (PURPOSE_ONLINE, PURPOSE_POWER, PURPOSE_CPU)):
+    def Fuel(self, desiredCycles=2147483647, what=(PURPOSE_ONLINE, PURPOSE_POWER, PURPOSE_CPU)):
         self.Step('Fueling Control Tower...')
         ct = self.controltower
         v, fuel = self.GetFuelInfo(filter=what)
@@ -494,6 +499,7 @@ class FuelWindow(uicontrols.Window):
           None,
           81]]
         self.sr.main.children.insert(0, uicontrols.ButtonGroup(btns=buttons))
+        return
 
     def Cancel(self, *args):
         self.Close()
@@ -617,6 +623,7 @@ class AssembleWindow(uicontrols.Window):
           None,
           81]]
         self.sr.main.children.insert(0, uicontrols.ButtonGroup(btns=buttons))
+        return
 
     def Cancel(self, *args):
         self.Close()
@@ -702,8 +709,8 @@ class AssembleWindow(uicontrols.Window):
 SERVICENAME = 'poser'
 
 class PoserService(Service):
+    """Ultimate starbase setup tool"""
     __module__ = __name__
-    __doc__ = 'Ultimate starbase setup tool'
     __exportedcalls__ = {'Show': []}
     __notifyevents__ = ['ProcessRestartUI']
     __dependencies__ = []
@@ -731,6 +738,7 @@ class PoserService(Service):
 
         blue.pyos.BeNice()
         self.state = SERVICE_RUNNING
+        return
 
     def RoleCheck(self, *roleSets):
         for roleNames in roleSets:
@@ -757,59 +765,62 @@ class PoserService(Service):
         if self.wnd and not self.wnd.destroyed:
             self.wnd.Maximize()
             return
-
-        def MakeButton1(where, x, y, map, size, function, label, hint = None):
-            button = uix.GetBigButton(size, where, left=x, top=y)
-            button.cursor = 1
-            button.name = label
-            if map != '':
-                button.sr.icon.LoadIcon(map)
-            button.OnClick = function
-            if hint:
-                button.hint = hint
-            return button
-
-        self.wnd = wnd = uicontrols.Window.Open(windowID=SERVICENAME)
-        wnd._OnClose = self.Hide
-        wnd.SetWndIcon(None)
-        wnd.SetTopparentHeight(0)
-        wnd.sr.main = uiutil.GetChild(wnd, 'main')
-        wnd.SetCaption('Poser')
-        x = const.defaultPadding
-        y = const.defaultPadding
-        size = 32
-        labelwidth = 128
-        for icon, label, func in [['41_2', 'Assemble Starbase', self.Assemble],
-         ['57_14', 'Store Starbase', self.Store],
-         ['24_5', 'Fuel Tower - Cycles', self.Fuel],
-         ['24_5', 'Fuel Tower - Full', lambda : sm.GetService('slash').SlashCmd('/pos fuel')],
-         ['56_2', 'Nuke Structures', lambda : sm.GetService('gridutils').NukeStructures()],
-         ['58_2', 'Anchor All', lambda : sm.GetService('slash').SlashCmd('/pos anchor all')],
-         ['58_15', 'Unanchor All', lambda : sm.GetService('slash').SlashCmd('/pos unanchor all')],
-         ['41_10', 'Online All', lambda : sm.GetService('slash').SlashCmd('/pos online all')],
-         ['41_11', 'Offline All', lambda : sm.GetService('slash').SlashCmd('/pos offline all')],
-         ['23_3', 'Reinforce', lambda : sm.GetService('slash').SlashCmd('/pos reinforce all')],
-         ['56_10', 'Interrupt', lambda : sm.GetService('slash').SlashCmd('/pos interrupt all')]]:
-            MakeButton1(wnd.sr.main, x, y, icon, size, func, label, label)
-            if ORIENTATION == 0:
-                uicontrols.Label(text=label, parent=wnd.sr.main, width=200, left=x + size + 6, top=y + size / 2 - 6, color=None, state=uiconst.UI_DISABLED)
-                y += size
-            else:
-                x += size
-
-        if ORIENTATION == 0:
-            wnd.SetFixedWidth(const.defaultPadding + size - 1 + labelwidth + const.defaultPadding)
-            wnd.SetFixedHeight(20 + const.defaultPadding + y + const.defaultPadding)
         else:
-            wnd.SetFixedWidth(const.defaultPadding + x - 1 + const.defaultPadding)
-            wnd.SetFixedHeight(20 + const.defaultPadding + size + const.defaultPadding)
-        wnd.MakeUnResizeable()
-        wnd.Maximize(1)
+
+            def MakeButton1(where, x, y, map, size, function, label, hint=None):
+                button = uix.GetBigButton(size, where, left=x, top=y)
+                button.cursor = 1
+                button.name = label
+                if map != '':
+                    button.sr.icon.LoadIcon(map)
+                button.OnClick = function
+                if hint:
+                    button.hint = hint
+                return button
+
+            self.wnd = wnd = uicontrols.Window.Open(windowID=SERVICENAME)
+            wnd._OnClose = self.Hide
+            wnd.SetWndIcon(None)
+            wnd.SetTopparentHeight(0)
+            wnd.sr.main = uiutil.GetChild(wnd, 'main')
+            wnd.SetCaption('Poser')
+            x = const.defaultPadding
+            y = const.defaultPadding
+            size = 32
+            labelwidth = 128
+            for icon, label, func in [['41_2', 'Assemble Starbase', self.Assemble],
+             ['57_14', 'Store Starbase', self.Store],
+             ['24_5', 'Fuel Tower - Cycles', self.Fuel],
+             ['24_5', 'Fuel Tower - Full', lambda : sm.GetService('slash').SlashCmd('/pos fuel')],
+             ['56_2', 'Nuke Structures', lambda : sm.GetService('gridutils').NukeStructures()],
+             ['58_2', 'Anchor All', lambda : sm.GetService('slash').SlashCmd('/pos anchor all')],
+             ['58_15', 'Unanchor All', lambda : sm.GetService('slash').SlashCmd('/pos unanchor all')],
+             ['41_10', 'Online All', lambda : sm.GetService('slash').SlashCmd('/pos online all')],
+             ['41_11', 'Offline All', lambda : sm.GetService('slash').SlashCmd('/pos offline all')],
+             ['23_3', 'Reinforce', lambda : sm.GetService('slash').SlashCmd('/pos reinforce all')],
+             ['56_10', 'Interrupt', lambda : sm.GetService('slash').SlashCmd('/pos interrupt all')]]:
+                MakeButton1(wnd.sr.main, x, y, icon, size, func, label, label)
+                if ORIENTATION == 0:
+                    uicontrols.Label(text=label, parent=wnd.sr.main, width=200, left=x + size + 6, top=y + size / 2 - 6, color=None, state=uiconst.UI_DISABLED)
+                    y += size
+                else:
+                    x += size
+
+            if ORIENTATION == 0:
+                wnd.SetFixedWidth(const.defaultPadding + size - 1 + labelwidth + const.defaultPadding)
+                wnd.SetFixedHeight(20 + const.defaultPadding + y + const.defaultPadding)
+            else:
+                wnd.SetFixedWidth(const.defaultPadding + x - 1 + const.defaultPadding)
+                wnd.SetFixedHeight(20 + const.defaultPadding + size + const.defaultPadding)
+            wnd.MakeUnResizeable()
+            wnd.Maximize(1)
+            return
 
     def Hide(self, *args):
         if self.wnd:
             self.wnd.Close()
             self.wnd = None
+        return
 
     def ProcessRestartUI(self):
         if self.wnd:

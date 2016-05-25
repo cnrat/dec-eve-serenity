@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\devtools\script\enginetools.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\devtools\script\enginetools.py
 from carbonui import const as uiconst
 from carbonui.control.scrollContainer import ScrollContainer
 from eve.client.script.ui.control.buttons import Button

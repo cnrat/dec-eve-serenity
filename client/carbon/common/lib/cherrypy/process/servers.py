@@ -1,15 +1,17 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\carbon\common\lib\cherrypy\process\servers.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\carbon\common\lib\cherrypy\process\servers.py
 import sys
 import time
 
 class ServerAdapter(object):
 
-    def __init__(self, bus, httpserver = None, bind_addr = None):
+    def __init__(self, bus, httpserver=None, bind_addr=None):
         self.bus = bus
         self.httpserver = httpserver
         self.bind_addr = bind_addr
         self.interrupt = None
         self.running = False
+        return
 
     def subscribe(self):
         self.bus.subscribe('start', self.start)
@@ -30,18 +32,20 @@ class ServerAdapter(object):
         if self.running:
             self.bus.log('Already serving on %s' % on_what)
             return
-        self.interrupt = None
-        if not self.httpserver:
-            raise ValueError('No HTTP server has been created.')
-        if isinstance(self.bind_addr, tuple):
-            wait_for_free_port(*self.bind_addr)
-        import threading
-        t = threading.Thread(target=self._start_http_thread)
-        t.setName('HTTPServer ' + t.getName())
-        t.start()
-        self.wait()
-        self.running = True
-        self.bus.log('Serving on %s' % on_what)
+        else:
+            self.interrupt = None
+            if not self.httpserver:
+                raise ValueError('No HTTP server has been created.')
+            if isinstance(self.bind_addr, tuple):
+                wait_for_free_port(*self.bind_addr)
+            import threading
+            t = threading.Thread(target=self._start_http_thread)
+            t.setName('HTTPServer ' + t.getName())
+            t.start()
+            self.wait()
+            self.running = True
+            self.bus.log('Serving on %s' % on_what)
+            return
 
     start.priority = 75
 
@@ -117,6 +121,7 @@ class FlupFCGIServer(object):
         self.args = args
         self.kwargs = kwargs
         self.ready = False
+        return
 
     def start(self):
         from flup.server.fcgi import WSGIServer
@@ -161,7 +166,7 @@ def client_host(server_host):
     return server_host
 
 
-def check_port(host, port, timeout = 1.0):
+def check_port(host, port, timeout=1.0):
     if not host:
         raise ValueError("Host values of '' or None are not allowed.")
     host = client_host(host)
@@ -198,6 +203,8 @@ def check_port(host, port, timeout = 1.0):
         except socket.error:
             if s:
                 s.close()
+
+    return
 
 
 def wait_for_free_port(host, port):

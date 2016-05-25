@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\carbon\common\lib\markdown\extensions\wikilinks.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\carbon\common\lib\markdown\extensions\wikilinks.py
 import markdown
 import re
 
@@ -59,7 +60,7 @@ class WikiLinks(markdown.inlinepatterns.Pattern):
         return (base_url, end_url, html_class)
 
 
-def makeExtension(configs = None):
+def makeExtension(configs=None):
     return WikiLinkExtension(configs=configs)
 
 

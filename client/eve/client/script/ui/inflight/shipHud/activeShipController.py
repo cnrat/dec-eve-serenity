@@ -1,5 +1,6 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\client\script\ui\inflight\shipHud\activeShipController.py
-from eve.common.script.sys.eveCfg import GetActiveShip
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\client\script\ui\inflight\shipHud\activeShipController.py
+from eve.common.script.sys.eveCfg import GetActiveShip, IsControllingStructure
 from localization import GetByLabel
 import blue
 import destiny
@@ -14,6 +15,7 @@ class ActiveShipController(object):
         self.ball = None
         self.on_new_itemID = signals.Signal()
         self.wantedspeed = None
+        return
 
     def GetItemID(self):
         return GetActiveShip()
@@ -30,14 +32,16 @@ class ActiveShipController(object):
     def GetBall(self):
         if self.ball and self.ball.id == self.GetItemID() and self.ball.ballpark is not None:
             return self.ball
-        bp = sm.GetService('michelle').GetBallpark()
-        if bp is None or self.GetItemID() is None:
-            return
-        self.ball = bp.GetBall(self.GetItemID())
-        return self.ball
+        else:
+            bp = sm.GetService('michelle').GetBallpark()
+            if bp is None or self.GetItemID() is None:
+                return
+            self.ball = bp.GetBall(self.GetItemID())
+            return self.ball
 
     def InvalidateBall(self):
         self.ball = None
+        return
 
     def Close(self):
         sm.UnregisterNotify(self)
@@ -108,6 +112,9 @@ class ActiveShipController(object):
     def IsControllingTurret(self):
         return bool(sm.GetService('pwn').GetCurrentControl())
 
+    def IsControllingStructure(self):
+        return IsControllingStructure()
+
     def GetMenu(self):
         itemID = self.GetItemID()
         if not itemID:
@@ -149,35 +156,37 @@ class ActiveShipController(object):
         self.wantedspeed = 0.0
         uicore.cmd.CmdStopShip()
 
-    def SetSpeed(self, speedRatio, initing = 0):
+    def SetSpeed(self, speedRatio, initing=0):
         if (not self.GetBall() or self.IsInWarp()) and speedRatio > 0:
             return
-        if self.GetBall() and self.GetBall().ballpark is None:
+        elif self.GetBall() and self.GetBall().ballpark is None:
             self.InvalidateBall()
             return
-        if self.wantedspeed is not None and int(self.GetBall().speedFraction * 1000) == int(speedRatio * 1000) == int(self.wantedspeed * 1000) and speedRatio > 0:
+        elif self.wantedspeed is not None and int(self.GetBall().speedFraction * 1000) == int(speedRatio * 1000) == int(self.wantedspeed * 1000) and speedRatio > 0:
             return
-        if speedRatio <= 0.0:
-            self.StopShip()
-        elif speedRatio != self.wantedspeed:
-            rbp = sm.GetService('michelle').GetRemotePark()
-            bp = sm.GetService('michelle').GetBallpark()
-            if bp and not initing:
-                ownBall = bp.GetBall(session.shipid)
-                if ownBall and rbp is not None and ownBall.mode == destiny.DSTBALL_STOP:
-                    if not sm.GetService('autoPilot').GetState():
-                        direction = trinity.TriVector(0.0, 0.0, 1.0)
-                        currentDirection = self.GetBall().GetQuaternionAt(blue.os.GetSimTime())
-                        direction.TransformQuaternion(currentDirection)
-                        rbp.CmdGotoDirection(direction.x, direction.y, direction.z)
-            if rbp is not None:
-                rbp.CmdSetSpeedFraction(min(1.0, speedRatio))
-                if not initing and self.GetBall():
-                    speedText = GetByLabel('UI/Inflight/SpeedChangedTo', speed=self.GetSpeedAtFormatted(speedRatio))
-                    sm.GetService('logger').AddText(speedText, 'notify')
-                    sm.GetService('gameui').Say(speedText)
-        if not initing:
-            self.wantedspeed = max(speedRatio, 0.0)
+        else:
+            if speedRatio <= 0.0:
+                self.StopShip()
+            elif speedRatio != self.wantedspeed:
+                rbp = sm.GetService('michelle').GetRemotePark()
+                bp = sm.GetService('michelle').GetBallpark()
+                if bp and not initing:
+                    ownBall = bp.GetBall(session.shipid)
+                    if ownBall and rbp is not None and ownBall.mode == destiny.DSTBALL_STOP:
+                        if not sm.GetService('autoPilot').GetState():
+                            direction = trinity.TriVector(0.0, 0.0, 1.0)
+                            currentDirection = self.GetBall().GetQuaternionAt(blue.os.GetSimTime())
+                            direction.TransformQuaternion(currentDirection)
+                            rbp.CmdGotoDirection(direction.x, direction.y, direction.z)
+                if rbp is not None:
+                    rbp.CmdSetSpeedFraction(min(1.0, speedRatio))
+                    if not initing and self.GetBall():
+                        speedText = GetByLabel('UI/Inflight/SpeedChangedTo', speed=self.GetSpeedAtFormatted(speedRatio))
+                        sm.GetService('logger').AddText(speedText, 'notify')
+                        sm.GetService('gameui').Say(speedText)
+            if not initing:
+                self.wantedspeed = max(speedRatio, 0.0)
+            return
 
     def SetMaxSpeed(self, *args):
         bp = sm.GetService('michelle').GetBallpark()
@@ -199,6 +208,7 @@ class ActiveShipController(object):
             self.wantedspeed = 1.0
         else:
             self.wantedspeed = None
+        return
 
     def IsInWarp(self):
         ball = self.GetBall()

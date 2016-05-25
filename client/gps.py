@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\common\modules\nice\client\_nastyspace\gps.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\common\modules\nice\client\_nastyspace\gps.py
 from carbon.common.script.net.GPS import ClientConnectFailed
 from carbon.common.script.net.GPS import ClientConnectFailedString
 from carbon.common.script.net.GPS import GPSTransport

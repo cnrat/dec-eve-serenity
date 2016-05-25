@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\client\script\ui\inflight\upgradeEntry.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\client\script\ui\inflight\upgradeEntry.py
 from eve.client.script.ui.control.infoIcon import InfoIcon
 from eve.client.script.ui.control.switch import Switch
 import evetypes
@@ -81,6 +82,7 @@ class BaseUpgradeEntry(uicontrols.SE_BaseClassCore):
         if preReqs is not None:
             hinttext = localization.GetByLabel('UI/InfrastructureHub/PrereqsLong', level=sovSvc.GetUpgradeLevel(self.typeID).level, preReqs=preReqs)
         self.hint = hinttext
+        return
 
     def GetHeight(self, *args):
         node, width = args
@@ -109,6 +111,7 @@ class BaseUpgradeEntry(uicontrols.SE_BaseClassCore):
                 self.sr.flagSwitch.OnClick = self.OnFlagToggle
             if self.flagID == invconst.flagStructureInactive:
                 self.sr.flagSwitch.Disable()
+        return
 
     def OnFlagToggle(self, *args):
         sov = sm.GetService('sov')
@@ -132,6 +135,7 @@ class BaseUpgradeEntry(uicontrols.SE_BaseClassCore):
             else:
                 self.sr.flagIcon.hint = None
             self.sr.flagIcon.state = uiconst.UI_NORMAL
+        return
 
     def OnClick(self, *args):
         if self.sr.node:
@@ -141,15 +145,18 @@ class BaseUpgradeEntry(uicontrols.SE_BaseClassCore):
             if self.sr.node.Get('OnClick', None):
                 self.sr.node.OnClick(self)
         sm.ScatterEvent('OnEntrySelected', self.typeID)
+        return
 
     def OnDropData(self, dragObj, nodes):
         if not nodes:
             return
-        item = nodes[0]
-        if getattr(item, '__guid__', None) not in ('xtriui.InvItem', 'listentry.InvItem') or evetypes.GetCategoryID(item.rec.typeID) != invconst.categoryInfrastructureUpgrade:
-            eve.Message('SovInvalidHubUpgrade')
+        else:
+            item = nodes[0]
+            if getattr(item, '__guid__', None) not in ('xtriui.InvItem', 'listentry.InvItem') or evetypes.GetCategoryID(item.rec.typeID) != invconst.categoryInfrastructureUpgrade:
+                eve.Message('SovInvalidHubUpgrade')
+                return
+            sm.GetService('sov').AddInfrastructureHubUpgrade(self.hubID, item.itemID, item.rec.typeID, item.rec.locationID)
             return
-        sm.GetService('sov').AddInfrastructureHubUpgrade(self.hubID, item.itemID, item.rec.typeID, item.rec.locationID)
 
     def GetMenu(self):
         m = sm.GetService('menu').GetMenuFormItemIDTypeID(self.itemID, self.typeID, ignoreMarketDetails=0)

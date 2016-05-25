@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\packages\sovDashboard\dashboardConst.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\packages\sovDashboard\dashboardConst.py
 STATUS_VULNERABLE = 0
 STATUS_REINFORCED = 1
 STATUS_INVULNERABLE = 2

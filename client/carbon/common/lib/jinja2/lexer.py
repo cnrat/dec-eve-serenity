@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\carbon\common\lib\jinja2\lexer.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\carbon\common\lib\jinja2\lexer.py
 import re
 from operator import itemgetter
 from collections import deque
@@ -157,7 +158,7 @@ def compile_rules(environment):
 
 class Failure(object):
 
-    def __init__(self, message, cls = TemplateSyntaxError):
+    def __init__(self, message, cls=TemplateSyntaxError):
         self.message = message
         self.error_class = cls
 
@@ -243,7 +244,7 @@ class TokenStream(object):
         self.current = old_token
         return result
 
-    def skip(self, n = 1):
+    def skip(self, n=1):
         for x in xrange(n):
             next(self)
 
@@ -270,6 +271,7 @@ class TokenStream(object):
         self.current = Token(self.current.lineno, TOKEN_EOF, '')
         self._next = None
         self.closed = True
+        return
 
     def expect(self, expr):
         if not self.current.test(expr):
@@ -329,15 +331,16 @@ class Lexer(object):
                              block_suffix_re)), (TOKEN_DATA, TOKEN_RAW_END), '#pop'), (c('(.)'), (Failure('Missing end of raw directive'),), None)],
          TOKEN_LINESTATEMENT_BEGIN: [(c('\\s*(\\n|$)'), TOKEN_LINESTATEMENT_END, '#pop')] + tag_rules,
          TOKEN_LINECOMMENT_BEGIN: [(c('(.*?)()(?=\\n|$)'), (TOKEN_LINECOMMENT, TOKEN_LINECOMMENT_END), '#pop')]}
+        return
 
     def _normalize_newlines(self, value):
         return newline_re.sub(self.newline_sequence, value)
 
-    def tokenize(self, source, name = None, filename = None, state = None):
+    def tokenize(self, source, name=None, filename=None, state=None):
         stream = self.tokeniter(source, name, filename, state)
         return TokenStream(self.wrap(stream, name, filename), name, filename)
 
-    def wrap(self, stream, name = None, filename = None):
+    def wrap(self, stream, name=None, filename=None):
         for lineno, token, value in stream:
             if token in ignored_tokens:
                 continue
@@ -373,7 +376,7 @@ class Lexer(object):
                 token = operators[value]
             yield Token(lineno, token, value)
 
-    def tokeniter(self, source, name, filename = None, state = None):
+    def tokeniter(self, source, name, filename=None, state=None):
         source = '\n'.join(unicode(source).splitlines())
         pos = 0
         lineno = 1
@@ -452,3 +455,5 @@ class Lexer(object):
                 if pos >= source_length:
                     return
                 raise TemplateSyntaxError('unexpected char %r at %d' % (source[pos], pos), lineno, name, filename)
+
+        return

@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\carbon\common\script\entities\proximityTrigger.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\carbon\common\script\entities\proximityTrigger.py
 import collections
 import GameWorld
 import service
@@ -48,6 +49,7 @@ class ProximityTriggerService(service.Service):
         if gw:
             gw.triggerReportHandler = None
         del self.scenes[sceneID]
+        return
 
     def CreateComponent(self, name, state):
         component = ProximityTriggerComponent()

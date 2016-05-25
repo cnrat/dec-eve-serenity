@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\carbon\common\lib\minime.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\carbon\common\lib\minime.py
 import sys
 import ctypes
 import blue
@@ -45,6 +46,8 @@ def PostOnMouse(event, wParam, lParam):
     except:
         import traceback
         traceback.print_exc()
+
+    return
 
 
 class Camera(object):
@@ -134,7 +137,7 @@ class Camera(object):
         mat = geo2.MatrixInverse(mat)
         self.localViewMatrix = mat
 
-    def Focus(self, point, dist = -1.0):
+    def Focus(self, point, dist=-1.0):
         dev = trinity.device
         pos = self.GetPosition()
         up = (0.0, 1.0, 0.0)
@@ -342,7 +345,7 @@ def SetConstantYawRotation(rad_per_sec):
     rj.ScheduleRecurring()
 
 
-def CreateWindow(fullscreen = False, size = None, windowType = WT_DEFAULT_FRAME, showWindow = True):
+def CreateWindow(fullscreen=False, size=None, windowType=WT_DEFAULT_FRAME, showWindow=True):
     global hwnd
     global wndclass
     CreateWindowEx = ctypes.windll.user32.CreateWindowExA
@@ -400,7 +403,7 @@ def GetWindowSize(hwnd):
     return (rect.right, rect.bottom)
 
 
-def CreateDevice(hwnd, fullscreen = False):
+def CreateDevice(hwnd, fullscreen=False):
     if '/fullscreen' in blueArgs:
         fullscreen = True
     w, h = GetWindowSize(hwnd)
@@ -424,7 +427,7 @@ def RunTestScript():
         sys.exc_clear()
 
 
-def Main(postCreateCallback = None, fullscreen = False, size = None, windowType = WT_DEFAULT_FRAME):
+def Main(postCreateCallback=None, fullscreen=False, size=None, windowType=WT_DEFAULT_FRAME):
     hwnd = CreateWindow(fullscreen, size, windowType)
     CreateDevice(hwnd, fullscreen)
     w, h = GetWindowSize(hwnd)
@@ -465,76 +468,77 @@ def WndProc(hwnd, message, wParam, lParam):
     elif message == WM_CLOSE:
         blue.os.Terminate()
         return 0
-    if message == WM_SIZE:
-        if dev.GetWindow():
+    else:
+        if message == WM_SIZE:
+            if dev.GetWindow():
+                rect = RECT()
+                ctypes.windll.user32.GetClientRect(hwnd, ctypes.byref(rect))
+                viewTrans = trinity.GetViewTransform()
+                fov = trinity.GetFieldOfView()
+                front = trinity.GetFrontClip()
+                back = trinity.GetBackClip()
+                w, h = rect.right, rect.bottom
+                defaultBackBuffer = trinity.device.GetRenderContext().GetDefaultBackBuffer()
+                if w == defaultBackBuffer.width and h == defaultBackBuffer.height:
+                    return 0
+                asp = float(w) / float(h)
+                dev.ChangeBackBufferSize(w, h)
+                trinity.SetPerspectiveProjection(fov, front, back, asp)
+                trinity.SetViewTransform(viewTrans)
+        elif message == WM_LBUTTONDOWN:
             rect = RECT()
             ctypes.windll.user32.GetClientRect(hwnd, ctypes.byref(rect))
-            viewTrans = trinity.GetViewTransform()
-            fov = trinity.GetFieldOfView()
-            front = trinity.GetFrontClip()
-            back = trinity.GetBackClip()
-            w, h = rect.right, rect.bottom
-            defaultBackBuffer = trinity.device.GetRenderContext().GetDefaultBackBuffer()
-            if w == defaultBackBuffer.width and h == defaultBackBuffer.height:
-                return 0
-            asp = float(w) / float(h)
-            dev.ChangeBackBufferSize(w, h)
-            trinity.SetPerspectiveProjection(fov, front, back, asp)
-            trinity.SetViewTransform(viewTrans)
-    elif message == WM_LBUTTONDOWN:
-        rect = RECT()
-        ctypes.windll.user32.GetClientRect(hwnd, ctypes.byref(rect))
-        offset = POINT()
-        ctypes.windll.user32.ClientToScreen(hwnd, ctypes.byref(offset))
-        ctypes.windll.user32.OffsetRect(ctypes.byref(rect), offset.x, offset.y)
-        ctypes.windll.user32.ClipCursor(ctypes.byref(rect))
-        PostOnMouse('LEFT_BUTTON_DOWN', wParam, lParam)
-    elif message == WM_LBUTTONUP:
-        ctypes.windll.user32.ClipCursor(0)
-        PostOnMouse('LEFT_BUTTON_UP', wParam, lParam)
-    elif message == WM_LBUTTONDBLCLK:
-        PostOnMouse('LEFT_BUTTON_DBLCLK', wParam, lParam)
-    elif message == WM_RBUTTONUP:
-        PostOnMouse('RIGHT_BUTTON_UP', wParam, lParam)
-    elif message == WM_RBUTTONDOWN:
-        PostOnMouse('RIGHT_BUTTON_DOWN', wParam, lParam)
-    elif message == WM_RBUTTONDBLCLK:
-        PostOnMouse('RIGHT_BUTTON_DBLCLK', wParam, lParam)
-    elif message == WM_MBUTTONUP:
-        PostOnMouse('MIDDLE_BUTTON_UP', wParam, lParam)
-    elif message == WM_MBUTTONDOWN:
-        PostOnMouse('MIDDLE_BUTTON_DOWN', wParam, lParam)
-    elif message == WM_MBUTTONDBLCLK:
-        PostOnMouse('MIDDLE_BUTTON_DBLCLK', wParam, lParam)
-    elif message == WM_MOUSEMOVE:
-        PostOnMouse('MOUSE_MOVE', wParam, lParam)
-    elif message == WM_MOUSEWHEEL:
-        PostOnMouse('MOUSE_WHEEL', wParam, lParam)
-    elif message == WM_ACTIVATE:
-        if not (wParam == WA_ACTIVE and wParam == WA_CLICKACTIVE):
+            offset = POINT()
+            ctypes.windll.user32.ClientToScreen(hwnd, ctypes.byref(offset))
+            ctypes.windll.user32.OffsetRect(ctypes.byref(rect), offset.x, offset.y)
+            ctypes.windll.user32.ClipCursor(ctypes.byref(rect))
+            PostOnMouse('LEFT_BUTTON_DOWN', wParam, lParam)
+        elif message == WM_LBUTTONUP:
             ctypes.windll.user32.ClipCursor(0)
-    elif message == WM_SYSCOMMAND:
-        if wParam == SC_KEYMENU:
-            return 0
-    else:
-        if message == WM_ERASEBKGND:
-            return 0
-        if message == WM_KEYDOWN:
-            if OnKeyDown is not None and callable(OnKeyDown):
-                OnKeyDown(wParam)
-        elif message == WM_KEYUP:
-            if OnKeyUp is not None and callable(OnKeyUp):
-                OnKeyUp(wParam)
-        elif message == WM_CHAR:
-            if OnChar is not None and callable(OnChar):
-                OnChar(wParam)
-    if uilib is not None:
-        try:
-            return int(uilib.OnAppEvent(message, wParam, lParam))
-        except:
-            import traceback
-            traceback.print_exc()
+            PostOnMouse('LEFT_BUTTON_UP', wParam, lParam)
+        elif message == WM_LBUTTONDBLCLK:
+            PostOnMouse('LEFT_BUTTON_DBLCLK', wParam, lParam)
+        elif message == WM_RBUTTONUP:
+            PostOnMouse('RIGHT_BUTTON_UP', wParam, lParam)
+        elif message == WM_RBUTTONDOWN:
+            PostOnMouse('RIGHT_BUTTON_DOWN', wParam, lParam)
+        elif message == WM_RBUTTONDBLCLK:
+            PostOnMouse('RIGHT_BUTTON_DBLCLK', wParam, lParam)
+        elif message == WM_MBUTTONUP:
+            PostOnMouse('MIDDLE_BUTTON_UP', wParam, lParam)
+        elif message == WM_MBUTTONDOWN:
+            PostOnMouse('MIDDLE_BUTTON_DOWN', wParam, lParam)
+        elif message == WM_MBUTTONDBLCLK:
+            PostOnMouse('MIDDLE_BUTTON_DBLCLK', wParam, lParam)
+        elif message == WM_MOUSEMOVE:
+            PostOnMouse('MOUSE_MOVE', wParam, lParam)
+        elif message == WM_MOUSEWHEEL:
+            PostOnMouse('MOUSE_WHEEL', wParam, lParam)
+        elif message == WM_ACTIVATE:
+            if not (wParam == WA_ACTIVE and wParam == WA_CLICKACTIVE):
+                ctypes.windll.user32.ClipCursor(0)
+        elif message == WM_SYSCOMMAND:
+            if wParam == SC_KEYMENU:
+                return 0
+        else:
+            if message == WM_ERASEBKGND:
+                return 0
+            if message == WM_KEYDOWN:
+                if OnKeyDown is not None and callable(OnKeyDown):
+                    OnKeyDown(wParam)
+            elif message == WM_KEYUP:
+                if OnKeyUp is not None and callable(OnKeyUp):
+                    OnKeyUp(wParam)
+            elif message == WM_CHAR:
+                if OnChar is not None and callable(OnChar):
+                    OnChar(wParam)
+        if uilib is not None:
+            try:
+                return int(uilib.OnAppEvent(message, wParam, lParam))
+            except:
+                import traceback
+                traceback.print_exc()
 
-        return 0
-    else:
+            return 0
         return ctypes.windll.user32.DefWindowProcA(ctypes.c_int(hwnd), ctypes.c_int(message), ctypes.c_int(wParam), ctypes.c_int(lParam))
+        return

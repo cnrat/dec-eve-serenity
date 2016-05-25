@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\carbon\common\stdlib\rsa\_compat.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\carbon\common\stdlib\rsa\_compat.py
 from __future__ import absolute_import
 import sys
 from struct import pack
@@ -61,7 +62,7 @@ def byte(num):
     return pack('B', num)
 
 
-def get_word_alignment(num, force_arch = 64, _machine_word_size = MACHINE_WORD_SIZE):
+def get_word_alignment(num, force_arch=64, _machine_word_size=MACHINE_WORD_SIZE):
     max_uint64 = 18446744073709551615L
     max_uint32 = 4294967295L
     max_uint16 = 65535

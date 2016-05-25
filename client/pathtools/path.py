@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\packages\pathtools\path.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\packages\pathtools\path.py
 import os.path
 import os.path
 from functools import partial
@@ -11,12 +12,12 @@ __all__ = ['get_dir_walker',
  'real_absolute_path',
  'parent_dir_path']
 
-def get_dir_walker(recursive, topdown = True, followlinks = False):
+def get_dir_walker(recursive, topdown=True, followlinks=False):
     if recursive:
         walk = partial(os.walk, topdown=topdown, followlinks=followlinks)
     else:
 
-        def walk(path, topdown = topdown, followlinks = followlinks):
+        def walk(path, topdown=topdown, followlinks=followlinks):
             try:
                 yield next(os.walk(path, topdown=topdown, followlinks=followlinks))
             except NameError:
@@ -25,13 +26,13 @@ def get_dir_walker(recursive, topdown = True, followlinks = False):
     return walk
 
 
-def walk(dir_pathname, recursive = True, topdown = True, followlinks = False):
+def walk(dir_pathname, recursive=True, topdown=True, followlinks=False):
     walk_func = get_dir_walker(recursive, topdown, followlinks)
     for root, dirnames, filenames in walk_func(dir_pathname):
         yield (root, dirnames, filenames)
 
 
-def listdir(dir_pathname, recursive = True, topdown = True, followlinks = False):
+def listdir(dir_pathname, recursive=True, topdown=True, followlinks=False):
     for root, dirnames, filenames in walk(dir_pathname, recursive, topdown, followlinks):
         for dirname in dirnames:
             yield absolute_path(os.path.join(root, dirname))
@@ -40,13 +41,13 @@ def listdir(dir_pathname, recursive = True, topdown = True, followlinks = False)
             yield absolute_path(os.path.join(root, filename))
 
 
-def list_directories(dir_pathname, recursive = True, topdown = True, followlinks = False):
+def list_directories(dir_pathname, recursive=True, topdown=True, followlinks=False):
     for root, dirnames, filenames in walk(dir_pathname, recursive, topdown, followlinks):
         for dirname in dirnames:
             yield absolute_path(os.path.join(root, dirname))
 
 
-def list_files(dir_pathname, recursive = True, topdown = True, followlinks = False):
+def list_files(dir_pathname, recursive=True, topdown=True, followlinks=False):
     for root, dirnames, filenames in walk(dir_pathname, recursive, topdown, followlinks):
         for filename in filenames:
             yield absolute_path(os.path.join(root, filename))

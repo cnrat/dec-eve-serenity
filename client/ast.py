@@ -1,8 +1,9 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\carbon\common\stdlib\ast.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\carbon\common\stdlib\ast.py
 from _ast import *
 from _ast import __version__
 
-def parse(expr, filename = '<unknown>', mode = 'exec'):
+def parse(expr, filename='<unknown>', mode='exec'):
     return compile(expr, filename, mode, PyCF_ONLY_AST)
 
 
@@ -41,7 +42,7 @@ def literal_eval(node_or_string):
     return _convert(node_or_string)
 
 
-def dump(node, annotate_fields = True, include_attributes = False):
+def dump(node, annotate_fields=True, include_attributes=False):
 
     def _format(node):
         if isinstance(node, AST):
@@ -88,7 +89,7 @@ def fix_missing_locations(node):
     return node
 
 
-def increment_lineno(node, n = 1):
+def increment_lineno(node, n=1):
     if 'lineno' in node._attributes:
         node.lineno = getattr(node, 'lineno', 0) + n
     for child in walk(node):
@@ -116,7 +117,7 @@ def iter_child_nodes(node):
                     yield item
 
 
-def get_docstring(node, clean = True):
+def get_docstring(node, clean=True):
     if not isinstance(node, (FunctionDef, ClassDef, Module)):
         raise TypeError("%r can't have docstrings" % node.__class__.__name__)
     if node.body and isinstance(node.body[0], Expr) and isinstance(node.body[0].value, Str):

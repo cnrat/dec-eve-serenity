@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\packages\trinity\renderjobs.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\packages\trinity\renderjobs.py
 import decometaclass
 from . import _trinity as trinity
 
@@ -22,6 +23,8 @@ class RenderJobs(object):
             if rj.name == name:
                 return rj
 
+        return None
+
     def FindStepByName(self, name):
 
         def FindInJob(rj):
@@ -34,7 +37,9 @@ class RenderJobs(object):
             if ret is not None:
                 return ret
 
-    def FindScenes(self, sceneType, filter = lambda x: True):
+        return
+
+    def FindScenes(self, sceneType, filter=lambda x: True):
         results = set({})
 
         def RecursiveSearch(job):

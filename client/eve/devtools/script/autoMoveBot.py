@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\devtools\script\autoMoveBot.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\devtools\script\autoMoveBot.py
 from service import Service, ROLE_GMH
 import blue
 import types
@@ -28,8 +29,9 @@ class AutoMoveBot(Service):
         self.channelName = self.CHANNEL_NAME
         self.movePhrase = self.MOVE_PHRASE
         self.destinationID = self.DESTINATION_ID
+        return
 
-    def Stop(self, memStream = None):
+    def Stop(self, memStream=None):
         self.StopBot()
 
     def StartBot(self):
@@ -51,6 +53,8 @@ class AutoMoveBot(Service):
                 if channel[4] == name.lower():
                     return channel[0]
 
+        return None
+
     @staticmethod
     def GetCharacterIDFromLSC(fullID):
         if type(fullID) == types.IntType:
@@ -68,31 +72,36 @@ class AutoMoveBot(Service):
     def OnChannelsJoined(self, channelIDs):
         if type(channelIDs) != types.ListType:
             return
-        for channelID in channelIDs:
-            channelInfo = self.lscService.GetChannelInfo(channelID).Get('info')
-            if channelInfo is None:
-                continue
-            name = channelInfo[2]
-            if self.channelName.lower() == name:
-                self.channelID = channelID
-                break
+        else:
+            for channelID in channelIDs:
+                channelInfo = self.lscService.GetChannelInfo(channelID).Get('info')
+                if channelInfo is None:
+                    continue
+                name = channelInfo[2]
+                if self.channelName.lower() == name:
+                    self.channelID = channelID
+                    break
+
+            return
 
     def OnLSC(self, channelID, estimatedMembercount, method, who, *args):
         if self.channelID is None:
             return
-        if channelID != self.channelID:
+        elif channelID != self.channelID:
             return
-        charID = self.GetCharacterIDFromLSC(who)
-        if charID == session.charid or charID in self.waitingList:
-            return
-        if method == 'SendMessage':
-            if len(args[0]) == 0:
+        else:
+            charID = self.GetCharacterIDFromLSC(who)
+            if charID == session.charid or charID in self.waitingList:
                 return
-            message = args[0][0]
-            if message.lower() == self.movePhrase.lower():
-                with locks.TempLock('waitingList', locks.RLock):
-                    self.waitingList.insert(0, charID)
-                    sm.ScatterEvent('OnAutoMoveBotQueueChange', len(self.waitingList))
+            if method == 'SendMessage':
+                if len(args[0]) == 0:
+                    return
+                message = args[0][0]
+                if message.lower() == self.movePhrase.lower():
+                    with locks.TempLock('waitingList', locks.RLock):
+                        self.waitingList.insert(0, charID)
+                        sm.ScatterEvent('OnAutoMoveBotQueueChange', len(self.waitingList))
+            return
 
     def MoveCharacterThread(self):
         while self.moveRunning is True:
@@ -105,6 +114,8 @@ class AutoMoveBot(Service):
             else:
                 blue.pyos.synchro.SleepWallclock(2000)
 
+        return
+
     def MoveCharacter(self, charID):
         retriesLeft = 10
         while retriesLeft > 0:
@@ -116,6 +127,8 @@ class AutoMoveBot(Service):
             except (UserError, RuntimeError):
                 retriesLeft -= 1
                 blue.pyos.synchro.SleepSim(2000)
+
+        return
 
 
 class AutoMoveBotWnd(uicontrols.Window):
@@ -131,6 +144,7 @@ class AutoMoveBotWnd(uicontrols.Window):
         self.MakeUnResizeable()
         self.SetTopparentHeight(0)
         self.Begin()
+        return
 
     def Begin(self):
         autoMoveBotSvc = sm.GetService('automovebot')
@@ -155,6 +169,7 @@ class AutoMoveBotWnd(uicontrols.Window):
           81]]
         self.btns = uicontrols.ButtonGroup(btns=buttons, line=1, parent=main)
         self.SetRunning(False)
+        return
 
     @staticmethod
     def GenerateInputLine(parent, name, title, defaultValue):

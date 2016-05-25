@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\common\script\planet\entities\spaceportPin.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\common\script\planet\entities\spaceportPin.py
 import const
 from eve.common.script.planet.entities.storagePin import StoragePin
 from eve.common.script.planet.entities.basePin import BasePin
@@ -15,6 +16,7 @@ class SpaceportPin(StoragePin):
     def OnStartup(self, id, ownerID, latitude, longitude):
         StoragePin.OnStartup(self, id, ownerID, latitude, longitude)
         self.lastLaunchTime = None
+        return
 
     def IsSpaceport(self):
         return True
@@ -25,8 +27,10 @@ class SpaceportPin(StoragePin):
     def GetNextLaunchTime(self):
         if self.lastLaunchTime is not None:
             return self.lastLaunchTime + self.GetLaunchCycleTime()
+        else:
+            return
 
-    def CanLaunch(self, commodities, launchTime = None):
+    def CanLaunch(self, commodities, launchTime=None):
         for commodityTypeID, commodityQty in commodities.iteritems():
             if commodityTypeID not in self.contents or self.contents[commodityTypeID] < 1:
                 return False
@@ -37,7 +41,8 @@ class SpaceportPin(StoragePin):
         nextLaunchTime = self.GetNextLaunchTime()
         if nextLaunchTime is None or nextLaunchTime <= lt:
             return True
-        return False
+        else:
+            return False
 
     def FetchLaunchCommodities(self, commodities):
         commodsToLaunch = {}
@@ -54,12 +59,12 @@ class SpaceportPin(StoragePin):
             return False
         return True
 
-    def Serialize(self, full = False):
+    def Serialize(self, full=False):
         data = StoragePin.Serialize(self, full)
         data.lastLaunchTime = self.lastLaunchTime
         return data
 
-    def GetImportTax(self, commodities, taxRate = 0.05):
+    def GetImportTax(self, commodities, taxRate=0.05):
         importTaxRate = self.eventHandler.GetTypeAttribute(self.typeID, const.attributeImportTax)
         totalTax = 0.0
         for typeID, qty in commodities.iteritems():
@@ -68,7 +73,7 @@ class SpaceportPin(StoragePin):
 
         return totalTax * taxRate
 
-    def GetExportTax(self, commodities, taxRate = 0.05):
+    def GetExportTax(self, commodities, taxRate=0.05):
         exportTaxRate = self.eventHandler.GetTypeAttribute(self.typeID, const.attributeExportTax)
         totalTax = 0.0
         for typeID, qty in commodities.iteritems():
@@ -80,7 +85,8 @@ class SpaceportPin(StoragePin):
     def HasDifferingState(self, otherPin):
         if self.lastLaunchTime != getattr(otherPin, 'lastLaunchTime', None):
             return True
-        return BasePin.HasDifferingState(self, otherPin)
+        else:
+            return BasePin.HasDifferingState(self, otherPin)
 
 
 exports = {'planet.SpaceportPin': SpaceportPin}

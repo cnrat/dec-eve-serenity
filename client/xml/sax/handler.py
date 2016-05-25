@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\carbon\common\stdlib\xml\sax\handler.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\carbon\common\stdlib\xml\sax\handler.py
 version = '2.0beta'
 
 class ErrorHandler:
@@ -17,6 +18,7 @@ class ContentHandler:
 
     def __init__(self):
         self._locator = None
+        return
 
     def setDocumentLocator(self, locator):
         self._locator = locator

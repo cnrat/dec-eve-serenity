@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\client\script\ui\inflight\shipHud\heatGauges.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\client\script\ui\inflight\shipHud\heatGauges.py
 from carbon.common.script.util.mathUtil import DegToRad
 from carbon.common.script.util.timerstuff import AutoTimer
 from carbonui.primitives.container import Container
@@ -96,12 +97,14 @@ class HeatGauges(Container):
         if tooltipPanel.destroyed:
             self._heatTooltipUpdate = None
             return
-        if not self.controller.IsLoaded():
+        elif not self.controller.IsLoaded():
             self._heatTooltipUpdate = None
             return
-        heatLow = self.controller.GetHeatLowPortion() * 100
-        tooltipPanel.lowHeatValue.text = GetByLabel('Tooltips/Hud/HeatStatusLow', percentage=heatLow)
-        heatMed = self.controller.GetHeatMedPortion() * 100
-        tooltipPanel.mediumHeatValue.text = GetByLabel('Tooltips/Hud/HeatStatusMedium', percentage=heatMed)
-        heatHi = self.controller.GetHeatHiPortion() * 100
-        tooltipPanel.highHeatValue.text = GetByLabel('Tooltips/Hud/HeatStatusHigh', percentage=heatHi)
+        else:
+            heatLow = self.controller.GetHeatLowPortion() * 100
+            tooltipPanel.lowHeatValue.text = GetByLabel('Tooltips/Hud/HeatStatusLow', percentage=heatLow)
+            heatMed = self.controller.GetHeatMedPortion() * 100
+            tooltipPanel.mediumHeatValue.text = GetByLabel('Tooltips/Hud/HeatStatusMedium', percentage=heatMed)
+            heatHi = self.controller.GetHeatHiPortion() * 100
+            tooltipPanel.highHeatValue.text = GetByLabel('Tooltips/Hud/HeatStatusHigh', percentage=heatHi)
+            return

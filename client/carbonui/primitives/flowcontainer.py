@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\packages\carbonui\primitives\flowcontainer.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\packages\carbonui\primitives\flowcontainer.py
 __author__ = 'fridrik'
 from .container import Container
 from .base import Base
@@ -23,7 +24,7 @@ class FlowContainer(Container):
         self.autoHeight = attributes.get('autoHeight', self.autoHeight)
         self.contentSpacing = attributes.get('contentSpacing', self.contentSpacing)
 
-    def UpdateAlignment(self, budgetLeft = 0, budgetTop = 0, budgetWidth = 0, budgetHeight = 0, updateChildrenOnly = False):
+    def UpdateAlignment(self, budgetLeft=0, budgetTop=0, budgetWidth=0, budgetHeight=0, updateChildrenOnly=False):
         if self.destroyed:
             return (budgetLeft,
              budgetTop,

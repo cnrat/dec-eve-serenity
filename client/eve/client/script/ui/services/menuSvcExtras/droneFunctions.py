@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\client\script\ui\services\menuSvcExtras\droneFunctions.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\client\script\ui\services\menuSvcExtras\droneFunctions.py
 import uthread
 import blue
 import moniker
@@ -45,15 +46,17 @@ def EngageTarget(droneIDs):
     considerSvc = sm.GetService('consider')
     if not considerSvc.SafetyCheckPasses(requiredSafetyLevel):
         return
-    if not considerSvc.ShowNPCAtttackConfirmationWindowIfAppropriate(requiredSafetyLevel, targetID):
+    elif not considerSvc.ShowNPCAtttackConfirmationWindowIfAppropriate(requiredSafetyLevel, targetID):
         return
-    entity = moniker.GetEntityAccess()
-    if entity:
-        ret = entity.CmdEngage(droneIDs, targetID)
-        HandleMultipleCallError(droneIDs, ret, 'MultiDroneCmdResult')
-        if droneIDs:
-            name = sm.GetService('space').GetWarpDestinationName(targetID)
-            eve.Message('CustomNotify', {'notify': localization.GetByLabel('UI/Inflight/DronesEngaging', name=name)})
+    else:
+        entity = moniker.GetEntityAccess()
+        if entity:
+            ret = entity.CmdEngage(droneIDs, targetID)
+            HandleMultipleCallError(droneIDs, ret, 'MultiDroneCmdResult')
+            if droneIDs:
+                name = sm.GetService('space').GetWarpDestinationName(targetID)
+                eve.Message('CustomNotify', {'notify': localization.GetByLabel('UI/Inflight/DronesEngaging', name=name)})
+        return
 
 
 def Assist(charID, droneIDs):
@@ -75,6 +78,7 @@ def Assist(charID, droneIDs):
     if entity:
         ret = entity.CmdAssist(assistID, droneIDs)
         HandleMultipleCallError(droneIDs, ret, 'MultiDroneCmdResult')
+    return
 
 
 def Guard(charID, droneIDs):
@@ -96,6 +100,7 @@ def Guard(charID, droneIDs):
     if entity:
         ret = entity.CmdGuard(guardID, droneIDs)
         HandleMultipleCallError(droneIDs, ret, 'MultiDroneCmdResult')
+    return
 
 
 def Mine(droneIDs):
@@ -106,6 +111,7 @@ def Mine(droneIDs):
     if entity:
         ret = entity.CmdMine(droneIDs, targetID)
         HandleMultipleCallError(droneIDs, ret, 'MultiDroneCmdResult')
+    return
 
 
 def MineRepeatedly(droneIDs):
@@ -116,6 +122,7 @@ def MineRepeatedly(droneIDs):
     if entity:
         ret = entity.CmdMineRepeatedly(droneIDs, targetID)
         HandleMultipleCallError(droneIDs, ret, 'MultiDroneCmdResult')
+    return
 
 
 def Salvage(droneIDs):
@@ -134,6 +141,7 @@ def DroneUnanchor(droneIDs):
     if entity:
         ret = entity.CmdUnanchor(droneIDs, targetID)
         HandleMultipleCallError(droneIDs, ret, 'MultiDroneCmdResult')
+    return
 
 
 def ReturnAndOrbit(droneIDs):

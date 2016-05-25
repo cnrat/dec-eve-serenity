@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\common\script\planet\colonyData.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\common\script\planet\colonyData.py
 import weakref
 import evetypes
 import log
@@ -22,6 +23,7 @@ class ColonyData(object):
         else:
             self.eventHandler = weakref.proxy(eventHandler)
         self.Init()
+        return
 
     def Init(self):
         self.pins = {}
@@ -34,6 +36,7 @@ class ColonyData(object):
         self.routesBySource = {}
         self.level = 0
         self.ResetResourceUsage()
+        return
 
     def SetEventHandler(self, newEventHandler):
         oldEventHandlerWasNone = self.eventHandler is None
@@ -43,6 +46,7 @@ class ColonyData(object):
             self.eventHandler = weakref.proxy(newEventHandler)
         if oldEventHandlerWasNone and newEventHandler is not None:
             self.RecalculatePowerAndCpuStatistics()
+        return
 
     def GetPin(self, pinID):
         return self.pins.get(pinID, None)
@@ -60,44 +64,48 @@ class ColonyData(object):
             return self.eventHandler.GetPlanetRadius()
         else:
             return 1.0
+            return
 
     @bluepy.TimedFunction('ColonyData::PrimePin')
-    def PrimePin(self, pinID, typeID, ownerID, latitude, longitude, lastRunTime = None, state = None):
+    def PrimePin(self, pinID, typeID, ownerID, latitude, longitude, lastRunTime=None, state=None):
         self.LogInfo('Priming pin', pinID, typeID, ownerID, latitude, longitude)
         entityType = planetCommon.GetPinEntityType(typeID)
         if entityType is None:
             self.LogError('Unable to prime pin of invalid type', typeID)
             return
-        newPin = entityType(typeID)
-        newPin.Startup(pinID, self, ownerID, latitude, longitude, lastRunTime, state)
-        self.pins[pinID] = newPin
-        if evetypes.GetGroupID(typeID) == const.groupCommandPins:
-            self.commandPin = newPin
-        self.AddPinResourceUsageToColony(newPin)
-        if self.eventHandler is not None:
-            self.eventHandler.OnPinCreated(pinID)
-        return pinID
+        else:
+            newPin = entityType(typeID)
+            newPin.Startup(pinID, self, ownerID, latitude, longitude, lastRunTime, state)
+            self.pins[pinID] = newPin
+            if evetypes.GetGroupID(typeID) == const.groupCommandPins:
+                self.commandPin = newPin
+            self.AddPinResourceUsageToColony(newPin)
+            if self.eventHandler is not None:
+                self.eventHandler.OnPinCreated(pinID)
+            return pinID
 
     @bluepy.TimedFunction('ColonyData::RemovePin')
-    def RemovePin(self, charID, pinID, force = False):
+    def RemovePin(self, charID, pinID, force=False):
         pin = self.GetPin(pinID)
         if not pin:
             self.LogWarn(charID, 'unable to remove pin', pinID, 'as it was not found')
             return
-        linksToRemove = self.linksByEndpoint.get(pinID, [])[:]
-        for destinationID in linksToRemove:
-            self.RemoveLink(pinID, destinationID)
+        else:
+            linksToRemove = self.linksByEndpoint.get(pinID, [])[:]
+            for destinationID in linksToRemove:
+                self.RemoveLink(pinID, destinationID)
 
-        self.RemovePinResourceUsageFromColony(pin)
-        if self.commandPin is not None and self.commandPin.id == pinID:
-            self.commandPin = None
-        if pinID in self.pins:
-            del self.pins[pinID]
-        if self.eventHandler is not None:
-            self.eventHandler.OnPinRemoved(pinID)
+            self.RemovePinResourceUsageFromColony(pin)
+            if self.commandPin is not None and self.commandPin.id == pinID:
+                self.commandPin = None
+            if pinID in self.pins:
+                del self.pins[pinID]
+            if self.eventHandler is not None:
+                self.eventHandler.OnPinRemoved(pinID)
+            return
 
     @bluepy.TimedFunction('ColonyData::PrimeLink')
-    def PrimeLink(self, linkTypeID, endpoint1ID, endpoint2ID, level = 0):
+    def PrimeLink(self, linkTypeID, endpoint1ID, endpoint2ID, level=0):
         if endpoint1ID > endpoint2ID:
             endpoint1ID, endpoint2ID = endpoint2ID, endpoint1ID
         endpoint1 = self.GetPin(endpoint1ID)
@@ -135,6 +143,7 @@ class ColonyData(object):
                 self.linksByEndpoint[endpoint2ID].remove(endpoint1ID)
         if self.eventHandler is not None:
             self.eventHandler.OnLinkRemoved(endpoint1ID, endpoint2ID)
+        return
 
     def GetLinksForPin(self, pinID):
         if pinID not in self.linksByEndpoint:
@@ -171,43 +180,46 @@ class ColonyData(object):
 
         if self.eventHandler is not None:
             self.eventHandler.OnRouteCreated(routeID)
+        return
 
     def RemoveRoute(self, routeID):
         if routeID not in self.routes:
             self.LogWarn('Unable to remove route', routeID, ': route not found')
             return
-        route = self.routes[routeID]
-        del self.routes[routeID]
-        sourceID = route.GetSourcePinID()
-        routeKey = (route.path[-1], route.commodityTypeID)
-        try:
-            self.megaRoutesBySource[sourceID][routeKey] -= route.commodityQuantity
-            if not self.megaRoutesBySource[sourceID][routeKey]:
-                del self.megaRoutesBySource[sourceID][routeKey]
-            if not self.megaRoutesBySource[sourceID]:
-                del self.megaRoutesBySource[sourceID]
-        except KeyError:
-            log.LogException('RemoveRoute::Failed To remove route from megaRoutesBySource')
+        else:
+            route = self.routes[routeID]
+            del self.routes[routeID]
+            sourceID = route.GetSourcePinID()
+            routeKey = (route.path[-1], route.commodityTypeID)
+            try:
+                self.megaRoutesBySource[sourceID][routeKey] -= route.commodityQuantity
+                if not self.megaRoutesBySource[sourceID][routeKey]:
+                    del self.megaRoutesBySource[sourceID][routeKey]
+                if not self.megaRoutesBySource[sourceID]:
+                    del self.megaRoutesBySource[sourceID]
+            except KeyError:
+                log.LogException('RemoveRoute::Failed To remove route from megaRoutesBySource')
 
-        if sourceID in self.routesBySource:
-            self.routesBySource[sourceID].remove(route)
-            if len(self.routesBySource[sourceID]) <= 0:
-                del self.routesBySource[sourceID]
-        destID = route.GetDestinationPinID()
-        if destID in self.routesByDestination:
-            self.routesByDestination[destID].remove(routeID)
-            if len(self.routesByDestination[destID]) <= 0:
-                del self.routesByDestination[destID]
-        prevPinID = route.path[0]
-        for pinID in route.path[1:]:
-            link = self.GetLink(prevPinID, pinID)
-            if link is None:
-                raise RuntimeError('Unable to find link between pins', prevPinID, pinID)
-            link.RemoveRoute(routeID)
-            prevPinID = pinID
+            if sourceID in self.routesBySource:
+                self.routesBySource[sourceID].remove(route)
+                if len(self.routesBySource[sourceID]) <= 0:
+                    del self.routesBySource[sourceID]
+            destID = route.GetDestinationPinID()
+            if destID in self.routesByDestination:
+                self.routesByDestination[destID].remove(routeID)
+                if len(self.routesByDestination[destID]) <= 0:
+                    del self.routesByDestination[destID]
+            prevPinID = route.path[0]
+            for pinID in route.path[1:]:
+                link = self.GetLink(prevPinID, pinID)
+                if link is None:
+                    raise RuntimeError('Unable to find link between pins', prevPinID, pinID)
+                link.RemoveRoute(routeID)
+                prevPinID = pinID
 
-        if self.eventHandler:
-            self.eventHandler.OnRouteRemoved(routeID)
+            if self.eventHandler:
+                self.eventHandler.OnRouteRemoved(routeID)
+            return
 
     def SetLevel(self, level):
         self.level = level
@@ -277,7 +289,7 @@ class ColonyData(object):
         pin = self.GetPin(pinID)
         pin.SetHeadPosition(headID, latitude, longitude)
 
-    def InstallProgram(self, pinID, typeID, headRadius, maxValue = None, cycleTime = None, numCycles = None):
+    def InstallProgram(self, pinID, typeID, headRadius, maxValue=None, cycleTime=None, numCycles=None):
         pin = self.GetPin(pinID)
         if typeID is not None:
             if maxValue is None or cycleTime is None or numCycles is None:
@@ -288,6 +300,7 @@ class ColonyData(object):
             pin.InstallProgram(typeID, cycleTime, endTime, maxValue, headRadius)
         else:
             pin.ClearProgram()
+        return
 
     def ResetResourceUsage(self):
         self.cpuUsage = self.cpuCapacity = self.powerUsage = self.powerCapacity = 0
@@ -340,32 +353,33 @@ class ColonyData(object):
         if pinID is None:
             log.LogTraceback('Unable to prime pin being loaded from data')
             return
-        groupID = evetypes.GetGroupID(pinRow.typeID)
-        if groupID == const.groupProcessPins:
-            if getattr(pinRow, 'schematicID', None) is not None:
-                self.pins[pinRow.id].SetSchematic(cfg.schematics.Get(pinRow.schematicID))
-            if getattr(pinRow, 'hasReceivedInputs', None) is not None:
-                self.pins[pinRow.id].hasReceivedInputs = pinRow.hasReceivedInputs
-            if getattr(pinRow, 'receivedInputsLastCycle', None) is not None:
-                self.pins[pinRow.id].receivedInputsLastCycle = pinRow.receivedInputsLastCycle
-        elif groupID == const.groupCommandPins or groupID == const.groupSpaceportPins:
-            self.pins[pinRow.id].lastLaunchTime = pinRow.lastLaunchTime
-            if groupID == const.groupCommandPins:
-                self.commandPin = self.pins[pinRow.id]
-        elif groupID == const.groupExtractionControlUnitPins:
-            if getattr(pinRow, 'heads', None) is not None:
-                self.SetHeads(pinRow.id, pinRow.heads)
-            if getattr(pinRow, 'programType', None) is None:
-                self.LogInfo('Pin', pinRow.id, 'has none program type, clearing program')
-                self.pins[pinRow.id].ClearProgram()
-            else:
-                self.LogInfo('Installing program on pin', pinRow.id, pinRow.programType, pinRow.cycleTime, pinRow.expiryTime, pinRow.qtyPerCycle, pinRow.headRadius, pinRow.installTime)
-                self.pins[pinRow.id].InstallProgram(pinRow.programType, pinRow.cycleTime, pinRow.expiryTime, pinRow.qtyPerCycle, pinRow.headRadius, lastRunTime=pinRow.lastRunTime, installTime=pinRow.installTime)
-        self.pins[pinRow.id].SetState(pinRow.state)
-        for typeID, quantity in pinRow.contents.iteritems():
-            self.pins[pinRow.id].SetContents(pinRow.contents)
+        else:
+            groupID = evetypes.GetGroupID(pinRow.typeID)
+            if groupID == const.groupProcessPins:
+                if getattr(pinRow, 'schematicID', None) is not None:
+                    self.pins[pinRow.id].SetSchematic(cfg.schematics.Get(pinRow.schematicID))
+                if getattr(pinRow, 'hasReceivedInputs', None) is not None:
+                    self.pins[pinRow.id].hasReceivedInputs = pinRow.hasReceivedInputs
+                if getattr(pinRow, 'receivedInputsLastCycle', None) is not None:
+                    self.pins[pinRow.id].receivedInputsLastCycle = pinRow.receivedInputsLastCycle
+            elif groupID == const.groupCommandPins or groupID == const.groupSpaceportPins:
+                self.pins[pinRow.id].lastLaunchTime = pinRow.lastLaunchTime
+                if groupID == const.groupCommandPins:
+                    self.commandPin = self.pins[pinRow.id]
+            elif groupID == const.groupExtractionControlUnitPins:
+                if getattr(pinRow, 'heads', None) is not None:
+                    self.SetHeads(pinRow.id, pinRow.heads)
+                if getattr(pinRow, 'programType', None) is None:
+                    self.LogInfo('Pin', pinRow.id, 'has none program type, clearing program')
+                    self.pins[pinRow.id].ClearProgram()
+                else:
+                    self.LogInfo('Installing program on pin', pinRow.id, pinRow.programType, pinRow.cycleTime, pinRow.expiryTime, pinRow.qtyPerCycle, pinRow.headRadius, pinRow.installTime)
+                    self.pins[pinRow.id].InstallProgram(pinRow.programType, pinRow.cycleTime, pinRow.expiryTime, pinRow.qtyPerCycle, pinRow.headRadius, lastRunTime=pinRow.lastRunTime, installTime=pinRow.installTime)
+            self.pins[pinRow.id].SetState(pinRow.state)
+            for typeID, quantity in pinRow.contents.iteritems():
+                self.pins[pinRow.id].SetContents(pinRow.contents)
 
-        return pinID
+            return pinID
 
     @bluepy.TimedFunction('ColonyData::RestoreLinkFromRow')
     def RestoreLinkFromRow(self, linkRow):
@@ -391,7 +405,7 @@ class ColonyData(object):
 
         return routesToDelete
 
-    def GetCopy(self, eventHandler = None):
+    def GetCopy(self, eventHandler=None):
         newColonyData = ColonyData(self.ownerID, eventHandler)
         newColonyData.SetLevel(self.level)
         for pin in self.pins.itervalues():
@@ -566,8 +580,9 @@ class ColonyData(object):
             return value
         else:
             return self.eventHandler.GetTypeAttribute(typeID, attributeID)
+            return
 
-    def GetECUs(self, excludeID = None):
+    def GetECUs(self, excludeID=None):
         pins = set()
         for pin in self.pins.itervalues():
             if pin.id == excludeID:
@@ -580,15 +595,19 @@ class ColonyData(object):
     def LogInfo(self, *args):
         if self.eventHandler is not None:
             self.eventHandler.LogInfo(*args)
+        return
 
     def LogWarn(self, *args):
         if self.eventHandler is not None:
             self.eventHandler.LogWarn(*args)
+        return
 
     def LogError(self, *args):
         if self.eventHandler is not None:
             self.eventHandler.LogError(*args)
+        return
 
     def LogNotice(self, *args):
         if self.eventHandler is not None:
             self.eventHandler.LogNotice(*args)
+        return

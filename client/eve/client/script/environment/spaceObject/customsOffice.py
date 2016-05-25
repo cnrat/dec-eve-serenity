@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\client\script\environment\spaceObject\customsOffice.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\client\script\environment\spaceObject\customsOffice.py
 import blue
 import trinity
 import uthread
@@ -41,6 +42,7 @@ class CustomsOffice(LargeCollidableStructure):
             uthread.pool('CustomsOffice::DelayedRemove', self.DelayedRemove, oldModel, int(1000))
         if self.model is not None:
             self.model.display = True
+        return
 
     def DelayedRemove(self, model, delay):
         model.name = model.name + '_removing'

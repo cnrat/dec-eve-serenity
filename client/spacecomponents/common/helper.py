@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\packages\spacecomponents\common\helper.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\packages\spacecomponents\common\helper.py
 from ccpProfile import TimedFunction
 import componentConst
 
@@ -127,7 +128,10 @@ def GetReinforcedComponent(componentRegistry, typeID, itemID):
         return componentRegistry.GetComponentForItem(itemID, componentConst.REINFORCE_CLASS)
     elif HasTurboShieldComponent(typeID):
         return componentRegistry.GetComponentForItem(itemID, componentConst.TURBO_SHIELD_CLASS)
+    elif HasFighterSquadronComponent(typeID):
+        return componentRegistry.GetComponentForItem(itemID, componentConst.FIGHTER_SQUADRON_CLASS)
     else:
+        return None
         return None
 
 
@@ -184,3 +188,7 @@ def HasItemTrader(typeID):
 @TimedFunction('SpaceComponent::Helper::HasJumpPolarizationComponent')
 def HasJumpPolarizationComponent(typeID):
     return TypeHasComponent(typeID, componentConst.JUMP_POLARIZATION_CLASS)
+
+
+def HasFighterSquadronComponent(typeID):
+    return TypeHasComponent(typeID, componentConst.FIGHTER_SQUADRON_CLASS)

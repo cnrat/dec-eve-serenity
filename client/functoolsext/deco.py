@@ -1,7 +1,8 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\packages\functoolsext\deco.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\packages\functoolsext\deco.py
 
 
-def permacache(ignore_parameters = False):
+def permacache(ignore_parameters=False):
     real_func = None
     if hasattr(ignore_parameters, '__call__'):
         real_func = ignore_parameters
@@ -25,3 +26,4 @@ def permacache(ignore_parameters = False):
         return inner(real_func)
     else:
         return inner
+        return

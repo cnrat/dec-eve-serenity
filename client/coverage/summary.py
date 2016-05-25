@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\carbon\common\stdlib\coverage\summary.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\carbon\common\stdlib\coverage\summary.py
 import sys
 from coverage.report import Reporter
 from coverage.results import Numbers
@@ -10,7 +11,7 @@ class SummaryReporter(Reporter):
         super(SummaryReporter, self).__init__(coverage, config)
         self.branches = coverage.data.has_arcs()
 
-    def report(self, morfs, outfile = None):
+    def report(self, morfs, outfile=None):
         self.find_code_units(morfs)
         max_name = max([ len(cu.name) for cu in self.code_units ] + [5])
         fmt_name = '%%- %ds  ' % max_name

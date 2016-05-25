@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\carbon\client\script\zaction\genericProcs.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\carbon\client\script\zaction\genericProcs.py
 import service
 import GameWorld
 import uthread
@@ -28,7 +29,8 @@ class GenericClientProcSvc(service.Service):
         prefVal = prefs.GetValue(Name, None)
         if prefVal is None:
             return False
-        return prefVal == Value
+        else:
+            return prefVal == Value
 
     def _SetClientPrefBool(self, Name, Value):
         uthread.worker('_SetClientPrefBool', self._SetClientPrefBoolTasklet, Name, Value)
@@ -41,7 +43,8 @@ class GenericClientProcSvc(service.Service):
         prefVal = prefs.GetValue(Name, None)
         if prefVal is None:
             return False
-        return prefVal == Value
+        else:
+            return prefVal == Value
 
     def _SetCharacterPrefBool(self, Name, Value):
         uthread.worker('_SetCharacterPrefBool', self._SetCharacterPrefBoolTasklet, Name, Value)
@@ -54,7 +57,8 @@ class GenericClientProcSvc(service.Service):
         prefVal = settings.char.zaction.Get(Name, None)
         if prefVal is None:
             return False
-        return prefVal == Value
+        else:
+            return prefVal == Value
 
 
 SetClientPrefInt = ProcTypeDef(isMaster=True, procCategory='Client Preferences', properties=[ProcPropertyTypeDef('Name', 'S', userDataType=None, isPrivate=True, displayName='Pref Name'), ProcPropertyTypeDef('Value', 'I', userDataType=None, isPrivate=True, displayName='Value')], description='Sets a client preference (integer value).')

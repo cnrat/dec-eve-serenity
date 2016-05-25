@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\carbon\common\lib\cherrypy\test\test_wsgi_ns.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\carbon\common\lib\cherrypy\test\test_wsgi_ns.py
 import cherrypy
 from cherrypy.test import helper
 
@@ -24,7 +25,7 @@ class WSGI_Namespace_Test(helper.CPWebCase):
 
         class ChangeCase(object):
 
-            def __init__(self, app, to = None):
+            def __init__(self, app, to=None):
                 self.app = app
                 self.to = to
 
@@ -40,7 +41,7 @@ class WSGI_Namespace_Test(helper.CPWebCase):
 
         class Replacer(object):
 
-            def __init__(self, app, map = {}):
+            def __init__(self, app, map={}):
                 self.app = app
                 self.map = map
 
@@ -61,7 +62,7 @@ class WSGI_Namespace_Test(helper.CPWebCase):
         class Root(object):
 
             def index(self):
-                return 'HellO WoRlD!'
+                pass
 
             index.exposed = True
 

@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\devtools\script\connectiontest.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\devtools\script\connectiontest.py
 import uix
 import uiutil
 import util
@@ -135,6 +136,8 @@ class ConnectionLoopTest(uicontrols.Window):
                 userpass = ''
                 userchar = ''
                 sys.exc_clear()
+
+        return
 
     def Current(self, *args):
         server = util.GetServerName()

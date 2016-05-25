@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\client\script\ui\control\eveWindowUnderlay.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\client\script\ui\control\eveWindowUnderlay.py
 from carbonui.primitives.container import Container
 from carbonui.util.various_unsorted import GetWindowAbove
 import carbonui.const as uiconst
@@ -136,6 +137,7 @@ class BlurredSceneUnderlay(SpriteThemeColored):
             brightness *= self.GetTransparencySetting()
         self.AnimateEffectTo(effectOpacity)
         self.AnimateBrightnessTo(brightness)
+        return
 
     def UpdateStateBlurDisabled(self):
         if self.isPinned:
@@ -144,6 +146,7 @@ class BlurredSceneUnderlay(SpriteThemeColored):
             self.SetFixedColor(None)
             self.opacity = 0.5 * (2.0 - self.GetTransparencySetting())
         self.spriteEffect = trinity.TR2_SFX_FILL
+        return
 
     @telemetry.ZONE_METHOD
     def UpdateState(self):
@@ -216,7 +219,7 @@ class BumpedUnderlay(Container):
         self.UpdateIsActive()
         self.UpdateState()
 
-    def UpdateState(self, animate = True):
+    def UpdateState(self, animate=True):
         if self.isCameraDragging:
             opacity = 0.0
         elif self.isWindowActive:
@@ -287,7 +290,7 @@ class RaisedUnderlay(Container):
     def GetColor(self):
         return self.fixedColor or sm.GetService('uiColor').GetUIColor(uiconst.COLORTYPE_UIHILIGHT)
 
-    def ShowHilite(self, animate = True):
+    def ShowHilite(self, animate=True):
         if self.isSelected or self.isDisabled:
             return
         color = self.GetColor()
@@ -299,7 +302,7 @@ class RaisedUnderlay(Container):
             color = color[:3] + (self.frame.opacity,)
             self.frame.SetRGB(*color)
 
-    def HideHilite(self, animate = True):
+    def HideHilite(self, animate=True):
         if self.isSelected or self.isDisabled:
             return
         color = self.GetColor()
@@ -321,13 +324,13 @@ class RaisedUnderlay(Container):
             return
         uicore.animations.FadeTo(self.hoverFill, self.hoverFill.opacity, self.OPACITY_HOVER, duration=0.3)
 
-    def Blink(self, loops = 1):
+    def Blink(self, loops=1):
         uicore.animations.FadeTo(self.hoverFill, self.OPACITY_MOUSEDOWN, self.OPACITY_IDLE, curveType=uiconst.ANIM_WAVE, duration=0.6, loops=loops)
 
     def StopBlink(self):
         uicore.animations.FadeTo(self.hoverFill, self.hoverFill.opacity, self.OPACITY_IDLE, duration=0.3)
 
-    def Select(self, animate = True):
+    def Select(self, animate=True):
         if self.isSelected:
             return
         self.innerGlow.StopAnimations()
@@ -341,7 +344,7 @@ class RaisedUnderlay(Container):
             self.hoverFill.opacity = self.OPACITY_SELECTED
         self.isSelected = True
 
-    def Deselect(self, animate = True):
+    def Deselect(self, animate=True):
         if not self.isSelected:
             return
         self.isSelected = False
@@ -421,6 +424,7 @@ class TabUnderlay(Container):
             self.underlay.colorType = uiconst.COLORTYPE_UIBASE
             self.underlay.fixedColor = None
             uicore.animations.SpColorMorphTo(self.underlay, endColor=color, duration=0.5, includeAlpha=False)
+        return
 
     def OnMouseDown(self, *args):
         if not self.isSelected:
@@ -431,7 +435,7 @@ class TabUnderlay(Container):
     def OnMouseUp(self, *args):
         uicore.animations.FadeTo(self.bgCont, self.bgCont.opacity, self.OPACITY_HOVER, duration=0.3)
 
-    def Blink(self, loops = 1):
+    def Blink(self, loops=1):
         curveSet = uicore.animations.FadeTo(self.bgCont, self.OPACITY_BLINK, self.OPACITY_IDLE, curveType=uiconst.ANIM_WAVE, duration=0.8, loops=loops)
         uicore.animations.SyncPlayback(curveSet)
         self.isBlinking = True
@@ -516,25 +520,25 @@ class ListEntryUnderlay(FillThemeColored):
     default_opacity = OPACITY_IDLE
     default_padBottom = 1
 
-    def ShowHilite(self, animate = True):
+    def ShowHilite(self, animate=True):
         if animate:
             uicore.animations.FadeTo(self, self.opacity, OPACITY_HOVER, duration=uiconst.TIME_ENTRY)
         else:
             self.opacity = OPACITY_HOVER
 
-    def HideHilite(self, animate = True):
+    def HideHilite(self, animate=True):
         if animate:
             uicore.animations.FadeTo(self, self.opacity, OPACITY_IDLE, duration=uiconst.TIME_EXIT)
         else:
             self.opacity = OPACITY_IDLE
 
-    def Select(self, animate = True):
+    def Select(self, animate=True):
         if animate:
             uicore.animations.FadeTo(self, self.opacity, OPACITY_SELECTED, duration=0.4, curveType=uiconst.ANIM_OVERSHOT5)
         else:
             self.opacity = OPACITY_SELECTED
 
-    def Deselect(self, animate = True):
+    def Deselect(self, animate=True):
         if animate:
             uicore.animations.FadeTo(self, max(0.1, self.opacity), OPACITY_IDLE, duration=0.6)
         else:

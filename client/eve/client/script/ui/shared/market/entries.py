@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\client\script\ui\shared\market\entries.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\client\script\ui\shared\market\entries.py
 from carbonui import const as uiconst
 from carbonui.control.menuLabel import MenuLabel
 from carbonui.primitives.fill import Fill
@@ -17,6 +18,7 @@ class MarketOrder(listentry.Generic):
     def Startup(self, *args):
         listentry.Generic.Startup(self, args)
         self.sr.green = None
+        return
 
     def Load(self, node):
         listentry.Generic.Load(self, node)
@@ -35,16 +37,20 @@ class MarketOrder(listentry.Generic):
             self.sr.bgFill = Fill(bgParent=self, color=(1.0, 1.0, 1.0, 0.25), state=uiconst.UI_DISABLED)
         self.sr.bgFill.color.SetRGB(a=0.25, *color[:3])
         self.sr.bgFill.state = uiconst.UI_DISABLED
+        return
 
-    def Buy(self, node = None, ignoreAdvanced = False, *args):
+    def Buy(self, node=None, ignoreAdvanced=False, *args):
         if not hasattr(self, 'sr'):
             return
-        node = node if node is not None else self.sr.node
-        sm.GetService('marketutils').Buy(self.sr.node.order.typeID, node.order, 0, ignoreAdvanced=ignoreAdvanced)
+        else:
+            node = node if node is not None else self.sr.node
+            sm.GetService('marketutils').Buy(self.sr.node.order.typeID, node.order, 0, ignoreAdvanced=ignoreAdvanced)
+            return
 
-    def ShowInfo(self, node = None, *args):
+    def ShowInfo(self, node=None, *args):
         node = node if node is not None else self.sr.node
         sm.GetService('info').ShowInfo(node.order.typeID)
+        return
 
     def GetMenu(self):
         self.OnClick()
@@ -56,7 +62,8 @@ class MarketOrder(listentry.Generic):
         stationID = self.sr.node.order.stationID
         if stationID:
             stationInfo = sm.GetService('ui').GetStation(stationID)
-            m += [(MenuLabel('UI/Common/Location'), sm.GetService('menu').CelestialMenu(stationID, typeID=stationInfo.stationTypeID, parentID=stationInfo.solarSystemID, mapItem=None))]
+            if stationInfo:
+                m += [(MenuLabel('UI/Common/Location'), sm.GetService('menu').CelestialMenu(stationID, typeID=stationInfo.stationTypeID, parentID=stationInfo.solarSystemID, mapItem=None))]
         if self.sr.node.markAsMine:
             m.append((MenuLabel('UI/Market/Orders/ModifyOrder'), self.ModifyPrice, (self.sr.node,)))
             m.append((MenuLabel('UI/Market/Orders/CancelOrder'), self.CancelOffer, (self.sr.node,)))
@@ -96,6 +103,7 @@ class GenericMarketItem(listentry.Generic):
     def OnMouseExit(self, *args):
         listentry.Generic.OnMouseExit(self, *args)
         TryGhostFitItemOnMouseAction(None, oldWindow=False)
+        return
 
 
 class QuickbarItem(GenericMarketItem):
@@ -116,6 +124,7 @@ class QuickbarItem(GenericMarketItem):
             else:
                 self.hint = ''
             self.hint += localization.GetByLabel('UI/Market/Marketbase/NotAvailableOnMarket')
+        return
 
     def OnClick(self, *args):
         if self.sr.node:
@@ -125,6 +134,7 @@ class QuickbarItem(GenericMarketItem):
             eve.Message('ListEntryClick')
             if self.sr.node.Get('OnClick', None):
                 self.sr.node.OnClick(self)
+        return
 
     def GetMenu(self):
         m = []
@@ -141,6 +151,7 @@ class QuickbarItem(GenericMarketItem):
     def OnDropData(self, dragObj, nodes):
         if self.sr.node.get('DropData', None):
             self.sr.node.DropData(('quickbar', self.sr.node.parent), nodes)
+        return
 
 
 class QuickbarGroup(ListGroup):
@@ -172,3 +183,4 @@ class MarketMetaGroupEntry(ListGroup):
         ListGroup.OnClick(self, *args)
         if self.OnToggle is not None:
             self.OnToggle()
+        return

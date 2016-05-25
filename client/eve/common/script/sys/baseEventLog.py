@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\common\script\sys\baseEventLog.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\common\script\sys\baseEventLog.py
 import sys
 import service
 import blue
@@ -24,7 +25,7 @@ def FmtEventLogDate(date):
 
 class EventLogChannel(object):
 
-    def __init__(self, broker, configOverrides = {}):
+    def __init__(self, broker, configOverrides={}):
         self.broker = broker
         config = {key:getattr(broker, key) for key in broker.GetConfigKeys()}
         config.update(configOverrides)
@@ -91,6 +92,7 @@ class EventLogChannel(object):
 
         duration = (blue.os.GetWallclockTimeNow() - startTime) / const.MSEC
         self.broker.LogInfo('Done persisting', len(logEvents), 'events to', fileName, 'in', duration, 'ms')
+        return
 
     def PersistToFile_Thread_Json(self, logEvents):
         if len(logEvents) > self.numPersistEventsWarningThreshold:
@@ -132,6 +134,7 @@ class EventLogChannel(object):
 
         duration = (blue.os.GetWallclockTimeNow() - startTime) / const.MSEC
         self.broker.LogInfo('Done persisting', len(logEvents), 'events to', fileName, 'in', duration, 'ms')
+        return
 
 
 class BaseEventLogSvc(service.Service):
@@ -201,6 +204,7 @@ class BaseEventLogSvc(service.Service):
         else:
             return
         logEvents.append((blue.os.GetWallclockTimeNow(), event))
+        return
 
     def CollectArgs(self, args):
         lst = []
@@ -217,56 +221,62 @@ class BaseEventLogSvc(service.Service):
     def LogOwnerEvent(self, eventName, ownerID, *args, **kwargs):
         if self.tsvDisabled:
             return
-        eventLogChannel = kwargs.get('eventLogChannel', None)
-        self.LogInfo('LogOwnerEvent', eventName, ownerID)
-        try:
-            if not self.IsEnabled():
-                return
-            self._LogOwnerEvent(eventName, ownerID, eventLogChannel, *args)
-            if kwargs.get('otherOwnerID', None):
-                otherOwnerIDs = kwargs['otherOwnerID']
-                if not isinstance(otherOwnerIDs, list):
-                    otherOwnerIDs = [otherOwnerIDs]
-                for otherOwnerID in set(otherOwnerIDs):
-                    if otherOwnerID and otherOwnerID != ownerID and util.IsPlayerOwner(otherOwnerID):
-                        reciprocalArgs = list(args)
-                        reciprocalArgs.append(ownerID)
-                        self._LogOwnerEvent((eventName + '|R'), otherOwnerID, eventLogChannel, *reciprocalArgs)
+        else:
+            eventLogChannel = kwargs.get('eventLogChannel', None)
+            self.LogInfo('LogOwnerEvent', eventName, ownerID)
+            try:
+                if not self.IsEnabled():
+                    return
+                self._LogOwnerEvent(eventName, ownerID, eventLogChannel, *args)
+                if kwargs.get('otherOwnerID', None):
+                    otherOwnerIDs = kwargs['otherOwnerID']
+                    if not isinstance(otherOwnerIDs, list):
+                        otherOwnerIDs = [otherOwnerIDs]
+                    for otherOwnerID in set(otherOwnerIDs):
+                        if otherOwnerID and otherOwnerID != ownerID and util.IsPlayerOwner(otherOwnerID):
+                            reciprocalArgs = list(args)
+                            reciprocalArgs.append(ownerID)
+                            self._LogOwnerEvent((eventName + '|R'), otherOwnerID, eventLogChannel, *reciprocalArgs)
 
-        except:
-            log.LogException('Error logging owner event')
-            sys.exc_clear()
+            except:
+                log.LogException('Error logging owner event')
+                sys.exc_clear()
+
+            return
 
     def LogOwnerEventJson(self, eventName, ownerID, *args, **kwargs):
         if self.jsonDisabled:
             return
-        eventLogChannel = kwargs.get('eventLogChannel', None)
-        try:
-            locationID = args[0]
-        except:
-            self.LogWarn('Event', eventName, 'written without a locationID')
-            locationID = 0
+        else:
+            eventLogChannel = kwargs.get('eventLogChannel', None)
+            try:
+                locationID = args[0]
+            except:
+                self.LogWarn('Event', eventName, 'written without a locationID')
+                locationID = 0
 
-        dct = kwargs
-        dct['dateTime'] = FmtEventLogDate(blue.os.GetTime())
-        dct['locationID'] = locationID
-        noArgs = []
-        self.LogInfo('LogOwnerEventJson', eventName, ownerID)
-        try:
-            if not self.IsEnabled():
-                return
-            self._LogOwnerEvent(eventName, ownerID, eventLogChannel, *noArgs, **dct)
-            if kwargs.get('otherOwnerID', None):
-                otherOwnerIDs = kwargs['otherOwnerID']
-                if not isinstance(otherOwnerIDs, list):
-                    otherOwnerIDs = [otherOwnerIDs]
-                for otherOwnerID in set(otherOwnerIDs):
-                    if otherOwnerID and otherOwnerID != ownerID and util.IsPlayerOwner(otherOwnerID):
-                        self._LogOwnerEvent((eventName + '|R'), otherOwnerID, eventLogChannel, *noArgs, **dct)
+            dct = kwargs
+            dct['dateTime'] = FmtEventLogDate(blue.os.GetTime())
+            dct['locationID'] = locationID
+            noArgs = []
+            self.LogInfo('LogOwnerEventJson', eventName, ownerID)
+            try:
+                if not self.IsEnabled():
+                    return
+                self._LogOwnerEvent(eventName, ownerID, eventLogChannel, *noArgs, **dct)
+                if kwargs.get('otherOwnerID', None):
+                    otherOwnerIDs = kwargs['otherOwnerID']
+                    if not isinstance(otherOwnerIDs, list):
+                        otherOwnerIDs = [otherOwnerIDs]
+                    for otherOwnerID in set(otherOwnerIDs):
+                        if otherOwnerID and otherOwnerID != ownerID and util.IsPlayerOwner(otherOwnerID):
+                            self._LogOwnerEvent((eventName + '|R'), otherOwnerID, eventLogChannel, *noArgs, **dct)
 
-        except:
-            log.LogException('Error logging owner event')
-            sys.exc_clear()
+            except:
+                log.LogException('Error logging owner event')
+                sys.exc_clear()
+
+            return
 
     def _LogOwnerEvent(self, eventName, ownerID, eventLogChannel, *args, **kwargs):
         event = None
@@ -284,8 +294,9 @@ class BaseEventLogSvc(service.Service):
             self.AddLogEvent(event, eventLogChannel)
         else:
             self.LogError('Offending line is', args)
+        return
 
-    def GetHtmlState(self, writer, sess = None, request = None):
+    def GetHtmlState(self, writer, sess=None, request=None):
         if writer is None:
             numEvents = 0
             for k, v in self.logEventCounter.iteritems():
@@ -295,6 +306,7 @@ class BaseEventLogSvc(service.Service):
             return 'Event logging is %s<br>%s events have been logged<br>Logging to %s' % (e, numEvents, self.defaultChannel.currFileName)
         else:
             return service.Service.GetHtmlState(self, writer, sess, request)
+            return
 
     def GetHtmlStateDetails(self, k, v, detailed):
         if k == 'logEvents':
@@ -302,6 +314,7 @@ class BaseEventLogSvc(service.Service):
                 return self.ViewCounters()
             else:
                 return ('Click to view Counters', None)
+        return None
 
     def ViewCounters(self):
         import htmlwriter

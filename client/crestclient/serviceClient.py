@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\packages\crestclient\serviceClient.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\packages\crestclient\serviceClient.py
 from crestClient import CrestUserBase, CONTENT_TYPE
 import requests
 import requests.auth
@@ -6,7 +7,7 @@ import base64
 
 class CrestServiceSso(CrestUserBase):
 
-    def __init__(self, clientID, clientSecret, server, scope, verify = False, authUrl = None):
+    def __init__(self, clientID, clientSecret, server, scope, verify=False, authUrl=None):
         super(CrestServiceSso, self).__init__()
         self.clientID = clientID
         self.clientSecret = clientSecret
@@ -27,6 +28,7 @@ class CrestServiceAuth(requests.auth.AuthBase):
         self.scope = scope
         self.authUrl = authUrl
         self.authorization = None
+        return
 
     def __call__(self, request):
         if self.authorization:

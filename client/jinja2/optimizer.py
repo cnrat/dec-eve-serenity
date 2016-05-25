@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\carbon\common\lib\jinja2\optimizer.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\carbon\common\lib\jinja2\optimizer.py
 from jinja2 import nodes
 from jinja2.visitor import NodeTransformer
 
@@ -15,20 +16,21 @@ class Optimizer(NodeTransformer):
     def visit_If(self, node):
         if node.find(nodes.Block) is not None:
             return self.generic_visit(node)
-        try:
-            val = self.visit(node.test).as_const()
-        except nodes.Impossible:
-            return self.generic_visit(node)
-
-        if val:
-            body = node.body
         else:
-            body = node.else_
-        result = []
-        for node in body:
-            result.extend(self.visit_list(node))
+            try:
+                val = self.visit(node.test).as_const()
+            except nodes.Impossible:
+                return self.generic_visit(node)
 
-        return result
+            if val:
+                body = node.body
+            else:
+                body = node.else_
+            result = []
+            for node in body:
+                result.extend(self.visit_list(node))
+
+            return result
 
     def fold(self, node):
         node = self.generic_visit(node)

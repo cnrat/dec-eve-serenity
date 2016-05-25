@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\carbon\common\stdlib\json\encoder.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\carbon\common\stdlib\json\encoder.py
 import re
 try:
     from _json import encode_basestring_ascii as c_encode_basestring_ascii
@@ -61,7 +62,7 @@ class JSONEncoder(object):
     item_separator = ', '
     key_separator = ': '
 
-    def __init__(self, skipkeys = False, ensure_ascii = True, check_circular = True, allow_nan = True, sort_keys = False, indent = None, separators = None, encoding = 'utf-8', default = None):
+    def __init__(self, skipkeys=False, ensure_ascii=True, check_circular=True, allow_nan=True, sort_keys=False, indent=None, separators=None, encoding='utf-8', default=None):
         self.skipkeys = skipkeys
         self.ensure_ascii = ensure_ascii
         self.check_circular = check_circular
@@ -73,6 +74,7 @@ class JSONEncoder(object):
         if default is not None:
             self.default = default
         self.encoding = encoding
+        return
 
     def default(self, o):
         raise TypeError(repr(o) + ' is not JSON serializable')
@@ -92,7 +94,7 @@ class JSONEncoder(object):
             chunks = list(chunks)
         return ''.join(chunks)
 
-    def iterencode(self, o, _one_shot = False):
+    def iterencode(self, o, _one_shot=False):
         if self.check_circular:
             markers = {}
         else:
@@ -103,12 +105,12 @@ class JSONEncoder(object):
             _encoder = encode_basestring
         if self.encoding != 'utf-8':
 
-            def _encoder(o, _orig_encoder = _encoder, _encoding = self.encoding):
+            def _encoder(o, _orig_encoder=_encoder, _encoding=self.encoding):
                 if isinstance(o, str):
                     o = o.decode(_encoding)
                 return _orig_encoder(o)
 
-        def floatstr(o, allow_nan = self.allow_nan, _repr = FLOAT_REPR, _inf = INFINITY, _neginf = -INFINITY):
+        def floatstr(o, allow_nan=self.allow_nan, _repr=FLOAT_REPR, _inf=INFINITY, _neginf=-INFINITY):
             if o != o:
                 text = 'NaN'
             elif o == _inf:
@@ -128,136 +130,140 @@ class JSONEncoder(object):
         return _iterencode(o, 0)
 
 
-def _make_iterencode(markers, _default, _encoder, _indent, _floatstr, _key_separator, _item_separator, _sort_keys, _skipkeys, _one_shot, ValueError = ValueError, basestring = basestring, dict = dict, float = float, id = id, int = int, isinstance = isinstance, list = list, long = long, str = str, tuple = tuple):
+def _make_iterencode(markers, _default, _encoder, _indent, _floatstr, _key_separator, _item_separator, _sort_keys, _skipkeys, _one_shot, ValueError=ValueError, basestring=basestring, dict=dict, float=float, id=id, int=int, isinstance=isinstance, list=list, long=long, str=str, tuple=tuple):
 
     def _iterencode_list(lst, _current_indent_level):
         if not lst:
             yield '[]'
             return
-        if markers is not None:
-            markerid = id(lst)
-            if markerid in markers:
-                raise ValueError('Circular reference detected')
-            markers[markerid] = lst
-        buf = '['
-        if _indent is not None:
-            _current_indent_level += 1
-            newline_indent = '\n' + ' ' * (_indent * _current_indent_level)
-            separator = _item_separator + newline_indent
-            buf += newline_indent
         else:
-            newline_indent = None
-            separator = _item_separator
-        first = True
-        for value in lst:
-            if first:
-                first = False
+            if markers is not None:
+                markerid = id(lst)
+                if markerid in markers:
+                    raise ValueError('Circular reference detected')
+                markers[markerid] = lst
+            buf = '['
+            if _indent is not None:
+                _current_indent_level += 1
+                newline_indent = '\n' + ' ' * (_indent * _current_indent_level)
+                separator = _item_separator + newline_indent
+                buf += newline_indent
             else:
-                buf = separator
-            if isinstance(value, basestring):
-                yield buf + _encoder(value)
-            elif value is None:
-                yield buf + 'null'
-            elif value is True:
-                yield buf + 'true'
-            elif value is False:
-                yield buf + 'false'
-            elif isinstance(value, (int, long)):
-                yield buf + str(value)
-            elif isinstance(value, float):
-                yield buf + _floatstr(value)
-            else:
-                yield buf
-                if isinstance(value, (list, tuple)):
-                    chunks = _iterencode_list(value, _current_indent_level)
-                elif isinstance(value, dict):
-                    chunks = _iterencode_dict(value, _current_indent_level)
+                newline_indent = None
+                separator = _item_separator
+            first = True
+            for value in lst:
+                if first:
+                    first = False
                 else:
-                    chunks = _iterencode(value, _current_indent_level)
-                for chunk in chunks:
-                    yield chunk
+                    buf = separator
+                if isinstance(value, basestring):
+                    yield buf + _encoder(value)
+                elif value is None:
+                    yield buf + 'null'
+                elif value is True:
+                    yield buf + 'true'
+                elif value is False:
+                    yield buf + 'false'
+                elif isinstance(value, (int, long)):
+                    yield buf + str(value)
+                elif isinstance(value, float):
+                    yield buf + _floatstr(value)
+                else:
+                    yield buf
+                    if isinstance(value, (list, tuple)):
+                        chunks = _iterencode_list(value, _current_indent_level)
+                    elif isinstance(value, dict):
+                        chunks = _iterencode_dict(value, _current_indent_level)
+                    else:
+                        chunks = _iterencode(value, _current_indent_level)
+                    for chunk in chunks:
+                        yield chunk
 
-        if newline_indent is not None:
-            _current_indent_level -= 1
-            yield '\n' + ' ' * (_indent * _current_indent_level)
-        yield ']'
-        if markers is not None:
-            del markers[markerid]
+            if newline_indent is not None:
+                _current_indent_level -= 1
+                yield '\n' + ' ' * (_indent * _current_indent_level)
+            yield ']'
+            if markers is not None:
+                del markers[markerid]
+            return
 
     def _iterencode_dict(dct, _current_indent_level):
         if not dct:
             yield '{}'
             return
-        if markers is not None:
-            markerid = id(dct)
-            if markerid in markers:
-                raise ValueError('Circular reference detected')
-            markers[markerid] = dct
-        yield '{'
-        if _indent is not None:
-            _current_indent_level += 1
-            newline_indent = '\n' + ' ' * (_indent * _current_indent_level)
-            item_separator = _item_separator + newline_indent
-            yield newline_indent
         else:
-            newline_indent = None
-            item_separator = _item_separator
-        first = True
-        if _sort_keys:
-            items = sorted(dct.items(), key=lambda kv: kv[0])
-        else:
-            items = dct.iteritems()
-        for key, value in items:
-            if isinstance(key, basestring):
-                pass
-            elif isinstance(key, float):
-                key = _floatstr(key)
-            elif key is True:
-                key = 'true'
-            elif key is False:
-                key = 'false'
-            elif key is None:
-                key = 'null'
-            elif isinstance(key, (int, long)):
-                key = str(key)
-            elif _skipkeys:
-                continue
+            if markers is not None:
+                markerid = id(dct)
+                if markerid in markers:
+                    raise ValueError('Circular reference detected')
+                markers[markerid] = dct
+            yield '{'
+            if _indent is not None:
+                _current_indent_level += 1
+                newline_indent = '\n' + ' ' * (_indent * _current_indent_level)
+                item_separator = _item_separator + newline_indent
+                yield newline_indent
             else:
-                raise TypeError('key ' + repr(key) + ' is not a string')
-            if first:
-                first = False
+                newline_indent = None
+                item_separator = _item_separator
+            first = True
+            if _sort_keys:
+                items = sorted(dct.items(), key=lambda kv: kv[0])
             else:
-                yield item_separator
-            yield _encoder(key)
-            yield _key_separator
-            if isinstance(value, basestring):
-                yield _encoder(value)
-            elif value is None:
-                yield 'null'
-            elif value is True:
-                yield 'true'
-            elif value is False:
-                yield 'false'
-            elif isinstance(value, (int, long)):
-                yield str(value)
-            elif isinstance(value, float):
-                yield _floatstr(value)
-            else:
-                if isinstance(value, (list, tuple)):
-                    chunks = _iterencode_list(value, _current_indent_level)
-                elif isinstance(value, dict):
-                    chunks = _iterencode_dict(value, _current_indent_level)
+                items = dct.iteritems()
+            for key, value in items:
+                if isinstance(key, basestring):
+                    pass
+                elif isinstance(key, float):
+                    key = _floatstr(key)
+                elif key is True:
+                    key = 'true'
+                elif key is False:
+                    key = 'false'
+                elif key is None:
+                    key = 'null'
+                elif isinstance(key, (int, long)):
+                    key = str(key)
+                elif _skipkeys:
+                    continue
                 else:
-                    chunks = _iterencode(value, _current_indent_level)
-                for chunk in chunks:
-                    yield chunk
+                    raise TypeError('key ' + repr(key) + ' is not a string')
+                if first:
+                    first = False
+                else:
+                    yield item_separator
+                yield _encoder(key)
+                yield _key_separator
+                if isinstance(value, basestring):
+                    yield _encoder(value)
+                elif value is None:
+                    yield 'null'
+                elif value is True:
+                    yield 'true'
+                elif value is False:
+                    yield 'false'
+                elif isinstance(value, (int, long)):
+                    yield str(value)
+                elif isinstance(value, float):
+                    yield _floatstr(value)
+                else:
+                    if isinstance(value, (list, tuple)):
+                        chunks = _iterencode_list(value, _current_indent_level)
+                    elif isinstance(value, dict):
+                        chunks = _iterencode_dict(value, _current_indent_level)
+                    else:
+                        chunks = _iterencode(value, _current_indent_level)
+                    for chunk in chunks:
+                        yield chunk
 
-        if newline_indent is not None:
-            _current_indent_level -= 1
-            yield '\n' + ' ' * (_indent * _current_indent_level)
-        yield '}'
-        if markers is not None:
-            del markers[markerid]
+            if newline_indent is not None:
+                _current_indent_level -= 1
+                yield '\n' + ' ' * (_indent * _current_indent_level)
+            yield '}'
+            if markers is not None:
+                del markers[markerid]
+            return
 
     def _iterencode(o, _current_indent_level):
         if isinstance(o, basestring):
@@ -292,5 +298,6 @@ def _make_iterencode(markers, _default, _encoder, _indent, _floatstr, _key_separ
 
             if markers is not None:
                 del markers[markerid]
+        return
 
     return _iterencode

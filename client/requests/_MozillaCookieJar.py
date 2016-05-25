@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\packages\requests\_MozillaCookieJar.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\packages\requests\_MozillaCookieJar.py
 import re, time
 from cookielib import _warn_unhandled_exception, FileCookieJar, LoadError, Cookie, MISSING_FILENAME_TEXT
 
@@ -45,7 +46,9 @@ class MozillaCookieJar(FileCookieJar):
             _warn_unhandled_exception()
             raise LoadError('invalid Netscape format cookies file %r: %r' % (filename, line))
 
-    def save(self, filename = None, ignore_discard = False, ignore_expires = False):
+        return
+
+    def save(self, filename=None, ignore_discard=False, ignore_expires=False):
         if filename is None:
             if self.filename is not None:
                 filename = self.filename
@@ -88,3 +91,5 @@ class MozillaCookieJar(FileCookieJar):
 
         finally:
             f.close()
+
+        return

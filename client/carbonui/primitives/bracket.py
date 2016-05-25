@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\packages\carbonui\primitives\bracket.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\packages\carbonui\primitives\bracket.py
 from carbonui.primitives.frame import Frame
 from .container import Container
 from .base import Base, ScaleDpi
@@ -24,6 +25,7 @@ class Bracket(Container):
         Container.Close(self)
         uicore.uilib.bracketCurveSet.curves.fremove(self.projectBracket)
         self.projectBracket = None
+        return
 
     @apply
     def name():

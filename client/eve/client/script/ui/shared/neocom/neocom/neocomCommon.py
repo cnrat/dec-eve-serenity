@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\client\script\ui\shared\neocom\neocom\neocomCommon.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\client\script\ui\shared\neocom\neocom\neocomCommon.py
 ICONPATH_DEFAULT = 'res:/ui/Texture/WindowIcons/other.png'
 ICONPATH_GROUP = 'res:/ui/Texture/WindowIcons/folder.png'
 ICONPATH_CHAT = 'res:/ui/Texture/WindowIcons/chatchannel.png'

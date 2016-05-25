@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\packages\industry\blueprint.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\packages\industry\blueprint.py
 import os
 import fsdlite
 import industry
@@ -59,6 +60,8 @@ class Blueprint(industry.Base):
             return self.activities[industry.MANUFACTURING].products[0].typeID
         except (KeyError, IndexError):
             return None
+
+        return None
 
     productTypeID = property(_get_product)
 

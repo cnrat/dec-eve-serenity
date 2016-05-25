@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\carbon\common\lib\werkzeug\posixemulation.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\carbon\common\lib\werkzeug\posixemulation.py
 import os
 import errno
 import time
@@ -41,21 +42,24 @@ if os.name == 'nt':
             ta = _CreateTransaction(None, 0, 0, 0, 0, 1000, 'Werkzeug rename')
             if ta == -1:
                 return False
-            try:
-                retry = 0
-                rv = False
-                while not rv and retry < 100:
-                    rv = _MoveFileTransacted(src, dst, None, None, _MOVEFILE_REPLACE_EXISTING | _MOVEFILE_WRITE_THROUGH, ta)
-                    if rv:
-                        rv = _CommitTransaction(ta)
-                        break
-                    else:
-                        time.sleep(0.001)
-                        retry += 1
+            else:
+                try:
+                    retry = 0
+                    rv = False
+                    while not rv and retry < 100:
+                        rv = _MoveFileTransacted(src, dst, None, None, _MOVEFILE_REPLACE_EXISTING | _MOVEFILE_WRITE_THROUGH, ta)
+                        if rv:
+                            rv = _CommitTransaction(ta)
+                            break
+                        else:
+                            time.sleep(0.001)
+                            retry += 1
 
-                return rv
-            finally:
-                _CloseHandle(ta)
+                    return rv
+                finally:
+                    _CloseHandle(ta)
+
+                return
 
 
     except Exception:

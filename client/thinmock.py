@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\carbon\common\lib\thinmock.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\carbon\common\lib\thinmock.py
 import weakref
 import types
 globalReference = None
@@ -23,49 +24,52 @@ def _MockSetAttrHelper(parent, attrName, attrRef):
 
 class ThinMock(object):
 
-    def __init__(self, mockName = 'unnamed_Mock', insertAsGlobal = False, autoAddAttributes = True):
+    def __init__(self, mockName='unnamed_Mock', insertAsGlobal=False, autoAddAttributes=True):
         global globalReference
         if '*alreadyInited' in self.__dict__:
             return
-        if insertAsGlobal and mockName in neverMockList:
-            raise RuntimeError, 'The module "%s" can never be mocked.' % mockName
-        object.__setattr__(self, '*name', mockName)
-        object.__setattr__(self, '*attributes', {})
-        object.__setattr__(self, '*callableObject', None)
-        object.__setattr__(self, '*insertAsGlobal', insertAsGlobal)
-        object.__setattr__(self, '*globalReplacements', {})
-        object.__setattr__(self, '*oldParent', None)
-        object.__setattr__(self, '*oldAttribute', None)
-        object.__setattr__(self, '*autoAddAttributes', autoAddAttributes)
-        object.__setattr__(self, '*alreadyInited', True)
-        if insertAsGlobal:
+        else:
+            if insertAsGlobal and mockName in neverMockList:
+                raise RuntimeError, 'The module "%s" can never be mocked.' % mockName
+            object.__setattr__(self, '*name', mockName)
+            object.__setattr__(self, '*attributes', {})
+            object.__setattr__(self, '*callableObject', None)
+            object.__setattr__(self, '*insertAsGlobal', insertAsGlobal)
+            object.__setattr__(self, '*globalReplacements', {})
+            object.__setattr__(self, '*oldParent', None)
+            object.__setattr__(self, '*oldAttribute', None)
+            object.__setattr__(self, '*autoAddAttributes', autoAddAttributes)
+            object.__setattr__(self, '*alreadyInited', True)
+            if insertAsGlobal:
 
-            def InjectGlobalMock(globalReference, mockName, refKey):
-                oldReference = globalReference.get(mockName, None)
-                if isinstance(oldReference, ThinMock):
-                    object.__setattr__(self, '*insertAsGlobal', False)
-                    raise RuntimeError, 'The module "' + mockName + '" is already mocked!  You cannot mock it again!'
-                object.__setattr__(self, refKey, oldReference)
-                globalReference[mockName] = weakref.proxy(self)
+                def InjectGlobalMock(globalReference, mockName, refKey):
+                    oldReference = globalReference.get(mockName, None)
+                    if isinstance(oldReference, ThinMock):
+                        object.__setattr__(self, '*insertAsGlobal', False)
+                        raise RuntimeError, 'The module "' + mockName + '" is already mocked!  You cannot mock it again!'
+                    object.__setattr__(self, refKey, oldReference)
+                    globalReference[mockName] = weakref.proxy(self)
+                    return
 
-            if globalReference is not None:
-                InjectGlobalMock(globalReference, mockName, '*oldReference')
-                if '__oldglobals__' in globalReference:
-                    InjectGlobalMock(globalReference['__oldglobals__'], mockName, '*oldReference2')
-        if insertAsGlobal and mockName == 'blue':
-            self.pyos.synchro.Sleep = _Sleep
-            self.pyos.synchro.SleepSim = _Sleep
-            self.pyos.synchro.SleepWallclock = _Sleep
-            self.pyos.synchro.SleepUntil = SetTime
-            self.pyos.synchro.SleepUntilSim = SetTime
-            self.pyos.synchro.SleepUntilWallclock = SetTime
-            self.pyos.synchro.Yield = _Yield
-            self.os.GetTime = GetTime
-            self.os.GetWallclockTime = GetTime
-            self.os.GetWallclockTimeNow = GetTime
-            self.os.GetSimTime = GetTime
-            SetTime(0)
-            SetYieldDuration(1)
+                if globalReference is not None:
+                    InjectGlobalMock(globalReference, mockName, '*oldReference')
+                    if '__oldglobals__' in globalReference:
+                        InjectGlobalMock(globalReference['__oldglobals__'], mockName, '*oldReference2')
+            if insertAsGlobal and mockName == 'blue':
+                self.pyos.synchro.Sleep = _Sleep
+                self.pyos.synchro.SleepSim = _Sleep
+                self.pyos.synchro.SleepWallclock = _Sleep
+                self.pyos.synchro.SleepUntil = SetTime
+                self.pyos.synchro.SleepUntilSim = SetTime
+                self.pyos.synchro.SleepUntilWallclock = SetTime
+                self.pyos.synchro.Yield = _Yield
+                self.os.GetTime = GetTime
+                self.os.GetWallclockTime = GetTime
+                self.os.GetWallclockTimeNow = GetTime
+                self.os.GetSimTime = GetTime
+                SetTime(0)
+                SetYieldDuration(1)
+            return
 
     def __del__(self):
 
@@ -84,6 +88,7 @@ class ThinMock(object):
                     globalReference[mockName] = oldReference
                 else:
                     del globalReference[mockName]
+                return
 
             mockName = GetAttrHelper(self, '*name', '')
             if globalReference is not None:
@@ -93,6 +98,8 @@ class ThinMock(object):
         globalReplacements = GetAttrHelper(self, '*globalReplacements', {})
         for name in globalReplacements:
             globalReference[name] = globalReplacements[name]
+
+        return
 
     def __getattr__(self, name):
         fullName = object.__getattribute__(self, '*name') + '.' + name
@@ -115,6 +122,7 @@ class ThinMock(object):
         else:
             name = 'mockreturn<%s>' % id(self)
             return ThinMock(name)
+        return
 
     def __setattr__(self, name, value):
         if callable(value) and not isinstance(value, ThinMock):
@@ -246,6 +254,8 @@ class ThinMock(object):
                         object.__getattribute__(self, '*globalReplacements')[name] = currentObject
                         globalReference[name] = child
 
+        return
+
     def Revert(self):
         oldParent = object.__getattribute__(self, '*oldParent')
         oldAttribute = object.__getattribute__(self, '*oldAttribute')
@@ -265,6 +275,8 @@ class ThinMock(object):
                 except ReferenceError:
                     _replacedAttributes.pop(index)
 
+        return
+
     def SetCallable(self, callableObject):
         object.__setattr__(self, '*callableObject', callableObject)
 
@@ -283,15 +295,17 @@ def ByPass(moduleName):
     module = globalReference.get(moduleName)
     if module is None:
         return
-    if not isinstance(module, ThinMock):
-        raise RuntimeError, 'Cannot bypass a non-mock object!'
     else:
-        return getattr(module, '*oldReference')
+        if not isinstance(module, ThinMock):
+            raise RuntimeError, 'Cannot bypass a non-mock object!'
+        else:
+            return getattr(module, '*oldReference')
+        return
 
 
 _replacedAttributes = []
 
-def ReplaceAttribute(parent, attributeName, mockValue = None):
+def ReplaceAttribute(parent, attributeName, mockValue=None):
     oldAttribute = getattr(parent, attributeName)
     if isinstance(parent, ThinMock):
         raise TypeError, 'To mock methods or attributes on a mock object, assign to them directly.'

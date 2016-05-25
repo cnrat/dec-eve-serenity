@@ -1,11 +1,13 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\client\script\ui\shared\systemMenu\betaOptions.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\client\script\ui\shared\systemMenu\betaOptions.py
 from carbonui.util.bunch import Bunch
 import evecamera
 import localization
 import service
+from eve.common.script.sys.eveCfg import IsDockedInStructure
 BETA_MAP_SETTING_KEY = 'experimental_map_default'
 BETA_SCANNERS_SETTING_KEY = 'experimental_scanners'
-BETA_NEWCAM_SETTING_KEY = 'experimental_newcam2'
+BETA_NEWCAM_SETTING_KEY = 'experimental_newcam4'
 DEFAULT_SETTINGS = {BETA_MAP_SETTING_KEY: True,
  BETA_SCANNERS_SETTING_KEY: True,
  BETA_NEWCAM_SETTING_KEY: True}
@@ -29,17 +31,18 @@ def OnBetaSettingChanged(checkbox):
 
 
 def ToggleNewCamera(activate):
-    sceneMan = sm.GetService('sceneManager')
-    camera = sceneMan.GetActiveCamera()
-    if activate:
-        if session.solarsystemid:
-            sceneMan.SetActiveCameraByID(evecamera.CAM_SHIPORBIT)
-    else:
-        if session.solarsystemid:
-            cam = sceneMan.SetActiveCameraByID(evecamera.CAM_SPACE_PRIMARY)
-            cam.LookAt(session.shipid)
-        for cameraID in (evecamera.CAM_SHIPORBIT, evecamera.CAM_SHIPPOV, evecamera.CAM_TACTICAL):
-            sceneMan.UnregisterCamera(cameraID)
+    if not IsDockedInStructure():
+        sceneMan = sm.GetService('sceneManager')
+        camera = sceneMan.GetActiveCamera()
+        if activate:
+            if session.solarsystemid:
+                sceneMan.SetPrimaryCamera(evecamera.CAM_SHIPORBIT)
+        else:
+            if session.solarsystemid:
+                cam = sceneMan.SetPrimaryCamera(evecamera.CAM_SPACE_PRIMARY)
+                cam.LookAt(session.shipid)
+            for cameraID in (evecamera.CAM_SHIPORBIT, evecamera.CAM_SHIPPOV, evecamera.CAM_TACTICAL):
+                sceneMan.UnregisterCamera(cameraID)
 
     if uicore.layer.shipui.isopen:
         uicore.layer.shipui.SetupShip()
@@ -54,7 +57,8 @@ def IsBetaFeaturedEnabledInGlobalConfig(settingKey):
     globalConfig = sm.GetService('machoNet').GetGlobalConfig()
     if globalConfig is not None:
         return bool(int(globalConfig.get(settingKey, 0)))
-    return True
+    else:
+        return True
 
 
 def AppendNewMapOption(options):

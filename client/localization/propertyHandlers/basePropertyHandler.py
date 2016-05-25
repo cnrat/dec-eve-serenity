@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\packages\localization\propertyHandlers\basePropertyHandler.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\packages\localization\propertyHandlers\basePropertyHandler.py
 from .. import const as locconst
 from ..logger import LogError
 from ..uiutil import PrepareLocalizationSafeString
@@ -54,7 +55,9 @@ class BasePropertyHandler(Singleton):
             print args
             print kwargs
 
-    def _PrepareLocalizationSafeString(self, textString, messageID = None):
+        return
+
+    def _PrepareLocalizationSafeString(self, textString, messageID=None):
         return PrepareLocalizationSafeString(textString, messageID=messageID)
 
     def _SetUpProperties(self):

@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\packages\carbonui\primitives\boundingboxbracket.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\packages\carbonui\primitives\boundingboxbracket.py
 from .container import Container
 import trinity
 import carbonui.const as uiconst
@@ -36,6 +37,7 @@ class BoundingBoxBracket(Container):
         else:
             pb.minProjectedHeight = attributes.get('minHeight', self.default_minHeight)
             pb.maxProjectedHeight = attributes.get('maxHeight', self.default_maxHeight)
+        return
 
     def Close(self):
         Container.Close(self)
@@ -50,6 +52,7 @@ class BoundingBoxBracket(Container):
         self.widthBinding = None
         self.heightBinding = None
         self.projectBracket = None
+        return
 
     @apply
     def name():

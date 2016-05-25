@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\client\script\ui\shared\mapView\hexagonal\hexMapLine.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\client\script\ui\shared\mapView\hexagonal\hexMapLine.py
 from eve.client.script.ui.shared.mapView.hexagonal import hexUtil
 import geo2
 __author__ = 'fridrik'
@@ -12,7 +13,7 @@ class HexMapLine(VectorLineTrace):
     def ApplyAttributes(self, attributes):
         VectorLineTrace.ApplyAttributes(self, attributes)
 
-    def AddPoints(self, posList, color = None, scaling = 1.0):
+    def AddPoints(self, posList, color=None, scaling=1.0):
         posList = list(posList)
         totalPoints = len(posList)
         if totalPoints > 2:
@@ -34,12 +35,13 @@ class HexMapLine(VectorLineTrace):
         l = geo2.Vec2Length(v)
         if not l:
             return (None, None)
-        s = (radius1 + radius2) / l
-        mp1 = geo2.Vec2Subtract(p1, geo2.Vec2Scale(vn, radius1))
-        mp2 = geo2.Vec2Add(p2, geo2.Vec2Scale(vn, radius2))
-        return (mp1, mp2)
+        else:
+            s = (radius1 + radius2) / l
+            mp1 = geo2.Vec2Subtract(p1, geo2.Vec2Scale(vn, radius1))
+            mp2 = geo2.Vec2Add(p2, geo2.Vec2Scale(vn, radius2))
+            return (mp1, mp2)
 
-    def GetCrossPointsWithLine(self, hexLine, stopOnFirstCross = True):
+    def GetCrossPointsWithLine(self, hexLine, stopOnFirstCross=True):
         crossPoints = []
         myVertexCount = len(self.renderObject.vertices)
         otherVertexCount = len(hexLine.renderObject.vertices)

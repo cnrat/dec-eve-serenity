@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\packages\carbonui\control\browser\browserEditBookMarksWindow.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\packages\carbonui\control\browser\browserEditBookMarksWindow.py
 import carbonui.const as uiconst
 import localization
 from carbonui.control.window import WindowCoreOverride as Window
@@ -92,6 +93,7 @@ class EditBookmarksWindowCore(Window):
         self.Error(None)
         selected = self.scroll.GetSelected()
         self.SetButtons(uiconst.OKCLOSE, okLabel=localization.GetByLabel('UI/Browser/EditBookmarks/Remove', selectedItems=len(selected)), okFunc=self.Remove, okModalResult=uiconst.ID_NONE)
+        return
 
     def OnEdit(self, node, *args):
         if self.CheckEdit():
@@ -113,11 +115,12 @@ class EditBookmarksWindowCore(Window):
         if not nameValue.strip():
             self.Error(localization.GetByLabel('UI/Browser/EditBookmarks/PleaseChooseName'))
             return False
-        if not urlValue.strip():
+        elif not urlValue.strip():
             self.Error(localization.GetByLabel('UI/Browser/EditBookmarks/PleaseEnterURL'))
             return False
-        self.Error(None)
-        return True
+        else:
+            self.Error(None)
+            return True
 
     def RefreshSites(self):
         self.selected = None
@@ -128,6 +131,7 @@ class EditBookmarksWindowCore(Window):
                 scrolllist.append(ScrollEntryNode(decoClass=SE_GenericCore, label=label, retval=bookmark, OnClick=self.OnEntryClick))
 
         self.scroll.Load(contentList=scrolllist, headers=[localization.GetByLabel('UI/Browser/EditBookmarks/TableLabel'), localization.GetByLabel('UI/Browser/EditBookmarks/TableURL')], noContentHint=localization.GetByLabel('UI/Browser/EditBookmarks/NoBookmarksFound'))
+        return
 
 
 class EditBookmarksWindowCoreOverride(EditBookmarksWindowCore):

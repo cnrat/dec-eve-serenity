@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\packages\uthread2\__init__.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\packages\uthread2\__init__.py
 from uthread2_plugins import get_implementation
 import uthread2_lib
 try:
@@ -21,3 +22,4 @@ get_current = impl.get_current
 Event = impl.Event
 Semaphore = impl.Semaphore
 from .delayedcalls import call_after_simtime_delay, call_after_wallclocktime_delay
+from .callthrottlers import CallCombiner, BufferedCall

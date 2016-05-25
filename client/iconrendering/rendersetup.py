@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\packages\iconrendering\rendersetup.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\packages\iconrendering\rendersetup.py
 import os
 import shutil
 import site
@@ -53,9 +54,11 @@ RENDER_CATEGORIES = (const.categoryDrone,
  const.categorySovereigntyStructure,
  const.categoryPlanetaryInteraction,
  const.categoryOrbital,
+ const.categoryStructure,
  const.categoryApparel)
 RENDER_GROUPS = (const.groupPlanetaryCustomsOffices,)
 ICON_CATEGORIES = (const.categoryModule,
+ const.categoryStructureModule,
  const.categoryApparel,
  const.categoryCharge,
  const.categoryCommodity,
@@ -93,7 +96,7 @@ def GetRenderFunctionType(groupID, categoryID):
     return RENDER_METHOD_SPACEOBJECT
 
 
-def GetOutputPath(outputFolder, typeID, graphicID, size, blueprint = BLUEPRINT_NONE, usage = None, blueprintID = None):
+def GetOutputPath(outputFolder, typeID, graphicID, size, blueprint=BLUEPRINT_NONE, usage=None, blueprintID=None):
     if not os.path.exists(outputFolder):
         os.makedirs(outputFolder)
     if usage == USAGE_INGAME_ICON:
@@ -123,6 +126,8 @@ def GetTechIcon(inventoryMapper, typeID):
     techLevel = inventoryMapper.GetDogmaAttributeForTypeID(const.attributeTechLevel, typeID)
     if techLevel in TECH_LEVEL_ICON:
         return TECH_LEVEL_ICON[techLevel]
+    else:
+        return None
 
 
 def UseIcon(typeID, groupID, categoryID):
@@ -139,6 +144,8 @@ def GetCachedApparelRenderPath(typeID):
     cachedSrcPath = os.path.join(_APPAREL_RENDERS_CACHEDIR, '%s.png' % typeID)
     if os.path.exists(cachedSrcPath):
         return cachedSrcPath
+    else:
+        return None
 
 
 def GetRenderMethod(graphicFile):
@@ -147,14 +154,15 @@ def GetRenderMethod(graphicFile):
     blueType = type(blue.resMan.LoadObject(graphicFile))
     if blueType == trinity.EveLensflare:
         return RENDER_METHOD_SUN
-    if blueType == trinity.EveTurretSet:
+    elif blueType == trinity.EveTurretSet:
         return RENDER_METHOD_TURRET
-    if blueType == trinity.EveTransform:
+    elif blueType == trinity.EveTransform:
         return RENDER_METHOD_PIN
-    return RENDER_METHOD_SPACEOBJECT
+    else:
+        return RENDER_METHOD_SPACEOBJECT
 
 
-def GetRenderFunctionAndArgsForGraphic(resourceMapper, graphicID, size, outputFolder, logger, blueprint = BLUEPRINT_NONE):
+def GetRenderFunctionAndArgsForGraphic(resourceMapper, graphicID, size, outputFolder, logger, blueprint=BLUEPRINT_NONE):
     graphicFile = resourceMapper.GetGraphicFileForGraphicID(graphicID)
     sofDNA = None
     sofData = resourceMapper.GetSOFDataForGraphicID(graphicID)
@@ -179,7 +187,7 @@ def GetRenderFunctionAndArgsForGraphic(resourceMapper, graphicID, size, outputFo
         renderType = GetRenderMethod(graphicFile)
     if renderType == RENDER_METHOD_PIN:
         return (photo.RenderPin, [outPath, graphicFile], {'size': size})
-    if renderType == RENDER_METHOD_SPACEOBJECT:
+    elif renderType == RENDER_METHOD_SPACEOBJECT:
         animationStates = resourceMapper.GetGraphicStateFilesFromGraphicID(graphicID)
         if blueprint == BLUEPRINT_NONE:
             backgroundPath = None
@@ -207,14 +215,16 @@ def GetRenderFunctionAndArgsForGraphic(resourceMapper, graphicID, size, outputFo
           'backgroundPath': backgroundPath,
           'overlayPath': overlayPath,
           'animationStates': animationStates})
-    if renderType == RENDER_METHOD_TURRET:
+    elif renderType == RENDER_METHOD_TURRET:
         return (photo.RenderTurret, [outPath, graphicFile, sofDataForType[1]], {'size': size})
-    if renderType == RENDER_METHOD_SUN:
+    elif renderType == RENDER_METHOD_SUN:
         scenePath = DEFAULT_SCENE_PATH
         return (photo.RenderSun, [outPath, graphicFile, scenePath], {'size': size})
+    else:
+        return
 
 
-def GetRenderFunctionAndArgs(resourceMapper, inventoryMapper, typeID, groupID, categoryID, size, outputFolder, usage, renderType = None, blueprint = BLUEPRINT_NONE, blueprintID = None):
+def GetRenderFunctionAndArgs(resourceMapper, inventoryMapper, typeID, groupID, categoryID, size, outputFolder, usage, renderType=None, blueprint=BLUEPRINT_NONE, blueprintID=None):
     iconFile = resourceMapper.GetIconFileForTypeID(typeID)
     iconPath = photo.GetIconFileFromSheet(iconFile)
     graphicID = resourceMapper.GetGraphicIDForTypeID(typeID)
@@ -271,7 +281,7 @@ def GetRenderFunctionAndArgs(resourceMapper, inventoryMapper, typeID, groupID, c
         techPath = GetTechIcon(inventoryMapper, typeID)
     if renderType == RENDER_METHOD_PIN:
         return (photo.RenderPin, [outPath, graphicFile], {'size': size})
-    if renderType == RENDER_METHOD_SPACEOBJECT:
+    elif renderType == RENDER_METHOD_SPACEOBJECT:
         if blueprint != BLUEPRINT_NONE:
             scenePath = SCENE_BLUEPRINT
         else:
@@ -299,12 +309,14 @@ def GetRenderFunctionAndArgs(resourceMapper, inventoryMapper, typeID, groupID, c
     if renderType == RENDER_METHOD_SUN:
         scenePath = DEFAULT_SCENE_PATH
         return (photo.RenderSun, [outPath, graphicFile, scenePath], {'size': size})
-    if renderType == RENDER_METHOD_ICON:
+    elif renderType == RENDER_METHOD_ICON:
         return (photo.RenderIcon, [outPath], {'size': size,
           'backgroundPath': backgroundPath,
           'overlayPath': overlayPath,
           'techPath': techPath,
           'iconPath': iconPath})
+    else:
+        return
 
 
 def IgnoreGraphicID(resourceMapper, graphicID):
@@ -317,7 +329,7 @@ def IgnoreGraphicID(resourceMapper, graphicID):
     return False
 
 
-def YieldAllRenderFuncsAndArgsForGraphics(resourceMapper, outputFolder, logger, blueprintGraphicIDs, graphicIDs = None):
+def YieldAllRenderFuncsAndArgsForGraphics(resourceMapper, outputFolder, logger, blueprintGraphicIDs, graphicIDs=None):
     if graphicIDs is not None:
         ids = graphicIDs
     else:
@@ -336,8 +348,10 @@ def YieldAllRenderFuncsAndArgsForGraphics(resourceMapper, outputFolder, logger, 
         for blueprint, size in blueprintTypesAndSizes:
             yield GetRenderFunctionAndArgsForGraphic(resourceMapper, graphicID, size, outputFolder, logger, blueprint)
 
+    return
 
-def YieldAllRenderFuncsAndArgsForTypes(resourceMapper, inventoryMapper, outputFolder, size, logger, filterFunc = None, typeDatas = None, **kwargs):
+
+def YieldAllRenderFuncsAndArgsForTypes(resourceMapper, inventoryMapper, outputFolder, size, logger, filterFunc=None, typeDatas=None, **kwargs):
     if typeDatas:
         typeGenerator = lambda : typeDatas
     else:
@@ -367,6 +381,8 @@ def YieldAllRenderFuncsAndArgsForTypes(resourceMapper, inventoryMapper, outputFo
             yield GetRenderFunctionAndArgs(resourceMapper, inventoryMapper, typeID, groupID, categoryID, size, outputFolder, usage, blueprint=blueprint, blueprintID=blueprintID)
             if blueprint == BLUEPRINT_NORMAL and usage == USAGE_INGAME_ICON:
                 yield GetRenderFunctionAndArgs(resourceMapper, inventoryMapper, typeID, groupID, categoryID, size, outputFolder, usage, blueprint=BLUEPRINT_COPY, blueprintID=blueprintID)
+
+    return
 
 
 def FilterForTypes(typeID, groupID, categoryID, **kwargs):

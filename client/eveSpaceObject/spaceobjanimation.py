@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\packages\eveSpaceObject\spaceobjanimation.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\packages\eveSpaceObject\spaceobjanimation.py
 import shipmode.data as stancedata
 STATE_MACHINE_SHIP_STANDARD = 'shipStandard'
 STATE_MACHINE_SHIP_STANCE = 'shipStance'
@@ -10,25 +11,28 @@ stanceAnimations = {stancedata.shipStanceSpeed: 'speed',
 def GetStateMachine(model, name):
     if model.animationSequencer is None:
         return
-    for stateMachine in model.animationSequencer.stateMachines:
-        if stateMachine.name == name:
-            return stateMachine
+    else:
+        for stateMachine in model.animationSequencer.stateMachines:
+            if stateMachine.name == name:
+                return stateMachine
+
+        return
 
 
 def SetShipAnimationStance(ship, stanceID):
     if stanceID not in stanceAnimations:
         return False
-    if ship is None or ship.animationSequencer is None:
+    elif ship is None or ship.animationSequencer is None:
         return False
-    state = stanceAnimations[stanceID]
-    ship.animationSequencer.GoToState(state)
-    return True
+    else:
+        state = stanceAnimations[stanceID]
+        ship.animationSequencer.GoToState(state)
+        return True
 
 
 def GetAnimationStateFromStance(stanceID):
     if stanceID in stanceAnimations:
         return stanceAnimations[stanceID]
-    return 'normal'
 
 
 def SetUpAnimation(model, stateMachinePath, trinity):
@@ -36,6 +40,7 @@ def SetUpAnimation(model, stateMachinePath, trinity):
         model.animationSequencer = trinity.EveAnimationSequencer()
     stateMachine = trinity.Load(stateMachinePath)
     model.animationSequencer.stateMachines.append(stateMachine)
+    return
 
 
 def LoadAnimationStates(animationStateList, graphicStatesData, model, trinity):

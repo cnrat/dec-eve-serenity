@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\carbon\common\stdlib\encodings\punycode.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\carbon\common\stdlib\encodings\punycode.py
 import codecs
 
 def segregate(str):
@@ -148,6 +149,8 @@ def decode_generalized_number(extended, extpos, bias, errors):
         w = w * (36 - t)
         j += 1
 
+    return None
+
 
 def insertion_sort(base, extended, errors):
     char = 128
@@ -187,11 +190,11 @@ def punycode_decode(text, errors):
 
 class Codec(codecs.Codec):
 
-    def encode(self, input, errors = 'strict'):
+    def encode(self, input, errors='strict'):
         res = punycode_encode(input)
         return (res, len(input))
 
-    def decode(self, input, errors = 'strict'):
+    def decode(self, input, errors='strict'):
         if errors not in ('strict', 'replace', 'ignore'):
             raise UnicodeError, 'Unsupported error handling ' + errors
         res = punycode_decode(input, errors)
@@ -200,13 +203,13 @@ class Codec(codecs.Codec):
 
 class IncrementalEncoder(codecs.IncrementalEncoder):
 
-    def encode(self, input, final = False):
+    def encode(self, input, final=False):
         return punycode_encode(input)
 
 
 class IncrementalDecoder(codecs.IncrementalDecoder):
 
-    def decode(self, input, final = False):
+    def decode(self, input, final=False):
         if self.errors not in ('strict', 'replace', 'ignore'):
             raise UnicodeError, 'Unsupported error handling ' + self.errors
         return punycode_decode(input, self.errors)

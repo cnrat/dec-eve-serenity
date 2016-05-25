@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\packages\trinutils\translations.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\packages\trinutils\translations.py
 import trinity
 
 def GetTranslationValue(obj):
@@ -12,3 +13,4 @@ def SetTranslationValue(obj, pos):
     if hasattr(obj, 'translationCurve') and obj.translationCurve is None:
         obj.translationCurve = trinity.TriVectorCurve()
     obj.translationCurve.value = pos
+    return

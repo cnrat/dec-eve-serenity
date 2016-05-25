@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\client\script\ui\shared\mapView\dockPanelSubFrame.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\client\script\ui\shared\mapView\dockPanelSubFrame.py
 from carbonui.primitives.base import Base
 from carbonui.primitives.container import Container
 from carbonui.primitives.fill import Fill
@@ -60,7 +61,7 @@ class DockablePanelContentFrame(Container):
         self.dotFrame = FrameThemeColored(parent=innerContainer, name='dotFrame', color=FRAME_GLOW_ACTIVE, texturePath='res:/UI/Texture/classes/MapView/dotFrame.png', cornerSize=21, offset=-1)
         self.dotFrame.opacity = 0.0
 
-    def AnimateContentIn(self, animationOffset = 0.0):
+    def AnimateContentIn(self, animationOffset=0.0):
         minBlinkValue = 0.2
         blinkDuration = 0.1
         lineAnimationOffset = animationOffset

@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\client\script\ui\shared\mapView\dockPanel.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\client\script\ui\shared\mapView\dockPanel.py
 from carbonui.primitives.base import Base
 from carbonui.primitives.container import Container
 from carbonui.primitives.fill import Fill
@@ -39,7 +40,7 @@ class DockablePanelHeaderButton(ButtonIcon):
         return uiconst.POINT_TOP_1
 
     def GetTooltipDelay(self):
-        return 5
+        pass
 
     def GetTooltipPositionFallbacks(self, *args, **kwds):
         return [uiconst.POINT_TOP_2,
@@ -64,6 +65,7 @@ class DockablePanelHeaderButtonMenu(DockablePanelHeaderButton):
         DockablePanelHeaderButton.Close(self, *args, **kwds)
         self.callback = None
         self.tooltipPanelMenu = None
+        return
 
     def UpdateButtonState(self):
         currentSetting = GetPanelSettings(self.panelID)
@@ -83,7 +85,7 @@ class DockablePanelHeaderButtonMenu(DockablePanelHeaderButton):
         return uiconst.POINT_TOP_1
 
     def GetTooltipDelay(self):
-        return 5
+        pass
 
     def GetTooltipPositionFallbacks(self, *args, **kwds):
         return [uiconst.POINT_TOP_2,
@@ -132,6 +134,7 @@ class ButtonTooltipRow(LayoutGridRow):
     def Close(self, *args):
         LayoutGridRow.Close(self, *args)
         self.callback = None
+        return
 
     def OnMouseEnter(self, *args):
         self.icon.OnMouseEnter()
@@ -190,8 +193,6 @@ class DockablePanel(Window):
                     if obj.name == objectName:
                         index = uicore.layer.sidePanels.children.index(obj) + 1
                         return index
-
-        return 0
 
     def GetFullScreenViewsOrdered(self):
         return [ panel for panel in uicore.layer.sidePanels.children if isinstance(panel, DockablePanel) and panel.IsFullscreen() ]
@@ -280,6 +281,8 @@ class DockablePanel(Window):
         panel = dockablePanelManager.GetPanel(cls.panelID)
         if panel is None:
             return cls(*args, **kwds)
+        else:
+            return
 
     def CreateToolbar(self):
         self.toolbarContainer = Container(parent=self.headerParent, name='toolbarContainer', align=uiconst.CENTERTOP, width=TOOLBARWIDTH_FULLSCREEN, height=TOOLBARHEIGHT, state=uiconst.UI_NORMAL)
@@ -298,6 +301,7 @@ class DockablePanel(Window):
             self.snapIndicator.Close()
             self.snapIndicator = None
         uicore.dockablePanelManager.UnregisterPanel(self)
+        return
 
     def ChangeViewMode(self, buttonID, *args, **kwds):
         if buttonID == BUTTON_FULLSCREEN:
@@ -455,17 +459,19 @@ class DockablePanel(Window):
         for each in fullScreenViews:
             each.SetParent(uicore.layer.sidePanels, -1)
 
-    def DockOnRight(self, index = None, *args):
+    def DockOnRight(self, index=None, *args):
         if index is None:
             index = self.GetRegisteredPushedByIndex()
         self._DockOnSide(align=uiconst.TORIGHT, index=index)
+        return
 
-    def DockOnLeft(self, index = None, *args):
+    def DockOnLeft(self, index=None, *args):
         if index is None:
             index = self.GetRegisteredPushedByIndex()
         self._DockOnSide(align=uiconst.TOLEFT, index=index)
+        return
 
-    def _DockOnSide(self, align, index = 0):
+    def _DockOnSide(self, align, index=0):
         current = self.GetPanelSettings()
         self.SetParent(uicore.layer.sidePanels, idx=index)
         self.toolbarContainer.align = uiconst.TOTOP_NOPUSH
@@ -476,7 +482,7 @@ class DockablePanel(Window):
         self.top = 0
         self.FinalizeModeChange()
 
-    def UnDock(self, setPosition = True, registerSettings = True, *args):
+    def UnDock(self, setPosition=True, registerSettings=True, *args):
         current = self.GetPanelSettings()
         self.SetParent(uicore.layer.main, idx=0)
         self.toolbarContainer.align = uiconst.TOTOP_NOPUSH
@@ -489,7 +495,7 @@ class DockablePanel(Window):
             self.top = int(uicore.desktop.height * current['positionY']) - self.height / 2
         self.FinalizeModeChange(registerSettings)
 
-    def FinalizeModeChange(self, registerSettings = True):
+    def FinalizeModeChange(self, registerSettings=True):
         if registerSettings:
             self.RegisterPanelSettings()
         uthread.new(uicore.dockablePanelManager.CheckViewState)
@@ -525,6 +531,7 @@ class DockablePanel(Window):
                     self.snapToDockMode = None
         if snapToDockMode != self.snapToDockMode:
             self.UpdateSnapIndicator(xLeftPositions, xRightPositions)
+        return
 
     def UpdateSnapIndicator(self, xLeftPositions, xRightPositions):
         if self.snapToDockMode:
@@ -566,6 +573,7 @@ class DockablePanel(Window):
         if self.snapIndicator:
             self.snapIndicator.Rest(close=True)
             self.snapIndicator = None
+        return
 
     def _BeginDrag(self, *args, **kwds):
         if not self.IsFloating():
@@ -594,6 +602,7 @@ class DockablePanel(Window):
             self.snapIndicator.Close()
             self.snapIndicator = None
         self.RegisterPanelSettings()
+        return
 
     def GetSnapPositions(self):
         xPositionLeft = []
@@ -623,7 +632,7 @@ class DockPanelSnapIndicator(Container):
     def Pulse(self):
         uicore.animations.MorphScalar(self.fill, 'opacity', startVal=0.0, endVal=1.0, curveType=uiconst.ANIM_OVERSHOT, duration=0.1, callback=self.Rest)
 
-    def Rest(self, close = False):
+    def Rest(self, close=False):
         if close:
             uicore.animations.MorphScalar(self.fill, 'opacity', startVal=self.fill.opacity, endVal=0.0, duration=0.3, callback=self.Close)
         else:

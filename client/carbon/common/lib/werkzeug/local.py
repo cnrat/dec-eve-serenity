@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\carbon\common\lib\werkzeug\local.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\carbon\common\lib\werkzeug\local.py
 try:
     from greenlet import getcurrent as get_current_greenlet
 except ImportError:
@@ -40,13 +41,16 @@ class Local(object):
 
     def __release_local__(self):
         self.__storage__.pop(get_ident(), None)
+        return
 
     def __getattr__(self, name):
         self.__lock__.acquire()
         try:
-            return self.__storage__[get_ident()][name]
-        except KeyError:
-            raise AttributeError(name)
+            try:
+                return self.__storage__[get_ident()][name]
+            except KeyError:
+                raise AttributeError(name)
+
         finally:
             self.__lock__.release()
 
@@ -65,9 +69,11 @@ class Local(object):
     def __delattr__(self, name):
         self.__lock__.acquire()
         try:
-            del self.__storage__[get_ident()][name]
-        except KeyError:
-            raise AttributeError(name)
+            try:
+                del self.__storage__[get_ident()][name]
+            except KeyError:
+                raise AttributeError(name)
+
         finally:
             self.__lock__.release()
 
@@ -102,6 +108,8 @@ class LocalStack(object):
         finally:
             self._lock.release()
 
+        return
+
     def pop(self):
         self._lock.acquire()
         try:
@@ -115,6 +123,8 @@ class LocalStack(object):
         finally:
             self._lock.release()
 
+        return
+
     @property
     def top(self):
         try:
@@ -122,16 +132,19 @@ class LocalStack(object):
         except (AttributeError, IndexError):
             return None
 
+        return None
+
 
 class LocalManager(object):
 
-    def __init__(self, locals = None):
+    def __init__(self, locals=None):
         if locals is None:
             self.locals = []
         elif isinstance(locals, Local):
             self.locals = [locals]
         else:
             self.locals = list(locals)
+        return
 
     def get_ident(self):
         return get_ident()
@@ -158,7 +171,7 @@ class LocalManager(object):
 class LocalProxy(object):
     __slots__ = ('__local', '__dict__', '__name__')
 
-    def __init__(self, local, name = None):
+    def __init__(self, local, name=None):
         object.__setattr__(self, '_LocalProxy__local', local)
         object.__setattr__(self, '__name__', name)
 

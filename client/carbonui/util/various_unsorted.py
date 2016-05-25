@@ -1,9 +1,11 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\packages\carbonui\util\various_unsorted.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\packages\carbonui\util\various_unsorted.py
 import log
 import blue
 import sys
 from functools import wraps
 import telemetry
+import sortUtil
 
 def GetBuffersize(size):
     if size <= 8:
@@ -24,7 +26,6 @@ def GetBuffersize(size):
         return 1024
     if size <= 2048:
         return 2048
-    return 128
 
 
 def StringColorToHex(color):
@@ -54,25 +55,15 @@ def StringColorToHex(color):
 
 
 def Sort(lst):
-    lst.sort(lambda x, y: cmp(str(x).upper(), str(y).upper()))
-    return lst
+    return sortUtil.Sort(lst)
 
 
-def SortListOfTuples(lst, reverse = 0):
-    lst = sorted(lst, reverse=reverse, key=lambda data: data[0])
-    return [ item[1] for item in lst ]
+def SortListOfTuples(lst, reverse=0):
+    return sortUtil.SortListOfTuples(lst, reverse)
 
 
-def SortByAttribute(lst, attrname = 'name', idx = None, reverse = 0):
-    newlst = []
-    for item in lst:
-        if idx is None:
-            newlst.append((getattr(item, attrname, None), item))
-        else:
-            newlst.append((getattr(item[idx], attrname, None), item))
-
-    ret = SortListOfTuples(newlst, reverse)
-    return ret
+def SortByAttribute(lst, attrname='name', idx=None, reverse=0):
+    return sortUtil.SortByAttribute(lst, attrname, idx, reverse)
 
 
 def SmartCompare(x, y, sortOrder):
@@ -88,8 +79,6 @@ def SmartCompare(x, y, sortOrder):
             if x[0][column] > y[0][column]:
                 return -1
 
-    return 0
-
 
 def FindChild(fromParent, *names):
     return fromParent.FindChild(*names)
@@ -99,7 +88,7 @@ def GetChild(parent, *names):
     return parent.GetChild(*names)
 
 
-def FindChildByClass(parent, classes = (), searchIn = [], withAttributes = []):
+def FindChildByClass(parent, classes=(), searchIn=[], withAttributes=[]):
     children = []
     for each in searchIn:
         for w in parent.Find(each):
@@ -117,14 +106,13 @@ def FindChildByClass(parent, classes = (), searchIn = [], withAttributes = []):
 
 
 @telemetry.ZONE_METHOD
-def SetOrder(child, idx = 0):
+def SetOrder(child, idx=0):
     child.SetOrder(idx)
 
 
 def GetIndex(item):
     if item.parent:
         return item.parent.children.index(item)
-    return 0
 
 
 def Flush(parent):
@@ -137,15 +125,18 @@ def FlushList(lst):
             each.Close()
 
     del lst[:]
+    return
 
 
 def GetWindowAbove(item):
     if item == uicore.desktop:
         return None
-    if uicore.registry.IsWindow(item) and not getattr(item, 'isImplanted', False):
+    elif uicore.registry.IsWindow(item) and not getattr(item, 'isImplanted', False):
         return item
-    if item.parent and not item.parent.destroyed:
+    elif item.parent and not item.parent.destroyed:
         return GetWindowAbove(item.parent)
+    else:
+        return None
 
 
 def GetDesktopObject(item):
@@ -156,18 +147,21 @@ def GetDesktopObject(item):
             return item
     else:
         return GetDesktopObject(item.parent)
+    return None
 
 
 def GetBrowser(item):
     if item == uicore.desktop:
         return
-    if getattr(item, 'IsBrowser', None):
+    elif getattr(item, 'IsBrowser', None):
         return item
     from carbonui.control.edit import EditCore
     if isinstance(item, EditCore):
         return item
-    if item.parent:
+    elif item.parent:
         return GetBrowser(item.parent)
+    else:
+        return
 
 
 def GetAttrs(obj, *names):
@@ -179,19 +173,21 @@ def GetAttrs(obj, *names):
     return obj
 
 
-def Transplant(wnd, newParent, idx = None):
+def Transplant(wnd, newParent, idx=None):
     if wnd is None or wnd.destroyed or newParent is None or newParent.destroyed:
         return
-    if idx in (-1, None):
-        idx = len(newParent.children)
-    wnd.SetParent(newParent, idx)
+    else:
+        if idx in (-1, None):
+            idx = len(newParent.children)
+        wnd.SetParent(newParent, idx)
+        return
 
 
 def IsClickable(wnd):
     return wnd.IsClickable()
 
 
-def IsUnder(child, ancestor_maybe, retfailed = False):
+def IsUnder(child, ancestor_maybe, retfailed=False):
     return child.IsUnder(ancestor_maybe, retfailed)
 
 
@@ -199,7 +195,7 @@ def IsVisible(item):
     return item.IsVisible()
 
 
-def MapIcon(sprite, iconPath, ignoreSize = 0):
+def MapIcon(sprite, iconPath, ignoreSize=0):
     if hasattr(sprite, 'LoadIcon'):
         return sprite.LoadIcon(iconPath, ignoreSize)
     print 'Someone load icon to non icon class', sprite, iconPath
@@ -207,7 +203,7 @@ def MapIcon(sprite, iconPath, ignoreSize = 0):
     return uicontrols.Icon.LoadIcon(sprite, iconPath, ignoreSize)
 
 
-def ConvertDecimal(qty, fromChar, toChar, numDecimals = None):
+def ConvertDecimal(qty, fromChar, toChar, numDecimals=None):
     import types
     ret = qty
     if type(ret) in [types.IntType, types.FloatType, types.LongType]:
@@ -227,14 +223,15 @@ def GetClipboardData():
         return ''
 
 
-def GetTrace(item, trace = '', div = '/'):
+def GetTrace(item, trace='', div='/'):
     trace = div + item.name + trace
     if getattr(item, 'parent', None) is None:
         return trace
-    return GetTrace(item.parent, trace, div)
+    else:
+        return GetTrace(item.parent, trace, div)
 
 
-def ParseHTMLColor(colorstr, asTuple = 0, error = 0):
+def ParseHTMLColor(colorstr, asTuple=0, error=0):
     colors = {'Black': '0x000000',
      'Green': '0x008000',
      'Silver': '0xC0C0C0',
@@ -292,11 +289,12 @@ def ParseHTMLColor(colorstr, asTuple = 0, error = 0):
      a / 255.0)
     if asTuple:
         return col
-    import trinity
-    return trinity.TriColor(*col)
+    else:
+        import trinity
+        return trinity.TriColor(*col)
 
 
-def GetFormWindow(caption = None, buttons = None, okFunc = None, windowClass = None):
+def GetFormWindow(caption=None, buttons=None, okFunc=None, windowClass=None):
     import carbonui.const as uiconst
     from carbonui.control.window import WindowCoreOverride as Window
     windowClass = windowClass or Window
@@ -308,7 +306,7 @@ def GetFormWindow(caption = None, buttons = None, okFunc = None, windowClass = N
     return wnd
 
 
-def AddFormControl(wnd, control, key, retval = None, required = False, errorcheck = None):
+def AddFormControl(wnd, control, key, retval=None, required=False, errorcheck=None):
     wnd.confirmCheckControls.append((control,
      key,
      retval,
@@ -349,26 +347,28 @@ def ConfirmFormWindow(sender, *args):
 
     if not result:
         return
-    formErrorCheck = getattr(wnd, 'errorCheck', None)
-    if formErrorCheck:
-        if formErrorCheck:
-            hint = formErrorCheck(result)
-            if hint == 'silenterror':
-                return
-            if hint:
-                uicore.Message('CustomInfo', {'info': hint})
-                return
-    wnd.result = result
-    if uicore.registry.GetModalWindow() == wnd:
-        wnd.SetModalResult(uiconst.ID_OK)
     else:
-        if wnd.sr.queue:
-            wnd.sr.queue.put(result)
-        wnd.SetModalResult(uiconst.ID_OK)
-        return result
+        formErrorCheck = getattr(wnd, 'errorCheck', None)
+        if formErrorCheck:
+            if formErrorCheck:
+                hint = formErrorCheck(result)
+                if hint == 'silenterror':
+                    return
+                if hint:
+                    uicore.Message('CustomInfo', {'info': hint})
+                    return
+        wnd.result = result
+        if uicore.registry.GetModalWindow() == wnd:
+            wnd.SetModalResult(uiconst.ID_OK)
+        else:
+            if wnd.sr.queue:
+                wnd.sr.queue.put(result)
+            wnd.SetModalResult(uiconst.ID_OK)
+            return result
+        return
 
 
-def AskAmount(caption = None, question = None, setvalue = '', intRange = None, floatRange = None):
+def AskAmount(caption=None, question=None, setvalue='', intRange=None, floatRange=None):
     import carbonui.const as uiconst
     from carbonui.control.singlelineedit import SinglelineEditCoreOverride as SinglelineEdit
     from carbonui.control.label import LabelOverride as Label
@@ -383,9 +383,11 @@ def AskAmount(caption = None, question = None, setvalue = '', intRange = None, f
     AddFormControl(wnd, edit, 'amount', retval=None, required=True, errorcheck=None)
     if wnd.ShowModal() == uiconst.ID_OK:
         return wnd.result
+    else:
+        return
 
 
-def AskName(caption = None, label = None, setvalue = '', maxLength = None, passwordChar = None, validator = None):
+def AskName(caption=None, label=None, setvalue='', maxLength=None, passwordChar=None, validator=None):
     import carbonui.const as uiconst
     import localization
     from carbonui.control.singlelineedit import SinglelineEditCoreOverride as SinglelineEdit
@@ -401,9 +403,11 @@ def AskName(caption = None, label = None, setvalue = '', maxLength = None, passw
     AddFormControl(wnd, edit, 'name', retval=None, required=True, errorcheck=validator or NamePopupErrorCheck)
     if wnd.ShowModal() == uiconst.ID_OK:
         return wnd.result
+    else:
+        return
 
 
-def AskChoice(caption = '', question = '', choices = [], modal = False):
+def AskChoice(caption='', question='', choices=[], modal=False):
     import carbonui.const as uiconst
     from carbonui.control.buttons import ButtonCoreOverride as Button
     from carbonui.control.scroll import ScrollCoreOverride as Scroll
@@ -420,12 +424,12 @@ def AskChoice(caption = '', question = '', choices = [], modal = False):
             return wnd.result
     elif wnd.ShowDialog() == uiconst.ID_OK:
         return wnd.result
+    return
 
 
 def NamePopupErrorCheck(name):
     if not len(name) or len(name) and len(name.strip()) < 1:
         return localization.GetByLabel('UI/Common/Name/PleaseTypeSomething')
-    return ''
 
 
 def ParanoidDecoMethod(fn, attrs):
@@ -439,9 +443,10 @@ def ParanoidDecoMethod(fn, attrs):
     def deco(self, *args, **kw):
         if GetAttrs(self, *check) is None:
             return
-        if self.destroyed:
+        elif self.destroyed:
             return
-        return fn(self, *args, **kw)
+        else:
+            return fn(self, *args, **kw)
 
     return deco
 

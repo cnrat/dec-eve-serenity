@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\packages\dogma\authoring\expressions.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\packages\dogma\authoring\expressions.py
 from operator import itemgetter
 import yaml
 from dogma.authoring import DOMAINS, NAME_BY_OPERATOR_ID
@@ -52,7 +53,8 @@ class BaseModifier(object):
     def _IsElementValid(self, elementName):
         if self.__elements__ is None:
             return True
-        return elementName in self.__elements__
+        else:
+            return elementName in self.__elements__
 
     def RemoveRedundantElements(self, formItems):
         ret = {}

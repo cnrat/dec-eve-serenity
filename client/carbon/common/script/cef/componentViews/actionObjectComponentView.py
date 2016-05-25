@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\carbon\common\script\cef\componentViews\actionObjectComponentView.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\carbon\common\script\cef\componentViews\actionObjectComponentView.py
 import zactionobject
 from carbon.common.script.cef.baseComponentView import BaseComponentView
 
@@ -15,6 +16,7 @@ class ActionObjectComponentView(BaseComponentView):
         cls.RegisterComponent(cls)
         cls._AddInput(cls.OCCUPANTS, None, cls.RUNTIME, const.cef.COMPONENTDATA_NON_PRIMITIVE_TYPE, displayName='Action Station Occupants')
         cls._AddInput(cls.ACTIONOBJECT_ID, 0, cls.RECIPE, const.cef.COMPONENTDATA_ARBITRARY_DROPDOWN_TYPE, cls.GetActionObjectsEnum, displayName='Action Object ID')
+        return
 
     @staticmethod
     def GetActionObjectsEnum():

@@ -1,4 +1,5 @@
-#Embedded file name: F:\depot\streams\fileStaticData\fsdCommon\pathSpecifiers.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: F:\depot\streams\fileStaticData\fsdCommon\pathSpecifiers.py
 import re
 import itertools
 import logging
@@ -71,7 +72,7 @@ def CompilerSpecifierToList(specifier):
 
 class PathConditional(object):
 
-    def __init__(self, includes = None, excludes = None):
+    def __init__(self, includes=None, excludes=None):
         if includes is not None:
             self.includes = CompilerSpecifierToList(includes)
         else:
@@ -80,6 +81,7 @@ class PathConditional(object):
             self.excludes = CompilerSpecifierToList(excludes)
         else:
             self.excludes = None
+        return
 
     def Matches(self, path):
         """

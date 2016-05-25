@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\client\script\ui\inflight\shipscan.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\client\script\ui\inflight\shipscan.py
 import evetypes
 import uiprimitives
 import uicontrols
@@ -63,8 +64,9 @@ class ShipScan(uicontrols.Window):
             self.SetHint(localization.GetByLabel('UI/Ship/ShipScan/hintNoModulesDetected'))
         else:
             self.SetHint(None)
+        return
 
-    def SetHint(self, hintstr = None):
+    def SetHint(self, hintstr=None):
         if self.sr.scroll:
             self.sr.scroll.ShowHint(hintstr)
 
@@ -125,3 +127,4 @@ class CargoScan(uicontrols.Window):
             scrolllist.append(listentry.Get('Item', data=data))
 
         self.sr.scroll.Load(contentList=scrolllist, noContentHint=localization.GetByLabel('UI/Ship/ShipScan/NoBookmarksFound'))
+        return

@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\packages\industry\activity.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\packages\industry\activity.py
 import math
 import operator
 import fsdlite
@@ -21,13 +22,13 @@ class Activity(industry.Base):
         return []
 
     def job_probability(self, job):
-        return 1.0
+        pass
 
     def job_time(self, job):
         return self.time * job.runs
 
     def job_cost(self, job):
-        return 0
+        pass
 
     def job_max_runs(self, job):
         modifiers = [ modifier.amount for modifier in job.input_modifiers if isinstance(modifier, industry.TimeModifier) and modifier.activity in (None, job.activityID) ]

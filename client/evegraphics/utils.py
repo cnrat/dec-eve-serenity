@@ -1,13 +1,15 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\packages\evegraphics\utils.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\packages\evegraphics\utils.py
 import evetypes
 
 def GetResPathFromGraphicID(graphicID):
     if graphicID is None:
         return
-    graphicInfo = cfg.graphics.GetIfExists(graphicID)
-    if graphicInfo is None:
-        return
-    return getattr(graphicInfo, 'graphicFile', None)
+    else:
+        graphicInfo = cfg.graphics.GetIfExists(graphicID)
+        if graphicInfo is None:
+            return
+        return getattr(graphicInfo, 'graphicFile', None)
 
 
 def IsValidSOFDNA(dna):
@@ -17,45 +19,47 @@ def IsValidSOFDNA(dna):
     return True
 
 
-def BuildSOFDNAFromTypeID(typeID, materialSetID = None):
+def BuildSOFDNAFromTypeID(typeID, materialSetID=None):
     if typeID is None:
         return
-    if not evetypes.Exists(typeID):
+    elif not evetypes.Exists(typeID):
         return
-    if materialSetID is None:
-        materialSetID = evetypes.GetSofMaterialSetIDOrNone(typeID)
-    return BuildSOFDNAFromGraphicID(evetypes.GetGraphicID(typeID), materialSetID=materialSetID)
+    else:
+        if materialSetID is None:
+            materialSetID = evetypes.GetSofMaterialSetIDOrNone(typeID)
+        return BuildSOFDNAFromGraphicID(evetypes.GetGraphicID(typeID), materialSetID=materialSetID)
 
 
-def CombineSOFDNA(sofHullName, sofFactionName, sofRaceName, sofAddition = None):
+def CombineSOFDNA(sofHullName, sofFactionName, sofRaceName, sofAddition=None):
     dna = sofHullName + ':' + sofFactionName + ':' + sofRaceName
     if sofAddition is not None:
         dna += ':' + sofAddition
     return dna
 
 
-def BuildSOFDNAFromGraphicID(graphicID, materialSetID = None):
+def BuildSOFDNAFromGraphicID(graphicID, materialSetID=None):
     if graphicID is None:
         return
-    graphicInfo = cfg.graphics.GetIfExists(graphicID)
-    if graphicInfo is None:
-        return
-    hull = getattr(graphicInfo, 'sofHullName', None)
-    faction = getattr(graphicInfo, 'sofFactionName', None)
-    race = getattr(graphicInfo, 'sofRaceName', None)
-    dnaAddition = None
-    if hull is None or faction is None or race is None:
-        return
-    materialSet = None
-    if materialSetID is not None:
-        materialSet = cfg.graphicMaterialSets.GetIfExists(materialSetID)
-    if materialSet is not None:
-        faction = getattr(materialSet, 'sofFactionName', faction)
-        dnaAddition = 'mesh?' + getattr(materialSet, 'material1', 'none') + ';' + getattr(materialSet, 'material2', 'none') + ';' + getattr(materialSet, 'material3', 'none') + ';' + getattr(materialSet, 'material4', 'none')
-        resPathInsert = getattr(materialSet, 'resPathInsert', None)
-        if resPathInsert is not None:
-            dnaAddition += ':respathinsert?' + resPathInsert
-    return CombineSOFDNA(hull, faction, race, dnaAddition)
+    else:
+        graphicInfo = cfg.graphics.GetIfExists(graphicID)
+        if graphicInfo is None:
+            return
+        hull = getattr(graphicInfo, 'sofHullName', None)
+        faction = getattr(graphicInfo, 'sofFactionName', None)
+        race = getattr(graphicInfo, 'sofRaceName', None)
+        dnaAddition = None
+        if hull is None or faction is None or race is None:
+            return
+        materialSet = None
+        if materialSetID is not None:
+            materialSet = cfg.graphicMaterialSets.GetIfExists(materialSetID)
+        if materialSet is not None:
+            faction = getattr(materialSet, 'sofFactionName', faction)
+            dnaAddition = 'mesh?' + getattr(materialSet, 'material1', 'none') + ';' + getattr(materialSet, 'material2', 'none') + ';' + getattr(materialSet, 'material3', 'none') + ';' + getattr(materialSet, 'material4', 'none')
+            resPathInsert = getattr(materialSet, 'resPathInsert', None)
+            if resPathInsert is not None:
+                dnaAddition += ':respathinsert?' + resPathInsert
+        return CombineSOFDNA(hull, faction, race, dnaAddition)
 
 
 def RemapDirtLevel(dirtLevel0To100):
@@ -97,7 +101,7 @@ class DummyGroup(object):
     def __init__(self):
         self._d = {}
 
-    def Get(self, key, default = None):
+    def Get(self, key, default=None):
         return self._d.get(key, default)
 
     def Set(self, key, val):

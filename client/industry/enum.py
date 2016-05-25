@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\packages\industry\enum.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\packages\industry\enum.py
 import sys as _sys
 __all__ = ['Enum', 'IntEnum', 'unique']
 pyver = float('%s.%s' % _sys.version_info[:2])
@@ -26,10 +27,10 @@ except NameError:
 
 class _RouteClassAttributeToGetattr(object):
 
-    def __init__(self, fget = None):
+    def __init__(self, fget=None):
         self.fget = fget
 
-    def __get__(self, instance, ownerclass = None):
+    def __get__(self, instance, ownerclass=None):
         if instance is None:
             raise AttributeError()
         return self.fget(instance)
@@ -55,11 +56,12 @@ def _is_sunder(name):
 
 def _make_class_unpicklable(cls):
 
-    def _break_on_call_reduce(self, protocol = None):
+    def _break_on_call_reduce(self, protocol=None):
         raise TypeError('%r cannot be pickled' % self)
 
     cls.__reduce_ex__ = _break_on_call_reduce
     cls.__module__ = '<unknown>'
+    return
 
 
 class _EnumDict(dict):
@@ -195,10 +197,11 @@ class EnumMeta(type):
             setattr(enum_class, '__new__', Enum.__dict__['__new__'])
         return enum_class
 
-    def __call__(cls, value, names = None, module = None, type = None):
+    def __call__(cls, value, names=None, module=None, type=None):
         if names is None:
             return cls.__new__(cls, value)
-        return cls._create_(value, names, module=module, type=type)
+        else:
+            return cls._create_(value, names, module=module, type=type)
 
     def __contains__(cls, member):
         return isinstance(member, cls) and member.name in cls._member_map_
@@ -247,7 +250,7 @@ class EnumMeta(type):
             raise AttributeError('Cannot reassign members.')
         super(EnumMeta, cls).__setattr__(name, value)
 
-    def _create_(cls, class_name, names = None, module = None, type = None):
+    def _create_(cls, class_name, names=None, module=None, type=None):
         metacls = cls.__class__
         if type is None:
             bases = (cls,)
@@ -286,25 +289,26 @@ class EnumMeta(type):
     def _get_mixins_(bases):
         if not bases or Enum is None:
             return (object, Enum)
-        member_type = first_enum = None
-        for base in bases:
-            if base is not Enum and issubclass(base, Enum) and base._member_names_:
-                raise TypeError('Cannot extend enumerations')
-
-        if not issubclass(base, Enum):
-            raise TypeError('new enumerations must be created as `ClassName([mixin_type,] enum_type)`')
-        if not issubclass(bases[0], Enum):
-            member_type = bases[0]
-            first_enum = bases[-1]
         else:
-            for base in bases[0].__mro__:
-                if issubclass(base, Enum):
-                    if first_enum is None:
-                        first_enum = base
-                elif member_type is None:
-                    member_type = base
+            member_type = first_enum = None
+            for base in bases:
+                if base is not Enum and issubclass(base, Enum) and base._member_names_:
+                    raise TypeError('Cannot extend enumerations')
 
-        return (member_type, first_enum)
+            if not issubclass(base, Enum):
+                raise TypeError('new enumerations must be created as `ClassName([mixin_type,] enum_type)`')
+            if not issubclass(bases[0], Enum):
+                member_type = bases[0]
+                first_enum = bases[-1]
+            else:
+                for base in bases[0].__mro__:
+                    if issubclass(base, Enum):
+                        if first_enum is None:
+                            first_enum = base
+                    elif member_type is None:
+                        member_type = base
+
+            return (member_type, first_enum)
 
     if pyver < 3.0:
 
@@ -313,41 +317,42 @@ class EnumMeta(type):
             __new__ = classdict.get('__new__', None)
             if __new__:
                 return (None, True, True)
-            N__new__ = getattr(None, '__new__')
-            O__new__ = getattr(object, '__new__')
-            if Enum is None:
-                E__new__ = N__new__
             else:
-                E__new__ = Enum.__dict__['__new__']
-            for method in ('__member_new__', '__new__'):
-                for possible in (member_type, first_enum):
-                    try:
-                        target = possible.__dict__[method]
-                    except (AttributeError, KeyError):
-                        target = getattr(possible, method, None)
+                N__new__ = getattr(None, '__new__')
+                O__new__ = getattr(object, '__new__')
+                if Enum is None:
+                    E__new__ = N__new__
+                else:
+                    E__new__ = Enum.__dict__['__new__']
+                for method in ('__member_new__', '__new__'):
+                    for possible in (member_type, first_enum):
+                        try:
+                            target = possible.__dict__[method]
+                        except (AttributeError, KeyError):
+                            target = getattr(possible, method, None)
 
-                    if target not in [None,
-                     N__new__,
-                     O__new__,
-                     E__new__]:
-                        if method == '__member_new__':
-                            classdict['__new__'] = target
-                            return (None, False, True)
-                        if isinstance(target, staticmethod):
-                            target = target.__get__(member_type)
-                        __new__ = target
+                        if target not in [None,
+                         N__new__,
+                         O__new__,
+                         E__new__]:
+                            if method == '__member_new__':
+                                classdict['__new__'] = target
+                                return (None, False, True)
+                            if isinstance(target, staticmethod):
+                                target = target.__get__(member_type)
+                            __new__ = target
+                            break
+
+                    if __new__ is not None:
                         break
+                else:
+                    __new__ = object.__new__
 
-                if __new__ is not None:
-                    break
-            else:
-                __new__ = object.__new__
-
-            if __new__ is object.__new__:
-                use_args = False
-            else:
-                use_args = True
-            return (__new__, False, use_args)
+                if __new__ is object.__new__:
+                    use_args = False
+                else:
+                    use_args = True
+                return (__new__, False, use_args)
 
     else:
 
@@ -444,7 +449,6 @@ if pyver < 2.6:
                 return 0
             return -1
         return NotImplemented
-        raise TypeError('unorderable types: %s() and %s()' % (self.__class__.__name__, other.__class__.__name__))
 
 
     temp_enum_dict['__cmp__'] = __cmp__

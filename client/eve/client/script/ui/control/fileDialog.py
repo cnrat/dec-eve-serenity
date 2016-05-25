@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\client\script\ui\control\fileDialog.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\client\script\ui\control\fileDialog.py
 import uiprimitives
 import uicontrols
 from eve.client.script.ui.control.entries import Generic
@@ -83,6 +84,7 @@ class FileDialog(uicontrols.Window):
         if path is None or not os.path.isdir(path):
             path = settings.user.ui.Get('fileDialogLastPath', blue.paths.ResolvePath(u'app:/'))
         self.LoadDirToScroll(path)
+        return
 
     def GetAvailableDrives(self):
         try:
@@ -141,7 +143,7 @@ class FileDialog(uicontrols.Window):
     def OnCancel(self):
         self.Close()
 
-    def GetSelected(self, multi = False):
+    def GetSelected(self, multi=False):
         selected = self.sr.scroll.GetSelected()
         if not selected:
             return []

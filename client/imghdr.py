@@ -1,7 +1,8 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\carbon\common\stdlib\imghdr.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\carbon\common\stdlib\imghdr.py
 __all__ = ['what']
 
-def what(file, h = None):
+def what(file, h=None):
     if h is None:
         if isinstance(file, basestring):
             f = open(file, 'rb')
@@ -22,6 +23,8 @@ def what(file, h = None):
     finally:
         if f:
             f.close()
+
+    return
 
 
 tests = []

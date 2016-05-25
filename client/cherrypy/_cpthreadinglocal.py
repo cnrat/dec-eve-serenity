@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\carbon\common\lib\cherrypy\_cpthreadinglocal.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\carbon\common\lib\cherrypy\_cpthreadinglocal.py
 
 
 class _localbase(object):
@@ -30,6 +31,7 @@ def _patch(self):
             cls.__init__(self, *args, **kw)
     else:
         object.__setattr__(self, '__dict__', d)
+    return
 
 
 class local(_localbase):

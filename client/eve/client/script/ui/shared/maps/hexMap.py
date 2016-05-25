@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\client\script\ui\shared\maps\hexMap.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\client\script\ui\shared\maps\hexMap.py
 import trinity
 import math
 import localization
@@ -43,11 +44,13 @@ class HexMapController(object):
         self.nextTileNum = 0
         self.firstUnusedTileNum = None
         self.SetupScene()
+        return
 
     def __del__(self):
         self.highlightBinding = None
         del self.rootTransform.curveSets[:]
         self.rootTransform = None
+        return
 
     def SetupScene(self):
         curveSet = trinity.TriCurveSet()
@@ -148,7 +151,7 @@ class HexMapController(object):
             self.layoutCache[sizeX] = layout
         return self.layoutCache[sizeX]
 
-    def LayoutTiles(self, size, sovereigntyInfo, changeList, colorByStandings = False):
+    def LayoutTiles(self, size, sovereigntyInfo, changeList, colorByStandings=False):
         changedSystems = set([ info.solarSystemID for info in changeList ])
         for info in self.systemInfoMap.itervalues():
             if info.systemID in sovereigntyInfo:
@@ -184,8 +187,9 @@ class HexMapController(object):
 
             self.legend += factions
         self.highlightCurveSet.Play()
+        return
 
-    def Enable(self, enable = True):
+    def Enable(self, enable=True):
         self.rootTransform.display = enable
 
     def HighlightTiles(self, dataList, colorList):
@@ -240,6 +244,8 @@ class HexMapController(object):
 
                 geom.SetOutlines(tileIndex)
 
+        return
+
 
 class HexSystemInfo(object):
 
@@ -268,6 +274,7 @@ class HexGeom(object):
         self.index = None
         controller.rootTransform.children.append(self.tile)
         self.highlightBinding = None
+        return
 
     def SetTile(self, tile):
         self.Show()
@@ -276,16 +283,16 @@ class HexGeom(object):
         self.tile.scaling = (tile.scale, tile.scale, tile.scale)
         self.Flash(tile.changed)
 
-    def Show(self, enable = True):
+    def Show(self, enable=True):
         self.tile.display = enable
 
-    def Highlight(self, enable = True):
+    def Highlight(self, enable=True):
         if enable:
             self.highlight.value = 1.0
         else:
             self.highlight.value = 0.0
 
-    def Flash(self, enable = True):
+    def Flash(self, enable=True):
         if enable and self.highlightBinding is None:
             binding = trinity.TriValueBinding()
             binding.sourceAttribute = 'value'
@@ -301,6 +308,7 @@ class HexGeom(object):
             if self.highlightBinding in self.controller.highlightCurveSet.bindings:
                 self.controller.highlightCurveSet.bindings.remove(self.highlightBinding)
             self.highlight.value = 0.0
+        return
 
     def SetOutlines(self, index):
         self.tileIndex.value = index
@@ -317,11 +325,12 @@ class HexTile(object):
         self.sovID = None
         self.systems = {}
         self.changed = False
+        return
 
     def IsEmpty(self):
         return len(self.systems) == 0
 
-    def Update(self, colorByStandings = False):
+    def Update(self, colorByStandings=False):
         alliances = {}
         self.changed = False
         starmap = sm.GetService('starmap')
@@ -360,6 +369,7 @@ class HexTile(object):
         else:
             self.sovID == None
             self.color = UNCLAIMED_TILE_COLOR
+        return
 
     def __repr__(self):
         return 'HexTile(sov=%s center=%s color=%s systems=%s)' % (str(self.sovID),
@@ -370,7 +380,7 @@ class HexTile(object):
 
 class AABB(object):
 
-    def __init__(self, minPoint = None, maxPoint = None):
+    def __init__(self, minPoint=None, maxPoint=None):
         if minPoint is None:
             self.min = Point()
         else:
@@ -379,6 +389,7 @@ class AABB(object):
             self.max = Point()
         else:
             self.max = maxPoint
+        return
 
     def Width(self):
         return self.max.x - self.min.x
@@ -404,7 +415,7 @@ class AABB(object):
 
 class Point(object):
 
-    def __init__(self, x = 0, y = 0):
+    def __init__(self, x=0, y=0):
         self.x = x
         self.y = y
 
@@ -423,49 +434,51 @@ class Point(object):
 
 class QuadTree(object):
 
-    def __init__(self, items, depth = 8, aabb = None):
+    def __init__(self, items, depth=8, aabb=None):
         self.nw = self.ne = self.se = self.sw = None
         depth -= 1
         if depth == 0:
             self.items = items
             return
-        if aabb is None:
-            aabb = AABB()
-            aabb.min.x = min((item.min.x for item in items))
-            aabb.min.y = min((item.min.y for item in items))
-            aabb.max.x = max((item.max.x for item in items))
-            aabb.max.y = max((item.max.y for item in items))
-        self.center = center = aabb.Center()
-        self.items = []
-        nw_items = []
-        ne_items = []
-        se_items = []
-        sw_items = []
-        for item in items:
-            in_nw = item.min.x <= center.x and item.min.y <= center.y
-            in_sw = item.min.x <= center.x and item.max.y >= center.y
-            in_ne = item.max.x >= center.x and item.min.y <= center.y
-            in_se = item.max.x >= center.x and item.max.y >= center.y
-            if in_nw and in_ne and in_se and in_sw:
-                self.items.append(item)
-            else:
-                if in_nw:
-                    nw_items.append(item)
-                if in_ne:
-                    ne_items.append(item)
-                if in_se:
-                    se_items.append(item)
-                if in_sw:
-                    sw_items.append(item)
+        else:
+            if aabb is None:
+                aabb = AABB()
+                aabb.min.x = min((item.min.x for item in items))
+                aabb.min.y = min((item.min.y for item in items))
+                aabb.max.x = max((item.max.x for item in items))
+                aabb.max.y = max((item.max.y for item in items))
+            self.center = center = aabb.Center()
+            self.items = []
+            nw_items = []
+            ne_items = []
+            se_items = []
+            sw_items = []
+            for item in items:
+                in_nw = item.min.x <= center.x and item.min.y <= center.y
+                in_sw = item.min.x <= center.x and item.max.y >= center.y
+                in_ne = item.max.x >= center.x and item.min.y <= center.y
+                in_se = item.max.x >= center.x and item.max.y >= center.y
+                if in_nw and in_ne and in_se and in_sw:
+                    self.items.append(item)
+                else:
+                    if in_nw:
+                        nw_items.append(item)
+                    if in_ne:
+                        ne_items.append(item)
+                    if in_se:
+                        se_items.append(item)
+                    if in_sw:
+                        sw_items.append(item)
 
-        if nw_items:
-            self.nw = QuadTree(nw_items, depth, AABB(Point(aabb.min.x, aabb.min.y), Point(center.x, center.y)))
-        if ne_items:
-            self.ne = QuadTree(ne_items, depth, AABB(Point(center.x, aabb.min.y), Point(aabb.max.x, center.y)))
-        if se_items:
-            self.se = QuadTree(se_items, depth, AABB(Point(center.x, center.y), Point(aabb.max.x, aabb.max.y)))
-        if sw_items:
-            self.sw = QuadTree(sw_items, depth, AABB(Point(aabb.min.x, center.y), Point(center.x, aabb.max.y)))
+            if nw_items:
+                self.nw = QuadTree(nw_items, depth, AABB(Point(aabb.min.x, aabb.min.y), Point(center.x, center.y)))
+            if ne_items:
+                self.ne = QuadTree(ne_items, depth, AABB(Point(center.x, aabb.min.y), Point(aabb.max.x, center.y)))
+            if se_items:
+                self.se = QuadTree(se_items, depth, AABB(Point(center.x, center.y), Point(aabb.max.x, aabb.max.y)))
+            if sw_items:
+                self.sw = QuadTree(sw_items, depth, AABB(Point(aabb.min.x, center.y), Point(center.x, aabb.max.y)))
+            return
 
     def Overlaps(self, rect, item):
         return rect.max.x >= item.min.x and rect.min.x <= item.max.x and rect.max.y >= item.min.y and rect.min.y <= item.max.y

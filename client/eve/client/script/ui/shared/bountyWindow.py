@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\client\script\ui\shared\bountyWindow.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\client\script\ui\shared\bountyWindow.py
 from eve.client.script.ui.control import entries as listentry
 import uiprimitives
 import uicontrols
@@ -98,8 +99,9 @@ class BountyWindow(uicontrols.Window):
         self.em.multipleExpanded = False
         emTabs = self.GetEMTabs()
         self.em.Load(emTabs, 'bounties')
+        return
 
-    def LoadTopBounties(self, initialLoad = False):
+    def LoadTopBounties(self, initialLoad=False):
         self.selectedMenu = 'topBounties'
         if self.topBountyInited:
             return
@@ -107,7 +109,7 @@ class BountyWindow(uicontrols.Window):
         self.DrawTopBounties(showType)
         self.topBountyInited = True
 
-    def LoadBountyHunters(self, initialLoad = False):
+    def LoadBountyHunters(self, initialLoad=False):
         self.selectedMenu = 'topBountyHunters'
         if self.bountyHuntersInited:
             return
@@ -115,7 +117,7 @@ class BountyWindow(uicontrols.Window):
         self.DrawBountyHunters(showType)
         self.bountyHuntersInited = True
 
-    def LoadMyBounties(self, initialLoad = False):
+    def LoadMyBounties(self, initialLoad=False):
         if self.myBountiesInited and not self.myBountiesUpdated:
             return
         self.DrawMyBounties()
@@ -185,12 +187,14 @@ class BountyWindow(uicontrols.Window):
         entry = self.treeEntryByID.get(self.rank, None)
         if not entry:
             return
-        _, topEntry = entry.GetAbsolutePosition()
-        _, topScroll, _, height = self.topBountiesScroll.mainCont.GetAbsolute()
-        denum = height - entry.height
-        if denum:
-            fraction = float(topEntry - topScroll) / denum
-            self.topBountiesScroll.ScrollToVertical(fraction)
+        else:
+            _, topEntry = entry.GetAbsolutePosition()
+            _, topScroll, _, height = self.topBountiesScroll.mainCont.GetAbsolute()
+            denum = height - entry.height
+            if denum:
+                fraction = float(topEntry - topScroll) / denum
+                self.topBountiesScroll.ScrollToVertical(fraction)
+            return
 
     def OnSearchFieldChanged(self, *args):
         if self.searchOnListEdit.GetValue().strip() == '':
@@ -208,12 +212,15 @@ class BountyWindow(uicontrols.Window):
                     self.ShowResult(ownerID)
             break
 
+        return
+
     def ClearSearch(self, *args):
         self.searchedForOwnerID = None
         self.searchOnListEdit.SetValue('')
         showType = settings.user.ui.Get('topBountiesType', SHOW_CHAR)
         self.DrawTopBounties(showType)
         self.topBountiesScroll.ScrollToVertical(0.0)
+        return
 
     def SearchPlaceBounty(self, *args):
         if self.searchEdit.GetValue() == '':
@@ -232,20 +239,22 @@ class BountyWindow(uicontrols.Window):
         searchString = edit.GetValue()
         if not searchString or searchString == '':
             return None
-        groupIDList = [const.searchResultCharacter, const.searchResultCorporation, const.searchResultAlliance]
-        searchResult = searchUtil.QuickSearch(searchString.strip(), groupIDList, hideNPC=True)
-        if not len(searchResult):
-            edit.SetValue('')
-            edit.SetHintText(localization.GetByLabel('UI/Station/BountyOffice/NoOneFound'))
         else:
-            if len(searchResult) == 1:
-                ownerID = searchResult[0]
-                return ownerID
-            dlg = BountyPicker.Open(resultList=searchResult)
-            dlg.ShowModal()
-            if dlg.ownerID:
-                return dlg.ownerID
-            edit.SetValue('')
+            groupIDList = [const.searchResultCharacter, const.searchResultCorporation, const.searchResultAlliance]
+            searchResult = searchUtil.QuickSearch(searchString.strip(), groupIDList, hideNPC=True)
+            if not len(searchResult):
+                edit.SetValue('')
+                edit.SetHintText(localization.GetByLabel('UI/Station/BountyOffice/NoOneFound'))
+            else:
+                if len(searchResult) == 1:
+                    ownerID = searchResult[0]
+                    return ownerID
+                dlg = BountyPicker.Open(resultList=searchResult)
+                dlg.ShowModal()
+                if dlg.ownerID:
+                    return dlg.ownerID
+                edit.SetValue('')
+                return None
             return None
 
     def ShowSearched(self, ownerID):
@@ -368,6 +377,7 @@ class BountyWindow(uicontrols.Window):
         self.verifiedCont.display = False
         self.bountyAmount.SetHintText(localization.GetByLabel('UI/Station/BountyOffice/EnterAmount'))
         self.placeBountiesBtn.Disable()
+        return
 
     def PlaceBounty(self, *args):
         if self.placeBountiesBtn.disabled:
@@ -425,6 +435,8 @@ class BountyWindow(uicontrols.Window):
             else:
                 contType(name='bounty', parent=self.topBountiesScroll, ownerID=bounty.targetID, bounty=bountyAmount, corpID=corpID, allianceID=allianceID, place=rowNumber + 1)
 
+        return
+
     def GetTopBounties(self, showType):
         if showType == SHOW_CHAR:
             topBounties = self.bountySvc.GetTopPilotBounties(0)
@@ -467,6 +479,8 @@ class BountyWindow(uicontrols.Window):
             else:
                 contType(name='bountyHunter', parent=self.bountyHuntersScroll, ownerID=ownerID, corpID=corpID, allianceID=allianceID, place=rowNumber, bountiesClaimed=bountiesClaimed, numberOfKills=numberOfKills)
 
+        return
+
     def GetTopBountyHunters(self, showType):
         if showType == SHOW_CHAR:
             bountyHunters = self.bountySvc.GetTopPilotBountyHunters(0)
@@ -496,26 +510,28 @@ class BountyWindow(uicontrols.Window):
                 if hasattr(b, 'allianceID'):
                     ownersToPrime.add(b.allianceID)
 
-            cfg.eveowners.Prime(ownersToPrime)
-            ownerIDs = set()
-            for bounty in myBounties:
-                ownerIDs.add(bounty.targetID)
-                for entityID in ('corporationID', 'allianceID'):
-                    ownerID = getattr(bounty, entityID, None)
-                    if ownerID is not None:
-                        ownerIDs.add(ownerID)
+        cfg.eveowners.Prime(ownersToPrime)
+        ownerIDs = set()
+        for bounty in myBounties:
+            ownerIDs.add(bounty.targetID)
+            for entityID in ('corporationID', 'allianceID'):
+                ownerID = getattr(bounty, entityID, None)
+                if ownerID is not None:
+                    ownerIDs.add(ownerID)
 
-            sm.GetService('bountySvc').GetBounties(*ownerIDs)
-            for bounty in sorted(myBounties, key=lambda x: x.contributionID, reverse=True):
-                ownerID = bounty.targetID
-                corpID = getattr(bounty, 'corporationID', None)
-                allianceID = getattr(bounty, 'allianceID', None)
-                myAmount = getattr(bounty, 'amount', 0)
-                if util.IsCharacter(ownerID):
-                    contType = uicls.CharBounty
-                else:
-                    contType = uicls.CorpBounty
-                contType(name='myBounty', parent=self.myBountiesScroll, ownerID=ownerID, corpID=corpID, allianceID=allianceID, myAmount=myAmount)
+        sm.GetService('bountySvc').GetBounties(*ownerIDs)
+        for bounty in sorted(myBounties, key=lambda x: x.contributionID, reverse=True):
+            ownerID = bounty.targetID
+            corpID = getattr(bounty, 'corporationID', None)
+            allianceID = getattr(bounty, 'allianceID', None)
+            myAmount = getattr(bounty, 'amount', 0)
+            if util.IsCharacter(ownerID):
+                contType = uicls.CharBounty
+            else:
+                contType = uicls.CorpBounty
+            contType(name='myBounty', parent=self.myBountiesScroll, ownerID=ownerID, corpID=corpID, allianceID=allianceID, myAmount=myAmount)
+
+        return
 
 
 class TopBountyContainer(uiprimitives.Container):
@@ -534,6 +550,7 @@ class TopBountyContainer(uiprimitives.Container):
         self.bountiesClaimed = attributes.get('bountiesClaimed', 0)
         self.numberOfKills = attributes.get('numberOfKills', 0)
         self.ConstructLayout()
+        return
 
     def ConstructLayout(self):
         ownerID = self.ownerID
@@ -559,6 +576,7 @@ class TopBountyContainer(uiprimitives.Container):
         self.numberCont = uicontrols.ContainerAutoSize(parent=self.imgCont, name='numberCont', align=uiconst.TOPLEFT, idx=0)
         uiprimitives.Fill(bgParent=self.numberCont, color=(0.0, 0.0, 0.0, 0.4))
         self.numberLabel = uicontrols.EveCaptionLarge(text='1', parent=self.numberCont, align=uiconst.TOPLEFT, idx=0, left=2, padRight=2)
+        return
 
     def DisplayBountyAmount(self):
         bountyAmount = self.bounty
@@ -594,6 +612,7 @@ class BountyContainer(uiprimitives.Container):
         self.bountiesClaimed = attributes.get('bountiesClaimed', 0)
         self.numberOfKills = attributes.get('numberOfKills', 0)
         self.ConstructLayout()
+        return
 
     def ConstructLayout(self):
         ownerID = self.ownerID
@@ -621,6 +640,7 @@ class BountyContainer(uiprimitives.Container):
         self.numberCont = uicontrols.ContainerAutoSize(parent=self.imgCont, name='numberCont', align=uiconst.TOPLEFT, idx=0)
         uiprimitives.Fill(bgParent=self.numberCont, color=(0.0, 0.0, 0.0, 0.4))
         self.numberLabel = uicontrols.EveLabelMediumBold(text=self.place, parent=self.numberCont, align=uiconst.TOPLEFT, idx=0, left=2, padRight=2)
+        return
 
     def DisplayMyAmount(self):
         myAmount = self.myAmount
@@ -634,6 +654,7 @@ class BountyContainer(uiprimitives.Container):
         bountyAmount = sm.GetService('bountySvc').GetBounty(*bountyOwnerIDs)
         self.bountyLabel.hint = localization.GetByLabel('UI/Common/BountyAmount', bountyAmount=util.FmtISK(bountyAmount, 0))
         wantedLogo = uiprimitives.Sprite(name='wanted', parent=self.imgCont, idx=0, texturePath='res:/UI/Texture/wanted.png', width=64, height=17, align=uiconst.CENTERBOTTOM, state=uiconst.UI_PICKCHILDREN, top=1)
+        return
 
     def DisplayBountyAmount(self):
         bountyAmount = self.bounty
@@ -818,10 +839,11 @@ class PlaceBountyUtilMenu(uicls.UtilMenu):
         self.ownerID = attributes.get('ownerID', None)
         self.bountyOwnerIDs = attributes.get('bountyOwnerIDs', None)
         self.hint = localization.GetByLabel('UI/Station/BountyOffice/PlaceBounty')
+        return
 
     def SetBounty(self, menuParent):
         cont = menuParent.AddContainer(align=uiconst.TOTOP, padding=const.defaultPadding)
-        cont.GetEntryWidth = lambda mc = cont: 300
+        cont.GetEntryWidth = lambda mc=cont: 300
         headerText = uicontrols.EveLabelLarge(text=localization.GetByLabel('UI/Station/BountyOffice/PlaceBounty'), parent=cont, align=uiconst.TOTOP, state=uiconst.UI_NORMAL, bold=True)
         ownerID = self.ownerID
         victimCont = uiprimitives.Container(name='victimCont', parent=cont, align=uiconst.TOTOP, height=30, padTop=8)
@@ -924,6 +946,7 @@ class BountyPicker(uicontrols.Window):
         self.scroll = uicontrols.Scroll(parent=self.sr.main, padding=const.defaultPadding)
         self.scroll.multiSelect = False
         self.MakeList()
+        return
 
     def MakeList(self):
         scrolllist = []
@@ -991,7 +1014,8 @@ class BountyPicker(uicontrols.Window):
         log.LogInfo('ValidateOK')
         if self.ownerID is None:
             return 0
-        return 1
+        else:
+            return 1
 
     def OnOK(self, *args):
         if len(self.scroll.GetNodes()) == 0:
@@ -1001,10 +1025,12 @@ class BountyPicker(uicontrols.Window):
         if sel:
             self.ownerID = sel[0].itemID
             self.CloseByUser()
+        return
 
     def OnCancel(self, *args):
         self.ownerID = None
         self.CloseByUser()
+        return
 
 
 class PlaceBountyEntry(listentry.Generic):
@@ -1045,11 +1071,12 @@ class PlaceBountyEntry(listentry.Generic):
     def GetMenu(self):
         if self.sr.node.Get('GetMenu', None):
             return self.sr.node.GetMenu(self)
-        if self.ownerID:
+        elif self.ownerID:
             return sm.GetService('menu').GetMenuFormItemIDTypeID(self.ownerID, self.typeID, ignoreMarketDetails=0)
-        if self.typeID:
+        elif self.typeID:
             return sm.GetService('menu').GetMenuFormItemIDTypeID(None, self.typeID, ignoreMarketDetails=0)
-        return []
+        else:
+            return []
 
     def ShowInfo(self, ownerID, typeID, *args):
         sm.GetService('info').ShowInfo(typeID, ownerID)

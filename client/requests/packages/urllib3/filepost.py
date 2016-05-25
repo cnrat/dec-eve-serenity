@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\packages\requests\packages\urllib3\filepost.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\packages\requests\packages\urllib3\filepost.py
 import codecs
 import mimetypes
 from uuid import uuid4
@@ -30,7 +31,7 @@ def iter_fields(fields):
     return ((k, v) for k, v in fields)
 
 
-def encode_multipart_formdata(fields, boundary = None):
+def encode_multipart_formdata(fields, boundary=None):
     body = BytesIO()
     if boundary is None:
         boundary = choose_boundary()

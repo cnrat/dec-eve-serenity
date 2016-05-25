@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\client\script\ui\util\namedPopup.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\client\script\ui\util\namedPopup.py
 import localization
 import carbonui.const as uiconst
 from eve.client.script.ui.control.eveWindow import Window
@@ -29,6 +30,7 @@ class NamePopupWnd(Window):
         self.passwordChar = attributes.get('passwordChar', None)
         self.funcValidator = attributes.validator or self.CheckName
         self.ConstructLayout()
+        return
 
     def ConstructLayout(self):
         cont = uiprimitives.Container(parent=self.sr.main, align=uiconst.TOALL, pos=(const.defaultPadding,
@@ -42,6 +44,8 @@ class NamePopupWnd(Window):
         name = self.newName.GetValue()
         if not len(name) or len(name) and len(name.strip()) < 1:
             return localization.GetByLabel('UI/Common/PleaseTypeSomething')
+        else:
+            return None
 
     def Confirm(self, *args):
         if not hasattr(self, 'newName'):
@@ -57,3 +61,4 @@ class NamePopupWnd(Window):
     def Cancel(self, *args):
         self.result = None
         self.SetModalResult(0)
+        return

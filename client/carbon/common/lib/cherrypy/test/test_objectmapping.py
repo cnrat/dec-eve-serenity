@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\carbon\common\lib\cherrypy\test\test_objectmapping.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\carbon\common\lib\cherrypy\test\test_objectmapping.py
 import cherrypy
 from cherrypy._cptree import Application
 from cherrypy.test import helper
@@ -13,13 +14,13 @@ class ObjectMappingTest(helper.CPWebCase):
 
         class Root:
 
-            def index(self, name = 'world'):
+            def index(self, name='world'):
                 return name
 
             index.exposed = True
 
             def foobar(self):
-                return 'bar'
+                pass
 
             foobar.exposed = True
 
@@ -29,7 +30,7 @@ class ObjectMappingTest(helper.CPWebCase):
             default.exposed = True
 
             def other(self):
-                return 'other'
+                pass
 
             other.exposed = True
 
@@ -44,7 +45,7 @@ class ObjectMappingTest(helper.CPWebCase):
             redirect.exposed = True
 
             def notExposed(self):
-                return 'not exposed'
+                pass
 
             def confvalue(self):
                 return cherrypy.request.config.get('user')
@@ -57,11 +58,11 @@ class ObjectMappingTest(helper.CPWebCase):
             redirect_via_url.exposed = True
 
             def translate_html(self):
-                return 'OK'
+                pass
 
             translate_html.exposed = True
 
-        def mapped_func(self, ID = None):
+        def mapped_func(self, ID=None):
             return 'ID is %s' % ID
 
         mapped_func.exposed = True
@@ -70,7 +71,7 @@ class ObjectMappingTest(helper.CPWebCase):
         class Exposing:
 
             def base(self):
-                return 'expose works!'
+                pass
 
             cherrypy.expose(base)
             cherrypy.expose(base, '1')
@@ -79,7 +80,7 @@ class ObjectMappingTest(helper.CPWebCase):
         class ExposingNewStyle(object):
 
             def base(self):
-                return 'expose works!'
+                pass
 
             cherrypy.expose(base)
             cherrypy.expose(base, '1')
@@ -88,7 +89,7 @@ class ObjectMappingTest(helper.CPWebCase):
         class Dir1:
 
             def index(self):
-                return 'index for dir1'
+                pass
 
             index.exposed = True
 
@@ -128,12 +129,12 @@ class ObjectMappingTest(helper.CPWebCase):
         class Dir3:
 
             def default(self):
-                return 'default for dir3, not exposed'
+                pass
 
         class Dir4:
 
             def index(self):
-                return 'index for dir4, not exposed'
+                pass
 
         class DefNoIndex:
 
@@ -176,7 +177,7 @@ class ObjectMappingTest(helper.CPWebCase):
         class Isolated:
 
             def index(self):
-                return 'made it!'
+                pass
 
             index.exposed = True
 
@@ -186,9 +187,10 @@ class ObjectMappingTest(helper.CPWebCase):
             exposed = True
 
             def GET(self):
-                return 'milk'
+                pass
 
         cherrypy.tree.mount(AnotherApp(), '/app', {'/': {'request.dispatch': d}})
+        return
 
     setup_server = staticmethod(setup_server)
 
@@ -332,7 +334,7 @@ class ObjectMappingTest(helper.CPWebCase):
         class Root(object):
 
             def hello(self):
-                return 'Hello world!'
+                pass
 
             hello.exposed = True
 
@@ -348,3 +350,4 @@ class ObjectMappingTest(helper.CPWebCase):
         self.assertStatus(200)
         a = Application(Root(), script_name=None)
         self.assertRaises(TypeError, cherrypy.tree.mount, a, None)
+        return

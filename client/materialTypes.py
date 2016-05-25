@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\common\modules\nice\client\_nastyspace\materialTypes.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\common\modules\nice\client\_nastyspace\materialTypes.py
 from carbon.common.script.world.materials import CLIMBABLE_FLAG
 from carbon.common.script.world.materials import DEFAULT_MATERIAL
 from carbon.common.script.world.materials import LADDERTOP_FLAG

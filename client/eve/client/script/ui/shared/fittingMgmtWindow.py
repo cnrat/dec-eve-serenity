@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\client\script\ui\shared\fittingMgmtWindow.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\client\script\ui\shared\fittingMgmtWindow.py
 from eve.client.script.ui.control.buttons import Button
 from eve.client.script.ui.control.divider import Divider
 from eve.client.script.ui.control.infoIcon import InfoIcon
@@ -47,6 +48,7 @@ class FittingMgmt(uicontrols.Window):
         uiprimitives.Line(parent=divider, align=uiconst.TOLEFT)
         self.DrawRightSide()
         self.HideRightPanel()
+        return
 
     def DrawLeftSide(self):
         self.sr.leftside = uiprimitives.Container(name='leftside', parent=self.sr.main, align=uiconst.TOLEFT, width=256)
@@ -80,12 +82,13 @@ class FittingMgmt(uicontrols.Window):
             self.importFromClipboardButton = Button(parent=fitButtons, label=localization.GetByLabel('UI/Fitting/FittingWindow/FittingManagement/ImportFromClipboard'), func=sm.GetService('fittingSvc').ImportFittingFromClipboard, align=uiconst.NOALIGN)
             self.importFromClipboardButton.hint = localization.GetByLabel('UI/Fitting/FittingWindow/FittingManagement/ImportFromClipboardHint')
         self.DrawFittings()
+        return
 
     def DrawRightSide(self):
         self.sr.rightside = uiprimitives.Container(name='rightside', parent=self.sr.main, align=uiconst.TOALL, pos=(0, 0, 0, 0))
         a = uiprimitives.Container(name='push', parent=self.sr.rightside, align=uiconst.TOTOP, height=6)
         self.sr.rightMainPanel = uiprimitives.Container(name='rightMainPanel', parent=self.sr.rightside, align=uiconst.TOALL, pos=(0, 0, 0, 0))
-        topParent = uiprimitives.Container(parent=self.sr.rightMainPanel, align=uiconst.TOTOP, height=80)
+        topParent = uiprimitives.Container(parent=self.sr.rightMainPanel, align=uiconst.TOTOP, height=100)
         topLeftParent = uiprimitives.Container(parent=topParent, align=uiconst.TOLEFT, width=70)
         topRightParent = uiprimitives.Container(parent=topParent, align=uiconst.TOALL, pos=(0, 0, 0, 0))
         bottomParent = uiprimitives.Container(parent=self.sr.rightMainPanel, align=uiconst.TOALL, pos=(0, 0, 0, 0))
@@ -105,11 +108,13 @@ class FittingMgmt(uicontrols.Window):
          1,
          120,
          0), maxLength=40)
-        shipInfoContainer = uiprimitives.Container(parent=topRightParent, align=uiconst.TOTOP, height=20)
+        self.sr.useNameCheckBox = uicontrols.Checkbox(text=localization.GetByLabel('UI/Fitting/FittingWindow/FittingManagement/UseFittingNameForShip'), parent=topRightParent, align=uiconst.TOTOP, left=3, callback=self.UseFittingNameCallback, checked=settings.user.ui.Get('useFittingNameForShips', 0))
+        shipInfoContainer = uiprimitives.Container(parent=topRightParent, align=uiconst.TOTOP, height=20, padTop=5)
         self.sr.shipTypeName = uicontrols.EveLabelMedium(text='', parent=shipInfoContainer, align=uiconst.RELATIVE, state=uiconst.UI_NORMAL, left=const.defaultPadding)
         self.sr.infoicon = InfoIcon(parent=shipInfoContainer, left=1, top=0, idx=0, state=uiconst.UI_HIDDEN)
         self.sr.infoicon.OnClick = self.ShowInfo
-        self.sr.radioButton = uiprimitives.Container(name='', parent=topRightParent, align=uiconst.TOPLEFT, height=50, width=100, top=fittingNameContainer.height + shipInfoContainer.height)
+        topPadding = fittingNameContainer.height + shipInfoContainer.height + self.sr.useNameCheckBox.height + 5
+        self.sr.radioButton = uiprimitives.Container(name='', parent=topRightParent, align=uiconst.TOPLEFT, height=50, width=100, top=topPadding)
         radioBtns = []
         for cfgname, value, label, checked, group in [['fittingNone',
           session.charid,
@@ -148,6 +153,10 @@ class FittingMgmt(uicontrols.Window):
             import shipfitting.multiBuyUtil as multiBuyUtil
             multiBuyUtil.AddBuyButton(parent=saveDeleteButtons, fittingMgmtWnd=self)
             self.exportBtn.hint = localization.GetByLabel('UI/Fitting/FittingWindow/FittingManagement/ExportToClipboardHint')
+        return
+
+    def UseFittingNameCallback(self, *args):
+        settings.user.ui.Set('useFittingNameForShips', self.sr.useNameCheckBox.checked)
 
     def SimulateFitting(self, *args):
         sm.GetService('ghostFittingSvc').SimulateFitting(self.fitting)
@@ -180,10 +189,12 @@ class FittingMgmt(uicontrols.Window):
             self.wordFilter = None
             eve.Message('LookupStringMinimum', {'minimum': 1})
         self.DrawFittings()
+        return
 
     def ShowInfo(self, *args):
         if self.fitting is not None:
             sm.GetService('info').ShowInfo(self.fitting.shipTypeID, None)
+        return
 
     def AddFitting(self, *args):
         pass
@@ -247,6 +258,7 @@ class FittingMgmt(uicontrols.Window):
             scrolllist.append(listentry.Get('Group', data))
 
         self.sr.scroll.Load(contentList=scrolllist, scrolltotop=0)
+        return
 
     def GetShipGroupSubContent(self, nodedata, *args):
         scrolllist = []
@@ -307,91 +319,102 @@ class FittingMgmt(uicontrols.Window):
         m = []
         if not self or self.destroyed:
             return m
-        fittingID = entry.sr.node.fittingID
-        ownerID = entry.sr.node.ownerID
-        m = [(localization.GetByLabel('UI/Fitting/FittingWindow/FittingManagement/DeleteFitting'), self.DeleteFitting, [entry]), (localization.GetByLabel('UI/Fitting/FittingWindow/FittingManagement/LoadFitting'), self.fittingSvc.LoadFittingFromFittingID, [ownerID, fittingID])]
-        if session.role & service.ROLE_WORLDMOD and self.fittingSpawner is not None:
-            m.append(('DEV Hax This Together!', self.fittingSpawner.SpawnFitting, [ownerID, entry.sr.node.fitting]))
-            m.append(('Mass DEV Hax This Together!', self.fittingSpawner.MassSpawnFitting, [ownerID, entry.sr.node.fitting]))
-        return m
+        else:
+            fittingID = entry.sr.node.fittingID
+            ownerID = entry.sr.node.ownerID
+            m = [(localization.GetByLabel('UI/Fitting/FittingWindow/FittingManagement/DeleteFitting'), self.DeleteFitting, [entry]), (localization.GetByLabel('UI/Fitting/FittingWindow/FittingManagement/LoadFitting'), self.fittingSvc.LoadFittingFromFittingID, [ownerID, fittingID])]
+            if session.role & service.ROLE_WORLDMOD and self.fittingSpawner is not None:
+                m.append(('DEV Hax This Together!', self.fittingSpawner.SpawnFitting, [ownerID, entry.sr.node.fitting]))
+                m.append(('Mass DEV Hax This Together!', self.fittingSpawner.MassSpawnFitting, [ownerID, entry.sr.node.fitting]))
+            return m
 
     def DeleteFitting(self, entry):
         if eve.Message('DeleteFitting', {}, uiconst.YESNO, suppress=uiconst.ID_YES) != uiconst.ID_YES:
             return
-        entries = [entry.sr.node]
-        fittingID = entry.sr.node.fittingID
-        ownerID = entry.sr.node.ownerID
-        self.fittingSvc.DeleteFitting(ownerID, fittingID)
-        if self.fitting is not None:
-            if self.fitting.fittingID == fittingID:
-                self.fitting = None
-                self.HideRightPanel()
+        else:
+            entries = [entry.sr.node]
+            fittingID = entry.sr.node.fittingID
+            ownerID = entry.sr.node.ownerID
+            self.fittingSvc.DeleteFitting(ownerID, fittingID)
+            if self.fitting is not None:
+                if self.fitting.fittingID == fittingID:
+                    self.fitting = None
+                    self.HideRightPanel()
+            return
 
     def ClickEntry(self, entry, *args):
         if not self or self.destroyed:
             return
-        self.ShowRightPanel()
-        if self.fitting is not None and self.fitting.fittingID == entry.sr.node.fitting.fittingID:
-            return
-        self.fitting = fitting = entry.sr.node.fitting
-        self.sr.fittingName.SetText(fitting.name)
-        self.sr.fittingDescription.SetText(fitting.description)
-        shipName = evetypes.GetName(fitting.shipTypeID)
-        self.sr.shipTypeName.text = shipName
-        width = uix.GetTextWidth(shipName, uppercase=1)
-        self.sr.infoicon.left = width + 15
-        self.sr.infoicon.state = uiconst.UI_NORMAL
-        self.sr.shipIcon.LoadIconByTypeID(fitting.shipTypeID, ignoreSize=True)
-        self.sr.shipIcon.SetSize(64, 64)
-        self.sr.shipIcon.state = uiconst.UI_DISABLED
-        uix.GetTechLevelIcon(self.sr.techicon, 0, fitting.shipTypeID)
-        self.sr.dragIcon.fitting = fitting
-        for button in self.sr.radioButtons:
-            button.SetValue(fitting.ownerID == button.data['value'])
+        else:
+            self.ShowRightPanel()
+            if self.fitting is not None and self.fitting.fittingID == entry.sr.node.fitting.fittingID:
+                return
+            self.fitting = fitting = entry.sr.node.fitting
+            self.sr.fittingName.SetText(fitting.name)
+            self.sr.fittingDescription.SetText(fitting.description)
+            shipName = evetypes.GetName(fitting.shipTypeID)
+            self.sr.shipTypeName.text = shipName
+            width = uix.GetTextWidth(shipName, uppercase=1)
+            self.sr.infoicon.left = width + 15
+            self.sr.infoicon.state = uiconst.UI_NORMAL
+            self.sr.shipIcon.LoadIconByTypeID(fitting.shipTypeID, ignoreSize=True)
+            self.sr.shipIcon.SetSize(64, 64)
+            self.sr.shipIcon.state = uiconst.UI_DISABLED
+            uix.GetTechLevelIcon(self.sr.techicon, 0, fitting.shipTypeID)
+            self.sr.dragIcon.fitting = fitting
+            for button in self.sr.radioButtons:
+                button.SetValue(fitting.ownerID == button.data['value'])
 
-        scrolllist = self.fittingSvc.GetFittingInfoScrollList(fitting)
-        self.sr.fittingInfo.Load(contentList=scrolllist)
+            scrolllist = self.fittingSvc.GetFittingInfoScrollList(fitting)
+            self.sr.fittingInfo.Load(contentList=scrolllist)
+            return
 
     def Save(self, *args):
         if self.fitting is None:
             return
-        newOwnerID = None
-        for button in self.sr.radioButtons:
-            if button.checked:
-                newOwnerID = button.data['value']
-
-        newFitting = None
-        if newOwnerID != self.fitting.ownerID:
-            newFitting = self.fittingSvc.ChangeOwner(self.fitting.ownerID, self.fitting.fittingID, newOwnerID)
-        if newFitting is not None:
-            fitting = newFitting
         else:
-            fitting = self.fitting
-        oldName = self.fitting.name
-        newName = self.sr.fittingName.GetValue()
-        newDescription = self.sr.fittingDescription.GetValue()
-        fit = (self.fitting.shipTypeID, fitting.fitData)
-        if fitting.fittingID is None:
-            self.fittingSvc.DeleteLocalFitting(oldName)
-            self.fittingSvc.PersistFitting(newOwnerID, newName, newDescription, fit=fit)
-            self.HideRightPanel()
+            newOwnerID = None
+            for button in self.sr.radioButtons:
+                if button.checked:
+                    newOwnerID = button.data['value']
+
+            newFitting = None
+            if newOwnerID != self.fitting.ownerID:
+                newFitting = self.fittingSvc.ChangeOwner(self.fitting.ownerID, self.fitting.fittingID, newOwnerID)
+            if newFitting is not None:
+                fitting = newFitting
+            else:
+                fitting = self.fitting
+            oldName = self.fitting.name
+            newName = self.sr.fittingName.GetValue()
+            newDescription = self.sr.fittingDescription.GetValue()
+            fit = (self.fitting.shipTypeID, fitting.fitData)
+            if fitting.fittingID is None:
+                self.fittingSvc.DeleteLocalFitting(oldName)
+                self.fittingSvc.PersistFitting(newOwnerID, newName, newDescription, fit=fit)
+                self.HideRightPanel()
+                return
+            self.fittingSvc.ChangeNameAndDescription(fitting.fittingID, fitting.ownerID, newName, newDescription)
+            self.DrawFittings()
             return
-        self.fittingSvc.ChangeNameAndDescription(fitting.fittingID, fitting.ownerID, newName, newDescription)
-        self.DrawFittings()
 
     def Fit(self, *args):
         if self.fitting is None:
             return
-        self.fittingSvc.LoadFittingFromFittingID(self.ownerID, self.fitting.fittingID)
+        else:
+            self.fittingSvc.LoadFittingFromFittingID(self.ownerID, self.fitting.fittingID)
+            return
 
     def Delete(self, *args):
         if self.fitting is None:
             return
-        if eve.Message('DeleteFitting', {}, uiconst.YESNO, suppress=uiconst.ID_YES) != uiconst.ID_YES:
+        elif eve.Message('DeleteFitting', {}, uiconst.YESNO, suppress=uiconst.ID_YES) != uiconst.ID_YES:
             return
-        self.fittingSvc.DeleteFitting(self.fitting.ownerID, self.fitting.fittingID)
-        self.fitting = None
-        self.HideRightPanel()
+        else:
+            self.fittingSvc.DeleteFitting(self.fitting.ownerID, self.fitting.fittingID)
+            self.fitting = None
+            self.HideRightPanel()
+            return
 
     def HideRightPanel(self):
         self.sr.rightside.state = uiconst.UI_HIDDEN
@@ -426,6 +449,7 @@ class ViewFitting(uicontrols.Window):
         self.SetMinSize([250, 300])
         self.fittingSvc = sm.GetService('fittingSvc')
         self.Draw()
+        return
 
     def ClickDragIcon(self, *args):
         subsystems = {}
@@ -518,6 +542,7 @@ class ViewFitting(uicontrols.Window):
             self.exportBtn.hint = localization.GetByLabel('UI/Fitting/FittingWindow/FittingManagement/ExportToClipboardHint')
             from shipfitting.multiBuyUtil import AddBuyButton
             AddBuyButton(parent=saveDeleteButtons, fittingMgmtWnd=self)
+        return
 
     def SimulateFitting(self, *args):
         sm.GetService('ghostFittingSvc').SimulateFitting(self.fitting)
@@ -527,6 +552,7 @@ class ViewFitting(uicontrols.Window):
 
     def ShowInfo(self, *args):
         sm.GetService('info').ShowInfo(self.fitting.shipTypeID, None)
+        return
 
     def Save(self, *args):
         oldOwnerID = self.fitting.ownerID
@@ -540,6 +566,7 @@ class ViewFitting(uicontrols.Window):
         description = self.sr.fittingDescription.GetValue()
         self.fittingSvc.PersistFitting(ownerID, name, description, fit=(self.fitting.shipTypeID, self.fitting.fitData))
         self.CloseByUser()
+        return
 
     def Fit(self, *args):
         fitting = self.fitting

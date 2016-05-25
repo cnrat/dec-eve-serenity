@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\client\script\ui\shared\neocom\Alliances\all_ui_rankings.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\client\script\ui\shared\neocom\Alliances\all_ui_rankings.py
 import blue
 import uiprimitives
 import uicontrols
@@ -28,36 +29,37 @@ class FormAlliancesRankings(uiprimitives.Container):
          const.defaultPadding))
         self.ShowRankings()
 
-    def SetHint(self, hintstr = None):
+    def SetHint(self, hintstr=None):
         if self.sr.scroll:
             self.sr.scroll.ShowHint(hintstr)
 
-    def ShowRankings(self, maxLen = 100):
+    def ShowRankings(self, maxLen=100):
         log.LogInfo('ShowRankings', maxLen)
         alliancesLabel = localization.GetByLabel('UI/Corporations/CorporationWindow/Alliances/Alliances')
         cachedLabel = localization.GetByLabel('UI/Corporations/CorporationWindow/Alliances/Rankings/RankingsCached15')
         sm.GetService('corpui').LoadTop('res:/ui/Texture/WindowIcons/alliances.png', alliancesLabel, cachedLabel)
         if maxLen == 0 and eve.Message('ConfirmShowAllRankedAlliances', {}, uiconst.YESNO, suppress=uiconst.ID_YES) != uiconst.ID_YES:
             return
-        try:
-            sm.GetService('corpui').ShowLoad()
-            headers = [localization.GetByLabel('UI/Common/Name'),
-             localization.GetByLabel('UI/Corporations/CorporationWindow/Alliances/Rankings/ExecutorCorp'),
-             localization.GetByLabel('UI/Corporations/CorporationWindow/Alliances/Rankings/ShortName'),
-             localization.GetByLabel('UI/Corporations/CorporationWindow/Alliances/Rankings/Created'),
-             localization.GetByLabel('UI/Corporations/CorporationWindow/Alliances/Members'),
-             localization.GetByLabel('UI/Corporations/CorporationWindow/Alliances/Rankings/AllianceStanding')]
-            scrolllist = []
-            hint = localization.GetByLabel('UI/Corporations/CorporationWindow/Alliances/Rankings/NoRankingsFound')
-            if self is None or self.destroyed:
-                log.LogInfo('ShowRankings Destroyed or None')
-            else:
-                data = sm.GetService('alliance').GetRankedAlliances(maxLen)
-                rows = data.alliances
-                owners = []
-                for row in rows:
-                    if row.executorCorpID not in owners:
-                        owners.append(row.executorCorpID)
+        else:
+            try:
+                sm.GetService('corpui').ShowLoad()
+                headers = [localization.GetByLabel('UI/Common/Name'),
+                 localization.GetByLabel('UI/Corporations/CorporationWindow/Alliances/Rankings/ExecutorCorp'),
+                 localization.GetByLabel('UI/Corporations/CorporationWindow/Alliances/Rankings/ShortName'),
+                 localization.GetByLabel('UI/Corporations/CorporationWindow/Alliances/Rankings/Created'),
+                 localization.GetByLabel('UI/Corporations/CorporationWindow/Alliances/Members'),
+                 localization.GetByLabel('UI/Corporations/CorporationWindow/Alliances/Rankings/AllianceStanding')]
+                scrolllist = []
+                hint = localization.GetByLabel('UI/Corporations/CorporationWindow/Alliances/Rankings/NoRankingsFound')
+                if self is None or self.destroyed:
+                    log.LogInfo('ShowRankings Destroyed or None')
+                else:
+                    data = sm.GetService('alliance').GetRankedAlliances(maxLen)
+                    rows = data.alliances
+                    owners = []
+                    for row in rows:
+                        if row.executorCorpID not in owners:
+                            owners.append(row.executorCorpID)
 
                 if len(owners):
                     cfg.eveowners.Prime(owners)
@@ -65,12 +67,14 @@ class FormAlliancesRankings(uiprimitives.Container):
                     standing = data.standings.get(row.allianceID, 0)
                     self.__AddToList(row, standing, scrolllist)
 
-            self.sr.scroll.adjustableColumns = 1
-            self.sr.scroll.sr.id = 'alliances_rankings'
-            noFoundLabel = localization.GetByLabel('UI/Corporations/CorporationWindow/Alliances/Rankings/NoRankingsFound')
-            self.sr.scroll.Load(contentList=scrolllist, headers=headers, noContentHint=noFoundLabel)
-        finally:
-            sm.GetService('corpui').HideLoad()
+                self.sr.scroll.adjustableColumns = 1
+                self.sr.scroll.sr.id = 'alliances_rankings'
+                noFoundLabel = localization.GetByLabel('UI/Corporations/CorporationWindow/Alliances/Rankings/NoRankingsFound')
+                self.sr.scroll.Load(contentList=scrolllist, headers=headers, noContentHint=noFoundLabel)
+            finally:
+                sm.GetService('corpui').HideLoad()
+
+            return
 
     def __GetLabel(self, row, standing):
         executor = None
@@ -116,6 +120,7 @@ class FormAlliancesRankings(uiprimitives.Container):
                 return
 
         sm.GetService('corpui').ApplyToJoinAlliance(allianceID)
+        return
 
     def DeclareWarAgainst(self, allianceID):
         sm.GetService('alliance').DeclareWarAgainst(allianceID)

@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\carbon\common\lib\cherrypy\test\helper.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\carbon\common\lib\cherrypy\test\helper.py
 import datetime
 import logging
 log = logging.getLogger(__name__)
@@ -17,7 +18,7 @@ from cherrypy.test import webtest
 import nose
 _testconfig = None
 
-def get_tst_config(overconf = {}):
+def get_tst_config(overconf={}):
     global _testconfig
     if _testconfig is None:
         conf = {'scheme': 'http',
@@ -71,11 +72,12 @@ class LocalSupervisor(Supervisor):
         if hasattr(engine, 'console_control_handler'):
             engine.console_control_handler.subscribe()
 
-    def start(self, modulename = None):
+    def start(self, modulename=None):
         if modulename:
             cherrypy.server.httpserver = None
         cherrypy.engine.start()
         self.sync_apps()
+        return
 
     def sync_apps(self):
         pass
@@ -88,6 +90,8 @@ class LocalSupervisor(Supervisor):
         for name, server in copyitems(getattr(cherrypy, 'servers', {})):
             server.unsubscribe()
             del cherrypy.servers[name]
+
+        return
 
 
 class NativeServerSupervisor(LocalSupervisor):
@@ -110,7 +114,7 @@ class LocalWSGISupervisor(LocalSupervisor):
     def sync_apps(self):
         cherrypy.server.httpserver.wsgi_app = self.get_app()
 
-    def get_app(self, app = None):
+    def get_app(self, app=None):
         if app is None:
             app = cherrypy.tree
         if self.conquer:
@@ -229,6 +233,7 @@ class CPWebCase(webtest.WebCase):
             cls.setup_server()
             supervisor.start(cls.__module__)
         cls.supervisor = supervisor
+        return
 
     setup_class = classmethod(setup_class)
 
@@ -254,15 +259,15 @@ class CPWebCase(webtest.WebCase):
     def exit(self):
         sys.exit()
 
-    def getPage(self, url, headers = None, method = 'GET', body = None, protocol = None):
+    def getPage(self, url, headers=None, method='GET', body=None, protocol=None):
         if self.script_name:
             url = httputil.urljoin(self.script_name, url)
         return webtest.WebCase.getPage(self, url, headers, method, body, protocol)
 
-    def skip(self, msg = 'skipped '):
+    def skip(self, msg='skipped '):
         raise nose.SkipTest(msg)
 
-    def assertErrorPage(self, status, message = None, pattern = ''):
+    def assertErrorPage(self, status, message=None, pattern=''):
         page = cherrypy._cperror.get_error_page(status, message=message)
         esc = re.escape
         epage = esc(page)
@@ -271,16 +276,18 @@ class CPWebCase(webtest.WebCase):
         if not m:
             self._handlewebError('Error page does not match; expected:\n' + page)
             return
-        if pattern is None:
-            if m and m.group(1):
-                self._handlewebError('Error page contains traceback')
-        elif m is None or not re.search(ntob(re.escape(pattern), self.encoding), m.group(1)):
-            msg = 'Error page does not contain %s in traceback'
-            self._handlewebError(msg % repr(pattern))
+        else:
+            if pattern is None:
+                if m and m.group(1):
+                    self._handlewebError('Error page contains traceback')
+            elif m is None or not re.search(ntob(re.escape(pattern), self.encoding), m.group(1)):
+                msg = 'Error page does not contain %s in traceback'
+                self._handlewebError(msg % repr(pattern))
+            return
 
     date_tolerance = 2
 
-    def assertEqualDates(self, dt1, dt2, seconds = None):
+    def assertEqualDates(self, dt1, dt2, seconds=None):
         if seconds is None:
             seconds = self.date_tolerance
         if dt1 > dt2:
@@ -289,6 +296,7 @@ class CPWebCase(webtest.WebCase):
             diff = dt2 - dt1
         if not diff < datetime.timedelta(seconds=seconds):
             raise AssertionError('%r and %r are not within %r seconds.' % (dt1, dt2, seconds))
+        return
 
 
 def setup_client():
@@ -305,14 +313,14 @@ class CPProcess(object):
     error_log = os.path.join(thisdir, 'test.error.log')
     access_log = os.path.join(thisdir, 'test.access.log')
 
-    def __init__(self, wait = False, daemonize = False, ssl = False, socket_host = None, socket_port = None):
+    def __init__(self, wait=False, daemonize=False, ssl=False, socket_host=None, socket_port=None):
         self.wait = wait
         self.daemonize = daemonize
         self.ssl = ssl
         self.host = socket_host or cherrypy.server.socket_host
         self.port = socket_port or cherrypy.server.socket_port
 
-    def write_conf(self, extra = ''):
+    def write_conf(self, extra=''):
         if self.ssl:
             serverpem = os.path.join(thisdir, 'test.pem')
             ssl = "\nserver.ssl_certificate: r'%s'\nserver.ssl_private_key: r'%s'\n" % (serverpem, serverpem)
@@ -328,7 +336,7 @@ class CPProcess(object):
         f.write(ntob(conf, 'utf-8'))
         f.close()
 
-    def start(self, imports = None):
+    def start(self, imports=None):
         cherrypy._cpserver.wait_for_free_port(self.host, self.port)
         args = [sys.executable,
          os.path.join(thisdir, '..', 'cherryd'),

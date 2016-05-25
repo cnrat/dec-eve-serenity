@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\packages\trinity\evePostProcess.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\packages\trinity\evePostProcess.py
 import decometaclass
 import evegraphics.settings as gfxsettings
 from .renderJobUtils import renderTargetManager as rtm
@@ -32,7 +33,7 @@ POST_PROCESS_PATHS = {POST_PROCESS_ASTEROID_FOG: 'res:/fisfx/postprocess/Asteroi
 
 class EvePostProcess(object):
 
-    def __init__(self, name, path, key = None):
+    def __init__(self, name, path, key=None):
         self.name = name
         self.path = path
         self.key = key
@@ -42,6 +43,7 @@ class EvePostProcess(object):
         self.swapSize = (0, 0)
         self.buffer1 = None
         self.buffer2 = None
+        return
 
     def RemoveSteps(self, rj):
         for each in self.steps:
@@ -52,30 +54,33 @@ class EvePostProcess(object):
     def Prepare(self, source):
         if source is None:
             return
-        self.sourceSize = (source.width, source.height)
-        if len(self.postProcess.stages) < 2:
+        else:
+            self.sourceSize = (source.width, source.height)
+            if len(self.postProcess.stages) < 2:
+                return
+            width = max(16, min(1024, (source.width & -16) / 2))
+            height = max(16, min(1024, (source.height & -16) / 2))
+            self.swapSize = (width, height)
+            if self.buffer1 is None or not rtm.CheckRenderTarget(self.buffer1, width, height, source.format):
+                self.buffer1 = rtm.GetRenderTargetAL(width, height, 1, source.format, index=1)
+                if self.buffer1 is not None:
+                    self.buffer1.name = 'Post Process Bounce Target 1'
+                self.buffer2 = rtm.GetRenderTargetAL(width, height, 1, source.format, index=2)
+                if self.buffer2 is not None:
+                    self.buffer2.name = 'Post Process Bounce Target 2'
             return
-        width = max(16, min(1024, (source.width & -16) / 2))
-        height = max(16, min(1024, (source.height & -16) / 2))
-        self.swapSize = (width, height)
-        if self.buffer1 is None or not rtm.CheckRenderTarget(self.buffer1, width, height, source.format):
-            self.buffer1 = rtm.GetRenderTargetAL(width, height, 1, source.format, index=1)
-            if self.buffer1 is not None:
-                self.buffer1.name = 'Post Process Bounce Target 1'
-            self.buffer2 = rtm.GetRenderTargetAL(width, height, 1, source.format, index=2)
-            if self.buffer2 is not None:
-                self.buffer2.name = 'Post Process Bounce Target 2'
 
     def _SwapBuffers(self):
         tempTarget = self.buffer1
         self.buffer1 = self.buffer2
         self.buffer2 = tempTarget
 
-    def _AppendStep(self, rj, step, name = None):
+    def _AppendStep(self, rj, step, name=None):
         rj.steps.append(step)
         self.steps.append(step)
         if name is not None:
             step.name = name
+        return
 
     def SetPSData(self, psData):
         for each in self.steps:
@@ -117,6 +122,7 @@ class EvePostProcess(object):
         self._ClearSteps()
         self.buffer1 = None
         self.buffer2 = None
+        return
 
 
 class EvePostProcessingJob(object):
@@ -138,6 +144,8 @@ class EvePostProcessingJob(object):
         for _ in self._postProcessOrder:
             self.postProcesses.append(None)
 
+        return
+
     def _FindPostProcess(self, ppID):
         index = -1
         postProcess = None
@@ -153,21 +161,23 @@ class EvePostProcessingJob(object):
             postProcess = None
         return (postProcess, index)
 
-    def SetActiveKey(self, key = None):
+    def SetActiveKey(self, key=None):
         if self.key == key:
             return
-        dirty = False
-        for pp in self.postProcesses:
-            ppKey = getattr(pp, 'key', None)
-            if ppKey is None:
-                continue
-            if ppKey == key or ppKey == self.key:
-                dirty = True
-                break
+        else:
+            dirty = False
+            for pp in self.postProcesses:
+                ppKey = getattr(pp, 'key', None)
+                if ppKey is None:
+                    continue
+                if ppKey == key or ppKey == self.key:
+                    dirty = True
+                    break
 
-        self.key = key
-        if dirty:
-            self.CreateSteps()
+            self.key = key
+            if dirty:
+                self.CreateSteps()
+            return
 
     def GetPostProcesses(self):
         postProcesses = []
@@ -186,7 +196,7 @@ class EvePostProcessingJob(object):
             ppIDOrGroup = POST_PROCESS_GROUPS[ppID]
         return ppIDOrGroup
 
-    def AddPostProcess(self, ppID, path = None, key = None):
+    def AddPostProcess(self, ppID, path=None, key=None):
         ppIDOrGroup = self.GetGroupOrID(ppID)
         postProcess, i = self._FindPostProcess(ppIDOrGroup)
         if path is None:
@@ -222,14 +232,16 @@ class EvePostProcessingJob(object):
 
         if index < 0:
             return
-        self.liveCount -= 1
-        self.postProcesses[index].RemoveSteps(self)
-        self.postProcesses[index].Release()
-        if ppIDOrGroup in self._postProcessOrder:
-            self.postProcesses[index] = None
         else:
-            self.postProcesses.remove(each)
-        self.CreateSteps()
+            self.liveCount -= 1
+            self.postProcesses[index].RemoveSteps(self)
+            self.postProcesses[index].Release()
+            if ppIDOrGroup in self._postProcessOrder:
+                self.postProcesses[index] = None
+            else:
+                self.postProcesses.remove(each)
+            self.CreateSteps()
+            return
 
     def SetPostProcessVariable(self, ppID, variable, value):
         ppIDOrGroup = self.GetGroupOrID(ppID)
@@ -246,11 +258,14 @@ class EvePostProcessingJob(object):
                             res.SetResource(value)
                             return
 
-    def _AppendStep(self, name, step, rj = None):
+        return
+
+    def _AppendStep(self, name, step, rj=None):
         if rj is None:
             rj = self
         rj.steps.append(step)
         step.name = name
+        return
 
     def _DoPostProcess(self, pp, source):
         job = trinity.TriRenderJob()
@@ -266,7 +281,9 @@ class EvePostProcessingJob(object):
             if pp is not None:
                 pp.SetPSData(psData)
 
-    def Prepare(self, source, blitTexture, destination = None):
+        return
+
+    def Prepare(self, source, blitTexture, destination=None):
         self.prepared = True
         self.resolveTarget = blitTexture
         self.source = source
@@ -274,6 +291,8 @@ class EvePostProcessingJob(object):
         for each in self.postProcesses:
             if each is not None:
                 each.Prepare(source)
+
+        return
 
     def Release(self):
         self.prepared = False
@@ -285,46 +304,50 @@ class EvePostProcessingJob(object):
             if each is not None:
                 each.Release()
 
+        return
+
     def CreateSteps(self):
         if not self.prepared:
             return
-        self.ClearSteps()
-        if self.liveCount < 1:
-            return
-        if self.source.width < 1 or self.source.height < 1:
-            return
-        postProcesses = []
-        for each in self.postProcesses:
-            ppKey = getattr(each, 'key', None)
-            if each is not None and each.name == PP_GROUP_FOG:
-                if gfxsettings.Get(gfxsettings.GFX_SHADER_QUALITY) != gfxsettings.SHADER_MODEL_HIGH:
-                    continue
-            if each is not None and (ppKey is None or ppKey == self.key):
-                postProcesses.append(each)
+        else:
+            self.ClearSteps()
+            if self.liveCount < 1:
+                return
+            if self.source.width < 1 or self.source.height < 1:
+                return
+            postProcesses = []
+            for each in self.postProcesses:
+                ppKey = getattr(each, 'key', None)
+                if each is not None and each.name == PP_GROUP_FOG:
+                    if gfxsettings.Get(gfxsettings.GFX_SHADER_QUALITY) != gfxsettings.SHADER_MODEL_HIGH:
+                        continue
+                if each is not None and (ppKey is None or ppKey == self.key):
+                    postProcesses.append(each)
 
-        if self.destination is not None:
-            self._AppendStep('Push Destination RT', trinity.TriStepPushRenderTarget(self.destination))
-        if len(postProcesses) > 1:
-            self._AppendStep('Push Source RT', trinity.TriStepPushRenderTarget(self.source))
-        self._AppendStep('Push null depth stencil', trinity.TriStepPushDepthStencil(None))
-        if self.resolveTarget is not None:
-            self._AppendStep('Resolve render target', trinity.TriStepResolve(self.resolveTarget, self.source))
-        self._AppendStep('Set render states', trinity.TriStepSetStdRndStates(trinity.RM_FULLSCREEN))
-        value = (1.0 / self.source.width,
-         1.0 / self.source.height,
-         self.source.width,
-         self.source.height)
-        self._AppendStep('Set var texelSize', trinity.TriStepSetVariableStore('g_texelSize', value))
-        for pp in postProcesses:
-            if pp == postProcesses[-1] and len(postProcesses) > 1:
-                self._AppendStep('Pop source RT', trinity.TriStepPopRenderTarget())
-            self._DoPostProcess(pp, self.resolveTarget)
-            if pp != postProcesses[-1] and self.resolveTarget is not None:
+            if self.destination is not None:
+                self._AppendStep('Push Destination RT', trinity.TriStepPushRenderTarget(self.destination))
+            if len(postProcesses) > 1:
+                self._AppendStep('Push Source RT', trinity.TriStepPushRenderTarget(self.source))
+            self._AppendStep('Push null depth stencil', trinity.TriStepPushDepthStencil(None))
+            if self.resolveTarget is not None:
                 self._AppendStep('Resolve render target', trinity.TriStepResolve(self.resolveTarget, self.source))
+            self._AppendStep('Set render states', trinity.TriStepSetStdRndStates(trinity.RM_FULLSCREEN))
+            value = (1.0 / self.source.width,
+             1.0 / self.source.height,
+             self.source.width,
+             self.source.height)
+            self._AppendStep('Set var texelSize', trinity.TriStepSetVariableStore('g_texelSize', value))
+            for pp in postProcesses:
+                if pp == postProcesses[-1] and len(postProcesses) > 1:
+                    self._AppendStep('Pop source RT', trinity.TriStepPopRenderTarget())
+                self._DoPostProcess(pp, self.resolveTarget)
+                if pp != postProcesses[-1] and self.resolveTarget is not None:
+                    self._AppendStep('Resolve render target', trinity.TriStepResolve(self.resolveTarget, self.source))
 
-        if self.destination is not None:
-            self._AppendStep('Pop destination RT', trinity.TriStepPopRenderTarget())
-        self._AppendStep('Restore depth stencil', trinity.TriStepPopDepthStencil())
+            if self.destination is not None:
+                self._AppendStep('Pop destination RT', trinity.TriStepPopRenderTarget())
+            self._AppendStep('Restore depth stencil', trinity.TriStepPopDepthStencil())
+            return
 
     def ClearSteps(self):
         for each in self.postProcesses:
@@ -332,3 +355,4 @@ class EvePostProcessingJob(object):
                 each.RemoveSteps(self)
 
         del self.steps[:]
+        return

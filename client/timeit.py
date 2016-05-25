@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\carbon\common\stdlib\timeit.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\carbon\common\stdlib\timeit.py
 import gc
 import sys
 import time
@@ -23,7 +24,7 @@ def reindent(src, indent):
 
 def _template_func(setup, func):
 
-    def inner(_it, _timer, _func = func):
+    def inner(_it, _timer, _func=func):
         setup()
         _t0 = _timer()
         for _i in _it:
@@ -37,7 +38,7 @@ def _template_func(setup, func):
 
 class Timer:
 
-    def __init__(self, stmt = 'pass', setup = 'pass', timer = default_timer):
+    def __init__(self, stmt='pass', setup='pass', timer=default_timer):
         self.timer = timer
         ns = {}
         if isinstance(stmt, basestring):
@@ -69,8 +70,9 @@ class Timer:
             self.inner = _template_func(setup, stmt)
         else:
             raise ValueError('stmt is neither a string nor callable')
+        return
 
-    def print_exc(self, file = None):
+    def print_exc(self, file=None):
         import linecache, traceback
         if self.src is not None:
             linecache.cache[dummy_src_name] = (len(self.src),
@@ -78,8 +80,9 @@ class Timer:
              self.src.split('\n'),
              dummy_src_name)
         traceback.print_exc(file=file)
+        return
 
-    def timeit(self, number = default_number):
+    def timeit(self, number=default_number):
         if itertools:
             it = itertools.repeat(None, number)
         else:
@@ -91,7 +94,7 @@ class Timer:
             gc.enable()
         return timing
 
-    def repeat(self, repeat = default_repeat, number = default_number):
+    def repeat(self, repeat=default_repeat, number=default_number):
         r = []
         for i in range(repeat):
             t = self.timeit(number)
@@ -100,15 +103,15 @@ class Timer:
         return r
 
 
-def timeit(stmt = 'pass', setup = 'pass', timer = default_timer, number = default_number):
+def timeit(stmt='pass', setup='pass', timer=default_timer, number=default_number):
     return Timer(stmt, setup, timer).timeit(number)
 
 
-def repeat(stmt = 'pass', setup = 'pass', timer = default_timer, repeat = default_repeat, number = default_number):
+def repeat(stmt='pass', setup='pass', timer=default_timer, repeat=default_repeat, number=default_number):
     return Timer(stmt, setup, timer).repeat(repeat, number)
 
 
-def main(args = None):
+def main(args=None):
     if args is None:
         args = sys.argv[1:]
     import getopt
@@ -191,6 +194,7 @@ def main(args = None):
         else:
             sec = msec / 1000
             print 'best of %d: %.*g sec per loop' % (repeat, precision, sec)
+    return
 
 
 if __name__ == '__main__':

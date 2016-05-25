@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\carbon\common\stdlib\stacklesslib\monkeypatch.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\carbon\common\stdlib\stacklesslib\monkeypatch.py
 import sys
 import threading as real_threading
 from . import main
@@ -40,7 +41,7 @@ def patch_select():
     sys.modules['select'] = select
 
 
-def patch_socket(will_be_pumped = True):
+def patch_socket(will_be_pumped=True):
     if stacklessio:
         from stacklessio import _socket
         sys.modules['_socket'] = _socket
@@ -65,7 +66,7 @@ def patch_ssl():
     class SocketBio(object):
         default_bufsize = 8192
 
-        def __init__(self, sock, rbufsize = -1):
+        def __init__(self, sock, rbufsize=-1):
             self.sock = sock
             self.bufsize = self.default_bufsize if rbufsize < 0 else rbufsize
             if self.bufsize:
@@ -100,6 +101,8 @@ def patch_ssl():
                         return None
                     return 0
                 raise
+
+            return None
 
         def __getattr__(self, attr):
             return getattr(self.sock, attr)

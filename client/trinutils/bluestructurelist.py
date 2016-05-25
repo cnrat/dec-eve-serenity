@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\packages\trinutils\bluestructurelist.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\packages\trinutils\bluestructurelist.py
 import collections
 DT_INT8 = 0
 DT_INT16 = 1
@@ -30,6 +31,7 @@ class wrap(object):
             self.namedtuple = collections.namedtuple(self._get_item_type_name(), fieldNames)
         else:
             self.namedtuple = None
+        return
 
     def _get_item_type_name(self):
         typeName = 'StructureList_'
@@ -70,11 +72,14 @@ class wrap(object):
             else:
                 yield self.namedtuple(*i)
 
+        return
+
     def __getitem__(self, key):
         if self.namedtuple is None:
             return self.structureList[key]
         else:
             return self.namedtuple(*self.structureList[key])
+            return
 
     def __delitem__(self, key):
         if isinstance(key, slice):
@@ -93,6 +98,7 @@ class wrap(object):
             self.structureList.append(item)
         else:
             self.structureList.append(tuple(item))
+        return
 
     def create_item(self, **kwargs):
         elements = self.structureList.GetStructureDefinition()
@@ -120,3 +126,4 @@ class wrap(object):
             return newItem[0]
         else:
             return self.namedtuple(*newItem)
+            return

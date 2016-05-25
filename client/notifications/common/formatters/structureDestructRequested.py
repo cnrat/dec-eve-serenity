@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\packages\notifications\common\formatters\structureDestructRequested.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\packages\notifications\common\formatters\structureDestructRequested.py
 import gametime
 from localization import GetByLabel
 from notifications.common.formatters.baseFormatter import BaseNotificationFormatter
@@ -23,7 +24,7 @@ class StructureDestructRequested(BaseNotificationFormatter):
         return data
 
     @staticmethod
-    def MakeSampleData(variant = 0):
+    def MakeSampleData(variant=0):
         return StructureDestructRequested.MakeData(1926, 30004797, 150135866, 'my corp', gametime.GetWallclockTime())
 
     def _FormatSubject(self, data, notification):

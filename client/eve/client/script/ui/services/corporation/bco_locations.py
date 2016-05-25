@@ -1,8 +1,9 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\client\script\ui\services\corporation\bco_locations.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\client\script\ui\services\corporation\bco_locations.py
 import util
 import corpObject
 import uthread
-from eve.common.script.sys.rowset import IndexRowset, Rowset
+from eve.common.script.sys.rowset import IndexRowset
 
 class LocationsO(corpObject.base):
     __guid__ = 'corpObject.locations'
@@ -14,16 +15,19 @@ class LocationsO(corpObject.base):
         self.myCorporationsOffices = None
         self.myCoprorationsStations = None
         self.offices = None
+        return
 
     def Lock(self):
         if self.lock is None:
             self.lock = uthread.Semaphore()
         self.lock.acquire()
+        return
 
     def Unlock(self):
         self.lock.release()
         if self.lock.IsCool():
             self.lock = None
+        return
 
     def DoSessionChanging(self, isRemote, session, change):
         if 'stationid2' in change:
@@ -32,6 +36,7 @@ class LocationsO(corpObject.base):
         if 'corpid' in change:
             self.myCorporationsOffices = None
             self.myCoprorationsStations = None
+        return
 
     def OnSessionChanged(self, isRemote, session, change):
         if 'corpid' in change:
@@ -39,28 +44,32 @@ class LocationsO(corpObject.base):
             if newID is not None:
                 if not util.IsNPC(newID):
                     self.GetMyCorporationsOffices()
+        return
 
     def PrimeStationOffices(self):
         if not session.stationid2:
             return
-        if self.offices is not None:
+        elif self.offices is not None:
             return
-        try:
-            self.Lock()
-            if self.offices is not None:
-                return
-            corpStationMgr = self.GetCorpStationManager()
-            corpStationMgr.Bind()
-            self.offices = corpStationMgr.GetStationOffices()
-            self.itemIDOfficeFolderIDByCorporationID = IndexRowset(['corporationID', 'itemID', 'officeFolderID'], [], 'corporationID')
-            owners = []
-            for office in self.offices:
-                owners.append(office.corporationID)
-                self.itemIDOfficeFolderIDByCorporationID[office.corporationID] = [office.corporationID, office.itemID, office.officeFolderID]
+        else:
+            try:
+                self.Lock()
+                if self.offices is not None:
+                    return
+                corpStationMgr = self.GetCorpStationManager()
+                corpStationMgr.Bind()
+                self.offices = corpStationMgr.GetStationOffices()
+                self.itemIDOfficeFolderIDByCorporationID = IndexRowset(['corporationID', 'itemID', 'officeFolderID'], [], 'corporationID')
+                owners = []
+                for office in self.offices:
+                    owners.append(office.corporationID)
+                    self.itemIDOfficeFolderIDByCorporationID[office.corporationID] = [office.corporationID, office.itemID, office.officeFolderID]
 
-            cfg.eveowners.Prime(owners)
-        finally:
-            self.Unlock()
+                cfg.eveowners.Prime(owners)
+            finally:
+                self.Unlock()
+
+            return
 
     def GetPublicStationInfo(self):
         return self.corp__corporations.GetCorporation(eve.stationItem.ownerID)
@@ -74,22 +83,16 @@ class LocationsO(corpObject.base):
 
     def GetCorporationsWithOfficesAtStation(self):
         self.PrimeStationOffices()
-        res = Rowset(self.corp__corporations.GetCorporation().header)
-        if self.itemIDOfficeFolderIDByCorporationID is not None:
-            for corpID in self.itemIDOfficeFolderIDByCorporationID.iterkeys():
-                try:
-                    corporation = self.corp__corporations.GetCorporation(corpID)
-                    res.lines.append(corporation)
-                except:
-                    self.LogWarn('GetCorporationsWithOfficesAtStation() could not get corporation with id = %s. Probably invalid.' % corpID)
-
-        return res
+        if self.itemIDOfficeFolderIDByCorporationID:
+            return self.corp__corporations.GetCorporations(self.itemIDOfficeFolderIDByCorporationID.keys())
+        else:
+            return self.corp__corporations.GetCorporations([])
 
     def GetOffices(self):
         self.PrimeStationOffices()
         return self.offices
 
-    def GetOffice(self, corpID = None):
+    def GetOffice(self, corpID=None):
         if not session.stationid2:
             return
         uthread.Lock(self, 'populatingItemIDOfficeFolderIDByCorporationID')
@@ -112,12 +115,15 @@ class LocationsO(corpObject.base):
             corpID = eve.session.corpid
         if self.itemIDOfficeFolderIDByCorporationID.has_key(corpID):
             return self.itemIDOfficeFolderIDByCorporationID[corpID]
+        else:
+            return
 
     def GetOffice_NoWireTrip(self):
         corpID = eve.session.corpid
         if self.itemIDOfficeFolderIDByCorporationID is not None:
             if self.itemIDOfficeFolderIDByCorporationID.has_key(corpID):
                 return self.itemIDOfficeFolderIDByCorporationID[corpID]
+        return
 
     def GetOfficeFolderIDForOfficeID(self, officeID):
         self.PrimeStationOffices()
@@ -126,15 +132,19 @@ class LocationsO(corpObject.base):
                 if office.itemID == officeID:
                     return office.officeFolderID
 
+        return
+
     def AddOffice(self, corporationID, officeID, folderID):
         if self.itemIDOfficeFolderIDByCorporationID is None:
             self.itemIDOfficeFolderIDByCorporationID = IndexRowset(['corporationID', 'itemID', 'officeFolderID'], [], 'corporationID')
         self.itemIDOfficeFolderIDByCorporationID[corporationID] = [corporationID, officeID, folderID]
+        return
 
     def RemoveOffice(self, corporationID, officeID, folderID):
         if self.itemIDOfficeFolderIDByCorporationID is not None:
             if self.itemIDOfficeFolderIDByCorporationID.has_key(corporationID):
                 del self.itemIDOfficeFolderIDByCorporationID[corporationID]
+        return
 
     def OnOfficeRentalChanged(self, corporationID, officeID, folderID):
         oldOfficeID = None
@@ -145,13 +155,15 @@ class LocationsO(corpObject.base):
             self.AddOffice(corporationID, officeID, folderID)
         else:
             self.RemoveOffice(corporationID, officeID, folderID)
-        from eve.client.script.ui.station.lobby import Lobby
-        lobby = Lobby.GetIfOpen()
+        from eve.client.script.ui.shared.dockedUI import GetLobbyClass
+        lobby = GetLobbyClass().GetIfOpen()
         if lobby:
             lobby.ReloadOfficesIfVisible()
             if officeID is None:
                 lobby.LoadButtons()
         if corporationID != eve.session.corpid:
+            return
+        else:
             return
 
     def DoesCharactersCorpOwnThisStation(self):

@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\client\script\ui\view\fadeToCQTransition.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\client\script\ui\view\fadeToCQTransition.py
 import uiprimitives
 import uicontrols
 import viewstate
@@ -9,13 +10,13 @@ import util
 import localization
 import evegraphics.settings as gfxsettings
 import evetypes
-from eve.client.script.ui.station.lobby import Lobby
+from eve.client.script.ui.shared.dockedUI import GetLobbyClass
 PAPERDOLL_TIMEOUT = const.SEC * 120
 
 class FadeToCQTransition(viewstate.Transition):
     __guid__ = 'viewstate.FadeToCQTransition'
 
-    def __init__(self, fadeTimeMS = 1000, fadeInTimeMS = None, fadeOutTimeMS = None, **kwargs):
+    def __init__(self, fadeTimeMS=1000, fadeInTimeMS=None, fadeOutTimeMS=None, **kwargs):
         viewstate.Transition.__init__(self, **kwargs)
         self.fadeInTimeMS = fadeInTimeMS or fadeTimeMS
         self.fadeOutTimeMS = fadeOutTimeMS or fadeTimeMS
@@ -25,12 +26,12 @@ class FadeToCQTransition(viewstate.Transition):
          const.raceGallente: 'res:/UI/Texture/Classes/CQLoadingScreen/loadingScreen_Gallente.png',
          const.raceMinmatar: 'res:/UI/Texture/Classes/CQLoadingScreen/loadingScreen_Minmatar.png',
          const.raceJove: 'res:/UI/Texture/Classes/CQLoadingScreen/loadingScreen.png'}
+        return
 
     def StartTransition(self, fromView, toView):
         viewstate.Transition.StartTransition(self, fromView, toView)
         viewState = sm.GetService('viewState')
         self.fadeLayer = uiprimitives.Container(name='transition_overlay', parent=viewState.overlayLayerParent, pickState=uiconst.TR2_SPS_OFF, bgColor=util.Color.BLACK, opacity=0.0)
-        self.loadStationEnv = gfxsettings.Get(gfxsettings.MISC_LOAD_STATION_ENV)
         height = uicore.desktop.height
         width = uicore.desktop.width
         self.loadingText = uicontrols.Label(parent=self.fadeLayer, text=localization.GetByLabel('UI/Worldspaces/Common/Loading'), fontsize=50, align=uiconst.CENTER, top=100, color=util.Color.WHITE, glowFactor=1.0, glowColor=(1.0, 1.0, 1.0, 0.1), uppercase=uiconst.WINHEADERUPPERCASE)
@@ -46,9 +47,10 @@ class FadeToCQTransition(viewstate.Transition):
                 toView.cachedCameraPitch = fromView.cachedCameraPitch
                 toView.cachedCameraZoom = fromView.cachedCameraZoom
         uicore.animations.FadeIn(self.fadeLayer, duration=self.fadeInTimeMS / 1000.0, sleep=True)
-        lobby = Lobby.GetIfOpen()
+        lobby = GetLobbyClass().GetIfOpen()
         if lobby is not None and not lobby.destroyed:
             lobby.LockUndockButton()
+        return
 
     def EndTransition(self, fromView, toView):
         uicore.animations.MorphScalar(self.loadingText, 'glowExpand', startVal=0.0, endVal=2.0, duration=3.0, curveType=uiconst.ANIM_WAVE, loops=uiconst.ANIM_REPEAT)
@@ -64,8 +66,7 @@ class FadeToCQTransition(viewstate.Transition):
             blue.synchro.Yield()
 
         if not loadingFailed:
-            if self.loadStationEnv:
-                sm.GetService('sceneManager').EnableIncarnaRendering()
+            sm.GetService('sceneManager').EnableIncarnaRendering()
             sm.GetService('cameraClient').EnterWorldspace()
             charControlLayer = sm.GetService('viewState').GetView('station').layer
             uicore.registry.SetFocus(charControlLayer)
@@ -79,7 +80,7 @@ class FadeToCQTransition(viewstate.Transition):
         self.fadeLayer.Close()
         del self.fadeLayer
         viewstate.Transition.EndTransition(self, fromView, toView)
-        lobby = Lobby.GetIfOpen()
+        lobby = GetLobbyClass().GetIfOpen()
         if lobby is not None and not lobby.destroyed:
             lobby.UnlockUndockButton()
         return loadingFailed

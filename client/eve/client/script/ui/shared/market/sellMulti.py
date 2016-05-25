@@ -1,16 +1,17 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\client\script\ui\shared\market\sellMulti.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\client\script\ui\shared\market\sellMulti.py
 from carbon.common.script.util.format import FmtAmt
 from carbonui import const as uiconst, const
 from eve.client.script.ui.control.eveCombo import Combo
 from eve.client.script.ui.control.eveLabel import EveLabelSmall
 from eve.client.script.ui.services.menuSvcExtras.invItemFunctions import CheckIfInHangarOrCorpHangarAndCanTake
+from eve.client.script.ui.shared.market import INVENTORY_GUIDS
 from eve.client.script.ui.shared.market.buySellMultiBase import SellBuyItemsWindow, COL_RED, COL_GREEN
 from eve.client.script.ui.shared.market.sellItemEntry import SellItemContainer
 from eve.common.script.sys.eveCfg import GetActiveShip, IsStation
 from eve.common.script.util.eveFormat import FmtISK
 import evetypes
 from localization import GetByLabel
-from marketutil import INVENTORY_GUIDS
 import uthread
 from utillib import KeyVal
 
@@ -84,8 +85,16 @@ class SellItems(SellBuyItemsWindow):
         uicore.registry.SetFocus(itemEntry.priceEdit)
 
     def GetItemEntry(self, item):
-        itemEntry = SellItemContainer(item=item, editFunc=self.OnEntryEdit, align=uiconst.TOTOP, parentFunc=self.RemoveItem)
+        solarSystemID = self._GetSolarSystemIDForItem(item)
+        marketQuote = sm.GetService('marketQuote')
+        bestPrice = marketQuote.GetBestPrice(item.typeID, item, item.stacksize, solarSystemID)
+        bestBid = marketQuote.GetBestBid(item.typeID, locationID=solarSystemID)
+        stationID = sm.GetService('invCache').GetStationIDOfItem(item)
+        itemEntry = SellItemContainer(item=item, editFunc=self.OnEntryEdit, align=uiconst.TOTOP, parentFunc=self.RemoveItem, bestPrice=bestPrice, bestBid=bestBid, stationID=stationID, solarSystemID=solarSystemID)
         return itemEntry
+
+    def _GetSolarSystemIDForItem(self, item):
+        return session.solarsystemid2
 
     def AddItemToCollection(self, item, itemEntry):
         self.itemDict[item.itemID] = item
@@ -112,6 +121,7 @@ class SellItems(SellBuyItemsWindow):
         if len(self.itemList) == 0:
             self.baseStationID = None
             self.UpdateStationInfo(None)
+        return
 
     def RemoveItemFromCollection(self, itemEntry):
         self.itemDict.pop(itemEntry.itemID)
@@ -161,13 +171,15 @@ class SellItems(SellBuyItemsWindow):
     def DropItems(self, dragObj, nodes):
         if not self.CheckItemLocation(nodes[0].item):
             return
-        items = self.CheckOrderAvailability(nodes)
-        self.ClearErrorLists()
-        for node in items:
-            if getattr(node, '__guid__', None) in INVENTORY_GUIDS:
-                self.AddItem(node.item)
+        else:
+            items = self.CheckOrderAvailability(nodes)
+            self.ClearErrorLists()
+            for node in items:
+                if getattr(node, '__guid__', None) in INVENTORY_GUIDS:
+                    self.AddItem(node.item)
 
-        self.DisplayErrorHints()
+            self.DisplayErrorHints()
+            return
 
     def DrawDurationCombo(self):
         durations = [[GetByLabel('UI/Market/MarketQuote/Immediate'), 0],
@@ -261,7 +273,8 @@ class SellItems(SellBuyItemsWindow):
             if not item.bestBid:
                 return
         qty = item.GetQty()
-        validatedItem = KeyVal(stationID=int(item.stationID), typeID=int(item.typeID), itemID=item.itemID, price=price, quantity=int(qty), located=item.located)
+        mq = sm.GetService('marketQuote')
+        validatedItem = KeyVal(stationID=int(item.stationID), typeID=int(item.typeID), itemID=item.itemID, price=price, quantity=int(qty), located=mq.GetOfficeFolderInfo(item))
         self.sellItemList.append(validatedItem)
 
     def IsAllowedGuid(self, guid):
@@ -286,7 +299,7 @@ class SellItems(SellBuyItemsWindow):
         self.UpdateOrderCount()
 
     def GetMaxOrderCount(self):
-        limits = self.marketQuoteSvc.GetSkillLimits()
+        limits = self.marketQuoteSvc.GetSkillLimits(self.baseStationID)
         maxCount = limits['cnt']
         return maxCount
 

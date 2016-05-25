@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\packages\carbonui\control\scrollContainer.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\packages\carbonui\control\scrollContainer.py
 import carbonui.const as uiconst
 from eve.client.script.ui.control.eveWindowUnderlay import BumpedUnderlay, RaisedUnderlay
 from eve.client.script.ui.control.themeColored import FillThemeColored
@@ -42,6 +43,7 @@ class ScrollContainer(Container):
             self.underlay = BumpedUnderlay(bgParent=self)
         else:
             self.underlay = None
+        return
 
     def Close(self, *args):
         uicore.uilib.UnregisterForTriuiEvents(self._mouseHoverCookie)
@@ -102,7 +104,7 @@ class ScrollContainer(Container):
         w, h = self.GetAbsoluteSize()
         self._UpdateHandleSizesAndPosition(w, h)
 
-    def _UpdateHandleSizesAndPosition(self, width, height, updatePos = True):
+    def _UpdateHandleSizesAndPosition(self, width, height, updatePos=True):
         if self.mainCont.height > 0 and not self.scrollbarsDisabled:
             size = float(height) / self.mainCont.height
         else:
@@ -216,7 +218,7 @@ class ScrollContainer(Container):
         elif key == uiconst.VK_NEXT:
             self.ScrollByPage(up=False)
 
-    def ScrollByPage(self, up = True):
+    def ScrollByPage(self, up=True):
         if not self.verticalScrollBar.display:
             return
         w, h = self.clipCont.GetAbsoluteSize()
@@ -237,6 +239,7 @@ class ScrollContainer(Container):
         if self.noContentHint:
             self.noContentHint.Close()
             self.noContentHint = None
+        return
 
     def OnSetFocus(self, *args):
         if self.underlay:
@@ -283,6 +286,7 @@ class ScrollBar(Container):
             raise ValueError('Scrollbars must have TOBOTTOM, TOTOP, TOLEFT, TORIGHT or equivalent _NOPUSH alignments.')
         self.scrollHandle.OnMouseDown = self._OnScrollHandleMouseDown
         self.scrollHandle.OnMouseUp = self._OnScrollHandleMouseUp
+        return
 
     def PrepareUnderlay_(self):
         self.underlay = FillThemeColored(name='underlay', bgParent=self)
@@ -380,6 +384,7 @@ class ScrollBar(Container):
         if uicore.uilib.mouseOver != self.scrollHandle:
             self.scrollHandle.AnimExit(duration=0.5)
         self.animFadeThread = None
+        return
 
 
 class ScrollHandle(Container):
@@ -395,6 +400,7 @@ class ScrollHandle(Container):
         self.sr.hilite = None
         self._dragging = False
         self.Prepare_()
+        return
 
     def Prepare_(self):
         self.hilite = RaisedUnderlay(bgParent=self, opacity=self.OPACITY_INACTIVE, hideFrame=True)
@@ -408,14 +414,14 @@ class ScrollHandle(Container):
     def OnMouseUp(self, btn, *args):
         self.hilite.OnMouseUp()
 
-    def AnimEntry(self, duration = 0.15):
+    def AnimEntry(self, duration=0.15):
         self.hilite.OnMouseEnter()
         uicore.animations.FadeTo(self.hilite, self.hilite.opacity, self.OPACITY_ACTIVE, duration=duration)
 
     def OnMouseEnter(self, *args):
         self.AnimEntry()
 
-    def AnimExit(self, duration = 0.5):
+    def AnimExit(self, duration=0.5):
         self.hilite.OnMouseExit()
         uicore.animations.FadeTo(self.hilite, self.hilite.opacity, self.OPACITY_INACTIVE, duration=duration)
 

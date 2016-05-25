@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\packages\spacecomponents\server\components\reinforce.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\packages\spacecomponents\server\components\reinforce.py
 import logging
 from carbon.common.lib import const
 from eve.common.script.mgt.appLogConst import eventSpaceComponentEnterReinforce, eventSpaceComponentExitReinforce
@@ -28,6 +29,7 @@ class Reinforce(object):
         componentRegistry.SubscribeToItemMessage(self.itemID, 'OnAddedToSpace', self.OnAddedToSpace)
         componentRegistry.SubscribeToItemMessage(self.itemID, 'OnRemovedFromSpace', self.OnRemovedFromSpace)
         componentRegistry.SubscribeToItemMessage(self.itemID, MSG_ON_DAMAGE_STATE_CHANGE, self.OnDamageStateChange)
+        return
 
     def OnAddedToSpace(self, ballpark, spaceComponentDB):
         logger.debug('Reinforce.OnAddedToSpace %d', self.itemID)
@@ -49,12 +51,14 @@ class Reinforce(object):
                     self.SetBallInvulnerability(True)
                     self.UThreadNew(self.ReinforceCountdownThread)
         UpdateSlimItemFromComponent(self, ballpark)
+        return
 
     def OnRemovedFromSpace(self, ballpark, spaceComponentDB):
         logger.debug('Reinforce.OnRemovedFromSpace %d', self.itemID)
         self.isReinforced = False
         self.reinforceTimestamp = None
         spaceComponentDB.ReinforceStates_Delete(self.itemID)
+        return
 
     def CanEnterReinforce(self, shieldLevel):
         if shieldLevel > self.reinforcedEntryLevel:
@@ -70,10 +74,11 @@ class Reinforce(object):
             oldShieldLevel = self.lastShieldLevel
         if oldShieldLevel is None:
             self.lastShieldLevel = newShieldLevel
-        elif helper.IsActiveComponent(self.componentRegistry, self.typeID, self.itemID) and oldShieldLevel >= self.reinforcedEntryLevel > newShieldLevel:
-            self.EnterReinforced()
+        elif helper.IsActiveComponent(self.componentRegistry, self.typeID, self.itemID):
+            oldShieldLevel >= self.reinforcedEntryLevel > newShieldLevel and self.EnterReinforced()
         else:
             self.lastShieldLevel = newShieldLevel
+        return
 
     def IsReinforced(self):
         return self.isReinforced
@@ -87,26 +92,30 @@ class Reinforce(object):
     def EnterReinforced(self):
         if self.isReinforced:
             return
-        self.isReinforced = True
-        self.reinforceTimestamp = self.GetWallclockTime() + self.attributes.durationSeconds * const.SEC
-        PersistToDB(self, self.spaceComponentDB)
-        UpdateSlimItemFromComponent(self, self.ballpark)
-        self.SetBallInvulnerability(True)
-        self.lastShieldLevel = self.reinforcedExitLevel
-        self.UThreadNew(self.ReinforceCountdownThread)
-        self.ballpark.dbLog.LogItemGenericEvent(None, eventSpaceComponentEnterReinforce, self.itemID, referenceID=self.ballpark.solarsystemID, int_1=self.typeID, int_2=self.attributes.durationSeconds)
+        else:
+            self.isReinforced = True
+            self.reinforceTimestamp = self.GetWallclockTime() + self.attributes.durationSeconds * const.SEC
+            PersistToDB(self, self.spaceComponentDB)
+            UpdateSlimItemFromComponent(self, self.ballpark)
+            self.SetBallInvulnerability(True)
+            self.lastShieldLevel = self.reinforcedExitLevel
+            self.UThreadNew(self.ReinforceCountdownThread)
+            self.ballpark.dbLog.LogItemGenericEvent(None, eventSpaceComponentEnterReinforce, self.itemID, referenceID=self.ballpark.solarsystemID, int_1=self.typeID, int_2=self.attributes.durationSeconds)
+            return
 
     def ExitReinforced(self):
         if not self.isReinforced:
             return
-        self.isReinforced = False
-        self.reinforceTimestamp = None
-        PersistToDB(self, self.spaceComponentDB)
-        UpdateSlimItemFromComponent(self, self.ballpark)
-        self.ballpark.dogmaLM.SetDamageState(self.itemID, {'shield': self.reinforcedExitLevel})
-        self.ballpark.dogmaLM.PersistItem(self.itemID)
-        self.SetBallInvulnerability(False)
-        self.ballpark.dbLog.LogItemGenericEvent(None, eventSpaceComponentExitReinforce, self.itemID, int_1=self.typeID, referenceID=self.ballpark.solarsystemID)
+        else:
+            self.isReinforced = False
+            self.reinforceTimestamp = None
+            PersistToDB(self, self.spaceComponentDB)
+            UpdateSlimItemFromComponent(self, self.ballpark)
+            self.ballpark.dogmaLM.SetDamageState(self.itemID, {'shield': self.reinforcedExitLevel})
+            self.ballpark.dogmaLM.PersistItem(self.itemID)
+            self.SetBallInvulnerability(False)
+            self.ballpark.dbLog.LogItemGenericEvent(None, eventSpaceComponentExitReinforce, self.itemID, int_1=self.typeID, referenceID=self.ballpark.solarsystemID)
+            return
 
     def ReinforceCountdownThread(self):
         reinforceTimestamp = self.reinforceTimestamp

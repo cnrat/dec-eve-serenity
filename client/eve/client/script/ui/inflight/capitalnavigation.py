@@ -1,4 +1,6 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\client\script\ui\inflight\capitalnavigation.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\client\script\ui\inflight\capitalnavigation.py
+from eve.common.script.sys.eveCfg import InStructure
 import evetypes
 import uiprimitives
 import uicontrols
@@ -75,48 +77,52 @@ class CapitalNav(uicontrols.Window):
         shipID = util.GetActiveShip()
         if not shipID:
             return
-        self.sr.scroll.Load(contentList=[], noContentHint=localization.GetByLabel('UI/Common/GettingData'))
-        jumpDriveRange, consumptionType, consumptionAmount = self.GetJumpDriveInfo(shipID)
-        inRange = set()
-        soldict = self.soldict.get(solarSystemID, None)
-        for solID, solData in cfg.mapSystemCache.iteritems():
-            if session.solarsystemid2 != solID and solData.securityStatus <= const.securityClassLowSec:
-                distance = uix.GetLightYearDistance(solarSystemID, solID, False)
-                if distance is not None and distance <= jumpDriveRange:
-                    inRange.add(solID)
-            self.soldict[solarSystemID] = inRange
+        else:
+            self.sr.scroll.Load(contentList=[], noContentHint=localization.GetByLabel('UI/Common/GettingData'))
+            jumpDriveRange, consumptionType, consumptionAmount = self.GetJumpDriveInfo(shipID)
+            inRange = set()
+            soldict = self.soldict.get(solarSystemID, None)
+            for solID, solData in cfg.mapSystemCache.iteritems():
+                if session.solarsystemid2 != solID and solData.securityStatus <= const.securityClassLowSec:
+                    distance = uix.GetLightYearDistance(solarSystemID, solID, False)
+                    if distance is not None and distance <= jumpDriveRange:
+                        inRange.add(solID)
+                self.soldict[solarSystemID] = inRange
 
-        scrolllist = []
-        if inRange:
-            for solarSystemID in inRange:
-                blue.pyos.BeNice()
-                if not self or self.destroyed:
-                    return
-                requiredQty, requiredType = self.GetFuelConsumptionForMyShip(session.solarsystemid2, solarSystemID, consumptionType, consumptionAmount)
-                entry = self.GetSolarSystemBeaconEntry(solarSystemID, requiredQty, requiredType, jumpDriveRange)
-                if entry:
-                    scrolllist.append(entry)
+            scrolllist = []
+            if inRange:
+                for solarSystemID in inRange:
+                    blue.pyos.BeNice()
+                    if not self or self.destroyed:
+                        return
+                    requiredQty, requiredType = self.GetFuelConsumptionForMyShip(session.solarsystemid2, solarSystemID, consumptionType, consumptionAmount)
+                    entry = self.GetSolarSystemBeaconEntry(solarSystemID, requiredQty, requiredType, jumpDriveRange)
+                    if entry:
+                        scrolllist.append(entry)
 
-        if not len(scrolllist):
-            self.sr.scroll.ShowHint(localization.GetByLabel('UI/Common/NothingFound'))
-        if self.sr.scroll and scrolllist and self.sr.Get('showing', None) == 'inrange':
-            self.sr.scroll.ShowHint('')
-            self.sr.scroll.Load(contentList=scrolllist, headers=[localization.GetByLabel('UI/Common/LocationTypes/SolarSystem'),
-             localization.GetByLabel('UI/CapitalNavigation/CapitalNavigationWindow/SecurityColumnHeader'),
-             localization.GetByLabel('UI/CapitalNavigation/CapitalNavigationWindow/FuelColumnHeader'),
-             localization.GetByLabel('UI/Common/Volume'),
-             localization.GetByLabel('UI/Common/Distance'),
-             localization.GetByLabel('UI/CapitalNavigation/CapitalNavigationWindow/JumpTo')])
+            if not len(scrolllist):
+                self.sr.scroll.ShowHint(localization.GetByLabel('UI/Common/NothingFound'))
+            if self.sr.scroll and scrolllist and self.sr.Get('showing', None) == 'inrange':
+                self.sr.scroll.ShowHint('')
+                self.sr.scroll.Load(contentList=scrolllist, headers=[localization.GetByLabel('UI/Common/LocationTypes/SolarSystem'),
+                 localization.GetByLabel('UI/CapitalNavigation/CapitalNavigationWindow/SecurityColumnHeader'),
+                 localization.GetByLabel('UI/CapitalNavigation/CapitalNavigationWindow/FuelColumnHeader'),
+                 localization.GetByLabel('UI/Common/Volume'),
+                 localization.GetByLabel('UI/Common/Distance'),
+                 localization.GetByLabel('UI/CapitalNavigation/CapitalNavigationWindow/JumpTo')])
+            return
 
     def ShowInRangeTab(self):
         if not util.GetActiveShip():
             return None
-        if self.sr.Get('showing', '') != 'inrange':
-            self.sr.scroll.Load(contentList=[], noContentHint=localization.GetByLabel('UI/CapitalNavigation/CapitalNavigationWindow/CalculatingStellarDistancesMessage'))
-            uthread.pool('form.CapitalNav::ShowInRangeTab', self.GetSolarSystemsInRange_thread, session.solarsystemid2)
-            self.sr.showing = 'inrange'
+        else:
+            if self.sr.Get('showing', '') != 'inrange':
+                self.sr.scroll.Load(contentList=[], noContentHint=localization.GetByLabel('UI/CapitalNavigation/CapitalNavigationWindow/CalculatingStellarDistancesMessage'))
+                uthread.pool('form.CapitalNav::ShowInRangeTab', self.GetSolarSystemsInRange_thread, session.solarsystemid2)
+                self.sr.showing = 'inrange'
+            return None
 
-    def ShowJumpBridgeToTab(self, isBridge = False):
+    def ShowJumpBridgeToTab(self, isBridge=False):
         allianceBeacons = [] if eve.session.allianceid is None else sm.RemoteSvc('map').GetAllianceBeacons()
         showing = 'UI/CapitalNavigation/CapitalNavigationWindow/BridgeTo' if isBridge else 'UI/CapitalNavigation/CapitalNavigationWindow/JumpTo'
         if self.sr.Get('showing', '') != showing:
@@ -143,10 +149,11 @@ class CapitalNav(uicontrols.Window):
             self.sr.scroll.state = uiconst.UI_NORMAL
             self.sr.scroll.Load(contentList=scrolllist, headers=headers)
             self.sr.showing = showing
+        return
 
     def JumpTo(self, entry, *args):
         m = []
-        if entry.sr.node.itemID != session.solarsystemid2:
+        if entry.sr.node.itemID != session.solarsystemid2 and not InStructure():
             m = [(uiutil.MenuLabel('UI/CapitalNavigation/CapitalNavigationWindow/JumpTo'), self._JumpTo, (entry.sr.node.itemID, entry.sr.node.beaconID))]
         return m
 
@@ -162,40 +169,41 @@ class CapitalNav(uicontrols.Window):
     def _BridgeTo(self, solarSystemID, beaconID):
         sm.GetService('menu').BridgeToBeaconAlliance(solarSystemID, beaconID)
 
-    def GetSolarSystemBeaconEntry(self, solarSystemID, requiredQty, requiredType, jumpDriveRange, structureID = None, isBridge = False):
+    def GetSolarSystemBeaconEntry(self, solarSystemID, requiredQty, requiredType, jumpDriveRange, structureID=None, isBridge=False):
         if solarSystemID is None or requiredQty is None or requiredType is None or jumpDriveRange is None:
             return
-        lightYearDistance = uix.GetLightYearDistance(session.solarsystemid2, solarSystemID, False)
-        solarSystemName = localization.GetByLabel('UI/CapitalNavigation/CapitalNavigationWindow/SolarSystemName', solarSystem=solarSystemID)
-        securityStatus = sm.GetService('map').GetSecurityStatus(solarSystemID)
-        requiredVolume = evetypes.GetVolume(requiredType) * requiredQty
-        if jumpDriveRange > lightYearDistance:
-            rangeString = 'UI/CapitalNavigation/CapitalNavigationWindow/WithinRange'
         else:
-            rangeString = 'UI/CapitalNavigation/CapitalNavigationWindow/NotInRange'
-        label = '%s<t>%s<t>%s<t>%s<t>%s<t>%s' % (solarSystemName,
-         localization.GetByLabel('UI/CapitalNavigation/CapitalNavigationWindow/SecurityStatus', securityStatus=securityStatus),
-         localization.GetByLabel('UI/CapitalNavigation/CapitalNavigationWindow/FuelTypeRequired', fuelType=requiredType, requiredQty=requiredQty),
-         localization.GetByLabel('UI/CapitalNavigation/CapitalNavigationWindow/FuelVolumeRequired', requiredVolume=requiredVolume),
-         localization.GetByLabel('UI/CapitalNavigation/CapitalNavigationWindow/DistanceToSystem', lightYearDistance=lightYearDistance),
-         localization.GetByLabel(rangeString))
-        data = util.KeyVal()
-        data.label = label
-        data.showinfo = 1
-        data.typeID = const.typeSolarSystem
-        data.itemID = solarSystemID
-        if structureID:
-            data.beaconID = structureID
-            if isBridge:
-                data.GetMenu = self.BridgeTo
+            lightYearDistance = uix.GetLightYearDistance(session.solarsystemid2, solarSystemID, False)
+            solarSystemName = localization.GetByLabel('UI/CapitalNavigation/CapitalNavigationWindow/SolarSystemName', solarSystem=solarSystemID)
+            securityStatus = sm.GetService('map').GetSecurityStatus(solarSystemID)
+            requiredVolume = evetypes.GetVolume(requiredType) * requiredQty
+            if jumpDriveRange > lightYearDistance:
+                rangeString = 'UI/CapitalNavigation/CapitalNavigationWindow/WithinRange'
             else:
-                data.GetMenu = self.JumpTo
-        data.Set('sort_%s' % localization.GetByLabel('UI/Common/Distance'), lightYearDistance)
-        data.Set('sort_%s' % localization.GetByLabel('UI/CapitalNavigation/CapitalNavigationWindow/FuelColumnHeader'), requiredQty)
-        data.Set('sort_%s' % localization.GetByLabel('UI/Common/Destination'), solarSystemName)
-        data.Set('sort_%s' % localization.GetByLabel('UI/CapitalNavigation/CapitalNavigationWindow/SecurityColumnHeader'), securityStatus)
-        data.Set('sort_%s' % localization.GetByLabel('UI/Common/Volume'), requiredVolume)
-        return listentry.Get('Generic', data=data)
+                rangeString = 'UI/CapitalNavigation/CapitalNavigationWindow/NotInRange'
+            label = '%s<t>%s<t>%s<t>%s<t>%s<t>%s' % (solarSystemName,
+             localization.GetByLabel('UI/CapitalNavigation/CapitalNavigationWindow/SecurityStatus', securityStatus=securityStatus),
+             localization.GetByLabel('UI/CapitalNavigation/CapitalNavigationWindow/FuelTypeRequired', fuelType=requiredType, requiredQty=requiredQty),
+             localization.GetByLabel('UI/CapitalNavigation/CapitalNavigationWindow/FuelVolumeRequired', requiredVolume=requiredVolume),
+             localization.GetByLabel('UI/CapitalNavigation/CapitalNavigationWindow/DistanceToSystem', lightYearDistance=lightYearDistance),
+             localization.GetByLabel(rangeString))
+            data = util.KeyVal()
+            data.label = label
+            data.showinfo = 1
+            data.typeID = const.typeSolarSystem
+            data.itemID = solarSystemID
+            if structureID:
+                data.beaconID = structureID
+                if isBridge:
+                    data.GetMenu = self.BridgeTo
+                else:
+                    data.GetMenu = self.JumpTo
+            data.Set('sort_%s' % localization.GetByLabel('UI/Common/Distance'), lightYearDistance)
+            data.Set('sort_%s' % localization.GetByLabel('UI/CapitalNavigation/CapitalNavigationWindow/FuelColumnHeader'), requiredQty)
+            data.Set('sort_%s' % localization.GetByLabel('UI/Common/Destination'), solarSystemName)
+            data.Set('sort_%s' % localization.GetByLabel('UI/CapitalNavigation/CapitalNavigationWindow/SecurityColumnHeader'), securityStatus)
+            data.Set('sort_%s' % localization.GetByLabel('UI/Common/Volume'), requiredVolume)
+            return listentry.Get('Generic', data=data)
 
     def GetJumpDriveInfo(self, shipID):
         if shipID:
@@ -208,8 +216,9 @@ class CapitalNav(uicontrols.Window):
     def GetFuelConsumptionForMyShip(self, fromSystem, toSystem, consumptionType, consumptionAmount):
         if not util.GetActiveShip():
             return (None, None)
-        myDist = uix.GetLightYearDistance(fromSystem, toSystem, False)
-        if myDist is None:
-            return (None, None)
-        consumptionAmount = myDist * consumptionAmount
-        return (int(consumptionAmount), consumptionType)
+        else:
+            myDist = uix.GetLightYearDistance(fromSystem, toSystem, False)
+            if myDist is None:
+                return (None, None)
+            consumptionAmount = myDist * consumptionAmount
+            return (int(consumptionAmount), consumptionType)

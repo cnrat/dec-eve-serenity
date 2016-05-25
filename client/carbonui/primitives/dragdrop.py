@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\packages\carbonui\primitives\dragdrop.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\packages\carbonui\primitives\dragdrop.py
 import carbonui.const as uiconst
 import uthread
 
@@ -21,6 +22,7 @@ class DragDropObject(object):
         else:
             self.__notifyevents__ = dragEvents
         sm.RegisterNotify(self)
+        return
 
     def MakeDragObject(self):
         self.isDragObject = True
@@ -48,7 +50,6 @@ class DragDropObject(object):
         return PrepareDrag_Override(dragContainer, dragSource)
         from carbonui.primitives.frame import FrameCoreOverride as Frame
         Frame(parent=dragContainer)
-        return (0, 0)
 
     def OnDragCanceled(self, dragSource, dragData):
         pass
@@ -64,6 +65,7 @@ class DragDropObject(object):
             self._dragMouseDown = (uicore.uilib.x, uicore.uilib.y)
             self._dragEnabled = True
             uicore.dragObject = None
+        return
 
     def OnMouseMoveDrag(self, *args):
         if uicore.IsDragging():
@@ -92,29 +94,31 @@ class DragDropObject(object):
     def _DoDrag(self, dragContainer):
         if dragContainer.destroyed:
             return
-        dragData = dragContainer.dragData
-        mouseOffset = self.PrepareDrag(dragContainer, self)
-        if self.destroyed:
-            return
-        uicore.dragObject = dragContainer
-        sm.ScatterEvent('OnExternalDragInitiated', self, dragData)
-        try:
-            dragContainer.InitiateDrag(mouseOffset)
-        finally:
-            sm.ScatterEvent('OnExternalDragEnded')
-            uicore.dragObject = None
+        else:
+            dragData = dragContainer.dragData
+            mouseOffset = self.PrepareDrag(dragContainer, self)
+            if self.destroyed:
+                return
+            uicore.dragObject = dragContainer
+            sm.ScatterEvent('OnExternalDragInitiated', self, dragData)
+            try:
+                dragContainer.InitiateDrag(mouseOffset)
+            finally:
+                sm.ScatterEvent('OnExternalDragEnded')
+                uicore.dragObject = None
 
-        dropLocation = uicore.uilib.mouseOver
-        if self._dragEnabled:
-            self._dragEnabled = False
-            self._dragging = False
-            self.KillDragContainer(dragContainer)
             dropLocation = uicore.uilib.mouseOver
-            if dropLocation.isDropLocation and self.VerifyDrag(dropLocation, dragData) and dropLocation.VerifyDrop(self, dragData):
-                uthread.new(dropLocation.OnDropData, self, dragData)
-            else:
-                self.OnDragCanceled(self, dragData)
-        self.OnEndDrag(self, dropLocation, dragData)
+            if self._dragEnabled:
+                self._dragEnabled = False
+                self._dragging = False
+                self.KillDragContainer(dragContainer)
+                dropLocation = uicore.uilib.mouseOver
+                if dropLocation.isDropLocation and self.VerifyDrag(dropLocation, dragData) and dropLocation.VerifyDrop(self, dragData):
+                    uthread.new(dropLocation.OnDropData, self, dragData)
+                else:
+                    self.OnDragCanceled(self, dragData)
+            self.OnEndDrag(self, dropLocation, dragData)
+            return
 
     def KillDragContainer(self, dragContainer):
         uicore.layer.dragging.Flush()
@@ -124,6 +128,7 @@ class DragDropObject(object):
         self._dragging = None
         uicore.dragObject = None
         uicore.layer.dragging.Flush()
+        return
 
     def OnDragMove(self, dragSource, dragData):
         pass

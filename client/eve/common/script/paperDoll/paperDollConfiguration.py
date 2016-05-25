@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\common\script\paperDoll\paperDollConfiguration.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\common\script\paperDoll\paperDollConfiguration.py
 import eve.common.script.paperDoll.paperDollDefinitions as pdDef
 from .yamlPreloader import YamlPreloader
 import blue
@@ -58,6 +59,7 @@ class PerformanceOptions:
             LodQueue.instance = LodQueue()
         else:
             LodQueue.instance = None
+        return
 
     @staticmethod
     def EnableOptimizations():

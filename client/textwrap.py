@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\carbon\common\stdlib\textwrap.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\carbon\common\stdlib\textwrap.py
 __revision__ = '$Id: textwrap.py 82110 2010-06-20 13:38:51Z kristjan.jonsson $'
 import string, re
 __all__ = ['TextWrapper',
@@ -18,7 +19,7 @@ class TextWrapper():
     wordsep_simple_re = re.compile('(\\s+)')
     sentence_end_re = re.compile('[%s][\\.\\!\\?][\\"\\\']?\\Z' % string.lowercase)
 
-    def __init__(self, width = 70, initial_indent = '', subsequent_indent = '', expand_tabs = True, replace_whitespace = True, fix_sentence_endings = False, break_long_words = True, drop_whitespace = True, break_on_hyphens = True):
+    def __init__(self, width=70, initial_indent='', subsequent_indent='', expand_tabs=True, replace_whitespace=True, fix_sentence_endings=False, break_long_words=True, drop_whitespace=True, break_on_hyphens=True):
         self.width = width
         self.initial_indent = initial_indent
         self.subsequent_indent = subsequent_indent
@@ -119,12 +120,12 @@ class TextWrapper():
         return '\n'.join(self.wrap(text))
 
 
-def wrap(text, width = 70, **kwargs):
+def wrap(text, width=70, **kwargs):
     w = TextWrapper(width=width, **kwargs)
     return w.wrap(text)
 
 
-def fill(text, width = 70, **kwargs):
+def fill(text, width=70, **kwargs):
     w = TextWrapper(width=width, **kwargs)
     return w.fill(text)
 

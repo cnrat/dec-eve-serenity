@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\carbon\common\stdlib\_weakrefset.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\carbon\common\stdlib\_weakrefset.py
 from _weakref import ref
 __all__ = ['WeakSet']
 
@@ -20,26 +21,29 @@ class _IterationGuard(object):
             s.remove(self)
             if not s:
                 w._commit_removals()
+        return
 
 
 class WeakSet(object):
 
-    def __init__(self, data = None):
+    def __init__(self, data=None):
         self.data = set()
 
-        def _remove(item, selfref = ref(self)):
+        def _remove(item, selfref=ref(self)):
             self = selfref()
             if self is not None:
                 if self._iterating:
                     self._pending_removals.append(item)
                 else:
                     self.data.discard(item)
+            return
 
         self._remove = _remove
         self._pending_removals = []
         self._iterating = set()
         if data is not None:
             self.update(data)
+        return
 
     def _commit_removals(self):
         l = self._pending_removals
@@ -53,6 +57,8 @@ class WeakSet(object):
                 item = itemref()
                 if item is not None:
                     yield item
+
+        return
 
     def __len__(self):
         return sum((x() is not None for x in self.data))
@@ -90,6 +96,8 @@ class WeakSet(object):
             item = itemref()
             if item is not None:
                 return item
+
+        return
 
     def remove(self, item):
         if self._pending_removals:

@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\packages\spacecomponents\server\components\activate.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\packages\spacecomponents\server\components\activate.py
 import logging
 from carbon.common.lib import const
 from eve.common.script.mgt.appLogConst import eventSpaceComponentBeginActivating, eventSpaceComponentActivated
@@ -24,6 +25,7 @@ class Activate(Component):
         self.activeTimestamp = None
         componentRegistry.SubscribeToItemMessage(self.itemID, 'OnAddedToSpace', self.OnAddedToSpace)
         componentRegistry.SubscribeToItemMessage(self.itemID, 'OnRemovedFromSpace', self.OnRemovedFromSpace)
+        return
 
     def IsActive(self):
         return self.isActive
@@ -55,12 +57,14 @@ class Activate(Component):
                 else:
                     UpdateSlimItemFromComponent(self, ballpark)
                     self.UThreadNew(BeginDelayedActivation, self, spaceComponentDB, ballpark)
+        return
 
     def OnRemovedFromSpace(self, ballpark, spaceComponentDB):
         logger.debug('Activate.OnRemovedFromSpace %d', self.itemID)
         self.isActive = False
         self.activeTimestamp = None
         spaceComponentDB.ActivateStates_Delete(self.itemID)
+        return
 
     def HandleSlashCommand(self, action, ballpark, spaceComponentDB):
         logger.debug('Activate.HandleSlashCommand %d %s', self.itemID, action)
@@ -119,6 +123,7 @@ def BecomeActive(component, spaceComponentDB, ballpark):
     item = ballpark.inventory2.GetItem(component.itemID)
     component.eventLogger.LogBecomeActive(item)
     ballpark.dbLog.LogItemGenericEvent(None, eventSpaceComponentActivated, component.itemID, referenceID=ballpark.solarsystemID, int_1=component.typeID)
+    return
 
 
 def BeginDelayedActivation(component, spaceComponentDB, ballpark):
@@ -142,6 +147,7 @@ def PersistToDB(component, spaceComponentDB):
         activeTimestampWallclock = SimTimeToWallclockTime(component.activeTimestamp, simTimeNow, wallclockTimeNow)
     logger.debug('Activate.PersistToDB %d, %d, %s', component.itemID, component.isActive, activeTimestampWallclock)
     spaceComponentDB.ActivateStates_Update(component.itemID, component.isActive, activeTimestampWallclock)
+    return
 
 
 def HandleSlashCommand(itemID, action, ballpark, componentRegistry, spaceComponentDB):

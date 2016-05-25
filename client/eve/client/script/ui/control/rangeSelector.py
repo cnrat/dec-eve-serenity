@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\client\script\ui\control\rangeSelector.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\client\script\ui\control\rangeSelector.py
 import carbonui.const as uiconst
 from eve.client.script.ui.control.themeColored import SpriteThemeColored, FillThemeColored
 import uicls
@@ -62,6 +63,7 @@ class RangeSelector(uiprimitives.Container):
         self.OnIncrementChange = attributes.OnIncrementChange
         self.OnChange = attributes.OnChange
         self.OnEndDragChange = attributes.OnEndDragChange
+        return
 
     def StartMoveHandle(self, handle, btn):
         l, t, w, h = handle.GetAbsolute()
@@ -100,6 +102,7 @@ class RangeSelector(uiprimitives.Container):
                 return
         if self.OnEndDragChange:
             self._DoOnChangeCallback(onEndDrag=True)
+        return
 
     def MoveHandle(self, handle):
         if getattr(handle, 'grab', None):
@@ -125,6 +128,7 @@ class RangeSelector(uiprimitives.Container):
             self.UpdateRanges()
             self.UpdateHandles()
             self._DoOnChangeCallback()
+        return
 
     def StartMoveRange(self, rangeParent, btn):
         l, t, w, h = rangeParent.GetAbsolute()
@@ -134,6 +138,7 @@ class RangeSelector(uiprimitives.Container):
         rangeParent.startProportion = None
         if self.OnEndDragChange:
             self._DoOnChangeCallback(onEndDrag=True)
+        return
 
     def MoveRange(self, rangeParent):
         if getattr(rangeParent, 'startProportion', None):
@@ -163,13 +168,14 @@ class RangeSelector(uiprimitives.Container):
             self.UpdateRanges()
             self.UpdateHandles()
             self._DoOnChangeCallback()
+        return
 
     def SetMinRange(self, minRange):
         self._minRange = minRange
         self.UpdateRanges()
         self.UpdateHandles()
 
-    def SetFixedRange(self, fixedFromProportion = None, fixedToProportion = None):
+    def SetFixedRange(self, fixedFromProportion=None, fixedToProportion=None):
         self._fixedFromProportion = fixedFromProportion
         if fixedFromProportion is not None:
             self._fromProportion = fixedFromProportion
@@ -188,6 +194,7 @@ class RangeSelector(uiprimitives.Container):
             self._toRange._pointer.display = True
         self.UpdateRanges()
         self.UpdateHandles()
+        return
 
     def SetIncrements(self, increments):
         self._incrementsParent.Flush()
@@ -243,7 +250,7 @@ class RangeSelector(uiprimitives.Container):
         self._incrementsParent.height = maxHeight
         self.height = sum([ each.height + each.padTop + each.padBottom for each in self.children if each.align == uiconst.TOTOP ])
 
-    def RoundToIncrement(self, proportion, getIncrementData = False):
+    def RoundToIncrement(self, proportion, getIncrementData=False):
         closest = None
         closestDiff = None
         closestData = None
@@ -257,7 +264,8 @@ class RangeSelector(uiprimitives.Container):
 
         if getIncrementData:
             return (closest, closestData)
-        return closest
+        else:
+            return closest
 
     def UpdateRanges(self):
         if self._fixedFromProportion is not None:
@@ -288,6 +296,7 @@ class RangeSelector(uiprimitives.Container):
             self._toRange._pointer.LoadTexture('res:/UI/Texture/classes/RangeSelector/rightPointerDown.png')
             self._toRange._pointer.top = 0
             self._background.SetColorType(uiconst.COLORTYPE_UIBASECONTRAST)
+        return
 
     def UpdateHandles(self):
         l, t, w, h = self.GetAbsolute()
@@ -302,8 +311,9 @@ class RangeSelector(uiprimitives.Container):
             toProportion = self._toProportion
         self._fromHandle.left = int(r * fromProportion)
         self._toHandle.left = int(r * toProportion)
+        return
 
-    def _DoOnChangeCallback(self, onEndDrag = False):
+    def _DoOnChangeCallback(self, onEndDrag=False):
         if self._callbackData != (self._fromProportion, self._toProportion):
             if self.OnChange:
                 self.OnChange(self._fromProportion, self._toProportion)

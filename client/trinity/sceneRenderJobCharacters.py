@@ -1,11 +1,12 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\packages\trinity\sceneRenderJobCharacters.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\packages\trinity\sceneRenderJobCharacters.py
 import evegraphics.settings as gfxsettings
 from .sceneRenderJobBase import SceneRenderJobBase
 from .renderJobUtils import renderTargetManager as rtm
 from . import _singletons
 from . import _trinity as trinity
 
-def CreateSceneRenderJobCharacters(name = None):
+def CreateSceneRenderJobCharacters(name=None):
     newRJ = SceneRenderJobCharacters()
     if name is not None:
         newRJ.ManualInit(name)
@@ -35,11 +36,12 @@ class SceneRenderJobCharacters(SceneRenderJobBase):
      'RENDER_TOOLS',
      'RENDER_UI']
 
-    def _ManualInit(self, name = 'SceneRenderJobCharacters'):
+    def _ManualInit(self, name='SceneRenderJobCharacters'):
         self.ui = None
         self.scatterEnabled = False
         self.shadowEnabled = False
         self.sculptingEnabled = False
+        return
 
     def _SetScene(self, scene):
         self.SetStepAttr('UPDATE_SCENE', 'object', scene)
@@ -56,6 +58,7 @@ class SceneRenderJobCharacters(SceneRenderJobBase):
         self.RemoveStep('SET_BACKBUFFER')
         self.RemoveStep('SET_DEPTH_STENCIL')
         self.RemoveStep('RESOLVE_IMAGE')
+        return
 
     def DoPrepareResources(self):
         self.SetSettingsBasedOnPerformancePreferences()
@@ -63,29 +66,31 @@ class SceneRenderJobCharacters(SceneRenderJobBase):
     def SetSettingsBasedOnPerformancePreferences(self):
         if not self.enabled:
             return
-        aaQuality = gfxsettings.Get(gfxsettings.GFX_ANTI_ALIASING)
-        msaaType = 4
-        if sm.IsServiceRunning('device'):
-            msaaType = sm.GetService('device').GetMSAATypeFromQuality(aaQuality)
-        if msaaType > 1:
-            width, height = self.GetBackBufferSize()
-            bbFormat = _singletons.device.GetRenderContext().GetBackBufferFormat()
-            dsFormat = _singletons.device.depthStencilFormat
-            self.customBackBuffer = rtm.GetRenderTargetMsaaAL(width, height, bbFormat, msaaType, 0)
-            self.AddStep('SET_BACKBUFFER', trinity.TriStepPushRenderTarget(self.customBackBuffer))
-            self.customDepthStencil = rtm.GetDepthStencilAL(width, height, dsFormat, msaaType)
-            self.AddStep('SET_DEPTH_STENCIL', trinity.TriStepPushDepthStencil(self.customDepthStencil))
-            self.AddStep('RESTORE_BACKBUFFER', trinity.TriStepPopRenderTarget())
-            self.AddStep('RESTORE_DEPTH_STENCIL', trinity.TriStepPopDepthStencil())
-            self.AddStep('RESOLVE_IMAGE', trinity.TriStepResolve(self.GetBackBufferRenderTarget(), self.customBackBuffer))
         else:
-            self.customBackBuffer = None
-            self.customDepthStencil = None
-            self.RemoveStep('SET_BACKBUFFER')
-            self.RemoveStep('SET_DEPTH_STENCIL')
-            self.RemoveStep('RESTORE_BACKBUFFER')
-            self.RemoveStep('RESTORE_DEPTH_STENCIL')
-            self.RemoveStep('RESOLVE_IMAGE')
+            aaQuality = gfxsettings.Get(gfxsettings.GFX_ANTI_ALIASING)
+            msaaType = 4
+            if sm.IsServiceRunning('device'):
+                msaaType = sm.GetService('device').GetMSAATypeFromQuality(aaQuality)
+            if msaaType > 1:
+                width, height = self.GetBackBufferSize()
+                bbFormat = _singletons.device.GetRenderContext().GetBackBufferFormat()
+                dsFormat = _singletons.device.depthStencilFormat
+                self.customBackBuffer = rtm.GetRenderTargetMsaaAL(width, height, bbFormat, msaaType, 0)
+                self.AddStep('SET_BACKBUFFER', trinity.TriStepPushRenderTarget(self.customBackBuffer))
+                self.customDepthStencil = rtm.GetDepthStencilAL(width, height, dsFormat, msaaType)
+                self.AddStep('SET_DEPTH_STENCIL', trinity.TriStepPushDepthStencil(self.customDepthStencil))
+                self.AddStep('RESTORE_BACKBUFFER', trinity.TriStepPopRenderTarget())
+                self.AddStep('RESTORE_DEPTH_STENCIL', trinity.TriStepPopDepthStencil())
+                self.AddStep('RESOLVE_IMAGE', trinity.TriStepResolve(self.GetBackBufferRenderTarget(), self.customBackBuffer))
+            else:
+                self.customBackBuffer = None
+                self.customDepthStencil = None
+                self.RemoveStep('SET_BACKBUFFER')
+                self.RemoveStep('SET_DEPTH_STENCIL')
+                self.RemoveStep('RESTORE_BACKBUFFER')
+                self.RemoveStep('RESTORE_DEPTH_STENCIL')
+                self.RemoveStep('RESOLVE_IMAGE')
+            return
 
     def Enable(self):
         SceneRenderJobBase.Enable(self)
@@ -136,6 +141,7 @@ class SceneRenderJobCharacters(SceneRenderJobBase):
         else:
             self.AddStep('UPDATE_UI', trinity.TriStepUpdate(ui))
             self.AddStep('RENDER_UI', trinity.TriStepRenderUI(ui))
+        return
 
     def Set2DBackdropScene(self, backdrop):
         if backdrop is not None:
@@ -144,6 +150,7 @@ class SceneRenderJobCharacters(SceneRenderJobBase):
         else:
             self.RemoveStep('UPDATE_BACKDROP')
             self.RemoveStep('RENDER_BACKDROP')
+        return
 
     def SetActiveCamera(self, camera):
         if camera is None:
@@ -152,6 +159,7 @@ class SceneRenderJobCharacters(SceneRenderJobBase):
         else:
             self.AddStep('SET_VIEW', trinity.TriStepSetView(camera.viewMatrix))
             self.AddStep('SET_PROJECTION', trinity.TriStepSetProjection(camera.projectionMatrix))
+        return
 
     def EnableSceneUpdate(self, isEnabled):
         if isEnabled:

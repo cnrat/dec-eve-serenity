@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\devtools\script\form_sounds.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\devtools\script\form_sounds.py
 import uicontrols
 import blue
 import os
@@ -33,6 +34,7 @@ class InsiderSoundPlayer(uicontrols.Window):
         self.node = None
         self.InitButtons()
         self.InitScroll()
+        return
 
     def InitButtons(self):
         buttons = [['Play', self.SoundPlay, 'ui_38_16_228'], ['Stop', self.StopAllSounds, 'ui_38_16_111']]
@@ -58,6 +60,7 @@ class InsiderSoundPlayer(uicontrols.Window):
     def SoundPlay(self, *args):
         if self.node != None:
             sm.StartService('audio').SendUIEvent(self.node.filename)
+        return
 
     def StopAllSounds(self, *args):
         audio2.StopAll()
@@ -81,16 +84,19 @@ class InsiderSoundPlayer(uicontrols.Window):
         lines = myData.split('\r\n')
         if lines == None:
             return
-        lines = lines[1:]
-        for line in lines:
-            if len(line) <= 0:
-                break
-            entries = line.split('\t')
-            if len(entries) < 3:
-                continue
-            entry = entries[2].strip()
-            if entry.startswith('music_') == False:
-                soundUrlList.append((entry, file))
+        else:
+            lines = lines[1:]
+            for line in lines:
+                if len(line) <= 0:
+                    break
+                entries = line.split('\t')
+                if len(entries) < 3:
+                    continue
+                entry = entries[2].strip()
+                if entry.startswith('music_') == False:
+                    soundUrlList.append((entry, file))
+
+            return
 
     def InitScroll(self):
         self.scroll = uicontrols.Scroll(parent=self.sr.main, padding=(const.defaultPadding,

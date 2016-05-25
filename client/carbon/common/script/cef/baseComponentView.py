@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\carbon\common\script\cef\baseComponentView.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\carbon\common\script\cef\baseComponentView.py
 import collections
 import copy
 
@@ -43,7 +44,7 @@ class BaseComponentView(object):
         raise NotImplementedError('If you explicitly have no inputs, implement this function, but only call cls.RegisterComponent(cls)')
 
     @classmethod
-    def _AddInput(cls, initValueNameTuple, defaultTuple, group, datatypeID, callback = None, needsTranslation = False, displayName = None, **kw):
+    def _AddInput(cls, initValueNameTuple, defaultTuple, group, datatypeID, callback=None, needsTranslation=False, displayName=None, **kw):
         if isinstance(initValueNameTuple, str):
             initValueNameTuple = (initValueNameTuple,)
             defaultTuple = (defaultTuple,)
@@ -60,9 +61,10 @@ class BaseComponentView(object):
         if needsTranslation:
             cls.__INPUT_NEEDS_TRANSLATED__.update(initValueNameTuple)
         cls.__INIT_DEFAULTS__.update(zip(initValueNameTuple, defaultTuple))
+        return
 
     @classmethod
-    def GetInputs(cls, groupFilter = ALL_STATIC):
+    def GetInputs(cls, groupFilter=ALL_STATIC):
         return [ initValueNameTuple for initValueNameTuple in cls.__INPUT_DATATYPES__.iterkeys() if cls.__INPUT_GROUP__[initValueNameTuple] & groupFilter ]
 
     @classmethod
@@ -118,16 +120,17 @@ class BaseComponentView(object):
         return searchResults
 
     @staticmethod
-    def GetDefaultRecipe(componentID, groupFilter = RECIPE):
+    def GetDefaultRecipe(componentID, groupFilter=RECIPE):
         componentView = BaseComponentView.GetComponentViewByID(componentID)
         if componentView is None:
             return {}
-        filteredInputTuples = componentView.GetInputs(groupFilter=groupFilter)
-        filteredInputNames = set()
-        for initValueNameTuple in filteredInputTuples:
-            filteredInputNames.update(initValueNameTuple)
+        else:
+            filteredInputTuples = componentView.GetInputs(groupFilter=groupFilter)
+            filteredInputNames = set()
+            for initValueNameTuple in filteredInputTuples:
+                filteredInputNames.update(initValueNameTuple)
 
-        return {initialValueName:defaultValue for initialValueName, defaultValue in componentView.__INIT_DEFAULTS__.iteritems() if initialValueName in filteredInputNames}
+            return {initialValueName:defaultValue for initialValueName, defaultValue in componentView.__INIT_DEFAULTS__.iteritems() if initialValueName in filteredInputNames}
 
     @classmethod
     def GetComponentCodeName(cls):

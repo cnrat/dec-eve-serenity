@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\client\script\ui\shared\info\panels\panelMastery.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\client\script\ui\shared\info\panels\panelMastery.py
 from carbonui.primitives.container import Container
 from carbonui.util.color import Color
 from eve.client.script.ui.control.eveLabel import EveLabelMediumBold
@@ -49,12 +50,14 @@ class PanelMastery(Container):
     def LoadMasteryLevel(self, btnID):
         if getattr(self, 'masteryScroll', None) is None:
             return
-        if btnID is None:
+        elif btnID is None:
             return
-        self.masteryLevel = btnID
-        entries = self.GetMasteryScrollEntries(btnID)
-        self.masteryScroll.Load(contentList=entries)
-        self.UpdateTrainingTime(btnID)
+        else:
+            self.masteryLevel = btnID
+            entries = self.GetMasteryScrollEntries(btnID)
+            self.masteryScroll.Load(contentList=entries)
+            self.UpdateTrainingTime(btnID)
+            return
 
     def GetMasteryScrollEntries(self, level):
         certificates = sm.GetService('certificates').GetCertificatesForShipByMasteryLevel(self.typeID, level)

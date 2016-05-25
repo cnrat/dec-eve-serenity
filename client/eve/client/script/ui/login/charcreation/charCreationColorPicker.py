@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\client\script\ui\login\charcreation\charCreationColorPicker.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\client\script\ui\login\charcreation\charCreationColorPicker.py
 import math
 import uiprimitives
 import uicontrols
@@ -82,6 +83,7 @@ class CharCreationColorPickerCombo(uiprimitives.Container):
         colorsBottom = attributes.get('colorsBottom', None)
         p2 = uicls.CharCreationColorPicker(parent=c2, top=-64 - margin, colors=colorsBottom, OnSetValue=attributes.get('OnSetValueBottom', None), modifierName=attributes.get('modifierName', ''), activeColorIndex=activeColorIndexBottom, enableHalf=1)
         self.sr.bottomPicker = p2
+        return
 
 
 class CharCreationColorPicker(uiprimitives.Container):
@@ -119,6 +121,7 @@ class CharCreationColorPicker(uiprimitives.Container):
         callback = attributes.get('OnSetValue', None)
         if callback:
             self.OnSetValue = callback
+        return
 
     def LoadColorBits(self):
         self.colorBits = {(10, 10, True): ('res:/UI/Texture/CharacterCreation/colorBits/10_10End__8_61_38_97.dds', 8, 61, 38, 97),
@@ -515,7 +518,7 @@ class CharCreationColorPicker(uiprimitives.Container):
              right,
              bottom)
 
-    def InitColors(self, colors, activeColorIndex = 0):
+    def InitColors(self, colors, activeColorIndex=0):
         if not len(colors):
             colors = self.default_colors
         self.Flush()
@@ -530,54 +533,56 @@ class CharCreationColorPicker(uiprimitives.Container):
         if totalColors > max(availableColorAmount):
             print 'Color amount exceeded the maxmimum color amout'
             return
-        while totalColors not in availableColorAmount and colors:
-            print 'The amount of colors provided for colorwheel is incorrent, is:', totalColors, 'but should be one of:', availableColorAmount
-            log.LogWarn('The amount of colors provided for colorwheel is incorrent, is:', totalColors, 'but should be one of:', availableColorAmount)
-            colors.append(colors[-1])
-            totalColors = len(colors)
+        else:
+            while totalColors not in availableColorAmount and colors:
+                print 'The amount of colors provided for colorwheel is incorrent, is:', totalColors, 'but should be one of:', availableColorAmount
+                log.LogWarn('The amount of colors provided for colorwheel is incorrent, is:', totalColors, 'but should be one of:', availableColorAmount)
+                colors.append(colors[-1])
+                totalColors = len(colors)
 
-        step = availableSpace / totalColors
-        radianStep = mathUtil.DegToRad(step)
-        angle = radianStep * 0.5
-        self._currentStep = radianStep
-        bitSize = totalColors
-        if self._showHalf == TOPHALF:
-            bitSize *= 2
-        elif self._showHalf == BOTTOMHALF:
-            bitSize *= 2
-            angle += math.pi
-        centerSize = 104
-        centerPickRadius = 33
-        colorParentSize = 128
-        if self._scale is not None:
-            centerSize = int(centerSize * self._scale)
-            centerPickRadius = int(centerPickRadius * self._scale)
-            colorParentSize = int(colorParentSize * self._scale)
-        self.sr.centerParent = uiprimitives.Transform(parent=self, pos=(0,
-         0,
-         centerSize,
-         centerSize), pickRadius=centerPickRadius, align=uiconst.CENTER, state=uiconst.UI_DISABLED, name='centerTransform', idx=0)
-        self.sr.colorSample = uiprimitives.Sprite(parent=self.sr.centerParent, texturePath='res:/UI/Texture/none.dds', ignoreSize=True, align=uiconst.TOALL, pos=(0, 0, 0, 0), state=uiconst.UI_DISABLED, color=(1.0, 1.0, 1.0, 0.0))
-        self.sr.colorBitsParent = uiprimitives.Transform(parent=self, pos=(0,
-         0,
-         colorParentSize,
-         colorParentSize), align=uiconst.TOPLEFT, name='colorBitsParent')
-        activeColor = None
-        for i, (colorName, displayColor, colorType) in enumerate(colors):
-            if i == activeColorIndex:
-                activeColor = colorType
-            self.AddColor(i, colorName, displayColor, colorType, angle, i + 1, bitSize)
-            angle += radianStep
+            step = availableSpace / totalColors
+            radianStep = mathUtil.DegToRad(step)
+            angle = radianStep * 0.5
+            self._currentStep = radianStep
+            bitSize = totalColors
+            if self._showHalf == TOPHALF:
+                bitSize *= 2
+            elif self._showHalf == BOTTOMHALF:
+                bitSize *= 2
+                angle += math.pi
+            centerSize = 104
+            centerPickRadius = 33
+            colorParentSize = 128
+            if self._scale is not None:
+                centerSize = int(centerSize * self._scale)
+                centerPickRadius = int(centerPickRadius * self._scale)
+                colorParentSize = int(colorParentSize * self._scale)
+            self.sr.centerParent = uiprimitives.Transform(parent=self, pos=(0,
+             0,
+             centerSize,
+             centerSize), pickRadius=centerPickRadius, align=uiconst.CENTER, state=uiconst.UI_DISABLED, name='centerTransform', idx=0)
+            self.sr.colorSample = uiprimitives.Sprite(parent=self.sr.centerParent, texturePath='res:/UI/Texture/none.dds', ignoreSize=True, align=uiconst.TOALL, pos=(0, 0, 0, 0), state=uiconst.UI_DISABLED, color=(1.0, 1.0, 1.0, 0.0))
+            self.sr.colorBitsParent = uiprimitives.Transform(parent=self, pos=(0,
+             0,
+             colorParentSize,
+             colorParentSize), align=uiconst.TOPLEFT, name='colorBitsParent')
+            activeColor = None
+            for i, (colorName, displayColor, colorType) in enumerate(colors):
+                if i == activeColorIndex:
+                    activeColor = colorType
+                self.AddColor(i, colorName, displayColor, colorType, angle, i + 1, bitSize)
+                angle += radianStep
 
-        self._currentColors = colors
-        if activeColor is not None:
-            self.SetActiveColor(activeColor, initing=True)
+            self._currentColors = colors
+            if activeColor is not None:
+                self.SetActiveColor(activeColor, initing=True)
+            return
 
     def AddCurveSet_t(self, cs):
         cs.Play()
         uicore.scene.curveSets.append(cs)
 
-    def CreateBinding(self, curveSet, curve, destinationObject, attribute, sourceAttribute = 'currentValue'):
+    def CreateBinding(self, curveSet, curve, destinationObject, attribute, sourceAttribute='currentValue'):
         binding = trinity.TriValueBinding()
         binding.sourceObject = curve
         binding.sourceAttribute = sourceAttribute
@@ -586,7 +591,7 @@ class CharCreationColorPicker(uiprimitives.Container):
         curveSet.bindings.append(binding)
         return binding
 
-    def CreateScalarCurve(self, curveSet, length, endValue, startTimeOffset = 0.0, startValue = 0.0, cycle = False):
+    def CreateScalarCurve(self, curveSet, length, endValue, startTimeOffset=0.0, startValue=0.0, cycle=False):
         curve = trinity.Tr2ScalarCurve()
         if startTimeOffset:
             curve.AddKey(0.0, startValue)
@@ -597,7 +602,7 @@ class CharCreationColorPicker(uiprimitives.Container):
         curveSet.curves.append(curve)
         return curve
 
-    def CreatePerlinCurve(self, curveSet, scale = 1.0, offset = 0.0, speed = 0.0):
+    def CreatePerlinCurve(self, curveSet, scale=1.0, offset=0.0, speed=0.0):
         curve = trinity.TriPerlinCurve()
         curve.scale = scale
         curve.offset = offset
@@ -617,49 +622,53 @@ class CharCreationColorPicker(uiprimitives.Container):
         if (colorAmount, colorNo, isEnd) not in self.colorBits:
             log.LogWarn("Couldn't find texture for", colorAmount, colorNo, 'in character creation colorwheel')
             return
-        path, left, top, right, bottom = self.colorBits[colorAmount, colorNo, isEnd]
-        if self._scale is not None:
-            left = int(left * self._scale)
-            top = int(top * self._scale)
-            right = int(right * self._scale)
-            bottom = int(bottom * self._scale)
-        colorBit = uiprimitives.Sprite(parent=self.sr.colorBitsParent, texturePath=path, ignoreSize=True, align=uiconst.TOPLEFT, pos=(left,
-         top,
-         right - left,
-         bottom - top), hint=colorName, state=uiconst.UI_DISABLED, color=displayColor, name='colorBit_%s' % colorNo)
-        colorBit.centerRadian = radianAngle
-        colorBit.colorType = colorType
-        colorBit.colorName = colorName
-        colorBit.displayColor = displayColor
-        if uicore.newRendererEnabled:
-            cs = trinity.TriCurveSet()
-            cs.name = 'color fade in'
-            curve = self.CreateScalarCurve(cs, 0.3, left, startTimeOffset=0.05 * idx, startValue=64)
-            self.CreateBinding(cs, curve, colorBit, 'displayX')
-            curve = self.CreateScalarCurve(cs, 0.3, top, startTimeOffset=0.05 * idx, startValue=64)
-            self.CreateBinding(cs, curve, colorBit, 'displayY')
-            curve = self.CreateScalarCurve(cs, 0.3, right - left, startTimeOffset=0.05 * idx, startValue=(right - left) * 0.1)
-            self.CreateBinding(cs, curve, colorBit, 'displayWidth')
-            curve = self.CreateScalarCurve(cs, 0.3, bottom - top, startTimeOffset=0.05 * idx, startValue=(bottom - top) * 0.1)
-            self.CreateBinding(cs, curve, colorBit, 'displayHeight')
-            colorBit.AddCurveSet(cs)
-            import random
-            colorBit.depth = random.random()
-            cs.Play()
+        else:
+            path, left, top, right, bottom = self.colorBits[colorAmount, colorNo, isEnd]
+            if self._scale is not None:
+                left = int(left * self._scale)
+                top = int(top * self._scale)
+                right = int(right * self._scale)
+                bottom = int(bottom * self._scale)
+            colorBit = uiprimitives.Sprite(parent=self.sr.colorBitsParent, texturePath=path, ignoreSize=True, align=uiconst.TOPLEFT, pos=(left,
+             top,
+             right - left,
+             bottom - top), hint=colorName, state=uiconst.UI_DISABLED, color=displayColor, name='colorBit_%s' % colorNo)
+            colorBit.centerRadian = radianAngle
+            colorBit.colorType = colorType
+            colorBit.colorName = colorName
+            colorBit.displayColor = displayColor
+            if uicore.newRendererEnabled:
+                cs = trinity.TriCurveSet()
+                cs.name = 'color fade in'
+                curve = self.CreateScalarCurve(cs, 0.3, left, startTimeOffset=0.05 * idx, startValue=64)
+                self.CreateBinding(cs, curve, colorBit, 'displayX')
+                curve = self.CreateScalarCurve(cs, 0.3, top, startTimeOffset=0.05 * idx, startValue=64)
+                self.CreateBinding(cs, curve, colorBit, 'displayY')
+                curve = self.CreateScalarCurve(cs, 0.3, right - left, startTimeOffset=0.05 * idx, startValue=(right - left) * 0.1)
+                self.CreateBinding(cs, curve, colorBit, 'displayWidth')
+                curve = self.CreateScalarCurve(cs, 0.3, bottom - top, startTimeOffset=0.05 * idx, startValue=(bottom - top) * 0.1)
+                self.CreateBinding(cs, curve, colorBit, 'displayHeight')
+                colorBit.AddCurveSet(cs)
+                import random
+                colorBit.depth = random.random()
+                cs.Play()
+            return
 
     def OnMouseMove(self, *args):
         if not self.sr.centerParent:
             return
-        radianFromCenter = self.GetRotationAngleFromCenter()
-        self._lastRadian = radianFromCenter
-        setActive = self.GetColorBitFromRadian(self._lastRadian)
-        self.sr.centerParent.SetOrder(0)
-        lastActive = getattr(self, 'lastActive', None)
-        if setActive:
-            if lastActive is not setActive:
-                sm.StartService('audio').SendUIEvent(unicode('wise:/ui_icc_color_wheel_panel_light_play'))
-                self.lastActive = setActive
-            setActive.SetOrder(0)
+        else:
+            radianFromCenter = self.GetRotationAngleFromCenter()
+            self._lastRadian = radianFromCenter
+            setActive = self.GetColorBitFromRadian(self._lastRadian)
+            self.sr.centerParent.SetOrder(0)
+            lastActive = getattr(self, 'lastActive', None)
+            if setActive:
+                if lastActive is not setActive:
+                    sm.StartService('audio').SendUIEvent(unicode('wise:/ui_icc_color_wheel_panel_light_play'))
+                    self.lastActive = setActive
+                setActive.SetOrder(0)
+            return
 
     def OnClick(self, *args):
         sm.StartService('audio').SendUIEvent(unicode('wise:/ui_icc_color_wheel_color_selected_play'))
@@ -671,6 +680,7 @@ class CharCreationColorPicker(uiprimitives.Container):
         if self.sr.centerParent:
             self.sr.centerParent.SetOrder(0)
         self.lastActive = None
+        return
 
     def GetRotationAngleFromCenter(self):
         x, y = uicore.uilib.x, uicore.uilib.y
@@ -694,19 +704,22 @@ class CharCreationColorPicker(uiprimitives.Container):
     def RadToDeg(self, rad):
         return rad / math.pi * 180.0
 
-    def SetActiveColor(self, colorType, initing = False):
+    def SetActiveColor(self, colorType, initing=False):
         if self.sr.colorBitsParent is None or self.sr.colorSample is None:
             return
-        if colorType is None:
+        elif colorType is None:
             self.sr.colorSample.texturePath = 'res:/UI/Texture/none.dds'
             return
-        for each in self.sr.colorBitsParent.children:
-            if not hasattr(each, 'centerRadian'):
-                continue
-            if each.colorType == colorType:
-                if not initing:
-                    uthread.new(self.OnSetValue, colorType)
-                return self.ShowActiveColorBit(each)
+        else:
+            for each in self.sr.colorBitsParent.children:
+                if not hasattr(each, 'centerRadian'):
+                    continue
+                if each.colorType == colorType:
+                    if not initing:
+                        uthread.new(self.OnSetValue, colorType)
+                    return self.ShowActiveColorBit(each)
+
+            return
 
     def ShowActiveColorBit(self, colorBit):
         if colorBit:
@@ -740,14 +753,17 @@ class CharCreationColorPicker(uiprimitives.Container):
     def GetColorBitFromRadian(self, radian):
         if self.sr.colorBitsParent is None:
             return
-        for each in self.sr.colorBitsParent.children:
-            if not hasattr(each, 'centerRadian'):
-                continue
-            if each.centerRadian - self._currentStep / 2 < 0:
-                if each.centerRadian + math.pi * 2 - self._currentStep / 2 < radian < each.centerRadian + math.pi * 2:
+        else:
+            for each in self.sr.colorBitsParent.children:
+                if not hasattr(each, 'centerRadian'):
+                    continue
+                if each.centerRadian - self._currentStep / 2 < 0:
+                    if each.centerRadian + math.pi * 2 - self._currentStep / 2 < radian < each.centerRadian + math.pi * 2:
+                        return each
+                if each.centerRadian - self._currentStep / 2 < radian < each.centerRadian + self._currentStep / 2:
                     return each
-            if each.centerRadian - self._currentStep / 2 < radian < each.centerRadian + self._currentStep / 2:
-                return each
+
+            return
 
     def NormalizeRadian(self, radian):
         if radian < 0:

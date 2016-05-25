@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\client\script\ui\shared\mapView\markers\mapMarkerCelestial.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\client\script\ui\shared\mapView\markers\mapMarkerCelestial.py
 from carbon.common.script.util.format import FmtDist
 from eve.client.script.ui.inflight.scannerFiles.directionalScannerWindow import DirectionalScanner
 import eve.client.script.ui.shared.mapView.mapViewConst as mapViewConst

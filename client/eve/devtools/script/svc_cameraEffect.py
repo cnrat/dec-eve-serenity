@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\devtools\script\svc_cameraEffect.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\devtools\script\svc_cameraEffect.py
 import blue
 import service
 import trinity
@@ -56,11 +57,13 @@ class CameraEffectSvc(service.Service):
         self.interrupt = False
         self.overrideRenderJob = None
         self.isRunning = False
+        return
 
     def Run(self, *args):
         self.Reset()
         self.pending = None
         self.busy = None
+        return
 
     def Stop(self, stream):
         pass
@@ -130,7 +133,7 @@ class CameraEffectSvc(service.Service):
             targetBall = ballpark.GetBall(targetId)
             self.PlayCameraAnimation(animationFolder + 'FixedBehindShipClose_camera.gr2', alignTargets=[playerBall, targetBall], loop=True)
 
-    def FollowCamera(self, target, aimTarget = None):
+    def FollowCamera(self, target, aimTarget=None):
         viewStep, proj = self.GetViewAndProjection()
         if viewStep:
             viewStep.view = trinity.TriView()
@@ -168,8 +171,9 @@ class CameraEffectSvc(service.Service):
             viewStep.view = None
         proj.projection = camera.projectionMatrix
         self.resetCamera = False
+        return
 
-    def TriggerCameraEvent(self, eventType, parent = None):
+    def TriggerCameraEvent(self, eventType, parent=None):
         if not self.isRunning:
             return
         txt = 'Camera event: %s' % eventType
@@ -196,7 +200,7 @@ class CameraEffectSvc(service.Service):
         if eventType == 'fixed':
             self.PlayCameraAnimation(animationFolder + 'FixedBehindShip_camera.gr2', alignToParent=True, loop=True)
 
-    def PlayCameraAnimationType(self, animationType, continuous = False, skipIndex = None, parent = None, alignTargets = None, overrideContinuous = False):
+    def PlayCameraAnimationType(self, animationType, continuous=False, skipIndex=None, parent=None, alignTargets=None, overrideContinuous=False):
         if animationType not in animationLibrary:
             self.LogWarn('Invalid camera animation type:', animationType)
         candidates = animationLibrary[animationType]
@@ -249,13 +253,13 @@ class CameraEffectSvc(service.Service):
             else:
                 self.PlayCameraAnimationType(self.continuousType[0], True, self.continuousType[1])
 
-    def PlayCameraAnimation(self, resPath, alignToParent = False, alignTargets = None, loop = False, parent = None, reload = False):
+    def PlayCameraAnimation(self, resPath, alignToParent=False, alignTargets=None, loop=False, parent=None, reload=False):
         uthread.new(self._PlayCameraAnimation, resPath, alignToParent, alignTargets, loop, parent, reload)
 
     def GetAnimationLibrary(self):
         return animationLibrary
 
-    def _PlayCameraAnimation(self, resPath, alignToParent = False, alignTargets = None, loop = False, parent = None, reload = False):
+    def _PlayCameraAnimation(self, resPath, alignToParent=False, alignTargets=None, loop=False, parent=None, reload=False):
         if self.playingClip:
             self.interrupt = True
             blue.synchro.Yield()
@@ -322,9 +326,12 @@ class CameraEffectSvc(service.Service):
     def GetRenderJob(self):
         if self.overrideRenderJob:
             return self.overrideRenderJob
-        for rj in trinity.renderJobs.recurring:
-            if rj.name == 'SpaceScenePrimary':
-                return rj
+        else:
+            for rj in trinity.renderJobs.recurring:
+                if rj.name == 'SpaceScenePrimary':
+                    return rj
+
+            return None
 
     def GetViewAndProjection(self):
         viewStep = None
@@ -339,7 +346,7 @@ class CameraEffectSvc(service.Service):
 
         return (viewStep, proj)
 
-    def _UpdateCameraAnimation(self, alignToParent = False, alignTargets = None, loop = False, clipName = None, parent = None):
+    def _UpdateCameraAnimation(self, alignToParent=False, alignTargets=None, loop=False, clipName=None, parent=None):
 
         def FindParametersInPostFx():
             blurScaleH = None
@@ -531,10 +538,12 @@ class CameraEffectSvc(service.Service):
         self.interrupt = False
         if clipName:
             self.LogInfo('Camera clip done:', clipName)
+        return
 
     def ResetCamera(self):
         self.resetCamera = True
         self.continuousType = None
+        return
 
 
 class EffectCameraWindow(uicontrols.Window):
@@ -578,6 +587,7 @@ class EffectCameraWindow(uicontrols.Window):
 
         self.animationCombo = uicontrols.Combo(label='Select Animation Clip', parent=self.mainCont, options=opts, name='fileselect', align=uiconst.TOPLEFT, pos=(0, 20, 0, 0), width=350)
         uicontrols.Button(label='Play', parent=self.mainCont, align=uiconst.TOPLEFT, pos=(360, 20, 0, 0), func=self.PlayClip)
+        return
 
     def BeginDrag(self):
         pass
@@ -729,6 +739,7 @@ class PipWnd(uicontrols.Window):
 
         self.polling = False
         self.interruptPolling = False
+        return
 
     def GetMenu(self, *args):
         modes = self.GetCameraModes()
@@ -750,7 +761,9 @@ class PipWnd(uicontrols.Window):
     def OnResizeUpdate(self, *args):
         if getattr(self.sr, 'sceneContainer', None) is not None:
             self.sr.sceneContainer.UpdateViewPort()
+        return
 
     def OpenWindow(self):
         self.SetMinSize([420, 320])
         self.SetMaxSize([None, None])
+        return

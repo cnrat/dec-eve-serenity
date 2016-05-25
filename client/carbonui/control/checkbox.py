@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\packages\carbonui\control\checkbox.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\packages\carbonui\control\checkbox.py
 from carbonui.control.label import LabelOverride as Label
 from carbonui.primitives.base import Base
 from eve.client.script.ui.control.tooltips import TooltipPanel
@@ -54,6 +55,7 @@ class CheckboxCore(Container):
         self.SetGroup(attributes.get('groupname', self.default_groupname))
         self.SetChecked(attributes.get('checked', self.default_checked), 0)
         self.SetLabelText(attributes.get('text', self.default_text))
+        return
 
     def Prepare_(self):
         self.Prepare_Label_()
@@ -70,6 +72,7 @@ class CheckboxCore(Container):
             pos = (0, 0, 0, 0)
         self.sr.label = Label(text='', parent=self, name='text', align=align, fontStyle=self.fontStyle, fontFamily=self.fontFamily, fontPath=self.fontPath, fontsize=self.fontsize, letterspace=1, state=uiconst.UI_DISABLED, padding=padding, pos=pos, uppercase=1, maxLines=1 if not self.wrapLabel else None)
         self.sr.label.OnSizeChanged = self.OnSizeChanged
+        return
 
     def Prepare_Active_(self):
         self.sr.active = Sprite(name='active', parent=self, align=uiconst.TOPLEFT, state=uiconst.UI_HIDDEN, pos=(0, 0, 16, 16), texturePath='res:/UI/Texure/Icons/1_16_157.png')
@@ -111,28 +114,30 @@ class CheckboxCore(Container):
     def ToggleState(self):
         if not self or self.destroyed:
             return
-        if self._groupName is None:
+        elif self._groupName is None:
             self.SetChecked(not self._checked)
             return
-        par = GetWindowAbove(self)
-        if par is None:
-            tooltipParent = self.parent
-            while tooltipParent:
-                if isinstance(tooltipParent, TooltipPanel):
-                    par = tooltipParent
-                    break
-                tooltipParent = tooltipParent.parent
-
+        else:
+            par = GetWindowAbove(self)
             if par is None:
-                par = self.parent
-        for each in par.Find('trinity.Tr2Sprite2dContainer'):
-            if each == self:
-                continue
-            if isinstance(each, CheckboxCore) and each._groupName == self._groupName:
-                each.SetChecked(0, 0)
+                tooltipParent = self.parent
+                while tooltipParent:
+                    if isinstance(tooltipParent, TooltipPanel):
+                        par = tooltipParent
+                        break
+                    tooltipParent = tooltipParent.parent
 
-        if not self.destroyed:
-            self.SetChecked(1)
+                if par is None:
+                    par = self.parent
+            for each in par.Find('trinity.Tr2Sprite2dContainer'):
+                if each == self:
+                    continue
+                if isinstance(each, CheckboxCore) and each._groupName == self._groupName:
+                    each.SetChecked(0, 0)
+
+            if not self.destroyed:
+                self.SetChecked(1)
+            return
 
     def OnChar(self, char, flag):
         if char == uiconst.VK_SPACE:
@@ -183,7 +188,7 @@ class CheckboxCore(Container):
     def SetTextColor(self, color):
         self.sr.label.SetTextColor(color)
 
-    def SetChecked(self, onoff, report = 1):
+    def SetChecked(self, onoff, report=1):
         onoff = onoff or 0
         self._checked = bool(onoff)
         self.Prepare_Diode_()
@@ -196,17 +201,20 @@ class CheckboxCore(Container):
         prefstype = self.data.get('prefstype', None)
         if prefstype is None:
             return
-        if self._groupName and not self._checked:
+        elif self._groupName and not self._checked:
             return
-        config = self.data.get('config', None)
-        value = self.data.get('value', None)
-        if value is None:
-            value = self._checked
-        s = GetAttrs(settings, *prefstype)
-        try:
-            s.Set(config, value)
-        except:
-            log.LogError('Failed to assign setting to: %s, %s' % (prefstype, config))
+        else:
+            config = self.data.get('config', None)
+            value = self.data.get('value', None)
+            if value is None:
+                value = self._checked
+            s = GetAttrs(settings, *prefstype)
+            try:
+                s.Set(config, value)
+            except:
+                log.LogError('Failed to assign setting to: %s, %s' % (prefstype, config))
+
+            return
 
     def RefreshHeight(self):
         minHeight = 12
@@ -223,6 +231,8 @@ class CheckboxCore(Container):
                 if isinstance(each, CheckboxCore) and each._groupName == self._groupName:
                     if each.GetValue():
                         return each
+
+        return
 
 
 class CheckboxCoreOverride(CheckboxCore):

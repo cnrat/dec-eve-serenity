@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\client\script\ui\shared\twitch\twitchStreaming.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\client\script\ui\shared\twitch\twitchStreaming.py
 from eve.client.script.ui.control.eveWindow import Window
 from carbonui.primitives.sprite import Sprite
 from carbonui.primitives.container import Container
@@ -61,6 +62,7 @@ class TwitchStreaming(Window):
         self.CheckEnableStreamBtn()
         if bool(session.role & ROLE_PROGRAMMER):
             self.debugLabel = Label(parent=self.topCont, align=uiconst.TOPLEFT, top=120)
+        return
 
     def ConstructTopCont(self):
         Sprite(name='twitchLogo', parent=self.topCont, texturePath='res:/UI/Texture/Classes/Twitch/logo.png', pos=(0, 0, 200, 69))
@@ -92,6 +94,7 @@ class TwitchStreaming(Window):
          0,
          0), text=GetByLabel('UI/Twitch/SignupLink'), fontsize=10)
         Line(parent=self.loginCont, align=uiconst.TOBOTTOM, idx=0, opacity=0.1)
+        return
 
     def ConstructSettingsCont(self):
         EveCaptionSmall(parent=self.settingsCont, align=uiconst.TOTOP, text=GetByLabel('UI/Twitch/StreamSettings'))
@@ -162,26 +165,31 @@ class TwitchStreaming(Window):
         password = str(self.passwordCont.GetValue(raw=True))
         if not username or not password:
             return
-        self.UpdateResolution()
-        try:
-            self.ShowLoading()
-            if password == PASSWORD_IF_HAS_TOKEN:
-                password = None
-            title = self.streamTitleCont.GetValue()
-            fps = self.fpsCombo.GetValue()
-            sm.GetService('twitch').StartStream(username, password, title, fps)
-            self.passwordCont.edit.SetValue(PASSWORD_IF_HAS_TOKEN)
-            self.usernameCont.SetCorrect()
-            self.passwordCont.SetCorrect()
-        except Exception as e:
-            self.passwordCont.edit.SetValue(u'')
-            self.usernameCont.SetIncorrect()
-            self.passwordCont.SetIncorrect()
-            if str(e) != 'TTV_EC_API_REQUEST_FAILED':
-                raise
-        finally:
-            self.HideLoading(delay=3000)
-            self.UpdateState()
+        else:
+            self.UpdateResolution()
+            try:
+                try:
+                    self.ShowLoading()
+                    if password == PASSWORD_IF_HAS_TOKEN:
+                        password = None
+                    title = self.streamTitleCont.GetValue()
+                    fps = self.fpsCombo.GetValue()
+                    sm.GetService('twitch').StartStream(username, password, title, fps)
+                    self.passwordCont.edit.SetValue(PASSWORD_IF_HAS_TOKEN)
+                    self.usernameCont.SetCorrect()
+                    self.passwordCont.SetCorrect()
+                except Exception as e:
+                    self.passwordCont.edit.SetValue(u'')
+                    self.usernameCont.SetIncorrect()
+                    self.passwordCont.SetIncorrect()
+                    if str(e) != 'TTV_EC_API_REQUEST_FAILED':
+                        raise
+
+            finally:
+                self.HideLoading(delay=3000)
+                self.UpdateState()
+
+            return
 
     def StopStream(self, *args):
         try:
@@ -211,7 +219,7 @@ class TwitchStreaming(Window):
         uicore.animations.FadeOut(self.stateLabel)
         uicore.animations.FadeIn(self.loadingWheel, timeOffset=0.3)
 
-    def HideLoading(self, delay = None):
+    def HideLoading(self, delay=None):
         uicore.animations.FadeOut(self.loadingWheel)
         uicore.animations.FadeIn(self.stateIcon, timeOffset=0.3)
         uicore.animations.FadeIn(self.stateLabel, timeOffset=0.6)

@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\client\script\ui\skilltrading\banner.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\client\script\ui\skilltrading\banner.py
 from carbonui import const as uiconst
 from carbonui.primitives.containerAutoSize import ContainerAutoSize
 from carbonui.uianimations import animations
@@ -71,6 +72,7 @@ class SkillInjectorBanner(ContainerAutoSize):
             price = FmtISKAndRound(price, False)
         text = localization.GetByLabel('UI/SkillTrading/EstimatedPrice', price=price)
         self.priceLabel.SetText(text)
+        return
 
     def _UpdateMainText(self):
         injector = invconst.typeSkillInjector
@@ -124,5 +126,5 @@ def IsSkillInjectorBannerDismissed():
     return settings.user.ui.Get(BANNER_DISMISSED_KEY, BANNER_DISMISSED_DEFAULT)
 
 
-def SetSkillInjectorBannerDismissed(dismissed = True):
+def SetSkillInjectorBannerDismissed(dismissed=True):
     settings.user.ui.Set(BANNER_DISMISSED_KEY, dismissed)

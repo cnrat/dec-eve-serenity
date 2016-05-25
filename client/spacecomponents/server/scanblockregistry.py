@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\packages\spacecomponents\server\scanblockregistry.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\packages\spacecomponents\server\scanblockregistry.py
 from collections import defaultdict
 import logging
 from ccpProfile import TimedFunction
@@ -15,7 +16,7 @@ class ScanBlockRegistry:
         self.systemWideBlockersByBallID = set()
         self.blocksSelfByBallID = set()
 
-    def RegisterScanBlockingBall(self, ballID, blockRadius, blocksSelf = False, systemWideBlock = False):
+    def RegisterScanBlockingBall(self, ballID, blockRadius, blocksSelf=False, systemWideBlock=False):
         logger.debug('RegisterScanBlockingBall %s %s', ballID, blockRadius)
         bubbleID = self.ballpark.GetBall(ballID).newBubbleId
         blockers = self.blockersByBubbleID[bubbleID]
@@ -35,26 +36,28 @@ class ScanBlockRegistry:
                 del self.blockersByBubbleID[bubbleID]
         self.systemWideBlockersByBallID.discard(ballID)
         self.blocksSelfByBallID.discard(ballID)
+        return
 
     @TimedFunction('ScanBlockRegistry::IsScanBlocked')
     def IsScanBlocked(self, ballID):
         ball = self.ballpark.GetBallOrNone(ballID)
         if ball is None:
             return False
-        if ball.isGlobal:
+        elif ball.isGlobal:
             return False
-        if len(self.systemWideBlockersByBallID) > 0:
+        elif len(self.systemWideBlockersByBallID) > 0:
             return True
-        slimItem = self.ballpark.slims[ballID]
-        if slimItem.groupID in UNBLOCKABLE_GROUPS:
-            return False
-        bubbleID = ball.newBubbleId
-        blockers = self.blockersByBubbleID.get(bubbleID)
-        if blockers is not None:
-            if ballID in blockers and ballID not in self.blocksSelfByBallID:
+        else:
+            slimItem = self.ballpark.slims[ballID]
+            if slimItem.groupID in UNBLOCKABLE_GROUPS:
                 return False
-            for blockerBallID, blockRadius in blockers.iteritems():
-                if self.ballpark.GetSurfaceDist(ballID, blockerBallID) < blockRadius:
-                    return True
+            bubbleID = ball.newBubbleId
+            blockers = self.blockersByBubbleID.get(bubbleID)
+            if blockers is not None:
+                if ballID in blockers and ballID not in self.blocksSelfByBallID:
+                    return False
+                for blockerBallID, blockRadius in blockers.iteritems():
+                    if self.ballpark.GetSurfaceDist(ballID, blockerBallID) < blockRadius:
+                        return True
 
-        return False
+            return False

@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\client\script\ui\station\captainsquarters\screenControls.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\client\script\ui\station\captainsquarters\screenControls.py
 import math
 import blue
 import carbonui.const as uiconst
@@ -103,6 +104,7 @@ class ScreenFrameBase(uiprimitives.Container):
         self.topBracket = None
         self.bottomBracket = None
         uthread.new(self.AnimAppear)
+        return
 
     def AnimAppear(self):
         w, h = self.GetAbsoluteSize()
@@ -348,40 +350,43 @@ class AutoTextScroll(uiprimitives.Container):
         self.textCont = uiprimitives.Container(name='textCont', parent=self, align=uiconst.CENTERLEFT, height=self.fontSize)
         if textList:
             self.SetTextList(textList)
+        return
 
-    def SetTextList(self, textList, funcList = None, funcKeywordsList = None):
+    def SetTextList(self, textList, funcList=None, funcKeywordsList=None):
         self.textCont.Flush()
         if self.scrollThread:
             self.scrollThread.kill()
         if not textList:
             return
-        x = 0
-        for i, text in enumerate(textList):
-            if i != 0:
-                bullet = uiprimitives.Sprite(parent=self.textCont, align=uiconst.CENTERLEFT, texturePath='res:/UI/texture/classes/CQMainScreen/bullet.png', pos=(x,
-                 0,
-                 11,
-                 11), color=self.color)
-                bulletWidth = bullet.width + 10
-            else:
-                bulletWidth = 0
-            if funcList:
-                clickFunc = funcList[i]
-            else:
-                clickFunc = None
-            if funcKeywordsList:
-                funcKeywords = funcKeywordsList[i]
-            else:
-                funcKeywords = None
-            labelCont = uicls._AutoTextLabelCont(parent=self.textCont, clickFunc=clickFunc, funcKeywords=funcKeywords, left=x + bulletWidth, align=uiconst.TOPLEFT)
-            label = uicontrols.Label(parent=labelCont, text='<b>%s' % text, fontsize=self.fontSize, color=self.color)
-            labelCont.width = label.width
-            labelCont.height = label.height
-            x += label.width + 10 + bulletWidth
+        else:
+            x = 0
+            for i, text in enumerate(textList):
+                if i != 0:
+                    bullet = uiprimitives.Sprite(parent=self.textCont, align=uiconst.CENTERLEFT, texturePath='res:/UI/texture/classes/CQMainScreen/bullet.png', pos=(x,
+                     0,
+                     11,
+                     11), color=self.color)
+                    bulletWidth = bullet.width + 10
+                else:
+                    bulletWidth = 0
+                if funcList:
+                    clickFunc = funcList[i]
+                else:
+                    clickFunc = None
+                if funcKeywordsList:
+                    funcKeywords = funcKeywordsList[i]
+                else:
+                    funcKeywords = None
+                labelCont = uicls._AutoTextLabelCont(parent=self.textCont, clickFunc=clickFunc, funcKeywords=funcKeywords, left=x + bulletWidth, align=uiconst.TOPLEFT)
+                label = uicontrols.Label(parent=labelCont, text='<b>%s' % text, fontsize=self.fontSize, color=self.color)
+                labelCont.width = label.width
+                labelCont.height = label.height
+                x += label.width + 10 + bulletWidth
 
-        self.textCont.width = x
-        self.textCont.height = label.height
-        self.scrollThread = uthread.new(self.ScrollThread)
+            self.textCont.width = x
+            self.textCont.height = label.height
+            self.scrollThread = uthread.new(self.ScrollThread)
+            return
 
     def ScrollThread(self):
         w, h = self.GetAbsoluteSize()
@@ -400,6 +405,7 @@ class LabelCont(uiprimitives.Container):
         self.hoverFill = uiprimitives.Fill(parent=self, color=(1.0, 1.0, 1.0, 0.0), padLeft=-5, padRight=-5)
         self.clickFunc = attributes.get('clickFunc', None)
         self.funcKeywords = attributes.get('funcKeywords', None)
+        return
 
     def OnMouseEnter(self, *args):
         if self.clickFunc:
@@ -438,3 +444,4 @@ class TextBanner(uiprimitives.Container):
         self.leftCont = uiprimitives.Container(name='leftCont', parent=self, align=uiconst.TOLEFT, width=leftContWidth)
         autoText = uicls.AutoTextScroll(parent=self, align=uiconst.TOALL, scrollSpeed=70, fontSize=fontSize, textList=textList, fadeColor=color)
         uiprimitives.Sprite(bgParent=self, texturePath='res:/UI/Texture/Classes/CQMainScreen/autoTextGradientLeft.png', color=color)
+        return

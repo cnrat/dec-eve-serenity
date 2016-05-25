@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\client\script\ui\shared\inventory\treeData.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\client\script\ui\shared\inventory\treeData.py
 from carbon.common.lib import telemetry
 from eve.client.script.ui.control.treeData import TreeData
 from eve.client.script.ui.shared.inventory.invCommon import CONTAINERGROUPS, SortData
@@ -9,15 +10,17 @@ from inventorycommon.util import IsModularShip
 import localization
 import util
 import uix
+import const
 NO_DISTANCE_SHOWN = ['POSCorpHangar',
  'POSStrontiumBay',
  'POSFuelBay',
  'POSStructureChargesStorage',
- 'POSStructureChargeCrystal']
+ 'POSStructureChargeCrystal',
+ 'StructureCorpHangar']
 
 class TreeDataInv(TreeData):
 
-    def __init__(self, clsName, parent = None, children = None, label = None, isRemovable = False, cmdName = None, iconName = None, **kw):
+    def __init__(self, clsName, parent=None, children=None, label=None, isRemovable=False, cmdName=None, iconName=None, **kw):
         TreeData.__init__(self, parent=parent, children=children, label=label, isRemovable=isRemovable, **kw)
         self.clsName = clsName
         self.cmdName = cmdName
@@ -34,14 +37,13 @@ class TreeDataInv(TreeData):
     @telemetry.ZONE_METHOD
     def GetLabelWithDistance(self):
         label = self.GetLabel()
-        if session.solarsystemid is None or self.clsName in NO_DISTANCE_SHOWN or self.invController.itemID == util.GetActiveShip():
+        if self.clsName in NO_DISTANCE_SHOWN or self.invController.itemID == util.GetActiveShip():
             return label
         if session.solarsystemid:
-            ball = sm.GetService('michelle').GetBallpark().GetBall(self.invController.itemID)
-            if not ball:
-                return label
-            dist = util.FmtDist(ball.surfaceDist, 1)
-            return '%s <color=#66FFFFFF>%s</color>' % (label, dist)
+            ball = sm.GetService('michelle').GetBall(self.invController.itemID)
+            if ball:
+                dist = util.FmtDist(ball.surfaceDist, 1)
+                return '%s <color=#66FFFFFF>%s</color>' % (label, dist)
         return label
 
     def GetIcon(self):
@@ -74,7 +76,7 @@ class TreeDataInv(TreeData):
     def HasInvCont(self):
         return True
 
-    def OpenNewWindow(self, openDragging = False):
+    def OpenNewWindow(self, openDragging=False):
         from eve.client.script.ui.shared.inventory.invWindow import Inventory
         return Inventory.OpenOrShow(invID=self.GetID(), usePrimary=False, toggle=True, openDragging=openDragging, **self._kw)
 
@@ -147,7 +149,7 @@ class TreeDataCelestialParent(TreeDataInv):
 
 class TreeDataInvFolder(TreeData):
 
-    def OpenNewWindow(self, openDragging = False):
+    def OpenNewWindow(self, openDragging=False):
         from eve.client.script.ui.shared.inventory.invWindow import Inventory
         return Inventory.OpenOrShow(invID=self.GetID(), usePrimary=False, toggle=True, openDragging=openDragging, iconNum=self.GetIcon(), **self._kw)
 
@@ -187,7 +189,7 @@ class TreeDataPOSCorp(TreeDataInvFolder):
         return '%s <color=#66FFFFFF>%s</color>' % (label, dist)
 
     def GetIcon(self):
-        return 'res:/ui/Texture/WindowIcons/corporation.png'
+        pass
 
     def GetItemID(self):
         return self.slimItem.itemID
@@ -295,9 +297,38 @@ class TreeDataShip(TreeDataInv):
         return shipData
 
 
+class TreeDataStructure(TreeDataInvFolder):
+
+    def __init__(self, *args, **kwargs):
+        self.itemID = kwargs.pop('itemID')
+        clsName = kwargs.pop('clsName')
+        self.invController = getattr(invCtrl, clsName)(self.itemID, **kwargs)
+        TreeDataInvFolder.__init__(self, *args, **kwargs)
+
+    def HasInvCont(self):
+        return False
+
+    def HasChildren(self):
+        return True
+
+    def GetLabel(self):
+        return self.invController.GetName()
+
+    def GetChildren(self):
+        children = []
+        children.append(TreeDataInv(parent=self, clsName='StructureAmmoBay', itemID=self.invController.itemID))
+        children.append(TreeDataInv(parent=self, clsName='StructureFighterBay', itemID=self.invController.itemID))
+        children.append(TreeDataInv(parent=self, clsName='StructureFuelBay', itemID=self.invController.itemID))
+        children += GetContainerDataFromItems(self.invController.GetItems(), parent=self)
+        return children
+
+    def GetIcon(self):
+        return self.invController.GetIconName()
+
+
 class TreeDataStationCorp(TreeDataInvFolder):
 
-    def __init__(self, forceCollapsed = True, forceCollapsedMembers = True, *args):
+    def __init__(self, forceCollapsed=True, forceCollapsedMembers=True, *args):
         self.itemID = sm.GetService('corp').GetOffice().itemID
         self.forceCollapsedMembers = forceCollapsedMembers
         self.forceCollapsed = forceCollapsed
@@ -336,7 +367,7 @@ class TreeDataStationCorp(TreeDataInvFolder):
         return not invController.IsPrimed()
 
     def GetIcon(self):
-        return 'res:/ui/Texture/WindowIcons/corpHangar.png'
+        pass
 
     @telemetry.ZONE_METHOD
     def GetLabel(self):
@@ -346,9 +377,165 @@ class TreeDataStationCorp(TreeDataInvFolder):
         return ('StationCorpHangars', self.itemID)
 
 
+class TreeDataShipHangar(TreeDataInv):
+
+    def HasChildren(self):
+        return True
+
+    def GetChildren(self):
+        children = []
+        activeShipID = util.GetActiveShip()
+        singletonShips = [ ship for ship in self.invController.GetItems() if ship.singleton == 1 and ship.itemID != activeShipID ]
+        cfg.evelocations.Prime([ ship.itemID for ship in singletonShips ])
+        for ship in singletonShips:
+            children.append(TreeDataShip(clsName='ShipCargo', itemID=ship.itemID, typeID=ship.typeID))
+
+        SortData(children)
+        return children
+
+    def GetLabelWithDistance(self):
+        return self.GetLabel()
+
+
+class TreeDataItemHangar(TreeDataInv):
+
+    def HasChildren(self):
+        for item in self.invController.GetItems():
+            if item.groupID in CONTAINERGROUPS:
+                return True
+
+        return False
+
+    def GetChildren(self):
+        return GetContainerDataFromItems(self.invController.GetItems(), parent=self)
+
+    def GetLabelWithDistance(self):
+        return self.GetLabel()
+
+
+class TreeDataStructureCorp(TreeDataInvFolder):
+
+    def __init__(self, *args, **kwargs):
+        self.itemID = kwargs.pop('itemID')
+        TreeDataInvFolder.__init__(self, *args, **kwargs)
+
+    def GetChildren(self):
+        if not self._children:
+            children = []
+            for division in xrange(7):
+                controller = invCtrl.StructureCorpHangar(self.itemID, division)
+                data = GetContainerDataFromItems(controller.GetItems(), parent=self)
+                children.append(TreeDataInv(parent=self, clsName='StructureCorpHangar', itemID=self.itemID, divisionID=division, children=data))
+
+            self._children = children
+        return self._children
+
+    def HasChildren(self):
+        return True
+
+    def IsForceCollapsed(self):
+        if self._children:
+            return False
+        return not invCtrl.StructureCorpHangar(self.itemID, 0).IsPrimed()
+
+    def GetIcon(self):
+        pass
+
+    def GetLabel(self):
+        return localization.GetByLabel('UI/Inventory/CorporationHangars')
+
+    def GetID(self):
+        return ('StructureCorpHangars', self.itemID)
+
+
+class TreeDataCorpAssetSafety(TreeDataStructureCorp):
+
+    def __init__(self, *args, **kwargs):
+        self.name = kwargs.pop('name')
+        TreeDataStructureCorp.__init__(self, *args, **kwargs)
+
+    def GetChildren(self):
+        if not self._children:
+            children = []
+            controller = invCtrl.AssetSafetyCorpContainer(self.itemID, None)
+            items = controller.GetItems()
+            divisions = {const.corpAssetSafetyFlags[item.flagID] for item in items}
+            data = GetContainerDataFromItems(items, parent=self)
+            for division in sorted(list(divisions)):
+                children.append(TreeDataInv(parent=self, clsName='AssetSafetyCorpContainer', itemID=self.itemID, divisionID=division, children=data))
+
+            self._children = children
+        return self._children
+
+    def HasInvCont(self):
+        return True
+
+    def IsForceCollapsed(self):
+        return False
+
+    def GetLabel(self):
+        return self.name
+
+
+class TreeDataAssetSafety(TreeDataInv):
+
+    def __init__(self, *args, **kw):
+        TreeDataInv.__init__(self, *args, **kw)
+        self.cachedNames = {}
+
+    def GetLabel(self):
+        return localization.GetByLabel('UI/Inventory/AssetSafety/AssetSafetyDeliveries')
+
+    def HasChildren(self):
+        return True
+
+    def HasInvCont(self):
+        return True
+
+    def IsForceCollapsed(self):
+        return False
+
+    def GetChildren(self):
+        items = self.invController.GetItems()
+        if not items:
+            self._children = []
+            return []
+        if self._children:
+            return self._children
+        data = []
+        self._FetchMissingNames(items)
+        for item in items:
+            itemID = item.itemID
+            if item.typeID != const.typeAssetSafetyWrap:
+                raise RuntimeError('There is something in the asset safety that is not a assetSafetyWrap', itemID, item.typeID)
+            if item.ownerID == session.corpid:
+                data.append(TreeDataCorpAssetSafety(parent=self, clsName='AssetSafetyCorpContainer', itemID=itemID, name=self.cachedNames[itemID]))
+            else:
+                data.append(TreeDataInv(parent=self, clsName='AssetSafetyContainer', itemID=itemID, typeID=item.typeID, name=self.cachedNames[itemID]))
+
+        cfg.evelocations.Prime([ item.itemID for item in items ])
+        SortData(data)
+        self._children = data
+        return data
+
+    def _FetchMissingNames(self, items):
+        namesToFetch = []
+        for item in items:
+            if item.itemID not in self.cachedNames:
+                namesToFetch.append(item.itemID)
+
+        if namesToFetch:
+            structureAssetSafety = session.ConnectToRemoteService('structureAssetSafety')
+            names = structureAssetSafety.GetWrapNames([ item.itemID for item in items ])
+            self.cachedNames = dict(self.cachedNames.items() + names.items())
+
+    def GetLabelWithDistance(self):
+        return self.GetLabel()
+
+
 class TreeDataCorpMembers(TreeDataInvFolder):
 
-    def __init__(self, memberData, groupChildren = False, label = None, forceCollapsed = True, *args, **kw):
+    def __init__(self, memberData, groupChildren=False, label=None, forceCollapsed=True, *args, **kw):
         if label is None:
             label = localization.GetByLabel('UI/Inventory/MemberHangars')
         self.memberData = memberData
@@ -356,6 +543,7 @@ class TreeDataCorpMembers(TreeDataInvFolder):
         self.memberData.sort(key=lambda x: cfg.eveowners.Get(x[0]).name.lower())
         self.forceCollapsed = forceCollapsed
         TreeData.__init__(self, label=label, *args, **kw)
+        return
 
     def GetID(self):
         return ('StationCorpMembers', self.GetLabel())
@@ -363,54 +551,57 @@ class TreeDataCorpMembers(TreeDataInvFolder):
     def GetChildren(self):
         if self._children:
             return self._children
-        data = []
-        maxNumPerLevel = 50
-        numMembers = len(self.memberData)
-        if not self.groupChildren or numMembers <= maxNumPerLevel:
-            for itemID, ownerID in self.memberData:
-                if itemID == session.charid:
-                    continue
-                if util.IsDustCharacter(itemID):
-                    continue
-                if itemID == ownerID:
-                    data.append(TreeDataInv(parent=self, clsName='StationCorpMember', itemID=itemID, ownerID=ownerID))
-                else:
-                    data.append(TreeDataInv(parent=self, clsName='StationOwnerView', itemID=itemID, ownerID=ownerID))
-
         else:
-            currLetter = None
-            levelData = []
-            for itemID, ownerID in self.memberData:
-                letter = cfg.eveowners.Get(ownerID).name[0].upper()
-                if letter != currLetter:
-                    if levelData:
-                        data.append(TreeDataCorpMembers(label=currLetter, memberData=levelData))
-                    currLetter = letter
-                    levelData = []
-                levelData.append((itemID, ownerID))
+            data = []
+            maxNumPerLevel = 50
+            numMembers = len(self.memberData)
+            if not self.groupChildren or numMembers <= maxNumPerLevel:
+                for itemID, ownerID in self.memberData:
+                    if itemID == session.charid:
+                        continue
+                    if util.IsDustCharacter(itemID):
+                        continue
+                    if itemID == ownerID:
+                        data.append(TreeDataInv(parent=self, clsName='StationCorpMember', itemID=itemID, ownerID=ownerID))
+                    else:
+                        data.append(TreeDataInv(parent=self, clsName='StationOwnerView', itemID=itemID, ownerID=ownerID))
 
-            if levelData:
-                data.append(TreeDataCorpMembers(label=currLetter, memberData=levelData))
-        if not data:
-            data.append(TreeData(label=localization.GetByLabel('UI/Inventory/NoCorpHangars')))
-        self.forceCollapsed = False
-        self._children = data
-        return data
+            else:
+                currLetter = None
+                levelData = []
+                for itemID, ownerID in self.memberData:
+                    letter = cfg.eveowners.Get(ownerID).name[0].upper()
+                    if letter != currLetter:
+                        if levelData:
+                            data.append(TreeDataCorpMembers(label=currLetter, memberData=levelData))
+                        currLetter = letter
+                        levelData = []
+                    levelData.append((itemID, ownerID))
+
+                if levelData:
+                    data.append(TreeDataCorpMembers(label=currLetter, memberData=levelData))
+            if not data:
+                data.append(TreeData(label=localization.GetByLabel('UI/Inventory/NoCorpHangars')))
+            self.forceCollapsed = False
+            self._children = data
+            return data
 
     def IsForceCollapsed(self):
         return self.forceCollapsed
 
     def GetIcon(self):
-        return 'res:/ui/Texture/WindowIcons/corporationmembers.png'
+        pass
 
 
-def GetContainerDataFromItems(items, parent = None):
+def GetContainerDataFromItems(items, parent=None):
     data = []
     for item in items:
         if item.typeID == const.typePlasticWrap and item.singleton:
             data.append(TreeDataPlasticWrap(parent=parent, clsName='StationContainer', itemID=item.itemID, typeID=item.typeID))
         elif item.groupID in CONTAINERGROUPS and item.singleton:
             data.append(TreeDataInv(parent=parent, clsName='StationContainer', itemID=item.itemID, typeID=item.typeID))
+        elif item.typeID == const.typeAssetSafetyWrap:
+            data.append(TreeDataInv(parent=parent, clsName='AssetSafetyContainer', itemID=item.itemID, typeID=item.typeID))
 
     cfg.evelocations.Prime([ d.invController.itemID for d in data ])
     SortData(data)

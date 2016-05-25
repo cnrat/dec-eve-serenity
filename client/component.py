@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\common\modules\nice\client\_nastyspace\component.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\common\modules\nice\client\_nastyspace\component.py
 from carbon.client.script.graphics.boxLightClient import BoxLightClientComponent
 from carbon.client.script.graphics.cylinderLightClient import CylinderLightClientComponent
 from carbon.client.script.graphics.directionalLightClient import DirectionalLightClientComponent

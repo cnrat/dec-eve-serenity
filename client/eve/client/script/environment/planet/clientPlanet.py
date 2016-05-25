@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\client\script\environment\planet\clientPlanet.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\client\script\environment\planet\clientPlanet.py
 import blue
 import bluepy
 import util
@@ -34,6 +35,7 @@ class ClientPlanet(BasePlanet):
         self.backupData = None
         self.enteredEditModeTime = None
         self.isInEditMode = False
+        return
 
     def GetPlanetTypeID(self):
         if self.planetTypeID is None:
@@ -48,7 +50,8 @@ class ClientPlanet(BasePlanet):
         colony = self.GetColony(characterID)
         if colony is None or colony.colonyData is None:
             return
-        return colony.colonyData.commandPin
+        else:
+            return colony.colonyData.commandPin
 
     def _PrimeColony(self, ownerID, serializedColony):
         if ownerID not in self.colonies:
@@ -86,6 +89,7 @@ class ClientPlanet(BasePlanet):
             self.colony = colony
             self.colony.RunSimulation(beNice=True)
             self.StartTicking()
+        return
 
     def IsInEditMode(self):
         if self.isInEditMode:
@@ -121,6 +125,7 @@ class ClientPlanet(BasePlanet):
             self.StopTicking()
             self.isInEditMode = True
             sm.GetService('planetUI').EnteredEditMode(self.planetID)
+        return
 
     def _ExitEditMode(self):
         self.changes.Reset()
@@ -137,6 +142,7 @@ class ClientPlanet(BasePlanet):
         self.isInEditMode = False
         self.StartTicking()
         sm.GetService('planetUI').ExitedEditMode(self.planetID)
+        return
 
     def RevertChanges(self):
         if self.backupData is not None:
@@ -147,6 +153,7 @@ class ClientPlanet(BasePlanet):
                 self.LogWarn('RevertChanges - Reverting changes without reapplying old data; colony not found')
             self.backupData = None
         self._ExitEditMode()
+        return
 
     def SubmitChanges(self):
         simulationEndTime = None
@@ -168,6 +175,7 @@ class ClientPlanet(BasePlanet):
             sm.GetService('planetSvc').ScatterOnPlanetCommandCenterDeployedOrRemoved(self.planetID)
         self._ExitEditMode()
         sm.ScatterEvent('OnPlanetChangesSubmitted', self.planetID)
+        return
 
     def CreateCommandPin(self, charID, typeID, latitude, longitude):
         if charID in self.colonies:
@@ -210,20 +218,21 @@ class ClientPlanet(BasePlanet):
         charID = session.charid
         if evetypes.GetGroupID(typeID) == const.groupCommandPins:
             return self.CreateCommandPin(charID, typeID, latitude, longitude)
-        colony = self.GetColony(charID)
-        if colony is None:
-            raise UserError('CannotManagePlanetWithoutCommandCenter')
-        colony.ValidateCreatePin(charID, typeID, latitude, longitude)
-        pinID = colony.GetTemporaryPinID()
-        wasInEditMode = self.IsInEditMode()
-        self._EnterEditMode()
-        colony.colonyData.PrimePin(pinID, typeID, charID, latitude, longitude)
-        pin = colony.GetPin(pinID)
-        pin.inEditMode = True
-        self.changes.AddCommand(commandStream.COMMAND_CREATEPIN, pinID=pinID, typeID=typeID, latitude=latitude, longitude=longitude)
-        sm.ScatterEvent('OnPlanetPinPlaced', pinID)
-        sm.ScatterEvent('OnEditModeBuiltOrDestroyed')
-        return pin
+        else:
+            colony = self.GetColony(charID)
+            if colony is None:
+                raise UserError('CannotManagePlanetWithoutCommandCenter')
+            colony.ValidateCreatePin(charID, typeID, latitude, longitude)
+            pinID = colony.GetTemporaryPinID()
+            wasInEditMode = self.IsInEditMode()
+            self._EnterEditMode()
+            colony.colonyData.PrimePin(pinID, typeID, charID, latitude, longitude)
+            pin = colony.GetPin(pinID)
+            pin.inEditMode = True
+            self.changes.AddCommand(commandStream.COMMAND_CREATEPIN, pinID=pinID, typeID=typeID, latitude=latitude, longitude=longitude)
+            sm.ScatterEvent('OnPlanetPinPlaced', pinID)
+            sm.ScatterEvent('OnEditModeBuiltOrDestroyed')
+            return pin
 
     def RemovePin(self, pinID):
         self.ValidateMakeChanges()
@@ -254,6 +263,7 @@ class ClientPlanet(BasePlanet):
                 colony.RemoveCreationCost(pin.typeID)
             self.changes.AddCommand(commandStream.COMMAND_REMOVEPIN, pinID=pinID)
         sm.ScatterEvent('OnEditModeBuiltOrDestroyed')
+        return
 
     def InstallSchematic(self, pinID, schematicID):
         self.ValidateMakeChanges()
@@ -268,6 +278,7 @@ class ClientPlanet(BasePlanet):
         pin.inEditMode = True
         self.changes.AddCommand(commandStream.COMMAND_SETSCHEMATIC, pinID=pinID, schematicID=schematicID)
         sm.ScatterEvent('OnRefreshPins', [pinID])
+        return
 
     def CreateLink(self, pin1ID, pin2ID, typeID):
         self.ValidateMakeChanges()
@@ -283,6 +294,7 @@ class ClientPlanet(BasePlanet):
         link.editModeLink = True
         self.changes.AddCommand(commandStream.COMMAND_CREATELINK, endpoint1=pin1ID, endpoint2=pin2ID, level=0)
         sm.ScatterEvent('OnEditModeBuiltOrDestroyed')
+        return
 
     def RemoveLink(self, pin1ID, pin2ID):
         self.ValidateMakeChanges()
@@ -301,6 +313,7 @@ class ClientPlanet(BasePlanet):
         colony.colonyData.RemoveLink(pin1ID, pin2ID)
         self.changes.AddCommand(commandStream.COMMAND_REMOVELINK, endpoint1=pin1ID, endpoint2=pin2ID)
         sm.ScatterEvent('OnEditModeBuiltOrDestroyed')
+        return
 
     def SetLinkLevel(self, pin1ID, pin2ID, newLevel):
         self.ValidateMakeChanges()
@@ -315,6 +328,7 @@ class ClientPlanet(BasePlanet):
         link.editModeLink = True
         self.changes.AddCommand(commandStream.COMMAND_SETLINKLEVEL, endpoint1=pin1ID, endpoint2=pin2ID, level=newLevel)
         sm.ScatterEvent('OnEditModeBuiltOrDestroyed')
+        return
 
     def CreateRoute(self, path, typeID, quantity):
         self.ValidateMakeChanges()
@@ -328,6 +342,7 @@ class ClientPlanet(BasePlanet):
         colony.colonyData.PrimeRoute(routeID, path, typeID, quantity)
         self.changes.AddCommand(commandStream.COMMAND_CREATEROUTE, routeID=routeID, path=path, typeID=typeID, quantity=quantity)
         sm.ScatterEvent('OnEditModeBuiltOrDestroyed')
+        return
 
     def RemoveRoute(self, routeID):
         self.ValidateMakeChanges()
@@ -340,6 +355,7 @@ class ClientPlanet(BasePlanet):
         colony.colonyData.RemoveRoute(routeID)
         self.changes.AddCommand(commandStream.COMMAND_REMOVEROUTE, routeID=routeID)
         sm.ScatterEvent('OnEditModeBuiltOrDestroyed')
+        return
 
     def UpgradeCommandCenter(self, pinID, level):
         self.ValidateMakeChanges()
@@ -392,6 +408,7 @@ class ClientPlanet(BasePlanet):
         sm.ScatterEvent('OnRefreshPins', [commandPin.id])
         if not self.ticking:
             self.StartTicking()
+        return
 
     def OpenTransferWindow(self, path):
         import form
@@ -424,6 +441,7 @@ class ClientPlanet(BasePlanet):
 
         sm.ScatterEvent('OnRefreshPins', [path[0], path[-1]])
         self.StartTicking(forceRestart=True)
+        return
 
     def AddExtractorHead(self, pinID, headID, latitude, longitude):
         self.ValidateMakeChanges()
@@ -437,6 +455,7 @@ class ClientPlanet(BasePlanet):
         self.changes.AddCommand(commandStream.COMMAND_ADDEXTRACTORHEAD, pinID=pinID, headID=headID, latitude=latitude, longitude=longitude)
         self.MoveExtractorHead(pinID, headID, latitude, longitude)
         sm.ScatterEvent('OnEditModeBuiltOrDestroyed')
+        return
 
     def RemoveExtractorHead(self, pinID, headID):
         self.ValidateMakeChanges()
@@ -449,6 +468,7 @@ class ClientPlanet(BasePlanet):
         colony.colonyData.RemoveExtractorHead(pinID, headID)
         self.changes.AddCommand(commandStream.COMMAND_KILLEXTRACTORHEAD, pinID=pinID, headID=headID)
         sm.ScatterEvent('OnEditModeBuiltOrDestroyed')
+        return
 
     def MoveExtractorHead(self, pinID, headID, latitude, longitude):
         self.ValidateMakeChanges()
@@ -461,6 +481,7 @@ class ClientPlanet(BasePlanet):
         colony.colonyData.MoveExtractorHead(pinID, headID, latitude, longitude)
         self.changes.AddCommand(commandStream.COMMAND_MOVEEXTRACTORHEAD, pinID=pinID, headID=headID, latitude=latitude, longitude=longitude)
         sm.ScatterEvent('OnEditModeBuiltOrDestroyed')
+        return
 
     def SetExtractorHeadRadius(self, pinID, radius):
         pin = self.GetPin(pinID)
@@ -551,14 +572,17 @@ class ClientPlanet(BasePlanet):
                             self.LogInfo('Encountered problem when trying to reroute', amtToRoute, 'units of', typeID, 'along path', path, ':', e.msg)
                             sys.exc_clear()
 
+        return
+
     def CancelInstallProgram(self, pinID, pinData):
         if not self.isInEditMode:
             return None
-        if not self.changes.stream:
+        elif not self.changes.stream:
             self.RevertChanges()
             return None
-        pin = self.GetPin(pinID)
-        return pin
+        else:
+            pin = self.GetPin(pinID)
+            return pin
 
     def PrioritizeRoutes(self, pinID, routes):
         self.ValidateMakeChanges()
@@ -637,18 +661,20 @@ class ClientPlanet(BasePlanet):
         retval = uix.HybridWnd(format, 'Deposit designer: %s' % planetCommon.GetGenericPinName(pin.typeID, pin.id), 1, None, uiconst.OKCANCEL, minW=300, minH=132, icon=icon)
         if retval is None:
             return
-        typeID, qtyPerCycle, cycleTime, lifetimeHours = (retval['typeID'],
-         retval['qtyPerCycle'],
-         retval['cycleTime'],
-         retval['lifetime'])
-        typeID = int(typeID)
-        qtyPerCycle = int(qtyPerCycle)
-        cycleTime = long(cycleTime) * const.SEC
-        lifetimeHours = int(lifetimeHours)
-        headRadius = 1.0
-        if typeID not in resourceInfo or qtyPerCycle < 0 or cycleTime < 10 * const.SEC or lifetimeHours < 1 or headRadius <= 0.0:
+        else:
+            typeID, qtyPerCycle, cycleTime, lifetimeHours = (retval['typeID'],
+             retval['qtyPerCycle'],
+             retval['cycleTime'],
+             retval['lifetime'])
+            typeID = int(typeID)
+            qtyPerCycle = int(qtyPerCycle)
+            cycleTime = long(cycleTime) * const.SEC
+            lifetimeHours = int(lifetimeHours)
+            headRadius = 1.0
+            if typeID not in resourceInfo or qtyPerCycle < 0 or cycleTime < 10 * const.SEC or lifetimeHours < 1 or headRadius <= 0.0:
+                return
+            self.remoteHandler.GMForceInstallProgram(pinID, typeID, cycleTime, lifetimeHours, qtyPerCycle, headRadius)
             return
-        self.remoteHandler.GMForceInstallProgram(pinID, typeID, cycleTime, lifetimeHours, qtyPerCycle, headRadius)
 
     def GMConvertCommandCenter(self, pinID):
         self.remoteHandler.GMConvertCommandCenter(pinID)
@@ -657,7 +683,9 @@ class ClientPlanet(BasePlanet):
         quantity = uix.QtyPopup(None, 1, 100).get('qty', None)
         if not quantity:
             return
-        self.remoteHandler.GMAddCommodity(pinID, typeID, quantity)
+        else:
+            self.remoteHandler.GMAddCommodity(pinID, typeID, quantity)
+            return
 
     def GMVerifySimulation(self):
         self.LogNotice('VerifySimulation -- starting')
@@ -683,6 +711,7 @@ class ClientPlanet(BasePlanet):
                     self.LogError(pin.id, 'does not agree on a value for', key, 'Client says ', clientValue, 'but server', value)
 
         self.LogNotice('VerifySimulation -- finished')
+        return
 
     def GetPlanetRadius(self):
         return self.radius
@@ -747,36 +776,37 @@ class ClientPlanet(BasePlanet):
         if info.remoteSensing == 0:
             info.skillMissing = True
             return info
-        if session.solarsystemid2 == planetInfo.solarSystemID or sm.GetService('planetSvc').IsPlanetColonizedByMe(self.planetID):
-            info.proximity = const.planetResourceProximityPlanet
         else:
-            if util.IsWormholeSystem(session.solarsystemid2) or sm.GetService('clientPathfinderService').GetJumpCountFromCurrent(planetInfo.solarSystemID) > 1000:
-                info.unreachableSystem = True
-                return info
-            info.proximity = None
-            for i, scanRange in enumerate(const.planetResourceScanningRanges):
-                if scanRange >= dist:
-                    info.proximity = i
+            if session.solarsystemid2 == planetInfo.solarSystemID or sm.GetService('planetSvc').IsPlanetColonizedByMe(self.planetID):
+                info.proximity = const.planetResourceProximityPlanet
+            else:
+                if util.IsWormholeSystem(session.solarsystemid2) or sm.GetService('clientPathfinderService').GetJumpCountFromCurrent(planetInfo.solarSystemID) > 1000:
+                    info.unreachableSystem = True
+                    return info
+                info.proximity = None
+                for i, scanRange in enumerate(const.planetResourceScanningRanges):
+                    if scanRange >= dist:
+                        info.proximity = i
 
-            if info.proximity is None or dist > const.planetResourceScanningRanges[5 - info.remoteSensing]:
-                info.systemOutOfRange = True
-                info.systemDistance = dist
-                info.maxScanDistance = const.planetResourceScanningRanges[5 - info.remoteSensing]
-                return info
-        info.planetology = skills.get(const.typePlanetology, 0)
-        info.advancedPlanetology = skills.get(const.typeAdvancedPlanetology, 0)
-        minBand, maxBand = const.planetResourceProximityLimits[info.proximity]
-        info.newBand = min(maxBand, minBand + info.planetology + info.advancedPlanetology * 2)
-        requiredSkill = 5 - info.proximity
-        if info.remoteSensing < requiredSkill:
-            info.requiredSkill = requiredSkill
-        return info
+                if info.proximity is None or dist > const.planetResourceScanningRanges[5 - info.remoteSensing]:
+                    info.systemOutOfRange = True
+                    info.systemDistance = dist
+                    info.maxScanDistance = const.planetResourceScanningRanges[5 - info.remoteSensing]
+                    return info
+            info.planetology = skills.get(const.typePlanetology, 0)
+            info.advancedPlanetology = skills.get(const.typeAdvancedPlanetology, 0)
+            minBand, maxBand = const.planetResourceProximityLimits[info.proximity]
+            info.newBand = min(maxBand, minBand + info.planetology + info.advancedPlanetology * 2)
+            requiredSkill = 5 - info.proximity
+            if info.remoteSensing < requiredSkill:
+                info.requiredSkill = requiredSkill
+            return info
 
     def CreateResourceEntry(self):
         entry = util.KeyVal(sh=builder.CreateConstantSH(0.0, 1), updateTime=0, numBands=0, proximity=None)
         return entry
 
-    def StartTicking(self, forceRestart = False):
+    def StartTicking(self, forceRestart=False):
         if forceRestart:
             self.ticking = False
             if self.tickThread is not None:
@@ -787,27 +817,30 @@ class ClientPlanet(BasePlanet):
             return
         self.ticking = True
         self.tickThread = uthread.new(self._Tick, session.charid)
+        return
 
     def StopTicking(self):
         self.ticking = False
         if self.tickThread is not None:
             self.tickThread.kill()
             self.tickThread = None
+        return
 
     def GetNextTickTime(self, charID):
         if self.colony is None or self.colony.colonyData is None:
             return
-        nextTickTime = None
-        for pin in self.colony.colonyData.pins.itervalues():
-            if pin.IsActive() or pin.CanActivate():
-                pinTickTime = pin.GetNextRunTime()
-                if pinTickTime is None or pinTickTime < blue.os.GetWallclockTime():
-                    nextTickTime = blue.os.GetWallclockTime()
-                    break
-                elif nextTickTime is None or pinTickTime < nextTickTime:
-                    nextTickTime = pinTickTime
+        else:
+            nextTickTime = None
+            for pin in self.colony.colonyData.pins.itervalues():
+                if pin.IsActive() or pin.CanActivate():
+                    pinTickTime = pin.GetNextRunTime()
+                    if pinTickTime is None or pinTickTime < blue.os.GetWallclockTime():
+                        nextTickTime = blue.os.GetWallclockTime()
+                        break
+                    elif nextTickTime is None or pinTickTime < nextTickTime:
+                        nextTickTime = pinTickTime
 
-        return nextTickTime
+            return nextTickTime
 
     def _Tick(self, charID):
         while self.ticking:
@@ -826,6 +859,7 @@ class ClientPlanet(BasePlanet):
                 blue.pyos.synchro.SleepWallclock(nextTime / const.MSEC)
 
         self.tickThread = None
+        return
 
     def GMRunDepletionSim(self, typeID, info):
         self.remoteHandler.GMRunDepletionSim(typeID, info)

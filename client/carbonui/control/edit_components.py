@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\packages\carbonui\control\edit_components.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\packages\carbonui\control\edit_components.py
 from carbonui.control.scrollentries import SE_BaseClassCore
 import blue
 import html
@@ -47,6 +48,7 @@ class hr(SE_BaseClassCore):
             self.sr.line.left = self.sr.line.width = 0
             align = uiconst.TOALL
         self.sr.line.SetAlign(align)
+        return
 
     def GetHeight(self, *args):
         node, width = args
@@ -77,6 +79,7 @@ class VirtualTable(SE_BaseClassCore):
             s = self.stack
             self.AddBackground(self, s)
             self.tableloaded = 1
+        return
 
     def Load(self):
         if not self.loaded:
@@ -89,10 +92,13 @@ class VirtualTable(SE_BaseClassCore):
 
         if self.destroyed:
             return
-        self.state = uiconst.UI_PICKCHILDREN
-        if self.sr.cells:
-            for cell in self.sr.cells:
-                cell.LoadContent(cell.sr.lines)
+        else:
+            self.state = uiconst.UI_PICKCHILDREN
+            if self.sr.cells:
+                for cell in self.sr.cells:
+                    cell.LoadContent(cell.sr.lines)
+
+            return
 
     def GetValue(self):
         selectionString = ''
@@ -105,7 +111,10 @@ class VirtualTable(SE_BaseClassCore):
                 selectionString += '\r\n'
             for cellentry in cell.sr.content.children:
                 if hasattr(cellentry, 'GetCopyData'):
-                    selectionString += cellentry.GetCopyData(0, -1) or ''
+                    try:
+                        selectionString += cellentry.GetCopyData(0, -1) or ''
+                    except TypeError:
+                        pass
 
             selectionString += '\t'
             row = cell.rowIdx
@@ -155,6 +164,7 @@ class VirtualTable(SE_BaseClassCore):
                 where.sr.background.children.append(row.CopyTo())
         if s['background-color']:
             Fill(parent=where, color=s['background-color'])
+        return
 
     def GetInt(self, string):
         value = filter(lambda x: x in '0123456789', unicode(string))
@@ -171,168 +181,170 @@ class VirtualTable(SE_BaseClassCore):
         self.fcols = []
         if not self or self.destroyed:
             return
-        w = self.data.attrs.Get('width', None)
-        contentWidth = self.browser.GetContentWidth()
-        singleWordMax = contentWidth - self.browser.xmargin * 2
-        if w:
-            if isinstance(w, basestring) and (w.endswith('%') or w.endswith('\x89')):
-                w = self.GetInt(w)
-                w = int(float(w) / 100.0 * singleWordMax)
-            else:
-                w = self.GetInt(w)
-        h = self.data.attrs.Get('height', None)
-        if h and isinstance(h, basestring) and (h.endswith('%') or h.endswith('\x89')):
-            h = self.GetInt(h)
-            if self.browser.sr.clipper:
-                h = float(h) / 100.0 * self.browser.sr.clipperHeight
-            else:
-                h = float(h) / 100.0 * self.browser.height
         else:
-            h = self.GetInt(h)
-        for col in self.data.attrs.Get('colgroups', []):
-            if unicode(col).isdigit():
-                self.dcols.append(int(col))
-                self.fcols.append(int(col))
-            elif col and isinstance(col, basestring) and (col.endswith('%') or col.endswith('\x89')):
-                col = self.GetInt(col)
-                col = float(col) / 100.0 * ((w or contentWidth - self.browser.xmargin * 2) - int(self.browser.attrStack[-1]['border-left-width']) - int(self.browser.attrStack[-1]['border-right-width']))
-                self.dcols.append(int(col))
-                self.fcols.append(int(col))
+            w = self.data.attrs.Get('width', None)
+            contentWidth = self.browser.GetContentWidth()
+            singleWordMax = contentWidth - self.browser.xmargin * 2
+            if w:
+                if isinstance(w, basestring) and (w.endswith('%') or w.endswith('\xef\xbf\xbd')):
+                    w = self.GetInt(w)
+                    w = int(float(w) / 100.0 * singleWordMax)
+                else:
+                    w = self.GetInt(w)
+            h = self.data.attrs.Get('height', None)
+            if h and isinstance(h, basestring) and (h.endswith('%') or h.endswith('\xef\xbf\xbd')):
+                h = self.GetInt(h)
+                if self.browser.sr.clipper:
+                    h = float(h) / 100.0 * self.browser.sr.clipperHeight
+                else:
+                    h = float(h) / 100.0 * self.browser.height
             else:
-                self.dcols.append(0)
-                self.fcols.append(0)
-
-        cells = []
-        needMore = []
-        rowIdx = 0
-        bCollapse = self.browser.attrStack[-1]['border-collapse']
-        for rowdata in self.data.attrs.Get('rows', []):
-            for celldata in rowdata.cols:
-                colIdx = self.GetColIdx(rowIdx)
-                while len(self.dcols) < colIdx + int(celldata.colspan or 1):
+                h = self.GetInt(h)
+            for col in self.data.attrs.Get('colgroups', []):
+                if unicode(col).isdigit():
+                    self.dcols.append(int(col))
+                    self.fcols.append(int(col))
+                elif col and isinstance(col, basestring) and (col.endswith('%') or col.endswith('\xef\xbf\xbd')):
+                    col = self.GetInt(col)
+                    col = float(col) / 100.0 * ((w or contentWidth - self.browser.xmargin * 2) - int(self.browser.attrStack[-1]['border-left-width']) - int(self.browser.attrStack[-1]['border-right-width']))
+                    self.dcols.append(int(col))
+                    self.fcols.append(int(col))
+                else:
                     self.dcols.append(0)
                     self.fcols.append(0)
 
-                cell = Cell(parent=self, name='tablecell', align=uiconst.RELATIVE)
-                wd = celldata.width
-                if wd and isinstance(wd, basestring) and (wd.endswith('%') or wd.endswith('\x89')):
-                    wd = self.GetInt(wd)
-                    if wd == 100:
-                        wd = 0
+            cells = []
+            needMore = []
+            rowIdx = 0
+            bCollapse = self.browser.attrStack[-1]['border-collapse']
+            for rowdata in self.data.attrs.Get('rows', []):
+                for celldata in rowdata.cols:
+                    colIdx = self.GetColIdx(rowIdx)
+                    while len(self.dcols) < colIdx + int(celldata.colspan or 1):
+                        self.dcols.append(0)
+                        self.fcols.append(0)
+
+                    cell = Cell(parent=self, name='tablecell', align=uiconst.RELATIVE)
+                    wd = celldata.width
+                    if wd and isinstance(wd, basestring) and (wd.endswith('%') or wd.endswith('\xef\xbf\xbd')):
+                        wd = self.GetInt(wd)
+                        if wd == 100:
+                            wd = 0
+                        else:
+                            wd = float(wd) / 100.0 * contentWidth - self.browser.xmargin * 2
+                        celldata.width = int(wd)
+                    elif wd:
+                        celldata.width = self.GetInt(wd)
                     else:
-                        wd = float(wd) / 100.0 * contentWidth - self.browser.xmargin * 2
-                    celldata.width = int(wd)
-                elif wd:
-                    celldata.width = self.GetInt(wd)
-                else:
-                    celldata.width = None
-                cell.name = 'tablecell %s-%s' % (rowIdx, colIdx)
-                cell.Startup(self)
-                cell.charset = getattr(self, 'charset', 'cp1252')
-                cell.celldata = celldata
-                cell.rowdata = rowdata
-                cell.rowspan = int(celldata.rowspan or 1)
-                cell.colspan = int(celldata.colspan or 1)
-                cell.rowIdx = rowIdx
-                cell.colIdx = colIdx
-                styles = celldata.styles
-                styles['border-left-width'] = styles['border-left-width'] or [self.stack['border-left-width'], 0][colIdx == 0 and bCollapse]
-                styles['border-top-width'] = styles['border-top-width'] or [self.stack['border-top-width'], 0][rowIdx == 0 and bCollapse]
-                styles['border-right-width'] = styles['border-right-width'] or [self.stack['border-right-width'], 0][bCollapse]
-                styles['border-bottom-width'] = styles['border-bottom-width'] or [self.stack['border-bottom-width'], 0][bCollapse]
-                cell.celldata.content.insert(0, ('AddStyles', (styles, celldata.css)))
-                if not self or self.destroyed:
-                    return
-                mw, sw = cell.GetMinWidth(singleWordMax)
-                mw += self.stack.get('spacing-left', 0) + self.stack.get('spacing-right', 0)
-                if not self or getattr(self, 'sr', None) is None:
-                    return
-                colsdone = 0
-                for y in xrange(rowIdx, rowIdx + cell.rowspan):
-                    if cell.colspan == 1:
-                        self.fcols[colIdx] = int(max(self.fcols[colIdx], sw))
-                        self.dcols[colIdx] = int(max(self.dcols[colIdx], mw))
-                    for x in xrange(colIdx, colIdx + cell.colspan):
-                        self.MarkCellTaken(x, y)
+                        celldata.width = None
+                    cell.name = 'tablecell %s-%s' % (rowIdx, colIdx)
+                    cell.Startup(self)
+                    cell.charset = getattr(self, 'charset', 'cp1252')
+                    cell.celldata = celldata
+                    cell.rowdata = rowdata
+                    cell.rowspan = int(celldata.rowspan or 1)
+                    cell.colspan = int(celldata.colspan or 1)
+                    cell.rowIdx = rowIdx
+                    cell.colIdx = colIdx
+                    styles = celldata.styles
+                    styles['border-left-width'] = styles['border-left-width'] or [self.stack['border-left-width'], 0][colIdx == 0 and bCollapse]
+                    styles['border-top-width'] = styles['border-top-width'] or [self.stack['border-top-width'], 0][rowIdx == 0 and bCollapse]
+                    styles['border-right-width'] = styles['border-right-width'] or [self.stack['border-right-width'], 0][bCollapse]
+                    styles['border-bottom-width'] = styles['border-bottom-width'] or [self.stack['border-bottom-width'], 0][bCollapse]
+                    cell.celldata.content.insert(0, ('AddStyles', (styles, celldata.css)))
+                    if not self or self.destroyed:
+                        return
+                    mw, sw = cell.GetMinWidth(singleWordMax)
+                    mw += self.stack.get('spacing-left', 0) + self.stack.get('spacing-right', 0)
+                    if not self or getattr(self, 'sr', None) is None:
+                        return
+                    colsdone = 0
+                    for y in xrange(rowIdx, rowIdx + cell.rowspan):
+                        if cell.colspan == 1:
+                            self.fcols[colIdx] = int(max(self.fcols[colIdx], sw))
+                            self.dcols[colIdx] = int(max(self.dcols[colIdx], mw))
+                        for x in xrange(colIdx, colIdx + cell.colspan):
+                            self.MarkCellTaken(x, y)
 
-                    colsdone = 1
+                        colsdone = 1
 
-                cells.append(cell)
+                    cells.append(cell)
 
-            self.drows.append(2)
-            rowIdx += 1
+                self.drows.append(2)
+                rowIdx += 1
 
-        maxTableWidth = int(w or contentWidth - self.browser.xmargin * 2)
-        currentWidth = sum(self.dcols)
-        toDivide = max(0, maxTableWidth - currentWidth)
-        getMore = []
-        for cell in cells:
-            cell.width = sum(self.dcols[cell.colIdx:cell.colIdx + cell.colspan])
-            if cell.totalWidth > cell.width and sum(self.fcols[cell.colIdx:cell.colIdx + cell.colspan]) == 0:
-                getMore.append(cell)
+            maxTableWidth = int(w or contentWidth - self.browser.xmargin * 2)
+            currentWidth = sum(self.dcols)
+            toDivide = max(0, maxTableWidth - currentWidth)
+            getMore = []
+            for cell in cells:
+                cell.width = sum(self.dcols[cell.colIdx:cell.colIdx + cell.colspan])
+                if cell.totalWidth > cell.width and sum(self.fcols[cell.colIdx:cell.colIdx + cell.colspan]) == 0:
+                    getMore.append(cell)
 
-        for cell in getMore:
-            cols = [ col for col in xrange(cell.colIdx, cell.colIdx + cell.colspan) if self.fcols[col] == 0 ]
-            if len(cols) == 0:
-                continue
-            add = int(min((cell.totalWidth - cell.width) / len(cols), toDivide / len(getMore) / len(cols)))
-            for x in cols:
-                self.dcols[x] += add
+            for cell in getMore:
+                cols = [ col for col in xrange(cell.colIdx, cell.colIdx + cell.colspan) if self.fcols[col] == 0 ]
+                if len(cols) == 0:
+                    continue
+                add = int(min((cell.totalWidth - cell.width) / len(cols), toDivide / len(getMore) / len(cols)))
+                for x in cols:
+                    self.dcols[x] += add
 
-        if w:
-            borders = int(self.stack['border-left-width']) + int(self.stack['border-right-width']) + int(self.stack.get('spacing-left', 0)) + int(self.stack.get('spacing-right', 0))
-            totalWidth = sum(self.dcols[:]) + borders
-            setWidth = int(w)
-            if totalWidth:
-                setWidth -= borders
-                totalWidth -= borders
-                oind = sind = 0
-                for i in xrange(len(self.dcols)):
-                    osave = self.dcols[i]
-                    if self.fcols[i] == 0:
-                        self.dcols[i] = int((oind + self.dcols[i]) * setWidth / totalWidth - sind)
-                    oind += osave
-                    sind += self.dcols[i]
+            if w:
+                borders = int(self.stack['border-left-width']) + int(self.stack['border-right-width']) + int(self.stack.get('spacing-left', 0)) + int(self.stack.get('spacing-right', 0))
+                totalWidth = sum(self.dcols[:]) + borders
+                setWidth = int(w)
+                if totalWidth:
+                    setWidth -= borders
+                    totalWidth -= borders
+                    oind = sind = 0
+                    for i in xrange(len(self.dcols)):
+                        osave = self.dcols[i]
+                        if self.fcols[i] == 0:
+                            self.dcols[i] = int((oind + self.dcols[i]) * setWidth / totalWidth - sind)
+                        oind += osave
+                        sind += self.dcols[i]
 
-        if not self or self.destroyed:
+            if not self or self.destroyed:
+                return
+            for cell in cells:
+                cell.width = int(sum(self.dcols[cell.colIdx:cell.colIdx + cell.colspan])) - self.stack.get('spacing-left', 0) - self.stack.get('spacing-right', 0)
+                mh = cell.GetMinHeight()
+                mh += self.stack.get('spacing-top', 0) + self.stack.get('spacing-bottom', 0)
+                for i in xrange(cell.rowIdx, cell.rowIdx + cell.rowspan):
+                    self.drows[i] = max(self.drows[i], mh / cell.rowspan)
+
+            if h:
+                borders = int(self.stack['border-top-width']) + int(self.stack['border-bottom-width'])
+                totalHeight = sum(self.drows[:]) + borders
+                setHeight = int(h)
+                if setHeight > totalHeight:
+                    setHeight -= borders
+                    totalHeight -= borders
+                    oind = sind = 0
+                    for i in xrange(len(self.drows)):
+                        osave = self.drows[i]
+                        self.drows[i] = (oind + self.drows[i]) * setHeight / totalHeight - sind
+                        oind += osave
+                        sind += self.drows[i]
+
+            w, h = (0, 0)
+            for cell in cells:
+                cell.width = sum(self.dcols[cell.colIdx:cell.colIdx + cell.colspan]) - self.stack.get('spacing-left', 0) - self.stack.get('spacing-right', 0)
+                cell.height = sum(self.drows[cell.rowIdx:cell.rowIdx + cell.rowspan]) - self.stack.get('spacing-top', 0) - self.stack.get('spacing-bottom', 0)
+                cell.left = sum(self.dcols[:cell.colIdx]) + self.stack['border-left-width'] + self.stack.get('spacing-right', 0) + self.stack.get('spacing-left', 0)
+                cell.top = sum(self.drows[:cell.rowIdx]) + self.stack['border-top-width'] + self.stack.get('spacing-bottom', 0) + self.stack.get('spacing-top', 0)
+                w = max(w, cell.left + cell.width)
+                h = max(h, cell.top + cell.height)
+                cell.VAlignContent()
+                self.AddBackground(cell, cell.celldata.styles)
+
+            if not self or not self.sr:
+                return
+            self.sr.cells = cells
+            self.width = w + self.stack['border-right-width'] + self.stack.get('spacing-right', 0) + self.stack.get('spacing-left', 0)
+            self.height = h + self.stack['border-bottom-width'] + self.stack.get('spacing-bottom', 0) + self.stack.get('spacing-top', 0)
             return
-        for cell in cells:
-            cell.width = int(sum(self.dcols[cell.colIdx:cell.colIdx + cell.colspan])) - self.stack.get('spacing-left', 0) - self.stack.get('spacing-right', 0)
-            mh = cell.GetMinHeight()
-            mh += self.stack.get('spacing-top', 0) + self.stack.get('spacing-bottom', 0)
-            for i in xrange(cell.rowIdx, cell.rowIdx + cell.rowspan):
-                self.drows[i] = max(self.drows[i], mh / cell.rowspan)
-
-        if h:
-            borders = int(self.stack['border-top-width']) + int(self.stack['border-bottom-width'])
-            totalHeight = sum(self.drows[:]) + borders
-            setHeight = int(h)
-            if setHeight > totalHeight:
-                setHeight -= borders
-                totalHeight -= borders
-                oind = sind = 0
-                for i in xrange(len(self.drows)):
-                    osave = self.drows[i]
-                    self.drows[i] = (oind + self.drows[i]) * setHeight / totalHeight - sind
-                    oind += osave
-                    sind += self.drows[i]
-
-        w, h = (0, 0)
-        for cell in cells:
-            cell.width = sum(self.dcols[cell.colIdx:cell.colIdx + cell.colspan]) - self.stack.get('spacing-left', 0) - self.stack.get('spacing-right', 0)
-            cell.height = sum(self.drows[cell.rowIdx:cell.rowIdx + cell.rowspan]) - self.stack.get('spacing-top', 0) - self.stack.get('spacing-bottom', 0)
-            cell.left = sum(self.dcols[:cell.colIdx]) + self.stack['border-left-width'] + self.stack.get('spacing-right', 0) + self.stack.get('spacing-left', 0)
-            cell.top = sum(self.drows[:cell.rowIdx]) + self.stack['border-top-width'] + self.stack.get('spacing-bottom', 0) + self.stack.get('spacing-top', 0)
-            w = max(w, cell.left + cell.width)
-            h = max(h, cell.top + cell.height)
-            cell.VAlignContent()
-            self.AddBackground(cell, cell.celldata.styles)
-
-        if not self or not self.sr:
-            return
-        self.sr.cells = cells
-        self.width = w + self.stack['border-right-width'] + self.stack.get('spacing-right', 0) + self.stack.get('spacing-left', 0)
-        self.height = h + self.stack['border-bottom-width'] + self.stack.get('spacing-bottom', 0) + self.stack.get('spacing-top', 0)
 
     def GetColIdx(self, rowIdx):
         if len(self.taken) <= rowIdx:
@@ -369,6 +381,7 @@ class Cell(ParserBase, SE_BaseClassCore):
         self.sr.lines = None
         self.sr.overlays = None
         self.sr.entries = None
+        return
 
     def ApplyAttributes(self, attributes):
         SE_BaseClassCore.ApplyAttributes(self, attributes)
@@ -389,7 +402,7 @@ class Cell(ParserBase, SE_BaseClassCore):
     def GetContentWidth(self, *args):
         return self.sr.width or 200
 
-    def Load(self, contentList = [], scrolltotop = 0, scrollTo = 0.0, *args):
+    def Load(self, contentList=[], scrolltotop=0, scrollTo=0.0, *args):
         browser = GetBrowser(self)
         if browser:
             self.attrStack = browser.attrStack
@@ -403,7 +416,7 @@ class Cell(ParserBase, SE_BaseClassCore):
     def GetNodes(self):
         return self.sr.entries
 
-    def LoadContent(self, contentList = [], *args):
+    def LoadContent(self, contentList=[], *args):
         for data in contentList:
             if not data.panel:
                 entry = self.AddEntry(data)
@@ -418,28 +431,30 @@ class Cell(ParserBase, SE_BaseClassCore):
         self.LoadBuffer(self.celldata.content[:], getWidths=1, singleWordMax=singleWordMax)
         if not self or getattr(self, 'sr', None) is None:
             return (0, 0)
-        setWidth = int(self.celldata.Get('width', None) or 0)
-        minOverlay = 0
-        for overlay, attrs, x, y in self.sr.overlays:
-            minOverlay = max(minOverlay, x + int(attrs.width) + int((attrs.Get('border', 0) or 0) * 2))
+        else:
+            setWidth = int(self.celldata.Get('width', None) or 0)
+            minOverlay = 0
+            for overlay, attrs, x, y in self.sr.overlays:
+                minOverlay = max(minOverlay, x + int(attrs.width) + int((attrs.Get('border', 0) or 0) * 2))
 
-        return (max(self.minWidth + sideAddon + minOverlay, setWidth), setWidth)
+            return (max(self.minWidth + sideAddon + minOverlay, setWidth), setWidth)
 
     def GetMinHeight(self):
         if not self.celldata or self.destroyed:
             return 0
-        h = int(self.celldata.Get('height', None) or self.rowdata.Get('height', None) or 1)
-        s = self.celldata.styles
-        topAddon = s['border-top-width'] + s['border-bottom-width'] + s['padding-top'] + s['padding-bottom'] + s['margin-top'] + s['margin-bottom']
-        self.attrStack.append(s)
-        self.LoadBuffer(self.celldata.content[:], setWidth=self.width)
-        if self.destroyed:
-            return 0
-        minOverlay = 0
-        for overlay, attrs, x, y in self.sr.overlays:
-            minOverlay = max(minOverlay, y + int(attrs.height) + int((attrs.Get('border', 0) or 0) * 2))
+        else:
+            h = int(self.celldata.Get('height', None) or self.rowdata.Get('height', None) or 1)
+            s = self.celldata.styles
+            topAddon = s['border-top-width'] + s['border-bottom-width'] + s['padding-top'] + s['padding-bottom'] + s['margin-top'] + s['margin-bottom']
+            self.attrStack.append(s)
+            self.LoadBuffer(self.celldata.content[:], setWidth=self.width)
+            if self.destroyed:
+                return 0
+            minOverlay = 0
+            for overlay, attrs, x, y in self.sr.overlays:
+                minOverlay = max(minOverlay, y + int(attrs.height) + int((attrs.Get('border', 0) or 0) * 2))
 
-        return max(h, self.contentHeight + topAddon, minOverlay)
+            return max(h, self.contentHeight + topAddon, minOverlay)
 
     def VAlignContent(self):
         if not self or self.destroyed:
@@ -463,6 +478,7 @@ class Cell(ParserBase, SE_BaseClassCore):
             entry.PreLoadFunction(entry)
         self.sr.entries.append(entry)
         self.AddPanel(entry)
+        return
 
     def AddPanel(self, entry):
         w = entry.decoClass(parent=self.sr.content, align=uiconst.TOTOP)
@@ -476,6 +492,7 @@ class Cell(ParserBase, SE_BaseClassCore):
         w.name = 'cellContent'
         w.Load(entry)
         w.state = uiconst.UI_PICKCHILDREN
+        return
 
     def CheckOverlaysAndUnderlays(self):
         for overlay, attrs, x, y in self.sr.overlays:
@@ -528,13 +545,15 @@ class DivOverlay(Cell):
         elif attrs.stack['float'] in ('left', 'right'):
             self.left = attrs.left
             self.top = attrs.top
+        return
 
     def FindCellAbove(self, wnd):
         if wnd is uicore.desktop:
             return None
-        if isinstance(wnd, DivOverlay):
+        elif isinstance(wnd, DivOverlay):
             return wnd
-        return self.FindCellAbove(wnd.parent)
+        else:
+            return self.FindCellAbove(wnd.parent)
 
     def Load(self):
         if not self.loaded:
@@ -597,6 +616,7 @@ class BorderUnderlay(SE_BaseClassCore):
             self.width = (self.data.attrs.width or 1) + (int(self.data.attrs.border or 0) + 0)
             self.height = (self.data.attrs.height or 1) + (int(self.data.attrs.border or 0) + 0)
             self.loaded = 1
+        return
 
 
 class ImgListentry(SE_BaseClassCore):
@@ -617,6 +637,7 @@ class ImgListentry(SE_BaseClassCore):
         attrs.pictureTop = attrs.topmargin + attrs.topborder
         self.picloaded = 0
         self.pic = None
+        return
 
     def AddBorders(self, where, attrs):
         for i, side in enumerate(['top',
@@ -634,6 +655,8 @@ class ImgListentry(SE_BaseClassCore):
                  attrs.Get('%smargin-' % side, 0)), idx=0)
             if attrs.Get('%sborder' % side, 0):
                 Line(parent=where, align=align, weight=attrs.Get('%sborder' % side, 0), color=attrs.Get('%scolor' % side, None))
+
+        return
 
     def Load(self):
         if not self.loaded:
@@ -653,3 +676,4 @@ class ImgListentry(SE_BaseClassCore):
         self.pic.Load(self.data.attrs)
         self.pic.attrs.texture = None
         self.picloaded = 1
+        return

@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\packages\requests\packages\urllib3\util.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\packages\requests\packages\urllib3\util.py
 from base64 import b64encode
 from binascii import hexlify, unhexlify
 from collections import namedtuple
@@ -35,11 +36,12 @@ def current_time():
 class Timeout(object):
     DEFAULT_TIMEOUT = _GLOBAL_DEFAULT_TIMEOUT
 
-    def __init__(self, total = None, connect = _Default, read = _Default):
+    def __init__(self, total=None, connect=_Default, read=_Default):
         self._connect = self._validate_timeout(connect, 'connect')
         self._read = self._validate_timeout(read, 'read')
         self.total = self._validate_timeout(total, 'total')
         self._start_connect = None
+        return
 
     def __str__(self):
         return '%s(connect=%r, read=%r, total=%r)' % (type(self).__name__,
@@ -51,20 +53,21 @@ class Timeout(object):
     def _validate_timeout(cls, value, name):
         if value is _Default:
             return cls.DEFAULT_TIMEOUT
-        if value is None or value is cls.DEFAULT_TIMEOUT:
+        elif value is None or value is cls.DEFAULT_TIMEOUT:
             return value
-        try:
-            float(value)
-        except (TypeError, ValueError):
-            raise ValueError('Timeout value %s was %s, but it must be an int or float.' % (name, value))
+        else:
+            try:
+                float(value)
+            except (TypeError, ValueError):
+                raise ValueError('Timeout value %s was %s, but it must be an int or float.' % (name, value))
 
-        try:
-            if value < 0:
-                raise ValueError('Attempted to set %s timeout to %s, but the timeout cannot be set to a value less than 0.' % (name, value))
-        except TypeError:
-            raise ValueError('Timeout value %s was %s, but it must be an int or float.' % (name, value))
+            try:
+                if value < 0:
+                    raise ValueError('Attempted to set %s timeout to %s, but the timeout cannot be set to a value less than 0.' % (name, value))
+            except TypeError:
+                raise ValueError('Timeout value %s was %s, but it must be an int or float.' % (name, value))
 
-        return value
+            return value
 
     @classmethod
     def from_float(cls, timeout):
@@ -88,9 +91,10 @@ class Timeout(object):
     def connect_timeout(self):
         if self.total is None:
             return self._connect
-        if self._connect is None or self._connect is self.DEFAULT_TIMEOUT:
+        elif self._connect is None or self._connect is self.DEFAULT_TIMEOUT:
             return self.total
-        return min(self._connect, self.total)
+        else:
+            return min(self._connect, self.total)
 
     @property
     def read_timeout(self):
@@ -102,6 +106,7 @@ class Timeout(object):
             return max(0, self.total - self.get_connect_duration())
         else:
             return self._read
+            return
 
 
 class Url(namedtuple('Url', ['scheme',
@@ -113,7 +118,7 @@ class Url(namedtuple('Url', ['scheme',
  'fragment'])):
     slots = ()
 
-    def __new__(cls, scheme = None, auth = None, host = None, port = None, path = None, query = None, fragment = None):
+    def __new__(cls, scheme=None, auth=None, host=None, port=None, path=None, query=None, fragment=None):
         return super(Url, cls).__new__(cls, scheme, auth, host, port, path, query, fragment)
 
     @property
@@ -147,7 +152,8 @@ def split_first(s, delims):
 
     if min_idx is None or min_idx < 0:
         return (s, '', None)
-    return (s[:min_idx], s[min_idx + 1:], min_delim)
+    else:
+        return (s[:min_idx], s[min_idx + 1:], min_delim)
 
 
 def parse_url(url):
@@ -182,11 +188,12 @@ def parse_url(url):
         host = url
     if not path:
         return Url(scheme, auth, host, port, path, query, fragment)
-    if '#' in path:
-        path, fragment = path.split('#', 1)
-    if '?' in path:
-        path, query = path.split('?', 1)
-    return Url(scheme, auth, host, port, path, query, fragment)
+    else:
+        if '#' in path:
+            path, fragment = path.split('#', 1)
+        if '?' in path:
+            path, query = path.split('?', 1)
+        return Url(scheme, auth, host, port, path, query, fragment)
 
 
 def get_host(url):
@@ -194,7 +201,7 @@ def get_host(url):
     return (p.scheme or 'http', p.hostname, p.port)
 
 
-def make_headers(keep_alive = None, accept_encoding = None, user_agent = None, basic_auth = None, proxy_basic_auth = None):
+def make_headers(keep_alive=None, accept_encoding=None, user_agent=None, basic_auth=None, proxy_basic_auth=None):
     headers = {}
     if accept_encoding:
         if isinstance(accept_encoding, str):
@@ -237,23 +244,25 @@ def is_connection_dropped(conn):
 def resolve_cert_reqs(candidate):
     if candidate is None:
         return CERT_NONE
-    if isinstance(candidate, str):
+    elif isinstance(candidate, str):
         res = getattr(ssl, candidate, None)
         if res is None:
             res = getattr(ssl, 'CERT_' + candidate)
         return res
-    return candidate
+    else:
+        return candidate
 
 
 def resolve_ssl_version(candidate):
     if candidate is None:
         return PROTOCOL_SSLv23
-    if isinstance(candidate, str):
+    elif isinstance(candidate, str):
         res = getattr(ssl, candidate, None)
         if res is None:
             res = getattr(ssl, 'PROTOCOL_' + candidate)
         return res
-    return candidate
+    else:
+        return candidate
 
 
 def assert_fingerprint(cert, fingerprint):
@@ -273,12 +282,13 @@ def assert_fingerprint(cert, fingerprint):
 def is_fp_closed(obj):
     if hasattr(obj, 'fp'):
         return obj.fp is None
-    return obj.closed
+    else:
+        return obj.closed
 
 
 if SSLContext is not None:
 
-    def ssl_wrap_socket(sock, keyfile = None, certfile = None, cert_reqs = None, ca_certs = None, server_hostname = None, ssl_version = None):
+    def ssl_wrap_socket(sock, keyfile=None, certfile=None, cert_reqs=None, ca_certs=None, server_hostname=None, ssl_version=None):
         context = SSLContext(ssl_version)
         context.verify_mode = cert_reqs
         OP_NO_COMPRESSION = 131072
@@ -298,5 +308,5 @@ if SSLContext is not None:
 
 else:
 
-    def ssl_wrap_socket(sock, keyfile = None, certfile = None, cert_reqs = None, ca_certs = None, server_hostname = None, ssl_version = None):
+    def ssl_wrap_socket(sock, keyfile=None, certfile=None, cert_reqs=None, ca_certs=None, server_hostname=None, ssl_version=None):
         return wrap_socket(sock, keyfile=keyfile, certfile=certfile, ca_certs=ca_certs, cert_reqs=cert_reqs, ssl_version=ssl_version)

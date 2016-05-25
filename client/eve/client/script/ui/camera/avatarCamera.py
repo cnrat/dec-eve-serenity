@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\client\script\ui\camera\avatarCamera.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\client\script\ui\camera\avatarCamera.py
 import blue
 import cameras
 import trinity
@@ -22,6 +23,7 @@ class AvatarCamera(cameras.IncarnaCamera):
         self.zoomAccelerate = 1.0
         self.lastScrollDelta = 0
         self.colliding = False
+        return
 
     def PickHangarScene(self, posX, posY):
         if self.viewState.IsViewActive('station'):

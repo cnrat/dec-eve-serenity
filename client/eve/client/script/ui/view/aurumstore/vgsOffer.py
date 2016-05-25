@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\client\script\ui\view\aurumstore\vgsOffer.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\client\script\ui\view\aurumstore\vgsOffer.py
 import carbonui.const as uiconst
 import dogma.const
 import eve.common.lib.appConst as appConst
@@ -53,7 +54,6 @@ def CreateFill(parent, _):
 
 
 @Component(ButtonEffect(bgElementFunc=CreateFill, idx=0, opacityIdle=0.0, opacityHover=0.5, opacityMouseDown=0.85, audioOnEntry='store_hover'))
-
 class VgsOffer(Container):
     default_name = 'Offer'
     default_align = uiconst.TOPLEFT
@@ -71,6 +71,7 @@ class VgsOffer(Container):
         if self.offer:
             self.lazySprite = LazyUrlSprite(parent=self.imageLayer, align=uiconst.TOALL, imageUrl=self.offer.imageUrl)
         GradientSprite(name='OfferGradient', align=uiconst.TOALL, bgParent=self.imageLayer, rgbData=((1.0, OFFER_RADIAL_SHADOW),), alphaData=((0.0, 0.0), (1.0, 1.0)), radial=True, idx=0)
+        return
 
     def OnClick(self):
         if self.offer:
@@ -136,6 +137,7 @@ class VgsOfferPreview(Container):
         self.lazySprite = LazyUrlSprite(parent=self.imageLayer, align=uiconst.TOALL, imageUrl=self.offer.imageUrl, state=uiconst.UI_DISABLED)
         GradientSprite(name='OfferGradient', align=uiconst.TOALL, bgParent=self.imageLayer, rgbData=((1.0, OFFER_RADIAL_SHADOW),), alphaData=((0.0, 0.0), (1.0, 1.0)), radial=True, idx=0)
         self.PickFirstPreviewableType()
+        return
 
     def CreateCharacterButtons(self):
         characters = sm.GetService('cc').GetCharactersToSelect()
@@ -148,6 +150,8 @@ class VgsOfferPreview(Container):
             self.on_charid.connect(button.OnCharID)
             self.on_typeid.connect(button.OnTypeID)
             self.charButtons.append(button)
+
+        return
 
     def ShowCharacterButtons(self):
         if self._charButtonsDisplayed:
@@ -175,7 +179,9 @@ class VgsOfferPreview(Container):
         if IsPreviewable(self.typeID) and IsApparel(self.typeID) and not IsWearableBy(self.typeID, self.charID):
             self.charID = None
             return
-        uthread.new(self.ShowPreview)
+        else:
+            uthread.new(self.ShowPreview)
+            return
 
     def OnStartLoading(self, _):
         if not IsApparel(self.typeID):
@@ -218,7 +224,6 @@ class VgsOfferPreview(Container):
 
 
 @Component(ToggleButtonEffect(bgElementFunc=lambda parent, _: parent.arrow, opacityIdle=0.5, opacityHover=0.8, opacityMouseDown=1.0, audioOnEntry='store_hover'))
-
 class CollapseButton(Container):
     default_state = uiconst.UI_NORMAL
     default_width = 32
@@ -249,7 +254,6 @@ class CollapseButton(Container):
 
 
 @Component(RadioButtonEffect(bgElementFunc=lambda parent, _: parent.highlight, idx=0, opacityIdle=0.0, opacityHover=0.5, opacityMouseDown=0.85, audioOnEntry='store_hover'))
-
 class CharacterButton(Container):
     default_state = uiconst.UI_NORMAL
 
@@ -269,6 +273,7 @@ class CharacterButton(Container):
             sm.GetService('photo').GetPortrait(self.charID, 38, self.portrait)
         else:
             self.portrait.texturePath = 'res:/UI/Texture/Vgs/mannequin.png'
+        return
 
     def OnClick(self, *args):
         if not self.disabled:
@@ -280,13 +285,15 @@ class CharacterButton(Container):
     def OnTypeID(self, container):
         if self.gender is None or not IsApparel(container.typeID):
             return
-        gender = GetApparelGender(container.typeID)
-        if gender is None or gender == self.gender:
-            self.disabled = False
-            uicore.animations.SpColorMorphTo(self.portrait, endColor=(1.0, 1.0, 1.0), duration=0.4)
         else:
-            self.disabled = True
-            uicore.animations.SpColorMorphTo(self.portrait, endColor=(0.4, 0.4, 0.4), duration=0.4)
+            gender = GetApparelGender(container.typeID)
+            if gender is None or gender == self.gender:
+                self.disabled = False
+                uicore.animations.SpColorMorphTo(self.portrait, endColor=(1.0, 1.0, 1.0), duration=0.4)
+            else:
+                self.disabled = True
+                uicore.animations.SpColorMorphTo(self.portrait, endColor=(0.4, 0.4, 0.4), duration=0.4)
+            return
 
 
 GENDER_BY_APPAREL_GENDER = {1: appConst.MALE,
@@ -302,11 +309,12 @@ def GetApparelGender(typeID):
 def IsWearableBy(typeID, charID):
     if not IsApparel(typeID):
         return False
-    if charID is None:
+    elif charID is None:
         return True
-    apparelGender = GetApparelGender(typeID)
-    characterGender = cfg.eveowners.Get(charID).gender
-    return apparelGender is None or apparelGender == characterGender
+    else:
+        apparelGender = GetApparelGender(typeID)
+        characterGender = cfg.eveowners.Get(charID).gender
+        return apparelGender is None or apparelGender == characterGender
 
 
 def GetPreviewType(typeID):

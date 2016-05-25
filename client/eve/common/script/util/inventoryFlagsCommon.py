@@ -1,238 +1,242 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\common\script\util\inventoryFlagsCommon.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\common\script\util\inventoryFlagsCommon.py
+import dogma.const
+from eveexceptions.const import UE_TYPEID, UE_CATID, UE_GROUPID
 import evetypes
-import localization
-inventoryFlagData = {const.flagCargo: {'name': 'UI/Ship/CargoHold',
-                   'attribute': const.attributeCapacity,
-                   'allowCategories': None,
-                   'allowGroups': None,
-                   'blockGroups': None,
-                   'allowTypes': None,
-                   'blockTypes': None},
- const.flagDroneBay: {'name': 'UI/Ship/DroneBay',
-                      'attribute': const.attributeDroneCapacity,
-                      'allowCategories': (const.categoryDrone,),
-                      'allowGroups': None,
-                      'blockGroups': None,
-                      'allowTypes': None,
-                      'blockTypes': None},
- const.flagFighterBay: {'name': 'UI/Ship/FighterBay',
-                        'attribute': const.attributeFighterCapacity,
-                        'allowCategories': (const.categoryFighter,),
-                        'allowGroups': None,
-                        'blockGroups': None,
-                        'allowTypes': None,
-                        'blockTypes': None},
- const.flagShipHangar: {'name': 'UI/Ship/ShipMaintenanceBay',
-                        'attribute': const.attributeShipMaintenanceBayCapacity,
-                        'allowCategories': (const.categoryShip,),
-                        'allowGroups': None,
-                        'blockGroups': (const.groupCapsule,),
-                        'allowTypes': None,
-                        'blockTypes': None},
- const.flagFleetHangar: {'name': 'UI/Ship/FleetHangar',
-                         'attribute': const.attributeFleetHangarCapacity,
-                         'allowCategories': None,
-                         'allowGroups': None,
-                         'blockGroups': None,
-                         'allowTypes': None,
-                         'blockTypes': None},
- const.flagSpecializedFuelBay: {'name': 'UI/Ship/FuelBay',
-                                'attribute': const.attributeSpecialFuelBayCapacity,
-                                'allowCategories': None,
-                                'blockCategories': None,
-                                'allowGroups': (const.groupIceProduct,),
-                                'blockGroups': None,
-                                'allowTypes': None,
-                                'blockTypes': None},
- const.flagSpecializedOreHold: {'name': 'UI/Ship/OreHold',
-                                'attribute': const.attributeSpecialOreHoldCapacity,
-                                'allowCategories': (const.categoryAsteroid,),
-                                'blockCategories': None,
-                                'allowGroups': (const.groupHarvestableCloud,),
-                                'blockGroups': None,
-                                'allowTypes': None,
-                                'blockTypes': None},
- const.flagSpecializedGasHold: {'name': 'UI/Ship/GasHold',
-                                'attribute': const.attributeSpecialGasHoldCapacity,
-                                'allowCategories': None,
-                                'blockCategories': None,
-                                'allowGroups': (const.groupHarvestableCloud,),
-                                'blockGroups': None,
-                                'allowTypes': None,
-                                'blockTypes': None},
- const.flagSpecializedMineralHold: {'name': 'UI/Ship/MineralHold',
-                                    'attribute': const.attributeSpecialMineralHoldCapacity,
-                                    'allowCategories': None,
-                                    'blockCategories': None,
-                                    'allowGroups': (const.groupMineral,),
-                                    'blockGroups': None,
-                                    'allowTypes': None,
-                                    'blockTypes': None},
- const.flagSpecializedSalvageHold: {'name': 'UI/Ship/SalvageHold',
-                                    'attribute': const.attributeSpecialSalvageHoldCapacity,
-                                    'allowCategories': None,
-                                    'blockCategories': None,
-                                    'allowGroups': (const.groupAncientSalvage, const.groupSalvagedMaterials, const.groupRefinables),
-                                    'blockGroups': None,
-                                    'allowTypes': None,
-                                    'blockTypes': None},
- const.flagSpecializedShipHold: {'name': 'UI/Ship/ShipHold',
-                                 'attribute': const.attributeSpecialShipHoldCapacity,
-                                 'allowCategories': (const.categoryShip,),
-                                 'blockCategories': None,
-                                 'allowGroups': None,
-                                 'blockGroups': None,
-                                 'allowTypes': None,
-                                 'blockTypes': None},
- const.flagSpecializedSmallShipHold: {'name': 'UI/Ship/SmallShipHold',
-                                      'attribute': const.attributeSpecialSmallShipHoldCapacity,
-                                      'allowCategories': None,
-                                      'blockCategories': None,
-                                      'allowGroups': (const.groupFrigate,
-                                                      const.groupAssaultShip,
-                                                      const.groupDestroyer,
-                                                      const.groupInterdictor,
-                                                      const.groupInterceptor,
-                                                      const.groupCovertOps,
-                                                      const.groupElectronicAttackShips,
-                                                      const.groupStealthBomber,
-                                                      const.groupExpeditionFrigate,
-                                                      const.groupTacticalDestroyer,
-                                                      const.groupLogisticsFrigate,
-                                                      const.groupCommandDestroyer),
+import inventorycommon.const
+inventoryFlagData = {inventorycommon.const.flagCargo: {'name': 'UI/Ship/CargoHold',
+                                   'attribute': dogma.const.attributeCapacity,
+                                   'allowCategories': None,
+                                   'allowGroups': None,
+                                   'blockGroups': None,
+                                   'allowTypes': None,
+                                   'blockTypes': None},
+ inventorycommon.const.flagDroneBay: {'name': 'UI/Ship/DroneBay',
+                                      'attribute': dogma.const.attributeDroneCapacity,
+                                      'allowCategories': (inventorycommon.const.categoryDrone,),
+                                      'allowGroups': None,
                                       'blockGroups': None,
                                       'allowTypes': None,
                                       'blockTypes': None},
- const.flagSpecializedMediumShipHold: {'name': 'UI/Ship/MediumShipHold',
-                                       'attribute': const.attributeSpecialMediumShipHoldCapacity,
-                                       'allowCategories': None,
-                                       'blockCategories': None,
-                                       'allowGroups': (const.groupCruiser,
-                                                       const.groupCombatReconShip,
-                                                       const.groupCommandShip,
-                                                       const.groupHeavyAssaultShip,
-                                                       const.groupHeavyInterdictors,
-                                                       const.groupLogistics,
-                                                       const.groupStrategicCruiser,
-                                                       const.groupBattlecruiser,
-                                                       const.groupAttackBattlecruiser,
-                                                       const.groupForceReconShip),
-                                       'blockGroups': None,
-                                       'allowTypes': None,
-                                       'blockTypes': None},
- const.flagSpecializedLargeShipHold: {'name': 'UI/Ship/LargeShipHold',
-                                      'attribute': const.attributeSpecialLargeShipHoldCapacity,
-                                      'allowCategories': None,
-                                      'blockCategories': None,
-                                      'allowGroups': (const.groupBattleship, const.groupBlackOps, const.groupMarauders),
-                                      'blockGroups': None,
-                                      'allowTypes': None,
-                                      'blockTypes': None},
- const.flagSpecializedIndustrialShipHold: {'name': 'UI/Ship/IndustrialShipHold',
-                                           'attribute': const.attributeSpecialIndustrialShipHoldCapacity,
-                                           'allowCategories': None,
-                                           'blockCategories': None,
-                                           'allowGroups': (const.groupBlockadeRunner,
-                                                           const.groupExhumer,
-                                                           const.groupIndustrial,
-                                                           const.groupMiningBarge,
-                                                           const.groupTransportShip,
-                                                           const.groupExpeditionFrigate),
-                                           'blockGroups': None,
-                                           'allowTypes': None,
-                                           'blockTypes': None},
- const.flagSpecializedAmmoHold: {'name': 'UI/Ship/AmmoHold',
-                                 'attribute': const.attributeSpecialAmmoHoldCapacity,
-                                 'allowCategories': (const.categoryCharge,),
-                                 'blockCategories': None,
-                                 'allowGroups': None,
-                                 'blockGroups': None,
-                                 'allowTypes': None,
-                                 'blockTypes': None},
- const.flagSpecializedCommandCenterHold: {'name': 'UI/Ship/CommandCenterHold',
-                                          'attribute': const.attributeSpecialCommandCenterHoldCapacity,
-                                          'allowCategories': None,
-                                          'blockCategories': None,
-                                          'allowGroups': (const.groupCommandPins,),
-                                          'blockGroups': None,
-                                          'allowTypes': None,
-                                          'blockTypes': None},
- const.flagSpecializedPlanetaryCommoditiesHold: {'name': 'UI/Ship/PlanetaryCommoditiesHold',
-                                                 'attribute': const.attributeSpecialPlanetaryCommoditiesHoldCapacity,
-                                                 'allowCategories': (const.categoryPlanetaryCommodities, const.categoryPlanetaryResources),
+ inventorycommon.const.flagFighterBay: {'name': 'UI/Ship/FighterBay',
+                                        'attribute': dogma.const.attributeFighterCapacity,
+                                        'allowCategories': (inventorycommon.const.categoryFighter,),
+                                        'allowGroups': None,
+                                        'blockGroups': None,
+                                        'allowTypes': None,
+                                        'blockTypes': None},
+ inventorycommon.const.flagShipHangar: {'name': 'UI/Ship/ShipMaintenanceBay',
+                                        'attribute': dogma.const.attributeShipMaintenanceBayCapacity,
+                                        'allowCategories': (inventorycommon.const.categoryShip,),
+                                        'allowGroups': None,
+                                        'blockGroups': (inventorycommon.const.groupCapsule,),
+                                        'allowTypes': None,
+                                        'blockTypes': None},
+ inventorycommon.const.flagFleetHangar: {'name': 'UI/Ship/FleetHangar',
+                                         'attribute': dogma.const.attributeFleetHangarCapacity,
+                                         'allowCategories': None,
+                                         'allowGroups': None,
+                                         'blockGroups': None,
+                                         'allowTypes': None,
+                                         'blockTypes': None},
+ inventorycommon.const.flagSpecializedFuelBay: {'name': 'UI/Ship/FuelBay',
+                                                'attribute': dogma.const.attributeSpecialFuelBayCapacity,
+                                                'allowCategories': None,
+                                                'blockCategories': None,
+                                                'allowGroups': (inventorycommon.const.groupIceProduct,),
+                                                'blockGroups': None,
+                                                'allowTypes': None,
+                                                'blockTypes': None},
+ inventorycommon.const.flagSpecializedOreHold: {'name': 'UI/Ship/OreHold',
+                                                'attribute': dogma.const.attributeSpecialOreHoldCapacity,
+                                                'allowCategories': (inventorycommon.const.categoryAsteroid,),
+                                                'blockCategories': None,
+                                                'allowGroups': (inventorycommon.const.groupHarvestableCloud,),
+                                                'blockGroups': None,
+                                                'allowTypes': None,
+                                                'blockTypes': None},
+ inventorycommon.const.flagSpecializedGasHold: {'name': 'UI/Ship/GasHold',
+                                                'attribute': dogma.const.attributeSpecialGasHoldCapacity,
+                                                'allowCategories': None,
+                                                'blockCategories': None,
+                                                'allowGroups': (inventorycommon.const.groupHarvestableCloud,),
+                                                'blockGroups': None,
+                                                'allowTypes': None,
+                                                'blockTypes': None},
+ inventorycommon.const.flagSpecializedMineralHold: {'name': 'UI/Ship/MineralHold',
+                                                    'attribute': dogma.const.attributeSpecialMineralHoldCapacity,
+                                                    'allowCategories': None,
+                                                    'blockCategories': None,
+                                                    'allowGroups': (inventorycommon.const.groupMineral,),
+                                                    'blockGroups': None,
+                                                    'allowTypes': None,
+                                                    'blockTypes': None},
+ inventorycommon.const.flagSpecializedSalvageHold: {'name': 'UI/Ship/SalvageHold',
+                                                    'attribute': dogma.const.attributeSpecialSalvageHoldCapacity,
+                                                    'allowCategories': None,
+                                                    'blockCategories': None,
+                                                    'allowGroups': (inventorycommon.const.groupAncientSalvage, inventorycommon.const.groupSalvagedMaterials, inventorycommon.const.groupRefinables),
+                                                    'blockGroups': None,
+                                                    'allowTypes': None,
+                                                    'blockTypes': None},
+ inventorycommon.const.flagSpecializedShipHold: {'name': 'UI/Ship/ShipHold',
+                                                 'attribute': dogma.const.attributeSpecialShipHoldCapacity,
+                                                 'allowCategories': (inventorycommon.const.categoryShip,),
                                                  'blockCategories': None,
                                                  'allowGroups': None,
                                                  'blockGroups': None,
-                                                 'allowTypes': (const.typeWater, const.typeOxygen),
+                                                 'allowTypes': None,
                                                  'blockTypes': None},
- const.flagSpecializedMaterialBay: {'name': 'UI/Ship/MaterialBay',
-                                    'attribute': const.attributeSpecialMaterialBayCapacity,
-                                    'allowCategories': (const.categoryPlanetaryCommodities, const.categoryCommodity, const.categoryMaterial),
-                                    'blockCategories': None,
-                                    'allowGroups': None,
-                                    'blockGroups': None,
-                                    'allowTypes': None,
-                                    'blockTypes': None},
- const.flagQuafeBay: {'name': 'UI/Ship/QuafeBay',
-                      'attribute': const.attributeSpecialQuafeHoldCapacity,
-                      'allowCategories': None,
-                      'blockCategories': None,
-                      'allowGroups': None,
-                      'blockGroups': None,
-                      'allowTypes': (const.typeLargeCratesOfQuafe,
-                                     const.typeQuafe,
-                                     const.typeQuafeUltra,
-                                     const.typeQuafeUltraSpecialEdition,
-                                     const.typeQuafeZero,
-                                     const.typeSpikedQuafe),
-                      'blockTypes': None}}
+ inventorycommon.const.flagSpecializedSmallShipHold: {'name': 'UI/Ship/SmallShipHold',
+                                                      'attribute': dogma.const.attributeSpecialSmallShipHoldCapacity,
+                                                      'allowCategories': None,
+                                                      'blockCategories': None,
+                                                      'allowGroups': (inventorycommon.const.groupFrigate,
+                                                                      inventorycommon.const.groupAssaultShip,
+                                                                      inventorycommon.const.groupDestroyer,
+                                                                      inventorycommon.const.groupInterdictor,
+                                                                      inventorycommon.const.groupInterceptor,
+                                                                      inventorycommon.const.groupCovertOps,
+                                                                      inventorycommon.const.groupElectronicAttackShips,
+                                                                      inventorycommon.const.groupStealthBomber,
+                                                                      inventorycommon.const.groupExpeditionFrigate,
+                                                                      inventorycommon.const.groupTacticalDestroyer,
+                                                                      inventorycommon.const.groupLogisticsFrigate,
+                                                                      inventorycommon.const.groupCommandDestroyer),
+                                                      'blockGroups': None,
+                                                      'allowTypes': None,
+                                                      'blockTypes': None},
+ inventorycommon.const.flagSpecializedMediumShipHold: {'name': 'UI/Ship/MediumShipHold',
+                                                       'attribute': dogma.const.attributeSpecialMediumShipHoldCapacity,
+                                                       'allowCategories': None,
+                                                       'blockCategories': None,
+                                                       'allowGroups': (inventorycommon.const.groupCruiser,
+                                                                       inventorycommon.const.groupCombatReconShip,
+                                                                       inventorycommon.const.groupCommandShip,
+                                                                       inventorycommon.const.groupHeavyAssaultShip,
+                                                                       inventorycommon.const.groupHeavyInterdictors,
+                                                                       inventorycommon.const.groupLogistics,
+                                                                       inventorycommon.const.groupStrategicCruiser,
+                                                                       inventorycommon.const.groupBattlecruiser,
+                                                                       inventorycommon.const.groupAttackBattlecruiser,
+                                                                       inventorycommon.const.groupForceReconShip),
+                                                       'blockGroups': None,
+                                                       'allowTypes': None,
+                                                       'blockTypes': None},
+ inventorycommon.const.flagSpecializedLargeShipHold: {'name': 'UI/Ship/LargeShipHold',
+                                                      'attribute': dogma.const.attributeSpecialLargeShipHoldCapacity,
+                                                      'allowCategories': None,
+                                                      'blockCategories': None,
+                                                      'allowGroups': (inventorycommon.const.groupBattleship, inventorycommon.const.groupBlackOps, inventorycommon.const.groupMarauders),
+                                                      'blockGroups': None,
+                                                      'allowTypes': None,
+                                                      'blockTypes': None},
+ inventorycommon.const.flagSpecializedIndustrialShipHold: {'name': 'UI/Ship/IndustrialShipHold',
+                                                           'attribute': dogma.const.attributeSpecialIndustrialShipHoldCapacity,
+                                                           'allowCategories': None,
+                                                           'blockCategories': None,
+                                                           'allowGroups': (inventorycommon.const.groupBlockadeRunner,
+                                                                           inventorycommon.const.groupExhumer,
+                                                                           inventorycommon.const.groupIndustrial,
+                                                                           inventorycommon.const.groupMiningBarge,
+                                                                           inventorycommon.const.groupTransportShip,
+                                                                           inventorycommon.const.groupExpeditionFrigate),
+                                                           'blockGroups': None,
+                                                           'allowTypes': None,
+                                                           'blockTypes': None},
+ inventorycommon.const.flagSpecializedAmmoHold: {'name': 'UI/Ship/AmmoHold',
+                                                 'attribute': dogma.const.attributeSpecialAmmoHoldCapacity,
+                                                 'allowCategories': (inventorycommon.const.categoryCharge,),
+                                                 'blockCategories': None,
+                                                 'allowGroups': None,
+                                                 'blockGroups': None,
+                                                 'allowTypes': None,
+                                                 'blockTypes': None},
+ inventorycommon.const.flagSpecializedCommandCenterHold: {'name': 'UI/Ship/CommandCenterHold',
+                                                          'attribute': dogma.const.attributeSpecialCommandCenterHoldCapacity,
+                                                          'allowCategories': None,
+                                                          'blockCategories': None,
+                                                          'allowGroups': (inventorycommon.const.groupCommandPins,),
+                                                          'blockGroups': None,
+                                                          'allowTypes': None,
+                                                          'blockTypes': None},
+ inventorycommon.const.flagSpecializedPlanetaryCommoditiesHold: {'name': 'UI/Ship/PlanetaryCommoditiesHold',
+                                                                 'attribute': dogma.const.attributeSpecialPlanetaryCommoditiesHoldCapacity,
+                                                                 'allowCategories': (inventorycommon.const.categoryPlanetaryCommodities, inventorycommon.const.categoryPlanetaryResources),
+                                                                 'blockCategories': None,
+                                                                 'allowGroups': None,
+                                                                 'blockGroups': None,
+                                                                 'allowTypes': (inventorycommon.const.typeWater, inventorycommon.const.typeOxygen),
+                                                                 'blockTypes': None},
+ inventorycommon.const.flagSpecializedMaterialBay: {'name': 'UI/Ship/MaterialBay',
+                                                    'attribute': dogma.const.attributeSpecialMaterialBayCapacity,
+                                                    'allowCategories': (inventorycommon.const.categoryPlanetaryCommodities, inventorycommon.const.categoryCommodity, inventorycommon.const.categoryMaterial),
+                                                    'blockCategories': None,
+                                                    'allowGroups': None,
+                                                    'blockGroups': None,
+                                                    'allowTypes': None,
+                                                    'blockTypes': None},
+ inventorycommon.const.flagQuafeBay: {'name': 'UI/Ship/QuafeBay',
+                                      'attribute': dogma.const.attributeSpecialQuafeHoldCapacity,
+                                      'allowCategories': None,
+                                      'blockCategories': None,
+                                      'allowGroups': None,
+                                      'blockGroups': None,
+                                      'allowTypes': (inventorycommon.const.typeLargeCratesOfQuafe,
+                                                     inventorycommon.const.typeQuafe,
+                                                     inventorycommon.const.typeQuafeUltra,
+                                                     inventorycommon.const.typeQuafeUltraSpecialEdition,
+                                                     inventorycommon.const.typeQuafeZero,
+                                                     inventorycommon.const.typeSpikedQuafe),
+                                      'blockTypes': None}}
 
 def ShouldAllowAdd(flag, categoryID, groupID, typeID):
     if flag not in inventoryFlagData:
         return
-    flagData = inventoryFlagData[flag]
-    errorTuple = None
-    useAllow = True
-    if flagData['allowCategories'] is not None:
-        if categoryID in flagData['allowCategories']:
-            useAllow = False
-        else:
-            errorTuple = (const.UE_CATID, categoryID)
-    if useAllow:
-        if flagData['allowGroups'] is not None:
-            if groupID in flagData['allowGroups']:
-                errorTuple = None
+    else:
+        flagData = inventoryFlagData[flag]
+        errorTuple = None
+        useAllow = True
+        if flagData['allowCategories'] is not None:
+            if categoryID in flagData['allowCategories']:
                 useAllow = False
             else:
-                errorTuple = (const.UE_GROUPID, groupID)
+                errorTuple = (UE_CATID, categoryID)
+        if useAllow:
+            if flagData['allowGroups'] is not None:
+                if groupID in flagData['allowGroups']:
+                    errorTuple = None
+                    useAllow = False
+                else:
+                    errorTuple = (UE_GROUPID, groupID)
+                    useAllow = True
+        elif flagData['blockGroups'] is not None:
+            if groupID in flagData['blockGroups']:
+                errorTuple = (UE_GROUPID, groupID)
                 useAllow = True
-    elif flagData['blockGroups'] is not None:
-        if groupID in flagData['blockGroups']:
-            errorTuple = (const.UE_GROUPID, groupID)
-            useAllow = True
-        else:
-            errorTuple = None
-            useAllow = False
-    if useAllow:
-        if flagData['allowTypes'] is not None:
-            if typeID in flagData['allowTypes']:
-                errorTuple = None
             else:
-                errorTuple = (const.UE_TYPEID, typeID)
-    elif flagData['blockTypes'] is not None:
-        if typeID in flagData['blockTypes']:
-            errorTuple = (const.UE_TYPEID, typeID)
-        else:
-            errorTuple = None
-    return errorTuple
+                errorTuple = None
+                useAllow = False
+        if useAllow:
+            if flagData['allowTypes'] is not None:
+                if typeID in flagData['allowTypes']:
+                    errorTuple = None
+                else:
+                    errorTuple = (UE_TYPEID, typeID)
+        elif flagData['blockTypes'] is not None:
+            if typeID in flagData['blockTypes']:
+                errorTuple = (UE_TYPEID, typeID)
+            else:
+                errorTuple = None
+        return errorTuple
 
 
 autoConsumeTypes = {}
-autoConsumeGroups = {const.groupIceProduct: (const.flagSpecializedFuelBay,)}
+autoConsumeGroups = {inventorycommon.const.groupIceProduct: (inventorycommon.const.flagSpecializedFuelBay,)}
 autoConsumeCategories = {}
 
-def GetBaysToCheck(typeID, priorityBays = []):
-    baysToCheck = priorityBays
+def GetBaysToCheck(typeID, priorityBays=[]):
+    baysToCheck = list(priorityBays)
     if baysToCheck is None:
         baysToCheck = []
     if typeID in autoConsumeTypes:
@@ -245,13 +249,9 @@ def GetBaysToCheck(typeID, priorityBays = []):
             categoryID = evetypes.GetCategoryID(typeID)
             if categoryID in autoConsumeCategories:
                 baysToCheck.extend(autoConsumeCategories[categoryID])
-    if const.flagCargo not in baysToCheck:
-        baysToCheck.append(const.flagCargo)
+    if inventorycommon.const.flagCargo not in baysToCheck:
+        baysToCheck.append(inventorycommon.const.flagCargo)
     return baysToCheck
-
-
-def GetNameForFlag(flagID):
-    return localization.GetByLabel(inventoryFlagData[flagID]['name'])
 
 
 import carbon.common.script.util.autoexport as autoexport

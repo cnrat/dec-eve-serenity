@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\packages\carbonui\primitives\sprite.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\packages\carbonui\primitives\sprite.py
 from .base import Base
 import carbonui.const as uiconst
 import audio2
@@ -42,10 +43,12 @@ class VisibleBase(Base):
         opacity = attributes.get('opacity', self.default_opacity)
         if opacity is not None:
             self.opacity = opacity
+        return
 
     def Close(self):
         self._color = None
         Base.Close(self)
+        return
 
     @apply
     def blendMode():
@@ -82,6 +85,7 @@ class VisibleBase(Base):
 
         def fdel(self):
             self._color = None
+            return
 
         return property(**locals())
 
@@ -188,6 +192,7 @@ class TexturedBase(VisibleBase):
         self._texture = None
         self._textureSecondary = None
         VisibleBase.Close(self)
+        return
 
     @apply
     def spriteEffect():
@@ -231,6 +236,7 @@ class TexturedBase(VisibleBase):
             ro = self.renderObject
             if ro and value is not None:
                 ro.textureSecondary = value
+            return
 
         return property(**locals())
 
@@ -586,6 +592,7 @@ class TexturedBase(VisibleBase):
     def _EnableStandAloneTexture(self, texture):
         if getattr(texture, 'atlasTexture', None) is not None:
             texture.atlasTexture.isStandAlone = True
+        return
 
     def __EnableSecondaryTransform(self):
         self.textureSecondary.useTransform = True
@@ -612,6 +619,8 @@ class TexturedBase(VisibleBase):
     def GetTexturePath(self):
         if self.texture:
             return self.texture.resPath
+        else:
+            return None
 
     texturePath = property(GetTexturePath, SetTexturePath)
 
@@ -623,6 +632,8 @@ class TexturedBase(VisibleBase):
     def GetSecondaryTexturePath(self):
         if self.textureSecondary:
             return self.textureSecondary.resPath
+        else:
+            return None
 
     def SetRect(self, rectLeft, rectTop, rectWidth, rectHeight):
         self.rectLeft = rectLeft
@@ -630,7 +641,7 @@ class TexturedBase(VisibleBase):
         self.rectWidth = rectWidth
         self.rectHeight = rectHeight
 
-    def LoadIcon(self, iconNo, ignoreSize = False):
+    def LoadIcon(self, iconNo, ignoreSize=False):
         if self.destroyed:
             return
         if iconNo.startswith('res:') or iconNo.startswith('cache:'):
@@ -732,179 +743,6 @@ class Sprite(TexturedBase):
         return property(**locals())
 
 
-class VideoSprite(Sprite):
-    __guid__ = 'uiprimitives.VideoSprite'
-    __renderObject__ = trinity.Tr2Sprite2d
-    __notifyevents__ = ['OnAudioActivated']
-    default_videoPath = ''
-    default_videoLoop = False
-    default_videoAutoPlay = True
-    default_muteAudio = False
-    default_spriteEffect = trinity.TR2_SFX_NOALPHA
-
-    def Close(self, *args, **kwds):
-        self.Pause()
-        uicore.uilib.GetVideoJob().steps.fremove(self._updateStep)
-        if self.positionComponent:
-            self.positionComponent.UnRegisterPlacementObserverWrapper(self.positionObserver)
-            self.positionComponent = None
-            self.positionObserver = None
-        self.emitter = None
-        self._updateStep = None
-        Sprite.Close(self, *args, **kwds)
-
-    def ApplyAttributes(self, attributes):
-        Sprite.ApplyAttributes(self, attributes)
-        sm.RegisterNotify(self)
-        self._updateStep = None
-        self._isFetchingFile = False
-        RO = self.GetRenderObject()
-        if 'videoPath' in attributes:
-            tex = trinity.Tr2Sprite2dBinkTexture()
-            tempPositionComponent = attributes.get('positionComponent', None)
-            self.emitter, outputChannel = uicore.audioHandler.GetAudioBus(is3D=tempPositionComponent is not None)
-            tex.outputChannel = outputChannel
-            self.positionComponent = self.SetPositionComponent(tempPositionComponent)
-            videoPath = attributes.get('videoPath', self.default_videoPath)
-            self._SetVideoResPathWithPrefetch(tex, videoPath)
-            if 'pos' in attributes:
-                pos = attributes.get('pos', (self.default_left,
-                 self.default_top,
-                 self.default_width,
-                 self.default_height))
-                RO.displayX, RO.displayY, RO.displayWidth, RO.displayHeight = pos
-            tex.loop = attributes.get('videoLoop', self.default_videoLoop)
-            if attributes.get('muteAudio', self.default_muteAudio):
-                tex.MuteAudio()
-            tex.Play()
-            self.texture = tex
-            if attributes.get('videoAutoPlay', self.default_videoAutoPlay):
-                self._updateStep = uicore.uilib.GetVideoJob().Update(RO.texturePrimary)
-
-    def OnAudioActivated(self):
-        if not self.texture:
-            return
-        self.Pause()
-        if self._updateStep:
-            uicore.uilib.GetVideoJob().steps.fremove(self._updateStep)
-            self._updateStep = None
-        self.emitter = None
-        self.emitter, self.texture.outputChannel = uicore.audioHandler.GetAudioBus(is3D=self.positionComponent is not None)
-        self.SetVideoPath(self.texture.resPath)
-        RO = self.GetRenderObject()
-        if RO:
-            self._updateStep = uicore.uilib.GetVideoJob().Update(RO.texturePrimary)
-        self.Play()
-
-    def SetPositionComponent(self, positionComponent):
-        if self.emitter and positionComponent and GameWorld:
-            self.positionObserver = GameWorld.PlacementObserverWrapper(self.emitter)
-            positionComponent.RegisterPlacementObserverWrapper(self.positionObserver)
-            return positionComponent
-
-    def GetVideoSize(self):
-        RO = self.GetRenderObject()
-        if RO and RO.texturePrimary.atlasTexture:
-            return (RO.texturePrimary.atlasTexture.width, RO.texturePrimary.atlasTexture.height)
-
-    def SetVideoPath(self, path):
-        RO = self.GetRenderObject()
-        if RO:
-            self._SetVideoResPathWithPrefetch(RO.texturePrimary, path)
-
-    def Play(self):
-        RO = self.GetRenderObject()
-        if RO:
-            RO.texturePrimary.Play()
-            if self._updateStep is None:
-                self._updateStep = uicore.uilib.GetVideoJob().Update(RO.texturePrimary)
-
-    def Pause(self):
-        RO = self.GetRenderObject()
-        if RO:
-            RO.texturePrimary.Pause()
-
-    def MuteAudio(self):
-        RO = self.GetRenderObject()
-        if RO:
-            RO.texturePrimary.MuteAudio()
-
-    def UnmuteAudio(self):
-        RO = self.GetRenderObject()
-        if RO:
-            RO.texturePrimary.UnmuteAudio()
-
-    @apply
-    def isMuted():
-        doc = ''
-
-        def fget(self):
-            RO = self.GetRenderObject()
-            if RO:
-                return RO.texturePrimary.isMuted
-
-        return property(**locals())
-
-    @apply
-    def isPaused():
-        doc = ''
-
-        def fget(self):
-            RO = self.GetRenderObject()
-            if RO:
-                return RO.texturePrimary.isPaused
-
-        return property(**locals())
-
-    @apply
-    def isFinished():
-        doc = ''
-
-        def fget(self):
-            if self.destroyed:
-                return True
-            if self._isFetchingFile:
-                return False
-            RO = self.GetRenderObject()
-            if RO:
-                return RO.texturePrimary.isFinished
-
-        return property(**locals())
-
-    @apply
-    def videoFps():
-        doc = ''
-
-        def fget(self):
-            RO = self.GetRenderObject()
-            if RO:
-                return RO.texturePrimary.videoFps
-
-        return property(**locals())
-
-    @apply
-    def currentFrame():
-        doc = ''
-
-        def fget(self):
-            RO = self.GetRenderObject()
-            if RO:
-                return RO.texturePrimary.currentFrame
-
-        return property(**locals())
-
-    def _SetVideoResPathWithPrefetch(self, tex, videoPath):
-
-        def taskletfunc():
-            remotefilecache.prefetch_single_file(videoPath, verify=True)
-            tex.resPath = videoPath
-            tex.Play()
-            self._isFetchingFile = False
-
-        self._isFetchingFile = True
-        uthread.new(taskletfunc)
-
-
 class StreamingVideoSprite(Sprite):
     __guid__ = 'uiprimitives.StreamingVideoSprite'
     __renderObject__ = trinity.Tr2Sprite2d
@@ -922,25 +760,26 @@ class StreamingVideoSprite(Sprite):
     def ApplyAttributes(self, attributes):
         Sprite.ApplyAttributes(self, attributes)
         sm.RegisterNotify(self)
-        self.renderJob = trinity.TriRenderJob()
         self.textureRes = trinity.TriTextureRes()
         self.texture = trinity.Tr2Sprite2dTexture()
         self.player = None
         self.path = None
         self.audioTrack = 0
+        self.videoLoop = False
         self._updateStep = None
         self._isFetchingFile = False
         RO = self.GetRenderObject()
         self._positionComponent = attributes.get('positionComponent', None)
         self.positionComponent = None
-        if 'videoPath' in attributes:
-            self.SetVideoPath(attributes['videoPath'], attributes.get('audioTrack', 0))
+        if 'videoPath' in attributes and attributes['videoPath'] and attributes.get('videoAutoPlay', self.default_videoAutoPlay):
+            self.SetVideoPath(attributes['videoPath'], attributes.get('audioTrack', 0), attributes.get('videoLoop', self.default_videoLoop))
         if 'pos' in attributes:
             pos = attributes.get('pos', (self.default_left,
              self.default_top,
              self.default_width,
              self.default_height))
             RO.displayX, RO.displayY, RO.displayWidth, RO.displayHeight = pos
+        return
 
     def OnVideoSizeAvailable(self, width, height):
         pass
@@ -948,31 +787,18 @@ class StreamingVideoSprite(Sprite):
     def OnVideoFinished(self):
         pass
 
-    def _OnCreateTextures(self, player, ySize, uvSize):
+    def _OnCreateTextures(self, player, width, height):
         try:
-            videoplayer.create_textures(player, ySize, uvSize)
-            rt = videoplayer.set_up_decode_render_job(player, self.renderJob)
-            self.textureRes.SetFromRenderTarget(rt)
-
-            def update_texture():
-                try:
-                    self.textureRes.SetFromRenderTarget(rt)
-                    if not self.texture.atlasTexture.isGood:
-                        self.texture.atlasTexture = trinity.Tr2AtlasTexture()
-                        self.texture.atlasTexture.textureRes = self.textureRes
-                except:
-                    logging.exception('Exception in VideoPlayer rj callback')
-
-            self.renderJob.steps.append(trinity.TriStepPythonCB(update_texture))
+            self.textureRes = trinity.TriTextureRes(width, height, 1, trinity.PIXEL_FORMAT.B8G8R8A8_UNORM)
+            player.bgra_texture = self.textureRes
             self.texture.atlasTexture = trinity.Tr2AtlasTexture()
             self.texture.atlasTexture.textureRes = self.textureRes
-            trinity.renderJobs.recurring.append(self.renderJob)
         except:
             logging.exception('Exception in VideoPlayer.on_create_textures')
 
     def _OnVideoStateChange(self, player):
         try:
-            logging.info('Video player state changed to %s', videoplayer.State.GetNameFromValue(player.state))
+            logging.debug('Video player state changed to %s', videoplayer.State.GetNameFromValue(player.state))
             if player.state == videoplayer.State.INITIAL_BUFFERING:
                 info = self.player.get_video_info()
                 self.OnVideoSizeAvailable(info['width'], info['height'])
@@ -988,11 +814,6 @@ class StreamingVideoSprite(Sprite):
             logging.exception('Video player error')
 
     def _DestroyVideo(self):
-        try:
-            trinity.renderJobs.recurring.remove(self.renderJob)
-        except RuntimeError:
-            pass
-
         if self.positionComponent:
             self.positionComponent.UnRegisterPlacementObserverWrapper(self.positionObserver)
             self.positionComponent = None
@@ -1000,22 +821,24 @@ class StreamingVideoSprite(Sprite):
         self.emitter = None
         self.player = None
         self._updateStep = None
-        self.renderJob = trinity.TriRenderJob()
         self.textureRes = trinity.TriTextureRes()
+        return
 
     def OnAudioActivated(self):
         if self.path and not self._isFetchingFile:
-            self.SetVideoPath(self.path, self.audioTrack)
+            self.SetVideoPath(self.path, self.audioTrack, self.videoLoop)
 
     def OnAudioDeactivated(self):
         if self.path and not self._isFetchingFile:
-            self.SetVideoPath(self.path, self.audioTrack)
+            self.SetVideoPath(self.path, self.audioTrack, self.videoLoop)
 
     def SetPositionComponent(self, positionComponent):
         if self.emitter and positionComponent and GameWorld:
             self.positionObserver = GameWorld.PlacementObserverWrapper(self.emitter)
             positionComponent.RegisterPlacementObserverWrapper(self.positionObserver)
             return positionComponent
+        else:
+            return None
 
     def GetVideoSize(self):
         try:
@@ -1024,16 +847,17 @@ class StreamingVideoSprite(Sprite):
         except (AttributeError, videoplayer.VideoPlayerError):
             pass
 
-    def SetVideoPath(self, path, audioTrack = 0):
+    def SetVideoPath(self, path, audioTrack=0, videoLoop=False):
         self._DestroyVideo()
         self.path = path
         self.audioTrack = audioTrack
+        self.videoLoop = videoLoop
 
         def prefetch():
             blue.paths.GetFileContentsWithYield(path)
             if self._isFetchingFile and path == self.path:
                 self._isFetchingFile = False
-                self.SetVideoPath(path, audioTrack)
+                self.SetVideoPath(path, audioTrack, videoLoop)
 
         if path.lower().startswith('res:/'):
             if blue.remoteFileCache.FileExists(path):
@@ -1051,10 +875,11 @@ class StreamingVideoSprite(Sprite):
             sink = videoplayer.Audio2Sink(audio2.GetDirectSoundPtr(), audio2.GetStreamPositionPtr(), outputChannel)
         else:
             sink = None
-        self.player = videoplayer.VideoPlayer(stream, sink, audioTrack)
+        self.player = videoplayer.VideoPlayer(stream, sink, audioTrack, videoLoop)
         self.player.on_state_change = self._OnVideoStateChange
         self.player.on_create_textures = self._OnCreateTextures
         self.player.on_error = self._OnVideoError
+        return
 
     def Play(self):
         if self.player:
@@ -1098,6 +923,8 @@ class StreamingVideoSprite(Sprite):
             except AttributeError:
                 return None
 
+            return None
+
         return property(**locals())
 
     @apply
@@ -1107,6 +934,8 @@ class StreamingVideoSprite(Sprite):
         def fget(self):
             if self.player:
                 return self.player.is_paused
+            else:
+                return None
 
         return property(**locals())
 
@@ -1117,10 +946,12 @@ class StreamingVideoSprite(Sprite):
         def fget(self):
             if self.destroyed:
                 return True
-            if self._isFetchingFile:
+            elif self._isFetchingFile:
                 return False
-            if self.player:
+            elif self.player:
                 return self.player.state == videoplayer.State.DONE
+            else:
+                return None
 
         return property(**locals())
 
@@ -1131,6 +962,8 @@ class StreamingVideoSprite(Sprite):
         def fget(self):
             if self.player:
                 return self.player.media_time
+            else:
+                return None
 
         return property(**locals())
 
@@ -1141,6 +974,8 @@ class StreamingVideoSprite(Sprite):
         def fget(self):
             if self.player:
                 return self.player.duration
+            else:
+                return None
 
         return property(**locals())
 
@@ -1151,13 +986,15 @@ class StreamingVideoSprite(Sprite):
         def fget(self):
             if self.player:
                 return self.player.downloaded_media_time
+            else:
+                return None
 
         return property(**locals())
 
 
 class PyColor(object):
 
-    def __init__(self, owner, r = 1.0, g = 1.0, b = 1.0, a = 1.0):
+    def __init__(self, owner, r=1.0, g=1.0, b=1.0, a=1.0):
         self.owner = weakref.ref(owner)
         self._r = r
         self._g = g
@@ -1173,6 +1010,7 @@ class PyColor(object):
                  self._g,
                  self._b,
                  self._a)
+        return
 
     @apply
     def r():
@@ -1226,7 +1064,7 @@ class PyColor(object):
 
         return property(**locals())
 
-    def SetRGB(self, r, g, b, a = 1.0):
+    def SetRGB(self, r, g, b, a=1.0):
         self.r = r
         self.g = g
         self.b = b

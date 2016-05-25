@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\packages\watchdog\utils\echo.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\packages\watchdog\utils\echo.py
 import inspect
 import sys
 
@@ -26,7 +27,7 @@ def format_arg_value(arg_val):
     return '%s=%r' % (arg, val)
 
 
-def echo(fn, write = sys.stdout.write):
+def echo(fn, write=sys.stdout.write):
     import functools
     code = fn.__code__
     argcount = code.co_argcount
@@ -47,7 +48,7 @@ def echo(fn, write = sys.stdout.write):
     return wrapped
 
 
-def echo_instancemethod(klass, method, write = sys.stdout.write):
+def echo_instancemethod(klass, method, write=sys.stdout.write):
     mname = method_name(method)
     never_echo = ('__str__', '__repr__')
     if mname in never_echo:
@@ -58,7 +59,7 @@ def echo_instancemethod(klass, method, write = sys.stdout.write):
         setattr(klass, mname, echo(method, write))
 
 
-def echo_class(klass, write = sys.stdout.write):
+def echo_class(klass, write=sys.stdout.write):
     for _, method in inspect.getmembers(klass, inspect.ismethod):
         echo_instancemethod(klass, method, write)
 
@@ -66,7 +67,7 @@ def echo_class(klass, write = sys.stdout.write):
         setattr(klass, name(fn), staticmethod(echo(fn, write)))
 
 
-def echo_module(mod, write = sys.stdout.write):
+def echo_module(mod, write=sys.stdout.write):
     for fname, fn in inspect.getmembers(mod, inspect.isfunction):
         setattr(mod, fname, echo(fn, write))
 

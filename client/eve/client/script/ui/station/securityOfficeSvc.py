@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\client\script\ui\station\securityOfficeSvc.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\client\script\ui\station\securityOfficeSvc.py
 import service
 import crimewatch.const
 from collections import defaultdict
@@ -19,7 +20,7 @@ class SecurityOfficeService(service.Service):
 
     def GetTagsInHangar(self):
         invContainer = self.invCache.GetInventory(const.containerHangar)
-        items = invContainer.List()
+        items = invContainer.List(const.flagHangar)
         tagCountByTypeID = defaultdict(int)
         for item in items:
             if item.typeID in crimewatch.const.securityLevelsPerTagType:

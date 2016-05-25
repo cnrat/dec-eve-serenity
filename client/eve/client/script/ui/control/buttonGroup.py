@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\client\script\ui\control\buttonGroup.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\client\script\ui\control\buttonGroup.py
 import carbonui.const as uiconst
 from carbonui.primitives.line import Line
 from carbonui.primitives.container import Container
@@ -47,7 +48,7 @@ class ButtonGroup(Container):
         if self.line:
             LineThemeColored(parent=self, colorType=uiconst.COLORTYPE_UIHILIGHT, align=uiconst.TOTOP)
 
-    def AddButton(self, label, func, args = None, fixedWidth = None, isModalResult = False, isDefault = False, isCancel = False, hint = None, color = None):
+    def AddButton(self, label, func, args=None, fixedWidth=None, isModalResult=False, isDefault=False, isCancel=False, hint=None, color=None):
         if not self.fixedWidth:
             fixedWidth = None
         newbtn = Button(parent=self.subpar, label=label, func=func, args=args, btn_modalresult=isModalResult, btn_default=isDefault, btn_cancel=isCancel, fixedwidth=fixedWidth, name='%s_Btn' % label, fontStyle=self.fontStyle, fontFamily=self.fontFamily, fontPath=self.fontPath, fontsize=self.fontsize, hint=hint, color=color)

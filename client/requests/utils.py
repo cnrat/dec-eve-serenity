@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\packages\requests\utils.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\packages\requests\utils.py
 import cgi
 import codecs
 import collections
@@ -72,35 +73,41 @@ def get_netrc_auth(url):
     except (ImportError, AttributeError):
         pass
 
+    return
+
 
 def guess_filename(obj):
     name = getattr(obj, 'name', None)
     if name and name[0] != '<' and name[-1] != '>':
         return os.path.basename(name)
+    else:
+        return
 
 
 def from_key_val_list(value):
     if value is None:
         return
-    if isinstance(value, (str,
-     bytes,
-     bool,
-     int)):
-        raise ValueError('cannot encode objects that are not 2-tuples')
-    return OrderedDict(value)
+    else:
+        if isinstance(value, (str,
+         bytes,
+         bool,
+         int)):
+            raise ValueError('cannot encode objects that are not 2-tuples')
+        return OrderedDict(value)
 
 
 def to_key_val_list(value):
     if value is None:
         return
-    if isinstance(value, (str,
-     bytes,
-     bool,
-     int)):
-        raise ValueError('cannot encode objects that are not 2-tuples')
-    if isinstance(value, collections.Mapping):
-        value = value.items()
-    return list(value)
+    else:
+        if isinstance(value, (str,
+         bytes,
+         bool,
+         int)):
+            raise ValueError('cannot encode objects that are not 2-tuples')
+        if isinstance(value, collections.Mapping):
+            value = value.items()
+        return list(value)
 
 
 def parse_list_header(value):
@@ -127,11 +134,11 @@ def parse_dict_header(value):
     return result
 
 
-def unquote_header_value(value, is_filename = False):
-    if value and value[0] == value[-1] == '"':
-        value = value[1:-1]
-        if not is_filename or value[:2] != '\\\\':
-            return value.replace('\\\\', '\\').replace('\\"', '"')
+def unquote_header_value(value, is_filename=False):
+    if value:
+        if value[0] == value[-1] == '"':
+            value = value[1:-1]
+            return (not is_filename or value[:2] != '\\\\') and value.replace('\\\\', '\\').replace('\\"', '"')
     return value
 
 
@@ -163,8 +170,10 @@ def get_encoding_from_headers(headers):
     content_type, params = cgi.parse_header(content_type)
     if 'charset' in params:
         return params['charset'].strip('\'"')
-    if 'text' in content_type:
+    elif 'text' in content_type:
         return 'ISO-8859-1'
+    else:
+        return None
 
 
 def stream_decode_response_unicode(iterator, r):
@@ -173,15 +182,17 @@ def stream_decode_response_unicode(iterator, r):
             yield item
 
         return
-    decoder = codecs.getincrementaldecoder(r.encoding)(errors='replace')
-    for chunk in iterator:
-        rv = decoder.decode(chunk)
+    else:
+        decoder = codecs.getincrementaldecoder(r.encoding)(errors='replace')
+        for chunk in iterator:
+            rv = decoder.decode(chunk)
+            if rv:
+                yield rv
+
+        rv = decoder.decode('', final=True)
         if rv:
             yield rv
-
-    rv = decoder.decode('', final=True)
-    if rv:
-        yield rv
+        return
 
 
 def iter_slices(string, slice_length):
@@ -301,7 +312,7 @@ def get_environ_proxies(url):
     return getproxies()
 
 
-def default_user_agent(name = 'python-requests'):
+def default_user_agent(name='python-requests'):
     _implementation = 'python-requests'
     if _implementation == 'CPython':
         _implementation_version = platform.python_version()
@@ -363,23 +374,25 @@ def guess_json_utf(data):
     sample = data[:4]
     if sample in (codecs.BOM_UTF32_LE, codecs.BOM32_BE):
         return 'utf-32'
-    if sample[:3] == codecs.BOM_UTF8:
+    elif sample[:3] == codecs.BOM_UTF8:
         return 'utf-8-sig'
-    if sample[:2] in (codecs.BOM_UTF16_LE, codecs.BOM_UTF16_BE):
+    elif sample[:2] in (codecs.BOM_UTF16_LE, codecs.BOM_UTF16_BE):
         return 'utf-16'
-    nullcount = sample.count(_null)
-    if nullcount == 0:
-        return 'utf-8'
-    if nullcount == 2:
-        if sample[::2] == _null2:
-            return 'utf-16-be'
-        if sample[1::2] == _null2:
-            return 'utf-16-le'
-    if nullcount == 3:
-        if sample[:3] == _null3:
-            return 'utf-32-be'
-        if sample[1:] == _null3:
-            return 'utf-32-le'
+    else:
+        nullcount = sample.count(_null)
+        if nullcount == 0:
+            return 'utf-8'
+        if nullcount == 2:
+            if sample[::2] == _null2:
+                return 'utf-16-be'
+            if sample[1::2] == _null2:
+                return 'utf-16-le'
+        if nullcount == 3:
+            if sample[:3] == _null3:
+                return 'utf-32-be'
+            if sample[1:] == _null3:
+                return 'utf-32-le'
+        return
 
 
 def except_on_missing_scheme(url):
@@ -398,7 +411,7 @@ def get_auth_from_url(url):
     return auth
 
 
-def to_native_string(string, encoding = 'ascii'):
+def to_native_string(string, encoding='ascii'):
     out = None
     if isinstance(string, builtin_str):
         out = string

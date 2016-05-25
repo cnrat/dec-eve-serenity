@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\client\script\ui\shared\neocom\addressBook\contactsForm.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\client\script\ui\shared\neocom\addressBook\contactsForm.py
 import math
 import sys
 import service
@@ -39,6 +40,7 @@ class ContactsForm(uiprimitives.Container):
         self.formType = formType
         self.expandedHeight = False
         self.DrawStuff()
+        return
 
     def _OnClose(self):
         sm.UnregisterNotify(self)
@@ -97,6 +99,7 @@ class ContactsForm(uiprimitives.Container):
         self.sr.rightScroll.multiSelect = 1
         self.sr.rightScroll.sr.content.OnDropData = self.OnContactDropData
         self.sr.rightScroll.sr.id = self.formType
+        return
 
     def LoadLeftSide(self):
         scrolllist = self.GetStaticLabelsGroups()
@@ -137,6 +140,7 @@ class ContactsForm(uiprimitives.Container):
             panel = entry.panel
             if panel is not None:
                 panel.OnClick()
+        return
 
     def GetStandingNameShort(self, standing):
         if standing == const.contactHighStanding:
@@ -222,7 +226,7 @@ class ContactsForm(uiprimitives.Container):
             scrolllist.insert(-1, listentry.Get('Space', {'height': 16}))
         return scrolllist
 
-    def GetGroupEntry(self, groupID, label, selected = 0):
+    def GetGroupEntry(self, groupID, label, selected=0):
         data = {'GetSubContent': self.GetLeftGroups,
          'label': label,
          'cleanLabel': label,
@@ -451,14 +455,16 @@ class ContactsForm(uiprimitives.Container):
         if self.formType == 'alliancecontact' and session.allianceid is None:
             self.sr.rightScroll.Load(fixedEntryHeight=19, contentList=[], noContentHint=localization.GetByLabel('UI/PeopleAndPlaces/OwnerNotInAnyAlliance', corpName=cfg.eveowners.Get(session.corpid).ownerName))
             return
-        scrolllist, noContentHint, totalNum, displayHeaders = self.GetScrolllist(data)
-        if displayHeaders:
-            headers = [localization.GetByLabel('UI/Common/Name')]
         else:
-            headers = []
-        self.sr.rightScroll.Load(contentList=scrolllist, headers=headers, noContentHint=noContentHint)
-        if totalNum is not None:
-            self.ShowHideBrowse(totalNum)
+            scrolllist, noContentHint, totalNum, displayHeaders = self.GetScrolllist(data)
+            if displayHeaders:
+                headers = [localization.GetByLabel('UI/Common/Name')]
+            else:
+                headers = []
+            self.sr.rightScroll.Load(contentList=scrolllist, headers=headers, noContentHint=noContentHint)
+            if totalNum is not None:
+                self.ShowHideBrowse(totalNum)
+            return
 
     def CheckBoxChange(self, checkbox):
         config = checkbox.data['config']
@@ -528,6 +534,7 @@ class ContactsForm(uiprimitives.Container):
             sm.GetService('addressbook').DropInBlocked(nodes)
         else:
             sm.GetService('addressbook').DropInPersonal(nodes, self.contactType)
+        return
 
     def ReloadData(self):
         self.LoadData()
@@ -538,13 +545,15 @@ class ContactsForm(uiprimitives.Container):
     def OnNotificationsRefresh(self):
         if self.formType == 'contact' and settings.char.ui.Get('contacts_lastselected', None) == const.contactNotifications:
             self.ReloadData()
+        return
 
     def OnMessageChanged(self, type, messageIDs, what):
         if type == const.mailTypeNotifications and what == 'deleted':
             if self.formType == 'contact' and settings.char.ui.Get('contacts_lastselected', None) == const.contactNotifications:
                 self.ReloadData()
+        return
 
-    def OnContactChange(self, contactIDs, contactType = None):
+    def OnContactChange(self, contactIDs, contactType=None):
         if contactType == self.formType:
             self.ReloadData()
 

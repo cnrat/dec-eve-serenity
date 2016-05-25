@@ -1,9 +1,10 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\carbon\common\stdlib\yaml\events.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\carbon\common\stdlib\yaml\events.py
 
 
 class Event(object):
 
-    def __init__(self, start_mark = None, end_mark = None):
+    def __init__(self, start_mark=None, end_mark=None):
         self.start_mark = start_mark
         self.end_mark = end_mark
 
@@ -18,7 +19,7 @@ class Event(object):
 
 class NodeEvent(Event):
 
-    def __init__(self, anchor, start_mark = None, end_mark = None):
+    def __init__(self, anchor, start_mark=None, end_mark=None):
         self.anchor = anchor
         self.start_mark = start_mark
         self.end_mark = end_mark
@@ -26,7 +27,7 @@ class NodeEvent(Event):
 
 class CollectionStartEvent(NodeEvent):
 
-    def __init__(self, anchor, tag, implicit, start_mark = None, end_mark = None, flow_style = None):
+    def __init__(self, anchor, tag, implicit, start_mark=None, end_mark=None, flow_style=None):
         self.anchor = anchor
         self.tag = tag
         self.implicit = implicit
@@ -41,7 +42,7 @@ class CollectionEndEvent(Event):
 
 class StreamStartEvent(Event):
 
-    def __init__(self, start_mark = None, end_mark = None, encoding = None):
+    def __init__(self, start_mark=None, end_mark=None, encoding=None):
         self.start_mark = start_mark
         self.end_mark = end_mark
         self.encoding = encoding
@@ -53,7 +54,7 @@ class StreamEndEvent(Event):
 
 class DocumentStartEvent(Event):
 
-    def __init__(self, start_mark = None, end_mark = None, explicit = None, version = None, tags = None):
+    def __init__(self, start_mark=None, end_mark=None, explicit=None, version=None, tags=None):
         self.start_mark = start_mark
         self.end_mark = end_mark
         self.explicit = explicit
@@ -63,7 +64,7 @@ class DocumentStartEvent(Event):
 
 class DocumentEndEvent(Event):
 
-    def __init__(self, start_mark = None, end_mark = None, explicit = None):
+    def __init__(self, start_mark=None, end_mark=None, explicit=None):
         self.start_mark = start_mark
         self.end_mark = end_mark
         self.explicit = explicit
@@ -75,7 +76,7 @@ class AliasEvent(NodeEvent):
 
 class ScalarEvent(NodeEvent):
 
-    def __init__(self, anchor, tag, implicit, value, start_mark = None, end_mark = None, style = None):
+    def __init__(self, anchor, tag, implicit, value, start_mark=None, end_mark=None, style=None):
         self.anchor = anchor
         self.tag = tag
         self.implicit = implicit

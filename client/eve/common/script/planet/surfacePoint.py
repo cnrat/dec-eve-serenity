@@ -1,15 +1,17 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\common\script\planet\surfacePoint.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\common\script\planet\surfacePoint.py
 import math
 MATH_2PI = math.pi * 2
 
 class SurfacePoint:
     __guid__ = 'planet.SurfacePoint'
 
-    def __init__(self, x = 0.0, y = 0.0, z = 0.0, radius = 1.0, theta = None, phi = None):
+    def __init__(self, x=0.0, y=0.0, z=0.0, radius=1.0, theta=None, phi=None):
         if theta is not None and phi is not None:
             self.SetRadThPhi(radius, theta, phi)
         else:
             self.SetXYZ(x, y, z)
+        return
 
     def SetXYZ(self, x, y, z):
         self.x = x

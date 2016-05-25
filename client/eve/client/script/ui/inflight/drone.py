@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\client\script\ui\inflight\drone.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\client\script\ui\inflight\drone.py
 from carbon.common.script.util.timerstuff import AutoTimer
 from eve.client.script.ui.inflight.actions import ActionPanel
 import evetypes
@@ -31,9 +32,10 @@ class DroneEntry(BaseTacticalEntry):
         if self.destroyed:
             self.sr.dmgTimer = None
             return
-        if self.sr.node.droneState == 'inbay':
+        elif self.sr.node.droneState == 'inbay':
             return self.UpdateDamageInBay()
-        return BaseTacticalEntry.UpdateDamage(self)
+        else:
+            return BaseTacticalEntry.UpdateDamage(self)
 
     def UpdateDamageInBay(self):
         droneID = self.GetShipID()
@@ -87,6 +89,7 @@ class DroneEntry(BaseTacticalEntry):
         else:
             return
         sm.GetService('menu').TryExpandActionMenu(itemID=self.sr.node.itemID, typeID=self.sr.node.typeID, clickedObject=self, manyItemsData=manyItemsData)
+        return
 
     def Startup(self, *args):
         BaseTacticalEntry.Startup(self, *args)
@@ -96,6 +99,7 @@ class DroneEntry(BaseTacticalEntry):
         self.sr.gaugesContainer = uiprimitives.Container(name='gaugesContainer', parent=text_gaugeContainer, width=85, align=uiconst.TORIGHT, state=uiconst.UI_HIDDEN)
         tClip = uiprimitives.Container(name='textClipper', parent=text_gaugeContainer, state=uiconst.UI_PICKCHILDREN, clipChildren=1)
         uiutil.Transplant(self.sr.label, tClip)
+        return
 
     def Load(self, node):
         BaseTacticalEntry.Load(self, node)
@@ -103,7 +107,7 @@ class DroneEntry(BaseTacticalEntry):
             self.UpdateState()
         self.sr.gaugesContainer.state = uiconst.UI_PICKCHILDREN
 
-    def UpdateState(self, droneState = None):
+    def UpdateState(self, droneState=None):
         michelle = sm.GetService('michelle')
         droneRow = michelle.GetDroneState(self.sr.node.itemID)
         droneActivity = michelle.GetDroneActivity(self.sr.node.itemID)
@@ -160,6 +164,7 @@ class DroneEntry(BaseTacticalEntry):
         tooltip = localization.GetByLabel('UI/Inflight/Drone/Tooltip', droneType=self.sr.node.label, state=stateText, target=target, tooltipExtra=tooltipExtra)
         self.sr.label.text = label
         self.hint = tooltip
+        return
 
     def GetHeight(self, *args):
         node, width = args
@@ -169,20 +174,24 @@ class DroneEntry(BaseTacticalEntry):
     def OnDroneStateChange2(self, droneID, oldActivityState, newActivityState):
         if not self or getattr(self, 'sr', None) is None:
             return
-        if self.sr.node and self.sr.node.droneState in ('inlocalspace', 'indistantspace') and droneID == self.sr.node.itemID:
-            droneRow = sm.GetService('michelle').GetDroneState(self.sr.node.itemID)
-            if droneRow:
-                self.sr.node.controllerID = droneRow.controllerID
-                self.sr.node.controllerOwnerID = droneRow.controllerOwnerID
-                self.UpdateState(newActivityState)
+        else:
+            if self.sr.node and self.sr.node.droneState in ('inlocalspace', 'indistantspace') and droneID == self.sr.node.itemID:
+                droneRow = sm.GetService('michelle').GetDroneState(self.sr.node.itemID)
+                if droneRow:
+                    self.sr.node.controllerID = droneRow.controllerID
+                    self.sr.node.controllerOwnerID = droneRow.controllerOwnerID
+                    self.UpdateState(newActivityState)
+            return
 
     def OnDroneActivityChange(self, droneID, activityID, activity):
         if not self or getattr(self, 'sr', None) is None:
             return
-        if self.sr.node and self.sr.node.droneState in ('inlocalspace', 'indistantspace') and droneID == self.sr.node.itemID:
-            self.activity = activity
-            self.activityID = activityID
-            self.UpdateState()
+        else:
+            if self.sr.node and self.sr.node.droneState in ('inlocalspace', 'indistantspace') and droneID == self.sr.node.itemID:
+                self.activity = activity
+                self.activityID = activityID
+                self.UpdateState()
+            return
 
     def OnClick(self, *args):
         if self.sr.node:
@@ -315,7 +324,8 @@ class DroneView(ActionPanel):
         topRight_TopOffset = uicontrols.Window.GetTopRight_TopOffset()
         if topRight_TopOffset is not None:
             return topRight_TopOffset
-        return 16
+        else:
+            return 16
 
     @staticmethod
     def default_left(*args):
@@ -340,6 +350,7 @@ class DroneView(ActionPanel):
         if reload:
             self.UpdateGroupSettings()
             self.CheckDrones(True)
+        return
 
     def ProcessSessionChange(self, *etc):
         self.CheckDrones(True)
@@ -356,12 +367,14 @@ class DroneView(ActionPanel):
     def OnAttribute(self, attributeName, item, newValue):
         if not self or self.destroyed:
             return
-        if item.itemID == session.charid and attributeName == 'maxActiveDrones':
-            t = self.sr.lastUpdate
-            if t is None:
-                self.CheckDrones()
-            else:
-                self.UpdateHeader(t[0], t[1] + t[2])
+        else:
+            if item.itemID == session.charid and attributeName == 'maxActiveDrones':
+                t = self.sr.lastUpdate
+                if t is None:
+                    self.CheckDrones()
+                else:
+                    self.UpdateHeader(t[0], t[1] + t[2])
+            return
 
     def OnItemChange(self, item, change):
         if item.locationID == session.shipid:
@@ -370,34 +383,37 @@ class DroneView(ActionPanel):
                 self.CheckDrones(ignoreClose=ignoreClose)
         elif change.get(const.ixLocationID, None) == session.shipid and change.get(const.ixFlag, None) == const.flagDroneBay:
             self.CheckDrones()
+        return
 
     def PostStartup(self):
         if not self or self.destroyed:
             return
-        self.SetTopparentHeight(0)
-        self.SetMinSize((240, 80))
-        self.SetUtilMenu(utilMenuFunc=self.DroneSettings)
-        self.sr.scroll = uicontrols.Scroll(name='dronescroll', align=uiconst.TOALL, parent=self.sr.main)
-        self.sr.scroll.multiSelect = 1
-        self.sr.scroll.OnChar = self.OnDronesScrollChar
-        self.sr.inSpace = None
-        self.sr.lastUpdate = None
-        self.settingsName = 'droneBlah2'
-        self.reloading = 0
-        self.pending = None
-        openState = uicore.registry.GetListGroupOpenState(('dronegroups', 'inbay'), default=False)
-        uicore.registry.GetLockedGroup('dronegroups', 'inbay', localization.GetByLabel('UI/Inflight/Drone/DronesInBay'), openState=openState)
-        openState = uicore.registry.GetListGroupOpenState(('dronegroups', 'inlocalspace'), default=False)
-        uicore.registry.GetLockedGroup('dronegroups', 'inlocalspace', localization.GetByLabel('UI/Inflight/Drone/DronesInLocalSpace'), openState=openState)
-        uicore.registry.GetLockedGroup('dronegroups', 'indistantspace', localization.GetByLabel('UI/Inflight/Drone/DronesInDistantSpace'))
-        self.groups = self.SettifyGroups(settings.user.ui.Get(self.settingsName, {}))
-        droneSettingChanges = {}
-        droneSettingChanges[const.attributeDroneIsAggressive] = settings.char.ui.Get('droneAggression', self.droneAggressionDefVal)
-        droneSettingChanges[const.attributeFighterAttackAndFollow] = settings.char.ui.Get('fighterAttackAndFollow', self.fafDefVal)
-        droneSettingChanges[const.attributeDroneFocusFire] = settings.char.ui.Get('droneFocusFire', self.droneFFDefVal)
-        sm.GetService('godma').GetStateManager().ChangeDroneSettings(droneSettingChanges)
-        if self and not self.destroyed:
-            uthread.new(self.CheckDrones)
+        else:
+            self.SetTopparentHeight(0)
+            self.SetMinSize((240, 80))
+            self.SetUtilMenu(utilMenuFunc=self.DroneSettings)
+            self.sr.scroll = uicontrols.Scroll(name='dronescroll', align=uiconst.TOALL, parent=self.sr.main)
+            self.sr.scroll.multiSelect = 1
+            self.sr.scroll.OnChar = self.OnDronesScrollChar
+            self.sr.inSpace = None
+            self.sr.lastUpdate = None
+            self.settingsName = 'droneBlah2'
+            self.reloading = 0
+            self.pending = None
+            openState = uicore.registry.GetListGroupOpenState(('dronegroups', 'inbay'), default=False)
+            uicore.registry.GetLockedGroup('dronegroups', 'inbay', localization.GetByLabel('UI/Inflight/Drone/DronesInBay'), openState=openState)
+            openState = uicore.registry.GetListGroupOpenState(('dronegroups', 'inlocalspace'), default=False)
+            uicore.registry.GetLockedGroup('dronegroups', 'inlocalspace', localization.GetByLabel('UI/Inflight/Drone/DronesInLocalSpace'), openState=openState)
+            uicore.registry.GetLockedGroup('dronegroups', 'indistantspace', localization.GetByLabel('UI/Inflight/Drone/DronesInDistantSpace'))
+            self.groups = self.SettifyGroups(settings.user.ui.Get(self.settingsName, {}))
+            droneSettingChanges = {}
+            droneSettingChanges[const.attributeDroneIsAggressive] = settings.char.ui.Get('droneAggression', self.droneAggressionDefVal)
+            droneSettingChanges[const.attributeFighterAttackAndFollow] = settings.char.ui.Get('fighterAttackAndFollow', self.fafDefVal)
+            droneSettingChanges[const.attributeDroneFocusFire] = settings.char.ui.Get('droneFocusFire', self.droneFFDefVal)
+            sm.GetService('godma').GetStateManager().ChangeDroneSettings(droneSettingChanges)
+            if self and not self.destroyed:
+                uthread.new(self.CheckDrones)
+            return
 
     def OnDronesScrollChar(self, *args):
         return False
@@ -434,58 +450,62 @@ class DroneView(ActionPanel):
         if self.sr.main.state != uiconst.UI_PICKCHILDREN:
             self.sr.actionsTimer = None
             return
-        self.CheckDrones()
+        else:
+            self.CheckDrones()
+            return
 
     def GetSubGroups(self, what):
         return []
 
-    def CheckDrones(self, force = False, ignoreClose = False, *args):
+    def CheckDrones(self, force=False, ignoreClose=False, *args):
         if session.stationid:
             return
-        if not self.pending:
-            self.pending = ('updating',)
         else:
-            if 'updating' in self.pending:
-                self.pending = ('pending', force, ignoreClose)
+            if not self.pending:
+                self.pending = ('updating',)
+            else:
+                if 'updating' in self.pending:
+                    self.pending = ('pending', force, ignoreClose)
+                    return
+                if 'pending' in self.pending:
+                    return
+            if self.destroyed:
+                return
+            inBay = self.GetDronesInBay()
+            inBayIDs = [ drone.itemID for drone in inBay ]
+            inBayIDs.sort()
+            uthread.new(sm.GetService('tactical').GetInBayDroneDamageTracker().FetchInBayDroneDamageToServer, inBayIDs)
+            inLocalSpace = [ drone for drone in self.GetDronesInLocalSpace() if drone.droneID not in inBayIDs ]
+            inLocalSpaceIDs = [ drone.droneID for drone in inLocalSpace ]
+            inLocalSpaceIDs.sort()
+            inDistantSpace = [ drone for drone in self.GetDronesInDistantSpace() if drone.droneID not in inBayIDs ]
+            inDistantSpaceIDs = [ drone.droneID for drone in inDistantSpace ]
+            inDistantSpaceIDs.sort()
+            t = (inBayIDs, inLocalSpaceIDs, inDistantSpaceIDs)
+            if self.sr.lastUpdate != t or force or inDistantSpace:
+                self.sr.lastUpdate = t
+                groupInfo = uicore.registry.GetListGroup(('dronegroups', 'inbay'))
+                scrolllist = self.GetGroupListEntry(groupInfo, 'inbay', inBayIDs)
+                groupInfo = uicore.registry.GetListGroup(('dronegroups', 'inlocalspace'))
+                scrolllist += self.GetGroupListEntry(groupInfo, 'inlocalspace', inLocalSpaceIDs)
+                if inDistantSpaceIDs:
+                    groupInfo = uicore.registry.GetListGroup(('dronegroups', 'indistantspace'))
+                    scrolllist += self.GetGroupListEntry(groupInfo, 'indistantspace', inDistantSpaceIDs)
+                self.sr.scroll.Load(contentList=scrolllist)
+            self.UpdateHeader(inBayIDs, inLocalSpaceIDs + inDistantSpaceIDs)
+            self.CheckHint()
+            blue.pyos.synchro.SleepWallclock(500)
+            if not self or self.destroyed:
                 return
             if 'pending' in self.pending:
+                p, force, ignoreClose = self.pending
+                self.pending = None
+                self.CheckDrones(force, ignoreClose)
                 return
-        if self.destroyed:
-            return
-        inBay = self.GetDronesInBay()
-        inBayIDs = [ drone.itemID for drone in inBay ]
-        inBayIDs.sort()
-        uthread.new(sm.GetService('tactical').GetInBayDroneDamageTracker().FetchInBayDroneDamageToServer, inBayIDs)
-        inLocalSpace = [ drone for drone in self.GetDronesInLocalSpace() if drone.droneID not in inBayIDs ]
-        inLocalSpaceIDs = [ drone.droneID for drone in inLocalSpace ]
-        inLocalSpaceIDs.sort()
-        inDistantSpace = [ drone for drone in self.GetDronesInDistantSpace() if drone.droneID not in inBayIDs ]
-        inDistantSpaceIDs = [ drone.droneID for drone in inDistantSpace ]
-        inDistantSpaceIDs.sort()
-        t = (inBayIDs, inLocalSpaceIDs, inDistantSpaceIDs)
-        if self.sr.lastUpdate != t or force or inDistantSpace:
-            self.sr.lastUpdate = t
-            groupInfo = uicore.registry.GetListGroup(('dronegroups', 'inbay'))
-            scrolllist = self.GetGroupListEntry(groupInfo, 'inbay', inBayIDs)
-            groupInfo = uicore.registry.GetListGroup(('dronegroups', 'inlocalspace'))
-            scrolllist += self.GetGroupListEntry(groupInfo, 'inlocalspace', inLocalSpaceIDs)
-            if inDistantSpaceIDs:
-                groupInfo = uicore.registry.GetListGroup(('dronegroups', 'indistantspace'))
-                scrolllist += self.GetGroupListEntry(groupInfo, 'indistantspace', inDistantSpaceIDs)
-            self.sr.scroll.Load(contentList=scrolllist)
-        self.UpdateHeader(inBayIDs, inLocalSpaceIDs + inDistantSpaceIDs)
-        self.CheckHint()
-        blue.pyos.synchro.SleepWallclock(500)
-        if not self or self.destroyed:
-            return
-        if 'pending' in self.pending:
-            p, force, ignoreClose = self.pending
             self.pending = None
-            self.CheckDrones(force, ignoreClose)
+            if not ignoreClose and not self.destroyed:
+                self.CheckClose()
             return
-        self.pending = None
-        if not ignoreClose and not self.destroyed:
-            self.CheckClose()
 
     def CheckClose(self):
         if not (self.GetDronesInBay() or sm.GetService('michelle').GetDrones()) and hasattr(self, 'Close'):
@@ -499,15 +519,16 @@ class DroneView(ActionPanel):
         data = self.GetDroneDataForMainGroup(node)
         if not data:
             return m
-        if node.droneState in ('inlocalspace', 'indistantspace'):
-            m += sm.GetService('menu').GetDroneMenu(data)
         else:
-            filterFunc = [uiutil.MenuLabel('UI/Inventory/ItemActions/BuyThisType'),
-             uiutil.MenuLabel('UI/Inventory/ItemActions/AddTypeToMarketQuickbar'),
-             uiutil.MenuLabel('UI/Inventory/ItemActions/ViewTypesMarketDetails'),
-             uiutil.MenuLabel('UI/Inventory/ItemActions/FindInContracts')]
-            m += sm.GetService('menu').InvItemMenu(data, filterFunc=filterFunc)
-        return m
+            if node.droneState in ('inlocalspace', 'indistantspace'):
+                m += sm.GetService('menu').GetDroneMenu(data)
+            else:
+                filterFunc = [uiutil.MenuLabel('UI/Inventory/ItemActions/BuyThisType'),
+                 uiutil.MenuLabel('UI/Inventory/ItemActions/AddTypeToMarketQuickbar'),
+                 uiutil.MenuLabel('UI/Inventory/ItemActions/ViewTypesMarketDetails'),
+                 uiutil.MenuLabel('UI/Inventory/ItemActions/FindInContracts')]
+                m += sm.GetService('menu').InvItemMenu(data, filterFunc=filterFunc)
+            return m
 
     def GetNodesToMoveAround(self, nodes):
         if len(nodes) > 1:
@@ -542,7 +563,7 @@ class DroneView(ActionPanel):
         dronesWithChangedState = self.LaunchOrPullDrones(groupState, nodes)
         self.MoveDronesToSubGroup(groupName=groupName, nodes=nodes, excludedDrones=dronesWithChangedState)
 
-    def MoveDronesToSubGroup(self, groupName, nodes, excludedDrones = []):
+    def MoveDronesToSubGroup(self, groupName, nodes, excludedDrones=[]):
         subGroupInfo = self.GetSubGroup(groupName)
         movingDrones = []
         for droneNode in nodes:
@@ -581,16 +602,17 @@ class DroneView(ActionPanel):
         data = self.GetDroneDataForSubGroup(node)
         if not data:
             return m
-        if node.droneState in ('inlocalspace', 'indistantspace'):
-            droneMenu = sm.GetService('menu').GetDroneMenu(data)
-            m += droneMenu
-        elif node.droneState == 'inbay':
-            filterFunc = [uiutil.MenuLabel('UI/Inventory/ItemActions/BuyThisType'),
-             uiutil.MenuLabel('UI/Inventory/ItemActions/AddTypeToMarketQuickbar'),
-             uiutil.MenuLabel('UI/Inventory/ItemActions/ViewTypesMarketDetails'),
-             uiutil.MenuLabel('UI/Inventory/ItemActions/FindInContracts')]
-            m += sm.GetService('menu').InvItemMenu(data, filterFunc=filterFunc)
-        return m
+        else:
+            if node.droneState in ('inlocalspace', 'indistantspace'):
+                droneMenu = sm.GetService('menu').GetDroneMenu(data)
+                m += droneMenu
+            elif node.droneState == 'inbay':
+                filterFunc = [uiutil.MenuLabel('UI/Inventory/ItemActions/BuyThisType'),
+                 uiutil.MenuLabel('UI/Inventory/ItemActions/AddTypeToMarketQuickbar'),
+                 uiutil.MenuLabel('UI/Inventory/ItemActions/ViewTypesMarketDetails'),
+                 uiutil.MenuLabel('UI/Inventory/ItemActions/FindInContracts')]
+                m += sm.GetService('menu').InvItemMenu(data, filterFunc=filterFunc)
+            return m
 
     def GroupMenu(self, droneNode):
         selected = self.GetSelected(droneNode)
@@ -625,7 +647,7 @@ class DroneView(ActionPanel):
         for groupName in self.GetEmptyGroups():
             del self.groups[groupName]
 
-    def GetDroneGroup(self, droneID, getall = 0):
+    def GetDroneGroup(self, droneID, getall=0):
         retall = []
         for groupName, group in self.groups.iteritems():
             if droneID in group['droneIDs']:
@@ -636,6 +658,8 @@ class DroneView(ActionPanel):
 
         if getall:
             return retall
+        else:
+            return None
 
     def NoGroup(self, nodes):
         for node in nodes:
@@ -676,7 +700,7 @@ class DroneView(ActionPanel):
         if groupName in self.groups:
             return self.groups[groupName]
 
-    def CreateSubGroup(self, droneID, droneGroupID, nodes = None):
+    def CreateSubGroup(self, droneID, droneGroupID, nodes=None):
         ret = uiutil.NamePopup(localization.GetByLabel('UI/Generic/TypeGroupName'), localization.GetByLabel('UI/Generic/TypeNameForGroup'))
         if not ret:
             return
@@ -734,21 +758,22 @@ class DroneView(ActionPanel):
         droneDict = self.GetDroneDictFromDroneIDs(allDronesBelongingToGroup, droneState)
         return droneDict
 
-    def GetDroneDictFromDroneIDs(self, itemIDs, droneState, includeFunction = None):
+    def GetDroneDictFromDroneIDs(self, itemIDs, droneState, includeFunction=None):
         if includeFunction is None:
             includeFunction = self.IsDroneIDinItemIDs
         droneDict = {}
         if droneState == 'inbay':
             droneDict = {drone.itemID:(drone, 0, None) for drone in self.GetDronesInBay() if includeFunction(drone.itemID, itemIDs)}
             return droneDict
-        if droneState == 'inlocalspace':
-            listOfDrones = self.GetDronesInLocalSpace()
-        elif droneState == 'indistantspace':
-            listOfDrones = self.GetDronesInDistantSpace()
         else:
+            if droneState == 'inlocalspace':
+                listOfDrones = self.GetDronesInLocalSpace()
+            elif droneState == 'indistantspace':
+                listOfDrones = self.GetDronesInDistantSpace()
+            else:
+                return droneDict
+            droneDict = {drone.droneID:(drone.droneID, evetypes.GetGroupID(drone.typeID), drone.ownerID) for drone in listOfDrones if includeFunction(drone.droneID, itemIDs)}
             return droneDict
-        droneDict = {drone.droneID:(drone.droneID, evetypes.GetGroupID(drone.typeID), drone.ownerID) for drone in listOfDrones if includeFunction(drone.droneID, itemIDs)}
-        return droneDict
 
     def IsDroneIDinItemIDs(self, droneID, itemIDs):
         return droneID in itemIDs
@@ -775,16 +800,18 @@ class DroneView(ActionPanel):
     def GetRadialMenuOnGroup(self, group, droneData):
         if not droneData:
             return
-        groupNode = group.sr.node
-        droneState = groupNode.droneState
-        if droneState == 'inbay':
-            manyItemsData = uiutil.Bunch(menuFunction=sm.GetService('menu').InvItemMenu, itemData=droneData, displayName='<b>%s</b>' % groupNode.cleanLabel)
-        elif droneState in ('inlocalspace', 'indistantspace'):
-            manyItemsData = uiutil.Bunch(menuFunction=sm.GetService('menu').GetDroneMenu, itemData=droneData, displayName='<b>%s</b>' % groupNode.cleanLabel)
         else:
+            groupNode = group.sr.node
+            droneState = groupNode.droneState
+            if droneState == 'inbay':
+                manyItemsData = uiutil.Bunch(menuFunction=sm.GetService('menu').InvItemMenu, itemData=droneData, displayName='<b>%s</b>' % groupNode.cleanLabel)
+            elif droneState in ('inlocalspace', 'indistantspace'):
+                manyItemsData = uiutil.Bunch(menuFunction=sm.GetService('menu').GetDroneMenu, itemData=droneData, displayName='<b>%s</b>' % groupNode.cleanLabel)
+            else:
+                return
+            typeID = GetTypeIDForManyDrones(droneState, droneData)
+            sm.GetService('menu').TryExpandActionMenu(itemID=None, typeID=typeID, clickedObject=group, manyItemsData=manyItemsData)
             return
-        typeID = GetTypeIDForManyDrones(droneState, droneData)
-        sm.GetService('menu').TryExpandActionMenu(itemID=None, typeID=typeID, clickedObject=group, manyItemsData=manyItemsData)
 
     def GetDronesInBay(self, *args):
         if eve.session.shipid:
@@ -795,15 +822,17 @@ class DroneView(ActionPanel):
         ballpark = sm.GetService('michelle').GetBallpark()
         if ballpark is None:
             return []
-        drones = sm.GetService('michelle').GetDrones()
-        return [ drones[droneID] for droneID in drones if droneID in ballpark.slimItems and (drones[droneID].ownerID == eve.session.charid or drones[droneID].controllerID == eve.session.shipid) ]
+        else:
+            drones = sm.GetService('michelle').GetDrones()
+            return [ drones[droneID] for droneID in drones if droneID in ballpark.slimItems and (drones[droneID].ownerID == eve.session.charid or drones[droneID].controllerID == eve.session.shipid) ]
 
     def GetDronesInDistantSpace(self):
         ballpark = sm.GetService('michelle').GetBallpark()
         if ballpark is None:
             return []
-        drones = sm.GetService('michelle').GetDrones()
-        return [ drones[droneID] for droneID in drones if droneID not in ballpark.slimItems and (drones[droneID].ownerID == eve.session.charid or drones[droneID].controllerID == eve.session.shipid) ]
+        else:
+            drones = sm.GetService('michelle').GetDrones()
+            return [ drones[droneID] for droneID in drones if droneID not in ballpark.slimItems and (drones[droneID].ownerID == eve.session.charid or drones[droneID].controllerID == eve.session.shipid) ]
 
     def GetSpaceDrone(self, droneID):
         return sm.GetService('michelle').GetDroneState(droneID)
@@ -811,27 +840,28 @@ class DroneView(ActionPanel):
     def GetGroupListEntry(self, group, state, items):
         if not group or 'id' not in group:
             return []
-        numDrones = self.GetNumberOfDronesInGroup(state, items)
-        states = {'INBAY': localization.GetByLabel('UI/Inflight/Drone/DronesInBay'),
-         'INLOCALSPACE': localization.GetByLabel('UI/Inflight/Drone/DronesInLocalSpace'),
-         'INDISTANTSPACE': localization.GetByLabel('UI/Inflight/Drone/DronesInDistantSpace')}
-        data = {'GetSubContent': self.GetGroupContent,
-         'DropData': self.GroupDropData,
-         'MenuFunction': self.GetMainFolderMenu,
-         'label': localization.GetByLabel('UI/Inflight/Drone/DroneGroupWithCount', groupLabel=states[state.upper()], count=numDrones),
-         'id': group['id'],
-         'groupItems': items,
-         'iconMargin': 18,
-         'state': 'locked',
-         'sublevel': 0,
-         'droneState': state,
-         'BlockOpenWindow': 1,
-         'OnClick': self.OnMainGroupClick,
-         'showlen': 0,
-         'groupName': group['label'],
-         'name': 'droneOverview%s' % group['label'].replace(' ', '').capitalize(),
-         'OnMouseDown': self.OnMouseDownOnDroneMainGroup}
-        return [listentry.Get(entryType=None, data=data, decoClass=DroneMainGroup)]
+        else:
+            numDrones = self.GetNumberOfDronesInGroup(state, items)
+            states = {'INBAY': localization.GetByLabel('UI/Inflight/Drone/DronesInBay'),
+             'INLOCALSPACE': localization.GetByLabel('UI/Inflight/Drone/DronesInLocalSpace'),
+             'INDISTANTSPACE': localization.GetByLabel('UI/Inflight/Drone/DronesInDistantSpace')}
+            data = {'GetSubContent': self.GetGroupContent,
+             'DropData': self.GroupDropData,
+             'MenuFunction': self.GetMainFolderMenu,
+             'label': localization.GetByLabel('UI/Inflight/Drone/DroneGroupWithCount', groupLabel=states[state.upper()], count=numDrones),
+             'id': group['id'],
+             'groupItems': items,
+             'iconMargin': 18,
+             'state': 'locked',
+             'sublevel': 0,
+             'droneState': state,
+             'BlockOpenWindow': 1,
+             'OnClick': self.OnMainGroupClick,
+             'showlen': 0,
+             'groupName': group['label'],
+             'name': 'droneOverview%s' % group['label'].replace(' ', '').capitalize(),
+             'OnMouseDown': self.OnMouseDownOnDroneMainGroup}
+            return [listentry.Get(entryType=None, data=data, decoClass=DroneMainGroup)]
 
     def GetSubGroupListEntry(self, group, state, items):
         numDrones = self.GetNumberOfDronesInGroup(state, items)
@@ -870,7 +900,7 @@ class DroneView(ActionPanel):
             t = len(items)
         return t
 
-    def GetGroupContent(self, nodedata, newitems = 0):
+    def GetGroupContent(self, nodedata, newitems=0):
         scrollList = []
         if nodedata.droneState == 'inbay':
             dronebay = {}
@@ -902,7 +932,7 @@ class DroneView(ActionPanel):
             scrollList.append((0, noItemEntry))
         return uiutil.SortListOfTuples(scrollList)
 
-    def GetSubGroupContent(self, nodedata, newitems = 0):
+    def GetSubGroupContent(self, nodedata, newitems=0):
         scrollList = []
         subGroupInfo = self.GetSubGroup(nodedata.groupName)
         if nodedata.droneState == 'inbay':
@@ -1067,36 +1097,40 @@ class DroneSubGroup(Group):
 def GetTypeIDForManyDrones(droneState, droneData):
     if not droneData:
         return None
-    if droneState == 'inbay':
+    elif droneState == 'inbay':
         firstDroneData = droneData[0]
         invItem, viewOnly, voucher = firstDroneData
         return invItem.typeID
-    if droneState in ('inlocalspace', 'indistantspace'):
-        lowPriorityDrones = [const.groupMiningDrone, const.groupSalvageDrone, const.groupUnanchoringDrone]
+    else:
+        if droneState in ('inlocalspace', 'indistantspace'):
+            lowPriorityDrones = [const.groupMiningDrone, const.groupSalvageDrone, const.groupUnanchoringDrone]
 
-        def IsHigherPrioritySpaceDrone(droneData):
-            droneID, groupID, ownerID = droneData
-            if groupID in lowPriorityDrones:
-                return False
-            return True
+            def IsHigherPrioritySpaceDrone(droneData):
+                droneID, groupID, ownerID = droneData
+                if groupID in lowPriorityDrones:
+                    return False
+                return True
 
-        priorityDrone = itertoolsext.first_or_default(droneData, predicate=IsHigherPrioritySpaceDrone, default=droneData[0])
-        droneSlimItem = sm.GetService('michelle').GetItem(priorityDrone[0])
-        if droneSlimItem:
-            return droneSlimItem.typeID
+            priorityDrone = itertoolsext.first_or_default(droneData, predicate=IsHigherPrioritySpaceDrone, default=droneData[0])
+            droneSlimItem = sm.GetService('michelle').GetItem(priorityDrone[0])
+            if droneSlimItem:
+                return droneSlimItem.typeID
+        return None
 
 
 def DropDronesInSpace(dragObj, nodes):
     if dragObj.sr.node.droneState != 'inbay':
         return
-    droneWnd = DroneView.GetIfOpen()
-    if droneWnd is None:
+    else:
+        droneWnd = DroneView.GetIfOpen()
+        if droneWnd is None:
+            return
+        drones = []
+        if dragObj.__guid__ in ('listentry.DroneSubGroup', 'listentry.DroneMainGroup'):
+            if dragObj.__guid__ == 'listentry.DroneSubGroup':
+                nodes = droneWnd.GetSubGroupContent(dragObj.sr.node)
+            else:
+                nodes = droneWnd.GetAllMainGroupContent(dragObj.sr.node)
+        drones = [ node.invItem for node in nodes ]
+        sm.GetService('menu').LaunchDrones(drones)
         return
-    drones = []
-    if dragObj.__guid__ in ('listentry.DroneSubGroup', 'listentry.DroneMainGroup'):
-        if dragObj.__guid__ == 'listentry.DroneSubGroup':
-            nodes = droneWnd.GetSubGroupContent(dragObj.sr.node)
-        else:
-            nodes = droneWnd.GetAllMainGroupContent(dragObj.sr.node)
-    drones = [ node.invItem for node in nodes ]
-    sm.GetService('menu').LaunchDrones(drones)

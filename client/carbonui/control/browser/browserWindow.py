@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\packages\carbonui\control\browser\browserWindow.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\packages\carbonui\control\browser\browserWindow.py
 import uicls
 import carbonui.const as uiconst
 import uthread
@@ -107,6 +108,7 @@ class BrowserWindowCore(Window):
         if browseToUrl is None or browseToUrl == 'home':
             browseToUrl = str(settings.user.ui.Get('HomePage2', browserutil.DefaultHomepage()))
         self.AddTab(browseToUrl)
+        return
 
     def PrepareMenuBar(self):
         mainArea = self.GetMainArea()
@@ -158,6 +160,8 @@ class BrowserWindowCore(Window):
             setattr(self.sr, '%sButton' % btnLabel, button)
             buttonTop.width += 20
 
+        return
+
     def _OnClose(self, *args):
         sm.GetService('urlhistory').SaveHistory()
         ct = getattr(self, 'currentTab', None)
@@ -173,6 +177,7 @@ class BrowserWindowCore(Window):
                 del tab
 
             self.tabs = []
+        return
 
     def PopulateWhitelistAndBlacklist(self):
         self.browserHostManager.ClearSiteList('Blacklist')
@@ -327,17 +332,19 @@ class BrowserWindowCore(Window):
         if self.currentTab:
             self.currentTab.GoHome(*args)
 
-    def BrowseTo(self, url = None, *args, **kwargs):
+    def BrowseTo(self, url=None, *args, **kwargs):
         if self.currentTab is None:
             return
-        if url is None:
-            url = self.urlInput.GetValue().encode('cp1252', 'ignore')
-        if type(url) is not str:
-            url = url.encode('cp1252', 'ignore')
-        if url.find(':/') == -1 and url != 'about:blank':
-            url = 'http://' + url
-        self.browserPane.OnBrowseTo()
-        self.currentTab.BrowseTo(url=url, *args)
+        else:
+            if url is None:
+                url = self.urlInput.GetValue().encode('cp1252', 'ignore')
+            if type(url) is not str:
+                url = url.encode('cp1252', 'ignore')
+            if url.find(':/') == -1 and url != 'about:blank':
+                url = 'http://' + url
+            self.browserPane.OnBrowseTo()
+            self.currentTab.BrowseTo(url=url, *args)
+            return
 
     def OnHistoryClicked(self, historyString, *args, **kwargs):
         self.BrowseTo(historyString)
@@ -345,6 +352,7 @@ class BrowserWindowCore(Window):
     def OnGoBtn(self, *args):
         url = None
         self.BrowseTo(url)
+        return
 
     def ReloadPage(self, *args):
         self.browserPane.OnBrowseTo()
@@ -361,7 +369,7 @@ class BrowserWindowCore(Window):
     def StopLoading(self, *args):
         self.currentTab.StopLoading(*args)
 
-    def GetBookmarkMenu(self, startAt = 0):
+    def GetBookmarkMenu(self, startAt=0):
         m = []
         if startAt < 1:
             m.append((MenuLabel('UI/Browser/AddRemove'), self.EditBookmarks))
@@ -405,6 +413,7 @@ class BrowserWindowCore(Window):
         if self.currentTab is not None:
             inputUrl = self.currentTab.GetCurrentURL()
         WebsiteTrustManagementWindow.Open(initialUrl=inputUrl)
+        return
 
     def DisplayNavigationBar(self, display):
         if display:
@@ -464,6 +473,7 @@ class BrowserWindowCore(Window):
                 if uicore.registry.GetFocus() is self.urlInput:
                     self.urlInput.SelectAll()
                 self.DisplayTrusted(self.IsTrusted(url))
+        return
 
     def _OnProcessSecurityInfo(self, tabSession, securityInfo):
         if tabSession == self.currentTab:
@@ -503,6 +513,7 @@ class BrowserWindowCore(Window):
 
             if tabSession == self.currentTab:
                 self.SetCaption(title)
+        return
 
     def SetCaption(self, caption):
         captionString = localization.uiutil.PrepareLocalizationSafeString(StripTags(caption)[:50])
@@ -531,7 +542,7 @@ class BrowserWindowCore(Window):
     def SetBrowserFocus(self):
         uicore.registry.SetFocus(self.browserPane)
 
-    def AddTab(self, tabUrl = None):
+    def AddTab(self, tabUrl=None):
         newTab = browser.BrowserSession()
         newTab.Startup('%s_%d' % (self.name, self.nextTabID), initialUrl=tabUrl, browserEventHandler=self)
         self.nextTabID += 1
@@ -546,50 +557,55 @@ class BrowserWindowCore(Window):
     def CloseTab(self, tabID):
         if len(self.tabs) < 2:
             return
-        dyingTab = None
-        selectTab = -1
-        for i in xrange(len(self.tabs)):
-            if self.tabs[i].name == tabID:
-                if self.tabs[i].name == self.currentTab.name:
-                    nextIdx = i if i < len(self.tabs) - 1 else i - 1
-                    selectTab = nextIdx
-                dyingTab = self.tabs.pop(i)
-                dyingTab.Cleanup()
-                break
+        else:
+            dyingTab = None
+            selectTab = -1
+            for i in xrange(len(self.tabs)):
+                if self.tabs[i].name == tabID:
+                    if self.tabs[i].name == self.currentTab.name:
+                        nextIdx = i if i < len(self.tabs) - 1 else i - 1
+                        selectTab = nextIdx
+                    dyingTab = self.tabs.pop(i)
+                    dyingTab.Cleanup()
+                    break
 
-        self.ReloadTabs(selectTab=selectTab)
+            self.ReloadTabs(selectTab=selectTab)
+            return
 
     def CloseTabButton(self, *args):
         if self.currentTab is not None:
             self.CloseTab(self.currentTab.name)
+        return
 
-    def ReloadTabs(self, selectTab = None):
+    def ReloadTabs(self, selectTab=None):
         if not self.tabs or len(self.tabs) < 1:
             return
-        tabs = []
-        for tab in self.tabs:
-            tabData = Bunch()
-            tabData.label = tab.title
-            tabData.hint = tab.title
-            tabData.code = self
-            tabData.args = tab
-            tabData.panel = None
-            tabs.append(tabData)
+        else:
+            tabs = []
+            for tab in self.tabs:
+                tabData = Bunch()
+                tabData.label = tab.title
+                tabData.hint = tab.title
+                tabData.code = self
+                tabData.args = tab
+                tabData.panel = None
+                tabs.append(tabData)
 
-        if getattr(self, 'tabGroup', None):
-            tabGroup = self.tabGroup
-        else:
-            import uicontrols
-            tabGroup = uicontrols.TabGroup(name='tabparent', parent=self.tabBar, minTabsize=50, maxTabsize=200, tabMenuMargin=8, align=uiconst.TOBOTTOM)
-            self.tabGroup = tabGroup
-        tabGroup.LoadTabs(tabs, autoselecttab=0)
-        if self.currentTab is None:
-            self.currentTab = self.tabs[0]
-        else:
-            self.currentTab.SetBrowserSurface(None, None)
-            if selectTab is not None:
-                self.currentTab = self.tabs[selectTab]
-        tabGroup.ShowPanelByName(self.currentTab.title)
+            if getattr(self, 'tabGroup', None):
+                tabGroup = self.tabGroup
+            else:
+                import uicontrols
+                tabGroup = uicontrols.TabGroup(name='tabparent', parent=self.tabBar, minTabsize=50, maxTabsize=200, tabMenuMargin=8, align=uiconst.TOBOTTOM)
+                self.tabGroup = tabGroup
+            tabGroup.LoadTabs(tabs, autoselecttab=0)
+            if self.currentTab is None:
+                self.currentTab = self.tabs[0]
+            else:
+                self.currentTab.SetBrowserSurface(None, None)
+                if selectTab is not None:
+                    self.currentTab = self.tabs[selectTab]
+            tabGroup.ShowPanelByName(self.currentTab.title)
+            return
 
     def GetTabMenu(self, uiTab, *args):
         tabSession = uiTab.sr.args
@@ -620,3 +636,4 @@ class BrowserWindowCore(Window):
             self.crashNotifierContainer.state = uiconst.UI_HIDDEN
         else:
             self.crashNotifierContainer.state = uiconst.UI_NORMAL
+        return

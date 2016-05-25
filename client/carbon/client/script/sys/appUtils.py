@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\carbon\client\script\sys\appUtils.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\carbon\client\script\sys\appUtils.py
 import blue
 import carbon.client.script.util.lg as lg
 import bluepy
@@ -11,7 +12,7 @@ def CanReboot():
     return True
 
 
-def Reboot(reason = ''):
+def Reboot(reason=''):
     if not CanReboot():
         lg.Info('appUtils.Reboot', 'suppressing reboot due to single sign-on')
         lg.Info('appUtils.Reboot', 'rebooting due to ' + reason)
@@ -40,6 +41,7 @@ def Reboot(reason = ''):
         raise
 
     bluepy.Terminate(reason)
+    return
 
 
 exports = {'appUtils.Reboot': Reboot}

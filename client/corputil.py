@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\common\modules\nice\client\_nastyspace\corputil.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\common\modules\nice\client\_nastyspace\corputil.py
 from eve.client.script.ui.services.corporation.corp_util import CanEditBase
 from eve.client.script.ui.services.corporation.corp_util import CanEditRole
 from eve.client.script.ui.services.corporation.corp_util import GROUP_DIVISIONAL_ACCOUNTING_ROLES

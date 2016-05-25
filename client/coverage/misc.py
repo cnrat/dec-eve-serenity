@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\carbon\common\stdlib\coverage\misc.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\carbon\common\stdlib\coverage\misc.py
 import errno
 import inspect
 import os
@@ -57,6 +58,7 @@ def bool_or_none(b):
         return
     else:
         return bool(b)
+        return
 
 
 def join_regex(regexes):

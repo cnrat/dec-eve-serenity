@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\client\script\ui\station\agents\agentDialogueUtil.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\client\script\ui\station\agents\agentDialogueUtil.py
 import util
 import uiutil
 import localization
@@ -133,7 +134,7 @@ def ProcessDungeonData(dunData, agentID):
     return html
 
 
-def LocationWrapper(location, locationType = None):
+def LocationWrapper(location, locationType=None):
     if locationType is None and 'locationType' in location:
         locationType = location['locationType']
     pseudoSecurityRating = cfg.mapSystemCache[location['solarsystemID']].pseudoSecurity
@@ -175,7 +176,7 @@ def LocationWrapper(location, locationType = None):
     return localization.GetByLabel('UI/Agents/LocationWrapper', startFontTag='<font color=%s>' % secColorAsHtml, endFontTag='</font>', securityRating=pseudoSecurityRating, locationName=locationName, linkdata=infoLinkData, securityWarning=secWarning)
 
 
-def OwnerWrap(ownerID, typeID = None):
+def OwnerWrap(ownerID, typeID=None):
     if ownerID is None:
         return ''
     elif util.IsFaction(ownerID):
@@ -186,9 +187,10 @@ def OwnerWrap(ownerID, typeID = None):
         if not typeID:
             typeID = cfg.eveowners.Get(ownerID).typeID
         return '<a href=showinfo:%d//%d><img src="portrait:%d" width=32 height=32 hspace=2 vspace=2></a>' % (typeID, ownerID, ownerID)
+        return
 
 
-def IconWrap(typeID, extra = None):
+def IconWrap(typeID, extra=None):
     if typeID is None:
         return ''
     elif typeID == const.typeCredits:
@@ -202,9 +204,10 @@ def IconWrap(typeID, extra = None):
          typeID)
     else:
         return '<a href=showinfo:%d><img src="typeicon:%d" width=32 height=32 align=left></a>' % (typeID, typeID)
+        return
 
 
-def ProcessTypeAndQuantity(typeID, quantity, extra = None):
+def ProcessTypeAndQuantity(typeID, quantity, extra=None):
     if typeID == const.typeCredits:
         return util.FmtISK(quantity)
     elif extra is None:
@@ -235,6 +238,7 @@ def ProcessTypeAndQuantity(typeID, quantity, extra = None):
             if blueprintInfo.get('productivityLevel', 0):
                 props.append(localization.GetByLabel('UI/Agents/Items/ProductivityLevel', productivityLevel=blueprintInfo.get('productivityLevel', 0)))
         return localization.GetByLabel('UI/Agents/Items/NumItemsAndProperties', itemAndQuantity=cfg.FormatConvert(const.UE_TYPEIDANDQUANTITY, typeID, quantity), propertyList=localization.formatters.FormatGenericList(props))
+        return
 
 
 def BuildObjectiveHTML(agentID, objectiveData):
@@ -332,7 +336,7 @@ def BuildObjectiveHTML(agentID, objectiveData):
     return html
 
 
-def GetAgentLocationHeader(agentInfo, agentLocation, loyaltyPoints = None):
+def GetAgentLocationHeader(agentInfo, agentLocation, loyaltyPoints=None):
     cfgAgent = cfg.eveowners.Get(agentInfo.agentID)
     if agentInfo.agentTypeID == const.agentTypeAura:
         agentInfoIcon = ''

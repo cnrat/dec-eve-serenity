@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\client\script\ui\camera\systemMapCamera2.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\client\script\ui\camera\systemMapCamera2.py
 from eve.client.script.ui.camera.cameraOld import CameraOld
 from eve.client.script.ui.shared.maps.mapcommon import ZOOM_NEAR_SYSTEMMAP, ZOOM_FAR_SYSTEMMAP
 import evecamera

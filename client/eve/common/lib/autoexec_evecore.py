@@ -1,9 +1,10 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\common\lib\autoexec_evecore.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\common\lib\autoexec_evecore.py
 __all__ = ['SetupEveSpecificLogging', 'SetupForChina']
 import log
 import eveLocalization
 
-def SetupForChina(forceEnglishIfNotChina = False):
+def SetupForChina(forceEnglishIfNotChina=False):
     if boot.region == 'optic':
         eveLocalization.SetTimeDelta(28800)
         prefs.languageID = 'ZH'
@@ -64,6 +65,8 @@ def evePostStacktraceCallback(out):
             out.write('There were no active client sessions.\n')
     except:
         log.LogException()
+
+    return
 
 
 def EveMsgWindowStreamToMsgWindow():

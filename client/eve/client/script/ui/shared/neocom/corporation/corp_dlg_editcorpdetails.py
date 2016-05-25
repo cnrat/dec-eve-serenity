@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\client\script\ui\shared\neocom\corporation\corp_dlg_editcorpdetails.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\client\script\ui\shared\neocom\corporation\corp_dlg_editcorpdetails.py
 import blue
 from eve.client.script.ui.control.checkbox import Checkbox
 from eve.client.script.ui.control.infoIcon import MoreInfoIcon
@@ -74,6 +75,7 @@ class CorpDetails(uicontrols.Window):
         uicontrols.EveLabelSmall(text=localization.GetByLabel('UI/Corporations/CorpDetails/Description'), parent=self.sr.descEdit_container, top=-16)
         self.sr.descEdit = uicls.EditPlainText(setvalue=self.description, parent=self.sr.descEdit_container, maxLength=4000, showattributepanel=1)
         self.logopicker = uicls.CorpLogoPickerContainer(parent=self.sr.logocontrol, pos=(100, 0, 57, 90), align=uiconst.TOPLEFT)
+        return
 
     def GetLogoLibShape(self, graphicID):
         return const.graphicCorpLogoLibShapes.get(graphicID, const.graphicCorpLogoLibShapes[const.graphicCorpLogoLibNoShape])
@@ -82,7 +84,7 @@ class CorpDetails(uicontrols.Window):
         color, blendMode = const.graphicCorpLogoLibColors.get(graphicID, (1.0, 1.0, 1.0, 1.0))
         return (color, blendMode)
 
-    def SetupLogo(self, shapes = [None, None, None], colors = [None, None, None]):
+    def SetupLogo(self, shapes=[None, None, None], colors=[None, None, None]):
         i = 0
         self.sr.layerpics = []
         for each in ['layerPic1', 'layerPic2', 'layerPic3']:
@@ -118,6 +120,7 @@ class CorpDetails(uicontrols.Window):
             if not self.sr.prefs[self.layerNumSelected + 3]:
                 self.sr.layerpics[self.layerNumSelected].SetRGB(1.0, 1.0, 1.0, 1.0)
             self.sr.prefs[self.layerNumSelected] = sender.sr.identifier
+        return
 
     def PickCol(self, sender, *args):
         if self.layerNumSelected is not None:
@@ -126,6 +129,7 @@ class CorpDetails(uicontrols.Window):
             self.sr.layercols[self.layerNumSelected].SetRGB(*color)
             self.corpLogo.SetLayerShapeAndColor(layerNum=self.layerNumSelected, colorID=colorID)
             self.sr.prefs[self.layerNumSelected + 3] = colorID
+        return
 
     def ClickPic(self, idx):
         if not self.sr.Get('shapes', None):
@@ -165,6 +169,7 @@ class CorpDetails(uicontrols.Window):
             self.sr.colors.state = uiconst.UI_HIDDEN
         self.sr.shapes.state = uiconst.UI_NORMAL
         self.sr.shapes.SetOrder(0)
+        return
 
     def DoNothing(self, *args):
         pass
@@ -214,6 +219,7 @@ class CorpDetails(uicontrols.Window):
             self.sr.shapes.state = uiconst.UI_HIDDEN
         self.sr.colors.state = uiconst.UI_NORMAL
         uiutil.SetOrder(self.sr.colors, 0)
+        return
 
     def Confirm(self, *args):
         pass
@@ -223,12 +229,15 @@ class CorpDetails(uicontrols.Window):
             self.sr.colors.state = uiconst.UI_HIDDEN
         if self.sr.Get('shapes', None):
             self.sr.shapes.state = uiconst.UI_HIDDEN
+        return
 
     def UpdateWithSkills(self, *args):
         if sm.GetService('corp').UpdateCorporationAbilities() is None:
             return
-        corp = sm.GetService('corp').GetCorporation(eve.session.corpid, 1)
-        self.sr.memberLimit.text = str(corp.memberLimit)
+        else:
+            corp = sm.GetService('corp').GetCorporation(eve.session.corpid, 1)
+            self.sr.memberLimit.text = str(corp.memberLimit)
+            return
 
     def GetPickTicker(self, *args):
         if self.pickingTicker == 1:
@@ -242,17 +251,19 @@ class CorpDetails(uicontrols.Window):
         if len(corpName.strip()) == 0:
             eve.Message('EnterCorporationName')
             return
-        suggestions = sm.GetService('corp').GetSuggestedTickerNames(corpName)
-        if not suggestions or len(suggestions) == 0:
-            eve.Message('NoCorpTickerNameSuggestions')
-            return
-        tmplist = []
-        for each in suggestions:
-            tmplist.append((each.tickerName, each.tickerName))
+        else:
+            suggestions = sm.GetService('corp').GetSuggestedTickerNames(corpName)
+            if not suggestions or len(suggestions) == 0:
+                eve.Message('NoCorpTickerNameSuggestions')
+                return
+            tmplist = []
+            for each in suggestions:
+                tmplist.append((each.tickerName, each.tickerName))
 
-        ret = uix.ListWnd(tmplist, 'generic', localization.GetByLabel('UI/Corporations/CorpDetails/SelectTicker'), None, 1)
-        if ret is not None and len(ret):
-            self.sr.corpTickerEdit.SetValue(ret[0])
+            ret = uix.ListWnd(tmplist, 'generic', localization.GetByLabel('UI/Corporations/CorpDetails/SelectTicker'), None, 1)
+            if ret is not None and len(ret):
+                self.sr.corpTickerEdit.SetValue(ret[0])
+            return
 
 
 class EditCorpDetails(CorpDetails):
@@ -306,6 +317,7 @@ class EditCorpDetails(CorpDetails):
             sm.GetService('corp').UpdateCorporation(self.sr.descEdit.GetValue().strip(), urlvalue, self.sr.taxRateEdit.GetValue() / 100.0, self.applicationsEnabled)
             sm.GetService('corpui').ResetWindow(bShowIfVisible=1)
         self.Close()
+        return
 
 
 class CreateCorp(CorpDetails):
@@ -329,6 +341,7 @@ class CreateCorp(CorpDetails):
         self.sr.logocontrol.children.insert(0, self.corpLogo)
         self.SetupLogo([randomNumber, const.graphicCorpLogoLibNoShape, const.graphicCorpLogoLibNoShape], [None, None, None])
         self.sr.main.state = uiconst.UI_NORMAL
+        return
 
     def Submit(self, *args):
         corpName = self.sr.corpNameEdit.GetValue()

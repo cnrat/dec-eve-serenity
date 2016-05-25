@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\client\script\ui\view\worldspaceView.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\client\script\ui\view\worldspaceView.py
 import sys
 import inventorycommon.typeHelpers
 from inventorycommon.util import IsModularShip
@@ -37,8 +38,9 @@ class WorldspaceView(viewstate.StationView):
         self.cachedPlayerYaw = None
         self.cachedPlayerPitch = None
         self.cachedPlayerZoom = None
+        return
 
-    def LoadView(self, change = None, **kwargs):
+    def LoadView(self, change=None, **kwargs):
         self.activeShip = None
         self.activeshipmodel = None
         self.hangarScene = None
@@ -77,6 +79,7 @@ class WorldspaceView(viewstate.StationView):
         self.loading.ProgressWnd()
         self.loadingBackground.Hide()
         self.loadingBackground.Flush()
+        return
 
     def ShowView(self, **kwargs):
         worldspaceCustomization.ApplyWorldspaceCustomization()
@@ -93,6 +96,7 @@ class WorldspaceView(viewstate.StationView):
             self.worldSpaceClient.UnloadWorldSpaceInstance(self.stationID)
             self.entityClient.UnloadEntityScene(self.stationID)
             viewstate.StationView.UnloadView(self)
+        return
 
     def LoadHangarBackground(self):
         stationRace = evetypes.GetRaceID(eve.stationItem.stationTypeID)
@@ -139,67 +143,71 @@ class WorldspaceView(viewstate.StationView):
         if self.hangarScene is not None:
             stationModel = self.hangarScene.objects[0]
             stationModel.enableShadow = False
+        return
 
     def ShowActiveShip(self):
         if getattr(self, '__alreadyShowingActiveShip', False):
             log.LogTraceback("We're already in the process of showing the active ship")
             return
-        self.__alreadyShowingActiveShip = True
-        try:
-            scene = getattr(self, 'hangarScene', None)
-            if scene:
-                for each in scene.objects:
-                    if getattr(each, 'name', None) == str(self.activeShip):
-                        scene.objects.remove(each)
-
+        else:
+            self.__alreadyShowingActiveShip = True
             try:
-                if IsModularShip(self.activeShipItem.typeID):
-                    try:
-                        dogmaItem = self.clientDogmaIM.GetDogmaLocation().dogmaItems.get(self.activeShipItem.itemID, None)
-                        if dogmaItem is None:
-                            log.LogTraceback('Trying to show t3 ship which is not in dogma')
+                scene = getattr(self, 'hangarScene', None)
+                if scene:
+                    for each in scene.objects:
+                        if getattr(each, 'name', None) == str(self.activeShip):
+                            scene.objects.remove(each)
+
+                try:
+                    if IsModularShip(self.activeShipItem.typeID):
+                        try:
+                            dogmaItem = self.clientDogmaIM.GetDogmaLocation().dogmaItems.get(self.activeShipItem.itemID, None)
+                            if dogmaItem is None:
+                                log.LogTraceback('Trying to show t3 ship which is not in dogma')
+                                return
+                            subSystemIds = {}
+                            for fittedItem in dogmaItem.GetFittedItems().itervalues():
+                                if fittedItem.categoryID == const.categorySubSystem:
+                                    subSystemIds[fittedItem.groupID] = fittedItem.typeID
+
+                            newModel = self.t3ShipSvc.GetTech3ShipFromDict(dogmaItem.typeID, subSystemIds)
+                        except:
+                            log.LogException('failed bulding modular ship')
+                            sys.exc_clear()
                             return
-                        subSystemIds = {}
-                        for fittedItem in dogmaItem.GetFittedItems().itervalues():
-                            if fittedItem.categoryID == const.categorySubSystem:
-                                subSystemIds[fittedItem.groupID] = fittedItem.typeID
 
-                        newModel = self.t3ShipSvc.GetTech3ShipFromDict(dogmaItem.typeID, subSystemIds)
-                    except:
-                        log.LogException('failed bulding modular ship')
-                        sys.exc_clear()
-                        return
+                    else:
+                        modelPath = inventorycommon.typeHelpers.GetGraphicFile(self.activeShipItem.typeID)
+                        newFilename = modelPath.lower().replace(':/model', ':/dx9/model')
+                        newFilename = newFilename.replace('.blue', '.red')
+                        newModel = trinity.Load(newFilename)
+                    self.generalAudioEntity = None
+                    if newModel is not None and hasattr(newModel, 'observers'):
+                        triObserver = trinity.TriObserverLocal()
+                        self.generalAudioEntity = audio2.AudEmitter('spaceObject_' + str(self.activeShipItem.itemID) + '_general')
+                        triObserver.observer = self.generalAudioEntity
+                        newModel.observers.append(triObserver)
+                except Exception as e:
+                    log.LogException(str(e))
+                    sys.exc_clear()
+                    return
 
-                else:
-                    modelPath = inventorycommon.typeHelpers.GetGraphicFile(self.activeShipItem.typeID)
-                    newFilename = modelPath.lower().replace(':/model', ':/dx9/model')
-                    newFilename = newFilename.replace('.blue', '.red')
-                    newModel = trinity.Load(newFilename)
-                self.generalAudioEntity = None
-                if newModel is not None and hasattr(newModel, 'observers'):
-                    triObserver = trinity.TriObserverLocal()
-                    self.generalAudioEntity = audio2.AudEmitter('spaceObject_' + str(self.activeShipItem.itemID) + '_general')
-                    triObserver.observer = self.generalAudioEntity
-                    newModel.observers.append(triObserver)
-            except Exception as e:
-                log.LogException(str(e))
-                sys.exc_clear()
-                return
+                newModel.FreezeHighDetailMesh()
+                self.PositionShipModel(newModel)
+                if hasattr(newModel, 'ChainAnimationEx'):
+                    newModel.ChainAnimationEx('NormalLoop', 0, 0, 1.0)
+                self.activeShip = self.activeShipItem.itemID
+                self.activeshipmodel = newModel
+                newModel.display = 1
+                newModel.name = str(self.activeShipItem.itemID)
+                if self.clientDogmaIM.GetDogmaLocation().dogmaItems[util.GetActiveShip()].groupID != const.groupCapsule:
+                    scene.objects.append(newModel)
+                    self.generalAudioEntity.SendEvent(unicode('hangar_spin_switch_ship_play'))
+                sm.ScatterEvent('OnActiveShipModelChange', newModel, self.activeShipItem)
+            finally:
+                self.__alreadyShowingActiveShip = False
 
-            newModel.FreezeHighDetailMesh()
-            self.PositionShipModel(newModel)
-            if hasattr(newModel, 'ChainAnimationEx'):
-                newModel.ChainAnimationEx('NormalLoop', 0, 0, 1.0)
-            self.activeShip = self.activeShipItem.itemID
-            self.activeshipmodel = newModel
-            newModel.display = 1
-            newModel.name = str(self.activeShipItem.itemID)
-            if self.clientDogmaIM.GetDogmaLocation().dogmaItems[util.GetActiveShip()].groupID != const.groupCapsule:
-                scene.objects.append(newModel)
-                self.generalAudioEntity.SendEvent(unicode('hangar_spin_switch_ship_play'))
-            sm.ScatterEvent('OnActiveShipModelChange', newModel, self.activeShipItem)
-        finally:
-            self.__alreadyShowingActiveShip = False
+            return
 
     def PositionShipModel(self, model):
         trinity.WaitForResourceLoads()
@@ -271,3 +279,4 @@ class WorldspaceView(viewstate.StationView):
         model.translationCurve.Sort()
         model.translationCurve.extrapolation = trinity.TRIEXT_CONSTANT
         model.translationCurve.start = blue.os.GetWallclockTimeNow()
+        return

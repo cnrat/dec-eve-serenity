@@ -1,24 +1,25 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\carbon\common\stdlib\encodings\undefined.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\carbon\common\stdlib\encodings\undefined.py
 import codecs
 
 class Codec(codecs.Codec):
 
-    def encode(self, input, errors = 'strict'):
+    def encode(self, input, errors='strict'):
         raise UnicodeError('undefined encoding')
 
-    def decode(self, input, errors = 'strict'):
+    def decode(self, input, errors='strict'):
         raise UnicodeError('undefined encoding')
 
 
 class IncrementalEncoder(codecs.IncrementalEncoder):
 
-    def encode(self, input, final = False):
+    def encode(self, input, final=False):
         raise UnicodeError('undefined encoding')
 
 
 class IncrementalDecoder(codecs.IncrementalDecoder):
 
-    def decode(self, input, final = False):
+    def decode(self, input, final=False):
         raise UnicodeError('undefined encoding')
 
 

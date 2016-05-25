@@ -1,10 +1,11 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\carbon\common\script\net\machoNetExceptions.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\carbon\common\script\net\machoNetExceptions.py
 import exceptions
 
 class MachoException(StandardError):
     __guid__ = 'exceptions.MachoException'
 
-    def __init__(self, payload = None):
+    def __init__(self, payload=None):
         self.payload = payload
 
     def __str__(self):
@@ -17,7 +18,7 @@ class MachoException(StandardError):
 class UberMachoException(MachoException):
     __guid__ = 'exceptions.UberMachoException'
 
-    def __init__(self, payload = None):
+    def __init__(self, payload=None):
         MachoException.__init__(self, payload)
 
     def __repr__(self):
@@ -35,21 +36,21 @@ class UberMachoException(MachoException):
 class MachoWrappedException(MachoException):
     __guid__ = 'exceptions.MachoWrappedException'
 
-    def __init__(self, payload = None):
+    def __init__(self, payload=None):
         MachoException.__init__(self, payload)
 
 
 class UnMachoDestination(MachoException):
     __guid__ = 'exceptions.UnMachoDestination'
 
-    def __init__(self, payload = None):
+    def __init__(self, payload=None):
         MachoException.__init__(self, payload)
 
 
 class UnMachoChannel(MachoException):
     __guid__ = 'exceptions.UnMachoChannel'
 
-    def __init__(self, payload = None):
+    def __init__(self, payload=None):
         MachoException.__init__(self, payload)
 
 
@@ -57,7 +58,7 @@ class WrongMachoNode(MachoException):
     __guid__ = 'exceptions.WrongMachoNode'
     __passbyvalue__ = 1
 
-    def __init__(self, payload = None):
+    def __init__(self, payload=None):
         MachoException.__init__(self, payload)
 
 
@@ -65,7 +66,7 @@ class ProxyRedirect(MachoException):
     __guid__ = 'exceptions.ProxyRedirect'
     __passbyvalue__ = 1
 
-    def __init__(self, payload = None, **keywords):
+    def __init__(self, payload=None, **keywords):
         MachoException.__init__(self, payload)
         self.extra = keywords
 
@@ -74,7 +75,7 @@ class SessionUnavailable(MachoException):
     __guid__ = 'exceptions.SessionUnavailable'
     __passbyvalue__ = 1
 
-    def __init__(self, payload = None):
+    def __init__(self, payload=None):
         MachoException.__init__(self, payload)
 
 

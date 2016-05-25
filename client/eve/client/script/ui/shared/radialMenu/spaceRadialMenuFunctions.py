@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\client\script\ui\shared\radialMenu\spaceRadialMenuFunctions.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\client\script\ui\shared\radialMenu\spaceRadialMenuFunctions.py
 import types
 from carbonui.control.menuLabel import MenuLabel
 from eve.client.script.ui.util.uix import GetBallparkRecord
@@ -14,6 +15,7 @@ from eve.client.script.ui.services.menuSvcExtras.movementFunctions import Orbit 
 from eve.client.script.ui.services.menuSvcExtras.movementFunctions import GetWarpToRanges as movementFunctions__GetWarpToRanges
 from eve.client.script.ui.services.menuSvcExtras.movementFunctions import WarpToBookmark as movementFunctions__WarpToBookmark
 from eve.client.script.ui.services.menuSvcExtras.movementFunctions import WarpToItem as movementFunctions__WarpToItem
+import eve.client.script.ui.util.defaultRangeUtils as defaultRangeUtils
 from eve.client.script.ui.shared.radialMenu.radialMenuUtils import RadialMenuOptionsInfo
 from eve.client.script.ui.shared.radialMenu.radialMenuUtils import RangeRadialMenuAction
 from eve.client.script.ui.shared.radialMenu.radialMenuUtils import SecondLevelRadialMenuAction
@@ -25,6 +27,7 @@ from utillib import KeyVal
 primaryCategoryActions = {invConst.categoryDrone: [SimpleRadialMenuAction(option1='UI/Drones/EngageTarget', option2='UI/Drones/LaunchDrones')],
  invConst.categoryShip: [SimpleRadialMenuAction(option1='UI/Inflight/BoardShip')],
  invConst.categoryStation: [SimpleRadialMenuAction(option1='UI/Inflight/DockInStation', option2='UI/Inflight/SetDestination')],
+ invConst.categoryStructure: [SimpleRadialMenuAction(option1='UI/Inflight/DockInStation', option2='UI/Inflight/SetDestination')],
  invConst.categoryAsteroid: [SimpleRadialMenuAction(option1='UI/Inflight/SetDestination')]}
 primaryGroupActions = {invConst.groupAgentsinSpace: [SimpleRadialMenuAction(option1='UI/Chat/StartConversation')],
  invConst.groupAuditLogSecureContainer: [SimpleRadialMenuAction(option1='UI/Commands/OpenCargo')],
@@ -75,6 +78,7 @@ secondaryCategoryActions = {invConst.categoryAsteroid: bookMarkAndLookatOptions,
  invConst.categoryEntity: [lookAtOption, setInterestOption],
  invConst.categoryShip: [lookAtOption, setInterestOption],
  invConst.categoryStation: bookMarkAndLookatOptions,
+ invConst.categoryStructure: bookMarkAndLookatOptions,
  invConst.categoryStarbase: bookMarkAndLookatOptions,
  invConst.categorySovereigntyStructure: bookMarkAndLookatOptions,
  invConst.categoryCelestial: bookMarkAndLookatOptions,
@@ -153,12 +157,14 @@ def GetSpaceComponentPrimaryActionsForTypeID(typeID):
     componentNames = cfg.spaceComponentStaticData.GetComponentNamesForType(typeID)
     if CARGO_BAY in componentNames and not HasItemTrader(typeID):
         return [SimpleRadialMenuAction(option1='UI/Commands/OpenCargo')]
-    if HasBountyEscrowComponent(typeID):
+    elif HasBountyEscrowComponent(typeID):
         return [SimpleRadialMenuAction(option1='UI/Commands/AccessBountyEscrow')]
-    if HasMicroJumpDriverComponent(typeID):
+    elif HasMicroJumpDriverComponent(typeID):
         return [SimpleRadialMenuAction(option1='UI/Inflight/SpaceComponents/MicroJumpDriver/ActivateMicroJumpDrive')]
-    if HasItemTrader(typeID):
+    elif HasItemTrader(typeID):
         return [SimpleRadialMenuAction(option1='UI/Inflight/SpaceComponents/ItemTrader/Access')]
+    else:
+        return None
 
 
 def GetSpaceComponentSecondaryActions(typeID):
@@ -171,30 +177,31 @@ def GetSpaceComponentSecondaryActions(typeID):
     return actions
 
 
-def GetObjectsActions(categoryID, groupID, typeID = None, itemID = None, bookmarkInfo = None, siteData = None, *args):
+def GetObjectsActions(categoryID, groupID, typeID=None, itemID=None, bookmarkInfo=None, siteData=None, *args):
     secondaryActions = GetObjectsSecondaryActions(categoryID, groupID, typeID=typeID, itemID=itemID, bookmarkInfo=bookmarkInfo, siteData=siteData)
     generalActions = GetGeneralActions(hasExtraOptions=bool(secondaryActions), itemID=itemID, bookmarkInfo=bookmarkInfo, siteData=siteData)
     myActions = generalActions[:]
     if itemID == GetActiveShip():
         return myActions
-    primaryComponentActions = GetSpaceComponentPrimaryActionsForTypeID(typeID)
-    groupActions = primaryGroupActions.get(groupID, None)
-    categoryActions = primaryCategoryActions.get(categoryID, None)
-    siteActions = siteData.GetSiteActions() if siteData else None
-    if primaryComponentActions:
-        primaryActions = primaryComponentActions
-    elif siteActions:
-        primaryActions = siteActions
-    elif groupActions:
-        primaryActions = groupActions
-    elif categoryActions:
-        primaryActions = categoryActions
     else:
-        primaryActions = [SimpleRadialMenuAction()]
-    return primaryActions + myActions
+        primaryComponentActions = GetSpaceComponentPrimaryActionsForTypeID(typeID)
+        groupActions = primaryGroupActions.get(groupID, None)
+        categoryActions = primaryCategoryActions.get(categoryID, None)
+        siteActions = siteData.GetSiteActions() if siteData else None
+        if primaryComponentActions:
+            primaryActions = primaryComponentActions
+        elif siteActions:
+            primaryActions = siteActions
+        elif groupActions:
+            primaryActions = groupActions
+        elif categoryActions:
+            primaryActions = categoryActions
+        else:
+            primaryActions = [SimpleRadialMenuAction()]
+        return primaryActions + myActions
 
 
-def GetObjectsSecondaryActions(categoryID, groupID, typeID = None, itemID = None, bookmarkInfo = None, siteData = None):
+def GetObjectsSecondaryActions(categoryID, groupID, typeID=None, itemID=None, bookmarkInfo=None, siteData=None):
     myActions = []
     categoryActions = secondaryCategoryActions.get(categoryID, None)
     if categoryActions:
@@ -214,7 +221,7 @@ def GetObjectsSecondaryActions(categoryID, groupID, typeID = None, itemID = None
     return myActions
 
 
-def GetGeneralActions(hasExtraOptions = True, itemID = None, bookmarkInfo = None, siteData = None):
+def GetGeneralActions(hasExtraOptions=True, itemID=None, bookmarkInfo=None, siteData=None):
     if itemID == GetActiveShip():
         generalActions = [SimpleRadialMenuAction(option1='UI/Inflight/StopMyShip', option2='UI/Inflight/StopMyCapsule'),
          GetOrbitOption(itemID, isMyShip=True),
@@ -237,34 +244,35 @@ def GetGeneralActions(hasExtraOptions = True, itemID = None, bookmarkInfo = None
     return generalActions
 
 
-def GetOrbitOption(itemID, isMyShip = False, *args):
+def GetOrbitOption(itemID, isMyShip=False, *args):
     if isMyShip:
         return RangeRadialMenuAction(optionPath='UI/Inflight/SetDefaultOrbitDistanceShort', rangeList=GetOrbitRangesForDefault(), defaultRange=GetOrbitDefault(), callback=SetDefaultOrbit, funcArgs=itemID, alwaysAvailable=True)
     return RangeRadialMenuAction(optionPath='UI/Inflight/OrbitObject', rangeList=GetOrbitRanges(), defaultRange=GetOrbitDefault(), callback=Orbit, funcArgs=itemID)
 
 
-def GetKeepAtRangeOption(itemID, isMyShip = False, *args):
+def GetKeepAtRangeOption(itemID, isMyShip=False, *args):
     if isMyShip:
         return RangeRadialMenuAction(optionPath='UI/Inflight/SetDefaultKeepAtRangeDistanceShort', rangeList=GetKeepAtRangeRangesForDefault(), defaultRange=GetKeepAtRangeDefault(), callback=SetDefaultKeepAtRange, funcArgs=itemID, alwaysAvailable=True)
     return RangeRadialMenuAction(optionPath='UI/Inflight/Submenus/KeepAtRange', rangeList=GetKeepAtRangeRanges(), defaultRange=GetKeepAtRangeDefault(), callback=KeepAtRange, funcArgs=itemID)
 
 
-def GetWarpToOption(itemID, bookmarkInfo, isMyShip = False, siteData = None, *args):
+def GetWarpToOption(itemID, bookmarkInfo, isMyShip=False, siteData=None, *args):
     if isMyShip:
         return RangeRadialMenuAction(optionPath='UI/Inflight/SetDefaultWarpWithinDistanceShort', rangeList=GetWarpToRanges(), defaultRange=GetWarpToDefault(), callback=SetDefaultWarpTo, funcArgs=itemID, alwaysAvailable=True)
-    if bookmarkInfo:
-        callback = WarpToBookmark
-        funcArgs = bookmarkInfo
-        optionPath2 = 'UI/Inflight/WarpToBookmark'
-    elif siteData:
-        callback = siteData.WarpToAction
-        funcArgs = None
-        optionPath2 = 'UI/Inflight/WarpToBookmark'
     else:
-        optionPath2 = 'UI/Fleet/WarpToMemberSubmenuOption'
-        callback = WarpTo
-        funcArgs = itemID
-    return RangeRadialMenuAction(optionPath='UI/Inflight/Submenus/WarpToWithin', option2Path=optionPath2, rangeList=GetWarpToRanges(), defaultRange=GetWarpToDefault(), callback=callback, funcArgs=funcArgs)
+        if bookmarkInfo:
+            callback = WarpToBookmark
+            funcArgs = bookmarkInfo
+            optionPath2 = 'UI/Inflight/WarpToBookmark'
+        elif siteData:
+            callback = siteData.WarpToAction
+            funcArgs = None
+            optionPath2 = 'UI/Inflight/WarpToBookmark'
+        else:
+            optionPath2 = 'UI/Fleet/WarpToMemberSubmenuOption'
+            callback = WarpTo
+            funcArgs = itemID
+        return RangeRadialMenuAction(optionPath='UI/Inflight/Submenus/WarpToWithin', option2Path=optionPath2, rangeList=GetWarpToRanges(), defaultRange=GetWarpToDefault(), callback=callback, funcArgs=funcArgs)
 
 
 def GetApproachOption(bookmarkInfo, siteData, *args):
@@ -277,16 +285,16 @@ def GetApproachOption(bookmarkInfo, siteData, *args):
     return SimpleRadialMenuAction(option1=option1, option2=option2)
 
 
-def GetMyShipSpecialCaseSecondLevel(typeID = None, itemID = None, *args):
+def GetMyShipSpecialCaseSecondLevel(typeID=None, itemID=None, *args):
     secondLevelOptions = []
-    if session.solarsystemid:
+    if session.solarsystemid and not session.structureid:
         func = sm.GetService('menu').Bookmark
         funcArgs = (itemID, typeID, session.solarsystemid)
         secondLevelOptions += [SimpleRadialMenuAction(option1='UI/Inflight/BookmarkLocation', alwaysAvailable=True, func=func, funcArgs=funcArgs)]
     return secondLevelOptions
 
 
-def FindRadialMenuOptions(slimItem = None, itemID = None, typeID = None, primaryActions = True, bookmarkInfo = None, manyItemsData = None, siteData = None):
+def FindRadialMenuOptions(slimItem=None, itemID=None, typeID=None, primaryActions=True, bookmarkInfo=None, manyItemsData=None, siteData=None):
     filterList = []
     if not bookmarkInfo and not manyItemsData and not slimItem and itemID:
         slimItem = GetBallparkRecord(itemID)
@@ -452,7 +460,7 @@ def GetWarpToDefault():
     return sm.GetService('menu').GetDefaultActionDistance('WarpTo')
 
 
-def GetRanges(minValue = 250, maxValue = 30000):
+def GetRanges(minValue=250, maxValue=30000):
     newValue = minValue
     rangeList = []
     while newValue <= maxValue:
@@ -473,22 +481,22 @@ def GetRanges(minValue = 250, maxValue = 30000):
 
 
 def SetDefaultKeepAtRange(itemID, distance, percOfAllRange):
-    sm.GetService('menu').SetDefaultKeepAtRangeDist(distance)
+    defaultRangeUtils.SetDefaultKeepAtRangeDist(distance)
 
 
 def SetDefaultOrbit(itemID, distance, percOfAllRange):
-    sm.GetService('menu').SetDefaultOrbitDist(distance)
+    defaultRangeUtils.SetDefaultOrbitDist(distance)
 
 
 def SetDefaultWarpTo(itemID, distance, percOfAllRange):
-    sm.GetService('menu').SetDefaultWarpToDist(distance)
+    defaultRangeUtils.SetDefaultWarpToDist(distance)
 
 
-def LogRadialMenuEvent(actionName, rangeVal = 0):
+def LogRadialMenuEvent(actionName, rangeVal=0):
     uthread.new(DoLogLogRadialMenuEvent, actionName, rangeVal)
 
 
-def DoLogLogRadialMenuEvent(actionName, rangeVal = 0):
+def DoLogLogRadialMenuEvent(actionName, rangeVal=0):
     try:
         sm.GetService('infoGatheringSvc').LogInfoEvent(eventTypeID=infoEventRadialMenuAction, itemID=session.charid, int_1=rangeVal, int_2=1, char_1=actionName)
     except UserError:

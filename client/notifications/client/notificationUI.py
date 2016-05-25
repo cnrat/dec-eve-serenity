@@ -1,6 +1,9 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\packages\notifications\client\notificationUI.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\packages\notifications\client\notificationUI.py
 import gatekeeper
 from notifications.client.contactNotificationAdapter import ContactNotificationAdapter
+from notifications.client.ccpNotificationAdapter import CCPNotificationAdapter
+from notifications.client.shutdownNotificationAdapter import ShutdownNotificationAdapter
 from notifications.client.notificationSettings.notificationSettingHandler import NotificationSettingHandler
 from notifications.common.notification import Notification
 import blue
@@ -16,7 +19,7 @@ class NotificationUIService(CoreService):
     __notifyevents__ = ['OnNewNotificationReceived', 'OnSetDevice', 'OnLocalNotificationSettingChanged']
     __startupdependencies__ = ['settings', 'mailSvc', 'notificationSvc']
 
-    def Run(self, memstream = None):
+    def Run(self, memstream=None):
         self.notificationCenter = None
         self.notificationCache = None
         self.pendingNotificationCache = []
@@ -28,18 +31,25 @@ class NotificationUIService(CoreService):
         self.shouldShowOnEnable = False
         self.__developerMode = False
         self.contactNotificationAdapter = ContactNotificationAdapter()
+        self.ccpNotificationAdapter = CCPNotificationAdapter()
+        self.shutdownNotificationAdapter = ShutdownNotificationAdapter()
         sm.RegisterNotify(self.contactNotificationAdapter)
+        sm.RegisterNotify(self.ccpNotificationAdapter)
+        sm.RegisterNotify(self.shutdownNotificationAdapter)
         self.lastSeenMessageTime = self.notificationSettings.GetLastSeenTime()
         self.lastHistoryTimeCleanTime = self.notificationSettings.GetLastHistoryTimeCleanTime()
         self.lastSeenNotificationId = self.notificationSettings.GetLastSeenNotificationId()
         self.lastClearedNotificationId = self.notificationSettings.GetLastClearedNotificationId()
+        return
 
     def OnLocalNotificationSettingChanged(self):
         self.UpdateEnabledStatus()
 
-    def Stop(self, memStream = None):
+    def Stop(self, memStream=None):
         CoreService.Stop(self, memStream)
         sm.UnregisterNotify(self.contactNotificationAdapter)
+        sm.UnregisterNotify(self.ccpNotificationAdapter)
+        sm.UnregisterNotify(self.shutdownNotificationAdapter)
 
     def PlaySound(self, eventName):
         if self.notificationSettings.GetNotificationSoundEnabled():
@@ -103,6 +113,7 @@ class NotificationUIService(CoreService):
             self.pendingNotificationCache.append(notification)
         else:
             self.notificationCache.insert(0, notification)
+        return
 
     def _DisplayNotificationIfPossible(self, notification):
         if self.notificationCenter:
@@ -149,6 +160,7 @@ class NotificationUIService(CoreService):
             self.unreadCounter = counter
             self._UpdateCounter()
             self._NotifyInitialized()
+        return
 
     def _NotifyInitialized(self):
         if self.notificationCenter:
@@ -207,6 +219,7 @@ class NotificationUIService(CoreService):
         if self.notificationCenter:
             self.notificationCenter.deconstruct()
             self.notificationCenter = None
+        return
 
     def _OnNotificationCenterReconstructed(self):
         self._UpdateCounter()
@@ -229,7 +242,7 @@ class NotificationUIService(CoreService):
     def _SortNotifications(self, notificationList):
         notificationList.sort(key=lambda notification: notification.created, reverse=True)
 
-    def _NotificationProvider(self, sortThem = True):
+    def _NotificationProvider(self, sortThem=True):
         from notifications.client.development.skillHistoryProvider import SkillHistoryProvider
         skillNotifications = SkillHistoryProvider(onlyShowAfterDate=self.lastHistoryTimeCleanTime).provide()
         achievementNotifications = self.GetAchievementNotifications()
@@ -247,9 +260,10 @@ class NotificationUIService(CoreService):
         achievementNotifications = sm.GetService('notificationSvc').FormatNotifications(notifications)
         return achievementNotifications
 
-    def ClearCache(self, refillCache = True):
+    def ClearCache(self, refillCache=True):
         self.notificationCache = None
         sm.GetService('notificationSvc').ClearAllNotificationsCache()
         self._NotifyUnInitialized()
         if refillCache:
             self._CheckAndFillCache()
+        return

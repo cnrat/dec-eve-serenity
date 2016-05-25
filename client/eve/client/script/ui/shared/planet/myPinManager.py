@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\client\script\ui\shared\planet\myPinManager.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\client\script\ui\shared\planet\myPinManager.py
 import evetypes
 import uiprimitives
 import uicontrols
@@ -45,6 +46,7 @@ class MyPinManager:
         self.bracketCurveSet = trinity.TriCurveSet()
         self.bracketCurveSet.name = 'PlanetBrackets'
         uicore.desktop.GetRenderObject().curveSets.append(self.bracketCurveSet)
+        return
 
     def Close(self):
         sm.UnregisterNotify(self)
@@ -65,6 +67,7 @@ class MyPinManager:
         self.buildIndicatorPin = None
         self.currentEcuPinID = None
         self.bracketCurveSet = None
+        return
 
     def OnPlanetViewOpened(self):
         self.planetUISvc = sm.GetService('planetUI')
@@ -92,11 +95,13 @@ class MyPinManager:
     def ReRenderPin(self, pin):
         if not sm.GetService('viewState').IsViewActive('planet'):
             return
-        uiPin = self.pinsByID.get(pin.id, None)
-        if uiPin is None:
+        else:
+            uiPin = self.pinsByID.get(pin.id, None)
+            if uiPin is None:
+                return
+            uiPin.Remove()
+            self.RenderPin(pin)
             return
-        uiPin.Remove()
-        self.RenderPin(pin)
 
     def InitRubberLinkLabels(self):
         self.rubberLinkLabelContainer = uiprimitives.Container(name='rubberLinkLabels', parent=self.planetUISvc.planetUIContainer, pos=(400, 400, 110, 55), padding=(4, 4, 4, 4), align=uiconst.TOPLEFT, state=uiconst.UI_HIDDEN)
@@ -125,15 +130,19 @@ class MyPinManager:
             self.linkParentID = None
             self.routeParentID = None
         self.currentRoute = []
+        return
 
     def ResetPinData(self):
         if self.planetUISvc.planet.colony is None:
             return
-        pinData = self.planetUISvc.planet.colony.colonyData.pins
-        for pinID, pinUI in self.pinsByID.iteritems():
-            pinUI.ResetPinData(pinData[pinID])
+        else:
+            pinData = self.planetUISvc.planet.colony.colonyData.pins
+            for pinID, pinUI in self.pinsByID.iteritems():
+                pinUI.ResetPinData(pinData[pinID])
 
-    def OnRefreshPins(self, pinIDs = None):
+            return
+
+    def OnRefreshPins(self, pinIDs=None):
         for p in self.pinsByID.values():
             p.OnRefreshPins()
 
@@ -147,14 +156,16 @@ class MyPinManager:
         planet = sm.GetService('planetUI').GetCurrentPlanet()
         if planet is None:
             return
-        colony = planet.GetColony(session.charid)
-        if colony is None:
+        else:
+            colony = planet.GetColony(session.charid)
+            if colony is None:
+                return
+            pin = colony.GetPin(pinID)
+            if pin is None:
+                return
+            UIpin = self.RenderPin(pin)
+            UIpin.PlacementAnimation()
             return
-        pin = colony.GetPin(pinID)
-        if pin is None:
-            return
-        UIpin = self.RenderPin(pin)
-        UIpin.PlacementAnimation()
 
     def OnPlanetEnteredEditMode(self):
         sm.ScatterEvent('OnEditModeChanged', True)
@@ -164,6 +175,7 @@ class MyPinManager:
         sm.ScatterEvent('OnEditModeChanged', False)
         if self.planetUISvc.currentContainer is not None:
             self.planetUISvc.CloseCurrentlyOpenContainer()
+        return
 
     def OnPlanetZoomChanged(self, zoom):
         for pin in self.pinsByID.values():
@@ -185,11 +197,12 @@ class MyPinManager:
         self.eventManager.SetStateNormal()
         self.planetUISvc.curveLineDrawer.ChangeLineSetWidth('rubberLink', 0.0)
         self.rubberLinkLabelContainer.state = uiconst.UI_HIDDEN
+        return
 
     def LaunchCommodities(self, pinID, commoditiesToLaunch):
         self.planetUISvc.planet.LaunchCommodities(pinID, commoditiesToLaunch)
 
-    def EnterRouteMode(self, parentID, typeID, oneoff = False):
+    def EnterRouteMode(self, parentID, typeID, oneoff=False):
         self.eventManager.SetStateCreateRoute()
         self.routeHoverPath = []
         self.currentRoute = [parentID]
@@ -211,6 +224,7 @@ class MyPinManager:
         self.typeToRoute = None
         self.currRouteVolume = None
         self.eventManager.SetStateNormal()
+        return
 
     def SetRouteWaypoint(self, childID):
         if childID in self.currentRoute:
@@ -274,18 +288,21 @@ class MyPinManager:
     def RenderPins(self):
         if self.planetUISvc.planet.colony is None:
             return
-        newPinData = self.planetUISvc.planet.colony.colonyData.pins
-        newPinIDs = newPinData.keys()
-        oldPinIDs = self.pinsByID.keys()
-        pinsToDelete = [ pinID for pinID in oldPinIDs if pinID not in newPinIDs ]
-        for pinID in pinsToDelete:
-            pin = self.pinsByID.pop(pinID)
-            pin.Remove()
+        else:
+            newPinData = self.planetUISvc.planet.colony.colonyData.pins
+            newPinIDs = newPinData.keys()
+            oldPinIDs = self.pinsByID.keys()
+            pinsToDelete = [ pinID for pinID in oldPinIDs if pinID not in newPinIDs ]
+            for pinID in pinsToDelete:
+                pin = self.pinsByID.pop(pinID)
+                pin.Remove()
 
-        pinsToAdd = [ pinID for pinID in newPinIDs if pinID not in oldPinIDs ]
-        for pinID in pinsToAdd:
-            pin = newPinData[pinID]
-            self.RenderPin(pin)
+            pinsToAdd = [ pinID for pinID in newPinIDs if pinID not in oldPinIDs ]
+            for pinID in pinsToAdd:
+                pin = newPinData[pinID]
+                self.RenderPin(pin)
+
+            return
 
     def RenderPin(self, pin):
         if pin.id in self.pinsByID:
@@ -307,31 +324,36 @@ class MyPinManager:
         self.linksByGraphicID = {}
         if session.charid not in self.planetUISvc.planet.colonies:
             return
-        if self.planetUISvc.planet.colony is not None:
-            for linkID, linkObj in self.planetUISvc.planet.colony.colonyData.links.iteritems():
-                ep1ID, ep2ID = linkID
-                self.AddLink(ep1ID, ep2ID, linkObj.typeID)
+        else:
+            if self.planetUISvc.planet.colony is not None:
+                for linkID, linkObj in self.planetUISvc.planet.colony.colonyData.links.iteritems():
+                    ep1ID, ep2ID = linkID
+                    self.AddLink(ep1ID, ep2ID, linkObj.typeID)
+
+            return
 
     def AddLink(self, parentID, childID, linkTypeID):
         colony = self.planetUISvc.planet.GetColony(session.charid)
         if colony is None:
             log.LogError('Unable to render link for planet without a colony')
             return
-        par = colony.GetPin(parentID)
-        child = colony.GetPin(childID)
-        if par is None or child is None:
-            log.LogWarn('Trying to render link for non-existing pin', parentID, childID)
+        else:
+            par = colony.GetPin(parentID)
+            child = colony.GetPin(childID)
+            if par is None or child is None:
+                log.LogWarn('Trying to render link for non-existing pin', parentID, childID)
+                return
+            p1 = SurfacePoint(theta=par.longitude, phi=par.latitude)
+            p2 = SurfacePoint(theta=child.longitude, phi=child.latitude)
+            planetLink = colony.colonyData.GetLink(parentID, childID)
+            link = Link(p1, p2, parentID, childID, linkTypeID, planetLink)
+            self.linksByPinIDs[parentID, childID] = link
+            self.linksByPinIDs[childID, parentID] = link
+            self.links.append(link)
+            linkGraphicID1, linkGraphicID2 = link.GetGraphicIDs()
+            self.linksByGraphicID[linkGraphicID1] = link
+            self.linksByGraphicID[linkGraphicID2] = link
             return
-        p1 = SurfacePoint(theta=par.longitude, phi=par.latitude)
-        p2 = SurfacePoint(theta=child.longitude, phi=child.latitude)
-        planetLink = colony.colonyData.GetLink(parentID, childID)
-        link = Link(p1, p2, parentID, childID, linkTypeID, planetLink)
-        self.linksByPinIDs[parentID, childID] = link
-        self.linksByPinIDs[childID, parentID] = link
-        self.links.append(link)
-        linkGraphicID1, linkGraphicID2 = link.GetGraphicIDs()
-        self.linksByGraphicID[linkGraphicID1] = link
-        self.linksByGraphicID[linkGraphicID2] = link
 
     def AddDepletionPoint(self, point):
         index = len(self.depletionPoints)
@@ -352,6 +374,8 @@ class MyPinManager:
         if linkGraphicID in self.linksByGraphicID:
             link = self.linksByGraphicID[linkGraphicID]
             return link.GetMenu()
+        else:
+            return None
 
     def EndPlacingPin(self):
         self.eventManager.SetStateNormal()
@@ -362,8 +386,9 @@ class MyPinManager:
             self.buildIndicatorPin.Remove()
             self.buildIndicatorPin = None
         self.DisplayECUExtractionAreas(show=False)
+        return
 
-    def DisplayECUExtractionAreas(self, show = True):
+    def DisplayECUExtractionAreas(self, show=True):
         for pin in self.pinsByID.values():
             if evetypes.GetGroupID(pin.pin.typeID) == const.groupExtractionControlUnitPins:
                 pin.ShowMaxDistanceCircle(show * 1.0)
@@ -389,7 +414,7 @@ class MyPinManager:
 
         return links
 
-    def CreateRoute(self, amount = None):
+    def CreateRoute(self, amount=None):
         if self.oneoffRoute:
             self.planetUISvc.planet.OpenTransferWindow(self.currentRoute)
             self.planetUISvc.CloseCurrentlyOpenContainer()
@@ -398,11 +423,13 @@ class MyPinManager:
             links = self.GetLinksFromPath(self.currentRoute)
             typeToRoute = self.typeToRoute
             try:
-                self.planetUISvc.planet.CreateRoute(self.currentRoute, self.typeToRoute, amount)
-            except UserError:
-                if self.currentRoute:
-                    self.currentRoute = [self.currentRoute[0]]
-                raise
+                try:
+                    self.planetUISvc.planet.CreateRoute(self.currentRoute, self.typeToRoute, amount)
+                except UserError:
+                    if self.currentRoute:
+                        self.currentRoute = [self.currentRoute[0]]
+                    raise
+
             finally:
                 for link, id in links:
                     link.RemoveAsRoute(id)
@@ -419,7 +446,7 @@ class MyPinManager:
         self.planetUISvc.curveLineDrawer.ChangeLinePosition('rubberLink', self.rubberLink, pin.surfacePoint, surfacePoint)
         self.UpdateRubberLinkLabels(pin.surfacePoint, surfacePoint)
 
-    def FocusCameraOnCommandCenter(self, time = 1.0):
+    def FocusCameraOnCommandCenter(self, time=1.0):
         for p in self.pinsByID.values():
             if evetypes.GetGroupID(p.pin.typeID) == const.groupCommandPins:
                 try:
@@ -470,7 +497,7 @@ class MyPinManager:
     def VerifySimulation(self):
         self.planetUISvc.planet.GMVerifySimulation()
 
-    def HighlightLink(self, pinID, linkID, removeOld = True):
+    def HighlightLink(self, pinID, linkID, removeOld=True):
         link = self.linksByPinIDs[linkID]
         link.HighlightLink()
 
@@ -492,11 +519,12 @@ class MyPinManager:
     def GetCommandCenter(self):
         if not self.planetUISvc.planet:
             return None
-        if not self.planetUISvc.planet.colony:
+        elif not self.planetUISvc.planet.colony:
             return None
-        if not self.planetUISvc.planet.colony.colonyData:
+        elif not self.planetUISvc.planet.colony.colonyData:
             return None
-        return self.planetUISvc.planet.colony.colonyData.commandPin
+        else:
+            return self.planetUISvc.planet.colony.colonyData.commandPin
 
     def RemovePin(self, pinID):
         self.planetUISvc.GetCurrentPlanet().RemovePin(pinID)
@@ -512,6 +540,7 @@ class MyPinManager:
                 self.pinsByID.pop(pinID)
         self.RenderLinks()
         self.linkParentID = None
+        return
 
     def RemoveLink(self, linkID):
         link = self.linksByPinIDs[linkID]
@@ -539,12 +568,14 @@ class MyPinManager:
             raise UserError('CannotBuildPinCloseToOthers')
         if not self or self.planetUISvc.planet is None:
             return
-        self.EndPlacingPin()
-        pin = self.planetUISvc.planet.CreatePin(self.newPinType, surfacePoint.phi, surfacePoint.theta)
-        if evetypes.GetGroupID(self.newPinType) == const.groupCommandPins:
-            sm.GetService('audio').SendUIEvent('wise:/msg_pi_build_command_play')
         else:
-            sm.GetService('audio').SendUIEvent('wise:/msg_pi_build_pin_play')
+            self.EndPlacingPin()
+            pin = self.planetUISvc.planet.CreatePin(self.newPinType, surfacePoint.phi, surfacePoint.theta)
+            if evetypes.GetGroupID(self.newPinType) == const.groupCommandPins:
+                sm.GetService('audio').SendUIEvent('wise:/msg_pi_build_command_play')
+            else:
+                sm.GetService('audio').SendUIEvent('wise:/msg_pi_build_pin_play')
+            return
 
     def SetLinkChild(self, parentID, childID):
         try:
@@ -569,6 +600,7 @@ class MyPinManager:
                 ecuPin.ResetOverlapValues()
         self.currentEcuPinID = None
         self.planetUISvc.CloseSurveyWindow()
+        return
 
     def PlaceExtractionHead(self, ecuPinID, headID, surfacePoint, radius):
         self.planetUISvc.planet.AddExtractorHead(ecuPinID, headID, surfacePoint.phi, surfacePoint.theta)
@@ -619,7 +651,6 @@ class MyPinManager:
         rotMat = geo2.MatrixRotationAxis(normal, areaOfInfluence * SAFETYFACTOR)
         newV = geo2.Multiply(rotMat, ecuVector)
         headSurfacePoint.SetXYZ(*newV[:3])
-        return 1.0
 
     def EndDragExtractionHead(self):
         uiPin, headID = self.extractionHeadDragged
@@ -630,6 +661,7 @@ class MyPinManager:
         self.eventManager.SetSubStateNormal()
         wnd = self.planetUISvc.GetSurveyWindow(self.currentEcuPinID)
         wnd.OnEndDragExtractionHead()
+        return
 
     def OnExtractionHeadMouseEnter(self, ecuPinID, headID):
         if ecuPinID != self.currentEcuPinID:
@@ -657,12 +689,14 @@ class MyPinManager:
         ecuPin = self.pinsByID.get(ecuPinID, None)
         if ecuPin:
             ecuPin.SetOverlapValues(overlapVals)
+        return
 
     def UnlockHeads(self, pinID):
         self.canMoveHeads = pinID
 
     def LockHeads(self):
         self.canMoveHeads = None
+        return
 
     def GMRunDepletionSim(self, totalDuration):
         points = []

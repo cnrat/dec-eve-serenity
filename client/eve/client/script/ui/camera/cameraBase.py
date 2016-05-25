@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\client\script\ui\camera\cameraBase.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\client\script\ui\camera\cameraBase.py
 import blue
 import math
 import trinity
@@ -14,6 +15,7 @@ class CameraBase(object):
         self.cameraParent = None
         self.cameraInterestID = None
         self.cameraInterest = None
+        return
 
     def GetTrinityCamera(self):
         return self._camera
@@ -52,6 +54,7 @@ class CameraBase(object):
                 exceptionMessage += str(endCurve.GetQuaternionAt(blue.os.GetSimTime())) + '\n'
             self.ResetCamera()
             raise Exception(exceptionMessage)
+            return
 
         uthread2.StartTasklet(_threaded)
 

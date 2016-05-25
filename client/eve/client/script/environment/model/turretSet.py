@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\client\script\environment\model\turretSet.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\client\script\environment\model\turretSet.py
 import remotefilecache
 import inventorycommon.typeHelpers
 import trinity
@@ -14,7 +15,7 @@ class TurretSet:
     __guid__ = 'turretSet.TurretSet'
     turretsEnabled = [False]
 
-    def Initialize(self, graphics, locator, overrideBeamGraphicID = None, count = 1):
+    def Initialize(self, graphics, locator, overrideBeamGraphicID=None, count=1):
         self.inWarp = False
         self.isShooting = False
         self.targetsAvailable = False
@@ -26,34 +27,35 @@ class TurretSet:
         if not hasattr(graphics, 'graphicFile'):
             log.LogError('No turret redfile defined for: ' + str(graphics))
             return self.turretSets
-        turretPath = graphics.graphicFile
-        for i in range(count):
-            tSet = trinity.Load(turretPath)
-            if tSet is None:
-                continue
-            if len(tSet.locatorName) == 0:
-                tSet.locatorName = 'locator_turret_'
-            elif tSet.locatorName[-1].isdigit():
-                tSet.locatorName = tSet.locatorName[:-1]
-            if locator < 0:
-                tSet.slotNumber = i + 1
-            else:
-                tSet.slotNumber = locator
-            self.turretSets.append(tSet)
+        else:
+            turretPath = graphics.graphicFile
+            for i in range(count):
+                tSet = trinity.Load(turretPath)
+                if tSet is None:
+                    continue
+                if len(tSet.locatorName) == 0:
+                    tSet.locatorName = 'locator_turret_'
+                elif tSet.locatorName[-1].isdigit():
+                    tSet.locatorName = tSet.locatorName[:-1]
+                if locator < 0:
+                    tSet.slotNumber = i + 1
+                else:
+                    tSet.slotNumber = locator
+                self.turretSets.append(tSet)
 
-        for turretSet in self.turretSets:
-            turretFxPath = turretSet.firingEffectResPath
-            try:
-                effect = blue.recycler.RecycleOrLoad(turretFxPath)
-            except RuntimeError:
-                log.LogError('Could not load firing effect ' + turretFxPath + ' for turret: ' + turretPath)
-                effect = None
+            for turretSet in self.turretSets:
+                turretFxPath = turretSet.firingEffectResPath
+                try:
+                    effect = blue.recycler.RecycleOrLoad(turretFxPath)
+                except RuntimeError:
+                    log.LogError('Could not load firing effect ' + turretFxPath + ' for turret: ' + turretPath)
+                    effect = None
 
-            turretSet.firingEffect = effect
+                turretSet.firingEffect = effect
 
-        return self.turretSets
+            return self.turretSets
 
-    def GetTurretSet(self, index = 0):
+    def GetTurretSet(self, index=0):
         return self.turretSets[index]
 
     def GetTurretSets(self):
@@ -71,9 +73,14 @@ class TurretSet:
         self.targetID = targetID
         targetBall = sm.GetService('michelle').GetBall(targetID)
         if targetBall is not None:
-            if hasattr(targetBall, 'model'):
+            targetModel = getattr(targetBall, 'model', None)
+            if targetModel is not None:
                 for turretSet in self.turretSets:
                     turretSet.targetObject = targetBall.model
+
+            else:
+                self.targetID = None
+        return
 
     def SetAmmoColorByTypeID(self, ammoTypeID):
         gfx = inventorycommon.typeHelpers.GetGraphic(ammoTypeID)
@@ -84,22 +91,29 @@ class TurretSet:
     def SetAmmoColor(self, color):
         if color is None:
             return
-        for turretSet in self.turretSets:
-            if turretSet.firingEffect is not None:
-                for curve in turretSet.firingEffect.Find('trinity.TriColorCurve'):
-                    if curve.name == 'Ammo':
-                        curve.value = color
+        else:
+            for turretSet in self.turretSets:
+                if turretSet.firingEffect is not None:
+                    for curve in turretSet.firingEffect.Find('trinity.TriColorCurve'):
+                        if curve.name == 'Ammo':
+                            curve.value = color
+
+            return
 
     def IsShooting(self):
         return self.isShooting
 
-    def StartShooting(self, ammoGFXid = None):
+    def StartShooting(self):
         if self.inWarp:
             return
-        for turretSet in self.turretSets:
-            turretSet.EnterStateFiring()
+        elif self.targetID is None:
+            return
+        else:
+            for turretSet in self.turretSets:
+                turretSet.EnterStateFiring()
 
-        self.isShooting = True
+            self.isShooting = True
+            return
 
     def StopShooting(self):
         for turretSet in self.turretSets:
@@ -151,7 +165,6 @@ class TurretSet:
 
     def TakeAim(self, targetID):
         if self.targetID != targetID:
-            log.LogWarn('target ids mismatch!')
             return
         if not self.online:
             return
@@ -159,46 +172,48 @@ class TurretSet:
             turretSet.EnterStateTargeting()
 
     @staticmethod
-    def AddTurretToModel(model, turretGraphicsID, turretFaction = None, locatorID = 1, count = 1):
-        if model.__bluetype__ not in ('trinity.EveShip2', 'trinity.EveMobile'):
+    def AddTurretToModel(model, turretGraphicsID, turretFaction=None, locatorID=1, count=1):
+        if not hasattr(model, 'turretSets'):
             log.LogError('Wrong object is trying to get turret attached due to wrong authored content! model:' + model.name + ' bluetype:' + model.__bluetype__)
             return
-        graphics = cfg.graphics.GetIfExists(turretGraphicsID)
-        newTurretSet = TurretSet()
-        eveTurretSets = newTurretSet.Initialize(graphics, locatorID, None, count=count)
-        spaceObjectFactory = sm.GetService('sofService').spaceObjectFactory
-        for tSet in eveTurretSets:
-            if model.dna:
-                spaceObjectFactory.SetupTurretMaterialFromDNA(tSet, model.dna)
-            elif turretFaction is not None:
-                spaceObjectFactory.SetupTurretMaterialFromFaction(tSet, turretFaction)
-            model.turretSets.append(tSet)
+        else:
+            graphics = cfg.graphics.GetIfExists(turretGraphicsID)
+            newTurretSet = TurretSet()
+            eveTurretSets = newTurretSet.Initialize(graphics, locatorID, None, count=count)
+            spaceObjectFactory = sm.GetService('sofService').spaceObjectFactory
+            for tSet in eveTurretSets:
+                if model.dna:
+                    spaceObjectFactory.SetupTurretMaterialFromDNA(tSet, model.dna)
+                elif turretFaction is not None:
+                    spaceObjectFactory.SetupTurretMaterialFromFaction(tSet, turretFaction)
+                model.turretSets.append(tSet)
 
-        return newTurretSet
+            return newTurretSet
 
     @staticmethod
-    def FitTurret(model, turretTypeID, locatorID, turretFaction = None, count = 1, online = True, checkSettings = True):
+    def FitTurret(model, turretTypeID, locatorID, turretFaction=None, count=1, online=True, checkSettings=True):
         if not evetypes.Exists(turretTypeID):
             return
-        if checkSettings and not gfxsettings.Get(gfxsettings.UI_TURRETS_ENABLED):
+        elif checkSettings and not gfxsettings.Get(gfxsettings.UI_TURRETS_ENABLED):
             return
-        groupID = evetypes.GetGroupID(turretTypeID)
-        if model is None:
-            log.LogError('FitTurret() called with NoneType, so there is no model to fit the turret to!')
-            return
-        if groupID not in const.turretModuleGroups:
-            return
-        newTurretSet = None
-        graphicID = evetypes.GetGraphicID(turretTypeID)
-        if graphicID is not None:
-            newTurretSet = TurretSet.AddTurretToModel(model, graphicID, turretFaction, locatorID, count)
-            if newTurretSet is None:
+        else:
+            groupID = evetypes.GetGroupID(turretTypeID)
+            if model is None:
+                log.LogError('FitTurret() called with NoneType, so there is no model to fit the turret to!')
                 return
-            if not online:
-                newTurretSet.Offline()
-            newTurretSet.turretTypeID = turretTypeID
-            newTurretSet.turretGroupID = groupID
-        return newTurretSet
+            elif groupID not in const.turretModuleGroups:
+                return
+            newTurretSet = None
+            graphicID = evetypes.GetGraphicID(turretTypeID)
+            if graphicID is not None:
+                newTurretSet = TurretSet.AddTurretToModel(model, graphicID, turretFaction, locatorID, count)
+                if newTurretSet is None:
+                    return
+                if not online:
+                    newTurretSet.Offline()
+                newTurretSet.turretTypeID = turretTypeID
+                newTurretSet.turretGroupID = groupID
+            return newTurretSet
 
     @staticmethod
     def PrefetchGraphicsForModules(modules):
@@ -213,43 +228,56 @@ class TurretSet:
         remotefilecache.prefetch_files(prefetch_set)
 
     @staticmethod
-    def FitTurrets(shipID, model, shipFaction = None):
-        if not gfxsettings.Get(gfxsettings.UI_TURRETS_ENABLED):
-            return {}
-        turretsFitted = {}
-        modules = []
-        if shipID == util.GetActiveShip():
-            dogmaLocation = sm.GetService('clientDogmaIM').GetDogmaLocation()
-            if not dogmaLocation.IsItemLoaded(shipID):
-                return {}
-            dogmaLocation.LoadItem(shipID)
-            ship = dogmaLocation.GetDogmaItem(shipID)
-            modules = []
-            for module in ship.GetFittedItems().itervalues():
-                if module.groupID in const.turretModuleGroups:
-                    modules.append([module.itemID,
-                     module.typeID,
-                     module.flagID - const.flagHiSlot0 + 1,
-                     module.IsOnline()])
-
+    def GetSlotFromModuleFlagID(flagID):
+        if flagID in const.hiSlotFlags:
+            return flagID - const.flagHiSlot0 + 1
+        elif flagID in const.medSlotFlags:
+            return flagID - const.flagMedSlot0 + 1
         else:
-            slimItem = sm.StartService('michelle').GetBallpark().GetInvItem(shipID)
-            if slimItem is not None:
-                moduleItems = slimItem.modules
-                modules = [ [module[0],
-                 module[1],
-                 module[2] - const.flagHiSlot0 + 1,
-                 True] for module in moduleItems ]
-        TurretSet.PrefetchGraphicsForModules(modules)
-        with block_trap():
-            del model.turretSets[:]
-            modules = sorted(modules, key=lambda x: x[2])
-            locatorCounter = 1
-            for moduleID, typeID, slot, isOnline in modules:
-                slot = slot or locatorCounter
-                ts = TurretSet.FitTurret(model, typeID, slot, shipFaction, online=isOnline)
-                if ts is not None:
-                    turretsFitted[moduleID] = ts
-                    locatorCounter += 1
+            return -1
 
-            return turretsFitted
+    @staticmethod
+    def FitTurrets(shipID, model, shipFaction=None):
+        if not hasattr(model, 'turretSets'):
+            return {}
+        elif not gfxsettings.Get(gfxsettings.UI_TURRETS_ENABLED):
+            return {}
+        else:
+            turretsFitted = {}
+            modules = []
+            if shipID == util.GetActiveShip():
+                dogmaLocation = sm.GetService('clientDogmaIM').GetDogmaLocation()
+                if not dogmaLocation.IsItemLoaded(shipID):
+                    return {}
+                dogmaLocation.LoadItem(shipID)
+                ship = dogmaLocation.GetDogmaItem(shipID)
+                modules = []
+                for module in ship.GetFittedItems().itervalues():
+                    if module.groupID in const.turretModuleGroups:
+                        modules.append([module.itemID,
+                         module.typeID,
+                         TurretSet.GetSlotFromModuleFlagID(module.flagID),
+                         module.IsOnline()])
+
+            else:
+                slimItem = sm.StartService('michelle').GetBallpark().GetInvItem(shipID)
+                if slimItem is not None:
+                    moduleItems = slimItem.modules
+                    modules = [ [module[0],
+                     module[1],
+                     module[2] - const.flagHiSlot0 + 1,
+                     True] for module in moduleItems ]
+            TurretSet.PrefetchGraphicsForModules(modules)
+            with block_trap():
+                del model.turretSets[:]
+                modules = sorted(modules, key=lambda x: x[2])
+                locatorCounter = 1
+                for moduleID, typeID, slot, isOnline in modules:
+                    slot = slot or locatorCounter
+                    ts = TurretSet.FitTurret(model, typeID, slot, shipFaction, online=isOnline)
+                    if ts is not None:
+                        turretsFitted[moduleID] = ts
+                        locatorCounter += 1
+
+                return turretsFitted
+            return

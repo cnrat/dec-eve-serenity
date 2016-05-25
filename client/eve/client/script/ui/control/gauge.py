@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\client\script\ui\control\gauge.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\client\script\ui\control\gauge.py
 from math import pi
 from carbonui.const import TOLEFT_PROP, TOPRIGHT, TOPLEFT
 import carbonui.const as uiconst
@@ -34,6 +35,7 @@ class _GaugeBase(ContainerAutoSize):
         self.subText = None
         if subTxt:
             self.SetSubText(subTxt)
+        return
 
     def _SetValue(self, gauge, value, frequency, animate):
         if animate:
@@ -42,7 +44,7 @@ class _GaugeBase(ContainerAutoSize):
             gauge.width = value
         self.value = value
 
-    def ShowMarker(self, value, width = 1, color = util.Color.WHITE):
+    def ShowMarker(self, value, width=1, color=util.Color.WHITE):
         self.HideMarker(value)
         left = int(self.width * value)
         marker = uiprimitives.Fill(parent=self.gaugeCont, name='marker', color=color, align=uiconst.TOPLEFT_PROP, pos=(value,
@@ -51,7 +53,7 @@ class _GaugeBase(ContainerAutoSize):
          self.gaugeCont.height), state=uiconst.UI_DISABLED, idx=0)
         self.markers[value] = marker
 
-    def ShowMarkers(self, values, width = 1, color = util.Color.WHITE):
+    def ShowMarkers(self, values, width=1, color=util.Color.WHITE):
         for value in values:
             self.ShowMarker(value, width, color)
 
@@ -106,11 +108,12 @@ class Gauge(_GaugeBase):
             backgroundColor = util.Color(*self.color).SetAlpha(0.2).GetRGBA()
         self.sr.backgroundFill = uiprimitives.Fill(bgParent=self.gaugeCont, name='background', color=backgroundColor)
         self.SetValueInstantly(self.value)
+        return
 
     def SetGaugeAlign(self, align):
         self.gauge.align = align
 
-    def SetValue(self, value, frequency = 10.0, animate = True, timeOffset = 0.0):
+    def SetValue(self, value, frequency=10.0, animate=True, timeOffset=0.0):
         if self.value == value:
             return
         if self.cyclic and self.value > value:
@@ -120,7 +123,7 @@ class Gauge(_GaugeBase):
                 self.AnimFlash(value - self.value, timeOffset=timeOffset)
             self._SetValue(self.gauge, value, frequency, animate)
 
-    def SetValueTimed(self, value, duration, callback = None):
+    def SetValueTimed(self, value, duration, callback=None):
         uicore.animations.MorphScalar(self.gauge, 'width', self.value, value, duration=duration, curveType=uiconst.ANIM_LINEAR, callback=callback)
         self.value = self.gauge.width
 
@@ -129,8 +132,9 @@ class Gauge(_GaugeBase):
             self.valueText = uicontrols.EveLabelSmall(parent=self.gaugeCont, align=uiconst.CENTER, state=uiconst.UI_DISABLED, idx=0)
         if self.valueText.text != text:
             self.valueText.text = text
+        return
 
-    def SetColor(self, color, animDuration = None):
+    def SetColor(self, color, animDuration=None):
         if color == self.color:
             return
         self.color = color
@@ -152,7 +156,7 @@ class Gauge(_GaugeBase):
         self.gauge.width = value
         self.gauge.StopAnimations()
 
-    def AnimFlash(self, diff, duration = 1.6, timeOffset = 0.0):
+    def AnimFlash(self, diff, duration=1.6, timeOffset=0.0):
         uthread.new(self._AnimFlash, diff, duration, timeOffset)
 
     def _AnimFlash(self, diff, duration, timeOffset):
@@ -193,7 +197,7 @@ class GaugeMultiValue(_GaugeBase):
         for gaugeNum, value in enumerate(values):
             self.SetValueInstantly(gaugeNum, value)
 
-    def SetValue(self, gaugeNum, value, frequency = 10.0, animate = True):
+    def SetValue(self, gaugeNum, value, frequency=10.0, animate=True):
         self._SetValue(self.gauges[gaugeNum], value, frequency, animate)
 
     def SetValueInstantly(self, gaugeNum, value):

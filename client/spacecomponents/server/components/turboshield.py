@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\packages\spacecomponents\server\components\turboshield.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\packages\spacecomponents\server\components\turboshield.py
 import logging
 from dogma.const import attributeShieldCharge, attributeShieldCapacity
 from dogma.const import attributeShieldExplosiveDamageResonance, attributeShieldEmDamageResonance
@@ -28,6 +29,7 @@ class TurboShield(Component):
         self.SubscribeToMessage(MSG_ON_ADDED_TO_SPACE, self.OnAddedToSpace)
         self.SubscribeToMessage(MSG_ON_REMOVED_FROM_SPACE, self.OnRemovedFromSpace)
         self.SubscribeToMessage(MSG_ON_DAMAGE_STATE_CHANGE, self.OnDamageStateChange)
+        return
 
     def OnAddedToSpace(self, ballpark, spaceComponentDB):
         logger.debug('TurboShield.OnAddedToSpace %d', self.itemID)
@@ -39,6 +41,7 @@ class TurboShield(Component):
         logger.debug('TurboShield.OnRemovedFromSpace %d', self.itemID)
         if self.shieldModeTasklet is not None:
             self.shieldModeTasklet.kill()
+        return
 
     def OnDamageStateChange(self, oldDamageState, newDamageState):
         newShieldLevel = newDamageState[0][0]
@@ -52,6 +55,7 @@ class TurboShield(Component):
             self.shieldModeTasklet = uthread2.StartTasklet(self.DepleteTurboShield)
         else:
             self.lastShieldLevel = newShieldLevel
+        return
 
     def CanEnterReinforce(self, shieldLevel):
         if not self.IsActive():

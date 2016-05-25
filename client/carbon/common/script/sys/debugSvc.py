@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\carbon\common\script\sys\debugSvc.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\carbon\common\script\sys\debugSvc.py
 import service
 import sys
 import traceback
@@ -34,7 +35,7 @@ class debugSvc(service.Service):
     __notifyevents__ = ['OnRemoteExecute', 'OnDebugLog']
     __dependencies__ = ['machoNet']
 
-    def Run(self, memStream = None):
+    def Run(self, memStream=None):
         self.logEvents = {}
 
     def GetOptions(self):
@@ -63,9 +64,9 @@ class debugSvc(service.Service):
                 transport = sm.services['machoNet'].GetTransportOfNode(nodeID)
                 ret[nodeID] = 'Proxy %d (%s)' % (nodeID, transport.transport.address)
 
-            for nodeID in sm.services['machoNet'].GetConnectedSolNodes():
-                transport = sm.services['machoNet'].GetTransportOfNode(nodeID)
-                ret[nodeID] = 'Sol %d (%s)' % (nodeID, transport.transport.address)
+        for nodeID in sm.services['machoNet'].GetConnectedSolNodes():
+            transport = sm.services['machoNet'].GetTransportOfNode(nodeID)
+            ret[nodeID] = 'Sol %d (%s)' % (nodeID, transport.transport.address)
 
         for s in base.GetSessions():
             clientID = getattr(s, 'clientID', None)
@@ -84,23 +85,24 @@ class debugSvc(service.Service):
     def GetClientDisplayString(self, clientID, charID):
         return 'Client #%d (char #%d)' % (clientID, charID)
 
-    def Eval(self, code = None, signedCode = None, marshaledCode = None, **params):
+    def Eval(self, code=None, signedCode=None, marshaledCode=None, **params):
         if macho.mode == 'client':
             return
-        if macho.mode == 'client' and signedCode is None:
-            raise RuntimeError('Eval Failed - Must sign code for clients')
-        if marshaledCode is not None:
-            code = marshal.loads(marshaledCode)
-        if signedCode is not None:
-            marshaledCode, verified = Crypto.Verify(signedCode)
-            if not verified:
-                raise RuntimeError('Eval Failed - Signature Verification Failure')
-            code = marshal.loads(marshaledCode)
-        if not hasattr(session, 'debugContext'):
-            session.__dict__['debugContext'] = {'__name__': 'debugContext',
-             '__builtins__': __builtins__}
-        session.debugContext.update(params)
-        return eval(code, session.debugContext)
+        else:
+            if macho.mode == 'client' and signedCode is None:
+                raise RuntimeError('Eval Failed - Must sign code for clients')
+            if marshaledCode is not None:
+                code = marshal.loads(marshaledCode)
+            if signedCode is not None:
+                marshaledCode, verified = Crypto.Verify(signedCode)
+                if not verified:
+                    raise RuntimeError('Eval Failed - Signature Verification Failure')
+                code = marshal.loads(marshaledCode)
+            if not hasattr(session, 'debugContext'):
+                session.__dict__['debugContext'] = {'__name__': 'debugContext',
+                 '__builtins__': __builtins__}
+            session.debugContext.update(params)
+            return eval(code, session.debugContext)
 
     def OnRemoteExecute(self, signedCode):
         if macho.mode != 'client':
@@ -116,60 +118,62 @@ class debugSvc(service.Service):
             return
         self.Log(txt, lvl)
 
-    def Exec(self, code = None, signedCode = None, node = None, console = False, noprompt = False, **params):
+    def Exec(self, code=None, signedCode=None, node=None, console=False, noprompt=False, **params):
         if macho.mode == 'client':
             return
-        svc = None
-        if node is not None:
-            try:
-                lnode = node.lower()
-            except AttributeError:
-                pass
-            else:
-                if lnode == 'remote':
-                    if boot.role == 'server':
-                        svc, many = self.session.ConnectToRemoteService('debug', random.choice(sm.services['machoNet'].GetConnectedProxyNodes())), False
-                    else:
-                        svc, many = self.session.ConnectToRemoteService('debug'), False
-                elif lnode == 'proxies':
-                    svc, many = self.session.ConnectToAllProxyServerServices('debug'), True
-                elif lnode == 'servers':
-                    svc, many = self.session.ConnectToAllSolServerServices('debug'), True
-                elif lnode == 'all':
-                    svc, many = self.session.ConnectToAllServices('debug'), True
-                elif lnode == 'local':
-                    svc = 0
-
-            try:
-                lnode = long(node)
-            except ValueError:
-                pass
-            else:
-                if lnode < 0:
-                    svc, many = self.session.ConnectToClientService('debug', 'clientID', -lnode), False
-                else:
-                    svc, many = self.session.ConnectToRemoteService('debug', lnode), False
-
-            if svc is None:
-                raise RuntimeError('Exec failed: Invalid node %s' % repr(node))
-        if not svc:
-            if macho.mode == 'client' and signedCode is None:
-                raise RuntimeError('Exec Failed - Must sign code for clients')
-            if signedCode is not None:
-                code, verified = Crypto.Verify(signedCode)
-                if not verified:
-                    raise RuntimeError('Exec Failed - Signature Verification Failure')
-            if console:
-                return self._ExecConsole(code, noprompt)
-            else:
-                return self._Exec(code, params)
         else:
-            noprompt = many
-            ret = svc.Exec(code, signedCode, None, console, noprompt, **params)
-            if many:
-                ret2 = dict([ (each[1], each[2]) for each in ret ])
-                return pprint.pformat(ret2) + '\n'
-            return ret
+            svc = None
+            if node is not None:
+                try:
+                    lnode = node.lower()
+                except AttributeError:
+                    pass
+                else:
+                    if lnode == 'remote':
+                        if boot.role == 'server':
+                            svc, many = self.session.ConnectToRemoteService('debug', random.choice(sm.services['machoNet'].GetConnectedProxyNodes())), False
+                        else:
+                            svc, many = self.session.ConnectToRemoteService('debug'), False
+                    elif lnode == 'proxies':
+                        svc, many = self.session.ConnectToAllProxyServerServices('debug'), True
+                    elif lnode == 'servers':
+                        svc, many = self.session.ConnectToAllSolServerServices('debug'), True
+                    elif lnode == 'all':
+                        svc, many = self.session.ConnectToAllServices('debug'), True
+                    elif lnode == 'local':
+                        svc = 0
+
+                try:
+                    lnode = long(node)
+                except ValueError:
+                    pass
+                else:
+                    if lnode < 0:
+                        svc, many = self.session.ConnectToClientService('debug', 'clientID', -lnode), False
+                    else:
+                        svc, many = self.session.ConnectToRemoteService('debug', lnode), False
+
+                if svc is None:
+                    raise RuntimeError('Exec failed: Invalid node %s' % repr(node))
+            if not svc:
+                if macho.mode == 'client' and signedCode is None:
+                    raise RuntimeError('Exec Failed - Must sign code for clients')
+                if signedCode is not None:
+                    code, verified = Crypto.Verify(signedCode)
+                    if not verified:
+                        raise RuntimeError('Exec Failed - Signature Verification Failure')
+                if console:
+                    return self._ExecConsole(code, noprompt)
+                else:
+                    return self._Exec(code, params)
+            else:
+                noprompt = many
+                ret = svc.Exec(code, signedCode, None, console, noprompt, **params)
+                if many:
+                    ret2 = dict([ (each[1], each[2]) for each in ret ])
+                    return pprint.pformat(ret2) + '\n'
+                return ret
+            return
 
     def _Exec(self, code, params):
         buffdude = cStringIO.StringIO()
@@ -177,14 +181,16 @@ class debugSvc(service.Service):
         sys.stdout = buffdude
         sys.stderr = buffdude
         try:
-            if not hasattr(session, 'debugContext'):
-                session.__dict__['debugContext'] = {'__name__': 'debugContext',
-                 '__builtins__': __builtins__}
-            session.debugContext.update(params)
-            exec code in session.debugContext
-        except:
-            traceback.print_exc()
-            sys.exc_clear()
+            try:
+                if not hasattr(session, 'debugContext'):
+                    session.__dict__['debugContext'] = {'__name__': 'debugContext',
+                     '__builtins__': __builtins__}
+                session.debugContext.update(params)
+                exec code in session.debugContext
+            except:
+                traceback.print_exc()
+                sys.exc_clear()
+
         finally:
             sys.stdout, sys.stderr = temp
 

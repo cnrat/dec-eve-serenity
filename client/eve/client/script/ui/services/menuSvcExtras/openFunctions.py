@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\client\script\ui\services\menuSvcExtras\openFunctions.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\client\script\ui\services\menuSvcExtras\openFunctions.py
 import util
 import form
 import invCtrl
@@ -11,6 +12,8 @@ def OpenShipHangarCargo(itemIDs):
         invID = ('ShipCargo', itemID)
         form.Inventory.OpenOrShow(invID=invID, usePrimary=usePrimary, openFromWnd=openFromWnd)
 
+    return
+
 
 def OpenDroneBay(itemIDs):
     usePrimary = len(itemIDs) == 1
@@ -20,6 +23,8 @@ def OpenDroneBay(itemIDs):
         invCtrl.ShipDroneBay(itemID).GetItems()
         form.Inventory.OpenOrShow(invID=invID, usePrimary=usePrimary, openFromWnd=openFromWnd)
 
+    return
+
 
 def OpenFighterBay(itemIDs):
     usePrimary = len(itemIDs) == 1
@@ -28,6 +33,8 @@ def OpenFighterBay(itemIDs):
         invID = ('ShipFighterBay', itemID)
         invCtrl.ShipFighterBay(itemID).GetItems()
         form.Inventory.OpenOrShow(invID=invID, usePrimary=usePrimary, openFromWnd=openFromWnd)
+
+    return
 
 
 def OpenShipMaintenanceBayShip(itemID, name):
@@ -69,6 +76,8 @@ def OpenCargoContainer(invItems):
         invID = ('StationContainer', item.itemID)
         form.Inventory.OpenOrShow(invID=invID, usePrimary=usePrimary, openFromWnd=openFromWnd)
 
+    return
+
 
 def OpenBountyOffice(charID):
     wnd = form.BountyWindow.GetIfOpen()
@@ -86,6 +95,27 @@ def ViewAuditLogForALSC(itemID):
 def RepairItems(items):
     if items is None or len(items) < 1:
         return
-    wnd = form.RepairShopWindow.Open()
-    if wnd and not wnd.destroyed:
-        wnd.DisplayRepairQuote(items)
+    else:
+        wnd = form.RepairShopWindow.Open()
+        if wnd and not wnd.destroyed:
+            wnd.DisplayRepairQuote(items)
+        return
+
+
+def OpenProfileSettingsForStructure(itemID):
+    corpStructures = sm.GetService('structureDirectory').GetCorporationStructures()
+    structureInfo = corpStructures.get(itemID, None)
+    if not structureInfo:
+        return
+    else:
+        profileID = structureInfo['profileID']
+        browserController = sm.GetService('structureControllers').GetStructureBrowserController()
+        browserController.SetProfileSettingsSelected()
+        browserController.SelectProfile(profileID)
+        from eve.client.script.ui.structure.structureBrowser.structureBrowserWnd import StructureBrowserWnd
+        wnd = StructureBrowserWnd.GetIfOpen()
+        if wnd:
+            wnd.ForceProfileSettingsSelected()
+        else:
+            StructureBrowserWnd.Open()
+        return

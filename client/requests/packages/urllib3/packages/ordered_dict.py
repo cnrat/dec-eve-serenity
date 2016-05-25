@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\packages\requests\packages\urllib3\packages\ordered_dict.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\packages\requests\packages\urllib3\packages\ordered_dict.py
 try:
     from thread import get_ident as _get_ident
 except ImportError:
@@ -22,15 +23,16 @@ class OrderedDict(dict):
             self.__map = {}
 
         self.__update(*args, **kwds)
+        return
 
-    def __setitem__(self, key, value, dict_setitem = dict.__setitem__):
+    def __setitem__(self, key, value, dict_setitem=dict.__setitem__):
         if key not in self:
             root = self.__root
             last = root[0]
             last[1] = root[0] = self.__map[key] = [last, root, key]
         dict_setitem(self, key, value)
 
-    def __delitem__(self, key, dict_delitem = dict.__delitem__):
+    def __delitem__(self, key, dict_delitem=dict.__delitem__):
         dict_delitem(self, key)
         link_prev, link_next, key = self.__map.pop(key)
         link_prev[1] = link_next
@@ -62,8 +64,9 @@ class OrderedDict(dict):
             pass
 
         dict.clear(self)
+        return
 
-    def popitem(self, last = True):
+    def popitem(self, last=True):
         if not self:
             raise KeyError('dictionary is empty')
         root = self.__root
@@ -129,7 +132,7 @@ class OrderedDict(dict):
     __update = update
     __marker = object()
 
-    def pop(self, key, default = __marker):
+    def pop(self, key, default=__marker):
         if key in self:
             result = self[key]
             del self[key]
@@ -138,13 +141,13 @@ class OrderedDict(dict):
             raise KeyError(key)
         return default
 
-    def setdefault(self, key, default = None):
+    def setdefault(self, key, default=None):
         if key in self:
             return self[key]
         self[key] = default
         return default
 
-    def __repr__(self, _repr_running = {}):
+    def __repr__(self, _repr_running={}):
         call_key = (id(self), _get_ident())
         if call_key in _repr_running:
             return '...'
@@ -164,13 +167,14 @@ class OrderedDict(dict):
 
         if inst_dict:
             return (self.__class__, (items,), inst_dict)
-        return (self.__class__, (items,))
+        else:
+            return (self.__class__, (items,))
 
     def copy(self):
         return self.__class__(self)
 
     @classmethod
-    def fromkeys(cls, iterable, value = None):
+    def fromkeys(cls, iterable, value=None):
         d = cls()
         for key in iterable:
             d[key] = value

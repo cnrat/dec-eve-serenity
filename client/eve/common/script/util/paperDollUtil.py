@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\common\script\util\paperDollUtil.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\common\script\util\paperDollUtil.py
 import blue
 import yaml
 import localization
@@ -7,7 +8,7 @@ import eve.common.script.paperDoll.paperDollDataManagement as pdDM
 from utillib import KeyVal
 FACIAL_POSE_PARAMETERS = KeyVal(PortraitPoseNumber='PortraitPoseNumber', HeadLookTarget='HeadLookTarget', HeadTilt='HeadTilt', OrientChar='OrientChar', BrowLeftCurl='BrowLeftCurl', BrowLeftTighten='BrowLeftTighten', BrowLeftUpDown='BrowLeftUpDown', BrowRightCurl='BrowRightCurl', BrowRightTighten='BrowRightTighten', BrowRightUpDown='BrowRightUpDown', EyeClose='EyeClose', EyesLookVertical='EyesLookVertical', EyesLookHorizontal='EyesLookHorizontal', SquintLeft='SquintLeft', SquintRight='SquintRight', JawSideways='JawSideways', JawUp='JawUp', PuckerLips='PuckerLips', FrownLeft='FrownLeft', FrownRight='FrownRight', SmileLeft='SmileLeft', SmileRight='SmileRight')
 
-def CreateRandomDoll(gender, bloodline, doll = None):
+def CreateRandomDoll(gender, bloodline, doll=None):
     ml = pdDM.ModifierLoader()
     blue.synchro.Yield()
     from eve.client.script.ui.login.charcreation.eveDollRandomizer import EveDollRandomizer
@@ -22,7 +23,7 @@ def CreateRandomDoll(gender, bloodline, doll = None):
     return doll
 
 
-def CreateRandomDollNoClothes(gender, bloodline, doll = None, noRandomize = False):
+def CreateRandomDollNoClothes(gender, bloodline, doll=None, noRandomize=False):
     from eve.client.script.ui.login.charcreation.eveDollRandomizer import EveDollRandomizer
     ml = pdDM.ModifierLoader()
     blue.synchro.Yield()

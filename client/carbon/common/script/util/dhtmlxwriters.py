@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\carbon\common\script\util\dhtmlxwriters.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\carbon\common\script\util\dhtmlxwriters.py
 import carbon.common.script.util.xmlwriters as xmlwriter
 
 class DHtmlXElement:
@@ -36,7 +37,7 @@ class DHtmlXData_Default:
         return '<%s id="%s">' % ('data', id)
 
     def WriteTail(self, id):
-        return '</data>'
+        pass
 
     def WriteElement(self, element):
         ret = '<element '
@@ -63,7 +64,7 @@ class DHtmlXData_Tree(DHtmlXData_Default):
         return '<%s id="%s">' % ('tree', self.FormatString(id))
 
     def WriteTail(self, id):
-        return '</tree>'
+        pass
 
     def WriteElement(self, element):
         if element.hasChild == True:
@@ -83,7 +84,7 @@ class DHtmlXData_Grid(DHtmlXData_Default):
         return '<%s id="%s">' % ('rows', self.FormatString(id))
 
     def WriteTail(self, id):
-        return '</rows>'
+        pass
 
     def WriteElement(self, element):
         if element.hasChild:
@@ -104,7 +105,7 @@ class DHtmlXData_TreeGrid(DHtmlXData_Default):
         return '<rows parent="%s">' % self.FormatString(id)
 
     def WriteTail(self, id):
-        return '</rows>'
+        pass
 
     def WriteElement(self, element):
         if element.hasChild:

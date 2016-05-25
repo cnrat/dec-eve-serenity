@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\client\script\ui\shared\shipTree\shipTreeContainer.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\client\script\ui\shared\shipTree\shipTreeContainer.py
 import inventorycommon.typeHelpers
 from .shipTreeShipGroup import ShipTreeShipGroup
 from carbonui.primitives.containerAutoSize import ContainerAutoSize
@@ -52,6 +53,7 @@ class ShipTreeContainer(ContainerAutoSize):
         height = 3.2 * h * TREE_SCALE
         width = 1.6 / 1.8 * height
         self.factionBG = Sprite(name='factionBG', parent=self.bgCont, align=uiconst.CENTER, texturePath=texturePath, width=width, height=height, opacity=0.18, idx=0)
+        return
 
     def ConstructTree(self):
         self.rootNode = sm.GetService('shipTree').GetRootNode(self.factionID)
@@ -62,7 +64,7 @@ class ShipTreeContainer(ContainerAutoSize):
     def ConstructNodes(self):
         self._ConstructNodes(self.rootNode)
 
-    def _ConstructNodes(self, node, i = 0, line = None):
+    def _ConstructNodes(self, node, i=0, line=None):
         nodeType = node.GetNodeType()
         if nodeType == NODETYPE_GROUP:
             self.RenderShipGroup(node, i)
@@ -73,17 +75,19 @@ class ShipTreeContainer(ContainerAutoSize):
         for childNode in node.children:
             self._ConstructNodes(childNode, i + 1, line)
 
-    def ConstructLines(self, animate = True):
+    def ConstructLines(self, animate=True):
         self.lineCont.Flush()
         self._ConstructLines(self.rootNode, animate=animate)
 
-    def _ConstructLines(self, node, i = 0, line = None, animate = True):
+    def _ConstructLines(self, node, i=0, line=None, animate=True):
         if node.nodeType == NODETYPE_GROUP:
             line = None
         for childNode in node.children:
             line = self.RenderLine(node, childNode, i, line, animate=animate)
             self._ConstructLines(childNode, i + 1, line, animate)
             line = None
+
+        return
 
     def RenderShipGroup(self, node, i):
         if node.parent and node.parent.nodeType == NODETYPE_OTHERFACTIONGROUP:
@@ -123,31 +127,33 @@ class ShipTreeContainer(ContainerAutoSize):
         implants = sm.GetService('godma').GetItem(session.charid).implants
         if implants is None:
             return False
-        for implant in implants:
-            if implant.typeID == const.typeGoldenCapsuleImplant:
-                return True
+        else:
+            for implant in implants:
+                if implant.typeID == const.typeGoldenCapsuleImplant:
+                    return True
 
-        return False
+            return False
 
-    def RenderLine(self, nodeFrom, nodeTo, i, line, animate = True):
+    def RenderLine(self, nodeFrom, nodeTo, i, line, animate=True):
         if nodeTo.nodeType == NODETYPE_OTHERFACTIONGROUP:
             return None
-        texturePath = self.GetLineTexturePath(nodeTo)
-        if not line or line.texturePath != texturePath:
-            line = VectorLineTraceShipTree(parent=self.lineCont, nodeFrom=nodeFrom, nodeTo=nodeTo, texturePath=texturePath)
-            pos = self.GetNewLineStartPos(nodeFrom, nodeTo)
-            if i == 0 or nodeFrom.nodeType == NODETYPE_OTHERFACTIONGROUP:
-                colorFrom = (1.0, 1.0, 1.0, -0.05)
-            else:
-                colorFrom = COLOR_LINE_TO
-            line.AddPoint(pos, colorFrom)
-        line.AddPoint(self._GetLinePosition(nodeTo), COLOR_LINE_TO)
-        opacity = 0.7 if nodeTo.IsLocked() else 1.0
-        if animate:
-            uicore.animations.FadeIn(line, opacity, timeOffset=0.05 * i + 0.2, duration=0.3)
         else:
-            line.opacity = opacity
-        return line
+            texturePath = self.GetLineTexturePath(nodeTo)
+            if not line or line.texturePath != texturePath:
+                line = VectorLineTraceShipTree(parent=self.lineCont, nodeFrom=nodeFrom, nodeTo=nodeTo, texturePath=texturePath)
+                pos = self.GetNewLineStartPos(nodeFrom, nodeTo)
+                if i == 0 or nodeFrom.nodeType == NODETYPE_OTHERFACTIONGROUP:
+                    colorFrom = (1.0, 1.0, 1.0, -0.05)
+                else:
+                    colorFrom = COLOR_LINE_TO
+                line.AddPoint(pos, colorFrom)
+            line.AddPoint(self._GetLinePosition(nodeTo), COLOR_LINE_TO)
+            opacity = 0.7 if nodeTo.IsLocked() else 1.0
+            if animate:
+                uicore.animations.FadeIn(line, opacity, timeOffset=0.05 * i + 0.2, duration=0.3)
+            else:
+                line.opacity = opacity
+            return line
 
     def GetLineTexturePath(self, nodeTo):
         if nodeTo.IsPathToElite():

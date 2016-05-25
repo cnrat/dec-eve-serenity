@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\carbon\common\stdlib\yaml\parser.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\carbon\common\stdlib\yaml\parser.py
 __all__ = ['Parser', 'ParserError']
 from error import MarkedYAMLError
 from tokens import *
@@ -20,6 +21,7 @@ class Parser(object):
         self.states = []
         self.marks = []
         self.state = self.parse_stream_start
+        return
 
     def check_event(self, *choices):
         if self.current_event is None:
@@ -144,7 +146,7 @@ class Parser(object):
     def parse_block_node_or_indentless_sequence(self):
         return self.parse_node(block=True, indentless_sequence=True)
 
-    def parse_node(self, block = False, indentless_sequence = False):
+    def parse_node(self, block=False, indentless_sequence=False):
         if self.check_token(AliasToken):
             token = self.get_token()
             event = AliasEvent(token.value, token.start_mark, token.end_mark)
@@ -306,7 +308,7 @@ class Parser(object):
         self.marks.append(token.start_mark)
         return self.parse_flow_sequence_entry(first=True)
 
-    def parse_flow_sequence_entry(self, first = False):
+    def parse_flow_sequence_entry(self, first=False):
         if not self.check_token(FlowSequenceEndToken):
             if not first:
                 if self.check_token(FlowEntryToken):
@@ -361,7 +363,7 @@ class Parser(object):
         self.marks.append(token.start_mark)
         return self.parse_flow_mapping_key(first=True)
 
-    def parse_flow_mapping_key(self, first = False):
+    def parse_flow_mapping_key(self, first=False):
         if not self.check_token(FlowMappingEndToken):
             if not first:
                 if self.check_token(FlowEntryToken):

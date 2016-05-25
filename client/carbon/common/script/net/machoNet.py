@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\carbon\common\script\net\machoNet.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\carbon\common\script\net\machoNet.py
 import blue
 from builtinmangler import CreateInstance
 from carbon.common.script.sys.buildversion import GetBuildVersionAsInt
@@ -185,6 +186,7 @@ class MachoNetService(service.Service):
      'GetClusterSessionCounts': [ROLE_SERVICE],
      'SendProvisionalResponse': [ROLE_SERVICE],
      'GetIDOfAddress': [ROLE_SERVICE],
+     'ForwardProxyBroadcast': [ROLE_SERVICE],
      'Subscribe': [ROLE_SERVICE],
      'SubscribeMany': [ROLE_SERVICE],
      'UnSubscribe': [ROLE_SERVICE],
@@ -379,6 +381,7 @@ class MachoNetService(service.Service):
         self.eveLoginQueue = None
         self.statusData = {}
         self.statusCallbacks = {}
+        return
 
     def SetAppDecoderHook(self, decoderHook):
         self.appDecoderHook = decoderHook
@@ -399,6 +402,7 @@ class MachoNetService(service.Service):
                     recipients.append(clientID)
 
         self.NarrowcastByClientIDs(recipients, 'OnServerMessage', message)
+        return
 
     def ForwardNotificationToNode(self, source, destination, userID, payload):
         orginalClientID = source.clientID
@@ -437,6 +441,7 @@ class MachoNetService(service.Service):
             last = int(host.split('.')[3])
             host = '.'.join(tmp[:3]) + '.' + str(last)
             return host + ':%d' % (self.defaultTunnelPortOffset + 1)
+            return
 
     def __GetSubscriptionFamily(self, family):
         if family not in self.subscriptionsByClientID:
@@ -445,7 +450,7 @@ class MachoNetService(service.Service):
             self.subscriptionCountsByAddress[family] = {}
         return (self.subscriptionsByClientID[family], self.subscriptionsByAddress[family], self.subscriptionCountsByAddress[family])
 
-    def Subscribe(self, family, clientID, address, trackCount = 1, visibility = 1):
+    def Subscribe(self, family, clientID, address, trackCount=1, visibility=1):
         if clientID not in self.transportIDbyClientID:
             return
         byClientID, byAddress, countsByAddress = self.__GetSubscriptionFamily(family)
@@ -460,7 +465,7 @@ class MachoNetService(service.Service):
         if trackCount:
             countsByAddress[address] = len(byAddress[address])
 
-    def SubscribeMany(self, family, clientID, addresses, trackCount = 1, visibility = 1):
+    def SubscribeMany(self, family, clientID, addresses, trackCount=1, visibility=1):
         self.LogInfo('SubscribeMany:  subscribing to many:  ', (family,
          clientID,
          addresses,
@@ -495,7 +500,7 @@ class MachoNetService(service.Service):
             self.UnSubscribe(family, clientID, address)
 
     @bluepy.TimedFunction('machoNet::GetSubscriptionInfo')
-    def GetSubscriptionInfo(self, family, address = None):
+    def GetSubscriptionInfo(self, family, address=None):
         byClientID, byAddress, countsByAddress = self.__GetSubscriptionFamily(family)
         if address is None:
             return countsByAddress
@@ -509,6 +514,7 @@ class MachoNetService(service.Service):
                         subscribers.append(self._GetSubscriptionInfoRow(s))
 
             return subscribers
+            return
 
     def _GetSubscriptionInfoRow(self, sess):
         return [sess.charid]
@@ -538,7 +544,7 @@ class MachoNetService(service.Service):
                 raise RuntimeError('Thou shall not GetFactory with differing factoryName or args')
         return f
 
-    def Run(self, memStream = None):
+    def Run(self, memStream=None):
         self.vipkeys = None
         self.vipUsers = None
         self.peopleWhoShouldntBeLoggedIn = {}
@@ -804,6 +810,7 @@ class MachoNetService(service.Service):
 
         if macho.mode == 'server' and self.connectToCluster:
             self.dbzclient = self.DB2.GetSchema('zclient')
+        return
 
     def OnClusterStarting(self, polarisNodeID):
         with self.clusterStartLock:
@@ -852,6 +859,7 @@ class MachoNetService(service.Service):
                 self.SetStatusKeyValuePair('clusterStatusText', 'Ready')
             self.GetGlobalConfig()
             self.clusterStartupPhase = True
+        return
 
     def OnNewNode(self, nodeID, nodeAddress, isProxy, isPolaris, serviceMask):
         if nodeID in self.deadNodes and isProxy:
@@ -886,6 +894,8 @@ class MachoNetService(service.Service):
                     else:
                         self.transportsByID[transportID].Close('The server has established communications with a proxy server.  All direct communications are banned.')
 
+        return
+
     def OnTimeReset(self, oldTime, newTime):
         if self.acceptStart:
             delta = newTime - oldTime
@@ -912,7 +922,7 @@ class MachoNetService(service.Service):
     def OnObjectPublicAttributesUpdated(self, *args):
         pass
 
-    def Stop(self, memStream = None):
+    def Stop(self, memStream=None):
         self.LogInfo('Stopping macho net node ', self.nodeID)
         self.stop = 1
         self.acceptStart = None
@@ -953,194 +963,197 @@ class MachoNetService(service.Service):
         self.transportIDbyClientID = {}
         self.transportIDbySessionID = {}
         service.Service.Stop(self, memStream)
+        return
 
     def GetHtmlStateDetails(self, k, v, detailed):
         import htmlwriter
         wr = htmlwriter.HtmlWriter()
         if k == 'basePortNumber':
             return ('Base Port', v)
-        if k == 'defaultTunnelPortOffset':
+        elif k == 'defaultTunnelPortOffset':
             return ('Default Tunneling Port', v)
-        if k == '_addressCache':
-            if detailed:
-                nodeMap = self._addressCache.GetNodeAddressMap()
-                hd = ['Node', 'Service', 'Addresses']
-                li = []
-                for node in sorted(nodeMap.keys()):
-                    services = {}
-                    for service, address in nodeMap[node]:
-                        if service in services:
-                            services[service].append(address)
-                        else:
-                            services[service] = [address]
-
-                    for service in sorted(services.keys()):
-                        addresses = sorted(services[service])
-                        li.append([node, service, ', '.join((str(addr) for addr in addresses))])
-
-                return ('Address Cache', wr.GetTable(hd, li))
-            else:
-                return ('Address Cache', self._addressCache.GetSize())
-        elif k == 'namedtransports':
-            if detailed:
-                hd = ['Name', 'GPS Transport']
-                li = []
-                for each in v.iterkeys():
-                    li.append([each, v[each].__class__.__name__])
-
-                return ('Named Transports', wr.GetTable(hd, li))
-            else:
-                r = ''
-                comma = ''
-                for each in v.iterkeys():
-                    r = r + comma + each + '=' + v[each].__class__.__name__
-                    comma = ', '
-
-                return ('Named Transports', r)
         else:
-            if k == 'dontLayTracksTo':
-                r = ''
-                comma = ''
-                for each, at in v:
-                    r = r + comma + '%s at %s' % (each, at)
-                    comma = ', '
-
-                return ('Currently Laying Tracks to, or have already laid tracks to ', r)
-            if k == 'transportsByID':
+            if k == '_addressCache':
                 if detailed:
-                    hd = ['TRID',
-                     'Type',
-                     'Address',
-                     'NodeID/<br>ClientID',
-                     'Dependants',
-                     'Sessions',
-                     'Calls',
-                     'RTT<br>(ms)',
-                     'TDiff<br>(ms)']
+                    nodeMap = self._addressCache.GetNodeAddressMap()
+                    hd = ['Node', 'Service', 'Addresses']
                     li = []
-                    for each in v.iterkeys():
-                        if v[each].nodeID:
-                            theID = v[each].nodeID
-                        else:
-                            theID = v[each].clientID
-                        r = ''
-                        comma = ''
-                        for sess in v[each].sessions.iterkeys():
-                            r = r + comma + strx(sess) + '=' + strx(v[each].sessions[sess].sid)
-                            comma = ', '
+                    for node in sorted(nodeMap.keys()):
+                        services = {}
+                        for service, address in nodeMap[node]:
+                            if service in services:
+                                services[service].append(address)
+                            else:
+                                services[service] = [address]
 
-                        if abs(v[each].estimatedRTT / const.MSEC) >= 100:
-                            rtt = '%d' % (v[each].estimatedRTT / const.MSEC)
-                        else:
-                            rtt = '%-2.1f' % (v[each].estimatedRTT / const.MSEC)
-                        if abs(v[each].timeDiff / const.MSEC) >= 100:
-                            tdiff = '%d' % (v[each].timeDiff / const.MSEC)
-                        else:
-                            tdiff = '%-2.1f' % (v[each].timeDiff / const.MSEC)
-                        li.append([each,
-                         v[each].transportName,
-                         v[each].transport.address,
-                         theID,
-                         strx(v[each].dependants),
-                         htmlwriter.Swing(r),
-                         strx(v[each].calls),
-                         rtt,
-                         tdiff])
-                        li.sort()
+                        for service in sorted(services.keys()):
+                            addresses = sorted(services[service])
+                            li.append([node, service, ', '.join((str(addr) for addr in addresses))])
 
-                    return ('Transports by ID', wr.GetTable(hd, li))
+                    return ('Address Cache', wr.GetTable(hd, li))
                 else:
-                    r = ''
-                    comma = ''
-                    for each in v.iterkeys():
-                        r = r + comma + strx(each) + '=' + strx(v[each].transport.address)
-                        comma = ', '
-
-                    return ('Transports by ID', r)
-            elif k == 'transportIDbyClientID':
+                    return ('Address Cache', self._addressCache.GetSize())
+            elif k == 'namedtransports':
                 if detailed:
-                    hd = ['ClientID', 'TRID']
-                    li = []
-                    for each in v.iterkeys():
-                        li.append([each, v[each]])
-
-                    return ('TransportID by ClientID', wr.GetTable(hd, li))
-                else:
-                    r = ''
-                    comma = ''
-                    for each in v.iterkeys():
-                        r = r + comma + strx(each) + '=>' + strx(v[each])
-                        comma = ', '
-
-                    return ('TransportID by ClientID', r)
-            elif k in ('channelHandlersUp', 'channelHandlersDown'):
-                inout = 'Inbound'
-                if k == 'channelHandlersDown':
-                    inout = 'Outbound'
-                if detailed:
-                    hd = ['Channel', 'Handler']
+                    hd = ['Name', 'GPS Transport']
                     li = []
                     for each in v.iterkeys():
                         li.append([each, v[each].__class__.__name__])
 
-                    return ('%s Channel Handlers' % inout, wr.GetTable(hd, li))
+                    return ('Named Transports', wr.GetTable(hd, li))
                 else:
                     r = ''
                     comma = ''
                     for each in v.iterkeys():
-                        r = r + comma + strx(each) + '=>' + v[each].__class__.__name__
+                        r = r + comma + each + '=' + v[each].__class__.__name__
                         comma = ', '
 
-                    return ('%s Channel Handlers' % inout, r)
-            elif k == 'transportIDbySolNodeID':
-                if detailed:
-                    hd = ['Sol NodeID', 'TRID']
-                    li = []
-                    for each in v.iterkeys():
-                        li.append([each, v[each]])
-
-                    return ('TransportID by Sol NodeID', wr.GetTable(hd, li))
-                else:
-                    r = ''
-                    comma = ''
-                    for each in v.iterkeys():
-                        r = r + comma + strx(each) + '=>' + strx(v[each])
-                        comma = ', '
-
-                    return ('TransportID by Sol NodeID', r)
-            elif k == 'transportIDbyProxy NodeID':
-                if detailed:
-                    hd = ['Proxy NodeID', 'TRID']
-                    li = []
-                    for each in v.iterkeys():
-                        li.append([each, v[each]])
-
-                    return ('TransportID by Proxy NodeID', wr.GetTable(hd, li))
-                else:
-                    r = ''
-                    comma = ''
-                    for each in v.iterkeys():
-                        r = r + comma + strx(each) + '=>' + strx(v[each])
-                        comma = ', '
-
-                    return ('TransportID by Proxy NodeID', r)
+                    return ('Named Transports', r)
             else:
-                if k == 'connectionLimit':
-                    return ('Max Connections', v)
-                if k == 'callID':
-                    return ('Call ID', 'A running number used to identify blocking calls made on this server.  The current value is %d, so %d blocking calls have been made since the service was started.' % (v, v - 1))
-                if k == 'transportID':
-                    return ('Transport ID', 'A running number used to identify transports connected to this server.  The current value is %d, so %d transports have been used by the service so far.' % (v, v - 1))
-                if k == 'nodeID':
-                    return ('Node ID', 'For proxies and sol servers, a unique address that can be used for addressing packets to this server.  Value=%d' % v)
-                if k == 'mode':
-                    return ('Macho Mode', 'Whether this is a client, server, or proxy.  Value=%s' % v)
-                if k == 'stop':
-                    if v:
-                        v = 'The service is stopping, so it will be doing so.'
+                if k == 'dontLayTracksTo':
+                    r = ''
+                    comma = ''
+                    for each, at in v:
+                        r = r + comma + '%s at %s' % (each, at)
+                        comma = ', '
+
+                    return ('Currently Laying Tracks to, or have already laid tracks to ', r)
+                if k == 'transportsByID':
+                    if detailed:
+                        hd = ['TRID',
+                         'Type',
+                         'Address',
+                         'NodeID/<br>ClientID',
+                         'Dependants',
+                         'Sessions',
+                         'Calls',
+                         'RTT<br>(ms)',
+                         'TDiff<br>(ms)']
+                        li = []
+                        for each in v.iterkeys():
+                            if v[each].nodeID:
+                                theID = v[each].nodeID
+                            else:
+                                theID = v[each].clientID
+                            r = ''
+                            comma = ''
+                            for sess in v[each].sessions.iterkeys():
+                                r = r + comma + strx(sess) + '=' + strx(v[each].sessions[sess].sid)
+                                comma = ', '
+
+                            if abs(v[each].estimatedRTT / const.MSEC) >= 100:
+                                rtt = '%d' % (v[each].estimatedRTT / const.MSEC)
+                            else:
+                                rtt = '%-2.1f' % (v[each].estimatedRTT / const.MSEC)
+                            if abs(v[each].timeDiff / const.MSEC) >= 100:
+                                tdiff = '%d' % (v[each].timeDiff / const.MSEC)
+                            else:
+                                tdiff = '%-2.1f' % (v[each].timeDiff / const.MSEC)
+                            li.append([each,
+                             v[each].transportName,
+                             v[each].transport.address,
+                             theID,
+                             strx(v[each].dependants),
+                             htmlwriter.Swing(r),
+                             strx(v[each].calls),
+                             rtt,
+                             tdiff])
+                            li.sort()
+
+                        return ('Transports by ID', wr.GetTable(hd, li))
                     else:
-                        v = 'The service is running, so it will leave them alone for now.'
-                    return ('Stop?', "Whether or not the service should shut down it's transports.  %s" % v)
+                        r = ''
+                        comma = ''
+                        for each in v.iterkeys():
+                            r = r + comma + strx(each) + '=' + strx(v[each].transport.address)
+                            comma = ', '
+
+                        return ('Transports by ID', r)
+                elif k == 'transportIDbyClientID':
+                    if detailed:
+                        hd = ['ClientID', 'TRID']
+                        li = []
+                        for each in v.iterkeys():
+                            li.append([each, v[each]])
+
+                        return ('TransportID by ClientID', wr.GetTable(hd, li))
+                    else:
+                        r = ''
+                        comma = ''
+                        for each in v.iterkeys():
+                            r = r + comma + strx(each) + '=>' + strx(v[each])
+                            comma = ', '
+
+                        return ('TransportID by ClientID', r)
+                elif k in ('channelHandlersUp', 'channelHandlersDown'):
+                    inout = 'Inbound'
+                    if k == 'channelHandlersDown':
+                        inout = 'Outbound'
+                    if detailed:
+                        hd = ['Channel', 'Handler']
+                        li = []
+                        for each in v.iterkeys():
+                            li.append([each, v[each].__class__.__name__])
+
+                        return ('%s Channel Handlers' % inout, wr.GetTable(hd, li))
+                    else:
+                        r = ''
+                        comma = ''
+                        for each in v.iterkeys():
+                            r = r + comma + strx(each) + '=>' + v[each].__class__.__name__
+                            comma = ', '
+
+                        return ('%s Channel Handlers' % inout, r)
+                elif k == 'transportIDbySolNodeID':
+                    if detailed:
+                        hd = ['Sol NodeID', 'TRID']
+                        li = []
+                        for each in v.iterkeys():
+                            li.append([each, v[each]])
+
+                        return ('TransportID by Sol NodeID', wr.GetTable(hd, li))
+                    else:
+                        r = ''
+                        comma = ''
+                        for each in v.iterkeys():
+                            r = r + comma + strx(each) + '=>' + strx(v[each])
+                            comma = ', '
+
+                        return ('TransportID by Sol NodeID', r)
+                elif k == 'transportIDbyProxy NodeID':
+                    if detailed:
+                        hd = ['Proxy NodeID', 'TRID']
+                        li = []
+                        for each in v.iterkeys():
+                            li.append([each, v[each]])
+
+                        return ('TransportID by Proxy NodeID', wr.GetTable(hd, li))
+                    else:
+                        r = ''
+                        comma = ''
+                        for each in v.iterkeys():
+                            r = r + comma + strx(each) + '=>' + strx(v[each])
+                            comma = ', '
+
+                        return ('TransportID by Proxy NodeID', r)
+                else:
+                    if k == 'connectionLimit':
+                        return ('Max Connections', v)
+                    if k == 'callID':
+                        return ('Call ID', 'A running number used to identify blocking calls made on this server.  The current value is %d, so %d blocking calls have been made since the service was started.' % (v, v - 1))
+                    if k == 'transportID':
+                        return ('Transport ID', 'A running number used to identify transports connected to this server.  The current value is %d, so %d transports have been used by the service so far.' % (v, v - 1))
+                    if k == 'nodeID':
+                        return ('Node ID', 'For proxies and sol servers, a unique address that can be used for addressing packets to this server.  Value=%d' % v)
+                    if k == 'mode':
+                        return ('Macho Mode', 'Whether this is a client, server, or proxy.  Value=%s' % v)
+                    if k == 'stop':
+                        if v:
+                            v = 'The service is stopping, so it will be doing so.'
+                        else:
+                            v = 'The service is running, so it will leave them alone for now.'
+                        return ('Stop?', "Whether or not the service should shut down it's transports.  %s" % v)
+            return
 
     def RegisterSessionWithTransport(self, sess, clientID):
         transportID = self.transportID
@@ -1155,6 +1168,7 @@ class MachoNetService(service.Service):
         self.transportIDbyClientID[clientID] = machoTransport.transportID
         self.transportIDbySessionID[sess.sid] = machoTransport.transportID
         machoTransport.clientIDs[clientID] = 1
+        return
 
     def LogClientCall(self, session, objectName, method, args):
         pass
@@ -1183,7 +1197,7 @@ class MachoNetService(service.Service):
             callTimer.Done()
 
     def __str__(self):
-        return '<MachoNet Service>'
+        pass
 
     def __repr__(self):
         return str(self)
@@ -1203,80 +1217,84 @@ class MachoNetService(service.Service):
             transport.disconnectsilently = getattr(transport, 'disconnectsilently', 1)
             transport.Close('User disconnected', 'CLIENTDISCONNECTED')
 
-    def GetServerStatus(self, address, forceQueueCheck = False):
+    def GetServerStatus(self, address, forceQueueCheck=False):
         if self.authenticating or self.gettingServerStatus or not forceQueueCheck and address.upper() == self.clientLogonQueue.address and blue.os.GetWallclockTime() - (self.clientLogonQueue.timestamp or blue.os.GetWallclockTime()) < self.clientLogonQueuePollTime * const.SEC:
             raise UserError('AlreadyConnecting')
         self.gettingServerStatus = 1
         try:
-            transport = None
-            if address in self.clientHalfBakedTransports:
-                transport = self.clientHalfBakedTransports[address]
-                del self.clientHalfBakedTransports[address]
-                if transport.IsClosed():
-                    transport = None
-            if transport is None:
-                factory = self.GetFactory(gpsMap[macho.mode]['tcp:packet:server'], (0, 'tcp:packet:server'))
-                transport = factory.Connect(address)
-            serverInfo = transport.Authenticate(None, None, None)
-            self.clientHalfBakedTransports[address] = transport
-            return (lambda since = blue.os.GetWallclockTime(): sm.GetService('machoNet').GetOKMessage(since), serverInfo)
-        except GPSBadAddress as e:
-            sys.exc_clear()
-            return (('/Carbon/MachoNet/ServerStatus/BadAddress', {}), {})
-        except GPSTransportClosed as e:
-            sys.exc_clear()
-            if str(e.codename) != str(boot.codename) or e.reasonCode == 'HANDSHAKE_INCOMPATIBLERELEASE':
-                reason = ('/Carbon/MachoNet/ServerStatus/IncompatibleRelease', {})
-            elif e.version != boot.version or e.reasonCode == 'HANDSHAKE_INCOMPATIBLEVERSION':
-                reason = ('/Carbon/MachoNet/ServerStatus/IncompatibleVersion', {})
-            elif e.machoVersion != macho.version or e.reasonCode == 'HANDSHAKE_INCOMPATIBLEPROTOCOL':
-                reason = ('/Carbon/MachoNet/ServerStatus/IncompatibleProtocol', {})
-            elif e.build != boot.build or e.reasonCode == 'HANDSHAKE_INCOMPATIBLEBUILD':
-                reason = ('/Carbon/MachoNet/ServerStatus/IncompatibleBuild', {})
-            elif str(e.region) != str(boot.region) or e.reasonCode == 'HANDSHAKE_INCOMPATIBLEREGION':
-                reason = ('/Carbon/MachoNet/ServerStatus/IncompatibleRegion', {})
-            elif e.reasonCode == 'ACL_SHUTTINGDOWN':
-                reason = ('/Carbon/MachoNet/ServerStatus/ShuttingDown', {})
-                when = blue.os.GetWallclockTime() + random.randrange(15, 60) * const.SEC
-                reason = lambda when = when, reason = reason: (reason if blue.os.GetWallclockTime() < when else None)
-            elif e.reasonCode == 'ACL_NOTACCEPTING':
-                reason = ('/Carbon/MachoNet/ServerStatus/NotAcceptingConnections', {})
-                when = blue.os.GetWallclockTime() + random.randrange(60, 300) * const.SEC
-                reason = lambda when = when, reason = reason: (reason if blue.os.GetWallclockTime() < when else None)
-            elif e.reasonCode == 'ACL_ACCEPTDELAY':
-                reasonMessage = '/Carbon/MachoNet/ServerStatus/StartingUp'
-                when = blue.os.GetWallclockTime() + (5 + e.reasonArgs['seconds']) * const.SEC
-                reason = lambda when = when: ((reasonMessage, {'progress': when - blue.os.GetWallclockTime()}) if blue.os.GetWallclockTime() < when else None)
-            elif e.reasonCode == 'ACL_PROXYFULL':
-                if e.reasonArgs:
-                    reason = ('/Carbon/MachoNet/ServerStatus/ProxyFullWithLimit', {'limit': e.reasonArgs['limit']})
+            try:
+                transport = None
+                if address in self.clientHalfBakedTransports:
+                    transport = self.clientHalfBakedTransports[address]
+                    del self.clientHalfBakedTransports[address]
+                    if transport.IsClosed():
+                        transport = None
+                if transport is None:
+                    factory = self.GetFactory(gpsMap[macho.mode]['tcp:packet:server'], (0, 'tcp:packet:server'))
+                    transport = factory.Connect(address)
+                serverInfo = transport.Authenticate(None, None, None)
+                self.clientHalfBakedTransports[address] = transport
+                return (lambda since=blue.os.GetWallclockTime(): sm.GetService('machoNet').GetOKMessage(since), serverInfo)
+            except GPSBadAddress as e:
+                sys.exc_clear()
+                return (('/Carbon/MachoNet/ServerStatus/BadAddress', {}), {})
+            except GPSTransportClosed as e:
+                sys.exc_clear()
+                if str(e.codename) != str(boot.codename) or e.reasonCode == 'HANDSHAKE_INCOMPATIBLERELEASE':
+                    reason = ('/Carbon/MachoNet/ServerStatus/IncompatibleRelease', {})
+                elif e.version != boot.version or e.reasonCode == 'HANDSHAKE_INCOMPATIBLEVERSION':
+                    reason = ('/Carbon/MachoNet/ServerStatus/IncompatibleVersion', {})
+                elif e.machoVersion != macho.version or e.reasonCode == 'HANDSHAKE_INCOMPATIBLEPROTOCOL':
+                    reason = ('/Carbon/MachoNet/ServerStatus/IncompatibleProtocol', {})
+                elif e.build != boot.build or e.reasonCode == 'HANDSHAKE_INCOMPATIBLEBUILD':
+                    reason = ('/Carbon/MachoNet/ServerStatus/IncompatibleBuild', {})
+                elif str(e.region) != str(boot.region) or e.reasonCode == 'HANDSHAKE_INCOMPATIBLEREGION':
+                    reason = ('/Carbon/MachoNet/ServerStatus/IncompatibleRegion', {})
+                elif e.reasonCode == 'ACL_SHUTTINGDOWN':
+                    reason = ('/Carbon/MachoNet/ServerStatus/ShuttingDown', {})
+                    when = blue.os.GetWallclockTime() + random.randrange(15, 60) * const.SEC
+                    reason = lambda when=when, reason=reason: (reason if blue.os.GetWallclockTime() < when else None)
+                elif e.reasonCode == 'ACL_NOTACCEPTING':
+                    reason = ('/Carbon/MachoNet/ServerStatus/NotAcceptingConnections', {})
+                    when = blue.os.GetWallclockTime() + random.randrange(60, 300) * const.SEC
+                    reason = lambda when=when, reason=reason: (reason if blue.os.GetWallclockTime() < when else None)
+                elif e.reasonCode == 'ACL_ACCEPTDELAY':
+                    reasonMessage = '/Carbon/MachoNet/ServerStatus/StartingUp'
+                    when = blue.os.GetWallclockTime() + (5 + e.reasonArgs['seconds']) * const.SEC
+                    reason = lambda when=when: ((reasonMessage, {'progress': when - blue.os.GetWallclockTime()}) if blue.os.GetWallclockTime() < when else None)
+                elif e.reasonCode == 'ACL_PROXYFULL':
+                    if e.reasonArgs:
+                        reason = ('/Carbon/MachoNet/ServerStatus/ProxyFullWithLimit', {'limit': e.reasonArgs['limit']})
+                    else:
+                        reason = ('/Carbon/MachoNet/ServerStatus/ProxyFull', {})
+                    when = blue.os.GetWallclockTime() + random.randrange(30, 120) * const.SEC
+                    reason = lambda when=when, reason=reason: (reason if blue.os.GetWallclockTime() < when else None)
+                elif e.reasonCode == 'ACL_PROXYNOTCONNECTED':
+                    reason = ('/Carbon/MachoNet/ServerStatus/ProxyNotConnected', {})
+                    when = blue.os.GetWallclockTime() + random.randrange(30, 120) * const.SEC
+                    reason = lambda when=when, reason=reason: (reason if blue.os.GetWallclockTime() < when else None)
+                elif e.reasonCode == 'ACL_IPADDRESSBAN':
+                    reason = ('/Carbon/MachoNet/ServerStatus/IPBanned', {})
+                elif e.origin == 'client':
+                    reason = ('/Carbon/MachoNet/ServerStatus/Unknown', {})
+                    when = blue.os.GetWallclockTime() + random.randrange(60, 300) * const.SEC
+                    reason = lambda when=when, reason=reason: (reason if blue.os.GetWallclockTime() < when else None)
                 else:
-                    reason = ('/Carbon/MachoNet/ServerStatus/ProxyFull', {})
-                when = blue.os.GetWallclockTime() + random.randrange(30, 120) * const.SEC
-                reason = lambda when = when, reason = reason: (reason if blue.os.GetWallclockTime() < when else None)
-            elif e.reasonCode == 'ACL_PROXYNOTCONNECTED':
-                reason = ('/Carbon/MachoNet/ServerStatus/ProxyNotConnected', {})
-                when = blue.os.GetWallclockTime() + random.randrange(30, 120) * const.SEC
-                reason = lambda when = when, reason = reason: (reason if blue.os.GetWallclockTime() < when else None)
-            elif e.reasonCode == 'ACL_IPADDRESSBAN':
-                reason = ('/Carbon/MachoNet/ServerStatus/IPBanned', {})
-            elif e.origin == 'client':
-                reason = ('/Carbon/MachoNet/ServerStatus/Unknown', {})
-                when = blue.os.GetWallclockTime() + random.randrange(60, 300) * const.SEC
-                reason = lambda when = when, reason = reason: (reason if blue.os.GetWallclockTime() < when else None)
-            else:
-                reason = lambda since = blue.os.GetWallclockTime(): sm.GetService('machoNet').GetOKMessage(since)
-            if e.origin == 'client':
-                return (reason, {})
-            else:
-                return (reason, {'boot_version': getattr(e, 'version', None),
-                  'boot_build': getattr(e, 'build', None),
-                  'boot_codename': str(getattr(e, 'codename', None)),
-                  'boot_region': str(getattr(e, 'region', None)),
-                  'cluster_usercount': getattr(e, 'loggedOnUserCount', None),
-                  'macho_version': getattr(e, 'machoVersion', None)})
+                    reason = lambda since=blue.os.GetWallclockTime(): sm.GetService('machoNet').GetOKMessage(since)
+                if e.origin == 'client':
+                    return (reason, {})
+                else:
+                    return (reason, {'boot_version': getattr(e, 'version', None),
+                      'boot_build': getattr(e, 'build', None),
+                      'boot_codename': str(getattr(e, 'codename', None)),
+                      'boot_region': str(getattr(e, 'region', None)),
+                      'cluster_usercount': getattr(e, 'loggedOnUserCount', None),
+                      'macho_version': getattr(e, 'machoVersion', None)})
+
         finally:
             self.gettingServerStatus = 0
+
+        return
 
     def GetValidClientCodeHash(self):
         if not hasattr(self, 'clientHash'):
@@ -1288,10 +1306,11 @@ class MachoNetService(service.Service):
         if len(clientUpdate) > 1:
             self.LogError("Can't have more than one valid client code update")
             return
-        if len(clientUpdate) == 0:
+        elif len(clientUpdate) == 0:
             return
-        row = clientUpdate[0]
-        return utilKeyVal(hash=row.hash, fileurl=row.fileUrl, build=row.build)
+        else:
+            row = clientUpdate[0]
+            return utilKeyVal(hash=row.hash, fileurl=row.fileUrl, build=row.build)
 
     def OnClientCodeUpdated(self):
         hs = self.session.ConnectToRemoteService('machoNet').ReloadClientCodeHash()
@@ -1307,6 +1326,7 @@ class MachoNetService(service.Service):
             return ('/Carbon/MachoNet/ServerStatus/InQueue', {'position': self.clientLogonQueue.position})
         else:
             return ('/Carbon/MachoNet/ServerStatus/OK', {})
+            return None
 
     def SetLogonQueuePosition(self, position):
         self.clientLogonQueue.position = position
@@ -1318,6 +1338,7 @@ class MachoNetService(service.Service):
         else:
             self.clientLogonQueue.history.prev = self.clientLogonQueue.history.last
             self.clientLogonQueue.history.last = utilKeyVal(time=blue.os.GetWallclockTime(), pos=position)
+        return
 
     def GetPortOffsetStep(self, portTypeName):
         return offsetStep[portTypeName]
@@ -1347,9 +1368,11 @@ class MachoNetService(service.Service):
         basePort = getattr(self, attributeName, None)
         if basePort:
             return basePort + offsetMap[portTypeName][mapname]
-        raise StandardError('Unsupported role')
+        else:
+            raise StandardError('Unsupported role')
+            return
 
-    def ConnectToAddress(self, address, mapname, destMachoRole, destinationNodeID = None, named = False, withReader = True, forcedPortNumber = None):
+    def ConnectToAddress(self, address, mapname, destMachoRole, destinationNodeID=None, named=False, withReader=True, forcedPortNumber=None):
         port = forcedPortNumber or self.CalculatePortNumber(mapname, destMachoRole)
         address += ':' + str(port)
         factory = self.GetFactory(gpsMap[macho.mode][mapname], (0, mapname))
@@ -1382,7 +1405,7 @@ class MachoNetService(service.Service):
         uthread.new(self.TransportReader, transport).context = 'machoNet::Transport Reader::ConnectToAddress'
 
     @telemetry.ZONE_METHOD
-    def ConnectToServer(self, address, userName, password, sockettype = 'tcp', ssoToken = None):
+    def ConnectToServer(self, address, userName, password, sockettype='tcp', ssoToken=None):
         if macho.mode != 'client':
             raise AttributeError('The ConnectToServer method should only be called on the client')
         if self.authenticating:
@@ -1530,7 +1553,9 @@ class MachoNetService(service.Service):
         finally:
             self.authenticating = 0
 
-    def __GetCachedObjectHelper(self, cachedDude, i = 1, total = 1):
+        return
+
+    def __GetCachedObjectHelper(self, cachedDude, i=1, total=1):
         try:
             cachedDude.GetCachedObject()
         except StandardError:
@@ -1629,25 +1654,26 @@ class MachoNetService(service.Service):
             stackless.set_schedule_callback(None)
             self.scheduleCount = 0
             return
-        if self.scheduleCount == 0:
+        else:
+            if self.scheduleCount == 0:
 
-            def ScheduleCounter(prev, next):
-                self.scheduleCount += 1
+                def ScheduleCounter(prev, next):
+                    self.scheduleCount += 1
 
-            stackless.set_schedule_callback(ScheduleCounter)
-        stats = _socket.getstats()
-        headings = stats.keys()
-        line = [ stats[k] for k in headings ]
+                stackless.set_schedule_callback(ScheduleCounter)
+            stats = _socket.getstats()
+            headings = stats.keys()
+            line = [ stats[k] for k in headings ]
 
-        def replace(a, b):
-            headings[headings.index(a)] = b
+            def replace(a, b):
+                headings[headings.index(a)] = b
 
-        replace('BytesReceived', 'bytesRecvd')
-        replace('BytesSent', 'bytesSent')
-        replace('PacketsSent', 'countWrites')
-        replace('PacketsReceived', 'countReads')
-        stats = {'global socket stats': [headings, line]}
-        return utilKeyVal(stats=stats, scheduleCount=self.scheduleCount, taskletCount=len(bluepy.tasklets))
+            replace('BytesReceived', 'bytesRecvd')
+            replace('BytesSent', 'bytesSent')
+            replace('PacketsSent', 'countWrites')
+            replace('PacketsReceived', 'countReads')
+            stats = {'global socket stats': [headings, line]}
+            return utilKeyVal(stats=stats, scheduleCount=self.scheduleCount, taskletCount=len(bluepy.tasklets))
 
     def GetBlockingCallStats(self):
         min = self.callsCountMin
@@ -1674,7 +1700,7 @@ class MachoNetService(service.Service):
 
         return kv
 
-    def SetConnectionProperty(self, k, v, doPersist = True):
+    def SetConnectionProperty(self, k, v, doPersist=True):
         if k == 'limit':
             self.connectionLimit = v
         elif k in ('maxLoginsPerMinute', 'vipMode'):
@@ -1719,11 +1745,12 @@ class MachoNetService(service.Service):
     def _LoadVIPSetFromString(self, vipString):
         if vipString is None:
             return set()
-        if self.appDecoderHook is not None:
+        elif self.appDecoderHook is not None:
             return {self.appDecoderHook(appIdentifier).applicationID for appIdentifier in vipString.split(',') if len(vipString) > 0}
-        return set()
+        else:
+            return set()
 
-    def CheckACL(self, address, espCheck = False):
+    def CheckACL(self, address, espCheck=False):
         if not espCheck and self.shutdown is not None:
             if self.shutdown.when < blue.os.GetWallclockTime():
                 self.LogInfo('Rejecting connection from ', address, " because we're shutting down")
@@ -1734,25 +1761,28 @@ class MachoNetService(service.Service):
         if not espCheck and self.acceptDelay and blue.os.GetWallclockTime() - self.acceptStart < const.SEC * self.acceptDelay:
             self.LogInfo('Rejecting connection from ', address, " because we're still starting and our accept delay hasn't passed")
             return ('Starting up...(%d sec.)' % (self.acceptDelay - (blue.os.GetWallclockTime() - self.acceptStart) / const.SEC), 'ACL_ACCEPTDELAY', {'seconds': self.acceptDelay - (blue.os.GetWallclockTime() - self.acceptStart) / const.SEC})
-        if not self.clusterStartupPhase:
+        elif not self.clusterStartupPhase:
             if prefs.clusterMode in ('LIVE', 'TEST'):
                 self.LogWarn('Accept Delay too low, the accept delay should represent the time from startup until the first user can connect')
             self.LogInfo('Rejecting connection from ', address, " because we're still starting")
             return ('Starting up...', 'ACL_ACCEPTDELAY', {'seconds': 0})
-        if not self.transportIDbySolNodeID:
+        elif not self.transportIDbySolNodeID:
             self.LogInfo('Rejecting connection from ', address, ' because we do not have a sol server connection')
             return ('Proxy not connected', 'ACL_PROXYNOTCONNECTED')
-        if espCheck:
+        elif espCheck:
             return
-        if self.connectionLimit == 0 or self.maxLoginsPerMinute == 0:
+        elif self.connectionLimit == 0 or self.maxLoginsPerMinute == 0:
             self.LogInfo('Rejecting connection from ', address, " because we're not accepting any connections")
             return ('Not accepting', 'ACL_NOTACCEPTING')
-        for each in self.bannedIPs:
-            if address.startswith(each):
-                self.LogInfo('Rejecting connection from ', address, ' because the IP address is banned by the ', each, ' rule')
-                return ('Your IP address has been banned', 'ACL_IPADDRESSBAN', {'address': address.split(':')[0]})
+        else:
+            for each in self.bannedIPs:
+                if address.startswith(each):
+                    self.LogInfo('Rejecting connection from ', address, ' because the IP address is banned by the ', each, ' rule')
+                    return ('Your IP address has been banned', 'ACL_IPADDRESSBAN', {'address': address.split(':')[0]})
 
-    def GetSessionCounts(self, attr = None, default = None):
+            return
+
+    def GetSessionCounts(self, attr=None, default=None):
         if default is None:
             default = [0, {}]
         sessionMgr = sm.services.get('sessionMgr', None)
@@ -1765,6 +1795,7 @@ class MachoNetService(service.Service):
             if attr is None:
                 return stats
             return stats.get(attr, default)
+            return
 
     def SetClusterSessionCounts(self, clusterSessionStatistics):
         now = blue.os.GetWallclockTime()
@@ -1772,7 +1803,7 @@ class MachoNetService(service.Service):
         if len(self.clusterSessionStatsHistory) > self.proxyStatSmoothie:
             self.clusterSessionStatsHistory = self.clusterSessionStatsHistory[1:]
 
-    def GetClusterSessionCounts(self, attr = None, default = None):
+    def GetClusterSessionCounts(self, attr=None, default=None):
         if default is None:
             default = [0, {}]
         if len(self.clusterSessionStatsHistory) == 0:
@@ -1784,6 +1815,7 @@ class MachoNetService(service.Service):
             if attr is None:
                 return stats
             return stats.get(attr, default)
+            return
 
     def __SessionStatWatcher(self):
         allProxies = None
@@ -1799,6 +1831,8 @@ class MachoNetService(service.Service):
                     self.LogError('Exception during session stat stuff')
                     log.LogException()
                     sys.exc_clear()
+
+        return
 
     def __SessionStatWatcher2(self, allProxies):
         if self.transportIDbyProxyNodeID:
@@ -1907,6 +1941,8 @@ class MachoNetService(service.Service):
 
             self.LogInfo('Connectivity[RefreshConnectivity]:  End')
             return len(layTracksTo)
+        else:
+            return
 
     def GracefulShutdown(self, userID, when, duration, explanationLabel):
         if when:
@@ -1923,6 +1959,7 @@ class MachoNetService(service.Service):
                 self.Broadcast('OnClusterShutdownCancelled', explanationLabel)
                 sm.ScatterEvent('OnClusterShutdownCancelled', explanationLabel)
                 self.dbzcluster.Broadcasts_Insert(userID, 'LOCALIZED:' + explanationLabel)
+        return
 
     def __GracefulShutdownWorker(self):
         pollingInterval = 10
@@ -1941,25 +1978,29 @@ class MachoNetService(service.Service):
 
             blue.pyos.synchro.SleepWallclock(pollingInterval * 1000)
 
+        return
+
     def __BroadcastShutdownInformation(self, now, pollingInterval):
         self.LogInfo('GracefulShutdownWorker:  Checking Notification, now=', now, ', notify=', self.shutdown.notify)
         sortOfNow = now + pollingInterval * 2 * const.SEC
         if sortOfNow <= self.shutdown.notify:
             return
-        self.LogInfo('GracefulShutdownWorker:  Sending Notification')
-        if self.shutdown.when - sortOfNow > 15 * const.MIN:
-            self.LogInfo('GracefulShutdownWorker:  Prepping 15 minute Notification')
-            self.shutdown.notify = self.shutdown.when - 15 * const.MIN
-        elif self.shutdown.when - sortOfNow > 5 * const.MIN:
-            self.LogInfo('GracefulShutdownWorker:  Prepping 5 minute Notification')
-            self.shutdown.notify = self.shutdown.when - 5 * const.MIN
         else:
-            self.LogInfo('GracefulShutdownWorker:  Prepping actual shutdown')
-            self.shutdown.notify = None
-        args = (self.shutdown.explanationLabel, self.shutdown.when, self.shutdown.duration)
-        self.Broadcast('OnClusterShutdownInitiated', *args)
-        sm.ScatterEvent('OnClusterShutdownInitiated', *args)
-        self.dbzcluster.Broadcasts_Insert(self.shutdown.userID, self.shutdown.explanationLabel)
+            self.LogInfo('GracefulShutdownWorker:  Sending Notification')
+            if self.shutdown.when - sortOfNow > 15 * const.MIN:
+                self.LogInfo('GracefulShutdownWorker:  Prepping 15 minute Notification')
+                self.shutdown.notify = self.shutdown.when - 15 * const.MIN
+            elif self.shutdown.when - sortOfNow > 5 * const.MIN:
+                self.LogInfo('GracefulShutdownWorker:  Prepping 5 minute Notification')
+                self.shutdown.notify = self.shutdown.when - 5 * const.MIN
+            else:
+                self.LogInfo('GracefulShutdownWorker:  Prepping actual shutdown')
+                self.shutdown.notify = None
+            args = (self.shutdown.explanationLabel, self.shutdown.when, self.shutdown.duration)
+            self.Broadcast('OnClusterShutdownInitiated', *args)
+            sm.ScatterEvent('OnClusterShutdownInitiated', *args)
+            self.dbzcluster.Broadcasts_Insert(self.shutdown.userID, self.shutdown.explanationLabel)
+            return
 
     def __PerformGracefulShutdown(self):
         self.LogNotice('GracefulShutdownWorker:  Shutdown Initiated')
@@ -2086,6 +2127,7 @@ class MachoNetService(service.Service):
         if macho.mode == 'server':
             self.dbzcluster.Nodes_Trash(self.nodeID, 'Graceful Cluster Shutdown - Master', 1)
         bluepy.Terminate('Graceful Cluster Shutdown')
+        return
 
     def IsClusterShuttingDown(self):
         return self.shutdownInProgress
@@ -2118,7 +2160,7 @@ class MachoNetService(service.Service):
                     self.LogNotice('Terminating unconnected node', each)
                     uthread.worker('machoNet::ServerBroadcast::OnNodeDeath', self.ServerBroadcast, 'OnNodeDeath', each, 1, "It's Terminate Unconnected Nodes' fault")
 
-    def TerminateClient(self, reason, clientID = None):
+    def TerminateClient(self, reason, clientID=None):
         if macho.mode == 'proxy':
             if clientID is None:
                 while self.transportIDbyClientID:
@@ -2131,6 +2173,7 @@ class MachoNetService(service.Service):
                     transport = self.transportsByID.get(transportID, None)
                     if transport is not None:
                         transport.Close(reason)
+        return
 
     def __NodeWatcher(self):
         connectionCount = -1
@@ -2196,6 +2239,8 @@ class MachoNetService(service.Service):
                 log.LogException()
                 sys.exc_clear()
 
+        return
+
     def __DisconnectUnauthorizedUsers(self):
         while not getattr(self, 'stop', True):
             try:
@@ -2227,6 +2272,8 @@ class MachoNetService(service.Service):
             else:
                 self.peopleWhoShouldntBeLoggedIn[sessionID] = True
 
+        return
+
     def __DelayedClose(self, transport, message):
         clientID = transport.clientID
         if message == 'ACCOUNTBANNED':
@@ -2243,7 +2290,8 @@ class MachoNetService(service.Service):
     def GetLocalHostName(self):
         if macho.mode == 'client':
             return None
-        return blue.pyos.GetEnv().get('COMPUTERNAME', 'UNKNOWNHOST')
+        else:
+            return blue.pyos.GetEnv().get('COMPUTERNAME', 'UNKNOWNHOST')
 
     class Sequencer(uthread.TaskletSequencer):
 
@@ -2276,7 +2324,7 @@ class MachoNetService(service.Service):
         else:
             self.LogWarn('Unexpected source address type in wait for sequence number, address=', address)
 
-    def OnNodeDeath(self, nodeID, confirmed, reason = None):
+    def OnNodeDeath(self, nodeID, confirmed, reason=None):
         if nodeID not in self.deadNodes:
             self.LogNotice('Node', self.nodeID, 'received OnNodeDeath for', nodeID, 'confirmed =', confirmed, 'reason =', reason)
             self._addressCache.RemoveAllForNode(nodeID)
@@ -2297,6 +2345,7 @@ class MachoNetService(service.Service):
                 transport = self.GetTransportOfNode(nodeID)
                 if transport is not None:
                     transport.Close(reason=reason, noSend=True)
+        return
 
     def LayTracksIfNeeded(self, address, nodeID, whencemsg):
         if self.DontLayTracksTo(nodeID):
@@ -2319,103 +2368,106 @@ class MachoNetService(service.Service):
     def LayTracks(self, address, nodeID, whence):
         if self.DontLayTracksTo(nodeID):
             return
-        logname = 'Connectivity[LayTracks tid = %s, %s]:' % (id(stackless.getcurrent()), whence)
-        self.LogInfo(logname, 'start', repr(address), 'nodeID=', nodeID)
-        self.dontLayTracksTo[nodeID] = address
-        try:
-            if nodeID == self.GetNodeID():
-                self.LogError(logname, 'Trying to lay tracks to self!')
-                log.LogTraceback()
-                return
-            if self.nodeID is None:
-                self.LogError(logname, 'Cannot lay tracks before we have a node ID. Sleeping...')
-                while self.nodeID is None:
-                    blue.pyos.synchro.SleepWallclock(100)
-
-                self.LogInfo(logname, 'Woke up, have nodeID', self.nodeID)
-            if False:
-                nodeType = self.GetNodeTypeFromID(nodeID)
-                if nodeType == macho.mode and nodeID <= self.nodeID:
-                    self.LogInfo(logname, 'Not laying tracks to a higher ranking node (%d to %d), expecting incoming connection.' % (self.nodeID, nodeID))
-                    return
-                if nodeType == 'server' and macho.mode == 'proxy':
-                    self.LogInfo(logname, 'Not laying tracks from proxy to server, expecting incoming connection.')
-                    return
+        else:
+            logname = 'Connectivity[LayTracks tid = %s, %s]:' % (id(stackless.getcurrent()), whence)
+            self.LogInfo(logname, 'start', repr(address), 'nodeID=', nodeID)
+            self.dontLayTracksTo[nodeID] = address
             try:
-                factory = self.GetFactory(gpsMap[macho.mode]['tcp:packet:machoNet'], (0, 'tcp:packet:machoNet'))
-                self.LogInfo(logname, 'Attempting connect to ', repr(address))
-                transport = factory.Connect(address)
-                self.LogInfo(logname, 'Connect succeeded! [%r->%r]' % (transport.localaddress, transport.address))
-                try:
-                    transportID = self.transportID
-                    self.transportID = self.transportID + 1
-                    transport = MachoTransport(transportID, transport, 'tcp:packet:machoNet', self)
-                    others = []
-                    if macho.mode == 'server':
-                        layTracksTo = self._GetLayTracksTo()
-                        for each in layTracksTo:
-                            others.append(('%s:%d' % (each.ipAddress, each.port), each.nodeID))
+                if nodeID == self.GetNodeID():
+                    self.LogError(logname, 'Trying to lay tracks to self!')
+                    log.LogTraceback()
+                    return
+                if self.nodeID is None:
+                    self.LogError(logname, 'Cannot lay tracks before we have a node ID. Sleeping...')
+                    while self.nodeID is None:
+                        blue.pyos.synchro.SleepWallclock(100)
 
-                        myaddress = self.GetTransport('tcp:packet:machoNet').GetExternalAddress()
-                    else:
-                        myaddress = self.GetTransport('tcp:packet:machoNet').GetInternalAddress()
-                    self.LogInfo(logname, 'sending idrq to node', nodeID, 'at', address)
-                    transport.Write(IdentificationReq(nodeID=self.nodeID, source=MachoAddress(nodeID=self.nodeID), myaddress=myaddress, others=others, isProxy=macho.mode == 'proxy', isApp=False, serviceMask=self.serviceMask))
-                    response = transport.Read()
-                    self.LogInfo(logname, 'got response to idrq from', nodeID, 'at', address)
-                    if response.command != const.cluster.MACHONETMSG_TYPE_IDENTIFICATION_RSP:
-                        raise RuntimeError('UnexpectedResponse', 'Got a bad response to IdentificationReq')
-                    if nodeID and response.nodeID != nodeID:
-                        self.LogError(logname, 'I thought I was connecting to ', nodeID, ', but got a response from ', response.nodeID)
-                        log.LogTraceback('Got a misguided response to IdentificationReq (expected: %s, actual: %s)' % (nodeID, response.nodeID))
-                        raise RuntimeError('UnexpectedResponse', 'Got a misguided response to IdentificationReq')
-                    accepted, reason = response.accepted
-                    if not accepted:
-                        self.LogInfo(logname, response.nodeID, ' rejected connection: ', repr(reason))
-                        transport.Close('%s rejected connection: %r.' % (response.nodeID, reason), noSend=True)
-                    elif response.nodeID in self.transportIDbyProxyNodeID or response.nodeID in self.transportIDbySolNodeID:
-                        self.LogError(logname, "I've already got a connection established to ", response.nodeID, ".  Two's a crowd in this case.  Ciao.")
-                        transport.Close("I've already got a connection established to %s." % response.nodeID)
-                    else:
-                        self.LogInfo(logname, 'Succesfully established a connection to ', response.nodeID, ' reason: ', repr(reason))
-                        transport.nodeID = response.nodeID
-                        blue.net.EnumerateTransport(transport.transport.socket.getSocketDescriptor(), transport.transportID, transport.transportName, 0, 0, transport.nodeID)
-                        if response.isProxy:
-                            self.transportIDbyProxyNodeID[transport.nodeID] = transportID
-                            blue.net.AddProxyNode(transportID, transport.nodeID)
+                    self.LogInfo(logname, 'Woke up, have nodeID', self.nodeID)
+                if False:
+                    nodeType = self.GetNodeTypeFromID(nodeID)
+                    if nodeType == macho.mode and nodeID <= self.nodeID:
+                        self.LogInfo(logname, 'Not laying tracks to a higher ranking node (%d to %d), expecting incoming connection.' % (self.nodeID, nodeID))
+                        return
+                    if nodeType == 'server' and macho.mode == 'proxy':
+                        self.LogInfo(logname, 'Not laying tracks from proxy to server, expecting incoming connection.')
+                        return
+                try:
+                    factory = self.GetFactory(gpsMap[macho.mode]['tcp:packet:machoNet'], (0, 'tcp:packet:machoNet'))
+                    self.LogInfo(logname, 'Attempting connect to ', repr(address))
+                    transport = factory.Connect(address)
+                    self.LogInfo(logname, 'Connect succeeded! [%r->%r]' % (transport.localaddress, transport.address))
+                    try:
+                        transportID = self.transportID
+                        self.transportID = self.transportID + 1
+                        transport = MachoTransport(transportID, transport, 'tcp:packet:machoNet', self)
+                        others = []
+                        if macho.mode == 'server':
+                            layTracksTo = self._GetLayTracksTo()
+                            for each in layTracksTo:
+                                others.append(('%s:%d' % (each.ipAddress, each.port), each.nodeID))
+
+                            myaddress = self.GetTransport('tcp:packet:machoNet').GetExternalAddress()
                         else:
-                            self.transportIDbySolNodeID[transport.nodeID] = transportID
-                        self.transportsByID[transportID] = transport
-                        transport.currentReaders += 1
-                        uthread.worker('machoNet::TransportReader::LayTracks', self.TransportReader, self.transportsByID[transportID])
-                        self.externalAddressesByNodeID[response.nodeID] = (address, response.serviceMask)
-                        if self.clusterStartupPhase:
-                            if boot.role == 'proxy':
-                                polarisID = self.session.ConnectToSolServerService('machoNet').GetNodeFromAddress(const.cluster.SERVICE_POLARIS, 0)
+                            myaddress = self.GetTransport('tcp:packet:machoNet').GetInternalAddress()
+                        self.LogInfo(logname, 'sending idrq to node', nodeID, 'at', address)
+                        transport.Write(IdentificationReq(nodeID=self.nodeID, source=MachoAddress(nodeID=self.nodeID), myaddress=myaddress, others=others, isProxy=macho.mode == 'proxy', isApp=False, serviceMask=self.serviceMask))
+                        response = transport.Read()
+                        self.LogInfo(logname, 'got response to idrq from', nodeID, 'at', address)
+                        if response.command != const.cluster.MACHONETMSG_TYPE_IDENTIFICATION_RSP:
+                            raise RuntimeError('UnexpectedResponse', 'Got a bad response to IdentificationReq')
+                        if nodeID and response.nodeID != nodeID:
+                            self.LogError(logname, 'I thought I was connecting to ', nodeID, ', but got a response from ', response.nodeID)
+                            log.LogTraceback('Got a misguided response to IdentificationReq (expected: %s, actual: %s)' % (nodeID, response.nodeID))
+                            raise RuntimeError('UnexpectedResponse', 'Got a misguided response to IdentificationReq')
+                        accepted, reason = response.accepted
+                        if not accepted:
+                            self.LogInfo(logname, response.nodeID, ' rejected connection: ', repr(reason))
+                            transport.Close('%s rejected connection: %r.' % (response.nodeID, reason), noSend=True)
+                        elif response.nodeID in self.transportIDbyProxyNodeID or response.nodeID in self.transportIDbySolNodeID:
+                            self.LogError(logname, "I've already got a connection established to ", response.nodeID, ".  Two's a crowd in this case.  Ciao.")
+                            transport.Close("I've already got a connection established to %s." % response.nodeID)
+                        else:
+                            self.LogInfo(logname, 'Succesfully established a connection to ', response.nodeID, ' reason: ', repr(reason))
+                            transport.nodeID = response.nodeID
+                            blue.net.EnumerateTransport(transport.transport.socket.getSocketDescriptor(), transport.transportID, transport.transportName, 0, 0, transport.nodeID)
+                            if response.isProxy:
+                                self.transportIDbyProxyNodeID[transport.nodeID] = transportID
+                                blue.net.AddProxyNode(transportID, transport.nodeID)
                             else:
-                                polarisID = self.GetNodeFromAddress(const.cluster.SERVICE_POLARIS, 0)
-                            isPolaris = response.nodeID == polarisID
-                            sm.ScatterEvent('OnNewNode', response.nodeID, address, response.isProxy, isPolaris, response.serviceMask)
-                    others = response.others
-                    for otherAddress, otherNodeID in others:
-                        self.LayTracksIfNeeded(otherAddress, otherNodeID, 'LayTracks::response.others')
+                                self.transportIDbySolNodeID[transport.nodeID] = transportID
+                            self.transportsByID[transportID] = transport
+                            transport.currentReaders += 1
+                            uthread.worker('machoNet::TransportReader::LayTracks', self.TransportReader, self.transportsByID[transportID])
+                            self.externalAddressesByNodeID[response.nodeID] = (address, response.serviceMask)
+                            if self.clusterStartupPhase:
+                                if boot.role == 'proxy':
+                                    polarisID = self.session.ConnectToSolServerService('machoNet').GetNodeFromAddress(const.cluster.SERVICE_POLARIS, 0)
+                                else:
+                                    polarisID = self.GetNodeFromAddress(const.cluster.SERVICE_POLARIS, 0)
+                                isPolaris = response.nodeID == polarisID
+                                sm.ScatterEvent('OnNewNode', response.nodeID, address, response.isProxy, isPolaris, response.serviceMask)
+                        others = response.others
+                        for otherAddress, otherNodeID in others:
+                            self.LayTracksIfNeeded(otherAddress, otherNodeID, 'LayTracks::response.others')
+
+                    except GPSTransportClosed as e:
+                        transport.Close(e.reason)
+                        raise
+                    except Exception:
+                        log.LogException()
+                        transport.Close('LayTracks blew up')
 
                 except GPSTransportClosed as e:
-                    transport.Close(e.reason)
-                    raise
+                    ps = 'proxy' if macho.mode != 'proxy' else 'server'
+                    self.LogWarn(logname, 'Failed to connect to ', ps, ' on ', address, repr(e))
                 except Exception:
                     log.LogException()
-                    transport.Close('LayTracks blew up')
 
-            except GPSTransportClosed as e:
-                ps = 'proxy' if macho.mode != 'proxy' else 'server'
-                self.LogWarn(logname, 'Failed to connect to ', ps, ' on ', address, repr(e))
-            except Exception:
-                log.LogException()
+            finally:
+                del self.dontLayTracksTo[nodeID]
+                self.LogInfo(logname, 'End')
 
-        finally:
-            del self.dontLayTracksTo[nodeID]
-            self.LogInfo(logname, 'End')
+            return
 
     def RegisterXmlRpc(self):
 
@@ -2457,8 +2509,9 @@ class MachoNetService(service.Service):
             self._addressCache.Remove(service, address)
         else:
             self._addressCache.Set(service, address, nodeID)
+        return
 
-    def CheckAddressCache(self, service, address, lazyGetIfNotFound = False):
+    def CheckAddressCache(self, service, address, lazyGetIfNotFound=False):
         suggestedNodeID, service, address = self._GetNodeFromAddressAdjustments(service, address)
         if isinstance(service, str):
             calledBy = log.WhoCalledMe()
@@ -2474,7 +2527,7 @@ class MachoNetService(service.Service):
         return nodeID
 
     @bluepy.TimedFunction('machoNet::GetNodeFromAddress')
-    def GetNodeFromAddress(self, serviceID, address, justQuery = 0):
+    def GetNodeFromAddress(self, serviceID, address, justQuery=0):
         if justQuery == 1:
             justQuery = 0
         if justQuery != 0:
@@ -2615,6 +2668,8 @@ class MachoNetService(service.Service):
         for bit in extractBits(serviceMask):
             self.nodeIDsByServiceMask[bit].add(nodeID)
 
+        return
+
     def _GetNodeFromAddressFromDB(self, myNodeID, serviceMapping, address, suggestedNodeID, expectedLoadValue, serviceMask):
         return self.dbzcluster.Cluster_NodeFromAddress(myNodeID, serviceMapping, address, suggestedNodeID, expectedLoadValue, serviceMask)
 
@@ -2678,6 +2733,7 @@ class MachoNetService(service.Service):
             if 'cfg' not in dir(__builtin__):
                 self.LogInfo('AreTheseServicesRunning:  cfg not in builtin')
                 return 'config::cfg'
+        return
 
     def GetMyAddresses(self, addressType):
         return self.dbzcluster.Addresses_SelectServiceNode(self.serviceMappings[addressType][0], self.nodeID)
@@ -2685,13 +2741,14 @@ class MachoNetService(service.Service):
     def GetNodeID(self):
         if not hasattr(self, 'nodeID'):
             return
-        if macho.mode == 'server':
-            while self.nodeID is None:
-                self.LogError("Some dude is trying to get our nodeID before we're up and running...  Can't have that, now can we?  Let's sleeping on it.")
-                log.LogTraceback()
-                blue.pyos.synchro.SleepWallclock(1000)
+        else:
+            if macho.mode == 'server':
+                while self.nodeID is None:
+                    self.LogError("Some dude is trying to get our nodeID before we're up and running...  Can't have that, now can we?  Let's sleeping on it.")
+                    log.LogTraceback()
+                    blue.pyos.synchro.SleepWallclock(1000)
 
-        return self.nodeID
+            return self.nodeID
 
     def GetNodeTypeFromID(self, nodeID):
         if nodeID >= const.maxNodeID:
@@ -2702,7 +2759,6 @@ class MachoNetService(service.Service):
     def GetClientSessionID(self):
         if macho.mode == 'client':
             return (self.clientSessionID, session.userid)
-        return 0
 
     def GetMachoTransportByClientID(self, clientID):
         return self.transportsByID.get(self.transportIDbyClientID.get(clientID, None), None)
@@ -2713,6 +2769,7 @@ class MachoNetService(service.Service):
             return
         else:
             return transport.sessions.get(clientID, None)
+            return
 
     def GetConnectedProxyNodes(self):
         return self.transportIDbyProxyNodeID.keys()
@@ -2785,6 +2842,8 @@ class MachoNetService(service.Service):
                         self.dbzcluster.Nodes_Trash(self.nodeID, "zcluster.Nodes_HeartBeat indicated that I've been removed from zcluster.nodes", 1)
                         log.Quit("zcluster.Nodes_HeartBeat indicated that I've been removed from zcluster.nodes")
 
+        return
+
     def OnCleanUp(self):
         if not __debug__:
             while not getattr(self, 'stop', True):
@@ -2795,7 +2854,7 @@ class MachoNetService(service.Service):
                     log.LogException('Exception during OnCleanUp.  Ignoring.')
                     sys.exc_clear()
 
-    def GetGPCS(self, channel = None):
+    def GetGPCS(self, channel=None):
         if macho.mode == 'client':
             while self.authenticating == 2:
                 blue.pyos.synchro.SleepWallclock(500)
@@ -2807,7 +2866,7 @@ class MachoNetService(service.Service):
 
         return self.channelHandlersDown.get(channel, None)
 
-    def Ping(self, pingCount = 5, nodeID = None, silent = False):
+    def Ping(self, pingCount=5, nodeID=None, silent=False):
         if nodeID is None:
             address = MachoAddress()
             daNode = 'random node'
@@ -2980,6 +3039,7 @@ class MachoNetService(service.Service):
                     initVals = self._GetInitVals()
                     self.initialAuthData = (utilCachedObject(1, 'machoNet.serviceInfo', serviceInfo), initVals)
             return self.initialAuthData
+        return
 
     def _GetInitVals(self):
         return sm.GetService('config').GetInitVals()
@@ -2989,6 +3049,7 @@ class MachoNetService(service.Service):
             self.initialAuthData = None
             if macho.mode == 'server':
                 self.ProxyBroadcast('OnClearInitVals')
+        return
 
     def OnClearInitVals(self):
         if macho.mode == 'proxy':
@@ -3004,24 +3065,29 @@ class MachoNetService(service.Service):
         else:
             self.globalConfig[key] = value
         sm.ScatterEvent('OnGlobalConfigChanged', self.globalConfig)
+        return
 
     @bluepy.TimedFunction('machoNet::__IsVIP')
     def __IsVIP(self, vipKey):
         if vipKey is None:
             return False
-        with self.vipLock:
-            if self.vipkeys is None:
-                self.__PrimeVIPList()
-            return vipKey in self.vipkeys
+        else:
+            with self.vipLock:
+                if self.vipkeys is None:
+                    self.__PrimeVIPList()
+                return vipKey in self.vipkeys
+            return
 
     @bluepy.TimedFunction('machoNet::__IsVIPbyUser')
     def __IsVIPbyUser(self, userID):
         if userID is None:
             return False
-        with self.vipLock:
-            if self.vipUsers is None:
-                self.__PrimeVIPList()
-            return userID in self.vipUsers
+        else:
+            with self.vipLock:
+                if self.vipUsers is None:
+                    self.__PrimeVIPList()
+                return userID in self.vipUsers
+            return
 
     def __PrimeVIPList(self):
         self.vipkeys = set()
@@ -3034,6 +3100,7 @@ class MachoNetService(service.Service):
         with self.vipLock:
             self.vipkeys = None
             self.vipUsers = None
+        return
 
     def IsThisUserCoolForLogin(self, userID, appID):
         if self.IsAppInVIP(appID):
@@ -3148,6 +3215,8 @@ class MachoNetService(service.Service):
                 log.LogException('Exception during Timeout Call Loop')
                 sys.exc_clear()
 
+        return
+
     def __KATLoop(self):
         if macho.mode == 'client':
             keepAliveTimerInterval = self.clientKeepAliveTimerInterval
@@ -3219,7 +3288,7 @@ class MachoNetService(service.Service):
             log.LogException()
             sys.exc_clear()
 
-    def _BlockingCall(self, packet, destTransport = None):
+    def _BlockingCall(self, packet, destTransport=None):
         if destTransport is None:
             transports = self._GetTransports(packet.destination)
             if len(transports) > 1:
@@ -3241,42 +3310,43 @@ class MachoNetService(service.Service):
             self.timeoutCalls[callID] = blue.os.GetWallclockTime() + packetTimeout * const.SEC
         self.callsCountMax = max(self.callsCountMax, len(self.calls))
         try:
-            destTransport.calls[callID] = self.calls[callID][0]
-            before = blue.os.GetWallclockTime()
             try:
-                destTransport.Write(packet)
-                while 1:
-                    retval = self.calls[callID][0].receive()
-                    if boot.role == 'client':
-                        destTransport.TagPacketSizes(packet, retval)
-                    provisional = retval.oob.get('provisional', None)
-                    if provisional is None:
-                        break
-                    if macho.mode == 'client':
-                        self.LogInfo('Received Provisional Response, provisional=', provisional)
-                        self.calls[callID][1] = blue.os.GetWallclockTime() + provisional[0] * const.SEC
-                        if provisional[1].startswith('Process'):
-                            sm.ChainEventWithoutTheStars(provisional[1], provisional[2])
-                        elif provisional[1].startswith('Do'):
-                            sm.SendEventWithoutTheStars(provisional[1], provisional[2])
-                        else:
-                            sm.ScatterEventWithoutTheStars(provisional[1], provisional[2])
+                destTransport.calls[callID] = self.calls[callID][0]
+                before = blue.os.GetWallclockTime()
+                try:
+                    destTransport.Write(packet)
+                    while 1:
+                        retval = self.calls[callID][0].receive()
+                        if boot.role == 'client':
+                            destTransport.TagPacketSizes(packet, retval)
+                        provisional = retval.oob.get('provisional', None)
+                        if provisional is None:
+                            break
+                        if macho.mode == 'client':
+                            self.LogInfo('Received Provisional Response, provisional=', provisional)
+                            self.calls[callID][1] = blue.os.GetWallclockTime() + provisional[0] * const.SEC
+                            if provisional[1].startswith('Process'):
+                                sm.ChainEventWithoutTheStars(provisional[1], provisional[2])
+                            elif provisional[1].startswith('Do'):
+                                sm.SendEventWithoutTheStars(provisional[1], provisional[2])
+                            else:
+                                sm.ScatterEventWithoutTheStars(provisional[1], provisional[2])
 
-            finally:
-                if destTransport.calls.has_key(callID):
-                    del destTransport.calls[callID]
-                after = blue.os.GetWallclockTime()
-                diff = after - before
-                self.blockingCallTimes.Add(diff)
+                finally:
+                    if destTransport.calls.has_key(callID):
+                        del destTransport.calls[callID]
+                    after = blue.os.GetWallclockTime()
+                    diff = after - before
+                    self.blockingCallTimes.Add(diff)
 
-        except ReferenceError:
-            exctype, exc, tb = sys.exc_info()
-            try:
-                raise RuntimeError('ReferenceError'), None, tb
-            finally:
-                exctype = None
-                xc = None
-                tb = None
+            except ReferenceError:
+                exctype, exc, tb = sys.exc_info()
+                try:
+                    raise RuntimeError('ReferenceError'), None, tb
+                finally:
+                    exctype = None
+                    xc = None
+                    tb = None
 
         finally:
             if callID in self.timeoutCalls:
@@ -3338,7 +3408,7 @@ class MachoNetService(service.Service):
         return weightedChoice(options)
 
     @bluepy.TimedFunction('machoNet::_GetTransports')
-    def _GetTransports(self, destAddress, srcTransport = None):
+    def _GetTransports(self, destAddress, srcTransport=None):
         if macho.mode == 'client':
             srcTransport = self.namedtransports.get('tcp:packet:machoNet', None)
             if srcTransport and destAddress.addressType == const.ADDRESS_TYPE_BROADCAST and len(destAddress.narrowcast) == 1:
@@ -3418,6 +3488,7 @@ class MachoNetService(service.Service):
             if not self.transportsByID.has_key(transportID):
                 raise UnMachoDestination('The transportID does not identify a known transport')
             return [self.transportsByID[transportID]]
+            return
 
     def GetTransportIDsFromBroadcastAddress(self, destAddress):
         return self._GetTransportIDsFromBroadcastAddress(destAddress)
@@ -3584,6 +3655,7 @@ class MachoNetService(service.Service):
                 sess = transport.sessions.get(clientID, None)
         if sess is not None:
             sess.UnregisterMachoObject(objectID, refID)
+        return
 
     def ProcessSessionChange(self, isremote, sess, change):
         if 'charid' in change and change['charid'][1] is not None and hasattr(sess, 'clientID'):
@@ -3653,6 +3725,7 @@ class MachoNetService(service.Service):
             if clientID:
                 now = blue.os.GetWallclockTime()
                 self.SinglecastByClientID(clientID, 'OnClusterShutdownInitiated', self.shutdown.explanationLabel, self.shutdown.when, self.shutdown.duration)
+        return
 
     def HandleAccept(self, transname, transport, llv):
         transportID = self.transportID
@@ -3746,6 +3819,8 @@ class MachoNetService(service.Service):
             self.LogError('AcceptLoop bombed')
             sys.exc_clear()
 
+        return
+
     def TransportReader(self, srcTransport):
         srcTransport.currentReaders -= 1
         try:
@@ -3831,6 +3906,8 @@ class MachoNetService(service.Service):
             srcTransport.Close('TransportReader shutting down - a bizzarre low level exception has occurred.', 'UNHANDLEDEXCEPTION')
             sys.exc_clear()
 
+        return
+
     def IsMessageSane(self, srcTransport, theMessage):
         if srcTransport.transportName == 'tcp:packet:client':
             if theMessage.destination.addressType in self.__borc__:
@@ -3865,7 +3942,7 @@ class MachoNetService(service.Service):
     __aorb__ = (const.ADDRESS_TYPE_ANY, const.ADDRESS_TYPE_BROADCAST)
 
     @bluepy.TimedFunction('machoNet::HandleMessage')
-    def HandleMessage(self, srcTransport, theMessage, skipSanityCheck = 0):
+    def HandleMessage(self, srcTransport, theMessage, skipSanityCheck=0):
         if theMessage.command in self.__pingrequestorresponse__:
             theMessage.times.append((blue.os.GetWallclockTime(), blue.os.GetWallclockTimeNow(), macho.mode + '::handle_message'))
             theMessage.Changed()
@@ -4049,6 +4126,8 @@ class MachoNetService(service.Service):
             srcTransport.Close('TransportReader blew up - non-standard error', 'UNHANDLEDEXCEPTION')
             raise
 
+        return
+
     def ShouldAcceptForwardedMessage(self, transport, theMessage):
         if transport.nodeID in self.transportIDbyAppNodeID:
             return True
@@ -4083,7 +4162,7 @@ class MachoNetService(service.Service):
             raise UnMachoDestination('The proxy node in question is not reachable')
         return proxyNodeID
 
-    def GetIDOfAddress(self, address, clientMode = True, customIDData = None):
+    def GetIDOfAddress(self, address, clientMode=True, customIDData=None):
         ipaddr, port = address.split(':')
         ipaddr = GetPreferredHostByName(ipaddr)
         x = ipaddr.split('.')
@@ -4147,6 +4226,9 @@ class MachoNetService(service.Service):
         except:
             log.LogException('Status socket threw and exception, and is now stopping')
 
+    def ForwardProxyBroadcast(self, *args):
+        self.ProxyBroadcast(*args)
+
 
 def WhitelistDumper():
     while True:
@@ -4166,10 +4248,11 @@ def CollectWhitelist():
     uthread.new(WhitelistDumper)
 
 
-def RegisterPortOffset(mapname, portOffset, modeRoleBootMacho = None):
+def RegisterPortOffset(mapname, portOffset, modeRoleBootMacho=None):
     if modeRoleBootMacho is None:
         modeRoleBootMacho = boot.role
     offsetMap[modeRoleBootMacho][mapname] = portOffset
+    return
 
 
 def GetPreferredHostByName(name):

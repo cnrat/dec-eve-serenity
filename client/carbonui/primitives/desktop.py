@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\packages\carbonui\primitives\desktop.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\packages\carbonui\primitives\desktop.py
 from .container import Container
 import carbonui.const as uiconst
 import trinity
@@ -69,12 +70,14 @@ class UIRoot(Container):
             self.generateMipsStep = renderJob.GenerateMipMaps(attributes.renderTarget)
             renderSteps.append(self.generateMipsStep)
         self.renderSteps = renderSteps
+        return
 
     def SetRenderTarget(self, renderTarget):
         if self.renderTargetStep is not None:
             self.renderTargetStep.renderTarget = renderTarget
         if self.generateMipsStep is not None:
             self.generateMipsStep.renderTarget = renderTarget
+        return
 
     def InitCamera(self):
         import cameras
@@ -118,7 +121,6 @@ class UIRoot(Container):
             else:
                 self.camera.AdjustYaw(-uicore.uilib.dx * 0.1)
                 self.camera.AdjustPitch(-uicore.uilib.dy * 0.1)
-        return 1
 
     def _OnClose(self, *args, **kwds):
         if self.renderSteps:
@@ -133,8 +135,9 @@ class UIRoot(Container):
         self.generateMipsStep = None
         uicore.uilib.RemoveRootObject(self)
         Container._OnClose(self, *args, **kwds)
+        return
 
-    def AddLayer(self, name, decoClass = None, subLayers = None, idx = -1, loadLayerClass = False):
+    def AddLayer(self, name, decoClass=None, subLayers=None, idx=-1, loadLayerClass=False):
         useClass = decoClass or carbonui.control.layer.LayerCore
         layer = useClass(parent=self, name=name, idx=idx, align=uiconst.TOALL, state=uiconst.UI_PICKCHILDREN)
         layer.decoClass = decoClass
@@ -164,7 +167,7 @@ class UIRoot(Container):
         return (self.width, self.height)
 
     def GetAbsolutePosition(self):
-        return (0, 0)
+        pass
 
     @apply
     def dpiScaling():

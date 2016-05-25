@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\packages\billboards\billboardsystem.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\packages\billboards\billboardsystem.py
 import uthread2
 import logging
 logger = logging.getLogger(__name__)
@@ -96,6 +97,8 @@ class BillboardSystem(object):
             uthread2.start_tasklet(billboard_resource.play_next_in_playlist)
         except Exception:
             logger.exception('something is wrong. construction parameters %s', construction_parameters)
+
+        return
 
     def unregister_billboard_resource(self, name, itemId):
         billboard_resource = self.get_billboard_resource(name)

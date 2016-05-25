@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\client\script\ui\inflight\facilityTaxWindow.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\client\script\ui\inflight\facilityTaxWindow.py
 import uicls
 import uiprimitives
 import uicontrols
@@ -37,13 +38,15 @@ class FacilityTaxWindow(uicontrols.Window):
         self.footer = uiprimitives.Container(parent=self.sr.main, name='footer', align=uiconst.TOBOTTOM, height=32)
         btns = [(localization.GetByLabel('UI/Common/Submit'), self.Submit, None), (localization.GetByLabel('UI/Common/Cancel'), self.Cancel, None)]
         uicontrols.ButtonGroup(btns=btns, subalign=uiconst.CENTER, parent=self.footer, line=True, alwaysLite=False)
+        return
 
-    def LayoutTaxInput(self, taxRate, parent, left = 0, top = 0):
+    def LayoutTaxInput(self, taxRate, parent, left=0, top=0):
         taxRateValue = taxRate.value
         taxRateInput = uicontrols.SinglelineEdit(parent=parent, name='taxRateEdit', align=uiconst.TOPLEFT, setvalue='0.0' if taxRateValue is None else str(100 * taxRateValue), width=90, left=left, top=top, idx=0)
         taxRatePercent = uicontrols.EveLabelMedium(align=uiconst.TOPLEFT, text='%', parent=parent, left=left + 97, top=top + 2)
         taxRateInput.FloatMode(minfloat=0, maxfloat=10000)
         taxRate.input = taxRateInput
+        return
 
     def OnMouseEnterInteractable(self, obj, *args):
         obj.SetOpacity(self.HOVER_ALPHA)
@@ -61,6 +64,7 @@ class FacilityTaxWindow(uicontrols.Window):
          'taxStandingsHigh': None}
         self.facilitySvc.SetFacilityTaxes(self.facilityID, taxRateValues)
         self.CloseByUser()
+        return
 
     def Cancel(self, *args):
         self.CloseByUser()

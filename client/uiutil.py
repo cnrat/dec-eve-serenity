@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\common\modules\nice\client\_nastyspace\uiutil.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\common\modules\nice\client\_nastyspace\uiutil.py
 from carbon.common.script.util.blue2Py import WrapBlueClass as Blue2Py
 from carbon.common.script.util.commonutils import StripTags
 from carbonui.control.menuLabel import MenuLabel

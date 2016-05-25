@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\carbon\common\stdlib\subprocess.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\carbon\common\stdlib\subprocess.py
 import sys
 mswindows = sys.platform == 'win32'
 import os
@@ -9,7 +10,7 @@ import signal
 
 class CalledProcessError(Exception):
 
-    def __init__(self, returncode, cmd, output = None):
+    def __init__(self, returncode, cmd, output=None):
         self.returncode = returncode
         self.cmd = cmd
         self.output = output
@@ -67,6 +68,8 @@ def _cleanup():
                 _active.remove(inst)
             except ValueError:
                 pass
+
+    return
 
 
 PIPE = -1
@@ -144,7 +147,7 @@ def list2cmdline(seq):
 
 class Popen(object):
 
-    def __init__(self, args, bufsize = 0, executable = None, stdin = None, stdout = None, stderr = None, preexec_fn = None, close_fds = False, shell = False, cwd = None, env = None, universal_newlines = False, startupinfo = None, creationflags = 0):
+    def __init__(self, args, bufsize=0, executable=None, stdin=None, stdout=None, stderr=None, preexec_fn=None, close_fds=False, shell=False, cwd=None, env=None, universal_newlines=False, startupinfo=None, creationflags=0):
         _cleanup()
         self._child_created = False
         if not isinstance(bufsize, (int, long)):
@@ -186,20 +189,23 @@ class Popen(object):
                 self.stderr = os.fdopen(errread, 'rU', bufsize)
             else:
                 self.stderr = os.fdopen(errread, 'rb', bufsize)
+        return
 
     def _translate_newlines(self, data):
         data = data.replace('\r\n', '\n')
         data = data.replace('\r', '\n')
         return data
 
-    def __del__(self, _maxint = sys.maxint, _active = _active):
+    def __del__(self, _maxint=sys.maxint, _active=_active):
         if not self._child_created:
             return
-        self._internal_poll(_deadstate=_maxint)
-        if self.returncode is None and _active is not None:
-            _active.append(self)
+        else:
+            self._internal_poll(_deadstate=_maxint)
+            if self.returncode is None and _active is not None:
+                _active.append(self)
+            return
 
-    def communicate(self, input = None):
+    def communicate(self, input=None):
         if [self.stdin, self.stdout, self.stderr].count(None) >= 2:
             stdout = None
             stderr = None
@@ -215,7 +221,8 @@ class Popen(object):
                 self.stderr.close()
             self.wait()
             return (stdout, stderr)
-        return self._communicate(input)
+        else:
+            return self._communicate(input)
 
     def poll(self):
         return self._internal_poll()
@@ -225,50 +232,51 @@ class Popen(object):
         def _get_handles(self, stdin, stdout, stderr):
             if stdin is None and stdout is None and stderr is None:
                 return (None, None, None, None, None, None)
-            p2cread, p2cwrite = (None, None)
-            c2pread, c2pwrite = (None, None)
-            errread, errwrite = (None, None)
-            if stdin is None:
-                p2cread = _subprocess.GetStdHandle(_subprocess.STD_INPUT_HANDLE)
-                if p2cread is None:
-                    p2cread, _ = _subprocess.CreatePipe(None, 0)
-            elif stdin == PIPE:
-                p2cread, p2cwrite = _subprocess.CreatePipe(None, 0)
-            elif isinstance(stdin, int):
-                p2cread = msvcrt.get_osfhandle(stdin)
             else:
-                p2cread = msvcrt.get_osfhandle(stdin.fileno())
-            p2cread = self._make_inheritable(p2cread)
-            if stdout is None:
-                c2pwrite = _subprocess.GetStdHandle(_subprocess.STD_OUTPUT_HANDLE)
-                if c2pwrite is None:
-                    _, c2pwrite = _subprocess.CreatePipe(None, 0)
-            elif stdout == PIPE:
-                c2pread, c2pwrite = _subprocess.CreatePipe(None, 0)
-            elif isinstance(stdout, int):
-                c2pwrite = msvcrt.get_osfhandle(stdout)
-            else:
-                c2pwrite = msvcrt.get_osfhandle(stdout.fileno())
-            c2pwrite = self._make_inheritable(c2pwrite)
-            if stderr is None:
-                errwrite = _subprocess.GetStdHandle(_subprocess.STD_ERROR_HANDLE)
-                if errwrite is None:
-                    _, errwrite = _subprocess.CreatePipe(None, 0)
-            elif stderr == PIPE:
-                errread, errwrite = _subprocess.CreatePipe(None, 0)
-            elif stderr == STDOUT:
-                errwrite = c2pwrite
-            elif isinstance(stderr, int):
-                errwrite = msvcrt.get_osfhandle(stderr)
-            else:
-                errwrite = msvcrt.get_osfhandle(stderr.fileno())
-            errwrite = self._make_inheritable(errwrite)
-            return (p2cread,
-             p2cwrite,
-             c2pread,
-             c2pwrite,
-             errread,
-             errwrite)
+                p2cread, p2cwrite = (None, None)
+                c2pread, c2pwrite = (None, None)
+                errread, errwrite = (None, None)
+                if stdin is None:
+                    p2cread = _subprocess.GetStdHandle(_subprocess.STD_INPUT_HANDLE)
+                    if p2cread is None:
+                        p2cread, _ = _subprocess.CreatePipe(None, 0)
+                elif stdin == PIPE:
+                    p2cread, p2cwrite = _subprocess.CreatePipe(None, 0)
+                elif isinstance(stdin, int):
+                    p2cread = msvcrt.get_osfhandle(stdin)
+                else:
+                    p2cread = msvcrt.get_osfhandle(stdin.fileno())
+                p2cread = self._make_inheritable(p2cread)
+                if stdout is None:
+                    c2pwrite = _subprocess.GetStdHandle(_subprocess.STD_OUTPUT_HANDLE)
+                    if c2pwrite is None:
+                        _, c2pwrite = _subprocess.CreatePipe(None, 0)
+                elif stdout == PIPE:
+                    c2pread, c2pwrite = _subprocess.CreatePipe(None, 0)
+                elif isinstance(stdout, int):
+                    c2pwrite = msvcrt.get_osfhandle(stdout)
+                else:
+                    c2pwrite = msvcrt.get_osfhandle(stdout.fileno())
+                c2pwrite = self._make_inheritable(c2pwrite)
+                if stderr is None:
+                    errwrite = _subprocess.GetStdHandle(_subprocess.STD_ERROR_HANDLE)
+                    if errwrite is None:
+                        _, errwrite = _subprocess.CreatePipe(None, 0)
+                elif stderr == PIPE:
+                    errread, errwrite = _subprocess.CreatePipe(None, 0)
+                elif stderr == STDOUT:
+                    errwrite = c2pwrite
+                elif isinstance(stderr, int):
+                    errwrite = msvcrt.get_osfhandle(stderr)
+                else:
+                    errwrite = msvcrt.get_osfhandle(stderr.fileno())
+                errwrite = self._make_inheritable(errwrite)
+                return (p2cread,
+                 p2cwrite,
+                 c2pread,
+                 c2pwrite,
+                 errread,
+                 errwrite)
 
         def _make_inheritable(self, handle):
             return _subprocess.DuplicateHandle(_subprocess.GetCurrentProcess(), handle, _subprocess.GetCurrentProcess(), 0, 1, _subprocess.DUPLICATE_SAME_ACCESS)
@@ -301,9 +309,11 @@ class Popen(object):
                     args = '"%s" %s' % (w9xpopen, args)
                     creationflags |= _subprocess.CREATE_NEW_CONSOLE
             try:
-                hp, ht, pid, tid = _subprocess.CreateProcess(executable, args, None, None, int(not close_fds), creationflags, env, cwd, startupinfo)
-            except pywintypes.error as e:
-                raise WindowsError(*e.args)
+                try:
+                    hp, ht, pid, tid = _subprocess.CreateProcess(executable, args, None, None, int(not close_fds), creationflags, env, cwd, startupinfo)
+                except pywintypes.error as e:
+                    raise WindowsError(*e.args)
+
             finally:
                 if p2cread is not None:
                     p2cread.Close()
@@ -316,8 +326,9 @@ class Popen(object):
             self._handle = hp
             self.pid = pid
             ht.Close()
+            return
 
-        def _internal_poll(self, _deadstate = None, _WaitForSingleObject = _subprocess.WaitForSingleObject, _WAIT_OBJECT_0 = _subprocess.WAIT_OBJECT_0, _GetExitCodeProcess = _subprocess.GetExitCodeProcess):
+        def _internal_poll(self, _deadstate=None, _WaitForSingleObject=_subprocess.WaitForSingleObject, _WAIT_OBJECT_0=_subprocess.WAIT_OBJECT_0, _GetExitCodeProcess=_subprocess.GetExitCodeProcess):
             if self.returncode is None:
                 if _WaitForSingleObject(self._handle, 0) == _WAIT_OBJECT_0:
                     self.returncode = _GetExitCodeProcess(self._handle)
@@ -526,8 +537,9 @@ class Popen(object):
                         os.close(fd)
 
                 raise child_exception
+            return
 
-        def _handle_exitstatus(self, sts, _WIFSIGNALED = os.WIFSIGNALED, _WTERMSIG = os.WTERMSIG, _WIFEXITED = os.WIFEXITED, _WEXITSTATUS = os.WEXITSTATUS):
+        def _handle_exitstatus(self, sts, _WIFSIGNALED=os.WIFSIGNALED, _WTERMSIG=os.WTERMSIG, _WIFEXITED=os.WIFEXITED, _WEXITSTATUS=os.WEXITSTATUS):
             if _WIFSIGNALED(sts):
                 self.returncode = -_WTERMSIG(sts)
             elif _WIFEXITED(sts):
@@ -535,7 +547,7 @@ class Popen(object):
             else:
                 raise RuntimeError('Unknown child exit status!')
 
-        def _internal_poll(self, _deadstate = None, _waitpid = os.waitpid, _WNOHANG = os.WNOHANG, _os_error = os.error):
+        def _internal_poll(self, _deadstate=None, _waitpid=os.waitpid, _WNOHANG=os.WNOHANG, _os_error=os.error):
             if self.returncode is None:
                 try:
                     pid, sts = _waitpid(self.pid, _WNOHANG)

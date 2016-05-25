@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\carbon\common\lib\serverInfo.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\carbon\common\lib\serverInfo.py
 import logmodule
 import utillib
 
@@ -105,6 +106,8 @@ def GetServerInfo():
             return getattr(eve, attr)
         except (NameError, AttributeError):
             return None
+
+        return None
 
     serverInfo = utillib.KeyVal(name=serverName, IP=ip, espUrl=espUrl, isLive=isLive, version=safeGetEveAttr('serverVersion'), build=safeGetEveAttr('serverBuild'))
     return serverInfo

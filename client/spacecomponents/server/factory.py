@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\packages\spacecomponents\server\factory.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\packages\spacecomponents\server\factory.py
 from entosis.spacecomponents.server.conquerableStation import ConquerableStation
 from entosis.spacecomponents.server.entosisLootTarget import EntosisLootTarget
 from entosis.spacecomponents.server.disruptableStationService import DisruptableStationService
@@ -30,6 +31,7 @@ from spacecomponents.server.components import npcpilot
 from spacecomponents.server.components import turboshield
 from spacecomponents.server.components import proximitysensor
 from spacecomponents.server.components import itemtrader
+from structures.spacecomponents.server.autoWarpScrambler import AutoWarpScrambler
 COMPONENTS = {componentConst.DEPLOY_CLASS: deploy.Deploy,
  componentConst.ACTIVATE_CLASS: activate.Activate,
  componentConst.DOGMATIC_CLASS: dogmatic.Dogmatic,
@@ -60,7 +62,8 @@ COMPONENTS = {componentConst.DEPLOY_CLASS: deploy.Deploy,
  componentConst.CONQUERABLE_STATION: ConquerableStation,
  componentConst.NPC_WARP_BEACON: Component,
  componentConst.ITEM_TRADER: itemtrader.ItemTrader,
- componentConst.FIGHTER_SQUADRON_CLASS: FighterSquadron}
+ componentConst.FIGHTER_SQUADRON_CLASS: FighterSquadron,
+ componentConst.AUTO_WARP_SCRAMBLER_CLASS: AutoWarpScrambler}
 
 def GetComponentClass(componentName):
     return COMPONENTS[componentName]

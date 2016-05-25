@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\client\script\environment\effects\WarpFlash.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\client\script\environment\effects\WarpFlash.py
 from eve.client.script.environment.effects.GenericEffect import GenericEffect, STOP_REASON_DEFAULT, STOP_REASON_BALL_REMOVED
 import destiny
 import geo2
@@ -16,8 +17,9 @@ class WarpFlashIn(GenericEffect):
         self.gfxModel = None
         self.gfxModel_ship = None
         self.observer = None
+        return
 
-    def Prepare(self, addToScene = True):
+    def Prepare(self, addToScene=True):
         shipBall = self.GetEffectShipBall()
         if WarpFlashIn._bigGlows < 5:
             gfx = trinity.Load('res:/fisfx/jump/warp/warp_in_glow.red')
@@ -28,25 +30,27 @@ class WarpFlashIn(GenericEffect):
             self.useBigGlow = False
         if gfx is None:
             return
-        self.gfx = gfx
-        model = getattr(shipBall, 'model', None)
-        if model is None:
+        else:
+            self.gfx = gfx
+            model = getattr(shipBall, 'model', None)
+            if model is None:
+                return
+            s = 0.7778 * model.GetBoundingSphereRadius() ** 0.3534
+            self.gfx.scaling = (s, s, s)
+            self.gfx_ship = trinity.Load('res:/fisfx/jump/warp/warp_glow.red')
+
+            def _glowScale(x):
+                return 9e-08 * x * x + 0.005 * x + 0.6898
+
+            self.gfxModel_ship = trinity.EveRootTransform()
+            self.gfxModel_ship.children.append(self.gfx_ship)
+            r = 0.125 * _glowScale(model.boundingSphereRadius)
+            self.gfxModel_ship.scaling = (r, r, r * 3)
+            self.soundEvent = 'warp_in_frig_play'
+            if model.GetBoundingSphereRadius() > 350:
+                self.soundEvent = 'warp_in_battle_play'
+            self.AddSoundToEffect(0.001)
             return
-        s = 0.7778 * model.GetBoundingSphereRadius() ** 0.3534
-        self.gfx.scaling = (s, s, s)
-        self.gfx_ship = trinity.Load('res:/fisfx/jump/warp/warp_glow.red')
-
-        def _glowScale(x):
-            return 9e-08 * x * x + 0.005 * x + 0.6898
-
-        self.gfxModel_ship = trinity.EveRootTransform()
-        self.gfxModel_ship.children.append(self.gfx_ship)
-        r = 0.125 * _glowScale(model.boundingSphereRadius)
-        self.gfxModel_ship.scaling = (r, r, r * 3)
-        self.soundEvent = 'warp_in_frig_play'
-        if model.GetBoundingSphereRadius() > 350:
-            self.soundEvent = 'warp_in_battle_play'
-        self.AddSoundToEffect(0.001)
 
     def Start(self, duration):
         shipBall = self.GetEffectShipBall()
@@ -55,14 +59,16 @@ class WarpFlashIn(GenericEffect):
                 WarpFlashIn._bigGlows -= 1
             self._Cleanup()
             return
-        uthread.new(self._RunEffect)
+        else:
+            uthread.new(self._RunEffect)
+            return
 
     def _IsAtWarpInAcceleration(self, ball):
         a = ball.GetVectorDoubleDotAt(blue.os.GetSimTime())
         a = (a.x, a.y, a.z)
         return geo2.Vec3Length(a) > 5000.0
 
-    def _WaitForDecceleration(self, limit = 215000.0):
+    def _WaitForDecceleration(self, limit=215000.0):
         shipBall = self.GetEffectShipBall()
         speedL = 0
         timeL = blue.os.GetSimTime()
@@ -87,32 +93,38 @@ class WarpFlashIn(GenericEffect):
         if shipBall is None:
             self._Cleanup()
             return
-        self._WaitForDecceleration()
-        posNow = shipBall.GetVectorAt(blue.os.GetSimTime())
-        posNow = (posNow.x, posNow.y, posNow.z)
-        self.gfxBall = self._SpawnClientBall(posNow)
-        for each in self.gfx.Find('trinity.EveTransform'):
-            each.useLodLevel = False
-
-        self.gfxModel = trinity.EveRootTransform()
-        self.gfxModel.children.append(self.gfx)
-        self.gfxModel.translationCurve = self.gfxBall
-        if self.graphicInfo != 'npc':
-            blue.synchro.SleepSim(random.random() * 200.0)
-        self.AddToScene(self.gfxModel)
-        self.gfx.curveSets[0].Play()
-        self.observer.observer.SendEvent(self.soundEvent)
-        self.gfxModel_ship.translationCurve = self.GetEffectShipBall()
-        self.gfxModel_ship.rotationCurve = self.GetEffectShipBall()
-        self.AddToScene(self.gfxModel_ship)
-        self.gfx_ship.curveSets[0].Play()
-        if self.useBigGlow:
-            blue.synchro.SleepSim(300.0)
-            WarpFlashIn._bigGlows -= 1
-            blue.synchro.SleepSim(2700.0)
         else:
-            blue.synchro.SleepSim(3000.0)
-        self._Cleanup()
+            self._WaitForDecceleration()
+            posNow = shipBall.GetVectorAt(blue.os.GetSimTime())
+            posNow = (posNow.x, posNow.y, posNow.z)
+            self.gfxBall = self._SpawnClientBall(posNow)
+            for each in self.gfx.Find('trinity.EveTransform'):
+                each.useLodLevel = False
+
+            self.gfxModel = trinity.EveRootTransform()
+            self.gfxModel.children.append(self.gfx)
+            self.gfxModel.translationCurve = self.gfxBall
+            if self.graphicInfo != 'npc':
+                blue.synchro.SleepSim(random.random() * 200.0)
+            shipBall = self.GetEffectShipBall()
+            if shipBall is None:
+                self._Cleanup()
+                return
+            self.AddToScene(self.gfxModel)
+            self.gfx.curveSets[0].Play()
+            self.observer.observer.SendEvent(self.soundEvent)
+            self.gfxModel_ship.translationCurve = shipBall
+            self.gfxModel_ship.rotationCurve = shipBall
+            self.AddToScene(self.gfxModel_ship)
+            self.gfx_ship.curveSets[0].Play()
+            if self.useBigGlow:
+                blue.synchro.SleepSim(300.0)
+                WarpFlashIn._bigGlows -= 1
+                blue.synchro.SleepSim(2700.0)
+            else:
+                blue.synchro.SleepSim(3000.0)
+            self._Cleanup()
+            return
 
     def _Cleanup(self):
         if self.gfxBall is not None:
@@ -129,6 +141,7 @@ class WarpFlashIn(GenericEffect):
             self.observer = None
         self.gfx_ship = None
         self.gfx = None
+        return
 
 
 class WarpFlashOut(GenericEffect):
@@ -146,45 +159,48 @@ class WarpFlashOut(GenericEffect):
         self.gfxBall = None
         self.observer = None
         self.isShortWarp = False
+        return
 
-    def Prepare(self, addToScene = True):
+    def Prepare(self, addToScene=True):
         shipBall = self.GetEffectShipBall()
         self.isShortWarp = self._IsShortWarp(shipBall)
         if self.isShortWarp:
             return
-        model = getattr(shipBall, 'model', None)
-        if model is None:
+        else:
+            model = getattr(shipBall, 'model', None)
+            if model is None:
+                return
+            self.startPos = shipBall.GetVectorAt(blue.os.GetSimTime())
+            self.startPos = (self.startPos.x, self.startPos.y, self.startPos.z)
+            self.lastPos = self.startPos
+
+            def _sizeFunction(x):
+                return 0.0039 * x + 2.5
+
+            r = _sizeFunction(model.boundingSphereRadius)
+            self.gfx_trace = trinity.Load('res:/fisfx/jump/warp/warp_out.red')
+            self.gfxModel_trace = trinity.EveRootTransform()
+            self.gfxModel_trace.children.append(self.gfx_trace)
+            self.gfxModel_trace.scaling = (r, r, 8)
+            self.gfx_ship = trinity.Load('res:/fisfx/jump/warp/warp_glow.red')
+            self.gfxModel_ship = trinity.EveRootTransform()
+            self.gfxModel_ship.children.append(self.gfx_ship)
+            r *= 0.5
+            self.gfxModel_ship.scaling = (r, r, 6)
+            self.soundInsert = 'frig'
+            if model.boundingSphereRadius > 350:
+                self.soundInsert = 'battle'
+            self.gfx = self.gfx_trace
+            self.AddSoundToEffect(0.0007)
             return
-        self.startPos = shipBall.GetVectorAt(blue.os.GetSimTime())
-        self.startPos = (self.startPos.x, self.startPos.y, self.startPos.z)
-        self.lastPos = self.startPos
-
-        def _sizeFunction(x):
-            return 0.0039 * x + 2.5
-
-        r = _sizeFunction(model.boundingSphereRadius)
-        self.gfx_trace = trinity.Load('res:/fisfx/jump/warp/warp_out.red')
-        self.gfxModel_trace = trinity.EveRootTransform()
-        self.gfxModel_trace.children.append(self.gfx_trace)
-        self.gfxModel_trace.scaling = (r, r, 8)
-        self.gfx_ship = trinity.Load('res:/fisfx/jump/warp/warp_glow.red')
-        self.gfxModel_ship = trinity.EveRootTransform()
-        self.gfxModel_ship.children.append(self.gfx_ship)
-        r *= 0.5
-        self.gfxModel_ship.scaling = (r, r, 6)
-        self.soundInsert = 'frig'
-        if model.boundingSphereRadius > 350:
-            self.soundInsert = 'battle'
-        self.gfx = self.gfx_trace
-        self.AddSoundToEffect(0.0007)
 
     def _IsShortWarp(self, ball):
         pos0 = (ball.x, ball.y, ball.z)
         pos1 = (ball.gotoX, ball.gotoY, ball.gotoZ)
         d = geo2.Vec3DistanceSq(pos0, pos1)
-        return d < 4000000000000.0
+        return d < 1600000000000000.0
 
-    def _WaitForAcceleration(self, accT = 215000.0):
+    def _WaitForAcceleration(self, accT=215000.0):
         shipBall = self.GetEffectShipBall()
         shipPosL = shipBall.GetVectorAt(blue.os.GetSimTime())
         shipPosL = (shipPosL.x, shipPosL.y, shipPosL.z)
@@ -219,44 +235,47 @@ class WarpFlashOut(GenericEffect):
         playerSpeed = geo2.Vec3Length(velo)
         if playerSpeed == 0.0:
             return False
-        return abs((playerSpeed - speed) / playerSpeed) < 0.1
+        else:
+            return abs((playerSpeed - speed) / playerSpeed) < 0.1
 
     def _RunEffect(self):
         shipBall = self.GetEffectShipBall()
         if self.abort or shipBall is None:
             self._Cleanup()
             return
-        speed = self._WaitForAcceleration(310000.0)
-        if self.abort or self._IsWarpingWithClient(speed):
+        else:
+            speed = self._WaitForAcceleration(310000.0)
+            if self.abort or self._IsWarpingWithClient(speed):
+                self._Cleanup()
+                return
+            blue.synchro.SleepSim(random.random() * 250.0)
+            direction = geo2.Vec3Normalize(self.direction)
+            rotation = geo2.QuaternionRotationArc((0, 0, 1), direction)
+            if self.abort:
+                return
+            posNow = shipBall.GetVectorAt(blue.os.GetSimTime())
+            posNow = (posNow.x, posNow.y, posNow.z)
+            self.gfxBall = self._SpawnClientBall(posNow)
+            if self.gfxModel_trace is not None:
+                soundEvent = 'warp_out_%s1_play' % (self.soundInsert,)
+                self.observer.observer.SendEvent(soundEvent)
+                self.gfxModel_trace.translationCurve = self.gfxBall
+                self.gfxModel_trace.rotation = rotation
+                self.AddToScene(self.gfxModel_trace)
+                for each in self.gfx_trace.curveSets:
+                    each.Play()
+
+                self.gfxModel_ship.translationCurve = shipBall
+                self.gfxModel_ship.rotation = rotation
+                self.AddToScene(self.gfxModel_ship)
+                for each in self.gfx_ship.curveSets:
+                    each.Play()
+
+            if shipBall.model is not None:
+                shipBall.model.display = False
+            blue.synchro.SleepSim(1500.0)
             self._Cleanup()
             return
-        blue.synchro.SleepSim(random.random() * 250.0)
-        direction = geo2.Vec3Normalize(self.direction)
-        rotation = geo2.QuaternionRotationArc((0, 0, 1), direction)
-        if self.abort:
-            return
-        posNow = shipBall.GetVectorAt(blue.os.GetSimTime())
-        posNow = (posNow.x, posNow.y, posNow.z)
-        self.gfxBall = self._SpawnClientBall(posNow)
-        if self.gfxModel_trace is not None:
-            soundEvent = 'warp_out_%s1_play' % (self.soundInsert,)
-            self.observer.observer.SendEvent(soundEvent)
-            self.gfxModel_trace.translationCurve = self.gfxBall
-            self.gfxModel_trace.rotation = rotation
-            self.AddToScene(self.gfxModel_trace)
-            for each in self.gfx_trace.curveSets:
-                each.Play()
-
-            self.gfxModel_ship.translationCurve = shipBall
-            self.gfxModel_ship.rotation = rotation
-            self.AddToScene(self.gfxModel_ship)
-            for each in self.gfx_ship.curveSets:
-                each.Play()
-
-        if shipBall.model is not None:
-            shipBall.model.display = False
-        blue.synchro.SleepSim(1500.0)
-        self._Cleanup()
 
     def _Cleanup(self):
         if self.gfxBall is not None:
@@ -275,13 +294,14 @@ class WarpFlashOut(GenericEffect):
         if self.observer is not None:
             self.observer.observer = None
             self.observer = None
+        return
 
     def Start(self, duration):
         if self.isShortWarp:
             return
         uthread.new(self._RunEffect)
 
-    def Stop(self, reason = STOP_REASON_DEFAULT):
+    def Stop(self, reason=STOP_REASON_DEFAULT):
         if reason == STOP_REASON_BALL_REMOVED:
             self.abort = True
             self._Cleanup()

@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\client\script\ui\inflight\radialMenuShipUI.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\client\script\ui\inflight\radialMenuShipUI.py
 from eve.client.script.ui.control.tooltips import ShortcutHint
 import uicontrols
 import carbonui.const as uiconst
@@ -33,13 +34,15 @@ class RadialMenuShipUI(RadialMenu):
         self.left = self.originalX - self.width / 2
         self.top = self.originalY - self.height / 2
 
-    def LoadMyActions(self, doReset = False, animate = False, *args):
+    def LoadMyActions(self, doReset=False, animate=False, *args):
         optionsInfo = self.GetMyActions()
         if optionsInfo is None:
             return
-        self.LoadButtons(self.firstLayerCont, optionsInfo, doReset=doReset)
-        if animate:
-            self.AnimateMenuFromCenter(duration=0.1)
+        else:
+            self.LoadButtons(self.firstLayerCont, optionsInfo, doReset=doReset)
+            if animate:
+                self.AnimateMenuFromCenter(duration=0.1)
+            return
 
     def GetMyActions(self, *args):
         pass
@@ -49,13 +52,15 @@ class RadialMenuShipUI(RadialMenu):
             if getattr(self, 'labelShadow', None):
                 self.labelShadow.display = False
             return
-        shorcutPadding = self.GetPaddingBecauseOfShortcut()
-        centerWidth = self.optionLabel.textwidth + shorcutPadding
-        self.optionLabel.left = -shorcutPadding / 2
-        height = self.optionLabel.textheight + 4
-        top = -18
-        self.labelShadow.display = True
-        self.labelShadow.SetCenterSizeAndTop(centerWidth, height, top=top)
+        else:
+            shorcutPadding = self.GetPaddingBecauseOfShortcut()
+            centerWidth = self.optionLabel.textwidth + shorcutPadding
+            self.optionLabel.left = -shorcutPadding / 2
+            height = self.optionLabel.textheight + 4
+            top = -18
+            self.labelShadow.display = True
+            self.labelShadow.SetCenterSizeAndTop(centerWidth, height, top=top)
+            return
 
     def GetPaddingBecauseOfShortcut(self):
         if not self.shortcutHint.textLabel.text:
@@ -70,7 +75,7 @@ class RadialMenuShipUI(RadialMenu):
         self.optionLabel.display = False
         self.AdjustTextShadow()
 
-    def GetIconTexturePath(self, activeOption, menuOptions = None):
+    def GetIconTexturePath(self, activeOption, menuOptions=None):
         return menuOptions.iconPath
 
     def OnMouseUp(self, button, *args):
@@ -114,14 +119,15 @@ class RadialMenuShipUI(RadialMenu):
     def GetShortcutString(self, btnCont):
         if not btnCont or not btnCont.actionButton:
             return
-        commandName = getattr(btnCont.actionButton, 'commandName', None)
-        if not commandName:
-            return
-        command = uicore.cmd.commandMap.GetCommandByName(commandName)
-        if not command:
-            return
-        shortcutStr = command.GetShortcutAsString()
-        return shortcutStr
+        else:
+            commandName = getattr(btnCont.actionButton, 'commandName', None)
+            if not commandName:
+                return
+            command = uicore.cmd.commandMap.GetCommandByName(commandName)
+            if not command:
+                return
+            shortcutStr = command.GetShortcutAsString()
+            return shortcutStr
 
     def ClearShortcutHint(self):
         self.shortcutHint.textLabel.text = ''

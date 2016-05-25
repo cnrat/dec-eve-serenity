@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\packages\functoolsext\__init__.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\packages\functoolsext\__init__.py
 from collections import namedtuple
 from functools import *
 import inspect
@@ -11,7 +12,7 @@ _CacheInfo = namedtuple('CacheInfo', ['hits',
 class _HashedSeq(list):
     __slots__ = 'hashvalue'
 
-    def __init__(self, tup, hash = hash):
+    def __init__(self, tup, hash=hash):
         self[:] = tup
         self.hashvalue = hash(tup)
 
@@ -19,10 +20,10 @@ class _HashedSeq(list):
         return self.hashvalue
 
 
-def _make_key(args, kwds, typed, kwd_mark = (object(),), fasttypes = set([int,
+def _make_key(args, kwds, typed, kwd_mark=(object(),), fasttypes=set([int,
  str,
  frozenset,
- type(None)]), sorted = sorted, tuple = tuple, type = type, len = len):
+ type(None)]), sorted=sorted, tuple=tuple, type=type, len=len):
     key = args
     if kwds:
         sorted_items = sorted(kwds.items())
@@ -39,7 +40,7 @@ def _make_key(args, kwds, typed, kwd_mark = (object(),), fasttypes = set([int,
     return _HashedSeq(key)
 
 
-def lru_cache(maxsize = 128, typed = False):
+def lru_cache(maxsize=128, typed=False):
 
     def decorating_function(user_function):
         cache = dict()
@@ -83,7 +84,7 @@ def lru_cache(maxsize = 128, typed = False):
                 with lock:
                     link = cache_get(key)
                     if link is not None:
-                        root, = nonlocal_root
+                        root = nonlocal_root
                         link_prev, link_next, key, result = link
                         link_prev[NEXT] = link_next
                         link_next[PREV] = link_prev
@@ -95,7 +96,7 @@ def lru_cache(maxsize = 128, typed = False):
                         return result
                 result = user_function(*args, **kwds)
                 with lock:
-                    root, = nonlocal_root
+                    root = nonlocal_root
                     if key in cache:
                         pass
                     elif _len(cache) >= maxsize:
@@ -131,6 +132,7 @@ def lru_cache(maxsize = 128, typed = False):
                  None,
                  None]
                 stats[:] = [0, 0]
+            return
 
         wrapper.__wrapped__ = user_function
         wrapper.cache_info = cache_info

@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\client\script\ui\view\aurumstore\vgsDetailContainer.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\client\script\ui\view\aurumstore\vgsDetailContainer.py
 import math
 import carbonui.const as uiconst
 import inventorycommon.const as invconst
@@ -47,7 +48,6 @@ def GetSortedTokens(productQuantities):
 
 
 @Component(ButtonEffect(bgElementFunc=lambda self, _: self.highlight, opacityHover=0.1, opacityMouseDown=0.4, audioOnEntry=SOUND_ENTRY_ENTER, audioOnClick=SOUND_ENTRY_CLICK))
-
 class VgsDetailProduct(Container):
     default_height = SINGLE_PRODUCT_ENTRY_HEIGHT
     default_align = uiconst.TOTOP
@@ -103,6 +103,7 @@ class PurchaseDetailsPanel(BasePurchasePanel):
         self.previewCallback = attributes.previewCallback
         self.CreateProductLayout(self.offer)
         self.CreateBuyLayout(self.offer, self.aurumBalance)
+        return
 
     def CreateProductLayout(self, offer):
         productContainer = Container(name='productContainer', parent=self, align=uiconst.TOTOP, height=PRODUCTSCROLL_PANEL_HEIGHT)
@@ -116,7 +117,7 @@ class PurchaseDetailsPanel(BasePurchasePanel):
         self.priceLabel = AurLabelLarge(parent=self.buyContainer, align=uiconst.TOLEFT, amount=offer.price, baseAmount=offer.basePrice, padding=(10, 7, 0, 6))
         self.button = DetailButton(parent=self.buyContainer, align=uiconst.TORIGHT, left=TEXT_PADDING, padTop=8, padBottom=8)
         self.UpdateButton(offer.price)
-        self.quantityEdit = SinglelineEdit(parent=self.buyContainer, integermode=True, width=30, fontsize=VGS_FONTSIZE_MEDIUM, align=uiconst.TORIGHT, left=TEXT_PADDING, padTop=6, padBottom=10, bgColor=TAG_COLOR, OnChange=self.OnQuantityChange, maxLength=2, hint=localization.GetByLabel('UI/Common/Quantity'))
+        self.quantityEdit = SinglelineEdit(parent=self.buyContainer, integermode=True, width=40, fontsize=VGS_FONTSIZE_MEDIUM, align=uiconst.TORIGHT, left=TEXT_PADDING, padTop=6, padBottom=10, bgColor=TAG_COLOR, OnChange=self.OnQuantityChange, maxLength=2, hint=localization.GetByLabel('UI/Common/Quantity'))
         self.quantityEdit.IntMode(minint=QUANTITY_MIN, maxint=QUANTITY_MAX)
         self.quantityEdit.sr.background.Hide()
 
@@ -243,6 +244,7 @@ class VgsDetailContainer(Container):
         self.fakeRedeemingPanel.HidePanel(animate=False)
         self.vgsUiController.view.storeContainer.redeemingPanel.HidePanel()
         self.vgsUiController.view.storeContainer.redeemingPanel.SetListenToRedeemQueueUpdatedEvents(False)
+        return
 
     def OnPreviewType(self, typeID):
         self.preview.typeID = typeID

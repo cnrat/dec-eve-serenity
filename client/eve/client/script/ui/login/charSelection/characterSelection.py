@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\client\script\ui\login\charSelection\characterSelection.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\client\script\ui\login\charSelection\characterSelection.py
 import uiprimitives
 import uix
 import blue
@@ -82,6 +83,7 @@ class CharacterSelection(uicls.LayerCore):
         if screen is not None and not screen.destroyed:
             screen.Close()
         sm.GetService('dynamicMusic').UpdateDynamicMusic()
+        return
 
     def OnJumpQueueMessage(self, msgtext, ready):
         if ready:
@@ -120,7 +122,7 @@ class CharacterSelection(uicls.LayerCore):
             self.ready = True
             self.ConfirmWithCharID(int(charId))
 
-    def SetData(self, force = False):
+    def SetData(self, force=False):
         characterSelectionData = self.GetCharacterSelectionData(force=force)
         self.chars = characterSelectionData.GetChars()
         self.subscriptionEndTimes = characterSelectionData.GetSubscriptionEndTime()
@@ -130,6 +132,7 @@ class CharacterSelection(uicls.LayerCore):
         self.adImageFetched = False
         self.showAd = True
         self.countDownCont = None
+        return
 
     def OnRefreshScreen(self):
         uicore.registry.SetFocus(self)
@@ -152,6 +155,7 @@ class CharacterSelection(uicls.LayerCore):
         self.SetTimer()
         self.loadingWheel = uicls.LoadingWheel(parent=self.selectionScreen, align=uiconst.CENTER, state=uiconst.UI_NORMAL, idx=0)
         self.loadingWheel.display = False
+        return
 
     def AnimateScreenIn(self):
         uicore.animations.MorphScalar(self.bg, 'opacity', startVal=0.0, endVal=1.0, duration=1.0)
@@ -194,7 +198,7 @@ class CharacterSelection(uicls.LayerCore):
         self.selectionScreen.state = uiconst.UI_PICKCHILDREN
         self.AnimateScreenIn()
 
-    def GetCharacterSelectionData(self, force = False):
+    def GetCharacterSelectionData(self, force=False):
         return sm.GetService('cc').GetCharacterSelectionData(force=force)
 
     def InitUI(self):
@@ -227,19 +231,20 @@ class CharacterSelection(uicls.LayerCore):
             self.bgOverlay.Close()
         if getattr(self, 'logoCont', None):
             self.logoCont.Close()
+        return
 
     def OnTokensRedeemed(self, redeemedItems, charID):
         self.redeemPanel.RedeemItems(redeemedItems)
         if not self.redeemPanel.HasRedeemItems():
             self.redeemPanel.HidePanel()
 
-    def ExitRedeemMode(self, animate = True):
+    def ExitRedeemMode(self, animate=True):
         self.redeemPanel.CollapsePanel(animate=animate, duration=csUtil.COLLAPSE_TIME)
 
-    def EnterRedeemMode(self, animate = True):
+    def EnterRedeemMode(self, animate=True):
         self.redeemPanel.ExpandPanel(animate=animate, duration=csUtil.COLLAPSE_TIME)
 
-    def CollapseOrExpandSlots(self, animate = True, loadingSlots = False):
+    def CollapseOrExpandSlots(self, animate=True, loadingSlots=False):
         shouldShipBeVisible = self.ShouldShipBeVisible()
         self.ChangeSlotCollapsedState(animate=animate, loadingSlots=loadingSlots)
         for eachSlot in self.slotsByIdx.itervalues():
@@ -262,7 +267,7 @@ class CharacterSelection(uicls.LayerCore):
             shipVisible = True
         return shipVisible
 
-    def ChangeSlotCollapsedState(self, animate, loadingSlots = False):
+    def ChangeSlotCollapsedState(self, animate, loadingSlots=False):
         shouldShipBeVisible = self.ShouldShipBeVisible()
         maxCurrentCharacterSlotHeight = self.GetMaxCharacterSlotHeight(shipVisible=shouldShipBeVisible)
         charactersContTop = 0
@@ -306,7 +311,7 @@ class CharacterSelection(uicls.LayerCore):
         availableHeight = int((uicore.desktop.height - maxCurrentCharacterSlotHeight) / 2.0) - redeemPanelButtonHeight
         self.featureContainer.top = int(availableHeight / 2.0) + redeemPanelButtonHeight - FEATURE_BAR_HEIGHT / 2
 
-    def GetMaxCharacterSlotHeight(self, shipVisible = True):
+    def GetMaxCharacterSlotHeight(self, shipVisible=True):
         if self.characterSlotList:
             return max((slot.GetSlotHeight(shipVisible=shipVisible) for slot in self.characterSlotList))
         else:
@@ -451,14 +456,16 @@ class CharacterSelection(uicls.LayerCore):
         deletePrepTime = characterData.GetDeletePrepareTime()
         if deletePrepTime is not None:
             return
-        slotSelected.SetMouseOverState()
-        slotSelected.PlaySelectedAnimation()
-        self.ConfirmWithCharID(slotSelected.charID)
-        if sm.GetService('jumpQueue').GetPreparedQueueCharID():
-            boundCharacterService = sm.RemoteSvc('charMgr')
-            gatekeeper.character.Initialize(lambda args: boundCharacterService.GetCohortsForCharacter)
-            experimentSvc = sm.StartService('experimentClientSvc')
-            experimentSvc.Initialize(languageID=session.languageID)
+        else:
+            slotSelected.SetMouseOverState()
+            slotSelected.PlaySelectedAnimation()
+            self.ConfirmWithCharID(slotSelected.charID)
+            if sm.GetService('jumpQueue').GetPreparedQueueCharID():
+                boundCharacterService = sm.RemoteSvc('charMgr')
+                gatekeeper.character.Initialize(lambda args: boundCharacterService.GetCohortsForCharacter)
+                experimentSvc = sm.StartService('experimentClientSvc')
+                experimentSvc.Initialize(languageID=session.languageID)
+            return
 
     def CreateNewCharacter(self):
         if not self.ready:
@@ -535,7 +542,7 @@ class CharacterSelection(uicls.LayerCore):
 
         self.EnableScreen()
 
-    def __Confirm(self, charID, secondChoiceID = None):
+    def __Confirm(self, charID, secondChoiceID=None):
         charData = self.GetCharacterSelectionData().GetCharInfo(charID)
         dollState = charData.GetPaperDollState()
         sm.GetService('cc').StoreCurrentDollState(dollState)
@@ -588,7 +595,9 @@ class CharacterSelection(uicls.LayerCore):
             self.ready = True
             raise
 
-    def SelectAlternativeSolarSystem(self, charID, solarSystemID, secondChoiceID = None):
+        return
+
+    def SelectAlternativeSolarSystem(self, charID, solarSystemID, secondChoiceID=None):
         neighbors = self.mapSvc.GetNeighbors(solarSystemID)
         if secondChoiceID is None:
             selectText = localization.GetByLabel('UI/CharacterSelection/SelectAlternativeSystem')
@@ -630,6 +639,7 @@ class CharacterSelection(uicls.LayerCore):
         else:
             sm.StartService('jumpQueue').PrepareQueueForCharID(None)
             self.ready = True
+        return
 
     def Terminate(self, charID, *args):
         if not self.ready:
@@ -700,6 +710,7 @@ class CharacterSelection(uicls.LayerCore):
             slot.SetDeleteUI()
         else:
             self.OnRefreshScreen()
+        return
 
     def DisplayAd(self):
         if self.currentAdInfo == -1:
@@ -707,19 +718,21 @@ class CharacterSelection(uicls.LayerCore):
         if not self.showAd:
             self.adSpriteContainer.state = uiconst.UI_HIDDEN
             return
-        if self.currentAdInfo is None:
-            uthread.new(self.FetchAdInfo_thread)
-        elif not self.adImageFetched:
-            uthread.new(self.LoadAd, inThread=True)
         else:
-            self.LoadAd()
+            if self.currentAdInfo is None:
+                uthread.new(self.FetchAdInfo_thread)
+            elif not self.adImageFetched:
+                uthread.new(self.LoadAd, inThread=True)
+            else:
+                self.LoadAd()
+            return
 
     def FetchAdInfo_thread(self):
         adInfo = self.GetAdToDisplay()
         self.currentAdInfo = adInfo
         self.LoadAd(inThread=True)
 
-    def LoadAd(self, inThread = False):
+    def LoadAd(self, inThread=False):
         if self.currentAdInfo == -1:
             self.showAd = False
             self.adSpriteContainer.state = uiconst.UI_HIDDEN
@@ -739,8 +752,6 @@ class CharacterSelection(uicls.LayerCore):
             didShowAd = settings.public.ui.Get('CSS_AdAlreadyDisplayed_%s' % ad.adID, False)
             if not didShowAd:
                 return ad
-
-        return -1
 
     def FindAvailableAds(self):
         adUrl = csUtil.GetCharacterSelectionAdPageUrl(session.languageID)
@@ -777,7 +788,7 @@ class CharacterSelection(uicls.LayerCore):
 
         return (targetedAds, nonTargetedAds)
 
-    def OpenAd(self, adInfo, inThread = False):
+    def OpenAd(self, adInfo, inThread=False):
         tex, w, h = sm.GetService('photo').GetTextureFromURL(adInfo.imageUrl)
         adImageFetched = True
         if tex.resPath == NONE_PATH:
@@ -803,14 +814,14 @@ class CharacterSelection(uicls.LayerCore):
     def ClickURL(self, url, *args):
         blue.os.ShellExecute(url)
 
-    def ShowLoading(self, forceOn = 0):
+    def ShowLoading(self, forceOn=0):
         try:
             self.loadingWheel.forcedOn = forceOn
             self.loadingWheel.Show()
         except:
             log.LogError('Failed to show the loading wheel')
 
-    def HideLoading(self, forceOff = 0):
+    def HideLoading(self, forceOff=0):
         try:
             if not self.loadingWheel.forcedOn or forceOff:
                 self.loadingWheel.Hide()
@@ -820,7 +831,6 @@ class CharacterSelection(uicls.LayerCore):
 
 
 @Component(ButtonEffect(opacityIdle=0.0, opacityHover=0.4, opacityMouseDown=0.5, bgElementFunc=lambda parent, _: parent.highlight))
-
 class OpenStoreButton(Container):
     default_name = 'OpenStoreButton'
     default_width = 270

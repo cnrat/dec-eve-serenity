@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\carbon\common\script\cef\componentViews\decisionTreeComponentView.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\carbon\common\script\cef\componentViews\decisionTreeComponentView.py
 from carbon.common.script.cef.baseComponentView import BaseComponentView
 import ai
 
@@ -17,6 +18,7 @@ class DecisionTreeComponentView(BaseComponentView):
         cls._AddInput(cls.DECISION_TREE_CLIENT_ROOT_ID, None, cls.RECIPE, const.cef.COMPONENTDATA_ARBITRARY_DROPDOWN_TYPE, cls._GetDecisionTreeList)
         cls._AddInput(cls.DECISION_TREE_SERVER_ROOT_ID, None, cls.RECIPE, const.cef.COMPONENTDATA_ARBITRARY_DROPDOWN_TYPE, cls._GetDecisionTreeList)
         cls._AddInput(cls.DECISION_TREE_HATE_ROOT_ID, None, cls.RECIPE, const.cef.COMPONENTDATA_ARBITRARY_DROPDOWN_TYPE, cls._GetDecisionTreeList)
+        return
 
     @staticmethod
     def _GetDecisionTreeList():

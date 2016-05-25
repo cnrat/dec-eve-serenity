@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\client\script\ui\hacking\hackingStatContainer.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\client\script\ui\hacking\hackingStatContainer.py
 import uicontrols
 import carbonui.const as uiconst
 import uiprimitives
@@ -23,6 +24,7 @@ class StatContainer(uiprimitives.Container):
         uiprimitives.Sprite(name='icon', parent=self.mainCont, align=uiconst.TOPLEFT, state=uiconst.UI_DISABLED, texturePath=self.GetTexturePath(), pos=(0, 0, 10, 10), opacity=0.7)
         self.label = uicontrols.Label(name='label', parent=self.mainCont, align=uiconst.TOPLEFT, state=uiconst.UI_DISABLED, color=util.Color.WHITE, fontsize=10, pos=(11, -1, 0, 0))
         self.diffLabel = None
+        return
 
     def SetValue(self, value):
         if value == self.value:
@@ -68,6 +70,7 @@ class StatContainer(uiprimitives.Container):
         if self.diffQueue:
             diff = self.diffQueue.pop(0)
             self._AddDiffLabel(diff)
+        return
 
     def GetHint(self):
         if self.hint:

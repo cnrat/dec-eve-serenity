@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\client\script\ui\shared\messagebox.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\client\script\ui\shared\messagebox.py
 import uiprimitives
 import uicontrols
 import uiutil
@@ -21,8 +22,9 @@ class MessageBox(uicontrols.Window):
         self.scope = 'all'
         self.edit = None
         self.sr.main.clipChildren = True
+        return
 
-    def Execute(self, text, title, buttons, icon, suppText, customicon = None, height = None, default = None, modal = True, okLabel = None, cancelLabel = None):
+    def Execute(self, text, title, buttons, icon, suppText, customicon=None, height=None, default=None, modal=True, okLabel=None, cancelLabel=None):
         self._Execute(title, buttons, icon, suppText, customicon, height, default, modal, okLabel, cancelLabel)
         if text:
             text = text.replace('\r', '').replace('\n', '')
@@ -30,7 +32,7 @@ class MessageBox(uicontrols.Window):
             self.edit = edit
             uthread.new(self.SetText, text)
 
-    def ExecuteCustomContent(self, customContentCls, title, buttons, icon, suppText, customicon = None, height = None, default = None, modal = True, okLabel = None, cancelLabel = None, messageData = None):
+    def ExecuteCustomContent(self, customContentCls, title, buttons, icon, suppText, customicon=None, height=None, default=None, modal=True, okLabel=None, cancelLabel=None, messageData=None):
         self._Execute(title, buttons, icon, suppText, customicon, height, default, modal, okLabel, cancelLabel)
         customContent = customContentCls(parent=self.sr.main, padding=const.defaultPadding, messageData=messageData, align=uiconst.TOTOP)
         self.height = customContent.GetContentHeight() + 110
@@ -52,11 +54,13 @@ class MessageBox(uicontrols.Window):
             self.ShowSupp(suppText)
         if modal:
             uicore.registry.SetFocus(self)
+        return
 
     def ShowSupp(self, text):
         bottom = uiprimitives.Container(name='suppressContainer', parent=self.sr.main, align=uiconst.TOBOTTOM, height=20, idx=0)
         self.sr.suppCheckbox = uicontrols.Checkbox(text=text, parent=bottom, configName='suppress', retval=0, checked=0, groupname=None, callback=self.ChangeSupp, align=uiconst.TOPLEFT, pos=(6, 0, 320, 0))
         bottom.height = max(20, self.sr.suppCheckbox.height)
+        return
 
     def ChangeSupp(self, sender):
         self.suppress = sender.checked

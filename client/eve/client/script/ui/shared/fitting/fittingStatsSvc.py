@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\client\script\ui\shared\fitting\fittingStatsSvc.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\client\script\ui\shared\fitting\fittingStatsSvc.py
 import service
 
 class FittingStatsSvc(service.Service):
@@ -6,7 +7,7 @@ class FittingStatsSvc(service.Service):
     __displayname__ = 'Fitting Stats Service'
     __notifyevents__ = []
 
-    def Run(self, ms = None):
+    def Run(self, ms=None):
         pass
 
     def GetMultiplyCpy(self):
@@ -67,16 +68,16 @@ class FittingStatsMagic(object):
     def GetExtraValue(self, attributeID, startValue):
         return startValue + self.GetAttributeValue(attributeID, 0.0)
 
-    def GetExtraCpuLoad(self, startValue = 0.0):
+    def GetExtraCpuLoad(self, startValue=0.0):
         cpuLoad = self.GetExtraValue(const.attributeCpuLoad, startValue)
         cpuLoad = self.GetExtraValue(const.attributeCpu, cpuLoad)
         return cpuLoad
 
-    def GetExtraCpu(self, startValue = 0.0):
+    def GetExtraCpu(self, startValue=0.0):
         cpu = self.GetExtraValue(const.attributeCpuOutput, startValue)
         return cpu
 
-    def GetExtraPowerLoad(self, startValue = 0.0):
+    def GetExtraPowerLoad(self, startValue=0.0):
         powerLoad = self.GetExtraValue(const.attributePowerLoad, startValue)
         powerLoad = self.GetExtraValue(const.attributePower, powerLoad)
         return powerLoad

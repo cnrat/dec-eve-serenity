@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\carbon\common\lib\cherrypy\lib\static.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\carbon\common\lib\cherrypy\lib\static.py
 import logging
 import mimetypes
 mimetypes.init()
@@ -14,7 +15,7 @@ import cherrypy
 from cherrypy._cpcompat import ntob, unquote
 from cherrypy.lib import cptools, httputil, file_generator_limited
 
-def serve_file(path, content_type = None, disposition = None, name = None, debug = False):
+def serve_file(path, content_type=None, disposition=None, name=None, debug=False):
     response = cherrypy.serving.response
     if not os.path.isabs(path):
         msg = "'%s' is not an absolute path." % path
@@ -57,7 +58,7 @@ def serve_file(path, content_type = None, disposition = None, name = None, debug
     return _serve_fileobj(fileobj, content_type, content_length, debug=debug)
 
 
-def serve_fileobj(fileobj, content_type = None, disposition = None, name = None, debug = False):
+def serve_fileobj(fileobj, content_type=None, disposition=None, name=None, debug=False):
     response = cherrypy.serving.response
     try:
         st = os.fstat(fileobj.fileno())
@@ -86,7 +87,7 @@ def serve_fileobj(fileobj, content_type = None, disposition = None, name = None,
     return _serve_fileobj(fileobj, content_type, content_length, debug=debug)
 
 
-def _serve_fileobj(fileobj, content_type, content_length, debug = False):
+def _serve_fileobj(fileobj, content_type, content_length, debug=False):
     response = cherrypy.serving.response
     request = cherrypy.serving.request
     if request.protocol >= (1, 1):
@@ -146,11 +147,11 @@ def _serve_fileobj(fileobj, content_type, content_length, debug = False):
     return response.body
 
 
-def serve_download(path, name = None):
+def serve_download(path, name=None):
     return serve_file(path, 'application/x-download', 'attachment', name)
 
 
-def _attempt(filename, content_types, debug = False):
+def _attempt(filename, content_types, debug=False):
     if debug:
         cherrypy.log('Attempting %r (content_types %r)' % (filename, content_types), 'TOOLS.STATICDIR')
     try:
@@ -165,8 +166,10 @@ def _attempt(filename, content_types, debug = False):
             cherrypy.log('NotFound', 'TOOLS.STATICFILE')
         return False
 
+    return
 
-def staticdir(section, dir, root = '', match = '', content_types = None, index = '', debug = False):
+
+def staticdir(section, dir, root='', match='', content_types=None, index='', debug=False):
     request = cherrypy.serving.request
     if request.method not in ('GET', 'HEAD'):
         if debug:
@@ -203,7 +206,7 @@ def staticdir(section, dir, root = '', match = '', content_types = None, index =
     return handled
 
 
-def staticfile(filename, root = None, match = '', content_types = None, debug = False):
+def staticfile(filename, root=None, match='', content_types=None, debug=False):
     request = cherrypy.serving.request
     if request.method not in ('GET', 'HEAD'):
         if debug:

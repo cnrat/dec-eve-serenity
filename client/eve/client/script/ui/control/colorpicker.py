@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\client\script\ui\control\colorpicker.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\client\script\ui\control\colorpicker.py
 from carbonui.control.menu import ClearMenuLayer
 import trinity
 import carbonui.const as uiconst
@@ -12,7 +13,7 @@ class ColorPicker(uiprimitives.Container):
     __guid__ = 'uicontrols.ColorPicker'
     OnColorChange = None
 
-    def Startup(self, hsv = None, *args):
+    def Startup(self, hsv=None, *args):
         leftPush = 0
         self.SetHSV(hsv)
         hsv = self.orgcolor.GetHSV()
@@ -75,6 +76,7 @@ class ColorPicker(uiprimitives.Container):
         self.orgcolor.a = 1.0
         if hsv is not None:
             self.orgcolor.SetHSV(*hsv)
+        return
 
     def ClipHSV(self, hsv):
         h, s, v = hsv
@@ -121,7 +123,7 @@ class ColorSwatch(uiprimitives.Container):
         r, g, b = [ int(n, 16) for n in (r, g, b) ]
         return (r / 255.0, g / 255.0, b / 255.0)
 
-    def Startup(self, frameColor = (0.5, 0.5, 0.5, 1.0), padding = 0, *args):
+    def Startup(self, frameColor=(0.5, 0.5, 0.5, 1.0), padding=0, *args):
         l, t, w, h = self.GetAbsolute()
         swatchesperrow = abs(w / self.swatchsize)
         x, y = (0, 0)
@@ -148,6 +150,7 @@ class ColorSwatch(uiprimitives.Container):
         if fill and self.sr.dad is not None:
             if hasattr(self.sr.dad, 'SetHSV'):
                 self.sr.dad.SetHSV(fill.color.GetHSV())
+        return
 
 
 class ColorPanel(uiprimitives.Container):
@@ -162,6 +165,7 @@ class ColorPanel(uiprimitives.Container):
         illsprite = uiprimitives.Sprite(parent=self, align=uiconst.TOALL, state=uiconst.UI_DISABLED, texturePath='res:/UI/Texture/colorgradient.dds')
         self.sr.colorfill = uiprimitives.Fill(parent=self, color=(0.0, 1.0, 0.0, 1.0))
         self.value = [0.0, 0.0]
+        return
 
     def SetHSV(self, hsv):
         h, s, v = hsv
@@ -187,6 +191,7 @@ class ColorPanel(uiprimitives.Container):
             self.sr.mark = uiprimitives.Sprite(parent=self, idx=0, pos=(0, 0, 16, 16), name='pointer', state=uiconst.UI_PICKCHILDREN, texturePath='res:/UI/Texture/Shared/circleThin16.png', align=uiconst.RELATIVE)
         self.sr.mark.left = int(w * x) - self.sr.mark.width / 2
         self.sr.mark.top = int(h * y) - self.sr.mark.height / 2
+        return
 
     def UpdateValue(self):
         l, t, w, h = self.GetAbsolute()
@@ -209,6 +214,7 @@ class ColorPanel(uiprimitives.Container):
         self.PositionMark()
         if getattr(self, 'StartPanelMove', None):
             self.StartPanelMove()
+        return
 
     def OnMouseUp(self, *args):
         self.dragging = 0
@@ -216,6 +222,7 @@ class ColorPanel(uiprimitives.Container):
         if getattr(self, 'EndPanelMove', None):
             self.EndPanelMove()
         sm.GetService('ui').ForceCursorUpdate()
+        return
 
     def OnChange(self, me, value):
         pass
@@ -232,6 +239,7 @@ class ColorSlider(uiprimitives.Container):
         sub = uiprimitives.Container(name='colorSpectrum', height=self.height, width=24, align=uiconst.CENTERLEFT, parent=self)
         uicontrols.Frame(parent=sub)
         illsprite = uiprimitives.Sprite(parent=sub, align=uiconst.TOALL, state=uiconst.UI_DISABLED, texturePath='res:/UI/Texture/colorspectrum.dds')
+        return
 
     def SetHSV(self, hsv):
         h, s, v = hsv
@@ -255,6 +263,7 @@ class ColorSlider(uiprimitives.Container):
         if self.sr.mark:
             l, t, w, h = self.GetAbsolute()
             self.sr.mark.top = int(h * self.value) - self.sr.mark.height / 2
+        return
 
     def UpdateSliderValue(self):
         l, t, w, h = self.GetAbsolute()
@@ -321,9 +330,8 @@ class ColorPreview(uiprimitives.Container):
                 log.LogInfo('ColorPreview.OnGlobalClick Ignoring all clicks from colorpar')
                 return 1
             self.Cleanup()
-        return 0
 
-    def Cleanup(self, setfocus = 1):
+    def Cleanup(self, setfocus=1):
         if self.sr.cookie:
             uicore.event.UnregisterForTriuiEvents(self.sr.cookie)
             self.sr.cookie = None
@@ -332,6 +340,7 @@ class ColorPreview(uiprimitives.Container):
             self.expanded = 0
         if setfocus:
             uicore.registry.SetFocus(self)
+        return
 
     def OnGlobalMouseDown(self, downOn):
         if not uiutil.IsUnder(downOn, self.colorpar):
@@ -344,6 +353,7 @@ class ColorPreview(uiprimitives.Container):
                 self.sr.dad.SetHSV(self.sr.layerid, self.sr.colorfill.color.GetHSV())
             else:
                 self.sr.dad.SetHSV(self.sr.colorfill.color.GetHSV())
+        return
 
     def FromInt(self, val):
         c = trinity.TriColor()

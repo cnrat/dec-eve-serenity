@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\packages\localizationBSD\exporters\localizationExportManager.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\packages\localizationBSD\exporters\localizationExportManager.py
 from .. import const as localizationBSDConst
 from . import LocalizationExporterError
 from localization.logger import LogError
@@ -38,7 +39,7 @@ class LocalizationExportManager(object):
         return cls._CallMethodOnProject(projectID, exporterMethodName='GetResourceNamesWithProjectSettings')
 
     @classmethod
-    def ExportAllProjects(cls, notificationFunction = None, **kwargs):
+    def ExportAllProjects(cls, notificationFunction=None, **kwargs):
         return cls._CallMethodOnAllProjects(internalMethod=cls._ExportOneProject, notificationFunction=notificationFunction, additionalSettings=kwargs)
 
     @classmethod
@@ -62,8 +63,9 @@ class LocalizationExportManager(object):
         if len(projectList) != 1:
             LogError("ExportManager's ExportProject method tried to retrieve project of projectID (%s) and instead got result set of (%s) elements." % (projectID, len(projectList)))
             return None
-        projectDict = projectList[0]
-        return projectDict
+        else:
+            projectDict = projectList[0]
+            return projectDict
 
     @classmethod
     def _ExportOneProject(cls, projectDict, additionalSettings):
@@ -109,7 +111,7 @@ class LocalizationExportManager(object):
         return exportLocation
 
     @classmethod
-    def _CallMethodOnAllProjects(cls, internalMethod = None, exporterMethodName = None, notificationFunction = None, additionalSettings = None):
+    def _CallMethodOnAllProjects(cls, internalMethod=None, exporterMethodName=None, notificationFunction=None, additionalSettings=None):
         returnDict = {}
         projectsEntries = cls._GetAllProjectsData()
         for index, projectDict in projectsEntries.iteritems():
@@ -136,7 +138,7 @@ class LocalizationExportManager(object):
         return returnDict
 
     @classmethod
-    def _CallMethodOnProject(cls, projectID, internalMethod = None, exporterMethodName = None, additionalSettings = None):
+    def _CallMethodOnProject(cls, projectID, internalMethod=None, exporterMethodName=None, additionalSettings=None):
         projectDict = cls._GetProjectData(projectID)
         if projectDict:
             returnValue = None
@@ -146,4 +148,5 @@ class LocalizationExportManager(object):
                 returnValue = cls._ExecuteExporterMethod(projectDict, exporterMethodName, additionalSettings)
             return returnValue
         else:
+            return
             return

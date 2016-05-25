@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\carbon\client\script\graphics\lightClient.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\carbon\client\script\graphics\lightClient.py
 import service
 import collections
 import geo2
@@ -34,8 +35,10 @@ class LightClient(service.Service):
     def PrepareComponent(self, sceneID, entityID, component):
         if component.renderObject is None:
             return
-        scene = self.graphicClient.GetScene(sceneID)
-        scene.AddLightSource(component.renderObject)
+        else:
+            scene = self.graphicClient.GetScene(sceneID)
+            scene.AddLightSource(component.renderObject)
+            return
 
     def UnRegisterComponent(self, entity, component):
         scene = self.graphicClient.GetScene(entity.scene.sceneID)

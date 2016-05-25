@@ -1,4 +1,6 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\client\script\ui\shared\neocom\neocom\neocomSvc.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\client\script\ui\shared\neocom\neocom\neocomSvc.py
+import collections
 import carbonui.const as uiconst
 import blue
 from eve.client.script.ui.control.browser.eveBrowserWindow import BrowserWindow
@@ -11,7 +13,6 @@ from eve.client.script.ui.shared.assetsWindow import AssetsWindow
 from eve.client.script.ui.shared.bountyWindow import BountyWindow
 from eve.client.script.ui.shared.comtool.lscchannel import Channel
 from eve.client.script.ui.shared.eveCalendar import CalendarWnd
-from eve.client.script.ui.shared.fittingGhost.fittingWndGhost import FittingWindowGhost
 from eve.client.script.ui.shared.fleet.fleetwindow import FleetWindow
 from eve.client.script.ui.shared.industry.industryWnd import Industry
 from eve.client.script.ui.shared.inventory.invWindow import InventoryPrimary, ActiveShipCargo, StationItems, StationShips, StationCorpHangars, StationCorpDeliveries
@@ -37,13 +38,14 @@ from eve.client.script.ui.shared.fitting.fittingWnd import FittingWindow2
 from eve.client.script.ui.station.fw.base_fw import MilitiaWindow
 from eve.client.script.ui.station.securityOfficeWindow import SecurityOfficeWindow
 from achievements.client.achievementTreeWindow import AchievementTreeWindow
+from projectdiscovery.client.projectdiscoveryClientSvc import PROJECT_DISCOVERY_ID
 from projectdiscovery.client.window import ProjectDiscoveryWindow
-from projectdiscovery import IsProjectDiscoveryEnabled
+from eve.client.script.ui.structure.accessGroups.accesGroupsWnd import AccessGroupsWnd
+from eve.client.script.ui.structure.structureBrowser.structureBrowserWnd import StructureBrowserWnd
 import util
 import uiutil
 import service
 import uthread
-import collections
 import localization
 import uicontrols
 from . import neocomCommon
@@ -53,7 +55,7 @@ import neocomPanelEntries
 from eve.client.script.ui.shared.neocom.neocom.neocomCommon import BTNTYPE_WINDOW
 DEBUG_ALWAYSLOADRAW = False
 NOTPERSISTED_BTNTYPES = (neocomCommon.BTNTYPE_WINDOW,)
-RAWDATA_NEOCOMDEFAULT = ((neocomCommon.BTNTYPE_CHAT, 'chat', None),
+RAWDATA_NEOCOMDEFAULT = [(neocomCommon.BTNTYPE_CHAT, 'chat', None),
  (neocomCommon.BTNTYPE_CMD, 'inventory', None),
  (neocomCommon.BTNTYPE_CMD, 'addressbook', None),
  (neocomCommon.BTNTYPE_CMD, 'mail', None),
@@ -71,7 +73,7 @@ RAWDATA_NEOCOMDEFAULT = ((neocomCommon.BTNTYPE_CHAT, 'chat', None),
  (neocomCommon.BTNTYPE_CMD, 'aurumStore', None),
  (neocomCommon.BTNTYPE_CMD, 'opportunities', None),
  (neocomCommon.BTNTYPE_CMD, 'tutorial', None),
- (neocomCommon.BTNTYPE_CMD, 'help', None))
+ (neocomCommon.BTNTYPE_CMD, 'help', None)]
 RAWDATA_EVEMENU = ((neocomCommon.BTNTYPE_GROUP, 'groupInventory', [(neocomCommon.BTNTYPE_CMD, 'inventory', None),
    (neocomCommon.BTNTYPE_CMD, 'activeShipCargo', None),
    (neocomCommon.BTNTYPE_CMD, 'itemHangar', None),
@@ -92,7 +94,9 @@ RAWDATA_EVEMENU = ((neocomCommon.BTNTYPE_GROUP, 'groupInventory', [(neocomCommon
    (neocomCommon.BTNTYPE_CMD, 'planets', None),
    (neocomCommon.BTNTYPE_CMD, 'agentfinder', None),
    (neocomCommon.BTNTYPE_CMD, 'militia', None),
-   (neocomCommon.BTNTYPE_CMD, 'bountyoffice', None)]),
+   (neocomCommon.BTNTYPE_CMD, 'bountyoffice', None),
+   (neocomCommon.BTNTYPE_CMD, 'structurebrowser', None),
+   (neocomCommon.BTNTYPE_CMD, 'accessgroups', None)]),
  (neocomCommon.BTNTYPE_GROUP, 'groupSocial', [(neocomCommon.BTNTYPE_CMD, 'mail', None),
    (neocomCommon.BTNTYPE_CMD, 'calendar', None),
    (neocomCommon.BTNTYPE_CMD, 'corporation', None),
@@ -116,7 +120,7 @@ RAWDATA_EVEMENU = ((neocomCommon.BTNTYPE_GROUP, 'groupInventory', [(neocomCommon
 
 class BtnDataRaw():
 
-    def __init__(self, label = None, cmdName = None, iconPath = None, wndCls = None):
+    def __init__(self, label=None, cmdName=None, iconPath=None, wndCls=None):
         self.label = label
         self.cmdName = cmdName
         self.iconPath = iconPath
@@ -171,13 +175,17 @@ BTNDATARAW_BY_ID = {'addressbook': BtnDataRaw(cmdName='OpenPeopleAndPlaces', wnd
  'twitch': BtnDataRaw(cmdName='OpenTwitchStreaming', wndCls=TwitchStreaming),
  'aurumStore': BtnDataRaw(cmdName='ToggleAurumStore', iconPath='res:/ui/texture/WindowIcons/NES.png'),
  'redeemItems': BtnDataRaw(cmdName='ToggleRedeemItems', wndCls=RedeemWindow),
- 'opportunities': BtnDataRaw(cmdName='ToggleOpportunity', wndCls=AchievementTreeWindow)}
+ 'opportunities': BtnDataRaw(cmdName='ToggleOpportunity', wndCls=AchievementTreeWindow),
+ 'structurebrowser': BtnDataRaw(cmdName='OpenStructureBrowser', wndCls=StructureBrowserWnd),
+ 'accessgroups': BtnDataRaw(cmdName='OpenAccessGroupsWindow', wndCls=AccessGroupsWnd)}
 
 def AddProjectDiscoveryIfEnabled():
-    if IsProjectDiscoveryEnabled():
-        if 'ProjectDiscovery' not in BTNDATARAW_BY_ID:
-            RAWDATA_EVEMENU[2][2].append((neocomCommon.BTNTYPE_CMD, 'ProjectDiscovery', None))
-            BTNDATARAW_BY_ID['ProjectDiscovery'] = BtnDataRaw(label='ProjectDiscovery', cmdName='ToggleProjectDiscovery', iconPath='res:/ui/texture/WindowIcons/projectdiscovery.png', wndCls=ProjectDiscoveryWindow)
+    if sm.RemoteSvc('ProjectDiscovery').is_enabled():
+        if PROJECT_DISCOVERY_ID not in BTNDATARAW_BY_ID:
+            RAWDATA_NEOCOMDEFAULT.append((neocomCommon.BTNTYPE_CMD, PROJECT_DISCOVERY_ID, None))
+            RAWDATA_EVEMENU[2][2].append((neocomCommon.BTNTYPE_CMD, PROJECT_DISCOVERY_ID, None))
+            BTNDATARAW_BY_ID[PROJECT_DISCOVERY_ID] = BtnDataRaw(label=PROJECT_DISCOVERY_ID, cmdName='ToggleProjectDiscovery', iconPath='res:/ui/texture/WindowIcons/projectdiscovery.png', wndCls=ProjectDiscoveryWindow)
+    return
 
 
 def ConvertOldTypeOfRawData(rawData):
@@ -208,8 +216,9 @@ class NeocomSvc(service.Service):
         self.blinkQueue = []
         self.btnData = None
         self.blinkThread = None
+        return
 
-    def Stop(self, memStream = None):
+    def Stop(self, memStream=None):
         self.CloseAllPanels()
         for cont in uicore.layer.sidePanels.children:
             if cont.name == 'Neocom':
@@ -225,6 +234,7 @@ class NeocomSvc(service.Service):
         if self.blinkThread:
             self.blinkThread.kill()
             self.blinkThread = None
+        return
 
     def Reload(self):
         self.Stop()
@@ -260,15 +270,15 @@ class NeocomSvc(service.Service):
         return False
 
     def ResetEveMenuBtnData(self):
-        AddProjectDiscoveryIfEnabled()
         self.eveMenuBtnData = BtnDataHeadNode('eveMenu', RAWDATA_EVEMENU, isRemovable=False, persistChildren=False)
 
     def OnSessionChanged(self, isRemote, sess, change):
-        if 'stationid' in change:
+        if 'stationid' in change or 'structureid' in change:
             self.scopeSpecificBtnData = self.GetScopeSpecificButtonData(recreate=True)
             self.UpdateNeocomButtons()
 
     def CreateNeocom(self):
+        AddProjectDiscoveryIfEnabled()
         if not self.btnData:
             rawData = settings.char.ui.Get('neocomButtonRawData', self._GetDefaultRawButtonData())
             self._CheckNewDefaultButtons(rawData)
@@ -290,6 +300,7 @@ class NeocomSvc(service.Service):
             self.blinkThread.kill()
             self.blinkThread = None
         self.blinkThread = uthread.new(self._BlinkThread)
+        return
 
     def _BlinkThread(self):
         while True:
@@ -299,26 +310,29 @@ class NeocomSvc(service.Service):
     def OnWindowOpened(self, wnd):
         if not self.neocom:
             return
-        if not wnd or wnd.destroyed:
+        elif not wnd or wnd.destroyed:
             return
-        if not wnd.IsKillable() or self._IsWindowIgnored(wnd):
+        elif not wnd.IsKillable() or self._IsWindowIgnored(wnd):
             return
-        for btnHeadData in (self.btnData, self.scopeSpecificBtnData):
-            if not btnHeadData:
-                continue
-            for btnData in btnHeadData.children:
-                if btnData.btnType != neocomCommon.BTNTYPE_WINDOW and wnd.__class__ == btnData.wndCls:
-                    BtnDataNode(parent=btnData, children=None, iconPath=btnData.iconPath, label=wnd.GetCaption(), id=wnd.windowID, btnType=neocomCommon.BTNTYPE_WINDOW, wnd=wnd, isDraggable=False)
-                    btnData.SetActive()
-                    return
+        else:
+            for btnHeadData in (self.btnData, self.scopeSpecificBtnData):
+                if not btnHeadData:
+                    continue
+                for btnData in btnHeadData.children:
+                    if btnData.btnType != neocomCommon.BTNTYPE_WINDOW and wnd.__class__ == btnData.wndCls:
+                        BtnDataNode(parent=btnData, children=None, iconPath=btnData.iconPath, label=wnd.GetCaption(), id=wnd.windowID, btnType=neocomCommon.BTNTYPE_WINDOW, wnd=wnd, isDraggable=False)
+                        btnData.SetActive()
+                        return
 
-        self.AddWindowButton(wnd)
+            self.AddWindowButton(wnd)
+            return
 
     def ResetButtons(self):
         if uicore.Message('AskRestartNeocomButtons', {}, uiconst.YESNO) == uiconst.ID_YES:
             settings.char.ui.Set('neocomButtonRawData', None)
             settings.user.windows.Set('neocomWidth', Neocom.default_width)
             self.Reload()
+        return
 
     def _IsWindowIgnored(self, wnd):
         IGNORECLASSES = (WindowStack,
@@ -338,6 +352,8 @@ class NeocomSvc(service.Service):
             if rButtonData.wndCls == wnd.__class__:
                 return getattr(rButtonData, 'cmdName', None)
 
+        return None
+
     def AddWindowButton(self, wnd):
         btnData = self._GetBtnDataByGUID(wnd.__class__)
         if not btnData:
@@ -351,37 +367,44 @@ class NeocomSvc(service.Service):
             childButtonData.cmdName = cmdName
         if btnData and btnData.btnUI:
             btnData.btnUI.UpdateIcon()
+        return
 
     def _GetBtnDataByGUID(self, guid):
         if not guid:
             return
-        for btnHeadData in (self.btnData, self.scopeSpecificBtnData):
-            if not btnHeadData:
-                continue
-            for btnData in btnHeadData.children:
-                if getattr(btnData, 'guid', None) == guid:
-                    return btnData
+        else:
+            for btnHeadData in (self.btnData, self.scopeSpecificBtnData):
+                if not btnHeadData:
+                    continue
+                for btnData in btnHeadData.children:
+                    if getattr(btnData, 'guid', None) == guid:
+                        return btnData
+
+            return
 
     def RemoveWindowButton(self, wndID, wndCaption, wndGUID):
         btnData = self._GetBtnDataByGUID(wndGUID)
         if not btnData:
             return
-        for btnChildData in btnData.children:
-            wnd = getattr(btnChildData, 'wnd', None)
-            if not wnd or wnd.destroyed or wnd.windowID == wndID:
-                btnChildData.Remove()
-            elif not wnd.IsKillable() and not wnd.IsMinimized():
-                btnChildData.Remove()
+        else:
+            for btnChildData in btnData.children:
+                wnd = getattr(btnChildData, 'wnd', None)
+                if not wnd or wnd.destroyed or wnd.windowID == wndID:
+                    btnChildData.Remove()
+                elif not wnd.IsKillable() and not wnd.IsMinimized():
+                    btnChildData.Remove()
 
-        if not btnData.children:
-            if btnData.btnType == neocomCommon.BTNTYPE_WINDOW:
-                btnData.Remove()
-            else:
-                btnData.SetInactive()
+            if not btnData.children:
+                if btnData.btnType == neocomCommon.BTNTYPE_WINDOW:
+                    btnData.Remove()
+                else:
+                    btnData.SetInactive()
+            return
 
     def UpdateNeocomButtons(self):
         if self.neocom is not None:
             self.neocom.UpdateButtons()
+        return
 
     def OnWindowMinimized(self, wnd):
         if not self.neocom:
@@ -407,7 +430,7 @@ class NeocomSvc(service.Service):
     def GetButtonData(self):
         return self.btnData.GetButtonsInScope()
 
-    def GetScopeSpecificButtonData(self, recreate = False):
+    def GetScopeSpecificButtonData(self, recreate=False):
         if session.stationid is not None:
             if recreate or self.scopeSpecificBtnData is None:
                 self.scopeSpecificBtnData = self.GetStationButtonData()
@@ -441,33 +464,36 @@ class NeocomSvc(service.Service):
             l, t, w, h = uiObj.GetAbsolute()
             return (l + w / 2, t + h / 2)
 
-    def Blink(self, wndID, hint = None, numBlinks = None):
+    def Blink(self, wndID, hint=None, numBlinks=None):
         if not self.neocom:
             self.blinkQueue.append((wndID, hint, numBlinks))
             return
-        if not self.IsBlinkingEnabled():
+        elif not self.IsBlinkingEnabled():
             return
-        if wndID == 'charactersheet':
+        elif wndID == 'charactersheet':
             self.neocom.charSheetBtn.EnableBlink()
             return
-        if wndID == 'calendar':
-            if CalendarWnd.GetIfOpen():
+        else:
+            if wndID == 'calendar':
+                if CalendarWnd.GetIfOpen():
+                    return
+                btnData = self.btnData.GetBtnDataByTypeAndID(neocomCommon.BTNTYPE_CMD, wndID, recursive=True)
+                if not btnData:
+                    self.neocom.clockCont.EnableBlink()
+                    return
+            elif wndID == 'eveMenuBtn':
+                self.eveMenuBtnData.isBlinking = True
                 return
-            btnData = self.btnData.GetBtnDataByTypeAndID(neocomCommon.BTNTYPE_CMD, wndID, recursive=True)
-            if not btnData:
-                self.neocom.clockCont.EnableBlink()
-                return
-        elif wndID == 'eveMenuBtn':
-            self.eveMenuBtnData.isBlinking = True
+            headNodesToCheck = (self.btnData, self.scopeSpecificBtnData, self.eveMenuBtnData)
+            for headBtnData in headNodesToCheck:
+                if headBtnData is None:
+                    continue
+                btnData = headBtnData.GetBtnDataByTypeAndID(neocomCommon.BTNTYPE_CMD, wndID, recursive=True)
+                if btnData:
+                    btnData.SetBlinkingOn(hint, numBlinks)
+                    return
+
             return
-        headNodesToCheck = (self.btnData, self.scopeSpecificBtnData, self.eveMenuBtnData)
-        for headBtnData in headNodesToCheck:
-            if headBtnData is None:
-                continue
-            btnData = headBtnData.GetBtnDataByTypeAndID(neocomCommon.BTNTYPE_CMD, wndID, recursive=True)
-            if btnData:
-                btnData.SetBlinkingOn(hint, numBlinks)
-                return
 
     def BlinkOff(self, wndID):
         if wndID == 'calendar':
@@ -556,6 +582,7 @@ class NeocomSvc(service.Service):
             self.eveMenu = None
         else:
             self.ShowEveMenu()
+        return
 
     def ShowEveMenu(self):
         self.neocom.UnhideNeocom(sleep=True)
@@ -574,9 +601,9 @@ class NeocomSvc(service.Service):
     def GetUIObjectByID(self, wndID):
         if not self.neocom:
             return
-        if wndID == 'charactersheet':
+        elif wndID == 'charactersheet':
             return self.neocom.charSheetBtn
-        if wndID == 'skillTrainingCont':
+        elif wndID == 'skillTrainingCont':
             return self.neocom.skillTrainingCont
         for btnData in (self.btnData, self.scopeSpecificBtnData):
             if btnData:
@@ -589,6 +616,8 @@ class NeocomSvc(service.Service):
         node = self.eveMenuBtnData.GetBtnDataByTypeAndID(None, wndID, recursive=True)
         if node:
             return self.neocom.eveMenuBtn
+        else:
+            return
 
     def IsButtonVisible(self, wndID):
         for btnData in (self.btnData, self.scopeSpecificBtnData):
@@ -613,7 +642,7 @@ class NeocomSvc(service.Service):
     def OnButtonDragExit(self, *args):
         self.neocom.HideDropIndicatorLine()
 
-    def OnBtnDataDropped(self, btnData, index = None):
+    def OnBtnDataDropped(self, btnData, index=None):
         if not self.IsValidDropData(btnData):
             return
         oldHeadNode = btnData.GetHeadNode()
@@ -724,7 +753,7 @@ class BtnDataNode(util.KeyVal):
     __notifyevents__ = []
     persistChildren = True
 
-    def __init__(self, parent = None, children = None, iconPath = None, label = None, id = None, btnType = None, isRemovable = True, isDraggable = True, isActive = False, isBlinking = False, labelAbbrev = None, wndCls = None, **kw):
+    def __init__(self, parent=None, children=None, iconPath=None, label=None, id=None, btnType=None, isRemovable=True, isDraggable=True, isActive=False, isBlinking=False, labelAbbrev=None, wndCls=None, **kw):
         sm.RegisterNotify(self)
         self._parent = parent
         self.iconPath = iconPath
@@ -750,6 +779,7 @@ class BtnDataNode(util.KeyVal):
 
         if parent:
             parent._AddChild(self)
+        return
 
     def _AddChild(self, child):
         self._children.append(child)
@@ -776,7 +806,7 @@ class BtnDataNode(util.KeyVal):
     def __repr__(self):
         return '<BtnDataNode: %s - %s children>' % (repr(self.label), len(self._children))
 
-    def Persist(self, scatterEvent = True, fromChild = False):
+    def Persist(self, scatterEvent=True, fromChild=False):
         if fromChild and not self.persistChildren:
             return
         self.parent.Persist(scatterEvent, fromChild=True)
@@ -808,7 +838,7 @@ class BtnDataNode(util.KeyVal):
         lst = self.parent._children
         return lst.index(self)
 
-    def GetBtnDataByTypeAndID(self, btnType, id, recursive = False):
+    def GetBtnDataByTypeAndID(self, btnType, id, recursive=False):
         for btnData in self._children:
             if btnType is None or btnData.btnType == btnType:
                 if btnData.id == id:
@@ -818,38 +848,46 @@ class BtnDataNode(util.KeyVal):
                 if subBtnData:
                     return subBtnData
 
-    def GetBtnDataByGUID(self, guid, recursive = False):
+        return
+
+    def GetBtnDataByGUID(self, guid, recursive=False):
         if guid is None:
             return
-        for btnData in self._children:
-            if getattr(btnData, 'guid', None) == guid:
-                return btnData
-            if recursive:
-                subBtnData = btnData.GetBtnDataByGUID(guid, True)
-                if subBtnData:
-                    return subBtnData
+        else:
+            for btnData in self._children:
+                if getattr(btnData, 'guid', None) == guid:
+                    return btnData
+                if recursive:
+                    subBtnData = btnData.GetBtnDataByGUID(guid, True)
+                    if subBtnData:
+                        return subBtnData
+
+            return
 
     def RemoveChild(self, btnData):
         btnData.parent = None
         self._children.remove(btnData)
         if self.persistChildren:
             self.Persist()
+        return
 
-    def MoveTo(self, newParent, index = None):
+    def MoveTo(self, newParent, index=None):
         if newParent == self:
             return
-        if not self.IsRemovable():
+        elif not self.IsRemovable():
             return
-        self.parent._children.remove(self)
-        if index is None:
-            newParent._children.append(self)
         else:
-            newParent._children.insert(index, self)
-        oldParent = self.parent
-        self.parent = newParent
-        oldParent.CheckContinueBlinking()
-        self.Persist()
-        oldParent.Persist()
+            self.parent._children.remove(self)
+            if index is None:
+                newParent._children.append(self)
+            else:
+                newParent._children.insert(index, self)
+            oldParent = self.parent
+            self.parent = newParent
+            oldParent.CheckContinueBlinking()
+            self.Persist()
+            oldParent.Persist()
+            return
 
     def Remove(self):
         self.parent.RemoveChild(self)
@@ -873,7 +911,7 @@ class BtnDataNode(util.KeyVal):
             return True
         return self.parent._IsDescendantOf(btnData)
 
-    def SetBlinkingOn(self, hint = '', numBlinks = None):
+    def SetBlinkingOn(self, hint='', numBlinks=None):
         self.isBlinking = True
         self.blinkHint = hint
         if numBlinks:
@@ -921,7 +959,7 @@ class BtnDataNode(util.KeyVal):
         if hasattr(self.btnUI, 'CheckIfActive'):
             self.btnUI.CheckIfActive()
 
-    def GetHint(self, label = None):
+    def GetHint(self, label=None):
         hintStr = label or self.label
         if self.btnType == neocomCommon.BTNTYPE_CMD:
             cmd = uicore.cmd.commandMap.GetCommandByName(self.cmdName)
@@ -948,7 +986,7 @@ class BtnDataNode(util.KeyVal):
             return False
         if self.id in ('corpHangar', 'corpDeliveriesHangar') and util.IsNPCCorporation(session.corpid):
             return False
-        if self.id == 'corpHangar' and sm.GetService('corp').GetOffice() is None:
+        if self.id == 'corpHangar' and not self._HasCorpOffice():
             return False
         if self.id == 'tutorial' and not sm.GetService('experimentClientSvc').IsTutorialEnabled():
             return False
@@ -957,6 +995,8 @@ class BtnDataNode(util.KeyVal):
         if self.wndCls:
             scope = self.wndCls.default_scope
             if not scope or scope == 'station_inflight':
+                return True
+            if session.structureid and scope in ('structure', 'station'):
                 return True
             if session.stationid2 and scope != 'station':
                 return False
@@ -967,11 +1007,19 @@ class BtnDataNode(util.KeyVal):
     def GetButtonsInScope(self):
         return [ btnData for btnData in self.children if btnData.IsButtonInScope() ]
 
+    def _HasCorpOffice(self):
+        if session.structureid:
+            if sm.GetService('structureOffices').HasOffice():
+                return True
+        if sm.GetService('corp').GetOffice():
+            return True
+        return False
+
 
 class BtnDataHeadNode(BtnDataNode):
     __guid__ = 'neocom.BtnDataHeadNode'
 
-    def __init__(self, id = None, rawBtnData = None, isRemovable = True, persistChildren = True):
+    def __init__(self, id=None, rawBtnData=None, isRemovable=True, persistChildren=True):
         self.id = id
         self._parent = None
         self._persistThread = None
@@ -980,11 +1028,12 @@ class BtnDataHeadNode(BtnDataNode):
         self._GetButtonDataFromnRawData(self, rawBtnData, isRemovable)
         self.isBlinking = False
         self.persistChildren = persistChildren
+        return
 
     def __repr__(self):
         return '<BtnDataHeadNode: %s children>' % len(self._children)
 
-    def Persist(self, scatterEvent = True, fromChild = False):
+    def Persist(self, scatterEvent=True, fromChild=False):
         if not self._persistThread:
             self._persistThread = uthread.new(self._Persist, scatterEvent)
 
@@ -999,6 +1048,7 @@ class BtnDataHeadNode(BtnDataNode):
         if scatterEvent:
             sm.ScatterEvent('OnHeadNodeChanged', self.id)
         self._persistThread = None
+        return
 
     def _GetButtonDataFromnRawData(self, parent, rawData, isRemovable):
         nodes = []
@@ -1073,9 +1123,9 @@ class BtnDataNodeDynamic(BtnDataNode):
         return self._GetChildren(dataList, self)
 
     def GetPanelEntryHeight(self):
-        return 25
+        pass
 
-    def _GetChildren(self, dataList, parent = None):
+    def _GetChildren(self, dataList, parent=None):
         children = []
         entryHeight = self.GetPanelEntryHeight()
         maxEntries = uicore.desktop.height / entryHeight - 1
@@ -1162,6 +1212,7 @@ class BtnDataNodeChat(BtnDataNodeDynamic):
             return BtnDataNode(parent=parent, children=None, iconPath=Channels.default_iconNum, id='chatchannels', guid=None, btnType=neocomCommon.BTNTYPE_CMD, cmdName=BTNDATARAW_BY_ID['chatchannels'].cmdName, isRemovable=False, isDraggable=False, label=cmd.GetName())
         else:
             return BtnDataNode(parent=parent, iconPath=neocomCommon.ICONPATH_CHAT, label=wnd.GetCaption(), id=wnd.windowID, btnType=neocomCommon.BTNTYPE_CHATCHANNEL, wnd=wnd, isRemovable=False, isDraggable=False, isBlinking=getattr(wnd, 'isBlinking', False))
+            return None
 
 
 NODECLASS_BY_TYPE = {neocomCommon.BTNTYPE_CHAT: BtnDataNodeChat,
@@ -1188,6 +1239,7 @@ class NeocomGroupNamePopup(uicontrols.Window):
         self.labelAbbrevEdit = uicontrols.SinglelineEdit(name='labelAbbrevEdit', label=localization.GetByLabel('UI/Neocom/NeocomGroupNameAbbrev'), parent=self.sr.main, align=uiconst.TOTOP, padTop=20, setvalue=groupAbbrev, OnReturn=self.Confirm)
         self.labelAbbrevEdit.SetMaxLength(2)
         btns = uicontrols.ButtonGroup(parent=self.sr.main, line=False, btns=((localization.GetByLabel('UI/Common/Confirm'), self.Confirm, ()), (localization.GetByLabel('UI/Commands/Cancel'), self.Close, ())))
+        return
 
     def Confirm(self, *args):
         kv = util.KeyVal(label=self.labelEdit.GetValue(), labelAbbrev=self.labelAbbrevEdit.GetValue())

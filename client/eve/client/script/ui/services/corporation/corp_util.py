@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\client\script\ui\services\corporation\corp_util.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\client\script\ui\services\corporation\corp_util.py
 from carbonui.const import NOT_CHECKED, FULL_CHECKED, HALF_CHECKED
 import const
 VIEW_ROLES = 0
@@ -58,7 +59,7 @@ BASE_COL_WIDTH = 100
 CHECKBOX_COL_WIDTH = 45
 ACCESS_COL_WIDTH = 80
 
-def CanEditRole(roleID, grantable, playerIsCEO, playerIsDirector, IAmCEO, viewRoleGroupingID, myBaseID, playersBaseID, myGrantableRoles, myGrantableRolesAtHQ, myGrantableRolesAtBase, myGrantableRolesAtOther, roleGroupings = None):
+def CanEditRole(roleID, grantable, playerIsCEO, playerIsDirector, IAmCEO, viewRoleGroupingID, myBaseID, playersBaseID, myGrantableRoles, myGrantableRolesAtHQ, myGrantableRolesAtBase, myGrantableRolesAtOther, roleGroupings=None):
     if grantable:
         if roleID == const.corpRoleDirector:
             return 0
@@ -111,7 +112,6 @@ def CanEditBase(playerIsCEO, IAmCEO, IAmDirector):
             return 1
         if IAmDirector:
             return 1
-    return 0
 
 
 def GetCheckStateForRole(roles, grantableRoles, role):

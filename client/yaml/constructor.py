@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\carbon\common\stdlib\yaml\constructor.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\carbon\common\stdlib\yaml\constructor.py
 __all__ = ['BaseConstructor',
  'SafeConstructor',
  'Constructor',
@@ -38,6 +39,8 @@ class BaseConstructor(object):
         node = self.get_single_node()
         if node is not None:
             return self.construct_document(node)
+        else:
+            return
 
     def construct_document(self, node):
         data = self.construct_object(node)
@@ -53,68 +56,69 @@ class BaseConstructor(object):
         self.deep_construct = False
         return data
 
-    def construct_object(self, node, deep = False):
+    def construct_object(self, node, deep=False):
         if deep:
             old_deep = self.deep_construct
             self.deep_construct = True
         if node in self.constructed_objects:
             return self.constructed_objects[node]
-        if node in self.recursive_objects:
-            raise ConstructorError(None, None, 'found unconstructable recursive node', node.start_mark)
-        self.recursive_objects[node] = None
-        constructor = None
-        tag_suffix = None
-        if node.tag in self.yaml_constructors:
-            constructor = self.yaml_constructors[node.tag]
         else:
-            for tag_prefix in self.yaml_multi_constructors:
-                if node.tag.startswith(tag_prefix):
-                    tag_suffix = node.tag[len(tag_prefix):]
-                    constructor = self.yaml_multi_constructors[tag_prefix]
-                    break
+            if node in self.recursive_objects:
+                raise ConstructorError(None, None, 'found unconstructable recursive node', node.start_mark)
+            self.recursive_objects[node] = None
+            constructor = None
+            tag_suffix = None
+            if node.tag in self.yaml_constructors:
+                constructor = self.yaml_constructors[node.tag]
             else:
-                if None in self.yaml_multi_constructors:
-                    tag_suffix = node.tag
-                    constructor = self.yaml_multi_constructors[None]
-                elif None in self.yaml_constructors:
-                    constructor = self.yaml_constructors[None]
-                elif isinstance(node, ScalarNode):
-                    constructor = self.__class__.construct_scalar
-                elif isinstance(node, SequenceNode):
-                    constructor = self.__class__.construct_sequence
-                elif isinstance(node, MappingNode):
-                    constructor = self.__class__.construct_mapping
+                for tag_prefix in self.yaml_multi_constructors:
+                    if node.tag.startswith(tag_prefix):
+                        tag_suffix = node.tag[len(tag_prefix):]
+                        constructor = self.yaml_multi_constructors[tag_prefix]
+                        break
+                else:
+                    if None in self.yaml_multi_constructors:
+                        tag_suffix = node.tag
+                        constructor = self.yaml_multi_constructors[None]
+                    elif None in self.yaml_constructors:
+                        constructor = self.yaml_constructors[None]
+                    elif isinstance(node, ScalarNode):
+                        constructor = self.__class__.construct_scalar
+                    elif isinstance(node, SequenceNode):
+                        constructor = self.__class__.construct_sequence
+                    elif isinstance(node, MappingNode):
+                        constructor = self.__class__.construct_mapping
 
-        if tag_suffix is None:
-            data = constructor(self, node)
-        else:
-            data = constructor(self, tag_suffix, node)
-        if isinstance(data, types.GeneratorType):
-            generator = data
-            data = generator.next()
-            if self.deep_construct:
-                for dummy in generator:
-                    pass
-
+            if tag_suffix is None:
+                data = constructor(self, node)
             else:
-                self.state_generators.append(generator)
-        self.constructed_objects[node] = data
-        del self.recursive_objects[node]
-        if deep:
-            self.deep_construct = old_deep
-        return data
+                data = constructor(self, tag_suffix, node)
+            if isinstance(data, types.GeneratorType):
+                generator = data
+                data = generator.next()
+                if self.deep_construct:
+                    for dummy in generator:
+                        pass
+
+                else:
+                    self.state_generators.append(generator)
+            self.constructed_objects[node] = data
+            del self.recursive_objects[node]
+            if deep:
+                self.deep_construct = old_deep
+            return data
 
     def construct_scalar(self, node):
         if not isinstance(node, ScalarNode):
             raise ConstructorError(None, None, 'expected a scalar node, but found %s' % node.id, node.start_mark)
         return node.value
 
-    def construct_sequence(self, node, deep = False):
+    def construct_sequence(self, node, deep=False):
         if not isinstance(node, SequenceNode):
             raise ConstructorError(None, None, 'expected a sequence node, but found %s' % node.id, node.start_mark)
         return [ self.construct_object(child, deep=deep) for child in node.value ]
 
-    def construct_mapping(self, node, deep = False):
+    def construct_mapping(self, node, deep=False):
         if not isinstance(node, MappingNode):
             raise ConstructorError(None, None, 'expected a mapping node, but found %s' % node.id, node.start_mark)
         mapping = {}
@@ -130,7 +134,7 @@ class BaseConstructor(object):
 
         return mapping
 
-    def construct_pairs(self, node, deep = False):
+    def construct_pairs(self, node, deep=False):
         if not isinstance(node, MappingNode):
             raise ConstructorError(None, None, 'expected a mapping node, but found %s' % node.id, node.start_mark)
         pairs = []
@@ -199,13 +203,14 @@ class SafeConstructor(BaseConstructor):
         if merge:
             node.value = merge + node.value
 
-    def construct_mapping(self, node, deep = False):
+    def construct_mapping(self, node, deep=False):
         if isinstance(node, MappingNode):
             self.flatten_mapping(node)
         return BaseConstructor.construct_mapping(self, node, deep=deep)
 
     def construct_yaml_null(self, node):
         self.construct_scalar(node)
+        return None
 
     bool_values = {u'yes': True,
      u'no': False,
@@ -285,6 +290,8 @@ class SafeConstructor(BaseConstructor):
         except (binascii.Error, UnicodeEncodeError) as exc:
             raise ConstructorError(None, None, 'failed to decode base64 data: %s' % exc, node.start_mark)
 
+        return
+
     timestamp_regexp = re.compile(u'^(?P<year>[0-9][0-9][0-9][0-9])\n                -(?P<month>[0-9][0-9]?)\n                -(?P<day>[0-9][0-9]?)\n                (?:(?:[Tt]|[ \\t]+)\n                (?P<hour>[0-9][0-9]?)\n                :(?P<minute>[0-9][0-9])\n                :(?P<second>[0-9][0-9])\n                (?:\\.(?P<fraction>[0-9]*))?\n                (?:[ \\t]*(?P<tz>Z|(?P<tz_sign>[-+])(?P<tz_hour>[0-9][0-9]?)\n                (?::(?P<tz_minute>[0-9][0-9]))?))?)?$', re.X)
 
     def construct_yaml_timestamp(self, node):
@@ -296,27 +303,28 @@ class SafeConstructor(BaseConstructor):
         day = int(values['day'])
         if not values['hour']:
             return datetime.date(year, month, day)
-        hour = int(values['hour'])
-        minute = int(values['minute'])
-        second = int(values['second'])
-        fraction = 0
-        if values['fraction']:
-            fraction = values['fraction'][:6]
-            while len(fraction) < 6:
-                fraction += '0'
+        else:
+            hour = int(values['hour'])
+            minute = int(values['minute'])
+            second = int(values['second'])
+            fraction = 0
+            if values['fraction']:
+                fraction = values['fraction'][:6]
+                while len(fraction) < 6:
+                    fraction += '0'
 
-            fraction = int(fraction)
-        delta = None
-        if values['tz_sign']:
-            tz_hour = int(values['tz_hour'])
-            tz_minute = int(values['tz_minute'] or 0)
-            delta = datetime.timedelta(hours=tz_hour, minutes=tz_minute)
-            if values['tz_sign'] == '-':
-                delta = -delta
-        data = datetime.datetime(year, month, day, hour, minute, second, fraction)
-        if delta:
-            data -= delta
-        return data
+                fraction = int(fraction)
+            delta = None
+            if values['tz_sign']:
+                tz_hour = int(values['tz_hour'])
+                tz_minute = int(values['tz_minute'] or 0)
+                delta = datetime.timedelta(hours=tz_hour, minutes=tz_minute)
+                if values['tz_sign'] == '-':
+                    delta = -delta
+            data = datetime.datetime(year, month, day, hour, minute, second, fraction)
+            if delta:
+                data -= delta
+            return data
 
     def construct_yaml_omap(self, node):
         omap = []
@@ -384,6 +392,7 @@ class SafeConstructor(BaseConstructor):
 
     def construct_undefined(self, node):
         raise ConstructorError(None, None, 'could not determine a constructor for the tag %r' % node.tag.encode('utf-8'), node.start_mark)
+        return
 
 
 SafeConstructor.add_constructor(u'tag:yaml.org,2002:null', SafeConstructor.construct_yaml_null)
@@ -462,7 +471,7 @@ class Constructor(SafeConstructor):
     class classobj:
         pass
 
-    def make_python_instance(self, suffix, node, args = None, kwds = None, newobj = False):
+    def make_python_instance(self, suffix, node, args=None, kwds=None, newobj=False):
         if not args:
             args = []
         if not kwds:
@@ -498,7 +507,7 @@ class Constructor(SafeConstructor):
         state = self.construct_mapping(node, deep=deep)
         self.set_python_instance_state(instance, state)
 
-    def construct_python_object_apply(self, suffix, node, newobj = False):
+    def construct_python_object_apply(self, suffix, node, newobj=False):
         if isinstance(node, SequenceNode):
             args = self.construct_sequence(node, deep=True)
             kwds = {}

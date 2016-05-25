@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\client\script\ui\shared\industry\submitButton.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\client\script\ui\shared\industry\submitButton.py
 import math
 from carbonui import const as uiconst, const
 from carbonui.primitives.sprite import Sprite
@@ -31,6 +32,7 @@ class SubmitButton(Button):
         self.arrows.translationSecondary = (-0.16, 0)
         self.errorFrame = ErrorFrame(bgParent=self)
         self.errorFrame.Hide()
+        return
 
     def OnNewJobData(self, jobData):
         self.oldJobData = self.jobData
@@ -127,6 +129,7 @@ class SubmitButton(Button):
                 self.SetLabelAnimated(text)
         else:
             self.SetLabel('')
+        return
 
     def SetLabelAnimated(self, text):
         uthread.new(self._SetLabelAnimated, text)
@@ -143,6 +146,7 @@ class SubmitButton(Button):
         else:
             errors = self.jobData.errors
         SubmitButtonTooltipPanel(status=self.jobData.status, errors=errors, tooltipPanel=tooltipPanel)
+        return
 
     def GetTooltipDelay(self):
         return TOOLTIP_DELAY_GAMEPLAY
@@ -164,19 +168,23 @@ class SubmitButton(Button):
                 self.UpdateState()
         else:
             try:
-                self.Disable()
-                if not self.jobData.errors:
-                    self.AnimateArrows()
-                sm.GetService('industrySvc').InstallJob(self.jobData)
-                sm.GetService('audio').SendUIEvent('ind_jobStarted')
-            except UserError as exception:
-                if getattr(exception, 'msg', None) == 'IndustryValidationError':
-                    self.tooltipErrors = exception.args[1]['errors']
-                    uicore.uilib.tooltipHandler.RefreshTooltipForOwner(self)
-                raise
+                try:
+                    self.Disable()
+                    if not self.jobData.errors:
+                        self.AnimateArrows()
+                    sm.GetService('industrySvc').InstallJob(self.jobData)
+                    sm.GetService('audio').SendUIEvent('ind_jobStarted')
+                except UserError as exception:
+                    if getattr(exception, 'msg', None) == 'IndustryValidationError':
+                        self.tooltipErrors = exception.args[1]['errors']
+                        uicore.uilib.tooltipHandler.RefreshTooltipForOwner(self)
+                    raise
+
             finally:
                 self.Enable()
                 self.StopAnimateArrows()
+
+        return
 
     def OnMouseEnter(self, *args):
         Button.OnMouseEnter(self, *args)

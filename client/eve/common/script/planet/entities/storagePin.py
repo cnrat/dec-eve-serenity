@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\common\script\planet\entities\storagePin.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\common\script\planet\entities\storagePin.py
 from eve.common.script.planet.entities.basePin import BasePin
 import blue
 import evetypes
@@ -11,7 +12,7 @@ class StoragePin(BasePin):
         pass
 
     def GetCycleTime(self):
-        return 0
+        pass
 
     def GetCapacity(self):
         return evetypes.GetCapacity(self.typeID)
@@ -22,14 +23,16 @@ class StoragePin(BasePin):
     def CanActivate(self):
         return False
 
-    def CanRun(self, runTime = None):
+    def CanRun(self, runTime=None):
         return False
 
     def GetNextTransferTime(self):
         if self.lastRunTime is not None:
             return self.lastRunTime
+        else:
+            return
 
-    def CanTransfer(self, commodities, transferTime = None):
+    def CanTransfer(self, commodities, transferTime=None):
         for typeID, quantity in commodities.iteritems():
             if typeID not in self.contents:
                 return False
@@ -42,7 +45,8 @@ class StoragePin(BasePin):
         nextTransferTime = self.GetNextTransferTime()
         if nextTransferTime is None or nextTransferTime <= tt:
             return True
-        return False
+        else:
+            return False
 
     def ExecuteTransfer(self, runTime, expeditedTransferTime):
         self.lastRunTime = runTime + expeditedTransferTime

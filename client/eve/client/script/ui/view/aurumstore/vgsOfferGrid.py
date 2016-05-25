@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\client\script\ui\view\aurumstore\vgsOfferGrid.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\client\script\ui\view\aurumstore\vgsOfferGrid.py
 from carbonui.primitives.flowcontainer import FlowContainer
 from eve.client.script.ui.view.aurumstore.vgsHelper import FormatAUR
 from eve.client.script.ui.view.aurumstore.vgsOffer import VgsOffer
@@ -15,7 +16,7 @@ def UpdateCellSize(offer, cellWidth):
 class OfferGrid(FlowContainer):
     default_name = 'OfferGrid'
 
-    def __init__(self, incrementSize = 4, **kwargs):
+    def __init__(self, incrementSize=4, **kwargs):
         FlowContainer.__init__(self, **kwargs)
         self.offers = []
         self.index = 0

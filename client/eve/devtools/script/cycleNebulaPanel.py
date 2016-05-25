@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\devtools\script\cycleNebulaPanel.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\devtools\script\cycleNebulaPanel.py
 import uicontrols
 import uiprimitives
 import carbonui.const as uiconst
@@ -31,6 +32,7 @@ class CycleNebulaPanel(uicontrols.Window):
         self.comboBox = uicontrols.Combo(name='nebulaComboBox', parent=topCont, label='', options=[ (nebulaPath, index) for index, nebulaPath in enumerate(self.nebulaPaths) ], callback=self.ComboboxSelection, select=self.currentNebulaIndex, align=uiconst.TOTOP)
         self.nextNebulaButton = uicontrols.Button(parent=topCont, label='Next', align=uiconst.CENTERRIGHT, func=self.IncrementNebulaIndex)
         self.prevNebulaButton = uicontrols.Button(parent=topCont, label='Previous', align=uiconst.CENTERLEFT, func=self.DecrementNebulaIndex)
+        return
 
     def SetupNebulas(self):
         res = walk.walk(NEBULA_RES_PATH)
@@ -50,6 +52,7 @@ class CycleNebulaPanel(uicontrols.Window):
 
         if self.currentNebulaPath is not None:
             self.currentNebulaIndex = self.nebulaPaths.index(self.currentNebulaPath)
+        return
 
     def IncrementNebulaIndex(self, args):
         self.currentNebulaIndex = (self.currentNebulaIndex + 1) % len(self.nebulaPaths)

@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\carbon\common\lib\cherrypy\test\test_request_obj.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\carbon\common\lib\cherrypy\test\test_request_obj.py
 import os
 localDir = os.path.dirname(__file__)
 import sys
@@ -17,7 +18,7 @@ class RequestObjectTests(helper.CPWebCase):
         class Root:
 
             def index(self):
-                return 'hello'
+                pass
 
             index.exposed = True
 
@@ -58,47 +59,47 @@ class RequestObjectTests(helper.CPWebCase):
             exposed = True
 
             def __call__(self):
-                return 'data'
+                pass
 
         class ParamErrors(Test):
 
             def one_positional(self, param1):
-                return 'data'
+                pass
 
             one_positional.exposed = True
 
             def one_positional_args(self, param1, *args):
-                return 'data'
+                pass
 
             one_positional_args.exposed = True
 
             def one_positional_args_kwargs(self, param1, *args, **kwargs):
-                return 'data'
+                pass
 
             one_positional_args_kwargs.exposed = True
 
             def one_positional_kwargs(self, param1, **kwargs):
-                return 'data'
+                pass
 
             one_positional_kwargs.exposed = True
 
             def no_positional(self):
-                return 'data'
+                pass
 
             no_positional.exposed = True
 
             def no_positional_args(self, *args):
-                return 'data'
+                pass
 
             no_positional_args.exposed = True
 
             def no_positional_args_kwargs(self, *args, **kwargs):
-                return 'data'
+                pass
 
             no_positional_args_kwargs.exposed = True
 
             def no_positional_kwargs(self, **kwargs):
-                return 'data'
+                pass
 
             no_positional_kwargs.exposed = True
             callable_object = ParamErrorsCallable()
@@ -108,7 +109,7 @@ class RequestObjectTests(helper.CPWebCase):
 
             raise_type_error.exposed = True
 
-            def raise_type_error_with_default_param(self, x, y = None):
+            def raise_type_error_with_default_param(self, x, y=None):
                 return '%d' % 'a'
 
             raise_type_error_with_default_param.exposed = True
@@ -122,7 +123,7 @@ class RequestObjectTests(helper.CPWebCase):
             def reason_phrase(self):
                 raise cherrypy.HTTPError("410 Gone fishin'")
 
-            def custom(self, err = '404'):
+            def custom(self, err='404'):
                 raise cherrypy.HTTPError(int(err), 'No, <b>really</b>, not found!')
 
             custom._cp_config = {'error_page.404': os.path.join(localDir, 'static/index.html'),
@@ -182,7 +183,6 @@ class RequestObjectTests(helper.CPWebCase):
                 hMap['server'] = 'CherryPy headertest'
                 hMap['location'] = '%s://%s:%s/headers/' % (cherrypy.request.local.ip, cherrypy.request.local.port, cherrypy.request.scheme)
                 hMap['Expires'] = 'Thu, 01 Dec 2194 16:00:00 GMT'
-                return 'double header test'
 
             def ifmatch(self):
                 val = cherrypy.request.headers['If-Match']
@@ -213,7 +213,7 @@ class RequestObjectTests(helper.CPWebCase):
                 return cherrypy.request.body
 
             def reachable(self):
-                return 'success'
+                pass
 
         class Divorce:
             documents = {}
@@ -392,6 +392,7 @@ class RequestObjectTests(helper.CPWebCase):
         else:
             self.getPage('/error/rethrow')
             self.assertInBody('raise ValueError()')
+        return
 
     def testExpect(self):
         e = ('Expect', '100-continue')

@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\packages\requests\exceptions.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\packages\requests\exceptions.py
 from .packages.urllib3.exceptions import HTTPError as BaseHTTPError
 
 class RequestException(IOError):
@@ -10,6 +11,7 @@ class HTTPError(RequestException):
     def __init__(self, *args, **kwargs):
         self.response = kwargs.pop('response', None)
         super(HTTPError, self).__init__(*args, **kwargs)
+        return
 
 
 class ConnectionError(RequestException):

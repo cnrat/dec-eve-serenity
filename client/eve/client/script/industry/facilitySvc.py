@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\client\script\industry\facilitySvc.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\client\script\industry\facilitySvc.py
 import service
 import uthread
 import telemetry
@@ -35,7 +36,7 @@ class FacilityService(service.Service):
         self._PrimeFacilties()
         return self.facilities.values()
 
-    def GetMaxActivityModifier(self, activityID = None):
+    def GetMaxActivityModifier(self, activityID=None):
         self._PrimeFacilties()
         if activityID:
             return self.maxActivityModifiers.get(activityID, 1.0)
@@ -48,12 +49,12 @@ class FacilityService(service.Service):
     def SetFacilityTaxes(self, facilityID, taxRateValues):
         self.facilityManager.SetFacilityTaxes(facilityID, session.corpid, taxRateValues)
 
-    def Reload(self, facilityID = None):
+    def Reload(self, facilityID=None):
         self.regionLoaded = False
         sm.ScatterEvent('OnFacilityReload', facilityID)
 
     @telemetry.ZONE_METHOD
-    def GetFacility(self, facilityID, prime = True):
+    def GetFacility(self, facilityID, prime=True):
         if facilityID:
             self._PrimeFacilties()
             if prime and facilityID and facilityID not in self.facilities:
@@ -71,7 +72,7 @@ class FacilityService(service.Service):
             return True
         return False
 
-    def _PrimeFacilties(self, force = False):
+    def _PrimeFacilties(self, force=False):
         if self.regionLoaded and not force:
             return
         with self.loading:

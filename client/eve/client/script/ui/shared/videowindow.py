@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\client\script\ui\shared\videowindow.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\client\script\ui\shared\videowindow.py
 import urllib2
 import blue
 from carbonui import const as uiconst
@@ -71,8 +72,6 @@ class Subtitles(object):
             if time[0] <= milliseconds <= time[1]:
                 return text
 
-        return ''
-
 
 class VideoPlayerWindow(Window):
     default_caption = 'Video'
@@ -82,6 +81,7 @@ class VideoPlayerWindow(Window):
     def ApplyAttributes(self, attributes):
         Window.ApplyAttributes(self, attributes)
         self.SetTopparentHeight(0)
+        self.SetWndIcon('res:/ui/texture/icons/bigplay_64.png')
         self._stopUpdate = False
         self._onFinish = None
         self._subtitles = None
@@ -109,6 +109,7 @@ class VideoPlayerWindow(Window):
         self.sr.subtitleCont.Flush()
         self.UpdateLayoutArea()
         uthread2.StartTasklet(self._UpdatePosition)
+        return
 
     def _OnVideoFinished(self):
         for each in self.followUpContainer.children[:]:
@@ -121,7 +122,7 @@ class VideoPlayerWindow(Window):
             self.layoutArea.SetState(uiconst.UI_HIDDEN)
             self._onFinish(self.followUpContainer)
 
-    def PlayVideo(self, path, title = None, subtitles = None, onFinish = None):
+    def PlayVideo(self, path, title=None, subtitles=None, onFinish=None):
         self.playPauseBtn.SetTexturePath('res:/ui/texture/icons/pause.png')
         self.muteBtn.SetTexturePath('res:/ui/texture/icons/73_16_35.png')
         self.subtitlesBtn.SetTexturePath('res:/ui/texture/icons/73_16_10.png')
@@ -141,11 +142,13 @@ class VideoPlayerWindow(Window):
             self._subtitles = None
         else:
             self._subtitles = Subtitles(subtitles)
+        return
 
     def Close(self, *args, **kwds):
         self._stopUpdate = True
         self.video = None
         Window.Close(self, *args, **kwds)
+        return
 
     def _UpdatePosition(self):
         while not self._stopUpdate:
@@ -171,12 +174,14 @@ class VideoPlayerWindow(Window):
     def _UpdateSubtitles(self):
         if self._subtitles is None or not self.showSubtitles:
             return
-        currentTime = self.video.mediaTime or 0
-        currentTime /= 1000000
-        self.sr.subtitleCont.Flush()
-        text = self._subtitles.GetSubtitle(currentTime)
-        if text is not None:
-            EveCaptionLarge(text=u'<center>%s' % text, parent=self.sr.subtitleCont, color=(0.75, 0.75, 0.75, 1), align=uiconst.TOBOTTOM, bold=False, state=uiconst.UI_DISABLED)
+        else:
+            currentTime = self.video.mediaTime or 0
+            currentTime /= 1000000
+            self.sr.subtitleCont.Flush()
+            text = self._subtitles.GetSubtitle(currentTime)
+            if text is not None:
+                EveCaptionLarge(text=u'<center>%s' % text, parent=self.sr.subtitleCont, color=(0.75, 0.75, 0.75, 1), align=uiconst.TOBOTTOM, bold=False, state=uiconst.UI_DISABLED)
+            return
 
     def UpdateLayoutArea(self):
         size = self.video.GetVideoSize()

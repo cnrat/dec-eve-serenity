@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\packages\shipfitting\fittingDogmaLocationUtil.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\packages\shipfitting\fittingDogmaLocationUtil.py
 from math import sqrt, log, exp
 import math
 from carbonui.util.bunch import Bunch
@@ -140,7 +141,7 @@ def GetTurretAndMissileDps(shipID, dogmaLocation, typeHasEffectFunc):
     return (turretDps, missileDps)
 
 
-def GetLauncherDps(dogmaLocation, chargeKey, itemID, ownerID, GAV, damageMultiplier = None):
+def GetLauncherDps(dogmaLocation, chargeKey, itemID, ownerID, GAV, damageMultiplier=None):
     damage = GetDamageFromItem(dogmaLocation, chargeKey)
     duration = GAV(itemID, const.attributeRateOfFire)
     if damageMultiplier is None:
@@ -166,7 +167,7 @@ def GetTurretDps(dogmaLocation, chargeKey, itemID, GAV, *args):
 def GetDamageFromItem(dogmaLocation, itemID):
     accDamage = 0
     for attributeID in DAMAGE_ATTRIBUTES:
-        d = dogmaLocation.GetAttributeValue(itemID, attributeID)
+        d = dogmaLocation.GetAccurateAttributeValue(itemID, attributeID)
         accDamage += d
 
     return accDamage
@@ -174,17 +175,25 @@ def GetDamageFromItem(dogmaLocation, itemID):
 
 def CheckCanFitType(dogmaLocation, typeID, locationID):
     maxGroupFitted = dogmaLocation.dogmaStaticMgr.GetTypeAttribute(typeID, const.attributeMaxGroupFitted)
-    if maxGroupFitted is None:
-        return
-    groupID = evetypes.GetGroupID(typeID)
-    modulesByGroup = dogmaLocation.GetModuleListByShipGroup(locationID, groupID)
-    if len(modulesByGroup) >= maxGroupFitted:
-        shipItem = dogmaLocation.dogmaItems[locationID]
-        raise UserError('CantFitTooManyByGroup', {'ship': shipItem.typeID,
-         'module': typeID,
-         'groupName': evetypes.GetGroupName(typeID),
-         'noOfModules': int(maxGroupFitted),
-         'noOfModulesFitted': len(modulesByGroup)})
+    if maxGroupFitted:
+        groupID = evetypes.GetGroupID(typeID)
+        modulesByGroup = dogmaLocation.GetModuleListByShipGroup(locationID, groupID)
+        if len(modulesByGroup) >= maxGroupFitted:
+            shipItem = dogmaLocation.dogmaItems[locationID]
+            raise UserError('CantFitTooManyByGroup', {'ship': shipItem.typeID,
+             'module': typeID,
+             'groupName': evetypes.GetGroupName(typeID),
+             'noOfModules': int(maxGroupFitted),
+             'noOfModulesFitted': len(modulesByGroup)})
+    maxTypeFitted = dogmaLocation.dogmaStaticMgr.GetTypeAttribute(typeID, const.attributeMaxTypeFitted)
+    if maxTypeFitted:
+        modulesByType = dogmaLocation.GetModuleListByShipType(locationID, typeID)
+        if len(modulesByType) >= maxTypeFitted:
+            shipItem = dogmaLocation.dogmaItems[locationID]
+            raise UserError('CantFitTooManyByType', {'ship': shipItem.typeID,
+             'module': typeID,
+             'noOfModules': int(maxTypeFitted),
+             'noOfModulesFitted': len(modulesByType)})
 
 
 def CanFitModuleToShipTypeOrGroup(dogmaLocation, typeID):

@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\packages\carbonui\control\editutils\htmlscraper.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\packages\carbonui\control\editutils\htmlscraper.py
 import re
 import blue
 import telemetry
@@ -73,8 +74,8 @@ class HtmlScraper:
             attrname, rest, attrvalue = entry
             if not rest:
                 attrvalue = attrname
-            elif attrvalue[:1] == "'" == attrvalue[-1:] or attrvalue[:1] == '"' == attrvalue[-1:]:
-                attrvalue = attrvalue[1:-1]
+            elif not attrvalue[:1] == "'" == attrvalue[-1:]:
+                attrvalue = attrvalue[:1] == '"' == attrvalue[-1:] and attrvalue[1:-1]
             attrs.append((attrname.lower(), attrvalue))
 
         return self.handletag(name.lower(), attrs, thetag)
@@ -83,10 +84,10 @@ class HtmlScraper:
         return inchunk
 
     def pdecl(self, thetag):
-        return '<'
+        pass
 
     def ppi(self):
-        return '<'
+        pass
 
     def endtag(self, thetag):
         return '<' + thetag + '>'

@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\client\script\ui\shared\mapView\mapViewSettings.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\client\script\ui\shared\mapView\mapViewSettings.py
 from carbon.common.script.sys.service import ROLE_GML
 from carbonui.control.scrollentries import ScrollEntryNode, SE_BaseClassCore
 from carbonui.primitives.container import Container
@@ -72,17 +73,19 @@ class MapViewSettingButtons(LayoutGrid):
         LayoutGrid.Close(self, *args)
         self.buttonIconByGroupKey = None
         self.onSettingsChangedCallback = None
+        return
 
     def FocusSelf(self, *args):
         if self.onSettingsChangedCallback:
             self.onSettingsChangedCallback(VIEWMODE_FOCUS_SELF, session.charid)
 
-    def OnSettingsChanged(self, settingGroupKey, settingValue, mapViewID = None):
+    def OnSettingsChanged(self, settingGroupKey, settingValue, mapViewID=None):
         button = self.buttonIconByGroupKey.get(settingGroupKey, None)
         if button:
             button.ReloadSettingValue()
         if self.onSettingsChangedCallback:
             self.onSettingsChangedCallback(settingGroupKey, settingValue)
+        return
 
     def UpdateButtons(self):
         for groupID, button in self.buttonIconByGroupKey.iteritems():
@@ -112,6 +115,7 @@ class MapViewSettingButton(ButtonIcon):
     def Close(self, *args):
         ButtonIcon.Close(self, *args)
         self.callback = None
+        return
 
     def LoadTooltipPanel(self, tooltipPanel, *args):
         if uicore.uilib.leftbtn:
@@ -145,34 +149,37 @@ class MapViewMarkersSettingButton(ButtonIcon):
     def Close(self, *args):
         ButtonIcon.Close(self, *args)
         self.callback = None
+        return
 
     def LoadTooltipPanel(self, tooltipPanel, *args):
         if uicore.uilib.leftbtn:
             return
-        tooltipPanel.columns = 2
-        tooltipPanel.AddLabelSmall(text=localization.GetByLabel('UI/Map/Markers'), bold=True, cellPadding=(8, 4, 4, 2), colSpan=tooltipPanel.columns)
-        divider = LineThemeColored(align=uiconst.TOTOP, state=uiconst.UI_DISABLED, height=1, padding=(1, 1, 1, 0), opacity=0.3)
-        tooltipPanel.AddCell(divider, cellPadding=(0, 0, 0, 2), colSpan=tooltipPanel.columns)
-        currentActive = GetMapViewSetting(self.settingGroupKey, self.mapViewID)
-        sortList = []
-        for groupID in VIEWMODE_MARKERS_OPTIONS:
-            sortList.append((evetypes.GetGroupNameByGroup(groupID), groupID))
+        else:
+            tooltipPanel.columns = 2
+            tooltipPanel.AddLabelSmall(text=localization.GetByLabel('UI/Map/Markers'), bold=True, cellPadding=(8, 4, 4, 2), colSpan=tooltipPanel.columns)
+            divider = LineThemeColored(align=uiconst.TOTOP, state=uiconst.UI_DISABLED, height=1, padding=(1, 1, 1, 0), opacity=0.3)
+            tooltipPanel.AddCell(divider, cellPadding=(0, 0, 0, 2), colSpan=tooltipPanel.columns)
+            currentActive = GetMapViewSetting(self.settingGroupKey, self.mapViewID)
+            sortList = []
+            for groupID in VIEWMODE_MARKERS_OPTIONS:
+                sortList.append((evetypes.GetGroupNameByGroup(groupID), groupID))
 
-        for customID in VIEWMODE_MARKERS_OPTIONS_CUSTOM:
-            sortList.append((localization.GetByLabel(VIEWMODE_MARKERS_CUSTOM_LABELS[customID]), customID))
+            for customID in VIEWMODE_MARKERS_OPTIONS_CUSTOM:
+                sortList.append((localization.GetByLabel(VIEWMODE_MARKERS_CUSTOM_LABELS[customID]), customID))
 
-        for optionName, optionID in sorted(sortList):
-            checkBox = Checkbox(align=uiconst.TOPLEFT, text=optionName, checked=optionID in currentActive, wrapLabel=False, callback=self.OnSettingButtonCheckBoxChange, retval=optionID, prefstype=None)
-            tooltipPanel.AddCell(cellObject=checkBox, colSpan=tooltipPanel.columns, cellPadding=(5, 0, 5, 0))
+            for optionName, optionID in sorted(sortList):
+                checkBox = Checkbox(align=uiconst.TOPLEFT, text=optionName, checked=optionID in currentActive, wrapLabel=False, callback=self.OnSettingButtonCheckBoxChange, retval=optionID, prefstype=None)
+                tooltipPanel.AddCell(cellObject=checkBox, colSpan=tooltipPanel.columns, cellPadding=(5, 0, 5, 0))
 
-        tooltipPanel.AddSpacer(width=2, height=2, colSpan=tooltipPanel.columns)
-        tooltipPanel.state = uiconst.UI_NORMAL
+            tooltipPanel.AddSpacer(width=2, height=2, colSpan=tooltipPanel.columns)
+            tooltipPanel.state = uiconst.UI_NORMAL
+            return
 
     def GetTooltipPointer(self):
         return uiconst.POINT_TOP_1
 
     def GetTooltipDelay(self):
-        return 5
+        pass
 
     def OnSettingButtonCheckBoxChange(self, checkbox, *args, **kwds):
         currentActive = set(GetMapViewSetting(self.settingGroupKey, self.mapViewID))
@@ -215,6 +222,7 @@ class ButtonTooltipRow(LayoutGridRow):
     def Close(self, *args):
         LayoutGridRow.Close(self, *args)
         self.callback = None
+        return
 
     def OnMouseEnter(self, *args):
         self.highLight.display = True
@@ -245,28 +253,31 @@ class MapViewCheckboxOptionButton(ButtonIcon):
     def Close(self, *args):
         ButtonIcon.Close(self, *args)
         self.callback = None
+        return
 
     def LoadTooltipPanel(self, tooltipPanel, *args):
         if uicore.uilib.leftbtn:
             return
-        tooltipPanel.columns = 2
-        tooltipPanel.AddLabelSmall(text=localization.GetByLabel('UI/Map/Layout'), bold=True, cellPadding=(8, 4, 4, 2), colSpan=tooltipPanel.columns)
-        for settingsGroupKey in self.settingGroupKeys:
-            if len(tooltipPanel.children):
-                divider = LineThemeColored(align=uiconst.TOTOP, height=1, padding=(1, 1, 1, 0), opacity=0.3)
-                tooltipPanel.AddCell(cellObject=divider, colSpan=tooltipPanel.columns)
-            if settingsGroupKey in MV_GROUPS_BY_ID:
-                for settingsID in MV_GROUPS_BY_ID[settingsGroupKey]:
-                    checked = settingsID == GetMapViewSetting(settingsGroupKey, self.mapViewID)
-                    checkBox = Checkbox(align=uiconst.TOPLEFT, text=LABEL_MAP_BY_ID[settingsID], groupname=settingsGroupKey, checked=checked, wrapLabel=False, callback=self.OnCheckBoxChange, configName=settingsGroupKey, retval=settingsID, prefstype=None)
+        else:
+            tooltipPanel.columns = 2
+            tooltipPanel.AddLabelSmall(text=localization.GetByLabel('UI/Map/Layout'), bold=True, cellPadding=(8, 4, 4, 2), colSpan=tooltipPanel.columns)
+            for settingsGroupKey in self.settingGroupKeys:
+                if len(tooltipPanel.children):
+                    divider = LineThemeColored(align=uiconst.TOTOP, height=1, padding=(1, 1, 1, 0), opacity=0.3)
+                    tooltipPanel.AddCell(cellObject=divider, colSpan=tooltipPanel.columns)
+                if settingsGroupKey in MV_GROUPS_BY_ID:
+                    for settingsID in MV_GROUPS_BY_ID[settingsGroupKey]:
+                        checked = settingsID == GetMapViewSetting(settingsGroupKey, self.mapViewID)
+                        checkBox = Checkbox(align=uiconst.TOPLEFT, text=LABEL_MAP_BY_ID[settingsID], groupname=settingsGroupKey, checked=checked, wrapLabel=False, callback=self.OnCheckBoxChange, configName=settingsGroupKey, retval=settingsID, prefstype=None)
+                        tooltipPanel.AddCell(cellObject=checkBox, colSpan=tooltipPanel.columns, cellPadding=(5, 0, 5, 0))
+
+                else:
+                    checked = bool(GetMapViewSetting(settingsGroupKey, self.mapViewID))
+                    checkBox = Checkbox(align=uiconst.TOPLEFT, text=LABEL_MAP_BY_ID[settingsGroupKey], checked=checked, wrapLabel=False, callback=self.OnCheckBoxChange, configName=settingsGroupKey, prefstype=None)
                     tooltipPanel.AddCell(cellObject=checkBox, colSpan=tooltipPanel.columns, cellPadding=(5, 0, 5, 0))
 
-            else:
-                checked = bool(GetMapViewSetting(settingsGroupKey, self.mapViewID))
-                checkBox = Checkbox(align=uiconst.TOPLEFT, text=LABEL_MAP_BY_ID[settingsGroupKey], checked=checked, wrapLabel=False, callback=self.OnCheckBoxChange, configName=settingsGroupKey, prefstype=None)
-                tooltipPanel.AddCell(cellObject=checkBox, colSpan=tooltipPanel.columns, cellPadding=(5, 0, 5, 0))
-
-        tooltipPanel.state = uiconst.UI_NORMAL
+            tooltipPanel.state = uiconst.UI_NORMAL
+            return
 
     def OnCheckBoxChange(self, checkbox):
         key = checkbox.data['config']
@@ -276,13 +287,14 @@ class MapViewCheckboxOptionButton(ButtonIcon):
         SetMapViewSetting(key, val, self.mapViewID)
         if self.callback:
             self.callback(key, val)
+        return
 
     def _LocalCallback(self, *args, **kwds):
         if self.callback:
             self.callback(*args, **kwds)
 
     def GetTooltipDelay(self):
-        return 5
+        pass
 
     def GetTooltipPointer(self):
         return uiconst.POINT_TOP_1
@@ -341,7 +353,7 @@ class MapViewColorModeSettingButton(MapViewSettingButton):
     def OnScrollPositionChanged(self, *args, **kwargs):
         settings.char.ui.Set('mapViewColorModeScrollPosition_%s' % self.mapViewID, self.scroll.GetScrollProportion())
 
-    def GetScrollEntries(self, options, settingsKey = None, sublevel = 0):
+    def GetScrollEntries(self, options, settingsKey=None, sublevel=0):
         currentActive = GetMapViewSetting(self.settingGroupKey, self.mapViewID)
         scrollList = []
         for colorMode in options:
@@ -372,7 +384,7 @@ class MapViewColorModeSettingButton(MapViewSettingButton):
          'showicon': 'hide'}
         return listentry.Get('Group', data)
 
-    def GetSubContent(self, data, newitems = 0):
+    def GetSubContent(self, data, newitems=0):
         for entry in self.scroll.GetNodes():
             if entry.__guid__ != 'listentry.Group' or entry.id == data.id:
                 continue
@@ -385,7 +397,7 @@ class MapViewColorModeSettingButton(MapViewSettingButton):
 
         return self.GetScrollEntries(data.groupItems)
 
-    def AddCheckBox(self, config, scrolllist, group = None, sublevel = 0):
+    def AddCheckBox(self, config, scrolllist, group=None, sublevel=0):
         cfgname, retval, desc, default = config
         data = {}
         data['label'] = desc
@@ -401,6 +413,7 @@ class MapViewColorModeSettingButton(MapViewSettingButton):
             scrolllist.append(scrollNode)
         else:
             return scrollNode
+        return
 
     def OnColorModeScrollCheckBoxChange(self, checkbox):
         key = checkbox.data['key']
@@ -410,6 +423,7 @@ class MapViewColorModeSettingButton(MapViewSettingButton):
         self._SetColorMode(key, val)
         self.RegisterRecentColorMode(val)
         self.LoadRecentColorModes()
+        return
 
     def OnColorModeCheckBoxChange(self, checkbox):
         key = checkbox.data['config']
@@ -418,6 +432,7 @@ class MapViewColorModeSettingButton(MapViewSettingButton):
             val = checkbox.checked
         self._SetColorMode(key, val)
         self.LoadColorModes()
+        return
 
     def _SetColorMode(self, key, val):
         SetMapViewSetting(key, val, self.mapViewID)
@@ -451,15 +466,18 @@ class MapViewColorModeSettingButton(MapViewSettingButton):
     def LoadRecentColorModes(self):
         if self.destroyed:
             return
-        self.recentLayoutGrid.Flush()
-        ret = self.GetRecentColorModes()
-        currentActive = GetMapViewSetting(VIEWMODE_COLOR_SETTINGS, self.mapViewID)
-        for colorMode in ret:
-            label = GetFormatFunctionLabel(colorMode)
-            if not label:
-                continue
-            checkBox = Checkbox(align=uiconst.TOPLEFT, text=label, checked=colorMode == currentActive, wrapLabel=True, callback=self.OnColorModeCheckBoxChange, configName=VIEWMODE_COLOR_SETTINGS, groupname=VIEWMODE_COLOR_SETTINGS, retval=colorMode, prefstype=None, width=COLORMODE_MENU_WIDTH - 10)
-            self.recentLayoutGrid.AddCell(cellObject=checkBox, cellPadding=(5, 0, 5, 0))
+        else:
+            self.recentLayoutGrid.Flush()
+            ret = self.GetRecentColorModes()
+            currentActive = GetMapViewSetting(VIEWMODE_COLOR_SETTINGS, self.mapViewID)
+            for colorMode in ret:
+                label = GetFormatFunctionLabel(colorMode)
+                if not label:
+                    continue
+                checkBox = Checkbox(align=uiconst.TOPLEFT, text=label, checked=colorMode == currentActive, wrapLabel=True, callback=self.OnColorModeCheckBoxChange, configName=VIEWMODE_COLOR_SETTINGS, groupname=VIEWMODE_COLOR_SETTINGS, retval=colorMode, prefstype=None, width=COLORMODE_MENU_WIDTH - 10)
+                self.recentLayoutGrid.AddCell(cellObject=checkBox, cellPadding=(5, 0, 5, 0))
+
+            return
 
     def GetNPCOptions(self):
         ret = [STARMODE_DUNGEONS, STARMODE_DUNGEONSAGENTS, STARMODE_INCURSION]
@@ -600,6 +618,7 @@ class MapViewCheckbox(SE_BaseClassCore):
          'retval': data.retval})
         self.label.width = data.entryWidth - self.TEXTLEFT - self.TEXTRIGHT
         self.label.text = data.label
+        return
 
     def CheckBoxChange(self, *args):
         self.sr.node.checked = self.checkbox.checked
@@ -608,23 +627,25 @@ class MapViewCheckbox(SE_BaseClassCore):
     def OnClick(self, *args):
         if not self or self.destroyed:
             return
-        if self.checkbox.checked:
-            eve.Message('DiodeDeselect')
         else:
-            eve.Message('DiodeClick')
-        if self.checkbox.groupName is None:
-            self.checkbox.SetChecked(not self.checkbox.checked)
-            return
-        for node in self.sr.node.scroll.GetNodes():
-            if issubclass(node.decoClass, MapViewCheckbox) and node.Get('group', None) == self.checkbox.groupName:
-                if node.panel:
-                    node.panel.checkbox.SetChecked(0, 0)
-                    node.checked = 0
-                else:
-                    node.checked = 0
+            if self.checkbox.checked:
+                eve.Message('DiodeDeselect')
+            else:
+                eve.Message('DiodeClick')
+            if self.checkbox.groupName is None:
+                self.checkbox.SetChecked(not self.checkbox.checked)
+                return
+            for node in self.sr.node.scroll.GetNodes():
+                if issubclass(node.decoClass, MapViewCheckbox) and node.Get('group', None) == self.checkbox.groupName:
+                    if node.panel:
+                        node.panel.checkbox.SetChecked(0, 0)
+                        node.checked = 0
+                    else:
+                        node.checked = 0
 
-        if not self.destroyed:
-            self.checkbox.SetChecked(1)
+            if not self.destroyed:
+                self.checkbox.SetChecked(1)
+            return
 
     def GetHeight(_self, node, width):
         textWidth, textHeight = EveLabelSmall.MeasureTextSize(node.label, width=node.entryWidth - MapViewCheckbox.TEXTLEFT - MapViewCheckbox.TEXTRIGHT)
@@ -632,7 +653,6 @@ class MapViewCheckbox(SE_BaseClassCore):
 
     def OnCharSpace(self, enteredChar, *args):
         uthread.pool('checkbox::OnChar', self.OnClick, self)
-        return 1
 
     def OnMouseEnter(self, *args):
         SE_BaseClassCore.OnMouseEnter(self, *args)

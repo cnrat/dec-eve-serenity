@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\common\modules\nice\client\_nastyspace\uiprimitives.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\common\modules\nice\client\_nastyspace\uiprimitives.py
 from carbonui.primitives.area import Area
 from carbonui.primitives.backgroundList import BackgroundList
 from carbonui.primitives.base import Base
@@ -14,7 +15,6 @@ from carbonui.primitives.frame import Frame as FrameCore
 from carbonui.primitives.line import Line
 from carbonui.primitives.sprite import Sprite
 from carbonui.primitives.sprite import TexturedBase
-from carbonui.primitives.sprite import VideoSprite
 from carbonui.primitives.sprite import VisibleBase
 from carbonui.primitives.transform import Transform
 from carbonui.primitives.vectorlinetrace import VectorLineTrace

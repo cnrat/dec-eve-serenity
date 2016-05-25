@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\client\script\ui\util\disconnectNotice.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\client\script\ui\util\disconnectNotice.py
 from carbon.client.script.sys import appUtils
 from carbon.common.script.net.ExceptionMappingGPCS import TRANSPORT_CLOSED_MESSAGES
 import carbonui.primitives as uiprimitives
@@ -22,8 +23,9 @@ class DisconnectNotice(object):
         if logProvider is None:
             logProvider = NoLog()
         self.logProvider = logProvider
+        return
 
-    def OnDisconnect(self, reason = 0, msg = ''):
+    def OnDisconnect(self, reason=0, msg=''):
         if msg in TRANSPORT_CLOSED_MESSAGES:
             msg = localization.GetByLabel(TRANSPORT_CLOSED_MESSAGES[msg])
         self.logProvider.LogInfo('Received OnDisconnect with reason=', reason, ' and msg=', msg)
@@ -33,7 +35,7 @@ class DisconnectNotice(object):
             audio.Deactivate()
             self.ShowDisconnectNotice(notice=msg)
 
-    def ShowDisconnectNotice(self, notice = None):
+    def ShowDisconnectNotice(self, notice=None):
         notice = notice or localization.GetByLabel('UI/Shared/GenericConnectionLost')
         msgbox = MessageBox.Open(windowID='DisconnectNotice', parent=uicore.desktop, idx=0)
         msgbox.MakeUnResizeable()
@@ -52,3 +54,4 @@ class DisconnectNotice(object):
             appUtils.Reboot('connection lost')
         else:
             bluepy.Terminate('User requesting close after client disconnect')
+        return

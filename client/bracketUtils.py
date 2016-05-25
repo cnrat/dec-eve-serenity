@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\common\modules\nice\client\_nastyspace\bracketUtils.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\common\modules\nice\client\_nastyspace\bracketUtils.py
 from eve.client.script.ui.inflight.bracketsAndTargets.bracketVarious import FixLines
 from eve.client.script.ui.inflight.bracketsAndTargets.bracketVarious import GROUPS_WITH_LOOTRIGHTS
 from eve.client.script.ui.inflight.bracketsAndTargets.bracketVarious import GetEntityStateString

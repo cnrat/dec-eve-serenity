@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\packages\carbonui\util\mouseTargetObject.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\packages\carbonui\util\mouseTargetObject.py
 __author__ = 'fridrik'
 import uthread
 import blue
@@ -21,6 +22,7 @@ class MouseTargetObject(object):
             if owner and not owner.destroyed:
                 return owner
             self._owner = None
+        return
 
     def IsMouseHeadingTowards(self):
         owner = self.GetOwner()
@@ -34,18 +36,18 @@ class MouseTargetObject(object):
          owner.displayY,
          owner.displayWidth,
          owner.displayHeight)
-        if tl <= mx <= tl + tw and tt <= my <= tt + th:
-            return False
-        oldX, oldY = self._mouseTrace[0]
-        if (oldX, oldY) == (mx, my):
-            return False
-        mouseVector = geo2.Vec2Subtract((oldX, oldY), (mx, my))
-        dirX, dirY = geo2.Vec2Scale(mouseVector, 1000)
-        hit = intersect((tl, tt), (tl + tw, tt + th), (mx, my), (mx - dirX, my - dirY))
-        if not hit:
-            hit = intersect((tl + tw, tt), (tl, tt + th), (mx, my), (mx - dirX, my - dirY))
-        if hit:
-            return True
+        if tl <= mx <= tl + tw:
+            if tt <= my <= tt + th:
+                return False
+            oldX, oldY = self._mouseTrace[0]
+            if (oldX, oldY) == (mx, my):
+                return False
+            mouseVector = geo2.Vec2Subtract((oldX, oldY), (mx, my))
+            dirX, dirY = geo2.Vec2Scale(mouseVector, 1000)
+            hit = intersect((tl, tt), (tl + tw, tt + th), (mx, my), (mx - dirX, my - dirY))
+            if not hit:
+                hit = intersect((tl + tw, tt), (tl, tt + th), (mx, my), (mx - dirX, my - dirY))
+            return hit and True
         return False
 
 

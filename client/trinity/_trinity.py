@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\packages\trinity\_trinity.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\packages\trinity\_trinity.py
 import logging as _logging
 import os as _os
 import sys as _sys
@@ -17,7 +18,7 @@ else:
     DEFAULT_TRI_TYPE = 'internal'
     VALID_TRI_TYPES = ['deploy', 'internal', 'dev']
 
-def _RobustImport(moduleName, moduleNameForFallback = None):
+def _RobustImport(moduleName, moduleNameForFallback=None):
     try:
         mod = __import__(moduleName, fromlist=['*'])
     except ImportError as ex:
@@ -70,7 +71,7 @@ def _ImportDll():
     return triPlatform
 
 
-def Load(path, nonCached = False):
+def Load(path, nonCached=False):
     if nonCached:
         _blue.resMan.loadObjectCache.Delete(path)
     obj = _blue.resMan.LoadObject(path)

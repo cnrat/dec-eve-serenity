@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\packages\trinity\sceneRenderJobBase.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\packages\trinity\sceneRenderJobBase.py
 import blue
 import decometaclass
 import geo2
@@ -30,11 +31,12 @@ class SceneRenderJobBase(object):
             self.UnscheduleRecurring()
             self.scheduled = False
 
-    def UnscheduleRecurring(self, scheduledRecurring = None):
+    def UnscheduleRecurring(self, scheduledRecurring=None):
         if scheduledRecurring is None:
             scheduledRecurring = renderJobs.recurring
         if self in scheduledRecurring:
             scheduledRecurring.remove(self)
+        return
 
     def ScheduleOnce(self):
         if not self.enabled:
@@ -60,7 +62,7 @@ class SceneRenderJobBase(object):
             renderJobs.recurring.remove(self)
             self.scheduled = False
 
-    def Enable(self, schedule = True):
+    def Enable(self, schedule=True):
         self.enabled = True
         try:
             self.DoPrepareResources()
@@ -77,7 +79,8 @@ class SceneRenderJobBase(object):
                     return stepList
 
             return
-        return self.renderStepOrder
+        else:
+            return self.renderStepOrder
 
     def _AddStereoStep(self, step):
         if not self.stereoEnabled:
@@ -144,6 +147,7 @@ class SceneRenderJobBase(object):
             self.steps.append(step)
             self._AddStereoStep(step)
             return step
+            return
 
     def HasStep(self, stepKey):
         if stepKey in self.stepsLookup:
@@ -163,6 +167,7 @@ class SceneRenderJobBase(object):
                         break
 
             del self.stepsLookup[stepKey]
+        return
 
     def EnableStep(self, stepKey):
         self.SetStepAttr(stepKey, 'enabled', True)
@@ -173,18 +178,22 @@ class SceneRenderJobBase(object):
     def GetStep(self, stepKey):
         if stepKey in self.stepsLookup:
             return self.stepsLookup[stepKey].object
+        else:
+            return None
 
     def SetStepAttr(self, stepKey, attr, val):
         if stepKey in self.stepsLookup:
             s = self.stepsLookup[stepKey].object
             if s is not None:
                 setattr(s, attr, val)
+        return
 
     def GetScene(self):
         if self.scene is None:
             return
         else:
             return self.scene.object
+            return
 
     def GetVisualizationsForRenderjob(self):
         return self.visualizations
@@ -201,8 +210,9 @@ class SceneRenderJobBase(object):
             visInstance = vis()
             visInstance.ApplyVisualization(self)
             self.appliedVisualization = visInstance
+        return
 
-    def ManualInit(self, name = 'BaseSceneRenderJob'):
+    def ManualInit(self, name='BaseSceneRenderJob'):
         self.name = name
         self.scene = None
         self.stepsLookup = {}
@@ -216,6 +226,7 @@ class SceneRenderJobBase(object):
         self.viewport = None
         self.swapChain = None
         self._ManualInit(name)
+        return
 
     def DoPrepareResources(self):
         raise NotImplementedError('You must provide an implementation of DoPrepareResources(self)')
@@ -229,6 +240,7 @@ class SceneRenderJobBase(object):
         else:
             self.scene = blue.BluePythonWeakRef(scene)
         self._SetScene(scene)
+        return
 
     def CreateBasicRenderSteps(self):
         self.steps.removeAt(-1)
@@ -264,6 +276,7 @@ class SceneRenderJobBase(object):
         else:
             self.AddStep('SET_VIEWPORT', trinity.TriStepSetViewport(viewport))
             self.viewport = blue.BluePythonWeakRef(viewport)
+        return
 
     def GetViewport(self):
         if self.viewport is None:
@@ -272,6 +285,7 @@ class SceneRenderJobBase(object):
             return self.viewport.object
         else:
             return self.viewport
+            return
 
     def SetCameraView(self, view):
         if view is None:
@@ -280,6 +294,7 @@ class SceneRenderJobBase(object):
         else:
             self.AddStep('SET_VIEW', trinity.TriStepSetView(view))
             self.view = blue.BluePythonWeakRef(view)
+        return
 
     def SetCameraProjection(self, proj):
         if proj is None:
@@ -291,6 +306,7 @@ class SceneRenderJobBase(object):
                 self.originalProjection = blue.BluePythonWeakRef(proj)
             else:
                 self.projection = blue.BluePythonWeakRef(proj)
+        return
 
     def GetCameraProjection(self):
         if self.projection is None:
@@ -299,6 +315,7 @@ class SceneRenderJobBase(object):
             return self.projection.object
         else:
             return self.projection
+            return
 
     def SetActiveCamera(self, camera):
         self.SetCameraView(camera.viewMatrix)
@@ -308,6 +325,7 @@ class SceneRenderJobBase(object):
         step = self.GetStep('CLEAR')
         if step is not None:
             step.color = color
+        return
 
     def _StereoUpdateViewProjection(self, eye):
         if self.originalProjection.object.transform[2][3] != 0:
@@ -330,53 +348,54 @@ class SceneRenderJobBase(object):
     def EnableStereo(self, enable):
         if enable == self.stereoEnabled:
             return True
-        if enable:
-
-            def leftCallback():
-                return self._StereoUpdateViewProjection(trinity.STEREO_EYE_LEFT)
-
-            def rightCallback():
-                return self._StereoUpdateViewProjection(trinity.STEREO_EYE_RIGHT)
-
-            leftUpdate = self.AddStep('UPDATE_STEREO', trinity.TriStepPythonCB())
-            if leftUpdate is None:
-                return False
-            leftUpdate.SetCallback(leftCallback)
-            self.originalProjection = self.projection
-            self.stereoProjection = trinity.TriProjection()
-            self.SetCameraProjection(self.stereoProjection)
-            rightUpdate = trinity.TriStepPythonCB()
-            rightUpdate.name = 'UPDATE_STEREO_RIGHT'
-            rightUpdate.SetCallback(rightCallback)
-            self.steps.append(rightUpdate)
-            index = -1
-            try:
-                index = self.steps.index(self.GetStep('UPDATE_STEREO'))
-            except:
-                pass
-
-            if index >= 0:
-                count = len(self.steps)
-                for i in range(index + 1, count - 1):
-                    step = self.steps[i]
-                    self.steps.append(step)
-
-            self.stereoEnabled = True
         else:
-            index = -1
-            for i, step in enumerate(self.steps):
-                if step.name == 'UPDATE_STEREO_RIGHT':
-                    index = i
-                    break
+            if enable:
 
-            if index >= 0:
-                while len(self.steps) > index:
-                    self.steps.removeAt(index)
+                def leftCallback():
+                    return self._StereoUpdateViewProjection(trinity.STEREO_EYE_LEFT)
 
-            self.stereoEnabled = False
-            self.RemoveStep('UPDATE_STEREO')
-            self.SetCameraProjection(self.originalProjection.object)
-        return True
+                def rightCallback():
+                    return self._StereoUpdateViewProjection(trinity.STEREO_EYE_RIGHT)
+
+                leftUpdate = self.AddStep('UPDATE_STEREO', trinity.TriStepPythonCB())
+                if leftUpdate is None:
+                    return False
+                leftUpdate.SetCallback(leftCallback)
+                self.originalProjection = self.projection
+                self.stereoProjection = trinity.TriProjection()
+                self.SetCameraProjection(self.stereoProjection)
+                rightUpdate = trinity.TriStepPythonCB()
+                rightUpdate.name = 'UPDATE_STEREO_RIGHT'
+                rightUpdate.SetCallback(rightCallback)
+                self.steps.append(rightUpdate)
+                index = -1
+                try:
+                    index = self.steps.index(self.GetStep('UPDATE_STEREO'))
+                except:
+                    pass
+
+                if index >= 0:
+                    count = len(self.steps)
+                    for i in range(index + 1, count - 1):
+                        step = self.steps[i]
+                        self.steps.append(step)
+
+                self.stereoEnabled = True
+            else:
+                index = -1
+                for i, step in enumerate(self.steps):
+                    if step.name == 'UPDATE_STEREO_RIGHT':
+                        index = i
+                        break
+
+                if index >= 0:
+                    while len(self.steps) > index:
+                        self.steps.removeAt(index)
+
+                self.stereoEnabled = False
+                self.RemoveStep('UPDATE_STEREO')
+                self.SetCameraProjection(self.originalProjection.object)
+            return True
 
     def SetSwapChain(self, swapChain):
         self.DoReleaseResources(1)
@@ -386,10 +405,13 @@ class SceneRenderJobBase(object):
             self.AddStep('PRESENT_SWAPCHAIN', trinity.TriStepPresentSwapChain(swapChain))
         self.swapChain = blue.BluePythonWeakRef(swapChain)
         self.DoPrepareResources()
+        return
 
     def GetSwapChain(self):
         if self.swapChain is not None:
             return self.swapChain.object
+        else:
+            return
 
     def GetBackBufferSize(self):
         if self.GetSwapChain() is not None:
@@ -403,7 +425,8 @@ class SceneRenderJobBase(object):
     def GetBackBufferRenderTarget(self):
         if self.GetSwapChain() is not None:
             return self.GetSwapChain().backBuffer
-        return _singletons.device.GetRenderContext().GetDefaultBackBuffer()
+        else:
+            return _singletons.device.GetRenderContext().GetDefaultBackBuffer()
 
     def GetDepthStencilWithRTMAL(self, depthFormat, backBufferDepthStencil, renderTargetIndex):
         if backBufferDepthStencil is not None and depthFormat == backBufferDepthStencil.format:
@@ -414,3 +437,4 @@ class SceneRenderJobBase(object):
             if result is not None:
                 result.name = 'depthStencil'
             return result
+            return

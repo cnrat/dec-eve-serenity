@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\packages\spacecomponents\server\components\bountyEscrow\lock.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\packages\spacecomponents\server\components\bountyEscrow\lock.py
 import weakref
 import uthread2
 from eveexceptions import UserError
@@ -23,6 +24,7 @@ class Lock(object):
         self.listenersForUnlock = []
         self.listenerForSetUnlockedFor = None
         self.listenersForPossiblyLock = []
+        return
 
     def RegisterBallpark(self, ballpark):
         self.ballpark = ballpark
@@ -39,6 +41,7 @@ class Lock(object):
         self.ballpark.UnregisterForUnboardEvents(shipID)
         sm.UnregisterForNotifyEvent(self, 'ProcessBallRemoval')
         self.shipIDOfInterest = None
+        return
 
     def _NotifyForLockEvent(self, shipID, reason):
         ownerID = self.GetOwnerOfShip(shipID)
@@ -49,6 +52,7 @@ class Lock(object):
         if self.shipIDOfInterest is not None and self.shipIDOfInterest == shipID:
             self.Lock()
             self._NotifyForLockEvent(shipID, reason)
+        return
 
     def SlashLock(self):
         self._PossiblyLock(self.shipIDOfInterest, 'SlashLock')
@@ -58,12 +62,14 @@ class Lock(object):
             self.unlockingFor = None
             self._KillUnlockThread()
         self.SetLocked()
+        return
 
     def SetLocked(self):
         self._UpdateSlimItem(bountyEscrow.GetSlimStateForLocked())
         self.unlockingFor = None
         if self.shipIDOfInterest is not None:
             self.UnregisterForEvents(self.shipIDOfInterest)
+        return
 
     def DoProximity(self, ballID, entered):
         if not entered:
@@ -95,10 +101,13 @@ class Lock(object):
         if unlockingCharID is not None:
             raise UserError('BountyEscrowAlreadyUnlocked', {'typeID': self.typeID,
              'charID': unlockingCharID})
+        return
 
     def _GetUnlockingCharID(self):
         if self.unlockingFor is not None:
             return self.unlockingFor[0]
+        else:
+            return
 
     def _UnlockThread(self, charID, unlockDelay, callback):
         try:
@@ -111,6 +120,7 @@ class Lock(object):
     def _KillUnlockThread(self):
         self.unlockingThread.Kill()
         self.unlockingThread = None
+        return
 
     def SetUnlockingFor(self, charID, shipID):
         self.unlockingFor = (charID, shipID)

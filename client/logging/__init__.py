@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\carbon\common\stdlib\logging\__init__.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\carbon\common\stdlib\logging\__init__.py
 import sys, os, time, cStringIO, traceback, warnings, weakref
 __all__ = ['BASIC_FORMAT',
  'BufferingFormatter',
@@ -144,7 +145,7 @@ def _releaseLock():
 
 class LogRecord(object):
 
-    def __init__(self, name, level, pathname, lineno, msg, args, exc_info, func = None):
+    def __init__(self, name, level, pathname, lineno, msg, args, exc_info, func=None):
         ct = time.time()
         self.name = name
         self.msg = msg
@@ -189,6 +190,7 @@ class LogRecord(object):
             self.process = os.getpid()
         else:
             self.process = None
+        return
 
     def __str__(self):
         return '<LogRecord: %s, %s, %s, %s, "%s">' % (self.name,
@@ -222,14 +224,14 @@ def makeLogRecord(dict):
 class Formatter(object):
     converter = time.localtime
 
-    def __init__(self, fmt = None, datefmt = None):
+    def __init__(self, fmt=None, datefmt=None):
         if fmt:
             self._fmt = fmt
         else:
             self._fmt = '%(message)s'
         self.datefmt = datefmt
 
-    def formatTime(self, record, datefmt = None):
+    def formatTime(self, record, datefmt=None):
         ct = self.converter(record.created)
         if datefmt:
             s = time.strftime(datefmt, ct)
@@ -273,17 +275,17 @@ _defaultFormatter = Formatter()
 
 class BufferingFormatter(object):
 
-    def __init__(self, linefmt = None):
+    def __init__(self, linefmt=None):
         if linefmt:
             self.linefmt = linefmt
         else:
             self.linefmt = _defaultFormatter
 
     def formatHeader(self, records):
-        return ''
+        pass
 
     def formatFooter(self, records):
-        return ''
+        pass
 
     def format(self, records):
         rv = ''
@@ -298,7 +300,7 @@ class BufferingFormatter(object):
 
 class Filter(object):
 
-    def __init__(self, name = ''):
+    def __init__(self, name=''):
         self.name = name
         self.nlen = len(name)
 
@@ -347,6 +349,8 @@ def _removeHandlerRef(wr):
         finally:
             _releaseLock()
 
+    return
+
 
 def _addHandlerRef(handler):
     _acquireLock()
@@ -358,13 +362,14 @@ def _addHandlerRef(handler):
 
 class Handler(Filterer):
 
-    def __init__(self, level = NOTSET):
+    def __init__(self, level=NOTSET):
         Filterer.__init__(self)
         self._name = None
         self.level = _checkLevel(level)
         self.formatter = None
         _addHandlerRef(self)
         self.createLock()
+        return
 
     def get_name(self):
         return self._name
@@ -387,6 +392,7 @@ class Handler(Filterer):
             self.lock = threading.RLock()
         else:
             self.lock = None
+        return
 
     def acquire(self):
         if self.lock:
@@ -438,21 +444,26 @@ class Handler(Filterer):
         if raiseExceptions:
             ei = sys.exc_info()
             try:
-                traceback.print_exception(ei[0], ei[1], ei[2], None, sys.stderr)
-                sys.stderr.write('Logged from file %s, line %s\n' % (record.filename, record.lineno))
-            except IOError:
-                pass
+                try:
+                    traceback.print_exception(ei[0], ei[1], ei[2], None, sys.stderr)
+                    sys.stderr.write('Logged from file %s, line %s\n' % (record.filename, record.lineno))
+                except IOError:
+                    pass
+
             finally:
                 del ei
+
+        return
 
 
 class StreamHandler(Handler):
 
-    def __init__(self, stream = None):
+    def __init__(self, stream=None):
         Handler.__init__(self)
         if stream is None:
             stream = sys.stderr
         self.stream = stream
+        return
 
     def flush(self):
         if self.stream and hasattr(self.stream, 'flush'):
@@ -485,10 +496,12 @@ class StreamHandler(Handler):
         except:
             self.handleError(record)
 
+        return
+
 
 class FileHandler(StreamHandler):
 
-    def __init__(self, filename, mode = 'a', encoding = None, delay = 0):
+    def __init__(self, filename, mode='a', encoding=None, delay=0):
         if codecs is None:
             encoding = None
         self.baseFilename = os.path.abspath(filename)
@@ -499,6 +512,7 @@ class FileHandler(StreamHandler):
             self.stream = None
         else:
             StreamHandler.__init__(self, self._open())
+        return
 
     def close(self):
         if self.stream:
@@ -507,6 +521,7 @@ class FileHandler(StreamHandler):
                 self.stream.close()
             StreamHandler.close(self)
             self.stream = None
+        return
 
     def _open(self):
         if self.encoding is None:
@@ -519,16 +534,19 @@ class FileHandler(StreamHandler):
         if self.stream is None:
             self.stream = self._open()
         StreamHandler.emit(self, record)
+        return
 
 
 class PlaceHolder(object):
 
     def __init__(self, alogger):
         self.loggerMap = {alogger: None}
+        return
 
     def append(self, alogger):
         if alogger not in self.loggerMap:
             self.loggerMap[alogger] = None
+        return
 
 
 _loggerClass = None
@@ -553,6 +571,7 @@ class Manager(object):
         self.emittedNoHandlerWarning = 0
         self.loggerDict = {}
         self.loggerClass = None
+        return
 
     def getLogger(self, name):
         rv = None
@@ -602,6 +621,7 @@ class Manager(object):
         if not rv:
             rv = self.root
         alogger.parent = rv
+        return
 
     def _fixupChildren(self, ph, alogger):
         name = alogger.name
@@ -614,7 +634,7 @@ class Manager(object):
 
 class Logger(Filterer):
 
-    def __init__(self, name, level = NOTSET):
+    def __init__(self, name, level=NOTSET):
         Filterer.__init__(self)
         self.name = name
         self.level = _checkLevel(level)
@@ -622,6 +642,7 @@ class Logger(Filterer):
         self.propagate = 1
         self.handlers = []
         self.disabled = 0
+        return
 
     def setLevel(self, level):
         self.level = _checkLevel(level)
@@ -678,7 +699,7 @@ class Logger(Filterer):
 
         return rv
 
-    def makeRecord(self, name, level, fn, lno, msg, args, exc_info, func = None, extra = None):
+    def makeRecord(self, name, level, fn, lno, msg, args, exc_info, func=None, extra=None):
         rv = LogRecord(name, level, fn, lno, msg, args, exc_info, func)
         if extra is not None:
             for key in extra:
@@ -688,7 +709,7 @@ class Logger(Filterer):
 
         return rv
 
-    def _log(self, level, msg, args, exc_info = None, extra = None):
+    def _log(self, level, msg, args, exc_info=None, extra=None):
         if _srcfile:
             try:
                 fn, lno, func = self.findCaller()
@@ -740,6 +761,7 @@ class Logger(Filterer):
         if found == 0 and raiseExceptions and not self.manager.emittedNoHandlerWarning:
             sys.stderr.write('No handlers could be found for logger "%s"\n' % self.name)
             self.manager.emittedNoHandlerWarning = 1
+        return
 
     def getEffectiveLevel(self):
         logger = self
@@ -839,8 +861,10 @@ def basicConfig(**kwargs):
     finally:
         _releaseLock()
 
+    return
 
-def getLogger(name = None):
+
+def getLogger(name=None):
     if name:
         return Logger.manager.getLogger(name)
     else:
@@ -895,7 +919,7 @@ def disable(level):
     root.manager.disable = level
 
 
-def shutdown(handlerList = _handlerList):
+def shutdown(handlerList=_handlerList):
     for wr in reversed(handlerList[:]):
         try:
             h = wr()
@@ -924,11 +948,12 @@ class NullHandler(Handler):
 
     def createLock(self):
         self.lock = None
+        return
 
 
 _warnings_showwarning = None
 
-def _showwarning(message, category, filename, lineno, file = None, line = None):
+def _showwarning(message, category, filename, lineno, file=None, line=None):
     global _warnings_showwarning
     if file is not None:
         if _warnings_showwarning is not None:
@@ -939,6 +964,7 @@ def _showwarning(message, category, filename, lineno, file = None, line = None):
         if not logger.handlers:
             logger.addHandler(NullHandler())
         logger.warning('%s', s)
+    return
 
 
 def captureWarnings(capture):
@@ -950,3 +976,4 @@ def captureWarnings(capture):
     elif _warnings_showwarning is not None:
         warnings.showwarning = _warnings_showwarning
         _warnings_showwarning = None
+    return

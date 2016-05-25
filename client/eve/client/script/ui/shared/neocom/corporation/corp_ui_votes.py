@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\client\script\ui\shared\neocom\corporation\corp_ui_votes.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\client\script\ui\shared\neocom\corporation\corp_ui_votes.py
 import sys
 import blue
 import evetypes
@@ -40,7 +41,7 @@ class WizardDialogBase(uicontrols.Window):
     def OnBack(self, *args):
         self.GoToStep(self.GetPreviousStep())
 
-    def GoToStep(self, requestedStep = 1, reload = 0):
+    def GoToStep(self, requestedStep=1, reload=0):
         try:
             log.LogInfo('GoToStep requestedStep:', requestedStep, 'reload:', reload, 'self.step:', self.step)
             if self.step == requestedStep and not reload:
@@ -79,7 +80,9 @@ class WizardDialogBase(uicontrols.Window):
             log.LogException()
             sys.exc_clear()
 
-    def SetNavigationButtons(self, back = 0, ok = 0, cancel = 0, next = 0):
+        return
+
+    def SetNavigationButtons(self, back=0, ok=0, cancel=0, next=0):
         if self.navigationBtns is not None:
             self.navigationBtns.Close()
             self.navigationBtns = None
@@ -114,25 +117,28 @@ class WizardDialogBase(uicontrols.Window):
         self.EnableNavigationButton(localization.GetByLabel('UI/Generic/OK'), ok)
         self.EnableNavigationButton(localization.GetByLabel('UI/Commands/Cancel'), cancel)
         self.EnableNavigationButton(localization.GetByLabel('UI/Commands/Next'), next)
+        return
 
     def EnableNavigationButton(self, button, enabled):
         self.navigationBtns.GetBtnByLabel(button).state = [uiconst.UI_HIDDEN, uiconst.UI_NORMAL][not not enabled]
 
-    def SetSteps(self, steps, firstStep = None):
+    def SetSteps(self, steps, firstStep=None):
         log.LogInfo('SetSteps firstStep', firstStep)
         if firstStep is not None and not steps.has_key(firstStep):
             raise RuntimeError('SetSteps default step argument is invalid')
         self.steps = steps
         if firstStep is not None:
             self.GoToStep(firstStep)
+        return
 
     def SetHeading(self, heading):
         if self.heading is None:
             self.heading = uicontrols.EveCaptionMedium(text=heading, parent=self.sr.topParent, align=uiconst.CENTERLEFT, left=70, idx=0)
         else:
             self.heading.text = heading
+        return
 
-    def SetHint(self, hintstr = None):
+    def SetHint(self, hintstr=None):
         if self.sr.scroll:
             self.sr.scroll.ShowHint(hintstr)
 
@@ -199,6 +205,7 @@ class VoteWizardDialog(WizardDialogBase):
         self.itemID = 0
         self.typeID = 0
         self.flagInput = None
+        return
 
     def OnSelectVoteType(self, step, scrolllist):
         self.SetNavigationButtons(back=0, ok=0, cancel=1, next=1)
@@ -310,6 +317,8 @@ class VoteWizardDialog(WizardDialogBase):
         finally:
             log.LogInfo('<OnSelectUnlockVote')
 
+        return
+
     def GenerateBlueprintExtraInfo(self, blueprint):
         infoList = []
         if not blueprint.original:
@@ -399,6 +408,8 @@ class VoteWizardDialog(WizardDialogBase):
         finally:
             log.LogInfo('<PopulateAllLockedItems')
 
+        return
+
     def PopulateLockedItems(self, scrolllist):
         try:
             log.LogInfo('>PopulateLockedItems')
@@ -456,20 +467,21 @@ class VoteWizardDialog(WizardDialogBase):
         finally:
             log.LogInfo('<PopulateLockedItems')
 
+        return
+
     def OnLeaveUnlockVote(self, nextStep):
         log.LogInfo('OnLeaveUnlockVote')
         if self.itemID == 0:
             if nextStep == 1:
                 return 1
             return 0
-        return 1
 
     def OnSelectLockdownVote(self, step, scrolllist):
         try:
             log.LogInfo('>OnSelectLockdownVote self.step:', self.step, ' step:', step)
             self.SetNavigationButtons(back=1, ok=0, cancel=1, next=self.itemID != 0)
             options = self.GetAvailableHangars()
-            if len(options) == 0 or 0 == len(sm.GetService('corp').GetMyCorporationsOffices().SelectByUniqueColumnValues('stationID', [self.locationID])):
+            if len(options) == 0 or 0 == len(sm.GetService('corp').GetMyCorporationsOffices().SelectByUniqueColumnValues('locationID', [self.locationID])):
                 label = localization.GetByLabel('UI/Corporations/CorporationWindow/Politics/NoCorpHangarAvailable')
                 scrolllist.append(listentry.Get('Header', {'label': label}))
                 log.LogInfo('No Corp Hangar available')
@@ -497,7 +509,9 @@ class VoteWizardDialog(WizardDialogBase):
         finally:
             log.LogInfo('<OnSelectLockdownVote')
 
-    def GetAvailableHangars(self, canView = 1, canTake = 0):
+        return
+
+    def GetAvailableHangars(self, canView=1, canTake=0):
         try:
             log.LogInfo('>GetAvailableHangars')
             options = []
@@ -527,7 +541,7 @@ class VoteWizardDialog(WizardDialogBase):
         finally:
             log.LogInfo('<GetAvailableHangars')
 
-    def GetHangarItemsToUse(self, flagID = None):
+    def GetHangarItemsToUse(self, flagID=None):
         try:
             log.LogInfo('>GetHangarItemsToUse')
             listing = sm.RemoteSvc('corpmgr').GetAssetInventoryForLocation(session.corpid, self.locationID, 'offices')
@@ -540,16 +554,18 @@ class VoteWizardDialog(WizardDialogBase):
         finally:
             log.LogInfo('<GetHangarItemsToUse')
 
+        return
+
     def GetHangarLocationIDToUse(self):
         try:
             log.LogInfo('>GetHangarLocationIDToUse')
-            offices = sm.GetService('corp').GetMyCorporationsOffices().SelectByUniqueColumnValues('stationID', [self.locationID])
+            offices = sm.GetService('corp').GetMyCorporationsOffices().SelectByUniqueColumnValues('locationID', [self.locationID])
             if len(offices):
                 return offices[0].officeID
         finally:
             log.LogInfo('<GetHangarLocationIDToUse')
 
-    def GetBlueprints(self, locked = False, flag = None):
+    def GetBlueprints(self, locked=False, flag=None):
         data = {}
         blueprints, _ = sm.GetService('blueprintSvc').GetCorporationBlueprints(self.locationID)
         for blueprint in blueprints:
@@ -612,7 +628,6 @@ class VoteWizardDialog(WizardDialogBase):
             if nextStep == 1:
                 return 1
             return 0
-        return 1
 
     def PickCorporationOrAlliance(self, *args):
         dlg = form.CorporationOrAlliancePickerDailog.Open(warableEntitysOnly=True)
@@ -632,6 +647,7 @@ class VoteWizardDialog(WizardDialogBase):
          'setValue': self.voteShares,
          'name': 'voteSharesCtrl',
          'intmode': (1, 10000000)}))
+        return
 
     def OnLeaveShareVote(self, nextStep):
         control = uiutil.GetChild(self, 'voteSharesCtrl')
@@ -639,7 +655,6 @@ class VoteWizardDialog(WizardDialogBase):
             self.voteShares = control.GetValue()
         else:
             self.voteShares = control.sr.edit.GetValue()
-        return 1
 
     def OnSelectExpelVote(self, step, scrolllist):
         self.SetNavigationButtons(back=1, ok=0, cancel=1, next=1)
@@ -649,6 +664,7 @@ class VoteWizardDialog(WizardDialogBase):
          'caption': localization.GetByLabel('UI/Corporations/CorporationWindow/Politics/Pick'),
          'OnClick': self.PickMember,
          'args': (None,)}))
+        return None
 
     def PickMember(self, *args):
         memberslist = []
@@ -670,7 +686,6 @@ class VoteWizardDialog(WizardDialogBase):
             return 1
         if self.memberID == 0:
             return 0
-        return 1
 
     def OnSelectGeneralVote(self, step, scrolllist):
         self.SetNavigationButtons(back=1, ok=0, cancel=1, next=1)
@@ -679,6 +694,7 @@ class VoteWizardDialog(WizardDialogBase):
          'setValue': self.voteOptionsCount,
          'name': 'voteOptionsCtrl',
          'intmode': (2, 50)}))
+        return
 
     def OnLeaveGeneralVote(self, nextStep):
         control = uiutil.GetChild(self, 'voteOptionsCtrl')
@@ -686,7 +702,6 @@ class VoteWizardDialog(WizardDialogBase):
             self.voteOptionsCount = control.GetValue()
         else:
             self.voteOptionsCount = control.sr.edit.GetValue()
-        return 1
 
     def OnSelectVoteOptions(self, step, scrolllist):
         self.SetNavigationButtons(back=1, ok=0, cancel=1, next=1)
@@ -703,6 +718,8 @@ class VoteWizardDialog(WizardDialogBase):
              'setValue': value,
              'name': identifier,
              'maxLength': 100}))
+
+        return
 
     def OnLeaveVoteOptions(self, nextStep):
         self.voteOptions = []
@@ -721,12 +738,12 @@ class VoteWizardDialog(WizardDialogBase):
                 return 0
             self.voteOptions.append(value)
 
-        return 1
-
     def GetEntry(self, identifier):
         for entry in self.sr.scroll.GetNodes():
             if entry.name == identifier:
                 return entry
+
+        return None
 
     def OnSelectVoteDetails(self, step, scrolllist):
         self.SetNavigationButtons(back=1, ok=0, cancel=1, next=1)
@@ -745,6 +762,7 @@ class VoteWizardDialog(WizardDialogBase):
          'setValue': self.voteDays,
          'name': 'voteDaysCtrl',
          'intmode': (1, 30)}))
+        return
 
     def OnLeaveVoteDetails(self, nextStep):
         control = uiutil.GetChild(self, 'voteTitleCtrl')
@@ -770,7 +788,6 @@ class VoteWizardDialog(WizardDialogBase):
         if len(self.voteDescription) == 0:
             eve.Message('CustomInfo', {'info': localization.GetByLabel('UI/Corporations/CorporationWindow/Politics/HintDescriptionCannotBeMEmpty')})
             return 0
-        return 1
 
     def OnSelectVoteSummary(self, step, scrolllist):
         self.SetNavigationButtons(back=1, ok=1, cancel=1, next=0)
@@ -886,6 +903,7 @@ class VoteWizardDialog(WizardDialogBase):
             return
         sm.GetService('corp').InsertVoteCase(self.voteTitle, self.voteDescription, session.corpid, self.voteType, options, now, endFileTime)
         WizardDialogBase.OnOK(self, args)
+        return
 
     def OnComboChange(self, combo, header, value, *args):
         if combo.name == 'voteType':
@@ -916,6 +934,7 @@ class CorpVotes(uiprimitives.Container):
         self.isCorpPanel = 1
         self.sr.inited = 0
         self.sr.headers = [localization.GetByLabel('UI/Corporations/CorporationWindow/Politics/Title'), localization.GetByLabel('UI/Corporations/CorporationWindow/Politics/Started'), localization.GetByLabel('UI/Corporations/CorporationWindow/Politics/Ends')]
+        return
 
     def IAmAMemberOfThisCorp(self):
         return self.corpID == session.corpid
@@ -969,80 +988,87 @@ class CorpVotes(uiprimitives.Container):
             self.ShowOpenVotes()
         elif args == 'closed':
             self.ShowClosedVotes()
+        return
 
     def OnCorporationVoteCaseChanged(self, corporationID, voteCaseID, change):
         log.LogInfo(self.__class__.__name__, 'OnCorporationVoteCaseChanged')
         if self is None or self.destroyed or not self.sr.inited:
             return
-        if not self.ShouldVoteCaseBeCurrentlyVisible(corporationID, voteCaseID):
+        elif not self.ShouldVoteCaseBeCurrentlyVisible(corporationID, voteCaseID):
             return
-        bAdd = True
-        bRemove = True
-        for old, new in change.itervalues():
-            if old is not None:
-                bAdd = False
-            if new is not None:
-                bRemove = False
-
-        if bAdd and bRemove:
-            raise RuntimeError('applications::OnCorporationApplicationChanged WTF')
-        if 'endDateTime' is change and change['endDateTime'][1] is not None:
-            if 'open' == self.sr.tabs.GetSelectedArgs():
-                bRemove = True
-        if bAdd:
-            voteCases = sm.GetService('corp').GetVoteCasesByCorporation(self.corpID, 2)
-            if not voteCases or 0 == len(voteCases):
-                log.LogWarn('There are no vote cases to add??')
-                return
-            scrolllist = []
-            voteCase = voteCases[voteCaseID]
-            title = self.GetVoteText(voteCase)
-            description = voteCase.description
-            starts = util.FmtDate(voteCase.startDateTime, 'ls')
-            ends = util.FmtDate(voteCase.endDateTime, 'ls')
-            data = {'GetSubContent': self.GetOpenVoteSubContent,
-             'label': title + '<t>' + starts + '<t>' + ends,
-             'sort_%s' % localization.GetByLabel('UI/Corporations/CorporationWindow/Politics/Title'): title.lower(),
-             'sort_%s' % localization.GetByLabel('UI/Corporations/CorporationWindow/Politics/Description'): description.lower(),
-             'sort_%s' % localization.GetByLabel('UI/Corporations/CorporationWindow/Politics/Started'): voteCase.startDateTime,
-             'sort_%s' % localization.GetByLabel('UI/Corporations/CorporationWindow/Politics/Ends'): voteCase.endDateTime,
-             'groupItems': None,
-             'id': ('corpopenvotes', voteCase.voteCaseID),
-             'tabs': [],
-             'state': 'locked',
-             'vote': voteCase,
-             'showicon': 'hide',
-             'hint': description,
-             'BlockOpenWindow': 1}
-            scrolllist.append(listentry.Get('Group', data))
-            if len(self.sr.scroll.sr.headers) > 0:
-                self.sr.scroll.AddEntries(-1, scrolllist)
-            else:
-                self.sr.scroll.Load(fixedEntryHeight=19, contentList=scrolllist, headers=self.sr.headers)
-            self.SetHint('')
         else:
-            entry = self.GetEntryVoteCase(corporationID, voteCaseID)
-            if entry is None:
-                log.LogWarn('Remove/Update what? entry not found')
-                return
-            if bRemove:
-                self.sr.scroll.RemoveEntries([entry])
+            bAdd = True
+            bRemove = True
+            for old, new in change.itervalues():
+                if old is not None:
+                    bAdd = False
+                if new is not None:
+                    bRemove = False
+
+            if bAdd and bRemove:
+                raise RuntimeError('applications::OnCorporationApplicationChanged WTF')
+            if 'endDateTime' is change and change['endDateTime'][1] is not None:
+                if 'open' == self.sr.tabs.GetSelectedArgs():
+                    bRemove = True
+            if bAdd:
+                voteCases = sm.GetService('corp').GetVoteCasesByCorporation(self.corpID, 2)
+                if not voteCases or 0 == len(voteCases):
+                    log.LogWarn('There are no vote cases to add??')
+                    return
+                scrolllist = []
+                voteCase = voteCases[voteCaseID]
+                title = self.GetVoteText(voteCase)
+                description = voteCase.description
+                starts = util.FmtDate(voteCase.startDateTime, 'ls')
+                ends = util.FmtDate(voteCase.endDateTime, 'ls')
+                data = {'GetSubContent': self.GetOpenVoteSubContent,
+                 'label': title + '<t>' + starts + '<t>' + ends,
+                 'sort_%s' % localization.GetByLabel('UI/Corporations/CorporationWindow/Politics/Title'): title.lower(),
+                 'sort_%s' % localization.GetByLabel('UI/Corporations/CorporationWindow/Politics/Description'): description.lower(),
+                 'sort_%s' % localization.GetByLabel('UI/Corporations/CorporationWindow/Politics/Started'): voteCase.startDateTime,
+                 'sort_%s' % localization.GetByLabel('UI/Corporations/CorporationWindow/Politics/Ends'): voteCase.endDateTime,
+                 'groupItems': None,
+                 'id': ('corpopenvotes', voteCase.voteCaseID),
+                 'tabs': [],
+                 'state': 'locked',
+                 'vote': voteCase,
+                 'showicon': 'hide',
+                 'hint': description,
+                 'BlockOpenWindow': 1}
+                scrolllist.append(listentry.Get('Group', data))
+                if len(self.sr.scroll.sr.headers) > 0:
+                    self.sr.scroll.AddEntries(-1, scrolllist)
+                else:
+                    self.sr.scroll.Load(fixedEntryHeight=19, contentList=scrolllist, headers=self.sr.headers)
+                self.SetHint('')
             else:
-                self.RefreshVotes()
+                entry = self.GetEntryVoteCase(corporationID, voteCaseID)
+                if entry is None:
+                    log.LogWarn('Remove/Update what? entry not found')
+                    return
+                if bRemove:
+                    self.sr.scroll.RemoveEntries([entry])
+                else:
+                    self.RefreshVotes()
+            return
 
     def OnCorporationVoteCaseOptionChanged(self, corporationID, voteCaseID, optionID, change):
         log.LogInfo(self.__class__.__name__, 'OnCorporationVoteCaseOptionChanged')
         if self is None or self.destroyed or not self.sr.inited:
             return
-        self.ReloadVoteCaseSubContentIfVisible(corporationID, voteCaseID)
+        else:
+            self.ReloadVoteCaseSubContentIfVisible(corporationID, voteCaseID)
+            return
 
     def OnCorporationVoteChanged(self, corporationID, voteCaseID, characterID, change):
         log.LogInfo(self.__class__.__name__, 'OnCorporationVoteChanged')
         if self is None or self.destroyed or not self.sr.inited:
             return
-        if characterID != session.charid:
+        elif characterID != session.charid:
             return
-        self.ReloadVoteCaseSubContentIfVisible(corporationID, voteCaseID)
+        else:
+            self.ReloadVoteCaseSubContentIfVisible(corporationID, voteCaseID)
+            return
 
     def GetEntryVoteCase(self, corporationID, voteCaseID):
         for entry in self.sr.scroll.GetNodes():
@@ -1054,6 +1080,8 @@ class CorpVotes(uiprimitives.Container):
                 continue
             if entry.vote.corporationID == corporationID and entry.vote.voteCaseID == voteCaseID:
                 return entry
+
+        return
 
     def ShouldVoteCaseBeCurrentlyVisible(self, corporationID, voteCaseID):
         bVisible = 0
@@ -1072,36 +1100,40 @@ class CorpVotes(uiprimitives.Container):
     def ReloadVoteCaseSubContentIfVisible(self, corporationID, voteCaseID):
         if not self.ShouldVoteCaseBeCurrentlyVisible(corporationID, voteCaseID):
             return
-        entry = self.GetEntryVoteCase(corporationID, voteCaseID)
-        if entry is None:
-            log.LogWarn('Entry not found')
+        else:
+            entry = self.GetEntryVoteCase(corporationID, voteCaseID)
+            if entry is None:
+                log.LogWarn('Entry not found')
+                return
+            if entry.id:
+                if entry.subEntries:
+                    rm = entry.subEntries
+                    entry.subEntries = []
+                    entry.open = 0
+                    self.sr.scroll.RemoveEntries(rm)
+                if entry.GetSubContent and uicore.registry.GetListGroupOpenState(entry.id):
+                    subcontent = entry.GetSubContent(entry)
+                    if not len(subcontent):
+                        subcontent.append(listentry.Get('Generic', {'label': localization.GetByLabel('/Carbon/UI/Controls/Common/NoItem'),
+                         'sublevel': entry.Get('sublevel', 0) + 1}))
+                    self.sr.scroll.AddEntries(entry.idx + 1, subcontent, entry)
+                    entry.open = 1
+                if entry.panel and not entry.panel.destroyed:
+                    entry.panel.RefreshGroupWindow(0)
             return
-        if entry.id:
-            if entry.subEntries:
-                rm = entry.subEntries
-                entry.subEntries = []
-                entry.open = 0
-                self.sr.scroll.RemoveEntries(rm)
-            if entry.GetSubContent and uicore.registry.GetListGroupOpenState(entry.id):
-                subcontent = entry.GetSubContent(entry)
-                if not len(subcontent):
-                    subcontent.append(listentry.Get('Generic', {'label': localization.GetByLabel('/Carbon/UI/Controls/Common/NoItem'),
-                     'sublevel': entry.Get('sublevel', 0) + 1}))
-                self.sr.scroll.AddEntries(entry.idx + 1, subcontent, entry)
-                entry.open = 1
-            if entry.panel and not entry.panel.destroyed:
-                entry.panel.RefreshGroupWindow(0)
 
     def RefreshVotes(self):
         log.LogInfo(self.__class__.__name__, 'RefreshVotes')
         if self is None or self.destroyed or not self.sr.inited:
             log.LogInfo(self.__class__.__name__, 'RefreshVotes bad window state')
             return
-        selectedTab = self.sr.tabs.GetSelectedArgs()
-        if selectedTab == 'open':
-            self.ShowOpenVotes()
-        elif selectedTab == 'closed':
-            self.ShowClosedVotes()
+        else:
+            selectedTab = self.sr.tabs.GetSelectedArgs()
+            if selectedTab == 'open':
+                self.ShowOpenVotes()
+            elif selectedTab == 'closed':
+                self.ShowClosedVotes()
+            return
 
     def ShowOpenVotes(self, *args):
         try:
@@ -1148,6 +1180,8 @@ class CorpVotes(uiprimitives.Container):
         except:
             log.LogException()
             sys.exc_clear()
+
+        return
 
     def GetOpenVoteSubContent(self, nodedata, *args):
         try:
@@ -1200,7 +1234,7 @@ class CorpVotes(uiprimitives.Container):
             log.LogException()
             sys.exc_clear()
 
-    def ShowClosedVotes(self, maxLen = 20, *args):
+    def ShowClosedVotes(self, maxLen=20, *args):
         try:
             sm.GetService('corpui').ShowLoad()
             uix.ShowButtonFromGroup(self.sr.mainBtns, localization.GetByLabel('UI/Corporations/CorporationWindow/Politics/ClosedVotesShowAll'))
@@ -1246,6 +1280,8 @@ class CorpVotes(uiprimitives.Container):
             log.LogException()
             sys.exc_clear()
 
+        return
+
     def OnCheckboxChange(self, checkbox, *args):
         eve.Message(checkbox.checked)
 
@@ -1283,7 +1319,7 @@ class CorpVotes(uiprimitives.Container):
             log.LogException()
             sys.exc_clear()
 
-    def SetHint(self, hintstr = None):
+    def SetHint(self, hintstr=None):
         if self.sr.scroll:
             self.sr.scroll.ShowHint(hintstr)
 
@@ -1294,6 +1330,7 @@ class CorpVotes(uiprimitives.Container):
             sender.state = uiconst.UI_DISABLED
         sm.GetService('corp').InsertVote(corpID, voteCaseID, voteValue)
         self.RefreshVotes()
+        return
 
     def ProposeVote(self, *args):
         local = sm.GetService('corp')
@@ -1308,51 +1345,53 @@ class CorpVotes(uiprimitives.Container):
         if not (self.IAmAMemberOfThisCorp() and sm.GetService('corp').MemberCanRunForCEO()):
             eve.Message('CantRunForCEOAtTheMoment')
             return
-        format = [{'type': 'btline'}]
-        format.append({'type': 'checkbox',
-         'setvalue': 1,
-         'key': const.voteCEO,
-         'group': 'votetype',
-         'label': '_hide',
-         'text': '_hide',
-         'hidden': 1})
-        format.append({'type': 'push',
-         'frame': 1,
-         'height': 6})
-        format.append({'type': 'edit',
-         'setvalue': localization.GetByLabel('UI/Corporations/CorporationWindow/Politics/VoteMemberForCEO', char=session.charid),
-         'key': 'title',
-         'label': localization.GetByLabel('UI/Corporations/CorporationWindow/Politics/Title'),
-         'required': 1,
-         'frame': 1,
-         'maxlength': 500})
-        format.append({'type': 'bbline'})
-        format.append({'type': 'push'})
-        format.append({'type': 'btline'})
-        format.append({'type': 'push',
-         'frame': 1})
-        format.append({'type': 'textedit',
-         'key': 'description',
-         'label': localization.GetByLabel('UI/Corporations/CorporationWindow/Politics/Description'),
-         'frame': 1,
-         'maxLength': 100})
-        format.append({'type': 'push',
-         'frame': 1})
-        format.append({'type': 'bbline'})
-        format.append({'type': 'push'})
-        format.append({'type': 'btline'})
-        format.append({'type': 'push',
-         'frame': 1})
-        format.append({'type': 'edit',
-         'setvalue': 1,
-         'intonly': [1, 5],
-         'key': 'time',
-         'label': localization.GetByLabel('UI/Corporations/CorporationWindow/Politics/DaysToLive'),
-         'frame': 1})
-        format.append({'type': 'bbline'})
-        retval = uix.HybridWnd(format, localization.GetByLabel('UI/Corporations/CorporationWindow/Politics/ProposeVote'), 1, None, uiconst.OKCANCEL, None, 320)
-        if retval is not None:
-            self.CreateVote(retval, self.corpID)
+        else:
+            format = [{'type': 'btline'}]
+            format.append({'type': 'checkbox',
+             'setvalue': 1,
+             'key': const.voteCEO,
+             'group': 'votetype',
+             'label': '_hide',
+             'text': '_hide',
+             'hidden': 1})
+            format.append({'type': 'push',
+             'frame': 1,
+             'height': 6})
+            format.append({'type': 'edit',
+             'setvalue': localization.GetByLabel('UI/Corporations/CorporationWindow/Politics/VoteMemberForCEO', char=session.charid),
+             'key': 'title',
+             'label': localization.GetByLabel('UI/Corporations/CorporationWindow/Politics/Title'),
+             'required': 1,
+             'frame': 1,
+             'maxlength': 500})
+            format.append({'type': 'bbline'})
+            format.append({'type': 'push'})
+            format.append({'type': 'btline'})
+            format.append({'type': 'push',
+             'frame': 1})
+            format.append({'type': 'textedit',
+             'key': 'description',
+             'label': localization.GetByLabel('UI/Corporations/CorporationWindow/Politics/Description'),
+             'frame': 1,
+             'maxLength': 100})
+            format.append({'type': 'push',
+             'frame': 1})
+            format.append({'type': 'bbline'})
+            format.append({'type': 'push'})
+            format.append({'type': 'btline'})
+            format.append({'type': 'push',
+             'frame': 1})
+            format.append({'type': 'edit',
+             'setvalue': 1,
+             'intonly': [1, 5],
+             'key': 'time',
+             'label': localization.GetByLabel('UI/Corporations/CorporationWindow/Politics/DaysToLive'),
+             'frame': 1})
+            format.append({'type': 'bbline'})
+            retval = uix.HybridWnd(format, localization.GetByLabel('UI/Corporations/CorporationWindow/Politics/ProposeVote'), 1, None, uiconst.OKCANCEL, None, 320)
+            if retval is not None:
+                self.CreateVote(retval, self.corpID)
+            return
 
     def CreateVote(self, result, corporationID):
         voteCaseText = result['title']
@@ -1404,18 +1443,20 @@ class CorpVotes(uiprimitives.Container):
             log.LogError('Unknown Vote type')
             return
         sm.GetService('corp').InsertVoteCase(voteCaseText, description, corporationID, voteType, options, now, endFileTime)
+        return
 
     def ProposeVoteErrorCheck(self, ret):
         typeconst = ret['votetype']
         if typeconst == const.voteShares and ret['shares'] == 0:
             return localization.GetByLabel('UI/Corporations/CorporationWindow/Politics/HaveToSetAmountOfShares')
-        if typeconst == const.voteKickMember and ret['kickmember'] is None:
+        elif typeconst == const.voteKickMember and ret['kickmember'] is None:
             return localization.GetByLabel('UI/Corporations/CorporationWindow/Politics/HaveToPickMember')
-        if typeconst == const.voteGeneral and (ret['options'] is None or len(ret['options']) <= 1):
+        elif typeconst == const.voteGeneral and (ret['options'] is None or len(ret['options']) <= 1):
             return localization.GetByLabel('UI/Corporations/CorporationWindow/Politics/Min2OptionsForVote')
-        if typeconst == const.voteCEO:
+        elif typeconst == const.voteCEO:
             return ''
-        return ''
+        else:
+            return ''
 
     def GetVoteOptionText(self, option, vote):
         optionText = option.optionText

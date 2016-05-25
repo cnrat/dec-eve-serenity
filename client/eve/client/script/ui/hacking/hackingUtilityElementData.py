@@ -1,10 +1,11 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\client\script\ui\hacking\hackingUtilityElementData.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\client\script\ui\hacking\hackingUtilityElementData.py
 import hackingcommon.hackingConstants as hackingConst
 
 class UtilityElementData(object):
     __guid__ = 'hackingui.UtilityElementData'
 
-    def __init__(self, id = None, subtype = None, info = None, index = None):
+    def __init__(self, id=None, subtype=None, info=None, index=None):
         self.id = id
         self.subtype = subtype
         self.info = info
@@ -14,6 +15,7 @@ class UtilityElementData(object):
         self.durationRemaining = None
         self.info = None
         self.totalDuration = None
+        return
 
     def __repr__(self):
         return '<hackingui.UtilityElementData: id=%s, subtype=%s, isSelected=%s, isInUse=%s, info=%s, durationRemaining=%s>' % (self.id,
@@ -31,3 +33,4 @@ class UtilityElementData(object):
             self.durationRemaining = None
         if self.totalDuration is None and self.durationRemaining:
             self.totalDuration = self.durationRemaining
+        return

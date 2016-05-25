@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\packages\sensorsuite\overlay\spacelocations.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\packages\sensorsuite\overlay\spacelocations.py
 import weakref
 from utillib import KeyVal
 
@@ -28,12 +29,14 @@ class SpaceLocations:
             return locData.bracket
         else:
             return None
+            return None
 
     def GetBracketBySiteID(self, siteID):
         locData = self.locationsBySiteId.get(siteID)
         if locData:
             return locData.bracket
         else:
+            return None
             return None
 
     def GetBySiteID(self, siteID):

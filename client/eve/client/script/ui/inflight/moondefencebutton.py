@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\client\script\ui\inflight\moondefencebutton.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\client\script\ui\inflight\moondefencebutton.py
 from inventorycommon.util import GetItemVolume
 import uicontrols
 import uiprimitives
@@ -82,6 +83,7 @@ class DefenceStructureButton(uiprimitives.Container):
         self.targetGaugesInited = 0
         self.targetGaugesVisible = 0
         self.sr.distanceUpdateTimer = None
+        return
 
     def Setup(self, moduleinfo):
         targetContainer = uiprimitives.Container(name='targetCont', align=uiconst.TOPLEFT, parent=self, top=0, height=64, width=64)
@@ -142,6 +144,7 @@ class DefenceStructureButton(uiprimitives.Container):
         self.sr.distanceUpdateTimer = base.AutoTimer(random.randint(5000, 6000), self.UpdateDistance)
         self.EnableDrag()
         uthread.new(self.BlinkIcon)
+        return
 
     def HideGauge(self, loc):
         gaugeParent = None
@@ -149,6 +152,7 @@ class DefenceStructureButton(uiprimitives.Container):
             gaugeParent = self.sr.Get('%sGaugeParent' % loc)
             gaugeParent.state = uiconst.UI_HIDDEN
             self.sr.distancelabel.state = uiconst.UI_HIDDEN
+        return
 
     def ShowGauge(self, loc):
         gaugeParent = None
@@ -156,72 +160,81 @@ class DefenceStructureButton(uiprimitives.Container):
             gaugeParent = self.sr.Get('%sGaugeParent' % loc)
             gaugeParent.state = uiconst.UI_DISABLED
             self.sr.distancelabel.state = uiconst.UI_DISABLED
+        return
 
     def InitGauges(self, loc):
         if getattr(self, '%sGaugesInited' % loc, None):
             gaugeParent = self.sr.Get('%sGaugeParent' % loc)
             gaugeParent.state = uiconst.UI_NORMAL
             return
-        container = self.sr.Get('%sContainer' % loc)
-        par = uiprimitives.Container(name='gauges', parent=container, align=uiconst.TOPLEFT, width=52, height=32, top=59, left=6)
-        for each in ('SHIELD', 'ARMOR', 'STRUCTURE'):
-            g = uiprimitives.Container(name=each, align=uiconst.TOTOP, width=52, height=8, left=-2)
-            uiprimitives.Container(name='push', parent=g, align=uiconst.TOBOTTOM, height=1)
-            g.name = '%sGauge_%s' % (loc, each.lower())
-            g.height = 9
-            uiprimitives.Line(parent=g, align=uiconst.TOTOP, color=(1.0, 1.0, 1.0, 0.5))
-            uiprimitives.Line(parent=g, align=uiconst.TOBOTTOM, color=(1.0, 1.0, 1.0, 0.5))
-            uiprimitives.Line(parent=g, align=uiconst.TOLEFT, color=(1.0, 1.0, 1.0, 0.5))
-            uiprimitives.Line(parent=g, align=uiconst.TORIGHT, color=(1.0, 1.0, 1.0, 0.5))
-            g.sr.bar = uiprimitives.Fill(parent=g, align=uiconst.TOLEFT)
-            uiprimitives.Fill(parent=g, color=(158 / 256.0,
-             11 / 256.0,
-             14 / 256.0,
-             1.0))
-            par.children.append(g)
-            setattr(self.sr, '%sGauge_%s' % (loc, each.lower()), g)
+        else:
+            container = self.sr.Get('%sContainer' % loc)
+            par = uiprimitives.Container(name='gauges', parent=container, align=uiconst.TOPLEFT, width=52, height=32, top=59, left=6)
+            for each in ('SHIELD', 'ARMOR', 'STRUCTURE'):
+                g = uiprimitives.Container(name=each, align=uiconst.TOTOP, width=52, height=8, left=-2)
+                uiprimitives.Container(name='push', parent=g, align=uiconst.TOBOTTOM, height=1)
+                g.name = '%sGauge_%s' % (loc, each.lower())
+                g.height = 9
+                uiprimitives.Line(parent=g, align=uiconst.TOTOP, color=(1.0, 1.0, 1.0, 0.5))
+                uiprimitives.Line(parent=g, align=uiconst.TOBOTTOM, color=(1.0, 1.0, 1.0, 0.5))
+                uiprimitives.Line(parent=g, align=uiconst.TOLEFT, color=(1.0, 1.0, 1.0, 0.5))
+                uiprimitives.Line(parent=g, align=uiconst.TORIGHT, color=(1.0, 1.0, 1.0, 0.5))
+                g.sr.bar = uiprimitives.Fill(parent=g, align=uiconst.TOLEFT)
+                uiprimitives.Fill(parent=g, color=(158 / 256.0,
+                 11 / 256.0,
+                 14 / 256.0,
+                 1.0))
+                par.children.append(g)
+                setattr(self.sr, '%sGauge_%s' % (loc, each.lower()), g)
 
-        uiprimitives.Container(name='push', parent=par, align=uiconst.TOTOP, height=2)
-        self.sr.gaugeParent = par
-        setattr(self.sr, '%sGaugeParent' % loc, par)
-        setattr(self, '%sGaugesInited' % loc, 1)
+            uiprimitives.Container(name='push', parent=par, align=uiconst.TOTOP, height=2)
+            self.sr.gaugeParent = par
+            setattr(self.sr, '%sGaugeParent' % loc, par)
+            setattr(self, '%sGaugesInited' % loc, 1)
+            return
 
     def UpdateDistance(self):
         sourceID = self.sr.Get('sourceID', None)
         targetID = self.sr.Get('targetID', None)
         if not sourceID and not targetID:
             return
-        sourceBall = sm.GetService('michelle').GetBall(sourceID)
-        if not sourceBall:
+        else:
+            sourceBall = sm.GetService('michelle').GetBall(sourceID)
+            if not sourceBall:
+                return
+            targetBall = sm.GetService('michelle').GetBall(targetID)
+            if not targetBall:
+                return
+            bp = sm.GetService('michelle').GetBallpark()
+            dist = bp.DistanceBetween(sourceID, targetID)
+            self.sr.distancelabel.text = util.FmtDist(dist)
+            self.sr.distancelabel.left = self.width / 2 - self.sr.distancelabel.textwidth / 2
             return
-        targetBall = sm.GetService('michelle').GetBall(targetID)
-        if not targetBall:
-            return
-        bp = sm.GetService('michelle').GetBallpark()
-        dist = bp.DistanceBetween(sourceID, targetID)
-        self.sr.distancelabel.text = util.FmtDist(dist)
-        self.sr.distancelabel.left = self.width / 2 - self.sr.distancelabel.textwidth / 2
 
     def UpdateData(self, loc):
         itemID = self.sr.Get('%sID' % loc, None)
         if not itemID:
             return
-        ball = sm.GetService('michelle').GetBall(itemID)
-        if not ball:
+        else:
+            ball = sm.GetService('michelle').GetBall(itemID)
+            if not ball:
+                return
+            self.UpdateDamage(loc)
             return
-        self.UpdateDamage(loc)
 
     def UpdateDamage(self, loc):
         itemID = self.sr.Get('%sID' % loc, None)
         if not itemID:
             return
-        bp = sm.GetService('michelle').GetBallpark()
-        if bp is None:
-            setattr(self.sr, '%sUpdateTimer' % loc, None)
+        else:
+            bp = sm.GetService('michelle').GetBallpark()
+            if bp is None:
+                setattr(self.sr, '%sUpdateTimer' % loc, None)
+                return
+            dmg = bp.GetDamageState(itemID)
+            if dmg is not None:
+                self.SetDamageState(dmg, loc)
             return
-        dmg = bp.GetDamageState(itemID)
-        if dmg is not None:
-            self.SetDamageState(dmg, loc)
 
     def OnSlimItemChange(self, oldSlim, newSlim):
         if self.destroyed or self.sr.targetID != oldSlim.itemID and self.sr.sourceID != oldSlim.itemID:
@@ -246,6 +259,7 @@ class DefenceStructureButton(uiprimitives.Container):
                 visible += 1
 
         setattr(self, '%sGaugesVisible' % loc, visible)
+        return
 
     def SetCharge(self, charge):
         self.sr.sourceIcon.LoadIconByTypeID(self.sr.moduleInfo.typeID, ignoreSize=True)
@@ -266,6 +280,7 @@ class DefenceStructureButton(uiprimitives.Container):
             self.sr.sourceID = self.sr.moduleInfo.itemID
             self.charge = None
         self.CheckOnline()
+        return
 
     def UpdateChargeQuantity(self, charge):
         if charge is self.charge:
@@ -278,6 +293,8 @@ class DefenceStructureButton(uiprimitives.Container):
     def GetVolume(self):
         if self.charge:
             return GetItemVolume(self.charge, 1)
+        else:
+            return None
 
     def GetShell(self):
         return sm.GetService('invCache').GetInventoryFromId(eve.session.shipid)
@@ -307,15 +324,16 @@ class DefenceStructureButton(uiprimitives.Container):
     def GetMenu(self):
         if self.destroyed:
             return
-        m = []
-        if self.sr.Get('sourceID', None):
-            sourceLabel = uiutil.MenuLabel('UI/Inflight/Source')
-            m += [(sourceLabel, sm.GetService('menu').CelestialMenu(self.sr.sourceID))]
-            m += [None]
-        if self.sr.Get('targetID', None):
-            targetLabel = uiutil.MenuLabel('UI/Inflight/Target')
-            m += [(targetLabel, sm.GetService('menu').CelestialMenu(self.sr.targetID))]
-        return m
+        else:
+            m = []
+            if self.sr.Get('sourceID', None):
+                sourceLabel = uiutil.MenuLabel('UI/Inflight/Source')
+                m += [(sourceLabel, sm.GetService('menu').CelestialMenu(self.sr.sourceID))]
+                m += [None]
+            if self.sr.Get('targetID', None):
+                targetLabel = uiutil.MenuLabel('UI/Inflight/Target')
+                m += [(targetLabel, sm.GetService('menu').CelestialMenu(self.sr.targetID))]
+            return m
 
     def ProcessGodmaLocationPrimed(self, structureID):
         structs = sm.GetService('pwn').GetCurrentControl()
@@ -326,6 +344,7 @@ class DefenceStructureButton(uiprimitives.Container):
                     self.SetCharge(None)
                 else:
                     self.SetCharge(item.modules[0])
+        return
 
     def CheckPending(self):
         if not uicore.layer.shipui:
@@ -333,7 +352,7 @@ class DefenceStructureButton(uiprimitives.Container):
         blue.pyos.synchro.SleepWallclock(1000)
         uicore.layer.shipui.CheckPendingReloads()
 
-    def CheckOnline(self, sound = 0):
+    def CheckOnline(self, sound=0):
         if not self or self.destroyed:
             return
         else:
@@ -350,7 +369,7 @@ class DefenceStructureButton(uiprimitives.Container):
                     self.ShowOffline()
                 return
 
-    def ChangeOnline(self, on = 1):
+    def ChangeOnline(self, on=1):
         uthread.new(self._ChangeOnline, on)
 
     def _ChangeOnline(self, on):
@@ -375,7 +394,7 @@ class DefenceStructureButton(uiprimitives.Container):
         if not self.goingOnline:
             self.sr.sourceIcon.color.a = 1.0
 
-    def ShowOffline(self, ping = 0):
+    def ShowOffline(self, ping=0):
         self.online = False
         self.goingOnline = 0
         self.sr.sourceIcon.color.a = 0.25
@@ -383,7 +402,7 @@ class DefenceStructureButton(uiprimitives.Container):
             eve.Message('OnLogin')
         self.state = uiconst.UI_NORMAL
 
-    def IsEffectRepeatable(self, effect, activatibleKnown = 0):
+    def IsEffectRepeatable(self, effect, activatibleKnown=0):
         if activatibleKnown or self.IsEffectActivatible(effect):
             if not effect.item.disallowRepeatingActivation:
                 return effect.durationAttributeID is not None
@@ -395,10 +414,13 @@ class DefenceStructureButton(uiprimitives.Container):
     def GetDefaultEffect(self):
         if self.sr.moduleInfo is None or sm.GetService('godma').GetItem(self.sr.sourceID) is None:
             return
-        for key in self.sr.moduleInfo.effects.iterkeys():
-            effect = self.sr.moduleInfo.effects[key]
-            if self.IsEffectActivatible(effect):
-                return effect
+        else:
+            for key in self.sr.moduleInfo.effects.iterkeys():
+                effect = self.sr.moduleInfo.effects[key]
+                if self.IsEffectActivatible(effect):
+                    return effect
+
+            return
 
     GetDefaultEffect = uiutil.ParanoidDecoMethod(GetDefaultEffect, ('sr', 'moduleInfo', 'effects'))
 
@@ -410,7 +432,7 @@ class DefenceStructureButton(uiprimitives.Container):
             ctrlRepeat = 1000
         self.Click(ctrlRepeat)
 
-    def Click(self, ctrlRepeat = 0):
+    def Click(self, ctrlRepeat=0):
         if self.waitingForActiveTarget:
             sm.GetService('pwntarget').CancelTargetOrder(self)
             self.HideGauge('target')
@@ -425,10 +447,12 @@ class DefenceStructureButton(uiprimitives.Container):
             self.activationTimer = base.AutoTimer(500, self.ActivateEffectTimer)
             self.effect_activating = 1
             self.ActivateEffect(self.def_effect, ctrlRepeat=ctrlRepeat)
+        return
 
     def ActivateEffectTimer(self, *args):
         self.effect_activating = 0
         self.activationTimer = None
+        return
 
     def OnEndDrag(self, *args):
         uthread.new(uicore.layer.shipui.ResetSwapMode)
@@ -460,24 +484,30 @@ class DefenceStructureButton(uiprimitives.Container):
 
         if flag1 == flag2:
             return
-        if flag2 is not None:
+        elif flag2 is not None:
             uicore.layer.shipui.SwapSlots(flag1, flag2)
             return
-        for node in nodes:
-            self.Add(node.rec)
+        else:
+            for node in nodes:
+                self.Add(node.rec)
+
+            return
 
     def OnMouseDown(self, *args):
         log.LogInfo('Module.OnMouseDown', self.sr.sourceID)
         if getattr(self, 'downTop', None) is not None:
             return
-        self.downTop = self.parent.top
-        self.parent.top += 2
+        else:
+            self.downTop = self.parent.top
+            self.parent.top += 2
+            return
 
     def OnMouseUp(self, *args):
         log.LogInfo('Module.OnMouseUp', self.sr.sourceID)
         if getattr(self, 'downTop', None) is not None:
             self.parent.top = self.downTop
             self.downTop = None
+        return
 
     def OnMouseEnter(self, *args):
         self.HiliteOn()
@@ -486,17 +516,20 @@ class DefenceStructureButton(uiprimitives.Container):
     def MouseEnter(self, *args):
         if self.destroyed or sm.GetService('godma').GetItem(self.sr.moduleInfo.itemID) is None:
             return
-        log.LogInfo('Module.OnMouseEnter', self.sr.sourceID)
-        eve.Message('NeocomButtonEnter')
-        self.ShowAccuracy()
-        self.sr.accuracyTimer = base.AutoTimer(1000, self.ShowAccuracy)
-        uthread.pool('ShipMobuleButton::OnMouseEnter-->UpdateTargetingRanges', sm.GetService('tactical').UpdateTargetingRanges, self.sr.moduleInfo)
+        else:
+            log.LogInfo('Module.OnMouseEnter', self.sr.sourceID)
+            eve.Message('NeocomButtonEnter')
+            self.ShowAccuracy()
+            self.sr.accuracyTimer = base.AutoTimer(1000, self.ShowAccuracy)
+            uthread.pool('ShipMobuleButton::OnMouseEnter-->UpdateTargetingRanges', sm.GetService('tactical').UpdateTargetingRanges, self.sr.moduleInfo)
+            return
 
     def OnMouseExit(self, *args):
         log.LogInfo('Module.OnMouseExit', self.sr.sourceID)
         self.HiliteOff()
         self.sr.accuracyTimer = None
         self.OnMouseUp(None)
+        return
 
     def OnMouseMove(self, *args):
         uthread.pool('ShipModuleButton::MouseMove', self.UpdateInfo)
@@ -507,54 +540,58 @@ class DefenceStructureButton(uiprimitives.Container):
     def UpdateInfo(self):
         if self.destroyed:
             return
-        self.sr.hint = ''
-        if uicore.uilib.mouseOver != self:
-            self.sr.accuracyTimer = None
+        else:
+            self.sr.hint = ''
+            if uicore.uilib.mouseOver != self:
+                self.sr.accuracyTimer = None
+                return
+            infoList = [localization.GetByLabel('UI/Common/TypeLabel', typeID=self.sr.typeID)]
+            statusList = []
+            defEff = self.GetDefaultEffect()
+            if defEff:
+                if defEff.isActive:
+                    statusList.append(localization.GetByLabel('UI/Inflight/StatusActive'))
+                else:
+                    statusList.append(localization.GetByLabel('UI/Inflight/StatusInactive'))
+            if self.goingOnline:
+                statusList.append(localization.GetByLabel('UI/Inflight/GoingOnline'))
+            if self.waitingForActiveTarget:
+                statusList.append(localization.GetByLabel('UI/Inflight/WaitingForActiveTarget'))
+            if statusList:
+                infoList.append(localization.GetByLabel('UI/Inflight/StatusLabel', statusList=localization.formatters.FormatGenericList(statusList)))
+            if cfg.IsChargeCompatible(self.sr.moduleInfo):
+                if self.charge and self.charge.typeID:
+                    infoList.append(localization.GetByLabel('UI/Inflight/ChargeQuantity', quantity=self.quantity, typeID=self.charge.typeID))
+                else:
+                    infoList.append(localization.GetByLabel('UI/Inflight/ChargeNoCharge'))
+            accuracy = self.GetAccuracy()
+            acc = ''
+            if accuracy is not None:
+                infoList.append(localization.GetByLabel('UI/Inflight/AccuracyLabel', accuracy=accuracy[0]))
+            if self.charge:
+                godmaInfo = sm.GetService('godma').GetItem(self.charge.itemID)
+                if godmaInfo and godmaInfo.crystalsGetDamaged:
+                    infoList.append(localization.GetByLabel('UI/Inflight/DamageLabel', damage=godmaInfo.damage))
+            t = self.sr.Get('targetID', None)
+            if t:
+                slimItem = sm.GetService('michelle').GetBallpark().GetInvItem(t)
+                infoList.append(localization.GetByLabel('UI/Inflight/TargetLabel', itemName=uix.GetSlimItemName(slimItem)))
+            pos = uicore.layer.shipui.GetPosFromFlag(self.sr.moduleInfo.itemID)
+            if pos:
+                slotno = pos[1] + 1
+                cmd = uicore.cmd
+                combo = cmd.GetShortcutByFuncName('CmdActivateHighPowerSlot%i' % slotno, True)
+                if not combo:
+                    combo = localization.GetByLabel('UI/Common/None')
+                infoList.append(localization.GetByLabel('UI/Inflight/ShortcutLabel', keyCombo=combo))
+            if self and getattr(self, 'sr', None):
+                self.sr.hint = '<br>'.join(infoList)
             return
-        infoList = [localization.GetByLabel('UI/Common/TypeLabel', typeID=self.sr.typeID)]
-        statusList = []
-        defEff = self.GetDefaultEffect()
-        if defEff:
-            if defEff.isActive:
-                statusList.append(localization.GetByLabel('UI/Inflight/StatusActive'))
-            else:
-                statusList.append(localization.GetByLabel('UI/Inflight/StatusInactive'))
-        if self.goingOnline:
-            statusList.append(localization.GetByLabel('UI/Inflight/GoingOnline'))
-        if self.waitingForActiveTarget:
-            statusList.append(localization.GetByLabel('UI/Inflight/WaitingForActiveTarget'))
-        if statusList:
-            infoList.append(localization.GetByLabel('UI/Inflight/StatusLabel', statusList=localization.formatters.FormatGenericList(statusList)))
-        if cfg.IsChargeCompatible(self.sr.moduleInfo):
-            if self.charge and self.charge.typeID:
-                infoList.append(localization.GetByLabel('UI/Inflight/ChargeQuantity', quantity=self.quantity, typeID=self.charge.typeID))
-            else:
-                infoList.append(localization.GetByLabel('UI/Inflight/ChargeNoCharge'))
-        accuracy = self.GetAccuracy()
-        acc = ''
-        if accuracy is not None:
-            infoList.append(localization.GetByLabel('UI/Inflight/AccuracyLabel', accuracy=accuracy[0]))
-        if self.charge:
-            godmaInfo = sm.GetService('godma').GetItem(self.charge.itemID)
-            if godmaInfo and godmaInfo.crystalsGetDamaged:
-                infoList.append(localization.GetByLabel('UI/Inflight/DamageLabel', damage=godmaInfo.damage))
-        t = self.sr.Get('targetID', None)
-        if t:
-            slimItem = sm.GetService('michelle').GetBallpark().GetInvItem(t)
-            infoList.append(localization.GetByLabel('UI/Inflight/TargetLabel', itemName=uix.GetSlimItemName(slimItem)))
-        pos = uicore.layer.shipui.GetPosFromFlag(self.sr.moduleInfo.itemID)
-        if pos:
-            slotno = pos[1] + 1
-            cmd = uicore.cmd
-            combo = cmd.GetShortcutByFuncName('CmdActivateHighPowerSlot%i' % slotno, True)
-            if not combo:
-                combo = localization.GetByLabel('UI/Common/None')
-            infoList.append(localization.GetByLabel('UI/Inflight/ShortcutLabel', keyCombo=combo))
-        if self and getattr(self, 'sr', None):
-            self.sr.hint = '<br>'.join(infoList)
 
-    def GetAccuracy(self, targetID = None):
+    def GetAccuracy(self, targetID=None):
         if self is None or self.destroyed:
+            return
+        else:
             return
 
     def SetActive(self):
@@ -563,6 +600,7 @@ class DefenceStructureButton(uiprimitives.Container):
         self.state = uiconst.UI_NORMAL
         self.effect_activating = 0
         self.activationTimer = None
+        return
 
     def SetIdle(self):
         self.sr.glow.state = uiconst.UI_HIDDEN
@@ -590,7 +628,7 @@ class DefenceStructureButton(uiprimitives.Container):
                 self.ShowOffline()
         self.UpdateInfo()
 
-    def ActivateEffect(self, effect, targetID = None, ctrlRepeat = 0):
+    def ActivateEffect(self, effect, targetID=None, ctrlRepeat=0):
         if effect and effect.effectName == 'useMissiles':
             if self.charge is None:
                 return
@@ -614,6 +652,7 @@ class DefenceStructureButton(uiprimitives.Container):
 
         if effect:
             effect.Activate(targetID, 9999999)
+        return
 
     def DeactivateEffect(self, effect):
         self.sr.glow.state = uiconst.UI_HIDDEN
@@ -621,6 +660,7 @@ class DefenceStructureButton(uiprimitives.Container):
         sm.GetService('ui').BlinkSpriteA(self.sr.busy, 0.75, 1000, None, passColor=0)
         self.state = uiconst.UI_DISABLED
         effect.Deactivate()
+        return
 
     def OnStateChange(self, itemID, flag, true, *args):
         if true and flag == state.activeTarget and self.waitingForActiveTarget:
@@ -698,7 +738,7 @@ class DefenceStructureButton(uiprimitives.Container):
             blue.pyos.synchro.SleepWallclock(250)
             par.Close()
 
-    def OnTargetOBO(self, what, sid = None, tid = None, reason = None):
+    def OnTargetOBO(self, what, sid=None, tid=None, reason=None):
         uthread.new(self._OnTargetOBO, what, sid, tid, reason)
 
     def _OnTargetOBO(self, what, sid, tid, reason):
@@ -741,9 +781,11 @@ class DefenceStructureButton(uiprimitives.Container):
         self.sr.targetID = None
         self.HideGauge('target')
         self.waitingForActiveTarget = 0
+        return
 
     def OnTargetClear(self):
         self.OnTargetLost(None, None)
+        return
 
 
 class DefenceModuleButton(uiprimitives.Container):

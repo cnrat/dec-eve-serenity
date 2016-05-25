@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\carbon\common\script\cef\componentViews\positionComponent.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\carbon\common\script\cef\componentViews\positionComponent.py
 from carbon.common.script.cef.baseComponentView import BaseComponentView
 
 class PositionComponentView(BaseComponentView):
@@ -15,6 +16,7 @@ class PositionComponentView(BaseComponentView):
         cls.RegisterComponent(cls)
         cls._AddInput(cls.POS, None, cls.RUNTIME, const.cef.COMPONENTDATA_NON_PRIMITIVE_TYPE, displayName='Position')
         cls._AddInput(cls.ROT, None, cls.RUNTIME, const.cef.COMPONENTDATA_NON_PRIMITIVE_TYPE, displayName='Rotation')
+        return
 
 
 PositionComponentView.SetupInputs()

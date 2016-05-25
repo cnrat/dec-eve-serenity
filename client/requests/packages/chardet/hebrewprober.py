@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\packages\requests\packages\chardet\hebrewprober.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\packages\requests\packages\chardet\hebrewprober.py
 from .charsetprober import CharSetProber
 from .constants import eNotMe, eDetecting
 from .compat import wrap_ord
@@ -24,6 +25,7 @@ class HebrewProber(CharSetProber):
         self._mLogicalProber = None
         self._mVisualProber = None
         self.reset()
+        return
 
     def reset(self):
         self._mFinalCharLogicalScore = 0

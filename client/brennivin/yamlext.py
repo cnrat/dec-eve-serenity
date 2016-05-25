@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\packages\brennivin\yamlext.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\packages\brennivin\yamlext.py
 import yaml as _yaml
 __all__ = ['dumps',
  'dumpfile',
@@ -47,6 +48,7 @@ class CIO(PyIO):
         if self.is_supported():
             self._loader = _yaml.CLoader
             self._dumper = _yaml.CDumper
+        return
 
 
 def _preferred():

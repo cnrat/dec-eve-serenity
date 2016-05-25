@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\carbon\common\script\movement\movementService.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\carbon\common\script\movement\movementService.py
 import carbon.common.script.sys.service as service
 import collections
 import GameWorld
@@ -13,6 +14,7 @@ class CommonMovementComponent(object):
         self.moveState = GameWorld.MoveStateComponent()
         self.characterController = GameWorld.CharacterController()
         self.moveModeManager = None
+        return
 
     def GetPosition(self):
         return self.characterController.positionComponent.position
@@ -88,3 +90,4 @@ class MovementService(service.Service):
         component.physics = None
         component.moveState = None
         component.characterController = None
+        return

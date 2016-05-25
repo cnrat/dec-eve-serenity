@@ -1,481 +1,354 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\client\script\ui\view\hangarView.py
-from eve.client.script.ui.camera.hangarCamera import HangarCamera
-from eve.client.script.ui.view.stationView import StationView
-import evecamera
-from inventorycommon.util import IsModularShip
-import uiprimitives
-import log
-import sys
-import blue
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\client\script\ui\view\hangarView.py
 import telemetry
-import util
-import uicls
-import trinity
-import uthread
+from billboards import get_billboard_fallback_image, get_billboard_video_path
 import const
-import geo2
-import random
-import eveHangar.hangar as hangarUtil
-import evecamera.utils as camutils
-import evegraphics.settings as gfxsettings
-import evegraphics.utils as gfxutils
-from sceneManager import SCENE_TYPE_SPACE
+import uicls
+import uthread
 import evetypes
+import trinity
+import blue
+from eveSpaceObject import spaceobjaudio
+from videoplayer import playlistresource
+from eve.client.script.ui.services.viewStateSvc import View
+from hangarBehaviours import capitalHangarBehaviours, defaultHangarBehaviours
+from eve.client.script.parklife.sceneManagerConsts import SCENE_TYPE_SPACE
+from eve.client.script.ui.view.viewStateConst import ViewState
+from eveSpaceObject import spaceobjanimation
+AMARR_NORMAL_HANGAR_SIZE = 'AMARR_NORMAL'
+CALDARI_NORMAL_HANGAR_SIZE = 'CALDARI_NORMAL'
+GALLENTE_NORMAL_HANGAR_SIZE = 'GALLENTE_NORMAL'
+MINMATAR_NORMAL_HANGAR_SIZE = 'MINMTAR_NORMAL'
+CITADEL_NORMAL_HANGAR_SIZE = 'CITADEL_NORMAL'
+CITADEL_CAPITAL_HANGAR_SIZE = 'CITADEL_LARGE'
+EXIT_AUDIO_EVENT_FOR_HANGAR_TYPE = {AMARR_NORMAL_HANGAR_SIZE: 'music_switch_race_amarr',
+ CALDARI_NORMAL_HANGAR_SIZE: 'music_switch_race_caldari',
+ GALLENTE_NORMAL_HANGAR_SIZE: 'music_switch_race_gallente',
+ MINMATAR_NORMAL_HANGAR_SIZE: 'music_switch_race_minmatar',
+ CITADEL_CAPITAL_HANGAR_SIZE: 'music_switch_race_caldari',
+ CITADEL_NORMAL_HANGAR_SIZE: 'music_switch_race_caldari'}
+ALL_DEFAULT_BEHAVIOURS = (defaultHangarBehaviours.DefaultHangarCameraBehaviour, defaultHangarBehaviours.DefaultHangarShipBehaviour, defaultHangarBehaviours.DefaultHangarTrafficBehaviour)
+ALL_CAPITAL_BEHAVIOURS = (capitalHangarBehaviours.CapitalHangarCameraBehaviour, capitalHangarBehaviours.CapitalHangarShipBehaviour, capitalHangarBehaviours.CapitalHangarTrafficBehaviour)
+HANGAR_BEHAVIOURS = {AMARR_NORMAL_HANGAR_SIZE: ALL_DEFAULT_BEHAVIOURS,
+ CALDARI_NORMAL_HANGAR_SIZE: ALL_DEFAULT_BEHAVIOURS,
+ GALLENTE_NORMAL_HANGAR_SIZE: ALL_DEFAULT_BEHAVIOURS,
+ MINMATAR_NORMAL_HANGAR_SIZE: ALL_DEFAULT_BEHAVIOURS,
+ CITADEL_NORMAL_HANGAR_SIZE: ALL_DEFAULT_BEHAVIOURS,
+ CITADEL_CAPITAL_HANGAR_SIZE: ALL_CAPITAL_BEHAVIOURS}
+HANGAR_GRAPHIC_ID = {AMARR_NORMAL_HANGAR_SIZE: 20273,
+ CALDARI_NORMAL_HANGAR_SIZE: 20271,
+ GALLENTE_NORMAL_HANGAR_SIZE: 20274,
+ MINMATAR_NORMAL_HANGAR_SIZE: 20272,
+ CITADEL_NORMAL_HANGAR_SIZE: 21259,
+ CITADEL_CAPITAL_HANGAR_SIZE: 21260}
+USE_CITADEL_HANGAR = False
 
-class StaticEnvironmentResource(object):
-
-    def __init__(self, hangarView):
-        self.hangarView = hangarView
-        self.isResetting = False
-        trinity.device.RegisterResource(self)
-
-    def OnInvalidate(self, level):
-        pass
-
-    def OnCreate(self, dev):
-        if not self.isResetting:
-            self.isResetting = True
-            uthread.new(self.hangarView.ResetStaticEnvironment)
+def ShipNeedsBigHangar(shipTypeID):
+    typeGroup = evetypes.GetGroupID(shipTypeID)
+    return typeGroup in (const.groupSupercarrier, const.groupTitan)
 
 
-class HangarView(StationView):
+def GetHangarType(stationTypeID, shipTypeID):
+    if USE_CITADEL_HANGAR or evetypes.GetCategoryID(stationTypeID) == const.categoryStructure:
+        hangarType = CITADEL_NORMAL_HANGAR_SIZE
+        if shipTypeID and ShipNeedsBigHangar(shipTypeID):
+            hangarType = CITADEL_CAPITAL_HANGAR_SIZE
+    else:
+        raceID = evetypes.GetRaceID(stationTypeID)
+        if raceID == const.raceAmarr:
+            hangarType = AMARR_NORMAL_HANGAR_SIZE
+        elif raceID == const.raceCaldari:
+            hangarType = CALDARI_NORMAL_HANGAR_SIZE
+        elif raceID == const.raceGallente:
+            hangarType = GALLENTE_NORMAL_HANGAR_SIZE
+        elif raceID == const.raceMinmatar:
+            hangarType = MINMATAR_NORMAL_HANGAR_SIZE
+        else:
+            hangarType = GALLENTE_NORMAL_HANGAR_SIZE
+    return hangarType
+
+
+def GetHangarBehaviours(stationTypeID, shipTypeID):
+    return HANGAR_BEHAVIOURS[GetHangarType(stationTypeID, shipTypeID)]
+
+
+def GetHangarGraphicID(stationTypeID, shipTypeID):
+    return HANGAR_GRAPHIC_ID[GetHangarType(stationTypeID, shipTypeID)]
+
+
+class HangarView(View):
     __guid__ = 'viewstate.HangarView'
-    __notifyevents__ = StationView.__notifyevents__[:]
-    __notifyevents__.extend(['OnUIScalingChange', 'OnGraphicSettingsChanged'])
+    __notifyevents__ = ['OnDogmaItemChange',
+     'ProcessActiveShipChanged',
+     'OnActiveShipSkinChange',
+     'OnDamageStateChanged',
+     'OnStanceActive']
+    __dependencies__ = ['godma',
+     'loading',
+     'station',
+     'invCache',
+     't3ShipSvc',
+     'sceneManager',
+     'clientDogmaIM',
+     'skinSvc']
+    __overlays__ = {'sidePanels'}
     __layerClass__ = uicls.HangarLayer
 
     def __init__(self):
-        StationView.__init__(self)
+        View.__init__(self)
+        self.scenePath = ''
+        self.activeShipItem = None
+        self.activeShipModel = None
+        self.activeHangarScene = None
+        self.previousShipTypeID = None
+        self.generalAudioEntity = None
+        self.currentGraphicID = -1
+        self.nameOfShipToRemove = None
+        self.delayedShipRemovalThread = None
+        self.delayedShipAddThread = None
+        self.cameraBehaviour = None
+        self.shipBehaviour = None
+        self.trafficBehaviour = None
+        playlistresource.register_resource_constructor('hangarvideos', 1024, 576, playlistresource.shuffled_videos(get_billboard_video_path()), get_billboard_fallback_image())
+        return
 
-    @telemetry.ZONE_METHOD
-    def LoadView(self, change = None, **kwargs):
-        self.hangarTraffic = hangarUtil.HangarTraffic()
-        self.station.CleanUp()
-        self.station.StopAllStationServices()
-        self.station.Setup()
-        self.staticEnv = not gfxsettings.Get(gfxsettings.MISC_LOAD_STATION_ENV)
-        self.staticEnvResource = None
-        StationView.LoadView(self, **kwargs)
-        self.sceneManager.SetSceneType(SCENE_TYPE_SPACE)
-        settings.user.ui.Set('defaultDockingView', 'hangar')
-        oldWorldSpaceID = newWorldSpaceID = session.worldspaceid
-        if 'worldspaceid' in change:
-            oldWorldSpaceID, newWorldSpaceID = change['worldspaceid']
-        changes = change.copy()
-        if 'stationid' not in changes:
-            changes['stationid'] = (None, newWorldSpaceID)
-        fromstation, tostation = changes['stationid']
-        self.activeShip = None
-        self.activeshipdna = None
-        self.maxZoom = 750.0
-        self.minZoom = 150.0
-        self.lastShipzoomTo = 0.0
-        self._SetStationRace()
-        stationGraphicsID = hangarUtil.racialHangarScenes[8]
-        if self.stationRace in hangarUtil.racialHangarScenes:
-            stationGraphicsID = hangarUtil.racialHangarScenes[self.stationRace]
-        g = cfg.graphics.GetIfExists(stationGraphicsID)
-        if g is not None:
-            self.scenePath = g.graphicFile
-        self.sceneManager.LoadScene(self.scenePath, registerKey=self.name)
-        random.seed()
-        self.hangarScene = self.sceneManager.GetRegisteredScene(self.name)
-        self.hangarTraffic.SetupScene(self.hangarScene)
-        cyear, cmonth, cwd, cday, chour, cmin, csec, cms = util.GetTimeParts(blue.os.GetWallclockTime())
-        hourlyChanging = []
-        for obj in self.hangarScene.objects:
-            for fx in obj.children:
-                if fx.name.startswith('sfx_'):
-                    fx.display = False
-                    hourlyChanging.append(fx)
+    def GetActiveShipTypeID(self):
+        if self.activeShipItem is None:
+            return
+        else:
+            return self.activeShipItem.typeID
 
-        if len(hourlyChanging) > 0:
-            hourlyTimer = cyear + 1800 * cmonth + 24 * cday + chour
-            sfxIdx = hourlyTimer % len(hourlyChanging)
-            hourlyChanging[sfxIdx].display = True
-        self.sceneManager.RegisterCamera(HangarCamera())
-        self.layer.camera = self.sceneManager.GetRegisteredCamera(evecamera.CAM_HANGAR)
-        self.layer.camera.SetOrbit(-0.75, -0.5)
-
-    def _SetStationRace(self):
-        self.stationRace = evetypes.GetRaceID(eve.stationItem.stationTypeID)
+    def GetActiveShipItemID(self):
+        if self.activeShipItem is None:
+            return
+        else:
+            return self.activeShipItem.itemID
 
     @telemetry.ZONE_METHOD
     def ShowView(self, **kwargs):
-        StationView.ShowView(self, **kwargs)
-        self.sceneManager.SetRegisteredScenes(self.name)
-        if util.GetActiveShip():
-            self.ShowShip(util.GetActiveShip())
-        elif self.staticEnv:
-            self.RenderStaticEnvironment()
+        View.ShowView(self, **kwargs)
+        self.activeShipModel = None
+        self.activeShipItem = self.GetShipItemFromHangar(session.shipid)
+        ccMethod, scMethod, tcMethod = GetHangarBehaviours(self.GetStationType(), self.GetActiveShipTypeID())
+        self.cameraBehaviour = ccMethod(self.layer)
+        self.shipBehaviour = scMethod()
+        self.trafficBehaviour = tcMethod()
+        self.LoadAndSetupScene(self.GetActiveShipTypeID())
+        if self.GetActiveShipItemID() is not None and self.GetActiveShipTypeID() is not None:
+            self.ReplaceExistingShipModel(self.GetActiveShipItemID(), self.GetActiveShipTypeID())
         else:
-            self.RenderDynamicEnvironment()
+            self.LogWarn('Got no active ship item, defaulting to an arbitrary camera position')
+            self.cameraBehaviour.PositionCameraAtDefaultPosition()
+        settings.user.ui.Set('defaultDockingView', ViewState.Hangar)
+        if session.structureid:
+            settings.user.ui.Set('defaultStructureView', ViewState.Hangar)
+        return
+
+    def LoadAndSetupScene(self, shipTypeID):
+        self.activeHangarScene = self.LoadScene(shipTypeID)
+        self.StartHangarAnimations(self.activeHangarScene)
+        self.cameraBehaviour.SetupCamera()
+        self.trafficBehaviour.Setup(self.activeHangarScene)
+        self.shipBehaviour.SetAnchorPoint(self.activeHangarScene)
 
     @telemetry.ZONE_METHOD
-    def HideView(self):
-        self.staticEnvResource = None
-        self.RemoveFullScreenSprite()
-        StationView.HideView(self)
+    def LoadView(self, change=None, **kwargs):
+        self.station.CleanUp()
+        self.station.StopAllStationServices()
+        self.station.Setup()
+        View.LoadView(self, **kwargs)
 
     @telemetry.ZONE_METHOD
     def UnloadView(self):
         self.layer.camera = None
-        objs = []
-        for obj in self.hangarScene.objects:
-            objs.append(obj)
+        self.cameraBehaviour.CleanUp()
+        self.trafficBehaviour.CleanUp()
+        self.sceneManager.UnregisterScene(ViewState.Hangar)
+        if self.delayedShipRemovalThread is not None:
+            self.delayedShipRemovalThread.kill()
+        if self.delayedShipAddThread is not None:
+            self.delayedShipAddThread.kill()
+        self.UnActivateSceneObjects()
+        return
 
-        for obj in objs:
-            self.hangarScene.objects.remove(obj)
+    def ReloadView(self):
+        self.cameraBehaviour.CleanUp()
+        self.trafficBehaviour.CleanUp()
+        if self.delayedShipRemovalThread is not None:
+            self.delayedShipRemovalThread.kill()
+        if self.delayedShipAddThread is not None:
+            self.delayedShipAddThread.kill()
+        sm.GetService('viewState').ActivateView(ViewState.Hangar)
+        return
 
-        self.hangarTraffic.CleanupScene()
-        self.staticEnvResource = None
-        self.RemoveFullScreenSprite()
-        StationView.UnloadView(self)
-        self.sceneManager.UnregisterCamera(evecamera.CAM_HANGAR)
-        self.sceneManager.UnregisterScene(self.name)
-        self.hangarScene = None
-        if hasattr(self.activeshipmodel, 'animationSequencer'):
-            self.activeshipmodel.animationSequencer = None
-        self.activeshipmodel = None
+    def UnActivateSceneObjects(self):
+        if self.activeHangarScene:
+            for obj in self.activeHangarScene.objects[:]:
+                self.activeHangarScene.objects.remove(obj)
 
-    @telemetry.ZONE_METHOD
-    def RenderDynamicEnvironment(self):
-        self.hangarScene.enableShadows = False
-        for obj in self.hangarScene.objects:
-            if hasattr(obj, 'enableShadow'):
-                obj.enableShadow = False
+        self.activeHangarScene = None
+        if hasattr(self.activeShipModel, 'animationSequencer'):
+            self.activeShipModel.animationSequencer = None
+        self.activeShipModel = None
+        self.activeShipItem = None
+        self.previousShipTypeID = None
+        return
 
-        self.SetupCamera()
+    def LoadScene(self, shipTypeID):
+        self.currentGraphicID = GetHangarGraphicID(self.GetStationType(), shipTypeID)
+        stationGraphic = cfg.graphics.GetIfExists(self.currentGraphicID)
+        if stationGraphic is None:
+            self.LogError("Could not find a graphic information for graphicID '%s', returning and showing nothing" % self.currentGraphicID)
+        scene, camera = self.sceneManager.LoadScene(stationGraphic.graphicFile, registerKey=ViewState.Hangar)
+        return scene
 
-    @telemetry.ZONE_METHOD
-    def SetupCamera(self):
-        camera = self.sceneManager.GetRegisteredCamera(self.name)
-        for each in camera.zoomCurve.keys:
-            each.value = 1.0
+    def SetupGeneralAudioEntity(self, model):
+        if model is not None and hasattr(model, 'observers'):
+            self.generalAudioEntity = spaceobjaudio.SetupAudioEntity(model)
+            self.SetupAnimationUpdaterAudio(model)
+        return
 
-        camera.fieldOfView = 1.2
-        camera.frontClip = 10.0
-        camera.minPitch = -1.4
-        camera.maxPitch = 0.0
-        camera.idleMove = gfxsettings.Get(gfxsettings.UI_CAMERA_BOBBING_ENABLED)
+    def SetupAnimationUpdaterAudio(self, model):
+        if hasattr(model, 'animationUpdater'):
+            model.animationUpdater.eventListener = self.generalAudioEntity
 
-    @telemetry.ZONE_METHOD
-    def ShowActiveShip(self, maintainZoomLevel = False):
-        if sm.GetService('viewState').IsCurrentViewSecondary():
-            return
-        if getattr(self, '__alreadyShowingActiveShip', False):
-            return
-        setattr(self, '__alreadyShowingActiveShip', True)
-        try:
-            oldShipItemID = self.activeShip
-            modelToRemove = None
-            if self.hangarScene:
-                for each in self.hangarScene.objects:
-                    if getattr(each, 'name', None) == str(self.activeShip):
-                        modelToRemove = each
-
-            if IsModularShip(self.activeShipItem.typeID):
-                try:
-                    raceName = None
-                    graphicInfo = cfg.graphics.GetIfExists(evetypes.GetGraphicID(self.activeShipItem.typeID))
-                    if graphicInfo is not None:
-                        raceName = getattr(graphicInfo, 'sofRaceName', None)
-                    dogmaItem = self.clientDogmaIM.GetDogmaLocation().dogmaItems.get(self.activeShipItem.itemID, None)
-                    if dogmaItem is None:
-                        log.LogTraceback('Trying to show t3 ship which is not in dogma')
-                        return
-                    subSystemIds = {}
-                    for fittedItem in dogmaItem.GetFittedItems().itervalues():
-                        if fittedItem.categoryID == const.categorySubSystem:
-                            subSystemIds[fittedItem.groupID] = fittedItem.typeID
-
-                    newModel = self.t3ShipSvc.GetTech3ShipFromDict(dogmaItem.typeID, subSystemIds, raceName)
-                except:
-                    log.LogException('failed bulding modular ship')
-                    sys.exc_clear()
-                    return
-
+    def ReplaceExistingShipModel(self, itemID, typeID, playShipSwitchAudio=True, focusCamera=True, cameraAnimationTime=None):
+        if self.delayedShipRemovalThread is not None:
+            self.delayedShipRemovalThread.kill()
+            self.delayedShipRemovalThread = None
+        if self.delayedShipAddThread is not None:
+            self.delayedShipAddThread.kill()
+            self.delayedShipAddThread = None
+        newModel = self.shipBehaviour.LoadShipModel(itemID, typeID)
+        self.SetupGeneralAudioEntity(newModel)
+        self.shipBehaviour.PlaceShip(newModel, typeID)
+        if focusCamera:
+            if cameraAnimationTime is None:
+                delayTime = self.cameraBehaviour.RepositionCamera(newModel, typeID)
             else:
-                materialSetID = sm.GetService('skinSvc').GetAppliedSkinMaterialSetID(session.charid, self.activeShipItem.itemID, self.activeShipItem.typeID)
-                shipDna = gfxutils.BuildSOFDNAFromTypeID(self.activeShipItem.typeID, materialSetID=materialSetID)
-                if shipDna is not None:
-                    if shipDna == self.activeshipdna and oldShipItemID == self.activeShipItem.itemID:
-                        return
-                    self.activeshipdna = shipDna
-                    sof = sm.GetService('sofService').spaceObjectFactory
-                    newModel = sof.BuildFromDNA(shipDna)
-            self.SetupGeneralAudioEntity(newModel)
-            self.SetupAnimationUpdaterAudio(newModel)
-            self.SetupShipModel(newModel)
-            sm.ScatterEvent('OnActiveShipModelChange', newModel, self.activeShipItem)
-            newModel.FreezeHighDetailMesh()
-            zoomTo = self.GetZoomValues(newModel, 0)
-            self.activeShip = self.activeShipItem.itemID
-            self.SetupAnimation(newModel, self.activeShipItem)
-            self.activeshipmodel = newModel
-            newModel.name = str(self.activeShipItem.itemID)
-            if not self.staticEnv and zoomTo > self.lastShipzoomTo and self.hangarScene is not None and modelToRemove is not None:
-                uthread.new(self.DelayedSwap, self.hangarScene, modelToRemove, newModel)
-            else:
-                newModel.display = 1
-                if modelToRemove is not None:
-                    self.hangarScene.objects.remove(modelToRemove)
-                self.hangarScene.objects.append(newModel)
-            self.generalAudioEntity.SendEvent(unicode('hangar_spin_switch_ship_play'))
-            self.lastShipzoomTo = zoomTo
-            if not maintainZoomLevel:
-                self.Zoom(zoomTo)
-        except Exception as e:
-            log.LogException(str(e))
-            sys.exc_clear()
-        finally:
-            if self.staticEnv:
-                self.RenderStaticEnvironment()
-            else:
-                self.RenderDynamicEnvironment()
-            delattr(self, '__alreadyShowingActiveShip')
-
-    @telemetry.ZONE_METHOD
-    def DelayedSwap(self, scene, oldModel, newModel):
-        newModel.display = 0
-        scene.objects.append(newModel)
-        blue.pyos.synchro.SleepWallclock(1000)
-        newModel.display = 1
-        if oldModel in scene.objects:
-            scene.objects.remove(oldModel)
+                delayTime = self.cameraBehaviour.RepositionCamera(newModel, typeID, max(0, cameraAnimationTime))
         else:
-            log.LogError('Could not remove old ship model ' + str(oldModel) + ' from scene object list! len=' + str(len(scene.objects)))
-
-    @telemetry.ZONE_METHOD
-    def AnimateTraffic(self, ship, area, shipClass):
-        initialAdvance = random.random()
-        while self.trafficActive:
-            if shipClass == 'b':
-                duration = random.uniform(40.0, 50.0)
-            elif shipClass == 'bc':
-                duration = random.uniform(20.0, 30.0)
-            elif shipClass == 'c':
-                duration = random.uniform(15.0, 20.0)
-            elif shipClass == 'f':
-                duration = random.uniform(10.0, 15.0)
+            delayTime = 0.0
+        if self.activeShipModel:
+            if self.activeShipModel.boundingSphereRadius < newModel.boundingSphereRadius:
+                self.delayedShipRemovalThread = uthread.new(self.DelayedShipRemoval, self.activeShipModel.name, delayTime)
+                self.delayedShipAddThread = uthread.new(self.DelayedShipAdd, newModel, delayTime)
             else:
-                duration = random.uniform(15.0, 20.0)
-            if ship.translationCurve and ship.rotationCurve and len(ship.translationCurve.keys) == 2:
-                now = blue.os.GetSimTime()
-                s01 = random.random()
-                t01 = random.random()
-                if ship.rotationCurve.value[1] < 0.0:
-                    startPos = geo2.Vec3BaryCentric(area['Traffic_Start_1'], area['Traffic_Start_2'], area['Traffic_Start_3'], s01, t01)
-                    endPos = geo2.Vec3BaryCentric(area['Traffic_End_1'], area['Traffic_End_2'], area['Traffic_End_3'], s01, t01)
-                else:
-                    startPos = geo2.Vec3BaryCentric(area['Traffic_End_1'], area['Traffic_End_2'], area['Traffic_End_3'], s01, t01)
-                    endPos = geo2.Vec3BaryCentric(area['Traffic_Start_1'], area['Traffic_Start_2'], area['Traffic_Start_3'], s01, t01)
-                startPos = geo2.Vec3Add(startPos, geo2.Vec3Scale(geo2.Vec3Subtract(endPos, startPos), initialAdvance))
-                startKey = ship.translationCurve.keys[0]
-                endKey = ship.translationCurve.keys[1]
-                startKey.value = startPos
-                startKey.time = 0.0
-                startKey.interpolation = trinity.TRIINT_LINEAR
-                endKey.value = endPos
-                endKey.time = duration
-                endKey.interpolation = trinity.TRIINT_LINEAR
-                ship.translationCurve.extrapolation = trinity.TRIEXT_CONSTANT
-                ship.translationCurve.Sort()
-                ship.translationCurve.start = now
-                ship.display = True
-            delay = random.uniform(5.0, 15.0)
-            initialAdvance = 0.0
-            blue.pyos.synchro.SleepWallclock(1000.0 * (duration + delay))
+                self.RemoveModelWithNameFromScene(self.activeShipModel.name)
+                self.AddModelToScene(newModel)
+        else:
+            self.AddModelToScene(newModel)
+        if playShipSwitchAudio:
+            self.generalAudioEntity.SendEvent(unicode('hangar_spin_switch_ship_play'))
+        self.previousShipTypeID = typeID
+        return
+
+    def DelayedShipRemoval(self, nameOfModelToRemove, delayInSeconds):
+        self.nameOfShipToRemove = nameOfModelToRemove
+        blue.synchro.Sleep(delayInSeconds * 1000)
+        self.RemoveModelWithNameFromScene(nameOfModelToRemove)
+
+    def DelayedShipAdd(self, modelToAdd, delayInSeconds):
+        blue.synchro.Sleep(delayInSeconds * 1000)
+        self.AddModelToScene(modelToAdd)
+
+    def StartHangarAnimations(self, scene):
+        for obj in scene.objects:
+            for fx in obj.children:
+                if fx.name.startswith('sfx_'):
+                    fx.display = True
+
+    def RemoveModelWithNameFromScene(self, modelName):
+        if self.activeHangarScene:
+            for m in [ o for o in self.activeHangarScene.objects if o.name == modelName ]:
+                self.activeHangarScene.objects.remove(m)
+
+    def AddModelToScene(self, model):
+        if self.activeHangarScene and model:
+            self.activeHangarScene.objects.append(model)
+        self.activeShipModel = model
+
+    def GetStationType(self):
+        if session.structureid:
+            return self.invCache.GetInventory(const.containerStructure).GetTypeID()
+        else:
+            return eve.stationItem.stationTypeID
+
+    def GetShipItemFromHangar(self, shipID):
+        hangarInv = self.invCache.GetInventory(const.containerHangar)
+        hangarItems = hangarInv.List(const.flagHangar)
+        for each in hangarItems:
+            if each.itemID == shipID and each.categoryID == const.categoryShip:
+                return each
+
+        return None
 
     @telemetry.ZONE_METHOD
     def StartExitAnimation(self):
-        if getattr(self, 'hangarScene', None) is not None:
-            if self.hangarScene is not None:
-                for curveSet in self.hangarScene.curveSets:
-                    if curveSet.name == 'Undock':
-                        curveSet.scale = 1.0
-                        curveSet.PlayFrom(0.0)
-                        break
+        if self.activeHangarScene is not None:
+            for curveSet in self.activeHangarScene.curveSets:
+                if curveSet.name == 'Undock':
+                    curveSet.scale = 1.0
+                    curveSet.PlayFrom(0.0)
+                    break
+
+        return
 
     @telemetry.ZONE_METHOD
     def StopExitAnimation(self):
-        if getattr(self, 'hangarScene', None) is not None:
-            for curveSet in self.hangarScene.curveSets:
+        if self.activeHangarScene is not None:
+            for curveSet in self.activeHangarScene.curveSets:
                 if curveSet.name == 'Undock':
                     curveSet.scale = -1.0
                     curveSet.PlayFrom(curveSet.GetMaxCurveDuration())
                     break
 
+        return
+
     def StartExitAudio(self):
-        raceStates = {const.raceAmarr: 'music_switch_race_amarr',
-         const.raceCaldari: 'music_switch_race_caldari',
-         const.raceGallente: 'music_switch_race_gallente',
-         const.raceMinmatar: 'music_switch_race_minmatar'}
         audioService = sm.GetService('audio')
-        if not hasattr(self, 'stationRace'):
-            self._SetStationRace()
-        audioService.SendUIEvent(raceStates.get(self.stationRace, 'music_switch_race_norace'))
+        hangarType = GetHangarType(self.GetStationType(), self.GetActiveShipTypeID())
+        audioService.SendUIEvent(EXIT_AUDIO_EVENT_FOR_HANGAR_TYPE[hangarType])
         audioService.SendUIEvent('transition_undock_play')
 
     def StopExitAudio(self):
         sm.GetService('audio').SendUIEvent('transition_undock_cancel')
 
-    @telemetry.ZONE_METHOD
-    def CheckScene(self):
-        scene = self.sceneManager.GetRegisteredScene(self.name)
-        if self.staticEnv:
-            self.RenderStaticEnvironment()
-            scene.display = False
-        else:
-            scene.display = True
-            self.RemoveFullScreenSprite()
-
-    def RemoveFullScreenSprite(self):
-        for each in uicore.uilib.desktop.children:
-            if each.name == 'fullScreenSprite':
-                uicore.uilib.desktop.children.remove(each)
-
-    def _WaitForFinishedRenderJob(self, rj):
-        while rj.status != trinity.RJ_DONE:
-            rj.ScheduleOnce()
-            rj.WaitForFinish()
-
-    def RenderStaticEnvironment(self):
-        alphaFill = trinity.Tr2Effect()
-        alphaFill.effectFilePath = 'res:/Graphics/Effect/Utility/Compositing/AlphaFill.fx'
-        trinity.WaitForResourceLoads()
-        if self.staticEnvResource is None:
-            self.staticEnvResource = StaticEnvironmentResource(self)
-        if self.hangarScene is None:
+    def ProcessActiveShipChanged(self, shipID, oldShipID):
+        if shipID == oldShipID:
             return
-        self.hangarScene.display = True
-        self.hangarScene.update = True
-        depthTexture = self.hangarScene.depthTexture
-        distortionTexture = self.hangarScene.distortionTexture
-        self.hangarScene.depthTexture = None
-        self.hangarScene.distortionTexture = None
-        clientWidth = trinity.device.width
-        clientHeight = trinity.device.height
-        renderTarget = trinity.Tr2RenderTarget(clientWidth, clientHeight, 1, trinity.PIXEL_FORMAT.B8G8R8A8_UNORM)
-        depthStencil = trinity.Tr2DepthStencil(clientWidth, clientHeight, trinity.DEPTH_STENCIL_FORMAT.AUTO)
-        self.SetupCamera()
-        camera = self.sceneManager.GetRegisteredCamera(self.name)
-        camera.idleMove = False
-        updateJob = trinity.CreateRenderJob('UpdateScene')
-        updateJob.SetView(None)
-        updateJob.Update(self.hangarScene)
-        self._WaitForFinishedRenderJob(updateJob)
-        view = trinity.TriView()
-        view.SetLookAtPosition(camera.pos, camera.intr, (0.0, 1.0, 0.0))
-        projection = trinity.TriProjection()
-        fov = camera.fieldOfView
-        aspectRatio = float(clientWidth) / clientHeight
-        projection.PerspectiveFov(fov, aspectRatio, 1.0, 350000.0)
-        renderJob = trinity.CreateRenderJob('StaticScene')
-        renderJob.PushRenderTarget(renderTarget)
-        renderJob.SetProjection(projection)
-        renderJob.SetView(view)
-        renderJob.PushDepthStencil(depthStencil)
-        renderJob.Clear((0.0, 0.0, 0.0, 0.0), 0.0)
-        renderJob.RenderScene(self.hangarScene)
-        renderJob.SetStdRndStates(trinity.RM_FULLSCREEN)
-        renderJob.RenderEffect(alphaFill)
-        renderJob.PopDepthStencil()
-        renderJob.PopRenderTarget()
-        self._WaitForFinishedRenderJob(renderJob)
-        self.hangarScene.display = False
-        self.hangarScene.update = False
-        try:
-            rgbSource = trinity.Tr2HostBitmap(renderTarget)
-        except Exception:
-            log.LogException()
-            sys.exc_clear()
+        else:
+            newShipItem = self.GetShipItemFromHangar(shipID)
+            if newShipItem is None:
+                return
+            self.activeShipItem = newShipItem
+            if self.currentGraphicID != GetHangarGraphicID(self.GetStationType(), self.GetActiveShipTypeID()):
+                self.ReloadView()
+                return
+            self.ReplaceExistingShipModel(self.GetActiveShipItemID(), self.GetActiveShipTypeID())
             return
 
-        self.RemoveFullScreenSprite()
-        self.sprite = uiprimitives.Sprite(parent=uicore.uilib.desktop, width=uicore.uilib.desktop.width, height=uicore.uilib.desktop.height, left=0, top=0)
-        self.sprite.name = 'fullScreenSprite'
-        self.sprite.texture.atlasTexture = uicore.uilib.CreateTexture(rgbSource.width, rgbSource.height)
-        self.sprite.texture.atlasTexture.CopyFromHostBitmap(rgbSource)
-        self.hangarScene.display = False
-        self.hangarScene.update = False
-        self.hangarScene.depthTexture = depthTexture
-        self.hangarScene.distortionTexture = distortionTexture
-        self.staticEnvResource.isResetting = False
+    def OnStanceActive(self, shipID, stanceID):
+        if self.activeShipModel is not None:
+            spaceobjanimation.SetShipAnimationStance(self.activeShipModel, stanceID)
+        return
 
-    def GetZoomValues(self, model, thread):
-        rad = 300
-        camera = self.sceneManager.GetRegisteredCamera(self.name)
-        trinity.WaitForResourceLoads()
-        rad = model.GetBoundingSphereRadius()
-        center = model.boundingSphereCenter
-        localBB = model.GetLocalBoundingBox()
-        model.translationCurve = trinity.TriVectorCurve()
-        negativeCenter = (-center[0], -localBB[0][1] + hangarUtil.SHIP_FLOATING_HEIGHT, -center[2])
-        model.translationCurve.value = negativeCenter
-        cameraparent = self.GetCameraParent()
-        if cameraparent.translationCurve is not None:
-            keyValue = cameraparent.translationCurve.keys[1].value
-            if self.staticEnv:
-                keyValue = (keyValue[0], negativeCenter[1], keyValue[2])
-            cameraparent.translationCurve.keys[0].value = keyValue
-            key1Value = cameraparent.translationCurve.keys[1].value
-            key1Value = (key1Value[0], negativeCenter[1], key1Value[2])
-            cameraparent.translationCurve.keys[1].value = key1Value
-            cameraparent.translationCurve.start = blue.os.GetSimTime()
-        zoomMultiplier = camutils.GetARZoomMultiplier(trinity.GetAspectRatio())
-        self.minZoom = (rad + camera.frontClip + 50) * zoomMultiplier
-        self.maxZoom = 2050.0
-        self.layer.maxZoom = self.maxZoom
-        self.layer.minZoom = self.minZoom
-        return (rad + camera.frontClip) * 2
+    def OnActiveShipSkinChange(self, itemID, skinID):
+        if self.shipBehaviour.ShouldSwitchSkin(skinID) and itemID == self.GetActiveShipItemID():
+            self.activeShipItem = self.GetShipItemFromHangar(itemID)
+            self.ReplaceExistingShipModel(self.GetActiveShipItemID(), self.GetActiveShipTypeID(), playShipSwitchAudio=False, focusCamera=False)
 
-    def GetCameraParent(self):
-        cp = sm.GetService('sceneManager').GetActiveCamera().GetCameraParent()
-        if cp.translationCurve is not None:
-            return cp
-        c = trinity.TriVectorCurve()
-        c.extrapolation = trinity.TRIEXT_CONSTANT
-        for t in (0.0, 1.0):
-            k = trinity.TriVectorKey()
-            k.time = t
-            k.interpolation = trinity.TRIINT_LINEAR
-            c.keys.append(k)
+    def OnDamageStateChanged(self, itemID):
+        if self.GetActiveShipItemID() == itemID:
+            self.shipBehaviour.SetShipDamage(itemID, self.activeShipModel)
 
-        c.Sort()
-        cp.translationCurve = c
-        return cp
-
-    def AnimateZoom(self, startVal, endVal, duration):
-        camera = self.sceneManager.GetRegisteredCamera(self.name)
-        startTime = blue.os.GetWallclockTimeNow()
-        for t in range(101):
-            elapsed = blue.os.GetWallclockTimeNow() - startTime
-            elapsedSec = elapsed / float(const.SEC)
-            perc = elapsedSec / duration
-            if perc > 1.0:
-                camera.translationFromParent = endVal
-                break
-            camera.translationFromParent = startVal * (1.0 - perc) + endVal * perc
-            blue.pyos.synchro.SleepWallclock(1)
-
-        camera.translationFromParent = endVal
-
-    def Zoom(self, zoomto = None):
-        camera = self.sceneManager.GetRegisteredCamera(self.name)
-        if self.staticEnv:
-            camera.translationFromParent = min(self.maxZoom, max(zoomto, self.minZoom))
+    def OnDogmaItemChange(self, item, change):
+        if item.locationID == change.get(const.ixLocationID, None) and item.flagID == change.get(const.ixFlag):
+            return
         else:
-            uthread.new(self.AnimateZoom, camera.translationFromParent, min(self.maxZoom, max(zoomto, self.minZoom)), 1.0)
-
-    def ResetStaticEnvironment(self):
-        if self.staticEnv:
-            self.RenderStaticEnvironment()
-
-    def OnUIScalingChange(self, changes):
-        self.ResetStaticEnvironment()
-
-    def OnGraphicSettingsChanged(self, changes):
-        camera = self.sceneManager.GetRegisteredCamera(self.name)
-        if camera is not None:
-            camera.idleMove = gfxsettings.Get(gfxsettings.UI_CAMERA_BOBBING_ENABLED)
+            if item.flagID in const.subSystemSlotFlags:
+                self.ReplaceExistingShipModel(self.activeShipItem.itemID, self.activeShipItem.typeID, playShipSwitchAudio=False, focusCamera=False)
+                self.cameraBehaviour.RepositionCamera(self.activeShipModel, self.activeShipItem.typeID, cameraAnimationDuration=0.5)
+            else:
+                self.shipBehaviour.FitTurrets(self.activeShipItem.itemID, self.activeShipItem.typeID, self.activeShipModel)
+            return

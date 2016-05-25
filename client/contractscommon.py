@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\common\modules\nice\client\_nastyspace\contractscommon.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\common\modules\nice\client\_nastyspace\contractscommon.py
 from eve.common.script.util.contractscommon import CONTRACTS_PER_PAGE
 from eve.common.script.util.contractscommon import CONTYPE_AUCTIONANDITEMECHANGE
 from eve.common.script.util.contractscommon import CREATECONTRACT_CONFIRM_CHARGESTOHANGAR

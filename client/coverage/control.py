@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\carbon\common\stdlib\coverage\control.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\carbon\common\stdlib\coverage\control.py
 import atexit, os, random, socket, sys
 from coverage.annotate import AnnotateReporter
 from coverage.backward import string_class, iitems, sorted
@@ -22,7 +23,7 @@ except ImportError:
 
 class coverage(object):
 
-    def __init__(self, data_file = None, data_suffix = None, cover_pylib = None, auto_data = False, timid = None, branch = None, config_file = True, source = None, omit = None, include = None, debug = None, debug_file = None):
+    def __init__(self, data_file=None, data_suffix=None, cover_pylib=None, auto_data=False, timid=None, branch=None, config_file=True, source=None, omit=None, include=None, debug=None, debug_file=None):
         from coverage import __version__
         self._warnings = []
         self.config = CoverageConfig()
@@ -86,6 +87,7 @@ class coverage(object):
         self._started = False
         self._measured = False
         atexit.register(self._atexit)
+        return
 
     def _canonical_dir(self, morf):
         return os.path.split(CodeUnit(morf, self.file_locator).filename)[0]
@@ -101,7 +103,7 @@ class coverage(object):
     def _should_trace_with_reason(self, filename, frame):
         if not filename:
             return (None, "empty string isn't a filename")
-        if filename.startswith('<'):
+        elif filename.startswith('<'):
             return (None, 'not a real filename')
         self._check_for_packages()
         dunder_file = frame.f_globals.get('__file__')
@@ -123,7 +125,8 @@ class coverage(object):
                 return (None, 'is part of coverage.py')
         if self.omit_match and self.omit_match.match(canonical):
             return (None, 'is inside an --omit pattern')
-        return (canonical, 'because we love you')
+        else:
+            return (canonical, 'because we love you')
 
     def _should_trace(self, filename, frame):
         canonical, reason = self._should_trace_with_reason(filename, frame)
@@ -171,6 +174,8 @@ class coverage(object):
 
             for pkg in found:
                 self.source_pkgs.remove(pkg)
+
+        return
 
     def use_cache(self, usecache):
         self.data.usefile(usecache)
@@ -220,11 +225,11 @@ class coverage(object):
         self.collector.reset()
         self.data.erase()
 
-    def clear_exclude(self, which = 'exclude'):
+    def clear_exclude(self, which='exclude'):
         setattr(self.config, which + '_list', [])
         self._exclude_regex_stale()
 
-    def exclude(self, regex, which = 'exclude'):
+    def exclude(self, regex, which='exclude'):
         excl_list = getattr(self.config, which + '_list')
         excl_list.append(regex)
         self._exclude_regex_stale()
@@ -238,7 +243,7 @@ class coverage(object):
             self._exclude_re[which] = join_regex(excl_list)
         return self._exclude_re[which]
 
-    def get_exclude_list(self, which = 'exclude'):
+    def get_exclude_list(self, which='exclude'):
         return getattr(self.config, which + '_list')
 
     def save(self):
@@ -267,6 +272,7 @@ class coverage(object):
                     aliases.add(pattern, result)
 
         self.data.combine_parallel_data(aliases=aliases)
+        return
 
     def _harvest_data(self):
         if not self._measured:
@@ -311,25 +317,25 @@ class coverage(object):
             it = code_unit_factory(it, self.file_locator)[0]
         return Analysis(self, it)
 
-    def report(self, morfs = None, show_missing = True, ignore_errors = None, file = None, omit = None, include = None):
+    def report(self, morfs=None, show_missing=True, ignore_errors=None, file=None, omit=None, include=None):
         self._harvest_data()
         self.config.from_args(ignore_errors=ignore_errors, omit=omit, include=include, show_missing=show_missing)
         reporter = SummaryReporter(self, self.config)
         return reporter.report(morfs, outfile=file)
 
-    def annotate(self, morfs = None, directory = None, ignore_errors = None, omit = None, include = None):
+    def annotate(self, morfs=None, directory=None, ignore_errors=None, omit=None, include=None):
         self._harvest_data()
         self.config.from_args(ignore_errors=ignore_errors, omit=omit, include=include)
         reporter = AnnotateReporter(self, self.config)
         reporter.report(morfs, directory=directory)
 
-    def html_report(self, morfs = None, directory = None, ignore_errors = None, omit = None, include = None, extra_css = None, title = None):
+    def html_report(self, morfs=None, directory=None, ignore_errors=None, omit=None, include=None, extra_css=None, title=None):
         self._harvest_data()
         self.config.from_args(ignore_errors=ignore_errors, omit=omit, include=include, html_dir=directory, extra_css=extra_css, html_title=title)
         reporter = HtmlReporter(self, self.config)
         return reporter.report(morfs)
 
-    def xml_report(self, morfs = None, outfile = None, ignore_errors = None, omit = None, include = None):
+    def xml_report(self, morfs=None, outfile=None, ignore_errors=None, omit=None, include=None):
         self._harvest_data()
         self.config.from_args(ignore_errors=ignore_errors, omit=omit, include=include, xml_output=outfile)
         file_to_close = None
@@ -341,16 +347,20 @@ class coverage(object):
                 outfile = open(self.config.xml_output, 'w')
                 file_to_close = outfile
         try:
-            reporter = XmlReporter(self, self.config)
-            return reporter.report(morfs, outfile=outfile)
-        except CoverageException:
-            delete_file = True
-            raise
+            try:
+                reporter = XmlReporter(self, self.config)
+                return reporter.report(morfs, outfile=outfile)
+            except CoverageException:
+                delete_file = True
+                raise
+
         finally:
             if file_to_close:
                 file_to_close.close()
                 if delete_file:
                     file_be_gone(self.config.xml_output)
+
+        return
 
     def sysinfo(self):
         import coverage as covmod

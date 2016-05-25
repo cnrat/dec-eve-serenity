@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\carbon\common\lib\werkzeug\contrib\kickstart.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\carbon\common\lib\werkzeug\contrib\kickstart.py
 from os import path
 from werkzeug.wrappers import Request as RequestBase, Response as ResponseBase
 from werkzeug.templates import Template
@@ -13,7 +14,7 @@ __all__ = ['Request',
 
 class Request(RequestBase):
 
-    def __init__(self, environ, url_map, session_store = None, cookie_name = None):
+    def __init__(self, environ, url_map, session_store=None, cookie_name=None):
         RequestBase.__init__(self, environ)
         self.url_adapter = url_map.bind_to_environ(environ)
         self.session_store = session_store
@@ -23,6 +24,7 @@ class Request(RequestBase):
                 self.session = session_store.get(self.cookies[cookie_name])
             else:
                 self.session = session_store.new()
+        return
 
     def url_for(self, callback, **values):
         return self.url_adapter.build(callback, values)
@@ -57,7 +59,7 @@ class Processor(object):
 
 class Application(object):
 
-    def __init__(self, name, url_map, session = False, processors = None):
+    def __init__(self, name, url_map, session=False, processors=None):
         self.name = name
         self.url_map = url_map
         self.processors = processors or []
@@ -65,6 +67,7 @@ class Application(object):
             self.store = session
         else:
             self.store = None
+        return
 
     def __call__(self, environ, start_response):
         if self.store is not None:
@@ -99,7 +102,7 @@ class Application(object):
 
         return response(environ, start_response)
 
-    def config_session(self, store, expiration = 'session'):
+    def config_session(self, store, expiration='session'):
         self.store = store
 
 
@@ -112,7 +115,7 @@ class TemplateNotFound(IOError, LookupError):
 
 class TemplateLoader(object):
 
-    def __init__(self, search_path, encoding = 'utf-8'):
+    def __init__(self, search_path, encoding='utf-8'):
         self.search_path = path.abspath(search_path)
         self.encoding = encoding
 
@@ -136,7 +139,7 @@ class TemplateLoader(object):
 
 class GenshiTemplateLoader(TemplateLoader):
 
-    def __init__(self, search_path, encoding = 'utf-8', **kwargs):
+    def __init__(self, search_path, encoding='utf-8', **kwargs):
         TemplateLoader.__init__(self, search_path, encoding)
         from genshi.template import TemplateLoader as GenshiLoader
         from genshi.template.loader import TemplateNotFound
@@ -146,6 +149,7 @@ class GenshiTemplateLoader(TemplateLoader):
         self.loader = GenshiLoader(search_path, default_encoding=encoding, auto_reload=reload_template, **kwargs)
         self.output_type = 'html'
         self.encoding = encoding
+        return
 
     def get_template(self, template_name):
         try:
@@ -153,7 +157,7 @@ class GenshiTemplateLoader(TemplateLoader):
         except self.not_found_exception as e:
             raise TemplateNotFound(template_name)
 
-    def render_to_string(self, template_name, context = None):
+    def render_to_string(self, template_name, context=None):
         context = context or {}
         tmpl = self.get_template(template_name)
         return tmpl.generate(**context).render(self.output_type, encoding=None)

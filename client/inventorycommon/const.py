@@ -1,7 +1,9 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\packages\inventorycommon\const.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\packages\inventorycommon\const.py
 minPlayerItem = 100000000
 minDustCharacter = 2100000000
 maxDustCharacter = 2130000000
+flagAssetSafety = 36
 flagAutoFit = 0
 flagBonus = 86
 flagBooster = 88
@@ -9,6 +11,7 @@ flagBriefcase = 6
 flagCapsule = 56
 flagCargo = 5
 flagCorpMarket = 62
+flagCorpSAG1 = 115
 flagCorpSAG2 = 116
 flagCorpSAG3 = 117
 flagCorpSAG4 = 118
@@ -106,18 +109,47 @@ flagJunkyardReprocessed = 146
 flagJunkyardTrashed = 147
 flagWardrobe = 3
 flagHiddenModifers = 156
-flagCorpDeliveries = 62
 flagFighterBay = 158
 flagFighterTube0 = 159
 flagFighterTube1 = 160
 flagFighterTube2 = 161
 flagFighterTube3 = 162
 flagFighterTube4 = 163
+flagServiceSlot0 = 164
+flagServiceSlot1 = 165
+flagServiceSlot2 = 166
+flagServiceSlot3 = 167
+flagServiceSlot4 = 168
+flagServiceSlot5 = 169
+flagServiceSlot6 = 170
+flagServiceSlot7 = 171
+flagStructureFuel = 172
+flagDeliveries = 173
 fighterTubeFlags = [flagFighterTube0,
  flagFighterTube1,
  flagFighterTube2,
  flagFighterTube3,
  flagFighterTube4]
+stationCorporationFlags = {flagHangar: 0,
+ flagCorpSAG2: 1,
+ flagCorpSAG3: 2,
+ flagCorpSAG4: 3,
+ flagCorpSAG5: 4,
+ flagCorpSAG6: 5,
+ flagCorpSAG7: 6}
+structureCorporationFlags = {flagCorpSAG1: 0,
+ flagCorpSAG2: 1,
+ flagCorpSAG3: 2,
+ flagCorpSAG4: 3,
+ flagCorpSAG5: 4,
+ flagCorpSAG6: 5,
+ flagCorpSAG7: 6}
+corpAssetSafetyFlags = {k:v for k, v in structureCorporationFlags.iteritems()}
+corpAssetSafetyFlags.update({flagCorpMarket: flagCorpMarket})
+corporationDivisionFromFlag = dict(stationCorporationFlags.items() + structureCorporationFlags.items())
+stationFlagFromDivision = {v:k for k, v in stationCorporationFlags.items()}
+structureFlagFromDivision = {v:k for k, v in structureCorporationFlags.items()}
+corpAssetSafetyFlagsFromDivision = {v:k for k, v in corpAssetSafetyFlags.iteritems()}
 jettisonableFlags = [flagCargo,
  flagSpecializedOreHold,
  flagSpecializedMineralHold,
@@ -409,6 +441,8 @@ groupFakeSkills = 505
 groupFighterBomber = 1023
 groupFighterDrone = 549
 groupFlashpoint = 1071
+groupFlexArmorHardener = 1699
+groupFlexShieldHardener = 1700
 groupForceField = 411
 groupForceFieldArray = 445
 groupFreightContainer = 649
@@ -418,6 +452,8 @@ groupFrequencyMiningLaser = 483
 groupFrigate = 25
 groupFrozen = 281
 groupFueledArmorRepairer = 1199
+groupFueledRemoteArmorRepairer = 1698
+groupFueledRemoteShieldBooster = 1697
 groupFueledShieldBooster = 1156
 groupFuelBlock = 1136
 groupGangCoordinator = 316
@@ -499,7 +535,9 @@ groupFestivalMissile = 500
 groupMissileLauncher = 56
 groupMissileLauncherAssault = 511
 groupMissileLauncherBomb = 862
-groupMissileLauncherCitadel = 524
+groupMissileLauncherXLTorpedo = 524
+groupMissileLauncherXLCruise = 1674
+groupMissileLauncherRapidTorpedo = 1673
 groupMissileLauncherCruise = 506
 groupMissileLauncherDefender = 512
 groupMissileLauncherHeavy = 510
@@ -667,6 +705,7 @@ groupSpewContainer = 1207
 groupSpodumain = 461
 groupStargate = 10
 groupStatisWeb = 65
+groupStatisGrappler = 1672
 groupStasisWebificationBattery = 441
 groupStasisWebifyingDrone = 641
 groupStation = 15
@@ -685,10 +724,30 @@ groupStorylineMissionCruiser = 533
 groupStorylineMissionFrigate = 527
 groupStripMiner = 464
 groupStructureRepairArray = 840
+groupStructureAreaMissile = 1548
+groupStructureAreaMissileLauncher = 1328
+groupStructureBumpingModule = 1331
+groupStructureDefenseBattery = 1330
+groupStructureDoomsdayWeapon = 1333
+groupStructureECM = 1332
+groupStructureECMScript = 1549
+groupStructureEnergyNeutralizer = 1329
+groupStructureFlakMissile = 1547
+groupStructureFlakMissileLauncher = 1562
+groupStructureMissile = 1546
+groupStructureMissileGuidanceComputer = 1426
+groupStructureMissileLauncher = 1327
+groupStructureRemoteSensorDampener = 1431
+groupStructureStasisWebifier = 1441
+groupStructureTargetPainter = 1433
+groupStructureTrackingDisruptors = 1432
+groupStructureTractorBeam = 1434
+groupStructureWarpDisruptor = 1442
 groupSovUpgradeIndustrial = 1020
 groupSovUpgradeMilitary = 1021
 groupSun = 6
 groupSuperWeapon = 588
+groupSuperWeaponBeacon = 1704
 groupSurveyProbe = 492
 groupSurveyProbeLauncher = 1226
 groupSystem = 0
@@ -769,6 +828,10 @@ groupMilitaryUpgrades = 1021
 groupSupportFighter = 1537
 groupForceAux = 1538
 groupBoss = 1530
+groupLightFighter = 1652
+groupHeavyFighter = 1653
+groupStructureCitadel = 1657
+groupApparelAugmentations = 1670
 groupApparelBottoms = 1090
 groupApparelEyewear = 1083
 groupApparelFootwear = 1091
@@ -782,6 +845,7 @@ groupApparelScars = 1086
 groupApparelTattoos = 1084
 groupApparelTops = 1089
 minDustTypeID = 350000
+typeAssetSafetyWrap = 60
 typeTicketFrigate = 30717
 typeTicketDestroyer = 30718
 typeTicketBattleship = 30721
@@ -842,6 +906,7 @@ typeCharacterVherokior = 1386
 typeCharacterDrifter = 34574
 typeCloneGradeAlpha = 164
 typeCloneVatBayI = 23735
+typeCloningCenter = 35894
 typeCloningService = 28158
 typeCommandCenterUpgrade = 2505
 typeCommandNodeBeacon = 36465
@@ -852,7 +917,9 @@ typeConstellation = 4
 typeContracting = 25235
 typeCorporation = 2
 typeCorporationContracting = 25233
+typeCorporationInsurance = 35895
 typeCorporationManagement = 3363
+typeCorporationOffices = 35893
 typeCorpse = 25
 typeCorpseFemale = 29148
 typeCosmicAnomaly = 28356
@@ -862,6 +929,7 @@ typeCredits = 29
 typeCriminalConnections = 3361
 typeCrowBlueprint = 11177
 typeCybernetics = 3411
+typeCustomsOffice = 35897
 typeCynosuralFieldI = 21094
 typeCynosuralJammerBeacon = 32798
 typeDamageControlI = 2046
@@ -906,13 +974,15 @@ typeSalvaging = 25863
 typeGiantSecureContainer = 11489
 typeGistiiHijacker = 16877
 typeGoldenCapsuleImplant = 33329
+typeGravitationalTransportationFieldBeacon = 41540
 typeHacking = 21718
-typeHangarContainer = 3298
+typeHangarContainer = 41567
 typeHugeSecureContainer = 11488
 typeIndustry = 3380
 typeAdvancedIndustry = 3388
 typeInfomorphPsychology = 24242
 typeInfrastructureHub = 32458
+typeInterbusTransportService = 35898
 typeInterplanetaryConsolidation = 2495
 typeIsogen = 37
 typeJumpDriveOperation = 3456
@@ -928,9 +998,11 @@ typeLargeSecureContainer = 3465
 typeLargeStandardContainer = 3296
 typeLeadership = 3348
 typeLoyaltyPoints = 29247
+typeLoyaltyPointStore = 35896
 typeMapLandmark = 11367
 typeMarginTrading = 16597
 typeMarketing = 16598
+typeMarketHub = 35892
 typeMassProduction = 3387
 typeMedal = 29496
 typeMediumAuditLogSecureContainer = 17364
@@ -948,6 +1020,15 @@ typeMinmatarEliteFreighterWreck = 29036
 typeMiningConnections = 3893
 typeMinmatarCaptainsQuarters = 32580
 typeMissileLauncherOperation = 3319
+typeModularEffectBeacon = 41233
+typeECMJammerBurst = 41342
+typeStasisWebifierBurst = 41343
+typeEnergyNeutralizerBurst = 41344
+typeTargetPainterBurst = 41345
+typeTrackingDisruptionBurst = 41346
+typeGuidanceDisruptorBurst = 41347
+typeSensorDampenerBurst = 41348
+typeWarpDisruptBurst = 41349
 typeMoon = 14
 typeMorphite = 11399
 typeMultiTrainingToken = 34133
@@ -956,6 +1037,7 @@ typeNegotiation = 3356
 typeNocxium = 38
 typeOffice = 27
 typeOfficeFolder = 26
+typeOfficeContainer = 3298
 typeOmnipotent = 19430
 typeOrbitalCommandCenter = 3964
 typeOrbitalTarget = 33069
@@ -1031,6 +1113,7 @@ typeSoftCloud = 10753
 typeSolarSystem = 5
 typeSpaceAnchor = 2528
 typeSpikedQuafe = 21661
+typeStandupReprocessingFacility = 35899
 typeStationConquerable1 = 12242
 typeStationConquerable2 = 12294
 typeStationConquerable3 = 12295
@@ -1054,6 +1137,7 @@ typeTrading = 52
 typeTritanium = 34
 typeTycoon = 18580
 typeUniverse = 9
+typeUnlitModularEffectBeacon = 41235
 typeVeldspar = 1230
 typeVisibility = 3447
 typeWarpDisruptionFocusingScript = 29003
@@ -1066,10 +1150,233 @@ typePilotLicence = 29668
 typeAsteroidBelt = 15
 typeAstrogeology = 3410
 typeLetterOfRecommendation = 30906
+typeWarpDisruptProbe = 22778
 typeWater = 3645
 typeOxygen = 3683
 typeZydrine = 39
 typeSkinMaterial = 34870
+typeQuad800mmRepeatingCannonI = 37289
+typeQuad800mmRepeatingCannonII = 37304
+typeCompactCarbineQuad800mmRepeatingCannon = 37305
+typeHexa2500mmRepeatingCannonII = 37306
+typeQuad3500mmSiegeArtilleryII = 37307
+typeAmpleGalliumQuad800mmRepeatingCannon = 41080
+typeScoutScopedQuad800mmRepeatingCannon = 41081
+typePrototypePreciseQuad800mmRepeatingCannon = 41082
+typeDominationQuad800mmRepeatingCannon = 41083
+typeCarbineCompactHexa2500mmRepeatingCannon = 41150
+typeGalliumAmpleHexa2500mmRepeatingCannon = 41151
+typeScoutScopedHexa2500mmRepeatingCannon = 41152
+typePrototypePreciseHexa2500mmRepeatingCannon = 41153
+typeDominationHexa2500mmRepeatingCannon = 41154
+typeCarbideCompactQuad3500mmSiegeArtillery = 41156
+typeGalliumAmpleQuad3500mmSiegeArtillery = 41157
+typeScoutScopedQuad3500mmSiegeArtillery = 41158
+typePrototypePreciseQuad3500mmSiegeArtillery = 41159
+typeDominationQuad3500mmSiegeArtillery = 41160
+typeHexa2500mmRepeatingCannonI = 20452
+typeQuad3500mmSiegeArtilleryI = 20454
+typeCONCORDQuad3500mmSiegeArtillery = 3571
+typeCONCORDHexa2500mmRepeatingCannon = 3573
+typeTripleNeutronBlasterCannonI = 37291
+typeTripleNeutronBlasterCannonII = 37300
+typeRegulatedCompactTripleNeutronBlasterCannon = 37301
+typeIonSiegeBlasterII = 37302
+typeDual1000mmRailgunII = 37303
+typeModalEnduringTripleNeutronBlasterCannon = 41076
+typeAnodeScopedTripleNeutronBlasterCannon = 41077
+typeLimitedPreciseTripleNeutronBlasterCannon = 41078
+typeShadowSerpentisTripleNeutronBlasterCannon = 41079
+typeRegulatedCompactIonSiegeBlaster = 41126
+typeModalEnduringIonSiegeBlaster = 41127
+typeAnodeScopedIonSiegeBlaster = 41128
+typeLimitedPreciseIonSiegeBlaster = 41129
+typeShadowSerpentisIonSiegeBlaster = 41130
+typeCarbideCompactDual1000mmRailgun = 41138
+typeCompressedEnduringDual1000mmRailgun = 41139
+typeScoutScopedDual1000mmRailgun = 41140
+typePrototypePreciseDual1000mmRailgun = 41141
+typeShadowSerpentisDual1000mmRailgun = 41142
+typeDual1000mmRailgunI = 20448
+typeIonSiegeBlasterI = 20450
+typeCONCORDIonSiegeBlaster = 3546
+typeCONCORDDual1000mmRailgun = 3550
+typeQuadMegaPulseLaserI = 37290
+typeQuadMegaPulseLaserII = 37296
+typeModulatedCompactQuadMegaPulseLaser = 37297
+typeDualGigaPulseLaserII = 37298
+typeDualGigaBeamLaserII = 37299
+typeModalEnduringQuadMegaPulseLaser = 41063
+typeAnodeScopedQuadMegaPulseLaser = 41064
+typeAfocalPreciseQuadMegaPulseLaser = 41065
+typeDarkBloodQuadMegaPulseLaser = 41066
+typeTrueSanshaQuadMegaPulseLaser = 41067
+typeModulatedCompactDualGigaPulseLaser = 41099
+typeModalEnduringDualGigaPulseLaser = 41100
+typeAnodeScopedDualGigaPulseLaser = 41101
+typeAfocalPreciseDualGigaPulseLaser = 41102
+typeDarkBloodDualGigaPulseLaser = 41103
+typeTrueSanshaDualGigaPulseLaser = 41104
+typeModulatedCompactDualGigaBeamLaser = 41114
+typeModalEnduringDualGigaBeamLaser = 41115
+typeAnodeScopedDualGigaBeamLaser = 41116
+typeAfocalPreciseDualGigaBeamLaser = 41117
+typeDarkBloodDualGigaBeamLaser = 41118
+typeTrueSanshaDualGigaBeamLaser = 41119
+typeDualGigaPulseLaserI = 20444
+typeDualGigaBeamLaserI = 20446
+typeCONCORDDualGigaPulseLaser = 3559
+typeCONCORDDualGigaBeamLaser = 3561
+typeRapidTorpedoLauncherI = 37288
+typeTE2100AmpleRapidTorpedoLauncher = 41224
+typeRapidTorpedoLauncherII = 37292
+typeDreadGuristasRapidTorpedoLauncher = 37293
+typeArbalestCompactRapidTorpedoLauncher = 41223
+typeCONCORDXLTorpedoLauncher = 3565
+typeXLTorpedoLauncherII = 37294
+typeXLTorpedoLauncherI = 20539
+typeArbalestCompactXLTorpedoLauncher = 41180
+typeTE2100AmpleXLTorpedoLauncher = 41181
+typeDreadGuristasXLTorpedoLauncher = 41182
+typeCONCORDXLCruiseMissileLauncher = 3563
+typeXLCruiseMissileLauncherII = 37295
+typeDreadGuristasXLCruiseMissileLauncher = 41174
+typeArbalestCompactXLCruiseMissileLauncher = 41175
+typeTE2100AmpleXLCruiseMissileLauncher = 41176
+typeXLCruiseMissileLauncherI = 32444
+type10000MNAfterburnerI = 41236
+type10000MNYS8CompactAfterburner = 41237
+type10000MNMonopropellantEnduringAfterburner = 41238
+type10000MNAfterburnerII = 41239
+typeDomination10000MNAfterburner = 41240
+typeShadowSerpentis10000MNAfterburner = 41241
+type50000MNMicrowarpdriveI = 41249
+type50000MNYT8CompactMicrowarpdrive = 41250
+type50000MNQuadLiFRestrainedMicrowarpdrive = 41251
+type50000MNColdGasEnduringMicrowarpdrive = 41252
+type50000MNMicrowarpdriveII = 41253
+typeDomination50000MNMicrowarpdrive = 41254
+typeShadowSerpentis50000MNMicrowarpdrive = 41255
+typeCapitalEnergyNeutralizerI = 40659
+typeCapitalGremlinCompactEnergyNeutralizer = 40660
+typeCapitalInfectiousScopedEnergyNeutralizer = 40661
+typeCapitalEnergyNeutralizerII = 40662
+typeTrueSanshaCapitalEnergyNeutralizer = 40663
+typeDarkBloodCapitalEnergyNeutralizer = 40664
+typeCapitalEnergyNosferatuI = 40665
+typeCapitalGhoulCompactEnergyNosferatu = 40666
+typeCapitalKnaveScopedEnergyNosferatu = 40667
+typeCapitalEnergyNosferatuII = 40668
+typeTrueSanshaCapitalEnergyNosferatu = 40669
+typeDarkBloodCapitalEnergyNosferatu = 40670
+typeCapitalAncillaryRemoteShieldBooster = 41483
+typeCapitalAncillaryRemoteArmorRepairer = 41479
+typeCapitalAncillaryArmorRepairer = 41503
+typeCapitalAnciliaryShieldBooster = 41504
+typeNetworkedSensorArray = 41411
+typeSiegeModuleII = 4292
+typeTriageModuleII = 4294
+typeIndustrialCoreI = 28583
+typeTriageModuleI = 27951
+typeSiegeModuleI = 20280
+typeCapitalIaEnduringArmorRepairer = 41498
+typeCapitalACMCompactArmorRepairer = 41499
+typeCapitalArmorRepairerII = 41500
+typeDarkBloodCapitalArmorRepairer = 41501
+typeShadowSerpentisCapitalArmorRepairer = 41502
+typeCapitalArmorRepairerI = 20701
+typeCONCORDCapitalArmorRepairer = 3534
+typeCapitalC5LCompactShieldBooster = 41505
+typeCapitalClarityWardEnduringShieldBooster = 41506
+typeCapitalShieldBoosterII = 41507
+typeTrueSanshaCapitalShieldBooster = 41508
+typeDreadGuristasCapitalShieldBooster = 41509
+typeDominationCapitalShieldBooster = 41510
+typeCapitalShieldBoosterI = 20703
+typeCONCORDCapitalShieldBooster = 3542
+typeTrueSanshaCapitalRemoteShieldBooster = 41472
+typeDominationCapitalRemoteShieldBooster = 41474
+typeCapitalRemoteShieldBoosterI = 3616
+typeCapitalRemoteShieldBoosterII = 3618
+typeDreadGuristasCapitalRemoteShieldBooster = 41473
+typeCONCORDCapitalRemoteShieldBooster = 3544
+typeCapitalAsymmetricEnduringRemoteShieldBooster = 41469
+typeCapitalMurkyCompactRemoteShieldBooster = 41470
+typeCapitalS95aScopedRemoteShieldBooster = 41471
+typeCONCORDCapitalRemoteArmorRepairer = 3536
+typeCapitalCoaxialCompactRemoteArmorRepairer = 41464
+typeCapitalSolaceScopedRemoteArmorRepairer = 41465
+typeCapitalIaxEnduringRemoteArmorRepairer = 41463
+typeCapitalRemoteArmorRepairerI = 24569
+typeCapitalRemoteArmorRepairerII = 41466
+typeDarkBloodCapitalRemoteArmorRepairer = 41467
+typeShadowSerpentisCapitalRemoteArmorRepairer = 41468
+typePhalaricaThermalLance = 41440
+typeGeiravorExplosiveLance = 41441
+typeGuillotineThermalReaper = 41443
+typeJormungandrExplosiveReaper = 41444
+typeJudgementElectromagneticDoomsday = 24550
+typeOblivionKineticDoomsday = 24552
+typeAuroraOminaeThermalDoomsday = 24554
+typeColdWindKineticReaper = 41442
+typeHolyDestinyElectromagneticLance = 40631
+typeDivineHarvestElectromagneticReaper = 40632
+typeBosonicFieldGenerator = 40633
+typeGjallarhornExplosiveDoomsday = 23674
+typeGravitationalTransportationFieldOscillator = 40634
+typeIronPikeKineticLance = 41439
+typeWeaponDisruptionBurstProjector = 40699
+typeWarpDisruptionBurstProjector = 40696
+typeSensorDampeningBurstProjector = 40697
+typeTargetIlluminationBurstProjector = 40698
+typeStasisWebificationBurstProjector = 40635
+typeEnergyNeutralizationBurstProjector = 40636
+typeECMJammerBurstProjector = 27678
+typeCapitalEmergencyHullEnergizerI = 40714
+typeCapitalImplacableCompactEmergencyHullEnergizer = 40715
+typeCapitalIndefatigableEnduringEmergencyHullEnergizer = 40716
+typeCapitalEmergencyHullEnergizerII = 40717
+typeSistersCapitalEmergencyHullEnergizer = 40718
+typeCapitalShieldExtenderI = 40354
+typeCapitalFS9RegolithCompactShieldExtender = 40356
+typeCapitalAzeotropicRestrainedShieldExtender = 40355
+typeCapitalShieldExtenderII = 40357
+typeCONCORDCapitalShieldExtender = 41459
+typeTrueSanshaCapitalShieldExtender = 41460
+typeDreadGuristasCapitalShieldExtender = 41461
+typeDominationCapitalShieldExtender = 41462
+type25000mmSteelPlatesI = 40348
+type25000mmRolledTungstenCompactPlates = 40350
+type25000mmCrystallineCarbonideRestrainedPlates = 40349
+type25000mmSteelPlatesII = 40351
+typeCONCORD25000mmSteelPlates = 41456
+typeDarkBlood25000mmSteelPlates = 41457
+typeShadowSerpentis25000mmSteelPlates = 41458
+typeCapitalHullRepairerI = 41511
+typeCapitalIbEnduringHullRepairer = 41512
+typeCapitalIEFCompactHullRepairer = 41513
+typeCapitalHullRepairerII = 41514
+typeCapitalRemoteHullRepairerI = 27934
+typeCapitalRemoteHullRepairerII = 41475
+typeCapitalCapBatteryI = 41484
+typeCapitalCompactPbAcidCapBattery = 41485
+typeCapitalCapBatteryII = 41486
+typeDominationCapitalCapBattery = 41487
+typeDarkBloodCapitalCapBattery = 41488
+typeCapitalCapacitorBoosterI = 41491
+typeCapitalFRXCompactCapacitorBooster = 41492
+typeCapitalCapacitorBoosterII = 41493
+typeDarkBloodCapitalCapacitorBooster = 41494
+typeTrueSanshaCapitalCapacitorBooster = 41495
+typeCapitalFlexArmorHardenerI = 41515
+typeCapitalFlexArmorHardenerII = 41525
+typeDarkBloodCapitalFlexArmorHardener = 41526
+typeShadowSerpentisCapitalFlexArmorHardener = 41527
+typeCapitalFlexShieldHardenerI = 41516
+typeCapitalFlexShieldHardenerII = 41528
+typeTrueSanshaCapitalFlexShieldHardener = 41529
+typeDreadGuristasCapitalFlexShieldHardener = 41530
+typeDominationCapitalFlexShieldHardener = 41531
 typeAmarrBattlecruiser = 33095
 typeAmarrBattleship = 3339
 typeAmarrCarrier = 24311
@@ -1202,7 +1509,16 @@ subSystemSlotFlags = [flagSubSystemSlot0,
  flagSubSystemSlot3,
  flagSubSystemSlot4]
 rigSlotFlags = [flagRigSlot0, flagRigSlot1, flagRigSlot2]
-fittingFlags = set(loSlotFlags + medSlotFlags + hiSlotFlags + subSystemSlotFlags + rigSlotFlags)
+serviceSlotFlags = [flagServiceSlot0,
+ flagServiceSlot1,
+ flagServiceSlot2,
+ flagServiceSlot3,
+ flagServiceSlot4,
+ flagServiceSlot5,
+ flagServiceSlot6,
+ flagServiceSlot7]
+fittingFlags = loSlotFlags + medSlotFlags + hiSlotFlags + subSystemSlotFlags + rigSlotFlags + serviceSlotFlags
+structureFittingFlags = loSlotFlags + medSlotFlags + hiSlotFlags + rigSlotFlags + serviceSlotFlags
 locationGroupServiceMasks = {groupSolarSystem: 'beyonce',
  groupStation: 'station',
  groupWorldSpace: 'worldspace',
@@ -1210,6 +1526,10 @@ locationGroupServiceMasks = {groupSolarSystem: 'beyonce',
 orbitalStrikeAmmo = {typeTacticalEMPAmmoS: 356506,
  typeTacticalHybridAmmoS: 356508,
  typeTacticalLaserAmmoS: 356507}
+cargoContainers = {groupCargoContainer,
+ groupSecureCargoContainer,
+ groupAuditLogSecureContainer,
+ groupFreightContainer}
 playerDeployedContainers = {groupAuditLogSecureContainer,
  groupCargoContainer,
  groupFreightContainer,
@@ -1234,6 +1554,7 @@ nonTargetableGroups = (groupPlanet,
  groupMoon,
  groupAsteroidBelt,
  groupCosmicAnomaly)
+nonScoopableTypes = (typeCargoContainer, typeHangarContainer, typePlanetaryLaunchContainer)
 shipPackagedVolumesPerGroup = {groupAssaultShip: 2500.0,
  groupAttackBattlecruiser: 15000.0,
  groupBattlecruiser: 15000.0,
@@ -1277,7 +1598,7 @@ shipPackagedVolumesPerGroup = {groupAssaultShip: 2500.0,
  groupTacticalDestroyer: 5000.0,
  groupTitan: 10000000.0,
  groupTransportShip: 20000.0}
-containerPackagedVolumesPerType = {typeGiantSecureContainer: 300,
+packagedVolumesPerType = {typeGiantSecureContainer: 300,
  typeHugeSecureContainer: 150,
  typeLargeSecureContainer: 65,
  typeMediumSecureContainer: 33,
@@ -1296,7 +1617,229 @@ containerPackagedVolumesPerType = {typeGiantSecureContainer: 300,
  typeSmallStandardContainer: 10,
  typeStationContainer: 10000,
  typeStationVault: 50000,
- typeStationWarehouse: 100000}
+ typeStationWarehouse: 100000,
+ typeQuad800mmRepeatingCannonI: 1000,
+ typeQuad800mmRepeatingCannonII: 1000,
+ typeCompactCarbineQuad800mmRepeatingCannon: 1000,
+ typeHexa2500mmRepeatingCannonII: 1000,
+ typeQuad3500mmSiegeArtilleryII: 1000,
+ typeAmpleGalliumQuad800mmRepeatingCannon: 1000,
+ typeScoutScopedQuad800mmRepeatingCannon: 1000,
+ typePrototypePreciseQuad800mmRepeatingCannon: 1000,
+ typeDominationQuad800mmRepeatingCannon: 1000,
+ typeCarbineCompactHexa2500mmRepeatingCannon: 1000,
+ typeGalliumAmpleHexa2500mmRepeatingCannon: 1000,
+ typeScoutScopedHexa2500mmRepeatingCannon: 1000,
+ typePrototypePreciseHexa2500mmRepeatingCannon: 1000,
+ typeDominationHexa2500mmRepeatingCannon: 1000,
+ typeCarbideCompactQuad3500mmSiegeArtillery: 1000,
+ typeGalliumAmpleQuad3500mmSiegeArtillery: 1000,
+ typeScoutScopedQuad3500mmSiegeArtillery: 1000,
+ typePrototypePreciseQuad3500mmSiegeArtillery: 1000,
+ typeDominationQuad3500mmSiegeArtillery: 1000,
+ typeHexa2500mmRepeatingCannonI: 1000,
+ typeQuad3500mmSiegeArtilleryI: 1000,
+ typeCONCORDQuad3500mmSiegeArtillery: 1000,
+ typeCONCORDHexa2500mmRepeatingCannon: 1000,
+ typeTripleNeutronBlasterCannonI: 1000,
+ typeTripleNeutronBlasterCannonII: 1000,
+ typeRegulatedCompactTripleNeutronBlasterCannon: 1000,
+ typeIonSiegeBlasterII: 1000,
+ typeDual1000mmRailgunII: 1000,
+ typeModalEnduringTripleNeutronBlasterCannon: 1000,
+ typeAnodeScopedTripleNeutronBlasterCannon: 1000,
+ typeLimitedPreciseTripleNeutronBlasterCannon: 1000,
+ typeShadowSerpentisTripleNeutronBlasterCannon: 1000,
+ typeRegulatedCompactIonSiegeBlaster: 1000,
+ typeModalEnduringIonSiegeBlaster: 1000,
+ typeAnodeScopedIonSiegeBlaster: 1000,
+ typeLimitedPreciseIonSiegeBlaster: 1000,
+ typeShadowSerpentisIonSiegeBlaster: 1000,
+ typeCarbideCompactDual1000mmRailgun: 1000,
+ typeCompressedEnduringDual1000mmRailgun: 1000,
+ typeScoutScopedDual1000mmRailgun: 1000,
+ typePrototypePreciseDual1000mmRailgun: 1000,
+ typeShadowSerpentisDual1000mmRailgun: 1000,
+ typeDual1000mmRailgunI: 1000,
+ typeIonSiegeBlasterI: 1000,
+ typeCONCORDIonSiegeBlaster: 1000,
+ typeCONCORDDual1000mmRailgun: 1000,
+ typeQuadMegaPulseLaserI: 1000,
+ typeQuadMegaPulseLaserII: 1000,
+ typeModulatedCompactQuadMegaPulseLaser: 1000,
+ typeDualGigaPulseLaserII: 1000,
+ typeDualGigaBeamLaserII: 1000,
+ typeModalEnduringQuadMegaPulseLaser: 1000,
+ typeAnodeScopedQuadMegaPulseLaser: 1000,
+ typeAfocalPreciseQuadMegaPulseLaser: 1000,
+ typeDarkBloodQuadMegaPulseLaser: 1000,
+ typeTrueSanshaQuadMegaPulseLaser: 1000,
+ typeModulatedCompactDualGigaPulseLaser: 1000,
+ typeModalEnduringDualGigaPulseLaser: 1000,
+ typeAnodeScopedDualGigaPulseLaser: 1000,
+ typeAfocalPreciseDualGigaPulseLaser: 1000,
+ typeDarkBloodDualGigaPulseLaser: 1000,
+ typeTrueSanshaDualGigaPulseLaser: 1000,
+ typeModulatedCompactDualGigaBeamLaser: 1000,
+ typeModalEnduringDualGigaBeamLaser: 1000,
+ typeAnodeScopedDualGigaBeamLaser: 1000,
+ typeAfocalPreciseDualGigaBeamLaser: 1000,
+ typeDarkBloodDualGigaBeamLaser: 1000,
+ typeTrueSanshaDualGigaBeamLaser: 1000,
+ typeDualGigaPulseLaserI: 1000,
+ typeDualGigaBeamLaserI: 1000,
+ typeCONCORDDualGigaPulseLaser: 1000,
+ typeCONCORDDualGigaBeamLaser: 1000,
+ typeRapidTorpedoLauncherI: 1000,
+ typeTE2100AmpleRapidTorpedoLauncher: 1000,
+ typeRapidTorpedoLauncherII: 1000,
+ typeDreadGuristasRapidTorpedoLauncher: 1000,
+ typeArbalestCompactRapidTorpedoLauncher: 1000,
+ typeCONCORDXLTorpedoLauncher: 1000,
+ typeXLTorpedoLauncherII: 1000,
+ typeXLTorpedoLauncherI: 1000,
+ typeArbalestCompactXLTorpedoLauncher: 1000,
+ typeTE2100AmpleXLTorpedoLauncher: 1000,
+ typeDreadGuristasXLTorpedoLauncher: 1000,
+ typeCONCORDXLCruiseMissileLauncher: 1000,
+ typeXLCruiseMissileLauncherII: 1000,
+ typeDreadGuristasXLCruiseMissileLauncher: 1000,
+ typeArbalestCompactXLCruiseMissileLauncher: 1000,
+ typeTE2100AmpleXLCruiseMissileLauncher: 1000,
+ typeXLCruiseMissileLauncherI: 1000,
+ type10000MNAfterburnerI: 1000,
+ type10000MNYS8CompactAfterburner: 1000,
+ type10000MNMonopropellantEnduringAfterburner: 1000,
+ type10000MNAfterburnerII: 1000,
+ typeDomination10000MNAfterburner: 1000,
+ typeShadowSerpentis10000MNAfterburner: 1000,
+ type50000MNMicrowarpdriveI: 1000,
+ type50000MNYT8CompactMicrowarpdrive: 1000,
+ type50000MNQuadLiFRestrainedMicrowarpdrive: 1000,
+ type50000MNColdGasEnduringMicrowarpdrive: 1000,
+ type50000MNMicrowarpdriveII: 1000,
+ typeDomination50000MNMicrowarpdrive: 1000,
+ typeShadowSerpentis50000MNMicrowarpdrive: 1000,
+ typeCapitalEnergyNeutralizerI: 1000,
+ typeCapitalGremlinCompactEnergyNeutralizer: 1000,
+ typeCapitalInfectiousScopedEnergyNeutralizer: 1000,
+ typeCapitalEnergyNeutralizerII: 1000,
+ typeTrueSanshaCapitalEnergyNeutralizer: 1000,
+ typeDarkBloodCapitalEnergyNeutralizer: 1000,
+ typeCapitalEnergyNosferatuI: 1000,
+ typeCapitalGhoulCompactEnergyNosferatu: 1000,
+ typeCapitalKnaveScopedEnergyNosferatu: 1000,
+ typeCapitalEnergyNosferatuII: 1000,
+ typeTrueSanshaCapitalEnergyNosferatu: 1000,
+ typeDarkBloodCapitalEnergyNosferatu: 1000,
+ typeCapitalAncillaryRemoteShieldBooster: 1000,
+ typeCapitalAncillaryRemoteArmorRepairer: 1000,
+ typeCapitalAncillaryArmorRepairer: 1000,
+ typeCapitalAnciliaryShieldBooster: 1000,
+ typeNetworkedSensorArray: 1000,
+ typeSiegeModuleII: 1000,
+ typeTriageModuleII: 1000,
+ typeIndustrialCoreI: 1000,
+ typeTriageModuleI: 1000,
+ typeSiegeModuleI: 1000,
+ typeCapitalIaEnduringArmorRepairer: 1000,
+ typeCapitalACMCompactArmorRepairer: 1000,
+ typeCapitalArmorRepairerII: 1000,
+ typeDarkBloodCapitalArmorRepairer: 1000,
+ typeShadowSerpentisCapitalArmorRepairer: 1000,
+ typeCapitalArmorRepairerI: 1000,
+ typeCONCORDCapitalArmorRepairer: 1000,
+ typeCapitalC5LCompactShieldBooster: 1000,
+ typeCapitalClarityWardEnduringShieldBooster: 1000,
+ typeCapitalShieldBoosterII: 1000,
+ typeTrueSanshaCapitalShieldBooster: 1000,
+ typeDreadGuristasCapitalShieldBooster: 1000,
+ typeDominationCapitalShieldBooster: 1000,
+ typeCapitalShieldBoosterI: 1000,
+ typeCONCORDCapitalShieldBooster: 1000,
+ typeTrueSanshaCapitalRemoteShieldBooster: 1000,
+ typeDominationCapitalRemoteShieldBooster: 1000,
+ typeCapitalRemoteShieldBoosterI: 1000,
+ typeCapitalRemoteShieldBoosterII: 1000,
+ typeDreadGuristasCapitalRemoteShieldBooster: 1000,
+ typeCONCORDCapitalRemoteShieldBooster: 1000,
+ typeCapitalAsymmetricEnduringRemoteShieldBooster: 1000,
+ typeCapitalMurkyCompactRemoteShieldBooster: 1000,
+ typeCapitalS95aScopedRemoteShieldBooster: 1000,
+ typeCONCORDCapitalRemoteArmorRepairer: 1000,
+ typeCapitalCoaxialCompactRemoteArmorRepairer: 1000,
+ typeCapitalSolaceScopedRemoteArmorRepairer: 1000,
+ typeCapitalIaxEnduringRemoteArmorRepairer: 1000,
+ typeCapitalRemoteArmorRepairerI: 1000,
+ typeCapitalRemoteArmorRepairerII: 1000,
+ typeDarkBloodCapitalRemoteArmorRepairer: 1000,
+ typeShadowSerpentisCapitalRemoteArmorRepairer: 1000,
+ typeCapitalShieldExtenderI: 1000,
+ typeCapitalFS9RegolithCompactShieldExtender: 1000,
+ typeCapitalAzeotropicRestrainedShieldExtender: 1000,
+ typeCapitalShieldExtenderII: 1000,
+ typeCONCORDCapitalShieldExtender: 1000,
+ typeTrueSanshaCapitalShieldExtender: 1000,
+ typeDreadGuristasCapitalShieldExtender: 1000,
+ typeDominationCapitalShieldExtender: 1000,
+ type25000mmSteelPlatesI: 1000,
+ type25000mmRolledTungstenCompactPlates: 1000,
+ type25000mmCrystallineCarbonideRestrainedPlates: 1000,
+ type25000mmSteelPlatesII: 1000,
+ typeCONCORD25000mmSteelPlates: 1000,
+ typeDarkBlood25000mmSteelPlates: 1000,
+ typeShadowSerpentis25000mmSteelPlates: 1000,
+ typeCapitalHullRepairerI: 1000,
+ typeCapitalIbEnduringHullRepairer: 1000,
+ typeCapitalIEFCompactHullRepairer: 1000,
+ typeCapitalHullRepairerII: 1000,
+ typeCapitalRemoteHullRepairerI: 1000,
+ typeCapitalRemoteHullRepairerII: 1000,
+ typeCapitalCapBatteryI: 1000,
+ typeCapitalCompactPbAcidCapBattery: 1000,
+ typeCapitalCapBatteryII: 1000,
+ typeDominationCapitalCapBattery: 1000,
+ typeDarkBloodCapitalCapBattery: 1000,
+ typeCapitalCapacitorBoosterI: 1000,
+ typeCapitalFRXCompactCapacitorBooster: 1000,
+ typeCapitalCapacitorBoosterII: 1000,
+ typeDarkBloodCapitalCapacitorBooster: 1000,
+ typeTrueSanshaCapitalCapacitorBooster: 1000,
+ typeCapitalFlexArmorHardenerI: 1000,
+ typeCapitalFlexArmorHardenerII: 1000,
+ typeDarkBloodCapitalFlexArmorHardener: 1000,
+ typeShadowSerpentisCapitalFlexArmorHardener: 1000,
+ typeCapitalFlexShieldHardenerI: 1000,
+ typeCapitalFlexShieldHardenerII: 1000,
+ typeTrueSanshaCapitalFlexShieldHardener: 1000,
+ typeDreadGuristasCapitalFlexShieldHardener: 1000,
+ typeDominationCapitalFlexShieldHardener: 1000,
+ typePhalaricaThermalLance: 2000,
+ typeGeiravorExplosiveLance: 2000,
+ typeGuillotineThermalReaper: 2000,
+ typeJormungandrExplosiveReaper: 2000,
+ typeJudgementElectromagneticDoomsday: 2000,
+ typeOblivionKineticDoomsday: 2000,
+ typeAuroraOminaeThermalDoomsday: 2000,
+ typeColdWindKineticReaper: 2000,
+ typeHolyDestinyElectromagneticLance: 2000,
+ typeDivineHarvestElectromagneticReaper: 2000,
+ typeBosonicFieldGenerator: 2000,
+ typeGjallarhornExplosiveDoomsday: 2000,
+ typeGravitationalTransportationFieldOscillator: 2000,
+ typeIronPikeKineticLance: 2000,
+ typeWeaponDisruptionBurstProjector: 2000,
+ typeWarpDisruptionBurstProjector: 2000,
+ typeSensorDampeningBurstProjector: 2000,
+ typeTargetIlluminationBurstProjector: 2000,
+ typeStasisWebificationBurstProjector: 2000,
+ typeEnergyNeutralizationBurstProjector: 2000,
+ typeECMJammerBurstProjector: 2000,
+ typeCapitalEmergencyHullEnergizerI: 2000,
+ typeCapitalImplacableCompactEmergencyHullEnergizer: 2000,
+ typeCapitalIndefatigableEnduringEmergencyHullEnergizer: 2000,
+ typeCapitalEmergencyHullEnergizerII: 2000,
+ typeSistersCapitalEmergencyHullEnergizer: 2000}
 turretModuleGroups = [groupEnergyWeapon,
  groupGasCloudHarvester,
  groupHybridWeapon,
@@ -1308,7 +1851,7 @@ turretModuleGroups = [groupEnergyWeapon,
  groupSalvager,
  groupMissileLauncherAssault,
  groupMissileLauncherBomb,
- groupMissileLauncherCitadel,
+ groupMissileLauncherXLTorpedo,
  groupMissileLauncherCruise,
  groupMissileLauncherDefender,
  groupMissileLauncherHeavy,
@@ -1317,7 +1860,24 @@ turretModuleGroups = [groupEnergyWeapon,
  groupMissileLauncherSiege,
  groupMissileLauncherFestival,
  groupMissileLauncherStandard,
- groupMissileLauncherRapidHeavy]
+ groupMissileLauncherRapidHeavy,
+ groupMissileLauncherRapidTorpedo,
+ groupMissileLauncherXLCruise,
+ groupStructureAreaMissileLauncher,
+ groupStructureBumpingModule,
+ groupStructureDefenseBattery,
+ groupStructureDoomsdayWeapon,
+ groupStructureECM,
+ groupStructureEnergyNeutralizer,
+ groupStructureFlakMissileLauncher,
+ groupStructureMissileGuidanceComputer,
+ groupStructureMissileLauncher,
+ groupStructureRemoteSensorDampener,
+ groupStructureStasisWebifier,
+ groupStructureTargetPainter,
+ groupStructureTrackingDisruptors,
+ groupStructureTractorBeam,
+ groupStructureWarpDisruptor]
 turretAmmoGroups = [groupCitadelTorpedo,
  groupCitadelCruise,
  groupBomb,
@@ -1340,14 +1900,19 @@ turretAmmoGroups = [groupCitadelTorpedo,
  groupAdvancedRocket,
  groupDefenderMissile,
  groupHeavyDefenderMissile,
- groupFestivalMissile]
+ groupFestivalMissile,
+ groupStructureMissile,
+ groupStructureAreaMissile,
+ groupStructureFlakMissile]
 previewCategories = [categoryDrone,
  categoryShip,
  categoryStarbase,
  categoryStation,
  categorySovereigntyStructure,
  categoryDeployable,
- categoryApparel]
+ categoryApparel,
+ categoryFighter,
+ categoryStructure]
 previewGroups = [groupStargate,
  groupFreightContainer,
  groupSecureCargoContainer,
@@ -1362,11 +1927,13 @@ compareCategories = (categoryCharge,
  categoryImplant,
  categoryMaterial,
  categoryModule,
+ categoryStructureModule,
  categoryShip,
  categorySkill,
  categoryStarbase,
  categoryDeployable,
- categorySubSystem)
+ categorySubSystem,
+ categoryFighter)
 reverseRedeemingLegalGroups = [groupGameTime]
 stateFilteredCategories = [categoryDeployable,
  categoryDrone,
@@ -1374,7 +1941,8 @@ stateFilteredCategories = [categoryDeployable,
  categoryShip,
  categorySovereigntyStructure,
  categoryStarbase,
- categoryOwner]
+ categoryOwner,
+ categoryFighter]
 ixGroupID = 6
 ixCategoryID = 7
 ixCustomInfo = 8

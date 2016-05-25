@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\packages\eveclientqatools\sofpreviewer.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\packages\eveclientqatools\sofpreviewer.py
 import blue
 import uicontrols
 import carbonui.const as uiconst
@@ -131,11 +132,13 @@ class SOFPreviewWindow:
          'None',
          'None',
          'None']
+        self.currentVariant = 'None'
         self.currentDirtLevel = None
         self.currentResPathInsert = None
         self.constrainToFaction = False
         self.constrainToHull = False
         self.constrainToRace = False
+        return
 
     def _OnApplyButton(self, *args):
         self._UpdatePlayerShip()
@@ -172,6 +175,12 @@ class SOFPreviewWindow:
 
         self.sofMaterials.sort()
         self.sofMaterials.insert(0, ('None', -1))
+        self.sofVariants = []
+        for i in xrange(len(sofDB.generic.variants)):
+            self.sofVariants.append((sofDB.generic.variants[i].name, i))
+
+        self.sofVariants.sort()
+        self.sofVariants.insert(0, ('None', -1))
         headerCont = Container(name='headerCont', parent=main, align=uiconst.TOTOP, height=30)
         gridCont = GridContainer(name='mainCont', parent=main, align=uiconst.TOBOTTOM, height=250, lines=5, columns=3)
         buttonConts = {}
@@ -198,6 +207,7 @@ class SOFPreviewWindow:
         self.dirtSlider = Slider(name='dirt_slider', align=uiconst.CENTER, label='Dirt', parent=buttonConts[(2, 0)], width=200, minValue=0.0, maxValue=100.0, startVal=50.0, setlabelfunc=self.UpdateDirtSliderLabel, onsetvaluefunc=self.OnDirtSliderChange, endsliderfunc=self.OnDirtSliderChange)
         self.materialSetIDEdit = SinglelineEdit(name='materialsetid_edit', align=uiconst.CENTER, label='Masterial Set ID', parent=buttonConts[(2, 1)], width=100, setvalue='', OnFocusLost=self.OnMaterialSetIDChange, OnReturn=self.OnMaterialSetIDChange)
         self.resPathInsertEdit = SinglelineEdit(name='respathinsert_edit', align=uiconst.CENTER, label='resPathInsert', parent=buttonConts[(2, 2)], width=100, setvalue='', OnFocusLost=self.OnResPathInsertChange, OnReturn=self.OnResPathInsertChange)
+        self.variantCombo = Combo(name='variant_combo', align=uiconst.CENTER, width=150, parent=buttonConts[(2, 3)], label='Variants:', options=self.sofVariants, callback=self.OnVariantComboChange, select=self.GetComboListIndex(self.sofVariants, self.currentVariant))
         self.previewCont = PreviewContainer(parent=main, align=uiconst.TOALL)
         self.previewCont.PreviewSofDna(self.GetPreviewDna())
 
@@ -206,12 +216,16 @@ class SOFPreviewWindow:
             if each[0].lower() == name.lower():
                 return each[1]
 
+        return None
+
     def GetPreviewDna(self):
         dna = self.currentHull + ':' + self.currentFaction + ':' + self.currentRace
         if any((x != 'None' for x in self.currentMat)):
             dna += ':mesh?' + str(self.currentMat[0]) + ';' + str(self.currentMat[1]) + ';' + str(self.currentMat[2]) + ';' + str(self.currentMat[3])
         if self.currentResPathInsert is not None:
             dna += ':respathinsert?' + str(self.currentResPathInsert)
+        if self.currentVariant != 'None':
+            dna += ':variant?' + str(self.currentVariant)
         self.dnaLabel.text = dna
         return dna
 
@@ -220,7 +234,11 @@ class SOFPreviewWindow:
         ship = michelle.GetBall(session.shipid)
         if ship is None:
             return 'ab1_t1:amarrbase:amarr'
-        return ship.GetDNA()
+        else:
+            dna = ship.GetDNA()
+            if dna is None:
+                return 'ab1_t1:amarrbase:amarr'
+            return dna
 
     def UpdateDirtSliderLabel(self, label, sliderID, displayName, value):
         dirtLevel = gfxutils.RemapDirtLevel(value)
@@ -307,8 +325,6 @@ class SOFPreviewWindow:
             if hullName in hullList:
                 return factionName
 
-        return ''
-
     def TrySettingComboOptions(self, comboBox, options, selectedValue):
         comboBox.LoadOptions(options)
         return self.TrySettingComboValue(comboBox, selectedValue)
@@ -356,6 +372,10 @@ class SOFPreviewWindow:
         self.currentMat[3] = material
         self._UpdatePreviewShip()
 
+    def OnVariantComboChange(self, comboBox, variant, value):
+        self.currentVariant = variant
+        self._UpdatePreviewShip()
+
     def OnMaterialSetIDChange(self, *args):
         materialSetID = int(self.materialSetIDEdit.GetValue())
         print 'trying to find materialset for ' + str(materialSetID)
@@ -392,24 +412,28 @@ class SOFPreviewWindow:
         else:
             self.currentResPathInsert = resPathInsert
         self._UpdatePreviewShip()
+        return
 
     def _UpdatePreviewShip(self):
         if self.previewCont is not None:
             self.previewCont.PreviewSofDna(self.GetPreviewDna(), dirt=self.currentDirtLevel)
+        return
 
     def _UpdatePlayerShip(self):
         michelle = sm.GetService('michelle')
         ship = michelle.GetBall(session.shipid)
         if ship is None:
             return
-        ship.UnfitHardpoints()
-        ship.Release()
-        while ship.model is not None:
-            blue.synchro.Yield()
+        else:
+            ship.UnfitHardpoints()
+            ship.Release()
+            while ship.model is not None:
+                blue.synchro.Yield()
 
-        ship.released = False
-        ship.GetDNA = self.GetPreviewDna
-        ship.LoadModel()
-        ship.Assemble()
-        if self.currentDirtLevel is not None:
-            ship.model.dirtLevel = self.currentDirtLevel
+            ship.released = False
+            ship.GetDNA = self.GetPreviewDna
+            ship.LoadModel()
+            ship.Assemble()
+            if self.currentDirtLevel is not None:
+                ship.model.dirtLevel = self.currentDirtLevel
+            return

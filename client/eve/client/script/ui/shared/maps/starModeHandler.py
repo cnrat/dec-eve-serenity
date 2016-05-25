@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\client\script\ui\shared\maps\starModeHandler.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\client\script\ui\shared\maps\starModeHandler.py
 import evetypes
 import trinity
 import uix
@@ -38,6 +39,7 @@ def ColorStarsByDevIndex(colorInfo, starColorMode, indexID, indexName):
 
     colorInfo.legend.add(LegendItem(0, GetByLabel('UI/Map/StarModeHandler/devIndxUndevloped'), mapcommon.NEUTRAL_COLOR, data=None))
     colorInfo.legend.add(LegendItem(1, GetByLabel('UI/Map/StarModeHandler/devIndxDevloped'), color, data=None))
+    return
 
 
 def HintMyAssets(stationData):
@@ -87,6 +89,7 @@ def ColorStarsByAssets(colorInfo, starColorMode):
 
     colorInfo.legend.add(LegendItem(0, GetByLabel('UI/Map/StarModeHandler/assetsNoAssets'), mapcommon.NEUTRAL_COLOR, data=None))
     colorInfo.legend.add(LegendItem(1, GetByLabel('UI/Map/StarModeHandler/assetsHasAssets'), assetColor, data=None))
+    return
 
 
 def ColorStarsByVisited(colorInfo, starColorMode):
@@ -110,6 +113,7 @@ def ColorStarsByVisited(colorInfo, starColorMode):
     colorInfo.legend.add(LegendItem(0, GetByLabel('UI/Map/StarModeHandler/visitedNever'), mapcommon.NEUTRAL_COLOR, data=None))
     colorInfo.legend.add(LegendItem(1, GetByLabel('UI/Map/StarModeHandler/visitedShortest'), colorInfo.colorList[0], data=None))
     colorInfo.legend.add(LegendItem(2, GetByLabel('UI/Map/StarModeHandler/visitedLongest'), colorInfo.colorList[2], data=None))
+    return
 
 
 def ColorStarsBySecurity(colorInfo, starColorMode):
@@ -125,6 +129,8 @@ def ColorStarsBySecurity(colorInfo, starColorMode):
     for i in xrange(0, 11):
         lbl = GetByLabel('UI/Map/StarModeHandler/securityLegendItem', level=1.0 - i * 0.1)
         colorInfo.legend.add(LegendItem(i, lbl, COLORCURVE_SECURITY[10 - i], data=None))
+
+    return
 
 
 def ColorStarsBySovChanges(colorInfo, starColorMode, changeMode):
@@ -144,6 +150,7 @@ def ColorStarsBySovChanges(colorInfo, starColorMode, changeMode):
 
     colorInfo.legend.add(LegendItem(0, GetByLabel('UI/Map/StarModeHandler/sovereigntyNoSovChanges'), mapcommon.NEUTRAL_COLOR, None))
     colorInfo.legend.add(LegendItem(1, GetByLabel('UI/Map/StarModeHandler/sovereigntySovChanges'), color, None))
+    return
 
 
 def GetSovChangeList(changeMode):
@@ -197,6 +204,7 @@ def ColorStarsByFactionStandings(colorInfo, starColorMode):
     colorInfo.legend.add(LegendItem(0, GetByLabel('UI/Map/StarModeHandler/factionGoodStandings'), trinity.TriColor(*COLOR_STANDINGS_GOOD), data=None))
     colorInfo.legend.add(LegendItem(1, GetByLabel('UI/Map/StarModeHandler/factionNeutralStandings'), trinity.TriColor(*COLOR_STANDINGS_NEUTRAL), data=None))
     colorInfo.legend.add(LegendItem(2, GetByLabel('UI/Map/StarModeHandler/factionBadStandings'), trinity.TriColor(*COLOR_STANDINGS_BAD), data=None))
+    return
 
 
 def ColorStarsByFaction(colorInfo, starColorMode):
@@ -229,58 +237,63 @@ def ColorStarsByFaction(colorInfo, starColorMode):
          col)
         colorInfo.legend.add(LegendItem(None, name, col, data=sovHolderID))
 
+    return
+
 
 def ColorStarsByMilitia(colorInfo, starColorMode):
     factionID = starColorMode[1]
     if factionID < -1:
         self.LogError('Invalid factionID', factionID)
         return
-    facWar = sm.GetService('facwar')
-    starmap = sm.GetService('starmap')
-    facWarSolarSystemsOccupiers = facWar.GetFacWarSystemsOccupiers()
-    warFactions = facWar.GetWarFactions()
-    colByFaction = {fID:starmap.GetFactionOrAllianceColor(fID) for fID in warFactions}
-    nameByFaction = {fID:cfg.eveowners.Get(fID).name for fID in warFactions}
-    maxPointsByFaction = {fID:1 for fID in warFactions}
-    maxThresholdByFaction = {fID:1 for fID in warFactions}
-    facWarData = starmap.GetFacWarData()
-    occupiedSystems = {}
-    for systemID, currentOccupierID in facWarSolarSystemsOccupiers.iteritems():
-        if currentOccupierID == factionID or factionID == -1:
-            if systemID in facWarData:
-                threshold, points, occupierID = facWarData[systemID]
-                if occupierID is not None and occupierID != currentOccupierID:
-                    state = const.contestionStateCaptured
-                elif threshold > points:
-                    if points == 0:
-                        state = const.contestionStateNone
+    else:
+        facWar = sm.GetService('facwar')
+        starmap = sm.GetService('starmap')
+        facWarSolarSystemsOccupiers = facWar.GetFacWarSystemsOccupiers()
+        warFactions = facWar.GetWarFactions()
+        colByFaction = {fID:starmap.GetFactionOrAllianceColor(fID) for fID in warFactions}
+        nameByFaction = {fID:cfg.eveowners.Get(fID).name for fID in warFactions}
+        maxPointsByFaction = {fID:1 for fID in warFactions}
+        maxThresholdByFaction = {fID:1 for fID in warFactions}
+        facWarData = starmap.GetFacWarData()
+        occupiedSystems = {}
+        for systemID, currentOccupierID in facWarSolarSystemsOccupiers.iteritems():
+            if currentOccupierID == factionID or factionID == -1:
+                if systemID in facWarData:
+                    threshold, points, occupierID = facWarData[systemID]
+                    if occupierID is not None and occupierID != currentOccupierID:
+                        state = const.contestionStateCaptured
+                    elif threshold > points:
+                        if points == 0:
+                            state = const.contestionStateNone
+                        else:
+                            state = const.contestionStateContested
                     else:
-                        state = const.contestionStateContested
+                        state = const.contestionStateVulnerable
+                    maxThresholdByFaction[currentOccupierID] = max(threshold, maxThresholdByFaction[currentOccupierID])
+                    maxPointsByFaction[currentOccupierID] = max(points, maxPointsByFaction[currentOccupierID])
                 else:
-                    state = const.contestionStateVulnerable
-                maxThresholdByFaction[currentOccupierID] = max(threshold, maxThresholdByFaction[currentOccupierID])
-                maxPointsByFaction[currentOccupierID] = max(points, maxPointsByFaction[currentOccupierID])
-            else:
-                points, state = 0, const.contestionStateNone
-            occupiedSystems[systemID] = (currentOccupierID, points, state)
+                    points, state = 0, const.contestionStateNone
+                occupiedSystems[systemID] = (currentOccupierID, points, state)
 
-    hintFunc = lambda name, status: GetByLabel('UI/Map/StarModeHandler/militiaSystemStatus', name=name, status=status)
-    multiplierByFaction = {fID:max(1.0, maxThresholdByFaction[fID] / maxPointsByFaction[fID]) for fID in maxThresholdByFaction.keys()}
-    for particleID, solarSystemID in starmap.particleIDToSystemIDMap.iteritems():
-        if solarSystemID in occupiedSystems:
-            solarsystem = starmap.map.GetItem(solarSystemID)
-            if solarsystem is None:
-                continue
-            occupierID, points, state = occupiedSystems[solarSystemID]
-            age = multiplierByFaction[occupierID] * float(points)
-            size = 2.0 + pow(age, 0.35)
-            statusText = sm.GetService('infoPanel').GetSolarSystemStatusText(state, True)
-            colorInfo.solarSystemDict[solarSystemID] = (size,
-             age,
-             (hintFunc, (nameByFaction[occupierID], statusText)),
-             colByFaction[occupierID])
-            colorInfo.legend.add(LegendItem(None, nameByFaction[occupierID], colByFaction[occupierID], data=occupierID))
-            colorInfo.colorList = (trinity.TriColor(0.5, 0.32, 0.0), trinity.TriColor(0.7, 0.0, 0.0))
+        hintFunc = lambda name, status: GetByLabel('UI/Map/StarModeHandler/militiaSystemStatus', name=name, status=status)
+        multiplierByFaction = {fID:max(1.0, maxThresholdByFaction[fID] / maxPointsByFaction[fID]) for fID in maxThresholdByFaction.keys()}
+        for particleID, solarSystemID in starmap.particleIDToSystemIDMap.iteritems():
+            if solarSystemID in occupiedSystems:
+                solarsystem = starmap.map.GetItem(solarSystemID)
+                if solarsystem is None:
+                    continue
+                occupierID, points, state = occupiedSystems[solarSystemID]
+                age = multiplierByFaction[occupierID] * float(points)
+                size = 2.0 + pow(age, 0.35)
+                statusText = sm.GetService('infoPanel').GetSolarSystemStatusText(state, True)
+                colorInfo.solarSystemDict[solarSystemID] = (size,
+                 age,
+                 (hintFunc, (nameByFaction[occupierID], statusText)),
+                 colByFaction[occupierID])
+                colorInfo.legend.add(LegendItem(None, nameByFaction[occupierID], colByFaction[occupierID], data=occupierID))
+                colorInfo.colorList = (trinity.TriColor(0.5, 0.32, 0.0), trinity.TriColor(0.7, 0.0, 0.0))
+
+        return
 
 
 def ColorStarsByRegion(colorInfo, starColorMode):
@@ -296,6 +309,8 @@ def ColorStarsByRegion(colorInfo, starColorMode):
              col)
 
         colorInfo.legend.add(LegendItem(None, regionName, col, data=regionID))
+
+    return
 
 
 def HintCargoIllegality(attackTypeIDs, confiscateTypeIDs):
@@ -371,6 +386,7 @@ def ColorStarsByCargoIllegality(colorInfo, starColorMode):
     colorInfo.legend.add(LegendItem(0, GetByLabel('UI/Map/StarModeHandler/legalityNoConsequences'), mapcommon.NEUTRAL_COLOR, data=None))
     colorInfo.legend.add(LegendItem(1, GetByLabel('UI/Map/StarModeHandler/legalityConfiscate'), CONFISCATED_COLOR, data=None))
     colorInfo.legend.add(LegendItem(2, GetByLabel('UI/Map/StarModeHandler/legalityWillAttack'), ATTACKED_COLOR, data=None))
+    return
 
 
 def ColorStarsByNumPilots(colorInfo, starColorMode):
@@ -417,6 +433,7 @@ def ColorStarsByNumPilots(colorInfo, starColorMode):
     colorInfo.legend.add(LegendItem(0, GetByLabel('UI/Map/StarModeHandler/pilotsNone'), mapcommon.NEUTRAL_COLOR, data=None))
     colorInfo.legend.add(LegendItem(1, GetByLabel('UI/Map/StarModeHandler/pilotsOne'), startColor, data=None))
     colorInfo.legend.add(LegendItem(2, GetByLabel('UI/Map/StarModeHandler/pilotsMany', maxCount=maxCount), colorInfo.colorList[-1], data=None))
+    return
 
 
 def ColorStarsByStationCount(colorInfo, starColorMode):
@@ -447,6 +464,7 @@ def ColorStarsByStationCount(colorInfo, starColorMode):
     colorInfo.legend.add(LegendItem(0, GetByLabel('UI/Map/StarModeHandler/stationsNone'), mapcommon.NEUTRAL_COLOR, data=None))
     colorInfo.legend.add(LegendItem(1, GetByLabel('UI/Map/StarModeHandler/stationsOne'), startColor, data=None))
     colorInfo.legend.add(LegendItem(2, GetByLabel('UI/Map/StarModeHandler/stationsMany', maxCount=maxCount), colorInfo.colorList[-1], data=None))
+    return
 
 
 def HintDungeons(dungeons):
@@ -468,30 +486,33 @@ def ColorStarsByDungeons(colorInfo, starColorMode):
         dungeons = sm.RemoteSvc('map').GetDeadspaceAgentsMap(eve.session.languageID)
     if dungeons is None:
         return
-    solmap = {}
-    for solarSystemID, dungeonID, difficulty, dungeonName in dungeons:
-        if solarSystemID in solmap:
-            solmap[solarSystemID].append((dungeonID, difficulty, dungeonName))
-        else:
-            solmap[solarSystemID] = [(dungeonID, difficulty, dungeonName)]
+    else:
+        solmap = {}
+        for solarSystemID, dungeonID, difficulty, dungeonName in dungeons:
+            if solarSystemID in solmap:
+                solmap[solarSystemID].append((dungeonID, difficulty, dungeonName))
+            else:
+                solmap[solarSystemID] = [(dungeonID, difficulty, dungeonName)]
 
-    for solarSystemID, solarSystemDungeons in solmap.iteritems():
-        maxDifficulty = 1
-        for dungeonID, difficulty, dungeonName in solarSystemDungeons:
-            if difficulty:
-                maxDifficulty = max(maxDifficulty, difficulty)
+        for solarSystemID, solarSystemDungeons in solmap.iteritems():
+            maxDifficulty = 1
+            for dungeonID, difficulty, dungeonName in solarSystemDungeons:
+                if difficulty:
+                    maxDifficulty = max(maxDifficulty, difficulty)
 
-        maxDifficulty = (10 - maxDifficulty) / 9.0
-        colorInfo.solarSystemDict[solarSystemID] = (3.0 * len(solarSystemDungeons),
-         maxDifficulty,
-         (HintDungeons, (solarSystemDungeons,)),
-         None)
+            maxDifficulty = (10 - maxDifficulty) / 9.0
+            colorInfo.solarSystemDict[solarSystemID] = (3.0 * len(solarSystemDungeons),
+             maxDifficulty,
+             (HintDungeons, (solarSystemDungeons,)),
+             None)
 
-    colorInfo.colorList = COLORCURVE_SECURITY
-    colorCurve = starmap.GetColorCurve(COLORCURVE_SECURITY)
-    for i in xrange(0, 10):
-        lbl = GetByLabel('UI/Map/StarModeHandler/dungeonDedLegendDiffaculty', difficulty=i + 1)
-        colorInfo.legend.add(LegendItem(i, lbl, starmap.GetColorCurveValue(colorCurve, (9 - i) / 9.0), data=None))
+        colorInfo.colorList = COLORCURVE_SECURITY
+        colorCurve = starmap.GetColorCurve(COLORCURVE_SECURITY)
+        for i in xrange(0, 10):
+            lbl = GetByLabel('UI/Map/StarModeHandler/dungeonDedLegendDiffaculty', difficulty=i + 1)
+            colorInfo.legend.add(LegendItem(i, lbl, starmap.GetColorCurveValue(colorCurve, (9 - i) / 9.0), data=None))
+
+        return
 
 
 def ColorStarsByJumps1Hour(colorInfo, starColorMode):
@@ -524,6 +545,7 @@ def ColorStarsByJumps1Hour(colorInfo, starColorMode):
      trinity.TriColor(1.0, 0.0, 0.0))
     colorInfo.legend.add(LegendItem(0, GetByLabel('UI/Map/StarModeHandler/jumpsNumber', count=0), colorInfo.colorList[0], data=None))
     colorInfo.legend.add(LegendItem(1, GetByLabel('UI/Map/StarModeHandler/jumpsNumber', count=maxCount), colorInfo.colorList[-1], data=None))
+    return
 
 
 def ColorStarsByKills(colorInfo, starColorMode, statID, hours):
@@ -553,6 +575,7 @@ def ColorStarsByKills(colorInfo, starColorMode, statID, hours):
     colorInfo.colorList = (trinity.TriColor(0.5, 0.32, 0.0), trinity.TriColor(0.7, 0.0, 0.01))
     colorInfo.legend.add(LegendItem(0, GetByLabel('UI/Map/StarModeHandler/killsNumber', count=0), colorInfo.colorList[0], data=None))
     colorInfo.legend.add(LegendItem(1, GetByLabel('UI/Map/StarModeHandler/killsNumber', count=maxCount), colorInfo.colorList[-1], data=None))
+    return
 
 
 def ColorStarsByPodKills(colorInfo, starColorMode):
@@ -588,6 +611,7 @@ def ColorStarsByPodKills(colorInfo, starColorMode):
     colorInfo.colorList = (trinity.TriColor(0.5, 0.32, 0.0), trinity.TriColor(0.7, 0.0, 0.01))
     colorInfo.legend.add(LegendItem(0, GetByLabel('UI/Map/StarModeHandler/killsPodNumber', count=0), colorInfo.colorList[0], data=None))
     colorInfo.legend.add(LegendItem(1, GetByLabel('UI/Map/StarModeHandler/killsPodNumber', count=maxCount), colorInfo.colorList[-1], data=None))
+    return
 
 
 def ColorStarsByFactionKills(colorInfo, starColorMode):
@@ -619,6 +643,7 @@ def ColorStarsByFactionKills(colorInfo, starColorMode):
     colorInfo.colorList = (trinity.TriColor(0.5, 0.32, 0.0), trinity.TriColor(0.7, 0.0, 0.01))
     colorInfo.legend.add(LegendItem(0, GetByLabel('UI/Map/StarModeHandler/killsNumber', count=0), colorInfo.colorList[0], data=None))
     colorInfo.legend.add(LegendItem(1, GetByLabel('UI/Map/StarModeHandler/killsNumber', count=maxCount), colorInfo.colorList[-1], data=None))
+    return
 
 
 def ColorStarsByBookmarks(colorInfo, starColorMode):
@@ -652,6 +677,7 @@ def ColorStarsByBookmarks(colorInfo, starColorMode):
     colorInfo.colorList = (trinity.TriColor(0.5, 0.32, 0.0), trinity.TriColor(0.7, 0.0, 0.01))
     colorInfo.legend.add(LegendItem(0, GetByLabel('UI/Map/StarModeHandler/bookmarksNoneHere'), mapcommon.NEUTRAL_COLOR, data=None))
     colorInfo.legend.add(LegendItem(1, GetByLabel('UI/Map/StarModeHandler/bookmarksSomeHere'), colorInfo.colorList[-1], data=None))
+    return
 
 
 def ColorStarsByCynosuralFields(colorInfo, starColorMode):
@@ -687,6 +713,7 @@ def ColorStarsByCynosuralFields(colorInfo, starColorMode):
     colorInfo.legend.add(LegendItem(1, GetByLabel('UI/Map/StarModeHandler/cynoActiveFields'), green, data=None))
     colorInfo.legend.add(LegendItem(2, GetByLabel('UI/Map/StarModeHandler/cynoActiveGenerators'), orange, data=None))
     colorInfo.legend.add(LegendItem(3, GetByLabel('UI/Map/StarModeHandler/cynoActiveFieldsGenerators'), red, data=None))
+    return
 
 
 def ColorStarsByCorpAssets(colorInfo, starColorMode, assetKey, legendName):
@@ -722,6 +749,7 @@ def ColorStarsByCorpAssets(colorInfo, starColorMode, assetKey, legendName):
     colorInfo.colorList = (trinity.TriColor(0.25, 0.25, 0.0), trinity.TriColor(0.5, 0.1, 0.0))
     colorInfo.legend.add(LegendItem(0, GetByLabel('UI/Map/StarModeHandler/corpNoAssets'), mapcommon.NEUTRAL_COLOR, data=None))
     colorInfo.legend.add(LegendItem(1, legendName, colorInfo.colorList[-1], data=None))
+    return
 
 
 def ColorStarsByServices(colorInfo, starColorMode):
@@ -788,6 +816,7 @@ def ColorStarsByServices(colorInfo, starColorMode):
     colorInfo.colorList = (trinity.TriColor(0.25, 0.25, 0.0), trinity.TriColor(0.5, 0.1, 0.0))
     colorInfo.legend.add(LegendItem(0, GetByLabel('UI/Map/StarModeHandler/serviceNoneHere'), mapcommon.NEUTRAL_COLOR, data=None))
     colorInfo.legend.add(LegendItem(1, GetByLabel('UI/Map/StarModeHandler/serviceHasServices'), red, data=None))
+    return
 
 
 def ColorStarsByFleetMembers(colorInfo, starColorMode):
@@ -808,6 +837,7 @@ def ColorStarsByFleetMembers(colorInfo, starColorMode):
 
     colorInfo.legend.add(LegendItem(0, GetByLabel('UI/Map/StarModeHandler/fleetNoMembers'), mapcommon.NEUTRAL_COLOR, data=None))
     colorInfo.legend.add(LegendItem(1, GetByLabel('UI/Map/StarModeHandler/fleetHasMembers'), DEFAULT_MAX_COLOR, data=None))
+    return
 
 
 def ColorStarsByCorpMembers(colorInfo, starColorMode):
@@ -828,6 +858,7 @@ def ColorStarsByCorpMembers(colorInfo, starColorMode):
 
     colorInfo.legend.add(LegendItem(0, GetByLabel('UI/Map/StarModeHandler/corpNoMembers'), mapcommon.NEUTRAL_COLOR, data=None))
     colorInfo.legend.add(LegendItem(1, GetByLabel('UI/Map/StarModeHandler/corpHasMembers'), DEFAULT_MAX_COLOR, data=None))
+    return
 
 
 def HintMyAgents(stations, npcDivisions):
@@ -896,6 +927,7 @@ def ColorStarsByMyAgents(colorInfo, starColorMode):
 
     colorInfo.legend.add(LegendItem(0, GetByLabel('UI/Map/StarModeHandler/agentNoneHere'), mapcommon.NEUTRAL_COLOR, data=None))
     colorInfo.legend.add(LegendItem(1, GetByLabel('UI/Map/StarModeHandler/agentSomeHere'), DEFAULT_MAX_COLOR, data=None))
+    return
 
 
 def ColorStarsByAvoidedSystems(colorInfo, starColorMode):
@@ -910,6 +942,7 @@ def ColorStarsByAvoidedSystems(colorInfo, starColorMode):
 
     colorInfo.legend.add(LegendItem(0, GetByLabel('UI/Map/StarModeHandler/advoidNotAdvoided'), mapcommon.NEUTRAL_COLOR, data=None))
     colorInfo.legend.add(LegendItem(1, GetByLabel('UI/Map/StarModeHandler/advoidAdvoided'), red, data=None))
+    return
 
 
 def ColorStarsByRealSunColor(colorInfo, starColorMode):
@@ -924,6 +957,8 @@ def ColorStarsByRealSunColor(colorInfo, starColorMode):
     for typeID, sunType in mapcommon.SUN_DATA.iteritems():
         name = evetypes.GetName(typeID)
         colorInfo.legend.add(LegendItem(name, name, trinity.TriColor(*sunType.color), data=None))
+
+    return
 
 
 def ColorStarsByPIScanRange(colorInfo, starColorMode):
@@ -958,6 +993,8 @@ def ColorStarsByPIScanRange(colorInfo, starColorMode):
         lbl = GetByLabel('UI/Map/StarModeHandler/scanLegendDistance', range=const.planetResourceScanningRanges[i])
         colorInfo.legend.add(LegendItem(i, lbl, starmap.GetColorCurveValue(colorCurve, 1.0 / 5.0 * i), data=None))
 
+    return
+
 
 def ColorStarsByPlanetType(colorInfo, starColorMode):
     planetTypeID = starColorMode[1]
@@ -990,6 +1027,7 @@ def ColorStarsByPlanetType(colorInfo, starColorMode):
     if maxCount > 1:
         colorInfo.legend.add(LegendItem(0, caption % 1, colorInfo.colorList[0], data=None))
     colorInfo.legend.add(LegendItem(1, caption % maxCount, colorInfo.colorList[-1], data=None))
+    return
 
 
 def ColorStarsByMyColonies(colorInfo, starColorMode):
@@ -1019,6 +1057,7 @@ def ColorStarsByMyColonies(colorInfo, starColorMode):
         if maxCount > 1:
             colorInfo.legend.add(LegendItem(0, GetByLabel('UI/Map/StarModeHandler/planetsColoniesCount', count=1), colorInfo.colorList[0], data=None))
         colorInfo.legend.add(LegendItem(1, GetByLabel('UI/Map/StarModeHandler/planetsColoniesCount', count=maxCount), colorInfo.colorList[-1], data=None))
+    return
 
 
 def ColorStarsByIncursions(colorInfo, starColorMode):
@@ -1029,6 +1068,7 @@ def ColorStarsByIncursions(colorInfo, starColorMode):
 
     colorInfo.legend.add(LegendItem(0, GetByLabel('UI/Map/StarModeHandler/incursionStageing'), COLOR_YELLOW, data=None))
     colorInfo.legend.add(LegendItem(1, GetByLabel('UI/Map/StarModeHandler/incursionPraticipant'), COLOR_ORANGE, data=None))
+    return
 
 
 def ColorStarsByIncursionsGM(colorInfo, starColorMode):
@@ -1044,6 +1084,7 @@ def ColorStarsByIncursionsGM(colorInfo, starColorMode):
     colorInfo.legend.add(LegendItem(4, 'Incursion Staging', COLOR_WHITE, data=None))
     colorInfo.legend.add(LegendItem(5, 'Incursion Spread', COLOR_GRAY, data=None))
     colorInfo.legend.add(LegendItem(6, 'Incursion Final Encounter', COLOR_PURPLE, data=None))
+    return
 
 
 def GetColorAndHintForIncursionSystem(sceneType, templateNameID):

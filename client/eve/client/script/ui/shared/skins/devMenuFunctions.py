@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\client\script\ui\shared\skins\devMenuFunctions.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\client\script\ui\shared\skins\devMenuFunctions.py
 from eve.client.script.ui.util.uix import ListWnd, QtyPopup
 from eve.devtools.script.slashError import Error
 
@@ -7,7 +8,9 @@ def GiveSkin(materialID, typeID):
     duration = _SelectSkinDuration()
     if duration is None:
         return
-    sm.RemoteSvc('shipSkinMgr').GiveSkin(skin.skinID, duration=duration)
+    else:
+        sm.RemoteSvc('shipSkinMgr').GiveSkin(skin.skinID, duration=duration)
+        return
 
 
 def GivePermanentSkin(materialID, typeID):
@@ -37,15 +40,17 @@ def _SelectSkinFromList(skins):
     selection = ListWnd(entry_list, listtype='generic', caption=caption)
     if len(selection) != 1:
         return None
-    skin = selection[1]
-    return skin
+    else:
+        skin = selection[1]
+        return skin
 
 
 def _SelectSkinDuration():
     result = QtyPopup(minvalue=1, setvalue=1, caption='SKIN Duration', label='Set SKIN duration in days')
     if result is None:
         return
-    return int(result['qty'])
+    else:
+        return int(result['qty'])
 
 
 def RemoveSkin(skinID):

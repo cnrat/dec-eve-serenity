@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\carbon\common\script\util\numerical.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\carbon\common\script\util\numerical.py
 import linalg
 import log
 
@@ -39,11 +40,11 @@ class KalmanFilter(object):
 class KalmanFilterSS(KalmanFilter):
     __slots__ = ['G']
 
-    def __init__(self, A, B, B1, C, Rv, Rw, n = 100, f = 0.001):
+    def __init__(self, A, B, B1, C, Rv, Rw, n=100, f=0.001):
         KalmanFilter.__init__(self, A, B, B1, C)
         self.G = self.SteadyG(Rv, Rw, n)
 
-    def SteadyG(self, Rv, Rw, n = 100, f = 0.001):
+    def SteadyG(self, Rv, Rw, n=100, f=0.001):
         self.G = self.NextG(Rv, Rw)
         for i in xrange(n):
             old = self.G
@@ -86,6 +87,7 @@ class FrameClock(object):
         self.step = 0
         self.filter.q[0] = 0.0
         self.filter.q[1] = 1.0 / 50
+        return
 
     @property
     def t0(self):
@@ -98,7 +100,7 @@ class FrameClock(object):
             value = long(value)
         self.__t0 = value
 
-    def Rebase(self, t = None):
+    def Rebase(self, t=None):
         self.t0 = t or blue.os.GetWallclockTimeNow()
         self.filter.q[0] = 0.0
         self.lastTime = self.t0

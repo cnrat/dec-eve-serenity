@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\client\script\ui\shared\bookmarkLocationWindow.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\client\script\ui\shared\bookmarkLocationWindow.py
 import uicls
 import carbonui.const as uiconst
 import localization
@@ -46,6 +47,7 @@ class BookmarkLocationWindow(uicontrols.Window):
         self.sr.main.children.insert(0, buttonGroup)
         submitButton = buttonGroup.GetBtnByIdx(0)
         submitButton.OnSetFocus()
+        return
 
     def GetFolderOptions(self):
         options = []
@@ -80,6 +82,7 @@ class BookmarkLocationWindow(uicontrols.Window):
         sm.ScatterEvent('OnRefreshBookmarks')
         settings.char.ui.Set('defaultBookmarkOwnerAndFolder', (ownerID, folderID))
         self.Close()
+        return
 
     def Cancel(self, *args):
         self.Close()

@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\carbon\common\lib\jinja2\visitor.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\carbon\common\lib\jinja2\visitor.py
 from jinja2.nodes import Node
 
 class NodeVisitor(object):
@@ -11,7 +12,8 @@ class NodeVisitor(object):
         f = self.get_visitor(node)
         if f is not None:
             return f(node, *args, **kwargs)
-        return self.generic_visit(node, *args, **kwargs)
+        else:
+            return self.generic_visit(node, *args, **kwargs)
 
     def generic_visit(self, node, *args, **kwargs):
         for node in node.iter_child_nodes():

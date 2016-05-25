@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\client\script\ui\services\uipointersvc.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\client\script\ui\services\uipointersvc.py
 import blue
 import uiprimitives
 import uicontrols
@@ -43,8 +44,9 @@ class UIPointerSvc(service.Service):
         self.running = True
         self.currentPointer = None
         self.oldObscurers = None
+        return
 
-    def Run(self, memStream = None):
+    def Run(self, memStream=None):
         self.elementUrl = []
         self.spaceObjectUiPointersByItemID = {}
         self.spaceObjectUiPointerByType = {}
@@ -52,8 +54,9 @@ class UIPointerSvc(service.Service):
         self.suppressedSpaceObjectUiPointers = set()
         self.spaceObjectUiPointerUpdater = None
         self.activePointerThread = None
+        return
 
-    def Stop(self, memStream = None):
+    def Stop(self, memStream=None):
         self.running = False
         self.ClearPointers()
 
@@ -64,6 +67,7 @@ class UIPointerSvc(service.Service):
                 pointer = self.spaceObjectUiPointersByItemID.get(newShipID)
                 if pointer is not None:
                     pointer.Close()
+        return
 
     def OnEveMenuShown(self):
         if self.currentPointer and self.currentPointer['pointToElement'].name == 'eveMenuBtn':
@@ -73,6 +77,7 @@ class UIPointerSvc(service.Service):
         self.ClearPointers(killPointer=False)
         if self.spaceObjectUiPointerUpdater is not None:
             self.RestartSpacePointers(self.activeTutorialBrowser, clearPointers=True)
+        return
 
     def ShouldHidePointer(self):
         if uicore.layer.systemmenu.isopen:
@@ -122,6 +127,8 @@ class UIPointerSvc(service.Service):
                 uiPointerElement.left = cumLeft
             blue.pyos.synchro.SleepWallclock(20)
 
+        return
+
     def FindDeep(self, element, idOfItemToFind):
         if hasattr(element, 'name') and element.name == idOfItemToFind:
             return element
@@ -133,6 +140,7 @@ class UIPointerSvc(service.Service):
 
             return
         else:
+            return
             return
 
     def GetLocation(self, element, directive):
@@ -243,6 +251,8 @@ class UIPointerSvc(service.Service):
              False,
              0)
 
+        return
+
     def CheckIsElementObscured(self, top, left, pointLeft, element):
         globalLayer = uicore.layer.main
         abovemain = uicore.layer.abovemain
@@ -274,22 +284,23 @@ class UIPointerSvc(service.Service):
         parentIdx = self.GetElementIdx(parentWindow)
         if parentIdx is None:
             return []
-        list = []
-        for window in layer.children:
-            windowIdx = self.GetElementIdx(window)
-            if windowIdx is None:
-                return []
-            if hasattr(window, 'name') and window.name not in ('UIPointer',
-             'locationInfo',
-             'snapIndicator',
-             'windowhilite',
-             parentWindow.name) and hasattr(window, 'state') and window.state != uiconst.UI_HIDDEN and hasattr(window, 'absoluteTop') and hasattr(window, 'absoluteBottom') and hasattr(window, 'absoluteRight') and hasattr(window, 'absoluteLeft'):
-                if not topLayer and windowIdx < parentIdx:
-                    list.append(window)
-                elif topLayer:
-                    list.append(window)
+        else:
+            list = []
+            for window in layer.children:
+                windowIdx = self.GetElementIdx(window)
+                if windowIdx is None:
+                    return []
+                if hasattr(window, 'name') and window.name not in ('UIPointer',
+                 'locationInfo',
+                 'snapIndicator',
+                 'windowhilite',
+                 parentWindow.name) and hasattr(window, 'state') and window.state != uiconst.UI_HIDDEN and hasattr(window, 'absoluteTop') and hasattr(window, 'absoluteBottom') and hasattr(window, 'absoluteRight') and hasattr(window, 'absoluteLeft'):
+                    if not topLayer and windowIdx < parentIdx:
+                        list.append(window)
+                    elif topLayer:
+                        list.append(window)
 
-        return list
+            return list
 
     def UpdateObscurers(self, obscurers):
         oldObscurers = self.oldObscurers
@@ -303,20 +314,22 @@ class UIPointerSvc(service.Service):
             window.opacity = 0.6
 
         self.oldObscurers = obscurers
+        return
 
     def GetElementIdx(self, element):
         if element.name == 'aura9':
             return 0
-        parent = element.parent
-        if not parent:
-            return None
-        elementIndex = 0
-        for child in parent.children:
-            if child == element:
-                break
-            elementIndex += 1
+        else:
+            parent = element.parent
+            if not parent:
+                return None
+            elementIndex = 0
+            for child in parent.children:
+                if child == element:
+                    break
+                elementIndex += 1
 
-        return elementIndex
+            return elementIndex
 
     def GetElementsParent(self, element):
         parentWindow = element
@@ -355,7 +368,9 @@ class UIPointerSvc(service.Service):
         self.ClearPointers()
         if pointToID is None or pointToID == '':
             return
-        self.activePointerThread = uthread.new(self._PointTo, pointToID, uiPointerText)
+        else:
+            self.activePointerThread = uthread.new(self._PointTo, pointToID, uiPointerText)
+            return
 
     def _PointTo(self, pointToID, uiPointerText):
         blue.pyos.synchro.SleepWallclock(HINT_DISPLAY_DELAY_MS)
@@ -394,7 +409,9 @@ class UIPointerSvc(service.Service):
                     self.LogInfo('Not displaying UI Pointer because:', reason)
             blue.pyos.synchro.SleepWallclock(HINT_WORKER_DELAY_MS)
 
-    def ClearPointers(self, killPointer = True):
+        return
+
+    def ClearPointers(self, killPointer=True):
         self.LogInfo('ClearPointers')
         if self.currentPointer is not None:
             self.currentPointer['uiPointerElement'].Close()
@@ -404,11 +421,13 @@ class UIPointerSvc(service.Service):
             self.UpdateObscurers([])
         if killPointer:
             self.KillPointerUpdater()
+        return
 
     def KillPointerUpdater(self):
         if self.activePointerThread is not None:
             self.activePointerThread.kill()
             self.activePointerThread = None
+        return
 
     def SpawnPointer(self, cumTop, cumLeft, pointLeft, pointUp, pointDown, element, text, arrowPosition):
         layer = uicore.layer.hint
@@ -428,10 +447,12 @@ class UIPointerSvc(service.Service):
     def HidePointer(self):
         if self.currentPointer != None and 'uiPointerElement' in self.currentPointer:
             self.currentPointer['uiPointerElement'].display = False
+        return
 
     def ShowPointer(self):
         if self.currentPointer != None and 'uiPointerElement' in self.currentPointer:
             self.currentPointer['uiPointerElement'].display = True
+        return
 
     def AddSpaceObjectTypeUiPointer(self, typeID, groupID, message, hint, tutorialBrowser):
         self.LogInfo('AddSpaceObjectTypeUiPointer', typeID, groupID, message, hint)
@@ -440,8 +461,9 @@ class UIPointerSvc(service.Service):
         if groupID is not None:
             self.spaceObjectUiPointerByGroup[groupID] = SpaceObjectUiPointerData(None, groupID, message, hint)
         self.RestartSpacePointers(tutorialBrowser, clearPointers=False)
+        return
 
-    def RestartSpacePointers(self, tutorialBrowser, clearPointers = False):
+    def RestartSpacePointers(self, tutorialBrowser, clearPointers=False):
         self.KillSpacePointerUpdater()
         if clearPointers:
             for itemID in self.spaceObjectUiPointersByItemID.keys():
@@ -454,6 +476,7 @@ class UIPointerSvc(service.Service):
         if self.spaceObjectUiPointerUpdater is not None:
             self.spaceObjectUiPointerUpdater.kill()
             self.spaceObjectUiPointerUpdater = None
+        return
 
     def UpdateSpaceObjectUiPointers(self, tutorialBrowser):
         blue.pyos.synchro.SleepWallclock(HINT_DISPLAY_DELAY_MS)
@@ -491,6 +514,8 @@ class UIPointerSvc(service.Service):
 
             blue.pyos.synchro.SleepWallclock(HINT_WORKER_DELAY_MS)
 
+        return
+
     def RemoveSpaceObjectUiPointers(self):
         self.KillSpacePointerUpdater()
         pointers = self.spaceObjectUiPointersByItemID.values()
@@ -505,6 +530,7 @@ class UIPointerSvc(service.Service):
 
     def FlushSpaceObjectPointer(self, itemID):
         self.spaceObjectUiPointersByItemID.pop(itemID, None)
+        return
 
     def SuppressSpaceObjectPointer(self, itemID):
         self.suppressedSpaceObjectUiPointers.add(itemID)
@@ -512,6 +538,7 @@ class UIPointerSvc(service.Service):
         pointer = self.spaceObjectUiPointersByItemID.get(itemID)
         if pointer is not None:
             pointer.Close()
+        return
 
     @telemetry.ZONE_METHOD
     def DoBallsRemove(self, pythonBalls, isRelease):
@@ -523,6 +550,7 @@ class UIPointerSvc(service.Service):
         if pointer is not None:
             pointer.Close()
             self.LogInfo('An item with a space object pointer was removed. Pointer Closer', slimItem)
+        return
 
 
 class UIPointerContainer(uiprimitives.Container):

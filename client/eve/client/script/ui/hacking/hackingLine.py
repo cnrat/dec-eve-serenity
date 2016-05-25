@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\client\script\ui\hacking\hackingLine.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\client\script\ui\hacking\hackingLine.py
 import uiprimitives
 import uicls
 import carbonui.const as uiconst
@@ -24,6 +25,7 @@ class Line(object):
         self.line = uicls.VectorLine(parent=parent, align=uiconst.TOPLEFT)
         self.bleedSprite = None
         self.UpdateState()
+        return
 
     def UpdateState(self):
         tileFromData = self.tileFrom.tileData

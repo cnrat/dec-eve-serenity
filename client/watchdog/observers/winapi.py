@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\packages\watchdog\observers\winapi.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\packages\watchdog\observers\winapi.py
 from __future__ import with_statement
 import ctypes.wintypes
 import struct
@@ -183,6 +184,8 @@ def close_directory_handle(handle):
             CloseHandle(handle)
         except:
             return
+
+    return
 
 
 def read_directory_changes(handle, recursive):

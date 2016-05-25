@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\packages\eveplanet\taxRate.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\packages\eveplanet\taxRate.py
 import weakref
 from collections import defaultdict
 import eve.common.lib.appConst as const
@@ -26,6 +27,7 @@ class TaxRateCalculator(object):
         self.allowStandings = True
         self.requiredStanding = None
         self.taxRates = TaxRates()
+        return
 
     def SetAccessControl(self, allowAlliance, allowStandings, standingLevel):
         self.allowAlliance = allowAlliance
@@ -61,7 +63,8 @@ class TaxRateCalculator(object):
                 taxRate = self._GetTaxRateForStanding(standing)
         if taxRate is not None:
             return {orbitalOwnerID: taxRate}
-        return {}
+        else:
+            return {}
 
     def _GetAllianceID(self, fromCorpID):
         return self.registry.GetAllianceIDForCorporation(fromCorpID)

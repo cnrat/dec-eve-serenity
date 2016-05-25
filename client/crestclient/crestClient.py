@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\packages\crestclient\crestClient.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\packages\crestclient\crestClient.py
 import requests
 import requests.auth
 import hashlib
@@ -35,10 +36,10 @@ class CrestClient(object):
 
 class CrestUserBase(object):
 
-    def __init__(self, languague = 'EN'):
+    def __init__(self, languague='EN'):
         self.language = languague
 
-    def Get(self, uri, accept = None, returnHeader = False, retries = 0, **kwargs):
+    def Get(self, uri, accept=None, returnHeader=False, retries=0, **kwargs):
         headers = self._handle_headers(accept, uri)
         try:
             response = self.session.get(uri, headers=headers, **kwargs)
@@ -49,7 +50,7 @@ class CrestUserBase(object):
             log.error(str(e))
             raise ServiceUnavailableException(str(e))
 
-    def Post(self, uri, content = None, payload = None, returnHeader = False, retries = 0, **kwargs):
+    def Post(self, uri, content=None, payload=None, returnHeader=False, retries=0, **kwargs):
         headers = self._handle_post_headers(content, uri)
         json_payload = json.dumps(payload)
         try:
@@ -60,7 +61,7 @@ class CrestUserBase(object):
             log.error(str(e))
             raise ServiceUnavailableException(str(e))
 
-    def _handle_response(self, response, returnHeader = False, retry = 0):
+    def _handle_response(self, response, returnHeader=False, retry=0):
         if response.request.method in SAFE_RETRY_METHODS and response.status_code in SAFE_RETRY_ERRORS and retry < MAX_RETRIES:
             response.raw.release_conn()
             log.info('Retry : sleeping for %s secs' % (retry * 3 + 1))
@@ -68,7 +69,7 @@ class CrestUserBase(object):
             return self._handle_response(response.connection.send(response.request), returnHeader=returnHeader, retry=retry + 1)
         return self._return_response(response, returnHeader)
 
-    def _return_response(self, response, returnHeader = False):
+    def _return_response(self, response, returnHeader=False):
         if response.status_code in SUCCESS_CODES:
             try:
                 if returnHeader:

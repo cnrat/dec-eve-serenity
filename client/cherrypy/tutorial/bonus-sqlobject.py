@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\carbon\common\lib\cherrypy\tutorial\bonus-sqlobject.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\carbon\common\lib\cherrypy\tutorial\bonus-sqlobject.py
 import cherrypy
 from Cheetah.Template import Template
 from sqlobject import *
@@ -21,7 +22,7 @@ class ContactManager:
 
     index.exposed = True
 
-    def edit(self, id = 0):
+    def edit(self, id=0):
         id = int(id)
         if id > 0:
             contact = Contact.get(id)
@@ -37,17 +38,15 @@ class ContactManager:
     def delete(self, id):
         contact = Contact.get(int(id))
         contact.destroySelf()
-        return 'Deleted. <a href="./">Return to Index</a>'
 
     delete.exposed = True
 
-    def store(self, lastName, firstName, phone, email, url, id = None):
+    def store(self, lastName, firstName, phone, email, url, id=None):
         if id and int(id) > 0:
             contact = Contact.get(int(id))
             contact.set(lastName=lastName, firstName=firstName, phone=phone, email=email, url=url)
         else:
             contact = Contact(lastName=lastName, firstName=firstName, phone=phone, email=email, url=url)
-        return 'Stored. <a href="./">Return to Index</a>'
 
     store.exposed = True
 
@@ -55,7 +54,6 @@ class ContactManager:
         Contact.dropTable(True)
         Contact.createTable()
         Contact(firstName='Hendrik', lastName='Mans', email='hendrik@mans.de', phone='++49 89 12345678', url='http://www.mornography.de')
-        return 'reset completed!'
 
     reset.exposed = True
 

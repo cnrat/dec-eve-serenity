@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\client\script\ui\shared\fleet\fleetwindow.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\client\script\ui\shared\fleet\fleetwindow.py
 import evetypes
 import uiprimitives
 import uicontrols
@@ -83,6 +84,7 @@ class FleetWindow(uicontrols.Window):
         uthread.new(self.sr.tabs.ShowPanelByName, tabToOpen)
         if settings.user.ui.Get('fleetFinderBroadcastsVisible', True) and session.fleetid:
             self.ToggleBroadcasts()
+        return
 
     def _OnClose(self, *args):
         pass
@@ -161,14 +163,16 @@ class FleetWindow(uicontrols.Window):
         wnd = self
         if wnd is None or wnd.destroyed:
             return
-        if args == 'myfleet':
-            self.sr.myFleetContent.state = uiconst.UI_NORMAL
-            self.sr.myFleetContent.Load(args)
-        elif args == 'broadcasts':
-            self.broadcastsContent.Load('option1')
-        elif args == 'fleetfinder':
-            self.fleetFinderContent.Load(args)
-        self.UpdateMinSize()
+        else:
+            if args == 'myfleet':
+                self.sr.myFleetContent.state = uiconst.UI_NORMAL
+                self.sr.myFleetContent.Load(args)
+            elif args == 'broadcasts':
+                self.broadcastsContent.Load('option1')
+            elif args == 'fleetfinder':
+                self.fleetFinderContent.Load(args)
+            self.UpdateMinSize()
+            return
 
     def GotoTab(self, idx):
         self.sr.tabs.SelectByIdx(idx)
@@ -216,6 +220,7 @@ class FleetWindow(uicontrols.Window):
                     ret.append((uiutil.MenuLabel('UI/Fleet/FleetWindow/RemoveAdvert'), sm.GetService('fleet').UnregisterFleet))
                 else:
                     ret.append((uiutil.MenuLabel('UI/Fleet/FleetWindow/CreateAdvert'), sm.GetService('fleet').OpenRegisterFleetWindow))
+                ret.append((uiutil.MenuLabel('UI/Fleet/FleetWindow/GetFleetID'), self.GetFleetID))
         return ret
 
     def GetFleetSetups(self):
@@ -250,6 +255,7 @@ class FleetWindow(uicontrols.Window):
             else:
                 caption = localization.GetByLabel('UI/Fleet/FleetWindow/FleetHeaderSquadMember', numMembers=nMembers, wingName=info.wingName, squadName=info.squadName)
             self.SetCaption(caption)
+        return
 
     def InitActions(self):
         broadcasts = ('EnemySpotted', 'HealArmor', 'HealShield', 'HealCapacitor', 'InPosition', 'NeedBackup', 'HoldPosition', 'Location')
@@ -274,6 +280,7 @@ class FleetWindow(uicontrols.Window):
         if eve.session.fleetrole in (const.fleetRoleLeader, const.fleetRoleWingCmdr, const.fleetRoleSquadCmdr):
             self.broadcastMenuItems.append((localization.GetByLabel('UI/Fleet/FleetBroadcast/Commands/BroadcastTravelToMe'), sm.GetService('fleet').SendBroadcast_TravelTo, (eve.session.solarsystemid2,)))
         self.broadcastMenuItems += [None]
+        return
 
     def OnBroadcastScopeChange(self):
         self.SetBroadcastScopeButton()
@@ -296,9 +303,11 @@ class FleetWindow(uicontrols.Window):
     def OnLastBroadcastClick(self, broadcast):
         if not uicore.uilib.Key(uiconst.VK_CONTROL) or broadcast.itemID == session.shipid or session.shipid is None or broadcast.itemID is None or util.IsUniverseCelestial(broadcast.itemID):
             return
-        itemID = broadcast.itemID
-        if sm.GetService('target').IsInTargetingRange(itemID):
-            sm.GetService('target').TryLockTarget(itemID)
+        else:
+            itemID = broadcast.itemID
+            if sm.GetService('target').IsInTargetingRange(itemID):
+                sm.GetService('target').TryLockTarget(itemID)
+            return
 
     def OnFleetBroadcast_Local(self, broadcast):
         caption = broadcast.broadcastLabel
@@ -314,6 +323,7 @@ class FleetWindow(uicontrols.Window):
         self.sr.lastBroadcastCont.hint = localization.GetByLabel('UI/Fleet/FleetBroadcast/BroadcastNotificationHint', eventLabel=broadcast.broadcastLabel, time=broadcast.time, charID=broadcast.charID, range=fleetbr.GetBroadcastScopeName(broadcast.scope, broadcast.where), role=fleetbr.GetRankName(sm.GetService('fleet').GetMemberInfo(int(broadcast.charID))))
         icon = uicontrols.Icon(icon=iconName, parent=self.sr.lastBroadcastCont, align=uiconst.RELATIVE, pos=(6, 0, 16, 16), state=uiconst.UI_DISABLED)
         uthread.worker('fleet::flash', self.Flash, icon)
+        return
 
     def Flash(self, icon):
         timeStart = blue.os.GetWallclockTime()
@@ -384,20 +394,26 @@ class FleetWindow(uicontrols.Window):
     def OnDropInMyFleet(self, dropObj, nodes):
         if not (sm.GetService('fleet').IsBoss() or session.fleetrole in (const.fleetRoleLeader, const.fleetRoleWingCmdr, const.fleetRoleSquadCmdr)):
             return
-        myNode = nodes[0]
-        try:
-            charID = myNode.charID
-        except:
+        else:
+            myNode = nodes[0]
+            try:
+                charID = myNode.charID
+            except:
+                return
+
+            if not charID:
+                return
+            fleetSvc = sm.GetService('fleet')
+            members = fleetSvc.GetMembers()
+            if charID in members:
+                return
+            fleetSvc.Invite(charID, None, None, None)
+            eve.Message('CharacterAddedAsSquadMember', {'char': charID})
             return
 
-        if not charID:
-            return
-        fleetSvc = sm.GetService('fleet')
-        members = fleetSvc.GetMembers()
-        if charID in members:
-            return
-        fleetSvc.Invite(charID, None, None, None)
-        eve.Message('CharacterAddedAsSquadMember', {'char': charID})
+    def GetFleetID(self):
+        crest_url = util.GetPublicCrestUrl('fleets', session.fleetid)
+        blue.pyos.SetClipboardData(crest_url)
 
 
 class FleetJoinRequestWindow(uicontrols.Window):
@@ -434,6 +450,7 @@ class FleetJoinRequestWindow(uicontrols.Window):
 
         scrolllist = uiutil.SortListOfTuples(scrolllist)
         self.sr.scroll.Load(contentList=scrolllist)
+        return
 
 
 class JoinRequestField(listentry.Generic):
@@ -459,6 +476,7 @@ class JoinRequestField(listentry.Generic):
     def AcceptJoinRequest(self, *args):
         charID = self.sr.node.charID
         sm.GetService('fleet').Invite(charID, None, None, None)
+        return
 
     def RejectJoinRequest(self, *args):
         charID = self.sr.node.charID
@@ -553,6 +571,7 @@ class FleetComposition(uicontrols.Window):
          localization.GetByLabel('UI/Fleet/FleetComposition/FleetSkills'),
          fleetPositionText]
         self.sr.scrollBroadcasts.Load(headers=headers, contentList=scrolllist)
+        return
 
     def OnScrollSelectionChange(self, selectedList, *args):
         totalPilots = len(self.sr.scrollBroadcasts.GetNodes())

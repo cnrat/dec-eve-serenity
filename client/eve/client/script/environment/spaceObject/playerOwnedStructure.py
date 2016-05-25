@@ -1,9 +1,10 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\client\script\environment\spaceObject\playerOwnedStructure.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\client\script\environment\spaceObject\playerOwnedStructure.py
 from carbon.common.lib.const import SEC
 import blue
 import uthread
 import eve.common.lib.appConst as const
-from eve.client.script.environment.spaceObject.buildableStructure import BuildableStructure, TEARDOWN_OVERLAY_EFFECT_GRAPHIC_ID, CONSTRUCTION_OVERLAY_EFFECT_GRAPHIC_ID, STATE_BUILDING, STATE_TEARDOWN
+from eve.client.script.environment.spaceObject.buildableStructure import BuildableStructure
 import eve.common.script.mgt.posConst as pos
 CONSTRUCTION_MATERIAL = 'res:/Texture/MinmatarShared/Gradientbuild.dds'
 ONLINE_GLOW_OFF = (0.0, 0.0, 0.0)
@@ -17,6 +18,9 @@ STATE_UNBUILT = 'Unbuilt'
 STATE_OFFLINE = 'Offline'
 STATE_ONLINING = 'Onlining'
 STATE_ONLINE = 'Online'
+STATE_BUILT = 'Built'
+STATE_BUILDING = 'Building'
+STATE_TEARDOWN = 'TearDown'
 POS_STATES_TO_STATE = {pos.STRUCTURE_UNANCHORED: STATE_NONE,
  pos.STRUCTURE_ANCHORED: STATE_OFFLINE,
  pos.STRUCTURE_ONLINING: STATE_ONLINING,
@@ -43,11 +47,13 @@ class PlayerOwnedStructure(BuildableStructure):
         newPosState = getattr(slimItem, 'posState', STATE_NONE)
         if newPosState is None or oldPosState == newPosState:
             return
-        self.typeData['slimItem'].posState = newPosState
-        self.PlaySounds(oldPosState, newPosState)
-        if oldPosState == pos.STRUCTURE_ANCHORED and newPosState == pos.STRUCTURE_UNANCHORED or oldPosState == pos.STRUCTURE_UNANCHORED and newPosState == pos.STRUCTURE_ANCHORED:
+        else:
+            self.typeData['slimItem'].posState = newPosState
+            self.PlaySounds(oldPosState, newPosState)
+            if oldPosState == pos.STRUCTURE_ANCHORED and newPosState == pos.STRUCTURE_UNANCHORED or oldPosState == pos.STRUCTURE_UNANCHORED and newPosState == pos.STRUCTURE_ANCHORED:
+                return
+            uthread.new(self.LoadModel)
             return
-        uthread.new(self.LoadModel)
 
     def GetAnimationState(self, posState):
         return POS_STATES_TO_STATE.get(posState, STATE_NONE)
@@ -65,6 +71,7 @@ class PlayerOwnedStructure(BuildableStructure):
             self.PlayGeneralAudioEvent(event)
         else:
             self.LogWarn('PlayerOwnedStructure: No event found for state: %s of type: %s' % (state, eventType))
+        return
 
     def PlaySounds(self, oldState, posState):
         structure_type = CONTROL_TOWER if self.IsControlTower() else PLAYER_OWNED_STRUCTURE
@@ -73,7 +80,7 @@ class PlayerOwnedStructure(BuildableStructure):
         elif oldState == pos.STRUCTURE_ONLINE and posState == pos.STRUCTURE_ANCHORED:
             self.PlayStateSound(STATE_OFFLINE, structure_type)
 
-    def LoadModel(self, fileName = None, loadedModel = None):
+    def LoadModel(self, fileName=None, loadedModel=None):
         animationState = self.GetAnimationState(self.GetPosState())
         self.SetupModel(animationState is STATE_NONE and not self.IsAnchored())
         self.Assemble()
@@ -87,14 +94,14 @@ class PlayerOwnedStructure(BuildableStructure):
             direction = self.FindClosestMoonDir()
             self.AlignToDirection(direction)
 
-    def Release(self, origin = None):
+    def Release(self, origin=None):
         self.PlayGeneralAudioEvent('fade_out')
         BuildableStructure.Release(self, origin)
 
-    def StartBuildingEffect(self, state, dogmaBuildingLength, elapsedTime, overlayGraphicID):
+    def StartBuildingEffect(self, state, dogmaBuildingLength, elapsedTime):
         curveLength = 1.0 * dogmaBuildingLength / 1000.0
         elapsedTime = 1.0 * elapsedTime / SEC
-        self.PreBuildingSteps(overlayGraphicID)
+        self.PreBuildingSteps()
         uthread.new(self.EndBuildingEffect, state, int((curveLength - elapsedTime) * 1000))
         self.TriggerAnimation(state, curveLength=curveLength, elapsedTime=elapsedTime)
         self.PlayStateSound(state, PLAY_EVENT)
@@ -108,11 +115,8 @@ class PlayerOwnedStructure(BuildableStructure):
             self.LogInfo('PlayerOwnedStructure: Yielding until self.isFree is correct')
             blue.synchro.Yield()
 
-        if state == STATE_TEARDOWN:
-            overlayEffectIdToRemove = TEARDOWN_OVERLAY_EFFECT_GRAPHIC_ID
-        else:
-            overlayEffectIdToRemove = CONSTRUCTION_OVERLAY_EFFECT_GRAPHIC_ID
-        self.PostBuildingSteps(overlayEffectIdToRemove)
+        self.TriggerAnimation(STATE_BUILT)
+        self.PostBuildingSteps(state == STATE_BUILDING)
         self.PlayStateSound(state, STOP_EVENT)
         self.LoadModel()
 
@@ -120,7 +124,7 @@ class PlayerOwnedStructure(BuildableStructure):
         self.LoadUnLoadedModels()
         self.LogInfo('PlayerOwnedStructure: BeginStructureAnchoring', self.GetTypeID())
         buildingLength = sm.GetService('godma').GetType(self.GetTypeID()).anchoringDelay
-        self.StartBuildingEffect(STATE_BUILDING, buildingLength, timeSinceStart, CONSTRUCTION_OVERLAY_EFFECT_GRAPHIC_ID)
+        self.StartBuildingEffect(STATE_BUILDING, buildingLength, timeSinceStart)
         self.PlaySounds(pos.STRUCTURE_UNANCHORED, pos.STRUCTURE_ANCHORED)
 
     def BeginStructureUnAnchoring(self, timeSinceStart):
@@ -131,7 +135,7 @@ class PlayerOwnedStructure(BuildableStructure):
             buildingLength = godmaType.unanchoringDelay
         else:
             buildingLength = godmaType.anchoringDelay
-        self.StartBuildingEffect(STATE_TEARDOWN, buildingLength, timeSinceStart, TEARDOWN_OVERLAY_EFFECT_GRAPHIC_ID)
+        self.StartBuildingEffect(STATE_TEARDOWN, buildingLength, timeSinceStart)
         self.PlaySounds(pos.STRUCTURE_ANCHORED, pos.STRUCTURE_UNANCHORED)
 
     def IsControlTower(self):
@@ -139,7 +143,8 @@ class PlayerOwnedStructure(BuildableStructure):
         if slimItem is not None:
             groupID = self.typeData.get('groupID')
             return groupID == const.groupControlTower
-        return False
+        else:
+            return False
 
     def IsAnchored(self):
         self.LogInfo('PlayerOwnedStructure: Anchor State = ', not self.isFree)
@@ -151,8 +156,8 @@ class PlayerOwnedStructure(BuildableStructure):
         self.LogInfo('PlayerOwnedStructure: Online State = ', res)
         return res
 
-    def OnlineAnimation(self, animate = 0):
+    def OnlineAnimation(self, animate=0):
         pass
 
-    def OfflineAnimation(self, animate = 0):
+    def OfflineAnimation(self, animate=0):
         pass

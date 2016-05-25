@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\carbon\common\lib\markdown\extensions\smart_strong.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\carbon\common\lib\markdown\extensions\smart_strong.py
 import re
 import markdown
 from markdown.inlinepatterns import SimpleTagPattern
@@ -12,7 +13,7 @@ class SmartEmphasisExtension(markdown.extensions.Extension):
         md.inlinePatterns.add('strong2', SimpleTagPattern(SMART_STRONG_RE, 'strong'), '>emphasis2')
 
 
-def makeExtension(configs = {}):
+def makeExtension(configs={}):
     return SmartEmphasisExtension(configs=dict(configs))
 
 

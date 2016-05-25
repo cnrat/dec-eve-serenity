@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\packages\crimewatch\corp_aggression\settings.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\packages\crimewatch\corp_aggression\settings.py
 import logging
 from ccpProfile import TimedFunction
 from eve.common.script.sys.idCheckers import IsNPCCorporation
@@ -26,8 +27,8 @@ class AggressionSettings:
 
     @TimedFunction('AggressionSettings::IsFriendlyFireLegalAtTime')
     def IsFriendlyFireLegalAtTime(self, time):
-        if self._IsDisableTimeInPast(time) and self._IsEnableTimeInPast(time):
-            return self._disableAfter < self._enableAfter
+        if self._IsDisableTimeInPast(time):
+            return self._IsEnableTimeInPast(time) and self._disableAfter < self._enableAfter
         elif self._IsDisableTimeInPast(time):
             return False
         elif self._IsEnableTimeInPast(time):

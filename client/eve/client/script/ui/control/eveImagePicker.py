@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\client\script\ui\control\eveImagePicker.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\client\script\ui\control\eveImagePicker.py
 import uiprimitives
 import uicontrols
 import uicls
@@ -45,7 +46,7 @@ class ImagePicker(uiprimitives.Container):
             if session.stationid:
                 try:
                     inv = invCache.GetInventory(const.containerHangar)
-                    self._availableTypeIDs.update({i.typeID for i in inv.List() if i.categoryID == const.categoryApparel})
+                    self._availableTypeIDs.update({i.typeID for i in inv.List(const.flagHangar) if i.categoryID == const.categoryApparel})
                 except Exception as e:
                     log.LogWarn()
 
@@ -76,6 +77,7 @@ class ImagePicker(uiprimitives.Container):
         self.onSetValueCallback = attributes.get('OnSetValue', None)
         self.onChangeFocusCallback = attributes.get('OnChangeFocus', None)
         self.onPreSetValueCallback = attributes.get('OnPreSetValue', None)
+        return
 
     def ShowActiveSlot(self, *args):
         active = self.GetActiveData()
@@ -113,6 +115,7 @@ class ImagePicker(uiprimitives.Container):
         self.sr.slots.height = self.imageHeight
         self.FixPosition(instant=True)
         self.UpdateSlotZoom()
+        return
 
     def AddSlot(self, idx, imageData):
         step = int(self.imageWidth * 0.75)
@@ -149,7 +152,7 @@ class ImagePicker(uiprimitives.Container):
         if self.focusSlot:
             return self.focusSlot.imageData
 
-    def SetActiveDataFromValue(self, toValue, doCallbacks = True, focusOnSlot = True, doYield = True):
+    def SetActiveDataFromValue(self, toValue, doCallbacks=True, focusOnSlot=True, doYield=True):
         toValueSet = set([toValue])
         if isinstance(toValue, tuple):
             if toValue[1] == '':
@@ -164,7 +167,7 @@ class ImagePicker(uiprimitives.Container):
                 self.SetActiveData(imageData, focusOnSlot=focusOnSlot, doCallbacks=doCallbacks, doYield=doYield)
                 break
 
-    def SetActiveData(self, data, focusOnSlot = True, doCallbacks = True, doYield = True):
+    def SetActiveData(self, data, focusOnSlot=True, doCallbacks=True, doYield=True):
         newData = self._activeData != data
         if doCallbacks and self.onPreSetValueCallback and newData:
             self.onPreSetValueCallback(data)
@@ -175,7 +178,7 @@ class ImagePicker(uiprimitives.Container):
         if doCallbacks and self.onSetValueCallback and newData:
             self.onSetValueCallback(data)
 
-    def SetFocusData(self, data, doYield = True):
+    def SetFocusData(self, data, doYield=True):
         if self.destroyed:
             return
         slotParent = self.GetSlotParentByData(data)
@@ -195,11 +198,14 @@ class ImagePicker(uiprimitives.Container):
             else:
                 self.sr.counterParent.sr.label.text = '-/%s' % len(self.images)
             self.sr.counterParent.width = self.sr.counterParent.sr.label.textwidth + 8
+        return
 
     def GetSlotParentByData(self, data):
         for slot in self.sr.slots.children:
             if getattr(slot, 'imageData', None) == data:
                 return slot
+
+        return
 
     def GetValue(self, *args):
         if self.focusSlot:
@@ -216,16 +222,18 @@ class ImagePicker(uiprimitives.Container):
         if slot.destroyed:
             slot.sr.mouseOverTimer = None
             return
-        if uicore.uilib.leftbtn or uicore.uilib.rightbtn:
+        elif uicore.uilib.leftbtn or uicore.uilib.rightbtn:
             return
-        if self._activeData == slot.imageData:
-            slot.sr.hilite.state = uiconst.UI_DISABLED
-            slot.sr.hilite.SetAlpha(1.0)
-        elif uicore.uilib.mouseOver is slot:
-            slot.sr.hilite.state = uiconst.UI_DISABLED
-            slot.sr.hilite.SetAlpha(0.25)
         else:
-            slot.sr.hilite.state = uiconst.UI_HIDDEN
+            if self._activeData == slot.imageData:
+                slot.sr.hilite.state = uiconst.UI_DISABLED
+                slot.sr.hilite.SetAlpha(1.0)
+            elif uicore.uilib.mouseOver is slot:
+                slot.sr.hilite.state = uiconst.UI_DISABLED
+                slot.sr.hilite.SetAlpha(0.25)
+            else:
+                slot.sr.hilite.state = uiconst.UI_HIDDEN
+            return
 
     def OnSlotMouseDown(self, slot, mouseBtn, *args):
         self.OnMouseDown(mouseBtn)
@@ -236,55 +244,60 @@ class ImagePicker(uiprimitives.Container):
     def CheckIfSlotLoaded(self, slotParent):
         if getattr(slotParent, '_loaded', False):
             return
-        slotParent._loaded = True
-        slot = slotParent.children[0]
-        resPath, data, hiliteResPath = slot.imageData
-        if not resPath or not blue.paths.exists(resPath):
-            resPath = 'res:/UI/Asset/missingThumbnail.dds'
-        slot.sr.thumbnail.LoadTexture(resPath)
-        if len(data) > 2 and data[2] is not None and session.role & service.ROLE_CONTENT:
-            flag = uiprimitives.Container(parent=slot, align=uiconst.TOPLEFT, padding=(2, 2, 2, 2), pos=(0, 0, 20, 20), state=uiconst.UI_DISABLED, idx=0)
-            fill = uiprimitives.Fill(parent=flag, color=(0, 1.0, 0, 0.5))
-            if data[2] not in self._availableTypeIDs:
-                fill.SetRGB(1.0, 0, 0)
-                slot.GetMenu = (self.GetRightClickMenu, data[2])
-            if getattr(uicore.layer.charactercreation, 'mode', -1) == ccConst.MODE_FULLINITIAL_CUSTOMIZATION:
-                uiprimitives.Fill(parent=flag, color=(0, 0.0, 0, 1.0), padding=5, idx=0)
-        if self._activeData == slot.imageData:
-            slot.sr.hilite.state = uiconst.UI_DISABLED
-            slot.sr.hilite.SetAlpha(1.0)
-        elif slot.sr.hilite:
-            slot.sr.hilite.state = uiconst.UI_HIDDEN
-        slot.sr.mouseOverTimer = base.AutoTimer(33, self.CheckMouseOver, slot)
+        else:
+            slotParent._loaded = True
+            slot = slotParent.children[0]
+            resPath, data, hiliteResPath = slot.imageData
+            if not resPath or not blue.paths.exists(resPath):
+                resPath = 'res:/UI/Asset/missingThumbnail.dds'
+            slot.sr.thumbnail.LoadTexture(resPath)
+            if len(data) > 2 and data[2] is not None and session.role & service.ROLE_CONTENT:
+                flag = uiprimitives.Container(parent=slot, align=uiconst.TOPLEFT, padding=(2, 2, 2, 2), pos=(0, 0, 20, 20), state=uiconst.UI_DISABLED, idx=0)
+                fill = uiprimitives.Fill(parent=flag, color=(0, 1.0, 0, 0.5))
+                if data[2] not in self._availableTypeIDs:
+                    fill.SetRGB(1.0, 0, 0)
+                    slot.GetMenu = (self.GetRightClickMenu, data[2])
+                if getattr(uicore.layer.charactercreation, 'mode', -1) == ccConst.MODE_FULLINITIAL_CUSTOMIZATION:
+                    uiprimitives.Fill(parent=flag, color=(0, 0.0, 0, 1.0), padding=5, idx=0)
+            if self._activeData == slot.imageData:
+                slot.sr.hilite.state = uiconst.UI_DISABLED
+                slot.sr.hilite.SetAlpha(1.0)
+            elif slot.sr.hilite:
+                slot.sr.hilite.state = uiconst.UI_HIDDEN
+            slot.sr.mouseOverTimer = base.AutoTimer(33, self.CheckMouseOver, slot)
+            return
 
-    def OnMouseDown(self, mouseBtn = 0, *args):
+    def OnMouseDown(self, mouseBtn=0, *args):
         if mouseBtn != uiconst.MOUSELEFT:
             return
-        self._lastBrowseDiff = None
-        self._lastMouseX = uicore.uilib.x
-        self._initMouseDownX = uicore.uilib.x
-        self._initPosX = self.sr.slots.left
-        self.sr.scrollTimer = base.AutoTimer(10, self.UpdateScroll)
-        uthread.new(self.OnScrollStart)
+        else:
+            self._lastBrowseDiff = None
+            self._lastMouseX = uicore.uilib.x
+            self._initMouseDownX = uicore.uilib.x
+            self._initPosX = self.sr.slots.left
+            self.sr.scrollTimer = base.AutoTimer(10, self.UpdateScroll)
+            uthread.new(self.OnScrollStart)
+            return
 
     def OnMouseUp(self, mouseBtn, *args):
         self.OnMouseUpAlt(mouseBtn=mouseBtn)
 
-    def OnMouseUpAlt(self, slot = None, mouseBtn = 0):
+    def OnMouseUpAlt(self, slot=None, mouseBtn=0):
         if mouseBtn != uiconst.MOUSELEFT:
             return
-        self.sr.scrollTimer = None
-        if self._lastBrowseDiff:
-            uthread.new(self.Throw, self._lastBrowseDiff)
-        elif self.sr.slots.left != getattr(self, '_initPosX', 0):
-            self._initMouseDownX = None
-            uthread.new(self.FixPosition)
-        elif slot:
-            self.SetActiveData(slot.imageData)
+        else:
+            self.sr.scrollTimer = None
+            if self._lastBrowseDiff:
+                uthread.new(self.Throw, self._lastBrowseDiff)
+            elif self.sr.slots.left != getattr(self, '_initPosX', 0):
+                self._initMouseDownX = None
+                uthread.new(self.FixPosition)
+            elif slot:
+                self.SetActiveData(slot.imageData)
+            return
 
     def OnMouseWheel(self, *args):
         uthread.new(self.MouseWheel_thread).context = 'ImagePicker::Throw'
-        return 1
 
     def MouseWheel_thread(self, *args):
         self.Browse(uicore.uilib.dz / 3)
@@ -292,15 +305,18 @@ class ImagePicker(uiprimitives.Container):
             self.sr.settleWheelThread.kill()
             self.sr.settleWheelThread = None
         self.sr.settleWheelThread = uthread.new(self.SettleAfterWheel_thread)
+        return
 
     def SettleAfterWheel_thread(self, *args):
         blue.pyos.synchro.SleepWallclock(250)
         if not self or self.destroyed:
             return
-        self.sr.wheelSettleTimer = None
-        self.FixPosition()
+        else:
+            self.sr.wheelSettleTimer = None
+            self.FixPosition()
+            return
 
-    def FixPosition(self, instant = False):
+    def FixPosition(self, instant=False):
         l, t, w, h = self.GetAbsolute()
         newleft = self.sr.slots.left
         rounding = (newleft - w / 2) % self._slotGap
@@ -328,46 +344,48 @@ class ImagePicker(uiprimitives.Container):
     def UpdateSlotZoom(self, *args):
         if not hasattr(self, 'sr'):
             return
-        l, t, w, h = self.GetAbsolute()
-        centerX = l + w / 2
-        slotsInside = []
-        centerSlot = None
-        minDistFromCenter = 1000
-        for slot in self.sr.slots.children:
-            if not hasattr(slot, 'children'):
-                continue
-            sl, st, sw, sh = slot.GetAbsolute()
-            slotCenter = sl + sw / 2
-            if slotCenter >= l and slotCenter <= l + w:
-                slotsInside.append((abs(centerX - slotCenter), slotCenter, slot))
-            else:
-                slot.children[0].width = self.imageWidth / 2
-                slot.children[0].height = self.imageHeight / 2
-            distFromCenter = abs(centerX - slotCenter)
-            if distFromCenter < minDistFromCenter:
-                minDistFromCenter = distFromCenter
-                centerSlot = slot
+        else:
+            l, t, w, h = self.GetAbsolute()
+            centerX = l + w / 2
+            slotsInside = []
+            centerSlot = None
+            minDistFromCenter = 1000
+            for slot in self.sr.slots.children:
+                if not hasattr(slot, 'children'):
+                    continue
+                sl, st, sw, sh = slot.GetAbsolute()
+                slotCenter = sl + sw / 2
+                if slotCenter >= l and slotCenter <= l + w:
+                    slotsInside.append((abs(centerX - slotCenter), slotCenter, slot))
+                else:
+                    slot.children[0].width = self.imageWidth / 2
+                    slot.children[0].height = self.imageHeight / 2
+                distFromCenter = abs(centerX - slotCenter)
+                if distFromCenter < minDistFromCenter:
+                    minDistFromCenter = distFromCenter
+                    centerSlot = slot
 
-        slotsInside.sort()
-        slotsInside.reverse()
-        maxDist = w / 2
-        for diff, slotCenter, slot in slotsInside:
-            if diff:
-                sizeFactor = 1.0 - abs(diff) / float(maxDist)
-            else:
-                sizeFactor = 1.0
-            slot.children[0].width = self.imageWidth / 2 + int(self.imageWidth / 2 * sizeFactor)
-            slot.children[0].height = self.imageHeight / 2 + int(self.imageHeight / 2 * sizeFactor)
-            slot.SetOrder(0)
-            uthread.new(self.CheckIfSlotLoaded, slot)
+            slotsInside.sort()
+            slotsInside.reverse()
+            maxDist = w / 2
+            for diff, slotCenter, slot in slotsInside:
+                if diff:
+                    sizeFactor = 1.0 - abs(diff) / float(maxDist)
+                else:
+                    sizeFactor = 1.0
+                slot.children[0].width = self.imageWidth / 2 + int(self.imageWidth / 2 * sizeFactor)
+                slot.children[0].height = self.imageHeight / 2 + int(self.imageHeight / 2 * sizeFactor)
+                slot.SetOrder(0)
+                uthread.new(self.CheckIfSlotLoaded, slot)
 
-        if slotsInside:
-            self.focusSlot = slotsInside[-1][-1]
-            if self.onChangeFocusCallback:
-                self.onChangeFocusCallback(self.focusSlot.imageData)
-            if self.DebugRoleCheck():
-                resPath, data, hiliteResPath = self.focusSlot.imageData
-                self.sr.debugLabel.text = repr(data[1])
+            if slotsInside:
+                self.focusSlot = slotsInside[-1][-1]
+                if self.onChangeFocusCallback:
+                    self.onChangeFocusCallback(self.focusSlot.imageData)
+                if self.DebugRoleCheck():
+                    resPath, data, hiliteResPath = self.focusSlot.imageData
+                    self.sr.debugLabel.text = repr(data[1])
+            return
 
     def DebugRoleCheck(self):
         mask = service.ROLE_CONTENT | service.ROLE_QA | service.ROLE_PROGRAMMER | service.ROLE_GMH
@@ -401,6 +419,7 @@ class ImagePicker(uiprimitives.Container):
                 break
 
         self.FixPosition()
+        return
 
     def OnScrollStart(self, *args):
         pass

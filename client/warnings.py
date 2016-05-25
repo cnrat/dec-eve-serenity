@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\carbon\common\stdlib\warnings.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\carbon\common\stdlib\warnings.py
 import linecache
 import sys
 import types
@@ -9,14 +10,15 @@ __all__ = ['warn',
  'resetwarnings',
  'catch_warnings']
 
-def warnpy3k(message, category = None, stacklevel = 1):
+def warnpy3k(message, category=None, stacklevel=1):
     if sys.py3kwarning:
         if category is None:
             category = DeprecationWarning
         warn(message, category, stacklevel + 1)
+    return
 
 
-def _show_warning(message, category, filename, lineno, file = None, line = None):
+def _show_warning(message, category, filename, lineno, file=None, line=None):
     if file is None:
         file = sys.stderr
     try:
@@ -24,10 +26,12 @@ def _show_warning(message, category, filename, lineno, file = None, line = None)
     except IOError:
         pass
 
+    return
+
 
 showwarning = _show_warning
 
-def formatwarning(message, category, filename, lineno, line = None):
+def formatwarning(message, category, filename, lineno, line=None):
     s = '%s:%s: %s: %s\n' % (filename,
      lineno,
      category.__name__,
@@ -39,7 +43,7 @@ def formatwarning(message, category, filename, lineno, line = None):
     return s
 
 
-def filterwarnings(action, message = '', category = Warning, module = '', lineno = 0, append = 0):
+def filterwarnings(action, message='', category=Warning, module='', lineno=0, append=0):
     import re
     item = (action,
      re.compile(message, re.I),
@@ -52,7 +56,7 @@ def filterwarnings(action, message = '', category = Warning, module = '', lineno
         filters.insert(0, item)
 
 
-def simplefilter(action, category = Warning, lineno = 0, append = 0):
+def simplefilter(action, category=Warning, lineno=0, append=0):
     item = (action,
      None,
      category,
@@ -62,6 +66,7 @@ def simplefilter(action, category = Warning, lineno = 0, append = 0):
         filters.append(item)
     else:
         filters.insert(0, item)
+    return
 
 
 def resetwarnings():
@@ -124,32 +129,33 @@ def _getcategory(category):
     import re
     if not category:
         return Warning
-    if re.match('^[a-zA-Z0-9_]+$', category):
-        try:
-            cat = eval(category)
-        except NameError:
-            raise _OptionError('unknown warning category: %r' % (category,))
-
     else:
-        i = category.rfind('.')
-        module = category[:i]
-        klass = category[i + 1:]
-        try:
-            m = __import__(module, None, None, [klass])
-        except ImportError:
-            raise _OptionError('invalid module name: %r' % (module,))
+        if re.match('^[a-zA-Z0-9_]+$', category):
+            try:
+                cat = eval(category)
+            except NameError:
+                raise _OptionError('unknown warning category: %r' % (category,))
 
-        try:
-            cat = getattr(m, klass)
-        except AttributeError:
-            raise _OptionError('unknown warning category: %r' % (category,))
+        else:
+            i = category.rfind('.')
+            module = category[:i]
+            klass = category[i + 1:]
+            try:
+                m = __import__(module, None, None, [klass])
+            except ImportError:
+                raise _OptionError('invalid module name: %r' % (module,))
 
-    if not issubclass(cat, Warning):
-        raise _OptionError('invalid warning category: %r' % (category,))
-    return cat
+            try:
+                cat = getattr(m, klass)
+            except AttributeError:
+                raise _OptionError('unknown warning category: %r' % (category,))
+
+        if not issubclass(cat, Warning):
+            raise _OptionError('invalid warning category: %r' % (category,))
+        return cat
 
 
-def warn(message, category = None, stacklevel = 1):
+def warn(message, category=None, stacklevel=1):
     if isinstance(message, Warning):
         category = message.__class__
     if category is None:
@@ -183,9 +189,10 @@ def warn(message, category = None, stacklevel = 1):
             filename = module
     registry = globals.setdefault('__warningregistry__', {})
     warn_explicit(message, category, filename, lineno, module, registry, globals)
+    return
 
 
-def warn_explicit(message, category, filename, lineno, module = None, registry = None, module_globals = None):
+def warn_explicit(message, category, filename, lineno, module=None, registry=None, module_globals=None):
     lineno = int(lineno)
     if module is None:
         module = filename or '<unknown>'
@@ -202,49 +209,52 @@ def warn_explicit(message, category, filename, lineno, module = None, registry =
     key = (text, category, lineno)
     if registry.get(key):
         return
-    for item in filters:
-        action, msg, cat, mod, ln = item
-        if (msg is None or msg.match(text)) and issubclass(category, cat) and (mod is None or mod.match(module)) and (ln == 0 or lineno == ln):
-            break
     else:
-        action = defaultaction
+        for item in filters:
+            action, msg, cat, mod, ln = item
+            if (msg is None or msg.match(text)) and issubclass(category, cat) and (mod is None or mod.match(module)) and (ln == 0 or lineno == ln):
+                break
+        else:
+            action = defaultaction
 
-    if action == 'ignore':
-        registry[key] = 1
+        if action == 'ignore':
+            registry[key] = 1
+            return
+        linecache.getlines(filename, module_globals)
+        if action == 'error':
+            raise message
+        if action == 'once':
+            registry[key] = 1
+            oncekey = (text, category)
+            if onceregistry.get(oncekey):
+                return
+            onceregistry[oncekey] = 1
+        elif action == 'always':
+            pass
+        elif action == 'module':
+            registry[key] = 1
+            altkey = (text, category, 0)
+            if registry.get(altkey):
+                return
+            registry[altkey] = 1
+        elif action == 'default':
+            registry[key] = 1
+        else:
+            raise RuntimeError('Unrecognized action (%r) in warnings.filters:\n %s' % (action, item))
+        showwarning(message, category, filename, lineno)
         return
-    linecache.getlines(filename, module_globals)
-    if action == 'error':
-        raise message
-    if action == 'once':
-        registry[key] = 1
-        oncekey = (text, category)
-        if onceregistry.get(oncekey):
-            return
-        onceregistry[oncekey] = 1
-    elif action == 'always':
-        pass
-    elif action == 'module':
-        registry[key] = 1
-        altkey = (text, category, 0)
-        if registry.get(altkey):
-            return
-        registry[altkey] = 1
-    elif action == 'default':
-        registry[key] = 1
-    else:
-        raise RuntimeError('Unrecognized action (%r) in warnings.filters:\n %s' % (action, item))
-    showwarning(message, category, filename, lineno)
 
 
 class WarningMessage(object):
     _WARNING_DETAILS = ('message', 'category', 'filename', 'lineno', 'file', 'line')
 
-    def __init__(self, message, category, filename, lineno, file = None, line = None):
+    def __init__(self, message, category, filename, lineno, file=None, line=None):
         local_values = locals()
         for attr in self._WARNING_DETAILS:
             setattr(self, attr, local_values[attr])
 
         self._category_name = category.__name__ if category else None
+        return
 
     def __str__(self):
         return '{message : %r, category : %r, filename : %r, lineno : %s, line : %r}' % (self.message,
@@ -256,10 +266,11 @@ class WarningMessage(object):
 
 class catch_warnings(object):
 
-    def __init__(self, record = False, module = None):
+    def __init__(self, record=False, module=None):
         self._record = record
         self._module = sys.modules['warnings'] if module is None else module
         self._entered = False
+        return
 
     def __repr__(self):
         args = []
@@ -286,6 +297,7 @@ class catch_warnings(object):
             self._module.showwarning = showwarning
             return log
         else:
+            return None
             return None
 
     def __exit__(self, *exc_info):

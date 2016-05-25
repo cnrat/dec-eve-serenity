@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\carbon\client\script\environment\audioService.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\carbon\client\script\environment\audioService.py
 import service
 import blue
 import audio2
@@ -8,6 +9,7 @@ import funcDeco
 import log
 import sys
 import eveaudio
+from eve.client.script.ui.view.viewStateConst import ViewState
 from eveaudio.shiphealthnotification import ShipHealthNotifier
 import eveaudio.audiomanager as audiomanager
 from eveaudio.gameworldaudio import GameworldAudioMixin
@@ -102,7 +104,8 @@ class AudioService(service.Service, GameworldAudioMixin):
      'OnSessionChanged',
      'OnBallparkSetState',
      'OnDogmaItemChange',
-     'OnActiveCameraChanged']
+     'OnActiveCameraChanged',
+     'OnViewStateChanged']
     __componentTypes__ = ['audioEmitter']
 
     def __init__(self):
@@ -114,8 +117,9 @@ class AudioService(service.Service, GameworldAudioMixin):
         self.firstStartup = True
         self.lastSystemID = None
         self.lastCameraID = None
+        return
 
-    def Run(self, ms = None):
+    def Run(self, ms=None):
         self.active = False
         self.manager = AudioManager(audiomanager.InitializeAudioManager(session.languageID), eveaudio.EVE_COMMON_BANKS)
         self.banksLoaded = False
@@ -125,12 +129,12 @@ class AudioService(service.Service, GameworldAudioMixin):
         for i in xrange(8):
             self.busChannels[i] = None
 
-        trinity.SetDirectSoundPtr(audio2.GetDirectSoundPtr())
         if self.AppGetSetting('forceEnglishVoice', False):
             io = audio2.AudLowLevelIO(u'res:/Audio/')
             self.manager.manager.config.lowLevelIO = io
         if enabled:
             self.Activate()
+        return
 
     def Stop(self, stream):
         self.uiPlayer = None
@@ -143,6 +147,7 @@ class AudioService(service.Service, GameworldAudioMixin):
 
         if uicore.uilib:
             uicore.uilib.SessionChangeHandler = None
+        return
 
     def SetGlobalRTPC(self, rtpcName, value):
         if not self.IsActivated():
@@ -167,6 +172,7 @@ class AudioService(service.Service, GameworldAudioMixin):
             sm.GetService('dynamicMusic').UpdateDynamicMusic()
         self.firstStartup = False
         sm.ScatterEvent('OnAudioActivated')
+        return
 
     def Deactivate(self):
         self.manager.Disable()
@@ -174,7 +180,7 @@ class AudioService(service.Service, GameworldAudioMixin):
         self.active = False
         sm.ScatterEvent('OnAudioDeactivated')
 
-    def GetAudioBus(self, is3D = False, rate = 44100):
+    def GetAudioBus(self, is3D=False, rate=44100):
         isLowRate = rate == 44100
         for outputChannel, emitterWeakRef in self.busChannels.iteritems():
             channelLowRate = outputChannel >= 4
@@ -197,7 +203,9 @@ class AudioService(service.Service, GameworldAudioMixin):
             if emitterWeakRef == audioEmitter:
                 self.busChannels[outputChannel] = None
 
-    def SetMasterVolume(self, vol = 1.0, persist = True):
+        return
+
+    def SetMasterVolume(self, vol=1.0, persist=True):
         if vol < 0.0 or vol > 1.0:
             raise RuntimeError('Erroneous value received for volume')
         self.SetGlobalRTPC(unicode('volume_master'), vol)
@@ -207,7 +215,7 @@ class AudioService(service.Service, GameworldAudioMixin):
     def GetMasterVolume(self):
         return self.AppGetSetting('masterVolume', 0.4)
 
-    def SetUIVolume(self, vol = 1.0, persist = True):
+    def SetUIVolume(self, vol=1.0, persist=True):
         if vol < 0.0 or vol > 1.0:
             raise RuntimeError('Erroneous value received for volume')
         self.SetGlobalRTPC(unicode('volume_ui'), vol)
@@ -217,14 +225,14 @@ class AudioService(service.Service, GameworldAudioMixin):
     def GetUIVolume(self):
         return self.AppGetSetting('uiGain', 0.4)
 
-    def SetWorldVolume(self, vol = 1.0, persist = True):
+    def SetWorldVolume(self, vol=1.0, persist=True):
         if vol < 0.0 or vol > 1.0:
             raise RuntimeError('Erroneous value received for volume')
         self.SetGlobalRTPC(unicode('volume_world'), vol)
         if persist:
             self.AppSetSetting('worldVolume', vol)
 
-    def SetCustomValue(self, vol, settingName, persist = True):
+    def SetCustomValue(self, vol, settingName, persist=True):
         rtpcConfigName = customSoundLevelsSettings.get(settingName)
         if not rtpcConfigName:
             return
@@ -238,10 +246,13 @@ class AudioService(service.Service, GameworldAudioMixin):
         self.SetGlobalRTPC(unicode(configNameRTPC), volume)
         if persist:
             settings.user.audio.Set(configNameAppSetting, volume)
+        return
 
     def EnableAdvancedSettings(self):
         for eachSettingName in customSoundLevelsSettings.iterkeys():
             self.SetCustomValue(vol=None, settingName=eachSettingName, persist=False)
+
+        return
 
     def DisableAdvancedSettings(self):
         for eachSettingName in customSoundLevelsSettings.iterkeys():
@@ -252,7 +263,7 @@ class AudioService(service.Service, GameworldAudioMixin):
             volume = settings.user.audio.Get(eachSettingName, 0.5)
             self.SetCustomValue(vol=volume, settingName=eachSettingName, persist=False)
 
-    def SetDampeningValue(self, settingName, setOn = True):
+    def SetDampeningValue(self, settingName, setOn=True):
         audioEvent = dampeningSettings.get(settingName)
         if not audioEvent:
             return
@@ -262,7 +273,7 @@ class AudioService(service.Service, GameworldAudioMixin):
             audioEvent += '_off'
         self.SendUIEvent(audioEvent)
 
-    def SetDampeningValueSetting(self, settingName, setOn = True):
+    def SetDampeningValueSetting(self, settingName, setOn=True):
         settings.user.audio.Set(settingName, setOn)
 
     def DisableDampeningValues(self):
@@ -277,13 +288,13 @@ class AudioService(service.Service, GameworldAudioMixin):
     def GetWorldVolume(self):
         return self.AppGetSetting('worldVolume', 0.4)
 
-    def SetMusicVolume(self, volume = 1.0, persist = True):
+    def SetMusicVolume(self, volume=1.0, persist=True):
         volume = min(1.0, max(0.0, volume))
         self.SetGlobalRTPC(unicode('volume_music'), volume)
         if persist:
             self.AppSetSetting('eveampGain', volume)
 
-    def SetVoiceVolume(self, vol = 1.0, persist = True):
+    def SetVoiceVolume(self, vol=1.0, persist=True):
         if vol < 0.0 or vol > 1.0:
             raise RuntimeError('Erroneous value received for volume')
         if not self.IsActivated():
@@ -295,7 +306,7 @@ class AudioService(service.Service, GameworldAudioMixin):
     def GetVoiceVolume(self):
         return self.AppGetSetting('evevoiceGain', 0.9)
 
-    def _SetAmpVolume(self, volume = 0.25, persist = True):
+    def _SetAmpVolume(self, volume=0.25, persist=True):
         if volume < 0.0 or volume > 1.0:
             raise RuntimeError('Erroneous value received for volume')
         if not self.IsActivated():
@@ -304,7 +315,7 @@ class AudioService(service.Service, GameworldAudioMixin):
         if persist:
             self.AppSetSetting('eveampGain', volume)
 
-    def UserSetAmpVolume(self, volume = 0.25, persist = True):
+    def UserSetAmpVolume(self, volume=0.25, persist=True):
         self._SetAmpVolume(volume, persist)
         sm.GetService('dynamicMusic').MusicVolumeChangedByUser(volume)
 
@@ -408,30 +419,32 @@ class AudioService(service.Service, GameworldAudioMixin):
             self.SendUIEvent('wise:/msg_%s_stop' % rootLoopMsg)
             sys.exc_clear()
 
-    def StopSoundLoop(self, rootLoopMsg, eventMsg = None):
+    def StopSoundLoop(self, rootLoopMsg, eventMsg=None):
         if rootLoopMsg not in self.soundLoops:
             self.LogInfo('StopSoundLoop told to halt', rootLoopMsg, 'but that message is not playing!')
             return
-        try:
-            self.soundLoops[rootLoopMsg] -= 1
-            if self.soundLoops[rootLoopMsg] <= 0:
-                self.LogInfo('StopSoundLoop halting message with root', rootLoopMsg)
-                del self.soundLoops[rootLoopMsg]
+        else:
+            try:
+                self.soundLoops[rootLoopMsg] -= 1
+                if self.soundLoops[rootLoopMsg] <= 0:
+                    self.LogInfo('StopSoundLoop halting message with root', rootLoopMsg)
+                    del self.soundLoops[rootLoopMsg]
+                    self.SendUIEvent('wise:/msg_%s_stop' % rootLoopMsg)
+                else:
+                    self.LogInfo('StopSoundLoop decremented count of loop with root %s to %d' % (rootLoopMsg, self.soundLoops[rootLoopMsg]))
+            except:
+                self.LogWarn('StopSoundLoop failed due to an exception - forcibly halting', rootLoopMsg)
                 self.SendUIEvent('wise:/msg_%s_stop' % rootLoopMsg)
-            else:
-                self.LogInfo('StopSoundLoop decremented count of loop with root %s to %d' % (rootLoopMsg, self.soundLoops[rootLoopMsg]))
-        except:
-            self.LogWarn('StopSoundLoop failed due to an exception - forcibly halting', rootLoopMsg)
-            self.SendUIEvent('wise:/msg_%s_stop' % rootLoopMsg)
-            sys.exc_clear()
+                sys.exc_clear()
 
-        if eventMsg is not None:
-            self.SendUIEvent(eventMsg)
+            if eventMsg is not None:
+                self.SendUIEvent(eventMsg)
+            return
 
     def GetTurretSuppression(self):
         return self.AppGetSetting('suppressTurret', 0)
 
-    def SetTurretSuppression(self, suppress, persist = True):
+    def SetTurretSuppression(self, suppress, persist=True):
         if not self.IsActivated():
             return
         if suppress:
@@ -446,7 +459,7 @@ class AudioService(service.Service, GameworldAudioMixin):
     def GetVoiceCountLimitation(self):
         return self.AppGetSetting('limitVoiceCount', 0)
 
-    def SetVoiceCountLimitation(self, limit, persist = True):
+    def SetVoiceCountLimitation(self, limit, persist=True):
         if not self.IsActivated():
             return
         if limit:
@@ -517,11 +530,6 @@ class AudioService(service.Service, GameworldAudioMixin):
         return self.shipHealthNotifier.OnCapacitorChange(*args, **kwargs)
 
     def OnSessionChanged(self, isRemote, session, change):
-        if session.stationid2:
-            self.SwapBanks(eveaudio.EVE_INCARNA_BANKS)
-            eveaudio.SetTheraSystemHangarSwitch(session.solarsystemid2, self.uiPlayer)
-        elif session.solarsystemid2:
-            self.SwapBanks(eveaudio.EVE_SPACE_BANKS)
         if 'userid' in change and session.userid:
             uicore.event.RegisterForTriuiEvents(uiconst.UI_ACTIVE, self.CheckAppFocus)
             if settings.user.audio.Get('soundLevel_advancedSettings', False):
@@ -529,6 +537,13 @@ class AudioService(service.Service, GameworldAudioMixin):
             if settings.user.audio.Get('inactiveSounds_advancedSettings', False) and not uicore.registry.GetFocus():
                 self.LoadUpSavedDampeningValues()
         self.lastSystemID = eveaudio.PlaySystemSpecificEntrySound(self.lastSystemID, session.solarsystemid2, self.uiPlayer)
+
+    def OnViewStateChanged(self, oldView, newView):
+        if newView in [ViewState.Hangar, ViewState.Station]:
+            self.SwapBanks(eveaudio.EVE_INCARNA_BANKS)
+            eveaudio.SetTheraSystemHangarSwitch(session.solarsystemid2, self.uiPlayer)
+        elif session.solarsystemid2:
+            self.SwapBanks(eveaudio.EVE_SPACE_BANKS)
 
     def CheckAppFocus(self, wnd, msgID, vkey):
         if not settings.user.audio.Get('inactiveSounds_advancedSettings', False):
@@ -538,7 +553,6 @@ class AudioService(service.Service, GameworldAudioMixin):
             self.DisableDampeningValues()
         else:
             self.LoadUpSavedDampeningValues()
-        return 1
 
     def OnBallparkSetState(self):
         self.SetResearchAndIndustryLevel()
@@ -547,12 +561,14 @@ class AudioService(service.Service, GameworldAudioMixin):
         ballpark = sm.GetService('michelle').GetBallpark()
         if ballpark is None:
             return
-        industryLevel = ballpark.industryLevel
-        researchLevel = ballpark.researchLevel
-        if industryLevel in industryLevels.keys():
-            self.SendUIEvent(industryLevels.get(industryLevel))
-        if researchLevel in researchLevels.keys():
-            self.SendUIEvent(researchLevels.get(researchLevel))
+        else:
+            industryLevel = ballpark.industryLevel
+            researchLevel = ballpark.researchLevel
+            if industryLevel in industryLevels.keys():
+                self.SendUIEvent(industryLevels.get(industryLevel))
+            if researchLevel in researchLevels.keys():
+                self.SendUIEvent(researchLevels.get(researchLevel))
+            return
 
     def OnDogmaItemChange(self, *args, **kwargs):
         if session.solarsystemid:
@@ -565,17 +581,19 @@ class AudioService(service.Service, GameworldAudioMixin):
     def OnActiveCameraChanged(self, cameraID):
         if session is None or self.lastCameraID == cameraID:
             return
-        self.SendUIEvent('ship_camera_sounds_stop')
-        if cameraID == evecamera.CAM_TACTICAL:
-            self.SendUIEvent('ship_overview_zoom_play')
-            self.SendUIEvent('state_camera_set_overview')
-        elif cameraID == evecamera.CAM_SHIPPOV:
-            if hasattr(session, 'shipid') and session.shipid is not None:
-                ship = sm.GetService('michelle').GetItem(session.shipid)
-                if ship:
-                    sizeStr = GetBoosterSizeStr(ship.groupID)
-                    eventStr = 'ship_interior_%s_play' % sizeStr
-                    self.SendUIEvent(eventStr)
-                    self.SendUIEvent('state_camera_set_cockpit')
         else:
-            self.SendUIEvent('state_camera_set_normal')
+            self.SendUIEvent('ship_camera_sounds_stop')
+            if cameraID == evecamera.CAM_TACTICAL:
+                self.SendUIEvent('ship_overview_zoom_play')
+                self.SendUIEvent('state_camera_set_overview')
+            elif cameraID == evecamera.CAM_SHIPPOV:
+                if hasattr(session, 'shipid') and session.shipid is not None:
+                    ship = sm.GetService('michelle').GetItem(session.shipid)
+                    if ship:
+                        sizeStr = GetBoosterSizeStr(ship.groupID)
+                        eventStr = 'ship_interior_%s_play' % sizeStr
+                        self.SendUIEvent(eventStr)
+                        self.SendUIEvent('state_camera_set_cockpit')
+            else:
+                self.SendUIEvent('state_camera_set_normal')
+            return

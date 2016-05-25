@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\common\script\universe\locationWrapper.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\common\script\universe\locationWrapper.py
 
 
 class SolarSystemWrapper(object):
@@ -16,6 +17,7 @@ class SolarSystemWrapper(object):
         self.securityStatus = solarSystem.securityStatus
         self.solarSystemName = cfg.evelocations[self.solarSystemID].locationName
         self.planetCount = len(solarSystem.planetCountByType)
+        return
 
     def __str__(self):
         return self.stringRepresentation

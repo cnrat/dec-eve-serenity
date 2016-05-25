@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\devtools\script\alignmentTest.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\devtools\script\alignmentTest.py
 import carbonui.const as uiconst
 import util
 import uicls
@@ -7,7 +8,7 @@ import uicontrols
 
 class Pars:
 
-    def __init__(self, align, pos = None, padding = None, children = None):
+    def __init__(self, align, pos=None, padding=None, children=None):
         self.align = align
         self.pos = pos or (0, 0, 0, 0)
         self.padding = padding or (0, 0, 0, 0)
@@ -28,8 +29,9 @@ class AlignmentTester(uicontrols.Window):
         self.caseNum = attributes.caseNum or 0
         self.LoadCase()
         self.SetSize(500, 500)
+        return
 
-    def LoadCase(self, labels = True):
+    def LoadCase(self, labels=True):
         self.main.Flush()
         self.caseNum = util.Clamp(self.caseNum, 0, len(self.cases) - 1)
         self.UpdateCaption()
@@ -46,7 +48,7 @@ class AlignmentTester(uicontrols.Window):
 
             fill.color.SetRGB(*util.Color('BLUE').SetHSB(hue, 1.0, 0.8).SetAlpha(1.0).GetRGBA())
 
-    def AddContainer(self, parent, contParams, level, label = True):
+    def AddContainer(self, parent, contParams, level, label=True):
         cont = uiprimitives.Container(parent=parent, align=contParams.align, pos=contParams.pos, padding=contParams.padding)
         subCont = uiprimitives.Container(parent=cont, align=uiconst.TOALL)
         if label:
@@ -65,7 +67,7 @@ class AlignmentTester(uicontrols.Window):
         self.caseNum += 1
         self.LoadCase()
 
-    def SetCase(self, case, labels = True):
+    def SetCase(self, case, labels=True):
         self.caseNum = case
         self.LoadCase(labels)
 

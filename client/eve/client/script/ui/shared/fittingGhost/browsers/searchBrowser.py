@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\client\script\ui\shared\fittingGhost\browsers\searchBrowser.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\client\script\ui\shared\fittingGhost\browsers\searchBrowser.py
 from collections import defaultdict
 from eve.client.script.ui.shared.fittingGhost.browsers.browserUtil import GetTypesByMetaGroups, ShoulAddMetaGroupFolder, GetMetaGroupNameAndEntry, GetScrollListFromTypeListInNodedata, GetScrollListFromTypeList
 from eve.client.script.ui.shared.fittingGhost.browsers.filtering import GetValidTypeIDs
@@ -22,19 +23,20 @@ class SearchBrowserListProvider(object):
         searchTerm = settings.user.ui.Get('fitting_hardwareSearchField', '')
         if not searchTerm:
             return []
-        scrollList = []
-        validTypeIDs = GetValidTypeIDs(typeIDs, self.searchFittingHelper)
-        allMarketGroups = marketGroups[None]
-        myCategories, typeIDsByCategoryID = self.GetCategoryDicts(allMarketGroups, validTypeIDs)
-        if len(typeIDsByCategoryID) > 1:
-            scrollList += self.GetSearchCatagoryEntries(typeIDsByCategoryID, myCategories)
         else:
-            for categoryID, categoryTypeIDs in typeIDsByCategoryID.iteritems():
-                fakeNodeData = KeyVal(typeIDs=categoryTypeIDs, sublevel=-1, categoryID=categoryID)
-                results = self.GetSeachCategorySubContent(fakeNodeData)
-                scrollList.extend(results)
+            scrollList = []
+            validTypeIDs = GetValidTypeIDs(typeIDs, self.searchFittingHelper)
+            allMarketGroups = marketGroups[None]
+            myCategories, typeIDsByCategoryID = self.GetCategoryDicts(allMarketGroups, validTypeIDs)
+            if len(typeIDsByCategoryID) > 1:
+                scrollList += self.GetSearchCatagoryEntries(typeIDsByCategoryID, myCategories)
+            else:
+                for categoryID, categoryTypeIDs in typeIDsByCategoryID.iteritems():
+                    fakeNodeData = KeyVal(typeIDs=categoryTypeIDs, sublevel=-1, categoryID=categoryID)
+                    results = self.GetSeachCategorySubContent(fakeNodeData)
+                    scrollList.extend(results)
 
-        return scrollList
+            return scrollList
 
     def GetCategoryDicts(self, allMarketGroups, validTypeIDs):
         typeIDsByCategoryID = defaultdict(list)
@@ -86,6 +88,6 @@ class SearchBrowserListProvider(object):
         scrollList = [ item[1] for item in localization.util.Sort(scrollList, key=lambda x: x[0]) ]
         return scrollList
 
-    def GetSearchSubGroup(self, metaGroupID, typeIDList, nodedata = 0, categoryID = None, *args):
+    def GetSearchSubGroup(self, metaGroupID, typeIDList, nodedata=0, categoryID=None, *args):
         labelAndEntry = GetMetaGroupNameAndEntry(metaGroupID, typeIDList, nodedata, subContentFunc=GetScrollListFromTypeListInNodedata, onDropDataFunc=self.onDropDataFunc, idTuple=('fittingSearchGroups', (metaGroupID, categoryID)))
         return labelAndEntry

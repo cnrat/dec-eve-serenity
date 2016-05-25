@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\carbon\common\script\entities\Spawners\simpleStaticSpawner.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\carbon\common\script\entities\Spawners\simpleStaticSpawner.py
 from carbon.common.script.entities.Spawners.baseSpawner import BaseSpawner
 import log
 
@@ -19,6 +20,7 @@ class SimpleStaticSpawner(BaseSpawner):
         if self.spawnRow.recipeID is None:
             log.LogError('SpawnID ', self.spawnRow.spawnID, ' has no recipe set')
             return {}
-        positionOverrides = self._OverrideRecipePosition({}, self.GetPosition(), self.GetRotation())
-        spawnRecipe = entityRecipeSvc.GetRecipe(self.spawnRow.recipeID, positionOverrides)
-        return spawnRecipe
+        else:
+            positionOverrides = self._OverrideRecipePosition({}, self.GetPosition(), self.GetRotation())
+            spawnRecipe = entityRecipeSvc.GetRecipe(self.spawnRow.recipeID, positionOverrides)
+            return spawnRecipe

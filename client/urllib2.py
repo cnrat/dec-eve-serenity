@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\carbon\common\stdlib\urllib2.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\carbon\common\stdlib\urllib2.py
 import base64
 import hashlib
 import httplib
@@ -22,7 +23,7 @@ from urllib import localhost, url2pathname, getproxies, proxy_bypass
 __version__ = sys.version[:3]
 _opener = None
 
-def urlopen(url, data = None, timeout = socket._GLOBAL_DEFAULT_TIMEOUT):
+def urlopen(url, data=None, timeout=socket._GLOBAL_DEFAULT_TIMEOUT):
     global _opener
     if _opener is None:
         _opener = build_opener()
@@ -55,6 +56,7 @@ class HTTPError(URLError, addinfourl):
         self.filename = url
         if fp is not None:
             self.__super_init(fp, hdrs, url, code)
+        return
 
     def __str__(self):
         return 'HTTP Error %s: %s' % (self.code, self.msg)
@@ -73,7 +75,7 @@ def request_host(request):
 
 class Request:
 
-    def __init__(self, url, data = None, headers = {}, origin_req_host = None, unverifiable = False):
+    def __init__(self, url, data=None, headers={}, origin_req_host=None, unverifiable=False):
         self.__original = unwrap(url)
         self.__original, fragment = splittag(self.__original)
         self.type = None
@@ -90,6 +92,7 @@ class Request:
             origin_req_host = request_host(self)
         self.origin_req_host = origin_req_host
         self.unverifiable = unverifiable
+        return
 
     def __getattr__(self, attr):
         if attr[:12] == '_Request__r_':
@@ -160,7 +163,7 @@ class Request:
     def has_header(self, header_name):
         return header_name in self.headers or header_name in self.unredirected_hdrs
 
-    def get_header(self, header_name, default = None):
+    def get_header(self, header_name, default=None):
         return self.headers.get(header_name, self.unredirected_hdrs.get(header_name, default))
 
     def header_items(self):
@@ -233,7 +236,9 @@ class OpenerDirector:
             if result is not None:
                 return result
 
-    def open(self, fullurl, data = None, timeout = socket._GLOBAL_DEFAULT_TIMEOUT):
+        return
+
+    def open(self, fullurl, data=None, timeout=socket._GLOBAL_DEFAULT_TIMEOUT):
         if isinstance(fullurl, basestring):
             req = Request(fullurl, data)
         else:
@@ -255,7 +260,7 @@ class OpenerDirector:
 
         return response
 
-    def _open(self, req, data = None):
+    def _open(self, req, data=None):
         result = self._call_chain(self.handle_open, 'default', 'default_open', req)
         if result:
             return result
@@ -389,16 +394,17 @@ class HTTPRedirectHandler(BaseHandler):
         new = self.redirect_request(req, fp, code, msg, headers, newurl)
         if new is None:
             return
-        if hasattr(req, 'redirect_dict'):
-            visited = new.redirect_dict = req.redirect_dict
-            if visited.get(newurl, 0) >= self.max_repeats or len(visited) >= self.max_redirections:
-                raise HTTPError(req.get_full_url(), code, self.inf_msg + msg, headers, fp)
         else:
-            visited = new.redirect_dict = req.redirect_dict = {}
-        visited[newurl] = visited.get(newurl, 0) + 1
-        fp.read()
-        fp.close()
-        return self.parent.open(new, timeout=req.timeout)
+            if hasattr(req, 'redirect_dict'):
+                visited = new.redirect_dict = req.redirect_dict
+                if visited.get(newurl, 0) >= self.max_repeats or len(visited) >= self.max_redirections:
+                    raise HTTPError(req.get_full_url(), code, self.inf_msg + msg, headers, fp)
+            else:
+                visited = new.redirect_dict = req.redirect_dict = {}
+            visited[newurl] = visited.get(newurl, 0) + 1
+            fp.read()
+            fp.close()
+            return self.parent.open(new, timeout=req.timeout)
 
     http_error_301 = http_error_303 = http_error_307 = http_error_302
     inf_msg = 'The HTTP server returned a redirect error that would lead to an infinite loop.\nThe last 30x error message was:\n'
@@ -430,12 +436,14 @@ def _parse_proxy(proxy):
 class ProxyHandler(BaseHandler):
     handler_order = 100
 
-    def __init__(self, proxies = None):
+    def __init__(self, proxies=None):
         if proxies is None:
             proxies = getproxies()
         self.proxies = proxies
         for type, url in proxies.items():
-            setattr(self, '%s_open' % type, lambda r, proxy = url, type = type, meth = self.proxy_open: meth(r, proxy, type))
+            setattr(self, '%s_open' % type, lambda r, proxy=url, type=type, meth=self.proxy_open: meth(r, proxy, type))
+
+        return
 
     def proxy_open(self, req, proxy, type):
         orig_type = req.get_type()
@@ -444,16 +452,17 @@ class ProxyHandler(BaseHandler):
             proxy_type = orig_type
         if req.host and proxy_bypass(req.host):
             return
-        if user and password:
-            user_pass = '%s:%s' % (unquote(user), unquote(password))
-            creds = base64.b64encode(user_pass).strip()
-            req.add_header('Proxy-authorization', 'Basic ' + creds)
-        hostport = unquote(hostport)
-        req.set_proxy(hostport, proxy_type)
-        if orig_type == proxy_type or orig_type == 'https':
-            return
         else:
+            if user and password:
+                user_pass = '%s:%s' % (unquote(user), unquote(password))
+                creds = base64.b64encode(user_pass).strip()
+                req.add_header('Proxy-authorization', 'Basic ' + creds)
+            hostport = unquote(hostport)
+            req.set_proxy(hostport, proxy_type)
+            if orig_type == proxy_type or orig_type == 'https':
+                return
             return self.parent.open(req, timeout=req.timeout)
+            return
 
 
 class HTTPPasswordMgr:
@@ -481,7 +490,7 @@ class HTTPPasswordMgr:
 
         return (None, None)
 
-    def reduce_uri(self, uri, default_port = True):
+    def reduce_uri(self, uri, default_port=True):
         parts = urlparse.urlsplit(uri)
         if parts[1]:
             scheme = parts[0]
@@ -516,18 +525,20 @@ class HTTPPasswordMgrWithDefaultRealm(HTTPPasswordMgr):
         user, password = HTTPPasswordMgr.find_user_password(self, realm, authuri)
         if user is not None:
             return (user, password)
-        return HTTPPasswordMgr.find_user_password(self, None, authuri)
+        else:
+            return HTTPPasswordMgr.find_user_password(self, None, authuri)
 
 
 class AbstractBasicAuthHandler:
     rx = re.compile('(?:.*,)*[ \t]*([^ \t]+)[ \t]+realm=(["\'])(.*?)\\2', re.I)
 
-    def __init__(self, password_mgr = None):
+    def __init__(self, password_mgr=None):
         if password_mgr is None:
             password_mgr = HTTPPasswordMgr()
         self.passwd = password_mgr
         self.add_password = self.passwd.add_password
         self.retried = 0
+        return
 
     def reset_retry_count(self):
         self.retried = 0
@@ -547,6 +558,7 @@ class AbstractBasicAuthHandler:
                     if response and response.code != 401:
                         self.retried = 0
                     return response
+        return
 
     def retry_http_basic_auth(self, host, req, realm):
         user, pw = self.passwd.find_user_password(realm, host)
@@ -558,6 +570,7 @@ class AbstractBasicAuthHandler:
             req.add_unredirected_header(self.auth_header, auth)
             return self.parent.open(req, timeout=req.timeout)
         else:
+            return
             return
 
 
@@ -594,7 +607,7 @@ def randombytes(n):
 
 class AbstractDigestAuthHandler:
 
-    def __init__(self, passwd = None):
+    def __init__(self, passwd=None):
         if passwd is None:
             passwd = HTTPPasswordMgr()
         self.passwd = passwd
@@ -603,6 +616,7 @@ class AbstractDigestAuthHandler:
         self.nonce_count = 0
         self.last_nonce = None
         self.last_cnonce = None
+        return
 
     def reset_retry_count(self):
         self.retried = 0
@@ -617,6 +631,7 @@ class AbstractDigestAuthHandler:
             scheme = authreq.split()[0]
             if scheme.lower() == 'digest':
                 return self.retry_http_digest_auth(req, authreq)
+        return
 
     def retry_http_digest_auth(self, req, auth):
         token, challenge = auth.split(' ', 1)
@@ -629,6 +644,8 @@ class AbstractDigestAuthHandler:
             req.add_unredirected_header(self.auth_header, auth_val)
             resp = self.parent.open(req, timeout=req.timeout)
             return resp
+        else:
+            return
 
     def get_cnonce(self, nonce):
         dig = hashlib.sha1('%s:%s:%s:%s' % (self.nonce_count,
@@ -650,59 +667,60 @@ class AbstractDigestAuthHandler:
         H, KD = self.get_algorithm_impls(algorithm)
         if H is None:
             return
-        user, pw = self.passwd.find_user_password(realm, req.get_full_url())
-        if user is None:
-            return
-        if req.has_data():
-            entdig = self.get_entity_digest(req.get_data(), chal)
         else:
-            entdig = None
-        split_result = urlparse.urlsplit(req.get_full_url())
-        if algorithm == 'MD5-sess' or not split_result.query:
-            uri = split_result.path
-        else:
-            uri = '%s?%s' % (split_result.path, split_result.query)
-        cnonce = None
-        if algorithm == 'MD5-sess':
-            if nonce != self.last_nonce:
-                self.last_cnonce = self.get_cnonce(nonce)
-            cnonce = self.last_cnonce
-            A1 = '%s:%s:%s' % (H('%s:%s:%s' % (user, realm, pw)), nonce, cnonce)
-        else:
-            A1 = '%s:%s:%s' % (user, realm, pw)
-        A2 = '%s:%s' % (req.get_method(), uri)
-        if qop == 'auth':
-            if nonce == self.last_nonce:
-                self.nonce_count += 1
+            user, pw = self.passwd.find_user_password(realm, req.get_full_url())
+            if user is None:
+                return
+            if req.has_data():
+                entdig = self.get_entity_digest(req.get_data(), chal)
             else:
-                self.nonce_count = 1
-                self.last_nonce = nonce
-            ncvalue = '%08x' % self.nonce_count
-            if not cnonce:
-                cnonce = self.get_cnonce(nonce)
-            noncebit = '%s:%s:%s:%s:%s' % (nonce,
-             ncvalue,
-             cnonce,
-             qop,
-             H(A2))
-            respdig = KD(H(A1), noncebit)
-        elif qop is None:
-            respdig = KD(H(A1), '%s:%s' % (nonce, H(A2)))
-        else:
-            raise URLError("qop '%s' is not supported." % qop)
-        base = 'username="%s", realm="%s", nonce="%s", uri="%s", response="%s"' % (user,
-         realm,
-         nonce,
-         uri,
-         respdig)
-        if opaque:
-            base += ', opaque="%s"' % opaque
-        if entdig:
-            base += ', digest="%s"' % entdig
-        base += ', algorithm="%s"' % algorithm
-        if qop:
-            base += ', qop=auth, nc=%s, cnonce="%s"' % (ncvalue, cnonce)
-        return base
+                entdig = None
+            split_result = urlparse.urlsplit(req.get_full_url())
+            if algorithm == 'MD5-sess' or not split_result.query:
+                uri = split_result.path
+            else:
+                uri = '%s?%s' % (split_result.path, split_result.query)
+            cnonce = None
+            if algorithm == 'MD5-sess':
+                if nonce != self.last_nonce:
+                    self.last_cnonce = self.get_cnonce(nonce)
+                cnonce = self.last_cnonce
+                A1 = '%s:%s:%s' % (H('%s:%s:%s' % (user, realm, pw)), nonce, cnonce)
+            else:
+                A1 = '%s:%s:%s' % (user, realm, pw)
+            A2 = '%s:%s' % (req.get_method(), uri)
+            if qop == 'auth':
+                if nonce == self.last_nonce:
+                    self.nonce_count += 1
+                else:
+                    self.nonce_count = 1
+                    self.last_nonce = nonce
+                ncvalue = '%08x' % self.nonce_count
+                if not cnonce:
+                    cnonce = self.get_cnonce(nonce)
+                noncebit = '%s:%s:%s:%s:%s' % (nonce,
+                 ncvalue,
+                 cnonce,
+                 qop,
+                 H(A2))
+                respdig = KD(H(A1), noncebit)
+            elif qop is None:
+                respdig = KD(H(A1), '%s:%s' % (nonce, H(A2)))
+            else:
+                raise URLError("qop '%s' is not supported." % qop)
+            base = 'username="%s", realm="%s", nonce="%s", uri="%s", response="%s"' % (user,
+             realm,
+             nonce,
+             uri,
+             respdig)
+            if opaque:
+                base += ', opaque="%s"' % opaque
+            if entdig:
+                base += ', digest="%s"' % entdig
+            base += ', algorithm="%s"' % algorithm
+            if qop:
+                base += ', qop=auth, nc=%s, cnonce="%s"' % (ncvalue, cnonce)
+            return base
 
     def get_algorithm_impls(self, algorithm):
         algorithm = algorithm.upper()
@@ -743,7 +761,7 @@ class ProxyDigestAuthHandler(BaseHandler, AbstractDigestAuthHandler):
 
 class AbstractHTTPHandler(BaseHandler):
 
-    def __init__(self, debuglevel = 0):
+    def __init__(self, debuglevel=0):
         self._debuglevel = debuglevel
 
     def set_http_debuglevel(self, level):
@@ -838,11 +856,12 @@ if hasattr(httplib, 'HTTPS'):
 
 class HTTPCookieProcessor(BaseHandler):
 
-    def __init__(self, cookiejar = None):
+    def __init__(self, cookiejar=None):
         import cookielib
         if cookiejar is None:
             cookiejar = cookielib.CookieJar()
         self.cookiejar = cookiejar
+        return
 
     def http_request(self, request):
         self.cookiejar.add_cookie_header(request)
@@ -909,6 +928,8 @@ def _safe_gethostbyname(host):
         return socket.gethostbyname(host)
     except socket.gaierror:
         return None
+
+    return None
 
 
 class FileHandler(BaseHandler):
@@ -1010,6 +1031,8 @@ class FTPHandler(BaseHandler):
             return addinfourl(fp, headers, req.get_full_url())
         except ftplib.all_errors as msg:
             raise URLError, 'ftp error: %s' % msg, sys.exc_info()[2]
+
+        return
 
     def connect_ftp(self, user, passwd, host, port, dirs, timeout):
         fw = ftpwrapper(user, passwd, host, port, dirs, timeout)

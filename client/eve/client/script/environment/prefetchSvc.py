@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\client\script\environment\prefetchSvc.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\client\script\environment\prefetchSvc.py
 import inventorycommon.typeHelpers
 import service
 import util
@@ -51,6 +52,7 @@ class PrefetchSvc(service.Service):
                 filesToPrefetch.add(graphic.lower())
             everesourceprefetch.AddFileset(key, filesToPrefetch)
         everesourceprefetch.ScheduleFront(key)
+        return
 
     def OnSessionChanged(self, isremote, session, change):
         if 'stationid' in change:
@@ -63,9 +65,12 @@ class PrefetchSvc(service.Service):
                 return
         if 'solarsystemid' not in change:
             return
-        ssid = change['solarsystemid'][1]
-        if ssid is None:
+        else:
+            ssid = change['solarsystemid'][1]
+            if ssid is None:
+                return
+            systemInfo = cfg.mapSystemCache[ssid]
+            for neighbor in systemInfo.neighbours:
+                self.SchedulePrefetchForSystem(neighbor.solarSystemID)
+
             return
-        systemInfo = cfg.mapSystemCache[ssid]
-        for neighbor in systemInfo.neighbours:
-            self.SchedulePrefetchForSystem(neighbor.solarSystemID)

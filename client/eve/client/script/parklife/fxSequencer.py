@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\client\script\parklife\fxSequencer.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\client\script\parklife\fxSequencer.py
 import sys
 import service
 import uthread
@@ -9,8 +10,8 @@ import log
 import locks
 import telemetry
 from eve.client.script.environment.spaceObject.playerOwnedStructure import PlayerOwnedStructure
-from eve.client.script.environment.effects.GenericEffect import STOP_REASON_BALL_REMOVED, STOP_REASON_DEFAULT, ShipRenderEffect
-from eve.client.script.environment.effects.GenericEffect import GenericEffect
+from eve.client.script.environment.effects.GenericEffect import GenericEffect, STOP_REASON_BALL_REMOVED, STOP_REASON_DEFAULT
+from eve.client.script.environment.effects.shipRenderEffect import ShipRenderEffect
 from eve.client.script.environment.effects.effectConsts import FX_MERGE_GUID, FX_MERGE_MODULE, FX_MERGE_SHIP, FX_MERGE_TARGET
 from eve.client.script.environment.effects.Repository import GetClassification
 import evegraphics.settings as gfxsettings
@@ -40,7 +41,8 @@ FX_PROTECTED_EFFECT_GUIDS = ['effects.GateActivity',
  'effects.TriageMode',
  'effects.WarpDisruptFieldGenerating',
  'effects.WarpScramble',
- 'effects.OrbitalStrike']
+ 'effects.OrbitalStrike',
+ 'effects.Tethering']
 FX_LONG_ONESHOT_GUIDS = ['effects.SuperWeaponAmarr',
  'effects.SuperWeaponCaldari',
  'effects.SuperWeaponGallente',
@@ -60,6 +62,7 @@ class Activation():
     def __init__(self, broker):
         self.triggers = []
         self.effect = None
+        self.guid = None
         self.stamp = -1
         self.duration = -1
         self.broker = broker
@@ -67,6 +70,7 @@ class Activation():
         self.isOn = False
         self.balls = set()
         self.isZombie = False
+        return
 
     def __le__(self, other):
         return self.stamp <= other.stamp
@@ -76,6 +80,7 @@ class Activation():
         self.triggers = []
         self.balls = set()
         self.broker = None
+        return
 
     def TriggerAlreadyExists(self, trigger):
         for t in self.triggers:
@@ -88,23 +93,25 @@ class Activation():
     def AddTrigger(self, trigger):
         if self.TriggerAlreadyExists(trigger):
             return
-        heapq.heappush(self.triggers, trigger)
-        stampUpdated = self.UpdateRepeatTime()
-        if self.effect is None:
-            try:
-                self.effect = self.GetEffectFromGuid(trigger)
-            except:
-                self.effect = GenericEffect(trigger)
-                log.LogException()
-                sys.exc_clear()
-
-            self.balls = set(self.effect.GetBalls())
-            self.PrepareAndStart()
-            self.isOn = True
         else:
-            self.balls.add(trigger.shipID)
-            self.balls.add(trigger.targetID)
-        return stampUpdated
+            heapq.heappush(self.triggers, trigger)
+            stampUpdated = self.UpdateRepeatTime()
+            if self.effect is None:
+                try:
+                    self.effect = self.GetEffectFromGuid(trigger)
+                except:
+                    self.effect = GenericEffect(trigger)
+                    log.LogException()
+                    sys.exc_clear()
+
+                self.guid = trigger.guid
+                self.balls = set(self.effect.GetBalls())
+                self.PrepareAndStart()
+                self.isOn = True
+            else:
+                self.balls.add(trigger.shipID)
+                self.balls.add(trigger.targetID)
+            return stampUpdated
 
     @telemetry.ZONE_METHOD
     def PrepareAndStart(self):
@@ -127,7 +134,6 @@ class Activation():
             heapq.heapify(self.triggers)
             self.PurgeTriggers()
             return self.UpdateRepeatTime()
-        self.broker.LogError('Activation::RemoveTrigger: trigger not found')
 
     @telemetry.ZONE_METHOD
     def UpdateRepeatTime(self):
@@ -140,18 +146,19 @@ class Activation():
 
         if candidate is None:
             return -1
-        now = blue.os.GetSimTime()
-        duration = int(candidate.duration)
-        durationInBluetime = SECOND * duration / 1000
-        wholeRepeatsLeft = long((candidate.stamp - now) / durationInBluetime)
-        if wholeRepeatsLeft == candidate.repeat:
-            wholeRepeatsLeft -= 1
-        newStamp = candidate.stamp - wholeRepeatsLeft * durationInBluetime
-        if newStamp == self.stamp:
-            return 0
-        self.stamp = newStamp
-        self.duration = candidate.duration
-        return 1
+        else:
+            now = blue.os.GetSimTime()
+            duration = int(candidate.duration)
+            durationInBluetime = SECOND * duration / 1000
+            wholeRepeatsLeft = long((candidate.stamp - now) / durationInBluetime)
+            if wholeRepeatsLeft == candidate.repeat:
+                wholeRepeatsLeft -= 1
+            newStamp = candidate.stamp - wholeRepeatsLeft * durationInBluetime
+            if newStamp == self.stamp:
+                return 0
+            self.stamp = newStamp
+            self.duration = candidate.duration
+            return 1
 
     @telemetry.ZONE_METHOD
     def Repeat(self):
@@ -161,29 +168,32 @@ class Activation():
         if not self.triggers:
             self.Stop()
             return -1
-        if not self.isOn:
+        elif not self.isOn:
             return stampUpdated
-        try:
-            self.effect.Repeat(self.duration)
-        except:
-            log.LogException()
-            sys.exc_clear()
+        else:
+            try:
+                self.effect.Repeat(self.duration)
+            except:
+                log.LogException()
+                sys.exc_clear()
 
-        return stampUpdated
+            return stampUpdated
 
     @telemetry.ZONE_METHOD
-    def Stop(self, reason = STOP_REASON_DEFAULT):
+    def Stop(self, reason=STOP_REASON_DEFAULT):
         if not self.isOn:
             return
-        if self.effect is None:
-            raise RuntimeError('Activation::Stop: No effect defined')
-        try:
-            self.effect.Stop(reason)
-        except:
-            log.LogException()
-            sys.exc_clear()
+        else:
+            if self.effect is None:
+                raise RuntimeError('Activation::Stop: No effect defined')
+            try:
+                self.effect.Stop(reason)
+            except:
+                log.LogException()
+                sys.exc_clear()
 
-        self.isOn = False
+            self.isOn = False
+            return
 
     @telemetry.ZONE_METHOD
     def PurgeTriggers(self):
@@ -205,8 +215,7 @@ class Activation():
     def GetEffectFromGuid(self, trigger):
         classification = GetClassification(trigger.guid)
         if classification is None:
-            log.LogError('Activation::Unable to load effect for guid:', trigger.guid)
-            return
+            raise RuntimeError('Activation::Unable to load effect for guid:', trigger.guid)
         classType = classification[0]
         args = classification[1:]
         return classType(trigger, *args)
@@ -236,8 +245,9 @@ class FxSequencer(service.Service):
         self.killLoop = True
         self.sequencerTasklet = None
         self.disabledGuids = {}
+        return
 
-    def Run(self, memStream = None):
+    def Run(self, memStream=None):
         service.Service.Run(self, memStream)
         self.lock = locks.RLock()
         self.disabledGuids = settings.user.ui.Get('disabledGuids', {})
@@ -262,6 +272,7 @@ class FxSequencer(service.Service):
         self.killLoop = True
         blue.pyos.synchro.WakeupAtSim(self.sequencerTasklet, 0, -1)
         self.sequencerTasklet = None
+        return
 
     def DoSimClockRebase(self, times):
         oldSimTime, newSimTime = times
@@ -299,55 +310,57 @@ class FxSequencer(service.Service):
                     self.DisableGuids(candidateEffects)
 
     @telemetry.ZONE_METHOD
-    def OnSpecialFX(self, shipID, moduleID, moduleTypeID, targetID, otherTypeID, guid, isOffensive, start, active, duration = -1, repeat = None, startTime = None, timeFromStart = 0, graphicInfo = None):
+    def OnSpecialFX(self, shipID, moduleID, moduleTypeID, targetID, otherTypeID, guid, isOffensive, start, active, duration=-1, repeat=None, startTime=None, timeFromStart=0, graphicInfo=None):
         if start == 1 and guid in self.disabledGuids:
             return
-        if startTime is not None and guid in FX_LONG_ONESHOT_GUIDS:
-            now = blue.os.GetSimTime()
-            if now - startTime > 150000000:
-                return
-        classification = GetClassification(guid)
-        if classification is not None:
-            effect = classification[1]
-            mergeFlags = getattr(effect, 'mergeFlags')
         else:
-            mergeFlags = [0]
-        trigger = Trigger(shipID=shipID, moduleID=moduleID, moduleTypeID=moduleTypeID, targetID=targetID, otherTypeID=otherTypeID, guid=guid, isOffensive=isOffensive, duration=duration, repeat=repeat, startTime=startTime, timeFromStart=timeFromStart, graphicInfo=graphicInfo, mergeFlags=mergeFlags)
-        if trigger.repeat is None or trigger.repeat <= 0:
-            trigger.repeat = 1
-        else:
-            trigger.repeat += 1
-        if guid is None:
-            self.LogWarn('FxSequencer::OnSpecialFx: No guid in trigger for moduleTypeID', moduleTypeID, 'and graphicInfo', graphicInfo)
-            return
-        splitGuid = guid.split('.')
-        if len(splitGuid) != 2:
-            self.LogInfo('FxSequencer::OnSpecialFx: No guid in trigger')
-            return
-        niceName = guid.split('.')[1]
-        if shipID == session.shipid:
-            ship = 'for myself'
-        elif util.IsFullLogging():
-            ship = 'for ship: %s' % shipID
-        else:
-            ship = 'for another ship'
-        if start == 1:
-            if active == 0:
-                self.LogInfo('FxSequencer::OnSpecialFX: Got ONE-SHOT event:', niceName, ship, '[', moduleID, '] with duration:', duration)
-            if trigger.repeat is not None and trigger.repeat > 0:
-                self.LogInfo('Starting REPEAT event:', niceName, ship, '[', moduleID, '] with duration:', duration / 1000.0, 'and repeat:', trigger.repeat)
-                self.AddTrigger(trigger)
+            if startTime is not None and guid in FX_LONG_ONESHOT_GUIDS:
+                now = blue.os.GetSimTime()
+                if now - startTime > 150000000:
+                    return
+            classification = GetClassification(guid)
+            if classification is not None:
+                effect = classification[1]
+                mergeFlags = getattr(effect, 'mergeFlags')
             else:
-                self.LogInfo('FxSequencer::OnSpecialFX: Starting TOGGLE event:', niceName, ship, '[', moduleID, ']')
-            if targetID is not None:
-                if targetID == session.shipid:
-                    target = 'myself'
+                mergeFlags = [0]
+            trigger = Trigger(shipID=shipID, moduleID=moduleID, moduleTypeID=moduleTypeID, targetID=targetID, otherTypeID=otherTypeID, guid=guid, isOffensive=isOffensive, duration=duration, repeat=repeat, startTime=startTime, timeFromStart=timeFromStart, graphicInfo=graphicInfo, mergeFlags=mergeFlags)
+            if trigger.repeat is None or trigger.repeat <= 0:
+                trigger.repeat = 1
+            else:
+                trigger.repeat += 1
+            if guid is None:
+                self.LogWarn('FxSequencer::OnSpecialFx: No guid in trigger for moduleTypeID', moduleTypeID, 'and graphicInfo', graphicInfo)
+                return
+            splitGuid = guid.split('.')
+            if len(splitGuid) != 2:
+                self.LogInfo('FxSequencer::OnSpecialFx: No guid in trigger')
+                return
+            niceName = guid.split('.')[1]
+            if shipID == session.shipid:
+                ship = 'for myself'
+            elif util.IsFullLogging():
+                ship = 'for ship: %s' % shipID
+            else:
+                ship = 'for another ship'
+            if start == 1:
+                if active == 0:
+                    self.LogInfo('FxSequencer::OnSpecialFX: Got ONE-SHOT event:', niceName, ship, '[', moduleID, '] with duration:', duration)
+                if trigger.repeat is not None and trigger.repeat > 0:
+                    self.LogInfo('Starting REPEAT event:', niceName, ship, '[', moduleID, '] with duration:', duration / 1000.0, 'and repeat:', trigger.repeat)
+                    self.AddTrigger(trigger)
                 else:
-                    target = targetID
-                self.LogInfo('targeted at:', target, 'and is', ['not', ''][isOffensive], 'offensive')
-        else:
-            self.RemoveTrigger(trigger)
-            self.LogInfo('FxSequencer::OnSpecialFX: Stopping', niceName, 'for ship:', ship, 'and module:', moduleID)
+                    self.LogInfo('FxSequencer::OnSpecialFX: Starting TOGGLE event:', niceName, ship, '[', moduleID, ']')
+                if targetID is not None:
+                    if targetID == session.shipid:
+                        target = 'myself'
+                    else:
+                        target = targetID
+                    self.LogInfo('targeted at:', target, 'and is', ['not', ''][isOffensive], 'offensive')
+            else:
+                self.RemoveTrigger(trigger)
+                self.LogInfo('FxSequencer::OnSpecialFX: Stopping', niceName, 'for ship:', ship, 'and module:', moduleID)
+            return
 
     def EnableGuids(self, guids):
         for guid in guids:
@@ -364,6 +377,7 @@ class FxSequencer(service.Service):
 
         settings.user.ui.Set('disabledGuids', self.disabledGuids)
         self.LogInfo('FxSequencer::DisableGuids', guids, ' Current disabled guids:', self.disabledGuids)
+        return
 
     def GetDisabledGuids(self):
         return self.disabledGuids
@@ -392,18 +406,20 @@ class FxSequencer(service.Service):
             if trigger.targetID is not None and targetBall is None:
                 self.LogWarn('\tFxSequencer::AddTrigger: target not in ballpark. Trigger ignored')
                 return
+            delayed = False
             if getattr(shipBall, 'model', None) is None:
                 if trigger.shipID in self.delayedtriggers:
                     self.delayedtriggers[trigger.shipID].append(trigger)
                 else:
                     self.delayedtriggers[trigger.shipID] = [trigger]
-                return
+                delayed = True
             if trigger.targetID is not None and getattr(targetBall, 'model', None) is None:
-                self.LogInfo('\tFxSequencer::AddTrigger: target ship model not loaded. Trigger delayed', trigger.targetID)
                 if trigger.targetID in self.delayedtriggers:
                     self.delayedtriggers[trigger.targetID].append(trigger)
                 else:
                     self.delayedtriggers[trigger.targetID] = [trigger]
+                delayed = True
+            if delayed:
                 return
             key = self.GetKey(trigger)
             if trigger.duration is None or trigger.duration <= 0.0:
@@ -419,6 +435,7 @@ class FxSequencer(service.Service):
             else:
                 self.AddActivation(trigger, key)
         self.LogInfo('\tFxSequencer::AddTrigger: Done')
+        return
 
     @telemetry.ZONE_METHOD
     def RemoveTrigger(self, trigger):
@@ -432,12 +449,14 @@ class FxSequencer(service.Service):
         if key not in self.activations:
             self.LogInfo('\tFxSequencer::RemoveTrigger: Trigger not found')
             return
-        activation = self.activations[key]
-        updateTime = activation.RemoveTrigger(trigger)
-        if updateTime == -1:
-            self.LogInfo('\tFxSequencer::RemoveTrigger: Activation empty. Deleting it.')
-            self.RemoveActivation(activation, fromSequencer=True)
-        self.LogInfo('\tFxSequencer::RemoveTrigger:', trigger.guid, 'Done')
+        else:
+            activation = self.activations[key]
+            updateTime = activation.RemoveTrigger(trigger)
+            if updateTime == -1:
+                self.LogInfo('\tFxSequencer::RemoveTrigger: Activation empty. Deleting it.')
+                self.RemoveActivation(activation, fromSequencer=True)
+            self.LogInfo('\tFxSequencer::RemoveTrigger:', trigger.guid, 'Done')
+            return
 
     @telemetry.ZONE_METHOD
     def SequencerLoop(self):
@@ -453,6 +472,7 @@ class FxSequencer(service.Service):
             reason = blue.pyos.synchro.SleepUntilSim(wakeupTime)
 
         self.LogInfo('FxSequencer: Sequencer loop terminated with reason', reason)
+        return
 
     @telemetry.ZONE_METHOD
     def CheckForStopCandidates(self):
@@ -499,7 +519,7 @@ class FxSequencer(service.Service):
         return tuple(key)
 
     @telemetry.ZONE_METHOD
-    def AddActivation(self, trigger, key = None):
+    def AddActivation(self, trigger, key=None):
         if key is None:
             key = self.GetKey(trigger)
         activation = Activation(self)
@@ -508,6 +528,7 @@ class FxSequencer(service.Service):
         activation.AddTrigger(trigger)
         self.AddActivationToBallRegister(activation)
         self.AddActivationToSequencer(activation)
+        return
 
     @telemetry.ZONE_METHOD
     def AddActivationToSequencer(self, activation):
@@ -528,7 +549,7 @@ class FxSequencer(service.Service):
         self.LogInfo('\t\tAddActivationToSequencer: Activation added')
 
     @telemetry.ZONE_METHOD
-    def RemoveActivation(self, activation, fromSequencer = False, reason = STOP_REASON_DEFAULT):
+    def RemoveActivation(self, activation, fromSequencer=False, reason=STOP_REASON_DEFAULT):
         niceName = activation.GetName()
         activation.Stop(reason)
         if activation.key in self.activations:
@@ -563,19 +584,30 @@ class FxSequencer(service.Service):
         if len(self.stopCandidates) or len(self.activations) or len(self.ballRegister):
             self.LogWarn('FxSequencer::ClearAll: Incomplete reset')
 
+    def AreModelsLoadedForTrigger(self, trigger):
+        if trigger.targetID is not None and trigger.targetID in self.delayedtriggers:
+            return False
+        elif trigger.shipID is not None and trigger.shipID in self.delayedtriggers:
+            return False
+        else:
+            return True
+
     @telemetry.ZONE_METHOD
     def NotifyModelLoaded(self, ballID):
         if ballID in self.delayedtriggers:
-            initiateTriggers = self.delayedtriggers[ballID]
+            initiateTriggers = self.delayedtriggers.pop(ballID)
             self.LogInfo('FxSequencer::NotifyModelLoaded', ballID, 'initiating', len(initiateTriggers), 'triggers')
-            del self.delayedtriggers[ballID]
             for trigger in initiateTriggers:
-                self.AddTrigger(trigger)
+                if self.AreModelsLoadedForTrigger(trigger):
+                    self.AddTrigger(trigger)
 
     def GetAllBallActivations(self, ballID):
         if ballID in self.ballRegister:
             return self.ballRegister[ballID]
         return set()
+
+    def GetAllBallActivationNames(self, ballID):
+        return set([ a.GetName() for a in self.GetAllBallActivations(ballID) ])
 
     def RemoveAllBallActivations(self, ballID):
         self.LogInfo('FxSequencer::RemoveAllBallActivations for ball', ballID)
@@ -590,6 +622,9 @@ class FxSequencer(service.Service):
                     self.ballRegister[ballID].add(activation)
                 else:
                     self.ballRegister[ballID] = set([activation])
+                sm.ScatterEvent('OnAddFX', activation.guid, ballID)
+
+        return
 
     def RemoveActivationFromBallRegister(self, activation):
         for ballID in activation.GetBalls():
@@ -601,6 +636,7 @@ class FxSequencer(service.Service):
 
                 if len(self.ballRegister[ballID]) == 0:
                     del self.ballRegister[ballID]
+                sm.ScatterEvent('OnRemoveFX', activation.guid, ballID)
 
     def GetBall(self, ballID):
         return self.michelle.GetBall(ballID)

@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\carbon\common\stdlib\SocketServer.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\carbon\common\stdlib\SocketServer.py
 __version__ = '0.4'
 import socket
 import sys
@@ -37,7 +38,7 @@ class BaseServer:
     def server_activate(self):
         pass
 
-    def serve_forever(self, poll_interval = 0.5):
+    def serve_forever(self, poll_interval=0.5):
         self.__is_shut_down.clear()
         try:
             while not self.__shutdown_request:
@@ -59,6 +60,7 @@ class BaseServer:
         elif self.timeout is not None:
             timeout = min(timeout, self.timeout)
         self._handle_request_noblock()
+        return
 
     def _handle_request_noblock(self):
         try:
@@ -110,7 +112,7 @@ class TCPServer(BaseServer):
     request_queue_size = 5
     allow_reuse_address = False
 
-    def __init__(self, server_address, RequestHandlerClass, bind_and_activate = True):
+    def __init__(self, server_address, RequestHandlerClass, bind_and_activate=True):
         BaseServer.__init__(self, server_address, RequestHandlerClass)
         self.socket = socket.socket(self.address_family, self.socket_type)
         if bind_and_activate:
@@ -175,28 +177,31 @@ class ForkingMixIn:
     def collect_children(self):
         if self.active_children is None:
             return
-        while len(self.active_children) >= self.max_children:
-            try:
-                pid, status = os.waitpid(0, 0)
-            except os.error:
-                pid = None
+        else:
+            while len(self.active_children) >= self.max_children:
+                try:
+                    pid, status = os.waitpid(0, 0)
+                except os.error:
+                    pid = None
 
-            if pid not in self.active_children:
-                continue
-            self.active_children.remove(pid)
-
-        for child in self.active_children:
-            try:
-                pid, status = os.waitpid(child, os.WNOHANG)
-            except os.error:
-                pid = None
-
-            if not pid:
-                continue
-            try:
+                if pid not in self.active_children:
+                    continue
                 self.active_children.remove(pid)
-            except ValueError as e:
-                raise ValueError('%s. x=%d and list=%r' % (e.message, pid, self.active_children))
+
+            for child in self.active_children:
+                try:
+                    pid, status = os.waitpid(child, os.WNOHANG)
+                except os.error:
+                    pid = None
+
+                if not pid:
+                    continue
+                try:
+                    self.active_children.remove(pid)
+                except ValueError as e:
+                    raise ValueError('%s. x=%d and list=%r' % (e.message, pid, self.active_children))
+
+            return
 
     def handle_timeout(self):
         self.collect_children()
@@ -210,16 +215,19 @@ class ForkingMixIn:
             self.active_children.append(pid)
             self.close_request(request)
             return
-        try:
-            self.finish_request(request, client_address)
-            self.shutdown_request(request)
-            os._exit(0)
-        except:
+        else:
             try:
-                self.handle_error(request, client_address)
+                self.finish_request(request, client_address)
                 self.shutdown_request(request)
-            finally:
-                os._exit(1)
+                os._exit(0)
+            except:
+                try:
+                    self.handle_error(request, client_address)
+                    self.shutdown_request(request)
+                finally:
+                    os._exit(1)
+
+            return
 
 
 class ThreadingMixIn:
@@ -310,6 +318,7 @@ class StreamRequestHandler(BaseRequestHandler):
             self.connection.setsockopt(socket.IPPROTO_TCP, socket.TCP_NODELAY, True)
         self.rfile = self.connection.makefile('rb', self.rbufsize)
         self.wfile = self.connection.makefile('wb', self.wbufsize)
+        return
 
     def finish(self):
         if not self.wfile.closed:

@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\carbon\common\stdlib\unittest\main.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\carbon\common\stdlib\unittest\main.py
 import sys
 import os
 import types
@@ -15,7 +16,7 @@ class TestProgram(object):
     USAGE = USAGE_FROM_MODULE
     failfast = catchbreak = buffer = progName = None
 
-    def __init__(self, module = '__main__', defaultTest = None, argv = None, testRunner = None, testLoader = loader.defaultTestLoader, exit = True, verbosity = 1, failfast = None, catchbreak = None, buffer = None):
+    def __init__(self, module='__main__', defaultTest=None, argv=None, testRunner=None, testLoader=loader.defaultTestLoader, exit=True, verbosity=1, failfast=None, catchbreak=None, buffer=None):
         if isinstance(module, basestring):
             self.module = __import__(module)
             for part in module.split('.')[1:]:
@@ -36,8 +37,9 @@ class TestProgram(object):
         self.progName = os.path.basename(argv[0])
         self.parseArgs(argv)
         self.runTests()
+        return
 
-    def usageExit(self, msg = None):
+    def usageExit(self, msg=None):
         if msg:
             print msg
         usage = {'progName': self.progName,
@@ -57,51 +59,55 @@ class TestProgram(object):
         if len(argv) > 1 and argv[1].lower() == 'discover':
             self._do_discovery(argv[2:])
             return
-        import getopt
-        long_opts = ['help',
-         'verbose',
-         'quiet',
-         'failfast',
-         'catch',
-         'buffer']
-        try:
-            options, args = getopt.getopt(argv[1:], 'hHvqfcb', long_opts)
-            for opt, value in options:
-                if opt in ('-h', '-H', '--help'):
-                    self.usageExit()
-                if opt in ('-q', '--quiet'):
-                    self.verbosity = 0
-                if opt in ('-v', '--verbose'):
-                    self.verbosity = 2
-                if opt in ('-f', '--failfast'):
-                    if self.failfast is None:
-                        self.failfast = True
-                if opt in ('-c', '--catch'):
-                    if self.catchbreak is None:
-                        self.catchbreak = True
-                if opt in ('-b', '--buffer'):
-                    if self.buffer is None:
-                        self.buffer = True
+        else:
+            import getopt
+            long_opts = ['help',
+             'verbose',
+             'quiet',
+             'failfast',
+             'catch',
+             'buffer']
+            try:
+                options, args = getopt.getopt(argv[1:], 'hHvqfcb', long_opts)
+                for opt, value in options:
+                    if opt in ('-h', '-H', '--help'):
+                        self.usageExit()
+                    if opt in ('-q', '--quiet'):
+                        self.verbosity = 0
+                    if opt in ('-v', '--verbose'):
+                        self.verbosity = 2
+                    if opt in ('-f', '--failfast'):
+                        if self.failfast is None:
+                            self.failfast = True
+                    if opt in ('-c', '--catch'):
+                        if self.catchbreak is None:
+                            self.catchbreak = True
+                    if opt in ('-b', '--buffer'):
+                        if self.buffer is None:
+                            self.buffer = True
 
-            if len(args) == 0 and self.defaultTest is None:
-                self.testNames = None
-            elif len(args) > 0:
-                self.testNames = args
-                if __name__ == '__main__':
-                    self.module = None
-            else:
-                self.testNames = (self.defaultTest,)
-            self.createTests()
-        except getopt.error as msg:
-            self.usageExit(msg)
+                if len(args) == 0 and self.defaultTest is None:
+                    self.testNames = None
+                elif len(args) > 0:
+                    self.testNames = args
+                    if __name__ == '__main__':
+                        self.module = None
+                else:
+                    self.testNames = (self.defaultTest,)
+                self.createTests()
+            except getopt.error as msg:
+                self.usageExit(msg)
+
+            return
 
     def createTests(self):
         if self.testNames is None:
             self.test = self.testLoader.loadTestsFromModule(self.module)
         else:
             self.test = self.testLoader.loadTestsFromNames(self.testNames, self.module)
+        return
 
-    def _do_discovery(self, argv, Loader = loader.TestLoader):
+    def _do_discovery(self, argv, Loader=loader.TestLoader):
         self.progName = '%s discover' % self.progName
         import optparse
         parser = optparse.OptionParser()
@@ -135,6 +141,7 @@ class TestProgram(object):
         top_level_dir = options.top
         loader = Loader()
         self.test = loader.discover(start_dir, pattern, top_level_dir)
+        return
 
     def runTests(self):
         if self.catchbreak:
@@ -152,6 +159,7 @@ class TestProgram(object):
         self.result = testRunner.run(self.test)
         if self.exit:
             sys.exit(not self.result.wasSuccessful())
+        return
 
 
 main = TestProgram

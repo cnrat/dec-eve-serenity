@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\carbon\common\lib\urllib3\response.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\carbon\common\lib\urllib3\response.py
 import gzip
 import logging
 import zlib
@@ -23,7 +24,7 @@ class HTTPResponse(object):
     CONTENT_DECODERS = {'gzip': decode_gzip,
      'deflate': decode_deflate}
 
-    def __init__(self, body = '', headers = None, status = 0, version = 0, reason = None, strict = 0, preload_content = True, decode_content = True, original_response = None, pool = None, connection = None):
+    def __init__(self, body='', headers=None, status=0, version=0, reason=None, strict=0, preload_content=True, decode_content=True, original_response=None, pool=None, connection=None):
         self.headers = headers or {}
         self.status = status
         self.version = version
@@ -39,6 +40,7 @@ class HTTPResponse(object):
             self._fp = body
         if preload_content and not self._body:
             self._body = self.read(decode_content=decode_content)
+        return
 
     def get_redirect_location(self):
         if self.status in (301, 302, 303, 307):
@@ -48,8 +50,10 @@ class HTTPResponse(object):
     def release_conn(self):
         if not self._pool or not self._connection:
             return
-        self._pool._put_conn(self._connection)
-        self._connection = None
+        else:
+            self._pool._put_conn(self._connection)
+            self._connection = None
+            return
 
     @property
     def data(self):
@@ -58,30 +62,33 @@ class HTTPResponse(object):
         if self._fp:
             return self.read(cache_content=True)
 
-    def read(self, amt = None, decode_content = None, cache_content = False):
+    def read(self, amt=None, decode_content=None, cache_content=False):
         content_encoding = self.headers.get('content-encoding')
         decoder = self.CONTENT_DECODERS.get(content_encoding)
         if decode_content is None:
             decode_content = self._decode_content
         if self._fp is None:
             return
-        try:
-            if amt is None:
-                data = self._fp.read()
-            else:
-                return self._fp.read(amt)
+        else:
             try:
-                if decode_content and decoder:
-                    data = decoder(data)
-            except IOError:
-                raise HTTPError('Received response with content-encoding: %s, but failed to decode it.' % content_encoding)
+                if amt is None:
+                    data = self._fp.read()
+                else:
+                    return self._fp.read(amt)
+                try:
+                    if decode_content and decoder:
+                        data = decoder(data)
+                except IOError:
+                    raise HTTPError('Received response with content-encoding: %s, but failed to decode it.' % content_encoding)
 
-            if cache_content:
-                self._body = data
-            return data
-        finally:
-            if self._original_response and self._original_response.isclosed():
-                self.release_conn()
+                if cache_content:
+                    self._body = data
+                return data
+            finally:
+                if self._original_response and self._original_response.isclosed():
+                    self.release_conn()
+
+            return
 
     @classmethod
     def from_httplib(ResponseCls, r, **response_kw):
@@ -99,5 +106,5 @@ class HTTPResponse(object):
     def getheaders(self):
         return self.headers
 
-    def getheader(self, name, default = None):
+    def getheader(self, name, default=None):
         return self.headers.get(name, default)

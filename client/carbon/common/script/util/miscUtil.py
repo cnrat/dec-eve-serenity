@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\carbon\common\script\util\miscUtil.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\carbon\common\script\util\miscUtil.py
 import blue
 
 def GetCommonResourcePath(path):
@@ -13,6 +14,7 @@ def GetCommonResource(path):
         return resourceFile
     else:
         return None
+        return None
 
 
 def CommonResourceExists(path):
@@ -24,7 +26,7 @@ def IsInstance_BlueType(obj, name):
     return hasattr(obj, '__bluetype__') and obj.__bluetype__.find(name) >= 0
 
 
-def Flatten(l, ltypes = (list, tuple)):
+def Flatten(l, ltypes=(list, tuple)):
     ltype = type(l)
     l = list(l)
     i = 0

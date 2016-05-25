@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\packages\carbonui\control\buttons.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\packages\carbonui\control\buttons.py
 import fontConst
 import carbonui.const as uiconst
 import uthread
@@ -60,6 +61,7 @@ class ButtonCore(Container):
             label = attributes.get('label', self.default_label)
             if hasattr(self, 'SetLabel_'):
                 self.SetLabel_(label)
+        return
 
     def Prepare_(self):
         self.sr.label = Label(parent=self, state=uiconst.UI_DISABLED, align=uiconst.CENTER, bold=1, idx=0, fontFamily=self.fontFamily, fontStyle=self.fontStyle, fontPath=self.fontPath, fontsize=self.fontsize)
@@ -114,7 +116,7 @@ class ButtonCore(Container):
         btns = FindChildByClass(wndAbove, (ButtonCore,), ['trinity.Tr2Sprite2dContainer'], withAttributes=[('btn_default', 1)])
         return btns
 
-    def SetWndDefaultFrameState(self, btns, on = 1):
+    def SetWndDefaultFrameState(self, btns, on=1):
         for btn in btns:
             if btn == self:
                 continue
@@ -161,9 +163,11 @@ class ButtonCore(Container):
     def OnMouseEnter(self, *args):
         if self.destroyed or not getattr(self, 'func', None):
             return
-        if self.func or self.mousedownfunc or getattr(self, 'action', None):
-            if not self.blinking:
-                self.Hilite_(True)
+        else:
+            if self.func or self.mousedownfunc or getattr(self, 'action', None):
+                if not self.blinking:
+                    self.Hilite_(True)
+            return
 
     def OnClick(self, *blah):
         if not self or self.destroyed:
@@ -188,7 +192,7 @@ class ButtonCore(Container):
             else:
                 self.sr.hilite.state = uiconst.UI_HIDDEN
 
-    def Blink(self, on_off = 1, blinks = 1000, time = 800):
+    def Blink(self, on_off=1, blinks=1000, time=800):
         if self.sr.hilite:
             if on_off:
                 uicore.animations.FadeTo(self.sr.hilite, 0.0, 0.75, curveType=uiconst.ANIM_WAVE, duration=time * 0.001, loops=blinks)

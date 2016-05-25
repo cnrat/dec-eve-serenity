@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\carbon\common\script\util\format.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\carbon\common\script\util\format.py
 import log
 import blue
 import string
@@ -21,7 +22,7 @@ ROMAN_NUMERAL_MAP = (('X', 1, 10),
 romanNumeralPattern = re.compile("^                   # beginning of string\n(X{0,3})            # tens - 0-30 (0 to 3 X's),\n                    #\n(IX|IV|V?I{0,3})    # ones - 9 (IX), 4 (IV), 0-3 (0 to 3 I's),\n                    #        or 5-8 (V, followed by 0 to 3 I's)\n$                   # end of string\n", re.VERBOSE)
 urlHttpCheck = re.compile('\\Ahttp(s)?://', re.I)
 
-def EscapeSQL(s, exactMatch = 0, min = 3):
+def EscapeSQL(s, exactMatch=0, min=3):
     if not exactMatch:
         s = s.replace('%', '')
         s = s.replace('[', '[[]')
@@ -37,69 +38,73 @@ def EscapeAdHocSQL(s):
     return s
 
 
-def FmtTimeIntervalMaxParts(interval, breakAt = 'msec', maxParts = None):
+def FmtTimeIntervalMaxParts(interval, breakAt='msec', maxParts=None):
     if interval < 10000L:
         return localization.GetByLabel('/Carbon/UI/Common/Formatting/ShortAmountTime')
-    breakAt2 = breakAt
-    if breakAt2 == 'min':
-        breakAt2 = 'minute'
-    elif breakAt2 == 'sec':
-        breakAt2 = 'second'
-    elif breakAt2 in ('msec', None):
-        breakAt2 = 'millisecond'
-    timeInterval = localization.formatters.FormatTimeIntervalWritten(interval, showFrom='year', showTo=breakAt2, maxParts=maxParts)
-    return timeInterval
+    else:
+        breakAt2 = breakAt
+        if breakAt2 == 'min':
+            breakAt2 = 'minute'
+        elif breakAt2 == 'sec':
+            breakAt2 = 'second'
+        elif breakAt2 in ('msec', None):
+            breakAt2 = 'millisecond'
+        timeInterval = localization.formatters.FormatTimeIntervalWritten(interval, showFrom='year', showTo=breakAt2, maxParts=maxParts)
+        return timeInterval
 
 
-def FmtTimeInterval(interval, breakAt = 'msec', *args):
+def FmtTimeInterval(interval, breakAt='msec', *args):
     return FmtTimeIntervalMaxParts(interval=interval, breakAt=breakAt)
 
 
-def FmtDate(date, fmt = 'll'):
+def FmtDate(date, fmt='ll'):
     if date is None:
         return
-    if fmt == 'nn':
-        log.LogTraceback("Incorrect format statement used, 'nn' would result in a return value of None for all input.")
-        fmt = 'll'
-    if date < 0:
-        log.LogTraceback('Negative value in FmtDate')
-        date *= -1
-    year1800 = const.YEAR365 * 199L
-    if fmt[1] not in ('l', 's', 'n'):
-        log.LogTraceback('Incorrect format statement used', fmt)
-        raise RuntimeError('InvalidArg', fmt)
-    if date < year1800:
-        if fmt[1] == 's':
-            return localization.formatters.FormatTimeIntervalShortWritten(date, showFrom='day', showTo='second')
-        else:
-            return localization.formatters.FormatTimeIntervalWritten(date, showFrom='day', showTo='second')
     else:
-        if fmt in ('ll', 'sl', 'nn', 'xs'):
-            return localization.GetByLabel('/Carbon/UI/Common/DateTime/SimpleDateUTC', datetime=date)
-        if fmt in ('ls', 'ss'):
-            return localization.GetByLabel('/Carbon/UI/Common/DateTime/DateLongShort', datetime=date)
-        if fmt in ('ln', 'sn', 'xn'):
-            return localization.GetByLabel('/Carbon/UI/Common/DateTime/DateLongNone', datetime=date)
-        if fmt == 'nl':
-            return localization.GetByLabel('/Carbon/UI/Common/DateTime/Time', datetime=date)
-        if fmt == 'ns':
-            return localization.GetByLabel('/Carbon/UI/Common/DateTime/HoursAndMinutes', datetime=date)
-        if fmt == 'xl':
-            return localization.GetByLabel('/Carbon/UI/Common/DateTime/SimpleDateUTC', datetime=date)
-        if fmt == 'el':
-            return localization.GetByLabel('/Carbon/UI/Common/DateTime/DateExtendedLong', datetime=date)
-        if fmt == 'es':
-            return localization.GetByLabel('/Carbon/UI/Common/DateTime/DateExtendedShort', datetime=date)
-        if fmt == 'en':
-            return localization.GetByLabel('/Carbon/UI/Common/DateTime/DateExtendedNone', datetime=date)
-        log.LogTraceback('InvalidArg', fmt)
-        raise RuntimeError('InvalidArg', fmt)
+        if fmt == 'nn':
+            log.LogTraceback("Incorrect format statement used, 'nn' would result in a return value of None for all input.")
+            fmt = 'll'
+        if date < 0:
+            log.LogTraceback('Negative value in FmtDate')
+            date *= -1
+        year1800 = const.YEAR365 * 199L
+        if fmt[1] not in ('l', 's', 'n'):
+            log.LogTraceback('Incorrect format statement used', fmt)
+            raise RuntimeError('InvalidArg', fmt)
+        if date < year1800:
+            if fmt[1] == 's':
+                return localization.formatters.FormatTimeIntervalShortWritten(date, showFrom='day', showTo='second')
+            else:
+                return localization.formatters.FormatTimeIntervalWritten(date, showFrom='day', showTo='second')
+        else:
+            if fmt in ('ll', 'sl', 'nn', 'xs'):
+                return localization.GetByLabel('/Carbon/UI/Common/DateTime/SimpleDateUTC', datetime=date)
+            if fmt in ('ls', 'ss'):
+                return localization.GetByLabel('/Carbon/UI/Common/DateTime/DateLongShort', datetime=date)
+            if fmt in ('ln', 'sn', 'xn'):
+                return localization.GetByLabel('/Carbon/UI/Common/DateTime/DateLongNone', datetime=date)
+            if fmt == 'nl':
+                return localization.GetByLabel('/Carbon/UI/Common/DateTime/Time', datetime=date)
+            if fmt == 'ns':
+                return localization.GetByLabel('/Carbon/UI/Common/DateTime/HoursAndMinutes', datetime=date)
+            if fmt == 'xl':
+                return localization.GetByLabel('/Carbon/UI/Common/DateTime/SimpleDateUTC', datetime=date)
+            if fmt == 'el':
+                return localization.GetByLabel('/Carbon/UI/Common/DateTime/DateExtendedLong', datetime=date)
+            if fmt == 'es':
+                return localization.GetByLabel('/Carbon/UI/Common/DateTime/DateExtendedShort', datetime=date)
+            if fmt == 'en':
+                return localization.GetByLabel('/Carbon/UI/Common/DateTime/DateExtendedNone', datetime=date)
+            log.LogTraceback('InvalidArg', fmt)
+            raise RuntimeError('InvalidArg', fmt)
+        return
 
 
 def FmtSimpleDateUTC(date):
     if date is None:
         return
-    return localization.GetByLabel('/Carbon/UI/Common/DateTime/SimpleDateUTC', datetime=date)
+    else:
+        return localization.GetByLabel('/Carbon/UI/Common/DateTime/SimpleDateUTC', datetime=date)
 
 
 def FmtTime(time):
@@ -118,7 +123,7 @@ def FmtSec(time):
     return localization.GetByLabel('/Carbon/UI/Common/FormatTime/FmtSecSpecial', hours=h, minutes=m, seconds=s)
 
 
-def FmtAmt(amount, fmt = 'ln', showFraction = 0, *args):
+def FmtAmt(amount, fmt='ln', showFraction=0, *args):
     if amount == None:
         amount = 0
     orgamount = amount
@@ -132,7 +137,7 @@ def FmtAmt(amount, fmt = 'ln', showFraction = 0, *args):
         if showFraction == 0:
             amt = amount
         return localization.formatters.FormatNumeric(amt, useGrouping=True, decimalPlaces=showFraction)
-    if fmt[0] == 's':
+    elif fmt[0] == 's':
         amt = amount
         val = abs(amount)
         labelPathDict = {('thousand', 'short'): '/Carbon/UI/Common/Formatting/FmtThousandShort',
@@ -164,10 +169,11 @@ def FmtAmt(amount, fmt = 'ln', showFraction = 0, *args):
             amt = float(amt) / long(1000000000000.0)
             labelPath = labelPathDict.get(('trillion', labelLength))
         return localization.GetByLabel(labelPath, amount=amt)
-    return localization.uiutil.PrepareLocalizationSafeString(orgamount, messageID='amount')
+    else:
+        return localization.uiutil.PrepareLocalizationSafeString(orgamount, messageID='amount')
 
 
-def FmtDist(dist, maxdemicals = 2, signed = False):
+def FmtDist(dist, maxdemicals=2, signed=False):
     if signed and dist < 0.0:
         dist = abs(dist)
     dist = max(0, dist)
@@ -190,7 +196,7 @@ def FmtDist(dist, maxdemicals = 2, signed = False):
     return localization.GetByLabel(fmtUrl, distance=distStr)
 
 
-def FmtVec(vec, maxdecimals = 3):
+def FmtVec(vec, maxdecimals=3):
     return '[%s, %s, %s]' % (FmtDist(vec[0], maxdecimals, signed=True), FmtDist(vec[1], maxdecimals, signed=True), FmtDist(vec[2], maxdecimals, signed=True))
 
 
@@ -204,50 +210,57 @@ def FmtYesNo(isYes):
 def ParseDate(date):
     if date is None or date == '':
         return
-    if type(date) == unicode:
-        date = str(date)
-    try:
-        date = string.translate(date.split(' ')[0], __dateseptbl)
-        dp = date.split('-', 2)
-        return blue.os.GetTimeFromParts(int(dp[0]), int(dp[1]), int(dp[2]), 0, 0, 0, 0)
-    except:
-        raise UserError('InvalidDate', {'date': date})
+    else:
+        if type(date) == unicode:
+            date = str(date)
+        try:
+            date = string.translate(date.split(' ')[0], __dateseptbl)
+            dp = date.split('-', 2)
+            return blue.os.GetTimeFromParts(int(dp[0]), int(dp[1]), int(dp[2]), 0, 0, 0, 0)
+        except:
+            raise UserError('InvalidDate', {'date': date})
+
+        return
 
 
-def ParseTime(time, isInterval = False):
+def ParseTime(time, isInterval=False):
     if time is None or time == '':
         return
-    try:
-        tp = time.split(':', 2)
-        time = int(tp[0]) * const.HOUR + int(tp[1]) * const.MIN
-        if len(tp) == 3:
-            time = time + int(tp[2]) * const.SEC
-        if not isInterval and boot.region == 'optic':
-            time -= eveLocalization.GetTimeDelta() * const.SEC
-            if time < 0:
-                time += 24 * const.HOUR
-        return time
-    except:
-        raise UserError('InvalidTime', {'time': time})
+    else:
+        try:
+            tp = time.split(':', 2)
+            time = int(tp[0]) * const.HOUR + int(tp[1]) * const.MIN
+            if len(tp) == 3:
+                time = time + int(tp[2]) * const.SEC
+            if not isInterval and boot.region == 'optic':
+                time -= eveLocalization.GetTimeDelta() * const.SEC
+                if time < 0:
+                    time += 24 * const.HOUR
+            return time
+        except:
+            raise UserError('InvalidTime', {'time': time})
+
+        return
 
 
 def ParseDateTime(dateTime):
     if dateTime is None or dateTime == '':
         return
-    if ' ' in dateTime:
-        d, t = dateTime.split(' ')
-        dateTime = ParseDate(d)
-        dateTime += ParseTime(t)
     else:
-        dateTime = ParseDate(dateTime)
-    return dateTime
+        if ' ' in dateTime:
+            d, t = dateTime.split(' ')
+            dateTime = ParseDate(d)
+            dateTime += ParseTime(t)
+        else:
+            dateTime = ParseDate(dateTime)
+        return dateTime
 
 
 def ParseTimeInterval(time):
     return ParseTime(time, True)
 
 
-def GetTimeParts(datetime, utc = False):
+def GetTimeParts(datetime, utc=False):
     if not utc and datetime % const.DAY and boot.region == 'optic':
         datetime += eveLocalization.GetTimeDelta() * const.SEC
     return blue.os.GetTimeParts(datetime)
@@ -304,12 +317,18 @@ def ConvertDate(blueTime):
 
 
 def BlueToDate(time):
-    parts = blue.os.GetTimeParts(time)
-    return datetime.datetime(*(parts[:2] + parts[3:]))
+    if time is not None:
+        parts = blue.os.GetTimeParts(time)
+        return datetime.datetime(*(parts[:2] + parts[3:]))
+    else:
+        return
 
 
 def DateToBlue(time):
-    return blue.os.GetTimeFromParts(time.year, time.month, time.day, time.hour, time.minute, time.second, time.microsecond / 1000)
+    if time is not None:
+        return blue.os.GetTimeFromParts(time.year, time.month, time.day, time.hour, time.minute, time.second, time.microsecond / 1000)
+    else:
+        return
 
 
 def FmtCdkey(cdkey):
@@ -347,10 +366,10 @@ class PasswordString(unicode):
     __guid__ = 'util.PasswordString'
 
     def __str__(self):
-        return '*****'
+        pass
 
     def __repr__(self):
-        return '*****'
+        pass
 
 
 def LFromUI(ui):
@@ -446,86 +465,87 @@ def FormatUrl(url):
     return url
 
 
-def FmtDateEng(date, fmt = 'll'):
+def FmtDateEng(date, fmt='ll'):
     if date is None:
         return
-    if fmt == 'nn':
-        log.LogTraceback("Incorrect format statement used, 'nn' would result in a return value of None for all input.")
-        fmt = 'll'
-    if date < 0:
-        date *= -1
-        neg = '-'
     else:
-        neg = ''
-    year1800 = const.YEAR365 * 199L
-    if date >= year1800 and date % const.DAY and boot.region == 'optic':
-        date += 8 * const.HOUR
-    year, month, wd, day, hour, min, sec, ms = blue.os.GetTimeParts(date)
-    sd = '%d.%.2d.%.2d' % (year, month, day)
-    ld = sd
-    lt = '%.2d:%.2d:%.2d' % (hour, min, sec)
-    if fmt[0] == 'x':
-        lt += ':%3d' % ms
-    ed = '%d-%.2d-%.2d' % (year, month, day)
-    st = lt[:-3]
-    if fmt[1] == 'l':
-        hrs = lt
-    elif fmt[1] == 's':
-        hrs = st
-    elif fmt[1] == 'n':
-        hrs = None
-    else:
-        raise RuntimeError('InvalidArg', fmt)
-    if date % const.DAY == 0:
-        hrs = None
-    if date < year1800:
-        datefmt = None
-        days = date / const.DAY
-        s = date % const.MIN / const.SEC
-        m = date % const.HOUR / const.MIN
-        h = date % const.DAY / const.HOUR
-        hrs = ''
-        if fmt[1] == 's':
-            if days:
-                hrs = '%d%s' % (days, 'D')
-            if h:
-                hrs = hrs + ' %d%s' % (h, 'H')
-            if m:
-                hrs = hrs + ' %d%s' % (m, 'M')
-            if s:
-                hrs = hrs + ' %d%s' % (s, 'S')
+        if fmt == 'nn':
+            log.LogTraceback("Incorrect format statement used, 'nn' would result in a return value of None for all input.")
+            fmt = 'll'
+        if date < 0:
+            date *= -1
+            neg = '-'
         else:
-            if days:
-                hrs = '%d %s' % (days, ['day', 'days'][days != 1])
-            if h:
-                hrs = hrs + ' %d %s' % (h, ['hour', 'hours'][h != 1])
-            if m:
-                hrs = hrs + ' %d %s' % (m, ['minute', 'minutes'][m != 1])
-            if s or hrs == '':
-                hrs = hrs + ' %d %s' % (s, ['second', 'seconds'][s != 1])
-    elif fmt[0] == 'l' or fmt[0] == 'x':
-        datefmt = ld
-    elif fmt[0] == 's':
-        datefmt = sd
-    elif fmt[0] == 'n':
-        datefmt = None
-    elif fmt[0] == 'e':
-        datefmt = ed
-    else:
-        raise RuntimeError('InvalidArg', fmt)
-    if datefmt is None and hrs is None:
-        return
-    elif datefmt is not None and hrs is None:
-        return neg + datefmt
-    elif datefmt is None and hrs is not None:
-        return neg + hrs.strip()
-    elif fmt[0] == 'e':
-        return '%s%sT%s.000' % (neg, datefmt, hrs)
-    else:
+            neg = ''
+        year1800 = const.YEAR365 * 199L
+        if date >= year1800 and date % const.DAY and boot.region == 'optic':
+            date += 8 * const.HOUR
+        year, month, wd, day, hour, min, sec, ms = blue.os.GetTimeParts(date)
+        sd = '%d.%.2d.%.2d' % (year, month, day)
+        ld = sd
+        lt = '%.2d:%.2d:%.2d' % (hour, min, sec)
+        if fmt[0] == 'x':
+            lt += ':%3d' % ms
+        ed = '%d-%.2d-%.2d' % (year, month, day)
+        st = lt[:-3]
+        if fmt[1] == 'l':
+            hrs = lt
+        elif fmt[1] == 's':
+            hrs = st
+        elif fmt[1] == 'n':
+            hrs = None
+        else:
+            raise RuntimeError('InvalidArg', fmt)
+        if date % const.DAY == 0:
+            hrs = None
+        if date < year1800:
+            datefmt = None
+            days = date / const.DAY
+            s = date % const.MIN / const.SEC
+            m = date % const.HOUR / const.MIN
+            h = date % const.DAY / const.HOUR
+            hrs = ''
+            if fmt[1] == 's':
+                if days:
+                    hrs = '%d%s' % (days, 'D')
+                if h:
+                    hrs = hrs + ' %d%s' % (h, 'H')
+                if m:
+                    hrs = hrs + ' %d%s' % (m, 'M')
+                if s:
+                    hrs = hrs + ' %d%s' % (s, 'S')
+            else:
+                if days:
+                    hrs = '%d %s' % (days, ['day', 'days'][days != 1])
+                if h:
+                    hrs = hrs + ' %d %s' % (h, ['hour', 'hours'][h != 1])
+                if m:
+                    hrs = hrs + ' %d %s' % (m, ['minute', 'minutes'][m != 1])
+                if s or hrs == '':
+                    hrs = hrs + ' %d %s' % (s, ['second', 'seconds'][s != 1])
+        elif fmt[0] == 'l' or fmt[0] == 'x':
+            datefmt = ld
+        elif fmt[0] == 's':
+            datefmt = sd
+        elif fmt[0] == 'n':
+            datefmt = None
+        elif fmt[0] == 'e':
+            datefmt = ed
+        else:
+            raise RuntimeError('InvalidArg', fmt)
+        if datefmt is None and hrs is None:
+            return
+        if datefmt is not None and hrs is None:
+            return neg + datefmt
+        if datefmt is None and hrs is not None:
+            return neg + hrs.strip()
+        if fmt[0] == 'e':
+            return '%s%sT%s.000' % (neg, datefmt, hrs)
         return '%s%s %s' % (neg, datefmt, hrs)
+        return
 
 
-def FmtTimeIntervalEng(interval, breakAt = None, *args, **kwargs):
+def FmtTimeIntervalEng(interval, breakAt=None, *args, **kwargs):
     if interval < 10000L:
         return 'A short amount of time'
     year, month, wd, day, hour, min, sec, ms = blue.os.GetTimeParts(interval)
@@ -586,7 +606,7 @@ def FmtTimeEng(time):
     return '%.2d:%.2d:%.2d' % (time / const.HOUR, time % const.HOUR / const.MIN, time % const.MIN / const.SEC)
 
 
-def FmtAmtEng(amount, fmt = 'ln', showFraction = 0, fillWithZero = 0):
+def FmtAmtEng(amount, fmt='ln', showFraction=0, fillWithZero=0):
     if amount == None:
         amount = 0
     orgamount = amount
@@ -684,7 +704,8 @@ def FmtSecEng(time):
 def FormatVulnerabilityIntervalESP(vulnerabilityInterval):
     if vulnerabilityInterval is None:
         return 'None'
-    return 'Start: %s<br>End: %s<br>Level:%s' % (FmtDate(vulnerabilityInterval.startTime), FmtDate(vulnerabilityInterval.endTime), vulnerabilityInterval.occupancyLevel)
+    else:
+        return 'Start: %s<br>End: %s<br>Level:%s' % (FmtDate(vulnerabilityInterval.startTime), FmtDate(vulnerabilityInterval.endTime), vulnerabilityInterval.occupancyLevel)
 
 
 exports = {'util.GetKeyAndNormalize': GetKeyAndNormalize,

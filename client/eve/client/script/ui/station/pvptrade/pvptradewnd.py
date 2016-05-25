@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\client\script\ui\station\pvptrade\pvptradewnd.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\client\script\ui\station\pvptrade\pvptradewnd.py
 from carbonui.primitives.sprite import Sprite
 import evetypes
 from localization import GetByLabel
@@ -24,6 +25,7 @@ class PVPTrade(uicontrols.Window):
     def ApplyAttributes(self, attributes):
         uicontrols.Window.ApplyAttributes(self, attributes)
         self.tradeSession = attributes.tradeSession
+        tradeItems = attributes.tradeItems
         self.tradedShips = []
         self.SetWndIcon()
         buttonParent = FlowContainer(name='buttonParent', parent=self.sr.main, align=uiconst.TOBOTTOM, padding=6, autoHeight=True, centerContent=True, contentSpacing=(6, 6))
@@ -33,7 +35,7 @@ class PVPTrade(uicontrols.Window):
         herID = sessionData.traders[not sessionData.traders.index(session.charid)]
         self.sr.herinfo = cfg.eveowners.Get(herID)
         mainCont = uiprimitives.Container(name='mainCont', parent=self.sr.main)
-        self.sr.my = my = invCont.PlayerTrade(parent=mainCont, align=uiconst.TOTOP_PROP, height=0.5, itemID=sessionData.tradeContainerID, ownerID=session.charid, tradeSession=self.tradeSession, state=uiconst.UI_PICKCHILDREN)
+        self.sr.my = my = invCont.PlayerTrade(parent=mainCont, align=uiconst.TOTOP_PROP, height=0.5, itemID=sessionData.tradeContainerID, ownerID=session.charid, tradeSession=self.tradeSession, state=uiconst.UI_PICKCHILDREN, tradeItems=tradeItems)
         self.sr.myAccept = my.acceptIcon
         self.sr.myMoney = my.moneyLabel
         self.sr.her = her = invCont.PlayerTrade(parent=mainCont, align=uiconst.TOTOP_PROP, height=0.5, itemID=sessionData.tradeContainerID, ownerID=herID, tradeSession=self.tradeSession, state=uiconst.UI_PICKCHILDREN)
@@ -44,6 +46,7 @@ class PVPTrade(uicontrols.Window):
         self.sr.herIx = sessionData.traders.index(herID)
         self.OnMoneyOffer([0, 0])
         self.SetCaption(self.GetWindowCaptionText())
+        return
 
     def _OnClose(self, *args):
         if self and getattr(self, 'sr', None):
@@ -51,6 +54,7 @@ class PVPTrade(uicontrols.Window):
                 self.sr.my.Close()
             if self.sr.her:
                 self.sr.her.Close()
+        return
 
     def Cancel(self, *etc):
         if self.tradeSession and eve.Message('ConfirmCancelTrade', {}, uiconst.OKCANCEL) == uiconst.ID_OK:
@@ -60,6 +64,7 @@ class PVPTrade(uicontrols.Window):
                 tmp.Abort()
             else:
                 eve.Message('TradeNotCanceled')
+        return
 
     CloseByUser = Cancel
 
@@ -84,6 +89,8 @@ class PVPTrade(uicontrols.Window):
                     self.tradeSession.ToggleAccept(not currentState, forceTrade=True)
                 else:
                     self.acceptButton.Enable()
+
+        return
 
     def GetWindowCaptionText(self):
         return localization.GetByLabel('UI/PVPTrade/TradeWith', otherParty=self.sr.herinfo.id)
@@ -121,6 +128,7 @@ class PVPTrade(uicontrols.Window):
         ret = uix.QtyPopup(sm.GetService('wallet').GetWealth(), 0, 0, digits=2)
         if ret is not None and self is not None and not self.destroyed:
             self.tradeSession.OfferMoney(ret['qty'])
+        return
 
     def OnTradeComplete(self):
         for itemID in self.tradedShips:
@@ -144,6 +152,7 @@ class PlayerTrade(invCont._InvContBase):
 
     def ApplyAttributes(self, attributes):
         invCont._InvContBase.ApplyAttributes(self, attributes)
+        tradeItems = attributes.tradeItems
         ownerID = attributes.ownerID
         ownerName = cfg.eveowners.Get(ownerID).name
         self.topCont = uiprimitives.Container(parent=self, align=uiconst.TOTOP, height=65, idx=0)
@@ -156,6 +165,8 @@ class PlayerTrade(invCont._InvContBase):
         self.acceptIcon = uicontrols.Icon(icon='ui_38_16_193', parent=self.topCont, left=67, top=14)
         uicls.InvContViewBtns(parent=self.topCont, align=uiconst.BOTTOMLEFT, left=72, controller=self)
         self.moneyLabel = uicontrols.EveLabelMedium(parent=self.topCont, left=6, top=-2, align=uiconst.BOTTOMRIGHT)
+        if tradeItems:
+            self.invController.OnDropData(tradeItems)
 
     def SetInvContViewMode(self, value):
         self.ChangeViewMode(value)

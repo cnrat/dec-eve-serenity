@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\packages\carbonui\primitives\containerAutoSize.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\packages\carbonui\primitives\containerAutoSize.py
 import carbonui.const as uiconst
 import telemetry
 from .container import Container
@@ -29,6 +30,7 @@ class ContainerAutoSize(Container):
         self.alignMode = attributes.Get('alignMode', self.default_alignMode)
         self.callback = attributes.Get('callback', None)
         Container.ApplyAttributes(self, attributes)
+        return
 
     @telemetry.ZONE_METHOD
     def SetSizeAutomatically(self):
@@ -36,13 +38,15 @@ class ContainerAutoSize(Container):
             self.DisableAutoSize()
         if not self.isAutoSizeEnabled:
             return
-        width, height = self.GetAutoSize()
-        if width is not None:
-            self.width = width
-        if height is not None:
-            self.height = height
-        if self.callback:
-            self.callback()
+        else:
+            width, height = self.GetAutoSize()
+            if width is not None:
+                self.width = width
+            if height is not None:
+                self.height = height
+            if self.callback:
+                self.callback()
+            return
 
     @telemetry.ZONE_METHOD
     def GetAutoSize(self):
@@ -77,25 +81,29 @@ class ContainerAutoSize(Container):
             return (width, height)
         else:
             return (0, 0)
+            return None
 
     def _IgnoreChild(self, child):
         if not child.display:
             return True
-        if self.alignMode is not None and child.align != self._childrenAlign:
+        elif self.alignMode is not None and child.align != self._childrenAlign:
             return True
-        return False
+        else:
+            return False
 
     @telemetry.ZONE_METHOD
     def _VerifyNewChild(self, child):
         if self.alignMode is not None:
             self._childrenAlign = self.alignMode
             return
-        if child.align not in ALLOWED_ALIGNMENTS:
-            raise ValueError('ContainerAutoSize only supports TOLEFT, TORIGHT, TOTOP, TOBOTTOM, TOPLEFT, TOPRIGHT or CENTER aligned children')
-        if self.children and child.align != self._childrenAlign:
-            raise ValueError('All children of ContainerAutoSize must have the same alignment (Got %s, expecting %s)' % (child.align, self._childrenAlign))
-        if not self.children:
-            self._childrenAlign = child.align
+        else:
+            if child.align not in ALLOWED_ALIGNMENTS:
+                raise ValueError('ContainerAutoSize only supports TOLEFT, TORIGHT, TOTOP, TOBOTTOM, TOPLEFT, TOPRIGHT or CENTER aligned children')
+            if self.children and child.align != self._childrenAlign:
+                raise ValueError('All children of ContainerAutoSize must have the same alignment (Got %s, expecting %s)' % (child.align, self._childrenAlign))
+            if not self.children:
+                self._childrenAlign = child.align
+            return
 
     def GetChildrenList(self):
         return UIChildrenListAutoSize(self)

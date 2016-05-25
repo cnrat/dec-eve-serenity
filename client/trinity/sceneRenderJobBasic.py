@@ -1,8 +1,9 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\packages\trinity\sceneRenderJobBasic.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\packages\trinity\sceneRenderJobBasic.py
 from . import _trinity as trinity
 from .sceneRenderJobBase import SceneRenderJobBase
 
-def CreateSceneRenderJobBasic(name = None):
+def CreateSceneRenderJobBasic(name=None):
     newRJ = SceneRenderJobBasic()
     if name is not None:
         newRJ.ManualInit(name)
@@ -29,8 +30,9 @@ class SceneRenderJobBasic(SceneRenderJobBase):
      'RESTORE_RENDERTARGET',
      'PRESENT_SWAPCHAIN']
 
-    def _ManualInit(self, name = 'SceneRenderJobInterior'):
+    def _ManualInit(self, name='SceneRenderJobInterior'):
         self.ui = None
+        return
 
     def _SetScene(self, scene):
         self.SetStepAttr('UPDATE_SCENE', 'object', scene)
@@ -64,6 +66,7 @@ class SceneRenderJobBasic(SceneRenderJobBase):
         else:
             self.AddStep('UPDATE_UI', trinity.TriStepUpdate(ui))
             self.AddStep('RENDER_UI', trinity.TriStepRenderUI(ui))
+        return
 
     def EnableSceneUpdate(self, isEnabled):
         if isEnabled:

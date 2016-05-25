@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\client\script\ui\services\sovSvc.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\client\script\ui\services\sovSvc.py
 import blue
 from collections import defaultdict
 from brennivin.threadutils import expiring_memoize
@@ -35,6 +36,7 @@ class SovService(service.Service):
         self.sovInfoBySystemID = {}
         self.devIndexMgr = None
         self.outpostData = None
+        return
 
     def Run(self, *args):
         service.Service.Run(self, *args)
@@ -45,7 +47,7 @@ class SovService(service.Service):
         self.indexLevels.sort()
         self.holdTimeLevels = util.GetTimeIndexLevels()
 
-    def GetInfrastructureHubWnd(self, hubID = None):
+    def GetInfrastructureHubWnd(self, hubID=None):
         form.InfrastructureHubWnd.CloseIfOpen()
         wnd = form.InfrastructureHubWnd.Open(hubID=hubID)
         return wnd
@@ -61,17 +63,19 @@ class SovService(service.Service):
             self.sovInfoBySystemID[solarSystemID] = newStatus
         if solarSystemID == session.solarsystemid2:
             sm.ScatterEvent('OnSystemStatusChanged')
+        return
 
-    def GetSystemSovereigntyInfo(self, solarSystemID, forceUpdate = False):
+    def GetSystemSovereigntyInfo(self, solarSystemID, forceUpdate=False):
         if self.facwar.IsFacWarSystem(solarSystemID):
             return util.KeyVal(allianceID=self.facwar.GetSystemOccupier(solarSystemID), corporationID=None, claimStructureID=None, contested=0)
-        if not forceUpdate and solarSystemID in self.sovInfoBySystemID:
+        elif not forceUpdate and solarSystemID in self.sovInfoBySystemID:
             self.LogInfo('GetSystemSovereigntyInfo: Returning cached sov info', self.sovInfoBySystemID[solarSystemID])
             return self.sovInfoBySystemID[solarSystemID]
-        status = sm.RemoteSvc('sovMgr').GetSystemSovereigntyInfo(solarSystemID)
-        self.sovInfoBySystemID[solarSystemID] = status
-        self.LogInfo('GetSystemSovereigntyInfo: Returning sov status from server:', status)
-        return status
+        else:
+            status = sm.RemoteSvc('sovMgr').GetSystemSovereigntyInfo(solarSystemID)
+            self.sovInfoBySystemID[solarSystemID] = status
+            self.LogInfo('GetSystemSovereigntyInfo: Returning sov status from server:', status)
+            return status
 
     def GetInfrastructureHubInfo(self, solarSystemID):
         return sm.RemoteSvc('sovMgr').GetInfrastructureHubInfo(solarSystemID)
@@ -95,11 +99,14 @@ class SovService(service.Service):
     def ModifyStructureInfoIfNeeded(self, solarSystemStructuresInfo, solarsystemID):
         if solarSystemStructuresInfo is None:
             return
-        for structureInfo in solarSystemStructuresInfo:
-            structureInfo['solarSystemID'] = solarsystemID
-            structureInfo['constellationID'] = cfg.mapSystemCache.Get(solarsystemID).constellationID
+        else:
+            for structureInfo in solarSystemStructuresInfo:
+                structureInfo['solarSystemID'] = solarsystemID
+                structureInfo['constellationID'] = cfg.mapSystemCache.Get(solarsystemID).constellationID
 
-    def OnSolarSystemSovStructuresUpdated(self, solarsystemID, solarSystemStructuresInfo, changes = None):
+            return
+
+    def OnSolarSystemSovStructuresUpdated(self, solarsystemID, solarSystemStructuresInfo, changes=None):
         self.LogInfo('OnSolarSystemSovStructuresUpdated', solarsystemID, solarSystemStructuresInfo)
         self.ModifyStructureInfoIfNeeded(solarSystemStructuresInfo, solarsystemID)
         self.GetSovStructuresInfoForSolarSystem.prime_cache_result((self, solarsystemID), solarSystemStructuresInfo)
@@ -187,6 +194,7 @@ class SovService(service.Service):
         if sovID is not None:
             count = buckets.get(sovID, 0)
             buckets[sovID] = count + 1
+        return
 
     def GetIdFromScope(self, scope):
         if scope == 'world':
@@ -206,7 +214,7 @@ class SovService(service.Service):
             reqTypeName = evetypes.GetName(reqTypeID)
         return reqTypeName
 
-    def CanInstallUpgrade(self, typeID, hubID, devIndices = None):
+    def CanInstallUpgrade(self, typeID, hubID, devIndices=None):
         if devIndices is None:
             devIndices = self.GetDevelopmentIndicesForSystem(session.solarsystemid2)
         godma = sm.GetService('godma')
@@ -252,6 +260,7 @@ class SovService(service.Service):
             corpMgr = moniker.GetCorpStationManagerEx(outpostID)
             self.outpostData = util.KeyVal(allianceCorpList=set([ corporationID for corporationID in allianceSvc.GetMembers() ]), updateTime=blue.os.GetWallclockTime(), upgradeLevel=corpMgr.GetStationDetails(outpostID).upgradeLevel)
             return self.outpostData
+            return
 
     def GetUpgradeLevel(self, typeID):
         for indexID in const.developmentIndices:
@@ -260,6 +269,8 @@ class SovService(service.Service):
                 levelInfo = self.GetIndexLevel(value, typeID, True)
                 levelInfo.indexID = indexID
                 return levelInfo
+
+        return None
 
     def GetIHubOwnerAllianceID(self, hubID):
         try:
@@ -279,7 +290,7 @@ class SovService(service.Service):
 
         return itemData
 
-    def GetIndexLevel(self, value, indexID, isUpgrade = False):
+    def GetIndexLevel(self, value, indexID, isUpgrade=False):
         if indexID == const.attributeDevIndexUpgrade:
             indexLevels = const.facwarSolarSystemUpgradeThresholds
         elif indexID == const.attributeDevIndexSovereignty:
@@ -302,7 +313,7 @@ class SovService(service.Service):
                     level = value
                 return util.KeyVal(level=level, remainder=remainder)
 
-    def GetLevelInfoForIndex(self, indexID, devIndex = None, solarsystemID = None):
+    def GetLevelInfoForIndex(self, indexID, devIndex=None, solarsystemID=None):
         if solarsystemID is None:
             solarsystemID = session.solarsystemid2
         increasing = False
@@ -344,6 +355,7 @@ class SovService(service.Service):
             self.outpostData = None
             oldSolarSystemID2, newSolarSystemID2 = change['solarsystemid2']
             self.GetSovStructuresInfoForSolarSystem.remove_from_cache((self, newSolarSystemID2))
+        return
 
     def GetCurrentData(self, locationID):
         fwData = {}
@@ -382,6 +394,7 @@ class SovService(service.Service):
             self.audio.SendUIEvent(unicode(const.sovAudioEventFiles[eventID][0]))
             if const.sovAudioEventFiles[eventID][1] is not None:
                 eve.Message(const.sovAudioEventFiles[eventID][1], textParams)
+        return
 
     def InvalidateCacheForGetDevelopmentIndicesForSystem(self, solarsystemID):
         self.GetDevelopmentIndicesForSystem.remove_from_cache((self, solarsystemID))
@@ -417,45 +430,47 @@ class SovService(service.Service):
     def IsSystemConquarable(self, solarsystemID):
         if sm.GetService('map').GetSecurityClass(solarsystemID) != const.securityClassZeroSec:
             return False
-        if IsWormholeSystem(solarsystemID):
+        elif IsWormholeSystem(solarsystemID):
             return False
         solarSystem = cfg.mapSystemCache.get(solarsystemID, None)
         factionID = getattr(solarSystem, 'factionID', None)
         if factionID:
             return False
-        return True
+        else:
+            return True
 
     def GetSovereigntyStructuresInfoForAlliance(self):
         if session.allianceid is None:
             return
-        allianceSvc = sm.GetService('alliance')
-        alliance = allianceSvc.GetMoniker()
-        tcuRows, iHubRows, stationRows, campaignScores = alliance.GetAllianceSovereigntyStructuresInfo()
-        scoresPerStructure = defaultdict(dict)
-        for campaignScore in campaignScores:
-            scoresPerStructure[campaignScore.sourceItemID][campaignScore.teamID] = campaignScore.score
+        else:
+            allianceSvc = sm.GetService('alliance')
+            alliance = allianceSvc.GetMoniker()
+            tcuRows, iHubRows, stationRows, campaignScores = alliance.GetAllianceSovereigntyStructuresInfo()
+            scoresPerStructure = defaultdict(dict)
+            for campaignScore in campaignScores:
+                scoresPerStructure[campaignScore.sourceItemID][campaignScore.teamID] = campaignScore.score
 
-        structuresPerSolarsystem = defaultdict(list)
-        rowsPerType = [(tcuRows, typeTerritorialClaimUnit), (iHubRows, typeInfrastructureHub), (stationRows, typeOutpostConstructionPlatform)]
-        for structureRows, structureType in rowsPerType:
-            for structureRow in structureRows:
-                structureInfo = KeyVal({'itemID': structureRow.structureID,
-                 'typeID': structureType,
-                 'campaignState': None,
-                 'vulnerabilityState': None,
-                 'defenseMultiplier': 1.0})
-                if structureRow.campaignStartTime and structureRow.campaignEventType:
-                    structureInfo.campaignState = (structureRow.campaignEventType,
-                     session.allianceid,
-                     structureRow.campaignStartTime,
-                     scoresPerStructure[structureRow.structureID])
-                    structureInfo.defenseMultiplier = structureRow.campaignOccupancyLevel
-                elif structureRow.vulnerableStartTime and structureRow.vulnerableEndTime:
-                    structureInfo.vulnerabilityState = (structureRow.vulnerableStartTime, structureRow.vulnerableEndTime)
-                    structureInfo.defenseMultiplier = structureRow.vulnerabilityOccupancyLevel
-                structuresPerSolarsystem[structureRow.solarSystemID].append(structureInfo)
+            structuresPerSolarsystem = defaultdict(list)
+            rowsPerType = [(tcuRows, typeTerritorialClaimUnit), (iHubRows, typeInfrastructureHub), (stationRows, typeOutpostConstructionPlatform)]
+            for structureRows, structureType in rowsPerType:
+                for structureRow in structureRows:
+                    structureInfo = KeyVal({'itemID': structureRow.structureID,
+                     'typeID': structureType,
+                     'campaignState': None,
+                     'vulnerabilityState': None,
+                     'defenseMultiplier': 1.0})
+                    if structureRow.campaignStartTime and structureRow.campaignEventType:
+                        structureInfo.campaignState = (structureRow.campaignEventType,
+                         session.allianceid,
+                         structureRow.campaignStartTime,
+                         scoresPerStructure[structureRow.structureID])
+                        structureInfo.defenseMultiplier = structureRow.campaignOccupancyLevel
+                    elif structureRow.vulnerableStartTime and structureRow.vulnerableEndTime:
+                        structureInfo.vulnerabilityState = (structureRow.vulnerableStartTime, structureRow.vulnerableEndTime)
+                        structureInfo.defenseMultiplier = structureRow.vulnerabilityOccupancyLevel
+                    structuresPerSolarsystem[structureRow.solarSystemID].append(structureInfo)
 
-        return structuresPerSolarsystem
+            return structuresPerSolarsystem
 
     def GetMyCapitalSystem(self):
         if session.allianceid:

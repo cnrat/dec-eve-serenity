@@ -1,11 +1,12 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\carbon\common\lib\werkzeug\urls.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\carbon\common\lib\werkzeug\urls.py
 import urlparse
 from werkzeug._internal import _decode_unicode
 _always_safe = frozenset('ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789_.-')
 _hextochr = dict((('%02x' % i, chr(i)) for i in xrange(256)))
 _hextochr.update((('%02X' % i, chr(i)) for i in xrange(256)))
 
-def _quote(s, safe = '/', _quotechar = '%%%02X'.__mod__):
+def _quote(s, safe='/', _quotechar='%%%02X'.__mod__):
     safe = _always_safe | set(safe)
     rv = list(s)
     for idx, char in enumerate(s):
@@ -15,7 +16,7 @@ def _quote(s, safe = '/', _quotechar = '%%%02X'.__mod__):
     return ''.join(rv)
 
 
-def _quote_plus(s, safe = ''):
+def _quote_plus(s, safe=''):
     if ' ' in s:
         return _quote(s, safe + ' ').replace(' ', '+')
     return _quote(s, safe)
@@ -32,7 +33,7 @@ def _safe_urlsplit(s):
     return rv
 
 
-def _unquote(s, unsafe = ''):
+def _unquote(s, unsafe=''):
     unsafe = set(unsafe)
     rv = s.split('%')
     for i in xrange(1, len(rv)):
@@ -72,7 +73,7 @@ def _uri_split(uri):
      fragment)
 
 
-def iri_to_uri(iri, charset = 'utf-8'):
+def iri_to_uri(iri, charset='utf-8'):
     iri = unicode(iri)
     scheme, auth, hostname, port, path, query, fragment = _uri_split(iri)
     scheme = scheme.encode('ascii')
@@ -97,7 +98,7 @@ def iri_to_uri(iri, charset = 'utf-8'):
      fragment])
 
 
-def uri_to_iri(uri, charset = 'utf-8', errors = 'ignore'):
+def uri_to_iri(uri, charset='utf-8', errors='ignore'):
     uri = url_fix(str(uri), charset)
     scheme, auth, hostname, port, path, query, fragment = _uri_split(uri)
     scheme = _decode_unicode(scheme, 'ascii', errors)
@@ -128,7 +129,7 @@ def uri_to_iri(uri, charset = 'utf-8', errors = 'ignore'):
      fragment])
 
 
-def url_decode(s, charset = 'utf-8', decode_keys = False, include_empty = True, errors = 'ignore', separator = '&', cls = None):
+def url_decode(s, charset='utf-8', decode_keys=False, include_empty=True, errors='ignore', separator='&', cls=None):
     if cls is None:
         cls = MultiDict
     result = []
@@ -148,7 +149,7 @@ def url_decode(s, charset = 'utf-8', decode_keys = False, include_empty = True, 
     return cls(result)
 
 
-def url_encode(obj, charset = 'utf-8', encode_keys = False, sort = False, key = None, separator = '&'):
+def url_encode(obj, charset='utf-8', encode_keys=False, sort=False, key=None, separator='&'):
     iterable = iter_multi_items(obj)
     if sort:
         iterable = list(iterable)
@@ -170,7 +171,7 @@ def url_encode(obj, charset = 'utf-8', encode_keys = False, sort = False, key = 
     return separator.join(tmp)
 
 
-def url_quote(s, charset = 'utf-8', safe = '/:'):
+def url_quote(s, charset='utf-8', safe='/:'):
     if isinstance(s, unicode):
         s = s.encode(charset)
     elif not isinstance(s, str):
@@ -178,7 +179,7 @@ def url_quote(s, charset = 'utf-8', safe = '/:'):
     return _quote(s, safe=safe)
 
 
-def url_quote_plus(s, charset = 'utf-8', safe = ''):
+def url_quote_plus(s, charset='utf-8', safe=''):
     if isinstance(s, unicode):
         s = s.encode(charset)
     elif not isinstance(s, str):
@@ -186,17 +187,17 @@ def url_quote_plus(s, charset = 'utf-8', safe = ''):
     return _quote_plus(s, safe=safe)
 
 
-def url_unquote(s, charset = 'utf-8', errors = 'ignore'):
+def url_unquote(s, charset='utf-8', errors='ignore'):
     if isinstance(s, unicode):
         s = s.encode(charset)
     return _decode_unicode(_unquote(s), charset, errors)
 
 
-def url_unquote_plus(s, charset = 'utf-8', errors = 'ignore'):
+def url_unquote_plus(s, charset='utf-8', errors='ignore'):
     return _decode_unicode(_unquote_plus(s), charset, errors)
 
 
-def url_fix(s, charset = 'utf-8'):
+def url_fix(s, charset='utf-8'):
     if isinstance(s, unicode):
         s = s.encode(charset, 'ignore')
     scheme, netloc, path, qs, anchor = _safe_urlsplit(s)
@@ -211,7 +212,7 @@ def url_fix(s, charset = 'utf-8'):
 
 class Href(object):
 
-    def __init__(self, base = './', charset = 'utf-8', sort = False, key = None):
+    def __init__(self, base='./', charset='utf-8', sort=False, key=None):
         if not base:
             base = './'
         self.base = base

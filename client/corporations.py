@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\common\lib\corporations.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\common\lib\corporations.py
 from ccp_exceptions import UserError
 import appConst as const
 
@@ -31,6 +32,7 @@ def ValidateCorpWalletDivisionAccess(role, key):
         raise UserError('CrpAccessDenied', {'reason': (const.UE_LOC, 'UI/Corporations/AccessRestrictions/NoAccessToWalletDivision')})
     if _CORP_WALLET_DIVISION_ROLES[key] & role == 0:
         raise UserError('CrpAccessDenied', {'reason': (const.UE_LOC, 'UI/Corporations/AccessRestrictions/NoAccessToWalletDivision')})
+    return
 
 
 def ValidateCorpWalletDivisionReadAccess(role, key):
@@ -38,6 +40,7 @@ def ValidateCorpWalletDivisionReadAccess(role, key):
         raise UserError('CrpAccessDenied', {'reason': (const.UE_LOC, 'UI/Corporations/AccessRestrictions/NoAccessToWalletDivision')})
     if _CORP_WALLET_DIVISION_ROLES[key] & role == 0:
         raise UserError('CrpAccessDenied', {'reason': (const.UE_LOC, 'UI/Corporations/AccessRestrictions/NoAccessToWalletDivision')})
+    return
 
 
 def ValidateDirectorRole(role):

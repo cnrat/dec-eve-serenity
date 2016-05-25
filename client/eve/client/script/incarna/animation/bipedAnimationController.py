@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\client\script\incarna\animation\bipedAnimationController.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\client\script\incarna\animation\bipedAnimationController.py
 from carbon.client.script.animation.animationController import AnimationController
 from carbon.client.script.animation.headTrackAnimationBehavior import HeadTrackAnimationBehavior
 import geo2

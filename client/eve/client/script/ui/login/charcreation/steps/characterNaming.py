@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\client\script\ui\login\charcreation\steps\characterNaming.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\client\script\ui\login\charcreation\steps\characterNaming.py
 import random
 from carbonui import const as uiconst
 from charactercreator import const as ccConst
@@ -39,6 +40,7 @@ class CharacterNaming(BaseCharacterCreationStep):
             self.sr.facePortrait.texture.atlasTexture = photo
             self.sr.facePortrait.texture.atlasTexture.Reload()
         self.UpdateLayout()
+        return
 
     def UpdateLayout(self):
         BaseCharacterCreationStep.UpdateLayout(self)
@@ -94,11 +96,12 @@ class CharacterNaming(BaseCharacterCreationStep):
             left += 110
             self.ancestryConts[ancestryID] = hex
 
-    def SetAncestryFromID(self, ancestryID, doMorph = 1, *args):
+    def SetAncestryFromID(self, ancestryID, doMorph=1, *args):
         selected = self.ancestryConts.get(ancestryID, None)
         self.SetAncestry(selected, doMorph=doMorph)
+        return
 
-    def SetAncestry(self, selected = None, doMorph = 1, *args):
+    def SetAncestry(self, selected=None, doMorph=1, *args):
         if selected is None:
             i = random.randint(0, 2)
             selected = self.ancestryConts.values()[i]
@@ -109,6 +112,7 @@ class CharacterNaming(BaseCharacterCreationStep):
         self.sr.ancestryDescrText.text = localization.GetByMessageID(ancestryInfo.descriptionID)
         selected.frame.state = uiconst.UI_DISABLED
         self.AdjustHeightAndWidth(doMorph=doMorph)
+        return
 
     def SetupEducationSection(self, *args):
         info = self.GetInfo()
@@ -156,11 +160,12 @@ class CharacterNaming(BaseCharacterCreationStep):
             left += 110
             self.schoolConts[schoolID] = hex
 
-    def SetSchoolFromID(self, schoolID, doMorph = 1, *args):
+    def SetSchoolFromID(self, schoolID, doMorph=1, *args):
         selected = self.schoolConts.get(schoolID, None)
         self.SetSchool(selected, doMorph=doMorph)
+        return
 
-    def SetSchool(self, selected = None, doMorph = 1, *args):
+    def SetSchool(self, selected=None, doMorph=1, *args):
         if selected is None:
             i = random.randint(0, 2)
             selected = self.schoolConts.values()[i]
@@ -171,6 +176,7 @@ class CharacterNaming(BaseCharacterCreationStep):
         self.sr.schoolDescrText.text = localization.GetByMessageID(schoolInfo.descriptionID)
         selected.frame.state = uiconst.UI_DISABLED
         self.AdjustHeightAndWidth(doMorph=doMorph)
+        return
 
     def SetupNameSection(self, *args):
         info = self.GetInfo()
@@ -322,8 +328,9 @@ class CharacterNaming(BaseCharacterCreationStep):
             isAvailable.charName = None
             isAvailable.reason = reason
             return isAvailable
+            return
 
-    def AdjustHeightAndWidth(self, doMorph = 1, *args):
+    def AdjustHeightAndWidth(self, doMorph=1, *args):
         schoolTextContHeight = self.sr.educationCont.height - 130
         textHeight = self.sr.schoolDescrText.textheight + self.sr.schoolDescrText.padTop
         missingSchoolHeight = textHeight - schoolTextContHeight

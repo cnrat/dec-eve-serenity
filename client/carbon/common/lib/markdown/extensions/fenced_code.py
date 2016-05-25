@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\carbon\common\lib\markdown\extensions\fenced_code.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\carbon\common\lib\markdown\extensions\fenced_code.py
 import re
 import markdown
 from markdown.extensions.codehilite import CodeHilite, CodeHiliteExtension
@@ -55,7 +56,7 @@ class FencedBlockPreprocessor(markdown.preprocessors.Preprocessor):
         return txt
 
 
-def makeExtension(configs = None):
+def makeExtension(configs=None):
     return FencedCodeExtension(configs=configs)
 
 

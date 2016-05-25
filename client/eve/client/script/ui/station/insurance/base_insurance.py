@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\client\script\ui\station\insurance\base_insurance.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\client\script\ui\station\insurance\base_insurance.py
 from carbonui.control.dragResizeCont import DragResizeCont
 from carbonui.primitives.container import Container
 from carbonui.primitives.line import Line
@@ -21,7 +22,7 @@ class InsuranceSvc(service.Service):
      'Reset': [],
      'GetContracts': []}
     __guid__ = 'svc.insurance'
-    __notifyevents__ = []
+    __notifyevents__ = ['OnSessionChanged']
     __servicename__ = 'insurance'
     __displayname__ = 'Insurance Service'
     __dependencies__ = ['corp', 'station']
@@ -33,13 +34,15 @@ class InsuranceSvc(service.Service):
         self.contracts = {}
         self.stuff = {}
         self.insurancePrice = {}
+        return
 
-    def Run(self, memStream = None):
+    def Run(self, memStream=None):
         self.LogInfo('Insurance Service Started')
         self.wnd = None
         self.CleanUp()
+        return
 
-    def Stop(self, memStream = None):
+    def Stop(self, memStream=None):
         self.LogInfo('Insurance Medical Service')
         self.CleanUp()
         service.Service.Stop(self)
@@ -49,6 +52,12 @@ class InsuranceSvc(service.Service):
         self.contracts = {}
         self.stuff = {}
         self.insuranceNames = {}
+        return
+
+    def OnSessionChanged(self, isRemote, sess, change):
+        if 'stationid' in change or 'structureid' in change:
+            self.insurance = None
+        return
 
     def Reset(self):
         pass
@@ -56,9 +65,10 @@ class InsuranceSvc(service.Service):
     def GetInsuranceMgr(self):
         if self.insurance is not None:
             return self.insurance
-        self.insurance = util.Moniker('insuranceSvc', session.stationid2)
-        self.insurance.SetSessionCheck({'stationid2': session.stationid2})
-        return self.insurance
+        else:
+            self.insurance = util.Moniker('insuranceSvc', session.stationid2)
+            self.insurance.SetSessionCheck({'stationid2': session.stationid2})
+            return self.insurance
 
     def GetContracts(self):
         self.contracts = {}
@@ -70,7 +80,10 @@ class InsuranceSvc(service.Service):
             self.contracts[contract.shipID] = contract
 
         if eve.session.corprole & (const.corpRoleJuniorAccountant | const.corpRoleAccountant) != 0:
-            contracts = self.GetInsuranceMgr().GetContracts(1)
+            if session.stationid2:
+                contracts = self.GetInsuranceMgr().GetContracts(1)
+            else:
+                contracts = sm.RemoteSvc('insuranceSvc').GetContracts(1)
             for contract in contracts:
                 self.contracts[contract.shipID] = contract
 
@@ -96,7 +109,7 @@ class InsuranceSvc(service.Service):
     def GetItems(self):
         self.stuff = {}
         items = sm.GetService('invCache').GetInventory(const.containerHangar)
-        items = items.List()
+        items = items.List(const.flagHangar)
         insurableItems = self.GetInsurableItems(items)
         self.stuff.update(insurableItems)
         hasAccountantRole = session.corprole & (const.corpRoleAccountant | const.corpRoleJuniorAccountant) != 0
@@ -211,6 +224,7 @@ class InsuranceWindow(uicontrols.Window):
         else:
             self.DrawMyShipsScroll(parentCont=self.sr.main)
         self.ShowInsuranceInfo()
+        return
 
     def DrawSplitList(self):
         myShipsCont = DragResizeCont(name='myShipsCont', parent=self.sr.main, align=uiconst.TOTOP_PROP, minSize=0.3, maxSize=0.7, defaultSize=0.45, padding=4)
@@ -229,7 +243,7 @@ class InsuranceWindow(uicontrols.Window):
         self.myShipsScroll.multiSelect = 0
         self.myShipsScroll.sr.minColumnWidth = {localization.GetByLabel('UI/Common/Type'): 30}
 
-    def SetHint(self, hintstr = None, isCorp = False):
+    def SetHint(self, hintstr=None, isCorp=False):
         if not isCorp:
             if self.myShipsScroll:
                 self.myShipsScroll.ShowHint(hintstr)
@@ -346,17 +360,21 @@ class InsuranceWindow(uicontrols.Window):
 
     def OnEntryDblClick(self, entry):
         self.Insure(None)
+        return
 
     def OnCorpEntryDblClick(self, entry):
         self.Insure(None)
+        return
 
     def UnInsure(self, item, *args):
         if item is None or not len(item):
             return
-        if eve.Message('InsAskUnInsure', {}, uiconst.YESNO) != uiconst.ID_YES:
+        elif eve.Message('InsAskUnInsure', {}, uiconst.YESNO) != uiconst.ID_YES:
             return
-        sm.GetService('insurance').GetInsuranceMgr().UnInsureShip(item.itemID)
-        self.ShowInsuranceInfo()
+        else:
+            sm.GetService('insurance').GetInsuranceMgr().UnInsureShip(item.itemID)
+            self.ShowInsuranceInfo()
+            return
 
     def GetSelected(self):
         corpSelected = None
@@ -365,11 +383,14 @@ class InsuranceWindow(uicontrols.Window):
         mySelected = self.myShipsScroll.GetSelected()
         if mySelected:
             return [ node.info for node in mySelected ]
-        if corpSelected:
+        elif corpSelected:
             return [ node.info for node in corpSelected ]
+        else:
+            return
 
     def InsureFromBtn(self, *args):
         self.Insure(None)
+        return
 
     def Insure(self, item, *args):
         if item is None or not len(item):
@@ -484,6 +505,7 @@ class InsuranceTermsWindow(uicontrols.Window):
         self.Close()
         self.TryUpdateInsuranceWindow()
         sm.GetService('loading').ProgressWnd(insuringText, '', 1, 1)
+        return
 
     def Cancel(self, btn):
         self.Close()

@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\carbon\client\script\graphics\resourceConstructors\caustics.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\carbon\client\script\graphics\resourceConstructors\caustics.py
 import blue
 import trinity
 import re
@@ -48,12 +49,15 @@ class CausticsRenderJob(object):
     def Destroy(self):
         trinity.renderJobs.recurring.remove(self)
         self.texture = None
+        return
 
     def DoPrepareResources(self):
         for step in self.steps:
             if type(step) is trinity.TriStepPushRenderTarget:
                 if self.texture is not None and self.texture.object is not None:
                     self.texture.object.SetFromRenderTarget(step.renderTarget)
+
+        return
 
 
 def Caustics(paramString):

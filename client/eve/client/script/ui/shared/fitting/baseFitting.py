@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\client\script\ui\shared\fitting\baseFitting.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\client\script\ui\shared\fitting\baseFitting.py
 from eve.client.script.ui.shared.fitting.fittingCenter import FittingCenter
 from eve.client.script.ui.shared.fitting.fittingUtil import GetBaseShapeSize, GetTypeAttributesByID, FITKEYS
 from eve.client.script.ui.shared.fitting.slotAdder import HardpointAdder
@@ -37,6 +38,7 @@ class Fitting(Container):
         self.AddTurretAndLauncherMarkers()
         self.UpdateStats()
         uicore.animations.FadeTo(self, 0.0, 1.0, duration=1.0)
+        return
 
     def SetSizeVariables(self):
         baseShapeSize = GetBaseShapeSize()
@@ -118,6 +120,8 @@ class Fitting(Container):
                         icon.linkDragging = 1
                         icon.color.a = 0.1
 
+        return
+
     def OnResetSlotLinkingMode(self, *args):
         for flag, icon in self.slots.iteritems():
             if getattr(icon, 'module', None):
@@ -125,6 +129,8 @@ class Fitting(Container):
                     icon.linkDragging = 0
                     if hasattr(icon, 'color'):
                         icon.color.a = 1.0
+
+        return
 
     def HiliteMatchingSlot(self):
         hiliteSlotFlag = None
@@ -142,6 +148,8 @@ class Fitting(Container):
                     powerType = GetSlotTypeForType(ghostTypeID)
         for slot in self.slots.itervalues():
             slot.HiliteIfMatching(hiliteSlotFlag, powerType)
+
+        return
 
     def AddToSlotsWithMenu(self, slot):
         self.menuSlots[slot] = 1

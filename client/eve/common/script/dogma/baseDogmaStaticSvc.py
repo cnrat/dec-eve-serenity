@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\common\script\dogma\baseDogmaStaticSvc.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\common\script\dogma\baseDogmaStaticSvc.py
 import evetypes
 import service
 import bluepy
@@ -69,16 +70,18 @@ class BaseDogmaStaticSvc(service.Service):
         cgattrs = tuple([ a.attributeID for a in cfg.dgmattribs if cgre.match(a.attributeName) is not None ])
         self.chargeGroupAttributes = cgattrs
         self.crystalModuleGroupIDs = {}
-        for groupID in (const.categoryModule, const.categoryStarbase):
-            for grpID in evetypes.GetGroupIDsByCategory(groupID):
-                typeIDs = evetypes.GetTypeIDsByGroup(grpID)
+        for categoryID in (const.categoryModule, const.categoryStructureModule, const.categoryStarbase):
+            for groupID in evetypes.GetGroupIDsByCategory(categoryID):
+                typeIDs = evetypes.GetTypeIDsByGroup(groupID)
                 if len(typeIDs) > 0:
                     typeID = typeIDs.pop()
                     for attributeID in cgattrs:
                         v = self.GetTypeAttribute(typeID, attributeID)
                         if v is not None and v in self.crystalGroupIDs:
-                            self.crystalModuleGroupIDs[grpID] = True
+                            self.crystalModuleGroupIDs[groupID] = True
                             break
+
+        return
 
     def LoadAttributes(self):
         self.attributes = IndexedRows(cfg.dgmattribs.data.itervalues(), ('attributeID',))
@@ -124,11 +127,6 @@ class BaseDogmaStaticSvc(service.Service):
          (const.attributeLowSlots, const.attributeLowSlotModifier),
          (const.attributeTurretSlotsLeft, const.attributeTurretHardpointModifier),
          (const.attributeLauncherSlotsLeft, const.attributeLauncherHardPointModifier)]
-        self.mirroredAttributes = set()
-        for r in self.attributesByCategory.get(9, []):
-            if r.attributeID != const.attributeRaceID:
-                self.mirroredAttributes.add(r.attributeID)
-
         self.resistanceAttributesByLayer = {}
         for attributeID, layerName, hpAttributeID, uniformityAttributeID in ((const.attributeShieldCharge,
           'Shield',
@@ -157,14 +155,11 @@ class BaseDogmaStaticSvc(service.Service):
             self.LogError('STATIC DATA MISSING: Dogma Effects')
         self.effectsByName = IndexedRows(cfg.dgmeffects.data.itervalues(), ('effectName',))
 
-    def LoadTypeEffects(self, typeID = None, effectID = None, newRow = None, run = False):
+    def LoadTypeEffects(self, typeID=None, effectID=None, newRow=None, run=False):
         if typeID is None:
             rs = []
-            for key, r in cfg.dgmtypeeffects.iteritems():
-                if evetypes.Exists(key):
-                    rs.extend(r)
-                else:
-                    self.LogWarn('Dogma effect assigned to a type that does not exist in this branch. typeID:' + str(key))
+            for typeValues in cfg.dgmtypeeffects.values():
+                rs.extend(typeValues)
 
             if len(rs) == 0:
                 self.LogError('STATIC DATA MISSING: Dogma Type Effects')
@@ -188,12 +183,12 @@ class BaseDogmaStaticSvc(service.Service):
 
         defaultEffect = {}
         for typeID2 in cfg.dgmtypeeffects:
-            if evetypes.Exists(typeID2):
-                for r in cfg.dgmtypeeffects[typeID2]:
-                    if r.isDefault == 1:
-                        defaultEffect[typeID2] = r.effectID
+            for r in cfg.dgmtypeeffects[typeID2]:
+                if r.isDefault == 1:
+                    defaultEffect[typeID2] = r.effectID
 
         self.defaultEffectByType = defaultEffect
+        return
 
     def LoadAllTypeAttributes(self):
         raise NotImplementedError('LoadAllTypeAttributes - not implemented')
@@ -201,13 +196,14 @@ class BaseDogmaStaticSvc(service.Service):
     def LoadSpecificTypeAttributes(self, typeID, attributeID, newRow):
         raise NotImplementedError('LoadSpecificTypeAttributes - not implemented')
 
-    def LoadTypeAttributes(self, typeID = None, attributeID = None, newRow = None):
+    def LoadTypeAttributes(self, typeID=None, attributeID=None, newRow=None):
         if typeID is None:
             self.LoadAllTypeAttributes()
         else:
             self.LoadSpecificTypeAttributes(typeID, attributeID, newRow)
+        return
 
-    def GetTypeAttribute(self, typeID, attributeID, defaultValue = None):
+    def GetTypeAttribute(self, typeID, attributeID, defaultValue=None):
         try:
             return self.attributesByTypeAttribute[typeID][attributeID]
         except KeyError:
@@ -223,15 +219,16 @@ class BaseDogmaStaticSvc(service.Service):
     def GetRequiredSkills(self, typeID):
         if typeID in self.requiredSkills:
             return self.requiredSkills[typeID]
-        ret = {}
-        for attributeID, levelAttributeID in self.requiredSkillAttributes.iteritems():
-            requiredSkill = self.GetTypeAttribute(typeID, attributeID)
-            requiredLevel = self.GetTypeAttribute2(typeID, levelAttributeID)
-            if requiredSkill is not None and requiredSkill not in ret:
-                ret[int(requiredSkill)] = int(requiredLevel)
+        else:
+            ret = {}
+            for attributeID, levelAttributeID in self.requiredSkillAttributes.iteritems():
+                requiredSkill = self.GetTypeAttribute(typeID, attributeID)
+                requiredLevel = self.GetTypeAttribute2(typeID, levelAttributeID)
+                if requiredSkill is not None and requiredSkill not in ret:
+                    ret[int(requiredSkill)] = int(requiredLevel)
 
-        self.requiredSkills[typeID] = ret
-        return ret
+            self.requiredSkills[typeID] = ret
+            return ret
 
     def GetEffect(self, effectID):
         return self.effects[effectID]
@@ -254,7 +251,7 @@ class BaseDogmaStaticSvc(service.Service):
     def TypeHasAttribute(self, typeID, attributeID):
         return typeID in self.attributesByTypeAttribute and attributeID in self.attributesByTypeAttribute[typeID]
 
-    def TypeGetOrderedEffectIDs(self, typeID, categoryID = None):
+    def TypeGetOrderedEffectIDs(self, typeID, categoryID=None):
         return self.effectsByType[typeID].iterkeys()
 
     def TypeGetEffects(self, typeID):
@@ -336,7 +333,7 @@ class BaseDogmaStaticSvc(service.Service):
 
         return ret
 
-    def GetSkillModifiedAttributePercentageValue(self, attributeID, modifyingAttributeID, skillTypeID, skillRecord = None):
+    def GetSkillModifiedAttributePercentageValue(self, attributeID, modifyingAttributeID, skillTypeID, skillRecord=None):
         percentageMod = 1.0
         skillLevel = 0
         if skillRecord:

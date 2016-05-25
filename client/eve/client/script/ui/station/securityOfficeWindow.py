@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\client\script\ui\station\securityOfficeWindow.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\client\script\ui\station\securityOfficeWindow.py
 import uicls
 import carbonui.const as uiconst
 import localization
@@ -176,6 +177,7 @@ class SecurityOfficeWindow(uicontrols.Window):
     def _UpdateSecurityTagBar(self):
         self.updateTimer = None
         self.securityTagBar.UpdateCurrentSecAndTags(self.targetSecurityStatus)
+        return
 
     def OnSecurityStatusUpdate(self, newSecurityStatus):
         self.UpdateSecurityTagBar()
@@ -216,7 +218,7 @@ class SecurityTagBar(uiprimitives.Container):
             data = TAG_BUCKETS[bucketIndex]
             return data.minSec + ratio * (data.maxSec - data.minSec)
 
-    def SetCurrentSecStatus(self, currentSecurityStatus, mouseOffset = 0):
+    def SetCurrentSecStatus(self, currentSecurityStatus, mouseOffset=0):
         self.currentSecStatus = currentSecurityStatus
         bucketIndex, leftover, ratio = GetBucketAndRatioForSec(currentSecurityStatus)
         offset = bucketIndex * BOX_WIDTH + ratio * BOX_WIDTH
@@ -289,6 +291,7 @@ class SecurityTagBar(uiprimitives.Container):
                 self.buckets[i].SetQuantity(quantity)
 
         sm.ScatterEvent('OnSecurityForTagSelectionChanged', targetSliceSec, tagsToSpend, sufficientTags)
+        return
 
     def CreateBar(self):
         self.barContainer = uiprimitives.Container(name='barContainer', parent=self, align=uiconst.TOTOP, height=BAR_HEIGHT, padTop=20, padLeft=BAR_PADDING, padRight=BAR_PADDING)
@@ -310,6 +313,7 @@ class SecurityTagBar(uiprimitives.Container):
 
         self.sliderContainer = uiprimitives.Container(name='sliderContainer', parent=self.barContainer, align=uiconst.TOALL)
         uicontrols.GradientSprite(parent=self.barContainer, align=uiconst.TOALL, rgbData=[(0, (0.3, 0.3, 0.3))], alphaData=[(0, 0.5), (0.9, 0.15)], state=uiconst.UI_DISABLED, rotation=math.pi / 2)
+        return
 
     def CreateDragBar(self):
         self.locator = uiprimitives.Container(name='locator', parent=self, align=uiconst.TOPLEFT, left=0, width=8, height=self.height, state=uiconst.UI_NORMAL, padLeft=0, cursor=uiconst.UICURSOR_LEFT_RIGHT_DRAG)
@@ -320,12 +324,13 @@ class SecurityTagBar(uiprimitives.Container):
         uiprimitives.Sprite(name='bottomTriangle', parent=self.locator, texturePath='res:/ui/texture/icons/105_32_15.png', align=uiconst.CENTER, rotation=-math.pi / 2, width=32, height=32, top=43, state=uiconst.UI_DISABLED)
         self.sliderSecText = uicontrols.EveLabelLargeBold(parent=self.locator, name='secStatus', align=uiconst.CENTERBOTTOM, top=-4)
 
-    def SetDragBarColor(self, color = None):
+    def SetDragBarColor(self, color=None):
         if color is None:
             color = util.Color.WHITE
         self.locator.children[0].color.SetRGBA(*color)
         self.locator.children[1].color.SetRGBA(*color)
         self.locator.children[2].color.SetRGBA(*color)
+        return
 
     def CreateSlider(self):
         for x in xrange(21):
@@ -385,6 +390,7 @@ class BucketOfTags(uiprimitives.Container):
 
         self.quantitySpentText = uicontrols.EveLabelSmallBold(parent=self, align=uiconst.CENTER, top=30, color=(1, 1, 1, 1))
         self.SetQuantity(0)
+        return
 
     def SetQuantity(self, quantity):
         self.quantitySpentText.SetText(str(quantity))

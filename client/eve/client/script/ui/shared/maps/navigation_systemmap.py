@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\client\script\ui\shared\maps\navigation_systemmap.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\client\script\ui\shared\maps\navigation_systemmap.py
 from eve.client.script.ui.inflight.scanner import Scanner
 import evecamera
 import trinity
@@ -68,57 +69,60 @@ class SystemMapLayer(uicls.LayerCore):
         self.sr.movingProbe = None
         self.sr.rangeProbe = None
         sm.RegisterNotify(self)
+        return
 
-    def SetInterest(self, itemID, interpolate = True):
+    def SetInterest(self, itemID, interpolate=True):
         solarsystem = sm.GetService('systemmap').GetCurrentSolarSystem()
         if solarsystem is None:
             log.LogTrace('No solar system (SystemmapNav::SetInterest)')
             return
-        endPos = None
-        for tf in solarsystem.children:
-            tfName = getattr(tf, 'name', None)
-            if tfName is None:
-                continue
-            if tfName.startswith('systemParent_'):
-                for stf in tf.children:
-                    stfName = getattr(stf, 'name', None)
-                    if stfName is None:
-                        continue
-                    try:
-                        prefix, stfItemID = stfName.split('_')
-                        if prefix == 'scanResult':
-                            stfItemID = ('result', stfItemID)
-                        else:
-                            stfItemID = int(stfItemID)
-                    except:
-                        continue
+        else:
+            endPos = None
+            for tf in solarsystem.children:
+                tfName = getattr(tf, 'name', None)
+                if tfName is None:
+                    continue
+                if tfName.startswith('systemParent_'):
+                    for stf in tf.children:
+                        stfName = getattr(stf, 'name', None)
+                        if stfName is None:
+                            continue
+                        try:
+                            prefix, stfItemID = stfName.split('_')
+                            if prefix == 'scanResult':
+                                stfItemID = ('result', stfItemID)
+                            else:
+                                stfItemID = int(stfItemID)
+                        except:
+                            continue
 
-                    if stfItemID == itemID:
-                        endPos = stf.worldTransform[3][:3]
+                        if stfItemID == itemID:
+                            endPos = stf.worldTransform[3][:3]
+                            break
+
+                    if endPos:
                         break
-
-                if endPos:
-                    break
-            elif tfName.startswith('bm_') and isinstance(itemID, tuple) and itemID[0] == 'bookmark':
-                tfItemID = int(tfName.split('_')[1])
-                if tfItemID == itemID[1]:
+                elif tfName.startswith('bm_') and isinstance(itemID, tuple) and itemID[0] == 'bookmark':
+                    tfItemID = int(tfName.split('_')[1])
+                    if tfItemID == itemID[1]:
+                        endPos = tf.worldTransform[3][:3]
+                        break
+                elif tfName.endswith(str(itemID)):
                     endPos = tf.worldTransform[3][:3]
                     break
-            elif tfName.endswith(str(itemID)):
-                endPos = tf.worldTransform[3][:3]
-                break
 
-        if endPos is None and itemID == eve.session.shipid:
-            endPos = maputils.GetMyPos()
-            endPos.Scale(SYSTEMMAP_SCALE)
-            endPos = (endPos.x, endPos.y, endPos.z)
-        self.FocusOnTrinityPoint(endPos, interpolate=interpolate)
+            if endPos is None and itemID == eve.session.shipid:
+                endPos = maputils.GetMyPos()
+                endPos.Scale(SYSTEMMAP_SCALE)
+                endPos = (endPos.x, endPos.y, endPos.z)
+            self.FocusOnTrinityPoint(endPos, interpolate=interpolate)
+            return
 
     def FocusOnPoint(self, endPos):
         scaledEndPos = geo2.Vec3Scale(endPos, SYSTEMMAP_SCALE)
         self.FocusOnTrinityPoint(scaledEndPos)
 
-    def FocusOnTrinityPoint(self, triVector, interpolate = True):
+    def FocusOnTrinityPoint(self, triVector, interpolate=True):
         if triVector and interpolate:
             now = blue.os.GetSimTime()
             cameraParent = self.GetCameraParent()
@@ -140,6 +144,7 @@ class SystemMapLayer(uicls.LayerCore):
             cameraParent = self.GetCameraParent()
             cameraParent.translationCurve = None
             cameraParent.translation = triVector
+        return
 
     def GetCameraParent(self):
         camera = sm.GetService('sceneManager').GetRegisteredCamera(evecamera.CAM_SYSTEMMAP)
@@ -156,37 +161,39 @@ class SystemMapLayer(uicls.LayerCore):
             uthread.new(self.TryToHilight)
         if not self._isPicked:
             return
-        if lib.leftbtn:
-            if self.sr.movingProbe:
-                if alt:
-                    self.ScaleProbesAroundCenter()
-                else:
-                    x, y = uicore.ScaleDpi(uicore.uilib.x), uicore.ScaleDpi(uicore.uilib.y)
-                    self.MoveActiveProbe(x, y)
-                    self.ShowGrid()
-                return
-            if self.sr.rangeProbe:
-                self.ScaleActiveProbe()
-                uicore.uilib.SetCursor(uiconst.UICURSOR_DRAGGABLE)
-                return
-        if lib.leftbtn and not lib.rightbtn:
-            fov = camera.fieldOfView
-            camera.OrbitParent(-dx * fov * 0.1, dy * fov * 0.1)
-            sm.GetService('systemmap').SortBubbles()
-        elif lib.rightbtn and not lib.leftbtn:
-            cameraParent = self.GetCameraParent()
-            if cameraParent.translationCurve:
-                pos = cameraParent.translationCurve.GetVectorAt(blue.os.GetSimTime())
-                cameraParent.translationCurve = None
-                cameraParent.translation = (pos.x, pos.y, pos.z)
-            scalefactor = camera.translationFromParent * (camera.fieldOfView * 0.001)
-            offset = (dx * scalefactor, -dy * scalefactor, 0.0)
-            offset = geo2.QuaternionTransformVector(camera.rotationAroundParent, offset)
-            cameraParent.translation = geo2.Vec3Subtract(cameraParent.translation, offset)
-        elif lib.leftbtn and lib.rightbtn:
-            modifier = uicore.mouseInputHandler.GetCameraZoomModifier()
-            camera.Dolly(modifier * -(dy * 0.01) * abs(camera.translationFromParent))
-            camera.translationFromParent = camera.CheckTranslationFromParent(camera.translationFromParent)
+        else:
+            if lib.leftbtn:
+                if self.sr.movingProbe:
+                    if alt:
+                        self.ScaleProbesAroundCenter()
+                    else:
+                        x, y = uicore.ScaleDpi(uicore.uilib.x), uicore.ScaleDpi(uicore.uilib.y)
+                        self.MoveActiveProbe(x, y)
+                        self.ShowGrid()
+                    return
+                if self.sr.rangeProbe:
+                    self.ScaleActiveProbe()
+                    uicore.uilib.SetCursor(uiconst.UICURSOR_DRAGGABLE)
+                    return
+            if lib.leftbtn and not lib.rightbtn:
+                fov = camera.fieldOfView
+                camera.OrbitParent(-dx * fov * 0.1, dy * fov * 0.1)
+                sm.GetService('systemmap').SortBubbles()
+            elif lib.rightbtn and not lib.leftbtn:
+                cameraParent = self.GetCameraParent()
+                if cameraParent.translationCurve:
+                    pos = cameraParent.translationCurve.GetVectorAt(blue.os.GetSimTime())
+                    cameraParent.translationCurve = None
+                    cameraParent.translation = (pos.x, pos.y, pos.z)
+                scalefactor = camera.translationFromParent * (camera.fieldOfView * 0.001)
+                offset = (dx * scalefactor, -dy * scalefactor, 0.0)
+                offset = geo2.QuaternionTransformVector(camera.rotationAroundParent, offset)
+                cameraParent.translation = geo2.Vec3Subtract(cameraParent.translation, offset)
+            elif lib.leftbtn and lib.rightbtn:
+                modifier = uicore.mouseInputHandler.GetCameraZoomModifier()
+                camera.Dolly(modifier * -(dy * 0.01) * abs(camera.translationFromParent))
+                camera.translationFromParent = camera.CheckTranslationFromParent(camera.translationFromParent)
+            return
 
     def OnDblClick(self, *args):
         picktype, pickobject = self.GetPick()
@@ -250,32 +257,33 @@ class SystemMapLayer(uicls.LayerCore):
             uthread.new(self.TryToHilight)
             uiutil.SetOrder(self, -1)
             return
-        uiutil.SetOrder(self, -1)
-        scannerWnd = Scanner.GetIfOpen()
-        if scannerWnd:
-            if self.sr.rangeProbe:
+        else:
+            uiutil.SetOrder(self, -1)
+            scannerWnd = Scanner.GetIfOpen()
+            if scannerWnd:
+                if self.sr.rangeProbe:
+                    uthread.new(scannerWnd.RegisterProbeRange, self.sr.rangeProbe)
+                if self.sr.movingProbe:
+                    uthread.new(scannerWnd.RegisterProbeMove, self.sr.movingProbe)
+                scannerWnd = scannerWnd.StopScaleMode()
+            if scannerWnd and self.sr.rangeProbe:
                 uthread.new(scannerWnd.RegisterProbeRange, self.sr.rangeProbe)
-            if self.sr.movingProbe:
+            if scannerWnd and self.sr.movingProbe:
                 uthread.new(scannerWnd.RegisterProbeMove, self.sr.movingProbe)
-            scannerWnd = scannerWnd.StopScaleMode()
-        if scannerWnd and self.sr.rangeProbe:
-            uthread.new(scannerWnd.RegisterProbeRange, self.sr.rangeProbe)
-        if scannerWnd and self.sr.movingProbe:
-            uthread.new(scannerWnd.RegisterProbeMove, self.sr.movingProbe)
-        self.sr.rangeProbe = None
-        if self.sr.movingProbe:
-            self.sr.movingProbe.ShowIntersection()
-        self.sr.movingProbe = None
-        if scannerWnd:
-            scannerWnd.HideDistanceRings()
-        uthread.new(self.TryToHilight)
-        sm.GetService('systemmap').SortBubbles()
-        sm.GetService('ui').ForceCursorUpdate()
+            self.sr.rangeProbe = None
+            if self.sr.movingProbe:
+                self.sr.movingProbe.ShowIntersection()
+            self.sr.movingProbe = None
+            if scannerWnd:
+                scannerWnd.HideDistanceRings()
+            uthread.new(self.TryToHilight)
+            sm.GetService('systemmap').SortBubbles()
+            sm.GetService('ui').ForceCursorUpdate()
+            return
 
     def OnMouseWheel(self, *args):
         modifier = uicore.mouseInputHandler.GetCameraZoomModifier()
         self.ZoomBy(modifier * uicore.uilib.dz)
-        return 1
 
     def ZoomBy(self, amount):
         camera = sm.GetService('sceneManager').GetRegisteredCamera(evecamera.CAM_SYSTEMMAP)
@@ -289,65 +297,67 @@ class SystemMapLayer(uicls.LayerCore):
         scannerWnd = Scanner.GetIfOpen()
         if scannerWnd is None:
             return
-        probes = scannerWnd.GetProbeSpheres()
-        centroid = geo2.Vector(0, 0, 0)
-        numProbes = 0
-        for probeID, probeControl in probes.iteritems():
-            if probeID not in probeData or probeData[probeID].state != const.probeStateIdle:
-                continue
-            probePos = probeControl.GetWorldPosition()
-            centroid += probePos
-            numProbes += 1
+        else:
+            probes = scannerWnd.GetProbeSpheres()
+            centroid = geo2.Vector(0, 0, 0)
+            numProbes = 0
+            for probeID, probeControl in probes.iteritems():
+                if probeID not in probeData or probeData[probeID].state != const.probeStateIdle:
+                    continue
+                probePos = probeControl.GetWorldPosition()
+                centroid += probePos
+                numProbes += 1
 
-        if numProbes <= 1:
-            return
-        centroid /= numProbes
-        projectionParams = GetWorldToScreenParameters()
-        centroidTansform = ((SYSTEMMAP_SCALE,
-          0,
-          0,
-          0),
-         (0,
-          SYSTEMMAP_SCALE,
-          0,
-          0),
-         (0,
-          0,
-          SYSTEMMAP_SCALE,
-          0),
-         (centroid.x,
-          centroid.y,
-          centroid.z,
-          1.0))
-        screenCentroid = geo2.Vector(*ProjectTransform(projectionParams, centroidTansform))
-        screenCentroid.z = 0
-        probeScreenPos = geo2.Vector(*ProjectTransform(projectionParams, self.sr.movingProbe.locator.worldTransform))
-        probeScreenPos.z = 0
-        centerToProbe = probeScreenPos - screenCentroid
-        centerToProbeLength = geo2.Vec2Length(centerToProbe)
-        if centerToProbeLength < 0.1:
-            return
-        centerToProbeNormal = centerToProbe / centerToProbeLength
-        toMouseDotProduct = geo2.Vec2Dot(mousePos - screenCentroid, centerToProbeNormal)
-        projectedPos = screenCentroid + toMouseDotProduct * centerToProbeNormal
-        toProjectedLength = geo2.Vec2Length(projectedPos - screenCentroid)
-        if toProjectedLength < 0.1:
-            return
-        moveScale = toProjectedLength / centerToProbeLength
-        if toMouseDotProduct < 0:
-            moveScale = -moveScale
-        for probeID, probeControl in probes.iteritems():
-            if probeID not in probeData or probeData[probeID].state != const.probeStateIdle:
-                continue
-            pos = probeControl.GetWorldPosition()
-            toProbe = pos - centroid
-            endPos = centroid + toProbe * moveScale
-            endPos = (endPos.x / SYSTEMMAP_SCALE, endPos.y / SYSTEMMAP_SCALE, endPos.z / SYSTEMMAP_SCALE)
-            probeControl.SetPosition(endPos)
+            if numProbes <= 1:
+                return
+            centroid /= numProbes
+            projectionParams = GetWorldToScreenParameters()
+            centroidTansform = ((SYSTEMMAP_SCALE,
+              0,
+              0,
+              0),
+             (0,
+              SYSTEMMAP_SCALE,
+              0,
+              0),
+             (0,
+              0,
+              SYSTEMMAP_SCALE,
+              0),
+             (centroid.x,
+              centroid.y,
+              centroid.z,
+              1.0))
+            screenCentroid = geo2.Vector(*ProjectTransform(projectionParams, centroidTansform))
+            screenCentroid.z = 0
+            probeScreenPos = geo2.Vector(*ProjectTransform(projectionParams, self.sr.movingProbe.locator.worldTransform))
+            probeScreenPos.z = 0
+            centerToProbe = probeScreenPos - screenCentroid
+            centerToProbeLength = geo2.Vec2Length(centerToProbe)
+            if centerToProbeLength < 0.1:
+                return
+            centerToProbeNormal = centerToProbe / centerToProbeLength
+            toMouseDotProduct = geo2.Vec2Dot(mousePos - screenCentroid, centerToProbeNormal)
+            projectedPos = screenCentroid + toMouseDotProduct * centerToProbeNormal
+            toProjectedLength = geo2.Vec2Length(projectedPos - screenCentroid)
+            if toProjectedLength < 0.1:
+                return
+            moveScale = toProjectedLength / centerToProbeLength
+            if toMouseDotProduct < 0:
+                moveScale = -moveScale
+            for probeID, probeControl in probes.iteritems():
+                if probeID not in probeData or probeData[probeID].state != const.probeStateIdle:
+                    continue
+                pos = probeControl.GetWorldPosition()
+                toProbe = pos - centroid
+                endPos = centroid + toProbe * moveScale
+                endPos = (endPos.x / SYSTEMMAP_SCALE, endPos.y / SYSTEMMAP_SCALE, endPos.z / SYSTEMMAP_SCALE)
+                probeControl.SetPosition(endPos)
 
-        scannerWnd.ShowCentroidLines()
-        scannerWnd.HighlightProbeIntersections()
-        sm.GetService('systemmap').HighlightItemsWithinProbeRange()
+            scannerWnd.ShowCentroidLines()
+            scannerWnd.HighlightProbeIntersections()
+            sm.GetService('systemmap').HighlightItemsWithinProbeRange()
+            return
 
     def GetMenu(self, *args):
         picktype, pickobject = self.GetPick()
@@ -379,39 +389,41 @@ class SystemMapLayer(uicls.LayerCore):
         if getattr(self, '_tryToHilight_Busy', None):
             self._tryToHilight_Pending = True
             return
-        if self.destroyed:
+        elif self.destroyed:
             return
-        self._tryToHilight_Busy = True
-        picktype, pickobject = self.GetPick()
-        if pickobject and hasattr(pickobject, 'name') and pickobject.name[:6] == 'cursor':
-            scannerWnd = Scanner.GetIfOpen()
-            if scannerWnd:
-                scannerWnd.HiliteCursor(pickobject)
-            self.HighlightBorderOfProbe()
-            if uicore.uilib.mouseOver == self:
-                uicore.uilib.SetCursor(uiconst.UICURSOR_SELECTDOWN)
         else:
-            scannerWnd = Scanner.GetIfOpen()
-            if scannerWnd:
-                scannerWnd.HiliteCursor()
-            pickedProbeControl = self.TryPickSphereBorder()
-            blue.pyos.synchro.SleepWallclock(100)
-            if self.destroyed:
-                return
-            _pickedProbeControl = self.TryPickSphereBorder()
-            if _pickedProbeControl and _pickedProbeControl == pickedProbeControl:
-                self.HighlightBorderOfProbe(pickedProbeControl)
-                uicore.uilib.SetCursor(uiconst.UICURSOR_DRAGGABLE)
-            else:
+            self._tryToHilight_Busy = True
+            picktype, pickobject = self.GetPick()
+            if pickobject and hasattr(pickobject, 'name') and pickobject.name[:6] == 'cursor':
+                scannerWnd = Scanner.GetIfOpen()
+                if scannerWnd:
+                    scannerWnd.HiliteCursor(pickobject)
                 self.HighlightBorderOfProbe()
                 if uicore.uilib.mouseOver == self:
                     uicore.uilib.SetCursor(uiconst.UICURSOR_SELECTDOWN)
-        if self.destroyed:
+            else:
+                scannerWnd = Scanner.GetIfOpen()
+                if scannerWnd:
+                    scannerWnd.HiliteCursor()
+                pickedProbeControl = self.TryPickSphereBorder()
+                blue.pyos.synchro.SleepWallclock(100)
+                if self.destroyed:
+                    return
+                _pickedProbeControl = self.TryPickSphereBorder()
+                if _pickedProbeControl and _pickedProbeControl == pickedProbeControl:
+                    self.HighlightBorderOfProbe(pickedProbeControl)
+                    uicore.uilib.SetCursor(uiconst.UICURSOR_DRAGGABLE)
+                else:
+                    self.HighlightBorderOfProbe()
+                    if uicore.uilib.mouseOver == self:
+                        uicore.uilib.SetCursor(uiconst.UICURSOR_SELECTDOWN)
+            if self.destroyed:
+                return
+            self._tryToHilight_Busy = False
+            if getattr(self, '_tryToHilight_Pending', None):
+                self._tryToHilight_Pending = False
+                self.TryToHilight()
             return
-        self._tryToHilight_Busy = False
-        if getattr(self, '_tryToHilight_Pending', None):
-            self._tryToHilight_Pending = False
-            self.TryToHilight()
 
     def TryPickSphereBorder(self):
         matches = []
@@ -444,8 +456,10 @@ class SystemMapLayer(uicls.LayerCore):
         if matches:
             matches = uiutil.SortListOfTuples(matches)
             return matches[0]
+        else:
+            return
 
-    def HighlightBorderOfProbe(self, probeControl = None):
+    def HighlightBorderOfProbe(self, probeControl=None):
         scannerWnd = Scanner.GetIfOpen()
         if scannerWnd:
             probes = scannerWnd.GetProbeSpheres()

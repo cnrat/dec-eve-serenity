@@ -1,11 +1,12 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\carbon\common\stdlib\encodings\utf_8_sig.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\carbon\common\stdlib\encodings\utf_8_sig.py
 import codecs
 
-def encode(input, errors = 'strict'):
+def encode(input, errors='strict'):
     return (codecs.BOM_UTF8 + codecs.utf_8_encode(input, errors)[0], len(input))
 
 
-def decode(input, errors = 'strict'):
+def decode(input, errors='strict'):
     prefix = 0
     if input[:3] == codecs.BOM_UTF8:
         input = input[3:]
@@ -16,11 +17,11 @@ def decode(input, errors = 'strict'):
 
 class IncrementalEncoder(codecs.IncrementalEncoder):
 
-    def __init__(self, errors = 'strict'):
+    def __init__(self, errors='strict'):
         codecs.IncrementalEncoder.__init__(self, errors)
         self.first = 1
 
-    def encode(self, input, final = False):
+    def encode(self, input, final=False):
         if self.first:
             self.first = 0
             return codecs.BOM_UTF8 + codecs.utf_8_encode(input, self.errors)[0]
@@ -40,7 +41,7 @@ class IncrementalEncoder(codecs.IncrementalEncoder):
 
 class IncrementalDecoder(codecs.BufferedIncrementalDecoder):
 
-    def __init__(self, errors = 'strict'):
+    def __init__(self, errors='strict'):
         codecs.BufferedIncrementalDecoder.__init__(self, errors)
         self.first = True
 
@@ -71,7 +72,7 @@ class StreamWriter(codecs.StreamWriter):
         except AttributeError:
             pass
 
-    def encode(self, input, errors = 'strict'):
+    def encode(self, input, errors='strict'):
         self.encode = codecs.utf_8_encode
         return encode(input, errors)
 
@@ -85,7 +86,7 @@ class StreamReader(codecs.StreamReader):
         except AttributeError:
             pass
 
-    def decode(self, input, errors = 'strict'):
+    def decode(self, input, errors='strict'):
         if len(input) < 3:
             if codecs.BOM_UTF8.startswith(input):
                 return (u'', 0)

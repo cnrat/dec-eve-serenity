@@ -1,4 +1,7 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\common\modules\nice\client\_nastyspace\svc.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\common\modules\nice\client\_nastyspace\svc.py
+from eve.client.script.ui.shared.assets.assetSafetySvc import AssetSafetySvc as assetSafety
+from eve.client.script.ui.structure.structureControllersSvc import StructureControllerSvc as structureControllers
 from liveupdates.liveupdatesvc import LiveUpdateSvc
 from carbon.common.script.entities.ActionObject import ActionObjectSvc as actionObjectSvc
 from carbon.common.script.entities.baseEntity import BaseEntityService
@@ -143,7 +146,6 @@ from eve.client.script.movement.apertureClient import ApertureClient as aperture
 from eve.client.script.movement.eveMovementClient import EveMovementClient as eveMovementClient
 from eve.client.script.parklife.areaWeapon import AreaWeaponSvc as areaWeapon
 from eve.client.script.parklife.autopilot import AutoPilot as autoPilot
-from eve.client.script.parklife.billboardMgr import BillboardMgr as billboard
 from eve.client.script.parklife.bracketMgr import BracketMgr as bracket
 from eve.client.script.parklife.consider import ConsiderSvc as consider
 from eve.client.script.parklife.damageSvc import DamageService as damage
@@ -217,6 +219,7 @@ from eve.client.script.ui.services.marketsvc import MarketQuote as marketQuote
 from eve.client.script.ui.services.medals import Medals as medals
 from eve.client.script.ui.services.menusvc import MenuSvc as menu
 from eve.client.script.ui.services.mouseInputSvc import MouseInputService as mouseInput
+from eve.client.script.ui.services.questSvc import QuestSvc as quest
 from eve.client.script.ui.services.redeemsvc import RedeemService as redeem
 from eve.client.script.ui.services.reprocessingsvc import ReprocessingSvc as reprocessing
 from eve.client.script.ui.services.shipConfigSvc import ShipConfigSvc as shipConfig
@@ -224,6 +227,14 @@ from eve.client.script.ui.services.skillQueueSvc import SkillQueueService as ski
 from eve.client.script.ui.services.skillsvc import SkillsSvc as skills
 from eve.client.script.ui.services.sovSvc import SovService as sov
 from eve.client.script.ui.services.standingsvc import Standing as standing
+from eve.client.script.ui.services.structure.structureControl import StructureControl as structureControl
+from eve.client.script.ui.services.structure.structureDeployment import StructureDeployment as structureDeployment
+from eve.client.script.ui.services.structure.structureDocking import StructureDocking as structureDocking
+from eve.client.script.ui.services.structure.structureDirectory import StructureDirectory as structureDirectory
+from eve.client.script.ui.services.structure.structureGuests import StructureGuests as structureGuests
+from eve.client.script.ui.services.structure.structureOffices import StructureOffices as structureOffices
+from eve.client.script.ui.services.structure.structureProximityTracker import StructureProximityTracker as structureProximityTracker
+from eve.client.script.ui.services.structure.structureServices import StructureServices as structureServices
 from eve.client.script.ui.services.tutorialsvc import TutorialSvc as tutorial
 from eve.client.script.ui.services.uipointersvc import UIPointerSvc as uipointerSvc
 from eve.client.script.ui.services.uisvc import UI as ui
@@ -313,3 +324,5 @@ from notifications.client.notificationUI import NotificationUIService as notific
 from achievements.client.achievementSvc import AchievementTrackerClientService as achievementSvc
 from eve.client.script.environment.prefetchSvc import PrefetchSvc as prefetchSvc
 from eve.client.script.ui.shared.fittingGhost.ghostFittingSvc import GhostFittingSvc as ghostFittingSvc
+from tacticalNavigation.tacticalNavigationService import TacticalNavigationService as tacticalNavigation
+from projectdiscovery.client.projectdiscoveryClientSvc import ProjectDiscoveryClientService as projectDiscoveryClient

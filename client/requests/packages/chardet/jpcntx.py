@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\packages\requests\packages\chardet\jpcntx.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\packages\requests\packages\chardet\jpcntx.py
 from .compat import wrap_ord
 NUM_OF_CATEGORY = 6
 DONT_KNOW = -1
@@ -6936,7 +6937,7 @@ class JapaneseContextAnalysis():
             return DONT_KNOW
 
     def get_order(self, aBuf):
-        return (-1, 1)
+        pass
 
 
 class SJISContextAnalysis(JapaneseContextAnalysis):
@@ -6945,13 +6946,13 @@ class SJISContextAnalysis(JapaneseContextAnalysis):
         if not aBuf:
             return (-1, 1)
         first_char = wrap_ord(aBuf[0])
-        if 129 <= first_char <= 159 or 224 <= first_char <= 252:
-            charLen = 2
+        if not 129 <= first_char <= 159:
+            charLen = 224 <= first_char <= 252 and 2
         else:
             charLen = 1
-        if len(aBuf) > 1:
-            second_char = wrap_ord(aBuf[1])
-            if first_char == 202 and 159 <= second_char <= 241:
+        second_char = len(aBuf) > 1 and wrap_ord(aBuf[1])
+        if first_char == 202:
+            if 159 <= second_char <= 241:
                 return (second_char - 159, charLen)
         return (-1, charLen)
 
@@ -6962,14 +6963,14 @@ class EUCJPContextAnalysis(JapaneseContextAnalysis):
         if not aBuf:
             return (-1, 1)
         first_char = wrap_ord(aBuf[0])
-        if first_char == 142 or 161 <= first_char <= 254:
-            charLen = 2
+        if not first_char == 142:
+            charLen = 161 <= first_char <= 254 and 2
         elif first_char == 143:
             charLen = 3
         else:
             charLen = 1
-        if len(aBuf) > 1:
-            second_char = wrap_ord(aBuf[1])
-            if first_char == 164 and 161 <= second_char <= 243:
+        second_char = len(aBuf) > 1 and wrap_ord(aBuf[1])
+        if first_char == 164:
+            if 161 <= second_char <= 243:
                 return (second_char - 161, charLen)
         return (-1, charLen)

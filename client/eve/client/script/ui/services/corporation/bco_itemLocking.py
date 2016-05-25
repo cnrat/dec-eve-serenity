@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\client\script\ui\services\corporation\bco_itemLocking.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\client\script\ui\services\corporation\bco_itemLocking.py
 import evetypes
 import util
 import blue
@@ -10,10 +11,12 @@ class ItemLockingO(corpObject.base):
     def __init__(self, boundObject):
         corpObject.base.__init__(self, boundObject)
         self.itemsByLocationID = None
+        return
 
     def DoSessionChanging(self, isRemote, session, change):
         if 'corpid' in change:
             self.itemsByLocationID = None
+        return
 
     def OnLockedItemChange(self, itemID, ownerID, locationID, change):
         try:
@@ -44,15 +47,18 @@ class ItemLockingO(corpObject.base):
         finally:
             sm.ScatterEvent('OnLockedItemChangeUI', itemID, ownerID, locationID, change)
 
+        return
+
     def GetLockedItemsByLocation(self, locationID):
         if self.itemsByLocationID is None:
             self.GetLockedItemLocations()
         if not self.itemsByLocationID.has_key(locationID):
             return {}
-        if self.itemsByLocationID[locationID] is None:
-            rows = self.GetCorpRegistry().GetLockedItemsByLocation(locationID)
-            self.itemsByLocationID[locationID] = rows
-        return self.itemsByLocationID[locationID]
+        else:
+            if self.itemsByLocationID[locationID] is None:
+                rows = self.GetCorpRegistry().GetLockedItemsByLocation(locationID)
+                self.itemsByLocationID[locationID] = rows
+            return self.itemsByLocationID[locationID]
 
     def GetLockedItemLocations(self):
         if self.itemsByLocationID is None:
@@ -75,7 +81,7 @@ class ItemLockingO(corpObject.base):
             return 1
         return self.IsItemIDLocked(itemID, item.locationID, item.typeID)
 
-    def IsItemIDLocked(self, itemID, locationID = None, typeID = None):
+    def IsItemIDLocked(self, itemID, locationID=None, typeID=None):
         stationID = None
         if locationID is not None:
             if eve.session.stationid:
@@ -87,8 +93,8 @@ class ItemLockingO(corpObject.base):
                 rows = self.corp__locations.GetMyCorporationsOffices().SelectByUniqueColumnValues('officeID', [locationID])
                 if rows and len(rows):
                     for row in rows:
-                        if locationID == row.officeID:
-                            stationID = row.stationID
+                        if locationID == row.officeID and util.IsStation(row.locationID):
+                            stationID = row.locationID
                             break
 
         if typeID is not None:
@@ -98,4 +104,5 @@ class ItemLockingO(corpObject.base):
             stationID = eve.session.stationid or eve.session.solarsystemid
         if stationID is not None:
             return self.GetLockedItemsByLocation(stationID).has_key(itemID)
-        return 0
+        else:
+            return 0

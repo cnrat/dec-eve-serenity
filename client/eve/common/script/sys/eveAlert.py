@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\common\script\sys\eveAlert.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\common\script\sys\eveAlert.py
 import svc
 
 class Alert(svc.alert):
@@ -11,4 +12,5 @@ class Alert(svc.alert):
              session.charid,
              session.solarsystemid2,
              session.stationid)
-        return (None, None, None, None)
+        else:
+            return (None, None, None, None)

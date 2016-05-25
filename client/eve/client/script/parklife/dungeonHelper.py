@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\client\script\parklife\dungeonHelper.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\client\script\parklife\dungeonHelper.py
 import blue
 import dungeonEditorTools
 import math
@@ -27,10 +28,11 @@ def IsObjectLocked(objectID):
         if dunObject is None:
             return (True, [])
         return dunObject.IsLocked()
-    return sm.RemoteSvc('dungeon').IsObjectLocked(objectID)
+    else:
+        return sm.RemoteSvc('dungeon').IsObjectLocked(objectID)
 
 
-def SetObjectPosition(objectID, x = None, y = None, z = None):
+def SetObjectPosition(objectID, x=None, y=None, z=None):
     scenario = sm.StartService('scenario')
     targetBall, slimItem = scenario.GetBallAndSlimItemFromObjectID(objectID)
     if slimItem is None:
@@ -53,9 +55,10 @@ def SetObjectPosition(objectID, x = None, y = None, z = None):
         targetModel.translationCurve.y += dY
         targetModel.translationCurve.z += dZ
     scenario.UpdateUnsavedObjectChanges(slimItem.itemID, dungeonEditorTools.CHANGE_TRANSLATION)
+    return
 
 
-def SetObjectRotation(objectID, yaw = None, pitch = None, roll = None):
+def SetObjectRotation(objectID, yaw=None, pitch=None, roll=None):
     scenario = sm.StartService('scenario')
     targetBall, slimItem = scenario.GetBallAndSlimItemFromObjectID(objectID)
     if slimItem is None:
@@ -63,20 +66,22 @@ def SetObjectRotation(objectID, yaw = None, pitch = None, roll = None):
     targetModel = getattr(targetBall, 'model', None)
     if not targetModel:
         return
-    try:
-        mYaw, mPitch, mRoll = geo2.QuaternionRotationGetYawPitchRoll(targetModel.rotationCurve.value)
-    except:
-        mYaw, mPitch, mRoll = targetBall.yaw, targetBall.pitch, targetBall.roll
+    else:
+        try:
+            mYaw, mPitch, mRoll = geo2.QuaternionRotationGetYawPitchRoll(targetModel.rotationCurve.value)
+        except:
+            mYaw, mPitch, mRoll = targetBall.yaw, targetBall.pitch, targetBall.roll
 
-    if yaw is None:
-        yaw = mYaw
-    if pitch is None:
-        pitch = mPitch
-    if roll is None:
-        roll = mRoll
-    targetBall.typeData['dunRotation'] = (yaw, pitch, roll)
-    targetBall.SetStaticRotation()
-    scenario.UpdateUnsavedObjectChanges(slimItem.itemID, dungeonEditorTools.CHANGE_ROTATION)
+        if yaw is None:
+            yaw = mYaw
+        if pitch is None:
+            pitch = mPitch
+        if roll is None:
+            roll = mRoll
+        targetBall.typeData['dunRotation'] = (yaw, pitch, roll)
+        targetBall.SetStaticRotation()
+        scenario.UpdateUnsavedObjectChanges(slimItem.itemID, dungeonEditorTools.CHANGE_ROTATION)
+        return
 
 
 def SetObjectRadius(objectID, radius):
@@ -88,6 +93,7 @@ def SetObjectRadius(objectID, radius):
         godma = sm.GetService('godma')
         computedQuantity = ComputeQuantityFromRadius(slimItem.categoryID, slimItem.groupID, slimItem.typeID, radius, godma)
         SetObjectQuantity(objectID, computedQuantity)
+    return
 
 
 def SetObjectQuantity(objectID, quantity):
@@ -98,23 +104,25 @@ def SetObjectQuantity(objectID, quantity):
     targetModel = getattr(targetBall, 'model', None)
     if not targetModel:
         return
-    if slimItem.categoryID == const.categoryAsteroid or slimItem.groupID in (const.groupHarvestableCloud, const.groupCloud):
-        godma = sm.GetService('godma')
-        computedRadius = ComputeRadiusFromQuantity(slimItem.categoryID, slimItem.groupID, slimItem.typeID, quantity, godma)
-        if hasattr(targetModel, 'modelScale'):
-            targetModel.modelScale = computedRadius
-        elif hasattr(targetModel, 'scaling'):
-            scaleVector = trinity.TriVector(computedRadius, computedRadius, computedRadius)
-            targetModel.scaling = scaleVector
-        else:
-            raise RuntimeError('Model has neither modelScale nor scaling')
-        slimItem.dunRadius = quantity
-        scenario.UpdateUnsavedObjectChanges(slimItem.itemID, dungeonEditorTools.CHANGE_SCALE)
     else:
-        raise RuntimeError("Can't scale type %d" % slimItem.categoryID)
+        if slimItem.categoryID == const.categoryAsteroid or slimItem.groupID in (const.groupHarvestableCloud, const.groupCloud):
+            godma = sm.GetService('godma')
+            computedRadius = ComputeRadiusFromQuantity(slimItem.categoryID, slimItem.groupID, slimItem.typeID, quantity, godma)
+            if hasattr(targetModel, 'modelScale'):
+                targetModel.modelScale = computedRadius
+            elif hasattr(targetModel, 'scaling'):
+                scaleVector = trinity.TriVector(computedRadius, computedRadius, computedRadius)
+                targetModel.scaling = scaleVector
+            else:
+                raise RuntimeError('Model has neither modelScale nor scaling')
+            slimItem.dunRadius = quantity
+            scenario.UpdateUnsavedObjectChanges(slimItem.itemID, dungeonEditorTools.CHANGE_SCALE)
+        else:
+            raise RuntimeError("Can't scale type %d" % slimItem.categoryID)
+        return
 
 
-def SaveObjectPosition(objectID, x = None, y = None, z = None):
+def SaveObjectPosition(objectID, x=None, y=None, z=None):
     if IsJessicaOpen():
         import dungeon
         dunObject = dungeon.Object.Get(objectID)
@@ -123,7 +131,7 @@ def SaveObjectPosition(objectID, x = None, y = None, z = None):
         sm.RemoteSvc('dungeon').EditObjectXYZ(objectID=objectID, x=x, y=y, z=z)
 
 
-def SaveObjectRotation(objectID, yaw = None, pitch = None, roll = None):
+def SaveObjectRotation(objectID, yaw=None, pitch=None, roll=None):
     if IsJessicaOpen():
         import dungeon
         dunObject = dungeon.Object.Get(objectID)
@@ -141,7 +149,7 @@ def SaveObjectRadius(objectID, radius):
         sm.RemoteSvc('dungeon').EditObjectRadius(objectID=objectID, radius=radius)
 
 
-def CopyObject(objectID, roomID, offsetX = 0.0, offsetY = 0.0, offsetZ = 0.0):
+def CopyObject(objectID, roomID, offsetX=0.0, offsetY=0.0, offsetZ=0.0):
     if IsJessicaOpen():
         import dungeon
         dunObject = dungeon.Object.Get(objectID)
@@ -167,7 +175,8 @@ def GetObjectRotation(objectID):
     targetModel = getattr(targetBall, 'model', None)
     if not targetModel or not targetModel.rotationCurve or not hasattr(targetModel.rotationCurve, 'value'):
         return (None, None, None)
-    return (x * 180.0 / math.pi for x in geo2.QuaternionRotationGetYawPitchRoll(targetModel.rotationCurve.value))
+    else:
+        return (x * 180.0 / math.pi for x in geo2.QuaternionRotationGetYawPitchRoll(targetModel.rotationCurve.value))
 
 
 def GetObjectQuantity(objectID):
@@ -178,13 +187,15 @@ def GetObjectQuantity(objectID):
     targetModel = getattr(targetBall, 'model', None)
     if not targetModel:
         return
-    if hasattr(targetModel, 'scaling') or hasattr(targetModel, 'modelScale'):
-        if not getattr(slimItem, 'dunRadius', None):
-            slimItem.dunRadius = targetBall.radius
-        if slimItem.categoryID == const.categoryAsteroid:
-            return slimItem.dunRadius
-        if slimItem.groupID in (const.groupHarvestableCloud, const.groupCloud):
-            return slimItem.dunRadius
+    else:
+        if hasattr(targetModel, 'scaling') or hasattr(targetModel, 'modelScale'):
+            if not getattr(slimItem, 'dunRadius', None):
+                slimItem.dunRadius = targetBall.radius
+            if slimItem.categoryID == const.categoryAsteroid:
+                return slimItem.dunRadius
+            if slimItem.groupID in (const.groupHarvestableCloud, const.groupCloud):
+                return slimItem.dunRadius
+        return
 
 
 def GetObjectRadius(objectID):
@@ -195,14 +206,16 @@ def GetObjectRadius(objectID):
     targetModel = getattr(targetBall, 'model', None)
     if not targetModel:
         return
-    if hasattr(targetModel, 'scaling') or hasattr(targetModel, 'modelScale'):
-        godma = sm.GetService('godma')
-        if not getattr(slimItem, 'dunRadius', None):
-            slimItem.dunRadius = ComputeQuantityFromRadius(slimItem.categoryID, slimItem.groupID, slimItem.typeID, targetBall.radius, godma)
-        if slimItem.categoryID == const.categoryAsteroid:
-            return ComputeRadiusFromQuantity(slimItem.categoryID, slimItem.groupID, slimItem.typeID, slimItem.dunRadius, godma)
-        if slimItem.groupID in (const.groupHarvestableCloud, const.groupCloud):
-            return ComputeRadiusFromQuantity(slimItem.categoryID, slimItem.groupID, slimItem.typeID, slimItem.dunRadius, godma)
+    else:
+        if hasattr(targetModel, 'scaling') or hasattr(targetModel, 'modelScale'):
+            godma = sm.GetService('godma')
+            if not getattr(slimItem, 'dunRadius', None):
+                slimItem.dunRadius = ComputeQuantityFromRadius(slimItem.categoryID, slimItem.groupID, slimItem.typeID, targetBall.radius, godma)
+            if slimItem.categoryID == const.categoryAsteroid:
+                return ComputeRadiusFromQuantity(slimItem.categoryID, slimItem.groupID, slimItem.typeID, slimItem.dunRadius, godma)
+            if slimItem.groupID in (const.groupHarvestableCloud, const.groupCloud):
+                return ComputeRadiusFromQuantity(slimItem.categoryID, slimItem.groupID, slimItem.typeID, slimItem.dunRadius, godma)
+        return
 
 
 def CreateObject(roomID, typeID, objectName, x, y, z, yaw, pitch, roll, radius):

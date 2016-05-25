@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\common\modules\nice\client\_nastyspace\eveparser.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\common\modules\nice\client\_nastyspace\eveparser.py
 from carbonui.control.editutils.parser import ErrorMsg
 from carbonui.control.editutils.parser import Parser as Html
 from carbonui.control.editutils.parser import HtmlAutoClose

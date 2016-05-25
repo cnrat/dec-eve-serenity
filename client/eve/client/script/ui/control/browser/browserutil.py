@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\client\script\ui\control\browser\browserutil.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\client\script\ui\control\browser\browserutil.py
 import evetypes
 import uiutil
 import util
@@ -34,9 +35,10 @@ def SanitizedTypeID(typeID):
 
     if typeID is None:
         return
-    if not evetypes.Exists(typeID):
+    elif not evetypes.Exists(typeID):
         return
-    return typeID
+    else:
+        return typeID
 
 
 def SanitizedItemID(itemID):
@@ -58,6 +60,8 @@ def SanitizedDestinationID(destinationID):
 
     if util.IsSolarSystem(destinationID) or util.IsStation(destinationID):
         return destinationID
+    else:
+        return None
 
 
 def SanitizedSolarsystemID(solarsystemID):
@@ -69,7 +73,8 @@ def SanitizedSolarsystemID(solarsystemID):
 
     if not util.IsSolarSystem(solarsystemID):
         return None
-    return solarsystemID
+    else:
+        return solarsystemID
 
 
 exports = {'browserutil.DefaultHomepage': DefaultHomepage,

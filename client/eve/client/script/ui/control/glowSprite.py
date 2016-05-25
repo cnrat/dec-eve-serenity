@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\client\script\ui\control\glowSprite.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\client\script\ui\control\glowSprite.py
 from carbonui.primitives.container import Container
 import carbonui.const as uiconst
 from carbonui.primitives.sprite import Sprite
@@ -31,6 +32,7 @@ class GlowSprite(Container):
         self.icon = SpriteThemeColored(bgParent=self, name='icon', state=uiconst.UI_DISABLED, align=uiconst.TOALL, blendMode=trinity.TR2_SBM_ADD, opacity=self.iconOpacity, colorType=uiconst.COLORTYPE_UIHILIGHTGLOW, color=self.color, texturePath=self.texturePath, rotation=self.rotation)
         self.glowIcon = None
         self.bgGradient = None
+        return
 
     def ConstructGlow(self):
         if not self.glowIcon:
@@ -76,7 +78,7 @@ class GlowSprite(Container):
     def LoadTexture(self, texturePath):
         self.SetTexturePath(texturePath)
 
-    def LoadIcon(self, iconNo, ignoreSize = False):
+    def LoadIcon(self, iconNo, ignoreSize=False):
         texturePath, _ = Icon.ConvertIconNoToResPath(iconNo)
         self.SetTexturePath(texturePath)
 

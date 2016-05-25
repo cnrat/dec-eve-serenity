@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\client\script\ui\services\uisvc.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\client\script\ui\services\uisvc.py
 import service
 import carbonui.const as uiconst
 import mathUtil
@@ -28,8 +29,9 @@ class UI(service.Service):
         self.blink_running = False
         uicore.event.RegisterForTriuiEvents([uiconst.UI_KEYUP], self.CheckKeyUp)
         self.cursorSurfaces = {}
+        return
 
-    def Stop(self, memStream = None):
+    def Stop(self, memStream=None):
         self.LogInfo('Stopping UI Service')
         self.blink_running = False
         self.cursorSurfaces.clear()
@@ -41,7 +43,7 @@ class UI(service.Service):
             self.remPending = []
         self.remPending.append(id(sprite))
 
-    def BlinkSpriteA(self, sprite, a, time = 1000.0, maxCount = 10, passColor = 1, minA = 0.0, timeFunc = blue.os.GetWallclockTime):
+    def BlinkSpriteA(self, sprite, a, time=1000.0, maxCount=10, passColor=1, minA=0.0, timeFunc=blue.os.GetWallclockTime):
         if not hasattr(self, 'blinksA'):
             self.blinksA = {}
         key = id(sprite)
@@ -58,7 +60,7 @@ class UI(service.Service):
             self.blink_running = True
             uthread.new(self._BlinkThread)
 
-    def BlinkSpriteRGB(self, sprite, r, g, b, time = 1000.0, maxCount = 10, passColor = 1, timeFunc = blue.os.GetWallclockTime):
+    def BlinkSpriteRGB(self, sprite, r, g, b, time=1000.0, maxCount=10, passColor=1, timeFunc=blue.os.GetWallclockTime):
         if not hasattr(self, 'blinksRGB'):
             self.blinksRGB = {}
         key = id(sprite)
@@ -190,7 +192,9 @@ class UI(service.Service):
             log.LogException()
             sys.exc_clear()
 
-    def Fade(self, fr, to, sprite, time = 500.0, timeFunc = blue.os.GetWallclockTime):
+        return
+
+    def Fade(self, fr, to, sprite, time=500.0, timeFunc=blue.os.GetWallclockTime):
         ndt = 0.0
         start = timeFunc()
         while ndt != 1.0:
@@ -198,7 +202,7 @@ class UI(service.Service):
             sprite.color.a = mathUtil.Lerp(fr, to, ndt)
             blue.pyos.synchro.Yield()
 
-    def FadeRGB(self, fr, to, sprite, time = 500.0, timeFunc = blue.os.GetWallclockTime):
+    def FadeRGB(self, fr, to, sprite, time=500.0, timeFunc=blue.os.GetWallclockTime):
         ndt = 0.0
         start = timeFunc()
         while ndt != 1.0:
@@ -208,7 +212,7 @@ class UI(service.Service):
             sprite.color.b = mathUtil.Lerp(fr[2], to[2], ndt)
             blue.pyos.synchro.Yield()
 
-    def Rotate(self, uitransform, time = 1.0, fromRot = 360.0, toRot = 0.0, timeFunc = blue.os.GetWallclockTime):
+    def Rotate(self, uitransform, time=1.0, fromRot=360.0, toRot=0.0, timeFunc=blue.os.GetWallclockTime):
         uthread.new(self._Rotate, uitransform, time, fromRot, toRot, timeFunc)
 
     def _Rotate(self, uitransform, time, fromRot, toRot, timeFunc):
@@ -255,7 +259,6 @@ class UI(service.Service):
                 return 1
         if vkey == uiconst.VK_CONTROL:
             return self.CheckCtrlUp(wnd, msgID, vkey)
-        return 1
 
     def CheckCtrlUp(self, wnd, msgID, ckey):
         if eve.chooseWndMenu and not eve.chooseWndMenu.destroyed and eve.chooseWndMenu.state != uiconst.UI_HIDDEN:
@@ -263,7 +266,7 @@ class UI(service.Service):
         eve.chooseWndMenu = None
         return 1
 
-    def GetStation(self, stationid, getall = 0):
+    def GetStation(self, stationid, getall=0):
         if self.stationsdata is None:
             data = sm.RemoteSvc('map').GetStationExtraInfo()
             self.stationsdata = data[0].Index('stationID')
@@ -271,9 +274,10 @@ class UI(service.Service):
             self.services = data[2]
         if getall:
             return (self.stationsdata.get(stationid, None), self.opservices, self.services)
-        return self.stationsdata.get(stationid, None)
+        else:
+            return self.stationsdata.get(stationid, None)
 
-    def SetFreezeOverview(self, freeze = True):
+    def SetFreezeOverview(self, freeze=True):
         overview = form.OverView.GetIfOpen()
         if overview:
             overview.SetFreezeOverview(freeze)

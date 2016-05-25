@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\client\script\environment\vgsService.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\client\script\environment\vgsService.py
 import service
 from eve.client.script.ui.view.aurumstore.vgsUiController import VgsUiController
 from eve.client.script.ui.view.viewStateConst import ViewState
@@ -20,7 +21,7 @@ class VgsService(service.Service):
      'OnUIScalingChange']
     __exportedcalls__ = {'ShowRedeemUI': [service.ROLE_IGB]}
 
-    def Run(self, memStream = None):
+    def Run(self, memStream=None):
         self.LogInfo('Starting Vgs Service')
         self.vgsCrestConnection = VgsCrestConnection(DEFAULT_STORE, self.crestConnectionService)
         self.store = Store(self.vgsCrestConnection, lockImpl=locks.Lock)
@@ -65,3 +66,4 @@ class VgsService(service.Service):
             self.viewState.CloseSecondaryView(ViewState.VirtualGoodsStore)
         if session.charid is None:
             uicore.layer.charsel.EnterRedeemMode(animate=True)
+        return

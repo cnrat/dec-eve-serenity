@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\carbon\common\lib\jinja2\testsuite\ext.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\carbon\common\lib\jinja2\testsuite\ext.py
 import re
 import unittest
 from jinja2.testsuite import JinjaTestCase
@@ -79,7 +80,7 @@ class TestExtension(Extension):
 
 class PreprocessorExtension(Extension):
 
-    def preprocess(self, source, name, filename = None):
+    def preprocess(self, source, name, filename=None):
         return source.replace('[[TEST]]', '({{ foo }})')
 
 
@@ -116,6 +117,7 @@ class StreamFilterExtension(Extension):
 
         if pos < end:
             yield Token(lineno, 'data', token.value[pos:])
+        return
 
 
 class ExtensionsTestCase(JinjaTestCase):

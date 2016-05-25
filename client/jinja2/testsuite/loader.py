@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\carbon\common\lib\jinja2\testsuite\loader.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\carbon\common\lib\jinja2\testsuite\loader.py
 import os
 import sys
 import tempfile
@@ -69,7 +70,7 @@ class LoaderTestCase(JinjaTestCase):
 class ModuleLoaderTestCase(JinjaTestCase):
     archive = None
 
-    def compile_down(self, zip = 'deflated', py_compile = False):
+    def compile_down(self, zip='deflated', py_compile=False):
         super(ModuleLoaderTestCase, self).setup()
         log = []
         self.reg_env = Environment(loader=prefix_loader)
@@ -89,6 +90,7 @@ class ModuleLoaderTestCase(JinjaTestCase):
             else:
                 shutil.rmtree(self.archive)
             self.archive = None
+        return
 
     def test_log(self):
         log = self.compile_down()
@@ -110,6 +112,7 @@ class ModuleLoaderTestCase(JinjaTestCase):
     def test_filesystem_compile(self):
         self.compile_down(zip=None)
         self._test_common()
+        return
 
     def test_weak_references(self):
         self.compile_down()
@@ -122,6 +125,8 @@ class ModuleLoaderTestCase(JinjaTestCase):
             gc.collect()
         except:
             pass
+
+        return
 
     def test_byte_compilation(self):
         log = self.compile_down(py_compile=True)

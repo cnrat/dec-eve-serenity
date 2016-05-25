@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\client\script\ui\inflight\target.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\client\script\ui\inflight\target.py
 from eve.client.script.ui.shared.stateFlag import AddAndSetFlagIcon
 from gametime import GetDurationInClient, GetSimTime
 import uicontrols
@@ -53,6 +54,7 @@ class Target(uiprimitives.Container):
         self.timerNames = {'propulsion': localization.GetByLabel('UI/Inflight/ScramblingShort'),
          'electronic': localization.GetByLabel('UI/Inflight/JammingShort'),
          'unknown': localization.GetByLabel('UI/Inflight/MiscellaneousShort')}
+        return
 
     def OnUIRefresh(self):
         self.Flush()
@@ -61,6 +63,7 @@ class Target(uiprimitives.Container):
         if bp is not None:
             slimItem = bp.GetInvItem(self.id)
         self.Startup(slimItem)
+        return
 
     def Startup(self, slimItem):
         sm.RegisterNotify(self)
@@ -267,6 +270,7 @@ class Target(uiprimitives.Container):
 
         else:
             return None
+        return None
 
     def ArrangeGauges(self):
         if self.gaugesInited:
@@ -279,9 +283,11 @@ class Target(uiprimitives.Container):
         if bp is None:
             self.sr.updateTimer = None
             return
-        dmg = bp.GetDamageState(self.itemID)
-        if dmg is not None:
-            self.SetDamageState(dmg)
+        else:
+            dmg = bp.GetDamageState(self.itemID)
+            if dmg is not None:
+                self.SetDamageState(dmg)
+            return
 
     def SetDamageState(self, state):
         self.InitGauges()
@@ -306,6 +312,7 @@ class Target(uiprimitives.Container):
 
         self.gaugesVisible = visible
         self.ArrangeGauges()
+        return
 
     def SetHint(self, gauge, percLeft):
         if gauge.name == 'gauge_shield':
@@ -349,6 +356,7 @@ class Target(uiprimitives.Container):
     def _OnClose(self, *args):
         sm.UnregisterNotify(self)
         self.sr.updateTimer = None
+        return
 
     def ProcessShipEffect(self, godmaStm, effectState):
         slimItem = self.slimItem()
@@ -363,17 +371,20 @@ class Target(uiprimitives.Container):
             else:
                 self.RemoveWeapon(effectState.itemID)
                 self.activeModules.pop(effectState.itemID, None)
+        return
 
     def AddWeapon(self, moduleInfo):
         if self is None or self.destroyed:
             return
-        icon = uicontrols.Icon(parent=self.sr.assigned, align=uiconst.RELATIVE, width=16, height=16, state=uiconst.UI_HIDDEN, typeID=moduleInfo.typeID, size=32)
-        icon.sr.moduleID = moduleInfo.itemID
-        icon.OnClick = (self.ClickWeapon, icon)
-        icon.OnMouseEnter = (self.OnMouseEnterWeapon, icon)
-        icon.OnMouseExit = (self.OnMouseExitWeapon, icon)
-        icon.baseAlpha = 1.0
-        self.ArrangeWeapons()
+        else:
+            icon = uicontrols.Icon(parent=self.sr.assigned, align=uiconst.RELATIVE, width=16, height=16, state=uiconst.UI_HIDDEN, typeID=moduleInfo.typeID, size=32)
+            icon.sr.moduleID = moduleInfo.itemID
+            icon.OnClick = (self.ClickWeapon, icon)
+            icon.OnMouseEnter = (self.OnMouseEnterWeapon, icon)
+            icon.OnMouseExit = (self.OnMouseExitWeapon, icon)
+            icon.baseAlpha = 1.0
+            self.ArrangeWeapons()
+            return
 
     def ClickWeapon(self, icon):
         if uicore.layer.shipui:
@@ -414,18 +425,24 @@ class Target(uiprimitives.Container):
     def GetWeapon(self, moduleID):
         if self is None or self.destroyed:
             return
-        if self.sr.assigned:
-            for each in self.sr.assigned.children:
-                if each.sr.moduleID == moduleID:
-                    return each
+        else:
+            if self.sr.assigned:
+                for each in self.sr.assigned.children:
+                    if each.sr.moduleID == moduleID:
+                        return each
+
+            return
 
     def GetModuleInfo(self, moduleID):
         ship = sm.GetService('godma').GetItem(eve.session.shipid)
         if ship is None:
             return
-        for module in ship.modules:
-            if module.itemID == moduleID:
-                return module
+        else:
+            for module in ship.modules:
+                if module.itemID == moduleID:
+                    return module
+
+            return
 
     def OnClick(self, *args):
         sm.GetService('state').SetState(self.itemID, state.selected, 1)
@@ -442,29 +459,31 @@ class Target(uiprimitives.Container):
     def OnMouseDown(self, *args):
         if args[0] != uiconst.MOUSELEFT or len(uicore.layer.target.children) <= 1:
             return
-        horizontalAlign = settings.user.ui.Get('alignHorizontally', True)
-        rows, cols = sm.GetService('target').GetTargetsSize()
-        width = height = 0
-        left = top = None
-        for target in uicore.layer.target.children:
-            if isinstance(target, xtriui.Target):
-                tl, tt, tw, th = target.GetAbsolute()
-                width = max(int(cols * tw), width)
-                height = max(int(rows * th), height)
-                if left == None:
-                    left = tl
-                else:
-                    left = min(left, tl)
-                if top == None:
-                    top = tt
-                else:
-                    top = min(top, tt)
+        else:
+            horizontalAlign = settings.user.ui.Get('alignHorizontally', True)
+            rows, cols = sm.GetService('target').GetTargetsSize()
+            width = height = 0
+            left = top = None
+            for target in uicore.layer.target.children:
+                if isinstance(target, xtriui.Target):
+                    tl, tt, tw, th = target.GetAbsolute()
+                    width = max(int(cols * tw), width)
+                    height = max(int(rows * th), height)
+                    if left == None:
+                        left = tl
+                    else:
+                        left = min(left, tl)
+                    if top == None:
+                        top = tt
+                    else:
+                        top = min(top, tt)
 
-        clipper = (left,
-         top,
-         left + width,
-         top + height)
-        uthread.new(self.DoRepositionDrag, clipper)
+            clipper = (left,
+             top,
+             left + width,
+             top + height)
+            uthread.new(self.DoRepositionDrag, clipper)
+            return
 
     def OnMouseUp(self, *args):
         if args[0] != uiconst.MOUSELEFT:
@@ -498,9 +517,9 @@ class Target(uiprimitives.Container):
             (x, y), (toLeft, toTop) = targetSvc.GetOriginPosition(getDirection=1)
             lessThanAll = True
             for target in uicore.layer.target.children:
-                if isinstance(target, xtriui.Target):
-                    tl, tt, tw, th = target.GetAbsolute()
-                    if tl - 2 <= uicore.uilib.x <= tl + tw + 2 and tt - 2 <= uicore.uilib.y <= tt + th + 2:
+                tl, tt, tw, th = isinstance(target, xtriui.Target) and target.GetAbsolute()
+                if tl - 2 <= uicore.uilib.x <= tl + tw + 2:
+                    if tt - 2 <= uicore.uilib.y <= tt + th + 2:
                         if horizontalAlign:
                             repositionLine.padTop = repositionLine.padBottom = 32
                             if not toLeft:
@@ -543,6 +562,7 @@ class Target(uiprimitives.Container):
         uiutil.Transplant(self, uicore.layer.target, idx=uicore.layer.target.children.index(repositionLine.parent) if not lessThanAll else None)
         repositionLine.Close()
         targetSvc.ArrangeTargets()
+        return
 
     @telemetry.ZONE_METHOD
     def UpdateData(self):

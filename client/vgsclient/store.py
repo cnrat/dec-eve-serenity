@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\packages\vgsclient\store.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\packages\vgsclient\store.py
 from collections import defaultdict
 import contextlib
 import logging
@@ -34,6 +35,7 @@ class Store:
         self.categoriesById = None
         self.rootCategoriesById = None
         self.tagsById = None
+        return
 
     def GetAccount(self):
         return self.account
@@ -71,7 +73,7 @@ class Store:
             self.productsById = {product.id:product for product in self.vgsCrestConnection.GetProducts()}
         return self.productsById
 
-    def BuyOffer(self, offer, qty = 1):
+    def BuyOffer(self, offer, qty=1):
         if self.purchaseInProgress:
             return False
         self.purchaseInProgress = True
@@ -80,7 +82,7 @@ class Store:
         finally:
             self.purchaseInProgress = False
 
-    def PurchaseOffer(self, offer, quantity = 1):
+    def PurchaseOffer(self, offer, quantity=1):
         with self._PurchaseContext():
             try:
                 self.vgsCrestConnection.BuyOffer(offer, qty=quantity)
@@ -97,10 +99,10 @@ class Store:
         finally:
             self.purchaseInProgress = False
 
-    def GetSales(self, salesUri = None):
+    def GetSales(self, salesUri=None):
         return self.vgsCrestConnection.GetSales(salesUri)
 
-    def GetSale(self, saleUri = None):
+    def GetSale(self, saleUri=None):
         return self.vgsCrestConnection.GetSale(saleUri)
 
     def SearchOffers(self, searchString):
@@ -163,6 +165,8 @@ class Store:
         for category in self.rootCategoriesById.itervalues():
             category.subcategories.intersection_update(subCatIdsSeenByCatId[category.id])
 
+        return
+
     def GetCategories(self):
         if not self.categoriesById:
             self._ProcessCategories()
@@ -185,7 +189,7 @@ class Store:
         tagsById = self.GetTags()
         return [ tagsById[tagId] for tagId in category.tagIds ]
 
-    def GetFilteredOffers(self, categoryId, tags = set()):
+    def GetFilteredOffers(self, categoryId, tags=set()):
         categoryIds = {categoryId}
         if categoryId in self.categoriesById:
             category = self.categoriesById[categoryId]

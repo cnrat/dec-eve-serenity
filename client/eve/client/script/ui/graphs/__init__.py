@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\client\script\ui\graphs\__init__.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\client\script\ui\graphs\__init__.py
 
 
 def PrimeGraphData(graphData):
@@ -16,7 +17,7 @@ def PrimeGraphData(graphData):
 
 class GraphSegmentParams(object):
 
-    def __init__(self, proportion, color, tooltip = None, showMarker = False, sizeFactor = 1.0):
+    def __init__(self, proportion, color, tooltip=None, showMarker=False, sizeFactor=1.0):
         self.proportion = proportion
         self.color = color
         self.tooltip = tooltip

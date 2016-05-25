@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\packages\typeutils\__init__.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\packages\typeutils\__init__.py
 from __future__ import print_function
 import sys
 import itertools
@@ -30,7 +31,7 @@ class ComparableMixin(object):
         return not other < self
 
 
-def float_eval(value, default = 0.0):
+def float_eval(value, default=0.0):
     if isinstance(value, float):
         return value
     if isinstance(value, (int, long)):
@@ -45,7 +46,7 @@ def float_eval(value, default = 0.0):
         return default
 
 
-def int_eval(value, default = 0):
+def int_eval(value, default=0):
     if isinstance(value, int):
         return value
     if isinstance(value, (long, float)):
@@ -91,7 +92,7 @@ def bool_eval(value):
         return False
 
 
-def total_size(o, handlers = None, verbose = False):
+def total_size(o, handlers=None, verbose=False):
     dict_handler = lambda d: itertools.chain.from_iterable(d.items())
     all_handlers = {tuple: iter,
      list: iter,
@@ -192,7 +193,7 @@ class SentientObject(object):
     __sentient_method_map__ = {}
 
     @classmethod
-    def sentient_methods(cls, inherited = True):
+    def sentient_methods(cls, inherited=True):
         buff = cls.__sentient_method_map__[cls.__name__]
         if inherited:
             for basecls in cls.__bases__:

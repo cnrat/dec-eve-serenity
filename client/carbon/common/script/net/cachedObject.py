@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\carbon\common\script\net\cachedObject.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\carbon\common\script\net\cachedObject.py
 import binascii
 import zlib
 import blue
@@ -15,7 +16,7 @@ class CachedObject:
      '__objectVersion__',
      '__shared__']
 
-    def __init__(self, shared, objectID, cachedObject, objectVersion = None):
+    def __init__(self, shared, objectID, cachedObject, objectVersion=None):
         self.__shared__ = shared
         self.__objectID__ = objectID
         self.__nodeID__ = sm.GetService('machoNet').GetNodeID()
@@ -36,6 +37,7 @@ class CachedObject:
                     self.__compressed__ = 1
             if objectVersion is None:
                 self.__objectVersion__ = (self.__objectVersion__[0], binascii.crc_hqx(self.__thePickle__, macho.version + 170472))
+        return
 
     def __getstate__(self):
         ret = [ getattr(self, attr) for attr in self.__persistvar__ ]
@@ -73,6 +75,7 @@ class CachedObject:
         self.__cachedObject__ = None
         self.__thePickle__ = None
         self.__compressed__ = 0
+        return
 
     def __getattr__(self, key):
         if key == '__getinitargs__':
@@ -93,18 +96,20 @@ class CachedObject:
     def __UpdateCache(self):
         if self.__cachedObject__ is not None:
             return
-        if '__semaphore__' not in self.__dict__:
-            s = uthread.Semaphore(('cachedObject',
-             self.__objectID__,
-             self.__objectVersion__,
-             self.__nodeID__))
-            self.__semaphore__ = s
-        with self.__semaphore__:
-            if self.__cachedObject__ is None:
-                self.__cachedObject__ = sm.GetService('objectCaching').GetCachableObject(self.__shared__, self.__objectID__, self.__objectVersion__, self.__nodeID__).GetObject()
-        if '__semaphore__' in self.__dict__:
-            if self.__semaphore__.IsCool():
-                del self.__semaphore__
+        else:
+            if '__semaphore__' not in self.__dict__:
+                s = uthread.Semaphore(('cachedObject',
+                 self.__objectID__,
+                 self.__objectVersion__,
+                 self.__nodeID__))
+                self.__semaphore__ = s
+            with self.__semaphore__:
+                if self.__cachedObject__ is None:
+                    self.__cachedObject__ = sm.GetService('objectCaching').GetCachableObject(self.__shared__, self.__objectID__, self.__objectVersion__, self.__nodeID__).GetObject()
+            if '__semaphore__' in self.__dict__:
+                if self.__semaphore__.IsCool():
+                    del self.__semaphore__
+            return
 
     def GetCachedObject(self):
         self.__UpdateCache()

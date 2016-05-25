@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\carbon\common\lib\cherrypy\_cpconfig.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\carbon\common\lib\cherrypy\_cpconfig.py
 import cherrypy
 from cherrypy._cpcompat import set, basestring
 from cherrypy.lib import reprconf
@@ -28,6 +29,7 @@ class Config(reprconf.Config):
         if 'tools.staticdir.dir' in config:
             config['tools.staticdir.section'] = 'global'
         reprconf.Config._apply(self, config)
+        return
 
     def __call__(self, *args, **kwargs):
         if args:
@@ -125,6 +127,7 @@ def _engine_namespace_handler(k, v):
         setattr(plugin, attrname, v)
     else:
         setattr(engine, k, v)
+    return
 
 
 Config.namespaces['engine'] = _engine_namespace_handler

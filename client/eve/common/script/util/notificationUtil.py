@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\common\script\util\notificationUtil.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\common\script\util\notificationUtil.py
 import sys
 import types
 import yaml
@@ -51,7 +52,7 @@ def CreateItemInfoLink(itemID):
      'itemName': item.name}
 
 
-def CreateLocationInfoLink(locationID, locationTypeID = None):
+def CreateLocationInfoLink(locationID, locationTypeID=None):
     locationName = cfg.evelocations.Get(locationID).name
     if locationTypeID is None:
         if idCheckers.IsRegion(locationID):
@@ -68,7 +69,8 @@ def CreateLocationInfoLink(locationID, locationTypeID = None):
             locationTypeID = stationinfo.stationTypeID
     if locationTypeID is None:
         return locationName
-    return localization.GetByLabel('UI/Contracts/ContractsWindow/ShowInfoLink', showInfoName=locationName, info=('showinfo', locationTypeID, locationID))
+    else:
+        return localization.GetByLabel('UI/Contracts/ContractsWindow/ShowInfoLink', showInfoName=locationName, info=('showinfo', locationTypeID, locationID))
 
 
 def CreateTypeInfoLink(typeID):
@@ -88,29 +90,31 @@ def GetAgent(agentID):
         agent.factionID = sm.GetService('corporationSvc').GetFactionIDByCorpID(agent.corporationID)
         agent.solarsystemID = station.solarSystemID
         return agent
+        return
 
 
 def GetAgentArgs(agentID):
     agentInfo = GetAgent(agentID)
     if not agentInfo:
         return {}
-    agentArgs = {'agentID': agentInfo.agentID}
-    agentArgs['agentCorpID'] = agentInfo.corporationID
-    agentArgs['agentFactionID'] = agentInfo.factionID
-    agentArgs['agentSolarSystemID'] = agentInfo.solarsystemID
-    agentArgs['agentLocation'] = agentInfo.solarsystemID
-    if getattr(agentInfo, 'stationID', None):
-        agentArgs['agentStationID'] = agentInfo.stationID
-        agentArgs['agentLocation'] = agentInfo.stationID
-    if boot.role == 'client':
-        mapSvc = sm.GetService('map')
-        agentArgs['agentConstellationID'] = mapSvc.GetConstellationForSolarSystem(agentInfo.solarsystemID)
-        agentArgs['agentRegionID'] = mapSvc.GetRegionForSolarSystem(agentInfo.solarsystemID)
     else:
-        ss = sm.GetService('stationSvc').GetSolarSystem(agentInfo.solarsystemID)
-        agentArgs['agentConstellationID'] = ss.constellationID
-        agentArgs['agentRegionID'] = ss.regionID
-    return agentArgs
+        agentArgs = {'agentID': agentInfo.agentID}
+        agentArgs['agentCorpID'] = agentInfo.corporationID
+        agentArgs['agentFactionID'] = agentInfo.factionID
+        agentArgs['agentSolarSystemID'] = agentInfo.solarsystemID
+        agentArgs['agentLocation'] = agentInfo.solarsystemID
+        if getattr(agentInfo, 'stationID', None):
+            agentArgs['agentStationID'] = agentInfo.stationID
+            agentArgs['agentLocation'] = agentInfo.stationID
+        if boot.role == 'client':
+            mapSvc = sm.GetService('map')
+            agentArgs['agentConstellationID'] = mapSvc.GetConstellationForSolarSystem(agentInfo.solarsystemID)
+            agentArgs['agentRegionID'] = mapSvc.GetRegionForSolarSystem(agentInfo.solarsystemID)
+        else:
+            ss = sm.GetService('stationSvc').GetSolarSystem(agentInfo.solarsystemID)
+            agentArgs['agentConstellationID'] = ss.constellationID
+            agentArgs['agentRegionID'] = ss.regionID
+        return agentArgs
 
 
 def ParamCharacterTerminationNotification(notification):
@@ -379,16 +383,17 @@ def ParamStoryLineMissionAvailableNotification(notification):
         res = notification.data
         res['body'] = localization.GetByLabel('Notifications/bodyAgentRetired')
         return res
-    res = {'agent_corporationName': CreateItemInfoLink(agent.corporationID),
-     'agent_agentID': agent.agentID,
-     'agent_stationID': agent.stationID,
-     'agent_solarsystemID': agent.solarsystemID}
-    notification.data.update(res)
-    if agent.stationID:
-        res['body'] = localization.GetByLabel('Notifications/bodyStoryLineMissionAvilableStation', **notification.data)
     else:
-        res['body'] = localization.GetByLabel('Notifications/bodyStoryLineMissionAvilableSpace', **notification.data)
-    return res
+        res = {'agent_corporationName': CreateItemInfoLink(agent.corporationID),
+         'agent_agentID': agent.agentID,
+         'agent_stationID': agent.stationID,
+         'agent_solarsystemID': agent.solarsystemID}
+        notification.data.update(res)
+        if agent.stationID:
+            res['body'] = localization.GetByLabel('Notifications/bodyStoryLineMissionAvilableStation', **notification.data)
+        else:
+            res['body'] = localization.GetByLabel('Notifications/bodyStoryLineMissionAvilableSpace', **notification.data)
+        return res
 
 
 def ParamStationAggression1Notification(notification):

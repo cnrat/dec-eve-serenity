@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\client\script\ui\shared\mapView\colorModes\colorModeInfoSovereignty.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\client\script\ui\shared\mapView\colorModes\colorModeInfoSovereignty.py
 from carbon.common.script.util.timerstuff import AutoTimer
 from eve.client.script.ui.shared.mapView.colorModes.colorModeInfoBase import ColorModeInfoSearchBase
 from eve.client.script.ui.shared.maps.mapcommon import STARMODE_FACTION, STARMODE_FILTER_FACWAR_ALL
@@ -22,9 +23,11 @@ class ColorModeInfoSearch_Faction(ColorModeInfoSearchBase):
         self.delaySelectionTimer = None
         if not self.mapView:
             return
-        mapView = self.mapView()
-        if not mapView:
+        else:
+            mapView = self.mapView()
+            if not mapView:
+                return
+            from eve.client.script.ui.shared.mapView.mapViewColorHandler import SetColorStarsByFactionSearchArgs
+            SetColorStarsByFactionSearchArgs(filterFactionID)
+            uthread.new(mapView.SetViewColorMode, STARMODE_FACTION)
             return
-        from eve.client.script.ui.shared.mapView.mapViewColorHandler import SetColorStarsByFactionSearchArgs
-        SetColorStarsByFactionSearchArgs(filterFactionID)
-        uthread.new(mapView.SetViewColorMode, STARMODE_FACTION)

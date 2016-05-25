@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\carbon\common\stdlib\unittest\suite.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\carbon\common\stdlib\unittest\suite.py
 import sys
 from . import case
 from . import util
@@ -6,7 +7,7 @@ __unittest = True
 
 class BaseTestSuite(object):
 
-    def __init__(self, tests = ()):
+    def __init__(self, tests=()):
         self._tests = []
         self.addTests(tests)
 
@@ -64,7 +65,7 @@ class BaseTestSuite(object):
 
 class TestSuite(BaseTestSuite):
 
-    def run(self, result, debug = False):
+    def run(self, result, debug=False):
         topLevel = False
         if getattr(result, '_testRunEntered', False) is False:
             result._testRunEntered = topLevel = True
@@ -97,26 +98,29 @@ class TestSuite(BaseTestSuite):
         currentClass = test.__class__
         if currentClass == previousClass:
             return
-        if result._moduleSetUpFailed:
+        elif result._moduleSetUpFailed:
             return
-        if getattr(currentClass, '__unittest_skip__', False):
+        elif getattr(currentClass, '__unittest_skip__', False):
             return
-        try:
-            currentClass._classSetupFailed = False
-        except TypeError:
-            pass
-
-        setUpClass = getattr(currentClass, 'setUpClass', None)
-        if setUpClass is not None:
+        else:
             try:
-                setUpClass()
-            except Exception as e:
-                if isinstance(result, _DebugResult):
-                    raise
-                currentClass._classSetupFailed = True
-                className = util.strclass(currentClass)
-                errorName = 'setUpClass (%s)' % className
-                self._addClassOrModuleLevelException(result, e, errorName)
+                currentClass._classSetupFailed = False
+            except TypeError:
+                pass
+
+            setUpClass = getattr(currentClass, 'setUpClass', None)
+            if setUpClass is not None:
+                try:
+                    setUpClass()
+                except Exception as e:
+                    if isinstance(result, _DebugResult):
+                        raise
+                    currentClass._classSetupFailed = True
+                    className = util.strclass(currentClass)
+                    errorName = 'setUpClass (%s)' % className
+                    self._addClassOrModuleLevelException(result, e, errorName)
+
+            return
 
     def _get_previous_module(self, result):
         previousModule = None
@@ -130,23 +134,26 @@ class TestSuite(BaseTestSuite):
         currentModule = test.__class__.__module__
         if currentModule == previousModule:
             return
-        self._handleModuleTearDown(result)
-        result._moduleSetUpFailed = False
-        try:
-            module = sys.modules[currentModule]
-        except KeyError:
-            return
-
-        setUpModule = getattr(module, 'setUpModule', None)
-        if setUpModule is not None:
+        else:
+            self._handleModuleTearDown(result)
+            result._moduleSetUpFailed = False
             try:
-                setUpModule()
-            except Exception as e:
-                if isinstance(result, _DebugResult):
-                    raise
-                result._moduleSetUpFailed = True
-                errorName = 'setUpModule (%s)' % currentModule
-                self._addClassOrModuleLevelException(result, e, errorName)
+                module = sys.modules[currentModule]
+            except KeyError:
+                return
+
+            setUpModule = getattr(module, 'setUpModule', None)
+            if setUpModule is not None:
+                try:
+                    setUpModule()
+                except Exception as e:
+                    if isinstance(result, _DebugResult):
+                        raise
+                    result._moduleSetUpFailed = True
+                    errorName = 'setUpModule (%s)' % currentModule
+                    self._addClassOrModuleLevelException(result, e, errorName)
+
+            return
 
     def _addClassOrModuleLevelException(self, result, exception, errorName):
         error = _ErrorHolder(errorName)
@@ -155,49 +162,56 @@ class TestSuite(BaseTestSuite):
             addSkip(error, str(exception))
         else:
             result.addError(error, sys.exc_info())
+        return
 
     def _handleModuleTearDown(self, result):
         previousModule = self._get_previous_module(result)
         if previousModule is None:
             return
-        if result._moduleSetUpFailed:
+        elif result._moduleSetUpFailed:
             return
-        try:
-            module = sys.modules[previousModule]
-        except KeyError:
-            return
-
-        tearDownModule = getattr(module, 'tearDownModule', None)
-        if tearDownModule is not None:
+        else:
             try:
-                tearDownModule()
-            except Exception as e:
-                if isinstance(result, _DebugResult):
-                    raise
-                errorName = 'tearDownModule (%s)' % previousModule
-                self._addClassOrModuleLevelException(result, e, errorName)
+                module = sys.modules[previousModule]
+            except KeyError:
+                return
+
+            tearDownModule = getattr(module, 'tearDownModule', None)
+            if tearDownModule is not None:
+                try:
+                    tearDownModule()
+                except Exception as e:
+                    if isinstance(result, _DebugResult):
+                        raise
+                    errorName = 'tearDownModule (%s)' % previousModule
+                    self._addClassOrModuleLevelException(result, e, errorName)
+
+            return
 
     def _tearDownPreviousClass(self, test, result):
         previousClass = getattr(result, '_previousTestClass', None)
         currentClass = test.__class__
         if currentClass == previousClass:
             return
-        if getattr(previousClass, '_classSetupFailed', False):
+        elif getattr(previousClass, '_classSetupFailed', False):
             return
-        if getattr(result, '_moduleSetUpFailed', False):
+        elif getattr(result, '_moduleSetUpFailed', False):
             return
-        if getattr(previousClass, '__unittest_skip__', False):
+        elif getattr(previousClass, '__unittest_skip__', False):
             return
-        tearDownClass = getattr(previousClass, 'tearDownClass', None)
-        if tearDownClass is not None:
-            try:
-                tearDownClass()
-            except Exception as e:
-                if isinstance(result, _DebugResult):
-                    raise
-                className = util.strclass(previousClass)
-                errorName = 'tearDownClass (%s)' % className
-                self._addClassOrModuleLevelException(result, e, errorName)
+        else:
+            tearDownClass = getattr(previousClass, 'tearDownClass', None)
+            if tearDownClass is not None:
+                try:
+                    tearDownClass()
+                except Exception as e:
+                    if isinstance(result, _DebugResult):
+                        raise
+                    className = util.strclass(previousClass)
+                    errorName = 'tearDownClass (%s)' % className
+                    self._addClassOrModuleLevelException(result, e, errorName)
+
+            return
 
 
 class _ErrorHolder(object):
@@ -225,7 +239,7 @@ class _ErrorHolder(object):
         return self.run(result)
 
     def countTestCases(self):
-        return 0
+        pass
 
 
 def _isnotsuite(test):

@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\packages\carbonui\primitives\frame.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\packages\carbonui\primitives\frame.py
 import carbonui.const as uiconst
 import trinity
 from carbonui.primitives.container import Container
@@ -81,7 +82,7 @@ class Frame(TexturedBase):
 
         return property(**locals())
 
-    def LoadFrame(self, frameConst = None):
+    def LoadFrame(self, frameConst=None):
         frameConst = frameConst or uiconst.FRAME_BORDER1_CORNER0
         if len(frameConst) == 4:
             iconNo, cornerSize, offset, fillCenter = frameConst
@@ -103,7 +104,7 @@ class Frame(TexturedBase):
     def GetOffset(self):
         return self.offset
 
-    def SetCornerSize(self, cornerSize = 0):
+    def SetCornerSize(self, cornerSize=0):
         self.cornerSize = cornerSize
 
     def GetCornerSize(self):

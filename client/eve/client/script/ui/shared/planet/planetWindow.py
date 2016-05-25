@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\client\script\ui\shared\planet\planetWindow.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\client\script\ui\shared\planet\planetWindow.py
 from carbonui.control.menuLabel import MenuLabel
 from carbonui.primitives.container import Container
 from eve.client.script.ui.control.buttonGroup import ButtonGroup
@@ -48,6 +49,7 @@ class PlanetWindow(Window):
         viewPlanetLabel = GetByLabel('UI/ScienceAndIndustry/ScienceAndIndustryWindow/ViewPlanet')
         self.viewPlanetBtn = buttons.GetBtnByLabel(viewPlanetLabel)
         self.viewPlanetBtn.Disable()
+        return
 
     def GetPlanetScrollList(self):
         scrolllist = []
@@ -127,7 +129,9 @@ class PlanetWindow(Window):
     def ViewPlanet(self):
         if self.planetClickID is None:
             return
-        sm.GetService('viewState').ActivateView('planet', planetID=self.planetClickID)
+        else:
+            sm.GetService('viewState').ActivateView('planet', planetID=self.planetClickID)
+            return
 
     def OnPlanetEntryClick(self, entry):
         node = entry.sr.node

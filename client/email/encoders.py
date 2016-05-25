@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\carbon\common\stdlib\email\encoders.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\carbon\common\stdlib\email\encoders.py
 __all__ = ['encode_7or8bit',
  'encode_base64',
  'encode_noop',
@@ -40,12 +41,15 @@ def encode_7or8bit(msg):
     if orig is None:
         msg['Content-Transfer-Encoding'] = '7bit'
         return
-    try:
-        orig.encode('ascii')
-    except UnicodeError:
-        msg['Content-Transfer-Encoding'] = '8bit'
     else:
-        msg['Content-Transfer-Encoding'] = '7bit'
+        try:
+            orig.encode('ascii')
+        except UnicodeError:
+            msg['Content-Transfer-Encoding'] = '8bit'
+        else:
+            msg['Content-Transfer-Encoding'] = '7bit'
+
+        return
 
 
 def encode_noop(msg):

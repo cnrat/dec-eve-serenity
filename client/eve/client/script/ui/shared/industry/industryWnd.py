@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\client\script\ui\shared\industry\industryWnd.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\client\script\ui\shared\industry\industryWnd.py
 from math import pi
 from carbonui.primitives.containerAutoSize import ContainerAutoSize
 from eve.client.script.ui.control.buttons import ButtonIcon
@@ -97,6 +98,7 @@ class Industry(Window):
         else:
             self.expandBottomBtn.SetRotation(-pi)
         sm.GetService('audio').SendUIEvent('ind_windowOpened')
+        return
 
     def Close(self, *args, **kwargs):
         Window.Close(self, *args, **kwargs)
@@ -104,7 +106,7 @@ class Industry(Window):
             sm.GetService('industrySvc').DisconnectJob(self.jobData)
 
     @telemetry.ZONE_METHOD
-    def OnNewJobData(self, branchHistory = True):
+    def OnNewJobData(self, branchHistory=True):
         if self.jobData:
             settings.user.ui.Set('IndustryCurrentActivityID', self.jobData.activityID)
         self.jobsStrip.OnNewJobData(self.jobData)
@@ -115,7 +117,7 @@ class Industry(Window):
             self.UpdateHistoryButtons()
 
     @telemetry.ZONE_METHOD
-    def OnBlueprintsSelected(self, bpData, activityID = None, branchHistory = True):
+    def OnBlueprintsSelected(self, bpData, activityID=None, branchHistory=True):
         self.pendingBlueprint = (bpData, activityID, branchHistory)
         if not self.loadBlueprintThread:
             self.loadBlueprintThread = uthread.new(self._OnBlueprintSelected)
@@ -150,6 +152,8 @@ class Industry(Window):
         finally:
             self.loadBlueprintThread = None
 
+        return
+
     @telemetry.ZONE_METHOD
     def OnFacilitySelected(self, facilityData):
         if self.jobData:
@@ -180,15 +184,18 @@ class Industry(Window):
         currActivityID = settings.user.ui.Get('IndustryCurrentActivityID', None)
         if currActivityID in bpData.activities:
             return currActivityID
-        for activityID in industry.ACTIVITIES:
-            if activityID in bpData.activities:
-                return activityID
+        else:
+            for activityID in industry.ACTIVITIES:
+                if activityID in bpData.activities:
+                    return activityID
+
+            return
 
     @telemetry.ZONE_METHOD
     def CreateJob(self, bpData, activityID):
         return sm.GetService('industrySvc').CreateJob(bpData, activityID, bpData.facilityID)
 
-    def ShowBlueprint(self, blueprintID = None, blueprintTypeID = None, activityID = None, branchHistory = True, bpData = None):
+    def ShowBlueprint(self, blueprintID=None, blueprintTypeID=None, activityID=None, branchHistory=True, bpData=None):
         if not bpData:
             if blueprintID:
                 bpData = sm.GetService('blueprintSvc').GetBlueprintItem(blueprintID)
@@ -201,7 +208,7 @@ class Industry(Window):
             self.OnJobSelected(sm.GetService('industrySvc').GetJobByID(jobID))
 
     @classmethod
-    def OpenOrShowBlueprint(cls, blueprintID = None, blueprintTypeID = None, bpData = None):
+    def OpenOrShowBlueprint(cls, blueprintID=None, blueprintTypeID=None, bpData=None):
         wnd = cls.GetIfOpen()
         if wnd:
             wnd.Maximize()
@@ -225,7 +232,7 @@ class Industry(Window):
         else:
             self.CollapseView()
 
-    def ExpandView(self, animate = True):
+    def ExpandView(self, animate=True):
         settings.user.ui.Set('industryWndIsViewCollapsed', False)
         sm.ScatterEvent('OnIndustryViewExpandCollapse')
         self.expandViewBtn.SetRotation(-pi)
@@ -240,7 +247,7 @@ class Industry(Window):
         self.expandBottomBtn.Show()
         self.expandViewBtn.Enable()
 
-    def CollapseView(self, animate = True):
+    def CollapseView(self, animate=True):
         settings.user.ui.Set('industryWndIsViewCollapsed', True)
         sm.ScatterEvent('OnIndustryViewExpandCollapse')
         self.expandViewBtn.Disable()
@@ -258,7 +265,7 @@ class Industry(Window):
     def IsViewCollapsed(self):
         return settings.user.ui.Get('industryWndIsViewCollapsed', False)
 
-    def ExpandBrowser(self, animate = True):
+    def ExpandBrowser(self, animate=True):
         if self.tabs.GetSelectedIdx() is None:
             self.tabs.AutoSelect()
         settings.user.ui.Set('industryWndIsBrowserCollapsed', False)
@@ -275,8 +282,9 @@ class Industry(Window):
         self.UnlockHeight()
         self.expandViewBtn.Show()
         self.expandBottomBtn.Enable()
+        return
 
-    def CollapseBrowser(self, animate = True):
+    def CollapseBrowser(self, animate=True):
         if not self.IsBrowserCollapsed():
             settings.user.ui.Set('industryWndExpandedHeight', self.height)
         settings.user.ui.Set('industryWndIsBrowserCollapsed', True)
@@ -370,21 +378,23 @@ class Industry(Window):
     def OnDropData(self, dragSource, dragData):
         if not dragData:
             return
-        typeID = itemID = None
-        data = dragData[0]
-        bpData = getattr(data, 'bpData', None)
-        if getattr(data, 'item', None):
-            itemID = getattr(data.item, 'itemID', None)
-            typeID = data.item.typeID
         else:
-            typeID = getattr(data, 'typeID', None)
-            itemID = getattr(data, 'itemID', None)
-        if itemID or typeID:
-            categoryID = evetypes.GetCategoryID(typeID)
-            if industryCommon.IsBlueprintCategory(categoryID):
-                Industry.OpenOrShowBlueprint(itemID, typeID, bpData)
+            typeID = itemID = None
+            data = dragData[0]
+            bpData = getattr(data, 'bpData', None)
+            if getattr(data, 'item', None):
+                itemID = getattr(data.item, 'itemID', None)
+                typeID = data.item.typeID
             else:
-                raise UserError('ItemNotBlueprint', {'itemname': typeID})
+                typeID = getattr(data, 'typeID', None)
+                itemID = getattr(data, 'itemID', None)
+            if itemID or typeID:
+                categoryID = evetypes.GetCategoryID(typeID)
+                if industryCommon.IsBlueprintCategory(categoryID):
+                    Industry.OpenOrShowBlueprint(itemID, typeID, bpData)
+                else:
+                    raise UserError('ItemNotBlueprint', {'itemname': typeID})
+            return
 
     def OnIndustryDropData(self, dragSource, dragData):
         self.OnDropData(dragSource, dragData)
@@ -392,26 +402,29 @@ class Industry(Window):
     def OnIndustryRemoveBlueprint(self):
         self.jobData = None
         self.OnNewJobData()
+        return
 
     def OnIndustryJob(self, jobID, ownerID, blueprintID, installerID, status, successfulRuns):
         if self.destroyed:
             return
-        if self.jobData and self.jobData.jobID == jobID:
-            if status == industry.STATUS_CANCELLED:
-                self.jobData = None
-            else:
-                self.jobData.status = status
-                self.jobData.successfulRuns = successfulRuns
-            self.OnNewJobData()
-        elif self.jobData and self.jobData.blueprintID == blueprintID:
-            self.jobData = sm.GetService('industrySvc').GetJobByID(jobID)
-            self.OnNewJobData()
-        if status in (industry.STATUS_INSTALLED, industry.STATUS_READY):
-            if self.tabs.GetSelectedIdx() != TAB_JOBS:
-                self.tabs.BlinkPanelByName(localization.GetByLabel('UI/Industry/Jobs'))
-        if status == industry.STATUS_INSTALLED:
-            if self.tabs.GetSelectedIdx() == TAB_BLUEPRINTS:
-                self.browserBlueprints.SetFocus()
+        else:
+            if self.jobData and self.jobData.jobID == jobID:
+                if status == industry.STATUS_CANCELLED:
+                    self.jobData = None
+                else:
+                    self.jobData.status = status
+                    self.jobData.successfulRuns = successfulRuns
+                self.OnNewJobData()
+            elif self.jobData and self.jobData.blueprintID == blueprintID:
+                self.jobData = sm.GetService('industrySvc').GetJobByID(jobID)
+                self.OnNewJobData()
+            if status in (industry.STATUS_INSTALLED, industry.STATUS_READY):
+                if self.tabs.GetSelectedIdx() != TAB_JOBS:
+                    self.tabs.BlinkPanelByName(localization.GetByLabel('UI/Industry/Jobs'))
+            if status == industry.STATUS_INSTALLED:
+                if self.tabs.GetSelectedIdx() == TAB_BLUEPRINTS:
+                    self.browserBlueprints.SetFocus()
+            return
 
     def OnBlueprintReload(self, ownerID):
         if self.jobData and self.jobData.ownerID == ownerID:
@@ -421,7 +434,7 @@ class Industry(Window):
         if self.jobData and self.jobData.facilityID == facilityID:
             self.Reload(force=True)
 
-    def Reload(self, force = False):
+    def Reload(self, force=False):
         try:
             jobData = self.jobData
             if jobData:
@@ -433,3 +446,5 @@ class Industry(Window):
                     self.ShowBlueprint(blueprintID=jobData.blueprint.blueprintID, blueprintTypeID=jobData.blueprint.blueprintTypeID, activityID=jobData.activityID, bpData=jobData.blueprint)
         except UserError:
             self.OnIndustryRemoveBlueprint()
+
+        return

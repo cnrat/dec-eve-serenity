@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\carbon\common\stdlib\xml\sax\_exceptions.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\carbon\common\stdlib\xml\sax\_exceptions.py
 import sys
 if sys.platform[:4] == 'java':
     from java.lang import Exception
@@ -6,7 +7,7 @@ del sys
 
 class SAXException(Exception):
 
-    def __init__(self, msg, exception = None):
+    def __init__(self, msg, exception=None):
         self._msg = msg
         self._exception = exception
         Exception.__init__(self, msg)

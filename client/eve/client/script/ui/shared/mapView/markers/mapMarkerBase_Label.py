@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\client\script\ui\shared\mapView\markers\mapMarkerBase_Label.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\client\script\ui\shared\mapView\markers\mapMarkerBase_Label.py
 from carbon.common.script.util.commonutils import StripTags
 from carbonui.primitives.base import ScaleDpi, ReverseScaleDpi
 from eve.client.script.ui.shared.mapView.markers.mapMarkerBase import MarkerUniverseBased
@@ -18,6 +19,7 @@ class MarkerLabelBase(MarkerUniverseBased):
         self.textSprite = None
         self.measurer = None
         MarkerUniverseBased.DestroyRenderObject(self)
+        return
 
     def GetLabelText(self):
         return cfg.evelocations.Get(self.markerID).name
@@ -47,3 +49,4 @@ class MarkerLabelBase(MarkerUniverseBased):
          0,
          ReverseScaleDpi(width),
          ReverseScaleDpi(height))
+        return

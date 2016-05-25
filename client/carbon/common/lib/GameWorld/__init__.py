@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\carbon\common\lib\GameWorld\__init__.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\carbon\common\lib\GameWorld\__init__.py
 import blue
 args = blue.pyos.GetArg()
 dev = None
@@ -35,21 +36,22 @@ ActionTree.Initialize()
 def CreateStaticMeshAndWait(gw, resPath, location, rotation):
     if resPath and resPath == 'None':
         return
-    timer = blue.pyos.taskletTimer.EnterTasklet('GameWorld::CreateStaticMeshAndWait')
-    mesh = None
-    blue.resMan.SetUrgentResourceLoads(True)
-    mesh = gw.CreateStaticMesh(resPath)
-    blue.resMan.SetUrgentResourceLoads(False)
-    while not mesh.loaded and not mesh.Failed():
-        blue.synchro.Yield()
-
-    if mesh.Failed():
-        gw.RemoveStaticShape(mesh)
-        mesh = None
     else:
-        mesh.positionComponent = PositionComponent()
-        mesh.positionComponent.position = location
-        mesh.positionComponent.rotation = rotation
-        mesh.AddToScene()
-    blue.pyos.taskletTimer.ReturnFromTasklet(timer)
-    return mesh
+        timer = blue.pyos.taskletTimer.EnterTasklet('GameWorld::CreateStaticMeshAndWait')
+        mesh = None
+        blue.resMan.SetUrgentResourceLoads(True)
+        mesh = gw.CreateStaticMesh(resPath)
+        blue.resMan.SetUrgentResourceLoads(False)
+        while not mesh.loaded and not mesh.Failed():
+            blue.synchro.Yield()
+
+        if mesh.Failed():
+            gw.RemoveStaticShape(mesh)
+            mesh = None
+        else:
+            mesh.positionComponent = PositionComponent()
+            mesh.positionComponent.position = location
+            mesh.positionComponent.rotation = rotation
+            mesh.AddToScene()
+        blue.pyos.taskletTimer.ReturnFromTasklet(timer)
+        return mesh

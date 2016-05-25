@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\client\script\ui\shared\planet\pinContainers\ecuContainer.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\client\script\ui\shared\planet\pinContainers\ecuContainer.py
 import carbonui.const as uiconst
 from carbonui.primitives.container import Container
 import evetypes
@@ -74,6 +75,7 @@ class ECUContainer(BasePinContainer):
             self.timeToDeplTxt.SetSubtext(totalTimeLeft)
             self.currCycleGauge.SetSubText(localization.GetByLabel('UI/PI/Common/CycleTimeElapsed', currTime=currCycle, totalTime=cycleTime))
         self.currCycleOutputTxt.SetSubtext(currCycleOutput)
+        return
 
     def OpenSurveyWindow(self):
         if planetCommon.PinHasBeenBuilt(self.pin.id):

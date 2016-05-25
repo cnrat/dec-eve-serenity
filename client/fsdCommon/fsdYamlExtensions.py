@@ -1,4 +1,5 @@
-#Embedded file name: F:\depot\streams\fileStaticData\fsdCommon\fsdYamlExtensions.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: F:\depot\streams\fileStaticData\fsdCommon\fsdYamlExtensions.py
 import yaml
 if hasattr(yaml, 'CSafeDumper'):
     preferredYamlDumperClass = getattr(yaml, 'CSafeDumper')
@@ -15,12 +16,13 @@ class FsdYamlDumper(preferredYamlDumperClass):
         * floats are dumped with 8 digits of mantissa for accurate reproduction
     """
 
-    def __init__(self, stream, default_style = None, default_flow_style = None, canonical = None, indent = None, width = None, allow_unicode = None, line_break = None, encoding = None, explicit_start = None, explicit_end = None, version = None, tags = None):
+    def __init__(self, stream, default_style=None, default_flow_style=None, canonical=None, indent=None, width=None, allow_unicode=None, line_break=None, encoding=None, explicit_start=None, explicit_end=None, version=None, tags=None):
         if default_flow_style is None:
             default_flow_style = False
         if indent is None:
             indent = 4
         preferredYamlDumperClass.__init__(self, stream, default_style, default_flow_style, canonical, indent, width, allow_unicode, line_break, encoding, explicit_start, explicit_end, version, tags)
+        return
 
 
 if hasattr(yaml, 'CSafeLoader'):

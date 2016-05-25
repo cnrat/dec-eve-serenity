@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\client\script\ui\shared\loading.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\client\script\ui\shared\loading.py
 from carbonui.util.color import Color
 from eve.client.script.ui.shared.progressWnd import ProgressWnd
 import service
@@ -24,7 +25,7 @@ class Loading(service.Service):
     __servicename__ = 'loading'
     __displayname__ = 'Loading Service'
 
-    def Run(self, memStream = None):
+    def Run(self, memStream=None):
         self.LogInfo('Starting LoadingSvc')
         self.soundStarted = self.explicitSound = 0
         self.loadingwnd = None
@@ -39,8 +40,9 @@ class Loading(service.Service):
         self.hideThread = None
         self.fadingToColor = 0
         self.fadingFromColor = 0
+        return
 
-    def Stop(self, memStream = None):
+    def Stop(self, memStream=None):
         self.CleanUp()
 
     def CleanUp(self):
@@ -53,8 +55,9 @@ class Loading(service.Service):
         l_loading = uicore.layer.loading
         if l_loading:
             l_loading.Flush()
+        return
 
-    def CountDownWindow(self, question, duration, confirmFunc, abortFunc, inModalLayer = False):
+    def CountDownWindow(self, question, duration, confirmFunc, abortFunc, inModalLayer=False):
         startTime = blue.os.GetWallclockTime()
         if inModalLayer:
             par = uicore.layer.mloading
@@ -71,7 +74,7 @@ class Loading(service.Service):
         uthread.new(wnd.CountDown, startTime, duration)
         return wnd
 
-    def ProgressWnd(self, title = None, strng = '', portion = 1, total = 1, explicitSound = 0, abortFunc = None, useMorph = 1, **kw):
+    def ProgressWnd(self, title=None, strng='', portion=1, total=1, explicitSound=0, abortFunc=None, useMorph=1, **kw):
         if title is None:
             title = localization.GetByLabel('UI/Common/Loading')
         if not self.loadingwnd or self.loadingwnd.destroyed:
@@ -89,6 +92,7 @@ class Loading(service.Service):
         failed = self.loadingwnd.SetStatus(title, strng, max(0, portion), max(0, total), abortFunc, animate=useMorph)
         if failed:
             self.EndLoading()
+        return
 
     def CheckVisibility(self, portion, total):
         if portion is not None and total is not None:
@@ -99,6 +103,7 @@ class Loading(service.Service):
                     self.hideThread.kill()
                     self.hideThread = None
                 uicore.layer.loading.state = uiconst.UI_NORMAL
+        return
 
     def DelayHide(self):
         blue.pyos.synchro.SleepWallclock(750)
@@ -109,24 +114,28 @@ class Loading(service.Service):
             self.loadingwnd.Close()
             self.loadingwnd = None
         uicore.layer.loading.state = uiconst.UI_HIDDEN
+        return
 
     def OnNetClientReadProgress(self, have, need):
         if sm.StartService('connection').processingBulkData == 0:
             return
-        wnd = getattr(self, 'loadingwnd', None)
-        if not wnd or wnd.destroyed:
+        else:
+            wnd = getattr(self, 'loadingwnd', None)
+            if not wnd or wnd.destroyed:
+                return
+            wnd.SetReadProgress(int(have / 1024), int(need / 1024))
             return
-        wnd.SetReadProgress(int(have / 1024), int(need / 1024))
 
     def StopSound(self):
         if self.soundStarted:
             self.soundStarted = self.explicitSound = 0
 
-    def Cycle(self, title = None, strng = ''):
+    def Cycle(self, title=None, strng=''):
         if title is None:
             title = localization.GetByLabel('UI/Common/Loading')
         self.cycletext = (title, strng)
         uthread.new(self._Cycle)
+        return
 
     def _Cycle(self):
         if self.cycling:
@@ -149,6 +158,7 @@ class Loading(service.Service):
         l_loading = uicore.layer.loading
         if l_loading:
             self.EndLoading()
+        return
 
     def HideAllLoad(self):
         self.StopCycle()
@@ -157,7 +167,7 @@ class Loading(service.Service):
         self.ConstructFill()
         self.fill.opacity = 1.0
 
-    def ConstructFill(self, color = Color.BLACK):
+    def ConstructFill(self, color=Color.BLACK):
         if not self.fill:
             self.fill = uiprimitives.Fill(parent=uicore.layer.loadingFill, state=uiconst.UI_NORMAL, padding=-2, opacity=0.0)
         color = (color[0],
@@ -170,13 +180,14 @@ class Loading(service.Service):
     def IsLoading(self):
         return uicore.layer.loading.state == uiconst.UI_NORMAL or self.fadingToColor or self.fadingFromColor or self.cycling
 
-    def FadeIn(self, time = 1000.0, color = (0, 0, 0, 1.0), sleep = True, *args):
+    def FadeIn(self, time=1000.0, color=(0, 0, 0, 1.0), sleep=True, *args):
         self.ConstructFill(color=color)
         uicore.animations.FadeTo(self.fill, self.fill.opacity, color[3], duration=time / 1000.0, sleep=sleep)
 
-    def FadeOut(self, time = 1000.0, opacityStart = None, sleep = True, *args):
+    def FadeOut(self, time=1000.0, opacityStart=None, sleep=True, *args):
         if self.fill:
             self.fill.Disable()
             if opacityStart is not None:
                 self.fill.opacity = opacityStart
             uicore.animations.FadeTo(self.fill, self.fill.opacity, 0.0, duration=time / 1000.0, sleep=sleep)
+        return

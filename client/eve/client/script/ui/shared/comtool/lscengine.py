@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\client\script\ui\shared\comtool\lscengine.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\client\script\ui\shared\comtool\lscengine.py
 from eve.client.script.ui.shared.comtool.chatExtraWindows import ChannelPasswordWindow
 from eve.client.script.ui.shared.userentry import User
 import service
@@ -37,7 +38,7 @@ CHTERR_NOSUCHCHANNEL = -3
 CHTERR_ALREADYEXISTS = -6
 MINIMUM_EMC_UPDATE_TIME = 60L * SECOND
 
-def GetDisplayName(channelID, systemOverride = 0, otherID = None):
+def GetDisplayName(channelID, systemOverride=0, otherID=None):
     if type(channelID) == types.IntType:
         if channelID in sm.StartService('LSC').channels:
             channel = sm.StartService('LSC').channels[channelID]
@@ -184,59 +185,61 @@ def __getAclRowDescriptor():
 def GetAccessInfo(channel, role, charID, *ids):
     if role & (service.ROLE_CHTADMINISTRATOR | service.ROLE_GMH):
         return (CHTMODE_CREATOR, None)
-    if type(channel.channelID) == types.IntType:
-        if channel.info.ownerID == charID:
-            return (CHTMODE_CREATOR, None)
-        public = (CHTMODE_NOTSPECIFIED, None)
-        other = (None, None)
-        deleteList = []
-        deleting = False
-        for each in channel.acl:
-            if each.untilWhen and each.untilWhen < blue.os.GetWallclockTime():
-                deleteList.append(each)
-                deleting = True
-            if deleting:
-                continue
-            if each.accessor == charID:
-                return (each.mode, blue.DBRow(__getAclRowDescriptor(), [each.accessor,
-                  each.mode,
-                  each.untilWhen,
-                  each.originalMode,
-                  each.reason,
-                  each.admin]))
-            if each.accessor is None:
-                public = (each.mode, blue.DBRow(__getAclRowDescriptor(), [each.accessor,
-                  each.mode,
-                  each.untilWhen,
-                  each.originalMode,
-                  each.reason,
-                  each.admin]))
-            elif each.accessor in ids:
-                if other[0] is None or other[0] > each.mode:
-                    other = (each.mode, blue.DBRow(__getAclRowDescriptor(), [each.accessor,
+    else:
+        if type(channel.channelID) == types.IntType:
+            if channel.info.ownerID == charID:
+                return (CHTMODE_CREATOR, None)
+            public = (CHTMODE_NOTSPECIFIED, None)
+            other = (None, None)
+            deleteList = []
+            deleting = False
+            for each in channel.acl:
+                if each.untilWhen and each.untilWhen < blue.os.GetWallclockTime():
+                    deleteList.append(each)
+                    deleting = True
+                if deleting:
+                    continue
+                if each.accessor == charID:
+                    return (each.mode, blue.DBRow(__getAclRowDescriptor(), [each.accessor,
                       each.mode,
                       each.untilWhen,
                       each.originalMode,
                       each.reason,
                       each.admin]))
+                if each.accessor is None:
+                    public = (each.mode, blue.DBRow(__getAclRowDescriptor(), [each.accessor,
+                      each.mode,
+                      each.untilWhen,
+                      each.originalMode,
+                      each.reason,
+                      each.admin]))
+                elif each.accessor in ids:
+                    if other[0] is None or other[0] > each.mode:
+                        other = (each.mode, blue.DBRow(__getAclRowDescriptor(), [each.accessor,
+                          each.mode,
+                          each.untilWhen,
+                          each.originalMode,
+                          each.reason,
+                          each.admin]))
 
-        if deleting:
-            for each in deleteList:
-                channel.acl.remove(each)
+            if deleting:
+                for each in deleteList:
+                    channel.acl.remove(each)
 
-            return GetAccessInfo(channel, role, charID, *ids)
-        elif other[0] is not None:
-            return other
+                return GetAccessInfo(channel, role, charID, *ids)
+            elif other[0] is not None:
+                return other
+            else:
+                return public
         else:
-            return public
-    else:
-        if charID in channel.recentSpeakerList:
-            if channel.recentSpeakerList[charID].role & (service.ROLE_CHTADMINISTRATOR | service.ROLE_GMH):
-                return (CHTMODE_CREATOR, None)
-        if charID in channel.memberList:
-            if channel.memberList[charID].role & (service.ROLE_CHTADMINISTRATOR | service.ROLE_GMH):
-                return (CHTMODE_CREATOR, None)
-        return (CHTMODE_CONVERSATIONALIST, None)
+            if charID in channel.recentSpeakerList:
+                if channel.recentSpeakerList[charID].role & (service.ROLE_CHTADMINISTRATOR | service.ROLE_GMH):
+                    return (CHTMODE_CREATOR, None)
+            if charID in channel.memberList:
+                if channel.memberList[charID].role & (service.ROLE_CHTADMINISTRATOR | service.ROLE_GMH):
+                    return (CHTMODE_CREATOR, None)
+            return (CHTMODE_CONVERSATIONALIST, None)
+        return
 
 
 CHTMODE_CREATOR = 8 + 4 + 2 + 1
@@ -314,77 +317,80 @@ class LargeScaleChat(service.Service):
     def OnSessionChanged(self, isremote, sess, change):
         if eve.rookieState and eve.rookieState < sm.GetService('tutorial').GetOtherRookieFilter('defaultchannels'):
             return
-        self.settings.LoadSettings()
-        leave = []
-        if 'regionid' in change and change['regionid'][0]:
-            leave.append([('regionid', change['regionid'][0])])
-        if 'constellationid' in change and change['constellationid'][0]:
-            leave.append([('constellationid', change['constellationid'][0])])
-        if 'solarsystemid2' in change and change['solarsystemid2'][0]:
-            leave.append([('solarsystemid2', change['solarsystemid2'][0])])
-        if 'allianceid' in change and change['allianceid'][0]:
-            leave.append([('allianceid', change['allianceid'][0])])
-            leave.append(change['allianceid'][0])
-        if 'corpid' in change and change['corpid'][0]:
-            leave.append([('corpid', change['corpid'][0])])
-            leave.append(change['corpid'][0])
-            self.messageList = None
-            self.messageListIndexed = None
-        if 'fleetid' in change and change['fleetid'][0]:
-            leave.append([('fleetid', change['fleetid'][0])])
-        if 'warfactionid' in change and change['warfactionid'][0]:
-            leave.append([('warfactionid', change['warfactionid'][0])])
-        if 'charid' in change and change['charid'][0]:
-            leave.append([('global', 0)])
-            self.messageList = None
-            self.messageListIndexed = None
-        windows = {}
-        if leave:
-            self.LogInfo('LSC: client lscengine.py OnSessionChange initiating Leave Channels')
-            self.LogInfo('LSC: leave=', leave)
-            self.LeaveChannels(leave, saveWindows=windows, sessionChangeDriven=True, unsubscribe=True, savePrefs=False)
-        if sess.charid:
-            join = []
-            if 'regionid' in change and change['regionid'][1] and settings.char.ui.Get('lscengine_mychannels_region', 0):
-                join.append([('regionid', change['regionid'][1])])
-            if 'constellationid' in change and change['constellationid'][1] and settings.char.ui.Get('lscengine_mychannels_constellation', 0):
-                join.append([('constellationid', change['constellationid'][1])])
-            if 'solarsystemid2' in change and change['solarsystemid2'][1]:
-                join.append([('solarsystemid2', change['solarsystemid2'][1])])
-            if 'allianceid' in change and change['allianceid'][1]:
-                join.append([('allianceid', change['allianceid'][1])])
-            if 'corpid' in change and change['corpid'][1]:
-                join.append([('corpid', change['corpid'][1])])
-                join.append(change['corpid'][1])
-            if 'fleetid' in change and change['fleetid'][1]:
-                join.append([('fleetid', change['fleetid'][1])])
-            if 'warfactionid' in change and change['warfactionid'][1]:
-                join.append([('warfactionid', change['warfactionid'][1])])
-            if 'charid' in change and change['charid'][1]:
-                join.append(change['charid'][1])
-                uthread.new(self.InitChatFilters)
-            if 'corpid' in change and change['corpid'][1]:
-                join.append(change['corpid'][1])
-            if 'allianceid' in change and change['allianceid'][1]:
-                join.append(change['allianceid'][1])
-            import __builtin__
-            if hasattr(__builtin__, 'settings'):
-                for channelID in settings.char.ui.Get('lscengine_mychannels', []):
-                    if channelID not in join:
-                        join.append(channelID)
+        else:
+            self.settings.LoadSettings()
+            leave = []
+            if 'regionid' in change and change['regionid'][0]:
+                leave.append([('regionid', change['regionid'][0])])
+            if 'constellationid' in change and change['constellationid'][0]:
+                leave.append([('constellationid', change['constellationid'][0])])
+            if 'solarsystemid2' in change and change['solarsystemid2'][0]:
+                leave.append([('solarsystemid2', change['solarsystemid2'][0])])
+            if 'allianceid' in change and change['allianceid'][0]:
+                leave.append([('allianceid', change['allianceid'][0])])
+                leave.append(change['allianceid'][0])
+            if 'corpid' in change and change['corpid'][0]:
+                leave.append([('corpid', change['corpid'][0])])
+                leave.append(change['corpid'][0])
+                self.messageList = None
+                self.messageListIndexed = None
+            if 'fleetid' in change and change['fleetid'][0]:
+                leave.append([('fleetid', change['fleetid'][0])])
+            if 'warfactionid' in change and change['warfactionid'][0]:
+                leave.append([('warfactionid', change['warfactionid'][0])])
+            if 'charid' in change and change['charid'][0]:
+                leave.append([('global', 0)])
+                self.messageList = None
+                self.messageListIndexed = None
+            windows = {}
+            if leave:
+                self.LogInfo('LSC: client lscengine.py OnSessionChange initiating Leave Channels')
+                self.LogInfo('LSC: leave=', leave)
+                self.LeaveChannels(leave, saveWindows=windows, sessionChangeDriven=True, unsubscribe=True, savePrefs=False)
+            if sess.charid:
+                join = []
+                if 'regionid' in change and change['regionid'][1] and settings.char.ui.Get('lscengine_mychannels_region', 0):
+                    join.append([('regionid', change['regionid'][1])])
+                if 'constellationid' in change and change['constellationid'][1] and settings.char.ui.Get('lscengine_mychannels_constellation', 0):
+                    join.append([('constellationid', change['constellationid'][1])])
+                if 'solarsystemid2' in change and change['solarsystemid2'][1]:
+                    join.append([('solarsystemid2', change['solarsystemid2'][1])])
+                if 'allianceid' in change and change['allianceid'][1]:
+                    join.append([('allianceid', change['allianceid'][1])])
+                if 'corpid' in change and change['corpid'][1]:
+                    join.append([('corpid', change['corpid'][1])])
+                    join.append(change['corpid'][1])
+                if 'fleetid' in change and change['fleetid'][1]:
+                    join.append([('fleetid', change['fleetid'][1])])
+                if 'warfactionid' in change and change['warfactionid'][1]:
+                    join.append([('warfactionid', change['warfactionid'][1])])
+                if 'charid' in change and change['charid'][1]:
+                    join.append(change['charid'][1])
+                    uthread.new(self.InitChatFilters)
+                if 'corpid' in change and change['corpid'][1]:
+                    join.append(change['corpid'][1])
+                if 'allianceid' in change and change['allianceid'][1]:
+                    join.append(change['allianceid'][1])
+                import __builtin__
+                if hasattr(__builtin__, 'settings'):
+                    for channelID in settings.char.ui.Get('lscengine_mychannels', []):
+                        if channelID not in join:
+                            join.append(channelID)
 
-            if eve.session.role & service.ROLE_NEWBIE and self.rookieHelpChannel not in join and not self.rookieJoined:
-                self.rookieJoined = True
-                join.append(self.rookieHelpChannel)
-            if join:
-                self.LogInfo('LSC: client lscengine.py OnSessionChange initiating Join Channels')
-                self.LogInfo('LSC: join=', join)
-                self.JoinChannels(join, restoreWindows=windows, maximize=0)
-        for window in windows.itervalues():
-            if window == sm.GetService('focus').GetFocusChannel():
-                sm.GetService('focus').SetFocusChannel()
-            if window is not None and not window.destroyed:
-                window.Close()
+                if eve.session.role & service.ROLE_NEWBIE and self.rookieHelpChannel not in join and not self.rookieJoined:
+                    self.rookieJoined = True
+                    join.append(self.rookieHelpChannel)
+                if join:
+                    self.LogInfo('LSC: client lscengine.py OnSessionChange initiating Join Channels')
+                    self.LogInfo('LSC: join=', join)
+                    self.JoinChannels(join, restoreWindows=windows, maximize=0)
+            for window in windows.itervalues():
+                if window == sm.GetService('focus').GetFocusChannel():
+                    sm.GetService('focus').SetFocusChannel()
+                if window is not None and not window.destroyed:
+                    window.Close()
+
+            return
 
     def OnMessage(self, recipients, messageID, senderID, subject, created):
         if self.messageList is not None:
@@ -402,6 +408,8 @@ class LargeScaleChat(service.Service):
                     self.messageList.InsertNew(*li)
                     self.messageListIndexed[messageID] = li
 
+        return
+
     def ProcessRookieStateChange(self, state):
         if eve.rookieState and eve.rookieState < sm.GetService('tutorial').GetOtherRookieFilter('defaultchannels'):
             self.LeaveChannels(self.channels.keys(), savePrefs=0)
@@ -409,7 +417,7 @@ class LargeScaleChat(service.Service):
             self.rookieJoined = False
             self.InitChannels()
 
-    def Run(self, memStream = None):
+    def Run(self, memStream=None):
         self.rookieJoined = False
         self.updateEMC = False
         self.messageList = None
@@ -431,44 +439,47 @@ class LargeScaleChat(service.Service):
             if len(dump):
                 self.LeaveChannels(cPickle.loads(str(dump)), savePrefs=0)
         self.InitChannels()
+        return
 
     def InitChannels(self):
         if eve.rookieState and eve.rookieState < sm.GetService('tutorial').GetOtherRookieFilter('defaultchannels'):
             return
-        join = []
-        if eve.session is not None and eve.session.charid:
-            self.settings.LoadSettings()
-            if eve.session.regionid and settings.char.ui.Get('lscengine_mychannels_region', 0):
-                join.append([('regionid', eve.session.regionid)])
-            if eve.session.constellationid and settings.char.ui.Get('lscengine_mychannels_constellation', 0):
-                join.append([('constellationid', eve.session.constellationid)])
-            if eve.session.solarsystemid2:
-                join.append([('solarsystemid2', eve.session.solarsystemid2)])
-            if eve.session.allianceid:
-                join.append([('allianceid', eve.session.allianceid)])
-                join.append(eve.session.allianceid)
-            if eve.session.corpid:
-                join.append([('corpid', eve.session.corpid)])
-                join.append(eve.session.corpid)
-            if eve.session.fleetid:
-                join.append([('fleetid', eve.session.fleetid)])
-            if eve.session.warfactionid:
-                join.append([('warfactionid', eve.session.warfactionid)])
-            if eve.session.charid:
-                join.append(eve.session.charid)
-                import __builtin__
-                if hasattr(__builtin__, 'settings'):
-                    for channelID in settings.char.ui.Get('lscengine_mychannels', []):
-                        if channelID not in join:
-                            join.append(channelID)
+        else:
+            join = []
+            if eve.session is not None and eve.session.charid:
+                self.settings.LoadSettings()
+                if eve.session.regionid and settings.char.ui.Get('lscengine_mychannels_region', 0):
+                    join.append([('regionid', eve.session.regionid)])
+                if eve.session.constellationid and settings.char.ui.Get('lscengine_mychannels_constellation', 0):
+                    join.append([('constellationid', eve.session.constellationid)])
+                if eve.session.solarsystemid2:
+                    join.append([('solarsystemid2', eve.session.solarsystemid2)])
+                if eve.session.allianceid:
+                    join.append([('allianceid', eve.session.allianceid)])
+                    join.append(eve.session.allianceid)
+                if eve.session.corpid:
+                    join.append([('corpid', eve.session.corpid)])
+                    join.append(eve.session.corpid)
+                if eve.session.fleetid:
+                    join.append([('fleetid', eve.session.fleetid)])
+                if eve.session.warfactionid:
+                    join.append([('warfactionid', eve.session.warfactionid)])
+                if eve.session.charid:
+                    join.append(eve.session.charid)
+                    import __builtin__
+                    if hasattr(__builtin__, 'settings'):
+                        for channelID in settings.char.ui.Get('lscengine_mychannels', []):
+                            if channelID not in join:
+                                join.append(channelID)
 
-            if eve.session.role & service.ROLE_NEWBIE and self.rookieHelpChannel not in join and not self.rookieJoined:
-                self.rookieJoined = True
-                join.append(self.rookieHelpChannel)
-            if join:
-                uthread.worker('LSC::ProcessSessionChange::JoinChannels', self.JoinChannels, join, maximize=0)
+                if eve.session.role & service.ROLE_NEWBIE and self.rookieHelpChannel not in join and not self.rookieJoined:
+                    self.rookieJoined = True
+                    join.append(self.rookieHelpChannel)
+                if join:
+                    uthread.worker('LSC::ProcessSessionChange::JoinChannels', self.JoinChannels, join, maximize=0)
+            return
 
-    def __SaveChannelPrefs(self, channelID = None):
+    def __SaveChannelPrefs(self, channelID=None):
         prefs = settings.char.ui.Get('lscengine_mychannels', [])
         prefs2 = copy.copy(prefs)
         if channelID in prefs2:
@@ -499,7 +510,7 @@ class LargeScaleChat(service.Service):
         if prefs != prefs2:
             settings.char.ui.Set('lscengine_mychannels', prefs2)
 
-    def Stop(self, memStream = None):
+    def Stop(self, memStream=None):
         if self.channels:
             import cPickle
             memStream.Write(cPickle.dumps(self.channels.keys(), True))
@@ -532,6 +543,7 @@ class LargeScaleChat(service.Service):
 
         if numDel > 0:
             self.LogInfo('__DecayRecent deleted', numDel, ' recent speakers in', float(blue.os.GetWallclockTimeNow() - t) / float(const.SEC), 'sec')
+        return
 
     def DelRecentSpeakerFromWindow(self, channel, memberID):
         del channel.recentSpeakerList[memberID]
@@ -563,180 +575,146 @@ class LargeScaleChat(service.Service):
             if method != 'JoinChannel':
                 self.Worker_LeaveChannel(channelID, 0)
             return
-        channel = self.channels[channelID]
-        if self.IsMemberless(channelID):
-            self.__SetEstimatedMemberCount(channel, estimatedMemberCount)
         else:
-            self.__SetEstimatedMemberCount(channel, len(channel.memberList))
-        if method == 'SendMessage':
-            role, ai = GetAccessInfo(channel, whoRole, whoCharID, whoCorpID, whoAllianceID)
-            if role >= CHTMODE_SPEAKER:
+            channel = self.channels[channelID]
+            if self.IsMemberless(channelID):
+                self.__SetEstimatedMemberCount(channel, estimatedMemberCount)
+            else:
+                self.__SetEstimatedMemberCount(channel, len(channel.memberList))
+            if method == 'SendMessage':
+                role, ai = GetAccessInfo(channel, whoRole, whoCharID, whoCorpID, whoAllianceID)
+                if role >= CHTMODE_SPEAKER:
+                    if channel.window and not channel.window.destroyed:
+                        spammers = getattr(sm.GetService('LSC'), 'spammerList', set())
+                        addressBookSvc = sm.GetService('addressbook')
+                        isBlocked = whoCharID != session.charid and (addressBookSvc.IsBlocked(whoCharID) or addressBookSvc.IsBlocked(whoCorpID) or addressBookSvc.IsBlocked(whoAllianceID))
+                        if not isBlocked and whoCharID not in spammers:
+                            if whoCharID not in channel.recentSpeakerList:
+                                channel.window.AddRecentSpeaker(whoCharID, whoCorpID, whoAllianceID, whoWarFactionID)
+                            channel.recentSpeakerList[whoCharID] = blue.DBRow(self.__getRecentSpeakerListRowDescriptor(), [whoCharID,
+                             whoCorpID,
+                             whoAllianceID,
+                             whoWarFactionID,
+                             whoRole,
+                             blue.os.GetWallclockTime()])
+                            channel.window.Speak(args[0], whoCharID)
+            elif method == 'JoinChannel':
                 if channel.window and not channel.window.destroyed:
-                    spammers = getattr(sm.GetService('LSC'), 'spammerList', set())
-                    addressBookSvc = sm.GetService('addressbook')
-                    isBlocked = whoCharID != session.charid and (addressBookSvc.IsBlocked(whoCharID) or addressBookSvc.IsBlocked(whoCorpID) or addressBookSvc.IsBlocked(whoAllianceID))
-                    if not isBlocked and whoCharID not in spammers:
-                        if whoCharID not in channel.recentSpeakerList:
-                            channel.window.AddRecentSpeaker(whoCharID, whoCorpID, whoAllianceID, whoWarFactionID)
-                        channel.recentSpeakerList[whoCharID] = blue.DBRow(self.__getRecentSpeakerListRowDescriptor(), [whoCharID,
+                    if whoCharID not in channel.memberList:
+                        channel.memberList[whoCharID] = [whoCharID,
                          whoCorpID,
                          whoAllianceID,
                          whoWarFactionID,
                          whoRole,
-                         blue.os.GetWallclockTime()])
-                        channel.window.Speak(args[0], whoCharID)
-        elif method == 'JoinChannel':
-            if channel.window and not channel.window.destroyed:
-                if whoCharID not in channel.memberList:
-                    channel.memberList[whoCharID] = [whoCharID,
-                     whoCorpID,
-                     whoAllianceID,
-                     whoWarFactionID,
-                     whoRole,
-                     blue.os.GetWallclockTime()]
-                    if not self.IsMemberless(channelID):
-                        self.__SetEstimatedMemberCount(channel, len(channel.memberList))
-                        channel.window.AddMember(whoCharID, whoCorpID, whoAllianceID, whoWarFactionID)
-        elif method == 'AnnouncePresence':
-            if channel.window and not channel.window.destroyed:
-                if whoCharID not in channel.memberList:
-                    channel.memberList[whoCharID] = [whoCharID,
-                     whoCorpID,
-                     whoAllianceID,
-                     whoWarFactionID,
-                     whoRole,
-                     blue.os.GetWallclockTime()]
-                    if not self.IsMemberless(channelID):
-                        self.__SetEstimatedMemberCount(channel, len(channel.memberList))
-                        channel.window.AddMember(whoCharID, whoCorpID, whoAllianceID, whoWarFactionID)
-        elif method == 'KickUser':
-            if channel.window and not channel.window.destroyed:
-                if args[0] in channel.memberList or args[0] in channel.recentSpeakerList:
-                    if args[0] in channel.memberList:
-                        del channel.memberList[args[0]]
+                         blue.os.GetWallclockTime()]
                         if not self.IsMemberless(channelID):
                             self.__SetEstimatedMemberCount(channel, len(channel.memberList))
-                        channel.window.DelMember(args[0])
-                    if args[0] in channel.recentSpeakerList:
-                        self.DelRecentSpeakerFromWindow(channel, args[0])
-                    if eve.session.charid == args[0] or CHTMODE_CONVERSATIONALIST < GetAccessInfo(channel, eve.session.role, eve.session.charid, eve.session.corpid, eve.session.allianceid)[0]:
-                        if args[2]:
-                            reason = args[2]
+                            channel.window.AddMember(whoCharID, whoCorpID, whoAllianceID, whoWarFactionID)
+            elif method == 'AnnouncePresence':
+                if channel.window and not channel.window.destroyed:
+                    if whoCharID not in channel.memberList:
+                        channel.memberList[whoCharID] = [whoCharID,
+                         whoCorpID,
+                         whoAllianceID,
+                         whoWarFactionID,
+                         whoRole,
+                         blue.os.GetWallclockTime()]
+                        if not self.IsMemberless(channelID):
+                            self.__SetEstimatedMemberCount(channel, len(channel.memberList))
+                            channel.window.AddMember(whoCharID, whoCorpID, whoAllianceID, whoWarFactionID)
+            elif method == 'KickUser':
+                if channel.window and not channel.window.destroyed:
+                    if args[0] in channel.memberList or args[0] in channel.recentSpeakerList:
+                        if args[0] in channel.memberList:
+                            del channel.memberList[args[0]]
+                            if not self.IsMemberless(channelID):
+                                self.__SetEstimatedMemberCount(channel, len(channel.memberList))
+                            channel.window.DelMember(args[0])
+                        if args[0] in channel.recentSpeakerList:
+                            self.DelRecentSpeakerFromWindow(channel, args[0])
+                        if eve.session.charid == args[0] or CHTMODE_CONVERSATIONALIST < GetAccessInfo(channel, eve.session.role, eve.session.charid, eve.session.corpid, eve.session.allianceid)[0]:
+                            if args[2]:
+                                reason = args[2]
+                            else:
+                                reason = localization.GetByLabel('UI/Generic/None')
+                            if args[1]:
+                                kickMsg = localization.GetByLabel('UI/Chat/KickMessageWithTime', kicked=args[0], admin=whoCharID, effectiveUntil=args[1], reason=reason)
+                            else:
+                                kickMsg = localization.GetByLabel('UI/Chat/KickMessage', kicked=args[0], admin=whoCharID, reason=reason)
+                            channel.window.Speak(kickMsg, const.ownerSystem)
+            elif method == 'LeaveChannel':
+                if channel.window and not channel.window.destroyed:
+                    if whoCharID in channel.memberList:
+                        del channel.memberList[whoCharID]
+                        if not self.IsMemberless(channelID):
+                            self.__SetEstimatedMemberCount(channel, len(channel.memberList))
+                        channel.window.DelMember(whoCharID)
+                    if whoCharID in channel.recentSpeakerList:
+                        self.DelRecentSpeakerFromWindow(channel, whoCharID)
+            elif method == 'RenameChannel':
+                channel.info.displayName = args[0]
+                if channel.window is not None and not channel.window.destroyed:
+                    channel.window.RenameChannel(args[0])
+                    renameMsg = localization.GetByLabel('UI/Chat/ChannelNameChanged', newName=args[0], admin=whoCharID)
+                    channel.window.Speak(renameMsg, const.ownerSystem)
+            elif method == 'SetChannelMOTD':
+                channel.info.motd = args[0]
+                if channel.window and not channel.window.destroyed:
+                    try:
+                        if args[0]:
+                            msg = localization.GetByLabel('UI/Chat/ChannelMotdChanged', newMotd=args[0], admin=whoCharID)
                         else:
-                            reason = localization.GetByLabel('UI/Generic/None')
-                        if args[1]:
-                            kickMsg = localization.GetByLabel('UI/Chat/KickMessageWithTime', kicked=args[0], admin=whoCharID, effectiveUntil=args[1], reason=reason)
+                            msg = localization.GetByLabel('UI/Chat/ChannelMotdCleared', admin=whoCharID)
+                        channel.window.Speak(msg, const.ownerSystem)
+                    except:
+                        log.LogException()
+                        sys.exc_clear()
+
+            elif method == 'SetChannelLanguageRestriction':
+                channel.info.languageRestriction = args[0]
+                if channel.window and not channel.window.destroyed:
+                    try:
+                        if args[0]:
+                            msg = localization.GetByLabel('UI/Chat/ChannelLanguageRestrictionSet', admin=whoCharID)
                         else:
-                            kickMsg = localization.GetByLabel('UI/Chat/KickMessage', kicked=args[0], admin=whoCharID, reason=reason)
-                        channel.window.Speak(kickMsg, const.ownerSystem)
-        elif method == 'LeaveChannel':
-            if channel.window and not channel.window.destroyed:
-                if whoCharID in channel.memberList:
-                    del channel.memberList[whoCharID]
-                    if not self.IsMemberless(channelID):
-                        self.__SetEstimatedMemberCount(channel, len(channel.memberList))
-                    channel.window.DelMember(whoCharID)
-                if whoCharID in channel.recentSpeakerList:
-                    self.DelRecentSpeakerFromWindow(channel, whoCharID)
-        elif method == 'RenameChannel':
-            channel.info.displayName = args[0]
-            if channel.window is not None and not channel.window.destroyed:
-                channel.window.RenameChannel(args[0])
-                renameMsg = localization.GetByLabel('UI/Chat/ChannelNameChanged', newName=args[0], admin=whoCharID)
-                channel.window.Speak(renameMsg, const.ownerSystem)
-        elif method == 'SetChannelMOTD':
-            channel.info.motd = args[0]
-            if channel.window and not channel.window.destroyed:
-                try:
-                    if args[0]:
-                        msg = localization.GetByLabel('UI/Chat/ChannelMotdChanged', newMotd=args[0], admin=whoCharID)
-                    else:
-                        msg = localization.GetByLabel('UI/Chat/ChannelMotdCleared', admin=whoCharID)
-                    channel.window.Speak(msg, const.ownerSystem)
-                except:
-                    log.LogException()
-                    sys.exc_clear()
+                            msg = localization.GetByLabel('UI/Chat/ChannelLanguageRestrictionCleared', admin=whoCharID)
+                        channel.window.Speak(msg, const.ownerSystem)
+                    except:
+                        log.LogException()
+                        sys.exc_clear()
 
-        elif method == 'SetChannelLanguageRestriction':
-            channel.info.languageRestriction = args[0]
-            if channel.window and not channel.window.destroyed:
-                try:
-                    if args[0]:
-                        msg = localization.GetByLabel('UI/Chat/ChannelLanguageRestrictionSet', admin=whoCharID)
-                    else:
-                        msg = localization.GetByLabel('UI/Chat/ChannelLanguageRestrictionCleared', admin=whoCharID)
-                    channel.window.Speak(msg, const.ownerSystem)
-                except:
-                    log.LogException()
-                    sys.exc_clear()
-
-        elif method == 'SetChannelPassword':
-            channel.info.password = args[0]
-            if args[0]:
-                msg = localization.GetByLabel('UI/Chat/ChannelPasswordChanged', admin=whoCharID)
-            else:
-                msg = localization.GetByLabel('UI/Chat/ChannelPasswordCleared', admin=whoCharID)
-            channel.window.Speak(msg, const.ownerSystem)
-        elif method == 'SetChannelCreator':
-            if channel.window and not channel.window.destroyed:
-                msg = localization.GetByLabel('UI/Chat/ChannelOwnerChanged', oldOwner=channel.info.ownerID, newOwner=args[0])
+            elif method == 'SetChannelPassword':
+                channel.info.password = args[0]
+                if args[0]:
+                    msg = localization.GetByLabel('UI/Chat/ChannelPasswordChanged', admin=whoCharID)
+                else:
+                    msg = localization.GetByLabel('UI/Chat/ChannelPasswordCleared', admin=whoCharID)
                 channel.window.Speak(msg, const.ownerSystem)
-                if channel.info.ownerID == const.ownerSystem or args[0] == const.ownerSystem:
-                    sm.GetService('channels').RefreshMine(1)
-            channel.info.ownerID = args[0]
-        elif method == 'SetChannelMemberless':
-            channel.info.memberless = args[0]
-            if channel.window and not channel.window.destroyed:
-                try:
-                    if channel.info.memberless:
-                        msg = localization.GetByLabel('UI/Chat/ChannelEngagedDelayedMode', admin=whoCharID)
-                        channel.window.Speak(msg, const.ownerSystem)
-                    else:
-                        msg = localization.GetByLabel('UI/Chat/ChannelEngagedImmediateMode', admin=whoCharID, maxMembers=CHT_MAX_USERS_PER_IMMEDIATE_CHANNEL)
-                        channel.window.Speak(msg, const.ownerSystem)
-                        channel.memberList = args[1].Index('charID')
-                        self.__SetEstimatedMemberCount(channel, len(channel.memberList), True)
-                        channel.window.InitUsers(0)
-                except:
-                    log.LogException()
-                    sys.exc_clear()
+            elif method == 'SetChannelCreator':
+                if channel.window and not channel.window.destroyed:
+                    msg = localization.GetByLabel('UI/Chat/ChannelOwnerChanged', oldOwner=channel.info.ownerID, newOwner=args[0])
+                    channel.window.Speak(msg, const.ownerSystem)
+                    if channel.info.ownerID == const.ownerSystem or args[0] == const.ownerSystem:
+                        sm.GetService('channels').RefreshMine(1)
+                channel.info.ownerID = args[0]
+            elif method == 'SetChannelMemberless':
+                channel.info.memberless = args[0]
+                if channel.window and not channel.window.destroyed:
+                    try:
+                        if channel.info.memberless:
+                            msg = localization.GetByLabel('UI/Chat/ChannelEngagedDelayedMode', admin=whoCharID)
+                            channel.window.Speak(msg, const.ownerSystem)
+                        else:
+                            msg = localization.GetByLabel('UI/Chat/ChannelEngagedImmediateMode', admin=whoCharID, maxMembers=CHT_MAX_USERS_PER_IMMEDIATE_CHANNEL)
+                            channel.window.Speak(msg, const.ownerSystem)
+                            channel.memberList = args[1].Index('charID')
+                            self.__SetEstimatedMemberCount(channel, len(channel.memberList), True)
+                            channel.window.InitUsers(0)
+                    except:
+                        log.LogException()
+                        sys.exc_clear()
 
-        elif method == 'DestroyChannel':
-            del self.channels[channelID]
-            window = channel.window
-            channel.window = None
-            if window is not None and not window.destroyed:
-                if window == sm.GetService('focus').GetFocusChannel():
-                    sm.GetService('focus').SetFocusChannel()
-                window.Close()
-            self.__SaveChannelPrefs(channelID)
-        elif method == 'AccessControl':
-            done = False
-            for acl in channel.acl:
-                if acl.accessor == args[0]:
-                    if args[1] == CHTMODE_NOTSPECIFIED:
-                        channel.acl.remove(acl)
-                    else:
-                        acl.mode = args[1]
-                        acl.untilWhen = args[2]
-                        acl.originalMode = args[3]
-                        acl.reason = args[4]
-                        acl.admin = args[5]
-                    done = True
-                    if args[1] & CHTMODE_SPEAKER == CHTMODE_SPEAKER and args[2] and args[2] < blue.os.GetWallclockTime() and sm.GetService('vivox').Enabled():
-                        self.LogInfo('calling voice ungag')
-                        sm.GetService('vivox').UnGag(args[0], channel.channelID)
-                    break
-
-            if not done and args[1] != CHTMODE_NOTSPECIFIED:
-                channel.acl.InsertNew([args[0],
-                 args[1],
-                 args[2],
-                 args[3],
-                 args[4],
-                 args[5]])
-            if args[0] and args[0] in (eve.session.charid, eve.session.corpid, eve.session.allianceid) and CHTMODE_LISTENER > GetAccessInfo(channel, eve.session.role, eve.session.charid, eve.session.corpid, eve.session.allianceid)[0]:
-                self.Worker_LeaveChannel(channelID, 1)
+            elif method == 'DestroyChannel':
                 del self.channels[channelID]
                 window = channel.window
                 channel.window = None
@@ -745,42 +723,78 @@ class LargeScaleChat(service.Service):
                         sm.GetService('focus').SetFocusChannel()
                     window.Close()
                 self.__SaveChannelPrefs(channelID)
-            elif args[0] and CHTMODE_LISTENER == args[1]:
-                if args[0] in channel.memberList or args[0] in channel.recentSpeakerList:
-                    if self.IsGagged(channel.channelID, args[0]):
-                        if sm.GetService('vivox').Enabled():
-                            if sm.GetService('vivox').IsVoiceChannel(channelID):
-                                self.LogInfo('calling voice gag')
-                                sm.GetService('vivox').Gag(args[0], channel.channelID, args[2])
-                        if channel.window and not channel.window.destroyed:
+            elif method == 'AccessControl':
+                done = False
+                for acl in channel.acl:
+                    if acl.accessor == args[0]:
+                        if args[1] == CHTMODE_NOTSPECIFIED:
+                            channel.acl.remove(acl)
+                        else:
+                            acl.mode = args[1]
+                            acl.untilWhen = args[2]
+                            acl.originalMode = args[3]
+                            acl.reason = args[4]
+                            acl.admin = args[5]
+                        done = True
+                        if args[1] & CHTMODE_SPEAKER == CHTMODE_SPEAKER and args[2] and args[2] < blue.os.GetWallclockTime() and sm.GetService('vivox').Enabled():
+                            self.LogInfo('calling voice ungag')
+                            sm.GetService('vivox').UnGag(args[0], channel.channelID)
+                        break
+
+                if not done and args[1] != CHTMODE_NOTSPECIFIED:
+                    channel.acl.InsertNew([args[0],
+                     args[1],
+                     args[2],
+                     args[3],
+                     args[4],
+                     args[5]])
+                if args[0] and args[0] in (eve.session.charid, eve.session.corpid, eve.session.allianceid) and CHTMODE_LISTENER > GetAccessInfo(channel, eve.session.role, eve.session.charid, eve.session.corpid, eve.session.allianceid)[0]:
+                    self.Worker_LeaveChannel(channelID, 1)
+                    del self.channels[channelID]
+                    window = channel.window
+                    channel.window = None
+                    if window is not None and not window.destroyed:
+                        if window == sm.GetService('focus').GetFocusChannel():
+                            sm.GetService('focus').SetFocusChannel()
+                        window.Close()
+                    self.__SaveChannelPrefs(channelID)
+                elif args[0] and CHTMODE_LISTENER == args[1]:
+                    if args[0] in channel.memberList or args[0] in channel.recentSpeakerList:
+                        if self.IsGagged(channel.channelID, args[0]):
+                            if sm.GetService('vivox').Enabled():
+                                if sm.GetService('vivox').IsVoiceChannel(channelID):
+                                    self.LogInfo('calling voice gag')
+                                    sm.GetService('vivox').Gag(args[0], channel.channelID, args[2])
+                            if channel.window and not channel.window.destroyed:
+                                if args[0] in (eve.session.charid, eve.session.corpid, eve.session.allianceid) or CHTMODE_CONVERSATIONALIST < GetAccessInfo(channel, eve.session.role, eve.session.charid, eve.session.corpid, eve.session.allianceid)[0]:
+                                    if args[4]:
+                                        reason = args[4]
+                                    else:
+                                        reason = localization.GetByLabel('UI/Generic/None')
+                                    if args[2]:
+                                        muteMsg = localization.GetByLabel('UI/Chat/MuteMessageWithTime', muted=args[0], admin=whoCharID, effectiveUntil=args[2], reason=reason)
+                                    else:
+                                        muteMsg = localization.GetByLabel('UI/Chat/MuteMessage', muted=args[0], admin=whoCharID, reason=reason)
+                                    channel.window.Speak(muteMsg, const.ownerSystem)
+                        elif channel.window and not channel.window.destroyed:
                             if args[0] in (eve.session.charid, eve.session.corpid, eve.session.allianceid) or CHTMODE_CONVERSATIONALIST < GetAccessInfo(channel, eve.session.role, eve.session.charid, eve.session.corpid, eve.session.allianceid)[0]:
-                                if args[4]:
-                                    reason = args[4]
-                                else:
-                                    reason = localization.GetByLabel('UI/Generic/None')
-                                if args[2]:
-                                    muteMsg = localization.GetByLabel('UI/Chat/MuteMessageWithTime', muted=args[0], admin=whoCharID, effectiveUntil=args[2], reason=reason)
-                                else:
-                                    muteMsg = localization.GetByLabel('UI/Chat/MuteMessage', muted=args[0], admin=whoCharID, reason=reason)
-                                channel.window.Speak(muteMsg, const.ownerSystem)
-                    elif channel.window and not channel.window.destroyed:
-                        if args[0] in (eve.session.charid, eve.session.corpid, eve.session.allianceid) or CHTMODE_CONVERSATIONALIST < GetAccessInfo(channel, eve.session.role, eve.session.charid, eve.session.corpid, eve.session.allianceid)[0]:
-                            msg = localization.GetByLabel('UI/Chat/UnmuteMessage', unmuted=args[0], admin=whoCharID)
-                            channel.window.Speak(msg, const.ownerSystem)
-            elif args[0] is None:
-                if channel.window and not channel.window.destroyed:
-                    if args[1] == CHTMODE_CONVERSATIONALIST:
-                        channel.window.Speak(localization.GetByLabel('UI/Chat/ChannelAccessAllowed', admin=whoCharID), const.ownerSystem)
-                    elif args[1] == CHTMODE_SPEAKER:
-                        channel.window.Speak(localization.GetByLabel('UI/Chat/ChannelAccessAllowedSpeaker', admin=whoCharID), const.ownerSystem)
-                    elif args[1] == CHTMODE_NOTSPECIFIED:
-                        channel.window.Speak(localization.GetByLabel('UI/Chat/ChannelAccessBlocked', admin=whoCharID), const.ownerSystem)
-                    elif args[1] == CHTMODE_LISTENER:
-                        channel.window.Speak(localization.GetByLabel('UI/Chat/ChannelAccessModerated', admin=whoCharID), const.ownerSystem)
-            if channel.channelID == eve.session.charid:
-                sm.GetService('addressbook').RefreshWindow()
-                if util.IsCharacter(args[0]) and sm.GetService('addressbook').IsInAddressBook(args[0], 'contact'):
-                    sm.GetService('onlineStatus').GetOnlineStatus(args[0])
+                                msg = localization.GetByLabel('UI/Chat/UnmuteMessage', unmuted=args[0], admin=whoCharID)
+                                channel.window.Speak(msg, const.ownerSystem)
+                elif args[0] is None:
+                    if channel.window and not channel.window.destroyed:
+                        if args[1] == CHTMODE_CONVERSATIONALIST:
+                            channel.window.Speak(localization.GetByLabel('UI/Chat/ChannelAccessAllowed', admin=whoCharID), const.ownerSystem)
+                        elif args[1] == CHTMODE_SPEAKER:
+                            channel.window.Speak(localization.GetByLabel('UI/Chat/ChannelAccessAllowedSpeaker', admin=whoCharID), const.ownerSystem)
+                        elif args[1] == CHTMODE_NOTSPECIFIED:
+                            channel.window.Speak(localization.GetByLabel('UI/Chat/ChannelAccessBlocked', admin=whoCharID), const.ownerSystem)
+                        elif args[1] == CHTMODE_LISTENER:
+                            channel.window.Speak(localization.GetByLabel('UI/Chat/ChannelAccessModerated', admin=whoCharID), const.ownerSystem)
+                if channel.channelID == eve.session.charid:
+                    sm.GetService('addressbook').RefreshWindow()
+                    if util.IsCharacter(args[0]) and sm.GetService('addressbook').IsInAddressBook(args[0], 'contact'):
+                        sm.GetService('onlineStatus').GetOnlineStatus(args[0])
+            return
 
     def OnCorporationMemberChanged(self, corporationID, memberID, change):
         if 'corporationID' in change:
@@ -797,10 +811,12 @@ class LargeScaleChat(service.Service):
     def GetMemberInfo(self, channelID, charID):
         if channelID not in self.channels:
             return None
-        if charID in self.channels[channelID].recentSpeakerList:
+        elif charID in self.channels[channelID].recentSpeakerList:
             return self.channels[channelID].recentSpeakerList[charID]
-        if charID in self.channels[channelID].memberList:
+        elif charID in self.channels[channelID].memberList:
             return self.channels[channelID].memberList[charID]
+        else:
+            return None
 
     def GetChannelInfo(self, channelID):
         return self.channels.get(channelID, None)
@@ -818,56 +834,62 @@ class LargeScaleChat(service.Service):
             self.LogError("Couldn't get info for channelID = ", channelID, '. e = ', e)
             return None
 
-    def GetMembers(self, channelID, recent = 0):
+        return None
+
+    def GetMembers(self, channelID, recent=0):
         if channelID not in self.channels:
             return
-        channel = self.channels[channelID]
-        if recent:
-            return channel.recentSpeakerList
-        if self.IsMemberless(channelID):
-            if (channel.lastRefreshed is None or blue.os.GetWallclockTime() - channel.lastRefreshed >= 5 * const.MIN) and not stackless.getcurrent().block_trap:
-                channel.lastRefreshed = blue.os.GetWallclockTime()
-                ret = sm.RemoteSvc('LSC').GetMembers(channelID)
-                if ret is not None:
-                    channel.memberList = ret = ret.Index('charID')
-                for charid in channel.memberList:
-                    if charid not in cfg.eveowners:
-                        member = channel.memberList[charid]
-                        if member.extra and len(member.extra) > 0:
-                            cfg.eveowners.Hint(charid, member.extra)
+        else:
+            channel = self.channels[channelID]
+            if recent:
+                return channel.recentSpeakerList
+            if self.IsMemberless(channelID):
+                if (channel.lastRefreshed is None or blue.os.GetWallclockTime() - channel.lastRefreshed >= 5 * const.MIN) and not stackless.getcurrent().block_trap:
+                    channel.lastRefreshed = blue.os.GetWallclockTime()
+                    ret = sm.RemoteSvc('LSC').GetMembers(channelID)
+                    if ret is not None:
+                        channel.memberList = ret = ret.Index('charID')
+                    for charid in channel.memberList:
+                        if charid not in cfg.eveowners:
+                            member = channel.memberList[charid]
+                            if member.extra and len(member.extra) > 0:
+                                cfg.eveowners.Hint(charid, member.extra)
 
-                return ret
-        return channel.memberList
+                    return ret
+            return channel.memberList
 
     def IsMemberless(self, channelID):
         self.__GetChannelList()
         if channelID not in self.channels:
             return True
-        channel = self.channels[channelID]
-        if isinstance(channelID, int) and channel.info is not None:
-            return channel.info.memberless
-        channelCategory, channelNumber = channelID[0]
-        if _IsAnAnnouncingSystemChannel(channelCategory, channelNumber, channelID):
-            return False
         else:
+            channel = self.channels[channelID]
+            if isinstance(channelID, int) and channel.info is not None:
+                return channel.info.memberless
+            channelCategory, channelNumber = channelID[0]
+            if _IsAnAnnouncingSystemChannel(channelCategory, channelNumber, channelID):
+                return False
             return True
+            return
 
     def IsJoined(self, channelID):
         self.__GetChannelList()
         if channelID not in self.channels:
             return False
-        if isinstance(channelID, int) and self.channels[channelID].info is not None and self.channels[channelID].info.mailingList:
+        elif isinstance(channelID, int) and self.channels[channelID].info is not None and self.channels[channelID].info.mailingList:
             return self.channelListIndexed[channelID].subscribed
-        if self.channels[channelID].window is None or self.channels[channelID].window.destroyed:
+        elif self.channels[channelID].window is None or self.channels[channelID].window.destroyed:
             return False
-        return True
+        else:
+            return True
 
     def GetMyAccessInfo(self, channelID):
         self.__GetChannelList()
         if channelID not in self.channels:
             return None
-        channel = self.channels[channelID]
-        return GetAccessInfo(channel, eve.session.role, eve.session.charid, eve.session.corpid, eve.session.allianceid)
+        else:
+            channel = self.channels[channelID]
+            return GetAccessInfo(channel, eve.session.role, eve.session.charid, eve.session.corpid, eve.session.allianceid)
 
     def IsSpeaker(self, channelID):
         self.__GetChannelList()
@@ -880,53 +902,57 @@ class LargeScaleChat(service.Service):
         self.__GetChannelList()
         if channelID not in self.channels:
             return 0
-        channel = self.channels[channelID]
-        if isinstance(channelID, tuple) or channel.info is None:
-            return 0
-        return channel.info.languageRestriction
+        else:
+            channel = self.channels[channelID]
+            if isinstance(channelID, tuple) or channel.info is None:
+                return 0
+            return channel.info.languageRestriction
 
-    def __GetChannelList(self, refresh = 0):
+    def __GetChannelList(self, refresh=0):
         if eve.rookieState and eve.rookieState < sm.GetService('tutorial').GetOtherRookieFilter('defaultchannels'):
             return []
-        s = self.semaphore
-        s.acquire()
-        try:
-            last = blue.pyos.taskletTimer.EnterTasklet('LSCEngine::GetChannelList')
+        else:
+            s = self.semaphore
+            s.acquire()
             try:
-                if refresh or self.channelList is None:
-                    self.channelList = sm.RemoteSvc('LSC').GetChannels()
-                    self.channelListIndexed = self.channelList.Index('channelID')
-                    self.forgettables = {}
-                    join = []
-                    __niow__ = (const.ownerSystem, eve.session.charid)
-                    for channel in self.channelList:
-                        ownerID = channel.ownerID
-                        channelID = channel.channelID
-                        mailingList = channel.mailingList
-                        subscribed = channel.subscribed
-                        last2 = blue.pyos.taskletTimer.EnterTasklet('LSCEngine::GetChannelList::OtherStuff')
-                        try:
-                            if ownerID not in __niow__:
-                                self.forgettables[channelID] = True
-                            if mailingList and subscribed:
-                                if channelID not in join and channelID in (session.charid, session.corpid, session.allianceid):
-                                    join.append(channelID)
-                            if channelID == self.rookieHelpChannel and channelID not in join and eve.session.role & service.ROLE_NEWBIE and not self.rookieJoined:
-                                self.rookieJoined = True
-                                join.append(self.rookieHelpChannel)
-                        finally:
-                            blue.pyos.taskletTimer.ReturnFromTasklet(last2)
+                last = blue.pyos.taskletTimer.EnterTasklet('LSCEngine::GetChannelList')
+                try:
+                    if refresh or self.channelList is None:
+                        self.channelList = sm.RemoteSvc('LSC').GetChannels()
+                        self.channelListIndexed = self.channelList.Index('channelID')
+                        self.forgettables = {}
+                        join = []
+                        __niow__ = (const.ownerSystem, eve.session.charid)
+                        for channel in self.channelList:
+                            ownerID = channel.ownerID
+                            channelID = channel.channelID
+                            mailingList = channel.mailingList
+                            subscribed = channel.subscribed
+                            last2 = blue.pyos.taskletTimer.EnterTasklet('LSCEngine::GetChannelList::OtherStuff')
+                            try:
+                                if ownerID not in __niow__:
+                                    self.forgettables[channelID] = True
+                                if mailingList and subscribed:
+                                    if channelID not in join and channelID in (session.charid, session.corpid, session.allianceid):
+                                        join.append(channelID)
+                                if channelID == self.rookieHelpChannel and channelID not in join and eve.session.role & service.ROLE_NEWBIE and not self.rookieJoined:
+                                    self.rookieJoined = True
+                                    join.append(self.rookieHelpChannel)
+                            finally:
+                                blue.pyos.taskletTimer.ReturnFromTasklet(last2)
 
-                    if join:
-                        uthread.worker('LSC::__GetChannelList::JoinChannels', self.JoinChannels, join, maximize=0)
+                        if join:
+                            uthread.worker('LSC::__GetChannelList::JoinChannels', self.JoinChannels, join, maximize=0)
+                finally:
+                    blue.pyos.taskletTimer.ReturnFromTasklet(last)
+
+                return self.channelList
             finally:
-                blue.pyos.taskletTimer.ReturnFromTasklet(last)
+                s.release()
 
-            return self.channelList
-        finally:
-            s.release()
+            return
 
-    def GetChannels(self, refresh = 0):
+    def GetChannels(self, refresh=0):
         channelList = []
         for channel in self.__GetChannelList(refresh):
             if not channel.mailingList:
@@ -967,6 +993,8 @@ class LargeScaleChat(service.Service):
             channelID = (channelID,)
         if channelID in self.channels:
             return self.channels[channelID].window
+        else:
+            return None
 
     def IsForgettable(self, channelID):
         self.__GetChannelList()
@@ -976,29 +1004,30 @@ class LargeScaleChat(service.Service):
             return 0
         return self.forgettables.get(channelID, 0)
 
-    def IsOperator(self, channelID, charID = None):
+    def IsOperator(self, channelID, charID=None):
         self.__GetChannelList()
         if channelID not in self.channels:
             return 0
-        channel = self.channels[channelID]
-        if charID is None:
-            charID = eve.session.charid
-            corpID = eve.session.corpid
-            allianceID = eve.session.allianceid
-            role = eve.session.role
         else:
-            corpID = None
-            allianceID = None
-            role = 0
-            if charID in channel.memberList:
-                corpID = channel.memberList[charID].corpID
-                allianceID = channel.memberList[charID].allianceID
-                role = channel.memberList[charID].role
-            elif charID in channel.recentSpeakerList:
-                corpID = channel.recentSpeakerList[charID].corpID
-                allianceID = channel.recentSpeakerList[charID].allianceID
-                role = channel.recentSpeakerList[charID].role
-        return CHTMODE_OPERATOR <= GetAccessInfo(channel, role, charID, corpID, allianceID)[0]
+            channel = self.channels[channelID]
+            if charID is None:
+                charID = eve.session.charid
+                corpID = eve.session.corpid
+                allianceID = eve.session.allianceid
+                role = eve.session.role
+            else:
+                corpID = None
+                allianceID = None
+                role = 0
+                if charID in channel.memberList:
+                    corpID = channel.memberList[charID].corpID
+                    allianceID = channel.memberList[charID].allianceID
+                    role = channel.memberList[charID].role
+                elif charID in channel.recentSpeakerList:
+                    corpID = channel.recentSpeakerList[charID].corpID
+                    allianceID = channel.recentSpeakerList[charID].allianceID
+                    role = channel.recentSpeakerList[charID].role
+            return CHTMODE_OPERATOR <= GetAccessInfo(channel, role, charID, corpID, allianceID)[0]
 
     def GetMemberCount(self, channelID):
         if channelID not in self.channels:
@@ -1029,7 +1058,7 @@ class LargeScaleChat(service.Service):
         eveCount = totalCount - dustCount
         return (eveCount, dustCount)
 
-    def __SetEstimatedMemberCount(self, channel, emc, forceUpdate = False):
+    def __SetEstimatedMemberCount(self, channel, emc, forceUpdate=False):
         if emc is not None:
             if channel.estimatedMemberCount == emc:
                 return
@@ -1043,6 +1072,7 @@ class LargeScaleChat(service.Service):
                 self.channelListIndexed[channel.channelID].estimatedMemberCount = channel.estimatedMemberCount
         if forceUpdate or self.lastEMCUpdate > 0 and blue.os.GetWallclockTime() - self.lastEMCUpdate >= MINIMUM_EMC_UPDATE_TIME:
             self.__UpdateEMC()
+        return
 
     def __UpdateEMC(self):
         if not self.updateEMC:
@@ -1066,7 +1096,8 @@ class LargeScaleChat(service.Service):
     def IsOwner(self, channelInfo):
         if getattr(channelInfo, 'ownerID', None) == session.charid:
             return 1
-        return 0
+        else:
+            return 0
 
     def __getRecentSpeakerListRowDescriptor(self):
         return blue.DBRowDescriptor((('charID', const.DBTYPE_I4),
@@ -1089,7 +1120,7 @@ class LargeScaleChat(service.Service):
             return CHTMODE_SPEAKER > GetAccessInfo(channel, channel.memberList[charID].role, charID, channel.memberList[charID].corpID, channel.memberList[charID].allianceID)[0]
         return CHTMODE_SPEAKER > GetAccessInfo(channel, 0, charID)[0]
 
-    def CreateOrJoinChannel(self, displayName, create = True):
+    def CreateOrJoinChannel(self, displayName, create=True):
         displayName = displayName.strip()
         s = self.semaphore
         s.acquire()
@@ -1152,6 +1183,7 @@ class LargeScaleChat(service.Service):
         self.__SetEstimatedMemberCount(self.channels[info.channelID], None, True)
         self.__SaveChannelPrefs()
         sm.ScatterEvent('OnChannelsJoined', [info.channelID])
+        return
 
     def __InvalidateChannelList(self, channelID):
         s = self.semaphore
@@ -1169,70 +1201,75 @@ class LargeScaleChat(service.Service):
         finally:
             s.release()
 
+        return
+
     @WrappedMethod
-    def Invite(self, otherID, channelID = None, isRecruiting = None):
+    def Invite(self, otherID, channelID=None, isRecruiting=None):
         if type(otherID) not in (types.IntType, types.LongType):
             log.LogTraceback('Illegal otherID %s' % (otherID,))
             eve.Message('CustomError', {'error': localization.GetByLabel('UI/Chat/ErrorNotACharacter')})
             return
-        if util.IsNPC(otherID) or not util.IsCharacter(otherID):
+        elif util.IsNPC(otherID) or not util.IsCharacter(otherID):
             eve.Message('CustomInfo', {'info': localization.GetByLabel('UI/Chat/ErrorNotAPlayerCharacter')})
             return
-        if isRecruiting is not None:
-            isRecruiting = isRecruiting[0]
-            with util.ExceptionEater('eventLog'):
-                sm.GetService('corp').LogCorpRecruitmentEvent(['corporationID',
-                 'allianceID',
-                 'recruiterID',
-                 'applyingCorporationID',
-                 'adID'], 'TalkToRecruiter', session.corpid, session.allianceid, isRecruiting.recruiterID, isRecruiting.corporationID, isRecruiting.adID)
-        if channelID:
-            self.__InvalidateChannelList(channelID)
-            self.JoinChannel(channelID)
-            channelName = self.channels[channelID].info.displayName
-            addAllowed = True
-            for channel in self.channels[channelID].acl:
-                accessor = channel.accessor
-                mode = channel.mode
-                if accessor is None and mode >= CHTMODE_SPEAKER:
-                    addAllowed = False
-                    break
-
-            util.CSPAChargedAction('CSPAChatCheck', sm.RemoteSvc('LSC'), 'Invite', otherID, channelID, channelName, addAllowed)
         else:
-            info, acl, memberList = sm.RemoteSvc('LSC').CreateChannel('Private Chat', joinExisting=False, temporary=True, noCallThrottling=True)
-            channelID = info.channelID
-            self.__InvalidateChannelList(channelID)
-            self.joiningChannels[channelID] = 1
-            try:
-                if info.channelID in self.channels:
-                    window = self.channels[info.channelID].window
-                    if window is not None and not window.destroyed:
-                        window.Maximize()
-                        util.CSPAChargedAction('CSPAChatCheck', sm.RemoteSvc('LSC'), 'Invite', otherID, channelID, 'Private Chat', False)
-                        return
-                recentSpeakerList = dbutil.CRowset(self.__getRecentSpeakerListRowDescriptor(), []).Index('charID')
-                memberList = memberList.Index('charID')
-                self.channels[info.channelID] = util.KeyVal(channelID=info.channelID, info=info, acl=acl, recentSpeakerList=recentSpeakerList, memberList=memberList, window=None, estimatedMemberCount=1, lastRefreshed=None)
-                try:
-                    invited = util.CSPAChargedAction('CSPAChatCheck', sm.RemoteSvc('LSC'), 'Invite', otherID, channelID, 'Private Chat', False)
-                    if not invited:
-                        self.LeaveChannel(info.channelID)
-                        return
-                except:
-                    self.LeaveChannel(info.channelID)
-                    raise
+            if isRecruiting is not None:
+                isRecruiting = isRecruiting[0]
+                with util.ExceptionEater('eventLog'):
+                    sm.GetService('corp').LogCorpRecruitmentEvent(['corporationID',
+                     'allianceID',
+                     'recruiterID',
+                     'applyingCorporationID',
+                     'adID'], 'TalkToRecruiter', session.corpid, session.allianceid, isRecruiting.recruiterID, isRecruiting.corporationID, isRecruiting.adID)
+            if channelID:
+                self.__InvalidateChannelList(channelID)
+                self.JoinChannel(channelID)
+                channelName = self.channels[channelID].info.displayName
+                addAllowed = True
+                for channel in self.channels[channelID].acl:
+                    accessor = channel.accessor
+                    mode = channel.mode
+                    if accessor is None and mode >= CHTMODE_SPEAKER:
+                        addAllowed = False
+                        break
 
-                self.__SaveChannelPrefs()
-                wndID = 'chatchannel_%s' % ConfigKeyFromChannelID(info.channelID)
-                from eve.client.script.ui.shared.comtool.lscchannel import Channel as LSCChannel
-                window = LSCChannel.Open(windowID=wndID, showIfInStack=self.ShowIfInStack(), channelID=-1)
-                self.channels[info.channelID].window = window
-                self.__SetEstimatedMemberCount(self.channels[info.channelID], None, True)
-                if window and not window.destroyed:
-                    window.Startup(info.channelID, otherID)
-            finally:
-                del self.joiningChannels[channelID]
+                util.CSPAChargedAction('CSPAChatCheck', sm.RemoteSvc('LSC'), 'Invite', otherID, channelID, channelName, addAllowed)
+            else:
+                info, acl, memberList = sm.RemoteSvc('LSC').CreateChannel('Private Chat', joinExisting=False, temporary=True, noCallThrottling=True)
+                channelID = info.channelID
+                self.__InvalidateChannelList(channelID)
+                self.joiningChannels[channelID] = 1
+                try:
+                    if info.channelID in self.channels:
+                        window = self.channels[info.channelID].window
+                        if window is not None and not window.destroyed:
+                            window.Maximize()
+                            util.CSPAChargedAction('CSPAChatCheck', sm.RemoteSvc('LSC'), 'Invite', otherID, channelID, 'Private Chat', False)
+                            return
+                    recentSpeakerList = dbutil.CRowset(self.__getRecentSpeakerListRowDescriptor(), []).Index('charID')
+                    memberList = memberList.Index('charID')
+                    self.channels[info.channelID] = util.KeyVal(channelID=info.channelID, info=info, acl=acl, recentSpeakerList=recentSpeakerList, memberList=memberList, window=None, estimatedMemberCount=1, lastRefreshed=None)
+                    try:
+                        invited = util.CSPAChargedAction('CSPAChatCheck', sm.RemoteSvc('LSC'), 'Invite', otherID, channelID, 'Private Chat', False)
+                        if not invited:
+                            self.LeaveChannel(info.channelID)
+                            return
+                    except:
+                        self.LeaveChannel(info.channelID)
+                        raise
+
+                    self.__SaveChannelPrefs()
+                    wndID = 'chatchannel_%s' % ConfigKeyFromChannelID(info.channelID)
+                    from eve.client.script.ui.shared.comtool.lscchannel import Channel as LSCChannel
+                    window = LSCChannel.Open(windowID=wndID, showIfInStack=self.ShowIfInStack(), channelID=-1)
+                    self.channels[info.channelID].window = window
+                    self.__SetEstimatedMemberCount(self.channels[info.channelID], None, True)
+                    if window and not window.destroyed:
+                        window.Startup(info.channelID, otherID)
+                finally:
+                    del self.joiningChannels[channelID]
+
+            return
 
     @WrappedMethod
     def __JoinChannelHelper(self, channelID, info, acl, memberList, restoreWindows):
@@ -1275,17 +1312,17 @@ class LargeScaleChat(service.Service):
                     return
         self.__SaveChannelPrefs(channelID)
         self.__SetEstimatedMemberCount(self.channels[channelID], None, True)
+        return
 
     def ShowIfInStack(self):
         currentFocusChannel = sm.GetService('focus').GetFocusChannel()
         if currentFocusChannel and not currentFocusChannel.destroyed and currentFocusChannel.input == uicore.registry.GetFocus():
             return 0
-        return 1
 
     def JoinChannel(self, channelID):
         return self.JoinChannels([channelID])
 
-    def JoinOrLeaveChannel(self, channelID, onlyJoin = False):
+    def JoinOrLeaveChannel(self, channelID, onlyJoin=False):
         s = sm.StartService('channels').semaphore
         s.acquire()
         try:
@@ -1300,76 +1337,79 @@ class LargeScaleChat(service.Service):
         sm.ScatterEvent('OnJoinLeaveChannel', channelID)
 
     @WrappedMethod
-    def JoinChannels(self, channelIDs, restoreWindows = {}, maximize = 0):
+    def JoinChannels(self, channelIDs, restoreWindows={}, maximize=0):
         if sm.GetService('vivox').Subscriber():
             sm.GetService('vivox').Init()
         if eve.rookieState and eve.rookieState < sm.GetService('tutorial').GetOtherRookieFilter('defaultchannels'):
             return
-        toJoin = []
-        for channelID in channelIDs:
-            channelID = ChannelHash(channelID)
-            if channelID in self.channels:
-                channel = self.channels[channelID]
-                if isinstance(channelID, int) and channel.info is not None and channel.info.mailingList:
-                    continue
-                else:
-                    window = channel.window
-                    if window is not None and not window.destroyed:
-                        if maximize:
-                            window.Maximize()
+        else:
+            toJoin = []
+            for channelID in channelIDs:
+                channelID = ChannelHash(channelID)
+                if channelID in self.channels:
+                    channel = self.channels[channelID]
+                    if isinstance(channelID, int) and channel.info is not None and channel.info.mailingList:
                         continue
-            if channelID not in self.joiningChannels:
-                self.joiningChannels[channelID] = 1
-                toJoin.append(channelID)
+                    else:
+                        window = channel.window
+                        if window is not None and not window.destroyed:
+                            if maximize:
+                                window.Maximize()
+                            continue
+                if channelID not in self.joiningChannels:
+                    self.joiningChannels[channelID] = 1
+                    toJoin.append(channelID)
 
-        try:
-            if not toJoin:
-                return
-            ret = self.Remote_JoinChannels(toJoin, eve.session.role)
-            argsList = []
-            for channelID, ok, tmp in ret:
-                if not ok or not tmp:
-                    self.__SaveChannelPrefs(channelID)
-                    continue
-                info, acl, memberList = tmp
-                argsList.append((channelID,
-                 info,
-                 acl,
-                 memberList,
-                 restoreWindows))
-
-            self.CallJoinChannelHelper(argsList)
-            s = self.semaphore
-            s.acquire()
             try:
-                m, c = False, False
+                if not toJoin:
+                    return
+                ret = self.Remote_JoinChannels(toJoin, eve.session.role)
+                argsList = []
                 for channelID, ok, tmp in ret:
-                    if ok:
-                        continue
-                    msg, dict = tmp
-                    if msg in ('LSCCannotJoin', 'LSCWrongPassword') and type(channelID) == types.IntType:
+                    if not ok or not tmp:
                         self.__SaveChannelPrefs(channelID)
-                    uthread.new(eve.Message, msg, dict)
-                    if self.channelList is not None:
-                        for channel in self.channelList:
-                            if channel.channelID == channelID:
-                                if channel.mailingList:
-                                    m = True
-                                else:
-                                    c = True
-                                break
+                        continue
+                    info, acl, memberList = tmp
+                    argsList.append((channelID,
+                     info,
+                     acl,
+                     memberList,
+                     restoreWindows))
 
+                self.CallJoinChannelHelper(argsList)
+                s = self.semaphore
+                s.acquire()
+                try:
+                    m, c = False, False
+                    for channelID, ok, tmp in ret:
+                        if ok:
+                            continue
+                        msg, dict = tmp
+                        if msg in ('LSCCannotJoin', 'LSCWrongPassword') and type(channelID) == types.IntType:
+                            self.__SaveChannelPrefs(channelID)
+                        uthread.new(eve.Message, msg, dict)
+                        if self.channelList is not None:
+                            for channel in self.channelList:
+                                if channel.channelID == channelID:
+                                    if channel.mailingList:
+                                        m = True
+                                    else:
+                                        c = True
+                                    break
+
+                finally:
+                    s.release()
+
+                if c:
+                    uthread.worker('LSC::JoinChannels::RefreshMine', sm.GetService('channels').RefreshMine)
             finally:
-                s.release()
+                for channelID in toJoin:
+                    if channelID in self.joiningChannels:
+                        del self.joiningChannels[channelID]
 
-            if c:
-                uthread.worker('LSC::JoinChannels::RefreshMine', sm.GetService('channels').RefreshMine)
-        finally:
-            for channelID in toJoin:
-                if channelID in self.joiningChannels:
-                    del self.joiningChannels[channelID]
+                sm.ScatterEvent('OnChannelsJoined', toJoin)
 
-            sm.ScatterEvent('OnChannelsJoined', toJoin)
+            return
 
     @WrappedMethod
     def Remote_JoinChannels(self, toJoin, role):
@@ -1383,41 +1423,43 @@ class LargeScaleChat(service.Service):
         for args in argsList:
             self.__JoinChannelHelper(*args)
 
-    def OpenChannel(self, channelID, ok, tmp, restoreWindows = {}, maximize = 0):
+    def OpenChannel(self, channelID, ok, tmp, restoreWindows={}, maximize=0):
         if not tmp:
             self.__SaveChannelPrefs(channelID)
             return
-        lock = self.semaphore
-        lock.acquire()
-        try:
-            mail, refresh = False, False
-            if ok:
-                info, acl, memberList = tmp
-                uthread.new(self.__JoinChannelHelper, channelID, info, acl, memberList, restoreWindows)
-            else:
-                msg, dict = tmp
-                if msg in ('LSCCannotJoin', 'LSCWrongPassword') and type(channelID) == types.IntType:
-                    self.__SaveChannelPrefs(channelID)
-                uthread.new(eve.Message, msg, dict)
-                if self.channelList is not None:
-                    for channel in self.channelList:
-                        if channel.channelID == channelID:
-                            if channel.mailingList:
-                                mail = True
-                            else:
-                                refresh = True
-                            break
+        else:
+            lock = self.semaphore
+            lock.acquire()
+            try:
+                mail, refresh = False, False
+                if ok:
+                    info, acl, memberList = tmp
+                    uthread.new(self.__JoinChannelHelper, channelID, info, acl, memberList, restoreWindows)
+                else:
+                    msg, dict = tmp
+                    if msg in ('LSCCannotJoin', 'LSCWrongPassword') and type(channelID) == types.IntType:
+                        self.__SaveChannelPrefs(channelID)
+                    uthread.new(eve.Message, msg, dict)
+                    if self.channelList is not None:
+                        for channel in self.channelList:
+                            if channel.channelID == channelID:
+                                if channel.mailingList:
+                                    mail = True
+                                else:
+                                    refresh = True
+                                break
 
-        finally:
-            lock.release()
+            finally:
+                lock.release()
 
-        if refresh:
-            uthread.worker('LSC::JoinChannels::RefreshMine', sm.GetService('channels').RefreshMine)
+            if refresh:
+                uthread.worker('LSC::JoinChannels::RefreshMine', sm.GetService('channels').RefreshMine)
+            return
 
-    def LeaveChannel(self, channelID, unsubscribe = False, destruct = True):
+    def LeaveChannel(self, channelID, unsubscribe=False, destruct=True):
         return self.LeaveChannels([channelID], unsubscribe, destruct=destruct)
 
-    def LeaveChannels(self, channelIDs, unsubscribe = False, saveWindows = None, savePrefs = True, sessionChangeDriven = False, destruct = True):
+    def LeaveChannels(self, channelIDs, unsubscribe=False, saveWindows=None, savePrefs=True, sessionChangeDriven=False, destruct=True):
         self.LogInfo('LSC: lscengine.py LeaveChannels with channelIDs=', channelIDs)
         toLeave = []
         for channelID in channelIDs:
@@ -1463,6 +1505,7 @@ class LargeScaleChat(service.Service):
 
         if toLeave:
             uthread.worker('LSCEngine::LeaveChannels::Leave', self.Leave, toLeave, unsubscribe)
+        return
 
     def Leave(self, leave, unsubscribe):
         self.LogInfo('LSC: lscengine.py Leave with leave=', leave)
@@ -1518,6 +1561,7 @@ class LargeScaleChat(service.Service):
              'untilwhen': untilwhen,
              'gagger': gagger})
         self.Remote_SendMessage(channelID, message)
+        return
 
     @WrappedMethod
     def Remote_SendMessage(self, channelID, message):
@@ -1566,7 +1610,7 @@ class LargeScaleChat(service.Service):
                 return
             passwordWnd = ChannelPasswordWindow(windowID=windowID, title=title, channelID=channelID, channelName=channelname, displayName=displayName)
 
-    def TryOpenChannel(self, channelID, channelname, password, savePassword = 0):
+    def TryOpenChannel(self, channelID, channelname, password, savePassword=0):
         try:
             if password is not None:
                 tmp = self.Remote_JoinChannel(channelID, password=password)
@@ -1591,7 +1635,7 @@ class LargeScaleChat(service.Service):
 
         return False
 
-    def AskYesNoQuestion(self, question, props, defaultChoice = 1):
+    def AskYesNoQuestion(self, question, props, defaultChoice=1):
         if defaultChoice:
             defaultChoice = uiconst.ID_YES
         else:
@@ -1616,7 +1660,7 @@ class LargeScaleChat(service.Service):
         return bs
 
     @WrappedMethod
-    def ChatInvite(self, invitorID, invitorName, invitorGender, channelID, forcedAccept = 0):
+    def ChatInvite(self, invitorID, invitorName, invitorGender, channelID, forcedAccept=0):
         try:
             if not forcedAccept:
                 rejectionReason = self.__ConfirmInvitation(invitorID, invitorName, invitorGender, channelID)
@@ -1635,49 +1679,53 @@ class LargeScaleChat(service.Service):
         self.settings.LoadSettings()
         if invitorID == eve.session.charid:
             return 'ChtCannotInviteSelf'
-        blocked = sm.GetService('addressbook').IsBlocked(invitorID)
-        if blocked:
-            return 'ChtBlockedBefore'
-        if settings.user.ui.Get('autoRejectInvitations', 0):
+        else:
+            blocked = sm.GetService('addressbook').IsBlocked(invitorID)
+            if blocked:
+                return 'ChtBlockedBefore'
+            if settings.user.ui.Get('autoRejectInvitations', 0):
+                return 'ChtRejected'
+            if sm.GetService('addressbook').IsInAddressBook(invitorID, 'contact'):
+                return
+            if ChatInviteWnd.GetIfOpen(windowID='ChatInvitation_%s' % invitorID):
+                return 'ChtAlreadyInvited'
+            if channelID in self.channels:
+                return 'ChtAlreadyInChannel'
+            if currentcall:
+                currentcall.UnLockSession()
+            sm.GetService('logger').AddText(localization.GetByLabel('UI/Chat/InvitedToConversation', inviter=invitorID))
+            wnd = ChatInviteWnd.Open(windowID='ChatInvitation_%s' % invitorID, invitorID=invitorID, invitorName=invitorName)
+            if wnd.OnScale_:
+                wnd.OnScale_(wnd)
+            stack = uicore.registry.GetStack('invitestack', wnd.GetStackClass(), useDefaultPos=True)
+            if stack is not None:
+                stack.InsertWnd(wnd, 0, 1, 1)
+                stack.MakeUnResizeable()
+            state = uiconst.UI_PICKCHILDREN
+            if wnd.sr.stack is None:
+                state = uiconst.UI_NORMAL
+            dialog = wnd.ShowDialog(modal=False, state=state)
+            retval = wnd.result
+            if retval:
+                if retval == 'accept':
+                    return
+                if retval == 'acceptadd':
+                    uthread.new(sm.GetService('addressbook').AddToPersonal, invitorID, 'contact')
+                    return
+                if retval == 'block':
+                    uthread.new(sm.GetService('addressbook').BlockOwner, invitorID)
+                    return 'ChtBlockedNow'
             return 'ChtRejected'
-        if sm.GetService('addressbook').IsInAddressBook(invitorID, 'contact'):
-            return
-        if ChatInviteWnd.GetIfOpen(windowID='ChatInvitation_%s' % invitorID):
-            return 'ChtAlreadyInvited'
-        if channelID in self.channels:
-            return 'ChtAlreadyInChannel'
-        if currentcall:
-            currentcall.UnLockSession()
-        sm.GetService('logger').AddText(localization.GetByLabel('UI/Chat/InvitedToConversation', inviter=invitorID))
-        wnd = ChatInviteWnd.Open(windowID='ChatInvitation_%s' % invitorID, invitorID=invitorID, invitorName=invitorName)
-        if wnd.OnScale_:
-            wnd.OnScale_(wnd)
-        stack = uicore.registry.GetStack('invitestack', wnd.GetStackClass(), useDefaultPos=True)
-        if stack is not None:
-            stack.InsertWnd(wnd, 0, 1, 1)
-            stack.MakeUnResizeable()
-        state = uiconst.UI_PICKCHILDREN
-        if wnd.sr.stack is None:
-            state = uiconst.UI_NORMAL
-        dialog = wnd.ShowDialog(modal=False, state=state)
-        retval = wnd.result
-        if retval:
-            if retval == 'accept':
-                return
-            if retval == 'acceptadd':
-                uthread.new(sm.GetService('addressbook').AddToPersonal, invitorID, 'contact')
-                return
-            if retval == 'block':
-                uthread.new(sm.GetService('addressbook').BlockOwner, invitorID)
-                return 'ChtBlockedNow'
-        return 'ChtRejected'
 
     def GetChannelIDFromName(self, channelName, *args):
         if self.channelList is None:
             return
-        for channel in self.channelList:
-            if channel.displayName and channel.displayName.lower() == channelName.lower():
-                return channel.channelID
+        else:
+            for channel in self.channelList:
+                if channel.displayName and channel.displayName.lower() == channelName.lower():
+                    return channel.channelID
+
+            return
 
     def InitChatFilters(self):
         self.characterSettings = sm.GetService('characterSettings')
@@ -1687,9 +1735,10 @@ class LargeScaleChat(service.Service):
     def GetChatFilters(self):
         if session.charid is None:
             return
-        if self.chatFilters is None:
-            self.chatFilters = self.FetchFiltersFromServer()
-        return self.chatFilters
+        else:
+            if self.chatFilters is None:
+                self.chatFilters = self.FetchFiltersFromServer()
+            return self.chatFilters
 
     def FetchFiltersFromServer(self):
         chatFilters = {}
@@ -1778,6 +1827,7 @@ class ChannelSettingsDialog(uicontrols.Window):
                  self,
                  'gamemasters'])
         self.maintabs.Startup(propertyPages, 'channelconfigurationpanel', autoselecttab=1)
+        return
 
     def Load(self, args):
         tab = None
@@ -1808,6 +1858,8 @@ class ChannelSettingsDialog(uicontrols.Window):
                 each.state = uiconst.UI_HIDDEN
             else:
                 each.state = uiconst.UI_NORMAL
+
+        return
 
     def OnGeneralTab(self):
         if not self.sr.Get('general_initialized', 0):
@@ -1863,8 +1915,9 @@ class ChannelSettingsDialog(uicontrols.Window):
                 currentMotd = channel.info.motd
             self.sr.motd = uicls.EditPlainText(parent=container, showattributepanel=1, maxLength=4000, setvalue=currentMotd or '', padTop=20)
             self.sr.general_initialized = 1
+        return
 
-    def GoTo(self, URL, data = None, args = {}, scrollTo = None):
+    def GoTo(self, URL, data=None, args={}, scrollTo=None):
         uicore.cmd.OpenBrowser(URL, data=data, args=args)
 
     def OnGameMastersTab(self):
@@ -1910,6 +1963,7 @@ class ChannelSettingsDialog(uicontrols.Window):
 
             scrolllist = uiutil.SortListOfTuples(scrolllist)
             uthread.new(self.sr.allowedlist.Load, 24, scrolllist)
+        return
 
     def __RemoveAllowed(self, ownerIDs):
         for ownerID in ownerIDs:
@@ -1984,6 +2038,7 @@ class ChannelSettingsDialog(uicontrols.Window):
 
             scrolllist = uiutil.SortListOfTuples(scrolllist)
             uthread.new(self.sr.blockedlist.Load, 24, scrolllist)
+        return
 
     def __RemoveBlocked(self, ownerIDs):
         for ownerID in ownerIDs:
@@ -2055,6 +2110,7 @@ class ChannelSettingsDialog(uicontrols.Window):
 
             scrolllist = uiutil.SortListOfTuples(scrolllist)
             uthread.new(self.sr.operatorslist.Load, 24, scrolllist)
+        return
 
     def __RemoveOperators(self, ownerIDs):
         for ownerID in ownerIDs:
@@ -2121,6 +2177,7 @@ class ChannelSettingsDialog(uicontrols.Window):
 
             scrolllist = uiutil.SortListOfTuples(scrolllist)
             uthread.new(self.sr.mutedlist.Load, 24, scrolllist)
+        return
 
     def __RemoveMuted(self, ownerIDs):
         for ownerID in ownerIDs:
@@ -2166,71 +2223,74 @@ class ChannelSettingsDialog(uicontrols.Window):
     def OnOK(self, *args):
         if not self.ValidateOK():
             return
-        channel = sm.GetService('LSC').GetChannelInfo(self.channelID)
-        if channel is None:
-            return
-        if self.sr.Get('general_initialized', 0):
-            if not channel.info.mailingList:
-                motd = self.sr.motd.GetValue(html=0).strip()
-                while motd.endswith('<br>'):
-                    motd = motd[:-4].strip()
-
-                if motd != (channel.info.motd or ''):
-                    self.config['motd'] = motd
-            if isinstance(self.channelID, int):
-                if self.sr.Get('channelName'):
-                    displayName = self.sr.channelName.GetValue().strip()
-                    if displayName != channel.info.displayName:
-                        self.config['displayName'] = displayName
+        else:
+            channel = sm.GetService('LSC').GetChannelInfo(self.channelID)
+            if channel is None:
+                return
+            if self.sr.Get('general_initialized', 0):
                 if not channel.info.mailingList:
-                    password = self.sr.password.GetValue().strip()
-                    if password == '':
-                        password = None
-                    if password != '|||||' and password != channel.info.password:
-                        self.config['oldPassword'] = channel.info.password
-                        self.config['newPassword'] = password
-                    if self.sr.memberless.GetValue() != channel.info.memberless:
-                        self.config['memberless'] = self.sr.memberless.GetValue()
-                if self.defaultAccess != self.sr.combo.GetValue():
-                    self.acls[None] = self.sr.combo.GetValue()
-        if self.sr.Get('gm_initialized', 0):
-            if self.sr.languageRestriction.GetValue() != channel.info.languageRestriction:
-                self.config['languageRestriction'] = self.sr.languageRestriction.GetValue()
-            if self.sr.creator.GetValue() != cfg.eveowners.Get(channel.info.ownerID).name:
-                if self.sr.creator.GetValue() in (localization.GetByLabel('UI/Chat/ChatEngine/YouAreNotAbleToSpeak'), localization.GetByLabel('UI/Chat/ChatEngine/System'), localization.GetByLabel('UI/Chat/ChatEngine/Public')):
-                    ownerID = const.ownerSystem
-                else:
-                    result = sm.RemoteSvc('lookupSvc').LookupPCOwners(self.sr.creator.GetValue(), 1)
-                    if result and len(result) == 1:
-                        ownerID = result[0].ownerID
-                    else:
-                        ownerID = None
-                if ownerID is None:
-                    eve.Message('CustomInfo', {localization.GetByLabel('UI/Chat/ChatEngine/NameNotValid', creatorName=str(self.sr.creator.GetValue()))})
-                    return
-                self.config['creator'] = ownerID
-        channelID = self.channelID
-        acls = self.acls
-        if self.config:
-            if isinstance(channelID, tuple) and channelID[0][0] == 'fleetid':
-                newMotd = self.config.get('motd', None)
-                if newMotd:
-                    sm.GetService('fleet').SetRemoteMotd(newMotd)
-            else:
-                sm.RemoteSvc('LSC').Configure(channelID, **self.config)
-        if acls:
-            for k, v in acls.iteritems():
-                if type(v) == types.IntType:
-                    sm.RemoteSvc('LSC').AccessControl(channelID, k, v)
-                else:
-                    sm.RemoteSvc('LSC').AccessControl(channelID, k, *v)
+                    motd = self.sr.motd.GetValue(html=0).strip()
+                    while motd.endswith('<br>'):
+                        motd = motd[:-4].strip()
 
-        self.CloseByUser()
+                    if motd != (channel.info.motd or ''):
+                        self.config['motd'] = motd
+                if isinstance(self.channelID, int):
+                    if self.sr.Get('channelName'):
+                        displayName = self.sr.channelName.GetValue().strip()
+                        if displayName != channel.info.displayName:
+                            self.config['displayName'] = displayName
+                    if not channel.info.mailingList:
+                        password = self.sr.password.GetValue().strip()
+                        if password == '':
+                            password = None
+                        if password != '|||||' and password != channel.info.password:
+                            self.config['oldPassword'] = channel.info.password
+                            self.config['newPassword'] = password
+                        if self.sr.memberless.GetValue() != channel.info.memberless:
+                            self.config['memberless'] = self.sr.memberless.GetValue()
+                    if self.defaultAccess != self.sr.combo.GetValue():
+                        self.acls[None] = self.sr.combo.GetValue()
+            if self.sr.Get('gm_initialized', 0):
+                if self.sr.languageRestriction.GetValue() != channel.info.languageRestriction:
+                    self.config['languageRestriction'] = self.sr.languageRestriction.GetValue()
+                if self.sr.creator.GetValue() != cfg.eveowners.Get(channel.info.ownerID).name:
+                    if self.sr.creator.GetValue() in (localization.GetByLabel('UI/Chat/ChatEngine/YouAreNotAbleToSpeak'), localization.GetByLabel('UI/Chat/ChatEngine/System'), localization.GetByLabel('UI/Chat/ChatEngine/Public')):
+                        ownerID = const.ownerSystem
+                    else:
+                        result = sm.RemoteSvc('lookupSvc').LookupPCOwners(self.sr.creator.GetValue(), 1)
+                        if result and len(result) == 1:
+                            ownerID = result[0].ownerID
+                        else:
+                            ownerID = None
+                    if ownerID is None:
+                        eve.Message('CustomInfo', {localization.GetByLabel('UI/Chat/ChatEngine/NameNotValid', creatorName=str(self.sr.creator.GetValue()))})
+                        return
+                    self.config['creator'] = ownerID
+            channelID = self.channelID
+            acls = self.acls
+            if self.config:
+                if isinstance(channelID, tuple) and channelID[0][0] == 'fleetid':
+                    newMotd = self.config.get('motd', None)
+                    if newMotd:
+                        sm.GetService('fleet').SetRemoteMotd(newMotd)
+                else:
+                    sm.RemoteSvc('LSC').Configure(channelID, **self.config)
+            if acls:
+                for k, v in acls.iteritems():
+                    if type(v) == types.IntType:
+                        sm.RemoteSvc('LSC').AccessControl(channelID, k, v)
+                    else:
+                        sm.RemoteSvc('LSC').AccessControl(channelID, k, *v)
+
+            self.CloseByUser()
+            return
 
     def OnCancel(self, *args):
         self.config = None
         self.acls = None
         self.CloseByUser()
+        return
 
     def OnLSC(self, channelID, estimatedMemberCount, method, who, args):
         if method == 'DestroyChannel':
@@ -2273,6 +2333,7 @@ class PCOwnerPickerDialog(uicontrols.Window):
          inpt.top,
          0,
          0), func=self.Search, btn_default=1)
+        return
 
     def Search(self, *args):
         scrolllist = []
@@ -2306,6 +2367,8 @@ class PCOwnerPickerDialog(uicontrols.Window):
             self.SetHint(hint)
             self.HideLoad()
 
+        return
+
     def GetSearchStr(self):
         return self.sr.inpt.GetValue().strip()
 
@@ -2316,11 +2379,12 @@ class PCOwnerPickerDialog(uicontrols.Window):
         if self.searchStr != self.GetSearchStr():
             self.Search()
             return False
-        if self.ownerID is None:
+        elif self.ownerID is None:
             return False
-        return True
+        else:
+            return True
 
-    def SetHint(self, hintstr = None):
+    def SetHint(self, hintstr=None):
         if self.sr.scroll:
             self.sr.scroll.ShowHint(hintstr)
 
@@ -2336,6 +2400,7 @@ class PCOwnerPickerDialog(uicontrols.Window):
     def OnCancel(self, *args):
         self.ownerID = None
         self.CloseByUser()
+        return
 
 
 class SearchEntry(listentry.Item):
@@ -2348,7 +2413,7 @@ class SearchEntry(listentry.Item):
         return []
 
     def GetHint(self):
-        return ''
+        pass
 
 
 class ChannelACL(User):
@@ -2382,6 +2447,7 @@ class ChatInviteWnd(uicontrols.Window):
         self.SetWndIcon()
         self.SetTopparentHeight(0)
         self.ConstructLayout()
+        return
 
     def ConstructLayout(self):
         invitorCont = uiprimitives.Container(name='topCont', parent=self.sr.main, align=uiconst.TOTOP, pos=(0, 0, 0, 70), padding=(const.defaultPadding,

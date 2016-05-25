@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\carbon\common\lib\cherrypy\test\webtest.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\carbon\common\lib\cherrypy\test\webtest.py
 import os
 import pprint
 import re
@@ -53,7 +54,7 @@ class TerseTestRunner(TextTestRunner):
 
 class ReloadingTestLoader(TestLoader):
 
-    def loadTestsFromName(self, name, module = None):
+    def loadTestsFromName(self, name, module=None):
         parts = name.split('.')
         unused_parts = []
         if module is None:
@@ -85,16 +86,18 @@ class ReloadingTestLoader(TestLoader):
 
         if type(obj) == types.ModuleType:
             return self.loadTestsFromModule(obj)
-        if isinstance(obj, (type, types.ClassType)) and issubclass(obj, TestCase):
+        elif isinstance(obj, (type, types.ClassType)) and issubclass(obj, TestCase):
             return self.loadTestsFromTestCase(obj)
-        if type(obj) == types.UnboundMethodType:
+        elif type(obj) == types.UnboundMethodType:
             return obj.im_class(obj.__name__)
-        if hasattr(obj, '__call__'):
+        elif hasattr(obj, '__call__'):
             test = obj()
             if not isinstance(test, TestCase) and not isinstance(test, TestSuite):
                 raise ValueError('calling %s returned %s, not a test' % (obj, test))
             return test
-        raise ValueError('do not know how to make test from: %s' % obj)
+        else:
+            raise ValueError('do not know how to make test from: %s' % obj)
+            return
 
 
 try:
@@ -139,7 +142,7 @@ class WebCase(TestCase):
     encoding = 'utf-8'
     time = None
 
-    def get_conn(self, auto_open = False):
+    def get_conn(self, auto_open=False):
         if self.scheme == 'https':
             cls = HTTPSConnection
         else:
@@ -149,7 +152,7 @@ class WebCase(TestCase):
         conn.connect()
         return conn
 
-    def set_persistent(self, on = True, auto_open = False):
+    def set_persistent(self, on=True, auto_open=False):
         try:
             self.HTTP_CONN.close()
         except (TypeError, AttributeError):
@@ -173,7 +176,7 @@ class WebCase(TestCase):
     def interface(self):
         return interface(self.HOST)
 
-    def getPage(self, url, headers = None, method = 'GET', body = None, protocol = None):
+    def getPage(self, url, headers=None, method='GET', body=None, protocol=None):
         ServerError.on = False
         if isinstance(url, unicodestr):
             url = url.encode('utf-8')
@@ -235,7 +238,7 @@ class WebCase(TestCase):
     def exit(self):
         sys.exit()
 
-    def assertStatus(self, status, msg = None):
+    def assertStatus(self, status, msg=None):
         if isinstance(status, basestring):
             if not self.status == status:
                 if msg is None:
@@ -262,8 +265,9 @@ class WebCase(TestCase):
                 if msg is None:
                     msg = 'Status (%r) not in %r' % (self.status, status)
                 self._handlewebError(msg)
+        return
 
-    def assertHeader(self, key, value = None, msg = None):
+    def assertHeader(self, key, value=None, msg=None):
         lowkey = key.lower()
         for k, v in self.headers:
             if k.lower() == lowkey:
@@ -276,47 +280,55 @@ class WebCase(TestCase):
             else:
                 msg = '%r:%r not in headers' % (key, value)
         self._handlewebError(msg)
+        return
 
-    def assertHeaderItemValue(self, key, value, msg = None):
+    def assertHeaderItemValue(self, key, value, msg=None):
         actual_value = self.assertHeader(key, msg=msg)
         header_values = map(str.strip, actual_value.split(','))
         if value in header_values:
             return value
-        if msg is None:
-            msg = '%r not in %r' % (value, header_values)
-        self._handlewebError(msg)
+        else:
+            if msg is None:
+                msg = '%r not in %r' % (value, header_values)
+            self._handlewebError(msg)
+            return
 
-    def assertNoHeader(self, key, msg = None):
+    def assertNoHeader(self, key, msg=None):
         lowkey = key.lower()
         matches = [ k for k, v in self.headers if k.lower() == lowkey ]
         if matches:
             if msg is None:
                 msg = '%r in headers' % key
             self._handlewebError(msg)
+        return
 
-    def assertBody(self, value, msg = None):
+    def assertBody(self, value, msg=None):
         if value != self.body:
             if msg is None:
                 msg = 'expected body:\n%r\n\nactual body:\n%r' % (value, self.body)
             self._handlewebError(msg)
+        return
 
-    def assertInBody(self, value, msg = None):
+    def assertInBody(self, value, msg=None):
         if value not in self.body:
             if msg is None:
                 msg = '%r not in body: %s' % (value, self.body)
             self._handlewebError(msg)
+        return
 
-    def assertNotInBody(self, value, msg = None):
+    def assertNotInBody(self, value, msg=None):
         if value in self.body:
             if msg is None:
                 msg = '%r found in body' % value
             self._handlewebError(msg)
+        return
 
-    def assertMatchesBody(self, pattern, msg = None, flags = 0):
+    def assertMatchesBody(self, pattern, msg=None, flags=0):
         if re.search(pattern, self.body, flags) is None:
             if msg is None:
                 msg = 'No match for %r in body' % pattern
             self._handlewebError(msg)
+        return
 
 
 methods_with_bodies = ('POST', 'PUT')
@@ -367,7 +379,7 @@ def shb(response):
     return ('%s %s' % (response.status, response.reason), h, response.read())
 
 
-def openURL(url, headers = None, method = 'GET', body = None, host = '127.0.0.1', port = 8000, http_conn = HTTPConnection, protocol = 'HTTP/1.1'):
+def openURL(url, headers=None, method='GET', body=None, host='127.0.0.1', port=8000, http_conn=HTTPConnection, protocol='HTTP/1.1'):
     headers = cleanHeaders(headers, method, body, host, port)
     for trial in range(10):
         try:
@@ -404,6 +416,7 @@ def openURL(url, headers = None, method = 'GET', body = None, host = '127.0.0.1'
             time.sleep(0.5)
 
     raise
+    return
 
 
 ignored_exceptions = []
@@ -413,7 +426,7 @@ class ServerError(Exception):
     on = False
 
 
-def server_error(exc = None):
+def server_error(exc=None):
     if exc is None:
         exc = sys.exc_info()
     if ignore_all or exc[0] in ignored_exceptions:
@@ -423,3 +436,4 @@ def server_error(exc = None):
         print ''
         print ''.join(traceback.format_exception(*exc))
         return True
+        return

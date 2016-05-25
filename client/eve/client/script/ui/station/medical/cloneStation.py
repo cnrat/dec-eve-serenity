@@ -1,14 +1,16 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\client\script\ui\station\medical\cloneStation.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\client\script\ui\station\medical\cloneStation.py
 import blue
 import uicls
 import uthread
-import functools
 import uicontrols
 import uiprimitives
 import localization
 import carbonui.const as uiconst
 from carbonui.uicore import uicorebase as uicore
 from carbonui.util.color import Color
+from eve.client.script.ui.structure import ChangeSignalConnect
+from inventorycommon.util import IsWormholeRegion
 
 class CloneStationWindow(uicontrols.Window):
     __guid__ = 'form.CloneStationWindow'
@@ -27,8 +29,14 @@ class CloneStationWindow(uicontrols.Window):
 
     def ApplyAttributes(self, attributes):
         uicontrols.Window.ApplyAttributes(self, attributes)
+        self.medicalController = attributes.medicalController
+        self.ChangeSignalConnection(connect=True)
         self.Layout()
         uthread.new(self.Reload)
+
+    def ChangeSignalConnection(self, connect=True):
+        signalAndCallback = [(self.medicalController.on_home_station_changed, self.OnHomeStationChanged)]
+        ChangeSignalConnect(signalAndCallback, connect)
 
     def Layout(self):
         self.MakeUnMinimizable()
@@ -42,9 +50,9 @@ class CloneStationWindow(uicontrols.Window):
         uicontrols.EveLabelMedium(parent=self.container, align=uiconst.TOTOP, text=localization.GetByLabel('UI/Medical/Clone/HomeStationDescription'), color=self.GRAY_COLOR, padding=(0, 0, 0, 15))
         uiprimitives.Line(parent=self.container, align=uiconst.TOTOP, color=self.LINE_COLOR)
         self.local = uicontrols.ContainerAutoSize(parent=self.container, align=uiconst.TOTOP, alignMode=uiconst.TOTOP, state=uiconst.UI_PICKCHILDREN)
-        self.remoteTitle = uicontrols.EveLabelLargeBold(parent=self.container, align=uiconst.TOTOP, text=localization.GetByLabel('UI/Medical/Clone/CorporationOffices'), padding=(0, 15, 0, 0))
-        self.remoteText = uicontrols.EveLabelMedium(parent=self.container, align=uiconst.TOTOP, text=localization.GetByLabel('UI/Medical/Clone/CorporationOfficesDescription'), color=self.GRAY_COLOR, padding=(0, 0, 0, 0))
-        self.remoteTimer = uicontrols.EveLabelMedium(parent=self.container, align=uiconst.TOTOP, text='', color=self.GRAY_COLOR, padding=(0, 0, 0, 15))
+        self.remoteTitle = uicontrols.EveLabelLargeBold(parent=self.container, align=uiconst.TOTOP, text=localization.GetByLabel('UI/Medical/Clone/CorporationOffices'), padding=(0, 15, 0, 0), state=uiconst.UI_DISABLED)
+        self.remoteText = uicontrols.EveLabelMedium(parent=self.container, align=uiconst.TOTOP, text=localization.GetByLabel('UI/Medical/Clone/CorporationOfficesDescription'), color=self.GRAY_COLOR, padding=(0, 0, 0, 0), state=uiconst.UI_DISABLED)
+        self.remoteTimer = uicontrols.EveLabelMedium(parent=self.container, align=uiconst.TOTOP, text='', color=self.GRAY_COLOR, padding=(0, 0, 0, 15), state=uiconst.UI_DISABLED)
         self.remote = uicls.ScrollContainer(parent=self.container, align=uiconst.TOTOP, alignMode=uiconst.TOTOP, state=uiconst.UI_PICKCHILDREN)
         self.closeButton = uicontrols.Button(parent=self.container, label=localization.GetByLabel('UI/Generic/Cancel'), func=self.Close, align=uiconst.TOTOP, fontsize=13, padding=(220, 10, 220, 0))
         uicore.animations.FadeTo(self.container, startVal=0.0, endVal=1.0, duration=0.5)
@@ -59,38 +67,59 @@ class CloneStationWindow(uicontrols.Window):
     def Reload(self):
         if self.destroyed:
             return
-        self.local.DisableAutoSize()
-        self.local.Flush()
-        self.remote.Flush()
-        self.homeStationID = sm.RemoteSvc('charMgr').GetHomeStation()
-        stations, remoteStationDate = sm.GetService('corp').GetCorpStationManager().GetPotentialHomeStations()
-        hasRemote = bool(len([ s for s in stations if s.isRemote ]))
-        if hasRemote:
-            self.remoteTitle.state = uiconst.UI_DISABLED
-            self.remoteText.state = uiconst.UI_DISABLED
-            self.remoteTimer.state = uiconst.UI_DISABLED
-            if remoteStationDate and remoteStationDate > blue.os.GetWallclockTime():
-                self.remote.state = uiconst.UI_DISABLED
-                self.remote.opacity = 0.2
-                self.remoteTimer.text = localization.GetByLabel('UI/Medical/Clone/NextRemoteChangeDate', nextDate=remoteStationDate)
-            else:
-                self.remote.state = uiconst.UI_PICKCHILDREN
-                self.remote.opacity = 1.0
-                self.remoteTimer.text = localization.GetByLabel('UI/Medical/Clone/NextRemoteChangeNow')
         else:
-            self.remoteTitle.state = uiconst.UI_HIDDEN
-            self.remoteText.state = uiconst.UI_HIDDEN
-            self.remote.state = uiconst.UI_HIDDEN
-            self.remoteTimer.state = uiconst.UI_HIDDEN
-        uiprimitives.Line(parent=self.remote, align=uiconst.TOTOP, color=self.LINE_COLOR)
-        for station in stations:
-            self.AddStation(station.stationID, station.typeID, station.serviceMask, station.isRemote)
+            self.local.DisableAutoSize()
+            self.local.Flush()
+            self.remote.Flush()
+            self.homeStationID = self.medicalController.GetHomeStation()
+            stations, remoteStationDate = self.medicalController.GetPotentialHomeStations()
+            hasRemote = bool(len([ s for s in stations if s.isRemote ]))
+            showRemoteStations = self.medicalController.ShowRemoteStations()
+            if showRemoteStations and hasRemote:
+                self.remoteTitle.display = True
+                self.remoteText.display = True
+                self.remoteTimer.display = True
+                if remoteStationDate and remoteStationDate > blue.os.GetWallclockTime():
+                    self.remote.state = uiconst.UI_DISABLED
+                    self.remote.opacity = 0.2
+                    self.remoteTimer.text = localization.GetByLabel('UI/Medical/Clone/NextRemoteChangeDate', nextDate=remoteStationDate)
+                else:
+                    self.remote.state = uiconst.UI_PICKCHILDREN
+                    self.remote.opacity = 1.0
+                    self.remoteTimer.text = localization.GetByLabel('UI/Medical/Clone/NextRemoteChangeNow')
+            else:
+                self.remoteTitle.display = False
+                self.remoteText.display = False
+                self.remote.state = uiconst.UI_HIDDEN
+                self.remoteTimer.display = False
+            uiprimitives.Line(parent=self.remote, align=uiconst.TOTOP, color=self.LINE_COLOR)
+            for station in stations:
+                if not showRemoteStations and station.isRemote:
+                    continue
+                self.AddStation(station.stationID, station.isRemote)
 
-        self.remote.height = min(self.remote.mainCont.height + 45, 305)
-        self.local.EnableAutoSize()
+            if session.structureid is not None and not IsWormholeRegion(session.regionid):
+                self.AddStructure(session.structureid)
+            self.remote.height = min(self.remote.mainCont.height + 45, 305)
+            self.local.EnableAutoSize()
+            return
 
-    def AddStation(self, stationID, typeID, serviceMask, isRemote):
+    def AddStation(self, stationID, isRemote):
         station = cfg.stations.Get(stationID)
+        stationTypeID = station.stationTypeID
+        stationName = station.stationName
+        self.AddCloneLocation(stationID, stationName, stationTypeID, isRemote, lambda *args: self.SetHome(stationID))
+
+    def AddStructure(self, structureID):
+        inv = sm.GetService('invCache').GetInventoryFromId(structureID)
+        typeID = inv.GetItem().typeID
+        locationName = cfg.evelocations.Get(structureID).locationName
+        self.AddCloneLocation(structureID, locationName, typeID, False, lambda *args: self.SetHome(structureID))
+
+    def SetHome(self, locationID):
+        self.medicalController.SetHomeStation(locationID)
+
+    def AddCloneLocation(self, stationID, stationName, stationTypeID, isRemote, func):
         if isRemote:
             if stationID == session.hqID:
                 title = localization.GetByLabel('UI/Medical/Clone/CorporationHeadquarters')
@@ -99,7 +128,7 @@ class CloneStationWindow(uicontrols.Window):
             parent = self.remote
             color = self.BLUE_COLOR
         else:
-            if stationID == session.stationid2:
+            if stationID in (session.stationid2, session.structureid):
                 title = localization.GetByLabel('UI/Medical/Clone/ThisStation')
             else:
                 title = localization.GetByLabel('UI/Medical/Clone/SchoolHeadquarters')
@@ -107,43 +136,24 @@ class CloneStationWindow(uicontrols.Window):
             color = self.GREEN_COLOR
         container = uicontrols.ContainerAutoSize(parent=parent, align=uiconst.TOTOP, alignMode=uiconst.TOTOP, state=uiconst.UI_PICKCHILDREN, bgColor=(0.2, 0.2, 0.2, 0.3))
         container.DisableAutoSize()
-        label = "<url=showinfo:%d//%d alt='%s'>%s</url>" % (station.stationTypeID,
-         station.stationID,
+        label = "<url=showinfo:%d//%d alt='%s'>%s</url>" % (stationTypeID,
+         stationID,
          title,
-         station.stationName)
+         stationName)
         uicontrols.EveLabelMediumBold(parent=container, align=uiconst.TOTOP, text=title, padding=(7, 5, 0, 0), color=color)
         uicontrols.EveLabelMediumBold(parent=container, align=uiconst.TOTOP, state=uiconst.UI_NORMAL, text=label, padding=(7, 0, 140, 5))
-        if station.stationID != self.homeStationID:
-            uicontrols.Button(parent=container, label=localization.GetByLabel('UI/Medical/Clone/SetHomeStationButton'), align=uiconst.CENTERRIGHT, fontsize=13, fixedwidth=140, fixedheight=30, pos=(5, 0, 0, 0), func=functools.partial(CloneStationWindow.SetStation, station.stationID, serviceMask, isRemote))
+        if stationID != self.homeStationID:
+            uicontrols.Button(parent=container, label=localization.GetByLabel('UI/Medical/Clone/SetHomeStationButton'), align=uiconst.CENTERRIGHT, fontsize=13, fixedwidth=140, fixedheight=30, pos=(5, 0, 0, 0), func=func)
         else:
             uicontrols.EveLabelMediumBold(parent=container, align=uiconst.CENTERRIGHT, text=localization.GetByLabel('UI/Medical/Clone/CurrentHomeStation'), padding=(-15, 0, 0, 0))
         uiprimitives.Line(parent=parent, align=uiconst.TOTOP, color=self.LINE_COLOR)
         container.EnableAutoSize()
 
-    @classmethod
-    def SetStation(cls, stationID, *args):
-        if not session.stationid2:
-            raise UserError('MustBeDocked')
-        stations, remoteStationDate = sm.GetService('corp').GetCorpStationManager().GetPotentialHomeStations()
-        try:
-            station = next((station for station in stations if station.stationID == stationID))
-        except StopIteration:
-            raise UserError('InvalidHomeStation')
+    def OnHomeStationChanged(self):
+        self.Close()
 
-        if station.stationID == sm.RemoteSvc('charMgr').GetHomeStation():
-            raise UserError('MedicalYouAlreadyHaveACloneContractAtThatStation')
-        if station.isRemote and remoteStationDate is not None and remoteStationDate > blue.os.GetWallclockTime():
-            raise UserError('HomeStationRemoteCooldown', {'nextDate': remoteStationDate})
-        if station.isRemote:
-            if eve.Message('AskAcceptRemoteCloneContractCost', {'cost': const.costCloneContract}, uiconst.YESNO) != uiconst.ID_YES:
-                return
-        elif eve.Message('AskAcceptCloneContractCost', {'cost': const.costCloneContract}, uiconst.YESNO) != uiconst.ID_YES:
-            return
-        if not session.stationid2:
-            raise UserError('MustBeDocked')
+    def Close(self, *args, **kwargs):
         try:
-            sm.GetService('corp').GetCorpStationManager().SetHomeStation(stationID)
+            self.ChangeSignalConnection(connect=False)
         finally:
-            CloneStationWindow.CloseIfOpen()
-
-        sm.GetService('objectCaching').InvalidateCachedMethodCall('charMgr', 'GetHomeStation')
+            uicontrols.Window.Close(self, *args, **kwargs)

@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\carbon\common\stdlib\opcode.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\carbon\common\stdlib\opcode.py
 __all__ = ['cmp_op',
  'hasconst',
  'hasname',
@@ -86,6 +87,7 @@ def ccp_remap():
 
     HAVE_ARGUMENT = ccpopcode.HAVE_ARGUMENT
     EXTENDED_ARG = ccpopcode.EXTENDED_ARG
+    return
 
 
 def_op('STOP_CODE', 0)

@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\client\script\ui\shared\comtool\chatExtraWindows.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\client\script\ui\shared\comtool\chatExtraWindows.py
 import localization
 from eve.client.script.ui.control.buttonGroup import ButtonGroup
 from eve.client.script.ui.control.checkbox import Checkbox
@@ -42,6 +43,7 @@ class ChannelPasswordWindow(Window):
         self.MakeUnResizeable()
         self.MakeUnMinimizable()
         self.MakeUncollapseable()
+        return
 
     def TryPassword(self):
         password = self.passwordEdit.GetValue()
@@ -49,16 +51,18 @@ class ChannelPasswordWindow(Window):
         if len(password) < 1:
             eve.Message('CustomInfo', {'info': localization.GetByLabel('UI/Common/PleaseTypeSomething')})
             return
-        self.tries += 1
-        savePassword = self.rememberPwdCb.GetValue()
-        didWork = sm.GetService('LSC').TryOpenChannel(self.channelID, self.channelName, password, savePassword)
-        if didWork is True:
-            self.Close()
+        else:
+            self.tries += 1
+            savePassword = self.rememberPwdCb.GetValue()
+            didWork = sm.GetService('LSC').TryOpenChannel(self.channelID, self.channelName, password, savePassword)
+            if didWork is True:
+                self.Close()
+                return
+            self.passwordEdit.SetValue('')
+            uicore.Message('uiwarning03')
+            self.passwordLabel.text = localization.GetByLabel('UI/Menusvc/PleaseTryEnteringPasswordAgain')
+            if self.tries >= self.MAX_TRIES:
+                if didWork is False and password is not None:
+                    sm.GetService('LSC').OpenChannel(self.channelID, 0, ('LSCWrongPassword', {'channelName': self.displayName}))
+                self.Close()
             return
-        self.passwordEdit.SetValue('')
-        uicore.Message('uiwarning03')
-        self.passwordLabel.text = localization.GetByLabel('UI/Menusvc/PleaseTryEnteringPasswordAgain')
-        if self.tries >= self.MAX_TRIES:
-            if didWork is False and password is not None:
-                sm.GetService('LSC').OpenChannel(self.channelID, 0, ('LSCWrongPassword', {'channelName': self.displayName}))
-            self.Close()

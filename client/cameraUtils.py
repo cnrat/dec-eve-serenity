@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\common\modules\nice\client\_nastyspace\cameraUtils.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\common\modules\nice\client\_nastyspace\cameraUtils.py
 from carbonui.util.cameraUtils import CalcDesiredPlayerHeading
 from carbonui.util.cameraUtils import GetAngleFromEntityToCamera
 from carbonui.util.cameraUtils import GetAngleFromEntityToYaw

@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\client\script\ui\shared\neocom\corporation\corp_ui_member_decorations.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\client\script\ui\shared\neocom\corporation\corp_ui_member_decorations.py
 import uiprimitives
 import uicontrols
 import util
@@ -19,6 +20,7 @@ class CorpDecorations(uiprimitives.Container):
         self.sr.mostRecentItem = None
         self.sr.oldestItem = None
         self.sr.memberID = None
+        return
 
     def Load(self, args):
         sm.GetService('corpui').LoadTop('res:/ui/Texture/WindowIcons/corporationdecorations.png', localization.GetByLabel('UI/Corporations/CorporationWindow/Members/Decorations/CorpMemberDecorations'))
@@ -39,6 +41,7 @@ class CorpDecorations(uiprimitives.Container):
             self.sr.scroll.sr.id = 'corp_decorations_scroll'
             self.sr.inited = 1
         self.LoadDecorations()
+        return
 
     def CreateDecorationForm(self, *args):
         form.MedalRibbonPickerWindow.Open()
@@ -81,6 +84,7 @@ class CorpDecorations(uiprimitives.Container):
          localization.GetByLabel('UI/Corporations/CorporationWindow/Members/Decorations/DecorationReason'),
          localization.GetByLabel('UI/Corporations/CorporationWindow/Members/Decorations/DecorationAwardedCount')]
         self.sr.scroll.Load(contentList=scrolllist, headers=headers, noContentHint=localization.GetByLabel('UI/Corporations/CorporationWindow/Members/Decorations/NoDecorationsFound'))
+        return
 
     def GetDecorationSubContent(self, nodedata, *args):
         m = nodedata.medal

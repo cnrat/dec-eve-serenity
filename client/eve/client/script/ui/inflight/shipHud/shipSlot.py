@@ -1,7 +1,9 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\client\script\ui\inflight\shipHud\shipSlot.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\client\script\ui\inflight\shipHud\shipSlot.py
 from carbonui import const as uiconst
 import uiprimitives
 import telemetry
+from inventorycommon.util import IsFittingModule
 
 class ShipSlot(uiprimitives.Container):
     default_pickRadius = 24
@@ -17,9 +19,11 @@ class ShipSlot(uiprimitives.Container):
                 break
             elif decoClass in ('xtriui.InvItem', 'listentry.InvItem'):
                 item = node.rec
-                if item.flagID == const.flagCargo and item.categoryID == const.categoryModule:
+                if item.flagID == const.flagCargo and IsFittingModule(item.categoryID):
                     sm.GetService('invCache').GetInventoryFromId(session.shipid).Add(item.itemID, item.locationID, qty=None, flag=flag1)
                 break
+
+        return
 
     @telemetry.ZONE_METHOD
     def ApplyAttributes(self, attributes):

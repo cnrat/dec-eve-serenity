@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\packages\spacecomponents\server\components\cynoInhibitor.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\packages\spacecomponents\server\components\cynoInhibitor.py
 from spacecomponents.server.messages import MSG_ON_ADDED_TO_SPACE
 from spacecomponents.common.componentConst import CYNO_INHIBITOR_CLASS
 
@@ -11,6 +12,7 @@ class CynoInhibitor(object):
         self.componentRegistry = componentRegistry
         self.componentRegistry.SubscribeToItemMessage(itemID, MSG_ON_ADDED_TO_SPACE, self.OnAddedToSpace)
         self.bubbleID = None
+        return
 
     def OnAddedToSpace(self, ballpark, spaceComponentDB):
         self.bubbleID = ballpark.GetBall(self.itemID).newBubbleId
@@ -18,7 +20,8 @@ class CynoInhibitor(object):
     def IsBallWithinCynoInhibitorRange(self, ballID, ballpark):
         if self.bubbleID is not None and self.bubbleID == ballpark.GetBall(ballID).newBubbleId:
             return ballpark.GetSurfaceDist(ballID, self.itemID) < self.attributes.range
-        return False
+        else:
+            return False
 
     @staticmethod
     def GetEspTypeInfo(typeID, spaceComponentStaticData):

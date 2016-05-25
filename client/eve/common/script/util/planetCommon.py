@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\common\script\util\planetCommon.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\common\script\util\planetCommon.py
 import math
 from eve.common.script.util.utillib_bootstrap import KeyVal
 import string
@@ -54,13 +55,13 @@ def GetUsageParametersForLinkType(typeID):
     return params
 
 
-def GetCpuUsageForLink(typeID, length, level, params = None):
+def GetCpuUsageForLink(typeID, length, level, params=None):
     if params is None:
         params = GetUsageParametersForLinkType(typeID)
     return params.baseCpuUsage + int(math.ceil(params.cpuUsagePerKm * length / 1000.0 * float(level + 1.0) ** params.cpuUsageLevelModifier))
 
 
-def GetPowerUsageForLink(typeID, length, level, params = None):
+def GetPowerUsageForLink(typeID, length, level, params=None):
     if params is None:
         params = GetUsageParametersForLinkType(typeID)
     return params.basePowerUsage + int(math.ceil(params.powerUsagePerKm * length / 1000.0 * float(level + 1.0) ** params.powerUsageLevelModifier))
@@ -125,6 +126,7 @@ def GetRouteValidationInfo(sourcePin, destPin, commodity):
             return (False, localization.GetByLabel('UI/PI/Common/CommodityCannotBeUsed'), None)
     elif destPin.IsExtractor():
         return (False, localization.GetByLabel('UI/PI/Common/CannotRouteToExtractors'), None)
+    return None
 
 
 def CanPutTypeInCustomsOffice(typeID):
@@ -172,16 +174,18 @@ def GetPinEntityType(typeID):
     groupID = evetypes.GetGroupID(typeID)
     if groupID == const.groupCommandPins:
         return CommandPin
-    if groupID == const.groupExtractorPins:
+    elif groupID == const.groupExtractorPins:
         return ExtractorPin
-    if groupID == const.groupProcessPins:
+    elif groupID == const.groupProcessPins:
         return ProcessPin
-    if groupID == const.groupSpaceportPins:
+    elif groupID == const.groupSpaceportPins:
         return SpaceportPin
-    if groupID == const.groupStoragePins:
+    elif groupID == const.groupStoragePins:
         return StoragePin
-    if groupID == const.groupExtractionControlUnitPins:
+    elif groupID == const.groupExtractionControlUnitPins:
         return EcuPin
+    else:
+        return None
 
 
 def GetProgramLengthFromHeadRadius(headRadius):

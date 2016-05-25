@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\client\script\ui\shared\neocom\addressBook\contactManagementWindow.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\client\script\ui\shared\neocom\addressBook\contactManagementWindow.py
 import math
 import sys
 import service
@@ -42,6 +43,7 @@ class ContactManagementWnd(uicontrols.Window):
         self.isContact = isContact
         self.notify = False
         self.ConstructLayout()
+        return
 
     def ConstructLayout(self):
         topCont = uiprimitives.Container(name='topCont', parent=self.sr.main, align=uiconst.TOTOP, pos=(0, 0, 0, 70), padding=(const.defaultPadding,
@@ -105,6 +107,7 @@ class ContactManagementWnd(uicontrols.Window):
             notifyCont = uiprimitives.Container(name='notifyCont', parent=bottomCont, align=uiconst.TOTOP, pos=(0, 0, 0, 95))
             cbCont.state = uiconst.UI_NORMAL
             self.inWatchlistCb = uicontrols.Checkbox(text=localization.GetByLabel('UI/PeopleAndPlaces/AddContactToWatchlist'), parent=cbCont, configName='inWatchlistCb', retval=0, checked=self.watchlist, align=uiconst.TOTOP)
+            self.inWatchlistCb.hint = localization.GetByLabel('UI/PeopleAndPlaces/BuddyListHint')
             self.sendNotificationCb = uicontrols.Checkbox(text=localization.GetByLabel('UI/PeopleAndPlaces/SendNotificationTo', contactName=charName), parent=notifyCont, configName='sendNotificationCb', retval=0, checked=0, align=uiconst.TOTOP)
             self.message = uicls.EditPlainText(setvalue='', parent=notifyCont, align=uiconst.TOALL, maxLength=120, padBottom=const.defaultPadding)
             self.minHeight += 120
@@ -129,6 +132,7 @@ class ContactManagementWnd(uicontrols.Window):
             btn = self.btnGroup.GetBtnByLabel(btnText)
             uicore.registry.SetFocus(btn)
         uthread.new(self.SetWindowSize)
+        return
 
     def OnStandingLevelSelected(self, level):
         self.level = level
@@ -143,26 +147,29 @@ class ContactManagementWnd(uicontrols.Window):
         if self.level is None:
             eve.Message('NoStandingsSelected')
             return
-        relationshipID = self.level
-        inWatchlist = False
-        sendNotification = False
-        message = None
-        contactLabel = None
-        if hasattr(self, 'labelsCombo'):
-            contactLabel = self.labelsCombo.GetValue()
-        if util.IsCharacter(self.entityID):
-            inWatchlist = self.inWatchlistCb.checked
-            sendNotification = self.sendNotificationCb.checked
-            message = self.message.GetValue()
-        self.result = (relationshipID,
-         inWatchlist,
-         sendNotification,
-         message,
-         contactLabel)
-        if getattr(self, 'isModal', None):
-            self.SetModalResult(1)
+        else:
+            relationshipID = self.level
+            inWatchlist = False
+            sendNotification = False
+            message = None
+            contactLabel = None
+            if hasattr(self, 'labelsCombo'):
+                contactLabel = self.labelsCombo.GetValue()
+            if util.IsCharacter(self.entityID):
+                inWatchlist = self.inWatchlistCb.checked
+                sendNotification = self.sendNotificationCb.checked
+                message = self.message.GetValue()
+            self.result = (relationshipID,
+             inWatchlist,
+             sendNotification,
+             message,
+             contactLabel)
+            if getattr(self, 'isModal', None):
+                self.SetModalResult(1)
+            return
 
     def Cancel(self):
         self.result = None
         if getattr(self, 'isModal', None):
             self.SetModalResult(0)
+        return

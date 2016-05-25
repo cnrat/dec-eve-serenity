@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\client\script\ui\inflight\shipModuleButton\ramps.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\client\script\ui\inflight\shipModuleButton\ramps.py
 import math
 from carbonui.primitives.container import Container
 from carbonui.primitives.sprite import Sprite
@@ -86,6 +87,7 @@ class DamageStateCont(Container):
          self.size / 2,
          self.size), align=uiconst.TOPLEFT, state=uiconst.UI_DISABLED, clipChildren=True)
         self.rightRamp = Sprite(parent=rightRampCont, align=uiconst.TOPRIGHT, width=self.size, height=self.size, texturePath='res:\\UI\\Texture\\classes\\ShipUI\\slotDamage_Base.png', textureSecondaryPath='res:\\UI\\Texture\\classes\\PieCircle\\halfMask32.png', blendMode=1, spriteEffect=64)
+        return
 
     def SetLeftRampValue(self, hpPercentage):
         hpPercentage = min(1.0, max(0.5, hpPercentage))
@@ -116,17 +118,19 @@ class DamageStateCont(Container):
     def AnimateRepair(self, dmg, hp, repairTime, startTime):
         if not repairTime:
             return
-        self.isBeingRepaired = True
-        self.endTime = repairTime + startTime
-        while self and not self.destroyed and self.isBeingRepaired:
-            newNow = blue.os.GetSimTime()
-            percentageDone = (newNow - startTime) / float(repairTime)
-            damageLeft = 1 - percentageDone
-            hpPercentage = (hp - dmg * damageLeft) / hp
-            self.SetRampValues(hpPercentage)
-            blue.pyos.synchro.Yield()
+        else:
+            self.isBeingRepaired = True
+            self.endTime = repairTime + startTime
+            while self and not self.destroyed and self.isBeingRepaired:
+                newNow = blue.os.GetSimTime()
+                percentageDone = (newNow - startTime) / float(repairTime)
+                damageLeft = 1 - percentageDone
+                hpPercentage = (hp - dmg * damageLeft) / hp
+                self.SetRampValues(hpPercentage)
+                blue.pyos.synchro.Yield()
 
-        self.endTime = None
+            self.endTime = None
+            return
 
     def StopRepair(self):
         self.isBeingRepaired = False
@@ -151,6 +155,7 @@ class ShipModuleReactivationTimer(Container):
         gaugeRadius = self.height / 2 - 3
         self.gauge = DashedCircle(parent=self, dashCount=18, dashSizeFactor=4.0, range=math.pi * 2, lineWidth=6, radius=gaugeRadius, startAngle=math.pi / 2, startColor=(1, 1, 1, 0.3), endColor=(1, 1, 1, 0.3))
         self.endTime = None
+        return
 
     def AnimateTimer(self, startTime, repairTime):
         percentageDone = 0
@@ -166,3 +171,4 @@ class ShipModuleReactivationTimer(Container):
 
         self.endTime = None
         self.gauge.StopAnimations()
+        return

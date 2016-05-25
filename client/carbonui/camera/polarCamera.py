@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\packages\carbonui\camera\polarCamera.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\packages\carbonui\camera\polarCamera.py
 import blue
 import math
 import geo2
@@ -31,7 +32,7 @@ class PolarCamera(cameras.BasicCamera):
         self.yaw = math.pi / 2
         self.prevCameraDist = self.zoom
 
-    def PerformPick(self, x, y, ignoreEntID = -1):
+    def PerformPick(self, x, y, ignoreEntID=-1):
         startPoint, endPoint = self.GetRay(x, y)
         if not session.worldspaceid:
             return None
@@ -41,6 +42,7 @@ class PolarCamera(cameras.BasicCamera):
                 collisionGroups = 1 << GameWorld.GROUP_AVATAR | 1 << GameWorld.GROUP_COLLIDABLE_NON_PUSHABLE
                 p = gameWorld.LineTestEntId(startPoint, endPoint, ignoreEntID, collisionGroups)
                 return p
+            return None
             return None
 
     def GetRotationAsYaw(self):
@@ -84,7 +86,7 @@ class PolarCamera(cameras.BasicCamera):
         matrix = util.ConvertTriToTupleMatrix(self.CreateViewMatrix(camera_location, (camera_yaw, camera_pitch, camera_roll)))
         return (matrix, camera_location)
 
-    def AssembleViewMatrix(self, cameraPOI, yaw, pitch, dist, setInternals = False, instanceID = None):
+    def AssembleViewMatrix(self, cameraPOI, yaw, pitch, dist, setInternals=False, instanceID=None):
         matrix, camera_location = self._AssembleViewMatrix(cameraPOI, yaw, pitch, dist)
         self.cameraPosition = camera_location
         if setInternals:
@@ -128,7 +130,7 @@ class PolarCamera(cameras.BasicCamera):
             position = (-dist * math.sin(pitch) * math.cos(yaw), dist * math.cos(pitch), -dist * math.sin(pitch) * math.sin(yaw))
         return position
 
-    def SetYaw(self, value, ignoreUpdate = True):
+    def SetYaw(self, value, ignoreUpdate=True):
         self.yaw = value
         if self.yaw < self.minRot:
             self.yaw += math.pi * 2.0
@@ -138,7 +140,7 @@ class PolarCamera(cameras.BasicCamera):
     def GetYaw(self):
         return self.yaw
 
-    def AdjustYaw(self, delta, maxRotate = None, ignoreUpdate = True):
+    def AdjustYaw(self, delta, maxRotate=None, ignoreUpdate=True):
         if maxRotate:
             if delta > maxRotate:
                 delta = maxRotate
@@ -161,7 +163,7 @@ class PolarCamera(cameras.BasicCamera):
     def VerifyMaxZoom(self):
         raise NotImplementedError('VerifyMaxZoom must be implemented on derived camera classes')
 
-    def SmoothMove(self, targetPosition, targetRotation, targetTilt, targetDist, durationMS, callbackOnEnd = None):
+    def SmoothMove(self, targetPosition, targetRotation, targetTilt, targetDist, durationMS, callbackOnEnd=None):
         sPos, sRot, sTilt, sDist = (self.GetPointOfInterest(),
          self.yaw,
          self.pitch,
@@ -182,6 +184,7 @@ class PolarCamera(cameras.BasicCamera):
             self.zoom = eDist
             if callbackOnEnd:
                 callbackOnEnd()
+        return
 
     def Update(self):
         now = blue.os.GetWallclockTime()

@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\client\script\ui\shared\market\buySellItemContainerBase.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\client\script\ui\shared\market\buySellItemContainerBase.py
 from carbon.common.script.util.format import FmtAmt
 from carbon.common.script.util.timerstuff import AutoTimer
 from carbonui import const as uiconst
@@ -23,6 +24,7 @@ class BuySellItemContainerBase(Container):
         self.averagePrice = self.quoteSvc.GetAveragePrice(self.typeID)
         self.parentFunc = attributes.parentFunc
         self.parentEditFunc = attributes.editFunc
+        return
 
     def DrawTotal(self):
         self.totalLabel = EveLabelMediumBold(text=self.totalSum, parent=self.totalCont, left=4, align=uiconst.CENTERRIGHT, state=uiconst.UI_NORMAL, autoFadeSides=35)
@@ -34,13 +36,15 @@ class BuySellItemContainerBase(Container):
         wnd = tradeWndClass.GetIfOpen()
         if wnd:
             wnd.Maximize()
+        return
 
     def GetDelta(self):
         price = self.GetPrice()
         if price is None:
             return 0
-        percentage = (price - self.averagePrice) / self.averagePrice
-        return percentage
+        else:
+            percentage = (price - self.averagePrice) / self.averagePrice
+            return percentage
 
     def GetDeltaText(self):
         price = self.GetPrice()
@@ -70,8 +74,10 @@ class BuySellItemContainerBase(Container):
          self.deleteButton,
          self.totalLabel):
             return
-        self.mouseovertimer = None
-        self.deleteCont.display = False
+        else:
+            self.mouseovertimer = None
+            self.deleteCont.display = False
+            return
 
     def ShowNoSellOrders(self):
         pass
@@ -86,6 +92,7 @@ class BuySellItemContainerBase(Container):
         self.mouseovertimer = None
         self.parentFunc = None
         Container.Close(self)
+        return
 
     def GetTradeWndClass(self):
         pass

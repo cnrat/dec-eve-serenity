@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\carbon\common\stdlib\unittest\test\test_assertions.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\carbon\common\stdlib\unittest\test\test_assertions.py
 import datetime
 import unittest
 
@@ -119,6 +120,7 @@ class TestLongMessage(unittest.TestCase):
         self.assertEqual(self.testableTrue._formatMessage(None, 'foo'), 'foo')
         self.assertEqual(self.testableTrue._formatMessage('foo', 'bar'), 'bar : foo')
         self.testableTrue._formatMessage(object(), 'foo')
+        return
 
     def test_formatMessage_unicode_error(self):
         one = ''.join((chr(i) for i in range(255)))
@@ -184,24 +186,28 @@ class TestLongMessage(unittest.TestCase):
          '^oops$',
          '\\+ \\[None\\]$',
          '\\+ \\[None\\] : oops$'])
+        return
 
     def testAssertSetEqual(self):
         self.assertMessages('assertSetEqual', (set(), set([None])), ['None$',
          '^oops$',
          'None$',
          'None : oops$'])
+        return
 
     def testAssertIn(self):
         self.assertMessages('assertIn', (None, []), ['^None not found in \\[\\]$',
          '^oops$',
          '^None not found in \\[\\]$',
          '^None not found in \\[\\] : oops$'])
+        return
 
     def testAssertNotIn(self):
         self.assertMessages('assertNotIn', (None, [None]), ['^None unexpectedly found in \\[None\\]$',
          '^oops$',
          '^None unexpectedly found in \\[None\\]$',
          '^None unexpectedly found in \\[None\\] : oops$'])
+        return
 
     def testAssertDictEqual(self):
         self.assertMessages('assertDictEqual', ({}, {'key': 'value'}), ["\\+ \\{'key': 'value'\\}$",
@@ -220,6 +226,7 @@ class TestLongMessage(unittest.TestCase):
          '^oops$',
          '\\[None\\]$',
          '\\[None\\] : oops$'])
+        return
 
     def testAssertMultiLineEqual(self):
         self.assertMessages('assertMultiLineEqual', ('', 'foo'), ['\\+ foo$',
@@ -262,18 +269,21 @@ class TestLongMessage(unittest.TestCase):
          '^oops$',
          '^unexpectedly None$',
          '^unexpectedly None : oops$'])
+        return None
 
     def testAssertIs(self):
         self.assertMessages('assertIs', (None, 'foo'), ["^None is not 'foo'$",
          '^oops$',
          "^None is not 'foo'$",
          "^None is not 'foo' : oops$"])
+        return None
 
     def testAssertIsNot(self):
         self.assertMessages('assertIsNot', (None, None), ['^unexpectedly identical: None$',
          '^oops$',
          '^unexpectedly identical: None$',
          '^unexpectedly identical: None : oops$'])
+        return None
 
 
 if __name__ == '__main__':

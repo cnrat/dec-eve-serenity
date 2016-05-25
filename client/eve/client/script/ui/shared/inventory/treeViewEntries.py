@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\client\script\ui\shared\inventory\treeViewEntries.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\client\script\ui\shared\inventory\treeViewEntries.py
 from carbonui.primitives.containerAutoSize import ContainerAutoSize
 from carbonui.primitives.sprite import Sprite
 from eve.client.script.ui.control.buttons import ButtonIcon
@@ -14,7 +15,7 @@ def GetTreeViewEntryClassByDataType(treeData):
         clsName = getattr(treeData, 'clsName', None)
         if clsName in ('ShipMaintenanceBay', 'ShipFleetHangar') and treeData.invController.itemID == util.GetActiveShip():
             treeEntryCls = TreeViewEntryAccessConfig
-        elif clsName in ('StationCorpHangar', 'POSCorpHangar', 'StationContainer'):
+        elif clsName in ('StationCorpHangar', 'POSCorpHangar', 'StationContainer', 'StructureCorpHangar'):
             treeEntryCls = TreeViewEntryAccessRestricted
     return treeEntryCls
 
@@ -37,6 +38,7 @@ class TreeViewEntryAccessConfig(TreeViewEntry):
         self.corpAccessBtn = ButtonIcon(name='corpAccessBtn', parent=self.iconCont, align=uiconst.TOLEFT, width=14, padLeft=1, iconSize=12, texturePath='res:/UI/Texture/classes/Inventory/corpAccess.png', func=self.OnCorpAccessBtn, colorSelected=COLOR_SELECTED)
         self.UpdateFleetIcon()
         self.UpdateCorpIcon()
+        return
 
     def OnFleetAccessBtn(self, *args):
         if self.data.clsName == 'ShipMaintenanceBay':
@@ -119,6 +121,7 @@ class TreeViewEntryAccessRestricted(TreeViewEntry):
         if not canTake or not canQuery:
             self.iconCont = ContainerAutoSize(parent=self.topRightCont, align=uiconst.CENTERLEFT, height=self.ICONSIZE)
             Sprite(name='restrictedIcon', parent=self.iconCont, align=uiconst.TOLEFT, texturePath=texturePath, width=self.ICONSIZE, color=color, hint=hint)
+        return
 
     def UpdateLabel(self):
         TreeViewEntry.UpdateLabel(self)

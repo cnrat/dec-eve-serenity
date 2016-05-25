@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\packages\reprocessing\ui\inputItemAdder.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\packages\reprocessing\ui\inputItemAdder.py
 from collections import defaultdict
 import inventorycommon.typeHelpers
 
@@ -71,7 +72,8 @@ class InputItemAdder(object):
         price = inventorycommon.typeHelpers.GetAveragePrice(typeID)
         if price is None:
             return 0.0
-        return price
+        else:
+            return price
 
     def _UpdateItemInfo(self, items):
         numItems = len(items)

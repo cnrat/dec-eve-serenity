@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\packages\reprocessing\ui\itemContainers.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\packages\reprocessing\ui\itemContainers.py
 from carbon.common.script.util.format import FmtAmt
 from localization import GetByLabel
 from eve.common.script.util.eveFormat import FmtISKAndRound
@@ -17,11 +18,12 @@ class ItemContainerInterface(object):
             for ctrlID, item in items:
                 self.container.AddItem(groupID, (ctrlID, item))
 
-    def UpdateItemInfo(self, outputPrice, numberOfItems, volume = None):
+    def UpdateItemInfo(self, outputPrice, numberOfItems, volume=None):
         self.container.totalPriceLabel.text = GetByLabel('UI/Inventory/EstIskPrice', iskString=FmtISKAndRound(outputPrice, False))
         self.container.numItemsLabel.text = GetByLabel('UI/Inventory/NumItems', numItems=numberOfItems, numFilteredTxt='')
         if volume is not None:
             self.container.volumeLabel.text = GetByLabel('UI/Reprocessing/ReprocessingWindow/TotalVolume', volume=FmtAmt(volume, showFraction=2))
+        return
 
     def UpdateInfo(self, group, *args):
         self.container.groupContainers[group].UpdateInfo(*args)

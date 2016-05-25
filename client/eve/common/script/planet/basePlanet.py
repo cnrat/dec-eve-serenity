@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\common\script\planet\basePlanet.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\common\script\planet\basePlanet.py
 import blue.heapq as heapq
 from .baseColony import BaseColony
 
@@ -13,6 +14,7 @@ class BasePlanet:
         self.planetLogClass = ''
         self.planetCelestialID = None
         self.Init()
+        return
 
     def Init(self):
         self.ownersByPinID = {}
@@ -26,22 +28,25 @@ class BasePlanet:
             return self.colonies[ownerID]
         else:
             return None
+            return None
 
     def GetColonyByPinID(self, pinID):
         if pinID not in self.ownersByPinID:
             return None
-        ownerID = self.ownersByPinID[pinID]
-        if ownerID not in self.colonies:
-            return None
-        return self.colonies[ownerID]
+        else:
+            ownerID = self.ownersByPinID[pinID]
+            if ownerID not in self.colonies:
+                return None
+            return self.colonies[ownerID]
 
     def GetPin(self, pinID):
         if pinID not in self.ownersByPinID:
             return None
-        ownerID = self.ownersByPinID[pinID]
-        if ownerID not in self.colonies:
-            return None
-        return self.colonies[ownerID].GetPin(pinID)
+        else:
+            ownerID = self.ownersByPinID[pinID]
+            if ownerID not in self.colonies:
+                return None
+            return self.colonies[ownerID].GetPin(pinID)
 
     def GetNewColony(self, ownerID):
         return BaseColony(self, ownerID)

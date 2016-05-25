@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\carbon\client\script\graphics\cylinderLightClient.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\carbon\client\script\graphics\cylinderLightClient.py
 import cef
 import graphics
 import carbon.client.script.graphics.graphicWrappers.loadAndWrap as graphicWrappers
@@ -44,8 +45,10 @@ class CylinderLightClient(graphics.LightClient):
         component = entity.GetComponent('cylinderLight')
         if component is None:
             return
-        appPerformanceLevel = sm.GetService('device').GetAppFeatureState('Interior.lightPerformanceLevel', 2)
-        if component.performanceLevel > appPerformanceLevel:
-            component.renderObject.primaryLighting = False
         else:
-            component.renderObject.primaryLighting = component.originalPrimaryLighting
+            appPerformanceLevel = sm.GetService('device').GetAppFeatureState('Interior.lightPerformanceLevel', 2)
+            if component.performanceLevel > appPerformanceLevel:
+                component.renderObject.primaryLighting = False
+            else:
+                component.renderObject.primaryLighting = component.originalPrimaryLighting
+            return

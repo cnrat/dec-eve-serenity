@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\packages\trinutils\sceneutils.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\packages\trinutils\sceneutils.py
 import blue
 import trinity
 try:
@@ -6,7 +7,7 @@ try:
 except ImportError:
     jessica = None
 
-def FindScene(useDeviceSceneIfFound = True, types = None):
+def FindScene(useDeviceSceneIfFound=True, types=None):
     if types is None:
         types = (trinity.Tr2InteriorScene, trinity.EveSpaceScene)
 
@@ -22,12 +23,13 @@ def FindScene(useDeviceSceneIfFound = True, types = None):
     scene = None
     if useDeviceSceneIfFound and trinity.device.scene:
         return trinity.device.scene
-    for rj in trinity.renderJobs.recurring:
-        scene = RecursiveSearch(rj)
-        if scene:
-            break
+    else:
+        for rj in trinity.renderJobs.recurring:
+            scene = RecursiveSearch(rj)
+            if scene:
+                break
 
-    return scene
+        return scene
 
 
 def GetOrCreateScene():
@@ -43,7 +45,7 @@ def CreateFisRenderJob(scene):
     jessica.GetGlobalJessicaModel().SetRenderInfo(scene)
 
 
-def CreateBackgroundLandscape(scene, medDetailThreshold = 0.0001, lowDetailThreshold = 0.0001, shaderModel = 'SM_3_0_DEPTH'):
+def CreateBackgroundLandscape(scene, medDetailThreshold=0.0001, lowDetailThreshold=0.0001, shaderModel='SM_3_0_DEPTH'):
     scene.sunDiffuseColor = (1.5, 1.5, 1.5, 1.0)
     trinity.settings.SetValue('eveSpaceSceneVisibilityThreshold', 3.0)
     trinity.settings.SetValue('eveSpaceSceneMediumDetailThreshold', medDetailThreshold)

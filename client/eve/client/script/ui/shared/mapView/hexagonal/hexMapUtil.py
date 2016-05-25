@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\client\script\ui\shared\mapView\hexagonal\hexMapUtil.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\client\script\ui\shared\mapView\hexagonal\hexMapUtil.py
 import geo2
 import blue
 from carbon.common.script.util.timerstuff import AutoTimer
@@ -234,6 +235,7 @@ class DebugMapBrowser(Window):
         if self.clipRect:
             self.clipRect.Close()
             self.clipRect = None
+        return
 
     def OnCheckBoxChange(self, *args, **kwds):
         if self.loadedObjectID:
@@ -264,6 +266,7 @@ class DebugMapBrowser(Window):
                     print 'Loaded', loadObjectID, 'penalty', penalty
                     if stopOnErrors:
                         self.autoLoadTimer = None
+        return
 
     def BrowsePrev(self, *args, **kwds):
         self.autoLoadTimer = None
@@ -274,16 +277,19 @@ class DebugMapBrowser(Window):
             else:
                 i = self.objectIDs.index(self.loadedObjectID)
             self.LoadObjectID(self.objectIDs[max(0, i - 1)])
+        return
 
     def BrowseNext(self, *args, **kwds):
         if self.destroyed:
             self.autoLoadTimer = None
             return
-        if self.loadedObjectID:
-            i = self.objectIDs.index(self.loadedObjectID)
-            if i + 1 < len(self.objectIDs):
-                self.LoadObjectID(self.objectIDs[i + 1])
-                return True
+        else:
+            if self.loadedObjectID:
+                i = self.objectIDs.index(self.loadedObjectID)
+                if i + 1 < len(self.objectIDs):
+                    self.LoadObjectID(self.objectIDs[i + 1])
+                    return True
+            return
 
     def AutoFitSize(self, *args):
         self._AutoFitSize(self, *args)
@@ -318,11 +324,13 @@ class DebugMapBrowser(Window):
         else:
             self.browseLoopButton.SetLabel('Stop')
             self.autoLoadTimer = AutoTimer(1, self.AutoBrowse)
+        return
 
     def AutoBrowse(self):
         stillLoading = self.BrowseNext()
         if not stillLoading:
             self.autoLoadTimer = None
+        return
 
     def OnInputConfirm(self, *args, **kwds):
         try:
@@ -437,7 +445,7 @@ def PrimeMapData():
     uicore.mapExitConnectionsByID = exitConnectionsByID
 
 
-def FindLeafs(hexMap, level = 0, leafList = None, connectionByObjectID = None):
+def FindLeafs(hexMap, level=0, leafList=None, connectionByObjectID=None):
     leafs = leafList or {}
     if connectionByObjectID is None:
         connectionByObjectID = {}
@@ -461,14 +469,15 @@ def FindLeafs(hexMap, level = 0, leafList = None, connectionByObjectID = None):
 
     if didFind:
         return FindLeafs(hexMap, level + 1, leafList=leafs, connectionByObjectID=connectionByObjectID)
-    return (leafs, connectionByObjectID)
+    else:
+        return (leafs, connectionByObjectID)
 
 
 def ReattachLeafs(hexMap, leafs):
     pass
 
 
-def TryRetractLeafs(hexMap, leafs, startPenalty = None, ignoreNoPenalty = False):
+def TryRetractLeafs(hexMap, leafs, startPenalty=None, ignoreNoPenalty=False):
     ol, ll, bestPenalty = ScanAllOverlap(hexMap)
     byLevels = sorted([ (level, leafID, toObjectID) for leafID, (toObjectID, level) in leafs.iteritems() ], reverse=True)
     startRange = 0 if IsRegion(hexMap.objectID) else 1
@@ -504,83 +513,84 @@ def TryRetractLeafs(hexMap, leafs, startPenalty = None, ignoreNoPenalty = False)
 def PlotMapObjects(hexMap, objectID):
     if objectID == 9:
         return
-    plotObjectID = objectID
-    import random
-    r = random.Random()
-    r.seed(objectID)
-    objectData = uicore.mapObjectDataByID[objectID]
-    totalObjects = len(objectData)
-    gap = 1 if IsRegion(objectID) else 2
-    allSlots = [(0, 0)] + hexUtil.neighbours_amount_step((0, 0), totalObjects, gap, hexMap.isFlatTop, exact=True)
-    minColumn = 100000000
-    maxColumn = -100000000
-    minRow = 100000000
-    maxRow = -100000000
-    for col, row in allSlots:
-        minColumn = min(col, minColumn)
-        maxColumn = max(col, maxColumn)
-        minRow = min(row, minRow)
-        maxRow = max(row, maxRow)
+    else:
+        plotObjectID = objectID
+        import random
+        r = random.Random()
+        r.seed(objectID)
+        objectData = uicore.mapObjectDataByID[objectID]
+        totalObjects = len(objectData)
+        gap = 1 if IsRegion(objectID) else 2
+        allSlots = [(0, 0)] + hexUtil.neighbours_amount_step((0, 0), totalObjects, gap, hexMap.isFlatTop, exact=True)
+        minColumn = 100000000
+        maxColumn = -100000000
+        minRow = 100000000
+        maxRow = -100000000
+        for col, row in allSlots:
+            minColumn = min(col, minColumn)
+            maxColumn = max(col, maxColumn)
+            minRow = min(row, minRow)
+            maxRow = max(row, maxRow)
 
-    radius = max(abs(minColumn), maxColumn, abs(minRow), maxRow)
-    useExitPoint = settings.user.ui.Get('mapDebugShowExitPoints', 0)
-    if useExitPoint:
-        radius += 2
-    size = radius * 2
-    hexMap.SetMapSize(size)
-    hexMap.LoadMapData(objectID, loadLayout=False)
-    objectIDs = sorted(hexMap.objectByID.keys())
-    print '--------------------------------'
-    print 'Loaded', objectID, len(objectData), len(allSlots), allSlots
-    bestLayout = None
-    bestLayoutPenalty = sys.maxint
-    hexMap.relocatedHexCells = []
-    leafs, core = FindLeafs(hexMap)
-    for s in xrange(1000):
-        r.shuffle(allSlots)
-        for i, objectID in enumerate(objectIDs):
+        radius = max(abs(minColumn), maxColumn, abs(minRow), maxRow)
+        useExitPoint = settings.user.ui.Get('mapDebugShowExitPoints', 0)
+        if useExitPoint:
+            radius += 2
+        size = radius * 2
+        hexMap.SetMapSize(size)
+        hexMap.LoadMapData(objectID, loadLayout=False)
+        objectIDs = sorted(hexMap.objectByID.keys())
+        print '--------------------------------'
+        print 'Loaded', objectID, len(objectData), len(allSlots), allSlots
+        bestLayout = None
+        bestLayoutPenalty = sys.maxint
+        hexMap.relocatedHexCells = []
+        leafs, core = FindLeafs(hexMap)
+        for s in xrange(1000):
+            r.shuffle(allSlots)
+            for i, objectID in enumerate(objectIDs):
+                hexCell = hexMap.objectByID[objectID]
+                x, y = allSlots[i]
+                hexCell.MoveToCR(x, y)
+
+            hexMap.UpdateJumpLines(refreshLayout=True)
+            ol, penalty = ScanForObjectLineOverlaps(hexMap, stopAtPenalty=bestLayoutPenalty)
+            if penalty >= bestLayoutPenalty:
+                blue.synchro.Yield()
+                continue
+            ll, penalty = ScanForLineLineOverlaps(hexMap, startPenalty=penalty, stopAtPenalty=bestLayoutPenalty)
+            if penalty >= bestLayoutPenalty:
+                blue.synchro.Yield()
+                continue
+            blue.synchro.Yield()
+            if 0 < penalty < 10:
+                penalty = FixLayout(hexMap, bestLayoutPenalty, leafs, totalObjects)
+            bestLayoutPenalty = penalty
+            bestLayout = hexMap.GetCurrentLayout()
+            print '  New penalty', penalty, s
+            if bestLayoutPenalty == 0:
+                break
+            blue.synchro.Yield()
+
+        for objectID in objectIDs:
+            x, y = bestLayout[objectID]
             hexCell = hexMap.objectByID[objectID]
-            x, y = allSlots[i]
             hexCell.MoveToCR(x, y)
 
         hexMap.UpdateJumpLines(refreshLayout=True)
-        ol, penalty = ScanForObjectLineOverlaps(hexMap, stopAtPenalty=bestLayoutPenalty)
-        if penalty >= bestLayoutPenalty:
-            blue.synchro.Yield()
-            continue
-        ll, penalty = ScanForLineLineOverlaps(hexMap, startPenalty=penalty, stopAtPenalty=bestLayoutPenalty)
-        if penalty >= bestLayoutPenalty:
-            blue.synchro.Yield()
-            continue
-        blue.synchro.Yield()
-        if 0 < penalty < 10:
-            penalty = FixLayout(hexMap, bestLayoutPenalty, leafs, totalObjects)
-        bestLayoutPenalty = penalty
-        bestLayout = hexMap.GetCurrentLayout()
-        print '  New penalty', penalty, s
+        bestLayoutPenalty = FixLayout(hexMap, bestLayoutPenalty, leafs, totalObjects)
         if bestLayoutPenalty == 0:
-            break
-        blue.synchro.Yield()
-
-    for objectID in objectIDs:
-        x, y = bestLayout[objectID]
-        hexCell = hexMap.objectByID[objectID]
-        hexCell.MoveToCR(x, y)
-
-    hexMap.UpdateJumpLines(refreshLayout=True)
-    bestLayoutPenalty = FixLayout(hexMap, bestLayoutPenalty, leafs, totalObjects)
-    if bestLayoutPenalty == 0:
-        handmade = settings.user.ui.Get('mapHexLayout', {})
-        if plotObjectID in handmade:
-            del handmade[plotObjectID]
-        settings.user.ui.Set('mapHexLayout', handmade)
-        print '  BINGO resolved %s in %s tries' % (plotObjectID, s)
-    else:
-        print '  Best Layout Penalty', plotObjectID, bestLayoutPenalty
-    registeredPlot = settings.user.ui.Get('mapHexPlotData', {})
-    registeredPlot[plotObjectID] = hexMap.GetCurrentLayout()
-    settings.user.ui.Set('mapHexPlotData', registeredPlot)
-    return bestLayoutPenalty == 0
+            handmade = settings.user.ui.Get('mapHexLayout', {})
+            if plotObjectID in handmade:
+                del handmade[plotObjectID]
+            settings.user.ui.Set('mapHexLayout', handmade)
+            print '  BINGO resolved %s in %s tries' % (plotObjectID, s)
+        else:
+            print '  Best Layout Penalty', plotObjectID, bestLayoutPenalty
+        registeredPlot = settings.user.ui.Get('mapHexPlotData', {})
+        registeredPlot[plotObjectID] = hexMap.GetCurrentLayout()
+        settings.user.ui.Set('mapHexPlotData', registeredPlot)
+        return bestLayoutPenalty == 0
 
 
 def FixLayout(hexMap, bestLayoutPenalty, leafs, totalObjects):
@@ -630,58 +640,59 @@ def FixLayout(hexMap, bestLayoutPenalty, leafs, totalObjects):
 def PlotLayout(hexMap, objectID):
     if objectID == const.locationUniverse:
         return
-    plotObjectID = objectID
-    import random
-    r = random.Random()
-    r.seed(objectID)
-    objectData = uicore.mapObjectDataByID[objectID]
-    radiusStep = 2
-    allSlots = [(0, 0)] + hexUtil.neighbours_amount_step((0, 0), len(objectData), radiusStep, True)
-    minColumn = 100000000
-    maxColumn = -100000000
-    minRow = 100000000
-    maxRow = -100000000
-    for col, row in allSlots:
-        minColumn = min(col, minColumn)
-        maxColumn = max(col, maxColumn)
-        minRow = min(row, minRow)
-        maxRow = max(row, maxRow)
+    else:
+        plotObjectID = objectID
+        import random
+        r = random.Random()
+        r.seed(objectID)
+        objectData = uicore.mapObjectDataByID[objectID]
+        radiusStep = 2
+        allSlots = [(0, 0)] + hexUtil.neighbours_amount_step((0, 0), len(objectData), radiusStep, True)
+        minColumn = 100000000
+        maxColumn = -100000000
+        minRow = 100000000
+        maxRow = -100000000
+        for col, row in allSlots:
+            minColumn = min(col, minColumn)
+            maxColumn = max(col, maxColumn)
+            minRow = min(row, minRow)
+            maxRow = max(row, maxRow)
 
-    radius = max(abs(minColumn), maxColumn, abs(minRow), maxRow)
-    size = radius * 2
-    hexMap.SetMapSize(size)
-    slots = hexUtil.neighbours_from_pos((0, 0), 0, radius, hexMap.isFlatTop)
-    hexMap.LoadMapData(objectID, loadLayout=False)
-    objectIDs = sorted(hexMap.objectByID.keys())
-    hexMap.relocatedHexCells = []
-    layoutPenalty = sys.maxint
-    bestLayout = None
-    bestLayoutPenalty = None
-    for s in xrange(2500):
-        r.shuffle(allSlots)
-        for i, objectID in enumerate(objectIDs):
+        radius = max(abs(minColumn), maxColumn, abs(minRow), maxRow)
+        size = radius * 2
+        hexMap.SetMapSize(size)
+        slots = hexUtil.neighbours_from_pos((0, 0), 0, radius, hexMap.isFlatTop)
+        hexMap.LoadMapData(objectID, loadLayout=False)
+        objectIDs = sorted(hexMap.objectByID.keys())
+        hexMap.relocatedHexCells = []
+        layoutPenalty = sys.maxint
+        bestLayout = None
+        bestLayoutPenalty = None
+        for s in xrange(2500):
+            r.shuffle(allSlots)
+            for i, objectID in enumerate(objectIDs):
+                hexCell = hexMap.objectByID[objectID]
+                x, y = allSlots[i]
+                hexCell.MoveToCR(x, y)
+
+            hexMap.UpdateJumpLines(refreshLayout=True)
+            lineOverlapPenalty = ScanForHexLineOverlaps(hexMap, layoutPenalty)
+            if not bestLayoutPenalty or lineOverlapPenalty < bestLayoutPenalty:
+                bestLayoutPenalty = lineOverlapPenalty
+                bestLayout = allSlots[:]
+                print 'New best', bestLayoutPenalty
+            if bestLayoutPenalty == 0:
+                break
+            blue.synchro.Yield()
+
+        print 'Best result for ', plotObjectID, bestLayoutPenalty
+        for i, objectID in enumerate(sorted(objectIDs)):
             hexCell = hexMap.objectByID[objectID]
-            x, y = allSlots[i]
+            x, y = bestLayout[i]
             hexCell.MoveToCR(x, y)
 
         hexMap.UpdateJumpLines(refreshLayout=True)
-        lineOverlapPenalty = ScanForHexLineOverlaps(hexMap, layoutPenalty)
-        if not bestLayoutPenalty or lineOverlapPenalty < bestLayoutPenalty:
-            bestLayoutPenalty = lineOverlapPenalty
-            bestLayout = allSlots[:]
-            print 'New best', bestLayoutPenalty
-        if bestLayoutPenalty == 0:
-            break
-        blue.synchro.Yield()
-
-    print 'Best result for ', plotObjectID, bestLayoutPenalty
-    for i, objectID in enumerate(sorted(objectIDs)):
-        hexCell = hexMap.objectByID[objectID]
-        x, y = bestLayout[i]
-        hexCell.MoveToCR(x, y)
-
-    hexMap.UpdateJumpLines(refreshLayout=True)
-    return bestLayoutPenalty == 0
+        return bestLayoutPenalty == 0
 
 
 def ResolveObjectLineOverlap(hexMap, objectLineOverlays, useSlots):
@@ -719,7 +730,7 @@ def ResolveLineLineOverlap(hexMap, lineOverlays, useSlots):
     return someResolved
 
 
-def RelocateObject(hexMap, hexObject, useSlots, sleep = False):
+def RelocateObject(hexMap, hexObject, useSlots, sleep=False):
     if sleep:
         blue.synchro.Sleep(500)
     hexMap.relocatedHexCells.append(hexObject)
@@ -751,22 +762,23 @@ def RelocateObject(hexMap, hexObject, useSlots, sleep = False):
     return False
 
 
-def ScanAllOverlap(hexMap, stopAtPenalty = None):
+def ScanAllOverlap(hexMap, stopAtPenalty=None):
     ol, penalty = ScanForObjectLineOverlaps(hexMap, stopAtPenalty=stopAtPenalty)
     ll, penalty = ScanForLineLineOverlaps(hexMap, startPenalty=penalty, stopAtPenalty=stopAtPenalty)
     return (ol, ll, penalty)
 
 
-def ScanForOverlaps(hexMap, stopAtPenalty = None):
+def ScanForOverlaps(hexMap, stopAtPenalty=None):
     penalty = 0
     ol, penalty = ScanForObjectLineOverlaps(hexMap, startPenalty=penalty, stopAtPenalty=stopAtPenalty)
     if stopAtPenalty is not None and penalty >= stopAtPenalty:
         return (ol, [], penalty)
-    ll, penalty = ScanForLineLineOverlaps(hexMap, startPenalty=penalty, stopAtPenalty=stopAtPenalty)
-    return (ol, ll, penalty)
+    else:
+        ll, penalty = ScanForLineLineOverlaps(hexMap, startPenalty=penalty, stopAtPenalty=stopAtPenalty)
+        return (ol, ll, penalty)
 
 
-def ScanForObjectLineOverlaps(hexMap, startPenalty = 0, stopAtPenalty = None):
+def ScanForObjectLineOverlaps(hexMap, startPenalty=0, stopAtPenalty=None):
     penalty = startPenalty
     object_line_overlaps = []
     objectIDs = sorted(hexMap.objectByID.keys())
@@ -791,7 +803,7 @@ def ScanForObjectLineOverlaps(hexMap, startPenalty = 0, stopAtPenalty = None):
     return (object_line_overlaps, penalty)
 
 
-def ScanForLineLineOverlaps(hexMap, startPenalty = 0, stopAtPenalty = None):
+def ScanForLineLineOverlaps(hexMap, startPenalty=0, stopAtPenalty=None):
     penalty = startPenalty
     line_line_overlaps = []
     done = []
@@ -828,7 +840,7 @@ def ScanForLineLineOverlaps(hexMap, startPenalty = 0, stopAtPenalty = None):
     return (line_line_overlaps, penalty)
 
 
-def ScanForObjectObjectOverlaps(hexMap, startPenalty = None, stopAtPenalty = None):
+def ScanForObjectObjectOverlaps(hexMap, startPenalty=None, stopAtPenalty=None):
     objectIDs = sorted(hexMap.objectByID.keys())
     object_object_overlaps = []
     occupied = []
@@ -844,7 +856,7 @@ def ScanForObjectObjectOverlaps(hexMap, startPenalty = None, stopAtPenalty = Non
     return object_object_overlaps
 
 
-def ScanForHexLineOverlaps(hexMap, lastPenalty = None):
+def ScanForHexLineOverlaps(hexMap, lastPenalty=None):
     done = []
     currentPenalty = 0
     lineIDs = hexMap.hexGridConnectionsByID.keys()
@@ -866,7 +878,7 @@ def ScanForHexLineOverlaps(hexMap, lastPenalty = None):
     return currentPenalty
 
 
-def GetPlotDataForObject(objectID, ignoreFixed = None):
+def GetPlotDataForObject(objectID, ignoreFixed=None):
     if ignoreFixed is None:
         ignoreFixed = settings.user.ui.Get('mapDebugViewIgnoreFixed', 0)
     registeredPlot = settings.user.ui.Get('mapHexPlotData', {})

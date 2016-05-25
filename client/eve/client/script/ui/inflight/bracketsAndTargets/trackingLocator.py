@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\client\script\ui\inflight\bracketsAndTargets\trackingLocator.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\client\script\ui\inflight\bracketsAndTargets\trackingLocator.py
 import uiprimitives
 import carbonui.const as uiconst
 import uicontrols
@@ -29,6 +30,7 @@ class TrackingLocator(uiprimitives.Container):
             icon = uiprimitives.Sprite(state=uiconst.UI_DISABLED, parent=self, pos=(0, 0, 64, 64), texturePath='res:/UI/Texture/classes/Bracket/centerTrackerIndicator.png')
             uicore.animations.BlinkIn(self, startVal=1.0, endVal=0.0, duration=0.2, loops=3, curveType=uiconst.ANIM_WAVE, callback=self.StartFade)
         self.UpdateTrackingData(persist=False)
+        return
 
     def StartFadeSlow(self):
         uicore.animations.FadeOut(obj=self, duration=2.0, callback=self.Close)
@@ -91,6 +93,7 @@ class TrackingLocator(uiprimitives.Container):
         if self.mouseCookie:
             uicore.event.UnregisterForTriuiEvents(self.mouseCookie)
         self.mouseCookie = None
+        return
 
     def Close(self):
         self.StopDragging()

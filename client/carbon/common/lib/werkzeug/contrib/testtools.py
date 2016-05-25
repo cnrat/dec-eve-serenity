@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\carbon\common\lib\werkzeug\contrib\testtools.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\carbon\common\lib\werkzeug\contrib\testtools.py
 from werkzeug import Response, cached_property, import_string
 
 class ContentAccessors(object):
@@ -12,6 +13,7 @@ class ContentAccessors(object):
                 return etree.XML(self.body)
 
         raise RuntimeError('You must have ElementTree installed to use TestResponse.xml')
+        return
 
     xml = cached_property(xml)
 

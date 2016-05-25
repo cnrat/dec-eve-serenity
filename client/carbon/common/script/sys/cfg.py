@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\carbon\common\script\sys\cfg.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\carbon\common\script\sys\cfg.py
 import blue
 import telemetry
 import eve.common.script.util.utillib_bootstrap as utillib
@@ -34,11 +35,12 @@ class DataConfig(service.CoreService):
     def __init__(self):
         service.CoreService.__init__(self)
         self.cfg = None
+        return
 
     def _CreateConfig(self):
         return Config()
 
-    def Run(self, memStream = None):
+    def Run(self, memStream=None):
         global LogWarn
         global LogError
         global LogInfo
@@ -55,7 +57,7 @@ class DataConfig(service.CoreService):
             cfg.GetStartupData()
         self.state = service.SERVICE_RUNNING
 
-    def Stop(self, memStream = None):
+    def Stop(self, memStream=None):
         tmp = cfg
         import __builtin__
         delattr(__builtin__, 'const')
@@ -96,6 +98,7 @@ class DataConfig(service.CoreService):
 
         if delRow:
             rs.remove(delRow)
+        return
 
     def OnConfigRevisionChange(self, uniqueRefName, cfgEntryName, cacheID, keyIDs, keyCols, oldRow, newRow, source):
         cfgEntry = getattr(cfg, cfgEntryName, None)
@@ -178,6 +181,7 @@ class DataConfig(service.CoreService):
         if cfgEntryName == 'worldspaces':
             cfg._worldspacesDistrictsCache = {}
         sm.ScatterEvent('OnCfgRevisionChange', uniqueRefName, cfgEntryName, cacheID, keyIDs, keyCols, oldRow, newRow)
+        return
 
     def GetStartupData(self):
         self.LogInfo('Getting startup data')
@@ -210,6 +214,7 @@ class Config():
         self.fmtMapping[const.UE_LOC] = lambda value, value2: self._GetLocalization(value, value2)
         self.fmtMapping[const.UE_MESSAGEID] = lambda value, value2: self._GetLocalizationByID(value, value2)
         self.fmtMapping[const.UE_LIST] = lambda value, value2: self._GetList(value, value2)
+        return
 
     def UpdateCfgData(self, data, object, guid):
         if guid == Recordset.__guid__:
@@ -245,6 +250,7 @@ class Config():
     def Release(self):
         self.messages = None
         self.LogError = None
+        return
 
     def GetConfigSvc(self):
         if not self.servicebroker:
@@ -284,7 +290,7 @@ class Config():
     def AppGetStartupData(self):
         pass
 
-    def ReportLoginProgress(self, section, stepNum, totalSteps = None):
+    def ReportLoginProgress(self, section, stepNum, totalSteps=None):
         pass
 
     def ConvertData(self, src, dst):
@@ -311,61 +317,64 @@ class Config():
         else:
             cache = sm.GetService('cache')
             return cache.Rowset(bulkID)
+        return None
 
     @telemetry.ZONE_METHOD
     def GetBulkData(self, bulkID, rowset, rawDataFunction, virtualColumns):
         rawData = rawDataFunction(bulkID)
         if rawData is None:
             return
-        if virtualColumns is not None:
-            rawData.header.virtual = virtualColumns
-        self.ConvertData(rawData, rowset)
-        return rowset
+        else:
+            if virtualColumns is not None:
+                rawData.header.virtual = virtualColumns
+            self.ConvertData(rawData, rowset)
+            return rowset
 
     @telemetry.ZONE_METHOD
-    def LoadBulk(self, cfgName, bulkID, rowset = None, filterParams = None, tableID = None, rawDataFunctionRef = None, virtualColumns = None, serverOnly = False):
+    def LoadBulk(self, cfgName, bulkID, rowset=None, filterParams=None, tableID=None, rawDataFunctionRef=None, virtualColumns=None, serverOnly=False):
         if boot.role == 'client' and serverOnly:
             return
-        if cfgName is not None:
-            if bulkID not in self.bulkIDsToCfgNames:
-                self.bulkIDsToCfgNames[bulkID] = []
-            self.bulkIDsToCfgNames[bulkID].append(cfgName)
-        if rawDataFunctionRef is None:
-            rawDataFunction = self.GetRawBulkData
         else:
-            rawDataFunction = rawDataFunctionRef
-        if self.IsBulkMgrNode():
-            sm.GetService('bulkMgr').AddToBulk(bulkID, tableID, serverOnly)
-        self.bulkEntries.append((bulkID, tableID))
-        if rowset is None and filterParams is None:
-            rawData = rawDataFunction(bulkID)
-            if rawData is None:
-                return
-            if virtualColumns is not None:
-                rawData.header.virtual = virtualColumns
-            return rawData
-        if rowset is None:
-            rawData = rawDataFunction(bulkID)
-            if rawData is None:
-                return
-            if virtualColumns is not None:
-                rawData.header.virtual = virtualColumns
-            if isinstance(filterParams, str):
-                rowset = rawData.Filter(filterParams)
+            if cfgName is not None:
+                if bulkID not in self.bulkIDsToCfgNames:
+                    self.bulkIDsToCfgNames[bulkID] = []
+                self.bulkIDsToCfgNames[bulkID].append(cfgName)
+            if rawDataFunctionRef is None:
+                rawDataFunction = self.GetRawBulkData
             else:
-                if len(filterParams) != 3:
-                    raise RuntimeError('Error loading filtered bulk data', bulkID, 'Filtered list must be of length 3')
-                rowset = rawData.Filter(filterParams[0], indexName=filterParams[1], allowDuplicateCompoundKeys=filterParams[2])
-        else:
-            self.GetBulkData(bulkID, rowset, rawDataFunction, virtualColumns)
-        return rowset
+                rawDataFunction = rawDataFunctionRef
+            if self.IsBulkMgrNode():
+                sm.GetService('bulkMgr').AddToBulk(bulkID, tableID, serverOnly)
+            self.bulkEntries.append((bulkID, tableID))
+            if rowset is None and filterParams is None:
+                rawData = rawDataFunction(bulkID)
+                if rawData is None:
+                    return
+                if virtualColumns is not None:
+                    rawData.header.virtual = virtualColumns
+                return rawData
+            if rowset is None:
+                rawData = rawDataFunction(bulkID)
+                if rawData is None:
+                    return
+                if virtualColumns is not None:
+                    rawData.header.virtual = virtualColumns
+                if isinstance(filterParams, str):
+                    rowset = rawData.Filter(filterParams)
+                else:
+                    if len(filterParams) != 3:
+                        raise RuntimeError('Error loading filtered bulk data', bulkID, 'Filtered list must be of length 3')
+                    rowset = rawData.Filter(filterParams[0], indexName=filterParams[1], allowDuplicateCompoundKeys=filterParams[2])
+            else:
+                self.GetBulkData(bulkID, rowset, rawDataFunction, virtualColumns)
+            return rowset
 
-    def LoadBulkIndex(self, cfgName, cacheID, column, rowClass = None, serverOnly = False):
+    def LoadBulkIndex(self, cfgName, cacheID, column, rowClass=None, serverOnly=False):
         if rowClass is None:
             rowClass = Row
         return self.LoadBulk(cfgName, cacheID, Recordset(rowClass, column), serverOnly=serverOnly)
 
-    def LoadBulkFilter(self, cfgName, cacheID, filterParams, virtualColumns = None, serverOnly = False):
+    def LoadBulkFilter(self, cfgName, cacheID, filterParams, virtualColumns=None, serverOnly=False):
         return self.LoadBulk(cfgName, cacheID, None, filterParams, None, None, virtualColumns, serverOnly)
 
     def IsBulkMgrNode(self):
@@ -373,7 +382,7 @@ class Config():
             return False
         return sm.GetService('bulkMgr').IsBulkMgrNode()
 
-    def LoadFSDData(self, filename, schemaPath, loadFromString = False, idCacheCount = 0):
+    def LoadFSDData(self, filename, schemaPath, loadFromString=False, idCacheCount=0):
         platform = boot.role.capitalize()
         res = blue.ResFile()
         if not res.Open(schemaPath):
@@ -388,6 +397,7 @@ class Config():
             if loadFromString:
                 return fsdBinaryLoader.LoadFromString(res.Read(), schema)
             return fsdBinaryLoader.LoadIndexFromFile(fsdBinaryLoader.BlueResFileIOWrapper(res), schema, idCacheCount)
+        return None
 
     @telemetry.ZONE_METHOD
     def GotInitData(self, initdata):
@@ -443,7 +453,7 @@ class Config():
         self.encounterCoordinateSetsByWorldSpaceID = self.LoadBulkFilter('encounterCoordinateSetsByWorldSpaceID', const.cacheEncounterCoordinateSets, 'worldSpaceTypeID')
         self.encountersByCoordinateSet = self.LoadBulkFilter('encountersByCoordinateSet', const.cacheEncounterEncounters, 'coordinateSetID')
 
-    def GetMessage(self, key, dict = None, onNotFound = 'return', onDictMissing = 'error'):
+    def GetMessage(self, key, dict=None, onNotFound='return', onDictMissing='error'):
         if key not in self.messages:
             if onNotFound == 'return':
                 return self.GetMessage('ErrMessageNotFound', {'msgid': key,
@@ -495,7 +505,7 @@ class Config():
             text, title, suppress = (None, None, 0)
         return utillib.KeyVal(text=text, title=title, type=msg.dialogType, audio=msg.urlAudio, icon=msg.urlIcon, suppress=suppress)
 
-    def _GetLocalization(self, key, keyArgs = None):
+    def _GetLocalization(self, key, keyArgs=None):
         if boot.role == 'server':
             if keyArgs is None:
                 return key
@@ -513,8 +523,9 @@ class Config():
                 keyArgs[k] = self.FormatConvert(v[0], v[1], value2)
 
             return localization.GetByLabel(key, **keyArgs)
+        return
 
-    def _GetLocalizationByID(self, key, keyArgs = None):
+    def _GetLocalizationByID(self, key, keyArgs=None):
         if boot.role == 'server':
             if keyArgs is None:
                 return 'MessageID: ' + str(key)
@@ -532,8 +543,9 @@ class Config():
                 keyArgs[k] = self.FormatConvert(v[0], v[1], value2)
 
             return localization.GetByMessageID(key, **keyArgs)
+        return
 
-    def _GetList(self, fmtList, separator = None):
+    def _GetList(self, fmtList, separator=None):
         results = []
         for each in fmtList:
             value2 = None
@@ -545,6 +557,7 @@ class Config():
             return separator.join(results)
         else:
             return localization.formatters.FormatGenericList(results)
+            return
 
     def __prepdict(self, dict):
         dict = copy.deepcopy(dict)
@@ -592,7 +605,7 @@ class Config():
         __numberstrings__[each * 1000000] = __numberstrings__[each] + ' million'
         __numberstrings__[each * 1000000000] = __numberstrings__[each] + ' billion'
 
-    def FormatConvert(self, formatType, value, value2 = None):
+    def FormatConvert(self, formatType, value, value2=None):
         if type(value) == types.TupleType:
             value2 = None
             if len(value) >= 3:
@@ -602,8 +615,9 @@ class Config():
             return self.fmtMapping[formatType](value, value2)
         else:
             return 'INVALID FORMAT TYPE %s, value is %s' % (formatType, value)
+            return
 
-    def Format(self, key, dict = None):
+    def Format(self, key, dict=None):
         msg = self.GetMessage(key, dict, onNotFound='raise')
         if msg.title:
             return '%s - %s' % (msg.title, msg.text)
@@ -614,7 +628,7 @@ class Config():
 class Recordset():
     __guid__ = 'cfg.Recordset'
 
-    def __init__(self, rowclass, keycolumn, dbfetcher = None, dbMultiFetcher = None, clientLocalFetcher = None):
+    def __init__(self, rowclass, keycolumn, dbfetcher=None, dbMultiFetcher=None, clientLocalFetcher=None):
         self.rowclass = rowclass
         self.dbfetcher = dbfetcher
         self.dbMultiFetcher = dbMultiFetcher
@@ -635,6 +649,7 @@ class Recordset():
             self.header, data = self.dbfetcher
             self.keyidx = self.header.index(self.keycolumn)
             self.__PopulateDataset(data)
+        return
 
     def GetKeyColumn(self):
         return self.keycolumn
@@ -669,30 +684,32 @@ class Recordset():
     def __LoadData(self, key):
         if self.dbfetcher is None:
             return
-        if type(self.dbfetcher) == types.StringType:
-            conf = cfg.GetConfigSvc()
-            fetch = getattr(conf, self.dbfetcher)
-            fk = fetch(key)
-            if isinstance(fk, Exception):
-                raise fk
-            if type(fk) == types.TupleType:
-                self.header, data = fk
-            elif hasattr(fk, '__columns__'):
-                self.header = fk.__columns__
-                data = [list(fk)]
-            elif hasattr(fk, 'columns'):
-                self.header = fk.columns
-                data = fk
-            else:
-                raise RuntimeError('_LoadData called with unsupported data type', fk.__class__)
-        elif type(self.dbfetcher) in [types.ListType, types.TupleType]:
-            self.header, data = self.dbfetcher
         else:
-            fetch = self.dbfetcher
-            self.header, data = fetch(key)
-        if self.keyidx is None:
-            self.keyidx = self.header.index(self.keycolumn)
-        self.__PopulateDataset(data, key, None)
+            if type(self.dbfetcher) == types.StringType:
+                conf = cfg.GetConfigSvc()
+                fetch = getattr(conf, self.dbfetcher)
+                fk = fetch(key)
+                if isinstance(fk, Exception):
+                    raise fk
+                if type(fk) == types.TupleType:
+                    self.header, data = fk
+                elif hasattr(fk, '__columns__'):
+                    self.header = fk.__columns__
+                    data = [list(fk)]
+                elif hasattr(fk, 'columns'):
+                    self.header = fk.columns
+                    data = fk
+                else:
+                    raise RuntimeError('_LoadData called with unsupported data type', fk.__class__)
+            elif type(self.dbfetcher) in [types.ListType, types.TupleType]:
+                self.header, data = self.dbfetcher
+            else:
+                fetch = self.dbfetcher
+                self.header, data = fetch(key)
+            if self.keyidx is None:
+                self.keyidx = self.header.index(self.keycolumn)
+            self.__PopulateDataset(data, key, None)
+            return
 
     def Hint(self, key, value):
         if key:
@@ -708,8 +725,9 @@ class Recordset():
             self.__PopulateDataset(value, None, list)
         else:
             raise RuntimeError('Hint called with unsupported data type', value.__class__)
+        return
 
-    def Prime(self, keys, fuxorcheck = 1):
+    def Prime(self, keys, fuxorcheck=1):
         if fuxorcheck:
             i = 0
             for each in keys:
@@ -745,34 +763,59 @@ class Recordset():
     def _Prime(self):
         if self.dbMultiFetcher is None:
             return
-        if not self.waitingKeys:
+        elif not self.waitingKeys:
             return
-        keysToGet = self.waitingKeys
-        localKeysToGet = set()
-        keysIAlreadyHave = set()
-        for key in keysToGet:
-            if key in self.data:
-                keysIAlreadyHave.add(key)
-            elif self.clientLocalFetcher is not None and cfg.IsLocalIdentity(key):
-                localKeysToGet.add(key)
+        else:
+            keysToGet = self.waitingKeys
+            localKeysToGet = set()
+            keysIAlreadyHave = set()
+            for key in keysToGet:
+                if key in self.data:
+                    keysIAlreadyHave.add(key)
+                elif self.clientLocalFetcher is not None and cfg.IsLocalIdentity(key):
+                    localKeysToGet.add(key)
 
-        self.waitingKeys = set()
-        keysToGet.difference_update(self.knownLuzers)
-        localKeysToGet.difference_update(self.knownLuzers)
-        keysToGet.difference_update(keysIAlreadyHave)
-        if len(localKeysToGet):
-            localFetch = getattr(cfg, self.clientLocalFetcher)
-            fk = localFetch(list(keysToGet))
+            self.waitingKeys = set()
+            keysToGet.difference_update(self.knownLuzers)
+            localKeysToGet.difference_update(self.knownLuzers)
+            keysToGet.difference_update(keysIAlreadyHave)
+            if len(localKeysToGet):
+                localFetch = getattr(cfg, self.clientLocalFetcher)
+                fk = localFetch(list(keysToGet))
+                if isinstance(fk, Exception):
+                    raise fk
+                if type(fk) == types.TupleType:
+                    self.header, data = fk
+                elif hasattr(fk, 'columns'):
+                    self.header = fk.columns
+                    data = fk
+                else:
+                    data = []
+                    cfg.LogWarn('Recordset: ', self.clientLocalFetcher, ' returned an empty record set from local data. Attempting to fetch from server to compensate!')
+                if self.keyidx is None:
+                    self.keyidx = self.header.index(self.keycolumn)
+                ix = self.keyidx
+                for i in data:
+                    self.data[i[ix]] = i
+                    keysToGet.remove(i[ix])
+
+            if len(keysToGet) == 0:
+                return
+            conf = cfg.GetConfigSvc()
+            fetch = getattr(conf, self.dbMultiFetcher)
+            fk = fetch(list(keysToGet))
             if isinstance(fk, Exception):
                 raise fk
             if type(fk) == types.TupleType:
                 self.header, data = fk
+            elif hasattr(fk, '__columns__'):
+                self.header = fk.__columns__
+                data = [list(fk)]
             elif hasattr(fk, 'columns'):
                 self.header = fk.columns
                 data = fk
             else:
-                data = []
-                cfg.LogWarn('Recordset: ', self.clientLocalFetcher, ' returned an empty record set from local data. Attempting to fetch from server to compensate!')
+                raise RuntimeError('_Prime called with unsupported data type', fk.__class__)
             if self.keyidx is None:
                 self.keyidx = self.header.index(self.keycolumn)
             ix = self.keyidx
@@ -780,35 +823,13 @@ class Recordset():
                 self.data[i[ix]] = i
                 keysToGet.remove(i[ix])
 
-        if len(keysToGet) == 0:
+            for luzer in keysToGet:
+                self.knownLuzers.add(luzer)
+                log.general.Log('Failed to prime ' + strx(luzer), 1, 1)
+
             return
-        conf = cfg.GetConfigSvc()
-        fetch = getattr(conf, self.dbMultiFetcher)
-        fk = fetch(list(keysToGet))
-        if isinstance(fk, Exception):
-            raise fk
-        if type(fk) == types.TupleType:
-            self.header, data = fk
-        elif hasattr(fk, '__columns__'):
-            self.header = fk.__columns__
-            data = [list(fk)]
-        elif hasattr(fk, 'columns'):
-            self.header = fk.columns
-            data = fk
-        else:
-            raise RuntimeError('_Prime called with unsupported data type', fk.__class__)
-        if self.keyidx is None:
-            self.keyidx = self.header.index(self.keycolumn)
-        ix = self.keyidx
-        for i in data:
-            self.data[i[ix]] = i
-            keysToGet.remove(i[ix])
 
-        for luzer in keysToGet:
-            self.knownLuzers.add(luzer)
-            log.general.Log('Failed to prime ' + strx(luzer), 1, 1)
-
-    def __PopulateDataset(self, data, key = None, factory = None):
+    def __PopulateDataset(self, data, key=None, factory=None):
         if hasattr(data, 'columns'):
             ix = value.columns.index(self.keycolumn)
         else:
@@ -826,8 +847,9 @@ class Recordset():
         if key and not gotit:
             self.knownLuzers.add(key)
             log.LogTraceback()
+        return
 
-    def Get(self, key, flush = 0):
+    def Get(self, key, flush=0):
         key = int(key)
         if flush or not self.data.has_key(key):
             if boot.role != 'server':
@@ -848,6 +870,7 @@ class Recordset():
         if self.data.has_key(key):
             return self.rowclass(self, key)
         else:
+            return None
             return None
 
     def xxx__getitem__(self, index):
@@ -888,7 +911,7 @@ class Row(utilRow):
     __guid__ = 'cfg.Row'
     __persistvars__ = ['header', 'line', 'id']
 
-    def __init__(self, recordset = None, key = None):
+    def __init__(self, recordset=None, key=None):
         if recordset == None:
             self.__dict__['header'] = None
             self.__dict__['line'] = None
@@ -897,6 +920,7 @@ class Row(utilRow):
             self.__dict__['header'] = recordset.header
             self.__dict__['line'] = recordset.data[key]
             self.__dict__['id'] = key
+        return
 
     def __setattr__(self, name, value):
         if name in ('id', 'header', 'line'):
@@ -950,6 +974,7 @@ class Worldspaces(Row):
 
         else:
             return value
+        return
 
     def __str__(self):
         return 'Worldspaces ID: %d, districtID: %d' % (self.worldSpaceTypeID, self.districtID)

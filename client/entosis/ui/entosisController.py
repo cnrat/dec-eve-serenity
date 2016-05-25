@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\packages\entosis\ui\entosisController.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\packages\entosis\ui\entosisController.py
 from carbon.common.lib.const import SEC, MIN
 import gametime
 import logging
@@ -35,6 +36,7 @@ class EntosisCounterController(object):
         if slimItem.entosis_score is not None:
             controllingTeamId, scoringTeamId, scoringAttributes, defenderTeamId = slimItem.entosis_score
             self.SetScoreValues(controllingTeamId, scoringTeamId, scoringAttributes, defenderTeamId)
+        return
 
     def _IsScoring(self):
         return self.scoringRate is not None and self.scoringRate != 0.0
@@ -100,6 +102,7 @@ class EntosisCounterController(object):
         self.sublabelInfo = None
         self.bracket.UpdateSubLabelIfNeeded('')
         self.bracket.CloseSubLabel()
+        return
 
     def _ShouldShowSubLabel(self):
         if self.isBlocked:
@@ -128,20 +131,22 @@ class EntosisCounterController(object):
             return localization.GetByLabel('UI/Sovereignty/BracketEntosisStatus', allianceTicker=controllingTeamTicker)
         else:
             return localization.GetByLabel('UI/Sovereignty/BracketAttackingClaimed')
+            return None
 
     def _GetCaptureTimestamp(self):
         if not self._IsScoring():
             return None
-        fullCaptureTime = abs(self.captureTime / self.scoringRate)
-        if self.scoringRate < 0:
-            score = self.scoreAtLastUpdateTime
         else:
-            score = 1 - self.scoreAtLastUpdateTime
-        if (self.defenderTeamId is NEUTRAL or self.twoDirectionalCaptureTarget) and self.scoringRate < 0:
-            score += 1
-        timeInSec = score * fullCaptureTime
-        time = long(round(timeInSec * SEC))
-        return time + self.lastUpdatedScoreTime
+            fullCaptureTime = abs(self.captureTime / self.scoringRate)
+            if self.scoringRate < 0:
+                score = self.scoreAtLastUpdateTime
+            else:
+                score = 1 - self.scoreAtLastUpdateTime
+            if (self.defenderTeamId is NEUTRAL or self.twoDirectionalCaptureTarget) and self.scoringRate < 0:
+                score += 1
+            timeInSec = score * fullCaptureTime
+            time = long(round(timeInSec * SEC))
+            return time + self.lastUpdatedScoreTime
 
     def _FormatCountdown(self, time):
         timeText = localization.formatters.FormatTimeIntervalShort(time, showFrom='minute', showTo='second')
@@ -168,13 +173,14 @@ class EntosisCounterController(object):
         if not self.bracket or self.bracket.destroyed or not self.sublabelInfo:
             self._KillBracketSubLabel()
             return False
-        statusText, captureTimestamp = self.sublabelInfo
-        if captureTimestamp is not None:
-            now = gametime.GetSimTime()
-            timeUntil = max(0L, captureTimestamp - now)
-            timeUntilText = self._FormatCountdown(timeUntil)
-            text = ' - '.join(filter(None, [statusText, timeUntilText]))
         else:
-            text = statusText
-        self.bracket.UpdateSubLabelIfNeeded(text)
-        return True
+            statusText, captureTimestamp = self.sublabelInfo
+            if captureTimestamp is not None:
+                now = gametime.GetSimTime()
+                timeUntil = max(0L, captureTimestamp - now)
+                timeUntilText = self._FormatCountdown(timeUntil)
+                text = ' - '.join(filter(None, [statusText, timeUntilText]))
+            else:
+                text = statusText
+            self.bracket.UpdateSubLabelIfNeeded(text)
+            return True

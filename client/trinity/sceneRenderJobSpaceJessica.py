@@ -1,9 +1,10 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\packages\trinity\sceneRenderJobSpaceJessica.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\packages\trinity\sceneRenderJobSpaceJessica.py
 from . import _trinity as trinity
 from . import _singletons
 from .sceneRenderJobSpace import SceneRenderJobSpace
 
-def CreateJessicaSpaceRenderJob(name = None, stageKey = None):
+def CreateJessicaSpaceRenderJob(name=None, stageKey=None):
     newRJ = SceneRenderJobSpaceJessica()
     if name is not None:
         newRJ.ManualInit(name)
@@ -15,7 +16,7 @@ def CreateJessicaSpaceRenderJob(name = None, stageKey = None):
 
 class SceneRenderJobSpaceJessica(SceneRenderJobSpace):
 
-    def _ManualInit(self, name = 'SceneRenderJobSpace'):
+    def _ManualInit(self, name='SceneRenderJobSpace'):
         SceneRenderJobSpace._ManualInit(self, name)
         self.persistedPostProcess = {}
         self.settings = {'aaQuality': 3,
@@ -25,6 +26,7 @@ class SceneRenderJobSpaceJessica(SceneRenderJobSpace):
          'hdrEnabled': True}
         self.backBufferOverride = None
         self.depthBufferOverride = None
+        return
 
     def SetSettings(self, rjSettings):
         self.settings = rjSettings
@@ -67,7 +69,8 @@ class SceneRenderJobSpaceJessica(SceneRenderJobSpace):
     def GetPostProcesses(self):
         if self.postProcessingJob is not None:
             return self.postProcessingJob.GetPostProcesses()
-        return []
+        else:
+            return []
 
     def _GetSettings(self):
         return self.settings
@@ -90,6 +93,7 @@ class SceneRenderJobSpaceJessica(SceneRenderJobSpace):
         else:
             self.shadowMap.size = self.settings['shadowMapSize']
         self.usePostProcessing = self.postProcessingJob.liveCount > 0
+        return
 
     def SetRenderTargets(self, *args):
         SceneRenderJobSpace.SetRenderTargets(self, *args)
@@ -101,16 +105,19 @@ class SceneRenderJobSpaceJessica(SceneRenderJobSpace):
     def GetBackBufferSize(self):
         if self.backBufferOverride is None:
             return SceneRenderJobSpace.GetBackBufferSize(self)
-        width = self.backBufferOverride.width
-        height = self.backBufferOverride.height
-        return (width, height)
+        else:
+            width = self.backBufferOverride.width
+            height = self.backBufferOverride.height
+            return (width, height)
 
     def _GetRTForDepthPass(self):
         if self.backBufferOverride is not None:
             return self.backBufferOverride
-        return SceneRenderJobSpace._GetRTForDepthPass(self)
+        else:
+            return SceneRenderJobSpace._GetRTForDepthPass(self)
 
     def GetBackBufferRenderTarget(self):
         if self.backBufferOverride is not None:
             return self.backBufferOverride
-        return SceneRenderJobSpace.GetBackBufferRenderTarget(self)
+        else:
+            return SceneRenderJobSpace.GetBackBufferRenderTarget(self)

@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\packages\probescanning\probeTracker.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\packages\probescanning\probeTracker.py
 import logging
 import geo2
 import math
@@ -22,12 +23,14 @@ class ProbeTracker(object):
         self.backupProbeData = None
         self.formationTracker = formationTracker.FormationTracker(probescanning.const.AU, self.ProbeGoToPoint)
         self.formationTracker.CreateFormation(formations.SPREAD_FORMATION)
+        return
 
     def Refresh(self):
         self.probeData = {}
         self.scalingPoint = None
         self.backupProbeData = None
         self.formationTracker.Refresh()
+        return
 
     def AddProbe(self, probe):
         self.probeData[probe.probeID] = probe
@@ -60,6 +63,8 @@ class ProbeTracker(object):
     def GetProbeState(self, probeID):
         if probeID in self.probeData:
             return self.probeData[probeID].state
+        else:
+            return None
 
     def IsProbeActive(self, probeID):
         return bool(probeID in self.probeData and self.probeData[probeID].state)
@@ -97,7 +102,7 @@ class ProbeTracker(object):
             self.UpdateProbeState(probe.probeID, probescanning.const.probeStateIdle, caller='OnProbesIdle')
             self.SetProbeDestination(probe.probeID, probe.destination)
 
-    def UpdateProbeState(self, probeID, state, caller = None, notify = True):
+    def UpdateProbeState(self, probeID, state, caller=None, notify=True):
         if probeID not in self.probeData:
             self.logger.warning('UpdateProbeState: probe %d not in my list of probes. Called by %s', probeID, caller)
             return
@@ -140,7 +145,7 @@ class ProbeTracker(object):
         if len(self.probeData) + availableProbes < minProbesNeeded:
             raise UserError('NotEnoughProbesToFormFormation', {'minProbes': minProbesNeeded})
 
-    def MoveProbesToFormation(self, formationID, LaunchProbes, availableProbes = 0):
+    def MoveProbesToFormation(self, formationID, LaunchProbes, availableProbes=0):
         self.CheckCanCreateFormation(formationID, availableProbes)
         excessProbeIDs = self.formationTracker.CreateFormation(formationID, self.probeData.keys(), initialPosition=self.GetCenterOfActiveProbes())
         if excessProbeIDs:
@@ -246,6 +251,7 @@ class ProbeTracker(object):
 
     def UnsetAsScaling(self):
         self.scalingPoint = None
+        return
 
     def GetCenterOfActiveProbes(self):
         return GetCenter([ p.destination for p in self.probeData.itervalues() if p.state == probescanning.const.probeStateIdle ])
@@ -254,23 +260,24 @@ class ProbeTracker(object):
         if self.scalingPoint is None:
             self.logger.error("Trying to scale probes but scalingPoint hasn't been set %s", probeIDs)
             return
-        centerPoint = self.GetCenterOfActiveProbes()
-        translationCenterPoint = geo2.Vec3Scale(centerPoint, systemMapScale)
+        else:
+            centerPoint = self.GetCenterOfActiveProbes()
+            translationCenterPoint = geo2.Vec3Scale(centerPoint, systemMapScale)
 
-        def DistSqFromCenter(v):
-            return geo2.Vec3LengthSq(geo2.Vec3Subtract(v, translationCenterPoint))
+            def DistSqFromCenter(v):
+                return geo2.Vec3LengthSq(geo2.Vec3Subtract(v, translationCenterPoint))
 
-        scale = math.sqrt(DistSqFromCenter(point) / DistSqFromCenter(self.scalingPoint))
-        probeInfo = []
-        for probeID, newPoint, newScanRange in self._ScaleFromCenterIterator(scale, probeIDs):
-            probe = self.probeData[probeID]
-            if probe.state != probescanning.const.probeStateIdle:
-                continue
-            probeInfo.append((probeID, newPoint, newScanRange))
+            scale = math.sqrt(DistSqFromCenter(point) / DistSqFromCenter(self.scalingPoint))
+            probeInfo = []
+            for probeID, newPoint, newScanRange in self._ScaleFromCenterIterator(scale, probeIDs):
+                probe = self.probeData[probeID]
+                if probe.state != probescanning.const.probeStateIdle:
+                    continue
+                probeInfo.append((probeID, newPoint, newScanRange))
 
-        return probeInfo
+            return probeInfo
 
-    def GetScaledProbesData(self, probeIDs, scale, position = None):
+    def GetScaledProbesData(self, probeIDs, scale, position=None):
         if position is None:
             position = self.GetCenterOfActiveProbes()
         probeInfo = []
@@ -307,7 +314,7 @@ class ProbeTracker(object):
             newPoint = geo2.Vec3Add(centerPoint, vec1)
             yield (probeID, newPoint, newScanRange)
 
-    def ScaleAllProbes(self, scale, scaleScanRange = True):
+    def ScaleAllProbes(self, scale, scaleScanRange=True):
         probeIDs = self.probeData.keys()
         for probeID, newPoint, newScanRange in self._ScaleFromCenterIterator(scale, probeIDs):
             self.UpdateProbePosition(probeID, newPoint)
@@ -322,10 +329,13 @@ class ProbeTracker(object):
         if self.backupProbeData is not None:
             self.logger.error('StartMoveMode - already a backed up data for this, ignoring this call')
             return
-        self.backupProbeData = self.GetProbePositionAndRangeStepInfo()
+        else:
+            self.backupProbeData = self.GetProbePositionAndRangeStepInfo()
+            return
 
     def PurgeBackupData(self):
         self.backupProbeData = None
+        return
 
     def GetProbePositionAndRangeStepInfo(self):
         return {probeID:(probe.destination, probe.rangeStep) for probeID, probe in self.probeData.iteritems()}
@@ -337,6 +347,7 @@ class ProbeTracker(object):
         if self.backupProbeData is not None:
             self.RestoreProbePositionAndRange(self.backupProbeData)
             self.backupProbeData = None
+        return
 
     def RestoreProbePositionAndRange(self, probeData):
         for probeID, (position, rangeStep) in probeData.iteritems():

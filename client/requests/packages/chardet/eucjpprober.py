@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\packages\requests\packages\chardet\eucjpprober.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\packages\requests\packages\chardet\eucjpprober.py
 import sys
 from . import constants
 from .mbcharsetprober import MultiByteCharSetProber
@@ -21,7 +22,7 @@ class EUCJPProber(MultiByteCharSetProber):
         self._mContextAnalyzer.reset()
 
     def get_charset_name(self):
-        return 'EUC-JP'
+        pass
 
     def feed(self, aBuf):
         aLen = len(aBuf)

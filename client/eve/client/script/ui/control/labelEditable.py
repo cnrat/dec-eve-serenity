@@ -1,5 +1,7 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\client\script\ui\control\labelEditable.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\client\script\ui\control\labelEditable.py
 import carbonui.const as uiconst
+from carbonui.fontconst import DEFAULT_FONTSIZE
 from carbonui.primitives.container import Container
 from eve.client.script.ui.control.eveLabel import Label
 from eve.client.script.ui.control.eveSinglelineEdit import SinglelineEdit
@@ -18,7 +20,8 @@ class LabelEditable(Container):
         self.configName = attributes['configName']
         self.maxLength = attributes.get('maxLength', None)
         self.minLength = attributes.get('minLength', None)
-        self.editField = SinglelineEdit(name='editField', parent=self, align=uiconst.CENTERLEFT, pos=(0, 0, 100, 0), setvalue=self.currentText, OnFocusLost=self.OnEditFieldLostFocus, OnChange=self.OnEditFieldChanged, OnReturn=self.OnEditFieldLostFocus, maxLength=self.maxLength)
+        fontsize = attributes.get('fontsize', DEFAULT_FONTSIZE)
+        self.editField = SinglelineEdit(name='editField', parent=self, align=uiconst.CENTERLEFT, pos=(0, 0, 100, 0), setvalue=self.currentText, OnFocusLost=self.OnEditFieldLostFocus, OnChange=self.OnEditFieldChanged, OnReturn=self.OnEditFieldLostFocus, maxLength=self.maxLength, fontsize=fontsize)
         self.editField.display = False
         self.textLabel = Label(name='textLabel', parent=self, left=SinglelineEdit.TEXTLEFTMARGIN + self.editField._textClipper.padLeft, state=uiconst.UI_NORMAL, maxLines=1, align=uiconst.CENTERLEFT, fontsize=self.editField.sr.text.fontsize, text=self.currentText)
         self.textLabel.color.SetRGBA(1.0, 1.0, 1.0, 1.0)
@@ -29,6 +32,7 @@ class LabelEditable(Container):
         self.textLabel.OnClick = self.OnLabelClicked
         if hint:
             self.textLabel.hint = hint
+        return
 
     def OnLabelClicked(self, *args):
         self.textLabel.display = False

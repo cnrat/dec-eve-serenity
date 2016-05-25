@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\client\script\ui\view\viewStateConst.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\client\script\ui\view\viewStateConst.py
 
 
 class ViewState:
@@ -16,6 +17,7 @@ class ViewState:
     ShipTree = 'shiptree'
     CharacterCreation = 'charactercreation'
     VirtualGoodsStore = 'virtual_goods_store'
+    Structure = 'structure'
 
 
 class ViewOverlay:

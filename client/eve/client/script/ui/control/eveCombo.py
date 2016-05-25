@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\client\script\ui\control\eveCombo.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\client\script\ui\control\eveCombo.py
 from carbonui.control.basicDynamicScroll import Scroll
 from carbonui.control.combo import ComboCore
 from carbonui.control.menu import ClearMenuLayer
@@ -42,6 +43,7 @@ class Combo(ComboCore):
             self.sr.label.state = uiconst.UI_DISABLED
         else:
             self.sr.label.state = uiconst.UI_HIDDEN
+        return
 
     def Prepare_SelectedText_(self):
         self.sr.selected = LabelThemeColored(text='', parent=self.sr.textclipper, name='value', align=uiconst.CENTERLEFT, left=3, state=uiconst.UI_DISABLED)

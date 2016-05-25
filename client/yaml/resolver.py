@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\carbon\common\stdlib\yaml\resolver.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\carbon\common\stdlib\yaml\resolver.py
 __all__ = ['BaseResolver', 'Resolver']
 from error import *
 from nodes import *
@@ -27,9 +28,11 @@ class BaseResolver(object):
         for ch in first:
             cls.yaml_implicit_resolvers.setdefault(ch, []).append((tag, regexp))
 
+        return
+
     add_implicit_resolver = classmethod(add_implicit_resolver)
 
-    def add_path_resolver(cls, tag, path, kind = None):
+    def add_path_resolver(cls, tag, path, kind=None):
         if 'yaml_path_resolvers' not in cls.__dict__:
             cls.yaml_path_resolvers = cls.yaml_path_resolvers.copy()
         new_path = []
@@ -66,6 +69,7 @@ class BaseResolver(object):
         elif kind not in [ScalarNode, SequenceNode, MappingNode] and kind is not None:
             raise ResolverError('Invalid node kind: %s' % kind)
         cls.yaml_path_resolvers[tuple(new_path), kind] = tag
+        return
 
     add_path_resolver = classmethod(add_path_resolver)
 
@@ -109,15 +113,16 @@ class BaseResolver(object):
                 return
         if index_check is True and current_index is not None:
             return
-        if (index_check is False or index_check is None) and current_index is None:
+        elif (index_check is False or index_check is None) and current_index is None:
             return
-        if isinstance(index_check, basestring):
-            if not (isinstance(current_index, ScalarNode) and index_check == current_index.value):
-                return
-        elif isinstance(index_check, int) and not isinstance(index_check, bool):
-            if index_check != current_index:
-                return
-        return True
+        else:
+            if isinstance(index_check, basestring):
+                if not (isinstance(current_index, ScalarNode) and index_check == current_index.value):
+                    return
+            elif isinstance(index_check, int) and not isinstance(index_check, bool):
+                if index_check != current_index:
+                    return
+            return True
 
     def resolve(self, kind, value, implicit):
         if kind is ScalarNode and implicit[0]:
@@ -139,10 +144,12 @@ class BaseResolver(object):
                 return exact_paths[None]
         if kind is ScalarNode:
             return self.DEFAULT_SCALAR_TAG
-        if kind is SequenceNode:
+        elif kind is SequenceNode:
             return self.DEFAULT_SEQUENCE_TAG
-        if kind is MappingNode:
+        elif kind is MappingNode:
             return self.DEFAULT_MAPPING_TAG
+        else:
+            return
 
 
 class Resolver(BaseResolver):

@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\client\script\ui\view\aurumstore\vgsUiConst.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\client\script\ui\view\aurumstore\vgsUiConst.py
 MAX_CONTENT_WIDTH = 1440
 MIN_CONTENT_WIDTH = 1024
 CONTENT_PADDING = 16

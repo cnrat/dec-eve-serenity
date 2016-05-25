@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\packages\spacecomponents\client\components\jumpPolarization.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\packages\spacecomponents\client\components\jumpPolarization.py
 from spacecomponents.client.messages import MSG_ON_ADDED_TO_SPACE, MSG_ON_JUMP_POLARIZATION_UPDATED
 from spacecomponents.common.components.component import Component
 
@@ -10,6 +11,7 @@ class JumpPolarization(Component):
         self.polarizationEndTime = None
         self.polarizationDuration = None
         self.SubscribeToMessage(MSG_ON_ADDED_TO_SPACE, self.OnAddedToSpace)
+        return
 
     def OnAddedToSpace(self, slimItem):
         self.UThreadNew(self.UpdatePolarizationAndBroadcast, slimItem)
@@ -28,8 +30,10 @@ class JumpPolarization(Component):
             self.SleepSim(sleepDuration)
             self.isPolarized = False
             self.SendMessage(MSG_ON_JUMP_POLARIZATION_UPDATED, self, slimItem)
+        return
 
     def ClearPolarization(self):
         self.isPolarized = False
         self.polarizationEndTime = None
         self.polarizationDuration = None
+        return

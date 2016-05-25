@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\packages\brennivin\traceback2.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\packages\brennivin\traceback2.py
 import linecache as _linecache
 import pprint as _pprint
 import sys as _sys
@@ -10,11 +11,11 @@ FORMAT_SINGLE = 4
 LAYOUT_FOR_FORMAT_NORMAL = '  File "%s", line %d, in %s'
 LAYOUT_FOR_FORMAT_LOGSRV = '%s(%s) %s'
 
-def print_exc(limit = None, file = None, show_locals = 0, format = FORMAT_NORMAL):
+def print_exc(limit=None, file=None, show_locals=0, format=FORMAT_NORMAL):
     _getfile(file).write(format_exc(limit, show_locals, format))
 
 
-def format_exc(limit = None, show_locals = 0, format = FORMAT_NORMAL):
+def format_exc(limit=None, show_locals=0, format=FORMAT_NORMAL):
     etype, value, tb = _sys.exc_info()
     try:
         return ''.join(format_exception(etype, value, tb, limit, show_locals, format))
@@ -24,11 +25,11 @@ def format_exc(limit = None, show_locals = 0, format = FORMAT_NORMAL):
         del tb
 
 
-def print_exception(etype, value, tb, limit = None, file = None, show_locals = 0, format = FORMAT_NORMAL):
+def print_exception(etype, value, tb, limit=None, file=None, show_locals=0, format=FORMAT_NORMAL):
     _getfile(file).write(''.join(format_exception(etype, value, tb, limit, show_locals, format)))
 
 
-def format_exception(etype, value, tb, limit = None, show_locals = 0, format = FORMAT_NORMAL):
+def format_exception(etype, value, tb, limit=None, show_locals=0, format=FORMAT_NORMAL):
     lst = []
     if tb:
         lst.append('Traceback (most recent call last):\n')
@@ -36,27 +37,28 @@ def format_exception(etype, value, tb, limit = None, show_locals = 0, format = F
     return lst + _format_exception_only(etype, value)
 
 
-def print_stack(f = None, limit = None, up = 0, show_locals = 0, format = FORMAT_NORMAL, file = None):
+def print_stack(f=None, limit=None, up=0, show_locals=0, format=FORMAT_NORMAL, file=None):
     if f is None:
         up += 1
     _getfile(file).write(''.join(format_stack(f, limit, up, show_locals, format)))
+    return
 
 
-def format_stack(f = None, limit = None, up = 0, show_locals = 0, format = FORMAT_NORMAL):
+def format_stack(f=None, limit=None, up=0, show_locals=0, format=FORMAT_NORMAL):
     if f is None:
         up += 1
     return format_list(extract_stack(f, limit, up, show_locals), show_locals, format)
 
 
-def print_tb(tb, limit = None, file = None, show_locals = 0, format = FORMAT_NORMAL):
+def print_tb(tb, limit=None, file=None, show_locals=0, format=FORMAT_NORMAL):
     _getfile(file).write(''.join(format_tb(tb, limit, show_locals, format)))
 
 
-def format_tb(tb, limit = None, show_locals = 0, format = FORMAT_NORMAL):
+def format_tb(tb, limit=None, show_locals=0, format=FORMAT_NORMAL):
     return format_list(extract_tb(tb, limit, show_locals), show_locals, format)
 
 
-def format_list(extracted_list, show_locals = 0, format = FORMAT_NORMAL):
+def format_list(extracted_list, show_locals=0, format=FORMAT_NORMAL):
     if show_locals < 0:
         start_locals = 0
     else:
@@ -83,35 +85,36 @@ def _format_locals(f_locals, format):
     lines = []
     if f_locals is None:
         return lines
-    for key, value in sorted(f_locals.items()):
-        if format & FORMAT_LOGSRV:
-            extra = '        %s = ' % (key,)
-        else:
-            extra = '%20s = ' % (key,)
-        try:
-            width = 253 - len(extra)
-            val = _pprint.pformat(value, depth=1, width=width)
-            if len(val) > 1024:
-                val = val[:1024] + '...'
-            vlines = val.splitlines()
-            if len(vlines) > 4:
-                vlines[4:] = ['...']
-            for i in _compat.xrange(1, len(vlines)):
-                vlines[i] = ' ' * 23 + vlines[i]
-
-            extra += '\n'.join(vlines) + '\n'
-        except Exception as e:
+    else:
+        for key, value in sorted(f_locals.items()):
+            if format & FORMAT_LOGSRV:
+                extra = '        %s = ' % (key,)
+            else:
+                extra = '%20s = ' % (key,)
             try:
-                extra += '<error printing value: %r>' % (e,)
-            except Exception:
-                extra += '<error printing value>'
+                width = 253 - len(extra)
+                val = _pprint.pformat(value, depth=1, width=width)
+                if len(val) > 1024:
+                    val = val[:1024] + '...'
+                vlines = val.splitlines()
+                if len(vlines) > 4:
+                    vlines[4:] = ['...']
+                for i in _compat.xrange(1, len(vlines)):
+                    vlines[i] = ' ' * 23 + vlines[i]
 
-        lines.append(extra)
+                extra += '\n'.join(vlines) + '\n'
+            except Exception as e:
+                try:
+                    extra += '<error printing value: %r>' % (e,)
+                except Exception:
+                    extra += '<error printing value>'
 
-    return lines
+            lines.append(extra)
+
+        return lines
 
 
-def extract_tb(tb, limit = None, extract_locals = 0):
+def extract_tb(tb, limit=None, extract_locals=0):
     frames = []
     n = 1
     while tb is not None and (limit is None or n < limit):
@@ -122,7 +125,7 @@ def extract_tb(tb, limit = None, extract_locals = 0):
     return _extract_frames(frames, extract_locals)
 
 
-def extract_stack(f = None, limit = None, up = 0, extract_locals = 0):
+def extract_stack(f=None, limit=None, up=0, extract_locals=0):
     if f is None:
         try:
             raise ZeroDivisionError
@@ -142,7 +145,7 @@ def extract_stack(f = None, limit = None, up = 0, extract_locals = 0):
     return _extract_frames(frames, extract_locals)
 
 
-def _extract_frames(frames, extract_locals = 0):
+def _extract_frames(frames, extract_locals=0):
     result = []
     if extract_locals >= 0:
         j = len(frames) - extract_locals

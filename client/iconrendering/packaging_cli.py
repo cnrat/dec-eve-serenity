@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\packages\iconrendering\packaging_cli.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\packages\iconrendering\packaging_cli.py
 import argparse
 import contextlib
 import glob
@@ -24,7 +25,6 @@ IMAGE_SET_DEFAULT_PATH_ZH = os.path.join('..', '..', 'eve', 'web', 'image', 'Pro
 BASE_RES_PATH = os.path.join('..', '..', 'eve', 'client', 'res')
 CUSTOM_ICON_FILE = '3rdPartyIcons.txt'
 ALLIANCE_SRCDIR = 'Alliances'
-ALLIANCE_COMPLETE_SRCDIR = 'AlliancesComplete'
 CHARACTERS_SRCDIR = 'Characters'
 TYPES_DUMMY_SRCDIR = 'Types'
 RENDERS_DUMMY_SRCDIR = 'Renders'
@@ -35,7 +35,6 @@ RENDERS_DIR = 'Renders'
 IMAGE_SET_ALL = 'ImageSet'
 IMAGE_SET_COMPLETE = 'ImageSetComplete'
 IMAGE_SET_MINIMAL = 'ImageSetMinimal'
-IMAGE_SET_ALLIANCES = 'ImageSetAlliances'
 IEC_ALL = 'IEC'
 IEC_TYPES = 'IECTypes'
 IEC_ICONS = 'IECIcons'
@@ -79,7 +78,6 @@ def GetWhitelistedItems(whitelist_path, whitelist_file, destination_prefix):
 
 def GetRecipes(name_deco, iec_dir, image_set_dir):
     alliance_srcdir = os.path.join(image_set_dir, ALLIANCE_SRCDIR)
-    alliance_complete_srcdir = os.path.join(image_set_dir, ALLIANCE_COMPLETE_SRCDIR)
     characters_srcdir = os.path.join(image_set_dir, CHARACTERS_SRCDIR)
     types_dummy_srcdir = os.path.join(image_set_dir, TYPES_DUMMY_SRCDIR)
     renders_dummy_srcdir = os.path.join(image_set_dir, RENDERS_DUMMY_SRCDIR)
@@ -101,7 +99,6 @@ def GetRecipes(name_deco, iec_dir, image_set_dir):
                          (corporations_dir, 'ImageSet\\Corporations'),
                          (renders_dummy_srcdir, 'ImageSet\\Renders'),
                          (types_dummy_srcdir, 'ImageSet\\Types'))),
-     IMAGE_SET_ALLIANCES: image_collection(filename='ImageSet-Alliances-%s.zip' % name_deco, dirs=((alliance_complete_srcdir, 'Alliances'), (alliance_srcdir, 'Alliances'))),
      IEC_TYPES: image_collection(filename='%sTypes.zip' % name_deco, dirs=((types_dir, 'Types'),)),
      IEC_ICONS: image_collection(filename='%sIcons.zip' % name_deco, dirs=icon_dirs),
      IEC_RENDERS: image_collection(filename='%sRenders.zip' % name_deco, dirs=((renders_dir, 'Renders'),))}
@@ -111,7 +108,7 @@ def GetPackagesToProcess(opts):
     if opts.collection == IEC_ALL:
         return (IEC_TYPES, IEC_RENDERS, IEC_ICONS)
     if opts.collection == IMAGE_SET_ALL:
-        return (IMAGE_SET_ALLIANCES, IMAGE_SET_COMPLETE)
+        return (IMAGE_SET_COMPLETE,)
     return (opts.collection,)
 
 
@@ -119,7 +116,7 @@ def _Listdirs(folder):
     return [ path for path in (os.path.join(folder, d) for d in os.listdir(folder)) if os.path.isdir(path) ]
 
 
-def GetLatestIECDirectory(searchpath = IEC_DEFAULT_PATH):
+def GetLatestIECDirectory(searchpath=IEC_DEFAULT_PATH):
     latestdir = itertoolsext.first(sorted(_Listdirs(searchpath), key=os.path.getmtime, reverse=True))
     return latestdir
 
@@ -134,7 +131,7 @@ def _RmTree(directory):
 
 
 @contextlib.contextmanager
-def DirectoryStaged(doCleanup = True):
+def DirectoryStaged(doCleanup=True):
     dst = tempfile.mkdtemp('staged')
     _RmTree(dst)
     try:

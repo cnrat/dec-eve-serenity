@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\carbon\common\stdlib\coverage\parser.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\carbon\common\stdlib\coverage\parser.py
 import dis, re, sys, token, tokenize
 from coverage.backward import set, sorted, StringIO
 from coverage.backward import open_source, range
@@ -10,7 +11,7 @@ from coverage.misc import CoverageException, NoSource, NotPython
 
 class CodeParser(object):
 
-    def __init__(self, text = None, filename = None, exclude = None):
+    def __init__(self, text=None, filename=None, exclude=None):
         self.filename = filename or '<code>'
         self.text = text
         if not self.text:
@@ -36,6 +37,7 @@ class CodeParser(object):
         self.multiline = {}
         self.statement_starts = set()
         self._byte_parser = None
+        return
 
     def _get_byte_parser(self):
         if not self._byte_parser:
@@ -100,6 +102,7 @@ class CodeParser(object):
 
         if not empty:
             self.statement_starts.update(self.byte_parser._find_statements())
+        return
 
     def first_line(self, line):
         rng = self.multiline.get(line)
@@ -109,7 +112,7 @@ class CodeParser(object):
             first_line = line
         return first_line
 
-    def first_lines(self, lines, ignore = None):
+    def first_lines(self, lines, ignore=None):
         ignore = ignore or []
         lset = set()
         for l in lines:
@@ -200,7 +203,7 @@ OP_RETURN_VALUE = _opcode('RETURN_VALUE')
 
 class ByteParser(object):
 
-    def __init__(self, code = None, text = None, filename = None):
+    def __init__(self, code=None, text=None, filename=None):
         if code:
             self.code = code
             self.text = text
@@ -246,6 +249,7 @@ class ByteParser(object):
 
         if line_num != last_line_num:
             yield (byte_num, line_num)
+        return
 
     def _find_statements(self):
         for bp in self.child_parsers():

@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\devtools\script\uiSpriteTest.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\devtools\script\uiSpriteTest.py
 import carbonui.const as uiconst
 import blue
 import uicls
@@ -50,6 +51,7 @@ class UISpriteTest(uicontrols.Window):
         self.ConstructShadowColumn()
         self.SetPrimaryPath(settings.user.ui.Get('UISpriteTestPrimaryTexturePath', None))
         self.SetSecondaryPath(settings.user.ui.Get('UISpriteTestSecondaryTexturePath', None))
+        return
 
     def ConstructColorColumn(self):
         colorCont = uiprimitives.Container(parent=self.bottomCont, align=uiconst.TOLEFT, width=self.COLUMN_WIDTH)
@@ -103,9 +105,11 @@ class UISpriteTest(uicontrols.Window):
 
     def OnClosePrimaryBtnClick(self, *args):
         self.SetPrimaryPath(None)
+        return
 
     def OnCloseSecondaryBtnClick(self, *args):
         self.SetSecondaryPath(None)
+        return
 
     def OnMainSpriteWidthHeightChange(self, *args):
         self.mainSprite.width = self.mainSpriteWidthEdit.GetValue()
@@ -188,6 +192,7 @@ class UISpriteTest(uicontrols.Window):
             return str(wnd.result.files[0])
         else:
             return None
+            return None
 
     def OnFileDialogSelection(self, selected):
         if not selected:
@@ -202,7 +207,7 @@ class UISpriteTest(uicontrols.Window):
 
     def CopyCodeToClipboard(self, *args):
 
-        def AddArg(argName, value = None):
+        def AddArg(argName, value=None):
             value = value or repr(getattr(self.mainSprite, argName))
             return '%s=%s,\n\t' % (argName, value.replace("'", '"').replace('\\\\', '\\'))
 
@@ -226,3 +231,4 @@ class UISpriteTest(uicontrols.Window):
         ret += AddArg('spriteEffect')
         ret += ')'
         blue.pyos.SetClipboardData(ret)
+        return

@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\carbon\client\script\graphics\graphicWrappers\tr2InteriorLightSource.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\carbon\client\script\graphics\graphicWrappers\tr2InteriorLightSource.py
 import util
 import weakref
 
@@ -23,6 +24,7 @@ class Tr2InteriorLightSource(util.BlueClassNotifyWrap('trinity.Tr2InteriorLightS
     def RemoveFromScene(self, scene):
         scene.RemoveLight(self)
         self.scene = None
+        return
 
     def _TransformChange(self, transform):
         self.OnTransformChange()

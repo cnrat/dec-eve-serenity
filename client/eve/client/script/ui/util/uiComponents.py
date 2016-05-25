@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\client\script\ui\util\uiComponents.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\client\script\ui\util\uiComponents.py
 import functools
 import math
 import signals
@@ -84,7 +85,7 @@ class ButtonEffect:
     isToggleButton = False
     isRadioButton = False
 
-    def __init__(self, opacityIdle = 0.0, opacityHover = 0.5, opacityMouseDown = 0.85, idx = 0, bgElementFunc = None, audioOnEntry = None, audioOnClick = None, exitDuration = 0.3):
+    def __init__(self, opacityIdle=0.0, opacityHover=0.5, opacityMouseDown=0.85, idx=0, bgElementFunc=None, audioOnEntry=None, audioOnClick=None, exitDuration=0.3):
         self.opacityIdle = opacityIdle
         self.opacityHover = opacityHover
         self.opacityMouseDown = opacityMouseDown
@@ -116,6 +117,7 @@ class ButtonEffect:
                 onActiveStateChange = getattr(_self, 'OnActiveStateChange', None)
                 if onActiveStateChange is not None:
                     onActiveStateChange()
+                return
 
             _self.SetActive = SetActive
 
@@ -178,7 +180,7 @@ class HoverEffect:
      'OnMouseExit',
      'OnClick']
 
-    def __init__(self, padding = (1, 1, 1, 1), color = (1.0, 1.0, 1.0, 0.25), audioOnEntry = None, audioOnClick = None, bgElementFunc = None):
+    def __init__(self, padding=(1, 1, 1, 1), color=(1.0, 1.0, 1.0, 0.25), audioOnEntry=None, audioOnClick=None, bgElementFunc=None):
         self.padding = padding
         self.color = color
         self.audioOnEntry = audioOnEntry
@@ -195,9 +197,11 @@ class HoverEffect:
         fill = self._GetHoverElement(_self)
         if fill is None:
             return
-        fill.state = uiconst.UI_NORMAL
-        if self.audioOnEntry:
-            sm.GetService('audio').SendUIEvent(self.audioOnEntry)
+        else:
+            fill.state = uiconst.UI_NORMAL
+            if self.audioOnEntry:
+                sm.GetService('audio').SendUIEvent(self.audioOnEntry)
+            return
 
     def OnMouseExit(self, _self, *args):
         fill = self._GetHoverElement(_self)

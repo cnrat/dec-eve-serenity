@@ -1,4 +1,5 @@
-#Embedded file name: C:\jamieb_jamieb-pc_STABLE_1796\fsdSchemas\loaders\dictLoader.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: C:\jamieb_jamieb-pc_STABLE_1796\fsdSchemas\loaders\dictLoader.py
 import ctypes
 import collections
 from fsdSchemas.path import FsdDataPathObject
@@ -62,6 +63,8 @@ class StandardFSDOptimizedDictFooter(object):
             else:
                 return (offset, size)
 
+        return None
+
     def __len__(self):
         return self.size
 
@@ -101,6 +104,8 @@ class StandardFSDDictFooter(object):
             else:
                 return (item['offset'], getattr(item, 'size', 0))
 
+        return None
+
     def __len__(self):
         return self.size
 
@@ -119,6 +124,8 @@ class CppFsdIntegerKeyMapWrapper(object):
             return self.keyMapObject.Get(key)
         except IndexError:
             return None
+
+        return None
 
     def __len__(self):
         return self.keyMapObject.length()
@@ -164,6 +171,8 @@ class DictLoader(object):
         except TypeError:
             return False
 
+        return None
+
     def _Search(self, key):
         if key not in self.index:
             searchResult = self.footer.Get(key)
@@ -172,7 +181,8 @@ class DictLoader(object):
             else:
                 self.index[key] = None
             return searchResult
-        return self.index[key]
+        else:
+            return self.index[key]
 
     def Get(self, key):
         return self.__getitem__(key)
@@ -183,6 +193,7 @@ class DictLoader(object):
             return self.__GetItemFromOffset__(key, v[0])
         else:
             return default
+            return
 
     def GetIfExists(self, key):
         return self.get(key, None)
@@ -209,7 +220,7 @@ class DictLoader(object):
 
 class IndexLoader(object):
 
-    def __init__(self, fileObject, cacheSize, schema, path, extraState, offsetToData = 0, offsetToFooter = 0):
+    def __init__(self, fileObject, cacheSize, schema, path, extraState, offsetToData=0, offsetToFooter=0):
         self.fileObject = fileObject
         self.cacheSize = cacheSize
         self.schema = schema
@@ -249,6 +260,7 @@ class IndexLoader(object):
             return searchResult
         else:
             return self.index[key]
+            return
 
     def __getitem__(self, key):
         if key in self.cachedLoadedObjects:
@@ -256,19 +268,20 @@ class IndexLoader(object):
             del self.cachedLoadedObjects[key]
             self.cachedLoadedObjects[key] = v
             return v
-        try:
-            dataInfo = self._Search(key)
-        except TypeError:
-            raise KeyError('Key (%s) not found in %s' % (str(key), self.__path__))
+        else:
+            try:
+                dataInfo = self._Search(key)
+            except TypeError:
+                raise KeyError('Key (%s) not found in %s' % (str(key), self.__path__))
 
-        if dataInfo is None:
-            raise KeyError('Key (%s) not found in %s' % (str(key), self.__path__))
-        itemOffset, itemSize = dataInfo
-        if len(self.cachedLoadedObjects) > self.cacheSize:
-            self.cachedLoadedObjects.popitem(last=False)
-        item = self.__GetItemFromOffsetAndSize__(key, itemOffset, itemSize)
-        self.cachedLoadedObjects[key] = item
-        return item
+            if dataInfo is None:
+                raise KeyError('Key (%s) not found in %s' % (str(key), self.__path__))
+            itemOffset, itemSize = dataInfo
+            if len(self.cachedLoadedObjects) > self.cacheSize:
+                self.cachedLoadedObjects.popitem(last=False)
+            item = self.__GetItemFromOffsetAndSize__(key, itemOffset, itemSize)
+            self.cachedLoadedObjects[key] = item
+            return item
 
     def __GetItemFromOffsetAndSize__(self, key, itemOffset, itemSize):
         newOffset = 4 + self.offsetToData + itemOffset
@@ -287,6 +300,8 @@ class IndexLoader(object):
             return self._Search(item) is not None
         except TypeError:
             return False
+
+        return None
 
     def __len__(self):
         return len(self.footerData)
@@ -344,6 +359,7 @@ class SubIndexLoader(object):
             dataAsBuffer = ctypes.create_string_buffer(itemData, len(itemData))
             v = self.__extraState__.RepresentSchemaNode(dataAsBuffer, 0, FsdDataPathObject('[%s]' % str(key), parent=self.__path__), valueSchema)
             return v
+            return
 
     def __getitem__(self, key):
         for nestedIndexId in self.indexedOffsetTable:
@@ -384,7 +400,7 @@ class SubIndexLoader(object):
 
 class MultiIndexLoader(IndexLoader):
 
-    def __init__(self, fileObject, cacheSize, schema, path, extraState, offsetToData = 0):
+    def __init__(self, fileObject, cacheSize, schema, path, extraState, offsetToData=0):
         IndexLoader.__init__(self, fileObject, cacheSize, schema, path, extraState, offsetToData=offsetToData)
         offsetToAttributeLookupTableSize = self.offsetToData + 4 + self.fileObjectSize - 4 - self.footerDataSize - 4
         self.attributeLookupTableSize = readIntFromFileAtOffset(self.fileObject, offsetToAttributeLookupTableSize)

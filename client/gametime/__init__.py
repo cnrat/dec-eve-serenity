@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\packages\gametime\__init__.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\packages\gametime\__init__.py
 from carbon.common.lib.const import SEC, MIN, DAY, MSEC
 
 class BlueTimeImplementation(object):
@@ -64,7 +65,7 @@ class Timer(object):
         self.GetTime = GetTime
         self.Sleep = Sleep
 
-    def SleepUntil(self, wakeUpTime, minSleep = 5000):
+    def SleepUntil(self, wakeUpTime, minSleep=5000):
         sleepTime = wakeUpTime - self.GetTime()
         if sleepTime > 0:
             while True:

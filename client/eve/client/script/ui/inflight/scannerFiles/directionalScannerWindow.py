@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\client\script\ui\inflight\scannerFiles\directionalScannerWindow.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\client\script\ui\inflight\scannerFiles\directionalScannerWindow.py
 import math
 import weakref
 from carbon.common.script.util.format import FmtDist
@@ -85,11 +86,13 @@ class DirectionalScanner(Window):
         self.keyUpCookie = uicore.event.RegisterForTriuiEvents(uiconst.UI_KEYUP, self.OnGlobalKeyUpCallback)
         if scanOnOpen:
             self.Analyze()
+        return
 
     def OnCmdDirectionalScanUnload(self, cmdWasExecuted):
         if not cmdWasExecuted:
             self.Analyze()
         self.hasAnalyzeExecutedDuringKeyPress = None
+        return
 
     def OnCmdDirectionalScanLoad(self):
         self.hasAnalyzeExecutedDuringKeyPress = False
@@ -176,16 +179,13 @@ class DirectionalScanner(Window):
         self.distanceSlider.SetValue(startingAuValue, updateHandle=True, useIncrements=False)
         subGrid = LayoutGrid(columns=2, align=uiconst.NOALIGN)
         maxAuRangeInKm = ConvertAuToKm(MAX_RANGE_AU)
-        self.dir_rangeinput = SinglelineEdit(name='dir_rangeinput', parent=subGrid, align=uiconst.CENTERLEFT, width=90, top=0, maxLength=len(str(maxAuRangeInKm)) + 1, OnReturn=self.OnAnalyzeButton)
+        self.dir_rangeinput = SinglelineEdit(name='dir_rangeinput', parent=subGrid, align=uiconst.CENTERLEFT, width=90, top=0, maxLength=len(str(maxAuRangeInKm)) + 1, OnReturn=self.OnScanRangeEditReturn, OnFocusLost=self.OnScanRangeEditChange, OnChange=self.OnScanRangeEditChange)
         self.unitToggleButton = Button(parent=subGrid, align=uiconst.CENTERLEFT, func=self.ToggleRangeUnits, left=4)
         flowContainer.children.append(subGrid)
         startingKmValue = settings.user.ui.Get('dir_scanrange', const.AU * MAX_RANGE_AU)
         startingKmValue = min(MAX_RANGE_KM, max(MIN_RANGE_KM, startingKmValue))
         self.scanRangeKM = startingKmValue
         self.UpdateRangeInput(startingKmValue)
-        self.dir_rangeinput.OnChar = self.OnCharRangeInput
-        self.dir_rangeinput.OnMouseWheel = self.OnMouseWheelRangeInput
-        self.dir_rangeinput.ChangeNumericValue = self.ChangeNumericValueRangeInput
         flowContainer2 = FlowContainer(parent=directionBox, padding=(self.analyzeButton.width + 6,
          0,
          mapButton.width + 2,
@@ -218,6 +218,7 @@ class DirectionalScanner(Window):
         self.sr.dirscroll.OnChar = None
         self.filteredBox = FilterBox(parent=self.headerParent, text='-', state=uiconst.UI_NORMAL, align=uiconst.CENTERRIGHT)
         self.filteredBox.LoadTooltipPanel = self.LoadFilterTooltipPanel
+        return
 
     def LoadFilterTooltipPanel(self, tooltipPanel, *args):
         tooltipPanel.Flush()
@@ -237,20 +238,22 @@ class DirectionalScanner(Window):
         filteredBoxTooltip = self.filteredBoxTooltip()
         if not filteredBoxTooltip:
             return
-        scrollPosition = settings.char.ui.Get('directionalScanFilterPos', 0.0)
-        presetSelected = settings.user.ui.Get('scanner_presetInUse', None)
-        presetOptions = self.GetPresetOptions()
-        scrollEntries = []
-        for i, (filterName, filterID) in enumerate(presetOptions):
-            if i < 10:
-                filterIndex = (i + 1) % 10
-            else:
-                filterIndex = None
-            scrollNode = ScrollEntryNode(label=filterName, checked=filterID == presetSelected, cfgname=filterID, OnChange=self.OnFilterCheckBoxChange, entryWidth=190, decoClass=FilterOptionEntry, filterIndex=filterIndex)
-            scrollEntries.append(scrollNode)
+        else:
+            scrollPosition = settings.char.ui.Get('directionalScanFilterPos', 0.0)
+            presetSelected = settings.user.ui.Get('scanner_presetInUse', None)
+            presetOptions = self.GetPresetOptions()
+            scrollEntries = []
+            for i, (filterName, filterID) in enumerate(presetOptions):
+                if i < 10:
+                    filterIndex = (i + 1) % 10
+                else:
+                    filterIndex = None
+                scrollNode = ScrollEntryNode(label=filterName, checked=filterID == presetSelected, cfgname=filterID, OnChange=self.OnFilterCheckBoxChange, entryWidth=190, decoClass=FilterOptionEntry, filterIndex=filterIndex)
+                scrollEntries.append(scrollNode)
 
-        filteredBoxTooltip.scroll.Load(contentList=scrollEntries, scrollTo=scrollPosition)
-        filteredBoxTooltip.scroll.height = min(200, filteredBoxTooltip.scroll.GetContentHeight() + 2)
+            filteredBoxTooltip.scroll.Load(contentList=scrollEntries, scrollTo=scrollPosition)
+            filteredBoxTooltip.scroll.height = min(200, filteredBoxTooltip.scroll.GetContentHeight() + 2)
+            return
 
     def OnScrollPositionChanged(self, *args, **kwargs):
         filteredBoxTooltip = self.filteredBoxTooltip()
@@ -272,9 +275,11 @@ class DirectionalScanner(Window):
     def ReloadFilteredBoxTooltip(self):
         if not self.filteredBoxTooltip or self.destroyed:
             return
-        filteredBoxTooltip = self.filteredBoxTooltip()
-        if filteredBoxTooltip is not None:
-            self.LoadFilters()
+        else:
+            filteredBoxTooltip = self.filteredBoxTooltip()
+            if filteredBoxTooltip is not None:
+                self.LoadFilters()
+            return
 
     def UpdateRangeInput(self, scanRangeKM):
         if self.rangeEditMode == RANGEMODE_AU:
@@ -310,7 +315,7 @@ class DirectionalScanner(Window):
         options.insert(0, (GetByLabel('UI/Inflight/Scanner/UseActiveOverviewSettings'), None))
         return options
 
-    def ScanTowardsItem(self, itemID, mapPosition = None):
+    def ScanTowardsItem(self, itemID, mapPosition=None):
         if self.busy:
             return
         ball = GetBall(itemID)
@@ -337,21 +342,16 @@ class DirectionalScanner(Window):
     def UpdateAngleSliderLabel(self, label, sliderID, displayName, value):
         if getattr(self, 'angleSliderLabel', None):
             self.angleSliderLabel.text = GetByLabel('UI/Inflight/Scanner/AngleDegrees', value=value)
+        return
 
-    def OnCharRangeInput(self, char, flag):
-        returnValue = SinglelineEdit.OnChar(self.dir_rangeinput, char, flag)
-        self.OnScanRangeValueChanged()
-        return returnValue
+    def OnScanRangeEditChange(self, *args):
+        self._UpdateScanRange()
 
-    def OnMouseWheelRangeInput(self, *args):
-        SinglelineEdit.MouseWheel(self.dir_rangeinput, *args)
-        self.OnScanRangeValueChanged()
+    def OnScanRangeEditReturn(self):
+        self._UpdateScanRange()
+        self.Analyze()
 
-    def ChangeNumericValueRangeInput(self, *args):
-        SinglelineEdit.ChangeNumericValue(self.dir_rangeinput, *args)
-        self.OnScanRangeValueChanged()
-
-    def OnScanRangeValueChanged(self):
+    def _UpdateScanRange(self):
         scanRange = self.dir_rangeinput.GetValue()
         if self.rangeEditMode == RANGEMODE_KM:
             scanRangeAU = ConvertKmToAu(scanRange)
@@ -359,9 +359,8 @@ class DirectionalScanner(Window):
         else:
             scanRangeAU = scanRange
             self.scanRangeKM = max(MIN_RANGE_KM, ConvertAuToKm(scanRange))
-        self.distanceSlider.SetValue(scanRangeAU, updateHandle=True, useIncrements=False)
+        self.distanceSlider.SetValue(scanRangeAU, updateHandle=True, useIncrements=False, triggerCallback=False)
         sm.ScatterEvent('OnDirectionalScannerRangeChanged', self.scanRangeKM * 1000)
-        self.Analyze()
 
     def UpdateDistanceFromSlider(self):
         scanRangeAU = self.distanceSlider.GetValue()
@@ -395,32 +394,34 @@ class DirectionalScanner(Window):
     def OnAnalyzeButton(self, *args):
         self.Analyze()
 
-    def Analyze(self, direction = None):
+    def Analyze(self, direction=None):
         uthread.new(self._Analyze, direction)
 
-    def _Analyze(self, direction = None, *args):
+    def _Analyze(self, direction=None, *args):
         if self.hasAnalyzeExecutedDuringKeyPress is not None:
             self.hasAnalyzeExecutedDuringKeyPress = True
         if self.destroyed:
             return
-        if self.busy:
+        elif self.busy:
             self.dScanDirty = True
             return
-        self.busy = True
-        self.analyzeButton.AnimateArrows()
-        self.analyzeButton.Disable()
-        try:
-            self._DirectionSearch(direction)
-        finally:
-            self.analyzeButton.StopAnimateArrows()
-            self.busy = False
-            self.analyzeButton.Enable()
+        else:
+            self.busy = True
+            self.analyzeButton.AnimateArrows()
+            self.analyzeButton.Disable()
+            try:
+                self._DirectionSearch(direction)
+            finally:
+                self.analyzeButton.StopAnimateArrows()
+                self.busy = False
+                self.analyzeButton.Enable()
 
-        if self.dScanDirty:
-            self.dScanDirty = False
-            self.Analyze()
+            if self.dScanDirty:
+                self.dScanDirty = False
+                self.Analyze()
+            return
 
-    def _DirectionSearch(self, direction = None, *args, **kwds):
+    def _DirectionSearch(self, direction=None, *args, **kwds):
         self.scanresult = []
         spaceCamera = sm.GetService('sceneManager').GetActiveSpaceCamera()
         if not spaceCamera:
@@ -521,6 +522,7 @@ class DirectionalScanner(Window):
         else:
             headers = [GetByLabel('UI/Common/Name'), GetByLabel('UI/Common/Type'), GetByLabel('UI/Common/Distance')]
         self.sr.dirscroll.Load(contentList=scrolllist, headers=headers)
+        return
 
     def DirectionalResultMenu(self, entry, *args):
         if entry.sr.node.itemID:
@@ -533,6 +535,7 @@ class DirectionalScanner(Window):
         wnd = MapBrowserWnd.GetIfOpen()
         if wnd:
             wnd.SetTempAngle(angle)
+        return
 
     def EndSetSliderValue(self, *args):
         self.Analyze()
@@ -553,6 +556,7 @@ class FilterOptionEntry(MapViewCheckbox):
         if self.sr.node.filterIndex is not None:
             shortcutObj = ShortcutHint(parent=self, text=str(self.sr.node.filterIndex), left=2, top=2)
             self.TEXTRIGHT = shortcutObj.width + 4
+        return
 
 
 class AnalyzeButton(PrimaryButton):

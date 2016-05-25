@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\carbon\common\stdlib\ctypes\util.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\carbon\common\stdlib\ctypes\util.py
 import sys, os
 if os.name == 'nt':
 
@@ -15,34 +16,40 @@ if os.name == 'nt':
             minorVersion = 0
         if majorVersion >= 6:
             return majorVersion + minorVersion
+        else:
+            return None
 
 
     def find_msvcrt():
         version = _get_build_version()
         if version is None:
             return
-        if version <= 6:
-            clibname = 'msvcrt'
         else:
-            clibname = 'msvcr%d' % (version * 10)
-        import imp
-        if imp.get_suffixes()[0][0] == '_d.pyd':
-            clibname += 'd'
-        return clibname + '.dll'
+            if version <= 6:
+                clibname = 'msvcrt'
+            else:
+                clibname = 'msvcr%d' % (version * 10)
+            import imp
+            if imp.get_suffixes()[0][0] == '_d.pyd':
+                clibname += 'd'
+            return clibname + '.dll'
 
 
     def find_library(name):
         if name in ('c', 'm'):
             return find_msvcrt()
-        for directory in os.environ['PATH'].split(os.pathsep):
-            fname = os.path.join(directory, name)
-            if os.path.isfile(fname):
-                return fname
-            if fname.lower().endswith('.dll'):
-                continue
-            fname = fname + '.dll'
-            if os.path.isfile(fname):
-                return fname
+        else:
+            for directory in os.environ['PATH'].split(os.pathsep):
+                fname = os.path.join(directory, name)
+                if os.path.isfile(fname):
+                    return fname
+                if fname.lower().endswith('.dll'):
+                    continue
+                fname = fname + '.dll'
+                if os.path.isfile(fname):
+                    return fname
+
+            return None
 
 
 if os.name == 'ce':
@@ -61,6 +68,8 @@ if os.name == 'posix' and sys.platform == 'darwin':
                 return _dyld_find(name)
             except ValueError:
                 continue
+
+        return None
 
 
 elif os.name == 'posix':
@@ -90,7 +99,8 @@ elif os.name == 'posix':
         res = re.search(expr, trace)
         if not res:
             return
-        return res.group(0)
+        else:
+            return res.group(0)
 
 
     if sys.platform == 'sunos5':
@@ -108,7 +118,8 @@ elif os.name == 'posix':
             res = re.search('\\[.*\\]\\sSONAME\\s+([^\\s]+)', data)
             if not res:
                 return
-            return res.group(1)
+            else:
+                return res.group(1)
 
 
     else:
@@ -131,7 +142,8 @@ elif os.name == 'posix':
             res = re.search('\\sSONAME\\s+([^\\s]+)', data)
             if not res:
                 return
-            return res.group(1)
+            else:
+                return res.group(1)
 
 
     if sys.platform.startswith('freebsd') or sys.platform.startswith('openbsd') or sys.platform.startswith('dragonfly'):
@@ -212,7 +224,8 @@ elif os.name == 'posix':
             res = re.search(expr, data)
             if not res:
                 return
-            return res.group(1)
+            else:
+                return res.group(1)
 
 
         def find_library(name):

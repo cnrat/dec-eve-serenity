@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\packages\charactercreator\const.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\packages\charactercreator\const.py
 CHARACTER_CREATION_NETWORK = 'res:/Animation/MorphemeIncarna/Export/CharCreation_runtimeBinary/CharacterCreation.mor'
 GENDERID_FEMALE = 0
 GENDERID_MALE = 1
@@ -17,6 +18,7 @@ PIERCINGGROUP = 10
 TATTOOGROUP = 11
 SCARSGROUP = 12
 PROSTHETICS = 13
+AUGMENTATIONS = 14
 MAINFRAME = ('ui_105_32_1', 8, -4)
 MAINFRAME_INV = ('ui_105_32_10', 8, -4)
 MAINFRAME_WITHTABS = ('ui_105_32_9', 8, -4)
@@ -80,6 +82,7 @@ t_armleft = 'tattoo/armleft'
 t_armright = 'tattoo/armright'
 pr_armleft = 'makeup/armleft'
 pr_armright = 'makeup/armright'
+augm_face = 'makeup/augmentations'
 BASEBEARD = 'beard/stubble'
 MASTER_COLORS = [hair, eyes]
 invisibleModifiers = ['feet_nude', 'blank']
@@ -158,7 +161,8 @@ randomizerCategoryBlacklist = [p_earslow,
  t_armright,
  s_head,
  pr_armright,
- pr_armleft]
+ pr_armleft,
+ augm_face]
 maleOddsOfSelectingNone = {glasses: 0.75,
  beard: 0.5,
  topouter: 0.5,
@@ -268,7 +272,8 @@ REMOVEABLE = (glasses,
  t_armleft,
  s_head,
  pr_armleft,
- pr_armright)
+ pr_armright,
+ augm_face)
 SKINTYPECOLORS = {'c1': (0.678431, 0.580392, 0.552941, 1.0),
  'c2': (0.721569, 0.556863, 0.470588, 1.0),
  'c3': (0.631373, 0.52549, 0.415686, 1.0),
@@ -396,7 +401,10 @@ backgroundOptions = ['res:/UI/Texture/CharacterCreation/backdrops/Background_1.d
  'res:/UI/Texture/CharacterCreation/backdrops/Background_78.dds',
  'res:/UI/Texture/CharacterCreation/backdrops/Background_79.dds',
  'res:/UI/Texture/CharacterCreation/backdrops/Background_80.dds',
- 'res:/UI/Texture/CharacterCreation/backdrops/Background_81.dds']
+ 'res:/UI/Texture/CharacterCreation/backdrops/Background_81.dds',
+ 'res:/UI/Texture/CharacterCreation/backdrops/Background_82.dds',
+ 'res:/UI/Texture/CharacterCreation/backdrops/Background_83.dds',
+ 'res:/UI/Texture/CharacterCreation/backdrops/Background_84.dds']
 greenscreenBackgroundOptions = ['res:/UI/Texture/CharacterCreation/backdrops/Background_1001.dds']
 BASE_HAIR_COLOR_FEMALE = 'res:/Graphics/Character/Female/Paperdoll/hair/Colors/BaseColor.base'
 BASE_HAIR_COLOR_MALE = 'res:/Graphics/Character/Male/Paperdoll/hair/Colors/BaseColor.base'

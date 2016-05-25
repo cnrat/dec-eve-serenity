@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\carbon\client\script\graphics\graphicWrappers\tr2InteriorPlaceable.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\carbon\client\script\graphics\graphicWrappers\tr2InteriorPlaceable.py
 import carbon.client.script.graphics.graphicWrappers.baseGraphicWrapper as graphicWrappers
 import util
 import weakref
@@ -23,6 +24,7 @@ class Tr2InteriorPlaceable(util.BlueClassNotifyWrap('trinity.Tr2InteriorPlaceabl
     def RemoveFromScene(self, scene):
         scene.RemoveDynamicFromScene(self)
         self.scene = None
+        return
 
     def _TransformChange(self, transform):
         self.InitTransformMatrixMixinWrapper()

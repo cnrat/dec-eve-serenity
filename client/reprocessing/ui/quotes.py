@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\packages\reprocessing\ui\quotes.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\packages\reprocessing\ui\quotes.py
 from collections import defaultdict
 import inventorycommon.const as invconst
 from reprocessing.ui.efficiencyCalculator import CalculateTheoreticalEfficiency
@@ -11,6 +12,7 @@ class Quotes(object):
         self.rawQuotes = {}
         self.stationEfficiency = None
         self.stationTax = None
+        return
 
     def GetQuotes(self, itemIDs, activeShipID):
         self.stationTax, self.stationEfficiency, self.rawQuotes = self.reprocessingSvc.GetReprocessingSvc().GetQuotes(itemIDs, activeShipID)
@@ -30,7 +32,7 @@ class Quotes(object):
     def GetHint(self, itemID, typeID):
         reprocessingYieldHint = self._GetReprocessingYield(typeID)
         itemYieldHint = self.GetHintInfo(itemID)
-        stationEfficiency = self.GetStationEfficiencyForCategoryID(evetypes.GetCategoryID(typeID))
+        stationEfficiency = self.GetStationEfficiencyForType(typeID)
         return (typeID,
          reprocessingYieldHint,
          self.stationTax,
@@ -44,14 +46,11 @@ class Quotes(object):
         return [ (r.typeID, r.client) for r in rawQuote.recoverables ]
 
     def _GetReprocessingYield(self, typeID):
-        efficiency = self.GetStationEfficiencyForCategoryID(evetypes.GetCategoryID(typeID))
-        return CalculateTheoreticalEfficiency([typeID], self.stationTax, efficiency)
+        efficiency = self.GetStationEfficiencyForType(typeID)
+        return CalculateTheoreticalEfficiency([typeID], efficiency)
 
-    def GetStationEfficiencyForCategoryID(self, categoryID):
-        if categoryID == invconst.categoryAsteroid:
-            return self.stationEfficiency.oreEfficiency
-        else:
-            return self.stationEfficiency.efficiency
+    def GetStationEfficiencyForType(self, typeID):
+        return self.stationEfficiency.get(typeID, self.stationEfficiency[None])
 
     def GetClientMaterial(self, itemID):
         ret = {}

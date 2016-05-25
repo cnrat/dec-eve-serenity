@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\client\script\ui\view\cqView.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\client\script\ui\view\cqView.py
 import sys
 from inventorycommon.util import IsModularShip
 import log
@@ -41,8 +42,9 @@ class CQView(StationView):
         self.cachedPlayerZoom = None
         self.hangarTraffic = hangarUtil.HangarTraffic()
         self.__alreadyShowingActiveShip = False
+        return
 
-    def LoadView(self, change = None, **kwargs):
+    def LoadView(self, change=None, **kwargs):
         settings.user.ui.Set('defaultDockingView', 'station')
         self.activeShip = None
         self.hangarScene = None
@@ -75,6 +77,7 @@ class CQView(StationView):
         if util.IsStation(session.stationid):
             self._GoStation(changes)
         self.loading.ProgressWnd()
+        return
 
     def ShowView(self, **kwargs):
         self.ApplyStationGrime()
@@ -97,6 +100,7 @@ class CQView(StationView):
             self.activeshipmodel.animationSequencer = None
         self.activeshipmodel = None
         self.hangarScene = None
+        return
 
     def _GoStation(self, change):
         if 'stationid' in change:
@@ -120,8 +124,9 @@ class CQView(StationView):
             self.loading.ProgressWnd(enteringStationLabel, doneLabel, 5, 5)
         else:
             self.station.CheckSession(change)
+        return
 
-    def ApplyStationGrime(self, secStatus = None):
+    def ApplyStationGrime(self, secStatus=None):
         ranges = {'MaterialDiffuseIntensity': (0.9, 0.4),
          'MaterialGrimeIntensity': (0.9, 0.3)}
         if secStatus is None:
@@ -132,6 +137,8 @@ class CQView(StationView):
             for valueName in valueNames:
                 if parameter.name == valueName:
                     parameter.value = ranges[valueName][0] * (1.0 - secStatus) + ranges[valueName][1] * secStatus
+
+        return
 
     def LoadHangarBackground(self):
         stationRace = evetypes.GetRaceID(eve.stationItem.stationTypeID)
@@ -167,6 +174,11 @@ class CQView(StationView):
             self.sceneTranslation = positioning['position']
             self.sceneRotation = geo2.QuaternionRotationSetYawPitchRoll(positioning['orientation'], 0.0, 0.0)
         self.hangarScene = blue.resMan.LoadObject(scenePath)
+        hangarMeshes = self.hangarScene.Find('trinity.EveStation2')
+        for hangarMesh in hangarMeshes:
+            if hangarMesh.planeSets is not None:
+                hangarMesh.planeSets.removeAt(-1)
+
         self.hangarTraffic.SetupScene(self.hangarScene)
         self.hangarTraffic.RemoveAudio(self.hangarScene)
         self.sceneManager.SetupIncarnaBackground(self.hangarScene, self.sceneTranslation, self.sceneRotation)
@@ -181,67 +193,71 @@ class CQView(StationView):
         if self.hangarScene is not None:
             stationModel = self.hangarScene.objects[0]
             stationModel.enableShadow = False
+        return
 
     def ShowActiveShip(self, *args):
         if self.__alreadyShowingActiveShip:
             log.LogWarn("We're already in the process of showing the active ship")
             return
-        self.__alreadyShowingActiveShip = True
-        try:
-            scene = getattr(self, 'hangarScene', None)
-            if scene:
-                for each in scene.objects:
-                    if getattr(each, 'name', None) == str(self.activeShip):
-                        scene.objects.remove(each)
-
+        else:
+            self.__alreadyShowingActiveShip = True
             try:
-                if IsModularShip(self.activeShipItem.typeID):
-                    try:
-                        dogmaItem = self.clientDogmaIM.GetDogmaLocation().dogmaItems.get(self.activeShipItem.itemID, None)
-                        if dogmaItem is None:
-                            log.LogTraceback('Trying to show t3 ship which is not in dogma')
+                scene = getattr(self, 'hangarScene', None)
+                if scene:
+                    for each in scene.objects:
+                        if getattr(each, 'name', None) == str(self.activeShip):
+                            scene.objects.remove(each)
+
+                try:
+                    if IsModularShip(self.activeShipItem.typeID):
+                        try:
+                            dogmaItem = self.clientDogmaIM.GetDogmaLocation().dogmaItems.get(self.activeShipItem.itemID, None)
+                            if dogmaItem is None:
+                                log.LogTraceback('Trying to show t3 ship which is not in dogma')
+                                return
+                            subSystemIds = {}
+                            for fittedItem in dogmaItem.GetFittedItems().itervalues():
+                                if fittedItem.categoryID == const.categorySubSystem:
+                                    subSystemIds[fittedItem.groupID] = fittedItem.typeID
+
+                            newModel = self.t3ShipSvc.GetTech3ShipFromDict(dogmaItem.typeID, subSystemIds)
+                        except:
+                            log.LogException('failed bulding modular ship')
+                            sys.exc_clear()
                             return
-                        subSystemIds = {}
-                        for fittedItem in dogmaItem.GetFittedItems().itervalues():
-                            if fittedItem.categoryID == const.categorySubSystem:
-                                subSystemIds[fittedItem.groupID] = fittedItem.typeID
 
-                        newModel = self.t3ShipSvc.GetTech3ShipFromDict(dogmaItem.typeID, subSystemIds)
-                    except:
-                        log.LogException('failed bulding modular ship')
-                        sys.exc_clear()
-                        return
+                    else:
+                        materialSetID = sm.GetService('skinSvc').GetAppliedSkinMaterialSetID(session.charid, self.activeShipItem.itemID, self.activeShipItem.typeID)
+                        shipDna = gfxutils.BuildSOFDNAFromTypeID(self.activeShipItem.typeID, materialSetID=materialSetID)
+                        if shipDna is not None:
+                            sof = sm.GetService('sofService').spaceObjectFactory
+                            newModel = sof.BuildFromDNA(shipDna)
+                    self.SetupFakeAudioEntity()
+                    self.SetupGeneralAudioEntity(self.fakeAudioTransform)
+                    self.SetupAnimationUpdaterAudio(newModel)
+                    self.generalAudioEntity.eventPrefix = 'cq_'
+                    self.SetupShipModel(newModel)
+                except Exception as e:
+                    log.LogException(str(e))
+                    sys.exc_clear()
+                    return
 
-                else:
-                    materialSetID = sm.GetService('skinSvc').GetAppliedSkinMaterialSetID(session.charid, self.activeShipItem.itemID, self.activeShipItem.typeID)
-                    shipDna = gfxutils.BuildSOFDNAFromTypeID(self.activeShipItem.typeID, materialSetID=materialSetID)
-                    if shipDna is not None:
-                        sof = sm.GetService('sofService').spaceObjectFactory
-                        newModel = sof.BuildFromDNA(shipDna)
-                self.SetupFakeAudioEntity()
-                self.SetupGeneralAudioEntity(self.fakeAudioTransform)
-                self.SetupAnimationUpdaterAudio(newModel)
-                self.generalAudioEntity.eventPrefix = 'cq_'
-                self.SetupShipModel(newModel)
-            except Exception as e:
-                log.LogException(str(e))
-                sys.exc_clear()
-                return
+                newModel.FreezeHighDetailMesh()
+                self.PositionShipModel(newModel)
+                self.activeShip = self.activeShipItem.itemID
+                self.SetupAnimation(newModel, self.activeShipItem)
+                self.activeshipmodel = newModel
+                newModel.display = 1
+                newModel.name = str(self.activeShipItem.itemID)
+                if self.clientDogmaIM.GetDogmaLocation().dogmaItems[util.GetActiveShip()].groupID != const.groupCapsule:
+                    scene.objects.append(newModel)
+                    scene.objects.append(self.fakeAudioTransform)
+                    self.generalAudioEntity.SendEvent(unicode('hangar_spin_switch_ship_play'))
+                sm.ScatterEvent('OnActiveShipModelChange', newModel, self.activeShipItem)
+            finally:
+                self.__alreadyShowingActiveShip = False
 
-            newModel.FreezeHighDetailMesh()
-            self.PositionShipModel(newModel)
-            self.activeShip = self.activeShipItem.itemID
-            self.SetupAnimation(newModel, self.activeShipItem)
-            self.activeshipmodel = newModel
-            newModel.display = 1
-            newModel.name = str(self.activeShipItem.itemID)
-            if self.clientDogmaIM.GetDogmaLocation().dogmaItems[util.GetActiveShip()].groupID != const.groupCapsule:
-                scene.objects.append(newModel)
-                scene.objects.append(self.fakeAudioTransform)
-                self.generalAudioEntity.SendEvent(unicode('hangar_spin_switch_ship_play'))
-            sm.ScatterEvent('OnActiveShipModelChange', newModel, self.activeShipItem)
-        finally:
-            self.__alreadyShowingActiveShip = False
+            return
 
     def PositionShipModel(self, model):
         trinity.WaitForResourceLoads()
@@ -309,6 +325,7 @@ class CQView(StationView):
         model.translationCurve.extrapolation = trinity.TRIEXT_CONSTANT
         model.translationCurve.start = blue.os.GetWallclockTimeNow()
         self.SetupFakeAudioTransformLocation(shipPosition)
+        return
 
     def SetupFakeAudioEntity(self):
         self.fakeAudioTransform = trinity.EveRootTransform()

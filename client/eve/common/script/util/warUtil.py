@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\common\script\util\warUtil.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\common\script\util\warUtil.py
 import util
 import blue
 import log
@@ -54,8 +55,10 @@ def WarCreatorIterator(row):
                 log.LogException('WarCreateorIterator found attribute (%s) that was not in war row' % attributeName)
                 yield
 
+    return
 
-def CreateWarFromRow(row, change = None):
+
+def CreateWarFromRow(row, change=None):
     if change is None:
         return War(*[ value for value in WarCreatorIterator(row) ])
     else:
@@ -67,6 +70,7 @@ def CreateWarFromRow(row, change = None):
 
         ret = War(*values)
         return ret
+        return
 
 
 def GetAddRemoveFromChange(change):

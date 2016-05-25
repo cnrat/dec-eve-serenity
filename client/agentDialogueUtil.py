@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\common\modules\nice\client\_nastyspace\agentDialogueUtil.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\common\modules\nice\client\_nastyspace\agentDialogueUtil.py
 from eve.client.script.ui.station.agents.agentDialogueUtil import BuildObjectiveHTML
 from eve.client.script.ui.station.agents.agentDialogueUtil import CHECK_ICON
 from eve.client.script.ui.station.agents.agentDialogueUtil import CIRCLE_ICON

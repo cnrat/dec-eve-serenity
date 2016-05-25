@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\packages\requests\packages\chardet\universaldetector.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\packages\requests\packages\chardet\universaldetector.py
 from . import constants
 import sys
 import codecs
@@ -20,6 +21,7 @@ class UniversalDetector:
         self._mEscCharSetProber = None
         self._mCharSetProbers = []
         self.reset()
+        return
 
     def reset(self):
         self.result = {'encoding': None,
@@ -33,6 +35,8 @@ class UniversalDetector:
             self._mEscCharSetProber.reset()
         for prober in self._mCharSetProbers:
             prober.reset()
+
+        return
 
     def feed(self, aBuf):
         if self.done:
@@ -92,34 +96,37 @@ class UniversalDetector:
     def close(self):
         if self.done:
             return
-        if not self._mGotData:
+        elif not self._mGotData:
             if constants._debug:
                 sys.stderr.write('no data received!\n')
             return
-        self.done = True
-        if self._mInputState == ePureAscii:
-            self.result = {'encoding': 'ascii',
-             'confidence': 1.0}
-            return self.result
-        if self._mInputState == eHighbyte:
-            proberConfidence = None
-            maxProberConfidence = 0.0
-            maxProber = None
-            for prober in self._mCharSetProbers:
-                if not prober:
-                    continue
-                proberConfidence = prober.get_confidence()
-                if proberConfidence > maxProberConfidence:
-                    maxProberConfidence = proberConfidence
-                    maxProber = prober
-
-            if maxProber and maxProberConfidence > MINIMUM_THRESHOLD:
-                self.result = {'encoding': maxProber.get_charset_name(),
-                 'confidence': maxProber.get_confidence()}
+        else:
+            self.done = True
+            if self._mInputState == ePureAscii:
+                self.result = {'encoding': 'ascii',
+                 'confidence': 1.0}
                 return self.result
-        if constants._debug:
-            sys.stderr.write('no probers hit minimum threshhold\n')
-            for prober in self._mCharSetProbers[0].mProbers:
-                if not prober:
-                    continue
-                sys.stderr.write('%s confidence = %s\n' % (prober.get_charset_name(), prober.get_confidence()))
+            if self._mInputState == eHighbyte:
+                proberConfidence = None
+                maxProberConfidence = 0.0
+                maxProber = None
+                for prober in self._mCharSetProbers:
+                    if not prober:
+                        continue
+                    proberConfidence = prober.get_confidence()
+                    if proberConfidence > maxProberConfidence:
+                        maxProberConfidence = proberConfidence
+                        maxProber = prober
+
+                if maxProber and maxProberConfidence > MINIMUM_THRESHOLD:
+                    self.result = {'encoding': maxProber.get_charset_name(),
+                     'confidence': maxProber.get_confidence()}
+                    return self.result
+            if constants._debug:
+                sys.stderr.write('no probers hit minimum threshhold\n')
+                for prober in self._mCharSetProbers[0].mProbers:
+                    if not prober:
+                        continue
+                    sys.stderr.write('%s confidence = %s\n' % (prober.get_charset_name(), prober.get_confidence()))
+
+            return

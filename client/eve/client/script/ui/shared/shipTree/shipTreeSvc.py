@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\client\script\ui\shared\shipTree\shipTreeSvc.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\client\script\ui\shared\shipTree\shipTreeSvc.py
 import inventorycommon
 import service
 import shipTreeConst
@@ -27,6 +28,7 @@ class ShipTree(service.Service):
         self.shipTypeIDsByFactionIDAndGroupID = None
         self.shipGroupIDsByTypeIDs = None
         self._recentlyChangedSkills = None
+        return
 
     def _InitShipTypeIDDict(self):
         self.shipTypeIDsByFactionIDAndGroupID = defaultdict(list)
@@ -75,7 +77,7 @@ class ShipTree(service.Service):
 
     def _GetFactionData(self, factionID):
 
-        def Grp(parent, position, shipGroupID, iconsPerRow = 3):
+        def Grp(parent, position, shipGroupID, iconsPerRow=3):
             return GroupNode(parent=parent, position=position, shipGroupID=shipGroupID, iconsPerRow=iconsPerRow, factionID=factionID, treeID=factionID)
 
         def Con(parent, position):
@@ -145,7 +147,7 @@ class ShipTree(service.Service):
 
     def _GetOREData(self, factionID):
 
-        def Grp(parent, position, shipGroupID, iconsPerRow = 3):
+        def Grp(parent, position, shipGroupID, iconsPerRow=3):
             return GroupNode(parent=parent, position=position, shipGroupID=shipGroupID, iconsPerRow=iconsPerRow, factionID=factionID, treeID=factionID)
 
         def Con(parent, position):
@@ -170,10 +172,10 @@ class ShipTree(service.Service):
 
     def _GetPirateFactionData(self, factionID):
 
-        def Grp(parent, position, shipGroupID, facID, showLinksTo, iconsPerRow = 3):
+        def Grp(parent, position, shipGroupID, facID, showLinksTo, iconsPerRow=3):
             return GroupNode(parent=parent, position=position, shipGroupID=shipGroupID, factionID=facID, showLinksTo=showLinksTo, treeID=factionID, iconsPerRow=iconsPerRow)
 
-        def OtherGrp(parent, position, shipGroupID, facID, showLinksTo, iconsPerRow = 3):
+        def OtherGrp(parent, position, shipGroupID, facID, showLinksTo, iconsPerRow=3):
             return OtherFactionGroupNode(parent=parent, position=position, shipGroupID=shipGroupID, factionID=facID, showLinksTo=showLinksTo, treeID=factionID, iconsPerRow=iconsPerRow)
 
         def Con(parent, position):
@@ -201,14 +203,15 @@ class ShipTree(service.Service):
     def GetRecentlyChangedSkills(self):
         if self._recentlyChangedSkills is not None:
             return self._recentlyChangedSkills
-        uthread.Lock(self, 'GetRecentlyChangedSkills')
-        try:
-            if self._recentlyChangedSkills is None:
-                self._recentlyChangedSkills = sm.GetService('skills').GetRecentlyTrainedSkills()
-        finally:
-            uthread.UnLock(self, 'GetRecentlyChangedSkills')
+        else:
+            uthread.Lock(self, 'GetRecentlyChangedSkills')
+            try:
+                if self._recentlyChangedSkills is None:
+                    self._recentlyChangedSkills = sm.GetService('skills').GetRecentlyTrainedSkills()
+            finally:
+                uthread.UnLock(self, 'GetRecentlyChangedSkills')
 
-        return self._recentlyChangedSkills
+            return self._recentlyChangedSkills
 
     def IsShipMasteryRecentlyIncreased(self, typeID):
         masteryLevel = sm.GetService('certificates').GetCurrCharMasteryLevel(typeID)
@@ -237,6 +240,7 @@ class ShipTree(service.Service):
 
     def FlushRecentlyChangedSkillsCache(self):
         self._recentlyChangedSkills = None
+        return
 
     def LogIGS(self, loggingType):
         int_1 = int_2 = int_3 = float_1 = 0
@@ -260,7 +264,7 @@ class ShipTreeNodeBase(TreeData):
     __guid__ = 'shipTree.NodeBase'
     nodeType = None
 
-    def __init__(self, treeID = None, showLinksTo = True, iconsPerRow = 3, *args, **kw):
+    def __init__(self, treeID=None, showLinksTo=True, iconsPerRow=3, *args, **kw):
         TreeData.__init__(self, *args, **kw)
         self._isLocked = None
         self._isRestricted = None
@@ -270,6 +274,7 @@ class ShipTreeNodeBase(TreeData):
         self._boundingBox = None
         self._position = (0, 0)
         self._iconsPerRow = iconsPerRow
+        return
 
     def GetNodeType(self):
         return self.nodeType
@@ -358,19 +363,24 @@ class ShipTreeNodeBase(TreeData):
         for child in self.children:
             child.FlushCache()
 
+        return
+
     def IsPathToElite(self):
         if self._isPathToElite is not None:
             return self._isPathToElite
-        parNode = self
-        while True:
-            childNode = parNode
-            parNode = parNode.parent
-            if parNode is None or parNode.nodeType != NODETYPE_CONNECTOR:
-                if childNode.nodeType == NODETYPE_CONNECTOR:
-                    self._isPathToElite = childNode.IsAllChildrenElite()
-                else:
-                    self._isPathToElite = childNode.IsElite() and childNode.IsAllChildrenElite()
-                return self._isPathToElite
+        else:
+            parNode = self
+            while True:
+                childNode = parNode
+                parNode = parNode.parent
+                if parNode is None or parNode.nodeType != NODETYPE_CONNECTOR:
+                    if childNode.nodeType == NODETYPE_CONNECTOR:
+                        self._isPathToElite = childNode.IsAllChildrenElite()
+                    else:
+                        self._isPathToElite = childNode.IsElite() and childNode.IsAllChildrenElite()
+                    return self._isPathToElite
+
+            return
 
 
 class GroupNode(ShipTreeNodeBase):
@@ -391,38 +401,41 @@ class GroupNode(ShipTreeNodeBase):
     def IsLocked(self):
         if self._isLocked is not None:
             return self._isLocked
-        mySkills = sm.GetService('skills').GetSkill
-        for skillTypeID, data in self._LoopInfoBubbleGroupsPreReqSkills():
-            mySkill = mySkills(skillTypeID)
-            if mySkill is None or mySkill.skillLevel < data['level']:
-                self._isLocked = True
-                return self._isLocked
+        else:
+            mySkills = sm.GetService('skills').GetSkill
+            for skillTypeID, data in self._LoopInfoBubbleGroupsPreReqSkills():
+                mySkill = mySkills(skillTypeID)
+                if mySkill is None or mySkill.skillLevel < data['level']:
+                    self._isLocked = True
+                    return self._isLocked
 
-        self._isLocked = False
-        return self._isLocked
+            self._isLocked = False
+            return self._isLocked
 
     def IsRestricted(self):
         if self._isRestricted is not None:
             return self._isRestricted
-        for skillTypeID, _ in self._LoopInfoBubbleGroupsPreReqSkills():
-            if sm.GetService('skills').IsTrialRestricted(skillTypeID):
-                self._isRestricted = True
-                break
         else:
-            self._isRestricted = False
+            for skillTypeID, _ in self._LoopInfoBubbleGroupsPreReqSkills():
+                if sm.GetService('skills').IsTrialRestricted(skillTypeID):
+                    self._isRestricted = True
+                    break
+            else:
+                self._isRestricted = False
 
-        return self._isRestricted
+            return self._isRestricted
 
     def IsRecentlyUnlocked(self):
         if self.IsLocked():
             return False
-        oldSkills = sm.GetService('shipTree').GetRecentlyChangedSkills()
-        for skillTypeID, data in self._LoopInfoBubbleGroupsPreReqSkills():
-            myOldLevel = oldSkills.get(skillTypeID, None)
-            if myOldLevel is not None and myOldLevel < data['level']:
-                return True
+        else:
+            oldSkills = sm.GetService('shipTree').GetRecentlyChangedSkills()
+            for skillTypeID, data in self._LoopInfoBubbleGroupsPreReqSkills():
+                myOldLevel = oldSkills.get(skillTypeID, None)
+                if myOldLevel is not None and myOldLevel < data['level']:
+                    return True
 
-        return False
+            return False
 
     def IsBeingTrained(self):
         skillQueue = sm.GetService('skillqueue').GetQueue()
@@ -445,7 +458,7 @@ class GroupNode(ShipTreeNodeBase):
 
         return lowest
 
-    def GetRequiredSkills(self, onlyVisible = False):
+    def GetRequiredSkills(self, onlyVisible=False):
         skillsWithLevel = {}
         for skillTypeID, data in self._LoopInfoBubbleGroupsPreReqSkills():
             if onlyVisible and not data['display']:
@@ -454,7 +467,7 @@ class GroupNode(ShipTreeNodeBase):
 
         return skillsWithLevel
 
-    def GetRequiredSkillsSorted(self, onlyVisible = False):
+    def GetRequiredSkillsSorted(self, onlyVisible=False):
 
         def Compare(x, y):
             typeID1, level1 = x
@@ -520,7 +533,6 @@ class GroupNode(ShipTreeNodeBase):
         typeIDs = self.GetShipTypeIDs()
         if typeIDs:
             return sm.GetService('skills').GetSkillTrainingTimeLeftToUseType(typeIDs[0])
-        return 0
 
     def GetGroupWidth(self):
         numIcons = min(len(self.GetShipTypeIDs()), self.GetIconsPerRow())
@@ -541,6 +553,7 @@ class ConnectorNode(ShipTreeNodeBase):
             self.SetPosition(geo2.Add(self.parent.GetPosition(), position))
         else:
             self.SetPosition(position)
+        return
 
     def GetID(self):
         return '%s_%s' % self.GetPosition()
@@ -548,19 +561,21 @@ class ConnectorNode(ShipTreeNodeBase):
     def IsLocked(self):
         if self._isLocked is not None:
             return self._isLocked
-        for child in self.GetChildren():
-            if not child.IsLocked():
-                self._isLocked = False
-                return self._isLocked
+        else:
+            for child in self.GetChildren():
+                if not child.IsLocked():
+                    self._isLocked = False
+                    return self._isLocked
 
-        self._isLocked = True
-        return self._isLocked
+            self._isLocked = True
+            return self._isLocked
 
     def GetSkillLevel(self):
         if self._skillLevel is not None:
             return self._skillLevel
-        self._skillLevel = max([ child.GetSkillLevel() for child in self.GetChildren() ])
-        return self._skillLevel
+        else:
+            self._skillLevel = max([ child.GetSkillLevel() for child in self.GetChildren() ])
+            return self._skillLevel
 
     def _GetGroupNodesByLevel(self, nodes, level):
         for child in self.GetChildren():

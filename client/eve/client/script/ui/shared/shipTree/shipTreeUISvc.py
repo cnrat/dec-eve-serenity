@@ -1,13 +1,14 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\client\script\ui\shared\shipTree\shipTreeUISvc.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\client\script\ui\shared\shipTree\shipTreeUISvc.py
 import evetypes
 import service
 from eve.client.script.ui.shared.shipTree.infoBubble import InfoBubbleShip, InfoBubbleShipGroup
-from eve.client.script.ui.station.lobby import Lobby
 import carbonui.util.various_unsorted as uiutil
 import blue
 import uthread
 import shipTreeConst
 from eve.client.script.ui.control.historyBuffer import HistoryBuffer
+from eve.client.script.ui.shared.dockedUI import GetLobbyClass
 
 class ShipTreeUI(service.Service):
     __guid__ = 'svc.shipTreeUI'
@@ -23,6 +24,7 @@ class ShipTreeUI(service.Service):
         self.infoBubbleCloseThread = None
         self._isSelectingFaction = False
         self.showInfoBubbleThread = None
+        return
 
     def OpenAndShowShip(self, typeID):
         factionID = evetypes.GetFactionID(typeID)
@@ -56,7 +58,7 @@ class ShipTreeUI(service.Service):
         self.history = HistoryBuffer()
         sm.GetService('skills').GetSkills()
         self.SelectFaction(self.GetDefaultFactionID())
-        lobbyWnd = Lobby.GetIfOpen()
+        lobbyWnd = GetLobbyClass().GetIfOpen()
         if lobbyWnd:
             lobbyWnd.Minimize(animate=False)
         sm.GetService('audio').SendUIEvent('isis_start')
@@ -70,11 +72,12 @@ class ShipTreeUI(service.Service):
         self.factionTreesByFactionID = {}
         self.selectedFaction = None
         sm.GetService('audio').SendUIEvent('isis_end')
-        lobbyWnd = Lobby.GetIfOpen()
+        lobbyWnd = GetLobbyClass().GetIfOpen()
         if lobbyWnd:
             lobbyWnd.Maximize(animate=False)
+        return
 
-    def GetEntityByID(self, factionID = None, shipGroupID = None, typeID = None):
+    def GetEntityByID(self, factionID=None, shipGroupID=None, typeID=None):
         if typeID:
             return self.GetFactionTree(factionID).GetShipGroup(shipGroupID).GetShip(typeID)
         elif shipGroupID:
@@ -88,7 +91,7 @@ class ShipTreeUI(service.Service):
     def GetSelectedFaction(self):
         return self.selectedFaction or self.GetDefaultFactionID()
 
-    def SelectFaction(self, factionID, appendHistory = True, doLog = False):
+    def SelectFaction(self, factionID, appendHistory=True, doLog=False):
         if self.selectedFaction == factionID:
             return
         if self._isSelectingFaction:
@@ -116,7 +119,7 @@ class ShipTreeUI(service.Service):
         group = self.GetEntityByID(factionID, shipGroupID)
         return group.data.IsLocked()
 
-    def ShowInfoBubble(self, uiObj, factionID = None, node = None, typeID = None):
+    def ShowInfoBubble(self, uiObj, factionID=None, node=None, typeID=None):
         if uicore.layer.shiptree.isZooming:
             return
         if uiObj == self.infoBubbleUIObj:
@@ -125,25 +128,27 @@ class ShipTreeUI(service.Service):
             self.showInfoBubbleThread.kill()
         self.showInfoBubbleThread = uthread.new(self._ShowInfoBubble, uiObj, factionID, node, typeID)
 
-    def _ShowInfoBubble(self, uiObj, factionID = None, node = None, typeID = None):
+    def _ShowInfoBubble(self, uiObj, factionID=None, node=None, typeID=None):
         blue.synchro.SleepWallclock(150)
         mo = uicore.uilib.mouseOver
         if mo == self.infoBubble or uiutil.IsUnder(mo, self.infoBubble):
             return
-        if uicore.layer.menu.children:
+        elif uicore.layer.menu.children:
             return
-        if self.infoBubble:
-            self.CloseInfoBubble()
-        self.infoBubbleUIObj = uiObj
-        if self.ShouldInfoBubbleClose():
-            self.CloseInfoBubble()
-            return
-        if node:
-            self.infoBubble = InfoBubbleShipGroup(factionID=factionID, node=node, parent=uicore.layer.infoBubble, parentObj=uiObj)
         else:
-            self.infoBubble = InfoBubbleShip(factionID=factionID, typeID=typeID, parent=uicore.layer.infoBubble, parentObj=uiObj)
-        self.infoBubbleCloseThread = uthread.new(self.InfoBubbleCloseThread)
-        self.showInfoBubbleThread = None
+            if self.infoBubble:
+                self.CloseInfoBubble()
+            self.infoBubbleUIObj = uiObj
+            if self.ShouldInfoBubbleClose():
+                self.CloseInfoBubble()
+                return
+            if node:
+                self.infoBubble = InfoBubbleShipGroup(factionID=factionID, node=node, parent=uicore.layer.infoBubble, parentObj=uiObj)
+            else:
+                self.infoBubble = InfoBubbleShip(factionID=factionID, typeID=typeID, parent=uicore.layer.infoBubble, parentObj=uiObj)
+            self.infoBubbleCloseThread = uthread.new(self.InfoBubbleCloseThread)
+            self.showInfoBubbleThread = None
+            return
 
     def InfoBubbleCloseThread(self, *args):
         while not self.ShouldInfoBubbleClose():
@@ -171,11 +176,12 @@ class ShipTreeUI(service.Service):
         if self.infoBubbleCloseThread:
             self.infoBubbleCloseThread.kill()
             self.infoBubbleCloseThread = None
+        return
 
     def GetZoomLevel(self):
         return uicore.layer.shiptree.zoomLevel
 
-    def PanTo(self, x, y, animate = True):
+    def PanTo(self, x, y, animate=True):
         uicore.layer.shiptree.PanToPropCoords(x, y, animate)
 
     def GoBack(self):

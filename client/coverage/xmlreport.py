@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\carbon\common\stdlib\coverage\xmlreport.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\carbon\common\stdlib\coverage\xmlreport.py
 import os, sys, time
 import xml.dom.minidom
 from coverage import __url__, __version__
@@ -16,8 +17,9 @@ class XmlReporter(Reporter):
         self.packages = None
         self.xml_out = None
         self.arcs = coverage.data.has_arcs()
+        return
 
-    def report(self, morfs, outfile = None):
+    def report(self, morfs, outfile=None):
         outfile = outfile or sys.stdout
         impl = xml.dom.minidom.getDOMImplementation()
         docType = impl.createDocumentType('coverage', None, 'http://cobertura.sourceforge.net/xml/coverage-03.dtd')

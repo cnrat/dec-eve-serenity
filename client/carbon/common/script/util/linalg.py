@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\carbon\common\script\util\linalg.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\carbon\common\script\util\linalg.py
 import math, types
 import sys
 TINY = 0.0
@@ -72,14 +73,14 @@ def Mixin(current, cls):
 class Vector(list):
     Mixin(locals(), VectorOP)
 
-    def __init__(self, a = None, b = 0):
+    def __init__(self, a=None, b=0):
         try:
             list.__init__(self, [ b for i in range(a) ])
         except TypeError:
             list.__init__(self, a)
             sys.exc_clear()
 
-    def Ones(length, item = 1.0):
+    def Ones(length, item=1.0):
         return Vector(length, item)
 
     Ones = staticmethod(Ones)
@@ -147,19 +148,21 @@ class Vector(list):
 class Matrix(Vector):
     __slots__ = 'dim'
 
-    def __init__(self, a, b = None):
+    def __init__(self, a, b=None):
         if isinstance(a, Matrix) and b is None:
             super(Matrix, self).__init__(a)
             self.dim = a.dim
             return
-        self.dim = a
-        l = a[0] * a[1]
-        if b is None:
-            super(Matrix, self).__init__(l)
         else:
-            if len(b) != l:
-                raise ValueError, 'operand has incorrect length'
-            super(Matrix, self).__init__(b)
+            self.dim = a
+            l = a[0] * a[1]
+            if b is None:
+                super(Matrix, self).__init__(l)
+            else:
+                if len(b) != l:
+                    raise ValueError, 'operand has incorrect length'
+                super(Matrix, self).__init__(b)
+            return
 
     def __getitem__(self, idx):
         if isinstance(idx, types.TupleType):
@@ -172,12 +175,12 @@ class Matrix(Vector):
         else:
             super(Matrix, self).__setitem__(idx, val)
 
-    def Ones(dim, item = 1.0):
+    def Ones(dim, item=1.0):
         return Matrix(dim, [item] * dim[0] * dim[1])
 
     Ones = staticmethod(Ones)
 
-    def I(n, item = 1.0):
+    def I(n, item=1.0):
         tmp = [item] + ([0.0] * n + [item]) * (n - 1)
         return Matrix((n, n), tmp)
 
@@ -481,6 +484,8 @@ class Matrix(Vector):
                 sum -= self[i, j] * b[j]
 
             b[i] = float(sum) / self[i, i]
+
+        return
 
 
 class Column(VectorOP):

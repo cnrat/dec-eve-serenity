@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\client\script\ui\shared\maps\browser.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\client\script\ui\shared\maps\browser.py
 from eve.client.script.ui.control.themeColored import LineThemeColored
 import uiprimitives
 import uicontrols
@@ -64,6 +65,7 @@ class MapBrowser(uiprimitives.Container):
               3,
               DRAWLVLSYS,
               None)])
+        return
 
     def Startup(self):
         pass
@@ -85,6 +87,7 @@ class MapBrowser(uiprimitives.Container):
           3,
           DRAWLVLSYS,
           None)])
+        return
 
     def LoadIDs(self, ids):
         for id, idlevel, drawlevel, selected in ids:
@@ -99,7 +102,7 @@ class MapBrowser(uiprimitives.Container):
     def Prepare():
         pass
 
-    def GetMap(self, ids, idlevel, drawlevel, selected = None):
+    def GetMap(self, ids, idlevel, drawlevel, selected=None):
         if getattr(self, 'loadingMap', 0):
             return
         self.loadingMap = 1
@@ -189,10 +192,11 @@ class MapBrowser(uiprimitives.Container):
             sm.GetService('station').CleanUp()
         OpenMap(interestID=itemID)
 
-    def SetLoadExternalPointer(self, where, id, func = None, args = None, hint = None):
+    def SetLoadExternalPointer(self, where, id, func=None, args=None, hint=None):
         pointer = uiprimitives.Sprite(parent=where, name='pointer', align=uiconst.BOTTOMLEFT, pos=(2, 2, 16, 16), texturePath='res:/UI/Texture/Shared/arrowLeft.png', color=(1.0, 1.0, 1.0, 0.5))
         pointer.hint = hint if hint is not None else localization.GetByLabel('UI/Map/MapBrowser/ShowInWorldMap')
         pointer.OnClick = (self.ShowOnMap, id)
+        return
 
     def OnMapSelection(self, themap, itemID):
         if themap.drawlevel == DRAWLVLSYS:
@@ -223,7 +227,7 @@ class MapBrowser(uiprimitives.Container):
             uthread.new(self.GetMap, ids, idlevel, drawlevel)
         sm.GetService('loading').StopCycle()
 
-    def Refresh(self, update = 0):
+    def Refresh(self, update=0):
         for each in self.children:
             if hasattr(each, 'RefreshSize'):
                 each.RefreshSize()

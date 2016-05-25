@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\packages\localizationBSD\exporters\localizationIntFileExporter.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\packages\localizationBSD\exporters\localizationIntFileExporter.py
 import localizationExporter
 from . import LocalizationExporterError
 import cStringIO
@@ -25,7 +26,7 @@ class LocalizationIntFileExporter(localizationExporter.LocalizationExporterBase)
     ENGLISH_FOLDER = 'INT'
 
     @classmethod
-    def ExportWithProjectSettings(cls, projectID, exportLocation, exportFileName, getSubmittedOnly = True, **kwargs):
+    def ExportWithProjectSettings(cls, projectID, exportLocation, exportFileName, getSubmittedOnly=True, **kwargs):
         if not exportLocation or not exportFileName:
             raise LocalizationExporterError('Filepath strings are incomplete. exportLocation, exportFileName: %s, %s.' % (exportLocation, exportFileName))
         exportedFilenames = []
@@ -63,7 +64,7 @@ class LocalizationIntFileExporter(localizationExporter.LocalizationExporterBase)
         return exportedFilenames
 
     @classmethod
-    def ExportWithProjectSettingsToZipFileObject(cls, projectID, fileObject, exportFileName, getSubmittedOnly = True, bsdBranchID = None):
+    def ExportWithProjectSettingsToZipFileObject(cls, projectID, fileObject, exportFileName, getSubmittedOnly=True, bsdBranchID=None):
         exportData = cls._GetLocalizationMessageDataForExport(projectID, getSubmittedOnly, bsdBranchID=bsdBranchID)
         folderPathToLabelsIndex = exportData[0]
         languageCodesResultSet = exportData[2]
@@ -125,7 +126,7 @@ class LocalizationIntFileExporter(localizationExporter.LocalizationExporterBase)
         file.write(textString.encode(cls.FILE_ENCODING))
 
     @classmethod
-    def GetResourceNamesWithProjectSettings(cls, projectID, exportLocation, exportFileName, getSubmittedOnly = True, **kwargs):
+    def GetResourceNamesWithProjectSettings(cls, projectID, exportLocation, exportFileName, getSubmittedOnly=True, **kwargs):
         listOfFilePaths = []
         dbzlocalization = sm.GetService('DB2').GetSchema('zlocalization')
         languageCodesResultSet = dbzlocalization.Languages_SelectByProject(1 if getSubmittedOnly else 0, projectID)

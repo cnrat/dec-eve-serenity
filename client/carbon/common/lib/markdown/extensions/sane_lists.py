@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\carbon\common\lib\markdown\extensions\sane_lists.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\carbon\common\lib\markdown\extensions\sane_lists.py
 import re
 import markdown
 
@@ -19,5 +20,5 @@ class SaneListExtension(markdown.Extension):
         md.parser.blockprocessors['ulist'] = SaneUListProcessor(md.parser)
 
 
-def makeExtension(configs = {}):
+def makeExtension(configs={}):
     return SaneListExtension(configs=configs)

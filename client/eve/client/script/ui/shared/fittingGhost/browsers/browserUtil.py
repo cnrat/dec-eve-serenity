@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\client\script\ui\shared\fittingGhost\browsers\browserUtil.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\client\script\ui\shared\fittingGhost\browsers\browserUtil.py
 from collections import defaultdict
 from eve.client.script.ui.control import entries as listentry
 from eve.client.script.ui.shared.fitting.ghostFittingHelpers import TryGhostFitItemOnMouseAction
@@ -11,7 +12,10 @@ validMarketMetaGroups = (const.metaGroupStoryline,
  const.metaGroupFaction,
  const.metaGroupOfficer,
  const.metaGroupDeadspace)
-validCategoriesForMetaGroups = (const.categoryModule, const.categoryDrone, const.categoryStarbase)
+validCategoriesForMetaGroups = (const.categoryModule,
+ const.categoryStructureModule,
+ const.categoryDrone,
+ const.categoryStarbase)
 
 def ShoulAddMetaGroupFolder(metaGroupID):
     if metaGroupID in validMarketMetaGroups:
@@ -87,3 +91,4 @@ def GetScrollListFromTypeList(invTypeIDs, sublevel, onDropDataFunc):
 def TryFitModule(entry, moduleTypeID):
     TryGhostFitItemOnMouseAction(None, oldWindow=False)
     sm.GetService('ghostFittingSvc').TryFitModuleToOneSlot(moduleTypeID)
+    return

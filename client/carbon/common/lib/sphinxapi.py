@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\carbon\common\lib\sphinxapi.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\carbon\common\lib\sphinxapi.py
 import socket
 import re
 from struct import *
@@ -115,6 +116,7 @@ class SphinxClient():
         self._error = ''
         self._warning = ''
         self._reqs = []
+        return
 
     def __del__(self):
         if self._socket:
@@ -126,17 +128,19 @@ class SphinxClient():
     def GetLastWarning(self):
         return self._warning
 
-    def SetServer(self, host, port = None):
+    def SetServer(self, host, port=None):
         if host.startswith('/'):
             self._path = host
             return
-        if host.startswith('unix://'):
+        elif host.startswith('unix://'):
             self._path = host[7:]
             return
-        self._host = host
-        if isinstance(port, int):
-            self._port = port
-        self._path = None
+        else:
+            self._host = host
+            if isinstance(port, int):
+                self._port = port
+            self._path = None
+            return
 
     def SetConnectTimeout(self, timeout):
         self._timeout = max(0.001, timeout)
@@ -168,8 +172,9 @@ class SphinxClient():
             sock.close()
             self._error = 'expected searchd protocol version, got %s' % v
             return
-        sock.send(pack('>L', 1))
-        return sock
+        else:
+            sock.send(pack('>L', 1))
+            return sock
 
     def _GetResponse(self, sock, client_ver):
         status, ver, length = unpack('>2HL', sock.recv(8))
@@ -195,25 +200,26 @@ class SphinxClient():
             else:
                 self._error = 'received zero-sized searchd response'
             return None
-        if status == SEARCHD_WARNING:
+        elif status == SEARCHD_WARNING:
             wend = 4 + unpack('>L', response[0:4])[0]
             self._warning = response[4:wend]
             return response[wend:]
-        if status == SEARCHD_ERROR:
+        elif status == SEARCHD_ERROR:
             self._error = 'searchd error: ' + response[4:]
             return None
-        if status == SEARCHD_RETRY:
+        elif status == SEARCHD_RETRY:
             self._error = 'temporary searchd error: ' + response[4:]
             return None
-        if status != SEARCHD_OK:
+        elif status != SEARCHD_OK:
             self._error = 'unknown status code %d' % status
             return None
-        if ver < client_ver:
-            self._warning = "searchd command v.%d.%d older than client's v.%d.%d, some options might not work" % (ver >> 8,
-             ver & 255,
-             client_ver >> 8,
-             client_ver & 255)
-        return response
+        else:
+            if ver < client_ver:
+                self._warning = "searchd command v.%d.%d older than client's v.%d.%d, some options might not work" % (ver >> 8,
+                 ver & 255,
+                 client_ver >> 8,
+                 client_ver & 255)
+            return response
 
     def _Send(self, sock, req):
         total = 0
@@ -225,7 +231,7 @@ class SphinxClient():
 
         return total
 
-    def SetLimits(self, offset, limit, maxmatches = 0, cutoff = 0):
+    def SetLimits(self, offset, limit, maxmatches=0, cutoff=0):
         self._offset = offset
         self._limit = limit
         if maxmatches > 0:
@@ -239,11 +245,11 @@ class SphinxClient():
     def SetMatchMode(self, mode):
         self._mode = mode
 
-    def SetRankingMode(self, ranker, rankexpr = ''):
+    def SetRankingMode(self, ranker, rankexpr=''):
         self._ranker = ranker
         self._rankexpr = rankexpr
 
-    def SetSortMode(self, mode, clause = ''):
+    def SetSortMode(self, mode, clause=''):
         self._sort = mode
         self._sortby = clause
 
@@ -269,7 +275,7 @@ class SphinxClient():
         self._min_id = minid
         self._max_id = maxid
 
-    def SetFilter(self, attribute, values, exclude = 0):
+    def SetFilter(self, attribute, values, exclude=0):
         for value in values:
             AssertInt32(value)
 
@@ -278,7 +284,7 @@ class SphinxClient():
          'exclude': exclude,
          'values': values})
 
-    def SetFilterRange(self, attribute, min_, max_, exclude = 0):
+    def SetFilterRange(self, attribute, min_, max_, exclude=0):
         AssertInt32(min_)
         AssertInt32(max_)
         self._filters.append({'type': SPH_FILTER_RANGE,
@@ -287,7 +293,7 @@ class SphinxClient():
          'min': min_,
          'max': max_})
 
-    def SetFilterFloatRange(self, attribute, min_, max_, exclude = 0):
+    def SetFilterFloatRange(self, attribute, min_, max_, exclude=0):
         self._filters.append({'type': SPH_FILTER_FLOATRANGE,
          'attr': attribute,
          'exclude': exclude,
@@ -300,7 +306,7 @@ class SphinxClient():
         self._anchor['lat'] = latitude
         self._anchor['long'] = longitude
 
-    def SetGroupBy(self, attribute, func, groupsort = '@group desc'):
+    def SetGroupBy(self, attribute, func, groupsort='@group desc'):
         self._groupby = attribute
         self._groupfunc = func
         self._groupsort = groupsort
@@ -308,7 +314,7 @@ class SphinxClient():
     def SetGroupDistinct(self, attribute):
         self._groupdistinct = attribute
 
-    def SetRetries(self, count, delay = 0):
+    def SetRetries(self, count, delay=0):
         self._retrycount = count
         self._retrydelay = delay
 
@@ -372,7 +378,7 @@ class SphinxClient():
         self._outerlimit = 0
         self._hasouter = False
 
-    def Query(self, query, index = '*', comment = ''):
+    def Query(self, query, index='*', comment=''):
         self.AddQuery(query, index, comment)
         results = self.RunQueries()
         self._reqs = []
@@ -382,9 +388,10 @@ class SphinxClient():
         self._warning = results[0]['warning']
         if results[0]['status'] == SEARCHD_ERROR:
             return None
-        return results[0]
+        else:
+            return results[0]
 
-    def AddQuery(self, query, index = '*', comment = ''):
+    def AddQuery(self, query, index='*', comment=''):
         req = []
         req.append(pack('>5L', self._query_flags, self._offset, self._limit, self._mode, self._ranker))
         if self._ranker == SPH_RANK_EXPR:
@@ -479,145 +486,146 @@ class SphinxClient():
         if len(self._reqs) == 0:
             self._error = 'no queries defined, issue AddQuery() first'
             return None
-        sock = self._Connect()
-        if not sock:
-            return None
-        req = ''.join(self._reqs)
-        length = len(req) + 8
-        req = pack('>HHLLL', SEARCHD_COMMAND_SEARCH, VER_COMMAND_SEARCH, length, 0, len(self._reqs)) + req
-        self._Send(sock, req)
-        response = self._GetResponse(sock, VER_COMMAND_SEARCH)
-        if not response:
-            return None
-        nreqs = len(self._reqs)
-        max_ = len(response)
-        p = 0
-        results = []
-        for i in range(0, nreqs, 1):
-            result = {}
-            results.append(result)
-            result['error'] = ''
-            result['warning'] = ''
-            status = unpack('>L', response[p:p + 4])[0]
-            p += 4
-            result['status'] = status
-            if status != SEARCHD_OK:
-                length = unpack('>L', response[p:p + 4])[0]
+        else:
+            sock = self._Connect()
+            if not sock:
+                return None
+            req = ''.join(self._reqs)
+            length = len(req) + 8
+            req = pack('>HHLLL', SEARCHD_COMMAND_SEARCH, VER_COMMAND_SEARCH, length, 0, len(self._reqs)) + req
+            self._Send(sock, req)
+            response = self._GetResponse(sock, VER_COMMAND_SEARCH)
+            if not response:
+                return None
+            nreqs = len(self._reqs)
+            max_ = len(response)
+            p = 0
+            results = []
+            for i in range(0, nreqs, 1):
+                result = {}
+                results.append(result)
+                result['error'] = ''
+                result['warning'] = ''
+                status = unpack('>L', response[p:p + 4])[0]
                 p += 4
-                message = response[p:p + length]
-                p += length
-                if status == SEARCHD_WARNING:
-                    result['warning'] = message
-                else:
-                    result['error'] = message
-                    continue
-            fields = []
-            attrs = []
-            nfields = unpack('>L', response[p:p + 4])[0]
-            p += 4
-            while nfields > 0 and p < max_:
-                nfields -= 1
-                length = unpack('>L', response[p:p + 4])[0]
-                p += 4
-                fields.append(response[p:p + length])
-                p += length
-
-            result['fields'] = fields
-            nattrs = unpack('>L', response[p:p + 4])[0]
-            p += 4
-            while nattrs > 0 and p < max_:
-                nattrs -= 1
-                length = unpack('>L', response[p:p + 4])[0]
-                p += 4
-                attr = response[p:p + length]
-                p += length
-                type_ = unpack('>L', response[p:p + 4])[0]
-                p += 4
-                attrs.append([attr, type_])
-
-            result['attrs'] = attrs
-            count = unpack('>L', response[p:p + 4])[0]
-            p += 4
-            id64 = unpack('>L', response[p:p + 4])[0]
-            p += 4
-            result['matches'] = []
-            while count > 0 and p < max_:
-                count -= 1
-                if id64:
-                    doc, weight = unpack('>QL', response[p:p + 12])
-                    p += 12
-                else:
-                    doc, weight = unpack('>2L', response[p:p + 8])
-                    p += 8
-                match = {'id': doc,
-                 'weight': weight,
-                 'attrs': {}}
-                for i in range(len(attrs)):
-                    if attrs[i][1] == SPH_ATTR_FLOAT:
-                        match['attrs'][attrs[i][0]] = unpack('>f', response[p:p + 4])[0]
-                    elif attrs[i][1] == SPH_ATTR_BIGINT:
-                        match['attrs'][attrs[i][0]] = unpack('>q', response[p:p + 8])[0]
-                        p += 4
-                    elif attrs[i][1] == SPH_ATTR_STRING:
-                        slen = unpack('>L', response[p:p + 4])[0]
-                        p += 4
-                        match['attrs'][attrs[i][0]] = ''
-                        if slen > 0:
-                            match['attrs'][attrs[i][0]] = response[p:p + slen]
-                        p += slen - 4
-                    elif attrs[i][1] == SPH_ATTR_FACTORS:
-                        slen = unpack('>L', response[p:p + 4])[0]
-                        p += 4
-                        match['attrs'][attrs[i][0]] = ''
-                        if slen > 0:
-                            match['attrs'][attrs[i][0]] = response[p:p + slen - 4]
-                            p += slen - 4
-                        p -= 4
-                    elif attrs[i][1] == SPH_ATTR_MULTI:
-                        match['attrs'][attrs[i][0]] = []
-                        nvals = unpack('>L', response[p:p + 4])[0]
-                        p += 4
-                        for n in range(0, nvals, 1):
-                            match['attrs'][attrs[i][0]].append(unpack('>L', response[p:p + 4])[0])
-                            p += 4
-
-                        p -= 4
-                    elif attrs[i][1] == SPH_ATTR_MULTI64:
-                        match['attrs'][attrs[i][0]] = []
-                        nvals = unpack('>L', response[p:p + 4])[0]
-                        nvals = nvals / 2
-                        p += 4
-                        for n in range(0, nvals, 1):
-                            match['attrs'][attrs[i][0]].append(unpack('>q', response[p:p + 8])[0])
-                            p += 8
-
-                        p -= 4
-                    else:
-                        match['attrs'][attrs[i][0]] = unpack('>L', response[p:p + 4])[0]
+                result['status'] = status
+                if status != SEARCHD_OK:
+                    length = unpack('>L', response[p:p + 4])[0]
                     p += 4
-
-                result['matches'].append(match)
-
-            result['total'], result['total_found'], result['time'], words = unpack('>4L', response[p:p + 16])
-            result['time'] = '%.3f' % (result['time'] / 1000.0)
-            p += 16
-            result['words'] = []
-            while words > 0:
-                words -= 1
-                length = unpack('>L', response[p:p + 4])[0]
+                    message = response[p:p + length]
+                    p += length
+                    if status == SEARCHD_WARNING:
+                        result['warning'] = message
+                    else:
+                        result['error'] = message
+                        continue
+                fields = []
+                attrs = []
+                nfields = unpack('>L', response[p:p + 4])[0]
                 p += 4
-                word = response[p:p + length]
-                p += length
-                docs, hits = unpack('>2L', response[p:p + 8])
-                p += 8
-                result['words'].append({'word': word,
-                 'docs': docs,
-                 'hits': hits})
+                while nfields > 0 and p < max_:
+                    nfields -= 1
+                    length = unpack('>L', response[p:p + 4])[0]
+                    p += 4
+                    fields.append(response[p:p + length])
+                    p += length
 
-        self._reqs = []
-        return results
+                result['fields'] = fields
+                nattrs = unpack('>L', response[p:p + 4])[0]
+                p += 4
+                while nattrs > 0 and p < max_:
+                    nattrs -= 1
+                    length = unpack('>L', response[p:p + 4])[0]
+                    p += 4
+                    attr = response[p:p + length]
+                    p += length
+                    type_ = unpack('>L', response[p:p + 4])[0]
+                    p += 4
+                    attrs.append([attr, type_])
 
-    def BuildExcerpts(self, docs, index, words, opts = None):
+                result['attrs'] = attrs
+                count = unpack('>L', response[p:p + 4])[0]
+                p += 4
+                id64 = unpack('>L', response[p:p + 4])[0]
+                p += 4
+                result['matches'] = []
+                while count > 0 and p < max_:
+                    count -= 1
+                    if id64:
+                        doc, weight = unpack('>QL', response[p:p + 12])
+                        p += 12
+                    else:
+                        doc, weight = unpack('>2L', response[p:p + 8])
+                        p += 8
+                    match = {'id': doc,
+                     'weight': weight,
+                     'attrs': {}}
+                    for i in range(len(attrs)):
+                        if attrs[i][1] == SPH_ATTR_FLOAT:
+                            match['attrs'][attrs[i][0]] = unpack('>f', response[p:p + 4])[0]
+                        elif attrs[i][1] == SPH_ATTR_BIGINT:
+                            match['attrs'][attrs[i][0]] = unpack('>q', response[p:p + 8])[0]
+                            p += 4
+                        elif attrs[i][1] == SPH_ATTR_STRING:
+                            slen = unpack('>L', response[p:p + 4])[0]
+                            p += 4
+                            match['attrs'][attrs[i][0]] = ''
+                            if slen > 0:
+                                match['attrs'][attrs[i][0]] = response[p:p + slen]
+                            p += slen - 4
+                        elif attrs[i][1] == SPH_ATTR_FACTORS:
+                            slen = unpack('>L', response[p:p + 4])[0]
+                            p += 4
+                            match['attrs'][attrs[i][0]] = ''
+                            if slen > 0:
+                                match['attrs'][attrs[i][0]] = response[p:p + slen - 4]
+                                p += slen - 4
+                            p -= 4
+                        elif attrs[i][1] == SPH_ATTR_MULTI:
+                            match['attrs'][attrs[i][0]] = []
+                            nvals = unpack('>L', response[p:p + 4])[0]
+                            p += 4
+                            for n in range(0, nvals, 1):
+                                match['attrs'][attrs[i][0]].append(unpack('>L', response[p:p + 4])[0])
+                                p += 4
+
+                            p -= 4
+                        elif attrs[i][1] == SPH_ATTR_MULTI64:
+                            match['attrs'][attrs[i][0]] = []
+                            nvals = unpack('>L', response[p:p + 4])[0]
+                            nvals = nvals / 2
+                            p += 4
+                            for n in range(0, nvals, 1):
+                                match['attrs'][attrs[i][0]].append(unpack('>q', response[p:p + 8])[0])
+                                p += 8
+
+                            p -= 4
+                        else:
+                            match['attrs'][attrs[i][0]] = unpack('>L', response[p:p + 4])[0]
+                        p += 4
+
+                    result['matches'].append(match)
+
+                result['total'], result['total_found'], result['time'], words = unpack('>4L', response[p:p + 16])
+                result['time'] = '%.3f' % (result['time'] / 1000.0)
+                p += 16
+                result['words'] = []
+                while words > 0:
+                    words -= 1
+                    length = unpack('>L', response[p:p + 4])[0]
+                    p += 4
+                    word = response[p:p + length]
+                    p += length
+                    docs, hits = unpack('>2L', response[p:p + 8])
+                    p += 8
+                    result['words'].append({'word': word,
+                     'docs': docs,
+                     'hits': hits})
+
+            self._reqs = []
+            return results
+
+    def BuildExcerpts(self, docs, index, words, opts=None):
         if not opts:
             opts = {}
         if isinstance(words, unicode):
@@ -625,86 +633,87 @@ class SphinxClient():
         sock = self._Connect()
         if not sock:
             return None
-        opts.setdefault('before_match', '<b>')
-        opts.setdefault('after_match', '</b>')
-        opts.setdefault('chunk_separator', ' ... ')
-        opts.setdefault('html_strip_mode', 'index')
-        opts.setdefault('limit', 256)
-        opts.setdefault('limit_passages', 0)
-        opts.setdefault('limit_words', 0)
-        opts.setdefault('around', 5)
-        opts.setdefault('start_passage_id', 1)
-        opts.setdefault('passage_boundary', 'none')
-        flags = 1
-        if opts.get('exact_phrase'):
-            flags |= 2
-        if opts.get('single_passage'):
-            flags |= 4
-        if opts.get('use_boundaries'):
-            flags |= 8
-        if opts.get('weight_order'):
-            flags |= 16
-        if opts.get('query_mode'):
-            flags |= 32
-        if opts.get('force_all_words'):
-            flags |= 64
-        if opts.get('load_files'):
-            flags |= 128
-        if opts.get('allow_empty'):
-            flags |= 256
-        if opts.get('emit_zones'):
-            flags |= 512
-        if opts.get('load_files_scattered'):
-            flags |= 1024
-        req = [pack('>2L', 0, flags)]
-        req.append(pack('>L', len(index)))
-        req.append(index)
-        req.append(pack('>L', len(words)))
-        req.append(words)
-        req.append(pack('>L', len(opts['before_match'])))
-        req.append(opts['before_match'])
-        req.append(pack('>L', len(opts['after_match'])))
-        req.append(opts['after_match'])
-        req.append(pack('>L', len(opts['chunk_separator'])))
-        req.append(opts['chunk_separator'])
-        req.append(pack('>L', int(opts['limit'])))
-        req.append(pack('>L', int(opts['around'])))
-        req.append(pack('>L', int(opts['limit_passages'])))
-        req.append(pack('>L', int(opts['limit_words'])))
-        req.append(pack('>L', int(opts['start_passage_id'])))
-        req.append(pack('>L', len(opts['html_strip_mode'])))
-        req.append(opts['html_strip_mode'])
-        req.append(pack('>L', len(opts['passage_boundary'])))
-        req.append(opts['passage_boundary'])
-        req.append(pack('>L', len(docs)))
-        for doc in docs:
-            if isinstance(doc, unicode):
-                doc = doc.encode('utf-8')
-            req.append(pack('>L', len(doc)))
-            req.append(doc)
+        else:
+            opts.setdefault('before_match', '<b>')
+            opts.setdefault('after_match', '</b>')
+            opts.setdefault('chunk_separator', ' ... ')
+            opts.setdefault('html_strip_mode', 'index')
+            opts.setdefault('limit', 256)
+            opts.setdefault('limit_passages', 0)
+            opts.setdefault('limit_words', 0)
+            opts.setdefault('around', 5)
+            opts.setdefault('start_passage_id', 1)
+            opts.setdefault('passage_boundary', 'none')
+            flags = 1
+            if opts.get('exact_phrase'):
+                flags |= 2
+            if opts.get('single_passage'):
+                flags |= 4
+            if opts.get('use_boundaries'):
+                flags |= 8
+            if opts.get('weight_order'):
+                flags |= 16
+            if opts.get('query_mode'):
+                flags |= 32
+            if opts.get('force_all_words'):
+                flags |= 64
+            if opts.get('load_files'):
+                flags |= 128
+            if opts.get('allow_empty'):
+                flags |= 256
+            if opts.get('emit_zones'):
+                flags |= 512
+            if opts.get('load_files_scattered'):
+                flags |= 1024
+            req = [pack('>2L', 0, flags)]
+            req.append(pack('>L', len(index)))
+            req.append(index)
+            req.append(pack('>L', len(words)))
+            req.append(words)
+            req.append(pack('>L', len(opts['before_match'])))
+            req.append(opts['before_match'])
+            req.append(pack('>L', len(opts['after_match'])))
+            req.append(opts['after_match'])
+            req.append(pack('>L', len(opts['chunk_separator'])))
+            req.append(opts['chunk_separator'])
+            req.append(pack('>L', int(opts['limit'])))
+            req.append(pack('>L', int(opts['around'])))
+            req.append(pack('>L', int(opts['limit_passages'])))
+            req.append(pack('>L', int(opts['limit_words'])))
+            req.append(pack('>L', int(opts['start_passage_id'])))
+            req.append(pack('>L', len(opts['html_strip_mode'])))
+            req.append(opts['html_strip_mode'])
+            req.append(pack('>L', len(opts['passage_boundary'])))
+            req.append(opts['passage_boundary'])
+            req.append(pack('>L', len(docs)))
+            for doc in docs:
+                if isinstance(doc, unicode):
+                    doc = doc.encode('utf-8')
+                req.append(pack('>L', len(doc)))
+                req.append(doc)
 
-        req = ''.join(req)
-        length = len(req)
-        req = pack('>2HL', SEARCHD_COMMAND_EXCERPT, VER_COMMAND_EXCERPT, length) + req
-        self._Send(sock, req)
-        response = self._GetResponse(sock, VER_COMMAND_EXCERPT)
-        if not response:
-            return []
-        pos = 0
-        res = []
-        rlen = len(response)
-        for i in range(len(docs)):
-            length = unpack('>L', response[pos:pos + 4])[0]
-            pos += 4
-            if pos + length > rlen:
-                self._error = 'incomplete reply'
+            req = ''.join(req)
+            length = len(req)
+            req = pack('>2HL', SEARCHD_COMMAND_EXCERPT, VER_COMMAND_EXCERPT, length) + req
+            self._Send(sock, req)
+            response = self._GetResponse(sock, VER_COMMAND_EXCERPT)
+            if not response:
                 return []
-            res.append(response[pos:pos + length])
-            pos += length
+            pos = 0
+            res = []
+            rlen = len(response)
+            for i in range(len(docs)):
+                length = unpack('>L', response[pos:pos + 4])[0]
+                pos += 4
+                if pos + length > rlen:
+                    self._error = 'incomplete reply'
+                    return []
+                res.append(response[pos:pos + length])
+                pos += length
 
-        return res
+            return res
 
-    def UpdateAttributes(self, index, attrs, values, mva = False, ignorenonexistent = False):
+    def UpdateAttributes(self, index, attrs, values, mva=False, ignorenonexistent=False):
         for attr in attrs:
             pass
 
@@ -746,15 +755,16 @@ class SphinxClient():
         sock = self._Connect()
         if not sock:
             return None
-        req = ''.join(req)
-        length = len(req)
-        req = pack('>2HL', SEARCHD_COMMAND_UPDATE, VER_COMMAND_UPDATE, length) + req
-        self._Send(sock, req)
-        response = self._GetResponse(sock, VER_COMMAND_UPDATE)
-        if not response:
-            return -1
-        updated = unpack('>L', response[0:4])[0]
-        return updated
+        else:
+            req = ''.join(req)
+            length = len(req)
+            req = pack('>2HL', SEARCHD_COMMAND_UPDATE, VER_COMMAND_UPDATE, length) + req
+            self._Send(sock, req)
+            response = self._GetResponse(sock, VER_COMMAND_UPDATE)
+            if not response:
+                return -1
+            updated = unpack('>L', response[0:4])[0]
+            return updated
 
     def BuildKeywords(self, query, index, hits):
         req = [pack('>L', len(query)) + query]
@@ -794,49 +804,54 @@ class SphinxClient():
         if nwords > 0 or p > max_:
             self._error = 'incomplete reply'
             return None
-        return res
+        else:
+            return res
 
     def Status(self):
         sock = self._Connect()
         if not sock:
             return None
-        req = pack('>2HLL', SEARCHD_COMMAND_STATUS, VER_COMMAND_STATUS, 4, 1)
-        self._Send(sock, req)
-        response = self._GetResponse(sock, VER_COMMAND_STATUS)
-        if not response:
-            return None
-        res = []
-        p = 8
-        max_ = len(response)
-        while p < max_:
-            length = unpack('>L', response[p:p + 4])[0]
-            k = response[p + 4:p + length + 4]
-            p += 4 + length
-            length = unpack('>L', response[p:p + 4])[0]
-            v = response[p + 4:p + length + 4]
-            p += 4 + length
-            res += [[k, v]]
+        else:
+            req = pack('>2HLL', SEARCHD_COMMAND_STATUS, VER_COMMAND_STATUS, 4, 1)
+            self._Send(sock, req)
+            response = self._GetResponse(sock, VER_COMMAND_STATUS)
+            if not response:
+                return None
+            res = []
+            p = 8
+            max_ = len(response)
+            while p < max_:
+                length = unpack('>L', response[p:p + 4])[0]
+                k = response[p + 4:p + length + 4]
+                p += 4 + length
+                length = unpack('>L', response[p:p + 4])[0]
+                v = response[p + 4:p + length + 4]
+                p += 4 + length
+                res += [[k, v]]
 
-        return res
+            return res
 
     def Open(self):
         if self._socket:
             self._error = 'already connected'
             return None
-        server = self._Connect()
-        if not server:
-            return None
-        request = pack('>hhII', SEARCHD_COMMAND_PERSIST, 0, 4, 1)
-        self._Send(server, request)
-        self._socket = server
-        return True
+        else:
+            server = self._Connect()
+            if not server:
+                return None
+            request = pack('>hhII', SEARCHD_COMMAND_PERSIST, 0, 4, 1)
+            self._Send(server, request)
+            self._socket = server
+            return True
 
     def Close(self):
         if not self._socket:
             self._error = 'not connected'
             return
-        self._socket.close()
-        self._socket = None
+        else:
+            self._socket.close()
+            self._socket = None
+            return
 
     def EscapeString(self, string):
         return re.sub('([=\\(\\)|\\-!@~\\"&/\\\\\\^\\$\\=\\<])', '\\\\\\1', string)

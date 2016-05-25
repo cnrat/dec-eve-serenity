@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\client\script\ui\shared\industry\views\industryTooltips.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\client\script\ui\shared\industry\views\industryTooltips.py
 from collections import defaultdict
 from carbonui import const as uiconst
 from carbonui.control.menuLabel import MenuLabel
@@ -63,7 +64,7 @@ def AddPriceRow(panel, price):
     panel.AddCell(cellPadding=PADBOTTOM, colSpan=2)
 
 
-def AddTypeBonusRow(panel, text, bonusME = None, bonusTE = None):
+def AddTypeBonusRow(panel, text, bonusME=None, bonusTE=None):
     label = EveLabelMedium(text=text, color=Color.GRAY)
     panel.AddCell(label)
     if bonusME:
@@ -76,19 +77,20 @@ def AddTypeBonusRow(panel, text, bonusME = None, bonusTE = None):
     panel.AddCell(cellPadding=PADBOTTOM, colSpan=2)
 
 
-def AddDescriptionRow(panel, text, cellPadding = PADBOTTOM):
+def AddDescriptionRow(panel, text, cellPadding=PADBOTTOM):
     if text:
         description = EveLabelMedium(text=text, color=Color.GRAY, align=uiconst.TOTOP)
         panel.AddCell(description, colSpan=2, cellPadding=cellPadding)
 
 
-def AddSkillRow(panel, typeID, level = None, cellPadding = PADBOTTOM):
+def AddSkillRow(panel, typeID, level=None, cellPadding=PADBOTTOM):
     if level is None:
         showLevel = False
         level = 1
     else:
         showLevel = True
     panel.AddRow(rowClass=IndustrySkillEntry, typeID=typeID, level=level, showLevel=showLevel)
+    return
 
 
 def AddErrorRow(panel, error, errorArgs):
@@ -122,7 +124,7 @@ def AddJobModifierRows(panel, modifierCls, jobData):
     panel.AddSpacer(0, 6, colSpan=2)
 
 
-def AddSystemCostIndexRow(activityID, facilityData, tooltipPanel, cellPadding = (8, 0, 0, 8)):
+def AddSystemCostIndexRow(activityID, facilityData, tooltipPanel, cellPadding=(8, 0, 0, 8)):
     text = '<color=gray>' + localization.GetByLabel('UI/Industry/SystemCostIndex')
     tooltipPanel.AddLabelMedium(text=text, align=uiconst.TOPLEFT, cellPadding=(0, 0, 0, 0))
     height = 13
@@ -252,6 +254,7 @@ class MaterialIconAndLabel(ContainerAutoSize):
             bpData = None
         icon = ItemIcon(parent=self, align=uiconst.CENTERLEFT, state=uiconst.UI_DISABLED, pos=(0, 0, 20, 20), typeID=self.materialData.typeID, bpData=bpData)
         label = EveLabelMedium(parent=self, align=uiconst.CENTERLEFT, text=self.materialData.GetName(), left=24)
+        return
 
     def GetMenu(self):
         menu = sm.GetService('menu').GetMenuFormItemIDTypeID(None, self.materialData.typeID, ignoreMarketDetails=0)
@@ -362,6 +365,7 @@ class CostContainerTooltipPanel:
                 taxLabel = '<color=red>+%s%%</color>' % FormatNumeric(jobData.facility.tax * 100, useGrouping=True, decimalPlaces=1)
                 AddModifierRow(localization.GetByLabel('UI/Industry/FacilityTax'), taxLabel, tooltipPanel)
         tooltipPanel.AddSpacer(width=0, height=6)
+        return
 
 
 class ProbabilityTooltipPanel:
@@ -390,34 +394,36 @@ class FacilityActivityTooltip:
             text = localization.GetByLabel('UI/Industry/ActivityNotSupported')
             tooltipPanel.AddLabelMedium(text=text, cellPadding=PADBOTTOM, colSpan=2)
             return
-        if activityID == industry.MANUFACTURING:
-            activity = facilityData.activities[activityID]
-            categoryGroupData = self.GetTypesSupportedWithModifiers(activity, facilityData.modifiers)
-            if categoryGroupData:
-                label = IndustryCaptionLabel(text=localization.GetByLabel('UI/Industry/ManufacturingTypesHint'))
-                tooltipPanel.AddCell(label, colSpan=2)
-                self.scroll = ScrollContainer(align=uiconst.TOTOP, showUnderlay=True)
-                for text, modifierME, modifierTE in categoryGroupData:
-                    Label(parent=self.scroll, align=uiconst.TOTOP, text=text, padding=2)
-                    if modifierME:
-                        Label(parent=self.scroll, align=uiconst.TOTOP, text='<color=gray>%s:</color> %s' % (localization.GetByLabel('UI/Industry/MaterialConsumption'), modifierME.GetPercentageLabel()), fontsize=10, padding=(2, 0, 2, 2))
-                    if modifierTE:
-                        Label(parent=self.scroll, align=uiconst.TOTOP, text='<color=gray>%s</color> %s' % (localization.GetByLabel('UI/Industry/JobDuration'), modifierTE.GetPercentageLabel()), fontsize=10, padding=(2, -3, 2, 3))
+        else:
+            if activityID == industry.MANUFACTURING:
+                activity = facilityData.activities[activityID]
+                categoryGroupData = self.GetTypesSupportedWithModifiers(activity, facilityData.modifiers)
+                if categoryGroupData:
+                    label = IndustryCaptionLabel(text=localization.GetByLabel('UI/Industry/ManufacturingTypesHint'))
+                    tooltipPanel.AddCell(label, colSpan=2)
+                    self.scroll = ScrollContainer(align=uiconst.TOTOP, showUnderlay=True)
+                    for text, modifierME, modifierTE in categoryGroupData:
+                        Label(parent=self.scroll, align=uiconst.TOTOP, text=text, padding=2)
+                        if modifierME:
+                            Label(parent=self.scroll, align=uiconst.TOTOP, text='<color=gray>%s:</color> %s' % (localization.GetByLabel('UI/Industry/MaterialConsumption'), modifierME.GetPercentageLabel()), fontsize=10, padding=(2, 0, 2, 2))
+                        if modifierTE:
+                            Label(parent=self.scroll, align=uiconst.TOTOP, text='<color=gray>%s</color> %s' % (localization.GetByLabel('UI/Industry/JobDuration'), modifierTE.GetPercentageLabel()), fontsize=10, padding=(2, -3, 2, 3))
 
-                self.scroll.height = min(150, len(categoryGroupData) * 20)
-                tooltipPanel.AddCell(self.scroll, cellPadding=PADBOTTOM, colSpan=2)
-        modifiers = facilityData.GetFacilityModifiersByActivityID().get(activityID, None)
-        if modifiers:
-            for modifierCls, label in ((industry.TimeModifier, 'UI/Industry/ModifierTimeCaption'), (industry.MaterialModifier, 'UI/Industry/ModifierMaterialCaption'), (industry.CostModifier, 'UI/Industry/ModifierCostCaption')):
-                clsModifiers = [ modifier for modifier in modifiers if isinstance(modifier, modifierCls) ]
-                if clsModifiers:
-                    AddModifierRows(localization.GetByLabel(label), clsModifiers, tooltipPanel)
-                    tooltipPanel.AddSpacer(0, 6, colSpan=2)
+                    self.scroll.height = min(150, len(categoryGroupData) * 20)
+                    tooltipPanel.AddCell(self.scroll, cellPadding=PADBOTTOM, colSpan=2)
+            modifiers = facilityData.GetFacilityModifiersByActivityID().get(activityID, None)
+            if modifiers:
+                for modifierCls, label in ((industry.TimeModifier, 'UI/Industry/ModifierTimeCaption'), (industry.MaterialModifier, 'UI/Industry/ModifierMaterialCaption'), (industry.CostModifier, 'UI/Industry/ModifierCostCaption')):
+                    clsModifiers = [ modifier for modifier in modifiers if isinstance(modifier, modifierCls) ]
+                    if clsModifiers:
+                        AddModifierRows(localization.GetByLabel(label), clsModifiers, tooltipPanel)
+                        tooltipPanel.AddSpacer(0, 6, colSpan=2)
 
-        costIndexes = facilityData.GetCostIndexByActivityID()
-        costIndex = costIndexes.get(activityID, None)
-        if costIndex:
-            AddSystemCostIndexRow(activityID, facilityData, tooltipPanel)
+            costIndexes = facilityData.GetCostIndexByActivityID()
+            costIndex = costIndexes.get(activityID, None)
+            if costIndex:
+                AddSystemCostIndexRow(activityID, facilityData, tooltipPanel)
+            return
 
     def GetMETEModifiers(self, modifiers):
         modifierME = modifierTE = None

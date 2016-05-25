@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\packages\notifications\client\mailInteractor.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\packages\notifications\client\mailInteractor.py
 import form
 import eve.common.script.util.notificationconst as notificationConst
 import blue
@@ -16,7 +17,7 @@ class MailInteractor(object):
         if sleep:
             blue.pyos.synchro.SleepWallclock(50)
 
-    def GetNotificationForm(self, doSleep = True):
+    def GetNotificationForm(self, doSleep=True):
         wnd = self.GetMailWindow()
         self.SleepIfTrue(doSleep)
         wnd.SelectNotificationTab()
@@ -38,3 +39,5 @@ class MailInteractor(object):
             for notificationid in notificationList:
                 if notificationTypeID == notificationid:
                     return groupID
+
+        return None

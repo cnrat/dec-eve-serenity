@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\common\script\planet\entities\commandPin.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\common\script\planet\entities\commandPin.py
 import eve.common.script.util.planetCommon as planetCommon
 from eve.common.script.planet.entities.spaceportPin import SpaceportPin
 

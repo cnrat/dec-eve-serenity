@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\packages\carbonui\services\ime.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\packages\carbonui\services\ime.py
 import uthread
 import trinity
 import blue
@@ -255,6 +256,8 @@ class ImeHandler(object):
         except:
             print 'IME failed to register notify'
 
+        return
+
     def LogInfo(self, *k, **v):
         lg.Info('ime', *k, **v)
 
@@ -264,7 +267,7 @@ class ImeHandler(object):
     def LogError(self, *k, **v):
         lg.Error('ime', *k, **v)
 
-    def SetDebug(self, on = 1):
+    def SetDebug(self, on=1):
         self.debug = on
 
     def __del__(self):
@@ -289,9 +292,12 @@ class ImeHandler(object):
         self.readingWindow = None
         if getattr(uicore, 'uilib', None) is None:
             return
-        for each in uicore.desktop.children[:]:
-            if each.name == 'IME':
-                each.Close()
+        else:
+            for each in uicore.desktop.children[:]:
+                if each.name == 'IME':
+                    each.Close()
+
+            return
 
     def OnSessionChanged(self, isRemote, sess, change):
         if self.debug:
@@ -299,6 +305,7 @@ class ImeHandler(object):
         triapp = trinity.app
         self.ime.SetHWND(triapp.GetHwndAsLong())
         self.ime.OnLanguageChanged()
+        return None
 
     def GetKeyboardLanguageID(self):
         current = self.ime.GetKeyboardLayout()
@@ -311,7 +318,6 @@ class ImeHandler(object):
             return 1
         if self.readingWindow and self.readingWindow.state != uiconst.UI_HIDDEN:
             return 1
-        return 0
 
     def IsImeWidget(self, widget):
         return isinstance(widget, self.allowed)
@@ -330,7 +336,6 @@ class ImeHandler(object):
         self.UpdateLanguageIndicator()
         if self.debug:
             self.LogInfo('<OnLanguageChange: 1')
-        return 1
 
     def OnActivateApp(self, wp, lp):
         if self.debug:
@@ -338,8 +343,9 @@ class ImeHandler(object):
         self.SetImeState(wp)
         if self.debug:
             self.LogInfo('<OnAcivateApp: None')
+        return None
 
-    def SetImeState(self, enable = True):
+    def SetImeState(self, enable=True):
         if enable and self.currentFocus:
             self.ime.AssociateContext(True)
         else:
@@ -380,39 +386,40 @@ class ImeHandler(object):
             if self.debug:
                 self.LogInfo('<OnComposition: None (Not handling IME)')
             return None
-        events = self.ImmGetCompositionString(lp)
-        if GCS_CURSORPOS in events:
-            pos = events[GCS_CURSORPOS]
-            if not self.IsImmError(pos):
-                self.s_nCompCaret = max(0, int(pos))
-        if GCS_RESULTSTR in events:
-            result = events[GCS_RESULTSTR]
-            if not self.IsImmError(result):
-                self.TruncateCompString(len(result))
-                self.s_CompString = result
-                self.SendCompString()
-                self.ResetCompositionString()
-                self.ShowCompWindow()
-        if GCS_COMPSTR in events:
-            result = events[GCS_COMPSTR]
-            if result and not self.IsImmError(result):
-                self.TruncateCompString(len(result))
-                if self.HandleMaxCompositionString(result):
-                    if self.debug:
-                        self.LogInfo('<OnComposition: 1 (HandleMaxComposition)')
-                    return 1
-                self.s_CompString = result
-                if self.s_bInsertOnType:
+        else:
+            events = self.ImmGetCompositionString(lp)
+            if GCS_CURSORPOS in events:
+                pos = events[GCS_CURSORPOS]
+                if not self.IsImmError(pos):
+                    self.s_nCompCaret = max(0, int(pos))
+            if GCS_RESULTSTR in events:
+                result = events[GCS_RESULTSTR]
+                if not self.IsImmError(result):
+                    self.TruncateCompString(len(result))
+                    self.s_CompString = result
                     self.SendCompString()
-                    nCount = len(self.s_CompString) - self.s_nCompCaret
-                    for i in xrange(nCount):
-                        self.currentFocus.OnKeyDown(uiconst.VK_LEFT, 0)
+                    self.ResetCompositionString()
+                    self.ShowCompWindow()
+            if GCS_COMPSTR in events:
+                result = events[GCS_COMPSTR]
+                if result and not self.IsImmError(result):
+                    self.TruncateCompString(len(result))
+                    if self.HandleMaxCompositionString(result):
+                        if self.debug:
+                            self.LogInfo('<OnComposition: 1 (HandleMaxComposition)')
+                        return 1
+                    self.s_CompString = result
+                    if self.s_bInsertOnType:
+                        self.SendCompString()
+                        nCount = len(self.s_CompString) - self.s_nCompCaret
+                        for i in xrange(nCount):
+                            self.currentFocus.OnKeyDown(uiconst.VK_LEFT, 0)
 
-            self.ResetCaretBlink()
-            self.ShowCompWindow()
-        if self.debug:
-            self.LogInfo('<OnComposition: 1')
-        return 1
+                self.ResetCaretBlink()
+                self.ShowCompWindow()
+            if self.debug:
+                self.LogInfo('<OnComposition: 1')
+            return 1
 
     def HandleMaxCompositionString(self, compositionString):
         if self.debug:
@@ -436,6 +443,7 @@ class ImeHandler(object):
                 if self.debug:
                     self.LogInfo('Backspacing:', count, 'done')
                 return 1
+        return
 
     def OnEndComposition(self, wp, lp):
         if uicore.uilib.Key(uiconst.VK_RETURN):
@@ -446,14 +454,15 @@ class ImeHandler(object):
             if self.debug:
                 self.LogInfo('<OnEndComposition: None (Not handling IME)')
             return None
-        self.TruncateCompString()
-        self.ResetCompositionString()
-        self.bShowReadingWindow = False
-        self.HideCompWindow()
-        self.compActive = False
-        if self.debug:
-            self.LogInfo('<OnEndComposition: True')
-        return True
+        else:
+            self.TruncateCompString()
+            self.ResetCompositionString()
+            self.bShowReadingWindow = False
+            self.HideCompWindow()
+            self.compActive = False
+            if self.debug:
+                self.LogInfo('<OnEndComposition: True')
+            return True
 
     def OnNotify(self, wp, lp):
         if self.debug:
@@ -467,55 +476,56 @@ class ImeHandler(object):
             if self.debug:
                 self.LogInfo('<OnNotify: None')
             return None
-        if wp in (IMN_SETCONVERSIONMODE, IMN_SETOPENSTATUS):
-            self.UpdateLanguageIndicator()
-        elif wp in (IMN_OPENCANDIDATE, IMN_CHANGECANDIDATE):
-            self.bShowCandidateWindow = True
-            self.bShowReadingWindow = False
-            cList = self.ImmGetCandidateList()
-            if self.debug:
-                self.LogInfo('  Candidates:', cList)
-            if cList:
-                self.ShowReadingWindow(cList)
-        elif wp == IMN_CLOSECANDIDATE:
-            self.bShowCandidateWindow = False
-            self.s_CandList = {}
-            self.HideReadingWindow()
-        elif wp == IMN_PRIVATE:
-            if not self.bShowCandidateWindow:
-                cList = self.ime.GetReadingString()
+        else:
+            if wp in (IMN_SETCONVERSIONMODE, IMN_SETOPENSTATUS):
+                self.UpdateLanguageIndicator()
+            elif wp in (IMN_OPENCANDIDATE, IMN_CHANGECANDIDATE):
+                self.bShowCandidateWindow = True
+                self.bShowReadingWindow = False
+                cList = self.ImmGetCandidateList()
                 if self.debug:
-                    self.LogInfo('  ReadingStrings:', cList)
-                self.s_CandList.update(cList)
-                if cList.has_key('Strings') and cList['Strings']:
-                    self.bShowReadingWindow = True
+                    self.LogInfo('  Candidates:', cList)
+                if cList:
                     self.ShowReadingWindow(cList)
-                else:
-                    self.bShowReadingWindow = False
-                    self.HideReadingWindow()
-            imeID = self.GetImeId()
-            trap = False
-            if imeID in (IMEID_CHT_VER42,
-             IMEID_CHT_VER43,
-             IMEID_CHT_VER44,
-             IMEID_CHS_VER41,
-             IMEID_CHS_VER42):
-                if lp == 1 or lp == 2:
-                    trap = True
-            elif imeID in (IMEID_CHT_VER50,
-             IMEID_CHT_VER51,
-             IMEID_CHT_VER52,
-             IMEID_CHT_VER60,
-             IMEID_CHS_VER53):
-                if lp in (16, 17, 26, 27, 28):
-                    trap = True
-            if trap:
-                if self.debug:
-                    self.LogInfo('<OnNotify: 1 (Trapping IMN_PRIVATE)')
-                return 1
-        if self.debug:
-            self.LogInfo('<OnNotify: 0')
-        return 0
+            elif wp == IMN_CLOSECANDIDATE:
+                self.bShowCandidateWindow = False
+                self.s_CandList = {}
+                self.HideReadingWindow()
+            elif wp == IMN_PRIVATE:
+                if not self.bShowCandidateWindow:
+                    cList = self.ime.GetReadingString()
+                    if self.debug:
+                        self.LogInfo('  ReadingStrings:', cList)
+                    self.s_CandList.update(cList)
+                    if cList.has_key('Strings') and cList['Strings']:
+                        self.bShowReadingWindow = True
+                        self.ShowReadingWindow(cList)
+                    else:
+                        self.bShowReadingWindow = False
+                        self.HideReadingWindow()
+                imeID = self.GetImeId()
+                trap = False
+                if imeID in (IMEID_CHT_VER42,
+                 IMEID_CHT_VER43,
+                 IMEID_CHT_VER44,
+                 IMEID_CHS_VER41,
+                 IMEID_CHS_VER42):
+                    if lp == 1 or lp == 2:
+                        trap = True
+                elif imeID in (IMEID_CHT_VER50,
+                 IMEID_CHT_VER51,
+                 IMEID_CHT_VER52,
+                 IMEID_CHT_VER60,
+                 IMEID_CHS_VER53):
+                    if lp in (16, 17, 26, 27, 28):
+                        trap = True
+                if trap:
+                    if self.debug:
+                        self.LogInfo('<OnNotify: 1 (Trapping IMN_PRIVATE)')
+                    return 1
+            if self.debug:
+                self.LogInfo('<OnNotify: 0')
+            return 0
 
     def _SplitLangIdentifier(self, code):
         code = code & 4026531839L
@@ -536,7 +546,7 @@ class ImeHandler(object):
         else:
             self.s_bVerticalCand = True
 
-    def GetLanguageIndicator(self, code = None, conv = None):
+    def GetLanguageIndicator(self, code=None, conv=None):
         if self.debug:
             self.LogInfo('    GetLanguageIndicator code:', code, 'conv:', conv)
         primLang, subLang = self._SplitLangIdentifier(code or self.currentLanguage)
@@ -574,7 +584,7 @@ class ImeHandler(object):
         self.s_nCompCaret = 0
         self.s_CompString = ''
 
-    def TruncateCompString(self, iNewStrLen = 0):
+    def TruncateCompString(self, iNewStrLen=0):
         if self.debug:
             self.LogInfo('    TruncateCompositionString iNewStrLen:', iNewStrLen)
         if not self.s_bInsertOnType:
@@ -610,7 +620,7 @@ class ImeHandler(object):
             if hasattr(self.currentFocus, 'OnKeyDown'):
                 self.currentFocus.OnKeyDown(uiconst.VK_LEFT, 0)
 
-    def FinalizeString(self, bSend = False):
+    def FinalizeString(self, bSend=False):
         if self.debug:
             self.LogInfo('    FinalizeString bSend:', bSend)
         if not self.s_bInsertOnType and bSend:
@@ -714,12 +724,14 @@ class ImeHandler(object):
                  (0, -self.readingWindow.height - 6),
                  (6, 0),
                  (-self.readingWindow.width - 6, 0)]:
-                    if 0 < x + xOffset < uicore.desktop.width - self.readingWindow.width and 0 < y + yOffset < uicore.desktop.height - self.readingWindow.height:
-                        self.readingWindow.left = x + xOffset
+                    if 0 < x + xOffset < uicore.desktop.width - self.readingWindow.width:
+                        self.readingWindow.left = 0 < y + yOffset < uicore.desktop.height - self.readingWindow.height and x + xOffset
                         self.readingWindow.top = y + yOffset
                         break
 
             blue.pyos.synchro.SleepWallclock(sleeptime)
+
+        return
 
     def HideCompWindow(self):
         if self.debug:
@@ -733,14 +745,15 @@ class ImeHandler(object):
         if not pos or not self.s_CompString:
             self.LogInfo('    GetCompCursorPos Escaped, pos, s_CompString', pos, self.s_CompString)
             return 0
-        if getattr(self, 'compText', None):
-            fontsize = self.compText.fontsize
-            textWidth, textHeight = self.compText.MeasureTextSize(self.s_CompString[:pos], fontsize=fontsize)
         else:
-            textWidth, textHeight = LabelCore.MeasureTextSize(self.s_CompString[:pos])
-        return textWidth
+            if getattr(self, 'compText', None):
+                fontsize = self.compText.fontsize
+                textWidth, textHeight = self.compText.MeasureTextSize(self.s_CompString[:pos], fontsize=fontsize)
+            else:
+                textWidth, textHeight = LabelCore.MeasureTextSize(self.s_CompString[:pos])
+            return textWidth
 
-    def ShowReadingWindow(self, cList = None):
+    def ShowReadingWindow(self, cList=None):
         if self.debug:
             self.LogInfo('    ShowReadingWindow')
         if not self.compWindow:
@@ -847,8 +860,8 @@ class ImeHandler(object):
              (0, -self.readingWindow.height - 6),
              (6, 0),
              (-self.readingWindow.width - 6, 0)]:
-                if 0 < x + xOffset < uicore.desktop.width - self.readingWindow.width and 0 < y + yOffset < uicore.desktop.height - self.readingWindow.height:
-                    self.readingWindow.left = x + xOffset
+                if 0 < x + xOffset < uicore.desktop.width - self.readingWindow.width:
+                    self.readingWindow.left = 0 < y + yOffset < uicore.desktop.height - self.readingWindow.height and x + xOffset
                     self.readingWindow.top = y + yOffset
                     break
 
@@ -868,6 +881,7 @@ class ImeHandler(object):
         else:
             self.currentFocus = None
         self.SetImeState()
+        return
 
     def KillFocus(self, widget):
         if self.debug:
@@ -877,6 +891,7 @@ class ImeHandler(object):
         self.HideReadingWindow()
         self.currentFocus = None
         self.SetImeState()
+        return
 
     def GetMenuDelegate(self, widget, node, m):
         if self.debug:
@@ -910,7 +925,7 @@ class ImeHandler(object):
     def IsHandlingIme(self):
         return settings.user.ui.Get('nativeIME', True)
 
-    def GetImeId(self, index = 0):
+    def GetImeId(self, index=0):
         return self.ime.GetImeId()
 
     def ImmNotifyIME(self, action, index, value):

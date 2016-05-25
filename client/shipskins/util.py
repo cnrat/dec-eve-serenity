@@ -1,7 +1,8 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\packages\shipskins\util.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\packages\shipskins\util.py
 import fsdlite
 
-def repr(obj, exclude = []):
+def repr(obj, exclude=[]):
     exclude.append('__immutable__')
     if hasattr(obj, '__slots__'):
         return '<shipskins.{} {}>'.format(obj.__class__.__name__, ' '.join([ '{}={}'.format(key.strip('_'), getattr(obj, key, None)) for key in obj.__slots__ if key not in exclude ]))
@@ -9,6 +10,7 @@ def repr(obj, exclude = []):
         return '<shipskins.{} {}>'.format(obj.__class__.__name__, ' '.join([ '{}={}'.format(key.strip('_'), value) for key, value in obj.__dict__.iteritems() if key not in exclude ]))
     else:
         return str(obj)
+        return None
 
 
 class Base(object):

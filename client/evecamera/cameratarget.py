@@ -1,18 +1,21 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\packages\evecamera\cameratarget.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\packages\evecamera\cameratarget.py
 import trinity
 
 class CameraTarget(object):
 
-    def __init__(self, camera, target = 'parent'):
+    def __init__(self, camera, target='parent'):
         self._translationCurve = None
         self._camera = camera
         self._translAttrib = target
         self.SetTranslationCurve(camera.parent)
+        return
 
     def SetTranslationCurve(self, curve):
         self._translationCurve = curve
         if self._camera is not None:
             setattr(self._camera, self._translAttrib, curve)
+        return
 
     def GetTranslationCurve(self):
         return self._translationCurve
@@ -23,16 +26,18 @@ class CameraTarget(object):
             curve = trinity.EveLocalPositionCurve(behavior)
             self.SetTranslationCurve(curve)
         self._translationCurve.value = value
+        return
 
     def GetTranslation(self):
         curve = self.GetTranslationCurve()
         if curve is None:
             return (0, 0, 0)
-        if hasattr(curve, 'value'):
+        elif hasattr(curve, 'value'):
             if hasattr(curve.value, 'x'):
                 return (curve.value.x, curve.value.y, curve.value.z)
             return curve.value
-        return (curve.x, curve.y, curve.z)
+        else:
+            return (curve.x, curve.y, curve.z)
 
     def SetParent(self, parent):
         if hasattr(self._translationCurve, 'parent'):

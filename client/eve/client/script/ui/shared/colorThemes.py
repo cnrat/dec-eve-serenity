@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\client\script\ui\shared\colorThemes.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\client\script\ui\shared\colorThemes.py
 DEFAULT_COLORTHEMEID = 'UI/ColorThemes/Plasma'
 THEMES = (('UI/ColorThemes/Minmatar', (0.0679, 0.0718, 0.0736), (0.4662, 0.3118, 0.2241)),
  ('UI/ColorThemes/Minmatar2', (0.058, 0.053, 0.0485), (0.4689, 0.3159, 0.1836)),

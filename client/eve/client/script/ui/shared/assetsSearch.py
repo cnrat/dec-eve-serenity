@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\client\script\ui\shared\assetsSearch.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\client\script\ui\shared\assetsSearch.py
 from eveAssets.assetSearchUtil import IsPartOfText, IsTextMatch, ParseString
 import uiprimitives
 import uicontrols
@@ -94,7 +95,7 @@ class SearchBox(uicontrols.SinglelineEdit):
             if IsPartOfText(kw.keyword, keyword):
                 yield kw
 
-    def SplitText(self, baseText, removeSeprator = False):
+    def SplitText(self, baseText, removeSeprator=False):
         strippedText, lastWord = (None, None)
         parts = baseText.split()
         if parts:
@@ -113,6 +114,7 @@ class SearchBox(uicontrols.SinglelineEdit):
         if currentString.rstrip().endswith(':'):
             self.CheckHistory()
         self.refreshHistoryTimer = None
+        return
 
     def OnHistoryClick(self, clickedString):
         self.TryRefreshHistory(clickedString)
@@ -135,3 +137,4 @@ class SearchBox(uicontrols.SinglelineEdit):
         uicontrols.SinglelineEdit.Confirm(self, *args)
         if active:
             self.TryRefreshHistory(text)
+        return

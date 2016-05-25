@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\carbon\common\stdlib\xmlrpclib.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\carbon\common\stdlib\xmlrpclib.py
 import re, string, time, operator
 from types import *
 import socket
@@ -24,13 +25,13 @@ try:
 except NameError:
     _bool_is_builtin = 0
 
-def _decode(data, encoding, is8bit = re.compile('[\x80-\xff]').search):
+def _decode(data, encoding, is8bit=re.compile('[\x80-\xff]').search):
     if unicode and encoding and is8bit(data):
         data = unicode(data, encoding)
     return data
 
 
-def escape(s, replace = string.replace):
+def escape(s, replace=string.replace):
     s = replace(s, '&', '&amp;')
     s = replace(s, '<', '&lt;')
     return replace(s, '>', '&gt;')
@@ -111,7 +112,7 @@ else:
 
     class Boolean:
 
-        def __init__(self, value = 0):
+        def __init__(self, value=0):
             self.value = operator.truth(value)
 
         def encode(self, out):
@@ -138,7 +139,7 @@ else:
     mod_dict['True'] = Boolean(1)
     mod_dict['False'] = Boolean(0)
 
-    def boolean(value, _truefalse = (False, True)):
+    def boolean(value, _truefalse=(False, True)):
         return _truefalse[operator.truth(value)]
 
 
@@ -163,7 +164,7 @@ def _strftime(value):
 
 class DateTime:
 
-    def __init__(self, value = 0):
+    def __init__(self, value=0):
         if isinstance(value, StringType):
             self.value = value
         else:
@@ -253,7 +254,7 @@ except ImportError:
 
 class Binary:
 
-    def __init__(self, data = None):
+    def __init__(self, data=None):
         self.data = data
 
     def __str__(self):
@@ -315,6 +316,7 @@ else:
             if not parser.returns_unicode:
                 encoding = 'utf-8'
             target.xml(encoding, None)
+            return
 
         def feed(self, data):
             self._parser.Parse(data, 0)
@@ -344,11 +346,12 @@ class SlowParser:
 
 class Marshaller:
 
-    def __init__(self, encoding = None, allow_none = 0):
+    def __init__(self, encoding=None, allow_none=0):
         self.memo = {}
         self.data = None
         self.encoding = encoding
         self.allow_none = allow_none
+        return
 
     dispatch = {}
 
@@ -429,7 +432,7 @@ class Marshaller:
 
     dispatch[FloatType] = dump_double
 
-    def dump_string(self, value, write, escape = escape):
+    def dump_string(self, value, write, escape=escape):
         write('<value><string>')
         write(escape(value))
         write('</string></value>\n')
@@ -437,7 +440,7 @@ class Marshaller:
     dispatch[StringType] = dump_string
     if unicode:
 
-        def dump_unicode(self, value, write, escape = escape):
+        def dump_unicode(self, value, write, escape=escape):
             value = value.encode(self.encoding)
             write('<value><string>')
             write(escape(value))
@@ -457,11 +460,12 @@ class Marshaller:
 
         write('</data></array></value>\n')
         del self.memo[i]
+        return
 
     dispatch[TupleType] = dump_array
     dispatch[ListType] = dump_array
 
-    def dump_struct(self, value, write, escape = escape):
+    def dump_struct(self, value, write, escape=escape):
         i = id(value)
         if i in self.memo:
             raise TypeError, 'cannot marshal recursive dictionaries'
@@ -481,6 +485,7 @@ class Marshaller:
 
         write('</struct></value>\n')
         del self.memo[i]
+        return
 
     dispatch[DictType] = dump_struct
     if datetime:
@@ -505,7 +510,7 @@ class Marshaller:
 
 class Unmarshaller:
 
-    def __init__(self, use_datetime = 0):
+    def __init__(self, use_datetime=0):
         self._type = None
         self._stack = []
         self._marks = []
@@ -516,6 +521,7 @@ class Unmarshaller:
         self._use_datetime = use_datetime
         if use_datetime and not datetime:
             raise ValueError, 'the datetime module is not available'
+        return
 
     def close(self):
         if self._type is None or self._marks:
@@ -539,7 +545,7 @@ class Unmarshaller:
     def data(self, text):
         self._data.append(text)
 
-    def end(self, tag, join = string.join):
+    def end(self, tag, join=string.join):
         try:
             f = self.dispatch[tag]
         except KeyError:
@@ -560,6 +566,7 @@ class Unmarshaller:
     def end_nil(self, data):
         self.append(None)
         self._value = 0
+        return
 
     dispatch['nil'] = end_nil
 
@@ -709,7 +716,7 @@ class MultiCall:
         return MultiCallIterator(self.__server.system.multicall(marshalled_list))
 
 
-def getparser(use_datetime = 0):
+def getparser(use_datetime=0):
     if use_datetime and not datetime:
         raise ValueError, 'the datetime module is not available'
     if FastParser and FastUnmarshaller:
@@ -730,7 +737,7 @@ def getparser(use_datetime = 0):
     return (parser, target)
 
 
-def dumps(params, methodname = None, methodresponse = None, encoding = None, allow_none = 0):
+def dumps(params, methodname=None, methodresponse=None, encoding=None, allow_none=0):
     if isinstance(params, Fault):
         methodresponse = 1
     elif methodresponse and isinstance(params, TupleType):
@@ -765,7 +772,7 @@ def dumps(params, methodname = None, methodresponse = None, encoding = None, all
     return string.join(data, '')
 
 
-def loads(data, use_datetime = 0):
+def loads(data, use_datetime=0):
     p, u = getparser(use_datetime=use_datetime)
     p.feed(data)
     p.close()
@@ -830,12 +837,13 @@ class Transport:
     accept_gzip_encoding = True
     encode_threshold = None
 
-    def __init__(self, use_datetime = 0):
+    def __init__(self, use_datetime=0):
         self._use_datetime = use_datetime
         self._connection = (None, None)
         self._extra_headers = []
+        return None
 
-    def request(self, host, handler, request_body, verbose = 0):
+    def request(self, host, handler, request_body, verbose=0):
         for i in (0, 1):
             try:
                 return self.single_request(host, handler, request_body, verbose)
@@ -846,7 +854,7 @@ class Transport:
                 if i:
                     raise
 
-    def single_request(self, host, handler, request_body, verbose = 0):
+    def single_request(self, host, handler, request_body, verbose=0):
         h = self.make_connection(host)
         if verbose:
             h.set_debuglevel(1)
@@ -898,6 +906,7 @@ class Transport:
         if self._connection[1]:
             self._connection[1].close()
             self._connection = (None, None)
+        return None
 
     def send_request(self, connection, handler, request_body):
         if self.accept_gzip_encoding and gzip:
@@ -924,6 +933,7 @@ class Transport:
             request_body = gzip_encode(request_body)
         connection.putheader('Content-Length', str(len(request_body)))
         connection.endheaders(request_body)
+        return
 
     def parse_response(self, response):
         if response.getheader('Content-Encoding', '') == 'gzip':
@@ -950,19 +960,22 @@ class SafeTransport(Transport):
     def make_connection(self, host):
         if self._connection and host == self._connection[0]:
             return self._connection[1]
-        try:
-            HTTPS = httplib.HTTPSConnection
-        except AttributeError:
-            raise NotImplementedError("your version of httplib doesn't support HTTPS")
         else:
-            chost, self._extra_headers, x509 = self.get_host_info(host)
-            self._connection = (host, HTTPS(chost, None, **(x509 or {})))
-            return self._connection[1]
+            try:
+                HTTPS = httplib.HTTPSConnection
+            except AttributeError:
+                raise NotImplementedError("your version of httplib doesn't support HTTPS")
+            else:
+                chost, self._extra_headers, x509 = self.get_host_info(host)
+                self._connection = (host, HTTPS(chost, None, **(x509 or {})))
+                return self._connection[1]
+
+            return
 
 
 class ServerProxy:
 
-    def __init__(self, uri, transport = None, encoding = None, verbose = 0, allow_none = 0, use_datetime = 0):
+    def __init__(self, uri, transport=None, encoding=None, verbose=0, allow_none=0, use_datetime=0):
         import urllib
         type, uri = urllib.splittype(uri)
         if type not in ('http', 'https'):
@@ -979,6 +992,7 @@ class ServerProxy:
         self.__encoding = encoding
         self.__verbose = verbose
         self.__allow_none = allow_none
+        return
 
     def __close(self):
         self.__transport.close()

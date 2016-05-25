@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\client\script\ui\login\antiaddiction.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\client\script\ui\login\antiaddiction.py
 import blue
 import log
 import uthread
@@ -103,7 +104,7 @@ def HistoryKey():
     return 'aaLoginHistory_%s' % historyVersion
 
 
-def LoginHistory(init = 0):
+def LoginHistory(init=0):
     if init == 1:
         h = map(Session.PreLoad, GetAccruedTime())
     else:

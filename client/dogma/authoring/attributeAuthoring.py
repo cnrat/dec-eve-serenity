@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\packages\dogma\authoring\attributeAuthoring.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\packages\dogma\authoring\attributeAuthoring.py
 import ast
 
 class AttributeAuthoring(object):
@@ -7,7 +8,7 @@ class AttributeAuthoring(object):
         self.BSD = BSD
         self.attributeInfo = attributeInfo
 
-    def TypeSetAttribute(self, userID, typeID, attributeID, value, skipReload = 0, changeID = None):
+    def TypeSetAttribute(self, userID, typeID, attributeID, value, skipReload=0, changeID=None):
         try:
             value = ast.literal_eval(value)
         except ValueError:
@@ -25,26 +26,30 @@ class AttributeAuthoring(object):
         else:
             raise RuntimeError('ModifyingTypeTableNotImplemented', typeID, attributeID)
 
-    def TypeAddAttribute(self, userID, typeID, attributeID, value, skipReload = 0):
+    def TypeAddAttribute(self, userID, typeID, attributeID, value, skipReload=0):
         self.BSD.RevisionAddKey(userID, None, 'dogma', 'typeAttributesTx', typeID, attributeID, None, valueFloat=value)
+        return
 
     def TypeModifyAttribute(self, userID, typeID, attributeID, value, skipReload, changeID):
         self.BSD.RevisionEditKey(userID, changeID, 'dogma', 'typeAttributesTx', typeID, attributeID, None, valueFloat=value)
+        return
 
     def TypeModifyBasicAttribute(self, userID, typeID, attributeID, value, skipReload, changeID):
         attributeName = self.attributeInfo.GetAttributeName(attributeID)
         kwargs = {attributeName: value}
         self.BSD.RevisionEditKey(userID, changeID, 'inventory', 'typesTx', typeID, None, None, **kwargs)
+        return
 
-    def TypeRemoveAttribute(self, userID, typeID, attributeID, skipReload = 0):
+    def TypeRemoveAttribute(self, userID, typeID, attributeID, skipReload=0):
         if attributeID in self.attributeInfo.GetAttributesByTypeID(typeID):
             self.BSD.RevisionDeleteKey(userID, None, 'dogma', 'typeAttributesTx', typeID, attributeID)
+        return
 
-    def GroupSetAttribute(self, userID, groupID, attributeID, value, skipReload = 0):
+    def GroupSetAttribute(self, userID, groupID, attributeID, value, skipReload=0):
         for row in self.attributeInfo.GetTypesByGroupID(groupID):
             self.TypeSetAttribute(userID, row.typeID, attributeID, value, skipReload=skipReload)
 
-    def GroupRemoveAttribute(self, userID, groupID, attributeID, skipReload = 0):
+    def GroupRemoveAttribute(self, userID, groupID, attributeID, skipReload=0):
         for row in self.attributeInfo.GetTypesByGroupID(groupID):
             self.TypeRemoveAttribute(userID, row.typeID, attributeID)
 
@@ -52,19 +57,21 @@ class AttributeAuthoring(object):
         currentValue = self.attributeInfo.GetAttributeValueByTypeID(typeID, attributeID)
         return currentValue == newValue
 
-    def TypeAddEffect(self, userID, typeID, effectID, isDefault = 0, skipReload = 0):
+    def TypeAddEffect(self, userID, typeID, effectID, isDefault=0, skipReload=0):
         if effectID not in self.attributeInfo.GetEffectIDsByTypeID(typeID):
             self.BSD.RevisionAddKey(userID, None, 'dogma', 'typeEffectsTx', typeID, effectID, None, isDefault=isDefault)
+        return
 
-    def TypeRemoveEffect(self, userID, typeID, effectID, skipReload = 0):
+    def TypeRemoveEffect(self, userID, typeID, effectID, skipReload=0):
         if effectID in self.attributeInfo.GetEffectIDsByTypeID(typeID):
             self.BSD.RevisionDeleteKey(userID, None, 'dogma', 'typeEffectsTx', typeID, effectID)
+        return
 
-    def GroupAddEffect(self, userID, groupID, effectID, isDefault = 0, skipReload = 0):
+    def GroupAddEffect(self, userID, groupID, effectID, isDefault=0, skipReload=0):
         for row in self.attributeInfo.GetTypesByGroupID(groupID):
             self.TypeAddEffect(userID, row.typeID, effectID, isDefault, skipReload)
 
-    def GroupRemoveEffect(self, userID, groupID, effectID, skipReload = 0):
+    def GroupRemoveEffect(self, userID, groupID, effectID, skipReload=0):
         for row in self.attributeInfo.GetTypesByGroupID(groupID):
             self.TypeRemoveEffect(userID, row.typeID, effectID, skipReload)
 
@@ -96,6 +103,7 @@ class AttributeAuthoring(object):
         updatedAttributes = self._GetUpdatedBasicAttributesByTypeID(typeID, basicAttributes)
         if updatedAttributes:
             self.BSD.RevisionEdit(userID, None, revisionID, **updatedAttributes)
+        return
 
     def _GetUpdatedBasicAttributesByTypeID(self, typeID, basicAttributes):
         typeBasicAttributes = self.attributeInfo.GetBasicAttributesByTypeID(typeID)

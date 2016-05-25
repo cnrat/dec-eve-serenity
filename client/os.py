@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\carbon\common\stdlib\os.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\carbon\common\stdlib\os.py
 import sys, errno
 _names = sys.builtin_module_names
 __all__ = ['altsep',
@@ -116,7 +117,7 @@ SEEK_SET = 0
 SEEK_CUR = 1
 SEEK_END = 2
 
-def makedirs(name, mode = 511):
+def makedirs(name, mode=511):
     head, tail = path.split(name)
     if not tail:
         head, tail = path.split(head)
@@ -161,7 +162,7 @@ def renames(old, new):
 
 __all__.extend(['makedirs', 'removedirs', 'renames'])
 
-def walk(top, topdown = True, onerror = None, followlinks = False):
+def walk(top, topdown=True, onerror=None, followlinks=False):
     islink, join, isdir = path.islink, path.join, path.isdir
     try:
         names = listdir(top)
@@ -187,6 +188,7 @@ def walk(top, topdown = True, onerror = None, followlinks = False):
 
     if not topdown:
         yield (top, dirs, nondirs)
+    return
 
 
 __all__.append('walk')
@@ -228,7 +230,7 @@ __all__.extend(['execl',
  'execvp',
  'execvpe'])
 
-def _execvpe(file, args, env = None):
+def _execvpe(file, args, env=None):
     if env is not None:
         func = execve
         argrest = (args, env)
@@ -240,26 +242,28 @@ def _execvpe(file, args, env = None):
     if head:
         func(file, *argrest)
         return
-    if 'PATH' in env:
-        envpath = env['PATH']
     else:
-        envpath = defpath
-    PATH = envpath.split(pathsep)
-    saved_exc = None
-    saved_tb = None
-    for dir in PATH:
-        fullname = path.join(dir, file)
-        try:
-            func(fullname, *argrest)
-        except error as e:
-            tb = sys.exc_info()[2]
-            if e.errno != errno.ENOENT and e.errno != errno.ENOTDIR and saved_exc is None:
-                saved_exc = e
-                saved_tb = tb
+        if 'PATH' in env:
+            envpath = env['PATH']
+        else:
+            envpath = defpath
+        PATH = envpath.split(pathsep)
+        saved_exc = None
+        saved_tb = None
+        for dir in PATH:
+            fullname = path.join(dir, file)
+            try:
+                func(fullname, *argrest)
+            except error as e:
+                tb = sys.exc_info()[2]
+                if e.errno != errno.ENOENT and e.errno != errno.ENOTDIR and saved_exc is None:
+                    saved_exc = e
+                    saved_tb = tb
 
-    if saved_exc:
-        raise error, saved_exc, saved_tb
-    raise error, e, tb
+        if saved_exc:
+            raise error, saved_exc, saved_tb
+        raise error, e, tb
+        return
 
 
 try:
@@ -321,10 +325,10 @@ else:
             def __contains__(self, key):
                 return key.upper() in self.data
 
-            def get(self, key, failobj = None):
+            def get(self, key, failobj=None):
                 return self.data.get(key.upper(), failobj)
 
-            def update(self, dict = None, **kwargs):
+            def update(self, dict=None, **kwargs):
                 if dict:
                     try:
                         keys = dict.keys()
@@ -355,7 +359,7 @@ else:
                 putenv(key, item)
                 self.data[key] = item
 
-            def update(self, dict = None, **kwargs):
+            def update(self, dict=None, **kwargs):
                 if dict:
                     try:
                         keys = dict.keys()
@@ -395,7 +399,7 @@ else:
 
     environ = _Environ(environ)
 
-def getenv(key, default = None):
+def getenv(key, default=None):
     return environ.get(key, default)
 
 
@@ -433,6 +437,8 @@ if _exists('fork') and not _exists('spawnv') and _exists('execv'):
                     if WIFEXITED(sts):
                         return WEXITSTATUS(sts)
                     raise error, 'Not stopped, signaled or exited???'
+
+        return
 
 
     def spawnv(mode, file, args):
@@ -484,7 +490,7 @@ if _exists('spawnvp'):
 if _exists('fork'):
     if not _exists('popen2'):
 
-        def popen2(cmd, mode = 't', bufsize = -1):
+        def popen2(cmd, mode='t', bufsize=-1):
             import warnings
             msg = 'os.popen2 is deprecated.  Use the subprocess module.'
             warnings.warn(msg, DeprecationWarning, stacklevel=2)
@@ -497,7 +503,7 @@ if _exists('fork'):
         __all__.append('popen2')
     if not _exists('popen3'):
 
-        def popen3(cmd, mode = 't', bufsize = -1):
+        def popen3(cmd, mode='t', bufsize=-1):
             import warnings
             msg = 'os.popen3 is deprecated.  Use the subprocess module.'
             warnings.warn(msg, DeprecationWarning, stacklevel=2)
@@ -510,7 +516,7 @@ if _exists('fork'):
         __all__.append('popen3')
     if not _exists('popen4'):
 
-        def popen4(cmd, mode = 't', bufsize = -1):
+        def popen4(cmd, mode='t', bufsize=-1):
             import warnings
             msg = 'os.popen4 is deprecated.  Use the subprocess module.'
             warnings.warn(msg, DeprecationWarning, stacklevel=2)

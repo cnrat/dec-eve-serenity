@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\client\script\ui\services\wars\war_cso.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\client\script\ui\services\wars\war_cso.py
 from service import Service, SERVICE_START_PENDING, SERVICE_RUNNING
 from builtinmangler import CreateInstance
 import blue
@@ -33,7 +34,7 @@ class Wars(Service):
     def GetObjectNames(self):
         return self.__functionalobjects__
 
-    def Run(self, memStream = None):
+    def Run(self, memStream=None):
         self.LogInfo('Starting War')
         self.state = SERVICE_START_PENDING
         self.__warMoniker = None
@@ -63,10 +64,12 @@ class Wars(Service):
 
         self.state = SERVICE_RUNNING
         uthread.new(self.CheckForStartOrEndOfWar)
+        return
 
-    def Stop(self, memStream = None):
+    def Stop(self, memStream=None):
         self.__warMoniker = None
         self.__warMonikerOwnerID = None
+        return
 
     def DoSessionChanging(self, isRemote, session, change):
         try:
@@ -79,6 +82,7 @@ class Wars(Service):
     def RefreshMoniker(self):
         if self.__warMoniker is not None:
             self.__warMoniker.UnBind()
+        return
 
     def GetMoniker(self):
         if self.__warMoniker is None:
@@ -100,7 +104,9 @@ class Wars(Service):
             log.LogException()
             sys.exc_clear()
 
-    def GetWars(self, ownerID, forceRefresh = 0):
+        return
+
+    def GetWars(self, ownerID, forceRefresh=0):
         return self.wars.GetWars(ownerID, forceRefresh)
 
     def GetRelationship(self, ownerIDaskingAbout):
@@ -169,6 +175,7 @@ class Wars(Service):
         warMoniker = self.GetMoniker()
         warEntityID = session.corpid if session.allianceid is None else session.allianceid
         warMoniker.GMJoinDefender(warID, entityID, warEntityID)
+        return
 
     def GMClearForcedPeace(self, warID):
         self.GetMoniker().GMClearForcedPeace(warID)

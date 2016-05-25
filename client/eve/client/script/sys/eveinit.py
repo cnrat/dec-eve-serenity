@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\client\script\sys\eveinit.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\client\script\sys\eveinit.py
 import blue
 import base
 import uthread
@@ -15,7 +16,7 @@ from carbon.common.script.sys.row import Row
 
 class Eve:
 
-    def __init__(self, session = None):
+    def __init__(self, session=None):
         self.__stationItem = None
         self.session = session
         self.taketime = 1
@@ -27,6 +28,7 @@ class Eve:
         self.chooseWndMenu = None
         self.rookieState = None
         blue.pyos.exceptionHandler = self.ExceptionHandler
+        return
 
     def SetRookieState(self, state):
         if state != self.rookieState:
@@ -36,6 +38,7 @@ class Eve:
 
     def ClearStationItem(self):
         self.__stationItem = None
+        return
 
     def SetStationItemBits(self, bits):
         self.__stationItem = Row(['hangarGraphicID',
@@ -61,19 +64,22 @@ class Eve:
         if self.session is not None:
             base.CloseSession(self.session)
         blue.pyos.exceptionHandler = None
+        return
 
     def Message(self, *args, **kw):
         if args and args[0] == 'IgnoreToTop':
             return
-        if not getattr(uicore, 'desktop', None):
+        elif not getattr(uicore, 'desktop', None):
             return
-        curr = stackless.getcurrent()
-        if curr.is_main:
-            uthread.new(self._Message, *args, **kw).context = 'eve.Message'
         else:
-            return self._Message(*args, **kw)
+            curr = stackless.getcurrent()
+            if curr.is_main:
+                uthread.new(self._Message, *args, **kw).context = 'eve.Message'
+            else:
+                return self._Message(*args, **kw)
+            return
 
-    def _Message(self, msgkey, params = None, buttons = None, suppress = None, default = None, modal = True):
+    def _Message(self, msgkey, params=None, buttons=None, suppress=None, default=None, modal=True):
         if type(msgkey) not in types.StringTypes:
             raise RuntimeError('Invalid argument, msgkey must be a string', msgkey)
         msg = cfg.GetMessage(msgkey, params, onNotFound='raise')
@@ -94,80 +100,82 @@ class Eve:
                 sys.exc_clear()
 
             return
-        if buttons is not None and msg.type not in ('warning', 'question', 'fatal'):
-            raise RuntimeError('Cannot override buttons except in warning, question and fatal messages', msg, buttons, msg.type)
-        supp = settings.user.suppress.Get('suppress.' + msgkey, None)
-        if supp is not None:
-            if suppress is not None:
-                return suppress
-            else:
-                return supp
-        if not msg.suppress and suppress is not None:
-            txt = 'eve.Message() called with the suppress parameter without a suppression specified in the message itself - %s / %s'
-            log.general.Log(txt % (msgkey, params), log.LGWARN)
-        elif suppress in (uiconst.ID_CLOSE, uiconst.ID_CANCEL):
-            txt = 'eve.Message() called with the suppress parameter of ID_CLOSE or ID_CANCEL which is not supported suppression - %s / %s'
-            log.general.Log(txt % (msgkey, params), log.LGWARN)
-        sm.GetService('audio').AudioMessage(msg)
-        sm.ScatterEvent('OnEveMessage', msgkey)
-        if uicore.uilib:
-            gameui = sm.GetService('gameui')
         else:
-            gameui = None
-        if msg.type in ('hint', 'notify', 'warning', 'question', 'infomodal', 'info'):
-            sm.GetService('logger').AddMessage(msg)
-        if msg.type in ('info', 'infomodal', 'warning', 'question', 'error', 'fatal', 'windowhelp'):
-            supptext = None
-            if msg.suppress:
-                if buttons in [None, triui.OK]:
-                    supptext = localization.GetByLabel('/Carbon/UI/Common/DoNotShowAgain')
+            if buttons is not None and msg.type not in ('warning', 'question', 'fatal'):
+                raise RuntimeError('Cannot override buttons except in warning, question and fatal messages', msg, buttons, msg.type)
+            supp = settings.user.suppress.Get('suppress.' + msgkey, None)
+            if supp is not None:
+                if suppress is not None:
+                    return suppress
                 else:
-                    supptext = localization.GetByLabel('/Carbon/UI/Common/DoNotAskAgain')
-            if gameui:
-                if buttons is None:
-                    buttons = uiconst.OK
-                if msg.icon == '':
-                    msg.icon = None
-                icon = msg.icon
-                if icon is None:
-                    icon = {'info': triui.INFO,
-                     'infomodal': triui.INFO,
-                     'warning': triui.WARNING,
-                     'question': triui.QUESTION,
-                     'error': triui.ERROR,
-                     'fatal': triui.FATAL}.get(msg.type, triui.ERROR)
-                customicon = None
-                if params:
-                    customicon = params.get('customicon', None)
-                msgtitle = msg.title
-                if msg.title is None:
-                    msgTitles = {'info': localization.GetByLabel('UI/Common/Information'),
-                     'infomodal': localization.GetByLabel('UI/Common/Information'),
-                     'warning': localization.GetByLabel('UI/Generic/Warning'),
-                     'question': localization.GetByLabel('UI/Common/Question'),
-                     'error': localization.GetByLabel('UI/Common/Error'),
-                     'fatal': localization.GetByLabel('UI/Common/Fatal')}
-                    msgtitle = msgTitles.get(msg.type, localization.GetByLabel('UI/Common/Information'))
-                ret, supp = gameui.MessageBox(msg.text, msgtitle, buttons, icon, supptext, customicon, default=default, modal=modal, msgkey=msgkey, messageData=params)
-                if supp and ret not in (uiconst.ID_CLOSE, uiconst.ID_CANCEL):
-                    if not suppress or ret == suppress:
-                        settings.user.suppress.Set('suppress.' + msgkey, ret)
-                        sm.GetService('settings').SaveSettings()
-                return ret
-        elif msg.type in ('notify', 'hint', 'event'):
-            if gameui:
-                return gameui.Say(msg.text)
-        elif msg.type in ('audio',):
-            pass
-        elif msg.type == '':
-            if msgkey in ('BrowseHtml', 'BrowseIGB'):
-                sm.GetService('ui').Browse(msgkey, params)
-            elif msgkey == 'OwnerPopup':
-                sm.StartService('gameui').MessageBox(params.get('body', ''), params.get('title', ''), triui.OK, triui.INFO)
+                    return supp
+            if not msg.suppress and suppress is not None:
+                txt = 'eve.Message() called with the suppress parameter without a suppression specified in the message itself - %s / %s'
+                log.general.Log(txt % (msgkey, params), log.LGWARN)
+            elif suppress in (uiconst.ID_CLOSE, uiconst.ID_CANCEL):
+                txt = 'eve.Message() called with the suppress parameter of ID_CLOSE or ID_CANCEL which is not supported suppression - %s / %s'
+                log.general.Log(txt % (msgkey, params), log.LGWARN)
+            sm.GetService('audio').AudioMessage(msg)
+            sm.ScatterEvent('OnEveMessage', msgkey)
+            if uicore.uilib:
+                gameui = sm.GetService('gameui')
             else:
-                return msg
-        else:
-            raise RuntimeError('Unknown message type', msg)
+                gameui = None
+            if msg.type in ('hint', 'notify', 'warning', 'question', 'infomodal', 'info'):
+                sm.GetService('logger').AddMessage(msg)
+            if msg.type in ('info', 'infomodal', 'warning', 'question', 'error', 'fatal', 'windowhelp'):
+                supptext = None
+                if msg.suppress:
+                    if buttons in [None, triui.OK]:
+                        supptext = localization.GetByLabel('/Carbon/UI/Common/DoNotShowAgain')
+                    else:
+                        supptext = localization.GetByLabel('/Carbon/UI/Common/DoNotAskAgain')
+                if gameui:
+                    if buttons is None:
+                        buttons = uiconst.OK
+                    if msg.icon == '':
+                        msg.icon = None
+                    icon = msg.icon
+                    if icon is None:
+                        icon = {'info': triui.INFO,
+                         'infomodal': triui.INFO,
+                         'warning': triui.WARNING,
+                         'question': triui.QUESTION,
+                         'error': triui.ERROR,
+                         'fatal': triui.FATAL}.get(msg.type, triui.ERROR)
+                    customicon = None
+                    if params:
+                        customicon = params.get('customicon', None)
+                    msgtitle = msg.title
+                    if msg.title is None:
+                        msgTitles = {'info': localization.GetByLabel('UI/Common/Information'),
+                         'infomodal': localization.GetByLabel('UI/Common/Information'),
+                         'warning': localization.GetByLabel('UI/Generic/Warning'),
+                         'question': localization.GetByLabel('UI/Common/Question'),
+                         'error': localization.GetByLabel('UI/Common/Error'),
+                         'fatal': localization.GetByLabel('UI/Common/Fatal')}
+                        msgtitle = msgTitles.get(msg.type, localization.GetByLabel('UI/Common/Information'))
+                    ret, supp = gameui.MessageBox(msg.text, msgtitle, buttons, icon, supptext, customicon, default=default, modal=modal, msgkey=msgkey, messageData=params)
+                    if supp and ret not in (uiconst.ID_CLOSE, uiconst.ID_CANCEL):
+                        if not suppress or ret == suppress:
+                            settings.user.suppress.Set('suppress.' + msgkey, ret)
+                            sm.GetService('settings').SaveSettings()
+                    return ret
+            elif msg.type in ('notify', 'hint', 'event'):
+                if gameui:
+                    return gameui.Say(msg.text)
+            elif msg.type in ('audio',):
+                pass
+            elif msg.type == '':
+                if msgkey in ('BrowseHtml', 'BrowseIGB'):
+                    sm.GetService('ui').Browse(msgkey, params)
+                elif msgkey == 'OwnerPopup':
+                    sm.StartService('gameui').MessageBox(params.get('body', ''), params.get('title', ''), triui.OK, triui.INFO)
+                else:
+                    return msg
+            else:
+                raise RuntimeError('Unknown message type', msg)
+            return
 
     def IsDestroyedWindow(self, tb):
         try:
@@ -187,7 +195,7 @@ class Eve:
             sys.exc_clear()
             return ''
 
-    def ExceptionHandler(self, exctype, exc, tb, message = ''):
+    def ExceptionHandler(self, exctype, exc, tb, message=''):
         try:
             if isinstance(exc, UserError):
                 self.Message(exc.msg, exc.dict)
@@ -226,3 +234,5 @@ class Eve:
             exctype = exc = tb = None
             traceback.print_exc()
             sys.exc_clear()
+
+        return

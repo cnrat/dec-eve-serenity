@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\packages\achievements\client\achievementGroupEntry.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\packages\achievements\client\achievementGroupEntry.py
 from achievements.client.achievementTaskEntry import AchievementTaskEntry
 from achievements.client.auraAchievementWindow import AchievementAuraWindow
 from achievements.common.opportunityTaskMap import GROUP_TO_REWARD
@@ -45,7 +46,7 @@ class AchievementGroupEntry(ContainerAutoSize):
         self.progress.opacity = 0.0
         self.tasksContainer = ContainerAutoSize(parent=self, name='tasksContainer', align=uiconst.TOTOP, state=uiconst.UI_NORMAL)
 
-    def LoadGroupData(self, groupData, blinkAchievementID = None, animateIn = False):
+    def LoadGroupData(self, groupData, blinkAchievementID=None, animateIn=False):
         if not self.groupData or self.groupData.groupID != groupData.groupID:
             self.groupData = groupData
             self.groupName.text = GetByLabel(self.groupData.groupName)
@@ -65,7 +66,7 @@ class AchievementGroupEntry(ContainerAutoSize):
                 self.AnimateIn()
             self.UpdateState()
 
-    def UpdateState(self, changedAchievementID = None):
+    def UpdateState(self, changedAchievementID=None):
         self.UpdateProgress()
         self.UpdateAchievementTasks(changedAchievementID=changedAchievementID)
 
@@ -88,20 +89,22 @@ class AchievementGroupEntry(ContainerAutoSize):
     def OpenAchievementAuraWindow(self, *args):
         AchievementAuraWindow.Open()
 
-    def UpdateAchievementTasks(self, changedAchievementID = None):
+    def UpdateAchievementTasks(self, changedAchievementID=None):
         if changedAchievementID and not self.groupData.HasAchievement(changedAchievementID):
             return
-        nextTask = self.groupData.GetNextIncompleteTask(currentAchievementTaskID=changedAchievementID)
-        showDetails = None
-        for each in self.tasksContainer.children:
-            if nextTask and each.achievementTask.achievementID == nextTask.achievementID:
-                showDetails = each
-            each.UpdateAchievementTaskState(animate=changedAchievementID == each.achievementTask.achievementID)
+        else:
+            nextTask = self.groupData.GetNextIncompleteTask(currentAchievementTaskID=changedAchievementID)
+            showDetails = None
+            for each in self.tasksContainer.children:
+                if nextTask and each.achievementTask.achievementID == nextTask.achievementID:
+                    showDetails = each
+                each.UpdateAchievementTaskState(animate=changedAchievementID == each.achievementTask.achievementID)
 
-        if showDetails:
-            uthread.new(showDetails.ShowDetails)
+            if showDetails:
+                uthread.new(showDetails.ShowDetails)
+            return
 
-    def AddAchievementTasks(self, blinkAchievementID = None, animateIn = False):
+    def AddAchievementTasks(self, blinkAchievementID=None, animateIn=False):
         self.tasksContainer.Flush()
         for achievementTask in self.groupData.GetAchievementTasks():
             AchievementTaskEntry(parent=self.tasksContainer, align=uiconst.TOTOP, achievement=achievementTask, blinkIn=not animateIn and achievementTask.achievementID == blinkAchievementID, opacity=0.0 if animateIn else 1.0, achievementGroup=self.groupData, callbackTaskExpanded=self.OnTaskExpanded, showBackground=self.loadTaskBackgrounds)
@@ -133,3 +136,5 @@ class AchievementGroupEntry(ContainerAutoSize):
              info['size'],
              info['size']), texturePath=info['path'], state=uiconst.UI_DISABLED, align=uiconst.TOPLEFT, color=info.get('color', None))
             label = EveLabelSmall(name='tipsHeader', text=info['text'], parent=tooltipPanel, width=180, align=uiconst.CENTERLEFT)
+
+        return

@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\client\script\ui\shared\mapView\markers\mapMarkerRegion.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\client\script\ui\shared\mapView\markers\mapMarkerRegion.py
 from carbonui.primitives.base import ScaleDpi
 import eve.client.script.ui.shared.mapView.mapViewConst as mapViewConst
 from eve.client.script.ui.shared.mapView.markers.mapMarkerBase_Label import MarkerLabelBase

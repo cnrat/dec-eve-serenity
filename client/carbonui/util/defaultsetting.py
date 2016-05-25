@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\packages\carbonui\util\defaultsetting.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\packages\carbonui\util\defaultsetting.py
 """
 
     Author:     Fridrik Haraldsson
@@ -29,6 +30,8 @@ class SafeBundle(Bundle):
             return Bundle.__getattr__(self, item)
         except (KeyError, AttributeError):
             return None
+
+        return None
 
 
 user = SafeBundle(ui=SafeBundle(language=0))

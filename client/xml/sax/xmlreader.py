@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\carbon\common\stdlib\xml\sax\xmlreader.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\carbon\common\stdlib\xml\sax\xmlreader.py
 import handler
 from _exceptions import SAXNotSupportedException, SAXNotRecognizedException
 
@@ -55,7 +56,7 @@ class XMLReader:
 
 class IncrementalParser(XMLReader):
 
-    def __init__(self, bufsize = 65536):
+    def __init__(self, bufsize=65536):
         self._bufsize = bufsize
         XMLReader.__init__(self)
 
@@ -87,10 +88,10 @@ class IncrementalParser(XMLReader):
 class Locator:
 
     def getColumnNumber(self):
-        return -1
+        pass
 
     def getLineNumber(self):
-        return -1
+        pass
 
     def getPublicId(self):
         return None
@@ -101,12 +102,13 @@ class Locator:
 
 class InputSource:
 
-    def __init__(self, system_id = None):
+    def __init__(self, system_id=None):
         self.__system_id = system_id
         self.__public_id = None
         self.__encoding = None
         self.__bytefile = None
         self.__charfile = None
+        return
 
     def setPublicId(self, public_id):
         self.__public_id = public_id
@@ -148,7 +150,7 @@ class AttributesImpl:
         return len(self._attrs)
 
     def getType(self, name):
-        return 'CDATA'
+        pass
 
     def getValue(self, name):
         return self._attrs[name]
@@ -187,7 +189,7 @@ class AttributesImpl:
     def __contains__(self, name):
         return name in self._attrs
 
-    def get(self, name, alternative = None):
+    def get(self, name, alternative=None):
         return self._attrs.get(name, alternative)
 
     def copy(self):

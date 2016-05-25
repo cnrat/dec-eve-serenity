@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\packages\watchdog\observers\kqueue.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\packages\watchdog\observers\kqueue.py
 from __future__ import with_statement
 from watchdog.utils import platform
 import threading
@@ -165,13 +166,13 @@ class KeventDescriptor(object):
 
 class KqueueEmitter(EventEmitter):
 
-    def __init__(self, event_queue, watch, timeout = DEFAULT_EMITTER_TIMEOUT):
+    def __init__(self, event_queue, watch, timeout=DEFAULT_EMITTER_TIMEOUT):
         EventEmitter.__init__(self, event_queue, watch, timeout)
         self._kq = select.kqueue()
         self._lock = threading.RLock()
         self._descriptors = KeventDescriptorSet()
 
-        def walker_callback(path, stat_info, self = self):
+        def walker_callback(path, stat_info, self=self):
             self._register_kevent(path, stat.S_ISDIR(stat_info.st_mode))
 
         self._snapshot = DirectorySnapshot(watch.path, watch.is_recursive, walker_callback)
@@ -269,7 +270,7 @@ class KqueueEmitter(EventEmitter):
             else:
                 self.queue_event(FileDeletedEvent(src_path))
 
-    def _read_events(self, timeout = None):
+    def _read_events(self, timeout=None):
         return self._kq.control(self._descriptors.kevents, MAX_EVENTS, timeout)
 
     def queue_events(self, timeout):
@@ -302,5 +303,5 @@ class KqueueEmitter(EventEmitter):
 
 class KqueueObserver(BaseObserver):
 
-    def __init__(self, timeout = DEFAULT_OBSERVER_TIMEOUT):
+    def __init__(self, timeout=DEFAULT_OBSERVER_TIMEOUT):
         BaseObserver.__init__(self, emitter_class=KqueueEmitter, timeout=timeout)

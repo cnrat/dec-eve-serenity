@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\client\script\ui\shared\skins\skinPanel.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\client\script\ui\shared\skins\skinPanel.py
 import blue
 import carbonui.const as uiconst
 from carbonui.control.scrollContainer import ScrollContainer
@@ -44,6 +45,7 @@ class SkinPanel(ScrollContainer):
         self._loadingLock = locks.Lock()
         self.Layout()
         self.controller.onSkinsChange.connect(self.OnSkinsChange)
+        return
 
     def Layout(self):
         self.ghostClip = Container(name='ghostClip', parent=self.clipCont, clipChildren=True)
@@ -84,7 +86,7 @@ class SkinPanel(ScrollContainer):
 
             self.loaded = True
 
-    def AddSkinGroup(self, label, skins, settingName = None):
+    def AddSkinGroup(self, label, skins, settingName=None):
         group = SkinGroupEntry(parent=self, padTop=4, text=label, collapsedSettingName=settingName)
         if len(skins) == 0:
             message = EveCaptionSmall(parent=self, align=uiconst.TOTOP, padding=(25, 12, 0, 20), text=localization.GetByLabel('UI/Skins/NoSkins'), color=(0.5, 0.5, 0.5, 1.0))
@@ -103,7 +105,7 @@ class SkinPanel(ScrollContainer):
 
 class EntryMixin(object):
 
-    def AnimShow(self, delay = 0.0):
+    def AnimShow(self, delay=0.0):
         animations.FadeTo(self, duration=0.2, timeOffset=delay)
         animations.MoveInFromTop(self, curveType=uiconst.ANIM_OVERSHOT, duration=0.3, timeOffset=delay)
 
@@ -118,6 +120,7 @@ class SkinEntrySlot(ContainerAutoSize, EntryMixin):
         skin = attributes.skin
         logContext = attributes.get('logContext', None)
         self.entry = SkinEntry(parent=self, controller=controller, skin=skin, logContext=logContext)
+        return
 
     def Unplug(self):
         self.DisableAutoSize()
@@ -133,14 +136,13 @@ class SkinEntrySlot(ContainerAutoSize, EntryMixin):
         _, top, _, height = self.GetAbsolute()
         return (top, top + height)
 
-    def AnimShow(self, delay = 0.0):
+    def AnimShow(self, delay=0.0):
         super(SkinEntrySlot, self).AnimShow(delay=delay)
         if self.entry.parent == self:
             self.entry.AnimShow(delay=delay)
 
 
 @Component(ButtonEffect(opacityIdle=0.0, opacityHover=0.2, opacityMouseDown=0.3, bgElementFunc=lambda parent, _: parent.blinkFill, audioOnEntry='wise:/msg_ListEntryEnter_play', audioOnClick='wise:/msg_ListEntryClick_play'))
-
 class SkinEntry(Container):
     default_align = uiconst.TOPLEFT
     default_clipChildren = True
@@ -162,6 +164,7 @@ class SkinEntry(Container):
         self.Layout()
         self.UpdateSkinState()
         self.controller.onChange.connect(self.UpdateSkinState)
+        return
 
     def Layout(self):
         if self.skin.licensed:
@@ -232,7 +235,7 @@ class SkinEntry(Container):
             self.AnimStateIdle()
         self.skinstate = state
 
-    def AnimShow(self, delay = 0.0):
+    def AnimShow(self, delay=0.0):
         animations.FadeIn(self.blinkFill, endVal=0.4, curveType=uiconst.ANIM_WAVE, duration=0.4, timeOffset=delay * 1.4 + 0.4)
 
     def AnimExpand(self):
@@ -301,6 +304,7 @@ class SkinEntry(Container):
             return [['GM: Give me limited', GiveSkin, (self.skin.materialID, self.controller.typeID)], ['GM: Give me permanently', GivePermanentSkin, (self.skin.materialID, self.controller.typeID)]]
         else:
             return [['GM: Remove SKIN', RemoveSkin, (self.skin.skinID,)]]
+            return
 
     def OpenMarketWindow(self):
         shipName = evetypes.GetName(self.controller.typeID)
@@ -324,7 +328,6 @@ class SkinEntry(Container):
 
 
 @Component(ButtonEffect(opacityIdle=0.0, opacityHover=0.2, opacityMouseDown=0.3, bgElementFunc=lambda parent, _: parent.hilite, audioOnEntry='wise:/msg_ListEntryEnter_play', audioOnClick='wise:/msg_ListEntryClick_play'))
-
 class SkinGroupEntry(ContainerAutoSize, EntryMixin):
     default_align = uiconst.TOTOP
     default_state = uiconst.UI_PICKCHILDREN

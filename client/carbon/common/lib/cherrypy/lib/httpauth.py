@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\carbon\common\lib\cherrypy\lib\httpauth.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\carbon\common\lib\cherrypy\lib\httpauth.py
 __version__ = (1, 0, 1)
 __author__ = 'Tiago Cogumbreiro <cogumbreiro@users.sf.net>'
 __credits__ = '\n    Peter van Kampen for its recipe which implement most of Digest authentication:\n    http://aspn.activestate.com/ASPN/Cookbook/Python/Recipe/302378\n'
@@ -16,7 +17,7 @@ SUPPORTED_QOP = (AUTH, AUTH_INT)
 DIGEST_AUTH_ENCODERS = {MD5: lambda val: md5(ntob(val)).hexdigest(),
  MD5_SESS: lambda val: md5(ntob(val)).hexdigest()}
 
-def calculateNonce(realm, algorithm = MD5):
+def calculateNonce(realm, algorithm=MD5):
     global DIGEST_AUTH_ENCODERS
     try:
         encoder = DIGEST_AUTH_ENCODERS[algorithm]
@@ -26,7 +27,7 @@ def calculateNonce(realm, algorithm = MD5):
     return encoder('%d:%s' % (time.time(), realm))
 
 
-def digestAuth(realm, algorithm = MD5, nonce = None, qop = AUTH):
+def digestAuth(realm, algorithm=MD5, nonce=None, qop=AUTH):
     if nonce is None:
         nonce = calculateNonce(realm, algorithm)
     return 'Digest realm="%s", nonce="%s", algorithm="%s", qop="%s"' % (realm,
@@ -57,9 +58,10 @@ def _parseDigestAuthorization(auth_params):
 
     if 'qop' in params and not ('cnonce' in params and 'nc' in params):
         return None
-    if ('cnonce' in params or 'nc' in params) and 'qop' not in params:
+    elif ('cnonce' in params or 'nc' in params) and 'qop' not in params:
         return None
-    return params
+    else:
+        return params
 
 
 def _parseBasicAuthorization(auth_params):
@@ -79,8 +81,9 @@ def parseAuthorization(credentials):
     params = parser(auth_params)
     if params is None:
         return
-    params['auth_scheme'] = auth_scheme
-    return params
+    else:
+        params['auth_scheme'] = auth_scheme
+        return params
 
 
 def md5SessionKey(params, password):
@@ -114,7 +117,7 @@ def _A2(params, method, kwargs):
     raise NotImplementedError("The 'qop' method is unknown: %s" % qop)
 
 
-def _computeDigestResponse(auth_map, password, method = 'GET', A1 = None, **kwargs):
+def _computeDigestResponse(auth_map, password, method='GET', A1=None, **kwargs):
     params = auth_map
     algorithm = params.get('algorithm', MD5)
     H = DIGEST_AUTH_ENCODERS[algorithm]
@@ -136,14 +139,15 @@ def _computeDigestResponse(auth_map, password, method = 'GET', A1 = None, **kwar
     return KD(H_A1, request)
 
 
-def _checkDigestResponse(auth_map, password, method = 'GET', A1 = None, **kwargs):
+def _checkDigestResponse(auth_map, password, method='GET', A1=None, **kwargs):
     if auth_map['realm'] != kwargs.get('realm', None):
         return False
-    response = _computeDigestResponse(auth_map, password, method, A1, **kwargs)
-    return response == auth_map['response']
+    else:
+        response = _computeDigestResponse(auth_map, password, method, A1, **kwargs)
+        return response == auth_map['response']
 
 
-def _checkBasicResponse(auth_map, password, method = 'GET', encrypt = None, **kwargs):
+def _checkBasicResponse(auth_map, password, method='GET', encrypt=None, **kwargs):
     try:
         return encrypt(auth_map['password'], auth_map['username']) == password
     except TypeError:
@@ -153,10 +157,9 @@ def _checkBasicResponse(auth_map, password, method = 'GET', encrypt = None, **kw
 AUTH_RESPONSES = {'basic': _checkBasicResponse,
  'digest': _checkDigestResponse}
 
-def checkResponse(auth_map, password, method = 'GET', encrypt = None, **kwargs):
+def checkResponse(auth_map, password, method='GET', encrypt=None, **kwargs):
     checker = AUTH_RESPONSES[auth_map['auth_scheme']]
     return checker(auth_map, password, method=method, encrypt=encrypt, **kwargs)
 
 
-global SUPPORTED_ALGORITHM ## Warning: Unused global
-global SUPPORTED_QOP ## Warning: Unused global
+# global SUPPORTED_ALGORITHM ## Warning: Unused global# global SUPPORTED_QOP ## Warning: Unused global

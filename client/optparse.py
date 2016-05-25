@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\carbon\common\stdlib\optparse.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\carbon\common\stdlib\optparse.py
 __version__ = '1.5.3'
 __all__ = ['Option',
  'make_option',
@@ -107,6 +108,7 @@ class HelpFormatter():
         self.option_strings = {}
         self._short_opt_fmt = '%s %s'
         self._long_opt_fmt = '%s=%s'
+        return
 
     def set_parser(self, parser):
         self.parser = parser
@@ -155,10 +157,11 @@ class HelpFormatter():
     def expand_default(self, option):
         if self.parser is None or not self.default_tag:
             return option.help
-        default_value = self.parser.defaults.get(option.dest)
-        if default_value is NO_DEFAULT or default_value is None:
-            default_value = self.NO_DEFAULT_VALUE
-        return option.help.replace(self.default_tag, str(default_value))
+        else:
+            default_value = self.parser.defaults.get(option.dest)
+            if default_value is NO_DEFAULT or default_value is None:
+                default_value = self.NO_DEFAULT_VALUE
+            return option.help.replace(self.default_tag, str(default_value))
 
     def format_option(self, option):
         result = []
@@ -220,7 +223,7 @@ class HelpFormatter():
 
 class IndentedHelpFormatter(HelpFormatter):
 
-    def __init__(self, indent_increment = 2, max_help_position = 24, width = None, short_first = 1):
+    def __init__(self, indent_increment=2, max_help_position=24, width=None, short_first=1):
         HelpFormatter.__init__(self, indent_increment, max_help_position, width, short_first)
 
     def format_usage(self, usage):
@@ -232,7 +235,7 @@ class IndentedHelpFormatter(HelpFormatter):
 
 class TitledHelpFormatter(HelpFormatter):
 
-    def __init__(self, indent_increment = 0, max_help_position = 24, width = None, short_first = 0):
+    def __init__(self, indent_increment=0, max_help_position=24, width=None, short_first=0):
         HelpFormatter.__init__(self, indent_increment, max_help_position, width, short_first)
 
     def format_usage(self, usage):
@@ -353,12 +356,14 @@ class Option():
             attrs = attrs.keys()
             attrs.sort()
             raise OptionError('invalid keyword arguments: %s' % ', '.join(attrs), self)
+        return
 
     def _check_action(self):
         if self.action is None:
             self.action = 'store'
         elif self.action not in self.ACTIONS:
             raise OptionError('invalid action: %r' % self.action, self)
+        return
 
     def _check_type(self):
         if self.type is None:
@@ -377,6 +382,7 @@ class Option():
                 raise OptionError('invalid option type: %r' % self.type, self)
             if self.action not in self.TYPED_ACTIONS:
                 raise OptionError('must not supply a type for action %r' % self.action, self)
+        return
 
     def _check_choice(self):
         if self.type == 'choice':
@@ -386,6 +392,7 @@ class Option():
                 raise OptionError("choices must be a list of strings ('%s' supplied)" % str(type(self.choices)).split("'")[1], self)
         elif self.choices is not None:
             raise OptionError('must not supply choices for type %r' % self.type, self)
+        return
 
     def _check_dest(self):
         takes_value = self.action in self.STORE_ACTIONS or self.type is not None
@@ -394,10 +401,12 @@ class Option():
                 self.dest = self._long_opts[0][2:].replace('-', '_')
             else:
                 self.dest = self._short_opts[0][1]
+        return
 
     def _check_const(self):
         if self.action not in self.CONST_ACTIONS and self.const is not None:
             raise OptionError("'const' must not be supplied for action %r" % self.action, self)
+        return
 
     def _check_nargs(self):
         if self.action in self.TYPED_ACTIONS:
@@ -405,6 +414,7 @@ class Option():
                 self.nargs = 1
         elif self.nargs is not None:
             raise OptionError("'nargs' must not be supplied for action %r" % self.action, self)
+        return
 
     def _check_callback(self):
         if self.action == 'callback':
@@ -421,6 +431,7 @@ class Option():
                 raise OptionError('callback_args supplied for non-callback option', self)
             if self.callback_kwargs is not None:
                 raise OptionError('callback_kwargs supplied for non-callback option', self)
+        return
 
     CHECK_METHODS = [_check_action,
      _check_type,
@@ -450,6 +461,7 @@ class Option():
             return value
         else:
             return checker(self, opt, value)
+            return
 
     def convert_value(self, opt, value):
         if value is not None:
@@ -457,6 +469,7 @@ class Option():
                 return self.check_value(opt, value)
             else:
                 return tuple([ self.check_value(opt, v) for v in value ])
+        return
 
     def process(self, opt, value, values, parser):
         value = self.convert_value(opt, value)
@@ -489,7 +502,6 @@ class Option():
             parser.exit()
         else:
             raise ValueError('unknown action %r' % self.action)
-        return 1
 
 
 SUPPRESS_HELP = 'SUPPRESS' + 'HELP'
@@ -510,7 +522,7 @@ else:
 
 class Values():
 
-    def __init__(self, defaults = None):
+    def __init__(self, defaults=None):
         if defaults:
             for attr, val in defaults.items():
                 setattr(self, attr, val)
@@ -535,6 +547,8 @@ class Values():
                 if dval is not None:
                     setattr(self, attr, dval)
 
+        return
+
     def _update_loose(self, dict):
         self.__dict__.update(dict)
 
@@ -546,12 +560,12 @@ class Values():
         else:
             raise ValueError, 'invalid update mode: %r' % mode
 
-    def read_module(self, modname, mode = 'careful'):
+    def read_module(self, modname, mode='careful'):
         __import__(modname)
         mod = sys.modules[modname]
         self._update(vars(mod), mode)
 
-    def read_file(self, filename, mode = 'careful'):
+    def read_file(self, filename, mode='careful'):
         vars = {}
         execfile(filename, vars)
         self._update(vars, mode)
@@ -669,6 +683,7 @@ class OptionContainer():
             del self._long_opt[opt]
 
         option.container.option_list.remove(option)
+        return
 
     def format_option_help(self, formatter):
         if not self.option_list:
@@ -694,7 +709,7 @@ class OptionContainer():
 
 class OptionGroup(OptionContainer):
 
-    def __init__(self, parser, title, description = None):
+    def __init__(self, parser, title, description=None):
         self.parser = parser
         OptionContainer.__init__(self, parser.option_class, parser.conflict_handler, description)
         self.title = title
@@ -721,7 +736,7 @@ class OptionGroup(OptionContainer):
 class OptionParser(OptionContainer):
     standard_option_list = []
 
-    def __init__(self, usage = None, option_list = None, option_class = Option, version = None, conflict_handler = 'error', description = None, formatter = None, add_help_option = True, prog = None, epilog = None):
+    def __init__(self, usage=None, option_list=None, option_class=Option, version=None, conflict_handler='error', description=None, formatter=None, add_help_option=True, prog=None, epilog=None):
         OptionContainer.__init__(self, option_class, conflict_handler, description)
         self.set_usage(usage)
         self.prog = prog
@@ -735,6 +750,7 @@ class OptionParser(OptionContainer):
         self.epilog = epilog
         self._populate_option_list(option_list, add_help=add_help_option)
         self._init_parsing_state()
+        return
 
     def destroy(self):
         OptionContainer.destroy(self)
@@ -756,7 +772,7 @@ class OptionParser(OptionContainer):
     def _add_version_option(self):
         self.add_option('--version', action='version', help=_("show program's version number and exit"))
 
-    def _populate_option_list(self, option_list, add_help = True):
+    def _populate_option_list(self, option_list, add_help=True):
         if self.standard_option_list:
             self.add_options(self.standard_option_list)
         if option_list:
@@ -770,6 +786,7 @@ class OptionParser(OptionContainer):
         self.rargs = None
         self.largs = None
         self.values = None
+        return
 
     def set_usage(self, usage):
         if usage is None:
@@ -780,6 +797,7 @@ class OptionParser(OptionContainer):
             self.usage = usage[7:]
         else:
             self.usage = usage
+        return
 
     def enable_interspersed_args(self):
         self.allow_interspersed_args = True
@@ -833,14 +851,17 @@ class OptionParser(OptionContainer):
         option = self._short_opt.get(opt_str) or self._long_opt.get(opt_str)
         if option and option.container is not self:
             return option.container
+        else:
+            return None
 
     def _get_args(self, args):
         if args is None:
             return sys.argv[1:]
         else:
             return args[:]
+            return
 
-    def parse_args(self, args = None, values = None):
+    def parse_args(self, args=None, values=None):
         rargs = self._get_args(args)
         if values is None:
             values = self.get_default_values()
@@ -905,6 +926,7 @@ class OptionParser(OptionContainer):
         else:
             value = None
         option.process(opt, value, values, self)
+        return
 
     def _process_short_opts(self, rargs, values):
         arg = rargs.pop(0)
@@ -937,11 +959,14 @@ class OptionParser(OptionContainer):
             if stop:
                 break
 
+        return
+
     def get_prog_name(self):
         if self.prog is None:
             return os.path.basename(sys.argv[0])
         else:
             return self.prog
+            return
 
     def expand_prog_name(self, s):
         return s.replace('%prog', self.get_prog_name())
@@ -949,7 +974,7 @@ class OptionParser(OptionContainer):
     def get_description(self):
         return self.expand_prog_name(self.description)
 
-    def exit(self, status = 0, msg = None):
+    def exit(self, status=0, msg=None):
         if msg:
             sys.stderr.write(msg)
         sys.exit(status)
@@ -964,7 +989,7 @@ class OptionParser(OptionContainer):
         else:
             return ''
 
-    def print_usage(self, file = None):
+    def print_usage(self, file=None):
         if self.usage:
             print >> file, self.get_usage()
 
@@ -974,11 +999,11 @@ class OptionParser(OptionContainer):
         else:
             return ''
 
-    def print_version(self, file = None):
+    def print_version(self, file=None):
         if self.version:
             print >> file, self.get_version()
 
-    def format_option_help(self, formatter = None):
+    def format_option_help(self, formatter=None):
         if formatter is None:
             formatter = self.formatter
         formatter.store_option_strings(self)
@@ -998,7 +1023,7 @@ class OptionParser(OptionContainer):
     def format_epilog(self, formatter):
         return formatter.format_epilog(self.epilog)
 
-    def format_help(self, formatter = None):
+    def format_help(self, formatter=None):
         if formatter is None:
             formatter = self.formatter
         result = []
@@ -1016,11 +1041,12 @@ class OptionParser(OptionContainer):
             encoding = sys.getdefaultencoding()
         return encoding
 
-    def print_help(self, file = None):
+    def print_help(self, file=None):
         if file is None:
             file = sys.stdout
         encoding = self._get_encoding(file)
         file.write(self.format_help().encode(encoding, 'replace'))
+        return
 
 
 def _match_abbrev(s, wordmap):

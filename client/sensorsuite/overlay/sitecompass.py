@@ -1,5 +1,6 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\packages\sensorsuite\overlay\sitecompass.py
-from carbon.common.lib import telemetry
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\packages\sensorsuite\overlay\sitecompass.py
+import bluepy
 from carbon.common.lib.const import SEC
 from carbon.common.script.util.mathUtil import MATH_PI_2, MATH_2_PI, MATH_PI_8
 from carbon.common.script.util.timerstuff import AutoTimer
@@ -70,10 +71,12 @@ class Compass(Container):
         self.sensorSuite.Subscribe(overlayConst.MESSAGE_ON_SENSOR_OVERLAY_SWEEP_ENDED, self.OnSweepEnded)
         self.sensorSuite.Subscribe(overlayConst.MESSAGE_ON_SENSOR_OVERLAY_ENABLED, self.OnSensorOverlayEnabled)
         self.sensorSuite.Subscribe(overlayConst.MESSAGE_ON_SENSOR_OVERLAY_DISABLED, self.OnSensorOverlayDisabled)
+        self.sensorSuite.Subscribe(overlayConst.MESSAGE_ON_SENSOR_OVERLAY_SITE_MOVED, self.OnSiteMoved)
         if self.sensorSuite.IsOverlayActive():
             self.OnSensorOverlayEnabled()
         else:
             self.OnSensorOverlayDisabled()
+        return
 
     def OnSensorOverlayEnabled(self):
         animations.FadeIn(self.frameContainer, endVal=1.0, duration=0.2, curveType=uiconst.ANIM_SMOOTH)
@@ -94,45 +97,49 @@ class Compass(Container):
         self.sensorSuite.Unsubscribe(overlayConst.MESSAGE_ON_SENSOR_OVERLAY_SWEEP_ENDED, self.OnSweepEnded)
         self.sensorSuite.Unsubscribe(overlayConst.MESSAGE_ON_SENSOR_OVERLAY_ENABLED, self.OnSensorOverlayEnabled)
         self.sensorSuite.Unsubscribe(overlayConst.MESSAGE_ON_SENSOR_OVERLAY_DISABLED, self.OnSensorOverlayDisabled)
+        self.sensorSuite.Unsubscribe(overlayConst.MESSAGE_ON_SENSOR_OVERLAY_SITE_MOVED, self.OnSiteMoved)
+        return
 
-    @telemetry.ZONE_METHOD
+    @bluepy.TimedFunction('sitecompass::__UpdateCompass')
     def __UpdateCompass(self):
         bp = self.michelle.GetBallpark()
         if bp is None:
             return
-        camera = self.GetCamera()
-        camParentRotation = camera.GetRotationQuat()
-        camRotation = geo2.QuaternionRotationGetYawPitchRoll(camParentRotation)
-        cx, cy, cz = geo2.QuaternionTransformVector(camParentRotation, (0, 0, -1.0))
-        camLengthInPlane = geo2.Vec2Length((cx, cz))
-        camAngle = math.atan2(cy, camLengthInPlane)
-        yaw = camRotation[0]
-        self.compassTransform.rotation = -yaw + math.pi
-        myPos = bp.GetCurrentEgoPos()
-        if self.lastPose:
-            lastCamRot, lastPos = self.lastPose
-            isNewCamRotation = not AreVectorsEqual(lastCamRot, camRotation, 0.05)
-            isNewPosition = not AreVectorsEqual(lastPos, myPos, 0.5)
-            isNewPose = isNewPosition or isNewCamRotation
         else:
-            isNewPosition = True
-            isNewPose = True
-        for siteID, indicator in self.siteIndicatorsBySiteID.iteritems():
-            if indicator.isNew or isNewPose:
-                toSiteVec = geo2.Vec3SubtractD(indicator.data.position, myPos)
-                toSiteVec = geo2.Vec3NormalizeD(toSiteVec)
-                if indicator.isNew or isNewPosition:
-                    angle = math.atan2(-toSiteVec[2], toSiteVec[0])
-                    indicator.SetRotation(angle + MATH_PI_2)
-                sx, sy, sz = toSiteVec
-                siteLengthInPlane = geo2.Vec2Length((sx, sz))
-                siteAngle = math.atan2(sy, siteLengthInPlane)
-                inclinationAngle = siteAngle - camAngle
-                verticalAngle = min(inclinationAngle, MATH_PI_2)
-                indicator.SetInclination(verticalAngle)
-                indicator.isNew = False
+            camera = self.GetCamera()
+            camParentRotation = camera.GetRotationQuat()
+            camRotation = geo2.QuaternionRotationGetYawPitchRoll(camParentRotation)
+            cx, cy, cz = geo2.QuaternionTransformVector(camParentRotation, (0, 0, -1.0))
+            camLengthInPlane = geo2.Vec2Length((cx, cz))
+            camAngle = math.atan2(cy, camLengthInPlane)
+            yaw = camRotation[0]
+            self.compassTransform.rotation = -yaw + math.pi
+            myPos = bp.GetCurrentEgoPos()
+            if self.lastPose:
+                lastCamRot, lastPos = self.lastPose
+                isNewCamRotation = not AreVectorsEqual(lastCamRot, camRotation, 0.05)
+                isNewPosition = not AreVectorsEqual(lastPos, myPos, 0.5)
+                isNewPose = isNewPosition or isNewCamRotation
+            else:
+                isNewPosition = True
+                isNewPose = True
+            for siteID, indicator in self.siteIndicatorsBySiteID.iteritems():
+                if indicator.isNew or isNewPose:
+                    toSiteVec = geo2.Vec3SubtractD(indicator.data.position, myPos)
+                    toSiteVec = geo2.Vec3NormalizeD(toSiteVec)
+                    if indicator.isNew or isNewPosition:
+                        angle = math.atan2(-toSiteVec[2], toSiteVec[0])
+                        indicator.SetRotation(angle + MATH_PI_2)
+                    sx, sy, sz = toSiteVec
+                    siteLengthInPlane = geo2.Vec2Length((sx, sz))
+                    siteAngle = math.atan2(sy, siteLengthInPlane)
+                    inclinationAngle = siteAngle - camAngle
+                    verticalAngle = min(inclinationAngle, MATH_PI_2)
+                    indicator.SetInclination(verticalAngle)
+                    indicator.isNew = False
 
-        self.lastPose = (camRotation, myPos)
+            self.lastPose = (camRotation, myPos)
+            return
 
     def OnSiteChanged(self, siteData):
         indicator = self.siteIndicatorsBySiteID.get(siteData.siteID)
@@ -164,18 +171,28 @@ class Compass(Container):
         for indicator in self.compassTransform.children:
             indicator.opacity = 1.0
 
-    @telemetry.ZONE_METHOD
+    @bluepy.TimedFunction('sitecompass::UpdateVisibleSites')
     def UpdateVisibleSites(self):
-        if not self.sensorSuite.IsSolarSystemReady():
-            return
-        siteMap = self.sensorSuite.siteController.GetVisibleSiteMap()
-        for siteID in self.siteIndicatorsBySiteID.keys():
-            if siteID not in siteMap:
-                self.RemoveSiteIndicator(siteID)
+        setattr(self, 'updateVisibleSitesTimerThread', AutoTimer(200, self._UpdateVisibleSites))
 
-        for siteData in siteMap.itervalues():
-            if siteData.siteID not in self.siteIndicatorsBySiteID:
-                self.AddSiteIndicator(siteData)
+    @bluepy.TimedFunction('sitecompass::_UpdateVisibleSites')
+    def _UpdateVisibleSites(self):
+        try:
+            if not self.sensorSuite.IsSolarSystemReady():
+                return
+            siteMap = self.sensorSuite.siteController.GetVisibleSiteMap()
+            for siteID in self.siteIndicatorsBySiteID.keys():
+                if siteID not in siteMap:
+                    self.RemoveSiteIndicator(siteID)
+
+            for siteData in siteMap.itervalues():
+                if siteData.siteID not in self.siteIndicatorsBySiteID:
+                    self.AddSiteIndicator(siteData)
+
+        finally:
+            self.updateVisibleSitesTimerThread = None
+
+        return
 
     def AddSiteIndicator(self, siteData):
         logger.debug('adding site indicator %s', siteData.siteID)
@@ -215,6 +232,11 @@ class Compass(Container):
             return uiconst.POINT_TOP_2
         return uiconst.POINT_BOTTOM_2
 
+    def OnSiteMoved(self, siteData):
+        indicator = self.siteIndicatorsBySiteID[siteData.siteID]
+        indicator.UpdateSitePosition(siteData.position)
+        indicator.isNew = True
+
 
 class CompassIndicator(Transform):
     default_height = COMPASS_WIDTH - INDICATOR_RADIUS_OFFSET
@@ -230,11 +252,11 @@ class CompassIndicator(Transform):
         self.verticalSprite = Sprite(parent=self, texturePath='res:/UI/Texture/classes/SensorSuite/big_tick.png', align=uiconst.CENTERTOP, width=INDICATOR_WIDTH, height=INDICATOR_HEIGHT, color=self.data.baseColor.GetRGBA(), blendMode=trinity.TR2_SBM_ADD, opacity=0.5)
         self.isNew = True
 
-    @telemetry.ZONE_METHOD
-    def SetRotation(self, rotation = 0):
+    @bluepy.TimedFunction('sitecompass::SetRotation')
+    def SetRotation(self, rotation=0):
         Transform.SetRotation(self, rotation)
 
-    @telemetry.ZONE_METHOD
+    @bluepy.TimedFunction('sitecompass::SetInclination')
     def SetInclination(self, angle):
         offset = -angle / MATH_PI_2 * INCLINATION_TICK_MAX_OFFSET
         self.sprite.top = INCLINATION_TICK_TOP_OFFSET + offset
@@ -244,6 +266,9 @@ class CompassIndicator(Transform):
         else:
             opacity = INCLINATION_TICK_BASE_OPACITY
         self.sprite.opacity = opacity
+
+    def UpdateSitePosition(self, position):
+        self.data.position = position
 
 
 def AddShortcut(tooltipPanel, shortcut):
@@ -271,6 +296,7 @@ def LoadSensorOverlayFilterTooltip(tooltipPanel):
      STATIC_SITE,
      BOOKMARK,
      SIGNATURE,
+     STRUCTURE,
      MISSION,
      CORP_BOOKMARK]
     for siteType in siteTypes:

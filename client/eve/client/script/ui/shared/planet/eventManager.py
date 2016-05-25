@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\client\script\ui\shared\planet\eventManager.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\client\script\ui\shared\planet\eventManager.py
 import carbonui.const as uiconst
 import evetypes
 import form
@@ -119,82 +120,86 @@ class EventManager:
     def OnPlanetPinMouseEnter(self, pinID):
         if not self:
             return
-        pin = self.myPinManager.pinsByID.get(pinID, None)
-        if not pin:
-            return
-        pin.OnMouseEnter()
-        planet = sm.GetService('planetUI').planet
-        if planet is None:
-            return
-        colony = planet.GetColony(pin.pin.ownerID)
-        if self.state == STATE_CREATEROUTE:
-            if pinID not in self.myPinManager.currentRoute:
-                path = colony.FindShortestPathIDs(self.myPinManager.currentRoute[-1], pinID)
-                self.myPinManager.routeHoverPath = path
-                links = self.myPinManager.GetLinksFromPath(path)
-                for l, id in links:
-                    l.ShowAsRoute(id, 1, 1, self.myPinManager.currRouteVolume)
-
-        elif self.state == STATE_CREATELINKEND:
-            parentPin = self.myPinManager.pinsByID.get(self.myPinManager.linkParentID)
-            if not parentPin:
+        else:
+            pin = self.myPinManager.pinsByID.get(pinID, None)
+            if not pin:
                 return
-            self.planetUISvc.curveLineDrawer.ChangeLinePosition('rubberLink', self.myPinManager.rubberLink, pin.surfacePoint, parentPin.surfacePoint)
-            self.myPinManager.UpdateRubberLinkLabels(pin.surfacePoint, parentPin.surfacePoint)
-        elif colony and colony.colonyData is not None:
-            routesFrom = colony.colonyData.GetSourceRoutesForPin(pin.pin.id)
-            routesTo = colony.colonyData.GetDestinationRoutesForPin(pin.pin.id)
-            numRoutes = len(routesFrom)
-            for i, route in enumerate(routesFrom):
-                path = route.path
-                links = self.myPinManager.GetLinksFromPath(path)
-                for l, id in links:
-                    l.ShowAsRoute(id, i, numRoutes)
+            pin.OnMouseEnter()
+            planet = sm.GetService('planetUI').planet
+            if planet is None:
+                return
+            colony = planet.GetColony(pin.pin.ownerID)
+            if self.state == STATE_CREATEROUTE:
+                if pinID not in self.myPinManager.currentRoute:
+                    path = colony.FindShortestPathIDs(self.myPinManager.currentRoute[-1], pinID)
+                    self.myPinManager.routeHoverPath = path
+                    links = self.myPinManager.GetLinksFromPath(path)
+                    for l, id in links:
+                        l.ShowAsRoute(id, 1, 1, self.myPinManager.currRouteVolume)
 
-                pin = self.myPinManager.pinsByID[path[-1]]
-                pin.SetAsRoute()
+            elif self.state == STATE_CREATELINKEND:
+                parentPin = self.myPinManager.pinsByID.get(self.myPinManager.linkParentID)
+                if not parentPin:
+                    return
+                self.planetUISvc.curveLineDrawer.ChangeLinePosition('rubberLink', self.myPinManager.rubberLink, pin.surfacePoint, parentPin.surfacePoint)
+                self.myPinManager.UpdateRubberLinkLabels(pin.surfacePoint, parentPin.surfacePoint)
+            elif colony and colony.colonyData is not None:
+                routesFrom = colony.colonyData.GetSourceRoutesForPin(pin.pin.id)
+                routesTo = colony.colonyData.GetDestinationRoutesForPin(pin.pin.id)
+                numRoutes = len(routesFrom)
+                for i, route in enumerate(routesFrom):
+                    path = route.path
+                    links = self.myPinManager.GetLinksFromPath(path)
+                    for l, id in links:
+                        l.ShowAsRoute(id, i, numRoutes)
 
-            numRoutes = len(routesTo)
-            for i, routeID in enumerate(routesTo):
-                r = colony.GetRoute(routeID)
-                path = r.path
-                links = self.myPinManager.GetLinksFromPath(path)
-                for l, id in links:
-                    l.ShowAsRoute(id, i, numRoutes)
+                    pin = self.myPinManager.pinsByID[path[-1]]
+                    pin.SetAsRoute()
 
-                pin = self.myPinManager.pinsByID[path[0]]
-                pin.SetAsRoute()
+                numRoutes = len(routesTo)
+                for i, routeID in enumerate(routesTo):
+                    r = colony.GetRoute(routeID)
+                    path = r.path
+                    links = self.myPinManager.GetLinksFromPath(path)
+                    for l, id in links:
+                        l.ShowAsRoute(id, i, numRoutes)
+
+                    pin = self.myPinManager.pinsByID[path[0]]
+                    pin.SetAsRoute()
+
+            return
 
     def OnPlanetPinMouseExit(self, pinID):
         if not self:
             return
-        pin = self.myPinManager.pinsByID.get(pinID, None)
-        if not pin:
-            return
-        pin.OnMouseExit()
-        planet = self.planetUISvc.GetCurrentPlanet()
-        if planet is None:
-            return
-        if self.state == STATE_CREATEROUTE:
-            path = getattr(self.myPinManager, 'routeHoverPath', [])
-            links = self.myPinManager.GetLinksFromPath(path)
-            for l, id in links:
-                l.RemoveAsRoute(id)
-
         else:
-            colony = planet.GetColonyByPinID(pin.pin.id)
-            if colony is None or colony.colonyData is None:
+            pin = self.myPinManager.pinsByID.get(pinID, None)
+            if not pin:
                 return
-            routesFrom = colony.colonyData.GetSourceRoutesForPin(pin.pin.id)
-            routesTo = colony.colonyData.GetDestinationRoutesForPin(pin.pin.id)
-            for route in routesFrom:
-                path = route.path
+            pin.OnMouseExit()
+            planet = self.planetUISvc.GetCurrentPlanet()
+            if planet is None:
+                return
+            if self.state == STATE_CREATEROUTE:
+                path = getattr(self.myPinManager, 'routeHoverPath', [])
                 links = self.myPinManager.GetLinksFromPath(path)
                 for l, id in links:
                     l.RemoveAsRoute(id)
 
-                pin = self.myPinManager.pinsByID[path[-1]]
-                pin.ResetAsRoute()
+            else:
+                colony = planet.GetColonyByPinID(pin.pin.id)
+                if colony is None or colony.colonyData is None:
+                    return
+                routesFrom = colony.colonyData.GetSourceRoutesForPin(pin.pin.id)
+                routesTo = colony.colonyData.GetDestinationRoutesForPin(pin.pin.id)
+                for route in routesFrom:
+                    path = route.path
+                    links = self.myPinManager.GetLinksFromPath(path)
+                    for l, id in links:
+                        l.RemoveAsRoute(id)
+
+                    pin = self.myPinManager.pinsByID[path[-1]]
+                    pin.ResetAsRoute()
 
             for routeID in routesTo:
                 r = colony.GetRoute(routeID)
@@ -205,6 +210,8 @@ class EventManager:
 
                 pin = self.myPinManager.pinsByID[path[0]]
                 pin.ResetAsRoute()
+
+            return
 
     def OnExtractionHeadMouseEnter(self, ecuID, headNum):
         if self.state == STATE_SURVEY:

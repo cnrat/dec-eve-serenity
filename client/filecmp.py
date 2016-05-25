@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\carbon\common\stdlib\filecmp.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\carbon\common\stdlib\filecmp.py
 import os
 import stat
 from itertools import ifilter, ifilterfalse, imap, izip
@@ -6,7 +7,7 @@ __all__ = ['cmp', 'dircmp', 'cmpfiles']
 _cache = {}
 BUFSIZE = 8192
 
-def cmp(f1, f2, shallow = 1):
+def cmp(f1, f2, shallow=1):
     s1 = _sig(os.stat(f1))
     s2 = _sig(os.stat(f2))
     if s1[0] != stat.S_IFREG or s2[0] != stat.S_IFREG:
@@ -42,7 +43,7 @@ def _do_cmp(f1, f2):
 
 class dircmp:
 
-    def __init__(self, a, b, ignore = None, hide = None):
+    def __init__(self, a, b, ignore=None, hide=None):
         self.left = a
         self.right = b
         if hide is None:
@@ -53,6 +54,7 @@ class dircmp:
             self.ignore = ['RCS', 'CVS', 'tags']
         else:
             self.ignore = ignore
+        return
 
     def phase0(self):
         self.left_list = _filter(os.listdir(self.left), self.hide + self.ignore)
@@ -160,7 +162,7 @@ class dircmp:
         return getattr(self, attr)
 
 
-def cmpfiles(a, b, common, shallow = 1):
+def cmpfiles(a, b, common, shallow=1):
     res = ([], [], [])
     for x in common:
         ax = os.path.join(a, x)
@@ -170,7 +172,7 @@ def cmpfiles(a, b, common, shallow = 1):
     return res
 
 
-def _cmp(a, b, sh, abs = abs, cmp = cmp):
+def _cmp(a, b, sh, abs=abs, cmp=cmp):
     try:
         return not abs(cmp(a, b, sh))
     except os.error:
@@ -192,6 +194,7 @@ def demo():
         dd.report_full_closure()
     else:
         dd.report()
+    return
 
 
 if __name__ == '__main__':

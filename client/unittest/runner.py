@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\carbon\common\stdlib\unittest\runner.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\carbon\common\stdlib\unittest\runner.py
 import sys
 import time
 from . import result
@@ -15,7 +16,7 @@ class _WritelnDecorator(object):
             raise AttributeError(attr)
         return getattr(self.stream, attr)
 
-    def writeln(self, arg = None):
+    def writeln(self, arg=None):
         if arg:
             self.write(arg)
         self.write('\n')
@@ -111,7 +112,7 @@ class TextTestResult(result.TestResult):
 class TextTestRunner(object):
     resultclass = TextTestResult
 
-    def __init__(self, stream = sys.stderr, descriptions = True, verbosity = 1, failfast = False, buffer = False, resultclass = None):
+    def __init__(self, stream=sys.stderr, descriptions=True, verbosity=1, failfast=False, buffer=False, resultclass=None):
         self.stream = _WritelnDecorator(stream)
         self.descriptions = descriptions
         self.verbosity = verbosity
@@ -119,6 +120,7 @@ class TextTestRunner(object):
         self.buffer = buffer
         if resultclass is not None:
             self.resultclass = resultclass
+        return
 
     def _makeResult(self):
         return self.resultclass(self.stream, self.descriptions, self.verbosity)

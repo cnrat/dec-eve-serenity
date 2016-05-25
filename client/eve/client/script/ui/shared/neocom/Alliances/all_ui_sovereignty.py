@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\client\script\ui\shared\neocom\Alliances\all_ui_sovereignty.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\client\script\ui\shared\neocom\Alliances\all_ui_sovereignty.py
 from carbon.common.script.util.format import FmtDate
 from carbonui.primitives.container import Container
 from entosis.entosisConst import CHANGE_PRIMETIME_DELAY
@@ -34,6 +35,7 @@ class FormAlliancesSovereignty(Container):
         uthread.new(self.UpdatePrimeInfo)
         self.sovDashBoard = SovDashboard(parent=self)
         self.sovDashBoard.CreateWindow()
+        return
 
     def UpdatePrimeInfo(self):
         self.primeTimeInfo = sm.GetService('alliance').GetPrimeTimeInfo()
@@ -52,13 +54,14 @@ class FormAlliancesSovereignty(Container):
                 currentPrimeHour = self.GetCurrentPrimeHour()
                 text = GetByLabel('UI/Sovereignty/VulnerabilityTime', hour=currentPrimeHour)
         self.timeLabel.SetText(text)
+        return
 
     def PrimeTimeMenu(self, menuParent):
         headerCont = menuParent.AddContainer(align=uiconst.TOTOP, height=20, padding=const.defaultPadding)
         EveLabelLargeBold(parent=headerCont, text=GetByLabel('UI/Sovereignty/SetSovereigntyHour'), align=uiconst.TOTOP)
         menuParent.AddSpace(height=10)
         text = menuParent.AddText(GetByLabel('UI/Sovereignty/SetNewVulnerabilityTimeDescription'))
-        text.GetEntryWidth = lambda mc = text: 250
+        text.GetEntryWidth = lambda mc=text: 250
         cont = menuParent.AddContainer(align=uiconst.TOTOP, height=60, padding=const.defaultPadding)
         myCont = Container(name='myCont', parent=cont, align=uiconst.TOTOP, height=22, padTop=10)
         currentPrimeHour = self.GetCurrentPrimeHour()
@@ -92,10 +95,11 @@ class FormAlliancesSovereignty(Container):
     def _IsDirectorInExecCorp(self, executorCorpID):
         if session.allianceid is None:
             return False
-        if IsNPC(session.corpid):
+        elif IsNPC(session.corpid):
             return False
-        if session.corpid != executorCorpID:
+        elif session.corpid != executorCorpID:
             return False
-        if corpRoleDirector & session.corprole != corpRoleDirector:
+        elif corpRoleDirector & session.corprole != corpRoleDirector:
             return False
-        return True
+        else:
+            return True

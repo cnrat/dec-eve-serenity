@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\common\modules\nice\client\_nastyspace\lightfxConstants.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\common\modules\nice\client\_nastyspace\lightfxConstants.py
 from eve.client.script.ui.extras.lightfxConstants import LFX_ACTION_COLOR
 from eve.client.script.ui.extras.lightfxConstants import LFX_ACTION_MORPH
 from eve.client.script.ui.extras.lightfxConstants import LFX_ACTION_PULSE

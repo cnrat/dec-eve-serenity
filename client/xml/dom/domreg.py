@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\carbon\common\stdlib\xml\dom\domreg.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\carbon\common\stdlib\xml\dom\domreg.py
 from xml.dom.minicompat import *
 well_known_implementations = {'minidom': 'xml.dom.minidom',
  '4DOM': 'xml.dom.DOMImplementation'}
@@ -13,37 +14,37 @@ def _good_enough(dom, features):
         if not dom.hasFeature(f, v):
             return 0
 
-    return 1
 
-
-def getDOMImplementation(name = None, features = ()):
+def getDOMImplementation(name=None, features=()):
     import os
     creator = None
     mod = well_known_implementations.get(name)
     if mod:
         mod = __import__(mod, {}, {}, ['getDOMImplementation'])
         return mod.getDOMImplementation()
-    if name:
+    elif name:
         return registered[name]()
-    if 'PYTHON_DOM' in os.environ:
+    elif 'PYTHON_DOM' in os.environ:
         return getDOMImplementation(name=os.environ['PYTHON_DOM'])
-    if isinstance(features, StringTypes):
-        features = _parse_feature_string(features)
-    for creator in registered.values():
-        dom = creator()
-        if _good_enough(dom, features):
-            return dom
+    else:
+        if isinstance(features, StringTypes):
+            features = _parse_feature_string(features)
+        for creator in registered.values():
+            dom = creator()
+            if _good_enough(dom, features):
+                return dom
 
-    for creator in well_known_implementations.keys():
-        try:
-            dom = getDOMImplementation(name=creator)
-        except StandardError:
-            continue
+        for creator in well_known_implementations.keys():
+            try:
+                dom = getDOMImplementation(name=creator)
+            except StandardError:
+                continue
 
-        if _good_enough(dom, features):
-            return dom
+            if _good_enough(dom, features):
+                return dom
 
-    raise ImportError, 'no suitable DOM implementation found'
+        raise ImportError, 'no suitable DOM implementation found'
+        return
 
 
 def _parse_feature_string(s):

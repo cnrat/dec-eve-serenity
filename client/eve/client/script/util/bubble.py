@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\client\script\util\bubble.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\client\script\util\bubble.py
 
 
 def SlimItemFromCharID(charID):
@@ -7,6 +8,8 @@ def SlimItemFromCharID(charID):
         for item in bp.slimItems.values():
             if item.charID == charID:
                 return item
+
+    return None
 
 
 def InBubble(itemID):

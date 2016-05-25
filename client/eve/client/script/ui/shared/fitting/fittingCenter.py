@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\client\script\ui\shared\fitting\fittingCenter.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\client\script\ui\shared\fitting\fittingCenter.py
 import math
 from carbonui.primitives.container import Container
 import carbonui.const as uiconst
@@ -9,6 +10,7 @@ from eve.client.script.ui.shared.fitting.fittingUtil import GetScaleFactor
 from eve.client.script.ui.shared.fitting.shipSceneContainer import ShipSceneContainer
 from eve.client.script.ui.shared.fitting.slotAdder import SlotAdder
 from eve.client.script.ui.station.fitting.stanceSlot import StanceSlots
+from eve.common.script.sys.eveCfg import IsControllingStructure
 from localization import GetByLabel
 import uthread
 import blue
@@ -58,10 +60,8 @@ class FittingCenter(FittingLayout):
         self.slotCont = Container(parent=self, name='slotCont', align=uiconst.TOALL, state=uiconst.UI_PICKCHILDREN, idx=0)
         self.slotList = []
         slotAdder = SlotAdder(self.controller)
-        numSlotGroups = len(self.controller.GetSlotsByGroups())
-        for groupIdx in xrange(numSlotGroups):
-            group = self.controller.GetSlotsByGroups().get(groupIdx, None)
-            if group is None:
+        for groupIdx, group in self.controller.GetSlotsByGroups().iteritems():
+            if groupIdx < 0:
                 continue
             arcStart, arcLength = self.controller.SLOTGROUP_LAYOUT_ARCS[groupIdx]
             slotAdder.StartGroup(arcStart, arcLength, len(group))
@@ -183,6 +183,7 @@ class FittingCenter(FittingLayout):
         slot = self.slots.get(oldFlagID, None)
         if slot is not None:
             slot.HideUtilButtons()
+        return
 
 
 class ShipSceneParent(Container):
@@ -215,12 +216,16 @@ class ShipSceneParent(Container):
     def GetShipMenu(self, *args):
         if self.controller.GetItemID() is None:
             return []
-        if session.stationid:
-            hangarInv = sm.GetService('invCache').GetInventory(const.containerHangar)
-            hangarItems = hangarInv.List()
-            for each in hangarItems:
-                if each.itemID == self.controller.GetItemID():
-                    return sm.GetService('menu').InvItemMenu(each)
+        elif IsControllingStructure():
+            return sm.GetService('menu').CelestialMenu(session.structureid)
+        else:
+            if session.stationid or session.structureid:
+                hangarInv = sm.GetService('invCache').GetInventory(const.containerHangar)
+                hangarItems = [hangarInv.GetItem()] + hangarInv.List(const.flagHangar)
+                for each in hangarItems:
+                    if each and each.itemID == self.controller.GetItemID():
+                        return sm.GetService('menu').InvItemMenu(each)
 
-        elif session.solarsystemid:
-            return sm.GetService('menu').CelestialMenu(session.shipid)
+            elif session.solarsystemid:
+                return sm.GetService('menu').CelestialMenu(session.shipid)
+            return

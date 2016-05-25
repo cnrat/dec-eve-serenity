@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\packages\spacecomponents\server\components\siphon.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\packages\spacecomponents\server\components\siphon.py
 from collections import defaultdict
 import dogma.const
 from spacecomponents.common.components.component import Component
@@ -24,6 +25,7 @@ class Siphon(Component):
         self.cachedStorageQuantities = defaultdict(long)
         self.SubscribeToMessage('OnAddedToSpace', self.OnAddedToSpace)
         self.SubscribeToMessage('OnRemovedFromSpace', self.OnRemovedFromSpace)
+        return
 
     def GetTypeBatchSize(self, typeID):
         return self.ballpark.broker.dogmaIM.GetTypeAttribute2(typeID, dogma.const.attributeMoonMiningAmount)
@@ -36,11 +38,13 @@ class Siphon(Component):
         towerID = self.ballpark.RegisterSiphon(self.itemID)
         if towerID is None:
             return
-        tower = self.ballpark.GetBall(towerID)
-        GetTypeAttribute = self.ballpark.broker.dogmaIM.GetTypeAttribute2
-        siphonWasteAmount = GetTypeAttribute(self.typeID, dogma.const.attributeSiphonWasteAmount)
-        self.eventLogger = EventLogger(self.itemID, self.ballpark.inventory2, self.ballpark.broker.eventLog, tower)
-        self.inventoryAccess = InventoryAccess(self.ballpark.inventory2, self.ballpark.broker.dbpos, self.eventLogger, siphonWasteAmount)
+        else:
+            tower = self.ballpark.GetBall(towerID)
+            GetTypeAttribute = self.ballpark.broker.dogmaIM.GetTypeAttribute2
+            siphonWasteAmount = GetTypeAttribute(self.typeID, dogma.const.attributeSiphonWasteAmount)
+            self.eventLogger = EventLogger(self.itemID, self.ballpark.inventory2, self.ballpark.broker.eventLog, tower)
+            self.inventoryAccess = InventoryAccess(self.ballpark.inventory2, self.ballpark.broker.dbpos, self.eventLogger, siphonWasteAmount)
+            return
 
     def OnRemovedFromSpace(self, ballpark, spaceComponentDB):
         ballpark.RemoveSiphon(self.itemID)
@@ -52,14 +56,16 @@ class Siphon(Component):
         supplier = self.ballpark.GetBall(self.siphoningFrom)
         if supplier is None:
             return
-        supplyType, supplyAmount = supplier.GetSupplyInfo()[0]
-        batchSize = self.GetTypeBatchSize(supplyType)
-        supplyAmount = supplyAmount * batchSize
-        demand = self.GetSiphonAmount(supplyType, capacity, supplyAmount)
-        if not demand:
+        else:
+            supplyType, supplyAmount = supplier.GetSupplyInfo()[0]
+            batchSize = self.GetTypeBatchSize(supplyType)
+            supplyAmount = supplyAmount * batchSize
+            demand = self.GetSiphonAmount(supplyType, capacity, supplyAmount)
+            if not demand:
+                return
+            supplier.SiphonResources(supplyType, demand / float(batchSize))
+            self.cachedStorageQuantities[supplyType] += demand
             return
-        supplier.SiphonResources(supplyType, demand / float(batchSize))
-        self.cachedStorageQuantities[supplyType] += demand
 
     def GetSiphonedItems(self):
         return self.cachedStorageQuantities
@@ -94,8 +100,10 @@ class Siphon(Component):
         siloID, productionStructureID = PickStructureToSiphon(links, self.ballpark, self.attributes.materials, self.attributes.materialGroupPriority, self.eventLogger)
         if productionStructureID is None:
             return
-        self.SetSiphonSource(siloID, productionStructureID)
-        self.EvaluateCycle(True)
+        else:
+            self.SetSiphonSource(siloID, productionStructureID)
+            self.EvaluateCycle(True)
+            return
 
     def SetSiphonSource(self, silo, siphonFrom):
         self.destinationSilo = silo

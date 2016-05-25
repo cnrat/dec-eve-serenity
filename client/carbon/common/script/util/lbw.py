@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\carbon\common\script\util\lbw.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\carbon\common\script\util\lbw.py
 import sys
 import struct
 import time
@@ -145,7 +146,7 @@ def WriteInteger(f, i):
     elif i >= -32768 and i < 32768:
         Write_BYTE(f, P_DWORD)
         Write_DWORD(f, i)
-    elif i >= -0x80000000 and i < 2147483648L:
+    elif i >= -2147483648 and i < 2147483648L:
         Write_BYTE(f, P_INT)
         Write_INT(f, i)
     else:
@@ -229,12 +230,14 @@ class InitData(object):
     def __init__(self, f):
         if f is None:
             return
-        self.computer = ReadString(f)
-        self.processname = ReadString(f)
-        self.pid = ReadInteger(f)
-        self.module = ReadHandle(f)
-        self.modulename = ReadString(f)
-        self.timestamp = Read_LONGLONG(f)
+        else:
+            self.computer = ReadString(f)
+            self.processname = ReadString(f)
+            self.pid = ReadInteger(f)
+            self.module = ReadHandle(f)
+            self.modulename = ReadString(f)
+            self.timestamp = Read_LONGLONG(f)
+            return
 
     def Write(self, f):
         WriteString(f, self.computer)
@@ -256,6 +259,7 @@ class Channel(object):
     def __init__(self, f):
         if f is not None:
             self.ReadChannelInfo(f)
+        return
 
     infoFmt = 'qq33s33sii0q'
 
@@ -287,7 +291,7 @@ class Channel(object):
 
 class LBW(object):
 
-    def __init__(self, f = None):
+    def __init__(self, f=None):
         if f:
             self.Read(f)
 
@@ -440,6 +444,8 @@ class LBW(object):
         for dev in self.devices:
             self.channels.extend(dev['channels'])
 
+        return
+
     def Read(self, f):
         self.version = ReadInteger(f)
         self.header = Header.Read(f)
@@ -505,6 +511,7 @@ class LBW(object):
 
         self.devices = [ d for d in self.devices if d['channels'] ]
         self.BuildIndices()
+        return
 
     def ChunkLines(self, logStore):
         timediff = 0.0001
@@ -522,7 +529,7 @@ class LBW(object):
 
         yield chunk
 
-    def Filter(self, chunk = False, pid = None, regex = None):
+    def Filter(self, chunk=False, pid=None, regex=None):
         if regex is not None:
             regex = re.compile(regex)
         for store in self.logStores:
@@ -548,8 +555,9 @@ class LBW(object):
             store['logs'] = lines
 
         self.Normalize()
+        return
 
-    def Lines(self, logStore = 0):
+    def Lines(self, logStore=0):
         s = self.logStores[0]
         for line in s['logs']:
             yield LogLine(line, self.channels)
@@ -585,7 +593,7 @@ class LBW(object):
     def _SetFileName(self, fileName):
         self.filename = fileName
 
-    def AddDevice(self, deviceLabel, deviceDescription, deviceID, pollInterval = 500, capacity = 5000):
+    def AddDevice(self, deviceLabel, deviceDescription, deviceID, pollInterval=500, capacity=5000):
         deviceHeader = self._CreateNewHeader(deviceLabel, deviceDescription)
         device = {'header': deviceHeader,
          'devId': deviceID,
@@ -596,7 +604,7 @@ class LBW(object):
          'start': True}
         self.devices.append(device)
 
-    def AddLogStorage(self, label, description, initialCapacity = 1000, incrementalCapacity = 1000, clearOnNewPid = False, filterFlags = False, filterFlagsMask = 0):
+    def AddLogStorage(self, label, description, initialCapacity=1000, incrementalCapacity=1000, clearOnNewPid=False, filterFlags=False, filterFlagsMask=0):
         storageHeader = self._CreateNewHeader(label, description)
         devID = self.devices[0]['devId']
         logStorage = {'header': storageHeader,
@@ -649,6 +657,7 @@ class LBW(object):
         channelInitData.timestamp = timestamp
         channel.initData[sourceID] = channelInitData
         self.BuildIndices()
+        return
 
     def AddLogLine(self, channelIndex, threadID, performanceCounter, flag, message, processID, sourceID):
         for idx, store in enumerate(self.logStores):
@@ -764,7 +773,7 @@ def ChunkLines(lines):
             chunk.append(l)
 
 
-def Filter(lines, severity = 0, pid = 0, text = None):
+def Filter(lines, severity=0, pid=0, text=None):
     lineIter = iter(lines)
     if text:
         import re
@@ -780,8 +789,10 @@ def Filter(lines, severity = 0, pid = 0, text = None):
             continue
         yield l
 
+    return
 
-def FilterFiles(files, severity = None, text = None):
+
+def FilterFiles(files, severity=None, text=None):
     sev = dict(info=1, warn=2, error=4, fatal=8)
     sev = sev[severity] if severity else 0
     for fn in files:
@@ -809,13 +820,13 @@ def FilterExceptions(files):
                 print l.ShortTime(), '%6i' % l.pid, '%5s' % l.severitystr, '%20s' % l.channel, repr(m.group(0)), repr(msg)
 
 
-def FilterFile(infile, outfile, chunk = False, pid = None, regex = None):
+def FilterFile(infile, outfile, chunk=False, pid=None, regex=None):
     logs = LBW(open(infile, 'rb'))
     logs.Filter(chunk=chunk, pid=pid, regex=regex)
     logs.Write(open(outfile, 'wb'))
 
 
-def main(args = None):
+def main(args=None):
     import glob
     if args is None:
         args = sys.argv[1:]
@@ -872,6 +883,7 @@ def main(args = None):
             Usage()
 
         FilterFile(infile, outfile, pid=pid, chunk=chunk, regex=regex)
+    return
 
 
 def Usage():

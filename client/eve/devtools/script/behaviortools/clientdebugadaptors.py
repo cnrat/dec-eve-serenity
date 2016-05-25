@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\devtools\script\behaviortools\clientdebugadaptors.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\devtools\script\behaviortools\clientdebugadaptors.py
 import logging
 import eve.common.script.net.eveMoniker as moniker
 from eve.devtools.script.behaviortools.debugwindow import BehaviorDebugWindow
@@ -70,6 +71,7 @@ class ClientBehaviorDebugger(object):
         self.events = []
         self.debugWindow = None
         self.isConnected = False
+        return
 
     def Connect(self):
         logger.debug('Debugger connecting to behavior of entity %s', self.entryKey)
@@ -92,13 +94,17 @@ class ClientBehaviorDebugger(object):
         except:
             logger.exception('Failed while disconnecting :(')
 
+        return
+
     def OnBehaviorDebugUpdate(self, events, taskStatuses, tasksSeen, blackboards, *args, **kwargs):
         if self.debugWindow is None:
             return
-        self.debugWindow.LoadEvents(events)
-        self.debugWindow.UpdateStatuses(taskStatuses)
-        self.debugWindow.UpdateTasksSeen(tasksSeen)
-        self.debugWindow.LoadBlackboard(blackboards)
+        else:
+            self.debugWindow.LoadEvents(events)
+            self.debugWindow.UpdateStatuses(taskStatuses)
+            self.debugWindow.UpdateTasksSeen(tasksSeen)
+            self.debugWindow.LoadBlackboard(blackboards)
+            return
 
     def SetupDebugTree(self, treeData):
         self.debugWindow = BehaviorDebugWindow.Open(windowID='BehaviorDebugWindow_' + str(self.entryKey))
@@ -113,3 +119,4 @@ class ClientBehaviorDebugger(object):
         if 'solarsystemid2' in change:
             if self.debugWindow is not None:
                 self.debugWindow.Close()
+        return

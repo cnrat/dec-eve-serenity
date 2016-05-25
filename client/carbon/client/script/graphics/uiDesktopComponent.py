@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\carbon\client\script\graphics\uiDesktopComponent.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\carbon\client\script\graphics\uiDesktopComponent.py
 import service
 import trinity
 import blue
@@ -27,6 +28,7 @@ class UIDesktopComponent(object):
         self.format = trinity.TRIFORMAT.TRIFMT_X8R8G8B8
         if blue.sysinfo.isTransgaming:
             self.format = trinity.TRIFORMAT.TRIFMT_A8R8G8B8
+        return
 
 
 class UIDesktopComponentManager(service.Service):
@@ -77,9 +79,12 @@ class UIDesktopComponentManager(service.Service):
                 log.LogException()
                 sys.exc_clear()
 
+        return
+
     def RenderUIDesktop(self, component):
         if component.renderJob is not None:
             component.renderJob.ScheduleOnce()
+        return
 
     def UpdateAndRenderUIDesktop(self, component):
         self.UpdateUIDesktop(component)
@@ -93,6 +98,7 @@ class UIDesktopComponentManager(service.Service):
                 component.renderTarget.name = component.uiDesktopName
             if component.uiDesktop is not None:
                 component.uiDesktop.SetRenderTarget(rt)
+        return
 
     def CreateComponent(self, name, state):
         component = UIDesktopComponent()
@@ -130,6 +136,7 @@ class UIDesktopComponentManager(service.Service):
             component.uiDesktop = uicore.uilib.CreateRootObject(component.uiDesktopName, width=component.width, height=component.height, renderTarget=rt, renderJob=component.renderJob)
         else:
             component.uiDesktop = uiprimitives.UIRoot(name=component.uiDesktopName, width=component.width, height=component.height, renderTarget=rt, renderJob=component.renderJob)
+        return
 
     def SetupComponent(self, entity, component):
         interiorPlaceable = entity.GetComponent('interiorPlaceable')
@@ -141,11 +148,13 @@ class UIDesktopComponentManager(service.Service):
             updateThread.context = 'svc.UIDesktopComponentManager.UpdateAndRenderUIDesktop'
             self.updateThreadsByID[entity.entityID] = updateThread
             return
-        if component.uiDesktop is None:
+        elif component.uiDesktop is None:
             return
-        desktopComponent.uiDesktop.positionComponent = entity.GetComponent('position')
-        updateThread = uthread.new(self.UpdateUIDesktop_t, component)
-        self.updateThreadsByID[entity.entityID] = updateThread
+        else:
+            desktopComponent.uiDesktop.positionComponent = entity.GetComponent('position')
+            updateThread = uthread.new(self.UpdateUIDesktop_t, component)
+            self.updateThreadsByID[entity.entityID] = updateThread
+            return
 
     def UnRegisterComponent(self, entity, component):
         if component.uiDesktop:
@@ -162,3 +171,4 @@ class UIDesktopComponentManager(service.Service):
         if entity.entityID in self.updateThreadsByID:
             self.updateThreadsByID.pop(entity.entityID).kill()
         self.uiDesktops.remove(component)
+        return

@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\packages\charactercreator\client\characterCreationSteps.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\packages\charactercreator\client\characterCreationSteps.py
 import charactercreator.const as ccConst
 
 def GetStepsForMode(mode):
@@ -20,7 +21,7 @@ def GetStepsForMode(mode):
 
 class Mode(object):
 
-    def __init__(self, modeID, canChangeBaseAppearance = False, canChangeName = False, canChangeGender = False, canChangeBloodline = False, willExitToStation = True, askPortraitInfo = False, isInitialCreation = False, limited = False, useOldPortraitData = False):
+    def __init__(self, modeID, canChangeBaseAppearance=False, canChangeName=False, canChangeGender=False, canChangeBloodline=False, willExitToStation=True, askPortraitInfo=False, isInitialCreation=False, limited=False, useOldPortraitData=False):
         self.modeID = modeID
         self.canChangeName = canChangeName
         self.canChangeGender = canChangeGender

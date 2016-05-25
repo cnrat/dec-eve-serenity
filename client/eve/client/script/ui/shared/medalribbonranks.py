@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\client\script\ui\shared\medalribbonranks.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\client\script\ui\shared\medalribbonranks.py
 from eve.client.script.ui.control.eveWindowUnderlay import BumpedUnderlay
 import uicontrols
 import uiprimitives
@@ -18,7 +19,7 @@ class Rank(uiprimitives.Container):
     rank = None
     warFactionID = None
 
-    def Startup(self, warFactionID = None, rank = None):
+    def Startup(self, warFactionID=None, rank=None):
         self.SetWarFaction(warFactionID)
         self.SetRank(rank)
         self.Flush()
@@ -47,8 +48,9 @@ class LayerBase(uiprimitives.Container):
         self.prettydata = {}
         self.sr.dad = None
         self.type = ''
+        return
 
-    def Startup(self, name = 'Layer', data = None):
+    def Startup(self, name='Layer', data=None):
         self.name = '%sBase' % name
         if self.lname is None:
             self.lname = name
@@ -57,6 +59,7 @@ class LayerBase(uiprimitives.Container):
         self.sr.selection = uiprimitives.Fill(parent=self, padding=(1, 2, 2, 2), color=(1.0, 1.0, 1.0, 0.25))
         self.sr.selection.name = 'selected'
         self.SetSelected()
+        return
 
     def GetData(self, *args):
         return self.retdata
@@ -71,27 +74,30 @@ class LayerBase(uiprimitives.Container):
 
         return self.prettydata
 
-    def LoadData(self, data = None, layerid = 0):
+    def LoadData(self, data=None, layerid=0):
         if data is None:
             return
-        self.data = data
-        for lid, (type, mapping, color) in enumerate(data):
-            if len(data) == 1:
-                lid = layerid
-            par = self.GetLayer(lid)
-            if not par:
-                par = uiprimitives.Container(parent=self, align=uiconst.TOALL, pos=(0, 0, 0, 0), clipChildren=0, state=uiconst.UI_HIDDEN)
-                par.name = '%sLayer%s' % (self.lname, lid)
-            spr = self.GetSprite(lid)
-            if not spr:
-                sprite = uiprimitives.Sprite(parent=par, align=uiconst.TOALL, left=0, lockAspect=1, state=uiconst.UI_DISABLED)
-                sprite.name = '%sSprite%s' % (self.lname, lid)
-            if mapping != None:
-                self.SetSprite(lid, type, mapping)
-            if color is not None and color != -1:
-                self.SetSpriteColor(lid, color)
+        else:
+            self.data = data
+            for lid, (type, mapping, color) in enumerate(data):
+                if len(data) == 1:
+                    lid = layerid
+                par = self.GetLayer(lid)
+                if not par:
+                    par = uiprimitives.Container(parent=self, align=uiconst.TOALL, pos=(0, 0, 0, 0), clipChildren=0, state=uiconst.UI_HIDDEN)
+                    par.name = '%sLayer%s' % (self.lname, lid)
+                spr = self.GetSprite(lid)
+                if not spr:
+                    sprite = uiprimitives.Sprite(parent=par, align=uiconst.TOALL, left=0, lockAspect=1, state=uiconst.UI_DISABLED)
+                    sprite.name = '%sSprite%s' % (self.lname, lid)
+                if mapping != None:
+                    self.SetSprite(lid, type, mapping)
+                if color is not None and color != -1:
+                    self.SetSpriteColor(lid, color)
 
-    def SetSelected(self, selected = False):
+            return
+
+    def SetSelected(self, selected=False):
         self.selected = selected
         if selected:
             self.sr.selection.state = uiconst.UI_DISABLED
@@ -152,6 +158,7 @@ class LayerBase(uiprimitives.Container):
                 self.retdata[id] = ('', None, 0)
             curr = self.retdata[id]
             self.retdata[id] = (curr[0], curr[1], color)
+        return None
 
     def SetHSV(self, id, hsv):
         if not self or self.destroyed:
@@ -182,7 +189,7 @@ class Medal(LayerBase):
     __guid__ = 'xtriui.Medal'
     typeID = const.typeMedal
 
-    def Startup(self, data = None):
+    def Startup(self, data=None):
         self.Flush()
         LayerBase.Startup(self, 'Medal', data)
 
@@ -197,7 +204,7 @@ class Ribbon(LayerBase):
     __guid__ = 'xtriui.Ribbon'
     typeID = const.typeRibbon
 
-    def Startup(self, data = None):
+    def Startup(self, data=None):
         self.Flush()
         LayerBase.Startup(self, 'Ribbon', data)
 
@@ -211,7 +218,7 @@ class Ribbon(LayerBase):
 class MedalRibbon(uiprimitives.Container):
     __guid__ = 'xtriui.MedalRibbon'
 
-    def Startup(self, data = None, size = 128, *args):
+    def Startup(self, data=None, size=128, *args):
         ribbondata = []
         medaldata = []
         if data is None:
@@ -235,6 +242,8 @@ class MedalRibbon(uiprimitives.Container):
             setattr(self.sr, each, mr)
             top += toppush
 
+        return
+
 
 class ImageSlider(uiprimitives.Container):
     __guid__ = 'xtriui.ImageSlider'
@@ -254,6 +263,7 @@ class ImageSlider(uiprimitives.Container):
         self.selected = 0
         self.keepselection = False
         self.width += 4
+        return
 
     def Startup(self, dataset, *args):
         self.data = dataset
@@ -311,6 +321,7 @@ class ImageSlider(uiprimitives.Container):
 
         if self.actualcount < self.visiblecount:
             self.sr.main.children[-1].Close()
+        return
 
     def GetActiveFrame(self):
         if self.sr.activeframe is None:
@@ -318,19 +329,22 @@ class ImageSlider(uiprimitives.Container):
              1.0,
              1.0,
              uiconst.ACTIVE_FRAME_ALPHA), idx=0, state=uiconst.UI_HIDDEN)
+        return
 
-    def SetObject(self, parent, obj, ret, direction = None):
+    def SetObject(self, parent, obj, ret, direction=None):
         if None in (parent, obj, ret):
             return
-        se = obj(name='', parent=parent, align=uiconst.TOALL, state=uiconst.UI_NORMAL, pos=(0, 0, 0, 0), idx=0)
-        se.Startup(ret)
-        se.OnClick = (self.OnChildMouseClicked, se)
-        if direction == -1:
-            se.idx = max(0, self.curridx - 1)
         else:
-            se.idx = len(self.sr.main.children) - 2 + self.curridx
-        se.sr.dad = self
-        parent.sr.obj = se
+            se = obj(name='', parent=parent, align=uiconst.TOALL, state=uiconst.UI_NORMAL, pos=(0, 0, 0, 0), idx=0)
+            se.Startup(ret)
+            se.OnClick = (self.OnChildMouseClicked, se)
+            if direction == -1:
+                se.idx = max(0, self.curridx - 1)
+            else:
+                se.idx = len(self.sr.main.children) - 2 + self.curridx
+            se.sr.dad = self
+            parent.sr.obj = se
+            return
 
     def OnChildMouseClicked(self, object, *args):
         self.cursoridx = object.idx + 1
@@ -345,11 +359,12 @@ class ImageSlider(uiprimitives.Container):
         object.SetSelected(True)
         self.sr.dad.LoadData(object.data, self.sr.dadlayer)
         self.PostOnClick(self)
+        return
 
     def PostOnClick(self, *args):
         pass
 
-    def SetParentListener(self, object, layer = None):
+    def SetParentListener(self, object, layer=None):
         self.sr.dad = object
         self.sr.dadlayer = layer
 
@@ -475,54 +490,59 @@ class MedalRibbonPickerWindow(uicontrols.Window):
         self.MakeUnResizeable()
         self.SetTopparentHeight(0)
         self.AddSliders()
+        return
 
     def SubmitData(self, *args):
         if self.submitting:
             return
-        self.submitting = True
-        missingFields = []
-        mName = self.sr.medalname.GetValue()
-        if not bool(mName):
-            missingFields.append(localization.GetByLabel('UI/Corporations/CreateDecorationWindow/DecorationName'))
-        mDesc = self.sr.medaldesc.GetAllText()
-        if not bool(mDesc):
-            missingFields.append(localization.GetByLabel('UI/Corporations/CreateDecorationWindow/Description'))
-        rData = self.sr.medalribbonobject.sr.ribbon.GetPrettyData()
-        if not rData:
-            missingFields.append(localization.GetByLabel('UI/Corporations/CreateDecorationWindow/Ribbon'))
-        mData = self.sr.medalribbonobject.sr.medal.GetPrettyData()
-        if not mData:
-            missingFields.append(localization.GetByLabel('UI/Corporations/CreateDecorationWindow/Medal'))
-        walletAccess = sm.GetService('wallet').HaveAccessToCorpWalletDivision(eve.session.corpAccountKey)
-        if not walletAccess:
-            if eve.Message('SelectWalletDivision', {}, uiconst.YESNO) == uiconst.ID_YES:
-                sm.GetService('wallet').SelectWalletDivision()
-            else:
+        else:
+            self.submitting = True
+            missingFields = []
+            mName = self.sr.medalname.GetValue()
+            if not bool(mName):
+                missingFields.append(localization.GetByLabel('UI/Corporations/CreateDecorationWindow/DecorationName'))
+            mDesc = self.sr.medaldesc.GetAllText()
+            if not bool(mDesc):
+                missingFields.append(localization.GetByLabel('UI/Corporations/CreateDecorationWindow/Description'))
+            rData = self.sr.medalribbonobject.sr.ribbon.GetPrettyData()
+            if not rData:
+                missingFields.append(localization.GetByLabel('UI/Corporations/CreateDecorationWindow/Ribbon'))
+            mData = self.sr.medalribbonobject.sr.medal.GetPrettyData()
+            if not mData:
+                missingFields.append(localization.GetByLabel('UI/Corporations/CreateDecorationWindow/Medal'))
+            walletAccess = sm.GetService('wallet').HaveAccessToCorpWalletDivision(eve.session.corpAccountKey)
+            if not walletAccess:
+                if eve.Message('SelectWalletDivision', {}, uiconst.YESNO) == uiconst.ID_YES:
+                    sm.GetService('wallet').SelectWalletDivision()
+                else:
+                    missingFields.append(localization.GetByLabel('UI/Corporations/CreateDecorationWindow/ActiveWalletDivision'))
+            k = getattr(eve.session, 'corpAccountKey')
+            if k is None and localization.GetByLabel('UI/Corporations/CreateDecorationWindow/ActiveWalletDivision') not in missingFields:
                 missingFields.append(localization.GetByLabel('UI/Corporations/CreateDecorationWindow/ActiveWalletDivision'))
-        k = getattr(eve.session, 'corpAccountKey')
-        if k is None and localization.GetByLabel('UI/Corporations/CreateDecorationWindow/ActiveWalletDivision') not in missingFields:
-            missingFields.append(localization.GetByLabel('UI/Corporations/CreateDecorationWindow/ActiveWalletDivision'))
-        if missingFields:
-            eve.Message('GenericMissingInfo', {'fields': localization.GetByLabel('UI/Map/StarMap/lblBoldName', name=', '.join(missingFields))})
-            self.submitting = False
+            if missingFields:
+                eve.Message('GenericMissingInfo', {'fields': localization.GetByLabel('UI/Map/StarMap/lblBoldName', name=', '.join(missingFields))})
+                self.submitting = False
+                return
+            cMedalData = []
+            for lid, (type, mapping, color) in rData.iteritems():
+                cMedalData.append([1, '.'.join((type, mapping)), color])
+
+            for lid, (type, mapping, color) in mData.iteritems():
+                cMedalData.append([2, '.'.join((type, mapping)), color])
+
+            destroy = False
+            try:
+                try:
+                    destroy = sm.StartService('medals').CreateMedal(mName, mDesc, cMedalData)
+                except:
+                    raise
+
+            finally:
+                self.submitting = False
+
+            if destroy:
+                self.Close()
             return
-        cMedalData = []
-        for lid, (type, mapping, color) in rData.iteritems():
-            cMedalData.append([1, '.'.join((type, mapping)), color])
-
-        for lid, (type, mapping, color) in mData.iteritems():
-            cMedalData.append([2, '.'.join((type, mapping)), color])
-
-        destroy = False
-        try:
-            destroy = sm.StartService('medals').CreateMedal(mName, mDesc, cMedalData)
-        except:
-            raise
-        finally:
-            self.submitting = False
-
-        if destroy:
-            self.Close()
 
     def AddSliders(self, *args):
         self.currentselection = None
@@ -667,6 +687,8 @@ class MedalRibbonPickerWindow(uicontrols.Window):
             self.AddSliderReset(slider)
             self.medalsliders.append(slider)
 
+        return
+
     def AddSliderReset(self, slider):
         rem = uiprimitives.Container(name='ImgSliderRemove', align=uiconst.TOLEFT, width=16, height=32)
         uicontrols.Frame(parent=rem, color=(1.0, 1.0, 1.0, 0.125))
@@ -714,8 +736,9 @@ class MedalRibbonPickerWindow(uicontrols.Window):
                 return
             self.medalsliders[nidx].parent.state = uiconst.UI_PICKCHILDREN
         self.currentselection = getattr(self.ribbonsliders[0], 'mastertype', None)
+        return
 
-    def GetImageSlider(self, data, ks = False, *args):
+    def GetImageSlider(self, data, ks=False, *args):
         size, amount = (32, 7)
         cont = uiprimitives.Container(name='ImageSliderPar', parent=self.sr.mainselector, align=uiconst.TOTOP, height=size, top=const.defaultPadding, state=uiconst.UI_NORMAL)
         slider = ImageSlider(name='ImageSlider', parent=cont, clipChildren=0, align=uiconst.TOPLEFT, width=size * amount, height=size, left=const.defaultPadding + size, state=uiconst.UI_NORMAL)
@@ -761,6 +784,7 @@ class RankEntry(LabelTextTop):
         if None not in (typeID, warFactionID, currentRank):
             abstractinfo = util.KeyVal(warFactionID=warFactionID, currentRank=currentRank)
             sm.GetService('info').ShowInfo(typeID, abstractinfo=abstractinfo)
+        return
 
 
 class MedalRibbonEntry(LabelTextTop):
@@ -790,10 +814,12 @@ class MedalRibbonEntry(LabelTextTop):
         self.sr.medalribbonobject.top = 3
         self.sr.medalribbonobject.Startup(node.abstractinfo, size)
         self.sr.label.left = self.sr.text.left = 32
+        return
 
     def ShowInfo(self, *args):
         if self.sr.node.Get('typeID', None) and self.sr.node.Get('abstractinfo', None):
             sm.GetService('info').ShowInfo(self.sr.node.typeID, self.sr.node.itemID, abstractinfo=self.sr.node.Get('abstractinfo', None))
+        return
 
     def GetHeight(self, *args):
         node, width = args

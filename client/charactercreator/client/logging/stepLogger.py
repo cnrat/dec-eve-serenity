@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\packages\charactercreator\client\logging\stepLogger.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\packages\charactercreator\client\logging\stepLogger.py
 from collections import defaultdict
 
 class TimeStepInformation:
@@ -33,6 +34,7 @@ class FinalStepLogger(object):
         self.didFinish = None
         self.storedSteps = []
         self.finalizeCount = 0
+        return
 
     def Start(self):
         pass
@@ -82,10 +84,12 @@ class StepLogger(object):
         self.stepTimeSpent = defaultdict(long)
         self.stepEntryCount = defaultdict(int)
         self.nextTryCount = defaultdict(int)
+        return
 
     def IncrementNextTryCount(self):
         if self.currentStepID is not None:
             self.nextTryCount[self.currentStepID] += 1
+        return
 
     def Start(self):
         self.startTime = self._getTime()

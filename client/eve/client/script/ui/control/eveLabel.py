@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\client\script\ui\control\eveLabel.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\client\script\ui\control\eveLabel.py
 from carbonui.control.label import LabelCore
 from eve.client.script.ui import eveFontConst as fontConst
 import log
@@ -77,6 +78,7 @@ class EveStyleLabel(Label):
             attributes.letterspace = self.default_letterspace
             log.LogTraceback('You are not allowed to change letterspace of a font style - find another style to use or use uicontrols.Label for custom labels')
         Label.ApplyAttributes(self, attributes)
+        return
 
 
 class EveLabelSmall(EveStyleLabel):

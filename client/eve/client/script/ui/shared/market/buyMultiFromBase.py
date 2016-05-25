@@ -1,25 +1,33 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\client\script\ui\shared\market\buyMultiFromBase.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\client\script\ui\shared\market\buyMultiFromBase.py
 from carbon.common.script.util.format import FmtAmt
 from carbon.common.script.util.timerstuff import AutoTimer
 from carbonui import const as uiconst
 from carbonui.primitives.sprite import Sprite
 from carbonui.util.various_unsorted import SortListOfTuples
+from eve.client.script.ui.control.buttons import Button
 from eve.client.script.ui.control.eveCombo import Combo
 from eve.client.script.ui.control.eveLabel import EveLabelLargeBold
 from eve.client.script.ui.control.eveSinglelineEdit import SinglelineEdit
+from eve.client.script.ui.control.utilMenu import UtilMenu
+from eve.client.script.ui.shared.comtool.lscchannel import ACTION_ICON
+from eve.client.script.ui.shared.market import GetTypeIDFromDragItem
 from eve.client.script.ui.shared.market.buySellMultiBase import SellBuyItemsWindow, COL_RED
 from eve.client.script.ui.shared.market.buytItemEntry import BuyItemContainer
 from eve.client.script.util.contractutils import FmtISKWithDescription
+from eve.common.lib import eveLocalization
 from eve.common.script.util.eveFormat import FmtISK
 from eveexceptions.exceptionEater import ExceptionEater
 import evetypes
 from localization import GetByLabel
-from marketutil import GetTypeIDFromDragItem
+import localization
 from marketutil.orderInfo import GetBuyItemInfo
 import uthread
 from utillib import KeyVal
 import blue
 import log
+from textImporting.importMultibuy import ImportMultibuy
+from carbonui.util.various_unsorted import GetClipboardData
 MILLION = 1000000
 
 class MultiBuy(SellBuyItemsWindow):
@@ -48,9 +56,11 @@ class MultiBuy(SellBuyItemsWindow):
         self.infoCont.height = 40
         self.totalAmt.LoadTooltipPanel = self.LoadTotalTooltip
         self.itemsScroll.OnDropData = self.DropItems
+        self.AddImportButton()
         self.DrawStationWarning()
         self.AddToLocationCont()
         self.StartAddItemsThread()
+        return
 
     def InitializeVariables(self, attributes):
         SellBuyItemsWindow.InitializeVariables(self, attributes)
@@ -61,6 +71,7 @@ class MultiBuy(SellBuyItemsWindow):
         self.preItems = self.GetKeyValsForWantedTypes(attributes.get('wantToBuy'))
         self.reloadingItemsCounter = 0
         self.verifyMultiplierTimer = None
+        return
 
     def GetKeyValsForWantedTypes(self, wantToBuy):
         keyVals = []
@@ -75,6 +86,28 @@ class MultiBuy(SellBuyItemsWindow):
         self.stationCombo = Combo(parent=self.locationCont, callback=self.OnStationChanged, left=const.defaultPadding, width=200, noChoiceLabel=GetByLabel('UI/Market/MarketQuote/NotStationsAvailable'))
         self.LoadStationOptions()
 
+    def AddImportButton(self):
+        if boot.region == 'optic':
+            return
+        self.dropCont.padLeft = 30
+        importMenu = UtilMenu(menuAlign=uiconst.TOPLEFT, parent=self.mainCont, align=uiconst.TOPLEFT, pos=(4, 0, 28, 28), GetUtilMenu=self.GetImportMenu, texturePath='res:/UI/Texture/Shared/pasteFrom.png', iconSize=28, hint=GetByLabel('UI/Market/MarketQuote/ImportShoppingListHint'))
+
+    def GetImportMenu(self, menuParent):
+        hint = GetByLabel('UI/Market/MarketQuote/ImportShoppingListOptionHint', type1=const.typeVeldspar, type2=const.typeTritanium)
+        menuParent.AddIconEntry(icon=ACTION_ICON, text=GetByLabel('UI/Market/MarketQuote/ImportShoppingListOption'), hint=hint, callback=self.ImportShoppingList)
+
+    def ImportShoppingList(self, *args):
+        localizedDecimal = eveLocalization.GetDecimalSeparator(localization.SYSTEM_LANGUAGE)
+        localizedSeparator = eveLocalization.GetThousandSeparator(localization.SYSTEM_LANGUAGE)
+        multibuyImporter = ImportMultibuy(localizedDecimal, localizedSeparator)
+        text = GetClipboardData()
+        toAdd, failedLines = multibuyImporter.GetTypesAndQty(text)
+        self.AddToOrder(toAdd)
+        if failedLines:
+            text = '%s<br>' % GetByLabel('UI/SkillQueue/CouldNotReadLines')
+            text += '<br>'.join(failedLines)
+            eve.Message('CustomInfo', {'info': text}, modal=False)
+
     def LoadStationOptions(self):
         currentSelection = self.stationCombo.GetValue()
         stations = self.GetStations()
@@ -88,6 +121,7 @@ class MultiBuy(SellBuyItemsWindow):
             select = None
         self.stationCombo.LoadOptions(stations, select)
         self.stationCombo.Confirm()
+        return
 
     def DrawStationWarning(self):
         self.stationWarning = EveLabelLargeBold(parent=self.bottomLeft, text='', align=uiconst.CENTERBOTTOM)
@@ -111,11 +145,13 @@ class MultiBuy(SellBuyItemsWindow):
     def AddItem(self, itemKeyVal):
         if not self.IsBuyable(itemKeyVal):
             return
-        existingEntry = self.entriesInScrollByTypeID.get(itemKeyVal.typeID, None)
-        if existingEntry and not existingEntry.destroyed:
-            existingEntry.AddQtyToEntry(itemKeyVal.qty)
         else:
-            self.DoAddItem(itemKeyVal)
+            existingEntry = self.entriesInScrollByTypeID.get(itemKeyVal.typeID, None)
+            if existingEntry and not existingEntry.destroyed:
+                existingEntry.AddQtyToEntry(itemKeyVal.qty)
+            else:
+                self.DoAddItem(itemKeyVal)
+            return
 
     def AddItemToCollection(self, itemKeyVal, itemEntry):
         self.entriesInScrollByTypeID[itemKeyVal.typeID] = itemEntry
@@ -205,7 +241,7 @@ class MultiBuy(SellBuyItemsWindow):
         qty = item.GetTotalQty()
         if qty < 1:
             return
-        validatedItem = GetBuyItemInfo(stationID=session.stationid, typeID=item.typeID, price=price, quantity=qty, minVolume=1, delta=item.GetDelta())
+        validatedItem = GetBuyItemInfo(stationID=session.stationid or session.structureid, typeID=item.typeID, price=price, quantity=qty, minVolume=1, delta=item.GetDelta())
         return validatedItem
 
     def CreateNewBuyOrder(self, failedItems):
@@ -229,22 +265,24 @@ class MultiBuy(SellBuyItemsWindow):
     def GetStations(self):
         solarsytemItems = sm.GetService('map').GetSolarsystemItems(session.solarsystemid2, True, False)
         stations = {i for i in solarsytemItems if i.groupID == const.groupStation}
+        currentStation = session.stationid2 or session.structureid
         stationList = []
         for eachStation in stations:
-            if eachStation.itemID == session.stationid:
+            if eachStation.itemID == currentStation:
                 continue
             sortValue = (eachStation.celestialIndex, eachStation.orbitIndex, eachStation.itemName)
             stationList.append((sortValue, (eachStation.itemName, eachStation.itemID)))
 
         stationList = SortListOfTuples(stationList)
-        if session.stationid:
-            stationName = cfg.evelocations.Get(session.stationid).name
-            currentStationOption = (GetByLabel('UI/Market/MarketQuote/CurrentStation', stationName=stationName), session.stationid)
+        if currentStation:
+            stationName = cfg.evelocations.Get(currentStation).name
+            currentStationOption = (GetByLabel('UI/Market/MarketQuote/CurrentStation', stationName=stationName), currentStation)
             stationList = [currentStationOption] + stationList
         return stationList
 
     def RemoveItemFromCollection(self, itemEntry):
         self.entriesInScrollByTypeID.pop(itemEntry.typeID, None)
+        return
 
     def OnMultiplierEditChange(self, *args):
         self.UpdateOrderMultiplierInEntries()
@@ -252,7 +290,7 @@ class MultiBuy(SellBuyItemsWindow):
             self.verifyMultiplierTimer.KillTimer()
         self.verifyMultiplierTimer = AutoTimer(2000, self.VerifyOrderMultiplier_thread)
 
-    def UpdateOrderMultiplierInEntries(self, force = True):
+    def UpdateOrderMultiplierInEntries(self, force=True):
         self.orderMultiplier = self.orderMultiplierEdit.GetValue()
         for item in self.GetItemsIterator():
             if force or item.orderMultiplier != self.orderMultiplier:
@@ -261,6 +299,7 @@ class MultiBuy(SellBuyItemsWindow):
     def VerifyOrderMultiplier_thread(self):
         self.verifyMultiplierTimer = None
         self.UpdateOrderMultiplierInEntries(force=False)
+        return
 
     def OnEntryEdit(self, *args):
         uthread.new(self.UpdateNumbers)
@@ -276,14 +315,16 @@ class MultiBuy(SellBuyItemsWindow):
         self.ShowOrHideStationWarning()
 
     def ShowOrHideStationWarning(self):
+        currentStation = session.stationid2 or session.structureid
         if self.baseStationID is None:
             self.stationWarning.text = GetByLabel('UI/Market/MarketQuote/NoStationSelected')
             self.stationWarning.display = True
-        elif self.baseStationID == session.stationid2:
+        elif self.baseStationID == currentStation:
             self.stationWarning.display = False
         else:
             self.stationWarning.text = GetByLabel('UI/Market/MarketQuote/StationWarning')
             self.stationWarning.display = True
+        return
 
     def GetSum(self):
         totalSum = 0
@@ -350,7 +391,7 @@ class MultiBuy(SellBuyItemsWindow):
 
         return (numTypes, numAvailableTypes)
 
-    def GetItemsIterator(self, onlyValid = False):
+    def GetItemsIterator(self, onlyValid=False):
         for item in self.GetItems():
             if not item:
                 continue
@@ -361,14 +402,16 @@ class MultiBuy(SellBuyItemsWindow):
     def DropItems(self, dragObj, nodes):
         if dragObj is None:
             return
-        items = self.CheckOrderAvailability(nodes)
-        self.ClearErrorLists()
-        for node in items:
-            typeID = GetTypeIDFromDragItem(node)
-            if typeID:
-                self.AddItem(KeyVal(typeID=typeID, qty=1))
+        else:
+            items = self.CheckOrderAvailability(nodes)
+            self.ClearErrorLists()
+            for node in items:
+                typeID = GetTypeIDFromDragItem(node)
+                if typeID:
+                    self.AddItem(KeyVal(typeID=typeID, qty=1))
 
-        self.DisplayErrorHints()
+            self.DisplayErrorHints()
+            return
 
     def GetTypeIDFromDragItem(self, node):
         return GetTypeIDFromDragItem(node)
@@ -439,6 +482,7 @@ class MultiBuy(SellBuyItemsWindow):
     def ConstructBlinkBG(self):
         if self.blinkEditBG is None:
             self.blinkEditBG = Sprite(name='blinkEditBG', bgParent=self.orderMultiplierEdit, align=uiconst.TOALL, state=uiconst.UI_DISABLED, texturePath='res:/UI/Texture/classes/InvItem/bgSelected.png', opacity=0.0, idx=0)
+        return
 
     def LogBuy(self, buyItemList):
         totalDisplayed = self.totalAmt.text

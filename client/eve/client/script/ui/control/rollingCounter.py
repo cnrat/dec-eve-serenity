@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\client\script\ui\control\rollingCounter.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\client\script\ui\control\rollingCounter.py
 import uicls
 import carbonui.const as uiconst
 import uiprimitives
@@ -26,15 +27,16 @@ class RollingCounter(uiprimitives.Container):
         self.scrollInText = uicontrols.EveCaptionLarge(text='', parent=self.scrollIn, align=uiconst.TOLEFT, color=(1, 1, 1, 1))
         self.scrolling = False
 
-    def RollIn(self, newText, newColor = None):
+    def RollIn(self, newText, newColor=None):
         if self.scrolling:
             return False
-        self.scrollInText.text = newText
-        if newColor is not None:
-            self.rollInColor = newColor
-            self.scrollInText.color = newColor
-        self._RollIn()
-        return True
+        else:
+            self.scrollInText.text = newText
+            if newColor is not None:
+                self.rollInColor = newColor
+                self.scrollInText.color = newColor
+            self._RollIn()
+            return True
 
     def _RollIn(self):
         if self.scrolling:
@@ -67,3 +69,4 @@ class RollingCounter(uiprimitives.Container):
         self.scrollOutText = scrolledInText
         if self.callback is not None:
             self.callback(self)
+        return

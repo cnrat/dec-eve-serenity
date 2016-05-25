@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\carbon\common\stdlib\codeop.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\carbon\common\stdlib\codeop.py
 import __future__
 _features = [ getattr(__future__, fname) for fname in __future__.all_feature_names ]
 __all__ = ['compile_command', 'Compile', 'CommandCompiler']
@@ -32,15 +33,17 @@ def _maybe_compile(compiler, source, filename, symbol):
 
     if code:
         return code
-    if not code1 and repr(err1) == repr(err2):
-        raise SyntaxError, err1
+    else:
+        if not code1 and repr(err1) == repr(err2):
+            raise SyntaxError, err1
+        return
 
 
 def _compile(source, filename, symbol):
     return compile(source, filename, symbol, PyCF_DONT_IMPLY_DEDENT)
 
 
-def compile_command(source, filename = '<input>', symbol = 'single'):
+def compile_command(source, filename='<input>', symbol='single'):
     return _maybe_compile(_compile, source, filename, symbol)
 
 
@@ -63,5 +66,5 @@ class CommandCompiler:
     def __init__(self):
         self.compiler = Compile()
 
-    def __call__(self, source, filename = '<input>', symbol = 'single'):
+    def __call__(self, source, filename='<input>', symbol='single'):
         return _maybe_compile(self.compiler, source, filename, symbol)

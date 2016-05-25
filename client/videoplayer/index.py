@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\packages\videoplayer\index.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\packages\videoplayer\index.py
 import json
 import os
 import urllib2
@@ -6,7 +7,7 @@ import uthread2
 
 class VideoIndex(object):
 
-    def __init__(self, url, language_id = None):
+    def __init__(self, url, language_id=None):
         if language_id is None:
             try:
                 self._language_id = str(prefs.languageID)
@@ -29,6 +30,7 @@ class VideoIndex(object):
         self._data = None
         self._videos = {}
         uthread2.start_tasklet(self._load_index)
+        return
 
     def _load_index(self):
         try:
@@ -53,9 +55,13 @@ class VideoIndex(object):
             self._data = {}
             raise
 
+        return
+
     def _wait_for_load(self):
         while self._data is None:
             uthread2.yield_()
+
+        return
 
     def _get_localized_string(self, item):
         if self._language_id in item:
@@ -75,7 +81,8 @@ class VideoIndex(object):
     def _build_url(self, url):
         if not url:
             return None
-        return self._base_url + unicode(url)
+        else:
+            return self._base_url + unicode(url)
 
     def _get_video_item(self, video):
         return {'id': video.get('id'),

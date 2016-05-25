@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\packages\eveSpaceObject\spaceobjaudio.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\packages\eveSpaceObject\spaceobjaudio.py
 import logging
 import audio2
 import trinity
@@ -28,12 +29,13 @@ def SendEvent(audEntity, eventName):
     audEntity.SendEvent(unicode(eventName))
 
 
-def PlayAmbientAudio(audEntity, soundUrl = None):
+def PlayAmbientAudio(audEntity, soundUrl=None):
     if soundUrl is not None:
         SendEvent(audEntity, soundUrl)
+    return
 
 
-def GetSoundUrl(slimItem = None, defaultSoundUrl = None):
+def GetSoundUrl(slimItem=None, defaultSoundUrl=None):
     soundUrl = None
     if slimItem:
         soundUrl = eveaudio.GetSoundUrlForType(slimItem)
@@ -46,8 +48,6 @@ def GetBoosterSizeStr(groupID):
     boosterMappings = {const.groupCapDrainDrone: 'd',
      const.groupCombatDrone: 'd',
      const.groupElectronicWarfareDrone: 'd',
-     const.groupFighterBomber: 'd',
-     const.groupFighterDrone: 'd',
      const.groupLogisticDrone: 'd',
      const.groupMiningDrone: 'd',
      const.groupProximityDrone: 'd',
@@ -56,6 +56,9 @@ def GetBoosterSizeStr(groupID):
      const.groupStasisWebifyingDrone: 'd',
      const.groupUnanchoringDrone: 'd',
      const.groupWarpScramblingDrone: 'd',
+     const.groupSupportFighter: 'fs',
+     const.groupLightFighter: 'fs',
+     const.groupHeavyFighter: 'fs',
      const.groupCapsule: 'd',
      const.groupRookieship: 'f',
      const.groupFrigate: 'f',
@@ -98,6 +101,7 @@ def GetBoosterSizeStr(groupID):
      const.groupCarrier: 'dr',
      const.groupSupercarrier: 'dr',
      const.groupCapitalIndustrialShip: 'dr',
+     const.groupForceAux: 'dr',
      const.groupTitan: 't'}
     return boosterMappings.get(groupID, 'f')
 
@@ -111,32 +115,33 @@ def GetBoosterAudioEventName(sizeStr, boosterSoundName):
     return '_'.join(parts)
 
 
-def CreateEmitterForBooster(model, boosterSize, isAudioBoosterLocator = lambda n: n.name == BOOSTER_AUDIO_LOCATOR_NAME):
+def CreateEmitterForBooster(model, boosterSize, isAudioBoosterLocator=lambda n: n.name == BOOSTER_AUDIO_LOCATOR_NAME):
     locs = filter(isAudioBoosterLocator, model.locators)
     if not locs:
         return None
-    if len(locs) > 1:
-        L.error('Found %s locs, needed 1. Content should be validated against this!', len(locs))
-    audLocator = locs[0]
-    observer = trinity.TriObserverLocal()
-    transform = audLocator.transform
-    observer.front = (-transform[2][0], -transform[2][1], -transform[2][2])
-    observer.position = (transform[3][0], transform[3][1], transform[3][2])
-    audioService = sm.GetService('audio')
-    if audioService.GetDopplerEmittersUsage() and boosterSize in ('f', 'c', 'bs'):
-        rtpcChangeDuration = 17
-        emitterName = 'ship_%s_booster' % id(model)
-        rtpcName = 'doppler_shift_booster_' + boosterSize
-        emitter = audio2.AudEmitterDoppler(emitterName, rtpcName, rtpcChangeDuration)
     else:
-        emitter = audio2.AudEmitter('ship_%s_booster' % id(model))
-    audparam = audio2.AudParameter()
-    audparam.name = u'ship_speed'
-    emitter.parameters.append(audparam)
-    observer.observer = emitter
-    model.observers.append(observer)
-    model.audioSpeedParameter = audparam
-    return emitter
+        if len(locs) > 1:
+            L.error('Found %s locs, needed 1. Content should be validated against this!', len(locs))
+        audLocator = locs[0]
+        observer = trinity.TriObserverLocal()
+        transform = audLocator.transform
+        observer.front = (-transform[2][0], -transform[2][1], -transform[2][2])
+        observer.position = (transform[3][0], transform[3][1], transform[3][2])
+        audioService = sm.GetService('audio')
+        if audioService.GetDopplerEmittersUsage() and boosterSize in ('f', 'c', 'bs'):
+            rtpcChangeDuration = 17
+            emitterName = 'ship_%s_booster' % id(model)
+            rtpcName = 'doppler_shift_booster_' + boosterSize
+            emitter = audio2.AudEmitterDoppler(emitterName, rtpcName, rtpcChangeDuration)
+        else:
+            emitter = audio2.AudEmitter('ship_%s_booster' % id(model))
+        audparam = audio2.AudParameter()
+        audparam.name = u'ship_speed'
+        emitter.parameters.append(audparam)
+        observer.observer = emitter
+        model.observers.append(observer)
+        model.audioSpeedParameter = audparam
+        return emitter
 
 
 def GetBoosterEmitterAndEvent(model, groupID, boosterSoundName):
@@ -144,8 +149,9 @@ def GetBoosterEmitterAndEvent(model, groupID, boosterSoundName):
     emitter = CreateEmitterForBooster(model, boosterSize)
     if emitter is None:
         return (None, None)
-    boosterAudioEvent = GetBoosterAudioEventName(boosterSize, boosterSoundName)
-    return (emitter, boosterAudioEvent)
+    else:
+        boosterAudioEvent = GetBoosterAudioEventName(boosterSize, boosterSoundName)
+        return (emitter, boosterAudioEvent)
 
 
 def GetSharedAudioEmitter(eventName):
@@ -161,3 +167,16 @@ def SetupSharedEmitterForAudioEvent(model, eventName):
     emitter = GetSharedAudioEmitter(eventName)
     triObserver.observer = emitter
     model.observers.append(triObserver)
+
+
+def bindAudioParameterToAttribute(sourceObject, attributeName, bindingsList):
+    audparam = audio2.AudParameter()
+    audparam.name = u'ship_invulnerability_link_strength'
+    binding = trinity.TriValueBinding()
+    binding.name = 'AudParameterBinding'
+    binding.sourceObject = sourceObject
+    binding.sourceAttribute = attributeName
+    binding.destinationObject = audparam
+    binding.destinationAttribute = 'value'
+    bindingsList.append(binding)
+    return audparam

@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\common\script\paperDoll\paperDollResData.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\common\script\paperDoll\paperDollResData.py
 import uthread
 import log
 import telemetry
@@ -18,6 +19,7 @@ class SourceGeo(object):
         self.geoLod2 = None
         self.geoLod3 = None
         self.geoLodA = geoBase
+        return
 
     def __getitem__(self, idx):
         if idx == -1:
@@ -44,6 +46,7 @@ class SourceGeo(object):
                 self.geoLod3 = value
             elif suffix in (pdDef.GEO_SUFFIX_LODA, None):
                 self.geoLodA = value
+        return
 
     def __repr__(self):
         r = []
@@ -62,6 +65,7 @@ class SourceMap(object):
         self.map4k = None
         self.map512 = None
         self.map256 = None
+        return
 
     def SetItemBySuffix(self, suffix, value, ext):
         if suffix == pdDef.MAP_SUFFIX_4K:
@@ -131,6 +135,7 @@ class Entry(object):
         self.MapRedFiles()
         self.isVariationFolder = len(self.leafFolderName) > 1 and self.leafFolderName[0] == 'v' and self.leafFolderName[1:].isdigit()
         self.isModifierFolder = not self.isVariationFolder and (self.sourceGeos or self.sourceMaps or 'metadata.yaml' in self.files)
+        return
 
     def MapRedFiles(self):
         redFiles = self.GetFilesByExt('red')
@@ -179,10 +184,13 @@ class Entry(object):
         def queryLOD(lodValue):
             if selfRDSG and selfRDSG[lodValue]:
                 return self.GetFullResPath(selfRDSG[lodValue])
-            for sibling in self.siblings:
-                siblingRDSG = sibling.sourceGeos.get(basename) if sibling else None
-                if siblingRDSG and siblingRDSG[lodValue]:
-                    return sibling.GetFullResPath(siblingRDSG[lodValue])
+            else:
+                for sibling in self.siblings:
+                    siblingRDSG = sibling.sourceGeos.get(basename) if sibling else None
+                    if siblingRDSG and siblingRDSG[lodValue]:
+                        return sibling.GetFullResPath(siblingRDSG[lodValue])
+
+                return
 
         fn = None
         try:
@@ -195,7 +203,8 @@ class Entry(object):
 
         if fn:
             return fn
-        return path
+        else:
+            return path
 
     def GetBaseGeoName(self, path):
         idx = path.rfind(pdDef.SEPERATOR_CHAR) + 1
@@ -206,7 +215,7 @@ class Entry(object):
 
         return filename
 
-    def MapLODSourceData(self, sourceClassFactory, sources, suffixes, extensions, extensionVoilatile = True):
+    def MapLODSourceData(self, sourceClassFactory, sources, suffixes, extensions, extensionVoilatile=True):
         if sources:
             sources.clear()
         for fn in iter(self.files):
@@ -242,6 +251,8 @@ class Entry(object):
                     if currentSuffix:
                         currentRDS.SetItemBySuffix(currentSuffix, fn, ext)
 
+        return
+
 
 class GenderData(object):
     LOD_KEY = 'lod'
@@ -259,6 +270,7 @@ class GenderData(object):
          GenderData.LOD_KEY: {},
          GenderData.TEST_KEY: {},
          GenderData.TEST_LOD_KEY: {}}
+        return
 
     def QueryPath(self, path):
         for pathsToEntries in self.keyedPathsToEntries.itervalues():
@@ -267,17 +279,17 @@ class GenderData(object):
 
         return False
 
-    def GetPathsToEntries(self, key = None):
+    def GetPathsToEntries(self, key=None):
         return self.keyedPathsToEntries.get(key)
 
-    def GetEntries(self, key = None):
+    def GetEntries(self, key=None):
         return self.keyedEntries.get(key)
 
     def IterEntries(self):
         for key, entries in self.keyedEntries.iteritems():
             yield (key, entries)
 
-    def GetEntryByPath(self, path, key = None):
+    def GetEntryByPath(self, path, key=None):
         entry = self.GetPathsToEntries(key).get(path)
         if not entry:
             for k, pathsToEntries in self.keyedPathsToEntries.iteritems():
@@ -306,12 +318,12 @@ class ResData(object):
             fullResPath = pdDef.SEPERATOR_CHAR.join(fullResPath.split(pdDef.SEPERATOR_CHAR)[:-1])
         return self.rootsToEntries.get(fullResPath, None)
 
-    def GetEntriesByGender(self, gender, key = None):
+    def GetEntriesByGender(self, gender, key=None):
         if gender in self.genderData:
             return self.genderData[gender].GetEntries(key)
         return {}
 
-    def GetPathToEntryByGender(self, gender, key = None):
+    def GetPathToEntryByGender(self, gender, key=None):
         if gender in self.genderData:
             genderData = self.genderData[gender]
             return genderData.GetPathsToEntries(key)
@@ -323,10 +335,12 @@ class ResData(object):
             return genderData.QueryPath(path)
         return False
 
-    def GetEntryByPath(self, gender, path, key = None):
+    def GetEntryByPath(self, gender, path, key=None):
         if gender in self.genderData:
             genderData = self.genderData[gender]
             return genderData.GetEntryByPath(path, key)
+        else:
+            return None
 
     def _GetFilesByExtension(self, ext, entries):
         results = []
@@ -337,7 +351,7 @@ class ResData(object):
 
         return results
 
-    def GetFilesByExtension(self, ext, gender = None):
+    def GetFilesByExtension(self, ext, gender=None):
         results = []
         if gender:
             entries = self.GetEntriesByGender(gender)
@@ -348,7 +362,7 @@ class ResData(object):
 
         return results
 
-    def Traverse(self, resDataEntry, visitFunc = None, key = None):
+    def Traverse(self, resDataEntry, visitFunc=None, key=None):
         if not resDataEntry:
             return
         if not visitFunc or visitFunc(resDataEntry):
@@ -357,7 +371,7 @@ class ResData(object):
             for entry in self.Traverse(childEntry, visitFunc, key):
                 yield entry
 
-    def GetChildEntries(self, resDataEntry, key = None):
+    def GetChildEntries(self, resDataEntry, key=None):
         entries = self.GetEntriesByGender(resDataEntry.gender, key)
         return entries.get(resDataEntry, [])
 
@@ -424,13 +438,16 @@ class ResData(object):
         def TraverseLODCutoff(currentEntry, lodCutoff, entries):
             if not currentEntry:
                 return
-            if currentEntry.lodCutoff is not None:
-                lodCutoff = currentEntry.lodCutoff
-            elif lodCutoff is not None:
-                currentEntry.lodCutoff = lodCutoff
-            for childEntry in entries[currentEntry]:
-                TraverseLODCutoff(childEntry, lodCutoff, entries)
-                pdCf.BeFrameNice()
+            else:
+                if currentEntry.lodCutoff is not None:
+                    lodCutoff = currentEntry.lodCutoff
+                elif lodCutoff is not None:
+                    currentEntry.lodCutoff = lodCutoff
+                for childEntry in entries[currentEntry]:
+                    TraverseLODCutoff(childEntry, lodCutoff, entries)
+                    pdCf.BeFrameNice()
+
+                return
 
         for gender in self.genderData.iterkeys():
             genderData = self.genderData[gender]
@@ -441,7 +458,7 @@ class ResData(object):
 
         log.LogInfo('PaperDoll - ResData: Done propagating LOD rules!')
 
-    def Populate(self, gender, path, key = None, callBack = None):
+    def Populate(self, gender, path, key=None, callBack=None):
         t = uthread.new(self._Populate_t, *(gender,
          str(path),
          key,

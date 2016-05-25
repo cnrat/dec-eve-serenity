@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\packages\eveclientqatools\impactVisualization.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\packages\eveclientqatools\impactVisualization.py
 import threading
 import uicontrols
 import trinity
@@ -32,6 +33,7 @@ class ImpactVisualizer():
         self.lockVelocity = True
         self.randomize = False
         self.arrowModel = trinity.Load('res:/Model/global/impactDirection.red')
+        return
 
     def SetupImpactArrow(self):
         self.impactArrow = trinity.EveRootTransform()
@@ -48,7 +50,7 @@ class ImpactVisualizer():
         self.RemoveImpactArrowFromScene()
         self.arrowPositionUpdater.Stop()
 
-    def GetBall(self, ballID = None):
+    def GetBall(self, ballID=None):
         if ballID is None:
             ballID = self.shipId
         return sm.GetService('michelle').GetBall(ballID)
@@ -92,19 +94,21 @@ class ImpactVisualizer():
 
         if self.shipId == shipId:
             return
-        if sm.GetService('michelle').GetBall(shipId) is None:
+        elif sm.GetService('michelle').GetBall(shipId) is None:
             print "No ball with id '%d' found in ballpark" % shipId
             return
-        print 'Setting ship ID to %d' % shipId
-        self.shipId = shipId
-        self.shipIdLabel.SetText('Ship ID: %s' % self.shipId)
-        self.arrowPositionUpdater.SetBall(self.GetBall())
-        self.damageLocatorInput.IntMode(minint=0, maxint=len(self.GetBall().model.damageLocators))
-        if len(self.GetBall().model.damageLocators) >= self.damageLocatorID:
-            self.damageLocatorInput.SetValue(str(self.damageLocatorID))
         else:
-            self.damageLocatorInput.SetValue(str(0))
-        self.OnSetDamageLocator()
+            print 'Setting ship ID to %d' % shipId
+            self.shipId = shipId
+            self.shipIdLabel.SetText('Ship ID: %s' % self.shipId)
+            self.arrowPositionUpdater.SetBall(self.GetBall())
+            self.damageLocatorInput.IntMode(minint=0, maxint=len(self.GetBall().model.damageLocators))
+            if len(self.GetBall().model.damageLocators) >= self.damageLocatorID:
+                self.damageLocatorInput.SetValue(str(self.damageLocatorID))
+            else:
+                self.damageLocatorInput.SetValue(str(0))
+            self.OnSetDamageLocator()
+            return
 
     def OnSetImpactVelocityX(self, *args):
         self.impactVelocity = (float(self.impactVelocityXInput.GetValue()), self.impactVelocity[1], self.impactVelocity[2])
@@ -186,6 +190,7 @@ class ArrowPositionUpdater(object):
         self.arrowRotation = (0.0, 0.0, 0.0, 1.0)
         self.thread = threading.Thread(target=self.Update)
         self.thread.start()
+        return
 
     def SetDamageLocator(self, damageLocatorIndex):
         self.damageLocator = damageLocatorIndex

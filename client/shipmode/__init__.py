@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\packages\shipmode\__init__.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\packages\shipmode\__init__.py
 import inventorycommon.const as invconst
 from .data import get_ship_modes_data, get_modes_by_type, get_stance_by_type, ship_has_stances, get_stance_data
 from .notifier import SystemNotifier, Notifier, get_slim_item_field
@@ -18,3 +19,5 @@ def get_current_ship_stance(type_id, items):
     for item in items:
         if item.typeID in stance_by_type:
             return stance_by_type[item.typeID]
+
+    return None

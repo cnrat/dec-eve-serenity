@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\carbon\common\stdlib\pstats.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\carbon\common\stdlib\pstats.py
 import sys
 import os
 import time
@@ -26,6 +27,7 @@ class Stats():
             args = args[1:]
         self.init(arg)
         self.add(*args)
+        return
 
     def init(self, arg):
         self.all_callees = None
@@ -49,6 +51,8 @@ class Stats():
                 if self.files:
                     print >> self.stream, self.files[-1],
                 print >> self.stream
+
+        return
 
     def load_stats(self, arg):
         if not arg:
@@ -81,36 +85,39 @@ class Stats():
             if len(func_std_string(func)) > self.max_name_len:
                 self.max_name_len = len(func_std_string(func))
 
+        return
+
     def add(self, *arg_list):
         if not arg_list:
             return self
-        if len(arg_list) > 1:
-            self.add(*arg_list[1:])
-        other = arg_list[0]
-        if type(self) != type(other) or self.__class__ != other.__class__:
-            other = Stats(other)
-        self.files += other.files
-        self.total_calls += other.total_calls
-        self.prim_calls += other.prim_calls
-        self.total_tt += other.total_tt
-        for func in other.top_level:
-            self.top_level[func] = None
+        else:
+            if len(arg_list) > 1:
+                self.add(*arg_list[1:])
+            other = arg_list[0]
+            if type(self) != type(other) or self.__class__ != other.__class__:
+                other = Stats(other)
+            self.files += other.files
+            self.total_calls += other.total_calls
+            self.prim_calls += other.prim_calls
+            self.total_tt += other.total_tt
+            for func in other.top_level:
+                self.top_level[func] = None
 
-        if self.max_name_len < other.max_name_len:
-            self.max_name_len = other.max_name_len
-        self.fcn_list = None
-        for func, stat in other.stats.iteritems():
-            if func in self.stats:
-                old_func_stat = self.stats[func]
-            else:
-                old_func_stat = (0,
-                 0,
-                 0,
-                 0,
-                 {})
-            self.stats[func] = add_func_stats(old_func_stat, stat)
+            if self.max_name_len < other.max_name_len:
+                self.max_name_len = other.max_name_len
+            self.fcn_list = None
+            for func, stat in other.stats.iteritems():
+                if func in self.stats:
+                    old_func_stat = self.stats[func]
+                else:
+                    old_func_stat = (0,
+                     0,
+                     0,
+                     0,
+                     {})
+                self.stats[func] = add_func_stats(old_func_stat, stat)
 
-        return self
+            return self
 
     def dump_stats(self, filename):
         f = file(filename, 'wb')
@@ -250,11 +257,11 @@ class Stats():
 
         else:
             count = len(list)
-            if isinstance(sel, float) and 0.0 <= sel < 1.0:
-                count = int(count * sel + 0.5)
+            if isinstance(sel, float):
+                count = 0.0 <= sel < 1.0 and int(count * sel + 0.5)
                 new_list = list[:count]
-            elif isinstance(sel, (int, long)) and 0 <= sel < count:
-                count = sel
+            elif isinstance(sel, (int, long)):
+                count = 0 <= sel < count and sel
                 new_list = list[:count]
         if len(list) != len(new_list):
             msg += '   List reduced from %r to %r due to restriction <%r>\n' % (len(list), len(new_list), sel)
@@ -347,7 +354,7 @@ class Stats():
         if subheader:
             print >> self.stream, ' ' * name_size + '    ncalls  tottime  cumtime'
 
-    def print_call_line(self, name_size, source, call_dict, arrow = '->'):
+    def print_call_line(self, name_size, source, call_dict, arrow='->'):
         print >> self.stream, func_std_string(source).ljust(name_size) + arrow,
         if not call_dict:
             print >> self.stream
@@ -411,8 +418,6 @@ class TupleComp():
                 return -direction
             if l > r:
                 return direction
-
-        return 0
 
 
 def func_strip_path(func_name):
@@ -487,13 +492,14 @@ if __name__ == '__main__':
 
     class ProfileBrowser(cmd.Cmd):
 
-        def __init__(self, profile = None):
+        def __init__(self, profile=None):
             cmd.Cmd.__init__(self)
             self.prompt = '% '
             self.stats = None
             self.stream = sys.stdout
             if profile is not None:
                 self.do_read(profile)
+            return
 
         def generic(self, fn, line):
             args = line.split()
@@ -521,7 +527,6 @@ if __name__ == '__main__':
                 getattr(self.stats, fn)(*processed)
             else:
                 print >> self.stream, 'No statistics object is loaded.'
-            return 0
 
         def generic_help(self):
             print >> self.stream, 'Arguments may be:'
@@ -536,7 +541,6 @@ if __name__ == '__main__':
                 self.stats.add(line)
             else:
                 print >> self.stream, 'No statistics object is loaded.'
-            return 0
 
         def help_add(self):
             print >> self.stream, 'Add profile info from given file to current statistics object.'
@@ -557,13 +561,12 @@ if __name__ == '__main__':
 
         def do_EOF(self, line):
             print >> self.stream, ''
-            return 1
 
         def help_EOF(self):
             print >> self.stream, 'Leave the profile brower.'
 
         def do_quit(self, line):
-            return 1
+            pass
 
         def help_quit(self):
             print >> self.stream, 'Leave the profile brower.'
@@ -585,7 +588,6 @@ if __name__ == '__main__':
                 self.do_read(line)
             else:
                 print >> self.stream, 'No statistics object is current -- cannot reload.'
-            return 0
 
         def help_read(self):
             print >> self.stream, 'Read in profile data from a specified file.'
@@ -596,7 +598,6 @@ if __name__ == '__main__':
                 self.stats.reverse_order()
             else:
                 print >> self.stream, 'No statistics object is loaded.'
-            return 0
 
         def help_reverse(self):
             print >> self.stream, 'Reverse the sort order of the profiling report.'
@@ -612,8 +613,6 @@ if __name__ == '__main__':
                 print >> self.stream, 'Valid sort keys (unique prefixes are accepted):'
                 for key, value in Stats.sort_arg_dict_default.iteritems():
                     print >> self.stream, '%s -- %s' % (key, value[1])
-
-            return 0
 
         def help_sort(self):
             print >> self.stream, 'Sort profile data according to specified keys.'
@@ -644,6 +643,8 @@ if __name__ == '__main__':
         def postcmd(self, stop, line):
             if stop:
                 return stop
+            else:
+                return None
 
 
     import sys

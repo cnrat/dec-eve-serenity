@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\carbon\client\script\util\cacheDirectoryLimitSvc.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\carbon\client\script\util\cacheDirectoryLimitSvc.py
 import service
 import blue
 import telemetry
@@ -10,21 +11,23 @@ import uthread
 
 class AutoPrunedDirectory(object):
 
-    def __init__(self, directory, maxDirectorySizeInMB, maxAgeInDays = None):
+    def __init__(self, directory, maxDirectorySizeInMB, maxAgeInDays=None):
         self.directory = directory
         self.maxDirectorySizeInMB = maxDirectorySizeInMB
         self.maxAgeInDays = maxAgeInDays
         self.currentSize = 0
         self.lastChecked = None
+        return
 
 
-def RemoveFileFromCache(filePath, lastAccessed = None):
+def RemoveFileFromCache(filePath, lastAccessed=None):
     cacheSvc = sm.GetService('cacheDirectoryLimit')
     if lastAccessed is not None:
         cacheSvc.LogInfo('Removing ', filePath, ' from cache. It was last accessed:', lastAccessed)
     else:
         cacheSvc.LogInfo('Removing ', filePath, ' from cache.')
     os.remove(filePath)
+    return
 
 
 @telemetry.ZONE_FUNCTION
@@ -64,6 +67,7 @@ def ProcessCacheDirectory(cacheSvc, rootPath, callback, d):
 
     else:
         cacheSvc.LogInfo('Cache Directory', d.directory, 'is currently', currentSize / 1048576.0, 'MB (max', d.maxDirectorySizeInMB, 'MB)')
+    return
 
 
 def SetUpDirectorySpy(cacheSvc, rootPath, func, d):
@@ -81,6 +85,7 @@ def SetUpDirectorySpy(cacheSvc, rootPath, func, d):
                 return
         thread = threading.Thread(target=ProcessDirectoryInThreadClosure)
         thread.start()
+        return
 
     try:
         blue.pyos.SpyDirectory(rootPath, FilesChangedClosure)
@@ -118,7 +123,7 @@ class CacheDirectoryLimitService(service.Service):
              RemoveFileFromCache,
              d))
 
-    def RegisterCacheDirectory(self, directory, maxSize, maxLastAccessedAgeInDays = None):
+    def RegisterCacheDirectory(self, directory, maxSize, maxLastAccessedAgeInDays=None):
         for d in self.autoPruneDirectories:
             if d.directory == directory:
                 d.maxDirectorySizeInMB = maxSize

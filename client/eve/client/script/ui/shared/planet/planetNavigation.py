@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\client\script\ui\shared\planet\planetNavigation.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\client\script\ui\shared\planet\planetNavigation.py
 import evecamera
 import uix
 import carbonui.const as uiconst
@@ -45,11 +46,13 @@ class PlanetCamera(object):
     def Open(self):
         self.oldCameraPos = None
         cbmanager.CallbackManager.GetGlobal().ScheduleCallback(self._RenderCallback)
+        return
 
     def Close(self):
         self.oldCameraPos = None
         self.cameraAuto = False
         cbmanager.CallbackManager.GetGlobal().UnscheduleCallback(self._RenderCallback)
+        return
 
     def _RenderCallback(self):
         if self.oldCameraPos is None or self.oldCameraPos != self.camera.pos:
@@ -57,6 +60,7 @@ class PlanetCamera(object):
             rightMat = geo2.MatrixRotationAxis(self.camera.rightVec, math.radians(-225))
             upMat = geo2.MatrixRotationAxis(self.camera.upVec, math.radians(-45))
             self.scene.sunDirection = geo2.Vec3Normalize(geo2.Vec3TransformNormal(geo2.Vec3TransformNormal(self.camera.viewVec, rightMat), upMat))
+        return
 
     def ManualZoom(self, zoomDiff):
         self.cameraAuto = False
@@ -99,7 +103,7 @@ class PlanetCamera(object):
         self.camera.SetRotationOnOrbit(0.0, orbitRotation)
         sm.GetService('planetUI').OnPlanetZoomChanged(min(1.0, self.zoom))
 
-    def AutoZoom(self, newZoom, time = 1.0):
+    def AutoZoom(self, newZoom, time=1.0):
         uthread.new(self._AutoZoom, newZoom, time)
 
     def _AutoZoom(self, newZoom, time):
@@ -114,7 +118,7 @@ class PlanetCamera(object):
             self.ApplyZoom(currZoom)
             blue.pyos.synchro.Yield()
 
-    def AutoOrbit(self, surfacePoint, newZoom = None, time = 1.0):
+    def AutoOrbit(self, surfacePoint, newZoom=None, time=1.0):
         self.cameraAuto = False
         blue.pyos.synchro.Yield()
         uthread.new(self._AutoOrbit, surfacePoint, newZoom, time)
@@ -145,6 +149,8 @@ class PlanetCamera(object):
             newPhi = self.GetSplineValue(t, tMax, camPhi - self.pitchDiff, spPhi + self.pitchDiff)
             cam.SetOrbit(newTh, newPhi + self.pitchDiff)
             blue.pyos.synchro.Yield()
+
+        return
 
     def GetSplineValue(self, t, tMax, valInit, valEnd):
         tHalf = tMax / 2.0
@@ -186,6 +192,7 @@ class PlanetLayer(uicls.LayerCore):
         self.isTabStop = True
         self.pickLast = None
         self.camera = None
+        return
 
     def Startup(self):
         self.eventManager = sm.GetService('planetUI').eventManager
@@ -202,34 +209,37 @@ class PlanetLayer(uicls.LayerCore):
     def OnMouseMove(self, *args):
         if self.camera is None:
             return
-        if uicore.uilib.rightbtn and uicore.uilib.leftbtn:
-            modifier = uicore.mouseInputHandler.GetCameraZoomModifier()
-            self.camera.ManualZoom(modifier * -5.0 * uicore.uilib.dy)
-            self.rightMbtnUsedForCameraControl = True
-        elif self.orbitOnMouseMove:
-            self.planetWasRotated = True
-            self.camera.ManualRotate(uicore.uilib.dx, uicore.uilib.dy)
         else:
-            typeID, ID = self.GetPick()
-            if not self.pickLast:
+            if uicore.uilib.rightbtn and uicore.uilib.leftbtn:
+                modifier = uicore.mouseInputHandler.GetCameraZoomModifier()
+                self.camera.ManualZoom(modifier * -5.0 * uicore.uilib.dy)
+                self.rightMbtnUsedForCameraControl = True
+            elif self.orbitOnMouseMove:
+                self.planetWasRotated = True
+                self.camera.ManualRotate(uicore.uilib.dx, uicore.uilib.dy)
+            else:
+                typeID, ID = self.GetPick()
+                if not self.pickLast:
+                    self.pickLast = typeID
+                    self.areaIDLast = ID
+                    return
+                if not typeID:
+                    return
+                if (typeID, ID) == (self.pickLast, self.areaIDLast):
+                    self._ScatterMouseMoveEvent(typeID, ID)
+                    return
+                if self.pickLast:
+                    self._ScatterMouseExitEvent(self.pickLast, self.areaIDLast)
+                self._ScatterMouseEnterEvent(typeID, ID)
                 self.pickLast = typeID
                 self.areaIDLast = ID
-                return
-            if not typeID:
-                return
-            if (typeID, ID) == (self.pickLast, self.areaIDLast):
-                self._ScatterMouseMoveEvent(typeID, ID)
-                return
-            if self.pickLast:
-                self._ScatterMouseExitEvent(self.pickLast, self.areaIDLast)
-            self._ScatterMouseEnterEvent(typeID, ID)
-            self.pickLast = typeID
-            self.areaIDLast = ID
+            return
 
     def OnMouseExit(self, *args):
         if self.pickLast:
             self._ScatterMouseExitEvent(self.pickLast, self.areaIDLast)
             self.pickLast = self.areaIDLast = None
+        return
 
     def OnMouseEnter(self, *args):
         if not uicore.cmd.IsUIHidden():
@@ -306,6 +316,7 @@ class PlanetLayer(uicls.LayerCore):
             pass
         elif surfacePoint is not None:
             self.eventManager.OnPlanetSurfaceDblClicked(surfacePoint)
+        return
 
     def OnMouseWheel(self, *args):
         modifier = uicore.mouseInputHandler.GetCameraZoomModifier()
@@ -334,30 +345,31 @@ class PlanetLayer(uicls.LayerCore):
         typeID, ID = self.GetPick()
         if self.eventManager.OnPlanetNavRightClicked():
             return
-        if typeID == TYPE_PIN:
+        elif typeID == TYPE_PIN:
             return self.myPinManager.GetPinMenu(ID)
-        if typeID == TYPE_OTHERPLAYERSPIN:
+        elif typeID == TYPE_OTHERPLAYERSPIN:
             return self.otherPinManager.GetPinMenuOther(ID)
-        if typeID == TYPE_LINK:
-            m = self.myPinManager.GetLinkMenu(ID)
-            if m:
-                return m
-        if getattr(self, 'rightMbtnUsedForCameraControl', None):
-            self.rightMbtnUsedForCameraControl = False
-            return
-        m = []
-        if session.role & ROLE_GML == ROLE_GML:
-            m.append(['GM/Debug Menu...', self.DebugMenu()])
-            m.append(None)
-        if sm.GetService('planetUI').otherPinManager is not None:
-            showOtherPins = settings.user.ui.Get('planetShowOtherCharactersPins', True)
-            if showOtherPins:
-                showOtherPinsTxt = uiutil.MenuLabel('UI/PI/Common/HideOtherNetworks')
-            else:
-                showOtherPinsTxt = uiutil.MenuLabel('UI/PI/Common/ShowOtherNetworks')
-            m.append((showOtherPinsTxt, sm.GetService('planetUI').otherPinManager.ShowOrHideOtherCharactersPins, [not showOtherPins]))
-        m.append((uiutil.MenuLabel('UI/PI/Common/ExitPlanetMode'), sm.GetService('viewState').CloseSecondaryView, ('planet',)))
-        return m
+        else:
+            if typeID == TYPE_LINK:
+                m = self.myPinManager.GetLinkMenu(ID)
+                if m:
+                    return m
+            if getattr(self, 'rightMbtnUsedForCameraControl', None):
+                self.rightMbtnUsedForCameraControl = False
+                return
+            m = []
+            if session.role & ROLE_GML == ROLE_GML:
+                m.append(['GM/Debug Menu...', self.DebugMenu()])
+                m.append(None)
+            if sm.GetService('planetUI').otherPinManager is not None:
+                showOtherPins = settings.user.ui.Get('planetShowOtherCharactersPins', True)
+                if showOtherPins:
+                    showOtherPinsTxt = uiutil.MenuLabel('UI/PI/Common/HideOtherNetworks')
+                else:
+                    showOtherPinsTxt = uiutil.MenuLabel('UI/PI/Common/ShowOtherNetworks')
+                m.append((showOtherPinsTxt, sm.GetService('planetUI').otherPinManager.ShowOrHideOtherCharactersPins, [not showOtherPins]))
+            m.append((uiutil.MenuLabel('UI/PI/Common/ExitPlanetMode'), sm.GetService('viewState').CloseSecondaryView, ('planet',)))
+            return m
 
     def GetPick(self):
         sceneManager = sm.GetService('sceneManager')

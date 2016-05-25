@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\packages\spacecomponents\client\components\activate.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\packages\spacecomponents\client\components\activate.py
 from spacecomponents.client.display import EntryData, TIMER_ICON
 from spacecomponents.common.components.component import Component
 from carbon.common.lib.const import SEC
@@ -14,6 +15,7 @@ class Activate(Component):
         self.activeTimestamp = None
         self.SubscribeToMessage(MSG_ON_ADDED_TO_SPACE, self.OnAddedToSpace)
         self.SubscribeToMessage(MSG_ON_SLIM_ITEM_UPDATED, self.OnSlimItemUpdated)
+        return
 
     def OnAddedToSpace(self, slimItem):
         self.OnSlimItemUpdated(slimItem)
@@ -24,6 +26,7 @@ class Activate(Component):
             self.isActive = isActive
             self.activeTimestamp = activeTimestamp
             self.SendMessage(MSG_ON_ACTIVATE_TIMER_UPDATED, self, slimItem)
+        return
 
     def IsActive(self):
         return self.isActive

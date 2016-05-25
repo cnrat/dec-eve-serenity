@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\client\script\ui\shared\shipTree\infoBubble.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\client\script\ui\shared\shipTree\infoBubble.py
 from carbonui.primitives.container import Container
 import carbonui.const as uiconst
 from carbonui.primitives.layoutGrid import LayoutGrid, LayoutGridRow
@@ -102,7 +103,6 @@ class InfoBubble(Container):
 
 
 @Component(ButtonEffect(bgElementFunc=lambda parent, _: Fill(bgParent=parent), opacityHover=0.1, opacityMouseDown=0.2))
-
 class TrialRestrictionButton(Container):
     default_state = uiconst.UI_NORMAL
     ICON_SIZE = 24
@@ -225,6 +225,7 @@ class SkillEntry(LayoutGridRow):
             self.bgFill.SetRGBA(*SkillTreeEntry.COLOR_TRAINED)
             self.skillBar.opacity = 1.0
             self.bgPattern.opacity = 0.0
+        return
 
     def GetMenu(self):
         return sm.GetService('menu').GetMenuForSkill(self.typeID)

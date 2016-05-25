@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\packages\scriber\__init__.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\packages\scriber\__init__.py
 import types
 import logging
 import os
@@ -33,7 +34,7 @@ class _SingletonEnvironment(object):
         return _SingletonEnvironment.jinja_environment
 
     @classmethod
-    def init(cls, template_dir_list = '', force_reload = False):
+    def init(cls, template_dir_list='', force_reload=False):
         if not _SingletonEnvironment.jinja_environment or force_reload:
             if not isinstance(template_dir_list, list):
                 template_dir_list = list(template_dir_list)
@@ -42,7 +43,7 @@ class _SingletonEnvironment(object):
             _load_filters()
 
 
-def init(template_dir_list = '', force_reload = False):
+def init(template_dir_list='', force_reload=False):
     _SingletonEnvironment.init(template_dir_list, force_reload)
 
 
@@ -85,7 +86,7 @@ def template_exists(template):
     return template in get_environment().list_templates()
 
 
-def error(message, details = ''):
+def error(message, details=''):
     if details:
         if isinstance(details, BaseException):
             details = traceback.format_exc()

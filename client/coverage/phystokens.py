@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\carbon\common\stdlib\coverage\phystokens.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\carbon\common\stdlib\coverage\phystokens.py
 import codecs, keyword, re, sys, token, tokenize
 from coverage.backward import StringIO
 
@@ -30,6 +31,8 @@ def phys_tokens(toks):
          (elineno, ecol),
          ltext)
         last_lineno = elineno
+
+    return
 
 
 def source_token_lines(source):
@@ -105,18 +108,19 @@ def source_encoding(source):
         matches = cookie_re.findall(line_string)
         if not matches:
             return None
-        encoding = _get_normal_name(matches[0])
-        try:
-            codec = codecs.lookup(encoding)
-        except LookupError:
-            raise SyntaxError('unknown encoding: ' + encoding)
+        else:
+            encoding = _get_normal_name(matches[0])
+            try:
+                codec = codecs.lookup(encoding)
+            except LookupError:
+                raise SyntaxError('unknown encoding: ' + encoding)
 
-        if bom_found:
-            codec_name = getattr(codec, 'name', encoding)
-            if codec_name != 'utf-8':
-                raise SyntaxError('encoding problem: utf-8')
-            encoding += '-sig'
-        return encoding
+            if bom_found:
+                codec_name = getattr(codec, 'name', encoding)
+                if codec_name != 'utf-8':
+                    raise SyntaxError('encoding problem: utf-8')
+                encoding += '-sig'
+            return encoding
 
     first = read_or_stop()
     if first.startswith(codecs.BOM_UTF8):
@@ -134,4 +138,5 @@ def source_encoding(source):
     encoding = find_cookie(second)
     if encoding:
         return encoding
-    return default
+    else:
+        return default

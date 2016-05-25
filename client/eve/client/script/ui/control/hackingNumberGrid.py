@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\client\script\ui\control\hackingNumberGrid.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\client\script\ui\control\hackingNumberGrid.py
 import math
 import uicls
 import carbonui.const as uiconst
@@ -69,6 +70,7 @@ class HackingNumberGrid(uiprimitives.Container):
             self.cellRowContainers.append(newRowContainer)
 
         self.cellRowSemaphore = uthread.Semaphore()
+        return
 
     def IsCycling(self):
         return self.cyclingThread is not None
@@ -98,50 +100,55 @@ class HackingNumberGrid(uiprimitives.Container):
     def SetProgress(self, progress):
         if self.cyclingThread is None:
             return
-        progress = min(max(float(progress), 0.0), 1.0)
-        self.cellRowSemaphore.acquire()
-        try:
-            numLockedCells = int(math.floor(progress * self.numCellRows * self.cellsPerRow))
-            if numLockedCells < len(self.doneCells):
-                returnedCells = self.doneCells[numLockedCells:]
-                self.doneCells = self.doneCells[:numLockedCells]
-                for cell in returnedCells:
-                    cell.sr.background.SetRGBA(*self.cellBackgroundColor)
-                    cell.sr.fill.opacity = 0.0
-                    cell.sr.fill.sr.background.SetRGBA(*self.progressColor)
-                    self.deadCells.append(cell)
+        else:
+            progress = min(max(float(progress), 0.0), 1.0)
+            self.cellRowSemaphore.acquire()
+            try:
+                numLockedCells = int(math.floor(progress * self.numCellRows * self.cellsPerRow))
+                if numLockedCells < len(self.doneCells):
+                    returnedCells = self.doneCells[numLockedCells:]
+                    self.doneCells = self.doneCells[:numLockedCells]
+                    for cell in returnedCells:
+                        cell.sr.background.SetRGBA(*self.cellBackgroundColor)
+                        cell.sr.fill.opacity = 0.0
+                        cell.sr.fill.sr.background.SetRGBA(*self.progressColor)
+                        self.deadCells.append(cell)
 
-            elif numLockedCells > len(self.doneCells):
-                newlyLockedCells = random.sample(self.deadCells + self.liveCells, numLockedCells - len(self.doneCells))
-                for cell in newlyLockedCells:
-                    if cell in self.deadCells:
-                        self.deadCells.remove(cell)
-                    if cell in self.liveCells:
-                        self.liveCells.remove(cell)
-                    cell.sr.background.SetRGBA(*self.doneColor)
-                    cell.sr.fill.sr.background.SetRGBA(*self.flashColor)
-                    cell.sr.fill.opacity = 1.0
-                    self.doneCells.append(cell)
+                elif numLockedCells > len(self.doneCells):
+                    newlyLockedCells = random.sample(self.deadCells + self.liveCells, numLockedCells - len(self.doneCells))
+                    for cell in newlyLockedCells:
+                        if cell in self.deadCells:
+                            self.deadCells.remove(cell)
+                        if cell in self.liveCells:
+                            self.liveCells.remove(cell)
+                        cell.sr.background.SetRGBA(*self.doneColor)
+                        cell.sr.fill.sr.background.SetRGBA(*self.flashColor)
+                        cell.sr.fill.opacity = 1.0
+                        self.doneCells.append(cell)
 
-        finally:
-            self.cellRowSemaphore.release()
+            finally:
+                self.cellRowSemaphore.release()
+
+            return
 
     def BeginColorCycling(self):
         if self.cyclingThread is not None:
             return
-        self.state = uiconst.UI_DISABLED
-        self.cycling = True
-        self.deadCells = []
-        self.liveCells = []
-        self.doneCells = []
-        for row in self.cellRows:
-            for cell in row:
-                cell.sr.background.SetRGBA(*self.cellBackgroundColor)
-                cell.sr.fill.sr.background.SetRGBA(*self.progressColor)
-                if cell.sr.fill.opacity <= 0.0:
-                    self.deadCells.append(cell)
+        else:
+            self.state = uiconst.UI_DISABLED
+            self.cycling = True
+            self.deadCells = []
+            self.liveCells = []
+            self.doneCells = []
+            for row in self.cellRows:
+                for cell in row:
+                    cell.sr.background.SetRGBA(*self.cellBackgroundColor)
+                    cell.sr.fill.sr.background.SetRGBA(*self.progressColor)
+                    if cell.sr.fill.opacity <= 0.0:
+                        self.deadCells.append(cell)
 
-        self.cyclingThread = uthread.new(self._ColorCycle)
+            self.cyclingThread = uthread.new(self._ColorCycle)
+            return
 
     def _ColorCycle(self):
         while 1:
@@ -179,6 +186,8 @@ class HackingNumberGrid(uiprimitives.Container):
             finally:
                 self.cellRowSemaphore.release()
 
+        return
+
     def StopColorCycling(self):
         self.cycling = False
         uthread.new(self._Finish)
@@ -188,3 +197,4 @@ class HackingNumberGrid(uiprimitives.Container):
         if self and not self.destroyed and self.cyclingThread is not None:
             self.cyclingThread.kill()
             self.cyclingThread = None
+        return

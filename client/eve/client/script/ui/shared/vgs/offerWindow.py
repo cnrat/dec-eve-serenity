@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\client\script\ui\shared\vgs\offerWindow.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\client\script\ui\shared\vgs\offerWindow.py
 from carbonui import const as uiconst
 from carbonui.primitives.container import Container
 from carbonui.primitives.fill import Fill
@@ -35,6 +36,7 @@ class OfferWindow(Window):
         self.view = None
         self.Layout()
         self.SetOffers(attributes.offers)
+        return
 
     def Layout(self):
         self.HideHeader()
@@ -52,6 +54,7 @@ class OfferWindow(Window):
             self.DisplayPurchaseView(self.offers[0])
         else:
             self.DisplayPickOfferView()
+        return
 
     def DisplayLoadingView(self):
         self.header.DisableBackButton()
@@ -134,7 +137,6 @@ class OfferWindowHeader(Container):
 
 
 @Component(ButtonEffect())
-
 class HeaderButton(Container):
     default_width = 16
     default_height = 16

@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\packages\iconrendering\__init__.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\packages\iconrendering\__init__.py
 import inventorycommon.const as const
 APPNAME = 'iconrendering'
 TIMESTAMP_FORMAT = '%Y_%m_%d_%H_%M_%S'
@@ -35,7 +36,8 @@ NON_ICON_CATEGORIES = (const.categoryCelestial,
  const.categorySovereigntyStructure,
  const.categoryPlanetaryInteraction,
  const.categoryOrbital,
- const.categoryFighter)
+ const.categoryFighter,
+ const.categoryStructure)
 
 class IconRenderingException(Exception):
     pass

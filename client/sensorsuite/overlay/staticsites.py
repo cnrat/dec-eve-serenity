@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\packages\sensorsuite\overlay\staticsites.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\packages\sensorsuite\overlay\staticsites.py
 from eve.client.script.ui.shared.radialMenu.spaceRadialMenuFunctions import bookMarkOption
 import localization
 from sensorsuite.overlay.brackets import SensorSuiteBracket, INNER_ICON_COLOR

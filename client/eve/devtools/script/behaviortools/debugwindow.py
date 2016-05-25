@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\devtools\script\behaviortools\debugwindow.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\devtools\script\behaviortools\debugwindow.py
 from brennivin.itertoolsext import Bundle
 from carbon.common.script.util.format import FmtDate
 from carbon.common.script.util.timerstuff import AutoTimer
@@ -59,7 +60,7 @@ class BehaviorTreeEntry(ContainerAutoSize):
             c = Container(name='Indent', parent=self, align=uiconst.TOLEFT, width=ENTRY_HEIGHT)
             Line(parent=c, align=uiconst.TOLEFT)
 
-    def SetBgColor(self, alternate = False):
+    def SetBgColor(self, alternate=False):
         pass
 
     def EnableStepped(self):
@@ -76,7 +77,6 @@ class BehaviorTreeEntry(ContainerAutoSize):
 
 
 @Component(HoverEffect())
-
 class TaskNode(Container):
     default_align = uiconst.TOLEFT
     default_state = uiconst.UI_NORMAL
@@ -128,7 +128,7 @@ class TaskNode(Container):
                 e.taskNode.SetCollapsed(isCollapsed)
 
     def GetTooltipDelay(self):
-        return 500
+        pass
 
     def LoadTooltipPanel(self, tooltipPanel, *args):
         tooltipPanel.LoadGeneric2ColumnTemplate()
@@ -168,6 +168,7 @@ class BehaviorDebugWindow(Window):
         self.blackboardScroll = ScrollContainer(name='blackboards', parent=self.sr.main, padding=(4, 4, 4, 4))
         GradientSprite(bgParent=self.blackboardScroll, rotation=0, rgbData=[(0, (1.0, 1.0, 1.3))], alphaData=[(0.8, 0.0), (1.0, 0.05)])
         self.timeUpdateTimer = AutoTimer(1000, self._TimeUpdater)
+        return
 
     def _TimeUpdater(self):
         self.currentTimeLabel.SetText('Time:  current: %s' % FmtDate(gametime.GetWallclockTime(), 'nl'))
@@ -227,6 +228,7 @@ class BehaviorDebugWindow(Window):
              key,
              messageName,
              ''.join(messageValue.split())))
+        return
 
     def SetController(self, controller):
         self.controller = controller

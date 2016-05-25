@@ -1,9 +1,10 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\packages\trinutils\driverutils.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\packages\trinutils\driverutils.py
 import trinity
 
 class CannotIdentifyDriverException(Exception):
 
-    def __init__(self, vendor, description = 'NA'):
+    def __init__(self, vendor, description='NA'):
         msg = str("Unable to retrieve info from %s card. Please ensure that you're using the right drivers or graphics card. /nDriver Description: %s" % (vendor, description))
         super(Exception, self).__init__(self, msg)
 

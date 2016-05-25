@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\packages\vgsclient\account.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\packages\vgsclient\account.py
 import logging
 import signals
 log = logging.getLogger(__name__)
@@ -11,10 +12,12 @@ class Account:
         self.transactionHref = None
         self.accountAurumBalanceChanged = signals.Signal()
         self.redeemingTokensUpdated = signals.Signal()
+        return
 
     def ClearCache(self):
         self.aurumBalance = None
         self.vgsCrestConnection.ClearCache()
+        return
 
     def SubscribeToAurumBalanceChanged(self, callBackFunction):
         self.accountAurumBalanceChanged.connect(callBackFunction)

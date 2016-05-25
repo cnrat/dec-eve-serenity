@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\client\script\ui\services\viewStateSvc.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\client\script\ui\services\viewStateSvc.py
 from service import Service
 import uicls
 import carbonui.const as uiconst
@@ -28,6 +29,7 @@ class View(object):
         self.layer = None
         self.scene = None
         self._dynamicViewType = None
+        return
 
     def GetDynamicViewType(self):
         if self._dynamicViewType is None:
@@ -85,11 +87,12 @@ class View(object):
 class Transition(object):
     __guid__ = 'viewstate.Transition'
 
-    def __init__(self, allowReopen = True, fallbackView = None):
+    def __init__(self, allowReopen=True, fallbackView=None):
         self.allowReopen = allowReopen
         self.fallbackView = fallbackView
         self.transitionReason = None
         self.animatedOut = set()
+        return
 
     def StartTransition(self, fromView, toView):
         sm.GetService('viewState').LogInfo('Transition starting for', fromView, 'to', toView)
@@ -97,19 +100,22 @@ class Transition(object):
     def EndTransition(self, fromView, toView):
         sm.GetService('viewState').LogInfo('Transition ending for', fromView, 'to', toView)
         self.transitionReason = None
+        return
 
     def IsActive(self):
         return self.active
 
-    def SetTransitionReason(self, reason, allowOverwrite = False):
+    def SetTransitionReason(self, reason, allowOverwrite=False):
         if reason is None or self.transitionReason is not None and not allowOverwrite:
             return
-        self.transitionReason = reason
+        else:
+            self.transitionReason = reason
+            return
 
-    def AnimateUIIn(self, duration = 2):
+    def AnimateUIIn(self, duration=2):
         uthread.new(self._AnimateUIIn, duration)
 
-    def _AnimateUIIn(self, duration = 2):
+    def _AnimateUIIn(self, duration=2):
         curveSet = None
         for layer, doSleep in ((uicore.layer.main, False), (uicore.layer.viewstate, True)):
             if layer in self.animatedOut:
@@ -118,16 +124,18 @@ class Transition(object):
             uicore.animations.FadeIn(layer, curveSet=curveSet, duration=duration, sleep=doSleep)
 
         self.animatedOut = set()
+        return
 
-    def AnimateUIOut(self, duration = 0.5):
+    def AnimateUIOut(self, duration=0.5):
         uthread.new(self._AnimateUIOut, duration)
 
-    def _AnimateUIOut(self, duration = 0.5):
+    def _AnimateUIOut(self, duration=0.5):
         curveSet = None
         myCallback = lambda : self.FadeOutEndCallback(uicore.layer.main)
         uicore.animations.FadeOut(uicore.layer.main, duration=duration, curveSet=curveSet, callback=myCallback)
         myCallback = lambda : self.FadeOutEndCallback(uicore.layer.viewstate)
         uicore.animations.FadeOut(uicore.layer.viewstate, duration=duration, sleep=True, curveSet=curveSet, callback=myCallback)
+        return
 
     def FadeOutEndCallback(self, layer, *args):
         if layer.display:
@@ -145,13 +153,14 @@ class ViewType:
 class ViewInfo(object):
     __guid__ = 'viewstate.ViewInfo'
 
-    def __init__(self, name, view, viewType = ViewType.Primary):
+    def __init__(self, name, view, viewType=ViewType.Primary):
         self.name = name
         self.view = view
         self.viewType = viewType
         self.viewCount = 0
         self.viewTime = 0
         self.entryArguments = None
+        return
 
     def GetViewType(self):
         if self.viewType == ViewType.Dynamic:
@@ -184,6 +193,7 @@ class ViewStateSvc(Service):
         self.lastViewOpenTime = blue.os.GetWallclockTime()
         self.logUsageHandler = None
         self.logStorage = []
+        return
 
     def LogUsage(self, viewName, time):
         if self.logUsageHandler is None:
@@ -197,6 +207,7 @@ class ViewStateSvc(Service):
                 self.logStorage.append((viewName, time))
         else:
             self.logUsageHandler(char_1=viewName, itemID=session.charid, int_1=1, float_1=float(time) / const.SEC)
+        return
 
     def ActivateView(self, name, **kwargs):
         self.LogInfo('Activating view', name, 'with key words', kwargs)
@@ -204,113 +215,117 @@ class ViewStateSvc(Service):
         if self.isOpeningView is not None:
             self.LogInfo("Can't activate view", name, '. already busy opening view', self.isOpeningView)
             return
-        self.isOpeningView = name
-        error = None
-        try:
-            newInfo = self.GetViewInfo(name)
-            oldInfo = self.secondaryInfo or self.primaryInfo
-            if newInfo.viewType == ViewType.Dynamic:
-                if self.primaryInfo is None:
-                    newInfo.view.SetDynamicViewType(ViewType.Primary)
-                else:
-                    newInfo.view.SetDynamicViewType(ViewType.Secondary)
-            transition = self.GetTransition(oldInfo, newInfo)
-            if transition is None and oldInfo is not None and newInfo.name == oldInfo.name:
-                self.LogInfo('No valid transition found for view', name, 'to view', name, '. Skipping since it is is already active')
-            else:
-                if oldInfo:
-                    try:
-                        if not oldInfo.view.CanExit():
-                            oldInfo.view.LogInfo('Unable to exit view at present')
-                            return
-                    except:
-                        log.LogException()
-
+        else:
+            self.isOpeningView = name
+            error = None
+            try:
                 try:
-                    if not newInfo.view.CanEnter(**kwargs):
-                        newInfo.view.LogInfo('Unable to enter view now. Arguments:', kwargs)
-                        return
-                except:
-                    log.LogException()
-
-                viewOpenTime = blue.os.GetWallclockTime()
-                self.activeTransition = transition
-                try:
-                    self.activeTransition.StartTransition(oldInfo.view if oldInfo else None, newInfo.view)
-                except:
-                    log.LogException()
-
-                progressText = newInfo.view.GetProgressText(**kwargs)
-                if progressText:
-                    sm.GetService('loading').ProgressWnd(progressText, '', 1, 2)
-                reopen = False
-                if newInfo.GetViewType() == ViewType.Secondary:
-                    if self.secondaryInfo:
-                        reopen = self.activeTransition.allowReopen and newInfo == self.secondaryInfo
-                        if reopen:
-                            try:
-                                reopen = newInfo.view.CheckShouldReopen(kwargs, newInfo.entryArguments)
-                            except:
-                                log.LogException()
-                                reopen = False
-
-                        self._CloseView(self.secondaryInfo, unload=not reopen)
-                    else:
-                        self._CloseView(self.primaryInfo, unload=False)
-                else:
-                    if self.secondaryInfo:
-                        self._CloseView(self.secondaryInfo)
-                    if self.primaryInfo:
-                        if self.activeTransition.allowReopen and newInfo == self.primaryInfo:
-                            try:
-                                self.primaryInfo.view.CheckShouldReopen(kwargs, newInfo.entryArguments)
-                                reopen = True
-                            except:
-                                log.LogException()
-
-                            self._CloseView(self.primaryInfo, unload=False)
+                    newInfo = self.GetViewInfo(name)
+                    oldInfo = self.secondaryInfo or self.primaryInfo
+                    if newInfo.viewType == ViewType.Dynamic:
+                        if self.primaryInfo is None:
+                            newInfo.view.SetDynamicViewType(ViewType.Primary)
                         else:
-                            self._CloseView(self.primaryInfo)
-                self.activeViewInfo = newInfo
-                if newInfo.GetViewType() == ViewType.Primary:
-                    self._OpenPrimaryView(newInfo, reopen=reopen, **kwargs)
-                else:
-                    self._OpenView(newInfo, reopen=reopen, **kwargs)
-                self.UpdateOverlays()
-                if progressText is not None:
-                    sm.GetService('loading').ProgressWnd(progressText, '', 2, 2)
-                try:
-                    transitionFailed = self.activeTransition.EndTransition(oldInfo, newInfo)
-                except:
-                    log.LogException()
+                            newInfo.view.SetDynamicViewType(ViewType.Secondary)
+                    transition = self.GetTransition(oldInfo, newInfo)
+                    if transition is None and oldInfo is not None and newInfo.name == oldInfo.name:
+                        self.LogInfo('No valid transition found for view', name, 'to view', name, '. Skipping since it is is already active')
+                    else:
+                        if oldInfo:
+                            try:
+                                if not oldInfo.view.CanExit():
+                                    oldInfo.view.LogInfo('Unable to exit view at present')
+                                    return
+                            except:
+                                log.LogException()
 
-                timeInView = viewOpenTime - self.lastViewOpenTime
-                if oldInfo:
-                    oldInfo.viewTime += timeInView
-                    self.LogUsage(oldInfo.name, timeInView)
-                self.activeViewInfo.viewCount += 1
-                self.lastViewOpenTime = viewOpenTime
-                if newInfo.GetViewType() == ViewType.Primary:
-                    sm.ScatterEvent('OnClientReady', newInfo.name)
-                self.LogInfo('View', name, 'was activated')
-                sm.ScatterEvent('OnViewStateChanged', oldInfo.name if oldInfo else None, newInfo.name)
-        except UserError as e:
-            self.LogInfo('UserError raised while making a transition. UserError', e)
-            if newInfo.GetViewType() == ViewType.Secondary:
-                error = e
-            else:
-                raise RuntimeError('UserError raised while transitioning from %s to %s UserError: %s' % (oldInfo, newInfo, e))
-        finally:
-            self.isOpeningView = None
-            if transitionFailed:
-                self.ActivateView(self.activeTransition.fallbackView, **kwargs)
-            self.activeTransition = None
-            sm.GetService('loading').HideAllLoad()
+                        try:
+                            if not newInfo.view.CanEnter(**kwargs):
+                                newInfo.view.LogInfo('Unable to enter view now. Arguments:', kwargs)
+                                return
+                        except:
+                            log.LogException()
 
-        if error:
-            self.LogInfo('Trying to re-enter primary view', self.primaryInfo.name, 'using cached entry arguments', self.primaryInfo.entryArguments)
-            uthread.new(self.ActivateView, self.primaryInfo.name, **self.primaryInfo.entryArguments).context = 'viewStateSvc::AttemptToRecoverFromUserError'
-            raise error
+                        viewOpenTime = blue.os.GetWallclockTime()
+                        self.activeTransition = transition
+                        try:
+                            self.activeTransition.StartTransition(oldInfo.view if oldInfo else None, newInfo.view)
+                        except:
+                            log.LogException()
+
+                        progressText = newInfo.view.GetProgressText(**kwargs)
+                        if progressText:
+                            sm.GetService('loading').ProgressWnd(progressText, '', 1, 2)
+                        reopen = False
+                        if newInfo.GetViewType() == ViewType.Secondary:
+                            if self.secondaryInfo:
+                                reopen = self.activeTransition.allowReopen and newInfo == self.secondaryInfo
+                                if reopen:
+                                    try:
+                                        reopen = newInfo.view.CheckShouldReopen(kwargs, newInfo.entryArguments)
+                                    except:
+                                        log.LogException()
+                                        reopen = False
+
+                                self._CloseView(self.secondaryInfo, unload=not reopen)
+                            else:
+                                self._CloseView(self.primaryInfo, unload=False)
+                        else:
+                            if self.secondaryInfo:
+                                self._CloseView(self.secondaryInfo)
+                            if self.primaryInfo:
+                                if self.activeTransition.allowReopen and newInfo == self.primaryInfo:
+                                    try:
+                                        self.primaryInfo.view.CheckShouldReopen(kwargs, newInfo.entryArguments)
+                                        reopen = True
+                                    except:
+                                        log.LogException()
+
+                                    self._CloseView(self.primaryInfo, unload=False)
+                                else:
+                                    self._CloseView(self.primaryInfo)
+                        self.activeViewInfo = newInfo
+                        if newInfo.GetViewType() == ViewType.Primary:
+                            self._OpenPrimaryView(newInfo, reopen=reopen, **kwargs)
+                        else:
+                            self._OpenView(newInfo, reopen=reopen, **kwargs)
+                        self.UpdateOverlays()
+                        if progressText is not None:
+                            sm.GetService('loading').ProgressWnd(progressText, '', 2, 2)
+                        try:
+                            transitionFailed = self.activeTransition.EndTransition(oldInfo, newInfo)
+                        except:
+                            log.LogException()
+
+                        timeInView = viewOpenTime - self.lastViewOpenTime
+                        if oldInfo:
+                            oldInfo.viewTime += timeInView
+                            self.LogUsage(oldInfo.name, timeInView)
+                        self.activeViewInfo.viewCount += 1
+                        self.lastViewOpenTime = viewOpenTime
+                        if newInfo.GetViewType() == ViewType.Primary:
+                            sm.ScatterEvent('OnClientReady', newInfo.name)
+                        self.LogInfo('View', name, 'was activated')
+                        sm.ScatterEvent('OnViewStateChanged', oldInfo.name if oldInfo else None, newInfo.name)
+                except UserError as e:
+                    self.LogInfo('UserError raised while making a transition. UserError', e)
+                    if newInfo.GetViewType() == ViewType.Secondary:
+                        error = e
+                    else:
+                        raise RuntimeError('UserError raised while transitioning from %s to %s UserError: %s' % (oldInfo, newInfo, e))
+
+            finally:
+                self.isOpeningView = None
+                if transitionFailed:
+                    self.ActivateView(self.activeTransition.fallbackView, **kwargs)
+                self.activeTransition = None
+                sm.GetService('loading').HideAllLoad()
+
+            if error:
+                self.LogInfo('Trying to re-enter primary view', self.primaryInfo.name, 'using cached entry arguments', self.primaryInfo.entryArguments)
+                uthread.new(self.ActivateView, self.primaryInfo.name, **self.primaryInfo.entryArguments).context = 'viewStateSvc::AttemptToRecoverFromUserError'
+                raise error
+            return
 
     def StartDependantServices(self, viewInfo):
         for serviceName in viewInfo.view.__dependencies__:
@@ -319,21 +334,22 @@ class ViewStateSvc(Service):
 
         self.LogInfo('All dependant services started for view', viewInfo.name)
 
-    def _OpenPrimaryView(self, viewInfo, reopen = False, **kwargs):
+    def _OpenPrimaryView(self, viewInfo, reopen=False, **kwargs):
         blue.SetCrashKeyValues(u'ViewState', unicode(viewInfo.name))
         blue.statistics.SetTimelineSectionName(viewInfo.name)
         memorySnapshot.AutoMemorySnapshotIfEnabled(viewInfo.name)
         self._OpenView(viewInfo, reopen=reopen, **kwargs)
 
-    def _OpenView(self, viewInfo, reopen = False, **kwargs):
+    def _OpenView(self, viewInfo, reopen=False, **kwargs):
         self.LogInfo('Re-open view' if reopen else 'Opening view', viewInfo, 'with kwargs', kwargs)
         self.StartDependantServices(viewInfo)
         showView = True
         if viewInfo.GetViewType() == ViewType.Primary:
             if self.activeViewInfo.GetViewType() == ViewType.Secondary:
                 showView = False
-            sm.ScatterEvent('OnPrimaryViewChanged', self.primaryInfo, viewInfo)
+            oldView = self.primaryInfo
             self.primaryInfo = viewInfo
+            sm.ScatterEvent('OnPrimaryViewChanged', oldView, self.primaryInfo)
         else:
             self.secondaryInfo = viewInfo
         try:
@@ -363,7 +379,7 @@ class ViewStateSvc(Service):
         viewInfo.entryArguments = kwargs
         self.LogInfo('view', viewInfo, 'opened')
 
-    def _CloseView(self, viewInfo, unload = True):
+    def _CloseView(self, viewInfo, unload=True):
         sm.UnregisterNotify(viewInfo.view)
         try:
             viewInfo.view.layer.CloseView(recreate=False)
@@ -385,6 +401,7 @@ class ViewStateSvc(Service):
         else:
             self.secondaryInfo = None
         sm.ScatterEvent('OnViewClosed', viewInfo.name)
+        return
 
     def ChangePrimaryView(self, name, **kwargs):
         self.LogInfo('ChangePrimaryView', name)
@@ -414,6 +431,8 @@ class ViewStateSvc(Service):
     def GetTransitionByName(self, fromName, toName):
         if (fromName, toName) in self.transitionsByNames:
             return self.transitionsByNames[fromName, toName]
+        else:
+            return None
 
     def GetView(self, name):
         return self.GetViewInfo(name).view
@@ -436,6 +455,9 @@ class ViewStateSvc(Service):
     def IsViewActive(self, *names):
         return getattr(self.activeViewInfo, 'name', None) in names
 
+    def IsPrimaryViewActive(self, *names):
+        return getattr(self.primaryInfo, 'name', None) in names
+
     def GetActiveViewName(self):
         return getattr(self.activeViewInfo, 'name', None)
 
@@ -444,8 +466,9 @@ class ViewStateSvc(Service):
             return True
         else:
             return False
+            return
 
-    def AddView(self, name, view, viewType = ViewType.Primary):
+    def AddView(self, name, view, viewType=ViewType.Primary):
         self.LogInfo('Adding view', name, view, viewType)
         view.name = name
         info = ViewInfo(name, view, viewType)
@@ -453,11 +476,11 @@ class ViewStateSvc(Service):
         view.layer.state = uiconst.UI_HIDDEN
         self.viewInfosByName[name] = info
 
-    def AddTransition(self, fromName, toName, transition = Transition()):
+    def AddTransition(self, fromName, toName, transition=Transition()):
         self.LogInfo('Adding transition', fromName or '[All]', toName, transition)
         self.transitionsByNames[fromName, toName] = transition
 
-    def AddTransitions(self, fromNames, toNames, transition = Transition()):
+    def AddTransitions(self, fromNames, toNames, transition=Transition()):
         for fromName in fromNames:
             for toName in toNames:
                 self.AddTransition(fromName, toName, transition)
@@ -468,7 +491,7 @@ class ViewStateSvc(Service):
         except AttributeError:
             raise ViewStateError('There is no primary view set')
 
-    def CloseSecondaryView(self, name = None):
+    def CloseSecondaryView(self, name=None):
         while self.isOpeningView:
             blue.pyos.synchro.Yield()
 
@@ -479,6 +502,7 @@ class ViewStateSvc(Service):
             self.ActivateView(self.primaryInfo.name, **self.primaryInfo.entryArguments)
         else:
             self.LogInfo('The secondary view', name, 'was not closed as is not active')
+        return
 
     def ToggleSecondaryView(self, name):
         self.LogInfo('Toggling view', name)
@@ -502,8 +526,9 @@ class ViewStateSvc(Service):
             return activeViewInfo.GetViewType() == ViewType.Secondary
         else:
             return False
+            return
 
-    def AddOverlay(self, name, overlayClass, subLayers = None):
+    def AddOverlay(self, name, overlayClass, subLayers=None):
         if name not in self.overlaysByName:
             overlay = self.overlayLayerParent.AddLayer('l_%s' % name, overlayClass, subLayers)
             overlay.display = False
@@ -543,7 +568,8 @@ class ViewStateSvc(Service):
     def GetActiveTransitionReason(self):
         if self.activeTransition is None:
             return
-        return self.activeTransition.transitionReason
+        else:
+            return self.activeTransition.transitionReason
 
     def OnShowUI(self):
         self.UpdateOverlays()

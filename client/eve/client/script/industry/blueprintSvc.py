@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\client\script\industry\blueprintSvc.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\client\script\industry\blueprintSvc.py
 import blue
 import evetypes
 import util
@@ -37,12 +38,14 @@ class BlueprintService(service.Service):
                     else:
                         blueprint.jobID = None
 
+        return
+
     def OnSessionChanged(self, isRemote, session, change):
         if 'corprole' in change:
             self.OnBlueprintsUpdated(session.corpid)
 
     @telemetry.ZONE_METHOD
-    def GetBlueprintType(self, blueprintTypeID, isCopy = False):
+    def GetBlueprintType(self, blueprintTypeID, isCopy=False):
         try:
             ret = cfg.blueprints[blueprintTypeID]
             if isCopy or evetypes.GetCategoryID(blueprintTypeID) == const.categoryAncientRelic:
@@ -52,7 +55,7 @@ class BlueprintService(service.Service):
         except KeyError:
             raise UserError('IndustryBlueprintNotFound')
 
-    def GetBlueprintTypeCopy(self, typeID, original = True, runsRemaining = None, materialEfficiency = None, timeEfficiency = None):
+    def GetBlueprintTypeCopy(self, typeID, original=True, runsRemaining=None, materialEfficiency=None, timeEfficiency=None):
         bpData = self.GetBlueprintType(typeID).copy()
         bpData.original = original and evetypes.GetCategoryID(typeID) != const.categoryAncientRelic
         if runsRemaining is not None:
@@ -67,7 +70,7 @@ class BlueprintService(service.Service):
     def GetBlueprintItem(self, blueprintID):
         return industryCommon.BlueprintInstance(self.blueprintManager.GetBlueprintData(blueprintID))
 
-    def GetBlueprint(self, blueprintID, blueprintTypeID, isCopy = False):
+    def GetBlueprint(self, blueprintID, blueprintTypeID, isCopy=False):
         try:
             return self.GetBlueprintItem(blueprintID)
         except UserError:
@@ -79,8 +82,10 @@ class BlueprintService(service.Service):
         except KeyError:
             return None
 
+        return None
+
     @telemetry.ZONE_METHOD
-    def GetOwnerBlueprints(self, ownerID, facilityID = None):
+    def GetOwnerBlueprints(self, ownerID, facilityID=None):
         blueprints = []
         locations = set()
         rows, facilities = self.blueprintManager.GetBlueprintDataByOwner(ownerID, facilityID)
@@ -105,10 +110,10 @@ class BlueprintService(service.Service):
 
         return (blueprints, facilities)
 
-    def GetCharacterBlueprints(self, facilityID = None):
+    def GetCharacterBlueprints(self, facilityID=None):
         return self.GetOwnerBlueprints(session.charid, facilityID)
 
-    def GetCorporationBlueprints(self, facilityID = None):
+    def GetCorporationBlueprints(self, facilityID=None):
         return self.GetOwnerBlueprints(session.corpid, facilityID)
 
     def CanSeeCorpBlueprints(self):

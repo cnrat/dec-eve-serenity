@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\packages\carbonui\maingame\navigationService.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\packages\carbonui\maingame\navigationService.py
 import carbon.common.script.sys.service as service
 import carbonui.const as uiconst
 import uthread
@@ -8,7 +9,7 @@ class CoreNavigationService(service.Service):
     __guid__ = 'svc.navigation'
     __notifyevents__ = ['OnSessionChanged', 'OnMapShortcut']
 
-    def Run(self, memStream = None):
+    def Run(self, memStream=None):
         service.Service.Run(self, memStream)
         self.hasControl = True
         self.hasFocus = False
@@ -21,6 +22,7 @@ class CoreNavigationService(service.Service):
         self.lastRotate = None
         self.keyPoller = None
         self.cameraClient = sm.GetService('cameraClient')
+        return
 
     def Stop(self, stream):
         service.Service.Stop(self)
@@ -72,6 +74,7 @@ class CoreNavigationService(service.Service):
         if self.appfocusCookie:
             uicore.event.UnregisterForTriuiEvents(self.appfocusCookie)
             self.appfocusCookie = None
+        return
 
     def _UpdateMovement(self, vkey):
         raise NotImplementedError(self._UpdateMovement.__doc__)

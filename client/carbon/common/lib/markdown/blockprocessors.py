@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\carbon\common\lib\markdown\blockprocessors.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\carbon\common\lib\markdown\blockprocessors.py
 import logging
 import re
 import markdown.util as util
@@ -31,6 +32,7 @@ class BlockProcessor:
             return parent[-1]
         else:
             return None
+            return None
 
     def detab(self, text):
         newtext = []
@@ -45,7 +47,7 @@ class BlockProcessor:
 
         return ('\n'.join(newtext), '\n'.join(lines[len(newtext):]))
 
-    def looseDetab(self, text, level = 1):
+    def looseDetab(self, text, level=1):
         lines = text.split('\n')
         for i in range(len(lines)):
             if lines[i].startswith(' ' * self.tab_length * level):
@@ -220,6 +222,7 @@ class OListProcessor(BlockProcessor):
                 self.parser.parseBlocks(li, [item])
 
         self.parser.state.reset()
+        return
 
     def get_items(self, block):
         items = []
@@ -346,3 +349,4 @@ class ParagraphProcessor(BlockProcessor):
             else:
                 p = util.etree.SubElement(parent, 'p')
                 p.text = block.lstrip()
+        return

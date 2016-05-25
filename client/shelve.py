@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\carbon\common\stdlib\shelve.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\carbon\common\stdlib\shelve.py
 try:
     from cPickle import Pickler, Unpickler
 except ImportError:
@@ -23,18 +24,19 @@ class _ClosedDict(UserDict.DictMixin):
     __getitem__ = __setitem__ = __delitem__ = keys = closed
 
     def __repr__(self):
-        return '<Closed Dictionary>'
+        pass
 
 
 class Shelf(UserDict.DictMixin):
 
-    def __init__(self, dict, protocol = None, writeback = False):
+    def __init__(self, dict, protocol=None, writeback=False):
         self.dict = dict
         if protocol is None:
             protocol = 0
         self._protocol = protocol
         self.writeback = writeback
         self.cache = {}
+        return
 
     def keys(self):
         return self.dict.keys()
@@ -48,7 +50,7 @@ class Shelf(UserDict.DictMixin):
     def __contains__(self, key):
         return key in self.dict
 
-    def get(self, key, default = None):
+    def get(self, key, default=None):
         if key in self.dict:
             return self[key]
         return default
@@ -91,6 +93,8 @@ class Shelf(UserDict.DictMixin):
         except (NameError, TypeError):
             self.dict = None
 
+        return
+
     def __del__(self):
         if not hasattr(self, 'writeback'):
             return
@@ -110,7 +114,7 @@ class Shelf(UserDict.DictMixin):
 
 class BsdDbShelf(Shelf):
 
-    def __init__(self, dict, protocol = None, writeback = False):
+    def __init__(self, dict, protocol=None, writeback=False):
         Shelf.__init__(self, dict, protocol, writeback)
 
     def set_location(self, key):
@@ -141,10 +145,10 @@ class BsdDbShelf(Shelf):
 
 class DbfilenameShelf(Shelf):
 
-    def __init__(self, filename, flag = 'c', protocol = None, writeback = False):
+    def __init__(self, filename, flag='c', protocol=None, writeback=False):
         import anydbm
         Shelf.__init__(self, anydbm.open(filename, flag), protocol, writeback)
 
 
-def open(filename, flag = 'c', protocol = None, writeback = False):
+def open(filename, flag='c', protocol=None, writeback=False):
     return DbfilenameShelf(filename, flag, protocol, writeback)

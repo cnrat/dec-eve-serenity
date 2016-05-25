@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\packages\watchdog\observers\api.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\packages\watchdog\observers\api.py
 from __future__ import with_statement
 import threading
 from watchdog.utils import BaseThread
@@ -44,7 +45,7 @@ class ObservedWatch(object):
 
 class EventEmitter(BaseThread):
 
-    def __init__(self, event_queue, watch, timeout = DEFAULT_EMITTER_TIMEOUT):
+    def __init__(self, event_queue, watch, timeout=DEFAULT_EMITTER_TIMEOUT):
         BaseThread.__init__(self)
         self._event_queue = event_queue
         self._watch = watch
@@ -75,7 +76,7 @@ class EventEmitter(BaseThread):
 
 class EventDispatcher(BaseThread):
 
-    def __init__(self, timeout = DEFAULT_OBSERVER_TIMEOUT):
+    def __init__(self, timeout=DEFAULT_OBSERVER_TIMEOUT):
         BaseThread.__init__(self)
         self._event_queue = EventQueue()
         self._timeout = timeout
@@ -101,7 +102,7 @@ class EventDispatcher(BaseThread):
 
 class BaseObserver(EventDispatcher):
 
-    def __init__(self, emitter_class, timeout = DEFAULT_OBSERVER_TIMEOUT):
+    def __init__(self, emitter_class, timeout=DEFAULT_OBSERVER_TIMEOUT):
         EventDispatcher.__init__(self, timeout)
         self._emitter_class = emitter_class
         self._lock = threading.RLock()
@@ -154,7 +155,7 @@ class BaseObserver(EventDispatcher):
 
         super(BaseObserver, self).start()
 
-    def schedule(self, event_handler, path, recursive = False):
+    def schedule(self, event_handler, path, recursive=False):
         with self._lock:
             watch = ObservedWatch(path, recursive)
             self._add_handler_for_watch(event_handler, watch)

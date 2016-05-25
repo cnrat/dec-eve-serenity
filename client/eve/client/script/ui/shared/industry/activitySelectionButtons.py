@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\client\script\ui\shared\industry\activitySelectionButtons.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\client\script\ui\shared\industry\activitySelectionButtons.py
 from carbonui.primitives.container import Container
 from carbonui.util.color import Color
 from eve.client.script.ui.shared.industry import industryUIConst
@@ -18,6 +19,7 @@ class ActivitySelectionButtons(Container):
         self.jobData = None
         self.btnGroup = None
         self.ReconstructButtons()
+        return
 
     def ReconstructButtons(self):
         if self.btnGroup:
@@ -29,6 +31,8 @@ class ActivitySelectionButtons(Container):
             color = Color(*color).SetBrightness(0.5).GetRGBA()
             btn = self.btnGroup.AddButton(activityID, iconPath=industryUIConst.ACTIVITY_ICONS_LARGE[activityID], iconSize=26, colorSelected=color, isDisabled=isDisabled, btnClass=ActivityToggleButtonGroupButton, activityID=activityID)
 
+        return
+
     def OnNewJobData(self, jobData):
         oldJobData = self.jobData
         self.jobData = jobData
@@ -38,8 +42,10 @@ class ActivitySelectionButtons(Container):
         if jobData and jobData.blueprint.IsSameBlueprint(blueprint):
             self.UpdateSelectedBtn()
             return
-        self.ReconstructButtons()
-        self.UpdateState()
+        else:
+            self.ReconstructButtons()
+            self.UpdateState()
+            return
 
     def OnJobDataUpdated(self, jobData):
         self.UpdateState()
@@ -61,7 +67,7 @@ class ActivitySelectionButtons(Container):
             else:
                 btn.HideErrorFrame()
 
-    def UpdateSelectedBtn(self, activityID = None):
+    def UpdateSelectedBtn(self, activityID=None):
         if self.btnGroup:
             self.btnGroup.SetSelectedByID(self.jobData.activityID, animate=False)
 

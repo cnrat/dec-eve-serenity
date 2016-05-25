@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\packages\trinutils\wip.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\packages\trinutils\wip.py
 import json
 import os
 try:
@@ -37,16 +38,17 @@ def _SaveScene(filename):
 
 def _LoadScene(filename):
     trinity.device.scene = trinity.Load(filename, nonCached=False)
+    sceneutils.CreateFisRenderJob(trinity.device.scene)
     if not trinity.device.scene:
         raise IOError(filename)
 
 
-def SnapshotSave(wipscene = WIP_SCENE):
+def SnapshotSave(wipscene=WIP_SCENE):
     _SaveScene(wipscene)
     print 'Scene saved... %s' % wipscene
 
 
-def SnapshotLoad(wipscene = WIP_SCENE, doSetupFisScene = False):
+def SnapshotLoad(wipscene=WIP_SCENE, doSetupFisScene=False):
     _LoadScene(wipscene)
     if doSetupFisScene:
         _SetupFisScene()
@@ -57,9 +59,11 @@ def SceneSave():
     redfile = qth.GetSaveFileFromDialog(parent=None, caption='Save scene to .red file', filefilter='*.red', prefs=PREFS)
     if redfile:
         SnapshotSave(redfile)
+    return
 
 
 def SceneLoad():
     redfile = qth.GetFileFromDialog(parent=None, caption='Load scene from .red file', filefilter='*.red', prefs=PREFS)
     if redfile:
         SnapshotLoad(redfile, doSetupFisScene=True)
+    return

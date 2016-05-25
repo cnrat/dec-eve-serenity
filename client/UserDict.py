@@ -1,14 +1,16 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\carbon\common\stdlib\UserDict.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\carbon\common\stdlib\UserDict.py
 
 
 class UserDict:
 
-    def __init__(self, dict = None, **kwargs):
+    def __init__(self, dict=None, **kwargs):
         self.data = {}
         if dict is not None:
             self.update(dict)
         if len(kwargs):
             self.update(kwargs)
+        return
 
     def __repr__(self):
         return repr(self.data)
@@ -75,7 +77,7 @@ class UserDict:
     def has_key(self, key):
         return key in self.data
 
-    def update(self, dict = None, **kwargs):
+    def update(self, dict=None, **kwargs):
         if dict is None:
             pass
         elif isinstance(dict, UserDict):
@@ -88,13 +90,14 @@ class UserDict:
 
         if len(kwargs):
             self.data.update(kwargs)
+        return
 
-    def get(self, key, failobj = None):
+    def get(self, key, failobj=None):
         if key not in self:
             return failobj
         return self[key]
 
-    def setdefault(self, key, failobj = None):
+    def setdefault(self, key, failobj=None):
         if key not in self:
             self[key] = failobj
         return self[key]
@@ -109,7 +112,7 @@ class UserDict:
         return key in self.data
 
     @classmethod
-    def fromkeys(cls, iterable, value = None):
+    def fromkeys(cls, iterable, value=None):
         d = cls()
         for key in iterable:
             d[key] = value
@@ -164,7 +167,7 @@ class DictMixin:
         for key in self.keys():
             del self[key]
 
-    def setdefault(self, key, default = None):
+    def setdefault(self, key, default=None):
         try:
             return self[key]
         except KeyError:
@@ -194,7 +197,7 @@ class DictMixin:
         del self[k]
         return (k, v)
 
-    def update(self, other = None, **kwargs):
+    def update(self, other=None, **kwargs):
         if other is None:
             pass
         elif hasattr(other, 'iteritems'):
@@ -211,8 +214,9 @@ class DictMixin:
 
         if kwargs:
             self.update(kwargs)
+        return
 
-    def get(self, key, default = None):
+    def get(self, key, default=None):
         try:
             return self[key]
         except KeyError:
@@ -224,9 +228,10 @@ class DictMixin:
     def __cmp__(self, other):
         if other is None:
             return 1
-        if isinstance(other, DictMixin):
-            other = dict(other.iteritems())
-        return cmp(dict(self.iteritems()), other)
+        else:
+            if isinstance(other, DictMixin):
+                other = dict(other.iteritems())
+            return cmp(dict(self.iteritems()), other)
 
     def __len__(self):
         return len(self.keys())

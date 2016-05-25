@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\carbon\client\script\graphics\lensFlareClient.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\carbon\client\script\graphics\lensFlareClient.py
 import cef
 import service
 import trinity
@@ -15,6 +16,7 @@ class LensFlareComponent:
         self.color = (1, 1, 1, 1)
         self.occluderSize = 0.1
         self.trinityObject = None
+        return
 
 
 class LensFlareClient(service.Service):
@@ -53,7 +55,9 @@ class LensFlareClient(service.Service):
     def SetupComponent(self, entity, component):
         if component.trinityObject is None:
             return
-        self.AddToScene(entity, component)
+        else:
+            self.AddToScene(entity, component)
+            return
 
     def AddToScene(self, entity, component):
         if component.trinityObject is None:
@@ -64,6 +68,7 @@ class LensFlareClient(service.Service):
         positionComponent = entity.GetComponent('position')
         if positionComponent is not None and component.trinityObject is not None:
             component.trinityObject.transform = geo2.MatrixMultiply(geo2.MatrixRotationQuaternion(positionComponent.rotation), geo2.MatrixTranslation(positionComponent.position[0], positionComponent.position[1], positionComponent.position[2]))
+        return
 
     def RegisterComponent(self, entity, component):
         self.flareEntities.add(entity)
@@ -72,14 +77,17 @@ class LensFlareClient(service.Service):
         self.flareEntities.remove(entity)
         if component.trinityObject is None:
             return
-        self.RemoveFromScene(entity, component)
-        component.destroyed = True
+        else:
+            self.RemoveFromScene(entity, component)
+            component.destroyed = True
+            return
 
     def RemoveFromScene(self, entity, component):
         scene = self.graphicClient.GetScene(entity.scene.sceneID)
         if scene:
             scene.RemoveDynamic(component.trinityObject)
         component.trinityObject = None
+        return
 
     def OnGraphicSettingsChanged(self, changes):
         flaresEnabled = sm.GetService('device').GetAppFeatureState('Interior.LensflaresEnabled', True)
@@ -90,3 +98,5 @@ class LensFlareClient(service.Service):
                     self.RemoveFromScene(entity, flareComponent)
                 elif flaresEnabled and flareComponent.trinityObject is None:
                     self.AddToScene(entity, flareComponent)
+
+        return

@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\client\script\parklife\overviewPresetSvc.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\client\script\parklife\overviewPresetSvc.py
 from eve.client.script.parklife import tacticalConst
 from service import Service
 import util
@@ -30,6 +31,7 @@ class OverviewPresetSvc(Service):
         self.activeBracketPreset = None
         self.AddDefaultPresetsToAllPresets()
         self.StorePresetsInSettings()
+        return
 
     def AddDefaultPresetsToAllPresets(self):
         for defaultOverviewName in self.GetDefaultOverviewNameList():
@@ -57,6 +59,7 @@ class OverviewPresetSvc(Service):
         self.unsavedPresets = settings.user.overview.Get('overviewProfilePresets_notSaved', {})
         self.ReorderPresets(self.allPresets)
         self.ReorderPresets(self.unsavedPresets)
+        return
 
     def ReorderPresets(self, presetDict):
         try:
@@ -93,6 +96,8 @@ class OverviewPresetSvc(Service):
         self.LoadDataIfNeeded()
         if name in self.defaultOverviews:
             return self.defaultOverviews[name].row.overviewName
+        else:
+            return None
 
     def GetDefaultOverviewGroups(self, name):
         self.LoadDataIfNeeded()
@@ -121,17 +126,17 @@ class OverviewPresetSvc(Service):
             return []
         return preset.get('groups', [])
 
-    def GetGroups(self, presetName = None):
+    def GetGroups(self, presetName=None):
         if not presetName:
             presetName = self.GetActiveOverviewPresetName()
         return self.GetPresetGroupsFromKey(presetName)
 
-    def GetBracketGroups(self, presetName = None):
+    def GetBracketGroups(self, presetName=None):
         if not presetName:
             presetName = self.GetActiveBracketPresetName()
         return self.GetPresetGroupsFromKey(presetName)
 
-    def FindPresetForStates(self, isBracket = False, presetName = None):
+    def FindPresetForStates(self, isBracket=False, presetName=None):
         if not presetName:
             if isBracket:
                 presetName = self.GetActiveBracketPresetName()
@@ -142,15 +147,15 @@ class OverviewPresetSvc(Service):
             preset = self.GetPresetFromKey(DEFAULT_PRESET_NAME)
         return preset
 
-    def GetFilteredStates(self, isBracket = False, presetName = None):
+    def GetFilteredStates(self, isBracket=False, presetName=None):
         preset = self.FindPresetForStates(isBracket, presetName)
         return preset.get('filteredStates', [])
 
-    def GetAlwaysShownStates(self, isBracket = False, presetName = None):
+    def GetAlwaysShownStates(self, isBracket=False, presetName=None):
         preset = self.FindPresetForStates(isBracket, presetName)
         return preset.get('alwaysShownStates', [])
 
-    def GetValidGroups(self, isBracket = False, presetName = None):
+    def GetValidGroups(self, isBracket=False, presetName=None):
         if isBracket:
             groups = set(self.GetBracketGroups(presetName=presetName))
         else:
@@ -158,13 +163,13 @@ class OverviewPresetSvc(Service):
         availableGroups = tacticalConst.groupIDs
         return groups.intersection(availableGroups)
 
-    def GetFilteredStatesByPresetKey(self, key = ''):
+    def GetFilteredStatesByPresetKey(self, key=''):
         preset = self.GetPresetFromKey(key=key)
         if not preset:
             return []
         return preset.get('filteredStates', [])
 
-    def GetAlwaysShownStatesByPresetKey(self, key = ''):
+    def GetAlwaysShownStatesByPresetKey(self, key=''):
         preset = self.GetPresetFromKey(key=key)
         if not preset:
             return []
@@ -200,7 +205,7 @@ class OverviewPresetSvc(Service):
         m += [(uiutil.MenuLabel('UI/Commands/OpenOverviewSettings'), sm.GetService('tactical').OpenSettings)]
         return m
 
-    def LoadPreset(self, label, updateTabSettings = True, notSavedPreset = False):
+    def LoadPreset(self, label, updateTabSettings=True, notSavedPreset=False):
         defaultPresetNames = self.GetDefaultOverviewNameList()
         if not notSavedPreset:
             presets = self.GetAllPresets()
@@ -221,14 +226,16 @@ class OverviewPresetSvc(Service):
         self.activeOverviewPreset = label
         settings.user.overview.Set('activeOverviewPreset', label)
         sm.ScatterEvent('OnTacticalPresetChange', label, None)
+        return
 
-    def LoadBracketPreset(self, label, showSpecials = None, bracketShowState = None, notSavedPreset = False):
+    def LoadBracketPreset(self, label, showSpecials=None, bracketShowState=None, notSavedPreset=False):
         defaultPresetNames = self.GetDefaultOverviewNameList()
         if not notSavedPreset:
             if label not in self.allPresets and label not in defaultPresetNames and label is not None:
                 return
         self.activeBracketPreset = label
         sm.GetService('bracket').SoftReload(showSpecials, bracketShowState)
+        return
 
     def GetActiveBracketPresetName(self):
         presetName = self.activeBracketPreset
@@ -247,6 +254,7 @@ class OverviewPresetSvc(Service):
     def ResetActivePresets(self):
         self.activeOverviewPreset = DEFAULT_PRESET_NAME
         self.activeBracketPreset = None
+        return
 
     def ResetPresetsToDefault(self):
         self.allPresets = {}
@@ -303,7 +311,7 @@ class OverviewPresetSvc(Service):
         current.sort()
         return current
 
-    def ChangeSettings(self, changeList, presetName = None):
+    def ChangeSettings(self, changeList, presetName=None):
         if not presetName:
             presetName = self.GetActiveOverviewPresetName()
         activePreset = self.GetPresetFromKey(presetName).copy()
@@ -325,25 +333,28 @@ class OverviewPresetSvc(Service):
 
         if changeCounter == 0:
             return
-        if self.IsTempName(presetName):
-            basePresetName = presetName[1]
-            unsavedName = presetName
-            basePreset = self.GetPresetFromKey(basePresetName)
         else:
-            basePresetName = presetName
-            unsavedName = ('notSaved', presetName)
-        basePreset = self.GetPresetFromKey(basePresetName)
-        if IsPresetTheSame(basePreset, activePreset):
-            return self.RestoreSavedPreset(basePresetName, unsavedName)
-        self.unsavedPresets[basePresetName] = activePreset
-        self.StorePresetsInSettings()
-        self.LoadPreset(unsavedName, notSavedPreset=True)
+            if self.IsTempName(presetName):
+                basePresetName = presetName[1]
+                unsavedName = presetName
+                basePreset = self.GetPresetFromKey(basePresetName)
+            else:
+                basePresetName = presetName
+                unsavedName = ('notSaved', presetName)
+            basePreset = self.GetPresetFromKey(basePresetName)
+            if IsPresetTheSame(basePreset, activePreset):
+                return self.RestoreSavedPreset(basePresetName, unsavedName)
+            self.unsavedPresets[basePresetName] = activePreset
+            self.StorePresetsInSettings()
+            self.LoadPreset(unsavedName, notSavedPreset=True)
+            return
 
     def RestoreSavedPreset(self, basePresetName, unsavedName):
         self.ChangeTabSettingsToUseBasePreset(unsavedName, basePresetName)
         self.unsavedPresets.pop(basePresetName, None)
         self.StorePresetsInSettings()
         self.LoadPreset(basePresetName, notSavedPreset=True)
+        return
 
     def ChangeTabSettingsToUseBasePreset(self, tempPresetName, basePresetName):
         tabSettings = self.GetTabSettingsForOverview()
@@ -393,7 +404,7 @@ class OverviewPresetSvc(Service):
         dataString = yaml.safe_dump(data)
         return dataString
 
-    def GetOverviewDataForSave(self, presetsToUse = None):
+    def GetOverviewDataForSave(self, presetsToUse=None):
         data = self.GetGeneralSettings()
         presetsInUseDict = self.GetPresetsInUse(presetsToUse=presetsToUse)
         presetsInUseList = presetsInUseDict.values()
@@ -453,13 +464,13 @@ class OverviewPresetSvc(Service):
         data['shipLabelOrder'] = shipLabelOrder
         return data
 
-    def GetPresetsInUse(self, presetsToUse = None):
+    def GetPresetsInUse(self, presetsToUse=None):
         allPresets = self.GetAllPresets()
         allTabSettings = self.GetTabSettingsForOverview()
         defaultPresetNames = self.GetDefaultOverviewNameList()
         return self.GetPresetsInUseFromTabSettings(allTabSettings, allPresets, defaultPresetNames, presetsToUse=presetsToUse)
 
-    def GetPresetsInUseFromTabSettings(self, allTabSettings, allPresets, exludePresets = [], presetsToUse = None):
+    def GetPresetsInUseFromTabSettings(self, allTabSettings, allPresets, exludePresets=[], presetsToUse=None):
         presetsInUse = {}
 
         def ShouldAddPreset(presetName):
@@ -520,17 +531,19 @@ class OverviewPresetSvc(Service):
     def LoadSettings(self, presetKey, overviewName):
         if eve.Message('LoadOverviewProfile', {}, uiconst.YESNO, default=uiconst.ID_NO) != uiconst.ID_YES:
             return
-        yamlString = self.cachedPresetsFromServer.get(presetKey, None)
-        if yamlString is None:
-            yamlString = sm.RemoteSvc('overviewPresetMgr').GetStoredPreset(presetKey)
-        if yamlString is None:
-            raise UserError('OverviewProfileLoadingError')
-        self.StoreOldProfileDataInSettings()
-        dataList = yaml.safe_load(yamlString)
-        data = GetDictFromList(dataList)
-        self.LoadSettingsFromDict(data, overviewName, presetKey, saveInHistory=True)
+        else:
+            yamlString = self.cachedPresetsFromServer.get(presetKey, None)
+            if yamlString is None:
+                yamlString = sm.RemoteSvc('overviewPresetMgr').GetStoredPreset(presetKey)
+            if yamlString is None:
+                raise UserError('OverviewProfileLoadingError')
+            self.StoreOldProfileDataInSettings()
+            dataList = yaml.safe_load(yamlString)
+            data = GetDictFromList(dataList)
+            self.LoadSettingsFromDict(data, overviewName, presetKey, saveInHistory=True)
+            return
 
-    def LoadSettingsFromDict(self, data, overviewName, presetKey = None, saveInHistory = False):
+    def LoadSettingsFromDict(self, data, overviewName, presetKey=None, saveInHistory=False):
         self.LoadGeneralSettings(data)
         presetDict = GetDictFromList(data['presets'])
         tabPresets = ReplaceInnerListsWithDicts(presetDict)
@@ -608,6 +621,7 @@ class OverviewPresetSvc(Service):
         shipLabelOrder = data.get('shipLabelOrder', [])
         orderedShipLabelsList = GetOrderedListFromDict(shipLabels, shipLabelOrder)
         settings.user.overview.Set('shipLabels', orderedShipLabelsList)
+        return
 
     def GetTabSetupToLoad(self, data):
         tabSetup = GetDictFromList(data.get('tabSetup', []))
@@ -665,7 +679,7 @@ class OverviewPresetSvc(Service):
             currentText = localization.GetByLabel('UI/Overview/DefaultOverviewName', charID=session.charid)
         return currentText
 
-    def GetShareData(self, text, presetsToUse = None):
+    def GetShareData(self, text, presetsToUse=None):
         data = self.GetOverviewDataForSave(presetsToUse=presetsToUse)
         overviewPreset = util.KeyVal(__guid__='fakeentry.OverviewProfile', data=data, label=text)
         return [overviewPreset]

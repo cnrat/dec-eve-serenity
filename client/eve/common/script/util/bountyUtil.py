@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\common\script\util\bountyUtil.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\common\script\util\bountyUtil.py
 import util
 import blue
 
@@ -9,7 +10,6 @@ def GetMinimumBountyAmount(ownerID):
         return const.MIN_BOUNTY_AMOUNT_CORP
     if util.IsAlliance(ownerID):
         return const.MIN_BOUNTY_AMOUNT_ALLIANCE
-    return 0
 
 
 def CacheBounties(bountyDict, bountiesToCache):

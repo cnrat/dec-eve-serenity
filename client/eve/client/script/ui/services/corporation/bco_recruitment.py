@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\client\script\ui\services\corporation\bco_recruitment.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\client\script\ui\services\corporation\bco_recruitment.py
 import corpObject
 import uthread
 import blue
@@ -12,23 +13,28 @@ class CorporationRecruitmentO(corpObject.base):
         self.__lock = uthread.Semaphore()
         self.corpRecruitment = None
         self.myRecruitment = None
+        return
 
     def DoSessionChanging(self, isRemote, session, change):
         if 'charid' in change:
             self.myRecruitment = None
         if 'corpid' in change:
             self.corpRecruitment = None
+        return
 
     def OnSessionChanged(self, isRemote, session, change):
         if 'corpid' not in change:
             return
-        oldID, newID = change['corpid']
-        if newID is None:
+        else:
+            oldID, newID = change['corpid']
+            if newID is None:
+                return
             return
 
     def OnCorporationRecruitmentAdChanged(self):
         self.corpRecruitment = None
         sm.GetService('corpui').OnCorporationRecruitmentAdChanged()
+        return
 
     def __len__(self):
         return len(self.GetRecruitmentAdsForCorporation())

@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\client\script\ui\util\form.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\client\script\ui\util\form.py
 import service
 import uiprimitives
 import uicontrols
@@ -44,7 +45,7 @@ class Form(service.Service):
          errorcheck,
          refresh)
 
-    def _GetForm(self, format, parent, retfields = [], reqresult = [], errorcheck = None, tabpanels = [], tabgroup = [], refresh = [], wipe = 1):
+    def _GetForm(self, format, parent, retfields=[], reqresult=[], errorcheck=None, tabpanels=[], tabgroup=[], refresh=[], wipe=1):
         if not uiutil.IsUnder(parent, uicore.desktop):
             log.LogTraceback('Form parent MUST be hooked on the desktop; it is impossible to know the real dimensions of stuff within otherwise.')
         self.retfields = retfields
@@ -175,6 +176,7 @@ class Form(service.Service):
              _form,
              self,
              None])
+        return
 
     def AddPush(self):
         self.new = uiprimitives.Container(name='push', parent=self.parent, align=uiconst.TOTOP, height=self.type.get('height', 6))
@@ -214,6 +216,7 @@ class Form(service.Service):
         text = uicontrols.Label(text=self.type.get('text', ''), parent=self.new, align=uiconst.TOTOP, name='text', padding=(0, 3, 0, 3), fontsize=fontsize, maxLines=1 if bool(self.type.get('tabstops', [])) else None, state=uiconst.UI_NORMAL, tabs=self.type.get('tabstops', []))
         self.new.height = max(self.new.height, int(text.textheight + 6))
         self.refresh.append((self.new, text))
+        return
 
     def AddEdit(self):
         self.new = uiprimitives.Container(name='editField', parent=self.parent, align=uiconst.TOTOP)
@@ -241,6 +244,7 @@ class Form(service.Service):
             self.code.padLeft = 0
         elif caption:
             l = uicontrols.EveLabelSmall(text=caption, align=uiconst.CENTERLEFT, parent=self.new, name='label', left=7, width=self.leftPush - 6)
+        return
 
     def AddTextedit(self):
         self.new = uiprimitives.Container(name='texteditField', parent=self.parent, align=uiconst.TOTOP, height=self.type.get('height', 68))
@@ -253,6 +257,7 @@ class Form(service.Service):
             self.code.padLeft = 0
         elif label:
             uicontrols.EveLabelSmall(text=label, parent=self.new, name='label', left=7, width=self.leftPush - 6, top=5)
+        return
 
     def AddCheckbox(self):
         self.new = uiprimitives.Container(name='checkboxCont', parent=self.parent, align=uiconst.TOTOP, pos=(0, 0, 0, 18))
@@ -268,6 +273,7 @@ class Form(service.Service):
             self.refresh.append((self.code, self.code.sr.label))
         if self.type.get('hidden', 0):
             self.code.state = uiconst.UI_HIDDEN
+        return
 
     def AddCombo(self):
         self.new = uiprimitives.Container(name='comboField', parent=self.parent, align=uiconst.TOTOP, height=self.type.get('height', 20))
@@ -286,6 +292,7 @@ class Form(service.Service):
             self.code.padLeft = 0
         else:
             uicontrols.EveLabelSmall(text=label, parent=self.new, name='label', left=7, width=self.leftPush - 6, align=uiconst.CENTERLEFT)
+        return
 
     def AddBtnonly(self):
         self.new = uiprimitives.Container(name='btnonly', parent=self.parent, align=uiconst.TOTOP, height=self.type.get('height', 20))
@@ -305,8 +312,9 @@ class Form(service.Service):
              wantedbtn.get('btn_cancel', 0)])
 
         btns = uicontrols.ButtonGroup(btns=btns, subalign=align, line=0, parent=self.new, align=uiconst.TOTOP, unisize=self.type.get('uniSize', 1))
+        return
 
-    def ProcessForm(self, retfields, required, errorcheck = None):
+    def ProcessForm(self, retfields, required, errorcheck=None):
         result = {}
         for each in retfields:
             if type(each) == dict:
@@ -359,6 +367,8 @@ class FormWnd(uiprimitives.Container):
             del self.sr.panels[key]
             if wnd is not None and not wnd.destroyed:
                 wnd.Close()
+
+        return
 
     def ShowPanel(self, panelkey):
         for key in self.sr.panels:

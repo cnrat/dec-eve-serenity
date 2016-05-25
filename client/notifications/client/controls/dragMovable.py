@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\packages\notifications\client\controls\dragMovable.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\packages\notifications\client\controls\dragMovable.py
 import blue
 import uthread
 import carbonui.const as uiconst
@@ -22,16 +23,19 @@ class DragMovable(object):
         self._rotateAnimation = None
         self._enableRotation = False
         self._isMouseDown = False
+        return
 
     def _OnMouseDown(self, buttonFlag, *args):
         if self._disabled or self._isMouseDown or buttonFlag is not uiconst.MOUSELEFT:
             return
-        self._isMouseDown = True
-        self.mouseCookie = None
-        self._startX = uicore.uilib.x
-        self._startY = uicore.uilib.y
-        self._clickedInMeanTime = False
-        uthread.new(self._ShouldIDragTimer)
+        else:
+            self._isMouseDown = True
+            self.mouseCookie = None
+            self._startX = uicore.uilib.x
+            self._startY = uicore.uilib.y
+            self._clickedInMeanTime = False
+            uthread.new(self._ShouldIDragTimer)
+            return
 
     def _OnMouseUp(self, buttonFlag, *args):
         if buttonFlag is uiconst.MOUSELEFT:
@@ -57,6 +61,7 @@ class DragMovable(object):
         uicore.animations.Tr2DScaleTo(obj, startScale=(1.0, 1.0), endScale=(1.25, 1.25), duration=self._animationLength, loops=1, curveType=2, callback=None, sleep=False, timeOffset=0.0, curveSet=None)
         if self._enableRotation:
             self._rotateAnimation = uicore.animations.Tr2DRotateTo(obj, startAngle=0.0, endAngle=0.183185307179586, duration=0.25, loops=999, curveType=4, callback=None, sleep=False, timeOffset=0.0, curveSet=None)
+        return
 
     def SetEnabled(self, enabled):
         self._disabled = not enabled
@@ -88,13 +93,14 @@ class DragMovable(object):
             self._onDragCallback(self.customX, self.customY)
             blue.synchro.SleepWallclock(1)
 
-    def _StopDragAnimation(self, finishedCallback = None):
+    def _StopDragAnimation(self, finishedCallback=None):
         uicore.uilib.UnclipCursor()
         obj = self._dragObject
         uicore.animations.Tr2DScaleTo(obj, startScale=(1.25, 1.25), endScale=(1.0, 1.0), duration=self._animationLength, loops=1, curveType=2, callback=finishedCallback, sleep=False, timeOffset=0.0, curveSet=None)
         if self._rotateAnimation:
             self._rotateAnimation.Stop()
             uicore.animations.Tr2DRotateTo(obj, startAngle=obj.rotation, endAngle=0.0, duration=self._animationLength, loops=1, curveType=2, callback=None, sleep=False, timeOffset=0.0, curveSet=None)
+        return
 
     def StopDragMode(self):
         if self._positioning:

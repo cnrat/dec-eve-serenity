@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\packages\ccpProfile\decorator.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\packages\ccpProfile\decorator.py
 __version__ = '3.3.2'
 __all__ = ['decorator', 'FunctionMaker', 'partial']
 import sys, re, inspect
@@ -30,6 +31,7 @@ else:
             self.kwonlyargs = []
             self.kwonlydefaults = None
             self.annotations = getattr(f, '__annotations__', {})
+            return
 
         def __iter__(self):
             yield self.args
@@ -42,7 +44,7 @@ DEF = re.compile('\\s*def\\s*([_\\w][_\\w\\d]*)\\s*\\(')
 
 class FunctionMaker(object):
 
-    def __init__(self, func = None, name = None, signature = None, defaults = None, doc = None, module = None, funcdict = None):
+    def __init__(self, func=None, name=None, signature=None, defaults=None, doc=None, module=None, funcdict=None):
         self.shortsignature = signature
         if func:
             self.name = func.__name__
@@ -84,6 +86,7 @@ class FunctionMaker(object):
             self.dict = funcdict
         if not hasattr(self, 'signature'):
             raise TypeError('You are decorating a non function: %s' % func)
+        return
 
     def update(self, func, **kw):
         func.__name__ = self.name
@@ -94,8 +97,9 @@ class FunctionMaker(object):
         callermodule = sys._getframe(3).f_globals.get('__name__', '?')
         func.__module__ = getattr(self, 'module', callermodule)
         func.__dict__.update(kw)
+        return
 
-    def make(self, src_templ, evaldict = None, addsource = False, **attrs):
+    def make(self, src_templ, evaldict=None, addsource=False, **attrs):
         src = src_templ % vars(self)
         evaldict = evaldict or {}
         mo = DEF.match(src)
@@ -124,7 +128,7 @@ class FunctionMaker(object):
         return func
 
     @classmethod
-    def create(cls, obj, body, evaldict, defaults = None, doc = None, module = None, addsource = True, **attrs):
+    def create(cls, obj, body, evaldict, defaults=None, doc=None, module=None, addsource=True, **attrs):
         if isinstance(obj, str):
             name, rest = obj.strip().split('(', 1)
             signature = rest[:-1]
@@ -138,7 +142,7 @@ class FunctionMaker(object):
         return self.make(('def %(name)s(%(signature)s):\n' + ibody), evaldict, addsource, **attrs)
 
 
-def decorator(caller, func = None):
+def decorator(caller, func=None):
     if func is not None:
         evaldict = func.func_globals.copy()
         evaldict['_call_'] = caller
@@ -152,3 +156,4 @@ def decorator(caller, func = None):
         evaldict['_call_'] = caller
         evaldict['decorator'] = decorator
         return FunctionMaker.create('%s(%s)' % (caller.__name__, first), 'return decorator(_call_, %s)' % first, evaldict, undecorated=caller, __wrapped__=caller, doc=caller.__doc__, module=caller.__module__)
+        return

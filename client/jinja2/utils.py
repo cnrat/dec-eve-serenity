@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\carbon\common\lib\jinja2\utils.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\carbon\common\lib\jinja2\utils.py
 import re
 import sys
 import errno
@@ -29,6 +30,7 @@ try:
     def _test_gen_bug():
         raise TypeError(_test_gen_bug)
         yield
+        return
 
 
     _concat(_test_gen_bug())
@@ -80,6 +82,7 @@ class _C(object):
 
 def _func():
     yield
+    return
 
 
 FunctionType = type(_func)
@@ -134,7 +137,7 @@ def clear_caches():
     _lexer_cache.clear()
 
 
-def import_string(import_name, silent = False):
+def import_string(import_name, silent=False):
     try:
         if ':' in import_name:
             module, obj = import_name.split(':', 1)
@@ -149,8 +152,10 @@ def import_string(import_name, silent = False):
         if not silent:
             raise
 
+    return None
 
-def open_if_exists(filename, mode = 'rb'):
+
+def open_if_exists(filename, mode='rb'):
     try:
         return open(filename, mode)
     except IOError as e:
@@ -161,16 +166,17 @@ def open_if_exists(filename, mode = 'rb'):
 def object_type_repr(obj):
     if obj is None:
         return 'None'
-    if obj is Ellipsis:
+    elif obj is Ellipsis:
         return 'Ellipsis'
-    if obj.__class__.__module__ in ('__builtin__', 'builtins'):
-        name = obj.__class__.__name__
     else:
-        name = obj.__class__.__module__ + '.' + obj.__class__.__name__
-    return '%s object' % name
+        if obj.__class__.__module__ in ('__builtin__', 'builtins'):
+            name = obj.__class__.__name__
+        else:
+            name = obj.__class__.__module__ + '.' + obj.__class__.__name__
+        return '%s object' % name
 
 
-def pformat(obj, verbose = False):
+def pformat(obj, verbose=False):
     try:
         from pretty import pretty
         return pretty(obj, verbose=verbose)
@@ -179,8 +185,8 @@ def pformat(obj, verbose = False):
         return pformat(obj)
 
 
-def urlize(text, trim_url_limit = None, nofollow = False):
-    trim_url = lambda x, limit = trim_url_limit: limit is not None and x[:limit] + (len(x) >= limit and '...' or '') or x
+def urlize(text, trim_url_limit=None, nofollow=False):
+    trim_url = lambda x, limit=trim_url_limit: limit is not None and x[:limit] + (len(x) >= limit and '...' or '') or x
     words = _word_split_re.split(unicode(escape(text)))
     nofollow_attr = nofollow and ' rel="nofollow"' or ''
     for i, word in enumerate(words):
@@ -199,7 +205,7 @@ def urlize(text, trim_url_limit = None, nofollow = False):
     return u''.join(words)
 
 
-def generate_lorem_ipsum(n = 5, html = True, min = 20, max = 100):
+def generate_lorem_ipsum(n=5, html=True, min=20, max=100):
     from jinja2.constants import LOREM_IPSUM_WORDS
     from random import choice, randrange
     words = LOREM_IPSUM_WORDS.split()
@@ -239,10 +245,11 @@ def generate_lorem_ipsum(n = 5, html = True, min = 20, max = 100):
 
     if not html:
         return u'\n\n'.join(result)
-    return Markup(u'\n'.join((u'<p>%s</p>' % escape(x) for x in result)))
+    else:
+        return Markup(u'\n'.join((u'<p>%s</p>' % escape(x) for x in result)))
 
 
-def unicode_urlencode(obj, charset = 'utf-8'):
+def unicode_urlencode(obj, charset='utf-8'):
     if not isinstance(obj, basestring):
         obj = unicode(obj)
     if isinstance(obj, unicode):
@@ -290,13 +297,13 @@ class LRUCache(object):
         rv._queue = deque(self._queue)
         return rv
 
-    def get(self, key, default = None):
+    def get(self, key, default=None):
         try:
             return self[key]
         except KeyError:
             return default
 
-    def setdefault(self, key, default = None):
+    def setdefault(self, key, default=None):
         try:
             return self[key]
         except KeyError:
@@ -416,7 +423,7 @@ class Cycler(object):
 
 class Joiner(object):
 
-    def __init__(self, sep = u', '):
+    def __init__(self, sep=u', '):
         self.sep = sep
         self.used = False
 

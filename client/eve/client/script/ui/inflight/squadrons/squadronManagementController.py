@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\client\script\ui\inflight\squadrons\squadronManagementController.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\client\script\ui\inflight\squadrons\squadronManagementController.py
 
 
 class SquadronMgmtController(object):
@@ -13,7 +14,7 @@ class SquadronMgmtController(object):
         self.fighterSvc.UnloadTubeToFighterBay(tubeFlagID)
 
     def LaunchFightersFromTube(self, tubeFlagID):
-        self.fighterSvc.LaunchFightersFromTube(tubeFlagID)
+        self.fighterSvc.LaunchFightersFromTubes([tubeFlagID])
 
-    def ScoopFightersToTube(self, fighterID, tubeFlagID):
-        self.fighterSvc.ScoopFightersToTube(fighterID, tubeFlagID)
+    def RecallFighterToTube(self, fighterID):
+        self.fighterSvc.RecallFightersToTubes([fighterID])

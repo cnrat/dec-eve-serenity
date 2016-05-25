@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\client\script\ui\shared\killReport.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\client\script\ui\shared\killReport.py
 import sys
 from eve.client.script.ui.control import entries as listentry
 from eve.common.lib.appConst import defaultPadding, singletonBlueprintCopy
@@ -42,6 +43,7 @@ class KillReportWnd(uicontrols.Window):
         settingsIcon.hint = localization.GetByLabel('UI/Common/Settings')
         self.ConstructLayout()
         self.LoadInfo(killmail)
+        return
 
     def ConstructLayout(self):
         topCont = uiprimitives.Container(name='topCont', parent=self.sr.main, align=uiconst.TOTOP, height=138, padding=defaultPadding)
@@ -227,6 +229,7 @@ class KillReportWnd(uicontrols.Window):
         self.DrawKillers()
         isKilledOnBehalf = False
         self.IsKilledOnBehalf(isKilledOnBehalf)
+        return
 
     def _LoadItemsToScrollPanel(self, scrollPanel, items):
         entries = []
@@ -282,7 +285,7 @@ class KillReportWnd(uicontrols.Window):
 
         return entries
 
-    def _GetListEntriesForItem(self, item, indented = False):
+    def _GetListEntriesForItem(self, item, indented=False):
         entries = []
         if item.qtyDestroyed:
             destroyedData = self._MakeDestroyedEntryData(item, indented=indented)
@@ -300,7 +303,7 @@ class KillReportWnd(uicontrols.Window):
 
         return entries
 
-    def _MakeDroppedEntryData(self, item, indented = False):
+    def _MakeDroppedEntryData(self, item, indented=False):
         data = util.KeyVal()
         data.typeID = item.typeID
         data.qtyDestroyed = None
@@ -310,7 +313,7 @@ class KillReportWnd(uicontrols.Window):
         data.indented = indented
         return data
 
-    def _MakeDestroyedEntryData(self, item, indented = False):
+    def _MakeDestroyedEntryData(self, item, indented=False):
         data = util.KeyVal()
         data.typeID = item.typeID
         data.qtyDestroyed = item.qtyDestroyed
@@ -470,6 +473,7 @@ class KillReportWnd(uicontrols.Window):
             self.behalfCont.LoadInfo(charID, corpID, allianceID, None)
         else:
             self.killedOnBehalfCont.display = False
+        return
 
     def GetItems(self):
         ret = {'hiSlots': [],
@@ -490,14 +494,16 @@ class KillReportWnd(uicontrols.Window):
     def GetRack(self, flagID):
         if inventoryConst.flagHiSlot0 <= flagID <= inventoryConst.flagHiSlot7:
             return 'hiSlots'
-        if inventoryConst.flagMedSlot0 <= flagID <= inventoryConst.flagMedSlot7:
+        elif inventoryConst.flagMedSlot0 <= flagID <= inventoryConst.flagMedSlot7:
             return 'medSlots'
-        if inventoryConst.flagLoSlot0 <= flagID <= inventoryConst.flagLoSlot7:
+        elif inventoryConst.flagLoSlot0 <= flagID <= inventoryConst.flagLoSlot7:
             return 'lowSlots'
-        if inventoryConst.flagRigSlot0 <= flagID <= inventoryConst.flagRigSlot7:
+        elif inventoryConst.flagRigSlot0 <= flagID <= inventoryConst.flagRigSlot7:
             return 'rigs'
-        if inventoryConst.flagSubSystemSlot0 <= flagID <= inventoryConst.flagSubSystemSlot7:
+        elif inventoryConst.flagSubSystemSlot0 <= flagID <= inventoryConst.flagSubSystemSlot7:
             return 'subSystems'
+        else:
+            return None
 
     def OpenPreview(self, typeID, *args):
         if util.IsPreviewable(typeID):
@@ -597,7 +603,8 @@ class KillItems(listentry.Generic):
     def GetMenu(self):
         if self.typeID:
             return sm.GetService('menu').GetMenuFormItemIDTypeID(None, self.typeID, ignoreMarketDetails=0)
-        return []
+        else:
+            return []
 
     def OnDblClick(self, *args):
         sm.GetService('info').ShowInfo(self.typeID)
@@ -633,6 +640,7 @@ class KillerContainer(uiprimitives.Container):
         uiprimitives.Container.ApplyAttributes(self, attributes)
         self.killerID = attributes.get('killerID', None)
         self.ConstructLayout()
+        return
 
     def ConstructLayout(self):
         iconCont = uiprimitives.Container(name='iconCont', parent=self, align=uiconst.TOLEFT, width=96)
@@ -689,6 +697,7 @@ class KillerContainer(uiprimitives.Container):
             self.allianceLabel.text = localization.GetByLabel('UI/Contracts/ContractsWindow/ShowInfoLink', showInfoName=cfg.eveowners.Get(killer.killerFactionID).name, info=('showinfo', inventoryConst.typeFaction, killer.killerFactionID))
             nameHint += '<br>%s' % cfg.eveowners.Get(killer.killerFactionID).name
         killerLogo.hint = nameHint
+        return
 
     def ShowInfo(self, itemID, typeID, *args):
         sm.GetService('info').ShowInfo(typeID, itemID)
@@ -716,7 +725,7 @@ class KilledOnBehalfContainer(uiprimitives.Container):
         self.corpLabel = uicontrols.EveLabelSmall(text='', parent=self.textCont, maxLines=1, align=uiconst.TOPLEFT, state=uiconst.UI_NORMAL, top=13)
         self.allianceLabel = uicontrols.EveLabelSmall(text='', parent=self.textCont, maxLines=1, align=uiconst.TOPLEFT, state=uiconst.UI_NORMAL, top=26)
 
-    def LoadInfo(self, behalfID, corpID, allianceID = None, factionID = None):
+    def LoadInfo(self, behalfID, corpID, allianceID=None, factionID=None):
         self.behalfCont.Flush()
         self.corpCont.Flush()
         self.allianceCont.Flush()

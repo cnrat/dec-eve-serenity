@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\carbon\common\script\net\GPS.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\carbon\common\script\net\GPS.py
 import blue
 import carbon.common.script.net.machobase as macho
 import evecrypto.crypto as Crypto
@@ -37,7 +38,7 @@ exports = {'gps.ClientConnectFailed': ClientConnectFailed,
 class GPSTransportFactory(object):
     __guid__ = 'gps.GPSTransportFactory'
 
-    def __init__(self, useacl = 0, name = '(unknown)'):
+    def __init__(self, useacl=0, name='(unknown)'):
         self.useACL = useacl
         self.name = name
 
@@ -62,7 +63,7 @@ class GPSAddressable(object):
     def GetInternalAddress(self):
         return self.__GetPrefixedAddress('internalNetPrefix')
 
-    def __GetPrefixedAddress(self, prefixWhat, natOffset = False):
+    def __GetPrefixedAddress(self, prefixWhat, natOffset=False):
         host, port = self.address.split(':')
         addresses = GetAddrInfo(host)
         find = [prefixWhat + '_' + macho.mode, prefixWhat, 'externalNetPrefix']
@@ -111,11 +112,13 @@ class GPSTransportAcceptor(GPSAddressable):
     def CheckACL(self, address):
         if self.useACL:
             return sm.services['machoNet'].CheckACL(address)
+        else:
+            return None
 
     def Accept(self):
         return None
 
-    def Close(self, reason = None, reasonCode = None, reasonArgs = {}):
+    def Close(self, reason=None, reasonCode=None, reasonArgs={}):
         pass
 
 
@@ -127,6 +130,7 @@ class GPSTransport(GPSAddressable):
         self.cryptoContext = Crypto.CryptoCreateContext()
         self.handShakePaddingLength = boot.GetValue('handShakePaddingLength', 64)
         self.handShake = None
+        return
 
     def Read(self):
         pass
@@ -134,13 +138,13 @@ class GPSTransport(GPSAddressable):
     def Write(self, packet):
         pass
 
-    def Close(self, reason = None, reasonCode = None, reasonArgs = {}):
+    def Close(self, reason=None, reasonCode=None, reasonArgs={}):
         pass
 
     def IsClosed(self):
         return True
 
-    def ApplyWithTimeout(self, func, args, timeout = 120, message = None):
+    def ApplyWithTimeout(self, func, args, timeout=120, message=None):
         rts = [0]
         t = uthread.worker('machoNet::TimeoutWorker', self.TimeoutWorker, self, timeout, rts, message)
         try:
@@ -152,7 +156,7 @@ class GPSTransport(GPSAddressable):
         return ret
 
     @staticmethod
-    def TimeoutWorker(transport, secs, rts, message = None):
+    def TimeoutWorker(transport, secs, rts, message=None):
         try:
             blue.pyos.synchro.SleepWallclock(1000 * secs)
             if not rts[0]:
@@ -367,6 +371,8 @@ class GPSTransport(GPSAddressable):
         finally:
             Leave(timer)
 
+        return
+
     def Authenticate(self, username, password, token):
         timer = Enter('machoNet::GPS::Authenticate')
         try:
@@ -487,6 +493,8 @@ class GPSTransport(GPSAddressable):
         finally:
             Leave(timer)
 
+        return
+
     def __Execute(self, signedFunc, context):
         marshaled, verified = Crypto.Verify(signedFunc)
         if not verified:
@@ -507,21 +515,23 @@ class GPSTransport(GPSAddressable):
         sys.stdout = output
         sys.stderr = output
         try:
-            if macho.mode != 'client':
-                raise RuntimeError('H4x0r won by calling GPS::__Execute on the server :(')
-            funcResult = eval(func, globals(), context)
-        except:
-            funcResult = {}
-            import traceback
-            exctype, exc, tb = sys.exc_info()
             try:
-                traceback.print_exception(exctype, exc, tb)
-            finally:
-                exctype = None
-                exc = None
-                tb = None
+                if macho.mode != 'client':
+                    raise RuntimeError('H4x0r won by calling GPS::__Execute on the server :(')
+                funcResult = eval(func, globals(), context)
+            except:
+                funcResult = {}
+                import traceback
+                exctype, exc, tb = sys.exc_info()
+                try:
+                    traceback.print_exception(exctype, exc, tb)
+                finally:
+                    exctype = None
+                    exc = None
+                    tb = None
 
-            sys.exc_clear()
+                sys.exc_clear()
+
         finally:
             sys.stdout = temp
             sys.stderr = temp2
@@ -532,11 +542,11 @@ class GPSTransport(GPSAddressable):
         cryptedPacket = self.UnEncryptedRead()
         return self.cryptoContext.SymmetricDecryption(cryptedPacket)
 
-    def EncryptedWrite(self, packet, header = None):
+    def EncryptedWrite(self, packet, header=None):
         encryptedPacket = self.cryptoContext.SymmetricEncryption(packet)
         return self.UnEncryptedWrite(encryptedPacket, header)
 
-    def CreateClosedPacket(self, reason, reasonCode = None, reasonArgs = {}, exception = None):
+    def CreateClosedPacket(self, reason, reasonCode=None, reasonArgs={}, exception=None):
         msg = 'Creating Closed Packet: ' + reason
         if exception:
             msg += ' exception:' + repr(exception)

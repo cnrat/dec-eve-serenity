@@ -1,4 +1,5 @@
-#Embedded file name: C:\jamieb_jamieb-pc_STABLE_1796\fsdSchemas\binaryRepresenter.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: C:\jamieb_jamieb-pc_STABLE_1796\fsdSchemas\binaryRepresenter.py
 import ctypes
 import cStringIO
 import schemaOptimizer
@@ -167,7 +168,7 @@ def RepresentIndexedOffsetDataAsBinary(indexedOffsetData, schema, offsetToAttrib
     return binaryOffsetData.getvalue() + builtOffsetLookupTable + uint32.pack(len(builtOffsetLookupTable))
 
 
-def StreamSortedIndexToFile(fileObjectOut, keyValueAndMaybeIndexedOffsetData, totalCount, schema, embedSchema = False):
+def StreamSortedIndexToFile(fileObjectOut, keyValueAndMaybeIndexedOffsetData, totalCount, schema, embedSchema=False):
     keyFooterSchema = schema['keyFooter']
     if 'fixedItemSize' not in keyFooterSchema:
         raise ValueError('keys must have a known size to stream the index')
@@ -302,7 +303,7 @@ def RepresentAsBinaryWithIndexedOffsetData(o, schema, path):
     raise NotImplementedError("Type '%s' does not have a binary representation implementation" % schemaType)
 
 
-def RepresentAsBinary(o, schema, path = None):
+def RepresentAsBinary(o, schema, path=None):
     if path is None:
         path = FsdDataPathObject('<root>')
     binaryData = RepresentAsBinaryWithIndexedOffsetData(o, schema, path)[0]
@@ -314,5 +315,5 @@ def RepresentSchemaAsBinary(schema):
     return uint32.pack(len(binarySchema)) + binarySchema
 
 
-def RepresentAsBinaryWithEmbeddedSchema(o, schema, path = None):
+def RepresentAsBinaryWithEmbeddedSchema(o, schema, path=None):
     return RepresentSchemaAsBinary(schema) + RepresentAsBinary(o, schema, path)

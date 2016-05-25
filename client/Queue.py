@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\carbon\common\stdlib\Queue.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\carbon\common\stdlib\Queue.py
 from time import time as _time
 try:
     import threading as _threading
@@ -23,7 +24,7 @@ class Full(Exception):
 
 class Queue:
 
-    def __init__(self, maxsize = 0):
+    def __init__(self, maxsize=0):
         self.maxsize = maxsize
         self._init(maxsize)
         self.mutex = _threading.Lock()
@@ -71,7 +72,7 @@ class Queue:
         self.mutex.release()
         return n
 
-    def put(self, item, block = True, timeout = None):
+    def put(self, item, block=True, timeout=None):
         self.not_full.acquire()
         try:
             if self.maxsize > 0:
@@ -98,10 +99,12 @@ class Queue:
         finally:
             self.not_full.release()
 
+        return
+
     def put_nowait(self, item):
         return self.put(item, False)
 
-    def get(self, block = True, timeout = None):
+    def get(self, block=True, timeout=None):
         self.not_empty.acquire()
         try:
             if not block:
@@ -127,13 +130,15 @@ class Queue:
         finally:
             self.not_empty.release()
 
+        return
+
     def get_nowait(self):
         return self.get(False)
 
     def _init(self, maxsize):
         self.queue = deque()
 
-    def _qsize(self, len = len):
+    def _qsize(self, len=len):
         return len(self.queue)
 
     def _put(self, item):
@@ -148,13 +153,13 @@ class PriorityQueue(Queue):
     def _init(self, maxsize):
         self.queue = []
 
-    def _qsize(self, len = len):
+    def _qsize(self, len=len):
         return len(self.queue)
 
-    def _put(self, item, heappush = heapq.heappush):
+    def _put(self, item, heappush=heapq.heappush):
         heappush(self.queue, item)
 
-    def _get(self, heappop = heapq.heappop):
+    def _get(self, heappop=heapq.heappop):
         return heappop(self.queue)
 
 
@@ -163,7 +168,7 @@ class LifoQueue(Queue):
     def _init(self, maxsize):
         self.queue = []
 
-    def _qsize(self, len = len):
+    def _qsize(self, len=len):
         return len(self.queue)
 
     def _put(self, item):

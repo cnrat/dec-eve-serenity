@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\devtools\script\pythonobjects.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\devtools\script\pythonobjects.py
 import blue
 import gc
 import weakref
@@ -36,6 +37,7 @@ class PythonObjectsMonitor(Window):
         self.scroll = Scroll(parent=self.sr.main, id='pythonobjectscroll', align=uiconst.TOALL)
         self.Reset()
         self._ready = True
+        return
 
     def Reset(self, *args):
         if self.detailsWindow:
@@ -45,6 +47,7 @@ class PythonObjectsMonitor(Window):
         self.baseCount = {}
         self.filterEdit.SetText('')
         self.PopulateScroll()
+        return
 
     def GetLabelForEntry(self, key, value):
         peak = self.peakCount.get(key, 0)
@@ -58,15 +61,16 @@ class PythonObjectsMonitor(Window):
          delta,
          value,
          peak)
-        return label
+        return (label, delta)
 
     def RebuildScrollContents(self, objects, filter):
         contentList = []
         for key, value in objects.iteritems():
             if filter and filter not in key.lower():
                 continue
-            label = self.GetLabelForEntry(key, value)
+            label, delta = self.GetLabelForEntry(key, value)
             listEntry = ScrollEntryNode(decoClass=SE_GenericCore, id=id, name=key, label=label, OnDblClick=self.ClassEntryDetails)
+            listEntry.Set('sort_Delta', delta)
             contentList.append(listEntry)
 
         self.scroll.Load(contentList=contentList, headers=['Name',
@@ -124,12 +128,14 @@ class PythonObjectClassDetails(Window):
         self.scroll = Scroll(parent=self.sr.main, id='pythonobjectclassdetailscroll', align=uiconst.TOALL)
         self.ShowObjectDetail()
         self._ready = True
+        return
 
-    def Close(self, setClosed = False, *args, **kwds):
+    def Close(self, setClosed=False, *args, **kwds):
         self.scroll = None
         self.classDetailsContainer = None
         gc.collect()
         Window.Close(self, setClosed, *args, **kwds)
+        return
 
     def Refresh(self):
         self.scroll.Clear()

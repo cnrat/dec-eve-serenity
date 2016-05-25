@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\carbon\common\lib\werkzeug\contrib\iterio.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\carbon\common\lib\werkzeug\contrib\iterio.py
 try:
     from py.magic import greenlet
 except:
@@ -27,12 +28,12 @@ class IterIO(object):
             raise ValueError('I/O operation on closed file')
         return False
 
-    def seek(self, pos, mode = 0):
+    def seek(self, pos, mode=0):
         if self.closed:
             raise ValueError('I/O operation on closed file')
         raise IOError(9, 'Bad file descriptor')
 
-    def truncate(self, size = None):
+    def truncate(self, size=None):
         if self.closed:
             raise ValueError('I/O operation on closed file')
         raise IOError(9, 'Bad file descriptor')
@@ -47,17 +48,17 @@ class IterIO(object):
             raise ValueError('I/O operation on closed file')
         raise IOError(9, 'Bad file descriptor')
 
-    def read(self, n = -1):
+    def read(self, n=-1):
         if self.closed:
             raise ValueError('I/O operation on closed file')
         raise IOError(9, 'Bad file descriptor')
 
-    def readlines(self, sizehint = 0):
+    def readlines(self, sizehint=0):
         if self.closed:
             raise ValueError('I/O operation on closed file')
         raise IOError(9, 'Bad file descriptor')
 
-    def readline(self, length = None):
+    def readline(self, length=None):
         if self.closed:
             raise ValueError('I/O operation on closed file')
         raise IOError(9, 'Bad file descriptor')
@@ -94,6 +95,8 @@ class IterI(IterIO):
             if not rv:
                 return
             yield rv[0]
+
+        return
 
     def __init__(self, parent):
         self._parent = parent
@@ -142,7 +145,7 @@ class IterO(IterIO):
             if hasattr(self._gen, 'close'):
                 self._gen.close()
 
-    def seek(self, pos, mode = 0):
+    def seek(self, pos, mode=0):
         if self.closed:
             raise ValueError('I/O operation on closed file')
         if mode == 1:
@@ -169,7 +172,7 @@ class IterO(IterIO):
             self._buf += ''.join(buf)
         self.pos = max(0, pos)
 
-    def read(self, n = -1):
+    def read(self, n=-1):
         if self.closed:
             raise ValueError('I/O operation on closed file')
         if n < 0:
@@ -197,7 +200,7 @@ class IterO(IterIO):
         finally:
             self.pos = min(new_pos, len(self._buf))
 
-    def readline(self, length = None):
+    def readline(self, length=None):
         if self.closed:
             raise ValueError('I/O operation on closed file')
         nl_pos = self._buf.find('\n', self.pos)
@@ -229,7 +232,9 @@ class IterO(IterIO):
         finally:
             self.pos = min(new_pos, len(self._buf))
 
-    def readlines(self, sizehint = 0):
+        return
+
+    def readlines(self, sizehint=0):
         total = 0
         lines = []
         line = self.readline()

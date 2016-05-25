@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\packages\requests\packages\urllib3\packages\ssl_match_hostname\_implementation.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\packages\requests\packages\urllib3\packages\ssl_match_hostname\_implementation.py
 import re
 __version__ = '3.4.0.2'
 
@@ -6,7 +7,7 @@ class CertificateError(ValueError):
     pass
 
 
-def _dnsname_match(dn, hostname, max_wildcards = 1):
+def _dnsname_match(dn, hostname, max_wildcards=1):
     pats = []
     if not dn:
         return False

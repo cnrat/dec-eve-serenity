@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\carbon\common\lib\wsgiref\handlers.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\carbon\common\lib\wsgiref\handlers.py
 from types import StringType
 from util import FileWrapper, guess_scheme, is_hop_by_hop
 from headers import Headers
@@ -97,6 +98,7 @@ class BaseHandler():
             env['wsgi.file_wrapper'] = self.wsgi_file_wrapper
         if self.origin_server and self.server_software:
             env.setdefault('SERVER_SOFTWARE', self.server_software)
+        return
 
     def finish_response(self):
         if not self.result_is_file() or not self.sendfile():
@@ -123,7 +125,7 @@ class BaseHandler():
         if 'Content-Length' not in self.headers:
             self.set_content_length()
 
-    def start_response(self, status, headers, exc_info = None):
+    def start_response(self, status, headers, exc_info=None):
         if exc_info:
             try:
                 if self.headers_sent:
@@ -176,6 +178,8 @@ class BaseHandler():
             self.bytes_sent = 0
             self.headers_sent = False
 
+        return
+
     def send_headers(self):
         self.cleanup_headers()
         self.headers_sent = True
@@ -198,6 +202,8 @@ class BaseHandler():
             stderr.flush()
         finally:
             exc_info = None
+
+        return
 
     def handle_error(self):
         self.log_exception(sys.exc_info())
@@ -227,7 +233,7 @@ class BaseHandler():
 
 class SimpleHandler(BaseHandler):
 
-    def __init__(self, stdin, stdout, stderr, environ, multithread = True, multiprocess = False):
+    def __init__(self, stdin, stdout, stderr, environ, multithread=True, multiprocess=False):
         self.stdin = stdin
         self.stdout = stdout
         self.stderr = stderr

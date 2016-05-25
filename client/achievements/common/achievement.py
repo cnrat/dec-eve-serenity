@@ -1,9 +1,10 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\packages\achievements\common\achievement.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\packages\achievements\common\achievement.py
 
 
 class Achievement(object):
 
-    def __init__(self, achievementID, name, description, conditions = None, notificationText = None, isClientAchievement = False, isEnabled = True):
+    def __init__(self, achievementID, name, description, conditions=None, notificationText=None, isClientAchievement=False, isEnabled=True):
         self.achievementID = achievementID
         self.name = name
         self.description = description
@@ -14,6 +15,7 @@ class Achievement(object):
             self.conditions = []
         else:
             self.conditions = conditions
+        return
 
     def AddCondition(self, condition):
         self.conditions.append(condition)

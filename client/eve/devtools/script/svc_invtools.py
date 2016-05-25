@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\devtools\script\svc_invtools.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\devtools\script\svc_invtools.py
 import sys
 import blue
 import evetypes
@@ -29,13 +30,14 @@ class InvTools(service.Service):
         Service.__init__(self)
         self.inv = sm.GetService('invCache').GetInventory
 
-    def Run(self, memStream = None):
+    def Run(self, memStream=None):
         self.state = SERVICE_START_PENDING
         Service.Run(self, memStream)
         self.wnd = None
         self.state = SERVICE_RUNNING
+        return
 
-    def Stop(self, memStream = None):
+    def Stop(self, memStream=None):
         self.state = SERVICE_STOP_PENDING
         Service.Stop(self, memStream)
         self.state = SERVICE_STOPPED
@@ -53,79 +55,85 @@ class InvTools(service.Service):
             return
         return self.inv(eve.session.charid)
 
-    def GetSpecial(self, loc = None, *args):
+    def GetSpecial(self, loc=None, *args):
         if loc is None:
             return
-        return self.inv(loc)
+        else:
+            return self.inv(loc)
 
-    def SpawnRandom(self, loc = None, flag = None, minQty = None, maxQty = None, iterations = None, categories = True, groups = False, want = None, onlyPublished = True, onlyUnpublished = False, useMultiMove = True, volume = None, *args):
+    def SpawnRandom(self, loc=None, flag=None, minQty=None, maxQty=None, iterations=None, categories=True, groups=False, want=None, onlyPublished=True, onlyUnpublished=False, useMultiMove=True, volume=None, *args):
         if loc is None:
             return
-        if loc == util.GetActiveShip() and sm.GetService('clientDogmaIM').GetDogmaLocation().GetItem(loc).groupID == const.groupCapsule:
+        elif loc == util.GetActiveShip() and sm.GetService('clientDogmaIM').GetDogmaLocation().GetItem(loc).groupID == const.groupCapsule:
             eve.Message('CustomNotify', {'notify': 'You cannot spawn items into capsule.'})
             return
-        if minQty is None:
-            minQty = 1
-        if maxQty is None:
-            maxQty = 10
-        if iterations is None:
-            iterations = 10
-        if minQty > maxQty:
-            eve.Message('CustomNotify', {'notify': 'Min stack size is greater than max stack size.'})
-            return
-        if minQty > iterations:
-            eve.Message('CustomNotify', {'notify': 'Min stack size is greater than number of items.'})
-            return
-        if want is None:
-            categories = True
-            want = [const.categoryCharge, const.categoryCommodity, const.categoryModule]
-        if type(want) is types.IntType:
-            want = [want]
-        if type(want) is not types.ListType:
-            return
-        selectedTypesAndQty = []
-        mustMove = []
-        possibleTypes = []
-        if categories:
-            for typeID in evetypes.GetTypeIDsByCategories(want):
-                if evetypes.GetVolume(typeID) < volume:
-                    possibleTypes.append(typeID)
-
         else:
-            for typeID in evetypes.GetTypeIDsByGroups(want):
-                if evetypes.GetVolume(typeID) < volume:
-                    possibleTypes.append(typeID)
-
-        if len(possibleTypes) == 0:
-            return
-        for i in xrange(1, iterations + 1):
-            selectedTypesAndQty.append((random.choice(possibleTypes), random.choice(xrange(minQty, maxQty + 1))))
-
-        title = 'Spawning...'
-        idx = int()
-        qty = len(selectedTypesAndQty)
-        Progress(title, 'Processing', 0, qty)
-        for t, q in selectedTypesAndQty:
-            idx += 1
-            msg = 'Processing %d of %d' % (idx, qty)
-            Progress(title, msg, idx, qty)
-            if q == 0:
-                q = 1
-            if eve.session.role & service.ROLE_WORLDMOD:
-                itemID = sm.RemoteSvc('slash').SlashCmd('/createitem %d %d' % (t, q))
-            elif eve.session.role & service.ROLE_GML:
-                try:
-                    itemID = sm.RemoteSvc('slash').SlashCmd('/load me %d %d' % (t, q))[0]
-                except UserError:
-                    sys.exc_clear()
+            if minQty is None:
+                minQty = 1
+            if maxQty is None:
+                maxQty = 10
+            if iterations is None:
+                iterations = 10
+            if minQty > maxQty:
+                eve.Message('CustomNotify', {'notify': 'Min stack size is greater than max stack size.'})
+                return
+            elif minQty > iterations:
+                eve.Message('CustomNotify', {'notify': 'Min stack size is greater than number of items.'})
+                return
+            if want is None:
+                categories = True
+                want = [const.categoryCharge,
+                 const.categoryCommodity,
+                 const.categoryModule,
+                 const.categoryStructureModule]
+            if type(want) is types.IntType:
+                want = [want]
+            if type(want) is not types.ListType:
+                return
+            selectedTypesAndQty = []
+            mustMove = []
+            possibleTypes = []
+            if categories:
+                for typeID in evetypes.GetTypeIDsByCategories(want):
+                    if evetypes.GetVolume(typeID) < volume:
+                        possibleTypes.append(typeID)
 
             else:
-                return
-            mustMove.append(itemID)
+                for typeID in evetypes.GetTypeIDsByGroups(want):
+                    if evetypes.GetVolume(typeID) < volume:
+                        possibleTypes.append(typeID)
 
-        Progress(title, 'Complete', 1, 1)
-        if session.stationid is not None and loc != const.containerHangar:
-            self.MoveItems(items=mustMove, source=session.locationid, destination=loc, flag=flag, multi=useMultiMove, suppress=True)
+            if len(possibleTypes) == 0:
+                return
+            for i in xrange(1, iterations + 1):
+                selectedTypesAndQty.append((random.choice(possibleTypes), random.choice(xrange(minQty, maxQty + 1))))
+
+            title = 'Spawning...'
+            idx = int()
+            qty = len(selectedTypesAndQty)
+            Progress(title, 'Processing', 0, qty)
+            for t, q in selectedTypesAndQty:
+                idx += 1
+                msg = 'Processing %d of %d' % (idx, qty)
+                Progress(title, msg, idx, qty)
+                if q == 0:
+                    q = 1
+                if eve.session.role & service.ROLE_WORLDMOD:
+                    itemID = sm.RemoteSvc('slash').SlashCmd('/createitem %d %d' % (t, q))
+                elif eve.session.role & service.ROLE_GML:
+                    try:
+                        itemID = sm.RemoteSvc('slash').SlashCmd('/load me %d %d' % (t, q))[0]
+                    except UserError:
+                        sys.exc_clear()
+
+                else:
+                    return
+                mustMove.append(itemID)
+
+            Progress(title, 'Complete', 1, 1)
+            if session.stationid is not None and loc != const.containerHangar:
+                self.MoveItems(items=mustMove, source=session.locationid, destination=loc, flag=flag, multi=useMultiMove, suppress=True)
+            return
 
     def GetFlags(self, *args):
         flagList = []
@@ -136,80 +144,85 @@ class InvTools(service.Service):
         flagList.sort()
         return flagList
 
-    def GetItemFromContainer(self, itemID = None, container = None, *args):
+    def GetItemFromContainer(self, itemID=None, container=None, *args):
         if itemID is None:
             return
-        if container is None:
+        elif container is None:
             return
-        inv = [ item for item in self.inv(container).List() ]
-        for item in inv:
-            if item.itemID == itemID:
-                return item
+        else:
+            inv = [ item for item in self.inv(container).List() ]
+            for item in inv:
+                if item.itemID == itemID:
+                    return item
 
-    def MoveItems(self, items = None, source = None, destination = None, flag = None, multi = True, suppress = False, **kwargs):
+            return
+
+    def MoveItems(self, items=None, source=None, destination=None, flag=None, multi=True, suppress=False, **kwargs):
         if None in (items, source, destination):
             return
-        if not suppress:
-            destinationCargo = {}
-            postDestinationCargo = {}
-            sourceCargo = {}
-            postSourceCargo = {}
-            cargoDict = {}
-            for rec in self.inv(destination).List():
-                destinationCargo[rec.itemID] = rec.stacksize
-
-            for rec in self.inv(source).List():
-                sourceCargo[rec.itemID] = rec.stacksize
-
-            for each in items:
-                cargoDict[each] = self.GetItemFromContainer(each, source).stacksize
-
-        title = 'Moving...'
-        Progress(title, 'Telling Scotty the docking manager what to do...', 0, 1)
-        if multi:
-            if flag is not None:
-                self.inv(destination).MultiAdd(items, source, flag=flag, **kwargs)
-            else:
-                self.inv(destination).MultiAdd(items, source, **kwargs)
         else:
-            idx = int()
-            all = len(items)
-            for itemID in items:
-                idx += 1
-                msg = 'Processing %d of %d' % (idx, all)
-                Progress(title, msg, idx, all)
-                self.inv(destination).Add(itemID, source, **kwargs)
+            if not suppress:
+                destinationCargo = {}
+                postDestinationCargo = {}
+                sourceCargo = {}
+                postSourceCargo = {}
+                cargoDict = {}
+                for rec in self.inv(destination).List():
+                    destinationCargo[rec.itemID] = rec.stacksize
 
-        Progress(title, "All done, don't forget to pay the man!", 1, 1)
-        if not suppress:
-            blue.pyos.synchro.SleepWallclock(5000)
-            for rec in self.inv(destination).List():
-                postDestinationCargo[rec.itemID] = rec.stacksize
+                for rec in self.inv(source).List():
+                    sourceCargo[rec.itemID] = rec.stacksize
 
-            for rec in self.inv(source).List():
-                postSourceCargo[rec.itemID] = rec.stacksize
+                for each in items:
+                    cargoDict[each] = self.GetItemFromContainer(each, source).stacksize
 
-            for k in cargoDict.iterkeys():
-                if k in postDestinationCargo:
-                    qtyCargo = cargoDict[k]
-                    qtyDest = postDestinationCargo[k]
-                    if qtyCargo == qtyDest:
-                        pass
-                    else:
-                        print k, ' is in destination and qty is different!'
+            title = 'Moving...'
+            Progress(title, 'Telling Scotty the docking manager what to do...', 0, 1)
+            if multi:
+                if flag is not None:
+                    self.inv(destination).MultiAdd(items, source, flag=flag, **kwargs)
                 else:
-                    print '\t%s is not in destination', k
-                    print '\tsrc inv rec', self.GetItemFromContainer(k, source)
-                    print '\tdest inv rec:', self.GetItemFromContainer(k, destination)
+                    self.inv(destination).MultiAdd(items, source, **kwargs)
+            else:
+                idx = int()
+                all = len(items)
+                for itemID in items:
+                    idx += 1
+                    msg = 'Processing %d of %d' % (idx, all)
+                    Progress(title, msg, idx, all)
+                    self.inv(destination).Add(itemID, source, **kwargs)
 
-            postSourceCopy = postSourceCargo.copy()
-            postSourceCopy.update(cargoDict)
-            print '\tsrc ok?\t', ['No', 'Yes'][postSourceCopy == sourceCargo]
-            destinationCopy = destinationCargo.copy()
-            destinationCopy.update(cargoDict)
-            print '\tdest ok?\t', ['No', 'Yes'][destinationCopy == postDestinationCargo]
+            Progress(title, "All done, don't forget to pay the man!", 1, 1)
+            if not suppress:
+                blue.pyos.synchro.SleepWallclock(5000)
+                for rec in self.inv(destination).List():
+                    postDestinationCargo[rec.itemID] = rec.stacksize
 
-    def InvMoveLoop(self, loop = None, noSpawn = True, *args):
+                for rec in self.inv(source).List():
+                    postSourceCargo[rec.itemID] = rec.stacksize
+
+                for k in cargoDict.iterkeys():
+                    if k in postDestinationCargo:
+                        qtyCargo = cargoDict[k]
+                        qtyDest = postDestinationCargo[k]
+                        if qtyCargo == qtyDest:
+                            pass
+                        else:
+                            print k, ' is in destination and qty is different!'
+                    else:
+                        print '\t%s is not in destination', k
+                        print '\tsrc inv rec', self.GetItemFromContainer(k, source)
+                        print '\tdest inv rec:', self.GetItemFromContainer(k, destination)
+
+                postSourceCopy = postSourceCargo.copy()
+                postSourceCopy.update(cargoDict)
+                print '\tsrc ok?\t', ['No', 'Yes'][postSourceCopy == sourceCargo]
+                destinationCopy = destinationCargo.copy()
+                destinationCopy.update(cargoDict)
+                print '\tdest ok?\t', ['No', 'Yes'][destinationCopy == postDestinationCargo]
+            return
+
+    def InvMoveLoop(self, loop=None, noSpawn=True, *args):
         if loop is None:
             loop = 10
         _loop = loop
@@ -218,124 +231,126 @@ class InvTools(service.Service):
         items = self.GetShip().ListCargo()
         if len(items) == 0:
             return
-        itemIDs = [ rec.itemID for rec in items ]
-        moveCommands = [(eve.session.shipid,
-          const.containerHangar,
-          const.flagHangar,
-          False),
-         (const.containerHangar,
-          eve.session.shipid,
-          const.flagCargo,
-          False),
-         (eve.session.shipid,
-          const.containerHangar,
-          const.flagHangar,
-          True),
-         (const.containerHangar,
-          eve.session.shipid,
-          const.flagCargo,
-          True)]
-        lookup = {util.GetActiveShip(): 'Ship',
-         const.containerHangar: 'Hangar Floor',
-         const.flagCargo: 'Cargo Bay',
-         const.flagHangar: 'Corp Hangar, Division 1',
-         const.flagCorpSAG2: 'Corp Hangar, Division 2',
-         const.flagCorpSAG3: 'Corp Hangar, Division 3',
-         const.flagCorpSAG4: 'Corp Hangar, Division 4',
-         const.flagCorpSAG5: 'Corp Hangar, Division 5',
-         const.flagCorpSAG6: 'Corp Hangar, Division 6',
-         const.flagCorpSAG7: 'Corp Hangar, Division 7'}
-        usecase = {True: 'multimove',
-         False: 'single move'}
-        office = sm.StartService('corp').GetOffice()
-        if office is not None:
-            office = office.itemID
-        if office is not None:
-            moveCommands.extend([(eve.session.shipid,
-              office,
+        else:
+            itemIDs = [ rec.itemID for rec in items ]
+            moveCommands = [(eve.session.shipid,
+              const.containerHangar,
               const.flagHangar,
               False),
-             (office,
-              office,
-              const.flagCorpSAG2,
-              False),
-             (office,
-              office,
-              const.flagCorpSAG3,
-              False),
-             (office,
-              office,
-              const.flagCorpSAG4,
-              False),
-             (office,
-              office,
-              const.flagCorpSAG5,
-              False),
-             (office,
-              office,
-              const.flagCorpSAG6,
-              False),
-             (office,
-              office,
-              const.flagCorpSAG7,
-              False),
-             (office,
+             (const.containerHangar,
               eve.session.shipid,
               const.flagCargo,
               False),
              (eve.session.shipid,
-              office,
+              const.containerHangar,
               const.flagHangar,
               True),
-             (office,
-              office,
-              const.flagCorpSAG2,
-              True),
-             (office,
-              office,
-              const.flagCorpSAG3,
-              True),
-             (office,
-              office,
-              const.flagCorpSAG4,
-              True),
-             (office,
-              office,
-              const.flagCorpSAG5,
-              True),
-             (office,
-              office,
-              const.flagCorpSAG6,
-              True),
-             (office,
-              office,
-              const.flagCorpSAG7,
-              True),
-             (office,
+             (const.containerHangar,
               eve.session.shipid,
               const.flagCargo,
-              True)])
-            lookup[office] = 'Office'
-        start = time.time()
-        while loop:
-            for src, dest, f, m in moveCommands:
-                if f is not None:
-                    print "Moving from %s to %s's %s using %s:" % (lookup[src],
-                     lookup[dest],
-                     lookup[f],
-                     usecase[m])
-                else:
-                    print 'Moving from %s to %s using %s:' % (lookup[src], lookup[dest], usecase[m])
-                t = time.time()
-                self.MoveItems(itemIDs, src, dest, f, m)
-                duration = time.time() - t
-                print 'Move took %d:%.2d to move %s items\n' % (duration / 60, duration % 60, len(items))
+              True)]
+            lookup = {util.GetActiveShip(): 'Ship',
+             const.containerHangar: 'Hangar Floor',
+             const.flagCargo: 'Cargo Bay',
+             const.flagHangar: 'Corp Hangar, Division 1',
+             const.flagCorpSAG2: 'Corp Hangar, Division 2',
+             const.flagCorpSAG3: 'Corp Hangar, Division 3',
+             const.flagCorpSAG4: 'Corp Hangar, Division 4',
+             const.flagCorpSAG5: 'Corp Hangar, Division 5',
+             const.flagCorpSAG6: 'Corp Hangar, Division 6',
+             const.flagCorpSAG7: 'Corp Hangar, Division 7'}
+            usecase = {True: 'multimove',
+             False: 'single move'}
+            office = sm.StartService('corp').GetOffice()
+            if office is not None:
+                office = office.itemID
+            if office is not None:
+                moveCommands.extend([(eve.session.shipid,
+                  office,
+                  const.flagHangar,
+                  False),
+                 (office,
+                  office,
+                  const.flagCorpSAG2,
+                  False),
+                 (office,
+                  office,
+                  const.flagCorpSAG3,
+                  False),
+                 (office,
+                  office,
+                  const.flagCorpSAG4,
+                  False),
+                 (office,
+                  office,
+                  const.flagCorpSAG5,
+                  False),
+                 (office,
+                  office,
+                  const.flagCorpSAG6,
+                  False),
+                 (office,
+                  office,
+                  const.flagCorpSAG7,
+                  False),
+                 (office,
+                  eve.session.shipid,
+                  const.flagCargo,
+                  False),
+                 (eve.session.shipid,
+                  office,
+                  const.flagHangar,
+                  True),
+                 (office,
+                  office,
+                  const.flagCorpSAG2,
+                  True),
+                 (office,
+                  office,
+                  const.flagCorpSAG3,
+                  True),
+                 (office,
+                  office,
+                  const.flagCorpSAG4,
+                  True),
+                 (office,
+                  office,
+                  const.flagCorpSAG5,
+                  True),
+                 (office,
+                  office,
+                  const.flagCorpSAG6,
+                  True),
+                 (office,
+                  office,
+                  const.flagCorpSAG7,
+                  True),
+                 (office,
+                  eve.session.shipid,
+                  const.flagCargo,
+                  True)])
+                lookup[office] = 'Office'
+            start = time.time()
+            while loop:
+                for src, dest, f, m in moveCommands:
+                    if f is not None:
+                        print "Moving from %s to %s's %s using %s:" % (lookup[src],
+                         lookup[dest],
+                         lookup[f],
+                         usecase[m])
+                    else:
+                        print 'Moving from %s to %s using %s:' % (lookup[src], lookup[dest], usecase[m])
+                    t = time.time()
+                    self.MoveItems(itemIDs, src, dest, f, m)
+                    duration = time.time() - t
+                    print 'Move took %d:%.2d to move %s items\n' % (duration / 60, duration % 60, len(items))
 
-            loop -= 1
+                loop -= 1
 
-        finish = time.time() - start
-        print 'Move test complete, total time: %d:%.2d for %s iteration(s)' % (finish / 60, finish % 60, _loop)
-        print '%s items were moved %s times' % (len(items), len(moveCommands) * _loop)
+            finish = time.time() - start
+            print 'Move test complete, total time: %d:%.2d for %s iteration(s)' % (finish / 60, finish % 60, _loop)
+            print '%s items were moved %s times' % (len(items), len(moveCommands) * _loop)
+            return
 
 
 class InvToolsWnd(uicontrols.Window):
@@ -358,6 +373,7 @@ class InvToolsWnd(uicontrols.Window):
         self.locs = None
         self.DoSetup()
         self.Begin()
+        return
 
     def OnSessionChanged(self, isRemote, session, change):
         self.location.entries = self.locs = self.GetLocations()
@@ -462,6 +478,7 @@ class InvToolsWnd(uicontrols.Window):
         else:
             btn.hint = 'No <b>WORLDMOD</b> or <b>GML</b> role present.'
         self.SetHeight(sum([ each.height + each.padTop + each.padBottom + each.top for each in main.children ]) + self.GetHeaderHeight() + margin * 4)
+        return
 
     def DoCategoryChange(self, combo, text, value):
         self.config['categoryID'] = value
@@ -538,6 +555,7 @@ class InvToolsWnd(uicontrols.Window):
         if self.prepCorpHangar is True:
             sm.GetService('window').OpenCorpHangar(None, None, 1)
         sm.StartService('invtools').SpawnRandom(loc=loc, flag=flag, minQty=self.config['minQty'], maxQty=self.config['maxQty'], iterations=self.config['number'], categories=categories, groups=groups, want=want, onlyPublished=onlyPublished, onlyUnpublished=onlyUnpublished, useMultiMove=self.config['multimove'], volume=self.config['volume'])
+        return
 
     def GetLocations(self):
         ret = [('Current Ship', 'ship')]

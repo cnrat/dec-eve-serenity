@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\packages\carbonui\control\browser\browserHostManager.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\packages\carbonui\control\browser\browserHostManager.py
 import blue
 import service
 import os
@@ -21,6 +22,7 @@ class CoreBrowserHostManager(service.Service):
         self._browserHost = None
         self.liveBrowserViews = []
         self.AppRun()
+        return
 
     def _InitializeCCPBrowser(self):
         browserCache = self.AppGetBrowserCachePath()
@@ -52,7 +54,7 @@ class CoreBrowserHostManager(service.Service):
             ccpBrowserHost.Tick()
             blue.synchro.Yield()
 
-    def RestartBrowserHost(self, clearCache = False):
+    def RestartBrowserHost(self, clearCache=False):
         self._browserHost = None
         self.liveBrowserViews = []
         ccpBrowserHost.BrowserShutdown(True)
@@ -82,6 +84,7 @@ class CoreBrowserHostManager(service.Service):
                         else:
                             raise UserError('BrowserCacheClearFailed')
         self._InitializeCCPBrowser()
+        return
 
     def GetBrowserHost(self):
         if self._browserHost is None:
@@ -94,6 +97,7 @@ class CoreBrowserHostManager(service.Service):
             self._browserHost = None
             self.liveBrowserViews = []
             ccpBrowserHost.BrowserShutdown()
+        return
 
     def GetNewBrowserView(self):
         if self._browserHost is None:
@@ -105,19 +109,21 @@ class CoreBrowserHostManager(service.Service):
     def ReleaseBrowserView(self, browserView):
         if browserView is None:
             return
-        if self._browserHost is None:
+        elif self._browserHost is None:
             self.LogWarn('Attempting to release browserView object', browserView, 'but Browser Host is already dead')
             return
-        if browserView not in self.liveBrowserViews:
+        elif browserView not in self.liveBrowserViews:
             self.LogWarn('Attempting to release browserView object', browserView, 'which is not managed by BrowserHostManager')
             del browserView
             return
-        self.liveBrowserViews.remove(browserView)
-        del browserView
-        if len(self.liveBrowserViews) < 1:
-            self.LogInfo('BrowserHostManager is shutting down CCPBrowserHost as all active views have been closed')
-            self._browserHost = None
-            ccpBrowserHost.BrowserShutdown()
+        else:
+            self.liveBrowserViews.remove(browserView)
+            del browserView
+            if len(self.liveBrowserViews) < 1:
+                self.LogInfo('BrowserHostManager is shutting down CCPBrowserHost as all active views have been closed')
+                self._browserHost = None
+                ccpBrowserHost.BrowserShutdown()
+            return
 
     def AppRun(self):
         pass

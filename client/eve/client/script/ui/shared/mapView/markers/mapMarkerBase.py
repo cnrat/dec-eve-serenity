@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\client\script\ui\shared\mapView\markers\mapMarkerBase.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\client\script\ui\shared\mapView\markers\mapMarkerBase.py
 from carbon.common.script.util.commonutils import StripTags
 from carbon.common.script.util.timerstuff import AutoTimer
 from carbonui.primitives.base import ScaleDpiF, ReverseScaleDpi
@@ -33,6 +34,7 @@ class MarkerContainerBase(Container):
     def Close(self, *args):
         Container.Close(self, *args)
         self.markerObject = None
+        return
 
     def OnClick(self, *args):
         return self.markerObject.OnClick(*args)
@@ -108,7 +110,7 @@ class MarkerBase(object):
     itemID = None
     typeID = None
 
-    def __init__(self, markerID, markerHandler, parentContainer, position, curveSet, eventHandler = None, **kwds):
+    def __init__(self, markerID, markerHandler, parentContainer, position, curveSet, eventHandler=None, **kwds):
         self.markerID = markerID
         projectBracket = trinity.EveProjectBracket()
         if self.distanceFadeAlphaNearFar:
@@ -135,6 +137,7 @@ class MarkerBase(object):
         self.projectBracket = None
         self.parentContainer = None
         self.markerContainer = None
+        return
 
     def FadeOutAndClose(self):
         if self.markerContainer and not self.markerContainer.destroyed and self.markerContainer.opacity:
@@ -151,12 +154,14 @@ class MarkerBase(object):
             self.hilightState = hilightState
             self.lastUpdateCameraValues = None
             self.UpdateActiveAndHilightState()
+        return
 
     def SetActiveState(self, activeState):
         if activeState != self.activeState:
             self.activeState = activeState
             self.lastUpdateCameraValues = None
             self.UpdateActiveAndHilightState()
+        return
 
     def UpdateActiveAndHilightState(self, *args, **kwds):
         pass
@@ -239,6 +244,7 @@ class MarkerBase(object):
                 elif self.markerContainer and self.isLoaded:
                     self.DestroyRenderObject()
         self.updated = True
+        return
 
     def OnClick(self, *args, **kwds):
         self.clickTimer = AutoTimer(250, self.ClickMarker, uicore.uilib.Key(uiconst.VK_CONTROL))
@@ -249,6 +255,7 @@ class MarkerBase(object):
     def ClickMarker(self, zoomTo):
         self.clickTimer = None
         self.markerHandler.OnMarkerSelected(self, zoomTo)
+        return
 
     def OnMouseDown(self, *args):
         pass
@@ -279,6 +286,7 @@ class MarkerBase(object):
     def Reload(self):
         self.DestroyRenderObject()
         self.lastUpdateCameraValues = None
+        return
 
     def DestroyRenderObject(self):
         self.projectBracket.bracket = None
@@ -291,6 +299,7 @@ class MarkerBase(object):
             self.extraContainer = None
         self.isLoaded = False
         self.lastUpdateCameraValues = None
+        return
 
     def UpdateExtraContainer(self):
         if not self.extraContainer or not self.markerContainer:
@@ -354,6 +363,7 @@ class MarkerSolarSystemBased(MarkerBase):
         if trackObjectID:
             self.trackObjectID = trackObjectID
             self.SetupTracking()
+        return
 
     def Close(self, *args, **kwds):
         self.TearDownTracking()
@@ -377,6 +387,7 @@ class MarkerSolarSystemBased(MarkerBase):
                 solarSystemPosition = MapPosToSolarSystemPos(self.mapPositionLocal)
                 myPosition = GetMyPos()
                 return geo2.Vec3Length(geo2.Vec3Subtract(solarSystemPosition, (myPosition.x, myPosition.y, myPosition.z)))
+        return None
 
     def TearDownTracking(self):
         if self.vectorSequencer:
@@ -387,50 +398,53 @@ class MarkerSolarSystemBased(MarkerBase):
                     curveSet.bindings.remove(self.binding)
         self.binding = None
         self.vectorSequencer = None
+        return
 
     def SetupTracking(self):
         self.TearDownTracking()
         bp = sm.GetService('michelle').GetBallpark()
         if not bp:
             return
-        sunBall = None
-        if self.trackObjectID == session.shipid:
-            for itemID, each in bp.slimItems.iteritems():
-                if each.groupID == const.groupSun:
-                    sunBall = bp.GetBall(itemID)
-                    break
+        else:
+            sunBall = None
+            if self.trackObjectID == session.shipid:
+                for itemID, each in bp.slimItems.iteritems():
+                    if each.groupID == const.groupSun:
+                        sunBall = bp.GetBall(itemID)
+                        break
 
-        trackBallID = self.trackObjectID
-        ball = bp.GetBall(trackBallID)
-        if ball is None or sunBall is None:
+            trackBallID = self.trackObjectID
+            ball = bp.GetBall(trackBallID)
+            if ball is None or sunBall is None:
+                return
+            vectorCurve = trinity.TriVectorCurve()
+            vectorCurve.value = (-SOLARSYSTEM_SCALE, -SOLARSYSTEM_SCALE, -SOLARSYSTEM_SCALE)
+            invSunPos = trinity.TriVectorSequencer()
+            invSunPos.operator = trinity.TRIOP_MULTIPLY
+            invSunPos.functions.append(sunBall)
+            invSunPos.functions.append(vectorCurve)
+            vectorCurve = trinity.TriVectorCurve()
+            vectorCurve.value = (SOLARSYSTEM_SCALE, SOLARSYSTEM_SCALE, SOLARSYSTEM_SCALE)
+            ballPos = trinity.TriVectorSequencer()
+            ballPos.operator = trinity.TRIOP_MULTIPLY
+            ballPos.functions.append(ball)
+            ballPos.functions.append(vectorCurve)
+            vectorSequencer = trinity.TriVectorSequencer()
+            vectorSequencer.operator = trinity.TRIOP_ADD
+            vectorSequencer.functions.append(invSunPos)
+            vectorSequencer.functions.append(ballPos)
+            bind = trinity.TriValueBinding()
+            bind.copyValueCallable = self.OnBallPositionUpdate
+            bind.sourceObject = vectorSequencer
+            bind.sourceAttribute = 'value'
+            self.binding = bind
+            self.vectorSequencer = vectorSequencer
+            if self.curveSet:
+                curveSet = self.curveSet()
+                if curveSet:
+                    curveSet.curves.append(vectorSequencer)
+                    curveSet.bindings.append(bind)
             return
-        vectorCurve = trinity.TriVectorCurve()
-        vectorCurve.value = (-SOLARSYSTEM_SCALE, -SOLARSYSTEM_SCALE, -SOLARSYSTEM_SCALE)
-        invSunPos = trinity.TriVectorSequencer()
-        invSunPos.operator = trinity.TRIOP_MULTIPLY
-        invSunPos.functions.append(sunBall)
-        invSunPos.functions.append(vectorCurve)
-        vectorCurve = trinity.TriVectorCurve()
-        vectorCurve.value = (SOLARSYSTEM_SCALE, SOLARSYSTEM_SCALE, SOLARSYSTEM_SCALE)
-        ballPos = trinity.TriVectorSequencer()
-        ballPos.operator = trinity.TRIOP_MULTIPLY
-        ballPos.functions.append(ball)
-        ballPos.functions.append(vectorCurve)
-        vectorSequencer = trinity.TriVectorSequencer()
-        vectorSequencer.operator = trinity.TRIOP_ADD
-        vectorSequencer.functions.append(invSunPos)
-        vectorSequencer.functions.append(ballPos)
-        bind = trinity.TriValueBinding()
-        bind.copyValueCallable = self.OnBallPositionUpdate
-        bind.sourceObject = vectorSequencer
-        bind.sourceAttribute = 'value'
-        self.binding = bind
-        self.vectorSequencer = vectorSequencer
-        if self.curveSet:
-            curveSet = self.curveSet()
-            if curveSet:
-                curveSet.curves.append(vectorSequencer)
-                curveSet.bindings.append(bind)
 
     def OnBallPositionUpdate(self, curveSet, *args):
         if curveSet.value == (0, 0, 0):

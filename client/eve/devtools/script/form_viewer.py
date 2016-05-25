@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\devtools\script\form_viewer.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\devtools\script\form_viewer.py
 import uiprimitives
 import uicontrols
 import uix
@@ -8,6 +9,7 @@ import os
 import uthread
 import listentry
 import carbonui.const as uiconst
+from carbonui.primitives.sprite import StreamingVideoSprite
 from service import *
 BTNSIZE = 16
 ASPECT_X = 16
@@ -42,11 +44,13 @@ class BinkVideoViewer(uicontrols.Window):
         self.movieHeight = ASPECT_Y
         self.InitButtons()
         self.InitScroll()
+        return
 
     def CloseByUser(self, *args):
         if getattr(self, 'movie', None) and self.movie:
             self.movie.Close()
         self.Close()
+        return
 
     def OnResizeUpdate(self, *args):
         if self and not self.destroyed:
@@ -58,6 +62,7 @@ class BinkVideoViewer(uicontrols.Window):
         if getattr(self, 'movie', None) is not None:
             self.movie.width = dimWidth
             self.movie.height = dimHeight
+        return
 
     def InitButtons(self):
         buttons = [['Play', self.MoviePlay, 'ui_38_16_228'],
@@ -92,28 +97,30 @@ class BinkVideoViewer(uicontrols.Window):
             btmText = '\xe2\x80\xa2 Time: %s' % fps
             self.textTop.text = topText
             self.textBtm.text = btmText
+        return
 
     def GetCurrentMovieTime(self):
         if getattr(self, 'movie', None) is None:
             return 0
-        currentFrame = self.movie.currentFrame or 1
-        fps = self.movie.videoFps
-        return float(currentFrame) / float(fps)
+        else:
+            return float(self.movie.mediaTime / 1000000) / 1000
 
     def ShowSelected(self, btn, toggle, *args):
         btn.sr.hilite.state = [uiconst.UI_HIDDEN, uiconst.UI_DISABLED][toggle]
 
-    def MoviePlay(self, btn = None, *args):
+    def MoviePlay(self, btn=None, *args):
         if self.node is None:
             return
-        if getattr(self, 'movie', None) is not None:
-            self.movie.Play()
-            uthread.new(self.MoviePlaying)
         else:
-            self.Populate()
-            self.MoviePlay()
+            if getattr(self, 'movie', None) is not None:
+                self.movie.Play()
+                uthread.new(self.MoviePlaying)
+            else:
+                self.Populate()
+                self.MoviePlay()
+            return
 
-    def MoviePause(self, btn = None, stop = False, *args):
+    def MoviePause(self, btn=None, stop=False, *args):
         if stop:
             if getattr(self, 'movie', None) is not None:
                 self.movie.Pause()
@@ -123,14 +130,16 @@ class BinkVideoViewer(uicontrols.Window):
             self.movie.Pause()
         elif getattr(self, 'movie', None) is not None and not self.movie.isFinished and self.movie.isPaused:
             self.MoviePlay()
+        return
 
-    def MovieStop(self, btn = None, *args):
+    def MovieStop(self, btn=None, *args):
         if getattr(self, 'movie', None) is not None:
             self.movie.Pause()
             self.sr.movieCont.Flush()
             uicontrols.Frame(parent=self.sr.movieCont, color=(1.0, 1.0, 1.0, 0.2), idx=0)
             self.movie = None
             self.playing = False
+        return
 
     def MoviePlaying(self):
         while self and not self.destroyed:
@@ -145,14 +154,17 @@ class BinkVideoViewer(uicontrols.Window):
                     self.playing = False
             blue.pyos.synchro.SleepWallclock(20)
 
-    def MovieAudioToggle(self, btn = None, *args):
+        return
+
+    def MovieAudioToggle(self, btn=None, *args):
         if getattr(self, 'movie', None) is not None:
             if self.movie.isMuted:
                 self.movie.UnmuteAudio()
             else:
                 self.movie.MuteAudio()
+        return
 
-    def SetMovieAspect(self, btn = None, *args):
+    def SetMovieAspect(self, btn=None, *args):
         popup = ModifyAspectRatioPopup(caption='Set aspect ratio...', width=self.movieWidth, height=self.movieHeight)
         ret = popup.Wnd()
         if ret is not None:
@@ -164,8 +176,9 @@ class BinkVideoViewer(uicontrols.Window):
                 self.movieHeight = height
                 self.movie.width = dimWidth
                 self.movie.height = dimHeight
+        return
 
-    def Populate(self, path = None):
+    def Populate(self, path=None):
         self.sr.movieCont.Flush()
         uicontrols.Frame(parent=self.sr.movieCont, color=(1.0, 1.0, 1.0, 0.2), idx=0)
         dimWidth, dimHeight = self.GetSize(self.movieWidth, self.movieHeight)
@@ -174,9 +187,10 @@ class BinkVideoViewer(uicontrols.Window):
         elif self.node is not None:
             moviePath = str(self.node.resPath)
         self.path = moviePath
-        self.movie = uiprimitives.VideoSprite(parent=self.sr.movieCont, width=dimWidth, height=dimHeight, align=uiconst.CENTER, state=uiconst.UI_DISABLED, videoPath=moviePath)
+        self.movie = StreamingVideoSprite(parent=self.sr.movieCont, width=dimWidth, height=dimHeight, align=uiconst.CENTER, state=uiconst.UI_DISABLED, videoPath=moviePath)
+        return
 
-    def GetSize(self, vidWidth = ASPECT_X, vidHeight = ASPECT_Y):
+    def GetSize(self, vidWidth=ASPECT_X, vidHeight=ASPECT_Y):
         x, y, contWidth, contHeight = self.sr.movieCont.GetAbsolute()
         dimWidth, dimHeight = self.GetVideoDimensions(contWidth, contHeight, vidWidth, vidHeight)
         return (dimWidth, dimHeight)
@@ -203,7 +217,8 @@ class BinkVideoViewer(uicontrols.Window):
     def GetFileListFromDirectories(self, path):
         for root, dirs, files in os.walk(path):
             for filename in files:
-                yield root + '\\' + filename
+                if filename.lower().endswith('.webm'):
+                    yield root + '\\' + filename
 
     def InitScroll(self):
         self.scroll = uicontrols.Scroll(parent=self.sr.rightframe, padding=(const.defaultPadding,
@@ -230,6 +245,7 @@ class BinkVideoViewer(uicontrols.Window):
             self.node = node.sr.node
             self.movie = None
             self.UpdateText()
+        return
 
     def ScrollDblClick(self, node, *args):
         if getattr(self, 'movie', None) is not None:
@@ -238,12 +254,13 @@ class BinkVideoViewer(uicontrols.Window):
         self.node = node.sr.node
         self.Populate(path=path)
         self.MoviePlay()
+        return
 
 
 class ModifyAspectRatioPopup():
     __wndname__ = 'ModifyAspectRatioPopup'
 
-    def __init__(self, caption = None, width = ASPECT_X, height = ASPECT_Y):
+    def __init__(self, caption=None, width=ASPECT_X, height=ASPECT_Y):
         aspectPairs = [['width', width], ['height', height]]
         focus = 'width'
         if caption is None:
@@ -267,6 +284,7 @@ class ModifyAspectRatioPopup():
         format += [{'type': 'bbline'}]
         OKCANCEL = 1
         self.popup = uix.HybridWnd(format, caption, 1, None, OKCANCEL, None, minW=240, minH=80)
+        return
 
     def __getitem__(self, *args):
         return args

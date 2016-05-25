@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\packages\initialloadingscreen\loadingscreen.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\packages\initialloadingscreen\loadingscreen.py
 import blue
 import trinity
 import random
@@ -9,7 +10,7 @@ class InitialLoadingScreen(object):
     def __init__(self):
         self.active = False
 
-    def Show(self, width = 800, height = 600):
+    def Show(self, width=800, height=600):
         displayMode = trinity.adapters.GetCurrentDisplayMode(0)
         trinity.app.width = width
         trinity.app.height = height
@@ -65,3 +66,4 @@ class InitialLoadingScreen(object):
         self.active = False
         self.renderjob.UnscheduleRecurring()
         self.renderjob = None
+        return

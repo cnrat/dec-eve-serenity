@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\packages\brennivin\preferences.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\packages\brennivin\preferences.py
 import json
 import logging
 import os
@@ -8,7 +9,7 @@ logger = logging.getLogger(__name__)
 
 class Preferences(object):
 
-    def __init__(self, filename, onloaderror = None):
+    def __init__(self, filename, onloaderror=None):
         directory = os.path.dirname(filename)
         if not os.path.exists(directory):
             os.makedirs(directory)
@@ -24,7 +25,7 @@ class Preferences(object):
         return json.dump(obj, fp)
 
     def openmode(self):
-        return 't'
+        pass
 
     def get(self, region, variable, defaultValue):
         try:

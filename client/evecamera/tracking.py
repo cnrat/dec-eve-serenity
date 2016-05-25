@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\packages\evecamera\tracking.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\packages\evecamera\tracking.py
 import blue
 import geo2
 import math
@@ -27,32 +28,35 @@ class Tracker(object):
         self.trackingController = TrackingController(0, 0)
         self.isCenteredMode = settings.char.ui.Get('track_is_centered', False)
         self.trackingController.isCenteredMode = self.isCenteredMode
+        return
 
     def TrackItem(self, itemID):
         if itemID == self._cameraSvc.GetLookAtItemID():
             return
-        camera = sm.GetService('sceneManager').GetRegisteredCamera(evecamera.CAM_SPACE_PRIMARY)
-        if camera is None:
+        else:
+            camera = sm.GetService('sceneManager').GetRegisteredCamera(evecamera.CAM_SPACE_PRIMARY)
+            if camera is None:
+                return
+            self.trackSwitchTime = blue.os.GetWallclockTime()
+            if itemID is None and self.tracking is not None:
+                self.previousTracking = None
+                camera.maxPitch = self.trackingController.camMaxPitch
+                camera.minPitch = self.trackingController.camMinPitch
+                camera.rotationOfInterest = geo2.QuaternionIdentity()
+                self.tiltX = 0
+                self.tiltY = 0
+            if self.trackerRunning and itemID is not None:
+                camera.maxPitch = 2 * math.pi
+                camera.minPitch = -2 * math.pi
+                camera.SetOrbit(camera.yaw, camera.pitch)
+            self.tracking = itemID
+            if not self.trackerRunning:
+                self.camMaxPitch = camera.maxPitch
+                self.camMinPitch = camera.minPitch
+                self.trackingController.SetPitchLimit(maxPitch=camera.maxPitch, minPitch=camera.minPitch)
+                self.lastTime = blue.os.GetWallclockTime()
+                cbmanager.CallbackManager.GetGlobal().ScheduleCallback(self._TrackItem, 'trackingCamera')
             return
-        self.trackSwitchTime = blue.os.GetWallclockTime()
-        if itemID is None and self.tracking is not None:
-            self.previousTracking = None
-            camera.maxPitch = self.trackingController.camMaxPitch
-            camera.minPitch = self.trackingController.camMinPitch
-            camera.rotationOfInterest = geo2.QuaternionIdentity()
-            self.tiltX = 0
-            self.tiltY = 0
-        if self.trackerRunning and itemID is not None:
-            camera.maxPitch = 2 * math.pi
-            camera.minPitch = -2 * math.pi
-            camera.SetOrbit(camera.yaw, camera.pitch)
-        self.tracking = itemID
-        if not self.trackerRunning:
-            self.camMaxPitch = camera.maxPitch
-            self.camMinPitch = camera.minPitch
-            self.trackingController.SetPitchLimit(maxPitch=camera.maxPitch, minPitch=camera.minPitch)
-            self.lastTime = blue.os.GetWallclockTime()
-            cbmanager.CallbackManager.GetGlobal().ScheduleCallback(self._TrackItem, 'trackingCamera')
 
     def ForceStopTracking(self):
         self.trackerRunning = False
@@ -71,6 +75,7 @@ class Tracker(object):
         else:
             self.lastTime = blue.os.GetWallclockTime()
             self.ForceStopTracking()
+        return
 
     def SetTemporaryTrackSpeed(self, itemID, trackSpeed):
         self.tempTrackSpeedForItem = (itemID, trackSpeed)
@@ -79,47 +84,50 @@ class Tracker(object):
         self.isCenteredMode = True
         self.trackingController.isCenteredMode = True
         self.trackPointN = None
+        return
 
     def SetTrackingPointNormalized(self, p):
         self.trackPointN = p
         self.isCenteredMode = False
         self.trackingController.isCenteredMode = False
 
-    def _PointCameraTo(self, itemID, panSpeed = math.pi / 500):
+    def _PointCameraTo(self, itemID, panSpeed=math.pi / 500):
         timeDelta = blue.os.TimeDiffInMs(self.lastTime, blue.os.GetWallclockTime())
         self.lastTime = blue.os.GetWallclockTime()
         camera = sm.GetService('sceneManager').GetRegisteredCamera(evecamera.CAM_SPACE_PRIMARY)
         if camera is None:
             return
-        shipBall = sm.GetService('michelle').GetBall(self._cameraSvc.GetLookAtItemID())
-        if shipBall is None:
-            return
-        itemBall = sm.GetService('michelle').GetBall(itemID)
-        if not itemBall:
-            return
-        if getattr(itemBall, 'exploded', False):
-            explodedTime = getattr(itemBall, 'explodedTime', None)
-            if explodedTime is None:
+        else:
+            shipBall = sm.GetService('michelle').GetBall(self._cameraSvc.GetLookAtItemID())
+            if shipBall is None:
                 return
-            explosionWatchTime = 3.0
-            timeSinceExplosionInSecs = blue.os.TimeDiffInMs(explodedTime, blue.os.GetTime()) / 1000.0
-            if timeSinceExplosionInSecs > explosionWatchTime:
+            itemBall = sm.GetService('michelle').GetBall(itemID)
+            if not itemBall:
                 return
-            panSpeed *= 1.0 - timeSinceExplosionInSecs / explosionWatchTime
-        if hasattr(itemBall, 'IsCloaked') and itemBall.IsCloaked():
+            if getattr(itemBall, 'exploded', False):
+                explodedTime = getattr(itemBall, 'explodedTime', None)
+                if explodedTime is None:
+                    return
+                explosionWatchTime = 3.0
+                timeSinceExplosionInSecs = blue.os.TimeDiffInMs(explodedTime, blue.os.GetTime()) / 1000.0
+                if timeSinceExplosionInSecs > explosionWatchTime:
+                    return
+                panSpeed *= 1.0 - timeSinceExplosionInSecs / explosionWatchTime
+            if hasattr(itemBall, 'IsCloaked') and itemBall.IsCloaked():
+                return
+            shipPos = shipBall.GetVectorAt(blue.os.GetSimTime())
+            itemPos = itemBall.GetVectorAt(blue.os.GetSimTime())
+            t = blue.os.GetWallclockTime()
+            timeSinceTargetChange = min(float(blue.os.TimeDiffInMs(self.trackSwitchTime, t)), 5000.0)
+            rampUp = min(timeSinceTargetChange / 2000.0, 1.0)
+            panSpeed *= rampUp
+            if self.isCenteredMode:
+                self.trackPointN = trackingUtils.GetNormalizedCenter()
+            absoluteTrackPoint = trackingUtils.NormalizedPointToAbsoluteInflightNoScaling(self.trackPointN)
+            arc = self.PointCameraToPos(camera, shipPos, itemPos, panSpeed, timeDelta, trackingPoint=absoluteTrackPoint)
+            self.RotationAdjust(camera, timeSinceTargetChange, arc, itemID, timeDelta, trackingPoint=absoluteTrackPoint)
+            self.UpdateInternalTrackingInfo()
             return
-        shipPos = shipBall.GetVectorAt(blue.os.GetSimTime())
-        itemPos = itemBall.GetVectorAt(blue.os.GetSimTime())
-        t = blue.os.GetWallclockTime()
-        timeSinceTargetChange = min(float(blue.os.TimeDiffInMs(self.trackSwitchTime, t)), 5000.0)
-        rampUp = min(timeSinceTargetChange / 2000.0, 1.0)
-        panSpeed *= rampUp
-        if self.isCenteredMode:
-            self.trackPointN = trackingUtils.GetNormalizedCenter()
-        absoluteTrackPoint = trackingUtils.NormalizedPointToAbsoluteInflightNoScaling(self.trackPointN)
-        arc = self.PointCameraToPos(camera, shipPos, itemPos, panSpeed, timeDelta, trackingPoint=absoluteTrackPoint)
-        self.RotationAdjust(camera, timeSinceTargetChange, arc, itemID, timeDelta, trackingPoint=absoluteTrackPoint)
-        self.UpdateInternalTrackingInfo()
 
     def UpdateInternalTrackingInfo(self):
         if self.previousTracking != self.tracking:
@@ -164,9 +172,10 @@ class Tracker(object):
                     self.tiltX = math.fmod(self.tiltX, math.pi * 2)
                     self.tiltY = math.fmod(self.tiltY, math.pi * 2)
                     camera.SetRotationOnOrbit(self.tiltX, self.tiltY)
+        return
 
     def clampPitch(self, pitch):
         return min(self.camMaxPitch, max(pitch, self.camMinPitch))
 
-    def PointCameraToPos(self, camera, shipPos, itemPos, panSpeed, timeDelta, trackingPoint = None):
+    def PointCameraToPos(self, camera, shipPos, itemPos, panSpeed, timeDelta, trackingPoint=None):
         return self.trackingController.PointCameraToPos(camera, shipPos, itemPos, panSpeed, timeDelta, trackingPoint)

@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\packages\watchdog\utils\dirsnapshot.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\packages\watchdog\utils\dirsnapshot.py
 import errno
 import os
 from stat import S_ISDIR
@@ -84,7 +85,7 @@ class DirectorySnapshotDiff(object):
 
 class DirectorySnapshot(object):
 
-    def __init__(self, path, recursive = True, walker_callback = lambda p, s: None, stat = default_stat, listdir = os.listdir):
+    def __init__(self, path, recursive=True, walker_callback=lambda p, s: None, stat=default_stat, listdir=os.listdir):
         self._stat_info = {}
         self._inode_to_path = {}
         st = stat(path)

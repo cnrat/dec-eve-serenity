@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\client\script\ui\shared\neocom\corporation\corp_ui_wars.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\client\script\ui\shared\neocom\corporation\corp_ui_wars.py
 import uiprimitives
 import uicontrols
 import util
@@ -116,6 +117,7 @@ class CorpWars(uiprimitives.Container):
                 self.ShowCombatLosses()
             extrahint = localization.GetByLabel('UI/Corporations/CorporationWindow/Wars/DelayedKillboardDetails')
         sm.GetService('corpui').LoadTop('res:/ui/Texture/WindowIcons/wars.png', localization.GetByLabel('UI/Corporations/CorporationWindow/Wars/WarsTitle'), extrahint)
+        return
 
     def _HideNextPrevBtns(self):
         if self.btnContainer:
@@ -124,12 +126,12 @@ class CorpWars(uiprimitives.Container):
             prevbtn.state = nextbtn.state = uiconst.UI_HIDDEN
             self.btnContainer.state = uiconst.UI_HIDDEN
 
-    def ShowCombatKills(self, offset = None, pageChange = 0, *args):
+    def ShowCombatKills(self, offset=None, pageChange=0, *args):
         recent = sm.GetService('corp').GetRecentKills(self.killentries, offset)
         self.combatPageNum = max(0, self.combatPageNum + pageChange)
         self.ShowKillsEx(recent, self.ShowCombatKills, 'kills', pageNum=self.combatPageNum)
 
-    def ShowCombatLosses(self, offset = None, pageChange = 0, *args):
+    def ShowCombatLosses(self, offset=None, pageChange=0, *args):
         recent = sm.GetService('corp').GetRecentLosses(self.killentries, offset)
         self.combatPageNum = max(0, self.combatPageNum + pageChange)
         self.ShowKillsEx(recent, self.ShowCombatLosses, 'losses', pageNum=self.combatPageNum)
@@ -144,6 +146,7 @@ class CorpWars(uiprimitives.Container):
             self.ShowCombatKills(offset)
         else:
             self.ShowCombatLosses(offset)
+        return
 
     def ShowKillsEx(self, recent, func, combatType, pageNum):
         filterText = self.killReportQuickFilter.GetValue().strip().lower()
@@ -187,11 +190,13 @@ class CorpWars(uiprimitives.Container):
     def OnWarChanged(self, war, ownerIDs, change):
         if not getattr(self, 'tabs', None):
             return
-        selectedTab = self.tabs.GetSelectedArgs()
-        if selectedTab == 'all':
-            self.ShowAllWars()
-        elif selectedTab == 'our':
-            self.ShowWars()
+        else:
+            selectedTab = self.tabs.GetSelectedArgs()
+            if selectedTab == 'all':
+                self.ShowAllWars()
+            elif selectedTab == 'our':
+                self.ShowWars()
+            return
 
     def GetEntry(self, warID, scroll):
         for entry in scroll.GetNodes():
@@ -201,6 +206,8 @@ class CorpWars(uiprimitives.Container):
                 continue
             if entry.war.warID == warID:
                 return entry
+
+        return
 
     def __AddToList(self, war, scrolllist):
         data = util.KeyVal()
@@ -256,7 +263,7 @@ class CorpWars(uiprimitives.Container):
 
         return factionWars
 
-    def PopulateTop50(self, browse = None):
+    def PopulateTop50(self, browse=None):
         try:
             sm.GetService('corpui').ShowLoad()
             cryForHelp = settings.user.ui.Get('allwars_showcryforhelp', 0)
@@ -363,6 +370,7 @@ class CorpWars(uiprimitives.Container):
         self.searchEdit.SetValue('')
         self.searchOwnerID = None
         self.PopulateTop50()
+        return
 
     def CheckBoxChange(self, *args):
         cryForHelp = self.showCryForHelpCb.GetValue()
@@ -387,16 +395,19 @@ class CorpWars(uiprimitives.Container):
         form.WarAssistanceOfferWnd.CloseIfOpen()
         requesterID = session.corpid if session.allianceid is None else session.allianceid
         form.WarAssistanceOfferWnd.Open(war=war, requesterID=requesterID, isRequest=True, iskValue=getattr(war, 'reward', 0))
+        return
 
     def RequestAlly(self, war, *args):
         form.NegotiationWnd.CloseIfOpen()
         requesterID = session.corpid if session.allianceid is None else session.allianceid
         form.NegotiationWnd.Open(war=war, requesterID=requesterID, isSurrender=False, isAllyRequest=True, isRequest=True)
+        return
 
     def SurrenderWar(self, war, *args):
         form.WarSurrenderWnd.CloseIfOpen()
         requesterID = session.corpid if session.allianceid is None else session.allianceid
         form.WarSurrenderWnd.Open(war=war, requesterID=requesterID, isSurrender=True, isAllyRequest=False, isRequest=True)
+        return
 
     def OnCombatChange(self, *args):
         combatSetting = self.combatCombo.GetValue()

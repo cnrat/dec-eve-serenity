@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\packages\watchdog\events.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\packages\watchdog\events.py
 import os.path
 import logging
 import re
@@ -174,7 +175,7 @@ class FileSystemEventHandler(object):
 
 class PatternMatchingEventHandler(FileSystemEventHandler):
 
-    def __init__(self, patterns = None, ignore_patterns = None, ignore_directories = False, case_sensitive = False):
+    def __init__(self, patterns=None, ignore_patterns=None, ignore_directories=False, case_sensitive=False):
         super(PatternMatchingEventHandler, self).__init__()
         self._patterns = patterns
         self._ignore_patterns = ignore_patterns
@@ -217,7 +218,7 @@ class PatternMatchingEventHandler(FileSystemEventHandler):
 
 class RegexMatchingEventHandler(FileSystemEventHandler):
 
-    def __init__(self, regexes = ['.*'], ignore_regexes = [], ignore_directories = False, case_sensitive = False):
+    def __init__(self, regexes=['.*'], ignore_regexes=[], ignore_directories=False, case_sensitive=False):
         super(RegexMatchingEventHandler, self).__init__()
         if case_sensitive:
             self._regexes = [ re.compile(r) for r in regexes ]
@@ -302,6 +303,8 @@ def generate_sub_moved_events(src_dir_path, dest_dir_path):
             full_path = os.path.join(root, filename)
             renamed_path = full_path.replace(dest_dir_path, src_dir_path) if src_dir_path else None
             yield FileMovedEvent(renamed_path, full_path)
+
+    return
 
 
 def generate_sub_created_events(src_dir_path):

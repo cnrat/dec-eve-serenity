@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\common\modules\nice\client\_nastyspace\viewstate.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\common\modules\nice\client\_nastyspace\viewstate.py
 from eve.client.script.ui.services.viewStateSvc import Transition
 from eve.client.script.ui.services.viewStateSvc import View
 from eve.client.script.ui.services.viewStateSvc import ViewInfo

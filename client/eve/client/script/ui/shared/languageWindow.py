@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\client\script\ui\shared\languageWindow.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\client\script\ui\shared\languageWindow.py
 from carbonui.primitives.containerAutoSize import ContainerAutoSize
 from carbonui.primitives.layoutGrid import LayoutGrid
 from carbonui.primitives.line import Line
@@ -61,6 +62,7 @@ class LanguageWindow(Window):
         Line(parent=self.autoSizeMain, align=uiconst.TOTOP, color=(1, 1, 1, 0.1), padTop=4, padBottom=2)
         text = GetByLabel('UI/Messages/TxtSuppress2Body')
         self.suppressCb = Checkbox(text=text, parent=self.autoSizeMain, configName='importantNamesCB', retval=0, checked=0, align=uiconst.TOTOP, padLeft=6)
+        return
 
     def OnAutoSizeMainResize(self):
         headerHeight = self.GetCollapsedHeight()
@@ -74,6 +76,7 @@ class LanguageWindow(Window):
         if newheight != self.height:
             self.height = newheight
             self.SetFixedHeight(self.height)
+        return
 
     def GetTooltipCheckboxText(self):
         if self.currentComboValue == localization.const.IMPORTANT_EN_OVERRIDE:

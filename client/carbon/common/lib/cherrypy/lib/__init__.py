@@ -1,9 +1,10 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\carbon\common\lib\cherrypy\lib\__init__.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\carbon\common\lib\cherrypy\lib\__init__.py
 from cherrypy.lib.reprconf import _Builder, unrepr, modules, attributes
 
 class file_generator(object):
 
-    def __init__(self, input, chunkSize = 65536):
+    def __init__(self, input, chunkSize=65536):
         self.input = input
         self.chunkSize = chunkSize
 
@@ -21,7 +22,7 @@ class file_generator(object):
     next = __next__
 
 
-def file_generator_limited(fileobj, count, chunk_size = 65536):
+def file_generator_limited(fileobj, count, chunk_size=65536):
     remaining = count
     while remaining > 0:
         chunk = fileobj.read(min(chunk_size, remaining))

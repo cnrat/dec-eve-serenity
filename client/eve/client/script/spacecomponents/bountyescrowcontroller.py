@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\client\script\spacecomponents\bountyescrowcontroller.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\client\script\spacecomponents\bountyescrowcontroller.py
 from carbon.common.lib import const
 from eve.client.script.spacecomponents.countercontroller import BaseCounterController
 from spacecomponents.client.messages import MSG_ON_BOUNTYESCROW_TIMER_UPDATED
@@ -31,16 +32,19 @@ class BountyEscrowCounterController(BaseCounterController):
     def ESSSpawningTags(self, slimItem):
         if slimItem.unlockState is not None and slimItem.unlockState[0] == 'spawningTags':
             return True
-        return False
+        else:
+            return False
 
     def ESSLocked(self, slimItem):
         if slimItem.unlockState is not None and slimItem.unlockState[0] == 'locked':
             return True
-        return False
+        else:
+            return False
 
     def _TryRemoveTimer(self):
         if self.timer is not None:
             self.RemoveTimer()
+        return
 
     def UpdateTimerState(self, instance, slimItem):
         state = slimItem.unlockState
@@ -50,3 +54,4 @@ class BountyEscrowCounterController(BaseCounterController):
                     self.AddTimer(instance.unlockTimestamp + int(instance.unlockSeconds) * const.SEC, int(instance.unlockSeconds))
                     return
         self._TryRemoveTimer()
+        return

@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\client\script\ui\shared\fittingGhost\ghostFittingEffectCompiler.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\client\script\ui\shared\fittingGhost\ghostFittingEffectCompiler.py
 import dogma.const as dogmaConst
 from dogma.effects import Effect
 from eve.client.script.dogma.clientEffectCompiler import ClientEffectCompiler
@@ -32,6 +33,8 @@ class GhostFittingEffectCompiler(ClientEffectCompiler):
                             print 'Namespace item ' + item + ' has non-existant effect name reference ' + effectName
                             continue
                     self.effects[effectID] = inst
+
+        return
 
 
 class Attack(Effect):
@@ -68,6 +71,7 @@ class OnlineEffect(Effect):
                 dogma.UserError(env, 'NotEnoughPower', None)
         else:
             dogma.UserError(env, 'NotEnoughCpu', None)
+        return
 
     def Stop(self, env, dogmaLM, itemID, shipID, charID, otherID, targetID):
         dogmaLM.RemoveModifier(const.dgmAssModAdd, shipID, const.attributeCpuLoad, itemID, const.attributeCpu)
@@ -101,10 +105,10 @@ class Powerboost(Effect):
         return 1
 
     def Stop(self, env, dogmaLM, itemID, shipID, charID, otherID, targetID):
-        return 1
+        pass
 
     def RestrictedStop(self, env, dogmaLM, itemID, shipID, charID, otherID, targetID):
-        return 1
+        pass
 
 
 class Mine(Effect):

@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\carbon\common\lib\urllib3\packages\six.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\carbon\common\lib\urllib3\packages\six.py
 import operator
 import sys
 import types
@@ -22,7 +23,7 @@ else:
     class X(object):
 
         def __len__(self):
-            return 2147483648L
+            pass
 
 
     try:
@@ -57,7 +58,7 @@ class _LazyDescr(object):
 
 class MovedModule(_LazyDescr):
 
-    def __init__(self, name, old, new = None):
+    def __init__(self, name, old, new=None):
         super(MovedModule, self).__init__(name)
         if PY3:
             if new is None:
@@ -65,6 +66,7 @@ class MovedModule(_LazyDescr):
             self.mod = new
         else:
             self.mod = old
+        return
 
     def _resolve(self):
         return _import_module(self.mod)
@@ -72,7 +74,7 @@ class MovedModule(_LazyDescr):
 
 class MovedAttribute(_LazyDescr):
 
-    def __init__(self, name, old_mod, new_mod, old_attr = None, new_attr = None):
+    def __init__(self, name, old_mod, new_mod, old_attr=None, new_attr=None):
         super(MovedAttribute, self).__init__(name)
         if PY3:
             if new_mod is None:
@@ -89,6 +91,7 @@ class MovedAttribute(_LazyDescr):
             if old_attr is None:
                 old_attr = name
             self.attr = old_attr
+        return
 
     def _resolve(self):
         module = _import_module(self.mod)
@@ -255,7 +258,7 @@ if PY3:
     import builtins
     exec_ = getattr(builtins, 'exec')
 
-    def reraise(tp, value, tb = None):
+    def reraise(tp, value, tb=None):
         if value.__traceback__ is not tb:
             raise value.with_traceback(tb)
         raise value
@@ -265,7 +268,7 @@ if PY3:
     del builtins
 else:
 
-    def exec_(code, globs = None, locs = None):
+    def exec_(code, globs=None, locs=None):
         if globs is None:
             frame = sys._getframe(1)
             globs = frame.f_globals
@@ -275,6 +278,7 @@ else:
         elif locs is None:
             locs = globs
         exec 'exec code in globs, locs'
+        return
 
 
     exec_('def reraise(tp, value, tb=None):\n    raise tp, value, tb\n')
@@ -283,52 +287,54 @@ else:
         fp = kwargs.pop('file', sys.stdout)
         if fp is None:
             return
-
-        def write(data):
-            if not isinstance(data, basestring):
-                data = str(data)
-            fp.write(data)
-
-        want_unicode = False
-        sep = kwargs.pop('sep', None)
-        if sep is not None:
-            if isinstance(sep, unicode):
-                want_unicode = True
-            elif not isinstance(sep, str):
-                raise TypeError('sep must be None or a string')
-        end = kwargs.pop('end', None)
-        if end is not None:
-            if isinstance(end, unicode):
-                want_unicode = True
-            elif not isinstance(end, str):
-                raise TypeError('end must be None or a string')
-        if kwargs:
-            raise TypeError('invalid keyword arguments to print()')
-        if not want_unicode:
-            for arg in args:
-                if isinstance(arg, unicode):
-                    want_unicode = True
-                    break
-
-        if want_unicode:
-            newline = unicode('\n')
-            space = unicode(' ')
         else:
-            newline = '\n'
-            space = ' '
-        if sep is None:
-            sep = space
-        if end is None:
-            end = newline
-        for i, arg in enumerate(args):
-            if i:
-                write(sep)
-            write(arg)
 
-        write(end)
+            def write(data):
+                if not isinstance(data, basestring):
+                    data = str(data)
+                fp.write(data)
+
+            want_unicode = False
+            sep = kwargs.pop('sep', None)
+            if sep is not None:
+                if isinstance(sep, unicode):
+                    want_unicode = True
+                elif not isinstance(sep, str):
+                    raise TypeError('sep must be None or a string')
+            end = kwargs.pop('end', None)
+            if end is not None:
+                if isinstance(end, unicode):
+                    want_unicode = True
+                elif not isinstance(end, str):
+                    raise TypeError('end must be None or a string')
+            if kwargs:
+                raise TypeError('invalid keyword arguments to print()')
+            if not want_unicode:
+                for arg in args:
+                    if isinstance(arg, unicode):
+                        want_unicode = True
+                        break
+
+            if want_unicode:
+                newline = unicode('\n')
+                space = unicode(' ')
+            else:
+                newline = '\n'
+                space = ' '
+            if sep is None:
+                sep = space
+            if end is None:
+                end = newline
+            for i, arg in enumerate(args):
+                if i:
+                    write(sep)
+                write(arg)
+
+            write(end)
+            return
 
 
 _add_doc(reraise, 'Reraise an exception.')
 
-def with_metaclass(meta, base = object):
+def with_metaclass(meta, base=object):
     return meta('NewBase', (base,), {})

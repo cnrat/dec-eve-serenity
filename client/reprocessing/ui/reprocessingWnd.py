@@ -1,4 +1,6 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\packages\reprocessing\ui\reprocessingWnd.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\packages\reprocessing\ui\reprocessingWnd.py
+import util
 from eve.client.script.ui.control.buttons import Button
 from eve.client.script.ui.control.themeColored import GradientThemeColored
 from uthread2 import start_tasklet
@@ -22,7 +24,7 @@ from eve.common.script.sys.eveCfg import GetActiveShip
 from eve.client.script.ui.control.eveIcon import Icon
 from eve.client.script.ui.control.eveWindowUnderlay import BumpedUnderlay
 from eve.client.script.ui.control.buttonGroup import ButtonGroup
-from eve.common.script.util.eveFormat import FmtISKAndRound
+from eve.common.script.util.eveFormat import FmtISKAndRound, FmtISK
 from eve.client.script.ui.control.eveLabel import EveLabelMedium, Label, EveLabelMediumBold, EveCaptionMedium, EveLabelSmallBold, EveLabelSmall
 from eve.client.script.ui.control.eveWindow import Window
 from reprocessing.ui.containerCreator import ContainerCreator, Containers
@@ -71,7 +73,7 @@ class ReprocessingWnd(Window):
         self.outputPrice = 0
         self.outputItemsCount = 0
         mainCont = Container(name='mainCont', parent=self.sr.main, padding=const.defaultPadding)
-        bottomCont = Container(name='bottomCont', parent=mainCont, align=uiconst.TOBOTTOM, height=36)
+        self.bottomContainer = bottomCont = Container(name='bottomCont', parent=mainCont, align=uiconst.TOBOTTOM, height=36)
         reprocessingCont = Container(name='reprocessingCont', parent=mainCont, align=uiconst.TOALL)
         inputCont = Container(name='inputCont', parent=reprocessingCont, align=uiconst.TOLEFT_PROP, width=0.48)
         centerCont = Container(name='centerCont', parent=reprocessingCont, align=uiconst.TOLEFT_PROP, width=0.02)
@@ -87,8 +89,10 @@ class ReprocessingWnd(Window):
         self.outputInfoCont.captionLabel.text = GetByLabel('UI/Reprocessing/ReprocessingWindow/OutputResults')
         btnCont = Container(name='buttonCont', parent=bottomCont, align=uiconst.TOBOTTOM, height=36, idx=0, padding=(-4, 3, -4, -2))
         GradientThemeColored(bgParent=btnCont)
-        self.reprocessButton = Button(parent=btnCont, label=GetByLabel('UI/Reprocessing/ReprocessingWindow/ReprocessButton'), func=self.ReprocessItems, align=uiconst.CENTER, fixedheight=28)
-        self.cancelButton = Button(parent=btnCont, label=GetByLabel('UI/Common/Buttons/Cancel'), func=self.Cancel, align=uiconst.CENTERRIGHT, left=8)
+        self.reprocessButton = Button(parent=btnCont, label=GetByLabel('UI/Reprocessing/ReprocessingWindow/ReprocessButton'), func=self.ReprocessItems, align=uiconst.CENTERRIGHT, fixedheight=28, left=8)
+        left = self.reprocessButton.left + self.reprocessButton.width
+        self.totalIskCostLabel = EveLabelMedium(parent=btnCont, text='', align=uiconst.CENTERRIGHT, left=left + 8, color=COL_RED)
+        self.cancelButton = Button(parent=btnCont, label=GetByLabel('UI/Common/Buttons/Cancel'), func=self.Cancel, align=uiconst.CENTERLEFT, fixedheight=28, left=8)
         self.DisableReprocessButton(disable=True)
         if self.preSelectedItems:
             start_tasklet(self.AddPreselectedItems, self.preSelectedItems)
@@ -153,6 +157,9 @@ class ReprocessingWnd(Window):
         self.outputInfoCont.overlayCont.display = True
         return ret
 
+    def UpdateTotalIskCost(self, iskCost):
+        self.totalIskCostLabel.SetText(FmtISK(-iskCost))
+
 
 class ReprocessingContainer(Container):
 
@@ -171,11 +178,12 @@ class ReprocessingContainer(Container):
     def CreateScrollContainer(self):
         self.scrollCont = ScrollContainer(parent=self, align=uiconst.TOALL, showUnderlay=True)
 
-    def UpdateItemInfo(self, outputPrice, numberOfItems, volume = None):
+    def UpdateItemInfo(self, outputPrice, numberOfItems, volume=None, iskCost=0.0):
         self.totalPriceLabel.text = GetByLabel('UI/Inventory/EstIskPrice', iskString=FmtISKAndRound(outputPrice, False))
         self.numItemsLabel.text = GetByLabel('UI/Inventory/NumItems', numItems=numberOfItems, numFilteredTxt='')
         if volume is not None:
             self.volumeLabel.text = GetByLabel('UI/Reprocessing/ReprocessingWindow/TotalVolume', volume=FmtAmt(volume, showFraction=2))
+        return
 
     def RemoveGroup(self, groupID):
         group = self.groupContainers.pop(groupID)
@@ -349,6 +357,7 @@ class ReprocessingItemContainer(Container):
         self.quantityParent = Container(parent=self, idx=0, name='qtyCont', pos=(3, 38, 32, 11), align=uiconst.TOPRIGHT, bgColor=(0, 0, 0, 0.95), state=uiconst.UI_HIDDEN)
         self.qtyLabel = Label(parent=self.quantityParent, left=2, maxLines=1, fontsize=9)
         self._SetQtyText()
+        return
 
     def _SetQtyText(self):
         if self.stacksize:
@@ -397,6 +406,7 @@ class ReprocessingInputItemContainer(ReprocessingItemContainer):
         self.onMouseEnter = None
         self.onMouseExit = None
         bgSprite = Sprite(bgParent=self.spriteCont, name='background', texturePath='res:/UI/Texture/classes/InvItem/bgNormal.png')
+        return
 
     def AddItem(self):
         pass
@@ -404,12 +414,15 @@ class ReprocessingInputItemContainer(ReprocessingItemContainer):
     def OnMouseEnter(self, *args):
         if uicore.uilib.leftbtn:
             return
-        if self.onMouseEnter is not None:
-            self.onMouseEnter()
+        else:
+            if self.onMouseEnter is not None:
+                self.onMouseEnter()
+            return
 
     def OnMouseExit(self, *args):
         if self.onMouseExit is not None:
             self.onMouseExit()
+        return
 
     def RegisterForHoverEvents(self, itemID, onMouseEnter, onMouseExit):
         self.onMouseEnter = lambda : onMouseEnter(itemID)
@@ -465,6 +478,7 @@ class ReprocessingInputItemContainer(ReprocessingItemContainer):
                 subGrid.AddCell(EveLabelMedium(text='%s' % evetypes.GetName(typeID), colSpan=1, padLeft=3))
 
         tooltipPanel.AddCell(subGrid)
+        return
 
 
 class ReprocessingOutputItemContainer(ReprocessingItemContainer):
@@ -493,19 +507,20 @@ class ReprocessingOutputItemContainer(ReprocessingItemContainer):
             subGrid.AddCell(EveLabelMedium(text=FmtAmt(quantity, showFraction=0), align=uiconst.TORIGHT, padRight=3, color=COL_LIGHTBLUE, bold=True))
             subGrid.AddCell(EveLabelMedium(text=GetByLabel('UI/Reprocessing/ReprocessingWindow/ReprocessedFromType', typeName=evetypes.GetName(typeID)), padLeft=3))
 
-        subGrid.AddCell(EveLabelMedium(text=FmtAmt(self.stationQty, showFraction=0), colSpan=1, align=uiconst.TORIGHT, padRight=2, color=COL_RED, bold=True))
-        subGrid.AddCell(EveLabelMedium(text=GetByLabel('UI/Reprocessing/ReprocessingWindow/OutputTaxHint'), colSpan=1, padLeft=2))
         subGrid.AddCell(EveLabelMedium(text=FmtAmt(self.unrecoverableQty, showFraction=0), colSpan=1, align=uiconst.TORIGHT, padRight=2, color=COL_RED, bold=True))
         subGrid.AddCell(EveLabelMedium(text=GetByLabel('UI/Reprocessing/ReprocessingWindow/NotRecoverableHint'), colSpan=1, padLeft=2))
         subGrid.AddCell(EveLabelMedium(text=FmtAmt(self.quantity, showFraction=0), colSpan=1, align=uiconst.TORIGHT, padRight=2, color=COL_GREEN, bold=True))
         subGrid.AddCell(EveLabelMedium(text=GetByLabel('UI/Reprocessing/ReprocessingWindow/TotalOutputHint'), colSpan=1, padLeft=2))
+        if self.iskCost:
+            subGrid.AddCell(EveLabelMedium(text=FmtAmt(self.iskCost, showFraction=0), colSpan=1, align=uiconst.TORIGHT, padRight=2, bold=True))
+            subGrid.AddCell(EveLabelMedium(text=GetByLabel('UI/Reprocessing/ReprocessingWindow/IskPaidPerItem'), colSpan=1, padLeft=2))
         tooltipPanel.AddCell(subGrid)
 
     def Update(self, qtyInfo, fromItemIDs, fromTypeInfo):
         self._SetInfo(qtyInfo, fromTypeInfo)
 
     def _SetInfo(self, qtyInfo, typeInfo):
-        self.quantity, self.stationQty, self.unrecoverableQty = qtyInfo
+        self.quantity, self.iskCost, self.unrecoverableQty = qtyInfo
         self.typeInfo = typeInfo
         self._SetQtyText()
 
@@ -594,7 +609,7 @@ class ReprocessingInputHeaderContainer(ReprocessingHeaderContainer):
         self.gaugeLabel = EveLabelSmallBold(parent=self.gaugeParent, align=uiconst.CENTER)
         Frame(parent=self.gaugeParent, color=(0.5, 0.5, 0.5, 0.05))
         Fill(bgParent=self.gaugeParent, color=(0.0, 0.0, 0.0, 0.8))
-        self.reprocessingGauge = GradientSprite(parent=self.gaugeParent, align=uiconst.TOLEFT_PROP, rotation=-pi / 2, rgbData=[(0, COL_YELLOW)], alphaData=[(0, 0.6), (0.5, 0.4), (1.0, 0.6)])
+        self.reprocessingGauge = GradientSprite(parent=self.gaugeParent, align=uiconst.TOLEFT_PROP, rotation=-pi / 2, rgbData=[(0, COL_YELLOW)], alphaData=[(0, 0.6), (0.5, 0.4), (1.0, 0.6)], state=uiconst.UI_DISABLED)
         self.UpdateGauge(self.percentage)
 
     def UpdateGauge(self, percentage):
@@ -655,14 +670,13 @@ def CreateReprocessingWindowController(wnd, inputInfoCont, outputInfoCont, invCa
     return controller
 
 
-def GetReprocessingModifiersAsLabels(typeID, stationEfficiency, stationTax, getTypeAttribute, getSkillLevel, avgBonus = None, category = False):
+def GetReprocessingModifiersAsLabels(typeID, stationEfficiency, stationTax, getTypeAttribute, getSkillLevel, avgBonus=None, category=False):
     labelList = []
     labelList.extend(GetStationEfficiencyAsLabel(stationEfficiency))
     labelList.extend(GetSkillBonusesAsLabels(typeID, getTypeAttribute, getSkillLevel, category=category))
     if typeID == categoryAsteroid:
         labelList.extend(GetOreAvgBonusAsLabel(avgBonus))
     labelList.extend(GetImplantModifiersAsLabels(getTypeAttribute))
-    labelList.extend(GetStationTaxAsLabel(stationTax))
     return labelList
 
 
@@ -678,7 +692,7 @@ def GetOreAvgBonusAsLabel(avgBonus):
     return (oreAvgBonusLabel, oreAvgTextLabel)
 
 
-def GetSkillBonusesAsLabels(typeID, getTypeAttribute, getSkillLevel, category = False):
+def GetSkillBonusesAsLabels(typeID, getTypeAttribute, getSkillLevel, category=False):
     skillLabels = []
     if not category:
         skillBonuses = GetSkillFromTypeID(typeID, getTypeAttribute, getSkillLevel)

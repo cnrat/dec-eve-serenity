@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\carbon\common\lib\RenderTargetManager\RenderTargetManager.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\carbon\common\lib\RenderTargetManager\RenderTargetManager.py
 import blue
 import trinity
 import telemetry
@@ -24,7 +25,7 @@ class RenderTargetManager(object):
         self.targets.clear()
         self.targetsSleepCycles.clear()
 
-    def GetRenderTarget(self, renderTargetFormat, width, height, locked = False):
+    def GetRenderTarget(self, renderTargetFormat, width, height, locked=False):
         i = 0
         hashKey = self.__Hash(renderTargetFormat, width, height, i)
         while self.lockedTargets.get(hashKey):
@@ -63,6 +64,7 @@ class RenderTargetManager(object):
 
         if foundKey in self.lockedTargets:
             del self.lockedTargets[foundKey]
+        return
 
     def Reaper_t(self, hashKey):
         if self.targetsSleepCycles.get(hashKey, 0) > 0:

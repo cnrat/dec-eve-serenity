@@ -1,13 +1,15 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\carbon\common\stdlib\formatter.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\carbon\common\stdlib\formatter.py
 import sys
 AS_IS = None
 
 class NullFormatter:
 
-    def __init__(self, writer = None):
+    def __init__(self, writer=None):
         if writer is None:
             writer = NullWriter()
         self.writer = writer
+        return
 
     def end_paragraph(self, blankline):
         pass
@@ -18,7 +20,7 @@ class NullFormatter:
     def add_hor_rule(self, *args, **kw):
         pass
 
-    def add_label_data(self, format, counter, blankline = None):
+    def add_label_data(self, format, counter, blankline=None):
         pass
 
     def add_flowing_data(self, data):
@@ -54,10 +56,10 @@ class NullFormatter:
     def push_style(self, *styles):
         pass
 
-    def pop_style(self, n = 1):
+    def pop_style(self, n=1):
         pass
 
-    def assert_line_data(self, flag = 1):
+    def assert_line_data(self, flag=1):
         pass
 
 
@@ -77,6 +79,7 @@ class AbstractFormatter:
         self.parskip = 0
         self.hard_break = 1
         self.have_label = 0
+        return
 
     def end_paragraph(self, blankline):
         if not self.hard_break:
@@ -103,7 +106,7 @@ class AbstractFormatter:
         self.hard_break = self.nospace = 1
         self.have_label = self.para_end = self.softspace = self.parskip = 0
 
-    def add_label_data(self, format, counter, blankline = None):
+    def add_label_data(self, format, counter, blankline=None):
         if self.have_label or not self.hard_break:
             self.writer.send_line_break()
         if not self.para_end:
@@ -219,6 +222,7 @@ class AbstractFormatter:
         else:
             self.align = None
             self.writer.new_alignment(None)
+        return
 
     def push_font(self, font):
         size, i, b, tt = font
@@ -251,6 +255,7 @@ class AbstractFormatter:
         else:
             font = None
         self.writer.new_font(font)
+        return
 
     def push_margin(self, margin):
         self.margin_stack.append(margin)
@@ -258,6 +263,7 @@ class AbstractFormatter:
         if not margin and fstack:
             margin = fstack[-1]
         self.writer.new_margin(margin, len(fstack))
+        return
 
     def pop_margin(self):
         if self.margin_stack:
@@ -268,6 +274,7 @@ class AbstractFormatter:
         else:
             margin = None
         self.writer.new_margin(margin, len(fstack))
+        return
 
     def set_spacing(self, spacing):
         self.spacing = spacing
@@ -283,11 +290,11 @@ class AbstractFormatter:
 
         self.writer.new_styles(tuple(self.style_stack))
 
-    def pop_style(self, n = 1):
+    def pop_style(self, n=1):
         del self.style_stack[-n:]
         self.writer.new_styles(tuple(self.style_stack))
 
-    def assert_line_data(self, flag = 1):
+    def assert_line_data(self, flag=1):
         self.nospace = self.hard_break = not flag
         self.para_end = self.parskip = self.have_label = 0
 
@@ -372,7 +379,7 @@ class AbstractWriter(NullWriter):
 
 class DumbWriter(NullWriter):
 
-    def __init__(self, file = None, maxcol = 72):
+    def __init__(self, file=None, maxcol=72):
         self.file = file or sys.stdout
         self.maxcol = maxcol
         NullWriter.__init__(self)
@@ -432,7 +439,7 @@ class DumbWriter(NullWriter):
         self.atbreak = data[-1].isspace()
 
 
-def test(file = None):
+def test(file=None):
     w = DumbWriter()
     f = AbstractFormatter(w)
     if file is not None:
@@ -448,6 +455,7 @@ def test(file = None):
             f.add_flowing_data(line)
 
     f.end_paragraph(0)
+    return
 
 
 if __name__ == '__main__':

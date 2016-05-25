@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\client\script\environment\spaceObject\sentryGun.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\client\script\environment\spaceObject\sentryGun.py
 import random
 import timecurves
 import eve.client.script.environment.spaceObject.spaceObject as spaceObject
@@ -25,6 +26,7 @@ class SentryGun(spaceObject.SpaceObject):
         self.fitted = False
         self.typeID = None
         self.turretTypeID = TURRET_FALLBACK_TYPE_ID
+        return
 
     def Assemble(self):
         timecurves.ScaleTime(self.model, 0.9 + random.random() * 0.2)
@@ -35,21 +37,24 @@ class SentryGun(spaceObject.SpaceObject):
         if gfxsettings.Get(gfxsettings.UI_TURRETS_ENABLED):
             self.FitHardpoints()
         self.SetupSharedAmbientAudio()
+        return
 
-    def FitHardpoints(self, blocking = False):
+    def FitHardpoints(self, blocking=False):
         if self.fitted:
             return
-        if self.model is None:
+        elif self.model is None:
             self.LogWarn('FitHardpoints - No model')
             return
-        if self.typeID is None:
+        elif self.typeID is None:
             self.LogWarn('FitHardpoints - No typeID')
             return
-        self.fitted = True
-        self.modules = {}
-        ts = turretSet.TurretSet.FitTurret(self.model, self.turretTypeID, 1, self.typeData.get('sofFactionName', None))
-        if ts is not None:
-            self.modules[self.id] = ts
+        else:
+            self.fitted = True
+            self.modules = {}
+            ts = turretSet.TurretSet.FitTurret(self.model, self.turretTypeID, 1, self.typeData.get('sofFactionName', None))
+            if ts is not None:
+                self.modules[self.id] = ts
+            return
 
     def LookAtMe(self):
         if not self.model:
@@ -60,8 +65,10 @@ class SentryGun(spaceObject.SpaceObject):
     def Release(self):
         if self.released:
             return
-        self.modules = None
-        spaceObject.SpaceObject.Release(self)
+        else:
+            self.modules = None
+            spaceObject.SpaceObject.Release(self)
+            return
 
     def Explode(self):
         explosionURL, (delay, scaling) = self.GetExplosionInfo()

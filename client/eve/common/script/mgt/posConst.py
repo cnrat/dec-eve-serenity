@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\common\script\mgt\posConst.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\common\script\mgt\posConst.py
 import blue
 from eve.common.script.mgt.entityConst import *
 STRUCTURE_UNANCHORED = 0
@@ -41,10 +42,11 @@ def GetEntityStatesForDBState(dbState):
 def IsStructureAnchored(item, settings):
     if settings.state in ANCHORED_STRUCTURE_STATES:
         return 1
-    if settings.state == STRUCTURE_UNANCHORED and settings.stateTimestamp is not None:
+    elif settings.state == STRUCTURE_UNANCHORED and settings.stateTimestamp is not None:
         diffMs = (blue.os.GetWallclockTime() - settings.stateTimestamp) / 10000
         return diffMs < sm.services['dogmaIM'].GetTypeAttribute2(item.typeID, const.attributeUnanchoringDelay)
-    return 0
+    else:
+        return 0
 
 
 ONLINE_STABLE_STATES = (STRUCTURE_REINFORCED,

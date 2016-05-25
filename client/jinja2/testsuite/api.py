@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\carbon\common\lib\jinja2\testsuite\api.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\carbon\common\lib\jinja2\testsuite\api.py
 import unittest
 from jinja2.testsuite import JinjaTestCase
 from jinja2 import Environment, Undefined, DebugUndefined, StrictUndefined, UndefinedError, meta, is_undefined, Template, DictLoader
@@ -47,7 +48,8 @@ class ExtendedAPITestCase(JinjaTestCase):
         def select_autoescape(name):
             if name is None or '.' not in name:
                 return False
-            return name.endswith('.html')
+            else:
+                return name.endswith('.html')
 
         env = Environment(autoescape=select_autoescape, loader=DictLoader({'test.txt': '{{ foo }}',
          'test.html': '{{ foo }}'}))
@@ -160,6 +162,8 @@ class UndefinedTestCase(JinjaTestCase):
             Environment().getattr(None, 'split')()
         except UndefinedError as e:
             pass
+
+        return
 
     def test_object_repr(self):
         try:

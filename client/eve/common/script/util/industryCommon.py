@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\common\script\util\industryCommon.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\common\script\util\industryCommon.py
 import evetypes
 import log
 import copy
@@ -130,7 +131,7 @@ def ItemLocationFlag(location):
         return location.flagID
 
 
-def ItemOutputFlag(location, itemFlagID = None):
+def ItemOutputFlag(location, itemFlagID=None):
     if location.typeID == const.typeOffice:
         return location.flagID
     if evetypes.GetCategoryID(location.typeID) == const.categoryStarbase:
@@ -170,7 +171,7 @@ def CanViewItem(session, ownerID, locationID, flagID):
     return False
 
 
-def CanTakeItem(session, ownerID, locationID, flagID, container = False):
+def CanTakeItem(session, ownerID, locationID, flagID, container=False):
     if session.role & service.ROLE_SERVICE:
         return True
     if ownerID == session.charid:
@@ -185,7 +186,7 @@ def CanTakeItem(session, ownerID, locationID, flagID, container = False):
     return False
 
 
-def OwnerAccess(session, ownerID, locationID = None, flagID = None):
+def OwnerAccess(session, ownerID, locationID=None, flagID=None):
     if not session or session.role & service.ROLE_SERVICE:
         return True
     if util.IsCharacter(ownerID):
@@ -203,12 +204,12 @@ def OwnerAccess(session, ownerID, locationID = None, flagID = None):
     return True
 
 
-def AssertBlueprintAccess(session, ownerID, locationID = None, flagID = None):
+def AssertBlueprintAccess(session, ownerID, locationID=None, flagID=None):
     if not OwnerAccess(session, ownerID, locationID, flagID):
         raise UserError('IndustryBlueprintAccessDenied')
 
 
-def AssertLocationAccess(session, ownerID, locationID = None, flagID = None):
+def AssertLocationAccess(session, ownerID, locationID=None, flagID=None):
     if not OwnerAccess(session, ownerID, locationID, flagID):
         raise UserError('IndustryLocationAccessDenied')
 
@@ -338,7 +339,7 @@ def Facility(data):
 
 
 @telemetry.ZONE_METHOD
-def MatchLocation(job, locationID = None, flagID = None):
+def MatchLocation(job, locationID=None, flagID=None):
     for location in job.locations:
         if location.flagID == flagID and location.itemID == locationID:
             return copy.copy(location)
@@ -349,9 +350,12 @@ def MatchLocation(job, locationID = None, flagID = None):
 
     if locationID and util.IsCorporation(job.ownerID) and util.IsStation(job.facility.facilityID):
         return industry.Location(itemID=job.facility.facilityID, ownerID=job.ownerID, flagID=const.flagHangar, typeID=cfg.stations.Get(job.facility.facilityID).stationTypeID)
-    try:
-        return copy.copy(job.locations[0])
-    except IndexError:
+    else:
+        try:
+            return copy.copy(job.locations[0])
+        except IndexError:
+            return None
+
         return None
 
 
@@ -381,7 +385,8 @@ def GetDecryptors(job):
         if getattr(job, 'optionalTypeID2', None) in decryptor.all_types():
             decryptor.select(job.optionalTypeID2)
         return [decryptor]
-    return []
+    else:
+        return []
 
 
 def GetJobModifiers(job):

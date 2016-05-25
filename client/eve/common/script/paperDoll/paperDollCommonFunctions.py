@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\common\script\paperDoll\paperDollCommonFunctions.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\common\script\paperDoll\paperDollCommonFunctions.py
 import sys
 import blue
 import yaml
@@ -13,7 +14,7 @@ def WaitForAll(iterable, condition):
     BeFrameNice()
 
 
-def Yield(frameNice = True, ms = 15):
+def Yield(frameNice=True, ms=15):
     try:
         if not stackless.current.is_main:
             blue.synchro.Yield()
@@ -25,7 +26,7 @@ def Yield(frameNice = True, ms = 15):
         raise
 
 
-def BeFrameNice(ms = 15):
+def BeFrameNice(ms=15):
     try:
         if not stackless.current.is_main:
             if ms < 1.0:
@@ -59,10 +60,12 @@ def NastyYamlLoad(yamlStr):
     sys.modules[PD.__name__] = PD
     instance = None
     try:
-        blue.statistics.EnterZone('yaml.load')
-        instance = yaml.load(yamlStr, Loader=yaml.CLoader)
-    except Exception:
-        log.LogError('PaperDoll: Yaml parsing failed for data', yamlStr)
+        try:
+            blue.statistics.EnterZone('yaml.load')
+            instance = yaml.load(yamlStr, Loader=yaml.CLoader)
+        except Exception:
+            log.LogError('PaperDoll: Yaml parsing failed for data', yamlStr)
+
     finally:
         blue.statistics.LeaveZone()
         del sys.modules[PD.__name__]

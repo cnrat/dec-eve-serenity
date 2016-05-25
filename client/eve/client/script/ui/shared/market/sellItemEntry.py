@@ -1,4 +1,6 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\client\script\ui\shared\market\sellItemEntry.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\client\script\ui\shared\market\sellItemEntry.py
+import uthread2
 from carbonui import const as uiconst
 from carbonui.primitives.container import Container
 from carbonui.primitives.sprite import Sprite
@@ -30,16 +32,13 @@ class SellItemContainer(BuySellItemContainerBase):
         self.brokersFee = 0.0
         self.salesTax = 0.0
         self.totalSum = 0.0
-        self.limits = self.quoteSvc.GetSkillLimits()
-        self.stationID, officeFolderID, officeID = sm.GetService('invCache').GetStationIDOfficeFolderIDOfficeIDOfItem(self.item)
-        self.located = None
-        if officeFolderID is not None:
-            self.located = [officeFolderID, officeID]
-        station = sm.GetService('ui').GetStation(self.stationID)
-        self.solarSystemID = station.solarSystemID
-        self.regionID = self.GetRegionID(self.stationID)
-        self.bestBid = self.quoteSvc.GetBestBid(self.typeID, locationID=self.solarSystemID)
-        self.GetBestPrice()
+        self.stationID = attributes.stationID
+        self.limits = self.quoteSvc.GetSkillLimits(self.stationID)
+        self.solarSystemID = attributes.solarSystemID
+        self.regionID = self.GetRegionID()
+        self.locationID = self.item.locationID
+        self.bestBid = attributes.bestBid
+        self.bestPrice = attributes.bestPrice
         self.deltaCont = Container(parent=self, align=uiconst.TORIGHT, width=30)
         theRestCont = Container(parent=self, align=uiconst.TOALL)
         self.totalCont = Container(parent=theRestCont, align=uiconst.TORIGHT_PROP, width=0.3)
@@ -57,21 +56,23 @@ class SellItemContainer(BuySellItemContainerBase):
         self.DrawTotal()
         self.DrawDelta()
         self.GetTotalSum()
-        self.GetBrokersFee()
+        self.brokersFeePerc = self.limits.GetBrokersFeeForLocation(self.stationID)
+        self.UpdateBrokersFee()
         self.GetSalesTax()
         self.ShowNoSellOrders()
 
-    def GetRegionID(self, stationID):
-        regionID = cfg.evelocations.Get(stationID).Station().regionID
-        return regionID
+    def GetRegionID(self):
+        return cfg.mapSystemCache.Get(session.solarsystemid2).regionID
 
     def ShowNoSellOrders(self):
         from eve.client.script.ui.shared.market.sellMulti import SellItems
         wnd = SellItems.GetIfOpen()
         if not wnd:
             return
-        if wnd.durationCombo.GetValue() == 0 and self.bestBid is None:
-            uicore.animations.FadeIn(self.errorBg, 0.35, duration=0.3)
+        else:
+            if wnd.durationCombo.GetValue() == 0 and self.bestBid is None:
+                uicore.animations.FadeIn(self.errorBg, 0.35, duration=0.3)
+            return
 
     def DrawQty(self):
         qty = self.item.stacksize
@@ -142,15 +143,8 @@ class SellItemContainer(BuySellItemContainerBase):
         itemName = GetByLabel('UI/Contracts/ContractsWindow/ShowInfoLink', showInfoName=self.itemName, info=('showinfo', self.typeID, self.item.itemID))
         self.itemNameLabel = Label(text=itemName, parent=self.textCont, left=40, align=uiconst.CENTERLEFT, state=uiconst.UI_NORMAL, autoFadeSides=35, fontsize=12)
 
-    def GetBestPrice(self):
-        bestMatchableBid = self.quoteSvc.GetBestMatchableBid(self.typeID, self.stationID, self.item.stacksize)
-        if bestMatchableBid:
-            self.bestPrice = bestMatchableBid.price
-        else:
-            self.bestPrice = self.averagePrice
-
-    def GetBrokersFee(self):
-        fee = self.quoteSvc.BrokersFee(self.stationID, self.totalSum, self.limits['fee'])
+    def UpdateBrokersFee(self):
+        fee = self.quoteSvc.BrokersFee(self.stationID, self.totalSum, self.brokersFeePerc)
         feeAmount = fee.amt
         self.brokersFee = feeAmount
 
@@ -167,7 +161,7 @@ class SellItemContainer(BuySellItemContainerBase):
 
     def OnChange(self, *args):
         self.GetTotalSum()
-        self.GetBrokersFee()
+        self.UpdateBrokersFee()
         self.GetSalesTax()
         self.UpdateDelta()
         if self.parentEditFunc:
@@ -180,6 +174,11 @@ class SellItemContainer(BuySellItemContainerBase):
     def GetQty(self):
         qty = self.qtyEdit.GetValue()
         return qty
+
+    def SetQtyAndPrice(self, newQty, newPrice):
+        self.qtyEdit.SetValue(newQty)
+        self.priceEdit.SetValue(newPrice)
+        self.OnChange()
 
     def GetSellCountEstimate(self):
         return self.quoteSvc.GetSellCountEstimate(self.typeID, self.stationID, self.GetPrice(), self.GetQty())

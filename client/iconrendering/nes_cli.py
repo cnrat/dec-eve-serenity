@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\packages\iconrendering\nes_cli.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\packages\iconrendering\nes_cli.py
 import logging
 import argparse
 import os
@@ -42,57 +43,60 @@ def Main():
     if not opts.types and not opts.dna:
         L.error('No types or dna supplied')
         return
-    subprocess.Popen('explorer %s' % OUTPUT_FOLDER.replace('/', '\\'))
-    resmapper = fsdauthoringutils.GraphicsCache(devenv.EVEROOT)
-    _appsetup.CreateTrinityApp()
-    typeIDs = opts.types
-    dnas = opts.dna
-    if opts.cameraYPR and len(opts.cameraYPR) == 3:
-        cameraAngle = map(float, opts.cameraYPR)
     else:
-        cameraAngle = None
-    if opts.sunDirection and len(opts.sunDirection) == 3:
-        sunDirection = map(float, opts.sunDirection)
-    else:
-        sunDirection = (-0.4592, -0.4602, 0.6614)
-    tempRenders = []
-    for value in typeIDs + dnas:
-        typeID = sofData = None
-        if type(value) is int:
-            typeID = value
-            gID = resmapper.GetGraphicIDForTypeID(typeID)
-            sofData = resmapper.GetSOFDataForGraphicID(gID)
-            raceName = resmapper.GetSOFDataForGraphicID(gID)[2]
-            scenePath = GetScenePathByRaceName(raceName)
-            sofDNA = ''
-            if all(sofData):
-                sofDataForType = resmapper.GetSOFDataForTypeID(typeID)
-                sofDNA = CombineSOFDNA(sofAddition=sofDataForType[0], *sofData)
-            graphicFile = resmapper.GetGraphicFileForGraphicID(gID)
-            name = str(typeID)
+        subprocess.Popen('explorer %s' % OUTPUT_FOLDER.replace('/', '\\'))
+        resmapper = fsdauthoringutils.GraphicsCache(devenv.EVEROOT)
+        _appsetup.CreateTrinityApp()
+        typeIDs = opts.types
+        dnas = opts.dna
+        if opts.cameraYPR and len(opts.cameraYPR) == 3:
+            cameraAngle = map(float, opts.cameraYPR)
         else:
-            sofDNA = value
-            raceName = sofDNA[2]
-            scenePath = GetScenePathByRaceName(raceName)
-            graphicFile = None
-            name = sofDNA.replace(':', '_').replace('?', '_')
-        if not sofDNA and not graphicFile:
-            L.error('Type %s does not have a graphicFile nor SOF data' % typeID)
-            continue
-        sourceFiles = []
-        for color, suffix in COLORS:
-            outPath = os.path.join(OUTPUT_FOLDER, name + '_' + suffix + '.png')
-            L.debug('Rendering %s' % outPath)
-            photo.RenderSpaceObject(outPath=outPath, scenePath=scenePath, objectPath=graphicFile, sofDNA=sofDNA, size=512, bgColor=color, transparent=True, cameraAngle=cameraAngle, sunDirection=sunDirection)
-            sourceFiles.append(outPath)
+            cameraAngle = None
+        if opts.sunDirection and len(opts.sunDirection) == 3:
+            sunDirection = map(float, opts.sunDirection)
+        else:
+            sunDirection = (-0.4592, -0.4602, 0.6614)
+        tempRenders = []
+        for value in typeIDs + dnas:
+            typeID = sofData = None
+            if type(value) is int:
+                typeID = value
+                gID = resmapper.GetGraphicIDForTypeID(typeID)
+                sofData = resmapper.GetSOFDataForGraphicID(gID)
+                raceName = resmapper.GetSOFDataForGraphicID(gID)[2]
+                scenePath = GetScenePathByRaceName(raceName)
+                sofDNA = ''
+                if all(sofData):
+                    sofDataForType = resmapper.GetSOFDataForTypeID(typeID)
+                    sofDNA = CombineSOFDNA(sofAddition=sofDataForType[0], *sofData)
+                graphicFile = resmapper.GetGraphicFileForGraphicID(gID)
+                name = str(typeID)
+            else:
+                sofDNA = value
+                raceName = sofDNA[2]
+                scenePath = GetScenePathByRaceName(raceName)
+                graphicFile = None
+                name = sofDNA.replace(':', '_').replace('?', '_')
+            if not sofDNA and not graphicFile:
+                L.error('Type %s does not have a graphicFile nor SOF data' % typeID)
+                continue
+            sourceFiles = []
+            for color, suffix in COLORS:
+                outPath = os.path.join(OUTPUT_FOLDER, name + '_' + suffix + '.png')
+                L.debug('Rendering %s' % outPath)
+                photo.RenderSpaceObject(outPath=outPath, scenePath=scenePath, objectPath=graphicFile, sofDNA=sofDNA, size=512, bgColor=color, transparent=True, cameraAngle=cameraAngle, sunDirection=sunDirection)
+                sourceFiles.append(outPath)
 
-        tempRenders.extend(sourceFiles)
-        finalPath = os.path.join(OUTPUT_FOLDER, name + u'.png')
-        CreateAlpha(finalPath, sourceFiles)
+            tempRenders.extend(sourceFiles)
+            finalPath = os.path.join(OUTPUT_FOLDER, name + u'.png')
+            CreateAlpha(finalPath, sourceFiles)
 
-    if not opts.keepsource:
-        for filePath in tempRenders:
-            os.remove(filePath)
+        if not opts.keepsource:
+            for filePath in tempRenders:
+                os.remove(filePath)
+
+        return
 
 
 def GetFiles(root):

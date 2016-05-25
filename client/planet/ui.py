@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\common\modules\nice\client\_nastyspace\planet\ui.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\common\modules\nice\client\_nastyspace\planet\ui.py
 from eve.client.script.ui.shared.planet.curveLineDrawer import CurveLineDrawer
 from eve.client.script.ui.shared.planet.dust.dustEventManager import DustEventManager
 from eve.client.script.ui.shared.planet.dust.dustPinManager import DustPinManager

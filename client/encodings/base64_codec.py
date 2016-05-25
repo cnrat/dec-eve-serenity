@@ -1,34 +1,35 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\carbon\common\stdlib\encodings\base64_codec.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\carbon\common\stdlib\encodings\base64_codec.py
 import codecs, base64
 
-def base64_encode(input, errors = 'strict'):
+def base64_encode(input, errors='strict'):
     output = base64.encodestring(input)
     return (output, len(input))
 
 
-def base64_decode(input, errors = 'strict'):
+def base64_decode(input, errors='strict'):
     output = base64.decodestring(input)
     return (output, len(input))
 
 
 class Codec(codecs.Codec):
 
-    def encode(self, input, errors = 'strict'):
+    def encode(self, input, errors='strict'):
         return base64_encode(input, errors)
 
-    def decode(self, input, errors = 'strict'):
+    def decode(self, input, errors='strict'):
         return base64_decode(input, errors)
 
 
 class IncrementalEncoder(codecs.IncrementalEncoder):
 
-    def encode(self, input, final = False):
+    def encode(self, input, final=False):
         return base64.encodestring(input)
 
 
 class IncrementalDecoder(codecs.IncrementalDecoder):
 
-    def decode(self, input, final = False):
+    def decode(self, input, final=False):
         return base64.decodestring(input)
 
 

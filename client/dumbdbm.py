@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\carbon\common\stdlib\dumbdbm.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\carbon\common\stdlib\dumbdbm.py
 import os as _os
 import __builtin__
 import UserDict
@@ -24,6 +25,7 @@ class _Database(UserDict.DictMixin):
 
         f.close()
         self._update()
+        return
 
     def _update(self):
         self._index = {}
@@ -42,22 +44,24 @@ class _Database(UserDict.DictMixin):
     def _commit(self):
         if self._index is None:
             return
-        try:
-            self._os.unlink(self._bakfile)
-        except self._os.error:
-            pass
+        else:
+            try:
+                self._os.unlink(self._bakfile)
+            except self._os.error:
+                pass
 
-        try:
-            self._os.rename(self._dirfile, self._bakfile)
-        except self._os.error:
-            pass
+            try:
+                self._os.rename(self._dirfile, self._bakfile)
+            except self._os.error:
+                pass
 
-        f = self._open(self._dirfile, 'w')
-        self._chmod(self._dirfile)
-        for key, pos_and_siz_pair in self._index.iteritems():
-            f.write('%r, %r\n' % (key, pos_and_siz_pair))
+            f = self._open(self._dirfile, 'w')
+            self._chmod(self._dirfile)
+            for key, pos_and_siz_pair in self._index.iteritems():
+                f.write('%r, %r\n' % (key, pos_and_siz_pair))
 
-        f.close()
+            f.close()
+            return
 
     sync = _commit
 
@@ -132,6 +136,7 @@ class _Database(UserDict.DictMixin):
     def close(self):
         self._commit()
         self._index = self._datfile = self._dirfile = self._bakfile = None
+        return
 
     __del__ = close
 
@@ -140,7 +145,7 @@ class _Database(UserDict.DictMixin):
             self._os.chmod(file, self._mode)
 
 
-def open(file, flag = None, mode = 438):
+def open(file, flag=None, mode=438):
     try:
         um = _os.umask(0)
         _os.umask(um)

@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\packages\sovDashboard\defenseMultiplierIcon.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\packages\sovDashboard\defenseMultiplierIcon.py
 from carbonui.primitives.container import Container
 import carbonui.const as uiconst
 from carbonui.primitives.sprite import Sprite
@@ -50,6 +51,7 @@ class DefenseMultiplierIcon(Container):
         self.shieldCont.GetTooltipPointer = self.GetTooltipPointer
         self.SetStatusFromMultiplier(self.currentMultiplier, self.devIndexes)
         self.ChangeCapitalState(self.isCapital)
+        return
 
     def GetTexturePathsToUse(self):
         if self.iconSize > 32:
@@ -72,7 +74,7 @@ class DefenseMultiplierIcon(Container):
             shieldFillTexturePath = self.shieldFillTexturePath_small
         return (shieldTexturePath, shieldFillTexturePath, starTexturePath)
 
-    def GetCapitalStar(self, create = True):
+    def GetCapitalStar(self, create=True):
         if create and (not self.capitalStar or self.capitalStar.destroyed):
             _, _, starTexturePath = self.GetTexturePathsToUse()
             self.capitalStar = Sprite(name='capitalStar', parent=self.shieldCont, texturePath=starTexturePath, align=uiconst.TOPLEFT, pos=(0,
@@ -90,7 +92,7 @@ class DefenseMultiplierIcon(Container):
         newValue = multiplierValue / self.numSteps
         self.SetStatus(newValue, devIndexes)
 
-    def SetStatus(self, value, devIndexes, animate = False):
+    def SetStatus(self, value, devIndexes, animate=False):
         self.devIndexes = devIndexes
         newOffset = self.offsetRange * value
         newShieldValue = self.minOffset + newOffset

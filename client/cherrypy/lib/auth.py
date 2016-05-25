@@ -1,8 +1,9 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\carbon\common\lib\cherrypy\lib\auth.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\carbon\common\lib\cherrypy\lib\auth.py
 import cherrypy
 from cherrypy.lib import httpauth
 
-def check_auth(users, encrypt = None, realm = None):
+def check_auth(users, encrypt=None, realm=None):
     request = cherrypy.serving.request
     if 'authorization' in request.headers:
         ah = httpauth.parseAuthorization(request.headers['authorization'])
@@ -30,7 +31,7 @@ def check_auth(users, encrypt = None, realm = None):
     return False
 
 
-def basic_auth(realm, users, encrypt = None, debug = False):
+def basic_auth(realm, users, encrypt=None, debug=False):
     if check_auth(users, encrypt):
         if debug:
             cherrypy.log('Auth successful', 'TOOLS.BASIC_AUTH')
@@ -39,7 +40,7 @@ def basic_auth(realm, users, encrypt = None, debug = False):
     raise cherrypy.HTTPError(401, 'You are not authorized to access that resource')
 
 
-def digest_auth(realm, users, debug = False):
+def digest_auth(realm, users, debug=False):
     if check_auth(users, realm=realm):
         if debug:
             cherrypy.log('Auth successful', 'TOOLS.DIGEST_AUTH')

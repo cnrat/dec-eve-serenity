@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\packages\spacecomponents\client\components\bountyEscrow.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\packages\spacecomponents\client\components\bountyEscrow.py
 from utillib import KeyVal
 import uthread2
 import blue
@@ -29,6 +30,7 @@ class BountyEscrow(Component):
         self.tagCalculator = TagCalculator(GetPriceByTagTypeID(attributes.tagTypeIDs))
         self.SubscribeToMessage(MSG_ON_SLIM_ITEM_UPDATED, self.OnSlimItemUpdated)
         sm.RegisterNotify(self)
+        return
 
     @staticmethod
     def GetAttributeInfo(godmaService, typeID, attributes, instance, localization):
@@ -47,24 +49,28 @@ class BountyEscrow(Component):
         state = slimItem.unlockState
         if state is None:
             return
-        if bountyEscrow.IsUnlocking(state):
-            self.unlockTimestamp = bountyEscrow.GetUnlockingTimeStamp(state)
-            self.unlockSeconds = bountyEscrow.GetUnlockingDuration(state)
-            self.SendMessage(MSG_ON_BOUNTYESCROW_TIMER_UPDATED, self, slimItem)
-        elif bountyEscrow.IsLocked(state):
-            self.CloseDistributionWindow()
-            self.unlockTimestamp = None
-            self.lockState = None
-            self.SendMessage(MSG_ON_BOUNTYESCROW_TIMER_UPDATED, self, slimItem)
+        else:
+            if bountyEscrow.IsUnlocking(state):
+                self.unlockTimestamp = bountyEscrow.GetUnlockingTimeStamp(state)
+                self.unlockSeconds = bountyEscrow.GetUnlockingDuration(state)
+                self.SendMessage(MSG_ON_BOUNTYESCROW_TIMER_UPDATED, self, slimItem)
+            elif bountyEscrow.IsLocked(state):
+                self.CloseDistributionWindow()
+                self.unlockTimestamp = None
+                self.lockState = None
+                self.SendMessage(MSG_ON_BOUNTYESCROW_TIMER_UPDATED, self, slimItem)
+            return
 
     def ShowCollectionAnimation(self, shipID):
         sm.ScatterEvent('OnSpecialFX', self.itemID, None, None, shipID, None, 'effects.BeamCollecting', 0, 1, 0, self.unlockSeconds * 1000)
         self.unlockingShipID = shipID
+        return
 
     def StopShowingCollectionAnimation(self):
         if self.unlockingShipID is not None:
             sm.ScatterEvent('OnSpecialFX', self.itemID, None, None, self.unlockingShipID, None, 'effects.BeamCollecting', 0, 0, 0, 0)
             self.unlockingShipID = None
+        return
 
     def FormatContributions(self, contributions):
         formatted = []
@@ -127,4 +133,5 @@ def GetBountyReductionForSolarSystem(ballpark, bountyAmount):
         slimItem = ballpark.slimItems[bountyEscrow.itemID]
         takenBounty = (bountyAmount - paidBounty) * (1.0 + slimItem.bountyEscrowBonus)
         return (paidBounty, takenBounty)
-    return (None, None)
+    else:
+        return (None, None)

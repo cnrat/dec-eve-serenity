@@ -1,6 +1,8 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\client\script\ui\inflight\dungeoneditor.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\client\script\ui\inflight\dungeoneditor.py
 from eve.client.script.parklife import states
 from eve.client.script.parklife.dungeonHelper import IsJessicaOpen
+from eve.client.script.ui.camera.cameraUtil import IsNewCameraActive
 from eve.client.script.ui.control.eveWindow import Window
 import evecamera
 from evecamera.dungeonhack import DungeonHack
@@ -72,7 +74,8 @@ class DungeonEditor(Window):
         self.oldRadialMenuTime = settings.user.ui.Get('actionMenuExpandTime', 150)
         settings.user.ui.Set('actionMenuExpandTime', 5000)
         if IsNewCameraActive():
-            sm.GetService('sceneManager').SetActiveCameraByID(evecamera.CAM_TACTICAL)
+            sm.GetService('sceneManager').SetPrimaryCamera(evecamera.CAM_TACTICAL)
+        return
 
     def LoadPanels(self):
         panel = uiprimitives.Container(name='panel', parent=self.sr.main, left=const.defaultPadding, top=const.defaultPadding, width=const.defaultPadding, height=const.defaultPadding)
@@ -110,8 +113,6 @@ class DungeonEditor(Window):
           'TemplateTab']], groupID='tabgroupid')
 
     def Load(self, tabid):
-        camera = sm.GetService('sceneManager').GetRegisteredCamera(evecamera.CAM_SPACE_PRIMARY)
-        camera.idleMove = 0
         if self.loadingThread and self.loadingThread.alive:
             self.loadingThread.kill()
         self.UnloadPanel()
@@ -125,6 +126,7 @@ class DungeonEditor(Window):
             self.loadedTab = tabid
             self.loadingThread = uthread.new(getattr(self, tabName))
             self.loadingThread.context = 'DungeonEditor::%s' % tabName
+        return
 
     def UpdateGridVisibility(self):
         if self.loadedTab == 'PaletteTab':
@@ -147,6 +149,7 @@ class DungeonEditor(Window):
         self.sr.panel.Flush()
         self.sr.palettescroll = None
         self.sr.templatescroll = None
+        return
 
     def _GetDungeons(self):
         archetypeID = settings.user.ui.Get('dungeonArchetypeID', None)
@@ -231,38 +234,41 @@ class DungeonEditor(Window):
             uiprimitives.Container(name='push', parent=self.sr.panel, align=uiconst.TOTOP, height=const.defaultPadding * 2)
             uicontrols.EveLabelMedium(text=' - No dungeon selected - ', parent=self.sr.panel, align=uiconst.TOTOP, state=uiconst.UI_NORMAL)
             return
-        seldungeon = sm.RemoteSvc('dungeon').DEGetDungeons(dungeonID=dungeonID)[0]
-        uicontrols.EveLabelMedium(text=GetMessageFromLocalization(seldungeon.dungeonNameID) + ' - Version ', parent=self.sr.panel, align=uiconst.TOTOP, state=uiconst.UI_NORMAL)
-        row = uiprimitives.Container(name='row', parent=self.sr.panel, align=uiconst.TOBOTTOM, height=16, padTop=4)
-        godMode = settings.user.ui.Get('dungeonGodMode', 1)
-        self.godModeCheckbox = uicontrols.Checkbox(text='God Mode', parent=row, configName='dungeonGodMode', retval=0, checked=godMode, callback=self.OnGodMode)
-        row = uiprimitives.Container(name='row', parent=self.sr.panel, align=uiconst.TOBOTTOM, height=16, padTop=4)
-        uicontrols.Button(parent=row, label='Play Dungeon', func=self.PlayDungeon, align=uiconst.TOLEFT, padLeft=4)
-        uicontrols.Button(parent=row, label='Go to selected room', func=self.GotoRoom, args=(), align=uiconst.TOLEFT, padLeft=4)
-        row = uiprimitives.Container(name='row', parent=self.sr.panel, align=uiconst.TOBOTTOM, height=16)
-        uicontrols.Button(parent=row, label='Edit Room', func=self.EditRoom, align=uiconst.TOLEFT, padLeft=4)
-        uicontrols.Button(parent=row, label='Save Room', func=self.SaveRoom, align=uiconst.TOLEFT, padLeft=4)
-        uicontrols.Button(parent=row, label='Reset', func=self.ResetDungeon, args=(), align=uiconst.TORIGHT, padLeft=4)
-        uiprimitives.Container(name='push', parent=self.sr.panel, align=uiconst.TOBOTTOM, height=const.defaultPadding)
-        rooms = sm.RemoteSvc('dungeon').DEGetRooms(dungeonID=seldungeon.dungeonID)
-        uiprimitives.Container(name='push', parent=self.sr.panel, align=uiconst.TOTOP, height=const.defaultPadding)
-        self.scrollOptions = []
-        for i, room in enumerate(rooms):
-            self.scrollOptions.append(listentry.Get('Generic', {'label': '[%d] %s' % (room.roomID, room.roomName),
-             'id': i + 1,
-             'roomID': room.roomID,
-             'OnClick': self.OnGotoSelectedRoomClicked}))
+        else:
+            seldungeon = sm.RemoteSvc('dungeon').DEGetDungeons(dungeonID=dungeonID)[0]
+            uicontrols.EveLabelMedium(text=GetMessageFromLocalization(seldungeon.dungeonNameID) + ' - Version ', parent=self.sr.panel, align=uiconst.TOTOP, state=uiconst.UI_NORMAL)
+            row = uiprimitives.Container(name='row', parent=self.sr.panel, align=uiconst.TOBOTTOM, height=16, padTop=4)
+            godMode = settings.user.ui.Get('dungeonGodMode', 1)
+            self.godModeCheckbox = uicontrols.Checkbox(text='God Mode', parent=row, configName='dungeonGodMode', retval=0, checked=godMode, callback=self.OnGodMode)
+            row = uiprimitives.Container(name='row', parent=self.sr.panel, align=uiconst.TOBOTTOM, height=16, padTop=4)
+            uicontrols.Button(parent=row, label='Play Dungeon', func=self.PlayDungeon, align=uiconst.TOLEFT, padLeft=4)
+            uicontrols.Button(parent=row, label='Go to selected room', func=self.GotoRoom, args=(), align=uiconst.TOLEFT, padLeft=4)
+            row = uiprimitives.Container(name='row', parent=self.sr.panel, align=uiconst.TOBOTTOM, height=16)
+            uicontrols.Button(parent=row, label='Edit Room', func=self.EditRoom, align=uiconst.TOLEFT, padLeft=4)
+            uicontrols.Button(parent=row, label='Save Room', func=self.SaveRoom, align=uiconst.TOLEFT, padLeft=4)
+            uicontrols.Button(parent=row, label='Reset', func=self.ResetDungeon, args=(), align=uiconst.TORIGHT, padLeft=4)
+            uiprimitives.Container(name='push', parent=self.sr.panel, align=uiconst.TOBOTTOM, height=const.defaultPadding)
+            rooms = sm.RemoteSvc('dungeon').DEGetRooms(dungeonID=seldungeon.dungeonID)
+            uiprimitives.Container(name='push', parent=self.sr.panel, align=uiconst.TOTOP, height=const.defaultPadding)
+            self.scrollOptions = []
+            for i, room in enumerate(rooms):
+                self.scrollOptions.append(listentry.Get('Generic', {'label': '[%d] %s' % (room.roomID, room.roomName),
+                 'id': i + 1,
+                 'roomID': room.roomID,
+                 'OnClick': self.OnGotoSelectedRoomClicked}))
 
-        self.sr.objscrollbox = uicontrols.Scroll(parent=self.sr.panel, name='scrollID')
-        self.sr.objscrollbox.LoadContent(contentList=self.scrollOptions)
-        if settings.user.ui.Get('selectedRoomID', None):
-            rooms = self.sr.objscrollbox.GetNodes()
-            for room in rooms:
-                if room.roomID == settings.user.ui.Get('selectedRoomID', None):
-                    self.sr.objscrollbox.SelectNode(room)
-                    break
+            self.sr.objscrollbox = uicontrols.Scroll(parent=self.sr.panel, name='scrollID')
+            self.sr.objscrollbox.LoadContent(contentList=self.scrollOptions)
+            if settings.user.ui.Get('selectedRoomID', None):
+                rooms = self.sr.objscrollbox.GetNodes()
+                for room in rooms:
+                    if room.roomID == settings.user.ui.Get('selectedRoomID', None):
+                        self.sr.objscrollbox.SelectNode(room)
+                        break
 
-    def OnJessicaOpenDungeon(self, dungeonID, defaultRoomID = None):
+            return
+
+    def OnJessicaOpenDungeon(self, dungeonID, defaultRoomID=None):
         self.OnJessicaOpenRoom(dungeonID, defaultRoomID)
 
     def OnJessicaOpenRoom(self, dungeonID, roomID):
@@ -283,27 +289,31 @@ class DungeonEditor(Window):
         dungeonID = settings.user.ui.Get('dungeonDungeon', None)
         if dungeonID is None or dungeonID == 'All':
             return
-        roomID = settings.user.ui.Get('selectedRoomID', None)
-        if not roomID:
-            objectList = self.sr.objscrollbox.GetNodes()
-            if len(objectList) > 0:
-                roomID = objectList[0].roomID
-            else:
-                return
-        godMode = settings.user.ui.Get('dungeonGodMode', 1)
-        sm.GetService('scenario').PlayDungeon(dungeonID, roomID, godmode=godMode)
+        else:
+            roomID = settings.user.ui.Get('selectedRoomID', None)
+            if not roomID:
+                objectList = self.sr.objscrollbox.GetNodes()
+                if len(objectList) > 0:
+                    roomID = objectList[0].roomID
+                else:
+                    return
+            godMode = settings.user.ui.Get('dungeonGodMode', 1)
+            sm.GetService('scenario').PlayDungeon(dungeonID, roomID, godmode=godMode)
+            return
 
     def EditRoom(self, *args):
         dungeonID = settings.user.ui.Get('dungeonDungeon', None)
         if dungeonID is None or dungeonID == 'All':
             return
-        if not settings.user.ui.Get('selectedRoomID', None):
-            objectList = self.sr.objscrollbox.GetNodes()
-            if len(objectList) > 0:
-                settings.user.ui.Set('selectedRoomID', objectList[0].roomID)
-            else:
-                return
-        sm.GetService('scenario').EditRoom(dungeonID, settings.user.ui.Get('selectedRoomID', None))
+        else:
+            if not settings.user.ui.Get('selectedRoomID', None):
+                objectList = self.sr.objscrollbox.GetNodes()
+                if len(objectList) > 0:
+                    settings.user.ui.Set('selectedRoomID', objectList[0].roomID)
+                else:
+                    return
+            sm.GetService('scenario').EditRoom(dungeonID, settings.user.ui.Get('selectedRoomID', None))
+            return
 
     def SaveRoom(self, *args):
         sm.StartService('scenario').SaveAllChanges()
@@ -312,6 +322,7 @@ class DungeonEditor(Window):
         roomID = settings.user.ui.Get('selectedRoomID', None)
         if roomID:
             sm.GetService('scenario').GotoRoom(roomID)
+        return
 
     def OnDungeonEdit(self, dungeonID, roomID, roomPos):
         self.InitializeSelectionGroups(roomID)
@@ -321,6 +332,7 @@ class DungeonEditor(Window):
             self.prevDungeonResults = None
             if self.loadedTab == 'DungeonTab':
                 self.Refresh()
+        return
 
     def InitializeSelectionGroups(self, roomID):
         scenario = sm.StartService('scenario')
@@ -449,6 +461,7 @@ class DungeonEditor(Window):
         uicontrols.Button(parent=row, label='Delete selected', func=self.OnDeleteSelected, args=(), align=uiconst.TORIGHT, padLeft=4)
         row = uiprimitives.Container(name='row', parent=self.sr.panel, align=uiconst.TOTOP, height=20, padTop=4)
         uicontrols.Button(parent=row, label='Save Room', func=self.SaveRoom, align=uiconst.TOLEFT, padLeft=4)
+        return
 
     def Load_GroupsTab(self):
         self.roomTabSelected = 'Groups'
@@ -589,32 +602,34 @@ class DungeonEditor(Window):
     def OnSelectObject(self, selectedList, id):
         if id == 'In Game':
             return
-        selectedObj = selectedList[0]
-        if hasattr(selectedObj, 'selectTypeString'):
-            if getattr(selectedObj, 'selectTypeString', 'unknown') == 'SelectDungeon':
-                settings.user.ui.Set('dungeonFactionID', None)
-                settings.user.ui.Set('dungeonArchetypeID', None)
-                settings.user.ui.Set('dungeonDungeon', selectedObj.dungeonID)
-                self.sr.maintabs.ReloadVisible()
-            elif getattr(selectedObj, 'selectTypeString', 'unknown') == 'SelectDungeonRoom':
-                if self.IsTabLoaded('DungeonTab'):
-                    settings.user.ui.Set('selectedRoomID', selectedObj.roomID)
-            elif getattr(selectedObj, 'selectTypeString', 'unknown') == 'SelectDungeonObject':
-                sm.GetService('scenario').SetSelectionByID([selectedObj.objectID])
-                if self.IsTabLoaded('RoomTab'):
-                    objectList = self.sr.objscrollbox.GetNodes()
-                    for objectEntry in objectList:
-                        if objectEntry.id == selectedObj.objectID:
-                            self.sr.objscrollbox.SetSelected(objectEntry.idx)
-                            break
+        else:
+            selectedObj = selectedList[0]
+            if hasattr(selectedObj, 'selectTypeString'):
+                if getattr(selectedObj, 'selectTypeString', 'unknown') == 'SelectDungeon':
+                    settings.user.ui.Set('dungeonFactionID', None)
+                    settings.user.ui.Set('dungeonArchetypeID', None)
+                    settings.user.ui.Set('dungeonDungeon', selectedObj.dungeonID)
+                    self.sr.maintabs.ReloadVisible()
+                elif getattr(selectedObj, 'selectTypeString', 'unknown') == 'SelectDungeonRoom':
+                    if self.IsTabLoaded('DungeonTab'):
+                        settings.user.ui.Set('selectedRoomID', selectedObj.roomID)
+                elif getattr(selectedObj, 'selectTypeString', 'unknown') == 'SelectDungeonObject':
+                    sm.GetService('scenario').SetSelectionByID([selectedObj.objectID])
+                    if self.IsTabLoaded('RoomTab'):
+                        objectList = self.sr.objscrollbox.GetNodes()
+                        for objectEntry in objectList:
+                            if objectEntry.id == selectedObj.objectID:
+                                self.sr.objscrollbox.SetSelected(objectEntry.idx)
+                                break
 
-            elif getattr(selectedObj, 'selectTypeString', 'unknown') == 'SelectDungeonEntity':
-                pass
-            elif getattr(selectedObj, 'selectTypeString', 'unknown') == 'SelectDungeonEntityGroup':
-                pass
-            elif selectedObj:
-                import log
-                log.LogWarn('dungeoneditor::OnSelectObject: Unknown selection:', selectedObj.selectTypeString)
+                elif getattr(selectedObj, 'selectTypeString', 'unknown') == 'SelectDungeonEntity':
+                    pass
+                elif getattr(selectedObj, 'selectTypeString', 'unknown') == 'SelectDungeonEntityGroup':
+                    pass
+                elif selectedObj:
+                    import log
+                    log.LogWarn('dungeoneditor::OnSelectObject: Unknown selection:', selectedObj.selectTypeString)
+            return
 
     def Load_AlignTab(self):
         uiprimitives.Container(name='push', parent=self.sr.panel, align=uiconst.TOTOP, height=4)
@@ -750,6 +765,7 @@ class DungeonEditor(Window):
             setattr(self, checkbox1ID, ed)
 
         uicontrols.EveLabelMedium(text='ROTATION: ', parent=row, align=uiconst.TOTOP, state=uiconst.UI_NORMAL)
+        return
 
     def GetSelectedObjectsMinMaxQuantity(self):
         minQuantity = 1
@@ -861,31 +877,32 @@ class DungeonEditor(Window):
         self.CreateGroupForDatabase(groupName, selectedObjSlimItems)
         return groupName
 
-    def CreateGroupForEditor(self, groupName = None, selectedObjSlimItems = None, orientation = None):
+    def CreateGroupForEditor(self, groupName=None, selectedObjSlimItems=None, orientation=None):
         scenario = sm.StartService('scenario')
         if selectedObjSlimItems is None:
             selectedObjSlimItems = scenario.GetSelObjects()
         if not selectedObjSlimItems:
             sm.GetService('gameui').Say('ERROR: Cannot create a new group because no objects are selected.')
             return
-        if not groupName:
-            maxUntitledGroupIndex = 0
-            for groupName in self.objectGroups:
-                if groupName.startswith('Untitled'):
-                    try:
-                        value = int(groupName[len('Untitled'):])
-                        if value > maxUntitledGroupIndex:
-                            maxUntitledGroupIndex = value
-                    except ValueError:
-                        pass
+        else:
+            if not groupName:
+                maxUntitledGroupIndex = 0
+                for groupName in self.objectGroups:
+                    if groupName.startswith('Untitled'):
+                        try:
+                            value = int(groupName[len('Untitled'):])
+                            if value > maxUntitledGroupIndex:
+                                maxUntitledGroupIndex = value
+                        except ValueError:
+                            pass
 
-            groupName = 'Untitled' + '%02i' % (maxUntitledGroupIndex + 1)
-        while groupName in self.objectGroups:
-            groupName += 'x'
+                groupName = 'Untitled' + '%02i' % (maxUntitledGroupIndex + 1)
+            while groupName in self.objectGroups:
+                groupName += 'x'
 
-        self.objectGroups[groupName] = selectedObjSlimItems
-        scenario.AddHardGroup(groupName, orientation)
-        return (groupName, selectedObjSlimItems)
+            self.objectGroups[groupName] = selectedObjSlimItems
+            scenario.AddHardGroup(groupName, orientation)
+            return (groupName, selectedObjSlimItems)
 
     def CreateGroupForDatabase(self, groupName, selectedObjSlimItems):
         if IsJessicaOpen():
@@ -909,7 +926,7 @@ class DungeonEditor(Window):
             self.OpenRenameGroupDialog(each.label)
             return
 
-    def OpenRenameGroupDialog(self, key = ''):
+    def OpenRenameGroupDialog(self, key=''):
         oldGroupName = key
         format = [{'type': 'btline'},
          {'type': 'push',
@@ -1108,6 +1125,7 @@ class DungeonEditor(Window):
         uicontrols.EveLabelMedium(text='Red Axis Line = X Axis', parent=self.sr.panel, align=uiconst.TOTOP, state=uiconst.UI_NORMAL)
         uicontrols.EveLabelMedium(text='Green Axis Line = Y Axis', parent=self.sr.panel, align=uiconst.TOTOP, state=uiconst.UI_NORMAL)
         uicontrols.EveLabelMedium(text='Blue Axis Line = Z Axis', parent=self.sr.panel, align=uiconst.TOTOP, state=uiconst.UI_NORMAL)
+        return
 
     def OnDisplaySettingsChange(self, *args):
         desiredSpacingValue = self.gridSpacingDropdown.GetValue()
@@ -1176,6 +1194,7 @@ class DungeonEditor(Window):
             cb = uicontrols.Checkbox(text=each, parent=row, configName=checkbox1ID, retval=None, checked=checkbox1Setval, callback=self.OnCheckboxChange, align=uiconst.TOPLEFT, pos=(0, 0, 28, 0))
 
         uicontrols.SinglelineEdit(name='someeditID', parent=row, setvalue=50, pos=(200, 0, 32, 0), ints=(1, 100))
+        return
 
     def GetScrollOptions(self, key):
         data = []
@@ -1190,6 +1209,7 @@ class DungeonEditor(Window):
         settings.user.ui.Set('selectedRoomID', entry.sr.node.roomID)
         dungeonID = settings.user.ui.Get('dungeonDungeon', None)
         sm.ScatterEvent('OnSelectObjectInGame', 'SelectDungeonRoom', dungeonID=dungeonID, roomID=entry.sr.node.roomID)
+        return
 
     def OnComboChange(self, combo, newHeader, newValue, *args):
         settings.user.ui.Set(combo.name, newValue)
@@ -1207,6 +1227,7 @@ class DungeonEditor(Window):
                 settings.user.ui.Set(config, checkbox.checked)
             else:
                 settings.user.ui.Set(config, checkbox.data['value'])
+        return
 
     def Load_TemplateTab(self):
         scrollOptions = []
@@ -1225,6 +1246,7 @@ class DungeonEditor(Window):
         checkbox = uicontrols.Checkbox(text='Automatically create grouping for added objects', parent=self.sr.panel, configName='dungeonTemplateGroupings', retval=None, checked=autoCreateGroupings, callback=self.OnCheckboxChange, align=uiconst.TOBOTTOM)
         self.sr.templatescroll.padBottom = checkbox.height + const.defaultPadding
         self.sr.templatescroll.multiSelect = 0
+        return
 
     def Load_PaletteTab(self):
         roomObjectGroups = sm.RemoteSvc('dungeon').DEGetRoomObjectPaletteData()
@@ -1266,30 +1288,33 @@ class DungeonEditor(Window):
     def OnAddObjectToRoom(self, *args):
         if not self.sr.Get('palettescroll'):
             return
-        scenarioSvc = sm.services['scenario']
-        roomID = scenarioSvc.GetEditingRoomID()
-        if roomID is None:
-            sm.GetService('gameui').Say('You need to be editing a room to be able to add an object')
-            return
-        curSel = self.sr.palettescroll.GetSelected()
-        if curSel:
-            id = curSel[0].id
-            name = curSel[0].label
         else:
-            sm.GetService('gameui').Say('You need to select an object type from the palette before adding it to the room')
+            scenarioSvc = sm.services['scenario']
+            roomID = scenarioSvc.GetEditingRoomID()
+            if roomID is None:
+                sm.GetService('gameui').Say('You need to be editing a room to be able to add an object')
+                return
+            curSel = self.sr.palettescroll.GetSelected()
+            if curSel:
+                id = curSel[0].id
+                name = curSel[0].label
+            else:
+                sm.GetService('gameui').Say('You need to select an object type from the palette before adding it to the room')
+                return
+            roomPos = scenarioSvc.GetEditingRoomPosition()
+            ship = sm.services['michelle'].GetBall(eve.session.shipid)
+            camera = sm.GetService('sceneManager').GetActiveCamera()
+            objectX = ship.x - roomPos[0] + camera.parent.translation.x
+            objectY = ship.y - roomPos[1] + camera.parent.translation.y
+            objectZ = ship.z - roomPos[2] + camera.parent.translation.z
+            dungeonHelper.CreateObject(roomID, id, name, objectX, objectY, objectZ, None, None, None, None)
             return
-        roomPos = scenarioSvc.GetEditingRoomPosition()
-        ship = sm.services['michelle'].GetBall(eve.session.shipid)
-        camera = sm.GetService('sceneManager').GetActiveCamera()
-        objectX = ship.x - roomPos[0] + camera.parent.translation.x
-        objectY = ship.y - roomPos[1] + camera.parent.translation.y
-        objectZ = ship.z - roomPos[2] + camera.parent.translation.z
-        dungeonHelper.CreateObject(roomID, id, name, objectX, objectY, objectZ, None, None, None, None)
 
     def OnDEObjectPaletteChanged(self):
         if self.sr.Get('palettescroll') and self.sr.palettescroll is not None:
             self.UnloadPanel()
             self.Refresh()
+        return
 
     def _OnClose(self, *args):
         settings.user.ui.Set('actionMenuExpandTime', self.oldRadialMenuTime)
@@ -1340,6 +1365,7 @@ class DungeonDragEntry(listentry.Generic):
             self.DropIntoDungeonRoom(roomID, posInRoom)
         elif where and where.__guid__ not in (self.__guid__, 'form.DungeonEditor'):
             sm.GetService('gameui').Say('This item can only be dragged onto the grid')
+        return
 
     def DropIntoDungeonRoom(self, roomID, posInRoom):
         pass
@@ -1350,6 +1376,7 @@ class PaletteEntry(DungeonDragEntry):
 
     def DropIntoDungeonRoom(self, roomID, posInRoom):
         dungeonHelper.CreateObject(roomID, self.sr.node.id, self.sr.node.label, posInRoom.x, posInRoom.y, posInRoom.z, None, None, None, None)
+        return
 
 
 class DungeonTemplateEntry(DungeonDragEntry):
@@ -1380,9 +1407,11 @@ class DungeonTemplateEntry(DungeonDragEntry):
         if row.userID != session.userid:
             sm.GetService('gameui').Say('Can only delete templates you have created yourself.<br>This template was created by: %s' % row.userName)
             return None
-        if eve.Message('DeleteEntry', {}, uiconst.YESNO) == uiconst.ID_YES:
-            sm.RemoteSvc('dungeon').TemplateRemove(self.sr.node.id)
-            uthread.new(self.sr.node.form.Load, ('TemplateTab', None)).context = 'UI.DungeonEditor.OnDeleteTemplate'
+        else:
+            if eve.Message('DeleteEntry', {}, uiconst.YESNO) == uiconst.ID_YES:
+                sm.RemoteSvc('dungeon').TemplateRemove(self.sr.node.id)
+                uthread.new(self.sr.node.form.Load, ('TemplateTab', None)).context = 'UI.DungeonEditor.OnDeleteTemplate'
+            return None
 
     def OnEditDetails(self):
         dungeonEditorForm = self.sr.node.form
@@ -1471,26 +1500,29 @@ class DungeonObjectProperties(uicontrols.Window):
         self.scenario = sm.StartService('scenario')
         self.OnSelectObjectInGame('SelectDungeonObject')
         self.Show()
+        return
 
-    def LoadObjectID(self, objectID = None):
+    def LoadObjectID(self, objectID=None):
         if objectID is None:
             self.sr.panel.state = uiconst.UI_HIDDEN
             self.noObjects.state = uiconst.UI_DISABLED
             self.objectRow = None
             self.SetCaption('Object Properties')
             return
-        self.ShowLoad()
-        self.objectRow = self.objectTable.GetRowByKey(objectID)
-        if self.objectRow is None:
-            self.sr.panel.state = uiconst.UI_HIDDEN
-            self.noObjects.state = uiconst.UI_DISABLED
-            self.objectRow = None
-            self.HideLoad()
+        else:
+            self.ShowLoad()
+            self.objectRow = self.objectTable.GetRowByKey(objectID)
+            if self.objectRow is None:
+                self.sr.panel.state = uiconst.UI_HIDDEN
+                self.noObjects.state = uiconst.UI_DISABLED
+                self.objectRow = None
+                self.HideLoad()
+                return
+            self.sr.panel.state = uiconst.UI_PICKCHILDREN
+            self.noObjects.state = uiconst.UI_HIDDEN
+            self.SetHeight(self._windowHeight)
+            self.UpdateDisplay()
             return
-        self.sr.panel.state = uiconst.UI_PICKCHILDREN
-        self.noObjects.state = uiconst.UI_HIDDEN
-        self.SetHeight(self._windowHeight)
-        self.UpdateDisplay()
 
     def UpdateDisplay(self):
         self.ShowLoad()
@@ -1534,6 +1566,7 @@ class DungeonObjectProperties(uicontrols.Window):
         self.rotationPitch.SetValue(pitch)
         self.rotationRoll.SetValue(roll)
         self.HideLoad()
+        return
 
     def OnSelectObjectInGame(self, selectType, *args, **kwargs):
         if selectType == 'SelectDungeonObject':
@@ -1565,8 +1598,9 @@ class DungeonObjectProperties(uicontrols.Window):
             self.selectedCombo.LoadOptions(options, select=self.objectRow.objectID)
         else:
             self.LoadObjectID()
+        return
 
-    def OnBSDRevisionChange(self, action, schemaName, tableName, rowKeys, columnValues, reverting, _source = 'local'):
+    def OnBSDRevisionChange(self, action, schemaName, tableName, rowKeys, columnValues, reverting, _source='local'):
         if schemaName == 'dungeon' and tableName == 'objectsTx' and self.objectRow and self.objectRow.objectID == rowKeys[0]:
             self.UpdateDisplay()
 
@@ -1581,47 +1615,49 @@ class DungeonObjectProperties(uicontrols.Window):
         dungeonID = settings.user.ui.Get('dungeonDungeon', None)
         if dungeonID is None or dungeonID == 'All':
             return
-        selDungeon = sm.RemoteSvc('dungeon').DEGetDungeons(dungeonID=dungeonID)[0]
-        dungeonNameID = selDungeon.dungeonNameID
-        if dungeonNameID is not None:
-            dungeonName = GetMessageFromLocalization(dungeonNameID)
         else:
-            dungeonName = selDungeon.dungeonName
-        quantity = self.quantity.GetValue()
-        if quantity != 'Quantity Invalid For This Type' and quantity != self.oldQuantity:
-            self.oldQuantity = quantity
-            dungeonHelper.SetObjectQuantity(self.objectRow.objectID, quantity)
-        radius = self.radius.GetValue()
-        if radius != 'Radius Invalid For This Type' and radius != self.oldRadius:
-            self.oldRadius = radius
-            dungeonHelper.SetObjectRadius(self.objectRow.objectID, radius)
-        x = self.positionX.GetValue()
-        y = self.positionY.GetValue()
-        z = self.positionZ.GetValue()
-        dungeonHelper.SetObjectPosition(self.objectRow.objectID, x, y, z)
-        yaw = self.rotationYaw.GetValue()
-        pitch = self.rotationPitch.GetValue()
-        roll = self.rotationRoll.GetValue()
-        dungeonHelper.SetObjectRotation(self.objectRow.objectID, yaw, pitch, roll)
-        objectName = self.objectName.GetValue()
-        if not objectName:
-            if self.objectRow.objectNameID:
-                localizationBSD.MessageText.Get(self.objectRow.objectNameID).text = ''
-            objectName = None
-        if objectName is not None:
-            objectNameID = self.objectRow.objectNameID
-            if objectNameID is not None and objectName == GetMessageFromLocalization(objectNameID):
-                return
-            if objectNameID is not None and unicode(objectNameID) in objectName:
-                msgText = 'Do you really want to name this object %s?'
-                msgText += " Selecting 'No' will save other changes you have made to the object, but will not change the name."
-                ret = eve.Message('CustomQuestion', {'header': 'Rename Object?',
-                 'question': msgText % objectName}, uiconst.YESNO)
-                if ret == uiconst.ID_NO:
+            selDungeon = sm.RemoteSvc('dungeon').DEGetDungeons(dungeonID=dungeonID)[0]
+            dungeonNameID = selDungeon.dungeonNameID
+            if dungeonNameID is not None:
+                dungeonName = GetMessageFromLocalization(dungeonNameID)
+            else:
+                dungeonName = selDungeon.dungeonName
+            quantity = self.quantity.GetValue()
+            if quantity != 'Quantity Invalid For This Type' and quantity != self.oldQuantity:
+                self.oldQuantity = quantity
+                dungeonHelper.SetObjectQuantity(self.objectRow.objectID, quantity)
+            radius = self.radius.GetValue()
+            if radius != 'Radius Invalid For This Type' and radius != self.oldRadius:
+                self.oldRadius = radius
+                dungeonHelper.SetObjectRadius(self.objectRow.objectID, radius)
+            x = self.positionX.GetValue()
+            y = self.positionY.GetValue()
+            z = self.positionZ.GetValue()
+            dungeonHelper.SetObjectPosition(self.objectRow.objectID, x, y, z)
+            yaw = self.rotationYaw.GetValue()
+            pitch = self.rotationPitch.GetValue()
+            roll = self.rotationRoll.GetValue()
+            dungeonHelper.SetObjectRotation(self.objectRow.objectID, yaw, pitch, roll)
+            objectName = self.objectName.GetValue()
+            if not objectName:
+                if self.objectRow.objectNameID:
+                    localizationBSD.MessageText.Get(self.objectRow.objectNameID).text = ''
+                objectName = None
+            if objectName is not None:
+                objectNameID = self.objectRow.objectNameID
+                if objectNameID is not None and objectName == GetMessageFromLocalization(objectNameID):
                     return
-            import localizationBSD.localizationTableToMessageUtil as messageUtil
-            self.objectRow.objectNameID = messageUtil.UpdateMessage('DUNGEON-OBJECTS', dungeonID, objectNameID, objectName, 'dungeon.objects', 'objectNameID', self.objectRow.revisionID, None, dungeonID, dungeonName)
-        self.UpdateDisplay()
+                if objectNameID is not None and unicode(objectNameID) in objectName:
+                    msgText = 'Do you really want to name this object %s?'
+                    msgText += " Selecting 'No' will save other changes you have made to the object, but will not change the name."
+                    ret = eve.Message('CustomQuestion', {'header': 'Rename Object?',
+                     'question': msgText % objectName}, uiconst.YESNO)
+                    if ret == uiconst.ID_NO:
+                        return
+                import localizationBSD.localizationTableToMessageUtil as messageUtil
+                self.objectRow.objectNameID = messageUtil.UpdateMessage('DUNGEON-OBJECTS', dungeonID, objectNameID, objectName, 'dungeon.objects', 'objectNameID', self.objectRow.revisionID, None, dungeonID, dungeonName)
+            self.UpdateDisplay()
+            return
 
     def OnRevert(self, *args, **kwargs):
         self.UpdateDisplay()
@@ -1732,6 +1768,7 @@ class ObjectGroupListEntry(listentry.Generic):
     def RefreshCallback(self, *args):
         if self.sr.node.Get('refreshcallback', None):
             self.sr.node.refreshcallback()
+        return
 
 
 class CreateDungeonTemplateWindow(uicontrols.Window):
@@ -1821,14 +1858,16 @@ class EditDungeonTemplateWindow(uicontrols.Window):
         if not len(templateName):
             sm.GetService('gameui').Say('Please enter a template name')
             return None
-        templateDescription = self.templateDescription.GetValue(html=0).strip()
-        if not len(templateDescription):
-            sm.GetService('gameui').Say('Please enter a template description')
+        else:
+            templateDescription = self.templateDescription.GetValue(html=0).strip()
+            if not len(templateDescription):
+                sm.GetService('gameui').Say('Please enter a template description')
+                return None
+            dungeonSvc = sm.RemoteSvc('dungeon')
+            dungeonSvc.TemplateEdit(self.templateRow.templateID, templateName, templateDescription)
+            uthread.new(self.dungeonEditorForm.Load, ('TemplateTab', None)).context = 'UI.DungeonEditor.OnEditTemplateDetails'
+            self.Close()
             return None
-        dungeonSvc = sm.RemoteSvc('dungeon')
-        dungeonSvc.TemplateEdit(self.templateRow.templateID, templateName, templateDescription)
-        uthread.new(self.dungeonEditorForm.Load, ('TemplateTab', None)).context = 'UI.DungeonEditor.OnEditTemplateDetails'
-        self.Close()
 
     def _OnClose(self, *args):
         pass

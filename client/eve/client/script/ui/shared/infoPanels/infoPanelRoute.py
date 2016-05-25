@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\client\script\ui\shared\infoPanels\infoPanelRoute.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\client\script\ui\shared\infoPanels\infoPanelRoute.py
 import uiprimitives
 import uicontrols
 from eve.client.script.ui.shared.autopilotSettings import AutopilotSettings
@@ -31,8 +32,9 @@ IDLE_ROUTEMARKER_ALPHA = 0.75
 def _GetCurrentDestinationLabel(destination_name):
     if destination_name is None:
         return localization.GetByLabel('UI/Inflight/NoDestination')
-    destination_label = localization.GetByLabel('UI/Neocom/Autopilot/CurrentDestination')
-    return sm.GetService('infoPanel').GetSolarSystemTrace(destination_name, destination_label)
+    else:
+        destination_label = localization.GetByLabel('UI/Neocom/Autopilot/CurrentDestination')
+        return sm.GetService('infoPanel').GetSolarSystemTrace(destination_name, destination_label)
 
 
 class InfoPanelRoute(uicls.InfoPanelBase):
@@ -71,6 +73,7 @@ class InfoPanelRoute(uicls.InfoPanelBase):
         uiprimitives.Fill(parent=self.endParent, color=bgColor)
         self.endPointer = uiprimitives.Sprite(parent=self.endParent, texturePath='res:/UI/Texture/classes/LocationInfo/pointerUp.png', pos=(0, -10, 10, 10), state=uiconst.UI_DISABLED, color=bgColor, idx=0)
         uicontrols.Frame(parent=self.endParent, frameConst=ccConst.FRAME_SOFTSHADE, color=(0, 0, 0, 0.25), padding=(-5, -5, -5, -10))
+        return
 
     def GetSettingsMenu(self, parent):
         self.utilMenu = weakref.ref(parent)
@@ -168,110 +171,112 @@ class InfoPanelRoute(uicls.InfoPanelBase):
     def OnDestinationSet(self, destination):
         self.UpdateRoute(animate=bool(destination))
 
-    def UpdateRoute(self, animate = False):
+    def UpdateRoute(self, animate=False):
         starMapSvc = sm.GetService('starmap')
         self.routeData = starMapSvc.GetAutopilotRoute()
         self.UpdateHeaderText()
         if not session.solarsystemid2:
             return
-        if self.mode != infoPanelConst.MODE_NORMAL:
+        elif self.mode != infoPanelConst.MODE_NORMAL:
             return
-        if not self.routeData or self.routeData == [None]:
-            self.routeData = starMapSvc.GetWaypoints()
-        if not self.routeData:
-            if self.markersParent:
-                self.currentParent.Hide()
-                self.endParent.Hide()
-                self.markersParent.Hide()
-            self.noDestinationLabel.Show()
-            return
-        self.noDestinationLabel.Hide()
-        planetView = sm.GetService('viewState').IsViewActive('planet')
-        autoPilotActive = sm.GetService('autoPilot').GetState()
-        updatingRouteData = getattr(self, 'updatingRouteData', None)
-        if updatingRouteData == (autoPilotActive, planetView, self.routeData):
-            return
-        oldRouteIDs = [ child.solarSystemID for child in self.markersParent.children ]
-        self.toAnimate = []
-        self.markersParent.Flush()
-        self.updatingRouteData = (autoPilotActive, planetView, self.routeData[:])
-        self.currentParent.Show()
-        self.endParent.Show()
-        self.markersParent.Show()
-        self.currentTrace.text = '<center>' + sm.GetService('infoPanel').GetSolarSystemTrace(self.routeData[0], localization.GetByLabel('UI/Neocom/Autopilot/NextSystemInRoute'))
-        self.currentParent.height = max(19, self.currentTrace.textheight + 4)
-        routeIDs = []
-        lastStationSystemID = None
-        for i, id in enumerate(self.routeData):
-            isLast = i == len(self.routeData) - 1
-            if util.IsSolarSystem(id) and not isLast and not util.IsSolarSystem(self.routeData[i + 1]):
-                continue
-            if util.IsSolarSystem(id) and lastStationSystemID == id:
-                continue
-            if util.IsStation(id):
-                lastStationSystemID = cfg.stations.Get(id).solarSystemID
-            else:
-                lastStationSystemID = None
-            routeIDs.append(id)
+        else:
+            if not self.routeData or self.routeData == [None]:
+                self.routeData = starMapSvc.GetWaypoints()
+            if not self.routeData:
+                if self.markersParent:
+                    self.currentParent.Hide()
+                    self.endParent.Hide()
+                    self.markersParent.Hide()
+                self.noDestinationLabel.Show()
+                return
+            self.noDestinationLabel.Hide()
+            planetView = sm.GetService('viewState').IsViewActive('planet')
+            autoPilotActive = sm.GetService('autoPilot').GetState()
+            updatingRouteData = getattr(self, 'updatingRouteData', None)
+            if updatingRouteData == (autoPilotActive, planetView, self.routeData):
+                return
+            oldRouteIDs = [ child.solarSystemID for child in self.markersParent.children ]
+            self.toAnimate = []
+            self.markersParent.Flush()
+            self.updatingRouteData = (autoPilotActive, planetView, self.routeData[:])
+            self.currentParent.Show()
+            self.endParent.Show()
+            self.markersParent.Show()
+            self.currentTrace.text = '<center>' + sm.GetService('infoPanel').GetSolarSystemTrace(self.routeData[0], localization.GetByLabel('UI/Neocom/Autopilot/NextSystemInRoute'))
+            self.currentParent.height = max(19, self.currentTrace.textheight + 4)
+            routeIDs = []
+            lastStationSystemID = None
+            for i, id in enumerate(self.routeData):
+                isLast = i == len(self.routeData) - 1
+                if util.IsSolarSystem(id) and not isLast and not util.IsSolarSystem(self.routeData[i + 1]):
+                    continue
+                if util.IsSolarSystem(id) and lastStationSystemID == id:
+                    continue
+                if util.IsStation(id):
+                    lastStationSystemID = cfg.stations.Get(id).solarSystemID
+                else:
+                    lastStationSystemID = None
+                routeIDs.append(id)
 
-        maxWidth = infoPanelConst.PANELWIDTH - self.mainCont.padLeft
-        markerX = 0
-        markerY = 0
-        waypoints = deque(sm.GetService('starmap').GetWaypoints())
-        nextWaypoint = waypoints.popleft() if waypoints else None
-        for i, destinationID in enumerate(routeIDs):
-            if destinationID == nextWaypoint:
-                isWaypoint = True
-                nextWaypoint = waypoints.popleft() if waypoints else None
-            else:
-                isWaypoint = False
-            if util.IsSolarSystem(destinationID):
-                isStation = False
-                solarSystemID = destinationID
-            elif util.IsStation(destinationID):
-                isStation = True
-                solarSystemID = cfg.stations.Get(destinationID).solarSystemID
-            else:
-                log.LogError('ConstructRoute: Unknown item. I can only handle solar systems and stations, you gave me', destinationID)
-            if len(self.markersParent.children) > i:
-                systemIcon = self.markersParent.children[i]
-                systemIcon.left = markerX
-                systemIcon.top = markerY
-            else:
-                systemIcon = uicls.AutopilotDestinationIcon(parent=self.markersParent, pos=(markerX,
-                 markerY,
-                 ROUTE_MARKERSIZE,
-                 ROUTE_MARKERSIZE), solarSystemID=solarSystemID, destinationID=destinationID, idx=i)
-                if i >= len(oldRouteIDs) or solarSystemID != oldRouteIDs[i]:
-                    self.toAnimate.append(systemIcon)
-            systemIcon.SetSolarSystemAndDestinationID(solarSystemID, destinationID)
-            if isStation:
-                systemIcon.SetMarkerType(ROUTE_MARKERTYPE_STATION)
-            elif isWaypoint:
-                systemIcon.SetMarkerType(ROUTE_MARKERTYPE_WAYPOINT)
-            else:
-                systemIcon.SetMarkerType(ROUTE_MARKERTYPE_NORMAL)
-            self.endPointer.left = markerX
-            markerParHeight = markerY + ROUTE_MARKERSIZE + ROUTE_MARKERGAP
+            maxWidth = infoPanelConst.PANELWIDTH - self.mainCont.padLeft
+            markerX = 0
+            markerY = 0
+            waypoints = deque(sm.GetService('starmap').GetWaypoints())
+            nextWaypoint = waypoints.popleft() if waypoints else None
+            for i, destinationID in enumerate(routeIDs):
+                if destinationID == nextWaypoint:
+                    isWaypoint = True
+                    nextWaypoint = waypoints.popleft() if waypoints else None
+                else:
+                    isWaypoint = False
+                if util.IsSolarSystem(destinationID):
+                    isStation = False
+                    solarSystemID = destinationID
+                elif util.IsStation(destinationID):
+                    isStation = True
+                    solarSystemID = cfg.stations.Get(destinationID).solarSystemID
+                else:
+                    log.LogError('ConstructRoute: Unknown item. I can only handle solar systems and stations, you gave me', destinationID)
+                if len(self.markersParent.children) > i:
+                    systemIcon = self.markersParent.children[i]
+                    systemIcon.left = markerX
+                    systemIcon.top = markerY
+                else:
+                    systemIcon = uicls.AutopilotDestinationIcon(parent=self.markersParent, pos=(markerX,
+                     markerY,
+                     ROUTE_MARKERSIZE,
+                     ROUTE_MARKERSIZE), solarSystemID=solarSystemID, destinationID=destinationID, idx=i)
+                    if i >= len(oldRouteIDs) or solarSystemID != oldRouteIDs[i]:
+                        self.toAnimate.append(systemIcon)
+                systemIcon.SetSolarSystemAndDestinationID(solarSystemID, destinationID)
+                if isStation:
+                    systemIcon.SetMarkerType(ROUTE_MARKERTYPE_STATION)
+                elif isWaypoint:
+                    systemIcon.SetMarkerType(ROUTE_MARKERTYPE_WAYPOINT)
+                else:
+                    systemIcon.SetMarkerType(ROUTE_MARKERTYPE_NORMAL)
+                self.endPointer.left = markerX
+                markerParHeight = markerY + ROUTE_MARKERSIZE + ROUTE_MARKERGAP
+                if animate:
+                    uicore.animations.MorphScalar(self.markersParent, 'height', self.markersParent.height, markerParHeight, duration=0.3)
+                else:
+                    self.markersParent.height = markerParHeight
+                markerX += ROUTE_MARKERGAP + ROUTE_MARKERSIZE
+                if markerX + ROUTE_MARKERSIZE > maxWidth:
+                    markerX = 0
+                    markerY += ROUTE_MARKERGAP + ROUTE_MARKERSIZE
+                if len(routeIDs) > 1:
+                    endTrace = self.endTrace
+                    endTrace.text = '<center>' + _GetCurrentDestinationLabel(routeIDs[-1])
+                    self.endParent.height = max(19, endTrace.textheight + 4)
+                    self.endParent.Show()
+                else:
+                    self.endParent.Hide()
+
+            self.updatingRouteData = None
             if animate:
-                uicore.animations.MorphScalar(self.markersParent, 'height', self.markersParent.height, markerParHeight, duration=0.3)
-            else:
-                self.markersParent.height = markerParHeight
-            markerX += ROUTE_MARKERGAP + ROUTE_MARKERSIZE
-            if markerX + ROUTE_MARKERSIZE > maxWidth:
-                markerX = 0
-                markerY += ROUTE_MARKERGAP + ROUTE_MARKERSIZE
-            if len(routeIDs) > 1:
-                endTrace = self.endTrace
-                endTrace.text = '<center>' + _GetCurrentDestinationLabel(routeIDs[-1])
-                self.endParent.height = max(19, endTrace.textheight + 4)
-                self.endParent.Show()
-            else:
-                self.endParent.Hide()
-
-        self.updatingRouteData = None
-        if animate:
-            uthread.new(self.AnimateRouteIn)
+                uthread.new(self.AnimateRouteIn)
+            return
 
     def UpdateHeaderText(self):
         starMapSvc = sm.GetService('starmap')
@@ -327,19 +332,20 @@ class InfoPanelRoute(uicls.InfoPanelBase):
     def _GetNumJumps(self, routeData):
         if not routeData:
             return 0
-        ids = []
-        lastID = None
-        for routeID in routeData:
-            if util.IsStation(routeID):
-                routeID = cfg.stations.Get(routeID).solarSystemID
-            if routeID != lastID:
-                ids.append(routeID)
-            lastID = routeID
+        else:
+            ids = []
+            lastID = None
+            for routeID in routeData:
+                if util.IsStation(routeID):
+                    routeID = cfg.stations.Get(routeID).solarSystemID
+                if routeID != lastID:
+                    ids.append(routeID)
+                lastID = routeID
 
-        numJumps = len(ids)
-        if ids and ids[0] == session.solarsystemid2:
-            numJumps -= 1
-        return numJumps
+            numJumps = len(ids)
+            if ids and ids[0] == session.solarsystemid2:
+                numJumps -= 1
+            return numJumps
 
     def OnUIRefresh(self):
         self.UpdateRoute()
@@ -358,26 +364,28 @@ class InfoPanelRoute(uicls.InfoPanelBase):
     def OnTraceMouseDownWithUrl_thread(self, url):
         if not url.startswith('showinfo:'):
             return
-        itemID = None
-        ids = url[9:].split('//')
-        try:
-            itemID = None
-            if len(ids) > 1:
-                itemID = int(ids[1])
-        except:
-            log.LogTraceback('failed to convert string to ids when opening radial menu for link')
-            return
-
-        if itemID is None or not util.IsSolarSystem(itemID):
-            return
-        localStargate = uix.FindLocalStargate(itemID)
-        if localStargate:
-            destinationID = localStargate.itemID
-            typeID = localStargate.typeID
         else:
-            destinationID = itemID
-            typeID = const.typeSolarSystem
-        sm.GetService('menu').TryExpandActionMenu(itemID=destinationID, clickedObject=self, typeID=typeID)
+            itemID = None
+            ids = url[9:].split('//')
+            try:
+                itemID = None
+                if len(ids) > 1:
+                    itemID = int(ids[1])
+            except:
+                log.LogTraceback('failed to convert string to ids when opening radial menu for link')
+                return
+
+            if itemID is None or not util.IsSolarSystem(itemID):
+                return
+            localStargate = uix.FindLocalStargate(itemID)
+            if localStargate:
+                destinationID = localStargate.itemID
+                typeID = localStargate.typeID
+            else:
+                destinationID = itemID
+                typeID = const.typeSolarSystem
+            sm.GetService('menu').TryExpandActionMenu(itemID=destinationID, clickedObject=self, typeID=typeID)
+            return
 
 
 class AutopilotDestinationIcon(uiprimitives.Container):
@@ -394,6 +402,7 @@ class AutopilotDestinationIcon(uiprimitives.Container):
         self.destinationID = None
         self.hiliteTimer = None
         self.fadingDisabled = False
+        return
 
     def SetMarkerType(self, markerType):
         if self.markerType == markerType:
@@ -417,15 +426,19 @@ class AutopilotDestinationIcon(uiprimitives.Container):
     def OnMouseEnter(self, *args):
         if self.fadingDisabled:
             return
-        uicore.animations.FadeTo(self.icon, startVal=self.icon.color.a, endVal=1.0, duration=0.125, loops=1)
-        if self.hiliteTimer is None:
-            self.hiliteTimer = base.AutoTimer(111, self.CheckIfMouseOver)
+        else:
+            uicore.animations.FadeTo(self.icon, startVal=self.icon.color.a, endVal=1.0, duration=0.125, loops=1)
+            if self.hiliteTimer is None:
+                self.hiliteTimer = base.AutoTimer(111, self.CheckIfMouseOver)
+            return
 
     def CheckIfMouseOver(self, *args):
         if uicore.uilib.mouseOver == self or self.fadingDisabled:
             return
-        uicore.animations.FadeTo(self.icon, startVal=self.icon.color.a, endVal=IDLE_ROUTEMARKER_ALPHA, duration=0.5, loops=1)
-        self.hiliteTimer = None
+        else:
+            uicore.animations.FadeTo(self.icon, startVal=self.icon.color.a, endVal=IDLE_ROUTEMARKER_ALPHA, duration=0.5, loops=1)
+            self.hiliteTimer = None
+            return
 
     def OnMouseExit(self, *args):
         self.CheckIfMouseOver()
@@ -483,15 +496,16 @@ class AutopilotDestinationIcon(uiprimitives.Container):
             typeID = station.stationTypeID
         sm.GetService('menu').TryExpandActionMenu(itemID=destinationID, clickedObject=self, typeID=typeID)
 
-    def GetRadialMenuIndicator(self, create = True, *args):
+    def GetRadialMenuIndicator(self, create=True, *args):
         radialMenuSprite = getattr(self, 'radialMenuSprite', None)
         if radialMenuSprite and not radialMenuSprite.destroyed:
             return radialMenuSprite
-        if not create:
+        elif not create:
             return
-        radialMenuSprite = uiprimitives.Fill(name='radialMenuSprite', bgParent=self, padding=(-1, -1, -2, -2), color=(0.5, 0.5, 0.5, 0.8))
-        self.radialMenuSprite = radialMenuSprite
-        return radialMenuSprite
+        else:
+            radialMenuSprite = uiprimitives.Fill(name='radialMenuSprite', bgParent=self, padding=(-1, -1, -2, -2), color=(0.5, 0.5, 0.5, 0.8))
+            self.radialMenuSprite = radialMenuSprite
+            return radialMenuSprite
 
     def ShowRadialMenuIndicator(self, slimItem, *args):
         mySprite = self.GetRadialMenuIndicator(create=True)

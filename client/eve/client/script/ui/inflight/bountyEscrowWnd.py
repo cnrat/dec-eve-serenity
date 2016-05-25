@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\client\script\ui\inflight\bountyEscrowWnd.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\client\script\ui\inflight\bountyEscrowWnd.py
 from carbonui.control.scrollContainer import ScrollContainer
 from carbonui.primitives.container import Container
 from carbonui.primitives.sprite import Sprite
@@ -122,6 +123,7 @@ class CollaboratorCont(Container):
         self.amountLabel = EveLabelSmall(text=FmtISK(amount, 0), parent=mainCont, align=uiconst.TORIGHT, maxLines=1)
         width, height = self.GetAbsoluteSize()
         self._OnSizeChange_NoBlock(width, height)
+        return
 
     def _OnSizeChange_NoBlock(self, newWidth, newHeight):
         Container._OnSizeChange_NoBlock(self, newWidth, newHeight)
@@ -129,6 +131,7 @@ class CollaboratorCont(Container):
             textWidth = self.amountLabel.textwidth
             availableTextWidth = newWidth - textWidth - 14
             self.nameLabel.SetRightAlphaFade(fadeEnd=availableTextWidth, maxFadeWidth=20)
+        return
 
 
 class TagCont(Container):
@@ -153,6 +156,7 @@ class TagCont(Container):
         amountLabel = EveLabelSmall(text='%ix' % amount, parent=textCont, align=uiconst.TOLEFT, maxLines=1)
         if amount == 0:
             mainCont.opacity = 0.5
+        return
 
     def ShowInfo(self, itemID, typeID, *args):
         sm.GetService('info').ShowInfo(typeID, itemID)

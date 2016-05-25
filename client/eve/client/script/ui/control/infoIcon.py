@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\client\script\ui\control\infoIcon.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\client\script\ui\control\infoIcon.py
 from eve.client.script.ui.control.glowSprite import GlowSprite
 
 class InfoIcon(GlowSprite):
@@ -22,7 +23,7 @@ class InfoIcon(GlowSprite):
     def ShowInfo(self, typeID, itemID, abstractinfo, *args):
         sm.GetService('info').ShowInfo(typeID=typeID, itemID=itemID, abstractinfo=abstractinfo)
 
-    def UpdateInfoLink(self, typeID, itemID, abstractinfo = None):
+    def UpdateInfoLink(self, typeID, itemID, abstractinfo=None):
         self.OnClick = (self.ShowInfo,
          typeID,
          itemID,
@@ -35,7 +36,7 @@ class MoreInfoIcon(GlowSprite):
     default_texturePath = 'res:/ui/Texture/Icons/generic/more_info_16.png'
 
     def GetTooltipDelay(self):
-        return 0
+        pass
 
     def OnMouseDown(self, *args):
         pass

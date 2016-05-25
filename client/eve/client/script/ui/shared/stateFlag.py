@@ -1,8 +1,10 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\client\script\ui\shared\stateFlag.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\client\script\ui\shared\stateFlag.py
 from carbonui import const as uiconst
 from carbonui.primitives.container import Container
 from carbonui.primitives.fill import Fill
 from carbonui.primitives.sprite import Sprite
+import eve.client.script.parklife.states as statesConst
 import inventorycommon.const as inventoryConst
 from utillib import KeyVal
 
@@ -10,20 +12,21 @@ def GetStateFlagFromData(data):
     charID = getattr(data, 'charID', 0)
     if charID == session.charid:
         return
-    fakeSlimItem = KeyVal()
-    fakeSlimItem.ownerID = charID
-    fakeSlimItem.charID = charID
-    fakeSlimItem.corpID = data.Get('corpID', 0)
-    fakeSlimItem.allianceID = data.Get('allianceID', 0)
-    fakeSlimItem.warFactionID = data.Get('warFactionID', 0)
-    if getattr(data, 'bounty', None):
-        if data.bounty.bounty > 0.0:
-            fakeSlimItem.bounty = data.bounty
-    fakeSlimItem.groupID = data.Get('groupID', inventoryConst.groupCharacter)
-    fakeSlimItem.categoryID = data.Get('categoryID', inventoryConst.categoryOwner)
-    fakeSlimItem.securityStatus = data.Get('securityStatus', None)
-    flag = sm.GetService('state').CheckStates(fakeSlimItem, 'flag')
-    return flag
+    else:
+        fakeSlimItem = KeyVal()
+        fakeSlimItem.ownerID = charID
+        fakeSlimItem.charID = charID
+        fakeSlimItem.corpID = data.Get('corpID', 0)
+        fakeSlimItem.allianceID = data.Get('allianceID', 0)
+        fakeSlimItem.warFactionID = data.Get('warFactionID', 0)
+        if getattr(data, 'bounty', None):
+            if data.bounty.bounty > 0.0:
+                fakeSlimItem.bounty = data.bounty
+        fakeSlimItem.groupID = data.Get('groupID', inventoryConst.groupCharacter)
+        fakeSlimItem.categoryID = data.Get('categoryID', inventoryConst.categoryOwner)
+        fakeSlimItem.securityStatus = data.Get('securityStatus', None)
+        flag = sm.GetService('state').CheckStates(fakeSlimItem, 'flag')
+        return flag
 
 
 def AddAndSetFlagIconFromData(data, parentCont, **kwargs):
@@ -38,13 +41,14 @@ def AddAndSetFlagIcon(parentCont, *args, **kwargs):
         if stateFlagIcon and not stateFlagIcon.destroyed:
             stateFlagIcon.ModifyIcon(flagInfo=None)
         return
-    flagInfo = sm.GetService('state').GetStatePropsColorAndBlink(flag)
-    if stateFlagIcon and not stateFlagIcon.destroyed:
-        stateFlagIcon.ModifyIcon(flagInfo=flagInfo)
     else:
-        stateFlagIcon = FlagIconWithState(parent=parentCont, flagInfo=flagInfo, **kwargs)
-        parentCont.stateFlagIcon = stateFlagIcon
-    return stateFlagIcon
+        flagInfo = sm.GetService('state').GetStatePropsColorAndBlink(flag)
+        if stateFlagIcon and not stateFlagIcon.destroyed:
+            stateFlagIcon.ModifyIcon(flagInfo=flagInfo)
+        else:
+            stateFlagIcon = FlagIconWithState(parent=parentCont, flagInfo=flagInfo, **kwargs)
+            parentCont.stateFlagIcon = stateFlagIcon
+        return stateFlagIcon
 
 
 class FlagIcon(Container):
@@ -63,7 +67,7 @@ class FlagIcon(Container):
     def SetIconTexturePath(self, iconIdx):
         self.flagIcon.texturePath = self.iconTexturePathRoot % iconIdx
 
-    def SetBackgroundColor(self, color, opacity = 0.75):
+    def SetBackgroundColor(self, color, opacity=0.75):
         newColor = (color[0],
          color[1],
          color[2],
@@ -94,8 +98,9 @@ class FlagIconWithState(FlagIcon):
         showHint = attributes.get('showHint', True)
         if flagInfo is not None:
             self.ModifyIcon(flagInfo=flagInfo, showHint=showHint)
+        return
 
-    def ModifyIcon(self, flagInfo, showHint = True):
+    def ModifyIcon(self, flagInfo, showHint=True):
         if not flagInfo:
             self.display = False
             return
@@ -114,3 +119,36 @@ class FlagIconWithState(FlagIcon):
         if showHint and flagProperties.text:
             self.hint = flagProperties.text
             self.state = uiconst.UI_NORMAL
+
+
+def GetRelationShipFlag(itemID, corpID, allianceID):
+    ret = sm.GetService('addressbook').GetRelationship(itemID, corpID, allianceID)
+    relationships = [ret.persToCorp,
+     ret.persToPers,
+     ret.persToAlliance,
+     ret.corpToPers,
+     ret.corpToCorp,
+     ret.corpToAlliance,
+     ret.allianceToPers,
+     ret.allianceToCorp,
+     ret.allianceToAlliance]
+    relationship = 0.0
+    for r in relationships:
+        if r != 0.0 and r > relationship or relationship == 0.0:
+            relationship = r
+
+    flag = GetFlagFromRelationShip(relationship)
+    return flag
+
+
+def GetFlagFromRelationShip(relationship):
+    flag = None
+    if relationship > const.contactGoodStanding:
+        flag = statesConst.flagStandingHigh
+    elif const.contactNeutralStanding < relationship <= const.contactGoodStanding:
+        flag = statesConst.flagStandingGood
+    elif const.contactBadStanding <= relationship < const.contactNeutralStanding:
+        flag = statesConst.flagStandingBad
+    elif relationship < const.contactBadStanding:
+        flag = statesConst.flagStandingHorrible
+    return flag

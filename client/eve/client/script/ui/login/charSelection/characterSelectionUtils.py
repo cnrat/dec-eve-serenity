@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\client\script\ui\login\charSelection\characterSelectionUtils.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\client\script\ui\login\charSelection\characterSelectionUtils.py
 import util
 import uiprimitives
 import uicontrols
@@ -29,7 +30,7 @@ def GetCharacterSelectionAdPageUrl(languageID):
     return pageUrl
 
 
-def AddFrameWithFillAndGlow(parent, showFill = True, fillColor = csColors.OTHER_FILL, frameColor = csColors.OTHER_FRAME, glowColor = csColors.FRAME_GLOW_ACTIVE):
+def AddFrameWithFillAndGlow(parent, showFill=True, fillColor=csColors.OTHER_FILL, frameColor=csColors.OTHER_FRAME, glowColor=csColors.FRAME_GLOW_ACTIVE):
     if showFill:
         fill = uiprimitives.Fill(bgParent=parent, color=fillColor)
     else:
@@ -43,28 +44,28 @@ def AddFrameWithFillAndGlow(parent, showFill = True, fillColor = csColors.OTHER_
     return (glowFrame, normalFrame, fill)
 
 
-def SetColor(uiComponent, newColor, animate = False):
+def SetColor(uiComponent, newColor, animate=False):
     if animate:
         uicore.animations.SpColorMorphTo(uiComponent, startColor=uiComponent.GetRGBA(), endColor=newColor, duration=FADE_ANIMATION_TIME)
     else:
         uiComponent.SetRGBA(*newColor)
 
 
-def MakeTransparent(uiComponent, animate = False):
+def MakeTransparent(uiComponent, animate=False):
     if animate:
         uicore.animations.MorphScalar(uiComponent, 'opacity', startVal=uiComponent.opacity, endVal=0.0, duration=FADE_ANIMATION_TIME)
     else:
         uiComponent.opacity = 0
 
 
-def SetEffectOpacity(uiComponent, newOpacity, animate = False):
+def SetEffectOpacity(uiComponent, newOpacity, animate=False):
     if animate:
         uicore.animations.MorphScalar(uiComponent, 'effectOpacity', startVal=uiComponent.effectOpacity, endVal=newOpacity, duration=FADE_ANIMATION_TIME)
     else:
         uiComponent.effectOpacity = newOpacity
 
 
-def SetSaturation(uiComponent, newSaturation, animate = False):
+def SetSaturation(uiComponent, newSaturation, animate=False):
     if animate:
         uicore.animations.MorphScalar(uiComponent, 'saturation', startVal=uiComponent.saturation, endVal=newSaturation, duration=FADE_ANIMATION_TIME)
     else:

@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\packages\scriber\widgets.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\packages\scriber\widgets.py
 import warnings
 import scriber
 COLOR_DEFAULT = 0
@@ -47,7 +48,7 @@ BADGE_CLASSES = {BADGE_DEFAULT: '',
 class Label(object):
 
     @classmethod
-    def get(cls, text, tooltip = '', badge_type = BADGE_DEFAULT):
+    def get(cls, text, tooltip='', badge_type=BADGE_DEFAULT):
         badge_class = ''
         if badge_type:
             badge_class = ' label-%s' % BADGE_CLASSES[badge_type]
@@ -57,30 +58,30 @@ class Label(object):
         return '<span class="label%s"%s>%s</span>' % (badge_class, tooltip, text)
 
     @classmethod
-    def green(cls, text, tooltip = ''):
+    def green(cls, text, tooltip=''):
         return cls.get(text, tooltip, badge_type=BADGE_SUCCESS)
 
     @classmethod
-    def blue(cls, text, tooltip = ''):
+    def blue(cls, text, tooltip=''):
         return cls.get(text, tooltip, badge_type=BADGE_INFO)
 
     @classmethod
-    def yellow(cls, text, tooltip = ''):
+    def yellow(cls, text, tooltip=''):
         return cls.get(text, tooltip, badge_type=BADGE_WARNING)
 
     @classmethod
-    def red(cls, text, tooltip = ''):
+    def red(cls, text, tooltip=''):
         return cls.get(text, tooltip, badge_type=BADGE_IMPORTANT)
 
     @classmethod
-    def black(cls, text, tooltip = ''):
+    def black(cls, text, tooltip=''):
         return cls.get(text, tooltip, badge_type=BADGE_INVERT)
 
 
 class Badge(object):
 
     @classmethod
-    def get(cls, text, tooltip = '', badge_type = BADGE_DEFAULT):
+    def get(cls, text, tooltip='', badge_type=BADGE_DEFAULT):
         badge_class = ''
         if badge_type:
             badge_class = ' badge-%s' % BADGE_CLASSES[badge_type]
@@ -90,40 +91,39 @@ class Badge(object):
         return '<span class="badge%s"%s>%s</span>' % (badge_class, tooltip, text)
 
     @classmethod
-    def green(cls, text, tooltip = ''):
+    def green(cls, text, tooltip=''):
         return cls.get(text, tooltip, badge_type=BADGE_SUCCESS)
 
     @classmethod
-    def blue(cls, text, tooltip = ''):
+    def blue(cls, text, tooltip=''):
         return cls.get(text, tooltip, badge_type=BADGE_INFO)
 
     @classmethod
-    def yellow(cls, text, tooltip = ''):
+    def yellow(cls, text, tooltip=''):
         return cls.get(text, tooltip, badge_type=BADGE_WARNING)
 
     @classmethod
-    def red(cls, text, tooltip = ''):
+    def red(cls, text, tooltip=''):
         return cls.get(text, tooltip, badge_type=BADGE_IMPORTANT)
 
     @classmethod
-    def black(cls, text, tooltip = ''):
+    def black(cls, text, tooltip=''):
         return cls.get(text, tooltip, badge_type=BADGE_INVERT)
 
 
 class Icon(object):
 
     @classmethod
-    def get(cls, icon, white = False):
+    def get(cls, icon, white=False):
         if icon:
             if white:
                 icon = '%s icon-white' % icon
             return '<i class="%s"></i> ' % icon
-        return ''
 
 
 class Style(object):
 
-    def __init__(self, icon = None, color = COLOR_DEFAULT, size = SIZE_DEFAULT, float_to = FLOAT_NONE, **kwargs):
+    def __init__(self, icon=None, color=COLOR_DEFAULT, size=SIZE_DEFAULT, float_to=FLOAT_NONE, **kwargs):
         self._icon = icon
         self._color = color
         self._size = size
@@ -142,32 +142,27 @@ class Style(object):
             if self.color:
                 white = ' icon-white'
             return 'icon-%s%s' % (self._icon, white)
-        return ''
 
     @property
     def icon(self):
         if self._icon:
             return '<i class="%s"></i> ' % self.icon_class
-        return ''
 
     @property
     def float(self):
         print '######## Style.float was just called!'
         if self._float:
             return self._float_format % FLOAT_CLASSES[self._float]
-        return ''
 
     @property
     def size(self):
         if self._size:
             return self._size_format % SIZE_CLASSES[self._size]
-        return ''
 
     @property
     def color(self):
         if self._color:
             return self._color_format % COLOR_CLASSES[self._color]
-        return ''
 
 
 class Widget(object):
@@ -175,6 +170,7 @@ class Widget(object):
 
     def __init__(self):
         self.style = None
+        return
 
     def _pre_render(self):
         pass
@@ -198,7 +194,7 @@ class Widget(object):
 
 class LinkItem(object):
 
-    def __init__(self, label, action, icon = None):
+    def __init__(self, label, action, icon=None):
         self.label = label
         self.action = action
         self._icon = icon
@@ -207,13 +203,12 @@ class LinkItem(object):
     def icon(self):
         if self._icon:
             return Icon.get(self._icon)
-        return ''
 
 
 class ButtonGroup(Widget):
     template = 'widgets/button_group.html'
 
-    def __init__(self, label, action, item_list = None, style = None):
+    def __init__(self, label, action, item_list=None, style=None):
         super(ButtonGroup, self).__init__()
         self.label = label
         self.action = action
@@ -226,7 +221,7 @@ class ButtonGroup(Widget):
         else:
             self.item_list = []
 
-    def add_item(self, label, action, icon = None):
+    def add_item(self, label, action, icon=None):
         self.item_list.append(LinkItem(label, action, icon))
 
     def add_divider(self):
@@ -252,7 +247,7 @@ class ButtonGroup(Widget):
 class ModalMessage(Widget):
     template = 'widgets/modal_message.html'
 
-    def __init__(self, title, body = '', dom_id = '', ok_label = 'Ok'):
+    def __init__(self, title, body='', dom_id='', ok_label='Ok'):
         super(ModalMessage, self).__init__()
         self.title = title
         self.body = body
@@ -264,7 +259,7 @@ class ModalMessage(Widget):
             self.body = '</p><p>'.join(self.body)
 
     @classmethod
-    def get(cls, title, body = '', dom_id = '', ok_label = 'Ok'):
+    def get(cls, title, body='', dom_id='', ok_label='Ok'):
         return cls(title, body, dom_id, ok_label).render()
 
 
@@ -276,7 +271,7 @@ class QuickTable(Widget):
      'table-striped',
      'table-hover']
 
-    def __init__(self, dict_or_list_of_lists, dom_id = None, dom_classes = DEFAULT_DOM_CLASSES, dom_style = None, has_header = None, **kwargs):
+    def __init__(self, dict_or_list_of_lists, dom_id=None, dom_classes=DEFAULT_DOM_CLASSES, dom_style=None, has_header=None, **kwargs):
         super(QuickTable, self).__init__()
         self._dom_id = dom_id
         self._dom_classes = dom_classes
@@ -296,6 +291,7 @@ class QuickTable(Widget):
         self.is_vertical = False
         self.has_header = has_header
         self.is_list_of_lists = False
+        return
 
     def _pre_render(self):
         table_attributes = []
@@ -330,7 +326,8 @@ class QuickTable(Widget):
                 table_attributes.append('%s="%s"' % (k, v))
 
         self.attributes = ' %s' % ' '.join(table_attributes)
+        return
 
     @classmethod
-    def get(cls, dict_or_list_of_lists, dom_id = None, dom_classes = DEFAULT_DOM_CLASSES, dom_style = None, has_header = None, **kwargs):
+    def get(cls, dict_or_list_of_lists, dom_id=None, dom_classes=DEFAULT_DOM_CLASSES, dom_style=None, has_header=None, **kwargs):
         return cls(dict_or_list_of_lists, dom_id, dom_classes, dom_style, has_header, **kwargs).render()

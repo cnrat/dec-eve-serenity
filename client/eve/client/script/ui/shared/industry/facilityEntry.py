@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\client\script\ui\shared\industry\facilityEntry.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\client\script\ui\shared\industry\facilityEntry.py
 from math import pi
 from carbon.common.script.util.format import StrFromColor
 from carbonui.primitives.gradientSprite import GradientSprite
@@ -55,11 +56,14 @@ class FacilityEntry(BaseListEntryCustomColumns):
                 value = systemCostIndex / maxIndex
                 self.ConstructSystemCostGradient(col, value)
 
+        return
+
     def AddColumnsTax(self):
         if self.facilityData.tax is not None:
             self.AddColumnText('%s%%' % (self.facilityData.tax * 100))
         else:
             self.AddColumnText('-')
+        return
 
     def ConstructSystemCostGradient(self, col, systemCostIndex):
         GradientSprite(name='systemCostGradient', align=uiconst.TOLEFT_PROP, state=uiconst.UI_DISABLED, parent=col, width=systemCostIndex, padding=0, rgbData=((0.0, industryUIConst.COLOR_SYSTEMCOSTINDEX[:3]),), rotation=pi / 2, alphaData=((0.0, 1.0),
@@ -119,7 +123,7 @@ class FacilityEntry(BaseListEntryCustomColumns):
          facilityData.GetOwnerName().lower())
 
     @staticmethod
-    def GetHeaders(showInstallation = True, showLocation = True):
+    def GetHeaders(showInstallation=True, showLocation=True):
         return (localization.GetByLabel('UI/Common/Jumps'),
          localization.GetByLabel('UI/Common/Security'),
          localization.GetByLabel('UI/Industry/Facility'),

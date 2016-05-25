@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\client\script\environment\effects\EMPWave.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\client\script\environment\effects\EMPWave.py
 from eve.client.script.environment.effects.GenericEffect import GenericEffect, STOP_REASON_DEFAULT, STOP_REASON_BALL_REMOVED
 import trinity
 import audio2
@@ -21,8 +22,9 @@ class EMPWave(GenericEffect):
         self.translationCurve = None
         self.trigger = trigger
         self.ballpark = sm.GetService('michelle').GetBallpark()
+        return
 
-    def Stop(self, reason = STOP_REASON_DEFAULT):
+    def Stop(self, reason=STOP_REASON_DEFAULT):
         if self.gfx is None:
             raise RuntimeError('ShipEffect: no effect defined')
         scene = self.fxSequencer.GetScene()
@@ -30,6 +32,7 @@ class EMPWave(GenericEffect):
         self.gfx = None
         self.translationCurve = None
         self.gfxModel = None
+        return
 
     def Prepare(self):
         shipID = self.ballIDs[0]
@@ -64,6 +67,7 @@ class EMPWave(GenericEffect):
         self.gfxModel.translationCurve = shipBall
         scene = self.fxSequencer.GetScene()
         scene.objects.append(self.gfxModel)
+        return
 
     def Start(self, duration):
         if self.gfx is None:
@@ -75,35 +79,44 @@ class EMPWave(GenericEffect):
                 self.gfxModel.curveSets[0].scale = scaleValue
         self.gfx.curveSets[0].Play()
         self.ApplyImpactEffectToTargets()
+        return
 
     def ApplyImpactEffectToTargets(self):
         sourceBall = sm.GetService('michelle').GetBall(self.ballIDs[0])
-        for targetId in self.trigger.graphicInfo:
+        targetIDs = self.ballpark.GetBallsInRange(self.trigger.shipID, self.radius)
+        for targetId in targetIDs:
             targetBall = sm.GetService('michelle').GetBall(targetId)
-            uthread.new(self.ApplyImpactEffectToSingleTarget, sourceBall, targetBall)
+            if getattr(targetBall, 'model', None) is not None:
+                uthread.new(self.ApplyImpactEffectToSingleTarget, sourceBall, targetBall)
+
+        return
 
     def ApplyImpactEffectToSingleTarget(self, sourceBall, targetBall):
-        if targetBall is None or targetBall.model is None:
+        if targetBall is None or targetBall.model is None or not hasattr(targetBall.model, 'CreateImpactFromPosition'):
             return
-        distance = self.ballpark.DistanceBetween(targetBall.id, sourceBall.id)
-        if distance > self.radius:
+        else:
+            distance = self.ballpark.DistanceBetween(targetBall.id, sourceBall.id)
+            if distance > self.radius:
+                return
+            timeUntilImpact = 500 * distance / self.radius
+            blue.synchro.SleepSim(timeUntilImpact)
+            if targetBall is None or targetBall.model is None:
+                return
+            source = sourceBall.GetVectorAt(blue.os.GetSimTime())
+            target = targetBall.GetVectorAt(blue.os.GetSimTime())
+            direction = source - target
+            direction.Normalize()
+            targetBall.model.CreateImpactFromPosition((source.x, source.y, source.z), (direction.x, direction.y, direction.z), 1, 1)
             return
-        timeUntilImpact = 500 * distance / self.radius
-        blue.synchro.SleepSim(timeUntilImpact)
-        if targetBall is None or targetBall.model is None:
-            return
-        source = sourceBall.GetVectorAt(blue.os.GetSimTime())
-        target = targetBall.GetVectorAt(blue.os.GetSimTime())
-        direction = source - target
-        direction.Normalize()
-        targetBall.model.CreateImpactFromPosition((source.x, source.y, source.z), (direction.x, direction.y, direction.z), 1, 1)
 
     def Repeat(self, duration):
         if self.gfx is None:
             return
-        shipID = self.ballIDs[0]
-        shipBall = self.fxSequencer.GetBall(shipID)
-        if shipBall is None:
-            self.Stop(STOP_REASON_BALL_REMOVED)
-        self.gfx.curveSets[0].Play()
-        self.ApplyImpactEffectToTargets()
+        else:
+            shipID = self.ballIDs[0]
+            shipBall = self.fxSequencer.GetBall(shipID)
+            if shipBall is None:
+                self.Stop(STOP_REASON_BALL_REMOVED)
+            self.gfx.curveSets[0].Play()
+            self.ApplyImpactEffectToTargets()
+            return

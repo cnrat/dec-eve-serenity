@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\client\script\ui\maingame\charControl.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\client\script\ui\maingame\charControl.py
 import geo2
 import util
 import uicls
@@ -17,6 +18,7 @@ class EveCharControl(uicls.CharControlCore):
         self.gameWorldClient = sm.GetService('gameWorldClient')
         self.navigation = sm.GetService('navigation')
         self.menuSvc = sm.GetService('menu')
+        return
 
     def Startup(self):
         pass
@@ -52,7 +54,7 @@ class EveCharControl(uicls.CharControlCore):
     def GetShipMenu(self):
         if util.GetActiveShip():
             hangarInv = sm.GetService('invCache').GetInventory(const.containerHangar)
-            hangarItems = hangarInv.List()
+            hangarItems = hangarInv.List(const.flagHangar)
             for each in hangarItems:
                 if each.itemID == util.GetActiveShip():
                     return self.menuSvc.InvItemMenu(each)
@@ -73,6 +75,7 @@ class EveCharControl(uicls.CharControlCore):
                     eve.Message('CantDoThatWithSomeoneElsesStuff')
                     return
                 sm.GetService('station').TryActivateShip(node.item)
+        return
 
     def OnMouseWheel(self, *args):
         self.mouseInputHandler.OnMouseWheel(uicore.uilib.dz)
@@ -92,20 +95,22 @@ class EveCharControl(uicls.CharControlCore):
                 sm.GetService('cmd').OpenCargoHoldOfActiveShip()
                 return
         self.mouseInputHandler.OnDoubleClick(self.entityID)
+        return
 
     def _PickObject(self, x, y):
         if not self.gameWorldClient.HasGameWorld(session.worldspaceid):
             return
-        gameWorld = self.gameWorldClient.GetGameWorld(session.worldspaceid)
-        if gameWorld is None:
-            return
-        startPoint, endPoint = self.cameraClient.GetActiveCamera().GetRay(x, y)
-        collisionGroups = 1 << GameWorld.GROUP_AVATAR | 1 << GameWorld.GROUP_COLLIDABLE_NON_PUSHABLE
-        p = gameWorld.LineTestEntId(startPoint, endPoint, session.charid, collisionGroups)
-        if p is not None:
-            return p[2]
         else:
+            gameWorld = self.gameWorldClient.GetGameWorld(session.worldspaceid)
+            if gameWorld is None:
+                return
+            startPoint, endPoint = self.cameraClient.GetActiveCamera().GetRay(x, y)
+            collisionGroups = 1 << GameWorld.GROUP_AVATAR | 1 << GameWorld.GROUP_COLLIDABLE_NON_PUSHABLE
+            p = gameWorld.LineTestEntId(startPoint, endPoint, session.charid, collisionGroups)
+            if p is not None:
+                return p[2]
             return p
+            return
 
     def _PickHangarScene(self, x, y):
         activeCam = self.cameraClient.GetActiveCamera()

@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\client\script\parklife\tacticalConst.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\client\script\parklife\tacticalConst.py
 from carbonui.util.various_unsorted import SortListOfTuples
 import evetypes
 filterGroups = {const.groupStationServices,
@@ -47,6 +48,7 @@ validCategories = (const.categoryStation,
  const.categoryDrone,
  const.categoryDeployable,
  const.categoryStarbase,
+ const.categoryStructure,
  const.categoryCharge,
  const.categorySovereigntyStructure,
  const.categoryPlanetaryInteraction,
@@ -57,7 +59,8 @@ bombGroups = (const.groupBomb,
  const.groupBombEnergy,
  const.groupScannerProbe,
  const.groupWarpDisruptionProbe,
- const.groupSurveyProbe)
+ const.groupSurveyProbe,
+ const.groupStructureAreaMissile)
 groups = []
 for groupID in evetypes.IterateGroups():
     categoryID = evetypes.GetCategoryIDByGroup(groupID)

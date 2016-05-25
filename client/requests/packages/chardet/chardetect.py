@@ -1,9 +1,10 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\packages\requests\packages\chardet\chardetect.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\packages\requests\packages\chardet\chardetect.py
 from io import open
 from sys import argv, stdin
 from chardet.universaldetector import UniversalDetector
 
-def description_of(file, name = 'stdin'):
+def description_of(file, name='stdin'):
     u = UniversalDetector()
     for line in file:
         u.feed(line)

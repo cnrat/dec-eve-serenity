@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\packages\sovDashboard\__init__.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\packages\sovDashboard\__init__.py
 from collections import OrderedDict
 from carbon.common.lib.const import DAY
 from carbon.common.script.util.format import FmtDate, FmtTime
@@ -37,11 +38,12 @@ def GetStartTimeFromStructureInfo(structureInfo):
     if campaignState:
         eventType, defenderID, startTime, scoreByTeamID = campaignState
         return startTime
-    if vulnerabilityState:
-        startTime, endTime = vulnerabilityState
     else:
-        startTime = None
-    return startTime
+        if vulnerabilityState:
+            startTime, endTime = vulnerabilityState
+        else:
+            startTime = None
+        return startTime
 
 
 def FormatCountDownTime(targetTime):
@@ -55,7 +57,7 @@ def FormatCountDownTime(targetTime):
     return timeText
 
 
-def GetStructureStatusString(structureInfo, getTimeString = False):
+def GetStructureStatusString(structureInfo, getTimeString=False):
     structureTypeID = structureInfo['typeID']
     typeString = dashboardConst.STRUCTURELABEL_BY_TYPEID[structureTypeID]
     typeLabel = GetByLabel(typeString)
@@ -95,17 +97,19 @@ def GetStructureStatusString(structureInfo, getTimeString = False):
         text = ''
     if getTimeString:
         return (text, timeText)
-    return text
+    else:
+        return text
 
 
 def ShouldUpdateStructureInfo(structureInfo, sourceItemID):
     itemID = getattr(structureInfo, 'itemID', None)
     if itemID is None or itemID != sourceItemID:
         return False
-    solarSystemID = getattr(structureInfo, 'solarSystemID', None)
-    if solarSystemID is None:
-        return False
-    return True
+    else:
+        solarSystemID = getattr(structureInfo, 'solarSystemID', None)
+        if solarSystemID is None:
+            return False
+        return True
 
 
 def GetSovStructureInfoByTypeID(solarsystemStructureInfo):

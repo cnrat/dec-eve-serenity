@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\packages\localizationBSD\wrappers\messageGroup.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\packages\localizationBSD\wrappers\messageGroup.py
 from . import AuthoringValidationError
 from ..const import MESSAGE_GROUPS_TABLE
 import bsdWrappers
@@ -24,16 +25,18 @@ class MessageGroup(bsdWrappers.BaseWrapper):
 
                 bsdWrappers.BaseWrapper.__setattr__(self, key, value)
             return
-        if key == 'parentID' and value is not None:
-            if not MessageGroup.Get(value):
-                raise AuthoringValidationError("Cannot set parentID: '%s' is not a valid groupID." % value)
-            if self._IsSubGroup(value):
-                subGroup = MessageGroup.Get(value)
-                raise AuthoringValidationError("You cannot assign group '%s' as a child of group '%s' because it would create a circular reference." % (self.groupName, subGroup.groupName))
-        bsdWrappers.BaseWrapper.__setattr__(self, key, value)
+        else:
+            if key == 'parentID' and value is not None:
+                if not MessageGroup.Get(value):
+                    raise AuthoringValidationError("Cannot set parentID: '%s' is not a valid groupID." % value)
+                if self._IsSubGroup(value):
+                    subGroup = MessageGroup.Get(value)
+                    raise AuthoringValidationError("You cannot assign group '%s' as a child of group '%s' because it would create a circular reference." % (self.groupName, subGroup.groupName))
+            bsdWrappers.BaseWrapper.__setattr__(self, key, value)
+            return
 
     @classmethod
-    def Create(cls, parentID = None, groupName = 'New Folder', isReadOnly = None, wordTypeID = None):
+    def Create(cls, parentID=None, groupName='New Folder', isReadOnly=None, wordTypeID=None):
         if not groupName:
             raise AuthoringValidationError('You must specify a group name.')
         messageGroupTable = bsdWrappers.GetTable(MessageGroup.__primaryTable__)
@@ -67,7 +70,7 @@ class MessageGroup(bsdWrappers.BaseWrapper):
         newGroupName = MessageGroup.GenerateUniqueCopyName(self.groupID, destGroupID)
         self._Copy(destGroupID, newGroupName)
 
-    def GetFolderPath(self, projectID = None):
+    def GetFolderPath(self, projectID=None):
         pathList = [self.groupName]
         groupDepth = 0
         currentNode = self
@@ -124,7 +127,7 @@ class MessageGroup(bsdWrappers.BaseWrapper):
             raise AuthoringValidationError('No project (%s) was found. Can not tag with this project name.' % projectName)
         projectRow.AddGroupToProject(self.groupID)
 
-    def GetWordCount(self, languageID = 'en-us', recursive = False, includeMetadata = True, projectID = None):
+    def GetWordCount(self, languageID='en-us', recursive=False, includeMetadata=True, projectID=None):
         wordCount = sum([ message.GetWordCount(languageID=languageID, includeMetadata=includeMetadata) for message in locMessage.Message.GetMessagesByGroupID(self.groupID) ])
         if recursive:
             childGroups = MessageGroup.GetMessageGroupsByParentID(self.groupID, projectID=projectID)
@@ -171,6 +174,7 @@ class MessageGroup(bsdWrappers.BaseWrapper):
                 message.ResetWordType()
 
             bsdWrappers.BaseWrapper.__setattr__(self, 'wordTypeID', None)
+        return
 
     def _IsSubGroup(self, groupID):
         testGroup = MessageGroup.Get(groupID)
@@ -182,7 +186,7 @@ class MessageGroup(bsdWrappers.BaseWrapper):
         return False
 
     @staticmethod
-    def GetMessageGroupsByParentID(parentID, projectID = None):
+    def GetMessageGroupsByParentID(parentID, projectID=None):
         if projectID:
             currentProject = locProject.Project.Get(projectID)
             return currentProject.GetMessageGroupsByParentID(parentID)
@@ -190,7 +194,7 @@ class MessageGroup(bsdWrappers.BaseWrapper):
             return MessageGroup.GetWithFilter(parentID=parentID)
 
     @staticmethod
-    def GetVisibleGroupsByParentID(parentID, projectID = None):
+    def GetVisibleGroupsByParentID(parentID, projectID=None):
         if projectID:
             currentProject = locProject.Project.Get(projectID)
             return currentProject.GetVisibleGroupsByParentID(parentID)

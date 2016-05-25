@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\packages\evegraphics\gamma.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\packages\evegraphics\gamma.py
 from carbonui.primitives.container import Container
 from eve.client.script.ui.control.buttonGroup import ButtonGroup
 from eve.client.script.ui.control.eveWindow import Window

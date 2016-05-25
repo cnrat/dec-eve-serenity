@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\carbon\common\stdlib\base64.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\carbon\common\stdlib\base64.py
 import re
 import struct
 import binascii
@@ -27,15 +28,16 @@ def _translate(s, altchars):
     return s.translate(''.join(translation))
 
 
-def b64encode(s, altchars = None):
+def b64encode(s, altchars=None):
     encoded = binascii.b2a_base64(s)[:-1]
     if altchars is not None:
         return _translate(encoded, {'+': altchars[0],
          '/': altchars[1]})
-    return encoded
+    else:
+        return encoded
 
 
-def b64decode(s, altchars = None):
+def b64decode(s, altchars=None):
     if altchars is not None:
         s = _translate(s, {altchars[0]: '+',
          altchars[1]: '/'})
@@ -43,6 +45,8 @@ def b64decode(s, altchars = None):
         return binascii.a2b_base64(s)
     except binascii.Error as msg:
         raise TypeError(msg)
+
+    return
 
 
 def standard_b64encode(s):
@@ -129,7 +133,7 @@ def b32encode(s):
     return encoded
 
 
-def b32decode(s, casefold = False, map01 = None):
+def b32decode(s, casefold=False, map01=None):
     quanta, leftover = divmod(len(s), 8)
     if leftover:
         raise TypeError('Incorrect padding')
@@ -179,7 +183,7 @@ def b16encode(s):
     return binascii.hexlify(s).upper()
 
 
-def b16decode(s, casefold = False):
+def b16decode(s, casefold=False):
     if casefold:
         s = s.upper()
     if re.search('[^0-9A-F]', s):

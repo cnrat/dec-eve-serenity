@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\carbon\common\stdlib\xml\dom\expatbuilder.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\carbon\common\stdlib\xml\dom\expatbuilder.py
 from xml.dom import xmlbuilder, minidom, Node
 from xml.dom import EMPTY_NAMESPACE, EMPTY_PREFIX, XMLNS_NAMESPACE
 from xml.parsers import expat
@@ -26,7 +27,7 @@ _typeinfo_map = {'CDATA': minidom.TypeInfo(None, 'cdata'),
 class ElementInfo(object):
     __slots__ = ('_attr_info', '_model', 'tagName')
 
-    def __init__(self, tagName, model = None):
+    def __init__(self, tagName, model=None):
         self.tagName = tagName
         self._attr_info = []
         self._model = model
@@ -100,7 +101,7 @@ def _parse_ns_name(builder, name):
 
 class ExpatBuilder():
 
-    def __init__(self, options = None):
+    def __init__(self, options=None):
         if options is None:
             options = xmlbuilder.Options()
         self._options = options
@@ -111,6 +112,7 @@ class ExpatBuilder():
             self._finish_start_element = id
         self._parser = None
         self.reset()
+        return
 
     def createParser(self):
         return expat.ParserCreate()
@@ -130,6 +132,7 @@ class ExpatBuilder():
         self.curNode = self.document
         self._elem_info = self.document._elem_info
         self._cdata = False
+        return
 
     def install(self, parser):
         parser.StartDoctypeDeclHandler = self.start_doctype_decl_handler
@@ -212,6 +215,7 @@ class ExpatBuilder():
             self._parser.CommentHandler = None
             self._parser.ProcessingInstructionHandler = None
             self._parser.EndDoctypeDeclHandler = self.end_doctype_decl_handler
+        return
 
     def end_doctype_decl_handler(self):
         if self._options.comments:
@@ -263,15 +267,17 @@ class ExpatBuilder():
     def entity_decl_handler(self, entityName, is_parameter_entity, value, base, systemId, publicId, notationName):
         if is_parameter_entity:
             return
-        if not self._options.entities:
+        elif not self._options.entities:
             return
-        node = self.document._create_entity(entityName, publicId, systemId, notationName)
-        if value is not None:
-            child = self.document.createTextNode(value)
-            node.childNodes.append(child)
-        self.document.doctype.entities._seq.append(node)
-        if self._filter and self._filter.acceptNode(node) == FILTER_REJECT:
-            del self.document.doctype.entities._seq[-1]
+        else:
+            node = self.document._create_entity(entityName, publicId, systemId, notationName)
+            if value is not None:
+                child = self.document.createTextNode(value)
+                node.childNodes.append(child)
+            self.document.doctype.entities._seq.append(node)
+            if self._filter and self._filter.acceptNode(node) == FILTER_REJECT:
+                del self.document.doctype.entities._seq[-1]
+            return
 
     def notation_decl_handler(self, notationName, base, systemId, publicId):
         node = self.document._create_notation(notationName, publicId, systemId)
@@ -294,13 +300,14 @@ class ExpatBuilder():
         self._cdata_continue = False
 
     def external_entity_ref_handler(self, context, base, systemId, publicId):
-        return 1
+        pass
 
     def first_element_handler(self, name, attributes):
         if self._filter is None and not self._elem_info:
             self._finish_end_element = id
         self.getParser().StartElementHandler = self.start_element_handler
         self.start_element_handler(name, attributes)
+        return
 
     def start_element_handler(self, name, attributes):
         node = self.document.createElement(name)
@@ -319,6 +326,7 @@ class ExpatBuilder():
 
         if node is not self.document.documentElement:
             self._finish_start_element(node)
+        return
 
     def _finish_start_element(self, node):
         if self._filter:
@@ -368,6 +376,7 @@ class ExpatBuilder():
             self._elem_info[name] = ElementInfo(name, model)
         else:
             info._model = model
+        return
 
     def attlist_decl_handler(self, elem, name, type, default, required):
         info = self._elem_info.get(elem)
@@ -382,6 +391,7 @@ class ExpatBuilder():
          0,
          type,
          required])
+        return
 
     def xml_decl_handler(self, version, encoding, standalone):
         self.document.version = version
@@ -467,6 +477,8 @@ class Rejecter(FilterCrutch):
         for name in ('ProcessingInstructionHandler', 'CommentHandler', 'CharacterDataHandler', 'StartCdataSectionHandler', 'EndCdataSectionHandler', 'ExternalEntityRefHandler'):
             setattr(parser, name, None)
 
+        return
+
     def start_element_handler(self, *args):
         self._level = self._level + 1
 
@@ -497,6 +509,7 @@ class Skipper(FilterCrutch):
         else:
             self._level = self._level - 1
             self._old_end(*args)
+        return
 
 
 _FRAGMENT_BUILDER_INTERNAL_SYSTEM_ID = 'http://xml.python.org/entities/fragment-builder/internal'
@@ -504,7 +517,7 @@ _FRAGMENT_BUILDER_TEMPLATE = '<!DOCTYPE wrapper\n  %%s [\n  <!ENTITY fragment-bu
 
 class FragmentBuilder(ExpatBuilder):
 
-    def __init__(self, context, options = None):
+    def __init__(self, context, options=None):
         if context.nodeType == DOCUMENT_NODE:
             self.originalDocument = context
             self.context = context
@@ -516,6 +529,7 @@ class FragmentBuilder(ExpatBuilder):
     def reset(self):
         ExpatBuilder.reset(self)
         self.fragment = None
+        return
 
     def parseFile(self, file):
         return self.parseString(file.read())
@@ -577,7 +591,7 @@ class FragmentBuilder(ExpatBuilder):
         return s
 
     def _getNSattrs(self):
-        return ''
+        pass
 
     def external_entity_ref_handler(self, context, base, systemId, publicId):
         if systemId == _FRAGMENT_BUILDER_INTERNAL_SYSTEM_ID:
@@ -597,6 +611,7 @@ class FragmentBuilder(ExpatBuilder):
             return -1
         else:
             return ExpatBuilder.external_entity_ref_handler(self, context, base, systemId, publicId)
+            return
 
 
 class Namespaces():
@@ -664,6 +679,8 @@ class Namespaces():
                 d['ownerDocument'] = self.document
                 d['value'] = d['nodeValue'] = value
                 d['ownerElement'] = node
+
+        return
 
 
 class ExpatBuilderNS(Namespaces, ExpatBuilder):
@@ -747,7 +764,7 @@ class InternalSubsetExtractor(ExpatBuilder):
         raise ParseEscape()
 
 
-def parse(file, namespaces = True):
+def parse(file, namespaces=True):
     if namespaces:
         builder = ExpatBuilderNS()
     else:
@@ -764,7 +781,7 @@ def parse(file, namespaces = True):
     return result
 
 
-def parseString(string, namespaces = True):
+def parseString(string, namespaces=True):
     if namespaces:
         builder = ExpatBuilderNS()
     else:
@@ -772,7 +789,7 @@ def parseString(string, namespaces = True):
     return builder.parseString(string)
 
 
-def parseFragment(file, context, namespaces = True):
+def parseFragment(file, context, namespaces=True):
     if namespaces:
         builder = FragmentBuilderNS(context)
     else:
@@ -789,7 +806,7 @@ def parseFragment(file, context, namespaces = True):
     return result
 
 
-def parseFragmentString(string, context, namespaces = True):
+def parseFragmentString(string, context, namespaces=True):
     if namespaces:
         builder = FragmentBuilderNS(context)
     else:

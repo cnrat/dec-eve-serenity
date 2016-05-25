@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\client\script\ui\inflight\overview.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\client\script\ui\inflight\overview.py
 import _weakref
 import sys
 import bisect
@@ -77,7 +78,9 @@ class OverView(ActionPanel):
      'OnContactChange',
      'OnTutorialHighlightItem',
      'ProcessBountyInfoUpdated',
-     'DoBallsRemove']
+     'DoBallsRemove',
+     'OnStructuresVisibilityUpdated',
+     'OnEnterSpace']
     default_pinned = True
     default_windowID = 'overview'
     default_height = 300
@@ -89,7 +92,8 @@ class OverView(ActionPanel):
         topRight_TopOffset = uicontrols.Window.GetTopRight_TopOffset()
         if topRight_TopOffset is not None:
             return topRight_TopOffset
-        return 16
+        else:
+            return 16
 
     @staticmethod
     def default_left(*args):
@@ -125,6 +129,7 @@ class OverView(ActionPanel):
         FMT_KM = eveLocalization.GetMessageByID(234384, languageID)
         FMT_AU = eveLocalization.GetMessageByID(234385, languageID)
         FMT_VELOCITY = eveLocalization.GetMessageByID(239583, languageID)
+        return
 
     def Close(self):
         ActionPanel.Close(self)
@@ -137,15 +142,17 @@ class OverView(ActionPanel):
     def DoBallRemove(self, ball, slimItem, terminal):
         if ball is None:
             return
-        itemID = slimItem.itemID
-        node = self._scrollNodesByItemID.get(itemID, None)
-        if node:
-            node.leavingOverview = True
-            if node.panel:
-                node.panel.opacity = 0.25
-                node.panel.state = uiconst.UI_DISABLED
-            if node.itemID in self._scrollNodesByItemID:
-                del self._scrollNodesByItemID[node.itemID]
+        else:
+            itemID = slimItem.itemID
+            node = self._scrollNodesByItemID.get(itemID, None)
+            if node:
+                node.leavingOverview = True
+                if node.panel:
+                    node.panel.opacity = 0.25
+                    node.panel.state = uiconst.UI_DISABLED
+                if node.itemID in self._scrollNodesByItemID:
+                    del self._scrollNodesByItemID[node.itemID]
+            return
 
     def DoBallsAdded(self, lst, *args, **kw):
         uthread.new(self._DoBallsAdded, lst, *args, **kw)
@@ -170,7 +177,7 @@ class OverView(ActionPanel):
             for ball, slimItem in lst:
                 if slimItem.itemID in self._scrollNodesByItemID:
                     continue
-                if slimItem.groupID in const.OVERVIEW_IGNORE_GROUPS:
+                if slimItem.typeID in const.OVERVIEW_IGNORE_TYPES:
                     continue
                 if slimItem.groupID in filterGroups and slimItem.itemID != eve.session.shipid:
                     if CheckIfFilterItem(slimItem) and CheckFiltered(slimItem, filteredStates, alwaysShownStates):
@@ -226,20 +233,24 @@ class OverView(ActionPanel):
             node.panel.OnStateChange(itemID, flag, newState, *args)
         if flag in (state.flagWreckEmpty, state.flagWreckAlreadyOpened):
             self.FlagBallparkDirty()
+        return
 
     def OnFleetStateChange(self, fleetState):
         if not fleetState:
             return
-        for itemID, tag in fleetState.targetTags.iteritems():
-            node = self._scrollNodesByItemID.get(itemID, None)
-            if node is None:
-                continue
-            node.display_TAG = tag
-            if node.sortTagIndex is not None:
-                if tag:
-                    node.sortValue[node.sortTagIndex] = tag.lower()
-                else:
-                    node.sortValue[node.sortTagIndex] = 0
+        else:
+            for itemID, tag in fleetState.targetTags.iteritems():
+                node = self._scrollNodesByItemID.get(itemID, None)
+                if node is None:
+                    continue
+                node.display_TAG = tag
+                if node.sortTagIndex is not None:
+                    if tag:
+                        node.sortValue[node.sortTagIndex] = tag.lower()
+                    else:
+                        node.sortValue[node.sortTagIndex] = 0
+
+            return
 
     def OnSlimItemChange(self, oldSlim, newSlim):
         node = self._scrollNodesByItemID.get(oldSlim.itemID, None)
@@ -250,12 +261,15 @@ class OverView(ActionPanel):
             self.UpdateIconAndBackgroundFlagsOnNode(node)
             if node.panel:
                 node.panel.UpdateIcon()
+        return
 
     def ProcessBountyInfoUpdated(self, itemIDs):
         for itemID in itemIDs:
             node = self._scrollNodesByItemID.get(itemID, None)
             if node is not None:
                 self.UpdateIconAndBackgroundFlagsOnNode(node)
+
+        return
 
     def FlushEwarStates(self):
         if self.jammers:
@@ -298,22 +312,25 @@ class OverView(ActionPanel):
         node = self._scrollNodesByItemID.get(itemID, None)
         if node is None:
             return
-        node.ewarGraphicIDs = self.GetEwarDataForNode(node)
-        if node.panel:
-            node.panel.UpdateEwar()
+        else:
+            node.ewarGraphicIDs = self.GetEwarDataForNode(node)
+            if node.panel:
+                node.panel.UpdateEwar()
+            return
 
     def GetEwarDataForNode(self, node):
         if node.itemID not in self.jammers:
             return
-        jammersOnItem = self.jammers.get(node.itemID, None)
-        if not jammersOnItem:
-            return
-        ret = []
-        for jamType, (flag, graphicID) in self.ewarTypes:
-            if graphicID in jammersOnItem:
-                ret.append(graphicID)
+        else:
+            jammersOnItem = self.jammers.get(node.itemID, None)
+            if not jammersOnItem:
+                return
+            ret = []
+            for jamType, (flag, graphicID) in self.ewarTypes:
+                if graphicID in jammersOnItem:
+                    ret.append(graphicID)
 
-        return ret
+            return ret
 
     def OnTacticalPresetChange(self, label, preset):
         label = sm.GetService('overviewPresetSvc').GetPresetDisplayName(label)
@@ -332,16 +349,18 @@ class OverView(ActionPanel):
         slimItem = node.slimItem()
         if not slimItem:
             return
-        name = uix.GetSlimItemName(slimItem)
-        if slimItem.groupID == const.groupStation:
-            name = uix.EditStationName(name, usename=0)
-        if node.usingLocalizationTooltips:
-            name, hint = self.PrepareLocalizationTooltip(name)
-            node.hint_NAME = hint
-        node.display_NAME = self.Encode(name)
-        if node.sortNameIndex is not None:
-            node.sortValue[node.sortNameIndex] = name.lower()
-        node.hint_NAME = sm.GetService('bracket').GetDisplayNameForBracket(slimItem)
+        else:
+            name = uix.GetSlimItemName(slimItem)
+            if slimItem.groupID == const.groupStation:
+                name = uix.EditStationName(name, usename=0)
+            if node.usingLocalizationTooltips:
+                name, hint = self.PrepareLocalizationTooltip(name)
+                node.hint_NAME = hint
+            node.display_NAME = self.Encode(name)
+            if node.sortNameIndex is not None:
+                node.sortValue[node.sortNameIndex] = name.lower()
+            node.hint_NAME = sm.GetService('bracket').GetDisplayNameForBracket(slimItem)
+            return
 
     def Encode(self, text):
         return re.sub(HTML_ENTITIES, lambda match: HTML_ENTITY_REPLACEMENTS[match.group()], text)
@@ -362,7 +381,9 @@ class OverView(ActionPanel):
                 continue
             node.iconColor = None
 
-    def OnContactChange(self, contactIDs, contactType = None):
+        return
+
+    def OnContactChange(self, contactIDs, contactType=None):
         self.FlagBallparkDirty()
 
     def OnFleetJoin_Local(self, member, *args):
@@ -394,31 +415,35 @@ class OverView(ActionPanel):
                     if node.panel is not None:
                         node.panel.UpdateIconColor()
 
+        return
+
     @telemetry.ZONE_METHOD
     def UpdateIconAndBackgroundFlagsOnNode(self, node):
         slimItem = node.slimItem()
         if slimItem is None:
             return
-        iconFlag, backgroundFlag = (0, 0)
-        if node.updateItem:
-            iconFlag, backgroundFlag = sm.GetService('state').GetIconAndBackgroundFlags(slimItem)
-        node.iconAndBackgroundFlags = (iconFlag, backgroundFlag)
-        if node.sortIconIndex is not None:
-            iconFlag, backgroundFlag = node.iconAndBackgroundFlags
-            node.iconColor, colorSortValue = GetIconColor(slimItem, getSortValue=True)
-            node.sortValue[node.sortIconIndex] = [iconFlag,
-             colorSortValue,
-             backgroundFlag,
-             slimItem.categoryID,
-             slimItem.groupID,
-             slimItem.typeID]
-        if node.panel:
-            node.panel.UpdateFlagAndBackground(slimItem)
+        else:
+            iconFlag, backgroundFlag = (0, 0)
+            if node.updateItem:
+                iconFlag, backgroundFlag = sm.GetService('state').GetIconAndBackgroundFlags(slimItem)
+            node.iconAndBackgroundFlags = (iconFlag, backgroundFlag)
+            if node.sortIconIndex is not None:
+                iconFlag, backgroundFlag = node.iconAndBackgroundFlags
+                node.iconColor, colorSortValue = GetIconColor(slimItem, getSortValue=True)
+                node.sortValue[node.sortIconIndex] = [iconFlag,
+                 colorSortValue,
+                 backgroundFlag,
+                 slimItem.categoryID,
+                 slimItem.groupID,
+                 slimItem.typeID]
+            if node.panel:
+                node.panel.UpdateFlagAndBackground(slimItem)
+            return
 
     def OnReloadingOverviewProfile(self):
         self.FullReload()
 
-    def OnOverviewTabChanged(self, tabsettings, oldtabsettings, deletingTab = False):
+    def OnOverviewTabChanged(self, tabsettings, oldtabsettings, deletingTab=False):
         if tabsettings is None:
             tabsettings = sm.GetService('overviewPresetSvc').GetTabSettingsForOverview()
         newtabsettings = {}
@@ -473,8 +498,9 @@ class OverView(ActionPanel):
             extraTab.width = extraTab.sr.width
             extraTab.hint = localization.GetByLabel('UI/Overview/AddTab')
         sm.ScatterEvent('OnRefreshOverviewTab')
+        return
 
-    def OnStateSetupChange(self, reason = None):
+    def OnStateSetupChange(self, reason=None):
         self.FlagScrollEntriesDirty('OnStateSetupChange')
 
     def GetSlimItemForCharID(self, charID):
@@ -483,6 +509,8 @@ class OverView(ActionPanel):
             for rec in ballpark.slimItems.itervalues():
                 if rec.charID == charID:
                     return rec
+
+        return None
 
     def GetTabMenu(self, tab, *args):
         presets = sm.GetService('overviewPresetSvc').GetAllPresets()
@@ -552,6 +580,7 @@ class OverView(ActionPanel):
             self.OnOverviewTabChanged(tabsettings, oldtabsettings)
             if isSelected:
                 sm.GetService('overviewPresetSvc').LoadBracketPreset(bracketLabel)
+        return
 
     def DeleteTab(self, tabKey, isSelected):
         oldtabsettings = sm.GetService('overviewPresetSvc').GetTabSettingsForOverview()
@@ -571,21 +600,23 @@ class OverView(ActionPanel):
         ret = uiutil.NamePopup(localization.GetByLabel('UI/Overview/AddTab'), localization.GetByLabel('UI/Overview/TypeInLabel'), maxLength=15)
         if not ret:
             return
-        tabsettings = sm.GetService('overviewPresetSvc').GetTabSettingsForOverview()
-        if len(tabsettings) >= MAX_TAB_NUM:
-            eve.Message('TooManyTabs', {'numTabs': MAX_TAB_NUM})
-            return
-        if len(tabsettings) == 0:
-            newKey = 0
         else:
-            newKey = max(tabsettings.keys()) + 1
-        oldtabsettings = tabsettings
-        tabsettings[newKey] = {'name': ret,
-         'overview': 'default',
-         'bracket': None}
-        if self.destroyed:
+            tabsettings = sm.GetService('overviewPresetSvc').GetTabSettingsForOverview()
+            if len(tabsettings) >= MAX_TAB_NUM:
+                eve.Message('TooManyTabs', {'numTabs': MAX_TAB_NUM})
+                return
+            if len(tabsettings) == 0:
+                newKey = 0
+            else:
+                newKey = max(tabsettings.keys()) + 1
+            oldtabsettings = tabsettings
+            tabsettings[newKey] = {'name': ret,
+             'overview': 'default',
+             'bracket': None}
+            if self.destroyed:
+                return
+            self.OnOverviewTabChanged(tabsettings, oldtabsettings)
             return
-        self.OnOverviewTabChanged(tabsettings, oldtabsettings)
 
     def PostStartup(self):
         self.SetHeaderIcon()
@@ -610,11 +641,13 @@ class OverView(ActionPanel):
         self.sortHeaders = sortHeaders
         self.sr.scroll = scroll
         self.OnOverviewTabChanged(None, {})
+        return
 
     def OnSetActive_(self, *args):
         selected = self.sr.scroll.GetSelected()
         if selected is None:
             self.sr.scroll.SetSelected(0)
+        return
 
     def OnKeyUp(self, *args):
         selected = self.sr.scroll.GetSelected()
@@ -668,6 +701,7 @@ class OverView(ActionPanel):
                 each.Close()
 
             self.columnHilites = []
+        return
 
     def OnColumnSizeReset(self, columnID):
         useSmallText = sm.GetService('overviewPresetSvc').GetSettingValueOrDefaultFromName('useSmallText', False)
@@ -726,14 +760,15 @@ class OverView(ActionPanel):
         if self.overviewUpdateThread:
             self.overviewUpdateThread.kill()
             self.overviewUpdateThread = None
+        return
 
-    def TriggerInstantUpdate(self, fromFunction = None):
+    def TriggerInstantUpdate(self, fromFunction=None):
         self.StopOverviewUpdate()
         if self.IsCollapsed() or self.IsMinimized():
             return
         self.UpdateOverview()
 
-    def FlagBallparkDirty(self, fromFunction = None):
+    def FlagBallparkDirty(self, fromFunction=None):
         self._ballparkDirty = True
         if self.IsCollapsed() or self.IsMinimized():
             self.StopOverviewUpdate()
@@ -741,16 +776,16 @@ class OverView(ActionPanel):
         if not self.overviewUpdateThread:
             self.overviewUpdateThread = uthread.new(self.UpdateOverview)
 
-    def FlagScrollEntriesAndBallparkDirty_InstantUpdate(self, fromFunction = None):
+    def FlagScrollEntriesAndBallparkDirty_InstantUpdate(self, fromFunction=None):
         self._ballparkDirty = True
         self._scrollEntriesDirty = True
         self.TriggerInstantUpdate('FlagScrollEntriesDirtyDirty_InstantUpdate')
 
-    def FlagScrollEntriesDirty_InstantUpdate(self, fromFunction = None):
+    def FlagScrollEntriesDirty_InstantUpdate(self, fromFunction=None):
         self._scrollEntriesDirty = True
         self.TriggerInstantUpdate('FlagScrollEntriesDirtyDirty_InstantUpdate')
 
-    def FlagScrollEntriesDirty(self, fromFunction = None):
+    def FlagScrollEntriesDirty(self, fromFunction=None):
         self._scrollEntriesDirty = True
         if self.IsCollapsed() or self.IsMinimized():
             self.StopOverviewUpdate()
@@ -906,235 +941,76 @@ class OverView(ActionPanel):
                  slimItem.groupID,
                  slimItem.typeID]
 
+        return
+
     @telemetry.ZONE_METHOD
-    def UpdateDynamicDataForNodes(self, nodeList, doYield = False):
+    def UpdateDynamicDataForNodes(self, nodeList, doYield=False):
         tacticalSvc = sm.GetService('tactical')
         bp = sm.GetService('michelle').GetBallpark(doWait=True)
         if not bp:
             self.FlagBallparkDirty('DoBallsAdded')
             return
-        myBall = bp.GetBall(eve.session.shipid)
-        GetInvItem = bp.GetInvItem
-        UpdateVelocityData = self.UpdateVelocityData
-        columns = tacticalSvc.GetColumns()
-        showVelocityCombined = False
-        showDistance = COLUMN_DISTANCE in columns
-        showIcon = COLUMN_ICON in columns
-        calculateRadialVelocity = False
-        calculateCombinedVelocity = False
-        calculateRadialNormal = False
-        calculateTransveralVelocity = False
-        calculateAngularVelocity = False
-        calculateVelocity = False
-        if COLUMN_VELOCITY in columns:
-            calculateVelocity = True
-            showVelocityCombined = True
-        if COLUMN_ANGULARVELOCITY in columns:
-            calculateRadialVelocity = True
-            calculateCombinedVelocity = True
-            calculateRadialNormal = True
-            calculateTransveralVelocity = True
-            calculateAngularVelocity = True
-            showVelocityCombined = True
-        if COLUMN_TRANSVERSALVELOCITY in columns:
-            calculateRadialVelocity = True
-            calculateCombinedVelocity = True
-            calculateRadialNormal = True
-            calculateTransveralVelocity = True
-            showVelocityCombined = True
-        if COLUMN_RADIALVELOCITY in columns:
-            calculateRadialVelocity = True
-            calculateCombinedVelocity = True
-            calculateRadialNormal = True
-            showVelocityCombined = True
-        now = blue.os.GetSimTime()
-        counter = 0
-        for node in nodeList:
-            ball = node.ball()
-            slimItem = node.slimItem()
-            if not slimItem:
-                slimItem = GetInvItem(node.itemID)
-                if slimItem:
-                    node.slimItem = _weakref.ref(slimItem)
-                    node.iconColor = None
-                    self.PrimeDisplayName(node)
-                    if node.panel:
-                        if showIcon:
-                            node.panel.UpdateIcon()
-                            node.panel.UpdateIconColor()
-                    self.UpdateIconAndBackgroundFlagsOnNode(node)
-            if ball:
-                if showDistance:
-                    ball.GetVectorAt(now)
-                    node.rawDistance = rawDistance = max(ball.surfaceDist, 0)
-                    if node.sortDistanceIndex is not None:
-                        node.sortValue[node.sortDistanceIndex] = rawDistance
-                if showVelocityCombined and node.updateItem and ball.isFree and myBall:
-                    ball.GetVectorAt(now)
-                    UpdateVelocityData(node, ball, myBall, calculateVelocity, calculateRadialVelocity, calculateCombinedVelocity, calculateRadialNormal, calculateTransveralVelocity, calculateAngularVelocity)
-            if doYield:
-                counter += 1
-                if counter == 20:
-                    blue.pyos.BeNice(100)
-                    if self.destroyed:
-                        self.StopOverviewUpdate()
-                        return
-                    counter = 0
-
-    @telemetry.ZONE_METHOD
-    def CheckForNewEntriesAndRefreshScrollSetup(self):
-        ballpark = sm.GetService('michelle').GetBallpark(doWait=True)
-        if ballpark is None:
-            return
-        tacticalSvc = sm.GetService('tactical')
-        overviewPresetSvc = sm.GetService('overviewPresetSvc')
-        columns = tacticalSvc.GetColumns()
-        self.sortHeaders.CreateColumns(columns, fixedColumns=FIXEDCOLUMNS)
-        self.UpdateColumnHilite()
-        newEntries = []
-        currentNotWanted = set()
-        with ScrollListLock:
-            if self._ballparkDirty:
-                factionSvc = sm.GetService('faction')
-                stateSvc = sm.GetService('state')
-                filterGroups = overviewPresetSvc.GetValidGroups()
-                filteredStates = tacticalSvc.GetFilteredStatesFunctionNames()
-                alwaysShownStates = tacticalSvc.GetAlwaysShownStatesFunctionNames()
-                CheckIfFilterItem = stateSvc.CheckIfFilterItem
-                CheckFiltered = tacticalSvc.CheckFiltered
-                CheckIfUpdateItem = stateSvc.CheckIfUpdateItem
-                GetInvItem = ballpark.GetInvItem
-                GetBall = ballpark.GetBall
-                currentItemIDs = self._scrollNodesByItemID
-                log.LogInfo('Overview - Checking ballpark for new entries')
-
-                def CheckIfDoWant(myItemID, mySlimItem):
-                    if not mySlimItem:
-                        return False
-                    if mySlimItem.groupID not in filterGroups:
-                        return False
-                    if myItemID == session.shipid:
-                        return False
-                    if CheckIfFilterItem(mySlimItem) and CheckFiltered(mySlimItem, filteredStates, alwaysShownStates):
-                        return False
-                    return True
-
-                for itemID in ballpark.balls.keys():
-                    slimItem = GetInvItem(itemID)
-                    doWant = CheckIfDoWant(itemID, slimItem)
-                    if not doWant:
-                        if itemID in currentItemIDs:
-                            currentNotWanted.add(itemID)
-                            if itemID in self._scrollNodesByItemID:
-                                node = self._scrollNodesByItemID[itemID]
-                                node.leavingOverview = True
-                                del self._scrollNodesByItemID[itemID]
-                        continue
-                    if itemID not in currentItemIDs:
-                        updateItem = CheckIfUpdateItem(slimItem)
-                        data = {'itemID': itemID,
-                         'updateItem': updateItem}
-                        newNode = listentry.Get('OverviewScrollEntry', data)
-                        ball = GetBall(itemID)
-                        newNode.ball = _weakref.ref(ball)
-                        newNode.slimItem = _weakref.ref(slimItem)
-                        if updateItem:
-                            newNode.ewarGraphicIDs = self.GetEwarDataForNode(newNode)
-                        newNode.ewarHints = self.ewarHintsByGraphicID
-                        newEntries.append(newNode)
-
-            nodeList = newEntries[:]
-            if self._scrollEntriesDirty:
-                log.LogInfo('Overview - Update static data on current overview entries')
-                nodeList.extend([ node for node in self.sr.scroll.sr.nodes if node.itemID not in currentNotWanted ])
-            self.UpdateStaticDataForNodes(nodeList)
-            self.sr.scroll.PurgeInvisibleEntries()
-            self.overviewSorted = False
-            if newEntries:
-                self.sr.scroll.ShowHint()
-                self.sr.scroll.AddNodes(-1, newEntries)
-        return newEntries
-
-    @telemetry.ZONE_METHOD
-    def UpdateOverview(self, doYield = False):
-        if self.destroyed:
-            return
-        if self._ballparkDirty or self._scrollEntriesDirty:
-            newEntries = self.CheckForNewEntriesAndRefreshScrollSetup()
-            if newEntries:
-                doYield = False
-            self._ballparkDirty = False
-            self._scrollEntriesDirty = False
-        updateStartTime = blue.os.GetWallclockTimeNow()
-        try:
-            if not eve.session.solarsystemid:
-                self.StopOverviewUpdate()
-                return
-            if self.IsCollapsed() or self.IsMinimized():
-                self.StopOverviewUpdate()
-                return
-            if self.destroyed:
-                return
-            bp = sm.GetService('michelle').GetBallpark(doWait=True)
-            if not bp:
-                self.StopOverviewUpdate()
-                return
-            tacticalSvc = sm.GetService('tactical')
-            stateSvc = sm.StartService('state')
-            fleetSvc = sm.GetService('fleet')
+        else:
+            myBall = bp.GetBall(eve.session.shipid)
+            GetInvItem = bp.GetInvItem
+            UpdateVelocityData = self.UpdateVelocityData
             columns = tacticalSvc.GetColumns()
-            columnWidths = self.sortHeaders.GetCurrentSizes()
-            broadcastsToTop = sm.GetService('overviewPresetSvc').GetSettingValueOrDefaultFromName('overviewBroadcastsToTop', False)
-            fleetBroadcasts = fleetSvc.GetCurrentFleetBroadcasts()
-            mouseCoords = trinity.GetCursorPos()
-            if mouseCoords != self.prevMouseCoords:
-                self.lastMovementTime = blue.os.GetWallclockTime()
-                self.prevMouseCoords = mouseCoords
-            insider = uiutil.IsUnder(uicore.uilib.mouseOver, self.sr.scroll.GetContentContainer()) or uicore.uilib.mouseOver is self.sr.scroll.GetContentContainer()
-            mouseMoving = blue.os.TimeDiffInMs(self.lastMovementTime, blue.os.GetWallclockTime()) > self.mouseMovementTimeout
-            mouseInsideApp = mouseCoords[0] > 0 and mouseCoords[0] < trinity.app.width and mouseCoords[1] > 0 and mouseCoords[1] < trinity.app.height
-            sortingFrozen = self.sortingFrozen = insider and mouseInsideApp and not mouseMoving or self._freezeOverview
-            if sortingFrozen:
-                updateList = self.sr.scroll.GetVisibleNodes()
-                self.sortHeaders.SetSortIcon('res:/UI/Texture/classes/Overview/columnLock.png')
-            else:
-                updateList = self.sr.scroll.sr.nodes
-                self.sortHeaders.SetSortIcon(None)
-
-            def GetSortValue(_node):
-                if broadcastsToTop:
-                    if _node.itemID in fleetBroadcasts:
-                        return (1, _node.sortValue)
-                    else:
-                        return (2, _node.sortValue)
-                return _node.sortValue
-
-            ballpark = sm.GetService('michelle').GetBallpark(doWait=True)
-            if ballpark is None:
-                return
-            GetInvItem = ballpark.GetInvItem
-            self.UpdateDynamicDataForNodes(updateList, doYield=doYield)
+            showVelocityCombined = False
+            showDistance = COLUMN_DISTANCE in columns
+            showIcon = COLUMN_ICON in columns
+            calculateRadialVelocity = False
+            calculateCombinedVelocity = False
+            calculateRadialNormal = False
+            calculateTransveralVelocity = False
+            calculateAngularVelocity = False
+            calculateVelocity = False
+            if COLUMN_VELOCITY in columns:
+                calculateVelocity = True
+                showVelocityCombined = True
+            if COLUMN_ANGULARVELOCITY in columns:
+                calculateRadialVelocity = True
+                calculateCombinedVelocity = True
+                calculateRadialNormal = True
+                calculateTransveralVelocity = True
+                calculateAngularVelocity = True
+                showVelocityCombined = True
+            if COLUMN_TRANSVERSALVELOCITY in columns:
+                calculateRadialVelocity = True
+                calculateCombinedVelocity = True
+                calculateRadialNormal = True
+                calculateTransveralVelocity = True
+                showVelocityCombined = True
+            if COLUMN_RADIALVELOCITY in columns:
+                calculateRadialVelocity = True
+                calculateCombinedVelocity = True
+                calculateRadialNormal = True
+                showVelocityCombined = True
+            now = blue.os.GetSimTime()
             counter = 0
-            nodesToRemove = []
-            for node in updateList:
-                node.columnWidths = columnWidths
-                if node.leavingOverview:
-                    if node.panel:
-                        node.panel.opacity = 0.25
-                        node.panel.state = uiconst.UI_DISABLED
-                    nodesToRemove.append(node)
-                    continue
+            for node in nodeList:
                 ball = node.ball()
                 slimItem = node.slimItem()
-                if not (slimItem and ball):
-                    node.leavingOverview = True
-                    if node.itemID in self._scrollNodesByItemID:
-                        del self._scrollNodesByItemID[node.itemID]
-                    if node.panel:
-                        node.panel.opacity = 0.25
-                        node.panel.state = uiconst.UI_DISABLED
-                    nodesToRemove.append(node)
-                    continue
+                if not slimItem:
+                    slimItem = GetInvItem(node.itemID)
+                    if slimItem:
+                        node.slimItem = _weakref.ref(slimItem)
+                        node.iconColor = None
+                        self.PrimeDisplayName(node)
+                        if node.panel:
+                            if showIcon:
+                                node.panel.UpdateIcon()
+                                node.panel.UpdateIconColor()
+                        self.UpdateIconAndBackgroundFlagsOnNode(node)
+                if ball:
+                    if showDistance:
+                        ball.GetVectorAt(now)
+                        node.rawDistance = rawDistance = max(ball.surfaceDist, 0)
+                        if node.sortDistanceIndex is not None:
+                            node.sortValue[node.sortDistanceIndex] = rawDistance
+                    if showVelocityCombined and node.updateItem and ball.isFree and myBall:
+                        ball.GetVectorAt(now)
+                        UpdateVelocityData(node, ball, myBall, calculateVelocity, calculateRadialVelocity, calculateCombinedVelocity, calculateRadialNormal, calculateTransveralVelocity, calculateAngularVelocity)
+                self._UpdateStructureNode(node, slimItem)
                 if doYield:
                     counter += 1
                     if counter == 20:
@@ -1144,49 +1020,232 @@ class OverView(ActionPanel):
                             return
                         counter = 0
 
-            if doYield:
-                blue.synchro.Yield()
-                if self.destroyed:
+            return
+
+    @telemetry.ZONE_METHOD
+    def _UpdateStructureNode(self, node, slimItem):
+        if not slimItem:
+            return
+        if slimItem.categoryID != const.categoryStructure:
+            return
+        itemID = slimItem.itemID
+        if not sm.GetService('structureProximityTracker').IsStructureVisible(itemID):
+            node.leavingOverview = True
+            if itemID in self._scrollNodesByItemID:
+                del self._scrollNodesByItemID[itemID]
+
+    @telemetry.ZONE_METHOD
+    def CheckForNewEntriesAndRefreshScrollSetup(self):
+        ballpark = sm.GetService('michelle').GetBallpark(doWait=True)
+        if ballpark is None:
+            return
+        else:
+            tacticalSvc = sm.GetService('tactical')
+            overviewPresetSvc = sm.GetService('overviewPresetSvc')
+            columns = tacticalSvc.GetColumns()
+            self.sortHeaders.CreateColumns(columns, fixedColumns=FIXEDCOLUMNS)
+            self.UpdateColumnHilite()
+            newEntries = []
+            currentNotWanted = set()
+            with ScrollListLock:
+                if self._ballparkDirty:
+                    factionSvc = sm.GetService('faction')
+                    stateSvc = sm.GetService('state')
+                    filterGroups = overviewPresetSvc.GetValidGroups()
+                    filteredStates = tacticalSvc.GetFilteredStatesFunctionNames()
+                    alwaysShownStates = tacticalSvc.GetAlwaysShownStatesFunctionNames()
+                    CheckIfFilterItem = stateSvc.CheckIfFilterItem
+                    CheckFiltered = tacticalSvc.CheckFiltered
+                    CheckIfUpdateItem = stateSvc.CheckIfUpdateItem
+                    GetInvItem = ballpark.GetInvItem
+                    GetBall = ballpark.GetBall
+                    IsStructureVisible = sm.GetService('structureProximityTracker').IsStructureVisible
+                    currentItemIDs = self._scrollNodesByItemID
+                    log.LogInfo('Overview - Checking ballpark for new entries')
+
+                    def CheckIfDoWant(myItemID, mySlimItem):
+                        if not mySlimItem:
+                            return False
+                        if mySlimItem.groupID not in filterGroups:
+                            return False
+                        if myItemID == session.shipid:
+                            return False
+                        if CheckIfFilterItem(mySlimItem) and CheckFiltered(mySlimItem, filteredStates, alwaysShownStates):
+                            return False
+                        if mySlimItem.categoryID == const.categoryStructure and not IsStructureVisible(myItemID):
+                            return False
+                        return True
+
+                    for itemID in ballpark.balls.keys():
+                        slimItem = GetInvItem(itemID)
+                        doWant = CheckIfDoWant(itemID, slimItem)
+                        if not doWant:
+                            if itemID in currentItemIDs:
+                                currentNotWanted.add(itemID)
+                                if itemID in self._scrollNodesByItemID:
+                                    node = self._scrollNodesByItemID[itemID]
+                                    node.leavingOverview = True
+                                    del self._scrollNodesByItemID[itemID]
+                            continue
+                        if itemID not in currentItemIDs:
+                            updateItem = CheckIfUpdateItem(slimItem)
+                            data = {'itemID': itemID,
+                             'updateItem': updateItem}
+                            newNode = listentry.Get('OverviewScrollEntry', data)
+                            ball = GetBall(itemID)
+                            newNode.ball = _weakref.ref(ball)
+                            newNode.slimItem = _weakref.ref(slimItem)
+                            if updateItem:
+                                newNode.ewarGraphicIDs = self.GetEwarDataForNode(newNode)
+                            newNode.ewarHints = self.ewarHintsByGraphicID
+                            newEntries.append(newNode)
+
+                nodeList = newEntries[:]
+                if self._scrollEntriesDirty:
+                    log.LogInfo('Overview - Update static data on current overview entries')
+                    nodeList.extend([ node for node in self.sr.scroll.sr.nodes if node.itemID not in currentNotWanted ])
+                self.UpdateStaticDataForNodes(nodeList)
+                self.sr.scroll.PurgeInvisibleEntries()
+                self.overviewSorted = False
+                if newEntries:
+                    self.sr.scroll.ShowHint()
+                    self.sr.scroll.AddNodes(-1, newEntries)
+            return newEntries
+
+    @telemetry.ZONE_METHOD
+    def UpdateOverview(self, doYield=False):
+        if self.destroyed:
+            return
+        else:
+            if self._ballparkDirty or self._scrollEntriesDirty:
+                newEntries = self.CheckForNewEntriesAndRefreshScrollSetup()
+                if newEntries:
+                    doYield = False
+                self._ballparkDirty = False
+                self._scrollEntriesDirty = False
+            updateStartTime = blue.os.GetWallclockTimeNow()
+            try:
+                if not eve.session.solarsystemid:
                     self.StopOverviewUpdate()
                     return
-            if not sortingFrozen:
-                if nodesToRemove:
-                    self.sr.scroll.RemoveNodes(nodesToRemove)
-                currentActive, currentDirection = self.sortHeaders.GetCurrentActive()
-                with ScrollListLock:
-                    sortlist = sorted(self.sr.scroll.sr.nodes, key=GetSortValue, reverse=not currentDirection)
-                    self.sr.scroll.SetOrderedNodes(sortlist, loadNodes=False)
-                self.overviewSorted = True
-            else:
-                self.overviewSorted = False
-            counter = 0
-            for node in self.sr.scroll.GetVisibleNodes():
-                if node.panel and node.panel.state != uiconst.UI_HIDDEN:
-                    node.panel.Load(node)
-                    counter += 1
-                    if counter == 10:
-                        blue.pyos.BeNice(100)
-                        if self.destroyed:
-                            self.StopOverviewUpdate()
-                            return
-                        counter = 0
+                if self.IsCollapsed() or self.IsMinimized():
+                    self.StopOverviewUpdate()
+                    return
+                if self.destroyed:
+                    return
+                bp = sm.GetService('michelle').GetBallpark(doWait=True)
+                if not bp:
+                    self.StopOverviewUpdate()
+                    return
+                tacticalSvc = sm.GetService('tactical')
+                stateSvc = sm.StartService('state')
+                fleetSvc = sm.GetService('fleet')
+                columns = tacticalSvc.GetColumns()
+                columnWidths = self.sortHeaders.GetCurrentSizes()
+                broadcastsToTop = sm.GetService('overviewPresetSvc').GetSettingValueOrDefaultFromName('overviewBroadcastsToTop', False)
+                fleetBroadcasts = fleetSvc.GetCurrentFleetBroadcasts()
+                mouseCoords = trinity.GetCursorPos()
+                if mouseCoords != self.prevMouseCoords:
+                    self.lastMovementTime = blue.os.GetWallclockTime()
+                    self.prevMouseCoords = mouseCoords
+                insider = uiutil.IsUnder(uicore.uilib.mouseOver, self.sr.scroll.GetContentContainer()) or uicore.uilib.mouseOver is self.sr.scroll.GetContentContainer()
+                mouseMoving = blue.os.TimeDiffInMs(self.lastMovementTime, blue.os.GetWallclockTime()) > self.mouseMovementTimeout
+                mouseInsideApp = mouseCoords[0] > 0 and mouseCoords[0] < trinity.app.width and mouseCoords[1] > 0 and mouseCoords[1] < trinity.app.height
+                sortingFrozen = self.sortingFrozen = insider and mouseInsideApp and not mouseMoving or self._freezeOverview
+                if sortingFrozen:
+                    updateList = self.sr.scroll.GetVisibleNodes()
+                    self.sortHeaders.SetSortIcon('res:/UI/Texture/classes/Overview/columnLock.png')
+                else:
+                    updateList = self.sr.scroll.sr.nodes
+                    self.sortHeaders.SetSortIcon(None)
 
-            if not self.sr.scroll.sr.nodes:
-                self.sr.scroll.ShowHint(localization.GetByLabel('UI/Common/NothingFound'))
-            else:
-                self.sr.scroll.ShowHint()
-        except Exception:
-            log.LogException(extraText='Error updating inflight overview')
-            sys.exc_clear()
+                def GetSortValue(_node):
+                    if broadcastsToTop:
+                        if _node.itemID in fleetBroadcasts:
+                            return (1, _node.sortValue)
+                        else:
+                            return (2, _node.sortValue)
+                    return _node.sortValue
 
-        if doYield:
-            diff = blue.os.TimeDiffInMs(updateStartTime, blue.os.GetWallclockTimeNow())
-            sleep = max(self.minUpdateSleep, self.maxUpdateSleep - diff)
-            blue.pyos.synchro.SleepWallclock(sleep)
-        if not self.destroyed and (not self.overviewUpdateThread or self.overviewUpdateThread == stackless.getcurrent()):
-            self.overviewUpdateThread = uthread.new(self.UpdateOverview, doYield=True)
+                ballpark = sm.GetService('michelle').GetBallpark(doWait=True)
+                if ballpark is None:
+                    return
+                GetInvItem = ballpark.GetInvItem
+                self.UpdateDynamicDataForNodes(updateList, doYield=doYield)
+                counter = 0
+                nodesToRemove = []
+                for node in updateList:
+                    node.columnWidths = columnWidths
+                    if node.leavingOverview:
+                        if node.panel:
+                            node.panel.opacity = 0.25
+                            node.panel.state = uiconst.UI_DISABLED
+                        nodesToRemove.append(node)
+                        continue
+                    ball = node.ball()
+                    slimItem = node.slimItem()
+                    if not (slimItem and ball):
+                        node.leavingOverview = True
+                        if node.itemID in self._scrollNodesByItemID:
+                            del self._scrollNodesByItemID[node.itemID]
+                        if node.panel:
+                            node.panel.opacity = 0.25
+                            node.panel.state = uiconst.UI_DISABLED
+                        nodesToRemove.append(node)
+                        continue
+                    if doYield:
+                        counter += 1
+                        if counter == 20:
+                            blue.pyos.BeNice(100)
+                            if self.destroyed:
+                                self.StopOverviewUpdate()
+                                return
+                            counter = 0
 
-    def SetFreezeOverview(self, freeze = True):
+                if doYield:
+                    blue.synchro.Yield()
+                    if self.destroyed:
+                        self.StopOverviewUpdate()
+                        return
+                if not sortingFrozen:
+                    if nodesToRemove:
+                        self.sr.scroll.RemoveNodes(nodesToRemove)
+                    currentActive, currentDirection = self.sortHeaders.GetCurrentActive()
+                    with ScrollListLock:
+                        sortlist = sorted(self.sr.scroll.sr.nodes, key=GetSortValue, reverse=not currentDirection)
+                        self.sr.scroll.SetOrderedNodes(sortlist, loadNodes=False)
+                    self.overviewSorted = True
+                else:
+                    self.overviewSorted = False
+                counter = 0
+                for node in self.sr.scroll.GetVisibleNodes():
+                    if node.panel and node.panel.state != uiconst.UI_HIDDEN:
+                        node.panel.Load(node)
+                        counter += 1
+                        if counter == 10:
+                            blue.pyos.BeNice(100)
+                            if self.destroyed:
+                                self.StopOverviewUpdate()
+                                return
+                            counter = 0
+
+                if not self.sr.scroll.sr.nodes:
+                    self.sr.scroll.ShowHint(localization.GetByLabel('UI/Common/NothingFound'))
+                else:
+                    self.sr.scroll.ShowHint()
+            except Exception:
+                log.LogException(extraText='Error updating inflight overview')
+                sys.exc_clear()
+
+            if doYield:
+                diff = blue.os.TimeDiffInMs(updateStartTime, blue.os.GetWallclockTimeNow())
+                sleep = max(self.minUpdateSleep, self.maxUpdateSleep - diff)
+                blue.pyos.synchro.SleepWallclock(sleep)
+            if not self.destroyed and (not self.overviewUpdateThread or self.overviewUpdateThread == stackless.getcurrent()):
+                self.overviewUpdateThread = uthread.new(self.UpdateOverview, doYield=True)
+            return
+
+    def SetFreezeOverview(self, freeze=True):
         triggerUpdate = False
         if not freeze and freeze != self._freezeOverview:
             triggerUpdate = True
@@ -1242,6 +1301,7 @@ class OverView(ActionPanel):
             node.sortValue[node.sortAngularVelocityIndex] = angularVelocity
         if node.sortTransversalVelocityIndex is not None:
             node.sortValue[node.sortTransversalVelocityIndex] = transveralVelocity
+        return
 
     def GetSelectedTabArgs(self):
         if hasattr(self, 'maintabs'):
@@ -1254,6 +1314,7 @@ class OverView(ActionPanel):
                 return
             else:
                 return selectedArgs[3]
+        return
 
     def OnSessionChanged(self, isRemote, session, change):
         if self.destroyed:
@@ -1264,12 +1325,20 @@ class OverView(ActionPanel):
         if 'shipid' in change:
             self.FlagBallparkDirty('OnSessionChanged')
 
+    def OnEnterSpace(self):
+        self.FlagBallparkDirty('OnEnterSpace')
+
     def OnTutorialHighlightItem(self, itemID, isActive):
         node = self._scrollNodesByItemID.get(itemID, None)
         if node is None:
             return
-        if node.panel:
-            node.panel.UpdateTutorialHighlight(isActive)
+        else:
+            if node.panel:
+                node.panel.UpdateTutorialHighlight(isActive)
+            return
+
+    def OnStructuresVisibilityUpdated(self):
+        self.FlagBallparkDirty('OnStructuresVisibilityUpdated')
 
 
 FMT_RADPERSEC = u'{value} rad/sec'
@@ -1304,6 +1373,7 @@ class SpaceObjectIcon(Container):
         elif self.hostileIndicator:
             self.hostileIndicator.Close()
             self.hostileIndicator = None
+        return
 
     def SetAttackingState(self, state):
         if state:
@@ -1315,6 +1385,7 @@ class SpaceObjectIcon(Container):
         elif self.attackingMeIndicator:
             self.attackingMeIndicator.Close()
             self.attackingMeIndicator = None
+        return
 
     def SetTargetedByMeState(self, state):
         if state:
@@ -1323,6 +1394,7 @@ class SpaceObjectIcon(Container):
         elif self.targetedByMeIndicator:
             self.targetedByMeIndicator.Close()
             self.targetedByMeIndicator = None
+        return
 
     def SetActiveTargetState(self, state):
         if state:
@@ -1331,8 +1403,9 @@ class SpaceObjectIcon(Container):
         elif self.myActiveTargetIndicator:
             self.myActiveTargetIndicator.Close()
             self.myActiveTargetIndicator = None
+        return
 
-    def SetIconFlag(self, iconFlag, useSmallColorTags = False):
+    def SetIconFlag(self, iconFlag, useSmallColorTags=False):
         if iconFlag and iconFlag != -1:
             stateSvc = sm.GetService('state')
             if self.flagIcon is None:
@@ -1350,6 +1423,7 @@ class SpaceObjectIcon(Container):
             self.flagIcon.Close()
             self.flagIcon = None
             self.flagStateHint = None
+        return
 
     def SetBackgroundColorFlag(self, backgroundFlag):
         if backgroundFlag and backgroundFlag != -1:
@@ -1372,6 +1446,7 @@ class SpaceObjectIcon(Container):
         elif self.flagBackgroundColor:
             self.flagBackgroundColor.Close()
             self.flagBackgroundColor = None
+        return
 
     def SetTargetingState(self, state):
         if state:
@@ -1390,6 +1465,7 @@ class SpaceObjectIcon(Container):
         elif self.targetingIndicator:
             self.targetingIndicator.Close()
             self.targetingIndicator = None
+        return
 
     def AnimateTargeting(self, par):
         while par and not par.destroyed:
@@ -1402,18 +1478,20 @@ class SpaceObjectIcon(Container):
     def UpdateSpaceObjectIcon(self, slimItem, ball):
         if self.destroyed:
             return
-        iconHint = None
-        if slimItem.hackingSecurityState is not None:
-            iconNo, iconHint = uicls.InSpaceBracket.GetHackingIcon(slimItem.hackingSecurityState)
         else:
-            iconNo, _dockType, _minDist, _maxDist, _iconOffset, _logflag = sm.GetService('bracket').GetBracketProps(slimItem, ball)
-        if slimItem.groupID == const.groupWreck:
-            if slimItem.isEmpty:
-                iconHint = localization.GetByLabel('Tooltips/Overview/EmptyWreck')
+            iconHint = None
+            if slimItem.hackingSecurityState is not None:
+                iconNo, iconHint = uicls.InSpaceBracket.GetHackingIcon(slimItem.hackingSecurityState)
             else:
-                iconHint = localization.GetByLabel('Tooltips/Overview/ContainsLoot')
-        self.iconSprite.LoadIcon(iconNo)
-        self.iconHint = iconHint
+                iconNo, _dockType, _minDist, _maxDist, _iconOffset, _logflag = sm.GetService('bracket').GetBracketProps(slimItem, ball)
+            if slimItem.groupID == const.groupWreck:
+                if slimItem.isEmpty:
+                    iconHint = localization.GetByLabel('Tooltips/Overview/EmptyWreck')
+                else:
+                    iconHint = localization.GetByLabel('Tooltips/Overview/ContainsLoot')
+            self.iconSprite.LoadIcon(iconNo)
+            self.iconHint = iconHint
+            return
 
     @telemetry.ZONE_METHOD
     def UpdateSpaceObjectIconColor(self, slimItem, ball):
@@ -1487,20 +1565,22 @@ class OverviewScrollEntry(uicontrols.SE_BaseClassCore):
         ball = node.ball()
         if not (slimItem and ball):
             return
-        self.mainIcon = SpaceObjectIcon(parent=self, align=uiconst.CENTERLEFT, left=3)
-        self.mainIcon.LoadTooltipPanel = self.LoadIconTooltipPanel
-        self.mainIcon.GetTooltipPointer = self.GetIconTooltipPointer
-        self.mainIcon.DelegateEvents(self)
-        self.mainIcon.UpdateSpaceObjectIcon(slimItem, ball)
-        self.mainIcon.UpdateSpaceObjectState(slimItem, ball)
-        selected, hilited = sm.GetService('state').GetStates(self.stateItemID, [state.selected, state.mouseOver])
-        if selected:
-            self.ShowSelected()
-        if hilited:
-            self.ShowHilite()
-        elif uicore.uilib.mouseOver is not self:
-            self.HideHilite()
-        self.UpdateFleetBroadcast()
+        else:
+            self.mainIcon = SpaceObjectIcon(parent=self, align=uiconst.CENTERLEFT, left=3)
+            self.mainIcon.LoadTooltipPanel = self.LoadIconTooltipPanel
+            self.mainIcon.GetTooltipPointer = self.GetIconTooltipPointer
+            self.mainIcon.DelegateEvents(self)
+            self.mainIcon.UpdateSpaceObjectIcon(slimItem, ball)
+            self.mainIcon.UpdateSpaceObjectState(slimItem, ball)
+            selected, hilited = sm.GetService('state').GetStates(self.stateItemID, [state.selected, state.mouseOver])
+            if selected:
+                self.ShowSelected()
+            if hilited:
+                self.ShowHilite()
+            elif uicore.uilib.mouseOver is not self:
+                self.HideHilite()
+            self.UpdateFleetBroadcast()
+            return
 
     @telemetry.ZONE_METHOD
     def Load(self, node):
@@ -1534,6 +1614,8 @@ class OverviewScrollEntry(uicontrols.SE_BaseClassCore):
         self.globalMaxWidth = globalMaxWidth
         for each in self.columnLabels:
             each.globalMaxWidth = globalMaxWidth
+
+        return
 
     def CreateRightAlignedIconContainer(self):
         if self.rightAlignedIconContainer is None:
@@ -1575,46 +1657,50 @@ class OverviewScrollEntry(uicontrols.SE_BaseClassCore):
             icon = fleetbr.types[broadcastType]['smallIcon']
             self.fleetBroadcastIcon.LoadIcon(icon)
             self.UpdateRightAlignedIconContainerSize()
+        return
 
     @telemetry.ZONE_METHOD
     def UpdateFlagAndBackground(self, slimItem, *args):
         if self.destroyed or not self.updateItem or slimItem is None:
             return
-        node = self.sr.node
-        self.loadedIconAndBackgroundFlags = (node.iconAndBackgroundFlags, node.useSmallColorTags)
-        try:
-            if slimItem.groupID != const.groupAgentsinSpace and (slimItem.ownerID and IsNPC(slimItem.ownerID) or slimItem.charID and IsNPC(slimItem.charID)):
-                self.mainIcon.SetIconFlag(-1)
-                if self.flagBackground:
-                    self.flagBackground.Close()
-                    self.flagBackground = None
-            else:
-                node = self.sr.node
-                stateSvc = sm.GetService('state')
-                iconFlag, backgroundFlag = node.iconAndBackgroundFlags
-                self.mainIcon.SetIconFlag(iconFlag, useSmallColorTags=node.useSmallColorTags)
-                if backgroundFlag and backgroundFlag != -1:
-                    r, g, b, a = stateSvc.GetStateBackgroundColor(backgroundFlag)
-                    a = a * 0.5
-                    if not self.flagBackground:
-                        self.flagBackground = Fill(name='bgColor', parent=self, state=uiconst.UI_DISABLED, color=(r,
-                         g,
-                         b,
-                         a))
-                    else:
-                        self.flagBackground.SetRGBA(r, g, b, a)
-                    blink = stateSvc.GetStateBackgroundBlink(backgroundFlag)
-                    if blink:
-                        if not self.flagBackground.HasAnimation('color'):
-                            uicore.animations.FadeTo(self.flagBackground, startVal=0.0, endVal=a, duration=0.75, loops=uiconst.ANIM_REPEAT, curveType=uiconst.ANIM_WAVE)
-                    else:
-                        self.flagBackground.StopAnimations()
-                elif self.flagBackground:
-                    self.flagBackground.Close()
-                    self.flagBackground = None
-        except AttributeError:
-            if not self.destroyed:
-                raise
+        else:
+            node = self.sr.node
+            self.loadedIconAndBackgroundFlags = (node.iconAndBackgroundFlags, node.useSmallColorTags)
+            try:
+                if slimItem.groupID != const.groupAgentsinSpace and (slimItem.ownerID and IsNPC(slimItem.ownerID) or slimItem.charID and IsNPC(slimItem.charID)):
+                    self.mainIcon.SetIconFlag(-1)
+                    if self.flagBackground:
+                        self.flagBackground.Close()
+                        self.flagBackground = None
+                else:
+                    node = self.sr.node
+                    stateSvc = sm.GetService('state')
+                    iconFlag, backgroundFlag = node.iconAndBackgroundFlags
+                    self.mainIcon.SetIconFlag(iconFlag, useSmallColorTags=node.useSmallColorTags)
+                    if backgroundFlag and backgroundFlag != -1:
+                        r, g, b, a = stateSvc.GetStateBackgroundColor(backgroundFlag)
+                        a = a * 0.5
+                        if not self.flagBackground:
+                            self.flagBackground = Fill(name='bgColor', parent=self, state=uiconst.UI_DISABLED, color=(r,
+                             g,
+                             b,
+                             a))
+                        else:
+                            self.flagBackground.SetRGBA(r, g, b, a)
+                        blink = stateSvc.GetStateBackgroundBlink(backgroundFlag)
+                        if blink:
+                            if not self.flagBackground.HasAnimation('color'):
+                                uicore.animations.FadeTo(self.flagBackground, startVal=0.0, endVal=a, duration=0.75, loops=uiconst.ANIM_REPEAT, curveType=uiconst.ANIM_WAVE)
+                        else:
+                            self.flagBackground.StopAnimations()
+                    elif self.flagBackground:
+                        self.flagBackground.Close()
+                        self.flagBackground = None
+            except AttributeError:
+                if not self.destroyed:
+                    raise
+
+            return
 
     @telemetry.ZONE_METHOD
     def UpdateFlagPositions(self, *args, **kwds):
@@ -1670,15 +1756,17 @@ class OverviewScrollEntry(uicontrols.SE_BaseClassCore):
                 label.Close()
 
         self.columnLabels = currentLabels
+        return
 
-    def GetRadialMenuIndicator(self, create = True, *args):
+    def GetRadialMenuIndicator(self, create=True, *args):
         indicator = getattr(self, 'radialMenuIndicator', None)
         if indicator and not indicator.destroyed:
             return indicator
-        if not create:
+        elif not create:
             return
-        self.radialMenuIndicator = FillThemeColored(bgParent=self, name='radialMenuIndicator', colorType=uiconst.COLORTYPE_UIHILIGHT)
-        return self.radialMenuIndicator
+        else:
+            self.radialMenuIndicator = FillThemeColored(bgParent=self, name='radialMenuIndicator', colorType=uiconst.COLORTYPE_UIHILIGHT)
+            return self.radialMenuIndicator
 
     def ShowRadialMenuIndicator(self, slimItem, *args):
         indicator = self.GetRadialMenuIndicator(create=True)
@@ -1711,39 +1799,40 @@ class OverviewScrollEntry(uicontrols.SE_BaseClassCore):
                     node.display_DISTANCE = FMT_AU.format(distance=FMTFUNCTION(currentDist, useGrouping=True, decimalPlaces=1))
                     node.lastFormattedDistance = currentDist
             return node.display_DISTANCE or u''
-        if columnID == COLUMN_ANGULARVELOCITY:
-            sortValue = node.rawAngularVelocity
-            if sortValue is not None:
-                currentAngularVelocity = round(sortValue, 7)
-                if currentAngularVelocity != node.lastFormattedAngularVelocity:
-                    node.display_ANGULARVELOCITY = FMTFUNCTION(currentAngularVelocity, useGrouping=True, decimalPlaces=7)
-                    node.lastFormattedAngularVelocity = currentAngularVelocity
-                return node.display_ANGULARVELOCITY or u'-'
-        elif columnID == COLUMN_VELOCITY:
-            sortValue = node.rawVelocity
-            if sortValue is not None:
-                currentVelocity = int(sortValue)
-                if currentVelocity != node.lastFormattedVelocity:
-                    node.display_VELOCITY = FMTFUNCTION(currentVelocity, useGrouping=True)
-                    node.lastFormattedVelocity = currentVelocity
-                return node.display_VELOCITY or u'-'
-        elif columnID == COLUMN_RADIALVELOCITY:
-            sortValue = node.rawRadialVelocity
-            if sortValue is not None:
-                currentRadialVelocity = int(sortValue)
-                if currentRadialVelocity != node.lastFormattedRadialVelocity:
-                    node.display_RADIALVELOCITY = FMTFUNCTION(currentRadialVelocity, useGrouping=True)
-                    node.lastFormattedRadialVelocity = currentRadialVelocity
-                return node.display_RADIALVELOCITY or u'-'
-        elif columnID == COLUMN_TRANSVERSALVELOCITY:
-            sortValue = node.rawTransveralVelocity
-            if sortValue is not None:
-                currentTransveralVelocity = int(sortValue)
-                if currentTransveralVelocity != node.lastFormattedTransveralVelocity:
-                    node.display_TRANSVERSALVELOCITY = FMTFUNCTION(currentTransveralVelocity, useGrouping=True)
-                    node.lastFormattedTransveralVelocity = currentTransveralVelocity
-                return node.display_TRANSVERSALVELOCITY or u'-'
-        return node.Get('display_' + columnID, None)
+        else:
+            if columnID == COLUMN_ANGULARVELOCITY:
+                sortValue = node.rawAngularVelocity
+                if sortValue is not None:
+                    currentAngularVelocity = round(sortValue, 7)
+                    if currentAngularVelocity != node.lastFormattedAngularVelocity:
+                        node.display_ANGULARVELOCITY = FMTFUNCTION(currentAngularVelocity, useGrouping=True, decimalPlaces=7)
+                        node.lastFormattedAngularVelocity = currentAngularVelocity
+                    return node.display_ANGULARVELOCITY or u'-'
+            elif columnID == COLUMN_VELOCITY:
+                sortValue = node.rawVelocity
+                if sortValue is not None:
+                    currentVelocity = int(sortValue)
+                    if currentVelocity != node.lastFormattedVelocity:
+                        node.display_VELOCITY = FMTFUNCTION(currentVelocity, useGrouping=True)
+                        node.lastFormattedVelocity = currentVelocity
+                    return node.display_VELOCITY or u'-'
+            elif columnID == COLUMN_RADIALVELOCITY:
+                sortValue = node.rawRadialVelocity
+                if sortValue is not None:
+                    currentRadialVelocity = int(sortValue)
+                    if currentRadialVelocity != node.lastFormattedRadialVelocity:
+                        node.display_RADIALVELOCITY = FMTFUNCTION(currentRadialVelocity, useGrouping=True)
+                        node.lastFormattedRadialVelocity = currentRadialVelocity
+                    return node.display_RADIALVELOCITY or u'-'
+            elif columnID == COLUMN_TRANSVERSALVELOCITY:
+                sortValue = node.rawTransveralVelocity
+                if sortValue is not None:
+                    currentTransveralVelocity = int(sortValue)
+                    if currentTransveralVelocity != node.lastFormattedTransveralVelocity:
+                        node.display_TRANSVERSALVELOCITY = FMTFUNCTION(currentTransveralVelocity, useGrouping=True)
+                        node.lastFormattedTransveralVelocity = currentTransveralVelocity
+                    return node.display_TRANSVERSALVELOCITY or u'-'
+            return node.Get('display_' + columnID, None)
 
     @telemetry.ZONE_METHOD
     def UpdateEwar(self):
@@ -1767,38 +1856,40 @@ class OverviewScrollEntry(uicontrols.SE_BaseClassCore):
     def OnStateChange(self, itemID, flag, status, *args):
         if self.stateItemID != itemID:
             return
-        if flag == state.mouseOver:
-            self.Hilite(status)
-        elif flag == state.selected:
-            if status:
-                self.ShowSelected()
-            else:
-                self.ShowDeselected()
-        elif flag == state.threatTargetsMe:
-            attacking, = sm.StartService('state').GetStates(itemID, [state.threatAttackingMe])
-            if attacking:
-                self.Attacking(True)
-            else:
-                self.Hostile(status)
-        elif flag == state.threatAttackingMe:
-            self.Attacking(status)
-            if not status:
-                hostile, = sm.StartService('state').GetStates(itemID, [state.threatTargetsMe])
-                self.Hostile(hostile)
-        elif flag == state.targeted:
-            self.Targeted(status)
-        elif flag == state.targeting:
-            self.Targeting(status)
-        elif flag == state.activeTarget:
-            self.ActiveTarget(status)
-        elif flag == state.flagWreckAlreadyOpened:
-            self.UpdateIconColor()
-        elif flag == state.flagWreckEmpty:
-            self.UpdateIcon()
         else:
-            broadcastDataName = fleetbr.flagToName.get(flag, None)
-            if broadcastDataName is not None:
-                self.UpdateFleetBroadcast()
+            if flag == state.mouseOver:
+                self.Hilite(status)
+            elif flag == state.selected:
+                if status:
+                    self.ShowSelected()
+                else:
+                    self.ShowDeselected()
+            elif flag == state.threatTargetsMe:
+                attacking = sm.StartService('state').GetStates(itemID, [state.threatAttackingMe])
+                if attacking:
+                    self.Attacking(True)
+                else:
+                    self.Hostile(status)
+            elif flag == state.threatAttackingMe:
+                self.Attacking(status)
+                if not status:
+                    hostile = sm.StartService('state').GetStates(itemID, [state.threatTargetsMe])
+                    self.Hostile(hostile)
+            elif flag == state.targeted:
+                self.Targeted(status)
+            elif flag == state.targeting:
+                self.Targeting(status)
+            elif flag == state.activeTarget:
+                self.ActiveTarget(status)
+            elif flag == state.flagWreckAlreadyOpened:
+                self.UpdateIconColor()
+            elif flag == state.flagWreckEmpty:
+                self.UpdateIcon()
+            else:
+                broadcastDataName = fleetbr.flagToName.get(flag, None)
+                if broadcastDataName is not None:
+                    self.UpdateFleetBroadcast()
+            return
 
     @telemetry.ZONE_METHOD
     def Hostile(self, state, *args, **kwds):
@@ -1816,12 +1907,14 @@ class OverviewScrollEntry(uicontrols.SE_BaseClassCore):
             self.targetingIndicator.Close()
             self.targetingIndicator = None
         self.mainIcon.SetTargetedByMeState(activestate)
+        return
 
     def ActiveTarget(self, activestate):
         if activestate and self.targetingIndicator:
             self.targetingIndicator.Close()
             self.targetingIndicator = None
         self.mainIcon.SetActiveTargetState(activestate)
+        return
 
     def Hilite(self, isHovered):
         if isHovered:
@@ -1852,20 +1945,22 @@ class OverviewScrollEntry(uicontrols.SE_BaseClassCore):
     def UpdateIconColor(self):
         if self.destroyed:
             return
-        node = self.sr.node
-        slimItem = node.slimItem()
-        if not slimItem:
-            return
-        if node.iconColor:
-            iconColor = node.iconColor
         else:
-            iconColor, colorSortValue = GetIconColor(slimItem, getSortValue=True)
-            if node.sortIconIndex is not None:
-                node.sortValue[node.sortIconIndex][1] = colorSortValue
-            node.iconColor = iconColor
-        if slimItem.groupID in (const.groupWreck, const.groupSpawnContainer) and sm.GetService('wreck').IsViewedWreck(slimItem.itemID):
-            iconColor = Color(*iconColor).SetBrightness(0.55).GetRGBA()
-        self.mainIcon.SetIconColor(iconColor)
+            node = self.sr.node
+            slimItem = node.slimItem()
+            if not slimItem:
+                return
+            if node.iconColor:
+                iconColor = node.iconColor
+            else:
+                iconColor, colorSortValue = GetIconColor(slimItem, getSortValue=True)
+                if node.sortIconIndex is not None:
+                    node.sortValue[node.sortIconIndex][1] = colorSortValue
+                node.iconColor = iconColor
+            if slimItem.groupID in (const.groupWreck, const.groupSpawnContainer) and sm.GetService('wreck').IsViewedWreck(slimItem.itemID):
+                iconColor = Color(*iconColor).SetBrightness(0.55).GetRGBA()
+            self.mainIcon.SetIconColor(iconColor)
+            return
 
     def OnDblClick(self, *args):
         if uicore.cmd.IsSomeCombatCommandLoaded():
@@ -1958,6 +2053,7 @@ class OverviewScrollEntry(uicontrols.SE_BaseClassCore):
         elif frame is not None:
             self.tutorialHighlight.Close()
             self.tutorialHighlight = None
+        return
 
 
 class DraggableOverviewEntry(Checkbox):
@@ -2017,6 +2113,7 @@ class FlagEntry(DraggableOverviewEntry):
         diode = uiutil.GetChild(self, 'diode')
         diode.state = uiconst.UI_NORMAL
         diode.OnClick = self.ClickDiode
+        return
 
     def Load(self, node):
         Checkbox.Load(self, node)
@@ -2038,6 +2135,7 @@ class FlagEntry(DraggableOverviewEntry):
         colorPicker.LoadTooltipPanel = self.LoadColorTooltipPanel
         colorPicker.GetTooltipPointer = self.GetColorTooltipPointer
         colorPicker.GetTooltipDelay = self.GetTooltipDelay
+        return
 
     def ClickDiode(self, *args):
         self.sr.checkbox.ToggleState()
@@ -2060,7 +2158,7 @@ class FlagEntry(DraggableOverviewEntry):
         return uiconst.POINT_LEFT_2
 
     def GetTooltipDelay(self):
-        return 50
+        pass
 
     def LoadColorTooltipPanel(self, tooltipPanel, *args):
         currentColor = self.sr.node.props.iconColor
@@ -2107,6 +2205,7 @@ class ShipEntry(DraggableOverviewEntry):
         else:
             self.sr.postEdit.state = uiconst.UI_NORMAL
         self.sr.comment.text = self.sr.node.comment
+        return
 
     def ClickDiode(self, *args):
         self.sr.checkbox.ToggleState()
@@ -2184,6 +2283,7 @@ class StatesPanel(Container):
         includedList = localization.util.Sort(includedList, key=lambda x: x.label)
         self.statesScroll.Load(contentList=includedList, scrollTo=getattr(self, 'cachedScrollPos', 0.0))
         self.AdjustIcons()
+        return
 
     def _OnResize(self, *args):
         Container._OnResize(self)
@@ -2191,15 +2291,18 @@ class StatesPanel(Container):
 
     def OnIconClicked(self, configName, *args):
         self.onChangeFunc(None, configName)
+        return
 
     def AdjustIcons(self):
         scroll = getattr(self, 'statesScroll', None)
         if not scroll:
             return
-        if scroll.sr.scrollcontrols.display:
-            self.iconCont.padRight = scroll.sr.scrollcontrols.width
         else:
-            self.iconCont.padRight = 0
+            if scroll.sr.scrollcontrols.display:
+                self.iconCont.padRight = scroll.sr.scrollcontrols.width
+            else:
+                self.iconCont.padRight = 0
+            return
 
 
 class StateOverviewEntry(Generic):
@@ -2219,6 +2322,7 @@ class StateOverviewEntry(Generic):
         self.unfilteredCb.OnMouseEnter = self.OnMouseEnter
         self.unfilteredCb.OnMouseExit = self.OnMouseExit
         self.unfilteredCb.hint = localization.GetByLabel('UI/Overview/FilterStateNotFilterOutShort')
+        return
 
     def Load(self, node):
         Generic.Load(self, node)
@@ -2290,4 +2394,3 @@ class DraggableShareContainer(LayoutGrid):
         icon = DraggableIcon(align=uiconst.TOPLEFT, pos=(0, 0, 64, 64))
         icon.LoadIcon('res:/UI/Texture/classes/Overview/shareableOverview.png')
         dragContainer.children.append(icon)
-        return (0, 0)

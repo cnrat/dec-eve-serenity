@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\client\script\ui\control\browser\eveBrowserSourceWindow.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\client\script\ui\control\browser\eveBrowserSourceWindow.py
 from carbonui.control.browser.browserSourceWindow import BrowserSourceWindowCore, BrowserSourceWindowCoreOverride
 
 class BrowserSourceWindow(BrowserSourceWindowCore):

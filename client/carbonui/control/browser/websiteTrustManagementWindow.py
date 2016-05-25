@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\packages\carbonui\control\browser\websiteTrustManagementWindow.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\packages\carbonui\control\browser\websiteTrustManagementWindow.py
 import carbonui.const as uiconst
 import uthread
 import localization
@@ -60,6 +61,7 @@ class WebsiteTrustManagementWindowCore(Window):
         self.RefreshSites()
         if initialUrl is not None:
             self.urlInput.SetValue(initialUrl)
+        return
 
     def _OnResize(self, *args):
         uthread.new(self.__OnResize, *args)
@@ -80,22 +82,26 @@ class WebsiteTrustManagementWindowCore(Window):
         if not value:
             eve.Message('trustedSiteManagementPleaseEnterUrl')
             return
-        value = value.strip()
-        if value is not None and len(value) > 0:
-            self.sitesSvc.AddTrustedSite(value)
         else:
-            eve.Message('trustedSiteManagementPleaseEnterUrl')
+            value = value.strip()
+            if value is not None and len(value) > 0:
+                self.sitesSvc.AddTrustedSite(value)
+            else:
+                eve.Message('trustedSiteManagementPleaseEnterUrl')
+            return
 
     def IgnoreSite(self, *args):
         value = self.urlInput.GetValue()
         if not value:
             eve.Message('trustedSiteManagementPleaseEnterUrl')
             return
-        value = value.strip()
-        if value is not None and len(value) > 0:
-            self.sitesSvc.AddIgnoredSite(value)
         else:
-            eve.Message('trustedSiteManagementPleaseEnterUrl')
+            value = value.strip()
+            if value is not None and len(value) > 0:
+                self.sitesSvc.AddIgnoredSite(value)
+            else:
+                eve.Message('trustedSiteManagementPleaseEnterUrl')
+            return
 
     def RemoveTrustedSite(self, *args):
         selected = self.trustScroll.GetSelected()

@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\carbon\common\stdlib\email\utils.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\carbon\common\stdlib\email\utils.py
 __all__ = ['collapse_rfc2231_value',
  'decode_params',
  'decode_rfc2231',
@@ -73,7 +74,7 @@ def getaddresses(fieldvalues):
 
 ecre = re.compile('\n  =\\?                   # literal =?\n  (?P<charset>[^?]*?)   # non-greedy up to the next ? is the charset\n  \\?                    # literal ?\n  (?P<encoding>[qb])    # either a "q" or a "b", case insensitive\n  \\?                    # literal ?\n  (?P<atom>.*?)         # non-greedy up to the next ?= is the atom\n  \\?=                   # literal ?=\n  ', re.VERBOSE | re.IGNORECASE)
 
-def formatdate(timeval = None, localtime = False, usegmt = False):
+def formatdate(timeval=None, localtime=False, usegmt=False):
     if timeval is None:
         timeval = time.time()
     if localtime:
@@ -121,7 +122,7 @@ def formatdate(timeval = None, localtime = False, usegmt = False):
      zone)
 
 
-def make_msgid(idstring = None):
+def make_msgid(idstring=None):
     timeval = time.time()
     utcdate = time.strftime('%Y%m%d%H%M%S', time.gmtime(timeval))
     pid = os.getpid()
@@ -142,13 +143,15 @@ def make_msgid(idstring = None):
 def parsedate(data):
     if not data:
         return None
-    return _parsedate(data)
+    else:
+        return _parsedate(data)
 
 
 def parsedate_tz(data):
     if not data:
         return None
-    return _parsedate_tz(data)
+    else:
+        return _parsedate_tz(data)
 
 
 def parseaddr(addr):
@@ -171,17 +174,19 @@ def decode_rfc2231(s):
     parts = s.split(TICK, 2)
     if len(parts) <= 2:
         return (None, None, s)
-    return parts
+    else:
+        return parts
 
 
-def encode_rfc2231(s, charset = None, language = None):
+def encode_rfc2231(s, charset=None, language=None):
     import urllib
     s = urllib.quote(s, safe='')
     if charset is None and language is None:
         return s
-    if language is None:
-        language = ''
-    return "%s'%s'%s" % (charset, language, s)
+    else:
+        if language is None:
+            language = ''
+        return "%s'%s'%s" % (charset, language, s)
 
 
 rfc2231_continuation = re.compile('^(?P<name>\\w+)\\*((?P<num>[0-9]+)\\*?)?$')
@@ -229,7 +234,7 @@ def decode_params(params):
     return new_params
 
 
-def collapse_rfc2231_value(value, errors = 'replace', fallback_charset = 'us-ascii'):
+def collapse_rfc2231_value(value, errors='replace', fallback_charset='us-ascii'):
     if isinstance(value, tuple):
         rawval = unquote(value[2])
         charset = value[0] or 'us-ascii'

@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\common\script\dogma\online.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\common\script\dogma\online.py
 from dogma.effects import Effect
 
 class OnlineEffect(Effect):
@@ -47,6 +48,7 @@ class OnlineEffect(Effect):
         dogmaLM.AddModifier(const.dgmAssModAdd, shipID, const.attributePowerLoad, itemID, const.attributePower)
         if capacitorLevel is not None:
             dogmaLM.SetAttributeValue(shipID, const.attributeCharge, capacitorLevel)
+        return
 
     def Stop(self, env, dogmaLM, itemID, shipID, charID, otherID, targetID):
         dogmaLM.RemoveModifier(const.dgmAssModAdd, shipID, const.attributeCpuLoad, itemID, const.attributeCpu)

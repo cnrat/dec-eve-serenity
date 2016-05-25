@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\client\script\ui\inflight\shipHud\leftSideButton.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\client\script\ui\inflight\shipHud\leftSideButton.py
 from carbonui import const as uiconst
 from carbonui.primitives.sprite import Sprite
 from eve.client.script.environment.invControllers import ShipCargo
@@ -9,7 +10,7 @@ import evecamera
 from localization import GetByLabel
 import uthread
 from eve.client.script.ui.shared.inventory.invWindow import Inventory
-from eve.common.script.sys.eveCfg import GetActiveShip
+from eve.common.script.sys.eveCfg import GetActiveShip, IsControllingStructure
 import localization
 import trinity
 import uicontrols
@@ -35,6 +36,7 @@ class LeftSideButton(uiprimitives.Container):
         slot = uiprimitives.Sprite(parent=self, name='slot', align=uiconst.TOALL, state=uiconst.UI_DISABLED, texturePath='res:/UI/Texture/classes/ShipUI/utilBtnBaseAndShadow.png')
         self.busy = uiprimitives.Sprite(parent=self, name='busy', align=uiconst.TOALL, state=uiconst.UI_HIDDEN, texturePath='res:/UI/Texture/classes/ShipUI/utilBtnGlow.png', color=(0.27, 0.72, 1.0, 0.53))
         self.blinkBG = uiprimitives.Sprite(parent=self, name='blinkBG', align=uiconst.TOALL, state=uiconst.UI_DISABLED, texturePath='res:/UI/Texture/classes/ShipUI/utilBtnGlow.png', opacity=0.0, blendMode=trinity.TR2_SBM_ADD)
+        return
 
     def LoadTooltipPanel(self, tooltipPanel, *args):
         if self.cmdName:
@@ -52,10 +54,12 @@ class LeftSideButton(uiprimitives.Container):
         if getattr(self, 'orgTop', None) is None:
             self.orgTop = self.top
         self.top = self.orgTop + 2
+        return
 
     def OnMouseUp(self, *args):
         if getattr(self, 'orgTop', None) is not None:
             self.top = self.orgTop
+        return
 
     def OnMouseEnter(self, *args):
         self.hilite.state = uiconst.UI_DISABLED
@@ -64,12 +68,21 @@ class LeftSideButton(uiprimitives.Container):
         self.hilite.state = uiconst.UI_HIDDEN
         if getattr(self, 'orgTop', None) is not None:
             self.top = self.orgTop
+        return
 
-    def Blink(self, loops = 3):
+    def Blink(self, loops=3):
         uicore.animations.FadeTo(self.blinkBG, 0.0, 0.9, duration=0.15, loops=loops, callback=self._BlinkFadeOut)
 
     def _BlinkFadeOut(self):
         uicore.animations.FadeOut(self.blinkBG, duration=0.6)
+
+    def Enable(self, *args):
+        uiprimitives.Container.Enable(self, *args)
+        self.opacity = 1.0
+
+    def Disable(self, *args):
+        uiprimitives.Container.Disable(self, *args)
+        self.opacity = 0.15
 
 
 def ExpandRadialMenu(button, radialClass):
@@ -95,7 +108,22 @@ class LeftSideButtonCargo(LeftSideButton):
         shipID = GetActiveShip()
         if shipID is None:
             return
-        Inventory.OpenOrShow(('ShipCargo', shipID), usePrimary=False, toggle=True)
+        else:
+            Inventory.OpenOrShow(('ShipCargo', shipID), usePrimary=False, toggle=True)
+            return
+
+    def OnDropData(self, dragObj, nodes):
+        ShipCargo().OnDropData(nodes)
+
+
+class LeftSideButtonStructureAmmoHold(LeftSideButton):
+    default_name = 'inFlightStructureAmmoBtn'
+    default_texturePath = 'res:/UI/Texture/icons/44_32_10.png'
+    cmdName = 'OpenStructureCargo'
+
+    def OnClick(self, *args):
+        LeftSideButton.OnClick(self)
+        Inventory.OpenOrShow()
 
     def OnDropData(self, dragObj, nodes):
         ShipCargo().OnDropData(nodes)
@@ -132,6 +160,7 @@ class LeftSideButtonCamera(LeftSideButton):
                 self.LoadIcon('res:/UI/Texture/classes/CameraRadialMenu/customTrackingActive.png')
         else:
             self.LoadIcon('res:/UI/Texture/classes/CameraRadialMenu/noTracking_ButtonIcon.png')
+        return
 
     def LoadTooltipPanel(self, tooltipPanel, *args):
         tooltipPanel.LoadGeneric2ColumnTemplate()
@@ -228,7 +257,6 @@ class LeftSideButtonAutopilot(LeftSideButton):
             shortcut = uicore.cmd.GetShortcutStringByFuncName(cmdName)
             if shortcut:
                 return localization.GetByLabel('UI/Inflight/ShortcutFormatter', shortcut=shortcut)
-        return ''
 
 
 class LeftSideButtonZoomIn(LeftSideButton):
@@ -271,7 +299,7 @@ class LeftSideButtonCameraBase(LeftSideButton):
             self.busy.state = uiconst.UI_HIDDEN
 
     def IsActive(self):
-        cameraID = sm.GetService('sceneManager').GetActiveCameraMode()
+        cameraID = sm.GetService('sceneManager').GetActivePrimarySpaceCam()
         return cameraID == self.cameraID
 
 

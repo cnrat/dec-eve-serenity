@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\client\script\ui\shared\info\panels\panelCertificateSkills.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\client\script\ui\shared\info\panels\panelCertificateSkills.py
 from carbonui.primitives.container import Container
 from eve.client.script.ui.control.eveLabel import EveLabelMediumBold
 from eve.client.script.ui.control.buttons import ToggleButtonGroup
@@ -40,16 +41,18 @@ class PanelCertificateSkills(Container):
     def LoadCertificateSkillsLevel(self, level):
         if getattr(self, 'scroll', None) is None:
             return
-        self.masteryLevel = level
-        scrolllist = []
-        entries = sm.GetService('certificates').GetCertificate(self.certificateID).SkillsByTypeAndLevel(level)
-        skillScrollList = sm.GetService('info').GetReqSkillInfo(None, entries, showPrereqSkills=False)
-        scrolllist += skillScrollList
-        if not len(scrolllist):
-            scrolllist.append(listentry.Get('Text', {'line': 0,
-             'text': localization.GetByLabel('UI/Certificates/NoSkillRequirements')}))
-        self.scroll.Load(contentList=scrolllist)
-        self.UpdateTrainingTime(level)
+        else:
+            self.masteryLevel = level
+            scrolllist = []
+            entries = sm.GetService('certificates').GetCertificate(self.certificateID).SkillsByTypeAndLevel(level)
+            skillScrollList = sm.GetService('info').GetReqSkillInfo(None, entries, showPrereqSkills=False)
+            scrolllist += skillScrollList
+            if not len(scrolllist):
+                scrolllist.append(listentry.Get('Text', {'line': 0,
+                 'text': localization.GetByLabel('UI/Certificates/NoSkillRequirements')}))
+            self.scroll.Load(contentList=scrolllist)
+            self.UpdateTrainingTime(level)
+            return
 
     def UpdateTrainingTime(self, level):
         trainingTime = sm.GetService('certificates').GetCertificateTrainingTimeForMasteryLevel(self.certificateID, level)

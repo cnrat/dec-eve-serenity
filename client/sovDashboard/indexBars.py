@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\packages\sovDashboard\indexBars.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\packages\sovDashboard\indexBars.py
 from carbonui.primitives.container import Container
 from carbonui.primitives.fill import Fill
 import carbonui.const as uiconst
@@ -40,8 +41,9 @@ class IndexBars(Container):
 
         self.width = self.numLevels * self.boxWidth + (self.numLevels - 1) * self.gapSize
         self.SetIndexStatus(self.currentIndex, self.partialValue)
+        return
 
-    def SetIndexStatus(self, indexStatus, partial = 0):
+    def SetIndexStatus(self, indexStatus, partial=0):
         self.currentIndex = indexStatus
         self.partialValue = partial
         for i, eachLevelCont in enumerate(self.levelBoxes):

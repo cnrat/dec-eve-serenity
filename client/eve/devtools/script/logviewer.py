@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\devtools\script\logviewer.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\devtools\script\logviewer.py
 import os
 import carbonui.const as uiconst
 from carbonui.control.scrollentries import ScrollEntryNode, SE_GenericCore
@@ -47,11 +48,13 @@ class LogViewer(Window):
         self.logSaveHandle = None
         self.PopulateScroll()
         blue.pyos.SetLogEchoFunction(blue.logInMemory.threshold, self._log_echo)
+        return
 
     def Close(self, *args, **kwargs):
         blue.pyos.SetLogEchoFunction(0, None)
         self.logSaveHandle = None
         Window.Close(self, *args, **kwargs)
+        return
 
     def OnLogThresholdRadioButtons(self, button):
         threshold = button.data['value']

@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\client\script\ui\inflight\infrastructureHub.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\client\script\ui\inflight\infrastructureHub.py
 from appConst import IHUB_BILLING_DURATION_DAYS, IHUB_DAILY_UPKEEP_BASE_COST
 from dogma.const import attributeDevIndexSovereignty, attributeDevIndexMilitary, attributeDevIndexIndustrial, attributeSovBillSystemCost
 from eve.client.script.ui.control.eveLabel import EveLabelMedium
@@ -90,7 +91,7 @@ class InfrastructureHubWnd(uicontrols.Window):
         self.militaryCont = uiprimitives.Container(parent=self.indexCont, align=uiconst.CENTER, pos=(0, 0, 101, 36))
         self.militaryBars, self.militaryDeltaSprite = self.AddIndexBarsAndIcon(parent=self.militaryCont, texturePath='res:/UI/Texture/classes/Sov/militaryIndex.png', hint=localization.GetByLabel('UI/Sovereignty/MilitaryIndex'), extraHint=localization.GetByLabel('UI/Sovereignty/MilitaryIndexExplanation'), tooltipFunc=SetNormalBoxHint)
 
-    def UpdateIndexes(self, indexID = None):
+    def UpdateIndexes(self, indexID=None):
         indexConstsAndBars = [(attributeDevIndexSovereignty, self.strategicBars, None), (attributeDevIndexMilitary, self.militaryBars, self.militaryDeltaSprite), (attributeDevIndexIndustrial, self.industryBars, self.industryDeltaSprite)]
         for indexID, bar, deltaSprite in indexConstsAndBars:
             devIndex = self.GetDevIndices().get(indexID, None)
@@ -98,6 +99,8 @@ class InfrastructureHubWnd(uicontrols.Window):
             bar.SetIndexStatus(indexInfo.level, partial=indexInfo.remainder)
             if deltaSprite:
                 SetDeltaSprite(deltaSprite, indexInfo)
+
+        return
 
     def AddIndexBarsAndIcon(self, parent, texturePath, hint, extraHint, tooltipFunc):
         indexBars = IndexBars(parent=parent, align=uiconst.TOPLEFT, state=uiconst.UI_NORMAL, boxTooltipFunc=tooltipFunc, top=2)

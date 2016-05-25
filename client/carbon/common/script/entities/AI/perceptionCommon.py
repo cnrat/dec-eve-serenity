@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\carbon\common\script\entities\AI\perceptionCommon.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\carbon\common\script\entities\AI\perceptionCommon.py
 import GameWorld
 from carbon.common.script.sys.service import Service
 import collections
@@ -52,16 +53,18 @@ class perceptionCommon(Service):
         if entity.scene.sceneID not in self.sceneManagers:
             self.LogError("Trying to register a perception component thats doesn't have a valid scene", entity.entityID)
             return
-        if component.sensorBoneName == '' and component.sensorOffsetString == '':
-            bv = entity.GetComponent('boundingVolume')
-            if bv is not None:
-                sensorOffset = geo2.Vector(*bv.minExtends)
-                sensorOffset.x = sensorOffset.x + (bv.maxExtends[0] - bv.minExtends[0]) / 2
-                sensorOffset.y = sensorOffset.y + (bv.maxExtends[1] - bv.minExtends[1]) / 2
-                sensorOffset.z = sensorOffset.z + (bv.maxExtends[2] - bv.minExtends[2]) / 2
-                component.sensorOffset = sensorOffset
-        perceptionManager = self.sceneManagers[entity.scene.sceneID]
-        perceptionManager.AddEntity(component)
+        else:
+            if component.sensorBoneName == '' and component.sensorOffsetString == '':
+                bv = entity.GetComponent('boundingVolume')
+                if bv is not None:
+                    sensorOffset = geo2.Vector(*bv.minExtends)
+                    sensorOffset.x = sensorOffset.x + (bv.maxExtends[0] - bv.minExtends[0]) / 2
+                    sensorOffset.y = sensorOffset.y + (bv.maxExtends[1] - bv.minExtends[1]) / 2
+                    sensorOffset.z = sensorOffset.z + (bv.maxExtends[2] - bv.minExtends[2]) / 2
+                    component.sensorOffset = sensorOffset
+            perceptionManager = self.sceneManagers[entity.scene.sceneID]
+            perceptionManager.AddEntity(component)
+            return
 
     def RegisterComponent(self, entity, component):
         if self.IsClientServerFlagValid(component.clientServer):
@@ -284,7 +287,7 @@ class perceptionCommon(Service):
         self.LogInfo('Done Unloading perception system for scene ', sceneID)
 
     def LoadAttributeID(self, attribute):
-        return 0
+        pass
 
     def LoadSenses(self):
         self.sensesAllowed = {}

@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\client\script\paperDoll\SkinLightmapRenderer.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\client\script\paperDoll\SkinLightmapRenderer.py
 import trinity
 import blue
 import telemetry
@@ -27,7 +28,8 @@ class SkinLightmapRenderer:
                     return job.steps[0].object
 
             return
-        return SkinLightmapRenderer.scene.object
+        else:
+            return SkinLightmapRenderer.scene.object
 
     LIGHTMAP_RENDERER_EFFECT = 'res:/Graphics/Effect/Managed/Interior/Avatar/SkinnedAvatarBRDFLightmapUnwrap_Single.fx'
     LIGHTMAP_RENDERER_DOUBLE_EFFECT = 'res:/Graphics/Effect/Managed/Interior/Avatar/SkinnedAvatarBRDFLightmapUnwrap_Double.fx'
@@ -54,7 +56,7 @@ class SkinLightmapRenderer:
             return len(self.origEffect) > 0
 
     @staticmethod
-    def CreateRenderTarget(width, height, format, useRT = False):
+    def CreateRenderTarget(width, height, format, useRT=False):
         return trinity.TriTextureRes(trinity.Tr2RenderTarget(width, height, 1, format))
 
     @telemetry.ZONE_METHOD
@@ -73,7 +75,7 @@ class SkinLightmapRenderer:
         return True
 
     @telemetry.ZONE_METHOD
-    def AddTex2D(self, effect, name, resourcePath = None):
+    def AddTex2D(self, effect, name, resourcePath=None):
         param = trinity.TriTextureParameter()
         param.name = name
         if resourcePath is not None:
@@ -88,7 +90,7 @@ class SkinLightmapRenderer:
         pass
 
     @telemetry.ZONE_METHOD
-    def __init__(self, highQuality = True, useHDR = True):
+    def __init__(self, highQuality=True, useHDR=True):
         if True:
             raytraceWidth = 2048
             raytraceHeight = 2048
@@ -158,6 +160,7 @@ class SkinLightmapRenderer:
 
         self.meshes = {}
         SkinLightmapRenderer.instances.add(weakref.ref(self))
+        return
 
     @telemetry.ZONE_METHOD
     def __del__(self):
@@ -194,12 +197,15 @@ class SkinLightmapRenderer:
                 res = self.AddTex2D(effect, 'BeckmannLookup', 'res:/Texture/Global/beckmannSpecular.dds')
         if self.precomputeBeckmann:
             res.SetResource(self.beckmannLookup)
+        return
 
     @staticmethod
     def FindResource(effect, name):
         for r in effect.resources:
             if r.name == name:
                 return r
+
+        return None
 
     @staticmethod
     def DuplicateResource(targetEffect, sourceEffect, name):
@@ -209,7 +215,7 @@ class SkinLightmapRenderer:
         targetEffect.resources.append(p)
 
     @staticmethod
-    def DuplicateEffect(fx, newPath, dupResources = True):
+    def DuplicateEffect(fx, newPath, dupResources=True):
         newEffect = trinity.Tr2Effect()
         newEffect.effectFilePath = newPath
         newEffect.parameters = fx.parameters
@@ -226,54 +232,58 @@ class SkinLightmapRenderer:
     def AddMesh(self, mesh):
         if mesh is None or self.lightmap is None:
             return
+        else:
 
-        def SetupSkinMap():
-            for a in itertools.chain(mesh.opaqueAreas, mesh.decalAreas):
-                if a.effect is not None and a.effect.resources is not None:
-                    for e in a.effect.resources:
-                        if e.name == 'SkinMap':
-                            self.skinMapPath = e.resourcePath
-                            self.paramSkinMap.resourcePath = self.skinMapPath
-                            return
+            def SetupSkinMap():
+                for a in itertools.chain(mesh.opaqueAreas, mesh.decalAreas):
+                    if a.effect is not None and a.effect.resources is not None:
+                        for e in a.effect.resources:
+                            if e.name == 'SkinMap':
+                                self.skinMapPath = e.resourcePath
+                                self.paramSkinMap.resourcePath = self.skinMapPath
+                                return
 
-        if self.skinMapPath is None:
-            SetupSkinMap()
-        m = self.Mesh()
-        if not m.ExtractOrigEffect(mesh):
+                return
+
+            if self.skinMapPath is None:
+                SetupSkinMap()
+            m = self.Mesh()
+            if not m.ExtractOrigEffect(mesh):
+                return
+            for areaRef, fx in m.origEffect.iteritems():
+                if areaRef.object is None:
+                    continue
+                if pdCcf.IsBeard(areaRef.object):
+                    pdCcf.AddWeakBlue(m, 'lightmapRenderEffect', areaRef.object, None)
+                    pdCcf.AddWeakBlue(m, 'lightmapApplyEffect', areaRef.object, fx)
+                    pdCcf.AddWeakBlue(m, 'stretchmapRenderEffect', areaRef.object, None)
+                    continue
+                wasDouble = 'double' in fx.effectFilePath.lower()
+                singleApply = self.LIGHTMAP_APPLICATION_EFFECT
+                doubleApply = self.LIGHTMAP_APPLICATION_DOUBLE_EFFECT
+                lightmapRenderEffect = SkinLightmapRenderer.DuplicateEffect(fx, self.LIGHTMAP_RENDERER_DOUBLE_EFFECT if wasDouble else self.LIGHTMAP_RENDERER_EFFECT)
+                lightmapApplyEffect = SkinLightmapRenderer.DuplicateEffect(fx, doubleApply if wasDouble else singleApply)
+                pdCcf.AddWeakBlue(m, 'lightmapRenderEffect', areaRef.object, lightmapRenderEffect)
+                pdCcf.AddWeakBlue(m, 'lightmapApplyEffect', areaRef.object, lightmapApplyEffect)
+                stretchmapRenderEffect = trinity.Tr2Effect()
+                stretchmapRenderEffect.effectFilePath = self.STRETCHMAP_RENDERER_EFFECT
+                stretchmapRenderEffect.parameters = fx.parameters
+                pdCcf.AddWeakBlue(m, 'stretchmapRenderEffect', areaRef.object, stretchmapRenderEffect)
+                m.liveParameters.append(filter(lambda r: r[0].name.startswith('WrinkleNormalStrength') or r[0].name.startswith('spotLight'), zip(fx.parameters, lightmapRenderEffect.parameters, lightmapApplyEffect.parameters)))
+                self.CreateExtraMaps(lightmapApplyEffect)
+                stretchmapRenderEffect.PopulateParameters()
+                stretchmapRenderEffect.RebuildCachedData()
+                if False:
+                    self.DebugPrint('lightmapRenderEffect resources:')
+                    for p in lightmapRenderEffect.resources:
+                        self.DebugPrint(p.name)
+
+                    self.DebugPrint('lightmapApplyEffect resources:')
+                    for p in lightmapApplyEffect.resources:
+                        self.DebugPrint(p.name)
+
+            pdCcf.AddWeakBlue(self, 'meshes', mesh, m)
             return
-        for areaRef, fx in m.origEffect.iteritems():
-            if areaRef.object is None:
-                continue
-            if pdCcf.IsBeard(areaRef.object):
-                pdCcf.AddWeakBlue(m, 'lightmapRenderEffect', areaRef.object, None)
-                pdCcf.AddWeakBlue(m, 'lightmapApplyEffect', areaRef.object, fx)
-                pdCcf.AddWeakBlue(m, 'stretchmapRenderEffect', areaRef.object, None)
-                continue
-            wasDouble = 'double' in fx.effectFilePath.lower()
-            singleApply = self.LIGHTMAP_APPLICATION_EFFECT
-            doubleApply = self.LIGHTMAP_APPLICATION_DOUBLE_EFFECT
-            lightmapRenderEffect = SkinLightmapRenderer.DuplicateEffect(fx, self.LIGHTMAP_RENDERER_DOUBLE_EFFECT if wasDouble else self.LIGHTMAP_RENDERER_EFFECT)
-            lightmapApplyEffect = SkinLightmapRenderer.DuplicateEffect(fx, doubleApply if wasDouble else singleApply)
-            pdCcf.AddWeakBlue(m, 'lightmapRenderEffect', areaRef.object, lightmapRenderEffect)
-            pdCcf.AddWeakBlue(m, 'lightmapApplyEffect', areaRef.object, lightmapApplyEffect)
-            stretchmapRenderEffect = trinity.Tr2Effect()
-            stretchmapRenderEffect.effectFilePath = self.STRETCHMAP_RENDERER_EFFECT
-            stretchmapRenderEffect.parameters = fx.parameters
-            pdCcf.AddWeakBlue(m, 'stretchmapRenderEffect', areaRef.object, stretchmapRenderEffect)
-            m.liveParameters.append(filter(lambda r: r[0].name.startswith('WrinkleNormalStrength') or r[0].name.startswith('spotLight'), zip(fx.parameters, lightmapRenderEffect.parameters, lightmapApplyEffect.parameters)))
-            self.CreateExtraMaps(lightmapApplyEffect)
-            stretchmapRenderEffect.PopulateParameters()
-            stretchmapRenderEffect.RebuildCachedData()
-            if False:
-                self.DebugPrint('lightmapRenderEffect resources:')
-                for p in lightmapRenderEffect.resources:
-                    self.DebugPrint(p.name)
-
-                self.DebugPrint('lightmapApplyEffect resources:')
-                for p in lightmapApplyEffect.resources:
-                    self.DebugPrint(p.name)
-
-        pdCcf.AddWeakBlue(self, 'meshes', mesh, m)
 
     @staticmethod
     def DoChangeEffect(attrName, meshes):
@@ -285,10 +295,13 @@ class SkinLightmapRenderer:
                 if areaRef.object is not None:
                     areaRef.object.effect = effect
 
-    def ChangeEffect(self, attrName, meshes = None):
+        return
+
+    def ChangeEffect(self, attrName, meshes=None):
         if meshes is None:
             meshes = self.meshes
         SkinLightmapRenderer.DoChangeEffect(attrName, meshes)
+        return
 
     @staticmethod
     def DoRestoreShaders(meshes):
@@ -299,10 +312,11 @@ class SkinLightmapRenderer:
                     areaRef.object.effect = effect
 
     @telemetry.ZONE_METHOD
-    def RestoreShaders(self, meshes = None):
+    def RestoreShaders(self, meshes=None):
         if meshes is None:
             meshes = self.meshes
         SkinLightmapRenderer.DoRestoreShaders(meshes)
+        return
 
     @staticmethod
     def IsScattering(mesh):
@@ -330,23 +344,25 @@ class SkinLightmapRenderer:
         self.refreshMeshes = False
         if skinnedObject is None or skinnedObject.visualModel is None:
             return
-        haveNewMeshes = False
-        for mesh in skinnedObject.visualModel.meshes:
-            for meshRef in self.meshes:
-                if meshRef.object == mesh:
-                    break
-            else:
-                haveNewMeshes = self.BindLightmapShader(mesh) or haveNewMeshes
+        else:
+            haveNewMeshes = False
+            for mesh in skinnedObject.visualModel.meshes:
+                for meshRef in self.meshes:
+                    if meshRef.object == mesh:
+                        break
+                else:
+                    haveNewMeshes = self.BindLightmapShader(mesh) or haveNewMeshes
 
-        scene = SkinLightmapRenderer.Scene()
-        for each in scene.dynamics:
-            each.display = each == skinnedObject
+            scene = SkinLightmapRenderer.Scene()
+            for each in scene.dynamics:
+                each.display = each == skinnedObject
 
-        if haveNewMeshes:
-            self.RenderStretchmap()
+            if haveNewMeshes:
+                self.RenderStretchmap()
+            return
 
     @telemetry.ZONE_METHOD
-    def Refresh(self, immediateUpdate = False):
+    def Refresh(self, immediateUpdate=False):
         self.refreshMeshes = True
         if immediateUpdate:
             self.SetSkinnedObject(self.skinnedObject)
@@ -355,9 +371,12 @@ class SkinLightmapRenderer:
     def DoCopyMeshesToVisual(skinnedObject, meshList):
         if skinnedObject is None or skinnedObject.visualModel is None:
             return
-        skinnedObject.visualModel.meshes.removeAt(-1)
-        for mesh in meshList:
-            skinnedObject.visualModel.meshes.append(mesh)
+        else:
+            skinnedObject.visualModel.meshes.removeAt(-1)
+            for mesh in meshList:
+                skinnedObject.visualModel.meshes.append(mesh)
+
+            return
 
     @telemetry.ZONE_METHOD
     def CopyMeshesToVisual(self, meshList):
@@ -380,6 +399,7 @@ class SkinLightmapRenderer:
                     params[2].value = params[0].value
 
         trinity.settings.SetValue('apexVisualizeOnly', True)
+        return
 
     @telemetry.ZONE_METHOD
     def OnAfterUnwrap(self):
@@ -395,7 +415,7 @@ class SkinLightmapRenderer:
         trinity.settings.SetValue('apexVisualizeOnly', False)
 
     @telemetry.ZONE_METHOD
-    def CreateRJ(self, target, name, depthClear = 0.0, setDepthStencil = True, clearColor = (0.125, 0.125, 0.125, 1.0), isRT = False):
+    def CreateRJ(self, target, name, depthClear=0.0, setDepthStencil=True, clearColor=(0.125, 0.125, 0.125, 1.0), isRT=False):
         rj = trinity.CreateRenderJob(name)
         rj.PushRenderTarget(target.wrappedRenderTarget).name = name
         if setDepthStencil:
@@ -423,6 +443,7 @@ class SkinLightmapRenderer:
         rj.PopRenderTarget()
         rj.PopDepthStencil()
         rj.ScheduleOnce()
+        return
 
     @staticmethod
     def FuncWrapper(weakSelf, func):
@@ -430,29 +451,32 @@ class SkinLightmapRenderer:
             func(weakSelf())
 
     @telemetry.ZONE_METHOD
-    def AddCallback(self, func, name, rj = None):
+    def AddCallback(self, func, name, rj=None):
         cb = trinity.TriStepPythonCB()
         weakSelf = weakref.ref(self)
         cb.SetCallback(lambda : SkinLightmapRenderer.FuncWrapper(weakSelf, func))
         cb.name = name
         rj = rj if rj is not None else self.lightmapRenderJob
         rj.steps.append(cb)
+        return
 
     @telemetry.ZONE_METHOD
     def RenderStretchmap(self):
         if SkinLightmapRenderer.Scene() is None:
             return
-        rj = self.CreateRJ(self.stretchmap, 'Stretchmap precalc', depthClear=None, setDepthStencil=False)
-        rj.PushDepthStencil(None)
-        self.AddCallback(SkinLightmapRenderer.OnBeforeUnwrap, 'onBeforeUnwrap', rj)
-        self.AddCallback(lambda weakSelf: weakSelf.ChangeEffect('stretchmapRenderEffect'), 'change to stretch effect', rj)
-        rj.Update(SkinLightmapRenderer.Scene())
-        rj.RenderScene(SkinLightmapRenderer.Scene())
-        self.AddCallback(SkinLightmapRenderer.OnAfterUnwrap, 'onAfterUnwrap', rj)
-        self.AddCallback(SkinLightmapRenderer.RestoreShaders, 'restoreShaders', rj)
-        rj.PopDepthStencil()
-        rj.PopRenderTarget()
-        rj.ScheduleOnce()
+        else:
+            rj = self.CreateRJ(self.stretchmap, 'Stretchmap precalc', depthClear=None, setDepthStencil=False)
+            rj.PushDepthStencil(None)
+            self.AddCallback(SkinLightmapRenderer.OnBeforeUnwrap, 'onBeforeUnwrap', rj)
+            self.AddCallback(lambda weakSelf: weakSelf.ChangeEffect('stretchmapRenderEffect'), 'change to stretch effect', rj)
+            rj.Update(SkinLightmapRenderer.Scene())
+            rj.RenderScene(SkinLightmapRenderer.Scene())
+            self.AddCallback(SkinLightmapRenderer.OnAfterUnwrap, 'onAfterUnwrap', rj)
+            self.AddCallback(SkinLightmapRenderer.RestoreShaders, 'restoreShaders', rj)
+            rj.PopDepthStencil()
+            rj.PopRenderTarget()
+            rj.ScheduleOnce()
+            return
 
     @telemetry.ZONE_METHOD
     def OnBeforeBlur(self):
@@ -516,8 +540,10 @@ class SkinLightmapRenderer:
             else:
                 rj.ScheduleRecurring()
 
+        return
+
     @staticmethod
-    def SaveTarget(target, path, isRT = False):
+    def SaveTarget(target, path, isRT=False):
         if type(target) == trinity.Tr2RenderTarget:
             trinity.Tr2HostBitmap(target).Save(path)
         else:
@@ -530,25 +556,29 @@ class SkinLightmapRenderer:
     def StartRendering(self):
         if self.lightmap is None:
             return
-        if self.lightmapRenderJob is not None:
+        elif self.lightmapRenderJob is not None:
             return
-        self.RenderLightmap()
+        else:
+            self.RenderLightmap()
+            return
 
     @telemetry.ZONE_METHOD
     def StopRendering(self):
         if self.lightmapRenderJob is None:
             return
-        if SkinLightmapRenderer.renderJob is not None and SkinLightmapRenderer.renderJob.object is not None:
-            for step in SkinLightmapRenderer.renderJob.object.steps:
-                if step.job == self.lightmapRenderJob:
-                    SkinLightmapRenderer.renderJob.object.steps.remove(step)
-                    break
-
         else:
-            self.lightmapRenderJob.UnscheduleRecurring()
-        self.lightmapRenderJob = None
+            if SkinLightmapRenderer.renderJob is not None and SkinLightmapRenderer.renderJob.object is not None:
+                for step in SkinLightmapRenderer.renderJob.object.steps:
+                    if step.job == self.lightmapRenderJob:
+                        SkinLightmapRenderer.renderJob.object.steps.remove(step)
+                        break
 
-    def CreateScatterStep(renderJob, scene, append = True):
+            else:
+                self.lightmapRenderJob.UnscheduleRecurring()
+            self.lightmapRenderJob = None
+            return
+
+    def CreateScatterStep(renderJob, scene, append=True):
         step = trinity.TriStepRunJob()
         step.name = 'Subsurface scattering'
         step.job = trinity.CreateRenderJob('Render scattering')

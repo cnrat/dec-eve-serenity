@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\packages\carbonui\primitives\transform.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\packages\carbonui\primitives\transform.py
 import blue
 import math
 import carbonui.const as uiconst
@@ -31,7 +32,7 @@ class Transform(Container):
         self.scalingCenter = attributes.get('scalingCenter', self.default_scalingCenter)
         self.scalingRotation = attributes.get('scalingRotation', self.default_scalingRotation)
 
-    def SetRotation(self, rotation = 0):
+    def SetRotation(self, rotation=0):
         self.rotation = rotation
 
     def GetRotation(self):
@@ -112,7 +113,7 @@ class Transform(Container):
 
         return property(**locals())
 
-    def StartRotationCycle(self, direction = 1, cycleTime = 1000.0, cycles = None):
+    def StartRotationCycle(self, direction=1, cycleTime=1000.0, cycles=None):
         if getattr(self, '_rotateCycle', False):
             self._rotateCycle = False
             blue.pyos.synchro.Yield()
@@ -134,6 +135,8 @@ class Transform(Container):
                 return
             if cycles is not None and cycles <= int(ndt):
                 return
+
+        return
 
     def Rotate(self, delta):
         newRotation = self.ClampRotation(self.rotation + delta)

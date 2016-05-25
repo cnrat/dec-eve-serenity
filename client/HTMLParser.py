@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\carbon\common\stdlib\HTMLParser.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\carbon\common\stdlib\HTMLParser.py
 import markupbase
 import re
 interesting_normal = re.compile('[&<]')
@@ -17,7 +18,7 @@ endtagfind = re.compile('</\\s*([a-zA-Z][-.a-zA-Z0-9:_]*)\\s*>')
 
 class HTMLParseError(Exception):
 
-    def __init__(self, msg, position = (None, None)):
+    def __init__(self, msg, position=(None, None)):
         self.msg = msg
         self.lineno = position[0]
         self.offset = position[1]
@@ -157,41 +158,42 @@ class HTMLParser(markupbase.ParserBase):
         endpos = self.check_for_whole_start_tag(i)
         if endpos < 0:
             return endpos
-        rawdata = self.rawdata
-        self.__starttag_text = rawdata[i:endpos]
-        attrs = []
-        match = tagfind.match(rawdata, i + 1)
-        k = match.end()
-        self.lasttag = tag = rawdata[i + 1:k].lower()
-        while k < endpos:
-            m = attrfind.match(rawdata, k)
-            if not m:
-                break
-            attrname, rest, attrvalue = m.group(1, 2, 3)
-            if not rest:
-                attrvalue = None
-            elif attrvalue[:1] == "'" == attrvalue[-1:] or attrvalue[:1] == '"' == attrvalue[-1:]:
-                attrvalue = attrvalue[1:-1]
-                attrvalue = self.unescape(attrvalue)
-            attrs.append((attrname.lower(), attrvalue))
-            k = m.end()
-
-        end = rawdata[k:endpos].strip()
-        if end not in ('>', '/>'):
-            lineno, offset = self.getpos()
-            if '\n' in self.__starttag_text:
-                lineno = lineno + self.__starttag_text.count('\n')
-                offset = len(self.__starttag_text) - self.__starttag_text.rfind('\n')
-            else:
-                offset = offset + len(self.__starttag_text)
-            self.error('junk characters in start tag: %r' % (rawdata[k:endpos][:20],))
-        if end.endswith('/>'):
-            self.handle_startendtag(tag, attrs)
         else:
-            self.handle_starttag(tag, attrs)
-            if tag in self.CDATA_CONTENT_ELEMENTS:
-                self.set_cdata_mode()
-        return endpos
+            rawdata = self.rawdata
+            self.__starttag_text = rawdata[i:endpos]
+            attrs = []
+            match = tagfind.match(rawdata, i + 1)
+            k = match.end()
+            self.lasttag = tag = rawdata[i + 1:k].lower()
+            while k < endpos:
+                m = attrfind.match(rawdata, k)
+                if not m:
+                    break
+                attrname, rest, attrvalue = m.group(1, 2, 3)
+                if not rest:
+                    attrvalue = None
+                elif not attrvalue[:1] == "'" == attrvalue[-1:]:
+                    attrvalue = attrvalue[:1] == '"' == attrvalue[-1:] and attrvalue[1:-1]
+                    attrvalue = self.unescape(attrvalue)
+                attrs.append((attrname.lower(), attrvalue))
+                k = m.end()
+
+            end = rawdata[k:endpos].strip()
+            if end not in ('>', '/>'):
+                lineno, offset = self.getpos()
+                if '\n' in self.__starttag_text:
+                    lineno = lineno + self.__starttag_text.count('\n')
+                    offset = len(self.__starttag_text) - self.__starttag_text.rfind('\n')
+                else:
+                    offset = offset + len(self.__starttag_text)
+                self.error('junk characters in start tag: %r' % (rawdata[k:endpos][:20],))
+            if end.endswith('/>'):
+                self.handle_startendtag(tag, attrs)
+            else:
+                self.handle_starttag(tag, attrs)
+                if tag in self.CDATA_CONTENT_ELEMENTS:
+                    self.set_cdata_mode()
+            return endpos
 
     def check_for_whole_start_tag(self, i):
         rawdata = self.rawdata
@@ -276,15 +278,18 @@ class HTMLParser(markupbase.ParserBase):
                 else:
                     c = int(s)
                 return unichr(c)
-            import htmlentitydefs
-            if HTMLParser.entitydefs is None:
-                entitydefs = HTMLParser.entitydefs = {'apos': u"'"}
-                for k, v in htmlentitydefs.name2codepoint.iteritems():
-                    entitydefs[k] = unichr(v)
+            else:
+                import htmlentitydefs
+                if HTMLParser.entitydefs is None:
+                    entitydefs = HTMLParser.entitydefs = {'apos': u"'"}
+                    for k, v in htmlentitydefs.name2codepoint.iteritems():
+                        entitydefs[k] = unichr(v)
 
-            try:
-                return self.entitydefs[s]
-            except KeyError:
-                return '&' + s + ';'
+                try:
+                    return self.entitydefs[s]
+                except KeyError:
+                    return '&' + s + ';'
+
+                return
 
         return re.sub('&(#?[xX]?(?:[0-9a-fA-F]+|\\w{1,8}));', replaceEntities, s)

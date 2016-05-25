@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\packages\eveprefs\iniformat.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\packages\eveprefs\iniformat.py
 from cPickle import Unpickler, dumps
 import cStringIO
 import re
@@ -14,7 +15,7 @@ class IniIniFile(FileBasedIniFile):
      types.UnicodeType]
     number = re.compile('[\\-]?[\\d.]+')
 
-    def __init__(self, shortname, root = None, readOnly = False):
+    def __init__(self, shortname, root=None, readOnly=False):
         FileBasedIniFile.__init__(self, shortname, '.ini', root, readOnly)
         self.keyval = {}
         self.lines = self._Read().splitlines()
@@ -83,7 +84,7 @@ class IniIniFile(FileBasedIniFile):
         key = FileBasedIniFile.FixKey(self, key)
         return key.strip().replace('|', '||').replace('=', '-|-')
 
-    def _GetLineFromFixedKeyAndValue(self, fixedKey, value, forcePickle = False):
+    def _GetLineFromFixedKeyAndValue(self, fixedKey, value, forcePickle=False):
         if type(value) in types.StringTypes:
             try:
                 value = value.encode(DEFAULT_ENCODING)

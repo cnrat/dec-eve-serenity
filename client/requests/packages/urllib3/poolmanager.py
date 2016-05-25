@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\packages\requests\packages\urllib3\poolmanager.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\packages\requests\packages\urllib3\poolmanager.py
 import logging
 try:
     from urllib.parse import urljoin
@@ -19,7 +20,7 @@ SSL_KEYWORDS = ('key_file', 'cert_file', 'cert_reqs', 'ca_certs', 'ssl_version')
 class PoolManager(RequestMethods):
     proxy = None
 
-    def __init__(self, num_pools = 10, headers = None, **connection_pool_kw):
+    def __init__(self, num_pools=10, headers=None, **connection_pool_kw):
         RequestMethods.__init__(self, headers)
         self.connection_pool_kw = connection_pool_kw
         self.pools = RecentlyUsedContainer(num_pools, dispose_func=lambda p: p.close())
@@ -37,7 +38,7 @@ class PoolManager(RequestMethods):
     def clear(self):
         self.pools.clear()
 
-    def connection_from_host(self, host, port = None, scheme = 'http'):
+    def connection_from_host(self, host, port=None, scheme='http'):
         scheme = scheme or 'http'
         port = port or port_by_scheme.get(scheme, 80)
         pool_key = (scheme, host, port)
@@ -53,7 +54,7 @@ class PoolManager(RequestMethods):
         u = parse_url(url)
         return self.connection_from_host(u.host, port=u.port, scheme=u.scheme)
 
-    def urlopen(self, method, url, redirect = True, **kw):
+    def urlopen(self, method, url, redirect=True, **kw):
         u = parse_url(url)
         conn = self.connection_from_host(u.host, port=u.port, scheme=u.scheme)
         kw['assert_same_host'] = False
@@ -67,18 +68,19 @@ class PoolManager(RequestMethods):
         redirect_location = redirect and response.get_redirect_location()
         if not redirect_location:
             return response
-        redirect_location = urljoin(url, redirect_location)
-        if response.status == 303:
-            method = 'GET'
-        log.info('Redirecting %s -> %s' % (url, redirect_location))
-        kw['retries'] = kw.get('retries', 3) - 1
-        kw['redirect'] = redirect
-        return self.urlopen(method, redirect_location, **kw)
+        else:
+            redirect_location = urljoin(url, redirect_location)
+            if response.status == 303:
+                method = 'GET'
+            log.info('Redirecting %s -> %s' % (url, redirect_location))
+            kw['retries'] = kw.get('retries', 3) - 1
+            kw['redirect'] = redirect
+            return self.urlopen(method, redirect_location, **kw)
 
 
 class ProxyManager(PoolManager):
 
-    def __init__(self, proxy_url, num_pools = 10, headers = None, proxy_headers = None, **connection_pool_kw):
+    def __init__(self, proxy_url, num_pools=10, headers=None, proxy_headers=None, **connection_pool_kw):
         if isinstance(proxy_url, HTTPConnectionPool):
             proxy_url = '%s://%s:%i' % (proxy_url.scheme, proxy_url.host, proxy_url.port)
         proxy = parse_url(proxy_url)
@@ -91,12 +93,12 @@ class ProxyManager(PoolManager):
         connection_pool_kw['_proxy_headers'] = self.proxy_headers
         super(ProxyManager, self).__init__(num_pools, headers, **connection_pool_kw)
 
-    def connection_from_host(self, host, port = None, scheme = 'http'):
+    def connection_from_host(self, host, port=None, scheme='http'):
         if scheme == 'https':
             return super(ProxyManager, self).connection_from_host(host, port, scheme)
         return super(ProxyManager, self).connection_from_host(self.proxy.host, self.proxy.port, self.proxy.scheme)
 
-    def _set_proxy_headers(self, url, headers = None):
+    def _set_proxy_headers(self, url, headers=None):
         headers_ = {'Accept': '*/*'}
         netloc = parse_url(url).netloc
         if netloc:
@@ -105,7 +107,7 @@ class ProxyManager(PoolManager):
             headers_.update(headers)
         return headers_
 
-    def urlopen(self, method, url, redirect = True, **kw):
+    def urlopen(self, method, url, redirect=True, **kw):
         u = parse_url(url)
         if u.scheme == 'http':
             kw['headers'] = self._set_proxy_headers(url, kw.get('headers', self.headers))

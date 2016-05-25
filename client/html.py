@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\common\modules\nice\client\_nastyspace\html.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\common\modules\nice\client\_nastyspace\html.py
 from carbonui.control.editutils.css import css as Css
 from carbonui.control.editutils.parser import ALIGNBASELINE
 from carbonui.control.editutils.parser import ALIGNBOTTOM

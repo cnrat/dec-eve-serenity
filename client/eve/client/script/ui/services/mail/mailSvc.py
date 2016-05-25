@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\client\script\ui\services\mail\mailSvc.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\client\script\ui\services\mail\mailSvc.py
 import service
 import blue
 import sys
@@ -90,7 +91,7 @@ class mailSvc(service.Service):
         self.mailSynced = 0
         self.cacheFileCorruption = False
 
-    def Run(self, ms = None):
+    def Run(self, ms=None):
         self.state = service.SERVICE_START_PENDING
         self.mailMgr = sm.RemoteSvc('mailMgr')
         self.mailHeaders = {}
@@ -117,6 +118,7 @@ class mailSvc(service.Service):
             raise UserError('MailCacheFileError')
 
         self.state = service.SERVICE_RUNNING
+        return
 
     def OnSessionChanged(self, isremote, session, change):
         if 'charid' in change and session.charid:
@@ -250,6 +252,7 @@ class mailSvc(service.Service):
             uthread.UnLock(self)
 
         self.LogInfo('Done syncing mail')
+        return
 
     def GetLabelMaskAsList(self, mask):
         if mask < 0:
@@ -298,6 +301,7 @@ class mailSvc(service.Service):
         allUnread = allUnreadGroups.labels.get(None, 0)
         if allUnread == 0:
             self.StopMailBlinking()
+        return
 
     def StopMailBlinking(self, *args):
         self.SetBlinkTabState(False)
@@ -338,7 +342,7 @@ class mailSvc(service.Service):
         self.needToSaveHeaders = True
         sm.ScatterEvent('OnMailCountersUpdate')
 
-    def MarkMessagesAsRead(self, messageIDs, notifyServer = True):
+    def MarkMessagesAsRead(self, messageIDs, notifyServer=True):
         self.LogInfo('Mark as read', messageIDs, notifyServer)
         if notifyServer:
             self.mailMgr.MarkAsRead(messageIDs)
@@ -379,6 +383,7 @@ class mailSvc(service.Service):
                 mail.statusMask = mail.statusMask | const.mailStatusMaskTrashed
 
         self.needToSaveHeaders = True
+        return
 
     def MarkAllAsUnread(self):
         self.LogInfo('Mark all as unread')
@@ -409,6 +414,7 @@ class mailSvc(service.Service):
                 mail.statusMask = mail.statusMask & ALL_LABELS - const.mailStatusMaskRead
 
         self.needToSaveHeaders = True
+        return
 
     def MarkAllAsRead(self):
         self.LogInfo('Mark all read')
@@ -439,6 +445,7 @@ class mailSvc(service.Service):
                 mail.statusMask = mail.statusMask | const.mailStatusMaskRead
 
         self.needToSaveHeaders = True
+        return
 
     def MoveAllFromTrash(self):
         self.LogInfo('Move all from trash')
@@ -489,28 +496,30 @@ class mailSvc(service.Service):
             if not self.mailHeaders[messageID].read:
                 self.MarkMessagesAsRead([messageID])
             return self.mailBodies[messageID]
-        if len(self.mailBodiesOrder) > BODIES_IN_CACHE:
-            try:
-                self.LogInfo('Must make room in cache')
-                del self.mailBodies[self.mailBodiesOrder.pop(0)]
-            except KeyError:
-                pass
+        else:
+            if len(self.mailBodiesOrder) > BODIES_IN_CACHE:
+                try:
+                    self.LogInfo('Must make room in cache')
+                    del self.mailBodies[self.mailBodiesOrder.pop(0)]
+                except KeyError:
+                    pass
 
-        if messageID in self.mailHeaders:
-            body = self.__ReadFromBodyFile(messageID)
-            if body is None:
-                compressedBody = self.mailMgr.GetBody(messageID, not self.mailHeaders[messageID].read)
-                if compressedBody is None:
-                    return ''
-                body = zlib.decompress(compressedBody).decode('utf-8')
-                self.__WriteToBodyFile(messageID, body)
-            self.MarkMessagesAsRead([messageID], False)
-            self.mailBodies[messageID] = body
-            self.mailBodiesOrder.append(messageID)
-            return body
-        self.LogError("Asking me to get a body, but I can't find the messageID asked for in self.mailHeaders. messageID:", messageID)
+            if messageID in self.mailHeaders:
+                body = self.__ReadFromBodyFile(messageID)
+                if body is None:
+                    compressedBody = self.mailMgr.GetBody(messageID, not self.mailHeaders[messageID].read)
+                    if compressedBody is None:
+                        return ''
+                    body = zlib.decompress(compressedBody).decode('utf-8')
+                    self.__WriteToBodyFile(messageID, body)
+                self.MarkMessagesAsRead([messageID], False)
+                self.mailBodies[messageID] = body
+                self.mailBodiesOrder.append(messageID)
+                return body
+            self.LogError("Asking me to get a body, but I can't find the messageID asked for in self.mailHeaders. messageID:", messageID)
+            return
 
-    def GetMailsByLabelOrListID(self, labelID = None, orderBy = None, ascending = False, pos = 0, count = 20, listID = None):
+    def GetMailsByLabelOrListID(self, labelID=None, orderBy=None, ascending=False, pos=0, count=20, listID=None):
         if orderBy is None:
             orderBy = localization.GetByLabel('UI/Mail/Received')
         self.LogInfo('Get messages', labelID, orderBy, ascending, pos, count, listID)
@@ -540,7 +549,7 @@ class mailSvc(service.Service):
             self.TryPrimeRecipients(ret.sorted)
         return ret
 
-    def GetTrashedMails(self, orderBy = None, ascending = False, pos = 0, count = 20):
+    def GetTrashedMails(self, orderBy=None, ascending=False, pos=0, count=20):
         if orderBy is None:
             orderBy = localization.GetByLabel('UI/Mail/Received')
         self.LogInfo('Get trash', orderBy, ascending, pos, count)
@@ -555,7 +564,7 @@ class mailSvc(service.Service):
         ret.sorted = self.DoSort(tmpList, ascending=ascending, pos=pos, count=count)
         return ret
 
-    def PrepareOrder(self, message, orderBy = None, ascending = False, sentItems = 0):
+    def PrepareOrder(self, message, orderBy=None, ascending=False, sentItems=0):
         if orderBy is None:
             orderBy = localization.GetByLabel('UI/Mail/Received')
         if ascending:
@@ -564,15 +573,15 @@ class mailSvc(service.Service):
             secondarySortID = -message.messageID
         if orderBy == localization.GetByLabel('UI/Mail/Received'):
             return (message.messageID, secondarySortID)
-        if orderBy == localization.GetByLabel('UI/Mail/Subject'):
+        elif orderBy == localization.GetByLabel('UI/Mail/Subject'):
             return (message.subject.lower(), secondarySortID)
-        if orderBy == localization.GetByLabel('UI/Mail/Sender'):
+        elif orderBy == localization.GetByLabel('UI/Mail/Sender'):
             if sentItems:
                 name = self.GetRecipient(message, getName=1)
             else:
                 name = message.senderName
             return (name.lower(), secondarySortID)
-        if orderBy == localization.GetByLabel('UI/Mail/Status'):
+        elif orderBy == localization.GetByLabel('UI/Mail/Status'):
             order = 4
             if not message.read:
                 order = 1
@@ -581,8 +590,10 @@ class mailSvc(service.Service):
             elif message.forwarded:
                 order = 3
             return (order, secondarySortID)
+        else:
+            return
 
-    def DoSort(self, list, ascending = False, pos = 0, count = 20):
+    def DoSort(self, list, ascending=False, pos=0, count=20):
         self.LogInfo('Sort', ascending, pos, count)
         retMails = []
         list.sort(reverse=ascending)
@@ -604,7 +615,9 @@ class mailSvc(service.Service):
         except KeyError:
             return None
 
-    def TryPrimeRecipients(self, messages, setDone = False):
+        return None
+
+    def TryPrimeRecipients(self, messages, setDone=False):
         if getattr(self, 'donePrimingRecipients', False):
             return
         idSet = set()
@@ -618,7 +631,7 @@ class mailSvc(service.Service):
         if setDone:
             self.donePrimingRecipients = True
 
-    def GetRecipient(self, message, getName = 1):
+    def GetRecipient(self, message, getName=1):
         toCharIDs = message.toCharacterIDs or []
         toListID = message.toListID
         if message.toCorpOrAllianceID is not None:
@@ -650,13 +663,14 @@ class mailSvc(service.Service):
             return ''
         else:
             return -1
+            return
 
     def GetLabels(self):
         if self.labels is None:
             self.labels = self.mailMgr.GetLabels()
         return self.labels
 
-    def GetAllLabels(self, assignable = 0):
+    def GetAllLabels(self, assignable=0):
         self.LogInfo('GetAllLabels')
         allLabels = copy.copy(self.GetLabels())
         static = [(localization.GetByLabel('UI/Mail/LabelAlliance'), const.mailLabelAlliance),
@@ -681,7 +695,7 @@ class mailSvc(service.Service):
             allLabels.pop(const.mailLabelSent, None)
         return allLabels
 
-    def EditLabel(self, labelID, name = None, color = None):
+    def EditLabel(self, labelID, name=None, color=None):
         self.LogInfo('EditLabel', labelID, name, color)
         if name is None and color is None or name == '':
             raise UserError('MailLabelMustProvideName')
@@ -698,8 +712,9 @@ class mailSvc(service.Service):
         if color is not None:
             self.labels[labelID].color = color
         sm.ScatterEvent('OnMyLabelsChanged', 'mail_labels', None)
+        return
 
-    def CreateLabel(self, name, color = None):
+    def CreateLabel(self, name, color=None):
         self.LogInfo('CreateLabel', name, color)
         labelID = self.mailMgr.CreateLabel(name, color)
         self.GetLabels()
@@ -722,6 +737,7 @@ class mailSvc(service.Service):
                 message.labels = self.GetLabelMaskAsList(message.labelMask)
 
         sm.ScatterEvent('OnMyLabelsChanged', 'mail_labels', None)
+        return
 
     def AssignLabels(self, messageIDs, labelID):
         self.LogInfo('AssignLabels', messageIDs, labelID)
@@ -808,6 +824,7 @@ class mailSvc(service.Service):
         self.needToSaveHeaders = False
         self.cacheFileCorruption = False
         self.mailSynced = 0
+        return
 
     def __ClearBodyCache(self):
         try:
@@ -861,6 +878,7 @@ class mailSvc(service.Service):
             raise UserError('MailCacheFileError')
 
         self.LogInfo('Reading', blue.os.TimeDiffInMs(s, blue.os.GetWallclockTimeNow()))
+        return
 
     def __WriteToHeaderFile(self, key, value):
         self.__WriteToShelveFile(self.mailFileHeaders, key, value)
@@ -894,7 +912,7 @@ class mailSvc(service.Service):
     def IsFileCacheCorrupted(self):
         return self.cacheFileCorruption
 
-    def SendMail(self, toCharacterIDs = [], toListID = None, toCorpOrAllianceID = None, title = '', body = '', isReplyTo = 0, isForwardedFrom = 0):
+    def SendMail(self, toCharacterIDs=[], toListID=None, toCorpOrAllianceID=None, title='', body='', isReplyTo=0, isForwardedFrom=0):
         self.LogInfo('SendMail', toCharacterIDs, toListID, toCorpOrAllianceID, isReplyTo, isForwardedFrom)
         if toListID is not None:
             myLists = sm.GetService('mailinglists').GetMyMailingLists()
@@ -903,32 +921,33 @@ class mailSvc(service.Service):
         messageID = util.CSPAChargedAction('CSPAMailCheck', self.mailMgr, 'SendMail', toCharacterIDs, toListID, toCorpOrAllianceID, title, body, isReplyTo, isForwardedFrom)
         if messageID is None:
             return
-        if len(self.mailBodiesOrder) > BODIES_IN_CACHE:
-            try:
-                del self.mailBodies[self.mailBodiesOrder.pop(0)]
-            except KeyError:
-                pass
+        else:
+            if len(self.mailBodiesOrder) > BODIES_IN_CACHE:
+                try:
+                    del self.mailBodies[self.mailBodiesOrder.pop(0)]
+                except KeyError:
+                    pass
 
-        self.__WriteToBodyFile(messageID, body)
-        self.mailBodies[messageID] = body
-        self.mailBodiesOrder.append(messageID)
-        if isReplyTo > 0:
-            if isReplyTo in self.mailHeaders:
-                mail = self.mailHeaders[isReplyTo]
-                mail.replied = 1
-                mail.statusMask = mail.statusMask | const.mailStatusMaskReplied
-                self.needToSaveHeaders = True
-        if isForwardedFrom > 0:
-            if isForwardedFrom in self.mailHeaders:
-                mail = self.mailHeaders[isForwardedFrom]
-                mail.forwarded = 1
-                mail.statusMask = mail.statusMask | const.mailStatusMaskForwarded
-                self.needToSaveHeaders = True
-        self.OnMailSent(messageID, session.charid, blue.os.GetWallclockTime() / const.MIN * const.MIN, toCharacterIDs, toListID, toCorpOrAllianceID, title, 0)
-        sm.ScatterEvent('OnMailStatusUpdate', isReplyTo, isForwardedFrom)
-        return messageID
+            self.__WriteToBodyFile(messageID, body)
+            self.mailBodies[messageID] = body
+            self.mailBodiesOrder.append(messageID)
+            if isReplyTo > 0:
+                if isReplyTo in self.mailHeaders:
+                    mail = self.mailHeaders[isReplyTo]
+                    mail.replied = 1
+                    mail.statusMask = mail.statusMask | const.mailStatusMaskReplied
+                    self.needToSaveHeaders = True
+            if isForwardedFrom > 0:
+                if isForwardedFrom in self.mailHeaders:
+                    mail = self.mailHeaders[isForwardedFrom]
+                    mail.forwarded = 1
+                    mail.statusMask = mail.statusMask | const.mailStatusMaskForwarded
+                    self.needToSaveHeaders = True
+            self.OnMailSent(messageID, session.charid, blue.os.GetWallclockTime() / const.MIN * const.MIN, toCharacterIDs, toListID, toCorpOrAllianceID, title, 0)
+            sm.ScatterEvent('OnMailStatusUpdate', isReplyTo, isForwardedFrom)
+            return messageID
 
-    def SendMsgDlg(self, toCharacterIDs = [], toListID = None, toCorpOrAllianceID = [], isForwardedFrom = 0, isReplyTo = 0, subject = None, body = None):
+    def SendMsgDlg(self, toCharacterIDs=[], toListID=None, toCorpOrAllianceID=[], isForwardedFrom=0, isReplyTo=0, subject=None, body=None):
         if session.inDetention:
             raise UserError('NotAllowedInDetention')
         if session.userType == const.userTypeTrial:
@@ -939,35 +958,37 @@ class mailSvc(service.Service):
         sendPage = form.NewNewMessage.Open(windowID=('NewMessageWindow', blue.os.GetWallclockTime()), toCharacterIDs=toCharacterIDs, toListID=toListID, toCorpOrAllianceID=toCorpOrAllianceID, isForwardedFrom=isForwardedFrom, isReplyTo=isReplyTo, subject=subject, body=body)
         return sendPage
 
-    def GetReplyWnd(self, msg, all = 0, *args):
+    def GetReplyWnd(self, msg, all=0, *args):
         if msg is None:
             return
-        toListID = None
-        toCorpOrAllianceID = []
-        toCharacterIDs = []
-        senders = []
-        if all:
-            if msg.toCharacterIDs is not None:
-                toCharacterIDs = msg.toCharacterIDs[:]
-                if session.charid in toCharacterIDs:
-                    toCharacterIDs.remove(session.charid)
-            toCharacterIDs.append(msg.senderID)
-            if msg.toCorpOrAllianceID is not None:
-                toCorpOrAllianceID = [msg.toCorpOrAllianceID]
-            toListID = msg.toListID
         else:
-            toCharacterIDs = [msg.senderID]
-        receiversText = self.GetReceiverText(msg)
-        newmsg = self.SendMsgDlg(toCharacterIDs=toCharacterIDs, toListID=toListID, toCorpOrAllianceID=toCorpOrAllianceID, isReplyTo=msg.messageID)
-        newmsgText = self.GetReplyMessage(msg)
-        if msg.subject.startswith(localization.GetByLabel('UI/Mail/GenericInboxRe')):
-            newSubjectText = msg.subject
-        else:
-            newSubjectText = '%s %s' % (localization.GetByLabel('UI/Mail/GenericInboxRe'), msg.subject)
-        newmsg.sr.subjecField.SetValue(newSubjectText)
-        newmsg.messageedit.SetValue(newmsgText, scrolltotop=1)
+            toListID = None
+            toCorpOrAllianceID = []
+            toCharacterIDs = []
+            senders = []
+            if all:
+                if msg.toCharacterIDs is not None:
+                    toCharacterIDs = msg.toCharacterIDs[:]
+                    if session.charid in toCharacterIDs:
+                        toCharacterIDs.remove(session.charid)
+                toCharacterIDs.append(msg.senderID)
+                if msg.toCorpOrAllianceID is not None:
+                    toCorpOrAllianceID = [msg.toCorpOrAllianceID]
+                toListID = msg.toListID
+            else:
+                toCharacterIDs = [msg.senderID]
+            receiversText = self.GetReceiverText(msg)
+            newmsg = self.SendMsgDlg(toCharacterIDs=toCharacterIDs, toListID=toListID, toCorpOrAllianceID=toCorpOrAllianceID, isReplyTo=msg.messageID)
+            newmsgText = self.GetReplyMessage(msg)
+            if msg.subject.startswith(localization.GetByLabel('UI/Mail/GenericInboxRe')):
+                newSubjectText = msg.subject
+            else:
+                newSubjectText = '%s %s' % (localization.GetByLabel('UI/Mail/GenericInboxRe'), msg.subject)
+            newmsg.sr.subjecField.SetValue(newSubjectText)
+            newmsg.messageedit.SetValue(newmsgText, scrolltotop=1)
+            return
 
-    def GetReceiverText(self, mail, format = 0):
+    def GetReceiverText(self, mail, format=0):
         receiversChar = mail.toCharacterIDs
         receiversMaillistID = mail.toListID
         receiversCorp = mail.toCorpOrAllianceID or ''
@@ -1015,41 +1036,44 @@ class mailSvc(service.Service):
     def GetReplyMessage(self, msg):
         if msg is None:
             return ''
-        receiversText = self.GetReceiverText(msg)
-        if msg.statusMask & const.mailStatusMaskAutomated == const.mailStatusMaskAutomated:
-            senderText = localization.GetByLabel('UI/Map/StarMap/lblBoldName', name=msg.senderName)
         else:
-            senderText = '<a href="showinfo:1377//%s">%s</a>' % (msg.senderID, cfg.eveowners.Get(msg.senderID).ownerName)
-        body = self.GetBody(msg.messageID)
-        newmsgText = '<br><br>%(line)s<br>%(subject)s<br>%(from)s: %(senders)s<br>%(sent)s: %(date)s<br>%(to)s: %(receivers)s<br><br>%(body)s' % {'line': '--------------------------------',
-         'subject': msg.subject,
-         'from': localization.GetByLabel('UI/Mail/From'),
-         'senders': senderText,
-         'sent': localization.GetByLabel('UI/Mail/Sent'),
-         'date': util.FmtDate(msg.sentDate, 'ls'),
-         'to': localization.GetByLabel('UI/Mail/To'),
-         'receivers': receiversText,
-         'body': body}
-        maxLen = const.mailMaxBodySize * 0.9
-        if len(newmsgText) > maxLen:
-            while len(newmsgText) > maxLen:
-                try:
-                    brIndex = newmsgText.rindex('<br>', int(maxLen * 0.7))
-                    newmsgText = newmsgText[:brIndex]
-                except ValueError:
-                    lastIndex = int(len(newmsgText) * 0.9)
-                    newmsgText = newmsgText[:lastIndex]
+            receiversText = self.GetReceiverText(msg)
+            if msg.statusMask & const.mailStatusMaskAutomated == const.mailStatusMaskAutomated:
+                senderText = localization.GetByLabel('UI/Map/StarMap/lblBoldName', name=msg.senderName)
+            else:
+                senderText = '<a href="showinfo:1377//%s">%s</a>' % (msg.senderID, cfg.eveowners.Get(msg.senderID).ownerName)
+            body = self.GetBody(msg.messageID)
+            newmsgText = '<br><br>%(line)s<br>%(subject)s<br>%(from)s: %(senders)s<br>%(sent)s: %(date)s<br>%(to)s: %(receivers)s<br><br>%(body)s' % {'line': '--------------------------------',
+             'subject': msg.subject,
+             'from': localization.GetByLabel('UI/Mail/From'),
+             'senders': senderText,
+             'sent': localization.GetByLabel('UI/Mail/Sent'),
+             'date': util.FmtDate(msg.sentDate, 'ls'),
+             'to': localization.GetByLabel('UI/Mail/To'),
+             'receivers': receiversText,
+             'body': body}
+            maxLen = const.mailMaxBodySize * 0.9
+            if len(newmsgText) > maxLen:
+                while len(newmsgText) > maxLen:
+                    try:
+                        brIndex = newmsgText.rindex('<br>', int(maxLen * 0.7))
+                        newmsgText = newmsgText[:brIndex]
+                    except ValueError:
+                        lastIndex = int(len(newmsgText) * 0.9)
+                        newmsgText = newmsgText[:lastIndex]
 
-            newmsgText += '<br>...'
-        return newmsgText
+                newmsgText += '<br>...'
+            return newmsgText
 
     def GetForwardWnd(self, msg):
         if msg is None:
             return
-        newmsg = self.SendMsgDlg(isForwardedFrom=msg.messageID)
-        newmsgText = self.GetReplyMessage(msg)
-        newmsg.sr.subjecField.SetValue('%s %s' % ('FW:', msg.subject))
-        newmsg.messageedit.SetValue(newmsgText, scrolltotop=1)
+        else:
+            newmsg = self.SendMsgDlg(isForwardedFrom=msg.messageID)
+            newmsgText = self.GetReplyMessage(msg)
+            newmsg.sr.subjecField.SetValue('%s %s' % ('FW:', msg.subject))
+            newmsg.messageedit.SetValue(newmsgText, scrolltotop=1)
+            return
 
     def OnMailSent(self, messageID, senderID, sentDate, toCharacterIDs, toListID, toCorpOrAllianceID, title, statusMask):
         uthread.Lock(self)
@@ -1085,6 +1109,8 @@ class mailSvc(service.Service):
         finally:
             uthread.UnLock(self)
 
+        return
+
     def OnMailDeleted(self, messageIDs):
         uthread.Lock(self)
         try:
@@ -1101,6 +1127,8 @@ class mailSvc(service.Service):
             sm.ScatterEvent('OnMailTrashedDeleted', None, 1)
         finally:
             uthread.UnLock(self)
+
+        return
 
     def OnMailUndeleted(self, messageIDs):
         self.SyncMail()
@@ -1145,6 +1173,7 @@ class mailSvc(service.Service):
             wnd.Maximize()
             blue.pyos.synchro.SleepWallclock(1)
             wnd.SetText(self.GetMailText(msg))
+        return
 
     def CheckNewMessages_thread(self, mailCount, notificationCount):
         blue.pyos.synchro.SleepSim(3000)
@@ -1157,7 +1186,9 @@ class mailSvc(service.Service):
         if getattr(session, 'charid', None) is None:
             log.LogWarn('Mail: Waited for 13 seconds to display new messages, gave up')
             return
-        self.BlinkNeocomIfNeeded(mailCount)
+        else:
+            self.BlinkNeocomIfNeeded(mailCount)
+            return
 
     def BlinkNeocomIfNeeded(self, mailCount):
         shouldBlink = 0
@@ -1179,23 +1210,29 @@ class mailSvc(service.Service):
         myLabelNames = [ label.name for label in self.GetAllLabels(assignable=0).values() ]
         if name in myLabelNames:
             return localization.GetByLabel('UI/Mail/LabelNameTaken')
+        else:
+            return None
 
     def RenameLabelFromUI(self, labelID):
         ret = uiutil.NamePopup(localization.GetByLabel('UI/Mail/LabelName'), localization.GetByLabel('UI/Mail/LabelTypeNew'), maxLength=const.mailMaxLabelSize, validator=self.CheckLabelName)
         if ret is None:
             return
-        name = ret
-        name = name.strip()
-        if name:
-            self.EditLabel(labelID, name=name)
+        else:
+            name = ret
+            name = name.strip()
+            if name:
+                self.EditLabel(labelID, name=name)
+            return
 
     def ChangeLabelColorFromUI(self, color, labelID):
         allLabels = self.GetAllLabels()
         label = allLabels.get(labelID, None)
         if label is None:
             return
-        if color != label.color:
-            self.EditLabel(labelID, color=color)
+        else:
+            if color != label.color:
+                self.EditLabel(labelID, color=color)
+            return
 
     def GetSwatchColors(self, *args):
         return swatchColors
@@ -1207,16 +1244,16 @@ class mailSvc(service.Service):
     def ShouldTabBlink(self, *args):
         return self.blinkTab
 
-    def SetBlinkTabState(self, state = False):
+    def SetBlinkTabState(self, state=False):
         self.blinkTab = state
 
     def ShouldNeocomBlink(self, *args):
         return self.blinkNeocom
 
-    def SetBlinkNeocomState(self, state = False):
+    def SetBlinkNeocomState(self, state=False):
         self.blinkNeocom = state
 
-    def GetAssignColorWnd(self, labelID, doneCallBack = None, doneArgs = (), width = 104, height = 74, *args):
+    def GetAssignColorWnd(self, labelID, doneCallBack=None, doneArgs=(), width=104, height=74, *args):
         colorpar = xtriui.MailAssignColorWnd(name='colorpar', parent=uicore.layer.menu, idx=0, align=uiconst.TOPLEFT, pos=(0,
          0,
          width,
@@ -1233,6 +1270,7 @@ class mailSvc(service.Service):
             self.mailSettingObject = CharacterSettingsObject(yamlString)
             with ExceptionEater('Failed to migrate settings'):
                 self.TryMigrateSettings(self.mailSettingObject)
+        return
 
     def FetchMailSettingsToServer(self):
         if self.characterSettings is None:

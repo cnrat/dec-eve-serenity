@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\packages\locks\__init__.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\packages\locks\__init__.py
 import blue
 import sys
 import stackless
@@ -48,13 +49,15 @@ class LockInheritanceMap(object):
     def RemoveInheritance(self, child):
         del self.inherits[child]
 
-    def Inherits(self, parent, child = None):
+    def Inherits(self, parent, child=None):
         if child is None:
             child = stackless.getcurrent()
         try:
             return child is parent or parent in self.inherits[child]
         except KeyError:
             return False
+
+        return
 
     def GetInheritances(self):
         return [ (c, p[0]) for c, p in self.inherits.iteritems() ]
@@ -102,10 +105,14 @@ class EventQueue(object):
     def next_time(self):
         if self.queue:
             return self.queue[0][0]
+        else:
+            return None
 
     def next_delay(self):
         if self.queue:
             return max(0.0, self.queue[0][0] - self.clock())
+        else:
+            return None
 
 
 eventQueue = EventQueue()
@@ -125,6 +132,8 @@ def StartEventQueue(new):
 
             blue.pyos.synchro.Yield()
 
+        return
+
     new(Loop).context = 'EventQueueLoop'
 
 
@@ -142,9 +151,11 @@ def WaitWithTimeout(channel, timeout):
 
     eventQueue.push(eventQueue.clock() + timeout, wakeup)
     try:
-        channel.receive()
-    except LockTimeout:
-        return True
+        try:
+            channel.receive()
+        except LockTimeout:
+            return True
+
     finally:
         waiting = False
 
@@ -172,7 +183,6 @@ class LockMixin(ContextMixin):
     def LockedFor(self):
         if self.lockedWhen:
             return (blue.os.GetWallclockTime() - self.lockedWhen) * 1e-07
-        return -1.0
 
     def __repr__(self):
         return '<%s %r, t=%f at %#x>' % (self.__class__.__name__,
@@ -184,15 +194,16 @@ class LockMixin(ContextMixin):
 class FifoLock(LockMixin):
     __guid__ = 'locks.FifoLock'
 
-    def __init__(self, name = 'noname'):
+    def __init__(self, name='noname'):
         self.name = name
         self.waiting = stackless.channel()
         self.waiting.preference = 1
         self.owning = None
         self.lockedWhen = None
         lockManager.Register(self)
+        return
 
-    def acquire(self, blocking = True):
+    def acquire(self, blocking=True):
         if self.owning:
             if not blocking:
                 return False
@@ -221,6 +232,7 @@ class FifoLock(LockMixin):
             self.owning = self.waiting.queue
             self.lockedWhen = blue.os.GetTime()
             self.waiting.send(None)
+        return
 
     def IsCool(self):
         return self.owning is None
@@ -242,7 +254,7 @@ class FifoLock(LockMixin):
 
 class Lock(LockMixin):
 
-    def __init__(self, name = 'noname'):
+    def __init__(self, name='noname'):
         self.name = name
         self.waiting = stackless.channel()
         self.waiting.preference = 1
@@ -250,8 +262,9 @@ class Lock(LockMixin):
         self.owning = []
         self.lockedWhen = None
         lockManager.Register(self)
+        return
 
-    def acquire(self, blocking = 1):
+    def acquire(self, blocking=1):
         if not blocking:
             return self.try_acquire()
         while not self.try_acquire():
@@ -282,6 +295,7 @@ class Lock(LockMixin):
         if not self.owning:
             self.lockedWhen = None
         self._pump()
+        return
 
     def _release_save(self):
         r = self.owning
@@ -297,6 +311,7 @@ class Lock(LockMixin):
     def _pump(self):
         if not self.owning and self.waiting.balance:
             self.waiting.send(None)
+        return
 
     def _safe_pump(self):
         try:
@@ -340,7 +355,7 @@ class RLock(Lock):
 
 class Condition(ContextMixin):
 
-    def __init__(self, lock = None, name = 'noname'):
+    def __init__(self, lock=None, name='noname'):
         if not lock:
             lock = RLock(name)
         self.lock = lock
@@ -380,7 +395,7 @@ class Condition(ContextMixin):
         else:
             return True
 
-    def wait(self, timeout = None):
+    def wait(self, timeout=None):
         if not self._is_owned():
             raise RuntimeError, 'must have lock when waiting'
         saved = self._release_save()
@@ -392,11 +407,14 @@ class Condition(ContextMixin):
         finally:
             self._acquire_restore(saved)
 
+        return
+
     def notify(self):
         if not self._is_owned():
             raise RuntimeError, 'must have lock when waiting'
         if self.waiting.balance:
             self.waiting.send(None)
+        return
 
     def notify_all(self):
         if not self._is_owned():
@@ -404,16 +422,20 @@ class Condition(ContextMixin):
         for i in xrange(-self.waiting.balance):
             self.waiting.send(None)
 
+        return
+
     notifyAll = notify_all
 
     def Unblock(self):
         for i in xrange(-self.waiting.balance):
             self.waiting.send(None)
 
+        return
+
 
 class Event(object):
 
-    def __init__(self, name = 'none'):
+    def __init__(self, name='none'):
         self.waiting = stackless.channel()
         self.waiting.preference = 1
         self.name = name
@@ -429,20 +451,23 @@ class Event(object):
         for i in xrange(-self.waiting.balance):
             self.waiting.send(None)
 
+        return
+
     def clear(self):
         self.state = False
 
-    def wait(self, timeout = None):
+    def wait(self, timeout=None):
         if not self.state:
             if timeout is None:
                 self.waiting.receive()
             else:
                 WaitWithTimeout(self.waiting, timeout)
+        return
 
 
 class RWLock(LockMixin):
 
-    def __init__(self, lockName = 'noname'):
+    def __init__(self, lockName='noname'):
         self.name = lockName
         self.rchan = stackless.channel()
         self.wchan = stackless.channel()
@@ -452,6 +477,7 @@ class RWLock(LockMixin):
         self.owning = []
         self.lockedWhen = None
         lockManager.Register(self)
+        return
 
     def __repr__(self):
         return '<RWLock %r, state:%d, rdwait:%d, wrwait:%d, t:%f at %#x>' % (self.name,
@@ -493,7 +519,7 @@ class RWLock(LockMixin):
             return True
         return False
 
-    def acquire(self, blocking = True):
+    def acquire(self, blocking=True):
         while not self.try_acquire():
             if not blocking:
                 return False
@@ -501,7 +527,7 @@ class RWLock(LockMixin):
 
         return True
 
-    def acquire_read(self, blocking = True):
+    def acquire_read(self, blocking=True):
         while not self.try_acquire_read():
             if not blocking:
                 return False
@@ -538,6 +564,7 @@ class RWLock(LockMixin):
         if self.state == 0:
             self.lockedWhen = None
         self._pump()
+        return
 
     def _pump(self):
         while True:
@@ -548,6 +575,8 @@ class RWLock(LockMixin):
                 self.rchan.send(None)
                 continue
             break
+
+        return
 
     class LockContext(object):
 
@@ -607,23 +636,26 @@ def SingletonCall(f):
         c = map.get(key, None)
         if c:
             return c.receive()
-        c = stackless.channel()
-        c.preference = 0
-        map[key] = c
-        try:
-            r = f(*args)
-            del map[key]
-            for i in xrange(-c.balance):
-                c.send(r)
+        else:
+            c = stackless.channel()
+            c.preference = 0
+            map[key] = c
+            try:
+                r = f(*args)
+                del map[key]
+                for i in xrange(-c.balance):
+                    c.send(r)
 
-            return r
-        except:
-            del map[key]
-            e, v = sys.exc_info()[:2]
-            for i in xrange(-c.balance):
-                c.send_exception(e, v)
+                return r
+            except:
+                del map[key]
+                e, v = sys.exc_info()[:2]
+                for i in xrange(-c.balance):
+                    c.send_exception(e, v)
 
-            raise
+                raise
+
+            return
 
     return helper
 
@@ -866,7 +898,7 @@ def GetDependencyGraphFromConflictLog(text):
     return g
 
 
-def LockCycleReport(graph = None, out = None, timeLimit = None, pathLimit = 10):
+def LockCycleReport(graph=None, out=None, timeLimit=None, pathLimit=10):
     if not graph:
         g = GetDependencyGraph()
     else:
@@ -891,72 +923,73 @@ def LockCycleReport(graph = None, out = None, timeLimit = None, pathLimit = 10):
         pathtimes = [ (p, t) for p, t in pathtimes if t is None or t > timeLimit ]
     if not cycles and not pathtimes:
         return False
-    pathtimes.sort(key=lambda e: (e[1], len(e[0])), reverse=True)
-    if pathLimit:
-        del pathtimes[pathLimit:]
-    paths = [ p for p, t in pathtimes ]
-    pathtimes = [ t for p, t in pathtimes ]
-    players = []
-    seen = set()
-    for p in cycles + paths:
-        for n in p:
-            if n not in seen:
-                seen.add(n)
-                players.append(n)
+    else:
+        pathtimes.sort(key=lambda e: (e[1], len(e[0])), reverse=True)
+        if pathLimit:
+            del pathtimes[pathLimit:]
+        paths = [ p for p, t in pathtimes ]
+        pathtimes = [ t for p, t in pathtimes ]
+        players = []
+        seen = set()
+        for p in cycles + paths:
+            for n in p:
+                if n not in seen:
+                    seen.add(n)
+                    players.append(n)
 
-    nc = 0
-    map = {}
-    for p in players:
-        map[p] = 'N%d' % nc
-        nc += 1
+        nc = 0
+        map = {}
+        for p in players:
+            map[p] = 'N%d' % nc
+            nc += 1
 
-    print >> out, 'Found %s cycles' % len(cycles)
-    for i, cycle in enumerate(cycles):
-        print >> out, '%2d: ' % i,
-        for e in cycle:
-            print >> out, '%s -> ' % map[e],
+        print >> out, 'Found %s cycles' % len(cycles)
+        for i, cycle in enumerate(cycles):
+            print >> out, '%2d: ' % i,
+            for e in cycle:
+                print >> out, '%s -> ' % map[e],
 
-        print >> out
+            print >> out
 
-    print >> out, 'Found %s roots in %s paths (showing longest path for each root)' % (len(paths), npaths)
-    for i, path in enumerate(paths):
-        time = pathtimes[i]
-        if time is not None:
-            print >> out, '%2d, t=%4.0fs: ' % (i, time),
-        else:
-            print >> out, '%2d,        : ' % (i,),
-        for e in path[:-1]:
-            print >> out, '%s -> ' % map[e],
+        print >> out, 'Found %s roots in %s paths (showing longest path for each root)' % (len(paths), npaths)
+        for i, path in enumerate(paths):
+            time = pathtimes[i]
+            if time is not None:
+                print >> out, '%2d, t=%4.0fs: ' % (i, time),
+            else:
+                print >> out, '%2d,        : ' % (i,),
+            for e in path[:-1]:
+                print >> out, '%s -> ' % map[e],
 
-        print >> out, '%s' % map[path[-1]]
+            print >> out, '%s' % map[path[-1]]
 
-    minimum = 0
-    if cycles:
-        minimum = max(minimum, len(cycles[0]))
-    if paths:
-        minimum = max(minimum, len(paths[0]))
-    maximum = max(minimum, 10)
-    print >> out, 'where:'
-    for v in players[0:maximum]:
-        k = map[v]
-        print >> out, ' %3s = %r' % (k, v)
-        if stackless and isinstance(v, stackless.tasklet):
-            try:
-                if not v.alive:
-                    print >> out, 'dead'
-                elif v.frame:
-                    for s in traceback.format_list(traceback.extract_stack(v.frame, 40), format=FORMAT):
-                        print >> out, '       ' + s,
+        minimum = 0
+        if cycles:
+            minimum = max(minimum, len(cycles[0]))
+        if paths:
+            minimum = max(minimum, len(paths[0]))
+        maximum = max(minimum, 10)
+        print >> out, 'where:'
+        for v in players[0:maximum]:
+            k = map[v]
+            print >> out, ' %3s = %r' % (k, v)
+            if stackless and isinstance(v, stackless.tasklet):
+                try:
+                    if not v.alive:
+                        print >> out, 'dead'
+                    elif v.frame:
+                        for s in traceback.format_list(traceback.extract_stack(v.frame, 40), format=FORMAT):
+                            print >> out, '       ' + s,
 
-                else:
-                    print >> out, 'no frame'
-            except:
-                pass
+                    else:
+                        print >> out, 'no frame'
+                except:
+                    pass
 
-    return True
+        return True
 
 
-def OldLockReport(threshold = None, out = None):
+def OldLockReport(threshold=None, out=None):
     if out is None:
         out = sys.stdout
     now = blue.os.GetWallclockTime()
@@ -1023,11 +1056,12 @@ class LockManager(object):
 
     def Register(self, lock):
         self.locks[lock] = None
+        return
 
     def GetLocks(self):
         return self.locks.keys()
 
-    def TempLock(self, key, lockClass = RLock):
+    def TempLock(self, key, lockClass=RLock):
         lock = self.locksByName.get(key, None)
         if lock is None:
             lock = lockClass(str(key))

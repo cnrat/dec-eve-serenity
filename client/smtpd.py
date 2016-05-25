@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\carbon\common\stdlib\smtpd.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\carbon\common\stdlib\smtpd.py
 import sys
 import os
 import errno
@@ -28,7 +29,7 @@ NEWLINE = '\n'
 EMPTYSTRING = ''
 COMMASPACE = ', '
 
-def usage(code, msg = ''):
+def usage(code, msg=''):
     print >> sys.stderr, __doc__ % globals()
     if msg:
         print >> sys.stderr, msg
@@ -63,6 +64,7 @@ class SMTPChannel(asynchat.async_chat):
         print >> DEBUGSTREAM, 'Peer:', repr(self.__peer)
         self.push('220 %s %s' % (self.__fqdn, __version__))
         self.set_terminator('\r\n')
+        return
 
     def push(self, msg):
         asynchat.async_chat.push(self, msg + '\r\n')
@@ -92,26 +94,28 @@ class SMTPChannel(asynchat.async_chat):
                 return
             method(arg)
             return
-        if self.__state != self.DATA:
+        elif self.__state != self.DATA:
             self.push('451 Internal confusion')
             return
-        data = []
-        for text in line.split('\r\n'):
-            if text and text[0] == '.':
-                data.append(text[1:])
-            else:
-                data.append(text)
-
-        self.__data = NEWLINE.join(data)
-        status = self.__server.process_message(self.__peer, self.__mailfrom, self.__rcpttos, self.__data)
-        self.__rcpttos = []
-        self.__mailfrom = None
-        self.__state = self.COMMAND
-        self.set_terminator('\r\n')
-        if not status:
-            self.push('250 Ok')
         else:
-            self.push(status)
+            data = []
+            for text in line.split('\r\n'):
+                if text and text[0] == '.':
+                    data.append(text[1:])
+                else:
+                    data.append(text)
+
+            self.__data = NEWLINE.join(data)
+            status = self.__server.process_message(self.__peer, self.__mailfrom, self.__rcpttos, self.__data)
+            self.__rcpttos = []
+            self.__mailfrom = None
+            self.__state = self.COMMAND
+            self.set_terminator('\r\n')
+            if not status:
+                self.push('250 Ok')
+            else:
+                self.push(status)
+            return
 
     def smtp_HELO(self, arg):
         if not arg:
@@ -150,35 +154,41 @@ class SMTPChannel(asynchat.async_chat):
         if not address:
             self.push('501 Syntax: MAIL FROM:<address>')
             return
-        if self.__mailfrom:
+        elif self.__mailfrom:
             self.push('503 Error: nested MAIL command')
             return
-        self.__mailfrom = address
-        print >> DEBUGSTREAM, 'sender:', self.__mailfrom
-        self.push('250 Ok')
+        else:
+            self.__mailfrom = address
+            print >> DEBUGSTREAM, 'sender:', self.__mailfrom
+            self.push('250 Ok')
+            return
 
     def smtp_RCPT(self, arg):
         print >> DEBUGSTREAM, '===> RCPT', arg
         if not self.__mailfrom:
             self.push('503 Error: need MAIL command')
             return
-        address = self.__getaddr('TO:', arg) if arg else None
-        if not address:
-            self.push('501 Syntax: RCPT TO: <address>')
+        else:
+            address = self.__getaddr('TO:', arg) if arg else None
+            if not address:
+                self.push('501 Syntax: RCPT TO: <address>')
+                return
+            self.__rcpttos.append(address)
+            print >> DEBUGSTREAM, 'recips:', self.__rcpttos
+            self.push('250 Ok')
             return
-        self.__rcpttos.append(address)
-        print >> DEBUGSTREAM, 'recips:', self.__rcpttos
-        self.push('250 Ok')
 
     def smtp_RSET(self, arg):
         if arg:
             self.push('501 Syntax: RSET')
             return
-        self.__mailfrom = None
-        self.__rcpttos = []
-        self.__data = ''
-        self.__state = self.COMMAND
-        self.push('250 Ok')
+        else:
+            self.__mailfrom = None
+            self.__rcpttos = []
+            self.__data = ''
+            self.__state = self.COMMAND
+            self.push('250 Ok')
+            return
 
     def smtp_DATA(self, arg):
         if not self.__rcpttos:
@@ -218,6 +228,7 @@ class SMTPServer(asyncore.dispatcher):
             conn, addr = pair
             print >> DEBUGSTREAM, 'Incoming connection from %s' % repr(addr)
             channel = SMTPChannel(self, conn, addr)
+        return
 
     def process_message(self, peer, mailfrom, rcpttos, data):
         raise NotImplementedError

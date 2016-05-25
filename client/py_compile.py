@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\carbon\common\stdlib\py_compile.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\carbon\common\stdlib\py_compile.py
 import __builtin__
 import imp
 import marshal
@@ -10,7 +11,7 @@ __all__ = ['compile', 'main', 'PyCompileError']
 
 class PyCompileError(Exception):
 
-    def __init__(self, exc_type, exc_value, file, msg = ''):
+    def __init__(self, exc_type, exc_value, file, msg=''):
         exc_type_name = exc_type.__name__
         if exc_type is SyntaxError:
             tbtext = ''.join(traceback.format_exception_only(exc_type, exc_value))
@@ -34,7 +35,7 @@ def wr_long(f, x):
     f.write(chr(x >> 24 & 255))
 
 
-def compile(file, cfile = None, dfile = None, doraise = False):
+def compile(file, cfile=None, dfile=None, doraise=False):
     with open(file, 'U') as f:
         try:
             timestamp = long(os.fstat(f.fileno()).st_mtime)
@@ -61,9 +62,10 @@ def compile(file, cfile = None, dfile = None, doraise = False):
         fc.flush()
         fc.seek(0, 0)
         fc.write(MAGIC)
+    return
 
 
-def main(args = None):
+def main(args=None):
     if args is None:
         args = sys.argv[1:]
     rv = 0

@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\client\script\ui\services\flightPredictionSvc.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\client\script\ui\services\flightPredictionSvc.py
 import blue
 import uiprimitives
 import uicontrols
@@ -34,7 +35,7 @@ LINE_WIDTH = 3.0
 
 class PredictionLineSettings():
 
-    def __init__(self, mode = None, range = None, targetID = None, otherData = None):
+    def __init__(self, mode=None, range=None, targetID=None, otherData=None):
         self.mode = mode
         self.range = range
         self.targetID = targetID
@@ -45,6 +46,7 @@ class OrbitRangeDrawer():
 
     def __init__(self):
         self.lineSet = None
+        return
 
     def AddLinesToScene(self):
         if self.lineSet is None:
@@ -54,7 +56,8 @@ class OrbitRangeDrawer():
             if self.lineSet not in scene.objects:
                 scene.objects.append(self.lineSet)
             return True
-        return False
+        else:
+            return False
 
     def CreateLineset(self):
         lineSet = trinity.EveCurveLineSet()
@@ -88,6 +91,7 @@ class OrbitRangeDrawer():
         if self.lineSet is not None:
             self.lineSet.ClearLines()
             self.lineSet.SubmitChanges()
+        return
 
     def TearDownLines(self):
         self.ClearLines()
@@ -96,11 +100,12 @@ class OrbitRangeDrawer():
             if self.lineSet in scene.objects:
                 scene.objects.remove(self.lineSet)
         self.lineSet = None
+        return
 
 
 class SmoothSpaceLine():
 
-    def __init__(self, getPointsFunc, settings, lineMode = LINEMODE_MANUAL, color = None, updatePoints = True):
+    def __init__(self, getPointsFunc, settings, lineMode=LINEMODE_MANUAL, color=None, updatePoints=True):
         self.lineSet = None
         self.updateThread = None
         self.getPointsFunc = getPointsFunc
@@ -117,22 +122,25 @@ class SmoothSpaceLine():
         self.lastTime = self.ballpark.time
         self.orbitDrawer = None
         self.Start()
+        return
 
     def IsAlive(self):
         return self.updateThread is not None
 
-    def SwallowOut(self, confirmed = True):
+    def SwallowOut(self, confirmed=True):
         self.lineMode = LINEMODE_ONESHOT
         if confirmed:
             self.color = CONFIRM_COLOR
         if self.points is None:
             self.Close()
+        return
 
     def FadeOut(self):
         if self.fadeTime is None:
             self.fadeTime = 1
         if self.points is None:
             self.Close()
+        return
 
     def Close(self):
         self.killed = True
@@ -144,6 +152,7 @@ class SmoothSpaceLine():
         if self.updateThread is None and linesInScene:
             self.updateThread = uthread.new(self._LineUpdateThread)
             self.updateThread.context = 'flightPredictionSvc.SmoothSpaceLine.UpdateThread'
+        return
 
     def AddLinesToScene(self):
         if self.lineSet is None:
@@ -153,7 +162,8 @@ class SmoothSpaceLine():
             if self.lineSet not in scene.objects:
                 scene.objects.append(self.lineSet)
             return True
-        return False
+        else:
+            return False
 
     def CreateLineset(self):
         lineSet = trinity.EveCurveLineSet()
@@ -179,6 +189,7 @@ class SmoothSpaceLine():
             self.orbitDrawer = None
         self.TearDownLines()
         self.updateThread = None
+        return
 
     def UpdateAnimationTimers(self):
         if self.lastTime is not None:
@@ -189,6 +200,7 @@ class SmoothSpaceLine():
             self.fadeTime -= FADEOUT_TIME * self.delta
             if self.fadeTime < 0:
                 self.killed = True
+        return
 
     def UpdateAnim(self):
         inSpeed = self.delta / ANIM_IN_TIME
@@ -253,6 +265,7 @@ class SmoothSpaceLine():
             curvedLine = self.lineSet.AddStraightLine(p0, c, p1, c, lineWidth)
 
         self.lineSet.SubmitChanges()
+        return
 
     def MakeOrbitRing(self, drawPoints, alpha):
         if self.settings.mode == 'Orbit':
@@ -266,6 +279,7 @@ class SmoothSpaceLine():
             closestPoints = [drawPoints[-2][0], drawPoints[-1][0]]
             totalRange = self.settings.range + bp.GetBall(bp.ego).radius + targetBall.radius
             self.orbitDrawer.Update(targetPos, totalRange, closestPoints, self.animationPos * alpha)
+        return
 
     def ClearLines(self):
         self.lineSet.ClearLines()
@@ -278,6 +292,7 @@ class SmoothSpaceLine():
             if self.lineSet in scene.objects:
                 scene.objects.remove(self.lineSet)
         self.lineSet = None
+        return
 
     def UpdateSettings(self, newSettings):
         if newSettings.mode is None or newSettings.range is None or newSettings.targetID is None:
@@ -294,6 +309,7 @@ class SmoothSpaceLine():
             if newSettings.targetID is not None:
                 self.settings.targetID = newSettings.targetID
         self.settings.otherData = newSettings.otherData
+        return
 
 
 class FlightPredictionService(service.Service):
@@ -326,8 +342,9 @@ class FlightPredictionService(service.Service):
         self._line = None
         self.lineSettings = PredictionLineSettings(None, None, None)
         self.enabled = False
+        return
 
-    def Run(self, memStream = None):
+    def Run(self, memStream=None):
         pass
 
     def OnViewStateChanged(self, oldView, newView):
@@ -335,6 +352,7 @@ class FlightPredictionService(service.Service):
             currentLine = self.GetLine()
             if currentLine is not None:
                 currentLine.Close()
+        return
 
     def IsActive(self):
         return self.enabled and sm.GetService('viewState').IsViewActive('inflight')
@@ -350,30 +368,34 @@ class FlightPredictionService(service.Service):
 
         if not self.IsActive():
             return
-        currentLine = self.GetLine()
-        if currentLine is None:
-            if self.lineSettings.mode is not None:
-                self.SetLine(SmoothSpaceLine(self.GetPoints, self.lineSettings))
-        elif lostMode:
-            currentLine.FadeOut()
         else:
-            currentLine.UpdateSettings(self.lineSettings)
+            currentLine = self.GetLine()
+            if currentLine is None:
+                if self.lineSettings.mode is not None:
+                    self.SetLine(SmoothSpaceLine(self.GetPoints, self.lineSettings))
+            elif lostMode:
+                currentLine.FadeOut()
+            else:
+                currentLine.UpdateSettings(self.lineSettings)
+            return
 
     def OnStateChange(self, itemID, flag, status, *args):
         if not self.IsActive():
             return
-        if itemID == session.shipid:
-            if flag == state.mouseOver:
-                if self.currentPathLine is not None:
-                    self.currentPathLine.SwallowOut(confirmed=False)
+        else:
+            if itemID == session.shipid:
+                if flag == state.mouseOver:
+                    if self.currentPathLine is not None:
+                        self.currentPathLine.SwallowOut(confirmed=False)
+                    if status:
+                        settings = PredictionLineSettings(mode='Current')
+                        self.currentPathLine = SmoothSpaceLine(self.GetPoints, settings)
+            elif flag == state.mouseOver:
                 if status:
-                    settings = PredictionLineSettings(mode='Current')
-                    self.currentPathLine = SmoothSpaceLine(self.GetPoints, settings)
-        elif flag == state.mouseOver:
-            if status:
-                self.UpdateLineSettings(targetID=itemID)
-            else:
-                self.UpdateLineSettings(targetID=None)
+                    self.UpdateLineSettings(targetID=itemID)
+                else:
+                    self.UpdateLineSettings(targetID=None)
+            return
 
     def CommandKeyDown(self, command):
         if not self.IsActive():
@@ -391,20 +413,24 @@ class FlightPredictionService(service.Service):
     def CommandKeyUp(self):
         if not self.IsActive():
             return
-        self.UpdateLineSettings(mode=None)
-
-    def OptionActivated(self, modeName, targetID, range = None):
-        if not self.IsActive():
-            return
-        line = self.GetLine()
-        if line is not None:
-            line.SwallowOut()
-            self.SetLine(None, withoutFade=True)
+        else:
             self.UpdateLineSettings(mode=None)
             return
-        mode, range = self.GetModeAndRange(modeName, range)
-        settings = PredictionLineSettings(mode=mode, range=range, targetID=targetID)
-        SmoothSpaceLine(self.GetPoints, settings, lineMode=LINEMODE_ONESHOT, updatePoints=True, color=CONFIRM_COLOR)
+
+    def OptionActivated(self, modeName, targetID, range=None):
+        if not self.IsActive():
+            return
+        else:
+            line = self.GetLine()
+            if line is not None:
+                line.SwallowOut()
+                self.SetLine(None, withoutFade=True)
+                self.UpdateLineSettings(mode=None)
+                return
+            mode, range = self.GetModeAndRange(modeName, range)
+            settings = PredictionLineSettings(mode=mode, range=range, targetID=targetID)
+            SmoothSpaceLine(self.GetPoints, settings, lineMode=LINEMODE_ONESHOT, updatePoints=True, color=CONFIRM_COLOR)
+            return
 
     def GotoDirection(self, direction):
         if not self.IsActive():
@@ -412,14 +438,16 @@ class FlightPredictionService(service.Service):
         settings = PredictionLineSettings(mode='Direction', otherData=direction)
         SmoothSpaceLine(self.GetPoints, settings, lineMode=LINEMODE_ONESHOT, updatePoints=False, color=CONFIRM_COLOR)
 
-    def RadialMenuStateChange(self, modeName, itemID = None, range = None):
+    def RadialMenuStateChange(self, modeName, itemID=None, range=None):
         if not self.IsActive():
             return
-        if modeName is None:
+        elif modeName is None:
             self.UpdateLineSettings(mode=None)
             return
-        mode, range = self.GetModeAndRange(modeName, range)
-        self.UpdateLineSettings(mode=mode, targetID=itemID, range=range)
+        else:
+            mode, range = self.GetModeAndRange(modeName, range)
+            self.UpdateLineSettings(mode=mode, targetID=itemID, range=range)
+            return
 
     def GetModeAndRange(self, modeName, range):
         if modeName not in self.modeInfoByModeName:
@@ -450,10 +478,11 @@ class FlightPredictionService(service.Service):
     def GetCurrentPathPoints(self, settings):
         if not self.HasBall():
             return None
-        if self.ball.mode == destiny.DSTBALL_WARP and self.ball.effectStamp != -1:
+        elif self.ball.mode == destiny.DSTBALL_WARP and self.ball.effectStamp != -1:
             return None
-        points = self.ball.GetPredictionPoints(self.numPoints)
-        return points
+        else:
+            points = self.ball.GetPredictionPoints(self.numPoints)
+            return points
 
     @telemetry.ZONE_METHOD
     def GetGotoDirectionPoints(self, settings):
@@ -476,10 +505,11 @@ class FlightPredictionService(service.Service):
                 self._line = None
         return self._line
 
-    def SetLine(self, value, withoutFade = False):
+    def SetLine(self, value, withoutFade=False):
         if self._line is not None and not withoutFade:
             self._line.FadeOut()
         self._line = value
+        return
 
 
 class FlightPredictionTestWindow(uicontrols.Window):
@@ -511,6 +541,7 @@ class FlightPredictionTestWindow(uicontrols.Window):
         slider = uicls.Slider(parent=c, align=uiconst.TOPLEFT, width=100, name=name.replace(' ', ''), state=uiconst.UI_NORMAL, minValue=min, maxValue=max, startVal=value, showLabel=False, onsetvaluefunc=self.SetSlider, endsliderfunc=None, hint=name, left=l.width + 10)
         label = uicontrols.Label(text=value, parent=c, align=uiconst.TOPLEFT, left=l.width + 120)
         self.sliders[slider] = (valueName, label)
+        return
 
     def AddColorSliders(self, name, valueName):
         c = uiprimitives.Container(parent=self.cont, align=uiconst.TOTOP, height=36)

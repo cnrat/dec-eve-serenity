@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\packages\carbonui\control\basicDynamicScroll.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\packages\carbonui\control\basicDynamicScroll.py
 import telemetry
 import uthread
 import _weakref
@@ -32,6 +33,7 @@ class BasicDynamicScroll(Scroll):
         self.sr.selfProxy = _weakref.proxy(self)
         self.Prepare_()
         self._mouseHoverCookie = uicore.uilib.RegisterForTriuiEvents(uiconst.UI_MOUSEHOVER, self.OnGlobalMouseHover)
+        return
 
     def Close(self, *args, **kwds):
         self.cleanupTimer = None
@@ -55,6 +57,7 @@ class BasicDynamicScroll(Scroll):
         self.hideBackground = False
         self.destroyInvisibleEntries = False
         self.lazyLoadNodes = False
+        return
 
     @telemetry.ZONE_METHOD
     def ShowNodeIdx(self, idx, *args, **kwds):
@@ -74,6 +77,7 @@ class BasicDynamicScroll(Scroll):
                 if fromTop + node.height > self._position + clipperHeight:
                     portion = (fromTop - clipperHeight + node.height) / float(self.scrollingRange)
                     self.ScrollToProportion(portion)
+        return
 
     @telemetry.ZONE_METHOD
     def ChangeNodeIndex(self, newIndex, node):
@@ -87,36 +91,39 @@ class BasicDynamicScroll(Scroll):
         clipperWidth, clipperHeight = self.sr.clipper.GetAbsoluteSize()
         self.UpdateNodesWidthAndPosition(clipperWidth)
         self.UpdatePosition()
+        return
 
     @telemetry.ZONE_METHOD
-    def UpdateNodesWidthAndPosition(self, clipperWidth = None):
+    def UpdateNodesWidthAndPosition(self, clipperWidth=None):
         if self.destroyed:
             return
-        updateWidth = clipperWidth is not None
-        fromTopPosition = 0
-        for nodeIndex, node in enumerate(self.sr.nodes):
-            if updateWidth and not node.fixedHeight and node._lastClipperWidth != clipperWidth:
-                node.height = node.dynamicHeightFunction(node, clipperWidth)
-                node._lastClipperWidth = clipperWidth
-            if node.panel and node.panel.state != uiconst.UI_HIDDEN:
-                node.panel.top = fromTopPosition
-                if updateWidth:
-                    node.panel.width = clipperWidth
-                node.panel.height = node.height
-            node.positionFromTop = fromTopPosition
-            node.idx = nodeIndex
-            fromTopPosition += node.height
+        else:
+            updateWidth = clipperWidth is not None
+            fromTopPosition = 0
+            for nodeIndex, node in enumerate(self.sr.nodes):
+                if updateWidth and not node.fixedHeight and node._lastClipperWidth != clipperWidth:
+                    node.height = node.dynamicHeightFunction(node, clipperWidth)
+                    node._lastClipperWidth = clipperWidth
+                if node.panel and node.panel.state != uiconst.UI_HIDDEN:
+                    node.panel.top = fromTopPosition
+                    if updateWidth:
+                        node.panel.width = clipperWidth
+                    node.panel.height = node.height
+                node.positionFromTop = fromTopPosition
+                node.idx = nodeIndex
+                fromTopPosition += node.height
 
-        if updateWidth:
-            self.sr.content.width = clipperWidth
-        self.SetTotalHeight(fromTopPosition)
+            if updateWidth:
+                self.sr.content.width = clipperWidth
+            self.SetTotalHeight(fromTopPosition)
+            return
 
-    def SetOrderedNodes(self, nodes, loadNodes = True):
+    def SetOrderedNodes(self, nodes, loadNodes=True):
         self.sr.nodes = nodes
         self.UpdateNodesWidthAndPosition()
         return self.UpdatePosition(loadNodes=loadNodes)
 
-    def SetFilteredNodes(self, nodes, loadNodes = True):
+    def SetFilteredNodes(self, nodes, loadNodes=True):
         for visNode in self.visibleNodes:
             if visNode in nodes:
                 continue
@@ -129,7 +136,7 @@ class BasicDynamicScroll(Scroll):
         self.UpdateNodesWidthAndPosition()
         return self.UpdatePosition(loadNodes=loadNodes)
 
-    def ReloadNodes(self, nodes, updateHeight = False):
+    def ReloadNodes(self, nodes, updateHeight=False):
         if updateHeight:
             for node in nodes:
                 node._lastClipperWidth = None
@@ -141,9 +148,10 @@ class BasicDynamicScroll(Scroll):
                 node.panel.Load(node)
 
         self.UpdatePosition(fromWhere='ReloadNodes')
+        return
 
     @telemetry.ZONE_METHOD
-    def AddNodes(self, fromIdx, nodesData, updateScroll = True, *args, **kwds):
+    def AddNodes(self, fromIdx, nodesData, updateScroll=True, *args, **kwds):
         if fromIdx == -1:
             fromIdx = len(self.sr.nodes)
         clipperWidth = None
@@ -181,9 +189,10 @@ class BasicDynamicScroll(Scroll):
                 clipperWidth, clipperHeight = self.sr.clipper.GetAbsoluteSize()
             self.UpdateNodesWidthAndPosition(clipperWidth)
             self.UpdatePosition(fromWhere='AddNodes')
+        return
 
     @telemetry.ZONE_METHOD
-    def RemoveNodes(self, nodes, updateScroll = True):
+    def RemoveNodes(self, nodes, updateScroll=True):
         for node in nodes:
             if node.panel:
                 node.panel.Close()
@@ -218,6 +227,8 @@ class BasicDynamicScroll(Scroll):
                 panel.Close()
                 purgeCount += 1
 
+        return
+
     @telemetry.ZONE_METHOD
     def SetTotalHeight(self, newTotalHeight):
         self._totalHeight = max(0, newTotalHeight)
@@ -244,66 +255,68 @@ class BasicDynamicScroll(Scroll):
             killThread.kill()
 
     @telemetry.ZONE_METHOD
-    def UpdatePosition(self, fromWhere = None, loadNodes = True):
+    def UpdatePosition(self, fromWhere=None, loadNodes=True):
         if self.destroyed:
             return
-        clipperWidth, clipperHeight = self.sr.clipper.GetAbsoluteSize()
-        self.sr.content.top = int(-self._position)
-        self.UpdateScrollHandle(clipperHeight, fromWhere='UpdatePosition')
-        scrollPosition = self._position
-        UI_HIDDEN = uiconst.UI_HIDDEN
-        while self.visibleNodes:
-            node = self.visibleNodes.pop()
-            displayScrollEntry = node.panel
-            if not displayScrollEntry:
-                continue
-            if displayScrollEntry.state != UI_HIDDEN:
-                aboveVisible = node.positionFromTop + displayScrollEntry.height < scrollPosition
-                belowVisible = scrollPosition + clipperHeight < node.positionFromTop
-                if aboveVisible or belowVisible:
-                    if getattr(displayScrollEntry, '__notifyevents__', None) is not None:
-                        sm.UnregisterNotify(displayScrollEntry)
-                    displayScrollEntry.state = UI_HIDDEN
+        else:
+            clipperWidth, clipperHeight = self.sr.clipper.GetAbsoluteSize()
+            self.sr.content.top = int(-self._position)
+            self.UpdateScrollHandle(clipperHeight, fromWhere='UpdatePosition')
+            scrollPosition = self._position
+            UI_HIDDEN = uiconst.UI_HIDDEN
+            while self.visibleNodes:
+                node = self.visibleNodes.pop()
+                displayScrollEntry = node.panel
+                if not displayScrollEntry:
+                    continue
+                if displayScrollEntry.state != UI_HIDDEN:
+                    aboveVisible = node.positionFromTop + displayScrollEntry.height < scrollPosition
+                    belowVisible = scrollPosition + clipperHeight < node.positionFromTop
+                    if aboveVisible or belowVisible:
+                        if getattr(displayScrollEntry, '__notifyevents__', None) is not None:
+                            sm.UnregisterNotify(displayScrollEntry)
+                        displayScrollEntry.state = UI_HIDDEN
 
-        positionFromTop = 0
-        for node in self.sr.nodes:
-            nodeheight = node.height
-            positionFromTop = node.positionFromTop
-            displayScrollEntry = node.panel
-            if scrollPosition > positionFromTop + nodeheight:
-                continue
-            belowVisible = scrollPosition + clipperHeight < positionFromTop
-            if belowVisible:
-                break
-            if not displayScrollEntry:
-                decoClass = node.decoClass
-                displayScrollEntry = decoClass(parent=self.sr.content, align=uiconst.TOPLEFT, pos=(0,
-                 positionFromTop,
-                 clipperWidth,
-                 nodeheight), state=uiconst.UI_NORMAL, node=node)
-                displayScrollEntry.sr.node = node
-                node.panel = displayScrollEntry
-                node.scroll = self.sr.selfProxy
-                if hasattr(displayScrollEntry, 'Startup'):
-                    displayScrollEntry.Startup(self.sr.selfProxy)
-            elif displayScrollEntry.display:
+            positionFromTop = 0
+            for node in self.sr.nodes:
+                nodeheight = node.height
+                positionFromTop = node.positionFromTop
+                displayScrollEntry = node.panel
+                if scrollPosition > positionFromTop + nodeheight:
+                    continue
+                belowVisible = scrollPosition + clipperHeight < positionFromTop
+                if belowVisible:
+                    break
+                if not displayScrollEntry:
+                    decoClass = node.decoClass
+                    displayScrollEntry = decoClass(parent=self.sr.content, align=uiconst.TOPLEFT, pos=(0,
+                     positionFromTop,
+                     clipperWidth,
+                     nodeheight), state=uiconst.UI_NORMAL, node=node)
+                    displayScrollEntry.sr.node = node
+                    node.panel = displayScrollEntry
+                    node.scroll = self.sr.selfProxy
+                    if hasattr(displayScrollEntry, 'Startup'):
+                        displayScrollEntry.Startup(self.sr.selfProxy)
+                elif displayScrollEntry.display:
+                    self.visibleNodes.append(node)
+                    displayScrollEntry.top = positionFromTop
+                    displayScrollEntry.height = nodeheight
+                    continue
                 self.visibleNodes.append(node)
+                displayScrollEntry.state = uiconst.UI_NORMAL
                 displayScrollEntry.top = positionFromTop
+                displayScrollEntry.width = clipperWidth
                 displayScrollEntry.height = nodeheight
-                continue
-            self.visibleNodes.append(node)
-            displayScrollEntry.state = uiconst.UI_NORMAL
-            displayScrollEntry.top = positionFromTop
-            displayScrollEntry.width = clipperWidth
-            displayScrollEntry.height = nodeheight
-            if loadNodes:
-                displayScrollEntry.Load(node)
-            if getattr(displayScrollEntry, '__notifyevents__', None) is not None:
-                sm.RegisterNotify(displayScrollEntry)
+                if loadNodes:
+                    displayScrollEntry.Load(node)
+                if getattr(displayScrollEntry, '__notifyevents__', None) is not None:
+                    sm.RegisterNotify(displayScrollEntry)
 
-        self.updatePositionThread = None
-        if self.autoPurgeHiddenEntries:
-            self.cleanupTimer = AutoTimer(1500, self.PurgeInvisibleEntries)
+            self.updatePositionThread = None
+            if self.autoPurgeHiddenEntries:
+                self.cleanupTimer = AutoTimer(1500, self.PurgeInvisibleEntries)
+            return
 
     @telemetry.ZONE_METHOD
     def GetNode(self, idx, *args, **kwds):
@@ -313,6 +326,7 @@ class BasicDynamicScroll(Scroll):
                 return allNodes[-1]
             if len(allNodes) > idx:
                 return allNodes[idx]
+        return None
 
     @telemetry.ZONE_METHOD
     def OnContentResize(self, clipperWidth, clipperHeight, *args, **kw):

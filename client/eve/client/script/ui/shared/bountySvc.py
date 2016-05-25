@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\client\script\ui\shared\bountySvc.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\client\script\ui\shared\bountySvc.py
 from service import Service
 import blue
 import uthread
@@ -21,6 +22,7 @@ class BountyService(Service):
         self.cacheTime = 5 * const.MIN
         self.myKillRights = None
         self.killRightTracker = killRightTracker.KillRightTracker(self.FetchKillRightsFromServer, blue.os.GetWallclockTime, 5 * const.MIN)
+        return
 
     def GetBounty(self, *ownerIDs):
         ownerIDs = [ ownerID for ownerID in ownerIDs if ownerID is not None ]
@@ -48,9 +50,10 @@ class BountyService(Service):
 
         if categoryID == const.categoryShip and slimItem.charID is not None:
             return True
-        if categoryID == const.categoryStarbase:
+        elif categoryID == const.categoryStarbase:
             return True
-        return False
+        else:
+            return False
 
     def QuickHasBounty(self, slimItem):
         if not self.CanHaveBounty(slimItem):
@@ -69,13 +72,14 @@ class BountyService(Service):
     def QuickHasKillRight(self, slimItem):
         if getattr(slimItem, 'charID', None) is None:
             return False
-        if self.killRightTracker.GetKillRightsFromCache(slimItem.charID):
+        elif self.killRightTracker.GetKillRightsFromCache(slimItem.charID):
             return True
-        for killRight in self.GetMyKillRights():
-            if killRight.fromID == session.charid and killRight.toID == slimItem.charID:
-                return True
+        else:
+            for killRight in self.GetMyKillRights():
+                if killRight.fromID == session.charid and killRight.toID == slimItem.charID:
+                    return True
 
-        return False
+            return False
 
     def FetchBounties(self, targetIDs):
         bountiesToUpdate = {targetID for targetID in targetIDs if self.IsObsolete(targetID)}
@@ -84,13 +88,15 @@ class BountyService(Service):
             bounties = [ bounty for targetID, bounty in self.GetBountiesFromServer(bountiesToUpdate) ]
             bountyUtil.CacheBounties(self.bounties, bounties)
 
-    def IsObsolete(self, targetID, useTime = None):
+    def IsObsolete(self, targetID, useTime=None):
         if useTime is None:
             useTime = blue.os.GetWallclockTime()
         try:
             return blue.os.GetWallclockTime() > self.bounties[targetID][1] + self.cacheTime
         except KeyError:
             return True
+
+        return
 
     def GetBountiesFromServer(self, targetIDs):
         return sm.ProxySvc('bountyProxy').GetBounties(targetIDs)
@@ -133,14 +139,15 @@ class BountyService(Service):
         if ownersToQuery or charIDs:
             self.FetchBountiesAndKillRightsFromServer(charIDs, ownersToQuery)
             sm.ChainEvent('ProcessBountyInfoUpdated', validItemIDs)
+        return
 
-    def GetTopPilotBounties(self, page = 0):
+    def GetTopPilotBounties(self, page=0):
         return self.GetTopBounties(sm.ProxySvc('bountyProxy').GetTopPilotBounties, page)
 
-    def GetTopCorpBounties(self, page = 0):
+    def GetTopCorpBounties(self, page=0):
         return self.GetTopBounties(sm.ProxySvc('bountyProxy').GetTopCorpBounties, page)
 
-    def GetTopAllianceBounties(self, page = 0):
+    def GetTopAllianceBounties(self, page=0):
         return self.GetTopBounties(sm.ProxySvc('bountyProxy').GetTopAllianceBounties, page)
 
     def GetTopBounties(self, fetcher, page):
@@ -150,13 +157,13 @@ class BountyService(Service):
         bountyUtil.CacheBounties(self.bounties, bountiesToCache)
         return sorted(newBounties, key=lambda x: x.bounty, reverse=True)
 
-    def GetTopPilotBountyHunters(self, page = 0):
+    def GetTopPilotBountyHunters(self, page=0):
         return sm.ProxySvc('bountyProxy').GetTopPilotBountyHunters(page)[0]
 
-    def GetTopCorporationBountyHunters(self, page = 0):
+    def GetTopCorporationBountyHunters(self, page=0):
         return sm.ProxySvc('bountyProxy').GetTopCorporationBountyHunters(page)[0]
 
-    def GetTopAllianceBountyHunters(self, page = 0):
+    def GetTopAllianceBountyHunters(self, page=0):
         return sm.ProxySvc('bountyProxy').GetTopAllianceBountyHunters(page)[0]
 
     def GetMyBounties(self):
@@ -190,13 +197,14 @@ class BountyService(Service):
         self.InvalidateGetMyKillRights()
         sm.ScatterEvent('OnKillRightSellCancel', killRightID)
 
-    def SellKillRight(self, killRightID, price, restrictedTo = None):
+    def SellKillRight(self, killRightID, price, restrictedTo=None):
         killRights = sm.ProxySvc('bountyProxy').SellKillRight(killRightID, price, restrictedTo)
         if killRights is not None:
             for killRight in killRights:
                 self.killRightTracker.OnKillRightAdded(killRight)
 
         self.InvalidateGetMyKillRights()
+        return
 
     def GetMyKillRights(self):
         if self.myKillRights is not None:
@@ -205,6 +213,7 @@ class BountyService(Service):
             killRights = sm.ProxySvc('bountyProxy').GetMyKillRights()
             self.myKillRights = killRights
             return killRights
+            return
 
     def GetKillRights(self, toIDs):
         toIDs = [ toID for toID in toIDs if toID is not None and util.IsCharacter(toID) and util.IsOwner(toID) ]
@@ -240,8 +249,9 @@ class BountyService(Service):
         killRights = self.GetKillRights([toID])
         if not killRights:
             return (None, None)
-        killRight = min(killRights, key=lambda x: x.price)
-        return (killRight.killRightID, killRight.price)
+        else:
+            killRight = min(killRights, key=lambda x: x.price)
+            return (killRight.killRightID, killRight.price)
 
     def BuyKillRight(self, killRightID, toID, shipID, price):
         try:
@@ -265,3 +275,4 @@ class BountyService(Service):
     def InvalidateGetMyKillRights(self):
         self.myKillRights = None
         sm.GetService('objectCaching').InvalidateCachedMethodCall('bountyProxy', 'GetMyKillRights')
+        return

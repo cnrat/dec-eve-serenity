@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\carbon\common\script\net\http2Service.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\carbon\common\script\net\http2Service.py
 import service, macho
 
 class CherryServer(service.Service):
@@ -8,7 +9,7 @@ class CherryServer(service.Service):
     __configvalues__ = {}
     __notifyevents__ = []
 
-    def Run(self, memStream = None):
+    def Run(self, memStream=None):
         self.servers = []
         if not prefs.GetValue('http2', 1):
             self.LogNotice('http2 service not booting up CherryPy ESP app because prefs.http2=0')

@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\carbon\common\script\util\reftree.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\carbon\common\script\util\reftree.py
 import types, blue, weakref, sys
 try:
     import gc
@@ -6,7 +7,7 @@ except:
     gc = 'no gc availible'
     sys.exc_clear()
 
-def GetBlueObjects(typeName = None):
+def GetBlueObjects(typeName=None):
     r = []
     for o in gc.get_objects():
         if type(o) != blue.BlueWrapper:
@@ -66,7 +67,7 @@ def RefLeaves(*args):
 
 class RefNode(object):
 
-    def __init__(self, objtuple, depth = 3, omit = None, parent = None, leaves = None):
+    def __init__(self, objtuple, depth=3, omit=None, parent=None, leaves=None):
         if not omit:
             omit = IdSet()
         self.children = []
@@ -96,18 +97,19 @@ class RefNode(object):
             self.repr = '%s in %s' % (how, self.__Repr(objtuple[0]))
         else:
             self.repr = self.__Repr(objtuple[0])
+        return
 
     def __str__(self):
         return self.repr
 
-    def Print(self, indent = 0):
+    def Print(self, indent=0):
         i = ' ' * indent * 4
         print i + str(self)
         indent = indent + 1
         for c in self.children:
             c.Print(indent)
 
-    def String(self, indent = 0):
+    def String(self, indent=0):
         i = ' ' * indent * 4
         l = [i + str(self)]
         indent = indent + 1
@@ -155,7 +157,7 @@ class IdSet(object):
         return self.set.has_key(id(obj))
 
 
-def PrettyStr(obj, maxlen = 20, depth = -1, indent = 1, showid = 0, prune = 0):
+def PrettyStr(obj, maxlen=20, depth=-1, indent=1, showid=0, prune=0):
     if prune:
         showid = 1
         omitset = IdSet()
@@ -164,7 +166,7 @@ def PrettyStr(obj, maxlen = 20, depth = -1, indent = 1, showid = 0, prune = 0):
     return PPRecurse(obj, maxlen, depth, indent, showid, omitset)
 
 
-def PrettyPrint(obj, maxlen = 20, depth = -1, indent = 1, showid = 0, prune = 0):
+def PrettyPrint(obj, maxlen=20, depth=-1, indent=1, showid=0, prune=0):
     gunk = PrettyStr(obj, maxlen, depth, indent, showid, prune)
     for line in gunk.split('\n'):
         print line
@@ -180,7 +182,7 @@ def PPRecurse(obj, maxlen, depth, indent, showid, omitset):
      types.ComplexType,
      types.UnicodeType]:
         return repr(obj)
-    if (depth > 0 or depth < 0) and objType in [types.TupleType,
+    elif (depth > 0 or depth < 0) and objType in [types.TupleType,
      types.ListType,
      types.DictType,
      types.InstanceType]:
@@ -232,11 +234,12 @@ def PPRecurse(obj, maxlen, depth, indent, showid, omitset):
         ids = ''
     if objType == types.InstanceType:
         return '<%sinst of class %s>' % (ids, obj.__class__.__name__)
-    if objType == types.ClassType:
+    elif objType == types.ClassType:
         return '<class %s>' % obj.__name__
-    if objType == types.ModuleType:
+    elif objType == types.ModuleType:
         return '<module %s>' % obj.__name__
-    return '<%s%s>' % (ids, repr(objType))
+    else:
+        return '<%s%s>' % (ids, repr(objType))
 
 
 def PPAssemble(head, prefixes, values, tail, ellipsis, maxlen, depth, indent, showid, omitset):
@@ -259,11 +262,11 @@ def PPAssemble(head, prefixes, values, tail, ellipsis, maxlen, depth, indent, sh
     return result
 
 
-def PPIndent(text, nIndents = 1):
+def PPIndent(text, nIndents=1):
     return '\n'.join([ '\t' * nIndents + line for line in text.split('\n') ])
 
 
-def PPIndentRest(text, nIndents = 1):
+def PPIndentRest(text, nIndents=1):
     lines = text.split('\n')
     return '\n'.join([lines[0]] + [ '\t' * nIndents + line for line in lines[1:] ])
 

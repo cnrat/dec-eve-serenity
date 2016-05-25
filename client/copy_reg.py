@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\carbon\common\stdlib\copy_reg.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\carbon\common\stdlib\copy_reg.py
 from types import ClassType as _ClassType
 __all__ = ['pickle',
  'constructor',
@@ -7,7 +8,7 @@ __all__ = ['pickle',
  'clear_extension_cache']
 dispatch_table = {}
 
-def pickle(ob_type, pickle_function, constructor_ob = None):
+def pickle(ob_type, pickle_function, constructor_ob=None):
     if type(ob_type) is _ClassType:
         raise TypeError('copy_reg is not intended for use with classes')
     if not hasattr(pickle_function, '__call__'):
@@ -15,6 +16,7 @@ def pickle(ob_type, pickle_function, constructor_ob = None):
     dispatch_table[ob_type] = pickle_function
     if constructor_ob is not None:
         constructor(constructor_ob)
+    return
 
 
 def constructor(object):
@@ -80,6 +82,7 @@ def _reduce_ex(self, proto):
         return (_reconstructor, args, dict)
     else:
         return (_reconstructor, args)
+        return
 
 
 def __newobj__(cls, *args):
@@ -90,29 +93,30 @@ def _slotnames(cls):
     names = cls.__dict__.get('__slotnames__')
     if names is not None:
         return names
-    names = []
-    if not hasattr(cls, '__slots__'):
-        pass
     else:
-        for c in cls.__mro__:
-            if '__slots__' in c.__dict__:
-                slots = c.__dict__['__slots__']
-                if isinstance(slots, basestring):
-                    slots = (slots,)
-                for name in slots:
-                    if name in ('__dict__', '__weakref__'):
-                        continue
-                    elif name.startswith('__') and not name.endswith('__'):
-                        names.append('_%s%s' % (c.__name__, name))
-                    else:
-                        names.append(name)
+        names = []
+        if not hasattr(cls, '__slots__'):
+            pass
+        else:
+            for c in cls.__mro__:
+                if '__slots__' in c.__dict__:
+                    slots = c.__dict__['__slots__']
+                    if isinstance(slots, basestring):
+                        slots = (slots,)
+                    for name in slots:
+                        if name in ('__dict__', '__weakref__'):
+                            continue
+                        elif name.startswith('__') and not name.endswith('__'):
+                            names.append('_%s%s' % (c.__name__, name))
+                        else:
+                            names.append(name)
 
-    try:
-        cls.__slotnames__ = names
-    except:
-        pass
+        try:
+            cls.__slotnames__ = names
+        except:
+            pass
 
-    return names
+        return names
 
 
 _extension_registry = {}

@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\client\script\parklife\planetInfoSvc.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\client\script\parklife\planetInfoSvc.py
 import service
 import util
 import trinity
@@ -16,14 +17,14 @@ class PlanetInfoSvc(service.Service):
     __displayname__ = 'Planet Info Caching Service'
     __dependencies__ = ['michelle']
 
-    def Run(self, memStream = None):
+    def Run(self, memStream=None):
         self.state = service.SERVICE_START_PENDING
         self.LogInfo('PlanetInfo::Starting')
         self.Reset()
         self.hackProgress = {}
         self.state = service.SERVICE_RUNNING
 
-    def Stop(self, memStream = None):
+    def Stop(self, memStream=None):
         if not trinity.app:
             return
         self.LogInfo('PlanetInfo::Stopping')
@@ -32,14 +33,17 @@ class PlanetInfoSvc(service.Service):
     def OnSessionChanged(self, isremote, session, change):
         if session.charid is None:
             return
-        if 'solarsystemid' in change:
-            self.Reset()
+        else:
+            if 'solarsystemid' in change:
+                self.Reset()
+            return
 
     def OnLocalHackProgressUpdated(self, hackedObjectID, hackProgress):
         self.hackProgress[hackedObjectID] = hackProgress
         bracket = sm.GetService('bracket').GetBracket(hackedObjectID)
         if bracket and bracket.sr.orbitalHackLocal is not None:
             bracket.UpdateHackProgress(hackProgress)
+        return
 
     def GetMyHackProgress(self, itemID):
         return self.hackProgress.get(itemID, None)

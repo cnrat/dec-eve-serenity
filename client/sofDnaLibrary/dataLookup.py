@@ -1,21 +1,23 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\packages\sofDnaLibrary\dataLookup.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\packages\sofDnaLibrary\dataLookup.py
 import re
 from sofDnaLibrary.data import GetSkins, GetMaterials, GetGraphicIDs, GetTypes, GetMaterialSets
 
 def Matches(actualValue, queryValue):
     if actualValue is None:
         return False
-    if actualValue.lower() == queryValue.lower():
+    elif actualValue.lower() == queryValue.lower():
         return True
-    match = re.match('^%s$' % queryValue, actualValue)
-    return match is not None
+    else:
+        match = re.match('^%s$' % queryValue, actualValue)
+        return match is not None
 
 
-def GetMaterialIDAndFactionOverrideMatchingFaction(factionQuery = '.*'):
+def GetMaterialIDAndFactionOverrideMatchingFaction(factionQuery='.*'):
     return {materialID:getattr(materialInfo, 'sofFactionName', None) for materialID, materialInfo in GetMaterials().iteritems() if Matches(getattr(materialInfo, 'sofFactionName', None), factionQuery)}
 
 
-def GetTypeFactionOverridesThatMatchFaction(factionQuery = '.*'):
+def GetTypeFactionOverridesThatMatchFaction(factionQuery='.*'):
     skins = GetSkins()
     matchingMaterials = GetMaterialIDAndFactionOverrideMatchingFaction(factionQuery)
     matchingSkins = {}
@@ -32,7 +34,7 @@ def GetTypeFactionOverridesThatMatchFaction(factionQuery = '.*'):
     return typeFactionOverride
 
 
-def GetDefaultTypeDnaInfoForDnaQuery(hullQuery = '.*', factionQuery = '.*', raceQuery = '.*'):
+def GetDefaultTypeDnaInfoForDnaQuery(hullQuery='.*', factionQuery='.*', raceQuery='.*'):
     hullAndRaceMatchingGraphicIDs = []
     matchingGraphicIDs = []
     graphicIDs = GetGraphicIDs()

@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\carbon\common\stdlib\email\mime\audio.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\carbon\common\stdlib\email\mime\audio.py
 __all__ = ['MIMEAudio']
 try:
     import sndhdr
@@ -21,10 +22,12 @@ def _whatsnd(data):
         if res is not None:
             return _sndhdr_MIMEmap.get(res[0])
 
+    return
+
 
 class MIMEAudio(MIMENonMultipart):
 
-    def __init__(self, _audiodata, _subtype = None, _encoder = encoders.encode_base64, **_params):
+    def __init__(self, _audiodata, _subtype=None, _encoder=encoders.encode_base64, **_params):
         if _subtype is None:
             _subtype = _whatsnd(_audiodata)
         if _subtype is None:
@@ -32,3 +35,4 @@ class MIMEAudio(MIMENonMultipart):
         MIMENonMultipart.__init__(self, 'audio', _subtype, **_params)
         self.set_payload(_audiodata)
         _encoder(self)
+        return

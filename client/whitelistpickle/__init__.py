@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\packages\whitelistpickle\__init__.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\packages\whitelistpickle\__init__.py
 import cPickle
 import cStringIO
 try:
@@ -12,7 +13,7 @@ def get_whitelist():
     return blue.marshal.globalsWhitelist
 
 
-def find_global(moduleName, className, getwhitelist = None):
+def find_global(moduleName, className, getwhitelist=None):
     fromlist = []
     if '.' in moduleName:
         fromlist.append(moduleName[moduleName.index('.'):])

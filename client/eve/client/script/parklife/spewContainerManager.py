@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\client\script\parklife\spewContainerManager.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\client\script\parklife\spewContainerManager.py
 
 
 class SpewContainerManager(object):
@@ -15,6 +16,7 @@ class SpewContainerManager(object):
         if slimItem.groupID in (const.groupSpewContainer, const.groupSpawnContainer) and slimItem.hackingSecurityState is not None:
             sm.GetService('invCache').InvalidateLocationCache(itemID)
             self.OnSpewSecurityStateChange(itemID, slimItem.hackingSecurityState)
+        return
 
     def GetSpewContainer(self, spewContainerID):
         spewContainer = None

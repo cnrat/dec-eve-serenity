@@ -1,10 +1,11 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\client\script\ui\shared\mapView\layout\mapLayoutSolarSystems.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\client\script\ui\shared\mapView\layout\mapLayoutSolarSystems.py
 from eve.client.script.ui.shared.mapView.layout.mapLayoutBase import MapLayoutBase
 from eve.client.script.ui.shared.mapView.mapViewData import mapViewData
 
 class MapLayoutSolarSystems(MapLayoutBase):
 
-    def PrimeLayout(self, flatten = False, **kwds):
+    def PrimeLayout(self, flatten=False, **kwds):
         if flatten == self.cacheKey:
             return
         self.cacheKey = flatten

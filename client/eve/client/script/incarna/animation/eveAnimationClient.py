@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\client\script\incarna\animation\eveAnimationClient.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\client\script\incarna\animation\eveAnimationClient.py
 import svc
 import eveaudio
 CONTROL_PARAMETER_TRACK_NAME_PREFIX = 'CP_'
@@ -23,7 +24,9 @@ class EveAnimationClient(svc.animationClient):
                 sm.GetService('audio').SendEntityEventBySoundID(entity, eventUserData)
         elif trackName.startswith(CONTROL_PARAMETER_TRACK_NAME_PREFIX) and animationController.GetControlParameter(trackName[3:]) is not None:
             animationController.SetControlParameter(trackName[3:], eventUserData)
+        return
 
     def _AnimationSetupHook(self, entity, component):
         if component.controller is not None:
             self.RegisterAnimationController(component.controller, audioCueFile=None)
+        return

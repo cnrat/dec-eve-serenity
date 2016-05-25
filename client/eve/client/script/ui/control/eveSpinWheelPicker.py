@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\client\script\ui\control\eveSpinWheelPicker.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\client\script\ui\control\eveSpinWheelPicker.py
 import math
 import uicls
 import carbonui.const as uiconst
@@ -53,8 +54,9 @@ class SpinWheelPicker(uiprimitives.Container):
         setvalueCallback = attributes.Get('OnSetValue', None)
         if setvalueCallback:
             self.OnSetValue = setvalueCallback
+        return
 
-    def LoadOptions(self, options, activeOptionIndex = 0):
+    def LoadOptions(self, options, activeOptionIndex=0):
         for each in self.sr.mainTransform.children[:]:
             if each.name == 'tick':
                 each.Close()
@@ -88,6 +90,7 @@ class SpinWheelPicker(uiprimitives.Container):
             currentAngle = self.sr.mainTransform.GetRotation()
             uicore.effect.MorphUIMassSpringDamper(None, None, activeRotation, newthread=False, frequency=15.0, dampRatio=0.5, callback=UpdateMarker, initVal=currentAngle)
         self.SettleOnTick()
+        return
 
     def SettleOnTick(self):
         sm.StartService('audio').SendUIEvent(unicode('wise:/ui_icc_circular_slider_item_selected_play'))
@@ -102,7 +105,7 @@ class SpinWheelPicker(uiprimitives.Container):
         angle = 0.0
         value = None
         for isZero, value in self._options:
-            if angle - step / 2 < 0.0 and angle - step / 2 + math.pi * 2 <= currentAngle <= angle + step / 2 + math.pi * 2:
+            if (angle - step / 2 < 0.0 and angle - step / 2 + math.pi * 2) <= currentAngle <= angle + step / 2 + math.pi * 2:
                 break
             if angle - step / 2 <= currentAngle <= angle + step / 2:
                 break
@@ -112,6 +115,7 @@ class SpinWheelPicker(uiprimitives.Container):
             angle += math.pi * 2
         uicore.effect.MorphUIMassSpringDamper(None, None, angle, frequency=15.0, dampRatio=0.5, callback=UpdateMarker, initVal=currentAngle)
         self.SetValue(value)
+        return
 
     def GetValue(self):
         return self._value
@@ -139,37 +143,40 @@ class SpinWheelPicker(uiprimitives.Container):
             self._lastAngle = newAngle
         else:
             self.sr._rotationTimer = None
+        return
 
     def OnClick(self, *args):
         if self._didSpin:
             return
-        mouseAngle = self.GetRotationAngleFromCenter()
-        currentAngle = self.sr.mainTransform.GetRotation()
-        newAngle = mouseAngle + currentAngle - math.pi * 0.5
-        newAngle = self.sr.mainTransform.ClampRotation(newAngle)
-        self.sr.mainTransform.SetRotation(newAngle)
+        else:
+            mouseAngle = self.GetRotationAngleFromCenter()
+            currentAngle = self.sr.mainTransform.GetRotation()
+            newAngle = mouseAngle + currentAngle - math.pi * 0.5
+            newAngle = self.sr.mainTransform.ClampRotation(newAngle)
+            self.sr.mainTransform.SetRotation(newAngle)
 
-        def UpdateMarker(_None, _newAngle):
-            self.sr.mainTransform.SetRotation(_newAngle)
+            def UpdateMarker(_None, _newAngle):
+                self.sr.mainTransform.SetRotation(_newAngle)
 
-        step = self._tickGap
-        angle = 0.0
-        value = None
-        for isZero, value in self._options:
-            if angle - step / 2 < 0.0 and angle - step / 2 + math.pi * 2 <= newAngle <= angle + step / 2 + math.pi * 2:
-                break
-            if angle - step / 2 <= newAngle <= angle + step / 2:
-                break
-            angle += step
+            step = self._tickGap
+            angle = 0.0
+            value = None
+            for isZero, value in self._options:
+                if (angle - step / 2 < 0.0 and angle - step / 2 + math.pi * 2) <= newAngle <= angle + step / 2 + math.pi * 2:
+                    break
+                if angle - step / 2 <= newAngle <= angle + step / 2:
+                    break
+                angle += step
 
-        diff = abs(angle - currentAngle)
-        if diff > math.pi:
-            if angle > currentAngle:
-                angle -= math.pi * 2
-            else:
-                angle += math.pi * 2
-        uicore.effect.MorphUIMassSpringDamper(None, None, angle, frequency=15.0, dampRatio=0.5, callback=UpdateMarker, initVal=currentAngle)
-        self.SetValue(value)
+            diff = abs(angle - currentAngle)
+            if diff > math.pi:
+                if angle > currentAngle:
+                    angle -= math.pi * 2
+                else:
+                    angle += math.pi * 2
+            uicore.effect.MorphUIMassSpringDamper(None, None, angle, frequency=15.0, dampRatio=0.5, callback=UpdateMarker, initVal=currentAngle)
+            self.SetValue(value)
+            return
 
     def OnMouseWheel(self, *args):
         if getattr(self, '_wheeling', False):
@@ -202,7 +209,7 @@ class SpinWheelPicker(uiprimitives.Container):
         angle = 0.0
         value = None
         for isZero, value in self._options:
-            if angle - step / 2 < 0.0 and angle - step / 2 + math.pi * 2 <= newAngle <= angle + step / 2 + math.pi * 2:
+            if (angle - step / 2 < 0.0 and angle - step / 2 + math.pi * 2) <= newAngle <= angle + step / 2 + math.pi * 2:
                 break
             if angle - step / 2 <= newAngle <= angle + step / 2:
                 break
@@ -220,7 +227,9 @@ class SpinWheelPicker(uiprimitives.Container):
             buff = self._wheelbuffer
             self._wheelbuffer = 0
             return self.MouseWheelThread(buff)
-        self.SetValue(value)
+        else:
+            self.SetValue(value)
+            return
 
     def OnMouseDown(self, button, *args):
         if button == uiconst.MOUSELEFT:

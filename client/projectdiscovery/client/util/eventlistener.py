@@ -1,9 +1,10 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\packages\projectdiscovery\client\util\eventlistener.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\packages\projectdiscovery\client\util\eventlistener.py
 import logging
 logger = logging.getLogger(__name__)
 METHOD_EVENT_MARKER = '__event_id__'
 
-def eventlistener(register = '__init__', unregister = '_OnClose'):
+def eventlistener(register='__init__', unregister='_OnClose'):
 
     def decorator(cls):
         events = []

@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\client\script\ui\control\damageGaugeContainers.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\client\script\ui\control\damageGaugeContainers.py
 from eve.client.script.ui.control import entries as listentry
 from carbonui.primitives.container import Container
 import carbonui.const as uiconst
@@ -53,24 +54,26 @@ class DamageGaugeContainer(Container):
     def GetContainerForDamageType(self, damageType):
         return self.innerContainers[damageType]
 
-    def UpdateGauge(self, info, animate = False, onClickFunc = None):
+    def UpdateGauge(self, info, animate=False, onClickFunc=None):
         if info is None:
             return
-        dmgType = info['dmgType']
-        container = self.GetContainerForDamageType(dmgType)
-        if container is None:
+        else:
+            dmgType = info['dmgType']
+            container = self.GetContainerForDamageType(dmgType)
+            if container is None:
+                return
+            if onClickFunc:
+                container.OnClick = (onClickFunc, info['attributeID'])
+            gauge = container.gauge
+            gauge.SetValue(info['value'], animate=animate)
+            gauge.SetValueText(text=info['valueText'])
+            iconID = info.get('iconID')
+            if iconID is not None:
+                container.icon.LoadIcon(iconID, ignoreSize=True)
+            text = info.get('text')
+            if text is not None:
+                container.hint = text
             return
-        if onClickFunc:
-            container.OnClick = (onClickFunc, info['attributeID'])
-        gauge = container.gauge
-        gauge.SetValue(info['value'], animate=animate)
-        gauge.SetValueText(text=info['valueText'])
-        iconID = info.get('iconID')
-        if iconID is not None:
-            container.icon.LoadIcon(iconID, ignoreSize=True)
-        text = info.get('text')
-        if text is not None:
-            container.hint = text
 
 
 class DamageGaugeContainerFitting(DamageGaugeContainer):

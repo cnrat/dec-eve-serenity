@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\carbon\common\lib\slprofile.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\carbon\common\lib\slprofile.py
 import profile
 import stackless
 import sys
@@ -10,13 +11,14 @@ stackless.globaltrace = True
 class Profile(profile.Profile):
     base = profile.Profile
 
-    def __init__(self, timer = None, bias = None):
+    def __init__(self, timer=None, bias=None):
         self.current_tasklet = stackless.getcurrent()
         self.thread_id = thread.get_ident()
         if timer is None:
             timer = Timer()
         self.base.__init__(self, timer, bias)
         self.sleeping = {}
+        return
 
     def __call__(self, *args):
         r = self.dispatcher(*args)
@@ -25,8 +27,9 @@ class Profile(profile.Profile):
         self.cur, self.timings, self.current_tasklet = None, {}, stackless.getcurrent()
         self.thread_id = thread.get_ident()
         self.simulate_call('profiler')
+        return
 
-    def start(self, name = 'start'):
+    def start(self, name='start'):
         if getattr(self, 'running', False):
             return
         self._setup()
@@ -38,6 +41,7 @@ class Profile(profile.Profile):
         sys.setprofile(None)
         self.running = False
         self.TallyTimings()
+        return
 
     def runctx(self, cmd, globals, locals):
         self._setup()
@@ -85,6 +89,8 @@ class Profile(profile.Profile):
             self.cur, self.timings = None, {}
             self.simulate_call('profiler')
             self.simulate_call('new_tasklet')
+
+        return
 
     def ContextWrap(f):
 

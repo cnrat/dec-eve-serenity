@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\client\script\ui\shared\fitting\fittingWnd.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\client\script\ui\shared\fitting\fittingWnd.py
 from carbonui import const as uiconst
 from carbonui.primitives.container import Container
 from carbonui.primitives.containerAutoSize import ContainerAutoSize
@@ -9,25 +10,26 @@ from eve.client.script.ui.control.eveLabel import EveLabelMediumBold, EveLabelMe
 from eve.client.script.ui.control.eveWindow import Window
 from eve.client.script.ui.shared.fitting.baseFitting import Fitting
 from eve.client.script.ui.shared.fitting.cleanShipButton import CleanShipButton
-from eve.client.script.ui.shared.fitting.fittingController import ShipFittingController
+from eve.client.script.ui.shared.fitting.fittingController import GetFittingController, IsItemStructure, IsStructure
 from eve.client.script.ui.shared.fitting.fittingUtil import GetXtraColor2, GetBaseShapeSize, PANEL_WIDTH, FONTCOLOR_DEFAULT
+from eve.client.script.ui.shared.fitting.serviceCont import FittingServiceCont
 from eve.client.script.ui.shared.fitting.statsPanel import StatsPanel
 from eve.client.script.ui.shared.skins.controller import FittingSkinPanelController
 from eve.client.script.ui.shared.skins.skinPanel import SkinPanel
 from eve.client.script.ui.station.fitting.fittingTooltipUtils import SetFittingTooltipInfo
-from eve.client.script.ui.station.fitting.minihangar import CargoCargoSlots, CargoDroneSlots
-from eve.common.script.sys.eveCfg import GetActiveShip
+from eve.client.script.ui.station.fitting.minihangar import CargoCargoSlots, CargoDroneSlots, CargoFighterSlots, CargoStructureAmmoBay
+from eve.common.script.sys.eveCfg import GetActiveShip, IsControllingStructure
 from localization import GetByLabel
 import locks
 import uthread
-WND_HEIGHT = 560
+WND_NORMAL_HEIGHT = 560
 ANIM_DURATION = 0.25
 
 class FittingWindow2(Window):
     __guid__ = 'form.FittingWindow2'
     __notifyevents__ = ['OnSetDevice']
     default_topParentHeight = 0
-    default_fixedHeight = WND_HEIGHT
+    default_fixedHeight = WND_NORMAL_HEIGHT
     default_windowID = 'fitting2'
     default_captionLabelPath = 'Tooltips/StationServices/ShipFitting'
     default_descriptionLabelPath = 'Tooltips/StationServices/ShipFitting_description'
@@ -39,14 +41,27 @@ class FittingWindow2(Window):
         self.HideHeaderFill()
         self.windowReady = False
         self.controller = None
-        itemID = attributes.shipID or GetActiveShip()
         self._layoutLock = locks.Lock()
-        self.controller = ShipFittingController(itemID=itemID)
+        try:
+            self.controller = self.LoadController(attributes)
+        except UserError:
+            self.Close()
+            raise
+
+        self._fixedHeight = GetFixedWndHeight(self.controller)
         self.controller.on_stats_changed.connect(self.UpdateStats)
         self.controller.on_new_itemID.connect(self.UpdateStats)
+        self.controller.on_should_close.connect(self.Close)
         self.ConstructLayout()
+        return
+
+    def LoadController(self, attributes):
+        itemID = attributes.shipID or GetActiveShip()
+        return GetFittingController(itemID)
 
     def ConstructLayout(self):
+        self._fixedHeight = GetFixedWndHeight(self.controller)
+        self.height = self._fixedHeight
         with self._layoutLock:
             self.sr.main.Flush()
             width = PANEL_WIDTH if self.IsLeftPanelExpanded() else 0
@@ -59,11 +74,17 @@ class FittingWindow2(Window):
             width = PANEL_WIDTH if self.IsRightPanelExpanded() else 0
             self.rightPanel = StatsPanel(name='rightside', parent=self.sr.main, align=uiconst.TORIGHT, width=width, idx=0, padding=(0, 0, 10, 10), controller=self.controller)
             mainCont = Container(name='mainCont', parent=self.sr.main, top=-8)
-            self.overlayCont = Container(name='overlayCont', parent=mainCont)
+            overlayWidth, overlayHeight, overlayAlignment = GetOverlayWidthHeightAndAlignment(self.controller)
+            self.overlayCont = Container(name='overlayCont', parent=mainCont, align=overlayAlignment, width=overlayWidth, height=overlayHeight)
             self.ConstructPanelExpanderBtn()
             self.ConstructInventoryIcons()
             self.ConstructPowerAndCpuLabels()
-            Fitting(parent=mainCont, owner=self, controller=self.controller)
+            if IsStructure(self.controller):
+                self.serviceCont = FittingServiceCont(parent=mainCont, controller=self.controller)
+                fittingAlignment = uiconst.TOPLEFT
+            else:
+                fittingAlignment = uiconst.CENTERLEFT
+            Fitting(parent=mainCont, owner=self, controller=self.controller, align=fittingAlignment)
             self.windowReady = True
             self.width = self.GetWindowWidth()
             self.SetFixedWidth(self.width)
@@ -71,10 +92,18 @@ class FittingWindow2(Window):
 
     def ConstructInventoryIcons(self):
         cargoDroneCont = ContainerAutoSize(name='cargoDroneCont', parent=self.overlayCont, align=uiconst.BOTTOMLEFT, width=110, left=const.defaultPadding, top=4)
-        cargoSlot = CargoCargoSlots(name='cargoSlot', parent=cargoDroneCont, align=uiconst.TOTOP, height=32, controller=self.controller)
-        SetFittingTooltipInfo(cargoSlot, 'CargoHold')
-        droneSlot = CargoDroneSlots(name='cargoSlot', parent=cargoDroneCont, align=uiconst.TOTOP, height=32, controller=self.controller)
-        SetFittingTooltipInfo(droneSlot, 'DroneBay')
+        if IsControllingStructure():
+            cargoSlot = CargoStructureAmmoBay(name='structureCargoSlot', parent=cargoDroneCont, align=uiconst.TOTOP, height=32, controller=self.controller)
+            SetFittingTooltipInfo(cargoSlot, 'StructureAmmoHold')
+        else:
+            cargoSlot = CargoCargoSlots(name='cargoSlot', parent=cargoDroneCont, align=uiconst.TOTOP, height=32, controller=self.controller)
+            SetFittingTooltipInfo(cargoSlot, 'CargoHold')
+        if self.controller.HasFighterBay():
+            fighterSlot = CargoFighterSlots(name='fighterSlot', parent=cargoDroneCont, align=uiconst.TOTOP, height=32, controller=self.controller)
+            SetFittingTooltipInfo(fighterSlot, 'FighterBay')
+        else:
+            droneSlot = CargoDroneSlots(name='droneSlot', parent=cargoDroneCont, align=uiconst.TOTOP, height=32, controller=self.controller)
+            SetFittingTooltipInfo(droneSlot, 'DroneBay')
 
     def IsRightPanelExpanded(self):
         return settings.user.ui.Get('fittingPanelRight', 1)
@@ -175,6 +204,7 @@ class FittingWindow2(Window):
         self.Unlock()
         uthread.new(uicore.registry.SetFocus, self)
         self._collapseable = 0
+        return
 
     def _OnClose(self, *args):
         settings.user.ui.Set('defaultFittingPosition', 0)
@@ -183,7 +213,7 @@ class FittingWindow2(Window):
         uthread.new(uicore.registry.SetFocus, self)
         SetOrder(self, 0)
 
-    def GhostFitItem(self, ghostItem = None):
+    def GhostFitItem(self, ghostItem=None):
         if not self.controller:
             return
         uthread.new(self.controller.SetGhostFittedItem, ghostItem)
@@ -237,6 +267,28 @@ class FittingWindow2(Window):
         calibrationOutput = self.controller.GetCalibrationOutput()
         self.calibration_statustext.text = GetByLabel('UI/Fitting/FittingWindow/CalibrationStatusText', calibrationLoad=calibrationOutput.value - calibrationLoad.value, calibrationOutput=calibrationOutput.value, startColorTag1='<color=%s>' % hex(GetXtraColor2(calibrationLoad.diff)), startColorTag2='<color=%s>' % FONTCOLOR_DEFAULT, endColorTag='</color>')
 
-    def Close(self, setClosed = False, *args, **kwds):
+    def Close(self, setClosed=False, *args, **kwds):
         Window.Close(self, setClosed, *args, **kwds)
-        self.controller.Close()
+        if self.controller:
+            self.controller.Close()
+
+
+def GetFixedWndHeight(controller):
+    baseSize = GetBaseShapeSize()
+    if IsStructure(controller):
+        return max(baseSize + 70, WND_NORMAL_HEIGHT)
+    return WND_NORMAL_HEIGHT
+
+
+def GetOverlayWidthHeightAndAlignment(controller):
+    fixedHeight = GetFixedWndHeight(controller)
+    baseSize = GetBaseShapeSize()
+    if IsStructure(controller):
+        width = baseSize
+        height = min(fixedHeight - 12, baseSize)
+        overlayAlignment = uiconst.CENTERTOP
+    else:
+        height = 0
+        width = 0
+        overlayAlignment = uiconst.TOALL
+    return (width, height, overlayAlignment)

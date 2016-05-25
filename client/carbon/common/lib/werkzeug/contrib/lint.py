@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\carbon\common\lib\werkzeug\contrib\lint.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\carbon\common\lib\werkzeug\contrib\lint.py
 from urlparse import urlparse
 from warnings import warn
 from werkzeug import Headers, FileWrapper, is_entity_header
@@ -11,7 +12,7 @@ class HTTPWarning(Warning):
     pass
 
 
-def check_string(context, obj, stacklevel = 3):
+def check_string(context, obj, stacklevel=3):
     if type(obj) is not str:
         warn(WSGIWarning('%s requires bytestrings, got %s' % (context, obj.__class__.__name__)))
 
@@ -127,6 +128,7 @@ class GuardedIterator(object):
                     warn(HTTPWarning('%r responses must not have a body' % status_code))
             elif content_length is not None and content_length != bytes_sent:
                 warn(WSGIWarning('Content-Length and the number of bytes sent to the client do not match.'))
+        return
 
     def __del__(self):
         if not self.closed:
@@ -195,6 +197,7 @@ class LintMiddleware(object):
         if location is not None:
             if not urlparse(location).netloc:
                 warn(HTTPWarning('absolute URLs required for location header'), stacklevel=4)
+        return
 
     def check_iterator(self, app_iter):
         if isinstance(app_iter, basestring):

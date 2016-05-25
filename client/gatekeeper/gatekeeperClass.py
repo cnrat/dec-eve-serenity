@@ -1,14 +1,16 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\packages\gatekeeper\gatekeeperClass.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\packages\gatekeeper\gatekeeperClass.py
 from eveexceptions.exceptionEater import ExceptionEater
 import functoolsext
 CACHE_SIZE = 4096
 
 class Gatekeeper:
 
-    def __init__(self, ignoreMultipleTeardowns = False, allowMultipleInits = False):
+    def __init__(self, ignoreMultipleTeardowns=False, allowMultipleInits=False):
         self.GetCohortFunction = None
         self.tolerantTearDown = ignoreMultipleTeardowns
         self.allowMultipleInits = allowMultipleInits
+        return
 
     def IsInitialized(self):
         return self.GetCohortFunction is not None
@@ -23,6 +25,7 @@ class Gatekeeper:
     def __raiseRuntimeErrorIfNone(self, function):
         if function is None:
             raise RuntimeError('Gatekeeper cohort Function cannot be None')
+        return
 
     def Teardown(self):
         if self.IsInitialized():
@@ -31,6 +34,7 @@ class Gatekeeper:
             raise RuntimeError('Gatekeeper has not been initialized!')
         self.IsInCohort.cache_clear()
         self.GetCohorts.cache_clear()
+        return
 
     @functoolsext.lru_cache(CACHE_SIZE)
     def IsInCohort(self, cohortID, *args):

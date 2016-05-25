@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\carbon\common\lib\jinja2\defaults.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\carbon\common\lib\jinja2\defaults.py
 from jinja2.utils import generate_lorem_ipsum, Cycler, Joiner
 BLOCK_START_STRING = '{%'
 BLOCK_END_STRING = '%}'

@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\packages\sovDashboard\dashboard.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\packages\sovDashboard\dashboard.py
 from carbonui.primitives.container import Container
 from carbonui.control.basicDynamicScroll import BasicDynamicScroll
 from entosis.entosisConst import STRUCTURE_SCORE_UPDATED
@@ -49,6 +50,7 @@ class SovDashboard(Container):
         columnWidthsByName = self.sortHeaders.GetCurrentSizes()
         self.columnWidths = [ columnWidthsByName[header] for header in self.entryClass.GetHeaders() ]
         sm.RegisterNotify(self)
+        return
 
     def CreateWindow(self):
         uthread.new(self.ReloadDashboard)
@@ -144,6 +146,7 @@ class SovDashboard(Container):
             self.scroll.ShowHint(None)
         else:
             self.scroll.ShowHint(emptyListHint)
+        return
 
     def OnColumnSizeChanged(self, *args):
         columnWidthsByName = self.sortHeaders.GetCurrentSizes()
@@ -180,7 +183,7 @@ class SovDashboard(Container):
         self.searchString = searchString
         self.UpdateScrollList()
 
-    def OnSolarsystemSovStructureChanged(self, solarsystemID, whatChanged, sourceItemID = None):
+    def OnSolarsystemSovStructureChanged(self, solarsystemID, whatChanged, sourceItemID=None):
         if STRUCTURE_SCORE_UPDATED not in whatChanged:
             return
         for node in self.scroll.GetNodes():

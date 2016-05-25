@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\packages\codereload\xreload.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\packages\codereload\xreload.py
 import gc
 import imp
 import logging
@@ -28,7 +29,7 @@ def _safestr(obj):
         return '<REPR ERROR> (%s)' % expressedobj
 
 
-def xreload(mod, code = None):
+def xreload(mod, code=None):
     modns = mod.__dict__
     if not code:
         modname = mod.__name__

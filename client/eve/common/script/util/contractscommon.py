@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\common\script\util\contractscommon.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\common\script\util\contractscommon.py
 import evetypes
 import util
 import localization
@@ -65,7 +66,7 @@ NUMJUMPS_UNREACHABLE = 100
 SEARCHHINT_BPO = 1
 SEARCHHINT_BPC = 2
 
-def CalcContractFees(price, reward, type, time, skillLevels, solarSystemID = None, factionID = None):
+def CalcContractFees(price, reward, type, time, skillLevels, solarSystemID=None, factionID=None):
     BASE_COST_MULTIPLIERS = {const.conTypeAuction: 1.0,
      const.conTypeItemExchange: 1.0,
      const.conTypeCourier: 0.1,
@@ -109,7 +110,7 @@ def GetContractTypeText(id):
     return typesTxt.get(id, localization.GetByLabel('UI/Common/Unknown'))
 
 
-def GetContractStatusText(id, typ = None):
+def GetContractStatusText(id, typ=None):
     statusTxt = {const.conStatusOutstanding: localization.GetByLabel('UI/Contracts/ContractsWindow/Outstanding'),
      const.conStatusInProgress: localization.GetByLabel('UI/Contracts/ContractsWindow/InProgress'),
      const.conStatusFinishedIssuer: localization.GetByLabel('UI/Contracts/ContractsWindow/ItemsNotYetClaimed'),

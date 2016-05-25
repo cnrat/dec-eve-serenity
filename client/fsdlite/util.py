@@ -1,10 +1,11 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\packages\fsdlite\util.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\packages\fsdlite\util.py
 import weakref
 import inspect
 import types
 import copy
 
-def repr(obj, module = None, exclude = []):
+def repr(obj, module=None, exclude=[]):
     module = '' if module else module + '.'
     if hasattr(obj, '__slots__'):
         return '<{}{} {}>'.format(module, obj.__class__.__name__, ' '.join([ '{}={}'.format(key, getattr(obj, key, None)) for key in obj.__slots__ if key not in exclude ]))
@@ -12,6 +13,7 @@ def repr(obj, module = None, exclude = []):
         return '<{}{} {}>'.format(module, obj.__class__.__name__, ' '.join([ '{}={}'.format(key, value) for key, value in obj.__dict__.iteritems() if key not in exclude ]))
     else:
         return str(obj)
+        return None
 
 
 class Immutable(type):
@@ -45,20 +47,24 @@ class Immutable(type):
                 raise TypeError('Immutable object')
             else:
                 old_delattr(self, name)
+            return
 
         def new_setattr(self, name, value):
             if getattr(self, '__immutable__', None) is True and name != '__immutable__':
                 raise TypeError('Immutable object')
             else:
                 old_setattr(self, name, value)
+            return
 
         def new_enter(self):
             if getattr(self, '__immutable__', None) is True:
                 old_setattr(self, '__immutable__', -1)
+            return
 
         def new_exit(self, exc, val, tb):
             if getattr(self, '__immutable__', None) == -1:
                 old_setattr(self, '__immutable__', True)
+            return
 
         def new_copy(self):
             obj = self.__class__.__new__(self.__class__)
@@ -113,12 +119,15 @@ class WeakMethod(object):
     def __call__(self, *args):
         if self.c() is not None:
             apply(self.f, (self.c(),) + args)
+        return
 
 
 def extend_class(cls, mixin):
     for name, member in inspect.getmembers(mixin):
         if inspect.ismethod(member):
             setattr(cls, name, types.MethodType(member.im_func, None, cls))
+
+    return
 
 
 class Extendable(object):

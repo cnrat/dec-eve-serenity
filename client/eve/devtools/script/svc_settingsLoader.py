@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\devtools\script\svc_settingsLoader.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\devtools\script\svc_settingsLoader.py
 import uix
 import carbonui.const as uiconst
 import yaml
@@ -17,28 +18,32 @@ class SettingsLoaderSvc(Service):
          'warning': 'Note that you have to restart after loading new settings'}, uiconst.OKCANCEL)
         if ret == uiconst.ID_CANCEL:
             return
-        path = settings.public.ui.Get('LoadSettingsPath', None)
-        selection = uix.GetFileDialog(path=path, fileExtensions=['yaml'], multiSelect=False, selectionType=uix.SEL_FILES)
-        if selection is None or len(selection.files) < 1 or selection.files[0] == '':
+        else:
+            path = settings.public.ui.Get('LoadSettingsPath', None)
+            selection = uix.GetFileDialog(path=path, fileExtensions=['yaml'], multiSelect=False, selectionType=uix.SEL_FILES)
+            if selection is None or len(selection.files) < 1 or selection.files[0] == '':
+                return
+            fileName = selection.files[0]
+            folder = '\\'.join(fileName.split('\\')[:-1])
+            save = eve.Message('CustomQuestion', {'header': 'Save Current Settings?',
+             'question': 'Do you want to save your current settings?'}, uiconst.YESNO)
+            if save == uiconst.ID_YES:
+                self.SaveCurrentSettings(folder)
+            self.LoadSettings(fileName)
+            settings.public.ui.Set('LoadSettingsPath', folder)
+            appUtils.Reboot('Settings loaded')
             return
-        fileName = selection.files[0]
-        folder = '\\'.join(fileName.split('\\')[:-1])
-        save = eve.Message('CustomQuestion', {'header': 'Save Current Settings?',
-         'question': 'Do you want to save your current settings?'}, uiconst.YESNO)
-        if save == uiconst.ID_YES:
-            self.SaveCurrentSettings(folder)
-        self.LoadSettings(fileName)
-        settings.public.ui.Set('LoadSettingsPath', folder)
-        appUtils.Reboot('Settings loaded')
 
     def Export(self):
         path = settings.public.ui.Get('LoadSettingsPath', None)
         selection = uix.GetFileDialog(path=path, multiSelect=False, selectionType=uix.SEL_FOLDERS)
         if selection is None or len(selection.folders) < 1 or selection.folders[0] == '':
             return
-        folder = selection.folders[0]
-        self.SaveCurrentSettings(folder)
-        settings.public.ui.Set('LoadSettingsPath', folder)
+        else:
+            folder = selection.folders[0]
+            self.SaveCurrentSettings(folder)
+            settings.public.ui.Set('LoadSettingsPath', folder)
+            return
 
     def SaveCurrentSettings(self, folder):
         allSettings = {}

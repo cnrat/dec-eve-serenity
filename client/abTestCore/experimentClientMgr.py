@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\packages\abTestCore\experimentClientMgr.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\packages\abTestCore\experimentClientMgr.py
 import carbon.common.lib.const as timeconst
 import eve.common.lib.infoEventConst as infoConst
 import gatekeeper
@@ -18,6 +19,7 @@ class ABTestClientManager:
     def TearDown(self):
         self.initialized = False
         self.languageID = None
+        return
 
     def IsTutorialEnabled(self):
         return False

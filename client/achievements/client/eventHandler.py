@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\packages\achievements\client\eventHandler.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\packages\achievements\client\eventHandler.py
 import weakref
 from achievements.common.achievementConst import AchievementEventConst as eventConst
 from achievements.common.eventHandlerUtil import ListContainsTypeInGivenGroups
@@ -33,7 +34,7 @@ class EventHandler(object):
         sm.RegisterNotify(self)
         self.achievementSvc = weakref.proxy(achievementSvc)
 
-    def LogAchievementEvent(self, eventType, amount = 1):
+    def LogAchievementEvent(self, eventType, amount=1):
         self.achievementSvc.LogClientEvent(eventType, amount)
 
     def OnClientEvent_LockItem(self, slimItem):
@@ -54,7 +55,7 @@ class EventHandler(object):
     def OnClientEvent_Approach(self):
         self.LogAchievementEvent(eventConst.APPROACH_CLIENT)
 
-    def OnClientEvent_MoveFromCargoToHangar(self, sourceID, destinationID, destinationFlag = None):
+    def OnClientEvent_MoveFromCargoToHangar(self, sourceID, destinationID, destinationFlag=None):
         if sourceID > const.minFakeItem:
             self.LogAchievementEvent(eventConst.ITEMS_LOOT_CLIENT)
             return
@@ -129,6 +130,6 @@ class EventHandler(object):
     def OnClientEvent_PerfectScanResultReached(self):
         self.LogAchievementEvent(eventConst.REACH_PERFECT_SCAN_RESULTS)
 
-    def OnBookmarkCreated(self, bookmarkID, comment, typeID = None):
+    def OnBookmarkCreated(self, bookmarkID, comment, typeID=None):
         if typeID and ListContainsTypeInGivenGroups([typeID], [invConst.groupWormhole]):
             self.LogAchievementEvent(eventConst.CREATE_WORMHOLE_BOOKMARK)

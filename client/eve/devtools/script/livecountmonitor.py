@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\devtools\script\livecountmonitor.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\devtools\script\livecountmonitor.py
 import blue
 import carbonui.const as uiconst
 from carbonui.control.scrollentries import ScrollEntryNode, SE_GenericCore
@@ -33,6 +34,7 @@ class LiveCountMonitor(Window):
         self.lastFilter = None
         self.filterEdit.SetText('')
         self.PopulateScroll()
+        return
 
     def Refresh(self):
         while not self.destroyed:

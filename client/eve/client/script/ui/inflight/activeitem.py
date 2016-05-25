@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\client\script\ui\inflight\activeitem.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\client\script\ui\inflight\activeitem.py
 import evetypes
 import uicontrols
 import uiprimitives
@@ -109,42 +110,45 @@ class ActiveItem(uicontrols.Window):
                                   ('UI/Drones/LaunchDrones', 'UI/Drones/ReturnDroneToBay', 'UI/Drones/ScoopDroneToBay')],
          const.groupSalvageDrone: ['UI/Drones/Salvage', 'UI/Drones/ReturnDroneAndOrbit', ('UI/Drones/LaunchDrones', 'UI/Drones/ReturnDroneToBay', 'UI/Drones/ScoopDroneToBay')]}
         self.categories = {const.categoryShip: ['UI/Inflight/BoardShip', 'UI/Chat/StartConversation'],
+         const.categoryStructure: ['UI/Inflight/DockInStation'],
          const.categoryDrone: ['UI/Drones/EngageTarget', 'UI/Drones/ReturnDroneAndOrbit', ('UI/Drones/LaunchDrones', 'UI/Drones/ReturnDroneToBay', 'UI/Drones/ScoopDroneToBay')]}
         if self.destroyed:
             return
-        self.sr.main = main = uiutil.GetChild(self, 'main')
-        self.SetTopparentHeight(0)
-        self.SetWndIcon()
-        self.SetCaption(localization.GetByLabel('UI/Inflight/ActiveItem/SelectedItem'))
-        self.SetMinSize([256, 93])
-        self.MakeUnKillable()
-        main.left = main.top = main.width = main.height = const.defaultPadding
-        main.clipChildren = 1
-        self.sr.toparea = uiprimitives.Container(name='toparea', align=uiconst.TOTOP, parent=self.sr.main, height=36)
-        self.sr.utilMenuArea = uiprimitives.Container(name='utilMenuArea', align=uiconst.TORIGHT, parent=self.sr.toparea, width=20)
-        self.utilMenu = uicls.KillRightsUtilMenu(menuAlign=uiconst.TOPRIGHT, parent=self.sr.utilMenuArea, align=uiconst.TOPRIGHT)
-        self.sr.utilMenuArea.display = False
-        self.sr.actions = uiprimitives.Container(name='actions', align=uiconst.TOTOP, parent=self.sr.main, left=0, top=0)
-        self.sr.actions.isTabStop = 1
-        self.sr.iconpar = uiprimitives.Container(name='iconpar', align=uiconst.TOPLEFT, parent=self.sr.toparea, width=32, height=32, left=1, top=2, state=uiconst.UI_HIDDEN)
-        self.sr.icon = uicontrols.Icon(parent=self.sr.iconpar, align=uiconst.TOALL)
-        self.sr.icon.OnClick = (self.ShowInfo, self.sr.icon)
-        self.sr.icon.GetMenu = (self.GetIconMenu, self.sr.icon)
-        self.sr.chariconpar = uiprimitives.Container(name='chariconpar', align=uiconst.TOPLEFT, parent=self.sr.toparea, width=32, height=32, left=37, top=2, state=uiconst.UI_HIDDEN)
-        self.sr.charicon = uicontrols.Icon(parent=self.sr.chariconpar, align=uiconst.TOALL)
-        self.sr.charicon.OnClick = (self.ShowInfo, self.sr.charicon)
-        self.sr.pushCont = uiprimitives.Container(name='push', width=39, parent=self.sr.toparea, align=uiconst.TOLEFT)
-        self.sr.text = uicontrols.EveLabelSmall(text='', parent=self.sr.toparea, align=uiconst.TOTOP, left=const.defaultPadding, top=const.defaultPadding, state=uiconst.UI_NORMAL)
-        self.inited = 1
-        self.bountySvc = sm.GetService('bountySvc')
-        selected = None
-        stateSvc = sm.GetServiceIfRunning('state')
-        if stateSvc:
-            selected = stateSvc.GetExclState(state.selected)
-        if selected:
-            self.OnMultiSelect([selected])
         else:
-            self.UpdateAll()
+            self.sr.main = main = uiutil.GetChild(self, 'main')
+            self.SetTopparentHeight(0)
+            self.SetWndIcon()
+            self.SetCaption(localization.GetByLabel('UI/Inflight/ActiveItem/SelectedItem'))
+            self.SetMinSize([256, 93])
+            self.MakeUnKillable()
+            main.left = main.top = main.width = main.height = const.defaultPadding
+            main.clipChildren = 1
+            self.sr.toparea = uiprimitives.Container(name='toparea', align=uiconst.TOTOP, parent=self.sr.main, height=36)
+            self.sr.utilMenuArea = uiprimitives.Container(name='utilMenuArea', align=uiconst.TORIGHT, parent=self.sr.toparea, width=20)
+            self.utilMenu = uicls.KillRightsUtilMenu(menuAlign=uiconst.TOPRIGHT, parent=self.sr.utilMenuArea, align=uiconst.TOPRIGHT)
+            self.sr.utilMenuArea.display = False
+            self.sr.actions = uiprimitives.Container(name='actions', align=uiconst.TOTOP, parent=self.sr.main, left=0, top=0)
+            self.sr.actions.isTabStop = 1
+            self.sr.iconpar = uiprimitives.Container(name='iconpar', align=uiconst.TOPLEFT, parent=self.sr.toparea, width=32, height=32, left=1, top=2, state=uiconst.UI_HIDDEN)
+            self.sr.icon = uicontrols.Icon(parent=self.sr.iconpar, align=uiconst.TOALL)
+            self.sr.icon.OnClick = (self.ShowInfo, self.sr.icon)
+            self.sr.icon.GetMenu = (self.GetIconMenu, self.sr.icon)
+            self.sr.chariconpar = uiprimitives.Container(name='chariconpar', align=uiconst.TOPLEFT, parent=self.sr.toparea, width=32, height=32, left=37, top=2, state=uiconst.UI_HIDDEN)
+            self.sr.charicon = uicontrols.Icon(parent=self.sr.chariconpar, align=uiconst.TOALL)
+            self.sr.charicon.OnClick = (self.ShowInfo, self.sr.charicon)
+            self.sr.pushCont = uiprimitives.Container(name='push', width=39, parent=self.sr.toparea, align=uiconst.TOLEFT)
+            self.sr.text = uicontrols.EveLabelSmall(text='', parent=self.sr.toparea, align=uiconst.TOTOP, left=const.defaultPadding, top=const.defaultPadding, state=uiconst.UI_NORMAL)
+            self.inited = 1
+            self.bountySvc = sm.GetService('bountySvc')
+            selected = None
+            stateSvc = sm.GetServiceIfRunning('state')
+            if stateSvc:
+                selected = stateSvc.GetExclState(state.selected)
+            if selected:
+                self.OnMultiSelect([selected])
+            else:
+                self.UpdateAll()
+            return
 
     def UpdateActions(self):
         self.actions = {'UI/Commands/ShowInfo': ('res:/UI/Texture/icons/44_32_24.png', 0, 0, 0, 0, 'selectedItemShowInfo', 'CmdShowItemInfo'),
@@ -188,8 +192,9 @@ class ActiveItem(uicontrols.Window):
          'UI/Inflight/EnterWormhole': ('res:/UI/Texture/icons/44_32_39.png', 0, 0, 0, 0, 'selectedItemEnterWormhole', None),
          'UI/Inflight/ActivateGate': ('res:/UI/Texture/icons/44_32_39.png', 0, 0, 0, 0, 'selectedItemActivateGate', 'CmdDockOrJumpOrActivateGate'),
          'UI/Commands/ReadNews': ('res:/UI/Texture/icons/44_32_47.png', 0, 0, 0, 0, 'selectedItemReadNews', None)}
+        return None
 
-    def Blink(self, on_off = 1):
+    def Blink(self, on_off=1):
         if on_off and self.sr.blink is None:
             self.sr.blink = uiprimitives.Fill(parent=self.sr.top, padding=(1, 1, 1, 1), color=(1.0, 1.0, 1.0, 0.25))
         if on_off:
@@ -199,6 +204,7 @@ class ActiveItem(uicontrols.Window):
             b = self.sr.blink
             self.sr.blink = None
             b.Close()
+        return
 
     def BlinkBtn(self, key):
         for btn in self.sr.actions.children:
@@ -206,6 +212,8 @@ class ActiveItem(uicontrols.Window):
                 sm.GetService('ui').BlinkSpriteA(btn.children[0], 1.0, 500, None, passColor=0)
             else:
                 sm.GetService('ui').StopBlink(btn.children[0])
+
+        return
 
     def OnResizeUpdate(self, *args):
         self.CheckActions(forceSizeUpdate=1, ignoreScaling=1)
@@ -220,7 +228,7 @@ class ActiveItem(uicontrols.Window):
         self.SetCaption(caption)
 
     @telemetry.ZONE_METHOD
-    def CheckActions(self, forceSizeUpdate = 0, ignoreScaling = 0):
+    def CheckActions(self, forceSizeUpdate=0, ignoreScaling=0):
         if self.destroyed or not self.sr.actions:
             return
         self.sr.toparea.height = max(40, self.sr.text.textheight + self.sr.text.top * 2)
@@ -236,43 +244,48 @@ class ActiveItem(uicontrols.Window):
                 self.SetHeight_PushOrPullWindowsBelow(self.height + diff)
 
     @telemetry.ZONE_METHOD
-    def LayoutButtons(self, parent, state = None, maxHeight = None):
+    def LayoutButtons(self, parent, state=None, maxHeight=None):
         if parent is None:
             return
-        l, t, w, h = parent.GetAbsolute()
-        colwidth = 33
-        if w <= colwidth:
+        else:
+            l, t, w, h = parent.GetAbsolute()
+            colwidth = 33
+            if w <= colwidth:
+                return
+            perRow = w / colwidth
+            small = len(parent.children) / float(perRow) > 2.0
+            size = [32, 24][small]
+            if maxHeight and size > maxHeight:
+                size = 24
+            if len(parent.children) * (size + 1) + 1 > w:
+                size = 24
+            left = 1
+            top = 0
+            parent.height = size + 1
+            for icon in parent.children:
+                if l + left + size + 1 >= l + w:
+                    left = 1
+                    top += size + 1
+                    parent.height += size + 1
+                icon.left = left
+                icon.top = top
+                icon.width = size
+                icon.height = size
+                if state is not None:
+                    icon.state = state
+                left += size + 1
+
             return
-        perRow = w / colwidth
-        small = len(parent.children) / float(perRow) > 2.0
-        size = [32, 24][small]
-        if maxHeight and size > maxHeight:
-            size = 24
-        if len(parent.children) * (size + 1) + 1 > w:
-            size = 24
-        left = 1
-        top = 0
-        parent.height = size + 1
-        for icon in parent.children:
-            if l + left + size + 1 >= l + w:
-                left = 1
-                top += size + 1
-                parent.height += size + 1
-            icon.left = left
-            icon.top = top
-            icon.width = size
-            icon.height = size
-            if state is not None:
-                icon.state = state
-            left += size + 1
 
     def _OnClose(self, *args):
         self.sr.updateTimer = None
+        return
 
     def ProcessSessionChange(self, isRemote, session, change):
         self.lastActionSerial = None
         self.lastActionDist = None
         self.lastSessionChange = blue.os.GetWallclockTime()
+        return
 
     def OnMultiSelect(self, itemIDs):
         self.itemIDs = itemIDs
@@ -282,6 +295,7 @@ class ActiveItem(uicontrols.Window):
         self.bounty = None
         if self.ImVisible():
             uthread.pool('ActiveItem::UpdateAll', self.UpdateAll, 1)
+        return
 
     def OnStateChange(self, itemID, flag, true, *args):
         if itemID != eve.session.shipid and not self.destroyed:
@@ -295,6 +309,7 @@ class ActiveItem(uicontrols.Window):
             self.lastActionSerial = None
             self.lastActionDist = None
             self.UpdateAll()
+        return
 
     def OnDistSettingsChange(self):
         uthread.new(self._OnDistSettingsChange)
@@ -303,15 +318,19 @@ class ActiveItem(uicontrols.Window):
     def _OnDistSettingsChange(self):
         self.lastActionSerial = None
         self.UpdateAll(1)
+        return
 
     def TryGetInvItem(self, itemID):
         if eve.session.shipid is None:
             return
-        ship = sm.GetService('invCache').GetInventoryFromId(eve.session.shipid)
-        if ship:
-            for invItem in ship.List():
-                if invItem.itemID == itemID:
-                    return invItem
+        else:
+            ship = sm.GetService('invCache').GetInventoryFromId(eve.session.shipid)
+            if ship:
+                for invItem in ship.List():
+                    if invItem.itemID == itemID:
+                        return invItem
+
+            return
 
     def GetItem(self, itemID):
         item = uix.GetBallparkRecord(itemID)
@@ -325,22 +344,28 @@ class ActiveItem(uicontrols.Window):
     def OnTabSelect(self, *args):
         if not getattr(self, 'inited', 0):
             return
-        self.lastActionSerial = None
-        self.UpdateAll(1)
+        else:
+            self.lastActionSerial = None
+            self.UpdateAll(1)
+            return
 
     def OnExpanded(self, *args):
         if not getattr(self, 'inited', 0):
             return
-        self.lastActionSerial = None
-        self.UpdateAll(1)
+        else:
+            self.lastActionSerial = None
+            self.UpdateAll(1)
+            return
 
     def OnEndMaximize(self):
         if not getattr(self, 'inited', 0):
             return
-        self.lastActionSerial = None
-        self.UpdateAll(1)
+        else:
+            self.lastActionSerial = None
+            self.UpdateAll(1)
+            return
 
-    def ShowNoSelectedHint(self, hint = None):
+    def ShowNoSelectedHint(self, hint=None):
         if self.sr.noSelectedHint is None and hint:
             self.sr.noSelectedHint = uicontrols.EveCaptionMedium(text=hint, parent=self.sr.main, align=uiconst.RELATIVE, left=16, top=18, width=256)
             self.sr.noSelectedHint.SetAlpha(0.5)
@@ -350,6 +375,7 @@ class ActiveItem(uicontrols.Window):
                 self.sr.noSelectedHint.state = uiconst.UI_DISABLED
             else:
                 self.sr.noSelectedHint.state = uiconst.UI_HIDDEN
+        return
 
     def FlushContent(self):
         self.SetText('')
@@ -359,152 +385,154 @@ class ActiveItem(uicontrols.Window):
         self.sr.chariconpar.state = uiconst.UI_HIDDEN
 
     @telemetry.ZONE_METHOD
-    def UpdateAll(self, updateActions = 0):
+    def UpdateAll(self, updateActions=0):
         if not self or self.destroyed:
             return
-        if eve.session.shipid in self.itemIDs:
-            self.itemIDs.remove(eve.session.shipid)
-        bp = sm.GetService('michelle').GetBallpark()
-        if not self.ImVisible() or not bp or not self.itemIDs:
-            self.sr.updateTimer = None
-            self.FlushContent()
-            return
-        goForSlim = 1
-        slimItems = []
-        invItems = []
-        fleetMember = None
-        for itemID in self.itemIDs:
-            blue.pyos.BeNice()
-            if sm.GetService('fleet').IsMember(itemID):
-                fleetMember = cfg.eveowners.Get(itemID)
-                break
-            slimItem = None
-            if goForSlim:
-                slimItem = uix.GetBallparkRecord(itemID)
-                if slimItem:
-                    slimItems.append(slimItem)
-            if not slimItem:
-                invItem = self.TryGetInvItem(itemID)
-                if invItem:
-                    invItems.append(invItem)
-                    goForSlim = 0
+        else:
+            if eve.session.shipid in self.itemIDs:
+                self.itemIDs.remove(eve.session.shipid)
+            bp = sm.GetService('michelle').GetBallpark()
+            if not self.ImVisible() or not bp or not self.itemIDs:
+                self.sr.updateTimer = None
+                self.FlushContent()
+                return
+            goForSlim = 1
+            slimItems = []
+            invItems = []
+            fleetMember = None
+            for itemID in self.itemIDs:
+                blue.pyos.BeNice()
+                if sm.GetService('fleet').IsMember(itemID):
+                    fleetMember = cfg.eveowners.Get(itemID)
+                    break
+                slimItem = None
+                if goForSlim:
+                    slimItem = uix.GetBallparkRecord(itemID)
+                    if slimItem:
+                        slimItems.append(slimItem)
+                if not slimItem:
+                    invItem = self.TryGetInvItem(itemID)
+                    if invItem:
+                        invItems.append(invItem)
+                        goForSlim = 0
 
-        if not slimItems and not invItems and not fleetMember:
-            self.itemIDs = []
-            self.lastActionSerial = None
-            self.lastActionDist = None
-            self.FlushContent()
-            return
-        if not self or self.destroyed:
-            return
-        text = ''
-        blue.pyos.BeNice()
-        updateActions = updateActions or 0
-        typeID = None
-        fleetSlim = None
-        if fleetMember:
-            multi = 1
-            text = fleetMember.name
-            typeID = fleetMember.typeID
-            fleetSlim = self.GetSlimItemForCharID(fleetMember.id)
+            if not slimItems and not invItems and not fleetMember:
+                self.itemIDs = []
+                self.lastActionSerial = None
+                self.lastActionDist = None
+                self.FlushContent()
+                return
+            if not self or self.destroyed:
+                return
+            text = ''
             blue.pyos.BeNice()
-        elif invItems:
-            text = uix.GetItemName(invItems[0])
-            typeID = invItems[0].typeID
-            multi = len(invItems)
-            blue.pyos.BeNice()
-        elif slimItems:
-            text = uix.GetSlimItemName(slimItems[0])
-            typeID = slimItems[0].typeID
-            multi = len(slimItems)
-            if multi == 1:
-                slimItem = slimItems[0]
-                itemID = slimItem.itemID
-                ball = bp.GetBall(itemID)
-                if not ball:
-                    self.itemIDs = []
-                    self.sr.updateTimer = None
-                    self.FlushContent()
-                    return
-                dist = ball.surfaceDist
-                if dist is not None:
-                    md = None
-                    myball = bp.GetBall(eve.session.shipid)
-                    if myball:
-                        md = myball.mode
-                    text += '<br>' + localization.GetByLabel('UI/Inflight/ActiveItem/SelectedItemDistance', distToItem=util.FmtDist(dist, maxdemicals=1))
-                    if not self.lastActionDist or md != self.lastActionDist[1] or self.CheckDistanceUpdate(self.lastActionDist[0], dist):
-                        self.lastActionDist = (dist, md)
-                        updateActions = 1
-                sec = slimItem.securityStatus
-                if sec:
-                    text += '<br>' + localization.GetByLabel('UI/Inflight/ActiveItem/SelectedItemSecurity', secStatus=sec)
-            blue.pyos.BeNice()
-        corpID = None
-        charID = None
-        categoryID = None
-        bountyItemID = None
-        bountyTypeID = None
-        bountySlim = None
-        displayUtilMenu = False
-        if multi > 1:
-            text += '<br>' + localization.GetByLabel('UI/Inflight/ActiveItem/MultipleItems', itemCount=multi)
-            blue.pyos.BeNice()
-        elif multi == 1:
-            if slimItems:
-                slim = slimItems[0]
-                if slim.categoryID == const.categoryShip:
-                    if util.IsCharacter(slim.charID):
-                        charID = slim.charID
-                        categoryID = slim.categoryID
-                if slim.categoryID == const.categoryEntity:
-                    bountyTypeID = slim.typeID
-                elif slim.charID:
-                    bountyItemID = slim.charID
-                    bountySlim = slim
-                killRightID, price = self.bountySvc.GetBestKillRight(slim.charID)
-                self.utilMenu.UpdateKillRightInfo(killRightID, price, slim.charID, slim.itemID)
-                stateSvc = sm.GetService('state')
-                if killRightID is not None and not (stateSvc.CheckSuspect(slim) or stateSvc.CheckCriminal(slim)):
-                    displayUtilMenu = True
-            blue.pyos.BeNice()
-        self.sr.utilMenuArea.display = displayUtilMenu
-        self.utilMenu.display = displayUtilMenu
-        if self.lastIcon != (typeID, itemID, charID):
-            uthread.pool('ActiveItem::GetIcon', self.GetIcon, typeID, itemID, charID, corpID, categoryID)
-            self.lastIcon = (typeID, itemID, charID)
-        else:
-            self.sr.iconpar.state = uiconst.UI_PICKCHILDREN
-            if categoryID == const.categoryShip and charID:
-                self.sr.chariconpar.state = uiconst.UI_PICKCHILDREN
-        bountyHint = None
-        reducedBountyIndication = None
-        if (bountyItemID, bountyTypeID) != self.lastBountyCheck:
-            bounty, bountyHint, reducedBountyIndication = self.CheckBounty(bountyTypeID, bountySlim)
-            blue.pyos.BeNice()
-            if bounty:
-                self.bounty = localization.GetByLabel('UI/Common/BountyAmount', bountyAmount=util.FmtISK(bounty, 0))
+            updateActions = updateActions or 0
+            typeID = None
+            fleetSlim = None
+            if fleetMember:
+                multi = 1
+                text = fleetMember.name
+                typeID = fleetMember.typeID
+                fleetSlim = self.GetSlimItemForCharID(fleetMember.id)
+                blue.pyos.BeNice()
+            elif invItems:
+                text = uix.GetItemName(invItems[0])
+                typeID = invItems[0].typeID
+                multi = len(invItems)
+                blue.pyos.BeNice()
+            elif slimItems:
+                text = uix.GetSlimItemName(slimItems[0])
+                typeID = slimItems[0].typeID
+                multi = len(slimItems)
+                if multi == 1:
+                    slimItem = slimItems[0]
+                    itemID = slimItem.itemID
+                    ball = bp.GetBall(itemID)
+                    if not ball:
+                        self.itemIDs = []
+                        self.sr.updateTimer = None
+                        self.FlushContent()
+                        return
+                    dist = ball.surfaceDist
+                    if dist is not None:
+                        md = None
+                        myball = bp.GetBall(eve.session.shipid)
+                        if myball:
+                            md = myball.mode
+                        text += '<br>' + localization.GetByLabel('UI/Inflight/ActiveItem/SelectedItemDistance', distToItem=util.FmtDist(dist, maxdemicals=1))
+                        if not self.lastActionDist or md != self.lastActionDist[1] or self.CheckDistanceUpdate(self.lastActionDist[0], dist):
+                            self.lastActionDist = (dist, md)
+                            updateActions = 1
+                    sec = slimItem.securityStatus
+                    if sec:
+                        text += '<br>' + localization.GetByLabel('UI/Inflight/ActiveItem/SelectedItemSecurity', secStatus=sec)
+                blue.pyos.BeNice()
+            corpID = None
+            charID = None
+            categoryID = None
+            bountyItemID = None
+            bountyTypeID = None
+            bountySlim = None
+            displayUtilMenu = False
+            if multi > 1:
+                text += '<br>' + localization.GetByLabel('UI/Inflight/ActiveItem/MultipleItems', itemCount=multi)
+                blue.pyos.BeNice()
+            elif multi == 1:
+                if slimItems:
+                    slim = slimItems[0]
+                    if slim.categoryID == const.categoryShip:
+                        if util.IsCharacter(slim.charID):
+                            charID = slim.charID
+                            categoryID = slim.categoryID
+                    if slim.categoryID == const.categoryEntity:
+                        bountyTypeID = slim.typeID
+                    elif slim.charID:
+                        bountyItemID = slim.charID
+                        bountySlim = slim
+                    killRightID, price = self.bountySvc.GetBestKillRight(slim.charID)
+                    self.utilMenu.UpdateKillRightInfo(killRightID, price, slim.charID, slim.itemID)
+                    stateSvc = sm.GetService('state')
+                    if killRightID is not None and not (stateSvc.CheckSuspect(slim) or stateSvc.CheckCriminal(slim)):
+                        displayUtilMenu = True
+                blue.pyos.BeNice()
+            self.sr.utilMenuArea.display = displayUtilMenu
+            self.utilMenu.display = displayUtilMenu
+            if self.lastIcon != (typeID, itemID, charID):
+                uthread.pool('ActiveItem::GetIcon', self.GetIcon, typeID, itemID, charID, corpID, categoryID)
+                self.lastIcon = (typeID, itemID, charID)
             else:
-                self.bounty = None
-            self.lastBountyCheck = (bountyItemID, bountyTypeID)
-            self.lastBountyInfo = (bountyHint, reducedBountyIndication)
-        else:
-            bountyHint, reducedBountyIndication = self.lastBountyInfo
-        if self.bounty:
-            text += '<br>'
-            text += self.bounty
-        if reducedBountyIndication:
-            text += reducedBountyIndication
-        if updateActions:
-            self.ReloadActions(slimItems, invItems, fleetMember, fleetSlim)
-        else:
-            self.CheckActions(1)
-        self.SetText(text, bountyHint)
-        self.ShowNoSelectedHint()
-        blue.pyos.BeNice()
-        self.laseUpdateWidth = self.absoluteRight - self.absoluteLeft
-        if not self.sr.updateTimer and not invItems:
-            self.sr.updateTimer = base.AutoTimer(500, self.UpdateAll)
+                self.sr.iconpar.state = uiconst.UI_PICKCHILDREN
+                if categoryID == const.categoryShip and charID:
+                    self.sr.chariconpar.state = uiconst.UI_PICKCHILDREN
+            bountyHint = None
+            reducedBountyIndication = None
+            if (bountyItemID, bountyTypeID) != self.lastBountyCheck:
+                bounty, bountyHint, reducedBountyIndication = self.CheckBounty(bountyTypeID, bountySlim)
+                blue.pyos.BeNice()
+                if bounty:
+                    self.bounty = localization.GetByLabel('UI/Common/BountyAmount', bountyAmount=util.FmtISK(bounty, 0))
+                else:
+                    self.bounty = None
+                self.lastBountyCheck = (bountyItemID, bountyTypeID)
+                self.lastBountyInfo = (bountyHint, reducedBountyIndication)
+            else:
+                bountyHint, reducedBountyIndication = self.lastBountyInfo
+            if self.bounty:
+                text += '<br>'
+                text += self.bounty
+            if reducedBountyIndication:
+                text += reducedBountyIndication
+            if updateActions:
+                self.ReloadActions(slimItems, invItems, fleetMember, fleetSlim)
+            else:
+                self.CheckActions(1)
+            self.SetText(text, bountyHint)
+            self.ShowNoSelectedHint()
+            blue.pyos.BeNice()
+            self.laseUpdateWidth = self.absoluteRight - self.absoluteLeft
+            if not self.sr.updateTimer and not invItems:
+                self.sr.updateTimer = base.AutoTimer(500, self.UpdateAll)
+            return
 
     @telemetry.ZONE_METHOD
     def DoBallsRemove(self, pythonBalls, isRelease):
@@ -515,7 +543,7 @@ class ActiveItem(uicontrols.Window):
         if self.ImVisible() and ball and ball.id in self.itemIDs:
             uthread.pool('ActiveItem::UpdateAll', self.UpdateAll, 1)
 
-    def SetText(self, text, hint = None):
+    def SetText(self, text, hint=None):
         if text != self.sr.text.text:
             self.sr.text.text = text
             self.sr.text.hint = hint
@@ -556,7 +584,8 @@ class ActiveItem(uicontrols.Window):
             bountyHint = localization.GetByLabel('UI/Inflight/SpaceComponents/BountyEscrow/ReducedBountyHint', takenBounty=takenBounty)
             reducedBountyIndication = localization.GetByLabel('UI/Inflight/SpaceComponents/BountyEscrow/ReducedBountyIndication')
             return (reducedBounty, bountyHint, reducedBountyIndication)
-        return (bountyAmount, None, None)
+        else:
+            return (bountyAmount, None, None)
 
     def GetSlimItemForCharID(self, charID):
         ballpark = sm.GetService('michelle').GetBallpark()
@@ -565,6 +594,8 @@ class ActiveItem(uicontrols.Window):
                 if rec.charID == charID:
                     return rec
 
+        return None
+
     def ShowInfo(self, btn, *args):
         if btn and btn.typeID:
             sm.GetService('info').ShowInfo(btn.typeID, btn.itemID)
@@ -572,6 +603,8 @@ class ActiveItem(uicontrols.Window):
     def GetIconMenu(self, btn, *args):
         if btn and btn.typeID:
             return sm.GetService('menu').GetMenuFormItemIDTypeID(getattr(btn, 'itemID', None), btn.typeID)
+        else:
+            return None
 
     def CheckDistanceUpdate(self, lastdist, dist):
         diff = abs(lastdist - dist)
@@ -589,159 +622,163 @@ class ActiveItem(uicontrols.Window):
     def ReloadActions(self, slimItems, invItems, fleetMember, fleetSlim):
         if not self or self.destroyed:
             return
-        if not self.ImVisible():
+        elif not self.ImVisible():
             self.sr.updateTimer = None
             return
-        itemIDs = []
-        actions = []
-        if invItems:
-            data = [ (invItem, 0, None) for invItem in invItems ]
-            actions = sm.StartService('menu').InvItemMenu(data)
-        elif slimItems:
-            celestialData = []
-            for slimItem in slimItems:
-                celestialData.append((slimItem.itemID,
-                 None,
-                 slimItem,
-                 0,
-                 None,
-                 None,
-                 None))
+        else:
+            itemIDs = []
+            actions = []
+            if invItems:
+                data = [ (invItem, 0, None) for invItem in invItems ]
+                actions = sm.StartService('menu').InvItemMenu(data)
+            elif slimItems:
+                celestialData = []
+                for slimItem in slimItems:
+                    celestialData.append((slimItem.itemID,
+                     None,
+                     slimItem,
+                     0,
+                     None,
+                     None,
+                     None))
 
-            if len(celestialData) > 1:
-                actions = sm.StartService('menu').CelestialMenu(itemID=celestialData)
-            else:
-                actions = sm.StartService('menu').GetCelestialMenuForSelectedItem(celestialData)
-        elif fleetSlim:
-            actions = sm.GetService('menu').CelestialMenu(fleetSlim.itemID, slimItem=fleetSlim, ignoreTypeCheck=1)
-        elif fleetMember:
-            actions = sm.GetService('menu').CharacterMenu(fleetMember.id)
-        reasonsWhyNotAvailable = getattr(actions, 'reasonsWhyNotAvailable', {})
-        warptoLabel = DefaultWarpToLabel()[0]
-        warpops = {warptoLabel: ('res:/UI/Texture/icons/44_32_18.png', 0, 0, 1, 0, 'selectedItemWarpTo', 'CmdWarpToItem')}
-        if not self or self.destroyed:
-            return
-        self.actions.update(warpops)
-        serial = ''
-        valid = {}
-        for each in actions:
-            if each:
-                if isinstance(each[0], tuple):
-                    name = each[0][0]
+                if len(celestialData) > 1:
+                    actions = sm.StartService('menu').CelestialMenu(itemID=celestialData)
                 else:
-                    name = each[0]
-                if each[1] == DISABLED_ENTRY0:
-                    continue
-                if name in self.actions:
-                    valid[name] = each
-                    if type(each[1]) not in (str, unicode):
-                        serial += '%s_' % name
-
-        blue.pyos.BeNice()
-        ph = None
-        if serial != self.lastActionSerial:
-            if self.absoluteLeft == 0:
-                blue.pyos.synchro.Yield()
-            if self.destroyed:
+                    actions = sm.StartService('menu').GetCelestialMenuForSelectedItem(celestialData)
+            elif fleetSlim:
+                actions = sm.GetService('menu').CelestialMenu(fleetSlim.itemID, slimItem=fleetSlim, ignoreTypeCheck=1)
+            elif fleetMember:
+                actions = sm.GetService('menu').CharacterMenu(fleetMember.id)
+            reasonsWhyNotAvailable = getattr(actions, 'reasonsWhyNotAvailable', {})
+            warptoLabel = DefaultWarpToLabel()[0]
+            warpops = {warptoLabel: ('res:/UI/Texture/icons/44_32_18.png', 0, 0, 1, 0, 'selectedItemWarpTo', 'CmdWarpToItem')}
+            if not self or self.destroyed:
                 return
-            self.sr.actions.Flush()
-            self.sr.actions.height = 0
-            typeID = None
-            groupID = None
-            categoryID = None
-            if slimItems:
-                typeID = slimItems[0].typeID
-                groupID = slimItems[0].groupID
-                categoryID = slimItems[0].categoryID
-            elif invItems:
-                typeID = invItems[0].typeID
-                groupID = invItems[0].groupID
-                categoryID = invItems[0].categoryID
-            isAlignDisabled = type(valid.get('UI/Inflight/AlignTo', ('', ''))[1]) in (str, unicode)
-            if isAlignDisabled:
-                approachLabelPath = 'UI/Inflight/ApproachObject'
-            else:
-                approachLabelPath = 'UI/Inflight/AlignTo'
-            order = [approachLabelPath, warptoLabel]
-            if groupID and groupID in self.groups:
-                order += self.groups[groupID]
-            elif categoryID and categoryID in self.categories:
-                order += self.categories[categoryID]
-            item = self.ChooseItem(slimItems, invItems)
-            if item:
-                if HasCargoBayComponent(typeID) and not HasItemTrader(typeID):
-                    if cargobay.IsAccessibleByCharacter(item, session.charid, cfg.spaceComponentStaticData):
-                        order.append('UI/Commands/OpenCargo')
-                if HasBountyEscrowComponent(typeID):
-                    order.append('UI/Commands/AccessBountyEscrow')
-                if HasItemTrader(typeID):
-                    order.append('UI/Inflight/SpaceComponents/ItemTrader/Access')
-            order = itertoolsext.remove_duplicates_and_preserve_order(order)
-            order += self.postorder
-            for actionName in order:
-                if actionName is None:
-                    continue
-                if isinstance(actionName, tuple):
-                    action = None
-                    for each in actionName:
-                        tryaction = valid.get(each, None)
-                        if tryaction and type(tryaction[1]) not in (str, unicode):
-                            actionName = each
-                            action = tryaction
-                            break
+            self.actions.update(warpops)
+            serial = ''
+            valid = {}
+            for each in actions:
+                if each:
+                    if isinstance(each[0], tuple):
+                        name = each[0][0]
+                    else:
+                        name = each[0]
+                    if each[1] == DISABLED_ENTRY0:
+                        continue
+                    if name in self.actions:
+                        valid[name] = each
+                        if type(each[1]) not in (str, unicode):
+                            serial += '%s_' % name
 
-                    if action is None:
-                        actionName = actionName[0]
-                        if actionName in valid:
-                            action = valid.get(actionName)
-                        elif actionName in reasonsWhyNotAvailable:
-                            action = (actionName, reasonsWhyNotAvailable.get(actionName))
-                        else:
-                            action = (actionName, localization.GetByLabel('UI/Menusvc/MenuHints/NoReasonGiven'))
-                elif actionName in valid:
-                    action = valid.get(actionName)
-                elif actionName in reasonsWhyNotAvailable:
-                    action = (actionName, reasonsWhyNotAvailable.get(actionName))
+            blue.pyos.BeNice()
+            ph = None
+            if serial != self.lastActionSerial:
+                if self.absoluteLeft == 0:
+                    blue.pyos.synchro.Yield()
+                if self.destroyed:
+                    return
+                self.sr.actions.Flush()
+                self.sr.actions.height = 0
+                typeID = None
+                groupID = None
+                categoryID = None
+                if slimItems:
+                    typeID = slimItems[0].typeID
+                    groupID = slimItems[0].groupID
+                    categoryID = slimItems[0].categoryID
+                elif invItems:
+                    typeID = invItems[0].typeID
+                    groupID = invItems[0].groupID
+                    categoryID = invItems[0].categoryID
+                isAlignDisabled = type(valid.get('UI/Inflight/AlignTo', ('', ''))[1]) in (str, unicode)
+                if isAlignDisabled:
+                    approachLabelPath = 'UI/Inflight/ApproachObject'
                 else:
-                    action = (actionName, localization.GetByLabel('UI/Menusvc/MenuHints/NoReasonGiven'))
-                disabled = type(action[1]) in (str, unicode)
-                if isinstance(action[0], uiutil.MenuLabel):
-                    actionID = action[0][0]
-                else:
-                    actionID = action[0]
-                par = uiprimitives.Container(parent=self.sr.actions, align=uiconst.TOPLEFT, width=32, height=32, state=uiconst.UI_HIDDEN)
-                props = self.actions[actionID]
-                if len(props) >= 6:
-                    par.name = props[5]
-                else:
-                    par.name = actionID
-                if len(props) >= 7:
-                    cmdName = props[6]
-                else:
-                    cmdName = ''
-                import xtriui
-                icon = xtriui.Action(icon=props[0], parent=par, align=uiconst.TOALL, disabled=disabled)
-                icon.actionID = actionID
-                icon.action = action
-                icon.itemIDs = self.itemIDs[:]
-                icon.killsub = props[3]
-                icon.cmdName = cmdName
-                if disabled:
-                    icon.opacity = 0.5
-                if ph and props[2]:
-                    uiprimitives.Fill(parent=par, align=uiconst.RELATIVE, height=ph, width=30, left=1, top=31 - ph)
-                    icon.OnClick = None
-                if props[4]:
-                    x = uicontrols.Icon(icon='ui_44_32_8', parent=par, left=1, top=1, align=uiconst.TOALL, state=uiconst.UI_DISABLED, idx=0)
+                    approachLabelPath = 'UI/Inflight/AlignTo'
+                order = [approachLabelPath, warptoLabel]
+                if groupID and groupID in self.groups:
+                    order += self.groups[groupID]
+                elif categoryID and categoryID in self.categories:
+                    order += self.categories[categoryID]
+                item = self.ChooseItem(slimItems, invItems)
+                if item:
+                    if HasCargoBayComponent(typeID) and not HasItemTrader(typeID):
+                        if cargobay.IsAccessibleByCharacter(item, session.charid, cfg.spaceComponentStaticData):
+                            order.append('UI/Commands/OpenCargo')
+                    if HasBountyEscrowComponent(typeID):
+                        order.append('UI/Commands/AccessBountyEscrow')
+                    if HasItemTrader(typeID):
+                        order.append('UI/Inflight/SpaceComponents/ItemTrader/Access')
+                order = itertoolsext.remove_duplicates_and_preserve_order(order)
+                order += self.postorder
+                for actionName in order:
+                    if actionName is None:
+                        continue
+                    if isinstance(actionName, tuple):
+                        action = None
+                        for each in actionName:
+                            tryaction = valid.get(each, None)
+                            if tryaction and type(tryaction[1]) not in (str, unicode):
+                                actionName = each
+                                action = tryaction
+                                break
 
-            self.lastActionSerial = serial
-        self.CheckActions(1)
+                        if action is None:
+                            actionName = actionName[0]
+                            if actionName in valid:
+                                action = valid.get(actionName)
+                            elif actionName in reasonsWhyNotAvailable:
+                                action = (actionName, reasonsWhyNotAvailable.get(actionName))
+                            else:
+                                action = (actionName, localization.GetByLabel('UI/Menusvc/MenuHints/NoReasonGiven'))
+                    elif actionName in valid:
+                        action = valid.get(actionName)
+                    elif actionName in reasonsWhyNotAvailable:
+                        action = (actionName, reasonsWhyNotAvailable.get(actionName))
+                    else:
+                        action = (actionName, localization.GetByLabel('UI/Menusvc/MenuHints/NoReasonGiven'))
+                    disabled = type(action[1]) in (str, unicode)
+                    if isinstance(action[0], uiutil.MenuLabel):
+                        actionID = action[0][0]
+                    else:
+                        actionID = action[0]
+                    par = uiprimitives.Container(parent=self.sr.actions, align=uiconst.TOPLEFT, width=32, height=32, state=uiconst.UI_HIDDEN)
+                    props = self.actions[actionID]
+                    if len(props) >= 6:
+                        par.name = props[5]
+                    else:
+                        par.name = actionID
+                    if len(props) >= 7:
+                        cmdName = props[6]
+                    else:
+                        cmdName = ''
+                    import xtriui
+                    icon = xtriui.Action(icon=props[0], parent=par, align=uiconst.TOALL, disabled=disabled)
+                    icon.actionID = actionID
+                    icon.action = action
+                    icon.itemIDs = self.itemIDs[:]
+                    icon.killsub = props[3]
+                    icon.cmdName = cmdName
+                    if disabled:
+                        icon.opacity = 0.5
+                    if ph and props[2]:
+                        uiprimitives.Fill(parent=par, align=uiconst.RELATIVE, height=ph, width=30, left=1, top=31 - ph)
+                        icon.OnClick = None
+                    if props[4]:
+                        x = uicontrols.Icon(icon='ui_44_32_8', parent=par, left=1, top=1, align=uiconst.TOALL, state=uiconst.UI_DISABLED, idx=0)
+
+                self.lastActionSerial = serial
+            self.CheckActions(1)
+            return
 
     def ChooseItem(self, slimItems, invItems):
         if slimItems:
             return slimItems[0]
-        if invItems:
+        elif invItems:
             return invItems[0]
+        else:
+            return None
 
     def OnPlanetViewChanged(self, newPlanetID, oldPlanetID):
         for planetID in (newPlanetID, oldPlanetID):

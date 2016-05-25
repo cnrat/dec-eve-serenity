@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\carbon\common\lib\cherrypy\test\test_logging.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\carbon\common\lib\cherrypy\test\test_logging.py
 import os
 localDir = os.path.dirname(__file__)
 import cherrypy
@@ -12,7 +13,7 @@ def setup_server():
     class Root:
 
         def index(self):
-            return 'hello'
+            pass
 
         index.exposed = True
 
@@ -33,7 +34,7 @@ def setup_server():
         whitespace.exposed = True
 
         def as_string(self):
-            return 'content'
+            pass
 
         as_string.exposed = True
 

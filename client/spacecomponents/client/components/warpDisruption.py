@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\packages\spacecomponents\client\components\warpDisruption.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\packages\spacecomponents\client\components\warpDisruption.py
 from spacecomponents.common.components.component import Component
 from carbon.common.script.util.format import FmtDist
 from spacecomponents.client.display import EntryData, RANGE_ICON

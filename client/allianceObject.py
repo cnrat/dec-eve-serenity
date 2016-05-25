@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\common\modules\nice\client\_nastyspace\allianceObject.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\common\modules\nice\client\_nastyspace\allianceObject.py
 from eve.client.script.ui.services.alliances.all_cso_base import BaseAllianceObject as base
 from eve.client.script.ui.services.alliances.all_cso_alliance import AllianceO as alliance
 from eve.client.script.ui.services.alliances.all_cso_applications import AllianceApplicationsO as applications

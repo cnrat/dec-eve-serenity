@@ -1,11 +1,12 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\carbon\common\stdlib\encodings\quopri_codec.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\carbon\common\stdlib\encodings\quopri_codec.py
 import codecs, quopri
 try:
     from cStringIO import StringIO
 except ImportError:
     from StringIO import StringIO
 
-def quopri_encode(input, errors = 'strict'):
+def quopri_encode(input, errors='strict'):
     f = StringIO(str(input))
     g = StringIO()
     quopri.encode(f, g, 1)
@@ -13,7 +14,7 @@ def quopri_encode(input, errors = 'strict'):
     return (output, len(input))
 
 
-def quopri_decode(input, errors = 'strict'):
+def quopri_decode(input, errors='strict'):
     f = StringIO(str(input))
     g = StringIO()
     quopri.decode(f, g)
@@ -23,22 +24,22 @@ def quopri_decode(input, errors = 'strict'):
 
 class Codec(codecs.Codec):
 
-    def encode(self, input, errors = 'strict'):
+    def encode(self, input, errors='strict'):
         return quopri_encode(input, errors)
 
-    def decode(self, input, errors = 'strict'):
+    def decode(self, input, errors='strict'):
         return quopri_decode(input, errors)
 
 
 class IncrementalEncoder(codecs.IncrementalEncoder):
 
-    def encode(self, input, final = False):
+    def encode(self, input, final=False):
         return quopri_encode(input, self.errors)[0]
 
 
 class IncrementalDecoder(codecs.IncrementalDecoder):
 
-    def decode(self, input, final = False):
+    def decode(self, input, final=False):
         return quopri_decode(input, self.errors)[0]
 
 

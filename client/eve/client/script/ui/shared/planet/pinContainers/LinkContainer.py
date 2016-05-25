@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\client\script\ui\shared\planet\pinContainers\LinkContainer.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\client\script\ui\shared\planet\pinContainers\LinkContainer.py
 import carbonui.const as uiconst
 from eve.client.script.ui.control.buttonGroup import ButtonGroup
 from eve.client.script.ui.control.eveLabel import Label
@@ -152,22 +153,24 @@ class LinkContainer(BasePinContainer):
     def LoadRouteScroll(self):
         if not self or self.destroyed:
             return
-        link = self.pin.link
-        scrolllist = []
-        bandwidthAttr = cfg.dgmattribs.Get(const.attributeLogisticalCapacity)
-        colony = sm.GetService('planetUI').GetCurrentPlanet().GetColony(link.endpoint1.ownerID)
-        for routeID in link.routesTransiting:
-            route = colony.GetRoute(routeID)
-            typeID = route.GetType()
-            qty = route.GetQuantity()
-            typeName = evetypes.GetName(typeID)
-            data = util.KeyVal(label='<t>%s<t>%s<t>%s' % (typeName, qty, localization.GetByLabel('UI/PI/Common/CapacityAmount', amount=route.GetBandwidthUsage())), typeID=typeID, itemID=None, getIcon=True, OnMouseEnter=self.OnRouteEntryHover, OnMouseExit=self.OnRouteEntryExit, routeID=route.routeID, OnClick=self.OnRouteEntryClick)
-            scrolllist.append(listentry.Get('Item', data=data))
+        else:
+            link = self.pin.link
+            scrolllist = []
+            bandwidthAttr = cfg.dgmattribs.Get(const.attributeLogisticalCapacity)
+            colony = sm.GetService('planetUI').GetCurrentPlanet().GetColony(link.endpoint1.ownerID)
+            for routeID in link.routesTransiting:
+                route = colony.GetRoute(routeID)
+                typeID = route.GetType()
+                qty = route.GetQuantity()
+                typeName = evetypes.GetName(typeID)
+                data = util.KeyVal(label='<t>%s<t>%s<t>%s' % (typeName, qty, localization.GetByLabel('UI/PI/Common/CapacityAmount', amount=route.GetBandwidthUsage())), typeID=typeID, itemID=None, getIcon=True, OnMouseEnter=self.OnRouteEntryHover, OnMouseExit=self.OnRouteEntryExit, routeID=route.routeID, OnClick=self.OnRouteEntryClick)
+                scrolllist.append(listentry.Get('Item', data=data))
 
-        self.routeScroll.Load(contentList=scrolllist, noContentHint=localization.GetByLabel('UI/PI/Common/NoRoutesThroughLink'), headers=['',
-         localization.GetByLabel('UI/Common/Commodity'),
-         localization.GetByLabel('UI/Common/Quantity'),
-         localization.GetByLabel('UI/PI/Common/CapacityUsed')])
+            self.routeScroll.Load(contentList=scrolllist, noContentHint=localization.GetByLabel('UI/PI/Common/NoRoutesThroughLink'), headers=['',
+             localization.GetByLabel('UI/Common/Commodity'),
+             localization.GetByLabel('UI/Common/Quantity'),
+             localization.GetByLabel('UI/PI/Common/CapacityUsed')])
+            return
 
     def OnRouteEntryHover(self, entry):
         self.planetUISvc.myPinManager.ShowRoute(entry.sr.node.routeID)
@@ -178,39 +181,41 @@ class LinkContainer(BasePinContainer):
     def OnRouteEntryClick(self, *args):
         if not self or self.destroyed:
             return
-        selectedRoutes = self.routeScroll.GetSelected()
-        if len(selectedRoutes) < 1:
-            self.routeInfo.state = uiconst.UI_HIDDEN
-            self.showRoutesCont.height = 168
-            self.ResizeActionCont(self.showRoutesCont.height)
-            return
-        selectedRouteData = selectedRoutes[0]
-        selectedRouteID = None
-        for routeID in self.pin.link.routesTransiting:
-            if routeID == selectedRouteData.routeID:
-                selectedRouteID = routeID
-                break
+        else:
+            selectedRoutes = self.routeScroll.GetSelected()
+            if len(selectedRoutes) < 1:
+                self.routeInfo.state = uiconst.UI_HIDDEN
+                self.showRoutesCont.height = 168
+                self.ResizeActionCont(self.showRoutesCont.height)
+                return
+            selectedRouteData = selectedRoutes[0]
+            selectedRouteID = None
+            for routeID in self.pin.link.routesTransiting:
+                if routeID == selectedRouteData.routeID:
+                    selectedRouteID = routeID
+                    break
 
-        if selectedRouteID is None:
+            if selectedRouteID is None:
+                return
+            colony = sm.GetService('planetUI').GetCurrentPlanet().GetColony(self.pin.link.endpoint1.ownerID)
+            selectedRoute = colony.GetRoute(selectedRouteID)
+            if selectedRoute is None:
+                return
+            sourcePin = colony.GetPin(selectedRoute.GetSourcePinID())
+            self.routeInfoSource.SetSubtext(planetCommon.GetGenericPinName(sourcePin.typeID, sourcePin.id))
+            destPin = colony.GetPin(selectedRoute.GetDestinationPinID())
+            self.routeInfoDest.SetSubtext(planetCommon.GetGenericPinName(destPin.typeID, destPin.id))
+            routeTypeID = selectedRoute.GetType()
+            routeQty = selectedRoute.GetQuantity()
+            self.routeInfoType.SetSubtext(localization.GetByLabel('UI/PI/Common/ItemAmount', itemName=evetypes.GetName(routeTypeID), amount=int(routeQty)))
+            bandwidthAttr = cfg.dgmattribs.Get(const.attributeLogisticalCapacity)
+            self.routeInfoBandwidth.SetSubtext(localization.GetByLabel('UI/PI/Common/CapacityAmount', amount=selectedRoute.GetBandwidthUsage()))
+            self.routeInfo.opacity = 0.0
+            self.routeInfo.state = uiconst.UI_PICKCHILDREN
+            self.showRoutesCont.height = 168 + self.routeInfo.height
+            self.ResizeActionCont(self.showRoutesCont.height)
+            self.uiEffects.MorphUI(self.routeInfo, 'opacity', 1.0, time=125.0, float=1, newthread=0, maxSteps=1000)
             return
-        colony = sm.GetService('planetUI').GetCurrentPlanet().GetColony(self.pin.link.endpoint1.ownerID)
-        selectedRoute = colony.GetRoute(selectedRouteID)
-        if selectedRoute is None:
-            return
-        sourcePin = colony.GetPin(selectedRoute.GetSourcePinID())
-        self.routeInfoSource.SetSubtext(planetCommon.GetGenericPinName(sourcePin.typeID, sourcePin.id))
-        destPin = colony.GetPin(selectedRoute.GetDestinationPinID())
-        self.routeInfoDest.SetSubtext(planetCommon.GetGenericPinName(destPin.typeID, destPin.id))
-        routeTypeID = selectedRoute.GetType()
-        routeQty = selectedRoute.GetQuantity()
-        self.routeInfoType.SetSubtext(localization.GetByLabel('UI/PI/Common/ItemAmount', itemName=evetypes.GetName(routeTypeID), amount=int(routeQty)))
-        bandwidthAttr = cfg.dgmattribs.Get(const.attributeLogisticalCapacity)
-        self.routeInfoBandwidth.SetSubtext(localization.GetByLabel('UI/PI/Common/CapacityAmount', amount=selectedRoute.GetBandwidthUsage()))
-        self.routeInfo.opacity = 0.0
-        self.routeInfo.state = uiconst.UI_PICKCHILDREN
-        self.showRoutesCont.height = 168 + self.routeInfo.height
-        self.ResizeActionCont(self.showRoutesCont.height)
-        self.uiEffects.MorphUI(self.routeInfo, 'opacity', 1.0, time=125.0, float=1, newthread=0, maxSteps=1000)
 
     def GetCaptionForUpgradeLevel(self, level):
         if level >= planetCommon.LINK_MAX_UPGRADE:

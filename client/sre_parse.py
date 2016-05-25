@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\carbon\common\stdlib\sre_parse.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\carbon\common\stdlib\sre_parse.py
 import sys
 from sre_constants import *
 SPECIAL_CHARS = '.\\[{()*+?^$|'
@@ -41,7 +42,7 @@ class Pattern():
         self.groups = 1
         self.groupdict = {}
 
-    def opengroup(self, name = None):
+    def opengroup(self, name=None):
         gid = self.groups
         self.groups = gid + 1
         if name is not None:
@@ -61,14 +62,15 @@ class Pattern():
 
 class SubPattern():
 
-    def __init__(self, pattern, data = None):
+    def __init__(self, pattern, data=None):
         self.pattern = pattern
         if data is None:
             data = []
         self.data = data
         self.width = None
+        return
 
-    def dump(self, level = 0):
+    def dump(self, level=0):
         nl = 1
         seqtypes = (type(()), type([]))
         for op, av in self.data:
@@ -186,23 +188,24 @@ class Tokenizer():
         if self.index >= len(self.string):
             self.next = None
             return
-        char = self.string[self.index]
-        if char[0] == '\\':
-            try:
-                c = self.string[self.index + 1]
-            except IndexError:
-                raise error, 'bogus escape (end of line)'
+        else:
+            char = self.string[self.index]
+            if char[0] == '\\':
+                try:
+                    c = self.string[self.index + 1]
+                except IndexError:
+                    raise error, 'bogus escape (end of line)'
 
-            char = char + c
-        self.index = self.index + len(char)
-        self.next = char
+                char = char + c
+            self.index = self.index + len(char)
+            self.next = char
+            return
 
-    def match(self, char, skip = 1):
+    def match(self, char, skip=1):
         if char == self.next:
             if skip:
                 self.__next()
             return 1
-        return 0
 
     def get(self):
         this = self.next
@@ -308,7 +311,7 @@ def _escape(source, escape, state):
     raise error, 'bogus escape: %s' % repr(escape)
 
 
-def _parse_sub(source, state, nested = 1):
+def _parse_sub(source, state, nested=1):
     items = []
     itemsappend = items.append
     sourcematch = source.match
@@ -325,40 +328,41 @@ def _parse_sub(source, state, nested = 1):
 
     if len(items) == 1:
         return items[0]
-    subpattern = SubPattern(state)
-    subpatternappend = subpattern.append
-    while 1:
-        prefix = None
+    else:
+        subpattern = SubPattern(state)
+        subpatternappend = subpattern.append
+        while 1:
+            prefix = None
+            for item in items:
+                if not item:
+                    break
+                if prefix is None:
+                    prefix = item[0]
+                elif item[0] != prefix:
+                    break
+            else:
+                for item in items:
+                    del item[0]
+
+                subpatternappend(prefix)
+                continue
+
+            break
+
         for item in items:
-            if not item:
-                break
-            if prefix is None:
-                prefix = item[0]
-            elif item[0] != prefix:
+            if len(item) != 1 or item[0][0] != LITERAL:
                 break
         else:
+            set = []
+            setappend = set.append
             for item in items:
-                del item[0]
+                setappend(item[0])
 
-            subpatternappend(prefix)
-            continue
+            subpatternappend((IN, set))
+            return subpattern
 
-        break
-
-    for item in items:
-        if len(item) != 1 or item[0][0] != LITERAL:
-            break
-    else:
-        set = []
-        setappend = set.append
-        for item in items:
-            setappend(item[0])
-
-        subpatternappend((IN, set))
+        subpattern.append((BRANCH, (None, items)))
         return subpattern
-
-    subpattern.append((BRANCH, (None, items)))
-    return subpattern
 
 
 def _parse_sub_cond(source, state, condgroup):
@@ -639,7 +643,7 @@ def _parse(source, state):
     return subpattern
 
 
-def parse(str, flags = 0, pattern = None):
+def parse(str, flags=0, pattern=None):
     source = Tokenizer(str)
     if pattern is None:
         pattern = Pattern()
@@ -655,7 +659,8 @@ def parse(str, flags = 0, pattern = None):
         p.dump()
     if not flags & SRE_FLAG_VERBOSE and p.pattern.flags & SRE_FLAG_VERBOSE:
         return parse(str, p.pattern.flags)
-    return p
+    else:
+        return p
 
 
 def parse_template(source, pattern):
@@ -664,7 +669,7 @@ def parse_template(source, pattern):
     p = []
     a = p.append
 
-    def literal(literal, p = p, pappend = a):
+    def literal(literal, p=p, pappend=a):
         if p and p[-1][0] is LITERAL:
             p[-1] = (LITERAL, p[-1][1] + literal)
         else:

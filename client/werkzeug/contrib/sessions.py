@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\carbon\common\lib\werkzeug\contrib\sessions.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\carbon\common\lib\werkzeug\contrib\sessions.py
 import re
 import os
 import sys
@@ -22,7 +23,7 @@ def _urandom():
     return random()
 
 
-def generate_key(salt = None):
+def generate_key(salt=None):
     return sha1('%s%s%s' % (salt, time(), _urandom())).hexdigest()
 
 
@@ -55,7 +56,7 @@ class ModificationTrackingDict(CallbackDict):
 class Session(ModificationTrackingDict):
     __slots__ = ModificationTrackingDict.__slots__ + ('sid', 'new')
 
-    def __init__(self, data, sid, new = False):
+    def __init__(self, data, sid, new=False):
         ModificationTrackingDict.__init__(self, data)
         self.sid = sid
         self.new = new
@@ -70,15 +71,16 @@ class Session(ModificationTrackingDict):
 
 class SessionStore(object):
 
-    def __init__(self, session_class = None):
+    def __init__(self, session_class=None):
         if session_class is None:
             session_class = Session
         self.session_class = session_class
+        return
 
     def is_valid_key(self, key):
         return _sha1_re.match(key) is not None
 
-    def generate_key(self, salt = None):
+    def generate_key(self, salt=None):
         return generate_key(salt)
 
     def new(self):
@@ -102,7 +104,7 @@ _fs_transaction_suffix = '.__wz_sess'
 
 class FilesystemSessionStore(SessionStore):
 
-    def __init__(self, path = None, filename_template = 'werkzeug_%s.sess', session_class = None, renew_missing = False, mode = 420):
+    def __init__(self, path=None, filename_template='werkzeug_%s.sess', session_class=None, renew_missing=False, mode=420):
         SessionStore.__init__(self, session_class)
         if path is None:
             path = tempfile.gettempdir()
@@ -112,6 +114,7 @@ class FilesystemSessionStore(SessionStore):
         self.filename_template = filename_template
         self.renew_missing = renew_missing
         self.mode = mode
+        return
 
     def get_session_filename(self, sid):
         if isinstance(sid, unicode):
@@ -151,9 +154,11 @@ class FilesystemSessionStore(SessionStore):
             data = {}
         else:
             try:
-                data = load(f)
-            except Exception:
-                data = {}
+                try:
+                    data = load(f)
+                except Exception:
+                    data = {}
+
             finally:
                 f.close()
 
@@ -175,7 +180,7 @@ class FilesystemSessionStore(SessionStore):
 
 class SessionMiddleware(object):
 
-    def __init__(self, app, store, cookie_name = 'session_id', cookie_age = None, cookie_expires = None, cookie_path = '/', cookie_domain = None, cookie_secure = None, cookie_httponly = False, environ_key = 'werkzeug.session'):
+    def __init__(self, app, store, cookie_name='session_id', cookie_age=None, cookie_expires=None, cookie_path='/', cookie_domain=None, cookie_secure=None, cookie_httponly=False, environ_key='werkzeug.session'):
         self.app = app
         self.store = store
         self.cookie_name = cookie_name
@@ -196,7 +201,7 @@ class SessionMiddleware(object):
             session = self.store.get(sid)
         environ[self.environ_key] = session
 
-        def injecting_start_response(status, headers, exc_info = None):
+        def injecting_start_response(status, headers, exc_info=None):
             if session.should_save:
                 self.store.save(session)
                 headers.append(('Set-Cookie', dump_cookie(self.cookie_name, session.sid, self.cookie_age, self.cookie_expires, self.cookie_path, self.cookie_domain, self.cookie_secure, self.cookie_httponly)))

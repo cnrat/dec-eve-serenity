@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\client\script\ui\shared\neocom\contracts\contracts.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\client\script\ui\shared\neocom\contracts\contracts.py
 import math
 import blue
 from eve.client.script.ui.control.infoIcon import InfoIcon
@@ -102,12 +103,13 @@ class ContractsSvc(service.Service):
         self.contractsInProgress = {}
         self.messages = []
         self.inited = False
+        return
 
-    def Run(self, memStream = None):
+    def Run(self, memStream=None):
         self.contractSvc = sm.ProxySvc('contractProxy')
         self.Init()
 
-    def Stop(self, memStream = None):
+    def Stop(self, memStream=None):
         form.ContractsWindow.CloseIfOpen()
 
     def Init(self):
@@ -152,12 +154,12 @@ class ContractsSvc(service.Service):
 
         return contractsMenu
 
-    def FindRelated(self, typeID, groupID, categoryID, issuerID, locationID, endLocationID, contractType = None, reset = True, *args):
+    def FindRelated(self, typeID, groupID, categoryID, issuerID, locationID, endLocationID, contractType=None, reset=True, *args):
         if contractType != const.conTypeCourier:
             contractType = CONTYPE_AUCTIONANDITEMECHANGE
         self.OpenSearchTab(typeID, groupID, categoryID, issuerID, locationID, endLocationID, const.conAvailPublic, contractType, reset)
 
-    def OpenAssignedToMe(self, contractType = CONTYPE_AUCTIONANDITEMECHANGE, isCorp = False):
+    def OpenAssignedToMe(self, contractType=CONTYPE_AUCTIONANDITEMECHANGE, isCorp=False):
         self.Show()
         wnd = form.ContractsWindow.GetIfOpen()
         if wnd is not None:
@@ -165,8 +167,9 @@ class ContractsSvc(service.Service):
             blue.pyos.synchro.SleepWallclock(10)
             wnd.sr.maintabs.SelectByIdx(2)
             wnd.sr.contractSearchContent.FindMyContracts(contractType, isCorp)
+        return
 
-    def GetRelatedMenu(self, contract, typeID, reset = True):
+    def GetRelatedMenu(self, contract, typeID, reset=True):
         m = []
         startConstellationID = sm.GetService('map').GetItem(contract.startSolarSystemID).locationID
         if typeID and contract.type != const.conTypeCourier:
@@ -337,7 +340,7 @@ class ContractsSvc(service.Service):
         self.Show()
         self.OpenAvailableTab(3, 1)
 
-    def Show(self, lookup = None, idx = None):
+    def Show(self, lookup=None, idx=None):
         form.ContractsWindow.CloseIfOpen()
         form.ContractsWindow.Open(lookup=lookup, idx=idx)
 
@@ -368,7 +371,7 @@ class ContractsSvc(service.Service):
         form.ContractDetailsWindow.CloseIfOpen()
         form.ContractDetailsWindow.Open(contractID=contractID)
 
-    def GetContract(self, contractID, force = False):
+    def GetContract(self, contractID, force=False):
         v = self.contracts.get(contractID, None)
         diff = 0
         if v:
@@ -392,87 +395,88 @@ class ContractsSvc(service.Service):
         if session.userType == const.userTypeTrial:
             uicore.cmd.OpenTrialUpsell(origin=ORIGIN_CONTRACTS, reason='AcceptContract', message=localization.GetByLabel('UI/TrialUpsell/ContractRestrictionBody'))
             return
-        if not self.CheckForPOS(c):
+        elif not self.CheckForPOS(c):
             return
-        n = sm.GetService('clientPathfinderService').GetAutopilotJumpCount(session.solarsystemid2, c.startSolarSystemID)
-        n2 = 0
-        if c.endSolarSystemID:
-            n2 = sm.GetService('clientPathfinderService').GetAutopilotJumpCount(session.solarsystemid2, c.endSolarSystemID)
-        n = max(n, n2)
-        if n > 1000:
-            if eve.Message('ConConfirmNotReachable', {}, uiconst.YESNO) != uiconst.ID_YES:
-                return False
-        wallet = sm.GetService('corp').GetMyCorpAccountName()
-        args = {}
-        if forCorp:
-            args['youoryourcorp'] = localization.GetByLabel('UI/Contracts/ContractsService/YouOnBehalfOfYourCorp', corpName=cfg.eveowners.Get(eve.session.corpid).name, wallet=wallet)
         else:
-            args['youoryourcorp'] = localization.GetByLabel('UI/Common/You')
-        args['contractname'] = GetContractTitle(c, contract.items)
-        if c.type == const.conTypeAuction:
-            raise RuntimeError('You cannot accept an auction')
-        elif c.type == const.conTypeItemExchange:
-            msg = 'ConConfirmAcceptItemExchange'
-            reportGet = reportPay = ''
-            for item in contract.items:
-                if item.inCrate:
-                    reportGet += '<t>%s.<br>' % cfg.FormatConvert(const.UE_TYPEIDANDQUANTITY, item.itemTypeID, max(1, item.quantity))
-                else:
-                    reportPay += '<t>%s.<br>' % cfg.FormatConvert(const.UE_TYPEIDANDQUANTITY, item.itemTypeID, max(1, item.quantity))
-
-            if reportGet != '':
-                reportGet = localization.GetByLabel('UI/Contracts/ContractsService/ConfirmItemsGet', items=reportGet)
-            if reportPay != '':
-                reportPay = localization.GetByLabel('UI/Contracts/ContractsService/ConfirmAcceptItemsPay', items=reportPay)
-            if reportGet == '' and c.reward == 0 and (reportPay != '' or c.price > 0):
-                msg = 'ConConfirmAcceptItemExchangeGift'
-            if reportPay != '' and forCorp:
-                reportPay += localization.GetByLabel('UI/Contracts/ContractsWindow/ConfirmAcceptCorpItems')
-            args['itemsget'] = reportGet
-            args['itemspay'] = reportPay
-            payorgetmoney = ''
-            if c.price > 0:
-                payorgetmoney = localization.GetByLabel('UI/Contracts/ContractsService/ConfirmAcceptPayMoney', numISK=FmtISKWithDescription(c.price))
-            elif c.reward > 0:
-                payorgetmoney = localization.GetByLabel('UI/Contracts/ContractsService/ConfirmAcceptGetMoney', numISK=FmtISKWithDescription(c.reward))
-            args['payorgetmoney'] = payorgetmoney
-        elif c.type == const.conTypeCourier:
-            if c.volume > const_conCourierWarningVolume:
-                if eve.Message('ConNeedFreighter', {'vol': c.volume}, uiconst.YESNO, suppress=uiconst.ID_YES) != uiconst.ID_YES:
+            n = sm.GetService('clientPathfinderService').GetAutopilotJumpCount(session.solarsystemid2, c.startSolarSystemID)
+            n2 = 0
+            if c.endSolarSystemID:
+                n2 = sm.GetService('clientPathfinderService').GetAutopilotJumpCount(session.solarsystemid2, c.endSolarSystemID)
+            n = max(n, n2)
+            if n > 1000:
+                if eve.Message('ConConfirmNotReachable', {}, uiconst.YESNO) != uiconst.ID_YES:
                     return False
-            if c.volume <= const_conCourierWarningVolume:
-                ship = sm.GetService('godma').GetItem(eve.session.shipid)
-                if ship:
-                    maxVolume = ship.GetCapacity().capacity
-                    if maxVolume < c.volume:
-                        if eve.Message('ConCourierDoesNotFit', {'shipCapacity': maxVolume,
-                         'packageVolume': c.volume}, uiconst.YESNO, suppress=uiconst.ID_YES) != uiconst.ID_YES:
-                            return False
-            msg = 'ConConfirmAcceptCourier'
-            args['numdays'] = c.numDays
-            args['destination'] = c.endStationID
-            args['volume'] = c.volume
-            collateral = ''
-            if c.collateral > 0:
-                collateral = localization.GetByLabel('UI/Contracts/ContractsService/YouWillHaveToProvideCollateralAmount', numISK=FmtISKWithDescription(c.collateral))
-            args['collateral'] = collateral
-        else:
-            raise RuntimeError('Invalid contract type')
-        if eve.Message(msg, args, uiconst.YESNO) != uiconst.ID_YES:
-            return False
-        self.LogInfo('Accepting contract %s' % contractID)
-        try:
-            contract = self.contractSvc.AcceptContract(contractID, forCorp)
-        except UserError as e:
-            if e.msg == 'TrialAccountRestriction':
-                uicore.cmd.OpenTrialUpsell(origin=ORIGIN_CONTRACTS, reason='AcceptContract', message=localization.GetByLabel('UI/TrialUpsell/ContractRestrictionBody'))
+            wallet = sm.GetService('corp').GetMyCorpAccountName()
+            args = {}
+            if forCorp:
+                args['youoryourcorp'] = localization.GetByLabel('UI/Contracts/ContractsService/YouOnBehalfOfYourCorp', corpName=cfg.eveowners.Get(eve.session.corpid).name, wallet=wallet)
             else:
-                raise
+                args['youoryourcorp'] = localization.GetByLabel('UI/Common/You')
+            args['contractname'] = GetContractTitle(c, contract.items)
+            if c.type == const.conTypeAuction:
+                raise RuntimeError('You cannot accept an auction')
+            elif c.type == const.conTypeItemExchange:
+                msg = 'ConConfirmAcceptItemExchange'
+                reportGet = reportPay = ''
+                for item in contract.items:
+                    if item.inCrate:
+                        reportGet += '<t>%s.<br>' % cfg.FormatConvert(const.UE_TYPEIDANDQUANTITY, item.itemTypeID, max(1, item.quantity))
+                    else:
+                        reportPay += '<t>%s.<br>' % cfg.FormatConvert(const.UE_TYPEIDANDQUANTITY, item.itemTypeID, max(1, item.quantity))
 
-        if contract.type == const.conTypeCourier:
-            self.contractsInProgress[contract.contractID] = [contract.startStationID, contract.endStationID, contract.dateAccepted + const.DAY * contract.numDays]
-        self.ClearCache()
-        return True
+                if reportGet != '':
+                    reportGet = localization.GetByLabel('UI/Contracts/ContractsService/ConfirmItemsGet', items=reportGet)
+                if reportPay != '':
+                    reportPay = localization.GetByLabel('UI/Contracts/ContractsService/ConfirmAcceptItemsPay', items=reportPay)
+                if reportGet == '' and c.reward == 0 and (reportPay != '' or c.price > 0):
+                    msg = 'ConConfirmAcceptItemExchangeGift'
+                if reportPay != '' and forCorp:
+                    reportPay += localization.GetByLabel('UI/Contracts/ContractsWindow/ConfirmAcceptCorpItems')
+                args['itemsget'] = reportGet
+                args['itemspay'] = reportPay
+                payorgetmoney = ''
+                if c.price > 0:
+                    payorgetmoney = localization.GetByLabel('UI/Contracts/ContractsService/ConfirmAcceptPayMoney', numISK=FmtISKWithDescription(c.price))
+                elif c.reward > 0:
+                    payorgetmoney = localization.GetByLabel('UI/Contracts/ContractsService/ConfirmAcceptGetMoney', numISK=FmtISKWithDescription(c.reward))
+                args['payorgetmoney'] = payorgetmoney
+            elif c.type == const.conTypeCourier:
+                if c.volume > const_conCourierWarningVolume:
+                    if eve.Message('ConNeedFreighter', {'vol': c.volume}, uiconst.YESNO, suppress=uiconst.ID_YES) != uiconst.ID_YES:
+                        return False
+                if c.volume <= const_conCourierWarningVolume:
+                    ship = sm.GetService('godma').GetItem(eve.session.shipid)
+                    if ship:
+                        maxVolume = ship.GetCapacity().capacity
+                        if maxVolume < c.volume:
+                            if eve.Message('ConCourierDoesNotFit', {'shipCapacity': maxVolume,
+                             'packageVolume': c.volume}, uiconst.YESNO, suppress=uiconst.ID_YES) != uiconst.ID_YES:
+                                return False
+                msg = 'ConConfirmAcceptCourier'
+                args['numdays'] = c.numDays
+                args['destination'] = c.endStationID
+                args['volume'] = c.volume
+                collateral = ''
+                if c.collateral > 0:
+                    collateral = localization.GetByLabel('UI/Contracts/ContractsService/YouWillHaveToProvideCollateralAmount', numISK=FmtISKWithDescription(c.collateral))
+                args['collateral'] = collateral
+            else:
+                raise RuntimeError('Invalid contract type')
+            if eve.Message(msg, args, uiconst.YESNO) != uiconst.ID_YES:
+                return False
+            self.LogInfo('Accepting contract %s' % contractID)
+            try:
+                contract = self.contractSvc.AcceptContract(contractID, forCorp)
+            except UserError as e:
+                if e.msg == 'TrialAccountRestriction':
+                    uicore.cmd.OpenTrialUpsell(origin=ORIGIN_CONTRACTS, reason='AcceptContract', message=localization.GetByLabel('UI/TrialUpsell/ContractRestrictionBody'))
+                else:
+                    raise
+
+            if contract.type == const.conTypeCourier:
+                self.contractsInProgress[contract.contractID] = [contract.startStationID, contract.endStationID, contract.dateAccepted + const.DAY * contract.numDays]
+            self.ClearCache()
+            return True
 
     def DeleteContract(self, contractID):
         contract = self.GetContract(contractID, force=None)
@@ -537,20 +541,21 @@ class ContractsSvc(service.Service):
             args['acceptor'] = cfg.eveowners.Get(c.acceptorID).name
         if eve.Message(msg, args, uiconst.YESNO) != uiconst.ID_YES:
             return False
-        self.ClearCache()
-        self.LogInfo('Failing contract %s' % contractID)
-        try:
-            ret = self.contractSvc.CompleteContract(contractID, const.conStatusFailed)
-        except UserError as e:
-            if e.msg == 'TrialAccountRestriction':
-                uicore.cmd.OpenTrialUpsell(origin=ORIGIN_CONTRACTS, reason='AcceptContract', message=localization.GetByLabel('UI/TrialUpsell/ContractRestrictionBody'))
-            else:
-                raise
-            return
+        else:
+            self.ClearCache()
+            self.LogInfo('Failing contract %s' % contractID)
+            try:
+                ret = self.contractSvc.CompleteContract(contractID, const.conStatusFailed)
+            except UserError as e:
+                if e.msg == 'TrialAccountRestriction':
+                    uicore.cmd.OpenTrialUpsell(origin=ORIGIN_CONTRACTS, reason='AcceptContract', message=localization.GetByLabel('UI/TrialUpsell/ContractRestrictionBody'))
+                else:
+                    raise
+                return
 
-        if contractID in self.contractsInProgress:
-            del self.contractsInProgress[contractID]
-        return ret
+            if contractID in self.contractsInProgress:
+                del self.contractsInProgress[contractID]
+            return ret
 
     def RejectContract(self, contractID):
         contract = self.GetContract(contractID, force=None)
@@ -569,17 +574,20 @@ class ContractsSvc(service.Service):
             raise UserError('ConNotYourContract')
         if eve.Message(msg, args, uiconst.YESNO, suppress=uiconst.ID_YES) != uiconst.ID_YES:
             return False
-        self.LogInfo('Rejecting contract %s' % contractID)
-        self.ClearCache()
-        try:
-            return self.contractSvc.CompleteContract(contractID, const.conStatusRejected)
-        except UserError as e:
-            if e.msg == 'TrialAccountRestriction':
-                uicore.cmd.OpenTrialUpsell(origin=ORIGIN_CONTRACTS, reason='AcceptContract', message=localization.GetByLabel('UI/TrialUpsell/ContractRestrictionBody'))
-            else:
-                raise
+        else:
+            self.LogInfo('Rejecting contract %s' % contractID)
+            self.ClearCache()
+            try:
+                return self.contractSvc.CompleteContract(contractID, const.conStatusRejected)
+            except UserError as e:
+                if e.msg == 'TrialAccountRestriction':
+                    uicore.cmd.OpenTrialUpsell(origin=ORIGIN_CONTRACTS, reason='AcceptContract', message=localization.GetByLabel('UI/TrialUpsell/ContractRestrictionBody'))
+                else:
+                    raise
 
-    def CreateContract(self, type, avail, assigneeID, expiretime, duration, startStationID, endStationID, price, reward, collateral, title, description, itemList, flag, requestItemTypeList, forCorp, confirm = None):
+            return
+
+    def CreateContract(self, type, avail, assigneeID, expiretime, duration, startStationID, endStationID, price, reward, collateral, title, description, itemList, flag, requestItemTypeList, forCorp, confirm=None):
         self.LogNotice('CreateContract', type, avail, assigneeID, expiretime, duration, startStationID, endStationID, price, reward, collateral, title, description, itemList, flag, requestItemTypeList, forCorp)
         try:
             ret = self.contractSvc.CreateContract(type, avail, assigneeID, expiretime, duration, startStationID, endStationID, price, reward, collateral, title, description, itemList=itemList, flag=flag, requestItemTypeList=requestItemTypeList, forCorp=forCorp, confirm=confirm)
@@ -592,7 +600,7 @@ class ContractsSvc(service.Service):
         self.ClearCache()
         return ret
 
-    def PlaceBid(self, contractID, force = None):
+    def PlaceBid(self, contractID, force=None):
         uthread.ReentrantLock(self)
         try:
             isContractMgr = eve.session.corprole & const.corpRoleContractManager == const.corpRoleContractManager
@@ -727,14 +735,17 @@ class ContractsSvc(service.Service):
         msg = 'ConConfirmPlaceBid'
         if eve.Message(msg, args, uiconst.YESNO, suppress=uiconst.ID_YES) != uiconst.ID_YES:
             return False
-        self.LogInfo('Placing bid of %s on contract %s' % (FmtISKWithDescription(bid), contractID))
-        try:
-            return self.contractSvc.PlaceBid(contractID, bid, forCorp)
-        except UserError as e:
-            if e.msg == 'TrialAccountRestriction':
-                uicore.cmd.OpenTrialUpsell(origin=ORIGIN_CONTRACTS, reason='PlaceBid', message=localization.GetByLabel('UI/TrialUpsell/ContractRestrictionBody'))
-            else:
-                raise
+        else:
+            self.LogInfo('Placing bid of %s on contract %s' % (FmtISKWithDescription(bid), contractID))
+            try:
+                return self.contractSvc.PlaceBid(contractID, bid, forCorp)
+            except UserError as e:
+                if e.msg == 'TrialAccountRestriction':
+                    uicore.cmd.OpenTrialUpsell(origin=ORIGIN_CONTRACTS, reason='PlaceBid', message=localization.GetByLabel('UI/TrialUpsell/ContractRestrictionBody'))
+                else:
+                    raise
+
+            return
 
     def FinishAuction(self, contractID, isIssuer):
         self.LogInfo('Finishing Auction %s' % contractID)
@@ -752,7 +763,7 @@ class ContractsSvc(service.Service):
             self.markettypes = GetMarketTypes()
         return self.markettypes
 
-    def NumOutstandingContracts(self, forCorp = False):
+    def NumOutstandingContracts(self, forCorp=False):
         self.LogInfo('Getting number of outstanding contracts%s' % ['', ' (for corp)'][forCorp])
         return self.contractSvc.NumOutstandingContracts()
 
@@ -776,7 +787,7 @@ class ContractsSvc(service.Service):
         self.ClearCache()
         return self.contractSvc.DeleteNotification(contractID, forCorp)
 
-    def CollectMyPageInfo(self, force = False):
+    def CollectMyPageInfo(self, force=False):
         mpi = util.KeyVal()
         skills = sm.GetService('skills').GetSkills()
         if self.myPageInfo is None or self.myPageInfo.timeout < blue.os.GetWallclockTime() or force:
@@ -847,33 +858,37 @@ class ContractsSvc(service.Service):
         self.myExpiredContractList = None
         self.myPageInfo = None
         sm.ScatterEvent('OnContractCacheCleared')
+        return
 
-    def OpenJournal(self, status = 0, forCorp = 0):
+    def OpenJournal(self, status=0, forCorp=0):
         settings.user.tabgroups.Set('journalmaintabs', 2)
         sm.GetService('journal').GetWnd(new=True)
         wnd = util.KeyVal(forCorp=forCorp)
         sm.GetService('journal').ShowContracts(wnd, status)
 
-    def OpenCreateContract(self, items = None, contract = None):
+    def OpenCreateContract(self, items=None, contract=None):
         if session.userType != const.userTypeTrial:
             form.CreateContract.CloseIfOpen()
             form.CreateContract.Open(recipientID=None, contractItems=items, copyContract=contract)
         else:
             uicore.cmd.OpenTrialUpsell(origin=ORIGIN_CONTRACTS, reason='CreateContract', message=localization.GetByLabel('UI/TrialUpsell/ContractRestrictionBody'))
+        return
 
-    def OpenCreateContractFromIGB(self, contractType = None, stationID = None, itemIDs = None):
+    def OpenCreateContractFromIGB(self, contractType=None, stationID=None, itemIDs=None):
         if session.userType != const.userTypeTrial:
             form.CreateContract.CloseIfOpen()
             form.CreateContract.Open(recipientID=None, contractItems=None, copyContract=None, contractType=contractType, stationID=stationID, itemIDs=itemIDs)
         else:
             uicore.cmd.OpenTrialUpsell(origin=ORIGIN_CONTRACTS, reason='CreateContractIGB', message=localization.GetByLabel('UI/TrialUpsell/ContractRestrictionBody'))
+        return
 
-    def OpenAvailableTab(self, view, reset = False, typeID = None, contractType = CONTYPE_AUCTIONANDITEMECHANGE):
+    def OpenAvailableTab(self, view, reset=False, typeID=None, contractType=CONTYPE_AUCTIONANDITEMECHANGE):
         wnd = form.ContractsWindow.GetIfOpen()
         if wnd is not None:
             assigneeID = {3: const.conAvailMyself,
              4: const.conAvailMyCorp}.get(view, const.conAvailPublic)
             self.OpenSearchTab(typeID, None, None, None, None, None, assigneeID, contractType)
+        return
 
     def OpenSearchTab(self, *args):
         wnd = form.ContractsWindow.Open()
@@ -904,12 +919,14 @@ class ContractsSvc(service.Service):
             raise UserError('ConContractNotFoundForCrate')
         contractID = info.contractID
         self.CompleteContract(contractID)
+        return
 
     def FindCourierContractFromItemID(self, itemID):
         info = self.contractSvc.GetCourierContractFromItemID(itemID)
         if info is None:
             raise UserError('ConContractNotFoundForCrate')
         self.ShowContract(info.contractID)
+        return
 
     def IsStationInaccessible(self, stationID):
         if stationID is None:
@@ -918,7 +935,8 @@ class ContractsSvc(service.Service):
         isPlayerOwnable = sm.GetService('godma').GetType(station.stationTypeID).isPlayerOwnable
         if isPlayerOwnable and station.ownerID != session.corpid and stationID != session.stationid:
             return True
-        return False
+        else:
+            return False
 
     def CheckForPOS(self, c):
         msg = 'ConStationIsPOS'
@@ -977,6 +995,7 @@ class ContractsWindow(uicontrols.Window):
         self.LoadTabs(lookup, idx)
         if lookup:
             self.LookupOwner(lookup)
+        return
 
     def OpenCreateContract(self, *args):
         sm.GetService('contracts').OpenCreateContract()
@@ -1000,7 +1019,9 @@ class ContractsWindow(uicontrols.Window):
         except:
             sys.exc_clear()
 
-    def LoadTabs(self, lookup = None, idx = None):
+        return
+
+    def LoadTabs(self, lookup=None, idx=None):
         self.sr.startPageParent = StartPagePanel(name='startPageParent', parent=self.sr.main, align=uiconst.TOALL, pos=(0, 0, 0, 0), state=uiconst.UI_HIDDEN, idx=1)
         self.sr.myContractsParent = MyContractsPanel(name='myContractsParent', parent=self.sr.main, align=uiconst.TOALL, pos=(0, 0, 0, 0), state=uiconst.UI_HIDDEN, idx=1)
         self.sr.contractSearchParent = uiprimitives.Container(name='contractSearchParent', parent=self.sr.main, align=uiconst.TOALL, pos=(0, 0, 0, 0), state=uiconst.UI_HIDDEN, idx=1)
@@ -1052,8 +1073,8 @@ class ContractsWindow(uicontrols.Window):
         if self.sr.maintabs.GetSelectedArgs() == 'availableContracts':
             self.OnReturn_AvailableContracts()
 
-    def GetError(self, checkNumber = 1):
-        return ''
+    def GetError(self, checkNumber=1):
+        pass
 
     def Error(self, error):
         if error:
@@ -1083,6 +1104,8 @@ class ContractsWindow(uicontrols.Window):
                     list = child
                     break
 
+        return
+
 
 class StartPagePanel(uiprimitives.Container):
     __notifyevents__ = ['OnContractCacheCleared']
@@ -1093,7 +1116,7 @@ class StartPagePanel(uiprimitives.Container):
     def Init(self):
         scrollEntries = []
 
-        def AddItem(icon, header, text, url = None, isSmall = False):
+        def AddItem(icon, header, text, url=None, isSmall=False):
             if url:
                 header = '<url=localsvc:service=contracts&%s>%s</url>' % (url, header.rstrip('\n'))
             else:
@@ -1209,6 +1232,7 @@ class StartPagePanel(uiprimitives.Container):
             AddItem('ui_38_16_208', '', i, isSmall=True)
 
         self.startPageScroll.LoadContent(contentList=scrollEntries)
+        return
 
     def OnContractCacheCleared(self, *args):
         if self.IsVisible():
@@ -1249,6 +1273,7 @@ class MyContractsPanel(uiprimitives.Container):
             self.pages = {0: None}
             self.fetchingContracts = 0
         self.inited = 1
+        return
 
     def WriteFilters(self):
         self.sr.filters = filters = uiprimitives.Container(name='filters', parent=self, height=34, align=uiconst.TOTOP)
@@ -1304,6 +1329,7 @@ class MyContractsPanel(uiprimitives.Container):
         btn.sr.icon.LoadIcon('ui_23_64_2')
         self.sr.transMyFwdBtn = btn
         sidepar.left = submit.width + const.defaultPadding
+        return
 
     def BrowseMyContracts(self, direction, *args):
         self.currPage = max(0, self.currPage + direction)
@@ -1312,12 +1338,14 @@ class MyContractsPanel(uiprimitives.Container):
     def FetchContracts(self, *args):
         if self.fetchingContracts:
             return
-        self.sr.submitBtn.Disable()
-        self.fetchingContracts = 1
-        uthread.new(self.EnableButtonTimer)
-        self.currPage = 0
-        self.pages = {0: None}
-        self.DoFetchContracts()
+        else:
+            self.sr.submitBtn.Disable()
+            self.fetchingContracts = 1
+            uthread.new(self.EnableButtonTimer)
+            self.currPage = 0
+            self.pages = {0: None}
+            self.DoFetchContracts()
+            return
 
     def EnableButtonTimer(self):
         blue.pyos.synchro.SleepWallclock(5000)
@@ -1415,9 +1443,12 @@ class MyContractsPanel(uiprimitives.Container):
             self.sr.contractlist.ShowHint(localization.GetByLabel('UI/Contracts/ContractEntry/NoContractsFound'))
             raise
 
+        return
+
     def OnComboChange(self, obj, *args):
         if obj == self.sr.fltType and self.sr.fltType.GetValue() == -1:
             self.sr.fltType.SetValue(None)
+        return
 
     def OnSelectContract(self, *args):
         pass
@@ -1437,6 +1468,8 @@ class CreateContract(uicontrols.Window):
         stationID = attributes.stationID
         flag = attributes.flag
         itemIDs = attributes.itemIDs
+        if not self.CanContractItemsFromLocation(stationID):
+            stationID = None
         if stationID:
             self.data.startStation = stationID
             self.data.startStationDivision = const.flagHangar
@@ -1494,19 +1527,21 @@ class CreateContract(uicontrols.Window):
         self.blockconfirmonreturn = 1
         setattr(self, 'first', True)
         if contractItems is not None:
-            item = contractItems[0]
-            self.data.startStation = item.locationID
-            self.data.items = {}
-            for item in contractItems:
-                self.data.items[item.itemID] = [item.typeID, item.stacksize, item]
-                if item.ownerID == session.corpid:
-                    if eve.session.corprole & const.corpRoleContractManager == 0:
-                        raise UserError('ConNotContractManager')
-                    self.data.forCorp = True
-                    self.data.startStation = sm.StartService('invCache').GetStationIDOfItem(item)
-                    self.data.startStationDivision = item.flagID
-                elif item.ownerID != session.charid:
-                    raise RuntimeError('Not your item!')
+            firstItem = contractItems[0]
+            startStation = sm.StartService('invCache').GetStationIDOfItem(firstItem)
+            if self.CanContractItemsFromLocation(startStation):
+                self.data.startStation = startStation
+                self.data.items = {}
+                for item in contractItems:
+                    self.data.items[item.itemID] = [item.typeID, item.stacksize, item]
+                    if item.ownerID == session.corpid:
+                        if eve.session.corprole & const.corpRoleContractManager == 0:
+                            raise UserError('ConNotContractManager')
+                        self.data.forCorp = True
+                        self.data.startStation = sm.StartService('invCache').GetStationIDOfItem(item)
+                        self.data.startStationDivision = item.flagID
+                    elif item.ownerID != session.charid:
+                        raise RuntimeError('Not your item!')
 
         self.buttons = [(localization.GetByLabel('UI/Common/Cancel'),
           self.OnCancel,
@@ -1619,6 +1654,7 @@ class CreateContract(uicontrols.Window):
 
         if foundBlueprint:
             uthread.new(eve.Message, 'ConCopyContractBlueprint')
+        return
 
     def _OnClose(self, *args):
         self.UnlockItems()
@@ -1636,6 +1672,7 @@ class CreateContract(uicontrols.Window):
             self.sr.windowCaption = uicontrols.EveCaptionMedium(text=title, parent=self.sr.topParent, align=uiconst.RELATIVE, left=60, top=18, state=uiconst.UI_DISABLED)
         else:
             self.sr.windowCaption.text = title
+        return
 
     def UnlockItems(self):
         for i in self.lockedItems.iterkeys():
@@ -1665,8 +1702,8 @@ class CreateContract(uicontrols.Window):
             self.form = retfields = reqresult = errorcheck = []
             self.sr.buttonNext.SetLabel(localization.GetByLabel('/Carbon/UI/Common/Next'))
             self.sr.buttonPrev.state = uiconst.UI_NORMAL
-            if self.data.type != const.conTypeNothing:
-                self.SetWndIcon(GetContractIcon(self.data.type), mainTop=-10)
+            contractIconType = const.conTypeNothing if n == 0 else self.data.type
+            self.SetWndIcon(GetContractIcon(contractIconType), mainTop=-10)
             if n == 0:
                 self.sr.buttonPrev.state = uiconst.UI_HIDDEN
                 uiprimitives.Container(name='push', parent=self.formWnd, align=uiconst.TOLEFT, width=const.defaultPadding)
@@ -2176,6 +2213,8 @@ class CreateContract(uicontrols.Window):
         finally:
             uthread.UnLock(self)
 
+        return
+
     def OnChangePrivateName(self, privateCheckbox, text):
         if text:
             privateCheckbox.ToggleState()
@@ -2201,6 +2240,7 @@ class CreateContract(uicontrols.Window):
         self.data.forCorp = wnd.GetValue()
         self.OnAvailChange(None)
         self.data.items = {}
+        return
 
     def OnAvailChange(self, wnd, *args):
         uthread.new(self._OnAvailChange, wnd)
@@ -2288,6 +2328,8 @@ class CreateContract(uicontrols.Window):
             self.state = uiconst.UI_NORMAL
             sm.GetService('loading').ProgressWnd(localization.GetByLabel('UI/Contracts/ContractsWindow/CreatingContract'), '', 10, 10)
 
+        return
+
     def WriteConfirm(self, rows):
         body = ''
         for r in rows:
@@ -2305,38 +2347,43 @@ class CreateContract(uicontrols.Window):
     def ParseItemType(self, wnd, *args):
         if self.destroyed or getattr(self, 'parsingItemType', False):
             return
-        try:
-            self.parsingItemType = True
-            txt = wnd.GetValue()
-            if len(txt) == 0 or not IsSearchStringLongEnough(txt):
-                return
-            types = []
-            for t in self.marketTypes:
-                if MatchInvTypeName(txt, t.typeID):
-                    if CanRequestType(t.typeID):
-                        types.append(t.typeID)
+        else:
+            try:
+                self.parsingItemType = True
+                txt = wnd.GetValue()
+                if len(txt) == 0 or not IsSearchStringLongEnough(txt):
+                    return
+                types = []
+                for t in self.marketTypes:
+                    if MatchInvTypeName(txt, t.typeID):
+                        if CanRequestType(t.typeID):
+                            types.append(t.typeID)
 
-            typeID = SelectItemTypeDlg(types)
-            if typeID:
-                wnd.SetValue(TypeName(typeID))
+                typeID = SelectItemTypeDlg(types)
+                if typeID:
+                    wnd.SetValue(TypeName(typeID))
+                    self.parsedItemType = typeID
+                return typeID
                 self.parsedItemType = typeID
-            return typeID
-            self.parsedItemType = typeID
-        finally:
-            self.parsingItemType = False
+            finally:
+                self.parsingItemType = False
+
+            return
 
     def AddRequestItem(self, *args):
         typeID = getattr(self, 'parsedItemType', None) or self.ParseItemType(self.reqItemTypeWnd)
         self.parsedItemType = None
         if not typeID:
             return
-        qty = self.reqItemQtyWnd.GetValue()
-        if qty < 1:
+        else:
+            qty = self.reqItemQtyWnd.GetValue()
+            if qty < 1:
+                return
+            self.data.reqItems[typeID] = qty
+            self.reqItemTypeWnd.SetValue('')
+            self.reqItemQtyWnd.SetValue(1)
+            self.PopulateReqItemScroll()
             return
-        self.data.reqItems[typeID] = qty
-        self.reqItemTypeWnd.SetValue('')
-        self.reqItemQtyWnd.SetValue(1)
-        self.PopulateReqItemScroll()
 
     def RemoveRequestItem(self, wnd, *args):
         del self.data.reqItems[wnd.sr.node.typeID]
@@ -2369,19 +2416,21 @@ class CreateContract(uicontrols.Window):
     def SearchStationFromBtn(self, *args):
         self.SearchStation()
 
-    def SearchStation(self, stationID = None, *args):
+    def SearchStation(self, stationID=None, *args):
         searchstr = self.form.sr.endStationName.GetValue().strip()
         if stationID is None and not IsSearchStringLongEnough(searchstr):
             return
-        sm.GetService('loading').Cycle(localization.GetByLabel('UI/Common/Searching'), localization.GetByLabel('UI/Contracts/ContractsService/LoadingSearchHint', searchStr=searchstr))
-        if stationID is None:
-            stationID = uix.Search(searchstr.lower(), const.groupStation, searchWndName='contractSearchStationSearch')
-        sm.GetService('loading').StopCycle()
-        if stationID:
-            locationinfo = cfg.evelocations.Get(stationID)
-            self.courierDropLocation = stationID
-            self.form.sr.endStationName.SetValue(locationinfo.name)
-        self.data.endStation = stationID
+        else:
+            sm.GetService('loading').Cycle(localization.GetByLabel('UI/Common/Searching'), localization.GetByLabel('UI/Contracts/ContractsService/LoadingSearchHint', searchStr=searchstr))
+            if stationID is None:
+                stationID = uix.Search(searchstr.lower(), const.groupStation, searchWndName='contractSearchStationSearch')
+            sm.GetService('loading').StopCycle()
+            if stationID:
+                locationinfo = cfg.evelocations.Get(stationID)
+                self.courierDropLocation = stationID
+                self.form.sr.endStationName.SetValue(locationinfo.name)
+            self.data.endStation = stationID
+            return
 
     def UpdateCourierHint(self):
         if self.data.endStation and self.data.startStation and self.sr.courierHint and not self.sr.courierHint.destroyed:
@@ -2613,6 +2662,8 @@ class CreateContract(uicontrols.Window):
         finally:
             uthread.UnLock(self)
 
+        return
+
     def OnComboChange(self, wnd, *args):
         if wnd.name == 'startStation' or wnd.name == 'startStationDivision':
             if wnd.name == 'startStation':
@@ -2639,10 +2690,12 @@ class CreateContract(uicontrols.Window):
 
     def OnDeleteContract(self, contractID, *args):
         self.numOutstandingContracts = None
+        return
 
     def OnCancel(self, *args):
         if eve.Message('ConAreYouSureYouWantToCancel', None, uiconst.YESNO, suppress=uiconst.ID_YES) == uiconst.ID_YES:
             self.Close()
+        return
 
     def ResetWizard(self):
         self.data = util.KeyVal()
@@ -2653,6 +2706,7 @@ class CreateContract(uicontrols.Window):
         self.data.startStationDivision = 0
         self.data.type = const.conTypeNothing
         self.SetWndIcon(GetContractIcon(const.conTypeNothing), mainTop=-10)
+        return
 
     def WriteSelectItems(self, title):
         forCorp = self.data.forCorp
@@ -2675,6 +2729,7 @@ class CreateContract(uicontrols.Window):
             ops = [(title, 0)] + uiutil.SortListOfTuples(sortops)
         else:
             stations = sm.GetService('invCache').GetInventory(const.containerGlobal).ListStations()
+            stations = [ s for s in stations if self.CanContractItemsFromLocation(s.stationID) ]
             primeloc = []
             for station in stations:
                 primeloc.append(station.stationID)
@@ -2757,11 +2812,9 @@ class CreateContract(uicontrols.Window):
                     self.sr.itemsScroll.ShowHint(localization.GetByLabel('UI/Contracts/ContractEntry/SelectStationDivision'))
             elif self.data.startStationDivision == 0:
                 self.sr.itemsScroll.ShowHint(localization.GetByLabel('UI/Contracts/ContractsWindow/SelectDivision'))
-        if self.data.startStation and (not forCorp or self.data.startStationDivision):
+        validStartStation = self.data.startStation and self.CanContractItemsFromLocation(self.data.startStation)
+        if validStartStation and (not forCorp or self.data.startStationDivision):
             self.sr.itemsScroll.Load(contentList=[], headers=[], noContentHint=localization.GetByLabel('UI/Contracts/ContractsWindow/NoItemsFound'))
-            self.sr.itemsScroll.sr.fixedColumns = {localization.GetByLabel('UI/Common/Type'): 180,
-             localization.GetByLabel('UI/Inventory/ItemQuantityShort'): 70,
-             localization.GetByLabel('UI/Contracts/ContractsWindow/Name'): 160}
             self.sr.itemsScroll.ShowHint(localization.GetByLabel('UI/Contracts/ContractsWindow/GettingItems'))
             items = sm.GetService('contracts').GetItemsInStation(self.data.startStation, forCorp)
             self.sr.itemsScroll.hiliteSorted = 0
@@ -2816,6 +2869,10 @@ class CreateContract(uicontrols.Window):
                  localization.GetByLabel('UI/Inventory/ItemQuantityShort'),
                  localization.GetByLabel('UI/Common/Volume'),
                  localization.GetByLabel('UI/Common/Details')])
+        return
+
+    def CanContractItemsFromLocation(self, locationID):
+        return util.IsStation(locationID)
 
     def DeselectAll(self, *args):
         self.ChangeCheckboxStates(onoff=False)
@@ -2845,7 +2902,7 @@ class CreateContract(uicontrols.Window):
 
         self.ChangeItemSelection(gv, item, itemID, typeID, qty)
 
-    def ChangeItemSelection(self, checkboxSelected, item, itemID, typeID, qty, updateNumber = True):
+    def ChangeItemSelection(self, checkboxSelected, item, itemID, typeID, qty, updateNumber=True):
         if checkboxSelected:
             self.data.items[itemID] = [typeID, qty, item]
         elif itemID in self.data.items:
@@ -2935,6 +2992,7 @@ class ContractDetailsWindow(uicontrols.Window):
         self.state = uiconst.UI_HIDDEN
         self.pathfinder = sm.GetService('clientPathfinderService')
         self.Init()
+        return
 
     def Init(self):
 
@@ -3411,6 +3469,7 @@ class ContractDetailsWindow(uicontrols.Window):
          (),
          84)
         self.buttons.append(button)
+        return
 
     def Cancel(self):
         self.Close()
@@ -3507,7 +3566,7 @@ class ContractDetailsWindow(uicontrols.Window):
         finally:
             self.TryHideLoad()
 
-    def InsertItemList(self, contract, title, inCrate, numRows, hint = None, fixedSize = False, forceList = False):
+    def InsertItemList(self, contract, title, inCrate, numRows, hint=None, fixedSize=False, forceList=False):
         shouldHideBlueprintInfo = contract.contract.status in [const.conStatusFinished, const.conStatusFinishedContractor]
         items = [ e for e in contract.items if e.inCrate == inCrate ]
         if len(items) == 0:
@@ -3632,16 +3691,18 @@ class ContractDetailsWindow(uicontrols.Window):
                 mrdmg = self.GetItemDamageText(item)
                 if item.flagID and IsShipFittingFlag(item.flagID):
                     details = localization.GetByLabel('UI/Common/Fitted')
+                quantity = max(1, item.quantity) if item.quantity is not None else None
+                quantityLabel = localization.formatters.FormatNumeric(quantity, useGrouping=True)
                 if forceList:
                     label = '%s%s<t>%s<t>%s' % (chld,
                      typeName,
-                     max(1, item.quantity) if item.quantity is not None else None,
+                     quantityLabel,
                      groupName)
                     hdr = [localization.GetByLabel('UI/Contracts/ContractsWindow/Name'), localization.GetByLabel('UI/Inventory/ItemQuantityShort'), localization.GetByLabel('UI/Common/Type')]
                 else:
                     label = '%s%s<t>%s<t>%s<t>%s<t>%s%s' % (chld,
                      typeName,
-                     max(1, item.quantity) if item.quantity is not None else None,
+                     quantityLabel,
                      groupName,
                      categoryName,
                      details,
@@ -3666,6 +3727,7 @@ class ContractDetailsWindow(uicontrols.Window):
                 hint = localization.GetByLabel('UI/Contracts/ContractsWindow/NoItemsFound')
             self.sr.scroll.ShowHint(hint)
             return not fixedSize
+        return
 
     def OnPreviewClick(self, wnd, *args):
         sm.GetService('preview').PreviewType(getattr(wnd, 'typeID'))
@@ -3711,8 +3773,8 @@ class ContractDetailsWindow(uicontrols.Window):
     def Confirm(self, *etc):
         pass
 
-    def GetError(self, checkNumber = 1):
-        return ''
+    def GetError(self, checkNumber=1):
+        pass
 
     def Error(self, error):
         if error:

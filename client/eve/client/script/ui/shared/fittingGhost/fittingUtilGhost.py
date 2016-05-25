@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\client\script\ui\shared\fittingGhost\fittingUtilGhost.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\client\script\ui\shared\fittingGhost\fittingUtilGhost.py
 import evetypes
 import inventorycommon.const as invConst
 import dogma.const as dogmaConst
@@ -67,38 +68,43 @@ def GetPowerType(flagID):
         return dogmaConst.effectSubSystem
     if flagID in invConst.rigSlotFlags:
         return dogmaConst.effectRigSlot
+    if flagID in invConst.serviceSlotFlags:
+        return dogmaConst.effectServiceSlot
 
 
 def CheckChargeForLauncher(dogmaStaticMgr, itemTypeID, chargeTypeID):
     if chargeTypeID is None:
         return False
-    chargeGroupID = evetypes.GetGroupID(chargeTypeID)
-    for attributeID in dogmaStaticMgr.GetChargeGroupAttributes():
-        desiredChargeGroupID = dogmaStaticMgr.GetTypeAttribute2(itemTypeID, attributeID)
-        if desiredChargeGroupID == 0:
-            continue
-        if int(desiredChargeGroupID) == chargeGroupID:
-            break
     else:
-        return False
-
-    wantChargeSize = dogmaStaticMgr.GetTypeAttribute2(itemTypeID, dogmaConst.attributeChargeSize)
-    if wantChargeSize > 0:
-        gotChargeSize = dogmaStaticMgr.GetTypeAttribute2(chargeTypeID, dogmaConst.attributeChargeSize)
-        if gotChargeSize != wantChargeSize:
+        chargeGroupID = evetypes.GetGroupID(chargeTypeID)
+        for attributeID in dogmaStaticMgr.GetChargeGroupAttributes():
+            desiredChargeGroupID = dogmaStaticMgr.GetTypeAttribute2(itemTypeID, attributeID)
+            if desiredChargeGroupID == 0:
+                continue
+            if int(desiredChargeGroupID) == chargeGroupID:
+                break
+        else:
             return False
-    return True
+
+        wantChargeSize = dogmaStaticMgr.GetTypeAttribute2(itemTypeID, dogmaConst.attributeChargeSize)
+        if wantChargeSize > 0:
+            gotChargeSize = dogmaStaticMgr.GetTypeAttribute2(chargeTypeID, dogmaConst.attributeChargeSize)
+            if gotChargeSize != wantChargeSize:
+                return False
+        return True
 
 
 allPowerEffects = (dogmaConst.effectHiPower,
  dogmaConst.effectMedPower,
  dogmaConst.effectLoPower,
  dogmaConst.effectSubSystem,
- dogmaConst.effectRigSlot)
+ dogmaConst.effectRigSlot,
+ dogmaConst.effectServiceSlot)
 AVAILABLEFLAGS = {dogmaConst.effectLoPower: (invConst.flagLoSlot0, 8),
  dogmaConst.effectMedPower: (invConst.flagMedSlot0, 8),
  dogmaConst.effectHiPower: (invConst.flagHiSlot0, 8),
- dogmaConst.effectRigSlot: (invConst.flagRigSlot0, 3)}
+ dogmaConst.effectRigSlot: (invConst.flagRigSlot0, 3),
+ dogmaConst.effectServiceSlot: (invConst.flagServiceSlot0, 8)}
 
 def GetFlagIdToUse(typeID, flag, flagsInUse):
     if flag != const.flagAutoFit:
@@ -116,3 +122,5 @@ def GetNextAvailableFlag(typeID, flagsInUse):
     for x in xrange(start, start + num):
         if x not in flagsInUse:
             return x
+
+    return

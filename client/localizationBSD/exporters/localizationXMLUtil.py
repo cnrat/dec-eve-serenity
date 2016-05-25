@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\packages\localizationBSD\exporters\localizationXMLUtil.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\packages\localizationBSD\exporters\localizationXMLUtil.py
 import xml.etree.ElementTree
 import log
 import types
@@ -42,7 +43,7 @@ EXPORT_XML_TRANSLATE = 'Translate'
 importEnglishText = False
 compareTranslationWithEnglish = False
 
-def ExportToXMLFileFromDatabase(fileNamePattern, projectID, exportFilterSetting = FILTER_EXPORT_UNTRANSLATED, exportTargetField = TARGET_FIELD_ENGLISH, exportByReleaseID = None, changelistList = None):
+def ExportToXMLFileFromDatabase(fileNamePattern, projectID, exportFilterSetting=FILTER_EXPORT_UNTRANSLATED, exportTargetField=TARGET_FIELD_ENGLISH, exportByReleaseID=None, changelistList=None):
     if not fileNamePattern:
         return
     exportFilterDictionary = {'exportFilterSetting': exportFilterSetting,
@@ -64,13 +65,13 @@ def ExportToXMLFileFromDatabase(fileNamePattern, projectID, exportFilterSetting 
     return generatedFileNames
 
 
-def ExportXMLFromDatabase(projectID, exportFilterSetting = FILTER_EXPORT_UNTRANSLATED, exportTargetField = TARGET_FIELD_ENGLISH, exportByReleaseID = None):
+def ExportXMLFromDatabase(projectID, exportFilterSetting=FILTER_EXPORT_UNTRANSLATED, exportTargetField=TARGET_FIELD_ENGLISH, exportByReleaseID=None):
     exportFilterDictionary = {'exportFilterSetting': exportFilterSetting,
      'exportTargetField': exportTargetField}
     return _ExportXMLFromDataRows(_GetExportDataFromDatabase(projectID, exportByReleaseID), exportFilterDictionary)
 
 
-def ImportFromXMLFileIntoDatabase(fileName, importBatchSize = 1000):
+def ImportFromXMLFileIntoDatabase(fileName, importBatchSize=1000):
     if not fileName:
         return
     textDataTree = xml.etree.ElementTree.ElementTree()
@@ -86,15 +87,16 @@ def ValidateXMLFile(fileName):
     return _ValidateXMLInput(textRootElement=textDataTree)
 
 
-def ImportXMLIntoDatabase(translatedTextXML, importBatchSize = 1000):
+def ImportXMLIntoDatabase(translatedTextXML, importBatchSize=1000):
     if not translatedTextXML:
         log.LogError('Import function received an empty xml string. Cannot do anything with it.')
         return None
-    textRootElement = xml.etree.ElementTree.fromstringlist(translatedTextXML.encode('utf-8'))
-    return _ImportXMLIntoDatabase(textRootElement=textRootElement, importBatchSize=importBatchSize)
+    else:
+        textRootElement = xml.etree.ElementTree.fromstringlist(translatedTextXML.encode('utf-8'))
+        return _ImportXMLIntoDatabase(textRootElement=textRootElement, importBatchSize=importBatchSize)
 
 
-def _GetExportDataFromDatabase(projectID, exportByReleaseID = None, changelistList = None):
+def _GetExportDataFromDatabase(projectID, exportByReleaseID=None, changelistList=None):
     dbzlocalization = sm.GetService('DB2').GetSchema('zlocalization')
     return dbzlocalization.GetXMLExportData(projectID, exportByReleaseID, changelistList)
 
@@ -199,29 +201,30 @@ def _MakeXMLLanguageTextElements(parentElement, messageRow, languageCodeString, 
         errMsg += "therefore won't be able to properly export this message. messageID (%s)"
         log.LogError(errMsg % englishTextEntry.messageID)
         return
-    if languageCodeString == LOCALE_SHORT_ENGLISH:
-        textFlags = _PrepareMainFlags(englishTextEntry, messageRow.messageID)
     else:
-        textFlags = _PrepareTranslationFlags(englishTextEntry, languageTextEntry, messageRow.messageID, languageCodeString)
-    textEntry = None
-    if exportFilterDictionary['exportTargetField'] == TARGET_FIELD_ENGLISH:
-        textEntry = englishTextEntry
-    elif exportFilterDictionary['exportTargetField'] == TARGET_FIELD_TRANSLATION:
-        if languageCodeString != LOCALE_SHORT_ENGLISH and languageTextEntry is None:
-            textEntry = englishTextEntry
+        if languageCodeString == LOCALE_SHORT_ENGLISH:
+            textFlags = _PrepareMainFlags(englishTextEntry, messageRow.messageID)
         else:
-            textEntry = languageTextEntry
-    languageTextElement = xml.etree.ElementTree.Element(languageCodeString)
-    parentElement.append(languageTextElement)
-    languageTextEntryElement = xml.etree.ElementTree.Element(EXPORT_XML_TEXT)
-    languageTextElement.append(languageTextEntryElement)
-    if textEntry is not None:
-        languageTextEntryElement.text = textEntry.text
-        if len(textFlags):
-            for attrKey, attrVal in textFlags.iteritems():
-                languageTextEntryElement.set(attrKey, attrVal)
+            textFlags = _PrepareTranslationFlags(englishTextEntry, languageTextEntry, messageRow.messageID, languageCodeString)
+        textEntry = None
+        if exportFilterDictionary['exportTargetField'] == TARGET_FIELD_ENGLISH:
+            textEntry = englishTextEntry
+        elif exportFilterDictionary['exportTargetField'] == TARGET_FIELD_TRANSLATION:
+            if languageCodeString != LOCALE_SHORT_ENGLISH and languageTextEntry is None:
+                textEntry = englishTextEntry
+            else:
+                textEntry = languageTextEntry
+        languageTextElement = xml.etree.ElementTree.Element(languageCodeString)
+        parentElement.append(languageTextElement)
+        languageTextEntryElement = xml.etree.ElementTree.Element(EXPORT_XML_TEXT)
+        languageTextElement.append(languageTextEntryElement)
+        if textEntry is not None:
+            languageTextEntryElement.text = textEntry.text
+            if len(textFlags):
+                for attrKey, attrVal in textFlags.iteritems():
+                    languageTextEntryElement.set(attrKey, attrVal)
 
-    return languageTextElement
+        return languageTextElement
 
 
 def _CheckIfIncludingTextBasedOnStatus(englishTextRow, languageTextRow, exportFilterDictionary):
@@ -243,6 +246,7 @@ def _CheckIfIncludingTextBasedOnStatus(englishTextRow, languageTextRow, exportFi
         return not _LanguageTextUpToDate(englishTextRow, languageTextRow)
     else:
         return LocalizationExporterError('XML Exporter cant export with the unrecognized filter setting: %s.' % exportFilterDictionary['exportFilterSetting'])
+        return
 
 
 def _LanguageTextUpToDate(englishEntry, languageEntry):
@@ -253,7 +257,8 @@ def _PrepareMainFlags(englishEntry, messageID):
     if englishEntry is None:
         log.LogError('Didnt find the English text row for English tag. messageID (%s)' % messageID)
         return {}
-    return {EXPORT_XML_DATAID: str(englishEntry.dataID)}
+    else:
+        return {EXPORT_XML_DATAID: str(englishEntry.dataID)}
 
 
 def _GetMessageTextStatusNameByID(statusID):
@@ -265,6 +270,7 @@ def _GetMessageTextStatusNameByID(statusID):
         return _GetMessageTextStatusNameByID._messageTextStatuses[statusID]
     else:
         return 'unknown (%s)' % statusID
+        return
 
 
 def _PrepareTranslationFlags(englishEntry, targetLanguageEntry, messageID, languageCodeString):
@@ -378,7 +384,7 @@ def _ImportXMLIntoDatabase(textRootElement, importBatchSize):
      updatedMetaDataEntriesDetail)
 
 
-def _GetUpdatesListForImportIntoDatabase(textRootElement, allPropertiesResultSet, messagesTable, importEnglishText = False):
+def _GetUpdatesListForImportIntoDatabase(textRootElement, allPropertiesResultSet, messagesTable, importEnglishText=False):
     listOfTextImports = []
     listOfMetaDataImports = []
     updatedTextEntries = {SKIPPED: 0,
@@ -470,28 +476,29 @@ def _ImportMetaDataEntry(messageID, wordPropertyID, metaDataText, metaDataTable)
     return updateStatus
 
 
-def _ImportTextEntry(messageID, translatedText, languageID, sourceDataID, messageTextsTable, compareTranslationWithEnglish = False):
+def _ImportTextEntry(messageID, translatedText, languageID, sourceDataID, messageTextsTable, compareTranslationWithEnglish=False):
     updateStatus = UNCHANGED
     englishText = MessageText.GetMessageTextByMessageID(messageID, LOCALE_SHORT_ENGLISH)
     if englishText is None:
         log.LogError("Import didnt find a matching english text in DB; skipping importing this entry. messageID : '%s'" % messageID)
         return updateStatus
-    existingTranslation = MessageText.GetMessageTextByMessageID(messageID, languageID)
-    isPassingEnglishTest = True
-    if compareTranslationWithEnglish:
-        isPassingEnglishTest = englishText.text != translatedText
-    if existingTranslation:
-        if existingTranslation.text != translatedText and isPassingEnglishTest:
-            existingTranslation.SetTextAndSourceDataID(translatedText, sourceDataID)
-            updateStatus = UPDATED
-        elif existingTranslation.sourceDataID < sourceDataID:
-            existingTranslation.sourceDataID = sourceDataID
-            updateStatus = UPDATED
-        else:
-            updateStatus = UNCHANGED
-    elif isPassingEnglishTest:
-        MessageText.Create(messageID, languageID, text=translatedText, sourceDataID=sourceDataID)
-        updateStatus = ADDED
     else:
-        updateStatus = EMPTY_TAG
-    return updateStatus
+        existingTranslation = MessageText.GetMessageTextByMessageID(messageID, languageID)
+        isPassingEnglishTest = True
+        if compareTranslationWithEnglish:
+            isPassingEnglishTest = englishText.text != translatedText
+        if existingTranslation:
+            if existingTranslation.text != translatedText and isPassingEnglishTest:
+                existingTranslation.SetTextAndSourceDataID(translatedText, sourceDataID)
+                updateStatus = UPDATED
+            elif existingTranslation.sourceDataID < sourceDataID:
+                existingTranslation.sourceDataID = sourceDataID
+                updateStatus = UPDATED
+            else:
+                updateStatus = UNCHANGED
+        elif isPassingEnglishTest:
+            MessageText.Create(messageID, languageID, text=translatedText, sourceDataID=sourceDataID)
+            updateStatus = ADDED
+        else:
+            updateStatus = EMPTY_TAG
+        return updateStatus

@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\client\script\ui\shared\infoPanels\infoPanelShipTree.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\client\script\ui\shared\infoPanels\infoPanelShipTree.py
 from carbonui.util.color import Color
 from eve.client.script.ui.control.glowSprite import GlowSprite
 import uicls
@@ -109,7 +110,7 @@ class InfoBubbleRace(Container):
         self.factionID = factionID
         self.ShowFaction(factionID)
 
-    def ShowFaction(self, factionID, animate = True):
+    def ShowFaction(self, factionID, animate=True):
         self.icon.texturePath = ICON_BY_FACTIONID.get(factionID)
         self.caption.text = cfg.factions.Get(factionID).factionName
         factionData = cfg.infoBubbleFactions[factionID]
@@ -156,7 +157,7 @@ class ShipTreeButtonIcon(ButtonIcon):
         super(ShipTreeButtonIcon, self).OnMouseExit(*args)
         sm.ScatterEvent('OnShipTreeFactionButtonExit', self.factionID)
 
-    def SetActive(self, isActive, animate = True):
+    def SetActive(self, isActive, animate=True):
         self.isActive = isActive
         if animate:
             if isActive:

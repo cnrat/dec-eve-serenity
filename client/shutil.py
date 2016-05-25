@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\carbon\common\stdlib\shutil.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\carbon\common\stdlib\shutil.py
 import os
 import sys
 import stat
@@ -50,7 +51,7 @@ try:
 except NameError:
     WindowsError = None
 
-def copyfileobj(fsrc, fdst, length = 16384):
+def copyfileobj(fsrc, fdst, length=16384):
     while 1:
         buf = fsrc.read(length)
         if not buf:
@@ -133,7 +134,7 @@ def ignore_patterns(*patterns):
     return _ignore_patterns
 
 
-def copytree(src, dst, symlinks = False, ignore = None):
+def copytree(src, dst, symlinks=False, ignore=None):
     names = os.listdir(src)
     if ignore is not None:
         ignored_names = ignore(src, names)
@@ -169,9 +170,10 @@ def copytree(src, dst, symlinks = False, ignore = None):
 
     if errors:
         raise Error, errors
+    return
 
 
-def rmtree(path, ignore_errors = False, onerror = None):
+def rmtree(path, ignore_errors=False, onerror=None):
     if ignore_errors:
 
         def onerror(*args):
@@ -215,6 +217,8 @@ def rmtree(path, ignore_errors = False, onerror = None):
     except os.error:
         onerror(os.rmdir, path, sys.exc_info())
 
+    return
+
 
 def _basename(path):
     return os.path.basename(path.rstrip(os.path.sep))
@@ -252,28 +256,32 @@ def _destinsrc(src, dst):
 def _get_gid(name):
     if getgrnam is None or name is None:
         return
-    try:
-        result = getgrnam(name)
-    except KeyError:
-        result = None
+    else:
+        try:
+            result = getgrnam(name)
+        except KeyError:
+            result = None
 
-    if result is not None:
-        return result[2]
+        if result is not None:
+            return result[2]
+        return
 
 
 def _get_uid(name):
     if getpwnam is None or name is None:
         return
-    try:
-        result = getpwnam(name)
-    except KeyError:
-        result = None
+    else:
+        try:
+            result = getpwnam(name)
+        except KeyError:
+            result = None
 
-    if result is not None:
-        return result[2]
+        if result is not None:
+            return result[2]
+        return
 
 
-def _make_tarball(base_name, base_dir, compress = 'gzip', verbose = 0, dry_run = 0, owner = None, group = None, logger = None):
+def _make_tarball(base_name, base_dir, compress='gzip', verbose=0, dry_run=0, owner=None, group=None, logger=None):
     tar_compression = {'gzip': 'gz',
      'bzip2': 'bz2',
      None: ''}
@@ -312,7 +320,7 @@ def _make_tarball(base_name, base_dir, compress = 'gzip', verbose = 0, dry_run =
     return archive_name
 
 
-def _call_external_zip(base_dir, zip_filename, verbose = False, dry_run = False):
+def _call_external_zip(base_dir, zip_filename, verbose=False, dry_run=False):
     if verbose:
         zipoptions = '-r'
     else:
@@ -328,7 +336,7 @@ def _call_external_zip(base_dir, zip_filename, verbose = False, dry_run = False)
         raise ExecError, "unable to create zip file '%s': could neither import the 'zipfile' module nor find a standalone zip utility" % zip_filename
 
 
-def _make_zipfile(base_name, base_dir, verbose = 0, dry_run = 0, logger = None):
+def _make_zipfile(base_name, base_dir, verbose=0, dry_run=0, logger=None):
     zip_filename = base_name + '.zip'
     archive_dir = os.path.dirname(base_name)
     if not os.path.exists(archive_dir):
@@ -371,7 +379,7 @@ def get_archive_formats():
     return formats
 
 
-def register_archive_format(name, function, extra_args = None, description = ''):
+def register_archive_format(name, function, extra_args=None, description=''):
     if extra_args is None:
         extra_args = []
     if not isinstance(function, collections.Callable):
@@ -383,13 +391,14 @@ def register_archive_format(name, function, extra_args = None, description = '')
             raise TypeError('extra_args elements are : (arg_name, value)')
 
     _ARCHIVE_FORMATS[name] = (function, extra_args, description)
+    return
 
 
 def unregister_archive_format(name):
     del _ARCHIVE_FORMATS[name]
 
 
-def make_archive(base_name, format, root_dir = None, base_dir = None, verbose = 0, dry_run = 0, owner = None, group = None, logger = None):
+def make_archive(base_name, format, root_dir=None, base_dir=None, verbose=0, dry_run=0, owner=None, group=None, logger=None):
     save_cwd = os.getcwd()
     if root_dir is not None:
         if logger is not None:

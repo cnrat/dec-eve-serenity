@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\carbon\common\stdlib\json\scanner.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\carbon\common\stdlib\json\scanner.py
 import re
 try:
     from _json import make_scanner as c_make_scanner
@@ -29,31 +30,33 @@ def py_make_scanner(context):
 
         if nextchar == '"':
             return parse_string(string, idx + 1, encoding, strict)
-        if nextchar == '{':
+        elif nextchar == '{':
             return parse_object((string, idx + 1), encoding, strict, _scan_once, object_hook, object_pairs_hook)
-        if nextchar == '[':
+        elif nextchar == '[':
             return parse_array((string, idx + 1), _scan_once)
-        if nextchar == 'n' and string[idx:idx + 4] == 'null':
+        elif nextchar == 'n' and string[idx:idx + 4] == 'null':
             return (None, idx + 4)
-        if nextchar == 't' and string[idx:idx + 4] == 'true':
+        elif nextchar == 't' and string[idx:idx + 4] == 'true':
             return (True, idx + 4)
-        if nextchar == 'f' and string[idx:idx + 5] == 'false':
+        elif nextchar == 'f' and string[idx:idx + 5] == 'false':
             return (False, idx + 5)
-        m = match_number(string, idx)
-        if m is not None:
-            integer, frac, exp = m.groups()
-            if frac or exp:
-                res = parse_float(integer + (frac or '') + (exp or ''))
-            else:
-                res = parse_int(integer)
-            return (res, m.end())
-        if nextchar == 'N' and string[idx:idx + 3] == 'NaN':
-            return (parse_constant('NaN'), idx + 3)
-        if nextchar == 'I' and string[idx:idx + 8] == 'Infinity':
-            return (parse_constant('Infinity'), idx + 8)
-        if nextchar == '-' and string[idx:idx + 9] == '-Infinity':
-            return (parse_constant('-Infinity'), idx + 9)
-        raise StopIteration
+        else:
+            m = match_number(string, idx)
+            if m is not None:
+                integer, frac, exp = m.groups()
+                if frac or exp:
+                    res = parse_float(integer + (frac or '') + (exp or ''))
+                else:
+                    res = parse_int(integer)
+                return (res, m.end())
+            elif nextchar == 'N' and string[idx:idx + 3] == 'NaN':
+                return (parse_constant('NaN'), idx + 3)
+            elif nextchar == 'I' and string[idx:idx + 8] == 'Infinity':
+                return (parse_constant('Infinity'), idx + 8)
+            elif nextchar == '-' and string[idx:idx + 9] == '-Infinity':
+                return (parse_constant('-Infinity'), idx + 9)
+            raise StopIteration
+            return
 
     return _scan_once
 

@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\carbon\common\script\entities\position.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\carbon\common\script\entities\position.py
 import carbon.common.script.cef.componentViews.positionComponent as positionComponent
 import collections
 import geo2
@@ -48,7 +49,7 @@ class PositionService(service.Service):
         state['rotation'] = component.rotation
         return state
 
-    def PackUpForSceneTransfer(self, component, destinationSceneID = None):
+    def PackUpForSceneTransfer(self, component, destinationSceneID=None):
         return self.PackUpForClientTransfer(component)
 
     def UnPackFromSceneTransfer(self, component, entity, state):

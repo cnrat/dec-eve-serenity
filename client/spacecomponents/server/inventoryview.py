@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\packages\spacecomponents\server\inventoryview.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\packages\spacecomponents\server\inventoryview.py
 import logging
 from eve.common.lib.appConst import locationJunkyard
 from eve.server.script.mgt.inv.ball import Ball
@@ -19,7 +20,7 @@ class InventoryView(Ball):
         self.component = component
         self.flagID = const.flagCargo
 
-    def ClassSpecificAdd(self, itemID, sourceID, qty = None, flag = None):
+    def ClassSpecificAdd(self, itemID, sourceID, qty=None, flag=None):
         item = self.GetItemByID(itemID)
         oldOwnerID = item.ownerID
         containerOwner = self.invItem.ownerID
@@ -45,7 +46,7 @@ class InventoryView(Ball):
         self.componentRegistry.SendMessageToItem(self.itemid, MSG_ON_PLAYER_INTERACTION)
         return newItemID
 
-    def List(self, flag = None):
+    def List(self, flag=None):
         self.component.CheckCanListContents(self.actor, self.broker.inventory2)
         if self.actor != -1:
             actorItem = self.GetItemByID(self.actor)
@@ -62,7 +63,7 @@ class InventoryView(Ball):
         self.component.CheckCanTakeItem(charID, item, self.broker.inventory2)
         self.componentRegistry.SendMessageToItem(self.itemid, MSG_ON_PLAYER_INTERACTION)
 
-    def GetCapacity(self, flag = None, capacityItemID = None, skipDistanceCheck = False):
+    def GetCapacity(self, flag=None, capacityItemID=None, skipDistanceCheck=False):
         capacity = 0.0
         used = 0.0
         if self.broker is not None:

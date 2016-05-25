@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\packages\watchdog\utils\delayed_queue.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\packages\watchdog\utils\delayed_queue.py
 import time
 import threading
 from collections import deque
@@ -48,6 +49,8 @@ class DelayedQueue(object):
             finally:
                 self._lock.release()
 
+        return
+
     def remove(self, predicate):
         try:
             self._lock.acquire()
@@ -58,3 +61,5 @@ class DelayedQueue(object):
 
         finally:
             self._lock.release()
+
+        return

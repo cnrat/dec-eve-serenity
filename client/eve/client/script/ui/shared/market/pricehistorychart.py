@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\client\script\ui\shared\market\pricehistorychart.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\client\script\ui\shared\market\pricehistorychart.py
 import uiprimitives
 import uicontrols
 import uix
@@ -60,6 +61,7 @@ class PriceHistory(uiprimitives.Container):
          GetStrippedLabel('/Carbon/UI/Common/Months/OctoberShort'),
          GetStrippedLabel('/Carbon/UI/Common/Months/NovemberShort'),
          GetStrippedLabel('/Carbon/UI/Common/Months/DecemberShort')]
+        return
 
     def _OnResize(self, *args):
         if self.rendering:
@@ -70,6 +72,7 @@ class PriceHistory(uiprimitives.Container):
     def UpdateSize(self):
         uthread.new(self.Render, self.typerecord)
         self.sr.updateTimer = None
+        return
 
     def InitOptions(self):
         uix.Flush(self.sr.options)
@@ -180,6 +183,7 @@ class PriceHistory(uiprimitives.Container):
          localization.GetByLabel('UI/Market/PriceHistory/HighestPrice'),
          localization.GetByLabel('UI/Market/PriceHistory/AveragePrice')]
         scroll.Load(fixedEntryHeight=18, contentList=scrolllist, headers=headers)
+        return
 
     def OnColumnChanged(self, *args):
         if self.typerecord:

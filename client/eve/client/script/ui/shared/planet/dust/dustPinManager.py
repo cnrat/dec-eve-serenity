@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\client\script\ui\shared\planet\dust\dustPinManager.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\client\script\ui\shared\planet\dust\dustPinManager.py
 import evetypes
 import util
 import service
@@ -21,7 +22,7 @@ class PlanetBaseService(service.Service):
     __displayname__ = 'Planet Base Client Service'
     __update_on_reload__ = 0
 
-    def Run(self, memStream = None):
+    def Run(self, memStream=None):
         self.dustPinCache = {}
         service.Service.Run(self, memStream)
 
@@ -29,6 +30,7 @@ class PlanetBaseService(service.Service):
         if planetID in self.dustPinCache:
             del self.dustPinCache[planetID]
             sm.ScatterEvent('OnRefreshPins', None)
+        return
 
     def GetPlanetBases(self, planetID):
         if planetID in self.dustPinCache and self.dustPinCache[planetID].timestamp + DUST_PIN_CACHE_TIMEOUT < blue.os.GetWallclockTime():
@@ -135,6 +137,7 @@ class DustPinManager:
         self.buildNextPinTypeID = None
         self.pins = {}
         self.selectedPin = None
+        return
 
     def Close(self):
         sm.UnregisterNotify(self)
@@ -142,6 +145,7 @@ class DustPinManager:
         self.buildNextPinTypeID = None
         self.pins = None
         self.selectedPin = None
+        return
 
     def OnPlanetViewOpened(self):
         self.planetUISvc = sm.GetService('planetUI')
@@ -154,7 +158,7 @@ class DustPinManager:
     def OnPlanetZoomChanged(self, zoom):
         pass
 
-    def OnRefreshPins(self, pinIDs = None):
+    def OnRefreshPins(self, pinIDs=None):
         if pinIDs is None:
             pinIDs = self.pins.keys()
         for pinID in pinIDs:
@@ -163,6 +167,7 @@ class DustPinManager:
                 del self.pins[pinID]
 
         self.RenderPins()
+        return
 
     def RenderPins(self):
         planetBases = sm.GetService('planetBaseSvc').GetPlanetBases(self.planetUISvc.planetID)
@@ -214,9 +219,11 @@ class DustPinManager:
     def MoveIndicatorPin(self, surfacePoint):
         if surfacePoint is None:
             return
-        if self.buildIndicatorPin is None:
-            self.buildIndicatorPin = DustBuildIndicatorPin(surfacePoint, 2, 2, self.planetUISvc.pinTransform)
-        self.buildIndicatorPin.SetLocation(surfacePoint)
+        else:
+            if self.buildIndicatorPin is None:
+                self.buildIndicatorPin = DustBuildIndicatorPin(surfacePoint, 2, 2, self.planetUISvc.pinTransform)
+            self.buildIndicatorPin.SetLocation(surfacePoint)
+            return
 
     def PlacePin(self, surfacePoint):
         self.CancelPinPlacement()
@@ -227,6 +234,7 @@ class DustPinManager:
             self.buildIndicatorPin.Remove()
             self.buildIndicatorPin = None
         self.eventManager.SetNormalState()
+        return
 
     def GetPinMenu(self, pinID):
         if pinID in self.pins:
@@ -245,11 +253,13 @@ class DustPinManager:
         if pinID in self.pins:
             self.selectedPin = self.pins[pinID]
             self.selectedPin.Selected()
+        return
 
     def PinUnselected(self):
         if self.selectedPin is not None:
             self.selectedPin.Unselected()
             self.selectedPin = None
+        return
 
     def UpdatePlanetControl(self):
         baseManager = moniker.GetPlanetBaseManager(self.planetUISvc.planetID)

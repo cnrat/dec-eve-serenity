@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\packages\brennivin\platformutils.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\packages\brennivin\platformutils.py
 import os as _os
 import struct as _struct
 import sys as _sys
@@ -14,7 +15,7 @@ EXE_EXEFILE = 'Exefile Python'
 EXE_VANILLA26 = 'Pure Python 2.6'
 EXE_VANILLA27 = 'Pure Python 2.7'
 
-def get_interpreter_flavor(_exepath = _ignore, _vinfo = _ignore):
+def get_interpreter_flavor(_exepath=_ignore, _vinfo=_ignore):
     _exepath = _exepath or _sys.executable
     _vinfo = _vinfo or _sys.version_info
 
@@ -46,7 +47,7 @@ def is_64bit_windows():
     return 'PROGRAMFILES(x86)' in _os.environ
 
 
-def is_64bit_process(_structmod = _ignore):
+def is_64bit_process(_structmod=_ignore):
     _structmod = _structmod or _struct
     size = _structmod.calcsize('P')
     if size == 8:
@@ -56,7 +57,7 @@ def is_64bit_process(_structmod = _ignore):
     raise OSError('Could not determine process architecture for %s' % size)
 
 
-def cpu_count(_multiprocmod = _ignore):
+def cpu_count(_multiprocmod=_ignore):
     _multiprocmod = _multiprocmod or _multiprocessing
     if _multiprocessing:
         try:

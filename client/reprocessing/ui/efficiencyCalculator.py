@@ -1,7 +1,8 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\packages\reprocessing\ui\efficiencyCalculator.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\packages\reprocessing\ui\efficiencyCalculator.py
 from reprocessing.ui.util import GetSkillFromTypeID
 
-def CalculateTheoreticalEfficiency(typeIDs, tax, efficiency):
+def CalculateTheoreticalEfficiency(typeIDs, efficiency):
     getTypeAttribute = sm.GetService('clientDogmaStaticSvc').GetTypeAttribute
     getSkillLevel = sm.GetService('skills').MySkillLevel
     bonuses = []
@@ -14,4 +15,4 @@ def CalculateTheoreticalEfficiency(typeIDs, tax, efficiency):
         bonuses.append(100 * (totalSkillBonus - 1))
 
     avgSkillBonus = sum(bonuses) / len(typeIDs)
-    return efficiency * (1 - tax) * (100 + avgSkillBonus) / 100
+    return min(1.0, efficiency * (100 + avgSkillBonus) / 100)

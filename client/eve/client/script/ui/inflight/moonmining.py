@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\client\script\ui\inflight\moonmining.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\client\script\ui\inflight\moonmining.py
 import evetypes
 import uicontrols
 import blue
@@ -293,12 +294,15 @@ class MoonMining(uicontrols.Window):
         except:
             log.LogWarn('Initializing moonmining window failed ... closed before complete ?')
 
+        return
+
     def _OnClose(self, *args):
         self.godma = None
         self.posMgr = None
         self.slimItem = None
         self.capacity = None
         self.tower = None
+        return
 
     def OnTabDeselect(self):
         if self.connectionsChanged:
@@ -344,6 +348,7 @@ class MoonMining(uicontrols.Window):
             self.sr.processtabs.state = uiconst.UI_HIDDEN
             self.sr.scroll.state = uiconst.UI_HIDDEN
             self.ShowForce()
+        return
 
     def ShowStructureTab(self, flag):
         self.sr.scroll.ShowHint('')
@@ -492,7 +497,7 @@ class MoonMining(uicontrols.Window):
             self.sr.scroll.Load(contentList=scrolllist, headers=headers)
         self.sr.showing = 'othertowers'
 
-    def GetTowerGroupSubContent(self, nodedata, newitems = 0):
+    def GetTowerGroupSubContent(self, nodedata, newitems=0):
         scrolllist = []
         fromSystem = cfg.evelocations.Get(eve.session.solarsystemid)
         for typeID, itemID in nodedata.groupItems:
@@ -549,6 +554,7 @@ class MoonMining(uicontrols.Window):
         controlLabel = localization.GetByLabel('UI/Inflight/MoonMining/Structures/Control')
         self.sr.scroll.Load(contentList=scrolllist, headers=[nameLabel, structureStateLabel, controlLabel])
         self.sr.showing = 'control'
+        return None
 
     def ShowStructures(self):
         import listentry
@@ -599,7 +605,7 @@ class MoonMining(uicontrols.Window):
 
         self.sr.showing = 'structures'
 
-    def ShowProduction(self, force = 0):
+    def ShowProduction(self, force=0):
         cycle = self.godma.GetType(self.slimItem.typeID).posControlTowerPeriod
         scrolllist = []
         scrolllist.append(listentry.Get('Header', {'label': localization.GetByLabel('UI/Inflight/MoonMining/Processes/MoonProduces')}))
@@ -735,6 +741,7 @@ class MoonMining(uicontrols.Window):
         self.sr.scroll.sr.id = 'moonmining_production'
         self.sr.scroll.Load(contentList=scrolllist, scrollTo=self.sr.scroll.GetScrollProportion())
         self.sr.showing = 'production'
+        return
 
     def ShowStandings(self):
         if not self.sr.Get('standingsinited', 0):
@@ -760,6 +767,7 @@ class MoonMining(uicontrols.Window):
         self.sr.standingcheckbox4.SetChecked(statusDrop, 0)
         self.sr.standingcheckbox6.SetChecked(war, 0)
         self.sr.showing = 'standings'
+        return
 
     def ShowForce(self):
         if not self.sr.Get('forcefieldinited', 0):
@@ -898,6 +906,7 @@ class MoonMining(uicontrols.Window):
         self.sr.scroll.sr.id = 'moonmining_fuel'
         self.sr.scroll.Load(contentList=scrolllist, headers=headers)
         self.sr.showing = 'fuel'
+        return
 
     def ShowAccess(self):
         if not len(self.sr.accesspanel.children):
@@ -979,7 +988,9 @@ class MoonMining(uicontrols.Window):
             if entry.panel and getattr(entry.panel, 'OnColumnChanged', None):
                 entry.panel.OnColumnChanged()
 
-    def StructureProgress(self, where, label, stateTimestamp, stateDelay, parenttext = None, xoffset = 2, top = 3):
+        return
+
+    def StructureProgress(self, where, label, stateTimestamp, stateDelay, parenttext=None, xoffset=2, top=3):
         sub = uiprimitives.Container(name='progresscontainer', parent=where, align=uiconst.TOPRIGHT, width=88, height=12, left=xoffset, top=top)
         te = uicontrols.EveLabelSmall(text='xxx', parent=sub, width=86, left=2, top=0)
         p = uiprimitives.Fill(parent=sub, align=uiconst.TOPLEFT, width=86, height=10, left=0, top=1, color=(1.0, 1.0, 1.0, 0.25))
@@ -1032,7 +1043,7 @@ class MoonMining(uicontrols.Window):
             slimItem = sel.rec
             uthread.pool('MoonMining::_AssumeControl', self._AssumeControl, slimItem)
 
-    def _AssumeControl(self, itemID, silent = False):
+    def _AssumeControl(self, itemID, silent=False):
         self.pwn.AssumeStructureControl(itemID, silent)
 
     def RelinquishControl(self):
@@ -1047,7 +1058,7 @@ class MoonMining(uicontrols.Window):
     def _RelinquishControl(self, itemID):
         self.pwn.RelinquishStructureControl(itemID)
 
-    def GetGauge(self, where = None, left = 0, top = 0, color = (1.0,
+    def GetGauge(self, where=None, left=0, top=0, color=(1.0,
  1.0,
  1.0,
  0.25)):
@@ -1065,107 +1076,111 @@ class MoonMining(uicontrols.Window):
     def UpdateHeader(self):
         if not self or self.destroyed or not self.slimItem:
             return
-        state = self.pwn.GetStructureState(self.slimItem)
-        statusText = POS_STRUCTURE_STATE[state[0]]
-        color = ''
-        if statusText == localization.GetByLabel('UI/Entities/States/Online'):
-            color = '<color=0xff65c212>'
-        elif statusText == localization.GetByLabel('UI/Inflight/MoonMining/Offline'):
-            color = '<color=0xffd0371d>'
-        self.sr.status.text = localization.GetByLabel('UI/Inflight/MoonMining/TowerStatus', colorCode=color, currentStatus=statusText)
-        if self.moonID is not None:
-            moonstr = cfg.evelocations.Get(self.moonID).name
         else:
-            moonstr = localization.GetByLabel('UI/Inflight/MoonMining/NotAttachedToMoon', locationID=eve.session.locationid)
-        self.sr.locationtext.text = localization.GetByLabel('UI/Inflight/MoonMining/TowerLocated', moonLocation=moonstr)
-        if state[0] == 'online' and len(self.res) == 0:
-            self.GetMoon()
-        allowedState = (const.pwnStructureStateAnchoring,
-         const.pwnStructureStateOnlining,
-         const.pwnStructureStateUnanchoring,
-         const.pwnStructureStateReinforced)
-        if state[0] in allowedState:
-            displayState = structProgressMap.get(state[0], None)
-            if displayState:
-                labelMap = {const.pwnStructureStateAnchored: localization.GetByLabel('UI/Entities/States/StatusCaptionAnchored'),
-                 const.pwnStructureStateUnanchored: localization.GetByLabel('UI/Entities/States/StatusCaptionUnanchored'),
-                 const.pwnStructureStateOnline: localization.GetByLabel('UI/Entities/States/StatusCaptionOnline')}
-                label = labelMap[displayState]
+            state = self.pwn.GetStructureState(self.slimItem)
+            statusText = POS_STRUCTURE_STATE[state[0]]
+            color = ''
+            if statusText == localization.GetByLabel('UI/Entities/States/Online'):
+                color = '<color=0xff65c212>'
+            elif statusText == localization.GetByLabel('UI/Inflight/MoonMining/Offline'):
+                color = '<color=0xffd0371d>'
+            self.sr.status.text = localization.GetByLabel('UI/Inflight/MoonMining/TowerStatus', colorCode=color, currentStatus=statusText)
+            if self.moonID is not None:
+                moonstr = cfg.evelocations.Get(self.moonID).name
             else:
-                label = localization.GetByLabel('UI/Entities/States/StatusCaptionDone')
-            uthread.new(self.StructureProgress, self.sr.locationtext.parent, label, state[1], state[2], self.sr.status, -78, self.sr.status.top - 12)
-        self.UpdateDamage()
-        bp = sm.GetService('michelle').GetBallpark()
-        t = self.godma.GetType(self.slimItem.typeID)
-        emRes = getattr(t, 'shieldEmDamageResonance', 1.0)
-        exRes = getattr(t, 'shieldExplosiveDamageResonance', 1.0)
-        kiRes = getattr(t, 'shieldKineticDamageResonance', 1.0)
-        thRes = getattr(t, 'shieldThermalDamageResonance', 1.0)
-        structures = [ rec for itemID, rec in bp.slimItems.iteritems() if rec.categoryID == const.categoryStarbase and rec.groupID == const.groupShieldHardeningArray and rec.ownerID == self.slimItem.ownerID and self.pwn.GetStructureState(rec)[0] == 'online' ]
-        for structure in structures:
-            s = self.godma.GetType(structure.typeID)
-            emRes *= getattr(s, 'emDamageResonanceMultiplier', 1.0)
-            exRes *= getattr(s, 'explosiveDamageResonanceMultiplier', 1.0)
-            kiRes *= getattr(s, 'kineticDamageResonanceMultiplier', 1.0)
-            thRes *= getattr(s, 'thermalDamageResonanceMultiplier', 1.0)
+                moonstr = localization.GetByLabel('UI/Inflight/MoonMining/NotAttachedToMoon', locationID=eve.session.locationid)
+            self.sr.locationtext.text = localization.GetByLabel('UI/Inflight/MoonMining/TowerLocated', moonLocation=moonstr)
+            if state[0] == 'online' and len(self.res) == 0:
+                self.GetMoon()
+            allowedState = (const.pwnStructureStateAnchoring,
+             const.pwnStructureStateOnlining,
+             const.pwnStructureStateUnanchoring,
+             const.pwnStructureStateReinforced)
+            if state[0] in allowedState:
+                displayState = structProgressMap.get(state[0], None)
+                if displayState:
+                    labelMap = {const.pwnStructureStateAnchored: localization.GetByLabel('UI/Entities/States/StatusCaptionAnchored'),
+                     const.pwnStructureStateUnanchored: localization.GetByLabel('UI/Entities/States/StatusCaptionUnanchored'),
+                     const.pwnStructureStateOnline: localization.GetByLabel('UI/Entities/States/StatusCaptionOnline')}
+                    label = labelMap[displayState]
+                else:
+                    label = localization.GetByLabel('UI/Entities/States/StatusCaptionDone')
+                uthread.new(self.StructureProgress, self.sr.locationtext.parent, label, state[1], state[2], self.sr.status, -78, self.sr.status.top - 12)
+            self.UpdateDamage()
+            bp = sm.GetService('michelle').GetBallpark()
+            t = self.godma.GetType(self.slimItem.typeID)
+            emRes = getattr(t, 'shieldEmDamageResonance', 1.0)
+            exRes = getattr(t, 'shieldExplosiveDamageResonance', 1.0)
+            kiRes = getattr(t, 'shieldKineticDamageResonance', 1.0)
+            thRes = getattr(t, 'shieldThermalDamageResonance', 1.0)
+            structures = [ rec for itemID, rec in bp.slimItems.iteritems() if rec.categoryID == const.categoryStarbase and rec.groupID == const.groupShieldHardeningArray and rec.ownerID == self.slimItem.ownerID and self.pwn.GetStructureState(rec)[0] == 'online' ]
+            for structure in structures:
+                s = self.godma.GetType(structure.typeID)
+                emRes *= getattr(s, 'emDamageResonanceMultiplier', 1.0)
+                exRes *= getattr(s, 'explosiveDamageResonanceMultiplier', 1.0)
+                kiRes *= getattr(s, 'kineticDamageResonanceMultiplier', 1.0)
+                thRes *= getattr(s, 'thermalDamageResonanceMultiplier', 1.0)
 
-        emPercentageLabel = localization.GetByLabel('UI/Inflight/MoonMining/DisplayPercentage', percent=int(100 * (1.0 - emRes)))
-        kiPercentageLabel = localization.GetByLabel('UI/Inflight/MoonMining/DisplayPercentage', percent=int(100 * (1.0 - kiRes)))
-        exPercentageLabel = localization.GetByLabel('UI/Inflight/MoonMining/DisplayPercentage', percent=int(100 * (1.0 - exRes)))
-        thPercentageLabel = localization.GetByLabel('UI/Inflight/MoonMining/DisplayPercentage', percent=int(100 * (1.0 - thRes)))
-        self.sr.emkinText.text = '%s<t>%s' % (emPercentageLabel, kiPercentageLabel)
-        self.sr.expthermText.text = '%s<t>%s' % (exPercentageLabel, thPercentageLabel)
-        powerSupply = 0
-        cpuSupply = 0
-        powerConsumption = 0
-        cpuConsumption = 0
-        for itemID, ball in bp.slimItems.iteritems():
-            if ball.categoryID == const.categoryStarbase and self.pwn.GetStructureState(ball)[0] in ('online', 'operating'):
-                powerSupply += getattr(self.godma.GetType(ball.typeID), 'powerOutput', 0)
-                cpuSupply += getattr(self.godma.GetType(ball.typeID), 'cpuOutput', 0)
-                powerConsumption += getattr(self.godma.GetType(ball.typeID), 'power', 0)
-                cpuConsumption += getattr(self.godma.GetType(ball.typeID), 'cpu', 0)
+            emPercentageLabel = localization.GetByLabel('UI/Inflight/MoonMining/DisplayPercentage', percent=int(100 * (1.0 - emRes)))
+            kiPercentageLabel = localization.GetByLabel('UI/Inflight/MoonMining/DisplayPercentage', percent=int(100 * (1.0 - kiRes)))
+            exPercentageLabel = localization.GetByLabel('UI/Inflight/MoonMining/DisplayPercentage', percent=int(100 * (1.0 - exRes)))
+            thPercentageLabel = localization.GetByLabel('UI/Inflight/MoonMining/DisplayPercentage', percent=int(100 * (1.0 - thRes)))
+            self.sr.emkinText.text = '%s<t>%s' % (emPercentageLabel, kiPercentageLabel)
+            self.sr.expthermText.text = '%s<t>%s' % (exPercentageLabel, thPercentageLabel)
+            powerSupply = 0
+            cpuSupply = 0
+            powerConsumption = 0
+            cpuConsumption = 0
+            for itemID, ball in bp.slimItems.iteritems():
+                if ball.categoryID == const.categoryStarbase and self.pwn.GetStructureState(ball)[0] in ('online', 'operating'):
+                    powerSupply += getattr(self.godma.GetType(ball.typeID), 'powerOutput', 0)
+                    cpuSupply += getattr(self.godma.GetType(ball.typeID), 'cpuOutput', 0)
+                    powerConsumption += getattr(self.godma.GetType(ball.typeID), 'power', 0)
+                    cpuConsumption += getattr(self.godma.GetType(ball.typeID), 'cpu', 0)
 
-        if powerSupply == 0:
-            self.sr.powergauge.sr.bar.width = 0
-        else:
-            self.sr.powergauge.sr.bar.width = int((self.sr.powergauge.width - 2) * powerConsumption / powerSupply)
-        if cpuSupply == 0:
-            self.sr.cpugauge.sr.bar.width = 0
-        else:
-            self.sr.cpugauge.sr.bar.width = int((self.sr.cpugauge.width - 2) * cpuConsumption / cpuSupply)
-        self.sr.powertext.text = localization.GetByLabel('UI/Inflight/MoonMining/TowerPowerUsage', currentValue=powerConsumption, totalPower=powerSupply)
-        self.sr.cputext.text = localization.GetByLabel('UI/Inflight/MoonMining/TowerCPUUsage', currentValue=cpuConsumption, totalCPU=cpuSupply)
-        self.sr.powerSupply = powerSupply
-        self.sr.cpuSupply = cpuSupply
-        self.sr.powerConsumption = powerConsumption
-        self.sr.cpuConsumption = cpuConsumption
+            if powerSupply == 0:
+                self.sr.powergauge.sr.bar.width = 0
+            else:
+                self.sr.powergauge.sr.bar.width = int((self.sr.powergauge.width - 2) * powerConsumption / powerSupply)
+            if cpuSupply == 0:
+                self.sr.cpugauge.sr.bar.width = 0
+            else:
+                self.sr.cpugauge.sr.bar.width = int((self.sr.cpugauge.width - 2) * cpuConsumption / cpuSupply)
+            self.sr.powertext.text = localization.GetByLabel('UI/Inflight/MoonMining/TowerPowerUsage', currentValue=powerConsumption, totalPower=powerSupply)
+            self.sr.cputext.text = localization.GetByLabel('UI/Inflight/MoonMining/TowerCPUUsage', currentValue=cpuConsumption, totalCPU=cpuSupply)
+            self.sr.powerSupply = powerSupply
+            self.sr.cpuSupply = cpuSupply
+            self.sr.powerConsumption = powerConsumption
+            self.sr.cpuConsumption = cpuConsumption
+            return
 
     def UpdateDamage(self):
         if self.destroyed:
             return
-        bp = sm.GetService('michelle').GetBallpark()
-        damage = bp.GetDamageState(self.slimItem.itemID)
-        if damage is None:
-            return
-        shield = min(damage[0], 1.0)
-        armor = min(damage[1], 1.0)
-        structure = min(damage[2], 1.0)
-        barcolor = self.sr.shieldgauge.sr.bar.color
-        if shield is None:
-            barcolor.r, barcolor.g, barcolor.b = (1.0, 1.0, 0.1)
-            self.sr.shieldgauge.sr.bar.width = int(self.sr.powergauge.width - 2)
-            self.sr.shieldtext.text = '<color=0xffff0000>' + localization.GetByLabel('UI/Inflight/MoonMining/Reinforced') + '</color>'
         else:
-            barcolor.r, barcolor.g, barcolor.b = (0.8, 0.8, 1.0)
-            self.sr.shieldgauge.sr.bar.width = int(round((self.sr.powergauge.width - 2) * (shield or 0.0)))
-            self.sr.shieldtext.text = localization.GetByLabel('UI/Inflight/MoonMining/DisplayPercentage', percent=int(shield * 100))
-        self.sr.armorgauge.sr.bar.width = int(round((self.sr.powergauge.width - 2) * armor))
-        self.sr.armortext.text = localization.GetByLabel('UI/Inflight/MoonMining/DisplayPercentage', percent=int(armor * 100))
-        self.sr.structuregauge.sr.bar.width = int(round((self.sr.powergauge.width - 2) * structure))
-        self.sr.structuretext.text = localization.GetByLabel('UI/Inflight/MoonMining/DisplayPercentage', percent=structure * 100)
+            bp = sm.GetService('michelle').GetBallpark()
+            damage = bp.GetDamageState(self.slimItem.itemID)
+            if damage is None:
+                return
+            shield = min(damage[0], 1.0)
+            armor = min(damage[1], 1.0)
+            structure = min(damage[2], 1.0)
+            barcolor = self.sr.shieldgauge.sr.bar.color
+            if shield is None:
+                barcolor.r, barcolor.g, barcolor.b = (1.0, 1.0, 0.1)
+                self.sr.shieldgauge.sr.bar.width = int(self.sr.powergauge.width - 2)
+                self.sr.shieldtext.text = '<color=0xffff0000>' + localization.GetByLabel('UI/Inflight/MoonMining/Reinforced') + '</color>'
+            else:
+                barcolor.r, barcolor.g, barcolor.b = (0.8, 0.8, 1.0)
+                self.sr.shieldgauge.sr.bar.width = int(round((self.sr.powergauge.width - 2) * (shield or 0.0)))
+                self.sr.shieldtext.text = localization.GetByLabel('UI/Inflight/MoonMining/DisplayPercentage', percent=int(shield * 100))
+            self.sr.armorgauge.sr.bar.width = int(round((self.sr.powergauge.width - 2) * armor))
+            self.sr.armortext.text = localization.GetByLabel('UI/Inflight/MoonMining/DisplayPercentage', percent=int(armor * 100))
+            self.sr.structuregauge.sr.bar.width = int(round((self.sr.powergauge.width - 2) * structure))
+            self.sr.structuretext.text = localization.GetByLabel('UI/Inflight/MoonMining/DisplayPercentage', percent=structure * 100)
+            return
 
-    def UpdateStructures(self, rec = None):
+    def UpdateStructures(self, rec=None):
         if not self or self.destroyed:
             return
         self.UpdateHeader()
@@ -1204,13 +1219,15 @@ class MoonMining(uicontrols.Window):
         sel = self.sr.scroll.GetSelected()
         if len(sel) < 0:
             return
-        itemID = None
-        if len(sel) > 0:
-            itemID = sel[0].rec.itemID
-        elif len(self.sr.scroll.GetNodes()) == 0:
-            itemID = self.slimItem.itemID
-        if itemID and sm.GetService('pwn').CanAnchorStructure(itemID):
-            sm.GetService('posAnchor').StartAnchorPosSelect(itemID)
+        else:
+            itemID = None
+            if len(sel) > 0:
+                itemID = sel[0].rec.itemID
+            elif len(self.sr.scroll.GetNodes()) == 0:
+                itemID = self.slimItem.itemID
+            if itemID and sm.GetService('pwn').CanAnchorStructure(itemID):
+                sm.GetService('posAnchor').StartAnchorPosSelect(itemID)
+            return
 
     def Unanchor(self):
         sel = self.sr.scroll.GetSelected()
@@ -1250,19 +1267,22 @@ class MoonMining(uicontrols.Window):
     def TowerDropNode(self, node):
         if node.__guid__ not in ('xtriui.InvItem', 'xtriui.FittingSlot', 'listentry.InvItem'):
             return
-        try:
-            if not getattr(node.rec, 'typeID', None):
-                eve.Message('error')
-                return
-            quantity = getattr(node.rec, 'quantity', 1)
-            return self.tower.Add(node.rec.itemID, node.rec.locationID, qty=quantity)
-        except UserError as what:
-            if what.args[0] == 'NotEnoughChargeSpace':
-                if what.dict['capacity'] < 0:
-                    raise UserError('DestinationOverloaded')
-                sys.exc_clear()
-            else:
-                raise
+        else:
+            try:
+                if not getattr(node.rec, 'typeID', None):
+                    eve.Message('error')
+                    return
+                quantity = getattr(node.rec, 'quantity', 1)
+                return self.tower.Add(node.rec.itemID, node.rec.locationID, qty=quantity)
+            except UserError as what:
+                if what.args[0] == 'NotEnoughChargeSpace':
+                    if what.dict['capacity'] < 0:
+                        raise UserError('DestinationOverloaded')
+                    sys.exc_clear()
+                else:
+                    raise
+
+            return
 
     def InitStandingsPanel(self):
         parent = self.sr.standingspanel
@@ -1302,6 +1322,7 @@ class MoonMining(uicontrols.Window):
         if sm.GetService('map').GetSecurityClass(eve.session.solarsystemid2) == const.securityClassHighSec:
             s1.state = uiconst.UI_HIDDEN
             s2.state = uiconst.UI_HIDDEN
+        return
 
     def SaveStandings(self, *args):
         standing = [None, self.sr.standingedit1.GetValue()][self.sr.standingcheckbox1.GetValue()]
@@ -1316,6 +1337,7 @@ class MoonMining(uicontrols.Window):
         if settings != getattr(self, 'sentrySettings', None):
             self.posMgr.SetTowerSentrySettings(self.slimItem.itemID, standing, status, statusDrop, war, useAllianceStandings)
             self.sentrySettings = settings
+        return
 
     def InitForcefieldPanel(self):
         parent = self.sr.forcefieldpanel
@@ -1372,6 +1394,7 @@ class MoonMining(uicontrols.Window):
         totalHeight = sum([ each.height + each.padTop + each.padBottom for each in cont.children ]) + self.GetHeaderHeight() + self.sr.top.height + self.sr.maintabs.height
         self.SetMinSize([MINWNDWIDTH, totalHeight + const.defaultPadding * 2])
         self.sr.forcefieldinited = 1
+        return
 
     def SaveForcefield(self, *args):
         password = self.sr.forcefieldedit1.GetValue() or ''
@@ -1398,6 +1421,7 @@ class MoonMining(uicontrols.Window):
             self.posMgr.SetTowerPassword(self.slimItem.itemID, password, allowCorp, allowAlliance)
         else:
             self.sr.forcefieldtext1.text = localization.GetByLabel('UI/Inflight/MoonMining/ForceField/PasswordAndConfirmMismatch')
+        return
 
     def GetShell(self, itemID):
         tower = sm.GetService('invCache').GetInventoryFromId(itemID)
@@ -1417,6 +1441,8 @@ class MoonMining(uicontrols.Window):
             for typeID, quantity in self.moon[1]:
                 self.res[typeID] = quantity
 
+        return
+
     def GetForcefield(self):
         bp = sm.GetService('michelle').GetBallpark()
         forcefield = [ rec for itemID, rec in bp.slimItems.iteritems() if rec.groupID == const.groupForceField and rec.ownerID == self.slimItem.ownerID ]
@@ -1425,64 +1451,65 @@ class MoonMining(uicontrols.Window):
         else:
             return self.slimItem
 
-    def GetProductionStructures(self, force = 0, useStructures = None):
+    def GetProductionStructures(self, force=0, useStructures=None):
         if not force and self.sr.Get('structures'):
             return self.sr.structures
-        structures = {}
-        bp = sm.GetService('michelle').GetBallpark()
-        info = useStructures
-        if info is None:
-            info = self.posMgr.GetMoonProcessInfoForTower(self.slimItem.itemID)
-        self.sr.structureConnections = {}
-        if info and bp:
-            for itemID, active, reaction, connections, demands, supplies in info:
-                if not bp.slimItems.has_key(itemID):
-                    continue
-                structure = util.KeyVal()
-                rec = bp.slimItems[itemID]
-                if reaction and rec.groupID == const.groupMobileReactor and not demands and not supplies:
-                    demands = [ (row.typeID, row.quantity) for row in cfg.invtypereactions[reaction[1]] if row.input == 1 ]
-                    supplies = [ (row.typeID, row.quantity) for row in cfg.invtypereactions[reaction[1]] if row.input == 0 ]
-                demand = {}
-                demands = demands or []
-                for tID, quant in demands:
-                    demand[tID] = quant
+        else:
+            structures = {}
+            bp = sm.GetService('michelle').GetBallpark()
+            info = useStructures
+            if info is None:
+                info = self.posMgr.GetMoonProcessInfoForTower(self.slimItem.itemID)
+            self.sr.structureConnections = {}
+            if info and bp:
+                for itemID, active, reaction, connections, demands, supplies in info:
+                    if not bp.slimItems.has_key(itemID):
+                        continue
+                    structure = util.KeyVal()
+                    rec = bp.slimItems[itemID]
+                    if reaction and rec.groupID == const.groupMobileReactor and not demands and not supplies:
+                        demands = [ (row.typeID, row.quantity) for row in cfg.invtypereactions[reaction[1]] if row.input == 1 ]
+                        supplies = [ (row.typeID, row.quantity) for row in cfg.invtypereactions[reaction[1]] if row.input == 0 ]
+                    demand = {}
+                    demands = demands or []
+                    for tID, quant in demands:
+                        demand[tID] = quant
 
-                supply = {}
-                supplies = supplies or []
-                for tID, quant in supplies:
-                    supply[tID] = quant
+                    supply = {}
+                    supplies = supplies or []
+                    for tID, quant in supplies:
+                        supply[tID] = quant
 
-                color = (0.0, 0.0, 0.0, 0.0)
-                c1 = rec.typeID / 16 % 16
-                c2 = rec.typeID % 16
-                if rec.groupID == const.groupMoonMining:
-                    color = (c1 / 17.0,
-                     1.0,
-                     c2 / 17.0,
-                     0.3)
-                elif rec.groupID == const.groupSilo:
-                    color = (1.0,
-                     c1 / 17.0,
-                     c1 / 24.0,
-                     0.3)
-                elif rec.groupID == const.groupMobileReactor:
-                    color = (c1 / 17.0,
-                     c2 / 17.0,
-                     1.0,
-                     0.3)
-                structure.rec = rec
-                structure.demands = demand
-                structure.supplies = supply
-                structure.reaction = reaction
-                structure.color = color
-                structure.active = active
-                structures[rec.itemID] = structure
-                for sourceID, tID in connections:
-                    self.sr.structureConnections[tID, sourceID] = itemID
+                    color = (0.0, 0.0, 0.0, 0.0)
+                    c1 = rec.typeID / 16 % 16
+                    c2 = rec.typeID % 16
+                    if rec.groupID == const.groupMoonMining:
+                        color = (c1 / 17.0,
+                         1.0,
+                         c2 / 17.0,
+                         0.3)
+                    elif rec.groupID == const.groupSilo:
+                        color = (1.0,
+                         c1 / 17.0,
+                         c1 / 24.0,
+                         0.3)
+                    elif rec.groupID == const.groupMobileReactor:
+                        color = (c1 / 17.0,
+                         c2 / 17.0,
+                         1.0,
+                         0.3)
+                    structure.rec = rec
+                    structure.demands = demand
+                    structure.supplies = supply
+                    structure.reaction = reaction
+                    structure.color = color
+                    structure.active = active
+                    structures[rec.itemID] = structure
+                    for sourceID, tID in connections:
+                        self.sr.structureConnections[tID, sourceID] = itemID
 
-        self.sr.structures = structures
-        return structures
+            self.sr.structures = structures
+            return structures
 
     def GetMaxDemands(self, itemID):
         if itemID in self.sr.structures:
@@ -1556,6 +1583,8 @@ class MoonMining(uicontrols.Window):
 
                     del l[itemID]
 
+        return
+
     def StructureCallback(self, typeID, fromItemID, toItemID, connect):
         self.connectionsChanged = 1
         if self.sr.structureConnections.has_key((typeID, fromItemID)):
@@ -1595,6 +1624,7 @@ class MoonMining(uicontrols.Window):
             if not self.posMgr.LinkResourceForTower(self.slimItem.itemID, [ (k[1], v, k[0]) for k, v in self.sr.structureConnections.iteritems() ]):
                 self.ShowProduction(force=1)
             self.connectionsChanged = 0
+        return
 
     def SetStructureType(self, itemID, groupID, *args):
         if groupID == const.groupSilo:
@@ -1652,6 +1682,7 @@ class MoonMining(uicontrols.Window):
             elif groupID == const.groupMoonMining:
                 self.sr.structures[itemID].supplies = {chosen: -1}
             self.ProdReload()
+        return
 
     def ProdReload(self):
         self.ShowProduction(force=1)
@@ -1677,6 +1708,7 @@ class MoonMining(uicontrols.Window):
             self.GetProductionStructures(force=1, useStructures=structures)
             if self.sr.Get('showing', None) == 'production':
                 self.ShowProduction()
+        return
 
     def OnSlimItemChange(self, oldItem, newItem):
         if not self or self.destroyed:
@@ -1700,7 +1732,7 @@ class MoonMining(uicontrols.Window):
         if self and not self.destroyed:
             self.UpdateStructures(rec)
 
-    def OnInvChange(self, item = None, change = None):
+    def OnInvChange(self, item=None, change=None):
         if not self or self.destroyed:
             return
         if self.sr.maintabs and self.sr.maintabs.GetSelectedArgs()[0] == 'process':
@@ -1717,7 +1749,7 @@ class MoonMining(uicontrols.Window):
         finally:
             t.PopTimer(timer)
 
-    def DoBallsAdded_(self, lst, ignoreMoons = 1, ignoreAsteroids = 1):
+    def DoBallsAdded_(self, lst, ignoreMoons=1, ignoreAsteroids=1):
         if not self or self.destroyed:
             return
         for ball, slimItem in lst:
@@ -1737,16 +1769,18 @@ class MoonMining(uicontrols.Window):
     def DoBallRemove(self, ball, slimItem, terminal):
         if not self or self.destroyed:
             return
-        if slimItem is None:
+        elif slimItem is None:
             log.LogWarn('DoBallRemove::moonmining slimItem is None')
             return
-        if ball:
-            log.LogInfo('DoBallRemove::moonmining', ball.id)
-        if slimItem.itemID == self.slimItem.itemID:
-            self.CloseByUser()
+        else:
+            if ball:
+                log.LogInfo('DoBallRemove::moonmining', ball.id)
+            if slimItem.itemID == self.slimItem.itemID:
+                self.CloseByUser()
+                return
+            if slimItem.categoryID == const.categoryStarbase:
+                uthread.new(self.UpdateStructures)
             return
-        if slimItem.categoryID == const.categoryStarbase:
-            uthread.new(self.UpdateStructures)
 
     def DoBallClear(self, solitem):
         if not self or self.destroyed:
@@ -1793,7 +1827,7 @@ class SelectSiloType(uicontrols.Window):
         self.scroll.state = uiconst.UI_NORMAL
         self.scroll.Load(contentList=scrolllist)
 
-    def GetGroupSubContent(self, nodedata, newitems = 0):
+    def GetGroupSubContent(self, nodedata, newitems=0):
         scrolllist = []
         for typeID in nodedata.groupItems:
             label = evetypes.GetName(typeID)
@@ -1912,6 +1946,7 @@ class BaseStructure(uicontrols.SE_BaseClassCore):
                 self.sr.resline.state = uiconst.UI_DISABLED
         elif self.sr.Get('resline', None) is not None:
             self.sr.resline.state = uiconst.UI_HIDDEN
+        return
 
     def LoadProductIcons(self):
         products = self.sr.node.products.items()
@@ -1942,6 +1977,7 @@ class BaseStructure(uicontrols.SE_BaseClassCore):
                 self.sr.prodline.state = uiconst.UI_DISABLED
         elif self.sr.Get('prodline', None) is not None:
             self.sr.prodline.state = uiconst.UI_HIDDEN
+        return
 
     def GetMenu(self):
         m = sm.GetService('menu').GetMenuFormItemIDTypeID(self.sr.node.slimitem.itemID, self.sr.node.slimitem.typeID)
@@ -2005,6 +2041,7 @@ class Harvester(BaseStructure):
         self.sr.changebuttonText.OnClick = (self.sr.node.settype, self.sr.node.slimitem.itemID, self.sr.node.slimitem.groupID)
         self.sr.changebutton.state = [uiconst.UI_HIDDEN, uiconst.UI_NORMAL][self.sr.node.state == 'anchored']
         self.sr.onlinebutton.state = [uiconst.UI_NORMAL, uiconst.UI_HIDDEN][self.sr.typetext.text.startswith('<color')]
+        return
 
     def Online(self, *args):
         if not len(self.sr.node.products) and not self.sr.node.state.startswith('onl'):
@@ -2064,6 +2101,7 @@ class Silo(BaseStructure):
             self.sr.typetext.text = ''
         self.sr.changebuttonText.OnClick = (self.sr.node.settype, self.sr.node.slimitem.itemID, self.sr.node.slimitem.groupID)
         self.sr.changebutton.state = [uiconst.UI_HIDDEN, uiconst.UI_NORMAL][self.sr.node.state == 'anchored']
+        return
 
     def GetMenu(self):
         changeSiloTypeLabel = uiutil.MenuLabel('UI/Inflight/MoonMining/Processes/ChangeSiloType')
@@ -2141,6 +2179,7 @@ class Reactor(BaseStructure):
         else:
             self.sr.hint += linktext
         self.sr.changebutton.state = uiconst.UI_HIDDEN
+        return
 
     def GetHeight(self, *args):
         node, width = args
@@ -2161,6 +2200,7 @@ class TypeIcon(uiprimitives.Container):
         self.DisableDrag()
         self.side = 'product'
         self.scroll = None
+        return
 
     def Startup(self):
         self.width = 32
@@ -2179,6 +2219,7 @@ class TypeIcon(uiprimitives.Container):
             color = (1.0, 1.0, 1.0, 0.25)
         self.sr.color.color.SetRGB(*color)
         self.color = color
+        return
 
     def SetSide(self, side):
         self.side = side
@@ -2205,6 +2246,7 @@ class TypeIcon(uiprimitives.Container):
             self.EnableDrag()
         else:
             self.DisableDrag()
+        return
 
     def SetCallback(self, callback):
         self.sr.callback = callback
@@ -2212,7 +2254,7 @@ class TypeIcon(uiprimitives.Container):
     def SetScrollObject(self, scroll):
         self.scroll = scroll
 
-    def UpdateDisplay(self, used, quantity, typeID = None):
+    def UpdateDisplay(self, used, quantity, typeID=None):
         if typeID and typeID != self.typeID:
             self.SetType(typeID, self.drag)
         quantity = [quantity, -1][quantity > 9]
@@ -2227,9 +2269,11 @@ class TypeIcon(uiprimitives.Container):
                 self.sr.line = uiprimitives.Line(parent=self, align=uiconst.TOTOP)
         elif self.sr.Get('line', None) is not None:
             self.sr.line.state = uiconst.UI_HIDDEN
+        return
 
     def ShowInfo(self, *args):
         sm.GetService('info').ShowInfo(self.typeID, None)
+        return
 
     def Unfit(self, *args):
         if self.sr.Get('callback', None) is not None:
@@ -2237,6 +2281,7 @@ class TypeIcon(uiprimitives.Container):
                 self.sr.callback(self.typeID, self.itemID, self.connectID, 0)
             else:
                 self.sr.callback(self.typeID, self.connectID, self.itemID, 0)
+        return
 
     def GetRemoteItem(self):
         if self.scroll is None:
@@ -2253,7 +2298,8 @@ class TypeIcon(uiprimitives.Container):
             items = [ item for item in entry.panel.sr.products if item.typeID == self.typeID and item.state != uiconst.UI_HIDDEN ]
         if not items or not len(items):
             return
-        return items[0]
+        else:
+            return items[0]
 
     GetRemoteItem = uiutil.ParanoidDecoMethod(GetRemoteItem, ('parent',))
 
@@ -2270,16 +2316,19 @@ class TypeIcon(uiprimitives.Container):
         item = self.GetRemoteItem()
         if item is not None:
             item.sr.highlight.state = uiconst.UI_DISABLED
+        return
 
     def OnMouseExit(self, *args):
         self.sr.highlight.state = uiconst.UI_HIDDEN
         item = self.GetRemoteItem()
         if item is not None:
             item.sr.highlight.state = uiconst.UI_HIDDEN
+        return
 
     def OnDragEnter(self, dragObj, drag, *args):
         if drag and getattr(drag[0], '__guid__', None) in ('xtriui.DragIcon',) and drag[0].data[0].__guid__ == 'xtriui.TypeIcon' and drag[0].data[0].typeID == self.typeID and drag[0].data[0].itemID != self.itemID and not self.IsDraggable():
             self.sr.highlight.state = uiconst.UI_DISABLED
+        return
 
     def OnDragExit(self, *args):
         self.sr.highlight.state = uiconst.UI_HIDDEN
@@ -2289,6 +2338,7 @@ class TypeIcon(uiprimitives.Container):
         if node.__guid__ == 'xtriui.TypeIcon' and node.typeID == self.typeID and node.itemID != self.itemID and not self.IsDraggable():
             if self.sr.Get('callback', None) is not None:
                 uthread.new(self.sr.callback, self.typeID, node.itemID, self.itemID, 1)
+        return
 
     def GetDragData(self, *args):
         fakeNode = util.KeyVal()
@@ -2313,6 +2363,7 @@ class ReactionView(uiprimitives.Container):
         self.locationID = None
         self.itemID = None
         self.typeID = None
+        return
 
     def IsItemHere(self, item):
         return item.locationID == self.locationID and evetypes.GetCategoryID(item.typeID) == const.categoryReaction
@@ -2354,11 +2405,13 @@ class ReactionView(uiprimitives.Container):
             self.EnableDrag()
         else:
             self.DisableDrag()
+        return
 
     def AddItem(self, rec):
         self.SetItem(rec)
         if getattr(self, 'OnReactionChanged', None) is not None:
             self.OnReactionChanged(self.locationID, (self.itemID, self.typeID))
+        return
 
     def UpdateItem(self, item, *etc):
         self.SetItem(item)
@@ -2368,6 +2421,7 @@ class ReactionView(uiprimitives.Container):
             self.SetItem(None)
             if getattr(self, 'OnReactionChanged', None) is not None:
                 self.OnReactionChanged(self.locationID, None)
+        return
 
     def GetMenu(self):
         m = []
@@ -2385,6 +2439,7 @@ class ReactionView(uiprimitives.Container):
 
     def Unfit(self):
         sm.GetService('invCache').GetInventoryFromId(eve.session.shipid).Add(self.itemID, self.locationID, qty=None, flag=const.flagCargo)
+        return
 
     def OnDropData(self, dragObj, nodes):
         for node in nodes:
@@ -2393,25 +2448,28 @@ class ReactionView(uiprimitives.Container):
     def DropNode(self, node):
         if node.__guid__ not in ('xtriui.InvItem', 'xtriui.FittingSlot', 'listentry.InvItem'):
             return
-        try:
-            if not getattr(node.rec, 'typeID', None) or node.rec.categoryID != const.categoryReaction:
-                eve.Message('error')
-                return
-            if getattr(node.rec, 'quantity', 1) == 1:
-                quantity = 1
-            else:
-                return
-            return self.sr.shell.Add(node.rec.itemID, node.rec.locationID, qty=quantity)
-        except UserError as what:
-            if what.args[0] == 'NotEnoughChargeSpace':
-                if what.dict['capacity'] < 0:
-                    raise UserError('DestinationOverloaded')
-                sys.exc_clear()
-            else:
-                raise
+        else:
+            try:
+                if not getattr(node.rec, 'typeID', None) or node.rec.categoryID != const.categoryReaction:
+                    eve.Message('error')
+                    return
+                if getattr(node.rec, 'quantity', 1) == 1:
+                    quantity = 1
+                else:
+                    return
+                return self.sr.shell.Add(node.rec.itemID, node.rec.locationID, qty=quantity)
+            except UserError as what:
+                if what.args[0] == 'NotEnoughChargeSpace':
+                    if what.dict['capacity'] < 0:
+                        raise UserError('DestinationOverloaded')
+                    sys.exc_clear()
+                else:
+                    raise
+
+            return
 
     def GetCapacity(self):
-        return 0
+        pass
 
     def OnMouseEnter(self, *args):
         self.sr.highlight.state = uiconst.UI_DISABLED
@@ -2429,25 +2487,26 @@ class ReactionView(uiprimitives.Container):
     def GetDragData(self, *args):
         if self.itemID is None:
             return []
-        rec = util.KeyVal()
-        rec.itemID = self.itemID
-        rec.typeID = self.typeID
-        rec.ownerID = None
-        rec.groupID = evetypes.GetGroupID(self.typeID)
-        rec.categoryID = evetypes.GetCategoryID(self.typeID)
-        rec.quantity = rec.stacksize = 1
-        rec.locationID = self.locationID
-        rec.singleton = True
-        fakeNode = util.KeyVal()
-        fakeNode.__guid__ = 'xtriui.InvItem'
-        fakeNode.item = rec
-        fakeNode.rec = rec
-        fakeNode.itemID = rec.itemID
-        fakeNode.ownerID = None
-        fakeNode.invtype = self.typeID
-        fakeNode.container = None
-        fakeNode.label = uix.GetItemName(rec, fakeNode)
-        return [fakeNode]
+        else:
+            rec = util.KeyVal()
+            rec.itemID = self.itemID
+            rec.typeID = self.typeID
+            rec.ownerID = None
+            rec.groupID = evetypes.GetGroupID(self.typeID)
+            rec.categoryID = evetypes.GetCategoryID(self.typeID)
+            rec.quantity = rec.stacksize = 1
+            rec.locationID = self.locationID
+            rec.singleton = True
+            fakeNode = util.KeyVal()
+            fakeNode.__guid__ = 'xtriui.InvItem'
+            fakeNode.item = rec
+            fakeNode.rec = rec
+            fakeNode.itemID = rec.itemID
+            fakeNode.ownerID = None
+            fakeNode.invtype = self.typeID
+            fakeNode.container = None
+            fakeNode.label = uix.GetItemName(rec, fakeNode)
+            return [fakeNode]
 
 
 class Gauge(uicontrols.SE_BaseClassCore):
@@ -2508,12 +2567,14 @@ class BaseTextStructure(listentry.Generic):
     def OnStateChange(self, itemID, flag, isActive, *args):
         if util.GetAttrs(self, 'sr', 'node') is None:
             return
-        if self.sr.node.rec.itemID != itemID:
+        elif self.sr.node.rec.itemID != itemID:
             return
-        if flag == state.mouseOver:
-            self.Hilite(isActive)
-        elif flag == state.selected:
-            self.SetSelection(isActive)
+        else:
+            if flag == state.mouseOver:
+                self.Hilite(isActive)
+            elif flag == state.selected:
+                self.SetSelection(isActive)
+            return
 
     def Hilite(self, isActive):
         if isActive:
@@ -2592,6 +2653,7 @@ class Structure(BaseTextStructure):
          localization.GetByLabel('UI/Inflight/MoonMining/Structures/DisplayPowerUsage', powerUsage=self.sr.node.power),
          '<t><right>',
          localization.GetByLabel('UI/Inflight/MoonMining/Structures/DisplayCPUUsage', cpuUsage=self.sr.node.cpu)]
+        return
 
 
 class StructureControl(BaseTextStructure):
@@ -2603,6 +2665,7 @@ class StructureControl(BaseTextStructure):
         self.sr.controllerID = None
         self.sr.targetID = None
         self.sr.shooting = 0
+        return
 
     def Load(self, node):
         BaseTextStructure.Load(self, node)

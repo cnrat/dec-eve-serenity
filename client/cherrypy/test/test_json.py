@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\carbon\common\lib\cherrypy\test\test_json.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\carbon\common\lib\cherrypy\test\test_json.py
 import cherrypy
 from cherrypy.test import helper
 from cherrypy._cpcompat import json
@@ -10,12 +11,12 @@ class JsonTest(helper.CPWebCase):
         class Root(object):
 
             def plain(self):
-                return 'hello'
+                pass
 
             plain.exposed = True
 
             def json_string(self):
-                return 'hello'
+                pass
 
             json_string.exposed = True
             json_string._cp_config = {'tools.json_out.on': True}
@@ -50,28 +51,32 @@ class JsonTest(helper.CPWebCase):
         if json is None:
             self.skip('json not found ')
             return
-        self.getPage('/plain')
-        self.assertBody('hello')
-        self.getPage('/json_string')
-        self.assertBody('"hello"')
-        self.getPage('/json_list')
-        self.assertBody('["a", "b", 42]')
-        self.getPage('/json_dict')
-        self.assertBody('{"answer": 42}')
+        else:
+            self.getPage('/plain')
+            self.assertBody('hello')
+            self.getPage('/json_string')
+            self.assertBody('"hello"')
+            self.getPage('/json_list')
+            self.assertBody('["a", "b", 42]')
+            self.getPage('/json_dict')
+            self.assertBody('{"answer": 42}')
+            return
 
     def test_json_input(self):
         if json is None:
             self.skip('json not found ')
             return
-        body = '[13, "c"]'
-        headers = [('Content-Type', 'application/json'), ('Content-Length', str(len(body)))]
-        self.getPage('/json_post', method='POST', headers=headers, body=body)
-        self.assertBody('ok')
-        body = '[13, "c"]'
-        headers = [('Content-Type', 'text/plain'), ('Content-Length', str(len(body)))]
-        self.getPage('/json_post', method='POST', headers=headers, body=body)
-        self.assertStatus(415, 'Expected an application/json content type')
-        body = '[13, -]'
-        headers = [('Content-Type', 'application/json'), ('Content-Length', str(len(body)))]
-        self.getPage('/json_post', method='POST', headers=headers, body=body)
-        self.assertStatus(400, 'Invalid JSON document')
+        else:
+            body = '[13, "c"]'
+            headers = [('Content-Type', 'application/json'), ('Content-Length', str(len(body)))]
+            self.getPage('/json_post', method='POST', headers=headers, body=body)
+            self.assertBody('ok')
+            body = '[13, "c"]'
+            headers = [('Content-Type', 'text/plain'), ('Content-Length', str(len(body)))]
+            self.getPage('/json_post', method='POST', headers=headers, body=body)
+            self.assertStatus(415, 'Expected an application/json content type')
+            body = '[13, -]'
+            headers = [('Content-Type', 'application/json'), ('Content-Length', str(len(body)))]
+            self.getPage('/json_post', method='POST', headers=headers, body=body)
+            self.assertStatus(400, 'Invalid JSON document')
+            return

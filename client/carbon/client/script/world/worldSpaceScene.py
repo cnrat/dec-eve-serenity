@@ -1,10 +1,11 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\carbon\client\script\world\worldSpaceScene.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\carbon\client\script\world\worldSpaceScene.py
 from carbon.common.script.world.worldSpaceCommon import WorldSpace
 
 class WorldSpaceScene(WorldSpace):
     __guid__ = 'world.CoreWorldSpaceScene'
 
-    def __init__(self, worldSpaceID = None, instanceID = None):
+    def __init__(self, worldSpaceID=None, instanceID=None):
         WorldSpace.__init__(self, worldSpaceID, instanceID)
         self.properties = {}
 

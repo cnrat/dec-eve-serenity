@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\carbon\common\stdlib\collections.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\carbon\common\stdlib\collections.py
 __all__ = ['Counter',
  'deque',
  'defaultdict',
@@ -54,15 +55,16 @@ class OrderedDict(dict, MutableMapping):
             self.__map = {}
 
         self.update(*args, **kwds)
+        return
 
-    def __setitem__(self, key, value, PREV = 0, NEXT = 1, dict_setitem = dict.__setitem__):
+    def __setitem__(self, key, value, PREV=0, NEXT=1, dict_setitem=dict.__setitem__):
         if key not in self:
             root = self.__root
             last = root[PREV]
             last[NEXT] = root[PREV] = self.__map[key] = [last, root, key]
         dict_setitem(self, key, value)
 
-    def __delitem__(self, key, PREV = 0, NEXT = 1, dict_delitem = dict.__delitem__):
+    def __delitem__(self, key, PREV=0, NEXT=1, dict_delitem=dict.__delitem__):
         dict_delitem(self, key)
         link = self.__map.pop(key)
         link_prev = link[PREV]
@@ -70,14 +72,14 @@ class OrderedDict(dict, MutableMapping):
         link_prev[NEXT] = link_next
         link_next[PREV] = link_prev
 
-    def __iter__(self, NEXT = 1, KEY = 2):
+    def __iter__(self, NEXT=1, KEY=2):
         root = self.__root
         curr = root[NEXT]
         while curr is not root:
             yield curr[KEY]
             curr = curr[NEXT]
 
-    def __reversed__(self, PREV = 0, KEY = 2):
+    def __reversed__(self, PREV=0, KEY=2):
         root = self.__root
         curr = root[PREV]
         while curr is not root:
@@ -106,6 +108,7 @@ class OrderedDict(dict, MutableMapping):
             pass
 
         dict.clear(self)
+        return
 
     setdefault = MutableMapping.setdefault
     update = MutableMapping.update
@@ -127,7 +130,7 @@ class OrderedDict(dict, MutableMapping):
     def viewitems(self):
         return ItemsView(self)
 
-    def popitem(self, last = True):
+    def popitem(self, last=True):
         if not self:
             raise KeyError('dictionary is empty')
         key = next(reversed(self) if last else iter(self))
@@ -144,7 +147,7 @@ class OrderedDict(dict, MutableMapping):
         return self.__class__(self)
 
     @classmethod
-    def fromkeys(cls, iterable, value = None):
+    def fromkeys(cls, iterable, value=None):
         d = cls()
         for key in iterable:
             d[key] = value
@@ -157,7 +160,7 @@ class OrderedDict(dict, MutableMapping):
         return dict.__eq__(self, other)
 
 
-def namedtuple(typename, field_names, verbose = False, rename = False):
+def namedtuple(typename, field_names, verbose=False, rename=False):
     if isinstance(field_names, basestring):
         field_names = field_names.replace(',', ' ').split()
     field_names = tuple(map(str, field_names))
@@ -214,31 +217,32 @@ try:
     eval
 except NameError:
 
-    def namedtuple(typename, field_names, verbose = False, rename = False):
+    def namedtuple(typename, field_names, verbose=False, rename=False):
         return type(typename, (tuple,), {})
 
 
 class Counter(dict):
 
-    def __init__(self, iterable = None, **kwds):
+    def __init__(self, iterable=None, **kwds):
         self.update(iterable, **kwds)
 
     def __missing__(self, key):
-        return 0
+        pass
 
-    def most_common(self, n = None):
+    def most_common(self, n=None):
         if n is None:
             return sorted(self.iteritems(), key=_itemgetter(1), reverse=True)
-        return _heapq.nlargest(n, self.iteritems(), key=_itemgetter(1))
+        else:
+            return _heapq.nlargest(n, self.iteritems(), key=_itemgetter(1))
 
     def elements(self):
         return _chain.from_iterable(_starmap(_repeat, self.iteritems()))
 
     @classmethod
-    def fromkeys(cls, iterable, v = None):
+    def fromkeys(cls, iterable, v=None):
         raise NotImplementedError('Counter.fromkeys() is undefined.  Use Counter(iterable) instead.')
 
-    def update(self, iterable = None, **kwds):
+    def update(self, iterable=None, **kwds):
         if iterable is not None:
             if isinstance(iterable, Mapping):
                 if self:
@@ -255,8 +259,9 @@ class Counter(dict):
 
         if kwds:
             self.update(kwds)
+        return
 
-    def subtract(self, iterable = None, **kwds):
+    def subtract(self, iterable=None, **kwds):
         if iterable is not None:
             self_get = self.get
             if isinstance(iterable, Mapping):
@@ -269,6 +274,7 @@ class Counter(dict):
 
         if kwds:
             self.subtract(kwds)
+        return
 
     def copy(self):
         return Counter(self)
@@ -355,7 +361,7 @@ if __name__ == '__main__':
         __slots__ = ()
         _make = classmethod(tuple.__new__)
 
-        def _replace(self, _map = map, **kwds):
+        def _replace(self, _map=map, **kwds):
             return self._make(_map(kwds.get, ('x', 'y'), self))
 
 

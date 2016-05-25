@@ -1,11 +1,12 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\packages\notifications\client\controls\autoCloser.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\packages\notifications\client\controls\autoCloser.py
 __author__ = 'aevar'
 import uthread
 import blue
 
 class AutoCloser(object):
 
-    def __init__(self, area, closeCallback, monitorObject = None, thresholdInSeconds = 1.0, buffer = 5):
+    def __init__(self, area, closeCallback, monitorObject=None, thresholdInSeconds=1.0, buffer=5):
         self.originalArea = area
         self.buffer = buffer
         if monitorObject:
@@ -69,6 +70,7 @@ class AutoCloser(object):
             blue.synchro.Yield()
 
         self.monitorObject = None
+        return
 
     def Abort(self):
         self.shouldRun = False

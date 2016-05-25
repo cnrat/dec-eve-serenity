@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\client\script\environment\spaceObject\playerShip.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\client\script\environment\spaceObject\playerShip.py
 import trinity
 import math
 import carbon.common.script.util.format as fmtutil
@@ -12,6 +13,7 @@ class PlayerShip(Ship):
         Ship.__init__(self)
         self._dirtTimeStamp = None
         self._killCounter = None
+        return
 
     def Assemble(self):
         Ship.Assemble(self)
@@ -26,6 +28,7 @@ class PlayerShip(Ship):
             dirtLevel = gfxutils.CalcDirtLevelFromAge(self._dirtTimeStamp)
             if self.model is not None:
                 self.model.dirtLevel = dirtLevel
+        return
 
     def UpdateKillCounter(self):
         slimItem = self.typeData.get('slimItem')
@@ -33,6 +36,7 @@ class PlayerShip(Ship):
         if self._killCounter is not None:
             if self.model is not None:
                 self.model.displayKillCounterValue = min(self._killCounter, 999)
+        return
 
     def OnSlimItemUpdated(self, slimItem):
         Ship.OnSlimItemUpdated(self, slimItem)
@@ -45,4 +49,5 @@ class PlayerShip(Ship):
     def GetDirtTimeStampAsStr(self):
         if self._dirtTimeStamp is not None:
             return fmtutil.FmtDateEng(self._dirtTimeStamp)
-        return 'None'
+        else:
+            return 'None'

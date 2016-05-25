@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\packages\notifications\common\formatters\contractAttention.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\packages\notifications\common\formatters\contractAttention.py
 from notifications.common.formatters.baseFormatter import BaseNotificationFormatter
 import localization
 FIRST_CONTRACT_ID = 'firstContractID'
@@ -14,7 +15,7 @@ class ContractNeedsAttentionFormatter(BaseNotificationFormatter):
         self.subtextArgs = {}
 
     @staticmethod
-    def MakeData(needsAttention, isForCorp = False, firstContractID = 0):
+    def MakeData(needsAttention, isForCorp=False, firstContractID=0):
         return {NEEDS_ATTENTION: needsAttention,
          IS_FOR_CORP: isForCorp,
          FIRST_CONTRACT_ID: firstContractID}

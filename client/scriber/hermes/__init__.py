@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\packages\scriber\hermes\__init__.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\packages\scriber\hermes\__init__.py
 import datetime
 import uuid
 import json
@@ -24,7 +25,7 @@ class UpdateListener(object):
 
 class ReadStatus(object):
 
-    def __init__(self, is_shown = False, is_read = False, is_closed = False, is_dismissed = False):
+    def __init__(self, is_shown=False, is_read=False, is_closed=False, is_dismissed=False):
         self.is_shown = is_shown
         self.is_read = is_read
         self.is_closed = is_closed
@@ -59,7 +60,7 @@ class Notification(object):
     PERSISTENCE_QUICK = 2
     PERSISTENCE_STICKY = 3
 
-    def __init__(self, title, body = None, icon = None, notification_type = None, persistence = None, on_click = None, sender = None, notification_id = None, expires = None, can_dismiss = True, is_shared = False, on_respond = None, hide_recipients = False, channels = None):
+    def __init__(self, title, body=None, icon=None, notification_type=None, persistence=None, on_click=None, sender=None, notification_id=None, expires=None, can_dismiss=True, is_shared=False, on_respond=None, hide_recipients=False, channels=None):
         self.title = title
         self.body = body
         self.icon = icon
@@ -84,6 +85,7 @@ class Notification(object):
         self._to_user_roles = None
         self._read_status_map = {}
         self.update_stamp = 0
+        return
 
     def update_notification(self, notification):
         self.title = notification.title
@@ -103,7 +105,7 @@ class Notification(object):
         self.hide_recipients = notification.hide_recipients
         self.channel_list = notification.channel_list
 
-    def to_dict(self, user_id = None, quotes_to_html = False):
+    def to_dict(self, user_id=None, quotes_to_html=False):
         fixed_body = self.body
         fixed_title = self.title
         if quotes_to_html:
@@ -139,7 +141,7 @@ class Notification(object):
             buff_map['is_dismissed'] = self.is_dismissed(user_id)
         return buff_map
 
-    def to_json(self, user_id = None):
+    def to_json(self, user_id=None):
         return json.dumps(self.to_dict(user_id))
 
     def mark_shown(self, user_id):
@@ -238,7 +240,7 @@ class Notification(object):
 
 class Hermes(object):
 
-    def __init__(self, listener_limit = 10):
+    def __init__(self, listener_limit=10):
         self.notification_map = {}
         self._by_user_id = {}
         self._by_user_type = {}
@@ -250,7 +252,7 @@ class Hermes(object):
         self._listener_limit = listener_limit
         log.info('Hermes::__init__(listener_limit=%s) - _update_trigger=%s' % (listener_limit, self._update_trigger))
 
-    def send_notification(self, notification, users = None, user_types = None, user_role_masks = None):
+    def send_notification(self, notification, users=None, user_types=None, user_role_masks=None):
         log.info('Hermes::send_notification() users=%s, user_types=%s, user_role_masks=%s, notification=%s' % (users,
          user_types,
          user_role_masks,
@@ -282,6 +284,8 @@ class Hermes(object):
     def get_notification(self, notification_id):
         if notification_id in self.notification_map:
             return self.notification_map[notification_id]
+        else:
+            return None
 
     def cancel_notification(self, notification_or_id):
         notification = self._id_to_notification(notification_or_id)
@@ -304,7 +308,7 @@ class Hermes(object):
 
             self.trigger_update()
 
-    def get_notification_list(self, user_id, user_type, user_role_mask, channel_list = None):
+    def get_notification_list(self, user_id, user_type, user_role_mask, channel_list=None):
         notification_list = []
         expired_list = []
         channel_list = channel_list or []

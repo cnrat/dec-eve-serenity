@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\carbon\common\stdlib\xml\etree\ElementInclude.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\carbon\common\stdlib\xml\etree\ElementInclude.py
 import copy
 from . import ElementTree
 XINCLUDE = '{http://www.w3.org/2001/XInclude}'
@@ -9,7 +10,7 @@ class FatalIncludeError(SyntaxError):
     pass
 
 
-def default_loader(href, parse, encoding = None):
+def default_loader(href, parse, encoding=None):
     file = open(href)
     if parse == 'xml':
         data = ElementTree.parse(file).getroot()
@@ -21,7 +22,7 @@ def default_loader(href, parse, encoding = None):
     return data
 
 
-def include(elem, loader = None):
+def include(elem, loader=None):
     if loader is None:
         loader = default_loader
     i = 0
@@ -56,3 +57,5 @@ def include(elem, loader = None):
         else:
             include(e, loader)
         i = i + 1
+
+    return

@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\carbon\common\stdlib\coverage\report.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\carbon\common\stdlib\coverage\report.py
 import fnmatch, os
 from coverage.codeunit import code_unit_factory
 from coverage.files import prep_patterns
@@ -11,6 +12,7 @@ class Reporter(object):
         self.config = config
         self.code_units = []
         self.directory = None
+        return
 
     def find_code_units(self, morfs):
         morfs = morfs or self.coverage.data.measured_files()
@@ -39,7 +41,7 @@ class Reporter(object):
             self.code_units = filtered
         self.code_units.sort()
 
-    def report_files(self, report_fn, morfs, directory = None):
+    def report_files(self, report_fn, morfs, directory=None):
         self.find_code_units(morfs)
         if not self.code_units:
             raise CoverageException('No data to report.')

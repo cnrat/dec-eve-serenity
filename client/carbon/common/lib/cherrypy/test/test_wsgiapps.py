@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\carbon\common\lib\cherrypy\test\test_wsgiapps.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\carbon\common\lib\cherrypy\test\test_wsgiapps.py
 from cherrypy.test import helper
 
 class WSGIGraftTests(helper.CPWebCase):
@@ -66,7 +67,7 @@ class WSGIGraftTests(helper.CPWebCase):
         class Root:
 
             def index(self):
-                return "I'm a regular CherryPy page handler!"
+                pass
 
             index.exposed = True
 
@@ -75,6 +76,7 @@ class WSGIGraftTests(helper.CPWebCase):
         cherrypy.tree.graft(test_empty_string_app, '/hosted/app3')
         app = cherrypy.Application(Root(), script_name=None)
         cherrypy.tree.graft(ReversingMiddleware(app), '/hosted/app2')
+        return
 
     setup_server = staticmethod(setup_server)
     wsgi_output = 'Hello, world!\nThis is a wsgi app running within CherryPy!'

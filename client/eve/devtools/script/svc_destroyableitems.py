@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\devtools\script\svc_destroyableitems.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\devtools\script\svc_destroyableitems.py
 import os
 import sys
 import blue
@@ -31,26 +32,33 @@ class InsiderDestroyables(listentry.Generic):
             m += [('Destroy', [('Destroy this %s' % evetypes.GetName(node.typeID), self.HealZero, (selected,)), ('Unspawn this %s' % evetypes.GetName(node.typeID), self.Unspawn, (selected,))]), None]
             m += sm.GetService('menu').GetMenuFormItemIDTypeID(node.itemID, node.typeID)
             return m
+            return
 
-    def Unspawn(self, nodes = None):
+    def Unspawn(self, nodes=None):
         if nodes is None:
             return
-        if not settings.char.ui.Get('suppressDestroyableWarning', 0):
-            if not eve.Message('CustomQuestion', {'header': 'Unspawn selected?',
-             'question': 'Do you really want to unspawn these items?'}, uiconst.YESNO) == uiconst.ID_YES:
-                return
-        for node in nodes:
-            sm.GetService('slash').SlashCmd('unspawn %d' % node.itemID)
+        else:
+            if not settings.char.ui.Get('suppressDestroyableWarning', 0):
+                if not eve.Message('CustomQuestion', {'header': 'Unspawn selected?',
+                 'question': 'Do you really want to unspawn these items?'}, uiconst.YESNO) == uiconst.ID_YES:
+                    return
+            for node in nodes:
+                sm.GetService('slash').SlashCmd('unspawn %d' % node.itemID)
 
-    def HealZero(self, nodes = None):
+            return
+
+    def HealZero(self, nodes=None):
         if nodes is None:
             return
-        if not settings.char.ui.Get('suppressDestroyableWarning', 0):
-            if not eve.Message('CustomQuestion', {'header': 'Destroy selected?',
-             'question': 'Do you really want to destroy these items?'}, uiconst.YESNO) == uiconst.ID_YES:
-                return
-        for node in nodes:
-            sm.GetService('slash').SlashCmd('heal %d 0' % node.itemID)
+        else:
+            if not settings.char.ui.Get('suppressDestroyableWarning', 0):
+                if not eve.Message('CustomQuestion', {'header': 'Destroy selected?',
+                 'question': 'Do you really want to destroy these items?'}, uiconst.YESNO) == uiconst.ID_YES:
+                    return
+            for node in nodes:
+                sm.GetService('slash').SlashCmd('heal %d 0' % node.itemID)
+
+            return
 
 
 class DestroyableItemsWindow(uicontrols.Window):
@@ -67,10 +75,11 @@ class destroyableItems(service.Service):
     __displayname__ = 'destroyableItems'
     __neocommenuitem__ = (('Destroyable Items', None), 'Show', service.ROLE_GML)
 
-    def Run(self, memStream = None):
+    def Run(self, memStream=None):
         self.wnd = None
+        return
 
-    def Stop(self, memStream = None):
+    def Stop(self, memStream=None):
         self.Hide()
         service.Service.Stop(self, memStream)
 
@@ -92,99 +101,103 @@ class destroyableItems(service.Service):
         if self.wnd:
             self.wnd.Maximize()
             return None
-        self.wnd = wnd = DestroyableItemsWindow.Open()
-        self.wnd._OnClose = self.Hide
-        self.wnd.SetWndIcon('41_13')
-        self.wnd.HideMainIcon()
-        self.wnd.SetTopparentHeight(0)
-        self.wnd.SetCaption('Destroyable Items')
-        self.wnd.SetMinSize([370, 200])
-        directionBox = uiprimitives.Container(name='direction', parent=uiutil.GetChild(wnd, 'main'), align=uiconst.TOALL, pos=(0, 0, 0, 0))
-        directionSettingsBox = uiprimitives.Container(name='direction', parent=directionBox, align=uiconst.TOTOP, height=75)
+        else:
+            self.wnd = wnd = DestroyableItemsWindow.Open()
+            self.wnd._OnClose = self.Hide
+            self.wnd.SetWndIcon('41_13')
+            self.wnd.HideMainIcon()
+            self.wnd.SetTopparentHeight(0)
+            self.wnd.SetCaption('Destroyable Items')
+            self.wnd.SetMinSize([370, 200])
+            directionBox = uiprimitives.Container(name='direction', parent=uiutil.GetChild(wnd, 'main'), align=uiconst.TOALL, pos=(0, 0, 0, 0))
+            directionSettingsBox = uiprimitives.Container(name='direction', parent=directionBox, align=uiconst.TOTOP, height=75)
 
-        def Suppress(cb):
-            checked = cb.GetValue()
-            settings.char.ui.Set('suppressDestroyableWarning', checked)
-            cb.state = uiconst.UI_HIDDEN
-            cb.state = uiconst.UI_NORMAL
+            def Suppress(cb):
+                checked = cb.GetValue()
+                settings.char.ui.Set('suppressDestroyableWarning', checked)
+                cb.state = uiconst.UI_HIDDEN
+                cb.state = uiconst.UI_NORMAL
 
-        def Verbose(cb):
-            checked = cb.GetValue()
-            settings.char.ui.Set('verboseDestroyables', checked)
-            cb.state = uiconst.UI_HIDDEN
-            cb.state = uiconst.UI_NORMAL
+            def Verbose(cb):
+                checked = cb.GetValue()
+                settings.char.ui.Set('verboseDestroyables', checked)
+                cb.state = uiconst.UI_HIDDEN
+                cb.state = uiconst.UI_NORMAL
 
-        self.suppress = uicontrols.Checkbox(text='Suppress warning messages', parent=directionSettingsBox, configName='', retval=0, checked=settings.char.ui.Get('suppressDestroyableWarning', 0), align=uiconst.TOPLEFT, callback=Suppress, pos=(5, 0, 200, 0))
-        self.verbose = uicontrols.Checkbox(text='List all details', parent=directionSettingsBox, configName='', retval=0, checked=settings.char.ui.Get('verboseDestroyables', 0), align=uiconst.TOPLEFT, callback=Verbose, pos=(5, 15, 200, 0))
-        uicontrols.Label(text=u'Range (km)', parent=directionSettingsBox, width=240, height=24, left=5, top=35, state=uiconst.UI_DISABLED)
-        self.dir_rangeinput = uicontrols.SinglelineEdit(name='rangeedit', parent=directionSettingsBox, ints=(1, None), align=uiconst.TOPLEFT, width=78, top=55, left=5, maxLength=len(str(sys.maxint)) + 1)
-        self.dir_rangeinput.SetValue('2147483647')
+            self.suppress = uicontrols.Checkbox(text='Suppress warning messages', parent=directionSettingsBox, configName='', retval=0, checked=settings.char.ui.Get('suppressDestroyableWarning', 0), align=uiconst.TOPLEFT, callback=Suppress, pos=(5, 0, 200, 0))
+            self.verbose = uicontrols.Checkbox(text='List all details', parent=directionSettingsBox, configName='', retval=0, checked=settings.char.ui.Get('verboseDestroyables', 0), align=uiconst.TOPLEFT, callback=Verbose, pos=(5, 15, 200, 0))
+            uicontrols.Label(text=u'Range (km)', parent=directionSettingsBox, width=240, height=24, left=5, top=35, state=uiconst.UI_DISABLED)
+            self.dir_rangeinput = uicontrols.SinglelineEdit(name='rangeedit', parent=directionSettingsBox, ints=(1, None), align=uiconst.TOPLEFT, width=78, top=55, left=5, maxLength=len(str(sys.maxint)) + 1)
+            self.dir_rangeinput.SetValue('2147483647')
 
-        def ExportMenu(*args):
-            exportMenu = []
-            exportMenu.append(('Generate List Dump', self.Dump))
-            exportMenu.append(('Generate POSer', self.DumpPOSer))
-            mv = menu.CreateMenuView(menu.CreateMenuFromList(exportMenu), None, None)
-            anchorwindow = DestroyableItemsWindow.GetIfOpen()
-            anchor = u'Export'
-            anchoritem = uiutil.GetChild(anchorwindow, anchor)
-            x, y, w, h = anchoritem.GetAbsolute()
-            x = max(x, 0)
-            y = y + h
-            if y + mv.height > uicore.desktop.height:
-                mv.top = anchoritem.GetAbsolute()[1] - mv.height
-            else:
-                mv.top = y
-            mv.left = min(uicore.desktop.width - mv.width, x)
-            uicontrols.Frame(parent=mv, color=(1.0, 1.0, 1.0, 0.2))
-            uicore.layer.menu.children.insert(0, mv)
+            def ExportMenu(*args):
+                exportMenu = []
+                exportMenu.append(('Generate List Dump', self.Dump))
+                exportMenu.append(('Generate POSer', self.DumpPOSer))
+                mv = menu.CreateMenuView(menu.CreateMenuFromList(exportMenu), None, None)
+                anchorwindow = DestroyableItemsWindow.GetIfOpen()
+                anchor = u'Export'
+                anchoritem = uiutil.GetChild(anchorwindow, anchor)
+                x, y, w, h = anchoritem.GetAbsolute()
+                x = max(x, 0)
+                y = y + h
+                if y + mv.height > uicore.desktop.height:
+                    mv.top = anchoritem.GetAbsolute()[1] - mv.height
+                else:
+                    mv.top = y
+                mv.left = min(uicore.desktop.width - mv.width, x)
+                uicontrols.Frame(parent=mv, color=(1.0, 1.0, 1.0, 0.2))
+                uicore.layer.menu.children.insert(0, mv)
+                return
 
-        uicontrols.Button(parent=directionSettingsBox, name=u'Scan', label=u'Scan', pos=(85, 55, 0, 0), func=self.Update)
-        uicontrols.Button(parent=directionSettingsBox, name=u'Select All', label=u'Select All', pos=(130, 55, 0, 0), func=self.SelectAll)
-        uicontrols.Button(parent=directionSettingsBox, name=u'Destroy', label=u'Destroy', pos=(204, 55, 0, 0), func=self.Pwn)
-        uicontrols.Button(parent=directionSettingsBox, name=u'Export', label=u'Export', pos=(265, 55, 0, 0), func=ExportMenu)
-        maincont = uiprimitives.Container(name='maincont', parent=directionBox, pos=(const.defaultPadding,
-         const.defaultPadding,
-         const.defaultPadding,
-         const.defaultPadding))
-        self.scroll = uicontrols.Scroll(parent=maincont)
-        self.scroll.sr.id = 'resultsscroll'
-        self.scroll.Load(contentList=[])
-        tabs = [[u'All items',
-          self.scroll,
-          self,
-          'allitems'],
-         [u'Drones',
-          self.scroll,
-          self,
-          'drones'],
-         [u'Container',
-          self.scroll,
-          self,
-          'containers'],
-         [u'Ships',
-          self.scroll,
-          self,
-          'ships'],
-         [u'Structures',
-          self.scroll,
-          self,
-          'structures'],
-         ['Deployables',
-          self.scroll,
-          self,
-          'deployable'],
-         ['%s/%s' % (u'NPC', u'Entity'),
-          self.scroll,
-          self,
-          'npcs']]
-        maintabs = uicontrols.TabGroup(name='tabparent', parent=maincont, idx=0)
-        maintabs.Startup(tabs)
-        self.width = 425
+            uicontrols.Button(parent=directionSettingsBox, name=u'Scan', label=u'Scan', pos=(85, 55, 0, 0), func=self.Update)
+            uicontrols.Button(parent=directionSettingsBox, name=u'Select All', label=u'Select All', pos=(130, 55, 0, 0), func=self.SelectAll)
+            uicontrols.Button(parent=directionSettingsBox, name=u'Destroy', label=u'Destroy', pos=(204, 55, 0, 0), func=self.Pwn)
+            uicontrols.Button(parent=directionSettingsBox, name=u'Export', label=u'Export', pos=(265, 55, 0, 0), func=ExportMenu)
+            maincont = uiprimitives.Container(name='maincont', parent=directionBox, pos=(const.defaultPadding,
+             const.defaultPadding,
+             const.defaultPadding,
+             const.defaultPadding))
+            self.scroll = uicontrols.Scroll(parent=maincont)
+            self.scroll.sr.id = 'resultsscroll'
+            self.scroll.Load(contentList=[])
+            tabs = [[u'All items',
+              self.scroll,
+              self,
+              'allitems'],
+             [u'Drones',
+              self.scroll,
+              self,
+              'drones'],
+             [u'Container',
+              self.scroll,
+              self,
+              'containers'],
+             [u'Ships',
+              self.scroll,
+              self,
+              'ships'],
+             [u'Structures',
+              self.scroll,
+              self,
+              'structures'],
+             ['Deployables',
+              self.scroll,
+              self,
+              'deployable'],
+             ['%s/%s' % (u'NPC', u'Entity'),
+              self.scroll,
+              self,
+              'npcs']]
+            maintabs = uicontrols.TabGroup(name='tabparent', parent=maincont, idx=0)
+            maintabs.Startup(tabs)
+            self.width = 425
+            return None
 
     def Hide(self, *args):
         if self.wnd:
             self.wnd = None
+        return
 
     def ProcessRestartUI(self):
         if self.wnd:
@@ -195,7 +208,7 @@ class destroyableItems(service.Service):
         if key == 'allitems':
             self.Search(group='all')
         elif key == 'drones':
-            self.Search(group=const.categoryDrone)
+            self.Search(group=[const.categoryDrone, const.categoryFighter])
         elif key == 'containers':
             self.Search(group=const.categoryCelestial)
         elif key == 'ships':
@@ -277,7 +290,7 @@ class destroyableItems(service.Service):
 
                 f.Close()
 
-    def SingleRemove(self, nodes = None):
+    def SingleRemove(self, nodes=None):
         if not settings.char.ui.Get('suppressDestroyableWarning', 0):
             if eve.Message('CustomQuestion', {'header': 'Destroy selected?',
              'question': 'Do you really want to destroy this %s?' % evetypes.GetName(nodes[0].typeID)}, uiconst.YESNO) == uiconst.ID_YES:
@@ -288,7 +301,7 @@ class destroyableItems(service.Service):
             for node in nodes:
                 sm.GetService('slash').SlashCmd('heal %d 0' % node.itemID)
 
-    def MultipleRemove(self, nodes = None):
+    def MultipleRemove(self, nodes=None):
         if not settings.char.ui.Get('suppressDestroyableWarning', 0):
             if eve.Message('CustomQuestion', {'header': 'Destroy selected?',
              'question': 'Do you really want to destroy these selected items?'}, uiconst.YESNO) == uiconst.ID_YES:
@@ -303,7 +316,7 @@ class destroyableItems(service.Service):
             for node in nodes:
                 sm.GetService('slash').SlashCmd('heal %d 0' % node.itemID)
 
-    def Collate(self, list, group = None, players = None, *args):
+    def Collate(self, list, group=None, players=None, *args):
         m = []
         bp = sm.GetService('michelle').GetBallpark()
         you = bp.GetBall(session.shipid)
@@ -328,6 +341,18 @@ class destroyableItems(service.Service):
                 if item.categoryID == groups and item.categoryID == const.categoryDrone:
                     if item.ownerID not in players:
                         m.append((u'Drones',
+                         evetypes.GetGroupNameByGroup(owner.groupID),
+                         item.typeID,
+                         item.itemID,
+                         owner.name,
+                         distance,
+                         'Abandoned',
+                         x,
+                         y,
+                         z))
+                if item.categoryID == groups and item.categoryID == const.categoryFighter:
+                    if item.ownerID not in players:
+                        m.append((u'Fighters',
                          evetypes.GetGroupNameByGroup(owner.groupID),
                          item.typeID,
                          item.itemID,
@@ -437,7 +462,7 @@ class destroyableItems(service.Service):
 
         return m
 
-    def Search(self, group = None, *args):
+    def Search(self, group=None, *args):
         ignoredGroups = [const.groupPlanet,
          const.groupMoon,
          const.groupAsteroidBelt,
@@ -468,6 +493,7 @@ class destroyableItems(service.Service):
 
             if group == 'all':
                 groups = [const.categoryDrone,
+                 const.categoryFighter,
                  const.categoryCelestial,
                  const.categoryShip,
                  const.categoryStarbase,

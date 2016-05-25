@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\packages\carbonui\control\label.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\packages\carbonui\control\label.py
 import blue
 import telemetry
 from carbonui.primitives.base import ScaleDpi, ReverseScaleDpi
@@ -171,6 +172,8 @@ class LabelCore(VisibleBase):
         except:
             pass
 
+        return
+
     def InitMeasurer(self):
         self.measurer = trinity.Tr2FontMeasurer()
         self.renderObject.fontMeasurer = self.measurer
@@ -186,12 +189,15 @@ class LabelCore(VisibleBase):
             self.renderObject.fontMeasurer = None
         self.measurer = None
         VisibleBase.Close(self)
+        return
 
     def OnUIScalingChange(self, *args):
         if self.destroyed or self.measurer is None:
             return
-        self.measurer.fontSize = 0
-        self.Layout('OnUIScalingChange')
+        else:
+            self.measurer.fontSize = 0
+            self.Layout('OnUIScalingChange')
+            return
 
     def ResolveAutoSizing(self):
         self._resolvingAutoSizing = True
@@ -220,8 +226,9 @@ class LabelCore(VisibleBase):
          uiconst.TOTOP_NOPUSH):
             self.height = setHeight or self.textheight
         self._resolvingAutoSizing = False
+        return
 
-    def SetLeftAlphaFade(self, fadeStart = 0, maxFadeWidth = 0):
+    def SetLeftAlphaFade(self, fadeStart=0, maxFadeWidth=0):
         if maxFadeWidth:
             self._alphaFadeLeft = (fadeStart, maxFadeWidth)
             self._UpdateAlphaFade()
@@ -231,8 +238,9 @@ class LabelCore(VisibleBase):
             if measurer:
                 measurer.fadeLeftStart = 0
                 measurer.fadeLeftEnd = 0
+        return
 
-    def SetRightAlphaFade(self, fadeEnd = 0, maxFadeWidth = 0):
+    def SetRightAlphaFade(self, fadeEnd=0, maxFadeWidth=0):
         if maxFadeWidth:
             self._alphaFadeRight = (fadeEnd, maxFadeWidth)
             self._UpdateAlphaFade()
@@ -242,8 +250,9 @@ class LabelCore(VisibleBase):
             if measurer:
                 measurer.fadeRightStart = sys.maxint
                 measurer.fadeRightEnd = sys.maxint
+        return
 
-    def SetBottomAlphaFade(self, fadeEnd = 0, maxFadeHeight = 0):
+    def SetBottomAlphaFade(self, fadeEnd=0, maxFadeHeight=0):
         if maxFadeHeight:
             self._alphaFadeBottom = (fadeEnd, maxFadeHeight)
             self._UpdateAlphaFade()
@@ -253,6 +262,7 @@ class LabelCore(VisibleBase):
             if measurer:
                 measurer.fadeBottomStart = sys.maxint
                 measurer.fadeBottomEnd = sys.maxint
+        return
 
     def _UpdateAlphaFade(self):
         measurer = self.measurer
@@ -276,7 +286,7 @@ class LabelCore(VisibleBase):
                 measurer.fadeRightStart = sys.maxint
                 measurer.fadeRightEnd = sys.maxint
         if self._alphaFadeBottom:
-            fadeEnd, length = self._alphaFadeRight
+            fadeEnd, length = self._alphaFadeBottom
             if self.textheight > fadeEnd:
                 diff = self.textheight - fadeEnd
                 length = ScaleDpi(min(length, diff))
@@ -476,6 +486,7 @@ class LabelCore(VisibleBase):
                 self.maxLines = 1
             else:
                 self.maxLines = None
+            return
 
         return property(**locals())
 
@@ -514,101 +525,105 @@ class LabelCore(VisibleBase):
 
     SetDefaultColor = SetTextColor
 
-    def SetTabMargin(self, margin, refresh = 1):
+    def SetTabMargin(self, margin, refresh=1):
         self._tabMargin = margin
         if refresh:
             self.Layout('SetTabMargin')
 
-    def GetTab(self, idx, right = None):
+    def GetTab(self, idx, right=None):
         if len(self.tabs) > idx:
             return self.tabs[idx]
-        if right is not None:
+        elif right is not None:
             return right
+        else:
+            return
 
     def Update(self):
         if self._parseDirty or self._layoutDirty:
             self.Layout()
 
-    def Layout(self, hint = 'None', absSize = None):
+    def Layout(self, hint='None', absSize=None):
         if getattr(self, 'busy', 0):
             return
-        self.busy = True
-        layoutCountStat.Inc()
-        self._layoutDirty = False
-        if self.measurer:
-            self.measurer.Reset()
-        self.actualTextWidth = 0
-        self.actualTextHeight = 0
-        text = self.text
-        if text is None or isinstance(text, basestring) and not text:
+        else:
+            self.busy = True
+            layoutCountStat.Inc()
+            self._layoutDirty = False
+            if self.measurer:
+                self.measurer.Reset()
+            self.actualTextWidth = 0
+            self.actualTextHeight = 0
+            text = self.text
+            if text is None or isinstance(text, basestring) and not text:
+                self.busy = False
+                return
+            self._urlIDCounter = 0
+            if self._parseDirty:
+                textToParse = GetAsUnicode(text)
+                if self.maxLines == 1:
+                    textToParse = SINGLE_LINE_NEWLINE_PATTERN.sub(' ', textToParse)
+                parsePrepared = trinity.ParseLabelText(textToParse)
+                self._parsePrepared = parsePrepared
+                self._parseDirty = False
+            else:
+                parsePrepared = self._parsePrepared
+            if not self.isAffectedByPushAlignment:
+                if self._setWidth:
+                    width = self._setWidth
+                else:
+                    width = self.GetMaxWidth()
+            elif absSize:
+                width, height = absSize
+            else:
+                width, height = self.GetAbsoluteSize()
+            self._minCursor = None
+            self.ResetTagStack()
+            self._lastAddTextData = []
+            self._inlineObjects = None
+            self._inlineObjectsBuff = None
+            vScrollshiftX = getattr(self, 'xShift', 0)
+            margin = self._tabMargin
+            self._numLines = 0
+            self._commitCursorYScaled = 0
+            self._textAlign = TEXT_ALIGN_LEFT
+            self._canPushText = True
+            maxLines = self.maxLines
+            for lineData in parsePrepared:
+                left = 0
+                isTabbed = len(lineData) > 1
+                lineStartCursorYScaled = self._commitCursorYScaled
+                lineMaxCommitCursorYScaled = lineStartCursorYScaled
+                for tabIndex, tabData in enumerate(lineData):
+                    self._commitCursorYScaled = lineStartCursorYScaled
+                    if self.measurer:
+                        self.measurer.font = ''
+                    else:
+                        return
+                    if isTabbed:
+                        self._textAlign = TEXT_ALIGN_LEFT
+                        self._canPushText = True
+                        if width is None:
+                            width = uicore.desktop.width
+                        right = self.GetTab(tabIndex, width) - margin
+                        elementWidth = right + vScrollshiftX - left
+                    else:
+                        elementWidth = width
+                    self.ProcessLineData(tabData, left, elementWidth)
+                    if self._lastAddTextData:
+                        self.CommitBuffer(doLineBreak=True)
+                        if maxLines and self._numLines >= maxLines:
+                            self._canPushText = False
+                    if isTabbed:
+                        left = right + margin * 2 + vScrollshiftX
+                    lineMaxCommitCursorYScaled = max(lineMaxCommitCursorYScaled, self._commitCursorYScaled)
+
+                self._commitCursorYScaled = lineStartCursorYScaled + (lineMaxCommitCursorYScaled - lineStartCursorYScaled)
+
+            if not self._measuringText:
+                self.ResolveAutoSizing()
+                self._UpdateAlphaFade()
             self.busy = False
             return
-        self._urlIDCounter = 0
-        if self._parseDirty:
-            textToParse = GetAsUnicode(text)
-            if self.maxLines == 1:
-                textToParse = SINGLE_LINE_NEWLINE_PATTERN.sub(' ', textToParse)
-            parsePrepared = trinity.ParseLabelText(textToParse)
-            self._parsePrepared = parsePrepared
-            self._parseDirty = False
-        else:
-            parsePrepared = self._parsePrepared
-        if not self.isAffectedByPushAlignment:
-            if self._setWidth:
-                width = self._setWidth
-            else:
-                width = self.GetMaxWidth()
-        elif absSize:
-            width, height = absSize
-        else:
-            width, height = self.GetAbsoluteSize()
-        self._minCursor = None
-        self.ResetTagStack()
-        self._lastAddTextData = []
-        self._inlineObjects = None
-        self._inlineObjectsBuff = None
-        vScrollshiftX = getattr(self, 'xShift', 0)
-        margin = self._tabMargin
-        self._numLines = 0
-        self._commitCursorYScaled = 0
-        self._textAlign = TEXT_ALIGN_LEFT
-        self._canPushText = True
-        maxLines = self.maxLines
-        for lineData in parsePrepared:
-            left = 0
-            isTabbed = len(lineData) > 1
-            lineStartCursorYScaled = self._commitCursorYScaled
-            lineMaxCommitCursorYScaled = lineStartCursorYScaled
-            for tabIndex, tabData in enumerate(lineData):
-                self._commitCursorYScaled = lineStartCursorYScaled
-                if self.measurer:
-                    self.measurer.font = ''
-                else:
-                    return
-                if isTabbed:
-                    self._textAlign = TEXT_ALIGN_LEFT
-                    self._canPushText = True
-                    if width is None:
-                        width = uicore.desktop.width
-                    right = self.GetTab(tabIndex, width) - margin
-                    elementWidth = right + vScrollshiftX - left
-                else:
-                    elementWidth = width
-                self.ProcessLineData(tabData, left, elementWidth)
-                if self._lastAddTextData:
-                    self.CommitBuffer(doLineBreak=True)
-                    if maxLines and self._numLines >= maxLines:
-                        self._canPushText = False
-                if isTabbed:
-                    left = right + margin * 2 + vScrollshiftX
-                lineMaxCommitCursorYScaled = max(lineMaxCommitCursorYScaled, self._commitCursorYScaled)
-
-            self._commitCursorYScaled = lineStartCursorYScaled + (lineMaxCommitCursorYScaled - lineStartCursorYScaled)
-
-        if not self._measuringText:
-            self.ResolveAutoSizing()
-            self._UpdateAlphaFade()
-        self.busy = False
 
     def ResetTagStack(self):
         self._tagStack = {'font': [],
@@ -633,109 +648,112 @@ class LabelCore(VisibleBase):
     def PushText(self, text, measurer, oneLiner, wrapModeForceAll, maxLines):
         if not measurer:
             return STOPWRAP
-        textAdded = measurer.AddText(text)
-        if textAdded >= len(text):
-            self._lastAddTextData.append((text, self._measurerProperties))
-            return
-        if oneLiner:
-            if self.showEllipsis:
-                sliceBack = 0
-                while textAdded > sliceBack:
-                    tryFit = text[:textAdded - sliceBack] + ELLIPSIS
-                    measurer.CancelLastText()
-                    ellipsisFit = measurer.AddText(tryFit)
-                    if ellipsisFit == len(tryFit):
-                        break
-                    sliceBack += 1
-
-            self.CommitBuffer()
-            return STOPWRAP
-        measurer.CancelLastText()
-        hasData = bool(self._lastAddTextData)
-        if not hasData:
-            if textAdded == 0:
-                return STOPWRAP
-        if not wrapModeForceAll:
-            wrapPointInText = self.FindWrapPointInText(text, textAdded)
-            if wrapPointInText is not None:
-                textAdded = wrapPointInText
-            elif hasData:
-                lastText, lastMeasurerProperties = self._lastAddTextData[-1]
-                wpl = eveLocalization.WrapPointList(lastText + text, session.languageID)
-                combinedResult = wpl.GetLinebreakPoints()
-                if len(lastText) in combinedResult:
-                    self.CommitBuffer(doLineBreak=True)
-                    if maxLines and self._numLines >= maxLines:
-                        return STOPWRAP
-                    return self.PushText(text, measurer, oneLiner, wrapModeForceAll, maxLines)
-                lineText = u''.join([ addedData[0] for addedData in self._lastAddTextData ])
-                wpl = eveLocalization.WrapPointList(lineText, session.languageID)
-                lineWrapPoints = wpl.GetLinebreakPoints()
-                if lineWrapPoints:
-                    linePos = len(lineText)
-                    moveToNextLine = []
-                    breakAt = lineWrapPoints[-1]
-                    while self._lastAddTextData:
-                        addedData = self._lastAddTextData.pop()
-                        addedText, addedMeasurerProperties = addedData
-                        addedTextLength = len(addedText)
-                        addedTextPos = linePos - addedTextLength
+        else:
+            textAdded = measurer.AddText(text)
+            if textAdded >= len(text):
+                self._lastAddTextData.append((text, self._measurerProperties))
+                return
+            if oneLiner:
+                if self.showEllipsis:
+                    sliceBack = 0
+                    while textAdded > sliceBack:
+                        tryFit = text[:textAdded - sliceBack] + ELLIPSIS
                         measurer.CancelLastText()
-                        if addedTextPos <= breakAt <= linePos:
-                            self.SetMeasurerProperties(*addedMeasurerProperties)
-                            measurer.AddText(addedText[:breakAt - addedTextPos])
-                            self._lastAddTextData.append((addedText[:breakAt - addedTextPos], addedMeasurerProperties))
-                            rest = addedText[breakAt - addedTextPos:]
-                            if rest:
-                                moveToNextLine.insert(0, (rest, addedMeasurerProperties))
+                        ellipsisFit = measurer.AddText(tryFit)
+                        if ellipsisFit == len(tryFit):
                             break
-                        else:
-                            moveToNextLine.insert(0, addedData)
-                        linePos -= addedTextLength
+                        sliceBack += 1
 
-                    self.CommitBuffer(doLineBreak=True)
-                    if maxLines and self._numLines >= maxLines:
-                        return STOPWRAP
-                    for nextLineData in moveToNextLine:
-                        addedText, addedMeasurerProperties = nextLineData
-                        self.SetMeasurerProperties(*addedMeasurerProperties)
-                        measurer.AddText(addedText)
-                        self._lastAddTextData.append(nextLineData)
+                self.CommitBuffer()
+                return STOPWRAP
+            measurer.CancelLastText()
+            hasData = bool(self._lastAddTextData)
+            if not hasData:
+                if textAdded == 0:
+                    return STOPWRAP
+            if not wrapModeForceAll:
+                wrapPointInText = self.FindWrapPointInText(text, textAdded)
+                if wrapPointInText is not None:
+                    textAdded = wrapPointInText
+                elif hasData:
+                    lastText, lastMeasurerProperties = self._lastAddTextData[-1]
+                    wpl = eveLocalization.WrapPointList(lastText + text, session.languageID)
+                    combinedResult = wpl.GetLinebreakPoints()
+                    if len(lastText) in combinedResult:
+                        self.CommitBuffer(doLineBreak=True)
+                        if maxLines and self._numLines >= maxLines:
+                            return STOPWRAP
+                        return self.PushText(text, measurer, oneLiner, wrapModeForceAll, maxLines)
+                    lineText = u''.join([ addedData[0] for addedData in self._lastAddTextData ])
+                    wpl = eveLocalization.WrapPointList(lineText, session.languageID)
+                    lineWrapPoints = wpl.GetLinebreakPoints()
+                    if lineWrapPoints:
+                        linePos = len(lineText)
+                        moveToNextLine = []
+                        breakAt = lineWrapPoints[-1]
+                        while self._lastAddTextData:
+                            addedData = self._lastAddTextData.pop()
+                            addedText, addedMeasurerProperties = addedData
+                            addedTextLength = len(addedText)
+                            addedTextPos = linePos - addedTextLength
+                            measurer.CancelLastText()
+                            if addedTextPos <= breakAt <= linePos:
+                                self.SetMeasurerProperties(*addedMeasurerProperties)
+                                measurer.AddText(addedText[:breakAt - addedTextPos])
+                                self._lastAddTextData.append((addedText[:breakAt - addedTextPos], addedMeasurerProperties))
+                                rest = addedText[breakAt - addedTextPos:]
+                                if rest:
+                                    moveToNextLine.insert(0, (rest, addedMeasurerProperties))
+                                break
+                            else:
+                                moveToNextLine.insert(0, addedData)
+                            linePos -= addedTextLength
 
-                    self.SetMeasurerProperties(*self._measurerProperties)
-                    return self.PushText(text, measurer, oneLiner, wrapModeForceAll, maxLines)
-        textSlice = text[:textAdded]
-        measurer.AddText(textSlice)
-        self._lastAddTextData.append((textSlice, self._measurerProperties))
-        self.CommitBuffer(doLineBreak=True)
-        if maxLines and self._numLines >= maxLines:
-            return STOPWRAP
-        moveToNext = text[textAdded:]
-        return self.PushText(moveToNext, measurer, oneLiner, wrapModeForceAll, maxLines)
+                        self.CommitBuffer(doLineBreak=True)
+                        if maxLines and self._numLines >= maxLines:
+                            return STOPWRAP
+                        for nextLineData in moveToNextLine:
+                            addedText, addedMeasurerProperties = nextLineData
+                            self.SetMeasurerProperties(*addedMeasurerProperties)
+                            measurer.AddText(addedText)
+                            self._lastAddTextData.append(nextLineData)
 
-    def SetMeasurerProperties(self, fontsize, color, letterspace, underline, fontPath, register = False):
+                        self.SetMeasurerProperties(*self._measurerProperties)
+                        return self.PushText(text, measurer, oneLiner, wrapModeForceAll, maxLines)
+            textSlice = text[:textAdded]
+            measurer.AddText(textSlice)
+            self._lastAddTextData.append((textSlice, self._measurerProperties))
+            self.CommitBuffer(doLineBreak=True)
+            if maxLines and self._numLines >= maxLines:
+                return STOPWRAP
+            moveToNext = text[textAdded:]
+            return self.PushText(moveToNext, measurer, oneLiner, wrapModeForceAll, maxLines)
+
+    def SetMeasurerProperties(self, fontsize, color, letterspace, underline, fontPath, register=False):
         measurer = self.measurer
         if not measurer:
             return
-        measurer.fontSize = int(uicore.fontSizeFactor * fontsize)
-        try:
-            measurer.color = color
-        except TypeError as err:
-            log.LogError('Invalid color passed to text renderer, error: %s, color: %s' % (err, color))
-            measurer.color = COLOR_WHITE_FULLALPHA
-
-        measurer.letterSpace = letterspace
-        measurer.underline = underline
-        if fontPath is not None:
-            measurer.font = str(fontPath)
         else:
-            measurer.font = ''
-        if register:
-            self._measurerProperties = (fontsize,
-             color,
-             letterspace,
-             underline,
-             fontPath)
+            measurer.fontSize = int(uicore.fontSizeFactor * fontsize)
+            try:
+                measurer.color = color
+            except TypeError as err:
+                log.LogError('Invalid color passed to text renderer, error: %s, color: %s' % (err, color))
+                measurer.color = COLOR_WHITE_FULLALPHA
+
+            measurer.letterSpace = letterspace
+            measurer.underline = underline
+            if fontPath is not None:
+                measurer.font = str(fontPath)
+            else:
+                measurer.font = ''
+            if register:
+                self._measurerProperties = (fontsize,
+                 color,
+                 letterspace,
+                 underline,
+                 fontPath)
+            return
 
     def ProcessLineData(self, lineData, left, width):
         if width is not None:
@@ -746,52 +764,53 @@ class LabelCore(VisibleBase):
         measurer = self.measurer
         if not measurer:
             return False
-        measurer.limit = self._wrapWidthScaled or 0
-        measurer.cursorX = 0
-        setHeight = self._setHeight
-        maxLines = self.maxLines
-        oneLiner = maxLines == 1
-        wrapMode = self.wrapMode
-        wrapModeForceAll = wrapMode == uiconst.WRAPMODE_FORCEALL
-        tagStackDirty = True
-        tagStack = self._tagStack
-        thereWasText = False
-        for element in lineData:
-            type = element[0]
-            if type == 0:
-                text = element[1]
-                if text:
-                    thereWasText = True
-                    if getattr(self, 'collectWordsInStack', False):
-                        textList = re.split('([\\W]+)', text)
-                        for eachWord in textList:
-                            if eachWord != ' ':
-                                tagStackDirty = self.ParseWordTag(eachWord) or tagStackDirty
-                            tagStackDirty = self.DoTextPushing(tagStackDirty, measurer, tagStack, eachWord, oneLiner, wrapModeForceAll, maxLines)
-                            if eachWord != ' ':
-                                tagStackDirty = self.ParseWordClose() or tagStackDirty
+        else:
+            measurer.limit = self._wrapWidthScaled or 0
+            measurer.cursorX = 0
+            setHeight = self._setHeight
+            maxLines = self.maxLines
+            oneLiner = maxLines == 1
+            wrapMode = self.wrapMode
+            wrapModeForceAll = wrapMode == uiconst.WRAPMODE_FORCEALL
+            tagStackDirty = True
+            tagStack = self._tagStack
+            thereWasText = False
+            for element in lineData:
+                type = element[0]
+                if type == 0:
+                    text = element[1]
+                    if text:
+                        thereWasText = True
+                        if getattr(self, 'collectWordsInStack', False):
+                            textList = re.split('([\\W]+)', text)
+                            for eachWord in textList:
+                                if eachWord != ' ':
+                                    tagStackDirty = self.ParseWordTag(eachWord) or tagStackDirty
+                                tagStackDirty = self.DoTextPushing(tagStackDirty, measurer, tagStack, eachWord, oneLiner, wrapModeForceAll, maxLines)
+                                if eachWord != ' ':
+                                    tagStackDirty = self.ParseWordClose() or tagStackDirty
 
-                    else:
-                        tagStackDirty = self.DoTextPushing(tagStackDirty, measurer, tagStack, text, oneLiner, wrapModeForceAll, maxLines)
-                    linkStack = tagStack.get('link', None)
-                    if linkStack:
-                        linkStack[-1].textBuff.append(text)
-            elif type == 1:
-                tagStackDirty = self.tagIDToFunctionMapping[element[1]][0](self, element[2]) or tagStackDirty
-            elif type == 2:
-                tagStackDirty = self.tagIDToFunctionMapping[element[1]][1](self) or tagStackDirty
-            elif type == 3:
-                if element[1] != 'loc' and session.role & service.ROLE_PROGRAMMER:
-                    log.LogWarn('Unknown tag:', element[1])
-            else:
-                log.LogError('Unknown element type ID in ProcessLineData', type)
+                        else:
+                            tagStackDirty = self.DoTextPushing(tagStackDirty, measurer, tagStack, text, oneLiner, wrapModeForceAll, maxLines)
+                        linkStack = tagStack.get('link', None)
+                        if linkStack:
+                            linkStack[-1].textBuff.append(text)
+                elif type == 1:
+                    tagStackDirty = self.tagIDToFunctionMapping[element[1]][0](self, element[2]) or tagStackDirty
+                elif type == 2:
+                    tagStackDirty = self.tagIDToFunctionMapping[element[1]][1](self) or tagStackDirty
+                elif type == 3:
+                    if element[1] != 'loc' and session.role & service.ROLE_PROGRAMMER:
+                        log.LogWarn('Unknown tag:', element[1])
+                else:
+                    log.LogError('Unknown element type ID in ProcessLineData', type)
 
-        if not thereWasText:
-            if tagStackDirty:
-                self.UpdateMeasurerProperties(measurer, tagStack, u' ')
-                tagStackDirty = False
-            ret = self.PushText(u' ', measurer, oneLiner, wrapModeForceAll, maxLines)
-        return tagStackDirty
+            if not thereWasText:
+                if tagStackDirty:
+                    self.UpdateMeasurerProperties(measurer, tagStack, u' ')
+                    tagStackDirty = False
+                ret = self.PushText(u' ', measurer, oneLiner, wrapModeForceAll, maxLines)
+            return tagStackDirty
 
     def DoTextPushing(self, tagStackDirty, measurer, tagStack, myText, oneLiner, wrapModeForceAll, maxLines):
         if tagStackDirty:
@@ -844,6 +863,7 @@ class LabelCore(VisibleBase):
             if not tagStack['localizedQA']:
                 color = localization.uiutil.COLOR_HARDCODED
         self.SetMeasurerProperties(fontsize, color, letterspace, underline, fontPath, register=True)
+        return
 
     def GetIndexUnderPos(self, layoutPosition):
         index = self.measurer.GetIndexAtPos(ScaleDpi(layoutPosition))
@@ -859,68 +879,70 @@ class LabelCore(VisibleBase):
         width = ReverseScaleDpi(self.measurer.GetWidthAtIndex(index))
         return (index, width)
 
-    def CommitBuffer(self, doLineBreak = False):
+    def CommitBuffer(self, doLineBreak=False):
         measurer = self.measurer
         if not measurer:
             return
-        buffWidth = measurer.cursorX
-        cursorX = self._commitCursorXScaled
-        textAlign = self._textAlign
-        if textAlign != TEXT_ALIGN_LEFT:
-            lastAddTextData = self._lastAddTextData
-            while lastAddTextData:
-                lastAddData = lastAddTextData.pop()
-                lastText, lastMeasurerProperties = lastAddData
-                if not lastText:
-                    measurer.CancelLastText()
-                    continue
-                lastTextStriped = lastText.rstrip()
-                if lastText != lastTextStriped:
-                    measurer.CancelLastText()
-                    self.SetMeasurerProperties(*lastMeasurerProperties)
-                    measurer.AddText(lastTextStriped)
-                    buffWidth = measurer.cursorX
-                break
-
-            if textAlign == TEXT_ALIGN_RIGHT:
-                if self._wrapWidthScaled is None:
-                    self._wrapWidthScaled = ScaleDpi(self.absoluteWidth)
-                cursorX += self._wrapWidthScaled - buffWidth
-            elif textAlign == TEXT_ALIGN_CENTER:
-                if self._wrapWidthScaled is None:
-                    self._wrapWidthScaled = ScaleDpi(self.absoluteWidth)
-                cursorX += int((self._wrapWidthScaled - buffWidth) / 2)
-        lineHeight = measurer.ascender - measurer.descender
-        lineSpacing = int(self.lineSpacing * lineHeight)
-        moveToNextLine = []
-        if self._inlineObjectsBuff:
-            for object in self._inlineObjectsBuff:
-                registerObject = object.Copy()
-                if object.inlineXEnd is None:
-                    object.inlineX = 0
-                    moveToNextLine.append(object)
-                    registerObject.inlineXEnd = ReverseScaleDpi(measurer.cursorX)
-                registerObject.inlineX += ReverseScaleDpi(cursorX)
-                registerObject.inlineXEnd += ReverseScaleDpi(cursorX)
-                registerObject.inlineY = ReverseScaleDpi(self._commitCursorYScaled)
-                registerObject.inlineHeight = ReverseScaleDpi(lineHeight + lineSpacing)
-                if self._inlineObjects is None:
-                    self._inlineObjects = []
-                self._inlineObjects.append(registerObject)
-
-        measurer.CommitText(cursorX, self._commitCursorYScaled + measurer.ascender)
-        if self._minCursor is None:
-            self._minCursor = cursorX
         else:
-            self._minCursor = min(self._minCursor, cursorX)
-        self.actualTextWidth = max(self.actualTextWidth, cursorX + buffWidth)
-        self.actualTextHeight = max(self.actualTextHeight, self._commitCursorYScaled + lineHeight)
-        self._inlineObjectsBuff = moveToNextLine
-        self._lastAddTextData = []
-        if doLineBreak:
-            self._commitCursorYScaled += lineSpacing + lineHeight
-            measurer.cursorX = ScaleDpi(self.specialIndent)
-            self._numLines += 1
+            buffWidth = measurer.cursorX
+            cursorX = self._commitCursorXScaled
+            textAlign = self._textAlign
+            if textAlign != TEXT_ALIGN_LEFT:
+                lastAddTextData = self._lastAddTextData
+                while lastAddTextData:
+                    lastAddData = lastAddTextData.pop()
+                    lastText, lastMeasurerProperties = lastAddData
+                    if not lastText:
+                        measurer.CancelLastText()
+                        continue
+                    lastTextStriped = lastText.rstrip()
+                    if lastText != lastTextStriped:
+                        measurer.CancelLastText()
+                        self.SetMeasurerProperties(*lastMeasurerProperties)
+                        measurer.AddText(lastTextStriped)
+                        buffWidth = measurer.cursorX
+                    break
+
+                if textAlign == TEXT_ALIGN_RIGHT:
+                    if self._wrapWidthScaled is None:
+                        self._wrapWidthScaled = ScaleDpi(self.absoluteWidth)
+                    cursorX += self._wrapWidthScaled - buffWidth
+                elif textAlign == TEXT_ALIGN_CENTER:
+                    if self._wrapWidthScaled is None:
+                        self._wrapWidthScaled = ScaleDpi(self.absoluteWidth)
+                    cursorX += int((self._wrapWidthScaled - buffWidth) / 2)
+            lineHeight = measurer.ascender - measurer.descender
+            lineSpacing = int(self.lineSpacing * lineHeight)
+            moveToNextLine = []
+            if self._inlineObjectsBuff:
+                for object in self._inlineObjectsBuff:
+                    registerObject = object.Copy()
+                    if object.inlineXEnd is None:
+                        object.inlineX = 0
+                        moveToNextLine.append(object)
+                        registerObject.inlineXEnd = ReverseScaleDpi(measurer.cursorX)
+                    registerObject.inlineX += ReverseScaleDpi(cursorX)
+                    registerObject.inlineXEnd += ReverseScaleDpi(cursorX)
+                    registerObject.inlineY = ReverseScaleDpi(self._commitCursorYScaled)
+                    registerObject.inlineHeight = ReverseScaleDpi(lineHeight + lineSpacing)
+                    if self._inlineObjects is None:
+                        self._inlineObjects = []
+                    self._inlineObjects.append(registerObject)
+
+            measurer.CommitText(cursorX, self._commitCursorYScaled + measurer.ascender)
+            if self._minCursor is None:
+                self._minCursor = cursorX
+            else:
+                self._minCursor = min(self._minCursor, cursorX)
+            self.actualTextWidth = max(self.actualTextWidth, cursorX + buffWidth)
+            self.actualTextHeight = max(self.actualTextHeight, self._commitCursorYScaled + lineHeight)
+            self._inlineObjectsBuff = moveToNextLine
+            self._lastAddTextData = []
+            if doLineBreak:
+                self._commitCursorYScaled += lineSpacing + lineHeight
+                measurer.cursorX = ScaleDpi(self.specialIndent)
+                self._numLines += 1
+            return
 
     def ParseFontOpen(self, attribs):
         try:
@@ -1189,19 +1211,20 @@ class LabelCore(VisibleBase):
         if attribs is None:
             log.LogWarn('Got None attribs into ParseEmptyOpen', self.text)
             return False
-        if u'url' in attribs:
-            attribs[u'href'] = attribs[u'url']
-            del attribs[u'url']
-        if u'href' in attribs:
-            return self.ParseAOpen(attribs)
-        stackDirty = False
-        for attrib, value in attribs.iteritems():
-            try:
-                stackDirty = self.emptyTagHandlers[attrib](self, value) or stackDirty
-            except KeyError:
-                log.LogWarn('Empty tag attribute', attrib, 'not recognized')
+        else:
+            if u'url' in attribs:
+                attribs[u'href'] = attribs[u'url']
+                del attribs[u'url']
+            if u'href' in attribs:
+                return self.ParseAOpen(attribs)
+            stackDirty = False
+            for attrib, value in attribs.iteritems():
+                try:
+                    stackDirty = self.emptyTagHandlers[attrib](self, value) or stackDirty
+                except KeyError:
+                    log.LogWarn('Empty tag attribute', attrib, 'not recognized')
 
-        return stackDirty
+            return stackDirty
 
     def ParseUnusedClose(self, tag):
         log.LogWarn('Unused close tag:', tag)
@@ -1244,7 +1267,7 @@ class LabelCore(VisibleBase):
 
         return ret
 
-    def GetCurrentTagStackFormatSyntax(self, ignoreTags = ('link', 'localized', 'letterspace')):
+    def GetCurrentTagStackFormatSyntax(self, ignoreTags=('link', 'localized', 'letterspace')):
         formatSyntax = ''
         for tag, stack in self._tagStack.iteritems():
             if tag in ignoreTags:
@@ -1347,15 +1370,16 @@ class LabelCore(VisibleBase):
                 endX = inline.inlineXEnd
                 startY = inline.inlineY
                 endY = startY + inline.inlineHeight
-                if left + startX < mouseX < left + endX and top + startY < mouseY < top + endY:
-                    if inline.inlineType == 'localized':
-                        self.auxTooltipPosition = (left + startX,
+                if left + startX < mouseX < left + endX:
+                    if top + startY < mouseY < top + endY:
+                        self.auxTooltipPosition = inline.inlineType == 'localized' and (left + startX,
                          top + startY,
                          endX - startX,
                          inline.inlineHeight)
                         return inline.data
 
         self.auxTooltipPosition = None
+        return
 
     def GetAuxiliaryTooltipPosition(self):
         return self.auxTooltipPosition
@@ -1390,7 +1414,7 @@ class LabelCore(VisibleBase):
                 endX = inline.inlineXEnd
                 startY = inline.inlineY
                 endY = startY + inline.inlineHeight
-                if left + startX < mouseX < left + endX and top + startY < mouseY < top + endY:
+                if (left + startX < mouseX < left + endX and top + startY) < mouseY < top + endY:
                     if inline.inlineType == 'link':
                         inlineLinkObj = inline
                     elif inline.inlineType == 'hint':
@@ -1451,12 +1475,15 @@ class LabelCore(VisibleBase):
             self.Layout()
             if mouseOverUrl:
                 self._hiliteResetTimer = AutoTimer(50, self._ResetInlineHilite)
+        return
 
     def _ResetInlineHilite(self):
         if uicore.uilib.mouseOver is self:
             return
-        self._hiliteResetTimer = None
-        self.CheckInlines()
+        else:
+            self._hiliteResetTimer = None
+            self.CheckInlines()
+            return
 
     def GetStandardLinkHint(self, url):
         return None
@@ -1479,6 +1506,7 @@ class LabelCore(VisibleBase):
         else:
             self._dragLinkData = None
         VisibleBase.OnMouseDown(self, *args)
+        return
 
     def OnMouseDownWithUrl(self, url, *args):
         pass
@@ -1496,16 +1524,19 @@ class LabelCore(VisibleBase):
             entry.url = url
             entry.displayText = StripTags(displayText)
             return [entry]
+        else:
+            return
 
     def MouseOverWordCallback(self, word, *args):
         if getattr(self, 'mouseOverWordCallback', None):
             self.mouseOverWordCallback(word)
+        return
 
     @classmethod
     def PrepareDrag(cls, *args):
         return cls.GetLinkHandlerClass(cls).PrepareDrag(*args)
 
-    def UpdateAlignment(self, budgetLeft = 0, budgetTop = 0, budgetWidth = 0, budgetHeight = 0, updateChildrenOnly = False):
+    def UpdateAlignment(self, budgetLeft=0, budgetTop=0, budgetWidth=0, budgetHeight=0, updateChildrenOnly=False):
         preWidth = self.displayWidth
         preHeight = self.displayHeight
         retBudgetLeft, retBudgetTop, retBudgetWidth, retBudgetHeight, sizeChanged = VisibleBase.UpdateAlignment(self, budgetLeft, budgetTop, budgetWidth, budgetHeight)

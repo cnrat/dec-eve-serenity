@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\carbon\common\stdlib\email\charset.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\carbon\common\stdlib\email\charset.py
 __all__ = ['Charset',
  'add_alias',
  'add_charset',
@@ -62,7 +63,7 @@ CODEC_MAP = {'gb2312': 'eucgb2312_cn',
  'big5': 'big5_tw',
  'us-ascii': None}
 
-def add_charset(charset, header_enc = None, body_enc = None, output_charset = None):
+def add_charset(charset, header_enc=None, body_enc=None, output_charset=None):
     if body_enc == SHORTEST:
         raise ValueError('SHORTEST not allowed for body_enc')
     CHARSETS[charset] = (header_enc, body_enc, output_charset)
@@ -78,7 +79,7 @@ def add_codec(charset, codecname):
 
 class Charset:
 
-    def __init__(self, input_charset = DEFAULT_CHARSET):
+    def __init__(self, input_charset=DEFAULT_CHARSET):
         try:
             if isinstance(input_charset, unicode):
                 input_charset.encode('ascii')
@@ -103,6 +104,7 @@ class Charset:
         self.output_charset = ALIASES.get(conv, conv)
         self.input_codec = CODEC_MAP.get(self.input_charset, self.input_charset)
         self.output_codec = CODEC_MAP.get(self.output_charset, self.output_charset)
+        return
 
     def __str__(self):
         return self.input_charset.lower()
@@ -132,22 +134,28 @@ class Charset:
     def to_splittable(self, s):
         if isinstance(s, unicode) or self.input_codec is None:
             return s
-        try:
-            return unicode(s, self.input_codec, 'replace')
-        except LookupError:
-            return s
+        else:
+            try:
+                return unicode(s, self.input_codec, 'replace')
+            except LookupError:
+                return s
 
-    def from_splittable(self, ustr, to_output = True):
+            return
+
+    def from_splittable(self, ustr, to_output=True):
         if to_output:
             codec = self.output_codec
         else:
             codec = self.input_codec
         if not isinstance(ustr, unicode) or codec is None:
             return ustr
-        try:
-            return ustr.encode(codec, 'replace')
-        except LookupError:
-            return ustr
+        else:
+            try:
+                return ustr.encode(codec, 'replace')
+            except LookupError:
+                return ustr
+
+            return
 
     def get_output_charset(self):
         return self.output_charset or self.input_charset
@@ -165,25 +173,27 @@ class Charset:
         else:
             return len(s)
 
-    def header_encode(self, s, convert = False):
+    def header_encode(self, s, convert=False):
         cset = self.get_output_charset()
         if convert:
             s = self.convert(s)
         if self.header_encoding == BASE64:
             return email.base64mime.header_encode(s, cset)
-        if self.header_encoding == QP:
+        elif self.header_encoding == QP:
             return email.quoprimime.header_encode(s, cset, maxlinelen=None)
-        if self.header_encoding == SHORTEST:
-            lenb64 = email.base64mime.base64_len(s)
-            lenqp = email.quoprimime.header_quopri_len(s)
-            if lenb64 < lenqp:
-                return email.base64mime.header_encode(s, cset)
-            else:
-                return email.quoprimime.header_encode(s, cset, maxlinelen=None)
         else:
-            return s
+            if self.header_encoding == SHORTEST:
+                lenb64 = email.base64mime.base64_len(s)
+                lenqp = email.quoprimime.header_quopri_len(s)
+                if lenb64 < lenqp:
+                    return email.base64mime.header_encode(s, cset)
+                else:
+                    return email.quoprimime.header_encode(s, cset, maxlinelen=None)
+            else:
+                return s
+            return None
 
-    def body_encode(self, s, convert = True):
+    def body_encode(self, s, convert=True):
         if convert:
             s = self.convert(s)
         if self.body_encoding is BASE64:

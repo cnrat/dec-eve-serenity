@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\packages\carbonui\control\windowstack.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\packages\carbonui\control\windowstack.py
 from carbonui.control.window import WindowCoreOverride as Window
 from carbonui.control.window import WindowCore
 from carbonui.primitives.container import Container
@@ -26,6 +27,7 @@ class WindowStackCore(Window):
     def Prepare_LoadingIndicator_(self):
         self.sr.loadingIndicator = None
         self.sr.loadingBlock = None
+        return
 
     def Prepare_ScaleAreas_(self):
         Window.Prepare_ScaleAreas_(self)
@@ -36,11 +38,12 @@ class WindowStackCore(Window):
         self.headerFill = None
         self.sr.captionParent = None
         self.sr.caption = None
+        return
 
     def UpdateCaption(self):
         self.SetCaption(self.GetCaption())
 
-    def GetCaption(self, update = 1):
+    def GetCaption(self, update=1):
         caption = ''
         for wnd in self.GetWindows():
             if wnd is not None and not wnd.destroyed:
@@ -48,10 +51,11 @@ class WindowStackCore(Window):
 
         if caption != '':
             return caption[:-1]
-        return caption
+        else:
+            return caption
 
     def GetCollapsedHeight(self):
-        return 26
+        pass
 
     def OnCollapsed(self, *args):
         self.sr.content.display = False
@@ -74,7 +78,7 @@ class WindowStackCore(Window):
             if wnd.state == uiconst.UI_PICKCHILDREN:
                 wnd.OnEndScale_(wnd)
 
-    def InsertWnd(self, wnd, adjustlocation = 1, show = 0, hilite = 0):
+    def InsertWnd(self, wnd, adjustlocation=1, show=0, hilite=0):
         windowID = getattr(wnd, 'windowID', None)
         preferredIdx = self.GetAndRegisterPreferredIdxInStack(self.windowID, windowID)
         self._inserting = True
@@ -108,6 +112,7 @@ class WindowStackCore(Window):
         if self.IsMinimized():
             self.Maximize()
         wnd.Prepare_ScaleAreas_()
+        return
 
     def SetMinWH(self):
         allMinW = 0
@@ -121,15 +126,17 @@ class WindowStackCore(Window):
         else:
             self.SetMinSize([allMinW, allMinH])
 
-    def ShowWnd(self, wnd, hilite = 0):
+    def ShowWnd(self, wnd, hilite=0):
         if not self.sr.tabs.children:
             return
-        tabparent = self.sr.tabs.children[0]
-        if wnd not in self.GetWindows() or wnd is None or wnd.destroyed:
+        else:
+            tabparent = self.sr.tabs.children[0]
+            if wnd not in self.GetWindows() or wnd is None or wnd.destroyed:
+                return
+            if tabparent is None or tabparent.destroyed:
+                return
+            tabparent.ShowPanel(wnd, hilite)
             return
-        if tabparent is None or tabparent.destroyed:
-            return
-        tabparent.ShowPanel(wnd, hilite)
 
     def GetActiveWindow(self):
         if len(self.sr.tabs.children):
@@ -137,6 +144,8 @@ class WindowStackCore(Window):
             if tabparent is None or tabparent.destroyed:
                 return
             return tabparent.GetVisible()
+        else:
+            return
 
     def IsResizeable(self):
         for wnd in self.GetWindows():
@@ -193,95 +202,101 @@ class WindowStackCore(Window):
     def Detach(self, wnd, grab):
         if self.IsLocked():
             return False
-        if wnd is not None and not wnd.destroyed and not getattr(wnd, '_detaching', 0):
+        elif wnd is not None and not wnd.destroyed and not getattr(wnd, '_detaching', 0):
             self._detaching = True
             self.RemoveWnd(wnd, grab, 1, 0, 1)
             if not self.destroyed:
                 self._detaching = False
             return 1
+        else:
+            return
 
-    def RemoveWnd(self, wnd, grab, correctpos = 1, idx = 0, dragging = 0, check = 1):
+    def RemoveWnd(self, wnd, grab, correctpos=1, idx=0, dragging=0, check=1):
         if wnd.parent != self.sr.content:
             return
-        if hasattr(wnd, 'OnTabSelect'):
-            uthread.worker('WindowStack::RemoveWnd', wnd.OnTabSelect)
-        wnd._detaching = True
-        wnd.SetParent(self.parent, idx)
-        if hasattr(wnd, '_stack_cacheContents'):
-            wnd.cacheContents = wnd._stack_cacheContents
-        wnd.sr.stack = None
-        wnd.sr.tab = None
-        wnd.align = uiconst.TOPLEFT
-        wnd.state = uiconst.UI_NORMAL
-        wnd.grab = grab
-        wnd.dragMousePosition = (uicore.uilib.x, uicore.uilib.y)
-        wnd.width = wnd._fixedWidth or self.width
-        wnd.height = wnd._fixedHeight or self.height
-        if dragging:
-            uicore.uilib.SetMouseCapture(wnd)
-            uthread.new(wnd._BeginDrag)
-        wnd.ShowHeader()
-        wnd.ShowBackground()
-        if correctpos:
-            wnd.left = uicore.uilib.x - grab[0]
-            wnd.top = uicore.uilib.y - grab[1]
-        if check:
-            self.Check()
-        wnd.RegisterStackID()
-        wnd._detaching = False
-        wnd._dragging = dragging
-        myWindows = self.GetWindows()
-        if len(myWindows) == 1 and not self.IsCollapsed():
-            w = myWindows[0]
-            aL, aT, aW, aH = self.GetAbsolute()
-            x, y = aL, aT
-            self.RemoveWnd(w, (0, 0), 1, 1, check=0)
-            w.left, w.top = x, y
+        else:
+            if hasattr(wnd, 'OnTabSelect'):
+                uthread.worker('WindowStack::RemoveWnd', wnd.OnTabSelect)
+            wnd._detaching = True
+            wnd.SetParent(self.parent, idx)
+            if hasattr(wnd, '_stack_cacheContents'):
+                wnd.cacheContents = wnd._stack_cacheContents
+            wnd.sr.stack = None
+            wnd.sr.tab = None
+            wnd.align = uiconst.TOPLEFT
+            wnd.state = uiconst.UI_NORMAL
+            wnd.grab = grab
+            wnd.dragMousePosition = (uicore.uilib.x, uicore.uilib.y)
+            wnd.width = wnd._fixedWidth or self.width
+            wnd.height = wnd._fixedHeight or self.height
+            if dragging:
+                uicore.uilib.SetMouseCapture(wnd)
+                uthread.new(wnd._BeginDrag)
+            wnd.ShowHeader()
+            wnd.ShowBackground()
+            if correctpos:
+                wnd.left = uicore.uilib.x - grab[0]
+                wnd.top = uicore.uilib.y - grab[1]
+            if check:
+                self.Check()
+            wnd.RegisterStackID()
+            wnd._detaching = False
+            wnd._dragging = dragging
+            myWindows = self.GetWindows()
+            if len(myWindows) == 1 and not self.IsCollapsed():
+                w = myWindows[0]
+                aL, aT, aW, aH = self.GetAbsolute()
+                x, y = aL, aT
+                self.RemoveWnd(w, (0, 0), 1, 1, check=0)
+                w.left, w.top = x, y
+                return
+            if len(self.GetWindows()) == 0:
+                self.Close()
             return
-        if len(self.GetWindows()) == 0:
-            self.Close()
 
-    def Check(self, updatewnd = 0, autoselecttab = 1, checknone = 0):
+    def Check(self, updatewnd=0, autoselecttab=1, checknone=0):
         if self is None or self.destroyed:
             return
-        myWindows = self.GetWindows()
-        if checknone and len(myWindows) == 0:
-            self.Close()
+        else:
+            myWindows = self.GetWindows()
+            if checknone and len(myWindows) == 0:
+                self.Close()
+                return
+            self.SetMinWH()
+            tabs = []
+            label = ''
+            for wnd in myWindows:
+                if wnd is None or wnd.destroyed:
+                    continue
+                tabData = Bunch()
+                tabData.label = wnd.GetCaption() or wnd.windowID or '-'
+                tabData.panel = wnd
+                tabData.code = self
+                tabData.args = wnd
+                tabs.append(tabData)
+                wnd.HideHeader()
+                wnd.HideBackground()
+                wnd.state = uiconst.UI_PICKCHILDREN
+                label = label + wnd.GetCaption() + '-'
+
+            if len(tabs):
+                if len(label):
+                    label = label[:-1]
+                self.sr.tabs.Flush()
+                maintabs = self.GetTabGroupClass()(parent=self.sr.tabs, name='tabparent')
+                maintabs.LoadTabs(tabs, autoselecttab)
+                allTabs = maintabs.GetTabs()
+                if allTabs:
+                    for i in xrange(len(allTabs)):
+                        tab = allTabs[i]
+                        wnd = myWindows[i]
+                        tab.GetMenu = getattr(wnd, 'GetMenu', None)
+                        tab.SetIcon(wnd.headerIconNo, getattr(wnd.sr.headerIcon, 'hint', ''), getattr(wnd.sr.headerIcon, 'GetMenu', None))
+                        if wnd.isBlinking:
+                            tab.Blink()
+
+                self.SetCaption(label)
             return
-        self.SetMinWH()
-        tabs = []
-        label = ''
-        for wnd in myWindows:
-            if wnd is None or wnd.destroyed:
-                continue
-            tabData = Bunch()
-            tabData.label = wnd.GetCaption() or wnd.windowID or '-'
-            tabData.panel = wnd
-            tabData.code = self
-            tabData.args = wnd
-            tabs.append(tabData)
-            wnd.HideHeader()
-            wnd.HideBackground()
-            wnd.state = uiconst.UI_PICKCHILDREN
-            label = label + wnd.GetCaption() + '-'
-
-        if len(tabs):
-            if len(label):
-                label = label[:-1]
-            self.sr.tabs.Flush()
-            maintabs = self.GetTabGroupClass()(parent=self.sr.tabs, name='tabparent')
-            maintabs.LoadTabs(tabs, autoselecttab)
-            allTabs = maintabs.GetTabs()
-            if allTabs:
-                for i in xrange(len(allTabs)):
-                    tab = allTabs[i]
-                    wnd = myWindows[i]
-                    tab.GetMenu = getattr(wnd, 'GetMenu', None)
-                    tab.SetIcon(wnd.headerIconNo, getattr(wnd.sr.headerIcon, 'hint', ''), getattr(wnd.sr.headerIcon, 'GetMenu', None))
-                    if wnd.isBlinking:
-                        tab.Blink()
-
-            self.SetCaption(label)
 
     def GetTabGroupClass(self):
         from eve.client.script.ui.control.tabGroup import TabGroup
@@ -307,7 +322,7 @@ class WindowStackCore(Window):
 
         wnd.state = uiconst.UI_PICKCHILDREN
 
-    def GetMinWidth(self, checkgroup = 1):
+    def GetMinWidth(self, checkgroup=1):
         trueMinWidth = self.minsize[0]
         for wnd in self.GetWindows():
             trueMinWidth = max(wnd.GetMinWidth(), trueMinWidth)
@@ -344,7 +359,7 @@ class WindowStackCore(Window):
     def GetWindows(self):
         return [ each for each in self.sr.content.children if isinstance(each, WindowCore) ]
 
-    def RegisterPreferredIdxInStack(self, stackID, windowID, idx = -1):
+    def RegisterPreferredIdxInStack(self, stackID, windowID, idx=-1):
         allPreferred = settings.char.windows.Get('preferredIdxInStack', {})
         stackInfo = allPreferred.get(stackID, {})
         stackInfo[windowID] = idx
@@ -372,6 +387,7 @@ class WindowStackCore(Window):
         else:
             allPreferred[stackID] = stackInfo
         settings.char.windows.Set('preferredIdxInStack', allPreferred)
+        return
 
 
 class WindowStackCoreOverride(WindowStackCore):

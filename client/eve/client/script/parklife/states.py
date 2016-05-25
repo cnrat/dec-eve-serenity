@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\client\script\parklife\states.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\client\script\parklife\states.py
 version = 5
 mouseOver = 1
 selected = 2
@@ -63,5 +64,6 @@ flagRemoteHullRepair = 60
 flagRemoteArmorRepair = 61
 flagShieldTransfer = 62
 multiSelected = 63
+selectedForNavigation = 64
 import carbon.common.script.util.autoexport as autoexport
 exports = autoexport.AutoExports('state', locals())

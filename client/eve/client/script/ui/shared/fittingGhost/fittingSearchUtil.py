@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\client\script\ui\shared\fittingGhost\fittingSearchUtil.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\client\script\ui\shared\fittingGhost\fittingSearchUtil.py
 import itertools
 from eve.common.lib.appConst import GROUP_CAPITALSHIPS
 import evetypes
@@ -25,6 +26,7 @@ class SearchFittingHelper(object):
         self.cpuRequirementsByModuleTypeID = {}
         self.powergridRequirementsByModuleTypeID = {}
         self.searchableTypeIDs = None
+        return
 
     def GetTypeName(self, typeID):
         try:
@@ -146,3 +148,5 @@ class SearchFittingHelper(object):
                 topMarketCategory = None
 
             self.marketCategoryByTypeID[typeID] = topMarketCategory
+
+        return

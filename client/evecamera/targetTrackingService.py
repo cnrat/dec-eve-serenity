@@ -1,4 +1,6 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\packages\evecamera\targetTrackingService.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\packages\evecamera\targetTrackingService.py
+from eve.client.script.ui.camera.cameraUtil import IsNewCameraActive
 import evecamera
 import service
 import carbonui.const as uiconst
@@ -26,6 +28,7 @@ class TargetTrackingService(service.Service):
         self.SetCenteredTrackingState(self.isCentered)
         self.isInitialized = False
         self.waitSelectThread = None
+        return
 
     def GetTargetTracker(self):
         return sm.GetService('sceneManager').GetRegisteredCamera(evecamera.CAM_SPACE_PRIMARY).targetTracker
@@ -36,18 +39,23 @@ class TargetTrackingService(service.Service):
             self.isInitialized = True
 
     def OnStateChange(self, itemID, flag, beingSelected, *args):
-        if flag == state.selected:
-            if beingSelected:
-                self.InitIfNeeded()
-                self.SetSelectedItem(itemID)
-            if not beingSelected and self.selectedItemForTracking == itemID:
-                self.selectedItemForTracking = None
-                self.deselectThread = uthread.new(self.RunDeselectIfNonSelect)
+        if IsNewCameraActive():
+            return
+        else:
+            if flag == state.selected:
+                if beingSelected:
+                    self.InitIfNeeded()
+                    self.SetSelectedItem(itemID)
+                if not beingSelected and self.selectedItemForTracking == itemID:
+                    self.selectedItemForTracking = None
+                    self.deselectThread = uthread.new(self.RunDeselectIfNonSelect)
+            return
 
     def RunDeselectIfNonSelect(self):
         if self.selectedItemForTracking is None:
             self.SetSelectedItem(None)
             self.deselectThread = None
+        return
 
     def MakeNormalizedBoundaries(self):
         self.normalizedBoundaries = (0.05, 0.05, 0.9, 0.9)
@@ -59,6 +67,8 @@ class TargetTrackingService(service.Service):
         self.customOnScreenPoint = trackingUtils.ClampPoint(self.trackerBoundaries, self.customOnScreenPoint)
 
     def OnSetDevice(self):
+        if IsNewCameraActive():
+            return
         if self.isActiveTracking:
             self.SetCenteredTrackingState(self.isCentered)
 
@@ -75,12 +85,14 @@ class TargetTrackingService(service.Service):
     def SetSelectedItems(self, itemIds):
         if self.IsTargetKeyBeingPressed() or len(itemIds) <= 0:
             return
-        self.selectedItemForTracking = itemIds[0]
-        if self.isActiveTracking:
-            self._TrackSelectedItem()
-        elif self.isActiveTracking is None:
-            self.SetActiveTrackingState(on=True, persist=False)
-        self.NotifyTrackingState()
+        else:
+            self.selectedItemForTracking = itemIds[0]
+            if self.isActiveTracking:
+                self._TrackSelectedItem()
+            elif self.isActiveTracking is None:
+                self.SetActiveTrackingState(on=True, persist=False)
+            self.NotifyTrackingState()
+            return
 
     def GetActiveTrackingState(self):
         return self.isActiveTracking
@@ -95,6 +107,7 @@ class TargetTrackingService(service.Service):
     def _PauseActiveTracking(self):
         self.isPaused = True
         self.SetActiveTrackingState(None, persist=False)
+        return
 
     def ToggleActiveTracking(self):
         self.SetActiveTrackingState(self.isActiveTracking is False, persist=True)
@@ -127,17 +140,23 @@ class TargetTrackingService(service.Service):
 
     def _StopTrackingItem(self):
         self.GetTargetTracker().TrackItem(None)
+        return
 
     def OnLookAt(self, itemID):
-        if self.isActiveTracking:
-            self.GetTargetTracker().TrackItem(None)
-            self.GetTargetTracker().TrackItem(self.selectedItemForTracking)
+        if IsNewCameraActive():
+            return
+        else:
+            if self.isActiveTracking:
+                self.GetTargetTracker().TrackItem(None)
+                self.GetTargetTracker().TrackItem(self.selectedItemForTracking)
+            return
 
     def NotifyTrackingState(self):
         isReallyTracking = self.isActiveTracking
         if isReallyTracking and self.selectedItemForTracking is None:
             isReallyTracking = None
         sm.ScatterEvent('OnActiveTrackingChange', isReallyTracking)
+        return
 
     def EnableTrackingCamera(self):
         self.SetActiveTrackingState(on=True, persist=True)
@@ -145,7 +164,7 @@ class TargetTrackingService(service.Service):
     def DisableTrackingCamera(self):
         self.SetActiveTrackingState(on=False, persist=True)
 
-    def SetActiveTrackingState(self, on, persist = False):
+    def SetActiveTrackingState(self, on, persist=False):
         self.isActiveTracking = on
         if on:
             self._TrackSelectedItem()
@@ -158,8 +177,9 @@ class TargetTrackingService(service.Service):
                 sm.GetService('infoGatheringSvc').LogInfoEvent(eventTypeID=const.infoEvenTrackingCameraEnabled, itemID=session.charid, int_1=1, int_2=1 if self.isCentered else 0)
             settings.char.ui.Set('track_selected_item', on)
         self.NotifyTrackingState()
+        return
 
-    def SetCustomTrackingPoint(self, x, y, persist = True):
+    def SetCustomTrackingPoint(self, x, y, persist=True):
         self.normalizedCustomScreenPoint = self.normalizePoint((x, y))
         self.ConformTrackPointToNormalizedBoundaries()
         if persist:
@@ -167,7 +187,7 @@ class TargetTrackingService(service.Service):
         if not self.isCentered and self.isActiveTracking:
             self.SetTrackerToNormalizedPoint(self.normalizedCustomScreenPoint)
 
-    def ShowOnScreenPositionPicker(self, interactive = True):
+    def ShowOnScreenPositionPicker(self, interactive=True):
         if sm.GetService('viewState').GetCurrentView().name != 'inflight':
             return
         self.CreateLocatorIfNotExisting(interactive)
@@ -188,6 +208,7 @@ class TargetTrackingService(service.Service):
             else:
                 pos = self.GetNormalizedCenterPosition()
             self.trackingLocator = TrackingLocator(align=uiconst.TOPLEFT, state=uiconst.UI_NORMAL, parent=uicore.layer.abovemain, idx=0, desiredPosition=pos, interactive=interactive, positionCallback=callback, boundary=self.normalizedBoundaries)
+        return
 
     def DestroyLocatorIfExisting(self):
         if self.trackingLocator and not self.trackingLocator.destroyed:

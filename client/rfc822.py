@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\carbon\common\stdlib\rfc822.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\carbon\common\stdlib\rfc822.py
 import time
 from warnings import warnpy3k
 warnpy3k('in 3.x, rfc822 has been removed in favor of the email package', stacklevel=2)
@@ -11,7 +12,7 @@ _blanklines = ('\r\n', '\n')
 
 class Message():
 
-    def __init__(self, fp, seekable = 1):
+    def __init__(self, fp, seekable=1):
         if seekable == 1:
             try:
                 fp.tell()
@@ -34,6 +35,8 @@ class Message():
                 self.startofbody = self.fp.tell()
             except IOError:
                 self.seekable = 0
+
+        return
 
     def rewindbody(self):
         if not self.seekable:
@@ -95,10 +98,14 @@ class Message():
                     self.status = self.status + '; bad seek'
                 break
 
+        return
+
     def isheader(self, line):
         i = line.find(':')
         if i > 0:
             return line[:i].lower()
+        else:
+            return None
 
     def islast(self, line):
         return line in _blanklines
@@ -141,10 +148,11 @@ class Message():
         lst = self.getfirstmatchingheader(name)
         if not lst:
             return None
-        lst[0] = lst[0][len(name) + 1:]
-        return ''.join(lst)
+        else:
+            lst[0] = lst[0][len(name) + 1:]
+            return ''.join(lst)
 
-    def getheader(self, name, default = None):
+    def getheader(self, name, default=None):
         return self.dict.get(name.lower(), default)
 
     get = getheader
@@ -175,6 +183,7 @@ class Message():
             return alist[0]
         else:
             return (None, None)
+            return None
 
     def getaddrlist(self, name):
         raw = []
@@ -243,7 +252,7 @@ class Message():
         for i in reversed(lst):
             del self.headers[i]
 
-    def setdefault(self, name, default = ''):
+    def setdefault(self, name, default=''):
         lowername = name.lower()
         if lowername in self.dict:
             return self.dict[lowername]
@@ -295,7 +304,8 @@ def parseaddr(address):
     lst = a.addresslist
     if not lst:
         return (None, None)
-    return lst[0]
+    else:
+        return lst[0]
 
 
 class AddrlistClass():
@@ -438,7 +448,7 @@ class AddrlistClass():
 
         return ''.join(sdlist)
 
-    def getdelimited(self, beginchar, endchars, allowcomments = 1):
+    def getdelimited(self, beginchar, endchars, allowcomments=1):
         if self.field[self.pos] != beginchar:
             return ''
         slist = ['']
@@ -471,7 +481,7 @@ class AddrlistClass():
     def getdomainliteral(self):
         return '[%s]' % self.getdelimited('[', ']\r', 0)
 
-    def getatom(self, atomends = None):
+    def getatom(self, atomends=None):
         atomlist = ['']
         if atomends is None:
             atomends = self.atomends
@@ -607,98 +617,100 @@ _timezones = {'UT': 0,
 def parsedate_tz(data):
     if not data:
         return
-    data = data.split()
-    if data[0][-1] in (',', '.') or data[0].lower() in _daynames:
-        del data[0]
     else:
-        i = data[0].rfind(',')
-        if i >= 0:
-            data[0] = data[0][i + 1:]
-    if len(data) == 3:
-        stuff = data[0].split('-')
-        if len(stuff) == 3:
-            data = stuff + data[1:]
-    if len(data) == 4:
-        s = data[3]
-        i = s.find('+')
-        if i > 0:
-            data[3:] = [s[:i], s[i + 1:]]
+        data = data.split()
+        if data[0][-1] in (',', '.') or data[0].lower() in _daynames:
+            del data[0]
         else:
-            data.append('')
-    if len(data) < 5:
-        return
-    data = data[:5]
-    dd, mm, yy, tm, tz = data
-    mm = mm.lower()
-    if mm not in _monthnames:
-        dd, mm = mm, dd.lower()
-        if mm not in _monthnames:
+            i = data[0].rfind(',')
+            if i >= 0:
+                data[0] = data[0][i + 1:]
+        if len(data) == 3:
+            stuff = data[0].split('-')
+            if len(stuff) == 3:
+                data = stuff + data[1:]
+        if len(data) == 4:
+            s = data[3]
+            i = s.find('+')
+            if i > 0:
+                data[3:] = [s[:i], s[i + 1:]]
+            else:
+                data.append('')
+        if len(data) < 5:
             return
-    mm = _monthnames.index(mm) + 1
-    if mm > 12:
-        mm = mm - 12
-    if dd[-1] == ',':
-        dd = dd[:-1]
-    i = yy.find(':')
-    if i > 0:
-        yy, tm = tm, yy
-    if yy[-1] == ',':
-        yy = yy[:-1]
-    if not yy[0].isdigit():
-        yy, tz = tz, yy
-    if tm[-1] == ',':
-        tm = tm[:-1]
-    tm = tm.split(':')
-    if len(tm) == 2:
-        thh, tmm = tm
-        tss = '0'
-    elif len(tm) == 3:
-        thh, tmm, tss = tm
-    else:
-        return
-    try:
-        yy = int(yy)
-        dd = int(dd)
-        thh = int(thh)
-        tmm = int(tmm)
-        tss = int(tss)
-    except ValueError:
-        return
-
-    tzoffset = None
-    tz = tz.upper()
-    if tz in _timezones:
-        tzoffset = _timezones[tz]
-    else:
-        try:
-            tzoffset = int(tz)
-        except ValueError:
-            pass
-
-    if tzoffset:
-        if tzoffset < 0:
-            tzsign = -1
-            tzoffset = -tzoffset
+        data = data[:5]
+        dd, mm, yy, tm, tz = data
+        mm = mm.lower()
+        if mm not in _monthnames:
+            dd, mm = mm, dd.lower()
+            if mm not in _monthnames:
+                return
+        mm = _monthnames.index(mm) + 1
+        if mm > 12:
+            mm = mm - 12
+        if dd[-1] == ',':
+            dd = dd[:-1]
+        i = yy.find(':')
+        if i > 0:
+            yy, tm = tm, yy
+        if yy[-1] == ',':
+            yy = yy[:-1]
+        if not yy[0].isdigit():
+            yy, tz = tz, yy
+        if tm[-1] == ',':
+            tm = tm[:-1]
+        tm = tm.split(':')
+        if len(tm) == 2:
+            thh, tmm = tm
+            tss = '0'
+        elif len(tm) == 3:
+            thh, tmm, tss = tm
         else:
-            tzsign = 1
-        tzoffset = tzsign * (tzoffset // 100 * 3600 + tzoffset % 100 * 60)
-    return (yy,
-     mm,
-     dd,
-     thh,
-     tmm,
-     tss,
-     0,
-     1,
-     0,
-     tzoffset)
+            return
+        try:
+            yy = int(yy)
+            dd = int(dd)
+            thh = int(thh)
+            tmm = int(tmm)
+            tss = int(tss)
+        except ValueError:
+            return
+
+        tzoffset = None
+        tz = tz.upper()
+        if tz in _timezones:
+            tzoffset = _timezones[tz]
+        else:
+            try:
+                tzoffset = int(tz)
+            except ValueError:
+                pass
+
+        if tzoffset:
+            if tzoffset < 0:
+                tzsign = -1
+                tzoffset = -tzoffset
+            else:
+                tzsign = 1
+            tzoffset = tzsign * (tzoffset // 100 * 3600 + tzoffset % 100 * 60)
+        return (yy,
+         mm,
+         dd,
+         thh,
+         tmm,
+         tss,
+         0,
+         1,
+         0,
+         tzoffset)
 
 
 def parsedate(data):
     t = parsedate_tz(data)
     if t is None:
         return t
-    return t[:9]
+    else:
+        return t[:9]
 
 
 def mktime_tz(data):
@@ -707,9 +719,10 @@ def mktime_tz(data):
     else:
         t = time.mktime(data[:8] + (0,))
         return t - data[9] - time.timezone
+        return
 
 
-def formatdate(timeval = None):
+def formatdate(timeval=None):
     if timeval is None:
         timeval = time.time()
     timeval = time.gmtime(timeval)

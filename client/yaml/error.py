@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\carbon\common\stdlib\yaml\error.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\carbon\common\stdlib\yaml\error.py
 __all__ = ['Mark', 'YAMLError', 'MarkedYAMLError']
 
 class Mark(object):
@@ -11,29 +12,30 @@ class Mark(object):
         self.buffer = buffer
         self.pointer = pointer
 
-    def get_snippet(self, indent = 4, max_length = 75):
+    def get_snippet(self, indent=4, max_length=75):
         if self.buffer is None:
             return
-        head = ''
-        start = self.pointer
-        while start > 0 and self.buffer[start - 1] not in u'\x00\r\n\x85\u2028\u2029':
-            start -= 1
-            if self.pointer - start > max_length / 2 - 1:
-                head = ' ... '
-                start += 5
-                break
+        else:
+            head = ''
+            start = self.pointer
+            while start > 0 and self.buffer[start - 1] not in u'\x00\r\n\x85\u2028\u2029':
+                start -= 1
+                if self.pointer - start > max_length / 2 - 1:
+                    head = ' ... '
+                    start += 5
+                    break
 
-        tail = ''
-        end = self.pointer
-        while end < len(self.buffer) and self.buffer[end] not in u'\x00\r\n\x85\u2028\u2029':
-            end += 1
-            if end - self.pointer > max_length / 2 - 1:
-                tail = ' ... '
-                end -= 5
-                break
+            tail = ''
+            end = self.pointer
+            while end < len(self.buffer) and self.buffer[end] not in u'\x00\r\n\x85\u2028\u2029':
+                end += 1
+                if end - self.pointer > max_length / 2 - 1:
+                    tail = ' ... '
+                    end -= 5
+                    break
 
-        snippet = self.buffer[start:end].encode('utf-8')
-        return ' ' * indent + head + snippet + tail + '\n' + ' ' * (indent + self.pointer - start + len(head)) + '^'
+            snippet = self.buffer[start:end].encode('utf-8')
+            return ' ' * indent + head + snippet + tail + '\n' + ' ' * (indent + self.pointer - start + len(head)) + '^'
 
     def __str__(self):
         snippet = self.get_snippet()
@@ -49,7 +51,7 @@ class YAMLError(Exception):
 
 class MarkedYAMLError(YAMLError):
 
-    def __init__(self, context = None, context_mark = None, problem = None, problem_mark = None, note = None):
+    def __init__(self, context=None, context_mark=None, problem=None, problem_mark=None, note=None):
         self.context = context
         self.context_mark = context_mark
         self.problem = problem

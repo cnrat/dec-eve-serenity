@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\carbon\common\stdlib\calendar.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\carbon\common\stdlib\calendar.py
 import sys
 import datetime
 import locale as _locale
@@ -71,7 +72,7 @@ class _localized_month:
             return funcs(self.format)
 
     def __len__(self):
-        return 13
+        pass
 
 
 class _localized_day:
@@ -88,7 +89,7 @@ class _localized_day:
             return funcs(self.format)
 
     def __len__(self):
-        return 7
+        pass
 
 
 day_name = _localized_day('%A')
@@ -121,7 +122,7 @@ def monthrange(year, month):
 
 class Calendar(object):
 
-    def __init__(self, firstweekday = 0):
+    def __init__(self, firstweekday=0):
         self.firstweekday = firstweekday
 
     def getfirstweekday(self):
@@ -173,15 +174,15 @@ class Calendar(object):
         days = list(self.itermonthdays(year, month))
         return [ days[i:i + 7] for i in range(0, len(days), 7) ]
 
-    def yeardatescalendar(self, year, width = 3):
+    def yeardatescalendar(self, year, width=3):
         months = [ self.monthdatescalendar(year, i) for i in range(January, January + 12) ]
         return [ months[i:i + width] for i in range(0, len(months), width) ]
 
-    def yeardays2calendar(self, year, width = 3):
+    def yeardays2calendar(self, year, width=3):
         months = [ self.monthdays2calendar(year, i) for i in range(January, January + 12) ]
         return [ months[i:i + width] for i in range(0, len(months), width) ]
 
-    def yeardayscalendar(self, year, width = 3):
+    def yeardayscalendar(self, year, width=3):
         months = [ self.monthdayscalendar(year, i) for i in range(January, January + 12) ]
         return [ months[i:i + width] for i in range(0, len(months), width) ]
 
@@ -211,16 +212,16 @@ class TextCalendar(Calendar):
     def formatweekheader(self, width):
         return ' '.join((self.formatweekday(i, width) for i in self.iterweekdays()))
 
-    def formatmonthname(self, theyear, themonth, width, withyear = True):
+    def formatmonthname(self, theyear, themonth, width, withyear=True):
         s = month_name[themonth]
         if withyear:
             s = '%s %r' % (s, theyear)
         return s.center(width)
 
-    def prmonth(self, theyear, themonth, w = 0, l = 0):
+    def prmonth(self, theyear, themonth, w=0, l=0):
         print self.formatmonth(theyear, themonth, w, l),
 
-    def formatmonth(self, theyear, themonth, w = 0, l = 0):
+    def formatmonth(self, theyear, themonth, w=0, l=0):
         w = max(2, w)
         l = max(1, l)
         s = self.formatmonthname(theyear, themonth, 7 * (w + 1) - 1)
@@ -234,7 +235,7 @@ class TextCalendar(Calendar):
 
         return s
 
-    def formatyear(self, theyear, w = 2, l = 1, c = 6, m = 3):
+    def formatyear(self, theyear, w=2, l=1, c=6, m=3):
         w = max(2, w)
         l = max(1, l)
         c = max(2, c)
@@ -267,7 +268,7 @@ class TextCalendar(Calendar):
 
         return ''.join(v)
 
-    def pryear(self, theyear, w = 0, l = 0, c = 6, m = 3):
+    def pryear(self, theyear, w=0, l=0, c=6, m=3):
         print self.formatyear(theyear, w, l, c, m)
 
 
@@ -297,14 +298,14 @@ class HTMLCalendar(Calendar):
         s = ''.join((self.formatweekday(i) for i in self.iterweekdays()))
         return '<tr>%s</tr>' % s
 
-    def formatmonthname(self, theyear, themonth, withyear = True):
+    def formatmonthname(self, theyear, themonth, withyear=True):
         if withyear:
             s = '%s %s' % (month_name[themonth], theyear)
         else:
             s = '%s' % month_name[themonth]
         return '<tr><th colspan="7" class="month">%s</th></tr>' % s
 
-    def formatmonth(self, theyear, themonth, withyear = True):
+    def formatmonth(self, theyear, themonth, withyear=True):
         v = []
         a = v.append
         a('<table border="0" cellpadding="0" cellspacing="0" class="month">')
@@ -321,7 +322,7 @@ class HTMLCalendar(Calendar):
         a('\n')
         return ''.join(v)
 
-    def formatyear(self, theyear, width = 3):
+    def formatyear(self, theyear, width=3):
         v = []
         a = v.append
         width = max(width, 1)
@@ -341,7 +342,7 @@ class HTMLCalendar(Calendar):
         a('</table>')
         return ''.join(v)
 
-    def formatyearpage(self, theyear, width = 3, css = 'calendar.css', encoding = None):
+    def formatyearpage(self, theyear, width=3, css='calendar.css', encoding=None):
         if encoding is None:
             encoding = sys.getdefaultencoding()
         v = []
@@ -377,11 +378,12 @@ class TimeEncoding:
 
 class LocaleTextCalendar(TextCalendar):
 
-    def __init__(self, firstweekday = 0, locale = None):
+    def __init__(self, firstweekday=0, locale=None):
         TextCalendar.__init__(self, firstweekday)
         if locale is None:
             locale = _locale.getdefaultlocale()
         self.locale = locale
+        return
 
     def formatweekday(self, day, width):
         with TimeEncoding(self.locale) as encoding:
@@ -393,8 +395,9 @@ class LocaleTextCalendar(TextCalendar):
             if encoding is not None:
                 name = name.decode(encoding)
             return name[:width].center(width)
+        return
 
-    def formatmonthname(self, theyear, themonth, width, withyear = True):
+    def formatmonthname(self, theyear, themonth, width, withyear=True):
         with TimeEncoding(self.locale) as encoding:
             s = month_name[themonth]
             if encoding is not None:
@@ -402,15 +405,17 @@ class LocaleTextCalendar(TextCalendar):
             if withyear:
                 s = '%s %r' % (s, theyear)
             return s.center(width)
+        return
 
 
 class LocaleHTMLCalendar(HTMLCalendar):
 
-    def __init__(self, firstweekday = 0, locale = None):
+    def __init__(self, firstweekday=0, locale=None):
         HTMLCalendar.__init__(self, firstweekday)
         if locale is None:
             locale = _locale.getdefaultlocale()
         self.locale = locale
+        return
 
     def formatweekday(self, day):
         with TimeEncoding(self.locale) as encoding:
@@ -418,8 +423,9 @@ class LocaleHTMLCalendar(HTMLCalendar):
             if encoding is not None:
                 s = s.decode(encoding)
             return '<th class="%s">%s</th>' % (self.cssclasses[day], s)
+        return
 
-    def formatmonthname(self, theyear, themonth, withyear = True):
+    def formatmonthname(self, theyear, themonth, withyear=True):
         with TimeEncoding(self.locale) as encoding:
             s = month_name[themonth]
             if encoding is not None:
@@ -427,6 +433,7 @@ class LocaleHTMLCalendar(HTMLCalendar):
             if withyear:
                 s = '%s %s' % (s, theyear)
             return '<tr><th colspan="7" class="month">%s</th></tr>' % s
+        return
 
 
 c = TextCalendar()
@@ -454,11 +461,11 @@ prcal = c.pryear
 _colwidth = 20
 _spacing = 6
 
-def format(cols, colwidth = _colwidth, spacing = _spacing):
+def format(cols, colwidth=_colwidth, spacing=_spacing):
     print formatstring(cols, colwidth, spacing)
 
 
-def formatstring(cols, colwidth = _colwidth, spacing = _spacing):
+def formatstring(cols, colwidth=_colwidth, spacing=_spacing):
     spacing *= ' '
     return spacing.join((c.center(colwidth) for c in cols))
 
@@ -528,6 +535,7 @@ def main(args):
         if options.encoding:
             result = result.encode(options.encoding)
         print result
+    return
 
 
 if __name__ == '__main__':

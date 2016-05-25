@@ -1,8 +1,9 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\packages\trinity\crashdriver.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\packages\trinity\crashdriver.py
 import os
 import sys
 
-def crash(done = None):
+def crash(done=None):
     import blue
     import trinity
     import uthread2

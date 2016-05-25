@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\devtools\script\svc_intruder.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\devtools\script\svc_intruder.py
 import blue
 import listentry
 import uiutil
@@ -64,10 +65,11 @@ class Intruder(Service):
     __displayname__ = SERVICENAME
     __neocommenuitem__ = (('Super Search', 'res:/ui/Texture/WindowIcons/peopleandplaces.png'), 'Show', ROLEMASK_ELEVATEDPLAYER)
 
-    def Run(self, memStream = None):
+    def Run(self, memStream=None):
         self.wnd = None
+        return
 
-    def Stop(self, memStream = None):
+    def Stop(self, memStream=None):
         self.Hide()
         Service.Stop(self, memStream)
 
@@ -75,28 +77,31 @@ class Intruder(Service):
         if self.wnd:
             self.wnd.Maximize()
             return
-        self.wnd = wnd = uicontrols.Window.Open(windowID='Super Search')
-        wnd._OnClose = self.Hide
-        wnd.SetWndIcon(None)
-        wnd.SetTopparentHeight(0)
-        wnd.SetCaption('Super Search')
-        wnd.SetMinSize([256, 256])
-        main = uiprimitives.Container(name='main', parent=uiutil.GetChild(wnd, 'main'), pos=(const.defaultPadding,
-         const.defaultPadding,
-         const.defaultPadding,
-         const.defaultPadding))
-        top = uiprimitives.Container(name='top', parent=main, height=25, align=uiconst.TOTOP)
-        btn = uicontrols.Button(parent=top, label='Search', align=uiconst.TORIGHT, func=self.Search)
-        self.input = uicontrols.SinglelineEdit(name='system', parent=top, width=-1, height=-1, align=uiconst.TOALL, left=1)
-        self.input.OnReturn = self.Search
-        uiprimitives.Container(name='div', parent=main, height=5, align=uiconst.TOTOP)
-        self.scroll = uicontrols.Scroll(parent=main)
-        self.scroll.Load(contentList=[], headers=['Type', 'itemID', 'Name'], fixedEntryHeight=18)
+        else:
+            self.wnd = wnd = uicontrols.Window.Open(windowID='Super Search')
+            wnd._OnClose = self.Hide
+            wnd.SetWndIcon(None)
+            wnd.SetTopparentHeight(0)
+            wnd.SetCaption('Super Search')
+            wnd.SetMinSize([256, 256])
+            main = uiprimitives.Container(name='main', parent=uiutil.GetChild(wnd, 'main'), pos=(const.defaultPadding,
+             const.defaultPadding,
+             const.defaultPadding,
+             const.defaultPadding))
+            top = uiprimitives.Container(name='top', parent=main, height=25, align=uiconst.TOTOP)
+            btn = uicontrols.Button(parent=top, label='Search', align=uiconst.TORIGHT, func=self.Search)
+            self.input = uicontrols.SinglelineEdit(name='system', parent=top, width=-1, height=-1, align=uiconst.TOALL, left=1)
+            self.input.OnReturn = self.Search
+            uiprimitives.Container(name='div', parent=main, height=5, align=uiconst.TOTOP)
+            self.scroll = uicontrols.Scroll(parent=main)
+            self.scroll.Load(contentList=[], headers=['Type', 'itemID', 'Name'], fixedEntryHeight=18)
+            return
 
     def Hide(self, *args):
         if self.wnd:
             self.wnd.Close()
             self.wnd = None
+        return
 
     def ProcessRestartUI(self):
         if self.wnd:

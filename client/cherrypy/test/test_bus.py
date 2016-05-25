@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\carbon\common\lib\cherrypy\test\test_bus.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\carbon\common\lib\cherrypy\test\test_bus.py
 import threading
 import time
 import unittest
@@ -11,7 +12,7 @@ class PublishSubscribeTests(unittest.TestCase):
 
     def get_listener(self, channel, index):
 
-        def listener(arg = None):
+        def listener(arg=None):
             self.responses.append(msg % (index, channel, arg))
 
         return listener
@@ -33,6 +34,7 @@ class PublishSubscribeTests(unittest.TestCase):
             expected.extend([ msg % (i, channel, 79347) for i in (2, 1, 3, 0) ])
 
         self.assertEqual(self.responses, expected)
+        return
 
     def test_custom_channels(self):
         b = wspbus.Bus()
@@ -52,6 +54,7 @@ class PublishSubscribeTests(unittest.TestCase):
             expected.extend([ msg % (i, channel, None) for i in (1, 3, 0, 2) ])
 
         self.assertEqual(self.responses, expected)
+        return
 
     def test_listener_errors(self):
         b = wspbus.Bus()
@@ -83,7 +86,7 @@ class BusMethodTests(unittest.TestCase):
 
     def get_listener(self, channel, index):
 
-        def listener(arg = None):
+        def listener(arg=None):
             self.responses.append(msg % (index, channel, arg))
 
         return listener
@@ -104,6 +107,8 @@ class BusMethodTests(unittest.TestCase):
         finally:
             b.exit()
 
+        return
+
     def test_stop(self):
         b = wspbus.Bus()
         self.log(b)
@@ -116,6 +121,7 @@ class BusMethodTests(unittest.TestCase):
         self.assertEqual(set(self.responses), set([ msg % (i, 'stop', None) for i in range(num) ]))
         self.assertEqual(b.state, b.states.STOPPED)
         self.assertLog(['Bus STOPPING', 'Bus STOPPED'])
+        return
 
     def test_graceful(self):
         b = wspbus.Bus()
@@ -128,6 +134,7 @@ class BusMethodTests(unittest.TestCase):
         b.graceful()
         self.assertEqual(set(self.responses), set([ msg % (i, 'graceful', None) for i in range(num) ]))
         self.assertLog(['Bus graceful'])
+        return
 
     def test_exit(self):
         b = wspbus.Bus()
@@ -145,6 +152,7 @@ class BusMethodTests(unittest.TestCase):
          'Bus STOPPED',
          'Bus EXITING',
          'Bus EXITED'])
+        return
 
     def test_wait(self):
         b = wspbus.Bus()

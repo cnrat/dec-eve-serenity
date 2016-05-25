@@ -1,10 +1,11 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\packages\achievements\common\statsTracker.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\packages\achievements\common\statsTracker.py
 from collections import defaultdict
 import gametime
 
 class StatsTracker(object):
 
-    def __init__(self, achievementGroups = None):
+    def __init__(self, achievementGroups=None):
         self.statistics = defaultdict(int)
         self.extraInfo = {}
         self.achievedDict = {}
@@ -22,7 +23,7 @@ class StatsTracker(object):
     def CheckDidJustUnlockGroup(self, taskID):
         pass
 
-    def LogStatistic(self, key, count = 1, addToUnlogged = True):
+    def LogStatistic(self, key, count=1, addToUnlogged=True):
         self.ThrowErrorIfBelowZero(count)
         if count < 1:
             return
@@ -36,7 +37,7 @@ class StatsTracker(object):
     def GetCurrentAchievements(self):
         return self.achievedDict.copy()
 
-    def AddAchievement(self, achievementID, addToUnlogged = True, dateAchieved = None):
+    def AddAchievement(self, achievementID, addToUnlogged=True, dateAchieved=None):
         if achievementID in self.achievedDict:
             return
         if dateAchieved:
@@ -73,6 +74,7 @@ class StatsTracker(object):
 
     def RemoveEvent(self, eventName):
         self.statistics.pop(eventName, None)
+        return
 
     def IsSomethingUnlogged(self):
         return bool(self.GetUnloggedAchievements() or self.GetUnloggedStats())

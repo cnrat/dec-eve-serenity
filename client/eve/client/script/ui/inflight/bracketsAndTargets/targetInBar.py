@@ -1,8 +1,13 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\client\script\ui\inflight\bracketsAndTargets\targetInBar.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\client\script\ui\inflight\bracketsAndTargets\targetInBar.py
 import base
 import blue
 import carbonui.const as uiconst
+from eve.client.script.ui.inflight.squadrons.shipFighterState import GetShipFighterState
+from eve.client.script.ui.inflight.squadrons.squadronManagementCont import SquadronNumber
 import evetypes
+import fighters
+from fighters import GetAbilityIDForSlot
 import localization
 import math
 import random
@@ -21,8 +26,6 @@ from eve.client.script.ui.inflight.moduleEffectTimer import ModuleEffectTimer
 from eve.client.script.ui.shared.stateFlag import AddAndSetFlagIcon
 from gametime import GetDurationInClient
 from spacecomponents.client.messages import MSG_ON_TARGET_BRACKET_ADDED, MSG_ON_TARGET_BRACKET_REMOVED
-from spacecomponents.common.componentConst import TURBO_SHIELD_CLASS
-from spacecomponents.common.helper import HasTurboShieldComponent
 accuracyThreshold = 0.8
 SHIELD = 0
 ARMOR = 1
@@ -62,6 +65,7 @@ class TargetInBar(uicontrols.ContainerAutoSize):
         self.innerHealthBorder = pow(28, 2)
         self.outerHealthBorder = pow(42, 2)
         self._hoverThread = None
+        return
 
     def OnUIRefresh(self):
         self.Flush()
@@ -70,6 +74,7 @@ class TargetInBar(uicontrols.ContainerAutoSize):
         if bp is not None:
             slimItem = bp.GetInvItem(self.id)
         self.Startup(slimItem)
+        return
 
     def GetTargetDragData(self, *args):
         if settings.user.ui.Get('targetPositionLocked', 0):
@@ -78,11 +83,12 @@ class TargetInBar(uicontrols.ContainerAutoSize):
 
     def Startup(self, slimItem):
         sm.RegisterNotify(self)
+        GetShipFighterState().ConnectFighterTargetUpdatedHandler(self._OnFighterTargetUpdate)
         self.ball = _weakref.ref(sm.GetService('michelle').GetBall(slimItem.itemID))
         self.slimItem = _weakref.ref(slimItem)
         self.id = slimItem.itemID
         self.itemID = slimItem.itemID
-        self.updatedamage = slimItem.categoryID != const.categoryAsteroid and slimItem.groupID != const.groupHarvestableCloud and slimItem.groupID != const.groupOrbitalTarget
+        self.updatedamage = slimItem.categoryID not in (const.categoryAsteroid, const.categoryFighter) and slimItem.groupID not in (const.groupHarvestableCloud, const.groupOrbitalTarget)
         self.AddUIObjects(slimItem, self.itemID)
         iconPar = self.sr.iconPar
         barAndImageCont = self.barAndImageCont
@@ -100,6 +106,7 @@ class TargetInBar(uicontrols.ContainerAutoSize):
         self.sr.activeTarget.RotateArrows()
         labelClass = uicontrols.EveLabelSmall
         labelContainer = uicontrols.ContainerAutoSize(parent=self, name='labelContainer', align=uiconst.TOTOP)
+        self.labelContainer = labelContainer
         self.sr.label = labelClass(text=' ', parent=labelContainer, align=uiconst.TOTOP, state=uiconst.UI_DISABLED, maxLines=1)
         self.sr.label2 = labelClass(text=' ', parent=labelContainer, align=uiconst.TOTOP, state=uiconst.UI_DISABLED, maxLines=1)
         self.sr.shipLabel = labelClass(text=' ', parent=labelContainer, align=uiconst.TOTOP, state=uiconst.UI_DISABLED, maxLines=1)
@@ -129,12 +136,24 @@ class TargetInBar(uicontrols.ContainerAutoSize):
                     self.AddWeapon(moduleInfo)
                     self.activeModules[moduleID] = moduleInfo
 
+        self._AddActiveFighterAbilities()
+
+    def AddUIDeathObjects(self, discSize):
+        self.skullSprite = uiprimitives.Sprite(name='skullSprite', parent=self.sr.iconPar, align=uiconst.CENTER, texturePath='res:/UI/Texture/Icons/target_killed_skull.png', width=64, height=64)
+        self.skullSprite.display = False
+        self.discSprite = uiprimitives.Sprite(name='discSprite', parent=self.sr.iconPar, align=uiconst.CENTER, texturePath='res:/UI/Texture/Icons/target_killed.png', width=discSize, height=discSize)
+        self.discSprite.display = False
+        self.lineSprite = uiprimitives.Sprite(name='lineSprite', parent=self.barAndImageCont, align=uiconst.CENTER, texturePath='res:/UI/Texture/Icons/target_killed_line.png', width=100, height=100)
+        self.lineSprite.display = False
+
     def AddUIObjects(self, slimItem, itemID, *args):
         barAndImageCont = uiprimitives.Container(parent=self, name='barAndImageCont', align=uiconst.TOTOP, height=100, state=uiconst.UI_NORMAL)
         self.barAndImageCont = barAndImageCont
         self.iconSize = iconSize = 94
-        iconPar = uiprimitives.Container(parent=barAndImageCont, name='iconPar', width=iconSize, height=iconSize, align=uiconst.CENTERTOP, state=uiconst.UI_DISABLED)
+        iconPar = uiprimitives.Transform(parent=barAndImageCont, name='iconPar', width=iconSize, height=iconSize, align=uiconst.CENTERTOP, state=uiconst.UI_DISABLED)
+        iconPar.scalingCenter = (0.5, 0.5)
         self.sr.iconPar = iconPar
+        self.AddUIDeathObjects(94)
         maskSize = 50
         iconPadding = (iconSize - maskSize) / 2
         icon = uicontrols.Icon(parent=iconPar, left=iconPadding, top=iconPadding, width=maskSize, height=maskSize, typeID=slimItem.typeID, textureSecondaryPath='res:/UI/Texture/classes/Target/shipMask.png', color=(1.0, 1.0, 1.0, 1.0), blendMode=1, spriteEffect=trinity.TR2_SFX_MODULATE, state=uiconst.UI_DISABLED, ignoreSize=True)
@@ -270,33 +289,36 @@ class TargetInBar(uicontrols.ContainerAutoSize):
         if self._hoverThread:
             self._hoverThread.kill()
             self._hoverThread = None
+        return
 
     def OnTargetMouseHover(self, *args):
         if not self.sr.iconPar or self.sr.iconPar.destroyed or not getattr(self, 'healthBar', None):
             self.KillHoverThread()
             return
-        if self.healthBar.destroyed:
+        elif self.healthBar.destroyed:
             self.KillHoverThread()
             return
-        l, t, w, h = self.sr.iconPar.GetAbsolute()
-        cX = w / 2 + l
-        cY = h / 2 + t
-        x = uicore.uilib.x - cX
-        y = uicore.uilib.y - cY
-        if y > 55:
-            self.barAndImageCont.SetHint('')
+        else:
+            l, t, w, h = self.sr.iconPar.GetAbsolute()
+            cX = w / 2 + l
+            cY = h / 2 + t
+            x = uicore.uilib.x - cX
+            y = uicore.uilib.y - cY
+            if y > 55:
+                self.barAndImageCont.SetHint('')
+                return
+            length2 = pow(x, 2) + pow(y, 2)
+            if length2 < self.innerHealthBorder or length2 > self.outerHealthBorder:
+                self.barAndImageCont.SetHint('')
+                return
+            rad = math.atan2(y, x)
+            degrees = 180 * rad / math.pi
+            if degrees < 0:
+                degrees = 360 + degrees
+            if degrees > 45 and degrees < 135:
+                return
+            self.SetHintText()
             return
-        length2 = pow(x, 2) + pow(y, 2)
-        if length2 < self.innerHealthBorder or length2 > self.outerHealthBorder:
-            self.barAndImageCont.SetHint('')
-            return
-        rad = math.atan2(y, x)
-        degrees = 180 * rad / math.pi
-        if degrees < 0:
-            degrees = 360 + degrees
-        if degrees > 45 and degrees < 135:
-            return
-        self.SetHintText()
 
     def SetHintText(self):
         hintList = []
@@ -314,6 +336,7 @@ class TargetInBar(uicontrols.ContainerAutoSize):
             hintList.append(localization.GetByLabel('UI/Inflight/Target/GaugeStructureRemaining', percentage=percLeft))
         hint = '<br>'.join(hintList)
         self.barAndImageCont.SetHint(hint)
+        return
 
     def GetShipID(self):
         return self.itemID
@@ -326,6 +349,53 @@ class TargetInBar(uicontrols.ContainerAutoSize):
     def _OnClose(self, *args):
         sm.UnregisterNotify(self)
         self.sr.updateTimer = None
+        GetShipFighterState().DisconnectFighterTargetUpdatedHandler(self._OnFighterTargetUpdate)
+        return
+
+    def _AddActiveFighterAbilities(self):
+        abilitiesOnTarget = GetShipFighterState().abilityTargetTracker.GetFighterAbilitiesForTarget(self.itemID)
+        for fighterID, abilitySlotID in abilitiesOnTarget:
+            self._AddFighterAbility(fighterID, abilitySlotID)
+
+        self.ArrangeWeapons()
+        self.SetSizeAutomatically()
+        uthread.new(sm.GetService('target').AdjustRowSize)
+
+    def _OnFighterTargetUpdate(self, fighterID, abilitySlotID, targetID):
+        if targetID != self.itemID:
+            return
+        abilitiesOnTarget = GetShipFighterState().abilityTargetTracker.GetFighterAbilitiesForTarget(self.itemID)
+        if (fighterID, abilitySlotID) in abilitiesOnTarget:
+            self._AddFighterAbility(fighterID, abilitySlotID)
+        else:
+            self._RemoveFighterAbility(fighterID, abilitySlotID)
+        self.ArrangeWeapons()
+        self.SetSizeAutomatically()
+        uthread.new(sm.GetService('target').AdjustRowSize)
+
+    def _AddFighterAbility(self, fighterID, abilitySlotID):
+        fighterState = GetShipFighterState()
+        fighter = fighterState.GetFighterInSpaceByID(fighterID)
+        fighterTypeID = fighter.typeID
+        cont = uiprimitives.Container(parent=self.sr.assigned, align=uiconst.RELATIVE, width=32, height=32, state=uiconst.UI_HIDDEN)
+        abilityID = GetAbilityIDForSlot(fighterTypeID, abilitySlotID)
+        abilityInfo = fighters.AbilityStorage()[abilityID]
+        abilityIconID = abilityInfo.iconID
+        icon = uicontrols.Icon(parent=cont, align=uiconst.TOALL, width=0, height=0, state=uiconst.UI_NORMAL, icon=abilityIconID)
+        cont.sr.moduleID = (fighterID, abilitySlotID)
+        cont.sr.fighterID = fighterID
+        cont.sr.abilitySlotID = abilitySlotID
+        cont.icon = icon
+        icon.sr.fighterID = fighterID
+        icon.sr.abilitySlotID = abilitySlotID
+        squadronNumber = SquadronNumber(parent=cont, top=-2, left=-4, idx=0)
+        squadronNumber.SetColor()
+        squadronNumber.SetText(fighter.tubeFlagID)
+
+    def _RemoveFighterAbility(self, fighterID, abilitySlotID):
+        iconCont = self.GetWeapon((fighterID, abilitySlotID))
+        if iconCont:
+            iconCont.Close()
 
     def ProcessShipEffect(self, godmaStm, effectState):
         slimItem = self.slimItem()
@@ -340,38 +410,34 @@ class TargetInBar(uicontrols.ContainerAutoSize):
             else:
                 self.RemoveWeapon(effectState.itemID)
                 self.activeModules.pop(effectState.itemID, None)
+        return
 
     def AddWeapon(self, moduleInfo):
         if self is None or self.destroyed:
             return
-        cont = uiprimitives.Container(parent=self.sr.assigned, align=uiconst.RELATIVE, width=32, height=32, state=uiconst.UI_HIDDEN)
-        icon = uicontrols.Icon(parent=cont, align=uiconst.TOALL, width=0, height=0, state=uiconst.UI_NORMAL, typeID=moduleInfo.typeID)
-        cont.sr.moduleID = moduleInfo.itemID
-        cont.icon = icon
-        icon.sr.moduleID = moduleInfo.itemID
-        icon.OnClick = (self.ClickWeapon, icon)
-        icon.OnMouseEnter = (self.OnMouseEnterWeapon, icon)
-        icon.OnMouseExit = (self.OnMouseExitWeapon, icon)
-        icon.OnMouseHover = (self.OnMouseHoverWeapon, icon)
-        if self.IsECMModule(moduleInfo.typeID):
-            icon.baseAlpha = 0.3
         else:
-            icon.baseAlpha = 1.0
-        icon.SetAlpha(icon.baseAlpha)
-        timerRightCounterTexturePath = 'res:/UI/Texture/classes/Target/ecmCounterRight.png'
-        timerLeftCounterTexturePath = 'res:/UI/Texture/classes/Target/ecmCounterLeft.png'
-        timerCounterGaugeTexturePath = 'res:/UI/Texture/classes/Target/ecmCounterGauge.png'
-        cont.timer = ModuleEffectTimer(parent=cont, blink=True, timerRightCounterTexturePath=timerRightCounterTexturePath, timerLeftCounterTexturePath=timerLeftCounterTexturePath, timerCounterGaugeTexturePath=timerCounterGaugeTexturePath)
-        self.ArrangeWeapons()
-        self.SetSizeAutomatically()
-        uthread.new(sm.GetService('target').AdjustRowSize)
-
-    def IsECMModule(self, typeID, *args):
-        try:
-            effect = sm.GetService('godma').GetStateManager().GetDefaultEffect(typeID)
-            return cfg.dgmeffects.Get(effect.effectID).electronicChance
-        except KeyError:
-            return False
+            cont = uiprimitives.Container(parent=self.sr.assigned, align=uiconst.RELATIVE, width=32, height=32, state=uiconst.UI_HIDDEN)
+            icon = uicontrols.Icon(parent=cont, align=uiconst.TOALL, width=0, height=0, state=uiconst.UI_NORMAL, typeID=moduleInfo.typeID)
+            cont.sr.moduleID = moduleInfo.itemID
+            cont.icon = icon
+            icon.sr.moduleID = moduleInfo.itemID
+            icon.OnClick = (self.ClickWeapon, icon)
+            icon.OnMouseEnter = (self.OnMouseEnterWeapon, icon)
+            icon.OnMouseExit = (self.OnMouseExitWeapon, icon)
+            icon.OnMouseHover = (self.OnMouseHoverWeapon, icon)
+            if moduleInfo.groupID == const.groupElectronicCounterMeasures:
+                icon.baseAlpha = 0.3
+            else:
+                icon.baseAlpha = 1.0
+            icon.SetAlpha(icon.baseAlpha)
+            timerRightCounterTexturePath = 'res:/UI/Texture/classes/Target/ecmCounterRight.png'
+            timerLeftCounterTexturePath = 'res:/UI/Texture/classes/Target/ecmCounterLeft.png'
+            timerCounterGaugeTexturePath = 'res:/UI/Texture/classes/Target/ecmCounterGauge.png'
+            cont.timer = ModuleEffectTimer(parent=cont, blink=True, timerRightCounterTexturePath=timerRightCounterTexturePath, timerLeftCounterTexturePath=timerLeftCounterTexturePath, timerCounterGaugeTexturePath=timerCounterGaugeTexturePath)
+            self.ArrangeWeapons()
+            self.SetSizeAutomatically()
+            uthread.new(sm.GetService('target').AdjustRowSize)
+            return
 
     def ClickWeapon(self, icon):
         if uicore.layer.shipui:
@@ -385,12 +451,14 @@ class TargetInBar(uicontrols.ContainerAutoSize):
             module.InitHilite()
             module.sr.hilite.display = True
         sm.GetService('bracket').ShowHairlinesForModule(icon.sr.moduleID, reverse=True)
+        return
 
     def OnMouseExitWeapon(self, icon):
         module = uicore.layer.shipui.GetModuleFromID(icon.sr.moduleID)
         if module is not None:
             module.RemoveHilite()
         sm.GetService('bracket').StopShowingModuleRange(icon.sr.moduleID)
+        return
 
     def OnMouseHoverWeapon(self, icon):
         if icon.sr.moduleID in self.jammingModules:
@@ -447,20 +515,26 @@ class TargetInBar(uicontrols.ContainerAutoSize):
     def GetWeapon(self, moduleID):
         if self is None or self.destroyed:
             return
-        if self.sr.assigned:
-            for cont in self.sr.assigned.children:
-                if isinstance(cont, uicontrols.Frame):
-                    continue
-                if cont.sr.moduleID == moduleID:
-                    return cont
+        else:
+            if self.sr.assigned:
+                for cont in self.sr.assigned.children:
+                    if isinstance(cont, uicontrols.Frame):
+                        continue
+                    if cont.sr.moduleID == moduleID:
+                        return cont
+
+            return
 
     def GetModuleInfo(self, moduleID):
         ship = sm.GetService('godma').GetItem(eve.session.shipid)
         if ship is None:
             return
-        for module in ship.modules:
-            if module.itemID == moduleID:
-                return module
+        else:
+            for module in ship.modules:
+                if module.itemID == moduleID:
+                    return module
+
+            return
 
     def ResetModuleIcon(self, moduleID, *args):
         if moduleID in self.activeModules:
@@ -482,6 +556,7 @@ class TargetInBar(uicontrols.ContainerAutoSize):
         if getattr(self, 'slimItem', None):
             if sm.GetService('menu').TryExpandActionMenu(self.itemID, self.barAndImageCont):
                 return
+        return
 
     def OnBeginMoveTarget(self, *args):
         sm.GetService('target').OnMoveTarget(self)
@@ -490,6 +565,7 @@ class TargetInBar(uicontrols.ContainerAutoSize):
         sm.GetService('state').SetState(self.id, state.mouseOver, 1)
         if self._hoverThread is None:
             self._hoverThread = uthread.new(self._HoverThread)
+        return
 
     def OnTargetMouseExit(self, *args):
         sm.GetService('state').SetState(self.itemID, state.mouseOver, 0)
@@ -605,22 +681,36 @@ class TargetInBar(uicontrols.ContainerAutoSize):
         droneIcon = self.GetWeapon('drones')
         if droneIcon is None:
             return
-        for droneID, droneTypeID in self.drones.iteritems():
-            if droneTypeID not in dronesByTypeID:
-                dronesByTypeID[droneTypeID] = 0
-            dronesByTypeID[droneTypeID] += 1
+        else:
+            for droneID, droneTypeID in self.drones.iteritems():
+                if droneTypeID not in dronesByTypeID:
+                    dronesByTypeID[droneTypeID] = 0
+                dronesByTypeID[droneTypeID] += 1
 
-        hintLines = []
-        for droneTypeID, number in dronesByTypeID.iteritems():
-            hintLines.append(localization.GetByLabel('UI/Inflight/Target/DroneHintLine', drone=droneTypeID, count=number))
+            hintLines = []
+            for droneTypeID, number in dronesByTypeID.iteritems():
+                hintLines.append(localization.GetByLabel('UI/Inflight/Target/DroneHintLine', drone=droneTypeID, count=number))
 
-        droneIcon.icon.hint = localization.GetByLabel('UI/Inflight/Target/DroneHintLabel', droneHintLines='<br>'.join(hintLines))
+            droneIcon.icon.hint = localization.GetByLabel('UI/Inflight/Target/DroneHintLabel', droneHintLines='<br>'.join(hintLines))
+            return
 
     def StartDeathAnimation(self):
         self.state = uiconst.UI_DISABLED
-        duration = 0.2
-        uicore.animations.MorphScalar(self.sr.activeTarget, 'opacity', startVal=self.sr.activeTarget.opacity, endVal=0.0, duration=duration)
-        uicore.animations.BlinkOut(self, startVal=1.0, endVal=0.0, duration=duration, loops=5, sleep=True)
+        if hasattr(self, 'healthBar'):
+            self.healthBar.SetDamage([0.0,
+             0.0,
+             0.0,
+             0.0,
+             0.0])
+        blue.synchro.SleepSim(random.random() * 200.0)
+        sm.GetService('audio').SendUIEvent('target_destroy_play')
+        self.discSprite.display = True
+        discCurve = ((0.0, (1.0, 0.0, 0.0, 0.0)), (0.1, (1.0, 0.0, 0.0, 0.6)), (2.0, (1.0, 0.0, 0.0, 0.6)))
+        uicore.animations.SpColorMorphTo(self.discSprite, curveType=discCurve, duration=0.1)
+        self.skullSprite.display = True
+        uicore.animations.BlinkIn(self, duration=0.2, loops=6, sleep=True)
+        uicore.animations.Tr2DScaleTo(self.sr.iconPar, startScale=(1.0, 1.0), endScale=(1.0, 0.0), sleep=True, duration=0.04, curveType=uiconst.ANIM_LINEAR)
+        self.sr.iconPar.display = False
 
 
 class TargetHealthBars(uiprimitives.Container):
@@ -661,6 +751,7 @@ class TargetHealthBars(uiprimitives.Container):
         bar = getattr(self, name)
         bar.leftBar.SetSecondaryTexturePath(texturePath)
         bar.rightBar.SetSecondaryTexturePath(texturePath)
+        return
 
     def AddHealthBar(self, name, texturePathLeft, texturePathRight, *args):
         cont = uiprimitives.Container(name=name, parent=self, width=self.width, height=self.height, align=uiconst.CENTER)
@@ -679,10 +770,12 @@ class TargetHealthBars(uiprimitives.Container):
         if bp is None:
             self.sr.damageTimer = None
             return
-        dmg = bp.GetDamageState(self.itemID)
-        if dmg is not None:
-            self.PrepareHint(dmg)
-            self.SetDamage(dmg)
+        else:
+            dmg = bp.GetDamageState(self.itemID)
+            if dmg is not None:
+                self.PrepareHint(dmg)
+                self.SetDamage(dmg)
+            return
 
     def PrepareHint(self, state):
         self.damageValuseForTooltip[SHIELD] = state[0]
@@ -758,11 +851,13 @@ class TargetHealthBars(uiprimitives.Container):
             else:
                 self.healthBarBackground.SetTexturePath(self.allHealthTexture)
             self.healthBarBackground.display = True
+        return
 
     def _OnClose(self, *args):
         self.sr.damageTimer = None
         bp = sm.GetService('michelle').GetBallpark()
         bp.componentRegistry.SendMessageToItem(self.itemID, MSG_ON_TARGET_BRACKET_REMOVED)
+        return
 
     def GetDamageHint(self, whichHealthBar, *args):
         return self.damageValuseForTooltip.get(whichHealthBar, 1.0)
@@ -777,22 +872,23 @@ class TargetHealthBars(uiprimitives.Container):
         attackType = damageMessagesArgs.get('attackType', 'me')
         if attackType != 'me':
             return False
-        damage = damageMessagesArgs.get('damage', 0)
-        if damage == 0:
+        else:
+            damage = damageMessagesArgs.get('damage', 0)
+            if damage == 0:
+                return False
+            target = damageMessagesArgs.get('target', None)
+            if target is None:
+                return False
+            if isinstance(target, long):
+                if target == self.itemID:
+                    self.DoBlink()
+                    return True
+            if isinstance(target, basestring):
+                targetID = damageMessagesArgs.get('target_ID', None)
+                if targetID == self.itemID:
+                    self.DoBlink()
+                    return True
             return False
-        target = damageMessagesArgs.get('target', None)
-        if target is None:
-            return False
-        if isinstance(target, long):
-            if target == self.itemID:
-                self.DoBlink()
-                return True
-        if isinstance(target, basestring):
-            targetID = damageMessagesArgs.get('target_ID', None)
-            if targetID == self.itemID:
-                self.DoBlink()
-                return True
-        return False
 
     def DoBlink(self, *args):
         uicore.animations.FadeTo(self, startVal=1.3, endVal=1.0, duration=0.75, loops=1, curveType=uiconst.ANIM_OVERSHOT)

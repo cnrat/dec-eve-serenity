@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\carbon\common\script\movement\movementStates.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\carbon\common\script\movement\movementStates.py
 import GameWorld
 import math
 import blue
@@ -42,6 +43,8 @@ class MovementStates:
                     staticIndex += 1
 
             metaIndex += 1
+
+        return
 
     def LoadStaticStatesFromYAML(self):
         stateFile = blue.ResFile()
@@ -89,6 +92,8 @@ class MovementStates:
 
             metaIndex += 1
 
+        return
+
     def ConvertKeyStates(self):
         for metaState in self.metaStates:
             metaState[const.movement.METASTATE_KEYMAP] = {}
@@ -114,8 +119,6 @@ class MovementStates:
                 return index
             index += 1
 
-        return -1
-
     def FindStaticStateIndex(self, metaIndex, name):
         index = 0
         for staticState in self.metaStates[metaIndex].get(const.movement.METASTATE_STATIC_STATES, []):
@@ -123,16 +126,15 @@ class MovementStates:
                 return index
             index += 1
 
-        return -1
-
     def CheckPreconditions(self, ent, metastate):
         if metastate.get('precondProc', None) is None:
             return True
-        for condition in metastate['precondProc']:
-            if False == condition(ent):
-                return False
+        else:
+            for condition in metastate['precondProc']:
+                if False == condition(ent):
+                    return False
 
-        return True
+            return True
 
     def FindCurrentMetaState(self, ent):
         metaStateIndex = len(self.metaStates) - 1

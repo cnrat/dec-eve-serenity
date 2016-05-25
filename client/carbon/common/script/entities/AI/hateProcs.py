@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\carbon\common\script\entities\AI\hateProcs.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\carbon\common\script\entities\AI\hateProcs.py
 from carbon.common.script.zaction.zactionCommon import ProcTypeDef
 HateTarget = ProcTypeDef(isMaster=False, procCategory='AI', description='Increase my hatred of my target')
 HateMe = ProcTypeDef(isMaster=False, procCategory='AI', description="Increase the target's hatred of me")

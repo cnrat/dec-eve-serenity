@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\common\script\paperDoll\paperDollDataManagement.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\common\script\paperDoll\paperDollDataManagement.py
 import os
 import uthread
 import copy
@@ -62,24 +63,29 @@ def FindCachedMap(hashKey, textureWidth, mapType):
     except Exception:
         sys.exc_clear()
 
+    return
+
 
 def SaveMapsToDisk(hashKey, maps):
     cachePath = GetMapCachePath()
     if not cachePath:
         return
-    for i, each in enumerate(maps):
-        if each is not None:
-            textureWidth = each.width
-            filePath = GetCacheFilePath(cachePath, hashKey, textureWidth, i)
-            if filePath:
-                folder = os.path.split(filePath)[0]
-                try:
-                    if not os.path.exists(folder):
-                        os.makedirs(folder)
-                    each.Save(filePath)
-                    each.WaitForSave()
-                except OSError:
-                    pass
+    else:
+        for i, each in enumerate(maps):
+            if each is not None:
+                textureWidth = each.width
+                filePath = GetCacheFilePath(cachePath, hashKey, textureWidth, i)
+                if filePath:
+                    folder = os.path.split(filePath)[0]
+                    try:
+                        if not os.path.exists(folder):
+                            os.makedirs(folder)
+                        each.Save(filePath)
+                        each.WaitForSave()
+                    except OSError:
+                        pass
+
+        return
 
 
 class ModifierLoader():
@@ -101,14 +107,16 @@ class ModifierLoader():
         self.forceRunTimeOptionGeneration = False
         self._clothSimulationActive = False
         uthread.new(self.LoadData_t)
+        return
 
-    def DebugReload(self, forceRunTime = False):
+    def DebugReload(self, forceRunTime=False):
         self.forceRunTimeOptionGeneration = forceRunTime
         ModifierLoader.__sharedLoadSource = False
         ModifierLoader.__sharedResData = None
         ModifierLoader.__isLoaded = False
         YamlPreloader.Clear()
         uthread.new(self.LoadData_t)
+        return
 
     @staticmethod
     @telemetry.ZONE_FUNCTION
@@ -187,6 +195,8 @@ class ModifierLoader():
             ModifierLoader.__sharedResData = self.resData
             ModifierLoader.__isLoaded = self.IsLoaded
 
+        return
+
     @telemetry.ZONE_METHOD
     def WaitUntilLoaded(self):
         while not self.IsLoaded:
@@ -207,7 +217,7 @@ class ModifierLoader():
         return 'res:/{0}/Character/Patterns'.format(pdDef.BASE_GRAPHICS_FOLDER)
 
     @telemetry.ZONE_METHOD
-    def GetItemType(self, itemTypePath, gender = None):
+    def GetItemType(self, itemTypePath, gender=None):
         if gender and 'res:' not in itemTypePath:
             basePath = ''
             if gender == pdDef.GENDER.MALE:
@@ -222,7 +232,7 @@ class ModifierLoader():
         itemType = self.__GetFromYamlCache(itemTypePath)
         return itemType
 
-    def ListTypes(self, gender, cat = None, modifier = None):
+    def ListTypes(self, gender, cat=None, modifier=None):
         availableTypes = []
         if modifier:
             parentEntry = self.resData.GetEntryByPath(gender, modifier.respath)
@@ -263,7 +273,7 @@ class ModifierLoader():
         return any(map(lambda x: CheckTypes(x), pdDef.GENDER))
 
     @telemetry.ZONE_METHOD
-    def ListOptions(self, gender, cat = None, showVariations = False):
+    def ListOptions(self, gender, cat=None, showVariations=False):
         results = []
         entries = []
         if cat:
@@ -294,14 +304,14 @@ class ModifierLoader():
         return results
 
     @telemetry.ZONE_METHOD
-    def CollectBuildData(self, gender, path, weight = 1.0, forceLoaded = False):
+    def CollectBuildData(self, gender, path, weight=1.0, forceLoaded=False):
         currentBuildData = BuildData(path)
         currentBuildData.weight = weight
         self.LoadResource(gender, path, currentBuildData, forceLoaded=forceLoaded)
         return currentBuildData
 
     @telemetry.ZONE_METHOD
-    def LoadResource(self, gender, path, modifier, forceLoaded = False):
+    def LoadResource(self, gender, path, modifier, forceLoaded=False):
         if not self.resData.QueryPathByGender(gender, path):
             log.LogWarn('PaperDoll - Path {0} for gender {1} does not exist that is passed to ModifierLoader::LoadResource!'.format(path, gender))
             return
@@ -339,7 +349,7 @@ class ModifierLoader():
         return inst
 
     @telemetry.ZONE_METHOD
-    def _PartFromPath(self, path, reverseLookupData = None, rvPart = None):
+    def _PartFromPath(self, path, reverseLookupData=None, rvPart=None):
         for part in pdDef.DOLL_PARTS:
             if part in path:
                 return part
@@ -350,8 +360,6 @@ class ModifierLoader():
             for part in iter(reverseLookupData):
                 if part in path:
                     return rvPart
-
-        return ''
 
     @telemetry.ZONE_METHOD
     def _PopulateSourceMaps(self, modifier, resDataEntry):
@@ -433,7 +441,7 @@ class ModifierLoader():
                 modifier.decalData = inst
 
     @telemetry.ZONE_METHOD
-    def _GetFilesForEntry(self, resDataEntry, modifier, sourceMapsOnly = False):
+    def _GetFilesForEntry(self, resDataEntry, modifier, sourceMapsOnly=False):
         if resDataEntry:
             self._PopulateSourceMaps(modifier, resDataEntry)
             dimExt = [ ext for ext in resDataEntry.extToFiles.keys() if ext.isdigit() ]
@@ -467,6 +475,7 @@ class BuildDataMaps(object):
         self.mapL = {}
         self.mapZ = {}
         self.mapO = {}
+        return
 
     def IsTextureContainingModifier(self):
         if self._isTextureContainingModifier is None:
@@ -520,7 +529,7 @@ class BuildData(BuildDataMaps):
     def __del__(self):
         self.ClearCachedData()
 
-    def __init__(self, pathName = None, name = None, categorie = None):
+    def __init__(self, pathName=None, name=None, categorie=None):
         BuildDataMaps.__init__(self)
         self.name = ''
         self.categorie = categorie.lower() if categorie else ''
@@ -583,6 +592,7 @@ class BuildData(BuildDataMaps):
         self.WasHidden = False
         self.__IsDirty = True
         self.__hashValue = None
+        return
 
     def HasWeightPulse(self):
         return self.hasWeightPulse
@@ -669,6 +679,8 @@ class BuildData(BuildDataMaps):
                 for i in xrange(3):
                     self.specularColorData[i] = variation['specularColors'][i]
 
+        return
+
     def SetColorVariationSpecularity(self, specularColor):
         self.specularColorData = specularColor
 
@@ -711,16 +723,19 @@ class BuildData(BuildDataMaps):
                 self.clothData = None
             self.lastVariation = self.currentVariation
             self.currentVariation = str(variationName)
+        return
 
-    def GetVariationMetaData(self, variationName = None):
+    def GetVariationMetaData(self, variationName=None):
         if variationName == '':
             variationName = 'v0'
         variationName = variationName or self.currentVariation
         variation = self.variations.get(variationName)
         if variation and variation.metaData and not variation.metaData.defaultMetaData:
             return variation.metaData
+        else:
+            return None
 
-    def GetDependantModifiersFullData(self, metaDataOverride = None):
+    def GetDependantModifiersFullData(self, metaDataOverride=None):
         metaData = metaDataOverride or self.metaData
         if metaData.dependantModifiers:
             parsedValues = []
@@ -745,6 +760,8 @@ class BuildData(BuildDataMaps):
                      1.0))
 
             return parsedValues
+        else:
+            return None
 
     def GetDependantModifierResPaths(self):
         if self.metaData.dependantModifiers:
@@ -756,8 +773,10 @@ class BuildData(BuildDataMaps):
                     resPaths.append(resPath)
 
             return resPaths
+        else:
+            return None
 
-    def GetOccludedModifiersFullData(self, metaDataOverride = None):
+    def GetOccludedModifiersFullData(self, metaDataOverride=None):
         if metaDataOverride:
             metaData = metaDataOverride
         else:
@@ -780,6 +799,8 @@ class BuildData(BuildDataMaps):
                     parsedValues.append((each.lower(), 1.0))
 
             return parsedValues
+        else:
+            return None
 
     def GetDependantModifiers(self):
         return self.dependantModifiers.values()
@@ -854,6 +875,7 @@ class BuildData(BuildDataMaps):
             self._contributesToMapTypes = None
             self._affectedTextureParts = None
         self.__IsDirty = value
+        return
 
     IsDirty = property(fget=getIsDirty, fset=setIsDirty)
 
@@ -922,11 +944,12 @@ class BuildData(BuildDataMaps):
         del self.__cmpMeshes[:]
         self.clothData = None
         self.meshGeometryResPaths = {}
+        return
 
     def GetResPath(self):
         return self.respath
 
-    def GetFootPrint(self, preserveTypes = False, occlusionWeight = None):
+    def GetFootPrint(self, preserveTypes=False, occlusionWeight=None):
         colorsOutput = self.colorizeData if preserveTypes else str(self.colorizeData)
         colorsSource = self.colorizeData
         if self.pattern:
@@ -1076,7 +1099,7 @@ class BuildDataManager(object):
     def GetParentModifiers(self, modifier):
         return self._parentModifiers.get(modifier, [])
 
-    def RemoveParentModifier(self, modifier, dependantModifier = None):
+    def RemoveParentModifier(self, modifier, dependantModifier=None):
         if dependantModifier:
             parentModifiers = self.GetParentModifiers(dependantModifier)
             if modifier in parentModifiers:
@@ -1109,7 +1132,7 @@ class BuildDataManager(object):
 
         self.__pendingModifiersToAdd = []
 
-    def HashForMaps(self, hashableElements = None):
+    def HashForMaps(self, hashableElements=None):
         hasher = hashlib.md5()
         if hashableElements:
             for he in iter(hashableElements):
@@ -1129,7 +1152,7 @@ class BuildDataManager(object):
 
         return hasher.hexdigest()
 
-    def GetDirtyModifiers(self, changedBit = False, addedBit = False, removedBit = False, getWeightless = True):
+    def GetDirtyModifiers(self, changedBit=False, addedBit=False, removedBit=False, getWeightless=True):
         ret = list()
         masking = changedBit or addedBit or removedBit
         if addedBit or not masking:
@@ -1172,7 +1195,7 @@ class BuildDataManager(object):
         self.desiredOrderChanged = False
         self.__dirty = False
 
-    def SetAllAsDirty(self, clearMeshes = False):
+    def SetAllAsDirty(self, clearMeshes=False):
         for part in self.modifiersdata.iterkeys():
             for modifier in self.modifiersdata[part]:
                 modifier.IsDirty = True
@@ -1190,12 +1213,12 @@ class BuildDataManager(object):
             elif modifier.IsHidden:
                 self.ShowModifier(modifier)
 
-    def RemoveMeshContainingModifiers(self, category, privilegedCaller = False):
+    def RemoveMeshContainingModifiers(self, category, privilegedCaller=False):
         for modifier in self.GetModifiersByCategory(category):
             if modifier.IsMeshContainingModifier() and not self.GetParentModifiers(modifier):
                 self.RemoveModifier(modifier, privilegedCaller=privilegedCaller)
 
-    def AddModifier(self, modifier, privilegedCaller = False):
+    def AddModifier(self, modifier, privilegedCaller=False):
         if self.__locked and not privilegedCaller:
             self.__pendingModifiersToAdd.append(modifier)
         else:
@@ -1293,7 +1316,7 @@ class BuildDataManager(object):
         else:
             self.occludeRules[resPath] = occludeRule
 
-    def ReverseOccludeModifiersByModifier(self, modifier, useVariation = None):
+    def ReverseOccludeModifiersByModifier(self, modifier, useVariation=None):
         occludeData = None
         if useVariation is not None:
             metaData = modifier.GetVariationMetaData(useVariation)
@@ -1325,7 +1348,9 @@ class BuildDataManager(object):
                     if oldWeight <= 0 and target.weight > 0:
                         self.AddModifier(target, privilegedCaller=True)
 
-    def RemoveModifier(self, modifier, privilegedCaller = False, occludingCall = False):
+        return
+
+    def RemoveModifier(self, modifier, privilegedCaller=False, occludingCall=False):
         if self.__locked and not privilegedCaller:
             self.__pendingModifiersToRemove.append(modifier)
         else:
@@ -1364,7 +1389,7 @@ class BuildDataManager(object):
 
             self.__dirty = True
 
-    def SetModifiersByCategory(self, category, modifiers, privilegedCaller = False):
+    def SetModifiersByCategory(self, category, modifiers, privilegedCaller=False):
         self.__dirty = True
         if type(modifiers) == BuildData:
             modifiers = [modifiers]
@@ -1375,7 +1400,7 @@ class BuildDataManager(object):
         for modifier in iter(modifiers):
             self.AddModifier(modifier, privilegedCaller=privilegedCaller)
 
-    def GetModifiersByCategory(self, category, showHidden = False, includeFuture = False):
+    def GetModifiersByCategory(self, category, showHidden=False, includeFuture=False):
         filterHiddenState = self.__filterHidden
         if showHidden:
             self.__filterHidden = False
@@ -1390,7 +1415,7 @@ class BuildDataManager(object):
         self.__filterHidden = filterHiddenState
         return modifiers
 
-    def GetModifiersByPart(self, part, showHidden = False):
+    def GetModifiersByPart(self, part, showHidden=False):
         filterHiddenState = self.__filterHidden
         if showHidden:
             self.__filterHidden = False
@@ -1398,12 +1423,14 @@ class BuildDataManager(object):
         self.__filterHidden = filterHiddenState
         return modifiers
 
-    def GetModifierByResPath(self, resPath, includeFuture = False, showHidden = False):
+    def GetModifierByResPath(self, resPath, includeFuture=False, showHidden=False):
         for modifier in self.GetModifiersAsList(includeFuture=includeFuture, showHidden=showHidden):
             if modifier.respath == resPath:
                 return modifier
 
-    def GetMeshSourcePaths(self, modifiers = None):
+        return None
+
+    def GetMeshSourcePaths(self, modifiers=None):
         meshSourcePaths = list()
         if modifiers is None:
             modifiers = self.GetSortedModifiers()
@@ -1418,7 +1445,7 @@ class BuildDataManager(object):
 
         return meshSourcePaths
 
-    def GetMapsToComposite(self, modifiers = None):
+    def GetMapsToComposite(self, modifiers=None):
         mapTypes = set()
         if modifiers is None:
             modifiers = self.GetSortedModifiers()
@@ -1428,7 +1455,7 @@ class BuildDataManager(object):
 
         return mapTypes
 
-    def GetPartsFromMaps(self, modifiers = None):
+    def GetPartsFromMaps(self, modifiers=None):
         parts = set()
         if modifiers is None:
             modifiers = self.GetSortedModifiers()
@@ -1438,7 +1465,7 @@ class BuildDataManager(object):
 
         return list(parts)
 
-    def GetParts(self, modifiers = None):
+    def GetParts(self, modifiers=None):
         parts = set()
         if modifiers is None:
             modifiers = self.GetSortedModifiers()
@@ -1494,28 +1521,28 @@ class BuildDataManager(object):
         self._filterHidden = True
         return modifiers
 
-    def GetBodyModifiers(self, remapToPart = False):
+    def GetBodyModifiers(self, remapToPart=False):
         return self.GetModifiersByPart(pdDef.DOLL_PARTS.BODY)
 
-    def GetHeadModifiers(self, remapToPart = False):
+    def GetHeadModifiers(self, remapToPart=False):
         category = pdDef.DOLL_PARTS.HEAD
         if remapToPart:
             category = self.CategoryToPart(category, pdDef.DOLL_PARTS.HEAD)
         return self.GetModifiersByCategory(category)
 
-    def GetHairModifiers(self, remapToPart = False):
+    def GetHairModifiers(self, remapToPart=False):
         category = pdDef.DOLL_PARTS.HAIR
         if remapToPart:
             category = self.CategoryToPart(category, pdDef.DOLL_PARTS.HAIR)
         return self.GetModifiersByCategory(category)
 
-    def GetAccessoriesModifiers(self, remapToPart = False):
+    def GetAccessoriesModifiers(self, remapToPart=False):
         category = pdDef.DOLL_PARTS.ACCESSORIES
         if remapToPart:
             category = self.CategoryToPart(category, pdDef.DOLL_PARTS.ACCESSORIES)
         return self.GetModifiersByCategory(category)
 
-    def GetModifiersAsList(self, includeFuture = False, showHidden = False):
+    def GetModifiersAsList(self, includeFuture=False, showHidden=False):
         filterHiddenState = self.__filterHidden
         if showHidden:
             self.__filterHidden = False
@@ -1529,7 +1556,7 @@ class BuildDataManager(object):
         return ret
 
     @telemetry.ZONE_METHOD
-    def GetSortedModifiers(self, showHidden = False, includeFuture = False):
+    def GetSortedModifiers(self, showHidden=False, includeFuture=False):
         if showHidden:
             modifiers = self.SortParts(self.GetModifiersAsList(includeFuture=includeFuture, showHidden=True))
             return modifiers
@@ -1568,8 +1595,9 @@ class BuildDataManager(object):
             self.desiredOrderChanged = True
             self.__sortedList = None
             self.desiredOrder[bIdx], self.desiredOrder[aIdx] = self.desiredOrder[aIdx], self.desiredOrder[bIdx]
+        return
 
-    def GetMeshes(self, part = None, alternativeModifierList = None, includeClothMeshes = False):
+    def GetMeshes(self, part=None, alternativeModifierList=None, includeClothMeshes=False):
         meshes = []
         parts = [part] if part else pdDef.DOLL_PARTS
 
@@ -1582,6 +1610,8 @@ class BuildDataManager(object):
 
                         if includeClothMeshes and each.clothData:
                             meshes.insert(0, each.clothData)
+
+            return
 
         if alternativeModifierList is not None:
             CollectMeshsFrom(alternativeModifierList)
@@ -1601,24 +1631,25 @@ class BuildDataManager(object):
                         mesh = destMesh
                         break
 
-    def CategoryToPart(self, category, partFilter = None):
+    def CategoryToPart(self, category, partFilter=None):
         if category in pdDef.DOLL_PARTS:
             return category
-        if category in pdDef.BODY_CATEGORIES and partFilter in (None, pdDef.DOLL_PARTS.BODY):
+        elif category in pdDef.BODY_CATEGORIES and partFilter in (None, pdDef.DOLL_PARTS.BODY):
             return pdDef.DOLL_PARTS.BODY
-        if category in pdDef.HEAD_CATEGORIES and partFilter in (None, pdDef.DOLL_PARTS.HEAD):
+        elif category in pdDef.HEAD_CATEGORIES and partFilter in (None, pdDef.DOLL_PARTS.HEAD):
             return pdDef.DOLL_PARTS.HEAD
-        if category in pdDef.HAIR_CATEGORIES and partFilter in (None, pdDef.DOLL_PARTS.HAIR):
+        elif category in pdDef.HAIR_CATEGORIES and partFilter in (None, pdDef.DOLL_PARTS.HAIR):
             return pdDef.DOLL_PARTS.HAIR
-        if category in pdDef.ACCESSORIES_CATEGORIES and partFilter in (None, pdDef.DOLL_PARTS.ACCESSORIES):
+        elif category in pdDef.ACCESSORIES_CATEGORIES and partFilter in (None, pdDef.DOLL_PARTS.ACCESSORIES):
             return pdDef.DOLL_PARTS.ACCESSORIES
-        if category in pdDef.DOLL_EXTRA_PARTS.BODYSHAPES:
+        elif category in pdDef.DOLL_EXTRA_PARTS.BODYSHAPES:
             return pdDef.DOLL_EXTRA_PARTS.BODYSHAPES
-        if category in pdDef.DOLL_EXTRA_PARTS.UTILITYSHAPES:
+        elif category in pdDef.DOLL_EXTRA_PARTS.UTILITYSHAPES:
             return pdDef.DOLL_EXTRA_PARTS.UTILITYSHAPES
-        if category in pdDef.DOLL_EXTRA_PARTS.DEPENDANTS:
+        elif category in pdDef.DOLL_EXTRA_PARTS.DEPENDANTS:
             return pdDef.DOLL_PARTS.BODY
-        return pdDef.DOLL_EXTRA_PARTS.UNDEFINED
+        else:
+            return pdDef.DOLL_EXTRA_PARTS.UNDEFINED
 
 
 exports = {'paperDoll.SaveMapsToDisk': SaveMapsToDisk,

@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\packages\yamlext\fsd.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\packages\yamlext\fsd.py
 import fsdCommon.fsdYamlExtensions as fsdYamlExtensions
 from . import PyIO
 __all__ = ['dumps',

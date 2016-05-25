@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\carbon\common\script\util\blueNotifyWrapper.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\carbon\common\script\util\blueNotifyWrapper.py
 import decometaclass
 import weakref
 
@@ -34,23 +35,25 @@ def BlueClassNotifyWrap(blueClassName):
         def __setattr__(self, key, value):
             if key in self.__members__ and key not in self._alwaysEditableMembers and self.IsLocked():
                 return
-            if hasattr(self, '_notifyChangeList') and self._notifyEnabled:
-                callFunc = self._notifyChangeList.get(key, None)
-                if callFunc:
-                    callFunc(value)
-                unboundFunc = self._notifyChangeListBoundFuncs.get(key, None)
-                obj = self._notifyChangeListBoundObjects.get(key, None)
-                if unboundFunc:
-                    if obj:
-                        unboundFunc(obj, value)
-                    else:
-                        del self._notifyChangeListBoundFuncs[key]
-                elif obj:
-                    del self._notifyChangeListBoundObjects[key]
-            ourSetAttr = BlueNotifyWrapper.__setattr__
-            del BlueNotifyWrapper.__setattr__
-            setattr(self, key, value)
-            BlueNotifyWrapper.__setattr__ = ourSetAttr
+            else:
+                if hasattr(self, '_notifyChangeList') and self._notifyEnabled:
+                    callFunc = self._notifyChangeList.get(key, None)
+                    if callFunc:
+                        callFunc(value)
+                    unboundFunc = self._notifyChangeListBoundFuncs.get(key, None)
+                    obj = self._notifyChangeListBoundObjects.get(key, None)
+                    if unboundFunc:
+                        if obj:
+                            unboundFunc(obj, value)
+                        else:
+                            del self._notifyChangeListBoundFuncs[key]
+                    elif obj:
+                        del self._notifyChangeListBoundObjects[key]
+                ourSetAttr = BlueNotifyWrapper.__setattr__
+                del BlueNotifyWrapper.__setattr__
+                setattr(self, key, value)
+                BlueNotifyWrapper.__setattr__ = ourSetAttr
+                return
 
     return BlueNotifyWrapper
 

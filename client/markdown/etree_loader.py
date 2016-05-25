@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\carbon\common\lib\markdown\etree_loader.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\carbon\common\lib\markdown\etree_loader.py
 
 
 def importETree():
@@ -24,7 +25,9 @@ def importETree():
             raise RuntimeError('cElementTree version 1.0.5 or higher is required.')
         etree_in_c.test_comment = Comment
         return etree_in_c
-    if etree.VERSION < '1.1':
-        raise RuntimeError('ElementTree version 1.1 or higher is required')
     else:
-        return etree
+        if etree.VERSION < '1.1':
+            raise RuntimeError('ElementTree version 1.1 or higher is required')
+        else:
+            return etree
+        return

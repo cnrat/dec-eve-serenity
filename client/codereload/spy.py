@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\packages\codereload\spy.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\packages\codereload\spy.py
 import inspect
 import logging
 import os
@@ -14,7 +15,7 @@ log = logging.getLogger(__name__)
 
 class FolderReloaderSpy(object):
 
-    def __init__(self, waitables, paths, translationPaths = None):
+    def __init__(self, waitables, paths, translationPaths=None):
         self.on_file_reloaded = signals.Signal()
         self.on_file_reload_failed = signals.Signal()
         self.runningCheckAt = 0
@@ -134,7 +135,7 @@ def __reload_update__(old_module_dict):
     log.info('autocompile module got reloaded. old dict keys: %s', old_module_dict.keys())
 
 
-def spy(paths, delay = 0.5):
+def spy(paths, delay=0.5):
     if isinstance(paths, basestring):
         paths = [paths]
     waitables = win32api.Waitables()

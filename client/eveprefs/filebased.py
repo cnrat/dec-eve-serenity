@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\packages\eveprefs\filebased.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\packages\eveprefs\filebased.py
 import abc
 import logging
 import blue
@@ -7,7 +8,7 @@ L = logging.getLogger(__name__)
 
 class FileBasedIniFile(BaseIniFile):
 
-    def __init__(self, shortname, ext, root = None, readOnly = False):
+    def __init__(self, shortname, ext, root=None, readOnly=False):
         self.filename = get_filename(blue, shortname, ext, root)
         self.readOnly = readOnly
 

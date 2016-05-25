@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\carbon\common\stdlib\sysconfig.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\carbon\common\stdlib\sysconfig.py
 import sys
 import os
 from os.path import pardir, realpath
@@ -151,16 +152,17 @@ def _getuserbase():
         if env_base:
             return env_base
         return joinuser(base, 'Python')
-    if sys.platform == 'darwin':
-        framework = get_config_var('PYTHONFRAMEWORK')
-        if framework:
-            return joinuser('~', 'Library', framework, '%d.%d' % sys.version_info[:2])
-    if env_base:
-        return env_base
-    return joinuser('~', '.local')
+    else:
+        if sys.platform == 'darwin':
+            framework = get_config_var('PYTHONFRAMEWORK')
+            if framework:
+                return joinuser('~', 'Library', framework, '%d.%d' % sys.version_info[:2])
+        if env_base:
+            return env_base
+        return joinuser('~', '.local')
 
 
-def _parse_makefile(filename, vars = None):
+def _parse_makefile(filename, vars=None):
     import re
     _variable_rx = re.compile('([a-zA-Z][a-zA-Z0-9_]+)\\s*=\\s*(.*)')
     _findvar1_rx = re.compile('\\$\\(([A-Za-z][A-Za-z0-9_]*)\\)')
@@ -278,7 +280,7 @@ def _init_non_posix(vars):
     vars['BINDIR'] = os.path.dirname(_safe_realpath(sys.executable))
 
 
-def parse_config_h(fp, vars = None):
+def parse_config_h(fp, vars=None):
     import re
     if vars is None:
         vars = {}
@@ -326,14 +328,14 @@ def get_path_names():
     return _SCHEME_KEYS
 
 
-def get_paths(scheme = _get_default_scheme(), vars = None, expand = True):
+def get_paths(scheme=_get_default_scheme(), vars=None, expand=True):
     if expand:
         return _expand_vars(scheme, vars)
     else:
         return _INSTALL_SCHEMES[scheme]
 
 
-def get_path(name, scheme = _get_default_scheme(), vars = None, expand = True):
+def get_path(name, scheme=_get_default_scheme(), vars=None, expand=True):
     return get_paths(scheme, vars, expand)[name]
 
 
@@ -404,6 +406,7 @@ def get_config_vars(*args):
         return vals
     else:
         return _CONFIG_VARS
+        return
 
 
 def get_config_var(name):
@@ -424,81 +427,82 @@ def get_platform():
         if look == 'itanium':
             return 'win-ia64'
         return sys.platform
-    if os.name != 'posix' or not hasattr(os, 'uname'):
+    elif os.name != 'posix' or not hasattr(os, 'uname'):
         return sys.platform
-    osname, host, release, version, machine = os.uname()
-    osname = osname.lower().replace('/', '')
-    machine = machine.replace(' ', '_')
-    machine = machine.replace('/', '-')
-    if osname[:5] == 'linux':
-        return '%s-%s' % (osname, machine)
-    if osname[:5] == 'sunos':
-        if release[0] >= '5':
-            osname = 'solaris'
-            release = '%d.%s' % (int(release[0]) - 3, release[2:])
     else:
-        if osname[:4] == 'irix':
-            return '%s-%s' % (osname, release)
-        if osname[:3] == 'aix':
-            return '%s-%s.%s' % (osname, version, release)
-        if osname[:6] == 'cygwin':
-            osname = 'cygwin'
-            rel_re = re.compile('[\\d.]+')
-            m = rel_re.match(release)
-            if m:
-                release = m.group()
-        elif osname[:6] == 'darwin':
-            cfgvars = get_config_vars()
-            macver = os.environ.get('MACOSX_DEPLOYMENT_TARGET')
-            if not macver:
-                macver = cfgvars.get('MACOSX_DEPLOYMENT_TARGET')
-            macrelease = macver
-            try:
-                f = open('/System/Library/CoreServices/SystemVersion.plist')
-            except IOError:
-                pass
-            else:
+        osname, host, release, version, machine = os.uname()
+        osname = osname.lower().replace('/', '')
+        machine = machine.replace(' ', '_')
+        machine = machine.replace('/', '-')
+        if osname[:5] == 'linux':
+            return '%s-%s' % (osname, machine)
+        if osname[:5] == 'sunos':
+            if release[0] >= '5':
+                osname = 'solaris'
+                release = '%d.%s' % (int(release[0]) - 3, release[2:])
+        else:
+            if osname[:4] == 'irix':
+                return '%s-%s' % (osname, release)
+            if osname[:3] == 'aix':
+                return '%s-%s.%s' % (osname, version, release)
+            if osname[:6] == 'cygwin':
+                osname = 'cygwin'
+                rel_re = re.compile('[\\d.]+')
+                m = rel_re.match(release)
+                if m:
+                    release = m.group()
+            elif osname[:6] == 'darwin':
+                cfgvars = get_config_vars()
+                macver = os.environ.get('MACOSX_DEPLOYMENT_TARGET')
+                if not macver:
+                    macver = cfgvars.get('MACOSX_DEPLOYMENT_TARGET')
+                macrelease = macver
                 try:
-                    m = re.search('<key>ProductUserVisibleVersion</key>\\s*' + '<string>(.*?)</string>', f.read())
-                    f.close()
-                    if m is not None:
-                        macrelease = '.'.join(m.group(1).split('.')[:2])
-                finally:
-                    f.close()
+                    f = open('/System/Library/CoreServices/SystemVersion.plist')
+                except IOError:
+                    pass
+                else:
+                    try:
+                        m = re.search('<key>ProductUserVisibleVersion</key>\\s*' + '<string>(.*?)</string>', f.read())
+                        f.close()
+                        if m is not None:
+                            macrelease = '.'.join(m.group(1).split('.')[:2])
+                    finally:
+                        f.close()
 
-            if not macver:
-                macver = macrelease
-            if macver:
-                release = macver
-                osname = 'macosx'
-                if macrelease + '.' >= '10.4.' and '-arch' in get_config_vars().get('CFLAGS', '').strip():
-                    machine = 'fat'
-                    cflags = get_config_vars().get('CFLAGS')
-                    archs = re.findall('-arch\\s+(\\S+)', cflags)
-                    archs = tuple(sorted(set(archs)))
-                    if len(archs) == 1:
-                        machine = archs[0]
-                    elif archs == ('i386', 'ppc'):
+                if not macver:
+                    macver = macrelease
+                if macver:
+                    release = macver
+                    osname = 'macosx'
+                    if macrelease + '.' >= '10.4.' and '-arch' in get_config_vars().get('CFLAGS', '').strip():
                         machine = 'fat'
-                    elif archs == ('i386', 'x86_64'):
-                        machine = 'intel'
-                    elif archs == ('i386', 'ppc', 'x86_64'):
-                        machine = 'fat3'
-                    elif archs == ('ppc64', 'x86_64'):
-                        machine = 'fat64'
-                    elif archs == ('i386', 'ppc', 'ppc64', 'x86_64'):
-                        machine = 'universal'
-                    else:
-                        raise ValueError("Don't know machine value for archs=%r" % (archs,))
-                elif machine == 'i386':
-                    if sys.maxint >= 4294967296L:
-                        machine = 'x86_64'
-                elif machine in ('PowerPC', 'Power_Macintosh'):
-                    if sys.maxint >= 4294967296L:
-                        machine = 'ppc64'
-                    else:
-                        machine = 'ppc'
-    return '%s-%s-%s' % (osname, release, machine)
+                        cflags = get_config_vars().get('CFLAGS')
+                        archs = re.findall('-arch\\s+(\\S+)', cflags)
+                        archs = tuple(sorted(set(archs)))
+                        if len(archs) == 1:
+                            machine = archs[0]
+                        elif archs == ('i386', 'ppc'):
+                            machine = 'fat'
+                        elif archs == ('i386', 'x86_64'):
+                            machine = 'intel'
+                        elif archs == ('i386', 'ppc', 'x86_64'):
+                            machine = 'fat3'
+                        elif archs == ('ppc64', 'x86_64'):
+                            machine = 'fat64'
+                        elif archs == ('i386', 'ppc', 'ppc64', 'x86_64'):
+                            machine = 'universal'
+                        else:
+                            raise ValueError("Don't know machine value for archs=%r" % (archs,))
+                    elif machine == 'i386':
+                        if sys.maxint >= 4294967296L:
+                            machine = 'x86_64'
+                    elif machine in ('PowerPC', 'Power_Macintosh'):
+                        if sys.maxint >= 4294967296L:
+                            machine = 'ppc64'
+                        else:
+                            machine = 'ppc'
+        return '%s-%s-%s' % (osname, release, machine)
 
 
 def get_python_version():

@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\client\script\parklife\dungeonEditorTools.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\client\script\parklife\dungeonEditorTools.py
 import math
 from eve.common.script.util.eveCommonUtils import ComputeQuantityFromRadius
 import trinity
@@ -34,7 +35,7 @@ def RayToPlaneIntersection(P, d, Q, n):
         return geo2.Vector(*ret)
 
 
-def ProjectPointTowardsFrontPlane(point, dist = 7.0):
+def ProjectPointTowardsFrontPlane(point, dist=7.0):
     ppos = point
     viewMat = trinity.GetViewTransform()
     cpos = geo2.Vector(*trinity.GetViewPosition())
@@ -171,6 +172,7 @@ class TransformationTool(BaseTool):
         self.curX = 0
         self.curY = 0
         self.invalidAxes = []
+        return
 
     def InvalidateAxes(self, axisList):
         for axis in axisList:
@@ -202,6 +204,7 @@ class TransformationTool(BaseTool):
         if res and res.name in self.PickableAxis():
             return res.name
         else:
+            return None
             return None
 
     def PickableAxis(self):
@@ -259,6 +262,7 @@ class TransformationTool(BaseTool):
         self.activeManipAxis = None
         self.targetPlaneNormal = None
         self.captured = False
+        return
 
     def ShowAllAxis(self):
         for each in self.geometry.areas:
@@ -321,6 +325,7 @@ class TransformationTool(BaseTool):
                 return geo2.Vector(viewMat[0][2], viewMat[1][2], viewMat[2][2])
         else:
             return None
+        return None
 
     def _DiffProjectedPoint(self, ray, start):
         self.endPlanePos = RayToPlaneIntersection(start, ray, self.GetTranslation(), self.targetPlaneNormal)
@@ -361,6 +366,7 @@ class TranslationTool(TransformationTool):
         self.axes = []
         TransformationTool.__init__(self, view, projection, primitiveScene)
         self.action = None
+        return
 
     def GenGeometry(self):
         rotateMat = geo2.MatrixRotationZ(-math.pi / 2.0)
@@ -443,6 +449,8 @@ class TranslationTool(TransformationTool):
             slimItem.dunZ += v.z
             scenarioSvc.UpdateUnsavedObjectChanges(slimItem.itemID, CHANGE_TRANSLATION)
 
+        return
+
     def _InternalUpdate(self):
         mat = CameraFacingMatrix(self.worldTranslation)
         area = self.geometry.GetArea('w')
@@ -463,6 +471,7 @@ class ScalingTool(TransformationTool):
         self.startPos = None
         self.startScreenX = 0
         self.toolPosition = None
+        return
 
     def GenGeometry(self):
         scalingGeo = dungeonEditorToolGeometry.geometry(self.primitiveScene)
@@ -503,6 +512,7 @@ class ScalingTool(TransformationTool):
                 maxScale = max(maxScale, targetModel.scaling.x)
 
         geo2.Vector(maxScale, maxScale, maxScale)
+        return
 
     def CaptureAxis(self):
         self.scale = geo2.Vector(1.0, 1.0, 1.0)
@@ -519,6 +529,8 @@ class ScalingTool(TransformationTool):
         self.toolPosition = None
         for slimItem in sm.GetService('scenario').GetSelObjects():
             slimItem.initialRadius = None
+
+        return
 
     def _TransformContext(self, v):
         scenarioMgr = sm.StartService('scenario')
@@ -566,6 +578,8 @@ class ScalingTool(TransformationTool):
                 slimItem.dunZ = scaledPosition.z + toolOffset[2]
                 scenarioMgr.UpdateUnsavedObjectChanges(slimItem.itemID, CHANGE_TRANSLATION)
 
+        return
+
     def _TransformAxis(self, v):
         dev = trinity.device
         pos = self.GetTranslation()
@@ -610,6 +624,7 @@ class RotationTool(TransformationTool):
          'z': Z_AXIS}
         self.axisCulling = True
         self.lastRotation = geo2.QuaternionIdentity()
+        return
 
     def SetAxisCulling(self, state):
         self.axisCulling = state
@@ -827,14 +842,17 @@ class RotationTool(TransformationTool):
         qout = geo2.QuaternionMultiply(q, originalToolRotation)
         qout = geo2.QuaternionNormalize(qout)
         self.Rotate(qout)
+        return
 
     def AddRotationCurveToObject(self, itemID):
         ball = sm.GetService('michelle').GetBall(itemID)
         if ball.model is None:
             return
-        if ball.model.rotationCurve is not None:
+        elif ball.model.rotationCurve is not None:
             return
-        ball.model.rotationCurve = ball.model.translationCurve
+        else:
+            ball.model.rotationCurve = ball.model.translationCurve
+            return
 
     def GetDesiredPlaneNormal(self, ray):
         viewMat = trinity.GetViewTransform()

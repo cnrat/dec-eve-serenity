@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\client\script\paperDoll\paperDollSculpting.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\client\script\paperDoll\paperDollSculpting.py
 import trinity
 import blue
 import uthread
@@ -34,63 +35,64 @@ class PaperDollSculpting:
              [0, 0],
              0,
              True)
-        mask = 0
-        dev = trinity.device
-        cameraProj, cameraView = self.GetProjectionAndViewMatrixFunc()
-        if self.pickScene:
-            self.pickAvatar.rotation = self.avatar.rotation
-        backbuffer = self.backbuffer or trinity.device.GetRenderContext().GetDefaultBackBuffer()
-        viewport = trinity.TriViewport(0, 0, backbuffer.width, backbuffer.height)
-        pick = None
-        if hasattr(self.pickScene, 'PickObject'):
-            pick = self.pickScene.PickPointAndObject(x, y, cameraProj, cameraView, viewport)
-        if not pick:
-            return (0,
-             0,
-             [0, 0],
-             0,
-             True)
-        if not hasattr(self.pickScene, 'PickObjectUV') or pick[0].__typename__ != 'Tr2IntSkinnedObject':
-            return (0,
-             pick[0],
-             [0, 0],
-             pick[1],
-             True)
-        pickedPixelUV = self.pickScene.PickObjectUV(x, y, cameraProj, cameraView, viewport)
-        isHead = True
-        self.pickedSide = 'right'
-        midpoint = 0.5
-        if pickedPixelUV[0] > 0.5:
-            self.pickedMesh = 'head'
-            pickedPixelUV = [(pickedPixelUV[0] - 0.5) * 2.0, pickedPixelUV[1] * 2.0]
-            if pickedPixelUV[0] < 0.0 or pickedPixelUV[0] > 1.0 or pickedPixelUV[1] < 0.0 or pickedPixelUV[1] > 1.0:
+        else:
+            mask = 0
+            dev = trinity.device
+            cameraProj, cameraView = self.GetProjectionAndViewMatrixFunc()
+            if self.pickScene:
+                self.pickAvatar.rotation = self.avatar.rotation
+            backbuffer = self.backbuffer or trinity.device.GetRenderContext().GetDefaultBackBuffer()
+            viewport = trinity.TriViewport(0, 0, backbuffer.width, backbuffer.height)
+            pick = None
+            if hasattr(self.pickScene, 'PickObject'):
+                pick = self.pickScene.PickPointAndObject(x, y, cameraProj, cameraView, viewport)
+            if not pick:
+                return (0,
+                 0,
+                 [0, 0],
+                 0,
+                 True)
+            if not hasattr(self.pickScene, 'PickObjectUV') or pick[0].__typename__ != 'Tr2IntSkinnedObject':
                 return (0,
                  pick[0],
-                 pickedPixelUV,
+                 [0, 0],
                  pick[1],
-                 isHead)
-            pixel = [int(pickedPixelUV[0] * self.zoneSize[0]), int(pickedPixelUV[1] * self.zoneSize[1])]
-            buffer = self.zoneMap.GetRawData()
-            color = struct.unpack_from('=BBBB', buffer[0], pixel[0] * 4 + pixel[1] * buffer[3])
-            mask = color[0]
-        else:
-            isHead = False
-            self.pickedMesh = 'body'
-            pickedPixelUV = [pickedPixelUV[0] * 2.0, pickedPixelUV[1]]
-            pixel = [int(pickedPixelUV[0] * self.bodyZoneSize[0]), int(pickedPixelUV[1] * self.bodyZoneSize[1])]
-            buffer = self.bodyZoneMap.GetRawData()
-            color = struct.unpack_from('=BBBB', buffer[0], pixel[0] * 4 + pixel[1] * buffer[3])
-            mask = color[0]
-            zone = self.ConvertMaskToZone(mask)
-            if zone in (0, 2, 5) or zone == 1 and pickedPixelUV[0] < 0.37:
-                midpoint = 0.2
-        if pickedPixelUV[0] > midpoint:
-            self.pickedSide = 'left'
-        return (mask,
-         pick[0],
-         pickedPixelUV,
-         pick[1],
-         isHead)
+                 True)
+            pickedPixelUV = self.pickScene.PickObjectUV(x, y, cameraProj, cameraView, viewport)
+            isHead = True
+            self.pickedSide = 'right'
+            midpoint = 0.5
+            if pickedPixelUV[0] > 0.5:
+                self.pickedMesh = 'head'
+                pickedPixelUV = [(pickedPixelUV[0] - 0.5) * 2.0, pickedPixelUV[1] * 2.0]
+                if pickedPixelUV[0] < 0.0 or pickedPixelUV[0] > 1.0 or pickedPixelUV[1] < 0.0 or pickedPixelUV[1] > 1.0:
+                    return (0,
+                     pick[0],
+                     pickedPixelUV,
+                     pick[1],
+                     isHead)
+                pixel = [int(pickedPixelUV[0] * self.zoneSize[0]), int(pickedPixelUV[1] * self.zoneSize[1])]
+                buffer = self.zoneMap.GetRawData()
+                color = struct.unpack_from('=BBBB', buffer[0], pixel[0] * 4 + pixel[1] * buffer[3])
+                mask = color[0]
+            else:
+                isHead = False
+                self.pickedMesh = 'body'
+                pickedPixelUV = [pickedPixelUV[0] * 2.0, pickedPixelUV[1]]
+                pixel = [int(pickedPixelUV[0] * self.bodyZoneSize[0]), int(pickedPixelUV[1] * self.bodyZoneSize[1])]
+                buffer = self.bodyZoneMap.GetRawData()
+                color = struct.unpack_from('=BBBB', buffer[0], pixel[0] * 4 + pixel[1] * buffer[3])
+                mask = color[0]
+                zone = self.ConvertMaskToZone(mask)
+                if zone in (0, 2, 5) or zone == 1 and pickedPixelUV[0] < 0.37:
+                    midpoint = 0.2
+            if pickedPixelUV[0] > midpoint:
+                self.pickedSide = 'left'
+            return (mask,
+             pick[0],
+             pickedPixelUV,
+             pick[1],
+             isHead)
 
     def ConvertMaskToZone(self, mask):
         return int(mask / 10.0 - 1)
@@ -212,7 +214,7 @@ class PaperDollSculpting:
         self.handlingMotion = False
 
     @telemetry.ZONE_METHOD
-    def HighlightPreview(self, isMale = True):
+    def HighlightPreview(self, isMale=True):
         import time
         self.previewingHighlight = True
         start = time.time()
@@ -276,8 +278,9 @@ class PaperDollSculpting:
         self.previewingHighlight = False
         if self.highlightThread is not None:
             self.highlightThread.kill()
+        return
 
-    def RunHighlightPreview(self, isMale = True):
+    def RunHighlightPreview(self, isMale=True):
         self.KillHighlightPreview()
         if self.useHighlighting:
             self.highlightThread = uthread.new(self.HighlightPreview, isMale)
@@ -299,6 +302,7 @@ class PaperDollSculpting:
 
         self.fieldResetData = {}
         self.startXY = None
+        return
 
     @telemetry.ZONE_METHOD
     def UpdateAnimation(self, values):
@@ -327,8 +331,10 @@ class PaperDollSculpting:
             else:
                 self.animationController.SetControlParameter(v, values[v])
 
+        return
+
     @telemetry.ZONE_METHOD
-    def UpdateBlendShapes(self, values, doUpdate = True):
+    def UpdateBlendShapes(self, values, doUpdate=True):
         doll = self.doll
         mods = []
         for blendshapeCategory in PD.BLENDSHAPE_CATEGORIES:
@@ -445,7 +451,7 @@ class PaperDollSculpting:
         self.poseSymmetric = False
 
     @telemetry.ZONE_METHOD
-    def __init__(self, avatar = None, doll = None, scene = None, camera = None, factory = None, callback = None, viewProjCallback = None, mode = 'sculpt', pickCallback = None, inactiveZones = [], backbuffer = None):
+    def __init__(self, avatar=None, doll=None, scene=None, camera=None, factory=None, callback=None, viewProjCallback=None, mode='sculpt', pickCallback=None, inactiveZones=[], backbuffer=None):
         self.avatar = avatar
         self.doll = doll
         self.scene = scene
@@ -502,6 +508,7 @@ class PaperDollSculpting:
         self.Reset(doll, avatar, mode=mode, camera=camera, callback=callback, pickCallback=pickCallback, inactiveZones=inactiveZones)
         self.ready = True
         trinity.device.RegisterResource(self)
+        return
 
     @telemetry.ZONE_METHOD
     def PreloadZoneMaps(self, doll):
@@ -588,38 +595,40 @@ class PaperDollSculpting:
         return retVal
 
     @telemetry.ZONE_METHOD
-    def Reset(self, doll, avatar, camera = None, mode = 'sculpt', callback = None, pickCallback = None, inactiveZones = [], skipPickSceneReset = False):
+    def Reset(self, doll, avatar, camera=None, mode='sculpt', callback=None, pickCallback=None, inactiveZones=[], skipPickSceneReset=False):
         dollUpdated = self.IsDollDifferent(doll, avatar)
         self.doll = doll
         if self.pickAvatar and not avatar.animationUpdater.network == self.pickAvatar.animationUpdater.network:
             self.pickAvatar.animationUpdater = avatar.animationUpdater
         if self.mode == mode and not dollUpdated:
             return
-        if camera is not None:
-            self.camera = camera
-        if (dollUpdated or not self.pickScene or mode != self.mode) and not skipPickSceneReset:
-            self.SetupPickScene()
-        self.avatar = avatar
-        self.mode = mode
-        self.inactiveZones = inactiveZones
-        if pickCallback:
-            self.pickCallback = pickCallback
-        if callback:
-            self.callback = callback
-        if mode in self.zoneMaps:
-            zonePath, headGridPath, bodyGridPath, headTiling, bodyTiling, bodyZonePath, self.zoneMap, self.zoneSize, self.bodyZoneMap, self.bodyZoneSize = self.zoneMaps[mode]
         else:
-            zonePath, headGridPath, bodyGridPath, headTiling, bodyTiling, bodyZonePath, self.zoneMap, self.zoneSize, self.bodyZoneMap, self.bodyZoneSize = self.zoneMaps['default']
-        self.zoneSize = (self.zoneMap.width, self.zoneMap.height)
-        self.bodyZoneSize = (self.bodyZoneMap.width, self.bodyZoneMap.height)
-        if self.useHighlighting:
-            import PaperdollSculptingGhost
-            self.highlightGhost = PaperdollSculptingGhost.PaperdollSculptingGhost(zonePath=zonePath, texturePath=headGridPath, noisePath='res:/Texture/Global/noise.png', meshFilter=['head'], tiling=headTiling)
-            self.bodyHighlightGhost = PaperdollSculptingGhost.PaperdollSculptingGhost(zonePath=bodyZonePath, texturePath=bodyGridPath, noisePath='res:/Texture/Global/noise.png', meshFilter=['topinner',
-             'bottominner',
-             'hands',
-             'feet',
-             'dependantsnude'], ignoreZ=True, tiling=bodyTiling)
+            if camera is not None:
+                self.camera = camera
+            if (dollUpdated or not self.pickScene or mode != self.mode) and not skipPickSceneReset:
+                self.SetupPickScene()
+            self.avatar = avatar
+            self.mode = mode
+            self.inactiveZones = inactiveZones
+            if pickCallback:
+                self.pickCallback = pickCallback
+            if callback:
+                self.callback = callback
+            if mode in self.zoneMaps:
+                zonePath, headGridPath, bodyGridPath, headTiling, bodyTiling, bodyZonePath, self.zoneMap, self.zoneSize, self.bodyZoneMap, self.bodyZoneSize = self.zoneMaps[mode]
+            else:
+                zonePath, headGridPath, bodyGridPath, headTiling, bodyTiling, bodyZonePath, self.zoneMap, self.zoneSize, self.bodyZoneMap, self.bodyZoneSize = self.zoneMaps['default']
+            self.zoneSize = (self.zoneMap.width, self.zoneMap.height)
+            self.bodyZoneSize = (self.bodyZoneMap.width, self.bodyZoneMap.height)
+            if self.useHighlighting:
+                import PaperdollSculptingGhost
+                self.highlightGhost = PaperdollSculptingGhost.PaperdollSculptingGhost(zonePath=zonePath, texturePath=headGridPath, noisePath='res:/Texture/Global/noise.png', meshFilter=['head'], tiling=headTiling)
+                self.bodyHighlightGhost = PaperdollSculptingGhost.PaperdollSculptingGhost(zonePath=bodyZonePath, texturePath=bodyGridPath, noisePath='res:/Texture/Global/noise.png', meshFilter=['topinner',
+                 'bottominner',
+                 'hands',
+                 'feet',
+                 'dependantsnude'], ignoreZ=True, tiling=bodyTiling)
+            return
 
     @telemetry.ZONE_METHOD
     def Stop(self):
@@ -631,9 +640,10 @@ class PaperDollSculpting:
         self.pickAvatar = None
         self.pickExtraMods = []
         self.pickAvatarCache = {}
+        return
 
     @telemetry.ZONE_METHOD
-    def SetupPickScene(self, doUpdate = True):
+    def SetupPickScene(self, doUpdate=True):
         self.pickScene = trinity.Tr2InteriorScene()
         cell = trinity.Tr2InteriorCell()
         cell.isUnbounded = True
@@ -1073,6 +1083,7 @@ class PaperDollSculpting:
             return attrs
         else:
             return
+            return
 
     @telemetry.ZONE_METHOD
     def UpdateField(self, delta):
@@ -1102,7 +1113,8 @@ class PaperDollSculpting:
                 secField = self.fieldData['Fields'][secondaryFieldName]
             attrs = self.UpdateFields(fieldName, field, secondaryFieldName, secField, delta)
             return attrs
-        return {}
+        else:
+            return {}
 
     @telemetry.ZONE_METHOD
     def UpdateFieldsBasedOnExistingValues(self, doll):

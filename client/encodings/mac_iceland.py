@@ -1,24 +1,25 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\carbon\common\stdlib\encodings\mac_iceland.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\carbon\common\stdlib\encodings\mac_iceland.py
 import codecs
 
 class Codec(codecs.Codec):
 
-    def encode(self, input, errors = 'strict'):
+    def encode(self, input, errors='strict'):
         return codecs.charmap_encode(input, errors, encoding_table)
 
-    def decode(self, input, errors = 'strict'):
+    def decode(self, input, errors='strict'):
         return codecs.charmap_decode(input, errors, decoding_table)
 
 
 class IncrementalEncoder(codecs.IncrementalEncoder):
 
-    def encode(self, input, final = False):
+    def encode(self, input, final=False):
         return codecs.charmap_encode(input, self.errors, encoding_table)[0]
 
 
 class IncrementalDecoder(codecs.IncrementalDecoder):
 
-    def decode(self, input, final = False):
+    def decode(self, input, final=False):
         return codecs.charmap_decode(input, self.errors, decoding_table)[0]
 
 

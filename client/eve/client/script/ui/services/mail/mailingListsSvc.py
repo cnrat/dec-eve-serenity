@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\client\script\ui\services\mail\mailingListsSvc.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\client\script\ui\services\mail\mailingListsSvc.py
 import service
 import util
 
@@ -34,8 +35,9 @@ class MailingLists(service.Service):
     def __init__(self):
         service.Service.__init__(self)
         self.myMailingLists = None
+        return
 
-    def Run(self, memStream = None):
+    def Run(self, memStream=None):
         self.state = service.SERVICE_START_PENDING
         self.LogInfo('Starting Mailing Lists Svc')
         self.objectCaching = sm.services['objectCaching']
@@ -50,15 +52,16 @@ class MailingLists(service.Service):
     def GetDisplayName(self, listID):
         if listID in self.myMailingLists:
             return self.myMailingLists[listID].displayName
-        if listID in self.externalLists:
+        elif listID in self.externalLists:
             return self.externalLists[listID].displayName
-        info = self.mailingListsMgr.GetInfo(listID)
-        if info is None:
-            raise UserError('MailingListNoSuchList')
-        self.externalLists[listID] = info
-        return info.displayName
+        else:
+            info = self.mailingListsMgr.GetInfo(listID)
+            if info is None:
+                raise UserError('MailingListNoSuchList')
+            self.externalLists[listID] = info
+            return info.displayName
 
-    def CreateMailingList(self, name, defaultAccess = const.mailingListAllowed, defaultMemberAccess = const.mailingListMemberDefault, cost = 0):
+    def CreateMailingList(self, name, defaultAccess=const.mailingListAllowed, defaultMemberAccess=const.mailingListMemberDefault, cost=0):
         ret = sm.RemoteSvc('mailingListsMgr').Create(name, defaultAccess, defaultMemberAccess, cost)
         key, displayName = util.GetKeyAndNormalize(name)
         self.myMailingLists[ret] = util.KeyVal(name=key, displayName=displayName, isMuted=False, isOperator=False, isOwner=True)
@@ -116,7 +119,7 @@ class MailingLists(service.Service):
         self.mailingListsMgr.SetMembersClear(listID, memberIDs)
         self.objectCaching.InvalidateCachedMethodCall('mailingListsMgr', 'GetMembers', listID)
 
-    def SetDefaultAccess(self, listID, defaultAccess, defaultMemberAccess, mailCost = 0):
+    def SetDefaultAccess(self, listID, defaultAccess, defaultMemberAccess, mailCost=0):
         self.mailingListsMgr.SetDefaultAccess(listID, defaultAccess, defaultMemberAccess, mailCost)
 
     def GetSettings(self, listID):

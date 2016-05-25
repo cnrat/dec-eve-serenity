@@ -1,15 +1,16 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\carbon\common\lib\cherrypy\tutorial\tut02_expose_methods.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\carbon\common\lib\cherrypy\tutorial\tut02_expose_methods.py
 import cherrypy
 
 class HelloWorld:
 
     def index(self):
-        return 'We have an <a href="showMessage">important message</a> for you!'
+        pass
 
     index.exposed = True
 
     def showMessage(self):
-        return 'Hello world!'
+        pass
 
     showMessage.exposed = True
 

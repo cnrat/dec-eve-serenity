@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\packages\notifications\client\development\achievementHistoryProvider.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\packages\notifications\client\development\achievementHistoryProvider.py
 from achievements.common.achievementGroups import GetAchievementGroups, GetTaskIds
 from achievements.common.achievementLoader import AchievementLoader
 import eve.common.script.util.notificationconst as notificationConst

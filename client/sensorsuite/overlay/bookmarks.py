@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\packages\sensorsuite\overlay\bookmarks.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\packages\sensorsuite\overlay\bookmarks.py
 from eve.client.script.ui.services.menuSvcExtras.movementFunctions import WarpToBookmark
 from eve.client.script.ui.shared.radialMenu.radialMenuUtils import SimpleRadialMenuAction
 from eve.common.script.sys.eveCfg import IsSolarSystem
@@ -35,6 +36,7 @@ def GetBookmarkSiteActions(bookmark):
         return [SimpleRadialMenuAction(option1='UI/Inflight/DockInStation')]
     else:
         return None
+        return None
 
 
 def ProcessBookmarkUpdate(sensorSuiteSvc, bookmarks, siteType, addSiteDataMethod):
@@ -52,7 +54,7 @@ class BookmarkSiteData(SiteData):
     siteType = BOOKMARK
     baseColor = SITE_COLOR_BOOKMARK
 
-    def __init__(self, siteID, position, bookmark = None):
+    def __init__(self, siteID, position, bookmark=None):
         SiteData.__init__(self, siteID, position)
         self.bookmark = bookmark
         self.name = CleanText(bookmark.memo)

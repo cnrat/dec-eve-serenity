@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\packages\characterskills\queue.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\packages\characterskills\queue.py
 import carbon.common.lib.const as const
 from characterskills.util import GetSPForLevelRaw
 import gametime
@@ -29,7 +30,7 @@ def IsChinaRestricted():
     return boot.region == 'optic'
 
 
-def GetQueueEntry(skillTypeID, skillLevel, queuePosition, currentSkill, currentQueue, GetTimeForTraining, KeyVal, activate, trainingStartTime = None):
+def GetQueueEntry(skillTypeID, skillLevel, queuePosition, currentSkill, currentQueue, GetTimeForTraining, KeyVal, activate, trainingStartTime=None):
     trainingEndTime = None
     if trainingStartTime is None and activate:
         if queuePosition == 0 or len(currentQueue) == 0:

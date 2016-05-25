@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\carbon\common\script\net\ExceptionWrapperGPCS.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\carbon\common\script\net\ExceptionWrapperGPCS.py
 import log
 import sys
 import types
@@ -93,6 +94,8 @@ class ExceptionWrapper:
             log.LogException('Could not create ErrorResponse, sending an empty one')
             return packet.ErrorResponse(const.cluster.MACHONETERR_WRAPPEDEXCEPTION, ())
 
+        return
+
     def CallDown(self, packet):
         try:
             return self.ForwardCallDown(packet)
@@ -137,6 +140,8 @@ class ExceptionWrapper:
                 if 'proxy' == macho.mode and prefs.GetValue('crestSendExceptionsToClient', 0):
                     newException.serverStack = serverStack
             raise newException
+
+        return
 
     def NotifyUp(self, packet):
         try:

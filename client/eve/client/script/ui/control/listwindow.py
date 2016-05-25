@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\client\script\ui\control\listwindow.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\client\script\ui\control\listwindow.py
 import evetypes
 import uiprimitives
 import uicontrols
@@ -64,6 +65,7 @@ class ListWindow(uicontrols.Window):
                     break
 
         self.RefreshSelection()
+        return
 
     def SetSize(self, width, height, *args):
         if not self or self.destroyed:
@@ -77,6 +79,7 @@ class ListWindow(uicontrols.Window):
             self.SetModalResult(uiconst.ID_CANCEL)
         else:
             self.Close()
+        return
 
     def SetResult(self, result):
         self.result = result
@@ -93,7 +96,7 @@ class ListWindow(uicontrols.Window):
     def ClickEntry(self, *args):
         self.RefreshSelection()
 
-    def GetError(self, checkNumber = 1):
+    def GetError(self, checkNumber=1):
         result = []
         for entry in self.scroll.GetSelected():
             if entry.listvalue:
@@ -117,8 +120,6 @@ class ListWindow(uicontrols.Window):
             log.LogException()
             sys.exc_clear()
             return
-
-        return ''
 
     def Confirm(self, *etc):
         if not self.isModal:
@@ -153,7 +154,7 @@ class ListWindow(uicontrols.Window):
         else:
             hp.state = uiconst.UI_HIDDEN
 
-    def GenerateList(self, lst, ordered = 0, scrollHeaders = []):
+    def GenerateList(self, lst, ordered=0, scrollHeaders=[]):
         if ordered == 1:
 
             def Compare(a, b):
@@ -180,7 +181,7 @@ class ListWindow(uicontrols.Window):
 
         self.scroll.Load(contentList=scrolllist, headers=scrollHeaders, noContentHint=self.noContentHint)
 
-    def GenerateGroupedList(self, lst, ordered = 0, scrollHeaders = []):
+    def GenerateGroupedList(self, lst, ordered=0, scrollHeaders=[]):
         if ordered == 1:
             lst.sort(self.GroupItemCompare)
         rootnode = util.KeyVal()
@@ -238,27 +239,28 @@ class ListWindow(uicontrols.Window):
         data.OnClick = self.ClickEntry
         return (24, listentry.Get('Generic', data=data))
 
-    def GetGroupData(self, nodedata, newItems = 0):
+    def GetGroupData(self, nodedata, newItems=0):
         if not nodedata.groupItems:
             return []
-        if self.ordered:
-            nodedata.groupItems.sort(self.GroupItemCompare)
-        confirmOnDblClick = self.minChoices == self.maxChoices == 1
-        scrolllist = []
-        for subnode in nodedata.groupItems:
-            if subnode.get('groupItems', None) is not None:
-                if not hasattr(subnode, 'GetSubContent'):
-                    subnode.GetSubContent = self.GetGroupData
-                scrolllist.append(listentry.Get('Group', data=subnode))
-            else:
-                subnode.OnDblClick = self.DblClickEntry
-                subnode.OnClick = self.ClickEntry
-                subnode.confirmOnDblClick = confirmOnDblClick
-                subnode.isStation = self.listtype == 'station'
-                subnode.getIcon = self.listtype == 'item'
-                scrolllist.append(listentry.Get('Generic', data=subnode))
+        else:
+            if self.ordered:
+                nodedata.groupItems.sort(self.GroupItemCompare)
+            confirmOnDblClick = self.minChoices == self.maxChoices == 1
+            scrolllist = []
+            for subnode in nodedata.groupItems:
+                if subnode.get('groupItems', None) is not None:
+                    if not hasattr(subnode, 'GetSubContent'):
+                        subnode.GetSubContent = self.GetGroupData
+                    scrolllist.append(listentry.Get('Group', data=subnode))
+                else:
+                    subnode.OnDblClick = self.DblClickEntry
+                    subnode.OnClick = self.ClickEntry
+                    subnode.confirmOnDblClick = confirmOnDblClick
+                    subnode.isStation = self.listtype == 'station'
+                    subnode.getIcon = self.listtype == 'item'
+                    scrolllist.append(listentry.Get('Generic', data=subnode))
 
-        return scrolllist
+            return scrolllist
 
     def GroupItemCompare(self, a, b):
         a = a.label or a[0]

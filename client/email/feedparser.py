@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\carbon\common\stdlib\email\feedparser.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\carbon\common\stdlib\email\feedparser.py
 __all__ = ['FeedParser']
 import re
 from email import errors
@@ -77,7 +78,7 @@ class BufferedSubFile(object):
 
 class FeedParser:
 
-    def __init__(self, _factory = message.Message):
+    def __init__(self, _factory=message.Message):
         self._factory = _factory
         self._input = BufferedSubFile()
         self._msgstack = []
@@ -85,6 +86,7 @@ class FeedParser:
         self._cur = None
         self._last = None
         self._headersonly = False
+        return
 
     def _set_headersonly(self):
         self._headersonly = True
@@ -152,7 +154,7 @@ class FeedParser:
 
             self._cur.set_payload(EMPTYSTRING.join(lines))
             return
-        if self._cur.get_content_type() == 'message/delivery-status':
+        elif self._cur.get_content_type() == 'message/delivery-status':
             while True:
                 self._input.push_eof_matcher(NLCRE.match)
                 for retval in self._parsegen():
@@ -182,7 +184,7 @@ class FeedParser:
                 self._input.unreadline(line)
 
             return
-        if self._cur.get_content_maintype() == 'message':
+        elif self._cur.get_content_maintype() == 'message':
             for retval in self._parsegen():
                 if retval is NeedMoreData:
                     yield NeedMoreData
@@ -191,7 +193,7 @@ class FeedParser:
 
             self._pop_message()
             return
-        if self._cur.get_content_maintype() == 'multipart':
+        elif self._cur.get_content_maintype() == 'multipart':
             boundary = self._cur.get_boundary()
             if boundary is None:
                 self._cur.defects.append(errors.NoBoundaryInMultipartDefect())
@@ -298,14 +300,16 @@ class FeedParser:
                     epilogue[0] = firstline[len(bolmo.group(0)):]
             self._cur.epilogue = EMPTYSTRING.join(epilogue)
             return
-        lines = []
-        for line in self._input:
-            if line is NeedMoreData:
-                yield NeedMoreData
-                continue
-            lines.append(line)
+        else:
+            lines = []
+            for line in self._input:
+                if line is NeedMoreData:
+                    yield NeedMoreData
+                    continue
+                lines.append(line)
 
-        self._cur.set_payload(EMPTYSTRING.join(lines))
+            self._cur.set_payload(EMPTYSTRING.join(lines))
+            return
 
     def _parse_headers(self, lines):
         lastheader = ''

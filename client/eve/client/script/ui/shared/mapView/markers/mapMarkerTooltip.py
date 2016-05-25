@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\client\script\ui\shared\mapView\markers\mapMarkerTooltip.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\client\script\ui\shared\mapView\markers\mapMarkerTooltip.py
 from carbonui.control.scrollContainer import ScrollContainer
 from carbonui.primitives.container import Container
 from carbonui.primitives.fill import Fill
@@ -63,6 +64,7 @@ class MarkerTooltipRowBase(LayoutGridRow):
         self.bracket = None
         self.mainLabel = None
         self.dynamicsUpdateTimer = None
+        return
 
     def SetHilited(self, hiliteState):
         if hiliteState:
@@ -76,6 +78,7 @@ class MarkerTooltipRowBase(LayoutGridRow):
                 self.highlight.opacity = 0.0
             if self.mainLabel:
                 self.mainLabel.opacity = 0.8
+        return
 
     def OnClick(self, *args):
         return self.markerObject.OnClick(*args)
@@ -106,7 +109,7 @@ class MarkerTooltipRowBase(LayoutGridRow):
 
         self.SetHilited(False)
 
-    def AlignContent(self, align = uiconst.TOLEFT):
+    def AlignContent(self, align=uiconst.TOLEFT):
         if align == uiconst.TOLEFT:
             self.mainLabel.align = uiconst.CENTERLEFT
         else:
@@ -135,6 +138,7 @@ class MarkerTooltipBase(TooltipPersistentPanel):
         self.rowsByItemIDs = None
         if self.sideContainer:
             self.sideContainer.Close()
+        return
 
     def CloseWithFade(self, *args):
         self.Close()

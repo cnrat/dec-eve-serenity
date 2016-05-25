@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\carbon\common\stdlib\coverage\html.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\carbon\common\stdlib\coverage\html.py
 import os, re, shutil, sys
 import coverage
 from coverage.backward import pickle
@@ -50,6 +51,7 @@ class HtmlReporter(Reporter):
         self.status = HtmlStatus()
         self.extra_css = None
         self.totals = Numbers()
+        return
 
     def report(self, morfs):
         self.status.read(self.config.html_dir)

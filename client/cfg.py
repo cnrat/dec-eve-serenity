@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\common\modules\nice\client\_nastyspace\cfg.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\common\modules\nice\client\_nastyspace\cfg.py
 from carbon.common.script.sys.cfg import Recordset
 from carbon.common.script.sys.cfg import Row
 from carbon.common.script.sys.cfg import Worldspaces

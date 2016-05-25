@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\client\script\ui\shared\skins\controller.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\client\script\ui\shared\skins\controller.py
 from itertoolsext import first
 import locks
 import uthread
@@ -22,7 +23,9 @@ class SkinPanelAdapter(object):
             controller.OnApplySkinFailed(itemID, skin)
             raise
 
-    def GetAppliedSkin(self, itemID, typeID = None):
+        return
+
+    def GetAppliedSkin(self, itemID, typeID=None):
         return sm.GetService('skinSvc').GetAppliedSkin(session.charid, itemID, typeID)
 
     def GetSkins(self, typeID):
@@ -42,7 +45,7 @@ class SkinPanelAdapter(object):
 class SkinPanelController(object):
     __notifyevents__ = ['OnSkinLicenseActivated']
 
-    def __init__(self, typeID, adapter = None):
+    def __init__(self, typeID, adapter=None):
         self._adapter = adapter or SkinPanelAdapter()
         self._lock = locks.Lock()
         self.Reset(typeID)
@@ -62,6 +65,7 @@ class SkinPanelController(object):
         self._previewed = None
         self._pending = None
         self._skins = None
+        return
 
     @property
     def typeID(self):
@@ -99,6 +103,7 @@ class SkinPanelController(object):
                 skin = None
             self._previewed = skin
             self.onChange()
+        return
 
     def OnSkinLicenseActivated(self, skinID):
         with self._lock:
@@ -108,16 +113,20 @@ class SkinPanelController(object):
             self._skins = None
             self._UpdateActivatedSkin(skinID)
             self.onSkinsChange()
+        return
 
     def _UpdateActivatedSkin(self, skinID):
         if self._previewed is None:
             return
-        try:
-            skin = first(self.skins, lambda s: s.skinID == skinID)
-            if skin.materialID == self._previewed.materialID:
-                self._previewed = skin
-        except StopIteration:
-            pass
+        else:
+            try:
+                skin = first(self.skins, lambda s: s.skinID == skinID)
+                if skin.materialID == self._previewed.materialID:
+                    self._previewed = skin
+            except StopIteration:
+                pass
+
+            return
 
 
 class SkinNotAvailableForType(Exception):
@@ -127,7 +136,7 @@ class SkinNotAvailableForType(Exception):
 class FittingSkinPanelController(SkinPanelController):
     __notifyevents__ = SkinPanelController.__notifyevents__ + ['OnActiveShipSkinChange']
 
-    def __init__(self, fitting, adapter = None):
+    def __init__(self, fitting, adapter=None):
         self._fitting = fitting
         super(FittingSkinPanelController, self).__init__(typeID=fitting.GetTypeID(), adapter=adapter)
         self._UpdateFittingMaterial()
@@ -158,15 +167,18 @@ class FittingSkinPanelController(SkinPanelController):
                 self._PickLicensedSkin(skin, itemID)
             else:
                 self._PickUnlicensedSkin(skin)
+        return
 
     def _ResetPick(self, itemID):
         if all((s is None for s in (self._applied, self._pending, self._previewed))):
             return
-        self._applied = None
-        self._pending = None
-        self._previewed = None
-        self._adapter.ApplySkin(self, itemID, None)
-        self.onChange()
+        else:
+            self._applied = None
+            self._pending = None
+            self._previewed = None
+            self._adapter.ApplySkin(self, itemID, None)
+            self.onChange()
+            return
 
     def _PickLicensedSkin(self, skin, itemID):
         if self._applied == skin or self._pending == skin:
@@ -177,6 +189,7 @@ class FittingSkinPanelController(SkinPanelController):
             self._previewed = None
         self._adapter.ApplySkin(self, itemID, skin)
         self.onChange()
+        return
 
     def _PickUnlicensedSkin(self, skin):
         if self._previewed == skin:
@@ -184,27 +197,30 @@ class FittingSkinPanelController(SkinPanelController):
         else:
             self._previewed = skin
         self.onChange()
+        return
 
     def OnActiveShipSkinChange(self, itemID, skinID):
         if itemID != self.itemID:
             return
-        with self._lock:
-            if skinID is None and self._applied is None:
-                return
-            if skinID is None:
-                skin = None
-            else:
-                try:
-                    skin = first(self.skins, lambda s: s.skinID == skinID)
-                except StopIteration:
+        else:
+            with self._lock:
+                if skinID is None and self._applied is None:
                     return
+                if skinID is None:
+                    skin = None
+                else:
+                    try:
+                        skin = first(self.skins, lambda s: s.skinID == skinID)
+                    except StopIteration:
+                        return
 
-            if self._applied == skin:
-                return
-            if self._pending and self._pending.skinID == skin.skinID:
-                self._pending = None
-            self._applied = skin
-            self.onChange()
+                if self._applied == skin:
+                    return
+                if self._pending and self._pending.skinID == skin.skinID:
+                    self._pending = None
+                self._applied = skin
+                self.onChange()
+            return
 
     def OnNewItemID(self):
         self.typeID = self._fitting.GetTypeID()
@@ -212,11 +228,13 @@ class FittingSkinPanelController(SkinPanelController):
     def OnApplySkinFailed(self, itemID, skin):
         if itemID != self.itemID:
             return
-        with self._lock:
-            if self._pending == skin:
-                self._pending = None
-                self._applied = self._adapter.GetAppliedSkin(itemID)
-                self.onChange()
+        else:
+            with self._lock:
+                if self._pending == skin:
+                    self._pending = None
+                    self._applied = self._adapter.GetAppliedSkin(itemID)
+                    self.onChange()
+            return
 
     def _UpdateActivatedSkin(self, skinID):
         if self._applied is not None and self._applied.skinID == skinID:
@@ -231,6 +249,8 @@ class FittingSkinPanelController(SkinPanelController):
             except StopIteration:
                 pass
 
+        return
+
     def _UpdateFittingMaterial(self):
         if self._previewed:
             materialSetID = self._previewed.materialSetID
@@ -241,3 +261,4 @@ class FittingSkinPanelController(SkinPanelController):
         else:
             materialSetID = None
         self._fitting.SetSkinMaterialSetID(materialSetID)
+        return

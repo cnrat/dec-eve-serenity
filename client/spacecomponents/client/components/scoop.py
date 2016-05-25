@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\packages\spacecomponents\client\components\scoop.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\packages\spacecomponents\client\components\scoop.py
 from carbon.common.script.util.format import FmtDist
 from eve.common.lib.appConst import maxCargoContainerTransferDistance
 from spacecomponents.client.display import EntryData, RANGE_ICON

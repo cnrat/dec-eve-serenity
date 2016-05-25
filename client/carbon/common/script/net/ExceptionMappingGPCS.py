@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\carbon\common\script\net\ExceptionMappingGPCS.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\carbon\common\script\net\ExceptionMappingGPCS.py
 import sys
 MESSAGES = {'ACCOUNTBANNED': '/Carbon/MachoNet/TransportClosed/ACCOUNTBANNED',
  'ACCOUNTNOTACTIVE': '/Carbon/MachoNet/TransportClosed/ACCOUNTNOTACTIVE',
@@ -61,6 +62,8 @@ class ExceptionMappingGPCS:
                 raise UserError('UnMachoDestination', {'what': e.payload}), None, tb
             finally:
                 del tb
+
+        return
 
     def CallDown(self, packet):
         return self._ProcessCall(self.ForwardCallDown, packet)

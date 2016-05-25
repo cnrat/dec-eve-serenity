@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\client\script\environment\eveVivoxService.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\client\script\environment\eveVivoxService.py
 import uthread
 import svc
 import service
@@ -33,7 +34,7 @@ class EveVivoxService(svc.vivox):
         if eve.session.role & service.ROLE_GML:
             return self.vivoxServer
 
-    def AppCanJoinChannel(self, eveChannelID, suppress = False):
+    def AppCanJoinChannel(self, eveChannelID, suppress=False):
         if type(eveChannelID) is types.TupleType:
             if type(eveChannelID[0]) is types.TupleType:
                 eveChannelID = eveChannelID[0]
@@ -80,6 +81,7 @@ class EveVivoxService(svc.vivox):
             self.speakingChannel = None
         elif sm.GetService('fleet').IsVoiceMuted(eveChannelID) or self.gaggedAt.has_key(vivoxChannelName):
             eve.Message('CustomNotify', {'notify': localization.GetByLabel('UI/Voice/MutedInChannel')})
+        return
 
     def _SetSpeakingChannel(self, vivoxChannelName, oldChannelName):
         self.LogInfo('_SetSpeakingChannel(', vivoxChannelName, ')')
@@ -95,6 +97,7 @@ class EveVivoxService(svc.vivox):
             eveChannelID = self.GetCcpChannelName(vivoxChannelName)
             eveOldChannelID = self.GetCcpChannelName(oldChannelName)
             sm.ScatterEvent('OnVoiceSpeakingChannelSet', eveChannelID, eveOldChannelID)
+        return
 
     def AppGag(self, charID, eveChannelID, time):
         vivoxChannelName = self.GetVivoxChannelName(eveChannelID)
@@ -107,6 +110,7 @@ class EveVivoxService(svc.vivox):
             self.UnGag(charID, eveChannelID)
         else:
             self.LogInfo('someone was gagged at', charID, vivoxChannelName)
+        return
 
     def AppUnGag(self, charID, eveChannelID):
         vivoxChannelName = self.GetVivoxChannelName(eveChannelID)
@@ -143,6 +147,7 @@ class EveVivoxService(svc.vivox):
                 wnd = sm.GetService('LSC').GetChannelWindow(eveChannelID)
                 if wnd is not None:
                     wnd.RefreshVoiceStatus(mutedParticipants)
+        return
 
     def ExclusionChange(self, charid, eveChannelID, state):
         if self.LoggedIn():
@@ -162,6 +167,8 @@ class EveVivoxService(svc.vivox):
                             if wnd is not None:
                                 wnd.RefreshVoiceStatus([[charid, voiceIcon, self.vivoxUserName]])
 
+        return
+
     def AppCreateAccountSendNotifyMessage(self):
         eve.Message('CustomNotify', {'notify': localization.GetByLabel('UI/Voice/CreatingAccount')})
 
@@ -174,6 +181,7 @@ class EveVivoxService(svc.vivox):
         inputValue = [(binding, key)]
         self.connector.EnableGlobalPushToTalkMode(inputValue)
         self.pushToTalkEnabled = True
+        return
 
     def AppDisableGlobalPushToTalkMode(self):
         self.connector.DisableGlobalPushToTalkMode()
@@ -224,20 +232,22 @@ class EveVivoxService(svc.vivox):
     def SetTabColor(self, vivoxChannelName, color):
         if not vivoxChannelName:
             return
-        eveChannelID = self.GetCcpChannelName(vivoxChannelName)
-        wnd = sm.GetService('LSC').GetChannelWindow(eveChannelID)
-        if not wnd:
+        else:
+            eveChannelID = self.GetCcpChannelName(vivoxChannelName)
+            wnd = sm.GetService('LSC').GetChannelWindow(eveChannelID)
+            if not wnd:
+                return
+            icon = None
+            tip = None
+            if color:
+                if color.lower() == 'speak':
+                    icon = 'ui_38_16_197'
+                    tip = localization.GetByLabel('UI/Voice/YouAreSpeaking')
+                else:
+                    icon = 'ui_38_16_196'
+                    tip = localization.GetByLabel('UI/Voice/YouAreListening')
+            wnd.SetHeaderIcon(icon, 12, tip)
             return
-        icon = None
-        tip = None
-        if color:
-            if color.lower() == 'speak':
-                icon = 'ui_38_16_197'
-                tip = localization.GetByLabel('UI/Voice/YouAreSpeaking')
-            else:
-                icon = 'ui_38_16_196'
-                tip = localization.GetByLabel('UI/Voice/YouAreListening')
-        wnd.SetHeaderIcon(icon, 12, tip)
 
     def TabNudge(self, eveChannelID):
         vivoxChannelName = self.GetVivoxChannelName(eveChannelID)
@@ -406,31 +416,33 @@ class EveVivoxService(svc.vivox):
     def AppCreateAccountFailed(self):
         eve.Message('CustomNotify', {'notify': localization.GetByLabel('UI/Voice/CreatingAccountFailed')})
 
-    def _OnJoinedChannel(self, channelName = 0):
+    def _OnJoinedChannel(self, channelName=0):
         self.LogInfo('_OnJoinedChannel channelName', channelName)
         self.members[channelName] = []
         if channelName == 'Echo':
             sm.ScatterEvent('OnEchoChannel', True)
             self.SetSpeakingChannel('Echo')
             return
-        eveChannelName = self.GetCcpChannelName(channelName)
-        uthread.new(self.voiceMgr.LogChannelJoined, channelName).context = 'vivoxService::_OnJoinChannel::LogChannelJoined'
-        eve.Message('CustomNotify', {'notify': localization.GetByLabel('UI/Voice/JoinedChannel', channel=self.GetPrettyChannelName(eveChannelName))})
-        isRestrictedFleetChannel = False
-        for each in [const.vcPrefixFleet, const.vcPrefixSquad, const.vcPrefixWing]:
-            if each in channelName:
-                if sm.GetService('fleet').GetChannelMuteStatus(eveChannelName) == True:
-                    exclusionList = sm.GetService('fleet').GetExclusionList()
-                    if exclusionList.has_key(eveChannelName) == False:
-                        isRestrictedFleetChannel = True
-                    elif exclusionList.has_key(eveChannelName) and session.charid not in exclusionList[eveChannelName]:
-                        isRestrictedFleetChannel = True
+        else:
+            eveChannelName = self.GetCcpChannelName(channelName)
+            uthread.new(self.voiceMgr.LogChannelJoined, channelName).context = 'vivoxService::_OnJoinChannel::LogChannelJoined'
+            eve.Message('CustomNotify', {'notify': localization.GetByLabel('UI/Voice/JoinedChannel', channel=self.GetPrettyChannelName(eveChannelName))})
+            isRestrictedFleetChannel = False
+            for each in [const.vcPrefixFleet, const.vcPrefixSquad, const.vcPrefixWing]:
+                if each in channelName:
+                    if sm.GetService('fleet').GetChannelMuteStatus(eveChannelName) == True:
+                        exclusionList = sm.GetService('fleet').GetExclusionList()
+                        if exclusionList.has_key(eveChannelName) == False:
+                            isRestrictedFleetChannel = True
+                        elif exclusionList.has_key(eveChannelName) and session.charid not in exclusionList[eveChannelName]:
+                            isRestrictedFleetChannel = True
 
-        self.SetTabColor(channelName, 'listen')
-        sm.ScatterEvent('OnVoiceChannelJoined', eveChannelName)
-        if self.speakingChannel is None and isRestrictedFleetChannel == False:
-            self.SetSpeakingChannel(eveChannelName)
-        uthread.pool('vivox::_OnJoinedChannel', self.GetParticipants, channelName)
+            self.SetTabColor(channelName, 'listen')
+            sm.ScatterEvent('OnVoiceChannelJoined', eveChannelName)
+            if self.speakingChannel is None and isRestrictedFleetChannel == False:
+                self.SetSpeakingChannel(eveChannelName)
+            uthread.pool('vivox::_OnJoinedChannel', self.GetParticipants, channelName)
+            return
 
     def _OnLeftChannel(self, channelName):
         self.LogInfo('_OnLeftChannel', channelName)
@@ -443,29 +455,31 @@ class EveVivoxService(svc.vivox):
             if channelName == self.speakingChannel:
                 self.speakingChannel = None
             return
-        uthread.new(self.voiceMgr.LogChannelLeft, channelName).context = 'vivoxService::_OnJoinChannel::LogChannelLeft'
-        if self.members.has_key(channelName):
-            tmp = []
-            for members in self.members[channelName]:
-                tmp.append([members[0], None, members[2]])
+        else:
+            uthread.new(self.voiceMgr.LogChannelLeft, channelName).context = 'vivoxService::_OnJoinChannel::LogChannelLeft'
+            if self.members.has_key(channelName):
+                tmp = []
+                for members in self.members[channelName]:
+                    tmp.append([members[0], None, members[2]])
 
-            self.members[channelName] = tmp
-            eveChannelName = self.GetCcpChannelName(channelName)
-            wnd = sm.GetService('LSC').GetChannelWindow(eveChannelName)
-            if wnd is not None:
-                wnd.RefreshVoiceStatus(self.members[channelName])
-            self.SetTabColor(channelName, None)
-            if len(self.members.keys()) == 0 and self.autoJoinQueue == ['Echo']:
-                if self.connector.ChannelJoinInProgressCount() == 0:
+                self.members[channelName] = tmp
+                eveChannelName = self.GetCcpChannelName(channelName)
+                wnd = sm.GetService('LSC').GetChannelWindow(eveChannelName)
+                if wnd is not None:
+                    wnd.RefreshVoiceStatus(self.members[channelName])
+                self.SetTabColor(channelName, None)
+                if len(self.members.keys()) == 0 and self.autoJoinQueue == ['Echo']:
+                    if self.connector.ChannelJoinInProgressCount() == 0:
+                        self.JoinEchoChannel()
+                self.LogInfo('_OnLeftChannel popping', channelName)
+                self.members.pop(channelName)
+                if channelName == self.speakingChannel:
+                    self.speakingChannel = None
+                if len(self.members.keys()) == 0 and self.autoJoinQueue == ['Echo']:
                     self.JoinEchoChannel()
-            self.LogInfo('_OnLeftChannel popping', channelName)
-            self.members.pop(channelName)
-            if channelName == self.speakingChannel:
-                self.speakingChannel = None
-            if len(self.members.keys()) == 0 and self.autoJoinQueue == ['Echo']:
-                self.JoinEchoChannel()
-            eve.Message('CustomNotify', {'notify': localization.GetByLabel('UI/Voice/LeftChannel', channel=self.GetPrettyChannelName(eveChannelName))})
-            sm.ScatterEvent('OnVoiceChannelLeft', eveChannelName)
+                eve.Message('CustomNotify', {'notify': localization.GetByLabel('UI/Voice/LeftChannel', channel=self.GetPrettyChannelName(eveChannelName))})
+                sm.ScatterEvent('OnVoiceChannelLeft', eveChannelName)
+            return
 
     def AppOnParticipantLeft(self, username, channelName):
         self.SetVoiceIcon(self.GetCharIdFromUri(username), channelName, vivoxConstants.NOTJOINED)

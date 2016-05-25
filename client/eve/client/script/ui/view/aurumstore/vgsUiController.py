@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\client\script\ui\view\aurumstore\vgsUiController.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\client\script\ui\view\aurumstore\vgsUiController.py
 import carbonui.const as uiconst
 import logging
 from eve.client.script.ui.util.uiComponents import RunThreadOnce
@@ -20,9 +21,10 @@ class VgsUiController(object):
         self.view = self.viewState.GetView(ViewState.VirtualGoodsStore)
         self.detailContainer = None
         self.buyIsInProgress = False
+        return
 
     @RunThreadOnce(OPEN_OFFER_THREAD_KEY)
-    def ShowOffer(self, offerId, suppressFullScreen = False):
+    def ShowOffer(self, offerId, suppressFullScreen=False):
         self.ForceClose()
         offer = self.vgsService.GetStore().GetOffer(offerId)
         if suppressFullScreen:
@@ -64,7 +66,7 @@ class VgsUiController(object):
         uicore.animations.FadeOut(self.detailContainer.offerContainer, duration=closeDuration)
         self.view.DeactivateSuppressLayer(duration=closeDuration, callback=self.detailContainer.Close)
 
-    def BuyOffer(self, offer, quantity = 1):
+    def BuyOffer(self, offer, quantity=1):
         self.vgsService.LogInfo('VgsUiController.BuyOffer', offer, quantity)
         self.buyIsInProgress = True
         try:
@@ -84,3 +86,5 @@ class VgsUiController(object):
 
         finally:
             self.buyIsInProgress = False
+
+        return

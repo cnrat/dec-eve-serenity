@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\client\script\environment\crestConnectionService.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\client\script\environment\crestConnectionService.py
 import service
 import blue
 import crestclient
@@ -9,10 +10,11 @@ class CrestConnectionService(service.Service):
     __displayName__ = 'Crest Connection Service'
     __configvalues__ = {'verify': 'cacert.pem'}
 
-    def Run(self, memStream = None):
+    def Run(self, memStream=None):
         self.LogInfo('Starting Crest Connection Service')
         self.userSession = None
         self.token = None
+        return
 
     def GetUserSession(self):
         if self.userSession is None:

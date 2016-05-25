@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\carbon\common\lib\jinja2\_markupsafe\tests.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\carbon\common\lib\jinja2\_markupsafe\tests.py
 import gc
 import unittest
 from jinja2._markupsafe import Markup, escape, escape_silent
@@ -13,10 +14,10 @@ class MarkupTestCase(unittest.TestCase):
         class Foo(object):
 
             def __html__(self):
-                return '<em>awesome</em>'
+                pass
 
             def __unicode__(self):
-                return 'awesome'
+                pass
 
     def test_all_set(self):
         import jinja2._markupsafe as markup

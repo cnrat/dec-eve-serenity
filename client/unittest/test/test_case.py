@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\carbon\common\stdlib\unittest\test\test_case.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\carbon\common\stdlib\unittest\test\test_case.py
 import difflib
 import pprint
 import re
@@ -386,11 +387,12 @@ class Test_TestCase(unittest.TestCase, TestEquality, TestHashing):
         s1, s2 = SadSnake(), SadSnake()
         self.assertNotEqual(s1, s2)
 
-        def AllSnakesCreatedEqual(a, b, msg = None):
+        def AllSnakesCreatedEqual(a, b, msg=None):
             return type(a) is type(b) is SadSnake
 
         self.addTypeEqualityFunc(SadSnake, AllSnakesCreatedEqual)
         self.assertEqual(s1, s2)
+        return
 
     def testAssertIs(self):
         thing = object()
@@ -520,6 +522,7 @@ class Test_TestCase(unittest.TestCase, TestEquality, TestHashing):
         self.assertRaises(self.failureException, self.assertDictEqual, None, d)
         self.assertRaises(self.failureException, self.assertDictEqual, [], d)
         self.assertRaises(self.failureException, self.assertDictEqual, 1, 1)
+        return
 
     def testAssertSequenceEqualMaxDiff(self):
         self.assertEqual(self.maxDiff, 640)
@@ -557,6 +560,7 @@ class Test_TestCase(unittest.TestCase, TestEquality, TestHashing):
 
         self.assertTrue(len(msg) > len(diff))
         self.assertNotIn(omitted, msg)
+        return
 
     def testTruncateMessage(self):
         self.maxDiff = 1
@@ -569,12 +573,13 @@ class Test_TestCase(unittest.TestCase, TestEquality, TestHashing):
         self.maxDiff = 4
         message = self._truncateMessage('foo', 'bar')
         self.assertEqual(message, 'foobar')
+        return
 
     def testAssertDictEqualTruncates(self):
         test = unittest.TestCase('assertEqual')
 
         def truncate(msg, diff):
-            return 'foo'
+            pass
 
         test._truncateMessage = truncate
         try:
@@ -588,7 +593,7 @@ class Test_TestCase(unittest.TestCase, TestEquality, TestHashing):
         test = unittest.TestCase('assertEqual')
 
         def truncate(msg, diff):
-            return 'foo'
+            pass
 
         test._truncateMessage = truncate
         try:
@@ -668,6 +673,7 @@ class Test_TestCase(unittest.TestCase, TestEquality, TestHashing):
          {'b': 2},
          None,
          True], [{'b': 2}, True, None])
+        return
 
     def testAssertSetEqual(self):
         set1 = set()
@@ -699,6 +705,7 @@ class Test_TestCase(unittest.TestCase, TestEquality, TestHashing):
         set1 = set([(0, 1), (2, 3)])
         set2 = set([(4, 5)])
         self.assertRaises(self.failureException, self.assertSetEqual, set1, set2)
+        return
 
     def testInequality(self):
         self.assertGreater(2, 1)
@@ -786,6 +793,8 @@ class Test_TestCase(unittest.TestCase, TestEquality, TestHashing):
                 error = str(e).encode('utf8').split('\n', 1)[1]
                 self.assertTrue(sample_text_error == error)
 
+        return
+
     def testAsertEqualSingleLine(self):
         sample_text = u'laden swallows fly slowly'
         revised_sample_text = u'unladen swallows fly quickly'
@@ -801,6 +810,7 @@ class Test_TestCase(unittest.TestCase, TestEquality, TestHashing):
         self.assertRaises(self.failureException, self.assertIsNone, False)
         self.assertIsNotNone('DjZoPloGears on Rails')
         self.assertRaises(self.failureException, self.assertIsNotNone, None)
+        return
 
     def testAssertRegexpMatches(self):
         self.assertRegexpMatches('asdfabasdf', 'ab+')

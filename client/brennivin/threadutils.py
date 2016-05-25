@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\packages\brennivin\threadutils.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\packages\brennivin\threadutils.py
 import inspect as _inspect
 import sys as _sys
 import threading as _threading
@@ -15,7 +16,7 @@ class ChunkIter(object):
         thread.start()
         return thread
 
-    def __init__(self, iterable_, callback, chunksize = 50):
+    def __init__(self, iterable_, callback, chunksize=50):
         self._isFinished = False
         self._cancelReq = False
         self.chunksize = chunksize
@@ -41,10 +42,10 @@ class ChunkIter(object):
             self._fireCallback.emit(chunk)
         self._isFinished = True
 
-    def wait_for_completion(self, timeout = None):
+    def wait_for_completion(self, timeout=None):
         self.thread.join(timeout)
 
-    def wait_chunks(self, chunks = 1, sleep_interval = 1):
+    def wait_chunks(self, chunks=1, sleep_interval=1):
         if self._isFinished:
             return
         fireCnt = [0]
@@ -71,7 +72,7 @@ class ChunkIter(object):
 
 class Signal(object):
 
-    def __init__(self, eventdoc = None, onerror = _dochelpers.pretty_module_func(_traceback.print_exception)):
+    def __init__(self, eventdoc=None, onerror=_dochelpers.pretty_module_func(_traceback.print_exception)):
         self._delegates = []
         self.eventdoc = eventdoc
         self.onerror = onerror
@@ -103,6 +104,7 @@ class ExceptionalThread(_threading.Thread):
         _threading.Thread.__init__(self, *args, **kwargs)
         self.excepted = Signal('(etype, value, tb)')
         self.exc_info = None
+        return
 
     def run(self):
         try:
@@ -124,7 +126,9 @@ class ExceptionalThread(_threading.Thread):
             if reraise is True:
                 raise
 
-    def join(self, timeout = None):
+        return
+
+    def join(self, timeout=None):
         _threading.Thread.join(self, timeout)
         if self.exc_info:
             _compat.reraise(self.exc_info[0], self.exc_info[1], self.exc_info[2])
@@ -138,14 +142,14 @@ class NotAThread(_threading.Thread):
         self._started_nota = True
         self.run()
 
-    def join(self, timeout = None):
+    def join(self, timeout=None):
         if not self._started_nota:
             raise RuntimeError('cannot join thread before it is started')
 
 
 class TimerExt(_compat.TimerCls):
 
-    def __init__(self, interval, function, args = (), kwargs = None):
+    def __init__(self, interval, function, args=(), kwargs=None):
         if float(interval) <= 0:
             raise ValueError('interval must be > 0, got %s' % interval)
         if function is None:
@@ -154,6 +158,7 @@ class TimerExt(_compat.TimerCls):
         self._lock = _threading.Lock()
         self._restartRequested = False
         self.name = 'TimerExtThread'
+        return
 
     def restart(self):
         with self._lock:
@@ -182,7 +187,7 @@ class TimerExt(_compat.TimerCls):
                 return
 
 
-def join_timeout(thread, timeout = 8, errtype = RuntimeError):
+def join_timeout(thread, timeout=8, errtype=RuntimeError):
     thread.join(timeout)
     if thread.is_alive():
         raise errtype('%s is still alive!' % thread)
@@ -200,7 +205,7 @@ class Token(object):
         return self._isSet
 
 
-def memoize(func = None, uselock = False, _lockcls = _dochelpers.ignore):
+def memoize(func=None, uselock=False, _lockcls=_dochelpers.ignore):
 
     def hasParameterless(func_):
         argspec = _inspect.getargspec(func_)
@@ -237,7 +242,7 @@ def memoize(func = None, uselock = False, _lockcls = _dochelpers.ignore):
 
 class expiring_memoize(object):
 
-    def __init__(self, expiry = 0, gettime = None):
+    def __init__(self, expiry=0, gettime=None):
         self.expiry = expiry
         self.gettime = gettime or _time.time
 

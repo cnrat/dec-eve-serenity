@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\client\script\ui\podGuide\podGuideUI.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\client\script\ui\podGuide\podGuideUI.py
 import carbonui.const as uiconst
 from carbonui.control.scrollContainer import ScrollContainer
 from carbonui.primitives.fill import Fill
@@ -60,7 +61,7 @@ class PodGuideWindow(Window):
     def InitializeData(self):
         self.allInfo = GetTerms()
 
-    def LoadPanelByID(self, termID, storeInHistory = True):
+    def LoadPanelByID(self, termID, storeInHistory=True):
         termInfo = GetTermByID(termID)
         self.LoadPanel(termInfo)
         if storeInHistory:

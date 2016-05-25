@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\client\script\ui\inflight\probeControl_MapView.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\client\script\ui\inflight\probeControl_MapView.py
 from eve.client.script.ui.shared.mapView.mapViewConst import SOLARSYSTEM_SCALE
 import trinity
 import carbonui.const as uiconst
@@ -63,7 +64,7 @@ class BaseProbeControl(object):
     def GetWorldPosition(self):
         return geo2.Vector(self.locator.worldTransform[3][:3])
 
-    def SetCursorState(self, cursorState, hiliteAxis = None):
+    def SetCursorState(self, cursorState, hiliteAxis=None):
         if self._cursorState == (cursorState, hiliteAxis):
             return
         self._cursorState = (cursorState, hiliteAxis)
@@ -131,6 +132,7 @@ class ProbeControl(BaseProbeControl):
         self._highlighted = True
         self.HighlightBorder(0)
         uicore.animations.MorphVector3(self.locator, 'scaling', startVal=(0.0, 0.0, 0.0), endVal=(1.0, 1.0, 1.0), duration=0.5, curveType=uiconst.ANIM_OVERSHOT, timeOffset=random.random() * 0.5)
+        return
 
     def SetScanDronesState(self, state):
         scanEffectTf = nodemanager.FindNode(self.sphere, 'scanLines', 'trinity.EveTransform')
@@ -152,29 +154,32 @@ class ProbeControl(BaseProbeControl):
     def GetRange(self):
         return self.sphere.scaling[0]
 
-    def HighlightBorder(self, on = 1):
+    def HighlightBorder(self, on=1):
         if bool(on) == self._highlighted:
             return
-        self._highlighted = bool(on)
-        curveSets = self.sphere.Find('trinity.TriCurveSet')
-        curveSet = None
-        for each in curveSets:
-            if getattr(each, 'name', None) == 'Highlight':
-                curveSet = each
-                break
+        else:
+            self._highlighted = bool(on)
+            curveSets = self.sphere.Find('trinity.TriCurveSet')
+            curveSet = None
+            for each in curveSets:
+                if getattr(each, 'name', None) == 'Highlight':
+                    curveSet = each
+                    break
 
-        if curveSet:
-            curveSet.Stop()
-            if on:
-                curveSet.scale = 10.0
-                curveSet.Play()
-            else:
-                curveSet.scale = -1.0
-                curveSet.PlayFrom(curveSet.GetMaxCurveDuration())
+            if curveSet:
+                curveSet.Stop()
+                if on:
+                    curveSet.scale = 10.0
+                    curveSet.Play()
+                else:
+                    curveSet.scale = -1.0
+                    curveSet.PlayFrom(curveSet.GetMaxCurveDuration())
+            return
 
     def HideScanRanges(self):
         if self.scanrangeCircles is not None:
             self.scanrangeCircles.display = False
+        return
 
     def ShowScanRanges(self):
         if self.scanrangeCircles is None:
@@ -189,6 +194,7 @@ class ProbeControl(BaseProbeControl):
                 par.children.append(sr)
 
         self.scanrangeCircles.display = True
+        return
 
     def HighlightProbe(self):
         self.HighlightBorder(1)

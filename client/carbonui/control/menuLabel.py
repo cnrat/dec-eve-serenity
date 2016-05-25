@@ -1,9 +1,10 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\packages\carbonui\control\menuLabel.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\packages\carbonui\control\menuLabel.py
 
 
 class MenuLabel(tuple):
 
-    def __new__(cls, text, kw = None):
+    def __new__(cls, text, kw=None):
         if kw is None:
             kw = {}
         return tuple.__new__(cls, (text, kw))

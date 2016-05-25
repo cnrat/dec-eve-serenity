@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\carbon\common\lib\urllib3\util.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\carbon\common\lib\urllib3\util.py
 from base64 import b64encode
 try:
     from select import poll, POLLIN
@@ -12,7 +13,7 @@ except ImportError:
 from .packages import six
 from .exceptions import LocationParseError
 
-def make_headers(keep_alive = None, accept_encoding = None, user_agent = None, basic_auth = None):
+def make_headers(keep_alive=None, accept_encoding=None, user_agent=None, basic_auth=None):
     headers = {}
     if accept_encoding:
         if isinstance(accept_encoding, str):

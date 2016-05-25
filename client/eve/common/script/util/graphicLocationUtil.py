@@ -1,13 +1,14 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\common\script\util\graphicLocationUtil.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\common\script\util\graphicLocationUtil.py
 import random
 import log
 import geo2
 from eve.common.lib import appConst
 DEFAULT_UNDOCKPOINT_CATEGORY = 'undockPoint'
-SUPERCAPITAL_UNDOCKPOINT_CATEGORY = 'undockPoint_supercapital'
-CAPITAL_UNDOCKPOINT_CATEGORY = 'undockPoint_capital'
-LARGE_UNDOCKPOINT_CATEGORY = 'undockPoint_large'
-SMALL_UNDOCKPOINT_CATEGORY = 'undockPoint_small'
+SUPERCAPITAL_UNDOCKPOINT_CATEGORY = 'undockPointSupercapital'
+CAPITAL_UNDOCKPOINT_CATEGORY = 'undockPointCapital'
+LARGE_UNDOCKPOINT_CATEGORY = 'undockPointLarge'
+SMALL_UNDOCKPOINT_CATEGORY = 'undockPointSmall'
 STATION_SERVICE_FITTING_CATEGORY = 'fittingService'
 STATION_SERVICE_REPAIR_FACILITIES_CATEGORY = 'repairFacilitiesService'
 STATION_SERVICE_REPROCESSING_PLANE_CATEGORY = 'reprocessingPlantService'
@@ -32,19 +33,20 @@ DEFAULT_SERVICE_POSITIONS = {appConst.stationServiceFitting: geo2.Vector(-1000, 
  appConst.stationServiceFactory: geo2.Vector(0, 0, 1000),
  appConst.stationServiceLaboratory: geo2.Vector(0, 0, -1000)}
 
-def GetStationUndockVectors(stationID, typeID = None):
+def GetStationUndockVectors(stationID, typeID=None):
     station = cfg.mapSolarSystemContentCache.npcStations.GetIfExists(stationID)
     typeID = getattr(station, 'typeID', typeID)
     locations = cfg.graphicLocations.GetIfExists(typeID)
     if locations is None:
         log.LogError("GetStationUndockVectors: Can't find locations with id %s and typeID %s" % (stationID, typeID))
         return (geo2.Vector(0.0, 0.0, 0.0), geo2.Vector(0.0, 0.0, 1.0))
-    possibleLocators = []
-    for directionalLocator in locations.directionalLocators:
-        if directionalLocator.category in ALL_UNDOCK_CATEGORIES:
-            possibleLocators.append((directionalLocator.position, directionalLocator.direction))
+    else:
+        possibleLocators = []
+        for directionalLocator in locations.directionalLocators:
+            if directionalLocator.category in ALL_UNDOCK_CATEGORIES:
+                possibleLocators.append((directionalLocator.position, directionalLocator.direction))
 
-    return random.choice(possibleLocators)
+        return random.choice(possibleLocators)
 
 
 def GetServiceLocatorPosition(typeID, serviceID):
@@ -52,12 +54,13 @@ def GetServiceLocatorPosition(typeID, serviceID):
     if serviceID not in SERVICE_LOCATOR_MAPPING or locations is None and serviceID not in DEFAULT_SERVICE_POSITIONS:
         log.LogError("GetLocatorPosition: Can't find locationID with typeID %s for serviceID %s" % (typeID, serviceID))
         return geo2.Vector(0.0, 0.0, 0.0)
-    if locations is None:
+    elif locations is None:
         log.LogInfo('GetLocatorPosition: Returning default positions for typeID %s and serviceID $s' % (typeID, serviceID))
         return DEFAULT_SERVICE_POSITIONS[serviceID]
-    serviceCategory = SERVICE_LOCATOR_MAPPING[serviceID]
-    for locator in locations.locators:
-        if locator.category == serviceCategory:
-            return locator.position
+    else:
+        serviceCategory = SERVICE_LOCATOR_MAPPING[serviceID]
+        for locator in locations.locators:
+            if locator.category == serviceCategory:
+                return locator.position
 
-    return geo2.Vector(0.0, 0.0, 0.0)
+        return geo2.Vector(0.0, 0.0, 0.0)

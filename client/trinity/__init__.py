@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\packages\trinity\__init__.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\packages\trinity\__init__.py
 import logging
 import sys
 import pytelemetry.zoning as telemetry
@@ -71,7 +72,7 @@ def LoadUrgent(path):
     return obj
 
 
-def GetResourceUrgent(path, extra = ''):
+def GetResourceUrgent(path, extra=''):
     blue.resMan.SetUrgentResourceLoads(True)
     obj = blue.resMan.GetResource(path, extra)
     blue.resMan.SetUrgentResourceLoads(False)
@@ -83,7 +84,7 @@ def Save(obj, path):
     return blue.resMan.SaveObject(obj, path)
 
 
-def SaveRenderTarget(filename, rt = None):
+def SaveRenderTarget(filename, rt=None):
     if rt is None:
         rt = device.GetRenderContext().GetDefaultBackBuffer()
     if not rt.isReadable:
@@ -92,6 +93,7 @@ def SaveRenderTarget(filename, rt = None):
         return Tr2HostBitmap(readable).Save(filename)
     else:
         return Tr2HostBitmap(rt).Save(filename)
+        return
 
 
 def _StoreGPUInfoInBreakpadHeaders():
@@ -124,7 +126,7 @@ def IsFpsEnabled():
     return bool('FPS' in (j.name for j in renderJobs.recurring))
 
 
-def SetFpsEnabled(enable, viewPort = None):
+def SetFpsEnabled(enable, viewPort=None):
     if enable:
         if IsFpsEnabled():
             return
@@ -136,7 +138,7 @@ def SetFpsEnabled(enable, viewPort = None):
         renderJobs.UnscheduleByName('FPS')
 
 
-def AddRenderJobText(text, x, y, renderJob, color = 4278255360L):
+def AddRenderJobText(text, x, y, renderJob, color=4278255360L):
     steps = [ step for step in renderJob.steps if step.name == 'RenderDebug' ]
     if len(steps) > 0:
         step = steps[0]
@@ -146,7 +148,7 @@ def AddRenderJobText(text, x, y, renderJob, color = 4278255360L):
     return renderJob
 
 
-def CreateDebugRenderJob(renderJobName, viewPort, renderJobIndex = -1):
+def CreateDebugRenderJob(renderJobName, viewPort, renderJobIndex=-1):
     renderJob = CreateRenderJob(renderJobName)
     renderJob.SetViewport(viewPort)
     step = renderJob.RenderDebug()
@@ -174,6 +176,7 @@ def AddFrameTimeMarker(name):
     line = GetLineGraphFrameTime()
     if line is not None:
         line.AddMarker(name)
+    return
 
 
 class FrameTimeMarkerStopwatch(object):
@@ -232,6 +235,7 @@ def PopulateShaderLibraryFromFiles():
 
         else:
             logger.error('Unable to find shader library object: %s', filepath)
+        return
 
     filesToLoad = set()
     for path, dirs, files in walk.walk('res:/Graphics/Shaders/ShaderDescriptions'):
@@ -292,8 +296,6 @@ def GetHighestSupportedMsaaType(formats):
     for each in levels:
         if IsMsaaTypeSupported(each, formats):
             return each
-
-    return 1
 
 
 def _init():

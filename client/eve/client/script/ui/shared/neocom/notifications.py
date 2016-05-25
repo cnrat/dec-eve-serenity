@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\client\script\ui\shared\neocom\notifications.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\client\script\ui\shared\neocom\notifications.py
 from eve.client.script.ui.control.divider import Divider
 import blue
 import uiprimitives
@@ -27,6 +28,7 @@ class NotificationForm(uiprimitives.Container):
         self.readTimer = 0
         self.viewing = None
         self.lastDeleted = 0
+        return
 
     def DrawStuff(self, *args):
         btns = uicontrols.ButtonGroup(btns=[[localization.GetByLabel('UI/Mail/Notifications/MarkAllAsRead'),
@@ -65,6 +67,7 @@ class NotificationForm(uiprimitives.Container):
         self.sr.msgScroll.OnSelectionChange = self.MsgScrollSelectionChange
         self.sr.msgScroll.OnDelete = self.DeleteFromKeyboard
         self.inited = True
+        return
 
     def LoadNotificationForm(self, *args):
         self.LoadLeftSide()
@@ -82,6 +85,8 @@ class NotificationForm(uiprimitives.Container):
                 if panel is not None:
                     self.UpdateCounters()
                     panel.OnClick()
+
+        return
 
     def LoadLeftSide(self):
         scrolllist = self.GetStaticLabelsGroups()
@@ -103,6 +108,7 @@ class NotificationForm(uiprimitives.Container):
             panel = entry.panel
             if panel is not None:
                 panel.OnClick()
+        return
 
     def GetStaticLabelsGroups(self):
         scrolllist = []
@@ -119,7 +125,7 @@ class NotificationForm(uiprimitives.Container):
         scrolllist.insert(1, listentry.Get('Space', {'height': 12}))
         return scrolllist
 
-    def GetGroupEntry(self, groupID, label, selected = 0):
+    def GetGroupEntry(self, groupID, label, selected=0):
         data = {'GetSubContent': self.GetLeftGroups,
          'label': label,
          'id': ('notification', id),
@@ -148,7 +154,7 @@ class NotificationForm(uiprimitives.Container):
         group = entry.sr.node
         self.LoadGroupFromNode(group)
 
-    def LoadGroupFromNode(self, node, refreshing = 0, selectedIDs = [], *args):
+    def LoadGroupFromNode(self, node, refreshing=0, selectedIDs=[], *args):
         group = node
         settings.char.ui.Set('mail_lastnotification', group.groupID)
         notifications = []
@@ -161,55 +167,57 @@ class NotificationForm(uiprimitives.Container):
         sm.GetService('mailSvc').PrimeOwners(senders)
         if not self or self.destroyed:
             return
-        pos = self.sr.msgScroll.GetScrollProportion()
-        scrolllist = []
-        for each in notifications:
-            senderName = ''
-            if each.senderID is not None:
-                senderName = cfg.eveowners.Get(each.senderID).ownerName
-            label = '<t>' + senderName + '<t>' + each.subject + '<t>' + util.FmtDate(each.created, 'ls')
-            if group.groupID == const.notificationGroupUnread:
-                typeGroup = notificationConst.GetTypeGroup(each.typeID)
-                labelPath = notificationUtil.groupNamePaths.get(typeGroup, None)
-                if labelPath is None:
-                    typeName = ''
-                else:
-                    typeName = localization.GetByLabel(labelPath)
-                label += '<t>' + typeName
-            hint = each.body.replace('<br>', '')
-            hint = uiutil.TruncateStringTo(hint, HINTCUTOFF, localization.GetByLabel('UI/Common/MoreTrail'))
-            data = util.KeyVal()
-            data.cleanLabel = label
-            data.parentNode = node
-            data.label = label
-            data.hint = hint
-            data.id = each.notificationID
-            data.typeID = each.typeID
-            data.senderID = each.senderID
-            data.data = util.KeyVal(read=each.processed)
-            data.info = each
-            data.OnClick = self.LoadReadingPaneFromEntry
-            data.OnDblClick = self.DblClickNotificationEntry
-            data.GetMenu = self.GetEntryMenu
-            data.ignoreRightClick = 1
-            data.isSelected = each.notificationID in selectedIDs
-            data.Draggable_blockDrag = 1
-            scrolllist.append(listentry.Get('MailEntry', data=data))
-
-        scrollHeaders = [localization.GetByLabel('UI/Mail/Status'),
-         localization.GetByLabel('UI/Mail/Sender'),
-         localization.GetByLabel('UI/Mail/Subject'),
-         localization.GetByLabel('UI/Mail/Received')]
-        if group.groupID == const.notificationGroupUnread:
-            scrollHeaders.append(localization.GetByLabel('UI/Mail/Notifications/GroupName'))
-        if not self or self.destroyed:
-            return
-        self.sr.msgScroll.Load(contentList=scrolllist, headers=scrollHeaders, noContentHint=localization.GetByLabel('UI/Mail/Notifications/NoNotifications'))
-        if not refreshing:
-            self.ClearReadingPane()
         else:
-            self.sr.msgScroll.ScrollToProportion(pos)
-        self.UpdateCounters()
+            pos = self.sr.msgScroll.GetScrollProportion()
+            scrolllist = []
+            for each in notifications:
+                senderName = ''
+                if each.senderID is not None:
+                    senderName = cfg.eveowners.Get(each.senderID).ownerName
+                label = '<t>' + senderName + '<t>' + each.subject + '<t>' + util.FmtDate(each.created, 'ls')
+                if group.groupID == const.notificationGroupUnread:
+                    typeGroup = notificationConst.GetTypeGroup(each.typeID)
+                    labelPath = notificationUtil.groupNamePaths.get(typeGroup, None)
+                    if labelPath is None:
+                        typeName = ''
+                    else:
+                        typeName = localization.GetByLabel(labelPath)
+                    label += '<t>' + typeName
+                hint = each.body.replace('<br>', '')
+                hint = uiutil.TruncateStringTo(hint, HINTCUTOFF, localization.GetByLabel('UI/Common/MoreTrail'))
+                data = util.KeyVal()
+                data.cleanLabel = label
+                data.parentNode = node
+                data.label = label
+                data.hint = hint
+                data.id = each.notificationID
+                data.typeID = each.typeID
+                data.senderID = each.senderID
+                data.data = util.KeyVal(read=each.processed)
+                data.info = each
+                data.OnClick = self.LoadReadingPaneFromEntry
+                data.OnDblClick = self.DblClickNotificationEntry
+                data.GetMenu = self.GetEntryMenu
+                data.ignoreRightClick = 1
+                data.isSelected = each.notificationID in selectedIDs
+                data.Draggable_blockDrag = 1
+                scrolllist.append(listentry.Get('MailEntry', data=data))
+
+            scrollHeaders = [localization.GetByLabel('UI/Mail/Status'),
+             localization.GetByLabel('UI/Mail/Sender'),
+             localization.GetByLabel('UI/Mail/Subject'),
+             localization.GetByLabel('UI/Mail/Received')]
+            if group.groupID == const.notificationGroupUnread:
+                scrollHeaders.append(localization.GetByLabel('UI/Mail/Notifications/GroupName'))
+            if not self or self.destroyed:
+                return
+            self.sr.msgScroll.Load(contentList=scrolllist, headers=scrollHeaders, noContentHint=localization.GetByLabel('UI/Mail/Notifications/NoNotifications'))
+            if not refreshing:
+                self.ClearReadingPane()
+            else:
+                self.sr.msgScroll.ScrollToProportion(pos)
+            self.UpdateCounters()
+            return
 
     def StaticMenu(self, node, *args):
         m = []
@@ -284,6 +292,7 @@ class NotificationForm(uiprimitives.Container):
     def ClearReadingPane(self):
         self.sr.readingPane.SetText('')
         self.viewing = None
+        return
 
     def SetMsgEntriesAsRead(self, nodes):
         for node in nodes:
@@ -294,9 +303,11 @@ class NotificationForm(uiprimitives.Container):
         panel = node.Get('panel', None)
         if panel is None:
             return
-        panel.LoadMailEntry(node)
+        else:
+            panel.LoadMailEntry(node)
+            return
 
-    def MsgScrollSelectionChange(self, sel = [], *args):
+    def MsgScrollSelectionChange(self, sel=[], *args):
         if len(sel) == 0:
             return
         node = sel[0]
@@ -315,25 +326,27 @@ class NotificationForm(uiprimitives.Container):
     def DeleteNotifications(self, notificationEntries, ids):
         if len(notificationEntries) < 1:
             return
-        idx = notificationEntries[0].idx
-        ids = []
-        for entry in notificationEntries:
-            ids.append(entry.id)
+        else:
+            idx = notificationEntries[0].idx
+            ids = []
+            for entry in notificationEntries:
+                ids.append(entry.id)
 
-        sm.GetService('notificationSvc').DeleteNotifications(ids)
-        sm.ScatterEvent('OnMessageChanged', const.mailTypeNotifications, ids, 'deleted')
-        self.sr.msgScroll.RemoveEntries(notificationEntries)
-        if self.viewing in ids:
-            self.ClearReadingPane()
-        self.UpdateCounters()
-        if len(self.sr.msgScroll.GetNodes()) < 1:
-            self.sr.msgScroll.Load(contentList=[], headers=[], noContentHint=localization.GetByLabel('UI/Mail/Notifications/NoNotifications'))
+            sm.GetService('notificationSvc').DeleteNotifications(ids)
+            sm.ScatterEvent('OnMessageChanged', const.mailTypeNotifications, ids, 'deleted')
+            self.sr.msgScroll.RemoveEntries(notificationEntries)
+            if self.viewing in ids:
+                self.ClearReadingPane()
+            self.UpdateCounters()
+            if len(self.sr.msgScroll.GetNodes()) < 1:
+                self.sr.msgScroll.Load(contentList=[], headers=[], noContentHint=localization.GetByLabel('UI/Mail/Notifications/NoNotifications'))
+                return
+            numChildren = len(self.sr.msgScroll.GetNodes())
+            newIdx = min(idx, numChildren - 1)
+            newSelectedNode = self.sr.msgScroll.GetNode(newIdx)
+            if newSelectedNode is not None:
+                self.sr.msgScroll.SelectNode(newSelectedNode)
             return
-        numChildren = len(self.sr.msgScroll.GetNodes())
-        newIdx = min(idx, numChildren - 1)
-        newSelectedNode = self.sr.msgScroll.GetNode(newIdx)
-        if newSelectedNode is not None:
-            self.sr.msgScroll.SelectNode(newSelectedNode)
 
     def SelectNodeByNotificationID(self, notificationID):
         nodes = self.sr.msgScroll.GetNodes()
@@ -363,12 +376,16 @@ class NotificationForm(uiprimitives.Container):
             count = unreadCounts.get(each.groupID, 0)
             self.TryChangePanelLabel(each, count)
 
+        return
+
     def TryChangePanelLabel(self, node, count):
         panel = node.Get('panel', None)
         if panel is None:
             return
-        panelLabel = self.GetPanelLabel(node.cleanLabel, count)
-        panel.sr.label.text = panelLabel
+        else:
+            panelLabel = self.GetPanelLabel(node.cleanLabel, count)
+            panel.sr.label.text = panelLabel
+            return
 
     def GetPanelLabel(self, label, count):
         if count > 0:

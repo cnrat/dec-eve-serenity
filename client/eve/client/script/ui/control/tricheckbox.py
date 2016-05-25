@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\client\script\ui\control\tricheckbox.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\client\script\ui\control\tricheckbox.py
 from carbonui.primitives.base import Base
 from carbonui.primitives.container import Container
 from carbonui.primitives.sprite import Sprite
@@ -17,6 +18,7 @@ class TriCheckbox(Container):
         self.checked = False
         self.checkMark = Sprite(parent=self, pos=(0, 0, 16, 16), name='self_ok', state=uiconst.UI_DISABLED, texturePath='res:/UI/Texture/Shared/checkboxChecked.png')
         self.underlay = SpriteThemeColored(name='frame', bgParent=self, colorType=uiconst.COLORTYPE_UIHILIGHT, blendMode=trinity.TR2_SBM_ADD, texturePath='res:/UI/Texture/Shared/checkbox_comp.png', opacity=0.2, padding=2)
+        return
 
     def SetChecked(self, checkState):
         checkState = checkState or NOT_CHECKED

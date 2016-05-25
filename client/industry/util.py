@@ -1,8 +1,9 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\packages\industry\util.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\packages\industry\util.py
 import fsdlite
 import industry
 
-def repr(obj, exclude = []):
+def repr(obj, exclude=[]):
     exclude.append('__immutable__')
     if hasattr(obj, '__slots__'):
         return '<industry.{} {}>'.format(obj.__class__.__name__, ' '.join([ '{}={}'.format(key.strip('_'), getattr(obj, key, None)) for key in obj.__slots__ if key not in exclude ]))
@@ -10,28 +11,29 @@ def repr(obj, exclude = []):
         return '<industry.{} {}>'.format(obj.__class__.__name__, ' '.join([ '{}={}'.format(key.strip('_'), value) for key, value in obj.__dict__.iteritems() if key not in exclude ]))
     else:
         return str(obj)
+        return None
 
 
 def mean(values):
     if len(values):
         return sum(values) / float(len(values))
-    return 0
 
 
 class Property(object):
 
-    def __init__(self, name, signal = None, getter = None):
+    def __init__(self, name, signal=None, getter=None):
         self.name = name
         self.signal = signal
         self.getter = getter
 
-    def __get__(self, obj, objtype = None):
+    def __get__(self, obj, objtype=None):
         if obj is None:
             return self
         elif self.getter:
             return self.getter(obj)
         else:
             return getattr(obj, self.name, None)
+            return
 
     def __set__(self, obj, value):
         existing = getattr(obj, self.name, None)
@@ -40,6 +42,7 @@ class Property(object):
             signal = getattr(obj, self.signal, None)
             if signal:
                 signal(obj)
+        return
 
     def __delete__(self, obj):
         raise AttributeError('Cannot delete attribute')

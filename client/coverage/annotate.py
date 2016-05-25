@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\carbon\common\stdlib\coverage\annotate.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\carbon\common\stdlib\coverage\annotate.py
 import os, re
 from coverage.report import Reporter
 
@@ -7,11 +8,12 @@ class AnnotateReporter(Reporter):
     def __init__(self, coverage, config):
         super(AnnotateReporter, self).__init__(coverage, config)
         self.directory = None
+        return
 
     blank_re = re.compile('\\s*(#|$)')
     else_re = re.compile('\\s*else\\s*:\\s*(#|$)')
 
-    def report(self, morfs, directory = None):
+    def report(self, morfs, directory=None):
         self.report_files(self.annotate_file, morfs, directory)
 
     def annotate_file(self, cu, analysis):

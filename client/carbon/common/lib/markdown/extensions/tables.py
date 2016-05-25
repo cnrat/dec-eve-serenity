@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\carbon\common\lib\markdown\extensions\tables.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\carbon\common\lib\markdown\extensions\tables.py
 import markdown
 from markdown.util import etree
 
@@ -34,6 +35,8 @@ class TableProcessor(markdown.blockprocessors.BlockProcessor):
         for row in rows:
             self._build_row(row.strip(), tbody, align, border)
 
+        return
+
     def _build_row(self, row, parent, align, border):
         tr = etree.SubElement(parent, 'tr')
         tag = 'td'
@@ -65,5 +68,5 @@ class TableExtension(markdown.Extension):
         md.parser.blockprocessors.add('table', TableProcessor(md.parser), '<hashheader')
 
 
-def makeExtension(configs = {}):
+def makeExtension(configs={}):
     return TableExtension(configs=configs)

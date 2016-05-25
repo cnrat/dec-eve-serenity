@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\packages\dogma\mocks\mockDogmaLocation.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\packages\dogma\mocks\mockDogmaLocation.py
 from collections import defaultdict
 from itertoolsext import Bundle
 from inventorycommon.const import categoryShip, categoryModule, groupProjectileWeapon, categoryStarbase
@@ -6,7 +7,7 @@ import dogma.const
 
 class MockDogmaLocation(object):
 
-    def __init__(self, isSolarsystem = True):
+    def __init__(self, isSolarsystem=True):
         self.isSolarsystem = isSolarsystem
         self.dogmaItems = {}
         self.pilotsByShipID = {}
@@ -21,17 +22,17 @@ class MockDogmaLocation(object):
         self.attributeChangeCallbacksByAttributeID = {}
         self.ignoreOwnerEvents = {}
 
-    def AddShip(self, typeID, ownerID, groupID = 1000):
+    def AddShip(self, typeID, ownerID, groupID=1000):
         itemID, _ = self._AddGenericItem(typeID, groupID, categoryShip, ownerID=ownerID, GetFittedItems=lambda : self._GetFittedItems(itemID))
         if ownerID is not None:
             self.SetPilot(ownerID, itemID)
         return itemID
 
-    def AddStructure(self, typeID, groupID = 1001):
+    def AddStructure(self, typeID, groupID=1001):
         itemID, _ = self._AddGenericItem(typeID, groupID, categoryStarbase, ownerID=None)
         return itemID
 
-    def AddModuleToShip(self, typeID, locationID, flagID, groupID = 1):
+    def AddModuleToShip(self, typeID, locationID, flagID, groupID=1):
         itemID, module = self._AddGenericItem(typeID, groupID, categoryModule, locationID=locationID, ownerID=self.dogmaItems[locationID].ownerID, flagID=flagID, GetEnvironmentInfo=lambda : self._GetEnvironmentInfo(itemID))
         self.dogmaItems[itemID] = module
         self.fittedItems[locationID][itemID] = module
@@ -143,12 +144,12 @@ class MockServerDogmaLocation(MockDogmaLocation):
         self.inventory2 = self._GetInventory2()
         self.ballpark = self._GetBallpark()
 
-    def AddShip(self, typeID, ownerID, groupID = 1000):
+    def AddShip(self, typeID, ownerID, groupID=1000):
         itemID = super(MockServerDogmaLocation, self).AddShip(typeID, ownerID, groupID=groupID)
         self.__balls[itemID] = Bundle(structures=[])
         return itemID
 
-    def AddStructure(self, typeID, groupID = 1001):
+    def AddStructure(self, typeID, groupID=1001):
         itemID = super(MockServerDogmaLocation, self).AddStructure(typeID, groupID=groupID)
         self.__balls[itemID] = Bundle()
         return itemID

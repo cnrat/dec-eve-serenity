@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\carbon\common\stdlib\posixpath.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\carbon\common\stdlib\posixpath.py
 import os
 import sys
 import stat
@@ -300,7 +301,7 @@ def _resolve_link(path):
 
 supports_unicode_filenames = sys.platform == 'darwin'
 
-def relpath(path, start = curdir):
+def relpath(path, start=curdir):
     if not path:
         raise ValueError('no path specified')
     start_list = [ x for x in abspath(start).split(sep) if x ]

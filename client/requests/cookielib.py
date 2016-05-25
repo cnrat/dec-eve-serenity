@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\packages\requests\cookielib.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\packages\requests\cookielib.py
 __all__ = ['Cookie',
  'CookieJar',
  'CookiePolicy',
@@ -38,15 +39,17 @@ def _warn_unhandled_exception():
     traceback.print_exc(None, f)
     msg = f.getvalue()
     warnings.warn('cookielib bug!\n%s' % msg, stacklevel=2)
+    return
 
 
 EPOCH_YEAR = 1970
 
 def _timegm(tt):
     year, month, mday, hour, min, sec = tt[:6]
-    if year >= EPOCH_YEAR and 1 <= month <= 12 and 1 <= mday <= 31 and 0 <= hour <= 24 and 0 <= min <= 59 and 0 <= sec <= 61:
-        return timegm(tt)
+    if ((year >= EPOCH_YEAR and 1 <= month <= 12 and 1) <= mday <= 31 and 0 <= hour <= 24 and 0) <= min <= 59:
+        return 0 <= sec <= 61 and timegm(tt)
     else:
+        return None
         return None
 
 
@@ -73,7 +76,7 @@ MONTHS_LOWER = []
 for month in MONTHS:
     MONTHS_LOWER.append(month.lower())
 
-def time2isoz(t = None):
+def time2isoz(t=None):
     if t is None:
         t = time.time()
     year, mon, mday, hour, min, sec = time.gmtime(t)[:6]
@@ -85,7 +88,7 @@ def time2isoz(t = None):
      sec)
 
 
-def time2netscape(t = None):
+def time2netscape(t=None):
     if t is None:
         t = time.time()
     year, mon, mday, hour, min, sec, wday = time.gmtime(t)[:7]
@@ -189,15 +192,16 @@ def http2time(text):
          int(g[4]),
          float(g[5]))
         return _timegm(tt)
-    text = text.lstrip()
-    text = WEEKDAY_RE.sub('', text, 1)
-    day, mon, yr, hr, min, sec, tz = [None] * 7
-    m = LOOSE_HTTP_DATE_RE.search(text)
-    if m is not None:
-        day, mon, yr, hr, min, sec, tz = m.groups()
     else:
-        return
-    return _str2time(day, mon, yr, hr, min, sec, tz)
+        text = text.lstrip()
+        text = WEEKDAY_RE.sub('', text, 1)
+        day, mon, yr, hr, min, sec, tz = [None] * 7
+        m = LOOSE_HTTP_DATE_RE.search(text)
+        if m is not None:
+            day, mon, yr, hr, min, sec, tz = m.groups()
+        else:
+            return
+        return _str2time(day, mon, yr, hr, min, sec, tz)
 
 
 ISO_DATE_RE = re.compile('^\n    (\\d{4})              # year\n       [-\\/]?\n    (\\d\\d?)              # numerical month\n       [-\\/]?\n    (\\d\\d?)              # day\n   (?:\n         (?:\\s+|[-:Tt])  # separator before clock\n      (\\d\\d?):?(\\d\\d)    # hour:min\n      (?::?(\\d\\d(?:\\.\\d*)?))?  # optional seconds (and fractional)\n   )?                    # optional clock\n      \\s*\n   ([-+]?\\d\\d?:?(:?\\d\\d)?\n    |Z|z)?               # timezone  (Z is "zero meridian", i.e. GMT)\n      \\s*$', re.X)
@@ -452,7 +456,7 @@ def is_third_party(request):
 
 class Cookie():
 
-    def __init__(self, version, name, value, port, port_specified, domain, domain_specified, domain_initial_dot, path, path_specified, secure, expires, discard, comment, comment_url, rest, rfc2109 = False):
+    def __init__(self, version, name, value, port, port_specified, domain, domain_specified, domain_initial_dot, path, path_specified, secure, expires, discard, comment, comment_url, rest, rfc2109=False):
         if version is not None:
             version = int(version)
         if expires is not None:
@@ -476,22 +480,24 @@ class Cookie():
         self.comment_url = comment_url
         self.rfc2109 = rfc2109
         self._rest = copy.copy(rest)
+        return
 
     def has_nonstandard_attr(self, name):
         return name in self._rest
 
-    def get_nonstandard_attr(self, name, default = None):
+    def get_nonstandard_attr(self, name, default=None):
         return self._rest.get(name, default)
 
     def set_nonstandard_attr(self, name, value):
         self._rest[name] = value
 
-    def is_expired(self, now = None):
+    def is_expired(self, now=None):
         if now is None:
             now = time.time()
         if self.expires is not None and self.expires <= now:
             return True
-        return False
+        else:
+            return False
 
     def __str__(self):
         if self.port is None:
@@ -538,7 +544,7 @@ class DefaultCookiePolicy(CookiePolicy):
     DomainLiberal = 0
     DomainStrict = DomainStrictNoDots | DomainStrictNonDomain
 
-    def __init__(self, blocked_domains = None, allowed_domains = None, netscape = True, rfc2965 = False, rfc2109_as_netscape = None, hide_cookie2 = False, strict_domain = False, strict_rfc2965_unverifiable = True, strict_ns_unverifiable = False, strict_ns_domain = DomainLiberal, strict_ns_set_initial_dollar = False, strict_ns_set_path = False):
+    def __init__(self, blocked_domains=None, allowed_domains=None, netscape=True, rfc2965=False, rfc2109_as_netscape=None, hide_cookie2=False, strict_domain=False, strict_rfc2965_unverifiable=True, strict_ns_unverifiable=False, strict_ns_domain=DomainLiberal, strict_ns_set_initial_dollar=False, strict_ns_set_path=False):
         self.netscape = netscape
         self.rfc2965 = rfc2965
         self.rfc2109_as_netscape = rfc2109_as_netscape
@@ -556,6 +562,7 @@ class DefaultCookiePolicy(CookiePolicy):
         if allowed_domains is not None:
             allowed_domains = tuple(allowed_domains)
         self._allowed_domains = allowed_domains
+        return
 
     def blocked_domains(self):
         return self._blocked_domains
@@ -577,15 +584,17 @@ class DefaultCookiePolicy(CookiePolicy):
         if allowed_domains is not None:
             allowed_domains = tuple(allowed_domains)
         self._allowed_domains = allowed_domains
+        return
 
     def is_not_allowed(self, domain):
         if self._allowed_domains is None:
             return False
-        for allowed_domain in self._allowed_domains:
-            if user_domain_match(domain, allowed_domain):
-                return False
+        else:
+            for allowed_domain in self._allowed_domains:
+                if user_domain_match(domain, allowed_domain):
+                    return False
 
-        return True
+            return True
 
     def set_ok(self, cookie, request):
         _debug(' - checking cookie %s=%s', cookie.name, cookie.value)
@@ -601,13 +610,14 @@ class DefaultCookiePolicy(CookiePolicy):
         if cookie.version is None:
             _debug('   Set-Cookie2 without version attribute (%s=%s)', cookie.name, cookie.value)
             return False
-        if cookie.version > 0 and not self.rfc2965:
+        elif cookie.version > 0 and not self.rfc2965:
             _debug('   RFC 2965 cookies are switched off')
             return False
-        if cookie.version == 0 and not self.netscape:
+        elif cookie.version == 0 and not self.netscape:
             _debug('   Netscape cookies are switched off')
             return False
-        return True
+        else:
+            return True
 
     def set_ok_verifiability(self, cookie, request):
         if request.is_unverifiable() and is_third_party(request):
@@ -826,12 +836,13 @@ class CookieJar():
     dots_re = re.compile('^\\.+')
     magic_re = '^\\#LWP-Cookies-(\\d+\\.\\d+)'
 
-    def __init__(self, policy = None):
+    def __init__(self, policy=None):
         if policy is None:
             policy = DefaultCookiePolicy()
         self._policy = policy
         self._cookies_lock = _threading.RLock()
         self._cookies = {}
+        return
 
     def set_policy(self, policy):
         self._policy = policy
@@ -1058,6 +1069,8 @@ class CookieJar():
                 if rfc2109_as_ns:
                     cookie.version = 0
 
+        return
+
     def make_cookies(self, response, request):
         headers = response.info()
         rfc2965_hdrs = headers.getheaders('Set-Cookie2')
@@ -1066,33 +1079,34 @@ class CookieJar():
         netscape = self._policy.netscape
         if not rfc2965_hdrs and not ns_hdrs or not ns_hdrs and not rfc2965 or not rfc2965_hdrs and not netscape or not netscape and not rfc2965:
             return []
-        try:
-            cookies = self._cookies_from_attrs_set(split_header_words(rfc2965_hdrs), request)
-        except Exception:
-            _warn_unhandled_exception()
-            cookies = []
-
-        if ns_hdrs and netscape:
+        else:
             try:
-                ns_cookies = self._cookies_from_attrs_set(parse_ns_headers(ns_hdrs), request)
+                cookies = self._cookies_from_attrs_set(split_header_words(rfc2965_hdrs), request)
             except Exception:
                 _warn_unhandled_exception()
-                ns_cookies = []
+                cookies = []
 
-            self._process_rfc2109_cookies(ns_cookies)
-            if rfc2965:
-                lookup = {}
-                for cookie in cookies:
-                    lookup[cookie.domain, cookie.path, cookie.name] = None
+            if ns_hdrs and netscape:
+                try:
+                    ns_cookies = self._cookies_from_attrs_set(parse_ns_headers(ns_hdrs), request)
+                except Exception:
+                    _warn_unhandled_exception()
+                    ns_cookies = []
 
-                def no_matching_rfc2965(ns_cookie, lookup = lookup):
-                    key = (ns_cookie.domain, ns_cookie.path, ns_cookie.name)
-                    return key not in lookup
+                self._process_rfc2109_cookies(ns_cookies)
+                if rfc2965:
+                    lookup = {}
+                    for cookie in cookies:
+                        lookup[cookie.domain, cookie.path, cookie.name] = None
 
-                ns_cookies = filter(no_matching_rfc2965, ns_cookies)
-            if ns_cookies:
-                cookies.extend(ns_cookies)
-        return cookies
+                    def no_matching_rfc2965(ns_cookie, lookup=lookup):
+                        key = (ns_cookie.domain, ns_cookie.path, ns_cookie.name)
+                        return key not in lookup
+
+                    ns_cookies = filter(no_matching_rfc2965, ns_cookies)
+                if ns_cookies:
+                    cookies.extend(ns_cookies)
+            return cookies
 
     def set_cookie_if_ok(self, cookie, request):
         self._cookies_lock.acquire()
@@ -1130,7 +1144,7 @@ class CookieJar():
         finally:
             self._cookies_lock.release()
 
-    def clear(self, domain = None, path = None, name = None):
+    def clear(self, domain=None, path=None, name=None):
         if name is not None:
             if domain is None or path is None:
                 raise ValueError('domain and path must be given to remove a cookie by name')
@@ -1143,6 +1157,7 @@ class CookieJar():
             del self._cookies[domain]
         else:
             self._cookies = {}
+        return
 
     def clear_session_cookies(self):
         self._cookies_lock.acquire()
@@ -1196,7 +1211,7 @@ class LoadError(IOError):
 
 class FileCookieJar(CookieJar):
 
-    def __init__(self, filename = None, delayload = False, policy = None):
+    def __init__(self, filename=None, delayload=False, policy=None):
         CookieJar.__init__(self, policy)
         if filename is not None:
             try:
@@ -1206,11 +1221,12 @@ class FileCookieJar(CookieJar):
 
         self.filename = filename
         self.delayload = bool(delayload)
+        return
 
-    def save(self, filename = None, ignore_discard = False, ignore_expires = False):
+    def save(self, filename=None, ignore_discard=False, ignore_expires=False):
         raise NotImplementedError()
 
-    def load(self, filename = None, ignore_discard = False, ignore_expires = False):
+    def load(self, filename=None, ignore_discard=False, ignore_expires=False):
         if filename is None:
             if self.filename is not None:
                 filename = self.filename
@@ -1222,7 +1238,9 @@ class FileCookieJar(CookieJar):
         finally:
             f.close()
 
-    def revert(self, filename = None, ignore_discard = False, ignore_expires = False):
+        return
+
+    def revert(self, filename=None, ignore_discard=False, ignore_expires=False):
         if filename is None:
             if self.filename is not None:
                 filename = self.filename
@@ -1240,6 +1258,8 @@ class FileCookieJar(CookieJar):
 
         finally:
             self._cookies_lock.release()
+
+        return
 
 
 from _LWPCookieJar import LWPCookieJar, lwp_cookie_str

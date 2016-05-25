@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\packages\eveaudio\audioapp.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\packages\eveaudio\audioapp.py
 import logging
 import binbootstrapper
 binbootstrapper.update_binaries(__file__, binbootstrapper.DLL_AUDIO, *binbootstrapper.DLLS_GRAPHICS)

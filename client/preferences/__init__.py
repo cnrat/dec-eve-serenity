@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\packages\preferences\__init__.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\packages\preferences\__init__.py
 import cPickle
 import json
 import logging
@@ -7,7 +8,7 @@ logger = logging.getLogger(__name__)
 
 class Pickled(Preferences):
 
-    def __init__(self, filename, dump = None, load = None, onloaderror = None):
+    def __init__(self, filename, dump=None, load=None, onloaderror=None):
         if dump is None:
             dump = lambda obj, stream: cPickle.dump(obj, stream, -1)
         if load is None:
@@ -20,6 +21,7 @@ class Pickled(Preferences):
         self.GetOrSet = self.setdefault
         self.Save = self.save
         self.Load = self.load
+        return
 
     def remove(self, region, variable):
         if region not in self.prefs:
@@ -38,6 +40,7 @@ def Init(path):
     global __ginstance__
     if __ginstance__ is None:
         __ginstance__ = Pickled(path, dump=json.dump, load=json.load)
+    return
 
 
 def GetValue(region, variable, defaultValue):
@@ -45,11 +48,13 @@ def GetValue(region, variable, defaultValue):
         return defaultValue
     else:
         return __ginstance__.GetValue(region, variable, defaultValue)
+        return
 
 
 def SetValue(region, variable, value):
     if __ginstance__ is not None:
         __ginstance__.SetValue(region, variable, value)
+    return
 
 
 def SaveToPath(path):
@@ -59,3 +64,4 @@ def SaveToPath(path):
     __ginstance__.filename = path
     __ginstance__.Save()
     __ginstance__.filename = oldFilePath
+    return

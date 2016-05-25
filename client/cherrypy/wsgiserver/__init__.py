@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\carbon\common\lib\cherrypy\wsgiserver\__init__.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\carbon\common\lib\cherrypy\wsgiserver\__init__.py
 CRLF = '\r\n'
 import os
 import Queue
@@ -20,12 +21,14 @@ import threading
 import time
 import traceback
 
-def format_exc(limit = None):
+def format_exc(limit=None):
     try:
         etype, value, tb = sys.exc_info()
         return ''.join(traceback.format_exception(etype, value, tb, limit))
     finally:
         etype = value = tb = None
+
+    return
 
 
 from urllib import unquote
@@ -71,7 +74,7 @@ import logging
 if not hasattr(logging, 'statistics'):
     logging.statistics = {}
 
-def read_headers(rfile, hdict = None):
+def read_headers(rfile, hdict=None):
     if hdict is None:
         hdict = {}
     while True:
@@ -117,28 +120,31 @@ class SizeCheckWrapper(object):
         if self.maxlen and self.bytes_read > self.maxlen:
             raise MaxSizeExceeded()
 
-    def read(self, size = None):
+    def read(self, size=None):
         data = self.rfile.read(size)
         self.bytes_read += len(data)
         self._check_length()
         return data
 
-    def readline(self, size = None):
+    def readline(self, size=None):
         if size is not None:
             data = self.rfile.readline(size)
             self.bytes_read += len(data)
             self._check_length()
             return data
-        res = []
-        while True:
-            data = self.rfile.readline(256)
-            self.bytes_read += len(data)
-            self._check_length()
-            res.append(data)
-            if len(data) < 256 or data[-1:] == '\n':
-                return ''.join(res)
+        else:
+            res = []
+            while True:
+                data = self.rfile.readline(256)
+                self.bytes_read += len(data)
+                self._check_length()
+                res.append(data)
+                if len(data) < 256 or data[-1:] == '\n':
+                    return ''.join(res)
 
-    def readlines(self, sizehint = 0):
+            return
+
+    def readlines(self, sizehint=0):
         total = 0
         lines = []
         line = self.readline()
@@ -170,29 +176,31 @@ class KnownLengthRFile(object):
         self.rfile = rfile
         self.remaining = content_length
 
-    def read(self, size = None):
+    def read(self, size=None):
         if self.remaining == 0:
             return ''
-        if size is None:
-            size = self.remaining
         else:
-            size = min(size, self.remaining)
-        data = self.rfile.read(size)
-        self.remaining -= len(data)
-        return data
+            if size is None:
+                size = self.remaining
+            else:
+                size = min(size, self.remaining)
+            data = self.rfile.read(size)
+            self.remaining -= len(data)
+            return data
 
-    def readline(self, size = None):
+    def readline(self, size=None):
         if self.remaining == 0:
             return ''
-        if size is None:
-            size = self.remaining
         else:
-            size = min(size, self.remaining)
-        data = self.rfile.readline(size)
-        self.remaining -= len(data)
-        return data
+            if size is None:
+                size = self.remaining
+            else:
+                size = min(size, self.remaining)
+            data = self.rfile.readline(size)
+            self.remaining -= len(data)
+            return data
 
-    def readlines(self, sizehint = 0):
+    def readlines(self, sizehint=0):
         total = 0
         lines = []
         line = self.readline(sizehint)
@@ -219,7 +227,7 @@ class KnownLengthRFile(object):
 
 class ChunkedRFile(object):
 
-    def __init__(self, rfile, maxlen, bufsize = 8192):
+    def __init__(self, rfile, maxlen, bufsize=8192):
         self.rfile = rfile
         self.maxlen = maxlen
         self.bytes_read = 0
@@ -253,7 +261,7 @@ class ChunkedRFile(object):
         if crlf != CRLF:
             raise ValueError("Bad chunked transfer coding (expected '\\r\\n', got " + repr(crlf) + ')')
 
-    def read(self, size = None):
+    def read(self, size=None):
         data = ''
         while True:
             if size and len(data) >= size:
@@ -269,7 +277,7 @@ class ChunkedRFile(object):
             else:
                 data += self.buffer
 
-    def readline(self, size = None):
+    def readline(self, size=None):
         data = ''
         while True:
             if size and len(data) >= size:
@@ -294,7 +302,7 @@ class ChunkedRFile(object):
                 data += self.buffer[:newline_pos]
                 self.buffer = self.buffer[newline_pos:]
 
-    def readlines(self, sizehint = 0):
+    def readlines(self, sizehint=0):
         total = 0
         lines = []
         line = self.readline(sizehint)
@@ -362,6 +370,7 @@ class HTTPRequest(object):
         self.close_connection = self.__class__.close_connection
         self.chunked_read = False
         self.chunked_write = self.__class__.chunked_write
+        return
 
     def parse_request(self):
         self.rfile = SizeCheckWrapper(self.conn.rfile, self.server.max_request_header_size)
@@ -440,48 +449,50 @@ class HTTPRequest(object):
         if mrbs and int(self.inheaders.get('Content-Length', 0)) > mrbs:
             self.simple_response('413 Request Entity Too Large', 'The entity sent with the request exceeds the maximum allowed bytes.')
             return False
-        if self.response_protocol == 'HTTP/1.1':
-            if self.inheaders.get('Connection', '') == 'close':
-                self.close_connection = True
-        elif self.inheaders.get('Connection', '') != 'Keep-Alive':
-            self.close_connection = True
-        te = None
-        if self.response_protocol == 'HTTP/1.1':
-            te = self.inheaders.get('Transfer-Encoding')
-            if te:
-                te = [ x.strip().lower() for x in te.split(',') if x.strip() ]
-        self.chunked_read = False
-        if te:
-            for enc in te:
-                if enc == 'chunked':
-                    self.chunked_read = True
-                else:
-                    self.simple_response('501 Unimplemented')
+        else:
+            if self.response_protocol == 'HTTP/1.1':
+                if self.inheaders.get('Connection', '') == 'close':
                     self.close_connection = True
-                    return False
+            elif self.inheaders.get('Connection', '') != 'Keep-Alive':
+                self.close_connection = True
+            te = None
+            if self.response_protocol == 'HTTP/1.1':
+                te = self.inheaders.get('Transfer-Encoding')
+                if te:
+                    te = [ x.strip().lower() for x in te.split(',') if x.strip() ]
+            self.chunked_read = False
+            if te:
+                for enc in te:
+                    if enc == 'chunked':
+                        self.chunked_read = True
+                    else:
+                        self.simple_response('501 Unimplemented')
+                        self.close_connection = True
+                        return False
 
-        if self.inheaders.get('Expect', '') == '100-continue':
-            msg = self.server.protocol + ' 100 Continue\r\n\r\n'
-            try:
-                self.conn.wfile.sendall(msg)
-            except socket.error as x:
-                if x.args[0] not in socket_errors_to_ignore:
-                    raise
+            if self.inheaders.get('Expect', '') == '100-continue':
+                msg = self.server.protocol + ' 100 Continue\r\n\r\n'
+                try:
+                    self.conn.wfile.sendall(msg)
+                except socket.error as x:
+                    if x.args[0] not in socket_errors_to_ignore:
+                        raise
 
-        return True
+            return True
 
     def parse_request_uri(self, uri):
         if uri == '*':
             return (None, None, uri)
-        i = uri.find('://')
-        if i > 0 and '?' not in uri[:i]:
-            scheme, remainder = uri[:i].lower(), uri[i + 3:]
-            authority, path = remainder.split('/', 1)
-            return (scheme, authority, path)
-        elif uri.startswith('/'):
-            return (None, None, uri)
         else:
+            i = uri.find('://')
+            if i > 0 and '?' not in uri[:i]:
+                scheme, remainder = uri[:i].lower(), uri[i + 3:]
+                authority, path = remainder.split('/', 1)
+                return (scheme, authority, path)
+            if uri.startswith('/'):
+                return (None, None, uri)
             return (None, uri, None)
+            return None
 
     def respond(self):
         mrbs = self.server.max_request_body_size
@@ -501,7 +512,7 @@ class HTTPRequest(object):
         if self.chunked_write:
             self.conn.wfile.sendall('0\r\n\r\n')
 
-    def simple_response(self, status, msg = ''):
+    def simple_response(self, status, msg=''):
         status = str(status)
         buf = [self.server.protocol + ' ' + status + CRLF, 'Content-Length: %s\r\n' % len(msg), 'Content-Type: text/plain\r\n']
         if status[:3] in ('413', '414'):
@@ -613,7 +624,7 @@ class CP_fileobject(socket._fileobject):
 
     if not _fileobject_uses_str_type:
 
-        def read(self, size = -1):
+        def read(self, size=-1):
             rbufsize = max(self._rbufsize, self.default_bufsize)
             buf = self._rbuf
             buf.seek(0, 2)
@@ -653,7 +664,7 @@ class CP_fileobject(socket._fileobject):
 
                 return buf.getvalue()
 
-        def readline(self, size = -1):
+        def readline(self, size=-1):
             buf = self._rbuf
             buf.seek(0, 2)
             if buf.tell() > 0:
@@ -729,10 +740,11 @@ class CP_fileobject(socket._fileobject):
                     buf_len += n
 
                 return buf.getvalue()
+                return
 
     else:
 
-        def read(self, size = -1):
+        def read(self, size=-1):
             if size < 0:
                 buffers = [self._rbuf]
                 self._rbuf = ''
@@ -773,7 +785,7 @@ class CP_fileobject(socket._fileobject):
 
                 return ''.join(buffers)
 
-        def readline(self, size = -1):
+        def readline(self, size=-1):
             data = self._rbuf
             if size < 0:
                 if self._rbufsize <= 1:
@@ -851,7 +863,7 @@ class HTTPConnection(object):
     wbufsize = DEFAULT_BUFFER_SIZE
     RequestHandlerClass = HTTPRequest
 
-    def __init__(self, server, sock, makefile = CP_fileobject):
+    def __init__(self, server, sock, makefile=CP_fileobject):
         self.server = server
         self.socket = sock
         self.rfile = makefile(sock, 'rb', self.rbufsize)
@@ -910,6 +922,8 @@ class HTTPConnection(object):
                 except FatalSSLAlert:
                     return
 
+        return
+
     linger = False
 
     def close(self):
@@ -947,6 +961,7 @@ class WorkerThread(threading.Thread):
          'Read Throughput': lambda s: s['Bytes Read'](s) / (s['Work Time'](s) or 1e-06),
          'Write Throughput': lambda s: s['Bytes Written'](s) / (s['Work Time'](s) or 1e-06)}
         threading.Thread.__init__(self)
+        return
 
     def run(self):
         self.server.stats['Worker Threads'][self.getName()] = self.stats
@@ -974,10 +989,12 @@ class WorkerThread(threading.Thread):
         except (KeyboardInterrupt, SystemExit) as exc:
             self.server.interrupt = exc
 
+        return
+
 
 class ThreadPool(object):
 
-    def __init__(self, server, min = 10, max = -1):
+    def __init__(self, server, min=10, max=-1):
         self.server = server
         self.min = min
         self.max = max
@@ -1026,7 +1043,7 @@ class ThreadPool(object):
             for i in range(min(amount, len(self._threads) - self.min)):
                 self._queue.put(_SHUTDOWNREQUEST)
 
-    def stop(self, timeout = 5):
+    def stop(self, timeout=5):
         for worker in self._threads:
             self._queue.put(_SHUTDOWNREQUEST)
 
@@ -1055,6 +1072,8 @@ class ThreadPool(object):
                 except (AssertionError, KeyboardInterrupt) as exc1:
                     pass
 
+        return
+
     def _get_qsize(self):
         return self._queue.qsize()
 
@@ -1077,7 +1096,7 @@ except ImportError:
         kernel32 = ctypes.WinDLL('kernel32', use_last_error=True)
         GetLastError = ctypes.get_last_error
 
-        def WinError(code = None, descr = None):
+        def WinError(code=None, descr=None):
             if code is None:
                 code = GetLastError()
             return ctypes.WinError(code, descr)
@@ -1101,7 +1120,7 @@ else:
 
 class SSLAdapter(object):
 
-    def __init__(self, certificate, private_key, certificate_chain = None):
+    def __init__(self, certificate, private_key, certificate_chain=None):
         self.certificate = certificate
         self.private_key = private_key
         self.certificate_chain = certificate_chain
@@ -1109,7 +1128,7 @@ class SSLAdapter(object):
     def wrap(self, sock):
         raise NotImplemented
 
-    def makefile(self, sock, mode = 'r', bufsize = DEFAULT_BUFFER_SIZE):
+    def makefile(self, sock, mode='r', bufsize=DEFAULT_BUFFER_SIZE):
         raise NotImplemented
 
 
@@ -1133,7 +1152,7 @@ class HTTPServer(object):
     ConnectionClass = HTTPConnection
     ssl_adapter = None
 
-    def __init__(self, bind_addr, gateway, minthreads = 10, maxthreads = -1, server_name = None):
+    def __init__(self, bind_addr, gateway, minthreads=10, maxthreads=-1, server_name=None):
         self.bind_addr = bind_addr
         self.gateway = gateway
         self.requests = ThreadPool(self, min=minthreads or 1, max=maxthreads)
@@ -1162,12 +1181,14 @@ class HTTPServer(object):
          'Write Throughput': lambda s: not s['Enabled'] and 0 or sum([ w['Bytes Written'](w) / (w['Work Time'](w) or 1e-06) for w in s['Worker Threads'].values() ], 0),
          'Worker Threads': {}}
         logging.statistics['CherryPy HTTPServer %d' % id(self)] = self.stats
+        return
 
     def runtime(self):
         if self._start_time is None:
             return self._run_time
         else:
             return self._run_time + (time.time() - self._start_time)
+            return
 
     def __str__(self):
         return '%s.%s(%r)' % (self.__module__, self.__class__.__name__, self.bind_addr)
@@ -1179,6 +1200,7 @@ class HTTPServer(object):
         if isinstance(value, tuple) and value[0] in ('', None):
             raise ValueError("Host values of '' or None are not allowed. Use '0.0.0.0' (IPv4) or '::' (IPv6) instead to listen on all active interfaces.")
         self._bind_addr = value
+        return None
 
     bind_addr = property(_get_bind_addr, _set_bind_addr, doc='The interface on which to listen for connections.\n\n        For TCP sockets, a (host, port) tuple. Host values may be any IPv4\n        or IPv6 address, or any valid hostname. The string \'localhost\' is a\n        synonym for \'127.0.0.1\' (or \'::1\', if your hosts file prefers IPv6).\n        The string \'0.0.0.0\' is a special IPv4 entry meaning "any active\n        interface" (INADDR_ANY), and \'::\' is the similar IN6ADDR_ANY for\n        IPv6. The empty string or None are not allowed.\n\n        For UNIX sockets, supply the filename as a string.')
 
@@ -1259,7 +1281,9 @@ class HTTPServer(object):
                 if self.interrupt:
                     raise self.interrupt
 
-    def bind(self, family, type, proto = 0):
+        return
+
+    def bind(self, family, type, proto=0):
         self.socket = socket.socket(family, type, proto)
         prevent_socket_inheritance(self.socket)
         self.socket.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
@@ -1274,6 +1298,7 @@ class HTTPServer(object):
                 pass
 
         self.socket.bind(self.bind_addr)
+        return
 
     def tick(self):
         try:
@@ -1334,6 +1359,8 @@ class HTTPServer(object):
                 return
             raise
 
+        return
+
     def _get_interrupt(self):
         return self._interrupt
 
@@ -1374,6 +1401,7 @@ class HTTPServer(object):
                 sock.close()
             self.socket = None
         self.requests.stop(self.shutdown_timeout)
+        return
 
 
 class Gateway(object):
@@ -1388,7 +1416,7 @@ class Gateway(object):
 ssl_adapters = {'builtin': 'cherrypy.wsgiserver.ssl_builtin.BuiltinSSLAdapter',
  'pyopenssl': 'cherrypy.wsgiserver.ssl_pyopenssl.pyOpenSSLAdapter'}
 
-def get_ssl_adapter_class(name = 'pyopenssl'):
+def get_ssl_adapter_class(name='pyopenssl'):
     adapter = ssl_adapters[name.lower()]
     if isinstance(adapter, basestring):
         last_dot = adapter.rfind('.')
@@ -1412,7 +1440,7 @@ def get_ssl_adapter_class(name = 'pyopenssl'):
 class CherryPyWSGIServer(HTTPServer):
     wsgi_version = (1, 0)
 
-    def __init__(self, bind_addr, wsgi_app, numthreads = 10, server_name = None, max = -1, request_queue_size = 5, timeout = 10, shutdown_timeout = 5):
+    def __init__(self, bind_addr, wsgi_app, numthreads=10, server_name=None, max=-1, request_queue_size=5, timeout=10, shutdown_timeout=5):
         self.requests = ThreadPool(self, min=numthreads or 1, max=max)
         self.wsgi_app = wsgi_app
         self.gateway = wsgi_gateways[self.wsgi_version]
@@ -1441,6 +1469,7 @@ class WSGIGateway(Gateway):
         self.started_response = False
         self.env = self.get_environ()
         self.remaining_bytes_out = None
+        return
 
     def get_environ(self):
         raise NotImplemented
@@ -1458,7 +1487,7 @@ class WSGIGateway(Gateway):
             if hasattr(response, 'close'):
                 response.close()
 
-    def start_response(self, status, headers, exc_info = None):
+    def start_response(self, status, headers, exc_info=None):
         if self.started_response and not exc_info:
             raise AssertionError('WSGI start_response called a second time with no exc_info.')
         self.started_response = True
@@ -1498,6 +1527,7 @@ class WSGIGateway(Gateway):
             rbo -= chunklen
             if rbo < 0:
                 raise ValueError('Response body exceeds the declared Content-Length.')
+        return
 
 
 class WSGIGateway_10(WSGIGateway):

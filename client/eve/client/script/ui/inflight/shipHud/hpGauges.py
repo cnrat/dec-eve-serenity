@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\client\script\ui\inflight\shipHud\hpGauges.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\client\script\ui\inflight\shipHud\hpGauges.py
 import math
 from carbon.common.script.util.timerstuff import AutoTimer
 from carbonui.primitives.container import Container
@@ -22,6 +23,7 @@ class HPGauges(Container):
         self.armorGauge = ShipHudSpriteGauge(parent=self, state=uiconst.UI_DISABLED, texturePath='res:/UI/Texture/classes/ShipUI/gauge2.png', spriteEffect=trinity.TR2_SFX_MODULATE, pickRadius=64, name='armorGauge')
         self.shieldGauge = ShipHudSpriteGauge(parent=self, texturePath='res:/UI/Texture/classes/ShipUI/gauge1.png', spriteEffect=trinity.TR2_SFX_MODULATE, pickRadius=74, name='shieldGauge')
         self.shieldGauge.LoadTooltipPanel = self.LoadDamageTooltip
+        return
 
     def Update(self):
         if self.destroyed:
@@ -55,27 +57,29 @@ class HPGauges(Container):
         if tooltipPanel.destroyed:
             self._damageTooltipUpdate = None
             return
-        if not self.controller.IsLoaded():
+        elif not self.controller.IsLoaded():
             self._damageTooltipUpdate = None
             return
-        structure = self.controller.GetStructureHPPortion()
-        armor = self.controller.GetArmorHPPortion()
-        shield = self.controller.GetShieldHPPortion()
-        shieldString = '<b>' + GetByLabel('Tooltips/Hud/Shield')
-        shieldString += '</b><br>'
-        shieldString += '%s / %s' % (FormatNumeric(self.controller.GetShieldHP(), useGrouping=True, decimalPlaces=0), FormatNumeric(self.controller.GetShieldHPMax(), useGrouping=True, decimalPlaces=0))
-        tooltipPanel.labelShield.text = shieldString
-        tooltipPanel.valueLabelShield.text = GetByLabel('UI/Common/Formatting/Percentage', percentage=shield * 100)
-        armorString = '<b>' + GetByLabel('Tooltips/Hud/Armor')
-        armorString += '</b><br>'
-        armorString += '%s / %s' % (FormatNumeric(self.controller.GetArmorHP(), useGrouping=True, decimalPlaces=0), FormatNumeric(self.controller.GetArmorHPMax(), useGrouping=True, decimalPlaces=0))
-        tooltipPanel.labelArmor.text = armorString
-        tooltipPanel.valueLabelArmor.text = GetByLabel('UI/Common/Formatting/Percentage', percentage=armor * 100)
-        structureString = '<b>' + GetByLabel('Tooltips/Hud/Structure')
-        structureString += '</b><br>'
-        structureString += '%s / %s' % (FormatNumeric(self.controller.GetStructureHP(), useGrouping=True, decimalPlaces=0), FormatNumeric(self.controller.GetStructureHPMax(), useGrouping=True, decimalPlaces=0))
-        tooltipPanel.labelStructure.text = structureString
-        tooltipPanel.valueLabelStructure.text = GetByLabel('UI/Common/Formatting/Percentage', percentage=structure * 100)
+        else:
+            structure = self.controller.GetStructureHPPortion()
+            armor = self.controller.GetArmorHPPortion()
+            shield = self.controller.GetShieldHPPortion()
+            shieldString = '<b>' + GetByLabel('Tooltips/Hud/Shield')
+            shieldString += '</b><br>'
+            shieldString += '%s / %s' % (FormatNumeric(self.controller.GetShieldHP(), useGrouping=True, decimalPlaces=0), FormatNumeric(self.controller.GetShieldHPMax(), useGrouping=True, decimalPlaces=0))
+            tooltipPanel.labelShield.text = shieldString
+            tooltipPanel.valueLabelShield.text = GetByLabel('UI/Common/Formatting/Percentage', percentage=shield * 100)
+            armorString = '<b>' + GetByLabel('Tooltips/Hud/Armor')
+            armorString += '</b><br>'
+            armorString += '%s / %s' % (FormatNumeric(self.controller.GetArmorHP(), useGrouping=True, decimalPlaces=0), FormatNumeric(self.controller.GetArmorHPMax(), useGrouping=True, decimalPlaces=0))
+            tooltipPanel.labelArmor.text = armorString
+            tooltipPanel.valueLabelArmor.text = GetByLabel('UI/Common/Formatting/Percentage', percentage=armor * 100)
+            structureString = '<b>' + GetByLabel('Tooltips/Hud/Structure')
+            structureString += '</b><br>'
+            structureString += '%s / %s' % (FormatNumeric(self.controller.GetStructureHP(), useGrouping=True, decimalPlaces=0), FormatNumeric(self.controller.GetStructureHPMax(), useGrouping=True, decimalPlaces=0))
+            tooltipPanel.labelStructure.text = structureString
+            tooltipPanel.valueLabelStructure.text = GetByLabel('UI/Common/Formatting/Percentage', percentage=structure * 100)
+            return
 
 
 class ShipHudSpriteGauge(Sprite):
@@ -90,6 +94,7 @@ class ShipHudSpriteGauge(Sprite):
         self.textureSecondary.useTransform = True
         self.textureSecondary.rotation = 0.0
         self._lastValue = None
+        return
 
     @property
     def value(self):
@@ -107,6 +112,7 @@ class ShipHudSpriteGauge(Sprite):
         else:
             self.AnimGauge(value)
         self._lastValue = value
+        return
 
     def AnimGauge(self, value):
         uicore.animations.MorphScalar(self, 'value', self._lastValue, value, duration=0.5)

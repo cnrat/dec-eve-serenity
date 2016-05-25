@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\carbon\common\stdlib\csv.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\carbon\common\stdlib\csv.py
 import re
 from functools import reduce
 from _csv import Error, __version__, writer, reader, register_dialect, unregister_dialect, get_dialect, list_dialects, field_size_limit, QUOTE_MINIMAL, QUOTE_ALL, QUOTE_NONNUMERIC, QUOTE_NONE, __doc__
@@ -71,7 +72,7 @@ register_dialect('excel-tab', excel_tab)
 
 class DictReader:
 
-    def __init__(self, f, fieldnames = None, restkey = None, restval = None, dialect = 'excel', *args, **kwds):
+    def __init__(self, f, fieldnames=None, restkey=None, restval=None, dialect='excel', *args, **kwds):
         self._fieldnames = fieldnames
         self.restkey = restkey
         self.restval = restval
@@ -119,7 +120,7 @@ class DictReader:
 
 class DictWriter:
 
-    def __init__(self, f, fieldnames, restval = '', extrasaction = 'raise', dialect = 'excel', *args, **kwds):
+    def __init__(self, f, fieldnames, restval='', extrasaction='raise', dialect='excel', *args, **kwds):
         self.fieldnames = fieldnames
         self.restval = restval
         if extrasaction.lower() not in ('raise', 'ignore'):
@@ -163,7 +164,7 @@ class Sniffer:
          ' ',
          ':']
 
-    def sniff(self, sample, delimiters = None):
+    def sniff(self, sample, delimiters=None):
         quotechar, doublequote, delimiter, skipinitialspace = self._guess_quote_and_delimiter(sample, delimiters)
         if not delimiter:
             delimiter, skipinitialspace = self._guess_delimiter(sample, delimiters)
@@ -194,49 +195,50 @@ class Sniffer:
              False,
              None,
              0)
-        quotes = {}
-        delims = {}
-        spaces = 0
-        for m in matches:
-            n = regexp.groupindex['quote'] - 1
-            key = m[n]
-            if key:
-                quotes[key] = quotes.get(key, 0) + 1
-            try:
-                n = regexp.groupindex['delim'] - 1
+        else:
+            quotes = {}
+            delims = {}
+            spaces = 0
+            for m in matches:
+                n = regexp.groupindex['quote'] - 1
                 key = m[n]
-            except KeyError:
-                continue
+                if key:
+                    quotes[key] = quotes.get(key, 0) + 1
+                try:
+                    n = regexp.groupindex['delim'] - 1
+                    key = m[n]
+                except KeyError:
+                    continue
 
-            if key and (delimiters is None or key in delimiters):
-                delims[key] = delims.get(key, 0) + 1
-            try:
-                n = regexp.groupindex['space'] - 1
-            except KeyError:
-                continue
+                if key and (delimiters is None or key in delimiters):
+                    delims[key] = delims.get(key, 0) + 1
+                try:
+                    n = regexp.groupindex['space'] - 1
+                except KeyError:
+                    continue
 
-            if m[n]:
-                spaces += 1
+                if m[n]:
+                    spaces += 1
 
-        quotechar = reduce(lambda a, b, quotes = quotes: quotes[a] > quotes[b] and a or b, quotes.keys())
-        if delims:
-            delim = reduce(lambda a, b, delims = delims: delims[a] > delims[b] and a or b, delims.keys())
-            skipinitialspace = delims[delim] == spaces
-            if delim == '\n':
+            quotechar = reduce(lambda a, b, quotes=quotes: quotes[a] > quotes[b] and a or b, quotes.keys())
+            if delims:
+                delim = reduce(lambda a, b, delims=delims: delims[a] > delims[b] and a or b, delims.keys())
+                skipinitialspace = delims[delim] == spaces
+                if delim == '\n':
+                    delim = ''
+            else:
                 delim = ''
-        else:
-            delim = ''
-            skipinitialspace = 0
-        dq_regexp = re.compile('((%(delim)s)|^)\\W*%(quote)s[^%(delim)s\\n]*%(quote)s[^%(delim)s\\n]*%(quote)s\\W*((%(delim)s)|$)' % {'delim': delim,
-         'quote': quotechar}, re.MULTILINE)
-        if dq_regexp.search(data):
-            doublequote = True
-        else:
-            doublequote = False
-        return (quotechar,
-         doublequote,
-         delim,
-         skipinitialspace)
+                skipinitialspace = 0
+            dq_regexp = re.compile('((%(delim)s)|^)\\W*%(quote)s[^%(delim)s\\n]*%(quote)s[^%(delim)s\\n]*%(quote)s\\W*((%(delim)s)|$)' % {'delim': delim,
+             'quote': quotechar}, re.MULTILINE)
+            if dq_regexp.search(data):
+                doublequote = True
+            else:
+                doublequote = False
+            return (quotechar,
+             doublequote,
+             delim,
+             skipinitialspace)
 
     def _guess_delimiter(self, data, delimiters):
         data = filter(None, data.split('\n'))
@@ -288,17 +290,18 @@ class Sniffer:
 
         if not delims:
             return ('', 0)
-        if len(delims) > 1:
-            for d in self.preferred:
-                if d in delims.keys():
-                    skipinitialspace = data[0].count(d) == data[0].count('%c ' % d)
-                    return (d, skipinitialspace)
+        else:
+            if len(delims) > 1:
+                for d in self.preferred:
+                    if d in delims.keys():
+                        skipinitialspace = data[0].count(d) == data[0].count('%c ' % d)
+                        return (d, skipinitialspace)
 
-        items = [ (v, k) for k, v in delims.items() ]
-        items.sort()
-        delim = items[-1][1]
-        skipinitialspace = data[0].count(delim) == data[0].count('%c ' % delim)
-        return (delim, skipinitialspace)
+            items = [ (v, k) for k, v in delims.items() ]
+            items.sort()
+            delim = items[-1][1]
+            skipinitialspace = data[0].count(delim) == data[0].count('%c ' % delim)
+            return (delim, skipinitialspace)
 
     def has_header(self, sample):
         rdr = reader(StringIO(sample), self.sniff(sample))

@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\client\script\ui\camera\shipPOVCamera.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\client\script\ui\camera\shipPOVCamera.py
 import math
 import blue
 from eve.client.script.parklife import states
@@ -6,6 +7,7 @@ from eve.client.script.ui.camera.baseSpaceCamera import BaseSpaceCamera
 from eve.client.script.ui.camera.cameraUtil import GetBallPosition
 import evecamera
 import geo2
+import uthread
 
 class ShipPOVCamera(BaseSpaceCamera):
     cameraID = evecamera.CAM_SHIPPOV
@@ -18,13 +20,20 @@ class ShipPOVCamera(BaseSpaceCamera):
         BaseSpaceCamera.__init__(self)
         self.lastLookAtID = None
         self.trackBall = None
+        return
 
     def Update(self):
         BaseSpaceCamera.Update(self)
-        if self.trackBall and getattr(self.trackBall, 'model', None) and hasattr(self.trackBall.model.rotationCurve, 'value'):
-            self.UpdateUpDirection()
-            self.UpdateAtEyePositions()
-            self.UpdateCrosshairPosition()
+        if not session.solarsystemid:
+            return
+        else:
+            if self.trackBall and getattr(self.trackBall, 'model', None) and hasattr(self.trackBall.model.rotationCurve, 'value'):
+                self.UpdateUpDirection()
+                self.UpdateAtEyePositions()
+                self.UpdateCrosshairPosition()
+            if self.trackBall and self.trackBall.id != self.ego:
+                uthread.new(sm.GetService('sceneManager').SetPrimaryCamera, evecamera.CAM_SHIPORBIT)
+            return
 
     def UpdateAtEyePositions(self):
         trackPos = self.GetTrackPosition()
@@ -62,6 +71,7 @@ class ShipPOVCamera(BaseSpaceCamera):
         BaseSpaceCamera.OnDeactivated(self)
         if self.trackBall:
             self.trackBall = None
+        return
 
     def OnActivated(self, **kwargs):
         BaseSpaceCamera.OnActivated(self, **kwargs)
@@ -71,14 +81,14 @@ class ShipPOVCamera(BaseSpaceCamera):
         if bp:
             self.trackBall = bp.GetBall(self.ego)
 
-    def GetLookAtItemID(self):
-        return self.trackBall
-
     def LookAt(self, itemID, *args, **kwargs):
         if itemID == self.ego:
             return
         if not self.CheckObjectTooFar(itemID):
-            sm.GetService('sceneManager').SetActiveCameraByID(evecamera.CAM_SHIPORBIT, itemID=itemID)
+            sm.GetService('sceneManager').SetPrimaryCamera(evecamera.CAM_SHIPORBIT, itemID=itemID)
 
     def ResetCamera(self, *args):
+        pass
+
+    def Track(self, itemID):
         pass

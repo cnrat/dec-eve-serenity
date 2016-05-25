@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\client\script\ui\tutorial\tutorialOverlay.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\client\script\ui\tutorial\tutorialOverlay.py
 from carbonui.control.layer import LayerCore
 from carbonui.control.scrollContainer import ScrollContainer
 from carbonui.primitives.container import Container
@@ -48,6 +49,7 @@ class TutorialOverlay(LayerCore):
         uthread.new(self.TryShowShipHudHint)
         uicore.animations.FadeTo(self, startVal=0.0, endVal=1.5, duration=0.125, loops=1, curveType=2, callback=self.ResetOpacity, sleep=True, curveSet=None, timeOffset=0.0)
         sm.RegisterNotify(self)
+        return
 
     def ResetOpacity(self, *args):
         shade = Fill(bgParent=self, color=(0, 0, 0, 0.0))
@@ -118,6 +120,8 @@ class TutorialOverlay(LayerCore):
                 sprite.display = False
 
             blue.pyos.synchro.Sleep(1)
+
+        return
 
     def OnCloseView(self):
         sm.UnregisterNotify(self)

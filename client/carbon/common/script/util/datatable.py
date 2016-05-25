@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\carbon\common\script\util\datatable.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\carbon\common\script\util\datatable.py
 import datetime
 
 class DataTableException(Exception):
@@ -75,7 +76,7 @@ class DataTableQuery(object):
 
 class DataTable(object):
 
-    def __init__(self, table_def = None, table_rows = [], version = '0.6', tqx = None, tq = None):
+    def __init__(self, table_def=None, table_rows=[], version='0.6', tqx=None, tq=None):
         self.__allowedColumn = ['boolean',
          'number',
          'string',
@@ -97,8 +98,9 @@ class DataTable(object):
 
         self.__errors = []
         self.__output = []
+        return
 
-    def Render(self, response, output = 'datatable'):
+    def Render(self, response, output='datatable'):
         output = output.lower()
         if output == 'xml':
             response.contentType = 'application/xml; charset=utf-8'

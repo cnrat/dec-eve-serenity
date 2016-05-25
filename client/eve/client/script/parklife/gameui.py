@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\client\script\parklife\gameui.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\client\script\parklife\gameui.py
 from eve.client.script.ui.camera.cameraUtil import IsNewCameraActive
 from eve.client.script.ui.mouseInputHandler import MouseInputHandler
 from eve.client.script.ui.shared.languageWindow import LanguageWindow
@@ -27,6 +28,7 @@ import ccUtil
 import viewstate
 from eve.client.script.ui.podGuide.megaMenuManager import MegaMenuManager
 from eve.client.script.ui.view.viewStateConfig import SetupViewStates
+from eve.client.script.ui.view.viewStateConst import ViewState
 from sceneManagerConsts import SCENE_TYPE_SPACE
 from service import SERVICE_RUNNING
 from gpcs import TRANSPORT_CLOSED_MESSAGES
@@ -125,6 +127,7 @@ class GameUI(service.Service):
         uthread.worker('gameui::SessionTimeoutTimer', self.__SessionTimeoutTimer)
         uthread.worker('gameui::AFKTimer', self.__AFKTimer)
         uthread.new(self._UpdateCrashKeyValues).context = 'gameui::_UpdateCrashKeyValues'
+        return
 
     def _UpdateCrashKeyValues(self):
         self.LogInfo('UpdateCrashKeyValues loop starting')
@@ -171,7 +174,7 @@ class GameUI(service.Service):
     def GetEntityAccess(self):
         return moniker.GetEntityAccess()
 
-    def OnDisconnect(self, reason = 0, msg = ''):
+    def OnDisconnect(self, reason=0, msg=''):
         disconnectNotice = DisconnectNotice(logProvider=self)
         disconnectNotice.OnDisconnect(reason, msg)
 
@@ -189,19 +192,13 @@ class GameUI(service.Service):
 
     def OnClusterShutdownInitiated(self, explanationLabel, when, duration):
         self.shutdownTime = when
-        now = blue.os.GetWallclockTime()
-        message = localization.GetByLabel(explanationLabel, intervalRemaining=localization.formatters.FormatTimeIntervalWritten(when - now, showTo=localization.formatters.TIME_CATEGORY_MINUTE), shutdownTime=util.FmtDate(when, 'ns'))
-        if duration:
-            message += localization.GetByLabel('/EVE-Universe/ClusterBroadcast/DowntimeMessageSuffix', downtimeInterval=localization.formatters.FormatTimeIntervalWritten(duration * const.MIN, showTo=localization.formatters.TIME_CATEGORY_MINUTE))
-        eve.Message('CluShutdownInitiated', {'explanation': message})
 
     def OnJumpQueueMessage(self, msg, ready):
         self.Say(msg)
 
     def OnClusterShutdownCancelled(self, explanationLabel):
         self.shutdownTime = None
-        self.Say(localization.GetByLabel('UI/Shared/ClusterShutdownDelayed'))
-        eve.Message('CluShutdownCancelled', {'explanation': localization.GetByLabel(explanationLabel)})
+        return
 
     def __ShutdownTimer(self):
         while self.state == SERVICE_RUNNING:
@@ -252,13 +249,15 @@ class GameUI(service.Service):
             sm.RemoteSvc('charMgr').SetActivityStatus(const.PLAYER_STATUS_ACTIVE, self.numSecondsAway)
         self.numSecondsAway = diffInSeconds
 
-    def OnRemoteMessage(self, msgID, dict = None, kw = None):
+    def OnRemoteMessage(self, msgID, dict=None, kw=None):
         if kw is None:
             kw = {}
         remoteNotifyMessages = ('SelfDestructInitiatedOther', 'SelfDestructImmediateOther', 'SelfDestructAbortedOther2')
         if msgID in remoteNotifyMessages and not settings.user.ui.Get('notifyMessagesEnabled', 1):
             return
-        uthread.new(eve.Message, msgID, dict, **kw).context = 'gameui.ServerMessage'
+        else:
+            uthread.new(eve.Message, msgID, dict, **kw).context = 'gameui.ServerMessage'
+            return
 
     def TransitionCleanup(self, session, change):
         ClearMenuLayer()
@@ -277,11 +276,11 @@ class GameUI(service.Service):
             prefs.resetsettings = 1
             appUtils.Reboot('clear settings')
 
-    def Stop(self, ms = None):
+    def Stop(self, ms=None):
         service.Service.Stop(self, ms)
 
     @telemetry.ZONE_METHOD
-    def ProcessSessionChange(self, isRemote, session, change, cheat = 0):
+    def ProcessSessionChange(self, isRemote, session, change, cheat=0):
         if 'shipid' in change and change['shipid'][0] and not session.stationid2:
             sm.GetService('invCache').CloseContainer(change['shipid'][0])
         self.settings.SaveSettings()
@@ -290,13 +289,25 @@ class GameUI(service.Service):
             return
 
     def DoSessionChanging(self, isRemote, session, change):
-        if 'stationid' in change and change['stationid'][0] is None and 'shipid' in change and change['shipid'][1] is None:
-            view = self._GetStationView()
+        wasPodded, changedToStationFromSpace, changedToStructureFromSpace = self._WasCharacterPodded(change)
+        if wasPodded:
+            if changedToStationFromSpace:
+                view = self._GetStationView()
+            else:
+                view = ViewState.Hangar
             viewState = sm.GetService('viewState')
             viewState.SetTransitionReason(viewState.GetCurrentViewInfo().name, view, 'clone')
         self.TransitionCleanup(session, change)
         if 'charid' in change and change['charid'][0] or 'userid' in change and change['userid'][0]:
             self.shipAccess = None
+        return
+
+    def _WasCharacterPodded(self, change):
+        shipIdChangedToNone = 'shipid' in change and change['shipid'][1] is None
+        changedToStationFromSpace = 'stationid' in change and change['stationid'][0] is None and 'structureid' not in change
+        changedToStructureFromSpace = 'structureid' in change and change['structureid'][0] is None and 'stationid' not in change
+        wasPodded = (changedToStationFromSpace or changedToStructureFromSpace) and shipIdChangedToNone
+        return (wasPodded, changedToStationFromSpace, changedToStructureFromSpace)
 
     def OnSetDevice(self, *args):
         uicore.layer.utilmenu.Flush()
@@ -319,41 +330,45 @@ class GameUI(service.Service):
     def OnSessionChanged(self, isRemote, session, change):
         if not self.AnythingImportantInChange(change):
             return
-        relevantSessionAttributes = ('userid', 'charid', 'solarsystemid', 'stationid', 'shipid', 'worldspaceid')
-        changeIsRelevant = False
-        for attribute in relevantSessionAttributes:
-            if attribute in change:
-                changeIsRelevant = True
-                break
-
-        if not changeIsRelevant:
-            return
-        if 'userid' in change:
-            sm.GetService('uiColor').LoadUIColors()
-            sm.GetService('tactical')
-            uicore.mouseInputHandler = MouseInputHandler()
-        if 'charid' in change:
-            self.DoWindowIdentification()
-            uthread.new(self.TryOpenLanguageWindow)
-        if 'userid' in change or 'charid' in change:
-            self.settings.LoadSettings()
-            self.AlterDefaultSettings()
-            gfx = gfxsettings.GraphicsSettings.GetGlobal()
-            gfx.InitializeSettingsGroup(gfxsettings.SETTINGS_GROUP_UI, settings.user.ui)
-            self.device.ApplyTrinityUserSettings()
-        if 'shipid' in change and session.sessionChangeReason == 'selfdestruct':
-            session.sessionChangeReason = 'board'
-        if session.charid is None:
-            self._HandleUserLogonSessionChange(isRemote, session, change, self.viewState)
-        elif session.stationid is not None:
-            self._HandleSessionChangeInStation(isRemote, session, change, self.viewState)
-        elif session.worldspaceid is not None:
-            self._HandleSessionChangeInWorldSpace(isRemote, session, change, self.viewState)
-        elif session.solarsystemid is not None:
-            self._HandleSessionChangeInSpace(isRemote, session, change, self.viewState)
         else:
-            self.LogWarn('GameUI::OnSessionChanged, Lame Teardown of the client, it should get propper OnDisconnect event', isRemote, session, change)
-            self.ScopeCheck()
+            relevantSessionAttributes = ('userid', 'charid', 'solarsystemid', 'stationid', 'structureid', 'shipid', 'worldspaceid')
+            changeIsRelevant = False
+            for attribute in relevantSessionAttributes:
+                if attribute in change:
+                    changeIsRelevant = True
+                    break
+
+            if not changeIsRelevant:
+                return
+            if 'userid' in change:
+                sm.GetService('uiColor').LoadUIColors()
+                sm.GetService('tactical')
+                uicore.mouseInputHandler = MouseInputHandler()
+            if 'charid' in change:
+                self.DoWindowIdentification()
+                uthread.new(self.TryOpenLanguageWindow)
+            if 'userid' in change or 'charid' in change:
+                self.settings.LoadSettings()
+                self.AlterDefaultSettings()
+                gfx = gfxsettings.GraphicsSettings.GetGlobal()
+                gfx.InitializeSettingsGroup(gfxsettings.SETTINGS_GROUP_UI, settings.user.ui)
+                self.device.ApplyTrinityUserSettings()
+            if 'shipid' in change and session.sessionChangeReason == 'selfdestruct':
+                session.sessionChangeReason = 'board'
+            if session.charid is None:
+                self._HandleUserLogonSessionChange(isRemote, session, change, self.viewState)
+            elif session.stationid is not None:
+                self._HandleSessionChangeInStation(isRemote, session, change, self.viewState)
+            elif session.structureid is not None:
+                self._HandleSessionChangeInStructure(isRemote, session, change, self.viewState)
+            elif session.worldspaceid is not None:
+                self._HandleSessionChangeInWorldSpace(isRemote, session, change, self.viewState)
+            elif session.solarsystemid is not None:
+                self._HandleSessionChangeInSpace(isRemote, session, change, self.viewState)
+            else:
+                self.LogWarn('GameUI::OnSessionChanged, Lame Teardown of the client, it should get propper OnDisconnect event', isRemote, session, change)
+                self.ScopeCheck()
+            return
 
     def AlterDefaultSettings(self):
         newbieAccount = session.role & service.ROLE_NEWBIE
@@ -368,29 +383,30 @@ class GameUI(service.Service):
         self.LogNotice('GameUI::OnSessionChanged, Heading for character selection', isRemote, session, change)
         if sm.GetService('webtools').GetVars():
             return
-        if settings.public.generic.Get('showintro2', None) is None:
-            settings.public.generic.Set('showintro2', prefs.GetValue('showintro2', 1))
-        if not gatekeeper.user.IsInitialized():
-            gatekeeper.user.Initialize(lambda args: sm.RemoteSvc('charUnboundMgr').GetCohortsForUser)
-            experimentSvc = sm.StartService('experimentClientSvc')
-            experimentSvc.OnUserLogon(languageID=session.languageID)
         else:
-            self.LogWarn('GameUI::_HandleUserLogonSessionChange, running multiple times')
-        if settings.public.generic.Get('showintro2', 1):
-            uthread.pool('GameUI::ActivateView::intro', viewSvc.ActivateView, 'intro')
-        else:
-            characters = sm.GetService('cc').GetCharactersToSelect(False)
-            if characters:
-                uthread.pool('GameUI::ActivateView::charsel', viewSvc.ActivateView, 'charsel')
+            if settings.public.generic.Get('showintro2', None) is None:
+                settings.public.generic.Set('showintro2', prefs.GetValue('showintro2', 1))
+            if not gatekeeper.user.IsInitialized():
+                gatekeeper.user.Initialize(lambda args: sm.RemoteSvc('charUnboundMgr').GetCohortsForUser)
+                experimentSvc = sm.StartService('experimentClientSvc')
+                experimentSvc.OnUserLogon(languageID=session.languageID)
             else:
-                uthread.pool('GameUI::GoCharacterCreation', self.GoCharacterCreation)
+                self.LogWarn('GameUI::_HandleUserLogonSessionChange, running multiple times')
+            if settings.public.generic.Get('showintro2', 1):
+                uthread.pool('GameUI::ActivateView::intro', viewSvc.ActivateView, 'intro')
+            else:
+                characters = sm.GetService('cc').GetCharactersToSelect(False)
+                if characters:
+                    uthread.pool('GameUI::ActivateView::charsel', viewSvc.ActivateView, 'charsel')
+                else:
+                    uthread.pool('GameUI::GoCharacterCreation', self.GoCharacterCreation)
+            return
 
     def _GetStationView(self):
-        view = settings.user.ui.Get('defaultDockingView', 'hangar')
-        if view == 'station' and not gfxsettings.Get(gfxsettings.MISC_LOAD_STATION_ENV):
-            self.LogInfo('Docking into hangar because we have disabled the station environments')
-            view = 'hangar'
-        return view
+        return settings.user.ui.Get('defaultDockingView', ViewState.Hangar)
+
+    def _GetStructureView(self):
+        return settings.user.ui.Get('defaultStructureView', ViewState.Hangar)
 
     def _GetActivateViewFunction(self, viewSvc):
         activateViewFunc = None
@@ -413,6 +429,29 @@ class GameUI(service.Service):
             activateViewFunc = self._GetActivateViewFunction(viewSvc)
             uthread.pool('GameUI::ActivateView::worldspace', activateViewFunc, 'worldspace', change=change)
 
+    def _HandleSessionChangeInStructure(self, isRemote, session, change, viewSvc):
+        structureView = self._GetStructureView()
+        if 'structureid' in change:
+            wasPodded, _, changedToStructureFromSpace = self._WasCharacterPodded(change)
+            self.LogNotice('GameUI::OnSessionChanged, Heading for structure', isRemote, session, change)
+            if wasPodded:
+                structureView = ViewState.Hangar
+                settings.user.ui.Set('defaultStructureView', structureView)
+            uthread.pool('GameUI::ActivateView::structure', self._GetActivateViewFunction(viewSvc), structureView, change=change)
+            ballpark = sm.GetService('michelle').GetBallpark()
+            if ballpark:
+                if session.structureid in ballpark.balls:
+                    ballpark.ego = session.structureid
+                    self.OnNewState(ballpark)
+                else:
+                    self.wannaBeEgo = session.structureid
+        elif 'shipid' in change:
+            if session.shipid == session.structureid:
+                if not self.viewState.IsViewActive('inflight'):
+                    uthread.pool('GameUI::ActivateView::structure', self._GetActivateViewFunction(viewSvc), 'inflight', change=change)
+            elif not self.viewState.IsViewActive('structure', 'hangar'):
+                uthread.pool('GameUI::ActivateView::structure', self._GetActivateViewFunction(viewSvc), structureView, change=change)
+
     def _HandleSessionChangeInSpace(self, isRemote, session, change, viewSvc):
         if 'solarsystemid' in change:
             oldSolarSystemID, newSolarSystemID = change['solarsystemid']
@@ -423,22 +462,36 @@ class GameUI(service.Service):
             self.LogNotice('GameUI::OnSessionChanged, Heading for inflight', isRemote, session, change)
             activateViewFunc = self._GetActivateViewFunction(viewSvc)
             uthread.pool('GameUI::ChangePrimaryView::inflight', activateViewFunc, 'inflight', change=change)
-        elif 'shipid' in change and change['shipid'][1] is not None:
-            michelle = sm.GetService('michelle')
-            bp = michelle.GetBallpark()
-            if bp:
-                if change['shipid'][0]:
-                    self.KillCargoView(change['shipid'][0])
-                uthread.new(sm.GetService('target').ClearTargets)
-                if session.shipid in bp.balls:
-                    self.LogInfo('Changing ego:', bp.ego, '->', session.shipid)
-                    bp.ego = session.shipid
-                    self.OnNewState(bp)
-                else:
-                    self.LogInfo('Postponing ego:', bp.ego, '->', session.shipid)
-                    self.wannaBeEgo = session.shipid
+        else:
+            if 'shipid' in change and change['shipid'][1] is not None:
+                michelle = sm.GetService('michelle')
+                bp = michelle.GetBallpark()
+                if bp:
+                    if change['shipid'][0]:
+                        self.KillCargoView(change['shipid'][0])
+                    uthread.new(sm.GetService('target').ClearTargets)
+                    if session.shipid in bp.balls:
+                        self.LogNotice('Changing ego:', bp.ego, '->', session.shipid)
+                        bp.ego = session.shipid
+                        self.OnNewState(bp)
+                    else:
+                        self.LogNotice('Postponing ego:', bp.ego, '->', session.shipid)
+                        self.wannaBeEgo = session.shipid
+            if 'structureid' in change:
+                self.LogNotice('GameUI::OnSessionChanged, Heading for inflight', isRemote, session, change)
+                uthread.pool('GameUI::ChangePrimaryView::inflight', self._GetActivateViewFunction(viewSvc), 'inflight', change=change)
+                ballpark = sm.GetService('michelle').GetBallpark()
+                if ballpark:
+                    if session.shipid in ballpark.balls:
+                        ballpark.ego = session.shipid
+                        self.OnNewState(ballpark)
+                    else:
+                        self.wannaBeEgo = session.shipid
+            if 'shipid' in change and 'structureid' in change:
+                uicore.layer.shipui.CloseView()
+        return
 
-    def KillCargoView(self, id_, guidsToKill = None):
+    def KillCargoView(self, id_, guidsToKill=None):
         if guidsToKill is None:
             guidsToKill = ('form.ShipCargo', 'form.LootCargoView', 'form.DroneBay', 'form.CorpHangar', 'form.CorpHangarArray', 'form.SpecialCargoBay', 'form.PlanetInventory')
         for each in uicore.registry.GetWindows()[:]:
@@ -449,7 +502,9 @@ class GameUI(service.Service):
                     else:
                         each.CloseByUser()
 
-    def ScopeCheck(self, scope = None):
+        return
+
+    def ScopeCheck(self, scope=None):
         if scope is None:
             scope = []
         scope += ['all']
@@ -472,6 +527,8 @@ class GameUI(service.Service):
                     else:
                         self.LogInfo('ScopeCheck::Close2', each.name, 'scope', scope)
                         each.CloseByUser()
+
+        return
 
     def GetCurrentScope(self):
         return self.currentScope
@@ -530,6 +587,7 @@ class GameUI(service.Service):
         sm.StartService('radialmenu')
         sm.StartService('tourneyBanUI')
         sm.StartService('achievementSvc')
+        sm.StartService('tacticalNavigation')
         uicore.megaMenuManager = MegaMenuManager()
         if blue.win32:
             try:
@@ -556,6 +614,7 @@ class GameUI(service.Service):
             self.DoLogin(token)
         else:
             self.viewState.ActivateView('login')
+        return
 
     def RegisterBlueResources(self):
         from carbon.client.script.graphics.resourceConstructors.caustics import Caustics
@@ -601,35 +660,38 @@ class GameUI(service.Service):
             localization.LoadLanguageData()
             sm.ChainEvent('ProcessUIRefresh')
             sm.ScatterEvent('OnUIRefresh')
+        return
 
     def HasActiveOverlay(self):
         return sm.IsServiceRunning('viewState') and self.viewState.IsCurrentViewSecondary()
 
-    def GoLogin(self, step = 1, connectionLost = 0, *args):
+    def GoLogin(self, step=1, connectionLost=0, *args):
         blue.statistics.SetTimelineSectionName('login')
 
     def GoCharacterCreationCurrentCharacter(self, *args):
         if None in (session.charid, session.genderID, session.bloodlineID):
             return
-        if self.viewState.IsViewActive('charactercreation'):
+        elif self.viewState.IsViewActive('charactercreation'):
             return
-        stationSvc = sm.GetService('station')
-        dollState = stationSvc.GetPaperdollStateCache()
-        msg = None
-        if dollState == const.paperdollStateResculpting:
-            msg = 'AskRecustomizeCharacter'
-        elif dollState == const.paperdollStateFullRecustomizing:
-            msg = 'AskRecustomizeCharacterChangeBloodline'
-        message = uiconst.ID_NO
-        if msg is not None:
-            message = eve.Message(msg, {'charName': cfg.eveowners.Get(session.charid).ownerName}, uiconst.YESNO, default=uiconst.ID_NO, suppress=uiconst.ID_NO)
-        if message == uiconst.ID_YES:
-            self.GoCharacterCreation(session.charid, session.genderID, session.bloodlineID, dollState=dollState)
-            stationSvc.ClearPaperdollStateCache()
-        elif message == uiconst.ID_NO:
-            self.GoCharacterCreation(session.charid, session.genderID, session.bloodlineID, dollState=const.paperdollStateNoRecustomization)
+        else:
+            stationSvc = sm.GetService('station')
+            dollState = stationSvc.GetPaperdollStateCache()
+            msg = None
+            if dollState == const.paperdollStateResculpting:
+                msg = 'AskRecustomizeCharacter'
+            elif dollState == const.paperdollStateFullRecustomizing:
+                msg = 'AskRecustomizeCharacterChangeBloodline'
+            message = uiconst.ID_NO
+            if msg is not None:
+                message = eve.Message(msg, {'charName': cfg.eveowners.Get(session.charid).ownerName}, uiconst.YESNO, default=uiconst.ID_NO, suppress=uiconst.ID_NO)
+            if message == uiconst.ID_YES:
+                self.GoCharacterCreation(session.charid, session.genderID, session.bloodlineID, dollState=dollState)
+                stationSvc.ClearPaperdollStateCache()
+            elif message == uiconst.ID_NO:
+                self.GoCharacterCreation(session.charid, session.genderID, session.bloodlineID, dollState=const.paperdollStateNoRecustomization)
+            return
 
-    def GoCharacterCreation(self, charID = None, gender = None, bloodlineID = None, askUseLowShader = True, dollState = None, *args):
+    def GoCharacterCreation(self, charID=None, gender=None, bloodlineID=None, askUseLowShader=True, dollState=None, *args):
         if sm.GetService('station').exitingstation:
             return
         everesourceprefetch.PullToFront('ui_cc')
@@ -649,51 +711,53 @@ class GameUI(service.Service):
     def HasDisconnectionNotice(self):
         return form.MessageBox.IsOpen(windowID='DisconnectNotice')
 
-    def MessageBox(self, text, title = 'EVE', buttons = None, icon = None, suppText = None, customicon = None, height = None, blockconfirmonreturn = 0, default = None, modal = True, msgkey = None, messageData = None):
+    def MessageBox(self, text, title='EVE', buttons=None, icon=None, suppText=None, customicon=None, height=None, blockconfirmonreturn=0, default=None, modal=True, msgkey=None, messageData=None):
         if not getattr(uicore, 'desktop', None):
             return
-        if self.HasDisconnectionNotice():
+        elif self.HasDisconnectionNotice():
             return (default, False)
-        if buttons is None:
-            buttons = uiconst.ID_OK
-        msgbox = form.MessageBox.Open(useDefaultPos=True)
-        msgbox.state = uiconst.UI_HIDDEN
-        msgbox.isModal = modal
-        msgbox.blockconfirmonreturn = blockconfirmonreturn
-        if msgkey is not None and msgkey in CUSTOM_MESSAGE_BOXES:
-            msgbox.ExecuteCustomContent(CUSTOM_MESSAGE_BOXES[msgkey], title, buttons, icon, suppText, customicon, height, default=default, modal=modal, messageData=messageData)
         else:
-            msgbox.Execute(text, title, buttons, icon, suppText, customicon, height, default=default, modal=modal)
-        if modal:
-            ret = msgbox.ShowModal()
-        else:
-            ret = msgbox.ShowDialog()
-        return (ret, msgbox.suppress)
+            if buttons is None:
+                buttons = uiconst.ID_OK
+            msgbox = form.MessageBox.Open(useDefaultPos=True)
+            msgbox.state = uiconst.UI_HIDDEN
+            msgbox.isModal = modal
+            msgbox.blockconfirmonreturn = blockconfirmonreturn
+            if msgkey is not None and msgkey in CUSTOM_MESSAGE_BOXES:
+                msgbox.ExecuteCustomContent(CUSTOM_MESSAGE_BOXES[msgkey], title, buttons, icon, suppText, customicon, height, default=default, modal=modal, messageData=messageData)
+            else:
+                msgbox.Execute(text, title, buttons, icon, suppText, customicon, height, default=default, modal=modal)
+            if modal:
+                ret = msgbox.ShowModal()
+            else:
+                ret = msgbox.ShowDialog()
+            return (ret, msgbox.suppress)
 
-    def RadioButtonMessageBox(self, text, title = 'EVE', buttons = None, icon = None, suppText = None, customicon = None, radioOptions = None, height = None, width = None, blockconfirmonreturn = 0, default = None, modal = True):
+    def RadioButtonMessageBox(self, text, title='EVE', buttons=None, icon=None, suppText=None, customicon=None, radioOptions=None, height=None, width=None, blockconfirmonreturn=0, default=None, modal=True):
         if radioOptions is None:
             radioOptions = []
         if not getattr(uicore, 'desktop', None):
             return
-        if self.HasDisconnectionNotice():
+        elif self.HasDisconnectionNotice():
             return (default, False)
-        if buttons is None:
-            buttons = uiconst.ID_OK
-        msgbox = form.RadioButtonMessageBox.Open(useDefaultPos=True)
-        msgbox.isModal = modal
-        msgbox.blockconfirmonreturn = blockconfirmonreturn
-        msgbox.Execute(text, title, buttons, radioOptions, icon, suppText, customicon, height, width=width, default=default, modal=modal)
-        if modal:
-            buttonResult = msgbox.ShowModal()
-            radioSelection = msgbox.GetRadioSelection()
-            ret = (buttonResult, radioSelection)
         else:
-            buttonResult = msgbox.ShowDialog()
-            radioSelection = msgbox.GetRadioSelection()
-            ret = (buttonResult, radioSelection)
-        return (ret, msgbox.suppress)
+            if buttons is None:
+                buttons = uiconst.ID_OK
+            msgbox = form.RadioButtonMessageBox.Open(useDefaultPos=True)
+            msgbox.isModal = modal
+            msgbox.blockconfirmonreturn = blockconfirmonreturn
+            msgbox.Execute(text, title, buttons, radioOptions, icon, suppText, customicon, height, width=width, default=default, modal=modal)
+            if modal:
+                buttonResult = msgbox.ShowModal()
+                radioSelection = msgbox.GetRadioSelection()
+                ret = (buttonResult, radioSelection)
+            else:
+                buttonResult = msgbox.ShowDialog()
+                radioSelection = msgbox.GetRadioSelection()
+                ret = (buttonResult, radioSelection)
+            return (ret, msgbox.suppress)
 
-    def Say(self, msgtext, time = 100):
+    def Say(self, msgtext, time=100):
         for each in uicore.layer.abovemain.children[:]:
             if each.name == 'message':
                 each.ShowMsg(msgtext)
@@ -719,7 +783,7 @@ class GameUI(service.Service):
     def DoBallAdd(self, ball, slimItem):
         if ball.id == self.wannaBeEgo:
             bp = sm.GetService('michelle').GetBallpark()
-            self.LogInfo('Post-ego change: ', bp.ego, '->', self.wannaBeEgo)
+            self.LogNotice('Post-ego change: ', bp.ego, '->', self.wannaBeEgo)
             bp.ego = self.wannaBeEgo
             self.wannaBeEgo = -1
             self.OnNewState(bp)
@@ -747,14 +811,15 @@ class GameUI(service.Service):
         if bp and bp.balls.get(bp.ego, None):
             camera = sm.GetService('sceneManager').GetActiveSpaceCamera()
             if IsNewCameraActive():
-                camera.LookAt(bp.ego)
+                camera.LookAtMaintainDistance(bp.ego)
             else:
-                camera.LookAt(bp.ego, camera.cachedCameraTranslation)
-            if session.solarsystemid:
+                uthread.new(camera.LookAt, bp.ego, camera.cachedCameraTranslation)
+            if util.InSpace():
                 if not uicore.layer.shipui.isopen:
                     uicore.layer.shipui.OpenView()
                 else:
                     uicore.layer.shipui.SetupShip(False)
+        return
 
     def DoWindowIdentification(self):
         if eve.session.charid:

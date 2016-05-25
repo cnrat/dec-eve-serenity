@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\client\script\ui\services\corporation\bco_applications.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\client\script\ui\services\corporation\bco_applications.py
 import corpObject
 import locks
 
@@ -10,16 +11,19 @@ class ApplicationsO(corpObject.base):
         self.corpApplications = None
         self.myApplications = None
         self.corpWelcomeMail = None
+        return
 
     def DoSessionChanging(self, isRemote, session, change):
         if 'charid' in change:
             self.myApplications = None
         if 'corpid' in change:
             self.corpApplications = None
+        return
 
     def Reset(self):
         self.corpApplications = None
         self.myApplications = None
+        return
 
     def OnCorporationApplicationChanged(self, corpID, applicantID, applicationID, newApplication):
         if applicantID == eve.session.charid:
@@ -56,7 +60,7 @@ class ApplicationsO(corpObject.base):
                 newSet.append(newApplication)
         return newSet
 
-    def GetMyApplications(self, corporationID = -1, forceUpdate = False):
+    def GetMyApplications(self, corporationID=-1, forceUpdate=False):
         if self.myApplications is None or forceUpdate:
             self.myApplications = self.GetCorpRegistry().GetMyApplications()
         if corporationID != -1:
@@ -65,18 +69,20 @@ class ApplicationsO(corpObject.base):
             return self.myApplications[corporationID]
         else:
             return self.myApplications
+            return
 
     def GetMyApplicationsWithStatus(self, status):
         applications = self.GetMyApplications()
         if 0 == len(applications):
             return applications
-        res = []
-        for corporationID in applications:
-            for application in applications[corporationID]:
-                if status is None or application.status in status:
-                    res.append(application)
+        else:
+            res = []
+            for corporationID in applications:
+                for application in applications[corporationID]:
+                    if status is None or application.status in status:
+                        res.append(application)
 
-        return res
+            return res
 
     def GetMyOldApplicationsWithStatus(self, status):
         applications = self.GetCorpRegistry().GetMyOldApplications()
@@ -87,7 +93,7 @@ class ApplicationsO(corpObject.base):
 
         return res
 
-    def GetApplications(self, characterID = -1, forceUpdate = False):
+    def GetApplications(self, characterID=-1, forceUpdate=False):
         if eve.session.corprole & const.corpRolePersonnelManager != const.corpRolePersonnelManager:
             return {}
         else:
@@ -98,18 +104,20 @@ class ApplicationsO(corpObject.base):
             if characterID not in self.corpApplications:
                 self.corpApplications[characterID] = []
             return self.corpApplications[characterID]
+            return
 
     def GetApplicationsWithStatus(self, status):
         applications = self.GetApplications()
         if 0 == len(applications):
             return applications
-        res = []
-        for characterID in applications:
-            for application in applications[characterID]:
-                if status is None or application.status in status:
-                    res.append(application)
+        else:
+            res = []
+            for characterID in applications:
+                for application in applications[characterID]:
+                    if status is None or application.status in status:
+                        res.append(application)
 
-        return res
+            return res
 
     def GetOldApplicationsWithStatus(self, status):
         applications = self.GetCorpRegistry().GetOldApplications()
@@ -123,7 +131,7 @@ class ApplicationsO(corpObject.base):
     def InsertApplication(self, corporationID, applicationText):
         return self.GetCorpRegistry().InsertApplication(corporationID, applicationText)
 
-    def UpdateApplicationOffer(self, applicationID, characterID, corporationID, applicationText, status, customMessage = '', applicationDateTime = None):
+    def UpdateApplicationOffer(self, applicationID, characterID, corporationID, applicationText, status, customMessage='', applicationDateTime=None):
         with locks.TempLock('UpdateApplicationOffer', lockClass=locks.Lock):
             return self.GetCorpRegistry().UpdateApplicationOffer(applicationID, characterID, corporationID, applicationText, status, customMessage, applicationDateTime)
 

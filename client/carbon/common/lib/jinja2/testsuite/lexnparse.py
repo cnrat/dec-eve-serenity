@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\carbon\common\lib\jinja2\testsuite\lexnparse.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\carbon\common\lib\jinja2\testsuite\lexnparse.py
 import sys
 import unittest
 from jinja2.testsuite import JinjaTestCase
@@ -198,6 +199,8 @@ class SyntaxTestCase(JinjaTestCase):
     def test_constant_casing(self):
         for const in (True, False, None):
             tmpl = env.from_string('{{ %s }}|{{ %s }}|{{ %s }}' % (str(const), str(const).lower(), str(const).upper()))
+
+        return
 
     def test_test_chaining(self):
         self.assert_raises(TemplateSyntaxError, env.from_string, '{{ foo is string is sequence }}')

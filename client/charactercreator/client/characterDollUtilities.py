@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\packages\charactercreator\client\characterDollUtilities.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\packages\charactercreator\client\characterDollUtilities.py
 import charactercreator.const as ccConst
 from utillib import KeyVal
 import eve.common.lib.appConst as const
@@ -11,6 +12,7 @@ class CharacterDollUtilities:
         self.modifierLocationsByKey = {}
         self.assetsToIDs = {'male': None,
          'female': None}
+        return
 
     def GetNewCharacterMetadata(self, genderID, bloodlineID):
         return KeyVal(genderID=genderID, bloodlineID=bloodlineID, types={}, typeColors={}, typeWeights={}, typeSpecularity={}, hairDarkness=0.0)
@@ -21,8 +23,9 @@ class CharacterDollUtilities:
             metadata.typeColors.pop(category, None)
             metadata.typeSpecularity.pop(category, None)
             metadata.typeWeights.pop(category, None)
+        return
 
-    def SetColorSpecularityByCategory(self, doll, category, specularity, doUpdate = True, metadata = None):
+    def SetColorSpecularityByCategory(self, doll, category, specularity, doUpdate=True, metadata=None):
         modifier = self.GetModifierByCategory(doll, category)
         if modifier:
             metadata.typeSpecularity[category] = specularity
@@ -37,7 +40,7 @@ class CharacterDollUtilities:
               s2,
               1.0), (0.5, 0.5, 0.5, 1.0)])
 
-    def GetModifierByCategory(self, doll, category, getAll = False):
+    def GetModifierByCategory(self, doll, category, getAll=False):
         modifiers = self.GetModifiersByCategory(doll, category)
         if not modifiers:
             return None
@@ -50,6 +53,7 @@ class CharacterDollUtilities:
                         return modifier
 
             return modifiers[0]
+            return None
 
     def GetModifiersByCategory(self, doll, category):
         ret = []
@@ -69,61 +73,62 @@ class CharacterDollUtilities:
 
         return ret
 
-    def ApplyTypeToDoll(self, itemType, weight = 1.0, doUpdate = True, rawColorVariation = None, metadata = None, factory = None, doll = None):
+    def ApplyTypeToDoll(self, itemType, weight=1.0, doUpdate=True, rawColorVariation=None, metadata=None, factory=None, doll=None):
         if itemType is None:
             return
-        import eve.client.script.ui.login.charcreation.ccUtil as ccUtil
-        self.PopulateModifierLocationDicts()
-        genderID = metadata.genderID
-        if type(itemType) is not tuple:
-            charGender = ccUtil.GenderIDToPaperDollGender(genderID)
-            itemTypeData = factory.GetItemType(itemType, gender=charGender)
-            if itemTypeData is None:
-                itemTypeLower = itemType.lower()
-                if paperDoll.BODY_CATEGORIES.TOPINNER in itemTypeLower:
-                    self.ApplyItemToDoll(paperDoll.BODY_CATEGORIES.TOPINNER, None, removeFirst=True, doUpdate=False, doll=doll, metadata=metadata, factory=factory)
-                elif paperDoll.BODY_CATEGORIES.BOTTOMINNER in itemTypeLower:
-                    self.ApplyItemToDoll(paperDoll.BODY_CATEGORIES.BOTTOMINNER, None, removeFirst=True, doUpdate=False, doll=doll, metadata=metadata, factory=factory)
-                else:
-                    print "Item type file is missing, can't be loaded %s" % str(itemType)
-                return
-            assetID, assetTypeID = self.GetAssetAndTypeIDsFromPath(charGender, itemType)
-            itemType = (assetID, itemTypeData[:3], assetTypeID)
-        category = self.GetCategoryFromResPath(itemType[1][0])
-        godmaSvc = sm.GetService('godma')
-        modifierLocationKey = self.modifierLocationsByName.get(category, None)
-        toRemove = []
-        for otherCategory, otherResourceID in metadata.types.iteritems():
-            if otherResourceID is None:
-                continue
-            otherResource = cfg.paperdollResources.Get(otherResourceID)
-            if otherResource.typeID is None:
-                continue
-            removesCategory = godmaSvc.GetTypeAttribute2(otherResource.typeID, const.attributeClothingRemovesCategory)
-            if removesCategory == modifierLocationKey:
-                toRemove.append(otherCategory)
+        else:
+            import eve.client.script.ui.login.charcreation.ccUtil as ccUtil
+            self.PopulateModifierLocationDicts()
+            genderID = metadata.genderID
+            if type(itemType) is not tuple:
+                charGender = ccUtil.GenderIDToPaperDollGender(genderID)
+                itemTypeData = factory.GetItemType(itemType, gender=charGender)
+                if itemTypeData is None:
+                    itemTypeLower = itemType.lower()
+                    if paperDoll.BODY_CATEGORIES.TOPINNER in itemTypeLower:
+                        self.ApplyItemToDoll(paperDoll.BODY_CATEGORIES.TOPINNER, None, removeFirst=True, doUpdate=False, doll=doll, metadata=metadata, factory=factory)
+                    elif paperDoll.BODY_CATEGORIES.BOTTOMINNER in itemTypeLower:
+                        self.ApplyItemToDoll(paperDoll.BODY_CATEGORIES.BOTTOMINNER, None, removeFirst=True, doUpdate=False, doll=doll, metadata=metadata, factory=factory)
+                    else:
+                        print "Item type file is missing, can't be loaded %s" % str(itemType)
+                    return
+                assetID, assetTypeID = self.GetAssetAndTypeIDsFromPath(charGender, itemType)
+                itemType = (assetID, itemTypeData[:3], assetTypeID)
+            category = self.GetCategoryFromResPath(itemType[1][0])
+            godmaSvc = sm.GetService('godma')
+            modifierLocationKey = self.modifierLocationsByName.get(category, None)
+            toRemove = []
+            for otherCategory, otherResourceID in metadata.types.iteritems():
+                if otherResourceID is None:
+                    continue
+                otherResource = cfg.paperdollResources.Get(otherResourceID)
+                if otherResource.typeID is None:
+                    continue
+                removesCategory = godmaSvc.GetTypeAttribute2(otherResource.typeID, const.attributeClothingRemovesCategory)
+                if removesCategory == modifierLocationKey:
+                    toRemove.append(otherCategory)
 
-        for itemToRemove in toRemove:
-            self.ApplyItemToDoll(itemToRemove, None, removeFirst=True, doUpdate=False)
+            for itemToRemove in toRemove:
+                self.ApplyItemToDoll(itemToRemove, None, removeFirst=True, doUpdate=False)
 
-        activeMod = self.GetModifierByCategory(doll, category)
-        if activeMod:
-            doll.RemoveResource(activeMod.GetResPath(), factory)
-        modifier = doll.AddItemType(factory, itemType[1], weight, rawColorVariation)
-        metadata.types[category] = itemType[0]
-        myTypeID = itemType[2]
-        if myTypeID:
-            removesCategory = godmaSvc.GetTypeAttribute2(myTypeID, const.attributeClothingRemovesCategory)
-            if removesCategory:
-                modifierLocationName = self.modifierLocationsByKey[int(removesCategory)]
-                self.ApplyItemToDoll(modifierLocationName, None, removeFirst=True, doUpdate=False, doll=doll, metadata=metadata, factory=factory)
-        if ccUtil.HasUserDefinedWeight(category):
-            metadata.typeWeights[category] = weight
-        if category in (ccConst.hair, ccConst.beard, ccConst.eyebrows):
-            self.SynchronizeHairColors(metadata, doll)
-        return modifier
+            activeMod = self.GetModifierByCategory(doll, category)
+            if activeMod:
+                doll.RemoveResource(activeMod.GetResPath(), factory)
+            modifier = doll.AddItemType(factory, itemType[1], weight, rawColorVariation)
+            metadata.types[category] = itemType[0]
+            myTypeID = itemType[2]
+            if myTypeID:
+                removesCategory = godmaSvc.GetTypeAttribute2(myTypeID, const.attributeClothingRemovesCategory)
+                if removesCategory:
+                    modifierLocationName = self.modifierLocationsByKey[int(removesCategory)]
+                    self.ApplyItemToDoll(modifierLocationName, None, removeFirst=True, doUpdate=False, doll=doll, metadata=metadata, factory=factory)
+            if ccUtil.HasUserDefinedWeight(category):
+                metadata.typeWeights[category] = weight
+            if category in (ccConst.hair, ccConst.beard, ccConst.eyebrows):
+                self.SynchronizeHairColors(metadata, doll)
+            return modifier
 
-    def PopulateModifierLocationDicts(self, force = False):
+    def PopulateModifierLocationDicts(self, force=False):
         if not force and len(self.modifierLocationsByKey) > 0:
             return
         self.modifierLocationsByName = {}
@@ -132,7 +137,7 @@ class CharacterDollUtilities:
             self.modifierLocationsByKey[row.modifierLocationID] = row.modifierKey
             self.modifierLocationsByName[row.modifierKey] = row.modifierLocationID
 
-    def ApplyItemToDoll(self, category, name, removeFirst = False, variation = None, doUpdate = True, doll = None, metadata = None, factory = None):
+    def ApplyItemToDoll(self, category, name, removeFirst=False, variation=None, doUpdate=True, doll=None, metadata=None, factory=None):
         modifier = None
         modifierFoundForVariationSwitch = False
         if name and variation:
@@ -188,62 +193,67 @@ class CharacterDollUtilities:
                         hm.specularColorData = hairData.specularColorData
                         hm.SetColorVariation('none')
 
-    def SetColorValueByCategory(self, doll, metadata, category, colorVar1, colorVar2, doUpdate = True):
+        return
+
+    def SetColorValueByCategory(self, doll, metadata, category, colorVar1, colorVar2, doUpdate=True):
         if colorVar1 is None:
             return
-        color1Value, color1Name, color2Name, variation = self.GetColorsToUse(colorVar1, colorVar2)
-        modifier = self.GetModifierByCategory(doll, category)
-        if not modifier:
-            return
-        if color1Value:
-            metadata.typeColors[category] = (color1Name, None)
-            modifier.SetColorizeData(color1Value)
-        elif colorVar2 is not None:
-            metadata.typeColors[category] = (color1Name, color2Name)
-            modifier.SetColorVariationDirectly(variation)
         else:
-            metadata.typeColors[category] = (color1Name, None)
-            modifier.SetColorVariationDirectly(variation)
-        if category == ccConst.hair:
-            self.SynchronizeHairColors(metadata, doll)
+            color1Value, color1Name, color2Name, variation = self.GetColorsToUse(colorVar1, colorVar2)
+            modifier = self.GetModifierByCategory(doll, category)
+            if not modifier:
+                return
+            if color1Value:
+                metadata.typeColors[category] = (color1Name, None)
+                modifier.SetColorizeData(color1Value)
+            elif colorVar2 is not None:
+                metadata.typeColors[category] = (color1Name, color2Name)
+                modifier.SetColorVariationDirectly(variation)
+            else:
+                metadata.typeColors[category] = (color1Name, None)
+                modifier.SetColorVariationDirectly(variation)
+            if category == ccConst.hair:
+                self.SynchronizeHairColors(metadata, doll)
+            return
 
     def GetColorsToUse(self, colorVar1, colorVar2, *args):
         if colorVar1 is None:
             return (None, None, None, None)
-        if len(colorVar1) == 3:
-            colorVar1 = (colorVar1[0], colorVar1[2])
-        if colorVar2 is not None and len(colorVar2) == 3:
-            colorVar2 = (colorVar2[0], colorVar2[2])
-        color1Name, color1Value = colorVar1
-        import types
-        if type(color1Value) == types.TupleType:
-            return (color1Value,
-             color1Name,
-             None,
-             None)
-        elif colorVar2 is not None:
-            color2Name, color2Value = colorVar2
-            variation = {}
-            if color1Value:
-                if color2Value and 'colors' in color1Value:
-                    variation['colors'] = [color1Value['colors'][0], color2Value['colors'][1], color2Value['colors'][2]]
-                if 'pattern' in color1Value:
-                    variation['pattern'] = color1Value['pattern']
-                if color2Value and 'patternColors' in color1Value:
-                    variation['patternColors'] = [color1Value['patternColors'][0], color2Value['patternColors'][1], color2Value['patternColors'][2]]
-                if 'patternColors' in color1Value:
-                    variation['patternColors'] = color1Value['patternColors']
-                if color2Value and 'specularColors' in color1Value:
-                    variation['specularColors'] = [color1Value['specularColors'][0], color2Value['specularColors'][1], color2Value['specularColors'][2]]
-            return (None,
-             color1Name,
-             color2Name,
-             variation)
         else:
+            if len(colorVar1) == 3:
+                colorVar1 = (colorVar1[0], colorVar1[2])
+            if colorVar2 is not None and len(colorVar2) == 3:
+                colorVar2 = (colorVar2[0], colorVar2[2])
+            color1Name, color1Value = colorVar1
+            import types
+            if type(color1Value) == types.TupleType:
+                return (color1Value,
+                 color1Name,
+                 None,
+                 None)
+            if colorVar2 is not None:
+                color2Name, color2Value = colorVar2
+                variation = {}
+                if color1Value:
+                    if color2Value and 'colors' in color1Value:
+                        variation['colors'] = [color1Value['colors'][0], color2Value['colors'][1], color2Value['colors'][2]]
+                    if 'pattern' in color1Value:
+                        variation['pattern'] = color1Value['pattern']
+                    if color2Value and 'patternColors' in color1Value:
+                        variation['patternColors'] = [color1Value['patternColors'][0], color2Value['patternColors'][1], color2Value['patternColors'][2]]
+                    if 'patternColors' in color1Value:
+                        variation['patternColors'] = color1Value['patternColors']
+                    if color2Value and 'specularColors' in color1Value:
+                        variation['specularColors'] = [color1Value['specularColors'][0], color2Value['specularColors'][1], color2Value['specularColors'][2]]
+                return (None,
+                 color1Name,
+                 color2Name,
+                 variation)
             return (None,
              color1Name,
              None,
              color1Value)
+            return
 
     def GetAssetAndTypeIDsFromPath(self, gender, assetPath):
         if self.assetsToIDs[gender] is None:
@@ -258,8 +268,9 @@ class CharacterDollUtilities:
         else:
             print 'Asset ID %s does not have an associated ID!!' % assetPath
             return (None, None)
+            return
 
-    def RandomizeCharacterGroups(self, doll, categoryList, doUpdate = False, fullRandomization = False, metadata = None, factory = None, randomizeCategoryCallback = None):
+    def RandomizeCharacterGroups(self, doll, categoryList, doUpdate=False, fullRandomization=False, metadata=None, factory=None, randomizeCategoryCallback=None):
         doHairDarkness = False
         for category in categoryList:
             if category in (ccConst.hair, ccConst.beard, ccConst.eyebrows):
@@ -288,7 +299,9 @@ class CharacterDollUtilities:
             oddsOfSelectingNone = oddsDict.get(category, None)
             randomizeCategoryCallback(category, oddsOfSelectingNone, addWeight, weightFrom, weightTo, fullRandomization)
 
-    def RandomizeDollCategory(self, charID, category, oddsOfSelectingNone, addWeight = None, weightFrom = 0, weightTo = 1.0, fullRandomization = False):
+        return
+
+    def RandomizeDollCategory(self, charID, category, oddsOfSelectingNone, addWeight=None, weightFrom=0, weightTo=1.0, fullRandomization=False):
         randomizer = paperDoll.EveDollRandomizer(self.factory)
         randomizer.gender = self.characters[charID].doll.gender
         randomizer.bloodline = self.characterMetadata[charID].bloodlineID

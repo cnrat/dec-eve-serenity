@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\client\script\ui\control\primaryButton.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\client\script\ui\control\primaryButton.py
 import math
 import carbonui.const as uiconst
 from carbonui.primitives.sprite import Sprite
@@ -28,11 +29,13 @@ class PrimaryButton(Button):
         if color is None:
             color = sm.GetService('uiColor').GetUIColor(uiconst.COLORTYPE_UIHILIGHT)
         self.SetColor(color)
+        return
 
     def Update_Size_(self):
         if self.iconPath is None:
             self.width = self.fixedwidth or max(64, self.sr.label.width + 60)
             self.height = self.fixedheight or max(32, self.sr.label.textheight + 12)
+        return
 
     def AnimateArrows(self):
         if self.destroyed:

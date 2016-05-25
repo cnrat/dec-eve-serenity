@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\carbon\common\script\cef\componentViews\actionComponentView.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\carbon\common\script\cef\componentViews\actionComponentView.py
 from carbon.common.script.cef.baseComponentView import BaseComponentView
 import zaction
 
@@ -13,6 +14,7 @@ class ActionComponentView(BaseComponentView):
     def SetupInputs(cls):
         cls.RegisterComponent(cls)
         cls._AddInput(cls.DEFAULT_ACTION_ID, None, cls.RECIPE, const.cef.COMPONENTDATA_ARBITRARY_DROPDOWN_TYPE, callback=cls._GetActionList, displayName='Default Action')
+        return
 
     @staticmethod
     def _GetActionList(*args):

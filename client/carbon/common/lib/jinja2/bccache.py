@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\carbon\common\lib\jinja2\bccache.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\carbon\common\lib\jinja2\bccache.py
 from os import path, listdir
 import sys
 import marshal
@@ -44,6 +45,7 @@ class Bucket(object):
 
     def reset(self):
         self.code = None
+        return
 
     def load_bytecode(self, f):
         magic = f.read(len(bc_magic))
@@ -62,6 +64,7 @@ class Bucket(object):
         f.write(bc_magic)
         pickle.dump(self.checksum, f, 2)
         marshal_dump(self.code, f)
+        return
 
     def bytecode_from_string(self, string):
         self.load_bytecode(BytesIO(string))
@@ -83,7 +86,7 @@ class BytecodeCache(object):
     def clear(self):
         pass
 
-    def get_cache_key(self, name, filename = None):
+    def get_cache_key(self, name, filename=None):
         hash = sha1(name.encode('utf-8'))
         if filename is not None:
             filename = '|' + filename
@@ -108,11 +111,12 @@ class BytecodeCache(object):
 
 class FileSystemBytecodeCache(BytecodeCache):
 
-    def __init__(self, directory = None, pattern = '__jinja2_%s.cache'):
+    def __init__(self, directory=None, pattern='__jinja2_%s.cache'):
         if directory is None:
             directory = tempfile.gettempdir()
         self.directory = directory
         self.pattern = pattern
+        return
 
     def _get_cache_filename(self, bucket):
         return path.join(self.directory, self.pattern % bucket.key)
@@ -124,6 +128,8 @@ class FileSystemBytecodeCache(BytecodeCache):
                 bucket.load_bytecode(f)
             finally:
                 f.close()
+
+        return
 
     def dump_bytecode(self, bucket):
         f = open(self._get_cache_filename(bucket), 'wb')
@@ -144,7 +150,7 @@ class FileSystemBytecodeCache(BytecodeCache):
 
 class MemcachedBytecodeCache(BytecodeCache):
 
-    def __init__(self, client, prefix = 'jinja2/bytecode/', timeout = None):
+    def __init__(self, client, prefix='jinja2/bytecode/', timeout=None):
         self.client = client
         self.prefix = prefix
         self.timeout = timeout
@@ -153,9 +159,11 @@ class MemcachedBytecodeCache(BytecodeCache):
         code = self.client.get(self.prefix + bucket.key)
         if code is not None:
             bucket.bytecode_from_string(code)
+        return
 
     def dump_bytecode(self, bucket):
         args = (self.prefix + bucket.key, bucket.bytecode_to_string())
         if self.timeout is not None:
             args += (self.timeout,)
         self.client.set(*args)
+        return

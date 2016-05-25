@@ -1,5 +1,7 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\packages\reprocessing\util.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\packages\reprocessing\util.py
 import logging
+from inventorycommon.typeHelpers import GetAdjustedAveragePrice
 from itertoolsext import Bundle
 import inventorycommon.const as invconst
 import dogma.const as dgmconst
@@ -37,8 +39,7 @@ def GetRefiningYieldPercentageForType(charID, dogmaIM, dogmaLM, skillHandler, ty
 
 
 def _GetEfficiency(reprocessingSvc, charID, typeID):
-    categoryID = evetypes.GetCategoryID(typeID)
-    stationEfficiency = reprocessingSvc.GetStationEfficiencyForCategoryID(categoryID)
+    stationEfficiency = reprocessingSvc.GetStationEfficiencyForTypeID(typeID)
     efficiency = min(stationEfficiency * reprocessingSvc.GetCharRefiningYieldPercentageForType(charID, typeID), 1.0)
     return efficiency
 
@@ -52,13 +53,17 @@ def _GetRecoverables(reprocessingSvc, item, stationsTake, portions, efficiency):
                 try:
                     quantity = material.quantity * portions
                     recoverable = int(floor(quantity * efficiency))
-                    station = int(round(recoverable * stationsTake))
-                    client = recoverable - station
+                    client = recoverable
+                    station = recoverable * stationsTake
+                    price = GetAdjustedAveragePrice(material.materialTypeID)
+                    if price is None:
+                        price = 0
+                    iskCost = round(price * station, 2)
                 except OverflowError:
                     raise UserError('ReprocessingPleaseSplit')
 
-                unrecoverable = int(round(quantity - station - client))
-                recoverables.append(Bundle(typeID=material.materialTypeID, client=client, station=station, unrecoverable=unrecoverable))
+                unrecoverable = int(round(quantity - client))
+                recoverables.append(Bundle(typeID=material.materialTypeID, client=client, unrecoverable=unrecoverable, iskCost=iskCost))
 
     return recoverables
 

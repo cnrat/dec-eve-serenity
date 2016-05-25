@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\packages\requests\models.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\packages\requests\models.py
 import collections
 import logging
 import datetime
@@ -52,6 +53,7 @@ class RequestEncodingMixin(object):
             return urlencode(result, doseq=True)
         else:
             return data
+            return
 
     @staticmethod
     def _encode_files(files, data):
@@ -116,7 +118,7 @@ class RequestHooksMixin(object):
 
 class Request(RequestHooksMixin):
 
-    def __init__(self, method = None, url = None, headers = None, files = None, data = None, params = None, auth = None, cookies = None, hooks = None):
+    def __init__(self, method=None, url=None, headers=None, files=None, data=None, params=None, auth=None, cookies=None, hooks=None):
         data = [] if data is None else data
         files = [] if files is None else files
         headers = {} if headers is None else headers
@@ -134,6 +136,7 @@ class Request(RequestHooksMixin):
         self.params = params
         self.auth = auth
         self.cookies = cookies
+        return
 
     def __repr__(self):
         return '<Request [%s]>' % self.method
@@ -153,8 +156,9 @@ class PreparedRequest(RequestEncodingMixin, RequestHooksMixin):
         self._cookies = None
         self.body = None
         self.hooks = default_hooks()
+        return
 
-    def prepare(self, method = None, url = None, headers = None, files = None, data = None, params = None, auth = None, cookies = None, hooks = None):
+    def prepare(self, method=None, url=None, headers=None, files=None, data=None, params=None, auth=None, cookies=None, hooks=None):
         self.prepare_method(method)
         self.prepare_url(url, params)
         self.prepare_headers(headers)
@@ -180,6 +184,7 @@ class PreparedRequest(RequestEncodingMixin, RequestHooksMixin):
         self.method = method
         if self.method is not None:
             self.method = self.method.upper()
+        return
 
     def prepare_url(self, url, params):
         try:
@@ -192,48 +197,50 @@ class PreparedRequest(RequestEncodingMixin, RequestHooksMixin):
         if ':' in url and not url.lower().startswith('http'):
             self.url = url
             return
-        scheme, auth, host, port, path, query, fragment = parse_url(url)
-        if not scheme:
-            raise MissingSchema('Invalid URL {0!r}: No schema supplied. Perhaps you meant http://{0}?'.format(url))
-        if not host:
-            raise InvalidURL('Invalid URL %r: No host supplied' % url)
-        try:
-            host = host.encode('idna').decode('utf-8')
-        except UnicodeError:
-            raise InvalidURL('URL has an invalid label.')
+        else:
+            scheme, auth, host, port, path, query, fragment = parse_url(url)
+            if not scheme:
+                raise MissingSchema('Invalid URL {0!r}: No schema supplied. Perhaps you meant http://{0}?'.format(url))
+            if not host:
+                raise InvalidURL('Invalid URL %r: No host supplied' % url)
+            try:
+                host = host.encode('idna').decode('utf-8')
+            except UnicodeError:
+                raise InvalidURL('URL has an invalid label.')
 
-        netloc = auth or ''
-        if netloc:
-            netloc += '@'
-        netloc += host
-        if port:
-            netloc += ':' + str(port)
-        if not path:
-            path = '/'
-        if is_py2:
-            if isinstance(scheme, str):
-                scheme = scheme.encode('utf-8')
-            if isinstance(netloc, str):
-                netloc = netloc.encode('utf-8')
-            if isinstance(path, str):
-                path = path.encode('utf-8')
-            if isinstance(query, str):
-                query = query.encode('utf-8')
-            if isinstance(fragment, str):
-                fragment = fragment.encode('utf-8')
-        enc_params = self._encode_params(params)
-        if enc_params:
-            if query:
-                query = '%s&%s' % (query, enc_params)
-            else:
-                query = enc_params
-        url = requote_uri(urlunparse([scheme,
-         netloc,
-         path,
-         None,
-         query,
-         fragment]))
-        self.url = url
+            netloc = auth or ''
+            if netloc:
+                netloc += '@'
+            netloc += host
+            if port:
+                netloc += ':' + str(port)
+            if not path:
+                path = '/'
+            if is_py2:
+                if isinstance(scheme, str):
+                    scheme = scheme.encode('utf-8')
+                if isinstance(netloc, str):
+                    netloc = netloc.encode('utf-8')
+                if isinstance(path, str):
+                    path = path.encode('utf-8')
+                if isinstance(query, str):
+                    query = query.encode('utf-8')
+                if isinstance(fragment, str):
+                    fragment = fragment.encode('utf-8')
+            enc_params = self._encode_params(params)
+            if enc_params:
+                if query:
+                    query = '%s&%s' % (query, enc_params)
+                else:
+                    query = enc_params
+            url = requote_uri(urlunparse([scheme,
+             netloc,
+             path,
+             None,
+             query,
+             fragment]))
+            self.url = url
+            return
 
     def prepare_headers(self, headers):
         if headers:
@@ -275,6 +282,7 @@ class PreparedRequest(RequestEncodingMixin, RequestHooksMixin):
             if content_type and 'content-type' not in self.headers:
                 self.headers['Content-Type'] = content_type
         self.body = body
+        return
 
     def prepare_content_length(self, body):
         if hasattr(body, 'seek') and hasattr(body, 'tell'):
@@ -287,8 +295,9 @@ class PreparedRequest(RequestEncodingMixin, RequestHooksMixin):
                 self.headers['Content-Length'] = builtin_str(l)
         elif self.method not in ('GET', 'HEAD'):
             self.headers['Content-Length'] = '0'
+        return
 
-    def prepare_auth(self, auth, url = ''):
+    def prepare_auth(self, auth, url=''):
         if auth is None:
             url_auth = get_auth_from_url(self.url)
             auth = url_auth if any(url_auth) else None
@@ -298,6 +307,7 @@ class PreparedRequest(RequestEncodingMixin, RequestHooksMixin):
             r = auth(self)
             self.__dict__.update(r.__dict__)
             self.prepare_content_length(self.body)
+        return
 
     def prepare_cookies(self, cookies):
         if isinstance(cookies, cookielib.CookieJar):
@@ -307,6 +317,7 @@ class PreparedRequest(RequestEncodingMixin, RequestHooksMixin):
         cookie_header = get_cookie_header(self._cookies, self)
         if cookie_header is not None:
             self.headers['Cookie'] = cookie_header
+        return
 
     def prepare_hooks(self, hooks):
         for event in hooks:
@@ -338,6 +349,7 @@ class Response(object):
         self.reason = None
         self.cookies = cookiejar_from_dict({})
         self.elapsed = datetime.timedelta(0)
+        return
 
     def __getstate__(self):
         if not self._content_consumed:
@@ -375,7 +387,7 @@ class Response(object):
     def apparent_encoding(self):
         return chardet.detect(self.content)['encoding']
 
-    def iter_content(self, chunk_size = 1, decode_unicode = False):
+    def iter_content(self, chunk_size=1, decode_unicode=False):
         if self._content_consumed:
             return iter_slices(self._content, chunk_size)
 
@@ -404,7 +416,7 @@ class Response(object):
             gen = stream_decode_response_unicode(gen, self)
         return gen
 
-    def iter_lines(self, chunk_size = ITER_CHUNK_SIZE, decode_unicode = None):
+    def iter_lines(self, chunk_size=ITER_CHUNK_SIZE, decode_unicode=None):
         pending = None
         for chunk in self.iter_content(chunk_size=chunk_size, decode_unicode=decode_unicode):
             if pending is not None:
@@ -419,6 +431,7 @@ class Response(object):
 
         if pending is not None:
             yield pending
+        return
 
     @property
     def content(self):
@@ -442,14 +455,15 @@ class Response(object):
         encoding = self.encoding
         if not self.content:
             return str('')
-        if self.encoding is None:
-            encoding = self.apparent_encoding
-        try:
-            content = str(self.content, encoding, errors='replace')
-        except (LookupError, TypeError):
-            content = str(self.content, errors='replace')
+        else:
+            if self.encoding is None:
+                encoding = self.apparent_encoding
+            try:
+                content = str(self.content, encoding, errors='replace')
+            except (LookupError, TypeError):
+                content = str(self.content, errors='replace')
 
-        return content
+            return content
 
     def json(self, **kwargs):
         if not self.encoding and len(self.content) > 3:

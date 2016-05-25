@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\client\script\ui\services\menuSvcExtras\menuConsts.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\client\script\ui\services\menuSvcExtras\menuConsts.py
 import carbonui.const as uiconst
 MOUSEBUTTONS = (uiconst.MOUSELEFT,
  uiconst.MOUSERIGHT,
@@ -17,8 +18,11 @@ CONTAINERGROUPS = (const.groupWreck,
 
 def GetReasonsDict():
     reasonDict = {'notInSpace': 'UI/Menusvc/MenuHints/YouAreNotInSpace',
+     'notInShipInSpace': 'UI/Menusvc/MenuHints/YouAreNotInShip',
+     'dockedInStructure': 'UI/Menusvc/MenuHints/YouAreDockedInStructure',
      'notInSystem': 'UI/Menusvc/MenuHints/LocationNotInSystem',
      'notInApproachRange': 'UI/Menusvc/MenuHints/NotInApproachRange',
+     'notInOrbitRange': 'UI/Menusvc/MenuHints/NotInOrbitRange',
      'cantKeepInRange': 'UI/Menusvc/MenuHints/CannotKeepInRange',
      'notStation': 'UI/Menusvc/MenuHints/IsNotStation',
      'notStargate': 'UI/Menusvc/MenuHints/IsNotStargate',
@@ -106,5 +110,6 @@ def GetMultiFunctionList():
      'UI/Commands/CapturePortrait',
      'UI/Inventory/ItemActions/LaunchShip',
      'UI/Inventory/ItemActions/LaunchShipFromBay',
-     'UI/Inventory/ItemActions/GetRepairQuote']
+     'UI/Inventory/ItemActions/GetRepairQuote',
+     'UI/Inventory/ItemActions/DeliverTo']
     return multiFunctions

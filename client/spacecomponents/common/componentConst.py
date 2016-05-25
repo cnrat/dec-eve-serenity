@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\packages\spacecomponents\common\componentConst.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\packages\spacecomponents\common\componentConst.py
 DEPLOY_CLASS = 'deploy'
 ACTIVATE_CLASS = 'activate'
 DOGMATIC_CLASS = 'dogmatic'
@@ -33,6 +34,7 @@ ITEM_TRADER = 'itemTrader'
 JUMP_POLARIZATION_CLASS = 'jumpPolarization'
 FIGHTER_SQUADRON_CLASS = 'fighterSquadron'
 BILLBOARD_CLASS = 'billboard'
+AUTO_WARP_SCRAMBLER_CLASS = 'autoWarpScrambler'
 ALL_COMPONENTS = (DEPLOY_CLASS,
  ACTIVATE_CLASS,
  DOGMATIC_CLASS,
@@ -66,5 +68,6 @@ ALL_COMPONENTS = (DEPLOY_CLASS,
  ITEM_TRADER,
  JUMP_POLARIZATION_CLASS,
  FIGHTER_SQUADRON_CLASS,
- BILLBOARD_CLASS)
+ BILLBOARD_CLASS,
+ AUTO_WARP_SCRAMBLER_CLASS)
 MIN_DISTANCE_FROM_CONTROLTOWER_MAX_VALUE = 500000

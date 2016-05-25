@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\client\script\ui\inflight\shipstance.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\client\script\ui\inflight\shipstance.py
 import blue
 from carbonui import const as uiconst
 from eve.client.script.ui.inflight.shipHud.leftSideButton import LeftSideButton
@@ -42,6 +43,7 @@ class ShipStanceButton(LeftSideButton):
         self.activationDelay = ShipModuleReactivationTimer(parent=self, idx=-1, height=self.height, width=self.width, state=uiconst.UI_DISABLED)
         self.activationDelay.display = False
         sm.RegisterForNotifyEvent(self, 'OnStanceActive')
+        return
 
     def SetAsStance(self, shipID, typeID, stanceID, currentStanceID):
         self.shipID = shipID
@@ -67,22 +69,25 @@ class ShipStanceButton(LeftSideButton):
     def OnStanceActive(self, shipID, stanceID):
         if self.shipID is None or self.shipID != shipID:
             return
-        self._UpdateStanceState(stanceID)
-        if stanceID != self.stanceID:
-            try:
-                ship = sm.GetService('godma').GetItem(self.shipID)
-                switchTime = ship.stanceSwitchTime * const.MSEC
-            except Exception:
-                switchTime = 0.0
-
-            self.icon.opacity = 0.5
-            if switchTime:
-                self.activationDelay.display = True
+        else:
+            self._UpdateStanceState(stanceID)
+            if stanceID != self.stanceID:
                 try:
-                    self.activationDelay.AnimateTimer(blue.os.GetSimTime(), switchTime)
-                finally:
-                    self.activationDelay.display = False
-                    self.icon.opacity = 1.0
+                    ship = sm.GetService('godma').GetItem(self.shipID)
+                    switchTime = ship.stanceSwitchTime * const.MSEC
+                except Exception:
+                    switchTime = 0.0
+
+                self.icon.opacity = 0.5
+                if switchTime:
+                    self.activationDelay.display = True
+                    try:
+                        self.activationDelay.AnimateTimer(blue.os.GetSimTime(), switchTime)
+                    finally:
+                        self.activationDelay.display = False
+                        self.icon.opacity = 1.0
+
+            return
 
     def _UpdateStanceState(self, stanceID):
         if stanceID == self.stanceID:

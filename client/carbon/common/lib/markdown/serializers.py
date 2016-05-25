@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\carbon\common\lib\markdown\serializers.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\carbon\common\lib\markdown\serializers.py
 import markdown.util as util
 ElementTree = util.etree.ElementTree
 QName = util.etree.QName
@@ -136,9 +137,10 @@ def _serialize_html(write, elem, qnames, namespaces, format):
                     write('</' + tag + '>')
     if elem.tail:
         write(_escape_cdata(elem.tail))
+    return
 
 
-def _write_html(root, encoding = None, default_namespace = None, format = 'html'):
+def _write_html(root, encoding=None, default_namespace=None, format='html'):
     data = []
     write = data.append
     qnames, namespaces = _namespaces(root, default_namespace)
@@ -147,9 +149,10 @@ def _write_html(root, encoding = None, default_namespace = None, format = 'html'
         return ''.join(data)
     else:
         return _encode(''.join(data))
+        return
 
 
-def _namespaces(elem, default_namespace = None):
+def _namespaces(elem, default_namespace=None):
     qnames = {None: None}
     namespaces = {}
     if default_namespace:
@@ -176,6 +179,8 @@ def _namespaces(elem, default_namespace = None):
                 qnames[qname] = qname
         except TypeError:
             _raise_serialization_error(qname)
+
+        return
 
     try:
         iterate = elem.iter

@@ -1,8 +1,9 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\carbon\common\stdlib\xml\etree\ElementPath.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\carbon\common\stdlib\xml\etree\ElementPath.py
 import re
 xpath_tokenizer_re = re.compile('(\'[^\']*\'|"[^"]*"|::|//?|\\.\\.|\\(\\)|[/.*:\\[\\]\\(\\)@=])|((?:\\{[^}]+\\})?[^/\\[\\]\\(\\)@=\\s]+)|\\s+')
 
-def xpath_tokenizer(pattern, namespaces = None):
+def xpath_tokenizer(pattern, namespaces=None):
     for token in xpath_tokenizer_re.findall(pattern):
         tag = token[1]
         if tag and tag[0] != '{' and ':' in tag:
@@ -90,6 +91,8 @@ def prepare_parent(next, token):
                     result_map[parent] = None
                     yield parent
 
+        return
+
     return select
 
 
@@ -114,6 +117,8 @@ def prepare_predicate(next, token):
                 if elem.get(key) is not None:
                     yield elem
 
+            return
+
         return select
     if signature == "@-='":
         key = predicate[1]
@@ -132,6 +137,8 @@ def prepare_predicate(next, token):
             for elem in result:
                 if elem.find(tag) is not None:
                     yield elem
+
+            return
 
         return select
     if signature == "-='" and not re.match('\\d+$', predicate[0]):
@@ -191,7 +198,7 @@ class _SelectorContext:
         self.root = root
 
 
-def iterfind(elem, path, namespaces = None):
+def iterfind(elem, path, namespaces=None):
     if path[-1:] == '/':
         path = path + '*'
     try:
@@ -227,18 +234,20 @@ def iterfind(elem, path, namespaces = None):
     return result
 
 
-def find(elem, path, namespaces = None):
+def find(elem, path, namespaces=None):
     try:
         return iterfind(elem, path, namespaces).next()
     except StopIteration:
         return None
 
+    return None
 
-def findall(elem, path, namespaces = None):
+
+def findall(elem, path, namespaces=None):
     return list(iterfind(elem, path, namespaces))
 
 
-def findtext(elem, path, default = None, namespaces = None):
+def findtext(elem, path, default=None, namespaces=None):
     try:
         elem = iterfind(elem, path, namespaces).next()
         return elem.text or ''

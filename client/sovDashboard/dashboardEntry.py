@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\packages\sovDashboard\dashboardEntry.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\packages\sovDashboard\dashboardEntry.py
 from carbonui.primitives.container import Container
 from carbonui.primitives.fill import Fill
 from carbonui.util.color import Color
@@ -132,7 +133,7 @@ class DashboardEntry(MouseInsideScrollEntry):
     def AddMapButton(self):
         ShowInMapButton(parent=self, align=uiconst.CENTERRIGHT, itemID=self.node['solarSystemID'], left=6)
 
-    def AddColumnLabel(self, text, color = None):
+    def AddColumnLabel(self, text, color=None):
         if color is None:
             color = dashboardConst.PRIMARYCOLOR_DEFAULT
         label = EveLabelMedium(parent=self.contentContainer, text=text, align=uiconst.CENTERLEFT, state=uiconst.UI_NORMAL, color=color, autoFadeSides=32)
@@ -142,19 +143,21 @@ class DashboardEntry(MouseInsideScrollEntry):
         m = sm.GetService('menu').GetMenuFormItemIDTypeID(itemID=self.node.structureInfo['itemID'], typeID=self.node.structureInfo['typeID'])
         return m
 
-    def ChangeStructureInfoAndUpdate(self, structureInfo, whatChanged = set([STRUCTURES_UPDATED])):
+    def ChangeStructureInfoAndUpdate(self, structureInfo, whatChanged=set([STRUCTURES_UPDATED])):
         self.node.structureInfo = structureInfo
         if 'all' in whatChanged:
             return
         if STRUCTURE_SCORE_UPDATED in whatChanged:
             self.UpdateScore()
 
-    def UpdateScore(self, animate = True):
+    def UpdateScore(self, animate=True):
         if self.structureStatus is None or self.structureStatus.destroyed:
             return
-        self.structureStatus.UpdateStructureInfo(self.node.structureInfo, animate=animate)
-        if animate:
-            uicore.animations.MorphScalar(self.structureStatus, 'opacity', startVal=self.structureStatus.opacity, endVal=0.5, curveType=uiconst.ANIM_WAVE, duration=0.2, loops=3)
+        else:
+            self.structureStatus.UpdateStructureInfo(self.node.structureInfo, animate=animate)
+            if animate:
+                uicore.animations.MorphScalar(self.structureStatus, 'opacity', startVal=self.structureStatus.opacity, endVal=0.5, curveType=uiconst.ANIM_WAVE, duration=0.2, loops=3)
+            return
 
     @staticmethod
     def GetSolarSystemText(node):
@@ -235,4 +238,5 @@ class DashboardEntry(MouseInsideScrollEntry):
             textWidth, textHeight = EveLabelMedium.MeasureTextSize(text)
             width = textWidth + cls.COLUMN_PADLEFT + cls.COLUMN_PADRIGHT
             return max(minSize, width)
-        return minSize
+        else:
+            return minSize

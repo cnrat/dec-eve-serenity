@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\client\script\environment\effects\orbitalStrike.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\client\script\environment\effects\orbitalStrike.py
 from eve.client.script.environment.effects.GenericEffect import STOP_REASON_DEFAULT
 from eve.client.script.environment.effects.turrets import StandardWeapon
 import eve.client.script.environment.spaceObject.planet as planet
@@ -19,13 +20,14 @@ class OrbitalStrike(StandardWeapon):
             if character:
                 self.district = districtSvc.GetDistrict(trigger.graphicInfo['districtID'])
                 self.ballIDs = [trigger.shipID, character.id]
+        return
 
     def Start(self, duration):
         if not self.district:
             return
         StandardWeapon.Start(self, duration)
 
-    def Stop(self, reason = STOP_REASON_DEFAULT):
+    def Stop(self, reason=STOP_REASON_DEFAULT):
         StandardWeapon.Stop(self)
         uthread.new(self._PlanetImpact)
 

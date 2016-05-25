@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\client\script\ui\graphs\circulargraph.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\client\script\ui\graphs\circulargraph.py
 import carbonui.const as uiconst
 from carbonui.primitives.container import Container
 from carbonui.primitives.sprite import Sprite
@@ -33,12 +34,13 @@ class CircularGraph(Container):
         self.pointers = set()
         self.graphData = None
         sm.RegisterNotify(self)
+        return
 
-    def LoadGraphData(self, graphData, animateIn = True):
+    def LoadGraphData(self, graphData, animateIn=True):
         self.graphData = PrimeGraphData(graphData)
         self.ReloadGraph(animateIn=animateIn)
 
-    def UpdateGraphData(self, graphData, animate = True):
+    def UpdateGraphData(self, graphData, animate=True):
         self.graphData = PrimeGraphData(graphData)
         position = 0.0
         for i, segmentParams in enumerate(self.graphData):
@@ -64,7 +66,9 @@ class CircularGraph(Container):
                 segmentLine.end = endPosition
             position = endPosition
 
-    def ReloadGraph(self, animateIn = False):
+        return
+
+    def ReloadGraph(self, animateIn=False):
         for each in self.segments:
             each.Close()
 
@@ -78,18 +82,20 @@ class CircularGraph(Container):
         self.pointers = set()
         if not self.graphData:
             return
-        for i, segmentParams in enumerate(self.graphData):
-            segmentLine = self.CreateLineTrace(segmentParams.color, self.lineWidth * segmentParams.sizeFactor)
-            self.segments.append(segmentLine)
+        else:
+            for i, segmentParams in enumerate(self.graphData):
+                segmentLine = self.CreateLineTrace(segmentParams.color, self.lineWidth * segmentParams.sizeFactor)
+                self.segments.append(segmentLine)
 
-        self.UpdateGraphData(self.graphData, animateIn)
-        self.width = self.radius * 2
-        self.height = self.radius * 2
-        if self.colorBg:
-            bgLine = self.CreateLineTrace(self.colorBg, self.bgLineWidth)
-            bgLine.end = 1.0
-            bgLine.state = uiconst.UI_DISABLED
-            self.backgroundLine = bgLine
+            self.UpdateGraphData(self.graphData, animateIn)
+            self.width = self.radius * 2
+            self.height = self.radius * 2
+            if self.colorBg:
+                bgLine = self.CreateLineTrace(self.colorBg, self.bgLineWidth)
+                bgLine.end = 1.0
+                bgLine.state = uiconst.UI_DISABLED
+                self.backgroundLine = bgLine
+            return
 
     def CreateLineTrace(self, color, lineWidth):
         graphSize = self.radius * 2
@@ -120,11 +126,13 @@ class CircularGraphSegment(VectorLineTrace):
         if self.pointer is None:
             self.pointer = Sprite(parent=self.parent, texturePath='res:/UI/Texture/classes/Graph/barPointer.png', pos=(0, 0, 15, 15), state=uiconst.UI_DISABLED, idx=0)
             self.UpdatePointer()
+        return
 
     def HidePointer(self):
         if self.pointer and not self.pointer.destroyed:
             self.pointer.Close()
             self.pointer = None
+        return
 
     def UpdatePointer(self):
         if not self.pointer:

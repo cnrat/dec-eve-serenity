@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\client\script\ui\shared\mapView\mapViewSearch.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\client\script\ui\shared\mapView\mapViewSearch.py
 from carbon.common.script.util.timerstuff import AutoTimer
 from carbonui.control.scrollentries import ScrollEntryNode, SE_BaseClassCore
 from carbonui.primitives.container import Container
@@ -40,6 +41,7 @@ class MapViewSearchControl(Container):
         searchInput.SetHistoryVisibility(False)
         searchInput.OnFocusLost = self.OnSearchFocusLost
         self.searchInput = searchInput
+        return
 
     def ClickIcon(self, *args):
         self.ShowInput()
@@ -111,6 +113,7 @@ class MapViewSearchControl(Container):
             mapView = self.mapView()
             if mapView:
                 mapView.LoadSearchResult(selectedDataList)
+        return
 
 
 class SearchResultEntry(SE_BaseClassCore):
@@ -139,6 +142,7 @@ class SearchResultEntry(SE_BaseClassCore):
                 self.icon.texturePath = 'res:/UI/Texture/Icons/Brackets/constellation.png'
             if groupID == const.groupSolarSystem:
                 self.icon.texturePath = 'res:/UI/Texture/Icons/Brackets/solarSystem.png'
+        return
 
     def GetHeight(self, *args):
         node, width = args
@@ -155,16 +159,19 @@ class SearchResultEntry(SE_BaseClassCore):
         eve.Message('ListEntryClick')
         if self.sr.node.Get('OnClick', None):
             self.sr.node.OnClick(self)
+        return
 
     def OnMouseDown(self, *args):
         SE_BaseClassCore.OnMouseDown(self, *args)
         if self.sr.node and self.sr.node.Get('OnMouseDown', None):
             self.sr.node.OnMouseDown(self)
+        return
 
     def OnMouseUp(self, *args):
         SE_BaseClassCore.OnMouseUp(self, *args)
         if self.sr.node and self.sr.node.Get('OnMouseUp', None):
             self.sr.node.OnMouseUp(self)
+        return
 
     def GetMenu(self):
         return sm.StartService('menu').CelestialMenu(self.sr.node.itemID)

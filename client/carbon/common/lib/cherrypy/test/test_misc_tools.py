@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\carbon\common\lib\cherrypy\test\test_misc_tools.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\carbon\common\lib\cherrypy\test\test_misc_tools.py
 import os
 localDir = os.path.dirname(__file__)
 logfile = os.path.join(localDir, 'test_misc_tools.log')
@@ -17,7 +18,7 @@ def setup_server():
         tools.response_headers(headers=h)(index)
 
         def other(self):
-            return 'salut'
+            pass
 
         other.exposed = True
         other._cp_config = {'tools.response_headers.on': True,
@@ -28,12 +29,12 @@ def setup_server():
         _cp_config = {'tools.accept.on': True}
 
         def index(self):
-            return '<a href="feed">Atom feed</a>'
+            pass
 
         index.exposed = True
 
         def feed(self):
-            return '<?xml version="1.0" encoding="utf-8"?>\n<feed xmlns="http://www.w3.org/2005/Atom">\n    <title>Unknown Blog</title>\n</feed>'
+            pass
 
         feed.exposed = True
         feed._cp_config = {'tools.accept.media': 'application/atom+xml'}
@@ -50,7 +51,7 @@ def setup_server():
     class Referer:
 
         def accept(self):
-            return 'Accepted!'
+            pass
 
         accept.exposed = True
         reject = accept
@@ -63,7 +64,6 @@ def setup_server():
             hasif = 'If-Modified-Since' in cherrypy.request.headers
             has = cherrypy.request.headers.has_key('Range')
             mtype = tools.accept.callable(['text/html', 'text/plain'])
-            return 'Hello, world!'
 
         index.exposed = True
 

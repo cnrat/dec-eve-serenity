@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\carbon\common\script\entities\entityValidationSvc.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\carbon\common\script\entities\entityValidationSvc.py
 from carbon.common.script.cef.baseComponentView import BaseComponentView
 import log
 import service
@@ -7,7 +8,7 @@ class ValidationMessage(object):
     __guid__ = 'cef.ValidationMessage'
     VALID_RECIPE_DESCRIPTION = 'Recipe is valid.'
 
-    def __init__(self, name = None, subPrefix = '  '):
+    def __init__(self, name=None, subPrefix='  '):
         self.messages = []
         self.isValid = True
         self.name = name
@@ -26,20 +27,21 @@ class ValidationMessage(object):
     def GetReport(self):
         if self.IsValid():
             return self.VALID_RECIPE_DESCRIPTION
-        reportText = ''
-        for message in self.messages:
-            if isinstance(message, str):
-                reportText += message
-                reportText += '\n'
-            elif not message.IsValid():
-                reportText += message.GetReport()
-                reportText += '\n'
+        else:
+            reportText = ''
+            for message in self.messages:
+                if isinstance(message, str):
+                    reportText += message
+                    reportText += '\n'
+                elif not message.IsValid():
+                    reportText += message.GetReport()
+                    reportText += '\n'
 
-        reportText = reportText.strip()
-        if self.name is not None:
-            reportText = self._AddSubPrefix(reportText)
-            reportText = self.name + '\n' + reportText
-        return reportText
+            reportText = reportText.strip()
+            if self.name is not None:
+                reportText = self._AddSubPrefix(reportText)
+                reportText = self.name + '\n' + reportText
+            return reportText
 
     def _AddSubPrefix(self, textBlock):
         finishedText = textBlock.replace('\n', '\n' + self.subPrefix)
@@ -85,7 +87,8 @@ class EntityValidationSvc(service.Service):
     def _GetComponentName(self, componentView, componentID):
         if componentView is not None:
             return componentView.__COMPONENT_DISPLAY_NAME__
-        return '<Invalid Component %s>' % componentID
+        else:
+            return '<Invalid Component %s>' % componentID
 
     def _ValidateComponentViewIsDefined(self, result, recipeID, recipeDict, componentView, componentID):
         if componentView is None:

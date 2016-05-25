@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\packages\probescanning\formationTracker.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\packages\probescanning\formationTracker.py
 import logging
 import geo2
 import probescanning.formations as formations
@@ -14,6 +15,7 @@ class FormationTracker(object):
         self.centerPosition = None
         self.currentFormation = None
         self.probes = [None] * MIN_PROBES_NEEDED
+        return
 
     def Refresh(self):
         self.probes = [None] * MIN_PROBES_NEEDED
@@ -21,7 +23,9 @@ class FormationTracker(object):
             for idx, (_, pos, scanRange) in enumerate(self.currentFormation):
                 self.currentFormation[idx] = (None, pos, scanRange)
 
-    def CreateFormation(self, formationID, probeIDs = None, initialPosition = (0, 0, 0), formationSize = None):
+        return
+
+    def CreateFormation(self, formationID, probeIDs=None, initialPosition=(0, 0, 0), formationSize=None):
         self.ClearCurrentFormation()
         self.formationID = formationID
         if initialPosition is not None:
@@ -30,42 +34,48 @@ class FormationTracker(object):
         self.probes = [None] * minProbesNeeded
         if probeIDs is None:
             return []
-        for probeID in probeIDs[:minProbesNeeded]:
-            self.AddProbeToFormation(probeID)
+        else:
+            for probeID in probeIDs[:minProbesNeeded]:
+                self.AddProbeToFormation(probeID)
 
-        return probeIDs[minProbesNeeded:]
+            return probeIDs[minProbesNeeded:]
 
     def PlaceProbeInFormation(self, probeID):
         if self.currentFormation is None:
             return False
-        for idx, (otherProbeID, position, scanRange) in enumerate(self.currentFormation):
-            if probeID == otherProbeID:
-                self.logger.error('probe already in currentFormation %d', probeID)
-                return False
-            if otherProbeID is None:
-                self.currentFormation[idx] = (probeID, position, scanRange)
-                self.GoToPoint(probeID, position, scanRange)
-                return True
+        else:
+            for idx, (otherProbeID, position, scanRange) in enumerate(self.currentFormation):
+                if probeID == otherProbeID:
+                    self.logger.error('probe already in currentFormation %d', probeID)
+                    return False
+                if otherProbeID is None:
+                    self.currentFormation[idx] = (probeID, position, scanRange)
+                    self.GoToPoint(probeID, position, scanRange)
+                    return True
 
-        return False
+            return False
 
     def AddProbeToFormation(self, probeID):
         if self.PlaceProbeInFormation(probeID):
             return
-        if self.probes is None:
+        elif self.probes is None:
             return
-        if self.formationID is None:
+        elif self.formationID is None:
             return
-        index = self._FindAvailableSpotForProbe()
-        if index is None:
-            raise RuntimeError('Available position not found')
-        self.probes[index] = probeID
-        self._PlaceProbe(probeID, index)
+        else:
+            index = self._FindAvailableSpotForProbe()
+            if index is None:
+                raise RuntimeError('Available position not found')
+            self.probes[index] = probeID
+            self._PlaceProbe(probeID, index)
+            return
 
     def _FindAvailableSpotForProbe(self):
         for i, probe in enumerate(self.probes):
             if probe is None:
                 return i
+
+        return
 
     def GetActiveProbes(self):
         return filter(lambda x: x is not None, self.probes)
@@ -80,6 +90,8 @@ class FormationTracker(object):
             for idx, (probeID, pos, scanRange) in enumerate(self.currentFormation):
                 if probeID == probeToBeRemovedID:
                     self.currentFormation[idx] = (None, pos, scanRange)
+
+        return
 
     def GetPositionAndSize(self, index):
         position, scanRange = formations.GetProbeInfoInFormation(self.formationID, index)
@@ -96,13 +108,15 @@ class FormationTracker(object):
     def HasProbesInFormation(self):
         if self.formationID is not None:
             return any(self.probes)
-        return False
+        else:
+            return False
 
     def GetCenter(self):
         return self.centerPosition
 
     def BreakFormation(self):
         self.formationID = None
+        return
 
     def UpdateCurrentFormation(self, probeInfo):
         self.currentFormation = []
@@ -112,3 +126,4 @@ class FormationTracker(object):
     def ClearCurrentFormation(self):
         self.currentFormation = []
         self.formationID = None
+        return

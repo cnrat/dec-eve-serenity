@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\packages\requests\packages\urllib3\connection.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\packages\requests\packages\urllib3\connection.py
 import socket
 from socket import timeout as SocketTimeout
 try:
@@ -60,7 +61,7 @@ class HTTPConnection(_HTTPConnection, object):
 class HTTPSConnection(HTTPConnection):
     default_port = port_by_scheme['https']
 
-    def __init__(self, host, port = None, key_file = None, cert_file = None, strict = None, timeout = socket._GLOBAL_DEFAULT_TIMEOUT, source_address = None):
+    def __init__(self, host, port=None, key_file=None, cert_file=None, strict=None, timeout=socket._GLOBAL_DEFAULT_TIMEOUT, source_address=None):
         try:
             HTTPConnection.__init__(self, host, port, strict, timeout, source_address)
         except TypeError:
@@ -80,7 +81,7 @@ class VerifiedHTTPSConnection(HTTPSConnection):
     ca_certs = None
     ssl_version = None
 
-    def set_cert(self, key_file = None, cert_file = None, cert_reqs = None, ca_certs = None, assert_hostname = None, assert_fingerprint = None):
+    def set_cert(self, key_file=None, cert_file=None, cert_reqs=None, ca_certs=None, assert_hostname=None, assert_fingerprint=None):
         self.key_file = key_file
         self.cert_file = cert_file
         self.cert_reqs = cert_reqs
@@ -106,6 +107,7 @@ class VerifiedHTTPSConnection(HTTPSConnection):
                 assert_fingerprint(self.sock.getpeercert(binary_form=True), self.assert_fingerprint)
             elif self.assert_hostname is not False:
                 match_hostname(self.sock.getpeercert(), self.assert_hostname or self.host)
+        return
 
 
 if ssl:

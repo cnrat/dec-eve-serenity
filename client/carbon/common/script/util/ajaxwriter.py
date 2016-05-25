@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\carbon\common\script\util\ajaxwriter.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\carbon\common\script\util\ajaxwriter.py
 import htmlwriter
 import util
 
@@ -35,6 +36,8 @@ class AjaxWriter(htmlwriter.HtmlWriter):
             except:
                 yield res + [self.ToJson(str(getattr(d, valueId, None)), str(getattr(d, captionId, None)))]
 
+        return
+
     def ToJson(self, kpart, labelpart):
         return '{"id":"%s","label":"%s"}' % (str(kpart), str(labelpart).replace("'", '').replace('\xb4', ''))
 
@@ -47,8 +50,9 @@ class AjaxWriter(htmlwriter.HtmlWriter):
     def Lookup(self, table, key_field, value_field):
         if not self.HasAccess:
             return self.Write('[]')
-        rs = self.DB2.GetSchema('zsystem').Lookup(table, key_field, value_field, None, None, None, util.EscapeSQL(unicode(self.ajaxfilter)), 0)
-        return self.WriteJsonList(key_field, value_field, rs)
+        else:
+            rs = self.DB2.GetSchema('zsystem').Lookup(table, key_field, value_field, None, None, None, util.EscapeSQL(unicode(self.ajaxfilter)), 0)
+            return self.WriteJsonList(key_field, value_field, rs)
 
     def MediaTypeBin(self):
         self.response.contentType = 'application/octet-stream'

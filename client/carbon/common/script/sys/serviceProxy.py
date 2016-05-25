@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\carbon\common\script\sys\serviceProxy.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\carbon\common\script\sys\serviceProxy.py
 import zlib
 import types
 import inspect
@@ -82,7 +83,7 @@ class ServiceProxy(object):
         setattr(wrapped, '__name__', method.__name__)
         return wrapped
 
-    def _GetNodesFromServiceID(self, serviceID, server = False, proxy = False):
+    def _GetNodesFromServiceID(self, serviceID, server=False, proxy=False):
         machoNet = sm.GetService('machoNet')
         serviceMask = 1 << serviceID - 1
         nodes = machoNet.ResolveServiceMaskToNodeIDs(serviceMask)

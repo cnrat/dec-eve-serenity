@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\carbon\common\lib\cherrypy\test\test_session.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\carbon\common\lib\cherrypy\test\test_session.py
 import os
 localDir = os.path.dirname(__file__)
 import sys
@@ -9,7 +10,7 @@ from cherrypy._cpcompat import copykeys, HTTPConnection, HTTPSConnection
 from cherrypy.lib import sessions
 from cherrypy.lib.httputil import response_codes
 
-def http_methods_allowed(methods = ['GET', 'HEAD']):
+def http_methods_allowed(methods=['GET', 'HEAD']):
     method = cherrypy.request.method.upper()
     if method not in methods:
         cherrypy.response.headers['Allow'] = ', '.join(methods)
@@ -82,13 +83,11 @@ def setup_server():
         def delete(self):
             cherrypy.session.delete()
             sessions.expire()
-            return 'done'
 
         delete.exposed = True
 
         def delkey(self, key):
             del cherrypy.session[key]
-            return 'OK'
 
         delkey.exposed = True
 
@@ -111,7 +110,6 @@ def setup_server():
 
         def regen(self):
             cherrypy.tools.sessions.regenerate()
-            return 'logged in'
 
         regen.exposed = True
 

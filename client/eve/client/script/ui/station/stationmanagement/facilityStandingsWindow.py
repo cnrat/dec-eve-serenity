@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\client\script\ui\station\stationmanagement\facilityStandingsWindow.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\client\script\ui\station\stationmanagement\facilityStandingsWindow.py
 import uicls
 import uiprimitives
 import uicontrols
@@ -45,6 +46,7 @@ class FacilityStandingsWindow(uicontrols.Window):
         self.MakeUnResizeable()
         self.Layout()
         self.Redraw()
+        return
 
     def Layout(self):
         self.nameLabel = uicontrols.EveLabelSmall(text=self.facilityName, parent=self.sr.main, state=uiconst.UI_NORMAL, left=15, top=13)
@@ -66,13 +68,15 @@ class FacilityStandingsWindow(uicontrols.Window):
         btns = [(localization.GetByLabel('UI/Common/Submit'), self.Submit, None), (localization.GetByLabel('UI/Common/Cancel'), self.Cancel, None)]
         uicontrols.ButtonGroup(btns=btns, subalign=uiconst.CENTER, parent=self.footer, line=True, alwaysLite=False)
         self.width = [self.WIDTH_COLLAPSED, self.WIDTH_EXPANDED][int(self.standingsCheckbox.GetValue())]
+        return
 
-    def LayoutTaxInput(self, taxRate, parent, left = 0, top = 0):
+    def LayoutTaxInput(self, taxRate, parent, left=0, top=0):
         taxRateValue = taxRate.value
         taxRateInput = uicontrols.SinglelineEdit(parent=parent, name='taxRateEdit', align=uiconst.TOPLEFT, setvalue='0.0' if taxRateValue is None else str(100 * taxRateValue), width=90, left=left, top=top, idx=0)
         taxRatePercent = uicontrols.EveLabelMedium(align=uiconst.TOPLEFT, text='%', parent=parent, left=left + 97, top=top + 2)
         taxRateInput.FloatMode(minfloat=0, maxfloat=10000)
         taxRate.input = taxRateInput
+        return
 
     def OnMouseEnterInteractable(self, obj, *args):
         obj.SetOpacity(self.HOVER_ALPHA)
@@ -119,14 +123,16 @@ class FacilityStandingsWindow(uicontrols.Window):
             field.state = uiconst.UI_NORMAL
             field.sr.text.SetAlpha(1)
             self.effects.MorphUIMassSpringDamper(field, 'opacity', 1, dampRatio=0.99)
+        return
 
     def GetTaxRateValue(self, field):
         if field.state == uiconst.UI_DISABLED:
             return
-        value = getattr(field, 'hiddenValue', None)
-        if value is None:
-            value = field.GetValue()
-        return value / 100
+        else:
+            value = getattr(field, 'hiddenValue', None)
+            if value is None:
+                value = field.GetValue()
+            return value / 100
 
     def AnyStandingsSet(self):
         return any((s is not None for s in [self.taxes.taxStandingsHorrible,
@@ -147,6 +153,7 @@ class FacilityStandingsWindow(uicontrols.Window):
             taxRateValues['taxStandingsHigh'] = None
         self.facilitySvc.SetFacilityTaxes(self.facilityID, taxRateValues)
         self.CloseByUser()
+        return
 
     def Cancel(self, *args):
         self.CloseByUser()

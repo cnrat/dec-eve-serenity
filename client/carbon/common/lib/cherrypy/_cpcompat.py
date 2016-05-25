@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\carbon\common\lib\cherrypy\_cpcompat.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\carbon\common\lib\cherrypy\_cpcompat.py
 import os
 import sys
 if sys.version_info >= (3, 0):
@@ -7,11 +8,11 @@ if sys.version_info >= (3, 0):
     nativestr = unicodestr
     basestring = (bytes, str)
 
-    def ntob(n, encoding = 'ISO-8859-1'):
+    def ntob(n, encoding='ISO-8859-1'):
         return n.encode(encoding)
 
 
-    def ntou(n, encoding = 'ISO-8859-1'):
+    def ntou(n, encoding='ISO-8859-1'):
         return n
 
 
@@ -23,11 +24,11 @@ else:
     nativestr = bytestr
     basestring = basestring
 
-    def ntob(n, encoding = 'ISO-8859-1'):
+    def ntob(n, encoding='ISO-8859-1'):
         return n
 
 
-    def ntou(n, encoding = 'ISO-8859-1'):
+    def ntou(n, encoding='ISO-8859-1'):
         return n.decode(encoding)
 
 
@@ -47,7 +48,7 @@ try:
 except ImportError:
     from base64 import decodestring as _base64_decodebytes
 
-def base64_decode(n, encoding = 'ISO-8859-1'):
+def base64_decode(n, encoding='ISO-8859-1'):
     if isinstance(n, unicodestr):
         b = n.encode(encoding)
     else:
@@ -183,7 +184,7 @@ else:
 try:
     from email.utils import formatdate
 
-    def HTTPDate(timeval = None):
+    def HTTPDate(timeval=None):
         return formatdate(timeval, usegmt=True)
 
 
@@ -193,14 +194,14 @@ except ImportError:
 try:
     from urllib.parse import unquote as parse_unquote
 
-    def unquote_qs(atom, encoding, errors = 'strict'):
+    def unquote_qs(atom, encoding, errors='strict'):
         return parse_unquote(atom.replace('+', ' '), encoding=encoding, errors=errors)
 
 
 except ImportError:
     from urllib import unquote as parse_unquote
 
-    def unquote_qs(atom, encoding, errors = 'strict'):
+    def unquote_qs(atom, encoding, errors='strict'):
         return parse_unquote(atom.replace('+', ' ')).decode(encoding, errors)
 
 

@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\packages\charactercreator\client\characterMocker.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\packages\charactercreator\client\characterMocker.py
 import random
 import carbon.common.lib.telemetry as telemetry
 import eve.client.script.ui.login.charcreation.ccUtil as ccUtil
@@ -17,6 +18,7 @@ class EveAvatarAndClothesRandomizer:
         self.cachedDoll = None
         self.metadata = None
         self.randomizationInProgress = False
+        return
 
     def InitializeDollAndMetadata(self, genderID, bloodline):
         randomizer = self.randomizer
@@ -29,6 +31,7 @@ class EveAvatarAndClothesRandomizer:
         doll = randomizer.GetDoll(True, None)
         self.cachedDoll = doll
         self.metadata = self.GetNewCharacterMetadata()
+        return
 
     def GetGender(self):
         return self.randomizer.gender
@@ -115,7 +118,7 @@ class EveAvatarAndClothesRandomizer:
 
         return metadata
 
-    def RandomizeDollCategory(self, category, oddsOfSelectingNone, addWeight = None, weightFrom = 0, weightTo = 1.0, fullRandomization = False):
+    def RandomizeDollCategory(self, category, oddsOfSelectingNone, addWeight=None, weightFrom=0, weightTo=1.0, fullRandomization=False):
         randomizer = EveDollRandomizer(self.loader)
         randomizer.gender = self.GetGender()
         randomizer.bloodline = self.GetBloodline()

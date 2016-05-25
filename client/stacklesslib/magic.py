@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\carbon\common\stdlib\stacklesslib\magic.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\carbon\common\stdlib\stacklesslib\magic.py
 import runpy
 import os
 import sys
@@ -8,16 +9,18 @@ from . import main
 
 def run():
     try:
-        if len(sys.argv) > 1:
-            target = sys.argv.pop(1)
-            if target == '-m' and len(sys.argv) > 1:
+        try:
+            if len(sys.argv) > 1:
                 target = sys.argv.pop(1)
-                runpy.run_module(target, run_name='__main__', alter_sys=True)
-            else:
-                runpy.run_path(target, run_name='__main__')
-    except Exception:
-        main.mainloop.exception = sys.exc_info()
-        raise
+                if target == '-m' and len(sys.argv) > 1:
+                    target = sys.argv.pop(1)
+                    runpy.run_module(target, run_name='__main__', alter_sys=True)
+                else:
+                    runpy.run_path(target, run_name='__main__')
+        except Exception:
+            main.mainloop.exception = sys.exc_info()
+            raise
+
     finally:
         main.mainloop.running = False
 

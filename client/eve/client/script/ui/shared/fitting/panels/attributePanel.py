@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\client\script\ui\shared\fitting\panels\attributePanel.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\client\script\ui\shared\fitting\panels\attributePanel.py
 from carbonui import const as uiconst
 from carbonui.primitives.container import Container
 from carbonui.primitives.layoutGrid import LayoutGrid
@@ -13,11 +14,11 @@ class AttributePanel(BaseMenuPanel):
     def ApplyAttributes(self, attributes):
         BaseMenuPanel.ApplyAttributes(self, attributes)
 
-    def LoadPanel(self, initialLoad = False):
+    def LoadPanel(self, initialLoad=False):
         self.Flush()
         self.ResetStatsDicts()
 
-    def AddAttributeCont(self, attribute, parentGrid, attributeID = None):
+    def AddAttributeCont(self, attribute, parentGrid, attributeID=None):
         if attributeID is None:
             attributeID = attribute.attributeID
         iconSize = 32

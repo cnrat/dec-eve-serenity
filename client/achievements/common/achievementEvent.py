@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\packages\achievements\common\achievementEvent.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\packages\achievements\common\achievementEvent.py
 from achievements.common.achievementConst import AchievementEventConst
 import eve.common.lib.infoEventConst as infoEventConst
 achievementEventNamesByLogEventIDs = {infoEventConst.infoEventNPCKilled: [{'eventName': AchievementEventConst.HOSTILE_NPC_DESTROY,

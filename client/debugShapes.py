@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\common\modules\nice\client\_nastyspace\debugShapes.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\common\modules\nice\client\_nastyspace\debugShapes.py
 from carbon.client.script.graphics.debugRenderClient import DebugBox
 from carbon.client.script.graphics.debugRenderClient import DebugCapsule
 from carbon.client.script.graphics.debugRenderClient import DebugCone

@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\carbon\common\stdlib\email\header.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\carbon\common\stdlib\email\header.py
 __all__ = ['Header', 'decode_header', 'make_header']
 import re
 import binascii
@@ -22,47 +23,48 @@ def decode_header(header):
     header = str(header)
     if not ecre.search(header):
         return [(header, None)]
-    decoded = []
-    dec = ''
-    for line in header.splitlines():
-        if not ecre.search(line):
-            decoded.append((line, None))
-            continue
-        parts = ecre.split(line)
-        while parts:
-            unenc = parts.pop(0).strip()
-            if unenc:
-                if decoded and decoded[-1][1] is None:
-                    decoded[-1] = (decoded[-1][0] + SPACE + unenc, None)
-                else:
-                    decoded.append((unenc, None))
-            if parts:
-                charset, encoding = [ s.lower() for s in parts[0:2] ]
-                encoded = parts[2]
-                dec = None
-                if encoding == 'q':
-                    dec = email.quoprimime.header_decode(encoded)
-                elif encoding == 'b':
-                    paderr = len(encoded) % 4
-                    if paderr:
-                        encoded += '==='[:4 - paderr]
-                    try:
-                        dec = email.base64mime.decode(encoded)
-                    except binascii.Error:
-                        raise HeaderParseError
+    else:
+        decoded = []
+        dec = ''
+        for line in header.splitlines():
+            if not ecre.search(line):
+                decoded.append((line, None))
+                continue
+            parts = ecre.split(line)
+            while parts:
+                unenc = parts.pop(0).strip()
+                if unenc:
+                    if decoded and decoded[-1][1] is None:
+                        decoded[-1] = (decoded[-1][0] + SPACE + unenc, None)
+                    else:
+                        decoded.append((unenc, None))
+                if parts:
+                    charset, encoding = [ s.lower() for s in parts[0:2] ]
+                    encoded = parts[2]
+                    dec = None
+                    if encoding == 'q':
+                        dec = email.quoprimime.header_decode(encoded)
+                    elif encoding == 'b':
+                        paderr = len(encoded) % 4
+                        if paderr:
+                            encoded += '==='[:4 - paderr]
+                        try:
+                            dec = email.base64mime.decode(encoded)
+                        except binascii.Error:
+                            raise HeaderParseError
 
-                if dec is None:
-                    dec = encoded
-                if decoded and decoded[-1][1] == charset:
-                    decoded[-1] = (decoded[-1][0] + dec, decoded[-1][1])
-                else:
-                    decoded.append((dec, charset))
-            del parts[0:3]
+                    if dec is None:
+                        dec = encoded
+                    if decoded and decoded[-1][1] == charset:
+                        decoded[-1] = (decoded[-1][0] + dec, decoded[-1][1])
+                    else:
+                        decoded.append((dec, charset))
+                del parts[0:3]
 
-    return decoded
+        return decoded
 
 
-def make_header(decoded_seq, maxlinelen = None, header_name = None, continuation_ws = ' '):
+def make_header(decoded_seq, maxlinelen=None, header_name=None, continuation_ws=' '):
     h = Header(maxlinelen=maxlinelen, header_name=header_name, continuation_ws=continuation_ws)
     for s, charset in decoded_seq:
         if charset is not None and not isinstance(charset, Charset):
@@ -74,7 +76,7 @@ def make_header(decoded_seq, maxlinelen = None, header_name = None, continuation
 
 class Header():
 
-    def __init__(self, s = None, charset = None, maxlinelen = None, header_name = None, continuation_ws = ' ', errors = 'strict'):
+    def __init__(self, s=None, charset=None, maxlinelen=None, header_name=None, continuation_ws=' ', errors='strict'):
         if charset is None:
             charset = USASCII
         if not isinstance(charset, Charset):
@@ -92,6 +94,7 @@ class Header():
         else:
             self._firstlinelen = maxlinelen - len(header_name) - 2
         self._maxlinelen = maxlinelen - cws_expanded_len
+        return
 
     def __str__(self):
         return self.encode()
@@ -119,7 +122,7 @@ class Header():
     def __ne__(self, other):
         return not self == other
 
-    def append(self, s, charset = None, errors = 'strict'):
+    def append(self, s, charset=None, errors='strict'):
         if charset is None:
             charset = self._charset
         elif not isinstance(charset, Charset):
@@ -140,6 +143,7 @@ class Header():
                         pass
 
         self._chunks.append((s, charset))
+        return
 
     def _split(self, s, charset, maxlinelen, splitchars):
         splittable = charset.to_splittable(s)
@@ -184,7 +188,7 @@ class Header():
         joiner = NL + self._continuation_ws
         return joiner.join(chunks)
 
-    def encode(self, splitchars = ';, '):
+    def encode(self, splitchars=';, '):
         newchunks = []
         maxlinelen = self._firstlinelen
         lastlen = 0

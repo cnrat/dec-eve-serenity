@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\carbon\common\script\net\emailSvc.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\carbon\common\script\net\emailSvc.py
 from service import Service, SERVICE_STOPPED, SERVICE_START_PENDING, SERVICE_RUNNING
 import blue
 import uthread
@@ -22,7 +23,7 @@ class EmailSvc(Service):
         self.smptRetryTime = 12000
         Service.__init__(self)
 
-    def Run(self, memStream = None):
+    def Run(self, memStream=None):
         self.state = SERVICE_START_PENDING
         self.computername = blue.pyos.GetEnv().get('COMPUTERNAME', '?')
         self.domain = blue.pyos.GetEnv().get('USERDOMAIN', '?')
@@ -30,8 +31,9 @@ class EmailSvc(Service):
         self.mail_server = None
         uthread.new(self.__mailqueue)
         self.state = SERVICE_RUNNING
+        return
 
-    def Stop(self, memStream = None):
+    def Stop(self, memStream=None):
         self.state = SERVICE_STOPPED
 
     def GetMailServer(self):
@@ -96,6 +98,8 @@ class EmailSvc(Service):
 
         finally:
             self.LogInfo('Email service:  Stopping Mail Queue thread')
+
+        return
 
     def LogMailSendFailure(self, failureStr, args, excpt):
         try:

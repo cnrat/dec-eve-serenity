@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\client\script\ui\control\clickableboxbar.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\client\script\ui\control\clickableboxbar.py
 import uiprimitives
 import uicontrols
 import uicls
@@ -103,6 +104,7 @@ class ClickableBoxBar(uiprimitives.Container):
         uiprimitives.Fill(parent=self, color=bgColor)
         if initialValue is not None:
             self.SetValue(initialValue)
+        return
 
     def Increment(self):
         if self.value not in self.boxValues:
@@ -111,25 +113,27 @@ class ClickableBoxBar(uiprimitives.Container):
             idx = self.boxValues.index(self.value)
         if idx + 1 >= len(self.boxValues) or self.maximumIndex is not None and idx + 1 > self.maximumIndex:
             return False
-        self._OnBoxClicked(idx + 1)
-        return True
+        else:
+            self._OnBoxClicked(idx + 1)
+            return True
 
     def Decrement(self):
         if self.value not in self.boxValues:
             return False
-        idx = self.boxValues.index(self.value)
-        if idx == 0:
-            oldValue = self.value
-            self.value = 0
-            for x in xrange(0, len(self.boxValues)):
-                self.boxes[x].SetColor(self.COLOR_UNSELECTED)
+        else:
+            idx = self.boxValues.index(self.value)
+            if idx == 0:
+                oldValue = self.value
+                self.value = 0
+                for x in xrange(0, len(self.boxValues)):
+                    self.boxes[x].SetColor(self.COLOR_UNSELECTED)
 
-            self.OnValueChanged(oldValue, self.value)
+                self.OnValueChanged(oldValue, self.value)
+                return True
+            if idx - 1 < 0 or self.minimumIndex is not None and idx - 1 < self.minimumIndex:
+                return False
+            self._OnBoxClicked(idx - 1)
             return True
-        if idx - 1 < 0 or self.minimumIndex is not None and idx - 1 < self.minimumIndex:
-            return False
-        self._OnBoxClicked(idx - 1)
-        return True
 
     def GetValue(self):
         return self.value
@@ -155,23 +159,25 @@ class ClickableBoxBar(uiprimitives.Container):
     def _OnBoxClicked(self, boxIndex):
         if self.value is not None and not self.OnAttemptBoxClicked(self.value, self.boxValues[boxIndex]):
             return
-        startIdx = 0 if self.minimumIndex is None else self.minimumIndex
-        finishIdx = self.maximumIndex + 1 if self.maximumIndex is not None else len(self.boxValues)
-        if self.minimumIndex is not None:
-            for x in xrange(0, min(startIdx, boxIndex + 1)):
-                self.boxes[x].SetColor(self.COLOR_BELOWMINIMUM)
+        else:
+            startIdx = 0 if self.minimumIndex is None else self.minimumIndex
+            finishIdx = self.maximumIndex + 1 if self.maximumIndex is not None else len(self.boxValues)
+            if self.minimumIndex is not None:
+                for x in xrange(0, min(startIdx, boxIndex + 1)):
+                    self.boxes[x].SetColor(self.COLOR_BELOWMINIMUM)
 
-        for x in xrange(startIdx, boxIndex + 1):
-            self.boxes[x].SetColor(self.COLOR_SELECTED)
+            for x in xrange(startIdx, boxIndex + 1):
+                self.boxes[x].SetColor(self.COLOR_SELECTED)
 
-        for x in xrange(boxIndex + 1, finishIdx):
-            self.boxes[x].SetColor(self.COLOR_UNSELECTED)
+            for x in xrange(boxIndex + 1, finishIdx):
+                self.boxes[x].SetColor(self.COLOR_UNSELECTED)
 
-        oldValue = self.value
-        self.value = self.boxValues[boxIndex]
-        self.OnBoxClicked(boxIndex, self.value)
-        if oldValue != self.value:
-            self.OnValueChanged(oldValue, self.value)
+            oldValue = self.value
+            self.value = self.boxValues[boxIndex]
+            self.OnBoxClicked(boxIndex, self.value)
+            if oldValue != self.value:
+                self.OnValueChanged(oldValue, self.value)
+            return
 
     def _OnBoxDoubleClicked(self, boxIndex):
         self.OnBoxDoubleClicked(boxIndex, self.boxValues[boxIndex])
@@ -179,6 +185,7 @@ class ClickableBoxBar(uiprimitives.Container):
     def _OnClose(self, *args):
         self.boxes = None
         self.boxValues = None
+        return
 
     def OnBoxClicked(self, boxIndex, boxValue):
         pass
@@ -202,13 +209,15 @@ class ClickableBoxBar(uiprimitives.Container):
             hintText += self.aboveMaxHint % self.GetIndexValue(box.identifier)
         if hintText == '':
             return
-        return hintText
+        else:
+            return hintText
 
     def GetIndexValue(self, index):
         if index < 0 or index >= len(self.boxValues):
             return None
         else:
             return self.boxValues[index]
+            return None
 
 
 class ClickableBoxBarBox(uiprimitives.Container):
@@ -224,7 +233,7 @@ class ClickableBoxBarBox(uiprimitives.Container):
     fill = None
     subHint = None
 
-    def Startup(self, boxIdentifier, defaultColor = (1.0, 1.0, 1.0, 0.5), stateColors = {}, clickable = True, subHint = None):
+    def Startup(self, boxIdentifier, defaultColor=(1.0, 1.0, 1.0, 0.5), stateColors={}, clickable=True, subHint=None):
         self.identifier = boxIdentifier
         self.defaultColor = defaultColor
         self.colors = stateColors
@@ -269,3 +278,4 @@ class ClickableBoxBarBox(uiprimitives.Container):
             return hintText
         else:
             return self.parent.GetHint(self, *args)
+            return

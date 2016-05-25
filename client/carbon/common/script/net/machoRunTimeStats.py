@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\carbon\common\script\net\machoRunTimeStats.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\carbon\common\script\net\machoRunTimeStats.py
 import sys
 import blue
 import uthread
@@ -17,6 +18,7 @@ class MachoRunTimeStats:
         self.worker = None
         self.transportsByID = transportsByID
         self.socketStatsEnabled = prefs.GetValue('socketStatsEnabled', False)
+        return
 
     def Enable(self):
         self.stop = False
@@ -63,6 +65,7 @@ class MachoRunTimeStats:
         if self.worker:
             self.worker.kill()
             self.worker = None
+        return
 
     def Worker(self, transportsByID):
         numSamplePeriods = 0
@@ -123,35 +126,39 @@ class MachoRunTimeStats:
 
             blue.pyos.synchro.SleepWallclock(BASE_SAMPLE_RATE)
 
+        return
+
 
 class EWMA(object):
     __guid__ = 'macho.EWMA'
 
-    def __init__(self, factors = None, initialAverage = 0.0, reprFormat = '%.2f'):
+    def __init__(self, factors=None, initialAverage=0.0, reprFormat='%.2f'):
         self.factors = factors if factors else [0.1]
         self.averages = [ float(initialAverage) for n in range(0, len(self.factors)) ]
         self.runningTotal = 0
         self.reprFormat = reprFormat
 
     @classmethod
-    def FromSampleCounts(cls, sampleCounts = None, initialAverage = 0.0):
+    def FromSampleCounts(cls, sampleCounts=None, initialAverage=0.0):
         return EWMA([ 2.0 / (cnt + 1) for cnt in (sampleCounts if sampleCounts else [1]) ], initialAverage)
 
-    def AddSample(self, v = 1):
+    def AddSample(self, v=1):
         self.averages = [ v * f + (1 - f) * avg for f, avg in zip(self.factors, self.averages) ]
 
-    def Add(self, v = 1):
+    def Add(self, v=1):
         if self.runningTotal is not None:
             self.runningTotal += v
         else:
             self.runningTotal = v
+        return
 
-    def Sample(self, defaultRunningTotal = 0.0):
+    def Sample(self, defaultRunningTotal=0.0):
         if self.runningTotal is not None:
             self.AddSample(self.runningTotal)
             self.runningTotal = None
         elif defaultRunningTotal is not None:
             self.AddSample(defaultRunningTotal)
+        return
 
     def Averages(self):
         return zip(self.averages, self.factors)

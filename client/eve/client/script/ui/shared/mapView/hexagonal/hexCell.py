@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\client\script\ui\shared\mapView\hexagonal\hexCell.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\client\script\ui\shared\mapView\hexagonal\hexCell.py
 import math
 import random
 from carbon.common.script.util.timerstuff import AutoTimer
@@ -60,11 +61,12 @@ class HexCell(Container):
         self.OnMouseDownCallback = None
         self.OnMouseUpCallback = None
         self.OnMouseWheelCallback = None
+        return
 
     def SetMapGridSize(self, mapsize):
         self.mapsize = mapsize
 
-    def UpdateAlignment(self, budgetLeft = 0, budgetTop = 0, budgetWidth = 0, budgetHeight = 0, updateChildrenOnly = False):
+    def UpdateAlignment(self, budgetLeft=0, budgetTop=0, budgetWidth=0, budgetHeight=0, updateChildrenOnly=False):
         ret = Container.UpdateAlignment(self, budgetLeft, budgetTop, budgetWidth, budgetHeight, updateChildrenOnly)
         return ret
 
@@ -121,34 +123,37 @@ class HexCell(Container):
         self.lazyLoadThread = None
         if self.objectID is None or self.objectID not in uicore.mapObjectDataByID:
             return
-        if not self.display or not self.parent:
+        elif not self.display or not self.parent:
             return
-        if self.subMap is None:
-            from eve.client.script.ui.shared.mapView.hexagonal.hexMap import HexMap
-            self.subMap = HexMap(parent=self, parentMap=self.hexGrid, align=uiconst.CENTER, setMapSize=self.mapsize)
-            self.subMap.opacity = 0
-            self.subMap.LoadMapData(self.objectID)
-            self.subMap.state = uiconst.UI_DISABLED
-            self.state = uiconst.UI_DISABLED
-            width, height = hexUtil.hex_slot_size(self.isFlatTop, self.hexSize * 1000.0)
-            self.subMap.localScaling = height / float(self.subMap.sizeUnscaled[1]) / 1000.0
-            self.subMap.width = self.subMap.sizeUnscaled[0] * self.globalScaling * self.subMap.localScaling
-            self.subMap.height = self.subMap.sizeUnscaled[1] * self.globalScaling * self.subMap.localScaling
-            vX, vY, vW, vH = self._latestViewportData
-            left = (self.parent.width - self.width) / 2 + self.left
-            top = (self.parent.height - self.height) / 2 + self.top
-            self.subMap.TraverseHexMap((vX + left,
-             vY + top,
-             vW,
-             vH), scaling=self.globalScaling * self.localScaling)
-            uicore.animations.FadeTo(self.subMap, startVal=0.0, endVal=1.0)
-        self.subMap.display = True
+        else:
+            if self.subMap is None:
+                from eve.client.script.ui.shared.mapView.hexagonal.hexMap import HexMap
+                self.subMap = HexMap(parent=self, parentMap=self.hexGrid, align=uiconst.CENTER, setMapSize=self.mapsize)
+                self.subMap.opacity = 0
+                self.subMap.LoadMapData(self.objectID)
+                self.subMap.state = uiconst.UI_DISABLED
+                self.state = uiconst.UI_DISABLED
+                width, height = hexUtil.hex_slot_size(self.isFlatTop, self.hexSize * 1000.0)
+                self.subMap.localScaling = height / float(self.subMap.sizeUnscaled[1]) / 1000.0
+                self.subMap.width = self.subMap.sizeUnscaled[0] * self.globalScaling * self.subMap.localScaling
+                self.subMap.height = self.subMap.sizeUnscaled[1] * self.globalScaling * self.subMap.localScaling
+                vX, vY, vW, vH = self._latestViewportData
+                left = (self.parent.width - self.width) / 2 + self.left
+                top = (self.parent.height - self.height) / 2 + self.top
+                self.subMap.TraverseHexMap((vX + left,
+                 vY + top,
+                 vW,
+                 vH), scaling=self.globalScaling * self.localScaling)
+                uicore.animations.FadeTo(self.subMap, startVal=0.0, endVal=1.0)
+            self.subMap.display = True
+            return
 
     def UnloadContent(self):
         self.lazyLoadThread = None
         if self.subMap:
             self.subMap.Close()
             self.subMap = None
+        return
 
     def MoveToXYZ(self, x, y, z):
         column, row = hexUtil.cube_to_axial_coordinate(x, y, z)
@@ -172,6 +177,7 @@ class HexCell(Container):
              parentID,
              column,
              row)
+        return
 
     def GetGridPosition(self):
         return self.gridPosition
@@ -182,7 +188,7 @@ class HexCell(Container):
     def GetPosition(self):
         return (self.left, self.top)
 
-    def GetNeighborsInRange(self, startRange = 0, endRange = 1):
+    def GetNeighborsInRange(self, startRange=0, endRange=1):
         startpos = self.gridPosition
         for i in xrange(startRange):
             startpos = hexUtil.neighbour_axial(startpos, 4, self.isFlatTop)
@@ -198,7 +204,7 @@ class HexCell(Container):
 
         return ret
 
-    def GetSlotNeighborsInDirection(self, column_row, directions = (0, 1, 2, 3, 4, 5), startRange = 0, endRange = 10):
+    def GetSlotNeighborsInDirection(self, column_row, directions=(0, 1, 2, 3, 4, 5), startRange=0, endRange=10):
         ret = []
         for direction in directions:
             cr = column_row
@@ -235,11 +241,13 @@ class HexCell(Container):
             if self.OnDragEndCallback:
                 self.OnDragEndCallback(self)
             return
-        pl, pt = self.parent.GetAbsolutePosition()
-        self.left = uicore.uilib.x - pl - self.parent.width / 2
-        self.top = uicore.uilib.y - pt - self.parent.height / 2
-        if self.OnDragCallback:
-            self.OnDragCallback()
+        else:
+            pl, pt = self.parent.GetAbsolutePosition()
+            self.left = uicore.uilib.x - pl - self.parent.width / 2
+            self.top = uicore.uilib.y - pt - self.parent.height / 2
+            if self.OnDragCallback:
+                self.OnDragCallback()
+            return
 
     def FindTopLevelMap(self):
         check = self
@@ -248,7 +256,9 @@ class HexCell(Container):
                 return check
             check = check.parent
 
-    def DrawOutline(self, margin = 0):
+        return None
+
+    def DrawOutline(self, margin=0):
         if self.outline:
             outline = self.outline
         else:

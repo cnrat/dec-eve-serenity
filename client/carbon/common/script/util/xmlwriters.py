@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\carbon\common\script\util\xmlwriters.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\carbon\common\script\util\xmlwriters.py
 import types
 
 class XmlWriter:
@@ -15,7 +16,7 @@ class XmlWriter:
     def DefaultAction(self):
         pass
 
-    def SetEncoding(self, response, encoding = 'UTF-8'):
+    def SetEncoding(self, response, encoding='UTF-8'):
         self.response = response
         response.encoding = encoding
         response.contentType = 'text/xml'
@@ -58,3 +59,4 @@ class XmlWriter:
 
         else:
             self.Write('Action not listed ' + str(action) + '<br>')
+        return

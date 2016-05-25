@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\carbon\common\stdlib\ntpath.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\carbon\common\stdlib\ntpath.py
 import os
 import sys
 import stat
@@ -353,7 +354,7 @@ def _abspath_split(path):
     return (is_unc, prefix, [ x for x in rest.split(sep) if x ])
 
 
-def relpath(path, start = curdir):
+def relpath(path, start=curdir):
     if not path:
         raise ValueError('no path specified')
     start_is_unc, start_prefix, start_list = _abspath_split(start)

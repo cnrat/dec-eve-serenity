@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\client\script\ui\shared\maps\browserwindow.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\client\script\ui\shared\maps\browserwindow.py
 import blue
 from carbonui.primitives.base import Base
 import uthread
@@ -80,6 +81,7 @@ class MapBrowserWnd(uicontrols.Window):
         self.history = []
         self.sr.mainmap = None
         self.mapscale = settings.user.ui.Get('mapscale', 1.0) or 1.0
+        return
 
     def InitializeStatesAndPosition(self, *args, **kw):
         uicontrols.Window.InitializeStatesAndPosition(self, *args, **kw)
@@ -94,7 +96,7 @@ class MapBrowserWnd(uicontrols.Window):
             neocom.SetOrder(0)
         self.DoLoad(self.initLocationID)
 
-    def DoLoad(self, locationID = None):
+    def DoLoad(self, locationID=None):
         if locationID:
             self.ShowLocation(locationID)
         else:
@@ -126,8 +128,10 @@ class MapBrowserWnd(uicontrols.Window):
     def SetTempAngle(self, angle):
         if self is None or self.destroyed:
             return
-        if self.sr.browser and not self.sr.browser.destroyed:
-            self.sr.browser.SetTempAngle(angle)
+        else:
+            if self.sr.browser and not self.sr.browser.destroyed:
+                self.sr.browser.SetTempAngle(angle)
+            return
 
     def ShowLocation(self, locationID):
         universeID, regionID, constellationID, solarsystemID, _itemID = sm.GetService('map').GetParentLocationID(locationID)
@@ -151,6 +155,7 @@ class MapBrowserWnd(uicontrols.Window):
              DRAWLVLSYS,
              None))
         self.sr.browser.LoadIDs(ids)
+        return
 
     def MapScaler(self, where):
         parent = uiprimitives.Container(parent=where, align=uiconst.TOBOTTOM, height=14)
@@ -180,8 +185,9 @@ class MapBrowserWnd(uicontrols.Window):
             self.sr.mainmap.Close()
             self.sr.mainmap = None
         self.Reset_()
+        return
 
-    def SetViewport(self, update = 0):
+    def SetViewport(self, update=0):
         viewwidth = self.sr.mainmapparent.absoluteRight - self.sr.mainmapparent.absoluteLeft
         viewheight = self.sr.mainmapparent.absoluteBottom - self.sr.mainmapparent.absoluteTop
         self.sr.viewport.width = int(viewwidth * (float(VIEWWIDTH) / self.sr.mapcontainer.width))
@@ -189,7 +195,7 @@ class MapBrowserWnd(uicontrols.Window):
         self.sr.viewport.left = -int(self.sr.mapcontainer.left * (float(VIEWWIDTH) / self.sr.mapcontainer.width))
         self.sr.viewport.top = -int(self.sr.mapcontainer.top * (float(VIEWWIDTH) / self.sr.mapcontainer.width))
 
-    def ResetMapContainerSize(self, keeplocation = 0):
+    def ResetMapContainerSize(self, keeplocation=0):
         mainwidth = self.sr.mainmapparent.absoluteRight - self.sr.mainmapparent.absoluteLeft
         mainheight = self.sr.mainmapparent.absoluteBottom - self.sr.mainmapparent.absoluteTop
         size = max(mainwidth, mainheight)

@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\common\lib\jwt\__init__.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\common\lib\jwt\__init__.py
 from __future__ import unicode_literals
 import base64
 import binascii
@@ -158,7 +159,7 @@ def header(jwt):
         raise DecodeError(u'Invalid header encoding')
 
 
-def encode(payload, key, algorithm = u'HS256', headers = None):
+def encode(payload, key, algorithm=u'HS256', headers=None):
     segments = []
     if algorithm is None:
         algorithm = u'none'
@@ -187,7 +188,7 @@ def encode(payload, key, algorithm = u'HS256', headers = None):
     return '.'.join(segments)
 
 
-def decode(jwt, key = u'', verify = True, **kwargs):
+def decode(jwt, key=u'', verify=True, **kwargs):
     payload, signing_input, header, signature = load(jwt)
     if verify:
         verify_expiration = kwargs.pop(u'verify_expiration', True)
@@ -236,7 +237,7 @@ def load(jwt):
      signature)
 
 
-def verify_signature(payload, signing_input, header, signature, key = u'', verify_expiration = True, leeway = 0, **kwargs):
+def verify_signature(payload, signing_input, header, signature, key=u'', verify_expiration=True, leeway=0, **kwargs):
     try:
         algorithm = header[u'alg'].upper()
         key = prepare_key_methods[algorithm](key)

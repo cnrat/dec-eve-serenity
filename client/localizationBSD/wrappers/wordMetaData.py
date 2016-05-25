@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\packages\localizationBSD\wrappers\wordMetaData.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\packages\localizationBSD\wrappers\wordMetaData.py
 from . import AuthoringValidationError
 from .. import const as localizationBSDConst
 from ..util import GetNumericLanguageIDFromLanguageID
@@ -13,7 +14,7 @@ class WordMetaData(bsdWrappers.BaseWrapper):
     _metaDataTable = None
     _bsdSvc = None
 
-    def Copy(self, keyID = None, keyID2 = None, keyID3 = None, **kw):
+    def Copy(self, keyID=None, keyID2=None, keyID3=None, **kw):
         raise NotImplementedError
 
     def __setattr__(self, key, value):
@@ -26,7 +27,7 @@ class WordMetaData(bsdWrappers.BaseWrapper):
         self.__class__.CheckAndSetCache()
 
     @classmethod
-    def _GetMessageRecord(cls, messageID, transactionBundle = None):
+    def _GetMessageRecord(cls, messageID, transactionBundle=None):
         from message import Message
         currentMessage = None
         if transactionBundle and type(messageID) != int:
@@ -36,7 +37,7 @@ class WordMetaData(bsdWrappers.BaseWrapper):
         return currentMessage
 
     @classmethod
-    def _ValidateCreationOfMetaData(cls, wordPropertyID, messageID, metaDataValue, transactionBundle = None):
+    def _ValidateCreationOfMetaData(cls, wordPropertyID, messageID, metaDataValue, transactionBundle=None):
         cls.CheckAndSetCache()
         propertyRow = cls._propertyTable.GetRowByKey(keyId1=wordPropertyID, _getDeleted=False)
         if propertyRow:
@@ -59,7 +60,7 @@ class WordMetaData(bsdWrappers.BaseWrapper):
         return True
 
     @classmethod
-    def _TransactionAwareCreate(cls, wordPropertyID, messageID, metaDataValue, transactionBundle = None):
+    def _TransactionAwareCreate(cls, wordPropertyID, messageID, metaDataValue, transactionBundle=None):
         cls._ValidateCreationOfMetaData(wordPropertyID, messageID, metaDataValue, transactionBundle)
         if transactionBundle:
             transactionBundle[localizationBSDConst.BUNDLE_METADATA].append(util.KeyVal({'wordPropertyID': wordPropertyID,
@@ -72,7 +73,7 @@ class WordMetaData(bsdWrappers.BaseWrapper):
             return result
 
     @classmethod
-    def TransactionAwareCreate(cls, wordPropertyID, messageID, metaDataValue, transactionBundle = None):
+    def TransactionAwareCreate(cls, wordPropertyID, messageID, metaDataValue, transactionBundle=None):
         return cls._TransactionAwareCreate(wordPropertyID, messageID, metaDataValue, transactionBundle)
 
     @classmethod
@@ -80,7 +81,7 @@ class WordMetaData(bsdWrappers.BaseWrapper):
         return cls._TransactionAwareCreate(wordPropertyID, messageID, metaDataValue, transactionBundle=None)
 
     @classmethod
-    def _TransactionAwareCreateFromPropertyName(cls, typeName, propertyName, languageID, messageID, metaDataValue, transactionBundle = None):
+    def _TransactionAwareCreateFromPropertyName(cls, typeName, propertyName, languageID, messageID, metaDataValue, transactionBundle=None):
         cls.CheckAndSetCache()
         typeAndProperty = cls._GetWordTypeAndPropertyID(cls._typesTable, cls._propertyTable, typeName, propertyName, languageID)
         if typeAndProperty is None:
@@ -93,7 +94,7 @@ class WordMetaData(bsdWrappers.BaseWrapper):
         return cls._TransactionAwareCreateFromPropertyName(typeName, propertyName, languageID, messageID, metaDataValue, transactionBundle=None)
 
     @classmethod
-    def TransactionAwareCreateFromPropertyName(cls, typeName, propertyName, languageID, messageID, metaDataValue, transactionBundle = None):
+    def TransactionAwareCreateFromPropertyName(cls, typeName, propertyName, languageID, messageID, metaDataValue, transactionBundle=None):
         return cls._TransactionAwareCreateFromPropertyName(typeName, propertyName, languageID, messageID, metaDataValue, transactionBundle)
 
     @classmethod
@@ -104,9 +105,10 @@ class WordMetaData(bsdWrappers.BaseWrapper):
             cls._propertyTable = bsdTableSvc.GetTable(localizationBSDConst.WORD_PROPERTIES_TABLE)
             cls._metaDataTable = bsdTableSvc.GetTable(localizationBSDConst.WORD_METADATA_TABLE)
             cls._bsdSvc = sm.GetService('BSD')
+        return
 
     @classmethod
-    def _CopyAllMetaDataToNewMessage(cls, sourceMessageID, destMessageID, destinationWordTypeID, transactionBundle = None):
+    def _CopyAllMetaDataToNewMessage(cls, sourceMessageID, destMessageID, destinationWordTypeID, transactionBundle=None):
         cls.CheckAndSetCache()
         sourceMetaRows = cls._metaDataTable.GetRows(messageID=sourceMessageID, _getDeleted=False)
         with bsd.BsdTransaction():

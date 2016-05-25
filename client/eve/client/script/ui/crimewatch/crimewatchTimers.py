@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\client\script\ui\crimewatch\crimewatchTimers.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\client\script\ui\crimewatch\crimewatchTimers.py
 from carbonui.util.color import Color
 from eve.client.script.ui.control.gaugeCircular import GaugeCircular
 import uiprimitives
@@ -92,6 +93,7 @@ class Timer(uiprimitives.Container):
         self.pointerSprite = uiprimitives.Sprite(name='cycle_pointer', parent=self.pointerClipper, pos=(0, 0, 15, 19), texturePath='res:/UI/Texture/Crimewatch/Crimewatch_TimerPoint_WithShadow.png', color=self.timerData.color, align=uiconst.TOPLEFT, state=uiconst.UI_DISABLED)
         self.iconTransform.scalingCenter = (0.5, 0.5)
         uicore.animations.Tr2DScaleTo(self.iconTransform, startScale=(0.8, 0.8), endScale=(1.0, 1.0), duration=0.75, curveType=uiconst.ANIM_OVERSHOT)
+        return
 
     def SetTimerType(self, timerType):
         self.timerData = CRIMEWATCH_TIMER_DATA[timerType]
@@ -106,40 +108,44 @@ class Timer(uiprimitives.Container):
         self.pointerContainer.rotation = rotation
         self.gaugeCircular.SetValue(ratio, animate=False)
 
-    def SetExpiryTime(self, expiryTime, doAlert, maxDuration = None):
+    def SetExpiryTime(self, expiryTime, doAlert, maxDuration=None):
         self.Reset(expiryTime, doAlert, maxDuration=maxDuration)
         self.expiryTime = expiryTime
         if expiryTime is None:
             self.PlayActiveAnimation()
         else:
             self.animationThread = uthread.new(self.Animate_Thread)
+        return
 
-    def Reset(self, resetTo, doAlert, maxDuration = None):
+    def Reset(self, resetTo, doAlert, maxDuration=None):
         if self.animationThread is not None:
             self.animationThread.kill()
         if maxDuration and maxDuration != self.timerData.maxTimeout:
             self.timerData = self.timerData._replace(maxTimeout=maxDuration)
         uthread.new(self.Rewind_Thread, resetTo, doAlert)
+        return
 
     def Rewind_Thread(self, resetTo, doAlert):
         if self.rewind:
             return
-        if doAlert and self.timerData.resetAudioEvent is not None:
-            sm.GetService('audio').SendUIEvent(self.timerData.resetAudioEvent)
-        self.rewind = True
-        ratio = self.ratio
-        startTime = self.GetTime()
-        distance = 1 - ratio
-        cycleSpeed = float(distance * 500)
-        while not self.destroyed and self.ratio < (self.GetRatio(resetTo - self.GetTime()) if resetTo is not None else 1.0):
-            elapsedTime = blue.os.TimeDiffInMs(startTime, self.GetTime())
-            toAdd = elapsedTime / cycleSpeed
-            self.SetRatio(ratio + toAdd)
-            blue.pyos.synchro.SleepWallclock(25)
+        else:
+            if doAlert and self.timerData.resetAudioEvent is not None:
+                sm.GetService('audio').SendUIEvent(self.timerData.resetAudioEvent)
+            self.rewind = True
+            ratio = self.ratio
+            startTime = self.GetTime()
+            distance = 1 - ratio
+            cycleSpeed = float(distance * 500)
+            while not self.destroyed and self.ratio < (self.GetRatio(resetTo - self.GetTime()) if resetTo is not None else 1.0):
+                elapsedTime = blue.os.TimeDiffInMs(startTime, self.GetTime())
+                toAdd = elapsedTime / cycleSpeed
+                self.SetRatio(ratio + toAdd)
+                blue.pyos.synchro.SleepWallclock(25)
 
-        self.rewind = False
+            self.rewind = False
+            return
 
-    def FlipFlop(self, sprite, duration = 1.0, startValue = 0.0, endValue = 1.0, loops = 5):
+    def FlipFlop(self, sprite, duration=1.0, startValue=0.0, endValue=1.0, loops=5):
         curve = trinity.Tr2ScalarCurve()
         curve.length = duration
         curve.interpolation = trinity.TR2CURVE_LINEAR
@@ -172,18 +178,21 @@ class Timer(uiprimitives.Container):
 
         if self.callback:
             self.callback(self)
+        return
 
     def PlayIconBlink(self):
         if self.iconBlink is None:
             self.iconBlink = self.FlipFlop(self.icon, startValue=1.0, endValue=0.0)
             if self.timerData.endingAudioEvent:
                 sm.GetService('audio').SendUIEvent(self.timerData.endingAudioEvent)
+        return
 
     def StopIconBlink(self):
         if self.iconBlink is not None:
             self.iconBlink.Stop()
             self.iconBlink = None
             self.icon.opacity = 1.0
+        return
 
     def EndAnimation(self):
         self.SetRatio(0.0)
@@ -201,6 +210,7 @@ class Timer(uiprimitives.Container):
             if self.timerHint is None:
                 left, top, width, height = self.content.GetAbsolute()
                 self.timerHint = self.hintClass(parent=uicore.layer.abovemain, left=left + 16, top=top + 16, timerData=self.timerData, parentTimer=self)
+        return
 
     def ShiftLeft(self):
         uicore.animations.MoveInFromRight(self, self.width, duration=0.5)
@@ -215,6 +225,7 @@ class Timer(uiprimitives.Container):
                 self.counterText = uicontrols.EveHeaderLarge(parent=self.content, name='counter', left=34, top=-2, bold=True, color=self.timerData.color)
             text = str(count) if count < 10 else '9+'
             self.counterText.text = text
+        return
 
     def PlayActiveAnimation(self):
         self.activeAnimationCurves = ((self.pointerSprite, self.FlipFlop(self.pointerSprite, startValue=1.0, endValue=0.75, duration=1.0, loops=uiconst.ANIM_REPEAT)), (self.gaugeCircular, self.FlipFlop(self.gaugeCircular, startValue=1.0, endValue=0.75, duration=1.0, loops=uiconst.ANIM_REPEAT)))
@@ -226,6 +237,7 @@ class Timer(uiprimitives.Container):
                 sprite.opacity = 1.0
 
             self.activeAnimationCurves = None
+        return
 
 
 class TimerContainer(uiprimitives.Container):
@@ -260,6 +272,7 @@ class TimerContainer(uiprimitives.Container):
         self.jumpCloakTimer = None
         self.crimewatchSvc = sm.GetService('crimewatchSvc')
         uthread.new(self.OnCombatTimersUpdated)
+        return
 
     def OnCombatTimersUpdated(self):
         self.OnWeaponsTimerUpdate(doAlert=False, *self.crimewatchSvc.GetWeaponsTimer())
@@ -269,8 +282,9 @@ class TimerContainer(uiprimitives.Container):
         self.OnCrimewatchEngagementUpdated(None, None, doAlert=False)
         self.OnBoosterUpdated()
         self.OnJumpTimersUpdated(doAlert=False, *self.crimewatchSvc.GetJumpTimers())
+        return
 
-    def OnWeaponsTimerUpdate(self, state, expiryTime, doAlert = True):
+    def OnWeaponsTimerUpdate(self, state, expiryTime, doAlert=True):
         if state in (const.weaponsTimerStateActive, const.weaponsTimerStateInherited):
             timer = self.GetTimer(TimerType.Weapons)
             timer.SetExpiryTime(None, doAlert)
@@ -279,8 +293,9 @@ class TimerContainer(uiprimitives.Container):
             timer.SetExpiryTime(expiryTime, doAlert)
         else:
             self.DeleteTimer(TimerType.Weapons)
+        return
 
-    def OnNpcTimerUpdate(self, state, expiryTime, doAlert = True):
+    def OnNpcTimerUpdate(self, state, expiryTime, doAlert=True):
         if state in (const.npcTimerStateActive, const.npcTimerStateInherited):
             timer = self.GetTimer(TimerType.Npc)
             timer.SetExpiryTime(None, doAlert)
@@ -289,8 +304,9 @@ class TimerContainer(uiprimitives.Container):
             timer.SetExpiryTime(expiryTime, doAlert)
         else:
             self.DeleteTimer(TimerType.Npc)
+        return
 
-    def OnPvpTimerUpdate(self, state, expiryTime, doAlert = True):
+    def OnPvpTimerUpdate(self, state, expiryTime, doAlert=True):
         if state in (const.pvpTimerStateActive, const.pvpTimerStateInherited):
             timer = self.GetTimer(TimerType.Pvp)
             timer.SetExpiryTime(None, doAlert)
@@ -299,8 +315,9 @@ class TimerContainer(uiprimitives.Container):
             timer.SetExpiryTime(expiryTime, doAlert)
         else:
             self.DeleteTimer(TimerType.Pvp)
+        return
 
-    def OnCriminalTimerUpdate(self, state, expiryTime, doAlert = True):
+    def OnCriminalTimerUpdate(self, state, expiryTime, doAlert=True):
         if state in (const.criminalTimerStateActiveSuspect, const.criminalTimerStateInheritedSuspect):
             timer = self.GetTimer(TimerType.Suspect)
             timer.SetExpiryTime(None, doAlert)
@@ -315,8 +332,9 @@ class TimerContainer(uiprimitives.Container):
             timer.SetExpiryTime(expiryTime, doAlert)
         else:
             self.DeleteTimer(TimerType.Suspect)
+        return
 
-    def OnCrimewatchEngagementUpdated(self, otherCharId, timeout, doAlert = True):
+    def OnCrimewatchEngagementUpdated(self, otherCharId, timeout, doAlert=True):
         engagements = self.crimewatchSvc.GetMyEngagements()
         if len(engagements) == 0:
             self.DeleteTimer(TimerType.Engagement)
@@ -329,8 +347,9 @@ class TimerContainer(uiprimitives.Container):
                 timeout = max((_timeout for _timeout in engagements.itervalues()))
             timer.SetExpiryTime(timeout, doAlert)
             timer.SetCounter(len(engagements))
+        return
 
-    def OnBoosterUpdated(self, doAlert = True):
+    def OnBoosterUpdated(self, doAlert=True):
         boosters = self.crimewatchSvc.GetMyBoosters()
         boosterList = [ b for b in boosters if b.boosterDuration ]
         if len(boosterList) == 0:
@@ -344,7 +363,7 @@ class TimerContainer(uiprimitives.Container):
             timer.SetExpiryTime(timeout, doAlert, maxDuration * 10000)
             timer.SetCounter(len(boosterList))
 
-    def OnJumpTimersUpdated(self, jumpActivation, jumpFatigue, fatigueRatio, lastUpdated, doAlert = False):
+    def OnJumpTimersUpdated(self, jumpActivation, jumpFatigue, fatigueRatio, lastUpdated, doAlert=False):
         if jumpFatigue and jumpFatigue > blue.os.GetWallclockTime():
             timer = self.GetTimer(TimerType.JumpFatigue)
             timer.fatigueRatio = fatigueRatio
@@ -374,6 +393,8 @@ class TimerContainer(uiprimitives.Container):
         if idx is not None:
             for timer in self.children[idx:idx + 1]:
                 timer.ShiftLeft()
+
+        return
 
     def DeleteWhenFinished(self, timer):
         self.DeleteTimer(timer.timerType)

@@ -1,10 +1,11 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\packages\eveprefs\__init__.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\packages\eveprefs\__init__.py
 import abc
 import types
 DEFAULT_ENCODING = 'cp1252'
 _unsupplied = object()
 
-def get_filename(blue, shortname, ext, root = None):
+def get_filename(blue, shortname, ext, root=None):
     if root is None:
         root = blue.paths.ResolvePath(u'settings:/')
     if root[-1] not in ('\\', '/'):
@@ -37,7 +38,7 @@ class BaseIniFile(object):
     def _GetKeySet(self):
         pass
 
-    def GetKeys(self, beginWith = None):
+    def GetKeys(self, beginWith=None):
         if beginWith is None:
             keys = list(self._GetKeySet())
         else:
@@ -49,7 +50,7 @@ class BaseIniFile(object):
     def _GetValue(self, key):
         pass
 
-    def GetValue(self, key, default = _unsupplied, flushDef = False):
+    def GetValue(self, key, default=_unsupplied, flushDef=False):
         key = self.FixKey(key)
         if key not in self._GetKeySet():
             if default is _unsupplied:
@@ -63,7 +64,7 @@ class BaseIniFile(object):
     def _SetValue(self, key, value, forcePickle):
         pass
 
-    def SetValue(self, key, value, forcePickle = False):
+    def SetValue(self, key, value, forcePickle=False):
         key = self.FixKey(key)
         self._SetValue(key, value, forcePickle)
 

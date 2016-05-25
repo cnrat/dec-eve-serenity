@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\packages\notifications\common\formatting\notificationFormatMapping.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\packages\notifications\common\formatting\notificationFormatMapping.py
 import eve.common.script.util.notificationconst as notificationConst
 from notifications.common.formatters.achievementTask import AchievementTaskFormatter
 from notifications.common.formatters.contactFormatters import ContactAddFormatter, ContactEditFormatter, BuddyContactAddFormatter
@@ -20,6 +21,7 @@ from notifications.common.formatters.sovStationEnteredFreeport import SovStation
 from notifications.common.formatters.sovStructureReinforced import SovStructureReinforced
 from notifications.common.formatters.structureDestructCancel import StructureDestructCancel
 from notifications.common.formatters.structureDestructRequested import StructureDestructRequested
+from notifications.common.formatters.structures import StructureFuelAlert, StructureAnchoring, StructureUnanchoring, StructureUnderAttack, StructureOnline, StructureLostShield, StructureLostArmor, StructureDestroyed, StructureItemsMovedToSafety, StructureItemsNeedAttention, StructureMarketOrdersCancelled, StructureLostDockingAccess, StructureServicesOffline, StructureOwnershipTransferred, StructureItemsDelivered
 
 class NotificationFormatMapper:
 
@@ -51,7 +53,22 @@ class NotificationFormatMapper:
          notificationConst.notificationTypeInfrastructureHubBillAboutToExpire: IHubBillAboutToExpire,
          notificationConst.notificationTypeContactAdd: ContactAddFormatter,
          notificationConst.notificationTypeContactEdit: ContactEditFormatter,
-         notificationConst.notificationTypeBuddyConnectContactAdd: BuddyContactAddFormatter}
+         notificationConst.notificationTypeBuddyConnectContactAdd: BuddyContactAddFormatter,
+         notificationConst.notificationTypeStructureFuelAlert: StructureFuelAlert,
+         notificationConst.notificationTypeStructureAnchoring: StructureAnchoring,
+         notificationConst.notificationTypeStructureUnanchoring: StructureUnanchoring,
+         notificationConst.notificationTypeStructureUnderAttack: StructureUnderAttack,
+         notificationConst.notificationTypeStructureOnline: StructureOnline,
+         notificationConst.notificationTypeStructureLostShields: StructureLostShield,
+         notificationConst.notificationTypeStructureLostArmor: StructureLostArmor,
+         notificationConst.notificationTypeStructureDestroyed: StructureDestroyed,
+         notificationConst.notificationTypeStructureItemsToAssetSafety: StructureItemsMovedToSafety,
+         notificationConst.notificationTypeStructureItemsNeedAttention: StructureItemsNeedAttention,
+         notificationConst.notificationTypeStructureMarketOrdersCancelled: StructureMarketOrdersCancelled,
+         notificationConst.notificationTypeStructureLostDockingAccess: StructureLostDockingAccess,
+         notificationConst.notificationTypeStructureServicesOffline: StructureServicesOffline,
+         notificationConst.notificationTypeOwnershipTransferred: StructureOwnershipTransferred,
+         notificationConst.notificationTypeStructureItemsDelivered: StructureItemsDelivered}
 
     def Register(self, notificationTypeID, formatter):
         self.registry[notificationTypeID] = formatter
@@ -60,4 +77,5 @@ class NotificationFormatMapper:
         if typeID in self.registry:
             return self.registry[typeID]()
         else:
+            return None
             return None

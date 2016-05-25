@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\client\script\ui\services\corporation\bco_sanctionedActions.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\client\script\ui\services\corporation\bco_sanctionedActions.py
 import corpObject
 import blue
 import uthread
@@ -28,7 +29,7 @@ class SanctionedActionsO(corpObject.base):
             self.__sanctionedActionsByCorpID[state][corporationID] = rowset.Index('voteCaseID')
         return self.__sanctionedActionsByCorpID[state][corporationID]
 
-    def UpdateSanctionedAction(self, voteCaseID, inEffect, reason = ''):
+    def UpdateSanctionedAction(self, voteCaseID, inEffect, reason=''):
         return self.GetCorpRegistry().UpdateSanctionedAction(voteCaseID, inEffect, reason)
 
     def OnSanctionedActionChanged(self, corpID, voteCaseID, change):
@@ -110,6 +111,7 @@ class SanctionedActionsO(corpObject.base):
                     setattr(row, columnName, newValue)
 
         uthread.new(self.OnSanctionedActionChanged_thread, corpID, voteCaseID, change).context = 'svc.corp.OnSanctionedActionChanged'
+        return
 
     def OnSanctionedActionChanged_thread(self, corpID, voteCaseID, change):
         sm.GetService('corpui').OnSanctionedActionChanged(corpID, voteCaseID, change)

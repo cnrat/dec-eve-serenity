@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\carbon\common\lib\cherrypy\test\test_auth_digest.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\carbon\common\lib\cherrypy\test\test_auth_digest.py
 import cherrypy
 from cherrypy.lib import auth_digest
 from cherrypy.test import helper
@@ -10,7 +11,7 @@ class DigestAuthTest(helper.CPWebCase):
         class Root:
 
             def index(self):
-                return 'This is public.'
+                pass
 
             index.exposed = True
 
@@ -98,3 +99,4 @@ class DigestAuthTest(helper.CPWebCase):
         self.getPage('/digest/', [('Authorization', auth_header)])
         self.assertStatus('200 OK')
         self.assertBody("Hello test, you've been authorized.")
+        return

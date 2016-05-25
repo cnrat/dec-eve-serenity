@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\packages\brennivin\ioutils.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\packages\brennivin\ioutils.py
 import threading as _threading
 import time as _time
 import socket as _socket
@@ -10,7 +11,7 @@ class Timeout(_socket.timeout, Exception):
 
 class retry(object):
 
-    def __init__(self, attempts = 2, excfilter = (Exception,), wait = 0, backoff = 1, sleepfunc = None):
+    def __init__(self, attempts=2, excfilter=(Exception,), wait=0, backoff=1, sleepfunc=None):
         if attempts < 1:
             raise ValueError('attempts must be greater than or equal to 1.')
         if wait < 0:
@@ -51,7 +52,7 @@ class timeout(object):
         t.start()
         return t
 
-    def __init__(self, timeoutSecs = 5):
+    def __init__(self, timeoutSecs=5):
         self.timeoutSecs = timeoutSecs
 
     def __call__(self, func):
@@ -82,9 +83,11 @@ def is_local_port_open(port):
     sock = _socket.socket()
     isBound = False
     try:
-        sock.bind(('127.0.0.1', port))
-    except _socket.error:
-        isBound = True
+        try:
+            sock.bind(('127.0.0.1', port))
+        except _socket.error:
+            isBound = True
+
     finally:
         sock.close()
 

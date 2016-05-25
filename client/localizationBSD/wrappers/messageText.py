@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\packages\localizationBSD\wrappers\messageText.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\packages\localizationBSD\wrappers\messageText.py
 from . import AuthoringValidationError
 from .. import const as localizationBSDConst
 from ..util import GetNumericLanguageIDFromLanguageID
@@ -9,7 +10,7 @@ class MessageText(bsdWrappers.BaseWrapper):
     __primaryTable__ = bsdWrappers.RegisterTable(localizationBSDConst.MESSAGE_TEXTS_TABLE)
 
     @classmethod
-    def Create(cls, messageID, languageID = LOCALE_SHORT_ENGLISH, text = '', sourceDataID = None):
+    def Create(cls, messageID, languageID=LOCALE_SHORT_ENGLISH, text='', sourceDataID=None):
         primaryTable = bsdWrappers.GetTable(MessageText.__primaryTable__)
         dbLocaleID = GetNumericLanguageIDFromLanguageID(languageID)
         if dbLocaleID is None:
@@ -63,10 +64,11 @@ class MessageText(bsdWrappers.BaseWrapper):
     def _ValidateChangeToReview(currentStatusID, currentSourceID, englishDataID):
         if englishDataID == currentSourceID and (currentStatusID is None or currentStatusID != localizationBSDConst.TEXT_STATUS_DEFECT):
             return True
-        return False
+        else:
+            return False
 
     @classmethod
-    def Get(cls, messageID, languageID = LOCALE_SHORT_ENGLISH, _getDeleted = False):
+    def Get(cls, messageID, languageID=LOCALE_SHORT_ENGLISH, _getDeleted=False):
         dbLocaleID = GetNumericLanguageIDFromLanguageID(languageID)
         return bsdWrappers._TryGetObjByKey(cls, messageID, dbLocaleID, _getDeleted=_getDeleted)
 

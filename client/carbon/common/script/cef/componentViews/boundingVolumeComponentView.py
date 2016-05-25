@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\carbon\common\script\cef\componentViews\boundingVolumeComponentView.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\carbon\common\script\cef\componentViews\boundingVolumeComponentView.py
 from carbon.common.script.cef.baseComponentView import BaseComponentView
 
 class BoundingVolumeComponentView(BaseComponentView):
@@ -14,6 +15,7 @@ class BoundingVolumeComponentView(BaseComponentView):
         cls.RegisterComponent(cls)
         cls._AddInput(cls.MIN, None, cls.RUNTIME, const.cef.COMPONENTDATA_NON_PRIMITIVE_TYPE, displayName='Min')
         cls._AddInput(cls.MAX, None, cls.RUNTIME, const.cef.COMPONENTDATA_NON_PRIMITIVE_TYPE, displayName='Max')
+        return
 
 
 BoundingVolumeComponentView.SetupInputs()

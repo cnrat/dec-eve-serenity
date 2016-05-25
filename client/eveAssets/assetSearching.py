@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\packages\eveAssets\assetSearching.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\packages\eveAssets\assetSearching.py
 from collections import defaultdict
 from carbon.common.script.sys.crowset import CRowset
 from carbon.common.script.util.logUtil import LogNotice
@@ -14,17 +15,18 @@ def GetSearchResults(conditions, itemRowset, searchtype):
      const.groupAuditLogSecureContainer,
      const.groupFreightContainer,
      const.groupCargoContainer])
+    containerTypesIDs = set([const.typeAssetSafetyWrap])
     containerFlags = (const.flagNone, const.flagLocked, const.flagUnlocked)
     LogNotice('Asset search - find containers')
     for item in itemRowset:
-        if item.groupID in containerGroups:
+        if item.groupID in containerGroups or item.typeID in containerTypesIDs:
             allContainersByItemIDs[item.itemID] = item
 
     def AddStationIDToFakeRow(locationID, row):
         containerItem = allContainersByItemIDs.get(locationID)
         if containerItem:
             stationID = containerItem.locationID
-        elif item.flagID == const.flagHangar:
+        elif row.flagID in (const.flagHangar, const.flagAssetSafety):
             stationID = locationID
         else:
             return
@@ -48,7 +50,7 @@ def GetSearchResults(conditions, itemRowset, searchtype):
             AddStationIDToFakeRow(item.locationID, item)
             if not MatchesSearchCriteria(item, conditions):
                 continue
-        if item.flagID in containerFlags:
+        if item.locationID in allContainersByItemIDs:
             itemsByContainerID[item.locationID].add(item)
         else:
             stations[item.locationID].append(item)
@@ -85,12 +87,12 @@ def GetFakeRowset(allitems):
      ('stacksize', const.DBTYPE_I4),
      ('locationID', const.DBTYPE_I8),
      ('flagID', const.DBTYPE_I2),
-     ('stationID', const.DBTYPE_I4)))
+     ('stationID', const.DBTYPE_I8)))
     itemRowset = CRowset(rowDescriptor, [])
     for eachItem in allitems:
         try:
             itemRowset.InsertNew(GetListForFakeItemRow(eachItem))
-        except KeyError:
+        except evetypes.TypeNotFoundException:
             pass
 
     return itemRowset

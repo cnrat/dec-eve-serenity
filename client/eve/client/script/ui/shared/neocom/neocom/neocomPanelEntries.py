@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\client\script\ui\shared\neocom\neocom\neocomPanelEntries.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\client\script\ui\shared\neocom\neocom\neocomPanelEntries.py
 import math
 import carbonui.const as uiconst
 from carbonui.primitives.frame import Frame
@@ -48,6 +49,7 @@ class PanelEntryBase(uiprimitives.Container):
         self.expanderIcon = uicontrols.Icon(parent=self, name='expanderIcon', align=uiconst.CENTERRIGHT, left=10, icon='ui_38_16_228', rotation=rotation)
         self.SetExpanderState()
         self.blinkSprite = uiprimitives.Sprite(bgParent=self, name='blinkSprite', texturePath='res:/UI/Texture/classes/Neocom/panelEntryBG.png', state=uiconst.UI_HIDDEN, opacity=1.0)
+        return
 
     def GetIconPath(self):
         return self.btnData.iconPath or neocomCommon.ICONPATH_DEFAULT
@@ -57,7 +59,6 @@ class PanelEntryBase(uiprimitives.Container):
         icon = uicontrols.Icon(parent=dragContainer, name='icon', state=uiconst.UI_DISABLED, icon=self.GetIconPath(), size=48, ignoreSize=True)
         Frame(parent=dragContainer, name='baseFrame', state=uiconst.UI_DISABLED, texturePath='res:/UI/Texture/Shared/buttonDOT.png', color=(1.0, 1.0, 1.0, 1.0), cornerSize=8, spriteEffect=trinity.TR2_SFX_DOT, blendMode=trinity.TR2_SBM_ADD)
         Frame(parent=dragContainer, offset=-9, cornerSize=13, name='shadow', state=uiconst.UI_DISABLED, texturePath='res:/UI/Texture/Shared/bigButtonShadow.png')
-        return (0, 0)
 
     def HasOpenPanel(self):
         return self._openNeocomPanel is not None and not self._openNeocomPanel.destroyed
@@ -99,6 +100,7 @@ class PanelEntryBase(uiprimitives.Container):
             cmd = uicore.cmd.commandMap.GetCommandByName(self.btnData.cmdName)
             tooltipPanel.AddCommandTooltip(cmd)
             ButtonBase.LoadTooltipPanelDetails(self, tooltipPanel, self.btnData)
+        return
 
     def GetTooltipPointer(self):
         return uiconst.POINT_LEFT_2
@@ -152,6 +154,7 @@ class PanelEntryBookmarks(PanelEntryBase):
             self._openNeocomPanel = None
         else:
             self._openNeocomPanel = sm.GetService('neocom').ShowPanel(self, PanelGroup, neocomCommon.PANEL_SHOWONSIDE, parent=uicore.layer.abovemain, btnData=self.btnData)
+        return
 
     def OnMouseEnter(self, *args):
         PanelEntryBase.OnMouseEnter(self, *args)
@@ -227,6 +230,7 @@ class PanelEntryGroup(PanelEntryBase):
         else:
             sm.GetService('neocom').CloseChildrenPanels(self.btnData.parent)
             self._openNeocomPanel = sm.GetService('neocom').ShowPanel(self, PanelGroup, neocomCommon.PANEL_SHOWONSIDE, parent=uicore.layer.abovemain, btnData=self.btnData, align=uiconst.TOPLEFT)
+        return
 
     def SetExpanderState(self):
         self.ShowExpander()
@@ -289,6 +293,7 @@ class PanelEntryWindow(PanelEntryBase):
             self._openNeocomPanel = None
         else:
             self._openNeocomPanel = sm.GetService('neocom').ShowPanel(triggerCont=self, panelClass=PanelGroup, panelAlign=neocomCommon.PANEL_SHOWONSIDE, parent=uicore.layer.abovemain, btnData=self.btnData)
+        return
 
     def OnDragEnter(self, panelEntry, nodes):
         self.OnMouseEnter()
@@ -301,6 +306,7 @@ class PanelEntryWindow(PanelEntryBase):
         if wnd and hasattr(wnd, 'OnDropData'):
             wnd.OnDropData(source, nodes)
             sm.GetService('neocom').CloseAllPanels()
+        return
 
     def SetExpanderState(self):
         if len(self.btnData.children) > 1:

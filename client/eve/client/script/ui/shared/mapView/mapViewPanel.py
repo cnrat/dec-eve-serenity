@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\client\script\ui\shared\mapView\mapViewPanel.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\client\script\ui\shared\mapView\mapViewPanel.py
 from eve.client.script.ui.shared.mapView.dockPanelConst import DOCKPANELID_MAP
 from eve.client.script.ui.shared.mapView.mapView import MapView
 from eve.client.script.ui.shared.mapView.mapViewConst import MAPVIEW_PRIMARY_ID
@@ -22,10 +23,9 @@ class MapViewPanel(DockablePanel):
     mapView = None
     overlayTools = None
 
-    def OnSetCameraOffset(self, camera, cameraOffset):
+    def OnSetCameraOffset(self, cameraOffset):
         if self.mapView and not self.mapView.destroyed:
             if self.IsFullscreen():
-                cameraOffset = sm.GetService('sceneManager').GetCameraOffset('default')
                 x = -(cameraOffset * 0.5 - 0.5)
                 self.mapView.camera.cameraCenter = (x, 0.5)
             else:
@@ -52,6 +52,7 @@ class MapViewPanel(DockablePanel):
     def Close(self, *args, **kwds):
         DockablePanel.Close(self, *args, **kwds)
         self.mapView = None
+        return
 
     def OnShowUI(self):
         self.mapView.overlayTools.display = True

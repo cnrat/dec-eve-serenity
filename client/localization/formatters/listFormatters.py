@@ -1,9 +1,10 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\packages\localization\formatters\listFormatters.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\packages\localization\formatters\listFormatters.py
 import telemetry
 from ..uiutil import PrepareLocalizationSafeString
 
 @telemetry.ZONE_FUNCTION
-def FormatGenericList(iterable, languageID = None, useConjunction = False):
+def FormatGenericList(iterable, languageID=None, useConjunction=False):
     import localization
     stringList = [ unicode(each) for each in iterable ]
     delimiter = localization.GetByLabel('UI/Common/Formatting/ListGenericDelimiter', languageID)

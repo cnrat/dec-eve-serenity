@@ -1,13 +1,14 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\client\script\ui\shared\neocom\evemail.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\client\script\ui\shared\neocom\evemail.py
 from carbonui.primitives.containerAutoSize import ContainerAutoSize
 from eve.client.script.ui.control.divider import Divider
 from eve.client.script.ui.control.colorpicker import ColorSwatch
-from eve.client.script.ui.shared.neocom.characterSearchWindow import CharacterSearchWindow
+from eve.client.script.ui.shared.neocom.ownerSearch import OwnerSearchWindow
 from eve.client.script.ui.control.listgroup import ListGroup as Group
 from eve.client.script.ui.shared.userentry import User
-from eve.client.script.ui.control.eveBaseLink import GetCharIDFromTextLink
 from carbonui.control.dragResizeCont import DragResizeCont
 import blue
+from eve.client.script.ui.util.linkUtil import GetCharIDFromTextLink
 import uiprimitives
 import uicontrols
 import uthread
@@ -118,7 +119,7 @@ class MailWindow(uicontrols.Window):
     def OnNewMailReceived(self, *args):
         self.OnMailStartStopBlinkingTab('mail', blink=1)
 
-    def OnMailStartStopBlinkingTab(self, configname, blink = 1):
+    def OnMailStartStopBlinkingTab(self, configname, blink=1):
         if self.sr.tabs.destroyed:
             return
         mailSettings = sm.GetService('mailSvc').GetMailSettings()
@@ -171,6 +172,7 @@ class MailForm(uiprimitives.Container):
         if self and not self.destroyed:
             self.worker = uthread.new(self.SaveChangesWorker)
             self.inited = 1
+        return
 
     def CheckInited(self):
         if not self.inited:
@@ -212,6 +214,7 @@ class MailForm(uiprimitives.Container):
         self.DrawToolbar()
         self.viewingLabel = 1
         self.viewingList = None
+        return
 
     def DrawToolbar(self, *args):
         actions = util.KeyVal()
@@ -242,6 +245,7 @@ class MailForm(uiprimitives.Container):
         btn.sr.icon.LoadIcon('ui_23_64_2')
         self.sr.mailFwdBtn = btn
         self.SetReadingPaneVisibility(self.readingPaneVisible)
+        return
 
     def _OnClose(self, *args):
         if self.sr.leftCont:
@@ -329,6 +333,8 @@ class MailForm(uiprimitives.Container):
             elif each.groupName is not None:
                 new = newMailsInGroups.get(each.groupName, False)
                 self.TryChangePanelLabel(each, None, forceBold=new)
+
+        return
 
     def GetStaticLabelsGroups(self):
         myLabels = sm.GetService('mailSvc').GetAllLabels()
@@ -467,6 +473,7 @@ class MailForm(uiprimitives.Container):
         self.viewingList = entry.sr.node.listID
         self.viewingLabel = None
         self.LoadFromLabelIDOrLabelID(listID=entry.sr.node.listID)
+        return
 
     def MaillistMenu(self, entry):
         m = []
@@ -514,6 +521,8 @@ class MailForm(uiprimitives.Container):
         myLabelNames = [ label.name for label in sm.GetService('mailSvc').GetAllLabels(assignable=0).values() ]
         if name in myLabelNames:
             return localization.GetByLabel('UI/Mail/LabelNameTaken')
+        else:
+            return None
 
     def LoadLabelGroup(self, entry):
         self.startPos = 0
@@ -521,28 +530,30 @@ class MailForm(uiprimitives.Container):
         self.viewingList = None
         entry.label = entry.sr.node.label
         self.LoadFromLabelIDOrLabelID(labelID=entry.sr.node.currentView)
+        return
 
     def LoadTrashGroup(self, entry):
         self.startPos = 0
         self.viewingLabel = entry.sr.node.currentView
         self.viewingList = None
         self.LoadFromLabelIDOrLabelID(labelID=MAILLABELTRASH)
+        return
 
     def ReloadAll(self, *args):
         self.LoadLeftSide()
         self.ReloadMails()
 
-    def ReloadMails(self, refreshing = 0):
+    def ReloadMails(self, refreshing=0):
         labelID = self.viewingLabel
         listID = self.viewingList
         self.LoadFromLabelIDOrLabelID(labelID=labelID, listID=listID, refreshing=refreshing)
 
-    def LoadFromLabelIDOrLabelID(self, labelID = None, listID = None, refreshing = 0):
+    def LoadFromLabelIDOrLabelID(self, labelID=None, listID=None, refreshing=0):
         mailInfo = self.GetMailInfo(labelID, listID)
         self.LoadMails(mails=mailInfo.sorted, labelID=labelID, refreshing=refreshing, totalNum=mailInfo.totalNum)
         self.UpdateCounters()
 
-    def GetMailInfo(self, labelID = None, listID = None):
+    def GetMailInfo(self, labelID=None, listID=None):
         mailSettings = sm.GetService('mailSvc').GetMailSettings()
         numMails = max(1, mailSettings.GetSingleValue(cSettings.MAILS_PER_PAGE, DEFAULTNUMMAILS))
         if labelID == MAILLABELTRASH:
@@ -553,7 +564,7 @@ class MailForm(uiprimitives.Container):
             mailInfo = sm.GetService('mailSvc').GetMailsByLabelOrListID(labelID=labelID, orderBy=self.sortBy, ascending=self.sortOrder, pos=self.startPos, count=numMails)
         return mailInfo
 
-    def LoadMails(self, mails = [], labelID = None, refreshing = 0, totalNum = None):
+    def LoadMails(self, mails=[], labelID=None, refreshing=0, totalNum=None):
         sel = self.sr.msgScroll.GetSelected()
         selIDs = [ msg.messageID for msg in sel ]
         pos = self.sr.msgScroll.GetScrollProportion()
@@ -577,8 +588,9 @@ class MailForm(uiprimitives.Container):
         if totalNum is not None:
             self.ShowHideBrowse(totalNum)
         self.ShowHideToolbarButtons()
+        return
 
-    def RefreshMsgScrollHeaders(self, headers, tabs = []):
+    def RefreshMsgScrollHeaders(self, headers, tabs=[]):
         uicontrols.Scroll.DrawHeaders(self.sr.msgScroll, headers, tabs)
         labelID = getattr(self.sr.msgScroll, 'labelID', None)
         senderColumn = uiutil.FindChild(self.sr.msgScroll, localization.GetByLabel('UI/Mail/Sender'))
@@ -595,8 +607,9 @@ class MailForm(uiprimitives.Container):
             else:
                 text = localization.GetByLabel('UI/Mail/Received')
             dateColumn.sr.label.text = text
+        return
 
-    def GetMsgEntry(self, info, labelID, selIDs, myLabels, refreshing = 0):
+    def GetMsgEntry(self, info, labelID, selIDs, myLabels, refreshing=0):
         labels = self.GetLabelText(info.labels, myLabels)
         data = util.KeyVal()
         data.messageID = info.messageID
@@ -666,6 +679,7 @@ class MailForm(uiprimitives.Container):
     def ClearReadingPane(self):
         self.sr.readingPane.SetText('')
         self.viewing = None
+        return
 
     def ChangeReadingPaneVisiblity(self, *args):
         if self.readingPaneVisible is True:
@@ -674,7 +688,7 @@ class MailForm(uiprimitives.Container):
             self.SetReadingPaneVisibility(on=True)
         settings.user.ui.Set('mail_readingPaneVisible', self.readingPaneVisible)
 
-    def SetReadingPaneVisibility(self, on = True):
+    def SetReadingPaneVisibility(self, on=True):
         if on:
             self.readingPaneVisible = True
             self.sr.expander.hint = localization.GetByLabel('UI/Mail/HideReadingPane')
@@ -690,6 +704,7 @@ class MailForm(uiprimitives.Container):
             self.sr.expander.hint = localization.GetByLabel('UI/Mail/ShowReadingPane')
             self.sr.expander.texturePath = 'res:/UI/Texture/Shared/expanderUp.png'
             self.ShowHideReadingPane(show=0)
+        return
 
     def ShowHideReadingPane(self, show):
         if show:
@@ -732,7 +747,7 @@ class MailForm(uiprimitives.Container):
                 if self and not self.destroyed:
                     self.TryReloadNode(node, mail)
 
-    def OnMailStatusUpdate(self, replyTo, forwardedFrom, forcedIDs = []):
+    def OnMailStatusUpdate(self, replyTo, forwardedFrom, forcedIDs=[]):
         if not self.inited:
             return
         mailList = forcedIDs[:]
@@ -757,12 +772,16 @@ class MailForm(uiprimitives.Container):
             if mailData is not None:
                 self.TryReloadNode(node, mailData)
 
+        return
+
     def TryReloadNode(self, node, data):
         node.data = data.copy()
         panel = node.Get('panel', None)
         if panel is None:
             return
-        panel.LoadMailEntry(node)
+        else:
+            panel.LoadMailEntry(node)
+            return
 
     def RefreshLabels(self, nodes, mailIDs):
         myLabels = sm.GetService('mailSvc').GetAllLabels(assignable=0)
@@ -777,25 +796,27 @@ class MailForm(uiprimitives.Container):
 
         if len(nodesToRemove) > 0:
             self.GoRemoveEntries(nodesToRemove.values(), nodesToRemove.keys())
+        return
 
     def RefreshLabel(self, node, data, myLabels):
         if node.currentView is not None and node.currentView not in data.labels + [MAILLABELTRASH]:
             return True
-        node.data = data.copy()
-        labelText = self.GetLabelText(data.labels, myLabels)
-        date = util.FmtDate(node.data.sentDate, 'ls')
-        node.cleanLabel = '<t>'.join(('',
-         node.name,
-         node.data.subject,
-         date,
-         labelText))
-        panel = node.Get('panel', None)
-        if panel is None:
-            return
-        panel.UpdateLabel(data)
-        return False
+        else:
+            node.data = data.copy()
+            labelText = self.GetLabelText(data.labels, myLabels)
+            date = util.FmtDate(node.data.sentDate, 'ls')
+            node.cleanLabel = '<t>'.join(('',
+             node.name,
+             node.data.subject,
+             date,
+             labelText))
+            panel = node.Get('panel', None)
+            if panel is None:
+                return
+            panel.UpdateLabel(data)
+            return False
 
-    def MsgScrollSelectionChange(self, sel = [], *args):
+    def MsgScrollSelectionChange(self, sel=[], *args):
         self.ShowHideToolbarButtons(sel=sel)
         if len(sel) == 0:
             return
@@ -803,7 +824,7 @@ class MailForm(uiprimitives.Container):
         if self.viewing != node.messageID:
             self.readTimer = base.AutoTimer(1000, self.LoadReadingPane, node)
 
-    def ShowHideToolbarButtons(self, sel = []):
+    def ShowHideToolbarButtons(self, sel=[]):
         if len(sel) < 1:
             sel = self.sr.msgScroll.GetSelected()
         numSelected = len(sel)
@@ -820,7 +841,7 @@ class MailForm(uiprimitives.Container):
         else:
             self.sr.mailActions.SingleMsgBtnsState(disabled=1)
 
-    def SortMail(self, by = None, reversesort = 0, forceHilite = 0):
+    def SortMail(self, by=None, reversesort=0, forceHilite=0):
         scroll = self.sr.msgScroll
         if by == localization.GetByLabel('UI/Mail/Labels'):
             return
@@ -883,27 +904,28 @@ class MailForm(uiprimitives.Container):
         text = localization.GetByLabel('UI/Common/Character')
         if node.data.statusMask & const.mailStatusMaskAutomated == const.mailStatusMaskAutomated:
             return m
-        if node.currentView == const.mailLabelSent:
-            recipient = sm.GetService('mailSvc').GetRecipient(node.data, getName=0)
-            if recipient > 0:
-                itemID = recipient
-                if util.IsCharacter(itemID):
-                    typeID = const.typeCharacterAmarr
-                elif util.IsCorporation(itemID):
-                    typeID = const.typeCorporation
-                    text = localization.GetByLabel('UI/Common/Corporation')
-                elif util.IsAlliance(itemID):
-                    typeID = const.typeAlliance
-                    text = localization.GetByLabel('UI/Common/Alliance')
         else:
-            itemID = node.data.senderID
-            typeID = const.typeCharacterAmarr
-        if itemID:
-            charMenu = sm.GetService('menu').GetMenuFormItemIDTypeID(itemID, typeID)
-        if len(charMenu):
-            m.append((text, charMenu))
-            m.append(None)
-        return m
+            if node.currentView == const.mailLabelSent:
+                recipient = sm.GetService('mailSvc').GetRecipient(node.data, getName=0)
+                if recipient > 0:
+                    itemID = recipient
+                    if util.IsCharacter(itemID):
+                        typeID = const.typeCharacterAmarr
+                    elif util.IsCorporation(itemID):
+                        typeID = const.typeCorporation
+                        text = localization.GetByLabel('UI/Common/Corporation')
+                    elif util.IsAlliance(itemID):
+                        typeID = const.typeAlliance
+                        text = localization.GetByLabel('UI/Common/Alliance')
+            else:
+                itemID = node.data.senderID
+                typeID = const.typeCharacterAmarr
+            if itemID:
+                charMenu = sm.GetService('menu').GetMenuFormItemIDTypeID(itemID, typeID)
+            if len(charMenu):
+                m.append((text, charMenu))
+                m.append(None)
+            return m
 
     def GetAssignLabelMenu(self, sel, selIDs, *args):
         m = []
@@ -1135,17 +1157,19 @@ class MailForm(uiprimitives.Container):
         selected = self.sr.msgScroll.GetSelected()
         if len(selected) < 1:
             return
-        idx = selected[0].idx
-        messageIDs = [ mail.messageID for mail in selected ]
-        if what == 'trashed':
-            self.TrashMail(selected, messageIDs)
-        elif what == 'deleted':
-            self.DeleteMail(selected, messageIDs)
-        numChildren = len(self.sr.msgScroll.GetNodes())
-        newIdx = min(idx, numChildren - 1)
-        newSelectedNode = self.sr.msgScroll.GetNode(newIdx)
-        if newSelectedNode is not None:
-            self.sr.msgScroll.SelectNode(newSelectedNode)
+        else:
+            idx = selected[0].idx
+            messageIDs = [ mail.messageID for mail in selected ]
+            if what == 'trashed':
+                self.TrashMail(selected, messageIDs)
+            elif what == 'deleted':
+                self.DeleteMail(selected, messageIDs)
+            numChildren = len(self.sr.msgScroll.GetNodes())
+            newIdx = min(idx, numChildren - 1)
+            newSelectedNode = self.sr.msgScroll.GetNode(newIdx)
+            if newSelectedNode is not None:
+                self.sr.msgScroll.SelectNode(newSelectedNode)
+            return
 
     def ManageLabels(self, *args):
         self.CheckInited()
@@ -1158,21 +1182,23 @@ class MailForm(uiprimitives.Container):
         self.startPos = pos
         self.ReloadMails()
 
-    def Reply(self, all = 0):
+    def Reply(self, all=0):
         sel = self.sr.msgScroll.GetSelected()
         if len(sel) < 1:
             return
-        msg = sel[0]
-        if msg is None:
+        else:
+            msg = sel[0]
+            if msg is None:
+                return
+            sm.GetService('mailSvc').GetReplyWnd(msg.data, all)
             return
-        sm.GetService('mailSvc').GetReplyWnd(msg.data, all)
 
     def OnMyMaillistChanged(self, *args):
         if not self.inited:
             return
         self.LoadLeftSide()
 
-    def OnMyLabelsChanged(self, labelType, created = None, *args):
+    def OnMyLabelsChanged(self, labelType, created=None, *args):
         if labelType == 'mail_labels':
             if not self.inited:
                 return
@@ -1194,37 +1220,41 @@ class MailForm(uiprimitives.Container):
             return
         self.UpdateCounters()
 
-    def OnMailTrashedDeleted(self, mail, force = 0):
+    def OnMailTrashedDeleted(self, mail, force=0):
         if not self.inited:
             return
-        reload = force
-        if not force:
-            if self.viewingLabel == MAILLABELTRASH:
-                reload = 1
-            elif not mail.trashed:
-                if self.viewingList is not None:
-                    if self.viewingList == mail.toListID:
+        else:
+            reload = force
+            if not force:
+                if self.viewingLabel == MAILLABELTRASH:
+                    reload = 1
+                elif not mail.trashed:
+                    if self.viewingList is not None:
+                        if self.viewingList == mail.toListID:
+                            reload = 1
+                    elif self.viewingLabel is None:
                         reload = 1
-                elif self.viewingLabel is None:
-                    reload = 1
-                elif self.viewingLabel in mail.labels:
-                    reload = 1
-        if reload:
-            self.ReloadMails(refreshing=1)
-        self.UpdateCounters()
+                    elif self.viewingLabel in mail.labels:
+                        reload = 1
+            if reload:
+                self.ReloadMails(refreshing=1)
+            self.UpdateCounters()
+            return
 
-    def TryChangePanelLabel(self, node, count, forceBold = False):
+    def TryChangePanelLabel(self, node, count, forceBold=False):
         panel = node.Get('panel', None)
         label = self.GetPanelLabel(node.cleanLabel, count, forceBold)
         node.label = label
         if panel is None:
             return
-        panelLabel = label
-        panel.sr.label.text = panelLabel
-        if hasattr(panel, 'UpdateHint'):
-            panel.UpdateHint()
+        else:
+            panelLabel = label
+            panel.sr.label.text = panelLabel
+            if hasattr(panel, 'UpdateHint'):
+                panel.UpdateHint()
+            return
 
-    def GetPanelLabel(self, label, count, forceBold = False):
+    def GetPanelLabel(self, label, count, forceBold=False):
         if count > 0:
             return '<b>' + localization.GetByLabel('UI/Mail/FolderLabelWithCount', folderName=label, unreadCount=count) + '</b>'
         elif forceBold:
@@ -1237,34 +1267,36 @@ class MailForm(uiprimitives.Container):
         shift = uicore.uilib.Key(uiconst.VK_SHIFT)
         if len(nodes) < 1 or nodes[0].__guid__ != 'listentry.MailEntry':
             return
-        if labelID is None or labelID == const.mailLabelSent:
+        elif labelID is None or labelID == const.mailLabelSent:
             uicore.Message('CustomNotify', {'notify': localization.GetByLabel('UI/Mail/CannotAssignLabel')})
             return
-        currentView = nodes[0].currentView
-        allLabels = sm.GetService('mailSvc').GetAllLabels(assignable=0)
-        currentName = allLabels.get(currentView, None)
-        if currentName is not None:
-            currentName = currentName.name
-        messageIDs = [ node.messageID for node in nodes ]
-        removeText = ''
-        if labelID == MAILLABELTRASH:
-            if currentView == labelID:
-                return
-            self.TrashMail(nodes, messageIDs)
         else:
-            if currentView == MAILLABELTRASH:
-                self.RestoreMail(nodes, messageIDs)
-            if not shift and currentView:
+            currentView = nodes[0].currentView
+            allLabels = sm.GetService('mailSvc').GetAllLabels(assignable=0)
+            currentName = allLabels.get(currentView, None)
+            if currentName is not None:
+                currentName = currentName.name
+            messageIDs = [ node.messageID for node in nodes ]
+            removeText = ''
+            if labelID == MAILLABELTRASH:
                 if currentView == labelID:
                     return
-                if currentView not in [MAILLABELTRASH, const.mailLabelSent]:
-                    sm.StartService('mailSvc').RemoveLabels(messageIDs, currentView)
-                    removeText = localization.GetByLabel('UI/Mail/LabelRemoved', labelName=currentName, numMails=len(messageIDs))
-            self.AssignLabelFromMailWnd(nodes, messageIDs, labelID)
-            text = localization.GetByLabel('UI/Mail/LabelAssigned', labelName=labelName, numMails=len(messageIDs))
-            if removeText:
-                text += '<br>%s' % removeText
-            eve.Message('CustomNotify', {'notify': text})
+                self.TrashMail(nodes, messageIDs)
+            else:
+                if currentView == MAILLABELTRASH:
+                    self.RestoreMail(nodes, messageIDs)
+                if not shift and currentView:
+                    if currentView == labelID:
+                        return
+                    if currentView not in [MAILLABELTRASH, const.mailLabelSent]:
+                        sm.StartService('mailSvc').RemoveLabels(messageIDs, currentView)
+                        removeText = localization.GetByLabel('UI/Mail/LabelRemoved', labelName=currentName, numMails=len(messageIDs))
+                self.AssignLabelFromMailWnd(nodes, messageIDs, labelID)
+                text = localization.GetByLabel('UI/Mail/LabelAssigned', labelName=labelName, numMails=len(messageIDs))
+                if removeText:
+                    text += '<br>%s' % removeText
+                eve.Message('CustomNotify', {'notify': text})
+            return
 
 
 class MailGroup(Group):
@@ -1283,6 +1315,7 @@ class MailGroup(Group):
                 return
             f = uiprimitives.Fill(parent=self.sr.colorTag, color=rgb)
             f.color.a = 0.75
+        return
 
 
 class MailEntry(listentry.Generic):
@@ -1350,6 +1383,7 @@ class MailLabelEntry(listentry.Generic):
                 return
             f = uiprimitives.Fill(parent=self.sr.colorTag, color=rgb)
             f.color.a = 0.75
+        return
 
     def OnDropData(self, dragObj, nodes):
         data = self.sr.node
@@ -1446,16 +1480,17 @@ class ManageLabelsBase(uicontrols.Window):
         self.sr.labelScroll.Load(contentList=scrolllist)
         self.ShowTextHint()
 
-    def OnMyLabelsChanged(self, labelType, created = None, *args):
+    def OnMyLabelsChanged(self, labelType, created=None, *args):
         if labelType == self.labelType:
             self.UpdateLabelsList(created)
 
-    def UpdateLabelsList(self, created = None, *args):
+    def UpdateLabelsList(self, created=None, *args):
         self.storedSelection = self.FindLabelsChecked()
         if created is not None:
             self.storedSelection.append(created)
         self.LoadScroll()
         self.storedSelection = []
+        return
 
     def ShowTextHint(self, *args):
         labelsChecked = self.FindLabelsChecked()
@@ -1506,6 +1541,7 @@ class ManageLabelsExistingMails(ManageLabelsBase):
           None,
           81]], parent=self.sr.bottom, idx=0, line=1)
         self.LoadScroll()
+        return
 
     def AssignLabelFromBtn(self, *args):
         self.ManageLabel(assign=1)
@@ -1513,7 +1549,7 @@ class ManageLabelsExistingMails(ManageLabelsBase):
     def RemoveLabelFromBtn(self, *args):
         self.ManageLabel(assign=0)
 
-    def ManageLabel(self, assign = 1):
+    def ManageLabel(self, assign=1):
         labelsChecked = self.FindLabelsChecked()
         numLabels = len(labelsChecked)
         if numLabels < 1:
@@ -1546,6 +1582,7 @@ class ManageLabelsExistingMails(ManageLabelsBase):
             wnd.sr.mail.RefreshLabels(selectedMails, mailIDs)
         else:
             raise UserError('CustomNotify', {'notify': localization.GetByLabel('UI/Mail/NoMailsSelected')})
+        return
 
 
 class ManageLabelsNewMails(ManageLabelsBase):
@@ -1563,6 +1600,7 @@ class ManageLabelsNewMails(ManageLabelsBase):
           81]], parent=self.sr.bottom, idx=0, line=1)
         self.storedSelection = labels
         self.LoadScroll()
+        return
 
     def Apply(self, *args):
         labelsChecked = self.FindLabelsChecked()
@@ -1572,6 +1610,7 @@ class ManageLabelsNewMails(ManageLabelsBase):
         self.result = labelsChecked
         if getattr(self, 'isModal', None):
             self.SetModalResult(1)
+        return
 
 
 class NewNewMessage(uicontrols.Window):
@@ -1684,8 +1723,9 @@ class NewNewMessage(uicontrols.Window):
         else:
             uicore.registry.SetFocus(receiver)
         self.ValidateReceivers()
+        return
 
-    def GetReceiverEdit(self, configname, where, setvalue = None, left = 0, width = 80, ints = None, top = 2, height = 18, floats = None, callback = None, label = None, maxLength = None, passwordChar = None, align = 0, readonly = 0, adjustWidth = False):
+    def GetReceiverEdit(self, configname, where, setvalue=None, left=0, width=80, ints=None, top=2, height=18, floats=None, callback=None, label=None, maxLength=None, passwordChar=None, align=0, readonly=0, adjustWidth=False):
         edit = uicls.ReceiverEdit(name=configname, parent=where, height=height, width=width, left=left, top=top, align=align)
         edit.SetMaxLength(maxLength)
         if setvalue is not None:
@@ -1698,12 +1738,12 @@ class NewNewMessage(uicontrols.Window):
     def _OnClose(self, *args):
         self.messageedit = None
         self.parsingReceivers = 0
-        from eve.client.script.ui.shared.neocom.characterSearchWindow import CharacterSearchWindow
-        wnd = CharacterSearchWindow.GetIfOpen()
+        wnd = OwnerSearchWindow.GetIfOpen()
         if wnd and wnd.configname == self.configname:
             wnd.CloseByUser()
+        return
 
-    def AddCharacterReceiver(self, id, partly = 0):
+    def AddCharacterReceiver(self, id, partly=0):
         if not util.IsCharacter(id):
             return self.AddCorpAllianceReciver(id)
         name = cfg.eveowners.Get(id).name
@@ -1737,7 +1777,7 @@ class NewNewMessage(uicontrols.Window):
             return False
         return True
 
-    def AddCorpAllianceReciver(self, id, partly = 0):
+    def AddCorpAllianceReciver(self, id, partly=0):
         if not self.ValidateCorpOrAlliance(id):
             return False
         name = cfg.eveowners.Get(id).name
@@ -1750,7 +1790,7 @@ class NewNewMessage(uicontrols.Window):
         self.AddReceiver(id, name)
         return True
 
-    def AddList(self, id, name, partly = 0):
+    def AddList(self, id, name, partly=0):
         if self.TotalNumberOfGroups() >= const.mailMaxGroups:
             self.GetMaxGroupText(name)
             return False
@@ -1761,7 +1801,7 @@ class NewNewMessage(uicontrols.Window):
         self.AddReceiver(id, name, checkNPC=False)
         return True
 
-    def AddReceiver(self, id, name, checkNPC = True):
+    def AddReceiver(self, id, name, checkNPC=True):
         if checkNPC and util.IsNPC(id):
             return
         c = self.sr.receiver.GetValue()
@@ -1816,6 +1856,8 @@ class NewNewMessage(uicontrols.Window):
             sm.ScatterEvent('OnSearcedUserAdded', id, self.configname)
             ret = util.KeyVal(name=nme, group=GROUP_CHAR, id=id)
             return ret
+        else:
+            return
 
     def GetMailinglistReceiver(self, name):
         lists = sm.GetService('mailinglists').GetMyMailingLists()
@@ -1824,6 +1866,8 @@ class NewNewMessage(uicontrols.Window):
                 if eve.Message('CustomQuestion', {'header': localization.GetByLabel('UI/Mail/SendToMailingListQ'),
                  'question': localization.GetByLabel('UI/Mail/SendToMailingListQ2', listName=name)}, uiconst.YESNO) == uiconst.ID_YES:
                     return key
+
+        return None
 
     def GetReceiver(self, string):
         if string in self.toChars:
@@ -1840,7 +1884,8 @@ class NewNewMessage(uicontrols.Window):
                     eve.Message('EveMailNoCharFound', {'name': string})
                 return (string, None)
             return (cfg.eveowners.Get(ownerID).name, ownerID)
-        return (string, None)
+        else:
+            return (string, None)
 
     def GetAllOptions(self):
         buddies = self.buddies
@@ -1890,10 +1935,12 @@ class NewNewMessage(uicontrols.Window):
                 else:
                     self.AddCorpAllianceReciver(node.itemID)
 
+        return
+
     def TotalNumberOfGroups(self):
         return len(self.toCorpAlliance) + int(self.toListID is not None)
 
-    def GetMaxGroupText(self, name, corpNamesUsed = None, listNamesUsed = None):
+    def GetMaxGroupText(self, name, corpNamesUsed=None, listNamesUsed=None):
         if corpNamesUsed is None:
             corpNamesUsed = self.toCorpAlliance
         if listNamesUsed is None and self.toListID is not None:
@@ -1914,84 +1961,88 @@ class NewNewMessage(uicontrols.Window):
         text = unichr(char)
         if text != ',' and self.sr.receiver.GetValue().strip() != '':
             return None
-        if not self or self.destroyed:
+        elif not self or self.destroyed:
             return None
-        uthread.new(self.ValidateReceivers)
+        else:
+            uthread.new(self.ValidateReceivers)
+            return None
 
     def ValidateReceivers(self, *args):
         if not self or self.destroyed or getattr(self, 'parsingReceivers', 0):
             return
-        self.parsingReceivers = 1
-        inp = self.sr.receiver.GetValue()
-        all = inp.split(',')
-        charNamesUsed = {}
-        corpNamesUsed = {}
-        listNamesUsed = {}
-        allReceivers = self.toChars.keys() + self.toCorpAlliance.keys()
-        myLists = sm.GetService('mailinglists').GetMyMailingLists()
-        myListsNames = [ each.displayName.lower() for each in myLists.itervalues() ]
-        if self.toListID in myLists:
-            allReceivers.append(myLists[self.toListID].displayName)
-        finalString = ''
-        for name in all:
-            name = name.strip()
-            if not name:
-                continue
-            cleanNameAndGroup = self.GetCleanNameAndGroup(name)
-            cleanName = cleanNameAndGroup.name
-            group = cleanNameAndGroup.group
-            if cleanName not in allReceivers:
-                add = self.AddUnknownToValidate(cleanName, listNamesUsed, corpNamesUsed, charNamesUsed)
-                if add is None:
-                    eve.Message('EvemailCantFindRecipient', {'name': cleanName})
+        else:
+            self.parsingReceivers = 1
+            inp = self.sr.receiver.GetValue()
+            all = inp.split(',')
+            charNamesUsed = {}
+            corpNamesUsed = {}
+            listNamesUsed = {}
+            allReceivers = self.toChars.keys() + self.toCorpAlliance.keys()
+            myLists = sm.GetService('mailinglists').GetMyMailingLists()
+            myListsNames = [ each.displayName.lower() for each in myLists.itervalues() ]
+            if self.toListID in myLists:
+                allReceivers.append(myLists[self.toListID].displayName)
+            finalString = ''
+            for name in all:
+                name = name.strip()
+                if not name:
                     continue
-                else:
-                    group = add.group
-                    cleanName = add.name
-            elif group == GROUP_LIST:
-                if cleanName.lower() in myListsNames:
-                    if cleanName not in listNamesUsed:
-                        listNamesUsed[cleanName] = True
-                    else:
+                cleanNameAndGroup = self.GetCleanNameAndGroup(name)
+                cleanName = cleanNameAndGroup.name
+                group = cleanNameAndGroup.group
+                if cleanName not in allReceivers:
+                    add = self.AddUnknownToValidate(cleanName, listNamesUsed, corpNamesUsed, charNamesUsed)
+                    if add is None:
+                        eve.Message('EvemailCantFindRecipient', {'name': cleanName})
                         continue
-            elif cleanName in self.toChars and cleanName not in charNamesUsed:
-                charNamesUsed[cleanName] = True
-            elif cleanName in self.toCorpAlliance and cleanName not in corpNamesUsed:
-                corpNamesUsed[cleanName] = True
-            else:
-                add = self.AddUnknownToValidate(cleanName, listNamesUsed, corpNamesUsed, charNamesUsed)
-                if add is None:
-                    continue
+                    else:
+                        group = add.group
+                        cleanName = add.name
+                elif group == GROUP_LIST:
+                    if cleanName.lower() in myListsNames:
+                        if cleanName not in listNamesUsed:
+                            listNamesUsed[cleanName] = True
+                        else:
+                            continue
+                elif cleanName in self.toChars and cleanName not in charNamesUsed:
+                    charNamesUsed[cleanName] = True
+                elif cleanName in self.toCorpAlliance and cleanName not in corpNamesUsed:
+                    corpNamesUsed[cleanName] = True
                 else:
-                    group = add.group
-                    cleanName = add.name
-            nameToAdd = cleanName
-            if group == GROUP_LIST:
-                nameToAdd = localization.GetByLabel('UI/Mail/MailEntry', entryName=nameToAdd, entryType=localization.GetByLabel('UI/Mail/ML'))
-            finalString += '%s, ' % nameToAdd
+                    add = self.AddUnknownToValidate(cleanName, listNamesUsed, corpNamesUsed, charNamesUsed)
+                    if add is None:
+                        continue
+                    else:
+                        group = add.group
+                        cleanName = add.name
+                nameToAdd = cleanName
+                if group == GROUP_LIST:
+                    nameToAdd = localization.GetByLabel('UI/Mail/MailEntry', entryName=nameToAdd, entryType=localization.GetByLabel('UI/Mail/ML'))
+                finalString += '%s, ' % nameToAdd
 
-        if not self or self.destroyed:
+            if not self or self.destroyed:
+                self.parsingReceivers = 0
+                return
+            self.sr.receiver.SetValue(finalString)
+            toChars = self.toChars.copy()
+            toCorpAlliance = self.toCorpAlliance.copy()
+            charsPopped = []
+            for each in toChars:
+                if each not in charNamesUsed:
+                    charsPopped.append(self.toChars.get(each, None))
+                    self.toChars.pop(each, None)
+
+            sm.ScatterEvent('OnSearcedUserRemoved', charsPopped, self.configname)
+            for each in toCorpAlliance:
+                if each not in corpNamesUsed:
+                    self.toCorpAlliance.pop(each, None)
+
+            if self.toListID is not None:
+                myLists = sm.GetService('mailinglists').GetMyMailingLists()
+                if self.toListID not in myLists or len(listNamesUsed) < 1:
+                    self.toListID = None
             self.parsingReceivers = 0
             return
-        self.sr.receiver.SetValue(finalString)
-        toChars = self.toChars.copy()
-        toCorpAlliance = self.toCorpAlliance.copy()
-        charsPopped = []
-        for each in toChars:
-            if each not in charNamesUsed:
-                charsPopped.append(self.toChars.get(each, None))
-                self.toChars.pop(each, None)
-
-        sm.ScatterEvent('OnSearcedUserRemoved', charsPopped, self.configname)
-        for each in toCorpAlliance:
-            if each not in corpNamesUsed:
-                self.toCorpAlliance.pop(each, None)
-
-        if self.toListID is not None:
-            myLists = sm.GetService('mailinglists').GetMyMailingLists()
-            if self.toListID not in myLists or len(listNamesUsed) < 1:
-                self.toListID = None
-        self.parsingReceivers = 0
 
     def GetCleanNameAndGroup(self, name):
         name = name.strip()
@@ -2008,29 +2059,31 @@ class NewNewMessage(uicontrols.Window):
         keyVal = self.NewParseReceiver(name)
         if keyVal is None:
             return
-        name = keyVal.name
-        group = keyVal.group
-        corpAndListsNum = len(corpNamesUsed) + len(listNamesUsed)
-        ret = keyVal.copy()
-        if group == GROUP_LIST:
-            if corpAndListsNum >= const.mailMaxGroups:
-                self.GetMaxGroupText(name, corpNamesUsed, listNamesUsed)
-            elif name not in listNamesUsed:
-                listNamesUsed[name] = True
-                return ret
-        elif group == GROUP_CORP:
-            if corpAndListsNum >= const.mailMaxGroups:
-                self.GetMaxGroupText(name, corpNamesUsed, listNamesUsed)
-            elif name not in corpNamesUsed:
-                corpNamesUsed[name] = True
-                return ret
-        elif group == GROUP_CHAR:
-            if len(charNamesUsed) >= const.mailMaxRecipients:
-                eve.Message('EvemailMaxRecipients', {'max': const.mailMaxRecipients,
-                 'name': name})
-            elif name not in charNamesUsed:
-                charNamesUsed[name] = True
-                return ret
+        else:
+            name = keyVal.name
+            group = keyVal.group
+            corpAndListsNum = len(corpNamesUsed) + len(listNamesUsed)
+            ret = keyVal.copy()
+            if group == GROUP_LIST:
+                if corpAndListsNum >= const.mailMaxGroups:
+                    self.GetMaxGroupText(name, corpNamesUsed, listNamesUsed)
+                elif name not in listNamesUsed:
+                    listNamesUsed[name] = True
+                    return ret
+            elif group == GROUP_CORP:
+                if corpAndListsNum >= const.mailMaxGroups:
+                    self.GetMaxGroupText(name, corpNamesUsed, listNamesUsed)
+                elif name not in corpNamesUsed:
+                    corpNamesUsed[name] = True
+                    return ret
+            elif group == GROUP_CHAR:
+                if len(charNamesUsed) >= const.mailMaxRecipients:
+                    eve.Message('EvemailMaxRecipients', {'max': const.mailMaxRecipients,
+                     'name': name})
+                elif name not in charNamesUsed:
+                    charNamesUsed[name] = True
+                    return ret
+            return
 
     def ClickSend(self, *args):
         self.SetSendBtnState(disable=1)
@@ -2044,46 +2097,48 @@ class NewNewMessage(uicontrols.Window):
             eve.Message('CustomInfo', {'info': localization.GetByLabel('UI/Mail/NoRecipientForMessage')})
             self.SetSendBtnState(disable=0)
             return
-        if len(allReceivers) > const.mailMaxRecipients + 1:
+        elif len(allReceivers) > const.mailMaxRecipients + 1:
             info = localization.GetByLabel('UI/Mail/TooManyRecipients', max=const.mailMaxRecipients)
             eve.Message('CustomInfo', {'info': info})
             self.SetSendBtnState(disable=0)
             return
-        subject = self.sr.subjecField.GetValue()
-        if subject.strip() == '':
-            self.SetSendBtnState(disable=0)
-            raise UserError('NoSubject')
-        elif len(subject) > const.mailMaxSubjectSize:
-            self.SetSendBtnState(disable=0)
-            raise UserError('CustomNotify', {'notify': localization.GetByLabel('UI/Mail/NameIsTooLong')})
-        body = self.messageedit.GetValue()
-        values = self.toCorpAlliance.values()
-        corpAlliance = None
-        if values:
-            corpAlliance = values[0]
-            if not self.ValidateCorpOrAlliance(corpAlliance):
+        else:
+            subject = self.sr.subjecField.GetValue()
+            if subject.strip() == '':
                 self.SetSendBtnState(disable=0)
-                raise UserError('EvemailSendingFailed')
-        labels = self.labels
-        try:
-            messageID = sm.GetService('mailSvc').SendMail(toCharacterIDs=self.toChars.values(), toListID=self.toListID, toCorpOrAllianceID=corpAlliance, title=subject, body=body, isReplyTo=self.isReplyTo, isForwardedFrom=self.isForwardedFrom)
-        except:
-            self.SetSendBtnState(disable=0)
-            raise
+                raise UserError('NoSubject')
+            elif len(subject) > const.mailMaxSubjectSize:
+                self.SetSendBtnState(disable=0)
+                raise UserError('CustomNotify', {'notify': localization.GetByLabel('UI/Mail/NameIsTooLong')})
+            body = self.messageedit.GetValue()
+            values = self.toCorpAlliance.values()
+            corpAlliance = None
+            if values:
+                corpAlliance = values[0]
+                if not self.ValidateCorpOrAlliance(corpAlliance):
+                    self.SetSendBtnState(disable=0)
+                    raise UserError('EvemailSendingFailed')
+            labels = self.labels
+            try:
+                messageID = sm.GetService('mailSvc').SendMail(toCharacterIDs=self.toChars.values(), toListID=self.toListID, toCorpOrAllianceID=corpAlliance, title=subject, body=body, isReplyTo=self.isReplyTo, isForwardedFrom=self.isForwardedFrom)
+            except:
+                self.SetSendBtnState(disable=0)
+                raise
 
-        if messageID is None:
-            self.SetSendBtnState(disable=0)
+            if messageID is None:
+                self.SetSendBtnState(disable=0)
+                return
+            sum = 0
+            for labelID in labels:
+                sum = sum + labelID
+
+            sm.GetService('mailSvc').AssignLabels([messageID], sum)
+            setattr(sm.StartService('mailSvc'), 'lastMessageTime', blue.os.GetWallclockTime())
+            if self and not self.destroyed:
+                self.Close()
             return
-        sum = 0
-        for labelID in labels:
-            sum = sum + labelID
 
-        sm.GetService('mailSvc').AssignLabels([messageID], sum)
-        setattr(sm.StartService('mailSvc'), 'lastMessageTime', blue.os.GetWallclockTime())
-        if self and not self.destroyed:
-            self.Close()
-
-    def SetSendBtnState(self, disable = 0):
+    def SetSendBtnState(self, disable=0):
         if disable:
             self.sr.sendBtn.state = uiconst.UI_DISABLED
             self.sr.sendBtn.opacity = 0.3
@@ -2115,14 +2170,16 @@ class NewNewMessage(uicontrols.Window):
                 else:
                     self.AddCorpAllianceReciver(itemID)
 
-    def GetSearchWnd(self, input = ''):
+        return
+
+    def GetSearchWnd(self, input=''):
         actionBtn = [(localization.GetByLabel('UI/Mail/Add'), self.AddReceiverFromSearch, 1)]
         caption = localization.GetByLabel('UI/Mail/SearchForRecipients')
-        wnd = CharacterSearchWindow.GetIfOpen()
+        wnd = OwnerSearchWindow.GetIfOpen()
         if wnd:
             wnd.CloseByUser()
         extraIconHintFlag = ['ui_73_16_13', localization.GetByLabel('UI/Mail/CharacterAdded'), False]
-        wnd = CharacterSearchWindowMail.Open(actionBtns=actionBtn, caption=caption, input=input, showContactList=True, extraIconHintFlag=extraIconHintFlag, configname=self.configname)
+        wnd = MailSearchWindow.Open(actionBtns=actionBtn, caption=caption, input=input, showContactList=True, extraIconHintFlag=extraIconHintFlag, configname=self.configname)
         if wnd is not None:
             wnd.IsAdded = self.IsAddedToMail
             wnd.Maximize()
@@ -2130,6 +2187,7 @@ class NewNewMessage(uicontrols.Window):
             if searchBtn is not None and input:
                 wnd.Search()
                 uicore.registry.SetFocus(searchBtn)
+        return
 
     def IsAddedToMail(self, charID, *args):
         if not self or self.destroyed:
@@ -2144,7 +2202,7 @@ class ReceiverEdit(uicontrols.SinglelineEdit):
         uicontrols.SinglelineEdit.ApplyAttributes(self, attributes)
         self.blockSetValue = 1
 
-    def RegisterHistory(self, value = None):
+    def RegisterHistory(self, value=None):
         pass
 
     def ClearHistory(self, *args):
@@ -2208,8 +2266,9 @@ class ReceiverEdit(uicontrols.SinglelineEdit):
         rest = getattr(self, 'rest', '')
         info = getattr(entry, 'info', None)
         self.OnHistoryClick(rest, entry.string, info)
+        return
 
-    def GetHistory(self, getAll = 0):
+    def GetHistory(self, getAll=0):
         id = 0
         all = self.GetAll()
         if getAll:
@@ -2227,17 +2286,19 @@ class ReceiverEdit(uicontrols.SinglelineEdit):
 
         if ep:
             ep.children.remove(ep.children[0])
+        return
 
     def Confirm(self, *args):
         if getattr(self, 'historyMenu', None) is None:
             return
-        hm = self.historyMenu()
-        entry = getattr(self, 'active', None)
-        if entry:
-            rest = getattr(self, 'rest', '')
-            self.OnHistoryClick(rest, entry.string, entry.info)
-        self.CloseHistoryMenu()
-        return False
+        else:
+            hm = self.historyMenu()
+            entry = getattr(self, 'active', None)
+            if entry:
+                rest = getattr(self, 'rest', '')
+                self.OnHistoryClick(rest, entry.string, entry.info)
+            self.CloseHistoryMenu()
+            return False
 
 
 class MailReadingWnd(uicontrols.Window):
@@ -2290,6 +2351,7 @@ class MailReadingWnd(uicontrols.Window):
          const.defaultPadding,
          const.defaultPadding))
         self.sr.readingPane = uicls.EditPlainText(setvalue=txt, parent=self.sr.rightCont, align=uiconst.TOALL, readonly=1)
+        return
 
     def SetText(self, text):
         self.sr.readingPane.SetValue(text)
@@ -2387,8 +2449,9 @@ class MailActionPanel(uiprimitives.Container):
         left += self.space + self.extraSpace
         self.sr.singleMsgBtn = [b, c, d]
         self.width = left
+        return
 
-    def Startup(self, data, showCompose = 1):
+    def Startup(self, data, showCompose=1):
         self.sr.data = data
         self.sr.composeBtn.OnClick = data.Get('composeClicked', self.ComposeClicked)
         self.sr.replyBtn.OnClick = data.Get('replyClicked', self.ReplyClicked)
@@ -2424,7 +2487,7 @@ class MailActionPanel(uiprimitives.Container):
     def DeleteClicked(self, *args):
         pass
 
-    def SetDeleteVisibility(self, disabled = 0, showDelete = 0):
+    def SetDeleteVisibility(self, disabled=0, showDelete=0):
         if showDelete:
             hiddenParent = self.sr.trashBtn.parent
             visibleBtn = self.sr.deleteBtn
@@ -2433,6 +2496,7 @@ class MailActionPanel(uiprimitives.Container):
             visibleBtn = self.sr.trashBtn
         if hiddenParent is not None:
             self.SetDeleteState(disabled, hiddenParent, visibleBtn)
+        return
 
     def SetDeleteState(self, disabled, hiddenParent, visibleBtn):
         btnState = [uiconst.UI_NORMAL, uiconst.UI_DISABLED][disabled]
@@ -2443,7 +2507,7 @@ class MailActionPanel(uiprimitives.Container):
         visibleBtn.opacity = opacity
         visibleBtn.parent.state = parentState
 
-    def SingleMsgBtnsState(self, disabled = 0, btns = None):
+    def SingleMsgBtnsState(self, disabled=0, btns=None):
         if disabled:
             state = uiconst.UI_DISABLED
             alpha = 0.3
@@ -2461,13 +2525,15 @@ class MailActionPanel(uiprimitives.Container):
             btn.opacity = alpha
             btn.parent.state = parentState
 
+        return
+
     def SingleMsgBtnStateAllowFwd(self, *args):
         btns = self.sr.singleMsgBtn[:]
         btns.remove(self.sr.forwardBtn)
         self.SingleMsgBtnsState(disabled=1, btns=btns)
         self.SingleMsgBtnsState(disabled=0, btns=[self.sr.forwardBtn])
 
-    def AddExtraButton(self, btn, withSpace = 1, size = None, hint = ''):
+    def AddExtraButton(self, btn, withSpace=1, size=None, hint=''):
         left = self.width
         if withSpace:
             left += self.extraSpace
@@ -2479,6 +2545,7 @@ class MailActionPanel(uiprimitives.Container):
          size), hint=hint)
         cont.children.append(btn)
         self.width = left + self.space
+        return
 
 
 class MailSettings(uicontrols.Window):
@@ -2593,14 +2660,16 @@ class MailSettings(uicontrols.Window):
         config = checkbox.data.get('config', None)
         if config == None:
             return
-        value = checkbox.data.get('value', None)
-        if value is None:
-            return
-        if value == 1:
-            self.sr.chargeCont.state = uiconst.UI_HIDDEN
         else:
-            self.sr.chargeCont.state = uiconst.UI_PICKCHILDREN
-        settings.char.ui.Set('mail_accessCombo', value)
+            value = checkbox.data.get('value', None)
+            if value is None:
+                return
+            if value == 1:
+                self.sr.chargeCont.state = uiconst.UI_HIDDEN
+            else:
+                self.sr.chargeCont.state = uiconst.UI_PICKCHILDREN
+            settings.char.ui.Set('mail_accessCombo', value)
+            return
 
     def OnApply(self, *args):
         oldCost = sm.GetService('account').GetDefaultContactCost()
@@ -2656,25 +2725,30 @@ class MailinglistWnd(uicontrols.Window):
         if name.strip() == '':
             eve.Message('LookupStringMinimum', {'minimum': 1})
             return
-        if len(name) > const.mailingListMaxNameSize:
-            raise UserError('CustomNotify', {'notify': localization.GetByLabel('UI/Mail/NameIsTooLong')})
-        ret = sm.GetService('mailinglists').CreateMailingList(name)
-        if ret is not None:
-            self.CloseByUser()
+        else:
+            if len(name) > const.mailingListMaxNameSize:
+                raise UserError('CustomNotify', {'notify': localization.GetByLabel('UI/Mail/NameIsTooLong')})
+            ret = sm.GetService('mailinglists').CreateMailingList(name)
+            if ret is not None:
+                self.CloseByUser()
+            return
 
     def JoinMaillist(self, *args):
         name = self.sr.inpt.GetValue()
         if name.strip() == '':
             eve.Message('LookupStringMinimum', {'minimum': 1})
             return
-        ret = sm.GetService('mailinglists').JoinMailingList(name)
-        if ret is not None:
-            self.CloseByUser()
+        else:
+            ret = sm.GetService('mailinglists').JoinMailingList(name)
+            if ret is not None:
+                self.CloseByUser()
+            return
 
 
-class CharacterSearchWindowMail(CharacterSearchWindow):
-    __guid__ = 'form.CharacterSearchWindowMail'
+class MailSearchWindow(OwnerSearchWindow):
+    __guid__ = 'form.MailSearchWindow'
     default_windowID = 'searchWindow_mail'
+    default_ownerGroups = [const.groupCharacter]
 
     def GetExtraSearchEntries(self, searchTerm, searchBy):
         extraEntries = []
@@ -2726,7 +2800,7 @@ class CharacterSearchWindowMail(CharacterSearchWindow):
 class MailAssignColorWnd(uiprimitives.Container):
     __guid__ = 'xtriui.MailAssignColorWnd'
 
-    def Startup(self, labelID, doneCallback = None, doneArgs = (), *args):
+    def Startup(self, labelID, doneCallback=None, doneArgs=(), *args):
         container = uiprimitives.Container(name='headercontainer', parent=self, align=uiconst.TOTOP, pos=(0, 0, 0, 18), idx=0)
         t = uicontrols.EveHeaderSmall(text=localization.GetByLabel('UI/Mail/Select Color'), parent=container, left=8, align=uiconst.TOALL, top=5, state=uiconst.UI_DISABLED)
         uiprimitives.Line(parent=container, align=uiconst.TOBOTTOM, top=-1)
@@ -2752,6 +2826,7 @@ class MailAssignColorWnd(uiprimitives.Container):
                 args = tuple([obj.swatchID]) + self.doneArgs
                 apply(self.doneCallback, args)
             self.Close()
+        return
 
 
 class SearchedUser(User):
@@ -2788,6 +2863,7 @@ class SearchedUser(User):
                 node.isAdded = isAdded
                 node.extraIcon = extraIcon
                 node.hint = ''
+        return
 
     def Load(self, node, *args):
         User.Load(self, node, *args)
@@ -2802,8 +2878,9 @@ class SearchedUser(User):
                 icon = uicontrols.Icon(parent=self.sr.extraIconCont, icon=node.extraIcon, pos=(0, 0, 0, 0), hint=node.hint)
                 self.sr.extraIconCont.SetAlign(uiconst.CENTERLEFT)
         self.SearcedUserAddedOrRemoved(node.isAdded)
+        return
 
-    def SearcedUserAddedOrRemoved(self, wasAdded = 0):
+    def SearcedUserAddedOrRemoved(self, wasAdded=0):
         if wasAdded:
             self.sr.extraIconCont.state = uiconst.UI_PICKCHILDREN
         else:

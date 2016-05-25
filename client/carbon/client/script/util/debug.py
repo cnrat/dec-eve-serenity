@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\carbon\client\script\util\debug.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\carbon\client\script\util\debug.py
 import pstats
 import sys
 import types
@@ -13,7 +14,7 @@ def Trace(fn):
     def deco(*args, **kw):
         no_ret = []
 
-        def logStuff(beginOrEnd, ret = no_ret):
+        def logStuff(beginOrEnd, ret=no_ret):
             if not settings.generic.Get('logDbgTrace', False):
                 return
             if args and hasattr(args[0], '__guid__'):
@@ -42,7 +43,7 @@ def Trace(fn):
     return deco
 
 
-def TraceAll(locals, ignore = ()):
+def TraceAll(locals, ignore=()):
     for name, val in locals.items():
         if name not in ignore and callable(val):
             locals[name] = Trace(val)
@@ -57,6 +58,7 @@ def Prettify(o):
         return '%s (%s)' % (o.name, o.__guid__)
     else:
         return str(o)
+        return
 
 
 def ImportHack(name):

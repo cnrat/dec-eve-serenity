@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\client\script\ui\util\searchUtil.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\client\script\ui\util\searchUtil.py
 import localization
 import uix
 import evetypes
@@ -15,7 +16,7 @@ def AddAuraToResults(resultsDict):
     resultsDict[const.searchResultAgent] = [sm.GetService('agents').GetAuraAgentID()] + resultsDict[const.searchResultAgent]
 
 
-def Search(searchStr, groupIDList, exact = 0, getWindow = 1, searchWndName = 'mySearch', corpMemberIDs = None):
+def Search(searchStr, groupIDList, exact=0, getWindow=1, searchWndName='mySearch', corpMemberIDs=None):
     import listentry
     searchStr = searchStr.replace('*', '')
     if len(searchStr) < 1:
@@ -168,6 +169,7 @@ def Search(searchStr, groupIDList, exact = 0, getWindow = 1, searchWndName = 'my
             return chosen[1]
     else:
         return scrolllist
+    return
 
 
 def GetSearchSubContent(dataX, *args):
@@ -194,7 +196,7 @@ def SearchCharactersInCorp(searchStr, corpMemberIDs):
     return []
 
 
-def QuickSearch(searchStr, groupIDList, exact = const.searchByPartialTerms, hideNPC = 0, onlyAltName = 0):
+def QuickSearch(searchStr, groupIDList, exact=const.searchByPartialTerms, hideNPC=0, onlyAltName=0):
     searchStr = searchStr.replace('*', '')
     if len(searchStr) < 1:
         sm.GetService('loading').StopCycle()

@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\packages\requests\_LWPCookieJar.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\packages\requests\_LWPCookieJar.py
 import time, re
 from cookielib import _warn_unhandled_exception, FileCookieJar, LoadError, Cookie, MISSING_FILENAME_TEXT, join_header_words, split_header_words, iso2time, time2isoz
 
@@ -33,7 +34,7 @@ def lwp_cookie_str(cookie):
 
 class LWPCookieJar(FileCookieJar):
 
-    def as_lwp_str(self, ignore_discard = True, ignore_expires = True):
+    def as_lwp_str(self, ignore_discard=True, ignore_expires=True):
         now = time.time()
         r = []
         for cookie in self:
@@ -45,7 +46,7 @@ class LWPCookieJar(FileCookieJar):
 
         return '\n'.join(r + [''])
 
-    def save(self, filename = None, ignore_discard = False, ignore_expires = False):
+    def save(self, filename=None, ignore_discard=False, ignore_expires=False):
         if filename is None:
             if self.filename is not None:
                 filename = self.filename
@@ -57,6 +58,8 @@ class LWPCookieJar(FileCookieJar):
             f.write(self.as_lwp_str(ignore_discard, ignore_expires))
         finally:
             f.close()
+
+        return
 
     def _really_load(self, f, filename, ignore_discard, ignore_expires):
         magic = f.readline()
@@ -119,3 +122,5 @@ class LWPCookieJar(FileCookieJar):
         except Exception:
             _warn_unhandled_exception()
             raise LoadError('invalid Set-Cookie3 format file %r: %r' % (filename, line))
+
+        return

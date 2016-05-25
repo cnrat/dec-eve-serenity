@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\packages\shipmode\data.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\packages\shipmode\data.py
 import evetypes
 shipStanceDefense = 1
 shipStanceSpeed = 2
@@ -80,6 +81,8 @@ def get_stance_data(type_id, stance_id):
         if stance_data.get_key() == stance_id:
             return stance_data
 
+    return None
+
 
 def get_modes_by_type(type_id):
     return {sd.get_key():sd.get_type_id() for sd in get_ship_modes_data(type_id)}
@@ -90,7 +93,7 @@ def ship_has_stances(type_id):
 
 
 def get_default_stance(type_id):
-    return 1
+    pass
 
 
 def get_stance_by_type(type_id):
@@ -101,3 +104,5 @@ def get_mode_for_type(type_id, stance):
     for sd in get_ship_modes_data(type_id):
         if sd.get_key() == stance:
             return sd.get_type_id()
+
+    return None

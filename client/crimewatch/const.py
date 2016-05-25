@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\packages\crimewatch\const.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\packages\crimewatch\const.py
 import inventorycommon
 securityLevelsPerTagType = {inventorycommon.const.typeSecurityTagCloneSoldierNegotiator: (-2.0, 0.0),
  inventorycommon.const.typeSecurityTagCloneSoldierTransporter: (-5.0, -2.0),

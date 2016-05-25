@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\carbon\client\script\entities\infoClient.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\carbon\client\script\entities\infoClient.py
 import service
 import collections
 
@@ -25,6 +26,7 @@ class InfoComponent:
         recipeID = state.get('_recipeID', None)
         if recipeID is not None:
             self.recipeID = recipeID
+        return
 
 
 class InfoClient(service.Service):

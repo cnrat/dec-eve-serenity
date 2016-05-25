@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\packages\carbonui\camera\cameraDebugWindow.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\packages\carbonui\camera\cameraDebugWindow.py
 import carbonui.const as uiconst
 from carbonui.control.window import WindowCoreOverride as Window
 from carbonui.control.buttons import ButtonCoreOverride as Button
@@ -64,6 +65,7 @@ class CameraDebugWindow(Window):
         self.showCamCheckBox.Show()
         sm.GetService('navigation').hasControl = debugCamera.IsControlEnabled()
         debugCamera.SetShowNormalCamera(self.showCamCheckBox.GetValue())
+        return
 
     def DisableDebugCamera(self):
         self.cameraClient.PopActiveCamera()

@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\carbon\common\stdlib\sgmllib.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\carbon\common\stdlib\sgmllib.py
 from warnings import warnpy3k
 warnpy3k('the sgmllib module has been removed in Python 3.0', stacklevel=2)
 del warnpy3k
@@ -24,7 +25,7 @@ class SGMLParseError(RuntimeError):
 class SGMLParser(markupbase.ParserBase):
     entity_or_charref = re.compile('&(?:([a-zA-Z][-.a-zA-Z0-9]*)|#([0-9]+))(;?)')
 
-    def __init__(self, verbose = 0):
+    def __init__(self, verbose=0):
         self.verbose = verbose
         self.reset()
 
@@ -36,6 +37,7 @@ class SGMLParser(markupbase.ParserBase):
         self.nomoretags = 0
         self.literal = 0
         markupbase.ParserBase.reset(self)
+        return
 
     def setnomoretags(self):
         self.nomoretags = self.literal = 1
@@ -186,40 +188,41 @@ class SGMLParser(markupbase.ParserBase):
             self.finish_shorttag(tag, data)
             self.__starttag_text = rawdata[start_pos:match.end(1) + 1]
             return k
-        match = endbracket.search(rawdata, i + 1)
-        if not match:
-            return -1
-        j = match.start(0)
-        attrs = []
-        if rawdata[i:i + 2] == '<>':
-            k = j
-            tag = self.lasttag
         else:
-            match = tagfind.match(rawdata, i + 1)
+            match = endbracket.search(rawdata, i + 1)
             if not match:
-                self.error('unexpected call to parse_starttag')
-            k = match.end(0)
-            tag = rawdata[i + 1:k].lower()
-            self.lasttag = tag
-        while k < j:
-            match = attrfind.match(rawdata, k)
-            if not match:
-                break
-            attrname, rest, attrvalue = match.group(1, 2, 3)
-            if not rest:
-                attrvalue = attrname
+                return -1
+            j = match.start(0)
+            attrs = []
+            if rawdata[i:i + 2] == '<>':
+                k = j
+                tag = self.lasttag
             else:
-                if attrvalue[:1] == "'" == attrvalue[-1:] or attrvalue[:1] == '"' == attrvalue[-1:]:
-                    attrvalue = attrvalue[1:-1]
-                attrvalue = self.entity_or_charref.sub(self._convert_ref, attrvalue)
-            attrs.append((attrname.lower(), attrvalue))
-            k = match.end(0)
+                match = tagfind.match(rawdata, i + 1)
+                if not match:
+                    self.error('unexpected call to parse_starttag')
+                k = match.end(0)
+                tag = rawdata[i + 1:k].lower()
+                self.lasttag = tag
+            while k < j:
+                match = attrfind.match(rawdata, k)
+                if not match:
+                    break
+                attrname, rest, attrvalue = match.group(1, 2, 3)
+                if not rest:
+                    attrvalue = attrname
+                else:
+                    if not attrvalue[:1] == "'" == attrvalue[-1:]:
+                        attrvalue = attrvalue[:1] == '"' == attrvalue[-1:] and attrvalue[1:-1]
+                    attrvalue = self.entity_or_charref.sub(self._convert_ref, attrvalue)
+                attrs.append((attrname.lower(), attrvalue))
+                k = match.end(0)
 
-        if rawdata[j] == '>':
-            j = j + 1
-        self.__starttag_text = rawdata[start_pos:j]
-        self.finish_starttag(tag, attrs)
-        return j
+            if rawdata[j] == '>':
+                j = j + 1
+            self.__starttag_text = rawdata[start_pos:j]
+            self.finish_starttag(tag, attrs)
+            return j
 
     def _convert_ref(self, match):
         if match.group(2):
@@ -284,18 +287,20 @@ class SGMLParser(markupbase.ParserBase):
                 if self.stack[i] == tag:
                     found = i
 
-        while len(self.stack) > found:
-            tag = self.stack[-1]
-            try:
-                method = getattr(self, 'end_' + tag)
-            except AttributeError:
-                method = None
+            while len(self.stack) > found:
+                tag = self.stack[-1]
+                try:
+                    method = getattr(self, 'end_' + tag)
+                except AttributeError:
+                    method = None
 
-            if method:
-                self.handle_endtag(tag, method)
-            else:
-                self.unknown_endtag(tag)
-            del self.stack[-1]
+                if method:
+                    self.handle_endtag(tag, method)
+                else:
+                    self.unknown_endtag(tag)
+                del self.stack[-1]
+
+        return
 
     def handle_starttag(self, tag, method, attrs):
         method(attrs)
@@ -327,6 +332,7 @@ class SGMLParser(markupbase.ParserBase):
             self.unknown_charref(name)
         else:
             self.handle_data(replacement)
+        return
 
     entitydefs = {'lt': '<',
      'gt': '>',
@@ -347,6 +353,7 @@ class SGMLParser(markupbase.ParserBase):
             self.unknown_entityref(name)
         else:
             self.handle_data(replacement)
+        return
 
     def handle_data(self, data):
         pass
@@ -375,7 +382,7 @@ class SGMLParser(markupbase.ParserBase):
 
 class TestSGMLParser(SGMLParser):
 
-    def __init__(self, verbose = 0):
+    def __init__(self, verbose=0):
         self.testdata = ''
         SGMLParser.__init__(self, verbose)
 
@@ -429,7 +436,7 @@ class TestSGMLParser(SGMLParser):
         self.flush()
 
 
-def test(args = None):
+def test(args=None):
     import sys
     if args is None:
         args = sys.argv[1:]
@@ -459,6 +466,7 @@ def test(args = None):
         x.feed(c)
 
     x.close()
+    return
 
 
 if __name__ == '__main__':

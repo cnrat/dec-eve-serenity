@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\client\script\ui\shared\planet\dust\dustEventManager.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\client\script\ui\shared\planet\dust\dustEventManager.py
 STATE_NORMAL = 0
 STATE_PLACE_PIN = 1
 
@@ -46,13 +47,15 @@ class DustEventManager:
     def OnPlanetNavClicked(self, surfacePoint, wasDragged):
         if wasDragged:
             return
-        if surfacePoint is None:
+        elif surfacePoint is None:
             self.dustPinManager.CancelPinPlacement()
             return
-        if self.state is STATE_PLACE_PIN:
-            self.dustPinManager.PlacePin(surfacePoint)
         else:
-            self.dustPinManager.PinUnselected()
+            if self.state is STATE_PLACE_PIN:
+                self.dustPinManager.PlacePin(surfacePoint)
+            else:
+                self.dustPinManager.PinUnselected()
+            return
 
     def OnPlanetNavMouseUp(self):
         pass

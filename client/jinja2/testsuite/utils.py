@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\carbon\common\lib\jinja2\testsuite\utils.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\carbon\common\lib\jinja2\testsuite\utils.py
 import gc
 import unittest
 import pickle
@@ -36,6 +37,7 @@ class HelpersTestCase(JinjaTestCase):
         self.assert_equal(object_type_repr(X()), 'jinja2.testsuite.utils.X object')
         self.assert_equal(object_type_repr(None), 'None')
         self.assert_equal(object_type_repr(Ellipsis), 'Ellipsis')
+        return
 
 
 class MarkupLeakTestCase(JinjaTestCase):

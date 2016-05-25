@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\carbon\common\lib\audio.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\carbon\common\lib\audio.py
 import world
 if world.WORLD_SPACE_SCHEMA == 'zworld':
     AUDIO_SCHEMA = world.WORLD_SPACE_SCHEMA

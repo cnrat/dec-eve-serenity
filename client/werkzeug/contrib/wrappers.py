@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\carbon\common\lib\werkzeug\contrib\wrappers.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\carbon\common\lib\werkzeug\contrib\wrappers.py
 import codecs
 from werkzeug.exceptions import BadRequest
 from werkzeug.utils import cached_property
@@ -65,10 +66,11 @@ class RoutingArgsRequestMixin(object):
         rv = self.environ.get('wsgiorg.routing_args')
         if rv is not None:
             return rv[1]
-        rv = {}
-        if not self.shallow:
-            self.routing_vars = rv
-        return rv
+        else:
+            rv = {}
+            if not self.shallow:
+                self.routing_vars = rv
+            return rv
 
     def _set_routing_vars(self, value):
         if self.shallow:
@@ -97,7 +99,7 @@ class DynamicCharsetRequestMixin(object):
     default_charset = 'latin1'
 
     def unknown_charset(self, charset):
-        return 'latin1'
+        pass
 
     @cached_property
     def charset(self):

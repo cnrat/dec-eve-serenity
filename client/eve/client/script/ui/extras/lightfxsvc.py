@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\client\script\ui\extras\lightfxsvc.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\client\script\ui\extras\lightfxsvc.py
 import blue
 import service
 from eve.common.lib.appConst import soundNotifications
@@ -155,7 +156,7 @@ class LightFx(service.Service):
 
         return False
 
-    def AddEffect(self, effect, priority = lightfxConstants.LFX_NORMAL_PRIORITY):
+    def AddEffect(self, effect, priority=lightfxConstants.LFX_NORMAL_PRIORITY):
         if not isinstance(effect, LedEffect):
             raise TypeError('effect must be a LedEffect or a subclass thereof.')
         if not self.Enabled() or not self.IsLightFxSupported():
@@ -258,26 +259,29 @@ class LightFx(service.Service):
     def OnDamageStateChange(self, shipID, damageState):
         if session.shipid != shipID:
             return
-        for i in xrange(0, 3):
-            ledFx = None
-            notification = SoundNotification(i)
-            enabled = settings.user.notifications.Get(notification.activeFlagSettingsName, 1)
-            if not enabled:
-                continue
-            storedThreshold = settings.user.notifications.Get(notification.healthThresholdSettingsName, notification.defaultThreshold)
-            shouldNotify = damageState[i] <= storedThreshold
-            alreadyNotified = self.damageAlertTriggered[i]
-            if shouldNotify and not alreadyNotified:
-                self.damageAlertTriggered[i] = True
-                ledFx = BlinkingLedEffect()
-                colors = (lightfxConstants.LFX_YELLOW, lightfxConstants.LFX_ORANGE, lightfxConstants.LFX_RED)
-                ledFx.color = colors[i]
-                ledFx.repetitions = 4
-            if alreadyNotified:
-                self.damageAlertTriggered[i] = shouldNotify
-                continue
-            if ledFx is not None:
-                self.AddEffect(ledFx)
+        else:
+            for i in xrange(0, 3):
+                ledFx = None
+                notification = SoundNotification(i)
+                enabled = settings.user.notifications.Get(notification.activeFlagSettingsName, 1)
+                if not enabled:
+                    continue
+                storedThreshold = settings.user.notifications.Get(notification.healthThresholdSettingsName, notification.defaultThreshold)
+                shouldNotify = damageState[i] <= storedThreshold
+                alreadyNotified = self.damageAlertTriggered[i]
+                if shouldNotify and not alreadyNotified:
+                    self.damageAlertTriggered[i] = True
+                    ledFx = BlinkingLedEffect()
+                    colors = (lightfxConstants.LFX_YELLOW, lightfxConstants.LFX_ORANGE, lightfxConstants.LFX_RED)
+                    ledFx.color = colors[i]
+                    ledFx.repetitions = 4
+                if alreadyNotified:
+                    self.damageAlertTriggered[i] = shouldNotify
+                    continue
+                if ledFx is not None:
+                    self.AddEffect(ledFx)
+
+            return
 
 
 exports = {'lightfxsvc.LedEffect': LedEffect,

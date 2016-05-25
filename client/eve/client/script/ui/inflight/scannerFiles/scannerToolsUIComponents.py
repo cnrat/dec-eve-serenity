@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\client\script\ui\inflight\scannerFiles\scannerToolsUIComponents.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\client\script\ui\inflight\scannerFiles\scannerToolsUIComponents.py
 import weakref
 from carbon.common.script.util.timerstuff import AutoTimer
 from carbonui.primitives.container import Container
@@ -138,6 +139,8 @@ class ProbeTooltipCheckboxRow(ProbeTooltipButtonBase):
             shortcutObj = ShortcutHint(text=str(attributes.filterIndex))
             self.AddCell(shortcutObj, cellPadding=(2, 2, 2, 0))
             return shortcutObj
+        else:
+            return
 
     def OnDelete(self, *args):
         if self.deleteFunction:
@@ -185,6 +188,7 @@ class ProbeTooltipButton_CustomFormation(ProbeTooltipButtonBase):
     def Close(self, *args):
         ProbeTooltipButtonBase.Close(self, *args)
         self.OnChangeCallback = None
+        return
 
     def OnClick(self, *args):
         probescanning.customFormations.SelectFormation(self.formation[0])
@@ -245,11 +249,13 @@ class FormationButton(BigButton):
         else:
             self.Disable()
         self.hint = self.selectedFormationName
+        return
 
     def OnClick(self, *args):
         selectedFormationID = probescanning.customFormations.GetSelectedFormationID()
         if selectedFormationID is not None:
             self.scanSvc.MoveProbesToFormation(selectedFormationID)
+        return
 
     def LoadTooltipPanel(self, tooltipPanel, *args):
         tooltipPanel.Flush()
@@ -279,9 +285,11 @@ class FormationButton(BigButton):
     def ReloadCustomFormationTooltip(self):
         if not self.customFormationTooltip or self.destroyed:
             return
-        customFormationTooltip = self.customFormationTooltip()
-        if customFormationTooltip is not None:
-            self.LoadTooltipPanel(customFormationTooltip)
+        else:
+            customFormationTooltip = self.customFormationTooltip()
+            if customFormationTooltip is not None:
+                self.LoadTooltipPanel(customFormationTooltip)
+            return
 
     def OnCustomFormationsChanged(self, *args):
         self.ReloadCustomFormationTooltip()
@@ -291,15 +299,18 @@ class FormationButton(BigButton):
         if tooltipPanel.destroyed:
             self.tooltipUpdateTimer = None
             return
-        for formationID, button in self.formationButtonsByID.iteritems():
-            if button.destroyed:
-                continue
-            try:
-                canLaunch = self.scanSvc.CanLaunchFormation(formationID)
-            except KeyError:
-                continue
+        else:
+            for formationID, button in self.formationButtonsByID.iteritems():
+                if button.destroyed:
+                    continue
+                try:
+                    canLaunch = self.scanSvc.CanLaunchFormation(formationID)
+                except KeyError:
+                    continue
 
-            if canLaunch:
-                button.Enable()
-            else:
-                button.Disable()
+                if canLaunch:
+                    button.Enable()
+                else:
+                    button.Disable()
+
+            return

@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\common\lib\p4cmd.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\common\lib\p4cmd.py
 import subprocess, marshal, sys
 
 class P4Error(RuntimeError):
@@ -26,7 +27,7 @@ class Bunch(dict):
         return Bunch(self.copy())
 
 
-def Run(cmd, extra = ''):
+def Run(cmd, extra=''):
     p = subprocess.Popen('p4 -G %s %s' % (extra, cmd), stdout=subprocess.PIPE)
     try:
         while True:
@@ -38,8 +39,10 @@ def Run(cmd, extra = ''):
     except EOFError:
         pass
 
+    return
 
-def Describe(changelist, flags = ''):
+
+def Describe(changelist, flags=''):
     desc = Run('describe %s %s' % (changelist, flags)).next()
     files = []
     i = 0

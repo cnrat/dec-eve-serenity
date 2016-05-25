@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\packages\carbonui\util\uiAnimationTest.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\packages\carbonui\util\uiAnimationTest.py
 import carbonui.const as uiconst
 from carbonui.control.scrollentries import ScrollEntryNode, SE_GenericCore
 from carbonui.primitives.transform import Transform
@@ -54,6 +55,8 @@ class TestAnimationsWnd(Window):
         for label, func, args in btns:
             Button(parent=Container(parent=self.buttonCont), label=label, func=func, align=uiconst.CENTER)
 
+        return
+
     def ConstructTopCont(self):
         checkBoxes = [(MODE_NORMAL, 'Normal'), (MODE_CODE, 'Code')]
         if self.inputObj:
@@ -81,6 +84,7 @@ class TestAnimationsWnd(Window):
             Button(parent=self.spriteCont, align=uiconst.TOPLEFT, label='Assign result', top=60, left=5, func=self.OnAssignCodeBtn)
         elif self.mode is MODE_INPUT:
             self.mainItem = self.inputObj
+        return
 
     def OnDurationEditChanged(self, value):
         self.duration = float(value.replace(',', '.'))

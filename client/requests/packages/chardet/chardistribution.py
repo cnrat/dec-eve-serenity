@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\packages\requests\packages\chardet\chardistribution.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\packages\requests\packages\chardet\chardistribution.py
 from .euctwfreq import EUCTWCharToFreqOrder, EUCTW_TABLE_SIZE, EUCTW_TYPICAL_DISTRIBUTION_RATIO
 from .euckrfreq import EUCKRCharToFreqOrder, EUCKR_TABLE_SIZE, EUCKR_TYPICAL_DISTRIBUTION_RATIO
 from .gb2312freq import GB2312CharToFreqOrder, GB2312_TABLE_SIZE, GB2312_TYPICAL_DISTRIBUTION_RATIO
@@ -17,6 +18,7 @@ class CharDistributionAnalysis:
         self._mTableSize = None
         self._mTypicalDistributionRatio = None
         self.reset()
+        return
 
     def reset(self):
         self._mDone = False
@@ -47,7 +49,7 @@ class CharDistributionAnalysis:
         return self._mTotalChars > ENOUGH_DATA_THRESHOLD
 
     def get_order(self, aBuf):
-        return -1
+        pass
 
 
 class EUCTWDistributionAnalysis(CharDistributionAnalysis):

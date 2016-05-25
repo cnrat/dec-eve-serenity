@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\client\script\ui\shared\skins\buyButton.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\client\script\ui\shared\skins\buyButton.py
 from eve.client.script.ui.shared.skins.event import LogBuySkinAur, LogBuySkinIsk
 from eve.client.script.ui.shared.vgs.button import BuyButtonAurSmall, BuyButtonIskSmall
 import localization
@@ -13,6 +14,7 @@ class SkinLicenseBuyButtonAur(BuyButtonAurSmall):
     def OpenOfferWindow(self):
         super(SkinLicenseBuyButtonAur, self).OpenOfferWindow()
         LogBuySkinAur(None, None, self.logContext)
+        return
 
 
 class SkinLicenseBuyButtonIsk(BuyButtonIskSmall):
@@ -24,6 +26,7 @@ class SkinLicenseBuyButtonIsk(BuyButtonIskSmall):
     def OpenMarketWindow(self):
         super(SkinLicenseBuyButtonIsk, self).OpenMarketWindow()
         LogBuySkinIsk(None, None, self.logContext)
+        return
 
 
 class SkinMaterialBuyButtonAur(BuyButtonAurSmall):

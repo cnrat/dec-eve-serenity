@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\carbon\common\lib\markdown\extensions\meta.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\carbon\common\lib\markdown\extensions\meta.py
 import re
 import markdown
 META_RE = re.compile('^[ ]{0,3}(?P<key>[A-Za-z0-9_-]+):\\s*(?P<value>.*)')
@@ -40,7 +41,7 @@ class MetaPreprocessor(markdown.preprocessors.Preprocessor):
         return lines
 
 
-def makeExtension(configs = {}):
+def makeExtension(configs={}):
     return MetaExtension(configs=configs)
 
 

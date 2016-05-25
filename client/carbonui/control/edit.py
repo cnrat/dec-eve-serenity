@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\packages\carbonui\control\edit.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\packages\carbonui\control\edit.py
 from carbonui.control.basicDynamicScroll import Scroll
 from carbonui.control.editPlainText import EditPlainTextCore
 from carbonui.control.menu import ClearMenuLayer
@@ -115,6 +116,7 @@ class EditCore(ParserBase, Scroll):
         self.SetValue(setvalue)
         if not self.destroyed:
             self._initingEdit = False
+        return
 
     def Prepare_Underlay_(self):
         self.sr.backgroundColorContainer = Container(name='backgroundColorContainer', parent=self)
@@ -128,12 +130,13 @@ class EditCore(ParserBase, Scroll):
     def GetLinespace(self):
         if not self or not getattr(self, 'sr', None):
             return 0
-        if self.sr.nodes:
-            if self.sr.nodes[-1].maxBaseHeight is not None:
-                return self.sr.nodes[-1].maxBaseHeight
-            if self.sr.nodes[-1].size is not None:
-                return int(self.sr.nodes[-1].size)
-        return 18
+        else:
+            if self.sr.nodes:
+                if self.sr.nodes[-1].maxBaseHeight is not None:
+                    return self.sr.nodes[-1].maxBaseHeight
+                if self.sr.nodes[-1].size is not None:
+                    return int(self.sr.nodes[-1].size)
+            return 18
 
     def Reset(self, *args, **kw):
         cw, ch = self.sr.content.GetAbsoluteSize()
@@ -142,45 +145,47 @@ class EditCore(ParserBase, Scroll):
         self.sr.underlays_content.Flush()
 
     @telemetry.ZONE_METHOD
-    def LoadHTML(self, htmlstr, reload = 0, scrollTo = None, newThread = 1, breakOnly = 0):
+    def LoadHTML(self, htmlstr, reload=0, scrollTo=None, newThread=1, breakOnly=0):
         if not self or self.destroyed:
             return
-        if self._loading:
+        elif self._loading:
             return
-        self._loading = 1
-        self.sr.resizeTimer = None
-        self.tagdepth = 0
-        self.keybuffer = []
-        self.textbuffers = []
-        formdatalist = []
-        if htmlstr is None:
-            if self.sr.currentTXT is not None:
-                for form in self.sr.forms:
-                    formdatalist.append(form.GetFields())
-
         else:
-            self.sr.currentTXT = htmlstr
-        htmlstr = htmlstr or self.sr.currentTXT or ''
-        htmlstr = htmlstr.replace('*</localized>', '</localized>')
-        self._LoadHTML(htmlstr)
-        if self.destroyed:
-            return
-        if breakOnly:
+            self._loading = 1
+            self.sr.resizeTimer = None
+            self.tagdepth = 0
+            self.keybuffer = []
+            self.textbuffers = []
+            formdatalist = []
+            if htmlstr is None:
+                if self.sr.currentTXT is not None:
+                    for form in self.sr.forms:
+                        formdatalist.append(form.GetFields())
+
+            else:
+                self.sr.currentTXT = htmlstr
+            htmlstr = htmlstr or self.sr.currentTXT or ''
+            htmlstr = htmlstr.replace('*</localized>', '</localized>')
+            self._LoadHTML(htmlstr)
+            if self.destroyed:
+                return
+            elif breakOnly:
+                self._loading = 0
+                return
+            self.SetSelectionRange(None, None)
+            self.RenderLines(scrollTo, formdatalist)
+            if hasattr(self, 'CheckOverlaysAndUnderlays'):
+                self.CheckOverlaysAndUnderlays()
+            self.UpdateNodesCursorIndexes()
+            if not self.readonly:
+                self.DoContentResize()
+                self.SetCursorPos(0)
+            else:
+                self.RefreshCursorAndSelection()
             self._loading = 0
             return
-        self.SetSelectionRange(None, None)
-        self.RenderLines(scrollTo, formdatalist)
-        if hasattr(self, 'CheckOverlaysAndUnderlays'):
-            self.CheckOverlaysAndUnderlays()
-        self.UpdateNodesCursorIndexes()
-        if not self.readonly:
-            self.DoContentResize()
-            self.SetCursorPos(0)
-        else:
-            self.RefreshCursorAndSelection()
-        self._loading = 0
 
-    def RenderLines(self, scrollTo = None, formdatalist = []):
+    def RenderLines(self, scrollTo=None, formdatalist=[]):
         self.sr.lines.insert(0, ScrollEntryNode(decoClass=SE_Space, height=self.ymargin))
         if len(self.sr.lines) == 1 and not self.readonly:
             self.sr.lines.append(self.GetFirstLine())
@@ -206,237 +211,242 @@ class EditCore(ParserBase, Scroll):
             self.HideBackground(alwaysHidden=self.hideBackground)
         if not attrs:
             return
-        self.bgscrolltype = html.BG_TILED
-        for each in ('link', 'alink', 'vlink'):
-            if getattr(attrs, each, None):
-                self.attrStack[-1]['%s-color' % each] = ParseHTMLColor(getattr(attrs, each, None), 1)
+        else:
+            self.bgscrolltype = html.BG_TILED
+            for each in ('link', 'alink', 'vlink'):
+                if getattr(attrs, each, None):
+                    self.attrStack[-1]['%s-color' % each] = ParseHTMLColor(getattr(attrs, each, None), 1)
 
-        if attrs.text:
-            self.attrStack[-1]['color'] = ParseHTMLColor(attrs.text, 1)
-        if attrs.bgcolor:
-            self.attrStack[-1]['background-color'] = ParseHTMLColor(attrs.bgcolor, 1)
-        if attrs.background:
-            self.attrStack[-1]['background-image'] = attrs.background
-        self.ParseStdStyles(attrs)
-        if not self.hideBackground:
-            if self.attrStack[-1]['background-color']:
-                col = self.attrStack[-1]['background-color']
-                Fill(parent=self.sr.backgroundColorContainer, color=col)
-                self.attrStack[-1]['background-color'] = None
-            if self.attrStack[-1]['background-image']:
-                aL, aT, aW, aH = self.parent.GetAbsolute()
-                windowWidth = aW
-                windowHeight = aH
-                pic = Sprite()
-                pic.left = self.attrStack[-1]['background-image-left']
-                pic.top = self.attrStack[-1]['background-image-top']
-                pic.width = self.attrStack[-1]['background-image-width']
-                pic.height = self.attrStack[-1]['background-image-height']
-                if self.attrStack[-1]['background-image'].startswith('icon:'):
-                    log.LogError('Icon:* is not legal background path')
-                path = self.CheckURL(self.attrStack[-1]['background-image'])
-                texture, tWidth, tHeight = sm.GetService('browserImage').GetTextureFromURL(path, fromWhere='Bastard::LoadBodyAttrs')
-                if self.destroyed:
-                    return
-                pic.width = self.attrStack[-1]['background-image-width'] or tWidth
-                pic.height = self.attrStack[-1]['background-image-height'] or tHeight
-                pic.texture = texture
-                for pos in self.attrStack[-1]['background-position']:
-                    if pos == 'top':
-                        pic.top = 0
-                    elif pos == 'bottom':
-                        pic.left = windowHeight - pic.height
-                    elif pos == 'middle':
-                        pic.left = (windowHeight - pic.height) / 2
-                    elif pos == 'left':
-                        pic.left = 0
-                    elif pos == 'right':
-                        pic.left = windowWidth - pic.width
-                    elif pos == 'center':
-                        pic.left = (windowWidth - pic.width) / 2
+            if attrs.text:
+                self.attrStack[-1]['color'] = ParseHTMLColor(attrs.text, 1)
+            if attrs.bgcolor:
+                self.attrStack[-1]['background-color'] = ParseHTMLColor(attrs.bgcolor, 1)
+            if attrs.background:
+                self.attrStack[-1]['background-image'] = attrs.background
+            self.ParseStdStyles(attrs)
+            if not self.hideBackground:
+                if self.attrStack[-1]['background-color']:
+                    col = self.attrStack[-1]['background-color']
+                    Fill(parent=self.sr.backgroundColorContainer, color=col)
+                    self.attrStack[-1]['background-color'] = None
+                if self.attrStack[-1]['background-image']:
+                    aL, aT, aW, aH = self.parent.GetAbsolute()
+                    windowWidth = aW
+                    windowHeight = aH
+                    pic = Sprite()
+                    pic.left = self.attrStack[-1]['background-image-left']
+                    pic.top = self.attrStack[-1]['background-image-top']
+                    pic.width = self.attrStack[-1]['background-image-width']
+                    pic.height = self.attrStack[-1]['background-image-height']
+                    if self.attrStack[-1]['background-image'].startswith('icon:'):
+                        log.LogError('Icon:* is not legal background path')
+                    path = self.CheckURL(self.attrStack[-1]['background-image'])
+                    texture, tWidth, tHeight = sm.GetService('browserImage').GetTextureFromURL(path, fromWhere='Bastard::LoadBodyAttrs')
+                    if self.destroyed:
+                        return
+                    pic.width = self.attrStack[-1]['background-image-width'] or tWidth
+                    pic.height = self.attrStack[-1]['background-image-height'] or tHeight
+                    pic.texture = texture
+                    for pos in self.attrStack[-1]['background-position']:
+                        if pos == 'top':
+                            pic.top = 0
+                        elif pos == 'bottom':
+                            pic.left = windowHeight - pic.height
+                        elif pos == 'middle':
+                            pic.left = (windowHeight - pic.height) / 2
+                        elif pos == 'left':
+                            pic.left = 0
+                        elif pos == 'right':
+                            pic.left = windowWidth - pic.width
+                        elif pos == 'center':
+                            pic.left = (windowWidth - pic.width) / 2
 
-                if self.attrStack[-1]['background-image-color']:
-                    pic.SetRGB(*self.attrStack[-1]['background-image-color'])
-                row = Container(name='row', align=uiconst.TOTOP, pos=(0,
-                 0,
-                 0,
-                 pic.height))
-                if self.attrStack[-1]['background-repeat'] in ('repeat', 'repeat-x'):
-                    for x in xrange(max(windowWidth / pic.width, 2)):
+                    if self.attrStack[-1]['background-image-color']:
+                        pic.SetRGB(*self.attrStack[-1]['background-image-color'])
+                    row = Container(name='row', align=uiconst.TOTOP, pos=(0,
+                     0,
+                     0,
+                     pic.height))
+                    if self.attrStack[-1]['background-repeat'] in ('repeat', 'repeat-x'):
+                        for x in xrange(max(windowWidth / pic.width, 2)):
+                            row.children.append(pic.CopyTo())
+                            pic.left += pic.width
+
+                    else:
                         row.children.append(pic.CopyTo())
-                        pic.left += pic.width
+                    if self.attrStack[-1]['background-repeat'] in ('repeat', 'repeat-y'):
+                        if self.attrStack[-1]['background-attachment'] == 'scroll':
+                            self.bgscrolltype = html.BG_TILED
+                        for y in xrange(max(windowHeight / tHeight, 2) + 1):
+                            self.sr.background.children.append(row.CopyTo())
 
-                else:
-                    row.children.append(pic.CopyTo())
-                if self.attrStack[-1]['background-repeat'] in ('repeat', 'repeat-y'):
-                    if self.attrStack[-1]['background-attachment'] == 'scroll':
-                        self.bgscrolltype = html.BG_TILED
-                    for y in xrange(max(windowHeight / tHeight, 2) + 1):
+                    else:
+                        if self.attrStack[-1]['background-attachment'] == 'scroll':
+                            self.bgscrolltype = html.BG_SCROLL
                         self.sr.background.children.append(row.CopyTo())
+                    if self.attrStack[-1]['background-attachment'] == 'fixed':
+                        self.bgscrolltype = html.BG_FIXED
+                        self.sr.background.top = 0
+                    self.attrStack[-1]['background-image'] = None
+            if self.attrStack[-1]['margin-top'] != 0:
+                margin = self.attrStack[-1]['margin-top']
+                lpush, rpush = self.GetMargins(self.contentHeight, self.contentHeight + margin)
+                self.FlushBuffer([([],
+                  [],
+                  [],
+                  lpush,
+                  rpush,
+                  None,
+                  margin,
+                  0,
+                  0)])
+            return
 
-                else:
-                    if self.attrStack[-1]['background-attachment'] == 'scroll':
-                        self.bgscrolltype = html.BG_SCROLL
-                    self.sr.background.children.append(row.CopyTo())
-                if self.attrStack[-1]['background-attachment'] == 'fixed':
-                    self.bgscrolltype = html.BG_FIXED
-                    self.sr.background.top = 0
-                self.attrStack[-1]['background-image'] = None
-        if self.attrStack[-1]['margin-top'] != 0:
-            margin = self.attrStack[-1]['margin-top']
-            lpush, rpush = self.GetMargins(self.contentHeight, self.contentHeight + margin)
-            self.FlushBuffer([([],
-              [],
-              [],
-              lpush,
-              rpush,
-              None,
-              margin,
-              0,
-              0)])
-
-    def GoTo(self, URL, data = None, args = {}, scrollTo = None, newThread = 1):
+    def GoTo(self, URL, data=None, args={}, scrollTo=None, newThread=1):
         if self.sr.window and hasattr(self.sr.window, 'GoTo'):
             self.sr.window.GoTo(URL, data, args, scrollTo)
         else:
             return self._GoTo(URL, data, args, newThread=newThread)
 
-    def _GoTo(self, url, data = None, args = {}, scrollTo = None, recursive = 0, newThread = 1, getSource = 0):
+    def _GoTo(self, url, data=None, args={}, scrollTo=None, recursive=0, newThread=1, getSource=0):
         if not url:
             return
-        if getSource:
+        elif getSource:
             return self.sr.currentTXT
-        if self.sr.window and hasattr(self.sr.window, 'ShowLoad'):
-            self.sr.window.ShowLoad()
-        self.startTime = blue.os.GetWallclockTimeNow()
-        self.SetStatus(localization.GetByLabel('/Carbon/UI/Controls/EditRichText/OpeningURL', url=url))
-        url = url.encode('ascii')
-        import corebrowserutil
-        from carbon.common.script.net.GPS import ClientConnectFailed, ClientConnectFailedString
-        try:
-            if self.sr.window and getattr(self.sr.window, 'SetCaption', None):
-                self.sr.window.SetCaption('')
-            node = data
-            self.sr.currentData = data
+        else:
+            if self.sr.window and hasattr(self.sr.window, 'ShowLoad'):
+                self.sr.window.ShowLoad()
+            self.startTime = blue.os.GetWallclockTimeNow()
+            self.SetStatus(localization.GetByLabel('/Carbon/UI/Controls/EditRichText/OpeningURL', url=url))
+            url = url.encode('ascii')
+            import corebrowserutil
+            from carbon.common.script.net.GPS import ClientConnectFailed, ClientConnectFailedString
             try:
-                if url.startswith('./'):
-                    url = url[2:]
-                if self.sr.currentURL is not None and self.sr.currentURL.lower().startswith('res:') and ':' not in url[:6]:
-                    lastslash = self.sr.currentURL.rfind('/')
-                    url = self.sr.currentURL[:lastslash + 1] + url
-                url = self.LocalizeURL(url)
-                if url.lower().startswith('res:'):
-                    response = ResFile(url)
-                    self.sr.currentURL = url
-                else:
-                    url, anchor = self.CheckURL(url, getAnchor=1)
-                    scheme, netloc, path, query, fragment = urlparse.urlsplit(url)
-                    self.sr.currentURL = urlparse.urlunsplit((scheme,
-                     netloc,
-                     path or '/',
-                     query,
-                     '')).rstrip()
-                    cookie = self.sr.cookieMgr.GetCookie(url)
-                    response = corebrowserutil.GetStringFromURL(url, data, cookie)
-                    if self.destroyed:
-                        return
-                    scheme, netloc, path, query, fragment = urlparse.urlsplit(url)
-                    if path and path[-1] != '/' and '.' not in path[-5:] and url.find('local://') == -1:
-                        path += '/'
-                    if getattr(response, 'url', None):
-                        self.sr.currentURL = response.url
+                if self.sr.window and getattr(self.sr.window, 'SetCaption', None):
+                    self.sr.window.SetCaption('')
+                node = data
+                self.sr.currentData = data
+                try:
+                    if url.startswith('./'):
+                        url = url[2:]
+                    if self.sr.currentURL is not None and self.sr.currentURL.lower().startswith('res:') and ':' not in url[:6]:
+                        lastslash = self.sr.currentURL.rfind('/')
+                        url = self.sr.currentURL[:lastslash + 1] + url
+                    url = self.LocalizeURL(url)
+                    if url.lower().startswith('res:'):
+                        response = ResFile(url)
+                        self.sr.currentURL = url
                     else:
+                        url, anchor = self.CheckURL(url, getAnchor=1)
+                        scheme, netloc, path, query, fragment = urlparse.urlsplit(url)
                         self.sr.currentURL = urlparse.urlunsplit((scheme,
                          netloc,
                          path or '/',
                          query,
                          '')).rstrip()
-                    self.sr.anchor = fragment
-                    self.sr.sessionreload = False
-                    self.sr.reloadtimer = None
-                    for each in response.info().headers:
-                        tmp = each.strip()
-                        if tmp.lower().startswith('refresh:'):
-                            args = tmp[8:].strip().split(';')
-                            interval = None
-                            if len(args) == 2:
-                                interval, url = args
-                                self.sr.reloadURL = url.replace('URL=', '').strip()
-                            elif len(args) == 1:
-                                interval = args[0]
-                                self.sr.reloadURL = self.sr.currentURL
-                            if interval is not None:
-                                if str(interval).strip().lower() == 'sessionchange':
-                                    self.sr.sessionreload = True
-                                else:
-                                    if int(interval) == 0:
-                                        self._GoTo(self.sr.reloadURL)
-                                        return
-                                    self.sr.reloadtimer = AutoTimer(1000 * int(interval), self.TimedReload)
-
-                    self.sr.cookieMgr.ProcessCookies(response)
-                    self.charset = 'cp1252'
-                    if 'content-type' in response.headers.keys():
-                        if response.headers['content-type'].startswith('image/'):
-                            self.LoadHTML('<HTML><BODY><IMG SRC="' + url + '"></BODY></HTML>')
+                        cookie = self.sr.cookieMgr.GetCookie(url)
+                        response = corebrowserutil.GetStringFromURL(url, data, cookie)
+                        if self.destroyed:
                             return
-                        for each in response.headers['content-type'].split(';'):
-                            tmp = each.strip().lower()
-                            if tmp.startswith('charset='):
-                                charset = tmp[8:].strip()
-                                try:
-                                    import codecs
-                                    codecs.lookup(str(charset))
-                                    self.charset = charset
-                                except:
-                                    sys.exc_clear()
+                        scheme, netloc, path, query, fragment = urlparse.urlsplit(url)
+                        if path and path[-1] != '/' and '.' not in path[-5:] and url.find('local://') == -1:
+                            path += '/'
+                        if getattr(response, 'url', None):
+                            self.sr.currentURL = response.url
+                        else:
+                            self.sr.currentURL = urlparse.urlunsplit((scheme,
+                             netloc,
+                             path or '/',
+                             query,
+                             '')).rstrip()
+                        self.sr.anchor = fragment
+                        self.sr.sessionreload = False
+                        self.sr.reloadtimer = None
+                        for each in response.info().headers:
+                            tmp = each.strip()
+                            if tmp.lower().startswith('refresh:'):
+                                args = tmp[8:].strip().split(';')
+                                interval = None
+                                if len(args) == 2:
+                                    interval, url = args
+                                    self.sr.reloadURL = url.replace('URL=', '').strip()
+                                elif len(args) == 1:
+                                    interval = args[0]
+                                    self.sr.reloadURL = self.sr.currentURL
+                                if interval is not None:
+                                    if str(interval).strip().lower() == 'sessionchange':
+                                        self.sr.sessionreload = True
+                                    else:
+                                        if int(interval) == 0:
+                                            self._GoTo(self.sr.reloadURL)
+                                            return
+                                        self.sr.reloadtimer = AutoTimer(1000 * int(interval), self.TimedReload)
 
-                pieces = []
-                while True:
-                    next4kb = response.read(4096)
-                    if next4kb:
-                        pieces.append(next4kb)
-                        blue.pyos.BeNice(10)
+                        self.sr.cookieMgr.ProcessCookies(response)
+                        self.charset = 'cp1252'
+                        if 'content-type' in response.headers.keys():
+                            if response.headers['content-type'].startswith('image/'):
+                                self.LoadHTML('<HTML><BODY><IMG SRC="' + url + '"></BODY></HTML>')
+                                return
+                            for each in response.headers['content-type'].split(';'):
+                                tmp = each.strip().lower()
+                                if tmp.startswith('charset='):
+                                    charset = tmp[8:].strip()
+                                    try:
+                                        import codecs
+                                        codecs.lookup(str(charset))
+                                        self.charset = charset
+                                    except:
+                                        sys.exc_clear()
+
+                    pieces = []
+                    while True:
+                        next4kb = response.read(4096)
+                        if next4kb:
+                            pieces.append(next4kb)
+                            blue.pyos.BeNice(10)
+                        else:
+                            break
+
+                    txt = ''.join(pieces)
+                    if txt[:2] == '\xff\xfe':
+                        txt = txt.decode('utf-16')
+                    self.LoadHTML(txt, scrollTo=scrollTo, newThread=newThread)
+                except OSError as what:
+                    if what.errno == errno.ENOENT:
+                        self.LoadHTML(localization.GetByLabel('/Carbon/UI/Controls/EditRichText/HTMLErrorFileNotFound', filename=what.filename))
                     else:
-                        break
-
-                txt = ''.join(pieces)
-                if txt[:2] == '\xff\xfe':
-                    txt = txt.decode('utf-16')
-                self.LoadHTML(txt, scrollTo=scrollTo, newThread=newThread)
-            except OSError as what:
-                if what.errno == errno.ENOENT:
-                    self.LoadHTML(localization.GetByLabel('/Carbon/UI/Controls/EditRichText/HTMLErrorFileNotFound', filename=what.filename))
-                else:
-                    self.LoadHTML(localization.GetByLabel('/Carbon/UI/Controls/EditRichText/HTMLErrorOSError', filename=what.filename, errorNumber=what.errno, errorString=what.strerror))
-                sys.exc_clear()
-            except ClientConnectFailed as what:
-                s = ClientConnectFailedString(what)
-                if s.lower() in ('host not found', 'valid name, no data record of requested type'):
-                    self.LoadHTML(localization.GetByLabel('/Carbon/UI/Controls/EditRichText/HTMLErrorHostNotFound'))
-                elif s.lower() in ('connection timed out', 'valid name, no data record of requested type'):
-                    self.LoadHTML(localization.GetByLabel('/Carbon/UI/Controls/EditRichText/HTMLErrorConnectionTimeOut', title=what.args[0], hostAddress=url))
-                else:
-                    self.LoadHTML(localization.GetByLabel('/Carbon/UI/Controls/EditRichText/HTMLErrorGeneric', title=what.args[0]))
-                sys.exc_clear()
-            except urllib2.URLError as what:
-                self.LoadHTML(localization.GetByLabel('/Carbon/UI/Controls/EditRichText/HTMLErrorURLError', error=what))
-                sys.exc_clear()
-            except ValueError as what:
-                self.LoadHTML(localization.GetByLabel('/Carbon/UI/Controls/EditRichText/HTMLErrorURLError', error=what))
-                log.LogException()
-            except AttributeError:
-                if self is None or self.destroyed:
+                        self.LoadHTML(localization.GetByLabel('/Carbon/UI/Controls/EditRichText/HTMLErrorOSError', filename=what.filename, errorNumber=what.errno, errorString=what.strerror))
                     sys.exc_clear()
-                else:
+                except ClientConnectFailed as what:
+                    s = ClientConnectFailedString(what)
+                    if s.lower() in ('host not found', 'valid name, no data record of requested type'):
+                        self.LoadHTML(localization.GetByLabel('/Carbon/UI/Controls/EditRichText/HTMLErrorHostNotFound'))
+                    elif s.lower() in ('connection timed out', 'valid name, no data record of requested type'):
+                        self.LoadHTML(localization.GetByLabel('/Carbon/UI/Controls/EditRichText/HTMLErrorConnectionTimeOut', title=what.args[0], hostAddress=url))
+                    else:
+                        self.LoadHTML(localization.GetByLabel('/Carbon/UI/Controls/EditRichText/HTMLErrorGeneric', title=what.args[0]))
+                    sys.exc_clear()
+                except urllib2.URLError as what:
+                    self.LoadHTML(localization.GetByLabel('/Carbon/UI/Controls/EditRichText/HTMLErrorURLError', error=what))
+                    sys.exc_clear()
+                except ValueError as what:
+                    self.LoadHTML(localization.GetByLabel('/Carbon/UI/Controls/EditRichText/HTMLErrorURLError', error=what))
+                    log.LogException()
+                except AttributeError:
+                    if self is None or self.destroyed:
+                        sys.exc_clear()
+                    else:
+                        self.HandleException()
+                except Exception as e:
                     self.HandleException()
-            except Exception as e:
-                self.HandleException()
 
-        finally:
-            if self.destroyed:
-                return
-            self.SetStatus('Done')
+            finally:
+                if self.destroyed:
+                    return
+                self.SetStatus('Done')
+
+            return
 
     def HandleException(self):
         log.LogException()
@@ -445,6 +455,7 @@ class EditCore(ParserBase, Scroll):
     def TimedReload(self):
         self.sr.reloadtimer = None
         self._GoTo(self.sr.reloadURL)
+        return
 
     def SessionChanged(self):
         if self.sr.sessionreload:
@@ -471,7 +482,7 @@ class EditCore(ParserBase, Scroll):
          color,
          link)
 
-    def SetValue(self, text, scrolltotop = 0, cursorPos = None, preformatted = 0, html = 1, fontColor = None):
+    def SetValue(self, text, scrolltotop=0, cursorPos=None, preformatted=0, html=1, fontColor=None):
         self.fontSize = self.defaultFontSize
         self.fontColor = fontColor or self.defaultFontColor
         self.fontFlag = 0
@@ -494,10 +505,11 @@ class EditCore(ParserBase, Scroll):
         self.LoadHTML('<html><body>%s</body></html>' % text, breakOnly=0, scrollTo=scrollTo)
         if cursorPos is not None and not self.readonly:
             self.SetCursorPos(cursorPos)
+        return
 
     SetText = SetValue
 
-    def GetValue(self, html = 1):
+    def GetValue(self, html=1):
         if html:
             ret = self.SaveHTML()
         else:
@@ -591,7 +603,8 @@ class EditCore(ParserBase, Scroll):
         str += t
         if not StripTags(str):
             return ''
-        return str
+        else:
+            return str
 
     def SaveTextMarkup(self):
         self.Simplify()
@@ -635,7 +648,8 @@ class EditCore(ParserBase, Scroll):
         retString = retString[:-4]
         if not StripTags(retString):
             return ''
-        return retString
+        else:
+            return retString
 
     def SetDefaultFontSize(self, size):
         for stack, attrs in self.textbuffers:
@@ -661,8 +675,9 @@ class EditCore(ParserBase, Scroll):
         if self.sr.attribPanel is not None:
             self.sr.attribPanel.state = uiconst.UI_HIDDEN
         self.HideCursor()
+        return
 
-    def Editable(self, showpanel = 1, plainload = 0, *args):
+    def Editable(self, showpanel=1, plainload=0, *args):
         self.readonly = 0
         if self.sr.attribPanel is not None:
             if showpanel:
@@ -672,6 +687,7 @@ class EditCore(ParserBase, Scroll):
         if plainload:
             self.SetPlainLoad()
         self.ShowCursor()
+        return
 
     def SetPlainLoad(self):
         self.plainload = 1
@@ -692,8 +708,9 @@ class EditCore(ParserBase, Scroll):
                 top = top - ctop + self._position
                 portion = max(top + height - cheight + 5, min(top - 5, self._position)) / float(self.scrollingRange)
                 self.ScrollToProportion(portion)
+        return
 
-    def GetTextObject_Overwrite(self, text, width = None):
+    def GetTextObject_Overwrite(self, text, width=None):
         obj = ParserBase.GetTextObject(self, text, width)
         fontFlag = obj.fontFlags
         fontSize = obj.fontSize
@@ -713,6 +730,7 @@ class EditCore(ParserBase, Scroll):
         self.RefreshCursorAndSelection()
         if getattr(self, 'RegisterFocus', None):
             self.RegisterFocus(self)
+        return
 
     def OnKillFocus(self, *args, **kw):
         Scroll.OnKillFocus(self, *args, **kw)
@@ -721,6 +739,7 @@ class EditCore(ParserBase, Scroll):
         uthread.new(self.RefreshCursorAndSelection)
         if getattr(self, 'OnFocusLost', None):
             uthread.new(self.OnFocusLost, self)
+        return
 
     def HideCursor(self):
         self._showCursor = False
@@ -739,8 +758,9 @@ class EditCore(ParserBase, Scroll):
                 self.fontColor = obj.color
                 self.href = obj.a and obj.a.href
                 self._AttribStateChange()
+        return
 
-    def GetMenuDelegate(self, node = None):
+    def GetMenuDelegate(self, node=None):
         m = []
         if self.sr.window and getattr(self.sr.window, 'GetMenu', None):
             m = self.sr.window.GetMenu()
@@ -772,8 +792,9 @@ class EditCore(ParserBase, Scroll):
         self.SetSelectionRange(fromIdx, toIdx)
         self.SetSelectionInitPos(fromIdx)
         self.SetCursorPos(toIdx)
+        return
 
-    def FindWordBoundariesFromGlobalCursor(self, wordShift = 0):
+    def FindWordBoundariesFromGlobalCursor(self, wordShift=0):
         node, obj, npos = self.GetNodeAndTextObjectFromGlobalCursor()
         if node.startCursorIndex is None:
             self.UpdateNodesCursorIndexes()
@@ -815,6 +836,7 @@ class EditCore(ParserBase, Scroll):
         last_cursorPos, last_fromCharIndex, last_toCharIndex = getattr(self, 'lastCursorUpdateProps', (None, None, None))
         if cursorPos != last_cursorPos or fromCharIndex != last_fromCharIndex or toCharIndex != last_toCharIndex:
             self.RefreshCursorAndSelection()
+        return None
 
     def SetSelectionRange(self, fromCharIndex, toCharIndex):
         if fromCharIndex == toCharIndex:
@@ -825,8 +847,9 @@ class EditCore(ParserBase, Scroll):
             toCharIndex = copy_fromCharIndex
         self.globalSelectionRange = (fromCharIndex, toCharIndex)
         self.CheckCursorAndSelectionUpdate()
+        return None
 
-    def SetCursorPos(self, globalIndex, forceUpdate = False):
+    def SetCursorPos(self, globalIndex, forceUpdate=False):
         if globalIndex == -1:
             globalIndex = self._maxGlobalCursorIndex
         self.globalCursorPos = max(0, min(self._maxGlobalCursorIndex, globalIndex))
@@ -838,49 +861,51 @@ class EditCore(ParserBase, Scroll):
     def RefreshCursorAndSelection(self):
         if self.destroyed:
             return
-        self.UpdateNodesCursorIndexes()
-        fromIdx, toIdx = self.globalSelectionRange
-        for node in self.GetNodes():
-            if not issubclass(node.decoClass, SE_TextlineCore):
-                continue
-            if node.startCursorIndex is None:
-                self.UpdateNodesCursorIndexes()
-            if node.startCursorIndex <= self.globalCursorPos <= node.endCursorIndex:
-                indexInLine = self.globalCursorPos - node.startCursorIndex
-                startCheck = node.startCursorIndex - node.pos
-                for obj in node.stack:
-                    lenLetters = len(obj.letters or '')
-                    if startCheck <= self.globalCursorPos <= startCheck + lenLetters:
-                        self._activeNodeObjPos = (node, obj, node.startCursorIndex - startCheck + indexInLine)
-                        break
-                    startCheck += lenLetters
+        else:
+            self.UpdateNodesCursorIndexes()
+            fromIdx, toIdx = self.globalSelectionRange
+            for node in self.GetNodes():
+                if not issubclass(node.decoClass, SE_TextlineCore):
+                    continue
+                if node.startCursorIndex is None:
+                    self.UpdateNodesCursorIndexes()
+                if node.startCursorIndex <= self.globalCursorPos <= node.endCursorIndex:
+                    indexInLine = self.globalCursorPos - node.startCursorIndex
+                    startCheck = node.startCursorIndex - node.pos
+                    for obj in node.stack:
+                        lenLetters = len(obj.letters or '')
+                        if startCheck <= self.globalCursorPos <= startCheck + lenLetters:
+                            self._activeNodeObjPos = (node, obj, node.startCursorIndex - startCheck + indexInLine)
+                            break
+                        startCheck += lenLetters
+
+                if not self.readonly:
+                    if node.cursorPos is not None:
+                        node.cursorPos = None
+                        if node.panel:
+                            node.panel.UpdateCursor()
+                if not fromIdx is None:
+                    if fromIdx <= node.startCursorIndex <= toIdx or not node.startCursorIndex <= fromIdx <= node.endCursorIndex:
+                        node.selectionStartIndex = None
+                        node.selectionEndIndex = None
+                    else:
+                        node.selectionStartIndex = max(0, fromIdx - node.startCursorIndex)
+                        node.selectionEndIndex = max(0, min(node.letterCountInLine, toIdx - node.startCursorIndex))
+                    node.panel and hasattr(node.panel, 'UpdateSelectionHilite') and node.panel.UpdateSelectionHilite()
 
             if not self.readonly:
-                if node.cursorPos is not None:
-                    node.cursorPos = None
+                node, obj, npos = self.GetNodeAndTextObjectFromGlobalCursor()
+                if node:
+                    node.cursorPos = self.globalCursorPos - node.startCursorIndex
                     if node.panel:
                         node.panel.UpdateCursor()
-            if fromIdx is None or not (fromIdx <= node.startCursorIndex <= toIdx or node.startCursorIndex <= fromIdx <= node.endCursorIndex):
-                node.selectionStartIndex = None
-                node.selectionEndIndex = None
-            else:
-                node.selectionStartIndex = max(0, fromIdx - node.startCursorIndex)
-                node.selectionEndIndex = max(0, min(node.letterCountInLine, toIdx - node.startCursorIndex))
-            if node.panel and hasattr(node.panel, 'UpdateSelectionHilite'):
-                node.panel.UpdateSelectionHilite()
-
-        if not self.readonly:
-            node, obj, npos = self.GetNodeAndTextObjectFromGlobalCursor()
-            if node:
-                node.cursorPos = self.globalCursorPos - node.startCursorIndex
-                if node.panel:
-                    node.panel.UpdateCursor()
-        self.lastCursorUpdateProps = (self.globalCursorPos, fromIdx, toIdx)
+            self.lastCursorUpdateProps = (self.globalCursorPos, fromIdx, toIdx)
+            return
 
     def GetNodeAndTextObjectFromGlobalCursor(self):
         return getattr(self, '_activeNodeObjPos', (None, None, 0))
 
-    def GetSelectedText(self, getAll = False, newLineStr = '\r\n'):
+    def GetSelectedText(self, getAll=False, newLineStr='\r\n'):
         if getAll:
             ret = ''
             for stackIndex, (stack, attrs) in enumerate(self.textbuffers):
@@ -895,35 +920,36 @@ class EditCore(ParserBase, Scroll):
                 ret += newLineStr
 
             return ret
-        fromIdx, toIdx = self.globalSelectionRange
-        if fromIdx == toIdx:
-            return ''
-        newret = ''
-        for node in self.GetNodes():
-            if not issubclass(node.decoClass, SE_TextlineCore):
-                continue
-            if node.selectionStartIndex is None:
-                continue
-            if node.inlines:
-                for inline, x in node.inlines:
-                    if inline.type == '<table>' and inline.control:
-                        tableText = inline.control.GetValue()
-                        if tableText:
-                            newret += tableText + newLineStr
+        else:
+            fromIdx, toIdx = self.globalSelectionRange
+            if fromIdx == toIdx:
+                return ''
+            newret = ''
+            for node in self.GetNodes():
+                if not issubclass(node.decoClass, SE_TextlineCore):
+                    continue
+                if node.selectionStartIndex is None:
+                    continue
+                if node.inlines:
+                    for inline, x in node.inlines:
+                        if inline.type == '<table>' and inline.control:
+                            tableText = inline.control.GetValue()
+                            if tableText:
+                                newret += tableText + newLineStr
 
-            if node.glyphString is None:
-                continue
-            if newret and node.pos == 0:
-                newret += newLineStr
-            text = ''.join([ glyphData[4] for glyphData in node.glyphString if glyphData[4] is not None ])
-            if node.startCursorIndex <= fromIdx <= node.startCursorIndex + len(text):
-                newret += text[fromIdx - node.startCursorIndex:toIdx - node.startCursorIndex]
-            elif node.startCursorIndex <= toIdx <= node.startCursorIndex + len(text):
-                newret += text[:toIdx - node.startCursorIndex]
-            else:
-                newret += text
+                if node.glyphString is None:
+                    continue
+                if newret and node.pos == 0:
+                    newret += newLineStr
+                text = ''.join([ glyphData[4] for glyphData in node.glyphString if glyphData[4] is not None ])
+                if node.startCursorIndex <= fromIdx <= node.startCursorIndex + len(text):
+                    newret += text[fromIdx - node.startCursorIndex:toIdx - node.startCursorIndex]
+                elif node.startCursorIndex <= toIdx <= node.startCursorIndex + len(text):
+                    newret += text[:toIdx - node.startCursorIndex]
+                else:
+                    newret += text
 
-        return newret
+            return newret
 
     def LinkCharacter(self):
         if self.GetSelection() == 0:
@@ -973,6 +999,7 @@ class EditCore(ParserBase, Scroll):
     def OnMouseUpDelegate(self, _node, *args):
         self._selecting = 0
         self.sr.scrollTimer = None
+        return
 
     def OnMouseDownDelegate(self, _node, *args):
         self.UpdateNodesCursorIndexes()
@@ -992,27 +1019,30 @@ class EditCore(ParserBase, Scroll):
                 self.SetSelectionRange(None, None)
                 self.SetSelectionInitPos(self.globalCursorPos)
             self.EvalAttributeState()
+        return
 
     def OnMouseMoveDelegate(self, *args):
         if not self._selecting or self.globalSelectionInitpos is None:
             return
-        if not uicore.uilib.leftbtn:
+        elif not uicore.uilib.leftbtn:
             self._selecting = 0
             return
-        toAffect = self.CrawlForTextline(uicore.uilib.mouseOver)
-        if toAffect is None:
-            toAffect = self.GetLastTextline()
-            if toAffect is None:
-                return
-        node = toAffect.sr.node
-        if node is None:
-            return
-        self.SetCursorFromNodeAndMousePos(node)
-        if self.globalCursorPos > self.globalSelectionInitpos:
-            self.SetSelectionRange(self.globalSelectionInitpos, self.globalCursorPos)
         else:
-            self.SetSelectionRange(self.globalCursorPos, self.globalSelectionInitpos)
-        self.EvalAttributeState()
+            toAffect = self.CrawlForTextline(uicore.uilib.mouseOver)
+            if toAffect is None:
+                toAffect = self.GetLastTextline()
+                if toAffect is None:
+                    return
+            node = toAffect.sr.node
+            if node is None:
+                return
+            self.SetCursorFromNodeAndMousePos(node)
+            if self.globalCursorPos > self.globalSelectionInitpos:
+                self.SetSelectionRange(self.globalSelectionInitpos, self.globalCursorPos)
+            else:
+                self.SetSelectionRange(self.globalCursorPos, self.globalSelectionInitpos)
+            self.EvalAttributeState()
+            return
 
     def SetCursorFromNodeAndMousePos(self, node):
         if node.startCursorIndex is None:
@@ -1024,6 +1054,7 @@ class EditCore(ParserBase, Scroll):
             self.SetCursorPos(startCursorIndex + internalPos)
         else:
             self.SetCursorPos(-1)
+        return
 
     def SetCursorPosAtObjectEnd(self, toEnd):
         for node in self.GetNodes():
@@ -1039,6 +1070,8 @@ class EditCore(ParserBase, Scroll):
                     self.SetCursorPos(node.startCursorIndex + counter)
                     return
 
+        return
+
     def GetLastTextline(self):
         totalLines = len(self.sr.content.children)
         for i in xrange(totalLines):
@@ -1049,10 +1082,12 @@ class EditCore(ParserBase, Scroll):
     def CrawlForTextline(self, mo):
         if isinstance(mo, SE_TextlineCore):
             return mo
-        if mo.parent:
+        elif mo.parent:
             if mo.parent is uicore.desktop:
                 return None
             return self.CrawlForTextline(mo.parent)
+        else:
+            return None
 
     def ScrollTimer(self):
         if uicore.uilib.leftbtn and self._selecting:
@@ -1063,6 +1098,7 @@ class EditCore(ParserBase, Scroll):
                 uthread.new(self.Scroll, -1)
         else:
             self.sr.scrollTimer = None
+        return
 
     def OnDragEnterDelegate(self, node, nodes):
         if self.readonly:
@@ -1091,24 +1127,27 @@ class EditCore(ParserBase, Scroll):
     def OnMouseUp(self, *args):
         self._selecting = 0
         self.sr.scrollTimer = None
+        return
 
     def OnMouseDown(self, button, *args):
         if button != uiconst.MOUSELEFT:
             return
-        if len(self.sr.content.children):
-            self.UpdateNodesCursorIndexes()
-            shift = uicore.uilib.Key(uiconst.VK_SHIFT)
-            lastEntry = self.sr.content.children[-1]
-            l, t, w, h = lastEntry.GetAbsolute()
-            if uicore.uilib.y > t + h:
-                if shift:
-                    selectionStartIndex, selectionEndIndex = self.globalSelectionRange
-                    self.SetSelectionRange(selectionStartIndex or self.globalCursorPos, self._maxGlobalCursorIndex)
-                else:
-                    self.SetSelectionRange(None, None)
-                    self.SetSelectionInitPos(self._maxGlobalCursorIndex)
-                self.SetCursorPos(self._maxGlobalCursorIndex)
-        self._selecting = 1
+        else:
+            if len(self.sr.content.children):
+                self.UpdateNodesCursorIndexes()
+                shift = uicore.uilib.Key(uiconst.VK_SHIFT)
+                lastEntry = self.sr.content.children[-1]
+                l, t, w, h = lastEntry.GetAbsolute()
+                if uicore.uilib.y > t + h:
+                    if shift:
+                        selectionStartIndex, selectionEndIndex = self.globalSelectionRange
+                        self.SetSelectionRange(selectionStartIndex or self.globalCursorPos, self._maxGlobalCursorIndex)
+                    else:
+                        self.SetSelectionRange(None, None)
+                        self.SetSelectionInitPos(self._maxGlobalCursorIndex)
+                    self.SetCursorPos(self._maxGlobalCursorIndex)
+            self._selecting = 1
+            return
 
     def OnMouseMove(self, *args):
         self.OnMouseMoveDelegate()
@@ -1242,7 +1281,7 @@ class EditCore(ParserBase, Scroll):
                     self.ShowNodeIdx(node.idx)
         if self.readonly:
             return
-        if ctrl:
+        elif ctrl:
             if vkey == uiconst.VK_B:
                 self.ToggleBold()
             if vkey == uiconst.VK_U:
@@ -1258,33 +1297,36 @@ class EditCore(ParserBase, Scroll):
             if vkey == uiconst.VK_DOWN:
                 self.CtrlDown(self)
             return
-        if vkey == uiconst.VK_DELETE:
-            self.OnChar(127, flag)
+        else:
+            if vkey == uiconst.VK_DELETE:
+                self.OnChar(127, flag)
+            return
 
     def OnChar(self, char, flag):
         if self.readonly:
             return False
-        if char < 32 and char not in (uiconst.VK_RETURN, uiconst.VK_BACK):
+        elif char < 32 and char not in (uiconst.VK_RETURN, uiconst.VK_BACK):
             return False
-        if self.globalCursorPos is None:
+        elif self.globalCursorPos is None:
             return False
-        self.keybuffer.append(char)
-        if not self.updating:
-            if char == uiconst.VK_RETURN and not uicore.uilib.Key(uiconst.VK_SHIFT) and self.OnReturn:
-                self.Simplify()
-                return uthread.new(self.OnReturn)
-            try:
-                self.updating = 1
-                while len(self.keybuffer):
-                    char = self.keybuffer.pop(0)
-                    if self.DeleteSelected() and char in [127, uiconst.VK_BACK]:
-                        continue
-                    self.Insert(char)
+        else:
+            self.keybuffer.append(char)
+            if not self.updating:
+                if char == uiconst.VK_RETURN and not uicore.uilib.Key(uiconst.VK_SHIFT) and self.OnReturn:
+                    self.Simplify()
+                    return uthread.new(self.OnReturn)
+                try:
+                    self.updating = 1
+                    while len(self.keybuffer):
+                        char = self.keybuffer.pop(0)
+                        if self.DeleteSelected() and char in [127, uiconst.VK_BACK]:
+                            continue
+                        self.Insert(char)
 
-            finally:
-                self.updating = 0
+                finally:
+                    self.updating = 0
 
-        return True
+            return True
 
     def SelectAll(self, *args):
         self.SetSelectionRange(0, self._maxGlobalCursorIndex)
@@ -1315,8 +1357,9 @@ class EditCore(ParserBase, Scroll):
     def RoomLeft(self):
         if not self.maxletters:
             return None
-        currentLen = len(self.GetValue(0))
-        return self.maxletters + len(self.GetSelectedText()) - currentLen
+        else:
+            currentLen = len(self.GetValue(0))
+            return self.maxletters + len(self.GetSelectedText()) - currentLen
 
     def Paste(self, text):
         roomLeft = self.RoomLeft()
@@ -1325,159 +1368,163 @@ class EditCore(ParserBase, Scroll):
             text = text[:roomLeft]
         if self.readonly or not text:
             return
-        self.DeleteSelected(reloadAll=False)
-        currentCursor = self.globalCursorPos
-        text = text.replace('\t', '    ').replace('\r', '')
-        lines = text.split('\n')
-        line = lines.pop(0)
-        node, obj, npos = self.GetNodeAndTextObjectFromGlobalCursor()
-        endObj = obj.Copy()
-        endObj.letters = obj.letters[npos:]
-        lastStack = node.stack
-        obj.letters = obj.letters[:npos] + line
-        if lines:
-            stackIndex = 0
-            attrStack = None
-            for s, a in self.textbuffers:
-                if s is node.stack:
-                    attrStack = a
-                    break
-                stackIndex += 1
-            else:
-                attrStack = self.attrStack[-1]
+        else:
+            self.DeleteSelected(reloadAll=False)
+            currentCursor = self.globalCursorPos
+            text = text.replace('\t', '    ').replace('\r', '')
+            lines = text.split('\n')
+            line = lines.pop(0)
+            node, obj, npos = self.GetNodeAndTextObjectFromGlobalCursor()
+            endObj = obj.Copy()
+            endObj.letters = obj.letters[npos:]
+            lastStack = node.stack
+            obj.letters = obj.letters[:npos] + line
+            if lines:
+                stackIndex = 0
+                attrStack = None
+                for s, a in self.textbuffers:
+                    if s is node.stack:
+                        attrStack = a
+                        break
+                    stackIndex += 1
+                else:
+                    attrStack = self.attrStack[-1]
 
-            for lineIdx, line in enumerate(lines):
-                betweenObj = obj.Copy()
-                betweenObj.letters = line
-                newStack = [betweenObj]
-                self.textbuffers.insert(stackIndex + lineIdx + 1, (newStack, attrStack))
-                lastStack = newStack
+                for lineIdx, line in enumerate(lines):
+                    betweenObj = obj.Copy()
+                    betweenObj.letters = line
+                    newStack = [betweenObj]
+                    self.textbuffers.insert(stackIndex + lineIdx + 1, (newStack, attrStack))
+                    lastStack = newStack
 
-        if endObj.letters:
-            lastStack.append(endObj)
-        self.UpdateNodesCursorIndexes()
-        self.DoContentResize()
-        self.SetCursorPos(currentCursor + len(text))
-        node, obj, npos = self.GetNodeAndTextObjectFromGlobalCursor()
-        if node:
-            self.ShowNodeIdx(node.idx)
+            if endObj.letters:
+                lastStack.append(endObj)
+            self.UpdateNodesCursorIndexes()
+            self.DoContentResize()
+            self.SetCursorPos(currentCursor + len(text))
+            node, obj, npos = self.GetNodeAndTextObjectFromGlobalCursor()
+            if node:
+                self.ShowNodeIdx(node.idx)
+            return
 
     def Insert(self, char):
         if char not in (uiconst.VK_BACK, uiconst.VK_RETURN, 127) and not self.EnoughRoomFor(1):
             uicore.Message('uiwarning03')
             return
-        self.Simplify()
-        node, obj, npos = self.GetNodeAndTextObjectFromGlobalCursor()
-        stackIdx = 0
-        prevStack = None
-        for s, a in self.textbuffers:
-            if s is node.stack:
-                attrs = a
-                break
-            prevStack = s
-            stackIdx += 1
         else:
-            attrs = self.attrStack[-1]
-
-        cursorAdvance = 0
-        if char == uiconst.VK_RETURN:
-            if obj.a and npos == len(obj.letters):
-                newobj = obj.Copy()
-                newobj.letters = ''
-                newobj.a = None
-                node.stack.insert(node.stack.index(obj) + 1, newobj)
-                self.href = None
-                self.fontFlag &= ~(fontflags.b | fontflags.u)
-                self.fontColor = (1.0, 1.0, 1.0, 0.75)
-                newobj.fontFlags = self.fontFlag
-                newobj.color = self.fontColor
-                obj = newobj
-                npos = 0
-            cursorAdvance = 1
-            newobj = obj.Copy()
-            newobj.letters = obj.letters[npos:]
-            obj.letters = obj.letters[:npos]
-            newstack = [newobj]
-            startMove = False
-            for textobject in node.stack[:]:
-                if startMove:
-                    newstack.append(textobject)
-                    node.stack.remove(textobject)
-                    continue
-                if textobject is obj:
-                    startMove = True
-
-            sIdx = 0
-            for sIdx, (thisStack, thisAttrs) in enumerate(self.textbuffers):
-                if thisStack is node.stack:
+            self.Simplify()
+            node, obj, npos = self.GetNodeAndTextObjectFromGlobalCursor()
+            stackIdx = 0
+            prevStack = None
+            for s, a in self.textbuffers:
+                if s is node.stack:
+                    attrs = a
                     break
+                prevStack = s
+                stackIdx += 1
+            else:
+                attrs = self.attrStack[-1]
 
-            self.textbuffers.insert(sIdx + 1, (newstack, attrs))
-            self.RefreshLine(node, attrs, fullRefresh=True)
-            self.InsertLines(newstack, 0, node.idx + 1, attrs)
-        elif char == 127:
-            if npos == len(obj.letters):
-                if obj is node.stack[-1]:
-                    if stackIdx + 1 < len(self.textbuffers):
-                        nextStack, nextAttrs = self.textbuffers[stackIdx + 1]
-                        del self.textbuffers[stackIdx + 1]
-                        node.stack += nextStack
-                        self.RemoveStack(nextStack)
-                        self.UpdateNodes(nextStack, node.stack)
+            cursorAdvance = 0
+            if char == uiconst.VK_RETURN:
+                if obj.a and npos == len(obj.letters):
+                    newobj = obj.Copy()
+                    newobj.letters = ''
+                    newobj.a = None
+                    node.stack.insert(node.stack.index(obj) + 1, newobj)
+                    self.href = None
+                    self.fontFlag &= ~(fontflags.b | fontflags.u)
+                    self.fontColor = (1.0, 1.0, 1.0, 0.75)
+                    newobj.fontFlags = self.fontFlag
+                    newobj.color = self.fontColor
+                    obj = newobj
+                    npos = 0
+                cursorAdvance = 1
+                newobj = obj.Copy()
+                newobj.letters = obj.letters[npos:]
+                obj.letters = obj.letters[:npos]
+                newstack = [newobj]
+                startMove = False
+                for textobject in node.stack[:]:
+                    if startMove:
+                        newstack.append(textobject)
+                        node.stack.remove(textobject)
+                        continue
+                    if textobject is obj:
+                        startMove = True
+
+                sIdx = 0
+                for sIdx, (thisStack, thisAttrs) in enumerate(self.textbuffers):
+                    if thisStack is node.stack:
+                        break
+
+                self.textbuffers.insert(sIdx + 1, (newstack, attrs))
+                self.RefreshLine(node, attrs, fullRefresh=True)
+                self.InsertLines(newstack, 0, node.idx + 1, attrs)
+            elif char == 127:
+                if npos == len(obj.letters):
+                    if obj is node.stack[-1]:
+                        if stackIdx + 1 < len(self.textbuffers):
+                            nextStack, nextAttrs = self.textbuffers[stackIdx + 1]
+                            del self.textbuffers[stackIdx + 1]
+                            node.stack += nextStack
+                            self.RemoveStack(nextStack)
+                            self.UpdateNodes(nextStack, node.stack)
+                            if len(obj.letters) == 0:
+                                node.stack.remove(obj)
+                        else:
+                            return
+                    else:
+                        obj = node.stack[node.stack.index(obj) + 1]
+                        obj.letters = obj.letters[1:]
+                else:
+                    obj.letters = obj.letters[:npos] + obj.letters[npos + 1:]
+                self.RefreshLine(node, attrs)
+            elif char == uiconst.VK_BACK:
+                if npos == 0:
+                    if self.globalCursorPos != 0 and prevStack:
+                        prevStack += node.stack
+                        oldStack = node.stack
+                        self.RemoveStack(oldStack)
+                        self.UpdateNodes(node.stack, prevStack)
                         if len(obj.letters) == 0:
                             node.stack.remove(obj)
-                    else:
-                        return
+                        self.RefreshLine(node, attrs)
+                        self.Simplify()
+                        cursorAdvance = -1
                 else:
-                    obj = node.stack[node.stack.index(obj) + 1]
-                    obj.letters = obj.letters[1:]
-            else:
-                obj.letters = obj.letters[:npos] + obj.letters[npos + 1:]
-            self.RefreshLine(node, attrs)
-        elif char == uiconst.VK_BACK:
-            if npos == 0:
-                if self.globalCursorPos != 0 and prevStack:
-                    prevStack += node.stack
-                    oldStack = node.stack
-                    self.RemoveStack(oldStack)
-                    self.UpdateNodes(node.stack, prevStack)
-                    if len(obj.letters) == 0:
-                        node.stack.remove(obj)
+                    obj.letters = obj.letters[:npos - 1] + obj.letters[npos:]
                     self.RefreshLine(node, attrs)
-                    self.Simplify()
                     cursorAdvance = -1
             else:
-                obj.letters = obj.letters[:npos - 1] + obj.letters[npos:]
-                self.RefreshLine(node, attrs)
-                cursorAdvance = -1
-        else:
-            if char == uiconst.VK_SPACE and obj.a and npos == len(obj.letters):
-                newobj = obj.Copy()
-                newobj.letters = ' '
-                newobj.a = None
-                node.stack.insert(node.stack.index(obj) + 1, newobj)
-                self.href = None
-                self.fontFlag &= ~(fontflags.b | fontflags.u)
-                self.fontColor = (1.0, 1.0, 1.0, 0.75)
-                newobj.fontFlags = self.fontFlag
-                newobj.color = self.fontColor
-            else:
-                char = unichr(char)
-                newobj, npos = self.CheckAttribs(node.stack, obj, npos)
-                if newobj is not obj:
-                    newobj.letters = char
+                if char == uiconst.VK_SPACE and obj.a and npos == len(obj.letters):
+                    newobj = obj.Copy()
+                    newobj.letters = ' '
+                    newobj.a = None
+                    node.stack.insert(node.stack.index(obj) + 1, newobj)
+                    self.href = None
+                    self.fontFlag &= ~(fontflags.b | fontflags.u)
+                    self.fontColor = (1.0, 1.0, 1.0, 0.75)
+                    newobj.fontFlags = self.fontFlag
+                    newobj.color = self.fontColor
                 else:
-                    obj.letters = obj.letters[:npos] + char + obj.letters[npos:]
-            cursorAdvance = 1
-            self.RefreshLine(node, attrs)
-        if hasattr(self, 'OnChange'):
-            self.OnChange()
-        self.UpdateNodesCursorIndexes()
-        self.SetCursorPos(self.globalCursorPos + cursorAdvance, forceUpdate=True)
-        self.EvalAttributeState()
-        node, obj, npos = self.GetNodeAndTextObjectFromGlobalCursor()
-        if node:
-            self.ShowNodeIdx(node.idx)
+                    char = unichr(char)
+                    newobj, npos = self.CheckAttribs(node.stack, obj, npos)
+                    if newobj is not obj:
+                        newobj.letters = char
+                    else:
+                        obj.letters = obj.letters[:npos] + char + obj.letters[npos:]
+                cursorAdvance = 1
+                self.RefreshLine(node, attrs)
+            if hasattr(self, 'OnChange'):
+                self.OnChange()
+            self.UpdateNodesCursorIndexes()
+            self.SetCursorPos(self.globalCursorPos + cursorAdvance, forceUpdate=True)
+            self.EvalAttributeState()
+            node, obj, npos = self.GetNodeAndTextObjectFromGlobalCursor()
+            if node:
+                self.ShowNodeIdx(node.idx)
+            return
 
     def RemoveStack(self, stack):
         idx = 0
@@ -1490,6 +1537,7 @@ class EditCore(ParserBase, Scroll):
 
         if delIdx is not None:
             del self.textbuffers[delIdx]
+        return
 
     def UpdateNodesCursorIndexes(self):
         i = 0
@@ -1513,6 +1561,7 @@ class EditCore(ParserBase, Scroll):
             i += 1
 
         self._maxGlobalCursorIndex = max(0, globalCursorIndex + stackShift)
+        return
 
     def CheckAttribs(self, stack, obj, npos):
         fontFlag = obj.fontFlags
@@ -1582,155 +1631,158 @@ class EditCore(ParserBase, Scroll):
         fromIdx, toIdx = self.globalSelectionRange
         return fromIdx != toIdx
 
-    def DeleteSelected(self, reloadAll = True):
+    def DeleteSelected(self, reloadAll=True):
         fromIdx, toIdx = self.globalSelectionRange
         if fromIdx == toIdx:
             return
-        self.Simplify()
-        delRange = abs(fromIdx - toIdx)
-        counter = 0
-        doneDeleting = False
-        startObj = None
-        endObj = None
-        clearStacks = []
-        for stackIndex, (stack, attrs) in enumerate(self.textbuffers):
-            for obj in stack:
-                if obj.type == '<text>':
-                    lettersAmount = len(obj.letters)
-                    if counter <= fromIdx <= counter + lettersAmount:
-                        obj.letters = obj.letters[:fromIdx - counter] + obj.letters[fromIdx - counter + delRange:]
-                        startObj = (stack, obj)
-                    elif counter <= toIdx <= counter + lettersAmount:
-                        obj.letters = obj.letters[toIdx - counter:]
-                        endObj = (stack, obj)
-                    elif fromIdx <= counter <= toIdx and fromIdx <= counter + lettersAmount <= toIdx:
-                        obj.letters = ''
-                        clearStacks.append(stackIndex)
-                    counter += lettersAmount
-                    if counter > toIdx:
-                        doneDeleting = True
-                        break
-
-            counter += 1
-            if doneDeleting:
-                break
-
-        clearStacks.reverse()
-        for stackIndex in clearStacks:
-            if len(self.textbuffers) > stackIndex:
-                del self.textbuffers[stackIndex]
-
-        if startObj and endObj and startObj[0] is not endObj[0]:
-            startObj[0].append(endObj[1])
-            endObj[0].remove(endObj[1])
-        self.Simplify()
-        if reloadAll:
-            self.DoContentResize()
-        self.UpdateNodesCursorIndexes()
-        self.SetCursorPos(fromIdx)
-        self.SetSelectionRange(None, None)
-        return 1
-
-    def ApplySelection(self, what, data = None):
-        fromIdx, toIdx = self.globalSelectionRange
-        if fromIdx == toIdx:
-            return
-        self.Simplify()
-        selectionRange = abs(fromIdx - toIdx)
-        counter = 0
-        startObjData = None
-        endObjData = None
-        startAndEndObjData = None
-        changeObjs = []
-        for stackIndex, (stack, attrs) in enumerate(self.textbuffers):
-            for obj in stack:
-                if obj.type == '<text>':
-                    lettersAmount = len(obj.letters)
-                    if counter <= fromIdx <= counter + lettersAmount:
-                        if counter <= toIdx <= counter + lettersAmount:
-                            startAndEndObjData = (stack, obj, fromIdx - counter)
+        else:
+            self.Simplify()
+            delRange = abs(fromIdx - toIdx)
+            counter = 0
+            doneDeleting = False
+            startObj = None
+            endObj = None
+            clearStacks = []
+            for stackIndex, (stack, attrs) in enumerate(self.textbuffers):
+                for obj in stack:
+                    if obj.type == '<text>':
+                        lettersAmount = len(obj.letters)
+                        if counter <= fromIdx <= counter + lettersAmount:
+                            obj.letters = obj.letters[:fromIdx - counter] + obj.letters[fromIdx - counter + delRange:]
+                            startObj = (stack, obj)
+                        elif counter <= toIdx <= counter + lettersAmount:
+                            obj.letters = obj.letters[toIdx - counter:]
+                            endObj = (stack, obj)
+                        elif fromIdx <= counter <= toIdx:
+                            obj.letters = fromIdx <= counter + lettersAmount <= toIdx and ''
+                            clearStacks.append(stackIndex)
+                        counter += lettersAmount
+                        if counter > toIdx:
+                            doneDeleting = True
                             break
-                        else:
-                            startObjData = (stack, obj, fromIdx - counter)
-                    elif counter <= toIdx <= counter + lettersAmount:
-                        if not endObjData:
-                            endObjData = (stack, obj, toIdx - counter)
-                    elif fromIdx <= counter and counter + lettersAmount <= toIdx:
-                        changeObjs.append(obj)
-                    counter += lettersAmount
 
-            counter += 1
-            if endObjData or startAndEndObjData:
-                break
+                counter += 1
+                if doneDeleting:
+                    break
 
-        if startAndEndObjData:
-            stack, obj, npos = startAndEndObjData
-            newObj = obj.Copy()
-            newObj.letters = obj.letters[npos:npos + selectionRange]
-            stack.insert(stack.index(obj) + 1, newObj)
-            changeObjs.insert(0, newObj)
-            newObj2 = obj.Copy()
-            newObj2.letters = obj.letters[npos + selectionRange:]
-            stack.insert(stack.index(newObj) + 1, newObj2)
-            obj.letters = obj.letters[:npos]
-        if startObjData:
-            stack, obj, npos = startObjData
-            newObj = obj.Copy()
-            newObj.letters = obj.letters[npos:]
-            obj.letters = obj.letters[:npos]
-            stack.insert(stack.index(obj) + 1, newObj)
-            changeObjs.insert(0, newObj)
-        if endObjData:
-            stack, obj, npos = endObjData
-            newObj = obj.Copy()
-            newObj.letters = obj.letters[npos:]
-            obj.letters = obj.letters[:npos]
-            stack.insert(stack.index(obj) + 1, newObj)
-            changeObjs.append(obj)
-        anchor = self.ApplyGameSelection(what, data, changeObjs)
-        if anchor is None:
-            return
-        if anchor == -1:
-            anchor = None
-        bBalance = 0
-        uBalance = 0
-        iBalance = 0
-        for obj in changeObjs:
-            letterAmt = len(obj.letters)
-            bBalance += letterAmt if obj.fontFlags & fontflags.b else -letterAmt
-            uBalance += letterAmt if obj.fontFlags & fontflags.u else -letterAmt
-            iBalance += letterAmt if obj.fontFlags & fontflags.i else -letterAmt
+            clearStacks.reverse()
+            for stackIndex in clearStacks:
+                if len(self.textbuffers) > stackIndex:
+                    del self.textbuffers[stackIndex]
 
-        for obj in changeObjs:
-            prevFlag = obj.fontFlags
-            if what == 1:
-                obj.fontFlags = (fontflags.b if bBalance <= 0 else 0) | prevFlag & fontflags.i | prevFlag & fontflags.u
-            elif what == 2:
-                obj.fontFlags = prevFlag & fontflags.b | (fontflags.i if iBalance <= 0 else 0) | prevFlag & fontflags.u
-            elif what == 3:
-                obj.fontFlags = prevFlag & fontflags.b | prevFlag & fontflags.i | (fontflags.u if uBalance <= 0 else 0)
-            elif what == 4:
-                obj.color = self.fontColor
-            elif what == 5:
-                obj.fontSize = self.fontSize
-            elif what == 6:
-                if anchor is not None:
-                    attr = Bunch()
-                    attr.href = anchor
-                    attr.alt = anchor
-                    obj.a = attr
-                else:
-                    obj.color = (1.0, 1.0, 1.0, 0.75)
-                    obj.lcolor = None
-                    if obj.a:
-                        obj.fontFlags ^= fontflags.b | fontflags.u
-                    obj.a = None
-
-        self.DoContentResize()
-        if what == 6:
+            if startObj and endObj and startObj[0] is not endObj[0]:
+                startObj[0].append(endObj[1])
+                endObj[0].remove(endObj[1])
+            self.Simplify()
+            if reloadAll:
+                self.DoContentResize()
+            self.UpdateNodesCursorIndexes()
+            self.SetCursorPos(fromIdx)
             self.SetSelectionRange(None, None)
-            self.RemoveAnchor()
-        uthread.new(uicore.registry.SetFocus, self)
+            return 1
+
+    def ApplySelection(self, what, data=None):
+        fromIdx, toIdx = self.globalSelectionRange
+        if fromIdx == toIdx:
+            return
+        else:
+            self.Simplify()
+            selectionRange = abs(fromIdx - toIdx)
+            counter = 0
+            startObjData = None
+            endObjData = None
+            startAndEndObjData = None
+            changeObjs = []
+            for stackIndex, (stack, attrs) in enumerate(self.textbuffers):
+                for obj in stack:
+                    if obj.type == '<text>':
+                        lettersAmount = len(obj.letters)
+                        if counter <= fromIdx <= counter + lettersAmount:
+                            if counter <= toIdx <= counter + lettersAmount:
+                                startAndEndObjData = (stack, obj, fromIdx - counter)
+                                break
+                            else:
+                                startObjData = (stack, obj, fromIdx - counter)
+                        elif counter <= toIdx <= counter + lettersAmount:
+                            if not endObjData:
+                                endObjData = (stack, obj, toIdx - counter)
+                        elif fromIdx <= counter and counter + lettersAmount <= toIdx:
+                            changeObjs.append(obj)
+                        counter += lettersAmount
+
+                counter += 1
+                if endObjData or startAndEndObjData:
+                    break
+
+            if startAndEndObjData:
+                stack, obj, npos = startAndEndObjData
+                newObj = obj.Copy()
+                newObj.letters = obj.letters[npos:npos + selectionRange]
+                stack.insert(stack.index(obj) + 1, newObj)
+                changeObjs.insert(0, newObj)
+                newObj2 = obj.Copy()
+                newObj2.letters = obj.letters[npos + selectionRange:]
+                stack.insert(stack.index(newObj) + 1, newObj2)
+                obj.letters = obj.letters[:npos]
+            if startObjData:
+                stack, obj, npos = startObjData
+                newObj = obj.Copy()
+                newObj.letters = obj.letters[npos:]
+                obj.letters = obj.letters[:npos]
+                stack.insert(stack.index(obj) + 1, newObj)
+                changeObjs.insert(0, newObj)
+            if endObjData:
+                stack, obj, npos = endObjData
+                newObj = obj.Copy()
+                newObj.letters = obj.letters[npos:]
+                obj.letters = obj.letters[:npos]
+                stack.insert(stack.index(obj) + 1, newObj)
+                changeObjs.append(obj)
+            anchor = self.ApplyGameSelection(what, data, changeObjs)
+            if anchor is None:
+                return
+            if anchor == -1:
+                anchor = None
+            bBalance = 0
+            uBalance = 0
+            iBalance = 0
+            for obj in changeObjs:
+                letterAmt = len(obj.letters)
+                bBalance += letterAmt if obj.fontFlags & fontflags.b else -letterAmt
+                uBalance += letterAmt if obj.fontFlags & fontflags.u else -letterAmt
+                iBalance += letterAmt if obj.fontFlags & fontflags.i else -letterAmt
+
+            for obj in changeObjs:
+                prevFlag = obj.fontFlags
+                if what == 1:
+                    obj.fontFlags = (fontflags.b if bBalance <= 0 else 0) | prevFlag & fontflags.i | prevFlag & fontflags.u
+                elif what == 2:
+                    obj.fontFlags = prevFlag & fontflags.b | (fontflags.i if iBalance <= 0 else 0) | prevFlag & fontflags.u
+                elif what == 3:
+                    obj.fontFlags = prevFlag & fontflags.b | prevFlag & fontflags.i | (fontflags.u if uBalance <= 0 else 0)
+                elif what == 4:
+                    obj.color = self.fontColor
+                elif what == 5:
+                    obj.fontSize = self.fontSize
+                elif what == 6:
+                    if anchor is not None:
+                        attr = Bunch()
+                        attr.href = anchor
+                        attr.alt = anchor
+                        obj.a = attr
+                    else:
+                        obj.color = (1.0, 1.0, 1.0, 0.75)
+                        obj.lcolor = None
+                        if obj.a:
+                            obj.fontFlags ^= fontflags.b | fontflags.u
+                        obj.a = None
+
+            self.DoContentResize()
+            if what == 6:
+                self.SetSelectionRange(None, None)
+                self.RemoveAnchor()
+            uthread.new(uicore.registry.SetFocus, self)
+            return
 
     def ApplyGameSelection(self, *args):
         pass
@@ -1768,45 +1820,47 @@ class EditCore(ParserBase, Scroll):
     def DoContentResize(self):
         if getattr(self, 'resizing', 0) or self.destroyed or not hasattr(self, 'autoScrollToBottom'):
             return
-        if self.readonly and self.sr.htmlstr:
-            self.resizing = 1
-            scrollTo = self.GetScrollProportion()
-            fromCharIndex, toCharIndex = self.globalSelectionRange
-            self.LoadHTML(None, scrollTo=scrollTo, newThread=False)
-            self.SetSelectionRange(fromCharIndex, toCharIndex)
-            self.resizing = 0
-            self.sr.resizeTimer = None
         else:
-            try:
+            if self.readonly and self.sr.htmlstr:
                 self.resizing = 1
-                self.contentHeight = 0
-                self.contentWidth = 0
-                if hasattr(self, 'textbuffers'):
-                    self.Simplify()
-                    for overlay, attrs, x, y in self.sr.overlays:
-                        overlay.state = uiconst.UI_HIDDEN
-
-                    _lines = [ScrollEntryNode(decoClass=SE_Space, height=self.ymargin)]
-                    for stack, attrs in self.textbuffers:
-                        lines = self.BreakLines(stack)
-                        entries = self.BuildEntries(lines, stack, attrs)
-                        _lines += entries
-
-                    if len(_lines) == 1 and not self.readonly:
-                        _lines.append(self.GetFirstLine())
-                    pos = self.GetScrollProportion()
-                    if self.autoScrollToBottom and pos == 0.0:
-                        pos = 1.0
-                    self.LoadContent(contentList=_lines, scrollTo=pos)
-                    if hasattr(self, 'CheckOverlaysAndUnderlays'):
-                        self.CheckOverlaysAndUnderlays()
-                self.RefreshCursorAndSelection()
-            finally:
+                scrollTo = self.GetScrollProportion()
+                fromCharIndex, toCharIndex = self.globalSelectionRange
+                self.LoadHTML(None, scrollTo=scrollTo, newThread=False)
+                self.SetSelectionRange(fromCharIndex, toCharIndex)
                 self.resizing = 0
+                self.sr.resizeTimer = None
+            else:
+                try:
+                    self.resizing = 1
+                    self.contentHeight = 0
+                    self.contentWidth = 0
+                    if hasattr(self, 'textbuffers'):
+                        self.Simplify()
+                        for overlay, attrs, x, y in self.sr.overlays:
+                            overlay.state = uiconst.UI_HIDDEN
 
-            self.sr.resizeTimer = None
+                        _lines = [ScrollEntryNode(decoClass=SE_Space, height=self.ymargin)]
+                        for stack, attrs in self.textbuffers:
+                            lines = self.BreakLines(stack)
+                            entries = self.BuildEntries(lines, stack, attrs)
+                            _lines += entries
 
-    def RefreshLine(self, node, attrs, fullRefresh = False):
+                        if len(_lines) == 1 and not self.readonly:
+                            _lines.append(self.GetFirstLine())
+                        pos = self.GetScrollProportion()
+                        if self.autoScrollToBottom and pos == 0.0:
+                            pos = 1.0
+                        self.LoadContent(contentList=_lines, scrollTo=pos)
+                        if hasattr(self, 'CheckOverlaysAndUnderlays'):
+                            self.CheckOverlaysAndUnderlays()
+                    self.RefreshCursorAndSelection()
+                finally:
+                    self.resizing = 0
+
+                self.sr.resizeTimer = None
+            return
+
+    def RefreshLine(self, node, attrs, fullRefresh=False):
         idx = node.idx
         stack = node.stack
         nodesInStack = []
@@ -1885,10 +1939,12 @@ class EditCore(ParserBase, Scroll):
             self.fontFlag &= ~(fontflags.b | fontflags.u)
             self.fontColor = (1.0, 1.0, 1.0, 0.75)
             self._AttribStateChange()
+        return
 
     def _AttribStateChange(self):
         if self.sr.attribPanel is not None:
             self.sr.attribPanel.AttribStateChange(bool(self.fontFlag & fontflags.b), bool(self.fontFlag & fontflags.i), bool(self.fontFlag & fontflags.u), self.fontSize, self.fontColor, self.href)
+        return
 
     def SetLangIndicator(self, lang):
         if self.sr.attribPanel:
@@ -1942,6 +1998,7 @@ class FontAttribPanelCore(Container):
             self.charCounter = Label(text='0/%s' % self.counterMax, parent=self, color=(1.0, 1.0, 1.0, 0.6), fontsize=12, left=30, align=uiconst.TOPRIGHT, state=uiconst.UI_DISABLED)
         self.expanding = 0
         self.expanded = 0
+        return
 
     def ClearNote(self, *args):
         response = uicore.Message('ConfirmClearText', {}, uiconst.YESNO, uiconst.ID_YES)
@@ -2017,16 +2074,17 @@ class FontAttribPanelCore(Container):
     def OnGlobalClick(self, fromwhere, *etc):
         if self.sr.colorpar and self.sr.colorpar() and fromwhere.IsUnder(self.sr.colorpar()):
             return 1
-        if self.sr.colorpar and self.sr.colorpar():
-            if uicore.uilib.mouseOver is self.sr.colorpar().sr.scrolltop or fromwhere is self.sr.colorpar().sr.scrolltop:
-                log.LogInfo('Combo.OnGlobalClick Ignoring click on scrolltop')
-                return 1
+        else:
             if self.sr.colorpar and self.sr.colorpar():
-                if self.sr.colorpar().parent and not self.sr.colorpar().parent.destroyed:
-                    self.sr.colorpar().parent.Close()
-            self.sr.colorpar = None
-        self.Cleanup()
-        return 0
+                if uicore.uilib.mouseOver is self.sr.colorpar().sr.scrolltop or fromwhere is self.sr.colorpar().sr.scrolltop:
+                    log.LogInfo('Combo.OnGlobalClick Ignoring click on scrolltop')
+                    return 1
+                if self.sr.colorpar and self.sr.colorpar():
+                    if self.sr.colorpar().parent and not self.sr.colorpar().parent.destroyed:
+                        self.sr.colorpar().parent.Close()
+                self.sr.colorpar = None
+            self.Cleanup()
+            return 0
 
     def PickCol(self, sender, *args):
         self.parent.ChangeFontColor(sender.sr.identifier)
@@ -2044,22 +2102,26 @@ class FontAttribPanelCore(Container):
         self.sr.comboFontSize.SelectItemByValue(size)
         self.sr.anchor.SetAlpha([0.6, 1.0][bool(url)])
 
-    def ShowOrHideCharacterCounter(self, showCounter = True):
+    def ShowOrHideCharacterCounter(self, showCounter=True):
         if getattr(self, 'charCounter', None) is None:
             return
-        self.charCounter.display = showCounter
+        else:
+            self.charCounter.display = showCounter
+            return
 
     def UpdateCounter(self, *args):
         if getattr(self, 'charCounter', None) is None or self.parent is None:
             return
-        parent = self.parent
-        if self.countWithTags:
-            currentLen = len(parent.GetValue())
-        elif isinstance(parent, EditPlainTextCore):
-            currentLen = len(parent.GetAllText())
         else:
-            currentLen = len(StripTags(parent.GetSelectedText(getAll=True)))
-        self.charCounter.text = '%s/%s' % (currentLen, self.counterMax)
+            parent = self.parent
+            if self.countWithTags:
+                currentLen = len(parent.GetValue())
+            elif isinstance(parent, EditPlainTextCore):
+                currentLen = len(parent.GetAllText())
+            else:
+                currentLen = len(StripTags(parent.GetSelectedText(getAll=True)))
+            self.charCounter.text = '%s/%s' % (currentLen, self.counterMax)
+            return
 
 
 class EditCoreOverride(EditCore):

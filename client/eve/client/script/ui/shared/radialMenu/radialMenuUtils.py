@@ -1,9 +1,10 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\client\script\ui\shared\radialMenu\radialMenuUtils.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\client\script\ui\shared\radialMenu\radialMenuUtils.py
 import util
 
 class SimpleRadialMenuAction(util.KeyVal):
 
-    def __init__(self, option1 = None, option2 = None, *args, **kw):
+    def __init__(self, option1=None, option2=None, *args, **kw):
         self.option1Path = option1
         self.option2Path = option2
         self.activeOption = option1
@@ -12,10 +13,12 @@ class SimpleRadialMenuAction(util.KeyVal):
         for attrname, val in kw.iteritems():
             setattr(self, attrname, val)
 
+        return
+
 
 class RangeRadialMenuAction(util.KeyVal):
 
-    def __init__(self, optionPath = None, optionPath2 = None, rangeList = None, defaultRange = None, callback = None, *args, **kw):
+    def __init__(self, optionPath=None, optionPath2=None, rangeList=None, defaultRange=None, callback=None, *args, **kw):
         self.option1Path = optionPath
         self.option2Path = optionPath2
         self.activeOption = optionPath
@@ -28,7 +31,7 @@ class RangeRadialMenuAction(util.KeyVal):
 
 class SecondLevelRadialMenuAction(util.KeyVal):
 
-    def __init__(self, levelType = '', texturePath = 'res:/UI/Texture/classes/RadialMenu/plus.png', *args, **kw):
+    def __init__(self, levelType='', texturePath='res:/UI/Texture/classes/RadialMenu/plus.png', *args, **kw):
         self.option1Path = ''
         self.activeOption = ''
         self.levelType = levelType
@@ -39,7 +42,7 @@ class SecondLevelRadialMenuAction(util.KeyVal):
 
 class RadialMenuOptionsInfo:
 
-    def __init__(self, allWantedMenuOptions, activeSingleOptions = None, inactiveSingleOptions = None, activeRangeOptions = None, inactiveRangeOptions = None):
+    def __init__(self, allWantedMenuOptions, activeSingleOptions=None, inactiveSingleOptions=None, activeRangeOptions=None, inactiveRangeOptions=None):
         self.allWantedMenuOptions = allWantedMenuOptions
         self.activeSingleOptions = activeSingleOptions or {}
         self.inactiveSingleOptions = inactiveSingleOptions or set()
@@ -47,7 +50,7 @@ class RadialMenuOptionsInfo:
         self.inactiveRangeOptions = inactiveRangeOptions or set()
 
 
-def FindOptionsDegree(counter, degreeStep, startingDegree = 0, alternate = False):
+def FindOptionsDegree(counter, degreeStep, startingDegree=0, alternate=False):
     if counter == 0:
         return startingDegree
     if alternate:

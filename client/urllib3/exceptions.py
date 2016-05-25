@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\carbon\common\lib\urllib3\exceptions.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\carbon\common\lib\urllib3\exceptions.py
 
 
 class HTTPError(Exception):
@@ -26,7 +27,7 @@ class MaxRetryError(PoolError):
 
 class HostChangedError(PoolError):
 
-    def __init__(self, pool, url, retries = 3):
+    def __init__(self, pool, url, retries=3):
         message = 'Tried to open a foreign host with url: %s' % url
         PoolError.__init__(self, pool, message)
         self.url = url

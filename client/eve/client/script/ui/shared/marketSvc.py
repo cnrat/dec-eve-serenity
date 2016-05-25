@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\client\script\ui\shared\marketSvc.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\client\script\ui\shared\marketSvc.py
 from service import Service
 
 class Market(Service):
@@ -13,11 +14,13 @@ class Market(Service):
     def __init__(self):
         Service.__init__(self)
 
-    def Run(self, memStream = None):
+    def Run(self, memStream=None):
         self.market = None
+        return
 
-    def Stop(self, memStream = None):
+    def Stop(self, memStream=None):
         self.market = None
+        return
 
     def GetMarket(self):
         if self.market is None:
@@ -27,3 +30,4 @@ class Market(Service):
     def ProcessSessionChange(self, isremote, sess, change):
         if change.has_key('regionid'):
             self.market = None
+        return

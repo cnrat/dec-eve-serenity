@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\client\script\ui\station\test\test_isOkToBoardWithModulesLackingSkills.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\client\script\ui\station\test\test_isOkToBoardWithModulesLackingSkills.py
 from unittest import TestCase
 import mock
 from itertoolsext import Bundle
@@ -23,6 +24,7 @@ class TestIsOkToBoardWithModulesLackingSkills(TestCase):
         with SettingsMock():
             settings.user.suppress.Set('suppress.AskUndockWithModulesLackingSkill', True)
             self.assertTrue(IsOkToBoardWithModulesLackingSkills(None, self.message))
+        return
 
     def testWhenDogmaGivesYouNoModulesYouDoNotHaveSkillsForWeReturnTrue(self):
         self.assertTrue(self._IsOk([]))

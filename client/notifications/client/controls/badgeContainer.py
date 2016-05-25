@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\packages\notifications\client\controls\badgeContainer.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\packages\notifications\client\controls\badgeContainer.py
 import blue
 import uthread
 import carbonui.const as uiconst
@@ -28,6 +29,7 @@ class BadgeContainer(Container):
     def ShowBadge(self):
         if self.opacity < 1:
             uicore.animations.FadeIn(self, duration=0.25, callback=None)
+        return
 
     def UpdateAlignment(self, *args, **kwds):
         retval = Container.UpdateAlignment(self, *args, **kwds)
@@ -42,3 +44,4 @@ class BadgeContainer(Container):
 
     def HideBadge(self):
         uicore.animations.FadeOut(self, duration=0.25, callback=None)
+        return

@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\carbon\common\script\world\worldSpaceCommon.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\carbon\common\script\world\worldSpaceCommon.py
 import geo2
 import log
 import math
@@ -16,6 +17,7 @@ class WorldSpace(object):
             self.mainRow = cfg.worldspaces.Get(worldSpaceTypeID)
         self.boundingBox = (geo2.Vector(0, 0, 0), geo2.Vector(0, 0, 0))
         self.ground = None
+        return
 
     def GetWorldSpaceID(self):
         return self.worldSpaceID
@@ -29,6 +31,8 @@ class WorldSpace(object):
     def GetNameID(self):
         if evetypes.Exists(self.worldSpaceTypeID):
             return evetypes.GetNameID(self.worldSpaceTypeID)
+        else:
+            return None
 
     def GetDescription(self):
         return evetypes.GetDescriptionOrNone(self.worldSpaceTypeID)
@@ -36,6 +40,8 @@ class WorldSpace(object):
     def GetDescriptionID(self):
         if evetypes.Exists(self.worldSpaceTypeID):
             return evetypes.GetDescriptionID(self.worldSpaceTypeID)
+        else:
+            return None
 
     def GetParentWorldSpaceTypeID(self):
         return self.mainRow.parentWorldSpaceTypeID
@@ -59,13 +65,15 @@ class WorldSpace(object):
 
         if row:
             return row.districtID
-        districtlessWorldSpace = self.worldSpaceTypeID
-        row = self.mainRow
-        while row and row.districtID is None and row.parentWorldSpaceTypeID is not None:
-            districtlessWorldSpace = row.parentWorldSpaceTypeID
-            row = cfg.worldspaces.Get(row.parentWorldSpaceTypeID)
+        else:
+            districtlessWorldSpace = self.worldSpaceTypeID
+            row = self.mainRow
+            while row and row.districtID is None and row.parentWorldSpaceTypeID is not None:
+                districtlessWorldSpace = row.parentWorldSpaceTypeID
+                row = cfg.worldspaces.Get(row.parentWorldSpaceTypeID)
 
-        log.LogError("WorldSpace doesn't have a parent or a district worldSpaceTypeID: %d" % districtlessWorldSpace)
+            log.LogError("WorldSpace doesn't have a parent or a district worldSpaceTypeID: %d" % districtlessWorldSpace)
+            return
 
     def IsInterior(self):
         return self.mainRow.isInterior
@@ -96,23 +104,26 @@ def GetWorldSpace(worldSpaceID):
     global worldSpaceCache
     if worldSpaceID is None:
         return
-    ws = worldSpaceCache.get(worldSpaceID, None)
-    if ws is None:
-        try:
-            ws = WorldSpace(worldSpaceID, None)
-            worldSpaceCache[worldSpaceID] = ws
-        except KeyError:
-            return
+    else:
+        ws = worldSpaceCache.get(worldSpaceID, None)
+        if ws is None:
+            try:
+                ws = WorldSpace(worldSpaceID, None)
+                worldSpaceCache[worldSpaceID] = ws
+            except KeyError:
+                return
 
-    return ws
+        return ws
 
 
 def GetWorldSpaceName(worldSpaceID):
     if worldSpaceID is None:
         return
-    worldSpace = GetWorldSpace(worldSpaceID)
-    if worldSpace:
-        return worldSpace.GetName()
+    else:
+        worldSpace = GetWorldSpace(worldSpaceID)
+        if worldSpace:
+            return worldSpace.GetName()
+        return
 
 
 exports = {'world.GetWorldSpace': GetWorldSpace,

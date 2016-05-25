@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\client\script\ui\shared\planet\pinContainers\CommandCenterContainer.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\client\script\ui\shared\planet\pinContainers\CommandCenterContainer.py
 from carbonui.primitives.container import Container
 from eve.client.script.ui.control.eveLabel import Label, EveLabelSmall
 import evetypes
@@ -72,6 +73,7 @@ class CommandCenterContainer(StorageFacilityContainer):
             self.cooldownTimer.SetSubtext(localization.GetByLabel('UI/Common/Now'))
         else:
             self.cooldownTimer.SetSubtext(util.FmtTime(self.pin.lastRunTime - blue.os.GetWallclockTime()))
+        return
 
     def _GetActionButtons(self):
         btns = [util.KeyVal(id=planetCommonUI.PANEL_UPGRADE, panelCallback=self.PanelUpgrade), util.KeyVal(id=planetCommonUI.PANEL_LAUNCH, panelCallback=self.PanelLaunch), util.KeyVal(id=planetCommonUI.PANEL_STORAGE, panelCallback=self.PanelShowStorage)]
@@ -124,6 +126,7 @@ class CommandCenterContainer(StorageFacilityContainer):
         scrolllist = uiutil.SortListOfTuples(scrolllist)
         self.payloadScroll.Load(contentList=scrolllist, noContentHint=localization.GetByLabel('UI/PI/Common/PayloadIsEmpty'), headers=['', localization.GetByLabel('UI/PI/Common/Type'), localization.GetByLabel('UI/Common/Quantity')])
         self.costText.text = localization.GetByLabel('UI/PI/Common/LaunchCost', iskAmount=util.FmtISK(self.pin.GetExportTax(self.payloadCommodities)))
+        return
 
     def _DoLaunch(self, *args):
         if len(self.payloadCommodities) < 1:
@@ -136,11 +139,13 @@ class CommandCenterContainer(StorageFacilityContainer):
             return
         sm.GetService('audio').SendUIEvent('wise:/msg_pi_spaceports_launch_play')
         try:
-            self.planetUISvc.myPinManager.LaunchCommodities(self.pin.id, self.payloadCommodities)
-        except UserError:
-            self.ResetPayloadContents()
-            self._ReloadScrolls()
-            raise
+            try:
+                self.planetUISvc.myPinManager.LaunchCommodities(self.pin.id, self.payloadCommodities)
+            except UserError:
+                self.ResetPayloadContents()
+                self._ReloadScrolls()
+                raise
+
         finally:
             self._ToggleButtons()
 
@@ -222,21 +227,22 @@ class CommandCenterContainer(StorageFacilityContainer):
         if self.currLevel == planetCommonUI.PLANET_COMMANDCENTERMAXLEVEL:
             self.upgradeText.SetText(localization.GetByLabel('UI/PI/Common/MaximumUpgradeLevelReached'))
             return cont
-        bottomCont = Container(name='bottomCont', align=uiconst.TOTOP, parent=cont, height=50, padTop=16)
-        leftBottomCont = Container(name='leftBottomCont', align=uiconst.TOLEFT_PROP, width=0.5, parent=bottomCont)
-        rightBottomCont = Container(name='rightBottomCont', align=uiconst.TOLEFT_PROP, width=0.5, parent=bottomCont)
-        powerValue = float(self.currPowerOutput) / self.maxPowerOutput
-        self.upgradePowerGauge = uicls.GaugeMultiValue(parent=leftBottomCont, value=0.0, colors=[planetCommonUI.PLANET_COLOR_POWER, planetCommonUI.PLANET_COLOR_POWERUPGRADE], values=[powerValue, 0.0], label=localization.GetByLabel('UI/PI/Common/PowerOutput'))
-        self.upgradePowerGauge.ShowMarker(value=powerValue, color=util.Color.GetGrayRGBA(0.0, 0.5))
-        self.costText = CaptionAndSubtext(parent=leftBottomCont, caption=localization.GetByLabel('UI/Common/Cost'), subtext=localization.GetByLabel('UI/PI/Common/NoCost'), top=42)
-        cpuValue = float(self.currCPUOutput) / self.maxCPUOutput
-        self.upgradeCPUGauge = uicls.GaugeMultiValue(parent=rightBottomCont, colors=[planetCommonUI.PLANET_COLOR_CPU, planetCommonUI.PLANET_COLOR_CPUUPGRADE], values=[cpuValue, 0.0], label=localization.GetByLabel('UI/PI/Common/CpuOutput'))
-        self.upgradeCPUGauge.ShowMarker(value=cpuValue, color=util.Color.GetGrayRGBA(0.0, 0.5))
-        btns = [(localization.GetByLabel('UI/PI/Common/Upgrade'), self._ApplyUpgrade, None)]
-        btnGroup = uicontrols.ButtonGroup(btns=btns, parent=cont, line=False, alwaysLite=True)
-        self.upgradeButton = btnGroup.GetBtnByLabel(localization.GetByLabel('UI/PI/Common/Upgrade'))
-        self.upgradeButton.Disable()
-        return cont
+        else:
+            bottomCont = Container(name='bottomCont', align=uiconst.TOTOP, parent=cont, height=50, padTop=16)
+            leftBottomCont = Container(name='leftBottomCont', align=uiconst.TOLEFT_PROP, width=0.5, parent=bottomCont)
+            rightBottomCont = Container(name='rightBottomCont', align=uiconst.TOLEFT_PROP, width=0.5, parent=bottomCont)
+            powerValue = float(self.currPowerOutput) / self.maxPowerOutput
+            self.upgradePowerGauge = uicls.GaugeMultiValue(parent=leftBottomCont, value=0.0, colors=[planetCommonUI.PLANET_COLOR_POWER, planetCommonUI.PLANET_COLOR_POWERUPGRADE], values=[powerValue, 0.0], label=localization.GetByLabel('UI/PI/Common/PowerOutput'))
+            self.upgradePowerGauge.ShowMarker(value=powerValue, color=util.Color.GetGrayRGBA(0.0, 0.5))
+            self.costText = CaptionAndSubtext(parent=leftBottomCont, caption=localization.GetByLabel('UI/Common/Cost'), subtext=localization.GetByLabel('UI/PI/Common/NoCost'), top=42)
+            cpuValue = float(self.currCPUOutput) / self.maxCPUOutput
+            self.upgradeCPUGauge = uicls.GaugeMultiValue(parent=rightBottomCont, colors=[planetCommonUI.PLANET_COLOR_CPU, planetCommonUI.PLANET_COLOR_CPUUPGRADE], values=[cpuValue, 0.0], label=localization.GetByLabel('UI/PI/Common/CpuOutput'))
+            self.upgradeCPUGauge.ShowMarker(value=cpuValue, color=util.Color.GetGrayRGBA(0.0, 0.5))
+            btns = [(localization.GetByLabel('UI/PI/Common/Upgrade'), self._ApplyUpgrade, None)]
+            btnGroup = uicontrols.ButtonGroup(btns=btns, parent=cont, line=False, alwaysLite=True)
+            self.upgradeButton = btnGroup.GetBtnByLabel(localization.GetByLabel('UI/PI/Common/Upgrade'))
+            self.upgradeButton.Disable()
+            return cont
 
     def OnUpgradeBarValueChanged(self, oldValue, newValue):
         self.newLevel = newValue
@@ -264,6 +270,7 @@ class CommandCenterContainer(StorageFacilityContainer):
         self._SetCPUGaugeSubText(newCPUOutput)
         iskCost = util.FmtISK(planetCommon.GetUpgradeCost(self.currLevel, self.newLevel), showFractionsAlways=0)
         self.costText.SetSubtext(iskCost)
+        return
 
     def _SetPowerGaugeSubText(self, newPowerOutput):
         diff = newPowerOutput - self.currPowerOutput

@@ -1,8 +1,9 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\client\script\ui\shared\fitting\fittingUtil.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\client\script\ui\shared\fitting\fittingUtil.py
 from eve.common.script.sys.eveCfg import GetActiveShip
 import evetypes
 import invCtrl
-from inventorycommon.util import IsShipFittingFlag
+from inventorycommon.util import IsShipFittingFlag, IsFittingModule
 from utillib import KeyVal
 import inventorycommon.const as invConst
 import dogma.const as dogmaConst
@@ -19,7 +20,7 @@ HULLREPAIRRATEACTIVE = 3
 PANEL_WIDTH = 280
 FITKEYS = ('Hi', 'Med', 'Lo')
 NUM_SUBSYSTEM_SLOTS = 5
-GHOST_FITTABLE_GROUPS = (const.categoryModule, const.categorySubSystem)
+GHOST_FITTABLE_GROUPS = (const.categoryModule, const.categorySubSystem, const.categoryStructureModule)
 
 def GetTypeAttributesByID(typeID):
     if not typeID:
@@ -39,13 +40,13 @@ def GetMultiplyColor2(multiply):
     return FONTCOLOR_DEFAULT2
 
 
-def GetColor(xtra = 0.0, multi = 1.0):
+def GetColor(xtra=0.0, multi=1.0):
     if multi != 1.0 or xtra != 0.0:
         return FONTCOLOR_HILITE
     return FONTCOLOR_DEFAULT
 
 
-def GetColor2(xtra = 0.0, multi = 1.0):
+def GetColor2(xtra=0.0, multi=1.0):
     if multi != 1.0 or xtra != 0.0:
         return FONTCOLOR_HILITE2
     return FONTCOLOR_DEFAULT2
@@ -89,6 +90,7 @@ def GetSensorStrengthAttribute(dogmaLocation, shipID):
                 maxValue, maxAttributeID = val, attributeID
 
         return (maxAttributeID, maxValue)
+        return
 
 
 def GetFittingDragData():
@@ -132,9 +134,11 @@ def GetPowerType(flagID):
         return dogmaConst.effectSubSystem
     if flagID in invConst.rigSlotFlags:
         return dogmaConst.effectRigSlot
+    if flagID in invConst.serviceSlotFlags:
+        return dogmaConst.effectServiceSlot
 
 
-def TryFit(invItems, shipID = None):
+def TryFit(invItems, shipID=None):
     if not shipID:
         shipID = GetActiveShip()
         if not shipID:
@@ -142,14 +146,13 @@ def TryFit(invItems, shipID = None):
     godma = sm.services['godma']
     invCache = sm.GetService('invCache')
     shipInv = invCache.GetInventoryFromId(shipID, locationID=session.stationid2)
-    dogmaLocation = sm.GetService('clientDogmaIM').GetDogmaLocation()
     godmaSM = godma.GetStateManager()
     useRigs = None
     charges = set()
     drones = []
     subSystemGroupIDs = set()
     for invItem in invItems[:]:
-        if invItem.categoryID == const.categoryModule:
+        if IsFittingModule(invItem.categoryID):
             moduleEffects = cfg.dgmtypeeffects.get(invItem.typeID, [])
             for mEff in moduleEffects:
                 if mEff.effectID == const.effectRigSlot:
@@ -206,7 +209,6 @@ def TryFit(invItems, shipID = None):
                     continue
                 if desiredSize and getattr(chargeDgmType, 'chargeSize', -1) != desiredSize:
                     continue
-                leftOvers = False
                 for i, squatter in enumerate([ i for i in shipStuff if i.flagID == row.flagID ]):
                     if isCrystalOrScript and i > 0:
                         break
@@ -240,6 +242,8 @@ def TryFit(invItems, shipID = None):
             if not loadedSomething:
                 uicore.Message('NoSuitableModules')
 
+    return
+
 
 def RigFittingCheck(invItem):
     moduleEffects = cfg.dgmtypeeffects.get(invItem.typeID, [])
@@ -253,7 +257,7 @@ def RigFittingCheck(invItem):
 
 class ModifiedAttribute(object):
 
-    def __init__(self, value, multiplier = 1.0, addition = 0.0, higherIsBetter = True, oldValue = None, attributeID = None):
+    def __init__(self, value, multiplier=1.0, addition=0.0, higherIsBetter=True, oldValue=None, attributeID=None):
         self.baseValue = value
         self.multiplier = multiplier
         self.addition = addition
@@ -289,6 +293,7 @@ class ModifiedAttribute(object):
             if self.higherIsBetter:
                 return currentIsHigher
             return not currentIsHigher
+            return
 
 
 def GetDefensiveLayersInfo(controller):

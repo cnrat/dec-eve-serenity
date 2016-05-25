@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\carbon\common\lib\jinja2\environment.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\carbon\common\lib\jinja2\environment.py
 import os
 import sys
 from jinja2 import nodes
@@ -21,25 +22,28 @@ def get_spontaneous_environment(*args):
 
     if env is not None:
         return env
-    _spontaneous_environments[args] = env = Environment(*args)
-    env.shared = True
-    return env
+    else:
+        _spontaneous_environments[args] = env = Environment(*args)
+        env.shared = True
+        return env
 
 
 def create_cache(size):
     if size == 0:
         return None
-    if size < 0:
+    elif size < 0:
         return {}
-    return LRUCache(size)
+    else:
+        return LRUCache(size)
 
 
 def copy_cache(cache):
     if cache is None:
         return
-    if type(cache) is dict:
+    elif type(cache) is dict:
         return {}
-    return LRUCache(cache.capacity)
+    else:
+        return LRUCache(cache.capacity)
 
 
 def load_extensions(environment, extensions):
@@ -64,7 +68,7 @@ class Environment(object):
     exception_handler = None
     exception_formatter = None
 
-    def __init__(self, block_start_string = BLOCK_START_STRING, block_end_string = BLOCK_END_STRING, variable_start_string = VARIABLE_START_STRING, variable_end_string = VARIABLE_END_STRING, comment_start_string = COMMENT_START_STRING, comment_end_string = COMMENT_END_STRING, line_statement_prefix = LINE_STATEMENT_PREFIX, line_comment_prefix = LINE_COMMENT_PREFIX, trim_blocks = TRIM_BLOCKS, newline_sequence = NEWLINE_SEQUENCE, extensions = (), optimized = True, undefined = Undefined, finalize = None, autoescape = False, loader = None, cache_size = 50, auto_reload = True, bytecode_cache = None):
+    def __init__(self, block_start_string=BLOCK_START_STRING, block_end_string=BLOCK_END_STRING, variable_start_string=VARIABLE_START_STRING, variable_end_string=VARIABLE_END_STRING, comment_start_string=COMMENT_START_STRING, comment_end_string=COMMENT_END_STRING, line_statement_prefix=LINE_STATEMENT_PREFIX, line_comment_prefix=LINE_COMMENT_PREFIX, trim_blocks=TRIM_BLOCKS, newline_sequence=NEWLINE_SEQUENCE, extensions=(), optimized=True, undefined=Undefined, finalize=None, autoescape=False, loader=None, cache_size=50, auto_reload=True, bytecode_cache=None):
         self.block_start_string = block_start_string
         self.block_end_string = block_end_string
         self.variable_start_string = variable_start_string
@@ -89,6 +93,7 @@ class Environment(object):
         self.auto_reload = auto_reload
         self.extensions = load_extensions(self, extensions)
         _environment_sanity_check(self)
+        return
 
     def add_extension(self, extension):
         self.extensions.update(load_extensions(self, [extension]))
@@ -98,7 +103,7 @@ class Environment(object):
             if not hasattr(self, key):
                 setattr(self, key, value)
 
-    def overlay(self, block_start_string = missing, block_end_string = missing, variable_start_string = missing, variable_end_string = missing, comment_start_string = missing, comment_end_string = missing, line_statement_prefix = missing, line_comment_prefix = missing, trim_blocks = missing, extensions = missing, optimized = missing, undefined = missing, finalize = missing, autoescape = missing, loader = missing, cache_size = missing, auto_reload = missing, bytecode_cache = missing):
+    def overlay(self, block_start_string=missing, block_end_string=missing, variable_start_string=missing, variable_end_string=missing, comment_start_string=missing, comment_end_string=missing, line_statement_prefix=missing, line_comment_prefix=missing, trim_blocks=missing, extensions=missing, optimized=missing, undefined=missing, finalize=missing, autoescape=missing, loader=missing, cache_size=missing, auto_reload=missing, bytecode_cache=missing):
         args = dict(locals())
         del args['self']
         del args['cache_size']
@@ -157,7 +162,7 @@ class Environment(object):
             return self.undefined(obj=obj, name=attribute)
 
     @internalcode
-    def parse(self, source, name = None, filename = None):
+    def parse(self, source, name=None, filename=None):
         try:
             return self._parse(source, name, filename)
         except TemplateSyntaxError:
@@ -168,7 +173,7 @@ class Environment(object):
     def _parse(self, source, name, filename):
         return Parser(self, source, name, _encode_filename(filename)).parse()
 
-    def lex(self, source, name = None, filename = None):
+    def lex(self, source, name=None, filename=None):
         source = unicode(source)
         try:
             return self.lexer.tokeniter(source, name, filename)
@@ -177,10 +182,10 @@ class Environment(object):
 
         self.handle_exception(exc_info, source_hint=source)
 
-    def preprocess(self, source, name = None, filename = None):
+    def preprocess(self, source, name=None, filename=None):
         return reduce(lambda s, e: e.preprocess(s, name, filename), self.iter_extensions(), unicode(source))
 
-    def _tokenize(self, source, name, filename = None, state = None):
+    def _tokenize(self, source, name, filename=None, state=None):
         source = self.preprocess(source, name, filename)
         stream = self.lexer.tokenize(source, name, filename, state)
         for ext in self.iter_extensions():
@@ -190,14 +195,14 @@ class Environment(object):
 
         return stream
 
-    def _generate(self, source, name, filename, defer_init = False):
+    def _generate(self, source, name, filename, defer_init=False):
         return generate(source, self, name, filename, defer_init=defer_init)
 
     def _compile(self, source, filename):
         return compile(source, filename, 'exec')
 
     @internalcode
-    def compile(self, source, name = None, filename = None, raw = False, defer_init = False):
+    def compile(self, source, name=None, filename=None, raw=False, defer_init=False):
         source_hint = None
         try:
             if isinstance(source, basestring):
@@ -217,8 +222,9 @@ class Environment(object):
             exc_info = sys.exc_info()
 
         self.handle_exception(exc_info, source_hint=source)
+        return
 
-    def compile_expression(self, source, undefined_to_none = True):
+    def compile_expression(self, source, undefined_to_none=True):
         parser = Parser(self, source, state='variable')
         exc_info = None
         try:
@@ -235,7 +241,7 @@ class Environment(object):
         template = self.from_string(nodes.Template(body, lineno=1))
         return TemplateExpression(template, undefined_to_none)
 
-    def compile_templates(self, target, extensions = None, filter_func = None, zip = 'deflated', log_function = None, ignore_errors = True, py_compile = False):
+    def compile_templates(self, target, extensions=None, filter_func=None, zip='deflated', log_function=None, ignore_errors=True, py_compile=False):
         from jinja2.loaders import ModuleLoader
         if log_function is None:
             log_function = lambda x: None
@@ -288,8 +294,9 @@ class Environment(object):
                 zip_file.close()
 
         log_function('Finished compiling templates')
+        return
 
-    def list_templates(self, extensions = None, filter_func = None):
+    def list_templates(self, extensions=None, filter_func=None):
         x = self.loader.list_templates()
         if extensions is not None:
             if filter_func is not None:
@@ -299,7 +306,7 @@ class Environment(object):
             x = filter(filter_func, x)
         return x
 
-    def handle_exception(self, exc_info = None, rendered = False, source_hint = None):
+    def handle_exception(self, exc_info=None, rendered=False, source_hint=None):
         global _make_traceback
         if exc_info is None:
             exc_info = sys.exc_info()
@@ -308,10 +315,12 @@ class Environment(object):
         traceback = _make_traceback(exc_info, source_hint)
         if rendered and self.exception_formatter is not None:
             return self.exception_formatter(traceback)
-        if self.exception_handler is not None:
-            self.exception_handler(traceback)
-        exc_type, exc_value, tb = traceback.standard_exc_info
-        raise exc_type, exc_value, tb
+        else:
+            if self.exception_handler is not None:
+                self.exception_handler(traceback)
+            exc_type, exc_value, tb = traceback.standard_exc_info
+            raise exc_type, exc_value, tb
+            return
 
     def join_path(self, template, parent):
         return template
@@ -330,15 +339,16 @@ class Environment(object):
         return template
 
     @internalcode
-    def get_template(self, name, parent = None, globals = None):
+    def get_template(self, name, parent=None, globals=None):
         if isinstance(name, Template):
             return name
-        if parent is not None:
-            name = self.join_path(name, parent)
-        return self._load_template(name, self.make_globals(globals))
+        else:
+            if parent is not None:
+                name = self.join_path(name, parent)
+            return self._load_template(name, self.make_globals(globals))
 
     @internalcode
-    def select_template(self, names, parent = None, globals = None):
+    def select_template(self, names, parent=None, globals=None):
         if not names:
             raise TemplatesNotFound(message=u'Tried to select from an empty list of templates.')
         globals = self.make_globals(globals)
@@ -353,16 +363,17 @@ class Environment(object):
                 pass
 
         raise TemplatesNotFound(names)
+        return
 
     @internalcode
-    def get_or_select_template(self, template_name_or_list, parent = None, globals = None):
+    def get_or_select_template(self, template_name_or_list, parent=None, globals=None):
         if isinstance(template_name_or_list, basestring):
             return self.get_template(template_name_or_list, parent, globals)
         if isinstance(template_name_or_list, Template):
             return template_name_or_list
         return self.select_template(template_name_or_list, parent, globals)
 
-    def from_string(self, source, globals = None, template_class = None):
+    def from_string(self, source, globals=None, template_class=None):
         globals = self.make_globals(globals)
         cls = template_class or self.template_class
         return cls.from_code(self, self.compile(source), globals, None)
@@ -375,12 +386,12 @@ class Environment(object):
 
 class Template(object):
 
-    def __new__(cls, source, block_start_string = BLOCK_START_STRING, block_end_string = BLOCK_END_STRING, variable_start_string = VARIABLE_START_STRING, variable_end_string = VARIABLE_END_STRING, comment_start_string = COMMENT_START_STRING, comment_end_string = COMMENT_END_STRING, line_statement_prefix = LINE_STATEMENT_PREFIX, line_comment_prefix = LINE_COMMENT_PREFIX, trim_blocks = TRIM_BLOCKS, newline_sequence = NEWLINE_SEQUENCE, extensions = (), optimized = True, undefined = Undefined, finalize = None, autoescape = False):
+    def __new__(cls, source, block_start_string=BLOCK_START_STRING, block_end_string=BLOCK_END_STRING, variable_start_string=VARIABLE_START_STRING, variable_end_string=VARIABLE_END_STRING, comment_start_string=COMMENT_START_STRING, comment_end_string=COMMENT_END_STRING, line_statement_prefix=LINE_STATEMENT_PREFIX, line_comment_prefix=LINE_COMMENT_PREFIX, trim_blocks=TRIM_BLOCKS, newline_sequence=NEWLINE_SEQUENCE, extensions=(), optimized=True, undefined=Undefined, finalize=None, autoescape=False):
         env = get_spontaneous_environment(block_start_string, block_end_string, variable_start_string, variable_end_string, comment_start_string, comment_end_string, line_statement_prefix, line_comment_prefix, trim_blocks, newline_sequence, frozenset(extensions), optimized, undefined, finalize, autoescape, None, 0, False, None)
         return env.from_string(source, template_class=cls)
 
     @classmethod
-    def from_code(cls, environment, code, globals, uptodate = None):
+    def from_code(cls, environment, code, globals, uptodate=None):
         namespace = {'environment': environment,
          '__file__': code.co_filename}
         exec code in namespace
@@ -433,31 +444,31 @@ class Template(object):
 
         yield self.environment.handle_exception(exc_info, True)
 
-    def new_context(self, vars = None, shared = False, locals = None):
+    def new_context(self, vars=None, shared=False, locals=None):
         return new_context(self.environment, self.name, self.blocks, vars, shared, self.globals, locals)
 
-    def make_module(self, vars = None, shared = False, locals = None):
+    def make_module(self, vars=None, shared=False, locals=None):
         return TemplateModule(self, self.new_context(vars, shared, locals))
 
     @property
     def module(self):
         if self._module is not None:
             return self._module
-        self._module = rv = self.make_module()
-        return rv
+        else:
+            self._module = rv = self.make_module()
+            return rv
 
     def get_corresponding_lineno(self, lineno):
         for template_line, code_line in reversed(self.debug_info):
             if code_line <= lineno:
                 return template_line
 
-        return 1
-
     @property
     def is_up_to_date(self):
         if self._uptodate is None:
             return True
-        return self._uptodate()
+        else:
+            return self._uptodate()
 
     @property
     def debug_info(self):
@@ -516,7 +527,7 @@ class TemplateStream(object):
         self._gen = gen
         self.disable_buffering()
 
-    def dump(self, fp, encoding = None, errors = 'strict'):
+    def dump(self, fp, encoding=None, errors='strict'):
         close = False
         if isinstance(fp, basestring):
             fp = file(fp, 'w')
@@ -536,11 +547,13 @@ class TemplateStream(object):
             if close:
                 fp.close()
 
+        return
+
     def disable_buffering(self):
         self._next = self._gen.next
         self.buffered = False
 
-    def enable_buffering(self, size = 5):
+    def enable_buffering(self, size=5):
         if size <= 1:
             raise ValueError('buffer size too small')
 

@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\client\script\ui\shared\neocom\neocom\neocomButtons.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\client\script\ui\shared\neocom\neocom\neocomButtons.py
 from carbonui.primitives.fill import Fill
 from carbonui.primitives.sprite import Sprite
 from eve.client.script.ui.control.glowSprite import GlowSprite
@@ -63,6 +64,7 @@ class ButtonBase(uiprimitives.Container):
         self.CheckIfActive()
         self.dropFrame = uicontrols.Frame(parent=self, name='hoverFrame', color=util.Color.GetGrayRGBA(1.0, 0.5), state=uiconst.UI_HIDDEN)
         sm.RegisterNotify(self)
+        return
 
     def GetXPosition(self):
         buttons = self.btnData.parent.GetButtonsInScope()
@@ -117,25 +119,27 @@ class ButtonBase(uiprimitives.Container):
         isOpen = self._openNeocomPanel and not self._openNeocomPanel.destroyed
         if isOpen:
             return
-        tooltipPanel.LoadGeneric3ColumnTemplate()
-        blinkHintStr = None
-        if getattr(self.btnData, 'cmdName', None):
-            cmd = uicore.cmd.commandMap.GetCommandByName(self.btnData.cmdName)
-            tooltipPanel.AddCommandTooltip(cmd)
-            blinkHintStr = self.btnData.blinkHint
         else:
-            label = None
-            if self.IsSingleWindow():
-                wnd = self.GetWindow()
-                if not wnd.destroyed:
-                    label = wnd.GetCaption()
-            elif self.btnData.children:
-                label = self.btnData.children[0].wnd.GetNeocomGroupLabel()
-            mainStr = label or self.btnData.label
-            tooltipPanel.AddLabelMedium(text=mainStr)
-        self.LoadTooltipPanelDetails(tooltipPanel, self.btnData)
-        if blinkHintStr:
-            tooltipPanel.AddLabelMedium(text=blinkHintStr, width=200, colSpan=tooltipPanel.columns)
+            tooltipPanel.LoadGeneric3ColumnTemplate()
+            blinkHintStr = None
+            if getattr(self.btnData, 'cmdName', None):
+                cmd = uicore.cmd.commandMap.GetCommandByName(self.btnData.cmdName)
+                tooltipPanel.AddCommandTooltip(cmd)
+                blinkHintStr = self.btnData.blinkHint
+            else:
+                label = None
+                if self.IsSingleWindow():
+                    wnd = self.GetWindow()
+                    if not wnd.destroyed:
+                        label = wnd.GetCaption()
+                elif self.btnData.children:
+                    label = self.btnData.children[0].wnd.GetNeocomGroupLabel()
+                mainStr = label or self.btnData.label
+                tooltipPanel.AddLabelMedium(text=mainStr)
+            self.LoadTooltipPanelDetails(tooltipPanel, self.btnData)
+            if blinkHintStr:
+                tooltipPanel.AddLabelMedium(text=blinkHintStr, width=200, colSpan=tooltipPanel.columns)
+            return
 
     def LoadTooltipPanelDetails(cls, tooltipPanel, btnData):
         if btnData.id == 'wallet':
@@ -163,15 +167,17 @@ class ButtonBase(uiprimitives.Container):
     def OnMouseDown(self, *args):
         if not self.IsDraggable():
             return
-        if not uicore.uilib.leftbtn:
+        elif not uicore.uilib.leftbtn:
             return
-        self.isDragging = False
-        self.mouseDownY = uicore.uilib.y
-        if self.dragEventCookie is not None:
-            uicore.event.UnregisterForTriuiEvents(self.dragEventCookie)
-        self.dragEventCookie = uicore.event.RegisterForTriuiEvents(uiconst.UI_MOUSEMOVE, self.OnDrag)
-        uicore.animations.Tr2DScaleTo(self.iconTransform, self.iconTransform.scale, (0.95, 0.95), duration=0.1)
-        self.icon.OnMouseDown()
+        else:
+            self.isDragging = False
+            self.mouseDownY = uicore.uilib.y
+            if self.dragEventCookie is not None:
+                uicore.event.UnregisterForTriuiEvents(self.dragEventCookie)
+            self.dragEventCookie = uicore.event.RegisterForTriuiEvents(uiconst.UI_MOUSEMOVE, self.OnDrag)
+            uicore.animations.Tr2DScaleTo(self.iconTransform, self.iconTransform.scale, (0.95, 0.95), duration=0.1)
+            self.icon.OnMouseDown()
+            return
 
     def OnMouseUp(self, *args):
         if uicore.uilib.mouseOver == self:
@@ -180,6 +186,7 @@ class ButtonBase(uiprimitives.Container):
             uicore.event.UnregisterForTriuiEvents(self.dragEventCookie)
             self.dragEventCookie = None
         self.icon.OnMouseUp()
+        return
 
     def OnDragEnd(self, *args):
         uicore.event.UnregisterForTriuiEvents(self.dragEventCookie)
@@ -187,6 +194,7 @@ class ButtonBase(uiprimitives.Container):
         self.isDragging = False
         self.controller.OnButtonDragEnd(self)
         self.CheckIfActive()
+        return
 
     def OnDrag(self, *args):
         if math.fabs(self.mouseDownY - uicore.uilib.y) > 5 or self.isDragging:
@@ -220,12 +228,13 @@ class ButtonBase(uiprimitives.Container):
         uicore.effect.MorphUIMassSpringDamper(item=self, attrname='opacity', float=1, newVal=1.0, minVal=0, maxVal=2.0, dampRatio=0.45, frequency=15.0, initSpeed=0, maxTime=4.0, callback=None, initVal=0.0)
         self.isDragging = False
         self.disableClick = False
+        return
 
     def GetDragData(self, *args):
         if self.btnData.isDraggable:
             return [self.btnData]
 
-    def BlinkOnce(self, duration = 0.7):
+    def BlinkOnce(self, duration=0.7):
         self.blinkSprite.Show()
         uicore.animations.SpSwoopBlink(self.blinkSprite, rotation=math.pi * 0.75, duration=duration)
 
@@ -256,6 +265,7 @@ class ButtonBase(uiprimitives.Container):
         else:
             self._openNeocomPanel = sm.GetService('neocom').ShowPanel(triggerCont=self, panelClass=self.GetPanelClass(), panelAlign=neocomCommon.PANEL_SHOWONSIDE, parent=uicore.layer.abovemain, btnData=self.btnData)
         RefreshTooltipForOwner(self)
+        return
 
     def ShowPanelOnMouseHoverThread(self):
         if len(self.btnData.children) <= 1:
@@ -324,6 +334,7 @@ class ButtonWindow(ButtonBase):
                 return [(uiutil.MenuLabel('/Carbon/UI/Commands/CmdCloseAllWindows'), self.CloseAllWindows)]
             if self.btnData.btnType in neocomCommon.COMMAND_BTNTYPES:
                 return ButtonBase.GetMenu(self)
+        return None
 
     def CloseAllWindows(self):
         for wnd in self.GetAllWindows():
@@ -390,24 +401,27 @@ class ButtonInventory(ButtonWindow):
     def OnDropData(self, source, nodes):
         if not self._IsValidDropData(nodes):
             return
-        inv = []
-        for node in nodes:
-            if node.Get('__guid__', None) in ('xtriui.InvItem', 'listentry.InvItem'):
-                inv.append(node.itemID)
-                locationID = node.rec.locationID
+        else:
+            inv = []
+            for node in nodes:
+                if node.Get('__guid__', None) in ('xtriui.InvItem', 'listentry.InvItem'):
+                    inv.append(node.itemID)
+                    locationID = node.rec.locationID
 
-        if inv:
-            sm.GetService('invCache').GetInventoryFromId(self.btnData.invLocationID).MultiAdd(inv, locationID, flag=self.btnData.invFlagID)
-        self.dropFrame.state = uiconst.UI_HIDDEN
+            if inv:
+                sm.GetService('invCache').GetInventoryFromId(self.btnData.invLocationID).MultiAdd(inv, locationID, flag=self.btnData.invFlagID)
+            self.dropFrame.state = uiconst.UI_HIDDEN
+            return
 
     def _IsValidDropData(self, nodes):
         if not nodes:
             return False
-        for node in nodes:
-            if node.Get('__guid__', None) in ('xtriui.InvItem', 'listentry.InvItem'):
-                return True
+        else:
+            for node in nodes:
+                if node.Get('__guid__', None) in ('xtriui.InvItem', 'listentry.InvItem'):
+                    return True
 
-        return False
+            return False
 
 
 class ButtonTwitch(ButtonWindow):
@@ -532,6 +546,7 @@ class OverflowButton(uiprimitives.Container):
         self.blinkSprite = uiprimitives.Sprite(bgParent=self, name='blinkSprite', texturePath='res:/UI/Texture/classes/Neocom/buttonBlink.png', state=uiconst.UI_HIDDEN)
         self.icon = uiprimitives.Sprite(parent=self, texturePath='res:/UI/Texture/classes/Neocom/arrowDown.png', width=7, height=7, align=uiconst.CENTER, state=uiconst.UI_DISABLED)
         self.UpdateIconRotation()
+        return
 
     def UpdateIconRotation(self):
         if settings.char.ui.Get('neocomAlign', uiconst.TOLEFT) == uiconst.TOLEFT:
@@ -563,6 +578,7 @@ class OverflowButton(uiprimitives.Container):
         else:
             self._openNeocomPanel = sm.GetService('neocom').ShowPanel(self, neocomPanels.PanelOverflow, neocomCommon.PANEL_SHOWONSIDE, parent=uicore.layer.abovemain, btnData=None)
         RefreshTooltipForOwner(self)
+        return
 
     def BlinkOnce(self):
         self.blinkSprite.state = uiconst.UI_DISABLED
@@ -592,6 +608,7 @@ class WrapperButton(uiprimitives.Container):
         self.mouseHoverSprite = SpriteThemeColored(parent=self, name='mouseHoverSprite', align=uiconst.TOALL, texturePath='res:/UI/Texture/classes/Neocom/eveButtonBg.png', blendMode=trinity.TR2_SBM_ADD, state=uiconst.UI_HIDDEN, colorType=uiconst.COLORTYPE_UIHILIGHTGLOW)
         self.mouseHoverSprite.Hide()
         self.blinkSprite = SpriteThemeColored(parent=self, name='blinkSprite', texturePath='res:/UI/Texture/classes/Neocom/buttonBlink.png', state=uiconst.UI_HIDDEN, align=uiconst.TOALL, colorType=uiconst.COLORTYPE_UIHILIGHTGLOW)
+        return
 
     def OnClick(self, *args):
         self.cmd.callback()
@@ -612,31 +629,35 @@ class WrapperButton(uiprimitives.Container):
         isOpen = self._openNeocomPanel and not self._openNeocomPanel.destroyed
         if isOpen:
             return
-        tooltipPanel.LoadGeneric3ColumnTemplate()
-        tooltipPanel.AddCommandTooltip(self.cmd)
-        if self.cmdName == 'OpenCalendar':
-            timeLabel = localization.formatters.FormatDateTime(blue.os.GetTime(), dateFormat='full', timeFormat=None)
-            tooltipPanel.AddLabelMedium(text=timeLabel, colSpan=tooltipPanel.columns)
-        elif self.cmdName == 'OpenSkillQueueWindow':
-            trainingHintLabel = tooltipPanel.AddLabelMedium(text='', colSpan=tooltipPanel.columns)
-            tooltipPanel.trainingHintLabel = trainingHintLabel
-            self.UpdateSkillQueueTooltip_thread(tooltipPanel)
-            self._skillqueueTooltipUpdate = AutoTimer(1000, self.UpdateSkillQueueTooltip_thread, tooltipPanel)
+        else:
+            tooltipPanel.LoadGeneric3ColumnTemplate()
+            tooltipPanel.AddCommandTooltip(self.cmd)
+            if self.cmdName == 'OpenCalendar':
+                timeLabel = localization.formatters.FormatDateTime(blue.os.GetTime(), dateFormat='full', timeFormat=None)
+                tooltipPanel.AddLabelMedium(text=timeLabel, colSpan=tooltipPanel.columns)
+            elif self.cmdName == 'OpenSkillQueueWindow':
+                trainingHintLabel = tooltipPanel.AddLabelMedium(text='', colSpan=tooltipPanel.columns)
+                tooltipPanel.trainingHintLabel = trainingHintLabel
+                self.UpdateSkillQueueTooltip_thread(tooltipPanel)
+                self._skillqueueTooltipUpdate = AutoTimer(1000, self.UpdateSkillQueueTooltip_thread, tooltipPanel)
+            return
 
     def UpdateSkillQueueTooltip_thread(self, tooltipPanel):
         if tooltipPanel.destroyed:
             self._skillqueueTooltipUpdate = None
             return
-        skillQueueSvc = sm.GetService('skillqueue')
-        skill = skillQueueSvc.SkillInTraining()
-        if skill is None:
-            trainingHint = localization.GetByLabel('UI/Neocom/NoSkillHint')
         else:
-            trainingSkill = skillQueueSvc.GetServerQueue()[0]
-            skillName = evetypes.GetName(skill.typeID)
-            secUntilDone = max(0L, long(trainingSkill.trainingEndTime) - blue.os.GetTime())
-            trainingHint = localization.GetByLabel('UI/Neocom/SkillTrainingHint', skillName=skillName, skillLevel=trainingSkill.trainingToLevel, time=secUntilDone)
-        tooltipPanel.trainingHintLabel.text = trainingHint
+            skillQueueSvc = sm.GetService('skillqueue')
+            skill = skillQueueSvc.SkillInTraining()
+            if skill is None:
+                trainingHint = localization.GetByLabel('UI/Neocom/NoSkillHint')
+            else:
+                trainingSkill = skillQueueSvc.GetServerQueue()[0]
+                skillName = evetypes.GetName(skill.typeID)
+                secUntilDone = max(0L, long(trainingSkill.trainingEndTime) - blue.os.GetTime())
+                trainingHint = localization.GetByLabel('UI/Neocom/SkillTrainingHint', skillName=skillName, skillLevel=trainingSkill.trainingToLevel, time=secUntilDone)
+            tooltipPanel.trainingHintLabel.text = trainingHint
+            return
 
     def EnableBlink(self):
         self.isBlinking = True
@@ -677,6 +698,7 @@ class ButtonEveMenu(WrapperButton):
         else:
             self._openNeocomPanel = sm.GetService('neocom').ShowEveMenu()
         RefreshTooltipForOwner(self)
+        return
 
     def BlinkOnce(self):
         self.blinkSprite.state = uiconst.UI_DISABLED

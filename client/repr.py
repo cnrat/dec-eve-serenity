@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\carbon\common\stdlib\repr.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\carbon\common\stdlib\repr.py
 __all__ = ['Repr', 'repr']
 import __builtin__
 from itertools import islice
@@ -36,7 +37,7 @@ class Repr:
                 s = s[:i] + '...' + s[len(s) - j:]
             return s
 
-    def _repr_iterable(self, x, level, left, right, maxiter, trail = ''):
+    def _repr_iterable(self, x, level, left, right, maxiter, trail=''):
         n = len(x)
         if level <= 0 and n:
             s = '...'

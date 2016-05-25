@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\client\script\ui\shared\fittingGhost\statsPanel.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\client\script\ui\shared\fittingGhost\statsPanel.py
 from carbonui import const as uiconst
 from carbonui.primitives.container import Container
 import dogma.const as dogmaConst
@@ -153,16 +154,16 @@ class StatsPanelGhost(Container):
         menuData = self.GetMenuData()
         em.Load(menuData=menuData, prefsKey='fittingRightside')
 
-    def LoadDroneStats(self, initialLoad = False):
+    def LoadDroneStats(self, initialLoad=False):
         self.droneStatsParent.LoadPanel(initialLoad=initialLoad)
 
-    def LoadNavigationStats(self, initialLoad = False):
+    def LoadNavigationStats(self, initialLoad=False):
         self.navigationStatsParent.LoadPanel(initialLoad=initialLoad)
 
-    def LoadTargetingStats(self, initialLoad = False):
+    def LoadTargetingStats(self, initialLoad=False):
         self.targetingStatsParent.LoadPanel(initialLoad=initialLoad)
 
-    def LoadOffenseStats(self, initialLoad = False):
+    def LoadOffenseStats(self, initialLoad=False):
         self.offenseStatsParent.LoadPanel(initialLoad)
 
     def UpdateOffenseStats(self):
@@ -171,10 +172,10 @@ class StatsPanelGhost(Container):
     def UpdateDroneStats(self):
         self.droneStatsParent.UpdateDroneStats()
 
-    def LoadDefenceStats(self, initialLoad = False):
+    def LoadDefenceStats(self, initialLoad=False):
         self.defenceStatsParent.LoadPanel(initialLoad)
 
-    def LoadCapacitorStats(self, initialLoad = False):
+    def LoadCapacitorStats(self, initialLoad=False):
         self.capacitorStatsParent.LoadPanel(initialLoad)
 
     def ExpandBestRepair(self, *args):
@@ -189,7 +190,7 @@ class StatsPanelGhost(Container):
     def UpdateTargetingPanel(self):
         self.targetingStatsParent.UpdateTargetingPanel()
 
-    def UpdateCapacitor(self, xtraCapacitor = 0.0, rechargeMultiply = 1.0, multiplyCapacitor = 1.0, reload = 0):
+    def UpdateCapacitor(self, xtraCapacitor=0.0, rechargeMultiply=1.0, multiplyCapacitor=1.0, reload=0):
         self.capacitorStatsParent.UpdateCapacitorPanel(self.controller.GetItemID(), xtraCapacitor, rechargeMultiply, multiplyCapacitor, reload)
 
     def UpdateDefensePanel(self):
@@ -237,13 +238,15 @@ class StatsPanelGhost(Container):
         dsp = getattr(self, 'defenceStatsParent', None)
         if not dsp or dsp.destroyed:
             return
-        self.UpdateDefensePanel()
-        self.UpdateBestRepair(item, modulesByGroupInShip, multiplyShieldCapacity, multiplyShieldRecharge)
-        self.UpdateNavigationPanel()
-        self.UpdateTargetingPanel()
-        self.UpdateCapacitor(xtraCapacitor, multiplyRecharge, multiplyCapacitor, reload=1)
-        self.UpdateOffenseStats()
-        self.UpdateDroneStats()
+        else:
+            self.UpdateDefensePanel()
+            self.UpdateBestRepair(item, modulesByGroupInShip, multiplyShieldCapacity, multiplyShieldRecharge)
+            self.UpdateNavigationPanel()
+            self.UpdateTargetingPanel()
+            self.UpdateCapacitor(xtraCapacitor, multiplyRecharge, multiplyCapacitor, reload=1)
+            self.UpdateOffenseStats()
+            self.UpdateDroneStats()
+            return
 
     def MaxTargetRangeBonusMultiplier(self, typeID):
         typeeffects = cfg.dgmtypeeffects.get(typeID, [])
@@ -251,11 +254,15 @@ class StatsPanelGhost(Container):
             if effect.effectID in (dogmaConst.effectShipMaxTargetRangeBonusOnline, dogmaConst.effectMaxTargetRangeBonus):
                 return 1
 
+        return None
+
     def ArmorOrShieldMultiplier(self, typeID):
         typeeffects = cfg.dgmtypeeffects.get(typeID, [])
         for effect in typeeffects:
             if effect.effectID == dogmaConst.effectShieldResonanceMultiplyOnline:
                 return 1
+
+        return None
 
     def ArmorShieldStructureMultiplierPostPercent(self, typeID):
         typeeffects = cfg.dgmtypeeffects.get(typeID, [])

@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\client\script\ui\station\lpstore.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\client\script\ui\station\lpstore.py
 import blue
 import const
 from eve.client.script.ui.control import entries as listentry
@@ -19,6 +20,18 @@ import math
 import log
 import trinity
 import evetypes
+from lpstoreRequirement import LpRequirement, ISKRequirement, AnalysisKreditsRequirement, getContainerName, getNotFulfilledIconName, getLabelName
+REWARD_COLUMN_WIDTH = 200
+COST_COLUMN_WIDTH = 115
+REQUIRED_ITEMS_COLUMN_WIDTH = 200
+BUY_OPTION_COLUMN_WIDTH = 80
+REWARD_COLUMN_WIDTH_MIN = 200
+COST_COLUMN_WIDTH_MIN = 115
+REQUIRED_ITEMS_COLUMN_WIDTH_MIN = 100
+BUY_OPTION_COLUMN_WIDTH_MIN = 80
+REQUIREMENT_NOT_FULFILLED_ICON_PATH = 'ui_38_16_194'
+REQUIREMENT_NOT_FULFILLED_ICON_SIZE = 16
+REQUIREMENT_NOT_FULFILLED_ICON_PADDING = 2
 
 class LPStoreLabel(uicontrols.EveLabelMedium):
     __guid__ = 'lpstore.LPStoreLabel'
@@ -48,7 +61,7 @@ class LPStoreButton(uiprimitives.Container):
         self.sr.btn = uicontrols.Button(parent=self, name='btn', align=uiconst.CENTER, label=attributes.get('label', self.default_label))
 
 
-def GetItemText(typeID, qty, numberOfOffers = 1, checkIsBlueprint = True):
+def GetItemText(typeID, qty, numberOfOffers=1, checkIsBlueprint=True):
     isBlueprint = False
     if checkIsBlueprint:
         if evetypes.GetCategoryID(typeID) == const.categoryBlueprint:
@@ -65,6 +78,7 @@ class LPStoreSvc(service.Service):
     __notifyevents__ = ['OnAccountChange',
      'ProcessSessionChange',
      'OnLPChange',
+     'OnAnalysisKreditsChange',
      'OnUIRefresh',
      'OnLPStorePriceChange']
     __dependencies__ = ['settings']
@@ -81,7 +95,7 @@ class LPStoreSvc(service.Service):
     def GetCurrentPresetLabel(self):
         return self.currentPreset
 
-    def GetMyLPs(self, corpID = None):
+    def GetMyLPs(self, corpID=None):
         if self.cache.lps is None:
             if corpID is None:
                 if self.cache.corpID:
@@ -106,7 +120,7 @@ class LPStoreSvc(service.Service):
         LPExhangeDialog.CloseIfOpen(windowID='LPExhangeDialog_%s' % corpID)
         wnd = LPExhangeDialog.Open(windowID='LPExhangeDialog_%s' % corpID, currentFromCorpLPs=myConcordLP, currentToCorpLPs=corporationLPs, exchangeRate=exchangeRate, toCorpID=corpID)
 
-    def GetConcordLPExchangeRate(self, corpID = None):
+    def GetConcordLPExchangeRate(self, corpID=None):
         if corpID is None:
             if self.cache.corpID:
                 corpID = self.cache.corpID
@@ -116,11 +130,14 @@ class LPStoreSvc(service.Service):
             self.cache.exchangeRates = sm.RemoteSvc('LPSvc').GetLPExchangeRates()
         if const.ownerCONCORD in self.cache.exchangeRates and corpID in self.cache.exchangeRates[const.ownerCONCORD]:
             return self.cache.exchangeRates[const.ownerCONCORD][corpID]
+        else:
+            return
 
     def OnLPStorePriceChange(self):
         self.cache.offers = None
         self.GetOffers()
         self.DirtyWindow()
+        return
 
     def GetOffers(self):
         if self.cache.offers is None:
@@ -222,29 +239,21 @@ class LPStoreSvc(service.Service):
     def _GetDefaultPresets(self):
         affordableFilters = {'reqNotInHangar': True,
          'dynamicMaxLP': True,
-         'dynamicMaxISK': True}
+         'dynamicMaxISK': True,
+         'dynamicMaxAnalysisKredits': True}
         return [uiutil.Bunch(label=localization.GetByLabel('UI/LPStore/PresetAffordable'), filters=affordableFilters, editable=False), uiutil.Bunch(label=localization.GetByLabel('UI/LPStore/PresetAll'), filters={}, editable=False)]
 
     def _RefreshOfferSortValues(self):
         for offer in self.cache.offers:
             self._SetOfferDataSortOrder(offer)
 
-    def AcceptOffer(self, data, numberOfOffers = 1):
+    def AcceptOffer(self, data, numberOfOffers=1):
         if getattr(self, 'acceptingOffer', False) == True:
             return
         try:
             self.acceptingOffer = True
             offer = GetItemText(data.typeID, data.qty, numberOfOffers).replace('<br>', ' ')
-            price = ''
-            if data.lpCost > 0:
-                lpCost = data.lpCost * numberOfOffers
-                price = localization.GetByLabel('UI/LPStore/PriceInLPPoints', lpPrice=util.FmtAmt(lpCost)) + '<br>'
-            if data.iskCost > 0:
-                iskCost = data.iskCost * numberOfOffers
-                price += localization.GetByLabel('UI/LPStore/OfferItems', itemText=util.FmtISK(iskCost)) + '<br>'
-            for item in data.reqItems:
-                price += localization.GetByLabel('UI/LPStore/OfferItems', itemText=GetItemText(item[0], item[1], numberOfOffers)) + '<br>'
-
+            price = self._GetPrice(data, numberOfOffers)
             if eve.Message('ConfirmAcceptLPOffer', {'offer': offer,
              'price': price}, uiconst.OKCANCEL, uiconst.ID_OK) != uiconst.ID_OK:
                 return False
@@ -253,6 +262,8 @@ class LPStoreSvc(service.Service):
                 eve.Message('LPStoreOfferAccepted', {'name': cfg.eveowners.Get(eve.session.charid).name})
             if self.cache.lps:
                 del self.cache.lps
+            if self.cache.analysisKredits:
+                del self.cache.analysisKredits
             if len(data.reqItems) > 0 and self.cache.hangarInv:
                 del self.cache.hangarInv
             self.DirtyWindow()
@@ -262,10 +273,29 @@ class LPStoreSvc(service.Service):
 
         return True
 
+    def _GetPrice(self, data, numberOfOffers):
+        price = ''
+        for requirement in self.LpOfferRequirements:
+            requirementName = requirement.name
+            if requirementName:
+                cost = data.Get(requirementName, 0)
+                if cost > 0:
+                    totalCost = requirement.formatAmount(cost * numberOfOffers)
+                    if requirement.priceLabelPath:
+                        keywords = {requirementName: totalCost}
+                        price += localization.GetByLabel(requirement.priceLabelPath, **keywords) + '<br>'
+                    else:
+                        price += localization.GetByLabel('UI/LPStore/OfferItems', itemText=totalCost) + '<br>'
+
+        for item in data.reqItems:
+            price += localization.GetByLabel('UI/LPStore/OfferItems', itemText=GetItemText(item[0], item[1], numberOfOffers)) + '<br>'
+
+        return price
+
     def HaveItem(self, typeID, qty):
         if self.cache.hangarInv is None:
             hi = {}
-            inv = sm.GetService('invCache').GetInventory(const.containerHangar).List()
+            inv = sm.GetService('invCache').GetInventory(const.containerHangar).List(const.flagHangar)
             for item in inv:
                 if not item.singleton:
                     hi[item.typeID] = max(hi.get(item.typeID, 0), item.stacksize)
@@ -273,14 +303,13 @@ class LPStoreSvc(service.Service):
             self.cache.hangarInv = hi
         return self.cache.hangarInv.get(typeID, 0) >= qty
 
-    def HaveLPs(self, lps):
-        return self.GetMyLPs() >= lps
-
-    def HaveISK(self, isk):
-        return self.GetMyISK() >= isk
-
     def GetMyISK(self):
         return sm.GetService('wallet').GetWealth()
+
+    def GetMyAnalysisKredits(self):
+        if self.cache.analysisKredits is None:
+            self.cache.analysisKredits = sm.RemoteSvc('ProjectDiscovery').get_player_analysis_kredits()
+        return self.cache.analysisKredits
 
     def OpenLPStore(self, corpID):
         if self.cache.corpID and corpID != self.cache.corpID:
@@ -292,6 +321,7 @@ class LPStoreSvc(service.Service):
         wnd = LPStoreWindow.ToggleOpenClose()
         if wnd:
             wnd.RefreshIfNotAlready()
+        return
 
     def OnUIRefresh(self):
         wnd = LPStoreWindow.GetIfOpen()
@@ -312,6 +342,7 @@ class LPStoreSvc(service.Service):
         if w is not None:
             w.Refresh()
         self.refreshpending = False
+        return
 
     def _GetWnd(self):
         return LPStoreWindow.GetIfOpen()
@@ -336,27 +367,67 @@ class LPStoreSvc(service.Service):
         self.DirtyWindow()
         if session.stationid2 and currentLPs == 0:
             sm.GetService('station').ReloadLobby()
+        return
+
+    def OnAnalysisKreditsChange(self):
+        currentAnalysisKredits = self.cache.analysisKredits
+        if self.cache.analysisKredits is not None:
+            del self.cache.analysisKredits
+        self.DirtyWindow()
+        if session.stationid2 and currentAnalysisKredits == 0:
+            sm.GetService('station').ReloadLobby()
+        return
 
     def _SetOfferDataSortOrder(self, data):
-        lpCost = data.Get('lpCost', 0)
-        iskCost = data.Get('iskCost', 0)
-        reqItems = data.Get('reqItems', [])
+        offerData = []
+        offerData.append((localization.GetByLabel('UI/LPStore/Reward'), evetypes.GetName(data.typeID)))
+        for requirement in self.GetRequirements():
+            requirementName = requirement.name
+            cost = data.Get(requirementName, 0)
+            if requirement.costLabelPath:
+                costLabel = localization.GetByLabel(requirement.costLabelPath)
+                if not cost:
+                    cost = 0
+                offerData.append((costLabel, cost))
 
-        def ReqItemsSortVal():
-            typeNames = [ evetypes.GetName(typeID) for typeID, qty in reqItems ]
-            typeNames.sort()
-            return (len(typeNames), tuple(typeNames))
-
-        def CanAccept():
-            lpsvc = sm.GetService('lpstore')
-            return lpsvc.HaveLPs(lpCost) and lpsvc.HaveISK(iskCost) and not [ 1 for typeID, qty in reqItems if not lpsvc.HaveItem(typeID, qty) ]
-
-        for label, sortval in [(localization.GetByLabel('UI/LPStore/Reward'), evetypes.GetName(data.typeID)),
-         (localization.GetByLabel('UI/LPStore/LPCost'), lpCost),
-         (localization.GetByLabel('UI/LPStore/ISKCost'), iskCost),
-         (localization.GetByLabel('UI/LPStore/RequiredItems'), ReqItemsSortVal()),
-         (localization.GetByLabel('UI/VirtualGoodsStore/Buttons/Buy'), not CanAccept())]:
+        offerData.append((localization.GetByLabel('UI/LPStore/RequiredItems'), self._GetRequiredItemsSortValues(data)))
+        offerData.append((localization.GetByLabel('UI/VirtualGoodsStore/Buttons/Buy'), not self.CanAcceptOffer(data)))
+        for label, sortval in offerData:
             data.Set('sort_%s' % label, sortval)
+
+    def _GetRequiredItemsSortValues(self, data):
+        reqItems = data.Get('reqItems', [])
+        typeNames = [ evetypes.GetName(typeID) for typeID, qty in reqItems ]
+        typeNames.sort()
+        return (len(typeNames), tuple(typeNames))
+
+    def GetRequirements(self):
+        if not getattr(self, 'LpOfferRequirements', None):
+            self._CreateRequirements()
+        return self.LpOfferRequirements
+
+    def _CreateRequirements(self):
+        self.LpOfferRequirements = [LpRequirement(checkAmountFunction=self.GetMyLPs), ISKRequirement(checkAmountFunction=self.GetMyISK), AnalysisKreditsRequirement(checkAmountFunction=self.GetMyAnalysisKredits)]
+
+    def CanAcceptOffer(self, data):
+        requiredItems = data.Get('reqItems', [])
+        missingItems = [ 1 for typeID, qty in requiredItems if not self.HaveItem(typeID, qty) ]
+        areCostRequirementsFulfilled = self.AreRequirementsFulfilled(data)
+        return areCostRequirementsFulfilled and not missingItems
+
+    def AreRequirementsFulfilled(self, data):
+        for requirement in self.LpOfferRequirements:
+            if not self._IsRequirementFulfilled(data, requirement):
+                return False
+
+        return True
+
+    def _IsRequirementFulfilled(self, data, requirement):
+        requirementName = requirement.name
+        if not requirementName:
+            return True
+        cost = data.Get(requirementName, 0)
+        return requirement.checkAmount(cost)
 
 
 class LPOfferEntry(uicontrols.SE_BaseClassCore):
@@ -369,33 +440,57 @@ class LPOfferEntry(uicontrols.SE_BaseClassCore):
     entryHeight = reqItemEntryHeight * 5 + lineHeight
 
     def ApplyAttributes(self, attributes):
+        self.lpOfferRequirementColumns = sm.GetService('lpstore').GetRequirements()
         uicontrols.SE_BaseClassCore.ApplyAttributes(self, attributes)
         self.amountEdit = None
+        self._AddRewardColumn()
+        self._AddRequirementColumns()
+        self._AddRequiredItemsColumn()
+        self._AddBuyColumn()
+        return
+
+    def _AddRewardColumn(self):
         self.sr.rewardParent = uiprimitives.Container(parent=self, name='rewardParent', align=uiconst.TOLEFT, state=uiconst.UI_PICKCHILDREN)
         self.sr.rewardIconParent = uiprimitives.Container(parent=self.sr.rewardParent, name='rewardIconParent', align=uiconst.TOLEFT, width=self.entryHeight)
         self.sr.rewardInfoIcon = InfoIcon(parent=self.sr.rewardIconParent, align=uiconst.TOPRIGHT, left=10, top=10)
         self.sr.icon = uicontrols.Icon(parent=self.sr.rewardIconParent, size=self.iconSize, ignoreSize=True, align=uiconst.CENTER, state=uiconst.UI_DISABLED)
-        subPar = uiprimitives.Container(parent=self.sr.rewardParent, name='rewardLabelClipper', state=uiconst.UI_PICKCHILDREN, align=uiconst.TOALL, clipChildren=True)
-        self.sr.rewardLabel = LPStoreEntryLabel(parent=subPar, left=self.labelMargin, align=uiconst.CENTERLEFT)
-        subPar = uiprimitives.Container(name='lpCostParent', parent=self, state=uiconst.UI_PICKCHILDREN, align=uiconst.TOLEFT, clipChildren=True)
-        self.sr.noLPsIcon = uicontrols.Icon(name='noLPsIcon', parent=subPar, icon='ui_38_16_194', hint=localization.GetByLabel('UI/LPStore/HintInsufficientLPs'), size=16, left=2, align=uiconst.CENTERLEFT)
-        self.sr.lpCostLabel = LPStoreEntryLabel(parent=subPar, name='lpCostLabel', left=self.labelMargin)
-        subPar = uiprimitives.Container(name='iskCostParent', parent=self, state=uiconst.UI_PICKCHILDREN, align=uiconst.TOLEFT, clipChildren=True)
-        self.sr.noISKIcon = uicontrols.Icon(name='noISKIcon', parent=subPar, icon='ui_38_16_194', hint=localization.GetByLabel('UI/LPStore/HintInsufficientISK'), size=16, left=2, align=uiconst.CENTERLEFT)
-        self.sr.iskCostLabel = LPStoreEntryLabel(parent=subPar, name='iskCostLabel', align=uiconst.CENTERRIGHT, left=self.labelMargin)
-        subPar = uiprimitives.Container(name='reqItemsParent', parent=self, state=uiconst.UI_PICKCHILDREN, align=uiconst.TOLEFT, clipChildren=True)
-        self.sr.reqItems = uiprimitives.Container(name='reqItems', parent=subPar, align=uiconst.CENTERLEFT)
-        subPar = uiprimitives.Container(name='acceptParent', parent=self, state=uiconst.UI_PICKCHILDREN, align=uiconst.TOLEFT, clipChildren=True)
-        self.sr.buyBtn = uicontrols.Button(name='buyBtn', parent=subPar, label=localization.GetByLabel('UI/VirtualGoodsStore/Buttons/Buy'), align=uiconst.CENTER, texturePath=None, func=self.OnBuyBtn)
+        rewardLabelClipper = uiprimitives.Container(parent=self.sr.rewardParent, name='rewardLabelClipper', state=uiconst.UI_PICKCHILDREN, align=uiconst.TOALL, clipChildren=True)
+        self.sr.rewardLabel = LPStoreEntryLabel(parent=rewardLabelClipper, left=self.labelMargin, align=uiconst.CENTERLEFT)
+
+    def _AddRequirementColumns(self):
+        for requirement in self.lpOfferRequirementColumns:
+            self._AddRequirementColumn(requirement)
+
+    def _AddRequirementColumn(self, requirement):
+        parentContainerName = getContainerName(requirement)
+        iconName = getNotFulfilledIconName(requirement)
+        labelName = getLabelName(requirement)
+        notFulfilledHintPath = requirement.notFulfilledHintPath
+        parentContainer = uiprimitives.Container(name=parentContainerName, parent=self, state=uiconst.UI_PICKCHILDREN, align=uiconst.TOLEFT, clipChildren=True)
+        if notFulfilledHintPath:
+            notFulfilledHint = localization.GetByLabel(notFulfilledHintPath)
+            requirementNotFulfilledIcon = uicontrols.Icon(name=iconName, parent=parentContainer, icon=REQUIREMENT_NOT_FULFILLED_ICON_PATH, hint=notFulfilledHint, size=REQUIREMENT_NOT_FULFILLED_ICON_SIZE, left=REQUIREMENT_NOT_FULFILLED_ICON_PADDING, align=uiconst.CENTERLEFT)
+            self.sr[iconName] = requirementNotFulfilledIcon
+        label = LPStoreEntryLabel(parent=parentContainer, name=labelName, left=self.labelMargin)
+        self.sr[labelName] = label
+
+    def _AddRequiredItemsColumn(self):
+        parentContainer = uiprimitives.Container(name='reqItemsParent', parent=self, state=uiconst.UI_PICKCHILDREN, align=uiconst.TOLEFT, clipChildren=True)
+        self.sr.reqItems = uiprimitives.Container(name='reqItems', parent=parentContainer, align=uiconst.CENTERLEFT)
+
+    def _AddBuyColumn(self):
+        parentContainer = uiprimitives.Container(name='acceptParent', parent=self, state=uiconst.UI_PICKCHILDREN, align=uiconst.TOLEFT, clipChildren=True)
+        self.sr.buyBtn = uicontrols.Button(name='buyBtn', parent=parentContainer, label=localization.GetByLabel('UI/VirtualGoodsStore/Buttons/Buy'), align=uiconst.CENTER, texturePath=None, func=self.OnBuyBtn)
         uicontrols.Frame(bgParent=self.sr.buyBtn, name='dot', texturePath='res:/UI/Texture/Shared/windowButtonDOT.png', cornerSize=6, spriteEffect=trinity.TR2_SFX_DOT)
-        self.sr.cannotAcceptIcon = uicontrols.Icon(parent=subPar, icon='ui_38_16_194', name='cannotAcceptIcon', size=16, hint=localization.GetByLabel('UI/LPStore/HintCannotAccept'), align=uiconst.CENTER)
+        self.sr.cannotAcceptIcon = uicontrols.Icon(parent=parentContainer, icon='ui_38_16_194', name='cannotAcceptIcon', size=16, hint=localization.GetByLabel('UI/LPStore/HintCannotAccept'), align=uiconst.CENTER)
+        return
 
     def OnBuyBtn(self, *args):
         self.utilMenu = uicls.ExpandedUtilMenu(parent=uicore.layer.utilmenu, controller=self.sr.buyBtn, menuAlign=uiconst.TOPLEFT, GetUtilMenu=self.GetUtilMenu)
 
     def GetUtilMenu(self, menuParent):
         cont = uicontrols.ContainerAutoSize(parent=menuParent, align=uiconst.TOTOP, padding=const.defaultPadding)
-        cont.GetEntryWidth = lambda mc = cont: 80
+        cont.GetEntryWidth = lambda mc=cont: 80
         self.amountEdit = uicontrols.SinglelineEdit(name='amountEdit', parent=cont, align=uiconst.TOTOP, ints=[1, const.maxLoyaltyStoreBulkOffers], setvalue=1, label=localization.GetByLabel('UI/Common/Amount'), padding=(5, 10, 5, 0), OnReturn=self.Buy)
         uicontrols.Button(name='buyButton', parent=cont, align=uiconst.TOTOP, label=localization.GetByLabel('UI/LPStore/Accept'), func=self.Buy, padding=(5, 5, 5, 5))
         uicore.registry.SetFocus(self.amountEdit)
@@ -413,7 +508,6 @@ class LPOfferEntry(uicontrols.SE_BaseClassCore):
 
     def Load_Thread(self, data):
         anyMiss = set()
-        lpCost = data.Get('lpCost', 0)
         abstractInfo = None
         isCopy = False
         if evetypes.GetCategoryID(data.typeID) == const.categoryBlueprint:
@@ -425,24 +519,59 @@ class LPOfferEntry(uicontrols.SE_BaseClassCore):
          None,
          abstractInfo)
         self.sr.icon.LoadIconByTypeID(typeID=data.typeID, size=64, ignoreSize=True, isCopy=isCopy)
-        if lpCost >= 0:
-            self.sr.rewardLabel.SetText(GetItemText(data.typeID, data.Get('qty', 1)))
-            self.sr.lpCostLabel.SetText(localization.GetByLabel('UI/LPStore/AmountLP', lpAmount=util.FmtAmt(lpCost)))
+        self.sr.rewardLabel.SetText(GetItemText(data.typeID, data.Get('qty', 1)))
+        self._LoadRequirementColumns(data)
+        if sm.GetService('lpstore').CanAcceptOffer(data):
+            alpha = 1.0
+            self.sr.buyBtn.state = uiconst.UI_NORMAL
+            self.sr.cannotAcceptIcon.state = uiconst.UI_HIDDEN
         else:
-            self.sr.lpCostLabel.SetText('-')
-            self.sr.rewardLabel.SetText(GetItemText(data.typeID, lpCost * -1))
-        if sm.GetService('lpstore').HaveLPs(lpCost):
-            self.sr.noLPsIcon.state = uiconst.UI_HIDDEN
+            alpha = 0.4
+            self.sr.buyBtn.state = uiconst.UI_HIDDEN
+            self.sr.cannotAcceptIcon.state = uiconst.UI_NORMAL
+        self.sr.icon.color.a = self.sr.rewardLabel.color.a = alpha
+        self.hint = self._GetRewardCostHint()
+        return
+
+    def _GetRewardCostHint(self):
+        requirements = {}
+        for requirementColumn in self.lpOfferRequirementColumns:
+            costLabelPath = requirementColumn.costLabelPath
+            if costLabelPath:
+                costName = requirementColumn.name
+                costNameText = localization.GetByLabel(costLabelPath)
+                costLabel = getLabelName(requirementColumn)
+                costLabelText = self.sr[costLabel].text
+                requirements[costName] = costNameText
+                requirements[costLabel] = costLabelText
+
+        return localization.GetByLabel('UI/LPStore/HintRewardCost', rewardLabel=self.sr.rewardLabel.text, **requirements)
+
+    def _LoadRequirementColumns(self, data):
+        for requirementColumn in self.lpOfferRequirementColumns:
+            self._LoadRequirementColumn(data, requirementColumn)
+
+        self._LoadRequiredItems(data)
+
+    def _LoadRequirementColumn(self, data, requirementColumn):
+        requirementName = requirementColumn.name
+        cost = data.Get(requirementName, 0)
+        labelName = getLabelName(requirementColumn)
+        amountName = requirementColumn.amountName
+        amount = requirementColumn.formatAmount(cost)
+        amountHintPath = requirementColumn.amountHintPath
+        amountText = amount
+        if amountHintPath:
+            keywords = {amountName: amount}
+            amountText = localization.GetByLabel(amountHintPath, **keywords)
+        self.sr[labelName].SetText(amountText)
+        requirementNotFulfilledIcon = getNotFulfilledIconName(requirementColumn)
+        if requirementColumn.checkAmount(cost):
+            self.sr[requirementNotFulfilledIcon].state = uiconst.UI_HIDDEN
         else:
-            self.sr.noLPsIcon.state = uiconst.UI_NORMAL
-            anyMiss.add(True)
-        iskCost = data.Get('iskCost', 0)
-        self.sr.iskCostLabel.text = util.FmtISK(iskCost)
-        if sm.GetService('lpstore').HaveISK(iskCost):
-            self.sr.noISKIcon.state = uiconst.UI_HIDDEN
-        else:
-            self.sr.noISKIcon.state = uiconst.UI_NORMAL
-            anyMiss.add(True)
+            self.sr[requirementNotFulfilledIcon].state = uiconst.UI_NORMAL
+
+    def _LoadRequiredItems(self, data):
         reqItems = data.Get('reqItems', [])
         self.sr.reqItems.Flush()
         for idx, (typeID, qty) in enumerate(reqItems):
@@ -457,22 +586,12 @@ class LPOfferEntry(uicontrols.SE_BaseClassCore):
                 entry.sr.cannotIcon.state = uiconst.UI_HIDDEN
             else:
                 entry.sr.cannotIcon.state = uiconst.UI_NORMAL
-                anyMiss.add(True)
 
         for entry in self.sr.reqItems.children[len(reqItems):]:
             entry.state = uiconst.UI_HIDDEN
 
         self.sr.reqItems.height = self.reqItemEntryHeight * len(reqItems)
-        if anyMiss:
-            alpha = 0.4
-            self.sr.buyBtn.state = uiconst.UI_HIDDEN
-            self.sr.cannotAcceptIcon.state = uiconst.UI_NORMAL
-        else:
-            alpha = 1.0
-            self.sr.buyBtn.state = uiconst.UI_NORMAL
-            self.sr.cannotAcceptIcon.state = uiconst.UI_HIDDEN
-        self.sr.icon.color.a = self.sr.rewardLabel.color.a = alpha
-        self.hint = localization.GetByLabel('UI/LPStore/HintRewardCost', rewardLabel=self.sr.rewardLabel.text, lpCost=localization.GetByLabel('UI/LPStore/LPCost'), lpCostLabel=self.sr.lpCostLabel.text, iskCost=localization.GetByLabel('UI/LPStore/ISKCost'), iskCostLabel=self.sr.iskCostLabel.text)
+        return
 
     def OnColumnResize(self, newCols):
         for container, width in zip(self.children[:], newCols):
@@ -487,11 +606,18 @@ class LPOfferEntry(uicontrols.SE_BaseClassCore):
 
     def GetColumnWidth(_self, node, column):
         if not hasattr(LPOfferEntry, 'columnWidths'):
-            LPOfferEntry.columnWidths = {localization.GetByLabel('UI/LPStore/Reward'): 200,
-             localization.GetByLabel('UI/LPStore/LPCost'): 115,
-             localization.GetByLabel('UI/LPStore/ISKCost'): 115,
-             localization.GetByLabel('UI/LPStore/RequiredItems'): 200,
-             localization.GetByLabel('UI/VirtualGoodsStore/Buttons/Buy'): 80}
+            LPOfferEntry.columnWidths = {}
+            LPOfferEntry.columnWidths[localization.GetByLabel('UI/LPStore/Reward')] = REWARD_COLUMN_WIDTH
+            requirements = sm.GetService('lpstore').GetRequirements()
+            for requirementColumn in requirements:
+                costLabelPath = requirementColumn.costLabelPath
+                if costLabelPath:
+                    costLabel = localization.GetByLabel(costLabelPath)
+                    columnWidth = COST_COLUMN_WIDTH
+                    LPOfferEntry.columnWidths[costLabel] = columnWidth
+
+            LPOfferEntry.columnWidths[localization.GetByLabel('UI/LPStore/RequiredItems')] = REQUIRED_ITEMS_COLUMN_WIDTH
+            LPOfferEntry.columnWidths[localization.GetByLabel('UI/VirtualGoodsStore/Buttons/Buy')] = BUY_OPTION_COLUMN_WIDTH
         return LPOfferEntry.columnWidths[column]
 
 
@@ -573,6 +699,7 @@ class LPStoreWindow(uicontrols.Window):
         else:
             self.DisableExchangeButton()
         self.RefreshOffers()
+        return
 
     def _OnClose(self, *etc):
         self.ReleaseOfferRefreshDespammer()
@@ -584,7 +711,7 @@ class LPStoreWindow(uicontrols.Window):
         self.DisableExchangeButton(suppressHint=True)
         sm.GetService('lpstore').OpenConcordExchange(eve.stationItem.ownerID)
 
-    def DisableExchangeButton(self, suppressHint = False):
+    def DisableExchangeButton(self, suppressHint=False):
         self.sr.exchangeButton.Disable()
         self.sr.exchangeButton.OnClick = None
         lpSvc = sm.GetService('lpstore')
@@ -601,6 +728,7 @@ class LPStoreWindow(uicontrols.Window):
             else:
                 hint = localization.GetByLabel('UI/LPStore/ExchangeUnavailable', fromCorpName=fromCorpName, toCorpName=toCorpName)
             self.sr.exchangeButton.SetHint(hint)
+        return
 
     def EnableExchangeButton(self):
         self.sr.exchangeButton.Enable()
@@ -613,23 +741,14 @@ class LPStoreWindow(uicontrols.Window):
     def InitOfferRefreshDespammer(self):
 
         def RefreshOffers():
-            columns = [localization.GetByLabel('UI/LPStore/Reward'),
-             localization.GetByLabel('UI/LPStore/LPCost'),
-             localization.GetByLabel('UI/LPStore/ISKCost'),
-             localization.GetByLabel('UI/LPStore/RequiredItems'),
-             localization.GetByLabel('UI/VirtualGoodsStore/Buttons/Buy')]
             self.ShowLoad()
             try:
                 filters = sm.GetService('lpstore').GetCurrentFilters()
                 scroll = self.sr.lpStoreScroll
                 pos = scroll.GetScrollProportion()
                 offers = [ listentry.Get('LPOffer', offer) for offer in sm.GetService('lpstore').GetOffers() if self.Check(offer, filters) ]
-                self.sr.lpStoreScroll.sr.minColumnWidth = {localization.GetByLabel('UI/LPStore/Reward'): 200,
-                 localization.GetByLabel('UI/LPStore/LPCost'): 115,
-                 localization.GetByLabel('UI/LPStore/ISKCost'): 115,
-                 localization.GetByLabel('UI/LPStore/RequiredItems'): 100,
-                 localization.GetByLabel('UI/VirtualGoodsStore/Buttons/Buy'): 80}
-                scroll.LoadContent(headers=columns, contentList=offers, customColumnWidths=True, noContentHint=localization.GetByLabel('UI/LPStore/NoMatchingOffers'))
+                self.sr.lpStoreScroll.sr.minColumnWidth = self._GetMinColumnWidths()
+                scroll.LoadContent(headers=self._GetHeaders(), contentList=offers, customColumnWidths=True, noContentHint=localization.GetByLabel('UI/LPStore/NoMatchingOffers'))
                 columnWidthSettingsVersion = 1
                 settingsKey = 'columnWidthsReset_%s' % columnWidthSettingsVersion
                 if offers and not settings.user.ui.Get(settingsKey, False):
@@ -641,6 +760,34 @@ class LPStoreWindow(uicontrols.Window):
 
         self.offerRefreshDespammer = util.Despammer(RefreshOffers, delay=200)
         self.RefreshOffers = self.offerRefreshDespammer.Send
+
+    def _GetHeaders(self):
+        headers = []
+        headers.append(localization.GetByLabel('UI/LPStore/Reward'))
+        requirements = sm.GetService('lpstore').GetRequirements()
+        for requirementColumn in requirements:
+            costLabelPath = requirementColumn.costLabelPath
+            if costLabelPath:
+                costLabel = localization.GetByLabel(costLabelPath)
+                headers.append(costLabel)
+
+        headers.append(localization.GetByLabel('UI/LPStore/RequiredItems'))
+        headers.append(localization.GetByLabel('UI/VirtualGoodsStore/Buttons/Buy'))
+        return headers
+
+    def _GetMinColumnWidths(self):
+        minColumnWidths = {}
+        minColumnWidths[localization.GetByLabel('UI/LPStore/Reward')] = REWARD_COLUMN_WIDTH_MIN
+        requirements = sm.GetService('lpstore').GetRequirements()
+        for requirementColumn in requirements:
+            costLabelPath = requirementColumn.costLabelPath
+            if costLabelPath:
+                costLabel = localization.GetByLabel(costLabelPath)
+                minColumnWidths[costLabel] = COST_COLUMN_WIDTH_MIN
+
+        minColumnWidths[localization.GetByLabel('UI/LPStore/RequiredItems')] = REQUIRED_ITEMS_COLUMN_WIDTH_MIN
+        minColumnWidths[localization.GetByLabel('UI/VirtualGoodsStore/Buttons/Buy')] = BUY_OPTION_COLUMN_WIDTH_MIN
+        return minColumnWidths
 
     def ReleaseOfferRefreshDespammer(self):
         uthread.new(self.offerRefreshDespammer.Stop)
@@ -737,11 +884,28 @@ class LPStoreWindow(uicontrols.Window):
     def Check_maxISK(self, offer, val):
         return offer.iskCost <= val
 
+    def Check_minAnalysisKredits(self, offer, val):
+        analysisKreditsCost = getattr(offer, 'akCost', None)
+        if analysisKreditsCost:
+            return analysisKreditsCost >= val
+        else:
+            return False
+
+    def Check_maxAnalysisKredits(self, offer, val):
+        analysisKreditsCost = getattr(offer, 'akCost', None)
+        if analysisKreditsCost:
+            return analysisKreditsCost <= val
+        else:
+            return True
+
     def Check_dynamicMaxLP(self, offer, val):
         return self.Check_maxLP(offer, sm.GetService('lpstore').GetMyLPs())
 
     def Check_dynamicMaxISK(self, offer, val):
         return self.Check_maxISK(offer, sm.GetService('lpstore').GetMyISK())
+
+    def Check_dynamicMaxAnalysisKredits(self, offer, val):
+        return self.Check_maxAnalysisKredits(offer, sm.GetService('lpstore').GetMyAnalysisKredits())
 
 
 class LPStoreFiltersWindow(uicontrols.Window):
@@ -792,77 +956,103 @@ class LPStoreFiltersWindow(uicontrols.Window):
         innermargin = 4
         panelParent = uiprimitives.Container(parent=main, align=uiconst.TOALL, name='panelParent', state=uiconst.UI_PICKCHILDREN, padding=[const.defaultPadding] * 4)
         tabs = []
+        self._MakeRewardTab(tabs, panelParent)
+        self._MakeLpCostTab(tabs, panelParent)
+        self._MakeIskCostTab(tabs, panelParent)
+        self._MakeAnalysisKreditsCostTab(tabs, panelParent)
+        self._MakeRequiredItemsTab(tabs, panelParent)
+        self._MakeFilterPresetsTab(tabs, panelParent)
+        tabGroup.Startup(tabs)
 
-        def MakeTab(caption):
+    def _MakeTab(self, tabs, panelParent, caption):
 
-            def MakeOnTabSelect(panelWr):
+        def MakeOnTabSelect(panelWr):
 
-                def OnTabSelect(*blah):
-                    panel = panelWr()
-                    panel.state = uiconst.UI_PICKCHILDREN
-                    for sibling in panel.parent.children:
-                        if sibling is not panelWr():
-                            sibling.state = uiconst.UI_HIDDEN
+            def OnTabSelect(*args):
+                panel = panelWr()
+                panel.state = uiconst.UI_PICKCHILDREN
+                for sibling in panel.parent.children:
+                    if sibling is not panelWr():
+                        sibling.state = uiconst.UI_HIDDEN
 
-                return OnTabSelect
+            return OnTabSelect
 
-            panel = uiprimitives.Container(parent=panelParent, name=caption, align=uiconst.TOALL)
-            panel.OnTabSelect = MakeOnTabSelect(weakref.ref(panel))
-            tabs.append((caption,
-             panel,
-             None,
-             (caption + '_args',)))
-            return panel
+        panel = uiprimitives.Container(parent=panelParent, name=caption, align=uiconst.TOALL)
+        panel.OnTabSelect = MakeOnTabSelect(weakref.ref(panel))
+        tabs.append((caption,
+         panel,
+         None,
+         (caption + '_args',)))
+        return panel
 
-        tab = MakeTab(localization.GetByLabel('UI/LPStore/Reward'))
-        uiprimitives.Container(parent=tab, name='rewardComboSeparato', height=self.comboSeparatorHeight, align=uiconst.TOTOP, state=uiconst.UI_DISABLED)
-        c = uiprimitives.Container(parent=tab, name='rewardCategoryComboParent', height=self.comboParentHeight, align=uiconst.TOTOP, state=uiconst.UI_PICKCHILDREN)
-        self.sr.rewardCategoryCombo = uicontrols.Combo(parent=c, name='rewardCategoryCombo', label=localization.GetByLabel('UI/Common/Category'), width=self.comboWidth, align=uiconst.RELATIVE)
-        c = uiprimitives.Container(parent=tab, name='rewardGroupComboParent', height=self.comboParentHeight, align=uiconst.TOTOP)
-        self.sr.rewardGroupCombo = uicontrols.Combo(parent=c, name='rewardGroupCombo', width=self.comboWidth, label=localization.GetByLabel('UI/Common/Group'))
-        c = uiprimitives.Container(parent=tab, name='rewardTypeComboParent', height=self.comboParentHeight, align=uiconst.TOTOP)
-        self.sr.rewardTypeCombo = uicontrols.Combo(parent=c, name='rewardTypeCombo', width=self.comboWidth, label=localization.GetByLabel('UI/Common/Type'))
-        tab = MakeTab(localization.GetByLabel('UI/LPStore/LPCost'))
+    def _MakeRewardTab(self, tabs, panelParent):
+        tab = self._MakeTab(tabs, panelParent, localization.GetByLabel('UI/LPStore/Reward'))
+        uiprimitives.Container(parent=tab, name='rewardComboSeparator', height=self.comboSeparatorHeight, align=uiconst.TOTOP, state=uiconst.UI_DISABLED)
+        rewardCategoryComboParent = uiprimitives.Container(parent=tab, name='rewardCategoryComboParent', height=self.comboParentHeight, align=uiconst.TOTOP, state=uiconst.UI_PICKCHILDREN)
+        self.sr.rewardCategoryCombo = uicontrols.Combo(parent=rewardCategoryComboParent, name='rewardCategoryCombo', label=localization.GetByLabel('UI/Common/Category'), width=self.comboWidth, align=uiconst.RELATIVE)
+        rewardGroupComboParent = uiprimitives.Container(parent=tab, name='rewardGroupComboParent', height=self.comboParentHeight, align=uiconst.TOTOP)
+        self.sr.rewardGroupCombo = uicontrols.Combo(parent=rewardGroupComboParent, name='rewardGroupCombo', width=self.comboWidth, label=localization.GetByLabel('UI/Common/Group'))
+        rewardTypeComboParent = uiprimitives.Container(parent=tab, name='rewardTypeComboParent', height=self.comboParentHeight, align=uiconst.TOTOP)
+        self.sr.rewardTypeCombo = uicontrols.Combo(parent=rewardTypeComboParent, name='rewardTypeCombo', width=self.comboWidth, label=localization.GetByLabel('UI/Common/Type'))
+
+    def _MakeLpCostTab(self, tabs, panelParent):
+        tab = self._MakeTab(tabs, panelParent, localization.GetByLabel('UI/LPStore/LPCost'))
         uiprimitives.Container(parent=tab, name='lpCostEditSeparator', height=self.editSeparatorHeight, align=uiconst.TOTOP)
-        c = uiprimitives.Container(parent=tab, name='minLPEditParent', height=self.editParentHeight, align=uiconst.TOTOP)
-        self.sr.minLPEdit = uicontrols.SinglelineEdit(parent=c, name='minLPEdit', label=localization.GetByLabel('UI/LPStore/MinLPCost'), ints=[0, None])
-        c = uiprimitives.Container(parent=tab, name='maxLPEditParent', height=self.editParentHeight, align=uiconst.TOTOP)
-        self.sr.maxLPEdit = uicontrols.SinglelineEdit(parent=c, name='maxLPEdit', label=localization.GetByLabel('UI/LPStore/MaxLPCost'), ints=[0, None])
-        tab = MakeTab(localization.GetByLabel('UI/LPStore/ISKCost'))
+        minLPEditParent = uiprimitives.Container(parent=tab, name='minLPEditParent', height=self.editParentHeight, align=uiconst.TOTOP)
+        self.sr.minLPEdit = uicontrols.SinglelineEdit(parent=minLPEditParent, name='minLPEdit', label=localization.GetByLabel('UI/LPStore/MinLPCost'), ints=[0, None])
+        maxLPEditParent = uiprimitives.Container(parent=tab, name='maxLPEditParent', height=self.editParentHeight, align=uiconst.TOTOP)
+        self.sr.maxLPEdit = uicontrols.SinglelineEdit(parent=maxLPEditParent, name='maxLPEdit', label=localization.GetByLabel('UI/LPStore/MaxLPCost'), ints=[0, None])
+        return
+
+    def _MakeIskCostTab(self, tabs, panelParent):
+        tab = self._MakeTab(tabs, panelParent, localization.GetByLabel('UI/LPStore/ISKCost'))
         uiprimitives.Container(parent=tab, name='iskCostEditSeparator', height=self.editSeparatorHeight, align=uiconst.TOTOP)
-        c = uiprimitives.Container(parent=tab, name='minISKEditParent', height=self.editParentHeight, align=uiconst.TOTOP)
-        self.sr.minISKEdit = uicontrols.SinglelineEdit(parent=c, name='minISKEdit', label=localization.GetByLabel('UI/LPStore/MinISKCost'), ints=[0, None])
-        c = uiprimitives.Container(parent=tab, name='maxISKEditParent', height=self.editParentHeight, align=uiconst.TOTOP)
-        self.sr.maxISKEdit = uicontrols.SinglelineEdit(parent=c, name='maxISKEdit', label=localization.GetByLabel('UI/LPStore/MaxISKCost'), ints=[0, None])
-        tab = MakeTab(localization.GetByLabel('UI/LPStore/RequiredItems'))
-        c = uiprimitives.Container(parent=tab, name='reqItemsHeaderParent', height=18, align=uiconst.TOTOP)
-        LPStoreHeaderLabel(parent=c, text=localization.GetByLabel('UI/LPStore/FilterRequiredItemsHeader'))
-        c = uiprimitives.Container(parent=tab, name='reqIllegalCbParent', height=self.checkboxParentHeight, align=uiconst.TOTOP)
-        self.sr.reqIllegalCb = uicontrols.Checkbox(parent=c, name='reqIllegalCb', text=localization.GetByLabel('UI/LPStore/FilterRequiredItemsAreIllegal'), align=uiconst.TOTOP)
-        c = uiprimitives.Container(parent=tab, name='reqNotInHangarCbParent', height=self.checkboxParentHeight, align=uiconst.TOTOP)
-        self.sr.reqNotInHangarCb = uicontrols.Checkbox(parent=c, name='reqNotInHangarCb', text=localization.GetByLabel('UI/LPStore/FilterRequiredItemsNotInHangar'), align=uiconst.TOTOP)
+        minISKEditParent = uiprimitives.Container(parent=tab, name='minISKEditParent', height=self.editParentHeight, align=uiconst.TOTOP)
+        self.sr.minISKEdit = uicontrols.SinglelineEdit(parent=minISKEditParent, name='minISKEdit', label=localization.GetByLabel('UI/LPStore/MinISKCost'), ints=[0, None])
+        maxISKEditParent = uiprimitives.Container(parent=tab, name='maxISKEditParent', height=self.editParentHeight, align=uiconst.TOTOP)
+        self.sr.maxISKEdit = uicontrols.SinglelineEdit(parent=maxISKEditParent, name='maxISKEdit', label=localization.GetByLabel('UI/LPStore/MaxISKCost'), ints=[0, None])
+        return
+
+    def _MakeAnalysisKreditsCostTab(self, tabs, panelParent):
+        tab = self._MakeTab(tabs, panelParent, localization.GetByLabel('UI/LPStore/AKCost'))
+        uiprimitives.Container(parent=tab, name='akCostEditSeparator', height=self.editSeparatorHeight, align=uiconst.TOTOP)
+        minAnalysisKreditsEditParent = uiprimitives.Container(parent=tab, name='minAnalysisKreditsEditParent', height=self.editParentHeight, align=uiconst.TOTOP)
+        self.sr.minAnalysisKreditsEdit = uicontrols.SinglelineEdit(parent=minAnalysisKreditsEditParent, name='minAnalysisKreditsEdit', label=localization.GetByLabel('UI/LPStore/MinAKCost'), ints=[0, None])
+        maxAnalysisKreditsEditParent = uiprimitives.Container(parent=tab, name='maxAnalysisKreditsEditParent', height=self.editParentHeight, align=uiconst.TOTOP)
+        self.sr.maxAnalysisKreditsEdit = uicontrols.SinglelineEdit(parent=maxAnalysisKreditsEditParent, name='maxAnalysisKreditsEdit', label=localization.GetByLabel('UI/LPStore/MaxAKCost'), ints=[0, None])
+        return
+
+    def _MakeRequiredItemsTab(self, tabs, panelParent):
+        tab = self._MakeTab(tabs, panelParent, localization.GetByLabel('UI/LPStore/RequiredItems'))
+        reqItemsHeaderParent = uiprimitives.Container(parent=tab, name='reqItemsHeaderParent', height=18, align=uiconst.TOTOP)
+        LPStoreHeaderLabel(parent=reqItemsHeaderParent, text=localization.GetByLabel('UI/LPStore/FilterRequiredItemsHeader'))
+        reqIllegalCbParent = uiprimitives.Container(parent=tab, name='reqIllegalCbParent', height=self.checkboxParentHeight, align=uiconst.TOTOP)
+        self.sr.reqIllegalCb = uicontrols.Checkbox(parent=reqIllegalCbParent, name='reqIllegalCb', text=localization.GetByLabel('UI/LPStore/FilterRequiredItemsAreIllegal'), align=uiconst.TOTOP)
+        reqNotInHangarCbParent = uiprimitives.Container(parent=tab, name='reqNotInHangarCbParent', height=self.checkboxParentHeight, align=uiconst.TOTOP)
+        self.sr.reqNotInHangarCb = uicontrols.Checkbox(parent=reqNotInHangarCbParent, name='reqNotInHangarCb', text=localization.GetByLabel('UI/LPStore/FilterRequiredItemsNotInHangar'), align=uiconst.TOTOP)
         uiprimitives.Container(parent=tab, name='reqItemsOrMatchTypeLabelSeparator', height=10, align=uiconst.TOTOP)
-        c = uiprimitives.Container(parent=tab, name='reqItemsOrMatchTypeLabelParent', height=16, align=uiconst.TOTOP)
-        LPStoreHeaderLabel(parent=c, text=localization.GetByLabel('UI/LPStore/FilterRequiredItemsType'), height=16)
+        reqItemsOrMatchTypeLabelParent = uiprimitives.Container(parent=tab, name='reqItemsOrMatchTypeLabelParent', height=16, align=uiconst.TOTOP)
+        LPStoreHeaderLabel(parent=reqItemsOrMatchTypeLabelParent, text=localization.GetByLabel('UI/LPStore/FilterRequiredItemsType'), height=16)
         uiprimitives.Container(parent=tab, name='reqComboSeparator', height=self.comboSeparatorHeight, align=uiconst.TOTOP)
-        c = uiprimitives.Container(parent=tab, name='reqCategoryComboParent', height=self.comboParentHeight, align=uiconst.TOTOP)
-        self.sr.reqCategoryCombo = uicontrols.Combo(parent=c, name='reqCategoryCombo', width=self.comboWidth, label=localization.GetByLabel('UI/Common/Category'))
-        c = uiprimitives.Container(parent=tab, name='reqGroupComboParent', height=self.comboParentHeight, align=uiconst.TOTOP)
-        self.sr.reqGroupCombo = uicontrols.Combo(parent=c, name='reqGroupCombo', width=self.comboWidth, label=localization.GetByLabel('UI/Common/Group'))
-        c = uiprimitives.Container(parent=tab, name='reqTypeComboParent', height=self.comboParentHeight, align=uiconst.TOTOP)
-        self.sr.reqTypeCombo = uicontrols.Combo(parent=c, name='reqTypeCombo', width=self.comboWidth, label=localization.GetByLabel('UI/Common/Type'))
-        tab = MakeTab(localization.GetByLabel('UI/LPStore/FilterPresets'))
-        c = uiprimitives.Container(parent=tab, name='presetsHeaderSeparator', height=self.labelSeparatorHeight, align=uiconst.TOTOP)
-        c = uiprimitives.Container(parent=tab, name='currentPresetHeaderParent', height=16, align=uiconst.TOTOP)
-        LPStoreHeaderLabel(name='currentPresetHeader', parent=c, text=localization.GetByLabel('UI/LPStore/ActivePresetName'))
-        c = uiprimitives.Container(parent=tab, name='currentPresetLabelParent', height=16, align=uiconst.TOTOP)
-        self.sr.currentPresetLabel = LPStoreLabel(name='currentPresetLabel', parent=c, text=localization.GetByLabel('UI/LPStore/PresetAll'))
-        c = uiprimitives.Container(parent=tab, name='btnsGrandParent', height=15, align=uiconst.TOBOTTOM)
-        self.sr.btnsParent = uiprimitives.Container(parent=c, name='btnsParent', height=20, width=200, align=uiconst.CENTER, state=uiconst.UI_PICKCHILDREN)
+        reqCategoryComboParent = uiprimitives.Container(parent=tab, name='reqCategoryComboParent', height=self.comboParentHeight, align=uiconst.TOTOP)
+        self.sr.reqCategoryCombo = uicontrols.Combo(parent=reqCategoryComboParent, name='reqCategoryCombo', width=self.comboWidth, label=localization.GetByLabel('UI/Common/Category'))
+        reqGroupComboParent = uiprimitives.Container(parent=tab, name='reqGroupComboParent', height=self.comboParentHeight, align=uiconst.TOTOP)
+        self.sr.reqGroupCombo = uicontrols.Combo(parent=reqGroupComboParent, name='reqGroupCombo', width=self.comboWidth, label=localization.GetByLabel('UI/Common/Group'))
+        reqTypeComboParent = uiprimitives.Container(parent=tab, name='reqTypeComboParent', height=self.comboParentHeight, align=uiconst.TOTOP)
+        self.sr.reqTypeCombo = uicontrols.Combo(parent=reqTypeComboParent, name='reqTypeCombo', width=self.comboWidth, label=localization.GetByLabel('UI/Common/Type'))
+
+    def _MakeFilterPresetsTab(self, tabs, panelParent):
+        tab = self._MakeTab(tabs, panelParent, localization.GetByLabel('UI/LPStore/FilterPresets'))
+        uiprimitives.Container(parent=tab, name='presetsHeaderSeparator', height=self.labelSeparatorHeight, align=uiconst.TOTOP)
+        currentPresetHeaderParent = uiprimitives.Container(parent=tab, name='currentPresetHeaderParent', height=16, align=uiconst.TOTOP)
+        LPStoreHeaderLabel(name='currentPresetHeader', parent=currentPresetHeaderParent, text=localization.GetByLabel('UI/LPStore/ActivePresetName'))
+        currentPresetLabelParent = uiprimitives.Container(parent=tab, name='currentPresetLabelParent', height=16, align=uiconst.TOTOP)
+        self.sr.currentPresetLabel = LPStoreLabel(name='currentPresetLabel', parent=currentPresetLabelParent, text=localization.GetByLabel('UI/LPStore/PresetAll'))
+        btnsGrandParent = uiprimitives.Container(parent=tab, name='btnsGrandParent', height=15, align=uiconst.TOBOTTOM)
+        self.sr.btnsParent = uiprimitives.Container(parent=btnsGrandParent, name='btnsParent', height=20, width=200, align=uiconst.CENTER, state=uiconst.UI_PICKCHILDREN)
         uiprimitives.Container(parent=tab, name='presetsScrollSeparator', height=self.scrollSeparatorHeight, align=uiconst.TOTOP)
         uiprimitives.Container(parent=tab, name='presetsScrollSeparator', height=self.scrollSeparatorHeight, align=uiconst.TOBOTTOM)
         self.sr.presetsScroll = uicontrols.Scroll(name='presetsScroll', parent=tab, align=uiconst.TOALL)
-        tabGroup.Startup(tabs)
 
     def HookCombos(self):
         all = [(localization.GetByLabel('UI/Common/All'), 'all')]
@@ -911,6 +1101,7 @@ class LPStoreFiltersWindow(uicontrols.Window):
                         dependant.LoadOptions(all + GetGroupChoices(id))
                     dependant.OnChange(None, None, 'all')
                 self.OnEdited()
+                return
 
             return OnCategoryComboChange
 
@@ -929,6 +1120,7 @@ class LPStoreFiltersWindow(uicontrols.Window):
                         dependant.LoadOptions(all + GetTypeChoices(id))
                     dependant.OnChange(None, None, 'all')
                 self.OnEdited()
+                return
 
             return OnCategoryComboChange
 
@@ -957,7 +1149,10 @@ class LPStoreFiltersWindow(uicontrols.Window):
                     combo.SelectItemByValue(setting)
                     combo.OnChange(None, None, setting)
 
+            return
+
         self.resetters.append(ResetCombos)
+        return
 
     def HookEdits(self):
 
@@ -975,7 +1170,9 @@ class LPStoreFiltersWindow(uicontrols.Window):
         keysTypes = [('minLP', int),
          ('maxLP', int),
          ('minISK', int),
-         ('maxISK', int)]
+         ('maxISK', int),
+         ('minAnalysisKredits', int),
+         ('maxAnalysisKredits', int)]
         for key, type_ in keysTypes:
             self.sr.Get(key + 'Edit').OnChange = MakeOnEditChange(key, type_)
 
@@ -1066,6 +1263,7 @@ class LPStoreFiltersWindow(uicontrols.Window):
             self.sr.delBtn.state = uiconst.UI_HIDDEN
         elif not sel[0].editable:
             self.sr.loadBtn.state = uiconst.UI_NORMAL
+            self.sr.overwriteBtn.state = uiconst.UI_HIDDEN
             self.sr.overwriteBtn.state = uiconst.UI_HIDDEN
             self.sr.delBtn.state = uiconst.UI_HIDDEN
         else:
@@ -1190,6 +1388,7 @@ class LPExhangeDialog(uicontrols.Window):
         label = LPStoreEntryLabel(parent=cont, text=localization.GetByLabel('UI/Common/Remaining'), align=uiconst.CENTERLEFT)
         self.fromCorpFinalLP = LPStoreEntryLabel(parent=cont, text=localization.GetByLabel('UI/LPStore/AmountLP', lpAmount=str(util.FmtAmt(zeroLP))), align=uiconst.CENTERRIGHT)
         self.SetDetails(1)
+        return
 
     def SetDetails(self, lpToExchange):
         concordLPCost = int(math.ceil(lpToExchange / self.exchangeRate))

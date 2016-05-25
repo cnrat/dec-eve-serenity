@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\packages\entosis\spacecomponents\client\entosisCommandNode.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\packages\entosis\spacecomponents\client\entosisCommandNode.py
 import logging
 from entosis.spacecomponents.client.entosisCaptureTarget import EntosisCaptureTarget
 from entosis.ui import IsSameCaptureTeam
@@ -36,3 +37,4 @@ class EntosisCommandNode(EntosisCaptureTarget):
 
     def __SetCampaignSourceInfoFromSlimItem(self, slimItem):
         self.campaign_sourceInfo = getattr(slimItem, 'campaign_sourceInfo', None)
+        return

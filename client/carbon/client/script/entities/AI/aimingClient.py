@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\carbon\client\script\entities\AI\aimingClient.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\carbon\client\script\entities\AI\aimingClient.py
 import GameWorld
 from carbon.common.script.sys.service import Service
 from carbon.common.script.entities.AI.aimingCommon import aimingCommon
@@ -11,6 +12,7 @@ class AimingClient(aimingCommon):
     def __init__(self):
         self.aimingServer = None
         aimingCommon.__init__(self)
+        return
 
     def Run(self, *etc):
         self.aimingServer = sm.RemoteSvc('aimingServer')
@@ -28,7 +30,8 @@ class AimingClient(aimingCommon):
         targetedEntityID = aimingManager.GetTargetEntityID(entity.entityID, targetType)
         if targetedEntityID == 0:
             return None
-        return targetedEntityID
+        else:
+            return targetedEntityID
 
     def IsTargetClientServerValid(self, targetClientServerFlag):
         return targetClientServerFlag & const.aiming.AIMING_CLIENTSERVER_FLAG_CLIENT

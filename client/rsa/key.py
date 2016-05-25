@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\carbon\common\stdlib\rsa\key.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\carbon\common\stdlib\rsa\key.py
 import logging
 from rsa._compat import b
 import rsa.prime
@@ -9,7 +10,7 @@ log = logging.getLogger(__name__)
 class AbstractKey(object):
 
     @classmethod
-    def load_pkcs1(cls, keyfile, format = 'PEM'):
+    def load_pkcs1(cls, keyfile, format='PEM'):
         methods = {'PEM': cls._load_pkcs1_pem,
          'DER': cls._load_pkcs1_der}
         if format not in methods:
@@ -18,7 +19,7 @@ class AbstractKey(object):
         method = methods[format]
         return method(keyfile)
 
-    def save_pkcs1(self, format = 'PEM'):
+    def save_pkcs1(self, format='PEM'):
         methods = {'PEM': self._save_pkcs1_pem,
          'DER': self._save_pkcs1_der}
         if format not in methods:
@@ -44,9 +45,10 @@ class PublicKey(AbstractKey):
     def __eq__(self, other):
         if other is None:
             return False
-        if not isinstance(other, PublicKey):
+        elif not isinstance(other, PublicKey):
             return False
-        return self.n == other.n and self.e == other.e
+        else:
+            return self.n == other.n and self.e == other.e
 
     def __ne__(self, other):
         return not self == other
@@ -83,7 +85,7 @@ class PublicKey(AbstractKey):
 class PrivateKey(AbstractKey):
     __slots__ = ('n', 'e', 'd', 'p', 'q', 'exp1', 'exp2', 'coef')
 
-    def __init__(self, n, e, d, p, q, exp1 = None, exp2 = None, coef = None):
+    def __init__(self, n, e, d, p, q, exp1=None, exp2=None, coef=None):
         self.n = n
         self.e = e
         self.d = d
@@ -101,6 +103,7 @@ class PrivateKey(AbstractKey):
             self.coef = rsa.common.inverse(q, p)
         else:
             self.coef = coef
+        return
 
     def __getitem__(self, key):
         return getattr(self, key)
@@ -111,9 +114,10 @@ class PrivateKey(AbstractKey):
     def __eq__(self, other):
         if other is None:
             return False
-        if not isinstance(other, PrivateKey):
+        elif not isinstance(other, PrivateKey):
             return False
-        return self.n == other.n and self.e == other.e and self.d == other.d and self.p == other.p and self.q == other.q and self.exp1 == other.exp1 and self.exp2 == other.exp2 and self.coef == other.coef
+        else:
+            return self.n == other.n and self.e == other.e and self.d == other.d and self.p == other.p and self.q == other.q and self.exp1 == other.exp1 and self.exp2 == other.exp2 and self.coef == other.coef
 
     def __ne__(self, other):
         return not self == other
@@ -156,7 +160,7 @@ class PrivateKey(AbstractKey):
         return rsa.pem.save_pem(der, b('RSA PRIVATE KEY'))
 
 
-def find_p_q(nbits, getprime_func = rsa.prime.getprime, accurate = True):
+def find_p_q(nbits, getprime_func=rsa.prime.getprime, accurate=True):
     total_bits = nbits * 2
     shift = nbits // 16
     pbits = nbits + shift
@@ -198,7 +202,7 @@ def calculate_keys(p, q, nbits):
     return (e, d)
 
 
-def gen_keys(nbits, getprime_func, accurate = True):
+def gen_keys(nbits, getprime_func, accurate=True):
     p, q = find_p_q(nbits // 2, getprime_func, accurate)
     e, d = calculate_keys(p, q, nbits // 2)
     return (p,
@@ -207,7 +211,7 @@ def gen_keys(nbits, getprime_func, accurate = True):
      d)
 
 
-def newkeys(nbits, accurate = True, poolsize = 1):
+def newkeys(nbits, accurate=True, poolsize=1):
     if nbits < 16:
         raise ValueError('Key too small')
     if poolsize < 1:

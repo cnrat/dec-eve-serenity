@@ -1,9 +1,10 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\devtools\script\itools.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\devtools\script\itools.py
 revision = 5
 import os
 import types
 
-def relpath(target, base = os.curdir):
+def relpath(target, base=os.curdir):
     if not os.path.exists(target):
         raise OSError, 'Target does not exist: ' + target
     if not os.path.isdir(base):
@@ -22,7 +23,7 @@ def relpath(target, base = os.curdir):
     return os.path.join(*rel_list)
 
 
-def walktree(dir, filecallback, dircallback = None, recursive = True):
+def walktree(dir, filecallback, dircallback=None, recursive=True):
     files = os.listdir(dir)
     for file in files:
         entry = os.path.join(dir, file)
@@ -36,7 +37,7 @@ def walktree(dir, filecallback, dircallback = None, recursive = True):
         dircallback(dir)
 
 
-def itertree(dir, files = True, dirs = False, recursive = True):
+def itertree(dir, files=True, dirs=False, recursive=True):
     files = os.listdir(dir)
     for file in files:
         entry = os.path.join(dir, file)

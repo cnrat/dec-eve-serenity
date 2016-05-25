@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\devtools\script\uiControlCatalog\controlCatalogWindow.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\devtools\script\uiControlCatalog\controlCatalogWindow.py
 from eve.client.script.ui.control.eveWindow import Window
 from carbonui.control.dragResizeCont import DragResizeCont
 import carbonui.const as uiconst
@@ -32,6 +33,7 @@ class ControlCatalogWindow(Window):
         self.currSampleNum = 1
         self.numSamples = 0
         uthread.new(self.ConstuctLayout)
+        return
 
     def ConstuctLayout(self):
         self.leftCont = DragResizeCont(name='leftCont', parent=self.sr.main, align=uiconst.TOLEFT_PROP, settingsID='ControlCatalogWindowLeftCont')
@@ -183,6 +185,7 @@ class ControlCatalogWindow(Window):
             else:
                 self.sampleNameLabel.Hide()
                 self.sampleNameLabel.text = ''
+        return
 
     def OnCodeEditKeyDown(self, key, flag):
         if uicore.uilib.Key(uiconst.VK_CONTROL) and key == uiconst.VK_S:

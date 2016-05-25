@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\carbon\common\script\util\profiling.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\carbon\common\script\util\profiling.py
 import zlib
 import gc
 import sys
@@ -6,7 +7,7 @@ import blue
 import service
 import weakref
 
-def CalcMemoryUsage(what, iterations = 1):
+def CalcMemoryUsage(what, iterations=1):
     if session and session.role & (service.ROLE_PROGRAMMER | service.ROLE_SERVICE) == 0:
         raise RuntimeError('Requires role programmer')
     iterations = max(1, iterations)

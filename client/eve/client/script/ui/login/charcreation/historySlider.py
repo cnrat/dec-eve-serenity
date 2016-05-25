@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\client\script\ui\login\charcreation\historySlider.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\client\script\ui\login\charcreation\historySlider.py
 import uicontrols
 import carbonui.const as uiconst
 import uicls
@@ -62,6 +63,7 @@ class CharacterCreationHistorySlider(uiprimitives.Container):
         frame.padding = (-32, -5, -32, -15)
         self.UpdateHistory()
         sm.RegisterNotify(self)
+        return
 
     def OnDollUpdated(self, charID, redundantUpdate, *args):
         if not self.destroyed and not redundantUpdate and self.state != uiconst.UI_HIDDEN:
@@ -75,6 +77,7 @@ class CharacterCreationHistorySlider(uiprimitives.Container):
         dnaLog = uicore.layer.charactercreation.GetDollDNAHistory()
         if dnaLog is not None:
             self.LoadHistory(len(dnaLog))
+        return
 
     def GetCurrentIndexAndMaxIndex(self):
         if self._lastLit and self._lastLit in self.sr.bitParent.children:
@@ -96,15 +99,17 @@ class CharacterCreationHistorySlider(uiprimitives.Container):
         currentIndex, maxIndex = self.GetCurrentIndexAndMaxIndex()
         if currentIndex + direction > maxIndex:
             return
-        currentIndex += 1
-        newIndex = max(0, min(len(self.sr.bitParent.children) - 1, direction + currentIndex))
-        if newIndex == 0:
-            self._lastLit = None
         else:
-            self._lastLit = self.sr.bitParent.children[newIndex]
-        self.SettleScrollHandle()
-        self.UpdateBitsState()
-        self.UpdatePosition()
+            currentIndex += 1
+            newIndex = max(0, min(len(self.sr.bitParent.children) - 1, direction + currentIndex))
+            if newIndex == 0:
+                self._lastLit = None
+            else:
+                self._lastLit = self.sr.bitParent.children[newIndex]
+            self.SettleScrollHandle()
+            self.UpdateBitsState()
+            self.UpdatePosition()
+            return
 
     def OnButtonEnter(self, button, *args):
         button.sr.icon.SetAlpha(1.0)
@@ -137,6 +142,7 @@ class CharacterCreationHistorySlider(uiprimitives.Container):
             self._lastLit = litBit
             self.SettleScrollHandle(initing=True)
             self.UpdateBitsState()
+        return
 
     def OnClickBit(self, bit, *args):
         if self.bitChangeCheck and not self.bitChangeCheck():
@@ -148,7 +154,7 @@ class CharacterCreationHistorySlider(uiprimitives.Container):
     def UpdateContentWidth(self):
         self.sr.bitParent.width = (len(self.sr.bitParent.children) - 1) * (self.BITWIDTH + self.BITGAP) + self.BITGAP
 
-    def ScrollTo(self, portion, initing = False):
+    def ScrollTo(self, portion, initing=False):
         l, t, w, h = self.sr.mainPar.GetAbsolute()
         scrollRange = min(0, w - self.sr.bitParent.width)
         self.sr.scrollHandle.left = int((self.sr.bitParent.width - self.sr.scrollHandle.width) * portion)
@@ -166,12 +172,14 @@ class CharacterCreationHistorySlider(uiprimitives.Container):
     def SH_MouseUp(self, *args):
         if self.bitChangeCheck and not self.bitChangeCheck():
             return
-        self._scrolling = False
-        self._mouseOffset = 0
-        self.sr.scrollTimer = None
-        self.SettleScrollHandle()
+        else:
+            self._scrolling = False
+            self._mouseOffset = 0
+            self.sr.scrollTimer = None
+            self.SettleScrollHandle()
+            return
 
-    def SettleScrollHandle(self, initing = False):
+    def SettleScrollHandle(self, initing=False):
         if self._lastLit is not None:
             self.sr.scrollHandle.left = self._lastLit.left
             if not initing:
@@ -180,6 +188,7 @@ class CharacterCreationHistorySlider(uiprimitives.Container):
                 self._lastLoadIndex = self._lastLit.idx
         else:
             self.sr.scrollHandle.left = -2
+        return
 
     def DragScroll(self, *args):
         l, t, w, h = self.sr.mainPar.GetAbsolute()
@@ -207,3 +216,5 @@ class CharacterCreationHistorySlider(uiprimitives.Container):
             else:
                 bit.children[0].color.a = 1.0
                 self._lastLit = bit
+
+        return

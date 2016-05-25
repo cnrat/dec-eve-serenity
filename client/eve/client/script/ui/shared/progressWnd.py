@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\client\script\ui\shared\progressWnd.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\client\script\ui\shared\progressWnd.py
 import types
 from carbonui import const as uiconst
 from carbonui.primitives.containerAutoSize import ContainerAutoSize
@@ -29,6 +30,7 @@ class ProgressWnd(ContainerAutoSize):
         self.progressText = EveLabelMedium(parent=self, width=270, left=2, top=4, state=uiconst.UI_NORMAL, align=uiconst.TOTOP, padding=(25, 0, 25, 0))
         self.progressBar = ProgressBar(parent=self, height=10, padding=(25, 10, 25, 10), align=uiconst.TOTOP)
         uicontrols.WindowUnderlay(bgParent=self)
+        return
 
     def SetAbortFunc(self, func):
         args = None
@@ -47,6 +49,7 @@ class ProgressWnd(ContainerAutoSize):
         else:
             self.abortbtnpar.state = uiconst.UI_NORMAL
             self.abortbtn.OnClick = (func, args)
+        return
 
     def SetAbortConfirmFunc(self, abortFunc, confirmFunc):
         abortArgs = None
@@ -73,6 +76,7 @@ class ProgressWnd(ContainerAutoSize):
             self.confirmbtn = self.abortconfirmbtnpar.GetBtnByIdx(0)
             self.abortbtn = self.abortconfirmbtnpar.GetBtnByIdx(1)
         uicore.registry.AddModalWindow(self)
+        return
 
     def Abort(self, *args):
         if self.sr.Get('abortFunc', None) is not None:
@@ -84,6 +88,7 @@ class ProgressWnd(ContainerAutoSize):
                 abortFunc()
         uicore.registry.RemoveModalWindow(self)
         self.Close()
+        return
 
     def Confirm(self, *args):
         if self.sr.Get('confirmFunc', None) is not None:
@@ -95,6 +100,7 @@ class ProgressWnd(ContainerAutoSize):
                 confirmFunc()
         uicore.registry.RemoveModalWindow(self)
         self.Close()
+        return
 
     def SetModalResult(self, modalResult, *args):
         if modalResult in (uiconst.ID_CANCEL, uiconst.ID_NONE):
@@ -115,25 +121,26 @@ class ProgressWnd(ContainerAutoSize):
     def SetReadProgress(self, have, need):
         if self is None or self.destroyed:
             return
-        if not self.sr.readprogress.text:
+        elif not self.sr.readprogress.text:
             return
-        strng = localization.GetByLabel('UI/Shared/ReadProgress', text=self.sr.readprogress.text, done=have + self.sr.readprogress.prev, total=need + self.sr.readprogress.prev)
-        if have == need:
-            self.sr.readprogress.prev += have
-        if self.progressText.text != strng:
-            self.progressText.text = strng
-            sm.services['loading'].LogWarn('Setting progress text to: ', strng)
-            blue.pyos.synchro.Yield()
         else:
-            sm.services['loading'].LogWarn('Not setting progress text to: ', strng)
+            strng = localization.GetByLabel('UI/Shared/ReadProgress', text=self.sr.readprogress.text, done=have + self.sr.readprogress.prev, total=need + self.sr.readprogress.prev)
+            if have == need:
+                self.sr.readprogress.prev += have
+            if self.progressText.text != strng:
+                self.progressText.text = strng
+                sm.services['loading'].LogWarn('Setting progress text to: ', strng)
+                blue.pyos.synchro.Yield()
+            else:
+                sm.services['loading'].LogWarn('Not setting progress text to: ', strng)
+            return
 
-    def SetStatus(self, title, strng, portion = None, total = None, abortFunc = None, animate = 1):
+    def SetStatus(self, title, strng, portion=None, total=None, abortFunc=None, animate=1):
         self._SetCaption(title)
         self.SetAbortFunc(abortFunc)
         self.sr.readprogress = util.KeyVal(text=strng, prev=0)
         if self.progressText.text != strng:
             self.progressText.text = strng
-        return 0
 
     def _SetCaption(self, title):
         self.caption.text = ['<center>', title]

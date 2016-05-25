@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\carbon\common\script\util\timerstuff.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\carbon\common\script\util\timerstuff.py
 import log
 import sys
 import blue
@@ -49,16 +50,17 @@ class SimpleTimingContext(object):
 
 class TracebackTimingContext(SimpleTimingContext):
 
-    def __init__(self, runtime = 1.0, wallclock = None):
+    def __init__(self, runtime=1.0, wallclock=None):
         self.wallclock, self.runtime = wallclock, runtime
 
     def __exit__(self, exc_type, exc_val, exc_tb):
         SimpleTimingContext.__exit__(self, exc_type, exc_val, exc_tb)
         if self.wallclock is not None and self.GetWallclockTime() > self.wallclock or self.runtime is not None and self.GetRunTime() > self.runtime:
             log.LogTraceback('TracebackTimingContext exceeded: wallclock=%s, runtime=%s' % (self.GetWallclockTime(), self.GetRunTime()))
+        return
 
 
-def TracebackTimingFunction(runtime = 1.0, wallclock = None):
+def TracebackTimingFunction(runtime=1.0, wallclock=None):
 
     def decorator(f):
 
@@ -75,7 +77,7 @@ def TracebackTimingFunction(runtime = 1.0, wallclock = None):
 class TimerObject:
     __guid__ = 'base.TimerObject'
 
-    def __init__(self, useSimTime = False):
+    def __init__(self, useSimTime=False):
         self.abort = 0
         self.id = 0
         self.aborts = {}
@@ -111,6 +113,7 @@ class TimerObject:
 
     def KillDelayedCall(self, id):
         self.aborts[id] = None
+        return
 
     def KillAllDelayedCalls(self):
         self.abort = 1
@@ -140,16 +143,18 @@ class AutoTimer(object):
         self.wakeupAt = blue.os.GetWallclockTime() / 10000 + self.interval
         AutoTimer.autoTimers[self] = None
         uthread.pool(ctx, AutoTimer.Loop, weakref.ref(self))
+        return
 
     def KillTimer(self):
         self.run = 0
 
-    def Reset(self, newInterval = None):
+    def Reset(self, newInterval=None):
         if newInterval is not None:
             if newInterval <= 0:
                 raise RuntimeError('Invalid interval for AutoTimer')
             self.interval = newInterval
         self.wakeupAt = blue.os.GetWallclockTime() / 10000 + self.interval
+        return
 
     def Loop(weakSelf):
         self = weakSelf()

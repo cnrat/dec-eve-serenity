@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\packages\requests\packages\chardet\sbcharsetprober.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\packages\requests\packages\chardet\sbcharsetprober.py
 import sys
 from . import constants
 from .charsetprober import CharSetProber
@@ -13,7 +14,7 @@ POSITIVE_CAT = NUMBER_OF_SEQ_CAT - 1
 
 class SingleByteCharSetProber(CharSetProber):
 
-    def __init__(self, model, reversed = False, nameProber = None):
+    def __init__(self, model, reversed=False, nameProber=None):
         CharSetProber.__init__(self)
         self._mModel = model
         self._mReversed = reversed

@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\packages\trinutils\callbackmanager.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\packages\trinutils\callbackmanager.py
 import trinity
 
 class CallbackManager(object):
@@ -13,7 +14,7 @@ class CallbackManager(object):
     def _isJobRunning(self):
         return self._job in trinity.renderJobs.recurring
 
-    def ScheduleCallback(self, callback, tag = None):
+    def ScheduleCallback(self, callback, tag=None):
         self._callbacks.append(callback)
         if tag:
             self.UnscheduleCallbackByTag(tag)

@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\client\script\ui\shared\mapView\layout\mapLayoutHandler.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\client\script\ui\shared\mapView\layout\mapLayoutHandler.py
 import weakref
 from eve.client.script.ui.shared.mapView.layout.mapLayoutConstellations import MapLayoutConstellations
 from eve.client.script.ui.shared.mapView.layout.mapLayoutRegions import MapLayoutRegions
@@ -60,6 +61,7 @@ class MapViewLayoutHandler(object):
         self.nodesBySolarSystemID = None
         self.dirtyNodesBySolarSystemID = None
         self.layouts = None
+        return
 
     def __len__(self):
         return len(self.nodesByParticleID)
@@ -69,6 +71,7 @@ class MapViewLayoutHandler(object):
             mapLayout.ClearCache()
 
         self.currentLayout = None
+        return
 
     def LoadLayout(self, layoutType, *args, **kwds):
         if self.currentLayout == (layoutType, args, kwds):
@@ -137,6 +140,8 @@ class MapViewLayoutHandler(object):
                 else:
                     changeLinePositions[lineData.lineID] = [None, newPosition, lineData]
 
+            return
+
         def update_line_position(posInfo):
             lineData = posInfo[2]
             lineID = lineData.lineID
@@ -163,6 +168,7 @@ class MapViewLayoutHandler(object):
                 midPos = geo2.Vec3Scale(geo2.Vec3Add(toPosition, fromPosition), 0.5)
                 splinePos = geo2.Vec3Add(midPos, offsetVec)
                 lineSet.ChangeLineIntermediateCrt(lineID, splinePos)
+            return
 
         while ndt != 1.0:
             ndt = min(blue.os.TimeDiffInMs(start, blue.os.GetWallclockTime()) / duration, 1.0)

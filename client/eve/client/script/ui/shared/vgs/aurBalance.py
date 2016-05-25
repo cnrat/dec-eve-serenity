@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\client\script\ui\shared\vgs\aurBalance.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\client\script\ui\shared\vgs\aurBalance.py
 from carbon.common.script.util.format import FmtAmt
 from carbonui import const as uiconst
 from carbonui.primitives.containerAutoSize import ContainerAutoSize
@@ -18,6 +19,7 @@ class AurBalance(ContainerAutoSize):
         self.label = VgsHeaderMedium(parent=self, align=uiconst.TOPLEFT, top=walletLabel.height - 6, left=button.width + 4)
         self.balance = account.GetAurumBalance()
         account.SubscribeToAurumBalanceChanged(self.OnBalanceChange)
+        return
 
     @property
     def balance(self):

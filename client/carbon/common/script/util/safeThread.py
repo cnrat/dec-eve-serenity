@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\carbon\common\script\util\safeThread.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\carbon\common\script\util\safeThread.py
 from timerstuff import ClockThis
 import uthread
 import blue
@@ -27,6 +28,7 @@ class SafeThread(object):
         self.rep = True
         self.repairCount = 0
         self.__sleepTime = None
+        return
 
     def __MainLoop(self):
         blue.pyos.synchro.Yield()
@@ -79,6 +81,8 @@ class SafeThread(object):
         except AttributeError:
             sys.exc_clear()
 
+        return
+
     def SafeThreadLoop(self, now):
         print 'ERROR: Please implement the virtual SafeThreadLoop function'
         return self.KILL_ME
@@ -92,7 +96,7 @@ class SafeThread(object):
     def Enabledebugging(self):
         self.__debugging = True
 
-    def LaunchSafeThreadLoop_MS(self, sleepTime = 16):
+    def LaunchSafeThreadLoop_MS(self, sleepTime=16):
         if self.__active == False:
             self.__sleepTime = sleepTime
             self.__active = True
@@ -102,7 +106,7 @@ class SafeThread(object):
         else:
             log.LogError('ERROR: This class is already looping SafeThreadLoop function', self)
 
-    def LaunchSafeThreadLoop_BlueTime(self, sleepTime = const.ONE_TICK):
+    def LaunchSafeThreadLoop_BlueTime(self, sleepTime=const.ONE_TICK):
         self.LaunchSafeThreadLoop_MS(sleepTime / const.MSEC)
 
     def __RestoreSafeThreadLoop(self):
@@ -116,6 +120,8 @@ class SafeThread(object):
     def __WaitForRestart(self):
         while self.__active == True or self.__killLoop == False or self.__thread is not None:
             blue.pyos.synchro.SleepUntilWallclock(blue.os.GetWallclockTimeNow() + 100 * const.MSEC)
+
+        return
 
     def RepairMe(self):
         pass

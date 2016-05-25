@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\client\script\ui\shared\neocom\contracts\contractentry.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\client\script\ui\shared\neocom\contracts\contractentry.py
 import blue
 import evetypes
 import uiprimitives
@@ -115,44 +116,52 @@ class ContractEntry(uicontrols.SE_BaseClassCore):
     def FindMore(self, typeID, *args):
         sm.GetService('contracts').OpenAvailableTab(7, reset=True, typeID=typeID)
 
-    def ViewContract(self, node = None, *args):
+    def ViewContract(self, node=None, *args):
         node = node if node != None else self.sr.node
         sm.GetService('contracts').ShowContract(node.contract.contractID)
+        return
 
-    def ShowRoute(self, node = None, *args):
+    def ShowRoute(self, node=None, *args):
         data = node.contract if node != None else self.sr.node.contract
         OpenMap(interestID=data.startRegionID, drawRoute=(session.solarsystemid2, data.startSolarSystemID))
+        return
 
-    def Delete(self, node = None, *args):
+    def Delete(self, node=None, *args):
         node = node if node != None else self.sr.node
         sm.GetService('contracts').DeleteContract(node.contract.contractID)
+        return
 
-    def PlaceBid(self, node = None, *args):
+    def PlaceBid(self, node=None, *args):
         node = node if node != None else self.sr.node
         if sm.GetService('contracts').PlaceBid(node.contract.contractID):
             self.Reload()
+        return
 
-    def Dismiss(self, node = None, *args):
+    def Dismiss(self, node=None, *args):
         node = node if node != None else self.sr.node
         if sm.GetService('contracts').DeleteNotification(node.contractID, node.Get('forCorp', False)):
             node.scroll.RemoveEntries([node])
+        return
 
-    def GetItems(self, node = None, *args):
+    def GetItems(self, node=None, *args):
         node = node if node != None else self.sr.node
         if sm.GetService('contracts').FinishAuction(node.contract.contractID, isIssuer=False):
             node.scroll.RemoveEntries([node])
+        return
 
-    def GetMoney(self, node = None, *args):
+    def GetMoney(self, node=None, *args):
         node = node if node != None else self.sr.node
         if sm.GetService('contracts').FinishAuction(node.contract.contractID, isIssuer=True):
             node.scroll.RemoveEntries([node])
+        return
 
-    def AddIgnore(self, node = None, *args):
+    def AddIgnore(self, node=None, *args):
         node = node if node != None else self.sr.node
         issuerID = node.contract.issuerID
         if node.contract.forCorp:
             issuerID = node.contract.issuerCorpID
         sm.GetService('contracts').AddIgnore(issuerID)
+        return
 
     def OnDblClick(self, *args):
         self.ViewContract(*args)
@@ -164,9 +173,11 @@ class ContractEntry(uicontrols.SE_BaseClassCore):
     def OnSelect(self, *args):
         if getattr(self, 'OnSelectCallback', None):
             apply(self.OnSelectCallback, args)
+        return
 
     def _OnClose(self, *args):
         self.updatetimer = None
+        return
 
     def OnClick(self, *args):
         self.sr.node.scroll.SelectNode(self.sr.node)
@@ -186,6 +197,7 @@ class ContractEntrySmall(ContractEntry):
     def Startup(self, *etc):
         self.sr.label = uicontrols.EveLabelMedium(text='', parent=self, left=5, state=uiconst.UI_DISABLED, color=None, maxLines=1, align=uiconst.CENTERLEFT)
         self.sr.line = uiprimitives.Container(name='lineparent', align=uiconst.TOBOTTOM, parent=self, height=1)
+        return
 
     def Load(self, node):
         self.sr.node = node
@@ -280,6 +292,7 @@ class ContractEntrySmall(ContractEntry):
                 hintList.append(string)
         newHint = '<br>'.join(hintList)
         self.hint = newHint
+        return
 
     def GetHeight(_self, *args):
         node, width = args
@@ -298,6 +311,7 @@ class ContractItemSelect(listentry.Item):
         listentry.Item.ApplyAttributes(self, attributes)
         self.sr.overlay = uiprimitives.Container(name='overlay', align=uiconst.TOPLEFT, parent=self, height=1)
         self.sr.tlicon = None
+        return
 
     def Startup(self, *args):
         listentry.Item.Startup(self, args)
@@ -349,6 +363,7 @@ class ContractItemSelect(listentry.Item):
                         node.panel.sr.checkbox.SetChecked(isIt)
 
         self.sr.node.scroll.sr.lastSelected = idx
+        return
 
     def GetHeight(self, *args):
         node, width = args
@@ -627,3 +642,4 @@ class ContractEntrySearchCourier(ContractEntrySearch):
         self.sr.issuerLabel.text = node.issuer
         self.sr.createdLabel.text = '%s' % util.FmtDate(node.dateIssued, 'ss')
         self.sr.infoLabel.text = c.title
+        return

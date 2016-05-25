@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\packages\carbonui\control\browser\cookieManager.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\packages\carbonui\control\browser\cookieManager.py
 import Cookie
 import urlparse
 import blue
@@ -74,6 +75,7 @@ class CookieManager:
         if parts:
             return '$Version=%s;%s' % (min([ each['version'] and int(each['version']) or 0 for each in morsels ]), ';'.join(parts))
         else:
+            return None
             return None
 
     def DomainMatches(self, d1, d2):

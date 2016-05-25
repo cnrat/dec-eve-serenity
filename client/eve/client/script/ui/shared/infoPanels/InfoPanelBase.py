@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\client\script\ui\shared\infoPanels\InfoPanelBase.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\client\script\ui\shared\infoPanels\InfoPanelBase.py
 import carbonui.const as uiconst
 from carbonui.util.bunch import Bunch
 import infoPanelConst
@@ -53,6 +54,7 @@ class InfoPanelBase(uicontrols.ContainerAutoSize):
         if not self.hasSettings:
             self.headerButton.pickState = uiconst.TR2_SPS_OFF
         self.mainCont = uicontrols.ContainerAutoSize(name='mainCont', parent=self, align=uiconst.TOTOP, padLeft=infoPanelConst.LEFTPAD, padBottom=self.MAINPADBOTTOM)
+        return
 
     def ConstructHeaderButton(self):
         import uicls
@@ -76,24 +78,27 @@ class InfoPanelBase(uicontrols.ContainerAutoSize):
     def GetMode(self):
         return self._mode
 
-    def SetMode(self, mode, register = True):
+    def SetMode(self, mode, register=True):
         if mode == MODE_COLLAPSED and not self.isCollapsable:
             return
-        if self.mode is not None and mode == self.mode:
+        elif self.mode is not None and mode == self.mode:
             return
-        if register:
-            sm.GetService('infoPanel').SavePanelModeSetting(self.panelTypeID, mode)
-        oldMode = self._mode
-        self._mode = mode
-        self.Update(oldMode)
+        else:
+            if register:
+                sm.GetService('infoPanel').SavePanelModeSetting(self.panelTypeID, mode)
+            oldMode = self._mode
+            self._mode = mode
+            self.Update(oldMode)
+            return
 
     mode = property(GetMode, SetMode)
 
     def ProcessUpdateInfoPanel(self, panelTypeID):
         if panelTypeID is None or panelTypeID == self.panelTypeID:
             self.Update()
+        return
 
-    def Update(self, oldMode = None):
+    def Update(self, oldMode=None):
         if not self.IsAvailable():
             self.Hide()
             return
@@ -120,7 +125,7 @@ class InfoPanelBase(uicontrols.ContainerAutoSize):
         finally:
             self.isInModeTransition = False
 
-    def ModeTransition(self, oldMode = None):
+    def ModeTransition(self, oldMode=None):
         self.OnStartModeChanged(oldMode)
         if self.mode == MODE_COLLAPSED:
             if oldMode:

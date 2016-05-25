@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\packages\characterSettingsStorage\characterSettingsConsts.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\packages\characterSettingsStorage\characterSettingsConsts.py
 NOTIFICATIONS_GROUPS_DONT_BLINK_NEOCOM = 'notificatation_groupsDontBlinkNeocom'
 NOTIFICATIONS_GROUPS_DONT_BLINK_TAB = 'notificatation__groupsDontBlinkTab'
 MAIL_BLINK_NEOCOM = 'mail_blinkNecom'

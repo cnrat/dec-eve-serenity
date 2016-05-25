@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\packages\evefleet\menu.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\packages\evefleet\menu.py
 import evefleet.const
 from .const import fleetRoleMember, fleetRoleSquadCmdr, fleetRoleWingCmdr, fleetRoleLeader, fleetJobCreator
 from collections import defaultdict
@@ -30,6 +31,7 @@ class MemberMenu(object):
         self.isSquadCmdr = self.selfMember.role == fleetRoleSquadCmdr
         self.isWingCmdr = self.selfMember.role == fleetRoleWingCmdr
         self.isFleetLeader = self.selfMember.role == fleetRoleLeader or self.selfMember.job & fleetJobCreator
+        return
 
     def _SetFleet(self):
         self.sortedWings = sorted(self.wings.iteritems())
@@ -43,22 +45,24 @@ class MemberMenu(object):
             self.sortedSquads.extend(w.squads.iterkeys())
 
         self.sortedSquads.sort()
+        return None
 
     def Get(self):
         if session.fleetid is None:
             return []
-        if self.isFleetLeader:
-            self.SetValidFleetLeaderMoves()
-        if self.IsFreeMove():
-            self.SetValidFreeMoves()
-        if self.IsInviteToFleet():
-            self.fleetMenu.append([self.MenuLabel(SetLabel(fleetRoleMember)), self.callback, (self.targetCharID,
-              None,
-              None,
-              None)])
-        if self.isFleetLeader or self.isWingCmdr or self.isSquadCmdr or self.IsFreeMove():
-            self.SetValidWingAndSquadMoves()
-        return self.fleetMenu
+        else:
+            if self.isFleetLeader:
+                self.SetValidFleetLeaderMoves()
+            if self.IsFreeMove():
+                self.SetValidFreeMoves()
+            if self.IsInviteToFleet():
+                self.fleetMenu.append([self.MenuLabel(SetLabel(fleetRoleMember)), self.callback, (self.targetCharID,
+                  None,
+                  None,
+                  None)])
+            if self.isFleetLeader or self.isWingCmdr or self.isSquadCmdr or self.IsFreeMove():
+                self.SetValidWingAndSquadMoves()
+            return self.fleetMenu
 
     def GetMenuEntry(self, role, wingID, squadID):
         return [self.MenuLabel(SetLabel(role)), self.callback, (self.targetCharID,
@@ -71,8 +75,10 @@ class MemberMenu(object):
             self.fleetMenu.append(self.GetMenuEntry(fleetRoleLeader, None, None))
         if not self.targetMember:
             return
-        if self.targetMember.role in [fleetRoleMember, fleetRoleSquadCmdr] and self.targetMember.wingID not in self.WingsWithCmdrs():
-            self.fleetMenu.append(self.GetMenuEntry(fleetRoleWingCmdr, self.targetMember.wingID, None))
+        else:
+            if self.targetMember.role in [fleetRoleMember, fleetRoleSquadCmdr] and self.targetMember.wingID not in self.WingsWithCmdrs():
+                self.fleetMenu.append(self.GetMenuEntry(fleetRoleWingCmdr, self.targetMember.wingID, None))
+            return
 
     def SetValidFreeMoves(self):
         if not self.targetMember:

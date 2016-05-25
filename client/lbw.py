@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\common\modules\nice\client\_nastyspace\lbw.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\common\modules\nice\client\_nastyspace\lbw.py
 from carbon.common.script.util.lbw import COUNTER_FREQUENCY
 from carbon.common.script.util.lbw import Channel
 from carbon.common.script.util.lbw import ChunkLines

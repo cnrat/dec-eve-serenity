@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\client\script\ui\shared\activatePlex.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\client\script\ui\shared\activatePlex.py
 import carbonui.const as uiconst
 from carbonui.primitives.container import Container
 import localization
@@ -47,6 +48,7 @@ class ActivatePlexWindow(uicontrols.Window):
         self.expireDate3 = None
         self.selectedEntry = None
         uthread.new(self.InitAll)
+        return
 
     def InitAll(self):
         self.Layout()
@@ -119,6 +121,7 @@ class ActivatePlexWindow(uicontrols.Window):
         self.slot4Button.Disable()
         uicore.registry.SetFocus(self.slot4Edit)
         self.EnableButtons(donate=False)
+        return
 
     def Search(self, searchString):
         if len(searchString) < 3:
@@ -126,7 +129,7 @@ class ActivatePlexWindow(uicontrols.Window):
         else:
             return searchUtil.SearchCharacters(searchString)
 
-    def Reload(self, delay = 0, force = False):
+    def Reload(self, delay=0, force=False):
         try:
             self.reloading = True
             blue.pyos.synchro.SleepWallclock(delay)
@@ -220,6 +223,8 @@ class ActivatePlexWindow(uicontrols.Window):
         finally:
             self.reloading = False
 
+        return
+
     def UpdateTimersThread(self):
         while not self.destroyed:
             blue.pyos.synchro.SleepWallclock(1000)
@@ -249,14 +254,14 @@ class ActivatePlexWindow(uicontrols.Window):
             button.SetColor(self.BLUE_COLOR)
             self.Reload(self.CONFIRM_DELAY)
 
-    def DisableButtons(self, donate = True):
+    def DisableButtons(self, donate=True):
         self.slot1Button.Disable()
         self.slot2Button.Disable()
         self.slot3Button.Disable()
         if donate:
             self.slot4Button.Disable()
 
-    def EnableButtons(self, donate = True):
+    def EnableButtons(self, donate=True):
         self.slot1Button.Enable()
         self.slot2Button.Enable()
         self.slot3Button.Enable()

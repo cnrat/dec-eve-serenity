@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\client\script\ui\shared\neocom\corporation\corp_ui_standings.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\client\script\ui\shared\neocom\corporation\corp_ui_standings.py
 import uiprimitives
 import uicontrols
 import uiutil
@@ -49,19 +50,21 @@ class CorpStandings(uiprimitives.Container):
               self,
               'mystandings_to_negative']], 'corporationstandings', autoselecttab=1)
             return
-        sm.GetService('corpui').LoadTop('res:/ui/Texture/WindowIcons/corporationstandings.png', localization.GetByLabel('UI/Corporations/CorporationWindow/Standings/CorpStandings'))
-        self.SetHint()
-        if type(args) == types.StringType and args.startswith('mystandings_'):
-            self.sr.standingtype = args
-            if args == 'mystandings_to_positive':
-                positive = True
-            else:
-                positive = False
-            self.ShowStandings(positive)
         else:
-            self.sr.contacts.LoadContactsForm('corpcontact')
+            sm.GetService('corpui').LoadTop('res:/ui/Texture/WindowIcons/corporationstandings.png', localization.GetByLabel('UI/Corporations/CorporationWindow/Standings/CorpStandings'))
+            self.SetHint()
+            if type(args) == types.StringType and args.startswith('mystandings_'):
+                self.sr.standingtype = args
+                if args == 'mystandings_to_positive':
+                    positive = True
+                else:
+                    positive = False
+                self.ShowStandings(positive)
+            else:
+                self.sr.contacts.LoadContactsForm('corpcontact')
+            return
 
-    def SetHint(self, hintstr = None):
+    def SetHint(self, hintstr=None):
         if self.sr.scroll:
             self.sr.scroll.ShowHint(hintstr)
 
@@ -157,6 +160,8 @@ class CorporationOrAlliancePickerDailog(uicontrols.Window):
             self.sr.scroll.Load(fixedEntryHeight=18, contentList=scrolllist)
             self.HideLoad()
 
+        return
+
     def GetSearchStr(self):
         if self.searchAttr and self.sr.inpt.GetValue() == '':
             return self.searchAttr
@@ -169,17 +174,19 @@ class CorporationOrAlliancePickerDailog(uicontrols.Window):
         if self.searchStr != self.GetSearchStr():
             self.Search()
             return 0
-        log.LogInfo('ValidateOK')
-        if self.ownerID is None:
-            return 0
-        return 1
+        else:
+            log.LogInfo('ValidateOK')
+            if self.ownerID is None:
+                return 0
+            return 1
 
-    def SetHint(self, hintstr = None):
+    def SetHint(self, hintstr=None):
         if hintstr is not None:
             self.sr.txtWarning.text = hintstr
             self.sr.txtWarning.state = uiconst.UI_DISABLED
         else:
             self.sr.txtWarning.state = uiconst.UI_HIDDEN
+        return
 
     def HideHint(self):
         self.sr.txtWarning.state = uiconst.UI_HIDDEN
@@ -198,3 +205,4 @@ class CorporationOrAlliancePickerDailog(uicontrols.Window):
     def OnCancel(self, *args):
         self.ownerID = None
         self.CloseByUser()
+        return

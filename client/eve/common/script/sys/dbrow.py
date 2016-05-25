@@ -1,9 +1,10 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\common\script\sys\dbrow.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\common\script\sys\dbrow.py
 import util
 from timerstuff import ClockThis
 import telemetry
 
-def LookupConstValue(name, default = '.exception'):
+def LookupConstValue(name, default='.exception'):
     return ClockThis('SKITMIX::LookupConstValue', _LookupConstValue, name, default, False)
 
 

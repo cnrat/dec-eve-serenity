@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\client\script\ui\shared\agentFinder.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\client\script\ui\shared\agentFinder.py
 import math
 import uicontrols
 import blue
@@ -71,6 +72,7 @@ class AgentFinderWnd(uicontrols.Window):
         self.solarSystemID = None
         self.secStatus = None
         self.ConstructLayout()
+        return
 
     def ConstructLayout(self):
         self.leftCont = uiprimitives.Container(name='leftCont', parent=self.sr.main, align=uiconst.TOLEFT, width=SEARCH_WIDTH, clipChildren=True)
@@ -128,6 +130,7 @@ class AgentFinderWnd(uicontrols.Window):
         else:
             self.CollapseSearch()
         self.GetAgents()
+        return
 
     def GetStandings(self):
         self.standings = sm.RemoteSvc('standing2').GetCharStandings()
@@ -382,6 +385,7 @@ class AgentFinderWnd(uicontrols.Window):
         else:
             self.HideLoading()
             self.DrawAgents()
+        return
 
     def GetAllAgentInfo(self):
         agentsByID = sm.GetService('agents').GetAgentsByID()
@@ -700,7 +704,7 @@ class AgentFinderWnd(uicontrols.Window):
         else:
             self.nextBtn.Enable()
 
-    def ShowInfo(self, item, onlyInfo = False, *args):
+    def ShowInfo(self, item, onlyInfo=False, *args):
         if session.stationid and not onlyInfo:
             sm.GetService('agents').InteractWith(item.itemID)
         else:
@@ -713,7 +717,7 @@ class AgentFinderWnd(uicontrols.Window):
         else:
             self.ExpandSearch(animate=True)
 
-    def ExpandSearch(self, animate = False):
+    def ExpandSearch(self, animate=False):
         self.expanderIcon.LoadIcon(icon='ui_1_16_100')
         if animate:
             settings.user.ui.Set('agentFinderExpanded', True)
@@ -729,7 +733,7 @@ class AgentFinderWnd(uicontrols.Window):
         self.SetMinSize([BIG_WIDTH, HEIGHT])
         self.leftCont.state = uiconst.UI_PICKCHILDREN
 
-    def CollapseSearch(self, animate = False):
+    def CollapseSearch(self, animate=False):
         self.expanderIcon.LoadIcon(icon='ui_1_16_99')
         if animate:
             settings.user.ui.Set('agentFinderExpanded', False)
@@ -747,7 +751,7 @@ class AgentFinderWnd(uicontrols.Window):
     def EnableButton(self):
         self.expanderCont.Enable()
 
-    def UpdateAdjuster(self, animate = False):
+    def UpdateAdjuster(self, animate=False):
         if not hasattr(self, 'leftSpacer'):
             return
         w, h = self.sliderCont.GetAbsoluteSize()

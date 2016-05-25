@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\client\script\ui\view\viewStateConfig.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\client\script\ui\view\viewStateConfig.py
 import logging
 from eve.client.script.ui.inflight.shipHud.shipUI import ShipUI
 from eve.client.script.ui.services.viewStateSvc import ViewType
@@ -18,9 +19,10 @@ from eve.client.script.ui.view.shipTreeView import ShipTreeView
 from eve.client.script.ui.view.spaceToSpaceTransition import SpaceToSpaceTransition
 from eve.client.script.ui.view.spaceView import SpaceView
 from eve.client.script.ui.view.starMapView import StarMapView
+from eve.client.script.ui.view.structureView import StructureView
 from eve.client.script.ui.view.dockPanelView import DockPanelView
 from eve.client.script.ui.view.systemMapView import SystemMapView
-from eve.client.script.ui.view.transitions import FadeToBlackTransition, SpaceToStationTransition, FadeToBlackLiteTransition
+from eve.client.script.ui.view.transitions import FadeToBlackTransition, SpaceToStationTransition, FadeToBlackLiteTransition, SpaceToStructureTransition
 from eve.client.script.ui.view.viewStateConst import ViewState, ViewOverlay
 from eve.client.script.ui.view.worldspaceView import WorldspaceView
 logger = logging.getLogger(__name__)
@@ -34,7 +36,8 @@ VIEWS_TO_AND_FROM_AURUM_STORE = (ViewState.CharacterSelector,
  ViewState.Planet,
  ViewState.ShipTree,
  ViewState.CharacterCreation,
- ViewState.DockPanel)
+ ViewState.DockPanel,
+ ViewState.Structure)
 
 def SetupViewStates(viewSvc, rootViewLayer):
     logger.debug('Configuring view states')
@@ -48,6 +51,7 @@ def SetupViewStates(viewSvc, rootViewLayer):
     viewSvc.AddView(ViewState.Station, CQView())
     viewSvc.AddView(ViewState.Hangar, HangarView())
     viewSvc.AddView(ViewState.WorldSpace, WorldspaceView())
+    viewSvc.AddView(ViewState.Structure, StructureView())
     logger.debug('Adding secondary views')
     viewSvc.AddView(ViewState.DockPanel, DockPanelView(), viewType=ViewType.Secondary)
     viewSvc.AddView(ViewState.StarMap, StarMapView(), viewType=ViewType.Secondary)
@@ -64,15 +68,18 @@ def SetupViewStates(viewSvc, rootViewLayer):
     viewSvc.AddTransitions((ViewState.CharacterSelector,), (ViewState.Space,
      ViewState.CharacterCreation,
      ViewState.Hangar,
+     ViewState.Structure,
      ViewState.VirtualGoodsStore), FadeToBlackTransition(fadeTimeMS=250))
     viewSvc.AddTransitions((ViewState.CharacterCreation,), (ViewState.Hangar, ViewState.CharacterSelector, ViewState.Space), FadeToBlackTransition(fadeTimeMS=250, allowReopen=False))
     viewSvc.AddTransitions((ViewState.Space,
      ViewState.Hangar,
+     ViewState.Structure,
      ViewState.StarMap,
      ViewState.SystemMap,
      ViewState.Planet,
      ViewState.ShipTree), (ViewState.Space,
      ViewState.Hangar,
+     ViewState.Structure,
      ViewState.StarMap,
      ViewState.SystemMap,
      ViewState.Planet,
@@ -102,18 +109,25 @@ def SetupViewStates(viewSvc, rootViewLayer):
      ViewState.DockPanel,
      ViewState.Planet,
      ViewState.WorldSpace,
-     ViewState.ShipTree), FadeToBlackLiteTransition(fadeTimeMS=100))
+     ViewState.ShipTree,
+     ViewState.Structure), FadeToBlackLiteTransition(fadeTimeMS=100))
     viewSvc.AddTransitions((ViewState.Space,
      ViewState.CharacterSelector,
      ViewState.Hangar,
      ViewState.CharacterCreation,
      ViewState.Station,
      ViewState.WorldSpace,
-     ViewState.ShipTree), (ViewState.Station, ViewState.WorldSpace), FadeToCQTransition(fadeTimeMS=200, fallbackView=ViewState.Hangar, allowReopen=False))
+     ViewState.ShipTree,
+     ViewState.Structure), (ViewState.Station, ViewState.WorldSpace), FadeToCQTransition(fadeTimeMS=200, fallbackView=ViewState.Hangar, allowReopen=False))
     viewSvc.AddTransition(ViewState.Space, ViewState.Hangar, SpaceToStationTransition())
     viewSvc.AddTransition(ViewState.Hangar, ViewState.Space, FadeToBlackTransition(fadeTimeMS=500))
     viewSvc.AddTransition(ViewState.Space, ViewState.Station, SpaceToStationTransition())
     viewSvc.AddTransition(ViewState.Hangar, ViewState.ShipTree, SpaceToStationTransition())
+    viewSvc.AddTransition(ViewState.Structure, ViewState.Space)
+    viewSvc.AddTransition(ViewState.Space, ViewState.Structure, SpaceToStructureTransition())
+    viewSvc.AddTransition(ViewState.Structure, ViewState.Hangar, FadeToBlackTransition(fadeTimeMS=500))
+    viewSvc.AddTransition(ViewState.Hangar, ViewState.Structure, FadeToBlackTransition(fadeTimeMS=500))
+    viewSvc.AddTransition(ViewState.Hangar, ViewState.Hangar, FadeToBlackTransition(fadeTimeMS=500))
     viewSvc.AddTransitions((ViewState.StarMap,
      ViewState.Planet,
      ViewState.SystemMap,
@@ -136,3 +150,4 @@ def SetupViewStates(viewSvc, rootViewLayer):
     viewSvc.AddOverlay(ViewOverlay.SidePanels, SidePanels)
     viewSvc.AddOverlay(ViewOverlay.StationEntityBrackets, None)
     logger.debug('Done configuring view states')
+    return

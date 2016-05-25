@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\client\script\parklife\consider.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\client\script\parklife\consider.py
 import util
 import service
 import uix
@@ -65,7 +66,7 @@ class ConsiderSvc(service.Service):
             return False
         return True
 
-    def DoAttackConfirmations(self, targetID, effect = None):
+    def DoAttackConfirmations(self, targetID, effect=None):
         requiredSafetyLevel = self.crimewatchSvc.GetSafetyLevelRestrictionForAttackingTarget(targetID, effect=effect)
         if not self.SafetyCheckPasses(requiredSafetyLevel):
             return False
@@ -74,30 +75,31 @@ class ConsiderSvc(service.Service):
     def ConfirmationRequest(self, targetID, msgName, actualTargetID):
         if self.HasConfirmation(targetID, msgName):
             return 1
-        item = self.michelle.GetItem(actualTargetID)
-        targetName = 'your target'
-        if item is not None:
-            targetName = uix.GetSlimItemName(item)
-        k = (targetID, msgName)
-        if self.pendingConfirmations.has_key(k):
-            return self.pendingConfirmations[k].receive()
-        result = 0
-        self.pendingConfirmations[k] = uthread.Channel(('consider::ConfirmationRequest', k))
-        try:
-            ret = eve.Message(msgName, {'target': targetName}, uiconst.YESNO, suppress=uiconst.ID_YES, default=uiconst.ID_NO)
-            if ret != uiconst.ID_YES:
-                result = 0
-                return 0
-            self.RememberConfirmation(targetID, msgName)
-            result = 1
-        finally:
+        else:
+            item = self.michelle.GetItem(actualTargetID)
+            targetName = 'your target'
+            if item is not None:
+                targetName = uix.GetSlimItemName(item)
+            k = (targetID, msgName)
             if self.pendingConfirmations.has_key(k):
-                while self.pendingConfirmations[k].queue:
-                    self.pendingConfirmations[k].send(result)
+                return self.pendingConfirmations[k].receive()
+            result = 0
+            self.pendingConfirmations[k] = uthread.Channel(('consider::ConfirmationRequest', k))
+            try:
+                ret = eve.Message(msgName, {'target': targetName}, uiconst.YESNO, suppress=uiconst.ID_YES, default=uiconst.ID_NO)
+                if ret != uiconst.ID_YES:
+                    result = 0
+                    return 0
+                self.RememberConfirmation(targetID, msgName)
+                result = 1
+            finally:
+                if self.pendingConfirmations.has_key(k):
+                    while self.pendingConfirmations[k].queue:
+                        self.pendingConfirmations[k].send(result)
 
-                del self.pendingConfirmations[k]
+                    del self.pendingConfirmations[k]
 
-        return result
+            return result
 
     def RememberConfirmation(self, targetID, msgName):
         if not self.confirmationCache.has_key(targetID):
@@ -111,8 +113,6 @@ class ConsiderSvc(service.Service):
         for each in cfg.dgmtypeattribs.get(typeID, []):
             if each.attributeID == attributeID:
                 return 1
-
-        return 0
 
     def ConfirmTakeIllicitGoods(self, items):
         if not session.solarsystemid:

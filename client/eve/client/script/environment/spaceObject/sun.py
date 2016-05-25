@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\client\script\environment\spaceObject\sun.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\client\script\environment\spaceObject\sun.py
 from eve.client.script.environment.spaceObject.spaceObject import SpaceObject
 import trinity
 import evegraphics.settings as gfxsettings
@@ -38,51 +39,60 @@ class Sun(SpaceObject):
         self.SetupAmbientAudio()
         if self._audioEntity:
             self._audioEntity.SetAttenuationScalingFactor(100.0)
+        return
 
     def EnableGodRays(self, enable):
         self.useGodRays = enable
         if self.godRaysLoaded == enable and gfxsettings.Get(gfxsettings.UI_GODRAYS) == self.godRaysLoaded:
             return
-        if self.lensflare is None:
+        elif self.lensflare is None:
             return
-        if not self.released:
-            self.ReleaseSun()
-        self.LoadModel()
-        self.Assemble()
+        else:
+            if not self.released:
+                self.ReleaseSun()
+            self.LoadModel()
+            self.Assemble()
+            return
 
     def SetGodRaysIntensity(self, intensity):
         if not self.useGodRays:
             return
-        if self.lensflare is None:
+        elif self.lensflare is None:
             return
-        if not gfxsettings.Get(gfxsettings.UI_GODRAYS):
+        elif not gfxsettings.Get(gfxsettings.UI_GODRAYS):
             return
-        for flare in self.lensflare.flares:
-            if flare.mesh is not None:
-                for area in flare.mesh.additiveAreas:
-                    if area.effect is not None:
-                        if area.effect.effectFilePath.endswith('GR.fx'):
-                            for param in area.effect.parameters:
-                                if param.name == 'intensity':
-                                    param.value = (param.value[0],
-                                     param.value[1],
-                                     param.value[2],
-                                     intensity)
+        else:
+            for flare in self.lensflare.flares:
+                if flare.mesh is not None:
+                    for area in flare.mesh.additiveAreas:
+                        if area.effect is not None:
+                            if area.effect.effectFilePath.endswith('GR.fx'):
+                                for param in area.effect.parameters:
+                                    if param.name == 'intensity':
+                                        param.value = (param.value[0],
+                                         param.value[1],
+                                         param.value[2],
+                                         intensity)
+
+            return
 
     def GetGodRaysIntensityParam(self):
         if not self.useGodRays:
             return
-        if self.lensflare is None:
+        elif self.lensflare is None:
             return
-        if not gfxsettings.Get(gfxsettings.UI_GODRAYS):
+        elif not gfxsettings.Get(gfxsettings.UI_GODRAYS):
             return
-        for area in self.lensflare.mesh.additiveAreas:
-            if area.effect.effectFilePath.endswith('godrays.fx'):
-                for param in area.effect.parameters:
-                    if param.name == 'Intensity':
-                        return param
+        else:
+            for area in self.lensflare.mesh.additiveAreas:
+                if area.effect.effectFilePath.endswith('godrays.fx'):
+                    for param in area.effect.parameters:
+                        if param.name == 'Intensity':
+                            return param
 
-    def ResourceCallback(self, create, size = 2048):
+            return
+
+    def ResourceCallback(self, create, size=2048):
         if self.model:
             self.model.ready = True
             self.model.resourceActionPending = False
@@ -106,15 +116,18 @@ class Sun(SpaceObject):
             self.model.resourceCallback = None
         if hasattr(self.model, 'children'):
             del self.model.children[:]
-        scene.planets.fremove(self.model)
+        if scene:
+            scene.planets.fremove(self.model)
         if self.model is not None:
             self.model.translationCurve = None
             self.model.rotationCurve = None
             self.model = None
         self.sunmodel = None
         self.lensflare = None
-        scene.sunBall = None
-        del scene.lensflares[:]
+        if scene:
+            scene.sunBall = None
+            del scene.lensflares[:]
+        return
 
 
 exports = {'spaceObject.Sun': Sun}

@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\carbon\common\lib\markdown\__init__.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\carbon\common\lib\markdown\__init__.py
 version = '2.2.1'
 version_info = (2,
  2,
@@ -98,7 +99,7 @@ class Markdown():
 
         return self
 
-    def build_extension(self, ext_name, configs = []):
+    def build_extension(self, ext_name, configs=[]):
         configs = dict(configs)
         pos = ext_name.find('(')
         if pos > 0:
@@ -157,44 +158,45 @@ class Markdown():
     def convert(self, source):
         if not source.strip():
             return u''
-        try:
-            source = unicode(source)
-        except UnicodeDecodeError as e:
-            e.reason += '. -- Note: Markdown only accepts unicode input!'
-            raise
-
-        source = source.replace(util.STX, '').replace(util.ETX, '')
-        source = source.replace('\r\n', '\n').replace('\r', '\n') + '\n\n'
-        source = re.sub('\\n\\s+\\n', '\n\n', source)
-        source = source.expandtabs(self.tab_length)
-        self.lines = source.split('\n')
-        for prep in self.preprocessors.values():
-            self.lines = prep.run(self.lines)
-
-        root = self.parser.parseDocument(self.lines).getroot()
-        for treeprocessor in self.treeprocessors.values():
-            newRoot = treeprocessor.run(root)
-            if newRoot is not None:
-                root = newRoot
-
-        output = self.serializer(root)
-        if self.stripTopLevelTags:
+        else:
             try:
-                start = output.index('<%s>' % self.doc_tag) + len(self.doc_tag) + 2
-                end = output.rindex('</%s>' % self.doc_tag)
-                output = output[start:end].strip()
-            except ValueError:
-                if output.strip().endswith('<%s />' % self.doc_tag):
-                    output = ''
-                else:
-                    raise ValueError('Markdown failed to strip top-level tags. Document=%r' % output.strip())
+                source = unicode(source)
+            except UnicodeDecodeError as e:
+                e.reason += '. -- Note: Markdown only accepts unicode input!'
+                raise
 
-        for pp in self.postprocessors.values():
-            output = pp.run(output)
+            source = source.replace(util.STX, '').replace(util.ETX, '')
+            source = source.replace('\r\n', '\n').replace('\r', '\n') + '\n\n'
+            source = re.sub('\\n\\s+\\n', '\n\n', source)
+            source = source.expandtabs(self.tab_length)
+            self.lines = source.split('\n')
+            for prep in self.preprocessors.values():
+                self.lines = prep.run(self.lines)
 
-        return output.strip()
+            root = self.parser.parseDocument(self.lines).getroot()
+            for treeprocessor in self.treeprocessors.values():
+                newRoot = treeprocessor.run(root)
+                if newRoot is not None:
+                    root = newRoot
 
-    def convertFile(self, input = None, output = None, encoding = None):
+            output = self.serializer(root)
+            if self.stripTopLevelTags:
+                try:
+                    start = output.index('<%s>' % self.doc_tag) + len(self.doc_tag) + 2
+                    end = output.rindex('</%s>' % self.doc_tag)
+                    output = output[start:end].strip()
+                except ValueError:
+                    if output.strip().endswith('<%s />' % self.doc_tag):
+                        output = ''
+                    else:
+                        raise ValueError('Markdown failed to strip top-level tags. Document=%r' % output.strip())
+
+            for pp in self.postprocessors.values():
+                output = pp.run(output)
+
+            return output.strip()
+
+    def convertFile(self, input=None, output=None, encoding=None):
         encoding = encoding or 'utf-8'
         if input:
             if isinstance(input, str):
@@ -247,3 +249,4 @@ def markdownFromFile(*args, **kwargs):
 
     md = Markdown(**kwargs)
     md.convertFile(kwargs.get('input', None), kwargs.get('output', None), kwargs.get('encoding', None))
+    return

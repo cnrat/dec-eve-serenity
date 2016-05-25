@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\carbon\common\script\net\machoNetAddress.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\carbon\common\script\net\machoNetAddress.py
 import carbon.common.script.sys.service as service
 import carbon.common.script.net.machobase as machobase
 import log
@@ -56,6 +57,8 @@ class MachoAddress:
                 if each not in self.__legalanyaddr__:
                     raise GPSBadAddress("A macho any address may not contain '%s'" % each)
 
+        return
+
     def __getstate__(self):
         if self.addressType == const.ADDRESS_TYPE_CLIENT:
             return (const.ADDRESS_TYPE_CLIENT,
@@ -85,18 +88,19 @@ class MachoAddress:
         else:
             self.addressType, self.nodeID, self.service, self.callID = state
 
-    def RoutesTo(self, otherAddress, fromAddress = None):
+    def RoutesTo(self, otherAddress, fromAddress=None):
         if self.addressType == const.ADDRESS_TYPE_ANY:
             return 1
-        if self.addressType == const.ADDRESS_TYPE_CLIENT and otherAddress.addressType == const.ADDRESS_TYPE_CLIENT and self.clientID == otherAddress.clientID:
+        elif self.addressType == const.ADDRESS_TYPE_CLIENT and otherAddress.addressType == const.ADDRESS_TYPE_CLIENT and self.clientID == otherAddress.clientID:
             return 1
-        if self.addressType == const.ADDRESS_TYPE_BROADCAST and (otherAddress.addressType == const.ADDRESS_TYPE_CLIENT or machobase.mode != 'proxy' and machobase.mode != 'client' and fromAddress is not None and fromAddress.addressType == const.ADDRESS_TYPE_NODE):
+        elif self.addressType == const.ADDRESS_TYPE_BROADCAST and (otherAddress.addressType == const.ADDRESS_TYPE_CLIENT or machobase.mode != 'proxy' and machobase.mode != 'client' and fromAddress is not None and fromAddress.addressType == const.ADDRESS_TYPE_NODE):
             return 1
-        if self.addressType == const.ADDRESS_TYPE_BROADCAST and machobase.mode == 'proxy' and self.idtype and self.idtype.startswith('+'):
+        elif self.addressType == const.ADDRESS_TYPE_BROADCAST and machobase.mode == 'proxy' and self.idtype and self.idtype.startswith('+'):
             return 2
-        if self.addressType == const.ADDRESS_TYPE_NODE and otherAddress.addressType == const.ADDRESS_TYPE_NODE and self.nodeID == otherAddress.nodeID:
+        elif self.addressType == const.ADDRESS_TYPE_NODE and otherAddress.addressType == const.ADDRESS_TYPE_NODE and self.nodeID == otherAddress.nodeID:
             return 1
-        return 0
+        else:
+            return 0
 
     def __repr__(self):
         try:

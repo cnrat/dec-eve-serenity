@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\carbon\common\stdlib\locale.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\carbon\common\stdlib\locale.py
 import sys
 import encodings
 import encodings.aliases
@@ -62,7 +63,7 @@ except ImportError:
          'int_frac_digits': 127}
 
 
-    def setlocale(category, value = None):
+    def setlocale(category, value=None):
         if value not in (None, '', 'C'):
             raise Error, '_locale emulation only supports "C" locale'
         return 'C'
@@ -101,8 +102,10 @@ def _grouping_intervals(grouping):
         yield interval
         last_interval = interval
 
+    return
 
-def _group(s, monetary = False):
+
+def _group(s, monetary=False):
     conv = localeconv()
     thousands_sep = conv[monetary and 'mon_thousands_sep' or 'thousands_sep']
     grouping = conv[monetary and 'mon_grouping' or 'grouping']
@@ -148,14 +151,14 @@ def _strip_padding(s, amount):
 
 _percent_re = re.compile('%(?:\\((?P<key>.*?)\\))?(?P<modifiers>[-#0-9 +*.hlL]*?)[eEfFgGdiouxXcrs%]')
 
-def format(percent, value, grouping = False, monetary = False, *additional):
+def format(percent, value, grouping=False, monetary=False, *additional):
     match = _percent_re.match(percent)
     if not match or len(match.group()) != len(percent):
         raise ValueError('format() must be given exactly one %%char format specifier, %s not valid' % repr(percent))
     return _format(percent, value, grouping, monetary, *additional)
 
 
-def _format(percent, value, grouping = False, monetary = False, *additional):
+def _format(percent, value, grouping=False, monetary=False, *additional):
     if additional:
         formatted = percent % ((value,) + additional)
     else:
@@ -178,7 +181,7 @@ def _format(percent, value, grouping = False, monetary = False, *additional):
     return formatted
 
 
-def format_string(f, val, grouping = False):
+def format_string(f, val, grouping=False):
     percents = list(_percent_re.finditer(f))
     new_f = _percent_re.sub('%s', f)
     if operator.isMappingType(val):
@@ -206,7 +209,7 @@ def format_string(f, val, grouping = False):
     return new_f % val
 
 
-def currency(val, symbol = True, grouping = False, international = False):
+def currency(val, symbol=True, grouping=False, international=False):
     conv = localeconv()
     digits = conv[international and 'int_frac_digits' or 'frac_digits']
     if digits == 127:
@@ -242,7 +245,7 @@ def str(val):
     return format('%.12g', val)
 
 
-def atof(string, func = float):
+def atof(string, func=float):
     ts = localeconv()['thousands_sep']
     if ts:
         string = string.replace(ts, '')
@@ -282,25 +285,27 @@ def normalize(localename):
     code = locale_alias.get(lookup_name, None)
     if code is not None:
         return code
-    code = locale_alias.get(langname, None)
-    if code is not None:
-        if '.' in code:
-            langname, defenc = code.split('.')
-        else:
-            langname = code
-            defenc = ''
-        if encoding:
-            norm_encoding = encodings.normalize_encoding(encoding)
-            norm_encoding = encodings.aliases.aliases.get(norm_encoding, norm_encoding)
-            encoding = locale_encoding_alias.get(norm_encoding, norm_encoding)
-        else:
-            encoding = defenc
-        if encoding:
-            return langname + '.' + encoding
-        else:
-            return langname
     else:
-        return localename
+        code = locale_alias.get(langname, None)
+        if code is not None:
+            if '.' in code:
+                langname, defenc = code.split('.')
+            else:
+                langname = code
+                defenc = ''
+            if encoding:
+                norm_encoding = encodings.normalize_encoding(encoding)
+                norm_encoding = encodings.aliases.aliases.get(norm_encoding, norm_encoding)
+                encoding = locale_encoding_alias.get(norm_encoding, norm_encoding)
+            else:
+                encoding = defenc
+            if encoding:
+                return langname + '.' + encoding
+            else:
+                return langname
+        else:
+            return localename
+        return
 
 
 def _parse_localename(localename):
@@ -311,9 +316,11 @@ def _parse_localename(localename):
             return (code, 'iso-8859-15')
     if '.' in code:
         return tuple(code.split('.')[:2])
-    if code == 'C':
+    elif code == 'C':
         return (None, None)
-    raise ValueError, 'unknown locale: %s' % localename
+    else:
+        raise ValueError, 'unknown locale: %s' % localename
+        return None
 
 
 def _build_localename(localetuple):
@@ -324,9 +331,10 @@ def _build_localename(localetuple):
         return language
     else:
         return language + '.' + encoding
+        return
 
 
-def getdefaultlocale(envvars = ('LC_ALL', 'LC_CTYPE', 'LANG', 'LANGUAGE')):
+def getdefaultlocale(envvars=('LC_ALL', 'LC_CTYPE', 'LANG', 'LANGUAGE')):
     try:
         import _locale
         code, encoding = _locale._getdefaultlocale()
@@ -351,26 +359,26 @@ def getdefaultlocale(envvars = ('LC_ALL', 'LC_CTYPE', 'LANG', 'LANGUAGE')):
     return _parse_localename(localename)
 
 
-def getlocale(category = LC_CTYPE):
+def getlocale(category=LC_CTYPE):
     localename = _setlocale(category)
     if category == LC_ALL and ';' in localename:
         raise TypeError, 'category LC_ALL is not supported'
     return _parse_localename(localename)
 
 
-def setlocale(category, locale = None):
+def setlocale(category, locale=None):
     if locale and type(locale) is not type(''):
         locale = normalize(_build_localename(locale))
     return _setlocale(category, locale)
 
 
-def resetlocale(category = LC_ALL):
+def resetlocale(category=LC_ALL):
     _setlocale(category, _build_localename(getdefaultlocale()))
 
 
 if sys.platform.startswith('win'):
 
-    def getpreferredencoding(do_setlocale = True):
+    def getpreferredencoding(do_setlocale=True):
         import _locale
         return _locale._getdefaultlocale()[1]
 
@@ -380,13 +388,13 @@ else:
         CODESET
     except NameError:
 
-        def getpreferredencoding(do_setlocale = True):
+        def getpreferredencoding(do_setlocale=True):
             return getdefaultlocale()[1]
 
 
     else:
 
-        def getpreferredencoding(do_setlocale = True):
+        def getpreferredencoding(do_setlocale=True):
             if do_setlocale:
                 oldloc = setlocale(LC_CTYPE)
                 try:
@@ -1487,7 +1495,7 @@ windows_locale = {1078: 'af_ZA',
 def _print_locale():
     categories = {}
 
-    def _init_categories(categories = categories):
+    def _init_categories(categories=categories):
         for k, v in globals().items():
             if k[:3] == 'LC_':
                 categories[k] = v

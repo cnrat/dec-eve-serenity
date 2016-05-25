@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\carbon\common\stdlib\atexit.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\carbon\common\stdlib\atexit.py
 __all__ = ['register']
 import sys
 _exithandlers = []
@@ -19,6 +20,7 @@ def _run_exitfuncs():
 
     if exc_info is not None:
         raise exc_info[0], exc_info[1], exc_info[2]
+    return
 
 
 def register(func, *targs, **kargs):
@@ -39,7 +41,7 @@ if __name__ == '__main__':
         print 'running x2(%r)' % (n,)
 
 
-    def x3(n, kwd = None):
+    def x3(n, kwd=None):
         print 'running x3(%r, kwd=%r)' % (n, kwd)
 
 

@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\client\script\ui\shared\bookmarkSvc.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\client\script\ui\shared\bookmarkSvc.py
 import blue
 import evetypes
 import util
@@ -16,7 +17,7 @@ class BookmarkSvc(Service):
     __startupdependencies__ = ['machoNet']
     __notifyevents__ = ['OnBookmarkAdded', 'OnBookmarkDeleted', 'OnBookmarkAdd']
 
-    def Run(self, memStream = None):
+    def Run(self, memStream=None):
         Service.Run(self, memStream)
         self.corpBookmarkMgr = sm.RemoteSvc('corpBookmarkMgr')
         self.bookmarkMgr = sm.RemoteSvc('bookmark')
@@ -28,6 +29,7 @@ class BookmarkSvc(Service):
          const.categoryStarbase,
          const.categoryPlanetaryInteraction)
         self.bookmarksPrimed = False
+        return
 
     def PrimeBookmarks(self):
         self.bookmarkCache = {}
@@ -156,6 +158,7 @@ class BookmarkSvc(Service):
                 uthread.new(eve.Message, *message)
             self.bookmarkCache.update(newBookmarks)
         self.RefreshWindow()
+        return
 
     def UpdateBookmark(self, bookmarkID, ownerID, memo, note, folderID):
         bookmark = self.bookmarkCache[bookmarkID]
@@ -182,7 +185,7 @@ class BookmarkSvc(Service):
         except KeyError:
             pass
 
-    def OnBookmarkAdd(self, bookmark, refresh = 1):
+    def OnBookmarkAdd(self, bookmark, refresh=1):
         self.bookmarkCache[bookmark.bookmarkID] = bookmark
         if refresh:
             self.RefreshWindow()
@@ -289,8 +292,9 @@ class BookmarkSvc(Service):
             uicore.registry.DeleteListGroup(listGroupID)
 
         self.RefreshWindow()
+        return
 
-    def BookmarkLocation(self, itemID, ownerID, name, comment, itemTypeID, locationID = None, folderID = None):
+    def BookmarkLocation(self, itemID, ownerID, name, comment, itemTypeID, locationID=None, folderID=None):
         memo = self.ZipMemo(name[:100], '')
         bookmarkID, itemID, typeID, x, y, z, locationID = sm.RemoteSvc('bookmark').BookmarkLocation(itemID, ownerID, memo, comment, folderID=folderID)
         if bookmarkID:
@@ -312,11 +316,12 @@ class BookmarkSvc(Service):
             self.bookmarkCache[bookmarkID] = bm
             self.RefreshWindow()
             sm.ScatterEvent('OnBookmarkCreated', bookmarkID, comment, itemTypeID)
+        return
 
-    def BookmarkScanResult(self, locationID, name, comment, resultID, ownerID, folderID = None):
-        itemID = sm.GetService('sensorSuite').GetCosmicAnomalyItemIDFromTargetID(resultID)
+    def BookmarkScanResult(self, locationID, name, comment, resultID, ownerID, folderID=None):
+        itemID, typeID = sm.GetService('sensorSuite').GetPositionalSiteItemIDFromTargetID(resultID)
         if itemID is not None:
-            self.BookmarkLocation(itemID, ownerID, name, comment, const.typeCosmicAnomaly, locationID=locationID, folderID=folderID)
+            self.BookmarkLocation(itemID, ownerID, name, comment, typeID, locationID=locationID, folderID=folderID)
         else:
             memo = self.ZipMemo(name[:100], '')
             bookmarkID, itemID, typeID, x, y, z, locationID = self.bookmarkMgr.BookmarkScanResult(locationID, memo, comment, resultID, ownerID, folderID=folderID)
@@ -339,6 +344,7 @@ class BookmarkSvc(Service):
                 self.bookmarkCache[bookmarkID] = bm
                 self.RefreshWindow()
                 sm.ScatterEvent('OnBookmarkCreated', bookmarkID, comment)
+        return
 
     def DeleteBookmarks(self, bookmarkIDs):
         bookmarksByOwner = defaultdict(set)
@@ -430,6 +436,7 @@ class BookmarkSvc(Service):
                 sys.exc_clear()
 
         self.RefreshWindow()
+        return
 
     def GetFolder(self, folderID):
         return self.folders.get(folderID)

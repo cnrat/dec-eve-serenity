@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\client\script\ui\camera\eveCameraClient.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\client\script\ui\camera\eveCameraClient.py
 import sys
 import log
 import blue
@@ -20,7 +21,7 @@ MOUSE_MOVE_DELTA_HISTORY_BUFFER_LENGTH = 10
 class EveCameraClient(CameraClient):
     __guid__ = 'svc.eveCameraClient'
     __replaceservice__ = 'cameraClient'
-    __exportedcalls__ = {'CheckCameraOffsets': [],
+    __exportedcalls__ = {'UpdateCameraOffset': [],
      'CheckMouseLookSpeed': []}
     __dependencies__ = CameraClient.__dependencies__[:]
     __dependencies__.extend(['mouseInput', 'sceneManager'])
@@ -47,6 +48,7 @@ class EveCameraClient(CameraClient):
         self.mouseInput.RegisterCallback(const.INPUT_TYPE_MOUSEUP, self.OnMouseUp)
         self.mouseInput.RegisterCallback(const.INPUT_TYPE_MOUSEMOVE, self.OnMouseMove)
         self.mouseInput.RegisterCallback(const.INPUT_TYPE_MOUSEWHEEL, self.OnMouseWheel)
+        return
 
     def Stop(self, stream):
         self.mouseInput.UnRegisterCallback(const.INPUT_TYPE_MOUSEDOWN, self.OnMouseDown)
@@ -102,11 +104,11 @@ class EveCameraClient(CameraClient):
                 activeCamera.AdjustZoom(modifier * delta * cameras.MOUSE_LOOK_SPEED)
 
     def ApplyUserSettings(self):
-        self.CheckCameraOffsets()
+        self.UpdateCameraOffset()
         self.CheckInvertY()
         self.CheckMouseLookSpeed()
 
-    def CheckCameraOffsets(self):
+    def UpdateCameraOffset(self):
         offset = gfxsettings.Get(gfxsettings.UI_CAMERA_OFFSET) / 10.0
         offsetBehaviors = []
         for cam in self.cameraStack:
@@ -121,7 +123,7 @@ class EveCameraClient(CameraClient):
         self.invertYAxis = gfxsettings.Get(gfxsettings.UI_CAMERA_INVERT_Y)
 
     def CheckMouseLookSpeed(self):
-        self.mouseLookSpeed = 0.005 + 0.001 * gfxsettings.Get(gfxsettings.UI_CAMERA_SPEED)
+        self.mouseLookSpeed = 0.005 + 0.001 * gfxsettings.Get(gfxsettings.UI_CAMERA_INERTIA)
 
     def Disable(self):
         CameraClient.Disable(self)
@@ -146,6 +148,7 @@ class EveCameraClient(CameraClient):
     def StopCamera(self):
         if self.entityLoop is not None and self.entityLoop.alive:
             self.entityLoop.kill()
+        return
 
     def _PushNewCamera(self, camera):
         CameraClient._PushNewCamera(self, camera)
@@ -172,6 +175,7 @@ class EveCameraClient(CameraClient):
         defaultCamera.AddBehavior(cameras.ZoomFovBehavior(), priority=2)
         self.ApplyUserSettings()
         self.Enable()
+        return
 
     def ExitWorldspace(self):
         if self.enabled:
@@ -184,6 +188,7 @@ class EveCameraClient(CameraClient):
                     behaviour.gameWorld = None
 
         self.ClearCameraStack()
+        return
 
     def _CreateCameraRenderJob(self):
         self.sceneManager.RefreshJob(self.GetActiveCamera())

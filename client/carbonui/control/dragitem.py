@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\packages\carbonui\control\dragitem.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\packages\carbonui\control\dragitem.py
 import blue
 import carbonui.const as uiconst
 from carbonui.primitives.container import Container
@@ -12,6 +13,7 @@ class DragContainerCore(Container):
             uicore.audioHandler.StopSoundLoop(self.dragSound)
         Container._OnClose(self, *args)
         self.dragData = None
+        return
 
     def InitiateDrag(self, mouseOffset):
         if not self or self.destroyed or self._dragInited:

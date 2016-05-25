@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\client\script\parklife\posAnchorSvc.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\client\script\parklife\posAnchorSvc.py
 import evetypes
 import service
 import trinity
@@ -23,8 +24,9 @@ class PosAnchorSvc(service.Service):
         self.cursorSize = 2500.0
         self.active = 0
         self.posID = None
+        return
 
-    def Run(self, memStream = None):
+    def Run(self, memStream=None):
         service.Service.Run(self, memStream)
 
     def Stop(self, stream):
@@ -50,37 +52,41 @@ class PosAnchorSvc(service.Service):
     def DoBallRemove(self, ball, slimItem, terminal):
         if ball is None:
             return
-        self.LogInfo('DoBallRemove::posAnchorSvc', ball.id)
-        if slimItem is None:
+        else:
+            self.LogInfo('DoBallRemove::posAnchorSvc', ball.id)
+            if slimItem is None:
+                return
+            if slimItem.itemID is None or slimItem.itemID < 0:
+                return
+            if slimItem.itemID == self.posID:
+                self.CancelAchorPosSelect()
             return
-        if slimItem.itemID is None or slimItem.itemID < 0:
-            return
-        if slimItem.itemID == self.posID:
-            self.CancelAchorPosSelect()
 
     def ShowCursor(self):
         scene = sm.GetService('sceneManager').GetRegisteredScene('default')
         if scene is None:
             return
-        self.cursor = trinity.Load('res:/Model/UI/posCursor.red')
-        self.cube = trinity.Load('res:/Model/UI/posGlassCube.red')
-        blue.pyos.synchro.SleepWallclock(1)
-        self.yCursor = [self.cursor.children[0], self.cursor.children[1]]
-        self.xCursor = [self.cursor.children[4], self.cursor.children[5]]
-        self.zCursor = [self.cursor.children[2], self.cursor.children[3]]
-        self.cube.scaling = (self.boxWidth, self.boxWidth, self.boxWidth)
-        self.cursor.scaling = (50, 50, 50)
-        self.cursor.useDistanceBasedScale = True
-        self.cursor.distanceBasedScaleArg1 = 0.00015
-        self.cursor.distanceBasedScaleArg2 = 0
-        bp = sm.GetService('michelle').GetBallpark()
-        ball = bp.GetBall(self.posID)
-        pos = ball.GetVectorAt(blue.os.GetSimTime())
-        self.cursor.translation = (pos.x, pos.y, pos.z)
-        scene.objects.append(self.cursor)
-        scene.objects.append(self.cube)
-        self.Update()
-        self.active = 1
+        else:
+            self.cursor = trinity.Load('res:/Model/UI/posCursor.red')
+            self.cube = trinity.Load('res:/Model/UI/posGlassCube.red')
+            blue.pyos.synchro.SleepWallclock(1)
+            self.yCursor = [self.cursor.children[0], self.cursor.children[1]]
+            self.xCursor = [self.cursor.children[4], self.cursor.children[5]]
+            self.zCursor = [self.cursor.children[2], self.cursor.children[3]]
+            self.cube.scaling = (self.boxWidth, self.boxWidth, self.boxWidth)
+            self.cursor.scaling = (50, 50, 50)
+            self.cursor.useDistanceBasedScale = True
+            self.cursor.distanceBasedScaleArg1 = 0.00015
+            self.cursor.distanceBasedScaleArg2 = 0
+            bp = sm.GetService('michelle').GetBallpark()
+            ball = bp.GetBall(self.posID)
+            pos = ball.GetVectorAt(blue.os.GetSimTime())
+            self.cursor.translation = (pos.x, pos.y, pos.z)
+            scene.objects.append(self.cursor)
+            scene.objects.append(self.cube)
+            self.Update()
+            self.active = 1
+            return
 
     def RefreshCursorSize(self):
         if self.cursor:
@@ -101,13 +107,15 @@ class PosAnchorSvc(service.Service):
         self.active = 0
         if not sm.IsServiceRunning('gameui'):
             return
-        scene = sm.StartService('sceneManager').GetRegisteredScene('default')
-        if self.cursor and self.cursor in scene.objects:
-            scene.objects.remove(self.cursor)
-        if self.cube and self.cube in scene.objects:
-            scene.objects.remove(self.cube)
-        self.cursor = None
-        self.cube = None
+        else:
+            scene = sm.StartService('sceneManager').GetRegisteredScene('default')
+            if self.cursor and self.cursor in scene.objects:
+                scene.objects.remove(self.cursor)
+            if self.cube and self.cube in scene.objects:
+                scene.objects.remove(self.cube)
+            self.cursor = None
+            self.cube = None
+            return
 
     def MoveCursor(self, tf, dx, dy, camera):
         dev = trinity.device
@@ -135,22 +143,25 @@ class PosAnchorSvc(service.Service):
         slimItem = bp.GetInvItem(posID)
         if slimItem is None:
             return
-        self.posID = posID
-        typeID = slimItem.typeID
-        self.boxWidth = evetypes.GetRadius(typeID)
-        item = sm.StartService('michelle').GetItem(posID)
-        if item.groupID == const.groupControlTower:
-            if eve.Message('ConfirmStructureAnchor', {'item': (const.UE_TYPEID, item.typeID)}, uiconst.YESNO, suppress=uiconst.ID_YES) != uiconst.ID_YES:
-                return
-            self.SubmitAnchorPosSelect()
         else:
-            self.ShowCursor()
-            self.StartTimer()
+            self.posID = posID
+            typeID = slimItem.typeID
+            self.boxWidth = evetypes.GetRadius(typeID)
+            item = sm.StartService('michelle').GetItem(posID)
+            if item.groupID == const.groupControlTower:
+                if eve.Message('ConfirmStructureAnchor', {'item': (const.UE_TYPEID, item.typeID)}, uiconst.YESNO, suppress=uiconst.ID_YES) != uiconst.ID_YES:
+                    return
+                self.SubmitAnchorPosSelect()
+            else:
+                self.ShowCursor()
+                self.StartTimer()
+            return
 
     def CancelAchorPosSelect(self):
         self.KillTimer()
         self.HideCursor()
         self.posID = None
+        return
 
     def SubmitAnchorPosSelect(self):
         typeID = sm.GetService('michelle').GetItem(self.posID).typeID
@@ -172,6 +183,7 @@ class PosAnchorSvc(service.Service):
 
     def KillTimer(self):
         self.updateTimer = None
+        return
 
     def Update(self):
         self.cube.translation = self.cursor.translation

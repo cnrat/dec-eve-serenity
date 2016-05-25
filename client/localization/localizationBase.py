@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\packages\localization\localizationBase.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\packages\localization\localizationBase.py
 import __builtin__
 import cPickle as pickle
 import blue
@@ -41,6 +42,7 @@ class Localization(object):
         message = 'Cerberus localization module loaded on ' + boot.role
         LogInfo(message)
         print message
+        return
 
     def LoadLanguageData(self):
         import propertyHandlers
@@ -81,7 +83,7 @@ class Localization(object):
         return True
 
     @telemetry.ZONE_METHOD
-    def GetByMapping(self, resourceName, keyID, propertyName = None, languageID = None, **kwargs):
+    def GetByMapping(self, resourceName, keyID, propertyName=None, languageID=None, **kwargs):
         try:
             tableRegID = self.tableRegistration[resourceName]
             messageID = self.messageMapping[tableRegID, keyID]
@@ -93,6 +95,7 @@ class Localization(object):
             return self.GetByMessageID(messageID, languageID, **kwargs)
         else:
             return self.GetMetaData(messageID, propertyName, languageID)
+            return
 
     def GetImportantByMessageID(self, messageID, **kwargs):
         if boot.region == 'optic':
@@ -100,26 +103,27 @@ class Localization(object):
                 return self.GetByMessageID(messageID, **kwargs)
         if boot.role == 'proxy':
             return self.GetByMessageID(messageID, **kwargs)
-        playerLanguageID = kwargs.pop('languageID', None) or internalUtil.GetLanguageID()
-        if playerLanguageID != self._primaryLanguageID or self._QaTooltipOverride():
-            if self.UsePrimaryLanguageText():
-                textString = self.GetByMessageID(messageID, self._primaryLanguageID, **kwargs)
-                hintLang = playerLanguageID
-            else:
-                textString = self.GetByMessageID(messageID, playerLanguageID, **kwargs)
-                hintLang = self._primaryLanguageID
-            if self.HighlightImportant():
-                textString = '%s%s' % (textString, locconst.HIGHLIGHT_IMPORTANT_MARKER)
-            if self.UseImportantTooltip() and not qaSettings.LocWrapSettingsActive():
-                if self._QaTooltipOverride() and playerLanguageID == self._primaryLanguageID:
-                    hintString = textString[:-1][::-1]
-                else:
-                    hintString = self.GetByMessageID(messageID, hintLang, **kwargs)
-                hintString = hintString.replace('"', "'").replace('<', '[').replace('>', ']')
-                textString = '<localized hint="%s">%s</localized>' % (hintString or '', textString)
         else:
-            textString = self.GetByMessageID(messageID, **kwargs)
-        return textString
+            playerLanguageID = kwargs.pop('languageID', None) or internalUtil.GetLanguageID()
+            if playerLanguageID != self._primaryLanguageID or self._QaTooltipOverride():
+                if self.UsePrimaryLanguageText():
+                    textString = self.GetByMessageID(messageID, self._primaryLanguageID, **kwargs)
+                    hintLang = playerLanguageID
+                else:
+                    textString = self.GetByMessageID(messageID, playerLanguageID, **kwargs)
+                    hintLang = self._primaryLanguageID
+                if self.HighlightImportant():
+                    textString = '%s%s' % (textString, locconst.HIGHLIGHT_IMPORTANT_MARKER)
+                if self.UseImportantTooltip() and not qaSettings.LocWrapSettingsActive():
+                    if self._QaTooltipOverride() and playerLanguageID == self._primaryLanguageID:
+                        hintString = textString[:-1][::-1]
+                    else:
+                        hintString = self.GetByMessageID(messageID, hintLang, **kwargs)
+                    hintString = hintString.replace('"', "'").replace('<', '[').replace('>', ']')
+                    textString = '<localized hint="%s">%s</localized>' % (hintString or '', textString)
+            else:
+                textString = self.GetByMessageID(messageID, **kwargs)
+            return textString
 
     def GetImportantByLabel(self, labelNameAndPath, **kwargs):
         try:
@@ -159,25 +163,28 @@ class Localization(object):
             textString = textString.replace(locconst.HIGHLIGHT_IMPORTANT_MARKER, '')
         return textString
 
-    def GetByMessageID(self, messageID, languageID = None, **kwargs):
+    def GetByMessageID(self, messageID, languageID=None, **kwargs):
         if messageID is None:
             return ''
-        languageID = util.StandardizedLanguageIDOrDefault(languageID)
-        if session and 'player' not in kwargs:
-            kwargs['player'] = session.charid
-        try:
-            textString = self._GetByMessageID(messageID, languageID, **kwargs)
-            return PrepareLocalizationSafeString(textString, messageID=messageID)
-        except KeyError:
-            return u'[no messageID: %s]' % messageID
-        except:
-            logmodule.LogException()
+        else:
+            languageID = util.StandardizedLanguageIDOrDefault(languageID)
+            if session and 'player' not in kwargs:
+                kwargs['player'] = session.charid
             try:
-                return self._GetRawByMessageID(messageID)
-            except:
+                textString = self._GetByMessageID(messageID, languageID, **kwargs)
+                return PrepareLocalizationSafeString(textString, messageID=messageID)
+            except KeyError:
                 return u'[no messageID: %s]' % messageID
+            except:
+                logmodule.LogException()
+                try:
+                    return self._GetRawByMessageID(messageID)
+                except:
+                    return u'[no messageID: %s]' % messageID
 
-    def GetByLabel(self, labelNameAndPath, languageID = None, **kwargs):
+            return
+
+    def GetByLabel(self, labelNameAndPath, languageID=None, **kwargs):
         try:
             messageID = self.languageLabels[labelNameAndPath]
         except KeyError:
@@ -186,11 +193,11 @@ class Localization(object):
 
         return self.GetByMessageID(messageID, languageID, **kwargs)
 
-    def IsValidMessageID(self, messageID, languageID = None):
+    def IsValidMessageID(self, messageID, languageID=None):
         languageID = util.StandardizedLanguageIDOrDefault(languageID)
         return eveLocalization.IsValidMessageID(messageID, languageID)
 
-    def IsValidLabel(self, labelNameAndPath, languageID = None):
+    def IsValidLabel(self, labelNameAndPath, languageID=None):
         try:
             messageID = self.languageLabels[labelNameAndPath]
             return self.IsValidMessageID(messageID, languageID)
@@ -202,7 +209,7 @@ class Localization(object):
             return (self.tableRegistration[resourceName], keyID) in self.messageMapping
         return False
 
-    def IsValidTypeAndProperty(self, typeName, propertyName, languageID = None):
+    def IsValidTypeAndProperty(self, typeName, propertyName, languageID=None):
         IS_INVALID_TYPE = 0
         IS_INVALID_PROPERTY = 1
         IS_VALID_TYPE_AND_PROPERTY = 2
@@ -228,13 +235,14 @@ class Localization(object):
             LogError('IsValidTypeAndProperty wasnt able to determine if type and property were valid: %s, %s' % (typeName, propertyName))
         return result == IS_VALID_TYPE_AND_PROPERTY
 
-    def GetMetaData(self, messageID, propertyName, languageID = None):
+    def GetMetaData(self, messageID, propertyName, languageID=None):
         languageID = util.StandardizedLanguageIDOrDefault(languageID)
         propertyString = self._GetMetaData(messageID, propertyName, languageID)
         if propertyString is not None:
             return PrepareLocalizationSafeString(propertyString, messageID=messageID)
-        LogError('a non existent property was requested. messageID,propertyName,languageID : %s,%s,%s' % (messageID, propertyName, languageID))
-        return '[no property:%s,%s]' % (messageID, propertyName)
+        else:
+            LogError('a non existent property was requested. messageID,propertyName,languageID : %s,%s,%s' % (messageID, propertyName, languageID))
+            return '[no property:%s,%s]' % (messageID, propertyName)
 
     def GetPlaceholderLabel(self, englishText, **kwargs):
         tags = _Tokenize(englishText)
@@ -250,6 +258,7 @@ class Localization(object):
             prefsLanguage = prefs.GetValue('languageID', None)
             if not prefsLanguage or util.ConvertLanguageIDFromMLS(prefsLanguage) not in self.GetLanguages():
                 prefs.languageID = 'EN' if boot.region != 'optic' else 'ZH'
+        return
 
     @telemetry.ZONE_METHOD
     def _ReadMainLocalizationData(self, unPickledObject, dataType):
@@ -364,6 +373,7 @@ class Localization(object):
         self._languageTooltipSetting = None
         self._qaTooltipOverride = None
         cfg.ReloadLocalizedNames()
+        return
 
     def _InitializeInternalVariables(self):
         self.hashDataDictionary = {}
@@ -379,6 +389,7 @@ class Localization(object):
         self.maxRevision = None
         self._primaryLanguageID = None
         self._secondaryLanguageID = None
+        return
 
     @telemetry.ZONE_METHOD
     def UpdateTextCache(self, messagePerLanguage, metaDataPerLanguage, labelsDict):
@@ -425,6 +436,8 @@ class Localization(object):
         for label, messageID in labelsDict.iteritems():
             self.languageLabels[label.encode('ascii')] = messageID
 
+        return
+
     def GetMaxRevision(self):
         return self.maxRevision
 
@@ -436,11 +449,12 @@ class Localization(object):
         unPickledObject = self._LoadPickleData(pickleName, dataType)
         if unPickledObject is None:
             return []
-        supportedLanguages = self._ReadMainLocalizationData(unPickledObject, dataType)
-        if not supportedLanguages:
-            LogError('Error reading main pickle file ', pickleName)
-        del unPickledObject
-        return supportedLanguages
+        else:
+            supportedLanguages = self._ReadMainLocalizationData(unPickledObject, dataType)
+            if not supportedLanguages:
+                LogError('Error reading main pickle file ', pickleName)
+            del unPickledObject
+            return supportedLanguages
 
     def _GetPrimaryLanguage(self):
         return locconst.LOCALE_SHORT_ENGLISH
@@ -474,9 +488,10 @@ class Localization(object):
         unPickledObject = self._LoadPickleData(prefix + languageID + self.PICKLE_EXT, dataType)
         if unPickledObject == None:
             return False
-        readStatus = self._ReadLanguageLocalizationData(languageID, unPickledObject, dataType)
-        del unPickledObject
-        return readStatus
+        else:
+            readStatus = self._ReadLanguageLocalizationData(languageID, unPickledObject, dataType)
+            del unPickledObject
+            return readStatus
 
     @telemetry.ZONE_METHOD
     def _LoadPickleData(self, pickleName, dataType):
@@ -484,34 +499,35 @@ class Localization(object):
         if not pickleFile.Open(pickleName):
             LogError('Could not load pickle file. ', pickleName, ' appears to be missing. The localization module will not be able to access labels or texts.')
             return None
-        pickledData = pickleFile.Read()
-        if not pickledData:
+        else:
+            pickledData = pickleFile.Read()
+            if not pickledData:
+                pickleFile.Close()
+                del pickleFile
+                LogError('Could not read pickle data from file. ', pickleName, ' may be corrupt. The localization module will not be able to access labels or texts.')
+                return None
+            blue.statistics.EnterZone('pickle.loads')
+            unPickledObject = pickle.loads(pickledData)
+            blue.statistics.LeaveZone()
+
+            @telemetry.ZONE_FUNCTION
+            def md5ForFile(file, block_size=1048576):
+                md5 = hashlib.md5()
+                while True:
+                    data = file.read(block_size)
+                    if not data:
+                        break
+                    md5.update(data)
+
+                return md5.digest()
+
+            self.hashDataDictionary[pickleName] = md5ForFile(pickleFile)
             pickleFile.Close()
             del pickleFile
-            LogError('Could not read pickle data from file. ', pickleName, ' may be corrupt. The localization module will not be able to access labels or texts.')
-            return None
-        blue.statistics.EnterZone('pickle.loads')
-        unPickledObject = pickle.loads(pickledData)
-        blue.statistics.LeaveZone()
+            del pickledData
+            return unPickledObject
 
-        @telemetry.ZONE_FUNCTION
-        def md5ForFile(file, block_size = 1048576):
-            md5 = hashlib.md5()
-            while True:
-                data = file.read(block_size)
-                if not data:
-                    break
-                md5.update(data)
-
-            return md5.digest()
-
-        self.hashDataDictionary[pickleName] = md5ForFile(pickleFile)
-        pickleFile.Close()
-        del pickleFile
-        del pickledData
-        return unPickledObject
-
-    def _GetRawByMessageID(self, messageID, languageID = None, **kwargs):
+    def _GetRawByMessageID(self, messageID, languageID=None, **kwargs):
         languageID = util.StandardizedLanguageIDOrDefault(languageID)
         try:
             return eveLocalization.GetRawByMessageID(messageID, languageID)

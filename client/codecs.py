@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\carbon\common\stdlib\codecs.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\carbon\common\stdlib\codecs.py
 import __builtin__, sys
 try:
     from _codecs import *
@@ -47,7 +48,7 @@ BOM64_BE = BOM_UTF32_BE
 
 class CodecInfo(tuple):
 
-    def __new__(cls, encode, decode, streamreader = None, streamwriter = None, incrementalencoder = None, incrementaldecoder = None, name = None):
+    def __new__(cls, encode, decode, streamreader=None, streamwriter=None, incrementalencoder=None, incrementaldecoder=None, name=None):
         self = tuple.__new__(cls, (encode,
          decode,
          streamreader,
@@ -70,27 +71,27 @@ class CodecInfo(tuple):
 
 class Codec:
 
-    def encode(self, input, errors = 'strict'):
+    def encode(self, input, errors='strict'):
         raise NotImplementedError
 
-    def decode(self, input, errors = 'strict'):
+    def decode(self, input, errors='strict'):
         raise NotImplementedError
 
 
 class IncrementalEncoder(object):
 
-    def __init__(self, errors = 'strict'):
+    def __init__(self, errors='strict'):
         self.errors = errors
         self.buffer = ''
 
-    def encode(self, input, final = False):
+    def encode(self, input, final=False):
         raise NotImplementedError
 
     def reset(self):
         pass
 
     def getstate(self):
-        return 0
+        pass
 
     def setstate(self, state):
         pass
@@ -98,14 +99,14 @@ class IncrementalEncoder(object):
 
 class BufferedIncrementalEncoder(IncrementalEncoder):
 
-    def __init__(self, errors = 'strict'):
+    def __init__(self, errors='strict'):
         IncrementalEncoder.__init__(self, errors)
         self.buffer = ''
 
     def _buffer_encode(self, input, errors, final):
         raise NotImplementedError
 
-    def encode(self, input, final = False):
+    def encode(self, input, final=False):
         data = self.buffer + input
         result, consumed = self._buffer_encode(data, self.errors, final)
         self.buffer = data[consumed:]
@@ -124,17 +125,17 @@ class BufferedIncrementalEncoder(IncrementalEncoder):
 
 class IncrementalDecoder(object):
 
-    def __init__(self, errors = 'strict'):
+    def __init__(self, errors='strict'):
         self.errors = errors
 
-    def decode(self, input, final = False):
+    def decode(self, input, final=False):
         raise NotImplementedError
 
     def reset(self):
         pass
 
     def getstate(self):
-        return ('', 0)
+        pass
 
     def setstate(self, state):
         pass
@@ -142,14 +143,14 @@ class IncrementalDecoder(object):
 
 class BufferedIncrementalDecoder(IncrementalDecoder):
 
-    def __init__(self, errors = 'strict'):
+    def __init__(self, errors='strict'):
         IncrementalDecoder.__init__(self, errors)
         self.buffer = ''
 
     def _buffer_decode(self, input, errors, final):
         raise NotImplementedError
 
-    def decode(self, input, final = False):
+    def decode(self, input, final=False):
         data = self.buffer + input
         result, consumed = self._buffer_decode(data, self.errors, final)
         self.buffer = data[consumed:]
@@ -168,7 +169,7 @@ class BufferedIncrementalDecoder(IncrementalDecoder):
 
 class StreamWriter(Codec):
 
-    def __init__(self, stream, errors = 'strict'):
+    def __init__(self, stream, errors='strict'):
         self.stream = stream
         self.errors = errors
 
@@ -182,12 +183,12 @@ class StreamWriter(Codec):
     def reset(self):
         pass
 
-    def seek(self, offset, whence = 0):
+    def seek(self, offset, whence=0):
         self.stream.seek(offset, whence)
         if whence == 0 and offset == 0:
             self.reset()
 
-    def __getattr__(self, name, getattr = getattr):
+    def __getattr__(self, name, getattr=getattr):
         return getattr(self.stream, name)
 
     def __enter__(self):
@@ -199,17 +200,18 @@ class StreamWriter(Codec):
 
 class StreamReader(Codec):
 
-    def __init__(self, stream, errors = 'strict'):
+    def __init__(self, stream, errors='strict'):
         self.stream = stream
         self.errors = errors
         self.bytebuffer = ''
         self.charbuffer = ''
         self.linebuffer = None
+        return
 
-    def decode(self, input, errors = 'strict'):
+    def decode(self, input, errors='strict'):
         raise NotImplementedError
 
-    def read(self, size = -1, chars = -1, firstline = False):
+    def read(self, size=-1, chars=-1, firstline=False):
         if self.linebuffer:
             self.charbuffer = ''.join(self.linebuffer)
             self.linebuffer = None
@@ -251,7 +253,7 @@ class StreamReader(Codec):
             self.charbuffer = self.charbuffer[chars:]
         return result
 
-    def readline(self, size = None, keepends = True):
+    def readline(self, size=None, keepends=True):
         if self.linebuffer:
             line = self.linebuffer[0]
             del self.linebuffer[0]
@@ -261,47 +263,48 @@ class StreamReader(Codec):
             if not keepends:
                 line = line.splitlines(False)[0]
             return line
-        readsize = size or 72
-        line = ''
-        while True:
-            data = self.read(readsize, firstline=True)
-            if data:
-                if data.endswith('\r'):
-                    data += self.read(size=1, chars=1)
-            line += data
-            lines = line.splitlines(True)
-            if lines:
-                if len(lines) > 1:
-                    line = lines[0]
-                    del lines[0]
+        else:
+            readsize = size or 72
+            line = ''
+            while True:
+                data = self.read(readsize, firstline=True)
+                if data:
+                    if data.endswith('\r'):
+                        data += self.read(size=1, chars=1)
+                line += data
+                lines = line.splitlines(True)
+                if lines:
                     if len(lines) > 1:
-                        lines[-1] += self.charbuffer
-                        self.linebuffer = lines
-                        self.charbuffer = None
-                    else:
-                        self.charbuffer = lines[0] + self.charbuffer
-                    if not keepends:
+                        line = lines[0]
+                        del lines[0]
+                        if len(lines) > 1:
+                            lines[-1] += self.charbuffer
+                            self.linebuffer = lines
+                            self.charbuffer = None
+                        else:
+                            self.charbuffer = lines[0] + self.charbuffer
+                        if not keepends:
+                            line = line.splitlines(False)[0]
+                        break
+                    line0withend = lines[0]
+                    line0withoutend = lines[0].splitlines(False)[0]
+                    if line0withend != line0withoutend:
+                        self.charbuffer = ''.join(lines[1:]) + self.charbuffer
+                        if keepends:
+                            line = line0withend
+                        else:
+                            line = line0withoutend
+                        break
+                if not data or size is not None:
+                    if line and not keepends:
                         line = line.splitlines(False)[0]
                     break
-                line0withend = lines[0]
-                line0withoutend = lines[0].splitlines(False)[0]
-                if line0withend != line0withoutend:
-                    self.charbuffer = ''.join(lines[1:]) + self.charbuffer
-                    if keepends:
-                        line = line0withend
-                    else:
-                        line = line0withoutend
-                    break
-            if not data or size is not None:
-                if line and not keepends:
-                    line = line.splitlines(False)[0]
-                break
-            if readsize < 8000:
-                readsize *= 2
+                if readsize < 8000:
+                    readsize *= 2
 
-        return line
+            return line
 
-    def readlines(self, sizehint = None, keepends = True):
+    def readlines(self, sizehint=None, keepends=True):
         data = self.read()
         return data.splitlines(keepends)
 
@@ -309,8 +312,9 @@ class StreamReader(Codec):
         self.bytebuffer = ''
         self.charbuffer = u''
         self.linebuffer = None
+        return
 
-    def seek(self, offset, whence = 0):
+    def seek(self, offset, whence=0):
         self.stream.seek(offset, whence)
         self.reset()
 
@@ -323,7 +327,7 @@ class StreamReader(Codec):
     def __iter__(self):
         return self
 
-    def __getattr__(self, name, getattr = getattr):
+    def __getattr__(self, name, getattr=getattr):
         return getattr(self.stream, name)
 
     def __enter__(self):
@@ -336,19 +340,19 @@ class StreamReader(Codec):
 class StreamReaderWriter:
     encoding = 'unknown'
 
-    def __init__(self, stream, Reader, Writer, errors = 'strict'):
+    def __init__(self, stream, Reader, Writer, errors='strict'):
         self.stream = stream
         self.reader = Reader(stream, errors)
         self.writer = Writer(stream, errors)
         self.errors = errors
 
-    def read(self, size = -1):
+    def read(self, size=-1):
         return self.reader.read(size)
 
-    def readline(self, size = None):
+    def readline(self, size=None):
         return self.reader.readline(size)
 
-    def readlines(self, sizehint = None):
+    def readlines(self, sizehint=None):
         return self.reader.readlines(sizehint)
 
     def next(self):
@@ -367,13 +371,13 @@ class StreamReaderWriter:
         self.reader.reset()
         self.writer.reset()
 
-    def seek(self, offset, whence = 0):
+    def seek(self, offset, whence=0):
         self.stream.seek(offset, whence)
         self.reader.reset()
         if whence == 0 and offset == 0:
             self.writer.reset()
 
-    def __getattr__(self, name, getattr = getattr):
+    def __getattr__(self, name, getattr=getattr):
         return getattr(self.stream, name)
 
     def __enter__(self):
@@ -387,7 +391,7 @@ class StreamRecoder:
     data_encoding = 'unknown'
     file_encoding = 'unknown'
 
-    def __init__(self, stream, encode, decode, Reader, Writer, errors = 'strict'):
+    def __init__(self, stream, encode, decode, Reader, Writer, errors='strict'):
         self.stream = stream
         self.encode = encode
         self.decode = decode
@@ -395,12 +399,12 @@ class StreamRecoder:
         self.writer = Writer(stream, errors)
         self.errors = errors
 
-    def read(self, size = -1):
+    def read(self, size=-1):
         data = self.reader.read(size)
         data, bytesencoded = self.encode(data, self.errors)
         return data
 
-    def readline(self, size = None):
+    def readline(self, size=None):
         if size is None:
             data = self.reader.readline()
         else:
@@ -408,7 +412,7 @@ class StreamRecoder:
         data, bytesencoded = self.encode(data, self.errors)
         return data
 
-    def readlines(self, sizehint = None):
+    def readlines(self, sizehint=None):
         data = self.reader.read()
         data, bytesencoded = self.encode(data, self.errors)
         return data.splitlines(1)
@@ -434,7 +438,7 @@ class StreamRecoder:
         self.reader.reset()
         self.writer.reset()
 
-    def __getattr__(self, name, getattr = getattr):
+    def __getattr__(self, name, getattr=getattr):
         return getattr(self.stream, name)
 
     def __enter__(self):
@@ -444,7 +448,7 @@ class StreamRecoder:
         self.stream.close()
 
 
-def open(filename, mode = 'rb', encoding = None, errors = 'strict', buffering = 1):
+def open(filename, mode='rb', encoding=None, errors='strict', buffering=1):
     if encoding is not None:
         if 'U' in mode:
             mode = mode.strip().replace('U', '')
@@ -455,13 +459,14 @@ def open(filename, mode = 'rb', encoding = None, errors = 'strict', buffering = 
     file = __builtin__.open(filename, mode, buffering)
     if encoding is None:
         return file
-    info = lookup(encoding)
-    srw = StreamReaderWriter(file, info.streamreader, info.streamwriter, errors)
-    srw.encoding = encoding
-    return srw
+    else:
+        info = lookup(encoding)
+        srw = StreamReaderWriter(file, info.streamreader, info.streamwriter, errors)
+        srw.encoding = encoding
+        return srw
 
 
-def EncodedFile(file, data_encoding, file_encoding = None, errors = 'strict'):
+def EncodedFile(file, data_encoding, file_encoding=None, errors='strict'):
     if file_encoding is None:
         file_encoding = data_encoding
     data_info = lookup(data_encoding)
@@ -502,7 +507,7 @@ def getwriter(encoding):
     return lookup(encoding).streamwriter
 
 
-def iterencode(iterator, encoding, errors = 'strict', **kwargs):
+def iterencode(iterator, encoding, errors='strict', **kwargs):
     encoder = getincrementalencoder(encoding)(errors, **kwargs)
     for input in iterator:
         output = encoder.encode(input)
@@ -514,7 +519,7 @@ def iterencode(iterator, encoding, errors = 'strict', **kwargs):
         yield output
 
 
-def iterdecode(iterator, encoding, errors = 'strict', **kwargs):
+def iterdecode(iterator, encoding, errors='strict', **kwargs):
     decoder = getincrementaldecoder(encoding)(errors, **kwargs)
     for input in iterator:
         output = decoder.decode(input)

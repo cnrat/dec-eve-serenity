@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\client\script\ui\services\alliances\all_cso_alliance.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\client\script\ui\services\alliances\all_cso_alliance.py
 import util
 import dbutil
 import allianceObject
@@ -11,11 +12,12 @@ class AllianceO(allianceObject.base):
         allianceObject.base.__init__(self, boundObject)
         self.alliancesByAllianceID = None
         self.rankedAlliances = util.KeyVal(time=None, alliances=None, standings=None, maxLen=None)
+        return
 
     def DoSessionChanging(self, isRemote, session, change):
         pass
 
-    def GetRankedAlliances(self, maxLen = 100):
+    def GetRankedAlliances(self, maxLen=100):
         if self.rankedAlliances.time is not None:
             if self.rankedAlliances.maxLen != maxLen or blue.os.TimeDiffInMs(self.rankedAlliances.time, blue.os.GetWallclockTime()) > 5000:
                 self.rankedAlliances.time = None
@@ -33,25 +35,27 @@ class AllianceO(allianceObject.base):
     def UpdateAlliance(self, description, url):
         return self.GetMoniker().UpdateAlliance(description, url)
 
-    def GetAlliance(self, allianceID = None):
+    def GetAlliance(self, allianceID=None):
         if allianceID is None:
             allianceID = eve.session.allianceid
         if allianceID is None:
             raise RuntimeError('NoSuchAlliance')
         if self.alliancesByAllianceID is not None and self.alliancesByAllianceID.has_key(allianceID):
             return self.alliancesByAllianceID[allianceID]
-        alliance = None
-        if allianceID == eve.session.allianceid:
-            alliance = self.GetMoniker().GetAlliance()
         else:
-            alliance = sm.RemoteSvc('allianceRegistry').GetAlliance(allianceID)
-        self.LoadAlliance(alliance)
-        return self.alliancesByAllianceID[allianceID]
+            alliance = None
+            if allianceID == eve.session.allianceid:
+                alliance = self.GetMoniker().GetAlliance()
+            else:
+                alliance = sm.RemoteSvc('allianceRegistry').GetAlliance(allianceID)
+            self.LoadAlliance(alliance)
+            return self.alliancesByAllianceID[allianceID]
 
     def LoadAlliance(self, alliance):
         if self.alliancesByAllianceID is None:
             self.alliancesByAllianceID = dbutil.CRowset(alliance.__header__, []).Index('allianceID')
         self.alliancesByAllianceID[alliance.allianceID] = alliance
+        return
 
     def OnAllianceChanged(self, allianceID, change):
         bAdd, bRemove = self.GetAddRemoveFromChange(change)
@@ -86,3 +90,4 @@ class AllianceO(allianceObject.base):
                             line[i] = change[columnName][1]
 
         sm.GetService('corpui').OnAllianceChanged(allianceID, change)
+        return

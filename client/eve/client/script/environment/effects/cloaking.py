@@ -1,6 +1,8 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\client\script\environment\effects\cloaking.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\client\script\environment\effects\cloaking.py
 import random
-from eve.client.script.environment.effects.GenericEffect import GenericEffect, ShipRenderEffect, STOP_REASON_DEFAULT, STOP_REASON_BALL_REMOVED
+from eve.client.script.environment.effects.GenericEffect import GenericEffect, STOP_REASON_DEFAULT, STOP_REASON_BALL_REMOVED
+from eve.client.script.environment.effects.shipRenderEffect import ShipRenderEffect
 
 class Cloaking(GenericEffect):
     __guid__ = 'effects.Cloaking'
@@ -29,12 +31,13 @@ class Cloak(ShipRenderEffect):
                 del self.gfx.distortionEffects[:]
         self.sourceObject.clipSphereCenter = random.choice(self.sourceObject.damageLocators)[0]
         self.SetupEffectEmitter()
+        return
 
     def Start(self, duration):
         ShipRenderEffect.Start(self, duration)
         self.SendAudioEvent(eventName='ship_cloak_play')
 
-    def Stop(self, reason = STOP_REASON_DEFAULT):
+    def Stop(self, reason=STOP_REASON_DEFAULT):
         if reason == STOP_REASON_BALL_REMOVED:
             ShipRenderEffect.Stop(self, reason)
 
@@ -61,6 +64,7 @@ class Uncloak(Cloak):
     def __init__(self, *args, **kwargs):
         Cloak.__init__(self, *args, **kwargs)
         self.fromTime = None
+        return
 
     def Prepare(self):
         ball = self.GetEffectShipBall()
@@ -78,14 +82,16 @@ class Uncloak(Cloak):
     def Start(self, duration):
         if self.gfx is None:
             return
-        playFrom = duration / 1000.0
-        if self.fromTime:
-            playFrom = min(self.fromTime, playFrom)
-        self.gfx.curveSet.scale = -1.0
-        self.gfx.curveSet.PlayFrom(playFrom)
-        self.SendAudioEvent(eventName='ship_uncloak_play')
+        else:
+            playFrom = duration / 1000.0
+            if self.fromTime:
+                playFrom = min(self.fromTime, playFrom)
+            self.gfx.curveSet.scale = -1.0
+            self.gfx.curveSet.PlayFrom(playFrom)
+            self.SendAudioEvent(eventName='ship_uncloak_play')
+            return
 
-    def Stop(self, reason = STOP_REASON_DEFAULT):
+    def Stop(self, reason=STOP_REASON_DEFAULT):
         self.sourceObject.clipSphereFactor = 0.0
         self.sourceObject.activationStrength = 1.0
         ShipRenderEffect.Stop(self, reason)

@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\packages\fsdlite\encoder.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\packages\fsdlite\encoder.py
 import re
 import yaml
 try:
@@ -13,25 +14,25 @@ except ImportError:
     from yaml import SafeLoader as Loader
     from yaml import SafeDumper as Dumper
 
-def dump(obj, json = False):
+def dump(obj, json=False):
     if json:
         return ujson.dumps(obj)
     else:
         return yaml.dump(obj, Dumper=Dumper, default_flow_style=False, indent=4, allow_unicode=True)
 
 
-def load(obj, json = False):
+def load(obj, json=False):
     if json:
         return ujson.loads(obj)
     else:
         return yaml.load(obj, Loader=Loader)
 
 
-def encode(obj, json = False):
+def encode(obj, json=False):
     return dump(to_primitives(obj), json=json)
 
 
-def decode(obj, json = False, mapping = None):
+def decode(obj, json=False, mapping=None):
     if isinstance(obj, basestring):
         obj = load(obj, json=json)
     return from_primitives(obj, compile_mapping(mapping))
@@ -46,7 +47,7 @@ def strip(obj):
                 values[key] = value
 
         return values
-    if hasattr(obj, '__iter__'):
+    elif hasattr(obj, '__iter__'):
         values = []
         for value in obj:
             value = strip(value)
@@ -54,8 +55,10 @@ def strip(obj):
                 values.append(value)
 
         return values
-    if obj is not None:
+    elif obj is not None:
         return obj
+    else:
+        return
 
 
 def compile_mapping(mapping):
@@ -82,7 +85,7 @@ def to_primitives(obj):
     return state
 
 
-def from_primitives(data, mapping, path = None):
+def from_primitives(data, mapping, path=None):
     if isinstance(data, dict):
         for key, value in data.iteritems():
             if isinstance(value, (dict, list)):

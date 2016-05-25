@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\carbon\common\lib\markdown\inlinepatterns.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\carbon\common\lib\markdown\inlinepatterns.py
 import markdown.util as util
 import odict
 import re
@@ -73,7 +74,7 @@ def handleAttributes(text, parent):
 
 class Pattern:
 
-    def __init__(self, pattern, markdown_instance = None):
+    def __init__(self, pattern, markdown_instance=None):
         self.pattern = pattern
         self.compiled_re = re.compile('^(.*?)%s(.*?)$' % pattern, re.DOTALL | re.UNICODE)
         self.safe_mode = False
@@ -99,14 +100,17 @@ class Pattern:
             tag = el.tag
             if not isinstance(tag, basestring) and tag is not None:
                 return
-            if el.text:
-                yield el.text
-            for e in el:
-                for s in itertext(e):
-                    yield s
+            else:
+                if el.text:
+                    yield el.text
+                for e in el:
+                    for s in itertext(e):
+                        yield s
 
-                if e.tail:
-                    yield e.tail
+                    if e.tail:
+                        yield e.tail
+
+                return
 
         def get_stash(m):
             id = m.group(1)
@@ -126,7 +130,8 @@ class SimpleTextPattern(Pattern):
         text = m.group(2)
         if text == util.INLINE_PLACEHOLDER_PREFIX:
             return None
-        return text
+        else:
+            return text
 
 
 class EscapePattern(Pattern):
@@ -200,6 +205,8 @@ class HtmlPattern(Pattern):
                     return self.markdown.serializer(value)
                 except:
                     return '\\%s' % value
+
+            return
 
         return util.INLINE_PLACEHOLDER_RE.sub(get_stash, text)
 
@@ -277,9 +284,10 @@ class ReferencePattern(LinkPattern):
         id = self.NEWLINE_CLEANUP_RE.sub(' ', id)
         if id not in self.markdown.references:
             return
-        href, title = self.markdown.references[id]
-        text = m.group(2)
-        return self.makeTag(href, title, text)
+        else:
+            href, title = self.markdown.references[id]
+            text = m.group(2)
+            return self.makeTag(href, title, text)
 
     def makeTag(self, href, title, text):
         el = util.etree.Element('a')

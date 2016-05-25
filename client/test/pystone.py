@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\carbon\common\stdlib\test\pystone.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\carbon\common\stdlib\test\pystone.py
 LOOPS = 50000
 from time import clock
 __version__ = '1.1'
@@ -6,7 +7,7 @@ Ident1, Ident2, Ident3, Ident4, Ident5 = range(1, 6)
 
 class Record:
 
-    def __init__(self, PtrComp = None, Discr = 0, EnumComp = 0, IntComp = 0, StringComp = 0):
+    def __init__(self, PtrComp=None, Discr=0, EnumComp=0, IntComp=0, StringComp=0):
         self.PtrComp = PtrComp
         self.Discr = Discr
         self.EnumComp = EnumComp
@@ -20,13 +21,13 @@ class Record:
 TRUE = 1
 FALSE = 0
 
-def main(loops = LOOPS):
+def main(loops=LOOPS):
     benchtime, stones = pystones(loops)
     print 'Pystone(%s) time for %d passes = %g' % (__version__, loops, benchtime)
     print 'This machine benchmarks at %g pystones/second' % stones
 
 
-def pystones(loops = LOOPS):
+def pystones(loops=LOOPS):
     return Proc0(loops)
 
 
@@ -39,7 +40,7 @@ Array2Glob = map(lambda x: x[:], [Array1Glob] * 51)
 PtrGlb = None
 PtrGlbNext = None
 
-def Proc0(loops = LOOPS):
+def Proc0(loops=LOOPS):
     global Char2Glob
     global Array2Glob
     global PtrGlb

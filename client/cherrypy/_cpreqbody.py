@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\carbon\common\lib\cherrypy\_cpreqbody.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\carbon\common\lib\cherrypy\_cpreqbody.py
 import re
 import sys
 import tempfile
@@ -92,6 +93,7 @@ def process_multipart_form_data(entity):
                 entity.params[part.name] = value
 
     entity.parts = kept_parts
+    return
 
 
 def _old_process_multipart(entity):
@@ -113,6 +115,8 @@ def _old_process_multipart(entity):
         else:
             params[key] = value
 
+    return
+
 
 class Entity(object):
     attempt_charsets = ['utf-8']
@@ -131,7 +135,7 @@ class Entity(object):
     parts = None
     part_class = None
 
-    def __init__(self, fp, headers, params = None, parts = None):
+    def __init__(self, fp, headers, params=None, parts=None):
         self.processors = self.processors.copy()
         self.fp = fp
         self.headers = headers
@@ -172,16 +176,17 @@ class Entity(object):
                 self.filename = disp.params['filename']
                 if self.filename.startswith('"') and self.filename.endswith('"'):
                     self.filename = self.filename[1:-1]
+        return
 
     type = property(lambda self: self.content_type, doc='A deprecated alias for :attr:`content_type<cherrypy._cpreqbody.Entity.content_type>`.')
 
-    def read(self, size = None, fp_out = None):
+    def read(self, size=None, fp_out=None):
         return self.fp.read(size, fp_out)
 
-    def readline(self, size = None):
+    def readline(self, size=None):
         return self.fp.readline(size)
 
-    def readlines(self, sizehint = None):
+    def readlines(self, sizehint=None):
         return self.fp.readlines(sizehint)
 
     def __iter__(self):
@@ -193,7 +198,7 @@ class Entity(object):
             raise StopIteration
         return line
 
-    def read_into_file(self, fp_out = None):
+    def read_into_file(self, fp_out=None):
         if fp_out is None:
             fp_out = self.make_file()
         self.read(fp_out=fp_out)
@@ -227,6 +232,7 @@ class Entity(object):
             self.default_proc()
         else:
             proc(self)
+        return
 
     def default_proc(self):
         pass
@@ -243,6 +249,7 @@ class Part(Entity):
         self.boundary = boundary
         self.file = None
         self.value = None
+        return
 
     def from_fp(cls, fp, boundary):
         headers = cls.read_headers(fp)
@@ -275,7 +282,7 @@ class Part(Entity):
 
     read_headers = classmethod(read_headers)
 
-    def read_lines_to_boundary(self, fp_out = None):
+    def read_lines_to_boundary(self, fp_out=None):
         endmarker = self.boundary + ntob('--')
         delim = ntob('')
         prev_lf = True
@@ -332,6 +339,7 @@ class Part(Entity):
         else:
             fp_out.seek(0)
             return fp_out
+        return
 
     def default_proc(self):
         if self.filename:
@@ -343,7 +351,7 @@ class Part(Entity):
             else:
                 self.file = result
 
-    def read_into_file(self, fp_out = None):
+    def read_into_file(self, fp_out=None):
         if fp_out is None:
             fp_out = self.make_file()
         self.read_lines_to_boundary(fp_out=fp_out)
@@ -355,7 +363,7 @@ Entity.part_class = Part
 class Infinity(object):
 
     def __cmp__(self, other):
-        return 1
+        pass
 
     def __sub__(self, other):
         return self
@@ -388,7 +396,7 @@ comma_separated_headers = ['Accept',
 
 class SizedReader:
 
-    def __init__(self, fp, length, maxbytes, bufsize = 8192, has_trailers = False):
+    def __init__(self, fp, length, maxbytes, bufsize=8192, has_trailers=False):
         self.fp = fp
         self.length = length
         self.maxbytes = maxbytes
@@ -398,7 +406,7 @@ class SizedReader:
         self.done = False
         self.has_trailers = has_trailers
 
-    def read(self, size = None, fp_out = None):
+    def read(self, size=None, fp_out=None):
         if self.length is None:
             if size is None:
                 remaining = inf
@@ -457,8 +465,10 @@ class SizedReader:
 
         if fp_out is None:
             return ntob('').join(chunks)
+        else:
+            return
 
-    def readline(self, size = None):
+    def readline(self, size=None):
         chunks = []
         while size is None or size > 0:
             chunksize = self.bufsize
@@ -479,7 +489,7 @@ class SizedReader:
 
         return ntob('').join(chunks)
 
-    def readlines(self, sizehint = None):
+    def readlines(self, sizehint=None):
         if self.length is not None:
             if sizehint is None:
                 sizehint = self.length - self.bytes_read
@@ -533,7 +543,7 @@ class RequestBody(Entity):
     default_content_type = ''
     maxbytes = None
 
-    def __init__(self, fp, headers, params = None, request_params = None):
+    def __init__(self, fp, headers, params=None, request_params=None):
         Entity.__init__(self, fp, headers, params)
         if self.content_type.value.startswith('text/'):
             for c in ('ISO-8859-1', 'iso-8859-1', 'Latin-1', 'latin-1'):
@@ -546,6 +556,7 @@ class RequestBody(Entity):
         if request_params is None:
             request_params = {}
         self.request_params = request_params
+        return
 
     def process(self):
         h = cherrypy.serving.request.headers

@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\packages\carbonui\services\font.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\packages\carbonui\services\font.py
 import blue
 import telemetry
 import types
@@ -34,7 +35,7 @@ class GlyphStringBoundingBox(object):
 class Tr2GlyphString(list):
     __guid__ = 'font.Tr2GlyphString'
 
-    def __init__(self, other = None):
+    def __init__(self, other=None):
         if other:
             list.__init__(self, other)
         self.Reset()
@@ -59,6 +60,8 @@ class Tr2GlyphString(list):
         while self:
             list.pop(self)
 
+        return
+
     @telemetry.ZONE_METHOD
     def Remove(self, startIdx, endIdx):
         self._textDirty = True
@@ -77,48 +80,51 @@ class Tr2GlyphString(list):
                 list.pop(self, 0)
 
     @telemetry.ZONE_METHOD
-    def Insert(self, params, text, idx, align = 0):
+    def Insert(self, params, text, idx, align=0):
         if not text:
             return None
-        self._textDirty = True
-        color = params.color or -1
-        if type(color) != types.IntType:
-            tricol = trinity.TriColor(*color)
-            color = tricol.AsInt()
-        uicore.font.ResolveFontFamily(params)
-        dpi_wordspace = int(params.wordspace * uicore.desktop.dpiScaling + 0.5)
-        dpi_fontsize = int(params.fontsize * uicore.desktop.dpiScaling + 0.5)
-        dpi_letterspace = int(params.letterspace * uicore.desktop.dpiScaling + 0.5)
-        self.fontsize = dpi_fontsize
-        lastFontIndex, lastGlyphIndex = (None, None)
-        for char in text:
-            if char == u'\xa0':
-                rchar = u' '
-            else:
-                rchar = char
-            fontIndex, glyphIndex = trinity.fontMan.LookupGlyphIndex(params.font, ord(rchar))
-            if fontIndex != lastFontIndex:
-                self.GetMetrics(fontIndex)
-                self.baseLine = max(self.baseLine, self.asc)
-                self.baseHeight = max(self.baseHeight, self.asc - self.des)
-                kern = 0
-            else:
-                kern = trinity.fontMan.LookupKerningXP(fontIndex, glyphIndex, lastGlyphIndex)
-            lastFontIndex, lastGlyphIndex = fontIndex, glyphIndex
-            sbit = trinity.fontMan.LookupSBit(fontIndex, dpi_fontsize, dpi_fontsize, glyphIndex)
-            advance = sbit.xadvance + dpi_letterspace + kern
-            if rchar == u' ':
-                advance += dpi_wordspace
-            self.insert(idx, (advance,
-             align,
-             color,
-             sbit,
-             char,
-             self.asc,
-             self.des,
-             params.Copy()))
-            idx += 1
-            self.width += advance
+        else:
+            self._textDirty = True
+            color = params.color or -1
+            if type(color) != types.IntType:
+                tricol = trinity.TriColor(*color)
+                color = tricol.AsInt()
+            uicore.font.ResolveFontFamily(params)
+            dpi_wordspace = int(params.wordspace * uicore.desktop.dpiScaling + 0.5)
+            dpi_fontsize = int(params.fontsize * uicore.desktop.dpiScaling + 0.5)
+            dpi_letterspace = int(params.letterspace * uicore.desktop.dpiScaling + 0.5)
+            self.fontsize = dpi_fontsize
+            lastFontIndex, lastGlyphIndex = (None, None)
+            for char in text:
+                if char == u'\xa0':
+                    rchar = u' '
+                else:
+                    rchar = char
+                fontIndex, glyphIndex = trinity.fontMan.LookupGlyphIndex(params.font, ord(rchar))
+                if fontIndex != lastFontIndex:
+                    self.GetMetrics(fontIndex)
+                    self.baseLine = max(self.baseLine, self.asc)
+                    self.baseHeight = max(self.baseHeight, self.asc - self.des)
+                    kern = 0
+                else:
+                    kern = trinity.fontMan.LookupKerningXP(fontIndex, glyphIndex, lastGlyphIndex)
+                lastFontIndex, lastGlyphIndex = fontIndex, glyphIndex
+                sbit = trinity.fontMan.LookupSBit(fontIndex, dpi_fontsize, dpi_fontsize, glyphIndex)
+                advance = sbit.xadvance + dpi_letterspace + kern
+                if rchar == u' ':
+                    advance += dpi_wordspace
+                self.insert(idx, (advance,
+                 align,
+                 color,
+                 sbit,
+                 char,
+                 self.asc,
+                 self.des,
+                 params.Copy()))
+                idx += 1
+                self.width += advance
+
+            return None
 
     @telemetry.ZONE_METHOD
     def GetText(self):
@@ -128,7 +134,7 @@ class Tr2GlyphString(list):
         return self.text
 
     @telemetry.ZONE_METHOD
-    def Append(self, params, text, align = 0):
+    def Append(self, params, text, align=0):
         idx = len(self)
         self.Insert(params, text, idx, align)
 
@@ -140,7 +146,7 @@ class Tr2GlyphString(list):
             self.Append(params, char)
 
     @telemetry.ZONE_METHOD
-    def DrawToBuf(self, buf, bx0, by0, checkUnderline = 1):
+    def DrawToBuf(self, buf, bx0, by0, checkUnderline=1):
         x = 0
         for t in self:
             advance = t[0]
@@ -163,7 +169,7 @@ class Tr2GlyphString(list):
         self.asc, self.des = trinity.fontMan.LookupMetrics(face_id, self.fontsize, self.fontsize)
 
     @telemetry.ZONE_METHOD
-    def AddSpace(self, params, width = 0.0):
+    def AddSpace(self, params, width=0.0):
         uicore.font.ResolveFontFamily(params)
         fgi = trinity.fontMan.LookupGlyphIndex(params.font, ord(' '))
         sbit = trinity.fontMan.LookupSBit(fgi[0], self.fontsize, self.fontsize, fgi[1])
@@ -247,71 +253,73 @@ class FontHandler(object):
         return tag.sub('', s)
 
     @telemetry.ZONE_METHOD
-    def GetTextHeight(self, strng, width = 0, font = None, fontsize = None, lineSpacing = 0.0, letterspace = 0, shadow = [(1, -1, -1090519040)], uppercase = 0, specialIndent = 0, getTextObj = 0, tabs = [], fontPath = None, fontStyle = None, fontFamily = None, linespace = None, maxLines = None, **kwds):
+    def GetTextHeight(self, strng, width=0, font=None, fontsize=None, lineSpacing=0.0, letterspace=0, shadow=[(1, -1, -1090519040)], uppercase=0, specialIndent=0, getTextObj=0, tabs=[], fontPath=None, fontStyle=None, fontFamily=None, linespace=None, maxLines=None, **kwds):
         if strng is None or strng == '':
             return 0
-        fontsize = fontsize or fontConst.DEFAULT_FONTSIZE
-        letterspace = letterspace or fontConst.DEFAULT_LETTERSPACE
-        uppercase = uppercase or fontConst.DEFAULT_UPPERCASE
-        if maxLines == 1:
-            width = 0
-            strng = u'\xd3gd'
         else:
-            strng = GetAsUnicode(strng)
-        cacheKey = (strng,
-         width,
-         font,
-         fontsize,
-         lineSpacing,
-         letterspace,
-         maxLines,
-         uppercase,
-         specialIndent,
-         getTextObj,
-         uicore.fontSizeFactor)
-        cache = self.GetCache(cacheKey)
-        if cache:
-            return cache
-        if self.defaultLabelClass is None:
-            from carbonui.control.label import LabelCore
-            self.defaultLabelClass = LabelCore
-        t = self.defaultLabelClass(text=strng, parent=None, align=uiconst.TOPLEFT, width=width, tabs=tabs, fontsize=fontsize, lineSpacing=lineSpacing, letterspace=letterspace, maxLines=maxLines, uppercase=uppercase, specialIndent=specialIndent, fontPath=fontPath, fontStyle=fontStyle, fontFamily=fontFamily, shadow=shadow, measuringText=not getTextObj)
-        if getTextObj:
-            retval = t
-        else:
-            retval = t.textheight
-        self.SetCache(cacheKey, retval)
-        return retval
-
-    @telemetry.ZONE_METHOD
-    def GetTextWidth(self, strng, fontsize = 12, letterspace = 0, uppercase = 0, font = None, fontPath = None, fontStyle = None, fontFamily = None):
-        if not strng:
-            return 0
-        font = font
-        fontsize = fontsize or fontConst.DEFAULT_FONTSIZE
-        letterspace = letterspace or fontConst.DEFAULT_LETTERSPACE
-        uppercase = uppercase or fontConst.DEFAULT_UPPERCASE
-        cacheKey = (strng,
-         fontsize,
-         letterspace,
-         uppercase,
-         font,
-         uicore.fontSizeFactor)
-        if cacheKey in self.textMeasureCache:
-            return self.textMeasureCache[cacheKey]
-        if '<br>' in strng:
-            val = max([ self.GetTextWidth(line, fontsize, letterspace, uppercase, font) for line in strng.split('<br>') ])
-        else:
+            fontsize = fontsize or fontConst.DEFAULT_FONTSIZE
+            letterspace = letterspace or fontConst.DEFAULT_LETTERSPACE
+            uppercase = uppercase or fontConst.DEFAULT_UPPERCASE
+            if maxLines == 1:
+                width = 0
+                strng = u'\xd3gd'
+            else:
+                strng = GetAsUnicode(strng)
+            cacheKey = (strng,
+             width,
+             font,
+             fontsize,
+             lineSpacing,
+             letterspace,
+             maxLines,
+             uppercase,
+             specialIndent,
+             getTextObj,
+             uicore.fontSizeFactor)
+            cache = self.GetCache(cacheKey)
+            if cache:
+                return cache
             if self.defaultLabelClass is None:
                 from carbonui.control.label import LabelCore
                 self.defaultLabelClass = LabelCore
-            textmeasurer = self.defaultLabelClass(text=StripTags(strng, ignoredTags=['b']), parent=None, align=uiconst.TOPLEFT, fontsize=fontsize, letterspace=letterspace, uppercase=uppercase, measuringText=True, fontPath=fontPath, fontStyle=fontStyle, fontFamily=fontFamily)
-            val = textmeasurer.textwidth
-        self.textMeasureCache[cacheKey] = val
-        return val
+            t = self.defaultLabelClass(text=strng, parent=None, align=uiconst.TOPLEFT, width=width, tabs=tabs, fontsize=fontsize, lineSpacing=lineSpacing, letterspace=letterspace, maxLines=maxLines, uppercase=uppercase, specialIndent=specialIndent, fontPath=fontPath, fontStyle=fontStyle, fontFamily=fontFamily, shadow=shadow, measuringText=not getTextObj)
+            if getTextObj:
+                retval = t
+            else:
+                retval = t.textheight
+            self.SetCache(cacheKey, retval)
+            return retval
 
     @telemetry.ZONE_METHOD
-    def MeasureTabstops(self, stringsData, margin = None, minwidth = 32):
+    def GetTextWidth(self, strng, fontsize=12, letterspace=0, uppercase=0, font=None, fontPath=None, fontStyle=None, fontFamily=None):
+        if not strng:
+            return 0
+        else:
+            font = font
+            fontsize = fontsize or fontConst.DEFAULT_FONTSIZE
+            letterspace = letterspace or fontConst.DEFAULT_LETTERSPACE
+            uppercase = uppercase or fontConst.DEFAULT_UPPERCASE
+            cacheKey = (strng,
+             fontsize,
+             letterspace,
+             uppercase,
+             font,
+             uicore.fontSizeFactor)
+            if cacheKey in self.textMeasureCache:
+                return self.textMeasureCache[cacheKey]
+            if '<br>' in strng:
+                val = max([ self.GetTextWidth(line, fontsize, letterspace, uppercase, font) for line in strng.split('<br>') ])
+            else:
+                if self.defaultLabelClass is None:
+                    from carbonui.control.label import LabelCore
+                    self.defaultLabelClass = LabelCore
+                textmeasurer = self.defaultLabelClass(text=StripTags(strng, ignoredTags=['b']), parent=None, align=uiconst.TOPLEFT, fontsize=fontsize, letterspace=letterspace, uppercase=uppercase, measuringText=True, fontPath=fontPath, fontStyle=fontStyle, fontFamily=fontFamily)
+                val = textmeasurer.textwidth
+            self.textMeasureCache[cacheKey] = val
+            return val
+
+    @telemetry.ZONE_METHOD
+    def MeasureTabstops(self, stringsData, margin=None, minwidth=32):
         if margin is None:
             margin = 6
         tabstops = []
@@ -383,7 +391,6 @@ class FontHandler(object):
                 return text[fromIdx:]
             else:
                 return text[fromIdx:toIdx]
-        return ''
 
     def GetLineGlyphString(self, node):
         return node.get('glyphString', None)
@@ -404,9 +411,8 @@ class FontHandler(object):
 
             if cursorXpos > w:
                 return (i, int(w))
-        return (0, 0)
 
-    def GetWidthToIdx(self, node, idx, getWidth = 0):
+    def GetWidthToIdx(self, node, idx, getWidth=0):
         glyphString = self.GetLineGlyphString(node)
         if glyphString:
             if idx < len(glyphString):
@@ -427,7 +433,7 @@ class FontHandler(object):
             return 0
 
     @telemetry.ZONE_METHOD
-    def GetFontPathFromFontFamily(self, fontFamily, fontStyle = None, bold = False, italic = False):
+    def GetFontPathFromFontFamily(self, fontFamily, fontStyle=None, bold=False, italic=False):
         fontPath = None
         if type(fontFamily) == dict:
             fontStyle = fontStyle or fontConst.STYLE_DEFAULT
@@ -520,6 +526,8 @@ class FontHandler(object):
         cache = self.measureCache.get(key, None)
         if cache:
             return cache[1]
+        else:
+            return
 
     def SetCache(self, key, value):
         ts = blue.os.GetWallclockTime()

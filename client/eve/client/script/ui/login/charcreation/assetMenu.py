@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\client\script\ui\login\charcreation\assetMenu.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\client\script\ui\login\charcreation\assetMenu.py
 import uicontrols
 import carbonui.const as uiconst
 import uicls
@@ -29,7 +30,8 @@ GROUPNAMES = {ccConst.SKINGROUP: 'UI/Login/CharacterCreation/AssetMenu/Groups/Co
  ccConst.PIERCINGGROUP: 'UI/Login/CharacterCreation/AssetMenu/Groups/Piercings',
  ccConst.TATTOOGROUP: 'UI/Login/CharacterCreation/AssetMenu/Groups/Tattoos',
  ccConst.SCARSGROUP: 'UI/Login/CharacterCreation/AssetMenu/Groups/Scars',
- ccConst.PROSTHETICS: 'UI/Login/CharacterCreation/AssetMenu/Groups/Prosthetics'}
+ ccConst.PROSTHETICS: 'UI/Login/CharacterCreation/AssetMenu/Groups/Prosthetics',
+ ccConst.AUGMENTATIONS: 'UI/Login/CharacterCreation/AssetMenu/Groups/Augmentations'}
 commonModifiersDisplayNames = {ccConst.eyes: 'UI/Login/CharacterCreation/AssetMenu/ModifierNames/Eyes',
  ccConst.hair: 'UI/Login/CharacterCreation/AssetMenu/ModifierNames/HairStyle',
  ccConst.eyebrows: 'UI/Login/CharacterCreation/AssetMenu/ModifierNames/Eyebrows',
@@ -59,7 +61,8 @@ commonModifiersDisplayNames = {ccConst.eyes: 'UI/Login/CharacterCreation/AssetMe
  ccConst.s_head: 'UI/Login/CharacterCreation/AssetMenu/ModifierNames/Scars/Head',
  ccConst.skintype: 'UI/Login/CharacterCreation/AssetMenu/ModifierNames/Skintype',
  ccConst.pr_armleft: 'UI/Login/CharacterCreation/AssetMenu/ModifierNames/Prosthetics/ArmLeft',
- ccConst.pr_armright: 'UI/Login/CharacterCreation/AssetMenu/ModifierNames/Prosthetics/ArmRight'}
+ ccConst.pr_armright: 'UI/Login/CharacterCreation/AssetMenu/ModifierNames/Prosthetics/ArmRight',
+ ccConst.augm_face: 'UI/Login/CharacterCreation/AssetMenu/ModifierNames/Augmentations/Face'}
 maleModifierDisplayNames = {ccConst.eyeshadow: 'UI/Login/CharacterCreation/AssetMenu/ModifierNames/EyeDetails',
  ccConst.eyeliner: 'UI/Login/CharacterCreation/AssetMenu/ModifierNames/LashThickness',
  ccConst.lipstick: 'UI/Login/CharacterCreation/AssetMenu/ModifierNames/LipTone',
@@ -120,6 +123,7 @@ class CharCreationAssetMenu(uiprimitives.Container):
 
         if self.togglerIdx and self.sr.menuToggler:
             uiutil.SetOrder(self.sr.menuToggler, self.togglerIdx)
+        return
 
     def ToggleMenu(self, *args):
         if self.toggleFunc:
@@ -128,7 +132,7 @@ class CharCreationAssetMenu(uiprimitives.Container):
                 self.sr.mainCont.height = top
             self.toggleFunc()
 
-    def CheckIfOversize(self, currentPicker = None):
+    def CheckIfOversize(self, currentPicker=None):
         canCollapse = []
         totalExpandedHeight = 0
         for each in self.sr.mainCont.children:
@@ -202,13 +206,14 @@ class CCColorPalette(uicontrols.ContainerAutoSize):
         self.sr.fadeInThread = None
         self.sr.fadeOutThread = None
         self.PrepareControls()
+        return
 
     def Close(self):
         if self.sr.mouseOverTimer:
             self.sr.mouseOverTimer.KillTimer()
         uiprimitives.Container.Close(self)
 
-    def PrepareControls(self, reloading = None, *args):
+    def PrepareControls(self, reloading=None, *args):
         info = uicore.layer.charactercreation.GetInfo()
         charSvc = sm.GetService('character')
         sliders = []
@@ -258,6 +263,7 @@ class CCColorPalette(uicontrols.ContainerAutoSize):
         self.SetGradientsColor()
         self.SetSizeAutomatically()
         self.sr.mouseOverTimer = base.AutoTimer(50, self.CheckMouseOver)
+        return
 
     def SetSizeAutomatically(self):
         uicontrols.ContainerAutoSize.SetSizeAutomatically(self)
@@ -282,45 +288,51 @@ class CCColorPalette(uicontrols.ContainerAutoSize):
         nextButton.icon = uicontrols.Icon(name='NextIcon', icon=ccConst.ICON_NEXT, parent=nextButton, state=uiconst.UI_PICKCHILDREN, align=uiconst.CENTER)
         backButton.width = nextButton.width = buttonWidth
 
-    def SetTuckingCounter(self, current = 0, total = 0):
+    def SetTuckingCounter(self, current=0, total=0):
         self.sr.tuckParent.sr.countLabel.text = '%s/%s' % (current, total)
 
     def OnTuckButtonClicked(self, btn):
         if self.browseFunction is not None:
             self.browseFunction(btn)
+        return
 
-    def SetGradientsColor(self, displayColor = None):
+    def SetGradientsColor(self, displayColor=None):
         slidersToColor = []
         if self.activePrimary is None:
             return
-        for slider in [getattr(self.sr, HAIRDARKNESS, None), getattr(self.sr, 'intensity', None)]:
-            if slider is None:
-                continue
-            if displayColor is None:
-                displayColor = self.activePrimary.displayColor
-            slidersToColor.append(slider)
+        else:
+            for slider in [getattr(self.sr, HAIRDARKNESS, None), getattr(self.sr, 'intensity', None)]:
+                if slider is None:
+                    continue
+                if displayColor is None:
+                    displayColor = self.activePrimary.displayColor
+                slidersToColor.append(slider)
 
-        if displayColor is None:
+            if displayColor is None:
+                return
+            gradientColor = (1.0, displayColor[:3])
+            for slider in slidersToColor:
+                slider.ChangeGradientColor(secondColor=gradientColor)
+
             return
-        gradientColor = (1.0, displayColor[:3])
-        for slider in slidersToColor:
-            slider.ChangeGradientColor(secondColor=gradientColor)
 
     def CheckMouseOver(self, *args):
         if uicore.uilib.leftbtn or uicore.uilib.rightbtn:
             return
-        if self.parent is None:
+        elif self.parent is None:
             return
-        grandParent = self.parent.parent
-        if uicore.uilib.mouseOver is self or uicore.uilib.mouseOver is grandParent or uiutil.IsUnder(uicore.uilib.mouseOver, grandParent):
-            if grandParent.sr.browser and grandParent.IsExpanded():
-                activeData = grandParent.sr.browser.GetActiveData()
-                if not activeData:
+        else:
+            grandParent = self.parent.parent
+            if uicore.uilib.mouseOver is self or uicore.uilib.mouseOver is grandParent or uiutil.IsUnder(uicore.uilib.mouseOver, grandParent):
+                if grandParent.sr.browser and grandParent.IsExpanded():
+                    activeData = grandParent.sr.browser.GetActiveData()
+                    if not activeData:
+                        return
+                    self.ExpandPalette()
                     return
-                self.ExpandPalette()
-                return
-        if self._expanded:
-            self.CollapsePalette()
+            if self._expanded:
+                self.CollapsePalette()
+            return
 
     def ExpandPalette(self, *args):
         if self.sr.fadeOutThread:
@@ -328,26 +340,30 @@ class CCColorPalette(uicontrols.ContainerAutoSize):
             self.sr.fadeOutThread = None
         if self.sr.fadeInThread:
             return
-        self._expanded = True
-        self.left = 0
-        self.sr.fadeInThread = uthread.new(self.ShowPalette_thread)
+        else:
+            self._expanded = True
+            self.left = 0
+            self.sr.fadeInThread = uthread.new(self.ShowPalette_thread)
+            return
 
     def ShowPalette_thread(self, *args):
         if self and not self.destroyed:
             self.state = uiconst.UI_NORMAL
         uicore.effect.CombineEffects(self, opacity=1.0, time=500.0)
 
-    def CollapsePalette(self, push = False, *args):
+    def CollapsePalette(self, push=False, *args):
         if self.sr.fadeInThread:
             self.sr.fadeInThread.kill()
             self.sr.fadeInThread = None
         if self.sr.fadeOutThread:
             return
-        self._expanded = False
-        if push:
-            uicore.effect.CombineEffects(self, left=-self.COLORPALETTEWIDTH, opacity=0.0, time=150.0)
         else:
-            self.sr.fadeOutThread = uthread.new(self.HidePalette_thread)
+            self._expanded = False
+            if push:
+                uicore.effect.CombineEffects(self, left=-self.COLORPALETTEWIDTH, opacity=0.0, time=150.0)
+            else:
+                self.sr.fadeOutThread = uthread.new(self.HidePalette_thread)
+            return
 
     def HidePalette_thread(self, *args):
         uicore.effect.CombineEffects(self, opacity=0.0, time=750.0)
@@ -375,34 +391,40 @@ class CCColorPalette(uicontrols.ContainerAutoSize):
         currentPrimaryName, currentSecondaryName = charSvc.GetTypeColors(info.charID, self.modifier)
         if not currentPrimaryName:
             return
-        if getattr(self, 'colorControlsCont', None) is None:
+        elif getattr(self, 'colorControlsCont', None) is None:
             return
-        for each in self.colorControlsCont.children:
-            if not getattr(each, 'colorValue', None):
-                continue
-            each.sr.activeFrame.state = uiconst.UI_HIDDEN
-            if not self.hasSecondary:
+        else:
+            for each in self.colorControlsCont.children:
+                if not getattr(each, 'colorValue', None):
+                    continue
+                each.sr.activeFrame.state = uiconst.UI_HIDDEN
+                if not self.hasSecondary:
+                    if each.colorName == currentPrimaryName:
+                        each.sr.activeFrame.state = uiconst.UI_DISABLED
+                        self.activePrimary = each
+                    continue
                 if each.colorName == currentPrimaryName:
                     each.sr.activeFrame.state = uiconst.UI_DISABLED
                     self.activePrimary = each
-                continue
-            if each.colorName == currentPrimaryName:
-                each.sr.activeFrame.state = uiconst.UI_DISABLED
-                self.activePrimary = each
-            elif each.colorName == currentSecondaryName:
-                each.sr.activeFrame.state = uiconst.UI_DISABLED
-                self.activeSecondary = each
+                elif each.colorName == currentSecondaryName:
+                    each.sr.activeFrame.state = uiconst.UI_DISABLED
+                    self.activeSecondary = each
+
+            return
 
     def GetNumColorAreas(self, *args):
         info = uicore.layer.charactercreation.GetInfo()
         activeMod = sm.GetService('character').GetModifierByCategory(info.charID, self.modifier)
         if activeMod:
             return activeMod.metaData.numColorAreas
+        else:
+            return None
 
     def TryReloadColors(self, *args):
         numColorAreas = self.GetNumColorAreas()
         if numColorAreas is not None and self.currentNumColorAreas != numColorAreas:
             self.PrepareControls(reloading='oldColors')
+        return
 
     def LoadColors(self, primary, secondary):
         for each in self.children[:]:
@@ -426,68 +448,70 @@ class CCColorPalette(uicontrols.ContainerAutoSize):
                 primary = []
         if not (primary or secondary):
             return
-        top = 0
-        left = self.SIDEMARGIN
-        gapAndSize = self.currentColorSize + self.COLORGAP
-        self.colorControlsCont = uiprimitives.Container(parent=self, align=uiconst.TOTOP, idx=0)
-        for colors in [primary, secondary]:
-            if colors:
-                top += 20
-                inRow = self.width / gapAndSize
-                rows = len(colors) / inRow + bool(len(colors) % inRow)
-                colorHeight = top + rows * gapAndSize
-                top = colorHeight
-                self.SetSizeAutomatically()
-                if self.height + colorHeight > self.maxHeight:
-                    if self.width > self.maxWidth:
-                        if self.currentColorSize > self.MINCOLORSIZE:
-                            self.currentColorSize = self.currentColorSize - 1
-                            self.width = self.startingWidth
+        else:
+            top = 0
+            left = self.SIDEMARGIN
+            gapAndSize = self.currentColorSize + self.COLORGAP
+            self.colorControlsCont = uiprimitives.Container(parent=self, align=uiconst.TOTOP, idx=0)
+            for colors in [primary, secondary]:
+                if colors:
+                    top += 20
+                    inRow = self.width / gapAndSize
+                    rows = len(colors) / inRow + bool(len(colors) % inRow)
+                    colorHeight = top + rows * gapAndSize
+                    top = colorHeight
+                    self.SetSizeAutomatically()
+                    if self.height + colorHeight > self.maxHeight:
+                        if self.width > self.maxWidth:
+                            if self.currentColorSize > self.MINCOLORSIZE:
+                                self.currentColorSize = self.currentColorSize - 1
+                                self.width = self.startingWidth
+                                return self.LoadColors(primary, secondary)
+                        else:
+                            self.width += gapAndSize
                             return self.LoadColors(primary, secondary)
-                    else:
-                        self.width += gapAndSize
-                        return self.LoadColors(primary, secondary)
+                    top += self.currentColorSize
+
+            top = 0
+            colorHeight = 0
+            for colors, caption in ((primary, firstColourCaption), (secondary, secondColourCaption)):
+                if not colors:
+                    continue
+                left = self.SIDEMARGIN
+                top += 4
+                label = uicls.CCLabel(parent=self.colorControlsCont, uppercase=1, shadowOffset=(0, 0), fontsize=9, letterspace=2, text=caption, top=top, left=left, color=ccConst.COLOR50, idx=0)
+                top += label.textheight + 3
+                for data in colors:
+                    colorName, displayColor, colorValue = data
+                    colorPar = uiprimitives.Container(parent=self.colorControlsCont, pos=(left,
+                     top,
+                     self.currentColorSize,
+                     self.currentColorSize), align=uiconst.TOPLEFT, state=uiconst.UI_NORMAL, name='colorPar', idx=0)
+                    colorPar.OnClick = (self.OnColorPicked, colorPar)
+                    colorPar.OnMouseEnter = (self.OnMouseEnterColor, colorPar)
+                    colorPar.OnMouseExit = (self.OnMouseExitColor, colorPar)
+                    colorPar.colorName = colorName
+                    colorPar.displayColor = displayColor
+                    colorPar.colorValue = colorValue
+                    colorPar.modifier = self.modifier
+                    colorPar.sr.activeFrame = uicontrols.Frame(parent=colorPar, name='activeFrame', state=uiconst.UI_HIDDEN, frameConst=(ccConst.ICON_FOCUSFRAME, 15, -11), color=(1.0, 1.0, 1.0, 1.0))
+                    colorPar.sr.hiliteFrame = uicontrols.Frame(parent=colorPar, name='hiliteFrame', state=uiconst.UI_HIDDEN, frameConst=(ccConst.ICON_FOCUSFRAME, 15, -11), color=(1.0, 1.0, 1.0, 0.25))
+                    f = uicontrols.Frame(parent=colorPar, color=(1.0, 1.0, 1.0, 0.05), padding=self.COLORMARGIN - 2)
+                    uiprimitives.Fill(parent=colorPar, color=displayColor, padding=self.COLORMARGIN)
+                    colorHeight = top + self.currentColorSize
+                    left += self.currentColorSize + self.COLORGAP
+                    if left + self.currentColorSize > self.width:
+                        top += self.currentColorSize + self.COLORGAP
+                        left = self.SIDEMARGIN
+
                 top += self.currentColorSize
 
-        top = 0
-        colorHeight = 0
-        for colors, caption in ((primary, firstColourCaption), (secondary, secondColourCaption)):
-            if not colors:
-                continue
-            left = self.SIDEMARGIN
-            top += 4
-            label = uicls.CCLabel(parent=self.colorControlsCont, uppercase=1, shadowOffset=(0, 0), fontsize=9, letterspace=2, text=caption, top=top, left=left, color=ccConst.COLOR50, idx=0)
-            top += label.textheight + 3
-            for data in colors:
-                colorName, displayColor, colorValue = data
-                colorPar = uiprimitives.Container(parent=self.colorControlsCont, pos=(left,
-                 top,
-                 self.currentColorSize,
-                 self.currentColorSize), align=uiconst.TOPLEFT, state=uiconst.UI_NORMAL, name='colorPar', idx=0)
-                colorPar.OnClick = (self.OnColorPicked, colorPar)
-                colorPar.OnMouseEnter = (self.OnMouseEnterColor, colorPar)
-                colorPar.OnMouseExit = (self.OnMouseExitColor, colorPar)
-                colorPar.colorName = colorName
-                colorPar.displayColor = displayColor
-                colorPar.colorValue = colorValue
-                colorPar.modifier = self.modifier
-                colorPar.sr.activeFrame = uicontrols.Frame(parent=colorPar, name='activeFrame', state=uiconst.UI_HIDDEN, frameConst=(ccConst.ICON_FOCUSFRAME, 15, -11), color=(1.0, 1.0, 1.0, 1.0))
-                colorPar.sr.hiliteFrame = uicontrols.Frame(parent=colorPar, name='hiliteFrame', state=uiconst.UI_HIDDEN, frameConst=(ccConst.ICON_FOCUSFRAME, 15, -11), color=(1.0, 1.0, 1.0, 0.25))
-                f = uicontrols.Frame(parent=colorPar, color=(1.0, 1.0, 1.0, 0.05), padding=self.COLORMARGIN - 2)
-                uiprimitives.Fill(parent=colorPar, color=displayColor, padding=self.COLORMARGIN)
-                colorHeight = top + self.currentColorSize
-                left += self.currentColorSize + self.COLORGAP
-                if left + self.currentColorSize > self.width:
-                    top += self.currentColorSize + self.COLORGAP
-                    left = self.SIDEMARGIN
-
-            top += self.currentColorSize
-
-        self.colorControlsCont.height = colorHeight
-        self.HiliteActive()
-        if self.width > self.previousWidth:
-            sm.ScatterEvent('OnColorPaletteChanged', self.width)
-        self.previousWidth = self.width
+            self.colorControlsCont.height = colorHeight
+            self.HiliteActive()
+            if self.width > self.previousWidth:
+                sm.ScatterEvent('OnColorPaletteChanged', self.width)
+            self.previousWidth = self.width
+            return
 
     def OnColorPicked(self, colorObj, *args):
         var1 = None
@@ -521,6 +545,7 @@ class CCColorPalette(uicontrols.ContainerAutoSize):
             gradientColor = (1.0, displayColor[:3])
             self.SetGradientsColor(displayColor=displayColor)
         uicore.layer.charactercreation.SetColorValue(self.modifier, var1, var2)
+        return
 
     def SetSliderValue(self, slider):
         value = slider.GetValue()
@@ -670,6 +695,7 @@ class CharCreationAssetPicker(uiprimitives.Container):
         else:
             self.state = uiconst.UI_HIDDEN
         sm.RegisterNotify(self)
+        return
 
     def GetAssetThumbnailPath(self, itemType, genderID, categoryName, bloodlineID):
         path = ''
@@ -707,17 +733,18 @@ class CharCreationAssetPicker(uiprimitives.Container):
             randomPick = random.choice(self.sr.browser.images)
             _some, value, _some2 = randomPick
             self.sr.browser.SetActiveData(randomPick)
-        elif groupID == ccConst.BODYGROUP:
-            svc.RandomizeCharacterSculpting(info.charID, doUpdate=False)
-            self.UpdateControls('OnDollUpdated', setFocusOnActive=True)
-            svc.UpdateTattoos(info.charID, doUpdate=True)
-            uicore.layer.charactercreation.TryStoreDna(False, 'Sculpting', force=True)
         else:
-            groupList = []
-            for key, value in itemDict.iteritems():
-                if value == groupID:
-                    groupList.append(key)
-                    doUpdate = True
+            if groupID == ccConst.BODYGROUP:
+                svc.RandomizeCharacterSculpting(info.charID, doUpdate=False)
+                self.UpdateControls('OnDollUpdated', setFocusOnActive=True)
+                svc.UpdateTattoos(info.charID, doUpdate=True)
+                uicore.layer.charactercreation.TryStoreDna(False, 'Sculpting', force=True)
+            else:
+                groupList = []
+                for key, value in itemDict.iteritems():
+                    if value == groupID:
+                        groupList.append(key)
+                        doUpdate = True
 
             if len(groupList) > 0:
                 svc.RandomizeCharacterGroups(info.charID, groupList, doUpdate=True)
@@ -755,22 +782,24 @@ class CharCreationAssetPicker(uiprimitives.Container):
         pickerType = getattr(self, 'pickerType', None)
         if pickerType is None:
             return
-        if pickerType == 'backgrounds':
-            activeBackdrop = uicore.layer.charactercreation.GetBackdrop()
-            if activeBackdrop:
-                self.sr.browser.SetActiveDataFromValue(activeBackdrop, focusOnSlot=True, doCallbacks=False, doYield=False)
-        elif pickerType == 'poses':
-            poseID = uicore.layer.charactercreation.GetPoseId()
-            self.sr.browser.SetActiveDataFromValue(poseID, focusOnSlot=True, doCallbacks=False, doYield=False)
-        elif pickerType == 'lights':
-            currentLight = uicore.layer.charactercreation.GetLight()
-            self.sr.browser.SetActiveDataFromValue(currentLight, focusOnSlot=True, doCallbacks=False, doYield=False)
-            if uicore.layer.charactercreation.IsSlowMachine():
-                return
-            self.BrowseLightColors(None)
-            if self.sr.colorPalette:
-                intensitySlider = self.sr.colorPalette.sr.lights
-                intensitySlider.SetValue(uicore.layer.charactercreation.GetLightIntensity())
+        else:
+            if pickerType == 'backgrounds':
+                activeBackdrop = uicore.layer.charactercreation.GetBackdrop()
+                if activeBackdrop:
+                    self.sr.browser.SetActiveDataFromValue(activeBackdrop, focusOnSlot=True, doCallbacks=False, doYield=False)
+            elif pickerType == 'poses':
+                poseID = uicore.layer.charactercreation.GetPoseId()
+                self.sr.browser.SetActiveDataFromValue(poseID, focusOnSlot=True, doCallbacks=False, doYield=False)
+            elif pickerType == 'lights':
+                currentLight = uicore.layer.charactercreation.GetLight()
+                self.sr.browser.SetActiveDataFromValue(currentLight, focusOnSlot=True, doCallbacks=False, doYield=False)
+                if uicore.layer.charactercreation.IsSlowMachine():
+                    return
+                self.BrowseLightColors(None)
+                if self.sr.colorPalette:
+                    intensitySlider = self.sr.colorPalette.sr.lights
+                    intensitySlider.SetValue(uicore.layer.charactercreation.GetLightIntensity())
+            return
 
     def OnGenericMouseEnter(self, btn, *args):
         btn.sr.icon.SetAlpha(1.0)
@@ -791,18 +820,20 @@ class CharCreationAssetPicker(uiprimitives.Container):
     def OnTuckBrowse(self, btn, *args):
         if getattr(self.sr.colorPalette.sr.tuckParent, 'tuckOptions', None) is None:
             return
-        tuckOptions = self.sr.colorPalette.sr.tuckParent.tuckOptions
-        currentIndex = self.sr.colorPalette.sr.tuckParent.tuckIndex
-        if btn.name == 'leftBtn':
-            if currentIndex == 0:
-                currentIndex = len(tuckOptions) - 1
-            else:
-                currentIndex = currentIndex - 1
-        elif currentIndex == len(tuckOptions) - 1:
-            currentIndex = 0
         else:
-            currentIndex = currentIndex + 1
-        uicore.layer.charactercreation.SetStyle(self.sr.colorPalette.sr.tuckParent.tuckPath, self.sr.colorPalette.sr.tuckParent.tuckStyle, tuckOptions[currentIndex])
+            tuckOptions = self.sr.colorPalette.sr.tuckParent.tuckOptions
+            currentIndex = self.sr.colorPalette.sr.tuckParent.tuckIndex
+            if btn.name == 'leftBtn':
+                if currentIndex == 0:
+                    currentIndex = len(tuckOptions) - 1
+                else:
+                    currentIndex = currentIndex - 1
+            elif currentIndex == len(tuckOptions) - 1:
+                currentIndex = 0
+            else:
+                currentIndex = currentIndex + 1
+            uicore.layer.charactercreation.SetStyle(self.sr.colorPalette.sr.tuckParent.tuckPath, self.sr.colorPalette.sr.tuckParent.tuckStyle, tuckOptions[currentIndex])
+            return
 
     def PrepareHair(self):
         self.FULLHEIGHT = 170
@@ -883,6 +914,7 @@ class CharCreationAssetPicker(uiprimitives.Container):
         self.sr.browser = uicls.ImagePicker(parent=self.sr.assetParent, align=uiconst.CENTERTOP, top=-10, imageWidth=110, imageHeight=110, zoomFactor=3.0, radius=150.0, images=images, OnSetValue=self.OnAltSetAsset)
         if activeBackdrop:
             self.sr.browser.SetActiveDataFromValue(activeBackdrop, focusOnSlot=True, doCallbacks=False, doYield=False)
+        return
 
     def PreparePoses(self):
         info = uicore.layer.charactercreation.GetInfo()
@@ -901,6 +933,7 @@ class CharCreationAssetPicker(uiprimitives.Container):
             pose = random.choice(posesData)
         self.OnAltSetAsset(pose)
         self.sr.browser.SetActiveDataFromValue(pose[1][1], focusOnSlot=True, doCallbacks=False, doYield=False)
+        return
 
     def PrepareLights(self):
         info = uicore.layer.charactercreation.GetInfo()
@@ -923,6 +956,7 @@ class CharCreationAssetPicker(uiprimitives.Container):
         self.sr.colorPalette.sr.tuckParent.display = True
         self.sr.browser.SetActiveDataFromValue(currentLight, focusOnSlot=True, doCallbacks=False, doYield=False)
         self.sr.colorPalette.SetTuckingCounter(currentIndex + 1, len(lightingColorList))
+        return
 
     def BrowseLightColors(self, btn, *args):
         currentLightColor = uicore.layer.charactercreation.GetLightColor()
@@ -956,6 +990,7 @@ class CharCreationAssetPicker(uiprimitives.Container):
                 if uicore.layer.charactercreation.camera is not None:
                     uicore.layer.charactercreation.camera.UpdatePortraitInfo()
             self.UpdateControls('OnAltSetAsset')
+        return
 
     def OnSetBackground(self, bgPath, *args):
         uicore.layer.charactercreation.SetBackdrop(bgPath)
@@ -1008,6 +1043,7 @@ class CharCreationAssetPicker(uiprimitives.Container):
         if self.sr.browser:
             self.sr.browser.SetActiveData(None, focusOnSlot=False)
             self.CollapseColorPalette()
+        return
 
     def RemoveHairAsset(self, button, browser, *args):
         info = uicore.layer.charactercreation.GetInfo()
@@ -1030,6 +1066,7 @@ class CharCreationAssetPicker(uiprimitives.Container):
             self.sr.expanderIcon.SetAlpha(0.5)
         if self.sr.bevel:
             self.sr.bevel.state = uiconst.UI_HIDDEN
+        return
 
     def Toggle(self, *args):
         sm.StartService('audio').SendUIEvent(unicode('wise:/ui_icc_button_mouse_down_play'))
@@ -1041,7 +1078,7 @@ class CharCreationAssetPicker(uiprimitives.Container):
     def IsExpanded(self):
         return self._expanded
 
-    def UpdateControls(self, trigger = None, setFocusOnActive = False):
+    def UpdateControls(self, trigger=None, setFocusOnActive=False):
         subMenus = self.GetMySubmenus()
         if not self.IsExpanded() or subMenus:
             if subMenus and self._didRandomize and self.groupID in self._didRandomize:
@@ -1050,92 +1087,95 @@ class CharCreationAssetPicker(uiprimitives.Container):
                     each.UpdateControls('UpdateControls', setFocusOnActive=True)
 
             return
-        try:
-            if self.sr.colorPalette:
-                uicore.layer.charactercreation.ValidateColors(self.modifier)
-                self.sr.colorPalette.UpdatePalette()
-        except Exception:
-            if not self or self.destroyed:
-                return
-            raise
+        else:
+            try:
+                if self.sr.colorPalette:
+                    uicore.layer.charactercreation.ValidateColors(self.modifier)
+                    self.sr.colorPalette.UpdatePalette()
+            except Exception:
+                if not self or self.destroyed:
+                    return
+                raise
 
-        info = uicore.layer.charactercreation.GetInfo()
-        charSvc = sm.GetService('character')
-        containers = [ w for w in self.Find('trinity.Tr2Sprite2dContainer') ]
-        browsersAndModifiers = [(self.sr.browser, self.modifier)]
-        if self.modifier == ccConst.hair:
-            browsersAndModifiers.append((self.sr.altbrowser, ccConst.eyebrows))
-            browsersAndModifiers.append((self.sr.beardbrowser, ccConst.beard))
-        for browser, modifier in browsersAndModifiers:
-            if browser and modifier is not None:
-                if modifier == ccConst.beard:
-                    activeMod = None
-                    activeMods = charSvc.GetModifierByCategory(info.charID, modifier, getAll=True)
-                    if activeMods:
-                        if len(activeMods) == 1:
-                            activeMod = activeMods[0]
-                        else:
-                            for a in activeMods:
-                                if a.respath == ccConst.BASEBEARD:
-                                    continue
-                                activeMod = a
-                                break
-                            else:
-                                activeMod = activeMods[0]
-
-                else:
-                    activeMod = charSvc.GetModifierByCategory(info.charID, modifier)
-                    if activeMod and activeMod.name in ccConst.invisibleModifiers:
+            info = uicore.layer.charactercreation.GetInfo()
+            charSvc = sm.GetService('character')
+            containers = [ w for w in self.Find('trinity.Tr2Sprite2dContainer') ]
+            browsersAndModifiers = [(self.sr.browser, self.modifier)]
+            if self.modifier == ccConst.hair:
+                browsersAndModifiers.append((self.sr.altbrowser, ccConst.eyebrows))
+                browsersAndModifiers.append((self.sr.beardbrowser, ccConst.beard))
+            for browser, modifier in browsersAndModifiers:
+                if browser and modifier is not None:
+                    if modifier == ccConst.beard:
                         activeMod = None
-                    if not activeMod and modifier in uicore.layer.charactercreation.clothesStorage:
-                        activeMod = uicore.layer.charactercreation.clothesStorage.get(modifier, None)
-                if activeMod:
-                    uthread.new(self.SetActiveData_thread, browser, activeMod, setFocusOnActive)
-                else:
-                    browser.SetActiveData(None, focusOnSlot=False, doCallbacks=False)
+                        activeMods = charSvc.GetModifierByCategory(info.charID, modifier, getAll=True)
+                        if activeMods:
+                            if len(activeMods) == 1:
+                                activeMod = activeMods[0]
+                            else:
+                                for a in activeMods:
+                                    if a.respath == ccConst.BASEBEARD:
+                                        continue
+                                    activeMod = a
+                                    break
+                                else:
+                                    activeMod = activeMods[0]
 
-        self.LoadTuckOptions()
-        self.LoadRemoveOptions()
-        colorPickers = [ each for each in containers if isinstance(each, uicls.CharCreationColorPicker) ]
-        for colorPicker in colorPickers:
-            if not getattr(colorPicker, 'modifier', None):
-                continue
-            itemTypes, activeIndex = uicore.layer.charactercreation.GetAvailableStyles(colorPicker.modifier)
-            if activeIndex is None:
-                colorPicker.SetActiveColor(None, initing=True)
-            else:
-                activeColor = itemTypes[activeIndex]
-                colorPicker.SetActiveColor(activeColor, initing=True)
+                    else:
+                        activeMod = charSvc.GetModifierByCategory(info.charID, modifier)
+                        if activeMod and activeMod.name in ccConst.invisibleModifiers:
+                            activeMod = None
+                        if not activeMod and modifier in uicore.layer.charactercreation.clothesStorage:
+                            activeMod = uicore.layer.charactercreation.clothesStorage.get(modifier, None)
+                    if activeMod:
+                        uthread.new(self.SetActiveData_thread, browser, activeMod, setFocusOnActive)
+                    else:
+                        browser.SetActiveData(None, focusOnSlot=False, doCallbacks=False)
 
-        sliders = [ each for each in containers if isinstance(each, uicls.BitSlider) ]
-        for slider in sliders:
-            if not getattr(slider, 'modifier', None):
-                continue
-            if slider.modifier in (ccConst.skinaging, ccConst.freckles, ccConst.scarring):
-                itemTypes, activeIndex = uicore.layer.charactercreation.GetAvailableStyles(slider.modifier)
-                if not itemTypes:
+            self.LoadTuckOptions()
+            self.LoadRemoveOptions()
+            colorPickers = [ each for each in containers if isinstance(each, uicls.CharCreationColorPicker) ]
+            for colorPicker in colorPickers:
+                if not getattr(colorPicker, 'modifier', None):
                     continue
+                itemTypes, activeIndex = uicore.layer.charactercreation.GetAvailableStyles(colorPicker.modifier)
                 if activeIndex is None:
-                    activeIndex = 0
+                    colorPicker.SetActiveColor(None, initing=True)
                 else:
-                    activeIndex = activeIndex + 1
-                value = 1.0 / float(len(itemTypes)) * activeIndex
-                slider.SetValue(value, doCallback=False)
-            elif slider.modifier in ccConst.weight:
-                weight = charSvc.GetCharacterWeight(info.charID)
-                slider.SetValue(weight, doCallback=False)
-            elif slider.modifier == ccConst.muscle:
-                muscularity = charSvc.GetCharacterMuscularity(info.charID)
-                slider.SetValue(muscularity, doCallback=False)
-            elif slider.modifier == ccConst.hair:
-                slider.SetValue(charSvc.GetHairDarkness(info.charID), doCallback=False)
-            else:
-                activeMod = charSvc.GetModifierByCategory(info.charID, slider.modifier)
-                if activeMod:
-                    if slider.sliderType == 'intensity':
-                        slider.SetValue(charSvc.GetWeightByCategory(info.charID, slider.modifier))
-                    elif slider.sliderType == 'specularity':
-                        slider.SetValue(charSvc.GetColorSpecularityByCategory(info.charID, slider.modifier))
+                    activeColor = itemTypes[activeIndex]
+                    colorPicker.SetActiveColor(activeColor, initing=True)
+
+            sliders = [ each for each in containers if isinstance(each, uicls.BitSlider) ]
+            for slider in sliders:
+                if not getattr(slider, 'modifier', None):
+                    continue
+                if slider.modifier in (ccConst.skinaging, ccConst.freckles, ccConst.scarring):
+                    itemTypes, activeIndex = uicore.layer.charactercreation.GetAvailableStyles(slider.modifier)
+                    if not itemTypes:
+                        continue
+                    if activeIndex is None:
+                        activeIndex = 0
+                    else:
+                        activeIndex = activeIndex + 1
+                    value = 1.0 / float(len(itemTypes)) * activeIndex
+                    slider.SetValue(value, doCallback=False)
+                elif slider.modifier in ccConst.weight:
+                    weight = charSvc.GetCharacterWeight(info.charID)
+                    slider.SetValue(weight, doCallback=False)
+                elif slider.modifier == ccConst.muscle:
+                    muscularity = charSvc.GetCharacterMuscularity(info.charID)
+                    slider.SetValue(muscularity, doCallback=False)
+                elif slider.modifier == ccConst.hair:
+                    slider.SetValue(charSvc.GetHairDarkness(info.charID), doCallback=False)
+                else:
+                    activeMod = charSvc.GetModifierByCategory(info.charID, slider.modifier)
+                    if activeMod:
+                        if slider.sliderType == 'intensity':
+                            slider.SetValue(charSvc.GetWeightByCategory(info.charID, slider.modifier))
+                        elif slider.sliderType == 'specularity':
+                            slider.SetValue(charSvc.GetColorSpecularityByCategory(info.charID, slider.modifier))
+
+            return
 
     def SetActiveData_thread(self, browser, activeMod, setFocusOnActive):
         typeData = activeMod.GetTypeData()
@@ -1161,7 +1201,7 @@ class CharCreationAssetPicker(uiprimitives.Container):
         currentMenuState[key] = state
         settings.user.ui.Set('assetMenuState', currentMenuState)
 
-    def Expand(self, initing = False):
+    def Expand(self, initing=False):
         if self._expanded:
             return
         self._expanded = True
@@ -1193,7 +1233,7 @@ class CharCreationAssetPicker(uiprimitives.Container):
         self.UpdatePrefs(True)
         self.sr.expanderIcon.LoadIcon([ccConst.ICON_EXPANDED, ccConst.ICON_EXPANDEDSINGLE][self.isSubmenu])
 
-    def ExpandColorPalette(self, initing = False, *args):
+    def ExpandColorPalette(self, initing=False, *args):
         blue.pyos.synchro.SleepWallclock(500)
         if hasattr(self, 'sr'):
             self.CreateColorPallette()
@@ -1203,7 +1243,7 @@ class CharCreationAssetPicker(uiprimitives.Container):
             if activeMod and (uicore.uilib.mouseOver is self or uiutil.IsUnder(uicore.uilib.mouseOver, self)):
                 self.sr.colorPalette.ExpandPalette()
 
-    def CreateColorPallette(self, isLights = False, *args):
+    def CreateColorPallette(self, isLights=False, *args):
         if self.sr.colorPalette is None:
             maxPaletteWidth = int(uicore.desktop.width / 8)
             if isLights:
@@ -1214,6 +1254,7 @@ class CharCreationAssetPicker(uiprimitives.Container):
              self.GetCollapsedHeight(),
              uicls.CCColorPalette.COLORPALETTEWIDTH,
              0), modifier=self.modifier, state=uiconst.UI_HIDDEN, maxHeight=self.GetExpandedHeight(), maxWidth=maxPaletteWidth, browseFunction=browseFunction, bgColor=(0.0, 0.0, 0.0, 0.25), isLights=isLights)
+        return
 
     def CheckIfOversize(self, *args):
         self.parent.parent.CheckIfOversize(currentPicker=self)
@@ -1239,8 +1280,8 @@ class CharCreationAssetPicker(uiprimitives.Container):
                 if subMenu.IsExpanded():
                     subMenu.Collapse()
 
-            for subMenu in mySubs:
-                subMenu.Hide()
+        for subMenu in mySubs:
+            subMenu.Hide()
 
         self.sr.expanderIcon.LoadIcon([ccConst.ICON_COLLAPSED, ccConst.ICON_COLLAPSEDSINGLE][self.isSubmenu])
         if uicore.uilib.mouseOver is not self.sr.captionParent:
@@ -1268,7 +1309,6 @@ class CharCreationAssetPicker(uiprimitives.Container):
         modifier = sm.GetService('character').GetModifiersByCategory(info.charID, modifierPath)
         if modifier:
             return modifier[0].weight
-        return 0.0
 
     def OnStylePicked(self, assetData, *args):
         if assetData:
@@ -1287,6 +1327,7 @@ class CharCreationAssetPicker(uiprimitives.Container):
             sm.GetService('character').characterMetadata[info.charID].typeColors.pop(ccConst.skintone, None)
             uicore.layer.charactercreation.SetItemType(itemType)
             uthread.new(self.UpdateControls, 'OnSkinTypePicked')
+        return
 
     def LoadRemoveOptions(self, *args):
         if self.modifier == ccConst.hair:
@@ -1303,6 +1344,7 @@ class CharCreationAssetPicker(uiprimitives.Container):
                 icon.Hide()
         elif icon:
             icon.Show()
+        return
 
     def LoadRemoveHairOptions(self, *args):
         if not self.IsExpanded() or self.state == uiconst.UI_HIDDEN:
@@ -1317,54 +1359,56 @@ class CharCreationAssetPicker(uiprimitives.Container):
             if getattr(self, 'pickerType', None) == 'lights' and uicore.layer.charactercreation.IsSlowMachine():
                 self.sr.colorPalette.sr.tuckParent.display = False
             return
-        if self.sr.colorPalette is None:
-            self.CreateColorPallette()
-        if self.sr.colorPalette is None:
-            return
-        info = uicore.layer.charactercreation.GetInfo()
-        currentModifier = sm.GetService('character').GetModifierByCategory(info.charID, self.modifier)
-        activeData = None
-        if self.sr.browser and self.IsExpanded():
-            activeData = self.sr.browser.GetActiveData()
-        hideTuck = True
-        if activeData and currentModifier:
-            tuckPath, requiredModifiers, subKey = ccConst.TUCKMAPPING[self.modifier]
-            if requiredModifiers:
-                haveRequired = False
-                for each in requiredModifiers:
-                    haveRequired = bool(sm.GetService('character').GetModifierByCategory(info.charID, each))
-                    if haveRequired:
-                        break
-
-            else:
-                haveRequired = True
-            resPath, itemType, hiliteResPath = activeData
-            if haveRequired:
-                tuckModifier = sm.GetService('character').GetModifierByCategory(info.charID, tuckPath)
-                if tuckModifier:
-                    tuckVariations = tuckModifier.GetVariations()
-                    if tuckVariations:
-                        currentTuckVariation = tuckModifier.currentVariation
-                        tuckStyle = tuckModifier.GetResPath().split('/')[-1]
-                        if currentTuckVariation in tuckVariations:
-                            tuckIndex = tuckVariations.index(currentTuckVariation)
-                        else:
-                            tuckIndex = 0
-                        tuckParent = self.sr.colorPalette.sr.tuckParent
-                        tuckParent.tuckOptions = tuckVariations
-                        tuckParent.tuckIndex = tuckIndex
-                        tuckParent.tuckPath = tuckPath
-                        tuckParent.tuckStyle = tuckStyle
-                        tuckParent.tuckResPath = tuckModifier.GetResPath()
-                        self.sr.colorPalette.SetTuckingCounter(tuckIndex + 1, len(tuckVariations))
-                        hideTuck = False
-        if hideTuck:
-            if self.sr.colorPalette.sr.tuckParent.display == True:
-                self.sr.colorPalette.sr.tuckParent.display = False
-                uthread.new(uicore.effect.CombineEffects, self.sr.colorPalette.sr.tuckParent, opacity=0.0, time=125.0)
         else:
-            self.sr.colorPalette.sr.tuckParent.display = True
-            uthread.new(uicore.effect.CombineEffects, self.sr.colorPalette.sr.tuckParent, opacity=1.0, time=125.0)
+            if self.sr.colorPalette is None:
+                self.CreateColorPallette()
+            if self.sr.colorPalette is None:
+                return
+            info = uicore.layer.charactercreation.GetInfo()
+            currentModifier = sm.GetService('character').GetModifierByCategory(info.charID, self.modifier)
+            activeData = None
+            if self.sr.browser and self.IsExpanded():
+                activeData = self.sr.browser.GetActiveData()
+            hideTuck = True
+            if activeData and currentModifier:
+                tuckPath, requiredModifiers, subKey = ccConst.TUCKMAPPING[self.modifier]
+                if requiredModifiers:
+                    haveRequired = False
+                    for each in requiredModifiers:
+                        haveRequired = bool(sm.GetService('character').GetModifierByCategory(info.charID, each))
+                        if haveRequired:
+                            break
+
+                else:
+                    haveRequired = True
+                resPath, itemType, hiliteResPath = activeData
+                if haveRequired:
+                    tuckModifier = sm.GetService('character').GetModifierByCategory(info.charID, tuckPath)
+                    if tuckModifier:
+                        tuckVariations = tuckModifier.GetVariations()
+                        if tuckVariations:
+                            currentTuckVariation = tuckModifier.currentVariation
+                            tuckStyle = tuckModifier.GetResPath().split('/')[-1]
+                            if currentTuckVariation in tuckVariations:
+                                tuckIndex = tuckVariations.index(currentTuckVariation)
+                            else:
+                                tuckIndex = 0
+                            tuckParent = self.sr.colorPalette.sr.tuckParent
+                            tuckParent.tuckOptions = tuckVariations
+                            tuckParent.tuckIndex = tuckIndex
+                            tuckParent.tuckPath = tuckPath
+                            tuckParent.tuckStyle = tuckStyle
+                            tuckParent.tuckResPath = tuckModifier.GetResPath()
+                            self.sr.colorPalette.SetTuckingCounter(tuckIndex + 1, len(tuckVariations))
+                            hideTuck = False
+            if hideTuck:
+                if self.sr.colorPalette.sr.tuckParent.display == True:
+                    self.sr.colorPalette.sr.tuckParent.display = False
+                    uthread.new(uicore.effect.CombineEffects, self.sr.colorPalette.sr.tuckParent, opacity=0.0, time=125.0)
+            else:
+                self.sr.colorPalette.sr.tuckParent.display = True
+                uthread.new(uicore.effect.CombineEffects, self.sr.colorPalette.sr.tuckParent, opacity=1.0, time=125.0)
+            return
 
     def OnColorPickedFromWheel(self, colorPicker, color, name):
         uicore.layer.charactercreation.SetColorValue(colorPicker.modifier, (name, tuple(color)))
@@ -1411,6 +1455,7 @@ class CharCreationMenuToggler(uiprimitives.Container):
         frame.padding = (-12, -5, -12, -15)
         self.height = self.sr.captionParent.height
         sm.RegisterNotify(self)
+        return
 
     def AddRadioButton(self, *args):
         self.sr.shadowIcon = uiprimitives.Sprite(parent=self.sr.captionParent, name='shadowIcon', align=uiconst.CENTERRIGHT, state=uiconst.UI_DISABLED, pos=(0, 0, 32, 32), texturePath='res:/UI/Texture/CharacterCreation/radiobuttonShadow.dds', color=(0.4, 0.4, 0.4, 0.6))
@@ -1432,6 +1477,7 @@ class CharCreationMenuToggler(uiprimitives.Container):
                 self.SetRadioBtnColor(color='green')
         if self.sr.bevel:
             self.sr.bevel.state = uiconst.UI_DISABLED
+        return
 
     def OnCaptionExit(self, *args):
         uicore.layer.charactercreation.SetHintText(None)
@@ -1444,6 +1490,7 @@ class CharCreationMenuToggler(uiprimitives.Container):
                 self.sr.radioBtnFill.state = uiconst.UI_HIDDEN
             if self.sr.bevel:
                 self.sr.bevel.state = uiconst.UI_HIDDEN
+        return
 
     def Toggle(self, *args):
         sm.StartService('audio').SendUIEvent(unicode('wise:/ui_icc_button_mouse_down_play'))
@@ -1464,7 +1511,7 @@ class CharCreationMenuToggler(uiprimitives.Container):
     def OnColorPaletteChanged(self, width):
         self.sr.colorPaletteParent.width = width
 
-    def SetRadioBtnColor(self, color = 'green', *args):
+    def SetRadioBtnColor(self, color='green', *args):
         if color == 'green':
             self.sr.radioBtnFill.state = uiconst.UI_DISABLED
             self.sr.radioBtnColor.SetRGB(0, 1, 0)

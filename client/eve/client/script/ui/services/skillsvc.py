@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\client\script\ui\services\skillsvc.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\client\script\ui\services\skillsvc.py
 import operator
 from collections import defaultdict
 import blue
@@ -70,18 +71,20 @@ class SkillsSvc(service.Service):
      'OnTech3SkillLoss']
     __servicename__ = 'skills'
     __displayname__ = 'Skill Client Service'
-    __dependencies__ = ['settings', 'godma']
+    __dependencies__ = ['settings']
+    __startupdependencies__ = ['godma']
 
-    def Run(self, memStream = None):
+    def Run(self, memStream=None):
         self.LogInfo('Starting Skills')
         self.Reset()
 
-    def Stop(self, memStream = None):
+    def Stop(self, memStream=None):
         self.Reset()
 
     def ProcessSessionChange(self, isremote, session, change):
         if session.charid is None:
             self.Reset()
+        return
 
     def Reset(self):
         self.allskills = None
@@ -96,9 +99,11 @@ class SkillsSvc(service.Service):
         self.implants = None
         self.characterAttributes = None
         self.recentLosses = []
+        return
 
     def ResetSkillHistory(self):
         self.skillHistory = None
+        return
 
     def GetSkillHandler(self):
         if not self.skillHandler:
@@ -111,6 +116,8 @@ class SkillsSvc(service.Service):
         self.myskills = self.GetSkillHandler().GetSkills()
         for typeID, skillInfo in self.myskills.iteritems():
             setattr(skillInfo, 'typeID', typeID)
+
+        return
 
     def OnLogonSkillsTrained(self, skillInfos, canTrain):
         skillChanges = []
@@ -143,13 +150,14 @@ class SkillsSvc(service.Service):
         if event:
             sm.ScatterEvent(event, skillInfos)
         sm.ScatterEvent('OnSkillsChanged', skillInfos)
+        return
 
-    def GetSkills(self, renew = 0):
+    def GetSkills(self, renew=0):
         if self.myskills is None or renew:
             self.RefreshMySkills()
         return self.myskills
 
-    def GetCharacterAttributes(self, renew = False):
+    def GetCharacterAttributes(self, renew=False):
         if self.characterAttributes is None or renew:
             self.GetBoosters(True)
             self.GetImplants(True)
@@ -162,7 +170,7 @@ class SkillsSvc(service.Service):
     def GetCharacterAttribute(self, attributeID):
         return self.GetCharacterAttributes()[attributeID]
 
-    def GetSkill(self, skillTypeID, renew = 0):
+    def GetSkill(self, skillTypeID, renew=0):
         if self.myskills is None or renew:
             self.RefreshMySkills()
         return self.myskills.get(skillTypeID, None)
@@ -171,14 +179,17 @@ class SkillsSvc(service.Service):
         skill = self.GetSkill(skillTypeID)
         if skill is not None:
             return skill.skillLevel
-        return 0
+        else:
+            return 0
 
     def MySkillPoints(self, skillTypeID):
         skill = self.GetSkill(skillTypeID)
         if skill is not None:
             return skill.skillPoints
+        else:
+            return
 
-    def MySkillLevelsByID(self, renew = 0):
+    def MySkillLevelsByID(self, renew=0):
         skills = {}
         for skillTypeID, skill in self.GetSkills(renew).iteritems():
             skills[skillTypeID] = skill.skillLevel
@@ -193,7 +204,8 @@ class SkillsSvc(service.Service):
         skill = self.GetSkill(skillTypeID)
         if skill.skillLevel >= const.maxSkillLevel:
             return None
-        return charskills.GetSPForLevelRaw(skill.skillRank, skill.skillLevel + 1)
+        else:
+            return charskills.GetSPForLevelRaw(skill.skillRank, skill.skillLevel + 1)
 
     def HasSkill(self, skillTypeID):
         return skillTypeID in self.GetSkills()
@@ -217,7 +229,7 @@ class SkillsSvc(service.Service):
         return self.skillGroups
 
     @telemetry.ZONE_METHOD
-    def GetSkillHistory(self, maxresults = 50):
+    def GetSkillHistory(self, maxresults=50):
         if self.skillHistory is None:
             self.skillHistory = self.GetSkillHandler().GetSkillHistory(maxresults)
         return self.skillHistory
@@ -247,7 +259,7 @@ class SkillsSvc(service.Service):
         return skillChanges
 
     @telemetry.ZONE_METHOD
-    def GetSkillGroups(self, advanced = False):
+    def GetSkillGroups(self, advanced=False):
         if session.charid:
             ownSkills = self.GetSkills()
             skillQueue = sm.GetService('skillqueue').GetServerQueue()
@@ -319,31 +331,32 @@ class SkillsSvc(service.Service):
     def GetRequiredSkillsLevel(self, skills):
         if not skills:
             return SKILLREQ_HAVEANDTRAINED
-        allLevel5 = True
-        haveAll = True
-        missingSkill = False
-        for skillTypeID, level in skills:
-            if self.IsTrialRestricted(skillTypeID):
-                return SKILLREQ_TRIALRESTRICTED
-            mySkill = self.GetSkill(skillTypeID)
-            if mySkill is None:
-                missingSkill = True
-                continue
-            if mySkill.skillLevel < level:
-                haveAll = False
-            if mySkill.skillLevel != 5:
-                allLevel5 = False
-
-        if missingSkill:
-            return SKILLREQ_DONTHAVE
-        elif not haveAll:
-            return SKILLREQ_HAVEBUTNOTTRAINED
-        elif allLevel5:
-            return SKILLREQ_HAVEANDTRAINEDFULLY
         else:
-            return SKILLREQ_HAVEANDTRAINED
+            allLevel5 = True
+            haveAll = True
+            missingSkill = False
+            for skillTypeID, level in skills:
+                if self.IsTrialRestricted(skillTypeID):
+                    return SKILLREQ_TRIALRESTRICTED
+                mySkill = self.GetSkill(skillTypeID)
+                if mySkill is None:
+                    missingSkill = True
+                    continue
+                if mySkill.skillLevel < level:
+                    haveAll = False
+                if mySkill.skillLevel != 5:
+                    allLevel5 = False
 
-    def GetRequiredSkillsLevelTexturePathAndHint(self, skills, typeID = None):
+            if missingSkill:
+                return SKILLREQ_DONTHAVE
+            if not haveAll:
+                return SKILLREQ_HAVEBUTNOTTRAINED
+            if allLevel5:
+                return SKILLREQ_HAVEANDTRAINEDFULLY
+            return SKILLREQ_HAVEANDTRAINED
+            return
+
+    def GetRequiredSkillsLevelTexturePathAndHint(self, skills, typeID=None):
         skillLevel = self.GetRequiredSkillsLevel(skills)
         texturePath = TEXTURE_PATH_BY_SKILLREQ[skillLevel]
         if typeID is None:
@@ -372,41 +385,43 @@ class SkillsSvc(service.Service):
     def GetSkillTrainingTimeLeftToUseType(self, skillTypeID):
         if self.IsSkillRequirementMet(skillTypeID):
             return 0
-        totalTime = 0
-        required = self.GetRequiredSkillsRecursive(skillTypeID)
-        have = self.GetSkills()
-        requiredMax = {}
-        for typeID, lvl in required.iteritems():
-            haveSkill = have.get(typeID, None)
-            if haveSkill and haveSkill.skillLevel >= lvl:
-                continue
-            elif typeID not in requiredMax:
-                requiredMax[typeID] = int(lvl)
+        else:
+            totalTime = 0
+            required = self.GetRequiredSkillsRecursive(skillTypeID)
+            have = self.GetSkills()
+            requiredMax = {}
+            for typeID, lvl in required.iteritems():
+                haveSkill = have.get(typeID, None)
+                if haveSkill and haveSkill.skillLevel >= lvl:
+                    continue
+                elif typeID not in requiredMax:
+                    requiredMax[typeID] = int(lvl)
 
-        for typeID, trainToLevel in requiredMax.iteritems():
-            haveSkill = have.get(typeID, KeyVal(skillLevel=0))
-            for trainingLevel in xrange(haveSkill.skillLevel + 1, trainToLevel + 1):
-                totalTime += self.GetRawTrainingTimeForSkillLevel(typeID, trainingLevel)
+            for typeID, trainToLevel in requiredMax.iteritems():
+                haveSkill = have.get(typeID, KeyVal(skillLevel=0))
+                for trainingLevel in xrange(haveSkill.skillLevel + 1, trainToLevel + 1):
+                    totalTime += self.GetRawTrainingTimeForSkillLevel(typeID, trainingLevel)
 
-        return totalTime
+            return totalTime
 
     def GetSkillToolTip(self, skillTypeID, level):
         if session.charid is None:
             return
-        mySkill = self.GetSkill(skillTypeID)
-        mySkillLevel = 0
-        if mySkill is not None:
-            mySkillLevel = mySkill.skillLevel
-        tooltipText = evetypes.GetDescription(skillTypeID)
-        tooltipTextList = []
-        for i in xrange(int(mySkillLevel) + 1, int(level) + 1):
-            timeLeft = self.GetRawTrainingTimeForSkillLevel(skillTypeID, i)
-            tooltipTextList.append(localization.GetByLabel('UI/SkillQueue/Skills/SkillLevelAndTrainingTime', skillLevel=i, timeLeft=long(timeLeft)))
+        else:
+            mySkill = self.GetSkill(skillTypeID)
+            mySkillLevel = 0
+            if mySkill is not None:
+                mySkillLevel = mySkill.skillLevel
+            tooltipText = evetypes.GetDescription(skillTypeID)
+            tooltipTextList = []
+            for i in xrange(int(mySkillLevel) + 1, int(level) + 1):
+                timeLeft = self.GetRawTrainingTimeForSkillLevel(skillTypeID, i)
+                tooltipTextList.append(localization.GetByLabel('UI/SkillQueue/Skills/SkillLevelAndTrainingTime', skillLevel=i, timeLeft=long(timeLeft)))
 
-        levelsText = '<br>'.join(tooltipTextList)
-        if levelsText:
-            tooltipText += '<br><br>' + levelsText
-        return tooltipText
+            levelsText = '<br>'.join(tooltipTextList)
+            if levelsText:
+                tooltipText += '<br><br>' + levelsText
+            return tooltipText
 
     def GetSkillpointsPerMinute(self, skillTypeID):
         primaryAttributeID = sm.GetService('godma').GetTypeAttribute(skillTypeID, const.attributePrimaryAttribute)
@@ -435,7 +450,7 @@ class SkillsSvc(service.Service):
         return len(self.GetSkills())
 
     @telemetry.ZONE_METHOD
-    def GetSkillPoints(self, groupID = None):
+    def GetSkillPoints(self, groupID=None):
         return sum([ skillInfo.skillPoints for skillTypeID, skillInfo in self.GetSkills().iteritems() if groupID is None or evetypes.GetGroupID(skillTypeID) == groupID ])
 
     def GetSkillRank(self, skillTypeID):
@@ -474,6 +489,7 @@ class SkillsSvc(service.Service):
         self.respecInfo = None
         self.GetCharacterAttributes(True)
         sm.ScatterEvent('OnRespecInfoUpdated')
+        return
 
     def OnOpenCharacterSheet(self, skillIDs, *args):
         sm.GetService('charactersheet').ForceShowSkillHistoryHighlighting(skillIDs)
@@ -483,7 +499,7 @@ class SkillsSvc(service.Service):
         skillQueueNotification = Notification.MakeSkillNotification(header=queueText, text='', created=blue.os.GetWallclockTime(), callBack=sm.StartService('skills').OnOpenCharacterSheet, callbackargs=None, notificationType=Notification.SKILL_NOTIFICATION_EMPTYQUEUE)
         return skillQueueNotification
 
-    def NotifySkills(self, skillChanges, canTrain, isLogonSummary = False):
+    def NotifySkills(self, skillChanges, canTrain, isLogonSummary=False):
         emptyQueueNotification = None
         header = '%s - %s'
         skillNotification = None
@@ -512,6 +528,7 @@ class SkillsSvc(service.Service):
             sm.ScatterEvent('OnNewNotificationReceived', skillNotification)
         if emptyQueueNotification:
             sm.ScatterEvent('OnNewNotificationReceived', emptyQueueNotification)
+        return
 
     def OnFreeSkillPointsChanged(self, newFreeSkillPoints):
         self.SetFreeSkillPoints(newFreeSkillPoints)
@@ -539,8 +556,10 @@ class SkillsSvc(service.Service):
              'pointsRemaining': self.freeSkillPoints})
         if pointsToApply <= 0:
             return
-        newFreePoints = self.GetSkillHandler().ApplyFreeSkillPoints(skill.typeID, pointsToApply)
-        self.SetFreeSkillPoints(newFreePoints)
+        else:
+            newFreePoints = self.GetSkillHandler().ApplyFreeSkillPoints(skill.typeID, pointsToApply)
+            self.SetFreeSkillPoints(newFreePoints)
+            return
 
     def SetFreeSkillPoints(self, newFreePoints):
         if self.freeSkillPoints is None or newFreePoints != self.freeSkillPoints:
@@ -548,12 +567,13 @@ class SkillsSvc(service.Service):
                 uthread.new(self.ShowSkillPointsNotification_thread)
             self.freeSkillPoints = newFreePoints
             sm.ScatterEvent('OnFreeSkillPointsChanged_Local')
+        return
 
     def MakeAndScatterSkillPointNotification(self):
         notificationData = UnusedSkillPointsFormatter.MakeData()
         sm.GetService('notificationSvc').MakeAndScatterNotification(type=notificationConst.notificationTypeUnusedSkillPoints, data=notificationData)
 
-    def ShowSkillPointsNotification(self, number = (0, 0), time = 5000, *args):
+    def ShowSkillPointsNotification(self, number=(0, 0), time=5000, *args):
         skillPointsNow = self.GetFreeSkillPoints()
         skillPointsLast = settings.user.ui.Get('freeSkillPoints', -1)
         if skillPointsLast == skillPointsNow:
@@ -616,12 +636,12 @@ class SkillsSvc(service.Service):
         self.GetCharacterAttributes(True)
         sm.ScatterEvent('OnBoosterUpdated')
 
-    def GetBoosters(self, forced = 0):
+    def GetBoosters(self, forced=0):
         if self.boosters is None or forced:
             self.boosters = self.GetSkillHandler().GetBoosters()
         return self.boosters
 
-    def GetImplants(self, forced = 0):
+    def GetImplants(self, forced=0):
         if self.implants is None or forced:
             self.implants = self.GetSkillHandler().GetImplants()
         return self.implants
@@ -636,10 +656,8 @@ class SkillsSvc(service.Service):
         sm.GetService('audio').SendUIEvent('st_activate_skill_injector_play')
 
     def ActivateSkillExtractor(self, item):
-        if not session.stationid:
+        if util.InSpace():
             raise UserError('SkillExtractorNotDockedInStation', {'extractor': const.typeSkillExtractor})
-        if item.locationID != session.stationid:
-            raise UserError('CharacterServiceItemNotInStation')
         ship = sm.GetService('godma').GetItem(session.shipid)
         if ship.groupID != const.groupCapsule:
             raise UserError('CannotUseExtractorWhileAboardShip', {'extractor': const.typeSkillExtractor})
@@ -653,6 +671,7 @@ class SkillsSvc(service.Service):
             if token is None:
                 raise UserError('TokenRequiredForSkillExtraction')
         SkillExtractorWindow.OpenOrReload(itemID=item.itemID)
+        return
 
     def GetSkillPointAmountFromInjectors(self, quantity):
         return self.GetSkillHandler().GetDiminishedSpFromInjectors(quantity)

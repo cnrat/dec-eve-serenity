@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\carbon\client\script\zaction\zactionClient.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\carbon\client\script\zaction\zactionClient.py
 import GameWorld
 import log
 import uthread
@@ -23,6 +24,7 @@ class zactionClient(zaction.zactionCommon):
         treeManager.Initialize()
         treeManager.EnableBlueNet()
         zaction.zactionCommon.__init__(self, treeManager)
+        return
 
     def Run(self, *etc):
         zaction.zactionCommon.Run(self, etc)
@@ -83,6 +85,7 @@ class zactionClient(zaction.zactionCommon):
                 component.treeInstance = GameWorld.ActionTreeInstanceClient(entityID, component.TreeInstanceID)
         component.rootNode = self.treeManager.GetTreeNodeByID(component.rootID)
         self.entityService.entitySceneManager.PrepareComponent(entityID, sceneID, component.treeInstance)
+        return
 
     def SetupComponent(self, entity, component):
         pass
@@ -102,27 +105,31 @@ class zactionClient(zaction.zactionCommon):
                     component.treeInstance.ForceAction(treeNode)
             else:
                 self.LogError('Failed to find default action for entity %d' % entity.entityID)
+        return
 
     def UnRegisterComponent(self, entity, component):
         self.treeManager.RemoveTreeInstance(component.treeInstance)
 
     def TearDownComponent(self, entity, component):
         component.treeInstance = None
+        return
 
-    def StartAction(self, entID, actionID, clientProps = None, interrupt = True):
+    def StartAction(self, entID, actionID, clientProps=None, interrupt=True):
         if actionID == None:
             return
-        actionTreeInst = self.treeManager.GetTreeInstanceByEntID(entID)
-        if actionTreeInst is not None:
-            if clientProps is None:
-                clientProps = self.GetClientProperties()
-            entity = self.entityService.FindEntityByID(entID)
-            if not self.entityService.IsClientSideOnly(entity.scene.sceneID):
-                requestThread = uthread.new(self.GetZactionServer().RequestActionStart, entID, actionID, interrupt, clientProps)
-                requestThread.context = 'ZactionClient::StartAction'
-            actionTreeInst.DoActionByID(actionID, interrupt, clientProps)
         else:
-            self.LogError('StartAction called with ' + str(entID) + ', ' + str(actionID) + ', but could not find entity tree instance.')
+            actionTreeInst = self.treeManager.GetTreeInstanceByEntID(entID)
+            if actionTreeInst is not None:
+                if clientProps is None:
+                    clientProps = self.GetClientProperties()
+                entity = self.entityService.FindEntityByID(entID)
+                if not self.entityService.IsClientSideOnly(entity.scene.sceneID):
+                    requestThread = uthread.new(self.GetZactionServer().RequestActionStart, entID, actionID, interrupt, clientProps)
+                    requestThread.context = 'ZactionClient::StartAction'
+                actionTreeInst.DoActionByID(actionID, interrupt, clientProps)
+            else:
+                self.LogError('StartAction called with ' + str(entID) + ', ' + str(actionID) + ', but could not find entity tree instance.')
+            return
 
     def QA_RequestForceAction(self, entID, actionID):
         actionTreeInst = self.treeManager.GetTreeInstanceByEntID(entID)
@@ -131,6 +138,7 @@ class zactionClient(zaction.zactionCommon):
             requestThread.context = 'ZactionClient::QA_RequestForceAction'
         else:
             self.LogError('StartAction called with ' + str(entID) + ', ' + str(actionID) + ', but could not find entity tree instance.')
+        return
 
     def OnEntityActionStart(self, entID, actionID, actionStack, propList):
         actionTreeInst = self.treeManager.GetTreeInstanceByEntID(entID)
@@ -138,6 +146,7 @@ class zactionClient(zaction.zactionCommon):
             actionTreeInst.ActionUpdate(actionID, actionStack, propList, False)
         else:
             self.LogError('Received OnEntityActionStart ' + str(entID) + ', ' + str(actionID) + ', but could not find entity tree instance.')
+        return
 
     def OnActionStepUpdate(self, entID, actionID, stepStack):
         actionTreeInst = self.treeManager.GetTreeInstanceByEntID(entID)
@@ -145,6 +154,7 @@ class zactionClient(zaction.zactionCommon):
             actionTreeInst.ActionStepUpdate(actionID, stepStack)
         else:
             self.LogError('Received OnActionStepUpdate ' + str(entID) + ', ' + str(actionID) + ', but could not find entity tree instance.')
+        return
 
     def OnActionForce(self, entID, actionID, actionStack, propList):
         entity = self.entityService.FindEntityByID(entID)
@@ -154,6 +164,7 @@ class zactionClient(zaction.zactionCommon):
                 actionTreeInst.ActionUpdate(actionID, actionStack, propList, True)
             else:
                 self.LogError('Received OnActionFail ' + str(entID) + ', ' + str(actionID) + ', but could not find entity tree instance.')
+        return
 
     def OnPropertyUpdate(self, entID, actionID, propList):
         entity = self.entityService.FindEntityByID(entID)
@@ -163,6 +174,7 @@ class zactionClient(zaction.zactionCommon):
                 actionTreeInst.UpdateProperty(actionID, propList)
             else:
                 self.LogError('Received OnPropertyUpdate ' + str(entID) + ', ' + str(actionID) + ', but could not find entity tree instance.')
+        return
 
     def OnServerResetActionTree(self):
         thread = uthread.new(self._OnServerResetActionTree)

@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\client\script\ui\services\corporation\bco_members.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\client\script\ui\services\corporation\bco_members.py
 import util
 import corpObject
 import uthread
@@ -97,20 +98,24 @@ class CorporationMembersO(corpObject.base):
         self.__members = None
         self.__memberIDs = None
         self.MemberCanRunForCEO_ = None
+        return
 
     def DoSessionChanging(self, isRemote, session, change):
         if 'corpid' in change:
             self.__members = None
             self.__memberIDs = None
             self.MemberCanRunForCEO_ = None
+        return
 
     def OnSessionChanged(self, isRemote, session, change):
         if 'corpid' not in change:
             return
-        oldID, newID = change['corpid']
-        if newID is None:
+        else:
+            oldID, newID = change['corpid']
+            if newID is None:
+                return
+            self.__PrimeEveOwners()
             return
-        self.__PrimeEveOwners()
 
     def PrimeCorpInformation(self):
         self.GetMemberIDs()
@@ -129,6 +134,8 @@ class CorporationMembersO(corpObject.base):
         finally:
             self.__lock.release()
 
+        return
+
     def __len__(self):
         return len(self.GetMembers())
 
@@ -146,11 +153,12 @@ class CorporationMembersO(corpObject.base):
     def GetMember(self, charID):
         if charID not in self.GetMemberIDs():
             return
-        if self.__members is not None:
-            member = self.__members.GetMember(charID)
-            if member:
-                return member
-        return self.GetCorpRegistry().GetMember(charID)
+        else:
+            if self.__members is not None:
+                member = self.__members.GetMember(charID)
+                if member:
+                    return member
+            return self.GetCorpRegistry().GetMember(charID)
 
     def GetMembersPaged(self, page):
         return self.GetCorpRegistry().GetMembersPaged(page)
@@ -164,9 +172,10 @@ class CorporationMembersO(corpObject.base):
     def MemberCanRunForCEO(self):
         if not sm.GetService('skills').GetSkill(const.typeCorporationManagement):
             return 0
-        if self.MemberCanRunForCEO_ is None:
-            self.MemberCanRunForCEO_ = self.GetCorpRegistry().MemberCanRunForCEO()
-        return self.MemberCanRunForCEO_
+        else:
+            if self.MemberCanRunForCEO_ is None:
+                self.MemberCanRunForCEO_ = self.GetCorpRegistry().MemberCanRunForCEO()
+            return self.MemberCanRunForCEO_
 
     def MemberCanCreateCorporation(self):
         if sm.GetService('wallet').GetWealth() < const.corporationStartupCost:
@@ -175,7 +184,6 @@ class CorporationMembersO(corpObject.base):
             return 0
         if self.corp__corporations.GetCorporation().ceoID == eve.session.charid:
             return 0
-        return 1
 
     def GetMyGrantableRoles(self):
         charIsCEO = self.corp__corporations.GetCorporation().ceoID == eve.session.charid
@@ -226,32 +234,40 @@ class CorporationMembersO(corpObject.base):
                 self.MemberCanRunForCEO_ = None
                 break
 
+        return
+
     def OnAttribute(self, attributeName, item, value):
         if attributeName == 'corporationMemberLimit':
             self.MemberCanRunForCEO_ = None
+        return
 
     def OnAttributes(self, changes):
         for change in changes:
             if change[0] == 'corporationMemberLimit':
                 self.MemberCanRunForCEO_ = None
 
+        return
+
     def OnShareChange(self, shareholderID, corporationID, change):
         if shareholderID == eve.session.charid:
             self.MemberCanRunForCEO_ = None
+        return
 
     def OnCorporationMemberChanged(self, corporationID, memberID, change):
         if self.__memberIDs is None:
             return
-        if 'corporationID' in change:
-            oldCorpID, newCorpID = change['corporationID']
-            if oldCorpID == eve.session.corpid:
-                if memberID in self.__memberIDs:
-                    self.__memberIDs.remove(memberID)
-            elif newCorpID == eve.session.corpid:
-                if memberID not in self.__memberIDs:
-                    self.__memberIDs.append(memberID)
+        else:
+            if 'corporationID' in change:
+                oldCorpID, newCorpID = change['corporationID']
+                if oldCorpID == eve.session.corpid:
+                    if memberID in self.__memberIDs:
+                        self.__memberIDs.remove(memberID)
+                elif newCorpID == eve.session.corpid:
+                    if memberID not in self.__memberIDs:
+                        self.__memberIDs.append(memberID)
+            return
 
-    def UpdateMember(self, charIDToUpdate, title = None, divisionID = None, squadronID = None, roles = None, grantableRoles = None, rolesAtHQ = None, grantableRolesAtHQ = None, rolesAtBase = None, grantableRolesAtBase = None, rolesAtOther = None, grantableRolesAtOther = None, baseID = None, titleMask = None, blockRoles = None):
+    def UpdateMember(self, charIDToUpdate, title=None, divisionID=None, squadronID=None, roles=None, grantableRoles=None, rolesAtHQ=None, grantableRolesAtHQ=None, rolesAtBase=None, grantableRolesAtBase=None, rolesAtOther=None, grantableRolesAtOther=None, baseID=None, titleMask=None, blockRoles=None):
         return self.GetCorpRegistry().UpdateMember(charIDToUpdate, title, divisionID, squadronID, roles, grantableRoles, rolesAtHQ, grantableRolesAtHQ, rolesAtBase, grantableRolesAtBase, rolesAtOther, grantableRolesAtOther, baseID, titleMask, blockRoles)
 
     def UpdateMembers(self, rows):

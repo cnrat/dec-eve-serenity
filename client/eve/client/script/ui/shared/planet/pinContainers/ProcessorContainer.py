@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\client\script\ui\shared\planet\pinContainers\ProcessorContainer.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\client\script\ui\shared\planet\pinContainers\ProcessorContainer.py
 import carbonui.const as uiconst
 from carbonui.primitives.containerAutoSize import ContainerAutoSize
 import evetypes
@@ -48,6 +49,7 @@ class ProcessorContainer(BasePinContainer):
         scrolllist = uiutil.SortListOfTuples(scrolllist)
         self.schematicsScroll.Load(contentList=scrolllist, headers=[])
         self.schematicsScroll.SetSelected(0)
+        return
 
     def OnSchematicScrollSelectionChange(self, entries):
         if not entries:
@@ -162,6 +164,7 @@ class ProcessorContainer(BasePinContainer):
         self.currCycleGauge.SetText(status)
         self.amountPerCycleTxt.SetSubtext(localization.GetByLabel('UI/PI/Common/UnitsAmount', amount=outputPerCycle))
         self.amountPerHourTxt.SetSubtext(localization.GetByLabel('UI/PI/Common/CapacityAmount', amount=self.pin.GetOutputVolumePerHour()))
+        return
 
 
 class ProcessorGaugeContainer(uiprimitives.Container):
@@ -197,7 +200,7 @@ class ProcessorGaugeContainer(uiprimitives.Container):
         self.busy = False
         self.SetValue(self.value)
 
-    def SetValue(self, value, frequency = 8.0):
+    def SetValue(self, value, frequency=8.0):
         if self.busy or value == self.value:
             return
         if value > 1.0:

@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\client\script\environment\spaceObject\harvestableGasCloud.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\client\script\environment\spaceObject\harvestableGasCloud.py
 from eve.client.script.environment.spaceObject.cloud import Cloud
 from eve.client.script.environment.spaceObject.spaceObject import SpaceObject
 import geo2
@@ -7,7 +8,7 @@ import random
 
 class HarvestableGasCloud(Cloud):
 
-    def LoadModel(self, fileName = None, loadedModel = None):
+    def LoadModel(self, fileName=None, loadedModel=None):
         SpaceObject.LoadModel(self, fileName, loadedModel)
 
     def Assemble(self):

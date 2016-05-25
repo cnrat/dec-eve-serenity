@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\packages\sensorsuite\overlay\sitehandler.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\packages\sensorsuite\overlay\sitehandler.py
 from utillib import KeyVal
 ENABLED_BY_SITE_TYPE = 'sensorSuiteFilterEnabledBySiteType'
 
@@ -11,6 +12,7 @@ class SiteHandler(object):
 
     def __init__(self):
         self.siteController = None
+        return
 
     def SetSiteController(self, siteController):
         self.siteController = siteController

@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\carbon\common\stdlib\email\message.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\carbon\common\stdlib\email\message.py
 __all__ = ['Message']
 import re
 import uu
@@ -15,10 +16,11 @@ def _splitparam(param):
     a, sep, b = param.partition(';')
     if not sep:
         return (a.strip(), None)
-    return (a.strip(), b.strip())
+    else:
+        return (a.strip(), b.strip())
 
 
-def _formatparam(param, value = None, quote = True):
+def _formatparam(param, value=None, quote=True):
     if value is not None and len(value) > 0:
         if isinstance(value, tuple):
             param += '*'
@@ -29,6 +31,7 @@ def _formatparam(param, value = None, quote = True):
             return '%s=%s' % (param, value)
     else:
         return param
+    return
 
 
 def _parseparam(s):
@@ -68,11 +71,12 @@ class Message:
         self.preamble = self.epilogue = None
         self.defects = []
         self._default_type = 'text/plain'
+        return
 
     def __str__(self):
         return self.as_string(unixfrom=True)
 
-    def as_string(self, unixfrom = False):
+    def as_string(self, unixfrom=False):
         from email.generator import Generator
         fp = StringIO()
         g = Generator(fp)
@@ -93,8 +97,9 @@ class Message:
             self._payload = [payload]
         else:
             self._payload.append(payload)
+        return
 
-    def get_payload(self, i = None, decode = False):
+    def get_payload(self, i=None, decode=False):
         if i is None:
             payload = self._payload
         elif not isinstance(self._payload, list):
@@ -123,38 +128,42 @@ class Message:
 
         return payload
 
-    def set_payload(self, payload, charset = None):
+    def set_payload(self, payload, charset=None):
         self._payload = payload
         if charset is not None:
             self.set_charset(charset)
+        return
 
     def set_charset(self, charset):
         if charset is None:
             self.del_param('charset')
             self._charset = None
             return
-        if isinstance(charset, basestring):
-            charset = email.charset.Charset(charset)
-        if not isinstance(charset, email.charset.Charset):
-            raise TypeError(charset)
-        self._charset = charset
-        if 'MIME-Version' not in self:
-            self.add_header('MIME-Version', '1.0')
-        if 'Content-Type' not in self:
-            self.add_header('Content-Type', 'text/plain', charset=charset.get_output_charset())
         else:
-            self.set_param('charset', charset.get_output_charset())
-        if isinstance(self._payload, unicode):
-            self._payload = self._payload.encode(charset.output_charset)
-        if str(charset) != charset.get_output_charset():
-            self._payload = charset.body_encode(self._payload)
-        if 'Content-Transfer-Encoding' not in self:
-            cte = charset.get_body_encoding()
-            try:
-                cte(self)
-            except TypeError:
+            if isinstance(charset, basestring):
+                charset = email.charset.Charset(charset)
+            if not isinstance(charset, email.charset.Charset):
+                raise TypeError(charset)
+            self._charset = charset
+            if 'MIME-Version' not in self:
+                self.add_header('MIME-Version', '1.0')
+            if 'Content-Type' not in self:
+                self.add_header('Content-Type', 'text/plain', charset=charset.get_output_charset())
+            else:
+                self.set_param('charset', charset.get_output_charset())
+            if isinstance(self._payload, unicode):
+                self._payload = self._payload.encode(charset.output_charset)
+            if str(charset) != charset.get_output_charset():
                 self._payload = charset.body_encode(self._payload)
-                self.add_header('Content-Transfer-Encoding', cte)
+            if 'Content-Transfer-Encoding' not in self:
+                cte = charset.get_body_encoding()
+                try:
+                    cte(self)
+                except TypeError:
+                    self._payload = charset.body_encode(self._payload)
+                    self.add_header('Content-Transfer-Encoding', cte)
+
+            return
 
     def get_charset(self):
         return self._charset
@@ -193,7 +202,7 @@ class Message:
     def items(self):
         return self._headers[:]
 
-    def get(self, name, failobj = None):
+    def get(self, name, failobj=None):
         name = name.lower()
         for k, v in self._headers:
             if k.lower() == name:
@@ -201,7 +210,7 @@ class Message:
 
         return failobj
 
-    def get_all(self, name, failobj = None):
+    def get_all(self, name, failobj=None):
         values = []
         name = name.lower()
         for k, v in self._headers:
@@ -223,6 +232,7 @@ class Message:
         if _value is not None:
             parts.insert(0, _value)
         self._headers.append((_name, SEMISPACE.join(parts)))
+        return
 
     def replace_header(self, _name, _value):
         _name = _name.lower()
@@ -277,7 +287,7 @@ class Message:
         params = utils.decode_params(params)
         return params
 
-    def get_params(self, failobj = None, header = 'content-type', unquote = True):
+    def get_params(self, failobj=None, header='content-type', unquote=True):
         missing = object()
         params = self._get_params_preserve(missing, header)
         if params is missing:
@@ -287,7 +297,7 @@ class Message:
         else:
             return params
 
-    def get_param(self, param, failobj = None, header = 'content-type', unquote = True):
+    def get_param(self, param, failobj=None, header='content-type', unquote=True):
         if header not in self:
             return failobj
         for k, v in self._get_params_preserve(failobj, header):
@@ -299,7 +309,7 @@ class Message:
 
         return failobj
 
-    def set_param(self, param, value, header = 'Content-Type', requote = True, charset = None, language = ''):
+    def set_param(self, param, value, header='Content-Type', requote=True, charset=None, language=''):
         if not isinstance(value, tuple) and charset:
             value = (charset, language, value)
         if header not in self and header.lower() == 'content-type':
@@ -328,7 +338,7 @@ class Message:
             del self[header]
             self[header] = ctype
 
-    def del_param(self, param, header = 'content-type', requote = True):
+    def del_param(self, param, header='content-type', requote=True):
         if header not in self:
             return
         new_ctype = ''
@@ -343,7 +353,7 @@ class Message:
             del self[header]
             self[header] = new_ctype
 
-    def set_type(self, type, header = 'Content-Type', requote = True):
+    def set_type(self, type, header='Content-Type', requote=True):
         if not type.count('/') == 1:
             raise ValueError
         if header.lower() == 'content-type':
@@ -358,7 +368,7 @@ class Message:
         for p, v in params[1:]:
             self.set_param(p, v, header, requote)
 
-    def get_filename(self, failobj = None):
+    def get_filename(self, failobj=None):
         missing = object()
         filename = self.get_param('filename', missing, 'content-disposition')
         if filename is missing:
@@ -367,7 +377,7 @@ class Message:
             return failobj
         return utils.collapse_rfc2231_value(filename).strip()
 
-    def get_boundary(self, failobj = None):
+    def get_boundary(self, failobj=None):
         missing = object()
         boundary = self.get_param('boundary', missing)
         if boundary is missing:
@@ -406,7 +416,7 @@ class Message:
 
         self._headers = newheaders
 
-    def get_content_charset(self, failobj = None):
+    def get_content_charset(self, failobj=None):
         missing = object()
         charset = self.get_param('charset', missing)
         if charset is missing:
@@ -427,7 +437,7 @@ class Message:
 
         return charset.lower()
 
-    def get_charsets(self, failobj = None):
+    def get_charsets(self, failobj=None):
         return [ part.get_content_charset(failobj) for part in self.walk() ]
 
     from email.iterators import walk

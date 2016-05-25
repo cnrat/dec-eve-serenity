@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\client\script\ui\shared\industry\views\materialGroup.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\client\script\ui\shared\industry\views\materialGroup.py
 from collections import defaultdict
 from math import ceil, cos, asin
 import carbonui.const as uiconst
@@ -36,8 +37,9 @@ class MaterialGroup(Container):
         self.icon = GroupIconSprite(name='icon', parent=self, align=uiconst.CENTERLEFT, pos=(7, 0, 22, 22), industryGroupID=self.industryGroupID)
         self.ConstructMaterials()
         self.ConstructLines()
+        return
 
-    def AnimEntry(self, timeOffset, animate = True):
+    def AnimEntry(self, timeOffset, animate=True):
         for i, material in enumerate(self.materials):
             if animate:
                 uicore.animations.FadeTo(material, 0.0, 1.0, duration=0.3, timeOffset=timeOffset + i * 0.02)
@@ -132,7 +134,7 @@ class MaterialGroup(Container):
     def OnRunsChanged(self):
         self.UpdateState()
 
-    def UpdateState(self, animate = True):
+    def UpdateState(self, animate=True):
         for line in self.lines:
             line.UpdateColor(self.IsReady(), self.IsOptional(), self.IsOptionSelected(), animate)
 

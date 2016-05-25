@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\client\script\ui\inflight\shipModuleButton\moduleButtonTooltip.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\client\script\ui\inflight\shipModuleButton\moduleButtonTooltip.py
 import carbonui.const as uiconst
 from carbonui.primitives.container import Container
 from carbon.common.script.util.timerstuff import AutoTimer
@@ -80,70 +81,75 @@ class ModuleButtonTooltip(TooltipPanel):
         self.labelPadding = (4, 2, 4, 2)
         self.SetBackgroundAlpha(0.75)
         self.controller = getattr(self.owner, 'controller', None)
+        return
 
     def LoadTooltip(self):
         if not self.owner:
             return
-        self.ownerGuid = self.owner.__guid__
-        if self.ownerGuid == 'xtriui.ModuleButton':
-            self.moduleItemID = self.owner.sr.moduleInfo.itemID
         else:
-            self.moduleItemID = self.controller.GetModuleID()
-        if not self.moduleItemID:
+            self.ownerGuid = self.owner.__guid__
+            if self.ownerGuid == 'xtriui.ModuleButton':
+                self.moduleItemID = self.owner.sr.moduleInfo.itemID
+            else:
+                self.moduleItemID = self.controller.GetModuleID()
+            if not self.moduleItemID:
+                return
+            if self.ownerGuid == 'xtriui.FittingSlotGhost':
+                self.dogmaLocation = sm.GetService('fittingSvc').GetCurrentDogmaLocation()
+            else:
+                self.dogmaLocation = sm.GetService('clientDogmaIM').GetDogmaLocation()
+            self.moduleInfoItem = self.dogmaLocation.GetDogmaItem(self.moduleItemID)
+            self.moduleGroupID = evetypes.GetGroupID(self.moduleInfoItem.typeID)
+            self.numSlaves = self.GetNumberOfSlaves(self.moduleInfoItem, self.ownerGuid)
+            if self.stateManager.GetDefaultEffect(self.moduleInfoItem.typeID):
+                self.moduleShortcut = self.GetModuleShortcut(self.moduleInfoItem)
+            else:
+                self.moduleShortcut = None
+            self.typeName = evetypes.GetName(self.moduleInfoItem.typeID)
+            self.onHUDModuleButton = self.ownerGuid == 'xtriui.ModuleButton'
+            self.UpdateToolTips()
+            self._toolTooltipUpdateTimer = AutoTimer(1000, self.UpdateToolTips)
             return
-        if self.ownerGuid == 'xtriui.FittingSlotGhost':
-            self.dogmaLocation = sm.GetService('fittingSvc').GetCurrentDogmaLocation()
-        else:
-            self.dogmaLocation = sm.GetService('clientDogmaIM').GetDogmaLocation()
-        self.moduleInfoItem = self.dogmaLocation.GetDogmaItem(self.moduleItemID)
-        self.moduleGroupID = evetypes.GetGroupID(self.moduleInfoItem.typeID)
-        self.numSlaves = self.GetNumberOfSlaves(self.moduleInfoItem, self.ownerGuid)
-        if self.stateManager.GetDefaultEffect(self.moduleInfoItem.typeID):
-            self.moduleShortcut = self.GetModuleShortcut(self.moduleInfoItem)
-        else:
-            self.moduleShortcut = None
-        self.typeName = evetypes.GetName(self.moduleInfoItem.typeID)
-        self.onHUDModuleButton = self.ownerGuid == 'xtriui.ModuleButton'
-        self.UpdateToolTips()
-        self._toolTooltipUpdateTimer = AutoTimer(1000, self.UpdateToolTips)
 
     def UpdateToolTips(self):
         if self.destroyed or self.beingDestroyed or self.owner is None:
             self._toolTooltipUpdateTimer = None
             return
-        self.Flush()
-        if getattr(self.owner, 'charge', None):
-            chargeItemID = self.owner.charge.itemID
-        elif self.controller and self.controller.GetCharge():
-            chargeItemID = self.controller.GetCharge().itemID
         else:
-            chargeItemID = None
-        if chargeItemID is None:
-            chargeInfoItem = None
-        else:
-            chargeInfoItem = self.dogmaLocation.GetDogmaItem(chargeItemID)
-        moduleDamageAmount = self.GetModuleDamage(self.ownerGuid, self.moduleItemID)
-        chargesType, chargesQty = self.GetChargeTypeAndQty(self.moduleInfoItem, chargeInfoItem)
-        if self.numSlaves:
-            typeText = localization.GetByLabel('UI/Inflight/ModuleRacks/TypeNameWithNumInGroup', numInGroup=self.numSlaves, typeName=self.typeName)
-        else:
-            typeText = self.typeName
-        typeText = '<b>%s</b>' % typeText
-        self.AddTypeAndIcon(label=typeText, typeID=self.moduleInfoItem.typeID, moduleShortcut=self.moduleShortcut, moduleDamageAmount=moduleDamageAmount)
-        self.UpdateChargesCont(chargeInfoItem, chargesQty)
-        maxRange, falloffDist, bombRadius = sm.GetService('tactical').FindMaxRange(self.moduleInfoItem, chargeInfoItem, self.dogmaLocation)
-        if maxRange > 0:
-            self.AddRangeInfo(self.moduleInfoItem.typeID, optimalRange=maxRange, falloff=falloffDist)
-        if chargesQty is not None:
-            self.AddDpsAndDamgeTypeInfo(self.moduleItemID, self.moduleInfoItem.typeID, self.moduleGroupID, chargeInfoItem, self.numSlaves)
-        myInfoFunctionName = self.infoFunctionNames.get(self.moduleGroupID, None)
-        if myInfoFunctionName is not None:
-            myInfoFunction = getattr(self, myInfoFunctionName)
-            myInfoFunction(self.moduleItemID, chargeInfoItem)
-        if self.onHUDModuleButton:
-            safetyLevel = self.owner.GetSafetyWarning()
-            if safetyLevel is not None:
-                self.AddSafetyLevelWarning(safetyLevel)
+            self.Flush()
+            if getattr(self.owner, 'charge', None):
+                chargeItemID = self.owner.charge.itemID
+            elif self.controller and self.controller.GetCharge():
+                chargeItemID = self.controller.GetCharge().itemID
+            else:
+                chargeItemID = None
+            if chargeItemID is None:
+                chargeInfoItem = None
+            else:
+                chargeInfoItem = self.dogmaLocation.GetDogmaItem(chargeItemID)
+            moduleDamageAmount = self.GetModuleDamage(self.ownerGuid, self.moduleItemID)
+            chargesType, chargesQty = self.GetChargeTypeAndQty(self.moduleInfoItem, chargeInfoItem)
+            if self.numSlaves:
+                typeText = localization.GetByLabel('UI/Inflight/ModuleRacks/TypeNameWithNumInGroup', numInGroup=self.numSlaves, typeName=self.typeName)
+            else:
+                typeText = self.typeName
+            typeText = '<b>%s</b>' % typeText
+            self.AddTypeAndIcon(label=typeText, typeID=self.moduleInfoItem.typeID, moduleShortcut=self.moduleShortcut, moduleDamageAmount=moduleDamageAmount)
+            self.UpdateChargesCont(chargeInfoItem, chargesQty)
+            maxRange, falloffDist, bombRadius = sm.GetService('tactical').FindMaxRange(self.moduleInfoItem, chargeInfoItem, self.dogmaLocation)
+            if maxRange > 0:
+                self.AddRangeInfo(self.moduleInfoItem.typeID, optimalRange=maxRange, falloff=falloffDist)
+            if chargesQty is not None:
+                self.AddDpsAndDamgeTypeInfo(self.moduleItemID, self.moduleInfoItem.typeID, self.moduleGroupID, chargeInfoItem, self.numSlaves)
+            myInfoFunctionName = self.infoFunctionNames.get(self.moduleGroupID, None)
+            if myInfoFunctionName is not None:
+                myInfoFunction = getattr(self, myInfoFunctionName)
+                myInfoFunction(self.moduleItemID, chargeInfoItem)
+            if self.onHUDModuleButton:
+                safetyLevel = self.owner.GetSafetyWarning()
+                if safetyLevel is not None:
+                    self.AddSafetyLevelWarning(safetyLevel)
+            return
 
     def UpdateChargesCont(self, chargeInfoItem, chargesQty):
         if chargeInfoItem and chargesQty:
@@ -205,16 +211,17 @@ class ModuleButtonTooltip(TooltipPanel):
         slotOrder = shipHud.GetSlotOrder()
         if flagID not in slotOrder:
             return
-        pos = slotOrder.index(flagID)
-        if pos is not None:
-            row = pos / 8
-            hiMedLo = ('High', 'Medium', 'Low')[row]
-            loc = pos % 8
-            slotno = loc + 1
-            shortcut = uicore.cmd.GetShortcutStringByFuncName('CmdActivate%sPowerSlot%i' % (hiMedLo, slotno))
-            if shortcut:
-                moduleShortcut = shortcut
-        return moduleShortcut
+        else:
+            pos = slotOrder.index(flagID)
+            if pos is not None:
+                row = pos / 8
+                hiMedLo = ('High', 'Medium', 'Low')[row]
+                loc = pos % 8
+                slotno = loc + 1
+                shortcut = uicore.cmd.GetShortcutStringByFuncName('CmdActivate%sPowerSlot%i' % (hiMedLo, slotno))
+                if shortcut:
+                    moduleShortcut = shortcut
+            return moduleShortcut
 
     def GetChargeTypeAndQty(self, moduleInfoItem, chargeInfoItem):
         chargesQty = None
@@ -263,7 +270,7 @@ class ModuleButtonTooltip(TooltipPanel):
         icon, label = self.AddRowWithIconAndText(text, texturePath, iconSize=16)
         icon.color.SetRGBA(*iconColor)
 
-    def AddTypeAndIcon(self, label, typeID, moduleShortcut = None, moduleDamageAmount = 0, iconSize = 26, minRowSize = 30):
+    def AddTypeAndIcon(self, label, typeID, moduleShortcut=None, moduleDamageAmount=0, iconSize=26, minRowSize=30):
         self.FillRow()
         self.AddSpacer(height=minRowSize, width=0)
         iconCont = Container(pos=(0,
@@ -293,7 +300,7 @@ class ModuleButtonTooltip(TooltipPanel):
             self.AddCell(shortcutObj)
         return (iconObj, labelObj)
 
-    def AddAttributeRow(self, texturePath, attributeValues, minRowSize = 30, spacerWidth = 100):
+    def AddAttributeRow(self, texturePath, attributeValues, minRowSize=30, spacerWidth=100):
         self.AddCell()
         self.AddCell()
         self.AddSpacer(colSpan=self.columns - 2, width=spacerWidth, height=0)
@@ -336,7 +343,7 @@ class ModuleButtonTooltip(TooltipPanel):
         text = localization.GetByLabel(labelPath, duration=duration, amount=amount)
         return (text, duration, amount)
 
-    def AddRowWithIconAndText(self, text, texturePath = None, iconID = None, iconSize = 24, minRowSize = 30):
+    def AddRowWithIconAndText(self, text, texturePath=None, iconID=None, iconSize=24, minRowSize=30):
         self.FillRow()
         self.AddSpacer(height=minRowSize, width=0)
         icon = self.AddIconCell(texturePath or iconID, iconSize=iconSize)
@@ -344,7 +351,7 @@ class ModuleButtonTooltip(TooltipPanel):
         self.FillRow()
         return (icon, label)
 
-    def AddRowWithIconAndTextAndValue(self, text, valueText, texturePath, iconSize = 24, minRowSize = 30):
+    def AddRowWithIconAndTextAndValue(self, text, valueText, texturePath, iconSize=24, minRowSize=30):
         self.FillRow()
         self.AddSpacer(height=minRowSize, width=0)
         self.AddIconCell(texturePath, iconSize=iconSize)
@@ -352,13 +359,13 @@ class ModuleButtonTooltip(TooltipPanel):
         self.AddLabelMedium(text=valueText, align=uiconst.CENTERRIGHT)
         self.FillRow()
 
-    def AddRowWithIconAndContainer(self, texturePath, container, iconSize = 24, minRowSize = 30):
+    def AddRowWithIconAndContainer(self, texturePath, container, iconSize=24, minRowSize=30):
         self.FillRow()
         self.AddSpacer(height=minRowSize, width=0)
         self.AddIconCell(texturePath, iconSize=iconSize)
         self.AddCell(container, colSpan=self.columns - 1)
 
-    def AddIconCell(self, texturePath = None, iconID = None, iconSize = 24):
+    def AddIconCell(self, texturePath=None, iconID=None, iconSize=24):
         icon = Icon(pos=(0,
          0,
          iconSize,
@@ -366,7 +373,7 @@ class ModuleButtonTooltip(TooltipPanel):
         self.AddCell(icon)
         return icon
 
-    def AddRowForInfoWithOneOrMoreAttributes(self, attributeValues, oneAttributeText, manyAttributesText, headerText, texturePath = ''):
+    def AddRowForInfoWithOneOrMoreAttributes(self, attributeValues, oneAttributeText, manyAttributesText, headerText, texturePath=''):
         if len(attributeValues) == 1:
             self.AddRowForSingleAttribute(attributeValues=attributeValues, labelPath=oneAttributeText)
         elif attributeValues:
@@ -379,7 +386,7 @@ class ModuleButtonTooltip(TooltipPanel):
         iconID = cfg.dgmattribs.Get(attributeID).iconID
         self.AddRowWithIconAndText(text=text, iconID=iconID)
 
-    def AddRowAndHeaderForManyAttributes(self, attributeValues, manyAttributesText, headerText, texturePath = ''):
+    def AddRowAndHeaderForManyAttributes(self, attributeValues, manyAttributesText, headerText, texturePath=''):
         text = localization.GetByLabel(headerText)
         icon, label = self.AddRowWithIconAndText(text=text, texturePath='', minRowSize=24)
         label.SetAlign(uiconst.BOTTOMLEFT)
@@ -408,40 +415,41 @@ class ModuleButtonTooltip(TooltipPanel):
         isTurret = sm.GetService('clientDogmaStaticSvc').TypeHasEffect(typeID, const.effectTurretFitted)
         if not isLauncher and not isTurret and not isBomb:
             return (None, None, None, None)
-        GAV = self.dogmaLocation.GetAccurateAttributeValue
-        texturePath = None
-        iconID = None
-        totalDpsDamage = 0
-        damageMultiplier = 1
-        if (isLauncher or isBomb) and charge:
-            chargeKey = charge.itemID
-            if not isBomb:
-                damageMultiplier = GAV(session.charid, const.attributeMissileDamageMultiplier)
-            totalDpsDamage = GetLauncherDps(self.dogmaLocation, chargeKey, itemID, session.charid, GAV, damageMultiplier)
-            if isLauncher:
-                texturePath = 'res:/UI/Texture/Icons/81_64_16.png'
-            else:
-                iconID = evetypes.GetIconID(typeID)
-        elif isTurret:
-            if charge:
+        else:
+            GAV = self.dogmaLocation.GetAccurateAttributeValue
+            texturePath = None
+            iconID = None
+            totalDpsDamage = 0
+            damageMultiplier = 1
+            if (isLauncher or isBomb) and charge:
                 chargeKey = charge.itemID
-            else:
-                chargeKey = None
-            totalDpsDamage = GetTurretDps(self.dogmaLocation, chargeKey, itemID, GAV)
-            damageMultiplier = GAV(itemID, const.attributeDamageMultiplier)
-            texturePath = 'res:/UI/Texture/Icons/26_64_1.png'
-        if totalDpsDamage == 0:
+                if not isBomb:
+                    damageMultiplier = GAV(session.charid, const.attributeMissileDamageMultiplier)
+                totalDpsDamage = GetLauncherDps(self.dogmaLocation, chargeKey, itemID, session.charid, GAV, damageMultiplier)
+                if isLauncher:
+                    texturePath = 'res:/UI/Texture/Icons/81_64_16.png'
+                else:
+                    iconID = evetypes.GetIconID(typeID)
+            elif isTurret:
+                if charge:
+                    chargeKey = charge.itemID
+                else:
+                    chargeKey = None
+                totalDpsDamage = GetTurretDps(self.dogmaLocation, chargeKey, itemID, GAV)
+                damageMultiplier = GAV(itemID, const.attributeDamageMultiplier)
+                texturePath = 'res:/UI/Texture/Icons/26_64_1.png'
+            if totalDpsDamage == 0:
+                return (totalDpsDamage,
+                 texturePath,
+                 iconID,
+                 damageMultiplier)
+            if numSlaves:
+                totalDpsDamage = numSlaves * totalDpsDamage
+                damageMultiplier = numSlaves * damageMultiplier
             return (totalDpsDamage,
              texturePath,
              iconID,
              damageMultiplier)
-        if numSlaves:
-            totalDpsDamage = numSlaves * totalDpsDamage
-            damageMultiplier = numSlaves * damageMultiplier
-        return (totalDpsDamage,
-         texturePath,
-         iconID,
-         damageMultiplier)
 
     def AddDamageTypes(self, itemID, charge, multiplier):
         if charge:
@@ -453,7 +461,7 @@ class ModuleButtonTooltip(TooltipPanel):
             return
         self.AddRowForInfoWithOneOrMoreAttributes(attributeValues=damageAttributeValues, oneAttributeText='UI/Inflight/ModuleRacks/Tooltips/OneDamageTypeText', manyAttributesText='UI/Inflight/ModuleRacks/Tooltips/DamageHitpoints', headerText='UI/Inflight/ModuleRacks/Tooltips/DamageTypesHeader')
 
-    def GetAttributesValues(self, itemID, multiplier, attributeList, includeZeros = True):
+    def GetAttributesValues(self, itemID, multiplier, attributeList, includeZeros=True):
         attributeValues = []
         for eachAttributeID in attributeList:
             attributeValue = self.GetEffectiveAttributeValue(itemID, eachAttributeID)
@@ -491,6 +499,7 @@ class ModuleButtonTooltip(TooltipPanel):
             amount = specializationMultiplier * amount
         text = localization.GetByLabel('UI/Inflight/ModuleRacks/Tooltips/MiningAmountPerTime', duration=duration, amount=amount)
         self.AddRowWithIconAndText(text=text, texturePath='res:/ui/texture/icons/23_64_5.png')
+        return
 
     def AddEnergyVampireInfo(self, itemID, chargeInfoItem):
         self.AddAttributePerTimeInfo(itemID=itemID, attributeID=const.attributePowerTransferAmount, labelPath='UI/Inflight/ModuleRacks/Tooltips/EnergyVampireAmountPerTime')
@@ -526,6 +535,7 @@ class ModuleButtonTooltip(TooltipPanel):
         iconID = attributeInfo.iconID
         text = localization.GetByLabel('UI/Inflight/ModuleRacks/Tooltips/SmartBombDamage', amount=damage, damageType=damageType)
         self.AddRowWithIconAndText(text=text, iconID=iconID)
+        return
 
     def AddPropulsionModuleInfo(self, itemID, chargeInfoItem):
         myShip = GetActiveShip()
@@ -556,10 +566,12 @@ class ModuleButtonTooltip(TooltipPanel):
         duration = self.GetDuration(itemID)
         if chargeInfoItem is None:
             return
-        amount = self.GetEffectiveAttributeValue(chargeInfoItem.itemID, attributeID)
-        text = localization.GetByLabel('UI/Inflight/ModuleRacks/Tooltips/CapacitorBoostPerTime', boostAmount=amount, duration=duration)
-        iconID = cfg.dgmattribs.Get(attributeID).iconID
-        self.AddRowWithIconAndText(text=text, iconID=iconID)
+        else:
+            amount = self.GetEffectiveAttributeValue(chargeInfoItem.itemID, attributeID)
+            text = localization.GetByLabel('UI/Inflight/ModuleRacks/Tooltips/CapacitorBoostPerTime', boostAmount=amount, duration=duration)
+            iconID = cfg.dgmattribs.Get(attributeID).iconID
+            self.AddRowWithIconAndText(text=text, iconID=iconID)
+            return
 
     def AddEnergyTransferArrayInfo(self, itemID, chargeInfoItem):
         self.AddAttributePerTimeInfo(itemID=itemID, attributeID=const.attributePowerTransferAmount, labelPath='UI/Inflight/ModuleRacks/Tooltips/EnergyTransferredPerTime')
@@ -591,6 +603,7 @@ class ModuleButtonTooltip(TooltipPanel):
 
         text = '<br>'.join(rows)
         self.AddRowWithIconAndText(text=text, texturePath='res:/UI/Texture/Icons/4_64_12.png')
+        return
 
     def AddECCMInfo(self, itemID, chargeInfoItem):
         damageTypeAttributes = [const.attributeScanGravimetricStrengthPercent,
@@ -605,7 +618,9 @@ class ModuleButtonTooltip(TooltipPanel):
                 rows.append(localization.GetByLabel('UI/Inflight/ModuleRacks/Tooltips/ResistanceActiveBonusText', activeValue=strength, activeName=attributeName))
 
         text = '<br>'.join(rows)
-        self.AddRowWithIconAndText(text=text, texturePath='res:/UI/Texture/Icons/4_64_12.png')
+        if text:
+            self.AddRowWithIconAndText(text=text, texturePath='res:/UI/Texture/Icons/4_64_12.png')
+        return
 
     def AddSensorDamperInfo(self, itemID, chargeInfoItem):
         bonus = self.GetEffectiveAttributeValue(itemID, const.attributeScanResolutionBonus)
@@ -614,6 +629,7 @@ class ModuleButtonTooltip(TooltipPanel):
         bonus = self.GetEffectiveAttributeValue(itemID, const.attributeMaxTargetRangeBonus)
         if bonus != 0:
             self.AddAttributeInfoWithAttributeName(itemID=itemID, attributeID=const.attributeMaxTargetRangeBonus, labelPath='UI/Inflight/ModuleRacks/Tooltips/ResistanceActiveBonusText')
+        self.AddECCMInfo(itemID, chargeInfoItem)
 
     def AddTargetBreakerInfo(self, itemID, chargeInfoItem):
         self.AddAttributeInfoWithAttributeName(itemID=itemID, attributeID=const.attributeScanResolutionMultiplier, labelPath='UI/Inflight/ModuleRacks/Tooltips/ResistanceActiveBonusText')

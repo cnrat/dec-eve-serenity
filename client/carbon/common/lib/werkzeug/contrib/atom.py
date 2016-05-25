@@ -1,10 +1,11 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\carbon\common\lib\werkzeug\contrib\atom.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\carbon\common\lib\werkzeug\contrib\atom.py
 from datetime import datetime
 from werkzeug.utils import escape
 from werkzeug.wrappers import BaseResponse
 XHTML_NAMESPACE = 'http://www.w3.org/1999/xhtml'
 
-def _make_text_block(name, content, content_type = None):
+def _make_text_block(name, content, content_type=None):
     if content_type == 'xhtml':
         return u'<%s type="xhtml"><div xmlns="%s">%s</div></%s>\n' % (name,
          XHTML_NAMESPACE,
@@ -25,7 +26,7 @@ def format_iso8601(obj):
 class AtomFeed(object):
     default_generator = ('Werkzeug', None, None)
 
-    def __init__(self, title = None, entries = None, **kwargs):
+    def __init__(self, title=None, entries=None, **kwargs):
         self.title = title
         self.title_type = kwargs.get('title_type', 'text')
         self.url = kwargs.get('url')
@@ -57,6 +58,8 @@ class AtomFeed(object):
         for author in self.author:
             if 'name' not in author:
                 raise TypeError('author must contain at least a name')
+
+        return
 
     def add(self, *args, **kwargs):
         if len(args) == 1 and not kwargs and isinstance(args[0], FeedEntry):
@@ -137,7 +140,7 @@ class AtomFeed(object):
 
 class FeedEntry(object):
 
-    def __init__(self, title = None, content = None, feed_url = None, **kwargs):
+    def __init__(self, title=None, content=None, feed_url=None, **kwargs):
         self.title = title
         self.title_type = kwargs.get('title_type', 'text')
         self.content = content

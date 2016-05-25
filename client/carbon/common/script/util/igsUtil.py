@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\carbon\common\script\util\igsUtil.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\carbon\common\script\util\igsUtil.py
 import types
 import log
 MAXEVENTS = 250
@@ -61,6 +62,8 @@ def AggregateEvent(eventTypeID, event, storage, aggregatePath, aggregateKeys, va
                 prevPath[prevKey][ix] += event[ix]
             elif ix > 0:
                 log.LogException('IGS received data of unhandled datatype!')
+
+    return
 
 
 exports = {'igsUtil.AggregateEvent': AggregateEvent,

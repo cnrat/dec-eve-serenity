@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\packages\spacecomponents\server\components\dogmatic.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\packages\spacecomponents\server\components\dogmatic.py
 import logging
 from carbon.common.lib import const
 from carbon.common.lib.const import minFakeItem
@@ -56,3 +57,4 @@ class Dogmatic(Component):
 
     def OnExplode(self, ballpark):
         ballpark.dbLog.LogItemGenericEvent(None, eventSpaceComponentExploding, self.itemID, referenceID=ballpark.solarsystemID, int_1=self.typeID)
+        return

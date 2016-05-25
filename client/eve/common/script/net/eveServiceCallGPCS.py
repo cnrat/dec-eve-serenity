@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\common\script\net\eveServiceCallGPCS.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\common\script\net\eveServiceCallGPCS.py
 import macho
 import gpcs
 
@@ -18,3 +19,4 @@ class ServiceCall(gpcs.CoreServiceCall):
             elif self.machoNet.serviceInfo[service] == 'station' or self.machoNet.serviceInfo[service] == 'location' and locationid1 == stationid1:
                 if stationid1 == stationid2:
                     self.machoNet.SetNodeOfAddress('station', stationid1, e.payload)
+        return

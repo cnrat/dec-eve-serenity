@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\client\script\ui\shared\fittingGhost\fittingCenterGhost.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\client\script\ui\shared\fittingGhost\fittingCenterGhost.py
 import math
 from carbonui.primitives.container import Container
 import carbonui.const as uiconst
@@ -75,7 +76,7 @@ class FittingCenterGhost(FittingLayoutGhost):
         rad = int(243 * self.scaleFactor)
         cX = cY = self.baseShapeSize / 2
 
-        def GetLocation(angle, size = 16):
+        def GetLocation(angle, size=16):
             cos = math.cos(angle * math.pi / 180.0)
             sin = math.sin(angle * math.pi / 180.0)
             left = int(round(rad * cos + cX - size / 2))
@@ -254,12 +255,14 @@ class ShipSceneParent(Container):
     def GetShipMenu(self, *args):
         if self.controller.GetItemID() is None:
             return []
-        if session.stationid:
-            hangarInv = sm.GetService('invCache').GetInventory(const.containerHangar)
-            hangarItems = hangarInv.List()
-            for each in hangarItems:
-                if each.itemID == self.controller.GetItemID():
-                    return sm.GetService('menu').InvItemMenu(each)
+        else:
+            if session.stationid:
+                hangarInv = sm.GetService('invCache').GetInventory(const.containerHangar)
+                hangarItems = hangarInv.List(const.flagHangar)
+                for each in hangarItems:
+                    if each.itemID == self.controller.GetItemID():
+                        return sm.GetService('menu').InvItemMenu(each)
 
-        elif session.solarsystemid:
-            return sm.GetService('menu').CelestialMenu(session.shipid)
+            elif session.solarsystemid:
+                return sm.GetService('menu').CelestialMenu(session.shipid)
+            return

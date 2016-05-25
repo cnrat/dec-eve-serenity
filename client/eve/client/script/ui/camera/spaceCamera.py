@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\client\script\ui\camera\spaceCamera.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\client\script\ui\camera\spaceCamera.py
 from math import sin, cos
 from eve.client.script.ui.camera.cameraBase import CameraBase
 from eve.client.script.ui.camera.cameraUtil import GetCameraMaxLookAtRange
@@ -45,6 +46,7 @@ class SpaceCamera(CameraBase):
         self.shakeController = shaker.ShakeController(self)
         self.animationController = camanim.AnimationController(self)
         self.lookingAt = None
+        return
 
     def UpdateCameraBobbing(self):
         self.idleMove = gfxsettings.Get(gfxsettings.UI_CAMERA_BOBBING_ENABLED)
@@ -79,6 +81,7 @@ class SpaceCamera(CameraBase):
         cameraParent = self.GetCameraParent()
         if cameraParent is not None:
             cameraParent.parent = None
+        return
 
     @telemetry.ZONE_METHOD
     def DoBallsRemove(self, pythonBalls, isRelease):
@@ -95,6 +98,7 @@ class SpaceCamera(CameraBase):
                     uthread.new(self._AdjustLookAtTarget, ball)
             elif self.cameraInterestID == ball.id and ball.explodeOnRemove:
                 uthread.new(self._HandleTargetKilled, ball)
+        return
 
     def DoSimClockRebase(self, times):
         self.animationController.DoSimClockRebase(times)
@@ -107,22 +111,26 @@ class SpaceCamera(CameraBase):
             self.LookAt(session.shipid)
         if self.cameraInterestID == ball.id:
             self.Track(None)
+        return
 
     def _AdjustLookAtTarget(self, ball):
         if session.shipid is None:
             return
-        cameraParent = self.GetCameraParent()
-        lookingAtID = self.GetLookAtItemID()
-        if cameraParent and cameraParent.parent and cameraParent.parent == ball.model:
-            cameraParent.parent = None
-        if lookingAtID and ball.id == lookingAtID and lookingAtID != session.shipid:
-            self.LookAt(session.shipid)
+        else:
+            cameraParent = self.GetCameraParent()
+            lookingAtID = self.GetLookAtItemID()
+            if cameraParent and cameraParent.parent and cameraParent.parent == ball.model:
+                cameraParent.parent = None
+            if lookingAtID and ball.id == lookingAtID and lookingAtID != session.shipid:
+                self.LookAt(session.shipid)
+            return
 
-    def OnSpecialFX(self, shipID, moduleID, moduleTypeID, targetID, otherTypeID, guid, isOffensive, start, active, duration = -1, repeat = None, startTime = None, timeFromStart = 0, graphicInfo = None):
+    def OnSpecialFX(self, shipID, moduleID, moduleTypeID, targetID, otherTypeID, guid, isOffensive, start, active, duration=-1, repeat=None, startTime=None, timeFromStart=0, graphicInfo=None):
         if guid == 'effects.Warping':
             if shipID == session.shipid:
                 if self.GetLookAtItemID() is not None and self.GetLookAtItemID() != session.shipid:
                     self.LookAt(session.shipid)
+        return
 
     def OnSetDevice(self, *args):
         if session.stationid:
@@ -131,7 +139,7 @@ class SpaceCamera(CameraBase):
         self.translationFromParent = self.CheckTranslationFromParent(self.translationFromParent)
 
     def OnBallparkSetState(self, *args):
-        self.LookAt(session.shipid, self.cachedCameraTranslation, smooth=False)
+        uthread.new(self.LookAt, session.shipid, self.cachedCameraTranslation, smooth=False)
 
     def OnSessionChanged(self, isRemote, sess, change):
         if 'shipid' in change:
@@ -144,17 +152,19 @@ class SpaceCamera(CameraBase):
                 self.lookingAt = newID
             else:
                 self.LookAt(newID, self.cachedCameraTranslation)
+        return
 
     def _GetTrackableCurve(self, itemID):
         item = sm.StartService('michelle').GetBall(itemID)
         if item is None or getattr(item, 'model', None) is None:
             return
-        if item.model.__bluetype__ in evespacescene.EVESPACE_TRINITY_CLASSES:
+        elif item.model.__bluetype__ in evespacescene.EVESPACE_TRINITY_CLASSES:
             behavior = trinity.EveLocalPositionBehavior.centerBounds
             tracker = trinity.EveLocalPositionCurve(behavior)
             tracker.parent = item.model
             return tracker
-        return item
+        else:
+            return item
 
     def Track(self, itemID):
         self.cameraInterestID = itemID
@@ -163,6 +173,7 @@ class SpaceCamera(CameraBase):
             cameraInterest.translationCurve = None
         trackable = self._GetTrackableCurve(itemID)
         cameraInterest.translationCurve = trackable
+        return
 
     def GetTrackItemID(self):
         return self.cameraInterestID
@@ -170,6 +181,7 @@ class SpaceCamera(CameraBase):
     def _AbortLookAtOther(self):
         self.ResetCamera()
         self.checkDistToEgoThread = None
+        return
 
     def _CheckDistanceToEgo(self):
         while self.checkDistToEgoThread is not None:
@@ -179,22 +191,26 @@ class SpaceCamera(CameraBase):
                     self._AbortLookAtOther()
             blue.synchro.Yield()
 
+        return
+
     def _LookingAtSelf(self):
         scene = sm.GetService('sceneManager').GetRegisteredScene('default')
         if scene is not None and scene.dustfield is not None:
             scene.dustfield.display = True
         self.checkDistToEgoThread = None
+        return
 
     def _IsLookingAtOtherOK(self, item):
         obs = sm.GetService('target').IsObserving()
         if item is None:
             return False
-        if item.mode == destiny.DSTBALL_WARP:
+        elif item.mode == destiny.DSTBALL_WARP:
             return False
-        if not obs and item.surfaceDist > GetCameraMaxLookAtRange():
+        elif not obs and item.surfaceDist > GetCameraMaxLookAtRange():
             sm.GetService('gameui').Say(localization.GetByLabel('UI/Camera/OutsideLookingRange'))
             return False
-        return True
+        else:
+            return True
 
     def _LookingAtOther(self):
         scene = sm.GetService('sceneManager').GetRegisteredScene('default')
@@ -205,42 +221,50 @@ class SpaceCamera(CameraBase):
             self.checkDistToEgoThread = uthread.pool('MenuSvc>checkDistToEgoThread', self._CheckDistanceToEgo)
         return True
 
-    def _WaitForTech3Model(self, item):
-        if item is None or getattr(item, 'model', None) is None:
-            if hasattr(item, 'loadingModel'):
-                while item.loadingModel:
-                    blue.synchro.Yield()
+    def _WaitForModel(self, item):
+        if item is None:
+            return
+        else:
+            maxYieldCount = 100
+            currentYieldCount = 0
+            while getattr(item, 'model', None) is None and currentYieldCount != maxYieldCount:
+                blue.synchro.Yield()
+                currentYieldCount += 1
 
-    def LookAt(self, itemID, setZ = None, resetCamera = False, smooth = True, **kwargs):
+            return
+
+    def LookAt(self, itemID, setZ=None, resetCamera=False, smooth=True, **kwargs):
         item = sm.StartService('michelle').GetBall(itemID)
+        self._WaitForModel(item)
         if not hasattr(item, 'GetModel') or item.GetModel() is None:
             return
-        self._WaitForTech3Model(item)
-        itemIdIsMyShip = itemID == session.shipid
-        if itemIdIsMyShip:
-            self._LookingAtSelf()
-        elif self._IsLookingAtOtherOK(item):
-            self._LookingAtOther()
         else:
+            itemIdIsMyShip = itemID == session.shipid
+            if itemIdIsMyShip:
+                self._LookingAtSelf()
+            elif self._IsLookingAtOtherOK(item):
+                self._LookingAtOther()
+            else:
+                return
+            cameraParent = self.GetCameraParent()
+            if cameraParent is None:
+                return
+            self.GetCameraInterest().translationCurve = None
+            sm.StartService('state').SetState(itemID, state.lookingAt, 1)
+            self.lookingAt = itemID
+            cache = itemIdIsMyShip
+            item.LookAtMe()
+            if itemIdIsMyShip is False:
+                sm.ScatterEvent('OnLookAtOther', itemID)
+            trackableItem = self._GetTrackableCurve(itemID)
+            if not smooth:
+                self.animationController.Schedule(camutils.SetTranslationCurve(trackableItem))
+                self.animationController.Schedule(camutils.LookAt_Pan(setZ, 0.0, cache=cache))
+            else:
+                self._DoAnimatedLookAt(item, setZ, resetCamera, trackableItem, cache=cache)
             return
-        cameraParent = self.GetCameraParent()
-        if cameraParent is None:
-            return
-        self.GetCameraInterest().translationCurve = None
-        sm.StartService('state').SetState(itemID, state.lookingAt, 1)
-        self.lookingAt = itemID
-        cache = itemIdIsMyShip
-        item.LookAtMe()
-        if itemIdIsMyShip is False:
-            sm.ScatterEvent('OnLookAtOther', itemID)
-        trackableItem = self._GetTrackableCurve(itemID)
-        if not smooth:
-            self.animationController.Schedule(camutils.SetTranslationCurve(trackableItem))
-            self.animationController.Schedule(camutils.LookAt_Pan(setZ, 0.0, cache=cache))
-        else:
-            self._DoAnimatedLookAt(item, setZ, resetCamera, trackableItem, cache=cache)
 
-    def _DoAnimatedLookAt(self, item, setZ = None, resetCamera = False, trackableItem = None, cache = False):
+    def _DoAnimatedLookAt(self, item, setZ=None, resetCamera=False, trackableItem=None, cache=False):
         if item.model.__bluetype__ not in evespacescene.EVESPACE_TRINITY_CLASSES:
             self.animationController.Schedule(camutils.SetTranslationCurve(trackableItem))
             return
@@ -251,16 +275,16 @@ class SpaceCamera(CameraBase):
         self.animationController.Schedule(camutils.LookAt_FOV(resetCamera))
         self.animationController.Schedule(camutils.LookAt_Pan(setZ, cache=cache))
 
-    def PanCameraBy(self, percentage, time = 0.0, cache = False):
+    def PanCameraBy(self, percentage, time=0.0, cache=False):
         beg = self.translationFromParent
         end = beg + beg * percentage
         self.PanCamera(beg, end, time, cache)
 
-    def PanCamera(self, cambeg = None, camend = None, time = 0.5, cache = False, source = None):
+    def PanCamera(self, cambeg=None, camend=None, time=0.5, cache=False, source=None):
         cacheTranslation = cache and self.GetLookAtItemID() == session.shipid
         self.animationController.Schedule(camutils.PanCamera(cambeg, camend, time, cacheTranslation, source))
 
-    def TranslateFromParentAccelerated(self, begin, end, durationSec, accelerationPower = 2.0):
+    def TranslateFromParentAccelerated(self, begin, end, durationSec, accelerationPower=2.0):
         self.animationController.Schedule(camutils.PanCameraAccelerated(begin, end, durationSec, accelerationPower))
 
     def ClearAnimations(self):
@@ -273,6 +297,7 @@ class SpaceCamera(CameraBase):
         if self.cameraParent:
             self.cameraParent.translationCurve = None
             self.cameraParent = None
+        return
 
     def GetCameraParent(self):
         if self.cameraParent is None:
@@ -295,23 +320,24 @@ class SpaceCamera(CameraBase):
         ballpark = sm.GetService('michelle').GetBallpark()
         if ballpark is None:
             return
-        ball = ballpark.GetBall(itemID)
-        ball, model, ballRadius = ball, getattr(ball, 'model', None), getattr(ball, 'radius', None)
-        if model is None:
-            return
-        rad = None
-        if model.__bluetype__ in evespacescene.EVESPACE_TRINITY_CLASSES:
-            rad = model.GetBoundingSphereRadius()
-            zoomMultiplier = 1.1 * camutils.GetARZoomMultiplier(trinity.GetAspectRatio())
-            return (rad + self.frontClip) * zoomMultiplier + 2
-        if len(getattr(model, 'children', [])) > 0:
-            rad = ball.model.children[0].GetBoundingSphereRadius()
-        if rad is None or rad <= 0.0:
-            rad = ballRadius
-        camangle = self.fieldOfView * 0.5
-        return max(15.0, rad / sin(camangle) * cos(camangle))
+        else:
+            ball = ballpark.GetBall(itemID)
+            ball, model, ballRadius = ball, getattr(ball, 'model', None), getattr(ball, 'radius', None)
+            if model is None:
+                return
+            rad = None
+            if model.__bluetype__ in evespacescene.EVESPACE_TRINITY_CLASSES:
+                rad = model.GetBoundingSphereRadius()
+                zoomMultiplier = 1.1 * camutils.GetARZoomMultiplier(trinity.GetAspectRatio())
+                return (rad + self.frontClip) * zoomMultiplier + 2
+            if len(getattr(model, 'children', [])) > 0:
+                rad = ball.model.children[0].GetBoundingSphereRadius()
+            if rad is None or rad <= 0.0:
+                rad = ballRadius
+            camangle = self.fieldOfView * 0.5
+            return max(15.0, rad / sin(camangle) * cos(camangle))
 
-    def CheckTranslationFromParent(self, distance, distanceIsScale = False):
+    def CheckTranslationFromParent(self, distance, distanceIsScale=False):
         mn, mx = self._GetMinMaxTranslationFromParent()
         if distanceIsScale:
             distance = mn * distance
@@ -324,12 +350,14 @@ class SpaceCamera(CameraBase):
         mx = TRANSLATION_MAX
         return (mn, mx)
 
-    def ShakeCamera(self, magnitude, position, key = None):
+    def ShakeCamera(self, magnitude, position, key=None):
         behavior = camutils.CreateBehaviorFromMagnitudeAndPosition(magnitude, position, self)
         if behavior is None:
             return
-        behavior.key = key
-        self.shakeController.DoCameraShake(behavior)
+        else:
+            behavior.key = key
+            self.shakeController.DoCameraShake(behavior)
+            return
 
     def OnGraphicSettingsChanged(self, changes):
         if gfxsettings.UI_CAMERA_SHAKE_ENABLED in changes:
@@ -342,3 +370,4 @@ class SpaceCamera(CameraBase):
 
     def OnDeactivated(self, *args, **kwargs):
         self.audio2Listener = None
+        return

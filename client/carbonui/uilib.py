@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\packages\carbonui\uilib.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\packages\carbonui\uilib.py
 import math
 import weakref
 import carbonui.const as uiconst
@@ -68,7 +69,7 @@ class Uilib(object):
     auxiliaryTooltipPosition = None
     cursorPos = (-1, -1)
 
-    def __init__(self, paparazziMode = False):
+    def __init__(self, paparazziMode=False):
         if not paparazziMode:
             sm.RegisterNotify(self)
         if len(trinity.textureAtlasMan.atlases) == 0:
@@ -127,11 +128,13 @@ class Uilib(object):
             self.tooltipHandler = TooltipHandler()
         trinity.device.RegisterResource(self)
         self._hoverThread = None
+        return
 
     def __del__(self, *args):
         trinity.app.eventHandler = None
         if self.renderJob:
             self.renderJob.UnscheduleRecurring()
+        return
 
     def EnableEventHandling(self):
         while not uicore.IsReady():
@@ -153,7 +156,7 @@ class Uilib(object):
         tex = self.textureAtlas.CreateTexture(int(width), int(height))
         return tex
 
-    def CreateRootObject(self, name, width = None, height = None, depthMin = None, depthMax = None, isFullscreen = False, renderTarget = None, renderJob = None):
+    def CreateRootObject(self, name, width=None, height=None, depthMin=None, depthMax=None, isFullscreen=False, renderTarget=None, renderJob=None):
         desktop = UIRoot(pos=(0,
          0,
          width or trinity.app.width,
@@ -252,7 +255,6 @@ class Uilib(object):
         if self._mouseButtonStates.get(uiconst.MOUSELEFT, False):
             x, y, z = self._mouseDownPosition[uiconst.MOUSELEFT]
             return math.sqrt(abs((x - self.x) * (x - self.x) + (y - self.y) * (y - self.y)))
-        return 0
 
     mouseTravel = property(_GetMouseTravel)
 
@@ -290,6 +292,8 @@ class Uilib(object):
     def GetAuxMouseOver(self):
         if self._auxMouseOverRO:
             return self.GetPyObjectFromRenderObject(self._auxMouseOverRO())
+        else:
+            return None
 
     auxMouseOver = property(GetAuxMouseOver)
 
@@ -306,29 +310,30 @@ class Uilib(object):
     def CheckAppFocus(self, hasFocus):
         if getattr(uicore, 'registry', None) is None:
             return
-        uicore.UpdateCursor(self.GetMouseOver(), 1)
-        if hasFocus:
-            modal = uicore.registry.GetModalWindow()
-            if modal:
-                uicore.registry.SetFocus(modal)
-            elif self.appfocusitem and self.appfocusitem():
-                f = self.appfocusitem()
-                if f is not None and not f.destroyed:
-                    uicore.registry.SetFocus(f)
-                self.appfocusitem = None
         else:
-            focus = uicore.registry.GetFocus()
-            if focus:
-                self.appfocusitem = weakref.ref(focus)
-                uicore.registry.SetFocus(None)
-            mouseCaptureItem = self.GetMouseCapture()
-            if mouseCaptureItem:
-                self.ReleaseCapture()
-                self.centerMouse = False
-                self._mouseButtonStates = {}
-                self._mouseDownPosition = {}
-                self._TryExecuteHandler(uiconst.UI_MOUSEUP, mouseCaptureItem, (uiconst.MOUSELEFT,))
-        return 1
+            uicore.UpdateCursor(self.GetMouseOver(), 1)
+            if hasFocus:
+                modal = uicore.registry.GetModalWindow()
+                if modal:
+                    uicore.registry.SetFocus(modal)
+                elif self.appfocusitem and self.appfocusitem():
+                    f = self.appfocusitem()
+                    if f is not None and not f.destroyed:
+                        uicore.registry.SetFocus(f)
+                    self.appfocusitem = None
+            else:
+                focus = uicore.registry.GetFocus()
+                if focus:
+                    self.appfocusitem = weakref.ref(focus)
+                    uicore.registry.SetFocus(None)
+                mouseCaptureItem = self.GetMouseCapture()
+                if mouseCaptureItem:
+                    self.ReleaseCapture()
+                    self.centerMouse = False
+                    self._mouseButtonStates = {}
+                    self._mouseDownPosition = {}
+                    self._TryExecuteHandler(uiconst.UI_MOUSEUP, mouseCaptureItem, (uiconst.MOUSELEFT,))
+            return 1
 
     def CheckAccelerators(self, vkey, flag):
         modkeys = self.GetModifierKeyState(vkey)
@@ -338,7 +343,7 @@ class Uilib(object):
             return True
         return False
 
-    def GetModifierKeyState(self, vkey = None):
+    def GetModifierKeyState(self, vkey=None):
         ret = []
         for key in uiconst.MODKEYS:
             ret.append(trinity.app.Key(key) and key != vkey)
@@ -422,6 +427,8 @@ class Uilib(object):
         pyObject = self.renderObjectToPyObjectDict.get(RO, None)
         if pyObject and not pyObject.destroyed:
             return pyObject
+        else:
+            return
 
     def AddRootObject(self, obj):
         if self.rootObjectsByName.has_key(obj.name):
@@ -447,6 +454,7 @@ class Uilib(object):
             if self._mouseTargetObject.GetOwner():
                 return self._mouseTargetObject
             self._mouseTargetObject = None
+        return
 
     @telemetry.ZONE_METHOD
     def Update(self, *args):
@@ -478,64 +486,67 @@ class Uilib(object):
             self.sceneViewStep.view = camera.viewMatrix
             self.sceneViewStep.camera = None
             self.sceneProjectionStep.projection = camera.projectionMatrix
+        return
 
     def SetSceneView(self, view, projection):
         self.sceneViewStep.camera = None
         self.sceneViewStep.view = view
         self.sceneProjectionStep.projection = projection
+        return
 
     @telemetry.ZONE_METHOD
     def UpdateMouseOver(self, *args):
         pyObject = None
         auxRenderObject = None
         cursorX, cursorY = self.cursorPos
-        if 0 <= cursorX <= trinity.app.width and 0 <= cursorY <= trinity.app.height:
-            mouseTargetObject = self.GetMouseTargetObject()
-            if mouseTargetObject and mouseTargetObject.IsMouseHeadingTowards():
-                return
-            triobj, pyObject = self.PickScreenPosition(int(uicore.ScaleDpi(self.x)), int(uicore.ScaleDpi(self.y)))
-            if getattr(triobj, 'auxMouseover', None):
-                auxRenderObject = triobj.auxMouseover
-        newMouseOver = pyObject or uicore.desktop
-        currentMouseOver = self.GetMouseOver()
-        currentAuxiliaryTooltip = getattr(self, 'auxiliaryTooltip', None)
-        if auxRenderObject:
-            self._auxMouseOverRO = weakref.ref(auxRenderObject)
-            pyAuxObject = self.GetPyObjectFromRenderObject(auxRenderObject)
-            if pyAuxObject and hasattr(pyAuxObject, 'GetAuxiliaryTooltip'):
-                self.auxiliaryTooltip = pyAuxObject.GetAuxiliaryTooltip()
-                self.auxiliaryTooltipPosition = pyAuxObject.GetAuxiliaryTooltipPosition()
+        if 0 <= cursorX <= trinity.app.width:
+            if 0 <= cursorY <= trinity.app.height:
+                mouseTargetObject = self.GetMouseTargetObject()
+                if mouseTargetObject and mouseTargetObject.IsMouseHeadingTowards():
+                    return
+                triobj, pyObject = self.PickScreenPosition(int(uicore.ScaleDpi(self.x)), int(uicore.ScaleDpi(self.y)))
+                if getattr(triobj, 'auxMouseover', None):
+                    auxRenderObject = triobj.auxMouseover
+            newMouseOver = pyObject or uicore.desktop
+            currentMouseOver = self.GetMouseOver()
+            currentAuxiliaryTooltip = getattr(self, 'auxiliaryTooltip', None)
+            if auxRenderObject:
+                self._auxMouseOverRO = weakref.ref(auxRenderObject)
+                pyAuxObject = self.GetPyObjectFromRenderObject(auxRenderObject)
+                if pyAuxObject and hasattr(pyAuxObject, 'GetAuxiliaryTooltip'):
+                    self.auxiliaryTooltip = pyAuxObject.GetAuxiliaryTooltip()
+                    self.auxiliaryTooltipPosition = pyAuxObject.GetAuxiliaryTooltipPosition()
+                else:
+                    self.auxiliaryTooltip = None
+                    self.auxiliaryTooltipPosition = None
             else:
                 self.auxiliaryTooltip = None
                 self.auxiliaryTooltipPosition = None
-        else:
-            self.auxiliaryTooltip = None
-            self.auxiliaryTooltipPosition = None
-            self._auxMouseOverRO = None
-        mouseCaptureItem = self.GetMouseCapture()
-        if newMouseOver is not self.mouseOver:
-            self._mouseOver = weakref.ref(newMouseOver)
-        if currentMouseOver is not newMouseOver or currentAuxiliaryTooltip != self.auxiliaryTooltip:
-            self.FlagTooltipsDirty()
-        if not mouseCaptureItem and currentMouseOver is not newMouseOver:
-            if self._hoverThread:
-                self._hoverThread.kill()
-            uicore.HideHint()
-            if currentMouseOver:
-                if uicore.IsDragging() and isinstance(currentMouseOver, DragDropObject) and uicore.dragObject is not currentMouseOver:
-                    currentMouseOver.OnDragExit(uicore.dragObject, uicore.dragObject.dragData)
-                else:
-                    self._TryExecuteHandler(uiconst.UI_MOUSEEXIT, currentMouseOver, param=None)
-            if newMouseOver:
-                if uicore.IsDragging() and isinstance(newMouseOver, DragDropObject) and uicore.dragObject is not newMouseOver:
-                    newMouseOver.OnDragEnter(uicore.dragObject, uicore.dragObject.dragData)
-                else:
-                    self._TryExecuteHandler(uiconst.UI_MOUSEENTER, newMouseOver, param=None)
-                hoverHandlerArgs, hoverHandler = self.FindEventHandler(newMouseOver, self.EVENTMAP[uiconst.UI_MOUSEHOVER])
-                if hoverHandler:
-                    self._hoverThread = uthread.new(self._HoverThread)
+                self._auxMouseOverRO = None
+            mouseCaptureItem = self.GetMouseCapture()
+            if newMouseOver is not self.mouseOver:
+                self._mouseOver = weakref.ref(newMouseOver)
+            if currentMouseOver is not newMouseOver or currentAuxiliaryTooltip != self.auxiliaryTooltip:
+                self.FlagTooltipsDirty()
+            if not mouseCaptureItem and currentMouseOver is not newMouseOver:
+                if self._hoverThread:
+                    self._hoverThread.kill()
+                uicore.HideHint()
+                if currentMouseOver:
+                    if uicore.IsDragging() and isinstance(currentMouseOver, DragDropObject) and uicore.dragObject is not currentMouseOver:
+                        currentMouseOver.OnDragExit(uicore.dragObject, uicore.dragObject.dragData)
+                    else:
+                        self._TryExecuteHandler(uiconst.UI_MOUSEEXIT, currentMouseOver, param=None)
+                if newMouseOver:
+                    if uicore.IsDragging() and isinstance(newMouseOver, DragDropObject) and uicore.dragObject is not newMouseOver:
+                        newMouseOver.OnDragEnter(uicore.dragObject, uicore.dragObject.dragData)
+                    else:
+                        self._TryExecuteHandler(uiconst.UI_MOUSEENTER, newMouseOver, param=None)
+                    hoverHandlerArgs, hoverHandler = self.FindEventHandler(newMouseOver, self.EVENTMAP[uiconst.UI_MOUSEHOVER])
+                    self._hoverThread = hoverHandler and uthread.new(self._HoverThread)
             uicore.CheckCursor()
             self.CheckWindowEnterExit()
+        return
 
     def PickScreenPosition(self, x, y):
         triobj = None
@@ -566,7 +577,7 @@ class Uilib(object):
 
         return (triobj, pyObject)
 
-    def FlagTooltipsDirty(self, instant = False):
+    def FlagTooltipsDirty(self, instant=False):
         if self.tooltipHandler:
             self.tooltipHandler.FlagTooltipsDirty(instant)
 
@@ -779,6 +790,8 @@ class Uilib(object):
         except:
             log.LogException()
 
+        return
+
     def CheckCallbacks(self, obj, msgID, param):
         for cookie, (wr, args, kw) in self._triuiRegsByMsgID.get(msgID, {}).items():
             try:
@@ -809,6 +822,7 @@ class Uilib(object):
     def ResetClickCounter(self, *args):
         self._clickTimer = None
         self._clickCount = 0
+        return
 
     def ResolveOnChar(self, char, flag):
         ignore = (uiconst.VK_RETURN, uiconst.VK_BACK)
@@ -844,8 +858,9 @@ class Uilib(object):
                 self._TryExecuteHandler(uiconst.UI_CLICK, currentMouseOver, param=(wParam, lParam))
                 self.SetClickObject(currentMouseOver)
                 self._clickPosition = (self.x, self.y)
+        return
 
-    def _TryExecuteHandler(self, eventID, object, eventArgs = None, param = None):
+    def _TryExecuteHandler(self, eventID, object, eventArgs=None, param=None):
         functionName = self.EVENTMAP.get(eventID, None)
         if functionName is None:
             raise NotImplementedError
@@ -895,21 +910,23 @@ class Uilib(object):
     def SetCursor(self, cursorIx):
         if self.exclusiveMouseFocusActive:
             return
-        cursorResPath = 'res:/UI/Cursor/cursor{0:02}_{platform}.dds'.format(cursorIx, platform=trinity.platform)
-        if not blue.paths.exists(cursorResPath):
-            cursorResPath = 'res:/UI/Cursor/cursor{0:02}.dds'.format(cursorIx)
-        cursor = self.cursorCache.get(cursorResPath, None)
-        if cursor is None:
-            bmp = trinity.Tr2HostBitmap()
-            bmp.CreateFromFile(cursorResPath)
-            cursor = trinity.Tr2MouseCursor(bmp, 16, 15)
-            self.cursorCache[cursorResPath] = cursor
-        self.SetCursorProperties(cursor)
+        else:
+            cursorResPath = 'res:/UI/Cursor/cursor{0:02}_{platform}.dds'.format(cursorIx, platform=trinity.platform)
+            if not blue.paths.exists(cursorResPath):
+                cursorResPath = 'res:/UI/Cursor/cursor{0:02}.dds'.format(cursorIx)
+            cursor = self.cursorCache.get(cursorResPath, None)
+            if cursor is None:
+                bmp = trinity.Tr2HostBitmap()
+                bmp.CreateFromFile(cursorResPath)
+                cursor = trinity.Tr2MouseCursor(bmp, 16, 15)
+                self.cursorCache[cursorResPath] = cursor
+            self.SetCursorProperties(cursor)
+            return
 
     def FindWindow(self, wndName, fromParent):
         return trinity.app.uilib.FindWindow(wndName, fromParent)
 
-    def SetMouseCapture(self, item, retainFocus = False):
+    def SetMouseCapture(self, item, retainFocus=False):
         self._capturingMouseItem = weakref.ref(item)
         self.exclusiveMouseFocusActive = retainFocus
         self.FlagTooltipsDirty()
@@ -923,6 +940,7 @@ class Uilib(object):
                 return captureItem
             self._capturingMouseItem = None
             self.exclusiveMouseFocusActive = False
+        return
 
     GetCapture = GetMouseCapture
     capture = property(GetMouseCapture)
@@ -936,11 +954,12 @@ class Uilib(object):
             if clickObject and not clickObject.destroyed:
                 return clickObject
 
-    def ReleaseCapture(self, itemReleasing = None):
+    def ReleaseCapture(self, itemReleasing=None):
         self._capturingMouseItem = None
         self.exclusiveMouseFocusActive = False
         self.FlagTooltipsDirty()
         uicore.UpdateCursor(uicore.uilib.mouseOver)
+        return
 
     def ClipCursor(self, *rect):
         self._cursorClip = rect
@@ -950,6 +969,7 @@ class Uilib(object):
     def UnclipCursor(self, *args):
         self._cursorClip = None
         trinity.app.UnclipCursor()
+        return
 
     def _HoverThread(self):
         while True:

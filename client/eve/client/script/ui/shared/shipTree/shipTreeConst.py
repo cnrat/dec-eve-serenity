@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\client\script\ui\shared\shipTree\shipTreeConst.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\client\script\ui\shared\shipTree\shipTreeConst.py
 import eve.common.lib.appConst as const
 from carbonui.util.color import Color
 import localization
@@ -152,8 +153,10 @@ def GetTagIconForType(typeID):
     techLevel = sm.GetService('godma').GetTypeAttribute(typeID, const.attributeTechLevel)
     if techLevel == 2:
         return 'res:/UI/Texture/classes/ShipTree/tech/tech2.png'
-    if techLevel == 3:
+    elif techLevel == 3:
         return 'res:/UI/Texture/classes/ShipTree/tech/tech3.png'
     metaGroupID = sm.GetService('godma').GetTypeAttribute(typeID, const.attributeMetaGroupID)
     if metaGroupID == const.metaGroupFaction:
         return 'res:/UI/Texture/classes/ShipTree/tech/navy.png'
+    else:
+        return None

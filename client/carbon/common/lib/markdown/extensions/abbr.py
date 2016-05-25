@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\carbon\common\lib\markdown\extensions\abbr.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\carbon\common\lib\markdown\extensions\abbr.py
 import re
 import markdown
 from markdown.util import etree
@@ -46,7 +47,7 @@ class AbbrPattern(markdown.inlinepatterns.Pattern):
         return abbr
 
 
-def makeExtension(configs = None):
+def makeExtension(configs=None):
     return AbbrExtension(configs=configs)
 
 

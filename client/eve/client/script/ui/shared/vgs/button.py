@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\client\script\ui\shared\vgs\button.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\client\script\ui\shared\vgs\button.py
 from carbonui import const as uiconst
 from carbonui.primitives.container import Container
 from carbonui.primitives.containerAutoSize import ContainerAutoSize
@@ -22,7 +23,6 @@ COLOR_ISK = (0.2, 0.6, 0.8, 1.0)
 COLOR_PLEX = (0.902, 0.659, 0.18, 1.0)
 
 @Component(ButtonEffect(audioOnEntry='store_menuhover', audioOnClick='store_click'))
-
 class ButtonCore(ContainerAutoSize):
     default_alignMode = uiconst.TOPLEFT
     default_color = (0.4, 0.4, 0.4, 1.0)
@@ -82,6 +82,7 @@ class ButtonCore(ContainerAutoSize):
                 shadow.renderObject.spriteEffect = trinity.TR2_SFX_BLUR
                 Frame(parent=labelCont, align=uiconst.TOALL, texturePath='res:/UI/Texture/Vgs/radialShadow.png', cornerSize=8, color=labelShadowColor, opacity=labelShadowColor[3] * 0.5)
         self.SetSizeAutomatically()
+        return
 
     def OnClick(self, *args):
         if self.disabled:
@@ -127,6 +128,7 @@ class BuyButtonAurCore(ButtonCore):
         types = attributes.get('types', None)
         if types is not None:
             uthread.new(self.FindOffersAndReveal, types)
+        return
 
     def FindOffersAndReveal(self, types):
         try:
@@ -179,9 +181,11 @@ class BuyButtonIskCore(ButtonCore):
             attributes.onClick = self.OpenMarketWindow
         super(BuyButtonIskCore, self).ApplyAttributes(attributes)
         self.typeID = attributes.get('typeID', None)
+        return
 
     def OpenMarketWindow(self):
         sm.GetService('marketutils').ShowMarketDetails(self.typeID, None)
+        return
 
 
 class BuyButtonIsk(BuyButtonIskCore):
@@ -221,6 +225,7 @@ class BuyButtonPlex(ButtonCore):
             attributes.onClick = self.OpenAccountManagement
         super(BuyButtonPlex, self).ApplyAttributes(attributes)
         self.logContext = attributes.get('logContext', self.default_logContext)
+        return
 
     def OpenAccountManagement(self):
         sm.GetService('cmd').BuyPlexOnline()

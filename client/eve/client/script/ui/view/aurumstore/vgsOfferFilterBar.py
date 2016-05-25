@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\client\script\ui\view\aurumstore\vgsOfferFilterBar.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\client\script\ui\view\aurumstore\vgsOfferFilterBar.py
 from carbonui.primitives.container import Container
 from eve.client.script.ui.util.uiComponents import Component, ToggleButtonEffect
 from eve.client.script.ui.view.aurumstore.vgsUiConst import TAG_TEXT_COLOR, TAG_TEXT_OFF_COLOR
@@ -8,7 +9,6 @@ import uthread
 from carbonui import const as uiconst
 
 @Component(ToggleButtonEffect(bgElementFunc=lambda parent, _: parent.label, opacityHover=0.7, opacityMouseDown=1.0, opacityIdle=0.0, audioOnEntry='store_menuhover', audioOnClick='store_click'))
-
 class FilterButton(Container):
     default_state = uiconst.UI_NORMAL
     default_padding = (0, 2, 0, 4)
@@ -35,7 +35,7 @@ class VgsOfferFilterBar(Container):
         self.onFilterChanged = attributes.onFilterChanged
         self.filterButtons = []
 
-    def SetTags(self, tags, activeTags = set()):
+    def SetTags(self, tags, activeTags=set()):
         self.Flush()
         self.filterButtons = []
         tags = localization.util.Sort(tags, key=lambda t: t.name, reverse=True)

@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\carbon\common\lib\werkzeug\_internal.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\carbon\common\lib\werkzeug\_internal.py
 import inspect
 from weakref import WeakKeyDictionary
 from cStringIO import StringIO
@@ -64,10 +65,10 @@ HTTP_STATUS_CODES = {100: 'Continue',
 class _Missing(object):
 
     def __repr__(self):
-        return 'no value'
+        pass
 
     def __reduce__(self):
-        return '_missing'
+        pass
 
 
 _missing = _Missing()
@@ -95,6 +96,7 @@ def _log(type, message, *args, **kwargs):
             handler = logging.StreamHandler()
             _logger.addHandler(handler)
     getattr(_logger, type)(message.rstrip(), *args, **kwargs)
+    return
 
 
 def _parse_signature(func):
@@ -103,62 +105,63 @@ def _parse_signature(func):
     parse = _signature_cache.get(func)
     if parse is not None:
         return parse
-    positional, vararg_var, kwarg_var, defaults = inspect.getargspec(func)
-    defaults = defaults or ()
-    arg_count = len(positional)
-    arguments = []
-    for idx, name in enumerate(positional):
-        if isinstance(name, list):
-            raise TypeError('cannot parse functions that unpack tuples in the function signature')
-        try:
-            default = defaults[idx - arg_count]
-        except IndexError:
-            param = (name, False, None)
-        else:
-            param = (name, True, default)
-
-        arguments.append(param)
-
-    arguments = tuple(arguments)
-
-    def parse(args, kwargs):
-        new_args = []
-        missing = []
-        extra = {}
-        for idx, (name, has_default, default) in enumerate(arguments):
+    else:
+        positional, vararg_var, kwarg_var, defaults = inspect.getargspec(func)
+        defaults = defaults or ()
+        arg_count = len(positional)
+        arguments = []
+        for idx, name in enumerate(positional):
+            if isinstance(name, list):
+                raise TypeError('cannot parse functions that unpack tuples in the function signature')
             try:
-                new_args.append(args[idx])
+                default = defaults[idx - arg_count]
             except IndexError:
-                try:
-                    new_args.append(kwargs.pop(name))
-                except KeyError:
-                    if has_default:
-                        new_args.append(default)
-                    else:
-                        missing.append(name)
-
+                param = (name, False, None)
             else:
-                if name in kwargs:
-                    extra[name] = kwargs.pop(name)
+                param = (name, True, default)
 
-        extra_positional = args[arg_count:]
-        if vararg_var is not None:
-            new_args.extend(extra_positional)
-            extra_positional = ()
-        if kwargs and kwarg_var is None:
-            extra.update(kwargs)
-            kwargs = {}
-        return (new_args,
-         kwargs,
-         missing,
-         extra,
-         extra_positional,
-         arguments,
-         vararg_var,
-         kwarg_var)
+            arguments.append(param)
 
-    _signature_cache[func] = parse
-    return parse
+        arguments = tuple(arguments)
+
+        def parse(args, kwargs):
+            new_args = []
+            missing = []
+            extra = {}
+            for idx, (name, has_default, default) in enumerate(arguments):
+                try:
+                    new_args.append(args[idx])
+                except IndexError:
+                    try:
+                        new_args.append(kwargs.pop(name))
+                    except KeyError:
+                        if has_default:
+                            new_args.append(default)
+                        else:
+                            missing.append(name)
+
+                else:
+                    if name in kwargs:
+                        extra[name] = kwargs.pop(name)
+
+            extra_positional = args[arg_count:]
+            if vararg_var is not None:
+                new_args.extend(extra_positional)
+                extra_positional = ()
+            if kwargs and kwarg_var is None:
+                extra.update(kwargs)
+                kwargs = {}
+            return (new_args,
+             kwargs,
+             missing,
+             extra,
+             extra_positional,
+             arguments,
+             vararg_var,
+             kwarg_var)
+
+        _signature_cache[func] = parse
+        return parse
 
 
 def _patch_wrapper(old, new):
@@ -185,6 +188,8 @@ def _decode_unicode(value, charset, errors):
             return value.decode(fallback, 'ignore')
         from werkzeug.exceptions import HTTPUnicodeError
         raise HTTPUnicodeError(str(e))
+
+    return
 
 
 def _iter_modules(path):
@@ -243,12 +248,13 @@ class _ExtendedMorsel(Morsel):
     _reserved = {'httponly': 'HttpOnly'}
     _reserved.update(Morsel._reserved)
 
-    def __init__(self, name = None, value = None):
+    def __init__(self, name=None, value=None):
         Morsel.__init__(self)
         if name is not None:
             self.set(name, value, value)
+        return
 
-    def OutputString(self, attrs = None):
+    def OutputString(self, attrs=None):
         httponly = self.pop('httponly', False)
         result = Morsel.OutputString(self, attrs).rstrip('\t ;')
         if httponly:
@@ -271,7 +277,7 @@ class _ExtendedCookie(BaseCookie):
 class _DictAccessorProperty(object):
     read_only = False
 
-    def __init__(self, name, default = None, load_func = None, dump_func = None, read_only = None, doc = None):
+    def __init__(self, name, default=None, load_func=None, dump_func=None, read_only=None, doc=None):
         self.name = name
         self.default = default
         self.load_func = load_func
@@ -279,21 +285,23 @@ class _DictAccessorProperty(object):
         if read_only is not None:
             self.read_only = read_only
         self.__doc__ = doc
+        return
 
-    def __get__(self, obj, type = None):
+    def __get__(self, obj, type=None):
         if obj is None:
             return self
-        storage = self.lookup(obj)
-        if self.name not in storage:
-            return self.default
-        rv = storage[self.name]
-        if self.load_func is not None:
-            try:
-                rv = self.load_func(rv)
-            except (ValueError, TypeError):
-                rv = self.default
+        else:
+            storage = self.lookup(obj)
+            if self.name not in storage:
+                return self.default
+            rv = storage[self.name]
+            if self.load_func is not None:
+                try:
+                    rv = self.load_func(rv)
+                except (ValueError, TypeError):
+                    rv = self.default
 
-        return rv
+            return rv
 
     def __set__(self, obj, value):
         if self.read_only:
@@ -301,11 +309,13 @@ class _DictAccessorProperty(object):
         if self.dump_func is not None:
             value = self.dump_func(value)
         self.lookup(obj)[self.name] = value
+        return
 
     def __delete__(self, obj):
         if self.read_only:
             raise AttributeError('read only property')
         self.lookup(obj).pop(self.name, None)
+        return
 
     def __repr__(self):
         return '<%s %s>' % (self.__class__.__name__, self.name)
@@ -316,13 +326,14 @@ def _easteregg(app):
 
     def easteregged(environ, start_response):
 
-        def injecting_start_response(status, headers, exc_info = None):
+        def injecting_start_response(status, headers, exc_info=None):
             headers.append(('X-Powered-By', 'Werkzeug'))
             return start_response(status, headers, exc_info)
 
         if environ.get('QUERY_STRING') != 'macgybarchakku':
             return app(environ, injecting_start_response)
-        injecting_start_response('200 OK', [('Content-Type', 'text/html')])
-        return ['<!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.01//EN">\n<title>About Werkzeug</>\n<style type="text/css">\n  body { font: 15px Georgia, serif; text-align: center; }\n  a { color: #333; text-decoration: none; }\n  h1 { font-size: 30px; margin: 20px 0 10px 0; }\n  p { margin: 0 0 30px 0; }\n  pre { font: 11px \'Consolas\', \'Monaco\', monospace; line-height: 0.95; }\n</style>\n<h1><a href="http://werkzeug.pocoo.org/">Werkzeug</a></h1>\n<p>the Swiss Army knife of Python web development.\n<pre>%s\n\n\n</>' % gyver]
+        else:
+            injecting_start_response('200 OK', [('Content-Type', 'text/html')])
+            return ['<!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.01//EN">\n<title>About Werkzeug</>\n<style type="text/css">\n  body { font: 15px Georgia, serif; text-align: center; }\n  a { color: #333; text-decoration: none; }\n  h1 { font-size: 30px; margin: 20px 0 10px 0; }\n  p { margin: 0 0 30px 0; }\n  pre { font: 11px \'Consolas\', \'Monaco\', monospace; line-height: 0.95; }\n</style>\n<h1><a href="http://werkzeug.pocoo.org/">Werkzeug</a></h1>\n<p>the Swiss Army knife of Python web development.\n<pre>%s\n\n\n</>' % gyver]
 
     return easteregged

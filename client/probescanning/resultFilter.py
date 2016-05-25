@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\packages\probescanning\resultFilter.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\packages\probescanning\resultFilter.py
 import probescanning.const
 import inventorycommon.const
 RESULTFILTERID_SHOWALL = 0
@@ -49,29 +50,31 @@ class ResultFilter(object):
         _, groups = self.GetFilter(self.activeFilter)
         if groups is None:
             return probescanning.const.probeScanGroups.keys()
-        masterGroups = set()
-        for groupID in groups:
-            for scanGroupID, scanGroup in probescanning.const.probeScanGroups.iteritems():
-                if isinstance(groupID, tuple):
-                    groupID = groupID[0]
-                if groupID in scanGroup:
-                    masterGroups.add(scanGroupID)
+        else:
+            masterGroups = set()
+            for groupID in groups:
+                for scanGroupID, scanGroup in probescanning.const.probeScanGroups.iteritems():
+                    if isinstance(groupID, tuple):
+                        groupID = groupID[0]
+                    if groupID in scanGroup:
+                        masterGroups.add(scanGroupID)
 
-        return masterGroups
+            return masterGroups
 
     def GetMasterGroupsForActiveFilterSet(self):
         groups = self.GetActiveFilterSetGroupIDs()
         if groups is None:
             return probescanning.const.probeScanGroups.keys()
-        masterGroups = set()
-        for groupID in groups:
-            for scanGroupID, scanGroup in probescanning.const.probeScanGroups.iteritems():
-                if isinstance(groupID, tuple):
-                    groupID = groupID[0]
-                if groupID in scanGroup:
-                    masterGroups.add(scanGroupID)
+        else:
+            masterGroups = set()
+            for groupID in groups:
+                for scanGroupID, scanGroup in probescanning.const.probeScanGroups.iteritems():
+                    if isinstance(groupID, tuple):
+                        groupID = groupID[0]
+                    if groupID in scanGroup:
+                        masterGroups.add(scanGroupID)
 
-        return masterGroups
+            return masterGroups
 
     def GetFilters(self):
         defaultFilters = [ (self.GetByLabel(label), filterID) for filterID, (label, _) in _defaultFilters.iteritems() if filterID not in self.deletedFilters ]
@@ -143,8 +146,9 @@ class ResultFilter(object):
             self.activeFilter = self.GetSetting('probescanning.resultFilter.activeFilter', RESULTFILTERID_SHOWALL)
             self.activeFilterSet = set(self.GetSetting('probescanning.resultFilter.activeFilterSet', set(_defaultFilterSet)))
         self.showingAnomalies = self.GetSetting('probescanning.resultFilter.showingAnomalies', True)
+        return
 
-    def IsFiltered(self, result, useFilterSet = False):
+    def IsFilteredOut(self, result, useFilterSet=False):
         if useFilterSet:
             currentFilter = self.GetActiveFilterSetGroupIDs()
             if not currentFilter:
@@ -154,7 +158,7 @@ class ResultFilter(object):
             filterName, currentFilter = self.GetActiveFilter()
             masterGroups = self.GetMasterGroupsForActiveFilter()
         if currentFilter:
-            if result['certainty'] >= probescanning.const.probeResultGood:
+            if result.get('isIdentified', False):
                 if result['groupID'] == inventorycommon.const.groupCosmicSignature:
                     if (result['groupID'], result['strengthAttributeID']) not in currentFilter:
                         return True

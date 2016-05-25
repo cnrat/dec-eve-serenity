@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\carbon\common\stdlib\unittest\test\test_result.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\carbon\common\stdlib\unittest\test\test_result.py
 import sys
 import textwrap
 from StringIO import StringIO
@@ -140,16 +141,19 @@ class Test_TestResult(unittest.TestCase):
     def testGetDescriptionWithoutDocstring(self):
         result = unittest.TextTestResult(None, True, 1)
         self.assertEqual(result.getDescription(self), 'testGetDescriptionWithoutDocstring (' + __name__ + '.Test_TestResult)')
+        return
 
     @unittest.skipIf(sys.flags.optimize >= 2, 'Docstrings are omitted with -O2 and above')
     def testGetDescriptionWithOneLineDocstring(self):
         result = unittest.TextTestResult(None, True, 1)
         self.assertEqual(result.getDescription(self), 'testGetDescriptionWithOneLineDocstring (' + __name__ + '.Test_TestResult)\nTests getDescription() for a method with a docstring.')
+        return
 
     @unittest.skipIf(sys.flags.optimize >= 2, 'Docstrings are omitted with -O2 and above')
     def testGetDescriptionWithMultiLineDocstring(self):
         result = unittest.TextTestResult(None, True, 1)
         self.assertEqual(result.getDescription(self), 'testGetDescriptionWithMultiLineDocstring (' + __name__ + '.Test_TestResult)\nTests getDescription() for a method with a longer docstring.')
+        return
 
     def testStackFrameTrimming(self):
 
@@ -179,6 +183,7 @@ class Test_TestResult(unittest.TestCase):
         result.failfast = True
         result.addUnexpectedSuccess(None)
         self.assertTrue(result.shouldStop)
+        return
 
     def testFailFastSetByRunner(self):
         runner = unittest.TextTestRunner(stream=StringIO(), failfast=True)
@@ -196,7 +201,7 @@ for m in ('addSkip',
  '__init__'):
     del classDict[m]
 
-def __init__(self, stream = None, descriptions = None, verbosity = None):
+def __init__(self, stream=None, descriptions=None, verbosity=None):
     self.failures = []
     self.errors = []
     self.testsRun = 0
@@ -249,7 +254,6 @@ class Test_OldTestResult(unittest.TestCase):
     def testOldTestResultClass(self):
 
         @unittest.skip('no reason')
-
         class Test(unittest.TestCase):
 
             def testFoo(self):
@@ -369,6 +373,8 @@ class TestOutputBuffering(unittest.TestCase):
             self.assertEqual(result._original_stdout.getvalue(), expectedOutMessage)
             self.assertEqual(result._original_stderr.getvalue(), expectedErrMessage)
             self.assertMultiLineEqual(message, expectedFullMessage)
+
+        return None
 
 
 if __name__ == '__main__':

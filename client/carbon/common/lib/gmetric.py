@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\carbon\common\lib\gmetric.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\carbon\common\lib\gmetric.py
 from xdrlib import Packer, Unpacker
 import socket
 slope_str2int = {'zero': 0,
@@ -24,7 +25,7 @@ class Gmetric:
             self.socket.setsockopt(socket.IPPROTO_IP, socket.IP_MULTICAST_TTL, 20)
         self.hostport = (host, int(port))
 
-    def send(self, NAME, VAL, TYPE = '', UNITS = '', SLOPE = 'both', TMAX = 60, DMAX = 0, GROUP = '', SPOOF = ''):
+    def send(self, NAME, VAL, TYPE='', UNITS='', SLOPE='both', TMAX=60, DMAX=0, GROUP='', SPOOF=''):
         if SLOPE not in slope_str2int:
             raise ValueError('Slope must be one of: ' + str(self.slope.keys()))
         if TYPE not in self.type:

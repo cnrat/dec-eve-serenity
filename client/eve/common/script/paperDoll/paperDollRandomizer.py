@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\common\script\paperDoll\paperDollRandomizer.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\common\script\paperDoll\paperDollRandomizer.py
 import random
 import itertools
 from . import paperDollDefinitions as pdDef
@@ -9,7 +10,7 @@ class AbstractRandomizer(object):
     __guid__ = 'paperDoll.AbstractRandomizer'
 
     @staticmethod
-    def SelectManyFromCollection(collection, minElems = None, maxElems = None):
+    def SelectManyFromCollection(collection, minElems=None, maxElems=None):
         if collection:
             cLen = len(collection)
             minElems = min(cLen, minElems or 0)
@@ -19,12 +20,13 @@ class AbstractRandomizer(object):
         return []
 
     @staticmethod
-    def SelectOneFromCollection(collection, oddsOfSelectingNone = None):
+    def SelectOneFromCollection(collection, oddsOfSelectingNone=None):
         if collection:
             oddsOfSelectingNone = oddsOfSelectingNone or 0.0
             oddsOfSelectingNone = min(oddsOfSelectingNone, 1.0)
             if random.random() >= oddsOfSelectingNone:
                 return random.choice(collection)
+        return None
 
 
 class DollRandomizer(object):
@@ -64,6 +66,7 @@ class DollRandomizer(object):
         self.weights = {}
         self.__pathsToRandomizeWeights = {}
         self.oddsOfSelectingNoneForCategory = {}
+        return
 
     def ListOptions(self, category):
         return self.modifierLoader.ListOptions(self.gender, cat=category)
@@ -172,10 +175,11 @@ class DollRandomizer(object):
 
         return self.__blendshapeOptions
 
-    def AddCategoryForWhitelistRandomization(self, category, oddsOfSelectingNone = None):
+    def AddCategoryForWhitelistRandomization(self, category, oddsOfSelectingNone=None):
         self.filterCategoriesForRandomization.append(category)
         if oddsOfSelectingNone is not None:
             self.oddsOfSelectingNoneForCategory[category] = oddsOfSelectingNone
+        return
 
     def AddPathForWeightRandomization(self, path, lowerlimit, upperlimit):
         if lowerlimit <= 0.0 or upperlimit > 1.0:
@@ -221,7 +225,7 @@ class DollRandomizer(object):
             for m in mods:
                 doll.RemoveResource(m.categorie + '/' + m.name, self.modifierLoader)
 
-    def GetDoll(self, randomizeBlendshapes = True, doll = None):
+    def GetDoll(self, randomizeBlendshapes=True, doll=None):
         resourceDict = self.GetResources()
         if randomizeBlendshapes:
             blendshapeOptions = self.GetBlendshapeOptions()

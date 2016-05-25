@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\packages\fsdlite\cache.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\packages\fsdlite\cache.py
 import os
 import time
 import sqlite3
@@ -55,6 +56,7 @@ class Cache(DictMixin):
         if connection:
             connection.commit()
             connection.close()
+        return
 
     def __nonzero__(self):
         return True
@@ -65,6 +67,7 @@ class Cache(DictMixin):
             if item is None:
                 raise KeyError('Not in cache')
             return item
+        return
 
     def __getitem__(self, key):
         return self._row(key)[0]
@@ -80,6 +83,7 @@ class Cache(DictMixin):
     def __contains__(self, key):
         with self.connection() as connection:
             return connection.execute(self._cache_get, (key,)).fetchone() is not None
+        return
 
     def keys(self):
         with self.connection() as connection:

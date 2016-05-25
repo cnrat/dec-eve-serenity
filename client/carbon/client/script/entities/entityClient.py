@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\carbon\client\script\entities\entityClient.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\carbon\client\script\entities\entityClient.py
 import locks
 import entities
 from carbon.common.script.entities.baseEntity import BaseEntityService
@@ -24,6 +25,7 @@ class ClientEntityScene(entities.BaseEntityScene):
         if entity.entityID == session.charid:
             self.broker.LogInfo('Clearing player character')
             self.broker.SetPlayerEntity(None)
+        return
 
 
 class EntityClient(BaseEntityService):
@@ -76,6 +78,7 @@ class EntityClient(BaseEntityService):
         BaseEntityService.__init__(self)
         self.playerEntity = None
         self.playerEntityLoaded = locks.Event('playerEntityLoaded')
+        return
 
     def Run(self, *etc):
         BaseEntityService.Run(self, *etc)
@@ -111,8 +114,9 @@ class EntityClient(BaseEntityService):
 
         self.LogInfo('ClientEntityScene adding server entity: ', entity)
         scene.CreateAndRegisterEntity(entity)
+        return
 
-    def GetPlayerEntity(self, canBlock = False):
+    def GetPlayerEntity(self, canBlock=False):
         if canBlock:
             if self.playerEntity is None:
                 self.LogInfo('Waiting for playering entity...')
@@ -129,6 +133,7 @@ class EntityClient(BaseEntityService):
             self.playerEntity = None
             self.LogInfo('Player Entity Removed')
             self.playerEntityLoaded.clear()
+        return
 
     def PackUpEntityForSceneTransfer(self, entity, destinationSceneID):
         initialEntityState = {}
@@ -153,4 +158,5 @@ class EntityClient(BaseEntityService):
         if entity is not None:
             return weakref.proxy(entity)
         else:
+            return
             return

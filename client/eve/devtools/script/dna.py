@@ -1,5 +1,7 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\devtools\script\dna.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\devtools\script\dna.py
 from eve.client.script.ui.control.infoIcon import InfoIcon
+from inventorycommon.util import IsShipFittable
 import evetypes
 import uiprimitives
 import uicontrols
@@ -18,7 +20,7 @@ def GetTypeName(typeID):
     return evetypes.GetName(typeID)
 
 
-Message = lambda title, body, icon = triui.INFO: sm.GetService('gameui').MessageBox(body, title, buttons=uiconst.OK, icon=icon)
+Message = lambda title, body, icon=triui.INFO: sm.GetService('gameui').MessageBox(body, title, buttons=uiconst.OK, icon=icon)
 Progress = lambda title, text, current, total: (title,
  text,
  current,
@@ -68,15 +70,19 @@ def GetSlotGroup(typeID):
     except KeyError:
         return None
 
+    return None
 
-def Load(typeID, qty = 1, where = 'me'):
+
+def Load(typeID, qty=1, where='me'):
     try:
         return sm.RemoteSvc('slash').SlashCmd('/load %s %s %s' % (where, typeID, qty))[0]
     except:
         return None
 
+    return None
 
-def WaitAndSetLabel(itemID, name, timeout = 10):
+
+def WaitAndSetLabel(itemID, name, timeout=10):
     timeout *= 4
     bp = sm.GetService('michelle').GetBallpark()
     while timeout:
@@ -87,9 +93,9 @@ def WaitAndSetLabel(itemID, name, timeout = 10):
         blue.pyos.synchro.SleepSim(250)
 
 
-def CreateShip_WORLDMOD(typeID, name = None, subsystems = None):
-    if eve.session.stationid:
-        itemID = sm.RemoteSvc('slash').SlashCmd('/createitem %d 1 %d' % (typeID, eve.session.stationid))
+def CreateShip_WORLDMOD(typeID, name=None, subsystems=None):
+    if util.IsDocked():
+        itemID = sm.RemoteSvc('slash').SlashCmd('/createitem %d 1' % (typeID,))
         subSystemIDs = []
         if subsystems is not None:
             for subSystemTypeID in subsystems:
@@ -107,8 +113,8 @@ def CreateShip_WORLDMOD(typeID, name = None, subsystems = None):
     return itemID
 
 
-def CreateShip_SPAWN(typeID, name = None):
-    if eve.session.stationid:
+def CreateShip_SPAWN(typeID, name=None):
+    if util.IsDocked():
         return CreateShip_GML(typeID, name)
     itemID = sm.RemoteSvc('slash').SlashCmd('/spawn %d' % typeID)
     if name:
@@ -116,12 +122,12 @@ def CreateShip_SPAWN(typeID, name = None):
     return itemID
 
 
-def CreateShip_GML(typeID, name = None):
+def CreateShip_GML(typeID, name=None):
     shipID = None
     itemID = Load(typeID)
     invCache = sm.GetService('invCache')
     if not itemID:
-        if session.stationid:
+        if util.IsDocked():
             hangar = invCache.GetInventory(const.containerHangar)
             cargo = invCache.GetInventoryFromId(util.GetActiveShip()).GetCapacity(const.flagCargo)
             if cargo.capacity - cargo.used >= 100:
@@ -134,21 +140,21 @@ def CreateShip_GML(typeID, name = None):
                         Message('what the?!', 'Something is hosed alright.')
                         return
     if itemID:
-        if eve.session.stationid:
+        if util.IsDocked():
             invCache.GetInventory(const.containerHangar).Add(itemID, util.GetActiveShip(), qty=1)
             sm.GetService('gameui').GetShipAccess().AssembleShip(itemID, name)
         else:
             sm.GetService('gameui').GetShipAccess().Jettison([itemID])
             if name:
                 WaitAndSetLabel(itemID, name)
-    if shipID and eve.session.stationid:
-        invCache.GetInventoryMgr().TrashItems([shipID], session.stationid)
+    if shipID and util.IsDocked():
+        invCache.GetInventoryMgr().TrashItems([shipID], session.stationid or session.structureid)
     if not itemID:
         Message('Planck field overload', "Sorry, you can't squeeze a <color=0xffffff00>%s<color=0xffffffff> into your current ship's cargohold.<br><br>Please make sure you have enough free cargo capacity to load this ship before trying again.<br>" % evetypes.GetName(typeID))
     return itemID
 
 
-def CreateShip(typeID, name = None, subsystems = None):
+def CreateShip(typeID, name=None, subsystems=None):
     if eve.session.role & ROLE_WORLDMOD:
         return CreateShip_WORLDMOD(typeID, name, subsystems)
     elif eve.session.role & ROLE_SPAWN and USE_SPAWN:
@@ -157,11 +163,12 @@ def CreateShip(typeID, name = None, subsystems = None):
         return CreateShip_GML(typeID, name)
     else:
         return None
+        return None
 
 
 class Ship():
 
-    def __init__(self, shipID = None, dnaKey = None, name = None):
+    def __init__(self, shipID=None, dnaKey=None, name=None):
         self.source = None
         self.dna = []
         self.typeID = 0
@@ -174,11 +181,13 @@ class Ship():
         if shipID:
             self.ImportFromShip(shipID=shipID)
             return
-        if dnaKey:
+        elif dnaKey:
             self.ImportFromDNA(dnaKey, name)
             return
+        else:
+            return
 
-    def itermodules(self, smart = False, banks = None):
+    def itermodules(self, smart=False, banks=None):
         if banks is None:
             banks = SLOTGROUPS
         get = self.moduleByFlag.get
@@ -201,115 +210,119 @@ class Ship():
                 for flag in xrange(slot, slot + 8):
                     yield (flag, get(flag, 0))
 
-    def ImportFromShip(self, shipID = None, ownerID = None, deferred = False):
+        return
+
+    def ImportFromShip(self, shipID=None, ownerID=None, deferred=False):
         if deferred:
             self.deferred = (shipID, ownerID)
             return self
-        self.__init__()
-        if shipID is None:
-            shipID = util.GetActiveShip()
-        if ownerID is None:
-            ownerID = eve.session.charid
-        loc = cfg.evelocations.GetIfExists(shipID)
-        if loc:
-            self.name = loc.name
         else:
-            self.name = None
-        if ownerID != eve.session.charid:
-            dna = sm.RemoteSvc('slash').SlashCmd('/getshipsetup %d' % shipID)
-            return self.ImportFromDNA(dna)
-        if shipID == util.GetActiveShip():
-            ship = sm.GetService('clientDogmaIM').GetDogmaLocation().GetDogmaItem(shipID)
-            if ship is None:
-                self.errorMessage = 'Could not get shipID: %s' % shipID
-                return self
-            self.typeID = ship.typeID
-            for module in ship.GetFittedItems().itervalues():
-                if cfg.IsFittableCategory(module.categoryID):
-                    self.moduleByFlag[module.flagID] = module.typeID
+            self.__init__()
+            if shipID is None:
+                shipID = util.GetActiveShip()
+            if ownerID is None:
+                ownerID = eve.session.charid
+            loc = cfg.evelocations.GetIfExists(shipID)
+            if loc:
+                self.name = loc.name
+            else:
+                self.name = None
+            if ownerID != eve.session.charid:
+                dna = sm.RemoteSvc('slash').SlashCmd('/getshipsetup %d' % shipID)
+                return self.ImportFromDNA(dna)
+            if shipID == util.GetActiveShip():
+                ship = sm.GetService('clientDogmaIM').GetDogmaLocation().GetDogmaItem(shipID)
+                if ship is None:
+                    self.errorMessage = 'Could not get shipID: %s' % shipID
+                    return self
+                self.typeID = ship.typeID
+                for module in ship.GetFittedItems().itervalues():
+                    if IsShipFittable(module.categoryID):
+                        self.moduleByFlag[module.flagID] = module.typeID
 
-        else:
-            try:
-                shipinv = sm.GetService('invCache').GetInventoryFromId(shipID)
-                self.typeID = shipinv.GetTypeID()
-                if not self.name:
-                    self.name = evetypes.GetName(self.typeID)
-                mods = shipinv.ListHardwareModules()
-            except:
-                self.errorMessage = 'Could not get inv of shipID: %s' % shipID
-                return self
+            else:
+                try:
+                    shipinv = sm.GetService('invCache').GetInventoryFromId(shipID)
+                    self.typeID = shipinv.GetTypeID()
+                    if not self.name:
+                        self.name = evetypes.GetName(self.typeID)
+                    mods = shipinv.ListHardwareModules()
+                except:
+                    self.errorMessage = 'Could not get inv of shipID: %s' % shipID
+                    return self
 
-            for rec in mods:
-                if cfg.IsFittableCategory(evetypes.GetCategoryID(rec.typeID)):
-                    self.moduleByFlag[rec.flagID] = rec.typeID
+                for rec in mods:
+                    if IsShipFittable(evetypes.GetCategoryID(rec.typeID)):
+                        self.moduleByFlag[rec.flagID] = rec.typeID
 
-        self.valid = True
-        self.Update()
-        return self
+            self.valid = True
+            self.Update()
+            return self
 
-    def ImportFromDNA(self, dna, name = None):
+    def ImportFromDNA(self, dna, name=None):
         self.__init__()
         if dna[:4] != 'DNA:':
             self.errorMessage = 'Not a DNA key: %s' % (dna,)
             return self
-        if name:
-            self.name = name
-        self.source = dna
-        self.dna = dna.split(':')[1:]
-        expectedCategoryIDs = [const.categoryShip]
-        flags = list(SLOTGROUPS)
-        try:
-            for frag in self.dna:
-                try:
-                    parts = map(int, frag.split('*', 1))
-                except:
-                    raise RuntimeError(-1, "Invalid DNA fragment: '%s'" % frag)
+        else:
+            if name:
+                self.name = name
+            self.source = dna
+            self.dna = dna.split(':')[1:]
+            expectedCategoryIDs = [const.categoryShip]
+            flags = list(SLOTGROUPS)
+            try:
+                for frag in self.dna:
+                    try:
+                        parts = map(int, frag.split('*', 1))
+                    except:
+                        raise RuntimeError(-1, "Invalid DNA fragment: '%s'" % frag)
 
-                if len(parts) == 2:
-                    typeID, multi = parts
-                else:
-                    typeID, = parts
-                    multi = 1
-                self.errorTypeID = typeID
-                if multi < 1 or multi > 8:
-                    raise RuntimeError(typeID, 'Invalid module count: %s' % multi)
-                if typeID > 3:
-                    if not evetypes.Exists(typeID):
-                        raise RuntimeError(typeID, 'Type not found')
-                    categoryID = evetypes.GetCategoryID(typeID)
-                while multi > 0:
-                    if typeID <= 3:
-                        grp = typeID
-                        self.moduleByFlag[flags[grp]] = 0
-                        flags[grp] += 1
-                        multi -= 1
-                        continue
-                    if categoryID not in expectedCategoryIDs:
-                        raise RuntimeError(typeID, 'Expected %s type, got %s type' % (evetypes.GetCategoryNameByCategory(expectedCategoryIDs[0]), evetypes.GetCategoryNameByCategory(categoryID)))
-                    if categoryID == const.categoryShip:
-                        self.typeID = typeID
-                        expectedCategoryIDs = [const.categoryModule, const.categorySubSystem]
-                    elif cfg.IsFittableCategory(categoryID):
-                        grp = GetSlotGroup(typeID)
-                        if grp is not None:
-                            self.moduleByFlag[flags[grp]] = typeID
-                            flags[grp] += 1
-                        else:
-                            raise RuntimeError(typeID, 'Type is not a module or rig')
+                    if len(parts) == 2:
+                        typeID, multi = parts
                     else:
-                        raise RuntimeError(typeID, 'Type is not a ship or module')
-                    multi -= 1
+                        typeID = parts
+                        multi = 1
+                    self.errorTypeID = typeID
+                    if multi < 1 or multi > 8:
+                        raise RuntimeError(typeID, 'Invalid module count: %s' % multi)
+                    if typeID > 3:
+                        if not evetypes.Exists(typeID):
+                            raise RuntimeError(typeID, 'Type not found')
+                        categoryID = evetypes.GetCategoryID(typeID)
+                    while multi > 0:
+                        if typeID <= 3:
+                            grp = typeID
+                            self.moduleByFlag[flags[grp]] = 0
+                            flags[grp] += 1
+                            multi -= 1
+                            continue
+                        if categoryID not in expectedCategoryIDs:
+                            raise RuntimeError(typeID, 'Expected %s type, got %s type' % (evetypes.GetCategoryNameByCategory(expectedCategoryIDs[0]), evetypes.GetCategoryNameByCategory(categoryID)))
+                        if categoryID == const.categoryShip:
+                            self.typeID = typeID
+                            expectedCategoryIDs = [const.categoryModule, const.categorySubSystem]
+                        elif IsShipFittable(categoryID):
+                            grp = GetSlotGroup(typeID)
+                            if grp is not None:
+                                self.moduleByFlag[flags[grp]] = typeID
+                                flags[grp] += 1
+                            else:
+                                raise RuntimeError(typeID, 'Type is not a module or rig')
+                        else:
+                            raise RuntimeError(typeID, 'Type is not a ship or module')
+                        multi -= 1
 
-            for startFlag, endFlag in zip(SLOTGROUPS, flags):
-                if endFlag > startFlag + 8:
-                    raise RuntimeError(-1, 'Malformed template')
+                for startFlag, endFlag in zip(SLOTGROUPS, flags):
+                    if endFlag > startFlag + 8:
+                        raise RuntimeError(-1, 'Malformed template')
 
-            self.valid = True
-            self.Update()
-        except RuntimeError as e:
-            self.errorTypeID, self.errorMessage = e
+                self.valid = True
+                self.Update()
+            except RuntimeError as e:
+                self.errorTypeID, self.errorMessage = e
 
-        return self
+            return self
 
     def Update(self):
         real = 0
@@ -323,7 +336,7 @@ class Ship():
         self.realmodulecount = real
         self.fakemodulecount = fake
 
-    def AssembleMany(self, amount = None):
+    def AssembleMany(self, amount=None):
         self.NoPodCheck(wantNewShip=True)
         if amount is None:
             result = uix.QtyPopup(maxvalue=50, minvalue=1, caption='Mass Manufacture', label='', hint='Specify amount of ships to assemble (Max. 50).<br>Note: this function cannot be aborted once running.')
@@ -334,49 +347,55 @@ class Ship():
         for x in xrange(amount):
             self.Assemble()
 
-    def Assemble(self, clone = 0):
+        return
+
+    def Assemble(self, clone=0):
         if not self.Valid(report=True):
             return None
-        self.NoPodCheck(wantNewShip=True)
-        tname = GetTypeName(self.typeID)
-        title = ['Create %s', 'Clone %s'][clone] % tname
-        sm.GetService('loading').ProgressWnd(title, 'Spawning: %s ...' % tname, 0, 1)
-        subsystems = []
-        for i in xrange(const.flagSubSystemSlot0, const.flagSubSystemSlot0 + const.visibleSubSystems):
-            if i in self.moduleByFlag:
-                subsystems.append(self.moduleByFlag[i])
+        else:
+            self.NoPodCheck(wantNewShip=True)
+            tname = GetTypeName(self.typeID)
+            title = ['Create %s', 'Clone %s'][clone] % tname
+            sm.GetService('loading').ProgressWnd(title, 'Spawning: %s ...' % tname, 0, 1)
+            subsystems = []
+            for i in xrange(const.flagSubSystemSlot0, const.flagSubSystemSlot0 + const.visibleSubSystems):
+                if i in self.moduleByFlag:
+                    subsystems.append(self.moduleByFlag[i])
 
-        if session.solarsystemid and len(subsystems) > 0:
-            raise UserError('CustomInfo', {'info': "You can't assemble ship with subsystems in space. Please try again in station"})
+            if session.solarsystemid and len(subsystems) > 0:
+                raise UserError('CustomInfo', {'info': "You can't assemble ship with subsystems in space. Please try again in station"})
+                return None
+            shipID = CreateShip(self.typeID, self.name, subsystems)
+            if shipID:
+                self.Fit(shipID, fromAssemble=True)
+                sm.GetService('loading').ProgressWnd(title, 'Success', 1, 1)
+                return shipID
+            sm.GetService('loading').ProgressWnd(title, 'Failed', 1, 1)
             return None
-        shipID = CreateShip(self.typeID, self.name, subsystems)
-        if shipID:
-            self.Fit(shipID, fromAssemble=True)
-            sm.GetService('loading').ProgressWnd(title, 'Success', 1, 1)
-            return shipID
-        sm.GetService('loading').ProgressWnd(title, 'Failed', 1, 1)
 
-    def Fit(self, shipID = None, fromAssemble = False):
+    def Fit(self, shipID=None, fromAssemble=False):
         if not self.Valid(report=True):
             return None
-        self.NoPodCheck(wantNewShip=fromAssemble)
-        if not shipID:
-            shipID = util.GetActiveShip()
-        if not fromAssemble:
-            try:
-                shipTypeID = sm.GetService('clientDogmaIM').GetDogmaLocation().GetDogmaItem(shipID).typeID
-            except:
-                shipTypeID = sm.GetService('invCache').GetInventoryFromId(shipID).GetTypeID()
+        else:
+            self.NoPodCheck(wantNewShip=fromAssemble)
+            if not shipID:
+                shipID = util.GetActiveShip()
+            if not fromAssemble:
+                try:
+                    shipTypeID = sm.GetService('clientDogmaIM').GetDogmaLocation().GetDogmaItem(shipID).typeID
+                except:
+                    shipTypeID = sm.GetService('invCache').GetInventoryFromId(shipID).GetTypeID()
 
-            if shipTypeID != self.typeID:
-                Message('Unable to refit', 'Sorry, this setup is designed for a %s. You are currently piloting a %s.' % (GetTypeName(self.typeID), GetTypeName(shipTypeID)))
-                raise UserError('IgnoreToTop')
-        if eve.session.role & ROLE_GML:
-            return self.FitUsingSlash(shipID)
-        if eve.session.stationid:
-            self.SkillCheck()
-            return self.FitUsingHangar(shipID)
-        self.Oops('Oops', 'Fitting operations cannot be done in space. Please dock at a station and try again.')
+                if shipTypeID != self.typeID:
+                    Message('Unable to refit', 'Sorry, this setup is designed for a %s. You are currently piloting a %s.' % (GetTypeName(self.typeID), GetTypeName(shipTypeID)))
+                    raise UserError('IgnoreToTop')
+            if eve.session.role & ROLE_GML:
+                return self.FitUsingSlash(shipID)
+            if util.IsDocked():
+                self.SkillCheck()
+                return self.FitUsingHangar(shipID)
+            self.Oops('Oops', 'Fitting operations cannot be done in space. Please dock at a station and try again.')
+            return None
 
     def FitUsingHangar(self, shipID):
         if shipID != util.GetActiveShip():
@@ -407,8 +426,8 @@ class Ship():
                 setup[item.typeID] -= 1
 
         invCache = sm.GetService('invCache')
-        for item in invCache.GetInventory(const.containerHangar).List():
-            if cfg.IsFittableCategory(item.categoryID):
+        for item in invCache.GetInventory(const.containerHangar).List(const.flagHangar):
+            if IsShipFittable(item.categoryID):
                 if setup.has_key(item.typeID):
                     if item.singleton:
                         source[item.typeID].insert(0, item)
@@ -496,6 +515,7 @@ class Ship():
             StopCycle()
             self.Oops('There was a problem...', 'Your hangar inventory changed while fitting the ship, one or more required modules are locked or no longer within your reach.<br>The fitting operation has been aborted.')
         sm.GetService('loading').ProgressWnd(title, 'Done', 1, 1)
+        return
 
     def FitUsingSlash(self, shipID):
         title = 'Fitting %s' % GetTypeName(self.typeID)
@@ -522,16 +542,18 @@ class Ship():
         uthread.parallel(parallelCalls)
         sm.GetService('loading').ProgressWnd(title, 'Done', 1, 1)
 
-    def NoPodCheck(self, wantNewShip = False):
+    def NoPodCheck(self, wantNewShip=False):
         dogmaLocation = sm.GetService('clientDogmaIM').GetDogmaLocation()
         inPod = not (util.GetActiveShip() is not None and dogmaLocation.GetDogmaItem(util.GetActiveShip()).groupID != 29)
         if not inPod:
             return
-        if inPod and wantNewShip and eve.session.role & (ROLE_WORLDMOD | ROLE_SPAWN):
+        elif inPod and wantNewShip and eve.session.role & (ROLE_WORLDMOD | ROLE_SPAWN):
             return
-        self.Oops('Allergic to eggs', 'This feature cannot be used when you are in a pod.<br>Get yourself in a ship and try again!')
+        else:
+            self.Oops('Allergic to eggs', 'This feature cannot be used when you are in a pod.<br>Get yourself in a ship and try again!')
+            return
 
-    def SkillCheck(self, setup = None):
+    def SkillCheck(self, setup=None):
         if not setup:
             setup = self.GetModuleInfo()
         Cycle('   Preparing...', 'Checking skill requirements')
@@ -575,28 +597,29 @@ class Ship():
     def ExportAsDNA(self):
         if not self.Valid():
             return self.ErrorReport()
-        dna = 'DNA:%s' % self.typeID
-        multi = 1
-        lastID = None
-        grp = 0
-        get = self.moduleByFlag.get
-        for flag, typeID in self.itermodules(smart=True):
-            if not typeID:
-                typeID = groupByFlag[flag]
-            if typeID == lastID:
-                multi += 1
-            else:
-                if multi > 1:
-                    dna += '*%s' % multi
-                    multi = 1
-                dna += ':%s' % typeID
-            lastID = typeID
+        else:
+            dna = 'DNA:%s' % self.typeID
+            multi = 1
+            lastID = None
+            grp = 0
+            get = self.moduleByFlag.get
+            for flag, typeID in self.itermodules(smart=True):
+                if not typeID:
+                    typeID = groupByFlag[flag]
+                if typeID == lastID:
+                    multi += 1
+                else:
+                    if multi > 1:
+                        dna += '*%s' % multi
+                        multi = 1
+                    dna += ':%s' % typeID
+                lastID = typeID
 
-        if multi > 1:
-            dna += '*%s' % multi
-        return dna
+            if multi > 1:
+                dna += '*%s' % multi
+            return dna
 
-    def ExportAsTriText(self, modulesOnly = False, maxLen = 0):
+    def ExportAsTriText(self, modulesOnly=False, maxLen=0):
         if not self.Valid():
             return self.ErrorReport()
         text = ''
@@ -626,7 +649,7 @@ class Ship():
             text += '<br><color=0xffffff00>Key:<color=0xffc0c0c0><br>%s' % self.ExportAsDNA()
         return text
 
-    def ExportAsText(self, modulesOnly = False, maxLen = 0):
+    def ExportAsText(self, modulesOnly=False, maxLen=0):
         r = self.ExportAsTriText(modulesOnly, maxLen).replace('<br>', '\r\n') + '\r\n'
         while 1:
             i = r.find('<color=0x')
@@ -675,12 +698,12 @@ class Ship():
         html += '</body></html>'
         return html
 
-    def ExportAsIGBLink(self, label = None):
+    def ExportAsIGBLink(self, label=None):
         if label is None:
             label = self.name
         return '<a href="localsvc:service=copycat&method=igb&action=open&key=%s&name=%s">%s</a>' % (self.ExportAsDNA(), self.name, label)
 
-    def ExportToClipboard(self, mode = 1):
+    def ExportToClipboard(self, mode=1):
         if mode == 0:
             blue.pyos.SetClipboardData(self.ExportAsText())
         elif mode == 1:
@@ -688,7 +711,7 @@ class Ship():
         elif mode == 2:
             blue.pyos.SetClipboardData(self.ExportAsIGBLink())
 
-    def Valid(self, report = False):
+    def Valid(self, report=False):
         if self.valid:
             return True
         if hasattr(self, 'deferred'):
@@ -709,10 +732,10 @@ class Ship():
             msg += '<br><br>Key: %s' % self.source
         return msg
 
-    def ShowInfo(self, buttons = False):
+    def ShowInfo(self, buttons=False):
         Popup(self, buttons=buttons)
 
-    def ShowCargo(self, id = None, *args):
+    def ShowCargo(self, id=None, *args):
         cargoContents = []
         try:
             if id:
@@ -744,13 +767,15 @@ class Ship():
             m.insert(0, ('My %s setups' % evetypes.GetName(self.typeID), None))
         return m
 
-    def GetMenuInline(self, disabled = False, store = True, assemble = True, info = True, fit = True, refit = False, spiffy = False):
+    def GetMenuInline(self, disabled=False, store=True, assemble=True, info=True, fit=True, refit=False, spiffy=False):
 
-        def d(func, condition = None):
+        def d(func, condition=None):
             if disabled:
                 return
-            if condition is None or condition:
+            elif condition is None or condition:
                 return func
+            else:
+                return
 
         m = []
         if info:
@@ -779,6 +804,7 @@ class Ship():
                     m2.append(None)
 
             return m2
+            return
 
 
 TOOLSIZE = 34
@@ -787,7 +813,7 @@ ICONSIZE = 72
 class InfoPanel(uiprimitives.Container):
     __guid__ = 'xtriui.DNAInfoPanel'
 
-    def Setup(self, template = None, readonly = False):
+    def Setup(self, template=None, readonly=False):
         self.typeID = None
         self.readonly = readonly
         self.boven = uiprimitives.Container(name='ccip_top', parent=self, height=ICONSIZE, align=uiconst.TOTOP)
@@ -814,6 +840,7 @@ class InfoPanel(uiprimitives.Container):
             self.capt.text = 'Copycat'
             self.text.text = 'Select a ship setup from the list to display details in this panel'
             self.scroll.Load(contentList=[], headers=['qty', 'name'])
+        return
 
     def ShowInfo(self, *args):
         if self.typeID:
@@ -874,12 +901,13 @@ class InfoPanel(uiprimitives.Container):
         self.text.text = name
         self.infoframe.state = self.infoicon.state = self.toolbar.state = state
         self.scroll.Load(contentList=entries, headers=headers)
+        return
 
 
 class Popup():
     __wndname__ = 'DNA Popup'
 
-    def __init__(self, key_or_template, name = None, buttons = True, store = True):
+    def __init__(self, key_or_template, name=None, buttons=True, store=True):
         import dna
         if isinstance(key_or_template, dna.Ship):
             self.t = key_or_template
@@ -904,6 +932,7 @@ class Popup():
               None,
               81]]
             wnd.sr.main.children.insert(0, uicontrols.ButtonGroup(btns=buttons))
+        return
 
     def Spawn(self, *args):
         self.wnd.Close()

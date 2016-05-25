@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\client\script\ui\login\charcreation\steps\characterPortrait.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\client\script\ui\login\charcreation\steps\characterPortrait.py
 import base
 from carbonui import const as uiconst
 from charactercreator import const as ccConst
@@ -49,7 +50,7 @@ class CharacterPortrait(BaseCharacterCreationStep):
         self.sr.portraitAssetMenu = uicls.CharCreationAssetMenu(parent=self.sr.assetMenuPar, groups=groups, align=uiconst.CENTERTOP, width=assetMenuWidth, height=uicore.desktop.height, top=16)
         self.sr.assetMenuPar.width = assetMenuWidth
 
-    def SetHintText(self, modifier, hintText = ''):
+    def SetHintText(self, modifier, hintText=''):
         text = hintText
         if modifier in ccConst.HELPTEXTS:
             labelPath = ccConst.HELPTEXTS[modifier]
@@ -107,6 +108,7 @@ class CharacterPortrait(BaseCharacterCreationStep):
                     self.SetPortraitFocus(i)
 
         btn = uicls.CharCreationButton(parent=self.sr.portraitCont, label=localization.GetByLabel('UI/CharacterCreation/ResetExpression'), pos=(0, 0, 0, 0), fixedwidth=128, align=uiconst.CENTERBOTTOM, func=self.ResetFacePose)
+        return
 
     def ResetFacePose(self, *args):
         info = self.GetInfo()
@@ -134,9 +136,10 @@ class CharacterPortrait(BaseCharacterCreationStep):
     def ValidateStepComplete(self):
         if not self.IsDollReady:
             return False
-        if uicore.layer.charactercreation.GetPortraitInfo(self.selectedPortrait) is None:
-            self.CapturePortrait(self.selectedPortrait)
-        return True
+        else:
+            if uicore.layer.charactercreation.GetPortraitInfo(self.selectedPortrait) is None:
+                self.CapturePortrait(self.selectedPortrait)
+            return True
 
     def CapturePortrait(self, idx, *args):
         photo = uicore.layer.charactercreation.CapturePortrait(idx)
@@ -159,9 +162,11 @@ class CharacterPortrait(BaseCharacterCreationStep):
     def CheckPortraitMouseOver(self, portrait, *args):
         if uicore.uilib.mouseOver is portrait or uiutil.IsUnder(uicore.uilib.mouseOver, portrait):
             return
-        portrait.sr.mouseOverTimer = None
-        if portrait.hasPhoto:
-            portrait.sr.button.state = uiconst.UI_HIDDEN
+        else:
+            portrait.sr.mouseOverTimer = None
+            if portrait.hasPhoto:
+                portrait.sr.button.state = uiconst.UI_HIDDEN
+            return
 
     def CameraButtonClick(self, button, *args):
         sm.StartService('audio').SendUIEvent(unicode('wise:/ui_icc_portrait_snapshot_play'))

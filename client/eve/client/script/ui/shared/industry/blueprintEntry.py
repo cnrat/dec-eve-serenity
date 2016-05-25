@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\client\script\ui\shared\industry\blueprintEntry.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\client\script\ui\shared\industry\blueprintEntry.py
 from carbonui.const import TOALL, UI_DISABLED
 from carbonui.control.menuLabel import MenuLabel
 from carbonui.primitives.container import Container
@@ -44,7 +45,7 @@ class BlueprintEntry(BaseListEntryCustomColumns):
         self.AddColumnText(self.bpData.GetGroupName())
         self.OnJobStateChanged()
 
-    def OnJobStateChanged(self, status = None):
+    def OnJobStateChanged(self, status=None):
         if status:
             isInstalled = industry.STATUS_UNSUBMITTED < status < industry.STATUS_COMPLETED
             if status in (industry.STATUS_INSTALLED, industry.STATUS_DELIVERED):
@@ -165,7 +166,7 @@ class BlueprintEntry(BaseListEntryCustomColumns):
             return {localization.GetByLabel('UI/Industry/Activities'): 104}
 
     @staticmethod
-    def GetHeaders(showFacility = True, showLocation = True):
+    def GetHeaders(showFacility=True, showLocation=True):
         ret = [localization.GetByLabel('UI/Industry/Blueprint'),
          localization.GetByLabel('UI/Industry/MaterialEfficiency'),
          localization.GetByLabel('UI/Industry/TimeEfficiency'),
@@ -179,7 +180,7 @@ class BlueprintEntry(BaseListEntryCustomColumns):
         return ret
 
     @staticmethod
-    def GetColumnSortValues(bpData, jumps = None, showFacility = True, showLocation = True):
+    def GetColumnSortValues(bpData, jumps=None, showFacility=True, showLocation=True):
         activitySum = ''
         for activityID in ACTIVITIES:
             activitySum += '1' if activityID in bpData.activities else '0'

@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\packages\carbonui\control\menu.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\packages\carbonui\control\menu.py
 from carbonui.primitives.containerAutoSize import ContainerAutoSize
 from carbonui.primitives.frame import FrameCoreOverride as Frame
 from carbonui.control.label import LabelOverride as Label
@@ -27,7 +28,7 @@ class Menu(object):
         self.entrylist = []
         self.iconSize = 0
 
-    def AddEntry(self, name, value, icon, identifier, enabled = 1, menuClass = None):
+    def AddEntry(self, name, value, icon, identifier, enabled=1, menuClass=None):
         m = Bunch()
         m.caption = name
         m.value = value
@@ -41,6 +42,7 @@ class Menu(object):
 
     def AddSeparator(self):
         self.entrylist.append(None)
+        return
 
     def ActivateEntry(self, name):
         entry = self._GetEntry(name)
@@ -60,6 +62,8 @@ class Menu(object):
                 return each
         else:
             raise RuntimeError('Entry not found!', name)
+
+        return
 
 
 class DropDownMenuCore(ContainerAutoSize):
@@ -86,8 +90,9 @@ class DropDownMenuCore(ContainerAutoSize):
                 each.Collapse()
 
         self.menu = None
+        return
 
-    def Setup(self, menu, parent = None, minwidth = None):
+    def Setup(self, menu, parent=None, minwidth=None):
         log.LogInfo('Menu.Setup', id(self))
         entries = menu.GetEntries()
         wasLine = 0
@@ -115,6 +120,7 @@ class DropDownMenuCore(ContainerAutoSize):
         self.SetSizeAutomatically()
         self.menu = menu
         log.LogInfo('Menu.Setup Completed', id(self))
+        return
 
     def ActivateEntry(self, name):
         error = self.menu.ActivateEntry(name)
@@ -142,6 +148,7 @@ class DropDownMenuCore(ContainerAutoSize):
                 found = each
 
         self.sr.entries.children[0].OnMouseEnter()
+        return
 
     def Prev(self):
         found = None
@@ -158,6 +165,7 @@ class DropDownMenuCore(ContainerAutoSize):
                 found = each
 
         self.sr.entries.children[-1].OnMouseEnter()
+        return
 
     def ChooseHilited(self):
         for each in self.sr.entries.children:
@@ -189,6 +197,7 @@ class MenuEntryViewCore(Container):
         self.submenuview = None
         self.sr.hilite = None
         self.Prepare()
+        return
 
     def Prepare(self, *args):
         self.Prepare_Triangle_()
@@ -234,6 +243,7 @@ class MenuEntryViewCore(Container):
         if isinstance(entry.value, (list, tuple)):
             self.triangle.state = uiconst.UI_DISABLED
             self.submenu = entry.value
+        return
 
     def _OnClose(self):
         if self.submenuview is not None and not self.submenuview.destroyed:
@@ -244,6 +254,7 @@ class MenuEntryViewCore(Container):
         self.expandTimer = None
         self.collapseTimer = None
         Container._OnClose(self)
+        return
 
     def OnMouseDown(self, *etc):
         uthread.new(self.MouseDown)
@@ -265,6 +276,7 @@ class MenuEntryViewCore(Container):
         self.expandTimer = AutoTimer(10, self.ExpandMenu)
         if self.triangle.display:
             self.triangle.OnMouseEnter()
+        return
 
     def ExpandMenu(self):
         for each in self.parent.children:
@@ -274,6 +286,7 @@ class MenuEntryViewCore(Container):
         self.expandTimer = None
         if uicore.uilib.mouseOver in (self, self.sr.label) and self.submenu:
             self.Expand()
+        return
 
     def HideHilite(self):
         if self.sr.hilite:
@@ -300,6 +313,7 @@ class MenuEntryViewCore(Container):
             self.submenuview.Collapse()
             self.submenuview = None
         self.HideHilite()
+        return
 
     def Expand(self):
         if not self.submenuview:
@@ -327,17 +341,19 @@ class MenuEntryViewCore(Container):
                 CloseContextMenus()
                 return
             self.submenuview = menu
+        return
 
 
-def CreateMenuView(menu, parent = None, minwidth = None):
+def CreateMenuView(menu, parent=None, minwidth=None):
     if menu is None:
         return
-    if not parent:
-        CloseContextMenus()
-    from carbonui.control.menu import DropDownMenuCoreOverride as DropDownMenu
-    m = DropDownMenu(name='menuview', align=uiconst.TOPLEFT, parent=None)
-    m.Setup(menu, parent, minwidth)
-    return m
+    else:
+        if not parent:
+            CloseContextMenus()
+        from carbonui.control.menu import DropDownMenuCoreOverride as DropDownMenu
+        m = DropDownMenu(name='menuview', align=uiconst.TOPLEFT, parent=None)
+        m.Setup(menu, parent, minwidth)
+        return m
 
 
 def CreateMenuFromList(lst):
@@ -349,89 +365,90 @@ def CreateMenuFromList(lst):
 
     if not lst:
         return
-    iconSize = None
-    m = Menu()
-    ignoreMenuGrouping = prefs.GetValue('ignoreMenuGrouping', 0)
-    allEntries = []
-    for each in lst:
-        if each is None:
-            allEntries.append((None, None))
-        else:
-            groupID = None
-            menuLabel, value = each[:2]
-            if isinstance(menuLabel, MenuLabel):
-                labelPath, keywords = menuLabel
-                labelPath = labelPath.strip()
-                groupID = menuUtil.GetMenuGroup(labelPath)
-                caption = localization.GetByLabel(labelPath, **keywords)
-            else:
-                label = menuLabel
-                keywords = {}
-                if isinstance(label, basestring):
-                    groupID = menuUtil.GetMenuGroup(label.lower())
-                caption = label
-            if ignoreMenuGrouping:
-                groupID = None
-            if len(each) > 2:
-                args = each[2]
-                if args not in (DISABLED_ENTRY, DISABLED_ENTRY2):
-                    value = lambda f = value, args = args: f(*args)
-                else:
-                    value = None
-                if len(args) == 2 and type(args[1]) == list and len(args[1]) > 1:
-                    t = 0
-                    for eacharg in args[1]:
-                        t1 = None
-                        if hasattr(eacharg, 'stacksize'):
-                            t1 = eacharg.stacksize
-                        if t1 is None and hasattr(eacharg, 'quantity'):
-                            t1 = eacharg.quantity
-                        if t1 is not None:
-                            t += t1
-                        else:
-                            t += 1
-
-                    caption += ' (%s)' % t
-            icon = None
-            if len(each) > 3:
-                icon = each[3]
-                if icon is not None:
-                    thisIconSize = 16
-                    if type(icon) == types.TupleType:
-                        icon, thisIconSize = icon
-                    iconSize = max(iconSize, thisIconSize)
-            menuClass = None
-            if len(each) > 4:
-                menuClass = each[4]
-            isCallableOrSubmenu = isinstance(value, types.MethodType) or isinstance(value, types.FunctionType) or isinstance(value, types.ListType) or isinstance(value, types.TupleType)
-            allEntries.append((groupID, (caption,
-              value,
-              icon,
-              isCallableOrSubmenu,
-              menuClass)))
-
-    m.iconSize = iconSize
-    idNo = 0
-    allEntries = SortMenuEntries(allEntries)
-    lastGroupID = None
-    for groupID, each in allEntries:
-        if groupID is None:
+    else:
+        iconSize = None
+        m = Menu()
+        ignoreMenuGrouping = prefs.GetValue('ignoreMenuGrouping', 0)
+        allEntries = []
+        for each in lst:
             if each is None:
-                m.AddSeparator()
-                lastGroupID = groupID
-                continue
-        if groupID != lastGroupID:
-            if isinstance(groupID, tuple) and isinstance(lastGroupID, tuple):
-                if groupID[0] != lastGroupID[0]:
-                    m.AddSeparator()
+                allEntries.append((None, None))
             else:
-                m.AddSeparator()
-        lastGroupID = groupID
-        caption, value, icon, isCallableOrSubmenu, menuClass = each
-        m.AddEntry(caption, value, icon, idNo, isCallableOrSubmenu, menuClass)
-        idNo += 1
+                groupID = None
+                menuLabel, value = each[:2]
+                if isinstance(menuLabel, MenuLabel):
+                    labelPath, keywords = menuLabel
+                    labelPath = labelPath.strip()
+                    groupID = menuUtil.GetMenuGroup(labelPath)
+                    caption = localization.GetByLabel(labelPath, **keywords)
+                else:
+                    label = menuLabel
+                    keywords = {}
+                    if isinstance(label, basestring):
+                        groupID = menuUtil.GetMenuGroup(label.lower())
+                    caption = label
+                if ignoreMenuGrouping:
+                    groupID = None
+                if len(each) > 2:
+                    args = each[2]
+                    if args not in (DISABLED_ENTRY, DISABLED_ENTRY2):
+                        value = lambda f=value, args=args: f(*args)
+                    else:
+                        value = None
+                    if len(args) == 2 and type(args[1]) == list and len(args[1]) > 1:
+                        t = 0
+                        for eacharg in args[1]:
+                            t1 = None
+                            if hasattr(eacharg, 'stacksize'):
+                                t1 = eacharg.stacksize
+                            if t1 is None and hasattr(eacharg, 'quantity'):
+                                t1 = eacharg.quantity
+                            if t1 is not None:
+                                t += t1
+                            else:
+                                t += 1
 
-    return m
+                        caption += ' (%s)' % t
+                icon = None
+                if len(each) > 3:
+                    icon = each[3]
+                    if icon is not None:
+                        thisIconSize = 16
+                        if type(icon) == types.TupleType:
+                            icon, thisIconSize = icon
+                        iconSize = max(iconSize, thisIconSize)
+                menuClass = None
+                if len(each) > 4:
+                    menuClass = each[4]
+                isCallableOrSubmenu = isinstance(value, types.MethodType) or isinstance(value, types.FunctionType) or isinstance(value, types.ListType) or isinstance(value, types.TupleType)
+                allEntries.append((groupID, (caption,
+                  value,
+                  icon,
+                  isCallableOrSubmenu,
+                  menuClass)))
+
+        m.iconSize = iconSize
+        idNo = 0
+        allEntries = SortMenuEntries(allEntries)
+        lastGroupID = None
+        for groupID, each in allEntries:
+            if groupID is None:
+                if each is None:
+                    m.AddSeparator()
+                    lastGroupID = groupID
+                    continue
+            if groupID != lastGroupID:
+                if isinstance(groupID, tuple) and isinstance(lastGroupID, tuple):
+                    if groupID[0] != lastGroupID[0]:
+                        m.AddSeparator()
+                else:
+                    m.AddSeparator()
+            lastGroupID = groupID
+            caption, value, icon, isCallableOrSubmenu, menuClass = each
+            m.AddEntry(caption, value, icon, idNo, isCallableOrSubmenu, menuClass)
+            idNo += 1
+
+        return m
 
 
 def SortMenuEntries(entryList, *args):
@@ -458,7 +475,7 @@ def CompareGroups(x, y):
         return 1
 
 
-def ShowMenu(object, auxObject = None):
+def ShowMenu(object, auxObject=None):
     CloseContextMenus()
     m = None
     menuFunc = getattr(object, 'GetMenu', None)
@@ -479,32 +496,34 @@ def ShowMenu(object, auxObject = None):
     if getattr(object, 'showingMenu', 0):
         log.LogInfo('menu', 'ShowMenu: Already showing a menu')
         return
-    object.showingMenu = 1
-    uicore.contextMenuOwner = weakref.ref(object)
-    try:
-        d = uicore.desktop
-        mv = CreateMenuView(CreateMenuFromList(m), None, getattr(object, 'minwidth', None))
-        object.menuObject_weakref = weakref.ref(mv)
-        topLeft = 1
-        func = getattr(object, 'GetMenuPosition', None)
-        if func is not None:
-            ret = func(object)
-            if len(ret) == 2:
-                x, y = ret
+    else:
+        object.showingMenu = 1
+        uicore.contextMenuOwner = weakref.ref(object)
+        try:
+            d = uicore.desktop
+            mv = CreateMenuView(CreateMenuFromList(m), None, getattr(object, 'minwidth', None))
+            object.menuObject_weakref = weakref.ref(mv)
+            topLeft = 1
+            func = getattr(object, 'GetMenuPosition', None)
+            if func is not None:
+                ret = func(object)
+                if len(ret) == 2:
+                    x, y = ret
+                else:
+                    x, y, topLeft = ret
             else:
-                x, y, topLeft = ret
-        else:
-            x, y = uicore.uilib.x + 10, uicore.uilib.y
-        if topLeft:
-            x, y = min(d.width - mv.width, x), min(d.height - mv.height, y)
-        else:
-            x, y = min(d.width - mv.width, x - mv.width), min(d.height - mv.height, y)
-        mv.left, mv.top = x, y
-        uicore.layer.menu.children.insert(0, mv)
-    finally:
-        object.showingMenu = 0
+                x, y = uicore.uilib.x + 10, uicore.uilib.y
+            if topLeft:
+                x, y = min(d.width - mv.width, x), min(d.height - mv.height, y)
+            else:
+                x, y = min(d.width - mv.width, x - mv.width), min(d.height - mv.height, y)
+            mv.left, mv.top = x, y
+            uicore.layer.menu.children.insert(0, mv)
+        finally:
+            object.showingMenu = 0
 
-    log.LogInfo('menu', 'ShowMenu finished OK')
+        log.LogInfo('menu', 'ShowMenu finished OK')
+        return
 
 
 def ObjectHasMenu(uiObject):
@@ -521,6 +540,7 @@ def GetContextMenuOwner():
         menuOwner = contextMenuOwner()
         if menuOwner and not menuOwner.destroyed and ObjectHasMenu(menuOwner):
             return menuOwner
+    return
 
 
 def CloseContextMenus():

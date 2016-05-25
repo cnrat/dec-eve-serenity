@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\carbon\client\script\util\debugSelectionClient.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\carbon\client\script\util\debugSelectionClient.py
 import service
 import carbonui.const as uiconst
 import uiprimitives
@@ -37,6 +38,7 @@ class DebugSelectionWindow(uicontrols.Window):
             self.displayName.text = ' '
         else:
             self.displayName.text = '%s (%s)' % (entityName, entityID)
+        return
 
     def _ClearSelection(self, *args):
         self.debugSelectionClient.ClearSelection()
@@ -63,17 +65,19 @@ class debugSelectionClient(service.Service):
         service.Service.__init__(self, *args)
         self.selectedEntityID = None
         self.updateFunc = None
+        return
 
     def OnSessionChanged(self, isRemote, session, change):
         if 'worldspaceid' in change:
             if session.charid is not None:
                 self.selectedEntityID = session.charid
+        return
 
     def Run(self, *args):
         service.Service.Run(self, *args)
 
     def _GetEntityName(self, entityID):
-        return ' '
+        pass
 
     def _SetUpdateFunc(self, func):
         self.updateFunc = func
@@ -85,9 +89,11 @@ class debugSelectionClient(service.Service):
             self.updateFunc(self.selectedEntityID, self._GetEntityName(self.selectedEntityID))
         if oldID is not entityID:
             sm.ScatterEvent('OnDebugSelectionChanged', entityID)
+        return
 
     def ClearSelection(self):
         self._SetEntityID(None)
+        return
 
     def SelectSelected(self):
         if boot.appname == 'WOD':
@@ -105,6 +111,7 @@ class debugSelectionClient(service.Service):
             self._SetEntityID(entity.entityID)
         else:
             self._SetEntityID(None)
+        return
 
     def SelectPrevious(self):
         if self.selectedEntityID is None:
@@ -122,6 +129,7 @@ class debugSelectionClient(service.Service):
                 entityID = entityList[-1]
 
         self._SetEntityID(entityID)
+        return
 
     def SelectNext(self):
         if self.selectedEntityID is None:
@@ -138,6 +146,7 @@ class debugSelectionClient(service.Service):
                 entityID = entityList[0]
 
         self._SetEntityID(entityID)
+        return
 
     def GetSelectedID(self):
         return self.selectedEntityID

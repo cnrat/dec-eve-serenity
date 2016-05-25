@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\client\script\ui\login\charcreation\charCreationOvalSlider.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\client\script\ui\login\charcreation\charCreationOvalSlider.py
 import math
 import uicontrols
 import carbonui.const as uiconst
@@ -42,6 +43,7 @@ class CharCreationSingleSlider(uiprimitives.Container):
         self.sr.slider = uicls.CharCreationOvalSlider(parent=self, align=uiconst.CENTERLEFT, sliderSetting=settings, OnSetValue=attributes.get('OnSetValue', None), setValue=attributes.get('setValue', 0.0), invertSlider=attributes.get('invertSlider', False), modifierName=attributes.modifierName, increments=attributes.get('incrementsSlider', None))
         if attributes.label:
             uicls.CCLabel(parent=self.sr.slider, fontsize=13, align=uiconst.BOTTOMRIGHT, text=attributes.label, letterspace=2, top=-20, uppercase=True)
+        return
 
 
 class CharCreationDoubleSlider(uiprimitives.Container):
@@ -78,6 +80,7 @@ class CharCreationDoubleSlider(uiprimitives.Container):
         self.sr.slider2 = uicls.CharCreationOvalSlider(parent=self, align=uiconst.CENTERRIGHT, sliderSetting=settings2, OnSetValue=attributes.get('OnSetValue2', None), setValue=attributes.get('setValue2', 0.0), invertSlider=attributes.get('invertSlider2', True), modifierName=attributes.modifierName2, increments=attributes.get('incrementsSlider2', None))
         if attributes.label2:
             uicls.CCLabel(parent=self.sr.slider2, fontsize=12, align=uiconst.BOTTOMLEFT, text=attributes.label2, letterspace=2, top=-20, uppercase=True, left=13)
+        return
 
 
 class CharCreationTripleSlider(uiprimitives.Container):
@@ -123,6 +126,7 @@ class CharCreationTripleSlider(uiprimitives.Container):
         self.sr.slider3 = uicls.CharCreationOvalSlider(parent=self, align=uiconst.TOPLEFT, sliderSetting=settings3, OnSetValue=attributes.get('OnSetValue3', None), setValue=attributes.get('setValue3', 0.0), invertSlider=attributes.get('invertSlider3', False), modifierName=attributes.modifierName3, increments=attributes.get('incrementsSlider3', None))
         if attributes.label3:
             uicls.CCLabel(parent=self.sr.slider3, fontsize=12, align=uiconst.CENTERTOP, text=attributes.label3, letterspace=2, top=-20, uppercase=True)
+        return
 
 
 class CharCreationOvalSlider(uiprimitives.Container):
@@ -175,6 +179,7 @@ class CharCreationOvalSlider(uiprimitives.Container):
         setvalueCallback = attributes.get('OnSetValue', None)
         if setvalueCallback:
             self.OnSetValue = setvalueCallback
+        return
 
     def OnMarkerMouseDown(self, *args):
         self.OnMouseDown()
@@ -212,8 +217,10 @@ class CharCreationOvalSlider(uiprimitives.Container):
             sm.StartService('audio').SendUIEvent(unicode('wise:/ui_icc_button_mouse_down_play'))
             self._OnSetValue(self, self._value)
             return
-        self.sr.marker.texture.resPath = 'res:/UI/Texture/CharacterCreation/OvalSliderHandle_MD.dds'
-        self.UpdateMarkerPosition()
+        else:
+            self.sr.marker.texture.resPath = 'res:/UI/Texture/CharacterCreation/OvalSliderHandle_MD.dds'
+            self.UpdateMarkerPosition()
+            return
 
     def SetIncrements(self, increments):
         self.increments = increments
@@ -298,7 +305,7 @@ class CharCreationOvalSlider(uiprimitives.Container):
     def InvertSlider(self):
         self._invertedValue = True
 
-    def SetRotationCenterOffset(self, x = 0, y = 0):
+    def SetRotationCenterOffset(self, x=0, y=0):
         self.centerOffset = (x, y)
 
     def SetRotationRange(self, fromAngle, rotationRange):
@@ -322,7 +329,7 @@ class CharCreationOvalSlider(uiprimitives.Container):
             rot = math.pi * 1.5 + math.atan(tn)
         return rot
 
-    def UpdateMarkerPosition(self, jump = False):
+    def UpdateMarkerPosition(self, jump=False):
         angle = self.GetRotationAngleFromCenterToMouse()
         fromAngle, toAngle, rotationRange = self.rotationRange
         if angle < fromAngle and toAngle < angle:
@@ -332,16 +339,17 @@ class CharCreationOvalSlider(uiprimitives.Container):
                 angle = fromAngle
             else:
                 angle = toAngle
-        if fromAngle + rotationRange > math.pi * 2 and 0.0 < angle <= toAngle:
-            angle += math.pi * 2
-        portion = (angle - fromAngle) / rotationRange
-        if self._invertedValue:
-            portion = 1.0 - portion
-        nonIncrementedValue = None
-        if self.increments:
-            nonIncrementedValue = portion
+        if fromAngle + rotationRange > math.pi * 2:
+            if 0.0 < angle <= toAngle:
+                angle += math.pi * 2
+            portion = (angle - fromAngle) / rotationRange
+            if self._invertedValue:
+                portion = 1.0 - portion
+            nonIncrementedValue = None
+            nonIncrementedValue = self.increments and portion
             portion = self.FindIncrementValue(portion)
         self.SetValue(portion, jump, nonIncrementedValue)
+        return
 
     def FindIncrementValue(self, fromValue):
         if fromValue < 0:
@@ -370,7 +378,7 @@ class CharCreationOvalSlider(uiprimitives.Container):
     def GetValue(self):
         return self._value
 
-    def SetValue(self, value, jump = False, nonIncrementedValue = None):
+    def SetValue(self, value, jump=False, nonIncrementedValue=None):
         value = min(1.0, max(0.0, value))
         if nonIncrementedValue is not None:
             nonIncrementedValue = min(1.0, max(0.0, nonIncrementedValue))
@@ -389,6 +397,7 @@ class CharCreationOvalSlider(uiprimitives.Container):
         if self._lastCallbackValue != value:
             self._lastCallbackValue = value
             self.UpdateFillByValue(value)
+        return
 
     def _OnSetValue(self, ctrl, stopvalue):
         if stopvalue in self.incrementStopToValue:
@@ -399,7 +408,7 @@ class CharCreationOvalSlider(uiprimitives.Container):
     def OnSetValue(self, ctrl, value):
         pass
 
-    def MoveMarkerByAngle(self, radianAngle, nonIncrementAngle = None):
+    def MoveMarkerByAngle(self, radianAngle, nonIncrementAngle=None):
         l, t, w, h = self.GetAbsolute()
         ox, oy = self.centerOffset
         radius = self.textureRadius
@@ -417,3 +426,4 @@ class CharCreationOvalSlider(uiprimitives.Container):
             self.sr.ghostMarker.state = uiconst.UI_DISABLED
         else:
             self.sr.ghostMarker.state = uiconst.UI_HIDDEN
+        return

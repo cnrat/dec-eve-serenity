@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\carbon\common\lib\werkzeug\contrib\fixers.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\carbon\common\lib\werkzeug\contrib\fixers.py
 from urllib import unquote
 from werkzeug.http import parse_options_header, parse_cache_control_header, parse_set_header, dump_header
 from werkzeug.useragents import UserAgent
@@ -53,14 +54,14 @@ class ProxyFix(object):
 
 class HeaderRewriterFix(object):
 
-    def __init__(self, app, remove_headers = None, add_headers = None):
+    def __init__(self, app, remove_headers=None, add_headers=None):
         self.app = app
         self.remove_headers = set((x.lower() for x in remove_headers or ()))
         self.add_headers = list(add_headers or ())
 
     def __call__(self, environ, start_response):
 
-        def rewriting_start_response(status, headers, exc_info = None):
+        def rewriting_start_response(status, headers, exc_info=None):
             new_headers = []
             for key, value in headers:
                 if key.lower() not in self.remove_headers:
@@ -74,12 +75,12 @@ class HeaderRewriterFix(object):
 
 class InternetExplorerFix(object):
 
-    def __init__(self, app, fix_vary = True, fix_attach = True):
+    def __init__(self, app, fix_vary=True, fix_attach=True):
         self.app = app
         self.fix_vary = fix_vary
         self.fix_attach = fix_attach
 
-    def fix_headers(self, environ, headers, status = None):
+    def fix_headers(self, environ, headers, status=None):
         if self.fix_vary:
             header = headers.get('content-type', '')
             mimetype, options = parse_options_header(header)
@@ -103,10 +104,11 @@ class InternetExplorerFix(object):
                     headers.pop('cache-control', '')
                 else:
                     headers['Cache-Control'] = header
+        return
 
     def run_fixed(self, environ, start_response):
 
-        def fixing_start_response(status, headers, exc_info = None):
+        def fixing_start_response(status, headers, exc_info=None):
             self.fix_headers(environ, Headers.linked(headers), status)
             return start_response(status, headers, exc_info)
 

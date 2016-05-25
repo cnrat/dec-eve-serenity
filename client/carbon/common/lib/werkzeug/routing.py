@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\carbon\common\lib\werkzeug\routing.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\carbon\common\lib\werkzeug\routing.py
 import re
 from pprint import pformat
 from urlparse import urljoin
@@ -35,6 +36,7 @@ def parse_rule(rule):
         if '>' in remaining or '<' in remaining:
             raise ValueError('malformed url rule: %r' % rule)
         yield (None, None, remaining)
+    return
 
 
 def get_converter(map, name, args):
@@ -162,10 +164,12 @@ class RuleTemplateFactory(RuleFactory):
                     new_endpoint = format_string(new_endpoint, self.context)
                 yield Rule(format_string(rule.rule, self.context), new_defaults, subdomain, rule.methods, rule.build_only, new_endpoint, rule.strict_slashes)
 
+        return
+
 
 class Rule(RuleFactory):
 
-    def __init__(self, string, defaults = None, subdomain = None, methods = None, build_only = False, endpoint = None, strict_slashes = None, redirect_to = None):
+    def __init__(self, string, defaults=None, subdomain=None, methods=None, build_only=False, endpoint=None, strict_slashes=None, redirect_to=None):
         if not string.startswith('/'):
             raise ValueError('urls must start with a leading slash')
         self.rule = string
@@ -189,6 +193,7 @@ class Rule(RuleFactory):
         else:
             self.arguments = set()
         self._trace = self._converters = self._regex = self._weights = None
+        return
 
     def empty(self):
         defaults = None
@@ -202,7 +207,7 @@ class Rule(RuleFactory):
     def refresh(self):
         self.bind(self.map, rebind=True)
 
-    def bind(self, map, rebind = False):
+    def bind(self, map, rebind=False):
         if self.map is not None and not rebind:
             raise RuntimeError('url rule %r already bound to map %r' % (self, self.map))
         self.map = map
@@ -235,6 +240,7 @@ class Rule(RuleFactory):
         if not self.build_only:
             regex = '^%s%s$' % (u''.join(regex_parts), (not self.is_leaf or not self.strict_slashes) and '(?<!/)(?P<__suffix__>/?)' or '')
             self._regex = re.compile(regex, re.UNICODE)
+        return
 
     def match(self, path):
         if not self.build_only:
@@ -257,8 +263,9 @@ class Rule(RuleFactory):
                 if self.defaults is not None:
                     result.update(self.defaults)
                 return result
+        return
 
-    def build(self, values, append_unknown = True):
+    def build(self, values, append_unknown=True):
         tmp = []
         add = tmp.append
         processed = set(self.arguments)
@@ -287,7 +294,7 @@ class Rule(RuleFactory):
     def provides_defaults_for(self, rule):
         return not self.build_only and self.defaults is not None and self.endpoint == rule.endpoint and self != rule and self.arguments == rule.arguments
 
-    def suitable_for(self, values, method = None):
+    def suitable_for(self, values, method=None):
         if method is not None:
             if self.methods is not None and method not in self.methods:
                 return False
@@ -314,48 +321,50 @@ class Rule(RuleFactory):
 
         if len(self._weights) > len(other._weights):
             return -1
-        if len(self._weights) < len(other._weights):
+        elif len(self._weights) < len(other._weights):
             return 1
-        if not other.arguments and self.arguments:
+        elif not other.arguments and self.arguments:
             return 1
-        if other.arguments and not self.arguments:
+        elif other.arguments and not self.arguments:
             return -1
-        if other.defaults is None and self.defaults is not None:
+        elif other.defaults is None and self.defaults is not None:
             return 1
-        if other.defaults is not None and self.defaults is None:
+        elif other.defaults is not None and self.defaults is None:
             return -1
-        if self.greediness > other.greediness:
+        elif self.greediness > other.greediness:
             return -1
-        if self.greediness < other.greediness:
+        elif self.greediness < other.greediness:
             return 1
-        if len(self.arguments) > len(other.arguments):
+        elif len(self.arguments) > len(other.arguments):
             return 1
-        if len(self.arguments) < len(other.arguments):
+        elif len(self.arguments) < len(other.arguments):
             return -1
-        return 1
+        else:
+            return 1
 
     def build_compare(self, other):
         if not other.arguments and self.arguments:
             return -1
-        if other.arguments and not self.arguments:
+        elif other.arguments and not self.arguments:
             return 1
-        if other.defaults is None and self.defaults is not None:
+        elif other.defaults is None and self.defaults is not None:
             return -1
-        if other.defaults is not None and self.defaults is None:
+        elif other.defaults is not None and self.defaults is None:
             return 1
-        if self.provides_defaults_for(other):
+        elif self.provides_defaults_for(other):
             return -1
-        if other.provides_defaults_for(self):
+        elif other.provides_defaults_for(self):
             return 1
-        if self.greediness > other.greediness:
+        elif self.greediness > other.greediness:
             return -1
-        if self.greediness < other.greediness:
+        elif self.greediness < other.greediness:
             return 1
-        if len(self.arguments) > len(other.arguments):
+        elif len(self.arguments) > len(other.arguments):
             return -1
-        if len(self.arguments) < len(other.arguments):
+        elif len(self.arguments) < len(other.arguments):
             return 1
-        return -1
+        else:
+            return -1
 
     def __eq__(self, other):
         return self.__class__ is other.__class__ and self._trace == other._trace
@@ -373,18 +382,19 @@ class Rule(RuleFactory):
     def __repr__(self):
         if self.map is None:
             return '<%s (unbound)>' % self.__class__.__name__
-        charset = self.map is not None and self.map.charset or 'utf-8'
-        tmp = []
-        for is_dynamic, data in self._trace:
-            if is_dynamic:
-                tmp.append('<%s>' % data)
-            else:
-                tmp.append(data)
+        else:
+            charset = self.map is not None and self.map.charset or 'utf-8'
+            tmp = []
+            for is_dynamic, data in self._trace:
+                if is_dynamic:
+                    tmp.append('<%s>' % data)
+                else:
+                    tmp.append(data)
 
-        return '<%s %r%s -> %s>' % (self.__class__.__name__,
-         u''.join(tmp).encode(charset).lstrip('|'),
-         self.methods is not None and ' (%s)' % ', '.join(self.methods) or '',
-         self.endpoint)
+            return '<%s %r%s -> %s>' % (self.__class__.__name__,
+             u''.join(tmp).encode(charset).lstrip('|'),
+             self.methods is not None and ' (%s)' % ', '.join(self.methods) or '',
+             self.endpoint)
 
 
 class BaseConverter(object):
@@ -404,7 +414,7 @@ class BaseConverter(object):
 
 class UnicodeConverter(BaseConverter):
 
-    def __init__(self, map, minlength = 1, maxlength = None, length = None):
+    def __init__(self, map, minlength=1, maxlength=None, length=None):
         BaseConverter.__init__(self, map)
         if length is not None:
             length = '{%d}' % int(length)
@@ -415,6 +425,7 @@ class UnicodeConverter(BaseConverter):
                 maxlength = int(maxlength)
             length = '{%s,%s}' % (int(minlength), maxlength)
         self.regex = '[^/]' + length
+        return
 
 
 class AnyConverter(BaseConverter):
@@ -432,7 +443,7 @@ class PathConverter(BaseConverter):
 
 class NumberConverter(BaseConverter):
 
-    def __init__(self, map, fixed_digits = 0, min = None, max = None):
+    def __init__(self, map, fixed_digits=0, min=None, max=None):
         BaseConverter.__init__(self, map)
         self.fixed_digits = fixed_digits
         self.min = min
@@ -462,14 +473,14 @@ class FloatConverter(NumberConverter):
     regex = '\\d+\\.\\d+'
     num_convert = float
 
-    def __init__(self, map, min = None, max = None):
+    def __init__(self, map, min=None, max=None):
         NumberConverter.__init__(self, map, 0, min, max)
 
 
 class Map(object):
     default_converters = None
 
-    def __init__(self, rules = None, default_subdomain = '', charset = 'utf-8', strict_slashes = True, redirect_defaults = True, converters = None, sort_parameters = False, sort_key = None):
+    def __init__(self, rules=None, default_subdomain='', charset='utf-8', strict_slashes=True, redirect_defaults=True, converters=None, sort_parameters=False, sort_key=None):
         self._rules = []
         self._rules_by_endpoint = {}
         self._remap = True
@@ -494,10 +505,11 @@ class Map(object):
 
         return False
 
-    def iter_rules(self, endpoint = None):
+    def iter_rules(self, endpoint=None):
         if endpoint is not None:
             return iter(self._rules_by_endpoint[endpoint])
-        return iter(self._rules)
+        else:
+            return iter(self._rules)
 
     def add(self, rulefactory):
         for rule in rulefactory.get_rules(self):
@@ -507,14 +519,14 @@ class Map(object):
 
         self._remap = True
 
-    def bind(self, server_name, script_name = None, subdomain = None, url_scheme = 'http', default_method = 'GET', path_info = None):
+    def bind(self, server_name, script_name=None, subdomain=None, url_scheme='http', default_method='GET', path_info=None):
         if subdomain is None:
             subdomain = self.default_subdomain
         if script_name is None:
             script_name = '/'
         return MapAdapter(self, server_name, script_name, subdomain, url_scheme, path_info, default_method)
 
-    def bind_to_environ(self, environ, server_name = None, subdomain = None):
+    def bind_to_environ(self, environ, server_name=None, subdomain=None):
         environ = _get_environ(environ)
         if server_name is None:
             if 'HTTP_HOST' in environ:
@@ -559,7 +571,7 @@ class MapAdapter(object):
         self.path_info = path_info or u''
         self.default_method = default_method
 
-    def dispatch(self, view_func, path_info = None, method = None, catch_http_exceptions = False):
+    def dispatch(self, view_func, path_info=None, method=None, catch_http_exceptions=False):
         try:
             try:
                 endpoint, args = self.match(path_info, method)
@@ -572,7 +584,7 @@ class MapAdapter(object):
                 return e
             raise
 
-    def match(self, path_info = None, method = None, return_rule = False):
+    def match(self, path_info=None, method=None, return_rule=False):
         self.map.update()
         if path_info is None:
             path_info = self.path_info
@@ -628,8 +640,9 @@ class MapAdapter(object):
         if have_match_for:
             raise MethodNotAllowed(valid_methods=list(have_match_for))
         raise NotFound()
+        return
 
-    def test(self, path_info = None, method = None):
+    def test(self, path_info=None, method=None):
         try:
             self.match(path_info, method)
         except RequestRedirect:
@@ -650,7 +663,9 @@ class MapAdapter(object):
                 if rv is not None:
                     return rv
 
-    def build(self, endpoint, values = None, method = None, force_external = False, append_unknown = True):
+        return
+
+    def build(self, endpoint, values=None, method=None, force_external=False, append_unknown=True):
         self.map.update()
         if values:
             if isinstance(values, MultiDict):
@@ -665,11 +680,12 @@ class MapAdapter(object):
         subdomain, path = rv
         if not force_external and subdomain == self.subdomain:
             return str(urljoin(self.script_name, path.lstrip('/')))
-        return str('%s://%s%s%s/%s' % (self.url_scheme,
-         subdomain and subdomain + '.' or '',
-         self.server_name,
-         self.script_name[:-1],
-         path.lstrip('/')))
+        else:
+            return str('%s://%s%s%s/%s' % (self.url_scheme,
+             subdomain and subdomain + '.' or '',
+             self.server_name,
+             self.script_name[:-1],
+             path.lstrip('/')))
 
 
 DEFAULT_CONVERTERS = {'default': UnicodeConverter,

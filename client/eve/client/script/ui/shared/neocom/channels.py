@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\client\script\ui\shared\neocom\channels.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\client\script\ui\shared\neocom\channels.py
 import uiprimitives
 import uicontrols
 import uthread
@@ -23,11 +24,11 @@ class ChannelsSvc(service.Service):
     __dependencies__ = []
     __update_on_reload__ = 0
 
-    def Run(self, memStream = None):
+    def Run(self, memStream=None):
         self.LogInfo('Starting Channels')
         self.semaphore = uthread.Semaphore()
 
-    def Stop(self, memStream = None):
+    def Stop(self, memStream=None):
         wnd = self.GetWnd()
         if wnd and not wnd.destroyed:
             wnd.Close()
@@ -35,24 +36,27 @@ class ChannelsSvc(service.Service):
     def ProcessSessionChange(self, isremote, session, change):
         if session.charid is None:
             self.Stop()
+        return
 
     def Show(self):
         wnd = self.GetWnd(1)
         if wnd is not None and not wnd.destroyed:
             wnd.Maximize()
+        return
 
-    def GetWnd(self, create = 0):
+    def GetWnd(self, create=0):
         if create:
             sm.GetService('tutorial').OpenTutorialSequence_Check(uix.advchannelsTutorial)
             return Channels.Open()
         return Channels.GetIfOpen()
 
-    def SetHint(self, hintstr = None):
+    def SetHint(self, hintstr=None):
         wnd = self.GetWnd()
         if wnd is not None:
             wnd.sr.scroll.ShowHint(hintstr)
+        return
 
-    def CreateOrJoinChannel(self, name, doCreate = True):
+    def CreateOrJoinChannel(self, name, doCreate=True):
         s = self.semaphore
         s.acquire()
         try:
@@ -65,7 +69,7 @@ class ChannelsSvc(service.Service):
         finally:
             s.release()
 
-    def RefreshMine(self, reload = 0):
+    def RefreshMine(self, reload=0):
         wnd = self.GetWnd()
         if wnd and not wnd.destroyed:
             wnd.ShowContent(reload)
@@ -136,11 +140,12 @@ class ChannelField(listentry.Generic):
     def JoinLeaveChannelFromBtn(self, *args):
         self.JoinLeaveChannel()
 
-    def JoinLeaveChannel(self, chID = None, *args):
+    def JoinLeaveChannel(self, chID=None, *args):
         channelID = chID if chID != None else self.sr.node.channel.channelID
         self.state = uiconst.UI_DISABLED
         sm.GetService('LSC').JoinOrLeaveChannel(channelID)
         self.state = uiconst.UI_NORMAL
+        return
 
     def DeleteChannel(self, *args):
         self.state = uiconst.UI_DISABLED
@@ -244,10 +249,10 @@ class Channels(uicontrols.Window):
         self.sr.scroll.multiSelect = 0
         self.ShowContent()
 
-    def ShowContent(self, reload = 1):
+    def ShowContent(self, reload=1):
         uthread.new(self.ShowContent_thread, reload).context = 'Channels::ShowContent'
 
-    def ShowContent_thread(self, reload = 1):
+    def ShowContent_thread(self, reload=1):
         if getattr(self, 'loadingShowcontent', 0):
             return
         self.loadingShowcontent = 1
@@ -263,7 +268,7 @@ class Channels(uicontrols.Window):
             if self and not self.destroyed:
                 self.loadingShowcontent = 0
 
-    def __BuildTreeList(self, tree, indent = 0):
+    def __BuildTreeList(self, tree, indent=0):
         ret = []
         h = [localization.GetByLabel('UI/Chat/ChannelWindow/Name'), localization.GetByLabel('UI/Chat/ChannelWindow/Members')]
         guid = 'ChannelField'
@@ -308,7 +313,7 @@ class Channels(uicontrols.Window):
     def RefreshMine(self, *args):
         self.ShowContent()
 
-    def __GetSubContent(self, nodedata, newitems = 0):
+    def __GetSubContent(self, nodedata, newitems=0):
         indent, sub = nodedata.groupItems
         if not len(sub):
             return []
@@ -320,21 +325,24 @@ class Channels(uicontrols.Window):
     def JoinChannelFromBtn(self, btn, *args):
         self.CreateOrJoinChannel(btn, create=0)
 
-    def CreateOrJoinChannel(self, btn, create = 1, *args):
+    def CreateOrJoinChannel(self, btn, create=1, *args):
         name = self.sr.inpt.GetValue()
         if name.strip() == '':
             eve.Message('LookupStringMinimum', {'minimum': 1})
             return
-        channelID = sm.GetService('LSC').GetChannelIDFromName(name)
-        if channelID is not None:
-            wnd = uicontrols.Window.GetIfOpen('chatchannel_%s' % channelID)
-            if wnd:
-                wnd.Maximize()
-                eve.Message('LSCChannelIsJoined', {'displayName': name})
-                return
-        try:
-            btn.Disable()
-            sm.GetService('channels').CreateOrJoinChannel(name=name, doCreate=create)
-        finally:
-            if not btn.destroyed:
-                btn.Enable()
+        else:
+            channelID = sm.GetService('LSC').GetChannelIDFromName(name)
+            if channelID is not None:
+                wnd = uicontrols.Window.GetIfOpen('chatchannel_%s' % channelID)
+                if wnd:
+                    wnd.Maximize()
+                    eve.Message('LSCChannelIsJoined', {'displayName': name})
+                    return
+            try:
+                btn.Disable()
+                sm.GetService('channels').CreateOrJoinChannel(name=name, doCreate=create)
+            finally:
+                if not btn.destroyed:
+                    btn.Enable()
+
+            return

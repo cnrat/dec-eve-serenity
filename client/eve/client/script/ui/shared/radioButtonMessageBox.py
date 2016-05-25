@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\client\script\ui\shared\radioButtonMessageBox.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\client\script\ui\shared\radioButtonMessageBox.py
 import uiprimitives
 import uicontrols
 import uiutil
@@ -12,7 +13,7 @@ class RadioButtonMessageBox(form.MessageBox):
     __guid__ = 'form.RadioButtonMessageBox'
     __nonpersistvars__ = ['suppress']
 
-    def Execute(self, text, title, buttons, radioOptions, icon, suppText, customicon = None, height = None, width = None, default = None, modal = True):
+    def Execute(self, text, title, buttons, radioOptions, icon, suppText, customicon=None, height=None, width=None, default=None, modal=True):
         height = height or 230
         width = width or 340
         self.HideHeader()
@@ -54,10 +55,12 @@ class RadioButtonMessageBox(form.MessageBox):
         self.DefineButtons(buttons, default=default)
         if modal:
             uicore.registry.SetFocus(self)
+        return
 
     def ShowSupp(self, text):
         bottom = uiprimitives.Container(name='suppressContainer', parent=self.sr.main, align=uiconst.TOBOTTOM, height=20, idx=0)
         self.sr.suppCheckbox = uicontrols.Checkbox(text=text, parent=bottom, configName='suppress', retval=0, checked=0, groupname=None, callback=self.ChangeSupp, align=uiconst.TOPLEFT, pos=(6, 0, 320, 0))
+        return
 
     def OnCheckboxChange(self, checkbox, *args):
         config = checkbox.data['config']
@@ -66,6 +69,7 @@ class RadioButtonMessageBox(form.MessageBox):
                 settings.user.ui.Set(config, checkbox.checked)
             else:
                 settings.user.ui.Set(config, checkbox.data['value'])
+        return
 
     def GetRadioSelection(self):
         return settings.user.ui.Get(self.radioboxID, 'radioboxOption1Selected')

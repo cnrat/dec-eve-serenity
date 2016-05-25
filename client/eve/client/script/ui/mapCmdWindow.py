@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\client\script\ui\mapCmdWindow.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\client\script\ui\mapCmdWindow.py
 import uicontrols
 import carbonui.const as uiconst
 import localization
@@ -23,6 +24,7 @@ class MapCmdWindow(uicontrols.Window):
         lbl = uicontrols.EveLabelMedium(text=localization.GetByLabel('UI/Commands/EnterNewShortcutPrompt', currShortcut=currShortcut), parent=self.sr.main, state=uiconst.UI_DISABLED, width=self.default_width - 100, left=50, top=10, maxLines=None)
         btnGroup = uicontrols.ButtonGroup(btns=[(localization.GetByLabel('UI/Common/Cancel'), self.Close, None)], parent=self.sr.main, line=True)
         self.SetHeight(self.GetHeaderHeight() + lbl.textheight + btnGroup.height + 20)
+        return
 
     def OnGlobalMouseUp(self, window, msgID, param):
         btnNum, type = param

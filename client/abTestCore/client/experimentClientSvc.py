@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\packages\abTestCore\client\experimentClientSvc.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\packages\abTestCore\client\experimentClientSvc.py
 import service
 import blue
 from ..experimentClientMgr import ABTestClientManager
@@ -12,7 +13,7 @@ class ExperimentClientService(service.Service):
         service.Service.__init__(self)
         self.manager = ABTestClientManager()
 
-    def Run(self, memStream = None):
+    def Run(self, memStream=None):
         pass
 
     def OnUserLogon(self, languageID):

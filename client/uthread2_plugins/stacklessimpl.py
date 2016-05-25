@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\packages\uthread2_plugins\stacklessimpl.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\packages\uthread2_plugins\stacklessimpl.py
 import stackless
 import sys
 import time
@@ -44,19 +45,20 @@ class StacklessSemaphore(BaseSemaphore):
 
 class StacklessEvent(locks.Event):
 
-    def wait(self, timeout = None):
+    def wait(self, timeout=None):
         if not is_main():
             res = locks.Event.wait(self, timeout)
             return res
-        if self.is_set():
+        elif self.is_set():
             return True
-        if timeout is None:
-            timeout = sys.maxint
-        endtime = time.time() + timeout
-        while not self.is_set() and time.time() < endtime:
-            stackless_sleep.sleep(0.005)
+        else:
+            if timeout is None:
+                timeout = sys.maxint
+            endtime = time.time() + timeout
+            while not self.is_set() and time.time() < endtime:
+                stackless_sleep.sleep(0.005)
 
-        return self.is_set()
+            return self.is_set()
 
 
 class _StacklessUthread(BaseUthreadImpl):
@@ -71,6 +73,7 @@ class _StacklessUthread(BaseUthreadImpl):
         main.mainloop.wakeup_tasklets(None)
         if stackless.getcurrent() == stackless.getmain():
             stackless.run()
+        return
 
     def get_current(self):
         return _tasklets.get(stackless.getcurrent(), None)

@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\client\script\environment\spaceObject\basicOrbital.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\client\script\environment\spaceObject\basicOrbital.py
 import blue
 import eve.common.script.mgt.entityConst as entities
 from eve.client.script.environment.spaceObject.playerOwnedStructure import PlayerOwnedStructure
@@ -31,6 +32,7 @@ class BasicOrbital(PlayerOwnedStructure):
                 uthread.pool('SpaceObject::BasicOrbital::OnSlimItemUpdated', fxSequencer.OnSpecialFX, slimItem.itemID, slimItem.itemID, None, None, None, 'effects.AnchorLift', 0, 1, 0)
         self.orbitalState = orbitalState
         self.orbitalTimestamp = orbitalTimestamp
+        return
 
     def IsOnline(self):
         slimItem = self.typeData.get('slimItem')

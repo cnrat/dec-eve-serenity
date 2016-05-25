@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\client\script\ui\graphs\bargraph.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\client\script\ui\graphs\bargraph.py
 import carbonui.const as uiconst
 from carbonui.primitives.base import ReverseScaleDpi
 from carbonui.primitives.container import Container
@@ -21,12 +22,13 @@ class BarGraphBarBase(Container):
         self.segments = []
         self.graphData = None
         sm.RegisterNotify(self)
+        return
 
-    def LoadGraphData(self, graphData, animateIn = True):
+    def LoadGraphData(self, graphData, animateIn=True):
         self.graphData = PrimeGraphData(graphData)
         self.ReloadGraph(animateIn=animateIn)
 
-    def UpdateGraphData(self, graphData, animate = True):
+    def UpdateGraphData(self, graphData, animate=True):
         self.graphData = PrimeGraphData(graphData)
         for i, segmentParams in enumerate(self.graphData):
             graphSegment = self.segments[i]
@@ -45,7 +47,7 @@ class BarGraphBarBase(Container):
             else:
                 graphSegment.segmentSize = proportion
 
-    def ReloadGraph(self, animateIn = False):
+    def ReloadGraph(self, animateIn=False):
         for each in self.segments:
             each.Close()
 
@@ -65,7 +67,7 @@ class BarGraphBarBase(Container):
     def OnUIScalingChange(self, *args):
         self.ReloadGraph()
 
-    def UpdateAlignment(self, budgetLeft = 0, budgetTop = 0, budgetWidth = 0, budgetHeight = 0, updateChildrenOnly = False):
+    def UpdateAlignment(self, budgetLeft=0, budgetTop=0, budgetWidth=0, budgetHeight=0, updateChildrenOnly=False):
         ret = Container.UpdateAlignment(self, budgetLeft, budgetTop, budgetWidth, budgetHeight, updateChildrenOnly)
         self.UpdateSegments()
         return ret
@@ -119,11 +121,13 @@ class BarSegmentFill(Fill):
         if self.pointer is None:
             self.pointer = Sprite(parent=self.parent, texturePath='res:/UI/Texture/classes/Graph/barPointer.png', state=uiconst.UI_DISABLED, pos=(0, 0, 15, 15), idx=0)
             self.pointer.display = False
+        return
 
     def HidePointer(self):
         if self.pointer and not self.pointer.destroyed:
             self.pointer.Close()
             self.pointer = None
+        return
 
     def UpdatePointer(self):
         if not self.pointer:
@@ -142,6 +146,7 @@ class BarSegmentFill(Fill):
         if self.pointer and not self.pointer.destroyed:
             self.pointer.Close()
             self.pointer = None
+        return
 
     @apply
     def displayRect():
@@ -193,17 +198,17 @@ class BarGraphHorizontal(Container):
         self.barSize = attributes.Get('barPadding', 6)
         self.bars = []
 
-    def LoadGraphData(self, graphData, animateIn = True):
+    def LoadGraphData(self, graphData, animateIn=True):
         self.graphData = graphData
         self.ReloadGraph(animateIn=animateIn)
 
-    def UpdateGraphData(self, graphData, animate = True):
+    def UpdateGraphData(self, graphData, animate=True):
         self.graphData = graphData
         for i, graphData in enumerate(self.graphData):
             graphBar = self.bars[i]
             graphBar.UpdateGraphData(graphData, animate)
 
-    def ReloadGraph(self, animateIn = False):
+    def ReloadGraph(self, animateIn=False):
         for each in self.bars:
             each.Close()
 

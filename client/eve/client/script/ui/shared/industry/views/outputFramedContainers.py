@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\client\script\ui\shared\industry\views\outputFramedContainers.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\client\script\ui\shared\industry\views\outputFramedContainers.py
 from carbonui.const import CENTERRIGHT, TOALL, UI_NORMAL, UI_DISABLED
 from carbonui.primitives.container import Container
 from carbonui.primitives.frame import Frame
@@ -41,6 +42,7 @@ class BaseFramedContainer(Container):
         self.openInventoryBtn = ButtonIcon(name='openInventoryBtn ', parent=self, align=uiconst.TOPRIGHT, pos=(1, 1, 21, 21), iconSize=16, texturePath='res:/UI/Texture/Vgs/Search_icon.png', func=self.OnOpenInventoryBtn)
         self.UpdateState()
         self.AnimEntry()
+        return
 
     def OnNewJobData(self, jobData):
         self.oldJobData = self.jobData
@@ -106,23 +108,26 @@ class FacilityContainer(BaseFramedContainer):
     def OnClick(self, *args):
         if not self.jobData:
             return
-        if self.IsInPreviewMode():
-            facilityID = self.jobData.blueprint.facilityID
-            if facilityID:
-                self.jobData.facility = sm.GetService('facilitySvc').GetFacility(facilityID)
-            else:
-                self.jobData.facility = None
-            uicore.animations.FadeOut(self.removeIcon, duration=0.1)
-        elif self.jobData.facility:
-            sm.GetService('info').ShowInfo(self.jobData.facility.typeID, self.jobData.facility.facilityID)
-            sm.GetService('audio').SendUIEvent('ind_click')
+        else:
+            if self.IsInPreviewMode():
+                facilityID = self.jobData.blueprint.facilityID
+                if facilityID:
+                    self.jobData.facility = sm.GetService('facilitySvc').GetFacility(facilityID)
+                else:
+                    self.jobData.facility = None
+                uicore.animations.FadeOut(self.removeIcon, duration=0.1)
+            elif self.jobData.facility:
+                sm.GetService('info').ShowInfo(self.jobData.facility.typeID, self.jobData.facility.facilityID)
+                sm.GetService('audio').SendUIEvent('ind_click')
+            return
 
     def IsInPreviewMode(self):
         if not self.jobData:
             return False
-        if self.jobData.facility is None:
+        elif self.jobData.facility is None:
             return False
-        return self.jobData.blueprint.facilityID != self.jobData.facility.facilityID
+        else:
+            return self.jobData.blueprint.facilityID != self.jobData.facility.facilityID
 
     def GetHint(self):
         if self.IsInPreviewMode():
@@ -146,6 +151,7 @@ class InventorySelectionContainer(BaseFramedContainer):
         self.label = IndustryCaptionLabel(parent=self.contentCont, pos=(5, 5, 0, 0), text=localization.GetByLabel(self.CAPTION_TEXT))
         self.combo = IndustryOutputCombo(parent=self.contentCont, align=uiconst.TOBOTTOM, callback=self.OnCombo, height=22)
         self.invController = None
+        return
 
     @telemetry.ZONE_METHOD
     def OnCombo(self, comboBox, key, value):
@@ -185,6 +191,7 @@ class InventorySelectionContainer(BaseFramedContainer):
                 self.combo.Disable()
             else:
                 self.combo.Enable()
+        return
 
     def GetMenu(self):
         self.invController.GetMenu()

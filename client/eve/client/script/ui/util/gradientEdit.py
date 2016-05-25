@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\client\script\ui\util\gradientEdit.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\client\script\ui\util\gradientEdit.py
 import uicls
 import carbonui.const as uiconst
 import trinity
@@ -57,6 +58,7 @@ class GradientEditor(uicontrols.Window):
         self.rgbCursorSelectedSprite = None
         self.CreateRGBCursors()
         uicontrols.Button(parent=self.buttonBar, align=uiconst.TOLEFT, label='Copy Data To Clipboard', func=lambda *args: self.CopyConstructorToClipboard())
+        return
 
     def SelectAlphaCursor(self, idx):
         self.alphaSelected = idx

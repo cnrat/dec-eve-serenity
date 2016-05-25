@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\carbon\client\script\graphics\particleEffectClient.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\carbon\client\script\graphics\particleEffectClient.py
 import service
 import zaction
 import GameWorld
@@ -81,12 +82,13 @@ class ParticleEffectClient(service.Service):
     def RemoveParticleEffectProc(self, effectIDProp):
         if not sm.GetService('device').GetAppFeatureState('Interior.ParticlesEnabled', True):
             return True
-        effectID = GameWorld.GetPropertyForCurrentPythonProc(effectIDProp)
-        if effectID is not None:
-            removeEffectTasklet = uthread.new(self._RemoveParticleEffectProcTasklet, effectID)
-            removeEffectTasklet.context = 'particleEffectClient::RemoveParticleEffectProc'
-            return True
-        return False
+        else:
+            effectID = GameWorld.GetPropertyForCurrentPythonProc(effectIDProp)
+            if effectID is not None:
+                removeEffectTasklet = uthread.new(self._RemoveParticleEffectProcTasklet, effectID)
+                removeEffectTasklet.context = 'particleEffectClient::RemoveParticleEffectProc'
+                return True
+            return False
 
     def _RemoveParticleEffectProcTasklet(self, effectID):
         with self.activeParticlesSemaphore:
@@ -95,54 +97,55 @@ class ParticleEffectClient(service.Service):
     def ApplyParticleEffect(self, *args):
         if not sm.GetService('device').GetAppFeatureState('Interior.ParticlesEnabled', True):
             return True
-        entityID, effectFilePath, boneName, duration, xOffset, yOffset, zOffset = args[:7]
-        yawOffset, pitchOffset, rollOffset, ignoreTransform, effectStringID = args[7:]
-        effectID = self._GetNextEffectID()
-        zaction.AddPropertyForCurrentPythonProc({effectStringID: effectID})
-        translation = geo2.MatrixTranslation(xOffset, yOffset, zOffset)
-        rotation = geo2.MatrixRotationYawPitchRoll(math.radians(yawOffset), math.radians(pitchOffset), math.radians(rollOffset))
-        offset = geo2.MatrixMultiply(rotation, translation)
-        with self.activeParticlesSemaphore:
-            trinityObject = trinity.Load(effectFilePath)
-            entity = self.entityClient.FindEntityByID(entityID)
-            scene = self.graphicClient.GetScene(entity.scene.sceneID)
-            scene.AddDynamic(trinityObject)
-            curveSet = None
-            positionComponent = entity.GetComponent('position')
-            if boneName or positionComponent:
-                curveSet = trinity.TriCurveSet()
-                scene.AddCurveSetToScene(curveSet)
-                if boneName:
-                    paperDollComponent = entity.GetComponent('paperdoll')
-                    model = paperDollComponent.doll.avatar
-                    curve = trinity.Tr2BoneMatrixCurve()
-                    curve.skinnedObject = model
-                    curve.bone = boneName
-                    if not ignoreTransform:
-                        offset = geo2.MatrixMultiply(offset, trinityObject.transform)
-                    curve.transform = offset
-                else:
-                    curve = GameWorld.PositionComponentCurve()
-                    curve.positionComponent = positionComponent
-                    curve.positionOffset = geo2.Vector(xOffset, yOffset, zOffset)
-                    curve.rotationOffset = geo2.QuaternionRotationSetYawPitchRoll(yawOffset, pitchOffset, rollOffset)
-                bind = trinity.TriValueBinding()
-                bind.destinationObject = trinityObject
-                bind.destinationAttribute = 'transform'
-                bind.sourceObject = curve
-                bind.sourceAttribute = 'currentValue'
-                curveSet.curves.append(curve)
-                curveSet.bindings.append(bind)
-                curveSet.Play()
-            expireTime = blue.os.GetWallclockTime() + duration * const.MSEC
-            effectData = util.KeyVal(effectID=effectID, entityID=entityID, effectFilePath=effectFilePath, expireTime=expireTime, offset=offset, trinityObject=trinityObject, sceneID=entity.scene.sceneID, curveSet=curveSet)
-            self.activeParticleEffects[effectID] = effectData
-            if duration > 0:
-                self.timedParticleEffects.append(effectData)
-                self.timedParticleEffects.sort(key=lambda entry: entry.expireTime)
-                self.updateTaskletLock.set()
-            self._ConnectEffectCurveSets(effectData, effectStringID)
-        return True
+        else:
+            entityID, effectFilePath, boneName, duration, xOffset, yOffset, zOffset = args[:7]
+            yawOffset, pitchOffset, rollOffset, ignoreTransform, effectStringID = args[7:]
+            effectID = self._GetNextEffectID()
+            zaction.AddPropertyForCurrentPythonProc({effectStringID: effectID})
+            translation = geo2.MatrixTranslation(xOffset, yOffset, zOffset)
+            rotation = geo2.MatrixRotationYawPitchRoll(math.radians(yawOffset), math.radians(pitchOffset), math.radians(rollOffset))
+            offset = geo2.MatrixMultiply(rotation, translation)
+            with self.activeParticlesSemaphore:
+                trinityObject = trinity.Load(effectFilePath)
+                entity = self.entityClient.FindEntityByID(entityID)
+                scene = self.graphicClient.GetScene(entity.scene.sceneID)
+                scene.AddDynamic(trinityObject)
+                curveSet = None
+                positionComponent = entity.GetComponent('position')
+                if boneName or positionComponent:
+                    curveSet = trinity.TriCurveSet()
+                    scene.AddCurveSetToScene(curveSet)
+                    if boneName:
+                        paperDollComponent = entity.GetComponent('paperdoll')
+                        model = paperDollComponent.doll.avatar
+                        curve = trinity.Tr2BoneMatrixCurve()
+                        curve.skinnedObject = model
+                        curve.bone = boneName
+                        if not ignoreTransform:
+                            offset = geo2.MatrixMultiply(offset, trinityObject.transform)
+                        curve.transform = offset
+                    else:
+                        curve = GameWorld.PositionComponentCurve()
+                        curve.positionComponent = positionComponent
+                        curve.positionOffset = geo2.Vector(xOffset, yOffset, zOffset)
+                        curve.rotationOffset = geo2.QuaternionRotationSetYawPitchRoll(yawOffset, pitchOffset, rollOffset)
+                    bind = trinity.TriValueBinding()
+                    bind.destinationObject = trinityObject
+                    bind.destinationAttribute = 'transform'
+                    bind.sourceObject = curve
+                    bind.sourceAttribute = 'currentValue'
+                    curveSet.curves.append(curve)
+                    curveSet.bindings.append(bind)
+                    curveSet.Play()
+                expireTime = blue.os.GetWallclockTime() + duration * const.MSEC
+                effectData = util.KeyVal(effectID=effectID, entityID=entityID, effectFilePath=effectFilePath, expireTime=expireTime, offset=offset, trinityObject=trinityObject, sceneID=entity.scene.sceneID, curveSet=curveSet)
+                self.activeParticleEffects[effectID] = effectData
+                if duration > 0:
+                    self.timedParticleEffects.append(effectData)
+                    self.timedParticleEffects.sort(key=lambda entry: entry.expireTime)
+                    self.updateTaskletLock.set()
+                self._ConnectEffectCurveSets(effectData, effectStringID)
+            return True
 
     def _CreateAttributeBinding(self, entityID, attributeID, binding):
 
@@ -162,38 +165,41 @@ class ParticleEffectClient(service.Service):
     def _ConnectEffectCurveSets(self, effectData, effectStringID):
         if not hasattr(effectData.trinityObject, 'curveSets'):
             return
-        for curveSet in effectData.trinityObject.curveSets:
-            removableBindings = []
-            for binding in curveSet.bindings:
-                typename = type(binding.sourceObject).__name__
-                if typename.startswith('Tr2PyBindingSentinel'):
-                    if 'Tr2PyBindingSentinelFloat' == typename:
-                        if self._CheckForAttributeBinding(effectData.entityID, binding.sourceObject.name, binding):
-                            continue
-                    prop = zaction.GetPropertyForCurrentPythonProc(effectStringID + '.' + binding.sourceObject.name)
-                    if prop is None:
-                        prop = zaction.GetPropertyForCurrentPythonProc(binding.sourceObject.name)
-                    if prop is not None:
+        else:
+            for curveSet in effectData.trinityObject.curveSets:
+                removableBindings = []
+                for binding in curveSet.bindings:
+                    typename = type(binding.sourceObject).__name__
+                    if typename.startswith('Tr2PyBindingSentinel'):
                         if 'Tr2PyBindingSentinelFloat' == typename:
-                            binding.sourceObject.value = prop
-                        elif type(prop) == types.ListType:
-                            if 'Tr2PyBindingSentinelVector2' == typename and len(prop) >= 2:
-                                binding.sourceObject.value = prop[:2]
-                            elif 'Tr2PyBindingSentinelVector3' == typename and len(prop) >= 3:
-                                binding.sourceObject.value = prop[:3]
-                            elif 'Tr2PyBindingSentinelVector4' == typename and len(prop) >= 4:
-                                binding.sourceObject.value = prop[:4]
+                            if self._CheckForAttributeBinding(effectData.entityID, binding.sourceObject.name, binding):
+                                continue
+                        prop = zaction.GetPropertyForCurrentPythonProc(effectStringID + '.' + binding.sourceObject.name)
+                        if prop is None:
+                            prop = zaction.GetPropertyForCurrentPythonProc(binding.sourceObject.name)
+                        if prop is not None:
+                            if 'Tr2PyBindingSentinelFloat' == typename:
+                                binding.sourceObject.value = prop
+                            elif type(prop) == types.ListType:
+                                if 'Tr2PyBindingSentinelVector2' == typename and len(prop) >= 2:
+                                    binding.sourceObject.value = prop[:2]
+                                elif 'Tr2PyBindingSentinelVector3' == typename and len(prop) >= 3:
+                                    binding.sourceObject.value = prop[:3]
+                                elif 'Tr2PyBindingSentinelVector4' == typename and len(prop) >= 4:
+                                    binding.sourceObject.value = prop[:4]
+                                else:
+                                    self.LogWarn('Found Tr2PyBindingSentinel for a particle effect and matching list property, but types or list lengths do not match!', binding.sourceObject.name, typename, type(prop))
                             else:
-                                self.LogWarn('Found Tr2PyBindingSentinel for a particle effect and matching list property, but types or list lengths do not match!', binding.sourceObject.name, typename, type(prop))
+                                self.LogWarn('Found Tr2PyBindingSentinel for a particle effect and matching property, but types do not match!', binding.sourceObject.name, typename, type(prop))
                         else:
-                            self.LogWarn('Found Tr2PyBindingSentinel for a particle effect and matching property, but types do not match!', binding.sourceObject.name, typename, type(prop))
-                    else:
-                        self.LogWarn('Found Tr2PyBindingSentinel for a particle effect and no matching attribute or property!', binding.sourceObject.name, typename)
-                    removableBindings.append(binding)
+                            self.LogWarn('Found Tr2PyBindingSentinel for a particle effect and no matching attribute or property!', binding.sourceObject.name, typename)
+                        removableBindings.append(binding)
 
-            curveSet.Update()
-            for binding in removableBindings:
-                curveSet.bindings.remove(binding)
+                curveSet.Update()
+                for binding in removableBindings:
+                    curveSet.bindings.remove(binding)
+
+            return
 
 
 ApplyParticleEffect = ProcTypeDef(isMaster=True, procCategory='Graphics', displayName='Apply Particle Effect', properties=[ProcPropertyTypeDef('redFile', 'S', userDataType=None, isPrivate=True, displayName='Red File'),

@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\client\script\ui\inflight\visualEffect.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\client\script\ui\inflight\visualEffect.py
 import blue
 from carbon.common.script.sys.service import Service
 import uthread
@@ -112,6 +113,7 @@ class GodRays:
         starID = cfg.mapSolarSystemContentCache[solarsystemID].star.id
         if getattr(scene, 'sunBall', None) is not None and scene.sunBall.id == starID:
             scene.sunBall.EnableGodRays(False)
+        return
 
     def IsEnabled(self):
         return self.useGodRays
@@ -120,6 +122,7 @@ class GodRays:
         scene = self.sceneManager.GetRegisteredScene('default')
         if getattr(scene, 'sunBall', None) is not None:
             scene.sunBall.SetGodRaysIntensity(value)
+        return
 
     def _EnableGodRaysThread(self, starID):
         try:
@@ -136,3 +139,5 @@ class GodRays:
 
         finally:
             self.enablingGodRays = False
+
+        return

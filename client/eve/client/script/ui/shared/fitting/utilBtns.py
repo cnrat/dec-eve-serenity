@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\client\script\ui\shared\fitting\utilBtns.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\client\script\ui\shared\fitting\utilBtns.py
 from carbonui.primitives.container import Container
 from eve.client.script.ui.control.eveIcon import Icon
 from localization import GetByLabel
@@ -25,6 +26,7 @@ class FittingUtilBtn(Icon):
             else:
                 iconHint = GetByLabel('UI/Fitting/CantOnlineIllegalSlot')
         self.hint = iconHint
+        return
 
     def OnClick(self, *args):
         if self.isActive:

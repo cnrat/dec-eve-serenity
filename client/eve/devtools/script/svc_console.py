@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\devtools\script\svc_console.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\devtools\script\svc_console.py
 import sys
 from traceback import format_exception
 import evetypes
@@ -33,10 +34,11 @@ class ConsoleService(Service):
     def GetMenu(self, *args):
         return [['Python Console', self.Show]]
 
-    def Run(self, memStream = None):
+    def Run(self, memStream=None):
         self.wnd = None
+        return
 
-    def Stop(self, memStream = None):
+    def Stop(self, memStream=None):
         self.CleanUp()
         Service.Stop(self)
 
@@ -46,7 +48,7 @@ class ConsoleService(Service):
 
     def cmd_reportdesync(self, p):
         try:
-            threshold, = p.Parse('f')
+            threshold = p.Parse('f')
         except:
             threshold = 1000.0
 
@@ -96,28 +98,32 @@ class ConsoleService(Service):
     def cmd_execfile(self, p):
         if not (eve.session and eve.session.role & ROLE_PROGRAMMER):
             raise slash.Error('You are not authorized to use this command.')
-        filename, = p.Parse('s')
+        filename = p.Parse('s')
         execfile(filename, globals())
-        return 'Ok'
 
     def DoExecute(self, *args):
         if not eve.session.role & ROLE_PROGRAMMER:
             return
-        crud = self.wnd.sr.input.GetAllText()
-        returnDict = {}
-        result2 = ''
-        try:
-            if crud:
-                code = compile(crud, '<console>', 'exec')
-                eval(code, globals(), returnDict)
-        except:
-            exc, e, tb = sys.exc_info()
-            result2 = (''.join(format_exception(exc, e, tb)) + '\n').replace('\n', '<br>')
-            exc = e = tb = None
-            raise
-        finally:
-            if self.wnd and not self.wnd.destroyed:
-                self.wnd.sr.output.SetValue(result2 + str(returnDict.get('MyResult', '')))
+        else:
+            crud = self.wnd.sr.input.GetAllText()
+            returnDict = {}
+            result2 = ''
+            try:
+                try:
+                    if crud:
+                        code = compile(crud, '<console>', 'exec')
+                        eval(code, globals(), returnDict)
+                except:
+                    exc, e, tb = sys.exc_info()
+                    result2 = (''.join(format_exception(exc, e, tb)) + '\n').replace('\n', '<br>')
+                    exc = e = tb = None
+                    raise
+
+            finally:
+                if self.wnd and not self.wnd.destroyed:
+                    self.wnd.sr.output.SetValue(result2 + str(returnDict.get('MyResult', '')))
+
+            return
 
     def DoClear(self, *args):
         self.wnd.sr.input.SetValue('')
@@ -136,61 +142,63 @@ class ConsoleService(Service):
         if wnd:
             self.wnd.Maximize()
             return
-        self.wnd = wnd = uicontrols.Window.Open(windowID=SERVICENAME)
-        wnd._OnClose = self.Hide
-        wnd.SetWndIcon(None)
-        wnd.SetTopparentHeight(0)
-        wnd.SetCaption('Console')
-        wnd.SetMinSize([352, 200])
-        main = uiprimitives.Container(name='con', parent=uiutil.GetChild(wnd, 'main'), pos=(const.defaultPadding,
-         const.defaultPadding,
-         const.defaultPadding,
-         const.defaultPadding))
-        o = wnd.sr.o = uiprimitives.Container(name='output', parent=main, align=uiconst.TOBOTTOM)
-        o.height = max(32, settings.user.ui.Get('consoleoutputheight', 48))
-        c = uiprimitives.Container(name='control', parent=main, align=uiconst.TOBOTTOM, height=24)
-        i = uiprimitives.Container(name='input', parent=main, align=uiconst.TOALL, pos=(0, 0, 0, 0))
-        divider = Divider(name='divider', align=uiconst.TOBOTTOM, idx=1, height=const.defaultPadding, parent=c, state=uiconst.UI_NORMAL)
-        divider.Startup(o, 'height', 'y', 32, 128)
-        input = wnd.sr.input = uicls.EditPlainText(setvalue=self.consolecontents, parent=i)
-        input.autoScrollToBottom = 1
-        buttons = [['Copy All',
-          self.DoCopy,
-          None,
-          81],
-         ['Paste',
-          self.DoPaste,
-          None,
-          81],
-         ['Clear',
-          self.DoClear,
-          None,
-          81],
-         ['<color=0xff40ff40>Execute',
-          self.DoExecute,
-          None,
-          81]]
-        controls = uicontrols.ButtonGroup(btns=buttons, line=0)
-        controls.align = uiconst.TORIGHT
-        controls.width = 64 * len(buttons)
-        controls.height = 16
-        c.children.append(controls)
+        else:
+            self.wnd = wnd = uicontrols.Window.Open(windowID=SERVICENAME)
+            wnd._OnClose = self.Hide
+            wnd.SetWndIcon(None)
+            wnd.SetTopparentHeight(0)
+            wnd.SetCaption('Console')
+            wnd.SetMinSize([352, 200])
+            main = uiprimitives.Container(name='con', parent=uiutil.GetChild(wnd, 'main'), pos=(const.defaultPadding,
+             const.defaultPadding,
+             const.defaultPadding,
+             const.defaultPadding))
+            o = wnd.sr.o = uiprimitives.Container(name='output', parent=main, align=uiconst.TOBOTTOM)
+            o.height = max(32, settings.user.ui.Get('consoleoutputheight', 48))
+            c = uiprimitives.Container(name='control', parent=main, align=uiconst.TOBOTTOM, height=24)
+            i = uiprimitives.Container(name='input', parent=main, align=uiconst.TOALL, pos=(0, 0, 0, 0))
+            divider = Divider(name='divider', align=uiconst.TOBOTTOM, idx=1, height=const.defaultPadding, parent=c, state=uiconst.UI_NORMAL)
+            divider.Startup(o, 'height', 'y', 32, 128)
+            input = wnd.sr.input = uicls.EditPlainText(setvalue=self.consolecontents, parent=i)
+            input.autoScrollToBottom = 1
+            buttons = [['Copy All',
+              self.DoCopy,
+              None,
+              81],
+             ['Paste',
+              self.DoPaste,
+              None,
+              81],
+             ['Clear',
+              self.DoClear,
+              None,
+              81],
+             ['<color=0xff40ff40>Execute',
+              self.DoExecute,
+              None,
+              81]]
+            controls = uicontrols.ButtonGroup(btns=buttons, line=0)
+            controls.align = uiconst.TORIGHT
+            controls.width = 64 * len(buttons)
+            controls.height = 16
+            c.children.append(controls)
 
-        def checker(cb):
-            checked = cb.GetValue()
-            settings.user.ui.Set('consolestealth', checked)
-            if checked:
-                wnd.sr.stealth.hint = 'Stealth: ON<br>Console exceptions are not logged.<br>Click to disable stealth.'
-            else:
-                wnd.sr.stealth.hint = 'Stealth: OFF<br>Console exceptions are logged.<br>Click to enable stealth.'
-            cb.state = uiconst.UI_HIDDEN
-            cb.state = uiconst.UI_NORMAL
+            def checker(cb):
+                checked = cb.GetValue()
+                settings.user.ui.Set('consolestealth', checked)
+                if checked:
+                    wnd.sr.stealth.hint = 'Stealth: ON<br>Console exceptions are not logged.<br>Click to disable stealth.'
+                else:
+                    wnd.sr.stealth.hint = 'Stealth: OFF<br>Console exceptions are logged.<br>Click to enable stealth.'
+                cb.state = uiconst.UI_HIDDEN
+                cb.state = uiconst.UI_NORMAL
 
-        wnd.sr.stealth = uicontrols.Checkbox(text='Stealth', parent=c, configName='consolestealth', retval=0, checked=settings.user.ui.Get('consolestealth', 0), callback=checker)
-        checker(wnd.sr.stealth)
-        output = wnd.sr.output = uicontrols.Edit(setvalue=self.outputcontents_default, parent=o, readonly=1)
-        output.autoScrollToBottom = 1
-        uicore.registry.SetFocus(input)
+            wnd.sr.stealth = uicontrols.Checkbox(text='Stealth', parent=c, configName='consolestealth', retval=0, checked=settings.user.ui.Get('consolestealth', 0), callback=checker)
+            checker(wnd.sr.stealth)
+            output = wnd.sr.output = uicontrols.Edit(setvalue=self.outputcontents_default, parent=o, readonly=1)
+            output.autoScrollToBottom = 1
+            uicore.registry.SetFocus(input)
+            return
 
     def Hide(self, *args):
         if self.wnd:
@@ -199,6 +207,7 @@ class ConsoleService(Service):
             self.outputcontents = self.wnd.sr.output.GetValue()
             self.wnd.Close()
         self.wnd = None
+        return
 
     def ProcessRestartUI(self):
         if self.wnd:

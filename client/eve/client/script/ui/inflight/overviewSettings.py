@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\client\script\ui\inflight\overviewSettings.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\client\script\ui\inflight\overviewSettings.py
 import operator
 from carbon.common.script.util.format import FmtDate
 from carbonui import const as uiconst
@@ -213,6 +214,7 @@ class OverviewSettings(Window):
         self.minHeight += sum([ c.height for c in misctop.children ])
         self.ResetMinSize()
         self.UpdateStateTopHeight()
+        return
 
     def GetHistoryTab(self):
         historyCont = Container(name='historyCont', parent=self.sr.main, align=uiconst.TOALL)
@@ -313,7 +315,7 @@ class OverviewSettings(Window):
         if currentValue != editField.originalValue:
             self.UpdateOverviewTab()
 
-    def GetBracketAndOverviewOptions(self, includeEmpty = True):
+    def GetBracketAndOverviewOptions(self, includeEmpty=True):
         overviewOptions = []
         bracketOptions = []
         if includeEmpty:
@@ -341,15 +343,17 @@ class OverviewSettings(Window):
     def UpdateStateTopHeight(self):
         self.statetop.height = sum((c.height for c in self.statetop.children))
 
-    def MoveStuff(self, dragObj, entries, idx = -1, *args):
+    def MoveStuff(self, dragObj, entries, idx=-1, *args):
         if self.currentKey is None:
             return
-        if self.currentKey == 'columns':
-            self.MoveColumn(idx)
-        elif self.currentKey in ('flag', 'background'):
-            self.Move(idx)
-        elif self.currentKey == 'ships':
-            self.MoveShipLabel(idx)
+        else:
+            if self.currentKey == 'columns':
+                self.MoveColumn(idx)
+            elif self.currentKey in ('flag', 'background'):
+                self.Move(idx)
+            elif self.currentKey == 'ships':
+                self.MoveShipLabel(idx)
+            return
 
     def OnTacticalPresetChange(self, label, preset):
         presetName = self.overviewPresetSvc.GetPresetDisplayName(label)
@@ -392,6 +396,8 @@ class OverviewSettings(Window):
             if editFieldText:
                 self.tabedit[i].SetText(editFieldText)
                 self.tabedit[i].originalValue = editFieldText
+
+        return
 
     def ExportSettings(self, *args):
         pass
@@ -518,8 +524,9 @@ class OverviewSettings(Window):
             self.LoadHistory()
         else:
             self.LoadFlags()
+        return
 
-    def LoadFlags(self, selected = None):
+    def LoadFlags(self, selected=None):
         where = self.sr.statetabs.GetSelectedArgs()
         flagOrder = sm.GetService('state').GetStateOrder(where)
         scrolllist = []
@@ -542,7 +549,7 @@ class OverviewSettings(Window):
 
         self.sr.scroll.Load(contentList=scrolllist, scrollTo=getattr(self, 'cachedScrollPos', 0.0))
 
-    def LoadShips(self, selected = None):
+    def LoadShips(self, selected=None):
         shipLabels = sm.GetService('state').GetShipLabels()
         allLabels = sm.GetService('state').GetAllShipLabels()
         corpTickerHidden = sm.GetService('overviewPresetSvc').GetSettingValueOrDefaultFromName('hideCorpTicker', False)
@@ -584,7 +591,9 @@ class OverviewSettings(Window):
             if shipEntry.panel:
                 shipEntry.panel.postCont.left = maxLeft
 
-    def Move(self, idx = None, *args):
+        return
+
+    def Move(self, idx=None, *args):
         self.cachedScrollPos = self.sr.scroll.GetScrollProportion()
         selected = self.sr.scroll.GetSelected()
         if selected:
@@ -601,6 +610,7 @@ class OverviewSettings(Window):
                 newIdx = max(0, selected.idx - 1)
             sm.GetService('state').ChangeStateOrder(self.GetWhere(), selected.flag, newIdx)
             self.LoadFlags(newIdx)
+        return
 
     def GetWhere(self):
         where = self.sr.statetabs.GetSelectedArgs()
@@ -625,8 +635,9 @@ class OverviewSettings(Window):
         self.sr.useSmallColorTags.SetChecked(defaultUseSmallColorTags, 0)
         self.LoadFlags()
         sm.GetService('state').NotifyOnStateSetupChange('reset')
+        return
 
-    def LoadColumns(self, selected = None):
+    def LoadColumns(self, selected=None):
         userSet = sm.GetService('tactical').GetColumns()
         userSetOrder = sm.GetService('tactical').GetColumnOrder()
         missingColumns = [ col for col in sm.GetService('tactical').GetAllColumns() if col not in userSetOrder ]
@@ -687,7 +698,7 @@ class OverviewSettings(Window):
 
         self.sr.scroll.Load(contentList=scrolllist, scrolltotop=0, scrollTo=getattr(self, 'cachedScrollPos', 0.0))
 
-    def GetListOfCategories(self, filterText = ''):
+    def GetListOfCategories(self, filterText=''):
         categoryList = {}
         for _, groupid_name_tuple in tacticalConst.groups:
             groupID, name = groupid_name_tuple
@@ -731,7 +742,7 @@ class OverviewSettings(Window):
         chageList = [('groups', groups, isSelect)]
         sm.StartService('overviewPresetSvc').ChangeSettings(changeList=chageList)
 
-    def GetCatSubContent(self, nodedata, newitems = 0):
+    def GetCatSubContent(self, nodedata, newitems=0):
         presetName = nodedata.presetName
         userSettings = self.overviewPresetSvc.GetPresetGroupsFromKey(presetName)
         scrolllist = []
@@ -784,7 +795,7 @@ class OverviewSettings(Window):
         timestamp = restoreData['timestamp']
         self.restoreOverviewNameLabel.text = localization.GetByLabel('UI/Overview/StoredOverviewBasedOn', overviewName=overviewName, timestamp=FmtDate(timestamp))
 
-    def MoveColumn(self, idx = None, *args):
+    def MoveColumn(self, idx=None, *args):
         self.cachedScrollPos = self.sr.scroll.GetScrollProportion()
         selected = self.sr.scroll.GetSelected()
         if selected:
@@ -810,12 +821,14 @@ class OverviewSettings(Window):
             settings.user.overview.Set('overviewColumnOrder', current)
             self.LoadColumns(newIdx)
             self.DoFullOverviewReload()
+        return
 
     def ResetColumns(self, *args):
         settings.user.overview.Set('overviewColumnOrder', None)
         settings.user.overview.Set('overviewColumns', None)
         self.LoadColumns()
         sm.GetService('state').NotifyOnStateSetupChange('column reset')
+        return
 
     def DoFullOverviewReload(self):
         overview = OverView.GetIfOpen()
@@ -882,7 +895,7 @@ class OverviewSettings(Window):
         changeList = [('filteredStates', flags, addFilterOut), ('alwaysShownStates', flags, addAlwaysShow)]
         self.overviewPresetSvc.ChangeSettings(changeList=changeList)
 
-    def MoveShipLabel(self, idx = None, *args):
+    def MoveShipLabel(self, idx=None, *args):
         self.cachedScrollPos = self.sr.scroll.GetScrollProportion()
         selected = self.sr.scroll.GetSelected()
         if selected:
@@ -899,6 +912,7 @@ class OverviewSettings(Window):
                 newIdx = max(0, selected.idx - 1)
             sm.GetService('state').ChangeLabelOrder(selected.idx, newIdx)
             self.LoadShips(newIdx)
+        return
 
     def OnRefreshOverviewTab(self):
         sm.GetService('bracket').UpdateLabels()
@@ -939,6 +953,8 @@ class OverviewSettings(Window):
             editField.SetText(tabName)
             editField.originalValue = tabName
 
+        return
+
     def UpdateOverviewTab(self, *args):
         tabSettings = {}
         for key in self.tabedit.keys():
@@ -955,6 +971,7 @@ class OverviewSettings(Window):
 
         oldtabsettings = self.overviewPresetSvc.GetTabSettingsForOverview()
         sm.ScatterEvent('OnOverviewTabChanged', tabSettings, oldtabsettings)
+        return
 
     def _OnResize(self, *args):
         self.UpdateStateTopHeight()

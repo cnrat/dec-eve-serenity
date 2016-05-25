@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\packages\achievements\client\auraAchievementWindow.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\packages\achievements\client\auraAchievementWindow.py
 from achievements.client.achievementSettings import OpportunitiesSettingsMenu
 from achievements.common.achievementGroups import GetFirstIncompleteAchievementGroup, GetActiveAchievementGroup
 from achievements.common.extraInfoForTasks import ACHIEVEMENT_TASK_EXTRAINFO, TaskInfoEntry_Text, TaskInfoEntry_ImageText
@@ -150,13 +151,15 @@ class AchievementAuraWindow(Window):
         if self.destroyed:
             self.sizeTimer = None
             return
-        headerHeight = self.GetCollapsedHeight()
-        newheight = max(WINDOW_MIN_HEIGHT, headerHeight + self.mainContent.height + self.mainContent.padTop + self.mainContent.padBottom)
-        if newheight != self.height:
-            self.height = newheight
-            self.SetFixedHeight(self.height)
-            if self.transitionBox and not self.transitionBox.destroyed:
-                self.transitionBox.height = newheight
+        else:
+            headerHeight = self.GetCollapsedHeight()
+            newheight = max(WINDOW_MIN_HEIGHT, headerHeight + self.mainContent.height + self.mainContent.padTop + self.mainContent.padBottom)
+            if newheight != self.height:
+                self.height = newheight
+                self.SetFixedHeight(self.height)
+                if self.transitionBox and not self.transitionBox.destroyed:
+                    self.transitionBox.height = newheight
+            return
 
     def CloseByUser(self, *args, **kwds):
         Window.CloseByUser(self, *args, **kwds)
@@ -177,6 +180,7 @@ class AchievementAuraWindow(Window):
          STEP_COMPLETED_NEXT,
          STEP_PRESENT_OPPORTUNITY):
             sm.GetService('achievementSvc').SetActiveAchievementGroupID(None)
+        return
 
     def FadeOutTransition(self):
         if not self.opacity or self.fadeoutState == FADE_STATE_OUT:
@@ -239,6 +243,7 @@ class AchievementAuraWindow(Window):
         self.activeStep = STEP_INTRO
         settings.char.ui.Set('opportunities_suppress_taskinfo', False)
         self.FadeInTransition()
+        return
 
     def Step_AskStart(self):
         self.FadeOutTransition()
@@ -251,6 +256,7 @@ class AchievementAuraWindow(Window):
         self.SetOrder(0)
         self.activeStep = STEP_INTRO2
         self.FadeInTransition()
+        return
 
     def Step_ActiveCompleted(self):
         self.FadeOutTransition()
@@ -263,27 +269,30 @@ class AchievementAuraWindow(Window):
         self.SetOrder(0)
         self.activeStep = STEP_COMPLETED_NEXT
         self.FadeInTransition()
+        return
 
-    def Step_PresentOpportunity(self, btn = None, groupToPresent = None, *args):
+    def Step_PresentOpportunity(self, btn=None, groupToPresent=None, *args):
         if groupToPresent:
             nextGroup = groupToPresent
         else:
             nextGroup = GetFirstIncompleteAchievementGroup()
         if not nextGroup:
             return self.Step_AllDone()
-        self.FadeOutTransition()
-        self.mainContent.Flush()
-        self.LoadLargeText(GetByLabel(nextGroup.groupName))
-        self.LoadDivider()
-        self.LoadMediumText(GetByLabel(nextGroup.groupDescription))
-        self.LoadButtons(((GetByLabel('Achievements/UI/Accept'), self.ActivateNextIncompleteOpportunity, (False, groupToPresent)), (GetByLabel('Achievements/UI/Dismiss'), self.FadeOutTransitionAndClose, None)))
-        self.LoadTreeLink()
-        self.SetCaption(GetByLabel('Achievements/UI/NewOpportunity'))
-        self.SetOrder(0)
-        self.activeStep = STEP_PRESENT_OPPORTUNITY
-        self.FadeInTransition()
+        else:
+            self.FadeOutTransition()
+            self.mainContent.Flush()
+            self.LoadLargeText(GetByLabel(nextGroup.groupName))
+            self.LoadDivider()
+            self.LoadMediumText(GetByLabel(nextGroup.groupDescription))
+            self.LoadButtons(((GetByLabel('Achievements/UI/Accept'), self.ActivateNextIncompleteOpportunity, (False, groupToPresent)), (GetByLabel('Achievements/UI/Dismiss'), self.FadeOutTransitionAndClose, None)))
+            self.LoadTreeLink()
+            self.SetCaption(GetByLabel('Achievements/UI/NewOpportunity'))
+            self.SetOrder(0)
+            self.activeStep = STEP_PRESENT_OPPORTUNITY
+            self.FadeInTransition()
+            return
 
-    def Step_TaskInfo(self, achievementTask, activeGroup, manualLoad = False):
+    def Step_TaskInfo(self, achievementTask, activeGroup, manualLoad=False):
         self.FadeOutTransition()
         self.mainContent.Flush()
         if activeGroup:
@@ -316,6 +325,7 @@ class AchievementAuraWindow(Window):
         else:
             self.activeStep = STEP_TASK_INFO
         self.FadeInTransition()
+        return
 
     def Step_TaskInfo_Manual(self, achievementTask, achievementGroup):
         self.Step_TaskInfo(achievementTask, achievementGroup, manualLoad=True)
@@ -330,8 +340,9 @@ class AchievementAuraWindow(Window):
         self.SetOrder(0)
         self.activeStep = STEP_ALL_DONE
         self.FadeInTransition()
+        return
 
-    def ActivateNextIncompleteOpportunity(self, emphasize, groupToPresent = None, **kwargs):
+    def ActivateNextIncompleteOpportunity(self, emphasize, groupToPresent=None, **kwargs):
         if groupToPresent:
             nextGroup = groupToPresent
         else:
@@ -351,8 +362,9 @@ class AchievementAuraWindow(Window):
         self.FadeOutTransitionAndClose()
         sm.GetService('achievementSvc').SetActiveAchievementGroupID(None)
         sm.StartService('tutorial').ShowCareerFunnel()
+        return
 
-    def UpdateOpportunityState(self, activeGroupChanged = False, activeGroupCompleted = False):
+    def UpdateOpportunityState(self, activeGroupChanged=False, activeGroupCompleted=False):
         activeGroup = GetActiveAchievementGroup()
         nextGroup = GetFirstIncompleteAchievementGroup()
         if activeGroup:
@@ -375,7 +387,7 @@ class AchievementAuraWindow(Window):
     def LoadMediumText(self, text, *args, **kwargs):
         label = EveLabelMedium(parent=self.mainContent, text=text, align=uiconst.TOTOP, **kwargs)
 
-    def LoadButton(self, label, func, args = None):
+    def LoadButton(self, label, func, args=None):
         buttonContainer = Container(parent=self.mainContent, align=uiconst.TOTOP)
         button = Button(parent=buttonContainer, label=label, func=func, args=args, align=uiconst.CENTERLEFT)
         buttonContainer.height = button.height + 8

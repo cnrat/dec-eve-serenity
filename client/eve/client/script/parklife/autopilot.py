@@ -1,4 +1,6 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\client\script\parklife\autopilot.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\client\script\parklife\autopilot.py
+from eve.client.script.ui.services.menuSvcExtras import movementFunctions
 import util
 import destiny
 import base
@@ -33,6 +35,7 @@ class AutoPilot(service.Service):
         self.__navigateSystemThread = None
         self.enabledTimestamp = 0
         uthread.new(self.UpdateWaypointsThread).context = 'autoPilot::UpdateWaypointsThread'
+        return
 
     def UpdateWaypointsThread(self):
         blue.pyos.synchro.SleepWallclock(2000)
@@ -41,7 +44,7 @@ class AutoPilot(service.Service):
         if len(waypoints):
             starmapSvc.SetWaypoints(waypoints)
 
-    def Run(self, memStream = None):
+    def Run(self, memStream=None):
         service.Service.Run(self, memStream)
         self.StartTimer()
 
@@ -55,6 +58,8 @@ class AutoPilot(service.Service):
 
     def SetOn(self):
         if self.autopilot == 1:
+            return
+        if not util.InShip():
             return
         self.autopilot = 1
         if not sm.GetService('machoNet').GetGlobalConfig().get('newAutoNavigationKillSwitch', False):
@@ -97,7 +102,7 @@ class AutoPilot(service.Service):
         self.StartTimer()
         sm.GetService('starmap').UpdateRoute(fakeUpdate=True)
 
-    def SetOff(self, reason = ''):
+    def SetOff(self, reason=''):
         if self.autopilot == 0:
             self.KillTimer()
             return
@@ -125,43 +130,45 @@ class AutoPilot(service.Service):
         functions = ['GotoDirection', 'GotoPoint']
         if args[0] != eve.session.shipid:
             return
-        if not sm.GetService('machoNet').GetGlobalConfig().get('newAutoNavigationKillSwitch', False):
-            cancelAutoNavigation = False
-            if self.__navigateSystemDestinationItemID is None:
-                pass
-            elif functionName in {'GotoDirection', 'GotoPoint', 'Orbit'}:
-                cancelAutoNavigation = True
-            elif functionName == 'FollowBall' and self.__navigateSystemDestinationItemID != args[1]:
-                cancelAutoNavigation = True
-            if cancelAutoNavigation:
-                self.LogInfo('Canceling auto navigation to', self.__navigateSystemDestinationItemID, 'as a respons to OnBallparkCall:', functionName, args)
-                self.CancelSystemNavigation()
         else:
-            approachAndTryFunctions = ['GotoDirection',
-             'GotoPoint',
-             'FollowBall',
-             'Orbit',
-             'WarpTo']
-            warpAndTryFunctions = ['GotoDirection',
-             'GotoPoint',
-             'FollowBall',
-             'Orbit']
-            if functionName in approachAndTryFunctions:
-                if functionName != 'FollowBall' or self.approachAndTryTarget != args[1]:
-                    self.AbortApproachAndTryCommand()
-            if functionName in warpAndTryFunctions:
-                self.AbortWarpAndTryCommand()
-        if functionName in functions:
-            if functionName == 'GotoDirection' and self.gotoCount > 0:
-                self.gotoCount = 0
-                self.LogInfo('Autopilot gotocount set to 0')
-                return
-            if self.gotoCount == 0:
-                waypoints = sm.GetService('starmap').GetWaypoints()
-                if waypoints and util.IsStation(waypoints[-1]):
+            if not sm.GetService('machoNet').GetGlobalConfig().get('newAutoNavigationKillSwitch', False):
+                cancelAutoNavigation = False
+                if self.__navigateSystemDestinationItemID is None:
+                    pass
+                elif functionName in {'GotoDirection', 'GotoPoint', 'Orbit'}:
+                    cancelAutoNavigation = True
+                elif functionName == 'FollowBall' and self.__navigateSystemDestinationItemID != args[1]:
+                    cancelAutoNavigation = True
+                if cancelAutoNavigation:
+                    self.LogInfo('Canceling auto navigation to', self.__navigateSystemDestinationItemID, 'as a respons to OnBallparkCall:', functionName, args)
+                    self.CancelSystemNavigation()
+            else:
+                approachAndTryFunctions = ['GotoDirection',
+                 'GotoPoint',
+                 'FollowBall',
+                 'Orbit',
+                 'WarpTo']
+                warpAndTryFunctions = ['GotoDirection',
+                 'GotoPoint',
+                 'FollowBall',
+                 'Orbit']
+                if functionName in approachAndTryFunctions:
+                    if functionName != 'FollowBall' or self.approachAndTryTarget != args[1]:
+                        self.AbortApproachAndTryCommand()
+                if functionName in warpAndTryFunctions:
+                    self.AbortWarpAndTryCommand()
+            if functionName in functions:
+                if functionName == 'GotoDirection' and self.gotoCount > 0:
+                    self.gotoCount = 0
+                    self.LogInfo('Autopilot gotocount set to 0')
                     return
-            self.SetOff(functionName + str(args))
-            self.LogInfo('Autopilot stopped gotocount is ', self.gotoCount)
+                if self.gotoCount == 0:
+                    waypoints = sm.GetService('starmap').GetWaypoints()
+                    if waypoints and util.IsStation(waypoints[-1]):
+                        return
+                self.SetOff(functionName + str(args))
+                self.LogInfo('Autopilot stopped gotocount is ', self.gotoCount)
+            return
 
     def GetState(self):
         return self.autopilot
@@ -172,6 +179,7 @@ class AutoPilot(service.Service):
 
     def KillTimer(self):
         self.updateTimer = None
+        return
 
     def StartTimer(self):
         self.gotoCount = 0
@@ -202,6 +210,8 @@ class AutoPilot(service.Service):
             return
         elif not session.rwlock.IsCool():
             self.LogInfo("returning as the session rwlock isn't cool")
+            return
+        elif not util.InShip():
             return
         else:
             starmapSvc = sm.GetService('starmap')
@@ -337,6 +347,7 @@ class AutoPilot(service.Service):
                 self.SetOff('Unknown error')
 
             return
+            return
 
     def NavigateSystemTo(self, itemID, interactionRange, commandFunc, *args, **kwargs):
         self.LogInfo('Navigate to item', itemID, 'range', interactionRange, 'and execute', commandFunc)
@@ -349,6 +360,7 @@ class AutoPilot(service.Service):
         self.__navigateSystemThread = None
         self.AbortApproachAndTryCommand()
         self.AbortWarpAndTryCommand()
+        return
 
     def __NavigateSystemTo(self, itemID, interactionRange, commandFunc, *args, **kwargs):
         try:
@@ -357,9 +369,11 @@ class AutoPilot(service.Service):
             elif self.InInteractionRange(itemID, interactionRange) and not self.IsCloaked():
                 self.LogInfo('System navigation: at target location. Triggering action')
                 try:
-                    commandFunc(*args, **kwargs)
-                except UserError:
-                    raise
+                    try:
+                        commandFunc(*args, **kwargs)
+                    except UserError:
+                        raise
+
                 finally:
                     self.CancelSystemNavigation()
 
@@ -367,7 +381,7 @@ class AutoPilot(service.Service):
                 self.LogInfo('System navigation: warping to target', itemID, interactionRange)
                 WarpToItem(itemID, warpRange=const.minWarpEndDistance, cancelAutoNavigation=False)
             elif self.IsApproachable(itemID):
-                sm.GetService('menu').Approach(itemID, cancelAutoNavigation=False)
+                movementFunctions.ShipApproach(itemID, cancelAutoNavigation=False)
             else:
                 self.LogInfo('Unable to resolve the proper navigation action. Aborting.', itemID, interactionRange, commandFunc)
                 self.CancelSystemNavigation()
@@ -388,206 +402,224 @@ class AutoPilot(service.Service):
         destBall = self.michelle.GetBall(itemID)
         if destBall is not None and destBall.surfaceDist < const.minWarpDistance:
             return True
-        return False
+        else:
+            return False
 
     def InInteractionRange(self, itemID, interactionRange):
         destBall = self.michelle.GetBall(itemID)
         if destBall is not None and destBall.surfaceDist < interactionRange:
             return True
-        return False
+        else:
+            return False
 
     def InWarp(self):
         shipBall = self.michelle.GetBall(session.shipid)
         if shipBall is not None and shipBall.mode == destiny.DSTBALL_WARP:
             return True
-        return False
+        else:
+            return False
 
     def InWarpRange(self, itemID):
         destBall = self.michelle.GetBall(itemID)
         if destBall is not None and destBall.surfaceDist > const.minWarpDistance:
             return True
-        return False
+        else:
+            return False
 
     def IsCloaked(self):
         shipBall = self.michelle.GetBall(session.shipid)
         if shipBall is not None:
             return bool(shipBall.isCloaked)
-        return False
+        else:
+            return False
 
     def WarpAndTryCommand(self, id, cmdMethod, args, interactionRange):
         bp = sm.StartService('michelle').GetRemotePark()
         if not bp:
             return
-        if sm.StartService('space').CanWarp() and self.warpAndTryTarget != id:
-            self.approachAndTryTarget = None
-            self.warpAndTryTarget = id
-            try:
-                michelle = sm.StartService('michelle')
-                shipBall = michelle.GetBall(session.shipid)
-                if shipBall is None:
-                    return
-                if shipBall.mode != destiny.DSTBALL_WARP:
-                    bp.CmdWarpToStuff('item', id)
-                    sm.StartService('space').WarpDestination(celestialID=id)
-                while self.warpAndTryTarget == id and shipBall.mode != destiny.DSTBALL_WARP:
-                    blue.pyos.synchro.SleepWallclock(500)
+        else:
+            if sm.StartService('space').CanWarp() and self.warpAndTryTarget != id:
+                self.approachAndTryTarget = None
+                self.warpAndTryTarget = id
+                try:
+                    michelle = sm.StartService('michelle')
+                    shipBall = michelle.GetBall(session.shipid)
+                    if shipBall is None:
+                        return
+                    if shipBall.mode != destiny.DSTBALL_WARP:
+                        bp.CmdWarpToStuff('item', id)
+                        sm.StartService('space').WarpDestination(celestialID=id)
+                    while self.warpAndTryTarget == id and shipBall.mode != destiny.DSTBALL_WARP:
+                        blue.pyos.synchro.SleepWallclock(500)
 
-                while shipBall.mode == destiny.DSTBALL_WARP:
-                    blue.pyos.synchro.SleepWallclock(500)
+                    while shipBall.mode == destiny.DSTBALL_WARP:
+                        blue.pyos.synchro.SleepWallclock(500)
 
-                counter = 3
-                while self.warpAndTryTarget == id and counter > 0:
-                    destBall = michelle.GetBall(id)
-                    if not destBall or destBall.surfaceDist > const.minWarpDistance:
-                        break
-                    destBall.GetVectorAt(blue.os.GetSimTime())
-                    if destBall.surfaceDist < interactionRange:
-                        cmdMethod(*args)
-                        break
-                    blue.pyos.synchro.SleepWallclock(500)
-                    counter -= 1
+                    counter = 3
+                    while self.warpAndTryTarget == id and counter > 0:
+                        destBall = michelle.GetBall(id)
+                        if not destBall or destBall.surfaceDist > const.minWarpDistance:
+                            break
+                        destBall.GetVectorAt(blue.os.GetSimTime())
+                        if destBall.surfaceDist < interactionRange:
+                            cmdMethod(*args)
+                            break
+                        blue.pyos.synchro.SleepWallclock(500)
+                        counter -= 1
 
-            finally:
-                if self.warpAndTryTarget == id:
-                    self.warpAndTryTarget = None
+                finally:
+                    if self.warpAndTryTarget == id:
+                        self.warpAndTryTarget = None
+
+            return
 
     def ApproachAndTryCommand(self, id, cmdMethod, args, interactionRange):
         bp = sm.StartService('michelle').GetRemotePark()
         if not bp:
             return
-        if self.approachAndTryTarget != id and not self.warpAndTryTarget:
-            self.warpAndTryTarget = None
-            self.approachAndTryTarget = id
-            localbp = sm.StartService('michelle').GetBallpark()
-            if not localbp:
-                return
-            try:
-                sm.GetService('menu').Approach(id)
-                michelle = sm.StartService('michelle')
-                while self.approachAndTryTarget == id:
-                    ball = localbp.GetBall(id)
-                    if not ball:
-                        break
-                    ball.GetVectorAt(blue.os.GetSimTime())
-                    shipBall = localbp.GetBall(session.shipid)
-                    if ball.surfaceDist < interactionRange and not shipBall.isCloaked:
-                        cmdMethod(*args)
-                        break
-                    blue.pyos.synchro.SleepWallclock(500)
+        else:
+            if self.approachAndTryTarget != id and not self.warpAndTryTarget:
+                self.warpAndTryTarget = None
+                self.approachAndTryTarget = id
+                localbp = sm.StartService('michelle').GetBallpark()
+                if not localbp:
+                    return
+                try:
+                    movementFunctions.ShipApproach(id)
+                    michelle = sm.StartService('michelle')
+                    while self.approachAndTryTarget == id:
+                        ball = localbp.GetBall(id)
+                        if not ball:
+                            break
+                        ball.GetVectorAt(blue.os.GetSimTime())
+                        shipBall = localbp.GetBall(session.shipid)
+                        if ball.surfaceDist < interactionRange and not shipBall.isCloaked:
+                            cmdMethod(*args)
+                            break
+                        blue.pyos.synchro.SleepWallclock(500)
 
-            finally:
-                if self.approachAndTryTarget == id:
-                    self.approachAndTryTarget = False
+                finally:
+                    if self.approachAndTryTarget == id:
+                        self.approachAndTryTarget = False
 
-    def AbortApproachAndTryCommand(self, nextID = None):
+            return
+
+    def AbortApproachAndTryCommand(self, nextID=None):
         if nextID != self.approachAndTryTarget:
             self.approachAndTryTarget = None
             self.CancelSystemNavigation()
+        return
 
-    def AbortWarpAndTryCommand(self, nextID = None):
+    def AbortWarpAndTryCommand(self, nextID=None):
         if nextID != self.warpAndTryTarget:
             self.warpAndTryTarget = None
             self.CancelSystemNavigation()
+        return
 
     def OptimizeRoute(self, *args):
         if self.isOptimizing:
             return
-        try:
-            self.isOptimizing = True
-            starmapSvc = sm.GetService('starmap')
-            waypoints = list(starmapSvc.GetWaypoints())
-            originalWaypointsLen = len(waypoints)
-            isReturnTrip = False
-            for idx in reversed(xrange(len(waypoints))):
-                if waypoints[idx] == eve.session.solarsystemid2:
-                    del waypoints[idx]
-                    isReturnTrip = True
-                    break
+        else:
+            try:
+                self.isOptimizing = True
+                starmapSvc = sm.GetService('starmap')
+                waypoints = list(starmapSvc.GetWaypoints())
+                originalWaypointsLen = len(waypoints)
+                isReturnTrip = False
+                for idx in reversed(xrange(len(waypoints))):
+                    if waypoints[idx] == eve.session.solarsystemid2:
+                        del waypoints[idx]
+                        isReturnTrip = True
+                        break
 
-            solarSystemToStations = defaultdict(list)
-            for i, waypoint in enumerate(waypoints):
-                if util.IsStation(waypoint):
-                    solarSystemID = cfg.stations.Get(waypoint).solarSystemID
-                    solarSystemToStations[solarSystemID].append(waypoint)
-                    waypoints[i] = solarSystemID
+                solarSystemToStations = defaultdict(list)
+                for i, waypoint in enumerate(waypoints):
+                    if util.IsStation(waypoint):
+                        solarSystemID = cfg.stations.Get(waypoint).solarSystemID
+                        solarSystemToStations[solarSystemID].append(waypoint)
+                        waypoints[i] = solarSystemID
 
-            waypoints = list(set(waypoints))
-            if session.solarsystemid2 in waypoints:
-                waypoints.remove(session.solarsystemid2)
-            numWaypoints = len(waypoints)
-            if numWaypoints == 0:
-                return
-            msg = None
-            if numWaypoints > 12:
-                msg = 'UI/Map/MapPallet/msgOptimizeQuestion1'
-            elif numWaypoints > 10:
-                msg = 'UI/Map/MapPallet/msgOptimizeQuestion2'
-            if msg:
-                yesNo = eve.Message('AskAreYouSure', {'cons': localization.GetByLabel(msg, numWaypoints=originalWaypointsLen)}, uiconst.YESNO)
-                if yesNo != uiconst.ID_YES:
+                waypoints = list(set(waypoints))
+                if session.solarsystemid2 in waypoints:
+                    waypoints.remove(session.solarsystemid2)
+                numWaypoints = len(waypoints)
+                if numWaypoints == 0:
                     return
-            distance = {}
-            waypoints.append(eve.session.solarsystemid2)
-            for fromID in waypoints:
-                distance[fromID] = {}
-                for toID in waypoints:
-                    if fromID == toID:
-                        continue
-                    distance[fromID][toID] = self.clientPathfinderService.GetAutopilotJumpCount(toID, fromID)
-
-            waypoints.pop()
-            startTime = blue.os.GetWallclockTimeNow()
-            prefix = [None]
-            _push = prefix.append
-            _pop = prefix.pop
-
-            def FindShortestRoute(prefix, distanceSoFar, toID):
-                distanceTo = distance[toID]
-                prefix[-1] = toID
-                shortestDist = shortestRouteSoFar[0]
-                if len(prefix) < numWaypoints:
-                    _push(None)
-                    for i in indexes:
-                        toID = waypoints[i]
-                        if not toID:
+                msg = None
+                if numWaypoints > 12:
+                    msg = 'UI/Map/MapPallet/msgOptimizeQuestion1'
+                elif numWaypoints > 10:
+                    msg = 'UI/Map/MapPallet/msgOptimizeQuestion2'
+                if msg:
+                    yesNo = eve.Message('AskAreYouSure', {'cons': localization.GetByLabel(msg, numWaypoints=originalWaypointsLen)}, uiconst.YESNO)
+                    if yesNo != uiconst.ID_YES:
+                        return
+                distance = {}
+                waypoints.append(eve.session.solarsystemid2)
+                for fromID in waypoints:
+                    distance[fromID] = {}
+                    for toID in waypoints:
+                        if fromID == toID:
                             continue
-                        candidateDist = distanceSoFar + distanceTo[toID]
-                        if candidateDist >= shortestDist:
-                            continue
-                        waypoints[i] = None
-                        FindShortestRoute(prefix, candidateDist, toID)
-                        waypoints[i] = toID
+                        distance[fromID][toID] = self.clientPathfinderService.GetAutopilotJumpCount(toID, fromID)
 
-                    _pop()
+                waypoints.pop()
+                startTime = blue.os.GetWallclockTimeNow()
+                prefix = [None]
+                _push = prefix.append
+                _pop = prefix.pop
+
+                def FindShortestRoute(prefix, distanceSoFar, toID):
+                    distanceTo = distance[toID]
+                    prefix[-1] = toID
+                    shortestDist = shortestRouteSoFar[0]
+                    if len(prefix) < numWaypoints:
+                        _push(None)
+                        for i in indexes:
+                            toID = waypoints[i]
+                            if not toID:
+                                continue
+                            candidateDist = distanceSoFar + distanceTo[toID]
+                            if candidateDist >= shortestDist:
+                                continue
+                            waypoints[i] = None
+                            FindShortestRoute(prefix, candidateDist, toID)
+                            waypoints[i] = toID
+
+                        _pop()
+                    else:
+                        for i in indexes:
+                            toID = waypoints[i]
+                            if not toID:
+                                continue
+                            candidateDist = distanceSoFar + distanceTo[toID]
+                            if candidateDist < shortestDist:
+                                shortestRouteSoFar[:] = [candidateDist, prefix[:], toID]
+                                shortestDist = candidateDist
+
+                    return
+
+                shortestRouteSoFar = [999999999, None, None]
+                indexes = range(len(waypoints))
+                FindShortestRoute(prefix, 0, eve.session.solarsystemid2)
+                distance, waypoints, last = shortestRouteSoFar
+                blue.pyos.synchro.SleepWallclock(1)
+                endTime = blue.os.GetWallclockTimeNow()
+                if waypoints is None:
+                    raise UserError('AutoPilotDisabledUnreachable')
+                waypoints.append(last)
+                waypointsWithStations = []
+                for waypoint in waypoints:
+                    if waypoint in solarSystemToStations:
+                        waypointsWithStations.extend(solarSystemToStations[waypoint])
+                    else:
+                        waypointsWithStations.append(waypoint)
+
+                if isReturnTrip == True:
+                    sm.GetService('starmap').SetWaypoints(waypointsWithStations + [session.solarsystemid2])
                 else:
-                    for i in indexes:
-                        toID = waypoints[i]
-                        if not toID:
-                            continue
-                        candidateDist = distanceSoFar + distanceTo[toID]
-                        if candidateDist < shortestDist:
-                            shortestRouteSoFar[:] = [candidateDist, prefix[:], toID]
-                            shortestDist = candidateDist
+                    sm.GetService('starmap').SetWaypoints(waypointsWithStations)
+            finally:
+                self.isOptimizing = False
 
-            shortestRouteSoFar = [999999999, None, None]
-            indexes = range(len(waypoints))
-            FindShortestRoute(prefix, 0, eve.session.solarsystemid2)
-            distance, waypoints, last = shortestRouteSoFar
-            blue.pyos.synchro.SleepWallclock(1)
-            endTime = blue.os.GetWallclockTimeNow()
-            if waypoints is None:
-                raise UserError('AutoPilotDisabledUnreachable')
-            waypoints.append(last)
-            waypointsWithStations = []
-            for waypoint in waypoints:
-                if waypoint in solarSystemToStations:
-                    waypointsWithStations.extend(solarSystemToStations[waypoint])
-                else:
-                    waypointsWithStations.append(waypoint)
-
-            if isReturnTrip == True:
-                sm.GetService('starmap').SetWaypoints(waypointsWithStations + [session.solarsystemid2])
-            else:
-                sm.GetService('starmap').SetWaypoints(waypointsWithStations)
-        finally:
-            self.isOptimizing = False
+            return

@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\client\script\industry\industrySvc.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\client\script\industry\industrySvc.py
 import industry
 import service
 import weakref
@@ -30,7 +31,7 @@ class IndustryService(service.Service):
         return self._JobInstance(sm.RemoteSvc('industryManager').GetJob(jobID), fetchBlueprint=True)
 
     @telemetry.ZONE_METHOD
-    def GetOwnerJobs(self, ownerID, includeCompleted = False):
+    def GetOwnerJobs(self, ownerID, includeCompleted=False):
         jobs = []
         locations = set()
         for data in sm.RemoteSvc('industryManager').GetJobsByOwner(ownerID, includeCompleted):
@@ -42,14 +43,14 @@ class IndustryService(service.Service):
         cfg.evelocations.Prime(locations)
         return jobs
 
-    def GetCharacterJobs(self, includeCompleted = False):
+    def GetCharacterJobs(self, includeCompleted=False):
         return self.GetOwnerJobs(session.charid, includeCompleted)
 
-    def GetCorporationJobs(self, includeCompleted = False):
+    def GetCorporationJobs(self, includeCompleted=False):
         return self.GetOwnerJobs(session.corpid, includeCompleted)
 
     @telemetry.ZONE_METHOD
-    def CreateJob(self, blueprint, activityID, facilityID, runs = 1):
+    def CreateJob(self, blueprint, activityID, facilityID, runs=1):
         job = industry.Job(blueprint, activityID)
         job.runs = runs
         job.status = industry.STATUS_UNSUBMITTED
@@ -118,7 +119,9 @@ class IndustryService(service.Service):
                 job.status = industry.STATUS_READY
                 sm.ScatterEvent('OnIndustryJob', job.jobID, job.ownerID, job.blueprintID, job.installerID, job.status, None)
 
-    def _JobInstance(self, data, fetchBlueprint = False):
+        return
+
+    def _JobInstance(self, data, fetchBlueprint=False):
         if fetchBlueprint:
             blueprint = self.blueprintSvc.GetBlueprint(data.blueprintID, data.blueprintTypeID)
         else:
@@ -163,7 +166,7 @@ class IndustryService(service.Service):
             job.skills = skills
 
     @telemetry.ZONE_METHOD
-    def _UpdateSlots(self, job = None, force = False):
+    def _UpdateSlots(self, job=None, force=False):
         if not hasattr(self, 'slots'):
             self.slots = {}
         if not len(self.slots) or force:
@@ -172,7 +175,7 @@ class IndustryService(service.Service):
             job.slots = self.slots
 
     @telemetry.ZONE_METHOD
-    def _UpdateAccounts(self, job, ownerID = None, account = None, balance = None):
+    def _UpdateAccounts(self, job, ownerID=None, account=None, balance=None):
         if job:
             accounts = {(session.charid, const.accountingKeyCash): sm.GetService('wallet').GetWealth()}
             if session.corpAccountKey and sm.GetService('wallet').HaveAccessToCorpWalletDivision(session.corpAccountKey):
@@ -245,6 +248,7 @@ class IndustryService(service.Service):
             settings.char.ui.Set('industry_b:%s_a:%s_f:%s_output' % (job.blueprint.blueprintTypeID, job.activityID, job.facility.facilityID), (job.outputLocation.itemID, job.outputLocation.flagID))
         if len(job.optional_materials):
             settings.char.ui.Set('industry_b:%s_a:%s_materials' % (job.blueprint.blueprintTypeID, job.activityID), list([ material.typeID for material in job.optional_materials if material.typeID ]))
+        return
 
     def _ApplyJobSettings(self, job):
         job.runs = settings.char.ui.Get('industry_b:%s_a:%s_runs' % (job.blueprint.blueprintTypeID, job.activityID), 1)
@@ -262,3 +266,4 @@ class IndustryService(service.Service):
                     material.select(option)
 
         job.on_updated.connect(self._UpdateJobSettings)
+        return

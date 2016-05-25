@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\carbon\common\stdlib\unittest\test\test_break.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\carbon\common\stdlib\unittest\test\test_break.py
 import gc
 import os
 import sys
@@ -8,11 +9,8 @@ from cStringIO import StringIO
 import unittest
 
 @unittest.skipUnless(hasattr(os, 'kill'), 'Test requires os.kill')
-
 @unittest.skipIf(sys.platform == 'win32', 'Test cannot run on Windows')
-
 @unittest.skipIf(sys.platform == 'freebsd6', 'Test kills regrtest on freebsd6 if threads have been used')
-
 class TestBreak(unittest.TestCase):
 
     def setUp(self):
@@ -22,6 +20,7 @@ class TestBreak(unittest.TestCase):
         signal.signal(signal.SIGINT, self._default_handler)
         unittest.signals._results = weakref.WeakKeyDictionary()
         unittest.signals._interrupt_handler = None
+        return
 
     def testInstallHandler(self):
         default_handler = signal.getsignal(signal.SIGINT)
@@ -183,6 +182,7 @@ class TestBreak(unittest.TestCase):
                 self.testRunner = FakeRunner
                 self.test = test
                 self.result = None
+                return
 
         p = Program(False)
         p.runTests()
@@ -202,6 +202,7 @@ class TestBreak(unittest.TestCase):
         self.assertEqual(FakeRunner.runArgs, [test])
         self.assertEqual(p.result, result)
         self.assertNotEqual(signal.getsignal(signal.SIGINT), default_handler)
+        return
 
     def testRemoveHandler(self):
         default_handler = signal.getsignal(signal.SIGINT)

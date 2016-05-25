@@ -1,8 +1,9 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\client\script\ui\station\fitting\minihangar.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\client\script\ui\station\fitting\minihangar.py
 from carbonui.primitives.container import Container
 from carbonui.primitives.fill import Fill
 from eve.client.script.ui.shared.fitting.fittingStatsChanges import FittingStatsChanges
-from inventorycommon.util import IsShipFittingFlag
+from inventorycommon.util import IsShipFittingFlag, IsShipFittable
 import uicontrols
 import uthread
 import util
@@ -75,7 +76,7 @@ class CargoSlots(Container):
     def OnDropData(self, dragObj, nodes):
         self.Hilite(0)
 
-    def Update(self, multiplier = 1.0):
+    def Update(self, multiplier=1.0):
         uthread.new(self._Update, multiplier)
 
     def _Update(self, multiplier):
@@ -92,7 +93,7 @@ class CargoSlots(Container):
         cap2 = util.FmtAmt(cap2, showFraction=1)
         self.SetStatusText(used, cap2, color)
 
-    def GetCapacity(self, flag = None):
+    def GetCapacity(self, flag=None):
         return self.GetInvController().GetCapacity()
 
 
@@ -115,6 +116,43 @@ class CargoDroneSlots(CargoSlots):
         self.Update(xtraDroneSpace)
 
 
+class CargoFighterSlots(CargoSlots):
+
+    def GetInvController(self):
+        return invCtrl.ShipFighterBay(self.controller.GetItemID())
+
+    def OnDropData(self, dragObj, nodes):
+        self.GetInvController().OnDropData(nodes)
+        CargoSlots.OnDropData(self, dragObj, nodes)
+
+    def OnClick(self, *args):
+        uicore.cmd.OpenFighterBayOfActiveShip()
+
+    def UpdateCargoSpace(self):
+        typeID = self.controller.GetGhostFittedTypeID()
+        fittingChanges = FittingStatsChanges(typeID)
+        xtraFighterSpace = fittingChanges.GetExtraFighterSpaceMultiplier()
+        self.Update(xtraFighterSpace)
+
+
+class CargoStructureAmmoBay(CargoSlots):
+
+    def GetInvController(self):
+        return invCtrl.StructureAmmoBay(self.controller.GetItemID())
+
+    def OnDropData(self, dragObj, nodes):
+        self.GetInvController().OnDropData(nodes)
+        CargoSlots.OnDropData(self, dragObj, nodes)
+
+    def OnClick(self, *args):
+        invID = ('Structure', self.controller.GetItemID())
+        from eve.client.script.ui.shared.inventory.invWindow import Inventory
+        Inventory.OpenOrShow(invID, usePrimary=False, toggle=True)
+
+    def UpdateCargoSpace(self):
+        self.Update()
+
+
 class CargoCargoSlots(CargoSlots):
 
     def GetInvController(self):
@@ -127,7 +165,7 @@ class CargoCargoSlots(CargoSlots):
             if IsShipFittingFlag(item.flagID):
                 dogmaLocation = sm.GetService('clientDogmaIM').GetDogmaLocation()
                 shipID = util.GetActiveShip()
-                if cfg.IsFittableCategory(item.categoryID):
+                if IsShipFittable(item.categoryID):
                     dogmaLocation.UnloadModuleToContainer(shipID, item.itemID, (shipID,), flag=const.flagCargo)
                     return
                 if item.categoryID == const.categoryCharge:

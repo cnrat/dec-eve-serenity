@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\client\script\ui\services\uiColorSvc.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\client\script\ui\services\uiColorSvc.py
 import carbon.common.script.sys.service as service
 from carbonui.util.color import Color
 from eve.client.script.ui.shared import colorThemes
@@ -16,7 +17,7 @@ class UIColor(service.Service):
     __startupdependencies__ = ['settings']
     __notifyevents__ = ['OnSessionChanged', 'ProcessActiveShipChanged', 'OnWindowBlurSettingChanged']
 
-    def Run(self, memStream = None):
+    def Run(self, memStream=None):
         self.colorUpdateRegistry = weakref.WeakSet()
         self.LoadUIColors()
 
@@ -42,6 +43,7 @@ class UIColor(service.Service):
                     themeID = colorThemes.FACTIONS.get(evetypes.GetFactionID(typeID), None)
                     if themeID:
                         self.SetThemeID(themeID)
+        return
 
     def GetSelectedThemeID(self):
         defaultID = colorThemes.RACES.get(session.raceID, colorThemes.DEFAULT_COLORTHEMEID)
@@ -54,15 +56,17 @@ class UIColor(service.Service):
         settings.char.windows.Set('baseColorTemp', None)
         settings.char.windows.Set('hiliteColorTemp', None)
         self.TriggerUpdate()
+        return
 
     def _GetBaseColor(self):
         if self._colorBase:
             return self._colorBase
-        color = settings.char.windows.Get('baseColorTemp', None)
-        if color:
-            return color
-        self._colorBase, _ = self.GetColor(self.GetSelectedThemeID())
-        return self._colorBase
+        else:
+            color = settings.char.windows.Get('baseColorTemp', None)
+            if color:
+                return color
+            self._colorBase, _ = self.GetColor(self.GetSelectedThemeID())
+            return self._colorBase
 
     def SetBaseColor(self, color):
         settings.char.windows.Set('baseColorTemp', color)
@@ -71,11 +75,12 @@ class UIColor(service.Service):
     def _GetHilightColor(self):
         if self._colorHilite:
             return self._colorHilite
-        color = settings.char.windows.Get('hiliteColorTemp', None)
-        if color:
-            return color
-        _, self._colorHilite = self.GetColor(self.GetSelectedThemeID())
-        return self._colorHilite
+        else:
+            color = settings.char.windows.Get('hiliteColorTemp', None)
+            if color:
+                return color
+            _, self._colorHilite = self.GetColor(self.GetSelectedThemeID())
+            return self._colorHilite
 
     def _GetHilightGlowColor(self):
         if self._colorHiliteGlow:
@@ -126,6 +131,7 @@ class UIColor(service.Service):
         self._colorHilite = None
         self._colorHiliteGlow = None
         self._colorHeader = None
+        return
 
     def TriggerUpdate(self):
         self._ResetColorCache()
@@ -134,11 +140,12 @@ class UIColor(service.Service):
 
         sm.ScatterEvent('OnUIColorsChanged')
 
-    def LoadUIColors(self, reset = False):
+    def LoadUIColors(self, reset=False):
         reset = reset or eve.session.userid is None
         if reset:
             settings.char.windows.Set('wndColorThemeID', colorThemes.DEFAULT_COLORTHEMEID)
         self.TriggerUpdate()
+        return
 
     def FindColor(self, themeID):
         for themeID2, baseColor, hiliteColor in colorThemes.THEMES:

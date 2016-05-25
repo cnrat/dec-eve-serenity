@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\carbon\common\lib\cherrypy\lib\covercp.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\carbon\common\lib\cherrypy\lib\covercp.py
 import re
 import sys
 import cgi
@@ -38,10 +39,9 @@ def _percent(statements, missing):
     e = s - len(missing)
     if s > 0:
         return int(round(100.0 * e / s))
-    return 0
 
 
-def _show_branch(root, base, path, pct = 0, showpct = False, exclude = '', coverage = the_coverage):
+def _show_branch(root, base, path, pct=0, showpct=False, exclude='', coverage=the_coverage):
     dirs = [ k for k, v in root.items() if v ]
     dirs.sort()
     for name in dirs:
@@ -102,7 +102,7 @@ def _graft(path, tree):
             d = d.setdefault(node, {})
 
 
-def get_tree(base, exclude, coverage = the_coverage):
+def get_tree(base, exclude, coverage=the_coverage):
     tree = {}
     runs = coverage.data.executed_files()
     for path in runs:
@@ -114,19 +114,20 @@ def get_tree(base, exclude, coverage = the_coverage):
 
 class CoverStats(object):
 
-    def __init__(self, coverage, root = None):
+    def __init__(self, coverage, root=None):
         self.coverage = coverage
         if root is None:
             import cherrypy
             root = os.path.dirname(cherrypy.__file__)
         self.root = root
+        return
 
     def index(self):
         return TEMPLATE_FRAMESET % self.root.lower()
 
     index.exposed = True
 
-    def menu(self, base = '/', pct = '50', showpct = '', exclude = 'python\\d\\.\\d|test|tut\\d|tutorial'):
+    def menu(self, base='/', pct='50', showpct='', exclude='python\\d\\.\\d|test|tut\\d|tutorial'):
         base = base.lower().rstrip(os.sep)
         yield TEMPLATE_MENU
         yield TEMPLATE_FORM % locals()
@@ -193,7 +194,7 @@ class CoverStats(object):
     report.exposed = True
 
 
-def serve(path = localFile, port = 8080, root = None):
+def serve(path=localFile, port=8080, root=None):
     if coverage is None:
         raise ImportError('The coverage module could not be imported.')
     from coverage import coverage
@@ -204,6 +205,7 @@ def serve(path = localFile, port = 8080, root = None):
      'server.thread_pool': 10,
      'environment': 'production'})
     cherrypy.quickstart(CoverStats(cov, root))
+    return
 
 
 if __name__ == '__main__':

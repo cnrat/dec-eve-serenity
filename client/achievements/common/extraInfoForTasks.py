@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\packages\achievements\common\extraInfoForTasks.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\packages\achievements\common\extraInfoForTasks.py
 from achievements.common.achievementConst import AchievementConsts
 noobWeaponsByRaceID = {const.raceAmarr: 'res:/UI/Texture/Icons/13_64_13.png',
  const.raceCaldari: 'res:/UI/Texture/Icons/13_64_5.png',
@@ -11,7 +12,7 @@ def GetWeaponTexturePathFromRace():
 
 class TaskInfoEntry_ImageText(object):
 
-    def __init__(self, text, imagePath, imageSize, imageColor = (1, 1, 1, 1), textColor = (1, 1, 1, 0.75), imagePathFetchFunc = None):
+    def __init__(self, text, imagePath, imageSize, imageColor=(1, 1, 1, 1), textColor=(1, 1, 1, 0.75), imagePathFetchFunc=None):
         self.textPath = text
         self.textColor = textColor
         self.imagePath = imagePath
@@ -28,7 +29,7 @@ class TaskInfoEntry_ImageText(object):
 
 class TaskInfoEntry_Text(object):
 
-    def __init__(self, text, textColor = (1, 1, 1, 0.75)):
+    def __init__(self, text, textColor=(1, 1, 1, 0.75)):
         self.text = text
         self.textColor = textColor
 

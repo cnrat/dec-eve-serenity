@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\client\script\ui\shared\fitting\panels\targetingPanel.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\client\script\ui\shared\fitting\panels\targetingPanel.py
 from dogma import const as dogmaConst
 from eve.client.script.ui.shared.fitting.fittingUtil import GetShipAttribute, GetMultiplyColor, GetXtraColor, GetColor, GetSensorStrengthAttribute
 from eve.client.script.ui.shared.fitting.panels.attributePanel import AttributePanel
@@ -7,7 +8,7 @@ from localization import GetByLabel, GetByMessageID
 class TargetingPanel(AttributePanel):
     attributesToShow = [('sensorStrength', dogmaConst.attributeScanResolution), (dogmaConst.attributeSignatureRadius, dogmaConst.attributeMaxLockedTargets)]
 
-    def LoadPanel(self, initialLoad = False):
+    def LoadPanel(self, initialLoad=False):
         AttributePanel.LoadPanel(self, initialLoad)
         activeShip = self.dogmaLocation.GetCurrentShipID()
         sensorStrengthAttributeID, val = self.GetSensorStrengthAttribute(activeShip)
@@ -84,6 +85,7 @@ class TargetingPanel(AttributePanel):
         if tooltipTitleID:
             tooltipTitle = GetByMessageID(tooltipTitleID)
             cont.tooltipPanelClassInfo.headerText = tooltipTitle
+        return
 
     def GetSensorStrengthValues(self, shipID, sensorStrengthAttrs, sensorStrengthBonus, sensorStrengthBonusAttrs, sensorStrengthPercent, sensorStrengthPercentAttrs):
         sensorStrengthAttributeID, maxSensorStrength = GetSensorStrengthAttribute(self.dogmaLocation, shipID)

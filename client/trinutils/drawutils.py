@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\packages\trinutils\drawutils.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\packages\trinutils\drawutils.py
 try:
     import trinity
 except ImportError:
@@ -29,7 +30,7 @@ def GetMarkerCoordinates(scale):
      (-scale, 0.0, -scale)]
 
 
-def CreateLineSet(name = None):
+def CreateLineSet(name=None):
     lineset = trinity.EveLineSet()
     if name is not None:
         lineset.name = name
@@ -38,7 +39,7 @@ def CreateLineSet(name = None):
     return lineset
 
 
-def CreateMarker(lineset, markerCoordinates, position, color = RED):
+def CreateMarker(lineset, markerCoordinates, position, color=RED):
     for entry in markerCoordinates:
         offsetLocation = (position[0] + entry[0], position[1] + entry[1], position[2] + entry[2])
         lineset.AddLine(position, color, offsetLocation, color)

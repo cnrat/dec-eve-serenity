@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\client\script\ui\shared\mapView\markers\mapMarkerBase_Icon.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\client\script\ui\shared\mapView\markers\mapMarkerBase_Icon.py
 from carbon.common.script.util.format import FmtDist
 from carbonui.primitives.base import ScaleDpi
 from carbonui.primitives.container import Container
@@ -65,6 +66,7 @@ class MarkerIconBase(MarkerSolarSystemBased):
         if self.label and not self.label.destroyed:
             self.label.Close()
             self.label = None
+        return
 
     def CreateClientBall(self):
         ballpark = sm.GetService('michelle').GetBallpark()
@@ -77,6 +79,7 @@ class MarkerIconBase(MarkerSolarSystemBased):
             self.trackingTransforms = []
         if transform not in self.trackingTransforms:
             self.trackingTransforms.append(transform)
+        return
 
     def UnregisterTrackingTransform(self, transform):
         if transform in self.trackingTransforms:
@@ -89,6 +92,7 @@ class MarkerIconBase(MarkerSolarSystemBased):
             ballpark.RemoveClientSideBall(self.clientBall.id)
         self.clientBall = None
         self.trackingTransforms = None
+        return
 
     def SetInRangeIndicatorState(self, visibleState):
         self.inRangeIndicatorState = visibleState
@@ -101,6 +105,7 @@ class MarkerIconBase(MarkerSolarSystemBased):
         elif self.inRangeIndicator and not self.inRangeIndicator.destroyed:
             self.inRangeIndicator.Close()
             self.inRangeIndicator = None
+        return
 
     def UpdateSolarSystemPosition(self, solarSystemPosition):
         self.mapPositionSolarSystem = solarSystemPosition
@@ -128,24 +133,27 @@ class MarkerIconBase(MarkerSolarSystemBased):
     def RegisterOverlapMarkers(self, overlapMarkers):
         if self.overlapMarkers == overlapMarkers:
             return
-        self.overlapMarkers = overlapMarkers
-        self.iconSprite.opacity = 1.0
-        self.backgroundSprite.opacity = 1.0
-        if self.markerContainer:
-            self.markerContainer.pickState = uiconst.TR2_SPS_ON
-        amount = len(overlapMarkers)
-        if self.overlapStackContainer is None or self.overlapStackContainer.destroyed:
-            self.overlapStackContainer = Container(parent=self.markerContainer, align=uiconst.TOPLEFT, pos=((self.width - 20) / 2,
-             (self.height - 20) / 2 - 2,
-             20,
-             20))
-        if len(self.overlapStackContainer.children) != amount:
-            self.overlapStackContainer.Flush()
-            for i in xrange(min(5, amount)):
-                Sprite(parent=self.overlapStackContainer, texturePath='res:/UI/Texture/classes/MapView/tagBackgroundStackIndicator.png', pos=(0,
-                 -9 - i * 3,
+        else:
+            self.overlapMarkers = overlapMarkers
+            self.iconSprite.opacity = 1.0
+            self.backgroundSprite.opacity = 1.0
+            if self.markerContainer:
+                self.markerContainer.pickState = uiconst.TR2_SPS_ON
+            amount = len(overlapMarkers)
+            if self.overlapStackContainer is None or self.overlapStackContainer.destroyed:
+                self.overlapStackContainer = Container(parent=self.markerContainer, align=uiconst.TOPLEFT, pos=((self.width - 20) / 2,
+                 (self.height - 20) / 2 - 2,
                  20,
-                 20), state=uiconst.UI_DISABLED, opacity=1.0 - i / 5.0)
+                 20))
+            if len(self.overlapStackContainer.children) != amount:
+                self.overlapStackContainer.Flush()
+                for i in xrange(min(5, amount)):
+                    Sprite(parent=self.overlapStackContainer, texturePath='res:/UI/Texture/classes/MapView/tagBackgroundStackIndicator.png', pos=(0,
+                     -9 - i * 3,
+                     20,
+                     20), state=uiconst.UI_DISABLED, opacity=1.0 - i / 5.0)
+
+            return
 
     def SetOverlappedState(self, overlapState):
         self.overlapMarkers = None
@@ -163,6 +171,7 @@ class MarkerIconBase(MarkerSolarSystemBased):
             self.backgroundSprite.opacity = 1.0
             if self.markerContainer:
                 self.markerContainer.pickState = uiconst.TR2_SPS_ON
+        return
 
     def GetOverlapSortValue(self):
         if self.overlapSortValue:
@@ -182,6 +191,7 @@ class MarkerIconBase(MarkerSolarSystemBased):
                     self.highlightFrame.opacity = 0.0
                 if self.label:
                     self.label.Close()
+        return
 
     def GetLabelText(self):
         displayName = self.GetDisplayText()

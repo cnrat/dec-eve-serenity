@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\carbon\common\script\util\blue2Py.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\carbon\common\script\util\blue2Py.py
 import blue
 import types
 types.BlueType = type(blue.os)
@@ -10,7 +11,7 @@ class DecoMetaClass(type):
         cls.__persistvars__ = cls.CombineLists('__persistvars__')
         cls.__nonpersistvars__ = cls.CombineLists('__nonpersistvars__')
 
-    def __call__(cls, inst = None, initDict = None):
+    def __call__(cls, inst=None, initDict=None):
         if not inst:
             inst = blue.classes.CreateInstance(cls.__cid__)
         inst.__klass__ = cls

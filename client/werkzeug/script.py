@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\carbon\common\lib\werkzeug\script.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\carbon\common\lib\werkzeug\script.py
 import sys
 import inspect
 import getopt
@@ -12,7 +13,7 @@ converters = {'boolean': lambda x: x.lower() in ('1', 'true', 'yes', 'on'),
  'integer': int,
  'float': float}
 
-def run(namespace = None, action_prefix = 'action_', args = None):
+def run(namespace=None, action_prefix='action_', args=None):
     if namespace is None:
         namespace = sys._getframe(1).f_locals
     actions = find_actions(namespace, action_prefix)
@@ -20,68 +21,69 @@ def run(namespace = None, action_prefix = 'action_', args = None):
         args = sys.argv[1:]
     if not args or args[0] in ('-h', '--help'):
         return print_usage(actions)
-    if args[0] not in actions:
-        fail("Unknown action '%s'" % args[0])
-    arguments = {}
-    types = {}
-    key_to_arg = {}
-    long_options = []
-    formatstring = ''
-    func, doc, arg_def = actions[args.pop(0)]
-    for idx, (arg, shortcut, default, option_type) in enumerate(arg_def):
-        real_arg = arg.replace('-', '_')
-        if shortcut:
-            formatstring += shortcut
-            if not isinstance(default, bool):
-                formatstring += ':'
-            key_to_arg['-' + shortcut] = real_arg
-        long_options.append(isinstance(default, bool) and arg or arg + '=')
-        key_to_arg['--' + arg] = real_arg
-        key_to_arg[idx] = real_arg
-        types[real_arg] = option_type
-        arguments[real_arg] = default
+    else:
+        if args[0] not in actions:
+            fail("Unknown action '%s'" % args[0])
+        arguments = {}
+        types = {}
+        key_to_arg = {}
+        long_options = []
+        formatstring = ''
+        func, doc, arg_def = actions[args.pop(0)]
+        for idx, (arg, shortcut, default, option_type) in enumerate(arg_def):
+            real_arg = arg.replace('-', '_')
+            if shortcut:
+                formatstring += shortcut
+                if not isinstance(default, bool):
+                    formatstring += ':'
+                key_to_arg['-' + shortcut] = real_arg
+            long_options.append(isinstance(default, bool) and arg or arg + '=')
+            key_to_arg['--' + arg] = real_arg
+            key_to_arg[idx] = real_arg
+            types[real_arg] = option_type
+            arguments[real_arg] = default
 
-    try:
-        optlist, posargs = getopt.gnu_getopt(args, formatstring, long_options)
-    except getopt.GetoptError as e:
-        fail(str(e))
-
-    specified_arguments = set()
-    for key, value in enumerate(posargs):
         try:
+            optlist, posargs = getopt.gnu_getopt(args, formatstring, long_options)
+        except getopt.GetoptError as e:
+            fail(str(e))
+
+        specified_arguments = set()
+        for key, value in enumerate(posargs):
+            try:
+                arg = key_to_arg[key]
+            except IndexError:
+                fail('Too many parameters')
+
+            specified_arguments.add(arg)
+            try:
+                arguments[arg] = converters[types[arg]](value)
+            except ValueError:
+                fail('Invalid value for argument %s (%s): %s' % (key, arg, value))
+
+        for key, value in optlist:
             arg = key_to_arg[key]
-        except IndexError:
-            fail('Too many parameters')
+            if arg in specified_arguments:
+                fail("Argument '%s' is specified twice" % arg)
+            if types[arg] == 'boolean':
+                if arg.startswith('no_'):
+                    value = 'no'
+                else:
+                    value = 'yes'
+            try:
+                arguments[arg] = converters[types[arg]](value)
+            except ValueError:
+                fail("Invalid value for '%s': %s" % (key, value))
 
-        specified_arguments.add(arg)
-        try:
-            arguments[arg] = converters[types[arg]](value)
-        except ValueError:
-            fail('Invalid value for argument %s (%s): %s' % (key, arg, value))
+        newargs = {}
+        for k, v in arguments.iteritems():
+            newargs[k.startswith('no_') and k[3:] or k] = v
 
-    for key, value in optlist:
-        arg = key_to_arg[key]
-        if arg in specified_arguments:
-            fail("Argument '%s' is specified twice" % arg)
-        if types[arg] == 'boolean':
-            if arg.startswith('no_'):
-                value = 'no'
-            else:
-                value = 'yes'
-        try:
-            arguments[arg] = converters[types[arg]](value)
-        except ValueError:
-            fail("Invalid value for '%s': %s" % (key, value))
-
-    newargs = {}
-    for k, v in arguments.iteritems():
-        newargs[k.startswith('no_') and k[3:] or k] = v
-
-    arguments = newargs
-    return func(**arguments)
+        arguments = newargs
+        return func(**arguments)
 
 
-def fail(message, code = -1):
+def fail(message, code=-1):
     print >> sys.stderr, 'Error:', message
     sys.exit(code)
 
@@ -145,13 +147,13 @@ def analyse_action(func):
     return (func, description, arguments)
 
 
-def make_shell(init_func = None, banner = None, use_ipython = True):
+def make_shell(init_func=None, banner=None, use_ipython=True):
     if banner is None:
         banner = 'Interactive Werkzeug Shell'
     if init_func is None:
         init_func = dict
 
-    def action(ipython = use_ipython):
+    def action(ipython=use_ipython):
         namespace = init_func()
         if ipython:
             try:
@@ -169,9 +171,9 @@ def make_shell(init_func = None, banner = None, use_ipython = True):
     return action
 
 
-def make_runserver(app_factory, hostname = 'localhost', port = 5000, use_reloader = False, use_debugger = False, use_evalex = True, threaded = False, processes = 1, static_files = None, extra_files = None, ssl_context = None):
+def make_runserver(app_factory, hostname='localhost', port=5000, use_reloader=False, use_debugger=False, use_evalex=True, threaded=False, processes=1, static_files=None, extra_files=None, ssl_context=None):
 
-    def action(hostname = ('h', hostname), port = ('p', port), reloader = use_reloader, debugger = use_debugger, evalex = use_evalex, threaded = threaded, processes = processes):
+    def action(hostname=('h', hostname), port=('p', port), reloader=use_reloader, debugger=use_debugger, evalex=use_evalex, threaded=threaded, processes=processes):
         from werkzeug.serving import run_simple
         app = app_factory()
         run_simple(hostname, port, app, reloader, debugger, evalex, extra_files, 1, threaded, processes, static_files=static_files, ssl_context=ssl_context)

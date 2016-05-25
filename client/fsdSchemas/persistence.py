@@ -1,4 +1,5 @@
-#Embedded file name: C:\jamieb_jamieb-pc_STABLE_1796\fsdSchemas\persistence.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: C:\jamieb_jamieb-pc_STABLE_1796\fsdSchemas\persistence.py
 import yaml
 import collections
 import sys
@@ -28,12 +29,16 @@ def GetEditorSchema(schema):
     if 'editorFileSchema' in schema:
         editorSchema = schema['editorFileSchema']
         return schema['schemas'][editorSchema]
+    else:
+        return None
 
 
 def GetUnOptimizedRuntimeSchema(schema):
     if 'runtimeSchema' in schema:
         runtimeSchema = schema['runtimeSchema']
         return schema['schemas'][runtimeSchema]
+    else:
+        return None
 
 
 def GetSchemaByFilePath(schema, filePath):
@@ -41,6 +46,8 @@ def GetSchemaByFilePath(schema, filePath):
         for pathSpecifier, sKey in schema['validationPaths'].iteritems():
             if PathConditional(pathSpecifier).Matches(filePath):
                 return schema['schemas'][sKey]
+
+    return None
 
 
 def GetNewIDForSchemaObject(schemaNode):

@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\client\script\ui\camera\shipPOVCameraController.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\client\script\ui\camera\shipPOVCameraController.py
 from eve.client.script.ui.camera.cameraUtil import SetShipDirection, GetZoomDz
 from eve.client.script.ui.camera.baseCameraController import BaseCameraController
 import carbonui.const as uiconst

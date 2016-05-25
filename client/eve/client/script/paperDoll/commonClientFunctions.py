@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\client\script\paperDoll\commonClientFunctions.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\client\script\paperDoll\commonClientFunctions.py
 import eve.common.script.paperDoll.paperDollDefinitions as pdDef
 from yamlext.blueutil import ReadYamlFile
 import trinity
@@ -13,7 +14,7 @@ HAIR_MESH_SHAPE = 'HairMeshShape'
 TRANSLATION = intern('translation')
 ROTATION = intern('rotation')
 
-def CreateRandomDoll(name, factory, outResources = None):
+def CreateRandomDoll(name, factory, outResources=None):
     import paperDoll as PD
     dollRand = PD.DollRandomizer(factory)
     doll = dollRand.GetDoll()
@@ -43,7 +44,7 @@ def MeshAreaIterator(mesh):
             yield area
 
 
-def MeshAreaListIterator(mesh, includePLP = False):
+def MeshAreaListIterator(mesh, includePLP=False):
     yield mesh.opaqueAreas
     yield mesh.decalAreas
     yield mesh.depthAreas
@@ -59,7 +60,7 @@ def MeshAreaListIterator(mesh, includePLP = False):
 
 
 @telemetry.ZONE_FUNCTION
-def GetEffectsFromMesh(mesh, allowShaderMaterial = False, includePLP = False):
+def GetEffectsFromMesh(mesh, allowShaderMaterial=False, includePLP=False):
     effects = []
     if type(mesh) is trinity.Tr2ClothingActor:
         if hasattr(mesh, 'effect') and mesh.effect is not None:
@@ -82,7 +83,7 @@ def MoveAreas(fromAreaList, toAreaList):
     del fromAreaList[:]
 
 
-def SetOrAddMap(effect, mapName, mapPath = None):
+def SetOrAddMap(effect, mapName, mapPath=None):
     for res in effect.resources:
         if res.name == mapName:
             if mapPath:
@@ -126,27 +127,32 @@ def __WeakBlueRemoveHelper(weakInstance, dictionaryName, weakObjectKey):
             dictionary.pop(weakObjectKey, None)
     if weakObjectKey:
         weakObjectKey.callback = None
+    return
 
 
 def AddWeakBlue(classInstance, dictionaryName, blueObjectKey, value):
     dictionary = getattr(classInstance, dictionaryName)
     if dictionary is None:
         return
-    for key in dictionary.iterkeys():
-        if key.object == blueObjectKey:
-            dictionary[key] = value
-            return
+    else:
+        for key in dictionary.iterkeys():
+            if key.object == blueObjectKey:
+                dictionary[key] = value
+                return
 
-    weakInstance = weakref.ref(classInstance)
-    weakObjectKey = blue.BluePythonWeakRef(blueObjectKey)
-    weakObjectKey.callback = lambda : __WeakBlueRemoveHelper(weakInstance, dictionaryName, weakObjectKey)
-    dictionary[weakObjectKey] = value
+        weakInstance = weakref.ref(classInstance)
+        weakObjectKey = blue.BluePythonWeakRef(blueObjectKey)
+        weakObjectKey.callback = lambda : __WeakBlueRemoveHelper(weakInstance, dictionaryName, weakObjectKey)
+        dictionary[weakObjectKey] = value
+        return
 
 
 def DestroyWeakBlueDict(dictionary):
     for weakObjectKey in dictionary.iterkeys():
         if weakObjectKey:
             weakObjectKey.callback = None
+
+    return
 
 
 def IsBeard(areaMesh):
@@ -183,11 +189,15 @@ def FindParameterByName(effect, parameterName):
         if hasattr(param, 'name') and param.name == parameterName:
             return param
 
+    return None
+
 
 def FindResourceByName(effect, resourceName):
     for res in effect.resources:
         if res.name == resourceName:
             return res
+
+    return None
 
 
 def GetHighLevelShaderByName(name):
@@ -195,6 +205,8 @@ def GetHighLevelShaderByName(name):
     for shader in sm.shaderLibrary:
         if shader.name == name:
             return shader
+
+    return None
 
 
 def GetSkintypeColor(skintypePath, isMale):
@@ -210,7 +222,8 @@ def GetSkintypeColor(skintypePath, isMale):
     skintypeData = ReadYamlFile(completePath)
     if skintypeData is None:
         return
-    return skintypeData[2]
+    else:
+        return skintypeData[2]
 
 
 def TryGetSkintypeColorVariation(dnaRow):
@@ -221,6 +234,8 @@ def TryGetSkintypeColorVariation(dnaRow):
         if modifierInfo.modifierKey == pdDef.BODY_CATEGORIES.SKINTYPE:
             resourcesInfo = resources.GetIfExists(modifierRow.paperdollResourceID)
             return GetSkintypeColor(resourcesInfo.resPath, resourcesInfo.resGender)
+
+    return None
 
 
 def TryGetSkintoneColorVariation(dnaRow):
@@ -233,12 +248,15 @@ def TryGetSkintoneColorVariation(dnaRow):
         if colorInfo.colorKey == pdDef.BODY_CATEGORIES.SKINTONE:
             return colorNameA
 
+    return None
+
 
 def GetSkinTypeOrToneColorVariation(dnaRow):
     colorVar = TryGetSkintypeColorVariation(dnaRow)
     if colorVar is not None:
         return colorVar
-    return TryGetSkintoneColorVariation(dnaRow)
+    else:
+        return TryGetSkintoneColorVariation(dnaRow)
 
 
 import carbon.common.script.util.autoexport as autoexport

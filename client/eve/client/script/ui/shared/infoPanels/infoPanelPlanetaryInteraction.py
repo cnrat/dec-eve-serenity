@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\client\script\ui\shared\infoPanels\infoPanelPlanetaryInteraction.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\client\script\ui\shared\infoPanels\infoPanelPlanetaryInteraction.py
 import uiprimitives
 import uicontrols
 import carbonui.const as uiconst
@@ -104,35 +105,37 @@ class InfoPanelPlanetaryInteraction(uicls.InfoPanelBase):
         colony = sm.GetService('planetUI').GetCurrentPlanet().GetColony(session.charid)
         if not colony or colony.colonyData is None:
             return
-        originalData = sm.GetService('planetUI').GetCurrentPlanet().GetEditModeData()
-        if originalData is None:
-            origCpu = 0
-            origPower = 0
         else:
-            origCpu = originalData.GetColonyCpuUsage()
-            origPower = originalData.GetColonyPowerUsage()
-        cpuOutput = float(colony.colonyData.GetColonyCpuSupply())
-        powerOutput = float(colony.colonyData.GetColonyPowerSupply())
-        cpu = colony.colonyData.GetColonyCpuUsage()
-        power = colony.colonyData.GetColonyPowerUsage()
-        cpuDiff = cpu - origCpu
-        powerDiff = power - origPower
-        self.cpuGauge.SetValue(cpu / cpuOutput if cpuOutput > 0 else 0)
-        self.cpuGauge.HideAllMarkers()
-        self.cpuGauge.ShowMarker(origCpu / cpuOutput if cpuOutput > 0 else 0)
-        self.powerGauge.SetValue(power / powerOutput if powerOutput > 0 else 0)
-        self.powerGauge.HideAllMarkers()
-        self.powerGauge.ShowMarker(origPower / powerOutput if powerOutput > 0 else 0)
-        if cpuDiff >= 0:
-            localization.GetByLabel('UI/PI/Common/TeraFlopsAmountIncrease', amount=cpuDiff)
-        else:
-            localization.GetByLabel('UI/PI/Common/TeraFlopsAmount', amount=cpuDiff)
-        if powerDiff >= 0:
-            localization.GetByLabel('UI/PI/Common/MegaWattsAmountIncrease', amount=powerDiff)
-        else:
-            localization.GetByLabel('UI/PI/Common/MegaWattsAmount', amount=powerDiff)
-        self.cpuGauge.hint = localization.GetByLabel('UI/PI/Common/TeraFlopsDiff', current=origCpu, after=cpu, maximum=cpuOutput)
-        self.powerGauge.hint = localization.GetByLabel('UI/PI/Common/MegaWattsDiff', current=origPower, after=power, maximum=powerOutput)
+            originalData = sm.GetService('planetUI').GetCurrentPlanet().GetEditModeData()
+            if originalData is None:
+                origCpu = 0
+                origPower = 0
+            else:
+                origCpu = originalData.GetColonyCpuUsage()
+                origPower = originalData.GetColonyPowerUsage()
+            cpuOutput = float(colony.colonyData.GetColonyCpuSupply())
+            powerOutput = float(colony.colonyData.GetColonyPowerSupply())
+            cpu = colony.colonyData.GetColonyCpuUsage()
+            power = colony.colonyData.GetColonyPowerUsage()
+            cpuDiff = cpu - origCpu
+            powerDiff = power - origPower
+            self.cpuGauge.SetValue(cpu / cpuOutput if cpuOutput > 0 else 0)
+            self.cpuGauge.HideAllMarkers()
+            self.cpuGauge.ShowMarker(origCpu / cpuOutput if cpuOutput > 0 else 0)
+            self.powerGauge.SetValue(power / powerOutput if powerOutput > 0 else 0)
+            self.powerGauge.HideAllMarkers()
+            self.powerGauge.ShowMarker(origPower / powerOutput if powerOutput > 0 else 0)
+            if cpuDiff >= 0:
+                localization.GetByLabel('UI/PI/Common/TeraFlopsAmountIncrease', amount=cpuDiff)
+            else:
+                localization.GetByLabel('UI/PI/Common/TeraFlopsAmount', amount=cpuDiff)
+            if powerDiff >= 0:
+                localization.GetByLabel('UI/PI/Common/MegaWattsAmountIncrease', amount=powerDiff)
+            else:
+                localization.GetByLabel('UI/PI/Common/MegaWattsAmount', amount=powerDiff)
+            self.cpuGauge.hint = localization.GetByLabel('UI/PI/Common/TeraFlopsDiff', current=origCpu, after=cpu, maximum=cpuOutput)
+            self.powerGauge.hint = localization.GetByLabel('UI/PI/Common/MegaWattsDiff', current=origPower, after=power, maximum=powerOutput)
+            return
 
     def UpdateCostOfCurrentChanges(self):
         cost = sm.GetService('planetUI').GetCurrentPlanet().GetCostOfCurrentEdits()

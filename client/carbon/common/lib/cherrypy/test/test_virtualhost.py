@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\carbon\common\lib\cherrypy\test\test_virtualhost.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\carbon\common\lib\cherrypy\test\test_virtualhost.py
 import os
 curdir = os.path.join(os.getcwd(), os.path.dirname(__file__))
 import cherrypy
@@ -11,12 +12,12 @@ class VirtualHostTest(helper.CPWebCase):
         class Root:
 
             def index(self):
-                return 'Hello, world'
+                pass
 
             index.exposed = True
 
             def dom4(self):
-                return 'Under construction'
+                pass
 
             dom4.exposed = True
 

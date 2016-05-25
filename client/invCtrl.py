@@ -1,4 +1,8 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\common\modules\nice\client\_nastyspace\invCtrl.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\common\modules\nice\client\_nastyspace\invCtrl.py
+from eve.client.script.environment.invControllers import AssetSafetyContainer
+from eve.client.script.environment.invControllers import AssetSafetyCorpContainer
+from eve.client.script.environment.invControllers import AssetSafetyDeliveries
 from eve.client.script.environment.invControllers import BaseCelestialContainer
 from eve.client.script.environment.invControllers import BaseCorpContainer
 from eve.client.script.environment.invControllers import BaseInvContainer
@@ -50,4 +54,12 @@ from eve.client.script.environment.invControllers import StationItems
 from eve.client.script.environment.invControllers import StationOwnerView
 from eve.client.script.environment.invControllers import StationShips
 from eve.client.script.environment.invControllers import SpaceComponentInventory
+from eve.client.script.environment.invControllers import Structure
+from eve.client.script.environment.invControllers import StructureAmmoBay
+from eve.client.script.environment.invControllers import StructureFuelBay
+from eve.client.script.environment.invControllers import StructureFighterBay
+from eve.client.script.environment.invControllers import StructureItemHangar
+from eve.client.script.environment.invControllers import StructureShipHangar
+from eve.client.script.environment.invControllers import StructureCorpHangar
+from eve.client.script.environment.invControllers import StructureDeliveriesHangar
 from eve.client.script.environment.invControllers import ItemSiphonPseudoSilo

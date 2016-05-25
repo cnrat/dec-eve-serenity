@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\common\script\sys\devIndexUtil.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\common\script\sys\devIndexUtil.py
 import util
 timeIndexLevels = {1: 7,
  2: 21,
@@ -44,8 +45,6 @@ def GetTimeIndexLevelForDays(days):
     for level in xrange(5, 0, -1):
         if days >= timeIndexLevels[level]:
             return level
-
-    return 0
 
 
 exports = {'util.GetDevIndexLevels': GetDevIndexLevels,

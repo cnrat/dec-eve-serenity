@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\carbon\common\stdlib\fpformat.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\carbon\common\stdlib\fpformat.py
 from warnings import warnpy3k
 warnpy3k('the fpformat module has been removed in Python 3.0', stacklevel=2)
 del warnpy3k

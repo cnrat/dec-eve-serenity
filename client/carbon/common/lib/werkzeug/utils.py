@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\carbon\common\lib\werkzeug\utils.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\carbon\common\lib\werkzeug\utils.py
 import re
 import os
 from time import time
@@ -11,7 +12,7 @@ _windows_device_files = ('CON', 'AUX', 'COM1', 'COM2', 'COM3', 'COM4', 'LPT1', '
 
 class cached_property(object):
 
-    def __init__(self, func, name = None, doc = None, writeable = False):
+    def __init__(self, func, name=None, doc=None, writeable=False):
         if writeable:
             from warnings import warn
             warn(DeprecationWarning('the writeable argument to the cached property is a noop since 0.6 because the property is writeable by default for performance reasons'))
@@ -20,14 +21,15 @@ class cached_property(object):
         self.__doc__ = doc or func.__doc__
         self.func = func
 
-    def __get__(self, obj, type = None):
+    def __get__(self, obj, type=None):
         if obj is None:
             return self
-        value = obj.__dict__.get(self.__name__, _missing)
-        if value is _missing:
-            value = self.func(obj)
-            obj.__dict__[self.__name__] = value
-        return value
+        else:
+            value = obj.__dict__.get(self.__name__, _missing)
+            if value is _missing:
+                value = self.func(obj)
+                obj.__dict__[self.__name__] = value
+            return value
 
 
 class environ_property(_DictAccessorProperty):
@@ -106,15 +108,16 @@ class HTMLBuilder(object):
             if not children and tag in self._empty_elements:
                 write(self._dialect == 'xhtml' and ' />' or '>')
                 return ''.join(buffer)
-            write('>')
-            children_as_string = ''.join((unicode(x) for x in children if x is not None))
-            if children_as_string:
-                if tag in self._plaintext_elements:
-                    children_as_string = escape(children_as_string)
-                elif tag in self._c_like_cdata and self._dialect == 'xhtml':
-                    children_as_string = '/*<![CDATA[*/%s/*]]>*/' % children_as_string
-            buffer.extend((children_as_string, '</%s>' % tag))
-            return ''.join(buffer)
+            else:
+                write('>')
+                children_as_string = ''.join((unicode(x) for x in children if x is not None))
+                if children_as_string:
+                    if tag in self._plaintext_elements:
+                        children_as_string = escape(children_as_string)
+                    elif tag in self._c_like_cdata and self._dialect == 'xhtml':
+                        children_as_string = '/*<![CDATA[*/%s/*]]>*/' % children_as_string
+                buffer.extend((children_as_string, '</%s>' % tag))
+                return ''.join(buffer)
 
         return proxy
 
@@ -156,17 +159,18 @@ def secure_filename(filename):
     return filename
 
 
-def escape(s, quote = False):
+def escape(s, quote=False):
     if s is None:
         return ''
-    if hasattr(s, '__html__'):
+    elif hasattr(s, '__html__'):
         return s.__html__()
-    if not isinstance(s, basestring):
-        s = unicode(s)
-    s = s.replace('&', '&amp;').replace('<', '&lt;').replace('>', '&gt;')
-    if quote:
-        s = s.replace('"', '&quot;')
-    return s
+    else:
+        if not isinstance(s, basestring):
+            s = unicode(s)
+        s = s.replace('&', '&amp;').replace('<', '&lt;').replace('>', '&gt;')
+        if quote:
+            s = s.replace('"', '&quot;')
+        return s
 
 
 def unescape(s):
@@ -183,16 +187,14 @@ def unescape(s):
         except ValueError:
             pass
 
-        return u''
-
     return _entity_re.sub(handle_match, s)
 
 
-def cookie_date(expires = None):
+def cookie_date(expires=None):
     return _dump_date(expires, '-')
 
 
-def parse_cookie(header, charset = 'utf-8', errors = 'ignore', cls = None):
+def parse_cookie(header, charset='utf-8', errors='ignore', cls=None):
     if isinstance(header, dict):
         header = header.get('HTTP_COOKIE', '')
     if cls is None:
@@ -207,7 +209,7 @@ def parse_cookie(header, charset = 'utf-8', errors = 'ignore', cls = None):
     return cls(result)
 
 
-def dump_cookie(key, value = '', max_age = None, expires = None, path = '/', domain = None, secure = None, httponly = False, charset = 'utf-8', sync_expires = True):
+def dump_cookie(key, value='', max_age=None, expires=None, path='/', domain=None, secure=None, httponly=False, charset='utf-8', sync_expires=True):
     try:
         key = str(key)
     except UnicodeError:
@@ -236,11 +238,11 @@ def dump_cookie(key, value = '', max_age = None, expires = None, path = '/', dom
     return morsel.output(header='').lstrip()
 
 
-def http_date(timestamp = None):
+def http_date(timestamp=None):
     return _dump_date(timestamp, ' ')
 
 
-def redirect(location, code = 302):
+def redirect(location, code=302):
     from werkzeug.wrappers import BaseResponse
     display_location = location
     if isinstance(location, unicode):
@@ -251,7 +253,7 @@ def redirect(location, code = 302):
     return response
 
 
-def append_slash_redirect(environ, code = 301):
+def append_slash_redirect(environ, code=301):
     new_path = environ['PATH_INFO'].strip('/') + '/'
     query_string = environ.get('QUERY_STRING')
     if query_string:
@@ -259,7 +261,7 @@ def append_slash_redirect(environ, code = 301):
     return redirect(new_path, code)
 
 
-def import_string(import_name, silent = False):
+def import_string(import_name, silent=False):
     if isinstance(import_name, unicode):
         import_name = str(import_name)
     try:
@@ -276,8 +278,10 @@ def import_string(import_name, silent = False):
         if not silent:
             raise
 
+    return None
 
-def find_modules(import_path, include_packages = False, recursive = False):
+
+def find_modules(import_path, include_packages=False, recursive=False):
     module = import_string(import_path)
     path = getattr(module, '__path__', None)
     if path is None:
@@ -295,8 +299,10 @@ def find_modules(import_path, include_packages = False, recursive = False):
         else:
             yield modname
 
+    return
 
-def validate_arguments(func, args, kwargs, drop_extra = True):
+
+def validate_arguments(func, args, kwargs, drop_extra=True):
     parser = _parse_signature(func)
     args, kwargs, missing, extra, extra_positional = parser(args, kwargs)[:5]
     if missing:
@@ -328,7 +334,7 @@ def bind_arguments(func, args, kwargs):
 
 class ArgumentValidationError(ValueError):
 
-    def __init__(self, missing = None, extra = None, extra_positional = None):
+    def __init__(self, missing=None, extra=None, extra_positional=None):
         self.missing = set(missing or ())
         self.extra = extra or {}
         self.extra_positional = extra_positional or []

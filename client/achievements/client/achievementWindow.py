@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\packages\achievements\client\achievementWindow.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\packages\achievements\client\achievementWindow.py
 from achievements.common.achievementConst import AchievementEventConst
 from eve.client.script.ui.control.buttons import Button
 from eve.client.script.ui.control.checkbox import Checkbox
@@ -37,6 +38,7 @@ class AchievementEntry(Container):
         self.label = EveLabelMedium(name='myLabel', parent=self, align=uiconst.CENTERLEFT, text='%s - %s%s' % (self.achievement.achievementID, self.achievement.name, clientText), left=4, color=textColor)
         self.hint = self.achievement.description
         self.UpdateState()
+        return
 
     def UpdateState(self):
         if self.achievement.completed:
@@ -98,6 +100,8 @@ class ConditionsContainer(Container):
                 continue
             uiEntry.SetConditionText(condText, condCount)
 
+        return
+
     def FetchData(self, *args):
         userStats = sm.GetService('achievementSvc').GetDebugStatsFromCharacter(force=True)
         self.UpdateStats(userStats)
@@ -150,6 +154,7 @@ class AchievementWindow(Window):
           self.conditionsCont]]
         maintabs.Startup(tabs, groupID='achievements', autoselecttab=True)
         self.initData()
+        return
 
     def initData(self):
         achievementSvc = sm.GetService('achievementSvc')

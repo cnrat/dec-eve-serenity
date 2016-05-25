@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\devtools\script\telemetrypanel.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\devtools\script\telemetrypanel.py
 import blue
 from carbonui.primitives.layoutGrid import LayoutGrid
 from eve.client.script.ui.control.eveLabel import Label

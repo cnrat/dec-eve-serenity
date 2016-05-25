@@ -1,6 +1,7 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\client\script\ui\shared\userentry.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\client\script\ui\shared\userentry.py
 import math
-from eve.client.script.ui.shared.stateFlag import GetStateFlagFromData, AddAndSetFlagIcon
+from eve.client.script.ui.shared.stateFlag import GetStateFlagFromData, AddAndSetFlagIcon, GetFlagFromRelationShip
 import evetypes
 import uiprimitives
 import uicontrols
@@ -63,6 +64,7 @@ class User(SE_BaseClassCore):
         self.sr.corpApplicationLabel = uicontrols.EveLabelMedium(text='', parent=self, state=uiconst.UI_DISABLED, idx=0, align=uiconst.CENTERRIGHT)
         self.sr.corpApplicationLabel.left = 16
         sm.RegisterNotify(self)
+        return
 
     def PreLoad(node):
         data = node
@@ -88,6 +90,7 @@ class User(SE_BaseClassCore):
             data.isDustCharacter = True
         if data.IsCorporation and not util.IsNPC(data.charID):
             logoData = cfg.corptickernames.Get(data.charID)
+        return
 
     def Load(self, node):
         self.sr.node = node
@@ -156,6 +159,7 @@ class User(SE_BaseClassCore):
         else:
             self.sr.corpApplicationLabel.SetText('')
             self.sr.corpApplicationLabel.Hide()
+        return
 
     def ShowDustBackground(self):
         dustBackground = getattr(self, 'dustBackground', None)
@@ -170,6 +174,7 @@ class User(SE_BaseClassCore):
         if dustBackgroundLine is None:
             self.dustBackgroundLine = uicontrols.GradientSprite(parent=self, pos=(0, 0, 0, 1), align=uiconst.TOTOP, rgbData=[(0, blueColor), (0.5, blueColor), (1.0, blueColor)], alphaData=[(0, 0.2), (0.5, 1), (1.0, 0.2)], alphaInterp=GradientConst.INTERP_LINEAR, colorInterp=GradientConst.INTERP_LINEAR, idx=0, state=uiconst.UI_DISABLED)
         self.dustBackgroundLine.display = True
+        return
 
     def GetValue(self):
         return [self.name, self.id]
@@ -198,6 +203,7 @@ class User(SE_BaseClassCore):
     def OnContactNoLongerContact(self, charID):
         if self and not self.destroyed and charID == self.charid and charID != eve.session.charid:
             self.SetOnline(None)
+        return
 
     def OnPortraitCreated(self, charID):
         if self.destroyed:
@@ -205,26 +211,28 @@ class User(SE_BaseClassCore):
         if self.sr.node and charID == self.sr.node.charID and not self.picloaded:
             self.LoadPortrait(orderIfMissing=False)
 
-    def OnContactChange(self, contactIDs, contactType = None):
+    def OnContactChange(self, contactIDs, contactType=None):
         if self.destroyed:
             return
-        self.SetRelationship(self.sr.node)
-        if self.charid in contactIDs:
-            if sm.GetService('addressbook').IsInAddressBook(self.charid, contactType):
-                if not self.isContactList:
-                    self.isContactList = contactType
-            else:
-                self.isContactList = None
-            self.inWatchlist = sm.GetService('addressbook').IsInWatchlist(self.charid)
-            if not self.inWatchlist:
-                isBlocked = sm.GetService('addressbook').IsBlocked(self.charid)
-                if isBlocked:
-                    self.sr.statusIcon.state = uiconst.UI_DISABLED
-                    self.sr.statusIcon.SetRGB(1.0, 1.0, 1.0)
+        else:
+            self.SetRelationship(self.sr.node)
+            if self.charid in contactIDs:
+                if sm.GetService('addressbook').IsInAddressBook(self.charid, contactType):
+                    if not self.isContactList:
+                        self.isContactList = contactType
                 else:
-                    self.sr.statusIcon.state = uiconst.UI_HIDDEN
-            else:
-                self.sr.statusIcon.state = uiconst.UI_DISABLED
+                    self.isContactList = None
+                self.inWatchlist = sm.GetService('addressbook').IsInWatchlist(self.charid)
+                if not self.inWatchlist:
+                    isBlocked = sm.GetService('addressbook').IsBlocked(self.charid)
+                    if isBlocked:
+                        self.sr.statusIcon.state = uiconst.UI_DISABLED
+                        self.sr.statusIcon.SetRGB(1.0, 1.0, 1.0)
+                    else:
+                        self.sr.statusIcon.state = uiconst.UI_HIDDEN
+                else:
+                    self.sr.statusIcon.state = uiconst.UI_DISABLED
+            return
 
     def OnBlockContacts(self, contactIDs):
         if not self or self.destroyed:
@@ -248,21 +256,25 @@ class User(SE_BaseClassCore):
             return
         self.SetRelationship(self.sr.node)
 
-    def OnFleetJoin_Local(self, memberInfo, state = 'Active'):
+    def OnFleetJoin_Local(self, memberInfo, state='Active'):
         if self.destroyed:
             return
-        myID = util.GetAttrs(self, 'sr', 'node', 'charID')
-        charID = memberInfo.charID
-        if myID is not None and charID == myID:
-            uthread.new(self.SetRelationship, self.sr.node)
+        else:
+            myID = util.GetAttrs(self, 'sr', 'node', 'charID')
+            charID = memberInfo.charID
+            if myID is not None and charID == myID:
+                uthread.new(self.SetRelationship, self.sr.node)
+            return
 
     def OnFleetLeave_Local(self, memberInfo):
         if self.destroyed:
             return
-        myID = util.GetAttrs(self, 'sr', 'node', 'charID')
-        charID = memberInfo.charID
-        if myID is not None and charID == myID or charID == session.charid:
-            uthread.new(self.SetRelationship, self.sr.node)
+        else:
+            myID = util.GetAttrs(self, 'sr', 'node', 'charID')
+            charID = memberInfo.charID
+            if myID is not None and charID == myID or charID == session.charid:
+                uthread.new(self.SetRelationship, self.sr.node)
+            return
 
     def OnMyFleetInited(self):
         if self.destroyed:
@@ -272,17 +284,19 @@ class User(SE_BaseClassCore):
     def SetOnline(self, online):
         if self.destroyed:
             return
-        if self.slimuser:
+        elif self.slimuser:
             return
-        if online is None or not self.inWatchlist or self.isCorpOrAllianceContact:
-            self.sr.statusIcon.state = uiconst.UI_HIDDEN
         else:
-            self.sr.statusIcon.SetRGB(float(not online) * 0.75, float(online) * 0.75, 0.0)
-            if online:
-                self.sr.statusIcon.hint = localization.GetByLabel('UI/Common/Online')
+            if online is None or not self.inWatchlist or self.isCorpOrAllianceContact:
+                self.sr.statusIcon.state = uiconst.UI_HIDDEN
             else:
-                self.sr.statusIcon.hint = localization.GetByLabel('UI/Common/Offline')
-            self.sr.statusIcon.state = uiconst.UI_DISABLED
+                self.sr.statusIcon.SetRGB(float(not online) * 0.75, float(online) * 0.75, 0.0)
+                if online:
+                    self.sr.statusIcon.hint = localization.GetByLabel('UI/Common/Online')
+                else:
+                    self.sr.statusIcon.hint = localization.GetByLabel('UI/Common/Offline')
+                self.sr.statusIcon.state = uiconst.UI_DISABLED
+            return
 
     def SetBlocked(self, blocked):
         isBlocked = sm.GetService('addressbook').IsBlocked(self.charid)
@@ -307,85 +321,83 @@ class User(SE_BaseClassCore):
         self.sr.standingLabel.left = 2
         self.sr.standingLabel.top = 2
 
-    def SetRelationship(self, data, debugFlag = None):
+    def SetRelationship(self, data, debugFlag=None):
         if self.destroyed:
             return
-        if self.slimuser:
+        elif self.slimuser:
             return
-        if not data:
+        elif not data:
             return
-        flag = None
-        if data.Get('contactType', None):
-            if self.contactLevel is None:
-                return
-            if self.contactLevel > const.contactGoodStanding:
-                flag = state.flagStandingHigh
-            elif self.contactLevel <= const.contactGoodStanding and self.contactLevel > const.contactNeutralStanding:
-                flag = state.flagStandingGood
-            elif self.contactLevel == const.contactNeutralStanding:
-                flag = state.flagStandingNeutral
-            elif self.contactLevel >= const.contactBadStanding and self.contactLevel < const.contactNeutralStanding:
-                flag = state.flagStandingBad
-            elif self.contactLevel <= const.contactBadStanding:
-                flag = state.flagStandingHorrible
         else:
-            flag = GetStateFlagFromData(data)
-        AddAndSetFlagIcon(self, flag=flag, top=20, left=4)
+            flag = None
+            if data.Get('contactType', None):
+                if self.contactLevel is None:
+                    return
+                flag = GetFlagFromRelationShip(self.contactLevel)
+            else:
+                flag = GetStateFlagFromData(data)
+            AddAndSetFlagIcon(self, flag=flag, top=20, left=4)
+            return
 
-    def LoadPortrait(self, orderIfMissing = True):
+    def LoadPortrait(self, orderIfMissing=True):
         self.sr.picture.Flush()
         if self.sr.node is None:
             return
-        if uiutil.GetOwnerLogo(self.sr.picture, self.id, size=32, callback=True, orderIfMissing=orderIfMissing):
-            self.picloaded = 1
+        else:
+            if uiutil.GetOwnerLogo(self.sr.picture, self.id, size=32, callback=True, orderIfMissing=orderIfMissing):
+                self.picloaded = 1
+            return
 
     def RemoveFromListGroup(self, listGroupIDs, charIDs, listname):
         if self.destroyed:
             return
-        if listGroupIDs:
-            for listGroupID, charID in listGroupIDs:
-                uicore.registry.RemoveFromListGroup(listGroupID, charID)
+        else:
+            if listGroupIDs:
+                for listGroupID, charID in listGroupIDs:
+                    uicore.registry.RemoveFromListGroup(listGroupID, charID)
 
-            sm.GetService('addressbook').RefreshWindow()
-        if charIDs and listname:
-            name = [localization.GetByLabel('UI/AddressBook/RemoveAddressBook1'), cfg.eveowners.Get(charIDs[0]).name][len(charIDs) == 1]
-            if eve.Message('WarnDeleteFromAddressbook', {'name': name,
-             'type': listname}, uiconst.YESNO, suppress=uiconst.ID_YES) != uiconst.ID_YES:
-                return
-            sm.GetService('addressbook').DeleteEntryMulti(charIDs, None)
+                sm.GetService('addressbook').RefreshWindow()
+            if charIDs and listname:
+                name = [localization.GetByLabel('UI/AddressBook/RemoveAddressBook1'), cfg.eveowners.Get(charIDs[0]).name][len(charIDs) == 1]
+                if eve.Message('WarnDeleteFromAddressbook', {'name': name,
+                 'type': listname}, uiconst.YESNO, suppress=uiconst.ID_YES) != uiconst.ID_YES:
+                    return
+                sm.GetService('addressbook').DeleteEntryMulti(charIDs, None)
+            return
 
     def GetMenu(self):
         if self.destroyed:
             return
-        m = []
-        selected = self.sr.node.scroll.GetSelectedNodes(self.sr.node)
-        multi = len(selected) > 1
-        if multi:
-            return self._GetMultiMenu(selected)
-        m = sm.GetService('menu').GetMenuFormItemIDTypeID(self.id, self.sr.node.invtype)
-        if self.sr.node.Get('GetMenu', None) is not None:
-            m += self.sr.node.GetMenu(self.sr.node)
-        listGroupID = self.sr.node.Get('listGroupID', None)
-        if listGroupID is not None:
-            group = uicore.registry.GetListGroup(listGroupID)
-            if group:
-                if listGroupID not in [('buddygroups', 'all'), ('buddygroups', 'allcorps')]:
+        else:
+            m = []
+            selected = self.sr.node.scroll.GetSelectedNodes(self.sr.node)
+            multi = len(selected) > 1
+            if multi:
+                return self._GetMultiMenu(selected)
+            m = sm.GetService('menu').GetMenuFormItemIDTypeID(self.id, self.sr.node.invtype)
+            if self.sr.node.Get('GetMenu', None) is not None:
+                m += self.sr.node.GetMenu(self.sr.node)
+            listGroupID = self.sr.node.Get('listGroupID', None)
+            if listGroupID is not None:
+                group = uicore.registry.GetListGroup(listGroupID)
+                if group:
+                    if listGroupID not in [('buddygroups', 'all'), ('buddygroups', 'allcorps')]:
+                        m.append(None)
+                        m.append((uiutil.MenuLabel('UI/Common/RemoveFromGroup', {'groupname': group['label']}), self.RemoveFromListGroup, ([(listGroupID, self.charid)], [], '')))
+            if self.sr.node.Get('MenuFunction', None):
+                cm = [None]
+                cm += self.sr.node.MenuFunction([self.sr.node])
+                m += cm
+            if self.isContactList is not None:
+                if sm.GetService('addressbook').ShowLabelMenuAndManageBtn(self.isContactList):
                     m.append(None)
-                    m.append((uiutil.MenuLabel('UI/Common/RemoveFromGroup', {'groupname': group['label']}), self.RemoveFromListGroup, ([(listGroupID, self.charid)], [], '')))
-        if self.sr.node.Get('MenuFunction', None):
-            cm = [None]
-            cm += self.sr.node.MenuFunction([self.sr.node])
-            m += cm
-        if self.isContactList is not None:
-            if sm.GetService('addressbook').ShowLabelMenuAndManageBtn(self.isContactList):
-                m.append(None)
-                assignLabelMenu = sm.StartService('addressbook').GetAssignLabelMenu(selected, [self.charid], self.isContactList)
-                if len(assignLabelMenu) > 0:
-                    m.append((uiutil.MenuLabel('UI/Mail/AssignLabel'), assignLabelMenu))
-                removeLabelMenu = sm.StartService('addressbook').GetRemoveLabelMenu(selected, [self.charid], self.isContactList)
-                if len(removeLabelMenu) > 0:
-                    m.append((uiutil.MenuLabel('UI/Mail/LabelRemove'), removeLabelMenu))
-        return m
+                    assignLabelMenu = sm.StartService('addressbook').GetAssignLabelMenu(selected, [self.charid], self.isContactList)
+                    if len(assignLabelMenu) > 0:
+                        m.append((uiutil.MenuLabel('UI/Mail/AssignLabel'), assignLabelMenu))
+                    removeLabelMenu = sm.StartService('addressbook').GetRemoveLabelMenu(selected, [self.charid], self.isContactList)
+                    if len(removeLabelMenu) > 0:
+                        m.append((uiutil.MenuLabel('UI/Mail/LabelRemove'), removeLabelMenu))
+            return m
 
     def _GetMultiMenu(self, selected):
         m = []
@@ -489,29 +501,33 @@ class User(SE_BaseClassCore):
     def OnClick(self, *args):
         if self.destroyed:
             return
-        eve.Message('ListEntryClick')
-        self.sr.node.scroll.SelectNode(self.sr.node)
-        if self.sr.node.Get('OnClick', None):
-            self.sr.node.OnClick(self)
+        else:
+            eve.Message('ListEntryClick')
+            self.sr.node.scroll.SelectNode(self.sr.node)
+            if self.sr.node.Get('OnClick', None):
+                self.sr.node.OnClick(self)
+            return
 
     def OnDblClick(self, *args):
         if self.destroyed:
             return
-        if self.sr.node.Get('OnDblClick', None):
+        elif self.sr.node.Get('OnDblClick', None):
             self.sr.node.OnDblClick(self)
             return
-        if self.sr.parwnd and hasattr(self.sr.parwnd, 'Select') and self.confirmOnDblClick:
+        elif self.sr.parwnd and hasattr(self.sr.parwnd, 'Select') and self.confirmOnDblClick:
             self.sr.parwnd.Select(self)
             self.sr.parwnd.Confirm()
             return
-        if not self.leaveDadAlone and self.sr.parwnd and uicore.registry.GetModalWindow() == self.sr.parwnd:
+        elif not self.leaveDadAlone and self.sr.parwnd and uicore.registry.GetModalWindow() == self.sr.parwnd:
             self.sr.parwnd.SetModalResult(uiconst.ID_OK)
             return
-        onDblClick = settings.user.ui.Get('dblClickUser', 0)
-        if onDblClick == 0:
-            sm.GetService('info').ShowInfo(cfg.eveowners.Get(self.charid).typeID, self.charid)
-        elif onDblClick == 1:
-            sm.GetService('LSC').Invite(self.charid)
+        else:
+            onDblClick = settings.user.ui.Get('dblClickUser', 0)
+            if onDblClick == 0:
+                sm.GetService('info').ShowInfo(cfg.eveowners.Get(self.charid).typeID, self.charid)
+            elif onDblClick == 1:
+                sm.GetService('LSC').Invite(self.charid)
+            return
 
     def GetDragData(self, *args):
         if self and not self.destroyed and not self.slimuser:
@@ -526,16 +542,26 @@ class User(SE_BaseClassCore):
     def OnSuspectsAndCriminalsUpdate(self, criminalizedCharIDs, decriminalizedCharIDs):
         if self.destroyed:
             return
-        charID = util.GetAttrs(self, 'sr', 'node', 'charID')
-        if charID is not None and (charID in criminalizedCharIDs or charID in decriminalizedCharIDs):
-            uthread.new(self.SetRelationship, self.sr.node)
+        else:
+            charID = util.GetAttrs(self, 'sr', 'node', 'charID')
+            if charID is not None and (charID in criminalizedCharIDs or charID in decriminalizedCharIDs):
+                uthread.new(self.SetRelationship, self.sr.node)
+            return
 
     def OnCrimewatchEngagementUpdated(self, otherCharId, timeout):
         if self.destroyed:
             return
-        charID = util.GetAttrs(self, 'sr', 'node', 'charID')
-        if charID is not None and charID == otherCharId:
-            uthread.new(self.SetRelationship, self.sr.node)
+        else:
+            charID = util.GetAttrs(self, 'sr', 'node', 'charID')
+            if charID is not None and charID == otherCharId:
+                uthread.new(self.SetRelationship, self.sr.node)
+            return
+
+    def OnDropData(self, dragObj, nodes):
+        if not self.charid or not util.IsCharacter(self.charid):
+            return
+        from eve.client.script.ui.station.pvptrade.tradeUtil import TryInitiateTrade
+        TryInitiateTrade(self.charid, nodes)
 
 
 class AgentEntry(SE_BaseClassCore):
@@ -561,6 +587,7 @@ class AgentEntry(SE_BaseClassCore):
         self.agentChatBtn = uicontrols.ButtonIcon(name='removeButton', parent=self, align=uiconst.BOTTOMRIGHT, width=22, iconSize=16, left=3, top=-1, texturePath='res:/UI/Texture/classes/Chat/AgentChat.png', hint=localization.GetByLabel('UI/Chat/StartConversationAgent'), func=self.StartConversation)
         buttonIconOnMouseEnter = self.agentChatBtn.OnMouseEnter
         self.agentChatBtn.OnMouseEnter = (self.OnChatButtonMouseEnter, self.agentChatBtn, buttonIconOnMouseEnter)
+        return
 
     def PreLoad(node):
         data = node
@@ -568,6 +595,7 @@ class AgentEntry(SE_BaseClassCore):
         data.info = charinfo
         data.itemID = data.charID
         data.invtype = data.info.typeID
+        return
 
     def GetAgentInfo(self, data):
         charID = data.charID
@@ -600,6 +628,7 @@ class AgentEntry(SE_BaseClassCore):
                 self.agentLocation = localization.GetByLabel('UI/Agents/LocatedAt', station=agentInfo.stationID)
         else:
             self.agentChatBtn.display = False
+        return
 
     def Load(self, node):
         self.sr.node = node
@@ -627,26 +656,27 @@ class AgentEntry(SE_BaseClassCore):
     def GetMenu(self):
         if self.destroyed:
             return
-        m = []
-        selected = self.sr.node.scroll.GetSelectedNodes(self.sr.node)
-        multi = len(selected) > 1
-        if multi:
-            return self._GetMultiMenu(selected)
-        m = sm.GetService('menu').GetMenuFormItemIDTypeID(self.charID, self.sr.node.invtype)
-        if self.sr.node.Get('GetMenu', None) is not None:
-            m += self.sr.node.GetMenu(self.sr.node)
-        listGroupID = self.sr.node.Get('listGroupID', None)
-        if listGroupID is not None:
-            group = uicore.registry.GetListGroup(listGroupID)
-            if group:
-                if not listGroupID == ('agentgroups', 'all'):
-                    m.append(None)
-                    m.append((uiutil.MenuLabel('UI/Common/RemoveFromGroup', {'groupname': group['label']}), self.RemoveFromListGroup, ([(listGroupID, self.charID)], [], '')))
-        if self.sr.node.Get('MenuFunction', None):
-            cm = [None]
-            cm += self.sr.node.MenuFunction([self.sr.node])
-            m += cm
-        return m
+        else:
+            m = []
+            selected = self.sr.node.scroll.GetSelectedNodes(self.sr.node)
+            multi = len(selected) > 1
+            if multi:
+                return self._GetMultiMenu(selected)
+            m = sm.GetService('menu').GetMenuFormItemIDTypeID(self.charID, self.sr.node.invtype)
+            if self.sr.node.Get('GetMenu', None) is not None:
+                m += self.sr.node.GetMenu(self.sr.node)
+            listGroupID = self.sr.node.Get('listGroupID', None)
+            if listGroupID is not None:
+                group = uicore.registry.GetListGroup(listGroupID)
+                if group:
+                    if not listGroupID == ('agentgroups', 'all'):
+                        m.append(None)
+                        m.append((uiutil.MenuLabel('UI/Common/RemoveFromGroup', {'groupname': group['label']}), self.RemoveFromListGroup, ([(listGroupID, self.charID)], [], '')))
+            if self.sr.node.Get('MenuFunction', None):
+                cm = [None]
+                cm += self.sr.node.MenuFunction([self.sr.node])
+                m += cm
+            return m
 
     def _GetMultiMenu(self, selected):
         m = []
@@ -717,23 +747,27 @@ class AgentEntry(SE_BaseClassCore):
     def OnClick(self, *args):
         if self.destroyed:
             return
-        eve.Message('ListEntryClick')
-        self.sr.node.scroll.SelectNode(self.sr.node)
-        if self.sr.node.Get('OnClick', None):
-            self.sr.node.OnClick(self)
+        else:
+            eve.Message('ListEntryClick')
+            self.sr.node.scroll.SelectNode(self.sr.node)
+            if self.sr.node.Get('OnClick', None):
+                self.sr.node.OnClick(self)
+            return
 
     @telemetry.ZONE_METHOD
     def OnDblClick(self, *args):
         if self.destroyed:
             return
-        if self.sr.node.Get('OnDblClick', None):
+        elif self.sr.node.Get('OnDblClick', None):
             self.sr.node.OnDblClick(self)
             return
-        agentInfo = sm.GetService('agents').GetAgentByID(self.charID)
-        if session.stationid and agentInfo:
-            sm.GetService('agents').InteractWith(self.charID)
+        else:
+            agentInfo = sm.GetService('agents').GetAgentByID(self.charID)
+            if session.stationid and agentInfo:
+                sm.GetService('agents').InteractWith(self.charID)
+                return
+            self.ShowInfo()
             return
-        self.ShowInfo()
 
     def GetHeight(self, *args):
         node, width = args
@@ -743,21 +777,24 @@ class AgentEntry(SE_BaseClassCore):
     def RemoveFromListGroup(self, listGroupIDs, charIDs, listname):
         if self.destroyed:
             return
-        if listGroupIDs:
-            for listGroupID, charID in listGroupIDs:
-                uicore.registry.RemoveFromListGroup(listGroupID, charID)
+        else:
+            if listGroupIDs:
+                for listGroupID, charID in listGroupIDs:
+                    uicore.registry.RemoveFromListGroup(listGroupID, charID)
 
-            sm.GetService('addressbook').RefreshWindow()
-        if charIDs and listname:
-            name = [localization.GetByLabel('UI/AddressBook/RemoveAddressBook1'), cfg.eveowners.Get(charIDs[0]).name][len(charIDs) == 1]
-            if eve.Message('WarnDeleteFromAddressbook', {'name': name,
-             'type': listname}, uiconst.YESNO, suppress=uiconst.ID_YES) != uiconst.ID_YES:
-                return
-            sm.GetService('addressbook').DeleteEntryMulti(charIDs, None)
+                sm.GetService('addressbook').RefreshWindow()
+            if charIDs and listname:
+                name = [localization.GetByLabel('UI/AddressBook/RemoveAddressBook1'), cfg.eveowners.Get(charIDs[0]).name][len(charIDs) == 1]
+                if eve.Message('WarnDeleteFromAddressbook', {'name': name,
+                 'type': listname}, uiconst.YESNO, suppress=uiconst.ID_YES) != uiconst.ID_YES:
+                    return
+                sm.GetService('addressbook').DeleteEntryMulti(charIDs, None)
+            return
 
     def StartConversation(self, *args):
         if getattr(self, 'charID', None) is not None:
             sm.StartService('agents').InteractWith(self.charID)
+        return
 
     def OnChatButtonMouseEnter(self, btn, buttonIconOnMouseEnter, *args):
         self.OnMouseEnter()

@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\client\script\ui\control\message.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\client\script\ui\control\message.py
 from eve.client.script.ui.control.eveFrame import Frame
 from eve.client.script.ui.control.eveLabel import Label
 from eve.client.script.ui.control.eveLabel import EveLabelMedium
@@ -64,7 +65,7 @@ class MessageParentClass(uiprimitives.Container):
         self.DoAlignment(xDiff)
         self.lastx = mouseX
 
-    def DoAlignment(self, xDiff = 0, *args):
+    def DoAlignment(self, xDiff=0, *args):
         layerOffset = self.layerOffset
         if self.myLayer.display:
             fullWidth, fullHeight = self.myLayer.GetAbsoluteSize()
@@ -123,6 +124,7 @@ class MessageParentClass(uiprimitives.Container):
             exitMoveModeBtn.Close()
         self.SaveSettings()
         self.inDragMode = False
+        return
 
     def SetTextAlignmentIfNeeded(self, alignment, *args):
         pass
@@ -134,6 +136,7 @@ class MessageParentClass(uiprimitives.Container):
         self.defaultConfig = self.GetDefaultAlignmentValues()
         if settings.char.ui.Get(self.configName, None) is None:
             self.SetAllAlignments(self.defaultConfig)
+        return
 
     def OnSessionChanged(self, isRemote, sess, change):
         pass
@@ -145,6 +148,8 @@ class MessageParentClass(uiprimitives.Container):
     def GetFakeText(self):
         if getattr(self, 'fakeText', None) and not self.fakeText.destroyed:
             return self.fakeText
+        else:
+            return
 
 
 class Message(MessageParentClass):
@@ -162,6 +167,7 @@ class Message(MessageParentClass):
         self.message = None
         self.allLabels = []
         self.pureText = ''
+        return
 
     def GetDefaultAlignmentValues(self, *args):
         offset = sm.GetService('window').GetCameraLeftOffset(300, align=uiconst.CENTERTOP, left=0)
@@ -198,6 +204,7 @@ class Message(MessageParentClass):
         uiutil.SetOrder(self, 0)
         if not self.inDragMode:
             self.timer = base.AutoTimer(5000, self.hide)
+        return
 
     def SetSizeAndPosition(self, *args):
         fakeText = self.GetFakeText()
@@ -208,13 +215,16 @@ class Message(MessageParentClass):
         self.height += 8
         self.top = max(self.minTop, min(uicore.desktop.height - self.height, self.topOffset - self.height))
         self.width = 300
+        return
 
     def hide(self):
         if self is not None and not self.destroyed:
             self.state = uiconst.UI_HIDDEN
+        return
 
     def kill_timer(self):
         self.timer = None
+        return
 
     def EnterDragMode(self, *args):
         self.isVisible = self.state != uiconst.UI_HIDDEN
@@ -230,6 +240,7 @@ class Message(MessageParentClass):
             self.fakeText.text = '<br><%s>%s' % (self.currentTextAlignment, localization.GetByLabel('UI/Accessories/Log/ExampleText'))
             self.height = self.fakeText.textheight + 10
         MessageParentClass.EnterDragMode(self, *args)
+        return
 
     def ExitDragMode(self, *args):
         MessageParentClass.ExitDragMode(self, *args)
@@ -320,55 +331,57 @@ class CombatMessage(MessageParentClass):
             if not self or self.destroyed:
                 return
             try:
-                if len(self.messageList) == 0:
-                    self.messageCounter.append(0)
-                    continue
-                self.messageCounter.append(1)
-                now = blue.os.GetWallclockTime()
-                validTime = now - self.expiryTime
-                text = ''
-                numMessagesDiscarded = 0
-                while len(self.messageList) > 0:
-                    nextMessage = self.messageList.pop(0)
-                    timeStamp, text = nextMessage
-                    if timeStamp < validTime:
-                        numMessagesDiscarded += 1
+                try:
+                    if len(self.messageList) == 0:
+                        self.messageCounter.append(0)
                         continue
-                    break
+                    self.messageCounter.append(1)
+                    now = blue.os.GetWallclockTime()
+                    validTime = now - self.expiryTime
+                    text = ''
+                    numMessagesDiscarded = 0
+                    while len(self.messageList) > 0:
+                        nextMessage = self.messageList.pop(0)
+                        timeStamp, text = nextMessage
+                        if timeStamp < validTime:
+                            numMessagesDiscarded += 1
+                            continue
+                        break
 
-                if numMessagesDiscarded:
-                    sm.GetService('logger').LogWarn('Discarded ', numMessagesDiscarded, ' messages')
-                if not text:
-                    continue
-                if len(self.allLabels) < 1:
-                    self.Prepare_Text_()
-                fakeText = self.GetFakeText()
-                if fakeText:
-                    fakeText.Close()
-                label, otherVisibleLabels = self.FindFreeLabel()
-                label.display = True
-                label.text = text
-                label.top = 0
-                label.msgIndex = -1
-                self.SetSizeAndPosition()
-                otherVisibleLabels.sort(lambda x, y: cmp(x.top, y.top))
-                if sum(self.messageCounter) > 8:
-                    duration = 0.166
-                    secondPoint = 0.05
-                else:
-                    secondPoint = 0.2
-                    duration = 0.4
-                for i, ovl in enumerate(otherVisibleLabels):
-                    uicore.animations.MorphScalar(ovl, 'top', startVal=ovl.top, endVal=(i + 1) * 20, duration=duration)
-                    ovl.msgIndex = i
-                    if i == 4:
-                        uicore.animations.FadeOut(ovl, duration=self.messageSleepTimeInMs)
+                    if numMessagesDiscarded:
+                        sm.GetService('logger').LogWarn('Discarded ', numMessagesDiscarded, ' messages')
+                    if not text:
+                        continue
+                    if len(self.allLabels) < 1:
+                        self.Prepare_Text_()
+                    fakeText = self.GetFakeText()
+                    if fakeText:
+                        fakeText.Close()
+                    label, otherVisibleLabels = self.FindFreeLabel()
+                    label.display = True
+                    label.text = text
+                    label.top = 0
+                    label.msgIndex = -1
+                    self.SetSizeAndPosition()
+                    otherVisibleLabels.sort(lambda x, y: cmp(x.top, y.top))
+                    if sum(self.messageCounter) > 8:
+                        duration = 0.166
+                        secondPoint = 0.05
+                    else:
+                        secondPoint = 0.2
+                        duration = 0.4
+                    for i, ovl in enumerate(otherVisibleLabels):
+                        uicore.animations.MorphScalar(ovl, 'top', startVal=ovl.top, endVal=(i + 1) * 20, duration=duration)
+                        ovl.msgIndex = i
+                        if i == 4:
+                            uicore.animations.FadeOut(ovl, duration=self.messageSleepTimeInMs)
 
-                curvePoints = ([0, 0], [secondPoint, 1.0], [1, 0])
-                uicore.animations.MorphScalar(label, 'opacity', duration=self.fadeOutTime, curveType=curvePoints)
-                uiutil.SetOrder(self, 0)
-            except Exception as e:
-                sm.GetService('logger').LogWarn('failed at displaying message, e = ', e)
+                    curvePoints = ([0, 0], [secondPoint, 1.0], [1, 0])
+                    uicore.animations.MorphScalar(label, 'opacity', duration=self.fadeOutTime, curveType=curvePoints)
+                    uiutil.SetOrder(self, 0)
+                except Exception as e:
+                    sm.GetService('logger').LogWarn('failed at displaying message, e = ', e)
+
             finally:
                 blue.pyos.synchro.SleepWallclock(self.messageSleepTime)
 
@@ -383,6 +396,7 @@ class CombatMessage(MessageParentClass):
         else:
             self.noDamageDict.pop(attackerID, None)
         self.messageList.append((now, text))
+        return
 
     def FindFreeLabel(self, *args):
         myLabel = None
@@ -461,6 +475,7 @@ class CombatMessage(MessageParentClass):
         MessageParentClass.ExitDragMode(self, *args)
         self.state = uiconst.UI_DISABLED
         self.SetParent(uicore.layer.target)
+        return
 
     def EnterDragMode(self, *args):
         for label in self.allLabels:

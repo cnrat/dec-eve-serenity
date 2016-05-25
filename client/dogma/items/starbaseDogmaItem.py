@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\packages\dogma\items\starbaseDogmaItem.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\packages\dogma\items\starbaseDogmaItem.py
 from locationDogmaItem import LocationDogmaItem
 from utillib import KeyVal
 import inventorycommon.const as invconst
@@ -11,6 +12,7 @@ class StarbaseDogmaItem(LocationDogmaItem):
     def __init__(self, dogmaLocation, item, eveCfg, clientIDFunc):
         super(StarbaseDogmaItem, self).__init__(dogmaLocation, item, eveCfg, clientIDFunc)
         self.controlTower = None
+        return
 
     def SetLocation(self, locationID, locationDogmaItem, flagID):
         if self.controlTower and locationID != self.controlTower:
@@ -50,6 +52,8 @@ class StarbaseDogmaItem(LocationDogmaItem):
                 except KeyError:
                     pass
 
+        return
+
     def GetLocation(self):
         if self.controlTower:
             try:
@@ -62,13 +66,19 @@ class StarbaseDogmaItem(LocationDogmaItem):
             location = self.location
         return location
 
-    def GetEnvironmentInfo(self):
+    def GetShipID(self):
+        return self.controlTower
+
+    def GetOtherID(self):
         otherID = self.subLocations.get(invconst.flagHiSlot0, None)
         if otherID is None:
             other = self.dogmaLocation.GetChargeNonDB(self.itemID, invconst.flagHiSlot0)
             if other is not None:
                 otherID = other.itemID
-        return KeyVal(itemID=self.itemID, shipID=self.controlTower, charID=None, otherID=otherID, targetID=None, effectID=None)
+        return otherID
+
+    def GetCharacterID(self):
+        return None
 
     def CanFitItem(self, dogmaItem, flagID):
         if dogmaItem.itemID == self.itemID:

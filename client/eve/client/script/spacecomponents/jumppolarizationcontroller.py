@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\client\script\spacecomponents\jumppolarizationcontroller.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\client\script\spacecomponents\jumppolarizationcontroller.py
 from eve.client.script.spacecomponents.countercontroller import BaseCounterController
 from spacecomponents.client.messages import MSG_ON_JUMP_POLARIZATION_UPDATED
 from spacecomponents.common.componentConst import JUMP_POLARIZATION_CLASS
@@ -26,3 +27,4 @@ class JumpPolarizationCounterController(BaseCounterController):
                 self.timer.SetExpiryTime(instance.polarizationEndTime, long(instance.polarizationDuration * const.SEC))
         else:
             self.RemoveTimer()
+        return

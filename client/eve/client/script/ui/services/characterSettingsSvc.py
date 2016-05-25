@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\client\script\ui\services\characterSettingsSvc.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\client\script\ui\services\characterSettingsSvc.py
 import service
 
 class CharacterSettingsSvc(service.Service):
@@ -15,6 +16,8 @@ class CharacterSettingsSvc(service.Service):
         except KeyError:
             return None
 
+        return None
+
     def Save(self, settingKey, value):
         if value is None or value == '':
             self.Delete(settingKey)
@@ -23,6 +26,7 @@ class CharacterSettingsSvc(service.Service):
                 raise RuntimeError("We don't want to send too large character settings to the server", settingKey, len(value))
             self.charMgr.SaveCharacterSetting(settingKey, value)
             self.settings[settingKey] = value
+        return
 
     def Delete(self, settingKey):
         if settingKey in self.settings:

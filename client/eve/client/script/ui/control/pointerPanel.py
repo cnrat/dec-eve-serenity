@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\client\script\ui\control\pointerPanel.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\client\script\ui\control\pointerPanel.py
 from carbonui.primitives.container import Container
 from carbonui.primitives.frame import Frame
 from carbonui.primitives.transform import Transform
@@ -101,6 +102,7 @@ class PointerPanel(LayoutGrid):
                 if owner and not owner.destroyed:
                     return owner
                 self._owner = None
+            return
 
         return property(**locals())
 
@@ -111,6 +113,7 @@ class PointerPanel(LayoutGrid):
         if self.scaleTransform:
             self.scaleTransform.Close()
             self.scaleTransform = None
+        return
 
     @apply
     def pos():
@@ -202,6 +205,7 @@ class PointerPanel(LayoutGrid):
                 if owner is None:
                     return
                 RefreshPanelPosition(self)
+            return
 
         return property(**locals())
 
@@ -225,6 +229,7 @@ class PointerPanel(LayoutGrid):
                 if owner is None:
                     return
                 RefreshPanelPosition(self)
+            return
 
         return property(**locals())
 
@@ -325,17 +330,19 @@ def RefreshPanelPosition(pointerPanel):
     owner = pointerPanel.owner
     if owner is None:
         return
-    panelPosition, isBlocked = GetPanelInterestFromObject(owner, checkIfBlockedByOther=getattr(pointerPanel, 'checkIfBlocked', True))
-    if isBlocked:
-        pointer = pointerPanel.defaultPointer
     else:
-        pointer = GetPanelPointerFromOwner(owner)
-        if pointer is None:
+        panelPosition, isBlocked = GetPanelInterestFromObject(owner, checkIfBlockedByOther=getattr(pointerPanel, 'checkIfBlocked', True))
+        if isBlocked:
             pointer = pointerPanel.defaultPointer
-    UpdatePanelPosition(pointerPanel, panelPosition, pointer)
+        else:
+            pointer = GetPanelPointerFromOwner(owner)
+            if pointer is None:
+                pointer = pointerPanel.defaultPointer
+        UpdatePanelPosition(pointerPanel, panelPosition, pointer)
+        return
 
 
-def GetPanelInterestFromObject(uiObject, checkIfBlockedByOther = True):
+def GetPanelInterestFromObject(uiObject, checkIfBlockedByOther=True):
     if hasattr(uiObject, 'GetTooltipPosition'):
         customInterestRect = uiObject.GetTooltipPosition()
         if customInterestRect:
@@ -446,7 +453,7 @@ def GetPanelPointerFromOwner(uiObject):
     return getattr(uiObject, 'tooltipPointer', None)
 
 
-def UpdatePanelPosition(panel, interestRect, menuPointFlag = None, fallbackPointFlags = None):
+def UpdatePanelPosition(panel, interestRect, menuPointFlag=None, fallbackPointFlags=None):
     if menuPointFlag is None:
         menuPointFlag = uiconst.POINT_BOTTOM_2
     if fallbackPointFlags is None:
@@ -460,6 +467,7 @@ def UpdatePanelPosition(panel, interestRect, menuPointFlag = None, fallbackPoint
         if panel.left < 0 or panel.left + panel.width > uicore.desktop.width or panel.top < 0 or panel.top + panel.height > uicore.desktop.height:
             tryFlag = fallbackPointFlags.pop(0)
             UpdatePanelPosition(panel, interestRect, menuPointFlag=tryFlag, fallbackPointFlags=fallbackPointFlags)
+    return
 
 
 def AlignPointPanelToInterest(panel, menuPointFlag, interestRect):
@@ -486,9 +494,10 @@ def AlignPointPanelToInterest(panel, menuPointFlag, interestRect):
         panel.left = al + aw + panel.pointerSize
     else:
         panel.left = al + aw / 2 - px
+    return
 
 
-def FadeOutPanelAndClose(panel, duration = 0.2):
+def FadeOutPanelAndClose(panel, duration=0.2):
     if panel.destroyed or panel.beingDestroyed:
         return
     panel.beingDestroyed = True

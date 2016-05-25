@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\client\script\ui\shared\fittingGhost\ghostFittingPanels\defensePanel.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\client\script\ui\shared\fittingGhost\ghostFittingPanels\defensePanel.py
 from collections import defaultdict
 from carbonui import const as uiconst
 from carbonui.primitives.container import Container
@@ -32,7 +33,7 @@ class DefensePanel(BaseMenuPanel):
     def ApplyAttributes(self, attributes):
         BaseMenuPanel.ApplyAttributes(self, attributes)
 
-    def LoadPanel(self, initialLoad = False):
+    def LoadPanel(self, initialLoad=False):
         self.Flush()
         self.ResetStatsDicts()
         self.display = True
@@ -59,6 +60,7 @@ class DefensePanel(BaseMenuPanel):
         self.activeBestRepairLabel = statusLabel
         self.activeBestRepairParent = bestPar
         self.activeBestRepairIcon = icon
+        return
 
     def AddColumnHeaderIcons(self, tRow):
         l, t, w, h = self.GetAbsolute()
@@ -123,147 +125,155 @@ class DefensePanel(BaseMenuPanel):
                  'dmgType': dmgType}
                 dmgGaugeCont.UpdateGauge(info, animate=True)
 
+        return
+
     def SetDefenseLayerText(self, statusInfo, what, isRechargable):
         label = self.statsLabelsByIdentifier.get(what, None)
         if not label:
             return
-        if isRechargable:
-            rechargeTimeInfo = self.controller.GetRechargeRate()
-            text = GetByLabel('UI/Fitting/FittingWindow/ColoredHitpointsAndRechargeTime', hp=int(statusInfo.value), rechargeTime=int(rechargeTimeInfo.value * 0.001), startColorTag1='', startColorTag2='', endColorTag='')
         else:
-            text = GetByLabel('UI/Fitting/FittingWindow/ColoredHp', hp=int(statusInfo.value))
-        coloredText = GetColoredText(isBetter=statusInfo.isBetterThanBefore, text=text)
-        maxTextHeight = MAXDEFENCELABELHEIGHT
-        maxTextWidth = MAXDEFENCELABELWIDTH
-        textWidth, textHeight = label.MeasureTextSize(coloredText)
-        fontsize = label.default_fontsize
-        while textWidth > maxTextWidth or textHeight > maxTextHeight:
-            fontsize -= 1
-            textWidth, textHeight = label.MeasureTextSize(coloredText, fontsize=fontsize)
+            if isRechargable:
+                rechargeTimeInfo = self.controller.GetRechargeRate()
+                text = GetByLabel('UI/Fitting/FittingWindow/ColoredHitpointsAndRechargeTime', hp=int(statusInfo.value), rechargeTime=int(rechargeTimeInfo.value * 0.001), startColorTag1='', startColorTag2='', endColorTag='')
+            else:
+                text = GetByLabel('UI/Fitting/FittingWindow/ColoredHp', hp=int(statusInfo.value))
+            coloredText = GetColoredText(isBetter=statusInfo.isBetterThanBefore, text=text)
+            maxTextHeight = MAXDEFENCELABELHEIGHT
+            maxTextWidth = MAXDEFENCELABELWIDTH
+            textWidth, textHeight = label.MeasureTextSize(coloredText)
+            fontsize = label.default_fontsize
+            while textWidth > maxTextWidth or textHeight > maxTextHeight:
+                fontsize -= 1
+                textWidth, textHeight = label.MeasureTextSize(coloredText, fontsize=fontsize)
 
-        label.fontsize = fontsize
-        label.text = coloredText
+            label.fontsize = fontsize
+            label.text = coloredText
+            return
 
     def ExpandBestRepair(self, *args):
         if self.bestRepairPickerPanel is not None:
             self.PickBestRepair(None)
             return
-        self.sr.bestRepairPickerCookie = uicore.event.RegisterForTriuiEvents(uiconst.UI_MOUSEUP, self.OnGlobalMouseUp_BestRepair)
-        bestRepairParent = self.activeBestRepairParent
-        l, t, w, h = bestRepairParent.GetAbsolute()
-        bestRepairPickerPanel = Container(parent=uicore.desktop, name='bestRepairPickerPanel', align=uiconst.TOPLEFT, width=150, height=100, left=l, top=t + h, state=uiconst.UI_NORMAL, idx=0, clipChildren=1)
-        subpar = Container(parent=bestRepairPickerPanel, name='subpar', align=uiconst.TOALL, state=uiconst.UI_PICKCHILDREN, pos=(0, 0, 0, 0))
-        active = settings.user.ui.Get('activeBestRepair', PASSIVESHIELDRECHARGE)
-        top = 0
-        mw = 32
-        for flag, hint, iconNo in ((ARMORREPAIRRATEACTIVE, GetByLabel('UI/Fitting/FittingWindow/ArmorRepairRate'), 'ui_1_64_11'),
-         (HULLREPAIRRATEACTIVE, GetByLabel('UI/Fitting/FittingWindow/HullRepairRate'), 'ui_1337_64_22'),
-         (PASSIVESHIELDRECHARGE, GetByLabel('UI/Fitting/FittingWindow/PassiveShieldRecharge'), 'ui_22_32_7'),
-         (SHIELDBOOSTRATEACTIVE, GetByLabel('UI/Fitting/FittingWindow/ShieldBoostRate'), 'ui_2_64_3')):
-            entry = Container(name='entry', parent=subpar, align=uiconst.TOTOP, height=32, state=uiconst.UI_NORMAL)
-            icon = Icon(icon=iconNo, parent=entry, state=uiconst.UI_DISABLED, pos=(0, 0, 32, 32), ignoreSize=True)
-            label = Label(text=hint, parent=entry, left=icon.left + icon.width, state=uiconst.UI_DISABLED, align=uiconst.CENTERLEFT)
-            entry.OnClick = (self.PickBestRepair, entry)
-            entry.OnMouseEnter = (self.OnMouseEnterBestRepair, entry)
-            entry.bestRepairFlag = flag
-            entry.sr.hilite = Fill(parent=entry, state=uiconst.UI_HIDDEN)
-            if active == flag:
-                Fill(parent=entry, color=(1.0, 1.0, 1.0, 0.125))
-            top += 32
-            mw = max(label.textwidth + label.left + 6, mw)
+        else:
+            self.sr.bestRepairPickerCookie = uicore.event.RegisterForTriuiEvents(uiconst.UI_MOUSEUP, self.OnGlobalMouseUp_BestRepair)
+            bestRepairParent = self.activeBestRepairParent
+            l, t, w, h = bestRepairParent.GetAbsolute()
+            bestRepairPickerPanel = Container(parent=uicore.desktop, name='bestRepairPickerPanel', align=uiconst.TOPLEFT, width=150, height=100, left=l, top=t + h, state=uiconst.UI_NORMAL, idx=0, clipChildren=1)
+            subpar = Container(parent=bestRepairPickerPanel, name='subpar', align=uiconst.TOALL, state=uiconst.UI_PICKCHILDREN, pos=(0, 0, 0, 0))
+            active = settings.user.ui.Get('activeBestRepair', PASSIVESHIELDRECHARGE)
+            top = 0
+            mw = 32
+            for flag, hint, iconNo in ((ARMORREPAIRRATEACTIVE, GetByLabel('UI/Fitting/FittingWindow/ArmorRepairRate'), 'ui_1_64_11'),
+             (HULLREPAIRRATEACTIVE, GetByLabel('UI/Fitting/FittingWindow/HullRepairRate'), 'ui_1337_64_22'),
+             (PASSIVESHIELDRECHARGE, GetByLabel('UI/Fitting/FittingWindow/PassiveShieldRecharge'), 'ui_22_32_7'),
+             (SHIELDBOOSTRATEACTIVE, GetByLabel('UI/Fitting/FittingWindow/ShieldBoostRate'), 'ui_2_64_3')):
+                entry = Container(name='entry', parent=subpar, align=uiconst.TOTOP, height=32, state=uiconst.UI_NORMAL)
+                icon = Icon(icon=iconNo, parent=entry, state=uiconst.UI_DISABLED, pos=(0, 0, 32, 32), ignoreSize=True)
+                label = Label(text=hint, parent=entry, left=icon.left + icon.width, state=uiconst.UI_DISABLED, align=uiconst.CENTERLEFT)
+                entry.OnClick = (self.PickBestRepair, entry)
+                entry.OnMouseEnter = (self.OnMouseEnterBestRepair, entry)
+                entry.bestRepairFlag = flag
+                entry.sr.hilite = Fill(parent=entry, state=uiconst.UI_HIDDEN)
+                if active == flag:
+                    Fill(parent=entry, color=(1.0, 1.0, 1.0, 0.125))
+                top += 32
+                mw = max(label.textwidth + label.left + 6, mw)
 
-        bestRepairPickerPanel.width = mw
-        bestRepairPickerPanel.height = 32
-        bestRepairPickerPanel.opacity = 0.0
-        WindowUnderlay(bgParent=bestRepairPickerPanel)
-        self.bestRepairPickerPanel = bestRepairPickerPanel
-        uicore.effect.MorphUI(bestRepairPickerPanel, 'height', top, 250.0)
-        uicore.effect.MorphUI(bestRepairPickerPanel, 'opacity', 1.0, 250.0, float=1)
+            bestRepairPickerPanel.width = mw
+            bestRepairPickerPanel.height = 32
+            bestRepairPickerPanel.opacity = 0.0
+            WindowUnderlay(bgParent=bestRepairPickerPanel)
+            self.bestRepairPickerPanel = bestRepairPickerPanel
+            uicore.effect.MorphUI(bestRepairPickerPanel, 'height', top, 250.0)
+            uicore.effect.MorphUI(bestRepairPickerPanel, 'opacity', 1.0, 250.0, float=1)
+            return
 
     def UpdateBestRepair(self, item, modulesByGroupInShip, multiplyShieldCapacity, multiplyShieldRecharge):
         if not self.panelLoaded:
             return
-        activeRepairLabel = self.activeBestRepairLabel
-        activeBestRepairParent = self.activeBestRepairParent
-        activeBestRepairNumLabel = self.activeBestRepairNumLabel
-        activeBestRepairIcon = self.activeBestRepairIcon
-        if activeRepairLabel:
-            activeBestRepair = settings.user.ui.Get('activeBestRepair', PASSIVESHIELDRECHARGE)
-            if activeBestRepair == PASSIVESHIELDRECHARGE:
-                shieldCapacity = self.GetShipAttribute(dogmaConst.attributeShieldCapacity)
-                shieldRR = self.GetShipAttribute(dogmaConst.attributeShieldRechargeRate)
-                activeRepairText = '<color=%s>' % hex(GetMultiplyColor2(multiplyShieldRecharge))
-                activeRepairText += GetByLabel('UI/Fitting/FittingWindow/ColoredPassiveRepairRate', hpPerSec=int(2.5 * (shieldCapacity * multiplyShieldCapacity) / (shieldRR * multiplyShieldRecharge / 1000.0)))
-                activeRepairText += '</color>'
-                activeRepairLabel.text = activeRepairText
-                activeBestRepairParent.hint = GetByLabel('UI/Fitting/FittingWindow/PassiveShieldRecharge')
-                activeBestRepairNumLabel.parent.state = uiconst.UI_HIDDEN
-                activeBestRepairIcon.LoadIcon(cfg.dgmattribs.Get(dogmaConst.attributeShieldCapacity).iconID, ignoreSize=True)
-            else:
-                dataSet = {ARMORREPAIRRATEACTIVE: (GetByLabel('UI/Fitting/FittingWindow/ArmorRepairRate'),
-                                         (const.groupArmorRepairUnit, const.groupFueledArmorRepairer),
-                                         dogmaConst.attributeArmorDamageAmount,
-                                         'ui_1_64_11'),
-                 HULLREPAIRRATEACTIVE: (GetByLabel('UI/Fitting/FittingWindow/HullRepairRate'),
-                                        (const.groupHullRepairUnit,),
-                                        dogmaConst.attributeStructureDamageAmount,
-                                        'ui_1337_64_22'),
-                 SHIELDBOOSTRATEACTIVE: (GetByLabel('UI/Fitting/FittingWindow/ShieldBoostRate'),
-                                         (const.groupShieldBooster, const.groupFueledShieldBooster),
-                                         dogmaConst.attributeShieldBonus,
-                                         'ui_2_64_3')}
-                hint, groupIDs, attributeID, iconNum = dataSet[activeBestRepair]
-                activeBestRepairParent.hint = hint
-                modules = []
-                for groupID, modules2 in modulesByGroupInShip.iteritems():
-                    if groupID in groupIDs:
-                        modules.extend(modules2)
-
-                color = FONTCOLOR_DEFAULT2
-                if item and item.groupID in groupIDs:
-                    modules += [item]
-                    color = FONTCOLOR_HILITE2
-                if modules:
-                    data = self.CollectDogmaAttributes(modules, (dogmaConst.attributeHp,
-                     dogmaConst.attributeShieldBonus,
-                     dogmaConst.attributeArmorDamageAmount,
-                     dogmaConst.attributeStructureDamageAmount,
-                     dogmaConst.attributeDuration))
-                    durations = data.get(dogmaConst.attributeDuration, None)
-                    hps = data.get(attributeID, None)
-                    if durations and hps:
-                        commonCycleTime = None
-                        for _ct in durations:
-                            if commonCycleTime and _ct != commonCycleTime:
-                                commonCycleTime = None
-                                break
-                            commonCycleTime = _ct
-
-                        if commonCycleTime:
-                            duration = commonCycleTime
-                            activeRepairLabel.text = GetByLabel('UI/Fitting/FittingWindow/ColoredHitpointsAndDuration', startColorTag='<color=%s>' % hex(color), endColorTag='</color>', hp=sum(hps), duration=duration / 1000.0)
-                        else:
-                            total = 0
-                            for hp, ct in zip(hps, durations):
-                                total += hp / (ct / 1000.0)
-
-                            activeRepairText = '<color=%s>' % color
-                            activeRepairText += GetByLabel('UI/Fitting/FittingWindow/ColoredPassiveRepairRate', hpPerSec=total)
-                            activeRepairText += '</color>'
-                            activeRepairLabel.text = activeRepairText
-                    else:
-                        activeRepairLabel.text = 0
-                    activeBestRepairNumText = '<color=%s>' % color
-                    activeBestRepairNumText += GetByLabel('UI/Fitting/FittingWindow/ColoredBestRepairNumber', numberOfModules=len(modules))
-                    activeBestRepairNumText += '</color>'
-                    activeBestRepairNumLabel.bold = True
-                    activeBestRepairNumLabel.text = activeBestRepairNumText
-                    activeBestRepairNumLabel.parent.state = uiconst.UI_DISABLED
+        else:
+            activeRepairLabel = self.activeBestRepairLabel
+            activeBestRepairParent = self.activeBestRepairParent
+            activeBestRepairNumLabel = self.activeBestRepairNumLabel
+            activeBestRepairIcon = self.activeBestRepairIcon
+            if activeRepairLabel:
+                activeBestRepair = settings.user.ui.Get('activeBestRepair', PASSIVESHIELDRECHARGE)
+                if activeBestRepair == PASSIVESHIELDRECHARGE:
+                    shieldCapacity = self.GetShipAttribute(dogmaConst.attributeShieldCapacity)
+                    shieldRR = self.GetShipAttribute(dogmaConst.attributeShieldRechargeRate)
+                    activeRepairText = '<color=%s>' % hex(GetMultiplyColor2(multiplyShieldRecharge))
+                    activeRepairText += GetByLabel('UI/Fitting/FittingWindow/ColoredPassiveRepairRate', hpPerSec=int(2.5 * (shieldCapacity * multiplyShieldCapacity) / (shieldRR * multiplyShieldRecharge / 1000.0)))
+                    activeRepairText += '</color>'
+                    activeRepairLabel.text = activeRepairText
+                    activeBestRepairParent.hint = GetByLabel('UI/Fitting/FittingWindow/PassiveShieldRecharge')
+                    activeBestRepairNumLabel.parent.state = uiconst.UI_HIDDEN
+                    activeBestRepairIcon.LoadIcon(cfg.dgmattribs.Get(dogmaConst.attributeShieldCapacity).iconID, ignoreSize=True)
                 else:
-                    activeRepairLabel.text = GetByLabel('UI/Fitting/FittingWindow/NoModule')
-                    activeBestRepairNumLabel.text = GetByLabel('UI/Fitting/FittingWindow/NoModuleNumber')
-                    activeBestRepairNumLabel.parent.state = uiconst.UI_DISABLED
-                activeBestRepairIcon.LoadIcon(iconNum, ignoreSize=True)
+                    dataSet = {ARMORREPAIRRATEACTIVE: (GetByLabel('UI/Fitting/FittingWindow/ArmorRepairRate'),
+                                             (const.groupArmorRepairUnit, const.groupFueledArmorRepairer),
+                                             dogmaConst.attributeArmorDamageAmount,
+                                             'ui_1_64_11'),
+                     HULLREPAIRRATEACTIVE: (GetByLabel('UI/Fitting/FittingWindow/HullRepairRate'),
+                                            (const.groupHullRepairUnit,),
+                                            dogmaConst.attributeStructureDamageAmount,
+                                            'ui_1337_64_22'),
+                     SHIELDBOOSTRATEACTIVE: (GetByLabel('UI/Fitting/FittingWindow/ShieldBoostRate'),
+                                             (const.groupShieldBooster, const.groupFueledShieldBooster),
+                                             dogmaConst.attributeShieldBonus,
+                                             'ui_2_64_3')}
+                    hint, groupIDs, attributeID, iconNum = dataSet[activeBestRepair]
+                    activeBestRepairParent.hint = hint
+                    modules = []
+                    for groupID, modules2 in modulesByGroupInShip.iteritems():
+                        if groupID in groupIDs:
+                            modules.extend(modules2)
+
+                    color = FONTCOLOR_DEFAULT2
+                    if item and item.groupID in groupIDs:
+                        modules += [item]
+                        color = FONTCOLOR_HILITE2
+                    if modules:
+                        data = self.CollectDogmaAttributes(modules, (dogmaConst.attributeHp,
+                         dogmaConst.attributeShieldBonus,
+                         dogmaConst.attributeArmorDamageAmount,
+                         dogmaConst.attributeStructureDamageAmount,
+                         dogmaConst.attributeDuration))
+                        durations = data.get(dogmaConst.attributeDuration, None)
+                        hps = data.get(attributeID, None)
+                        if durations and hps:
+                            commonCycleTime = None
+                            for _ct in durations:
+                                if commonCycleTime and _ct != commonCycleTime:
+                                    commonCycleTime = None
+                                    break
+                                commonCycleTime = _ct
+
+                            if commonCycleTime:
+                                duration = commonCycleTime
+                                activeRepairLabel.text = GetByLabel('UI/Fitting/FittingWindow/ColoredHitpointsAndDuration', startColorTag='<color=%s>' % hex(color), endColorTag='</color>', hp=sum(hps), duration=duration / 1000.0)
+                            else:
+                                total = 0
+                                for hp, ct in zip(hps, durations):
+                                    total += hp / (ct / 1000.0)
+
+                                activeRepairText = '<color=%s>' % color
+                                activeRepairText += GetByLabel('UI/Fitting/FittingWindow/ColoredPassiveRepairRate', hpPerSec=total)
+                                activeRepairText += '</color>'
+                                activeRepairLabel.text = activeRepairText
+                        else:
+                            activeRepairLabel.text = 0
+                        activeBestRepairNumText = '<color=%s>' % color
+                        activeBestRepairNumText += GetByLabel('UI/Fitting/FittingWindow/ColoredBestRepairNumber', numberOfModules=len(modules))
+                        activeBestRepairNumText += '</color>'
+                        activeBestRepairNumLabel.bold = True
+                        activeBestRepairNumLabel.text = activeBestRepairNumText
+                        activeBestRepairNumLabel.parent.state = uiconst.UI_DISABLED
+                    else:
+                        activeRepairLabel.text = GetByLabel('UI/Fitting/FittingWindow/NoModule')
+                        activeBestRepairNumLabel.text = GetByLabel('UI/Fitting/FittingWindow/NoModuleNumber')
+                        activeBestRepairNumLabel.parent.state = uiconst.UI_DISABLED
+                    activeBestRepairIcon.LoadIcon(iconNum, ignoreSize=True)
+            return
 
     def CollectDogmaAttributes(self, modules, attributes):
         ret = defaultdict(list)
@@ -320,6 +330,7 @@ class DefensePanel(BaseMenuPanel):
         if self.sr.bestRepairPickerCookie:
             uicore.event.UnregisterForTriuiEvents(self.sr.bestRepairPickerCookie)
         self.sr.bestRepairPickerCookie = None
+        return
 
     def OnMouseEnterBestRepair(self, entry):
         for each in entry.parent.children:

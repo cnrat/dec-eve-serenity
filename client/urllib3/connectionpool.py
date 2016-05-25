@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\carbon\common\lib\urllib3\connectionpool.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\carbon\common\lib\urllib3\connectionpool.py
 import logging
 import socket
 from socket import error as SocketError, timeout as SocketTimeout
@@ -44,7 +45,7 @@ class VerifiedHTTPSConnection(HTTPSConnection):
     cert_reqs = None
     ca_certs = None
 
-    def set_cert(self, key_file = None, cert_file = None, cert_reqs = 'CERT_NONE', ca_certs = None):
+    def set_cert(self, key_file=None, cert_file=None, cert_reqs='CERT_NONE', ca_certs=None):
         ssl_req_scheme = {'CERT_NONE': ssl.CERT_NONE,
          'CERT_OPTIONAL': ssl.CERT_OPTIONAL,
          'CERT_REQUIRED': ssl.CERT_REQUIRED}
@@ -64,7 +65,7 @@ class ConnectionPool(object):
     scheme = None
     QueueCls = LifoQueue
 
-    def __init__(self, host, port = None):
+    def __init__(self, host, port=None):
         self.host = host
         self.port = port
 
@@ -75,7 +76,7 @@ class ConnectionPool(object):
 class HTTPConnectionPool(ConnectionPool, RequestMethods):
     scheme = 'http'
 
-    def __init__(self, host, port = None, strict = False, timeout = None, maxsize = 1, block = False, headers = None):
+    def __init__(self, host, port=None, strict=False, timeout=None, maxsize=1, block=False, headers=None):
         super(HTTPConnectionPool, self).__init__(host, port)
         self.strict = strict
         self.timeout = timeout
@@ -87,13 +88,14 @@ class HTTPConnectionPool(ConnectionPool, RequestMethods):
 
         self.num_connections = 0
         self.num_requests = 0
+        return
 
     def _new_conn(self):
         self.num_connections += 1
         log.info('Starting new HTTP connection (%d): %s' % (self.num_connections, self.host))
         return HTTPConnection(host=self.host, port=self.port)
 
-    def _get_conn(self, timeout = None):
+    def _get_conn(self, timeout=None):
         conn = None
         try:
             conn = self.pool.get(block=self.block, timeout=timeout)
@@ -112,7 +114,7 @@ class HTTPConnectionPool(ConnectionPool, RequestMethods):
         except Full:
             log.warning('HttpConnectionPool is full, discarding connection: %s' % self.host)
 
-    def _make_request(self, conn, method, url, timeout = _Default, **httplib_request_kw):
+    def _make_request(self, conn, method, url, timeout=_Default, **httplib_request_kw):
         self.num_requests += 1
         if timeout is _Default:
             timeout = self.timeout
@@ -140,7 +142,7 @@ class HTTPConnectionPool(ConnectionPool, RequestMethods):
             port = port_by_scheme.get(scheme)
         return url.startswith('/') or (scheme, host, port) == (self.scheme, self.host, self.port)
 
-    def urlopen(self, method, url, body = None, headers = None, retries = 3, redirect = True, assert_same_host = True, timeout = _Default, pool_timeout = None, release_conn = None, **response_kw):
+    def urlopen(self, method, url, body=None, headers=None, retries=3, redirect=True, assert_same_host=True, timeout=_Default, pool_timeout=None, release_conn=None, **response_kw):
         if headers is None:
             headers = self.headers
         if retries < 0:
@@ -156,21 +158,23 @@ class HTTPConnectionPool(ConnectionPool, RequestMethods):
             raise HostChangedError(self, url, retries - 1)
         conn = None
         try:
-            conn = self._get_conn(timeout=pool_timeout)
-            httplib_response = self._make_request(conn, method, url, timeout=timeout, body=body, headers=headers)
-            response_conn = not release_conn and conn
-            response = HTTPResponse.from_httplib(httplib_response, pool=self, connection=response_conn, **response_kw)
-        except Empty as e:
-            raise TimeoutError(self, 'Request timed out. (pool_timeout=%s)' % pool_timeout)
-        except SocketTimeout as e:
-            raise TimeoutError(self, 'Request timed out. (timeout=%s)' % timeout)
-        except BaseSSLError as e:
-            raise SSLError(e)
-        except CertificateError as e:
-            raise SSLError(e)
-        except (HTTPException, SocketError) as e:
-            conn = None
-            err = e
+            try:
+                conn = self._get_conn(timeout=pool_timeout)
+                httplib_response = self._make_request(conn, method, url, timeout=timeout, body=body, headers=headers)
+                response_conn = not release_conn and conn
+                response = HTTPResponse.from_httplib(httplib_response, pool=self, connection=response_conn, **response_kw)
+            except Empty as e:
+                raise TimeoutError(self, 'Request timed out. (pool_timeout=%s)' % pool_timeout)
+            except SocketTimeout as e:
+                raise TimeoutError(self, 'Request timed out. (timeout=%s)' % timeout)
+            except BaseSSLError as e:
+                raise SSLError(e)
+            except CertificateError as e:
+                raise SSLError(e)
+            except (HTTPException, SocketError) as e:
+                conn = None
+                err = e
+
         finally:
             if conn and release_conn:
                 self._put_conn(conn)
@@ -178,17 +182,18 @@ class HTTPConnectionPool(ConnectionPool, RequestMethods):
         if not conn:
             log.warn("Retrying (%d attempts remain) after connection broken by '%r': %s" % (retries, err, url))
             return self.urlopen(method, url, body, headers, retries - 1, redirect, assert_same_host)
-        redirect_location = redirect and response.get_redirect_location()
-        if redirect_location:
-            log.info('Redirecting %s -> %s' % (url, redirect_location))
-            return self.urlopen(method, redirect_location, body, headers, retries - 1, redirect, assert_same_host)
-        return response
+        else:
+            redirect_location = redirect and response.get_redirect_location()
+            if redirect_location:
+                log.info('Redirecting %s -> %s' % (url, redirect_location))
+                return self.urlopen(method, redirect_location, body, headers, retries - 1, redirect, assert_same_host)
+            return response
 
 
 class HTTPSConnectionPool(HTTPConnectionPool):
     scheme = 'https'
 
-    def __init__(self, host, port = None, strict = False, timeout = None, maxsize = 1, block = False, headers = None, key_file = None, cert_file = None, cert_reqs = 'CERT_NONE', ca_certs = None):
+    def __init__(self, host, port=None, strict=False, timeout=None, maxsize=1, block=False, headers=None, key_file=None, cert_file=None, cert_reqs='CERT_NONE', ca_certs=None):
         super(HTTPSConnectionPool, self).__init__(host, port, strict, timeout, maxsize, block, headers)
         self.key_file = key_file
         self.cert_file = cert_file

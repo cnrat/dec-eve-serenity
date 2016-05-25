@@ -1,4 +1,5 @@
-#Embedded file name: C:\jamieb_jamieb-pc_STABLE_1796\fsdSchemas\binaryLoader.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: C:\jamieb_jamieb-pc_STABLE_1796\fsdSchemas\binaryLoader.py
 import cPickle
 import ctypes
 import persistence
@@ -44,7 +45,7 @@ def sizeof_fmt(num):
 
 class LoaderState(object):
 
-    def __init__(self, factories, logger = None, cfgObject = None):
+    def __init__(self, factories, logger=None, cfgObject=None):
         self.factories = factories
 
     def RepresentSchemaNode(self, data, offset, path, schemaNode):
@@ -57,16 +58,18 @@ class LoaderState(object):
         return sizeof_fmt(size)
 
 
-def RepresentSchemaNode(data, offset, schemaNode, path, extraState = None):
+def RepresentSchemaNode(data, offset, schemaNode, path, extraState=None):
     schemaType = schemaNode.get('type')
     if extraState is None:
         extraState = LoaderState(defaultLoaderFactories, None)
     if schemaType in extraState.factories:
         return extraState.factories[schemaType](data, offset, schemaNode, path, extraState)
-    raise NotImplementedError("Unknown type not supported in binary loader '%s'" % str(schemaType))
+    else:
+        raise NotImplementedError("Unknown type not supported in binary loader '%s'" % str(schemaType))
+        return
 
 
-def LoadFromString(dataString, optimizedSchema = None, path = None, extraState = None):
+def LoadFromString(dataString, optimizedSchema=None, path=None, extraState=None):
     if path is None:
         path = FsdDataPathObject('<string input>')
     offsetToData = 0
@@ -84,7 +87,7 @@ def GetEmbeddedSchemaAndSizeFromFile(fileObject):
     return (cPickle.loads(pickledSchema), schemaSize)
 
 
-def LoadIndexFromFile(fileObject, optimizedSchema = None, cacheItems = 100, path = None, extraState = None):
+def LoadIndexFromFile(fileObject, optimizedSchema=None, cacheItems=100, path=None, extraState=None):
     if extraState is None:
         extraState = LoaderState(defaultLoaderFactories, None)
     if path is None:
@@ -98,6 +101,7 @@ def LoadIndexFromFile(fileObject, optimizedSchema = None, cacheItems = 100, path
         return loaders.dictLoader.MultiIndexLoader(fileObject, cacheItems, optimizedSchema, path, extraState, offsetToData=offsetToData)
     else:
         return loaders.dictLoader.IndexLoader(fileObject, cacheItems, optimizedSchema, path, extraState, offsetToData=offsetToData)
+        return
 
 
 class BlueResFileIOWrapper(object):
@@ -105,13 +109,14 @@ class BlueResFileIOWrapper(object):
     def __init__(self, resFile):
         self.__resFile__ = resFile
 
-    def seek(self, offset, start = None):
+    def seek(self, offset, start=None):
         if start is None:
             return self.__resFile__.seek(offset)
         else:
             if start == os.SEEK_END:
                 offset = -offset
             return self.__resFile__.seek(offset, start)
+            return
 
     def read(self, bytes):
         with TelemetryContext('FSD File Read'):
@@ -121,7 +126,7 @@ class BlueResFileIOWrapper(object):
         return self.__resFile__.pos
 
 
-def LoadFSDDataForCFG(dataResPath, schemaResPath = None, optimize = True, cacheSize = 100):
+def LoadFSDDataForCFG(dataResPath, schemaResPath=None, optimize=True, cacheSize=100):
     import blue
     import schemaOptimizer
     res = blue.ResFile()
@@ -149,9 +154,10 @@ def LoadFSDDataForCFG(dataResPath, schemaResPath = None, optimize = True, cacheS
         s = res.Read()
         log.info('Loading FSD data file %s into memory. %s', dataResPath, sizeof_fmt(len(s)))
         return LoadFromString(s, schema, path=FsdDataPathObject('<file %s>' % dataResPath))
+    return
 
 
-def LoadFSDDataInPython(dataResPath, schemaResPath = None, optimize = None, cacheSize = 100):
+def LoadFSDDataInPython(dataResPath, schemaResPath=None, optimize=None, cacheSize=100):
     import schemaOptimizer
     if schemaResPath is not None:
         with open(schemaResPath, 'r') as schemaFile:
@@ -174,3 +180,4 @@ def LoadFSDDataInPython(dataResPath, schemaResPath = None, optimize = None, cach
         log.info('Loading FSD data file %s into memory. %s', dataResPath, sizeof_fmt(len(s)))
         dataFile.close()
         return LoadFromString(s, schema, path=FsdDataPathObject('<file %s>' % dataResPath))
+        return

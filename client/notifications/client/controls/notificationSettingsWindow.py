@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\packages\notifications\client\controls\notificationSettingsWindow.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\packages\notifications\client\controls\notificationSettingsWindow.py
 from eve.client.script.ui.control.eveWindow import Window
 from carbonui.primitives.container import Container
 from carbonui.primitives.containerAutoSize import ContainerAutoSize
@@ -140,7 +141,7 @@ class NotificationSettingsMainContainer(Container):
     def OnClearHistoryClick(self, *args):
         sm.GetService('notificationUIService').ClearHistory()
 
-    def MakeSliderTextRow(self, label, minValue, maxValue, startValue, stepping, setValueFunc = None, endSliderFunc = None):
+    def MakeSliderTextRow(self, label, minValue, maxValue, startValue, stepping, setValueFunc=None, endSliderFunc=None):
         sliderWidth = 100
         sliderValueWidth = 30
         sliderLabelWidth = 120

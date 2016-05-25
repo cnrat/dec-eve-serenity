@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\client\script\parklife\triggerMgr.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\client\script\parklife\triggerMgr.py
 import service
 import localization
 
@@ -11,9 +12,10 @@ class Triggers(service.Service):
     def __init__(self):
         service.Service.__init__(self)
 
-    def Run(self, memStream = None):
+    def Run(self, memStream=None):
         service.Service.Run(self, memStream)
         self.audio = None
+        return
 
     def OnDungeonTriggerMessage(self, messageType, messageID):
         color = self.GetMessageColor(messageType)

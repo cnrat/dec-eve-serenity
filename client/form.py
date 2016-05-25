@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\common\modules\nice\client\_nastyspace\form.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\common\modules\nice\client\_nastyspace\form.py
 from carbonui.control.calendarCore import Calendar
 from carbonui.util.uiAnimationTest import TestAnimationsWnd as UIAnimationTest
 from eve.client.script.ui.services.careerFunnelWindow import CareerFunnelWindow
@@ -35,7 +36,6 @@ from eve.client.script.ui.inflight.shipscan import CargoScan
 from eve.client.script.ui.inflight.shipscan import ShipScan
 from eve.client.script.ui.inflight.surveyscan import SurveyScanView
 from eve.client.script.ui.login.characterCreationLayer import CCConfirmationWindow
-from eve.client.script.ui.login.charsel import CharSelection
 from eve.client.script.ui.login.intro import Intro
 from eve.client.script.ui.login.loginII import Login as LoginII
 from eve.client.script.ui.mapCmdWindow import MapCmdWindow
@@ -128,7 +128,6 @@ from eve.client.script.ui.shared.neocom.addressBook.corpAllianceContactManagemen
 from eve.client.script.ui.shared.neocom.attributes import AttributeRespecWindow as attributeRespecWindow
 from eve.client.script.ui.shared.neocom.calculator import Calculator
 from eve.client.script.ui.shared.neocom.channels import Channels
-from eve.client.script.ui.shared.neocom.characterSearchWindow import CharacterSearchWindow
 from eve.client.script.ui.shared.neocom.charactersheet import CharacterSheetWindow as CharacterSheet
 from eve.client.script.ui.shared.neocom.charactersheet import CombatDetailsWnd
 from eve.client.script.ui.shared.neocom.compare import TypeCompare
@@ -175,7 +174,7 @@ from eve.client.script.ui.shared.neocom.corporation.warWindows import AllyWnd
 from eve.client.script.ui.shared.neocom.corporation.warWindows import NegotiationWnd
 from eve.client.script.ui.shared.neocom.corporation.warWindows import WarAssistanceOfferWnd
 from eve.client.script.ui.shared.neocom.corporation.warWindows import WarSurrenderWnd
-from eve.client.script.ui.shared.neocom.evemail import CharacterSearchWindowMail
+from eve.client.script.ui.shared.neocom.evemail import MailSearchWindow
 from eve.client.script.ui.shared.neocom.evemail import MailForm
 from eve.client.script.ui.shared.neocom.evemail import MailReadingWnd
 from eve.client.script.ui.shared.neocom.evemail import MailSettings
@@ -190,6 +189,7 @@ from eve.client.script.ui.shared.neocom.help import HelpWindow
 from eve.client.script.ui.shared.neocom.journal import JournalWindow as Journal
 from eve.client.script.ui.shared.neocom.notepad import NotepadWindow as Notepad
 from eve.client.script.ui.shared.neocom.notifications import NotificationForm
+from eve.client.script.ui.shared.neocom.ownerSearch import OwnerSearchWindow
 from eve.client.script.ui.shared.neocom.petition import PetitionWindow
 from eve.client.script.ui.shared.neocom.skillqueueUI import SkillQueue
 from eve.client.script.ui.shared.neocom.wallet import GiveSharesDialog

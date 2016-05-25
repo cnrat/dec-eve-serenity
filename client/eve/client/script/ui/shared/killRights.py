@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\client\script\ui\shared\killRights.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\client\script\ui\shared\killRights.py
 from eve.client.script.ui.control import entries as listentry
 import carbonui.const as uiconst
 import const
@@ -76,6 +77,7 @@ class KillRightsEntry(listentry.Generic):
         if isMine:
             self.utilMenuCont.display = True
             utilMenu = uicls.UtilMenu(menuAlign=uiconst.TOPRIGHT, parent=self.utilMenuCont, align=uiconst.CENTERRIGHT, GetUtilMenu=self.SellKillRight, texturePath='res:/UI/Texture/Icons/73_16_50.png', left=2)
+        return
 
     def SellKillRight(self, menuParent):
         if self.price is None:
@@ -86,6 +88,7 @@ class KillRightsEntry(listentry.Generic):
             menuParent.AddIconEntry(icon='res:/UI/Texture/Icons/KillRightsIcon.png', text=localization.GetByLabel('UI/CharacterSheet/CharacterSheetWindow/SellToSpecific'), callback=(self.OpenSellKillRightWindow, None))
         else:
             menuParent.AddIconEntry(icon='res:/UI/Texture/Icons/KillRightsIcon.png', text=localization.GetByLabel('UI/CharacterSheet/CharacterSheetWindow/MakeUnavailable'), callback=self.MakeUnavailable)
+        return
 
     def MakeUnavailable(self, *args):
         if self.restrictedTo is None:
@@ -97,7 +100,9 @@ class KillRightsEntry(listentry.Generic):
          'question': questionLabel}, uiconst.YESNO)
         if ret != uiconst.ID_YES:
             return
-        sm.GetService('bountySvc').CancelSellKillRight(self.killRightID, self.charID)
+        else:
+            sm.GetService('bountySvc').CancelSellKillRight(self.killRightID, self.charID)
+            return
 
     def OpenSellKillRightWindow(self, sellToID):
         SellKillRightWnd.CloseIfOpen()
@@ -145,6 +150,7 @@ class KillRightsEntry(listentry.Generic):
             else:
                 self.statusIcon.hint = localization.GetByLabel('UI/Common/Offline')
             self.statusIcon.display = True
+        return
 
     def SetRelationship(self, data):
         AddAndSetFlagIconFromData(parentCont=self.portraitCont, data=data, top=54, left=52)
@@ -177,8 +183,9 @@ class KillRightsEntry(listentry.Generic):
     def OnContactNoLongerContact(self, charID):
         if charID == self.charID:
             self.SetOnline(None)
+        return
 
-    def OnContactChange(self, contactIDs, contactType = None):
+    def OnContactChange(self, contactIDs, contactType=None):
         if self.destroyed:
             return
         self.SetRelationship(self.data)
@@ -247,6 +254,7 @@ class SellKillRightWnd(uicontrols.Window):
         self.SetTopparentHeight(0)
         self.SetCaption(localization.GetByLabel('UI/CharacterSheet/CharacterSheetWindow/SellKillRight'))
         self.ConstructLayout()
+        return
 
     def ConstructLayout(self):
         mainCont = uiprimitives.Container(name='mainCont', parent=self.sr.main, padding=const.defaultPadding)
@@ -276,6 +284,7 @@ class SellKillRightWnd(uicontrols.Window):
             self.ShowResult(self.ownerID)
         else:
             self.sellKillRightBtn.Disable()
+        return
 
     def SellKillRight(self, *args):
         if not self.killRightID:
@@ -304,21 +313,23 @@ class SellKillRightWnd(uicontrols.Window):
         searchString = edit.GetValue()
         if not searchString or searchString == '':
             return None
-        groupIDList = [const.searchResultCharacter, const.searchResultCorporation, const.searchResultAlliance]
-        searchResult = searchUtil.QuickSearch(searchString.strip(), groupIDList, hideNPC=False)
-        if not len(searchResult):
-            edit.SetValue('')
-            edit.SetHintText(localization.GetByLabel('UI/Station/BountyOffice/NoOneFound'))
         else:
-            if len(searchResult) == 1:
-                ownerID = searchResult[0]
-                return ownerID
-            from eve.client.script.ui.shared.bountyWindow import BountyPicker
-            dlg = BountyPicker.Open(resultList=searchResult)
-            dlg.ShowModal()
-            if dlg.ownerID:
-                return dlg.ownerID
-            edit.SetValue('')
+            groupIDList = [const.searchResultCharacter, const.searchResultCorporation, const.searchResultAlliance]
+            searchResult = searchUtil.QuickSearch(searchString.strip(), groupIDList, hideNPC=False)
+            if not len(searchResult):
+                edit.SetValue('')
+                edit.SetHintText(localization.GetByLabel('UI/Station/BountyOffice/NoOneFound'))
+            else:
+                if len(searchResult) == 1:
+                    ownerID = searchResult[0]
+                    return ownerID
+                from eve.client.script.ui.shared.bountyWindow import BountyPicker
+                dlg = BountyPicker.Open(resultList=searchResult)
+                dlg.ShowModal()
+                if dlg.ownerID:
+                    return dlg.ownerID
+                edit.SetValue('')
+                return None
             return None
 
     def ShowResult(self, ownerID):
@@ -348,6 +359,7 @@ class SellKillRightWnd(uicontrols.Window):
         self.killRightAmount.SetValue('')
         self.killRightAmount.SetHintText(localization.GetByLabel('UI/CharacterSheet/CharacterSheetWindow/EnterAmount'))
         self.sellKillRightBtn.Disable()
+        return
 
     def ShowInfo(self, ownerID, typeID, *args):
         sm.GetService('info').ShowInfo(typeID, ownerID)
@@ -363,10 +375,11 @@ class KillRightsUtilMenu(uicls.UtilMenu):
         attributes.GetUtilMenu = self.ActivateKillRightMenu
         uicls.UtilMenu.ApplyAttributes(self, attributes)
         self.killRightID = attributes.get('killRightID', None)
+        return
 
     def ActivateKillRightMenu(self, menuParent):
         cont = menuParent.AddContainer(align=uiconst.TOTOP, padding=const.defaultPadding)
-        cont.GetEntryWidth = lambda mc = cont: 230
+        cont.GetEntryWidth = lambda mc=cont: 230
         charName = cfg.eveowners.Get(self.charID).name
         charNamelabel = localization.GetByLabel('UI/Contracts/ContractsWindow/ShowInfoLink', showInfoName=charName, info=('showinfo', const.typeCharacterAmarr, self.charID))
         if self.price is not None:
@@ -393,6 +406,7 @@ class KillRightsUtilMenu(uicls.UtilMenu):
              self.shipID,
              self.price)
         self.activateBtn = uicontrols.Button(parent=buttonCont, label=buttonLabel, align=uiconst.TORIGHT, func=self.ActivateKillRight)
+        return
 
     def ActivateKillRight(self, *args):
         try:
@@ -409,3 +423,4 @@ class KillRightsUtilMenu(uicls.UtilMenu):
             self.hint = localization.GetByLabel('UI/CharacterSheet/CharacterSheetWindow/ActivateKillRight')
         else:
             self.hint = localization.GetByLabel('UI/CharacterSheet/CharacterSheetWindow/BuyKillRight')
+        return

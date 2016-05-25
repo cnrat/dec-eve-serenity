@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\packages\carbonui\graphs\graphsutil.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\packages\carbonui\graphs\graphsutil.py
 import math
 
 def MovingOp(values, op, n):
@@ -12,15 +13,15 @@ def MovingOp(values, op, n):
     return returnValues
 
 
-def MovingHigh(values, n = 5):
+def MovingHigh(values, n=5):
     return MovingOp(values, max, n)
 
 
-def MovingLow(values, n = 5):
+def MovingLow(values, n=5):
     return MovingOp(values, min, n)
 
 
-def MovingAvg(values, n = 5):
+def MovingAvg(values, n=5):
     return MovingOp(values, lambda l: sum(l) / len(l), n)
 
 

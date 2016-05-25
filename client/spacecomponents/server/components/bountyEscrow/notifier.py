@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\packages\spacecomponents\server\components\bountyEscrow\notifier.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\packages\spacecomponents\server\components\bountyEscrow\notifier.py
 from eve.common.script.util.notificationconst import notificationTypeBountyESSShared
 from eve.common.script.util.notificationconst import notificationTypeBountyESSTaken
 
@@ -37,6 +38,7 @@ class RangeNotifier(object):
         self.ballpark = ballpark
         self.machoNet = machoNet
         self.lastNotificationTime = None
+        return
 
     def PlayerInRange(self, ballID, entered):
         if entered:
@@ -46,3 +48,4 @@ class RangeNotifier(object):
                 if charID is not None:
                     self.lastNotificationTime = currentTime
                     self.machoNet.SinglecastBySolarSystemID(self.solarSystemID, 'OnBountyEscrowPlayerInRange', charID)
+        return

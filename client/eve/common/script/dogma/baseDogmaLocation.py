@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\common\script\dogma\baseDogmaLocation.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\common\script\dogma\baseDogmaLocation.py
 from dogma.eventCounters import EventCount, BrainUpdate
 import log
 from dogma.dogmaLogging import *
@@ -18,12 +19,14 @@ from dogma.items.characterFittedDogmaItem import CharacterFittedDogmaItem
 from dogma.items.controlTowerDogmaItem import ControlTowerDogmaItem
 from dogma.items.starbaseDogmaItem import StarbaseDogmaItem
 from dogma.items.droneDogmaItem import DroneDogmaItem
+from dogma.items.structureDogmaItem import StructureDogmaItem
+from dogma.items.structureModuleDogmaItem import StructureModuleDogmaItem
 from dogma.items.baseDogmaItem import BaseDogmaItem
 from dogma.items.characterDogmaItem import CharacterDogmaItem
 from dogma.exceptions import EmbarkOnlineError, EffectFailedButShouldBeStopped
 from dogma.attributes.attribute import BrainLiteralAttribute
 from dogma.attributes.attribute import StackingNurfedAttribute
-from inventorycommon.util import IsShipFittingFlag
+from inventorycommon.util import IsShipFittingFlag, IsFittingModule
 import weakref
 import uthread
 import bluepy
@@ -89,6 +92,7 @@ class BaseDogmaLocation(object):
         self.locationName = None
         self.locationGroup = const.groupSystem
         self.moduleListsByShipGroup = defaultdict(lambda : defaultdict(set))
+        self.moduleListsByShipType = defaultdict(lambda : defaultdict(set))
         self.attributeChangeCallbacksByAttributeID = {}
         self.loadingItems = {}
         self.failedLoadingItems = {}
@@ -127,51 +131,55 @@ class BaseDogmaLocation(object):
         self.brainLiterals = keydefaultdict(BrainLiteralAttribute)
         self.scarecrows = {}
         self.brainUpdate = BrainUpdate(self.CheckShipOnlineModules)
+        return
 
-    def LoadItem(self, itemKey, instanceRow = None, wait = False, item = None, newInstance = False, timerName = None):
+    def LoadItem(self, itemKey, instanceRow=None, wait=False, item=None, newInstance=False, timerName=None):
         invItem = item
         del item
         if itemKey == self.locationID:
             return itemKey
-        if itemKey in self.dogmaItems:
+        elif itemKey in self.dogmaItems:
             return itemKey
-        self.PreLoadItemActions(itemKey)
-        if itemKey in self.dogmaItems:
-            return itemKey
-        self.EnterCriticalSection('LoadItem', itemKey)
-        try:
+        else:
+            self.PreLoadItemActions(itemKey)
             if itemKey in self.dogmaItems:
                 return itemKey
-            self.loadingItems[itemKey] = stackless.channel()
+            self.EnterCriticalSection('LoadItem', itemKey)
             try:
-                dogmaItem = self._LoadItem(itemKey, instanceRow=instanceRow, invItem=invItem, newInstance=newInstance)
+                try:
+                    if itemKey in self.dogmaItems:
+                        return itemKey
+                    self.loadingItems[itemKey] = stackless.channel()
+                    try:
+                        dogmaItem = self._LoadItem(itemKey, instanceRow=instanceRow, invItem=invItem, newInstance=newInstance)
+                    finally:
+                        while self.loadingItems[itemKey].queue:
+                            self.loadingItems[itemKey].send(None)
+
+                        del self.loadingItems[itemKey]
+
+                    if dogmaItem is not None:
+                        if itemKey in self.modifiersAwaitingTarget:
+                            LogNotice('LoadItem: Calling (and clearing) pending modifiers via itemKey {} for dogmaItem {}\n  modifiers = {}'.format(itemKey, dogmaItem, self.modifiersAwaitingTarget[itemKey]))
+                            for callTuple in self.modifiersAwaitingTarget[itemKey]:
+                                callTuple[0](*callTuple[1:])
+
+                            del self.modifiersAwaitingTarget[itemKey]
+                        dogmaItem.PostLoadAction()
+                except Exception as e:
+                    log.LogException('Failed to load a dogma item %s' % str(itemKey))
+                    try:
+                        if not len(e.args) or not e.args[0].startswith('GetItem: Item not here'):
+                            self.failedLoadingItems[itemKey] = 'Exception: ' + strx(e)
+                    except Exception:
+                        pass
+
+                    raise e
+
             finally:
-                while self.loadingItems[itemKey].queue:
-                    self.loadingItems[itemKey].send(None)
+                self.LeaveCriticalSection('LoadItem', itemKey)
 
-                del self.loadingItems[itemKey]
-
-            if dogmaItem is not None:
-                if itemKey in self.modifiersAwaitingTarget:
-                    LogNotice('LoadItem: Calling (and clearing) pending modifiers via itemKey {} for dogmaItem {}\n  modifiers = {}'.format(itemKey, dogmaItem, self.modifiersAwaitingTarget[itemKey]))
-                    for callTuple in self.modifiersAwaitingTarget[itemKey]:
-                        callTuple[0](*callTuple[1:])
-
-                    del self.modifiersAwaitingTarget[itemKey]
-                dogmaItem.PostLoadAction()
-        except Exception as e:
-            log.LogException('Failed to load a dogma item %s' % str(itemKey))
-            try:
-                if not len(e.args) or not e.args[0].startswith('GetItem: Item not here'):
-                    self.failedLoadingItems[itemKey] = 'Exception: ' + strx(e)
-            except Exception:
-                pass
-
-            raise e
-        finally:
-            self.LeaveCriticalSection('LoadItem', itemKey)
-
-        return itemKey
+            return itemKey
 
     def _LoadItem_LogOnEntry(self, itemKey, invItem):
         givenInvItemDescription = self.DescribeInvItem(invItem)
@@ -179,11 +187,13 @@ class BaseDogmaLocation(object):
         foundInvItemDescription = self.DescribeInvItem(foundDogmaItem.invItem) if foundDogmaItem else None
         totalItems = len(self.dogmaItems)
         LogNotice('LoadItem requested for itemKey: {itemKey}, with given invItem {givenInvItemDescription}, having existing dogmaItems entry {foundDogmaItem} with invItem {foundInvItemDescription} (totalItems = {totalItems}) '.format(**locals()))
+        return
 
     def _LoadItem_LogOnExit(self, itemKey):
         dogmaItem = self.dogmaItems.get(itemKey, None)
         invItemDescription = self.DescribeInvItem(dogmaItem.invItem) if dogmaItem else None
         LogNotice('LoadItem completed for itemKey: {itemKey}, having dogmaItems entry {dogmaItem} and invItem {invItemDescription}'.format(**locals()))
+        return
 
     def PreLoadItemActions(self, itemKey):
         pass
@@ -195,7 +205,7 @@ class BaseDogmaLocation(object):
         return self.instanceFlagQuantityCache[locationID][flagID].quantity
 
     @TimedFunction('BaseDogmaLocation::_LoadItem')
-    def _LoadItem(self, itemKey, instanceRow = None, invItem = None, newInstance = False):
+    def _LoadItem(self, itemKey, instanceRow=None, invItem=None, newInstance=False):
         self.LogInfo('BaseDogmaLocation::_LoadItem', itemKey)
         if isinstance(itemKey, tuple):
             virtualInvItem = util.KeyVal()
@@ -215,22 +225,23 @@ class BaseDogmaLocation(object):
                 sys.exc_clear()
 
             return dogmaItem
-        if invItem is None:
-            invItem = self.GetItem(itemKey)
-        if invItem is None:
-            raise RuntimeError('Dogma was unable to get invItem to load dogmaItem!')
-        if not self.IsItemWanted(invItem.typeID) or newInstance:
-            instanceRow = self.IntroduceNewItem(invItem)
         else:
-            instanceRow = self.GetInstance(invItem)
-        self.LogInfo('BaseDogmaLocation::Actually Loading invItem', itemKey)
-        dogmaItem = self.GetClassForItem(invItem)(weakref.proxy(self), invItem, cfg, FindSessionClient)
-        dogmaItem.Load(invItem, instanceRow)
-        if invItem.flagID != const.flagPilot:
-            self.FitItemToLocation(invItem.locationID, itemKey, invItem.flagID)
-        dogmaItem.OnItemLoaded()
-        self.HandleDogmaLocationEffectsOnItem(dogmaItem)
-        return dogmaItem
+            if invItem is None:
+                invItem = self.GetItem(itemKey)
+            if invItem is None:
+                raise RuntimeError('Dogma was unable to get invItem to load dogmaItem!')
+            if not self.IsItemWanted(invItem.typeID) or newInstance:
+                instanceRow = self.IntroduceNewItem(invItem)
+            else:
+                instanceRow = self.GetInstance(invItem)
+            self.LogInfo('BaseDogmaLocation::Actually Loading invItem', itemKey)
+            dogmaItem = self.GetClassForItem(invItem)(weakref.proxy(self), invItem, cfg, FindSessionClient)
+            dogmaItem.Load(invItem, instanceRow)
+            if invItem.flagID != const.flagPilot:
+                self.FitItemToLocation(invItem.locationID, itemKey, invItem.flagID)
+            dogmaItem.OnItemLoaded()
+            self.HandleDogmaLocationEffectsOnItem(dogmaItem)
+            return dogmaItem
 
     def GetDogmaItem(self, itemID):
         return self.dogmaItems[itemID]
@@ -247,17 +258,27 @@ class BaseDogmaLocation(object):
     def GetBrainData(self, charID):
         pass
 
-    def InitBrain(self, charID, brain):
+    def InitBrain(self, charID, brain=None):
         pass
+
+    def GetEmptyBrain(self):
+        return (-1,
+         [],
+         [],
+         [])
 
     @telemetry.ZONE_METHOD
     def GetModuleListByShipGroup(self, locationID, groupID):
         return self.moduleListsByShipGroup.get(locationID, {}).get(groupID, [])
 
+    @telemetry.ZONE_METHOD
+    def GetModuleListByShipType(self, locationID, typeID):
+        return self.moduleListsByShipType.get(locationID, {}).get(typeID, [])
+
     def HandleDogmaLocationEffectsOnItem(self, dogmaItem):
         pass
 
-    def ApplyBrainEffects(self, shipID, charID, timerName = 'unknown'):
+    def ApplyBrainEffects(self, shipID, charID, timerName='unknown'):
         self.broker.LogInfo('%s ApplyBrainEffects %s %s. Called from %s' % (self.locationName,
          shipID,
          charID,
@@ -267,46 +288,33 @@ class BaseDogmaLocation(object):
         if charID is None:
             self.broker.LogError('ApplyBrainEffects - charID is None!')
             return
-        startTime = blue.os.GetWallclockTimeNow()
-        currentShipID = self.shipsByPilotID.get(charID, None)
-        if shipID != currentShipID:
-            log.LogTraceback("ApplyBrainEffects called for shipID %s but Dogma's shipsByPilots thinks I'm in ship %s" % (shipID, currentShipID))
-            self.shipsByPilotID[charID] = shipID
-        currentPilotID = self.pilotsByShipID.get(shipID, None)
-        if charID != currentPilotID:
-            log.LogTraceback("ApplyBrainEffects called for pilot %s in shipID %s but Dogma's pilotsByShips says it is piloted by %s" % (charID, shipID, currentPilotID))
-            self.pilotsByShipID[shipID] = charID
-        if not self.CheckApplyBrainEffects(shipID):
+        else:
+            startTime = blue.os.GetWallclockTimeNow()
+            currentShipID = self.shipsByPilotID.get(charID, None)
+            if shipID != currentShipID:
+                log.LogTraceback("ApplyBrainEffects called for shipID %s but Dogma's shipsByPilots thinks I'm in ship %s" % (shipID, currentShipID))
+                self.shipsByPilotID[charID] = shipID
+            currentPilotID = self.pilotsByShipID.get(shipID, None)
+            if charID != currentPilotID:
+                log.LogTraceback("ApplyBrainEffects called for pilot %s in shipID %s but Dogma's pilotsByShips says it is piloted by %s" % (charID, shipID, currentPilotID))
+                self.pilotsByShipID[shipID] = charID
+            if not self.CheckApplyBrainEffects(shipID):
+                endTime = blue.os.GetWallclockTimeNow()
+                self.broker.LogInfo('%s - ApplyBrainEffects took %s ms' % (self.locationID, blue.os.TimeDiffInMs(startTime, endTime)))
+                return
+            log.LogInfo('%s - ApplyBrainEffects to shipID %s' % (self.locationID, shipID))
+            shipDogmaItem = self.dogmaItems.get(shipID, None)
+            if not shipDogmaItem:
+                self.LogError('ApplyBrainEffects:ShipDogmaItem not found!')
+                return
+            _, charEffects, shipEffects, structureEffects = self.GetBrainData(charID)
+            self._UpdateShipEffectsFromBrain(ApplyBrainEffect, 'Apply', shipEffects, structureEffects, shipID, shipDogmaItem)
+            self._UpdateCharacterEffectsFromBrain(ApplyBrainEffect, 'Apply', charEffects, charID)
             endTime = blue.os.GetWallclockTimeNow()
             self.broker.LogInfo('%s - ApplyBrainEffects took %s ms' % (self.locationID, blue.os.TimeDiffInMs(startTime, endTime)))
             return
-        log.LogInfo('%s - ApplyBrainEffects to shipID %s' % (self.locationID, shipID))
-        shipDogmaItem = self.dogmaItems.get(shipID, None)
-        if not shipDogmaItem:
-            self.LogError('ApplyBrainEffects:ShipDogmaItem not found!')
-            return
-        shipTypeID = shipDogmaItem.typeID
-        validAttribs = {x.attributeID for x in cfg.dgmtypeattribs[shipTypeID]}
-        validAttribs.add(const.attributeCapacity)
-        _, charEffects, shipEffects = self.GetBrainData(charID)
-        self.broker.LogInfo('%s - Applying %s ship effects to %s' % (self.locationID, len(shipEffects), shipID))
-        for effect in shipEffects:
-            if effect.modifierType == 'M' and effect.toAttribID not in validAttribs:
-                continue
-            literal = self.brainLiterals[effect.GetLiteralKey()]
-            effType = effect.modifierType
-            ApplyBrainEffect[effType](self, shipID, literal, *effect.GetApplicationArgs())
 
-        self.broker.LogInfo('%s - Applying %s character effects to %s' % (self.locationID, len(charEffects), charID))
-        for effect in charEffects:
-            literal = self.brainLiterals[effect.GetLiteralKey()]
-            effType = effect.modifierType
-            ApplyBrainEffect[effType](self, charID, literal, *effect.GetApplicationArgs())
-
-        endTime = blue.os.GetWallclockTimeNow()
-        self.broker.LogInfo('%s - ApplyBrainEffects took %s ms' % (self.locationID, blue.os.TimeDiffInMs(startTime, endTime)))
-
-    def RemoveBrainEffects(self, shipID, charID, timerName = None):
+    def RemoveBrainEffects(self, shipID, charID, timerName=None):
         self.broker.LogInfo('%s RemoveBrainEffects %s %s. Called from %s' % (self.locationName,
          shipID,
          charID,
@@ -318,23 +326,13 @@ class BaseDogmaLocation(object):
         currentPilotID = self.pilotsByShipID.get(shipID, None)
         if charID != currentPilotID:
             log.LogTraceback("RemoveBrainEffects called for pilot %s in shipID %s but Dogma's pilotsByShips says it is piloted by %s" % (charID, shipID, currentPilotID))
-        _, charEffects, shipEffects = self.GetBrainData(charID)
+        _, charEffects, shipEffects, structureEffects = self.GetBrainData(charID)
         if shipID is not None:
             shipDogmaItem = self.dogmaItems.get(shipID, None)
             if not shipDogmaItem:
                 self.LogError('RemoveBrainEffects:ShipDogmaItem not found!')
                 return
-            shipTypeID = shipDogmaItem.typeID
-            validAttribs = {x.attributeID for x in cfg.dgmtypeattribs[shipTypeID]}
-            validAttribs.add(const.attributeCapacity)
-            self.broker.LogInfo('Removing %s ship effects from %s' % (len(shipEffects), shipID))
-            for effect in shipEffects:
-                if effect.modifierType == 'M' and effect.toAttribID not in validAttribs:
-                    continue
-                literal = self.brainLiterals[effect.GetLiteralKey()]
-                effType = effect.modifierType
-                RemoveBrainEffect[effType](self, shipID, literal, *effect.GetApplicationArgs())
-
+            self._UpdateShipEffectsFromBrain(RemoveBrainEffect, 'Remove', shipEffects, structureEffects, shipID, shipDogmaItem)
         self.broker.LogInfo('Removing %s character effects from %s' % (len(charEffects), charID))
         for effect in charEffects:
             literal = self.brainLiterals[effect.GetLiteralKey()]
@@ -343,12 +341,13 @@ class BaseDogmaLocation(object):
 
         endTime = blue.os.GetWallclockTimeNow()
         self.broker.LogInfo('%s RemoveBrainEffects took %s ms' % (self.locationID, blue.os.TimeDiffInMs(startTime, endTime)))
+        return
 
-    def OnCharacterEmbarkation(self, charID, shipID, switching = False, raiseOnOnlineFailure = False):
+    def OnCharacterEmbarkation(self, charID, shipID, switching=False, raiseOnOnlineFailure=False):
         self.LogInfo('OnCharacterEmbarkation charID', charID, 'shipID', shipID)
         with util.ExceptionEater('OnCharacterEmbarkation %s %s' % (charID, shipID)):
             shipItem = self.GetItem(shipID)
-            if shipItem.ownerID != charID:
+            if shipItem.ownerID != charID and shipItem.categoryID != const.categoryStructure:
                 log.LogTraceback('Ship inventory item owned by ID %s not character. Dogma pilot is %s' % (shipItem.ownerID, self.pilotsByShipID.get(shipID, None)))
         self.embarkingShips[shipID] = charID
         try:
@@ -357,77 +356,83 @@ class BaseDogmaLocation(object):
             if shipID in self.embarkingShips:
                 del self.embarkingShips[shipID]
 
+        return
+
     def _OnCharacterEmbarkation(self, charID, shipID, switching, raiseOnOnlineFailure):
         if self.shipsByPilotID.get(charID, None) == shipID:
             self.LogError('OnCharacterEmbarkation - character already embarked? Are we doing things out of order?', charID, shipID, switching)
             return
-        if charID in self.shipsByPilotID:
-            skipCheck = False
-            oldShipID = self.shipsByPilotID.get(charID, None)
         else:
-            skipCheck = True
-            oldShipID = None
-        if oldShipID == shipID:
-            self.LogError("OnCharacterEmbarkation - character seem to have been already fitted to this ship so I'm returning", charID, shipID, switching)
-            return
-        if not self.IsItemLoaded(charID):
-            self.LoadItem(charID)
-        if not self.IsItemLoaded(shipID):
-            self.LoadItem(shipID)
-        shipDogmaItem = self.dogmaItems[shipID]
-        charDogmaItem = self.dogmaItems[charID]
-        charDogmaItem.SetLocation(shipID, shipDogmaItem, const.flagPilot)
-        shipFittedItems = shipDogmaItem.GetFittedItems()
-        if self.extraTracebacks:
-            self.LogInfo('Embark, sorting modules and ship', shipID, shipFittedItems.keys())
-        for itemKey in shipFittedItems:
-            self.InstallPilotForItem(itemKey, shipID, charID)
+            if not self.IsItemLoaded(charID):
+                self.LoadItem(charID)
+            if charID in self.shipsByPilotID:
+                skipCheck = False
+                oldShipID = self.shipsByPilotID.get(charID, None)
+            else:
+                skipCheck = True
+                oldShipID = None
+            if oldShipID == shipID:
+                self.LogError("OnCharacterEmbarkation - character seem to have been already fitted to this ship so I'm returning", charID, shipID, switching)
+                return
+            if not self.IsItemLoaded(charID):
+                self.LoadItem(charID)
+            if not self.IsItemLoaded(shipID):
+                self.LoadItem(shipID)
+            shipDogmaItem = self.dogmaItems[shipID]
+            charDogmaItem = self.dogmaItems[charID]
+            charDogmaItem.SetLocation(shipID, shipDogmaItem, const.flagPilot)
+            shipFittedItems = shipDogmaItem.GetFittedItems()
+            if self.extraTracebacks:
+                self.LogInfo('Embark, sorting modules and ship', shipID, shipFittedItems.keys())
+            for itemKey in shipFittedItems:
+                self.InstallPilotForItem(itemKey, shipID, charID)
 
-        for droneID in shipDogmaItem.GetDronesInBay():
-            if droneID not in self.dogmaItems:
-                self.LogError("drone in ship's drone dict but not actually loadedd", droneID, charID, shipID)
-                continue
-            self.InstallPilotForItem(droneID, shipID, charID)
+            for droneID in shipDogmaItem.GetDronesInBay():
+                if droneID not in self.dogmaItems:
+                    self.LogError("drone in ship's drone dict but not actually loadedd", droneID, charID, shipID)
+                    continue
+                self.InstallPilotForItem(droneID, shipID, charID)
 
-        if self.extraTracebacks:
-            self.LogInfo('Embark, sorted modules and ship', shipID, shipFittedItems.keys())
-        self.broker.LogInfo('OnCharacterEmbarkation - char adoption', charID)
-        self.LogInfo('OnCharacterEmbarkation - char', charID, 'reonlining modules on ship', shipID)
-        self.ApplyBrainEffects(shipID, charID, 'baseDogmaLocation._OnCharacterEmbarkation')
-        if shipID in self.onlineByShip:
-            d = self.onlineByShip[shipID]
-            del self.onlineByShip[shipID]
-            self.LogInfo('OnCharacterEmbarkation - ship', shipID, 'had online cache hit', d)
-            flags = d.keys()
-            flags.sort()
-            brokenByID = {}
-            for i in range(len(flags) - 1, -1, -1):
-                moduleID = d[flags[i]]
-                try:
-                    self.StopEffect(const.effectOnline, moduleID, 0)
-                except UserError as e:
-                    brokenByID[moduleID] = True
-                    item = self.inventory2.GetItem(moduleID)
-                    self.broker.LogError('Char', charID, 'piloting', shipID, 'module', moduleID, evetypes.GetName(item.typeID), 'not offline, reason', e)
-                    log.LogException(channel='svc.dogmaIM')
-                    sys.exc_clear()
-
-            for flag in flags:
-                moduleID = d[flag]
-                if moduleID not in brokenByID:
+            if self.extraTracebacks:
+                self.LogInfo('Embark, sorted modules and ship', shipID, shipFittedItems.keys())
+            self.broker.LogInfo('OnCharacterEmbarkation - char adoption', charID)
+            self.LogInfo('OnCharacterEmbarkation - char', charID, 'reonlining modules on ship', shipID)
+            self.ApplyBrainEffects(shipID, charID, 'baseDogmaLocation._OnCharacterEmbarkation')
+            if shipID in self.onlineByShip:
+                d = self.onlineByShip[shipID]
+                del self.onlineByShip[shipID]
+                self.LogInfo('OnCharacterEmbarkation - ship', shipID, 'had online cache hit', d)
+                flags = d.keys()
+                flags.sort()
+                brokenByID = {}
+                for i in range(len(flags) - 1, -1, -1):
+                    moduleID = d[flags[i]]
                     try:
-                        self.StartModuleOnlineEffect(moduleID, charID, shipID, raiseUserError=raiseOnOnlineFailure)
+                        self.StopEffect(const.effectOnline, moduleID, 0)
                     except UserError as e:
-                        if raiseOnOnlineFailure:
-                            log.LogException('Failed to online modules on undock', severity=log.LGWARN, channel='svc.dogmaIM')
-                            raise EmbarkOnlineError('FailedToOnlineModulesOnUndock')
-                        if e.msg != 'OnlineHasSkillPrerequisites':
-                            item = self.inventory2.GetItem(moduleID)
-                            self.broker.LogWarn('OnCharacterEmbarkation - char', charID, 'piloting', shipID, 'module', moduleID, evetypes.GetName(item.typeID), 'not onlined again, reason', e)
-                            log.LogException(channel='svc.dogmaIM')
+                        brokenByID[moduleID] = True
+                        item = self.inventory2.GetItem(moduleID)
+                        self.broker.LogError('Char', charID, 'piloting', shipID, 'module', moduleID, evetypes.GetName(item.typeID), 'not offline, reason', e)
+                        log.LogException(channel='svc.dogmaIM')
                         sys.exc_clear()
 
-            self.LogInfo('OnCharacterEmbarkation - char', charID, 'reonlined modules on ship', shipID, 'candidates', d)
+                for flag in flags:
+                    moduleID = d[flag]
+                    if moduleID not in brokenByID:
+                        try:
+                            self.StartModuleOnlineEffect(moduleID, charID, shipID, raiseUserError=raiseOnOnlineFailure)
+                        except UserError as e:
+                            if raiseOnOnlineFailure:
+                                log.LogException('Failed to online modules on undock', severity=log.LGWARN, channel='svc.dogmaIM')
+                                raise EmbarkOnlineError('FailedToOnlineModulesOnUndock')
+                            if e.msg != 'OnlineHasSkillPrerequisites':
+                                item = self.inventory2.GetItem(moduleID)
+                                self.broker.LogWarn('OnCharacterEmbarkation - char', charID, 'piloting', shipID, 'module', moduleID, evetypes.GetName(item.typeID), 'not onlined again, reason', e)
+                                log.LogException(channel='svc.dogmaIM')
+                            sys.exc_clear()
+
+                self.LogInfo('OnCharacterEmbarkation - char', charID, 'reonlined modules on ship', shipID, 'candidates', d)
+            return
 
     def InstallPilotForItem(self, itemKey, shipID, pilotID):
         dogmaItem = self.dogmaItems[itemKey]
@@ -445,7 +450,8 @@ class BaseDogmaLocation(object):
                     continue
                 self.LogInfo('InstallPilotForItem.effect', itemKey, effectID, cfg.dgmeffects.Get(effectID).effectName)
                 try:
-                    env = Environment(itemKey, pilotID, shipID, targetID, otherID, effectID, weakref.proxy(self), None)
+                    structureId = self.GetStructureIdForEnvironment(shipID)
+                    env = Environment(itemKey, pilotID, shipID, targetID, otherID, effectID, weakref.proxy(self), None, structureId)
                     self.StartEffect(effectID, itemKey, env)
                 except UserError as e:
                     sys.exc_clear()
@@ -457,58 +463,61 @@ class BaseDogmaLocation(object):
             elif self.effectCompiler.IsEffectCharacterModifier(effectID):
                 log.LogTraceback('(install) Item %s already has effect %s active' % (itemKey, effectID), channel='svc.dogmaIM')
 
+        return
+
     @TimedFunction('BaseDogmaLocation::FitItemToLocation')
     def FitItemToLocation(self, locationID, itemID, flagID):
         self.LogInfo('FitItemToLocation', locationID, itemID, flagID)
         if locationID == self.locationID:
             self.LogInfo('Attempting to fit item to self.locationID. Ignored!')
             return
-        if locationID not in self.dogmaItems:
-            wasItemLoaded = itemID in self.dogmaItems
-            if locationID != self.locationID:
-                self.LoadItem(locationID)
-            if not wasItemLoaded:
-                self.LogInfo('Neither location not item was loaded. Loaded location and returned.', locationID, itemID)
+        else:
+            if locationID not in self.dogmaItems:
+                wasItemLoaded = itemID in self.dogmaItems
+                if locationID != self.locationID:
+                    self.LoadItem(locationID)
+                if not wasItemLoaded:
+                    self.LogInfo('Neither location not item was loaded. Loaded location and returned.', locationID, itemID)
+                    return
+            if itemID not in self.dogmaItems:
+                self.LoadItem(itemID)
                 return
-        if itemID not in self.dogmaItems:
-            self.LoadItem(itemID)
-            return
-        locationDogmaItem = self.dogmaItems.get(locationID, None)
-        if locationDogmaItem is None:
-            self.LogInfo('FitItemToLocation::Fitted to None item', itemID, locationID, flagID)
-            return
-        dogmaItem = self.dogmaItems[itemID]
-        if not locationDogmaItem.CanFitItem(dogmaItem, flagID):
-            if locationDogmaItem.categoryID == const.categoryShip:
-                log.LogTraceback("Somebody asked us to fit an item to a ship that can't be fitted")
-            return
-        oldOwnerID, oldLocationID, oldFlagID = oldInfo = dogmaItem.GetLocationInfo()
-        dogmaItem.SetLocation(locationID, locationDogmaItem, flagID)
-        LogNotice('FitItemToLocation: Calling StartPassiveEffects for itemID =', itemID)
-        startedEffects = self.StartPassiveEffects(itemID, dogmaItem.typeID)
-        if startedEffects is not None:
-            self.UnsetItemLocation(itemID, locationID)
-            for effectID in startedEffects:
-                try:
-                    self.StopEffect(effectID, itemID, 1)
-                except UserError as e:
-                    log.LogException('Failed to start effect %s' % effectID, channel='svc.dogmaIM')
-                    sys.exc_clear()
+            locationDogmaItem = self.dogmaItems.get(locationID, None)
+            if locationDogmaItem is None:
+                self.LogInfo('FitItemToLocation::Fitted to None item', itemID, locationID, flagID)
+                return
+            dogmaItem = self.dogmaItems[itemID]
+            if not locationDogmaItem.CanFitItem(dogmaItem, flagID):
+                if locationDogmaItem.categoryID == const.categoryShip:
+                    log.LogTraceback("Somebody asked us to fit an item to a ship that can't be fitted")
+                return
+            oldOwnerID, oldLocationID, oldFlagID = oldInfo = dogmaItem.GetLocationInfo()
+            dogmaItem.SetLocation(locationID, locationDogmaItem, flagID)
+            LogNotice('FitItemToLocation: Calling StartPassiveEffects for itemID =', itemID)
+            startedEffects = self.StartPassiveEffects(itemID, dogmaItem.typeID)
+            if startedEffects is not None:
+                self.UnsetItemLocation(itemID, locationID)
+                for effectID in startedEffects:
+                    try:
+                        self.StopEffect(effectID, itemID, 1)
+                    except UserError as e:
+                        log.LogException('Failed to start effect %s' % effectID, channel='svc.dogmaIM')
+                        sys.exc_clear()
 
-            if util.IsFlagSubSystem(dogmaItem.flagID):
-                raise RuntimeError('Failed to start passive effects on a subsystem')
-            raise UserError('ModuleFitFailed', {'moduleName': (const.UE_GROUPID, dogmaItem.groupID),
-             'reason': ''})
-        locationCategoryID = locationDogmaItem.categoryID
-        if locationCategoryID == const.categoryShip and dogmaItem.attributes.get(const.attributeIsOnline, False) and self.dogmaStaticMgr.TypeHasEffect(dogmaItem.typeID, const.effectOnline):
-            pilotID = dogmaItem.GetPilot()
-            LogNotice('FitItemToLocation: Calling StartModuleOnlineEffect for itemID =', itemID)
-            self.StartModuleOnlineEffect(dogmaItem.itemID, pilotID, dogmaItem.locationID)
-        return oldInfo
+                if util.IsFlagSubSystem(dogmaItem.flagID):
+                    raise RuntimeError('Failed to start passive effects on a subsystem')
+                raise UserError('ModuleFitFailed', {'moduleName': (const.UE_GROUPID, dogmaItem.groupID),
+                 'reason': ''})
+            locationCategoryID = locationDogmaItem.categoryID
+            if locationCategoryID in (const.categoryShip, const.categoryStructure) and dogmaItem.attributes.get(const.attributeIsOnline, False) and self.dogmaStaticMgr.TypeHasEffect(dogmaItem.typeID, const.effectOnline):
+                pilotID = dogmaItem.GetPilot()
+                LogNotice('FitItemToLocation: Calling StartModuleOnlineEffect for itemID =', itemID)
+                self.StartModuleOnlineEffect(dogmaItem.itemID, pilotID, dogmaItem.locationID)
+            return oldInfo
 
     @telemetry.ZONE_METHOD
-    def _StartModuleOnlineEffect(self, itemID, pilotID, locationID, context = None, raiseUserError = False):
-        environment = Environment(itemID, pilotID, locationID, None, None, const.effectOnline, weakref.proxy(self), None)
+    def _StartModuleOnlineEffect(self, itemID, pilotID, locationID, context=None, raiseUserError=False):
+        environment = Environment(itemID, pilotID, locationID, None, None, const.effectOnline, weakref.proxy(self), None, None)
         if context is not None:
             for k, v in context.iteritems():
                 setattr(environment, k, v)
@@ -524,25 +533,29 @@ class BaseDogmaLocation(object):
                 raise
             sys.exc_clear()
 
-    def StartModuleOnlineEffect(self, itemID, pilotID, locationID, context = None, raiseUserError = False):
+        return
+
+    def StartModuleOnlineEffect(self, itemID, pilotID, locationID, context=None, raiseUserError=False):
         item = self.GetItem(itemID)
         if item.locationID != locationID or not IsShipFittingFlag(item.flagID):
             self.LogInfo('StartModuleOnlineEffect::Unexpected location', itemID, item.locationID, locationID)
             return
-        if not self.dogmaStaticMgr.TypeHasEffect(item.typeID, const.effectOnline):
+        elif not self.dogmaStaticMgr.TypeHasEffect(item.typeID, const.effectOnline):
             log.LogTraceback('type: %s does not have online effect' % item.typeID)
             return
-        if pilotID is not None:
+        elif pilotID is not None or item.categoryID == const.categoryStructure:
             self._StartModuleOnlineEffect(itemID, pilotID, locationID, context=context, raiseUserError=raiseUserError)
             return
-        if locationID not in self.onlineByShip:
-            self.onlineByShip[locationID] = {}
-        dogmaItem = self.dogmaItems[itemID]
-        flagID = dogmaItem.flagID
-        dogmaItem.attributes[const.attributeIsOnline].SetBaseValue(1)
-        self.onlineByShip[locationID][flagID] = itemID
+        else:
+            if locationID not in self.onlineByShip:
+                self.onlineByShip[locationID] = {}
+            dogmaItem = self.dogmaItems[itemID]
+            flagID = dogmaItem.flagID
+            dogmaItem.attributes[const.attributeIsOnline].SetBaseValue(1)
+            self.onlineByShip[locationID][flagID] = itemID
+            return
 
-    def UnfitItemFromLocation(self, locationID, itemID, flushEffects = False):
+    def UnfitItemFromLocation(self, locationID, itemID, flushEffects=False):
         self.UnsetItemLocation(itemID, locationID)
         dogmaItem = self.dogmaItems[itemID]
         itemTypeID, itemGroupID = dogmaItem.typeID, dogmaItem.groupID
@@ -568,7 +581,7 @@ class BaseDogmaLocation(object):
                         for effect in effectsCompleted:
                             try:
                                 info = dogmaItem.GetEnvironmentInfo()
-                                env = Environment(info.itemID, info.charID, info.shipID, None, info.otherID, effectID, weakref.proxy(self), None)
+                                env = self.GetEnvironment(info, effectID)
                                 self.StartEffect(effect.effectID, itemID, env)
                             except UserError as e:
                                 log.LogException(channel='svc.dogmaIM')
@@ -582,10 +595,12 @@ class BaseDogmaLocation(object):
         if locationDogmaItem is None:
             self.LogError("UnsetItemLocation::called for location that wasn't loaded", itemKey, locationID)
             return
-        dogmaItem.UnsetLocation(locationDogmaItem)
+        else:
+            dogmaItem.UnsetLocation(locationDogmaItem)
+            return
 
     @bluepy.TimedFunction('DogmaLocation::StartEffect')
-    def StartEffect(self, effectID, itemKey, environment, repeat = 0, byUser = 0, checksOnly = None):
+    def StartEffect(self, effectID, itemKey, environment, repeat=0, byUser=0, checksOnly=None):
         dogmaItem = None
         try:
             dogmaItem = self.dogmaItems[itemKey]
@@ -601,44 +616,47 @@ class BaseDogmaLocation(object):
             else:
                 self.LogError("StartEffect::Effect being started on type that doesn't have it (unexpected)", itemKey, dogmaItem.typeID, effectID)
             return
-        if dogmaItem.IsEffectRegistered(effectID, environment):
-            raise UserError('EffectAlreadyActive2', {'modulename': (const.UE_TYPEID, dogmaItem.typeID)})
-        if activateKey in self.activatingEffects:
-            self.broker.LogWarn('Effect already activating o_O', activateKey, blue.os.TimeDiffInMs(self.activatingEffects[activateKey][0], blue.os.GetSimTime()) / 1000.0)
-            raise UserError('EffectAlreadyActive2', {'modulename': (const.UE_TYPEID, dogmaItem.typeID)})
-        self.activatingEffects[activateKey] = [blue.os.GetSimTime(), None, environment]
-        itemLocationID = dogmaItem.locationID
-        if itemLocationID not in self.activatingEffectsByLocation:
-            self.activatingEffectsByLocation[itemLocationID] = set([activateKey])
         else:
-            self.activatingEffectsByLocation[itemLocationID].add(activateKey)
-        targetID = environment.targetID
-        if targetID:
-            if targetID not in self.activatingEffectsByTarget:
-                self.activatingEffectsByTarget[targetID] = set([activateKey])
+            if dogmaItem.IsEffectRegistered(effectID, environment):
+                raise UserError('EffectAlreadyActive2', {'modulename': (const.UE_TYPEID, dogmaItem.typeID)})
+            if activateKey in self.activatingEffects:
+                self.broker.LogWarn('Effect already activating o_O', activateKey, blue.os.TimeDiffInMs(self.activatingEffects[activateKey][0], blue.os.GetSimTime()) / 1000.0)
+                raise UserError('EffectAlreadyActive2', {'modulename': (const.UE_TYPEID, dogmaItem.typeID)})
+            self.activatingEffects[activateKey] = [blue.os.GetSimTime(), None, environment]
+            itemLocationID = dogmaItem.locationID
+            if itemLocationID not in self.activatingEffectsByLocation:
+                self.activatingEffectsByLocation[itemLocationID] = set([activateKey])
             else:
-                self.activatingEffectsByTarget[targetID].add(activateKey)
-        try:
-            effect = self.dogmaStaticMgr.effects[effectID]
-            self.StartEffect_PreChecks(effect, dogmaItem, environment, byUser)
-            duration = self.GetEffectDuration(effect, environment)
-            try:
-                effectStart = self._StartEffect(effect, dogmaItem, environment, duration, repeat, byUser, checksOnly)
-            except EffectFailedButShouldBeStopped:
-                effectStart = blue.os.GetSimTime()
-                repeat = 0
-                sys.exc_clear()
-
-            self.RegisterEffect(effect, dogmaItem, environment, effectStart, duration, repeat)
-        finally:
-            del self.activatingEffects[activateKey]
-            self.activatingEffectsByLocation[itemLocationID].remove(activateKey)
-            if not len(self.activatingEffectsByLocation[itemLocationID]):
-                del self.activatingEffectsByLocation[itemLocationID]
+                self.activatingEffectsByLocation[itemLocationID].add(activateKey)
+            targetID = environment.targetID
             if targetID:
-                self.activatingEffectsByTarget[targetID].remove(activateKey)
-                if not len(self.activatingEffectsByTarget[targetID]):
-                    del self.activatingEffectsByTarget[targetID]
+                if targetID not in self.activatingEffectsByTarget:
+                    self.activatingEffectsByTarget[targetID] = set([activateKey])
+                else:
+                    self.activatingEffectsByTarget[targetID].add(activateKey)
+            try:
+                effect = self.dogmaStaticMgr.effects[effectID]
+                self.StartEffect_PreChecks(effect, dogmaItem, environment, byUser)
+                duration = self.GetEffectDuration(effect, environment)
+                try:
+                    effectStart = self._StartEffect(effect, dogmaItem, environment, duration, repeat, byUser, checksOnly)
+                except EffectFailedButShouldBeStopped:
+                    effectStart = blue.os.GetSimTime()
+                    repeat = 0
+                    sys.exc_clear()
+
+                self.RegisterEffect(effect, dogmaItem, environment, effectStart, duration, repeat)
+            finally:
+                del self.activatingEffects[activateKey]
+                self.activatingEffectsByLocation[itemLocationID].remove(activateKey)
+                if not len(self.activatingEffectsByLocation[itemLocationID]):
+                    del self.activatingEffectsByLocation[itemLocationID]
+                if targetID:
+                    self.activatingEffectsByTarget[targetID].remove(activateKey)
+                    if not len(self.activatingEffectsByTarget[targetID]):
+                        del self.activatingEffectsByTarget[targetID]
+
+            return
 
     def _StartEffect(self, effect, dogmaItem, environment, duration, repeat, byUser, checksOnly):
         effectID = effect.effectID
@@ -705,7 +723,7 @@ class BaseDogmaLocation(object):
         if effect.effectID == const.effectOnline:
             moduleHp = self.GetAttributeValue(dogmaItem.itemID, const.attributeHp)
             moduleDamage = self.GetAttributeValue(dogmaItem.itemID, const.attributeDamage)
-            if moduleHp <= moduleDamage:
+            if moduleHp and moduleHp <= moduleDamage:
                 raise UserError('ModuleTooDamagedToBeOnlined')
 
     def CheckApplyModifiers(self, *args):
@@ -713,7 +731,7 @@ class BaseDogmaLocation(object):
 
     @bluepy.TimedFunction('DogmaLocation::StopEffect')
     @telemetry.ZONE_METHOD
-    def StopEffect(self, effectID, itemKey, byUser = False, activationInfo = None, forced = False, forceStopRepeating = False, possiblyStopRepeat = True):
+    def StopEffect(self, effectID, itemKey, byUser=False, activationInfo=None, forced=False, forceStopRepeating=False, possiblyStopRepeat=True):
         try:
             dogmaItem = self.dogmaItems[itemKey]
         except KeyError:
@@ -724,23 +742,26 @@ class BaseDogmaLocation(object):
         if deactivateKey in self.deactivatingEffects:
             self.LogWarn('Multiple concurrent StopEffect calls for', deactivateKey)
             return
-        self.deactivatingEffects.add(deactivateKey)
-        try:
-            if activationInfo is None:
-                try:
-                    activationInfo = dogmaItem.activeEffects[effectID]
-                except KeyError:
-                    if (itemKey, effectID) in self.activatingEffects:
-                        raise UserError('EffectStillActivating', {'moduleName': (const.UE_TYPEID, dogmaItem.typeID)})
-                    self.LogInfo("Stopping effect that isn't active", itemKey, effectID)
-                    return 0
+        else:
+            self.deactivatingEffects.add(deactivateKey)
+            try:
+                if activationInfo is None:
+                    try:
+                        activationInfo = dogmaItem.activeEffects[effectID]
+                    except KeyError:
+                        if (itemKey, effectID) in self.activatingEffects:
+                            raise UserError('EffectStillActivating', {'moduleName': (const.UE_TYPEID, dogmaItem.typeID)})
+                        self.LogInfo("Stopping effect that isn't active", itemKey, effectID)
+                        return 0
 
-            if not self.PreStopEffectChecks(effectID, dogmaItem, activationInfo, forced, byUser, possiblyStopRepeat):
-                return
-            error = self._StopEffect(effectID, dogmaItem, activationInfo, byUser, forced, forceStopRepeating, possiblyStopRepeat)
-            self.PostStopEffectAction(effectID, dogmaItem, activationInfo, forced, byUser, error)
-        finally:
-            self.deactivatingEffects.remove(deactivateKey)
+                if not self.PreStopEffectChecks(effectID, dogmaItem, activationInfo, forced, byUser, possiblyStopRepeat):
+                    return
+                error = self._StopEffect(effectID, dogmaItem, activationInfo, byUser, forced, forceStopRepeating, possiblyStopRepeat)
+                self.PostStopEffectAction(effectID, dogmaItem, activationInfo, forced, byUser, error)
+            finally:
+                self.deactivatingEffects.remove(deactivateKey)
+
+            return
 
     @telemetry.ZONE_METHOD
     def _StopEffect(self, effectID, dogmaItem, activationInfo, byUser, forced, forceStopRepeating, possiblyStopRepeat):
@@ -755,6 +776,7 @@ class BaseDogmaLocation(object):
 
         environment = activationInfo[const.ACT_IDX_ENV]
         self.effectCompiler.StopEffect(effectID, environment, forced)
+        return None
 
     def PreStopEffectChecks(self, effectID, dogmaItem, activationInfo, forced, byUser, possiblyStopRepeat, *args):
         return True
@@ -795,53 +817,56 @@ class BaseDogmaLocation(object):
         if not effectIDList:
             self.LogInfo('No effects to start for item %s of type %s' % (itemID, evetypes.GetName(typeID)))
             return
-        dogmaItem = self.dogmaItems[itemID]
-        brokerEffects = self.dogmaStaticMgr.effects
-        pilotID = dogmaItem.GetPilot()
-        shipID = dogmaItem.GetShip()
-        sharedEnv = None
-        effectsCompleted = set()
-        effectID = None
-        try:
-            for effectID in effectIDList:
-                if pilotID is None and self.effectCompiler.IsEffectCharacterModifier(effectID):
-                    continue
-                if shipID is None and self.effectCompiler.IsEffectShipModifier(effectID):
-                    continue
-                if effectID in dogmaItem.activeEffects:
-                    env = self.GetActiveEffectEnvironment(itemID, effectID)
-                    self.LogError('Item', itemID, '(', evetypes.GetName(self.dogmaItems[itemID].typeID), ')', 'already has effect', effectID, '(', cfg.dgmeffects.Get(effectID).effectName, ')', 'Started at: ', util.FmtDate(env.startTime), '(Now is ', util.FmtDate(blue.os.GetSimTime()), ')')
-                    continue
-                chanceAttributeID = brokerEffects[effectID].fittingUsageChanceAttributeID
-                if chanceAttributeID and self.dogmaStaticMgr.TypeHasAttribute(typeID, chanceAttributeID):
-                    if not self.ShouldStartChanceBasedEffect(effectID, itemID, chanceAttributeID):
+        else:
+            dogmaItem = self.dogmaItems[itemID]
+            brokerEffects = self.dogmaStaticMgr.effects
+            pilotID = dogmaItem.GetPilot()
+            shipID = dogmaItem.GetShip()
+            sharedEnv = None
+            effectsCompleted = set()
+            effectID = None
+            try:
+                for effectID in effectIDList:
+                    if pilotID is None and self.effectCompiler.IsEffectCharacterModifier(effectID):
                         continue
-                if self.dogmaStaticMgr.effects[effectID].effectCategory == const.dgmEffSystem:
-                    self.StartSystemEffect(itemID, effectID)
-                    continue
-                pythonEffect = self.effectCompiler.IsEffectPythonOverridden(effectID)
-                if sharedEnv and not pythonEffect:
-                    env = sharedEnv
-                else:
-                    with bluepy.Timer('LocationManager::Environment'):
-                        info = dogmaItem.GetEnvironmentInfo()
-                        env = Environment(itemID=info.itemID, charID=info.charID, shipID=info.shipID, targetID=None, otherID=info.otherID, effectID=effectID, dogmaLM=weakref.proxy(self), expressionID=None)
-                    if sharedEnv is None and not pythonEffect:
-                        sharedEnv = env
-                if env.otherID is None and self.effectCompiler.IsEffectDomainOther(effectID):
-                    continue
-                try:
-                    self.StartEffect(effectID, itemID, env)
-                except UserError as e:
-                    if not e.msg.startswith('EffectAlreadyActive'):
-                        raise
-                    sys.exc_clear()
+                    if shipID is None and self.effectCompiler.IsEffectShipModifier(effectID):
+                        continue
+                    if effectID in dogmaItem.activeEffects:
+                        env = self.GetActiveEffectEnvironment(itemID, effectID)
+                        self.LogError('Item', itemID, '(', evetypes.GetName(self.dogmaItems[itemID].typeID), ')', 'already has effect', effectID, '(', cfg.dgmeffects.Get(effectID).effectName, ')', 'Started at: ', util.FmtDate(env.startTime), '(Now is ', util.FmtDate(blue.os.GetSimTime()), ')')
+                        continue
+                    chanceAttributeID = brokerEffects[effectID].fittingUsageChanceAttributeID
+                    if chanceAttributeID and self.dogmaStaticMgr.TypeHasAttribute(typeID, chanceAttributeID):
+                        if not self.ShouldStartChanceBasedEffect(effectID, itemID, chanceAttributeID):
+                            continue
+                    if self.dogmaStaticMgr.effects[effectID].effectCategory == const.dgmEffSystem:
+                        self.StartSystemEffect(itemID, effectID)
+                        continue
+                    pythonEffect = self.effectCompiler.IsEffectPythonOverridden(effectID)
+                    if sharedEnv and not pythonEffect:
+                        env = sharedEnv
+                    else:
+                        with bluepy.Timer('LocationManager::Environment'):
+                            info = dogmaItem.GetEnvironmentInfo()
+                            env = self.GetEnvironment(info, effectID)
+                        if sharedEnv is None and not pythonEffect:
+                            sharedEnv = env
+                    if env.otherID is None and self.effectCompiler.IsEffectDomainOther(effectID):
+                        continue
+                    try:
+                        self.StartEffect(effectID, itemID, env)
+                    except UserError as e:
+                        if not e.msg.startswith('EffectAlreadyActive'):
+                            raise
+                        sys.exc_clear()
 
-                effectsCompleted.add(effectID)
+                    effectsCompleted.add(effectID)
 
-        except Exception:
-            log.LogException('Failed to start passive effect %s on %s class %s' % (effectID, itemID, dogmaItem.__class__))
-            return effectsCompleted
+            except Exception:
+                log.LogException('Failed to start passive effect %s on %s class %s' % (effectID, itemID, dogmaItem.__class__))
+                return effectsCompleted
+
+            return
 
     def ShouldStartChanceBasedEffect(self, effectID, itemID, chanceAttributeID):
         return False
@@ -850,7 +875,8 @@ class BaseDogmaLocation(object):
         dogmaItem = self.dogmaItems[itemKey]
         if effectID not in dogmaItem.activeEffects:
             return None
-        return dogmaItem.activeEffects[effectID][const.ACT_IDX_ENV]
+        else:
+            return dogmaItem.activeEffects[effectID][const.ACT_IDX_ENV]
 
     def GetEffect(self, effectID):
         return self.dogmaStaticMgr.effects[effectID]
@@ -863,6 +889,8 @@ class BaseDogmaLocation(object):
         except (KeyError, AttributeError):
             return None
 
+        return None
+
     def IsItemSubLocation(self, itemKey):
         return type(itemKey) is tuple
 
@@ -870,18 +898,25 @@ class BaseDogmaLocation(object):
         self.slaveModulesByMasterModule[shipID] = defaultdict(set)
         if data is None:
             return
-        for masterID, slaveIDs in data.iteritems():
-            for slaveID in slaveIDs:
-                self.slaveModulesByMasterModule[shipID][masterID].add(slaveID)
+        else:
+            for masterID, slaveIDs in data.iteritems():
+                for slaveID in slaveIDs:
+                    self.slaveModulesByMasterModule[shipID][masterID].add(slaveID)
+
+            return
 
     def GetMasterModuleID(self, shipID, slaveID):
         for masterID, slaves in self.slaveModulesByMasterModule.get(shipID, {}).iteritems():
             if slaveID in slaves:
                 return masterID
 
+        return None
+
     def GetSlaveModules(self, moduleID, shipID):
         if shipID in self.slaveModulesByMasterModule and moduleID in self.slaveModulesByMasterModule[shipID]:
             return self.slaveModulesByMasterModule[shipID][moduleID].copy()
+        else:
+            return None
 
     def IsModuleMaster(self, moduleID, shipID):
         return moduleID in self.slaveModulesByMasterModule.get(shipID, {})
@@ -896,8 +931,14 @@ class BaseDogmaLocation(object):
 
         return ret
 
+    def TypeHasAttribute(self, typeID, attributeID):
+        return self.dogmaStaticMgr.TypeHasAttribute(typeID, attributeID)
+
+    def TypeHasEffect(self, typeID, effectID):
+        return self.dogmaStaticMgr.TypeHasEffect(typeID, effectID)
+
     @WrappedMethod
-    def UnloadItem(self, itemKey, item = None):
+    def UnloadItem(self, itemKey, item=None):
         if itemKey in self.unloadingItems:
             self.LogInfo('Item already being unloaded', itemKey)
             return
@@ -913,6 +954,7 @@ class BaseDogmaLocation(object):
         foundInvItemDescription = self.DescribeInvItem(foundDogmaItem.invItem) if foundDogmaItem else None
         totalItems = len(self.dogmaItems)
         LogNotice('UnloadItem requested for itemKey: {itemKey}, with given invItem {givenInvItemDescription}, having found dogmaItems entry {foundDogmaItem} with invItem {foundInvItemDescription} (totalItems = {totalItems}) '.format(**locals()))
+        return
 
     def _UnloadItem(self, itemKey, item):
         dogmaItem = self.dogmaItems.get(itemKey, None)
@@ -921,6 +963,7 @@ class BaseDogmaLocation(object):
             self.RemoveItem(itemKey)
             self.LogInfo('_UnloadItem::Deleting dogmaItem', itemKey)
             del self.dogmaItems[itemKey]
+        return
 
     def RemoveSubLocationFromLocation(self, itemKey):
         locationID = itemKey[0]
@@ -929,6 +972,10 @@ class BaseDogmaLocation(object):
     def GetClassForItem(self, item):
         if item.categoryID == const.categoryShip:
             return ShipDogmaItem
+        elif item.categoryID == const.categoryStructure:
+            return StructureDogmaItem
+        elif item.categoryID == const.categoryStructureModule:
+            return StructureModuleDogmaItem
         elif item.groupID == const.groupCharacter:
             return CharacterDogmaItem
         elif item.groupID in (const.groupSurveyProbe,
@@ -942,6 +989,8 @@ class BaseDogmaLocation(object):
             return ChargeDogmaItem
         elif item.categoryID in (const.categoryModule, const.categorySubSystem):
             return ModuleDogmaItem
+        elif item.categoryID in (const.categoryStructureModule,):
+            return StructureModuleDogmaItem
         elif item.groupID == const.groupControlTower:
             return ControlTowerDogmaItem
         elif item.categoryID == const.categoryStarbase:
@@ -957,7 +1006,7 @@ class BaseDogmaLocation(object):
     def IntroduceNewItem(self, item):
         return self.fakeInstanceRow
 
-    def IsItemWanted(self, typeID, groupID = None):
+    def IsItemWanted(self, typeID, groupID=None):
         return True
 
     def RemoveDroneFromLocation(self, shipID, droneID):
@@ -989,10 +1038,10 @@ class BaseDogmaLocation(object):
         if attributeID in self.attributeChangeCallbacksByAttributeID:
             del self.attributeChangeCallbacksByAttributeID[attributeID]
 
-    def OnCpuAttributeChanged(self, attributeID, itemID, newValue, oldValue = None):
+    def OnCpuAttributeChanged(self, attributeID, itemID, newValue, oldValue=None):
         self.OnFittingChanged(itemID, const.attributeCpuLoad, const.attributeCpuOutput)
 
-    def OnPowerAttributeChanged(self, attributeID, itemID, newValue, oldValue = None):
+    def OnPowerAttributeChanged(self, attributeID, itemID, newValue, oldValue=None):
         self.OnFittingChanged(itemID, const.attributePowerLoad, const.attributePowerOutput)
 
     def OnFittingChanged(self, itemID, loadAttributeID, outputAttributeID):
@@ -1010,74 +1059,76 @@ class BaseDogmaLocation(object):
     def CheckShipOnlineModules(self, shipID):
         if self.brainUpdate.IsEventHappening(shipID):
             return
-        try:
-            self.checkShipOnlineModulesPending.remove(shipID)
-        except KeyError:
-            pass
+        else:
+            try:
+                self.checkShipOnlineModulesPending.remove(shipID)
+            except KeyError:
+                pass
 
-        if self.IsItemLoading(shipID):
-            return
-        if self.broker is None:
-            return
-        if not self.IsShipLoaded(shipID):
-            return
-        if shipID in self.unloadingItems:
-            return
-        dogmaItem = self.dogmaItems[shipID]
-        if dogmaItem.categoryID != const.categoryShip:
-            return
-        powerLoad = self.GetAttributeValue(shipID, const.attributePowerLoad)
-        powerOutput = self.GetAttributeValue(shipID, const.attributePowerOutput)
-        cpuLoad = self.GetAttributeValue(shipID, const.attributeCpuLoad)
-        cpuOutput = self.GetAttributeValue(shipID, const.attributeCpuOutput)
-        powerUsage = powerLoad / max(powerOutput, 1e-07)
-        cpuUsage = cpuLoad / max(cpuOutput, 1e-07)
-        if powerUsage > 1.0 and (cpuUsage <= 1.0 or cpuUsage > 1.0 and powerUsage > cpuUsage):
-            candidates = []
-            if self.IsShipLoaded(shipID):
-                for moduleID, moduleDogmaItem in dogmaItem.GetFittedItems().iteritems():
-                    if (moduleID, const.effectOnline) in self.deactivatingEffects:
-                        continue
-                    if not moduleDogmaItem.IsOnline():
-                        continue
-                    used = self.GetAttributeValue(moduleID, const.attributePower)
-                    if used:
-                        candidates.append((used, moduleID))
+            if self.IsItemLoading(shipID):
+                return
+            if self.broker is None:
+                return
+            if not self.IsShipLoaded(shipID):
+                return
+            if shipID in self.unloadingItems:
+                return
+            dogmaItem = self.dogmaItems[shipID]
+            if dogmaItem.categoryID not in (const.categoryShip, const.categoryStructure):
+                return
+            powerLoad = self.GetAttributeValue(shipID, const.attributePowerLoad)
+            powerOutput = self.GetAttributeValue(shipID, const.attributePowerOutput)
+            cpuLoad = self.GetAttributeValue(shipID, const.attributeCpuLoad)
+            cpuOutput = self.GetAttributeValue(shipID, const.attributeCpuOutput)
+            powerUsage = powerLoad / max(powerOutput, 1e-07)
+            cpuUsage = cpuLoad / max(cpuOutput, 1e-07)
+            if powerUsage > 1.0 and (cpuUsage <= 1.0 or cpuUsage > 1.0 and powerUsage > cpuUsage):
+                candidates = []
+                if self.IsShipLoaded(shipID):
+                    for moduleID, moduleDogmaItem in dogmaItem.GetFittedItems().iteritems():
+                        if (moduleID, const.effectOnline) in self.deactivatingEffects:
+                            continue
+                        if not moduleDogmaItem.IsOnline():
+                            continue
+                        used = self.GetAttributeValue(moduleID, const.attributePower)
+                        if used:
+                            candidates.append((used, moduleID))
 
-            self.broker.LogInfo('CheckShipOnlineModules', shipID, 'powerUsage', powerUsage, 'cpuUsage', cpuUsage)
-            if len(candidates):
-                mc = max(candidates)
-                itemKey = mc[1]
-                if (itemKey, const.effectOnline) in self.deactivatingEffects:
-                    self.broker.LogInfo('Low on power, already taking module offline so skipping', mc)
+                self.broker.LogInfo('CheckShipOnlineModules', shipID, 'powerUsage', powerUsage, 'cpuUsage', cpuUsage)
+                if len(candidates):
+                    mc = max(candidates)
+                    itemKey = mc[1]
+                    if (itemKey, const.effectOnline) in self.deactivatingEffects:
+                        self.broker.LogInfo('Low on power, already taking module offline so skipping', mc)
+                    else:
+                        self.broker.LogInfo('Low on power, taking module offline', mc)
+                        self.OfflineModule(itemKey)
                 else:
-                    self.broker.LogInfo('Low on power, taking module offline', mc)
-                    self.OfflineModule(itemKey)
-            else:
-                self.broker.LogError('The ship', shipID, "has something modifying it's powerLoad that isn't an online effect")
-        elif cpuUsage > 1.0:
-            candidates = []
-            if self.IsShipLoaded(shipID):
-                for moduleID, moduleDogmaItem in dogmaItem.GetFittedItems().iteritems():
-                    if (moduleID, const.effectOnline) in self.deactivatingEffects:
-                        continue
-                    if not moduleDogmaItem.IsOnline():
-                        continue
-                    used = self.GetAttributeValue(moduleID, const.attributeCpu)
-                    if used > 0:
-                        candidates.append((used, moduleID))
+                    self.broker.LogError('The ship', shipID, "has something modifying it's powerLoad that isn't an online effect")
+            elif cpuUsage > 1.0:
+                candidates = []
+                if self.IsShipLoaded(shipID):
+                    for moduleID, moduleDogmaItem in dogmaItem.GetFittedItems().iteritems():
+                        if (moduleID, const.effectOnline) in self.deactivatingEffects:
+                            continue
+                        if not moduleDogmaItem.IsOnline():
+                            continue
+                        used = self.GetAttributeValue(moduleID, const.attributeCpu)
+                        if used > 0:
+                            candidates.append((used, moduleID))
 
-            self.broker.LogInfo('CheckShipOnlineModules', shipID, 'powerUsage', powerUsage, 'cpuUsage', cpuUsage)
-            if len(candidates):
-                mc = max(candidates)
-                itemKey = mc[1]
-                if (itemKey, const.effectOnline) in self.deactivatingEffects:
-                    self.broker.LogInfo('Low on cpu, already taking module offline so skipping', mc)
+                self.broker.LogInfo('CheckShipOnlineModules', shipID, 'powerUsage', powerUsage, 'cpuUsage', cpuUsage)
+                if len(candidates):
+                    mc = max(candidates)
+                    itemKey = mc[1]
+                    if (itemKey, const.effectOnline) in self.deactivatingEffects:
+                        self.broker.LogInfo('Low on cpu, already taking module offline so skipping', mc)
+                    else:
+                        self.broker.LogInfo('Low on cpu, taking module offline', mc)
+                        self.OfflineModule(itemKey)
                 else:
-                    self.broker.LogInfo('Low on cpu, taking module offline', mc)
-                    self.OfflineModule(itemKey)
-            else:
-                self.broker.LogError('The ship', shipID, "has something modifying it's cpuLoad that isn't an online effect")
+                    self.broker.LogError('The ship', shipID, "has something modifying it's cpuLoad that isn't an online effect")
+            return
 
     def OfflineModule(self, moduleID):
         self.StopEffect(const.effectOnline, moduleID)
@@ -1085,7 +1136,7 @@ class BaseDogmaLocation(object):
     def FitItemToSelf(self, item):
         self.OnItemAddedToLocation(item.itemID, item, shipid=item.itemID)
 
-    def GetCharacter(self, itemID, flush = False):
+    def GetCharacter(self, itemID, flush=False):
         pass
 
     def LoadSublocations(self, itemID):
@@ -1104,10 +1155,10 @@ class BaseDogmaLocation(object):
     def GetItem(self, itemID):
         pass
 
-    def OnSublocationAddedToLocation(self, itemKey, shipid = None, pilotID = None, fitting = False, locationName = None, timerName = 'AddUnknown2'):
+    def OnSublocationAddedToLocation(self, itemKey, shipid=None, pilotID=None, fitting=False, locationName=None, timerName='AddUnknown2'):
         pass
 
-    def OnItemAddedToLocation(self, locationid, item, shipid = None, pilotID = None, fitting = False, locationName = None, timerName = 'AddUnknown1', byUser = False):
+    def OnItemAddedToLocation(self, locationid, item, shipid=None, pilotID=None, fitting=False, locationName=None, timerName='AddUnknown1', byUser=False):
         pass
 
     def GetAttributeValue(self, itemKey, attributeID):
@@ -1121,7 +1172,7 @@ class BaseDogmaLocation(object):
 
         return {attribID:item.attributes[attribID].GetValue() for attribID in item.attributes}
 
-    def SetAttributeValue(self, itemKey, attributeID, value, dirty = True, keepLists = True):
+    def SetAttributeValue(self, itemKey, attributeID, value, dirty=True, keepLists=True):
         value, v, dirty = self._SetAttributeValue(itemKey, attributeID, value, dirty, keepLists)
         return value
 
@@ -1129,23 +1180,24 @@ class BaseDogmaLocation(object):
         if itemKey not in self.dogmaItems:
             self.broker.LogInfo('Item', itemKey, 'not loaded')
             return (0, 0, False)
-        dogmaAttribute = self.dogmaItems[itemKey].attributes[attributeID]
-        oldValue = dogmaAttribute.GetValue()
-        if oldValue == value:
-            dirty = False
-        if value is None:
-            log.LogTraceback('Tried to set attributesByItemAttribute[%s][%s] to None' % (itemKey, attributeID), channel='svc.dogmaIM')
-            return (0, 0, False)
-        dogmaAttribute.SetBaseValue(value)
-        if itemKey in self.dogmaItems:
-            self.OnAttributeChanged(attributeID, itemKey, value, oldValue)
-        return (value, oldValue, dirty)
+        else:
+            dogmaAttribute = self.dogmaItems[itemKey].attributes[attributeID]
+            oldValue = dogmaAttribute.GetValue()
+            if oldValue == value:
+                dirty = False
+            if value is None:
+                log.LogTraceback('Tried to set attributesByItemAttribute[%s][%s] to None' % (itemKey, attributeID), channel='svc.dogmaIM')
+                return (0, 0, False)
+            dogmaAttribute.SetBaseValue(value)
+            if itemKey in self.dogmaItems:
+                self.OnAttributeChanged(attributeID, itemKey, value, oldValue)
+            return (value, oldValue, dirty)
 
     def OnDamageAttributeChange(attributeID, itemKey, value, v):
         pass
 
     @telemetry.ZONE_METHOD
-    def OnAttributeChanged(self, attributeID, itemKey, value = None, oldValue = None):
+    def OnAttributeChanged(self, attributeID, itemKey, value=None, oldValue=None):
         attrObj = self.dogmaItems[itemKey].attributes[attributeID]
         if value is None:
             value = attrObj.GetValue()
@@ -1164,35 +1216,36 @@ class BaseDogmaLocation(object):
 
         return value
 
-    def GetDamageStateEx(self, itemID, ownerID = None):
+    def GetDamageStateEx(self, itemID, ownerID=None):
         if itemID in self.failedLoadingItems:
             return None
-        if itemID not in self.dogmaItems:
+        elif itemID not in self.dogmaItems:
             return None
-        dogmaItem = self.dogmaItems[itemID]
-        if isinstance(dogmaItem, NotWantedDogmaItem):
-            return None
-        if ownerID and dogmaItem.ownerID != ownerID:
-            return None
-        ret = []
-        v = dogmaItem.attributes[const.attributeShieldCharge].GetFullChargedInfo()
-        if v[1] > 0:
-            ret.append((v[0] / v[1], v[2], blue.os.GetSimTime()))
         else:
-            ret.append(v[0])
-        hpAttribute = const.attributeArmorHP
-        damageAttribute = const.attributeArmorDamage
-        maxDamage = dogmaItem.attributes[hpAttribute].GetValue()
-        if maxDamage == 0:
-            ret.append(0.0)
-        else:
-            ret.append(1.0 - dogmaItem.attributes[damageAttribute].GetValue() / maxDamage)
-        maxDamage = dogmaItem.attributes[const.attributeHp].GetValue()
-        if maxDamage == 0:
-            ret.append(0.0)
-        else:
-            ret.append(1.0 - dogmaItem.attributes[const.attributeDamage].GetValue() / maxDamage)
-        return ret
+            dogmaItem = self.dogmaItems[itemID]
+            if isinstance(dogmaItem, NotWantedDogmaItem):
+                return None
+            elif ownerID and dogmaItem.ownerID != ownerID:
+                return None
+            ret = []
+            v = dogmaItem.attributes[const.attributeShieldCharge].GetFullChargedInfo()
+            if v[1] > 0:
+                ret.append((v[0] / v[1], v[2], blue.os.GetSimTime()))
+            else:
+                ret.append(v[0])
+            hpAttribute = const.attributeArmorHP
+            damageAttribute = const.attributeArmorDamage
+            maxDamage = dogmaItem.attributes[hpAttribute].GetValue()
+            if maxDamage == 0:
+                ret.append(0.0)
+            else:
+                ret.append(1.0 - dogmaItem.attributes[damageAttribute].GetValue() / maxDamage)
+            maxDamage = dogmaItem.attributes[const.attributeHp].GetValue()
+            if maxDamage == 0:
+                ret.append(0.0)
+            else:
+                ret.append(1.0 - dogmaItem.attributes[const.attributeDamage].GetValue() / maxDamage)
+            return ret
 
     def IsItemLoaded(self, itemID):
         return itemID not in self.loadingItems and itemID in self.dogmaItems
@@ -1209,18 +1262,22 @@ class BaseDogmaLocation(object):
             return False
         else:
             return dogmaItem.categoryID == const.categoryShip
+            return
 
     def DescribeInvItem(self, invItem):
         if invItem is None:
             return 'None'
-        try:
-            invItemCategoryName = evetypes.GetCategoryNameByCategory(invItem.categoryID)
-            invItemGroupName = evetypes.GetGroupNameByGroup(invItem.groupID)
-            invItemTypeName = evetypes.GetName(invItem.typeID)
-            invItemID = invItem.itemID
-            return "'{invItemCategoryName}/{invItemGroupName}/{invItemTypeName}' {invItemID}".format(**locals())
-        except:
-            return '[failed to describe invItem: {}]'.format(invItem)
+        else:
+            try:
+                invItemCategoryName = evetypes.GetCategoryNameByCategory(invItem.categoryID)
+                invItemGroupName = evetypes.GetGroupNameByGroup(invItem.groupID)
+                invItemTypeName = evetypes.GetName(invItem.typeID)
+                invItemID = invItem.itemID
+                return "'{invItemCategoryName}/{invItemGroupName}/{invItemTypeName}' {invItemID}".format(**locals())
+            except:
+                return '[failed to describe invItem: {}]'.format(invItem)
+
+            return
 
     def DescribeAttrOnItem(self, attribID, itemID):
         attributeName = cfg.dgmattribs[attribID].attributeName
@@ -1242,7 +1299,7 @@ class BaseDogmaLocation(object):
         fromAttrib.AddModifierTo(operation, toAttrib)
         self.OnAttributeChanged(toAttribID, toItem.itemID, oldValue=oldValue)
 
-    def _GenericRemoveModifier(self, operation, toItem, toAttribID, fromAttrib, weirdSpecialCase = False):
+    def _GenericRemoveModifier(self, operation, toItem, toAttribID, fromAttrib, weirdSpecialCase=False):
         toAttrib = toItem.attributes[toAttribID]
         oldValue = toAttrib.GetValue()
         fromAttrib.RemoveModifierTo(operation, toAttrib)
@@ -1252,6 +1309,7 @@ class BaseDogmaLocation(object):
                 self.OnAttributeChanged(toAttribID, toItemID, oldValue=oldValue)
         else:
             self.OnAttributeChanged(toAttribID, toItem.itemID, oldValue=oldValue)
+        return
 
     def _FindOrDefer(self, itemID, deferFunc, *deferArgs):
         try:
@@ -1261,6 +1319,8 @@ class BaseDogmaLocation(object):
             LogNotice("_FindOrDefer: Couldn't find `itemID` {} when trying to Add a Modifier; maybe it hasn't loaded yet (or was recently unloaded?); deferring work: ...\n    `deferFunc` = {}\n    `deferArgs` = {}\n    alreadyPending = {}\n".format(itemID, deferFunc, deferArgs, self.modifiersAwaitingTarget[itemID]))
             self.modifiersAwaitingTarget[itemID].add((deferFunc,) + deferArgs)
             return None
+
+        return None
 
     def _FindOrAbandon(self, itemID, deferFunc, *deferArgs):
         try:
@@ -1274,7 +1334,9 @@ class BaseDogmaLocation(object):
 
             return None
 
-    def _Add(self, theDict, index, toAdd, debugStr = '<none>'):
+        return None
+
+    def _Add(self, theDict, index, toAdd, debugStr='<none>'):
         try:
             innerContainer = theDict[index]
             if toAdd in innerContainer:
@@ -1283,7 +1345,7 @@ class BaseDogmaLocation(object):
         except KeyError:
             LogTraceback('_Add: no innerContainer found at the given `index`.')
 
-    def _RemoveAndCleanup(self, theDict, index, toRemove, debugStr = '<none>'):
+    def _RemoveAndCleanup(self, theDict, index, toRemove, debugStr='<none>'):
         try:
             innerContainer = theDict[index]
             try:
@@ -1296,7 +1358,7 @@ class BaseDogmaLocation(object):
         except KeyError:
             LogTraceback('_RemoveAndCleanup: no innerContainer found at the given `index`')
 
-    def _Add_2D(self, theDict, index1, index2, toAdd, debugStr = '<none>'):
+    def _Add_2D(self, theDict, index1, index2, toAdd, debugStr='<none>'):
         try:
             innerContainer = theDict[index1][index2]
             if toAdd in innerContainer:
@@ -1305,7 +1367,7 @@ class BaseDogmaLocation(object):
         except KeyError:
             LogTraceback('_Add_2D: no innerContainer found at the given indices.')
 
-    def _RemoveAndCleanup_2D(self, theDict, index1, index2, toRemove, debugStr = '<none>'):
+    def _RemoveAndCleanup_2D(self, theDict, index1, index2, toRemove, debugStr='<none>'):
         try:
             innerContainer = theDict[index1][index2]
             try:
@@ -1457,7 +1519,6 @@ class BaseDogmaLocation(object):
         try:
             return toLocation.fittedItems.itervalues()
         except AttributeError:
-            self.LogError('IterFittedItems - Failed to get fitted items', toLocation)
             return []
 
     @WrappedMethod
@@ -1562,7 +1623,7 @@ class BaseDogmaLocation(object):
             attribDescription = '{attribStr}: base={base} val={val}'.format(**locals())
             return attribDescription
 
-        def DescribeModifierForDebugWindow(operatorName, attrib, relationName = 'from'):
+        def DescribeModifierForDebugWindow(operatorName, attrib, relationName='from'):
             attribDescription = DescribeAttributeForDebugWindow(attrib)
             modifierDescription = '   {operatorName} {relationName} {attribDescription}'.format(**locals())
             return modifierDescription
@@ -1596,27 +1657,28 @@ class BaseDogmaLocation(object):
     def GetCharacterAttributeModifiers(self, itemID, attributeID):
         if itemID not in self.dogmaItems:
             return []
-        modifierList = []
-        modifiers = self.dogmaItems[itemID].attributes[attributeID].incomingModifiers
-        if modifiers is None:
-            return modifierList
-        for operator, attribSet in enumerate(modifiers):
-            operator -= const.dgmOperatorOffset
-            for attrib in attribSet:
-                modValue = attrib.GetValue()
-                if modValue == 1.0 and operator in (const.dgmAssPostMul,
-                 const.dgmAssPreMul,
-                 const.dgmAssPostDiv,
-                 const.dgmAssPreDiv):
-                    continue
-                if modValue == 0.0 and operator in (const.dgmAssPostPercent, const.dgmAssModAdd, const.dgmAssModSub):
-                    continue
-                modifierList.append((attrib.invItem.itemID,
-                 attrib.invItem.typeID,
-                 operator,
-                 modValue))
+        else:
+            modifierList = []
+            modifiers = self.dogmaItems[itemID].attributes[attributeID].incomingModifiers
+            if modifiers is None:
+                return modifierList
+            for operator, attribSet in enumerate(modifiers):
+                operator -= const.dgmOperatorOffset
+                for attrib in attribSet:
+                    modValue = attrib.GetValue()
+                    if modValue == 1.0 and operator in (const.dgmAssPostMul,
+                     const.dgmAssPreMul,
+                     const.dgmAssPostDiv,
+                     const.dgmAssPreDiv):
+                        continue
+                    if modValue == 0.0 and operator in (const.dgmAssPostPercent, const.dgmAssModAdd, const.dgmAssModSub):
+                        continue
+                    modifierList.append((attrib.invItem.itemID,
+                     attrib.invItem.typeID,
+                     operator,
+                     modValue))
 
-        return modifierList
+            return modifierList
 
     def EnterCriticalSection(self, k, v):
         if (k, v) not in self.crits:
@@ -1628,12 +1690,12 @@ class BaseDogmaLocation(object):
         if (k, v) in self.crits and self.crits[k, v].IsCool():
             del self.crits[k, v]
 
-    def FullyLogAttribute(self, itemID, attributeID, reason, force = 0):
+    def FullyLogAttribute(self, itemID, attributeID, reason, force=0):
         description = self.FullyDescribeAttribute(itemID, attributeID, reason, force)
         self.LogNotice(description)
         return description
 
-    def FullyDescribeAttribute(self, itemID, attributeID, reason, force = 0):
+    def FullyDescribeAttribute(self, itemID, attributeID, reason, force=0):
         if type(attributeID) is str:
             attribute = self.dogmaStaticMgr.attributesByName[attributeID]
             attributeID = attribute.attributeID
@@ -1686,7 +1748,8 @@ class BaseDogmaLocation(object):
         dogmaItem = self.dogmaItems.get(locid, None)
         if dogmaItem is None:
             return 'Unknown Item'
-        return evetypes.GetName(dogmaItem.typeID)
+        else:
+            return evetypes.GetName(dogmaItem.typeID)
 
     def LogInfo(self, *args):
         return self.broker.LogInfo(self.locationID, *args)
@@ -1717,6 +1780,9 @@ class BaseDogmaLocation(object):
         elif flagID in const.rigSlotFlags:
             attributeID = const.attributeRigSlots
             slotNumber = flagID - const.flagRigSlot0
+        elif flagID in const.serviceSlotFlags:
+            attributeID = const.attributeServiceSlots
+            slotNumber = flagID - const.flagServiceSlot0
         if attributeID is not None:
             totalSlots = self.GetAttributeValue(shipID, attributeID)
             if slotNumber >= totalSlots:
@@ -1732,8 +1798,10 @@ class BaseDogmaLocation(object):
 
     def GetSlotOther(self, shipID, flagID):
         for item in self.dogmaItems[shipID].GetFittedItems().itervalues():
-            if item.flagID == flagID and item.categoryID == const.categoryModule:
+            if item.flagID == flagID and IsFittingModule(item.categoryID):
                 return item.itemID
+
+        return None
 
     @telemetry.ZONE_METHOD
     def CheckSkillRequirements(self, charID, skillID, errorMsgName):
@@ -1746,9 +1814,12 @@ class BaseDogmaLocation(object):
     def ProcessBrainData(self, charID, brainData):
         brainVersion, grayMatter = brainData
         if grayMatter:
-            charEffects, shipEffects = blue.marshal.Load(grayMatter)
-            self.broker.LogInfo('Got a brain with', len(charEffects), 'char effects and', len(shipEffects), 'ship effects')
-            brain = (brainVersion, charEffects, shipEffects)
+            charEffects, shipEffects, structureEffects = blue.marshal.Load(grayMatter)
+            self.broker.LogInfo('Got a brain with', len(charEffects), 'char effects, ', len(shipEffects), 'ship effects and', len(structureEffects), 'structure effects')
+            brain = (brainVersion,
+             charEffects,
+             shipEffects,
+             structureEffects)
             self.SetBrainData(charID, brain)
 
     def CanFitItemInSpace(self, charID, shipID, itemID):
@@ -1756,3 +1827,60 @@ class BaseDogmaLocation(object):
 
     def CheckSlotOnliningAndExistence(self, shipID, moduleID):
         pass
+
+    def PersistItem2(self, itemID):
+        pass
+
+    def PersistItem(self, itemID):
+        pass
+
+    def GetEnvironment(self, info, effectID, targetID=None):
+        return Environment(itemID=info.itemID, charID=info.charID, shipID=info.shipID, targetID=targetID, otherID=info.otherID, effectID=effectID, dogmaLM=weakref.proxy(self), expressionID=None, structureID=info.structureID)
+
+    def _UpdateShipEffectsFromBrain(self, updateFunction, updateFunctionType, shipEffects, structureEffects, shipId, shipDogmaItem):
+        effects = self._PickShipOrStructureEffects(shipEffects, structureEffects, shipDogmaItem.categoryID)
+        self._LogUpdatedBrainEffects(updateFunctionType, len(effects), 'ship/structure', shipId)
+        validAttributes = self._GetValidAttributes(shipDogmaItem.typeID)
+        for effect in effects:
+            if not self._IsShipEffectValid(effect, validAttributes):
+                continue
+            literal = self.brainLiterals[effect.GetLiteralKey()]
+            effectType = effect.modifierType
+            updateFunction[effectType](self, shipId, literal, *effect.GetApplicationArgs())
+
+    def _PickShipOrStructureEffects(self, shipEffects, structureEffects, categoryId):
+        if categoryId == const.categoryShip:
+            return shipEffects
+        return structureEffects
+
+    def _GetValidAttributes(self, shipTypeId):
+        validAttributes = {x.attributeID for x in cfg.dgmtypeattribs[shipTypeId]}
+        validAttributes.add(const.attributeCapacity)
+        return validAttributes
+
+    def _IsShipEffectValid(self, effect, validAttributes):
+        return effect.modifierType != 'M' or effect.toAttribID in validAttributes
+
+    def _UpdateCharacterEffectsFromBrain(self, updateFunction, updateFunctionType, characterEffects, characterId):
+        self._LogUpdatedBrainEffects(updateFunctionType, len(characterEffects), 'character', characterId)
+        for effect in characterEffects:
+            literal = self.brainLiterals[effect.GetLiteralKey()]
+            effType = effect.modifierType
+            updateFunction[effType](self, characterId, literal, *effect.GetApplicationArgs())
+
+    def _LogUpdatedBrainEffects(self, updateFunctionType, effectAmount, domainType, domainId):
+        self.broker.LogInfo('%s - %s %s %s effects to %s' % (self.locationID,
+         updateFunctionType,
+         effectAmount,
+         domainType,
+         domainId))
+
+    def GetStructureIdForEnvironment(self, shipId):
+        if shipId is not None and self.IsItemIdStructure(shipId):
+            return shipId
+        else:
+            return
+
+    def IsItemIdStructure(self, itemId):
+        shipDogmaItem = self.dogmaItems.get(itemId, None)
+        return shipDogmaItem and shipDogmaItem.categoryID == const.categoryStructure

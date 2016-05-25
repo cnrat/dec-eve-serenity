@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\carbon\common\lib\cherrypy\_cpmodpy.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\carbon\common\lib\cherrypy\_cpmodpy.py
 import logging
 import sys
 import cherrypy
@@ -151,7 +152,7 @@ def handler(req):
     return apache.OK
 
 
-def send_response(req, status, headers, body, stream = False):
+def send_response(req, status, headers, body, stream=False):
     req.status = int(status[:3])
     req.content_type = 'text/plain'
     for header, value in headers:
@@ -172,7 +173,7 @@ def send_response(req, status, headers, body, stream = False):
 import os
 import re
 
-def read_process(cmd, args = ''):
+def read_process(cmd, args=''):
     fullcmd = '%s %s' % (cmd, args)
     pipein, pipeout = os.popen4(fullcmd)
     try:
@@ -189,7 +190,7 @@ def read_process(cmd, args = ''):
 class ModPythonServer(object):
     template = '\n# Apache2 server configuration file for running CherryPy with mod_python.\n\nDocumentRoot "/"\nListen %(port)s\nLoadModule python_module modules/mod_python.so\n\n<Location %(loc)s>\n    SetHandler python-program\n    PythonHandler %(handler)s\n    PythonDebug On\n%(opts)s\n</Location>\n'
 
-    def __init__(self, loc = '/', port = 80, opts = None, apache_path = 'apache', handler = 'cherrypy._cpmodpy::handler'):
+    def __init__(self, loc='/', port=80, opts=None, apache_path='apache', handler='cherrypy._cpmodpy::handler'):
         self.loc = loc
         self.port = port
         self.opts = opts

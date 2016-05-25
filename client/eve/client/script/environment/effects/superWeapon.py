@@ -1,12 +1,17 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\client\script\environment\effects\superWeapon.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\client\script\environment\effects\superWeapon.py
 import random
 import geo2
 import blue
 from dogma.const import attributeDamageDelayDuration
+from eve.common.lib import appConst
 import trinity
 import uthread
+import uthread2
+import evetypes
 import log
-from eve.client.script.environment.effects.GenericEffect import StretchEffect, GetBoundingBox, STOP_REASON_DEFAULT
+from eve.client.script.environment.effects.stretchEffect import StretchEffect
+from eve.client.script.environment.effects.GenericEffect import GetBoundingBox, STOP_REASON_DEFAULT
 effectData = {'effects.SuperWeaponCaldari': {'count': 32,
                                 'maxDelay': 2600,
                                 'delayUntilShipHit': 10000},
@@ -30,7 +35,7 @@ effectData = {'effects.SuperWeaponCaldari': {'count': 32,
 class SuperWeapon(StretchEffect):
     scene = trinity.device.scene
 
-    def __init__(self, trigger, effect = None, graphicFile = None):
+    def __init__(self, trigger, effect=None, graphicFile=None):
         StretchEffect.__init__(self, trigger, effect, graphicFile)
         data = effectData[trigger.guid]
         self.projectileCount = data['count']
@@ -113,6 +118,7 @@ class SuperWeapon(StretchEffect):
         sourceLocation.alignPositionCurve = None
         destLocation.parent = None
         destLocation.alignPositionCurve = None
+        return
 
     def Start(self, duration):
         sourceBall = self.GetEffectShipBall()
@@ -127,7 +133,7 @@ class SuperWeapon(StretchEffect):
         for x in range(self.projectileCount):
             uthread.new(self.StartIndividual, duration, sourceBall, targetBall, rotation, direction)
 
-    def Stop(self, reason = STOP_REASON_DEFAULT):
+    def Stop(self, reason=STOP_REASON_DEFAULT):
         pass
 
     def ScaleEffectAudioEmitters(self):
@@ -140,8 +146,7 @@ class SlashWeapon(StretchEffect):
         StretchEffect.__init__(self, trigger, *args)
         self.startTargetOffset = trigger.graphicInfo.startTargetOffset
         self.endTargetOffset = trigger.graphicInfo.endTargetOffset
-        self.warmupDurationSeconds = trigger.graphicInfo.warmupDuration / 1000
-        self.damageDurationSeconds = trigger.graphicInfo.damageDuration / 1000
+        self.durationSeconds = trigger.graphicInfo.duration / 1000.0
 
     def Prepare(self):
         shipBall = self.GetEffectShipBall()
@@ -149,31 +154,43 @@ class SlashWeapon(StretchEffect):
         if self.gfx is None:
             log.LogError('effect not found: ' + str(self.graphicFile))
             return
-        self.gfx.dest = trinity.EveRemotePositionCurve()
-        self.gfx.dest.startPositionCurve = shipBall
-        self.gfx.dest.offsetDir1 = self.startTargetOffset
-        self.gfx.dest.offsetDir2 = self.endTargetOffset
-        self.gfx.dest.delayTime = self.warmupDurationSeconds
-        self.gfx.dest.sweepTime = self.damageDurationSeconds
-        sourceBehavior = trinity.EveLocalPositionBehavior.nearestBounds
-        self.gfx.source = trinity.EveLocalPositionCurve(sourceBehavior)
-        self.gfx.source.offset = self.sourceOffset
-        self.gfx.source.parentPositionCurve = shipBall
-        self.gfx.source.parentRotationCurve = shipBall
-        self.gfx.source.alignPositionCurve = self.gfx.dest
-        self.gfx.source.boundingSize = GetBoundingBox(shipBall, scale=1.2)
-        self.AddToScene(self.gfx)
+        else:
+            self.gfx.dest = trinity.EveRemotePositionCurve()
+            self.gfx.dest.startPositionCurve = shipBall
+            self.gfx.dest.offsetDir1 = self.startTargetOffset
+            self.gfx.dest.offsetDir2 = self.endTargetOffset
+            self.gfx.dest.sweepTime = self.durationSeconds
+            sourceBehavior = trinity.EveLocalPositionBehavior.nearestBounds
+            self.gfx.source = trinity.EveLocalPositionCurve(sourceBehavior)
+            self.gfx.source.offset = self.sourceOffset
+            self.gfx.source.parentPositionCurve = shipBall
+            self.gfx.source.parentRotationCurve = shipBall
+            self.gfx.source.alignPositionCurve = self.gfx.dest
+            self.gfx.source.boundingSize = GetBoundingBox(shipBall, scale=1.2)
+            self.AddToScene(self.gfx)
+            return
 
     def Start(self, duration):
         StretchEffect.Start(self, duration)
 
-    def Stop(self, reason = STOP_REASON_DEFAULT):
+    def Stop(self, reason=STOP_REASON_DEFAULT):
         if self.gfx is None:
             return
-        self.RemoveFromScene(self.gfx)
-        self.gfx.source.parentPositionCurve = None
-        self.gfx.source.parentRotationCurve = None
-        self.gfx.source.alignPositionCurve = None
-        self.gfx.dest.startPositionCurve = None
-        self.gfx = None
-        self.gfxModel = None
+        else:
+            self.RemoveFromScene(self.gfx)
+            self.gfx.source.parentPositionCurve = None
+            self.gfx.source.parentRotationCurve = None
+            self.gfx.source.alignPositionCurve = None
+            self.gfx.dest.startPositionCurve = None
+            self.gfx = None
+            self.gfxModel = None
+            return
+
+
+class DirectionalWeapon(SlashWeapon):
+
+    def __init__(self, trigger, *args):
+        StretchEffect.__init__(self, trigger, *args)
+        self.startTargetOffset = trigger.graphicInfo.targetOffset
+        self.endTargetOffset = trigger.graphicInfo.targetOffset
+        self.durationSeconds = trigger.graphicInfo.duration / 1000.0

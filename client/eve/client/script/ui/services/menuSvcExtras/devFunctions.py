@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\client\script\ui\services\menuSvcExtras\devFunctions.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\client\script\ui\services\menuSvcExtras\devFunctions.py
 import sys
 import uix
 import uiutil
@@ -43,31 +44,33 @@ def GagIskSpammer(charID):
 def ReportISKSpammer(charID, channelID):
     if eve.Message('ConfirmReportISKSpammer', {'name': cfg.eveowners.Get(charID).name}, uiconst.YESNO) != uiconst.ID_YES:
         return
-    if charID == session.charid:
-        raise UserError('ReportISKSpammerCannotReportYourself')
-    lscSvc = sm.GetService('LSC')
-    c = lscSvc.GetChannelWindow(channelID)
-    entries = copy.copy(c.output.GetNodes())
-    spamEntries = []
-    for e in entries:
-        if e.charid == charID:
-            who, txt, charid, time, colorkey = e.msg
-            spamEntries.append('[%s] %s > %s' % (util.FmtDate(time, 'nl'), who, txt))
+    else:
+        if charID == session.charid:
+            raise UserError('ReportISKSpammerCannotReportYourself')
+        lscSvc = sm.GetService('LSC')
+        c = lscSvc.GetChannelWindow(channelID)
+        entries = copy.copy(c.output.GetNodes())
+        spamEntries = []
+        for e in entries:
+            if e.charid == charID:
+                who, txt, charid, time, colorkey = e.msg
+                spamEntries.append('[%s] %s > %s' % (util.FmtDate(time, 'nl'), who, txt))
 
-    if len(spamEntries) == 0:
-        raise UserError('ReportISKSpammerNoEntries')
-    spamEntries.reverse()
-    spamEntries = spamEntries[:10]
-    spammers = getattr(lscSvc, 'spammerList', set())
-    if charID in spammers:
+        if len(spamEntries) == 0:
+            raise UserError('ReportISKSpammerNoEntries')
+        spamEntries.reverse()
+        spamEntries = spamEntries[:10]
+        spammers = getattr(lscSvc, 'spammerList', set())
+        if charID in spammers:
+            return
+        spammers.add(charID)
+        lscSvc.spammerList = spammers
+        c.LoadMessages()
+        channel = lscSvc.channels.get(channelID, None)
+        if channel and channel.info:
+            channelID = channel.info.displayName
+        sm.RemoteSvc('userSvc').ReportISKSpammer(charID, channelID, spamEntries)
         return
-    spammers.add(charID)
-    lscSvc.spammerList = spammers
-    c.LoadMessages()
-    channel = lscSvc.channels.get(channelID, None)
-    if channel and channel.info:
-        channelID = channel.info.displayName
-    sm.RemoteSvc('userSvc').ReportISKSpammer(charID, channelID, spamEntries)
 
 
 def SetDogmaAttribute(itemID, attrName, actualValue):
@@ -75,6 +78,7 @@ def SetDogmaAttribute(itemID, attrName, actualValue):
     if ret:
         cmd = '/dogma %s %s = %s' % (itemID, attrName, ret['qty'])
         SlashCmd(cmd)
+    return
 
 
 def AttributeMenu(itemID, typeID):

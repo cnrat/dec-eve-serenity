@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\packages\localizationBSD\exporters\localizationExporter.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\packages\localizationBSD\exporters\localizationExporter.py
 from ..wrappers.messageGroup import MessageGroup
 
 class LocalizationMessage:
@@ -7,10 +8,13 @@ class LocalizationMessage:
         self.labelPath = None
         self.labelRow = None
         self._textRows = {}
+        return
 
     def GetTextRow(self, languageID):
         if languageID in self._textRows:
             return self._textRows[languageID]
+        else:
+            return None
 
     def GetAllTextDict(self):
         return self._textRows
@@ -28,7 +32,7 @@ class LocalizationExporterBase(object):
         raise NotImplementedError
 
     @classmethod
-    def _GetLocalizationMessageDataForExport(cls, projectID, getSubmittedOnly, bsdBranchID = None):
+    def _GetLocalizationMessageDataForExport(cls, projectID, getSubmittedOnly, bsdBranchID=None):
         dbzlocalization = sm.GetService('DB2').GetSchema('zlocalization')
         exportResultSet = dbzlocalization.GetTableDataForMessageExport(1 if getSubmittedOnly else 0, projectID, bsdBranchID)
         messageResultSet = exportResultSet[0]

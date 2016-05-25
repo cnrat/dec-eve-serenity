@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\packages\spacecomponents\server\components\bountyEscrow\warpScrambler.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\packages\spacecomponents\server\components\bountyEscrow\warpScrambler.py
 import uthread2
 import logging
 import dogma.const as dgmconst
@@ -14,12 +15,14 @@ class WarpScrambler(object):
         lock.RegisterForUnlockEvents(self.OnUnlocking)
         lock.RegisterForPossiblyLockEvents(self.OnLocking)
         self.dogmaLM = dogmaLM
+        return
 
     def _UnscrambleShip(self, shipID):
         self.dogmaLM.RemoveTarget(self.bountyEscrowID, shipID)
         self.dogmaLM.StopEffect(dgmconst.effectEssWarpScramble, self.bountyEscrowID, forced=True)
         self.dogmaLM.RemoveTarget(self.bountyEscrowID, shipID)
         self.scrambledShipID = None
+        return
 
     def OnLocking(self, charID, shipID, reason):
         if self.scramblingShipThread:
@@ -27,9 +30,11 @@ class WarpScrambler(object):
             self.scramblingShipThread = None
             self.scrambledShipID = None
             return
-        if self.scrambledShipID is None:
+        elif self.scrambledShipID is None:
             return
-        self._UnscrambleShip(shipID)
+        else:
+            self._UnscrambleShip(shipID)
+            return
 
     def _LockTarget(self, shipID):
         for i in xrange(20):
@@ -54,9 +59,12 @@ class WarpScrambler(object):
         finally:
             self.scramblingShipThread = None
 
+        return
+
     def OnUnlocking(self, charID, shipID):
         if self.scrambledShipID is not None:
             if self.scrambledShipID == shipID:
                 return
             self._UnscrambleShip(self.scrambledShipID)
         self.scramblingShipThread = uthread2.StartTasklet(self._ScrambleShip, shipID)
+        return

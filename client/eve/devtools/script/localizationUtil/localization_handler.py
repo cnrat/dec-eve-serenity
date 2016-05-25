@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\devtools\script\localizationUtil\localization_handler.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\devtools\script\localizationUtil\localization_handler.py
 from eve.client.script.ui.control import entries as listentry
 import localization
 import os
@@ -38,7 +39,7 @@ class LocalizationHandler(object):
     def SetP4(self):
         SetPerforceWrapper(self.p4)
 
-    def GetScrollList(self, groupEntry = None):
+    def GetScrollList(self, groupEntry=None):
         if groupEntry is not None:
             group = self.hierarchy.GetGroup(groupEntry.groupID)
             groupsForGroup = self.GetGroupsForGroup(group)
@@ -68,7 +69,7 @@ class LocalizationHandler(object):
 
         return messagesForGroup
 
-    def GetGroupScrollList(self, groupsOfGroup, messagesOfGroup, level, groupID = None):
+    def GetGroupScrollList(self, groupsOfGroup, messagesOfGroup, level, groupID=None):
         groupList = []
         messageList = []
         for group in groupsOfGroup:

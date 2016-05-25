@@ -1,10 +1,12 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\packages\probescanning\customFormations.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\packages\probescanning\customFormations.py
 from probescanning.util import GetOffsetPositions
 
 class EditFormations(object):
 
     def __init__(self):
         self.__formations = None
+        return
 
     def __enter__(self):
         self.__formations = _GetAllCustomFormations()
@@ -40,6 +42,7 @@ def DeleteFormation(formationID):
         del formations[formationID]
     if formationID == selectedFormation:
         SelectFormation(None)
+    return
 
 
 def SelectFormation(formationID):
@@ -54,14 +57,16 @@ def GetSelectedFormationID():
     formationID = settings.user.ui.Get('probescanning.selectedFormationID', None)
     if formationID not in _GetAllCustomFormations():
         return
-    return formationID
+    else:
+        return formationID
 
 
 def GetSelectedFormationName():
     formationID = GetSelectedFormationID()
     if formationID is None:
         return ''
-    return _GetAllCustomFormations()[formationID][0]
+    else:
+        return _GetAllCustomFormations()[formationID][0]
 
 
 def GetActiveFormation():

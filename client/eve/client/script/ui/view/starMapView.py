@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\client\script\ui\view\starMapView.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\client\script\ui\view\starMapView.py
 from viewstate import View
 import uicls
 
@@ -29,8 +30,9 @@ class StarMapView(View):
                 self.cachedCameraPitch = camera.pitch
                 self.cachedCameraZoom = camera.zoom
         sm.GetService('audio').SendUIEvent('wise:/ui_map_soundscape_play')
+        return
 
-    def ShowView(self, interestID = None, starColorMode = None, drawRoute = None, tileMode = None, hightlightedSolarSystems = None, **kwargs):
+    def ShowView(self, interestID=None, starColorMode=None, drawRoute=None, tileMode=None, hightlightedSolarSystems=None, **kwargs):
         sm.ScatterEvent('OnMapModeChangeDone', 'starmap')
         if interestID:
             self.starmap.SetInterest(interestID, forceframe=True)

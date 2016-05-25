@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\packages\evecrypto\cryptoapi.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\packages\evecrypto\cryptoapi.py
 import blue
 import binascii
 import threading
@@ -19,11 +20,12 @@ def get_crypto_context():
     global cryptoAPI_cryptoContext
     if cryptoAPI_cryptoContext is not None:
         return cryptoAPI_cryptoContext
-    with _cryptoContextLock:
-        if cryptoAPI_cryptoContext is not None:
-            return cryptoAPI_cryptoContext
-        cryptoAPI_cryptoContext = blue.crypto.CryptAcquireContext(None, settings.cryptoAPI_cryptoProvider, settings.cryptoAPI_PROV_cryptoProviderType, blue.crypto.CRYPT_VERIFYCONTEXT | blue.crypto.CRYPT_SILENT)
-    return cryptoAPI_cryptoContext
+    else:
+        with _cryptoContextLock:
+            if cryptoAPI_cryptoContext is not None:
+                return cryptoAPI_cryptoContext
+            cryptoAPI_cryptoContext = blue.crypto.CryptAcquireContext(None, settings.cryptoAPI_cryptoProvider, settings.cryptoAPI_PROV_cryptoProviderType, blue.crypto.CRYPT_VERIFYCONTEXT | blue.crypto.CRYPT_SILENT)
+        return cryptoAPI_cryptoContext
 
 
 def crypto_hash(*args):
@@ -63,14 +65,16 @@ class CryptoApiCryptoContext:
         self.symmetricKeyMethod = settings.symmetricKeyMethod
         self.symmetricKeyLength = settings.symmetricKeyLength
         self.hashMethod = settings.hashMethod
+        return
 
     def __CreateActualCipher(self, unencryptedKey, symmetricKey):
         if unencryptedKey is None:
             return blue.crypto.CryptImportKey(get_crypto_context(), symmetricKey, privateKey, 0)
         else:
             return unencryptedKey
+            return
 
-    def Initialize(self, request = None):
+    def Initialize(self, request=None):
         unencryptedKey = None
         if request is not None:
             securityProviderType = request.get('crypting_securityprovidertype', None) or settings.cryptoAPI_cryptoProviderType
@@ -90,27 +94,28 @@ class CryptoApiCryptoContext:
             requestedKey = blue.crypto.CryptExportKey(unencryptedKey, publicKey, blue.crypto.SIMPLEBLOB, 0)
         if self.securityProviderType and securityProviderType and self.securityProviderType != securityProviderType:
             return 'Security Provider Type Unacceptable - Type is %s but should be %s' % (securityProviderType, self.securityProviderType)
-        if securityProviderType:
-            self.securityProviderType = securityProviderType
-        if self.symmetricKeyLength and keyLength and self.symmetricKeyLength != keyLength:
-            return 'Symmetric Key Length Unacceptable - Length is %s but should be %s' % (keyLength, self.symmetricKeyLength)
-        if keyLength:
-            self.symmetricKeyLength = keyLength
-        if self.symmetricKeyMethod and keyMethod and self.symmetricKeyMethod != keyMethod:
-            return 'Symmetric Key Method Unacceptable - Method is %s but should be %s' % (keyMethod, self.symmetricKeyMethod)
-        if keyMethod:
-            self.symmetricKeyMethod = keyMethod
-        if self.hashMethod and signingHashMethod and self.hashMethod != signingHashMethod:
-            return 'Hash Method Unacceptable - Hash is %s but should be %s' % (signingHashMethod, self.hashMethod)
-        if settings.hashMethod:
-            self.hashMethod = settings.hashMethod
-        self.symmetricKey = requestedKey
-        self.symmetricKeyCipher = self.__CreateActualCipher(unencryptedKey, self.symmetricKey)
-        return {'crypting_securityprovidertype': securityProviderType,
-         'crypting_sessionkey': requestedKey,
-         'crypting_sessionkeylength': keyLength,
-         'crypting_sessionkeymethod': keyMethod,
-         'signing_hashmethod': signingHashMethod}
+        else:
+            if securityProviderType:
+                self.securityProviderType = securityProviderType
+            if self.symmetricKeyLength and keyLength and self.symmetricKeyLength != keyLength:
+                return 'Symmetric Key Length Unacceptable - Length is %s but should be %s' % (keyLength, self.symmetricKeyLength)
+            if keyLength:
+                self.symmetricKeyLength = keyLength
+            if self.symmetricKeyMethod and keyMethod and self.symmetricKeyMethod != keyMethod:
+                return 'Symmetric Key Method Unacceptable - Method is %s but should be %s' % (keyMethod, self.symmetricKeyMethod)
+            if keyMethod:
+                self.symmetricKeyMethod = keyMethod
+            if self.hashMethod and signingHashMethod and self.hashMethod != signingHashMethod:
+                return 'Hash Method Unacceptable - Hash is %s but should be %s' % (signingHashMethod, self.hashMethod)
+            if settings.hashMethod:
+                self.hashMethod = settings.hashMethod
+            self.symmetricKey = requestedKey
+            self.symmetricKeyCipher = self.__CreateActualCipher(unencryptedKey, self.symmetricKey)
+            return {'crypting_securityprovidertype': securityProviderType,
+             'crypting_sessionkey': requestedKey,
+             'crypting_sessionkeylength': keyLength,
+             'crypting_sessionkeymethod': keyMethod,
+             'signing_hashmethod': signingHashMethod}
 
     def SymmetricDecryption(self, cryptedPacket):
         return blue.crypto.CryptDecrypt(self.symmetricKeyCipher, None, True, 0, cryptedPacket)
@@ -121,16 +126,18 @@ class CryptoApiCryptoContext:
     def OptionalSymmetricEncryption(self, plainPacket):
         if self.symmetricKeyCipher is not None:
             return self.SymmetricEncryption(plainPacket)
-        return plainPacket
+        else:
+            return plainPacket
 
 
 def load_key_and_version(keystring):
     if keystring is None:
         return (None, None)
-    loaded = blue.marshal.Load(binascii.a2b_hex(keystring))
-    key = blue.crypto.CryptImportKey(get_crypto_context(), loaded, None, 0)
-    version = crypto_hash(loaded)
-    return (key, version)
+    else:
+        loaded = blue.marshal.Load(binascii.a2b_hex(keystring))
+        key = blue.crypto.CryptImportKey(get_crypto_context(), loaded, None, 0)
+        version = crypto_hash(loaded)
+        return (key, version)
 
 
 publicKey, publicKeyVersion = load_key_and_version(get_public_keystr())

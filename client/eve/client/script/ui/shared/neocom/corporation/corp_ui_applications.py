@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\client\script\ui\shared\neocom\corporation\corp_ui_applications.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\client\script\ui\shared\neocom\corporation\corp_ui_applications.py
 from math import pi
 from carbonui.primitives.container import Container
 from eve.client.script.ui.control import entries as listentry
@@ -56,7 +57,7 @@ class ApplicationsWindow(uiprimitives.Container):
         InviteToCorpWnd.CloseIfOpen('InviteToCorpWnd')
         InviteToCorpWnd.Open()
 
-    def GetApplications(self, statusList = None):
+    def GetApplications(self, statusList=None):
         if statusList is None:
             statusList = self.sr.viewingStatus
         filteredApplications = []
@@ -187,23 +188,25 @@ class ApplicationsWindow(uiprimitives.Container):
         if self.destroyed:
             return
         try:
-            myFilter = self.quickFilter.GetValue()
-            if len(myFilter):
-                self.filteringBy = myFilter
-            sm.GetService('corpui').ShowLoad()
-            applications = self.GetApplications()
-            scrolllist = self.GetCorpApplicationEntries(applications)
-            if len(scrolllist) > 0:
-                self.HideNoContentHint()
-                self.RefreshApplicationScroll(addNodes=scrolllist)
-            else:
-                self.ShowNoContentHint()
-        except:
-            pass
+            try:
+                myFilter = self.quickFilter.GetValue()
+                if len(myFilter):
+                    self.filteringBy = myFilter
+                sm.GetService('corpui').ShowLoad()
+                applications = self.GetApplications()
+                scrolllist = self.GetCorpApplicationEntries(applications)
+                if len(scrolllist) > 0:
+                    self.HideNoContentHint()
+                    self.RefreshApplicationScroll(addNodes=scrolllist)
+                else:
+                    self.ShowNoContentHint()
+            except:
+                pass
+
         finally:
             sm.GetService('corpui').HideLoad()
 
-    def RefreshApplicationScroll(self, addNodes = [], removeNodes = [], reloadNodes = [], forceClear = False):
+    def RefreshApplicationScroll(self, addNodes=[], removeNodes=[], reloadNodes=[], forceClear=False):
         if forceClear:
             self.applicationScroll.Clear()
         elif len(removeNodes):
@@ -299,6 +302,7 @@ class ViewCorpApplicationWnd(uicontrols.Window):
     def Cancel(self, *args):
         self.result = None
         self.SetModalResult(0)
+        return
 
 
 class MyCorpApplicationWnd(uicontrols.Window):
@@ -363,6 +367,7 @@ class MyCorpApplicationWnd(uicontrols.Window):
             self.withdrawRb = uicontrols.Checkbox(text=localization.GetByLabel('UI/Corporations/CorpApplications/WithdrawApplication'), parent=controlCont, configName='accept', retval=3, checked=isWithdrawChecked, groupname='stateGroup', align=uiconst.TOBOTTOM)
             controlContHeight += 20
         controlCont.height = controlContHeight
+        return
 
     def Confirm(self, *args):
         self.result = None
@@ -371,10 +376,12 @@ class MyCorpApplicationWnd(uicontrols.Window):
         elif self.acceptRb.checked:
             self.result = const.crpApplicationAcceptedByCharacter
         self.SetModalResult(1)
+        return
 
     def Cancel(self, *args):
         self.result = None
         self.SetModalResult(0)
+        return
 
     def WithdrawApplication(self, *args):
         try:
@@ -446,6 +453,7 @@ class ApplyToCorpWnd(uicontrols.Window):
     def Cancel(self, *args):
         self.result = None
         self.SetModalResult(0)
+        return
 
 
 def get_display_text_for_application(application):
@@ -504,6 +512,7 @@ class CorpApplicationEntry(SE_BaseClassCore):
         self.expandedLabel = self.EXTENDEDCLASS(parent=self.expandedParent, name='applicationText', text=label_text, padding=self.EXTENDEDPAD, align=uiconst.TOALL)
         self.hilite = uiprimitives.Fill(bgParent=self.headerContainer, color=(1, 1, 1, 0))
         uiprimitives.Fill(bgParent=self.expandedParent, color=(0, 0, 0, 0.2))
+        return
 
     def Load(self, node):
         ownerName = cfg.eveowners.Get(self.ownerID).ownerName
@@ -568,6 +577,7 @@ class CorpApplicationEntry(SE_BaseClassCore):
             self.expandedParent.display = False
         uicore.animations.MorphScalar(self.expander, 'rotation', self.expander.rotation, rotValue, duration=0.15)
         self.expandedLabel.text = get_display_text_for_application(node.application)
+        return
 
     def OnClick(self):
         node = self.sr.node
@@ -591,6 +601,7 @@ class CorpApplicationEntry(SE_BaseClassCore):
             allNodes[node.myView] = node.application.applicationID
             settings.char.ui.Set('corporation_applications_expanded', allNodes)
         self.sr.node.scroll.ReloadNodes(reloadNodes, updateHeight=True)
+        return
 
     def GetMenu(self):
         node = self.sr.node
@@ -633,8 +644,10 @@ class CorpApplicationEntry(SE_BaseClassCore):
     def _CheckIfStillHilited(self):
         if uiutil.IsUnder(uicore.uilib.mouseOver, self) or uicore.uilib.mouseOver is self:
             return
-        uicore.animations.FadeOut(self.hilite, duration=0.3)
-        self.hiliteTimer = None
+        else:
+            uicore.animations.FadeOut(self.hilite, duration=0.3)
+            self.hiliteTimer = None
+            return
 
     def _UpdateCurrentApplicationWithStatus(self, newStatus):
         try:
@@ -791,6 +804,8 @@ class InviteToCorpWnd(uicontrols.Window):
             self.scroll.Load(fixedEntryHeight=18, contentList=scrolllist, noContentHint=localization.GetByLabel('UI/Wallet/WalletWindow/SearchNoResults'))
             self.HideLoad()
 
+        return
+
     def EnableInviteButton(self, *args):
         if self.GetSelected:
             self.inviteButton.Enable()
@@ -798,7 +813,7 @@ class InviteToCorpWnd(uicontrols.Window):
     def GetSearchStr(self):
         return self.nameInput.GetValue().strip()
 
-    def SetHint(self, hintstr = None):
+    def SetHint(self, hintstr=None):
         if self.scroll:
             self.scroll.ShowHint(hintstr)
 

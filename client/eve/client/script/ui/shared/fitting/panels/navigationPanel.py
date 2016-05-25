@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\client\script\ui\shared\fitting\panels\navigationPanel.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\client\script\ui\shared\fitting\panels\navigationPanel.py
 from carbon.common.script.util.format import FmtDist
 from dogma import const as dogmaConst
 from eve.client.script.ui.shared.fitting.fittingUtil import GetShipAttribute, GetXtraColor, GetColor2
@@ -10,7 +11,7 @@ __author__ = 'bara'
 class NavigationPanel(AttributePanel):
     attributesToShow = ((dogmaConst.attributeMass, dogmaConst.attributeAgility), (dogmaConst.attributeBaseWarpSpeed,))
 
-    def LoadPanel(self, initialLoad = False):
+    def LoadPanel(self, initialLoad=False):
         AttributePanel.LoadPanel(self, initialLoad)
         parentGrid = self.GetValueParentGrid()
         for eachLine in self.attributesToShow:
@@ -49,6 +50,7 @@ class NavigationPanel(AttributePanel):
         maxVelocityText += GetByLabel('UI/Fitting/FittingWindow/ColoredMaxVelocity', maxVelocity=(maxVelocity + xtraSpeed) * multiplyVelocity)
         maxVelocityText += '</color>'
         self.SetStatusText(maxVelocityText)
+        return
 
     def SetAgilityText(self, shipID):
         agility = GetShipAttribute(shipID, dogmaConst.attributeAgility)

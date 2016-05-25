@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\carbon\common\stdlib\hashlib.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\carbon\common\stdlib\hashlib.py
 r"""hashlib module - A common interface to many hash functions.
 
 new(name, string='') - returns a new hash object implementing the
@@ -85,11 +86,11 @@ def __get_openssl_constructor(name):
         return __get_builtin_constructor(name)
 
 
-def __py_new(name, string = ''):
+def __py_new(name, string=''):
     return __get_builtin_constructor(name)(string)
 
 
-def __hash_new(name, string = ''):
+def __hash_new(name, string=''):
     try:
         return _hashlib.new(name, string)
     except ValueError:

@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\client\script\environment\jumptimer.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\client\script\environment\jumptimer.py
 import logging
 import ccpmetrics
 import gametime
@@ -38,23 +39,25 @@ class JumpTimer(object):
         else:
             self.reportJumpTime(self.toSolarSystemID, self.fromSolarSystemID, gametime.GetWallclockTimeNow() - self.jumpStarted)
             self._ResetJump()
+        return
 
     def _ResetJump(self):
         self.fromSolarSystemID = None
         self.toSolarSystemID = None
         self.jumpStarted = None
+        return
 
 
 class JumpTimeReporter(object):
 
     def __init__(self):
-        self.metrics = ccpmetrics.CCPMetrics(ccpmetrics.METRICS_SERVER, ccpmetrics.METRICS_SERVER_PORT)
+        self.metricsClient = ccpmetrics.Client('public-metrics.tech.ccp.is')
         self.serverIp = _GetServerIP()
 
     def __call__(self, toSolarSystemID, fromSolarSystemID, jumpTimeInBlue):
         try:
             jumpTimeInMsec = jumpTimeInBlue / gametime.MSEC
-            self.metrics.gauge('jump_time', jumpTimeInMsec, secondaryValues={'toSolarSystemID': str(toSolarSystemID),
+            self.metricsClient.gauge('jump_time', jumpTimeInMsec, secondaryValues={'toSolarSystemID': str(toSolarSystemID),
              'fromSolarSystemID': str(fromSolarSystemID)}, tags={'server': self.serverIp})
         except UnicodeDecodeError:
             logger.warn('Failed to report jump time')

@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\carbon\common\stdlib\rsa\transform.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\carbon\common\stdlib\rsa\transform.py
 from __future__ import absolute_import
 try:
     import psyco
@@ -15,7 +16,7 @@ def bytes2int(raw_bytes):
     return int(binascii.hexlify(raw_bytes), 16)
 
 
-def _int2bytes(number, block_size = None):
+def _int2bytes(number, block_size=None):
     if not is_integer(number):
         raise TypeError("You must pass an integer for 'number', not %s" % number.__class__)
     if number < 0:
@@ -40,7 +41,7 @@ def _int2bytes(number, block_size = None):
     return padding + EMPTY_BYTE.join(raw_bytes)
 
 
-def bytes_leading(raw_bytes, needle = ZERO_BYTE):
+def bytes_leading(raw_bytes, needle=ZERO_BYTE):
     leading = 0
     _byte = needle[0]
     for x in raw_bytes:
@@ -52,7 +53,7 @@ def bytes_leading(raw_bytes, needle = ZERO_BYTE):
     return leading
 
 
-def int2bytes(number, fill_size = None, chunk_size = None, overflow = False):
+def int2bytes(number, fill_size=None, chunk_size=None, overflow=False):
     if number < 0:
         raise ValueError('Number must be an unsigned integer: %d' % number)
     if fill_size and chunk_size:

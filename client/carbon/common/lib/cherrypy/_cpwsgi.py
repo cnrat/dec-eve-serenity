@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\carbon\common\lib\cherrypy\_cpwsgi.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\carbon\common\lib\cherrypy\_cpwsgi.py
 import sys as _sys
 import cherrypy as _cherrypy
 from cherrypy._cpcompat import BytesIO
@@ -23,7 +24,7 @@ class VirtualHost(object):
     use_x_forwarded_host = True
     domains = {}
 
-    def __init__(self, default, domains = None, use_x_forwarded_host = True):
+    def __init__(self, default, domains=None, use_x_forwarded_host=True):
         self.default = default
         self.domains = domains or {}
         self.use_x_forwarded_host = use_x_forwarded_host
@@ -40,7 +41,7 @@ class VirtualHost(object):
 
 class InternalRedirector(object):
 
-    def __init__(self, nextapp, recursive = False):
+    def __init__(self, nextapp, recursive=False):
         self.nextapp = nextapp
         self.recursive = recursive
 
@@ -75,7 +76,7 @@ class InternalRedirector(object):
 
 class ExceptionTrapper(object):
 
-    def __init__(self, nextapp, throws = (KeyboardInterrupt, SystemExit)):
+    def __init__(self, nextapp, throws=(KeyboardInterrupt, SystemExit)):
         self.nextapp = nextapp
         self.throws = throws
 
@@ -180,6 +181,7 @@ class AppResponse(object):
         headers = self.translate_headers(self.environ)
         rfile = self.environ['wsgi.input']
         request.run(meth, path, qs, rproto, headers, rfile)
+        return
 
     headerNames = {'HTTP_CGI_AUTHORIZATION': 'Authorization',
      'CONTENT_LENGTH': 'Content-Length',
@@ -202,7 +204,7 @@ class CPWSGIApp(object):
     config = {}
     response_class = AppResponse
 
-    def __init__(self, cpapp, pipeline = None):
+    def __init__(self, cpapp, pipeline=None):
         self.cpapp = cpapp
         self.pipeline = self.pipeline[:]
         if pipeline:

@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\client\script\ui\shared\industry\browserFacilities.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\client\script\ui\shared\industry\browserFacilities.py
 from carbonui.primitives.container import Container
 from carbonui.util.bunch import Bunch
 from eve.client.script.ui.control.eveCombo import Combo
@@ -47,7 +48,7 @@ class BrowserFacilities(Container):
         if self.isInitialized and self.display:
             self.UpdateScroll()
 
-    def OnScrollSelectionChange(self, entries, activityID = None):
+    def OnScrollSelectionChange(self, entries, activityID=None):
         self.callback(entries[0].facilityData)
 
     def OnFilterEdit(self):

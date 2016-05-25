@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\client\script\ui\login\charcreation\steps\raceStep.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\client\script\ui\login\charcreation\steps\raceStep.py
 import blue
 import uicontrols
 import carbonui.const as uiconst
@@ -6,6 +7,7 @@ import uicls
 import uiprimitives
 import uthread
 import localization
+from carbonui.primitives.sprite import StreamingVideoSprite
 from eve.client.script.ui.login.charcreation.charCreationButtons import RaceButton
 from eve.client.script.ui.login.charcreation.charCreation import BaseCharacterCreationStep
 import charactercreator.const as ccConst
@@ -14,10 +16,10 @@ import eve.common.lib.appConst as const
 class RaceStep(BaseCharacterCreationStep):
     __guid__ = 'uicls.RaceStep'
     stepID = ccConst.RACESTEP
-    racialMovies = {const.raceCaldari: 'res:/video/charactercreation/caldari.bik',
-     const.raceMinmatar: 'res:/video/charactercreation/minmatar.bik',
-     const.raceAmarr: 'res:/video/charactercreation/amarr.bik',
-     const.raceGallente: 'res:/video/charactercreation/gallente.bik'}
+    racialMovies = {const.raceCaldari: 'res:/video/charactercreation/caldari.webm',
+     const.raceMinmatar: 'res:/video/charactercreation/minmatar.webm',
+     const.raceAmarr: 'res:/video/charactercreation/amarr.webm',
+     const.raceGallente: 'res:/video/charactercreation/gallente.webm'}
     racialMusic = {const.raceCaldari: 'wise:/music_switch_race_caldari',
      const.raceMinmatar: 'wise:/music_switch_race_minmatar',
      const.raceAmarr: 'wise:/music_switch_race_amarr',
@@ -70,7 +72,7 @@ class RaceStep(BaseCharacterCreationStep):
         uicontrols.Frame(parent=self.sr.movieCont, color=(1.0, 1.0, 1.0, 0.2))
         self.sr.racialImage = uiprimitives.Sprite(name='racialImage', parent=self.sr.movieCont, align=uiconst.TOALL, state=uiconst.UI_DISABLED)
         self.sr.movieCont.OnMouseEnter = self.OnMovieEnter
-        self.movie = uiprimitives.VideoSprite(parent=self.sr.movieCont, pos=(0, 0, 600, 338), videoPath=self.racialMovies.get(info.raceID, ''), videoAutoPlay=False)
+        self.movie = StreamingVideoSprite(parent=self.sr.movieCont, pos=(0, 0, 600, 338), videoPath=self.racialMovies.get(info.raceID, ''), videoAutoPlay=False)
         self.movie.display = False
         self.sr.movieControlCont = uiprimitives.Container(name='controlCont', parent=self.sr.movieCont, align=uiconst.CENTERBOTTOM, pos=(0, 0, 60, 22), idx=0, state=uiconst.UI_HIDDEN)
         uiprimitives.Fill(parent=self.sr.movieControlCont, padding=(0, 0, 0, 1), color=(0, 0, 0, 0.3))
@@ -99,6 +101,7 @@ class RaceStep(BaseCharacterCreationStep):
         self.sr.noSoundBtn.state = uiconst.UI_HIDDEN
         self.setupDone = 1
         self.TryPlayMovie()
+        return
 
     def UpdateLayout(self):
         if not self.sr.raceInfoCont:
@@ -144,6 +147,7 @@ class RaceStep(BaseCharacterCreationStep):
         height = 128
         top = self.racialHeader.get(raceID, None)
         self.raceSprite.rectTop, self.raceSprite.rectHeight = top, height
+        return
 
     def UpdateRaceInfo(self, raceID):
         oldRaceID = self.raceID
@@ -156,30 +160,34 @@ class RaceStep(BaseCharacterCreationStep):
         info = self.GetInfo()
         if info.raceID is None:
             return
-        if not len(self.raceInfo):
-            self.raceInfo = sm.GetService('cc').GetRaceDataByID()
-        self.sr.raceTextCont.state = uiconst.UI_NORMAL
-        raceInfo = self.raceInfo[info.raceID]
-        raceText = localization.GetByMessageID(raceInfo.descriptionID)
-        color = self.raceFontColor.get(info.raceID, (1.0, 1.0, 1.0, 0.75))
-        self.sr.raceText.text = raceText
-        self.sr.raceText.color.SetRGB(*color)
-        uthread.new(self.UpdateTextHeight)
+        else:
+            if not len(self.raceInfo):
+                self.raceInfo = sm.GetService('cc').GetRaceDataByID()
+            self.sr.raceTextCont.state = uiconst.UI_NORMAL
+            raceInfo = self.raceInfo[info.raceID]
+            raceText = localization.GetByMessageID(raceInfo.descriptionID)
+            color = self.raceFontColor.get(info.raceID, (1.0, 1.0, 1.0, 0.75))
+            self.sr.raceText.text = raceText
+            self.sr.raceText.color.SetRGB(*color)
+            uthread.new(self.UpdateTextHeight)
+            return
 
-    def TryPlayMovie(self, oldRaceID = None, *args):
+    def TryPlayMovie(self, oldRaceID=None, *args):
         info = self.GetInfo()
         if info.raceID is None:
             return
-        self.sr.movieCont.state = uiconst.UI_NORMAL
-        if not getattr(self, 'setupDone', 0):
-            return
-        if info.raceID != oldRaceID:
-            self.Pause()
-        if settings.user.ui.Get('cc_racialMoviePlayed_%s' % info.raceID, 0):
-            self.ShowMovieRacialImage()
         else:
-            uthread.new(self.MovieState)
-            self.PlayMovie()
+            self.sr.movieCont.state = uiconst.UI_NORMAL
+            if not getattr(self, 'setupDone', 0):
+                return
+            if info.raceID != oldRaceID:
+                self.Pause()
+            if settings.user.ui.Get('cc_racialMoviePlayed_%s' % info.raceID, 0):
+                self.ShowMovieRacialImage()
+            else:
+                uthread.new(self.MovieState)
+                self.PlayMovie()
+            return
 
     def OnMovieEnter(self, *args):
         self.sr.movieControlCont.state = uiconst.UI_NORMAL
@@ -192,24 +200,27 @@ class RaceStep(BaseCharacterCreationStep):
         info = self.GetInfo()
         if info.raceID is None:
             return
-        videoPath = self.racialMovies.get(info.raceID, None)
-        self.movie.SetVideoPath(videoPath)
-        sm.StartService('dynamicMusic').StopLocationMusic('music_character_creation')
-        uicore.layer.charactercreation.raceMusicStarted = False
-        uthread.new(self.MovieState)
-        self.movie.display = True
-        self.movie.Play()
-        settings.user.ui.Set('cc_racialMoviePlayed_%s' % info.raceID, 1)
-        self.sr.racialImage.state = uiconst.UI_HIDDEN
-        self.movie.state = uiconst.UI_DISABLED
-        self.sr.playpPauseBtn.LoadIcon('ui_73_16_226')
+        else:
+            videoPath = self.racialMovies.get(info.raceID, None)
+            self.movie.SetVideoPath(videoPath)
+            sm.StartService('dynamicMusic').StopLocationMusic('music_character_creation')
+            uicore.layer.charactercreation.raceMusicStarted = False
+            uthread.new(self.MovieState)
+            self.movie.display = True
+            self.movie.Play()
+            settings.user.ui.Set('cc_racialMoviePlayed_%s' % info.raceID, 1)
+            self.sr.racialImage.state = uiconst.UI_HIDDEN
+            self.movie.state = uiconst.UI_DISABLED
+            self.sr.playpPauseBtn.LoadIcon('ui_73_16_226')
+            return
 
     def ClickPlayPause(self, *args):
         if getattr(self, 'movie', None) is not None:
-            if not getattr(self.movie, 'isPaused', None):
+            if getattr(self.movie, 'path', '') and not getattr(self.movie, 'isPaused', None) and not getattr(self.movie, 'isFinished', None):
                 self.Pause()
             else:
                 self.PlayMovie()
+        return
 
     def Pause(self, *args):
         if not uicore.layer.charactercreation.raceMusicStarted:
@@ -234,19 +245,22 @@ class RaceStep(BaseCharacterCreationStep):
     def MovieState(self):
         if self.movieStateCheckRunning:
             return
-        self.movieStateCheckRunning = 1
-        while self and not self.destroyed and self.movieStateCheckRunning:
-            if getattr(self, 'movie', None) and self.sr:
-                if getattr(self.movie, 'isPaused', None):
-                    self.sr.playpPauseBtn.LoadIcon('ui_73_16_225')
-                else:
-                    self.sr.playpPauseBtn.LoadIcon('ui_73_16_226')
-                if self.movie.isFinished:
-                    self.ShowMovieRacialImage()
-            blue.pyos.synchro.SleepWallclock(1000)
+        else:
+            self.movieStateCheckRunning = 1
+            while self and not self.destroyed and self.movieStateCheckRunning:
+                if getattr(self, 'movie', None) and self.sr:
+                    if getattr(self.movie, 'isPaused', None):
+                        self.sr.playpPauseBtn.LoadIcon('ui_73_16_225')
+                    else:
+                        self.sr.playpPauseBtn.LoadIcon('ui_73_16_226')
+                    if self.movie.isFinished:
+                        self.ShowMovieRacialImage()
+                        self.sr.playpPauseBtn.LoadIcon('ui_73_16_225')
+                blue.pyos.synchro.SleepWallclock(1000)
 
-        if self and not self.destroyed:
-            self.movieStateCheckRunning = 0
+            if self and not self.destroyed:
+                self.movieStateCheckRunning = 0
+            return
 
     def ShowMovieRacialImage(self, *args):
         info = self.GetInfo()
@@ -267,20 +281,22 @@ class RaceStep(BaseCharacterCreationStep):
         info = self.GetInfo()
         if info.raceID:
             return
-        raceID = self.FindRaceFromColorMap()
-        if raceID != self.hoveredRaceID:
-            self.hoveredRaceID = raceID
-            for eachBtn in self.raceBtns:
-                eachBtn.normalSprite.SetAlpha(0.3)
+        else:
+            raceID = self.FindRaceFromColorMap()
+            if raceID != self.hoveredRaceID:
+                self.hoveredRaceID = raceID
+                for eachBtn in self.raceBtns:
+                    eachBtn.normalSprite.SetAlpha(0.3)
 
-            if self.hoveredRaceID is not None:
-                btn = getattr(self.sr, 'raceBtn_%s' % raceID, None)
-                btn.OnMouseEnter()
-            uicore.layer.charactercreation.UpdateBackdropLite(raceID=raceID, mouseEnter=True)
-            if raceID is None:
-                self.cursor = uiconst.UICURSOR_DEFAULT
-            else:
-                self.cursor = uiconst.UICURSOR_SELECT
+                if self.hoveredRaceID is not None:
+                    btn = getattr(self.sr, 'raceBtn_%s' % raceID, None)
+                    btn.OnMouseEnter()
+                uicore.layer.charactercreation.UpdateBackdropLite(raceID=raceID, mouseEnter=True)
+                if raceID is None:
+                    self.cursor = uiconst.UICURSOR_DEFAULT
+                else:
+                    self.cursor = uiconst.UICURSOR_SELECT
+            return
 
     def OnMouseUp(self, btn, *args):
         uicls.BaseCharacterCreationStep.OnMouseUp(self, btn, *args)
@@ -288,9 +304,11 @@ class RaceStep(BaseCharacterCreationStep):
         if raceID is not None:
             sm.StartService('audio').SendUIEvent(unicode('wise:/ui_icc_button_select_play'))
             uicore.layer.charactercreation.SelectRace(raceID)
+        return
 
     def ResetHoverRaceID(self, *args):
         self.hoveredRaceID = None
+        return
 
     def FindRaceFromColorMap(self, *args):
         pos = (int(uicore.uilib.x * uicore.desktop.dpiScaling), int(uicore.uilib.y * uicore.desktop.dpiScaling))

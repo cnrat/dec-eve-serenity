@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\carbon\common\stdlib\coverage\codeunit.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\carbon\common\stdlib\coverage\codeunit.py
 import glob, os
 from coverage.backward import open_source, string_class, StringIO
 from coverage.misc import CoverageException
@@ -45,6 +46,7 @@ class CodeUnit(object):
             modname = None
         self.name = n
         self.modname = modname
+        return
 
     def __repr__(self):
         return '<CodeUnit name=%r filename=%r>' % (self.name, self.filename)
@@ -77,10 +79,12 @@ class CodeUnit(object):
     def source_file(self):
         if os.path.exists(self.filename):
             return open_source(self.filename)
-        source = self.file_locator.get_zip_data(self.filename)
-        if source is not None:
-            return StringIO(source)
-        raise CoverageException("No source for code '%s'." % self.filename)
+        else:
+            source = self.file_locator.get_zip_data(self.filename)
+            if source is not None:
+                return StringIO(source)
+            raise CoverageException("No source for code '%s'." % self.filename)
+            return
 
     def should_be_python(self):
         _, ext = os.path.splitext(self.filename)

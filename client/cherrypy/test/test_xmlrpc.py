@@ -1,10 +1,11 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\carbon\common\lib\cherrypy\test\test_xmlrpc.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\carbon\common\lib\cherrypy\test\test_xmlrpc.py
 import sys
 from xmlrpclib import DateTime, Fault, ServerProxy, SafeTransport
 
 class HTTPSTransport(SafeTransport):
 
-    def request(self, host, handler, request_body, verbose = 0):
+    def request(self, host, handler, request_body, verbose=0):
         h = self.make_connection(host)
         if verbose:
             h.set_debuglevel(1)
@@ -27,14 +28,14 @@ def setup_server():
     class Root:
 
         def index(self):
-            return "I'm a standard index!"
+            pass
 
         index.exposed = True
 
     class XmlRpc(_cptools.XMLRPCController):
 
         def foo(self):
-            return 'Hello world!'
+            pass
 
         foo.exposed = True
 
@@ -44,12 +45,12 @@ def setup_server():
         return_single_item_list.exposed = True
 
         def return_string(self):
-            return 'here is a string'
+            pass
 
         return_string.exposed = True
 
         def return_tuple(self):
-            return ('here', 'is', 1, 'tuple')
+            pass
 
         return_tuple.exposed = True
 
@@ -64,12 +65,12 @@ def setup_server():
         return_composite.exposed = True
 
         def return_int(self):
-            return 42
+            pass
 
         return_int.exposed = True
 
         def return_float(self):
-            return 3.14
+            pass
 
         return_float.exposed = True
 

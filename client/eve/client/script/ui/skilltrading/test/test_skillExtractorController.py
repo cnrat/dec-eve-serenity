@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\client\script\ui\skilltrading\test\test_skillExtractorController.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\client\script\ui\skilltrading\test\test_skillExtractorController.py
 from itertools import izip
 import mock
 import unittest
@@ -13,6 +14,7 @@ class SkillExtractorControllerTestImpl(SkillExtractorControllerBase):
         self._mock_skill_restrictions = {}
         self._final_extracted_skills = None
         self._final_itemID = None
+        return
 
     def GetSkills(self):
         skills = []
@@ -38,13 +40,14 @@ class SkillExtractorControllerTestImpl(SkillExtractorControllerBase):
 
 class SkillFixture(SkillBase):
 
-    def __init__(self, typeID, points, rank, requirements = None, dependencies = None):
+    def __init__(self, typeID, points, rank, requirements=None, dependencies=None):
         super(SkillFixture, self).__init__(typeID=typeID, points=points)
         self._rank = rank
         self._requirements = requirements if requirements is not None else {}
         self._dependencies = dependencies if dependencies is not None else {}
         self.onUpdateHandler = mock.Mock()
         self.onUpdate.connect(self.onUpdateHandler)
+        return
 
     def GetRequirements(self):
         return self._requirements
@@ -680,7 +683,7 @@ class TestSkillExtractorController(unittest.TestCase):
             self.assertEqual(skill.level, expected_skill['level'])
             self.assertEqual(skill.rank, expected_skill['rank'])
 
-    def addSkill(self, typeID = None, points = SP_R1_L1, rank = 1.0, requirements = None, restrictedLevel = None):
+    def addSkill(self, typeID=None, points=SP_R1_L1, rank=1.0, requirements=None, restrictedLevel=None):
         if typeID is None:
             typeID = self._next_skill_id
             self._next_skill_id += 1

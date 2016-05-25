@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\packages\dogma\dogmaLogging.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\packages\dogma\dogmaLogging.py
 try:
     from log import LogTraceback, LogException, LogInfo, LogNotice, LogWarn, LogError
 except ImportError:
@@ -54,7 +55,7 @@ def EvalArgs(context, *args):
     return ';'.join([ '{} = {}'.format(i, eval(i, context)) for i in args ])
 
 
-def FormatDictMembers(myDict, members = None):
+def FormatDictMembers(myDict, members=None):
     if members is None:
         members = myDict
     stringParts = [ '\n  {} : {}'.format(m, repr(myDict[m])) for m in members ]
@@ -68,7 +69,7 @@ def PrettifyString(s):
     opener = '([{<'
     closer = ')]}>'
 
-    def newline(chars, indent, INDENT_DEPTH = 2):
+    def newline(chars, indent, INDENT_DEPTH=2):
         chars.append('\n')
         for i in range(indent * INDENT_DEPTH):
             chars.append(' ')
@@ -128,43 +129,46 @@ def DecodeID(someID):
     return descr
 
 
-def TraceReferrers(target, prefix = '', depth = 0, visited = None, breadthLimit = 5, depthLimit = 6):
+def TraceReferrers(target, prefix='', depth=0, visited=None, breadthLimit=5, depthLimit=6):
     if depth > depthLimit:
         LogWarn(prefix, '-- bailing due to excess depth!')
         return
-    if visited is None:
-        visited = set()
-    targetAddr = id(target)
-    visited.add(targetAddr)
-    import gc
-    import types
-    referrers = gc.get_referrers(target)
-    numChildrenProcessed = 0
-    for i in range(len(referrers)):
-        r = referrers[i]
-        if isinstance(r, types.FrameType):
-            continue
-        commonDescription = '{}{} : {} at {}'.format(prefix, str(i), type(r).__name__, id(r))
-        if isinstance(r, dict):
-            keys = r.keys()
-            names = [ name for name, val in r.iteritems() if val == target ]
-            LogWarn(commonDescription, 'via', names, 'of', keys)
-        else:
-            LogWarn(commonDescription)
-        valString = str(r)
-        if len(valString) > 200:
-            LogWarn('  value (truncated):', valString[:200])
-        else:
-            LogWarn('  value:', r)
-        if id(r) in visited:
-            LogWarn('  -- already visited')
-            continue
-        if numChildrenProcessed == breadthLimit:
-            LogWarn('  -- truncating due to breadthLimit of', breadthLimit)
-            break
-        referrers[i] = 'removed'
-        TraceReferrers(r, prefix=prefix + str(i) + '.', depth=depth + 1, visited=visited, depthLimit=depthLimit)
-        numChildrenProcessed += 1
+    else:
+        if visited is None:
+            visited = set()
+        targetAddr = id(target)
+        visited.add(targetAddr)
+        import gc
+        import types
+        referrers = gc.get_referrers(target)
+        numChildrenProcessed = 0
+        for i in range(len(referrers)):
+            r = referrers[i]
+            if isinstance(r, types.FrameType):
+                continue
+            commonDescription = '{}{} : {} at {}'.format(prefix, str(i), type(r).__name__, id(r))
+            if isinstance(r, dict):
+                keys = r.keys()
+                names = [ name for name, val in r.iteritems() if val == target ]
+                LogWarn(commonDescription, 'via', names, 'of', keys)
+            else:
+                LogWarn(commonDescription)
+            valString = str(r)
+            if len(valString) > 200:
+                LogWarn('  value (truncated):', valString[:200])
+            else:
+                LogWarn('  value:', r)
+            if id(r) in visited:
+                LogWarn('  -- already visited')
+                continue
+            if numChildrenProcessed == breadthLimit:
+                LogWarn('  -- truncating due to breadthLimit of', breadthLimit)
+                break
+            referrers[i] = 'removed'
+            TraceReferrers(r, prefix=prefix + str(i) + '.', depth=depth + 1, visited=visited, depthLimit=depthLimit)
+            numChildrenProcessed += 1
+
+        return
 
 
 def WrappedMethod(m):

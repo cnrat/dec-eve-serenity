@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\carbon\common\lib\werkzeug\exceptions.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\carbon\common\lib\werkzeug\exceptions.py
 import sys
 from werkzeug._internal import HTTP_STATUS_CODES, _get_environ
 
@@ -6,17 +7,18 @@ class HTTPException(Exception):
     code = None
     description = None
 
-    def __init__(self, description = None):
+    def __init__(self, description=None):
         Exception.__init__(self, '%d %s' % (self.code, self.name))
         if description is not None:
             self.description = description
+        return
 
     @classmethod
-    def wrap(cls, exception, name = None):
+    def wrap(cls, exception, name=None):
 
         class newcls(cls, exception):
 
-            def __init__(self, arg = None, description = None):
+            def __init__(self, arg=None, description=None):
                 cls.__init__(self, description)
                 exception.__init__(self, arg)
 
@@ -97,7 +99,7 @@ class NotFound(HTTPException):
 class MethodNotAllowed(HTTPException):
     code = 405
 
-    def __init__(self, valid_methods = None, description = None):
+    def __init__(self, valid_methods=None, description=None):
         HTTPException.__init__(self, description)
         self.valid_methods = valid_methods
 
@@ -184,6 +186,8 @@ def _find_exceptions():
         except TypeError:
             continue
 
+    return
+
 
 _find_exceptions()
 del _find_exceptions
@@ -191,12 +195,13 @@ HTTPUnicodeError = BadRequest.wrap(UnicodeError, 'HTTPUnicodeError')
 
 class Aborter(object):
 
-    def __init__(self, mapping = None, extra = None):
+    def __init__(self, mapping=None, extra=None):
         if mapping is None:
             mapping = default_exceptions
         self.mapping = dict(mapping)
         if extra is not None:
             self.mapping.update(extra)
+        return
 
     def __call__(self, code, *args, **kwargs):
         if not args and not kwargs and not isinstance(code, (int, long)):

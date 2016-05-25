@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\packages\carbonui\control\scrollentries.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\packages\carbonui\control\scrollentries.py
 from carbonui.control.baselink import BaseLinkCoreOverride as BaseLink
 from eve.client.script.ui.control.eveWindowUnderlay import ListEntryUnderlay
 import fontConst
@@ -31,6 +32,7 @@ class SE_BaseClassCore(Container):
         self._hiliteFill = None
         self._isSelected = False
         self._showHilite = attributes.get('showHilite', self.default_showHilite)
+        return
 
     def GetTooltipPanelClassInfo(self):
         if self.sr.node and self.sr.node.tooltipPanelClassInfo:
@@ -39,13 +41,14 @@ class SE_BaseClassCore(Container):
     def GetTooltipPointer(self):
         if self.sr.node and self.sr.node.tooltipPanelClassInfo:
             return getattr(self.sr.node.tooltipPanelClassInfo, 'tooltipPointer', None)
-        return uiconst.POINT_RIGHT_2
+        else:
+            return uiconst.POINT_RIGHT_2
 
     def ConstructHiliteFill(self):
         if not self._hiliteFill:
             self._hiliteFill = ListEntryUnderlay(bgParent=self)
 
-    def ShowHilite(self, animate = True):
+    def ShowHilite(self, animate=True):
         if self._isSelected or not self._showHilite:
             return
         self.ConstructHiliteFill()
@@ -55,7 +58,7 @@ class SE_BaseClassCore(Container):
         sm.GetService('audio').SendUIEvent('wise:/msg_ListEntryEnter_play')
         self.ShowHilite()
 
-    def HideHilite(self, animate = True):
+    def HideHilite(self, animate=True):
         if self._isSelected or not self._showHilite:
             return
         self.ConstructHiliteFill()
@@ -64,14 +67,14 @@ class SE_BaseClassCore(Container):
     def OnMouseExit(self, *args):
         self.HideHilite()
 
-    def Select(self, animate = True):
+    def Select(self, animate=True):
         if self._isSelected:
             return
         self.ConstructHiliteFill()
         self._isSelected = True
         self._hiliteFill.Select()
 
-    def Deselect(self, animate = True):
+    def Deselect(self, animate=True):
         if not self._isSelected:
             return
         if self._hiliteFill:
@@ -85,7 +88,7 @@ class SE_BaseClassCore(Container):
 
     @classmethod
     def GetCopyData(cls, node):
-        return ''
+        pass
 
 
 class SE_SpaceCore(SE_BaseClassCore):
@@ -153,6 +156,7 @@ class SE_GenericCore(SE_BaseClassCore):
             self.EnableDblClick()
         else:
             self.DisableDblClick()
+        return
 
     def GetDynamicHeight(node, width):
         height = uicore.font.GetTextHeight(node.label, width=width - 5 + 16 * node.get('sublevel', 0), fontStyle=node.get('fontStyle', None), fontsize=node.get('fontsize', fontConst.DEFAULT_FONTSIZE), letterspace=node.get('letterspace', 0), maxLines=node.get('maxLines', 1)) + 4
@@ -161,27 +165,32 @@ class SE_GenericCore(SE_BaseClassCore):
     def OnMouseHover(self, *args):
         if self.sr.get('node', None) and self.sr.node.get('OnMouseHover', None):
             self.sr.node.OnMouseHover(self)
+        return
 
     def OnMouseEnter(self, *args):
         SE_BaseClassCore.OnMouseEnter(self, *args)
         if self.sr.get('node', None) and self.sr.node.get('OnMouseEnter', None):
             self.sr.node.OnMouseEnter(self)
+        return
 
     def OnMouseExit(self, *args):
         SE_BaseClassCore.OnMouseExit(self, *args)
         if self.sr.get('node', None) and self.sr.node.get('OnMouseExit', None):
             self.sr.node.OnMouseExit(self)
+        return
 
     def OnClick(self, *args):
         if self.sr.get('node', None):
             if self.sr.node.get('OnClick', None):
                 self.sr.node.OnClick(self)
+        return
 
     def EnableDblClick(self):
         self.OnDblClick = self.DblClick
 
     def DisableDblClick(self):
         self.OnDblClick = None
+        return
 
     def DblClick(self, *args):
         if self.sr.node:
@@ -190,6 +199,7 @@ class SE_GenericCore(SE_BaseClassCore):
                 self.sr.node.OnDblClick(self)
             elif getattr(self, 'confirmOnDblClick', None):
                 uicore.registry.Confirm(self)
+        return
 
     def OnMouseDown(self, *args):
         SE_BaseClassCore.OnMouseDown(self, *args)
@@ -197,16 +207,19 @@ class SE_GenericCore(SE_BaseClassCore):
         uicore.Message('ListEntryClick')
         if self.sr.get('node', None) and self.sr.node.get('OnMouseDown', None):
             self.sr.node.OnMouseDown(self)
+        return
 
     def OnMouseUp(self, *args):
         SE_BaseClassCore.OnMouseUp(self, *args)
         if self.sr.get('node', None) and self.sr.node.get('OnMouseUp', None):
             self.sr.node.OnMouseUp(self)
+        return
 
     def GetMenu(self):
         if self.sr.get('node', None) and self.sr.node.get('OnGetMenu', None):
             return self.sr.node.OnGetMenu(self)
-        return []
+        else:
+            return []
 
 
 class SE_TextlineCore(SE_BaseClassCore, BaseLink):
@@ -222,25 +235,29 @@ class SE_TextlineCore(SE_BaseClassCore, BaseLink):
         self.sr.cursortimer = None
         self.sr.textselection = None
         self.Prepare_()
+        return
 
     def Prepare_(self, *args):
         self.sr.sprite = None
         self.sr.inlines = Container(name='inlines', parent=self)
         self.sr.links = Container(name='links', parent=self)
         self.sr.textselection = None
+        return
 
     def _OnClose(self):
         if self.destroyed:
             return
-        self.Unload()
-        if self.sr.node:
-            for inline, x in self.sr.node.Get('inlines', []):
-                control = inline.control
-                if control and getattr(control, '__guid__', '').startswith('uicls.SE_'):
-                    inline.control = None
-                    control.Close()
+        else:
+            self.Unload()
+            if self.sr.node:
+                for inline, x in self.sr.node.Get('inlines', []):
+                    control = inline.control
+                    if control and getattr(control, '__guid__', '').startswith('uicls.SE_'):
+                        inline.control = None
+                        control.Close()
 
-        SE_BaseClassCore._OnClose(self)
+            SE_BaseClassCore._OnClose(self)
+            return
 
     def Load(self, node):
         self.sr.links.Flush()
@@ -286,40 +303,43 @@ class SE_TextlineCore(SE_BaseClassCore, BaseLink):
         self.Unload()
         if not self.sr.node.scroll:
             return
-        scrollwidth = self.sr.node.scroll.GetContentWidth()
-        linewidth = self.sr.node.Get('lineWidth', 0)
-        lineHeight = self.sr.node.Get('maxBaseHeight', 12)
-        leftMargin = self.sr.node.Get('lpush', self.sr.node.scroll.xmargin)
-        rightMargin = self.sr.node.Get('rpush', self.sr.node.scroll.xmargin)
-        self.sr.inlines.left = max(0, self.leftM)
-        import uicls
-        import html
-        for inline, x in self.sr.node.Get('inlines', []):
-            control = getattr(inline, 'control', None)
-            if control and not control.destroyed:
-                control.SetParent(self.sr.inlines)
-            else:
-                decoClass = getattr(uicls, 'SE_' + inline.attrs.type, None)
-                if not decoClass:
-                    continue
-                control = self.sr.node.scroll.GetInline(ScrollEntryNode(decoClass=decoClass, attrs=inline.attrs))
-                if not self or self.destroyed:
-                    return
-                control.SetParent(self.sr.inlines)
-                inline.control = control
-            control.top = 0
-            if inline.valign == html.ALIGNMIDDLE:
-                control.top = (self.height - inline.inlineHeight) / 2
-            elif inline.valign in (html.ALIGNBOTTOM, html.ALIGNSUB):
-                control.top = self.height - inline.inlineHeight
-            elif inline.valign == html.ALIGNBASELINE:
-                control.top = self.sr.node.Get('maxBaseLine', 12) - inline.inlineHeight
-            control.left = int(x)
-            control.height = inline.inlineHeight
-            control.width = inline.inlineWidth
-            if hasattr(control, 'Load') and not control.loaded:
-                control.Load()
-            control.state = uiconst.UI_NORMAL
+        else:
+            scrollwidth = self.sr.node.scroll.GetContentWidth()
+            linewidth = self.sr.node.Get('lineWidth', 0)
+            lineHeight = self.sr.node.Get('maxBaseHeight', 12)
+            leftMargin = self.sr.node.Get('lpush', self.sr.node.scroll.xmargin)
+            rightMargin = self.sr.node.Get('rpush', self.sr.node.scroll.xmargin)
+            self.sr.inlines.left = max(0, self.leftM)
+            import uicls
+            import html
+            for inline, x in self.sr.node.Get('inlines', []):
+                control = getattr(inline, 'control', None)
+                if control and not control.destroyed:
+                    control.SetParent(self.sr.inlines)
+                else:
+                    decoClass = getattr(uicls, 'SE_' + inline.attrs.type, None)
+                    if not decoClass:
+                        continue
+                    control = self.sr.node.scroll.GetInline(ScrollEntryNode(decoClass=decoClass, attrs=inline.attrs))
+                    if not self or self.destroyed:
+                        return
+                    control.SetParent(self.sr.inlines)
+                    inline.control = control
+                control.top = 0
+                if inline.valign == html.ALIGNMIDDLE:
+                    control.top = (self.height - inline.inlineHeight) / 2
+                elif inline.valign in (html.ALIGNBOTTOM, html.ALIGNSUB):
+                    control.top = self.height - inline.inlineHeight
+                elif inline.valign == html.ALIGNBASELINE:
+                    control.top = self.sr.node.Get('maxBaseLine', 12) - inline.inlineHeight
+                control.left = int(x)
+                control.height = inline.inlineHeight
+                control.width = inline.inlineWidth
+                if hasattr(control, 'Load') and not control.loaded:
+                    control.Load()
+                control.state = uiconst.UI_NORMAL
+
+            return
 
     def RenderLine(self):
         if not self.sr.node.scroll:
@@ -361,45 +381,47 @@ class SE_TextlineCore(SE_BaseClassCore, BaseLink):
         self.sr.xMin = 0
         if not self.sr.node.glyphString:
             return
-        node = self.sr.node
-        glyphstring = node.glyphString
-        bBox = node.bBox
-        sprite = self.GetSprite()
-        if not bBox or bBox.Width() <= 0 or bBox.Height() <= 0:
-            sprite.state = uiconst.UI_HIDDEN
-            return
-        surfaceWidth = bBox.Width()
-        surfaceHeight = glyphstring.baseHeight
-        sprite.left += bBox.xMin
-        if glyphstring.shadow:
-            sx, sy, scol = glyphstring.shadow[-1]
-            surfaceWidth += sx
-            surfaceHeight -= sy
-        sprite.texture = None
-        texturePrimary = trinity.Tr2Sprite2dTexture()
-        texturePrimary.atlasTexture = uicore.uilib.CreateTexture(surfaceWidth, surfaceHeight)
-        sprite.texture = texturePrimary
-        sprite.useSizeFromTexture = True
-        try:
-            bufferData = texturePrimary.atlasTexture.LockBuffer()
-        except AttributeError:
-            if texturePrimary and texturePrimary.atlasTexture:
-                texturePrimary.atlasTexture.UnlockBuffer()
-                bufferData = texturePrimary.atlasTexture.LockBuffer()
-            else:
-                self.display = False
+        else:
+            node = self.sr.node
+            glyphstring = node.glyphString
+            bBox = node.bBox
+            sprite = self.GetSprite()
+            if not bBox or bBox.Width() <= 0 or bBox.Height() <= 0:
+                sprite.state = uiconst.UI_HIDDEN
                 return
+            surfaceWidth = bBox.Width()
+            surfaceHeight = glyphstring.baseHeight
+            sprite.left += bBox.xMin
+            if glyphstring.shadow:
+                sx, sy, scol = glyphstring.shadow[-1]
+                surfaceWidth += sx
+                surfaceHeight -= sy
+            sprite.texture = None
+            texturePrimary = trinity.Tr2Sprite2dTexture()
+            texturePrimary.atlasTexture = uicore.uilib.CreateTexture(surfaceWidth, surfaceHeight)
+            sprite.texture = texturePrimary
+            sprite.useSizeFromTexture = True
+            try:
+                bufferData = texturePrimary.atlasTexture.LockBuffer()
+            except AttributeError:
+                if texturePrimary and texturePrimary.atlasTexture:
+                    texturePrimary.atlasTexture.UnlockBuffer()
+                    bufferData = texturePrimary.atlasTexture.LockBuffer()
+                else:
+                    self.display = False
+                    return
 
-        try:
-            buf = SE_TextlineCore.TexResBuf(bufferData)
-            trinity.fontMan.ClearBuffer(buf.data, buf.width, buf.height, buf.pitch)
-            glyphstring.DrawToBuf(buf, -bBox.xMin, glyphstring.baseHeight - glyphstring.baseLine)
-        finally:
-            texturePrimary.atlasTexture.UnlockBuffer()
+            try:
+                buf = SE_TextlineCore.TexResBuf(bufferData)
+                trinity.fontMan.ClearBuffer(buf.data, buf.width, buf.height, buf.pitch)
+                glyphstring.DrawToBuf(buf, -bBox.xMin, glyphstring.baseHeight - glyphstring.baseLine)
+            finally:
+                texturePrimary.atlasTexture.UnlockBuffer()
 
-        sprite.top = 0
-        self.sr.xMin = bBox.xMin
-        sprite.state = uiconst.UI_PICKCHILDREN
+            sprite.top = 0
+            self.sr.xMin = bBox.xMin
+            sprite.state = uiconst.UI_PICKCHILDREN
+            return
 
     def StartLink(self, attrs):
         link = BaseLink(parent=self.sr.links)
@@ -448,6 +470,8 @@ class SE_TextlineCore(SE_BaseClassCore, BaseLink):
                         self.HiliteLink(item)
                         self.sr.hiliteLinks.append(item)
 
+        return
+
     def HiliteLink(self, link):
         if link.sr.attrs.alink_color:
             c = link.sr.attrs.alink_color
@@ -469,6 +493,7 @@ class SE_TextlineCore(SE_BaseClassCore, BaseLink):
             func = getattr(handler, funcName, None)
             if func:
                 return apply(func, args)
+        return
 
     def GetMenu(self):
         self.sr.node.scroll.ShowHint('')
@@ -517,34 +542,36 @@ class SE_TextlineCore(SE_BaseClassCore, BaseLink):
     def UpdateSelectionHilite(self):
         if not self.sr.node:
             return
-        scrollAbove = self.GetScrollAbove()
-        f = uicore.registry.GetFocus()
-        if not scrollAbove or scrollAbove is not f or not trinity.app.IsActive():
-            selectionAlpha = 0.125
         else:
-            selectionAlpha = 0.25
-        if self.sr.node.selectionStartIndex is not None:
-            if self.sr.textselection is None:
-                self.sr.textselection = Fill(parent=self, align=uiconst.TOPLEFT, state=uiconst.UI_HIDDEN)
-            self.sr.textselection.SetAlpha(selectionAlpha)
-            if self.sr.node.inlines:
-                left = 0
-                width = 0
-                for inline, x in self.sr.node.inlines:
-                    width = max(width, inline.width)
-
+            scrollAbove = self.GetScrollAbove()
+            f = uicore.registry.GetFocus()
+            if not scrollAbove or scrollAbove is not f or not trinity.app.IsActive():
+                selectionAlpha = 0.125
             else:
-                left = uicore.font.GetWidthToIdx(self.sr.node, self.sr.node.selectionStartIndex)
-                right = uicore.font.GetWidthToIdx(self.sr.node, self.sr.node.selectionEndIndex)
-                width = uicore.ReverseScaleDpi(right - left)
-                left = uicore.ReverseScaleDpi(left)
-            self.sr.textselection.left = self.leftM + left
-            self.sr.textselection.width = width
-            self.sr.textselection.height = self.height
-            self.sr.textselection.top = 0
-            self.sr.textselection.state = uiconst.UI_DISABLED
-        elif self.sr.textselection:
-            self.sr.textselection.state = uiconst.UI_HIDDEN
+                selectionAlpha = 0.25
+            if self.sr.node.selectionStartIndex is not None:
+                if self.sr.textselection is None:
+                    self.sr.textselection = Fill(parent=self, align=uiconst.TOPLEFT, state=uiconst.UI_HIDDEN)
+                self.sr.textselection.SetAlpha(selectionAlpha)
+                if self.sr.node.inlines:
+                    left = 0
+                    width = 0
+                    for inline, x in self.sr.node.inlines:
+                        width = max(width, inline.width)
+
+                else:
+                    left = uicore.font.GetWidthToIdx(self.sr.node, self.sr.node.selectionStartIndex)
+                    right = uicore.font.GetWidthToIdx(self.sr.node, self.sr.node.selectionEndIndex)
+                    width = uicore.ReverseScaleDpi(right - left)
+                    left = uicore.ReverseScaleDpi(left)
+                self.sr.textselection.left = self.leftM + left
+                self.sr.textselection.width = width
+                self.sr.textselection.height = self.height
+                self.sr.textselection.top = 0
+                self.sr.textselection.state = uiconst.UI_DISABLED
+            elif self.sr.textselection:
+                self.sr.textselection.state = uiconst.UI_HIDDEN
+            return
 
     def UpdateCursor(self):
         if self.sr.node.cursorPos is not None:
@@ -561,6 +588,7 @@ class SE_TextlineCore(SE_BaseClassCore, BaseLink):
         elif self.sr.textcursor:
             self.sr.cursortimer = None
             self.sr.textcursor.state = uiconst.UI_HIDDEN
+        return
 
     def GetCursorOffset(self):
         if self.sr.textcursor:
@@ -573,13 +601,15 @@ class SE_TextlineCore(SE_BaseClassCore, BaseLink):
                 self.sr.textcursor.state = uiconst.UI_HIDDEN
             self.sr.cursortimer = None
             return
-        if f and self.IsUnder(f) and self.sr.node.cursorPos is not None and self.sr.textcursor is not None:
-            self.sr.textcursor.state = [uiconst.UI_HIDDEN, uiconst.UI_DISABLED][self.sr.textcursor.state == uiconst.UI_HIDDEN]
-            if self.sr.cursortimer is None:
-                self.sr.cursortimer = AutoTimer(250, self.CursorBlink)
         else:
-            self.sr.cursortimer = None
-            self.sr.textcursor.state = uiconst.UI_HIDDEN
+            if f and self.IsUnder(f) and self.sr.node.cursorPos is not None and self.sr.textcursor is not None:
+                self.sr.textcursor.state = [uiconst.UI_HIDDEN, uiconst.UI_DISABLED][self.sr.textcursor.state == uiconst.UI_HIDDEN]
+                if self.sr.cursortimer is None:
+                    self.sr.cursortimer = AutoTimer(250, self.CursorBlink)
+            else:
+                self.sr.cursortimer = None
+                self.sr.textcursor.state = uiconst.UI_HIDDEN
+            return
 
     def GetCopyData(self, fromIdx, toIdx):
         return uicore.font.GetNodeCopyData(self.sr.node, fromIdx, toIdx)
@@ -587,9 +617,10 @@ class SE_TextlineCore(SE_BaseClassCore, BaseLink):
     def GetText(self, node):
         if node.rawText:
             return node.rawText
-        text = ''.join([ glyphData[4] for glyphData in self.sr.node.glyphString if glyphData[4] != None ])
-        node.rawText = text
-        return text
+        else:
+            text = ''.join([ glyphData[4] for glyphData in self.sr.node.glyphString if glyphData[4] != None ])
+            node.rawText = text
+            return text
 
     def GetDynamicHeight(node, width):
         return node.maxBaseHeight
@@ -605,10 +636,12 @@ class SE_ListGroupCore(SE_BaseClassCore):
         self.dblclick = 0
         self.sr.expander = None
         self.sr.icon = None
+        return
 
     def _OnClose(self):
         SE_BaseClassCore._OnClose(self)
         self.sr.entries = None
+        return
 
     def Startup(self, *etc):
         self.Prepare_ExpanderIcon_()
@@ -672,38 +705,43 @@ class SE_ListGroupCore(SE_BaseClassCore):
             self.sr.icon.width = self.sr.icon.height = 16
         if node.panel is not self or self is None:
             return
-        self.ShowOpenState(uicore.registry.GetListGroupOpenState(self.sr.id, default=node.get('openByDefault', False)))
+        else:
+            self.ShowOpenState(uicore.registry.GetListGroupOpenState(self.sr.id, default=node.get('openByDefault', False)))
+            return
 
     def OnDropData(self, dragObj, nodes):
         if self == dragObj:
             return
-        if self.sr.node.get('DropData', None):
+        elif self.sr.node.get('DropData', None):
             self.sr.node.DropData(self.sr.node.id, nodes)
             return
-        ids = []
-        myListGroupID = self.sr.node.id
-        for node in nodes:
-            if node.__guid__ not in self.sr.node.get('allowGuids', []):
-                log.LogWarn('dropnode.__guid__ has to be listed in group.node.allowGuids', node.__guid__, self.sr.node.get('allowGuids', []))
-                continue
-            if not node.get('itemID', None):
-                log.LogWarn('dropitem data has to have itemID')
-                continue
-            currentListGroupID = node.get('listGroupID', None)
-            ids.append((node.itemID, currentListGroupID, myListGroupID))
-
-        for itemID, currentListGroupID, myListGroupID in ids:
-            if currentListGroupID and itemID:
-                uicore.registry.RemoveFromListGroup(currentListGroupID, itemID)
-            uicore.registry.AddToListGroup(myListGroupID, itemID)
-
-        if self.sr.node.get('RefreshScroll', None):
-            self.sr.node.RefreshScroll()
         else:
-            self.RefreshScroll()
+            ids = []
+            myListGroupID = self.sr.node.id
+            for node in nodes:
+                if node.__guid__ not in self.sr.node.get('allowGuids', []):
+                    log.LogWarn('dropnode.__guid__ has to be listed in group.node.allowGuids', node.__guid__, self.sr.node.get('allowGuids', []))
+                    continue
+                if not node.get('itemID', None):
+                    log.LogWarn('dropitem data has to have itemID')
+                    continue
+                currentListGroupID = node.get('listGroupID', None)
+                ids.append((node.itemID, currentListGroupID, myListGroupID))
+
+            for itemID, currentListGroupID, myListGroupID in ids:
+                if currentListGroupID and itemID:
+                    uicore.registry.RemoveFromListGroup(currentListGroupID, itemID)
+                uicore.registry.AddToListGroup(myListGroupID, itemID)
+
+            if self.sr.node.get('RefreshScroll', None):
+                self.sr.node.RefreshScroll()
+            else:
+                self.RefreshScroll()
+            return
 
     def Clear(self):
         self.sr.node.panel = None
+        return
 
     def OnClick(self, *args):
         if not self.dblclick and not self.sr.node.get('disableToggle', 0):
@@ -712,11 +750,13 @@ class SE_ListGroupCore(SE_BaseClassCore):
             self.sr.node.scroll.SelectNode(self.sr.node)
         if not self.destroyed and self.sr.get('node', None) and self.sr.node.get('OnClick', None):
             self.sr.node.OnClick(self)
+        return
 
     def OnMouseDown(self, *args):
         SE_BaseClassCore.OnMouseDown(self, *args)
         if self.sr.get('node', None) and self.sr.node.get('OnMouseDown', None):
             self.sr.node.OnMouseDown(self)
+        return
 
     def RefreshScroll(self):
         node = self.sr.node
@@ -759,6 +799,7 @@ class SE_ListGroupCore(SE_BaseClassCore):
 
                 node.subEntries = entries
         self.UpdateLabel()
+        return
 
     def GetNoItemEntry(self):
         return None
@@ -768,37 +809,40 @@ class SE_ListGroupCore(SE_BaseClassCore):
         node = self.sr.node
         if not node.get('showmenu', True):
             return m
-        if not node.open:
-            m += [(MenuLabel('/Carbon/UI/Common/Expand'), self.Toggle, ())]
         else:
-            m += [(MenuLabel('/Carbon/UI/Common/Collapse'), self.Toggle, ())]
-        if node.get('state', None) != 'locked':
-            m += [(MenuLabel('/Carbon/UI/Controls/ScrollEntries/ChangeLabel'), self.ChangeLabel)]
-            m += [(MenuLabel('/Carbon/UI/Controls/ScrollEntries/DeleteFolder'), self.DeleteFolder)]
-        if node.get('MenuFunction', None):
-            cm = node.MenuFunction(node)
-            m += cm
-        return m
+            if not node.open:
+                m += [(MenuLabel('/Carbon/UI/Common/Expand'), self.Toggle, ())]
+            else:
+                m += [(MenuLabel('/Carbon/UI/Common/Collapse'), self.Toggle, ())]
+            if node.get('state', None) != 'locked':
+                m += [(MenuLabel('/Carbon/UI/Controls/ScrollEntries/ChangeLabel'), self.ChangeLabel)]
+                m += [(MenuLabel('/Carbon/UI/Controls/ScrollEntries/DeleteFolder'), self.DeleteFolder)]
+            if node.get('MenuFunction', None):
+                cm = node.MenuFunction(node)
+                m += cm
+            return m
 
     def ChangeLabel(self):
         newgroupName = self.GetNewGroupName()
         if not newgroupName or not self or self.destroyed:
             return
-        if isinstance(newgroupName, dict):
-            newgroupName = newgroupName['name']
-        self.sr.node.label = newgroupName
-        if self.sr.node.get('ChangeLabel', None):
-            self.sr.node.ChangeLabel(self.sr.node.id, newgroupName)
-        uicore.registry.ChangeListGroupLabel(self.sr.node.id, newgroupName)
-        wnd = uicore.registry.GetWindow(unicode(self.sr.node.id))
-        if wnd:
-            wnd.SetCaption('     ' + newgroupName)
-        if self.sr.node.get('DropCallback', None):
-            self.sr.node.DropCallback(self.sr.node.id, None)
-        if self.sr.node.get('RefreshScroll', None):
-            self.sr.node.RefreshScroll()
         else:
-            self.RefreshScroll()
+            if isinstance(newgroupName, dict):
+                newgroupName = newgroupName['name']
+            self.sr.node.label = newgroupName
+            if self.sr.node.get('ChangeLabel', None):
+                self.sr.node.ChangeLabel(self.sr.node.id, newgroupName)
+            uicore.registry.ChangeListGroupLabel(self.sr.node.id, newgroupName)
+            wnd = uicore.registry.GetWindow(unicode(self.sr.node.id))
+            if wnd:
+                wnd.SetCaption('     ' + newgroupName)
+            if self.sr.node.get('DropCallback', None):
+                self.sr.node.DropCallback(self.sr.node.id, None)
+            if self.sr.node.get('RefreshScroll', None):
+                self.sr.node.RefreshScroll()
+            else:
+                self.RefreshScroll()
+            return
 
     def GetNewGroupName(self):
         import uiutil
@@ -819,6 +863,7 @@ class SE_ListGroupCore(SE_BaseClassCore):
                 self.sr.node.DropCallback(id, None)
             if self.sr.node.get('RefreshScroll', None):
                 self.sr.node.RefreshScroll()
+        return
 
     def CloseWindow(self, windowID):
         wnd = uicore.registry.GetWindow(windowID)
@@ -830,6 +875,7 @@ class SE_ListGroupCore(SE_BaseClassCore):
             self.sr.node.DragEnterCallback(self, drag)
         elif getattr(nodes[0], '__guid__', None) in self.sr.node.get('allowGuids', []):
             self.Select()
+        return
 
     def OnDragExit(self, dragObj, nodes):
         self.Deselect()
@@ -871,6 +917,7 @@ class SE_ListGroupCore(SE_BaseClassCore):
             text = localization.GetByLabel('/Carbon/UI/Controls/ScrollEntries/LabelWithPostfix', label=text, postfix=posttext)
         self.sr.label.text = text
         node.label = text
+        return
 
 
 def ScrollEntryNode(**kw):

@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\carbon\common\script\net\ObjectCallGPCS.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\carbon\common\script\net\ObjectCallGPCS.py
 import blue
 import weakref
 import types
@@ -155,6 +156,7 @@ class ObjectCall():
                 retval.oob['OID+'] = self.added_objects
             retval.compressedPart = self.compressedPart
             return retval
+            return
 
     def CallDown(self, packet):
         if packet.command == const.cluster.MACHONETMSG_TYPE_AUTHENTICATION_REQ:
@@ -272,6 +274,7 @@ class ObjectCall():
                 self.compressedPart += object.CompressedPart()
             elif isinstance(object, util.Moniker):
                 object.QuickResolve()
+        return
 
     def ParseObjectID(self, objectID):
         if session is None:
@@ -323,7 +326,7 @@ class ObjectCall():
                 log.LogException('Exception during OnObjectPublicAttributesUpdated')
                 sys.exc_clear()
 
-    def ToPickle(self, value, nonblocking = 1):
+    def ToPickle(self, value, nonblocking=1):
         try:
             self.compressedPart = 0
             self.added_objects = {}
@@ -353,6 +356,8 @@ class ObjectCall():
             self.machoNet.LogError("That was NOT a nice thing to do!  Keep yo' unpicklables to yourself.")
             log.LogTraceback()
             raise
+
+        return
 
     def __StringifyPayloadForLogging(self, packet, payload):
         if self.machoNet.logChannel.IsOpen(1):
@@ -446,13 +451,14 @@ class ObjectCall():
                     packet.oob['OID+'] = self.added_objects
             self.ForwardNotifyDown(packet)
             return MachoBoobyTrap()
+            return
 
 
 class MachoBoobyTrap():
     __guid__ = 'gpcs.MachoBoobyTrap'
 
     def __str__(self):
-        return 'MachoBoobyTrap'
+        pass
 
     def __getattr__(self, attribute):
         try:
@@ -496,6 +502,7 @@ class MachoObjectConnection():
             self.__dict__['destination'] = MachoAddress(nodeID=long(nid))
         self.__dict__['deleted'] = 0
         sess.RegisterMachoObjectConnection(objectID, self, refID)
+        return
 
     def SetSessionCheck(self, sessionCheck):
         self.sessionCheck = sessionCheck
@@ -518,6 +525,8 @@ class MachoObjectConnection():
                      'objectID': self.objectID,
                      'persistantObjectID': self.persistantObjectID})
 
+        return
+
     def __del__(self):
         if not self.deleted:
             self.deleted = 1
@@ -534,13 +543,14 @@ class MachoObjectConnection():
         return '<RemoteObject:' + strx(self.__dict__['objectID']) + '>'
 
     def __nonzero__(self):
-        return 1
+        pass
 
     def __repr__(self):
         return '<RemoteObject:' + strx(self.__dict__['objectID']) + '>'
 
     def RegisterObjectChangeHandler(self, callback):
         self.objectChangeHandlers[callback] = None
+        return
 
     def UnRegisterObjectChangeHandler(self, callback):
         try:
@@ -591,3 +601,5 @@ class MachoObjectCallWrapper():
         finally:
             mask.UnMask()
             self.__dict__.clear()
+
+        return

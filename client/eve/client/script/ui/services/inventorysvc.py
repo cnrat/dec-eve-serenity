@@ -1,11 +1,12 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\client\script\ui\services\inventorysvc.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\client\script\ui\services\inventorysvc.py
 import _weakref
 import sys
 import blue
 from eve.client.script.environment.invControllers import ShipCargo
 from eve.client.script.ui.control.treeData import TreeData
 from eve.client.script.ui.shared.inventory.invCommon import SortData
-from eve.client.script.ui.shared.inventory.treeData import TreeDataShip, TreeDataInv, GetContainerDataFromItems, TreeDataStationCorp, TreeDataCelestialParent, TreeDataPOSCorp, TreeDataInvFolder, GetTreeDataClassByInvName
+from eve.client.script.ui.shared.inventory.treeData import TreeDataShip, TreeDataInv, TreeDataStationCorp, TreeDataStructureCorp, TreeDataCelestialParent, TreeDataPOSCorp, TreeDataInvFolder, GetTreeDataClassByInvName, TreeDataShipHangar, TreeDataItemHangar, TreeDataAssetSafety, TreeDataStructure
 import form
 import invCtrl
 import inventorycommon.const as invConst
@@ -32,6 +33,19 @@ class InventorySvc(service.Service):
         self.itemClipboardCopy = False
         self.tempInvLocations = set()
 
+    def _ShouldCloseContainer(self, item, change):
+        if not item.singleton:
+            return False
+        if item.groupID not in (const.groupWreck,
+         const.groupCargoContainer,
+         const.groupSecureCargoContainer,
+         const.groupAuditLogSecureContainer,
+         const.groupFreightContainer):
+            return False
+        if const.ixLocationID in change or const.ixOwnerID in change or const.ixFlag in change:
+            return True
+        return False
+
     @telemetry.ZONE_METHOD
     def OnItemChange(self, item, change):
         self.LogInfo('OnItemChange', change, item)
@@ -49,17 +63,11 @@ class InventorySvc(service.Service):
                 k = const.ixQuantity
             old[k] = v
 
-        closeContainer = 0
-        containerCookie = None
         containerName = ''
-        if item.groupID in (const.groupWreck,
-         const.groupCargoContainer,
-         const.groupSecureCargoContainer,
-         const.groupAuditLogSecureContainer,
-         const.groupFreightContainer) and item.singleton:
-            if const.ixLocationID in change or const.ixOwnerID in change or const.ixFlag in change:
-                closeContainer = 1
-                containerName = 'loot_%s' % item.itemID
+        containerCookie = None
+        closeContainer = self._ShouldCloseContainer(item, change)
+        if closeContainer:
+            containerName = 'loot_%s' % item.itemID
         for cookie, wr in self.regs.items():
             ob = wr()
             if not ob or ob.destroyed:
@@ -105,6 +113,7 @@ class InventorySvc(service.Service):
         if const.ixFlag in change:
             if change[const.ixFlag] in invConst.fittingFlags and item.flagID not in invConst.fittingFlags:
                 sm.ScatterEvent('OnModuleUnfitted')
+        return
 
     def Register(self, callbackObj):
         cookie = uthread.uniqueId() or uthread.uniqueId()
@@ -119,7 +128,7 @@ class InventorySvc(service.Service):
         else:
             log.LogWarn('inv.Unregister: Unknown cookie', cookie)
 
-    def SetItemClipboard(self, nodes, copy = False):
+    def SetItemClipboard(self, nodes, copy=False):
         newNodes = []
         for node in nodes:
             if not self.IsOnClipboard(node.item.itemID):
@@ -151,7 +160,7 @@ class InventorySvc(service.Service):
 
     def GetTemporaryInvLocations(self):
         bp = sm.GetService('michelle').GetBallpark()
-        if bp is None or not session.solarsystemid:
+        if bp is None or not session.solarsystemid or session.structureid:
             self.tempInvLocations = set()
         else:
             toRemove = []
@@ -159,8 +168,8 @@ class InventorySvc(service.Service):
                 if itemID not in bp.slimItems:
                     toRemove.append((invName, itemID))
 
-            for invID in toRemove:
-                self.tempInvLocations.remove(invID)
+        for invID in toRemove:
+            self.tempInvLocations.remove(invID)
 
         return self.tempInvLocations
 
@@ -169,41 +178,45 @@ class InventorySvc(service.Service):
             self.tempInvLocations.add(invID)
             sm.ChainEvent('ProcessTempInvLocationAdded', invID)
 
-    def RemoveTemporaryInvLocation(self, invID, byUser = False):
+    def RemoveTemporaryInvLocation(self, invID, byUser=False):
         if invID in self.tempInvLocations:
             self.tempInvLocations.remove(invID)
             sm.ChainEvent('ProcessTempInvLocationRemoved', invID, byUser)
 
-    def OnBreadcrumbTextClicked(self, linkNum, windowID1, windowID2 = ()):
+    def OnBreadcrumbTextClicked(self, linkNum, windowID1, windowID2=()):
         wnd = form.Inventory.GetIfOpen((windowID1, windowID2))
         if wnd:
             wnd.OnBreadcrumbLinkClicked(linkNum)
 
     @telemetry.ZONE_METHOD
-    def GetInvLocationTreeData(self, rootInvID = None):
+    def GetInvLocationTreeData(self, rootInvID=None):
         data = []
-        shipID = util.GetActiveShip()
-        if shipID:
-            data.append(TreeDataShip(clsName='ShipCargo', itemID=shipID, typeID=ShipCargo(shipID).GetTypeID(), cmdName='OpenCargoHoldOfActiveShip'))
+        if session.shipid:
+            if session.shipid == session.structureid:
+                data.append(TreeDataStructure(clsName='Structure', itemID=session.structureid))
+            else:
+                data.append(TreeDataShip(clsName='ShipCargo', itemID=session.shipid, typeID=ShipCargo(session.shipid).GetTypeID(), cmdName='OpenCargoHoldOfActiveShip'))
         if session.stationid2:
-            shipsData = []
-            activeShipID = util.GetActiveShip()
-            singletonShips = [ ship for ship in invCtrl.StationShips().GetItems() if ship.singleton == 1 and ship.itemID != activeShipID ]
-            cfg.evelocations.Prime([ ship.itemID for ship in singletonShips ])
-            for ship in singletonShips:
-                shipsData.append(TreeDataShip(clsName='ShipCargo', itemID=ship.itemID, typeID=ship.typeID))
-
-            SortData(shipsData)
-            data.append(TreeDataInv(clsName='StationShips', itemID=session.stationid2, children=shipsData, cmdName='OpenShipHangar'))
-            containersData = GetContainerDataFromItems(invCtrl.StationItems().GetItems())
-            data.append(TreeDataInv(clsName='StationItems', itemID=session.stationid2, children=containersData, cmdName='OpenHangarFloor'))
+            data.append(TreeDataShipHangar(clsName='StationShips', itemID=session.stationid2, cmdName='OpenShipHangar'))
+            data.append(TreeDataItemHangar(clsName='StationItems', itemID=session.stationid2, cmdName='OpenHangarFloor'))
+            if self._HangarHasAssetSafetyWrap():
+                data.append(TreeDataAssetSafety(clsName='AssetSafetyDeliveries', itemID=session.stationid2))
             if sm.GetService('corp').GetOffice() is not None:
                 forceCollapsedMembers = not (rootInvID and rootInvID[0] in ('StationCorpMember', 'StationCorpMembers'))
                 forceCollapsed = not (rootInvID and rootInvID[0] in ('StationCorpHangar', 'StationCorpHangars'))
                 data.append(TreeDataStationCorp(forceCollapsed=forceCollapsed, forceCollapsedMembers=forceCollapsedMembers))
-            deliveryRoles = const.corpRoleAccountant | const.corpRoleJuniorAccountant | const.corpRoleTrader
-            if session.corprole & deliveryRoles > 0:
+            if HasCorpDeliveryRoles():
                 data.append(TreeDataInv(clsName='StationCorpDeliveries', itemID=session.stationid2, cmdName='OpenCorpDeliveries'))
+        elif session.structureid:
+            data.append(TreeDataShipHangar(clsName='StructureShipHangar', itemID=session.structureid, cmdName='OpenShipHangar'))
+            data.append(TreeDataItemHangar(clsName='StructureItemHangar', itemID=session.structureid, cmdName='OpenHangarFloor'))
+            data.append(TreeDataItemHangar(clsName='StructureDeliveriesHangar', itemID=session.structureid))
+            if self._HangarHasAssetSafetyWrap():
+                data.append(TreeDataAssetSafety(clsName='AssetSafetyDeliveries', itemID=session.structureid))
+            if sm.GetService('structureOffices').HasOffice():
+                data.append(TreeDataStructureCorp(clsName='StructureCorpHangar', itemID=session.structureid))
+            if HasCorpDeliveryRoles():
+                data.append(TreeDataInv(clsName='StationCorpDeliveries', itemID=session.structureid, cmdName='OpenCorpDeliveries'))
         elif session.solarsystemid:
             starbaseData = []
             defensesData = []
@@ -215,6 +228,7 @@ class InventorySvc(service.Service):
                 for slimItem in bp.slimItems.values():
                     itemID = slimItem.itemID
                     groupID = slimItem.groupID
+                    categoryID = slimItem.categoryID
                     if HasCargoBayComponent(slimItem.typeID):
                         if slimItem.ownerID == session.charid or cfg.spaceComponentStaticData.GetAttributes(slimItem.typeID, CARGO_BAY).allowFreeForAll:
                             data.append(TreeDataInv(clsName='SpaceComponentInventory', itemID=itemID))
@@ -269,7 +283,13 @@ class InventorySvc(service.Service):
                 data.append(TreeDataInvFolder(label=localization.GetByLabel('UI/Inventory/StarbaseStructures'), children=starbaseData, icon='res:/ui/Texture/WindowIcons/station.png'))
         return TreeData(children=data)
 
-    def GetInvLocationTreeDataTemp(self, rootInvID = None):
+    def _HangarHasAssetSafetyWrap(self):
+        inv = sm.GetService('invCache').GetInventory(const.containerHangar)
+        if len(inv.List(flag=const.flagAssetSafety)) > 0:
+            return True
+        return False
+
+    def GetInvLocationTreeDataTemp(self, rootInvID=None):
         data = []
         tmpLocations = sm.GetService('inv').GetTemporaryInvLocations().copy()
         for invName, itemID in tmpLocations:
@@ -283,3 +303,9 @@ class InventorySvc(service.Service):
                 data.append(cls(invName, itemID=itemID, isRemovable=True))
 
         return TreeData(children=data)
+
+
+def HasCorpDeliveryRoles():
+    deliveryRoles = const.corpRoleAccountant | const.corpRoleJuniorAccountant | const.corpRoleTrader
+    hasCorpDeliveryRoles = session.corprole & deliveryRoles > 0
+    return hasCorpDeliveryRoles

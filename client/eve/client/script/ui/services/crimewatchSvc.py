@@ -1,4 +1,6 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\client\script\ui\services\crimewatchSvc.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\client\script\ui\services\crimewatchSvc.py
+from eve.common.script.sys.eveCfg import InStructure
 import service
 import util
 import moniker
@@ -48,12 +50,13 @@ class CrimewatchService(service.Service):
         self.mySecurityStatus = None
         self.jumpTimers = None
         self.corpAggressionSettings = None
+        return
 
     def ProcessSessionChange(self, isRemote, session, change):
         if 'locationid' in change:
             myCombatTimers, myEngagements, flaggedCharacters, safetyLevel = moniker.CharGetCrimewatchLocation().GetClientStates()
             self.LogInfo('ProcessSessionChange', myCombatTimers, myEngagements, flaggedCharacters, safetyLevel)
-            self.safetyLevel = safetyLevel
+            self._UpdateSafetyLevel(safetyLevel)
             weaponTimerState, pvpTimerState, npcTimerState, criminalTimerState = myCombatTimers
             self.weaponsTimerState, self.weaponsTimerExpiry = weaponTimerState
             self.pvpTimerState, self.pvpTimerExpiry = pvpTimerState
@@ -67,8 +70,25 @@ class CrimewatchService(service.Service):
             if self.duelWindow is not None:
                 self.duelWindow.Close()
                 self.duelWindow = None
+        elif 'shipid' in change and session.structureid:
+            _, _, _, safetyLevel = moniker.CharGetCrimewatchLocation().GetClientStates()
+            self.LogInfo('ProcessSessionChange', safetyLevel)
+            self._UpdateSafetyLevel(safetyLevel)
         if 'corpid' in change:
             self.RefreshCorpAggressionSettings()
+        return
+
+    def _UpdateSafetyLevel(self, safetyLevel):
+        if self.IsSafetyLockedToFullLevel():
+            safetyLevel = const.shipSafetyLevelFull
+        self.safetyLevel = safetyLevel
+
+    def IsSafetyLockedToFullLevel(self):
+        if InStructure():
+            securityClass = sm.GetService('map').GetSecurityClass(session.solarsystemid)
+            if securityClass >= const.securityClassHighSec:
+                return True
+        return False
 
     def GetSlimItemDataForCharID(self, charID):
         slimItem = None
@@ -95,7 +115,7 @@ class CrimewatchService(service.Service):
             slimItem.ownerID = charID
         return slimItem
 
-    def UpdateSuspectsAndCriminals(self, criminals, suspects, decriminalizedCharIDs = ()):
+    def UpdateSuspectsAndCriminals(self, criminals, suspects, decriminalizedCharIDs=()):
         for charID in decriminalizedCharIDs:
             try:
                 del self.criminalFlagsByCharID[charID]
@@ -142,12 +162,14 @@ class CrimewatchService(service.Service):
         if self.duelWindow is not None and self.duelWindow.charID == otherCharId:
             self.duelWindow.Close()
             self.duelWindow = None
+        return
 
     def OnCrimewatchEngagementEnded(self, otherCharId):
         self.LogInfo('OnCrimewatchEngagementEnded', otherCharId)
         if otherCharId in self.myEngagements:
             del self.myEngagements[otherCharId]
         sm.ScatterEvent('OnCrimewatchEngagementUpdated', otherCharId, None)
+        return
 
     def OnCrimewatchEngagementStartTimeout(self, otherCharId, timeout):
         self.LogInfo('OnCrimewatchEngagementStartTimeout', otherCharId, timeout)
@@ -226,7 +248,7 @@ class CrimewatchService(service.Service):
         else:
             return const.shipSafetyLevelFull
 
-    def GetSafetyLevelRestrictionForAttackingTarget(self, targetID, effect = None):
+    def GetSafetyLevelRestrictionForAttackingTarget(self, targetID, effect=None):
         securityClass = sm.GetService('map').GetSecurityClass(session.solarsystemid)
         minSafetyLevel = const.shipSafetyLevelFull
         if securityClass > const.securityClassZeroSec:
@@ -275,11 +297,11 @@ class CrimewatchService(service.Service):
         securityClass = sm.GetService('map').GetSecurityClass(session.solarsystemid)
         if securityClass == const.securityClassZeroSec:
             return True
-        if self.IsCriminallyFlagged(item.ownerID):
+        elif self.IsCriminallyFlagged(item.ownerID):
             return True
-        if self.HasLimitedEngagmentWith(item.ownerID):
+        elif self.HasLimitedEngagmentWith(item.ownerID):
             return True
-        if util.IsCharacter(item.ownerID) and util.IsOutlawStatus(item.securityStatus):
+        elif util.IsCharacter(item.ownerID) and util.IsOutlawStatus(item.securityStatus):
             return True
         if session.warfactionid:
             if hasattr(item, 'corpID') and self.facwar.IsEnemyCorporation(item.corpID, session.warfactionid):
@@ -302,9 +324,10 @@ class CrimewatchService(service.Service):
                     return True
         if IsItemFreeForAggression(item.groupID):
             return True
-        return False
+        else:
+            return False
 
-    def GetRequiredSafetyLevelForEffect(self, effect, targetID = None):
+    def GetRequiredSafetyLevelForEffect(self, effect, targetID=None):
         requiredSafetyLevel = const.shipSafetyLevelFull
         if effect is not None:
             if targetID is None and effect.effectCategory == const.dgmEffTarget:
@@ -331,15 +354,16 @@ class CrimewatchService(service.Service):
     def CheckCanTakeItems(self, containerID):
         if session.solarsystemid is None:
             return True
-        if self.GetSafetyLevel() == const.shipSafetyLevelFull:
+        else:
             bp = self.michelle.GetBallpark()
-            item = bp.GetInvItem(containerID)
-            if item is not None:
-                if item.groupID in containerGroupsWithLootRights:
-                    bp = self.michelle.GetBallpark()
-                    if bp and not bp.HaveLootRight(containerID):
-                        return False
-        return True
+            if self.GetSafetyLevel() == const.shipSafetyLevelFull and bp:
+                item = bp.GetInvItem(containerID)
+                if item is not None:
+                    if item.groupID in containerGroupsWithLootRights:
+                        bp = self.michelle.GetBallpark()
+                        if bp and not bp.HaveLootRight(containerID):
+                            return False
+            return True
 
     def GetRequiredSafetyLevelForEngagingDrones(self, droneIDs, targetID):
         safetyLevel = const.shipSafetyLevelFull
@@ -379,6 +403,8 @@ class CrimewatchService(service.Service):
                 moniker.CharGetCrimewatchLocation().RespondToDuelChallenge(fromCharID, expiryTime, accept)
         finally:
             self.duelWindow = None
+
+        return
 
     def StartDuel(self, charID):
         if charID in self.myEngagements:

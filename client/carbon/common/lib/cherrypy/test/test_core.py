@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\carbon\common\lib\cherrypy\test\test_core.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\carbon\common\lib\cherrypy\test\test_core.py
 import os
 localDir = os.path.dirname(__file__)
 import sys
@@ -17,7 +18,7 @@ class CoreRequestHandlingTest(helper.CPWebCase):
         class Root:
 
             def index(self):
-                return 'hello'
+                pass
 
             index.exposed = True
             favicon_ico = tools.staticfile.handler(filename=favicon_path)
@@ -29,7 +30,7 @@ class CoreRequestHandlingTest(helper.CPWebCase):
 
             defct.exposed = True
 
-            def baseurl(self, path_info, relative = None):
+            def baseurl(self, path_info, relative=None):
                 return cherrypy.url(path_info, relative=bool(relative))
 
             baseurl.exposed = True
@@ -55,12 +56,12 @@ class CoreRequestHandlingTest(helper.CPWebCase):
         class URL(Test):
             _cp_config = {'tools.trailing_slash.on': False}
 
-            def index(self, path_info, relative = None):
+            def index(self, path_info, relative=None):
                 if relative != 'server':
                     relative = bool(relative)
                 return cherrypy.url(path_info, relative=relative)
 
-            def leaf(self, path_info, relative = None):
+            def leaf(self, path_info, relative=None):
                 if relative != 'server':
                     relative = bool(relative)
                 return cherrypy.url(path_info, relative=relative)
@@ -68,22 +69,19 @@ class CoreRequestHandlingTest(helper.CPWebCase):
         class Status(Test):
 
             def index(self):
-                return 'normal'
+                pass
 
             def blank(self):
                 cherrypy.response.status = ''
 
             def illegal(self):
                 cherrypy.response.status = 781
-                return 'oops'
 
             def unknown(self):
                 cherrypy.response.status = '431 My custom error'
-                return 'funky'
 
             def bad(self):
                 cherrypy.response.status = 'error'
-                return 'bad news'
 
         class Redirect(Test):
 
@@ -100,7 +98,7 @@ class CoreRequestHandlingTest(helper.CPWebCase):
             error = Error()
 
             def index(self):
-                return 'child'
+                pass
 
             def custom(self, url, code):
                 raise cherrypy.HTTPRedirect(url, code)
@@ -125,6 +123,7 @@ class CoreRequestHandlingTest(helper.CPWebCase):
         def login_redir():
             if not getattr(cherrypy.request, 'login', None):
                 raise cherrypy.InternalRedirect('/internalredirect/login')
+            return
 
         tools.login_redir = _cptools.Tool('before_handler', login_redir)
 
@@ -157,18 +156,18 @@ class CoreRequestHandlingTest(helper.CPWebCase):
                     raise cherrypy.InternalRedirect('/image/getImagesByUser?user_id=%s' % str(user_id))
 
             def secure(self):
-                return 'Welcome!'
+                pass
 
             secure = tools.login_redir()(secure)
 
             def login(self):
-                return 'Please log in'
+                pass
 
             def custom_err(self):
-                return 'Something went horribly wrong.'
+                pass
 
             def early_ir(self, arg):
-                return 'whatever'
+                pass
 
             early_ir._cp_config = {'hooks.before_request_body': redir_custom}
 
@@ -180,7 +179,7 @@ class CoreRequestHandlingTest(helper.CPWebCase):
         class Flatten(Test):
 
             def as_string(self):
-                return 'content'
+                pass
 
             def as_list(self):
                 return ['con', 'tent']

@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\packages\pathtools\patterns.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\packages\pathtools\patterns.py
 from fnmatch import fnmatch, fnmatchcase
 __all__ = ['match_path',
  'match_path_against',
@@ -9,7 +10,7 @@ def _string_lower(s):
     return s.lower()
 
 
-def match_path_against(pathname, patterns, case_sensitive = True):
+def match_path_against(pathname, patterns, case_sensitive=True):
     if case_sensitive:
         match_func = fnmatchcase
         pattern_transform_func = lambda w: w
@@ -25,7 +26,7 @@ def match_path_against(pathname, patterns, case_sensitive = True):
     return False
 
 
-def _match_path(pathname, included_patterns, excluded_patterns, case_sensitive = True):
+def _match_path(pathname, included_patterns, excluded_patterns, case_sensitive=True):
     if not case_sensitive:
         included_patterns = set(map(_string_lower, included_patterns))
         excluded_patterns = set(map(_string_lower, excluded_patterns))
@@ -38,21 +39,23 @@ def _match_path(pathname, included_patterns, excluded_patterns, case_sensitive =
     return match_path_against(pathname, included_patterns, case_sensitive) and not match_path_against(pathname, excluded_patterns, case_sensitive)
 
 
-def match_path(pathname, included_patterns = None, excluded_patterns = None, case_sensitive = True):
+def match_path(pathname, included_patterns=None, excluded_patterns=None, case_sensitive=True):
     included = ['*'] if included_patterns is None else included_patterns
     excluded = [] if excluded_patterns is None else excluded_patterns
     return _match_path(pathname, included, excluded, case_sensitive)
 
 
-def filter_paths(pathnames, included_patterns = None, excluded_patterns = None, case_sensitive = True):
+def filter_paths(pathnames, included_patterns=None, excluded_patterns=None, case_sensitive=True):
     included = ['*'] if included_patterns is None else included_patterns
     excluded = [] if excluded_patterns is None else excluded_patterns
     for pathname in pathnames:
         if _match_path(pathname, included, excluded, case_sensitive):
             yield pathname
 
+    return
 
-def match_any_paths(pathnames, included_patterns = None, excluded_patterns = None, case_sensitive = True):
+
+def match_any_paths(pathnames, included_patterns=None, excluded_patterns=None, case_sensitive=True):
     included = ['*'] if included_patterns is None else included_patterns
     excluded = [] if excluded_patterns is None else excluded_patterns
     for pathname in pathnames:

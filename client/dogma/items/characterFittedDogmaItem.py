@@ -1,8 +1,7 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\packages\dogma\items\characterFittedDogmaItem.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\packages\dogma\items\characterFittedDogmaItem.py
 from fittableDogmaItem import FittableDogmaItem
 import util
-import weakref
-from ccpProfile import TimedFunction
 
 class CharacterFittedDogmaItem(FittableDogmaItem):
 
@@ -10,29 +9,14 @@ class CharacterFittedDogmaItem(FittableDogmaItem):
         if self.location is None:
             self.dogmaLocation.LogWarn('CharacterFittedDogmaItem::GetShipID - item not fitted to location', self.itemID)
             return
-        return self.location.GetShipID()
+        else:
+            return self.location.GetShipID()
 
-    @TimedFunction('CharacterFittedDogmaItem::SetLocation')
-    def SetLocation(self, locationID, locationDogmaItem, flagID):
-        self.flagID = flagID
-        if locationDogmaItem is None:
-            self.dogmaLocation.LogError('CharacterFittedDogmaItem::SetLocation, locationDogmaItem is None')
-            return
-        oldData = self.GetLocationInfo()
-        self.location = weakref.proxy(locationDogmaItem)
-        locationDogmaItem.RegisterFittedItem(self, flagID)
-        return oldData
+    def GetCharacterID(self):
+        return self.GetPilot()
 
-    def UnsetLocation(self, locationDogmaItem):
-        locationDogmaItem.UnregisterFittedItem(self)
-
-    def GetEnvironmentInfo(self):
-        charID = self.GetPilot()
-        shipID = self.dogmaLocation.shipsByPilotID.get(charID, None)
-        return util.KeyVal(itemID=self.itemID, shipID=shipID, charID=charID, otherID=None, targetID=None, effectID=None)
-
-    def GetPilot(self):
-        return self.locationID
+    def IsValidFittingLocation(self, location):
+        return location.groupID == const.groupCharacter
 
 
 class GhostCharacterFittedDogmaItem(CharacterFittedDogmaItem):

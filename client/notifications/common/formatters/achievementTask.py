@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\packages\notifications\common\formatters\achievementTask.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\packages\notifications\common\formatters\achievementTask.py
 from achievements.common.achievementLoader import AchievementLoader
 from notifications.common.formatters.baseFormatter import BaseNotificationFormatter
 

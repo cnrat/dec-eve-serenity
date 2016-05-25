@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\carbon\common\stdlib\encodings\idna.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\carbon\common\stdlib\encodings\idna.py
 import stringprep, re, codecs
 from unicodedata import ucd_3_2_0 as unicodedata
 dots = re.compile(u'[.\u3002\uff0e\uff61]')
@@ -87,7 +88,7 @@ def ToUnicode(label):
 
 class Codec(codecs.Codec):
 
-    def encode(self, input, errors = 'strict'):
+    def encode(self, input, errors='strict'):
         if errors != 'strict':
             raise UnicodeError('unsupported error handling ' + errors)
         if not input:
@@ -104,7 +105,7 @@ class Codec(codecs.Codec):
 
         return ('.'.join(result) + trailing_dot, len(input))
 
-    def decode(self, input, errors = 'strict'):
+    def decode(self, input, errors='strict'):
         if errors != 'strict':
             raise UnicodeError('Unsupported error handling ' + errors)
         if not input:

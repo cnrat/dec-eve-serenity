@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\carbon\common\stdlib\sre_compile.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\carbon\common\stdlib\sre_compile.py
 import _sre, sys
 import sre_parse
 from sre_constants import *
@@ -35,7 +36,7 @@ def _compile(code, pattern, flags):
             if flags & SRE_FLAG_IGNORECASE:
                 emit(OPCODES[OP_IGNORE[op]])
 
-                def fixup(literal, flags = flags):
+                def fixup(literal, flags=flags):
                     return _sre.getlower(literal, flags)
 
             else:
@@ -174,7 +175,7 @@ def _compile(code, pattern, flags):
             raise ValueError, ('unsupported operand type', op)
 
 
-def _compile_charset(charset, flags, code, fixup = None):
+def _compile_charset(charset, flags, code, fixup=None):
     emit = code.append
     if fixup is None:
         fixup = _identityfunction
@@ -202,6 +203,7 @@ def _compile_charset(charset, flags, code, fixup = None):
             raise error, 'internal: unsupported set operator'
 
     emit(OPCODES[FAILURE])
+    return
 
 
 def _optimize_charset(charset, fixup):
@@ -444,8 +446,6 @@ def isstring(obj):
         if isinstance(obj, tp):
             return 1
 
-    return 0
-
 
 def _code(p, flags):
     flags = p.pattern.flags | flags
@@ -456,7 +456,7 @@ def _code(p, flags):
     return code
 
 
-def compile(p, flags = 0):
+def compile(p, flags=0):
     if isstring(p):
         pattern = p
         p = sre_parse.parse(p, flags)

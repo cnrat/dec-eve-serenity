@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\client\script\ui\shared\planet\depletionPinManager.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\client\script\ui\shared\planet\depletionPinManager.py
 import carbonui.const as uiconst
 import eve.client.script.ui.control.entries as listentry
 import uiprimitives
@@ -51,6 +52,7 @@ class DepletionManager(uicontrols.Window):
          0), maxLength=40, label='Time in days', setvalue='14')
         self.LoadDepletionPointScroll()
         self.sr.saveDeleteButtons = uicontrols.ButtonGroup(btns=[['Submit', self.Submit, ()]], parent=self.sr.main, idx=0)
+        return
 
     def LoadDepletionPointScroll(self):
         scrolllist = []
@@ -89,38 +91,45 @@ class DepletionManager(uicontrols.Window):
     def GetSelectedDepletionPoint(self):
         if self.selected is None:
             return
-        return self.pinManager.depletionPoints[self.selected]
+        else:
+            return self.pinManager.depletionPoints[self.selected]
 
     def OnAmountSubmit(self, *args):
         if not self or self.destroyed:
             return
-        newAmount = int(self.amountEdit.GetValue())
-        depletionPoint = self.GetSelectedDepletionPoint()
-        if depletionPoint is None:
+        else:
+            newAmount = int(self.amountEdit.GetValue())
+            depletionPoint = self.GetSelectedDepletionPoint()
+            if depletionPoint is None:
+                return
+            depletionPoint.amount = newAmount
+            self.LoadDepletionPointScroll()
             return
-        depletionPoint.amount = newAmount
-        self.LoadDepletionPointScroll()
 
     def OnDurationSubmit(self, *args):
         if not self or self.destroyed:
             return
-        depletionPoint = self.GetSelectedDepletionPoint()
-        if depletionPoint is None:
+        else:
+            depletionPoint = self.GetSelectedDepletionPoint()
+            if depletionPoint is None:
+                return
+            newDuration = int(self.durationEdit.GetValue())
+            depletionPoint.duration = newDuration
+            self.LoadDepletionPointScroll()
             return
-        newDuration = int(self.durationEdit.GetValue())
-        depletionPoint.duration = newDuration
-        self.LoadDepletionPointScroll()
 
     def OnHeadRadiusSubmit(self, *args):
         if not self or self.destroyed:
             return
-        depletionPoint = self.GetSelectedDepletionPoint()
-        if depletionPoint is None:
+        else:
+            depletionPoint = self.GetSelectedDepletionPoint()
+            if depletionPoint is None:
+                return
+            newHeadRadius = float(self.headRadiusEdit.GetValue())
+            depletionPoint.headRadius = newHeadRadius
+            depletionPoint.drillArea.pinRadius = newHeadRadius
+            self.LoadDepletionPointScroll()
             return
-        newHeadRadius = float(self.headRadiusEdit.GetValue())
-        depletionPoint.headRadius = newHeadRadius
-        depletionPoint.drillArea.pinRadius = newHeadRadius
-        self.LoadDepletionPointScroll()
 
     def _OnClose(self, *args):
         for depletionPoint in self.pinManager.depletionPoints:

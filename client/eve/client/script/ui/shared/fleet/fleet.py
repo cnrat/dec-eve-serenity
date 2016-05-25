@@ -1,11 +1,12 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\client\script\ui\shared\fleet\fleet.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\client\script\ui\shared\fleet\fleet.py
 from eve.client.script.ui.control.glowSprite import GlowSprite
 from eve.client.script.ui.control.listgroup import ListGroup as Group
 from eve.client.script.ui.inflight.baseTacticalEntry import BaseTacticalEntry
 from eve.client.script.ui.inflight.actions import ActionPanel
 from eve.client.script.ui.services.menuAction import Action
-from eve.client.script.ui.control.eveBaseLink import GetCharIDFromTextLink
 import _weakref
+from eve.client.script.ui.util.linkUtil import GetCharIDFromTextLink
 import uiprimitives
 import uicontrols
 import uix
@@ -180,6 +181,7 @@ class FleetView(uiprimitives.Container):
         self.HandleFleetChanged()
         if sm.GetService('fleet').GetOptions().isVoiceEnabled:
             self.SetAutoJoinVoice()
+        return
 
     def Load(self, args):
         if not self.sr.Get('inited', 0):
@@ -188,6 +190,7 @@ class FleetView(uiprimitives.Container):
         if session.fleetid is not None:
             if getattr(self.sr, 'scroll', None):
                 self.sr.scroll._OnResize()
+        return
 
     def GetCollapsedHeight(self):
         from eve.client.script.ui.inflight.actions import ActionPanel
@@ -198,6 +201,7 @@ class FleetView(uiprimitives.Container):
         if rec is not None:
             rec.changing = True
             self.RefreshFromRec(rec)
+        return
 
     def OnManyFleetMembersChanging(self, charIDs):
         squadMembersByWingID = defaultdict(list)
@@ -219,6 +223,8 @@ class FleetView(uiprimitives.Container):
 
         for charID in otherMembers:
             self.OnFleetMemberChanging(charID)
+
+        return
 
     def UpdateHeader(self):
         from eve.client.script.ui.shared.fleet.fleetwindow import FleetWindow
@@ -320,11 +326,13 @@ class FleetView(uiprimitives.Container):
     def AddChar(self, rec):
         if self.fleet is None:
             return
-        self.members[rec.charID] = rec
-        FleetSvc().AddToFleet(self.fleet, rec)
-        if not self.isFlat:
-            self.HandleFleetChanged()
-        self.RefreshFromRec(rec)
+        else:
+            self.members[rec.charID] = rec
+            FleetSvc().AddToFleet(self.fleet, rec)
+            if not self.isFlat:
+                self.HandleFleetChanged()
+            self.RefreshFromRec(rec)
+            return
 
     def OnFleetLeave_Local(self, rec):
         if rec.charID == session.charid:
@@ -341,13 +349,15 @@ class FleetView(uiprimitives.Container):
         rec = self.members.pop(charID, None)
         if rec is None or self.fleet is None:
             return
-        if None not in (rec.squadID, rec.wingID):
-            self.RemoveFromFleet(self.fleet, rec)
-            if self.isFlat:
-                self.RemoveCharFromScroll(charID)
-            else:
-                self.HandleFleetChanged()
-            self.RefreshFromRec(rec, removing=1)
+        else:
+            if None not in (rec.squadID, rec.wingID):
+                self.RemoveFromFleet(self.fleet, rec)
+                if self.isFlat:
+                    self.RemoveCharFromScroll(charID)
+                else:
+                    self.HandleFleetChanged()
+                self.RefreshFromRec(rec, removing=1)
+            return
 
     def OnFleetMemberChanged_Local(self, charID, fleetID, oldWingID, oldSquadID, oldRole, oldJob, oldBooster, oldTakesFleetWarp, newWingID, newSquadID, newRole, newJob, newBooster, newTakesFleetWarp):
         rec = self.members[charID]
@@ -384,6 +394,7 @@ class FleetView(uiprimitives.Container):
             self.FlashHeader('wing', oldWingID)
         elif oldRole == const.fleetRoleLeader != newRole:
             self.FlashHeader('fleet', session.fleetid)
+        return
 
     def FlashHeader(self, groupType, groupID):
         uthread.new(self.FlashHeader_thread, groupType, groupID)
@@ -404,6 +415,7 @@ class FleetView(uiprimitives.Container):
                 group['commander'] = None
             else:
                 log.LogError('Commander is', Name(group['commander']), 'not', Name(charID))
+            return
 
         if rec.squadID != -1:
             squad = fleet['squads'][rec.squadID]
@@ -419,28 +431,31 @@ class FleetView(uiprimitives.Container):
         else:
             RemoveCommander(fleet, rec.charID)
 
-    def RefreshFromRec(self, rec, removing = 0):
+    def RefreshFromRec(self, rec, removing=0):
         self.scrollToProportion = self.sr.scroll.GetScrollProportion()
         if getattr(self, 'loading_RefreshFromRec', 0):
             self.pending_RefreshFromRec.append(rec)
             return
-        setattr(self, 'loading_RefreshFromRec', 1)
-        try:
-            if self.isFlat:
-                if not removing:
-                    self.AddOrUpdateScrollEntry(rec.charID)
-            elif rec.wingID not in (None, -1):
-                self.RefreshRecMemberInWing(rec.wingID, rec.squadID)
-            else:
-                self.HandleFleetChanged()
-            self.UpdateHeader()
-            self.loading_RefreshFromRec = 0
-            if self.pending_RefreshFromRec:
-                recToRefresh = self.pending_RefreshFromRec.pop(0)
-                self.RefreshFromRec(recToRefresh)
-        finally:
-            self.sr.scroll.ScrollToProportion(self.scrollToProportion)
-            setattr(self, 'loading_RefreshFromRec', 0)
+        else:
+            setattr(self, 'loading_RefreshFromRec', 1)
+            try:
+                if self.isFlat:
+                    if not removing:
+                        self.AddOrUpdateScrollEntry(rec.charID)
+                elif rec.wingID not in (None, -1):
+                    self.RefreshRecMemberInWing(rec.wingID, rec.squadID)
+                else:
+                    self.HandleFleetChanged()
+                self.UpdateHeader()
+                self.loading_RefreshFromRec = 0
+                if self.pending_RefreshFromRec:
+                    recToRefresh = self.pending_RefreshFromRec.pop(0)
+                    self.RefreshFromRec(recToRefresh)
+            finally:
+                self.sr.scroll.ScrollToProportion(self.scrollToProportion)
+                setattr(self, 'loading_RefreshFromRec', 0)
+
+            return
 
     def RefreshRecMemberInWing(self, wingID, squadID):
         inSquad = squadID not in (None, -1)
@@ -453,21 +468,24 @@ class FleetView(uiprimitives.Container):
         if getattr(self, loadingVariable, False):
             setattr(self, pendingVariable, True)
             return
-        setattr(self, loadingVariable, True)
-        wingHeaderNode = self.HeaderNodeFromGroupTypeAndID('wing', wingID)
-        try:
-            if inSquad:
-                if wingHeaderNode:
-                    self.ReloadScrollEntry(wingHeaderNode)
-            else:
-                fleetHeaderNode = self.HeaderNodeFromGroupTypeAndID('fleet', session.fleetid)
-                if fleetHeaderNode:
-                    self.ReloadScrollEntry(fleetHeaderNode)
-        finally:
-            setattr(self, loadingVariable, False)
-            if getattr(self, pendingVariable, False):
-                setattr(self, pendingVariable, False)
-                self.RefreshRecMemberInWingCaller_thread(wingID, squadID)
+        else:
+            setattr(self, loadingVariable, True)
+            wingHeaderNode = self.HeaderNodeFromGroupTypeAndID('wing', wingID)
+            try:
+                if inSquad:
+                    if wingHeaderNode:
+                        self.ReloadScrollEntry(wingHeaderNode)
+                else:
+                    fleetHeaderNode = self.HeaderNodeFromGroupTypeAndID('fleet', session.fleetid)
+                    if fleetHeaderNode:
+                        self.ReloadScrollEntry(fleetHeaderNode)
+            finally:
+                setattr(self, loadingVariable, False)
+                if getattr(self, pendingVariable, False):
+                    setattr(self, pendingVariable, False)
+                    self.RefreshRecMemberInWingCaller_thread(wingID, squadID)
+
+            return
 
     def RefreshRecMemberInWingCaller_thread(self, wingID, squadID):
         blue.pyos.synchro.SleepWallclock(0)
@@ -478,6 +496,7 @@ class FleetView(uiprimitives.Container):
             scroll = getattr(headerNode, 'scroll', None)
             if scroll:
                 scroll.PrepareSubContent(headerNode)
+        return
 
     def HeaderNodeFromGroupTypeAndID(self, groupType, groupID):
         for entry in self.sr.scroll.GetNodes():
@@ -521,13 +540,13 @@ class FleetView(uiprimitives.Container):
         data.groupID = groupID
         return listentry.Get('EmptyGroup', data=data)
 
-    def MakeCharEntry(self, charID, sublevel = 0, isLast = False):
+    def MakeCharEntry(self, charID, sublevel=0, isLast=False):
         data = self.GetMemberData(charID, sublevel=sublevel)
         data.isLast = isLast
         data.groupType = 'fleetMember'
         return listentry.Get('FleetMember', data=data)
 
-    def MakeSquadEntry(self, squadID, sublevel = 0):
+    def MakeSquadEntry(self, squadID, sublevel=0):
         headerdata = self.GetHeaderData('squad', squadID, sublevel)
         if headerdata.numMembers == 0:
             data = util.KeyVal()
@@ -545,7 +564,7 @@ class FleetView(uiprimitives.Container):
     def EmptySquadMenu(self, entry):
         return GetSquadMenu(entry.sr.node.squadID)
 
-    def MakeWingEntry(self, wingID, sublevel = 0):
+    def MakeWingEntry(self, wingID, sublevel=0):
         headerdata = self.GetHeaderData('wing', wingID, sublevel)
         return listentry.Get('FleetHeader', data=headerdata)
 
@@ -583,8 +602,9 @@ class FleetView(uiprimitives.Container):
         else:
             self.AddToScroll(self.MakeFleetEntry())
             self.sr.scroll.ScrollToProportion(self.scrollToProportion)
+        return
 
-    def GetMemberData(self, charID, slimItem = None, member = None, sublevel = 0):
+    def GetMemberData(self, charID, slimItem=None, member=None, sublevel=0):
         if slimItem is None:
             slimItem = util.SlimItemFromCharID(charID)
         data = util.KeyVal()
@@ -709,6 +729,7 @@ class FleetView(uiprimitives.Container):
 
         self.sr.scroll.AddEntries(-1, [newEntry])
         self.sr.scroll.Sort(by='name')
+        return
 
     def IsGroupActive(self, gtype, gid):
         return self.GetGroup(gtype, gid)['active']
@@ -777,6 +798,8 @@ class FleetView(uiprimitives.Container):
             if entry.charID == charID:
                 return entry
 
+        return None
+
     def OnVoiceChannelJoined(self, channelID):
         parsedChannelID = GetParsedChannelID(channelID)
         headerType = ChannelTypeToHeaderType(parsedChannelID.type)
@@ -816,6 +839,7 @@ class FleetView(uiprimitives.Container):
             sm.GetService('vivox').SetSpeakingChannel(iconHeader.sr.node.voiceIconChannel)
         elif state == CHANNELSTATE_SPEAKING:
             sm.GetService('vivox').SetSpeakingChannel(None)
+        return
 
     def UpdateVoiceIcon(self, id):
         for node in self.GetNodes():
@@ -849,6 +873,7 @@ class FleetHeader(Group):
         self.sr.myGroupSelection.display = False
         self.movingHilite = uiprimitives.Fill(bgParent=self, name='movingHilite', color=(1, 0, 0, 0.25))
         self.movingHilite.display = False
+        return
 
     def Load(self, node, *args, **kw):
         sublevel = node.Get('sublevel', 0)
@@ -889,6 +914,7 @@ class FleetHeader(Group):
             self.hint = None
             self.sr.changing.Stop()
             self.sr.changing.state = uiconst.UI_HIDDEN
+        return
 
     def OnDropData(self, dragObject, droppedGuys, *args):
         try:
@@ -924,21 +950,21 @@ class FleetHeader(Group):
         node.height = max(12, topLabelHeight) + bottomLabelHeight + 2
         return node.height
 
-    def ToggleAllSquads(self, node, isOpen = True):
+    def ToggleAllSquads(self, node, isOpen=True):
         toggleThread = uthread.new(self.ToggleAllSquads_thread, node, isOpen)
         toggleThread.context = 'FleetHeader::ToggleAllSquads'
 
-    def ToggleAllSquads_thread(self, node, isOpen = True):
+    def ToggleAllSquads_thread(self, node, isOpen=True):
         if isOpen:
             self.DoToggleFleetHeader(node, isOpen, groupType='fleet')
             self.DoToggleFleetHeader(node, isOpen, groupType='wing')
         self.DoToggleFleetHeader(node, isOpen, groupType='squad')
 
-    def ToggleAllWings(self, node, isOpen = True):
+    def ToggleAllWings(self, node, isOpen=True):
         toggleThread = uthread.new(self.ToggleAllWings_thread, node, isOpen)
         toggleThread.context = 'FleetHeader::ToggleAllWings'
 
-    def ToggleAllWings_thread(self, node, isOpen = True):
+    def ToggleAllWings_thread(self, node, isOpen=True):
         if isOpen:
             self.DoToggleFleetHeader(node, isOpen, groupType='fleet')
         self.DoToggleFleetHeader(node, isOpen, groupType='wing')
@@ -962,8 +988,10 @@ class FleetHeader(Group):
         commanderData = self.sr.node.commanderData
         if commanderData is None:
             return
-        charID = commanderData.charID
-        if sm.GetService('menu').TryExpandActionMenu(itemID=charID, clickedObject=self, radialMenuClass=uicls.RadialMenuSpaceCharacter):
+        else:
+            charID = commanderData.charID
+            if sm.GetService('menu').TryExpandActionMenu(itemID=charID, clickedObject=self, radialMenuClass=uicls.RadialMenuSpaceCharacter):
+                return
             return
 
     def GetMenu(self):
@@ -979,9 +1007,9 @@ class FleetHeader(Group):
                 filterFunc)))]
         if self.sr.node.groupType == 'squad':
             return m + [None] + GetSquadMenu(self.sr.node.groupID)
-        if self.sr.node.groupType == 'wing':
+        elif self.sr.node.groupType == 'wing':
             return m + [None] + self.GetWingMenu(self.sr.node.groupID)
-        if self.sr.node.groupType == 'fleet':
+        elif self.sr.node.groupType == 'fleet':
             m += [None] + self.GetFleetMenu()
             m += [None,
              (uiutil.MenuLabel('UI/Fleet/FleetWindow/OpenAllWings'), self.ToggleAllWings, (self.sr.node, True)),
@@ -989,7 +1017,9 @@ class FleetHeader(Group):
              (uiutil.MenuLabel('UI/Fleet/FleetWindow/OpenAllSquads'), self.ToggleAllSquads, (self.sr.node, True)),
              (uiutil.MenuLabel('UI/Fleet/FleetWindow/CloseAllSquads'), self.ToggleAllSquads, (self.sr.node, False))]
             return m
-        raise NotImplementedError
+        else:
+            raise NotImplementedError
+            return
 
     def GetFleetMenu(self):
         ret = []
@@ -1111,6 +1141,8 @@ def UpdateRoleIcons(parent, icons):
              16), align=uiconst.TOPLEFT, hint=icon['hint'])
             left += 20
 
+    return
+
 
 def FleetSvc():
     return sm.GetService('fleet')
@@ -1211,7 +1243,7 @@ class FleetMember(BaseTacticalEntry):
         self.sr.label.left = indent
         if node.muteStatus > 0:
             self.sr.label.text += ' (unmuted)'
-        selected, = sm.GetService('state').GetStates(data.itemID, [state.selected])
+        selected = sm.GetService('state').GetStates(data.itemID, [state.selected])
         if selected:
             self.Select()
         icons = node.Get('roleIcons', None)
@@ -1225,6 +1257,7 @@ class FleetMember(BaseTacticalEntry):
             self.sr.changing.Stop()
             self.sr.changing.state = uiconst.UI_HIDDEN
         self.sr.label.Update()
+        return
 
     def GetHeight(_self, *args):
         node, width = args
@@ -1253,15 +1286,17 @@ class FleetMember(BaseTacticalEntry):
         draggedGuy = nodes[0]
         if self.sr.node.itemID == draggedGuy.charID:
             return
-        isMultiMove = len(nodes) > 1
-        canMove = sm.GetService('fleet').CanMoveToThisEntry(draggedGuy, self.sr.node, 'fleetMember', groupID=None, isMultiMove=isMultiMove)
-        if canMove == CONNOT_BE_MOVED_INCOMPATIBLE:
-            return
-        if canMove == CANNOT_BE_MOVED:
-            self.movingHilite.SetRGB(*COLOR_CANNOT_BE_MOVED)
         else:
-            self.movingHilite.SetRGB(*COLOR_CAN_ONLY_BE_MEMBER)
-        self.movingHilite.display = True
+            isMultiMove = len(nodes) > 1
+            canMove = sm.GetService('fleet').CanMoveToThisEntry(draggedGuy, self.sr.node, 'fleetMember', groupID=None, isMultiMove=isMultiMove)
+            if canMove == CONNOT_BE_MOVED_INCOMPATIBLE:
+                return
+            if canMove == CANNOT_BE_MOVED:
+                self.movingHilite.SetRGB(*COLOR_CANNOT_BE_MOVED)
+            else:
+                self.movingHilite.SetRGB(*COLOR_CAN_ONLY_BE_MEMBER)
+            self.movingHilite.display = True
+            return
 
     def OnDragExit(self, dragObj, nodes):
         self.movingHilite.display = False
@@ -1286,7 +1321,7 @@ class FleetMember(BaseTacticalEntry):
 class FleetAction(Action):
     __guid__ = 'xtriui.FleetAction'
 
-    def Prepare_(self, icon = None):
+    def Prepare_(self, icon=None):
         pass
 
     def Startup(self, hint, iconPath):
@@ -1339,6 +1374,7 @@ class FleetChannels(uiprimitives.Container):
         self.UpdateBonusIcon()
         self.UpdateRoleIcons()
         self.UpdateButtons()
+        return
 
     def OnSpeakingEvent(self, charID, channelID, isSpeaking):
         if int(charID) == session.charid and self.speakingChannelButton:
@@ -1348,28 +1384,30 @@ class FleetChannels(uiprimitives.Container):
         info = sm.GetService('fleet').GetMemberInfo(session.charid)
         if info is None:
             return
-        roleMap = {const.fleetRoleLeader: {'id': 'ui_73_16_17',
-                                 'hint': localization.GetByLabel('UI/Fleet/Ranks/FleetCommander')},
-         const.fleetRoleWingCmdr: {'id': 'ui_73_16_18',
-                                   'hint': localization.GetByLabel('UI/Fleet/Ranks/WingCommander')},
-         const.fleetRoleSquadCmdr: {'id': 'ui_73_16_19',
-                                    'hint': localization.GetByLabel('UI/Fleet/Ranks/SquadCommander')}}
-        jobMap = {const.fleetJobCreator: {'id': 'ui_73_16_20',
-                                 'hint': localization.GetByLabel('UI/Fleet/Ranks/Boss')}}
-        boosterMap = {const.fleetBoosterFleet: {'id': 'ui_73_16_22',
-                                   'hint': localization.GetByLabel('UI/Fleet/Ranks/FleetBooster')},
-         const.fleetBoosterWing: {'id': 'ui_73_16_23',
-                                  'hint': localization.GetByLabel('UI/Fleet/Ranks/WingBooster')},
-         const.fleetBoosterSquad: {'id': 'ui_73_16_24',
-                                   'hint': localization.GetByLabel('UI/Fleet/Ranks/SquadBooster')}}
-        icons = []
-        if info.role in [const.fleetRoleLeader, const.fleetRoleWingCmdr, const.fleetRoleSquadCmdr]:
-            icons.append(roleMap[info.role])
-        if info.job & const.fleetJobCreator:
-            icons.append(jobMap[const.fleetJobCreator])
-        if info.booster in [const.fleetBoosterFleet, const.fleetBoosterWing, const.fleetBoosterSquad]:
-            icons.append(boosterMap[info.booster])
-        UpdateRoleIcons(self.roleIconsContainer, icons)
+        else:
+            roleMap = {const.fleetRoleLeader: {'id': 'ui_73_16_17',
+                                     'hint': localization.GetByLabel('UI/Fleet/Ranks/FleetCommander')},
+             const.fleetRoleWingCmdr: {'id': 'ui_73_16_18',
+                                       'hint': localization.GetByLabel('UI/Fleet/Ranks/WingCommander')},
+             const.fleetRoleSquadCmdr: {'id': 'ui_73_16_19',
+                                        'hint': localization.GetByLabel('UI/Fleet/Ranks/SquadCommander')}}
+            jobMap = {const.fleetJobCreator: {'id': 'ui_73_16_20',
+                                     'hint': localization.GetByLabel('UI/Fleet/Ranks/Boss')}}
+            boosterMap = {const.fleetBoosterFleet: {'id': 'ui_73_16_22',
+                                       'hint': localization.GetByLabel('UI/Fleet/Ranks/FleetBooster')},
+             const.fleetBoosterWing: {'id': 'ui_73_16_23',
+                                      'hint': localization.GetByLabel('UI/Fleet/Ranks/WingBooster')},
+             const.fleetBoosterSquad: {'id': 'ui_73_16_24',
+                                       'hint': localization.GetByLabel('UI/Fleet/Ranks/SquadBooster')}}
+            icons = []
+            if info.role in [const.fleetRoleLeader, const.fleetRoleWingCmdr, const.fleetRoleSquadCmdr]:
+                icons.append(roleMap[info.role])
+            if info.job & const.fleetJobCreator:
+                icons.append(jobMap[const.fleetJobCreator])
+            if info.booster in [const.fleetBoosterFleet, const.fleetBoosterWing, const.fleetBoosterSquad]:
+                icons.append(boosterMap[info.booster])
+            UpdateRoleIcons(self.roleIconsContainer, icons)
+            return
 
     def InitButtons(self):
         buttonNames = ['fleet',
@@ -1385,6 +1423,8 @@ class FleetChannels(uiprimitives.Container):
                 self.buttons[name] = b
             b.Clear()
 
+        return
+
     def UpdateButtons(self):
         self.InitButtons()
         self.speakingChannelButton = None
@@ -1398,80 +1438,84 @@ class FleetChannels(uiprimitives.Container):
             if data.state == CHANNELSTATE_SPEAKING:
                 self.speakingChannelButton = button
 
+        return
+
     def UpdateBonusIcon(self):
         squadActive = wingActive = fleetActive = False
         activeStatus = sm.GetService('fleet').GetActiveStatus()
         if not activeStatus:
             return
-        fleetActive = activeStatus.fleet
-        squadID = session.squadid
-        wingID = session.wingid
-        if squadID > 0:
-            squadActive = activeStatus.squads.get(squadID, None)
-        if wingID > 0:
-            wingActive = activeStatus.wings.get(wingID, None)
-        log.LogInfo('UpdateBonusIcon() - FLEET:', fleetActive, '- WING:', wingActive, '- SQUAD:', squadActive)
-        amIActive = False
-        hint = ''
-        if session.fleetrole == const.fleetRoleLeader:
-            if fleetActive > 0:
-                amIActive = True
-                hint = localization.GetByLabel('UI/Fleet/FleetWindow/GivingBonusFleet')
-            elif fleetActive == fleetcommon.FLEET_STATUS_TOOFEWWINGS:
-                hint = localization.GetByLabel('UI/Fleet/FleetWindow/NotGivingBonusFleetTooFew')
-            elif fleetActive == fleetcommon.FLEET_STATUS_TOOMANYWINGS:
-                hint = localization.GetByLabel('UI/Fleet/FleetWindow/NotGivingBonusFleetTooMany')
-        elif session.fleetrole == const.fleetRoleWingCmdr:
-            if wingActive > 0:
-                amIActive = True
+        else:
+            fleetActive = activeStatus.fleet
+            squadID = session.squadid
+            wingID = session.wingid
+            if squadID > 0:
+                squadActive = activeStatus.squads.get(squadID, None)
+            if wingID > 0:
+                wingActive = activeStatus.wings.get(wingID, None)
+            log.LogInfo('UpdateBonusIcon() - FLEET:', fleetActive, '- WING:', wingActive, '- SQUAD:', squadActive)
+            amIActive = False
+            hint = ''
+            if session.fleetrole == const.fleetRoleLeader:
                 if fleetActive > 0:
-                    hint = localization.GetByLabel('UI/Fleet/FleetWindow/GivingBonusWingFleet')
-                else:
-                    hint = localization.GetByLabel('UI/Fleet/FleetWindow/GivingBonusWing')
-            elif wingActive == fleetcommon.WING_STATUS_TOOMANYSQUADS:
-                hint = localization.GetByLabel('UI/Fleet/FleetWindow/NotGivingBonusWing')
-            elif wingActive == fleetcommon.WING_STATUS_TOOFEWMEMBERS:
-                hint = localization.GetByLabel('UI/Fleet/FleetWindow/NotGivingBonusFleetTooFew')
-        elif session.fleetrole == const.fleetRoleSquadCmdr:
-            if squadActive > 0:
+                    amIActive = True
+                    hint = localization.GetByLabel('UI/Fleet/FleetWindow/GivingBonusFleet')
+                elif fleetActive == fleetcommon.FLEET_STATUS_TOOFEWWINGS:
+                    hint = localization.GetByLabel('UI/Fleet/FleetWindow/NotGivingBonusFleetTooFew')
+                elif fleetActive == fleetcommon.FLEET_STATUS_TOOMANYWINGS:
+                    hint = localization.GetByLabel('UI/Fleet/FleetWindow/NotGivingBonusFleetTooMany')
+            elif session.fleetrole == const.fleetRoleWingCmdr:
+                if wingActive > 0:
+                    amIActive = True
+                    if fleetActive > 0:
+                        hint = localization.GetByLabel('UI/Fleet/FleetWindow/GivingBonusWingFleet')
+                    else:
+                        hint = localization.GetByLabel('UI/Fleet/FleetWindow/GivingBonusWing')
+                elif wingActive == fleetcommon.WING_STATUS_TOOMANYSQUADS:
+                    hint = localization.GetByLabel('UI/Fleet/FleetWindow/NotGivingBonusWing')
+                elif wingActive == fleetcommon.WING_STATUS_TOOFEWMEMBERS:
+                    hint = localization.GetByLabel('UI/Fleet/FleetWindow/NotGivingBonusFleetTooFew')
+            elif session.fleetrole == const.fleetRoleSquadCmdr:
+                if squadActive > 0:
+                    amIActive = True
+                    if wingActive > 0:
+                        if fleetActive > 0:
+                            hint = localization.GetByLabel('UI/Fleet/FleetWindow/GivingBonusSquadWingFleet')
+                        else:
+                            hint = localization.GetByLabel('UI/Fleet/FleetWindow/GivingBonusSquadWing')
+                    else:
+                        hint = localization.GetByLabel('UI/Fleet/FleetWindow/GivingBonusSquad')
+                elif squadActive == SQUAD_STATUS_NOSQUADCOMMANDER:
+                    hint = localization.GetByLabel('UI/Fleet/FleetWindow/NotGivingBonusSquadNoCmdr')
+                elif squadActive == SQUAD_STATUS_TOOMANYMEMBERS:
+                    hint = localization.GetByLabel('UI/Fleet/FleetWindow/NotGivingBonusSquadTooMany')
+                elif squadActive == SQUAD_STATUS_TOOFEWMEMBERS:
+                    hint = localization.GetByLabel('UI/Fleet/FleetWindow/NotGivingBonusSquadTooFew')
+            elif squadActive > 0:
                 amIActive = True
                 if wingActive > 0:
                     if fleetActive > 0:
-                        hint = localization.GetByLabel('UI/Fleet/FleetWindow/GivingBonusSquadWingFleet')
+                        hint = localization.GetByLabel('UI/Fleet/FleetWindow/GettingBonusFromSquadWingFleet')
                     else:
-                        hint = localization.GetByLabel('UI/Fleet/FleetWindow/GivingBonusSquadWing')
+                        hint = localization.GetByLabel('UI/Fleet/FleetWindow/GettingBonusFromSquadWing')
                 else:
-                    hint = localization.GetByLabel('UI/Fleet/FleetWindow/GivingBonusSquad')
+                    hint = localization.GetByLabel('UI/Fleet/FleetWindow/GettingBonusFromSquad')
             elif squadActive == SQUAD_STATUS_NOSQUADCOMMANDER:
-                hint = localization.GetByLabel('UI/Fleet/FleetWindow/NotGivingBonusSquadNoCmdr')
+                hint = localization.GetByLabel('UI/Fleet/FleetWindow/NotGettingBonusNoSquadCmdr')
             elif squadActive == SQUAD_STATUS_TOOMANYMEMBERS:
-                hint = localization.GetByLabel('UI/Fleet/FleetWindow/NotGivingBonusSquadTooMany')
+                hint = localization.GetByLabel('UI/Fleet/FleetWindow/NotGettingBonusTooManyMembers')
             elif squadActive == SQUAD_STATUS_TOOFEWMEMBERS:
-                hint = localization.GetByLabel('UI/Fleet/FleetWindow/NotGivingBonusSquadTooFew')
-        elif squadActive > 0:
-            amIActive = True
-            if wingActive > 0:
-                if fleetActive > 0:
-                    hint = localization.GetByLabel('UI/Fleet/FleetWindow/GettingBonusFromSquadWingFleet')
-                else:
-                    hint = localization.GetByLabel('UI/Fleet/FleetWindow/GettingBonusFromSquadWing')
-            else:
-                hint = localization.GetByLabel('UI/Fleet/FleetWindow/GettingBonusFromSquad')
-        elif squadActive == SQUAD_STATUS_NOSQUADCOMMANDER:
-            hint = localization.GetByLabel('UI/Fleet/FleetWindow/NotGettingBonusNoSquadCmdr')
-        elif squadActive == SQUAD_STATUS_TOOMANYMEMBERS:
-            hint = localization.GetByLabel('UI/Fleet/FleetWindow/NotGettingBonusTooManyMembers')
-        elif squadActive == SQUAD_STATUS_TOOFEWMEMBERS:
-            pass
-        icon = 'ui_38_16_193' if amIActive else 'ui_38_16_194'
-        lastHint = getattr(self, 'bonusIconHint', '')
-        setattr(self, 'bonusIconHint', hint)
-        if hasattr(self, 'bonusIcon'):
-            self.bonusIcon.Close()
-        self.bonusIcon = uicontrols.Icon(icon=icon, parent=self.bonusIconContainer, size=16, align=uiconst.RELATIVE)
-        if lastHint != getattr(self, 'bonusIconHint', ''):
-            sm.GetService('ui').BlinkSpriteA(self.bonusIcon, 1.0, 400, 10, passColor=0)
-        self.bonusIcon.hint = hint
+                pass
+            icon = 'ui_38_16_193' if amIActive else 'ui_38_16_194'
+            lastHint = getattr(self, 'bonusIconHint', '')
+            setattr(self, 'bonusIconHint', hint)
+            if hasattr(self, 'bonusIcon'):
+                self.bonusIcon.Close()
+            self.bonusIcon = uicontrols.Icon(icon=icon, parent=self.bonusIconContainer, size=16, align=uiconst.RELATIVE)
+            if lastHint != getattr(self, 'bonusIconHint', ''):
+                sm.GetService('ui').BlinkSpriteA(self.bonusIcon, 1.0, 400, 10, passColor=0)
+            self.bonusIcon.hint = hint
+            return
 
     def OnVoiceChannelJoined(self, channelID):
         self.UpdateButtons()
@@ -1537,6 +1581,7 @@ class ChannelsPanelAction(uiprimitives.Container):
         self.container.OnMouseEnter = self.OnChannelButtonMouseEnter
         self.container.OnMouseExit = self.OnChannelButtonMouseExit
         self.SetAsUnavailable()
+        return
 
     def OnChannelButtonGetMenu(self, *etc):
         m = []
@@ -1626,12 +1671,14 @@ class ChannelsPanelAction(uiprimitives.Container):
             sm.GetService('vivox').SetSpeakingChannel(self.channelID)
         elif self.channelState == CHANNELSTATE_SPEAKING:
             sm.GetService('vivox').SetSpeakingChannel(None)
+        return
 
     def SetAsUnavailable(self):
         self.sr.icon.LoadIcon('ui_73_16_36')
         self.channelState = CHANNELSTATE_NONE
         self.container.hint = self.GetChannelNotSetHint()
         self.channelID = None
+        return
 
     def SetAsJoined(self):
         if sm.GetService('vivox').GetSpeakingChannel() == self.channelID:
@@ -1693,7 +1740,8 @@ class WatchListPanel(ActionPanel):
         topRight_TopOffset = uicontrols.Window.GetTopRight_TopOffset()
         if topRight_TopOffset is not None:
             return topRight_TopOffset
-        return 16
+        else:
+            return 16
 
     @staticmethod
     def default_left(*args):
@@ -1708,18 +1756,21 @@ class WatchListPanel(ActionPanel):
     def AddBroadcastIcon(self, charid, icon, hint):
         if not self.IsFavorite(charid):
             return
-        self.broadcasts[charid] = util.KeyVal(icon=icon, hint=hint, timestamp=blue.os.GetWallclockTime())
-        for eachNode in self.sr.scroll.GetNodes():
-            if eachNode.charID != charid:
-                continue
-            if eachNode.charID in self.broadcasts:
-                eachNode.icon = self.broadcasts[eachNode.charID].icon
-                eachNode.hint = localization.GetByLabel('UI/Fleet/Watchlist/WatchlistHintWithBroadcast', role=fleetbr.GetRankName(eachNode.member), broadcast=self.broadcasts[eachNode.charID].hint, time=self.broadcasts[eachNode.charID].timestamp)
-            else:
-                eachNode.icon = None
-                eachNode.hint = localization.GetByLabel('UI/Fleet/Watchlist/WatchlistHint', role=fleetbr.GetRankName(eachNode.member))
-            if eachNode.panel:
-                eachNode.panel.Load(eachNode)
+        else:
+            self.broadcasts[charid] = util.KeyVal(icon=icon, hint=hint, timestamp=blue.os.GetWallclockTime())
+            for eachNode in self.sr.scroll.GetNodes():
+                if eachNode.charID != charid:
+                    continue
+                if eachNode.charID in self.broadcasts:
+                    eachNode.icon = self.broadcasts[eachNode.charID].icon
+                    eachNode.hint = localization.GetByLabel('UI/Fleet/Watchlist/WatchlistHintWithBroadcast', role=fleetbr.GetRankName(eachNode.member), broadcast=self.broadcasts[eachNode.charID].hint, time=self.broadcasts[eachNode.charID].timestamp)
+                else:
+                    eachNode.icon = None
+                    eachNode.hint = localization.GetByLabel('UI/Fleet/Watchlist/WatchlistHint', role=fleetbr.GetRankName(eachNode.member))
+                if eachNode.panel:
+                    eachNode.panel.Load(eachNode)
+
+            return
 
     def OnFleetBroadcast_Local(self, broadcast):
         if broadcast.name not in fleetbr.types:
@@ -1773,6 +1824,7 @@ class WatchListPanel(ActionPanel):
         self.sr.scroll.AddEntries(-1, entries)
         if self.panelname:
             self.SetCaption('%s [%s]' % (self.panelname, len(entries)))
+        return
 
     def OnFleetFavoriteAdded(self, charIDs):
         self.UpdateAll()
@@ -1802,10 +1854,12 @@ class WatchListPanel(ActionPanel):
     def DoBallRemove(self, ball, slimItem, terminal):
         if slimItem is None:
             return
-        if getattr(slimItem, 'charID', None):
-            if sm.GetService('fleet').GetFavorite(slimItem.charID):
-                member = self.GetEntryData(slimItem.charID)
-                self.UpdateAll()
+        else:
+            if getattr(slimItem, 'charID', None):
+                if sm.GetService('fleet').GetFavorite(slimItem.charID):
+                    member = self.GetEntryData(slimItem.charID)
+                    self.UpdateAll()
+            return
 
     def GetEntryData(self, charID):
         slimItem = util.SlimItemFromCharID(charID)
@@ -1813,29 +1867,30 @@ class WatchListPanel(ActionPanel):
         member = sm.GetService('fleet').GetMemberInfo(charID)
         if not member:
             return
-        data.charRec = cfg.eveowners.Get(charID)
-        data.itemID = data.id = data.charID = charID
-        data.typeID = data.charRec.typeID
-        data.squadID = member.squadID
-        data.wingID = member.wingID
-        data.displayName = member.charName
-        data.roleString = member.roleName
-        data.voiceStatus = CHANNELSTATE_NONE
-        data.channelName = None
-        data.label = localization.GetByLabel('UI/Common/CharacterNameLabel', charID=charID)
-        data.member = member
-        data.slimItem = None
-        if charID in self.broadcasts:
-            data.icon = self.broadcasts[charID].icon
-            data.hint = localization.GetByLabel('UI/Fleet/Watchlist/WatchlistHintWithBroadcast', role=fleetbr.GetRankName(member), broadcast=self.broadcasts[charID].hint, time=self.broadcasts[charID].timestamp)
         else:
-            data.icon = None
-            data.hint = localization.GetByLabel('UI/Fleet/Watchlist/WatchlistHint', role=fleetbr.GetRankName(member))
-        if slimItem:
-            data.slimItem = _weakref.ref(slimItem)
-        return data
+            data.charRec = cfg.eveowners.Get(charID)
+            data.itemID = data.id = data.charID = charID
+            data.typeID = data.charRec.typeID
+            data.squadID = member.squadID
+            data.wingID = member.wingID
+            data.displayName = member.charName
+            data.roleString = member.roleName
+            data.voiceStatus = CHANNELSTATE_NONE
+            data.channelName = None
+            data.label = localization.GetByLabel('UI/Common/CharacterNameLabel', charID=charID)
+            data.member = member
+            data.slimItem = None
+            if charID in self.broadcasts:
+                data.icon = self.broadcasts[charID].icon
+                data.hint = localization.GetByLabel('UI/Fleet/Watchlist/WatchlistHintWithBroadcast', role=fleetbr.GetRankName(member), broadcast=self.broadcasts[charID].hint, time=self.broadcasts[charID].timestamp)
+            else:
+                data.icon = None
+                data.hint = localization.GetByLabel('UI/Fleet/Watchlist/WatchlistHint', role=fleetbr.GetRankName(member))
+            if slimItem:
+                data.slimItem = _weakref.ref(slimItem)
+            return data
 
-    def DropInWatchList(self, dragObj, nodes, idx = None, *args):
+    def DropInWatchList(self, dragObj, nodes, idx=None, *args):
         if dragObj.__guid__ == 'listentry.WatchListEntry':
             if len(nodes) != 1:
                 return
@@ -1861,8 +1916,9 @@ class WatchListPanel(ActionPanel):
                 FleetSvc().AddFavorite(charIDsToAdd)
                 if idx is not None and len(charIDsToAdd) == 1:
                     self.Move(dragObj, nodes, idx)
+        return
 
-    def Move(self, dragObj, entries, idx = None, *args):
+    def Move(self, dragObj, entries, idx=None, *args):
         self.cachedScrollPos = self.sr.scroll.GetScrollProportion()
         selected = self.sr.scroll.GetSelected()
         charID = entries[0].itemID
@@ -1870,22 +1926,24 @@ class WatchListPanel(ActionPanel):
             charID = self.GetLabelCharID(dragObj, entries[0])
         if not charID:
             return
-        if idx is not None:
-            if selected:
-                selected = selected[0]
-                if idx != selected.idx:
-                    if selected.idx < idx:
-                        newIdx = idx - 1
-                    else:
-                        newIdx = idx
-                else:
-                    return
-            else:
-                newIdx = idx
         else:
-            newIdx = len(self.sr.scroll.GetNodes()) - 1
-        sm.GetService('fleet').ChangeFavoriteSorting(charID, newIdx)
-        self.UpdateAll()
+            if idx is not None:
+                if selected:
+                    selected = selected[0]
+                    if idx != selected.idx:
+                        if selected.idx < idx:
+                            newIdx = idx - 1
+                        else:
+                            newIdx = idx
+                    else:
+                        return
+                else:
+                    newIdx = idx
+            else:
+                newIdx = len(self.sr.scroll.GetNodes()) - 1
+            sm.GetService('fleet').ChangeFavoriteSorting(charID, newIdx)
+            self.UpdateAll()
+            return
 
     def GetLabelCharID(self, dragObj, entry):
         if dragObj.__guid__ == 'uicontrols.Label':
@@ -1900,6 +1958,7 @@ class WatchListPanel(ActionPanel):
                 return charID
             else:
                 return None
+        return None
 
     def OnSlimItemChange(self, oldSlim, newSlim):
         slimItemID = oldSlim.itemID
@@ -1910,10 +1969,13 @@ class WatchListPanel(ActionPanel):
     def OnStateChange(self, itemID, flag, newState, *args):
         if flag not in (state.targeting, state.targeted):
             return
-        for node in self.sr.scroll.GetNodes():
-            if node.slimItemID == itemID and node.panel is not None:
-                node.panel.OnChangingState(itemID, flag, newState)
-                return
+        else:
+            for node in self.sr.scroll.GetNodes():
+                if node.slimItemID == itemID and node.panel is not None:
+                    node.panel.OnChangingState(itemID, flag, newState)
+                    return
+
+            return
 
 
 class WatchListEntry(BaseTacticalEntry):
@@ -1942,13 +2004,14 @@ class WatchListEntry(BaseTacticalEntry):
         progress = uicls.AnimSprite(icons=[ 'ui_38_16_%s' % (210 + i) for i in xrange(8) ], align=uiconst.TOPLEFT, parent=self.leftPar, pos=(0, 0, 16, 16))
         progress.state = uiconst.UI_HIDDEN
         self.sr.progress = progress
+        return
 
     def Load(self, node):
         listentry.Generic.Load(self, node)
         data = node
         self.sr.label.left = 22
         self.UpdateDamage()
-        selected, = sm.GetService('state').GetStates(data.itemID, [state.selected])
+        selected = sm.GetService('state').GetStates(data.itemID, [state.selected])
         if selected:
             self.Select()
         if node.icon is None:
@@ -1962,10 +2025,12 @@ class WatchListEntry(BaseTacticalEntry):
             self.StartTargeting()
         elif targeted:
             self.SetTargetedIcon()
+        return
 
     def SetTargetedIcon(self):
         if self.targetSprite is None or self.targetSprite.destroyed:
             self.targetSprite = uiprimitives.Sprite(parent=self.leftPar, name='targetSprite', pos=(0, 0, 18, 18), state=uiconst.UI_DISABLED, texturePath='res:/UI/Texture/classes/Bracket/activeTarget.png', align=uiconst.CENTER, color=(1.0, 1.0, 1.0, 0.5), idx=0)
+        return
 
     def StartTargeting(self):
         if self.targetingSprite is None or self.targetingSprite.destroyed:
@@ -1973,6 +2038,8 @@ class WatchListEntry(BaseTacticalEntry):
             uicontrols.Frame(parent=self.targetingSprite, texturePath='res:/UI/Texture/classes/Bracket/targetFrame.png', opacity=0.5)
             for attrName in ('width', 'height'):
                 uicore.animations.MorphScalar(self.targetingSprite, attrName, startVal=22, endVal=12, duration=0.4, loops=uiconst.ANIM_REPEAT)
+
+        return
 
     def UpdateDamage(self):
         if not sm.GetService('fleet').IsDamageUpdates():
@@ -2004,6 +2071,7 @@ class WatchListEntry(BaseTacticalEntry):
                 return
             self.sr.node.slimItemID = item.itemID
             return item.itemID
+            return
 
     def GetHeight(_self, *args):
         node, width = args
@@ -2066,35 +2134,37 @@ class WatchListEntry(BaseTacticalEntry):
     def OnDragEnter(self, dragObj, nodes, *args):
         if len(nodes) > 1:
             return
-        charID = nodes[0].charID
-        if not charID and dragObj.__guid__ == 'uicontrols.DragContainerCore':
-            node = nodes[0]
-            if not util.GetAttrs(node, 'url'):
-                charID = None
-            if node.url is None:
-                charID = None
-            else:
-                labelInfo = node.url.split('//')
-            try:
-                labelCharID = int(labelInfo[1])
-            except:
-                labelCharID = None
-                charID = None
-
-            if labelCharID:
-                isCharacter = util.IsCharacter(labelCharID)
-                if isCharacter:
-                    charID = labelCharID
-                else:
+        else:
+            charID = nodes[0].charID
+            if not charID and dragObj.__guid__ == 'uicontrols.DragContainerCore':
+                node = nodes[0]
+                if not util.GetAttrs(node, 'url'):
                     charID = None
-        if not charID:
+                if node.url is None:
+                    charID = None
+                else:
+                    labelInfo = node.url.split('//')
+                try:
+                    labelCharID = int(labelInfo[1])
+                except:
+                    labelCharID = None
+                    charID = None
+
+                if labelCharID:
+                    isCharacter = util.IsCharacter(labelCharID)
+                    if isCharacter:
+                        charID = labelCharID
+                    else:
+                        charID = None
+            if not charID:
+                return
+            if self.sr.node.charID == charID:
+                return
+            if nodes[0].__guid__ == 'listentry.WatchListEntry':
+                self.sr.posIndicator.state = uiconst.UI_DISABLED
+            if sm.GetService('fleet').CheckCanAddFavorite(charID):
+                self.sr.posIndicator.state = uiconst.UI_DISABLED
             return
-        if self.sr.node.charID == charID:
-            return
-        if nodes[0].__guid__ == 'listentry.WatchListEntry':
-            self.sr.posIndicator.state = uiconst.UI_DISABLED
-        if sm.GetService('fleet').CheckCanAddFavorite(charID):
-            self.sr.posIndicator.state = uiconst.UI_DISABLED
 
     def OnDragExit(self, *args):
         self.sr.posIndicator.state = uiconst.UI_HIDDEN

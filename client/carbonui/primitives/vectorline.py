@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\packages\carbonui\primitives\vectorline.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\packages\carbonui\primitives\vectorline.py
 import carbonui.const as uiconst
 import trinity
 import util
@@ -37,6 +38,7 @@ class VectorLine(TexturedBase):
         self.textureWidth = attributes.get('textureWidth', self.default_textureWidth)
         if attributes.texturePath is not None:
             self.renderObject.texturePrimary.atlasTexture.isStandAlone = True
+        return
 
     @apply
     def translationFrom():

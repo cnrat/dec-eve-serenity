@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\client\script\ui\control\eveBaseLink.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\client\script\ui\control\eveBaseLink.py
 from carbonui.control.baselink import BaseLinkCore
 import evetypes
 import log
@@ -40,62 +41,62 @@ class BaseLink(BaseLinkCore):
         if URL.startswith('eve:/'):
             self.GetFromCluster(parent, URL)
             return True
-        if URL.startswith('showinfo:'):
+        elif URL.startswith('showinfo:'):
             self.ShowInfo(URL[9:])
             return True
-        if URL.startswith('showrouteto:'):
+        elif URL.startswith('showrouteto:'):
             self.ShowRouteTo(URL[12:])
             return True
-        if URL.startswith('showinmap:'):
+        elif URL.startswith('showinmap:'):
             self.ShowInMap(URL[10:])
             return True
-        if URL.startswith('cmd:/'):
+        elif URL.startswith('cmd:/'):
             sm.GetService('slash').SlashCmd(URL[4:])
             return True
-        if URL.startswith('evebrowser:'):
+        elif URL.startswith('evebrowser:'):
             uicore.cmd.OpenBrowser(URL[11:])
             return True
-        if URL.startswith('evemail:'):
+        elif URL.startswith('evemail:'):
             self.EveMail(URL[8:])
             return True
-        if URL.startswith('evemailto:'):
+        elif URL.startswith('evemailto:'):
             self.EveMail(URL[10:])
             return True
-        if URL.startswith('note:'):
+        elif URL.startswith('note:'):
             self.Note(URL[5:])
             return True
-        if URL.startswith('fleetmission:'):
+        elif URL.startswith('fleetmission:'):
             self.FleetMission(URL[13:])
             return True
-        if URL.startswith('contract:'):
+        elif URL.startswith('contract:'):
             self.Contract(URL[9:])
             return True
-        if URL.startswith('fleet:'):
+        elif URL.startswith('fleet:'):
             self.AskJoinFleet(URL[6:])
             return True
-        if URL.startswith('CertEntry:'):
+        elif URL.startswith('CertEntry:'):
             myArgs = URL[10:]
             certID, level = myArgs.split('//')
             abstractinfo = KeyVal(certificateID=int(certID), level=int(level))
             sm.StartService('info').ShowInfo(const.typeCertificate, abstractinfo=abstractinfo)
             return True
-        if URL.startswith('fleetmenu:'):
+        elif URL.startswith('fleetmenu:'):
             self.FleetMenu(URL[len('fleetmenu:'):])
             return True
-        if URL.startswith('celestialmenu:'):
+        elif URL.startswith('celestialmenu:'):
             self.CelestialMenu(URL[len('celestialmenu:'):])
             return True
-        if URL.startswith('fitting:'):
+        elif URL.startswith('fitting:'):
             sm.StartService('fittingSvc').DisplayFittingFromString(URL[len('fitting:'):])
             return True
-        if URL.startswith('preview:'):
+        elif URL.startswith('preview:'):
             sm.GetService('preview').PreviewType(URL[len('preview:'):])
             return True
-        if URL.startswith('warNegotiation:'):
+        elif URL.startswith('warNegotiation:'):
             warNegotiationID = int(URL.split(':')[1])
             form.WarSurrenderWnd.Open(warNegotiationID=warNegotiationID, isRequest=False)
             return True
-        if URL.startswith('killReport:'):
+        elif URL.startswith('killReport:'):
             killID, hashValue = URL.split(':')[1:]
             killID = int(killID)
             kill = sm.RemoteSvc('warStatisticMgr').GetKillMail(killID, hashValue)
@@ -103,29 +104,29 @@ class BaseLink(BaseLinkCore):
                 from eve.client.script.ui.shared.killReportUtil import OpenKillReport
                 OpenKillReport(kill)
             return True
-        if URL.startswith('warReport:'):
+        elif URL.startswith('warReport:'):
             warID = URL[10:]
             form.WarReportWnd.CloseIfOpen()
             form.WarReportWnd.Open(create=1, warID=int(warID))
             return True
-        if URL.startswith('tutorial:'):
+        elif URL.startswith('tutorial:'):
             tutorialID = URL[len('tutorial:'):]
             sm.GetService('tutorial').OpenTutorialFromOutside(int(tutorialID), ask=True, ignoreSettings=True)
             return True
-        if URL.startswith('recruitmentAd:'):
+        elif URL.startswith('recruitmentAd:'):
             myArgs = URL[14:]
             corpID, adID = myArgs.split('//')
             sm.GetService('corp').OpenCorpAdInNewWindow(int(corpID), int(adID))
             return True
-        if URL.startswith('scannerAction:'):
+        elif URL.startswith('scannerAction:'):
             action = URL[14:]
             sm.GetService('scanSvc').ClickLink(action)
             return True
-        if URL.startswith('podGuideLink:'):
+        elif URL.startswith('podGuideLink:'):
             podGuideID = int(URL[len('podGuideLink:'):])
             OpenPodGuide(podGuideID)
             return True
-        if URL.startswith('overviewPreset:'):
+        elif URL.startswith('overviewPreset:'):
             if isinstance(parent, LabelCore):
                 overviewName, url = getattr(parent, '_dragLinkData', ('', None))
                 overviewName = StripTags(overviewName)
@@ -137,10 +138,15 @@ class BaseLink(BaseLinkCore):
             presetKey = (parts[0], int(parts[1]))
             sm.GetService('overviewPresetSvc').LoadSettings(presetKey, overviewName)
             return True
-        if URL.startswith('openCareerAgents:'):
+        elif URL.startswith('accessGroup:'):
+            groupID = int(URL[len('accessGroup:'):])
+            from eve.client.script.ui.structure.accessGroups.groupInfoWnd import GroupInfoWnd
+            GroupInfoWnd.Open(groupID=groupID, windowID='groupInfoWnd_%s' % groupID)
+            return True
+        elif URL.startswith('openCareerAgents:'):
             sm.GetService('tutorial').ShowCareerFunnel()
             return True
-        if URL.startswith('joinChannel:'):
+        elif URL.startswith('joinChannel:'):
             channelID = URL[12:]
             corpID = None
             adID = None
@@ -156,11 +162,12 @@ class BaseLink(BaseLinkCore):
                      'applyingCorporationID',
                      'adID'], 'JoinRecruitingChannel', session.corpid, session.allianceid, channelID, corpID, adID)
             return True
-        if URL.startswith('tutorialvideo:'):
+        elif URL.startswith('tutorialvideo:'):
             from eve.client.script.ui.shared.neocom.help import HelpWindow
             HelpWindow.PlayVideoId(URL[len('tutorialvideo:'):])
             return True
-        return False
+        else:
+            return False
 
     @classmethod
     def PrepareDrag(cls, dragContainer, dragSource, *args):
@@ -249,18 +256,35 @@ class BaseLink(BaseLinkCore):
             else:
                 hintText = localization.GetByLabel('UI/Common/ShowInfo')
             return hintText
-        if url.startswith('podGuideLink'):
+        elif url.startswith('podGuideLink'):
             podGuideID = int(url[len('podGuideLink:'):])
             return localization.GetByMessageID(GetTermShortText(podGuideID))
-        for k, v in HINTLABELS.iteritems():
-            if url.startswith('%s:' % k):
-                if v is None:
-                    return v
-                return localization.GetByLabel(v)
+        elif url.startswith('accessGroup'):
+            return ''
+        else:
+            for k, v in HINTLABELS.iteritems():
+                if url.startswith('%s:' % k):
+                    if v is None:
+                        return v
+                    return localization.GetByLabel(v)
 
-        return url
+            return url
 
-    def GetLinkFormat(self, url, linkState = None, linkStyle = None):
+    def LoadTooltipPanel(self, tooltipPanel, *args):
+        url = getattr(self, 'url', None)
+        if url is None:
+            return
+        else:
+            if url.startswith('accessGroup'):
+                if not self.hint:
+                    groupID = int(url[len('accessGroup:'):])
+                    accessGroupsController = sm.GetService('structureControllers').GetAccessGroupController()
+                    groupInfo = accessGroupsController.GetGroupInfoFromID(groupID)
+                    hintText = localization.GetByLabel('UI/Structures/AccessGroups/AccessGroupHint', groupName=groupInfo['name'])
+                    self.hint = hintText
+            return
+
+    def GetLinkFormat(self, url, linkState=None, linkStyle=None):
         linkState = linkState or uiconst.LINK_IDLE
         linkStyle = linkStyle or uiconst.LINKSTYLE_REGULAR
         fmt = Bunch()
@@ -328,7 +352,7 @@ class BaseLink(BaseLinkCore):
          'contract:',
          'evebrowser:']
 
-    def UrlHandlerDelegate(self, parent, funcName, args, newTab = False):
+    def UrlHandlerDelegate(self, parent, funcName, args, newTab=False):
         handler = getattr(self, 'URLHandler', None)
         if not handler and getattr(parent, 'sr', None) and getattr(parent.sr, 'node', None):
             handler = getattr(parent.sr.node, 'URLHandler', None)
@@ -341,6 +365,7 @@ class BaseLink(BaseLinkCore):
             self.ClickGameLinks(parent, args)
         else:
             uicore.cmd.OpenBrowser(args, newTab=newTab)
+        return
 
     def GetFromCluster(self, parent, url):
         proto, servicename, action = url.split('/')
@@ -395,6 +420,7 @@ class BaseLink(BaseLinkCore):
         else:
             receivers = [url]
         sm.GetService('mailSvc').SendMsgDlg(toCharacterIDs=receivers, subject=subject, body=body)
+        return
 
     def ParseShowInfo(self, args):
         if args.startswith('showinfo:'):
@@ -413,29 +439,33 @@ class BaseLink(BaseLinkCore):
             log.LogError('failed to convert string to ids in Browser:ShowInfo. Args:', args)
             return
 
+        return
+
     def ShowInfo(self, args):
         parsedArgs = self.ParseShowInfo(args)
         if not parsedArgs:
             return
-        typeID, itemID, data = parsedArgs
-        categoryID = evetypes.GetCategoryID(typeID)
-        if categoryID == const.categoryAbstract:
-            abstractinfo = KeyVal()
-            if typeID == const.typeCertificate:
-                abstractinfo.certificateID = itemID
-            sm.GetService('info').ShowInfo(typeID, itemID, abstractinfo=abstractinfo)
-        elif categoryID == const.categoryBlueprint and data:
-            try:
-                copy, runs, material, productivity = data
-                abstractinfo = KeyVal(categoryID=const.categoryBlueprint, runs=int(runs), isCopy=bool(int(copy)), productivityLevel=int(productivity), materialLevel=int(material))
-                if itemID == 0:
-                    itemID = None
-                sm.GetService('info').ShowInfo(typeID, itemID, abstractinfo=abstractinfo)
-            except:
-                log.LogInfo('Could not convert blueprint extra data to valid parameters', data)
-
         else:
-            sm.GetService('info').ShowInfo(typeID, itemID)
+            typeID, itemID, data = parsedArgs
+            categoryID = evetypes.GetCategoryID(typeID)
+            if categoryID == const.categoryAbstract:
+                abstractinfo = KeyVal()
+                if typeID == const.typeCertificate:
+                    abstractinfo.certificateID = itemID
+                sm.GetService('info').ShowInfo(typeID, itemID, abstractinfo=abstractinfo)
+            elif categoryID == const.categoryBlueprint and data:
+                try:
+                    copy, runs, material, productivity = data
+                    abstractinfo = KeyVal(categoryID=const.categoryBlueprint, runs=int(runs), isCopy=bool(int(copy)), productivityLevel=int(productivity), materialLevel=int(material))
+                    if itemID == 0:
+                        itemID = None
+                    sm.GetService('info').ShowInfo(typeID, itemID, abstractinfo=abstractinfo)
+                except:
+                    log.LogInfo('Could not convert blueprint extra data to valid parameters', data)
+
+            else:
+                sm.GetService('info').ShowInfo(typeID, itemID)
+            return
 
     def ShowInMap(self, args):
         try:
@@ -452,21 +482,23 @@ class BaseLink(BaseLinkCore):
         if len(fromto) not in (1, 2):
             log.LogError('failed to convert string to id in Browser:ShowRouteTo. Args:', args)
             return
-        for i in fromto:
-            try:
-                id = int(i)
-            except:
-                log.LogError('failed to convert string to id in Browser:ShowRouteTo. Args:', args)
-                return
+        else:
+            for i in fromto:
+                try:
+                    id = int(i)
+                except:
+                    log.LogError('failed to convert string to id in Browser:ShowRouteTo. Args:', args)
+                    return
 
-        if eve.session.stationid:
-            sm.GetService('station').CleanUp()
-        destinationID = int(fromto[0])
-        sourceID = None
-        if len(fromto) == 2:
-            sourceID = int(fromto[1])
-        from eve.client.script.ui.shared.mapView.mapViewUtil import OpenMap
-        OpenMap(interestID=sourceID or session.regionid, drawRoute=(sourceID, destinationID))
+            if eve.session.stationid:
+                sm.GetService('station').CleanUp()
+            destinationID = int(fromto[0])
+            sourceID = None
+            if len(fromto) == 2:
+                sourceID = int(fromto[1])
+            from eve.client.script.ui.shared.mapView.mapViewUtil import OpenMap
+            OpenMap(interestID=sourceID or session.regionid, drawRoute=(sourceID, destinationID))
+            return
 
     def FleetMenu(self, text):
         self.menu = sm.GetService('menu').FleetMenu(int(text))
@@ -479,12 +511,3 @@ class BaseLink(BaseLinkCore):
 
 from carbonui.control.baselink import BaseLinkCoreOverride
 BaseLinkCoreOverride.__bases__ = (BaseLink,)
-
-def GetCharIDFromTextLink(node):
-    if node.Get('__guid__', None) != 'TextLink':
-        return
-    if not (node.Get('url', '').startswith('showinfo:137') or node.Get('url', '').startswith('showinfo:138')):
-        return
-    parts = node.Get('url', '').split('//')
-    charID = int(parts[-1])
-    return charID

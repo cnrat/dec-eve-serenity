@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\client\script\ui\services\certificateSvc.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\client\script\ui\services\certificateSvc.py
 import service
 import util
 import localization
@@ -19,6 +20,7 @@ class Certificate(object):
         self._SetupSkills(skillTypes)
         self.recommendedFor = recommendedFor
         self.currentLevel = None
+        return
 
     def __str__(self):
         return 'Certificate: %s (%d)' % (self.GetName(), self.certificateID)
@@ -93,6 +95,7 @@ class Certificate(object):
 
     def ClearCache(self):
         self.currentLevel = None
+        return
 
 
 class Certificates(service.Service):
@@ -157,8 +160,6 @@ class Certificates(service.Service):
                     break
                 else:
                     return i
-
-        return 0
 
     def GetMasteryIconForLevel(self, masteryLevel):
         if masteryLevel == 0:

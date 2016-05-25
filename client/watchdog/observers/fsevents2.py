@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\packages\watchdog\observers\fsevents2.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\packages\watchdog\observers\fsevents2.py
 import os
 import logging
 import unicodedata
@@ -25,6 +26,7 @@ class FSEventsQueue(Thread):
         self._stream_ref = FSEventStreamCreate(kCFAllocatorDefault, self._callback, context, [self._path], kFSEventStreamEventIdSinceNow, latency, kFSEventStreamCreateFlagNoDefer | kFSEventStreamCreateFlagFileEvents)
         if self._stream_ref is None:
             raise IOError('FSEvents. Could not create stream.')
+        return
 
     def run(self):
         pool = AppKit.NSAutoreleasePool.alloc().init()
@@ -40,10 +42,12 @@ class FSEventsQueue(Thread):
         FSEventStreamRelease(self._stream_ref)
         del pool
         self._queue.put(None)
+        return
 
     def stop(self):
         if self._run_loop is not None:
             CFRunLoopStop(self._run_loop)
+        return
 
     def _callback(self, streamRef, clientCallBackInfo, numEvents, eventPaths, eventFlags, eventIDs):
         events = [ NativeEvent(path, flags, _id) for path, flags, _id in zip(eventPaths, eventFlags, eventIDs) ]
@@ -56,7 +60,8 @@ class FSEventsQueue(Thread):
     def read_events(self):
         if not self.is_alive():
             return None
-        return self._queue.get()
+        else:
+            return self._queue.get()
 
 
 class NativeEvent(object):
@@ -90,7 +95,6 @@ class NativeEvent(object):
             return 'InodeMetaMod'
         if self.is_xattr_mod:
             return 'XattrMod'
-        return 'Unknown'
 
     def __repr__(self):
         s = '<NativeEvent: path=%s, type=%s, is_dir=%s, flags=%s, id=%s>'
@@ -103,7 +107,7 @@ class NativeEvent(object):
 
 class FSEventsEmitter(EventEmitter):
 
-    def __init__(self, event_queue, watch, timeout = DEFAULT_EMITTER_TIMEOUT):
+    def __init__(self, event_queue, watch, timeout=DEFAULT_EMITTER_TIMEOUT):
         EventEmitter.__init__(self, event_queue, watch, timeout)
         self._fsevents = FSEventsQueue(watch.path)
         self._fsevents.start()
@@ -115,39 +119,42 @@ class FSEventsEmitter(EventEmitter):
         events = self._fsevents.read_events()
         if events is None:
             return
-        i = 0
-        while i < len(events):
-            event = events[i]
-            if event.is_renamed:
-                if i + 1 < len(events) and events[i + 1].is_renamed and events[i + 1].event_id == event.event_id + 1:
-                    cls = DirMovedEvent if event.is_directory else FileMovedEvent
-                    self.queue_event(cls(event.path, events[i + 1].path))
-                    self.queue_event(DirModifiedEvent(os.path.dirname(event.path)))
-                    self.queue_event(DirModifiedEvent(os.path.dirname(events[i + 1].path)))
-                    i += 1
-                elif os.path.exists(event.path):
+        else:
+            i = 0
+            while i < len(events):
+                event = events[i]
+                if event.is_renamed:
+                    if i + 1 < len(events) and events[i + 1].is_renamed and events[i + 1].event_id == event.event_id + 1:
+                        cls = DirMovedEvent if event.is_directory else FileMovedEvent
+                        self.queue_event(cls(event.path, events[i + 1].path))
+                        self.queue_event(DirModifiedEvent(os.path.dirname(event.path)))
+                        self.queue_event(DirModifiedEvent(os.path.dirname(events[i + 1].path)))
+                        i += 1
+                    elif os.path.exists(event.path):
+                        cls = DirCreatedEvent if event.is_directory else FileCreatedEvent
+                        self.queue_event(cls(event.path))
+                        self.queue_event(DirModifiedEvent(os.path.dirname(event.path)))
+                    else:
+                        cls = DirDeletedEvent if event.is_directory else FileDeletedEvent
+                        self.queue_event(cls(event.path))
+                        self.queue_event(DirModifiedEvent(os.path.dirname(event.path)))
+                elif event.is_modified or event.is_inode_meta_mod or event.is_xattr_mod:
+                    cls = DirModifiedEvent if event.is_directory else FileModifiedEvent
+                    self.queue_event(cls(event.path))
+                elif event.is_created:
                     cls = DirCreatedEvent if event.is_directory else FileCreatedEvent
                     self.queue_event(cls(event.path))
                     self.queue_event(DirModifiedEvent(os.path.dirname(event.path)))
-                else:
+                elif event.is_removed:
                     cls = DirDeletedEvent if event.is_directory else FileDeletedEvent
                     self.queue_event(cls(event.path))
                     self.queue_event(DirModifiedEvent(os.path.dirname(event.path)))
-            elif event.is_modified or event.is_inode_meta_mod or event.is_xattr_mod:
-                cls = DirModifiedEvent if event.is_directory else FileModifiedEvent
-                self.queue_event(cls(event.path))
-            elif event.is_created:
-                cls = DirCreatedEvent if event.is_directory else FileCreatedEvent
-                self.queue_event(cls(event.path))
-                self.queue_event(DirModifiedEvent(os.path.dirname(event.path)))
-            elif event.is_removed:
-                cls = DirDeletedEvent if event.is_directory else FileDeletedEvent
-                self.queue_event(cls(event.path))
-                self.queue_event(DirModifiedEvent(os.path.dirname(event.path)))
-            i += 1
+                i += 1
+
+            return
 
 
 class FSEventsObserver2(BaseObserver):
 
-    def __init__(self, timeout = DEFAULT_OBSERVER_TIMEOUT):
+    def __init__(self, timeout=DEFAULT_OBSERVER_TIMEOUT):
         BaseObserver.__init__(self, emitter_class=FSEventsEmitter, timeout=timeout)

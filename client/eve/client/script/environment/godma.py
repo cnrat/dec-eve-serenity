@@ -1,11 +1,13 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\client\script\environment\godma.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\client\script\environment\godma.py
 from carbon.common.script.sys.row import Row
+from eve.common.script.sys.eveCfg import IsControllingStructure
 from eve.common.script.sys.rowset import FilterRowset, IndexRowset, IndexedRowLists, IndexedRows
 from eve.client.script.util import godmarowset
 from gametime import GetDurationInClient
 import cPickle
 import math
-from inventorycommon.util import GetItemVolume, IsShipFittingFlag
+from inventorycommon.util import GetItemVolume, IsShipFittingFlag, IsFittingModule
 import carbonui.const as uiconst
 import service
 import blue
@@ -78,6 +80,7 @@ class Godma(service.Service):
         self.__subloc_internalrd = None
         self.activeJams = set()
         self.michelle = None
+        return
 
     @property
     def itemrd(self):
@@ -124,7 +127,7 @@ class Godma(service.Service):
     def TypeHasEffect(self, typeID, effectID):
         return self.GetStateManager().TypeHasEffect(typeID, effectID)
 
-    def LogAttributeViaGodma(self, itemID, attributeID, reason = None):
+    def LogAttributeViaGodma(self, itemID, attributeID, reason=None):
         mask = service.ROLE_CONTENT | service.ROLE_QA | service.ROLE_PROGRAMMER | service.ROLE_GMH
         if eve.session.role & mask == 0:
             return
@@ -133,6 +136,7 @@ class Godma(service.Service):
     def Stop(self, ms):
         if ms is not None:
             ms.Write(cPickle.dumps(1))
+        return
 
     def OnJamStart(self, sourceBallID, moduleID, targetBallID, jammingType, startTime, duration):
         jamTuple = (sourceBallID,
@@ -242,6 +246,7 @@ class Godma(service.Service):
         if self.stateManager:
             self.stateManager.Release()
         self.stateManager = None
+        return
 
     def GetDogmaLM(self):
         return self.GetStateManager().GetDogmaLM()
@@ -296,6 +301,7 @@ class Godma(service.Service):
          evetypes.GetCategoryID(typeID),
          stackSize])
         sm.ScatterEvent('OnItemChange', item, change)
+        return
 
     def OnGodmaFlushLocation(self, locationID):
         self.GetStateManager().OnGodmaFlushLocation(locationID)
@@ -379,6 +385,7 @@ class Godma(service.Service):
                         allTurretSets.append(turretSet)
 
             self.DamageMessageGrouped(allTurretSets, hitQuality)
+        return
 
     @telemetry.ZONE_METHOD
     def OnDamageMessage(self, damageMessagesArgs):
@@ -418,15 +425,17 @@ class Godma(service.Service):
 
         if not settings.user.ui.Get('damageMessages', 1):
             return
-        if 'damage' in damageMessagesArgs and damageMessagesArgs['damage'] == 0.0 and not settings.user.ui.Get('damageMessagesNoDamage', 1):
+        elif 'damage' in damageMessagesArgs and damageMessagesArgs['damage'] == 0.0 and not settings.user.ui.Get('damageMessagesNoDamage', 1):
             return
-        if 'owner' in damageMessagesArgs or 'source' in damageMessagesArgs:
-            sm.ScatterEvent('OnShipDamage', damageMessagesArgs.get('damageTypes', {}))
-            if not settings.user.ui.Get('damageMessagesEnemy', 1):
+        else:
+            if 'owner' in damageMessagesArgs or 'source' in damageMessagesArgs:
+                sm.ScatterEvent('OnShipDamage', damageMessagesArgs.get('damageTypes', {}))
+                if not settings.user.ui.Get('damageMessagesEnemy', 1):
+                    return
+            elif not settings.user.ui.Get('damageMessagesMine', 1):
                 return
-        elif not settings.user.ui.Get('damageMessagesMine', 1):
+            sm.GetService('logger').AddCombatMessageFromDict(damageMessagesArgs)
             return
-        sm.GetService('logger').AddCombatMessageFromDict(damageMessagesArgs)
 
     @telemetry.ZONE_METHOD
     def OnDamageMessages(self, dmgmsgs):
@@ -455,8 +464,10 @@ class Godma(service.Service):
     def OverloadRack(self, moduleID):
         if moduleID is None:
             return
-        if self.stateManager:
-            self.stateManager.OverloadRack(moduleID)
+        else:
+            if self.stateManager:
+                self.stateManager.OverloadRack(moduleID)
+            return
 
     def StopOverloadRack(self, moduleID):
         if self.stateManager:
@@ -466,7 +477,7 @@ class Godma(service.Service):
         if self.stateManager:
             self.stateManager.OnJumpCloneTransitionCompleted()
 
-    def GetTypeAttribute(self, typeID, attributeID, defaultValue = None):
+    def GetTypeAttribute(self, typeID, attributeID, defaultValue=None):
         if cfg.dgmtypeattribs.has_key(typeID):
             for r in cfg.dgmtypeattribs[typeID]:
                 if r.attributeID == attributeID:
@@ -543,12 +554,16 @@ class Godma(service.Service):
          const.effectMedPower,
          const.effectLoPower,
          const.effectRigSlot,
-         const.effectSubSystem]
+         const.effectSubSystem,
+         const.effectServiceSlot]
         if typeID not in cfg.dgmtypeeffects:
             return None
-        for effect in cfg.dgmtypeeffects[typeID]:
-            if effect.effectID in powerEffects:
-                return effect.effectID
+        else:
+            for effect in cfg.dgmtypeeffects[typeID]:
+                if effect.effectID in powerEffects:
+                    return effect.effectID
+
+            return None
 
     def ShipOnlineModules(self):
         self.GetDogmaLM().ShipOnlineModules()
@@ -600,10 +615,10 @@ class TypeWrapper(object):
                  each.attributeID])
 
             return rowset
-        if attributeName == 'effects':
+        elif attributeName == 'effects':
             self.statemanager.CacheTypeEffects(typeID)
             return self.statemanager.effectsByType[typeID]
-        if self.statemanager.attributesByName.has_key(attributeName):
+        elif self.statemanager.attributesByName.has_key(attributeName):
             value = None
             attribute = self.statemanager.attributesByName[attributeName]
             if attribute.attributeCategory == 9:
@@ -619,17 +634,16 @@ class TypeWrapper(object):
             if cfg.dgmattribs.Get(attributeID).attributeCategory in (0, 1, 3, 4, 10, 11, 12):
                 return int(value)
             return value
-        if attributeName == 'name':
+        elif attributeName == 'name':
             return evetypes.GetName(typeID)
-        return evetypes.GetAttributeForType(typeID, attributeName)
+        else:
+            return evetypes.GetAttributeForType(typeID, attributeName)
 
     def AttributeExists(self, attributeName):
         attributeID = self.statemanager.attributesByName[attributeName].attributeID
         for each in cfg.dgmtypeattribs.get(self.typeID, []):
             if each.attributeID == attributeID:
                 return 1
-
-        return 0
 
     def __str__(self):
         return self.typeName
@@ -646,6 +660,7 @@ class ItemWrapper():
         self.dbrow = dbrow
         self.header = header
         self.defaultEffectName = None
+        return
 
     def __str__(self):
         try:
@@ -676,20 +691,22 @@ class ItemWrapper():
 
             effectName = d['defaultEffectName']
             return d['statemanager'].effectsByItemEffect[self.itemID].get(effectName, None)
-        if attribute == 'line':
+        elif attribute == 'line':
             return list(d['dbrow'])
-        if attribute in d['dbrow'].__columns__:
+        elif attribute in d['dbrow'].__columns__:
             return d['dbrow'][attribute]
-        if d['dbrow'].__class__.__dict__.has_key(attribute):
+        elif d['dbrow'].__class__.__dict__.has_key(attribute):
             return getattr(d['dbrow'], attribute)
-        if self.__class__.__dict__.has_key(attribute):
+        elif self.__class__.__dict__.has_key(attribute):
             return self.__class__.__dict__[attribute]
-        if attribute.startswith('__') and attribute.endswith('__'):
-            raise AttributeError('ItemWrapper has no %s' % attribute)
         else:
-            if attribute == 'inventory':
-                return d['statemanager'].invByID.get(self.itemID, None)
-            return d['statemanager'].GetAttribute(self.itemID, attribute)
+            if attribute.startswith('__') and attribute.endswith('__'):
+                raise AttributeError('ItemWrapper has no %s' % attribute)
+            else:
+                if attribute == 'inventory':
+                    return d['statemanager'].invByID.get(self.itemID, None)
+                return d['statemanager'].GetAttribute(self.itemID, attribute)
+            return
 
     def __nonzero__(self):
         return True
@@ -698,10 +715,11 @@ class ItemWrapper():
         eff = self.statemanager.GetDefaultEffect(typeID)
         if eff is None:
             return
-        eff = eff.__class__(self.statemanager, eff.header, eff.dbrow)
-        idx = eff.header.Index('itemID')
-        eff[idx] = self.itemID
-        return eff
+        else:
+            eff = eff.__class__(self.statemanager, eff.header, eff.dbrow)
+            idx = eff.header.Index('itemID')
+            eff[idx] = self.itemID
+            return eff
 
     def IsFitted(self):
         return IsShipFittingFlag(self.flagID)
@@ -709,14 +727,14 @@ class ItemWrapper():
     def GetSlotOccupants(self, flag):
         return [ item for item in self.statemanager.invitems.itervalues() if item.locationID == self.itemID and item.flagID == flag ]
 
-    def GetCapacity(self, flag = None):
+    def GetCapacity(self, flag=None):
         used = None
         capacity = 0
         contents = []
-        if self.categoryID == const.categoryShip:
+        if self.categoryID in (const.categoryShip, const.categoryStructure):
             if IsShipFittingFlag(flag):
                 occupants = self.GetSlotOccupants(flag)
-                modules = filter(lambda x: x.categoryID == const.categoryModule, occupants)
+                modules = filter(lambda x: IsFittingModule(x.categoryID), occupants)
                 if len(modules):
                     capacity = self.statemanager.GetItem(modules[0].itemID).capacity
                 else:
@@ -741,6 +759,7 @@ class ItemWrapper():
                 contents = inv.List(flag)
                 capacity = self.shipMaintenanceBayCapacity
             elif flag in (const.flagHangar,
+             const.flagCorpSAG1,
              const.flagCorpSAG2,
              const.flagCorpSAG3,
              const.flagCorpSAG4,
@@ -752,6 +771,7 @@ class ItemWrapper():
                 elif self.statemanager.godma.invCache.IsInventoryPrimedAndListed(self.itemID):
                     inv = sm.GetService('invCache').GetInventoryFromId(self.itemID)
                 contents = [ item for item in inv.List() if item.flagID in (const.flagHangar,
+                 const.flagCorpSAG1,
                  const.flagCorpSAG2,
                  const.flagCorpSAG3,
                  const.flagCorpSAG4,
@@ -795,19 +815,23 @@ class EffectWrapper():
         d['dbrow'] = dbrow
         d['header'] = header
         d['defaultEffectName'] = None
+        return
 
     def __getattr__(self, attribute):
         d = self.__dict__
         if attribute in d:
             return d[attribute]
-        try:
-            return d['dbrow'][attribute]
-        except:
-            sys.exc_clear()
-            ret = d['statemanager'].GetEffectAttributeEx(self, d['dbrow'].itemID, attribute)
-            if ret is None:
-                raise AttributeError, attribute
-            return ret
+        else:
+            try:
+                return d['dbrow'][attribute]
+            except:
+                sys.exc_clear()
+                ret = d['statemanager'].GetEffectAttributeEx(self, d['dbrow'].itemID, attribute)
+                if ret is None:
+                    raise AttributeError, attribute
+                return ret
+
+            return
 
     def __setattr__(self, attr, value):
         d = self.__dict__
@@ -819,7 +843,7 @@ class EffectWrapper():
     def __setitem__(self, idx, value):
         self.dbrow[idx] = value
 
-    def Activate(self, target = None, repeat = 0):
+    def Activate(self, target=None, repeat=0):
         if self.isActive and self.duration <= 0:
             self.statemanager.godma.LogError('Module effect already active', self.effectName, self.itemID)
             return
@@ -924,6 +948,7 @@ class StateManager():
          const.attributePropulsionMagpulseStrengthBonus: const.attributePropulsionMagpulseStrength,
          const.attributePropulsionPlasmaStrengthBonus: const.attributePropulsionPlasmaStrength}
         self.dogmaLocation = None
+        return
 
     def Release(self):
         self.dogmaLM = None
@@ -935,6 +960,7 @@ class StateManager():
         self.effectsByItemEffect = None
         self.defaultEffectsByType = None
         self.attributesByItemAttribute = None
+        return
 
     def IsLocationLoaded(self, locationID):
         return locationID in self.itemsByLocationID
@@ -947,7 +973,7 @@ class StateManager():
             self.dogmaLM = moniker.CharGetDogmaLocation()
         return self.dogmaLM
 
-    def LogAttributeViaStateManager(self, itemID, attributeID, reason = None):
+    def LogAttributeViaStateManager(self, itemID, attributeID, reason=None):
         if reason is None:
             reason = ''
         else:
@@ -963,9 +989,11 @@ class StateManager():
         for line in logStuff:
             self.godma.LogError(line)
 
+        return
+
     def ProcessSessionChange(self, isRemote, session, change):
         if session.charid:
-            if 'stationid2' in change or 'solarsystemid' in change or 'shipid' in change or 'charid' in change:
+            if 'stationid2' in change or 'solarsystemid' in change or 'shipid' in change or 'charid' in change or 'structureid' in change:
                 self.priming = True
                 self.PurgeInventories([session.charid, session.shipid], skipCapacityEvent=True)
                 self.dogmaLM = None
@@ -981,7 +1009,7 @@ class StateManager():
                     except KeyError:
                         pass
 
-                    self.Prime(session.shipid)
+                    self.Prime()
                     if session.shipid in self.attributesByItemAttribute and self.attributesByItemAttribute[session.shipid]:
                         newAttribs = self.attributesByItemAttribute[session.shipid]
                         attribChanges = []
@@ -1008,10 +1036,14 @@ class StateManager():
                 self.chargeTypeByModule = {}
         else:
             self.dogmaLM = None
+        return
 
     def OnItemChange(self, item, change):
         if self.IsSubLocation(item.itemID):
             return
+        if item.locationID == session.structureid and not IsControllingStructure():
+            if not (const.ixLocationID in change and change[const.ixLocationID] == session.shipid):
+                return
         if item.itemID in self.chargeTypeByModule and const.ixFlag in change:
             del self.chargeTypeByModule[item.itemID]
         self.godma.LogInfo('OnItemChange', item, change)
@@ -1046,7 +1078,7 @@ class StateManager():
                         self.itemsByLocationID[item.locationID].add(item.itemID)
         elif self.invByID.has_key(item.locationID):
             if self.invitems.has_key(item.itemID):
-                if item.ownerID != session.charid and const.ixOwnerID in change or const.ixFlag in change and not (IsShipFittingFlag(item.flagID) or item.flagID in (const.flagSkill, const.flagSkillInTraining, const.flagBooster)):
+                if const.ixFlag in change and not (IsShipFittingFlag(item.flagID) or item.flagID in (const.flagSkill, const.flagSkillInTraining, const.flagBooster)):
                     sm.ScatterEvent('OnGodmaItemChange', item, change)
                     del self.invitems[item.itemID]
                     if item.locationID in self.itemsByLocationID:
@@ -1082,11 +1114,6 @@ class StateManager():
 
         sm.ChainEvent('ProcessGodmaLocationPrimed', locationID)
 
-    def ProcessLocationInfo(self, cData):
-        for locationID, datas in cData.iteritems():
-            for data in datas:
-                self.ProcessGodmaPrimeLocation(locationID, data)
-
     def OnGodmaPrimeItem(self, locationID, row):
         if locationID not in self.itemsByLocationID:
             log.LogError('OnGodmaPrimeItem received row %s for locationID %s, location primed!' % (row, locationID))
@@ -1102,34 +1129,37 @@ class StateManager():
         if profileID[0] == 'effect' and profileID[1] != locationID:
             self.PurgeEntry(profileID[1], locationID)
 
-    def OnModuleAttributeChange(self, ownerID, itemKey, attributeID, time, newValue, oldValue, wallclockTime, scatterAttr = True):
+    def OnModuleAttributeChange(self, ownerID, itemKey, attributeID, time, newValue, oldValue, wallclockTime, scatterAttr=True):
         if self.primingChannel is not None:
             if not self.primingChannel.receive():
                 self.godma.LogError('OnModuleAttributeChange - Discarded due to response from receive', ownerID, itemKey, attributeID, time, newValue, oldValue, scatterAttr)
                 return
             self.godma.LogWarn('OnModuleAttributeChange - Stalled, but now in action', ownerID, itemKey, attributeID, time, newValue, oldValue, scatterAttr)
         self.OnModuleAttributeChange_(ownerID, itemKey, attributeID, time, newValue, oldValue, wallclockTime, scatterAttr, useTasket=True)
+        return
 
-    def OnModuleAttributeChange_(self, ownerID, itemKey, attributeID, time, newValue, oldValue, wallclockTime, scatterAttr = True, useTasket = False):
+    def OnModuleAttributeChange_(self, ownerID, itemKey, attributeID, time, newValue, oldValue, wallclockTime, scatterAttr=True, useTasket=False):
         attributeName = cfg.dgmattribs.Get(attributeID).attributeName
         if not self._IsAttributeChangeRelevant(itemKey, attributeID, wallclockTime):
             self.godma.LogInfo('Ignoring attribute change to attribute', attributeID, 'on', itemKey, 'as it is too old', (oldValue, newValue))
             return
-        if wallclockTime:
-            self.lastAttributeChange[itemKey, attributeID] = wallclockTime
-        if not (itemKey == eve.session.charid or ownerID == eve.session.charid):
-            if eve.session.charid is None:
-                return
-            log.LogTraceback('Got moduleattributechange for object I do not own!!!!!!!! Yayz0r - ownerID = %s, itemKey = %s, attributeID = %s, session.charid = %s' % (ownerID,
-             itemKey,
-             attributeID,
-             eve.session.charid), channel='svc.godma')
-            self.godma.LogError('OnModuleAttributeChange', ownerID, itemKey, attributeID, time, newValue, oldValue, scatterAttr)
-            return
-        if useTasket:
-            uthread.pool('godma::ApplyAttributeChange::OnModuleAttributeChange', self.ApplyAttributeChange, ownerID, itemKey, attributeID, time, newValue, oldValue, scatterAttr)
         else:
-            self.ApplyAttributeChange(ownerID, itemKey, attributeID, time, newValue, oldValue, scatterAttr)
+            if wallclockTime:
+                self.lastAttributeChange[itemKey, attributeID] = wallclockTime
+            if not (itemKey == eve.session.charid or ownerID == eve.session.charid):
+                if eve.session.charid is None:
+                    return
+                log.LogTraceback('Got moduleattributechange for object I do not own!!!!!!!! Yayz0r - ownerID = %s, itemKey = %s, attributeID = %s, session.charid = %s' % (ownerID,
+                 itemKey,
+                 attributeID,
+                 eve.session.charid), channel='svc.godma')
+                self.godma.LogError('OnModuleAttributeChange', ownerID, itemKey, attributeID, time, newValue, oldValue, scatterAttr)
+                return
+            if useTasket:
+                uthread.pool('godma::ApplyAttributeChange::OnModuleAttributeChange', self.ApplyAttributeChange, ownerID, itemKey, attributeID, time, newValue, oldValue, scatterAttr)
+            else:
+                self.ApplyAttributeChange(ownerID, itemKey, attributeID, time, newValue, oldValue, scatterAttr)
+            return
 
     def OnLocationAttributeChange(self, ownerID, locationID, itemKey, attributeID, time, newValue, oldValue):
         if locationID not in self.itemsByLocationID:
@@ -1173,6 +1203,7 @@ class StateManager():
                 ch.append((cfg.dgmattribs.Get(change[3]).attributeName, entry, change[5]))
 
         sm.ScatterEvent('OnAttributes', ch)
+        return
 
     def GetActiveModulesOnTargetID(self, targetID):
         ret = []
@@ -1188,7 +1219,7 @@ class StateManager():
 
         return ret
 
-    def OnGodmaShipEffect(self, itemID, effectID, t, start, active, environment, startTime, duration, repeat, error, actualStopTime = None, stall = True):
+    def OnGodmaShipEffect(self, itemID, effectID, t, start, active, environment, startTime, duration, repeat, error, actualStopTime=None, stall=True):
         if stall and self.primingChannel is not None:
             if not self.primingChannel.receive():
                 self.godma.LogError('OnGodmaShipEffect - Discarded due to response from receive', itemID, effectID, t, start, active, environment, startTime, duration, repeat, error)
@@ -1212,6 +1243,7 @@ class StateManager():
                 self.StopPendingOverloadModule(itemID)
             elif not start and itemID in self.pendingStopOverloading:
                 self.StopPendingStopOverloadModule(itemID)
+        return
 
     def ActualStopEffect(self, itemID, effectID, stopTime, effectState):
         if not effectState.start and stopTime is not None:
@@ -1222,6 +1254,7 @@ class StateManager():
         self.RecordLastStopTime(itemID, effectState, effectID)
         self.ClearPendingOverloadingFlags()
         sm.ChainEvent('ProcessShipEffect', self, effectState)
+        return
 
     def RecordLastStopTime(self, itemID, effectState, effectID):
         if effectState.start or effectID in (const.effectOnline, const.effectOverloadRofBonus):
@@ -1270,7 +1303,7 @@ class StateManager():
     def IsSubLocation(self, itemKey):
         return type(itemKey) is tuple
 
-    def UpdateItem(self, item, infoz = None, dontGetInfo = 0):
+    def UpdateItem(self, item, infoz=None, dontGetInfo=0):
         self.godma.LogInfo('UpdateItem:', item, infoz, dontGetInfo)
         isSubLocation = item is not None and self.IsSubLocation(item.itemID) or infoz is not None and self.IsSubLocation(infoz.itemID)
         if isSubLocation:
@@ -1293,90 +1326,97 @@ class StateManager():
          const.categoryCharge,
          const.categoryDrone,
          const.categorySubSystem,
-         const.categoryFighter) and itemGroupID != const.groupCharacter:
+         const.categoryFighter,
+         const.categoryStructure,
+         const.categoryStructureModule) and itemGroupID != const.groupCharacter:
             self.godma.LogError('Godma location received unexpected and unwanted item', item)
             return
-        if itemFlag in (const.flagCargo, const.flagDroneBay) or itemFlag in const.fighterTubeFlags:
+        elif itemFlag in (const.flagCargo, const.flagDroneBay) or itemFlag in const.fighterTubeFlags:
             return
-        doUpdate = False
-        ret = None
-        if isSubLocation:
-            if itemLocationID not in self.invitems:
-                self.godma.LogWarn('Godma:UpdateItem - could not find location object', itemLocationID, ', skipping update of', itemKey)
-                return
-            locationItem = self.invitems[itemLocationID]
-            defaultQty = self.attributesByName['quantity'].defaultValue
-            l = blue.DBRow(self.godma.subloc_internalrd, [itemKey,
-             itemTypeID,
-             locationItem.ownerID,
-             itemLocationID,
-             itemFlag,
-             itemGroupID,
-             itemCategoryID])
-            if not self.sublocationsByKey.has_key(itemFlag):
-                self.godma.LogInfo('Godma:UpdateItem - Inserting sublocation', itemKey)
-                if not infoz.attributes.has_key(const.attributeQuantity):
-                    log.LogTraceback('Godma:UpdateItem - QUANTITY MISSING', channel='svc.godma')
-                    self.godma.LogError('Godma:UpdateItem - QUANTITY MISSING')
-                else:
-                    quantity = infoz.attributes[const.attributeQuantity]
-                    item = blue.DBRow(self.godma.sublocrd, [itemKey,
-                     itemTypeID,
-                     locationItem.ownerID,
-                     itemLocationID,
-                     itemFlag,
-                     quantity,
-                     itemGroupID,
-                     itemCategoryID,
-                     None])
-                    if self.godma.invCache.IsInventoryPrimedAndListed(itemLocationID):
-                        self.godma.LogInfo('Godma:UpdateItem - QUANTITY', infoz.attributes[const.attributeQuantity])
-                        sm.ScatterEvent('OnItemChange', item, {const.ixLocationID: None,
-                         const.ixFlag: None})
-            self.sublocationsByKey[itemKey] = l
-            if not self.sublocationsByLocationFlag.has_key(itemLocationID):
-                self.sublocationsByLocationFlag[itemLocationID] = godmarowset.GodmaIndexedRowset(self.godma.subloc_internalrd, 'flagID', rowClass=self.GetSubLocationWrapper)
-            elif self.sublocationsByLocationFlag[itemLocationID].has_key(itemFlag):
-                doUpdate = True
-            ret = self.sublocationsByLocationFlag[itemLocationID][itemFlag] = l
         else:
-            if not self.invitems.has_key(itemKey):
-                self.godma.LogInfo('Godma:UpdateItem - Inserting item', itemKey)
+            doUpdate = False
+            ret = None
+            if isSubLocation:
+                if itemLocationID not in self.invitems:
+                    self.godma.LogWarn('Godma:UpdateItem - could not find location object', itemLocationID, ', skipping update of', itemKey)
+                    return
+                locationItem = self.invitems[itemLocationID]
+                defaultQty = self.attributesByName['quantity'].defaultValue
+                l = blue.DBRow(self.godma.subloc_internalrd, [itemKey,
+                 itemTypeID,
+                 locationItem.ownerID,
+                 itemLocationID,
+                 itemFlag,
+                 itemGroupID,
+                 itemCategoryID])
+                if not self.sublocationsByKey.has_key(itemFlag):
+                    self.godma.LogInfo('Godma:UpdateItem - Inserting sublocation', itemKey)
+                    if not infoz.attributes.has_key(const.attributeQuantity):
+                        log.LogTraceback('Godma:UpdateItem - QUANTITY MISSING', channel='svc.godma')
+                        self.godma.LogError('Godma:UpdateItem - QUANTITY MISSING')
+                    else:
+                        quantity = infoz.attributes[const.attributeQuantity]
+                        item = blue.DBRow(self.godma.sublocrd, [itemKey,
+                         itemTypeID,
+                         locationItem.ownerID,
+                         itemLocationID,
+                         itemFlag,
+                         quantity,
+                         itemGroupID,
+                         itemCategoryID,
+                         None])
+                        if self.godma.invCache.IsInventoryPrimedAndListed(itemLocationID):
+                            self.godma.LogInfo('Godma:UpdateItem - QUANTITY', infoz.attributes[const.attributeQuantity])
+                            sm.ScatterEvent('OnItemChange', item, {const.ixLocationID: None,
+                             const.ixFlag: None})
+                self.sublocationsByKey[itemKey] = l
+                if not self.sublocationsByLocationFlag.has_key(itemLocationID):
+                    self.sublocationsByLocationFlag[itemLocationID] = godmarowset.GodmaIndexedRowset(self.godma.subloc_internalrd, 'flagID', rowClass=self.GetSubLocationWrapper)
+                elif self.sublocationsByLocationFlag[itemLocationID].has_key(itemFlag):
+                    doUpdate = True
+                ret = self.sublocationsByLocationFlag[itemLocationID][itemFlag] = l
             else:
-                doUpdate = True
-            ret = self.invitems[itemKey] = item
-            if itemCategoryID in (const.categoryShip, const.categoryStarbase) or itemGroupID == const.groupCharacter:
-                self.itemsByLocationID[itemKey] = set()
-            if not (util.IsSolarSystem(itemLocationID) or util.IsStation(itemLocationID) or util.IsWorldSpace(itemLocationID)):
-                self.itemsByLocationID[itemLocationID].add(itemKey)
-        if IsShipFittingFlag(itemFlag) and not isSubLocation and itemCategoryID not in (const.categoryModule, const.categoryCharge, const.categorySubSystem):
-            self.godma.LogError('Godma:UpdateItem.skip2', itemKey)
-            return
-        if (isSubLocation or not item.singleton) and (itemCategoryID != const.categoryCharge or itemGroupID == const.groupMine):
-            if itemFlag != const.flagCapsule:
-                self.godma.LogError('Godma:UpdateItem.skip3', itemKey)
-            return
-        if dontGetInfo:
-            self.godma.LogError('Godma:UpdateItem.skip4', itemKey)
-            return
-        if infoz is None:
-            infoz = self.GetDogmaLM().ItemGetInfo(itemKey)
-        if infoz is None:
-            return
-        self.RefreshItemAttributes(itemKey, infoz, doUpdate)
-        self.RefreshItemEffects(itemKey, itemTypeID, infoz, doUpdate)
-        if isSubLocation:
-            regKey = (itemLocationID, itemFlag, None)
-        else:
-            regKey = itemKey
-        if regKey in self.itemKeyChannels:
-            while self.itemKeyChannels[regKey].queue:
-                self.godma.LogInfo('GetWithWait-END', regKey)
-                self.itemKeyChannels[regKey].send(ret)
+                if not self.invitems.has_key(itemKey):
+                    self.godma.LogInfo('Godma:UpdateItem - Inserting item', itemKey)
+                else:
+                    doUpdate = True
+                ret = self.invitems[itemKey] = item
+                if itemCategoryID in (const.categoryShip, const.categoryStarbase, const.categoryStructure) or itemGroupID == const.groupCharacter:
+                    self.itemsByLocationID[itemKey] = set()
+                if not (util.IsSolarSystem(itemLocationID) or util.IsStation(itemLocationID) or util.IsWorldSpace(itemLocationID)):
+                    self.itemsByLocationID[itemLocationID].add(itemKey)
+            if IsShipFittingFlag(itemFlag) and not isSubLocation and itemCategoryID not in (const.categoryModule,
+             const.categoryStructureModule,
+             const.categoryCharge,
+             const.categorySubSystem):
+                self.godma.LogError('Godma:UpdateItem.skip2', itemKey)
+                return
+            elif (isSubLocation or not item.singleton) and (itemCategoryID != const.categoryCharge or itemGroupID == const.groupMine):
+                if itemFlag != const.flagCapsule:
+                    self.godma.LogError('Godma:UpdateItem.skip3', itemKey)
+                return
+            elif dontGetInfo:
+                self.godma.LogError('Godma:UpdateItem.skip4', itemKey)
+                return
+            if infoz is None:
+                infoz = self.GetDogmaLM().ItemGetInfo(itemKey)
+            if infoz is None:
+                return
+            self.RefreshItemAttributes(itemKey, infoz, doUpdate)
+            self.RefreshItemEffects(itemKey, itemTypeID, infoz, doUpdate)
+            if isSubLocation:
+                regKey = (itemLocationID, itemFlag, None)
+            else:
+                regKey = itemKey
+            if regKey in self.itemKeyChannels:
+                while self.itemKeyChannels[regKey].queue:
+                    self.godma.LogInfo('GetWithWait-END', regKey)
+                    self.itemKeyChannels[regKey].send(ret)
 
-            del self.itemKeyChannels[regKey]
+                del self.itemKeyChannels[regKey]
+            return
 
-    def RefreshItemEffects(self, itemID, itemTypeID, info = None, doUpdate = False):
+    def RefreshItemEffects(self, itemID, itemTypeID, info=None, doUpdate=False):
         if info is None:
             info = self.GetDogmaLM().ItemGetInfo(itemID)
             if info is None:
@@ -1444,7 +1484,9 @@ class StateManager():
         for line in eventLines:
             apply(self.OnGodmaShipEffect, line, kwArgs)
 
-    def RefreshItemAttributes(self, itemID, info = None, doUpdate = False):
+        return
+
+    def RefreshItemAttributes(self, itemID, info=None, doUpdate=False):
         if info is None:
             info = self.GetDogmaLM().ItemGetInfo(itemID)
             if info is None:
@@ -1483,6 +1525,8 @@ class StateManager():
                 if self.attributesByItemAttribute[itemID].get(self.chargedAttributeTauCaps[k][0]) and self.attributesByItemAttribute[itemID].get(self.chargedAttributeTauCaps[k][1]):
                     self.CreateChargedAttribute(itemID, k, attributes[k], time, self.chargedAttributeTauCaps[k])
 
+        return
+
     def CreateChargedAttribute(self, itemID, attribute, value, time, taucap):
         tau, cap = taucap
         tauValue = self.GetAttribute(itemID, tau) / 5.0
@@ -1497,11 +1541,15 @@ class StateManager():
         k = 'group' + name[0].capitalize() + name[1:]
         if util.ConstValueExists(k):
             return util.LookupConstValue(k, None)
+        else:
+            return None
 
     def NameToType(self, name):
         k = 'type' + name[0].capitalize() + name[1:]
         if util.ConstValueExists(k):
             return util.LookupConstValue(k, None)
+        else:
+            return None
 
     def LocateItem(self, id, name):
         typeID = self.NameToType(name)
@@ -1510,6 +1558,8 @@ class StateManager():
             for item in loc[id]:
                 if item.flagID in [const.flagSkill, const.flagSkillInTraining] and item.typeID == typeID:
                     return item
+
+        return
 
     def GetDisplayAttributes(self, id):
         rowDescriptor = blue.DBRowDescriptor((('displayName', const.DBTYPE_STR),
@@ -1538,7 +1588,7 @@ class StateManager():
     def GetSubLocationWrapper(self, header, dbrow):
         return ItemWrapper(self, header, dbrow)
 
-    def GetItem(self, itemID, waitForPrime = False):
+    def GetItem(self, itemID, waitForPrime=False):
         if type(itemID) is tuple:
             return self.GetSubLocation(itemID[0], itemID[1], waitForPrime)
         while self.priming:
@@ -1550,15 +1600,17 @@ class StateManager():
             self.godma.LogInfo('GetItem.GetWithWait', itemID)
             return self.GetWithWait(itemID)
 
-    def GetSubLocation(self, locationID, flag, waitForPrime = False):
+    def GetSubLocation(self, locationID, flag, waitForPrime=False):
         while self.priming:
             blue.pyos.synchro.SleepWallclock(1000)
 
         if self.sublocationsByLocationFlag.has_key(locationID) and self.sublocationsByLocationFlag[locationID].has_key(flag):
             return self.sublocationsByLocationFlag[locationID][flag]
-        if waitForPrime:
+        elif waitForPrime:
             self.godma.LogInfo('GetSubLocation.GetWithWait', locationID, flag)
             return self.GetWithWait((locationID, flag, None))
+        else:
+            return None
 
     def GetWithWait(self, itemKey):
         if self.itemKeyChannels.has_key(itemKey):
@@ -1605,7 +1657,7 @@ class StateManager():
             raise RuntimeError('StateManager::GetAttribute called for skill item! Skill items should not exist!')
         if self.attributesByName.has_key(attrKey):
             return self.attributesByName[attrKey].defaultValue
-        if attrKey == 'invItem':
+        elif attrKey == 'invItem':
             if self.sublocationsByKey.has_key(itemKey):
                 rd = self.godma.sublocrd
                 item = self.GetSubLocation(locationID, itemKey[1])
@@ -1621,65 +1673,67 @@ class StateManager():
              evetypes.GetGroupID(typeID),
              categoryID,
              None])
-        if attrKey == 'displayAttributes':
+        elif attrKey == 'displayAttributes':
             return self.GetDisplayAttributes(itemKey)
-        if attrKey == 'attributes':
+        elif attrKey == 'attributes':
             return self.GetAttributes(itemKey)
-        if attrKey == 'typeID':
+        elif attrKey == 'typeID':
             return typeID
-        if attrKey == 'type':
-            log.LogTraceback("Someone is asking for 'type' as an attribute in godma.py::GetAttribute. We don't support that anymore")
-        if attrKey == 'description':
-            return evetypes.GetDescription(typeID)
-        if attrKey == 'group':
-            log.LogTraceback("Someone is asking for 'group' as an attribute in godma.py::GetAttribute. We don't support that anymore")
-        if attrKey == 'category':
-            log.LogTraceback("Someone is asking for 'category' as an attribute in godma.py::GetAttribute. We don't support that anymore")
-        if attrKey == 'parent':
-            return self.invitems[locationID]
-        if attrKey == 'name':
-            return evetypes.GetName(typeID)
-        if attrKey == 'graphicID':
-            return evetypes.GetGraphicID(typeID)
-        if attrKey == 'iconID':
-            return evetypes.GetIconID(typeID)
-        if attrKey == 'effects':
-            return self.effectsByItemEffect.get(itemKey, {})
-        if attrKey == 'skills':
-            raise RuntimeError("Godma::GetAttribute called for 'skills'")
         else:
-            if attrKey == 'implants':
-                return [ implant for implant in sm.StartService('skills').GetImplants().itervalues() ]
-            if attrKey == 'boosters':
-                boosters = [ booster for booster in sm.StartService('skills').GetBoosters().itervalues() ]
-                for booster in boosters:
-                    setattr(booster, 'typeID', booster.boosterTypeID)
+            if attrKey == 'type':
+                log.LogTraceback("Someone is asking for 'type' as an attribute in godma.py::GetAttribute. We don't support that anymore")
+            if attrKey == 'description':
+                return evetypes.GetDescription(typeID)
+            if attrKey == 'group':
+                log.LogTraceback("Someone is asking for 'group' as an attribute in godma.py::GetAttribute. We don't support that anymore")
+            if attrKey == 'category':
+                log.LogTraceback("Someone is asking for 'category' as an attribute in godma.py::GetAttribute. We don't support that anymore")
+            if attrKey == 'parent':
+                return self.invitems[locationID]
+            elif attrKey == 'name':
+                return evetypes.GetName(typeID)
+            elif attrKey == 'graphicID':
+                return evetypes.GetGraphicID(typeID)
+            elif attrKey == 'iconID':
+                return evetypes.GetIconID(typeID)
+            elif attrKey == 'effects':
+                return self.effectsByItemEffect.get(itemKey, {})
+            if attrKey == 'skills':
+                raise RuntimeError("Godma::GetAttribute called for 'skills'")
+            else:
+                if attrKey == 'implants':
+                    return [ implant for implant in sm.StartService('skills').GetImplants().itervalues() ]
+                if attrKey == 'boosters':
+                    boosters = [ booster for booster in sm.StartService('skills').GetBoosters().itervalues() ]
+                    for booster in boosters:
+                        setattr(booster, 'typeID', booster.boosterTypeID)
 
-                return boosters
-            if attrKey == 'modules':
-                li = []
-                if itemKey in self.itemsByLocationID:
-                    for itemKey2 in self.itemsByLocationID[itemKey]:
-                        if self.invitems.has_key(itemKey2):
-                            module = self.invitems[itemKey2]
-                            if IsShipFittingFlag(module.flagID):
-                                li.append(self.invitems[itemKey2].dbrow)
+                    return boosters
+                if attrKey == 'modules':
+                    li = []
+                    if itemKey in self.itemsByLocationID:
+                        for itemKey2 in self.itemsByLocationID[itemKey]:
+                            if self.invitems.has_key(itemKey2):
+                                module = self.invitems[itemKey2]
+                                if IsShipFittingFlag(module.flagID):
+                                    li.append(self.invitems[itemKey2].dbrow)
 
-                return godmarowset.GodmaRowset(self.invitems.header, li, self.GetItemWrapper)
-            if attrKey == 'sublocations':
-                li = []
-                if itemKey in self.sublocationsByLocationFlag:
-                    li = [ i.dbrow for i in self.sublocationsByLocationFlag[itemKey].values() if IsShipFittingFlag(i[0][1]) ]
-                return godmarowset.GodmaRowset(self.sublocationsByLocationFlag.header, li, self.GetItemWrapper)
-        if not self.invitems.has_key(itemKey):
-            raise RuntimeError('Item (or its parent) has not been primed', itemKey)
-        loc = self.LocateItem(itemKey, attrKey)
-        if loc is not None:
-            return loc
-        eff = self.GetEffect(itemKey, attrKey)
-        if eff:
-            return eff
-        raise AttributeError, attrKey
+                    return godmarowset.GodmaRowset(self.invitems.header, li, self.GetItemWrapper)
+                if attrKey == 'sublocations':
+                    li = []
+                    if itemKey in self.sublocationsByLocationFlag:
+                        li = [ i.dbrow for i in self.sublocationsByLocationFlag[itemKey].values() if IsShipFittingFlag(i[0][1]) ]
+                    return godmarowset.GodmaRowset(self.sublocationsByLocationFlag.header, li, self.GetItemWrapper)
+            if not self.invitems.has_key(itemKey):
+                raise RuntimeError('Item (or its parent) has not been primed', itemKey)
+            loc = self.LocateItem(itemKey, attrKey)
+            if loc is not None:
+                return loc
+            eff = self.GetEffect(itemKey, attrKey)
+            if eff:
+                return eff
+            raise AttributeError, attrKey
+            return
 
     def GetEffectAttributeEx(self, eff, itemID, attribute):
         if attribute == 'item' or attribute == 'module':
@@ -1700,9 +1754,10 @@ class StateManager():
     def GetEffect(self, id, effect):
         if not self.effectsByItemEffect.has_key(id):
             return None
-        if not self.effectsByItemEffect[id].has_key(effect):
+        elif not self.effectsByItemEffect[id].has_key(effect):
             return None
-        return self.effectsByItemEffect[id][effect]
+        else:
+            return self.effectsByItemEffect[id][effect]
 
     def GetDefaultEffect(self, typeID):
         if not self.defaultEffectsByType.has_key(typeID):
@@ -1759,16 +1814,17 @@ class StateManager():
         self.typeWrappers[genericTypeID] = result
         return result
 
-    def GetChargeValue(self, oldVal, oldTime, tau, Ec, newTime = None):
+    def GetChargeValue(self, oldVal, oldTime, tau, Ec, newTime=None):
         if Ec == 0:
             return 0
-        if newTime is None:
-            newTime = blue.os.GetSimTime()
-        sq = math.sqrt(max(oldVal / Ec, 0))
-        timePassed = min(oldTime - newTime, 0) / float(const.dgmTauConstant)
-        exp = math.exp(timePassed / tau)
-        ret = (1.0 + (sq - 1.0) * exp) ** 2 * Ec
-        return ret
+        else:
+            if newTime is None:
+                newTime = blue.os.GetSimTime()
+            sq = math.sqrt(max(oldVal / Ec, 0))
+            timePassed = min(oldTime - newTime, 0) / float(const.dgmTauConstant)
+            exp = math.exp(timePassed / tau)
+            ret = (1.0 + (sq - 1.0) * exp) ** 2 * Ec
+            return ret
 
     def Activate(self, itemID, effectName, target, repeat):
         ret = None
@@ -1776,21 +1832,24 @@ class StateManager():
         if activateKey in self.activatingEffects:
             self.godma.LogWarn('Trying to activate effect twice', effectName, itemID)
             return
-        self.activatingEffects.add(activateKey)
-        try:
-            if target is not None and not isinstance(target, numbers.Integral):
-                raise RuntimeError('InvalidTargetType', type(target))
-            sm.GetService('invCache').TryLockItem(itemID, 'lockItemGodmaActivate', {}, 1)
+        else:
+            self.activatingEffects.add(activateKey)
             try:
-                ret = self.GetDogmaLM().Activate(itemID, effectName, target, repeat)
-                if effectName != 'online':
-                    self.activatedLocation[itemID, effectName] = eve.session.locationid
-                return ret
-            finally:
-                sm.GetService('invCache').UnlockItem(itemID)
+                if target is not None and not isinstance(target, numbers.Integral):
+                    raise RuntimeError('InvalidTargetType', type(target))
+                sm.GetService('invCache').TryLockItem(itemID, 'lockItemGodmaActivate', {}, 1)
+                try:
+                    ret = self.GetDogmaLM().Activate(itemID, effectName, target, repeat)
+                    if effectName != 'online':
+                        self.activatedLocation[itemID, effectName] = eve.session.locationid
+                    return ret
+                finally:
+                    sm.GetService('invCache').UnlockItem(itemID)
 
-        finally:
-            self.activatingEffects.remove(activateKey)
+            finally:
+                self.activatingEffects.remove(activateKey)
+
+            return
 
     def Overload(self, itemID, effectID):
         self.GetDogmaLM().Overload(itemID, effectID)
@@ -1878,17 +1937,18 @@ class StateManager():
             item = self.GetItem(itemID)
             damage = item.damage if item else 0
             return (itemID, damage)
-        maxDamage = 0
-        for moduleID in moduleIDs:
-            item = self.GetItem(moduleID)
-            if not item:
-                continue
-            if item.damage > maxDamage:
-                maxDamage = item.damage
+        else:
+            maxDamage = 0
+            for moduleID in moduleIDs:
+                item = self.GetItem(moduleID)
+                if not item:
+                    continue
+                if item.damage > maxDamage:
+                    maxDamage = item.damage
 
-        masterID = self.dogmaLocation.GetMasterModuleID(shipID, itemID)
-        masterID = masterID if masterID is not None else itemID
-        return (masterID, maxDamage)
+            masterID = self.dogmaLocation.GetMasterModuleID(shipID, itemID)
+            masterID = masterID if masterID is not None else itemID
+            return (masterID, maxDamage)
 
     def RepairModule(self, itemID):
         timeStamp = blue.os.GetSimTime()
@@ -1968,85 +2028,55 @@ class StateManager():
         for objectID in self.GetDogmaLM().GetTargeters():
             sm.ScatterEvent('OnTarget', 'otheradd', objectID)
 
-    def Prime(self, shipID = None):
-        self.godma.LogInfo('Prime')
+    def ForcePrimeLocation(self, locationIDs):
+        keepLocationIDs = {session.charid, session.shipid, session.structureid}.difference(locationIDs)
+        self.PurgeInventories(keepLocationIDs)
+        primeCharacter = session.charid not in keepLocationIDs
+        primeShip = session.shipid not in keepLocationIDs
+        primeStructure = session.structureid not in keepLocationIDs
+        if primeCharacter or primeShip or primeStructure:
+            self.ProcessAllInfo(self.GetDogmaLM().GetAllInfo(primeCharacter, primeShip, primeStructure))
+
+    def PrimeLocation(self, itemID, contents, locationID, priority=None, force=False):
+        if itemID not in self.invByID or force:
+            keys = contents.keys()
+            for priorityID in reversed(priority or []):
+                try:
+                    keys.remove(priorityID)
+                    keys.insert(0, priorityID)
+                except ValueError:
+                    pass
+
+            for key in keys:
+                row = contents[key]
+                self.UpdateItem(row.invItem, row)
+
+            self.invByID[itemID] = sm.GetService('invCache').GetInventoryFromId(itemID, 1)
+        else:
+            self.invByID[itemID].locationID = locationID
+
+    def Prime(self):
+        self.godma.LogInfo('Godma Prime:', session.shipid)
         self.priming = True
-        self.primingChannel = uthread.Channel(('godma::Prime', session.shipid))
-        charFittedItems = []
-        charBrain = ()
-        self.InitializeData()
-        dogmaLM = self.GetDogmaLM()
-        self.godma.LogInfo('Godma Prime, shipID:', shipID)
-        getShipInfo = False
-        if shipID is not None and not self.invByID.has_key(shipID):
-            getShipInfo = True
-        getCharInfo = False
-        if not self.invByID.has_key(session.charid):
-            getCharInfo = True
-        invCache = sm.GetService('invCache')
-        charInv = invCache.GetInventoryFromId(session.charid, 1)
-        if shipID is not None:
-            shipInv = invCache.GetInventoryFromId(shipID, 1)
-        else:
-            shipInv = None
-        if getCharInfo or getShipInfo:
-            allInfo = dogmaLM.GetAllInfo(getCharInfo, getShipInfo)
-        else:
-            allInfo = None
-        if allInfo is None:
-            self.godma.LogInfo('Prime no dogma call needed')
-        else:
-            if allInfo.locationInfo is not None:
-                self.ProcessLocationInfo(allInfo.locationInfo)
-            self.godma.LogNotice('Prime reply received: (shipID, shipInfo, shipRow, charRow, charInfo, charInv, shipInv)', shipID, allInfo.Get('shipInfo', None) is not None, shipID in allInfo.Get('shipInfo', {}), session.charid in allInfo.Get('shipInfo', {}), allInfo.Get('charInfo', None) is not None, charInv is not None, shipInv is not None)
-        charID = session.charid
-        if shipID is not None:
-            if not self.invByID.has_key(shipID):
-                skips = set()
-                if allInfo is not None:
-                    if shipID in allInfo.shipInfo:
-                        skips.add(shipID)
-                        row = allInfo.shipInfo[shipID]
-                        self.UpdateItem(row.invItem, row)
-                    if charID in allInfo.shipInfo:
-                        skips.add(charID)
-                        row = allInfo.shipInfo[charID]
-                        self.UpdateItem(row.invItem, row)
-                    for itemID in allInfo.shipInfo.iterkeys():
-                        if itemID in skips:
-                            continue
-                        row = allInfo.shipInfo[itemID]
-                        self.UpdateItem(row.invItem, row)
-
+        try:
+            self.primingChannel = uthread.Channel(('godma::Prime', session.shipid))
+            self.InitializeData()
+            primeCharacter = session.charid and session.charid not in self.invByID
+            primeShip = session.shipid and session.shipid not in self.invByID
+            primeStructure = session.structureid and session.structureid not in self.invByID
+            if primeCharacter or primeShip or primeStructure:
+                allInfo = self.GetDogmaLM().GetAllInfo(primeCharacter, primeShip, primeStructure)
+                self.ProcessAllInfo(allInfo)
             else:
-                self.invitems[shipID].locationID = session.solarsystemid or session.stationid
-            self.invByID[shipID] = shipInv
-        if not self.invByID.has_key(charID):
-            skips = set()
-            if allInfo is not None:
-                charFittedItems, charBrain = allInfo.charInfo
-                if charID in charFittedItems:
-                    skips.add(charID)
-                    row = charFittedItems[charID]
-                    self.UpdateItem(row.invItem, row)
-                for itemID in charFittedItems.iterkeys():
-                    if itemID in skips:
-                        continue
-                    row = charFittedItems[itemID]
-                    self.UpdateItem(row.invItem, row)
+                allInfo = None
+        finally:
+            self.priming = False
 
-        else:
-            self.invitems[charID].locationID = shipID or session.stationid
-        if allInfo is not None and allInfo.shipModifiedCharAttribs is not None:
-            self.RefreshItemAttributes(session.charid, info=allInfo.shipModifiedCharAttribs, doUpdate=True)
-        self.invByID[charID] = charInv
-        self.priming = False
         while self.primingChannel.queue:
-            self.godma.LogInfo('Prime - Channel send', shipID)
             self.primingChannel.send(True)
 
         self.primingChannel = None
-        char = self.GetItem(charID)
+        char = self.GetItem(session.charid)
         for att in ['memory',
          'perception',
          'willpower',
@@ -2054,14 +2084,29 @@ class StateManager():
          'intelligence']:
             sm.ScatterEvent('OnAttribute', att, char, getattr(char, att))
 
-        if shipID is not None:
-            sm.ScatterEvent('OnCapacityChange', shipID)
+        sm.ScatterEvent('OnCapacityChange', session.shipid)
         if session.charid:
+            if allInfo and allInfo.charInfo:
+                _, charBrain = allInfo.charInfo
+            else:
+                charBrain = ()
             self.dogmaLocation = sm.GetService('clientDogmaIM').GetDogmaLocation(charBrain=charBrain)
             if allInfo is not None:
-                self.dogmaLocation.MakeShipActive(allInfo.activeShipID, allInfo.shipState)
+                self.dogmaLocation.MakeShipActive(session.shipid, allInfo.shipState)
+        return
 
-    def PurgeInventories(self, keepList, skipCapacityEvent = False):
+    def ProcessAllInfo(self, allInfo):
+        if allInfo.structureInfo:
+            self.PrimeLocation(session.structureid, allInfo.structureInfo, session.solarsystemid, [session.structureid, session.shipid, session.charid])
+        if allInfo.shipInfo:
+            forcePriming = bool(session.shipid == session.structureid and bool(allInfo.shipInfo))
+            self.PrimeLocation(session.shipid, allInfo.shipInfo, session.solarsystemid or session.stationid, [session.shipid, session.charid], force=forcePriming)
+        if allInfo.charInfo:
+            self.PrimeLocation(session.charid, allInfo.charInfo[0], session.shipid, [session.charid])
+        if allInfo.shipModifiedCharAttribs:
+            self.RefreshItemAttributes(session.charid, info=allInfo.shipModifiedCharAttribs, doUpdate=True)
+
+    def PurgeInventories(self, keepList, skipCapacityEvent=False):
         self.godma.LogInfo('PurgeInventories: 1, Inventories.')
         for itemID in self.invByID.keys():
             if itemID not in keepList:
@@ -2080,7 +2125,7 @@ class StateManager():
             if locationID not in keepList:
                 self.PurgeEntries(locationID, skipCapacityEvent)
 
-    def PurgeEntries(self, locationID, skipCapacityEvent = False):
+    def PurgeEntries(self, locationID, skipCapacityEvent=False):
         self.godma.LogInfo('PurgeEntries', locationID, 'with pending', self.pending)
         if locationID in self.pending:
             self.godma.LogError('PurgeEntries: failed,', locationID, 'is marked as pending.')
@@ -2114,7 +2159,7 @@ class StateManager():
             sm.ScatterEvent('OnCapacityChange', locationID)
         self.godma.LogInfo('PurgeEntries: Done with', locationID)
 
-    def PurgeEntry(self, itemKey, locationID = None):
+    def PurgeEntry(self, itemKey, locationID=None):
         if locationID is not None:
             self.godma.LogInfo('PurgeEntry', itemKey, locationID)
             if self.IsSubLocation(itemKey):
@@ -2131,8 +2176,9 @@ class StateManager():
             del self.attributesByItemAttribute[itemKey]
         if self.chargedAttributesByItemAttribute.has_key(itemKey):
             del self.chargedAttributesByItemAttribute[itemKey]
+        return
 
-    def ApplyAttributeChange(self, ownerID, itemKey, attributeID, time, newValue, oldValue, scatterAttr = True):
+    def ApplyAttributeChange(self, ownerID, itemKey, attributeID, time, newValue, oldValue, scatterAttr=True):
         item = None
         if self.invitems.has_key(itemKey):
             item = self.invitems[itemKey]
@@ -2142,139 +2188,145 @@ class StateManager():
             if itemKey not in self.attributesByItemAttribute:
                 self.godma.LogInfo('ApplyAttributeChange - item not found', item, ownerID, itemKey, attributeID, time, newValue, oldValue, scatterAttr)
             return
-        attributeName = cfg.dgmattribs.Get(attributeID).attributeName
-        att = getattr(item, attributeName, 'not there')
-        argumentOldValue = oldValue
-        oldValue = self.GetAttribute(itemKey, attributeName)
-        if oldValue == newValue:
-            self.godma.LogInfo('Reduntant update of attribute %s. Values are %s' % (attributeName, newValue))
+        else:
+            attributeName = cfg.dgmattribs.Get(attributeID).attributeName
+            att = getattr(item, attributeName, 'not there')
+            argumentOldValue = oldValue
+            oldValue = self.GetAttribute(itemKey, attributeName)
+            if oldValue == newValue:
+                self.godma.LogInfo('Reduntant update of attribute %s. Values are %s' % (attributeName, newValue))
+                return
+            self.godma.LogInfo('Processing attribute %s changing from %s (server sent oldVal as %s) to %s' % (attributeName,
+             oldValue,
+             argumentOldValue,
+             newValue))
+            self.attributesByItemAttribute[itemKey][attributeName] = newValue
+            if self.chargedAttributeTauCaps.has_key(attributeName):
+                if not self.chargedAttributesByItemAttribute.has_key(itemKey):
+                    self.chargedAttributesByItemAttribute[itemKey] = {}
+                self.godma.LogInfo('Charge Attribute %s created with value %s' % (attributeName, newValue))
+                self.CreateChargedAttribute(itemKey, attributeName, newValue, time, self.chargedAttributeTauCaps[attributeName])
+            elif self.chargedAttributeTauCapsByMax.has_key(attributeName):
+                for chargeAttName in self.chargedAttributeTauCapsByMax[attributeName]:
+                    self.godma.LogInfo('Processing chargedAttributeTauCapsByMax attribute %s for attribute %s' % (chargeAttName, attributeName))
+                    if self.chargedAttributesByItemAttribute.has_key(itemKey):
+                        if self.chargedAttributesByItemAttribute[itemKey].has_key(chargeAttName):
+                            charge = self.GetAttribute(itemKey, chargeAttName)
+                            if oldValue != newValue:
+                                maxChangeRatio = float(newValue) / oldValue
+                                if charge == oldValue:
+                                    charge = charge * maxChangeRatio
+                                if charge > newValue:
+                                    charge = newValue
+                                self.godma.LogInfo('ChargedAttributeTauCapsByMax Attribute %s re-created with value %s' % (chargeAttName, charge))
+                                self.CreateChargedAttribute(itemKey, chargeAttName, charge, time, self.chargedAttributeTauCaps[chargeAttName])
+                            break
+                        elif self.attributesByItemAttribute[itemKey].get(self.chargedAttributeTauCaps[chargeAttName][0]) and self.attributesByItemAttribute[itemKey].get(self.chargedAttributeTauCaps[chargeAttName][1]):
+                            self.godma.LogInfo('ChargedAttributeTauCapsByMax Attribute %s initialized with value %s' % (chargeAttName, self.attributesByItemAttribute[itemKey][chargeAttName]))
+                            self.CreateChargedAttribute(itemKey, chargeAttName, self.attributesByItemAttribute[itemKey][chargeAttName], time, self.chargedAttributeTauCaps[chargeAttName])
+                            break
+
+            elif self.chargedAttributesByTau.has_key(attributeName):
+                for attName in self.chargedAttributesByTau[attributeName]:
+                    self.godma.LogInfo('Processing chargedAttributesByTau attribute %s for attribute %s' % (attName, attributeName))
+                    if self.chargedAttributesByItemAttribute.has_key(itemKey):
+                        if self.chargedAttributesByItemAttribute[itemKey].has_key(attName):
+                            charge = self.GetAttribute(itemKey, attName)
+                            self.godma.LogInfo('ChargedAttributesByTau %s created with value %s' % (attName, charge))
+                            self.CreateChargedAttribute(itemKey, attName, charge, time, self.chargedAttributeTauCaps[attName])
+                            break
+
+            self.godma.LogInfo('Attribute', attributeName, 'of module', itemKey, 'changed from', oldValue, 'to', newValue, 'value I had was', att)
+            if attributeID in (const.attributeCapacity,
+             const.attributeDroneCapacity,
+             const.attributeShipMaintenanceBayCapacity,
+             const.attributeFleetHangarCapacity):
+                sm.ScatterEvent('OnCapacityChange', itemKey)
+            elif attributeID == const.attributeQuantity:
+                self.godma.LogInfo('Changing quantity from', att, 'to', newValue)
+                if newValue == att:
+                    return
+                locationID, flag, typeID = itemKey
+                currSubLocation = self.GetSubLocation(locationID, flag)
+                if currSubLocation and currSubLocation.typeID != typeID:
+                    self.godma.LogWarn("Trying to modify quantity of sublocation that isn't loaded with my type", currSubLocation, itemKey)
+                    return
+                if newValue == 0:
+                    self.godma.LogInfo('SubLoc.quantityExpelled', itemKey, (oldValue, newValue))
+                    locationID, flag = itemKey[0], itemKey[1]
+                    if self.sublocationsByLocationFlag.has_key(locationID) and self.sublocationsByLocationFlag[locationID].has_key(flag):
+                        del self.sublocationsByLocationFlag[locationID][flag]
+                    del self.sublocationsByKey[itemKey]
+                item = blue.DBRow(self.godma.sublocrd, [itemKey,
+                 typeID,
+                 None,
+                 locationID,
+                 flag,
+                 newValue,
+                 evetypes.GetGroupID(typeID),
+                 evetypes.GetCategoryID(typeID),
+                 None])
+                sm.ScatterEvent('OnItemChange', item, {const.ixStackSize: oldValue})
+            if attributeID == const.attributeIsOnline:
+                sm.ScatterEvent('OnModuleOnlineChange', item, oldValue, newValue)
+                if newValue == 0 and oldValue == 1:
+                    if item.online.isActive:
+                        self.godma.LogWarn('Module put offline silently, faking event', itemKey)
+                        self.OnGodmaShipEffect(itemKey, const.effectOnline, blue.os.GetSimTime(), 0, 0, [itemKey,
+                         item.ownerID,
+                         item.locationID,
+                         None,
+                         None,
+                         [],
+                         const.effectOnline], None, -1, -1, None, None)
+            if scatterAttr:
+                sm.ScatterEvent('OnAttribute', attributeName, item, newValue)
             return
-        self.godma.LogInfo('Processing attribute %s changing from %s (server sent oldVal as %s) to %s' % (attributeName,
-         oldValue,
-         argumentOldValue,
-         newValue))
-        self.attributesByItemAttribute[itemKey][attributeName] = newValue
-        if self.chargedAttributeTauCaps.has_key(attributeName):
-            if not self.chargedAttributesByItemAttribute.has_key(itemKey):
-                self.chargedAttributesByItemAttribute[itemKey] = {}
-            self.godma.LogInfo('Charge Attribute %s created with value %s' % (attributeName, newValue))
-            self.CreateChargedAttribute(itemKey, attributeName, newValue, time, self.chargedAttributeTauCaps[attributeName])
-        elif self.chargedAttributeTauCapsByMax.has_key(attributeName):
-            for chargeAttName in self.chargedAttributeTauCapsByMax[attributeName]:
-                self.godma.LogInfo('Processing chargedAttributeTauCapsByMax attribute %s for attribute %s' % (chargeAttName, attributeName))
-                if self.chargedAttributesByItemAttribute.has_key(itemKey):
-                    if self.chargedAttributesByItemAttribute[itemKey].has_key(chargeAttName):
-                        charge = self.GetAttribute(itemKey, chargeAttName)
-                        if oldValue != newValue:
-                            maxChangeRatio = float(newValue) / oldValue
-                            if charge == oldValue:
-                                charge = charge * maxChangeRatio
-                            if charge > newValue:
-                                charge = newValue
-                            self.godma.LogInfo('ChargedAttributeTauCapsByMax Attribute %s re-created with value %s' % (chargeAttName, charge))
-                            self.CreateChargedAttribute(itemKey, chargeAttName, charge, time, self.chargedAttributeTauCaps[chargeAttName])
-                        break
-                    elif self.attributesByItemAttribute[itemKey].get(self.chargedAttributeTauCaps[chargeAttName][0]) and self.attributesByItemAttribute[itemKey].get(self.chargedAttributeTauCaps[chargeAttName][1]):
-                        self.godma.LogInfo('ChargedAttributeTauCapsByMax Attribute %s initialized with value %s' % (chargeAttName, self.attributesByItemAttribute[itemKey][chargeAttName]))
-                        self.CreateChargedAttribute(itemKey, chargeAttName, self.attributesByItemAttribute[itemKey][chargeAttName], time, self.chargedAttributeTauCaps[chargeAttName])
-                        break
-
-        elif self.chargedAttributesByTau.has_key(attributeName):
-            for attName in self.chargedAttributesByTau[attributeName]:
-                self.godma.LogInfo('Processing chargedAttributesByTau attribute %s for attribute %s' % (attName, attributeName))
-                if self.chargedAttributesByItemAttribute.has_key(itemKey):
-                    if self.chargedAttributesByItemAttribute[itemKey].has_key(attName):
-                        charge = self.GetAttribute(itemKey, attName)
-                        self.godma.LogInfo('ChargedAttributesByTau %s created with value %s' % (attName, charge))
-                        self.CreateChargedAttribute(itemKey, attName, charge, time, self.chargedAttributeTauCaps[attName])
-                        break
-
-        self.godma.LogInfo('Attribute', attributeName, 'of module', itemKey, 'changed from', oldValue, 'to', newValue, 'value I had was', att)
-        if attributeID in (const.attributeCapacity,
-         const.attributeDroneCapacity,
-         const.attributeShipMaintenanceBayCapacity,
-         const.attributeFleetHangarCapacity):
-            sm.ScatterEvent('OnCapacityChange', itemKey)
-        elif attributeID == const.attributeQuantity:
-            self.godma.LogInfo('Changing quantity from', att, 'to', newValue)
-            if newValue == att:
-                return
-            locationID, flag, typeID = itemKey
-            currSubLocation = self.GetSubLocation(locationID, flag)
-            if currSubLocation and currSubLocation.typeID != typeID:
-                self.godma.LogWarn("Trying to modify quantity of sublocation that isn't loaded with my type", currSubLocation, itemKey)
-                return
-            if newValue == 0:
-                self.godma.LogInfo('SubLoc.quantityExpelled', itemKey, (oldValue, newValue))
-                locationID, flag = itemKey[0], itemKey[1]
-                if self.sublocationsByLocationFlag.has_key(locationID) and self.sublocationsByLocationFlag[locationID].has_key(flag):
-                    del self.sublocationsByLocationFlag[locationID][flag]
-                del self.sublocationsByKey[itemKey]
-            item = blue.DBRow(self.godma.sublocrd, [itemKey,
-             typeID,
-             None,
-             locationID,
-             flag,
-             newValue,
-             evetypes.GetGroupID(typeID),
-             evetypes.GetCategoryID(typeID),
-             None])
-            sm.ScatterEvent('OnItemChange', item, {const.ixStackSize: oldValue})
-        if attributeID == const.attributeIsOnline:
-            sm.ScatterEvent('OnModuleOnlineChange', item, oldValue, newValue)
-            if newValue == 0 and oldValue == 1:
-                if item.online.isActive:
-                    self.godma.LogWarn('Module put offline silently, faking event', itemKey)
-                    self.OnGodmaShipEffect(itemKey, const.effectOnline, blue.os.GetSimTime(), 0, 0, [itemKey,
-                     item.ownerID,
-                     item.locationID,
-                     None,
-                     None,
-                     [],
-                     const.effectOnline], None, -1, -1, None, None)
-        if scatterAttr:
-            sm.ScatterEvent('OnAttribute', attributeName, item, newValue)
 
     def OnJumpCloneTransitionCompleted(self):
         self.priming = True
         self.PurgeInventories([], skipCapacityEvent=True)
         self.dogmaLM = None
         self.godma.LogInfo('OnJumpCloneTransitionCompleted: Prime (pre)')
-        self.Prime(session.shipid)
+        self.Prime()
         self.godma.LogInfo('OnJumpCloneTransitionCompleted: Prime (post)')
         self.priming = False
         if session.stationid or session.solarsystemid:
             dogmaLM = self.GetDogmaLM()
             dogmaLM.Bind()
         sm.StartService('skills').OnJumpCloneTransitionCompleted()
+        return
 
     def CheckFutileSubSystemSwitch(self, typeID, itemID):
         flag = self.godma.GetTypeAttribute(typeID, const.attributeSubSystemSlot)
         if flag is None:
             return False
-        ship = self.GetItem(session.shipid)
-        slotOccupants = ship.GetSlotOccupants(flag)
-        if len(slotOccupants) > 0:
-            if slotOccupants[0].itemID == itemID:
-                return True
-            if slotOccupants[0].typeID == typeID:
-                if eve.Message('SubSystemTypeAlreadyFitted', {}, uiconst.OKCANCEL) != uiconst.ID_OK:
+        else:
+            ship = self.GetItem(session.shipid)
+            slotOccupants = ship.GetSlotOccupants(flag)
+            if len(slotOccupants) > 0:
+                if slotOccupants[0].itemID == itemID:
                     return True
-        return False
+                if slotOccupants[0].typeID == typeID:
+                    if eve.Message('SubSystemTypeAlreadyFitted', {}, uiconst.OKCANCEL) != uiconst.ID_OK:
+                        return True
+            return False
 
-    def DelayedOnlineAttempt(self, shipID, moduleID, delay = 500):
+    def DelayedOnlineAttempt(self, shipID, moduleID, delay=500):
         blue.pyos.synchro.SleepSim(delay)
         if shipID != session.shipid:
             return
-        module = self.GetItem(moduleID)
-        if module is None:
+        else:
+            module = self.GetItem(moduleID)
+            if module is None:
+                return
+            if 'online' not in module.effects:
+                return
+            effect = module.effects['online']
+            if effect.isActive:
+                return
+            effect.Activate()
             return
-        if 'online' not in module.effects:
-            return
-        effect = module.effects['online']
-        if effect.isActive:
-            return
-        effect.Activate()
 
     def GetSensorStrengthAttribute(self, shipID):
         ret = None
@@ -2295,9 +2347,10 @@ class StateManager():
         attribute = self.attributesByID.get(attributeID, None)
         if attribute is None:
             return
-        return self.GetAttribute(itemID, attribute.attributeName)
+        else:
+            return self.GetAttribute(itemID, attribute.attributeName)
 
-    def CapacitorSimulator(self, capacitorCapacity = None, rechargeTime = None, runSimulation = False):
+    def CapacitorSimulator(self, capacitorCapacity=None, rechargeTime=None, runSimulation=False):
         if capacitorCapacity is None:
             capacitorCapacity = self.GetAttributeValueByID(session.shipid, const.attributeCapacitorCapacity)
         if rechargeTime is None:

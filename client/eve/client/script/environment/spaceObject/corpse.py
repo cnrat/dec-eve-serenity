@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\client\script\environment\spaceObject\corpse.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\client\script\environment\spaceObject\corpse.py
 from eve.client.script.environment.spaceObject.spaceObject import SpaceObject
 from eve.client.script.paperDoll.commonClientFunctions import GetSkinTypeOrToneColorVariation
 import eve.common.lib.appConst as const
@@ -70,9 +71,11 @@ def GetCorpseColor(charID):
     if skin is None:
         r = random.Random()
         return r.choice(corpseColorVariations)
-    skin = skin.split('_')[0]
-    if skin in skinToColorMapping:
-        return skinToColorMapping[skin]
+    else:
+        skin = skin.split('_')[0]
+        if skin in skinToColorMapping:
+            return skinToColorMapping[skin]
+        return
 
 
 def GetCorpseVariation():
@@ -85,7 +88,7 @@ def GetCorpsePath(gender, color, variation):
     return gfxutils.GetResPathFromGraphicID(graphicID)
 
 
-def GetCorpsePathForCharacter(charID, variation = None):
+def GetCorpsePathForCharacter(charID, variation=None):
     gender = GENDER_FEMALE
     if cfg.eveowners.Get(charID).gender:
         gender = GENDER_MALE
@@ -95,7 +98,7 @@ def GetCorpsePathForCharacter(charID, variation = None):
     return GetCorpsePath(gender, color, variation)
 
 
-def GetRandomCorpsePath(gender, seed = None):
+def GetRandomCorpsePath(gender, seed=None):
     r = random.Random(seed)
     corpseVariation = r.randrange(0, CORPSE_VARIATION_COUNT)
     color = r.choice(corpseColorVariations)
@@ -104,7 +107,7 @@ def GetRandomCorpsePath(gender, seed = None):
 
 class Corpse(SpaceObject):
 
-    def LoadModel(self, fileName = None, loadedModel = None):
+    def LoadModel(self, fileName=None, loadedModel=None):
         gender = GENDER_FEMALE
         if self.typeID != const.typeCorpseFemale:
             gender = GENDER_MALE
@@ -114,5 +117,6 @@ class Corpse(SpaceObject):
     def Explode(self):
         if self.model is None:
             return
-        explosionURL = 'res:/Model/Effect3/capsule_explosion.red'
-        return SpaceObject.Explode(self, explosionURL)
+        else:
+            explosionURL = 'res:/Model/Effect3/capsule_explosion.red'
+            return SpaceObject.Explode(self, explosionURL)

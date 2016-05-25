@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\common\script\sys\strangeStrings.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\common\script\sys\strangeStrings.py
 import stackless
 
 class A:
@@ -6,7 +7,7 @@ class A:
     __guid__ = 'sys.A'
     __passbyvalue__ = 1
 
-    def __call__(self, messageID, formatDict = None):
+    def __call__(self, messageID, formatDict=None):
         s = sm.StartService('agentMgr').GetStaticBlob(messageID)
         if formatDict:
             s = s % formatDict

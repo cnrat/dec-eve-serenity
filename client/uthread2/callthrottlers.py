@@ -1,5 +1,6 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\packages\uthread2\callthrottlers.py
-from . import sleep
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\packages\uthread2\callthrottlers.py
+from . import sleep, start_tasklet
 
 class CallCombiner(object):
 
@@ -17,3 +18,25 @@ class CallCombiner(object):
             return self.func(*args, **kwargs)
         finally:
             self.isBeingCalled = False
+
+
+def BufferedCall(delay=1000):
+
+    def BufferedCallDecorator(method):
+        method._buffering = False
+
+        def BufferedCallThread(*args, **kwargs):
+            try:
+                sleep(delay / 1000.0)
+                method(*args, **kwargs)
+            finally:
+                method._buffering = False
+
+        def BufferedCallWrapper(*args, **kwargs):
+            if method._buffering is False:
+                method._buffering = True
+                start_tasklet(BufferedCallThread, *args, **kwargs)
+
+        return BufferedCallWrapper
+
+    return BufferedCallDecorator

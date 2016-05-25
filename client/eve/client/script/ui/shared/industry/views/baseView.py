@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\client\script\ui\shared\industry\views\baseView.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\client\script\ui\shared\industry\views\baseView.py
 from carbonui.const import CENTERTOP, UI_DISABLED, TOALL, CENTERBOTTOM, ANIM_WAVE
 from carbonui.primitives.container import Container
 from carbonui.primitives.sprite import Sprite
@@ -38,6 +39,7 @@ class BaseView(Container):
         self.ConstructBackground()
         self.UpdateState()
         self.AnimEntry()
+        return
 
     def GetUtilMenuSettings(self, menuParent):
         menuParent.AddHeader(text=GetByLabel('UI/Industry/InputMaterialValues'))
@@ -93,6 +95,7 @@ class BaseView(Container):
             uicore.animations.Tr2DScaleTo(self.bgTransform, (0.98, 0.98), (0.95, 0.95), duration=10.0, curveType=ANIM_WAVE, loops=uiconst.ANIM_REPEAT)
             uicore.animations.FadeTo(self.bgTransform, 1.0, 0.1, duration=10.0, curveType=ANIM_WAVE)
             uicore.animations.FadeOut(self.bgGradient, duration=0.6)
+        return
 
     def AnimFadeBgTransform(self):
         uicore.animations.Tr2DScaleTo(self.bgTransform, self.bgTransform.scale, (1.0, 1.0), duration=0.3)

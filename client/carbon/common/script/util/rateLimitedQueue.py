@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\carbon\common\script\util\rateLimitedQueue.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\carbon\common\script\util\rateLimitedQueue.py
 import sys
 import time
 import collections
@@ -6,7 +7,7 @@ QueueEntry = collections.namedtuple('QueueEntry', ['serialNumber', 'firstTime', 
 
 class RateLimitedQueue(object):
 
-    def __init__(self, maxReadyItems = sys.maxint, maxReadyRate = sys.maxint, maxReadyGrowth = 0, maxQueuedItems = sys.maxint, maxCompleteItems = sys.maxint, numCompleteFunc = None):
+    def __init__(self, maxReadyItems=sys.maxint, maxReadyRate=sys.maxint, maxReadyGrowth=0, maxQueuedItems=sys.maxint, maxCompleteItems=sys.maxint, numCompleteFunc=None):
         self.maxReadyItems = maxReadyItems
         self.maxReadyRate = maxReadyRate
         self.maxReadyGrowth = maxReadyGrowth
@@ -23,6 +24,7 @@ class RateLimitedQueue(object):
             self.numCompleteFunc = lambda : self.nextSerialNumber - len(self.queueMap)
         else:
             self.numCompleteFunc = numCompleteFunc
+        return
 
     NONE = 0
     QUEUED = 1
@@ -33,9 +35,10 @@ class RateLimitedQueue(object):
         queueEntry = self.queueMap.get(key, None)
         if queueEntry is None:
             return RateLimitedQueue.NONE
-        if queueEntry.serialNumber == -1:
+        elif queueEntry.serialNumber == -1:
             return RateLimitedQueue.READY
-        return RateLimitedQueue.QUEUED
+        else:
+            return RateLimitedQueue.QUEUED
 
     def NumQueued(self):
         return len(self.queueMap) - self.numReady
@@ -62,8 +65,9 @@ class RateLimitedQueue(object):
             return (queueEntry.serialNumber - firstEntry.serialNumber, time.clock() - queueEntry.firstTime)
         else:
             return
+            return
 
-    def Enqueue(self, key, bypassQueue = False):
+    def Enqueue(self, key, bypassQueue=False):
         queueEntry = self.queueMap.get(key, None)
         now = time.clock()
         if bypassQueue:
@@ -94,17 +98,19 @@ class RateLimitedQueue(object):
     def Complete(self, key):
         if self.State(key) != RateLimitedQueue.READY or self.numCompleteFunc() >= self.maxCompleteItems:
             return None
-        delay = time.clock() - self.queueMap[key].firstTime
-        del self.queueMap[key]
-        self.numReady -= 1
-        self.MakeReady()
-        return delay
+        else:
+            delay = time.clock() - self.queueMap[key].firstTime
+            del self.queueMap[key]
+            self.numReady -= 1
+            self.MakeReady()
+            return delay
 
-    def Process(self, key, bypassQueue = False):
+    def Process(self, key, bypassQueue=False):
         state = self.Enqueue(key, bypassQueue)
         if state == RateLimitedQueue.READY and self.Complete(key) is not None:
             return RateLimitedQueue.NONE
-        return state
+        else:
+            return state
 
     def Remove(self, key):
         state = self.State(key)
@@ -118,13 +124,13 @@ class RateLimitedQueue(object):
             return True
         return False
 
-    def QueueFrontWaitTime(self, default = None):
+    def QueueFrontWaitTime(self, default=None):
         if len(self.queue) > 0:
             return time.clock() - self.queueMap[self.queue[0]].firstTime
         else:
             return default
 
-    def Timeout(self, olderThan, fromQueue = True, fromReady = True):
+    def Timeout(self, olderThan, fromQueue=True, fromReady=True):
         deadline = time.clock() - olderThan
         timedOut = [ k for k, q in self.queueMap.iteritems() if q.queueTime < deadline ]
         self.numReady -= len({k:q for k, q in self.queueMap.iteritems() if q.queueTime < deadline and q.serialNumber == -1})
@@ -164,6 +170,8 @@ class RateLimitedQueue(object):
 
         except IndexError:
             pass
+
+        return
 
 
 exports = {'util.RateLimitedQueue': RateLimitedQueue}

@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\packages\carbonui\util\stringManip.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\packages\carbonui\util\stringManip.py
 import re
 import carbonui.const as uiconst
 import string
@@ -33,7 +34,7 @@ def Unzip(s):
         return [ each.replace('\\|', '|') for each in s.split('||') ]
 
 
-def TruncateStringTo(s, length, addTrail = None):
+def TruncateStringTo(s, length, addTrail=None):
     tagSplit = re.split('(<.*?>)', s)
     done = False
     ret = u''
@@ -146,18 +147,19 @@ def RomanToInt(roman):
 def UpperCase(string):
     if session.languageID == 'RU':
         return string
-    if string is None:
+    elif string is None:
         return ''
-    string = string.upper()
-    return string
+    else:
+        string = string.upper()
+        return string
 
 
-def FindTextBoundaries(text, regexObject = None):
+def FindTextBoundaries(text, regexObject=None):
     regexObject = regexObject or uiconst.LINE_BREAK_BOUNDARY_REGEX
     return [ token for token in regexObject.split(text) if token ]
 
 
-def ReplaceStringWithTags(string, old = ' ', new = '<br>'):
+def ReplaceStringWithTags(string, old=' ', new='<br>'):
     tagSplit = re.split('(<.*?>)', string)
     ret = u''
     for part in tagSplit:
@@ -169,7 +171,7 @@ def ReplaceStringWithTags(string, old = ' ', new = '<br>'):
     return ret
 
 
-def SanitizeFilename(filename, replacementChar = '_'):
+def SanitizeFilename(filename, replacementChar='_'):
     invalidChars = '\\/:*?"<>|'
     validatedName = filename
     for c in invalidChars:

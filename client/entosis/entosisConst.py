@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\packages\entosis\entosisConst.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\packages\entosis\entosisConst.py
 from carbon.common.lib.const import HOUR
 EVENT_TYPE_TCU_DEFENSE = 1
 EVENT_TYPE_IHUB_DEFENSE = 2

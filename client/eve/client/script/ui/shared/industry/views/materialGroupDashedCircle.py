@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\client\script\ui\shared\industry\views\materialGroupDashedCircle.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\client\script\ui\shared\industry\views\materialGroupDashedCircle.py
 from eve.client.script.ui.shared.industry import industryUIConst
 from eve.client.script.ui.shared.industry.views.dashedCircle import DashedCircle
 from eve.client.script.ui.shared.industry.views.industryTooltips import MaterialGroupTooltipPanel
@@ -35,6 +36,7 @@ class MaterialGroupDashedCircle(DashedCircle):
                 buyDict[material.typeID] = material.quantity
 
         BuyMultipleTypesWithQty(buyDict)
+        return
 
     def CopyToClipboard(self):
         data = ''
@@ -51,8 +53,9 @@ class MaterialGroupDashedCircle(DashedCircle):
             data += '\n'
 
         blue.win32.SetClipboardData(data)
+        return
 
-    def AddRow(self, col1 = '', col2 = '', col3 = '', col4 = '', col5 = ''):
+    def AddRow(self, col1='', col2='', col3='', col4='', col5=''):
         return '%s\t%s\t%s\t%s\t%s\n' % (col1,
          col2,
          col3,

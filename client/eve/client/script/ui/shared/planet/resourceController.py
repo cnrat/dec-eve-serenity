@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\client\script\ui\shared\planet\resourceController.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\client\script\ui\shared\planet\resourceController.py
 import carbonui.const as uiconst
 import evetypes
 import uiprimitives
@@ -199,8 +200,9 @@ class ResourceList(uicontrols.ContainerAutoSize):
     def ApplyAttributes(self, attributes):
         uicontrols.ContainerAutoSize.ApplyAttributes(self, attributes)
         self.AddItem(None)
+        return
 
-    def AddItem(self, typeID, quality = None):
+    def AddItem(self, typeID, quality=None):
         ResourceListItem(parent=self, typeID=typeID, quality=quality)
 
     def ClearItems(self):
@@ -262,6 +264,7 @@ class ResourceListItem(uiprimitives.Container):
         else:
             self.selected = False
         self.CreateLayout()
+        return
 
     def CreateLayout(self):
         if self.typeID is None:
@@ -300,6 +303,7 @@ class ResourceListItem(uiprimitives.Container):
          self.SELECT_BLOCK_PADDING,
          0,
          self.SELECT_BLOCK_PADDING), color=self.SELECT_FILL_COLOR if self.selected else self.EMPTY_COLOR)
+        return
 
     def OnMouseEnter(self, *args):
         if not self.selected:
@@ -338,10 +342,11 @@ class ResourceListItem(uiprimitives.Container):
     def GetMenu(self):
         if self.typeID is None:
             return []
-        ret = [(uiutil.MenuLabel('UI/Commands/ShowInfo'), sm.GetService('info').ShowInfo, [self.typeID])]
-        if session.role & ROLE_GML == ROLE_GML:
-            ret.append(('GM / WM Extras', self.GetGMMenu()))
-        return ret
+        else:
+            ret = [(uiutil.MenuLabel('UI/Commands/ShowInfo'), sm.GetService('info').ShowInfo, [self.typeID])]
+            if session.role & ROLE_GML == ROLE_GML:
+                ret.append(('GM / WM Extras', self.GetGMMenu()))
+            return ret
 
     def GetGMMenu(self):
         ret = []

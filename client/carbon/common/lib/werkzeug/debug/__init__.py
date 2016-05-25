@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\carbon\common\lib\werkzeug\debug\__init__.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\carbon\common\lib\werkzeug\debug\__init__.py
 import mimetypes
 from os.path import join, dirname, basename, isfile
 from werkzeug.wrappers import BaseRequest as Request, BaseResponse as Response
@@ -17,7 +18,7 @@ class _ConsoleFrame(object):
 class DebuggedApplication(object):
     __module__ = 'werkzeug'
 
-    def __init__(self, app, evalex = False, request_key = 'werkzeug.request', console_path = '/console', console_init_func = None, show_hidden_frames = False):
+    def __init__(self, app, evalex=False, request_key='werkzeug.request', console_path='/console', console_init_func=None, show_hidden_frames=False):
         if not console_init_func:
             console_init_func = dict
         self.app = app
@@ -54,6 +55,8 @@ class DebuggedApplication(object):
                 yield traceback.render_full(evalex=self.evalex).encode('utf-8', 'replace')
 
             traceback.log(environ['wsgi.errors'])
+
+        return
 
     def execute_command(self, request, command, frame):
         return Response(frame.console.eval(command), mimetype='text/html')

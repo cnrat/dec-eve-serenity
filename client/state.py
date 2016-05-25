@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\common\modules\nice\client\_nastyspace\state.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\common\modules\nice\client\_nastyspace\state.py
 from eve.client.script.parklife.states import activeTarget
 from eve.client.script.parklife.states import flagAgentInteractable
 from eve.client.script.parklife.states import flagAlliesAtWar

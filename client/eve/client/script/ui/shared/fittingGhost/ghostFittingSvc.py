@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\client\script\ui\shared\fittingGhost\ghostFittingSvc.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\client\script\ui\shared\fittingGhost\ghostFittingSvc.py
 from contextlib import contextmanager
 import dogma.const as dogmaConst
 from eve.client.script.ui.shared.fitting.fittingUtil import GetPowerType
@@ -29,12 +30,12 @@ class GhostFittingSvc(service.Service):
         self.effectsByType = {}
         self.activeDrones = set()
 
-    def Run(self, ms = None):
+    def Run(self, ms=None):
         self.state = service.SERVICE_RUNNING
         self.dogmaLocation = sm.GetService('clientDogmaIM').GetDogmaLocation()
         self.fittingDogmaLocation = sm.GetService('clientDogmaIM').GetFittingDogmaLocation()
 
-    def FitDronesToShip(self, shipID, droneTypeID, qty = 1):
+    def FitDronesToShip(self, shipID, droneTypeID, qty=1):
         shipDogmaItem = self.fittingDogmaLocation.GetDogmaItem(shipID)
         g = GhostFittingDataObject(shipID, const.flagDroneBay, droneTypeID)
         for i in xrange(qty):
@@ -49,11 +50,11 @@ class GhostFittingSvc(service.Service):
 
         sm.ScatterEvent('OnFakeUpdateFittingWindow')
 
-    def GetLoadedItem(self, itemKey, item = None):
+    def GetLoadedItem(self, itemKey, item=None):
         self.fittingDogmaLocation.LoadItem(itemKey=itemKey, item=item)
         return self.fittingDogmaLocation.SafeGetDogmaItem(itemKey)
 
-    def FitModuleToShipAndChangeState(self, shipID, flagID, moduleTypeID, stacksize = 1, doOnline = True, doActivate = True):
+    def FitModuleToShipAndChangeState(self, shipID, flagID, moduleTypeID, stacksize=1, doOnline=True, doActivate=True):
         dogmaItem = self.FitModuleToShip(shipID, flagID, moduleTypeID, stacksize)
         if not dogmaItem:
             return
@@ -66,7 +67,7 @@ class GhostFittingSvc(service.Service):
                 self.PerformActionAndSetNewState(ACTIVE, itemKey, moduleTypeID)
         return dogmaItem
 
-    def FitModuleToShip(self, shipID, flagID, moduleTypeID, stacksize = 1):
+    def FitModuleToShip(self, shipID, flagID, moduleTypeID, stacksize=1):
         usedFlags = {x.flagID for x in self.fittingDogmaLocation.GetFittedItemsToShip().itervalues()}
         flagID = GetFlagIdToUse(moduleTypeID, flagID, usedFlags)
         canFitModuleInSlot = self.CanFitModuleInSlot(shipID, moduleTypeID, flagID)
@@ -92,7 +93,7 @@ class GhostFittingSvc(service.Service):
         CheckCanFitType(self.fittingDogmaLocation, moduleTypeID, shipID)
         return True
 
-    def UnfitModule(self, itemKey, scatter = True):
+    def UnfitModule(self, itemKey, scatter=True):
         fittingSvc = sm.GetService('fittingSvc')
         if not fittingSvc.IsShipSimulated():
             log.LogWarn('cant use ghost fitting to unfit non-simulated ship')
@@ -132,7 +133,7 @@ class GhostFittingSvc(service.Service):
             self.effectsByType[typeID] = effectsForType
         return self.effectsByType[typeID]
 
-    def GetShipAttribute(self, shipID, attributeID, simulated = True):
+    def GetShipAttribute(self, shipID, attributeID, simulated=True):
         fittingSvc = sm.GetService('fittingSvc')
         if fittingSvc.IsShipSimulated():
             shipID = self.fittingDogmaLocation.shipID
@@ -226,13 +227,15 @@ class GhostFittingSvc(service.Service):
         isRigSlot = self.IsRigSlot(defaultEffect)
         if isRigSlot:
             return
-        currentState = self.GetCurrentState(itemKey, defaultEffect, overloadEffect)
-        newState = self.GetNewState(currentState, defaultEffect, overloadEffect)
-        if newState is not None:
-            self.PerformActionAndSetNewState(newState, itemKey, typeID)
         else:
-            log.LogWarn('newState was None')
-        sm.ScatterEvent('OnFittingUpdateStatsNeeded')
+            currentState = self.GetCurrentState(itemKey, defaultEffect, overloadEffect)
+            newState = self.GetNewState(currentState, defaultEffect, overloadEffect)
+            if newState is not None:
+                self.PerformActionAndSetNewState(newState, itemKey, typeID)
+            else:
+                log.LogWarn('newState was None')
+            sm.ScatterEvent('OnFittingUpdateStatsNeeded')
+            return
 
     def OnlineAllSlots(self):
         return self.OnlineAllInRack(allSlots)
@@ -264,7 +267,7 @@ class GhostFittingSvc(service.Service):
         with self.PerformAndScatterUpdateEvent():
             self.UnfitAllInSlotlist(slotList)
 
-    def UnfitAllInSlotlist(self, slotList, unfitModules = True):
+    def UnfitAllInSlotlist(self, slotList, unfitModules=True):
         for flagID in slotList:
             ghostAmmo = self.fittingDogmaLocation.GetChargeFromShipFlag(flagID)
             if ghostAmmo:
@@ -410,15 +413,16 @@ class GhostFittingSvc(service.Service):
         fittingSvc = sm.GetService('fittingSvc')
         if not fittingSvc.IsShipSimulated():
             return
-        shipID = self.fittingDogmaLocation.shipID
-        dogmaItemFitted = None
-        for flagID in allSlots:
-            oldGhostFittedItem = self.fittingDogmaLocation.GetModuleFromShipFlag(flagID)
-            if oldGhostFittedItem and getattr(oldGhostFittedItem, 'isPreviewItem', None):
-                self.UnfitModule(oldGhostFittedItem.itemID)
-            dogmaItemFitted = self.FitModuleToShipAndChangeState(shipID, flagID, moduleTypeID)
-            if dogmaItemFitted:
-                break
+        else:
+            shipID = self.fittingDogmaLocation.shipID
+            dogmaItemFitted = None
+            for flagID in allSlots:
+                oldGhostFittedItem = self.fittingDogmaLocation.GetModuleFromShipFlag(flagID)
+                if oldGhostFittedItem and getattr(oldGhostFittedItem, 'isPreviewItem', None):
+                    self.UnfitModule(oldGhostFittedItem.itemID)
+                dogmaItemFitted = self.FitModuleToShipAndChangeState(shipID, flagID, moduleTypeID)
+                if dogmaItemFitted:
+                    break
 
-        sm.ScatterEvent('OnFakeUpdateFittingWindow')
-        return dogmaItemFitted
+            sm.ScatterEvent('OnFakeUpdateFittingWindow')
+            return dogmaItemFitted

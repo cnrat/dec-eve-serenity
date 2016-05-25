@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\client\script\ui\skilltrading\skillExtractorWindow.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\client\script\ui\skilltrading\skillExtractorWindow.py
 import blue
 from carbonui import const as uiconst
 from carbonui.control.scrollContainer import ScrollContainer
@@ -9,6 +10,7 @@ from carbonui.primitives.gradientSprite import GradientSprite
 from carbonui.primitives.sprite import Sprite
 from carbonui.uianimations import animations
 from carbonui.util.color import Color
+import contextlib
 from eve.client.script.ui.control.buttons import Button, ButtonIcon
 from eve.client.script.ui.control.eveIcon import Icon
 from eve.client.script.ui.control.eveLabel import CaptionLabel, EveCaptionMedium, EveHeaderMedium, EveLabelMedium, EveLabelSmall
@@ -53,8 +55,12 @@ class SkillExtractorWindow(Window):
     def OpenOrReload(cls, *args, **kwargs):
         if cls.IsOpen():
             wnd = cls.GetIfOpen()
-            wnd.controller.itemID = kwargs.get('itemID')
-            wnd.Maximize()
+            if wnd.controller.isCompleted:
+                wnd.Close()
+                wnd = cls.Open(*args, **kwargs)
+            else:
+                wnd.controller.itemID = kwargs.get('itemID')
+                wnd.Maximize()
         else:
             cls.Open(*args, **kwargs)
 
@@ -197,6 +203,7 @@ class SkillFilterSettings(object):
         self._nameFilter = name.strip().lower() if name is not None else ''
         if current != self._nameFilter:
             self.onUpdate()
+        return
 
     def IsShowAllSkills(self):
         return self.GetOption(self.SHOW_SKILLS_KEY) == self.SHOW_ALL_SKILLS
@@ -294,22 +301,25 @@ class SkillExtractorBar(Container):
                 except SkillExtractorError:
                     pass
 
+        return
+
     def _GetDropDataSkillID(self, data):
         for attr in ('skillID', 'typeID', 'invtype'):
             skillID = getattr(data, attr, None)
             if skillID is not None:
                 return skillID
 
+        return
+
 
 @Component(ButtonEffect(bgElementFunc=lambda parent, _: parent.frame, opacityIdle=1.0, opacityHover=0.6, opacityMouseDown=0.2))
-
 class ExtractButton(Container):
     default_opacity = 0.0
 
     def ApplyAttributes(self, attributes):
         super(ExtractButton, self).ApplyAttributes(attributes)
         self.controller = attributes.controller
-        self.processing = False
+        self._processing = False
         self.controller.onUpdate.connect(self.Update)
         self.Layout()
         self.Update()
@@ -324,6 +334,10 @@ class ExtractButton(Container):
     @property
     def isReady(self):
         return self.controller.progress >= 1.0 and not self.controller.isCompleted
+
+    @property
+    def isProcessing(self):
+        return self._processing
 
     def Update(self):
         if self.controller.progress < 1.0:
@@ -343,19 +357,29 @@ class ExtractButton(Container):
         uthread.new(self._ProcessOnClick)
 
     def _ProcessOnClick(self):
-        if not self.isReady or self.processing:
+        if not self.isReady or self.isProcessing:
             return
-        try:
-            self.processing = True
-            self._AnimShowProcessing()
+        with self.processing():
             self.controller.Commit()
             sm.GetService('audio').SendUIEvent('st_confirmed_extraction_play')
+
+    @contextlib.contextmanager
+    def processing(self):
+        try:
+            self._processing = True
+            self._AnimShowProcessing()
+            yield
         finally:
-            self.processing = False
+            self._processing = False
+            self._AnimHideProcessing()
 
     def _AnimShowProcessing(self):
         animations.FadeOut(self.label)
         animations.FadeIn(self.spinner)
+
+    def _AnimHideProcessing(self):
+        animations.FadeIn(self.label)
+        animations.FadeOut(self.spinner)
 
 
 class ExtractorBarAmountLabel(Container):
@@ -496,7 +520,8 @@ class SkillEntryData(TreeData):
     def GetDragData(self):
         if self.isLocked:
             return None
-        return [SkillDragData(self.typeID)]
+        else:
+            return [SkillDragData(self.typeID)]
 
 
 class SkillGroupData(TreeData):
@@ -531,6 +556,7 @@ class SkillTreeEntry(TreeViewEntry):
         self.OnSkillUpdated()
         self.data.filterSettings.onUpdate.connect(self.UpdateVisibility)
         self.data.skill.onUpdate.connect(self.OnSkillUpdated)
+        return
 
     def UpdateAlignment(self, *args, **kwargs):
         alignment = super(SkillTreeEntry, self).UpdateAlignment(*args, **kwargs)
@@ -552,6 +578,7 @@ class SkillTreeEntry(TreeViewEntry):
     def CheckConstructModifiedBG(self):
         if self.modifiedBG is None:
             self.modifiedBG = Fill(bgParent=self, color=COLOR_MODIFIED, opacity=0.0, padBottom=1)
+        return
 
     def Extract(self):
         if self.data.isLocked:
@@ -576,6 +603,7 @@ class SkillTreeEntry(TreeViewEntry):
     def CheckConstructUndoButton(self):
         if self.undoButton is None:
             self.undoButton = ButtonIcon(parent=self.topRightCont, align=uiconst.CENTERRIGHT, left=0, width=17, height=17, iconSize=17, texturePath='res:/UI/Texture/classes/skilltrading/undo.png', func=self.Undo, hint=localization.GetByLabel('UI/SkillTrading/Undo'))
+        return
 
     def Undo(self):
         self.data.Undo()
@@ -584,7 +612,7 @@ class SkillTreeEntry(TreeViewEntry):
         return self.data.GetDragData()
 
     def GetSpacerContWidth(self):
-        return 0
+        pass
 
     def GetMenu(self):
         m = sm.GetService('menu').GetMenuFormItemIDTypeID(None, self.data.typeID)
@@ -607,10 +635,12 @@ class SkillTreeEntry(TreeViewEntry):
             animations.FadeIn(self.lockedIcon, duration=0.3)
         elif self.lockedIcon is not None:
             animations.FadeOut(self.lockedIcon, duration=0.3)
+        return
 
     def CheckConstructLockIcon(self):
         if self.lockedIcon is None:
             self.lockedIcon = Sprite(parent=self.topRightCont, align=uiconst.CENTERLEFT, state=uiconst.UI_DISABLED, left=self.icon.left, ignoreSize=True, texturePath='res:/UI/Texture/classes/skilltrading/lock.png', width=13, height=33, color=COLOR_MODIFIED, opacity=0.0, idx=0)
+        return
 
     def OnDblClick(self):
         self.Extract()
@@ -635,7 +665,7 @@ class SkillGroupEntry(TreeViewEntry):
     def GetTreeViewEntryClassByTreeData(self, data):
         return SkillTreeEntry
 
-    def ShowChild(self, child, show = True):
+    def ShowChild(self, child, show=True):
         if show:
             show = not child.data.isFiltered
         super(SkillGroupEntry, self).ShowChild(child, show=show)
@@ -687,7 +717,7 @@ class SkillLevelBar(Container):
         Frame(parent=progressCont, color=(1, 1, 1, 0.5), texturePath='res:/UI/Texture/classes/skilltrading/simple_frame.png', cornerSize=2)
         self.progress = SkillLevelProgressGauge(parent=progressCont, align=uiconst.RELATIVE, state=uiconst.UI_DISABLED, top=1, left=1, height=4, gaugeHeight=4, width=47, colors=[(0.5, 0.5, 0.5, 1.0), COLOR_MODIFIED], backgroundColor=(0.0, 0.0, 0.0, 0.0))
 
-    def Update(self, animate = True):
+    def Update(self, animate=True):
         for i, bar in enumerate(self.bars):
             if i < self.skill.level:
                 if animate:
@@ -729,3 +759,5 @@ def __SakeReloadHook():
             SkillExtractorWindow.Open(itemID=itemID, useDefaultPos=True)
     except Exception:
         log.LogException()
+
+    return

@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\client\script\ui\control\hackingProgressBar.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\client\script\ui\control\hackingProgressBar.py
 import math
 import uicls
 import carbonui.const as uiconst
@@ -82,8 +83,9 @@ class HackingProgressBar(uiprimitives.Container):
         self.hackText = uicontrols.EveHeaderMedium(text='', parent=self, align=uiconst.CENTERBOTTOM, height=20, state=uiconst.UI_HIDDEN, top=-24)
         self.active = True
         uthread.new(self._CycleText)
+        return
 
-    def SetValue(self, value, frequency = 10.0):
+    def SetValue(self, value, frequency=10.0):
         if self.value == value:
             return
         if self.busy:
@@ -98,16 +100,18 @@ class HackingProgressBar(uiprimitives.Container):
     def _SetValue(self, gauge, value, frequency):
         if not self or self.destroyed:
             return
-        self.busy = True
-        self.value = value
-        self.uiEffects.MorphUIMassSpringDamper(gauge, 'width', int(self.width * value), newthread=0, float=0, dampRatio=0.6, frequency=frequency, minVal=0, maxVal=self.width, maxTime=2.0)
-        if not self or self.destroyed:
+        else:
+            self.busy = True
+            self.value = value
+            self.uiEffects.MorphUIMassSpringDamper(gauge, 'width', int(self.width * value), newthread=0, float=0, dampRatio=0.6, frequency=frequency, minVal=0, maxVal=self.width, maxTime=2.0)
+            if not self or self.destroyed:
+                return
+            self.busy = False
+            if self.queuedSetValue:
+                nextSetValue = self.queuedSetValue
+                self.queuedSetValue = None
+                self._SetValue(*nextSetValue)
             return
-        self.busy = False
-        if self.queuedSetValue:
-            nextSetValue = self.queuedSetValue
-            self.queuedSetValue = None
-            self._SetValue(*nextSetValue)
 
     def _CycleText(self):
         t = 0.0
@@ -137,7 +141,7 @@ class HackingProgressBar(uiprimitives.Container):
             self.text.color.a = max(self.text.color.a, 0.0)
             blue.pyos.synchro.SleepWallclock(70)
 
-    def Finalize(self, complete = False):
+    def Finalize(self, complete=False):
         uthread.new(self._FinishText, complete)
 
     def _FinishText(self, complete):

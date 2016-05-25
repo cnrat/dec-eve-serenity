@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\client\script\ui\shared\neocom\evemailingListConfig.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\client\script\ui\shared\neocom\evemailingListConfig.py
 import math
 from eve.client.script.ui.shared.neocom.evemail import MailWindow
 import evetypes
@@ -69,6 +70,7 @@ class MaillistSetupWindow(uicontrols.Window):
         self.StartupAccessPanel()
         self.StartupWelcomePanel()
         self.sr.tabs.Startup(tabs, 'mailinglistSetup_tabs', autoselecttab=1)
+        return
 
     def StartupMembersPanel(self):
         membersPanel = self.sr.membersPanel
@@ -303,6 +305,7 @@ class MaillistSetupWindow(uicontrols.Window):
         if ownerID is not None:
             self.mlsvc.SetEntityAccess(self.mailingListID, ownerID, newAccess)
             self.UpdateAccessScrollData()
+        return
 
     def UpdateBlockedScroll(self):
         self.sr.blockedScroll.Load(contentList=self.scrolllist[const.mailingListBlocked], headers=[localization.GetByLabel('UI/Generic/NamePerson'), localization.GetByLabel('UI/Common/Type')], customColumnWidths=True)
@@ -344,6 +347,7 @@ class MaillistSetupWindow(uicontrols.Window):
           None,
           None]], parent=accessPanel, line=False)
         self._OnResize()
+        return
 
     def AllowedScrollOnSetFocus(self):
         self.sr.blockedScroll.DeselectAll()
@@ -368,6 +372,7 @@ class MaillistSetupWindow(uicontrols.Window):
 
         self.UpdateAllowedScroll()
         self.UpdateBlockedScroll()
+        return
 
     def ApplySettings(self, *args):
         defaultAccess = self.sr.accessPanel.defaultAccessCombo.GetValue()
@@ -392,6 +397,7 @@ class MaillistSetupWindow(uicontrols.Window):
           self.SaveWelcomeMail,
           None,
           None]], parent=welcomePanel, idx=0, line=False)
+        return
 
     def OnCheckboxChange(self, checkbox, *args):
         value = checkbox.data.get('value', '')
@@ -443,3 +449,4 @@ class MaillistSetupWindow(uicontrols.Window):
         elif key == 'welcome':
             if self.welcomeText is None:
                 self.UpdateWelcome()
+        return

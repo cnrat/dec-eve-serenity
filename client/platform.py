@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\carbon\common\stdlib\platform.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\carbon\common\stdlib\platform.py
 __copyright__ = '\n    Copyright (c) 1999-2000, Marc-Andre Lemburg; mailto:mal@lemburg.com\n    Copyright (c) 2000-2010, eGenix.com Software GmbH; mailto:info@egenix.com\n\n    Permission to use, copy, modify, and distribute this software and its\n    documentation for any purpose and without fee or royalty is hereby granted,\n    provided that the above copyright notice appear in all copies and that\n    both that copyright notice and this permission notice appear in\n    supporting documentation or portions thereof, including modifications,\n    that you make.\n\n    EGENIX.COM SOFTWARE GMBH DISCLAIMS ALL WARRANTIES WITH REGARD TO\n    THIS SOFTWARE, INCLUDING ALL IMPLIED WARRANTIES OF MERCHANTABILITY AND\n    FITNESS, IN NO EVENT SHALL THE AUTHOR BE LIABLE FOR ANY SPECIAL,\n    INDIRECT OR CONSEQUENTIAL DAMAGES OR ANY DAMAGES WHATSOEVER RESULTING\n    FROM LOSS OF USE, DATA OR PROFITS, WHETHER IN AN ACTION OF CONTRACT,\n    NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION\n    WITH THE USE OR PERFORMANCE OF THIS SOFTWARE !\n\n'
 __version__ = '1.0.7'
 import sys, string, os, re
@@ -12,7 +13,7 @@ except AttributeError:
 
 _libc_search = re.compile('(__libc_init)|(GLIBC_([0-9.]+))|(libc(_\\w+)?\\.so(?:\\.(\\d[0-9.]*))?)')
 
-def libc_ver(executable = sys.executable, lib = '', version = '', chunksize = 2048):
+def libc_ver(executable=sys.executable, lib='', version='', chunksize=2048):
     if hasattr(os.path, 'realpath'):
         executable = os.path.realpath(executable)
     f = open(executable, 'rb')
@@ -97,18 +98,19 @@ def _parse_release_file(firstline):
     m = _lsb_release_version.match(firstline)
     if m is not None:
         return tuple(m.groups())
-    m = _release_version.match(firstline)
-    if m is not None:
-        return tuple(m.groups())
-    l = string.split(string.strip(firstline))
-    if l:
-        version = l[0]
-        if len(l) > 1:
-            id = l[1]
-    return ('', version, id)
+    else:
+        m = _release_version.match(firstline)
+        if m is not None:
+            return tuple(m.groups())
+        l = string.split(string.strip(firstline))
+        if l:
+            version = l[0]
+            if len(l) > 1:
+                id = l[1]
+        return ('', version, id)
 
 
-def linux_distribution(distname = '', version = '', id = '', supported_dists = _supported_dists, full_distribution_name = 1):
+def linux_distribution(distname='', version='', id='', supported_dists=_supported_dists, full_distribution_name=1):
     try:
         etc = os.listdir('/etc')
     except os.error:
@@ -138,7 +140,7 @@ def linux_distribution(distname = '', version = '', id = '', supported_dists = _
     return (distname, version, id)
 
 
-def dist(distname = '', version = '', id = '', supported_dists = _supported_dists):
+def dist(distname='', version='', id='', supported_dists=_supported_dists):
     return linux_distribution(distname, version, id, supported_dists=supported_dists, full_distribution_name=0)
 
 
@@ -148,7 +150,7 @@ class _popen:
     bufsize = None
     mode = 'r'
 
-    def __init__(self, cmd, mode = 'r', bufsize = None):
+    def __init__(self, cmd, mode='r', bufsize=None):
         if mode != 'r':
             raise ValueError, 'popen()-emulation only supports read mode'
         import tempfile
@@ -164,8 +166,10 @@ class _popen:
     def readlines(self):
         if self.bufsize is not None:
             return self.pipe.readlines()
+        else:
+            return
 
-    def close(self, remove = os.unlink, error = os.error):
+    def close(self, remove=os.unlink, error=os.error):
         if self.pipe:
             rc = self.pipe.close()
         else:
@@ -181,7 +185,7 @@ class _popen:
     __del__ = close
 
 
-def popen(cmd, mode = 'r', bufsize = None):
+def popen(cmd, mode='r', bufsize=None):
     popen = None
     if os.environ.get('OS', '') == 'Windows_NT':
         try:
@@ -206,9 +210,10 @@ def popen(cmd, mode = 'r', bufsize = None):
         return popen(cmd, mode)
     else:
         return popen(cmd, mode, bufsize)
+        return
 
 
-def _norm_version(version, build = ''):
+def _norm_version(version, build=''):
     l = string.split(version, '.')
     if build:
         l.append(build)
@@ -225,38 +230,39 @@ def _norm_version(version, build = ''):
 
 _ver_output = re.compile('(?:([\\w ]+) ([\\w.]+) .*\\[.* ([\\d.]+)\\])')
 
-def _syscmd_ver(system = '', release = '', version = '', supported_platforms = ('win32', 'win16', 'dos', 'os2')):
+def _syscmd_ver(system='', release='', version='', supported_platforms=('win32', 'win16', 'dos', 'os2')):
     if sys.platform not in supported_platforms:
         return (system, release, version)
-    for cmd in ('ver', 'command /c ver', 'cmd /c ver'):
-        try:
-            pipe = popen(cmd)
-            info = pipe.read()
-            if pipe.close():
-                raise os.error, 'command failed'
-        except os.error as why:
-            continue
-        except IOError as why:
-            continue
-        else:
-            break
-
     else:
+        for cmd in ('ver', 'command /c ver', 'cmd /c ver'):
+            try:
+                pipe = popen(cmd)
+                info = pipe.read()
+                if pipe.close():
+                    raise os.error, 'command failed'
+            except os.error as why:
+                continue
+            except IOError as why:
+                continue
+            else:
+                break
+
+        else:
+            return (system, release, version)
+
+        info = string.strip(info)
+        m = _ver_output.match(info)
+        if m is not None:
+            system, release, version = m.groups()
+            if release[-1] == '.':
+                release = release[:-1]
+            if version[-1] == '.':
+                version = version[:-1]
+            version = _norm_version(version)
         return (system, release, version)
 
-    info = string.strip(info)
-    m = _ver_output.match(info)
-    if m is not None:
-        system, release, version = m.groups()
-        if release[-1] == '.':
-            release = release[:-1]
-        if version[-1] == '.':
-            version = version[:-1]
-        version = _norm_version(version)
-    return (system, release, version)
 
-
-def _win32_getvalue(key, name, default = ''):
+def _win32_getvalue(key, name, default=''):
     try:
         from win32api import RegQueryValueEx
     except ImportError:
@@ -269,7 +275,7 @@ def _win32_getvalue(key, name, default = ''):
         return default
 
 
-def win32_ver(release = '', version = '', csd = '', ptype = ''):
+def win32_ver(release='', version='', csd='', ptype=''):
     try:
         import win32api
         from win32api import RegQueryValueEx, RegOpenKeyEx, RegCloseKey, GetVersionEx
@@ -380,7 +386,7 @@ def win32_ver(release = '', version = '', csd = '', ptype = ''):
      ptype)
 
 
-def _mac_ver_lookup(selectors, default = None):
+def _mac_ver_lookup(selectors, default=None):
     from gestalt import gestalt
     import MacOS
     l = []
@@ -426,28 +432,30 @@ def _mac_ver_xml():
     fn = '/System/Library/CoreServices/SystemVersion.plist'
     if not os.path.exists(fn):
         return
-    try:
-        import plistlib
-    except ImportError:
-        return
+    else:
+        try:
+            import plistlib
+        except ImportError:
+            return
 
-    pl = plistlib.readPlist(fn)
-    release = pl['ProductVersion']
-    versioninfo = ('', '', '')
-    machine = os.uname()[4]
-    if machine in ('ppc', 'Power Macintosh'):
-        machine = 'PowerPC'
-    return (release, versioninfo, machine)
+        pl = plistlib.readPlist(fn)
+        release = pl['ProductVersion']
+        versioninfo = ('', '', '')
+        machine = os.uname()[4]
+        if machine in ('ppc', 'Power Macintosh'):
+            machine = 'PowerPC'
+        return (release, versioninfo, machine)
 
 
-def mac_ver(release = '', versioninfo = ('', '', ''), machine = ''):
+def mac_ver(release='', versioninfo=('', '', ''), machine=''):
     info = _mac_ver_xml()
     if info is not None:
         return info
-    info = _mac_ver_gestalt()
-    if info is not None:
-        return info
-    return (release, versioninfo, machine)
+    else:
+        info = _mac_ver_gestalt()
+        if info is not None:
+            return info
+        return (release, versioninfo, machine)
 
 
 def _java_getprop(name, default):
@@ -460,8 +468,10 @@ def _java_getprop(name, default):
     except AttributeError:
         return default
 
+    return
 
-def java_ver(release = '', vendor = '', vminfo = ('', '', ''), osinfo = ('', '', '')):
+
+def java_ver(release='', vendor='', vminfo=('', '', ''), osinfo=('', '', '')):
     try:
         import java.lang
     except ImportError:
@@ -544,7 +554,7 @@ def _platform(*args):
     return platform
 
 
-def _node(default = ''):
+def _node(default=''):
     try:
         import socket
     except ImportError:
@@ -558,7 +568,7 @@ def _node(default = ''):
 
 if not hasattr(os.path, 'abspath'):
 
-    def _abspath(path, isabs = os.path.isabs, join = os.path.join, getcwd = os.getcwd, normpath = os.path.normpath):
+    def _abspath(path, isabs=os.path.isabs, join=os.path.join, getcwd=os.getcwd, normpath=os.path.normpath):
         if not isabs(path):
             path = join(getcwd(), path)
         return normpath(path)
@@ -575,7 +585,7 @@ def _follow_symlinks(filepath):
     return filepath
 
 
-def _syscmd_uname(option, default = ''):
+def _syscmd_uname(option, default=''):
     if sys.platform in ('dos', 'win32', 'win16', 'os2'):
         return default
     try:
@@ -591,7 +601,7 @@ def _syscmd_uname(option, default = ''):
         return output
 
 
-def _syscmd_file(target, default = ''):
+def _syscmd_file(target, default=''):
     if sys.platform in ('dos', 'win32', 'win16', 'os2'):
         return default
     target = _follow_symlinks(target).replace('"', '\\"')
@@ -613,7 +623,7 @@ _default_architecture = {'win32': ('', 'WindowsPE'),
  'dos': ('', 'MSDOS')}
 _architecture_split = re.compile('[\\s,]').split
 
-def architecture(executable = sys.executable, bits = '', linkage = ''):
+def architecture(executable=sys.executable, bits='', linkage=''):
     if not bits:
         import struct
         try:
@@ -664,96 +674,97 @@ def uname():
     no_os_uname = 0
     if _uname_cache is not None:
         return _uname_cache
-    processor = ''
-    try:
-        system, node, release, version, machine = os.uname()
-    except AttributeError:
-        no_os_uname = 1
-
-    if no_os_uname or not filter(None, (system,
-     node,
-     release,
-     version,
-     machine)):
-        if no_os_uname:
-            system = sys.platform
-            release = ''
-            version = ''
-            node = _node()
-            machine = ''
-        use_syscmd_ver = 1
-        if system == 'win32':
-            release, version, csd, ptype = win32_ver()
-            if release and version:
-                use_syscmd_ver = 0
-            if not machine:
-                if 'PROCESSOR_ARCHITEW6432' in os.environ:
-                    machine = os.environ.get('PROCESSOR_ARCHITEW6432', '')
-                else:
-                    machine = os.environ.get('PROCESSOR_ARCHITECTURE', '')
-            if not processor:
-                processor = os.environ.get('PROCESSOR_IDENTIFIER', machine)
-        if use_syscmd_ver:
-            system, release, version = _syscmd_ver(system)
-            if system == 'Microsoft Windows':
-                system = 'Windows'
-            elif system == 'Microsoft' and release == 'Windows':
-                system = 'Windows'
-                if '6.0' == version[:3]:
-                    release = 'Vista'
-                else:
-                    release = ''
-        if system in ('win32', 'win16'):
-            if not version:
-                if system == 'win32':
-                    version = '32bit'
-                else:
-                    version = '16bit'
-            system = 'Windows'
-        elif system[:4] == 'java':
-            release, vendor, vminfo, osinfo = java_ver()
-            system = 'Java'
-            version = string.join(vminfo, ', ')
-            if not version:
-                version = vendor
-    if system == 'OpenVMS':
-        if not release or release == '0':
-            release = version
-            version = ''
-        try:
-            import vms_lib
-        except ImportError:
-            pass
-        else:
-            csid, cpu_number = vms_lib.getsyi('SYI$_CPU', 0)
-            if cpu_number >= 128:
-                processor = 'Alpha'
-            else:
-                processor = 'VAX'
-    if not processor:
-        processor = _syscmd_uname('-p', '')
-    if system == 'unknown':
-        system = ''
-    if node == 'unknown':
-        node = ''
-    if release == 'unknown':
-        release = ''
-    if version == 'unknown':
-        version = ''
-    if machine == 'unknown':
-        machine = ''
-    if processor == 'unknown':
+    else:
         processor = ''
-    if system == 'Microsoft' and release == 'Windows':
-        system = 'Windows'
-        release = 'Vista'
-    _uname_cache = (system,
-     node,
-     release,
-     version,
-     machine,
-     processor)
-    return _uname_cache
+        try:
+            system, node, release, version, machine = os.uname()
+        except AttributeError:
+            no_os_uname = 1
+
+        if no_os_uname or not filter(None, (system,
+         node,
+         release,
+         version,
+         machine)):
+            if no_os_uname:
+                system = sys.platform
+                release = ''
+                version = ''
+                node = _node()
+                machine = ''
+            use_syscmd_ver = 1
+            if system == 'win32':
+                release, version, csd, ptype = win32_ver()
+                if release and version:
+                    use_syscmd_ver = 0
+                if not machine:
+                    if 'PROCESSOR_ARCHITEW6432' in os.environ:
+                        machine = os.environ.get('PROCESSOR_ARCHITEW6432', '')
+                    else:
+                        machine = os.environ.get('PROCESSOR_ARCHITECTURE', '')
+                if not processor:
+                    processor = os.environ.get('PROCESSOR_IDENTIFIER', machine)
+            if use_syscmd_ver:
+                system, release, version = _syscmd_ver(system)
+                if system == 'Microsoft Windows':
+                    system = 'Windows'
+                elif system == 'Microsoft' and release == 'Windows':
+                    system = 'Windows'
+                    if '6.0' == version[:3]:
+                        release = 'Vista'
+                    else:
+                        release = ''
+            if system in ('win32', 'win16'):
+                if not version:
+                    if system == 'win32':
+                        version = '32bit'
+                    else:
+                        version = '16bit'
+                system = 'Windows'
+            elif system[:4] == 'java':
+                release, vendor, vminfo, osinfo = java_ver()
+                system = 'Java'
+                version = string.join(vminfo, ', ')
+                if not version:
+                    version = vendor
+        if system == 'OpenVMS':
+            if not release or release == '0':
+                release = version
+                version = ''
+            try:
+                import vms_lib
+            except ImportError:
+                pass
+            else:
+                csid, cpu_number = vms_lib.getsyi('SYI$_CPU', 0)
+                if cpu_number >= 128:
+                    processor = 'Alpha'
+                else:
+                    processor = 'VAX'
+        if not processor:
+            processor = _syscmd_uname('-p', '')
+        if system == 'unknown':
+            system = ''
+        if node == 'unknown':
+            node = ''
+        if release == 'unknown':
+            release = ''
+        if version == 'unknown':
+            version = ''
+        if machine == 'unknown':
+            machine = ''
+        if processor == 'unknown':
+            processor = ''
+        if system == 'Microsoft' and release == 'Windows':
+            system = 'Windows'
+            release = 'Vista'
+        _uname_cache = (system,
+         node,
+         release,
+         version,
+         machine,
+         processor)
+        return _uname_cache
 
 
 def system():
@@ -785,59 +796,60 @@ _ironpython_sys_version_parser = re.compile('IronPython\\s*([\\d\\.]+)(?: \\(([\
 _pypy_sys_version_parser = re.compile('([\\w.+]+)\\s*\\(#?([^,]+),\\s*([\\w ]+),\\s*([\\w :]+)\\)\\s*\\[PyPy [^\\]]+\\]?')
 _sys_version_cache = {}
 
-def _sys_version(sys_version = None):
+def _sys_version(sys_version=None):
     if sys_version is None:
         sys_version = sys.version
     result = _sys_version_cache.get(sys_version, None)
     if result is not None:
         return result
-    if sys_version[:10] == 'IronPython':
-        name = 'IronPython'
-        match = _ironpython_sys_version_parser.match(sys_version)
-        if match is None:
-            raise ValueError('failed to parse IronPython sys.version: %s' % repr(sys_version))
-        version, alt_version, compiler = match.groups()
-        buildno = ''
-        builddate = ''
-    elif sys.platform[:4] == 'java':
-        name = 'Jython'
-        match = _sys_version_parser.match(sys_version)
-        if match is None:
-            raise ValueError('failed to parse Jython sys.version: %s' % repr(sys_version))
-        version, buildno, builddate, buildtime, _ = match.groups()
-        compiler = sys.platform
-    elif 'PyPy' in sys_version:
-        name = 'PyPy'
-        match = _pypy_sys_version_parser.match(sys_version)
-        if match is None:
-            raise ValueError('failed to parse PyPy sys.version: %s' % repr(sys_version))
-        version, buildno, builddate, buildtime = match.groups()
-        compiler = ''
     else:
-        match = _sys_version_parser.match(sys_version)
-        if match is None:
-            raise ValueError('failed to parse CPython sys.version: %s' % repr(sys_version))
-        version, buildno, builddate, buildtime, compiler = match.groups()
-        name = 'CPython'
-        builddate = builddate + ' ' + buildtime
-    if hasattr(sys, 'subversion'):
-        _, branch, revision = sys.subversion
-    else:
-        branch = ''
-        revision = ''
-    l = string.split(version, '.')
-    if len(l) == 2:
-        l.append('0')
-        version = string.join(l, '.')
-    result = (name,
-     version,
-     branch,
-     revision,
-     buildno,
-     builddate,
-     compiler)
-    _sys_version_cache[sys_version] = result
-    return result
+        if sys_version[:10] == 'IronPython':
+            name = 'IronPython'
+            match = _ironpython_sys_version_parser.match(sys_version)
+            if match is None:
+                raise ValueError('failed to parse IronPython sys.version: %s' % repr(sys_version))
+            version, alt_version, compiler = match.groups()
+            buildno = ''
+            builddate = ''
+        elif sys.platform[:4] == 'java':
+            name = 'Jython'
+            match = _sys_version_parser.match(sys_version)
+            if match is None:
+                raise ValueError('failed to parse Jython sys.version: %s' % repr(sys_version))
+            version, buildno, builddate, buildtime, _ = match.groups()
+            compiler = sys.platform
+        elif 'PyPy' in sys_version:
+            name = 'PyPy'
+            match = _pypy_sys_version_parser.match(sys_version)
+            if match is None:
+                raise ValueError('failed to parse PyPy sys.version: %s' % repr(sys_version))
+            version, buildno, builddate, buildtime = match.groups()
+            compiler = ''
+        else:
+            match = _sys_version_parser.match(sys_version)
+            if match is None:
+                raise ValueError('failed to parse CPython sys.version: %s' % repr(sys_version))
+            version, buildno, builddate, buildtime, compiler = match.groups()
+            name = 'CPython'
+            builddate = builddate + ' ' + buildtime
+        if hasattr(sys, 'subversion'):
+            _, branch, revision = sys.subversion
+        else:
+            branch = ''
+            revision = ''
+        l = string.split(version, '.')
+        if len(l) == 2:
+            l.append('0')
+            version = string.join(l, '.')
+        result = (name,
+         version,
+         branch,
+         revision,
+         buildno,
+         builddate,
+         compiler)
+        _sys_version_cache[sys_version] = result
+        return result
 
 
 def python_implementation():
@@ -870,46 +882,47 @@ def python_compiler():
 
 _platform_cache = {}
 
-def platform(aliased = 0, terse = 0):
+def platform(aliased=0, terse=0):
     result = _platform_cache.get((aliased, terse), None)
     if result is not None:
         return result
-    system, node, release, version, machine, processor = uname()
-    if machine == processor:
-        processor = ''
-    if aliased:
-        system, release, version = system_alias(system, release, version)
-    if system == 'Windows':
-        rel, vers, csd, ptype = win32_ver(version)
-        if terse:
-            platform = _platform(system, release)
-        else:
-            platform = _platform(system, release, version, csd)
-    elif system in ('Linux',):
-        distname, distversion, distid = dist('')
-        if distname and not terse:
-            platform = _platform(system, release, machine, processor, 'with', distname, distversion, distid)
-        else:
-            libcname, libcversion = libc_ver(sys.executable)
-            platform = _platform(system, release, machine, processor, 'with', libcname + libcversion)
-    elif system == 'Java':
-        r, v, vminfo, (os_name, os_version, os_arch) = java_ver()
-        if terse or not os_name:
-            platform = _platform(system, release, version)
-        else:
-            platform = _platform(system, release, version, 'on', os_name, os_version, os_arch)
-    elif system == 'MacOS':
-        if terse:
-            platform = _platform(system, release)
-        else:
-            platform = _platform(system, release, machine)
-    elif terse:
-        platform = _platform(system, release)
     else:
-        bits, linkage = architecture(sys.executable)
-        platform = _platform(system, release, machine, processor, bits, linkage)
-    _platform_cache[aliased, terse] = platform
-    return platform
+        system, node, release, version, machine, processor = uname()
+        if machine == processor:
+            processor = ''
+        if aliased:
+            system, release, version = system_alias(system, release, version)
+        if system == 'Windows':
+            rel, vers, csd, ptype = win32_ver(version)
+            if terse:
+                platform = _platform(system, release)
+            else:
+                platform = _platform(system, release, version, csd)
+        elif system in ('Linux',):
+            distname, distversion, distid = dist('')
+            if distname and not terse:
+                platform = _platform(system, release, machine, processor, 'with', distname, distversion, distid)
+            else:
+                libcname, libcversion = libc_ver(sys.executable)
+                platform = _platform(system, release, machine, processor, 'with', libcname + libcversion)
+        elif system == 'Java':
+            r, v, vminfo, (os_name, os_version, os_arch) = java_ver()
+            if terse or not os_name:
+                platform = _platform(system, release, version)
+            else:
+                platform = _platform(system, release, version, 'on', os_name, os_version, os_arch)
+        elif system == 'MacOS':
+            if terse:
+                platform = _platform(system, release)
+            else:
+                platform = _platform(system, release, machine)
+        elif terse:
+            platform = _platform(system, release)
+        else:
+            bits, linkage = architecture(sys.executable)
+            platform = _platform(system, release, machine, processor, bits, linkage)
+        _platform_cache[aliased, terse] = platform
+        return platform
 
 
 if __name__ == '__main__':

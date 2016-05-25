@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\common\script\planet\entities\basePin.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\common\script\planet\entities\basePin.py
 import const
 import math
 import blue
@@ -40,8 +41,9 @@ class BasePin(object):
         self.contents = {}
         self.eventHandler = None
         self.inEditMode = False
+        return
 
-    def Startup(self, id, eventHandler, ownerID, latitude, longitude, lastRunTime, state = None):
+    def Startup(self, id, eventHandler, ownerID, latitude, longitude, lastRunTime, state=None):
         self.id = id
         self.eventHandler = weakref.proxy(eventHandler)
         self.ownerID = ownerID
@@ -51,6 +53,7 @@ class BasePin(object):
         if state is not None:
             self.activityState = state
         self.OnStartup(id, ownerID, latitude, longitude)
+        return
 
     def IsInEditMode(self):
         return self.inEditMode
@@ -89,41 +92,45 @@ class BasePin(object):
         quantityToAdd = self.CanAccept(typeID, quantity)
         if quantityToAdd < 1:
             return 0
-        if self.GetCapacity() is not None:
-            self.capacityUsed += quantityToAdd * evetypes.GetVolume(typeID)
-        if typeID not in self.contents:
-            self.contents[typeID] = quantityToAdd
         else:
-            self.contents[typeID] += quantityToAdd
-        return quantityToAdd
+            if self.GetCapacity() is not None:
+                self.capacityUsed += quantityToAdd * evetypes.GetVolume(typeID)
+            if typeID not in self.contents:
+                self.contents[typeID] = quantityToAdd
+            else:
+                self.contents[typeID] += quantityToAdd
+            return quantityToAdd
 
     def _RemoveCommodity(self, typeID, quantity):
         if typeID not in self.contents:
             return 0
-        qtyRemoved = 0
-        if self.contents[typeID] <= quantity:
-            qtyRemoved = self.contents[typeID]
-            del self.contents[typeID]
         else:
-            qtyRemoved = quantity
-            self.contents[typeID] -= qtyRemoved
-        if self.GetCapacity() is not None:
-            self.capacityUsed = max(0, self.capacityUsed - evetypes.GetVolume(typeID) * qtyRemoved)
-        return qtyRemoved
+            qtyRemoved = 0
+            if self.contents[typeID] <= quantity:
+                qtyRemoved = self.contents[typeID]
+                del self.contents[typeID]
+            else:
+                qtyRemoved = quantity
+                self.contents[typeID] -= qtyRemoved
+            if self.GetCapacity() is not None:
+                self.capacityUsed = max(0, self.capacityUsed - evetypes.GetVolume(typeID) * qtyRemoved)
+            return qtyRemoved
 
     def CanAccept(self, typeID, quantity):
         if self.activityState < STATE_IDLE:
             return 0
-        if self.GetCapacity() is not None:
-            volume = evetypes.GetVolume(typeID)
-            newVolume = volume * quantity
-            capacityRemaining = max(0, self.GetCapacity() - self.capacityUsed)
-            if newVolume > capacityRemaining or quantity == -1:
-                return int(capacityRemaining / volume)
-            else:
-                return quantity
         else:
-            return max(0, quantity)
+            if self.GetCapacity() is not None:
+                volume = evetypes.GetVolume(typeID)
+                newVolume = volume * quantity
+                capacityRemaining = max(0, self.GetCapacity() - self.capacityUsed)
+                if newVolume > capacityRemaining or quantity == -1:
+                    return int(capacityRemaining / volume)
+                else:
+                    return quantity
+            else:
+                return max(0, quantity)
+            return
 
     def CanRemove(self, typeID, quantity):
         if self.activityState < STATE_IDLE:
@@ -155,7 +162,9 @@ class BasePin(object):
         except Exception:
             log.LogException('GetNextRunTime, GetCycleTime unexpectedly gave us None', self.id, self.typeID)
 
-    def CanRun(self, runTime = None):
+        return
+
+    def CanRun(self, runTime=None):
         if not self.CanActivate():
             return False
         rt = runTime
@@ -164,7 +173,8 @@ class BasePin(object):
         nextRunTime = self.GetNextRunTime()
         if nextRunTime is None or nextRunTime <= rt:
             return True
-        return False
+        else:
+            return False
 
     def GetContents(self):
         return self.contents.copy()
@@ -210,7 +220,7 @@ class BasePin(object):
     def GetProductMaxOutput(self):
         return self.GetProducts()
 
-    def Serialize(self, full = False):
+    def Serialize(self, full=False):
         data = util.KeyVal(id=self.id, latitude=self.latitude, longitude=self.longitude, ownerID=self.ownerID, lastRunTime=self.lastRunTime, typeID=self.typeID, contents=self.contents.copy(), state=self.activityState)
         return data
 

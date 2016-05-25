@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\carbon\common\stdlib\yaml\scanner.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\carbon\common\stdlib\yaml\scanner.py
 __all__ = ['Scanner', 'ScannerError']
 from error import MarkedYAMLError
 from tokens import *
@@ -75,45 +76,47 @@ class Scanner(object):
         ch = self.peek()
         if ch == u'\x00':
             return self.fetch_stream_end()
-        if ch == u'%' and self.check_directive():
+        elif ch == u'%' and self.check_directive():
             return self.fetch_directive()
-        if ch == u'-' and self.check_document_start():
+        elif ch == u'-' and self.check_document_start():
             return self.fetch_document_start()
-        if ch == u'.' and self.check_document_end():
+        elif ch == u'.' and self.check_document_end():
             return self.fetch_document_end()
-        if ch == u'[':
+        elif ch == u'[':
             return self.fetch_flow_sequence_start()
-        if ch == u'{':
+        elif ch == u'{':
             return self.fetch_flow_mapping_start()
-        if ch == u']':
+        elif ch == u']':
             return self.fetch_flow_sequence_end()
-        if ch == u'}':
+        elif ch == u'}':
             return self.fetch_flow_mapping_end()
-        if ch == u',':
+        elif ch == u',':
             return self.fetch_flow_entry()
-        if ch == u'-' and self.check_block_entry():
+        elif ch == u'-' and self.check_block_entry():
             return self.fetch_block_entry()
-        if ch == u'?' and self.check_key():
+        elif ch == u'?' and self.check_key():
             return self.fetch_key()
-        if ch == u':' and self.check_value():
+        elif ch == u':' and self.check_value():
             return self.fetch_value()
-        if ch == u'*':
+        elif ch == u'*':
             return self.fetch_alias()
-        if ch == u'&':
+        elif ch == u'&':
             return self.fetch_anchor()
-        if ch == u'!':
+        elif ch == u'!':
             return self.fetch_tag()
-        if ch == u'|' and not self.flow_level:
+        elif ch == u'|' and not self.flow_level:
             return self.fetch_literal()
-        if ch == u'>' and not self.flow_level:
+        elif ch == u'>' and not self.flow_level:
             return self.fetch_folded()
-        if ch == u"'":
+        elif ch == u"'":
             return self.fetch_single()
-        if ch == u'"':
+        elif ch == u'"':
             return self.fetch_double()
-        if self.check_plain():
+        elif self.check_plain():
             return self.fetch_plain()
-        raise ScannerError('while scanning for the next token', None, 'found character %r that cannot start any token' % ch.encode('utf-8'), self.get_mark())
+        else:
+            raise ScannerError('while scanning for the next token', None, 'found character %r that cannot start any token' % ch.encode('utf-8'), self.get_mark())
+            return
 
     def next_possible_simple_key(self):
         min_token_number = None
@@ -247,6 +250,7 @@ class Scanner(object):
         self.forward()
         end_mark = self.get_mark()
         self.tokens.append(BlockEntryToken(start_mark, end_mark))
+        return
 
     def fetch_key(self):
         if not self.flow_level:
@@ -261,6 +265,7 @@ class Scanner(object):
         self.forward()
         end_mark = self.get_mark()
         self.tokens.append(KeyToken(start_mark, end_mark))
+        return
 
     def fetch_value(self):
         if self.flow_level in self.possible_simple_keys:
@@ -285,6 +290,7 @@ class Scanner(object):
         self.forward()
         end_mark = self.get_mark()
         self.tokens.append(ValueToken(start_mark, end_mark))
+        return
 
     def fetch_alias(self):
         self.save_possible_simple_key()
@@ -914,4 +920,3 @@ class Scanner(object):
         if ch in u'\u2028\u2029':
             self.forward()
             return ch
-        return u''

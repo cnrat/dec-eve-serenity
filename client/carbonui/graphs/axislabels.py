@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\packages\carbonui\graphs\axislabels.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\packages\carbonui\graphs\axislabels.py
 import trinity
 from carbonui.primitives.container import Container
 import carbonui.const as uiconst
@@ -17,6 +18,7 @@ class VerticalAxisLabels(Container):
         self.formatter = attributes.get('formatter', None)
         if not self.fontsize:
             self.fontsize = self.labelclass.default_fontsize
+        return
 
     def Build(self):
         width, height = self.GetAbsoluteSize()
@@ -51,6 +53,7 @@ class HorizontalAxisLabels(Container):
         self.formatter = attributes.get('formatter', None)
         if not self.fontsize:
             self.fontsize = self.labelclass.default_fontsize
+        return
 
     def Build(self):
         x = 0

@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\packages\carbonui\control\image.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\packages\carbonui\control\image.py
 import carbonui.const as uiconst
 import uthread
 import copy
@@ -31,6 +32,7 @@ class ImageCore(Container):
             self.cursor = uiconst.UICURSOR_SELECT
         self.state = uiconst.UI_NORMAL
         self.loaded = 1
+        return
 
     def LoadAttrs(self, attrs):
         src = attrs.src
@@ -45,6 +47,7 @@ class ImageCore(Container):
     def OnClick(self, *args):
         if getattr(self.attrs, 'a', None):
             BaseLink().ClickLink(self, self.attrs.a.href.replace('&amp;', '&'))
+        return
 
     def GetMenu(self):
         m = []
@@ -62,26 +65,30 @@ class ImageCore(Container):
                 self.cursor = uiconst.UICURSOR_SELECT
             else:
                 self.cursor = uiconst.UICURSOR_DEFAULT
+        return
 
     def Reload(self, *args):
         if getattr(self, 'attrs', None):
             self.Load(self.attrs)
+        return
 
     def LoadImage(self, *args):
         if not getattr(self, 'attrs', None):
             return
-        browserImageSvc = sm.GetServiceIfRunning('browserImage')
-        if not browserImageSvc:
+        else:
+            browserImageSvc = sm.GetServiceIfRunning('browserImage')
+            if not browserImageSvc:
+                return
+            texture, tWidth, tHeight = browserImageSvc.GetTextureFromURL(getattr(self.attrs, 'src', ''), getattr(self.attrs, 'currentURL', ''), fromWhere='Img::Load')
+            if texture:
+                sprite = Sprite(parent=self, align=uiconst.TOALL, pos=(0, 0, 0, 0))
+                sprite.rectWidth = tWidth
+                sprite.rectHeight = tHeight
+                sprite.rectTop = 0
+                sprite.rectLeft = 0
+                sprite.texture = texture
+                sprite.state = uiconst.UI_DISABLED
             return
-        texture, tWidth, tHeight = browserImageSvc.GetTextureFromURL(getattr(self.attrs, 'src', ''), getattr(self.attrs, 'currentURL', ''), fromWhere='Img::Load')
-        if texture:
-            sprite = Sprite(parent=self, align=uiconst.TOALL, pos=(0, 0, 0, 0))
-            sprite.rectWidth = tWidth
-            sprite.rectHeight = tHeight
-            sprite.rectTop = 0
-            sprite.rectLeft = 0
-            sprite.texture = texture
-            sprite.state = uiconst.UI_DISABLED
 
     def LoadIcon(self, *args):
         sprite = Sprite(parent=self, align=uiconst.TOALL, state=uiconst.UI_DISABLED, idx=0, pos=(0, 0, 0, 0))
@@ -95,8 +102,10 @@ class ImageCore(Container):
     def GetLink(self):
         aL, aT, aW, aH = self.GetAbsolute()
         for each in self.attrs.areamap:
-            if each['x0'] <= uicore.uilib.x - aL <= each['x1'] and each['y0'] <= uicore.uilib.y - aT <= each['y1']:
-                return each['url']
+            if each['x0'] <= uicore.uilib.x - aL <= each['x1']:
+                return each['y0'] <= uicore.uilib.y - aT <= each['y1'] and each['url']
+
+        return None
 
 
 class ImageCoreOverride(ImageCore):

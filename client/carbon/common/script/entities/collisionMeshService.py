@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\carbon\common\script\entities\collisionMeshService.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\carbon\common\script\entities\collisionMeshService.py
 import service
 import collections
 import GameWorld
@@ -11,6 +12,7 @@ class StaticShapeComponent:
     def __init__(self, state):
         self.graphicID = state.get('graphicID')
         self.avatar = None
+        return
 
 
 class CollisionMeshServer(service.Service):
@@ -62,33 +64,39 @@ class CollisionMeshServer(service.Service):
             error = True
         if error:
             return
-        if collisionFile:
-            sID = long(sceneID)
-            gw = GameWorld.Manager.GetGameWorld(sID)
-            component.avatar = gw.CreateStaticMesh(collisionFile)
-            component.avatar.entID = entityID
-            while not component.avatar.loaded and not component.avatar.Failed():
-                blue.synchro.Yield()
+        else:
+            if collisionFile:
+                sID = long(sceneID)
+                gw = GameWorld.Manager.GetGameWorld(sID)
+                component.avatar = gw.CreateStaticMesh(collisionFile)
+                component.avatar.entID = entityID
+                while not component.avatar.loaded and not component.avatar.Failed():
+                    blue.synchro.Yield()
 
-            if component.avatar.Failed():
-                gw.RemoveStaticShape(component.avatar)
-                component.avatar = None
+                if component.avatar.Failed():
+                    gw.RemoveStaticShape(component.avatar)
+                    component.avatar = None
+            return
 
     def SetupComponent(self, entity, component):
         if component.graphicID is None:
             return
-        if component.avatar:
-            component.avatar.positionComponent = entity.GetComponent('position')
-            component.avatar.boundingVolumeComponent = entity.GetComponent('boundingVolume')
-            component.avatar.AddToScene()
+        else:
+            if component.avatar:
+                component.avatar.positionComponent = entity.GetComponent('position')
+                component.avatar.boundingVolumeComponent = entity.GetComponent('boundingVolume')
+                component.avatar.AddToScene()
+            return
 
     def TearDownComponent(self, entity, component):
         if component.graphicID is None:
             return
-        if component.avatar is None:
+        elif component.avatar is None:
             return
-        gw = GameWorld.Manager.GetGameWorld(long(entity.scene.sceneID))
-        gw.RemoveStaticShape(component.avatar)
-        if component.avatar:
-            component.avatar.positionComponent = None
-            component.avatar.boundingVolumeComponent = None
+        else:
+            gw = GameWorld.Manager.GetGameWorld(long(entity.scene.sceneID))
+            gw.RemoveStaticShape(component.avatar)
+            if component.avatar:
+                component.avatar.positionComponent = None
+                component.avatar.boundingVolumeComponent = None
+            return

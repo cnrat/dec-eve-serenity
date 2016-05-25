@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\carbon\common\lib\pychartdir.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\carbon\common\lib\pychartdir.py
 import sys, os, time, string
 cdPyVer = 1280
 cdSysVer = sys.version[:3]
@@ -80,18 +81,21 @@ if cdDllVer != cdPyVer:
 _isV3 = cdSysVer >= '3.0'
 if _isV3:
     string.replace = lambda a, b, c: a.replace(b, c)
-    string.join = lambda a, b = '': b.join(a)
-    string.split = lambda a, b, c = 2147483647: a.split(b, c)
-    string.strip = lambda a, b = None: a.strip(b)
+    string.join = lambda a, b='': b.join(a)
+    string.split = lambda a, b, c=2147483647: a.split(b, c)
+    string.strip = lambda a, b=None: a.strip(b)
 cdHasKey = _isV3 and (lambda a, b: b in a) or (lambda a, b: a.has_key(b))
 
 def cdFindSubClass(classNames, c):
     if classNames.get(c.__name__) != None:
         return c
-    for s in c.__bases__:
-        ret = cdFindSubClass(classNames, s)
-        if ret != None:
-            return ret
+    else:
+        for s in c.__bases__:
+            ret = cdFindSubClass(classNames, s)
+            if ret != None:
+                return ret
+
+        return
 
 
 def cdFindDefaultArgs(c, varName):
@@ -104,6 +108,8 @@ def cdFindDefaultArgs(c, varName):
         ret = cdFindDefaultArgs(s, varName)
         if ret != None:
             return ret
+
+    return
 
 
 class MethodWrapper:
@@ -127,6 +133,7 @@ class MethodWrapper:
             return defaultArgs[0](ret)
         else:
             return ret
+            return
 
 
 class AutoMethod:
@@ -157,6 +164,7 @@ def decodePtr(p):
         return p.this
     else:
         return p
+        return
 
 
 BottomLeft = 1
@@ -409,11 +417,11 @@ def cdBound(a, b, c):
     return b
 
 
-def CrossShape(width = 0.5):
+def CrossShape(width=0.5):
     return CrossSymbol | int(cdBound(0, width, 1) * 4095 + 0.5) << 12
 
 
-def Cross2Shape(width = 0.5):
+def Cross2Shape(width=0.5):
     return Cross2Symbol | int(cdBound(0, width, 1) * 4095 + 0.5) << 12
 
 
@@ -474,27 +482,27 @@ greenMetalGradient = [0,
  256,
  10018968]
 
-def metalColor(c, angle = 90):
+def metalColor(c, angle=90):
     return _r('metalColor', c, angle)
 
 
-def goldColor(angle = 90):
+def goldColor(angle=90):
     return metalColor(16772676, angle)
 
 
-def silverColor(angle = 90):
+def silverColor(angle=90):
     return metalColor(14540253, angle)
 
 
-def brushedMetalColor(c, texture = 2, angle = 90):
+def brushedMetalColor(c, texture=2, angle=90):
     return metalColor(c, angle) | (texture & 3) << 18
 
 
-def brushedSilverColor(texture = 2, angle = 90):
+def brushedSilverColor(texture=2, angle=90):
     return brushedMetalColor(14540253, texture, angle)
 
 
-def brushedGoldColor(texture = 2, angle = 90):
+def brushedGoldColor(texture=2, angle=90):
     return brushedMetalColor(16772676, texture, angle)
 
 
@@ -542,27 +550,27 @@ AllPassFilterTag = 7
 NonePassFilterTag = 8
 SelectItemFilterTag = 9
 
-def StartOfHourFilter(labelStep = 1, initialMargin = 0.05):
+def StartOfHourFilter(labelStep=1, initialMargin=0.05):
     return _r('encodeFilter', StartOfHourFilterTag, labelStep, initialMargin)
 
 
-def StartOfDayFilter(labelStep = 1, initialMargin = 0.05):
+def StartOfDayFilter(labelStep=1, initialMargin=0.05):
     return _r('encodeFilter', StartOfDayFilterTag, labelStep, initialMargin)
 
 
-def StartOfWeekFilter(labelStep = 1, initialMargin = 0.05):
+def StartOfWeekFilter(labelStep=1, initialMargin=0.05):
     return _r('encodeFilter', StartOfWeekFilterTag, labelStep, initialMargin)
 
 
-def StartOfMonthFilter(labelStep = 1, initialMargin = 0.05):
+def StartOfMonthFilter(labelStep=1, initialMargin=0.05):
     return _r('encodeFilter', StartOfMonthFilterTag, labelStep, initialMargin)
 
 
-def StartOfYearFilter(labelStep = 1, initialMargin = 0.05):
+def StartOfYearFilter(labelStep=1, initialMargin=0.05):
     return _r('encodeFilter', StartOfYearFilterTag, labelStep, initialMargin)
 
 
-def RegularSpacingFilter(labelStep = 1, initialMargin = 0):
+def RegularSpacingFilter(labelStep=1, initialMargin=0):
     return _r('encodeFilter', RegularSpacingFilterTag, labelStep, initialMargin / 4095.0)
 
 
@@ -582,19 +590,19 @@ NormalGlare = 3
 ReducedGlare = 2
 NoGlare = 1
 
-def glassEffect(glareSize = NormalGlare, glareDirection = Top, raisedEffect = 5):
+def glassEffect(glareSize=NormalGlare, glareDirection=Top, raisedEffect=5):
     return _r('glassEffect', glareSize, glareDirection, raisedEffect)
 
 
-def softLighting(direction = Top, raisedEffect = 4):
+def softLighting(direction=Top, raisedEffect=4):
     return _r('softLighting', direction, raisedEffect)
 
 
-def barLighting(startBrightness = 0.75, endBrightness = 1.5):
+def barLighting(startBrightness=0.75, endBrightness=1.5):
     return _r('barLighting', startBrightness, endBrightness)
 
 
-def cylinderEffect(orientation = Center, ambientIntensity = 0.5, diffuseIntensity = 0.5, specularIntensity = 0.75, shininess = 8):
+def cylinderEffect(orientation=Center, ambientIntensity=0.5, diffuseIntensity=0.5, specularIntensity=0.75, shininess=8):
     return _r('cylinderEffect', orientation, ambientIntensity, diffuseIntensity, specularIntensity, shininess)
 
 
@@ -719,29 +727,32 @@ class DrawArea(AutoMethod):
      'radialGradientColor': (None, 7, 0),
      'radialGradientColor2': (None, 6, 0)}
 
-    def __init__(self, this = None):
+    def __init__(self, this=None):
         if this == None:
             self.own_this = 1
             self.this = _r('DrawArea.create')
         else:
             self.own_this = 0
             self.this = this
+        return
 
     def __del__(self):
         if self.own_this and self.this != None:
             _r('DrawArea.destroy', self.this)
+        return
 
-    def clone(self, d, x, y, align, newWidth = -1, newHeight = -1, ft = LinearFilter, blur = 1):
+    def clone(self, d, x, y, align, newWidth=-1, newHeight=-1, ft=LinearFilter, blur=1):
         _r('DrawArea.clone', self.this, d.this, x, y, align, newWidth, newHeight, ft, blur)
 
     def polygon(self, points, edgeColor, fillColor):
         _r('DrawArea.polygon', self.this, map(lambda a: a[0], points), map(lambda a: a[1], points), edgeColor, fillColor)
 
-    def fill(self, x, y, color, borderColor = None):
+    def fill(self, x, y, color, borderColor=None):
         if borderColor == None:
             _r('DrawArea.fill', self.this, x, y, color)
         else:
             self.fill2(x, y, color, borderColor)
+        return
 
     def text3(self, str, font, fontSize):
         return TTFText(_r('DrawArea.text3', self.this, str, font, fontSize), self)
@@ -755,17 +766,19 @@ class DrawArea(AutoMethod):
     def tile(self, d, transparency):
         _r('DrawArea.tile', self.this, d.this, transparency)
 
-    def patternColor(self, c, h = None, startX = 0, startY = 0):
+    def patternColor(self, c, h=None, startX=0, startY=0):
         if h == None:
             return self.patternColor2(c)
         else:
             return _r('DrawArea.patternColor', self.this, c, h, startX, startY)
+            return
 
-    def gradientColor(self, startX, startY = 90, endX = 1, endY = 0, startColor = 0, endColor = None):
+    def gradientColor(self, startX, startY=90, endX=1, endY=0, startColor=0, endColor=None):
         if endColor == None:
             return self.gradientColor2(startX, startY, endX, endY, startColor)
         else:
             return _r('DrawArea.gradientColor', self.this, startX, startY, endX, endY, startColor, endColor)
+            return
 
 
 class Box(AutoMethod):
@@ -807,13 +820,13 @@ class LegendBox(TextBox):
      'setLineStyleKey': (None, 1, 1),
      'getHTMLImageMap': (None, 5, '', '', 0, 0)}
 
-    def addKey(self, text, color, lineWidth = 0, drawarea = None):
+    def addKey(self, text, color, lineWidth=0, drawarea=None):
         _r('LegendBox.addKey', self.this, text, color, lineWidth, decodePtr(drawarea))
 
-    def addKey2(self, pos, text, color, lineWidth = 0, drawarea = None):
+    def addKey2(self, pos, text, color, lineWidth=0, drawarea=None):
         _r('LegendBox.addKey2', self.this, pos, text, color, lineWidth, decodePtr(drawarea))
 
-    def getImageCoor2(self, dataItem, offsetX = 0, offsetY = 0):
+    def getImageCoor2(self, dataItem, offsetX=0, offsetY=0):
         return _r('LegendBox.getImageCoor', self.this, dataItem, offsetX, offsetY)
 
 
@@ -886,24 +899,27 @@ class BaseChart(AutoMethod):
     def __del__(self):
         if self.this != None:
             _r('BaseChart.destroy', self.this)
+        return
 
     def addDrawObj(self, obj):
         _r('BaseChart.addDrawObj', obj.this)
         return obj
 
-    def patternColor(self, c, h = None, startX = 0, startY = 0):
+    def patternColor(self, c, h=None, startX=0, startY=0):
         if h == None:
             return self.patternColor2(c)
         else:
             return _r('BaseChart.patternColor', self.this, c, h, startX, startY)
+            return
 
-    def gradientColor(self, startX, startY = 90, endX = 1, endY = 0, startColor = 0, endColor = None):
+    def gradientColor(self, startX, startY=90, endX=1, endY=0, startColor=0, endColor=None):
         if endColor == None:
             return self.gradientColor2(startX, startY, endX, endY, startColor)
         else:
             return _r('BaseChart.gradientColor', self.this, startX, startY, endX, endY, startColor, endColor)
+            return
 
-    def makeTmpFile(self, path, imageFormat = PNG, lifeTime = 600):
+    def makeTmpFile(self, path, imageFormat=PNG, lifeTime=600):
         path = normalizePath(path)
         filename = tmpFile2(path, lifeTime, '.' + {JPG: 'jpg',
          GIF: 'gif',
@@ -919,7 +935,7 @@ class BaseChart(AutoMethod):
 
 class MultiChart(BaseChart):
 
-    def __init__(self, width, height, bgColor = BackgroundColor, edgeColor = Transparent, raisedEffect = 0):
+    def __init__(self, width, height, bgColor=BackgroundColor, edgeColor=Transparent, raisedEffect=0):
         self.this = _r('MultiChart.create', width, height, bgColor, edgeColor, raisedEffect)
         self.dependencies = []
 
@@ -965,10 +981,10 @@ class PieChart(BaseChart):
      'sector': (Sector, 1),
      'set3D2': (None, 3, -1, 0)}
 
-    def __init__(self, width, height, bgColor = BackgroundColor, edgeColor = Transparent, raisedEffect = 0):
+    def __init__(self, width, height, bgColor=BackgroundColor, edgeColor=Transparent, raisedEffect=0):
         self.this = _r('PieChart.create', width, height, bgColor, edgeColor, raisedEffect)
 
-    def set3D(self, depth = -1, angle = -1, shadowMode = 0):
+    def set3D(self, depth=-1, angle=-1, shadowMode=0):
         _r(encodeIfArray('PieChart.set3D', depth), self.this, depth, angle, shadowMode)
 
     def getSector(self, sectorNo):
@@ -977,7 +993,7 @@ class PieChart(BaseChart):
 
 class Mark(TextBox):
 
-    def setMarkColor(self, lineColor, textColor = -1, tickColor = -1):
+    def setMarkColor(self, lineColor, textColor=-1, tickColor=-1):
         _r('Mark.setMarkColor', self.this, lineColor, textColor, tickColor)
 
 
@@ -1022,22 +1038,24 @@ class Axis(AutoMethod):
      'setLabelStep': (None, 4, 0, 0, -2147483647),
      'setFormatCondition': (None, 2, 0)}
 
-    def setTickLength(self, majorTickLen, minorTickLen = None):
+    def setTickLength(self, majorTickLen, minorTickLen=None):
         if minorTickLen == None:
             _r('Axis.setTickLength', self.this, majorTickLen)
         else:
             self.setTickLength2(majorTickLen, minorTickLen)
+        return
 
     def setTopMargin(self, topMargin):
         self.setMargin(topMargin)
 
-    def setLabels(self, labels, formatString = None):
+    def setLabels(self, labels, formatString=None):
         if formatString == None:
             return TextBox(_r('Axis.setLabels', self.this, labels))
         else:
             return self.setLabels2(labels, formatString)
+            return
 
-    def setLinearScale(self, lowerLimit = None, upperLimit = None, majorTickInc = 0, minorTickInc = 0):
+    def setLinearScale(self, lowerLimit=None, upperLimit=None, majorTickInc=0, minorTickInc=0):
         if lowerLimit == None:
             self.setLinearScale3()
         elif upperLimit == None:
@@ -1046,8 +1064,9 @@ class Axis(AutoMethod):
             self.setLinearScale2(lowerLimit, upperLimit, majorTickInc)
         else:
             _r('Axis.setLinearScale', self.this, lowerLimit, upperLimit, majorTickInc, minorTickInc)
+        return
 
-    def setLogScale(self, lowerLimit = None, upperLimit = None, majorTickInc = 0, minorTickInc = 0):
+    def setLogScale(self, lowerLimit=None, upperLimit=None, majorTickInc=0, minorTickInc=0):
         if lowerLimit == None:
             self.setLogScale3()
         elif upperLimit == None:
@@ -1056,14 +1075,15 @@ class Axis(AutoMethod):
             self.setLogScale2(lowerLimit, upperLimit, majorTickInc)
         else:
             _r('Axis.setLogScale', self.this, lowerLimit, upperLimit, majorTickInc, minorTickInc)
+        return
 
-    def setLogScale2(self, lowerLimit, upperLimit, labels = 0):
+    def setLogScale2(self, lowerLimit, upperLimit, labels=0):
         if argIsArray(labels):
             _r('Axis.setLogScale2', self.this, lowerLimit, upperLimit, labels)
         else:
             self.setLogScale(lowerLimit, upperLimit, labels)
 
-    def setLogScale3(self, formatString = ''):
+    def setLogScale3(self, formatString=''):
         if type(formatString) != type(''):
             if formatString:
                 self.setLogScale3()
@@ -1072,7 +1092,7 @@ class Axis(AutoMethod):
         else:
             _r('Axis.setLogScale3', self.this, formatString)
 
-    def setDateScale(self, lowerLimit = None, upperLimit = None, majorTickInc = 0, minorTickInc = 0):
+    def setDateScale(self, lowerLimit=None, upperLimit=None, majorTickInc=0, minorTickInc=0):
         if lowerLimit == None:
             self.setDateScale3()
         elif upperLimit == None:
@@ -1081,18 +1101,20 @@ class Axis(AutoMethod):
             self.setDateScale2(lowerLimit, upperLimit, majorTickInc)
         else:
             _r('Axis.setDateScale', self.this, lowerLimit, upperLimit, majorTickInc, minorTickInc)
+        return
 
-    def syncAxis(self, axis, slope = 1, intercept = 0):
+    def syncAxis(self, axis, slope=1, intercept=0):
         _r('Axis.syncAxis', self.this, axis.this, slope, intercept)
 
     def copyAxis(self, axis):
         _r('Axis.copyAxis', self.this, axis.this)
 
-    def setMultiFormat(self, filter1, format1, filter2 = 1, format2 = None, labelSpan = 1, promoteFirst = 1):
+    def setMultiFormat(self, filter1, format1, filter2=1, format2=None, labelSpan=1, promoteFirst=1):
         if format2 == None:
             self.setMultiFormat2(filter1, format1, filter2, 1)
         else:
             _r('Axis.setMultiFormat', self.this, filter1, format1, filter2, format2, labelSpan, promoteFirst)
+        return
 
 
 class ColorAxis(Axis):
@@ -1119,23 +1141,25 @@ class AngularAxis(AutoMethod):
      'getAxisImageMap': (None, 7, '', '', 0, 0),
      'getHTMLImageMap': (None, 5, '', '', 0, 0)}
 
-    def setLabels(self, labels, formatString = None):
+    def setLabels(self, labels, formatString=None):
         if formatString == None:
             return TextBox(_r('AngularAxis.setLabels', self.this, labels))
         else:
             return self.setLabels2(labels, formatString)
+            return
 
-    def setLinearScale(self, lowerLimit, upperLimit, majorTickInc = 0, minorTickInc = 0):
+    def setLinearScale(self, lowerLimit, upperLimit, majorTickInc=0, minorTickInc=0):
         if argIsArray(majorTickInc):
             self.setLinearScale2(lowerLimit, upperLimit, majorTickInc)
         else:
             _r('AngularAxis.setLinearScale', self.this, lowerLimit, upperLimit, majorTickInc, minorTickInc)
 
-    def addZone(self, startValue, endValue, startRadius, endRadius = -1, fillColor = None, edgeColor = -1):
+    def addZone(self, startValue, endValue, startRadius, endRadius=-1, fillColor=None, edgeColor=-1):
         if fillColor == None:
             self.addZone2(startValue, endValue, startRadius, endRadius)
         else:
             _r('AngularAxis.addZone', self.this, startValue, endValue, startRadius, endRadius, fillColor, edgeColor)
+        return
 
 
 class DataSet(AutoMethod):
@@ -1149,21 +1173,23 @@ class DataSet(AutoMethod):
                            0),
      'setDataSymbol4': (None, 4, 11, -1, -1)}
 
-    def setDataSymbol(self, symbol, size = None, fillColor = -1, edgeColor = -1, lineWidth = 1):
+    def setDataSymbol(self, symbol, size=None, fillColor=-1, edgeColor=-1, lineWidth=1):
         if argIsArray(symbol):
             if size == None:
                 size = 11
             self.setDataSymbol4(symbol, size, fillColor, edgeColor)
             return
-        if size == None:
-            try:
-                symbol = int(symbol)
-                size = 5
-            except:
-                self.setDataSymbol2(symbol)
-                return
+        else:
+            if size == None:
+                try:
+                    symbol = int(symbol)
+                    size = 5
+                except:
+                    self.setDataSymbol2(symbol)
+                    return
 
-        _r('DataSet.setDataSymbol', self.this, symbol, size, fillColor, edgeColor, lineWidth)
+            _r('DataSet.setDataSymbol', self.this, symbol, size, fillColor, edgeColor, lineWidth)
+            return
 
     def setDataSymbol2(self, image):
         if hasattr(image, 'this'):
@@ -1227,19 +1253,21 @@ class Layer(AutoMethod):
      'getHTMLImageMap': (None, 5, '', '', 0, 0),
      'setHTMLImageMap': (None, 3, '', '')}
 
-    def getImageCoor(self, dataSet, dataItem = None, offsetX = 0, offsetY = 0):
+    def getImageCoor(self, dataSet, dataItem=None, offsetX=0, offsetY=0):
         if dataItem == None:
             return self.getImageCoor2(dataItem)
         else:
             return _r('Layer.getImageCoor', self.this, dataSet, dataItem, offsetX, offsetY)
+            return
 
-    def setXData(self, xData, dummy = None):
+    def setXData(self, xData, dummy=None):
         if dummy != None:
             self.setXData2(xData, dummy)
         else:
             _r('Layer.setXData', self.this, xData)
+        return
 
-    def getYCoor(self, value, yAxis = 1):
+    def getYCoor(self, value, yAxis=1):
         if hasattr(yAxis, 'this'):
             return _r('Layer.getYCoor2', self.this, value, yAxis.this)
         else:
@@ -1248,7 +1276,7 @@ class Layer(AutoMethod):
     def setUseYAxis(self, yAxis):
         _r('Layer.setUseYAxis', self.this, yAxis.this)
 
-    def yZoneColor(self, threshold, belowColor, aboveColor, yAxis = 1):
+    def yZoneColor(self, threshold, belowColor, aboveColor, yAxis=1):
         if hasattr(yAxis, 'this'):
             return _r('Layer.yZoneColor2', self.this, threshold, belowColor, aboveColor, yAxis.this)
         else:
@@ -1257,10 +1285,10 @@ class Layer(AutoMethod):
     def alignLayer(self, layer, dataSet):
         _r('Layer.alignLayer', self.this, layer.this, dataSet)
 
-    def moveFront(self, layer = None):
+    def moveFront(self, layer=None):
         _r('Layer.moveFront', self.this, decodePtr(layer))
 
-    def moveBack(self, layer = None):
+    def moveBack(self, layer=None):
         _r('Layer.moveFront', self.this, decodePtr(layer))
 
 
@@ -1271,7 +1299,7 @@ class BarLayer(Layer):
      'setOverlapRatio': (None, 2, 1),
      'setBarShape2': (None, 3, -1, -1)}
 
-    def setBarShape(self, shape, dataGroup = -1, dataItem = -1):
+    def setBarShape(self, shape, dataGroup=-1, dataItem=-1):
         _r(encodeIfArray('BarLayer.setBarShape', shape), self.this, shape, dataGroup, dataItem)
 
 
@@ -1291,7 +1319,7 @@ class ScatterLayer(LineLayer):
 
 class InterLineLayer(LineLayer):
 
-    def setGapColor(self, gapColor12, gapColor21 = -1):
+    def setGapColor(self, gapColor12, gapColor21=-1):
         _r('InterLineLayer.setGapColor', self.this, gapColor12, gapColor21)
 
 
@@ -1330,7 +1358,7 @@ class BaseBoxLayer(Layer):
 
 class HLOCLayer(BaseBoxLayer):
 
-    def setColorMethod(self, colorMethod, riseColor, fallColor = -1, leadValue = -1.7e+308):
+    def setColorMethod(self, colorMethod, riseColor, fallColor=-1, leadValue=-1.7e+308):
         _r('HLOCLayer.setColorMethod', self.this, colorMethod, riseColor, fallColor, leadValue)
 
 
@@ -1354,7 +1382,7 @@ class VectorLayer(Layer):
      'setIconSize': (None, 2, 0),
      'setVectorMargin': (None, 2, NoValue)}
 
-    def setArrowHead(self, width, height = 0):
+    def setArrowHead(self, width, height=0):
         if argIsArray(width):
             self.setArrowHead2(width)
         else:
@@ -1383,7 +1411,7 @@ class PlotArea(AutoMethod):
     def setGridAxis(self, xAxis, yAxis):
         _r('PlotArea.setGridAxis', self.this, decodePtr(xAxis), decodePtr(yAxis))
 
-    def moveGridBefore(self, layer = None):
+    def moveGridBefore(self, layer=None):
         _r('PlotArea.moveGridBefore', self.this, decodePtr(layer))
 
 
@@ -1493,39 +1521,43 @@ class XYChart(BaseChart):
      'setTrimData': (None, 2, 2147483647),
      'packPlotArea': (None, 6, 0, 0)}
 
-    def __init__(self, width, height, bgColor = BackgroundColor, edgeColor = Transparent, raisedEffect = 0):
+    def __init__(self, width, height, bgColor=BackgroundColor, edgeColor=Transparent, raisedEffect=0):
         self.this = _r('XYChart.create', width, height, bgColor, edgeColor, raisedEffect)
 
-    def addBarLayer(self, data = None, color = -1, name = '', depth = 0):
+    def addBarLayer(self, data=None, color=-1, name='', depth=0):
         if data != None:
             return BarLayer(_r('XYChart.addBarLayer', self.this, data, color, name, depth))
         else:
             return self.addBarLayer2()
+            return
 
-    def addLineLayer(self, data = None, color = -1, name = '', depth = 0):
+    def addLineLayer(self, data=None, color=-1, name='', depth=0):
         if data != None:
             return LineLayer(_r('XYChart.addLineLayer', self.this, data, color, name, depth))
         else:
             return self.addLineLayer2()
+            return
 
-    def addAreaLayer(self, data = None, color = -1, name = '', depth = 0):
+    def addAreaLayer(self, data=None, color=-1, name='', depth=0):
         if data != None:
             return AreaLayer(_r('XYChart.addAreaLayer', self.this, data, color, name, depth))
         else:
             return self.addAreaLayer2()
+            return
 
-    def addHLOCLayer(self, highData = None, lowData = None, openData = None, closeData = None, upColor = -1, downColor = -1, colorMode = -1, leadValue = -1.7e+308):
+    def addHLOCLayer(self, highData=None, lowData=None, openData=None, closeData=None, upColor=-1, downColor=-1, colorMode=-1, leadValue=-1.7e+308):
         if highData != None:
             return HLOCLayer(_r('XYChart.addHLOCLayer3', self.this, highData, lowData, openData, closeData, upColor, downColor, colorMode, leadValue))
         else:
             return self.addHLOCLayer2()
+            return
 
     addHLOCLayer3 = addHLOCLayer
 
-    def getYCoor(self, value, yAxis = None):
+    def getYCoor(self, value, yAxis=None):
         return _r('XYChart.getYCoor', self.this, value, decodePtr(yAxis))
 
-    def yZoneColor(self, threshold, belowColor, aboveColor, yAxis = None):
+    def yZoneColor(self, threshold, belowColor, aboveColor, yAxis=None):
         return _r('XYChart.yZoneColor', self.this, threshold, belowColor, aboveColor, decodePtr(yAxis))
 
 
@@ -1545,7 +1577,7 @@ class SurfaceChart(BaseChart):
      'setWallThickness': (None, 3, -1, -1),
      'setWallGrid': (None, 6, -1, -1, -1, -1, -1)}
 
-    def __init__(self, width, height, bgColor = BackgroundColor, edgeColor = Transparent, raisedEffect = 0):
+    def __init__(self, width, height, bgColor=BackgroundColor, edgeColor=Transparent, raisedEffect=0):
         self.this = _r('SurfaceChart.create', width, height, bgColor, edgeColor, raisedEffect)
 
 
@@ -1569,21 +1601,23 @@ class PolarLayer(AutoMethod):
      'setDataSymbol4': (None, 4, 11, -1, -1),
      'setHTMLImageMap': (None, 3, '', '')}
 
-    def setDataSymbol(self, symbol, size = None, fillColor = -1, edgeColor = -1, lineWidth = 1):
+    def setDataSymbol(self, symbol, size=None, fillColor=-1, edgeColor=-1, lineWidth=1):
         if argIsArray(symbol):
             if size == None:
                 size = 11
             self.setDataSymbol4(symbol, size, fillColor, edgeColor)
             return
-        if size == None:
-            try:
-                symbol = int(symbol)
-                size = 7
-            except:
-                self.setDataSymbol2(symbol)
-                return
+        else:
+            if size == None:
+                try:
+                    symbol = int(symbol)
+                    size = 7
+                except:
+                    self.setDataSymbol2(symbol)
+                    return
 
-        _r('PolarLayer.setDataSymbol', self.this, symbol, size, fillColor, edgeColor, lineWidth)
+            _r('PolarLayer.setDataSymbol', self.this, symbol, size, fillColor, edgeColor, lineWidth)
+            return
 
     def setDataSymbol2(self, image):
         if hasattr(image, 'this'):
@@ -1616,7 +1650,7 @@ class PolarVectorLayer(PolarLayer):
      'setIconSize': (None, 2, 0),
      'setVectorMargin': (None, 2, NoValue)}
 
-    def setArrowHead(self, width, height = 0):
+    def setArrowHead(self, width, height=0):
         if argIsArray(width):
             self.setArrowHead2(width)
         else:
@@ -1662,7 +1696,7 @@ class PolarChart(BaseChart):
                         -1,
                         '')}
 
-    def __init__(self, width, height, bgColor = BackgroundColor, edgeColor = Transparent, raisedEffect = 0):
+    def __init__(self, width, height, bgColor=BackgroundColor, edgeColor=Transparent, raisedEffect=0):
         self.this = _r('PolarChart.create', width, height, bgColor, edgeColor, raisedEffect)
 
 
@@ -1718,7 +1752,7 @@ class PyramidChart(BaseChart):
      'setLayerBorder': (None, 2, -1),
      'getLayer': (PyramidLayer, 1)}
 
-    def __init__(self, width, height, bgColor = BackgroundColor, edgeColor = Transparent, raisedEffect = 0):
+    def __init__(self, width, height, bgColor=BackgroundColor, edgeColor=Transparent, raisedEffect=0):
         self.this = _r('PyramidChart.create', width, height, bgColor, edgeColor, raisedEffect)
 
 
@@ -1729,7 +1763,7 @@ class MeterPointer(AutoMethod):
                    NoValue,
                    NoValue)}
 
-    def setShape(self, pointerType, lengthRatio = NoValue, widthRatio = NoValue):
+    def setShape(self, pointerType, lengthRatio=NoValue, widthRatio=NoValue):
         _r(encodeIfArray('MeterPointer.setShape', pointerType), self.this, pointerType, lengthRatio, widthRatio)
 
 
@@ -1750,7 +1784,7 @@ class BaseMeter(BaseChart):
      'setLineWidth': (None, 4, 1, 1, 1),
      'setMeterColors': (None, 3, -1, -1)}
 
-    def setScale(self, lowerLimit, upperLimit, majorTickInc = 0, minorTickInc = 0, microTickInc = 0):
+    def setScale(self, lowerLimit, upperLimit, majorTickInc=0, minorTickInc=0, microTickInc=0):
         if argIsArray(majorTickInc):
             if minorTickInc != 0:
                 self.setScale3(lowerLimit, upperLimit, majorTickInc, minorTickInc)
@@ -1766,14 +1800,15 @@ class AngularMeter(BaseMeter):
      'setCap': (None, 3, LineColor),
      'addZone2': (None, 4, -1)}
 
-    def __init__(self, width, height, bgColor = BackgroundColor, edgeColor = Transparent, raisedEffect = 0):
+    def __init__(self, width, height, bgColor=BackgroundColor, edgeColor=Transparent, raisedEffect=0):
         self.this = _r('AngularMeter.create', width, height, bgColor, edgeColor, raisedEffect)
 
-    def addZone(self, startValue, endValue, startRadius, endRadius = -1, fillColor = None, edgeColor = -1):
+    def addZone(self, startValue, endValue, startRadius, endRadius=-1, fillColor=None, edgeColor=-1):
         if fillColor == None:
             self.addZone2(startValue, endValue, startRadius, endRadius)
         else:
             _r('AngularMeter.addZone', self.this, startValue, endValue, startRadius, endRadius, fillColor, edgeColor)
+        return
 
 
 class LinearMeter(BaseMeter):
@@ -1784,7 +1819,7 @@ class LinearMeter(BaseMeter):
      'setRail': (None, 3, 2, 6),
      'addZone': (TextBox, 4, '')}
 
-    def __init__(self, width, height, bgColor = BackgroundColor, edgeColor = Transparent, raisedEffect = 0):
+    def __init__(self, width, height, bgColor=BackgroundColor, edgeColor=Transparent, raisedEffect=0):
         self.this = _r('LinearMeter.create', width, height, bgColor, edgeColor, raisedEffect)
 
 
@@ -1804,11 +1839,11 @@ def getBootLog():
     return _r('getBootLog')
 
 
-def libgTTFTest(font = '', fontIndex = 0, fontHeight = 8, fontWidth = 8, angle = 0):
+def libgTTFTest(font='', fontIndex=0, fontHeight=8, fontWidth=8, angle=0):
     return _r('testFont', font, fontIndex, fontHeight, fontWidth, angle)
 
 
-def testFont(font = '', fontIndex = 0, fontHeight = 8, fontWidth = 8, angle = 0):
+def testFont(font='', fontIndex=0, fontHeight=8, fontWidth=8, angle=0):
     return _r('testFont', font, fontIndex, fontHeight, fontWidth, angle)
 
 
@@ -1816,11 +1851,12 @@ def setLicenseCode(licCode):
     return _r('setLicenseCode', licCode)
 
 
-def chartTime(y, m = None, d = 1, h = 0, n = 0, s = 0):
+def chartTime(y, m=None, d=1, h=0, n=0, s=0):
     if m == None:
         return chartTime2(y)
     else:
         return _r('chartTime', y, m, d, h, n, s)
+        return
 
 
 def chartTime2(t):
@@ -1847,12 +1883,14 @@ class RanTable(AutoMethod):
     def __del__(self):
         if self.this != None:
             _r('RanTable.destroy', self.this)
+        return
 
-    def setCol(self, colNo, minValue, maxValue, p4 = None, p5 = -1e+308, p6 = 1e+308):
+    def setCol(self, colNo, minValue, maxValue, p4=None, p5=-1e+308, p6=1e+308):
         if p4 == None:
             _r('RanTable.setCol', self.this, colNo, minValue, maxValue)
         else:
             self.setCol2(colNo, minValue, maxValue, p4, p5, p6)
+        return
 
 
 class FinanceSimulator(AutoMethod):
@@ -1867,6 +1905,7 @@ class FinanceSimulator(AutoMethod):
     def __del__(self):
         if self.this != None:
             _r('FinanceSimulator.destroy', self.this)
+        return
 
 
 class ArrayMathMethodWrapper(MethodWrapper):
@@ -1925,6 +1964,7 @@ class ArrayMath:
     def __del__(self):
         if self.this != None:
             _r('ArrayMath.destroy', self.this)
+        return
 
     def __getattr__(self, name):
         if name[:2] == '__':
@@ -1958,7 +1998,7 @@ def normalizePath(path):
     return path
 
 
-def tmpFile(path = '/tmp/tmp_charts', lifeTime = 600):
+def tmpFile(path='/tmp/tmp_charts', lifeTime=600):
     path = normalizePath(path)
     return path + '/' + tmpFile2(path, lifeTime, '')
 
@@ -2060,14 +2100,16 @@ class WebChartViewer:
         self.putAttrS(':id', id)
         if request != None:
             if not hasattr(request, 'has_key'):
-                request.has_key = lambda a, b = request: a in b
+                request.has_key = lambda a, b=request: a in b
             if id != None and request.has_key(id + self._s):
                 self.putAttrS(':state', request[id + self._s].value)
         self.request = request
+        return
 
     def __del__(self):
         if self.this != None:
             _r('WebChartViewer.destroy', self.this)
+        return
 
     def getRequest(self):
         return self.request
@@ -2093,7 +2135,7 @@ class WebChartViewer:
     def getChartMetrics(self):
         return self.getAttrS(':metrics')
 
-    def makeDelayedMapAsTmpFile(self, path, imageMap, compress = 0, timeout = 600):
+    def makeDelayedMapAsTmpFile(self, path, imageMap, compress=0, timeout=600):
         if compress:
             try:
                 if string.find(os.environ.get('HTTP_ACCEPT_ENCODING', ''), 'gzip') == -1:
@@ -2117,10 +2159,10 @@ class WebChartViewer:
             f.close()
         return filename
 
-    def renderHTML(self, extraAttrs = None):
+    def renderHTML(self, extraAttrs=None):
         return _r('WebChartViewer.renderHTML', self.this, os.environ.get('SCRIPT_NAME', ''), os.environ.get('QUERY_STRING', ''), extraAttrs)
 
-    def partialUpdateChart(self, msg = None, timeout = 0):
+    def partialUpdateChart(self, msg=None, timeout=0):
         ret = 'Content-type: text/html; charset=utf-8\n\n' + _r('WebChartViewer.partialUpdateChart', self.this, msg, timeout)
         return _isV3 and ret.encode('utf_8') or ret
 
@@ -2130,12 +2172,13 @@ class WebChartViewer:
     def isFullUpdateRequest(self):
         if self.isPartialUpdateRequest():
             return 0
-        if self.request != None:
-            for k in self.request.keys():
-                if k[-len(self._s):] == self._s:
-                    return 1
+        else:
+            if self.request != None:
+                for k in self.request.keys():
+                    if k[-len(self._s):] == self._s:
+                        return 1
 
-        return 0
+            return 0
 
     def isStreamRequest(self):
         return self.request != None and self.request.has_key(self._d)
@@ -2150,11 +2193,12 @@ class WebChartViewer:
             return self.request[self._d].value
         else:
             return None
+            return None
 
-    def getAttrS(self, attr, defaultValue = ''):
+    def getAttrS(self, attr, defaultValue=''):
         return _r('WebChartViewer.getAttrS', self.this, str(attr), str(defaultValue))
 
-    def getAttrF(self, attr, defaultValue = 0):
+    def getAttrF(self, attr, defaultValue=0):
         return _r('WebChartViewer.getAttrF', self.this, str(attr), float(defaultValue))
 
     def putAttrF(self, attr, value):

@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\carbon\common\lib\cherrypy\_cpchecker.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\carbon\common\lib\cherrypy\_cpchecker.py
 import os
 import warnings
 import cherrypy
@@ -24,7 +25,7 @@ class Checker(object):
             finally:
                 warnings.formatwarning = oldformatwarning
 
-    def formatwarning(self, message, category, filename, lineno, line = None):
+    def formatwarning(self, message, category, filename, lineno, line=None):
         return 'CherryPy Checker:\n%s\n\n' % message
 
     global_config_contained_paths = False
@@ -120,6 +121,8 @@ class Checker(object):
                          root,
                          dir))
 
+        return
+
     obsolete = {'server.default_content_type': 'tools.response_headers.headers',
      'log_access_file': 'log.access_file',
      'log_config_options': None,
@@ -198,6 +201,8 @@ class Checker(object):
                 if vtype in b:
                     self.known_config_types[namespace + '.' + name] = vtype
 
+            return
+
         traverse(cherrypy.request, 'request')
         traverse(cherrypy.response, 'response')
         traverse(cherrypy.server, 'server')
@@ -228,6 +233,8 @@ class Checker(object):
                          section,
                          vtype.__name__,
                          expected_type.__name__))
+
+        return
 
     def check_config_types(self):
         self._known_types(cherrypy.config)

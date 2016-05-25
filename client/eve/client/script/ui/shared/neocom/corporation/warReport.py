@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\client\script\ui\shared\neocom\corporation\warReport.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\client\script\ui\shared\neocom\corporation\warReport.py
 import evetypes
 import localization
 import uiprimitives
@@ -48,6 +49,7 @@ class WarReportWnd(uicontrols.Window):
         self.SetTopparentHeight(0)
         self.GetShipGroupList()
         self.ConstructLayout()
+        return
 
     def GetWarStatisticMoniker(self, warID):
         self.warStatisticMoniker = moniker.GetWarStatistic(warID)
@@ -112,6 +114,7 @@ class WarReportWnd(uicontrols.Window):
          const.defaultPadding), bgColor=util.Color.GetGrayRGBA(0.4, 0.2))
         self.killGroupsScroll = uicontrols.Scroll(name='killGroupsScroll', parent=self.killsByGroupParent)
         self.LoadInfo(self.warID)
+        return
 
     def SetAllyBtnIcon(self):
         if len(self.allies):
@@ -228,6 +231,7 @@ class WarReportWnd(uicontrols.Window):
         self.GetMaxKills()
         self.ShowGraph()
         self.HideLoading()
+        return
 
     def ShowInfo(self, itemID, typeID, *args):
         sm.GetService('info').ShowInfo(typeID, itemID)
@@ -245,6 +249,7 @@ class WarReportWnd(uicontrols.Window):
             WarSurrenderWnd.CloseIfOpen()
             requesterID = session.corpid if session.allianceid is None else session.allianceid
             WarSurrenderWnd.Open(war=self.war, requesterID=requesterID, isSurrender=True, isAllyRequest=False, isRequest=True)
+        return
 
     def GetWarDateText(self):
         war = self.war
@@ -267,7 +272,7 @@ class WarReportWnd(uicontrols.Window):
             timeText = localization.GetByLabel('UI/Corporations/Wars/WarStarted', date=date)
         return timeText
 
-    def GetKills(self, scroll, shipGroup = None):
+    def GetKills(self, scroll, shipGroup=None):
         sortedScrolllist = []
         myDate = None
         killValue = self.killsFilterCombo.GetValue()
@@ -308,6 +313,7 @@ class WarReportWnd(uicontrols.Window):
             scrolllist.append(entry)
 
         scroll.Load(contentList=scrolllist, headers=[], noContentHint=localization.GetByLabel('UI/Corporations/Wars/NoKillsFound'))
+        return
 
     def OnKillComboChange(self, *args):
         comboSetting = settings.user.ui.Get('killComboValue', 0)
@@ -375,6 +381,7 @@ class WarReportWnd(uicontrols.Window):
         groupName = 'group_%d' % groupID
         bar = getattr(self.sr, groupName, None)
         self.BarOnClick(groupID, bar)
+        return
 
     def BarOnClick(self, groupID, container, *args):
         settings.user.ui.Set('killGroupDisplayed', groupID)
@@ -386,12 +393,13 @@ class WarReportWnd(uicontrols.Window):
         container.sr.selected.state = uiconst.UI_DISABLED
         self.GetKills(self.killGroupsScroll, groupID)
 
-    def GetKillsByGroup(self, shipGroupID = None):
+    def GetKillsByGroup(self, shipGroupID=None):
         self.PrimeKillsByGroup()
         if shipGroupID is not None:
             return self.killsByShipGroup[shipGroupID]
         else:
             return self.killsByShipGroup
+            return
 
     def PrimeKillsByGroup(self):
         if self.killsByShipGroup == {}:
@@ -566,6 +574,7 @@ class WarKillEntry(uicontrols.SE_BaseClassCore):
         kill = self.GetFullKillReport()
         if kill is not None:
             OpenKillReport(kill)
+        return
 
     def GetCombatText(self, *args):
         kill = self.GetFullKillReport()
@@ -594,6 +603,7 @@ class KillsBarContainer(uiprimitives.Container):
         self.groupID = attributes.get('groupID', None)
         self.maxKills = attributes.get('maxKills', 0)
         self.ConstructLayout()
+        return
 
     def ConstructLayout(self):
         contName = 'group_%d' % self.groupID

@@ -1,33 +1,34 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\carbon\common\stdlib\encodings\bz2_codec.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\carbon\common\stdlib\encodings\bz2_codec.py
 import codecs
 import bz2
 
-def bz2_encode(input, errors = 'strict'):
+def bz2_encode(input, errors='strict'):
     output = bz2.compress(input)
     return (output, len(input))
 
 
-def bz2_decode(input, errors = 'strict'):
+def bz2_decode(input, errors='strict'):
     output = bz2.decompress(input)
     return (output, len(input))
 
 
 class Codec(codecs.Codec):
 
-    def encode(self, input, errors = 'strict'):
+    def encode(self, input, errors='strict'):
         return bz2_encode(input, errors)
 
-    def decode(self, input, errors = 'strict'):
+    def decode(self, input, errors='strict'):
         return bz2_decode(input, errors)
 
 
 class IncrementalEncoder(codecs.IncrementalEncoder):
 
-    def __init__(self, errors = 'strict'):
+    def __init__(self, errors='strict'):
         self.errors = errors
         self.compressobj = bz2.BZ2Compressor()
 
-    def encode(self, input, final = False):
+    def encode(self, input, final=False):
         if final:
             c = self.compressobj.compress(input)
             return c + self.compressobj.flush()
@@ -40,11 +41,11 @@ class IncrementalEncoder(codecs.IncrementalEncoder):
 
 class IncrementalDecoder(codecs.IncrementalDecoder):
 
-    def __init__(self, errors = 'strict'):
+    def __init__(self, errors='strict'):
         self.errors = errors
         self.decompressobj = bz2.BZ2Decompressor()
 
-    def decode(self, input, final = False):
+    def decode(self, input, final=False):
         try:
             return self.decompressobj.decompress(input)
         except EOFError:

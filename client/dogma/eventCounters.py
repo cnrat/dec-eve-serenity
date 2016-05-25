@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\packages\dogma\eventCounters.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\packages\dogma\eventCounters.py
 from contextlib import contextmanager
 
 class EventCount(object):
@@ -30,7 +31,8 @@ class EventCount(object):
     def IsEventHappening(self, key):
         if key is None:
             return False
-        return self.__eventCount.get(key, 0) > 0
+        else:
+            return self.__eventCount.get(key, 0) > 0
 
     def _OnEvent(self, key):
         pass

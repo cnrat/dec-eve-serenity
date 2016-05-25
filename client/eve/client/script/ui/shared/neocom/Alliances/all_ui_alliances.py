@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\client\script\ui\shared\neocom\Alliances\all_ui_alliances.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\client\script\ui\shared\neocom\Alliances\all_ui_alliances.py
 from eve.client.script.ui.shared.neocom.Alliances.all_ui_sovereignty import FormAlliancesSovereignty
 from eve.client.script.ui.shared.neocom.Alliances.all_ui_systems import FormAlliancesSystems
 import form
@@ -19,6 +20,7 @@ class FormAlliances(uiprimitives.Container):
         uiprimitives.Container.ApplyAttributes(self, attributes)
         sm.RegisterNotify(self)
         self.sr.currentView = None
+        return
 
     def Load(self, key):
         alliancesLabel = localization.GetByLabel('UI/Corporations/CorporationWindow/Alliances/Alliances')
@@ -91,6 +93,7 @@ class FormAlliances(uiprimitives.Container):
             self.sr.currentView = FormAlliancesSovereignty(parent=self.sr.wndViewParent)
         if self.sr.currentView is not None:
             self.sr.currentView.CreateWindow()
+        return
 
     def OnSetAllianceStanding(self, *args):
         if uiutil.IsVisible(self) and self.sr.Get('inited', False) and self.sr.tabs:
@@ -101,24 +104,28 @@ class FormAlliances(uiprimitives.Container):
         function = getattr(self.sr.currentView, 'OnAllianceApplicationChanged', None)
         if function is not None:
             function(allianceID, corpID, change)
+        return
 
     def OnAllianceMemberChanged(self, allianceID, corpID, change):
         log.LogInfo(self.__class__.__name__, 'OnAllianceMemberChanged')
         function = getattr(self.sr.currentView, 'OnAllianceMemberChanged', None)
         if function is not None:
             function(allianceID, corpID, change)
+        return
 
     def OnAllianceRelationshipChanged(self, allianceID, toID, change):
         log.LogInfo(self.__class__.__name__, 'OnAllianceRelationshipChanged')
         function = getattr(self.sr.currentView, 'OnAllianceRelationshipChanged', None)
         if function is not None:
             function(allianceID, toID, change)
+        return
 
     def OnAllianceChanged(self, allianceID, change):
         log.LogInfo(self.__class__.__name__, 'OnAllianceChanged')
         function = getattr(self.sr.currentView, 'OnAllianceChanged', None)
         if function is not None:
             function(allianceID, change)
+        return
 
     def OnUpdateCapitalInfo(self):
         if isinstance(self.sr.currentView, FormAlliancesSystems):

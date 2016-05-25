@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\client\script\ui\shared\fleet\storeFleetSetupWnd.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\client\script\ui\shared\fleet\storeFleetSetupWnd.py
 import localization
 import carbonui.const as uiconst
 from eve.client.script.ui.control.eveWindow import Window
@@ -26,6 +27,7 @@ class StoreFleetSetupWnd(Window):
         self.maxLength = 15
         self.funcValidator = self.CheckName
         self.ConstructLayout(oldSetupName)
+        return
 
     def ConstructLayout(self, oldSetupName):
         cont = uicontrols.ContainerAutoSize(parent=self.sr.main, align=uiconst.TOTOP, padding=(const.defaultPadding,
@@ -52,6 +54,8 @@ class StoreFleetSetupWnd(Window):
         name = self.newName.GetValue()
         if not len(name) or len(name) and len(name.strip()) < 1:
             return localization.GetByLabel('UI/Common/PleaseTypeSomething')
+        else:
+            return None
 
     def Confirm(self, *args):
         newName = self.newName.GetValue()
@@ -71,6 +75,7 @@ class StoreFleetSetupWnd(Window):
     def Cancel(self, *args):
         self.result = None
         self.SetModalResult(0)
+        return
 
 
 class StoredFleetSetupListWnd(Window):
@@ -144,6 +149,7 @@ class StoredFleetSetup(Container):
             else:
                 sprite.hint = localization.GetByLabel('UI/Fleet/FleetWindow/FreeMoveOff')
                 sprite.opacity = self.disabledOpacity
+        return
 
     def DeleteSetup(self):
         self.fleetSvc.DeleteFleetSetup(setupName=self.settingConfigName)

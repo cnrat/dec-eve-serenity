@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\carbon\common\lib\jinja2\_markupsafe\__init__.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\carbon\common\lib\jinja2\_markupsafe\__init__.py
 import re
 from itertools import imap
 __all__ = ['Markup',
@@ -11,12 +12,13 @@ _entity_re = re.compile('&([^;]+);')
 class Markup(unicode):
     __slots__ = ()
 
-    def __new__(cls, base = u'', encoding = None, errors = 'strict'):
+    def __new__(cls, base=u'', encoding=None, errors='strict'):
         if hasattr(base, '__html__'):
             base = base.__html__()
         if encoding is None:
             return unicode.__new__(cls, base)
-        return unicode.__new__(cls, base, encoding, errors)
+        else:
+            return unicode.__new__(cls, base, encoding, errors)
 
     def __html__(self):
         return self
@@ -82,8 +84,6 @@ class Markup(unicode):
                     return unichr(int(name[1:]))
             except ValueError:
                 pass
-
-            return u''
 
         return _entity_re.sub(handle_match, unicode(self))
 

@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\client\script\paperDoll\projectedDecals.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\client\script\paperDoll\projectedDecals.py
 import trinity
 import uthread
 import blue
@@ -20,7 +21,7 @@ DECAL_PROJECTION_CYLINDRICAL = 1.0
 DECAL_PROJECTION_CAMERA = 2.0
 DECAL_PROJECTION_EO_LOD_THRESHOLD = 1
 
-def ShowTexture(texture, showAlpha = False):
+def ShowTexture(texture, showAlpha=False):
     import app.Common.RenderWindow as rw
     f = rw.CreateTextureWindow(texture, showAlpha)
     f.Show()
@@ -49,6 +50,7 @@ class DecalBaker(object):
             self.malePath = 'res:\\Graphics\\Character\\Modular\\Male'
         self.femaleBindPose = self.GetBindPose(pdDef.FEMALE_DECAL_BINDPOSE)
         self.maleBindPose = self.GetBindPose(pdDef.MALE_DECAL_BINDPOSE)
+        return
 
     def Initialize(self):
         self.doingAvatar = False
@@ -119,6 +121,7 @@ class DecalBaker(object):
         bindPose.PlayAnimationEx(clip, 0, 0, 0)
         avatar.ResetAnimationBindings()
         bindPose.EndAnimation()
+        return
 
     def CreateTargetAvatarFromDoll(self, doll):
         self.doingAvatar = True
@@ -133,7 +136,7 @@ class DecalBaker(object):
         self.avatarShaderSettingTasklet = uthread.new(PrepareAvatar_t)
         uthread.schedule(self.avatarShaderSettingTasklet)
 
-    def CreateTargetsOnModifier(self, modifier, asRenderTargets = False):
+    def CreateTargetsOnModifier(self, modifier, asRenderTargets=False):
         textureFormat = trinity.PIXEL_FORMAT.B8G8R8A8_UNORM
 
         def validateTarget(target, width, height):
@@ -217,6 +220,7 @@ class DecalBaker(object):
         rj.PopDepthStencil()
         rj.ScheduleChained()
         rj.WaitForFinish()
+        return
 
     def _Bake(self, targetTex, transform):
         self.SetShaderValue(self.__avatar, 'TattooVSUVTransform', transform)
@@ -239,6 +243,7 @@ class DecalBaker(object):
         rj.PopDepthStencil()
         rj.ScheduleChained()
         rj.WaitForFinish()
+        return
 
     def DoBake_t(self, projectedDecalModifier):
         while self.doingDecal or self.doingAvatar:
@@ -266,8 +271,9 @@ class DecalBaker(object):
             del projectedDecalModifier.mapD[pdDef.DOLL_PARTS.HEAD]
         self.bakeScene = None
         self.isReady = True
+        return
 
-    def SetShader_t(self, avatar, targetsToIgnore, shaderres, allTargets = False):
+    def SetShader_t(self, avatar, targetsToIgnore, shaderres, allTargets=False):
         try:
             effect = trinity.Tr2Effect()
             effect.effectFilePath = shaderres
@@ -296,6 +302,8 @@ class DecalBaker(object):
         except TaskletExit:
             raise
 
+        return
+
     def SetShaderValue(self, avatar, name, value):
         for mesh in avatar.visualModel.meshes:
             for effect in pdCcF.GetEffectsFromMesh(mesh):
@@ -311,40 +319,43 @@ class DecalBaker(object):
     def SetDecal_t(self, avatar, decal, setTexture, setMask):
         if decal is None:
             return
-        while self.doingAvatar or decal.BusyLoading():
-            PD.Yield(frameNice=False)
+        else:
+            while self.doingAvatar or decal.BusyLoading():
+                PD.Yield(frameNice=False)
 
-        for mesh in iter(avatar.visualModel.meshes):
-            for effect in pdCcF.GetEffectsFromMesh(mesh):
-                effect.StartUpdate()
-                for p in effect.parameters:
-                    valuesToSet = None
-                    if p.name == 'TattooYawPitchRoll':
-                        valuesToSet = decal.GetYPR()
-                    elif p.name == 'TattooPosition':
-                        valuesToSet = decal.GetPositionAndScale()
-                    elif p.name == 'TattooOptions':
-                        valuesToSet = decal.GetOptions()
-                    elif p.name == 'TattooDimensions':
-                        valuesToSet = decal.GetDimensions()
-                    elif p.name == 'TattooAspectRatio' and hasattr(decal, 'aspectRatio'):
-                        valuesToSet = decal.aspectRatio
-                    elif p.name == 'TattooPickingLayer':
-                        valuesToSet = decal.layer
-                    if type(valuesToSet) == tuple:
-                        valLen = len(valuesToSet)
-                        if valLen < len(p.value):
-                            valuesToSet = valuesToSet + p.value[valLen:]
-                    if valuesToSet:
-                        p.value = valuesToSet
+            for mesh in iter(avatar.visualModel.meshes):
+                for effect in pdCcF.GetEffectsFromMesh(mesh):
+                    effect.StartUpdate()
+                    for p in effect.parameters:
+                        valuesToSet = None
+                        if p.name == 'TattooYawPitchRoll':
+                            valuesToSet = decal.GetYPR()
+                        elif p.name == 'TattooPosition':
+                            valuesToSet = decal.GetPositionAndScale()
+                        elif p.name == 'TattooOptions':
+                            valuesToSet = decal.GetOptions()
+                        elif p.name == 'TattooDimensions':
+                            valuesToSet = decal.GetDimensions()
+                        elif p.name == 'TattooAspectRatio' and hasattr(decal, 'aspectRatio'):
+                            valuesToSet = decal.aspectRatio
+                        elif p.name == 'TattooPickingLayer':
+                            valuesToSet = decal.layer
+                        if type(valuesToSet) == tuple:
+                            valLen = len(valuesToSet)
+                            if valLen < len(p.value):
+                                valuesToSet = valuesToSet + p.value[valLen:]
+                        if valuesToSet:
+                            p.value = valuesToSet
 
-                resourceNameFound = False
-                if setTexture:
-                    resourceNameFound = self.SetTexture_t('TattooTextureMap', decal.textureResource, effect)
-                if setMask and resourceNameFound:
-                    resourceNameFound = self.SetTexture_t('TattooTextureMask', decal.maskResource, effect)
-                effect.RebuildCachedData()
-                effect.EndUpdate()
+                    resourceNameFound = False
+                    if setTexture:
+                        resourceNameFound = self.SetTexture_t('TattooTextureMap', decal.textureResource, effect)
+                    if setMask and resourceNameFound:
+                        resourceNameFound = self.SetTexture_t('TattooTextureMask', decal.maskResource, effect)
+                    effect.RebuildCachedData()
+                    effect.EndUpdate()
+
+            return
 
     def SetTexture_t(self, name, texture, effect):
         for i, r in enumerate(effect.resources):
@@ -388,6 +399,7 @@ class ProjectedDecal(object):
         self.label = ''
         self.textureResource = None
         self.maskResource = None
+        return
 
     def __str__(self):
         return yaml.dump(self.__getstate__(), default_flow_style=False, Dumper=yaml.CDumper)
@@ -435,6 +447,7 @@ class ProjectedDecal(object):
             return blue.resMan.GetResource(str(path))
         else:
             return None
+            return None
 
     def SetTexturePath(self, path):
         self.textureResource = self.__GetResourceSetPath(path, 'texturePath')
@@ -462,7 +475,7 @@ class ProjectedDecal(object):
          self.posz,
          self.scale)
 
-    def SetOptions(self, angleRotation, flipX, flipY, offsetY = 0.0, offsetX = 0.0):
+    def SetOptions(self, angleRotation, flipX, flipY, offsetY=0.0, offsetX=0.0):
         self.angleRotation = angleRotation
         self.flipx = flipX
         self.flipy = flipY

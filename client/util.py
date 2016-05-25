@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\common\modules\nice\client\_nastyspace\util.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\common\modules\nice\client\_nastyspace\util.py
 from crimewatch.util import GetKillReportHashValue
 from datetimeutils import FromBlueTime
 from utillib import KeyVal
@@ -139,8 +140,12 @@ from eve.common.script.sys.eveCfg import GetCharacterType
 from eve.common.script.sys.eveCfg import GetPlanetWarpInPoint
 from eve.common.script.sys.eveCfg import GetReprocessingOptions
 from eve.common.script.sys.eveCfg import GetShipFlagLocationName
+from eve.common.script.sys.eveCfg import GetWarpInPoint
 from eve.common.script.sys.eveCfg import GraphicFile
 from eve.common.script.sys.eveCfg import IconFile
+from eve.common.script.sys.eveCfg import InShip
+from eve.common.script.sys.eveCfg import InShipInSpace
+from eve.common.script.sys.eveCfg import InSpace
 from eve.common.script.sys.eveCfg import IsAlliance
 from eve.common.script.sys.eveCfg import IsAllyActive
 from eve.common.script.sys.eveCfg import IsAtWar
@@ -151,6 +156,7 @@ from eve.common.script.sys.eveCfg import IsConstellation
 from eve.common.script.sys.eveCfg import IsControlBunker
 from eve.common.script.sys.eveCfg import IsCorporation
 from eve.common.script.sys.eveCfg import IsDistrict
+from eve.common.script.sys.eveCfg import IsDocked
 from eve.common.script.sys.eveCfg import IsDustCharacter
 from eve.common.script.sys.eveCfg import IsDustType
 from eve.common.script.sys.eveCfg import IsDustUser

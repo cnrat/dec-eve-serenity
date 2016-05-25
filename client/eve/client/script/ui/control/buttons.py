@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\client\script\ui\control\buttons.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\client\script\ui\control\buttons.py
 from carbonui.control.buttons import ButtonCore
 from carbonui.primitives.base import ReverseScaleDpi
 from carbonui.util.color import Color
@@ -48,8 +49,9 @@ class ToggleButtonGroup(Container):
         self.selected = {}
         self.buttons = []
         self.isButtonSizeUpToDate = True
+        return
 
-    def AddButton(self, btnID, label = '', panel = None, iconPath = None, iconSize = None, hint = None, isDisabled = False, colorSelected = None, btnClass = None, **kw):
+    def AddButton(self, btnID, label='', panel=None, iconPath=None, iconSize=None, hint=None, isDisabled=False, colorSelected=None, btnClass=None, **kw):
         if btnClass is None:
             btnClass = ToggleButtonGroupButton
         btn = btnClass(name=('Button_%s' % btnID), parent=self, controller=self, btnID=btnID, panel=panel, label=label, iconPath=iconPath, iconSize=iconSize, hint=hint, isDisabled=isDisabled, colorSelected=colorSelected, **kw)
@@ -97,7 +99,7 @@ class ToggleButtonGroup(Container):
             if btn.btnID == btnID:
                 self.Select(btn)
 
-    def SetSelectedByID(self, btnID, animate = True):
+    def SetSelectedByID(self, btnID, animate=True):
         for btn in self.buttons:
             if btn.btnID == btnID:
                 self.SetSelected(btn, animate=animate)
@@ -108,7 +110,7 @@ class ToggleButtonGroup(Container):
                 self.Select(btn)
                 return
 
-    def SetSelected(self, selectedBtn, animate = True):
+    def SetSelected(self, selectedBtn, animate=True):
         for btn in self.buttons:
             if btn == selectedBtn:
                 btn.SetSelected(animate=animate)
@@ -119,12 +121,14 @@ class ToggleButtonGroup(Container):
                 if btn.panel and btn.panel != selectedBtn.panel:
                     btn.panel.state = uiconst.UI_HIDDEN
 
-    def Select(self, selectedBtn, animate = True, *args):
+    def Select(self, selectedBtn, animate=True, *args):
         if selectedBtn.isDisabled:
             return
-        self.SetSelected(selectedBtn, animate=animate)
-        if self.callback is not None:
-            self.callback(selectedBtn.btnID)
+        else:
+            self.SetSelected(selectedBtn, animate=animate)
+            if self.callback is not None:
+                self.callback(selectedBtn.btnID)
+            return
 
     def EnableButton(self, btnID):
         for button in self.buttons:
@@ -149,6 +153,7 @@ class ToggleButtonGroupButton(Container):
     default_iconSize = 32
     default_colorSelected = None
     default_iconOpacity = 1.0
+    default_showBg = True
 
     def ApplyAttributes(self, attributes):
         Container.ApplyAttributes(self, attributes)
@@ -164,6 +169,7 @@ class ToggleButtonGroupButton(Container):
         self.hint = attributes.Get('hint', None)
         self.isSelected = False
         self.isDisabled = attributes.Get('isDisabled', False)
+        self.showBg = attributes.Get('showBg', self.default_showBg)
         if iconPath:
             self.icon = GlowSprite(parent=self, align=uiconst.CENTER, state=uiconst.UI_DISABLED, width=iconSize, height=iconSize, texturePath=iconPath, iconOpacity=iconOpacity, color=Color.GRAY6)
             self.label = None
@@ -172,15 +178,17 @@ class ToggleButtonGroupButton(Container):
             self.label = LabelThemeColored(text=label, parent=clipper, align=uiconst.CENTER, fontsize=EVE_SMALL_FONTSIZE)
             self.icon = None
         self.selectedBG = RaisedUnderlay(bgParent=self, color=self.colorSelected, isGlowEdgeRotated=True)
+        if not self.showBg:
+            self.selectedBG.display = False
         if self.isDisabled:
             self.SetDisabled()
+        return
 
     def GetAutoHeight(self):
         if self.label:
             return self.label.textheight + self.TEXT_TOPMARGIN * 2
         if self.icon:
             return self.icon.height
-        return 0
 
     def SetDisabled(self):
         self.isDisabled = True
@@ -188,11 +196,13 @@ class ToggleButtonGroupButton(Container):
             self.icon.opacity = 0.1
         if self.label:
             self.label.opacity = 0.1
-        self.selectedBG.SetDisabled()
+        if self.showBg:
+            self.selectedBG.SetDisabled()
 
     def SetEnabled(self):
         self.isDisabled = False
-        self.selectedBG.SetEnabled()
+        if self.showBg:
+            self.selectedBG.SetEnabled()
 
     def OnMouseEnter(self, *args):
         if not self.isSelected and not self.isDisabled:
@@ -226,20 +236,24 @@ class ToggleButtonGroupButton(Container):
             self.icon.OnMouseUp()
         self.selectedBG.OnMouseUp()
 
-    def SetSelected(self, animate = True):
+    def SetSelected(self, animate=True):
         self.isSelected = True
+        if not self.showBg:
+            self.selectedBG.display = True
         self.selectedBG.Select()
         if self.label:
             self.label.opacity = OPACITY_LABEL_HOVER
         if self.icon:
             self.icon.OnMouseExit()
 
-    def SetDeselected(self, animate = True):
+    def SetDeselected(self, animate=True):
         self.isSelected = False
         if self.label:
             self.label.opacity = 1.0
         if self.isDisabled:
             return
+        if not self.showBg:
+            self.selectedBG.display = False
         self.selectedBG.Deselect()
 
     def IsSelected(self):
@@ -265,6 +279,7 @@ class Button(ButtonCore):
         ButtonCore.ApplyAttributes(self, attributes)
         if args == 'self':
             self.args = self
+        return
 
     def Prepare_(self):
         self.sr.label = LabelThemeColored(parent=self, align=uiconst.CENTER, state=uiconst.UI_DISABLED, colorType=uiconst.COLORTYPE_UIHILIGHTGLOW, opacity=OPACITY_LABEL_IDLE, fontsize=10)
@@ -286,11 +301,13 @@ class Button(ButtonCore):
         self.sr.hilite = Fill(bgParent=self, color=(0.7, 0.7, 0.7, 0.5), state=uiconst.UI_HIDDEN)
         self.sr.activeframe = FrameThemeColored(parent=self, name='activeline', state=uiconst.UI_HIDDEN, colorType=uiconst.COLORTYPE_UIHILIGHTGLOW, opacity=0.1)
         self.underlay = RaisedUnderlay(name='backgroundFrame', bgParent=self, state=uiconst.UI_DISABLED, color=self.color)
+        return
 
     def Update_Size_(self):
         if self.iconPath is None:
             self.width = min(256, self.fixedwidth or max(40, self.sr.label.width + 20))
             self.height = self.fixedheight or max(18, min(32, self.sr.label.textheight + 4))
+        return
 
     def SetLabel_(self, label):
         if not self or self.destroyed:
@@ -371,7 +388,7 @@ class Button(ButtonCore):
         ButtonCore.Enable(self)
         self.underlay.SetEnabled()
 
-    def Blink(self, on_off = 1, blinks = 1000, time = 800):
+    def Blink(self, on_off=1, blinks=1000, time=800):
         self.blinking = on_off
         if on_off:
             self.underlay.Blink(blinks)
@@ -424,14 +441,18 @@ class BrowseButton(Container):
     def OnMouseEnter(self, *args):
         if self.destroyed or self.disabled:
             return
-        if getattr(self, 'alphaOver', None):
-            self.SetOpacity(self.alphaOver)
+        else:
+            if getattr(self, 'alphaOver', None):
+                self.SetOpacity(self.alphaOver)
+            return
 
     def OnMouseExit(self, *args):
         if self.destroyed or self.disabled:
             return
-        if getattr(self, 'alphaNormal', None):
-            self.SetOpacity(self.alphaNormal)
+        else:
+            if getattr(self, 'alphaNormal', None):
+                self.SetOpacity(self.alphaNormal)
+            return
 
     def LoadIcon(self, *args, **kw):
         self.sr.icon.LoadIcon(*args, **kw)
@@ -509,6 +530,7 @@ class ButtonIcon(Container):
             self.ConstructSelectedBackground()
         self.blinkBg = None
         self.SetActive(self.isActive, animate=False)
+        return
 
     def ConstructBackground(self):
         self.mouseEnterBG = SpriteThemeColored(name='mouseEnterBG', bgParent=self.bgContainer, texturePath='res:/UI/Texture/classes/ButtonIcon/mouseEnter.png', opacity=0.0, color=self.colorSelected)
@@ -541,7 +563,7 @@ class ButtonIcon(Container):
     def AccessBackground(self):
         return self.bgContainer
 
-    def Disable(self, opacity = 0.5):
+    def Disable(self, opacity=0.5):
         self.opacity = opacity
         self.enabled = 0
         if self.mouseEnterBG:
@@ -555,7 +577,7 @@ class ButtonIcon(Container):
     def SetRotation(self, value):
         self.icon.SetRotation(value)
 
-    def UpdateIconState(self, animate = True):
+    def UpdateIconState(self, animate=True):
         texturePath = None
         if uicore.uilib.mouseOver == self:
             if uicore.uilib.leftbtn:
@@ -578,8 +600,9 @@ class ButtonIcon(Container):
                     uicore.animations.MorphScalar(self.icon, 'glowAmount', self.icon.glowAmount, glowAmount, duration=0.2)
                 else:
                     self.icon.glowAmount = glowAmount
+        return
 
-    def SetActive(self, isActive, animate = True):
+    def SetActive(self, isActive, animate=True):
         self.UpdateIconState(animate)
 
     @telemetry.ZONE_METHOD
@@ -611,7 +634,7 @@ class ButtonIcon(Container):
             iconColor = self.COLOR_DEFAULT
         self.icon.SetRGBA(*iconColor)
 
-    def Blink(self, duration = 0.8, loops = 1):
+    def Blink(self, duration=0.8, loops=1):
         self.ConstructBlinkBackground()
         uicore.animations.FadeTo(self.blinkBg, 0.0, 0.9, duration=duration, curveType=uiconst.ANIM_WAVE, loops=loops)
 
@@ -692,6 +715,7 @@ class IconButton(Container):
         self.sr.icon = Icon(icon=icon, parent=self, pos=iconPos, align=iconAlign, idx=0, state=uiconst.UI_DISABLED, ignoreSize=ignoreSize)
         self.SetOpacity(self.default_alphaNormal)
         self.keepHighlight = False
+        return
 
     def OnClick(self, *args):
         if self.func:
@@ -708,10 +732,12 @@ class IconButton(Container):
     def OnMouseEnter(self, *args):
         if not self.destroyed and getattr(self, 'alphaOver', None):
             self.SetOpacity(self.alphaOver)
+        return
 
     def OnMouseExit(self, *args):
         if not self.destroyed and getattr(self, 'default_alphaNormal', None) and not self.keepHighlight:
             self.SetOpacity(self.default_alphaNormal)
+        return
 
     def LoadIcon(self, *args, **kw):
         self.sr.icon.LoadIcon(*args, **kw)
@@ -733,21 +759,25 @@ class BaseButton(Container):
         self.MouseExit = None
         self.enabled = 1
         self.clicks = 0
+        return
 
     def Select(self):
         if self is None or self.destroyed:
             return
-        if self.sr.selection is None:
-            self.sr.selection = Sprite(parent=self, padding=(-int(self.width * 0.5),
-             -int(self.width * 0.5),
-             -int(self.width * 0.5),
-             -int(self.width * 0.5)), name='selection', state=uiconst.UI_DISABLED, texturePath='res:/UI/Texture/selectionglow.dds', color=(0.75, 0.75, 0.75, 1.0), align=uiconst.TOALL)
-        self.sr.selected = 1
+        else:
+            if self.sr.selection is None:
+                self.sr.selection = Sprite(parent=self, padding=(-int(self.width * 0.5),
+                 -int(self.width * 0.5),
+                 -int(self.width * 0.5),
+                 -int(self.width * 0.5)), name='selection', state=uiconst.UI_DISABLED, texturePath='res:/UI/Texture/selectionglow.dds', color=(0.75, 0.75, 0.75, 1.0), align=uiconst.TOALL)
+            self.sr.selected = 1
+            return
 
     def Deselect(self):
         if self and self.sr and self.sr.selection is not None:
             self.sr.selection.state = uiconst.UI_HIDDEN
             self.sr.selected = 0
+        return
 
     def Disable(self):
         self.opacity = 0.5
@@ -784,22 +814,25 @@ class BaseButton(Container):
         if not self.destroyed:
             self.clicks = 0
             self.sr.clickTimer = None
+        return
 
     def OnMouseEnter(self, *etc):
         if not self.enabled:
             return
-        eve.Message('CCCellEnter')
-        if getattr(self, 'over', None):
-            if not getattr(self, 'active', 0):
-                self.rectTop = self.over
         else:
-            if not self.sr.pretop:
-                self.sr.pretop = self.top
-                self.sr.preRectTop = self.rectTop
-            self.rectTop += self.rectHeight
-            self.top -= self.sr.enterAlt
-        if self.MouseEnter:
-            self.MouseEnter(self)
+            eve.Message('CCCellEnter')
+            if getattr(self, 'over', None):
+                if not getattr(self, 'active', 0):
+                    self.rectTop = self.over
+            else:
+                if not self.sr.pretop:
+                    self.sr.pretop = self.top
+                    self.sr.preRectTop = self.rectTop
+                self.rectTop += self.rectHeight
+                self.top -= self.sr.enterAlt
+            if self.MouseEnter:
+                self.MouseEnter(self)
+            return
 
     def OnMouseExit(self, *etc):
         if getattr(self, 'idle', None):
@@ -810,6 +843,7 @@ class BaseButton(Container):
             self.rectTop = self.sr.preRectTop
         if self.MouseExit:
             self.MouseExit(self)
+        return
 
     def OnMouseDown(self, *args):
         if not self.enabled:
@@ -833,7 +867,7 @@ class BigButton(BaseButton):
     OPACITY_HOVER = 0.5
     OPACITY_MOUSEDOWN = 0.85
 
-    def Startup(self, width, height, iconMargin = 0, iconOpacity = 0.75):
+    def Startup(self, width, height, iconMargin=0, iconOpacity=0.75):
         self.sr.icon = GlowSprite(parent=self, pos=(0, 0, 0, 0), padding=(iconMargin,
          iconMargin,
          iconMargin,
@@ -848,6 +882,7 @@ class BigButton(BaseButton):
         self.sr.activeHilite = Frame(bgParent=self, color=(1, 1, 1, 0.3), state=uiconst.UI_HIDDEN)
         self.AdjustSizeAndPosition(width, height)
         self.underlay = RaisedUnderlay(name='backgroundFrame', bgParent=self)
+        return
 
     def AdjustSizeAndPosition(self, width, height):
         self.sr.enterAlt = min(2, max(6, self.height / 16))
@@ -855,6 +890,7 @@ class BigButton(BaseButton):
     def SetIconByIconID(self, iconID):
         if iconID is not None:
             self.sr.icon.LoadIcon(iconID)
+        return
 
     def SetTexturePath(self, texturePath):
         self.sr.icon.SetTexturePath(texturePath)
@@ -871,7 +907,7 @@ class BigButton(BaseButton):
     def SetCaption(self, capstr):
         self.SetSmallCaption(capstr)
 
-    def SetSmallCaption(self, capstr, inside = 0, maxWidth = None):
+    def SetSmallCaption(self, capstr, inside=0, maxWidth=None):
         if not self.sr.smallcaption:
             self.sr.smallcaption = EveLabelSmall(text='', parent=self, state=uiconst.UI_DISABLED, idx=0, width=self.width)
         self.sr.smallcaption.busy = 1
@@ -896,6 +932,7 @@ class BigButton(BaseButton):
             self.MouseExit(self)
         self.timer = None
         self.sr.icon.OnMouseExit()
+        return
 
     def OnMouseEnter(self, *etc):
         eve.Message('CCCellEnter')
@@ -916,8 +953,9 @@ class BigButton(BaseButton):
             self.underlay.OnMouseUp()
         self.sr.icon.OnMouseUp()
 
-    def Blink(self, on_off = 1, blinks = 3):
+    def Blink(self, on_off=1, blinks=3):
         if on_off:
+            self.sr.hilite.display = True
             uicore.animations.FadeTo(self.sr.hilite, 0.0, 0.3, duration=0.75, curveType=uiconst.ANIM_WAVE, loops=blinks)
         else:
             uicore.animations.FadeOut(self.sr.hilite, 0.0)

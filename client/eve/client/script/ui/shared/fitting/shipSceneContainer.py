@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\client\script\ui\shared\fitting\shipSceneContainer.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\client\script\ui\shared\fitting\shipSceneContainer.py
 import math
 from eve.client.script.ui.control.scenecontainer import SceneContainer
 from eve.client.script.ui.inflight.shipstance import get_ship_stance
@@ -34,50 +35,52 @@ class ShipSceneContainer(SceneContainer):
         self.ReloadShipModel(animate=False)
 
     @telemetry.ZONE_METHOD
-    def ReloadShipModel(self, throttle = False, animate = True):
+    def ReloadShipModel(self, throttle=False, animate=True):
         if self.destroyed:
             return
-        with self._reloadLock:
-            if throttle:
-                newModel = self.CreateActiveShipModelThrottled()
-            else:
-                newModel = self.CreateActiveShipModel()
-            if not newModel:
-                return
-            newModel.FreezeHighDetailMesh()
-            trinity.WaitForResourceLoads()
-            self.AddToScene(newModel)
-            if animate:
-                self.AnimEntry()
-            if isinstance(self.controller.dogmaLocation.GetCurrentShipID(), basestring):
-                _ApplyIsisEffect(newModel, isSkinned=False)
-                grid = trinity.Load('res:/dx9/model/UI/ScanGrid.red')
-                grid.scaling = (4, 4, 4)
-                self.scene.objects.append(grid)
-            camera = self.camera
-            rad = newModel.GetBoundingSphereRadius()
-            minZoom = rad + camera.frontClip
-            alpha = camera.fieldOfView / 2.0
-            maxZoom = rad * (1 / math.tan(alpha)) * 2
-            oldZoomDistance = self.minZoom + (self.maxZoom - self.minZoom) * self.zoom
-            defaultZoom = minZoom / (maxZoom - minZoom)
-            self.SetMinMaxZoom(minZoom, maxZoom)
-            if animate or oldZoomDistance < minZoom or oldZoomDistance > maxZoom:
-                self.zoom = defaultZoom
-            shipTypeID = self.controller.GetTypeID()
-            if self.controller.IsSimulated():
-                stanceID = None
-            else:
-                stanceID = get_ship_stance(self.controller.GetItemID(), shipTypeID)
-            animationStates = []
-            if evetypes.Exists(shipTypeID):
-                animationStates = inventorycommon.typeHelpers.GetAnimationStates(shipTypeID)
-            spaceobjanimation.LoadAnimationStates(animationStates, cfg.graphicStates, newModel, trinity)
-            if newModel.animationSequencer is not None:
-                newModel.animationSequencer.GoToState('normal')
-                spaceobjanimation.SetShipAnimationStance(newModel, stanceID)
-            if not self.controller.IsSimulated():
-                self.UpdateHardpoints(newModel)
+        else:
+            with self._reloadLock:
+                if throttle:
+                    newModel = self.CreateActiveShipModelThrottled()
+                else:
+                    newModel = self.CreateActiveShipModel()
+                if not newModel:
+                    return
+                newModel.FreezeHighDetailMesh()
+                trinity.WaitForResourceLoads()
+                self.AddToScene(newModel)
+                if animate:
+                    self.AnimEntry()
+                if isinstance(self.controller.dogmaLocation.GetCurrentShipID(), basestring):
+                    _ApplyIsisEffect(newModel, isSkinned=False)
+                    grid = trinity.Load('res:/dx9/model/UI/ScanGrid.red')
+                    grid.scaling = (4, 4, 4)
+                    self.scene.objects.append(grid)
+                camera = self.camera
+                rad = newModel.GetBoundingSphereRadius()
+                minZoom = rad + camera.frontClip
+                alpha = camera.fieldOfView / 2.0
+                maxZoom = min(self.backClip - rad, rad * (1 / math.tan(alpha)) * 2)
+                oldZoomDistance = self.minZoom + (self.maxZoom - self.minZoom) * self.zoom
+                defaultZoom = minZoom / (maxZoom - minZoom)
+                self.SetMinMaxZoom(minZoom, maxZoom)
+                if animate or oldZoomDistance < minZoom or oldZoomDistance > maxZoom:
+                    self.zoom = defaultZoom
+                shipTypeID = self.controller.GetTypeID()
+                if self.controller.IsSimulated():
+                    stanceID = None
+                else:
+                    stanceID = get_ship_stance(self.controller.GetItemID(), shipTypeID)
+                animationStates = []
+                if evetypes.Exists(shipTypeID):
+                    animationStates = inventorycommon.typeHelpers.GetAnimationStates(shipTypeID)
+                spaceobjanimation.LoadAnimationStates(animationStates, cfg.graphicStates, newModel, trinity)
+                if newModel.animationSequencer is not None:
+                    newModel.animationSequencer.GoToState('normal')
+                    spaceobjanimation.SetShipAnimationStance(newModel, stanceID)
+                if not self.controller.IsSimulated():
+                    self.UpdateHardpoints(newModel)
+            return
 
     @telemetry.ZONE_METHOD
     def CreateActiveShipModel(self):
@@ -91,17 +94,19 @@ class ShipSceneContainer(SceneContainer):
         return newModel
 
     @telemetry.ZONE_METHOD
-    def UpdateHardpoints(self, newModel = None):
+    def UpdateHardpoints(self, newModel=None):
         if newModel is None:
             newModel = self.GetSceneShip()
         if newModel is None:
             log.LogError('UpdateHardpoints - No model!')
             return
-        factionName = None
-        graphicInfo = cfg.graphics.GetIfExists(evetypes.GetGraphicID(self.controller.GetTypeID()))
-        if graphicInfo is not None:
-            factionName = getattr(graphicInfo, 'sofFactionName', None)
-        turretSet.TurretSet.FitTurrets(self.controller.GetItemID(), newModel, factionName)
+        else:
+            factionName = None
+            graphicInfo = cfg.graphics.GetIfExists(evetypes.GetGraphicID(self.controller.GetTypeID()))
+            if graphicInfo is not None:
+                factionName = getattr(graphicInfo, 'sofFactionName', None)
+            turretSet.TurretSet.FitTurrets(self.controller.GetItemID(), newModel, factionName)
+            return
 
     @telemetry.ZONE_METHOD
     def GetSceneShip(self):
@@ -109,11 +114,13 @@ class ShipSceneContainer(SceneContainer):
             if getattr(model, 'name', None) == str(self.controller.GetItemID()):
                 return model
 
+        return
+
     @telemetry.ZONE_METHOD
     def PlayDeploymentAnimation(self, slot, dogmaItem):
         sceneShip = self.GetSceneShip()
         if sceneShip is not None:
-            for turret in sceneShip.turretSets:
+            for turret in getattr(sceneShip, 'turretSets', []):
                 if turret.slotNumber != slot:
                     continue
                 if dogmaItem.IsOnline():
@@ -121,6 +128,8 @@ class ShipSceneContainer(SceneContainer):
                 else:
                     turret.EnterStateDeactive()
                     break
+
+        return
 
     def OnStanceActive(self, stanceID):
         spaceobjanimation.SetShipAnimationStance(self.GetSceneShip(), stanceID)
@@ -132,9 +141,11 @@ class ShipSceneContainer(SceneContainer):
     def ProcessOnlineStateChange(self, dogmaItem):
         if self.destroyed:
             return
-        slot = dogmaItem.flagID - const.flagHiSlot0 + 1
-        if slot is not None:
-            self.PlayDeploymentAnimation(slot, dogmaItem)
+        else:
+            slot = dogmaItem.flagID - const.flagHiSlot0 + 1
+            if slot is not None:
+                self.PlayDeploymentAnimation(slot, dogmaItem)
+            return
 
     def ProcessFittingWindowStartMinimize(self):
         self.Hide()

@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\client\script\ui\shared\fittingGhost\fittingWndGhost.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\client\script\ui\shared\fittingGhost\fittingWndGhost.py
 from carbon.common.script.util.format import FmtAmt
 from eve.client.script.ui.shared.fittingGhost.baseFittingGhost import FittingGhost
 from eve.client.script.ui.shared.fittingGhost.shipFittingControllerGhost import ShipFittingControllerGhost
@@ -44,6 +45,7 @@ class FittingWindowGhost(Window):
         self.controller.on_stats_changed.connect(self.UpdateStats)
         self.controller.on_new_itemID.connect(self.UpdateStats)
         self.ConstructLayout()
+        return
 
     def ConstructLayout(self):
         with self._layoutLock:
@@ -170,6 +172,7 @@ class FittingWindowGhost(Window):
         self.Unlock()
         uthread.new(uicore.registry.SetFocus, self)
         self._collapseable = 0
+        return
 
     def _OnClose(self, *args):
         settings.user.ui.Set('defaultFittingPosition', 0)
@@ -178,7 +181,7 @@ class FittingWindowGhost(Window):
         uthread.new(uicore.registry.SetFocus, self)
         SetOrder(self, 0)
 
-    def GhostFitItem(self, ghostItem = None):
+    def GhostFitItem(self, ghostItem=None):
         if not self.controller:
             return
         self.controller.SetGhostFittedItem(ghostItem)
@@ -242,6 +245,6 @@ class FittingWindowGhost(Window):
         coloredCalibrationOutputText = GetColoredText(isBetter=calibrationOutputInfo.isBetterThanBefore, text=calibrationOutputText) + '</color>'
         self.calibration_statustext.text = '%s/%s' % (coloredCalibrationLoadText, coloredCalibrationOutputText)
 
-    def Close(self, setClosed = False, *args, **kwds):
+    def Close(self, setClosed=False, *args, **kwds):
         Window.Close(self, setClosed, *args, **kwds)
         self.controller.Close()

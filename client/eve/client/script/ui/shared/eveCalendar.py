@@ -1,10 +1,11 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\client\script\ui\shared\eveCalendar.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\client\script\ui\shared\eveCalendar.py
 import blue
 from eve.client.script.ui.control.themeColored import FrameThemeColored, FillThemeColored, LineThemeColored
 import evetypes
 import uicontrols
 import uiprimitives
-from eve.client.script.ui.shared.neocom.characterSearchWindow import CharacterSearchWindow
+from eve.client.script.ui.shared.neocom.ownerSearch import OwnerSearchWindow
 from carbonui.control.calendarCore import Calendar as _Calendar
 import uthread
 import uix
@@ -71,6 +72,7 @@ class CalendarWnd(uicontrols.Window):
         self.sr.cbCont.height = sum([ each.height for each in self.sr.cbCont.children ])
         uicontrols.Button(parent=self.sr.leftSideTop, label=localization.GetByLabel('UI/Calendar/CalendarWindow/NewEvent'), func=self.CreateNewEvent, pos=(0, 7, 0, 0))
         self.sr.todayBtn = uicontrols.Button(parent=self.sr.leftSideTop, label=localization.GetByLabel('UI/Calendar/CalendarWindow/Today'), func=self.GetToday, pos=(0, 7, 0, 0), align=uiconst.TOPRIGHT)
+        return
 
     def AddCheckBoxes(self, *args):
         self.sr.cbCont.Flush()
@@ -101,6 +103,8 @@ class CalendarWnd(uicontrols.Window):
         for label, config, tag, checked in checkboxInfo:
             cb = uicontrols.Checkbox(text=label, parent=self.sr.cbCont, configName=config, retval=tag, checked=checked, groupname=None, align=uiconst.TOTOP, padLeft=6, callback=self.CheckboxChecked)
             self.sr.checkboxes.append(cb)
+
+        return
 
     def CheckboxChecked(self, *args):
         showTags = 0
@@ -203,7 +207,7 @@ class Calendar(_Calendar):
         btn.sr.icon.LoadIcon('ui_23_64_2')
         btn.SetAlign(uiconst.TOPRIGHT)
 
-    def AddMonthText(self, text = '', *args):
+    def AddMonthText(self, text='', *args):
         if self.sr.Get('monthText', None) is None:
             self.sr.monthText = uicontrols.EveCaptionMedium(text=text, parent=self.sr.monthTextCont, state=uiconst.UI_NORMAL, align=uiconst.CENTERTOP)
         return self.sr.monthText
@@ -228,6 +232,8 @@ class Calendar(_Calendar):
         for date, eventsThisDay in eventsByDates.iteritems():
             self.LoadEventsToADay(date, eventsThisDay)
 
+        return
+
 
 class CalendarDay(uicontrols.CalendarDayCore):
     __guid__ = 'uicls.CalendarDay'
@@ -244,7 +250,7 @@ class CalendarDay(uicontrols.CalendarDayCore):
     def AddFill(self, *args):
         self.sr.fill = FillThemeColored(parent=self, padding=1, colorType=uiconst.COLORTYPE_UIHILIGHT, opacity=0.5)
 
-    def AddDayNumber(self, text = '', *args):
+    def AddDayNumber(self, text='', *args):
         if self.sr.Get('dayNumberText', None) is None:
             self.sr.dayNumberText = uicontrols.EveLabelMedium(text=text, parent=self.sr.dayNumberCont, state=uiconst.UI_DISABLED, left=1, align=uiconst.TOPRIGHT)
         return self.sr.dayNumberText
@@ -262,7 +268,7 @@ class CalendarHeader(uicontrols.CalendarHeaderCore):
     default_name = 'CalendarHeader'
     default_charID = None
 
-    def AddDayNameText(self, text = '', *args):
+    def AddDayNameText(self, text='', *args):
         if self.sr.Get('dayNameText', None) is None:
             self.sr.dayNameText = uicontrols.EveLabelMedium(text=text, parent=self.sr.dayNameCont, state=uiconst.UI_NORMAL, align=uiconst.CENTERBOTTOM)
         return self.sr.dayNameText
@@ -273,6 +279,7 @@ class CalendarEventEntry(uicontrols.CalendarEventEntryCore):
 
     def AddLabel(self, text, *args):
         self.sr.label = uicontrols.EveLabelSmall(text=text, parent=self, left=14, top=0, state=uiconst.UI_DISABLED, color=None, align=uiconst.CENTERLEFT, maxLines=1)
+        return
 
     def GetMenu(self):
         return self.MenuFunction(self)
@@ -367,6 +374,7 @@ class CalendarNewEventWnd(uicontrols.Window):
             self.cbChecked = const.calendarTagPersonal
             self.eventInfo = None
             self.SetupCreateControls()
+        return
 
     def Load(self, key, *args):
         if key == 'invitations':
@@ -379,16 +387,18 @@ class CalendarNewEventWnd(uicontrols.Window):
             tag = self.eventTag
         if tag == const.calendarTagCCP:
             return
-        if self.inEditMode:
-            if tag in (const.calendarTagCorp, const.calendarTagAutomated):
-                self.LoadCorpAllianceInScroll(session.corpid)
-                return
-            if tag == const.calendarTagAlliance:
-                self.LoadCorpAllianceInScroll(session.allianceid)
-                return
-        self.LoadInviteeScroll()
+        else:
+            if self.inEditMode:
+                if tag in (const.calendarTagCorp, const.calendarTagAutomated):
+                    self.LoadCorpAllianceInScroll(session.corpid)
+                    return
+                if tag == const.calendarTagAlliance:
+                    self.LoadCorpAllianceInScroll(session.allianceid)
+                    return
+            self.LoadInviteeScroll()
+            return
 
-    def SetupCreateControls(self, new = 1, *args):
+    def SetupCreateControls(self, new=1, *args):
         self.inEditMode = True
         left = 6
         top = 20
@@ -487,6 +497,7 @@ class CalendarNewEventWnd(uicontrols.Window):
         content.OnDropData = self.OnDropData
         if self.sr.tabs.GetSelectedArgs() == 'invitations':
             self.LoadInviteeTabScroll()
+        return
 
     def TagCheckboxChecked(self, cb, *args):
         tag = cb.data.get('value', const.calendarTagPersonal)
@@ -504,12 +515,14 @@ class CalendarNewEventWnd(uicontrols.Window):
     def LoadCorpAllianceInScroll(self, entityID, *args):
         if entityID is None:
             return
-        owner = cfg.eveowners.GetIfExists(entityID)
-        if owner is None:
+        else:
+            owner = cfg.eveowners.GetIfExists(entityID)
+            if owner is None:
+                return
+            if evetypes.Exists(owner.typeID):
+                scrolllist = [listentry.Get('User', {'charID': entityID})]
+                self.sr.inviteScroll.Load(contentList=scrolllist, headers=[], noContentHint='')
             return
-        if evetypes.Exists(owner.typeID):
-            scrolllist = [listentry.Get('User', {'charID': entityID})]
-            self.sr.inviteScroll.Load(contentList=scrolllist, headers=[], noContentHint='')
 
     def SetupReadOnlyElements(self, *args):
         left = 8
@@ -616,8 +629,9 @@ class CalendarNewEventWnd(uicontrols.Window):
         elif self.eventTag in [const.calendarTagCorp, const.calendarTagAlliance] and session.corpid and not session.corprole & const.corpRoleChatManager == const.corpRoleChatManager:
             self.sr.searchCont.state = uiconst.UI_HIDDEN
         self.sr.inviteScroll = uicontrols.Scroll(name='invitedScroll', parent=self.sr.invitedCont, padding=const.defaultPadding)
+        return
 
-    def InsertEditDeleteBtns(self, btns, top = 6, *args):
+    def InsertEditDeleteBtns(self, btns, top=6, *args):
         editDeleteCont = uiprimitives.Container(name='editCont', parent=self.sr.infoCont, align=uiconst.TORIGHT, pos=(0, 0, 30, 0))
         editBtn = uicontrols.Button(parent=editDeleteCont, label=localization.GetByLabel('UI/Calendar/EventWindow/Edit'), func=self.ChangeToEditMode, pos=(const.defaultPadding,
          top,
@@ -647,6 +661,7 @@ class CalendarNewEventWnd(uicontrols.Window):
              self.RespondToEvent,
              (const.eventResponseDeclined,),
              None])
+        return
 
     def AddQuickFilter(self, cont, *args):
         self.sr.searchBox = uicls.QuickFilterEdit(name='searchBox', parent=cont, setvalue='', maxLength=37, pos=(5, 6, 100, 0), align=uiconst.TOPRIGHT, isCharacterField=True)
@@ -655,9 +670,9 @@ class CalendarNewEventWnd(uicontrols.Window):
     def OpenAddInvteeWnd(self, *args):
         actionBtn = [(localization.GetByLabel('UI/Calendar/FindInviteesWindow/Add'), self.AddInviteeToEvent, 1)]
         caption = localization.GetByLabel('UI/Calendar/FindInviteesWindow/Caption')
-        CharacterSearchWindow.CloseIfOpen(windowID='searchWindow_calendar')
+        OwnerSearchWindow.CloseIfOpen(windowID='searchWindow_calendar')
         extraIconHintFlag = ['ui_73_16_13', localization.GetByLabel('UI/Calendar/Hints/CharacterAdded'), False]
-        wnd = CharacterSearchWindow.Open(windowID='searchWindow_calendar', actionBtns=actionBtn, caption=caption, input='', getMyCorp=False, getMyLists=False, getMyAlliance=False, showContactList=True, extraIconHintFlag=extraIconHintFlag, configname=self.configname)
+        wnd = OwnerSearchWindow.Open(windowID='searchWindow_calendar', actionBtns=actionBtn, caption=caption, input='', getMyCorp=False, getMyLists=False, getMyAlliance=False, showContactList=True, extraIconHintFlag=extraIconHintFlag, configname=self.configname, ownerGroups=[const.groupCharacter])
         wnd.ExtraMenuFunction = self.InviteeMenuFunction
         wnd.IsAdded = self.CheckIfAdded
 
@@ -678,50 +693,54 @@ class CalendarNewEventWnd(uicontrols.Window):
     def AddInvitees(self, charIDList):
         if self.inEditMode is False:
             return
-        if self.invitees is None:
-            self.PopulateInviteeDicts(self.eventID)
-        for charID in charIDList:
-            if charID == session.charid or charID is None:
-                continue
-            if len(self.invitees) >= const.calendarMaxInvitees:
-                eve.Message('CustomInfo', {'info': localization.GetByLabel('UI/Calendar/FindInviteesWindow/TooMany', max=const.calendarMaxInvitees)})
-                break
-            if charID not in self.invitees:
-                self.invitees[charID] = const.eventResponseUndecided
-                sm.ScatterEvent('OnSearcedUserAdded', charID, self.configname)
+        else:
+            if self.invitees is None:
+                self.PopulateInviteeDicts(self.eventID)
+            for charID in charIDList:
+                if charID == session.charid or charID is None:
+                    continue
+                if len(self.invitees) >= const.calendarMaxInvitees:
+                    eve.Message('CustomInfo', {'info': localization.GetByLabel('UI/Calendar/FindInviteesWindow/TooMany', max=const.calendarMaxInvitees)})
+                    break
+                if charID not in self.invitees:
+                    self.invitees[charID] = const.eventResponseUndecided
+                    sm.ScatterEvent('OnSearcedUserAdded', charID, self.configname)
 
-        self.LoadInviteeScroll()
+            self.LoadInviteeScroll()
+            return
 
     def LoadInviteeScroll(self, *args):
         filter = self.sr.searchBox.GetValue()
         if len(filter) >= 2:
             return self.SearchInvitee()
-        if self.invitees is None:
-            self.PopulateInviteeDicts(self.eventID)
-        responseDict = sm.GetService('calendar').GetResponsesToEventInStatusDict(self.eventID, self.invitees)
-        scrolllist = []
-        responseCategoryList = [const.eventResponseAccepted, const.eventResponseMaybe, const.eventResponseDeclined]
-        if self.eventTag == const.calendarTagPersonal:
-            responseCategoryList.insert(-1, const.eventResponseUndecided)
-        for response in responseCategoryList:
-            label = localization.GetByLabel(sm.GetService('calendar').GetResponseType().get(response, 'UI/Generic/Unknown'))
-            data = {'GetSubContent': self.GetResponseSubContent,
-             'label': label,
-             'cleanLabel': label,
-             'id': ('calendarInvitees', response),
-             'state': 'locked',
-             'BlockOpenWindow': 1,
-             'showicon': sm.GetService('calendar').GetResponseIconNum(response),
-             'showlen': 1,
-             'groupName': 'labels',
-             'groupItems': responseDict[response],
-             'noItemText': localization.GetByLabel('UI/Calendar/EventWindow/NoCharacter'),
-             'response': response,
-             'DropData': self.DropUserOnGroup,
-             'allowGuids': ['listentry.User', 'listentry.Sender', 'listentry.ChatUser']}
-            scrolllist.append(listentry.Get('Group', data))
+        else:
+            if self.invitees is None:
+                self.PopulateInviteeDicts(self.eventID)
+            responseDict = sm.GetService('calendar').GetResponsesToEventInStatusDict(self.eventID, self.invitees)
+            scrolllist = []
+            responseCategoryList = [const.eventResponseAccepted, const.eventResponseMaybe, const.eventResponseDeclined]
+            if self.eventTag == const.calendarTagPersonal:
+                responseCategoryList.insert(-1, const.eventResponseUndecided)
+            for response in responseCategoryList:
+                label = localization.GetByLabel(sm.GetService('calendar').GetResponseType().get(response, 'UI/Generic/Unknown'))
+                data = {'GetSubContent': self.GetResponseSubContent,
+                 'label': label,
+                 'cleanLabel': label,
+                 'id': ('calendarInvitees', response),
+                 'state': 'locked',
+                 'BlockOpenWindow': 1,
+                 'showicon': sm.GetService('calendar').GetResponseIconNum(response),
+                 'showlen': 1,
+                 'groupName': 'labels',
+                 'groupItems': responseDict[response],
+                 'noItemText': localization.GetByLabel('UI/Calendar/EventWindow/NoCharacter'),
+                 'response': response,
+                 'DropData': self.DropUserOnGroup,
+                 'allowGuids': ['listentry.User', 'listentry.Sender', 'listentry.ChatUser']}
+                scrolllist.append(listentry.Get('Group', data))
 
-        self.sr.inviteScroll.Load(contentList=scrolllist, headers=[], noContentHint='')
+            self.sr.inviteScroll.Load(contentList=scrolllist, headers=[], noContentHint='')
+            return
 
     def GetResponseSubContent(self, data, *args):
         response = data.response
@@ -749,27 +768,30 @@ class CalendarNewEventWnd(uicontrols.Window):
         m = []
         if self.inEditMode is False:
             return m
-        if self.invitees is None:
-            self.PopulateInviteeDicts(self.eventID)
-        charIDs = [ node.charID for node in nodes if node.charID in self.invitees ]
-        if session.charid in charIDs:
-            charIDs.remove(session.charid)
-        numCharIDs = len(charIDs)
-        if numCharIDs > 0:
-            label = localization.GetByLabel('UI/Calendar/EventWindow/RemoveInvitee', num=numCharIDs)
-            m = [(label, self.RemoveInviteeFromScroll, (charIDs,))]
-        return m
+        else:
+            if self.invitees is None:
+                self.PopulateInviteeDicts(self.eventID)
+            charIDs = [ node.charID for node in nodes if node.charID in self.invitees ]
+            if session.charid in charIDs:
+                charIDs.remove(session.charid)
+            numCharIDs = len(charIDs)
+            if numCharIDs > 0:
+                label = localization.GetByLabel('UI/Calendar/EventWindow/RemoveInvitee', num=numCharIDs)
+                m = [(label, self.RemoveInviteeFromScroll, (charIDs,))]
+            return m
 
     def RemoveInviteeFromScroll(self, charIDs):
         if self.inEditMode is False:
             return
-        if self.invitees is None:
-            self.PopulateInviteeDicts(self.eventID)
-        for charID in charIDs:
-            self.invitees.pop(charID, None)
+        else:
+            if self.invitees is None:
+                self.PopulateInviteeDicts(self.eventID)
+            for charID in charIDs:
+                self.invitees.pop(charID, None)
 
-        sm.ScatterEvent('OnSearcedUserRemoved', charIDs, self.configname)
-        self.LoadInviteeScroll()
+            sm.ScatterEvent('OnSearcedUserRemoved', charIDs, self.configname)
+            self.LoadInviteeScroll()
+            return
 
     def ChangeToEditMode(self, *args):
         self.FlushAll()
@@ -777,6 +799,7 @@ class CalendarNewEventWnd(uicontrols.Window):
             self.PopulateInviteeDicts(self.eventID)
         self.oldInvitees = self.invitees.copy()
         self.SetupCreateControls(new=0)
+        return
 
     def FlushAll(self, *args):
         uiutil.Flush(self.sr.infoCont)
@@ -785,6 +808,7 @@ class CalendarNewEventWnd(uicontrols.Window):
         if self.buttonGroup:
             self.buttonGroup.Close()
             self.buttonGroup = None
+        return
 
     def FindTimeToUse(self, year, month, day, hour):
         firstDay, lastDay = calendar.monthrange(year, month)
@@ -803,46 +827,48 @@ class CalendarNewEventWnd(uicontrols.Window):
          day,
          hour)
 
-    def CreateOrEditEvent(self, create = 1, *args):
+    def CreateOrEditEvent(self, create=1, *args):
         if getattr(self, 'editing', 0):
             return
-        self.editing = 1
-        try:
-            eventTag = 0
-            for btn in self.sr.radioBtns:
-                if btn.checked:
-                    eventTag = btn.data['value']
+        else:
+            self.editing = 1
+            try:
+                eventTag = 0
+                for btn in self.sr.radioBtns:
+                    if btn.checked:
+                        eventTag = btn.data['value']
 
-            if eventTag == 0:
-                eventTag = self.eventTag
-            descr = self.sr.descrEdit.GetValue()
-            title = self.sr.titleEdit.GetValue()
-            fromDate = self.sr.fromDate.GetValue()
-            duration = self.sr.durationCombo.GetValue()
-            important = self.sr.importantCB.checked
-            cyear, cmonth, cwd, cday, chour, cmin, csec, cms = blue.os.GetTimeParts(fromDate + eveLocalization.GetTimeDelta() * const.SEC)
-            if sm.GetService('calendar').IsInPast(cyear, cmonth, cday, chour, cmin):
-                raise UserError('CalendarCannotPlanThePast')
-            if create:
-                if self.invitees is None:
-                    self.PopulateInviteeDicts(self.eventID)
-                newInviteeCharIDs = self.invitees.keys()
-                sm.GetService('calendar').CreateNewEvent(fromDate, duration, title, descr, eventTag, important, invitees=newInviteeCharIDs)
-            else:
-                if self.invitees is None:
-                    self.PopulateInviteeDicts(self.eventID)
-                newInviteeCharIDs = [ charID for charID in self.invitees.keys() if charID not in self.oldInvitees.keys() ]
-                removedInviteeCharIDs = [ charID for charID in self.oldInvitees.keys() if charID not in self.invitees.keys() ]
-                wasEdited = sm.GetService('calendar').EditEvent(self.eventID, self.eventInfo.eventDateTime, fromDate, duration, title, descr, eventTag, important)
-                if not wasEdited:
-                    return
-                if len(newInviteeCharIDs) + len(removedInviteeCharIDs) > 0:
-                    sm.GetService('calendar').UpdateEventParticipants(self.eventID, newInviteeCharIDs, removedInviteeCharIDs)
-        finally:
-            self.editing = 0
+                if eventTag == 0:
+                    eventTag = self.eventTag
+                descr = self.sr.descrEdit.GetValue()
+                title = self.sr.titleEdit.GetValue()
+                fromDate = self.sr.fromDate.GetValue()
+                duration = self.sr.durationCombo.GetValue()
+                important = self.sr.importantCB.checked
+                cyear, cmonth, cwd, cday, chour, cmin, csec, cms = blue.os.GetTimeParts(fromDate + eveLocalization.GetTimeDelta() * const.SEC)
+                if sm.GetService('calendar').IsInPast(cyear, cmonth, cday, chour, cmin):
+                    raise UserError('CalendarCannotPlanThePast')
+                if create:
+                    if self.invitees is None:
+                        self.PopulateInviteeDicts(self.eventID)
+                    newInviteeCharIDs = self.invitees.keys()
+                    sm.GetService('calendar').CreateNewEvent(fromDate, duration, title, descr, eventTag, important, invitees=newInviteeCharIDs)
+                else:
+                    if self.invitees is None:
+                        self.PopulateInviteeDicts(self.eventID)
+                    newInviteeCharIDs = [ charID for charID in self.invitees.keys() if charID not in self.oldInvitees.keys() ]
+                    removedInviteeCharIDs = [ charID for charID in self.oldInvitees.keys() if charID not in self.invitees.keys() ]
+                    wasEdited = sm.GetService('calendar').EditEvent(self.eventID, self.eventInfo.eventDateTime, fromDate, duration, title, descr, eventTag, important)
+                    if not wasEdited:
+                        return
+                    if len(newInviteeCharIDs) + len(removedInviteeCharIDs) > 0:
+                        sm.GetService('calendar').UpdateEventParticipants(self.eventID, newInviteeCharIDs, removedInviteeCharIDs)
+            finally:
+                self.editing = 0
 
-        sm.ScatterEvent('OnReloadEvents')
-        self.CloseByUser()
+            sm.ScatterEvent('OnReloadEvents')
+            self.CloseByUser()
+            return
 
     def RespondToEvent(self, response, *args):
         sm.GetService('calendar').RespondToEvent(self.eventID, self.eventInfo, response)
@@ -864,9 +890,10 @@ class CalendarNewEventWnd(uicontrols.Window):
 
     def DropUserOnGroup(self, groupID, nodes, *args):
         self.OnDropData(None, nodes)
+        return
 
     def _OnClose(self, *args):
-        wnd = CharacterSearchWindow.GetIfOpen(windowID='searchWindow_calendar')
+        wnd = OwnerSearchWindow.GetIfOpen(windowID='searchWindow_calendar')
         if wnd and wnd.configname == self.configname:
             wnd.CloseByUser()
 
@@ -897,6 +924,7 @@ class CalendarNewEventWnd(uicontrols.Window):
 
         scrolllist = uiutil.SortListOfTuples(scrolllist)
         self.sr.inviteScroll.Load(contentList=scrolllist, headers=[], noContentHint=localization.GetByLabel('UI/Calendar/FindInviteesWindow/NothingFound'))
+        return
 
     def PopulateInviteeDicts(self, eventID):
         if eventID is None:
@@ -905,6 +933,7 @@ class CalendarNewEventWnd(uicontrols.Window):
             ownerID = util.GetAttrs(self, 'eventInfo', 'ownerID')
             self.invitees = sm.GetService('calendar').GetResponsesToEvent(eventID, ownerID)
         self.oldInvitees = self.invitees.copy()
+        return
 
     def OnRespondToEvent(self, *args):
         self.CloseByUser()
@@ -963,6 +992,7 @@ class CalendarSingleDayWnd(uicontrols.Window):
         self.sr.eventScroll.sr.id = 'calendar_singedaywnd'
         self.sr.eventScroll.sr.maxDefaultColumns = {localization.GetByLabel('UI/Generic/Unknown'): 150}
         self.LoadDaysEvents(events)
+        return
 
     def LoadDaysEvents(self, events, *args):
         self.events = events
@@ -1036,6 +1066,7 @@ class CalendarSingleDayWnd(uicontrols.Window):
             events = sm.GetService('calendar').GetMyChangedEvents()
             self.events = events
             self.LoadDaysEvents(events)
+        return
 
     def OnCalendarFilterChange(self, *args):
         self.OnReloadCalendar()
@@ -1095,16 +1126,17 @@ class EventList(uicontrols.EventListCore):
         showTag = sm.GetService('calendar').GetActiveTags()
         if showTag is not None and showTag & eventInfo.flag == 0:
             return
-        icon, myResponse = sm.GetService('calendar').GetMyResponseIconFromID(eventInfo.eventID, long=0, getDeleted=eventInfo.isDeleted)
-        hint = localization.GetByLabel(sm.GetService('calendar').GetResponseType().get(myResponse, 'UI/Generic/Unknown'))
-        data = util.KeyVal()
-        data.label = eventInfo.eventTitle
-        data.eventInfo = eventInfo
-        data.icon = icon
-        data.hint = hint
-        data.response = myResponse
-        entry = listentry.Get(self.listentryClass, data=data)
-        return entry
+        else:
+            icon, myResponse = sm.GetService('calendar').GetMyResponseIconFromID(eventInfo.eventID, long=0, getDeleted=eventInfo.isDeleted)
+            hint = localization.GetByLabel(sm.GetService('calendar').GetResponseType().get(myResponse, 'UI/Generic/Unknown'))
+            data = util.KeyVal()
+            data.label = eventInfo.eventTitle
+            data.eventInfo = eventInfo
+            data.icon = icon
+            data.hint = hint
+            data.response = myResponse
+            entry = listentry.Get(self.listentryClass, data=data)
+            return entry
 
     def OnMoreClick(self, *args):
         sm.GetService('calendar').OpenSingleDayWnd(self.header, '', '', '', self.events, isADay=0, wndType=self.listType)
@@ -1117,10 +1149,11 @@ class UpdateEventsList(EventList):
         entry = self.GetEventEntry(eventKV)
         if entry is None:
             return
-        return (eventKV.dateModified, entry)
+        else:
+            return (eventKV.dateModified, entry)
 
     def GetSortOrder(self, *args):
-        return 1
+        pass
 
 
 class CalendarListEntry(listentry.Generic):

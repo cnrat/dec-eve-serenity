@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\packages\carbonui\control\minimizedwindowbutton.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\packages\carbonui\control\minimizedwindowbutton.py
 import carbonui.const as uiconst
 import weakref
 from carbonui.primitives.container import Container
@@ -39,6 +40,7 @@ class WindowMinimizeButtonCore(Container):
             self.Close()
         if wnd:
             wnd.Maximize()
+        return
 
     def GetMenu(self, *args):
         if self.wnd_wr and self.wnd_wr():
@@ -47,7 +49,8 @@ class WindowMinimizeButtonCore(Container):
             wnd = None
         if not wnd.destroyed:
             return wnd.GetMenu()
-        return []
+        else:
+            return []
 
     def OnMouseEnter(self, *args):
         self.SetHighlight(1)
@@ -66,8 +69,9 @@ class WindowMinimizeButtonCore(Container):
                 wnd = None
             if wnd:
                 wnd.ArrangeMinimizedButtons()
+        return
 
-    def SetBlink(self, blink = True):
+    def SetBlink(self, blink=True):
         if self.sr.blink:
             if blink:
                 uicore.effect.BlinkSpriteRGB(self.sr.blink, 0.5, 0.5, 0.5, 750, 10000, passColor=1)
@@ -76,7 +80,7 @@ class WindowMinimizeButtonCore(Container):
                 self.sr.blink.state = uiconst.UI_HIDDEN
                 uicore.effect.StopBlink(self.sr.blink)
 
-    def SetHighlight(self, hilite = 1):
+    def SetHighlight(self, hilite=1):
         if self.sr.hilite:
             if hilite:
                 self.sr.hilite.state = uiconst.UI_DISABLED

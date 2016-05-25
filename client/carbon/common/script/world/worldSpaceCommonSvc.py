@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\carbon\common\script\world\worldSpaceCommonSvc.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\carbon\common\script\world\worldSpaceCommonSvc.py
 import blue
 import collections
 import carbon.common.script.sys.service as service
@@ -12,7 +13,7 @@ class BaseWorldSpaceService(service.Service):
         self.worldSpaceLookup = collections.defaultdict(list)
         self.instances = {}
 
-    def GetConfigValue(self, name, defaultValue = None):
+    def GetConfigValue(self, name, defaultValue=None):
         raise NotImplemented('GetConfigValue')
 
     def LoadWorldSpace(self, worldSpaceID):
@@ -53,6 +54,7 @@ class BaseWorldSpaceService(service.Service):
             self.worldSpaceLookup[worldSpaceID].remove(instanceID)
             if not self.worldSpaceLookup[worldSpaceID]:
                 del self.worldSpaceLookup[worldSpaceID]
+        return
 
     def OnEntitySceneLoaded(self, sceneID):
         ws = self.GetWorldSpaceInstance(sceneID)

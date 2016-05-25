@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\carbon\common\stdlib\smtplib.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\carbon\common\stdlib\smtplib.py
 import socket
 import re
 import email.utils
@@ -84,6 +85,7 @@ def quoteaddr(addr):
         return '<>'
     else:
         return '<%s>' % m
+        return
 
 
 def quotedata(data):
@@ -126,7 +128,7 @@ class SMTP():
     ehlo_resp = None
     does_esmtp = 0
 
-    def __init__(self, host = '', port = 0, local_hostname = None, timeout = socket._GLOBAL_DEFAULT_TIMEOUT):
+    def __init__(self, host='', port=0, local_hostname=None, timeout=socket._GLOBAL_DEFAULT_TIMEOUT):
         self.timeout = timeout
         self.esmtp_features = {}
         self.default_port = SMTP_PORT
@@ -148,6 +150,7 @@ class SMTP():
                     pass
 
                 self.local_hostname = '[%s]' % addr
+        return
 
     def set_debuglevel(self, debuglevel):
         self.debuglevel = debuglevel
@@ -157,7 +160,7 @@ class SMTP():
             print >> stderr, 'connect:', (host, port)
         return socket.create_connection((port, host), timeout)
 
-    def connect(self, host = 'localhost', port = 0):
+    def connect(self, host='localhost', port=0):
         if not port and host.find(':') == host.rfind(':'):
             i = host.rfind(':')
             if i >= 0:
@@ -190,7 +193,7 @@ class SMTP():
         else:
             raise SMTPServerDisconnected('please run connect() first')
 
-    def putcmd(self, cmd, args = ''):
+    def putcmd(self, cmd, args=''):
         if args == '':
             str = '%s%s' % (cmd, CRLF)
         else:
@@ -228,17 +231,17 @@ class SMTP():
             print >> stderr, 'reply: retcode (%s); Msg: %s' % (errcode, errmsg)
         return (errcode, errmsg)
 
-    def docmd(self, cmd, args = ''):
+    def docmd(self, cmd, args=''):
         self.putcmd(cmd, args)
         return self.getreply()
 
-    def helo(self, name = ''):
+    def helo(self, name=''):
         self.putcmd('helo', name or self.local_hostname)
         code, msg = self.getreply()
         self.helo_resp = msg
         return (code, msg)
 
-    def ehlo(self, name = ''):
+    def ehlo(self, name=''):
         self.esmtp_features = {}
         self.putcmd(self.ehlo_msg, name or self.local_hostname)
         code, msg = self.getreply()
@@ -270,7 +273,7 @@ class SMTP():
     def has_extn(self, opt):
         return opt.lower() in self.esmtp_features
 
-    def help(self, args = ''):
+    def help(self, args=''):
         self.putcmd('help', args)
         return self.getreply()[1]
 
@@ -280,14 +283,14 @@ class SMTP():
     def noop(self):
         return self.docmd('noop')
 
-    def mail(self, sender, options = []):
+    def mail(self, sender, options=[]):
         optionlist = ''
         if options and self.does_esmtp:
             optionlist = ' ' + ' '.join(options)
         self.putcmd('mail', 'FROM:%s%s' % (quoteaddr(sender), optionlist))
         return self.getreply()
 
-    def rcpt(self, recip, options = []):
+    def rcpt(self, recip, options=[]):
         optionlist = ''
         if options and self.does_esmtp:
             optionlist = ' ' + ' '.join(options)
@@ -328,6 +331,7 @@ class SMTP():
                 code, resp = self.helo()
                 if not 200 <= code <= 299:
                     raise SMTPHeloError(code, resp)
+        return
 
     def login(self, user, password):
 
@@ -371,7 +375,7 @@ class SMTP():
             raise SMTPAuthenticationError(code, resp)
         return (code, resp)
 
-    def starttls(self, keyfile = None, certfile = None):
+    def starttls(self, keyfile=None, certfile=None):
         self.ehlo_or_helo_if_needed()
         if not self.has_extn('starttls'):
             raise SMTPException('STARTTLS extension not supported by server.')
@@ -387,7 +391,7 @@ class SMTP():
             self.does_esmtp = 0
         return (resp, reply)
 
-    def sendmail(self, from_addr, to_addrs, msg, mail_options = [], rcpt_options = []):
+    def sendmail(self, from_addr, to_addrs, msg, mail_options=[], rcpt_options=[]):
         self.ehlo_or_helo_if_needed()
         esmtp_opts = []
         if self.does_esmtp:
@@ -424,6 +428,7 @@ class SMTP():
         if self.sock:
             self.sock.close()
         self.sock = None
+        return
 
     def quit(self):
         res = self.docmd('quit')
@@ -435,7 +440,7 @@ if _have_ssl:
 
     class SMTP_SSL(SMTP):
 
-        def __init__(self, host = '', port = 0, local_hostname = None, keyfile = None, certfile = None, timeout = socket._GLOBAL_DEFAULT_TIMEOUT):
+        def __init__(self, host='', port=0, local_hostname=None, keyfile=None, certfile=None, timeout=socket._GLOBAL_DEFAULT_TIMEOUT):
             self.keyfile = keyfile
             self.certfile = certfile
             SMTP.__init__(self, host, port, local_hostname, timeout)
@@ -456,27 +461,28 @@ LMTP_PORT = 2003
 class LMTP(SMTP):
     ehlo_msg = 'lhlo'
 
-    def __init__(self, host = '', port = LMTP_PORT, local_hostname = None):
+    def __init__(self, host='', port=LMTP_PORT, local_hostname=None):
         SMTP.__init__(self, host, port, local_hostname)
 
-    def connect(self, host = 'localhost', port = 0):
+    def connect(self, host='localhost', port=0):
         if host[0] != '/':
             return SMTP.connect(self, host, port)
-        try:
-            self.sock = socket.socket(socket.AF_UNIX, socket.SOCK_STREAM)
-            self.sock.connect(host)
-        except socket.error as msg:
-            if self.debuglevel > 0:
-                print >> stderr, 'connect fail:', host
-            if self.sock:
-                self.sock.close()
-            self.sock = None
-            raise socket.error, msg
+        else:
+            try:
+                self.sock = socket.socket(socket.AF_UNIX, socket.SOCK_STREAM)
+                self.sock.connect(host)
+            except socket.error as msg:
+                if self.debuglevel > 0:
+                    print >> stderr, 'connect fail:', host
+                if self.sock:
+                    self.sock.close()
+                self.sock = None
+                raise socket.error, msg
 
-        code, msg = self.getreply()
-        if self.debuglevel > 0:
-            print >> stderr, 'connect:', msg
-        return (code, msg)
+            code, msg = self.getreply()
+            if self.debuglevel > 0:
+                print >> stderr, 'connect:', msg
+            return (code, msg)
 
 
 if __name__ == '__main__':

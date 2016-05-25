@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\common\modules\nice\client\_nastyspace\vivoxConstants.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\common\modules\nice\client\_nastyspace\vivoxConstants.py
 from carbon.client.script.environment.vivoxConstants import JOINED
 from carbon.client.script.environment.vivoxConstants import MUTED
 from carbon.client.script.environment.vivoxConstants import NOTJOINED

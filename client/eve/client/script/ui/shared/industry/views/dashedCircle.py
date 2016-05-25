@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\client\script\ui\shared\industry\views\dashedCircle.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\client\script\ui\shared\industry\views\dashedCircle.py
 from carbonui.const import TOPLEFT, CENTER, TOALL, UI_DISABLED, UI_NORMAL
 from math import pi, cos, sin
 from carbonui.primitives.container import Container
@@ -29,6 +30,7 @@ class DashedCircle(Container):
         self.segments = self.ConstructSegments()
         self.icon = Sprite(name='icon', parent=self, align=CENTER, state=UI_DISABLED, width=20, height=20)
         self.AnimEntry()
+        return
 
     def ConstructSegments(self):
         ret = []
@@ -60,7 +62,7 @@ class DashedCircle(Container):
             uicore.animations.MorphScalar(segment, 'start', 0.5, 0.0, duration=0.3, timeOffset=0.3 + i * offset)
             uicore.animations.MorphScalar(segment, 'end', 0.5, 1.0, duration=0.3, timeOffset=0.3 + i * offset)
 
-    def UpdateState(self, numFilledSegments, isReady = True, isOptional = False, isOptionSelected = True, animate = True):
+    def UpdateState(self, numFilledSegments, isReady=True, isOptional=False, isOptionSelected=True, animate=True):
         isEverythingReady = numFilledSegments == self.numSegments
         baseColor = IndustryLineTrace.GetLineColor(isReady, isOptionSelected)
         for i, segment in enumerate(self.segments):

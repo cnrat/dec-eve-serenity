@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\carbon\common\stdlib\bdb.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\carbon\common\stdlib\bdb.py
 import fnmatch
 import sys
 import os
@@ -11,10 +12,11 @@ class BdbQuit(Exception):
 
 class Bdb():
 
-    def __init__(self, skip = None):
+    def __init__(self, skip=None):
         self.skip = set(skip) if skip else None
         self.breaks = {}
         self.fncache = {}
+        return
 
     def canonic(self, filename):
         if filename == '<' + filename[1:-1] + '>':
@@ -31,6 +33,7 @@ class Bdb():
         linecache.checkcache()
         self.botframe = None
         self._set_stopinfo(None, None)
+        return
 
     def trace_dispatch(self, frame, event, arg):
         if self.quitting:
@@ -63,12 +66,13 @@ class Bdb():
         if self.botframe is None:
             self.botframe = frame.f_back
             return self.trace_dispatch
-        if not (self.stop_here(frame) or self.break_anywhere(frame)):
+        elif not (self.stop_here(frame) or self.break_anywhere(frame)):
             return
-        self.user_call(frame, arg)
-        if self.quitting:
-            raise BdbQuit
-        return self.trace_dispatch
+        else:
+            self.user_call(frame, arg)
+            if self.quitting:
+                raise BdbQuit
+            return self.trace_dispatch
 
     def dispatch_return(self, frame, arg):
         if self.stop_here(frame) or frame == self.returnframe:
@@ -94,16 +98,17 @@ class Bdb():
     def stop_here(self, frame):
         if self.skip and self.is_skipped_module(frame.f_globals.get('__name__')):
             return False
-        if frame is self.stopframe:
+        elif frame is self.stopframe:
             if self.stoplineno == -1:
                 return False
             return frame.f_lineno >= self.stoplineno
-        while frame is not None and frame is not self.stopframe:
-            if frame is self.botframe:
-                return True
-            frame = frame.f_back
+        else:
+            while frame is not None and frame is not self.stopframe:
+                if frame is self.botframe:
+                    return True
+                frame = frame.f_back
 
-        return False
+            return False
 
     def break_here(self, frame):
         filename = self.canonic(frame.f_code.co_filename)
@@ -141,7 +146,7 @@ class Bdb():
     def user_exception(self, frame, exc_info):
         exc_type, exc_value, exc_traceback = exc_info
 
-    def _set_stopinfo(self, stopframe, returnframe, stoplineno = 0):
+    def _set_stopinfo(self, stopframe, returnframe, stoplineno=0):
         self.stopframe = stopframe
         self.returnframe = returnframe
         self.quitting = 0
@@ -152,14 +157,16 @@ class Bdb():
 
     def set_step(self):
         self._set_stopinfo(None, None)
+        return
 
     def set_next(self, frame):
         self._set_stopinfo(frame, None)
+        return
 
     def set_return(self, frame):
         self._set_stopinfo(frame.f_back, frame)
 
-    def set_trace(self, frame = None):
+    def set_trace(self, frame=None):
         if frame is None:
             frame = sys._getframe().f_back
         self.reset()
@@ -170,6 +177,7 @@ class Bdb():
 
         self.set_step()
         sys.settrace(self.trace_dispatch)
+        return
 
     def set_continue(self):
         self._set_stopinfo(self.botframe, None, -1)
@@ -180,13 +188,16 @@ class Bdb():
                 del frame.f_trace
                 frame = frame.f_back
 
+        return
+
     def set_quit(self):
         self.stopframe = self.botframe
         self.returnframe = None
         self.quitting = 1
         sys.settrace(None)
+        return
 
-    def set_break(self, filename, lineno, temporary = 0, cond = None, funcname = None):
+    def set_break(self, filename, lineno, temporary=0, cond=None, funcname=None):
         filename = self.canonic(filename)
         import linecache
         line = linecache.getline(filename, lineno)
@@ -286,7 +297,7 @@ class Bdb():
             i = max(0, len(stack) - 1)
         return (stack, i)
 
-    def format_stack_entry(self, frame_lineno, lprefix = ': '):
+    def format_stack_entry(self, frame_lineno, lprefix=': '):
         import linecache, repr
         frame, lineno = frame_lineno
         filename = self.canonic(frame.f_code.co_filename)
@@ -312,7 +323,7 @@ class Bdb():
             s = s + lprefix + line.strip()
         return s
 
-    def run(self, cmd, globals = None, locals = None):
+    def run(self, cmd, globals=None, locals=None):
         if globals is None:
             import __main__
             globals = __main__.__dict__
@@ -323,14 +334,18 @@ class Bdb():
         if not isinstance(cmd, types.CodeType):
             cmd = cmd + '\n'
         try:
-            exec cmd in globals, locals
-        except BdbQuit:
-            pass
+            try:
+                exec cmd in globals, locals
+            except BdbQuit:
+                pass
+
         finally:
             self.quitting = 1
             sys.settrace(None)
 
-    def runeval(self, expr, globals = None, locals = None):
+        return
+
+    def runeval(self, expr, globals=None, locals=None):
         if globals is None:
             import __main__
             globals = __main__.__dict__
@@ -341,12 +356,16 @@ class Bdb():
         if not isinstance(expr, types.CodeType):
             expr = expr + '\n'
         try:
-            return eval(expr, globals, locals)
-        except BdbQuit:
-            pass
+            try:
+                return eval(expr, globals, locals)
+            except BdbQuit:
+                pass
+
         finally:
             self.quitting = 1
             sys.settrace(None)
+
+        return
 
     def runctx(self, cmd, globals, locals):
         self.run(cmd, globals, locals)
@@ -356,9 +375,11 @@ class Bdb():
         sys.settrace(self.trace_dispatch)
         res = None
         try:
-            res = func(*args, **kwds)
-        except BdbQuit:
-            pass
+            try:
+                res = func(*args, **kwds)
+            except BdbQuit:
+                pass
+
         finally:
             self.quitting = 1
             sys.settrace(None)
@@ -375,7 +396,7 @@ class Breakpoint():
     bplist = {}
     bpbynumber = [None]
 
-    def __init__(self, file, line, temporary = 0, cond = None, funcname = None):
+    def __init__(self, file, line, temporary=0, cond=None, funcname=None):
         self.funcname = funcname
         self.func_first_executable_line = None
         self.file = file
@@ -392,6 +413,7 @@ class Breakpoint():
             self.bplist[file, line].append(self)
         else:
             self.bplist[file, line] = [self]
+        return
 
     def deleteMe(self):
         index = (self.file, self.line)
@@ -399,6 +421,7 @@ class Breakpoint():
         self.bplist[index].remove(self)
         if not self.bplist[index]:
             del self.bplist[index]
+        return
 
     def enable(self):
         self.enabled = 1
@@ -406,7 +429,7 @@ class Breakpoint():
     def disable(self):
         self.enabled = 0
 
-    def bpprint(self, out = None):
+    def bpprint(self, out=None):
         if out is None:
             out = sys.stdout
         if self.temporary:
@@ -431,6 +454,7 @@ class Breakpoint():
             else:
                 ss = ''
             print >> out, '\tbreakpoint already hit %d time%s' % (self.hits, ss)
+        return
 
 
 def checkfuncname(b, frame):

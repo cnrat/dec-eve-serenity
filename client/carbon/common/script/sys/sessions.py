@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\carbon\common\script\sys\sessions.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\carbon\common\script\sys\sessions.py
 import blue
 import uthread
 import localization
@@ -18,7 +19,7 @@ from service import *
 from carbon.common.script.sys.basesession import *
 import localstorage
 
-def ThrottlePerMinute(max = 1, message = 'GenericStopSpamming'):
+def ThrottlePerMinute(max=1, message='GenericStopSpamming'):
 
     def Helper(f):
 
@@ -32,7 +33,7 @@ def ThrottlePerMinute(max = 1, message = 'GenericStopSpamming'):
     return Helper
 
 
-def ThrottlePer5Minutes(max = 1, message = 'GenericStopSpamming'):
+def ThrottlePer5Minutes(max=1, message='GenericStopSpamming'):
 
     def Helper(f):
 
@@ -46,7 +47,7 @@ def ThrottlePer5Minutes(max = 1, message = 'GenericStopSpamming'):
     return Helper
 
 
-def ThrottlePerSecond(max = 1, message = 'GenericStopSpamming'):
+def ThrottlePerSecond(max=1, message='GenericStopSpamming'):
 
     def Helper(f):
 
@@ -86,6 +87,7 @@ def SessionKillah(machoNet):
                                 irrelevant = sess.irrelevanceTime is not None and now - sess.irrelevanceTime >= timeout
                             if irrelevant:
                                 toRemove[transport].append(sess.sid)
+                        return
 
                     for sess in transport.sessions.itervalues():
                         AddIfIrrelevant(sess, sessTimeout)
@@ -286,34 +288,36 @@ def FindSessionsAndHoles(attr, val, maxCount):
             nf2[0] = nf
             nf = nf2
         return (0, ret, nf)
-    for v in val:
-        f = 0
-        r = []
-        for sid in sessionsByAttribute[attr].get(v, {}).iterkeys():
-            if sid in sessionsBySID:
-                clientID = getattr(sessionsBySID[sid], 'clientID', None)
-                if clientID is not None:
-                    if maxCount is not None and len(ret) >= maxCount:
-                        return (1, [], [])
-                    ret.append(sessionsBySID[sid])
-                    f = 1
-            else:
-                r.append(sid)
+    else:
+        for v in val:
+            f = 0
+            r = []
+            for sid in sessionsByAttribute[attr].get(v, {}).iterkeys():
+                if sid in sessionsBySID:
+                    clientID = getattr(sessionsBySID[sid], 'clientID', None)
+                    if clientID is not None:
+                        if maxCount is not None and len(ret) >= maxCount:
+                            return (1, [], [])
+                        ret.append(sessionsBySID[sid])
+                        f = 1
+                else:
+                    r.append(sid)
 
-        for each in r:
-            del sessionsByAttribute[attr][v][each]
+            for each in r:
+                del sessionsByAttribute[attr][v][each]
 
-        if not f:
-            nf.append(v)
+            if not f:
+                nf.append(v)
 
-    return (0, ret, nf)
+        return (0, ret, nf)
 
 
-def GetSessions(sid = None):
+def GetSessions(sid=None):
     if sid is None:
         return sessionsBySID.values()
     else:
         return sessionsBySID.get(sid, None)
+        return
 
 
 class SessionMgr(service.Service):
@@ -355,6 +359,7 @@ class SessionMgr(service.Service):
         self.timeSessionStatsComputed = None
         if machobase.mode == 'server':
             uthread.new(SessionKillah, sm.GetService('machoNet')).context = 'sessions::SessionKillah'
+        return
 
     def GetProxySessionManager(self, nodeID):
         if nodeID not in self.proxies:
@@ -372,7 +377,7 @@ class SessionMgr(service.Service):
     def GetReason(self, oldReason, newReason, timeLeft):
         return localization.GetByLabel('/Carbon/UI/Sessions/SessionChangeInProgressBase')
 
-    def __RaisePSCIP(self, oldReason, newReason, timeLeft = None):
+    def __RaisePSCIP(self, oldReason, newReason, timeLeft=None):
         if oldReason is None:
             oldReason = ''
         if newReason is None:
@@ -380,6 +385,7 @@ class SessionMgr(service.Service):
         reason = self.GetReason(oldReason, newReason, timeLeft)
         self.LogInfo('raising a PerformSessionChangeInProgress user error with reason ', reason)
         raise UserError('PerformSessionChangeInProgress', {'reason': reason})
+        return
 
     def PerformSessionLockedOperation(self, *args, **keywords):
         return self.PerformSessionChange(*args, **keywords)
@@ -463,7 +469,9 @@ class SessionMgr(service.Service):
                     self.LogInfo('Scattering OnSessionMutated event')
                     sm.ScatterEvent('OnSessionMutated', func, args, kw2)
 
-    def GetProxyNodeFromID(self, idtype, theID, refresh = 0):
+        return
+
+    def GetProxyNodeFromID(self, idtype, theID, refresh=0):
         if idtype != 'clientID':
             clientID = self.GetClientIDsFromID(idtype, theID, refresh)[0]
         else:
@@ -473,7 +481,7 @@ class SessionMgr(service.Service):
     def IsPlayerCharacter(self, charID):
         raise Exception('stub function not implemented')
 
-    def GetClientIDsFromID(self, idtype, theID, refresh = 0):
+    def GetClientIDsFromID(self, idtype, theID, refresh=0):
         clientIDs = []
         if theID in sessionsByAttribute[idtype]:
             sids = sessionsByAttribute[idtype][theID]
@@ -487,38 +495,40 @@ class SessionMgr(service.Service):
 
         if not refresh and theID in self.sessionClientIDCache[idtype]:
             return self.sessionClientIDCache[idtype][theID]
-        if not hasattr(self, 'dbzcluster'):
-            self.dbzcluster = self.DB2.GetSchema('zcluster')
-        clientID = None
-        if idtype == 'charid':
-            if self.IsPlayerCharacter(theID):
-                if theID in self.clientIDsByCharIDCache:
-                    clientID, lastTime = self.clientIDsByCharIDCache[theID]
-                    if blue.os.GetWallclockTime() - lastTime > const.SEC:
-                        clientID = None
-                    else:
-                        clientIDs.append(clientID)
-                if clientID is None:
-                    client = self.dbzcluster.Sessions_ByCharacterID(theID)
-                    if len(client) and client[0].clientID:
-                        clientID = client[0].clientID
-                        clientIDs.append(clientID)
-                self.clientIDsByCharIDCache[theID] = (clientID, blue.os.GetWallclockTime())
-            else:
-                log.LogTraceback('Thou shall only use GetClientIDsFromID for player characters', show_locals=1)
-                clientID = None
-        elif idtype == 'userid':
-            for row in self.dbzcluster.Sessions_ByUserID(theID):
-                if row.clientID:
-                    clientIDs.append(row.clientID)
+        else:
+            if not hasattr(self, 'dbzcluster'):
+                self.dbzcluster = self.DB2.GetSchema('zcluster')
+            clientID = None
+            if idtype == 'charid':
+                if self.IsPlayerCharacter(theID):
+                    if theID in self.clientIDsByCharIDCache:
+                        clientID, lastTime = self.clientIDsByCharIDCache[theID]
+                        if blue.os.GetWallclockTime() - lastTime > const.SEC:
+                            clientID = None
+                        else:
+                            clientIDs.append(clientID)
+                    if clientID is None:
+                        client = self.dbzcluster.Sessions_ByCharacterID(theID)
+                        if len(client) and client[0].clientID:
+                            clientID = client[0].clientID
+                            clientIDs.append(clientID)
+                    self.clientIDsByCharIDCache[theID] = (clientID, blue.os.GetWallclockTime())
+                else:
+                    log.LogTraceback('Thou shall only use GetClientIDsFromID for player characters', show_locals=1)
+                    clientID = None
+            elif idtype == 'userid':
+                for row in self.dbzcluster.Sessions_ByUserID(theID):
+                    if row.clientID:
+                        clientIDs.append(row.clientID)
 
-        else:
-            raise RuntimeError('Can only currently characterID to locate a client through the DB')
-        if not clientIDs:
-            raise UnMachoDestination('The dude is not logged on')
-        else:
-            self.sessionClientIDCache[idtype][theID] = clientIDs
-            return clientIDs
+            else:
+                raise RuntimeError('Can only currently characterID to locate a client through the DB')
+            if not clientIDs:
+                raise UnMachoDestination('The dude is not logged on')
+            else:
+                self.sessionClientIDCache[idtype][theID] = clientIDs
+                return clientIDs
+            return
 
     def DoSessionChanging(self, *args):
         pass
@@ -580,6 +590,7 @@ class SessionMgr(service.Service):
         if len(parallelCalls) > 60:
             log.LogTraceback('Horrid session change going haywire.  Redesign the calling code!')
         uthread.parallel(parallelCalls)
+        return
 
     def PerformHorridSessionAttributeUpdate(self, clientID, dict):
         try:
@@ -601,17 +612,19 @@ class SessionMgr(service.Service):
             if s is None:
                 raise UnMachoDestination('Wrong proxy or client not connected, session not found by clientID=%s' % theID)
             return s
-        if theID not in sessionsByAttribute[idtype]:
-            raise UnMachoDestination('Wrong proxy or client not connected, session not found by %s=%s' % (idtype, theID))
         else:
-            sids = sessionsByAttribute[idtype][theID].keys()
-            if not len(sids) == 1:
-                raise UnMachoDestination('Ambiguous idtype/id pair (%s/%s).  There are %d sessions that match them.' % (idtype, theID, len(sids)))
+            if theID not in sessionsByAttribute[idtype]:
+                raise UnMachoDestination('Wrong proxy or client not connected, session not found by %s=%s' % (idtype, theID))
             else:
-                sid = sids[0]
-            if sid not in sessionsBySID:
-                raise UnMachoDestination("The client's session is in an invalid or terminating state")
-            return sessionsBySID[sid]
+                sids = sessionsByAttribute[idtype][theID].keys()
+                if not len(sids) == 1:
+                    raise UnMachoDestination('Ambiguous idtype/id pair (%s/%s).  There are %d sessions that match them.' % (idtype, theID, len(sids)))
+                else:
+                    sid = sids[0]
+                if sid not in sessionsBySID:
+                    raise UnMachoDestination("The client's session is in an invalid or terminating state")
+                return sessionsBySID[sid]
+            return
 
     def ConnectToClientService(self, svc, idtype, theID):
         if machobase.mode == 'proxy':
@@ -660,12 +673,13 @@ class SessionMgr(service.Service):
         self.sessionStatistics['CARBON:MachoUser'] = (machoUser, {None: machoUser})
         self.sessionStatistics['CARBON:CRESTChar'] = (CRESTChar, {None: CRESTChar})
         self.sessionStatistics['CARBON:CRESTUser'] = (CRESTUser, {None: CRESTUser})
+        return
 
-    def Run(self, memstream = None):
+    def Run(self, memstream=None):
         service.Service.Run(self, memstream)
         self.AppRun(memstream)
 
-    def AppRun(self, memstream = None):
+    def AppRun(self, memstream=None):
         pass
 
     def BatchedRemoteCall(self, batchedCalls):
@@ -695,13 +709,15 @@ class SessionMgr(service.Service):
     def GetInitialValuesFromCharID(self, charID):
         return {}
 
-    def CloseUserSessions(self, userIDs, reason, clientID = None):
+    def CloseUserSessions(self, userIDs, reason, clientID=None):
         if type(userIDs) not in (types.ListType, types.TupleType):
             userIDs = [userIDs]
         for each in FindSessions('userid', userIDs):
             if clientID is None or not hasattr(each, 'clientID') or each.clientID != clientID:
                 each.LogSessionHistory(reason)
                 CloseSession(each)
+
+        return
 
     def TerminateClientConnections(self, reason, filter):
         if machobase.mode != 'proxy' or not isinstance(filter, types.DictType) or len(filter) == 0:
@@ -726,7 +742,7 @@ class SessionMgr(service.Service):
 
         return numDisconnected
 
-    def EndAllGameSessions(self, remote = 0):
+    def EndAllGameSessions(self, remote=0):
         if remote:
             self.session.ConnectToAllProxyServerServices('sessionMgr').EndAllGameSessions()
         else:
@@ -753,6 +769,7 @@ class SessionMgr(service.Service):
 
         else:
             log.LogWarning('RemoveSessionsFromServer() called with unknown or non-server nodeID ', nodeID)
+        return
 
     def GetSessionDetails(self, clientID, sid):
         import htmlwriter
@@ -763,99 +780,101 @@ class SessionMgr(service.Service):
             s = GetSessions(sid)
         if s is None:
             return
-        info = [['sid', s.sid],
-         ['version', s.version],
-         ['clientID', getattr(s, 'clientID', '')],
-         ['userid', s.userid],
-         ['userType', s.userType],
-         ['role', s.role],
-         ['charid', s.charid],
-         ['lastRemoteCall', s.lastRemoteCall]]
-        for each in self.additionalSessionDetailsAttribs:
-            info.append([each, s.__dict__[each]])
+        else:
+            info = [['sid', s.sid],
+             ['version', s.version],
+             ['clientID', getattr(s, 'clientID', '')],
+             ['userid', s.userid],
+             ['userType', s.userType],
+             ['role', s.role],
+             ['charid', s.charid],
+             ['lastRemoteCall', s.lastRemoteCall]]
+            for each in self.additionalSessionDetailsAttribs:
+                info.append([each, s.__dict__[each]])
 
-        sessionsBySID, sessionsByAttribute = GetSessionMaps()
-        for each in info:
-            if each[0] == 'sid':
-                if each[1] not in sessionsBySID:
-                    each[1] = str(each[1]) + ' <b>(Not in sessionsBySID)</b>'
-            elif each[0] in sessionsByAttribute:
-                a = getattr(s, each[0])
-                if a:
-                    if a not in sessionsByAttribute[each[0]]:
-                        each[1] = str(each[1]) + " <b>(Not in sessionsByAttribute['%s'])</b>" % each[0]
-                    elif s.sid not in sessionsByAttribute[each[0]].get(a, {}):
-                        each[1] = str(each[1]) + " <b>(Not in sessionsByAttribute['%s']['%s'])</b>" % (each[0], a)
+            sessionsBySID, sessionsByAttribute = GetSessionMaps()
+            for each in info:
+                if each[0] == 'sid':
+                    if each[1] not in sessionsBySID:
+                        each[1] = str(each[1]) + ' <b>(Not in sessionsBySID)</b>'
+                elif each[0] in sessionsByAttribute:
+                    a = getattr(s, each[0])
+                    if a:
+                        if a not in sessionsByAttribute[each[0]]:
+                            each[1] = str(each[1]) + " <b>(Not in sessionsByAttribute['%s'])</b>" % each[0]
+                        elif s.sid not in sessionsByAttribute[each[0]].get(a, {}):
+                            each[1] = str(each[1]) + " <b>(Not in sessionsByAttribute['%s']['%s'])</b>" % (each[0], a)
 
-        info.append(['IP Address', getattr(s, 'address', '?')])
-        connectedObjects = []
-        hd = ['ObjectID', 'References', 'Object']
-        for k, v in s.machoObjectsByID.iteritems():
-            tmp = [k, '%s.%s' % (FmtDateEng(v[0]), v[0] % const.SEC), htmlwriter.Swing(str(v[1]))]
-            if isinstance(v[1], ObjectConnection):
-                tmp[2] = str(tmp[2]) + ' (c2ooid=%s)' % str(v[1].__dict__['__c2ooid__'])
-                if v[1].__dict__['__c2ooid__'] not in s.connectedObjects:
-                    tmp[2] = str(tmp[2]) + ' <b>(Not in s.connectedObjects)</b>'
+            info.append(['IP Address', getattr(s, 'address', '?')])
+            connectedObjects = []
+            hd = ['ObjectID', 'References', 'Object']
+            for k, v in s.machoObjectsByID.iteritems():
+                tmp = [k, '%s.%s' % (FmtDateEng(v[0]), v[0] % const.SEC), htmlwriter.Swing(str(v[1]))]
+                if isinstance(v[1], ObjectConnection):
+                    tmp[2] = str(tmp[2]) + ' (c2ooid=%s)' % str(v[1].__dict__['__c2ooid__'])
+                    if v[1].__dict__['__c2ooid__'] not in s.connectedObjects:
+                        tmp[2] = str(tmp[2]) + ' <b>(Not in s.connectedObjects)</b>'
+                    else:
+                        object = v[1].__dict__['__object__']
+                        if s.sid not in object.sessionConnections:
+                            tmp[2] = str(tmp[2]) + ' <b>(s.sid not in object.sessionConnections)</b>'
+                        if s.sid not in object.objectConnections or v[1].__dict__['__c2ooid__'] not in object.objectConnections[s.sid]:
+                            tmp[2] = str(tmp[2]) + ' <b>([s.sid][c2ooid]) not part of object.objectConnections)</b>'
+                if k not in sessionsByAttribute['objectID']:
+                    tmp[2] = str(tmp[2]) + " <b>(Not in sessionsByAttribute['objectID'])</b>"
+                elif s.sid not in sessionsByAttribute['objectID'][k]:
+                    tmp[2] = str(tmp[2]) + " <b>(Not in sessionsByAttribute['objectID']['%s'])</b>" % k
+                connectedObjects.append(tmp)
+
+            sessionHistory = []
+            lastEntry = ''
+            i = 0
+            for each in s.sessionhist:
+                tmp = each[2].replace('\n', '<br>')
+                if tmp == lastEntry:
+                    txt = '< same >'
                 else:
-                    object = v[1].__dict__['__object__']
-                    if s.sid not in object.sessionConnections:
-                        tmp[2] = str(tmp[2]) + ' <b>(s.sid not in object.sessionConnections)</b>'
-                    if s.sid not in object.objectConnections or v[1].__dict__['__c2ooid__'] not in object.objectConnections[s.sid]:
-                        tmp[2] = str(tmp[2]) + ' <b>([s.sid][c2ooid]) not part of object.objectConnections)</b>'
-            if k not in sessionsByAttribute['objectID']:
-                tmp[2] = str(tmp[2]) + " <b>(Not in sessionsByAttribute['objectID'])</b>"
-            elif s.sid not in sessionsByAttribute['objectID'][k]:
-                tmp[2] = str(tmp[2]) + " <b>(Not in sessionsByAttribute['objectID']['%s'])</b>" % k
-            connectedObjects.append(tmp)
+                    txt = tmp
+                lastEntry = tmp
+                sessionHistory.append((each[0],
+                 i,
+                 each[1],
+                 htmlwriter.Swing(txt)))
+                i += 1
 
-        sessionHistory = []
-        lastEntry = ''
-        i = 0
-        for each in s.sessionhist:
-            tmp = each[2].replace('\n', '<br>')
-            if tmp == lastEntry:
-                txt = '< same >'
-            else:
-                txt = tmp
-            lastEntry = tmp
-            sessionHistory.append((each[0],
-             i,
-             each[1],
-             htmlwriter.Swing(txt)))
-            i += 1
+            streamInfo = []
+            try:
+                streams = macho.transportsByID[macho.transportIDbySessionID[s.sid]].readers
+                for stream in streams:
+                    streamInfo.append((stream.streamID,
+                     stream.request.remote_addr,
+                     stream.sequence_number,
+                     stream.reconnects,
+                     stream.GetActiveSetSize()))
 
-        streamInfo = []
-        try:
-            streams = macho.transportsByID[macho.transportIDbySessionID[s.sid]].readers
-            for stream in streams:
-                streamInfo.append((stream.streamID,
-                 stream.request.remote_addr,
-                 stream.sequence_number,
-                 stream.reconnects,
-                 stream.GetActiveSetSize()))
+            except KeyError:
+                pass
 
-        except KeyError:
-            pass
-
-        return (info,
-         connectedObjects,
-         sessionHistory,
-         s.calltimes,
-         s.sessionVariables,
-         streamInfo)
+            return (info,
+             connectedObjects,
+             sessionHistory,
+             s.calltimes,
+             s.sessionVariables,
+             streamInfo)
 
 
-def IsSessionChangeDisconnect(change, character = False):
+def IsSessionChangeDisconnect(change, character=False):
     key = 'charid' if character else 'userid'
     if key in change and change[key][0] is not None and change[key][1] is None:
         return change[key][0]
     else:
         return False
+        return
 
 
 class ClientContext(localstorage.UpdatedLocalStorage):
 
-    def __init__(self, applicationID = None, languageID = None):
+    def __init__(self, applicationID=None, languageID=None):
         localstorage.UpdatedLocalStorage.__init__(self, {'base.ClientContext': True,
          'applicationID': applicationID,
          'languageID': languageID})

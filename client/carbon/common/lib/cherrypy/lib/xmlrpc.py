@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\carbon\common\lib\cherrypy\lib\xmlrpc.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\carbon\common\lib\cherrypy\lib\xmlrpc.py
 import sys
 import cherrypy
 
@@ -26,7 +27,7 @@ def _set_response(body):
     response.headers['Content-Length'] = len(body)
 
 
-def respond(body, encoding = 'utf-8', allow_none = 0):
+def respond(body, encoding='utf-8', allow_none=0):
     from xmlrpclib import Fault, dumps
     if not isinstance(body, Fault):
         body = (body,)

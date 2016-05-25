@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\carbon\common\script\net\BroadcastStuffGPCS.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\carbon\common\script\net\BroadcastStuffGPCS.py
 import base
 import blue
 import bluepy
@@ -21,6 +22,7 @@ class CoreBroadcastStuff:
         self.busrunning = 0
         self.busrate = 333
         self.apertureService = None
+        return
 
     def UpdateRecvNotificationStats(self, eventid, missed, source):
         if source.addressType == const.ADDRESS_TYPE_NODE:
@@ -55,6 +57,8 @@ class CoreBroadcastStuff:
 
         finally:
             self.busrunning = 0
+
+        return
 
     def NotifyUp(self, packet):
         if packet.payload[0]:
@@ -205,6 +209,7 @@ class CoreBroadcastStuff:
                 source = macho.MachoAddress()
             destination = macho.MachoAddress(broadcastID=method, idtype='nodeID', narrowcast=nodeids)
             self.ForwardNotifyDown(macho.Notification(source=source, destination=destination, payload=(1, args)))
+        return
 
     def NarrowcastByNodeIDs(self, nodeids, method, *args, **kwargs):
         with bluepy.Timer('machoNet::NarrowcastByNodeIDs'):
@@ -282,16 +287,18 @@ class CoreBroadcastStuff:
         with bluepy.Timer('machoNet::ReliableSinglecastByUserID'):
             callTimer = base.CallTimer('ReliableSinglecastByUserID::%s (Broadcast\\Client)' % method)
             try:
-                clientIDs = sm.GetService('sessionMgr').GetClientIDsFromID('userid', userid, refresh=1)
-                self.NarrowcastByClientIDsWithoutTheStars(clientIDs, method, args)
-            except UnMachoDestination as e:
-                self.machoNet.LogInfo('User ', userid, " was not reachable, so he didn't get this singlecast.  Should be fine and dandy.  reason=", e.payload)
-                sys.exc_clear()
-            except UserError as e:
-                if e.msg != 'UnMachoDestination':
-                    raise
-                self.machoNet.LogInfo('User ', userid, " was not reachable, so he didn't get this singlecast.  Should be fine and dandy.  reason=", e.msg)
-                sys.exc_clear()
+                try:
+                    clientIDs = sm.GetService('sessionMgr').GetClientIDsFromID('userid', userid, refresh=1)
+                    self.NarrowcastByClientIDsWithoutTheStars(clientIDs, method, args)
+                except UnMachoDestination as e:
+                    self.machoNet.LogInfo('User ', userid, " was not reachable, so he didn't get this singlecast.  Should be fine and dandy.  reason=", e.payload)
+                    sys.exc_clear()
+                except UserError as e:
+                    if e.msg != 'UnMachoDestination':
+                        raise
+                    self.machoNet.LogInfo('User ', userid, " was not reachable, so he didn't get this singlecast.  Should be fine and dandy.  reason=", e.msg)
+                    sys.exc_clear()
+
             finally:
                 callTimer.Done()
 
@@ -317,16 +324,18 @@ class CoreBroadcastStuff:
         with bluepy.Timer('machoNet::ReliableSinglecastByCharID'):
             callTimer = base.CallTimer('ReliableSinglecastByCharID::%s (Broadcast\\Client)' % method)
             try:
-                clientIDs = sm.GetService('sessionMgr').GetClientIDsFromID('charid', charid, refresh=1)
-                self.NarrowcastByClientIDsWithoutTheStars(clientIDs, method, args)
-            except UnMachoDestination as e:
-                self.machoNet.LogInfo('Character ', charid, " was not reachable, so he didn't get this singlecast.  Should be fine and dandy.  reason=", e.payload)
-                sys.exc_clear()
-            except UserError as e:
-                if e.msg != 'UnMachoDestination':
-                    raise
-                self.machoNet.LogInfo('Character ', charid, " was not reachable, so he didn't get this singlecast.  Should be fine and dandy.  reason=", e.msg)
-                sys.exc_clear()
+                try:
+                    clientIDs = sm.GetService('sessionMgr').GetClientIDsFromID('charid', charid, refresh=1)
+                    self.NarrowcastByClientIDsWithoutTheStars(clientIDs, method, args)
+                except UnMachoDestination as e:
+                    self.machoNet.LogInfo('Character ', charid, " was not reachable, so he didn't get this singlecast.  Should be fine and dandy.  reason=", e.payload)
+                    sys.exc_clear()
+                except UserError as e:
+                    if e.msg != 'UnMachoDestination':
+                        raise
+                    self.machoNet.LogInfo('Character ', charid, " was not reachable, so he didn't get this singlecast.  Should be fine and dandy.  reason=", e.msg)
+                    sys.exc_clear()
+
             finally:
                 callTimer.Done()
 

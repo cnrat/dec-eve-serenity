@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\packages\localizationBSD\util.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\packages\localizationBSD\util.py
 import blue
 import types
 import eveLocalization
@@ -33,7 +34,7 @@ def GetDummyData():
 
 
 @telemetry.ZONE_FUNCTION
-def ValidateString(sourceText, languageID, dummyData = None):
+def ValidateString(sourceText, languageID, dummyData=None):
     if dummyData is None:
         dummyData = GetDummyData()
     errors = []
@@ -71,10 +72,11 @@ def ValidateString(sourceText, languageID, dummyData = None):
     locLogger.LogError = oldMethod
     if errors:
         return errors
-    return result
+    else:
+        return result
 
 
-def ValidateAll(languageID, projectID = None):
+def ValidateAll(languageID, projectID=None):
     db2 = sm.GetService('DB2')
     if projectID is None:
         sql = "\n            SELECT messageID, text\n              FROM zlocalization.messageTexts T\n                INNER JOIN zlocalization.languages L ON L.numericLanguageID = T.numericLanguageID\n             WHERE L.languageID='%s'\n        " % languageID
@@ -101,13 +103,13 @@ def GetNumericLanguageIDFromLanguageID(languageID):
     raise ValueError('Unkown languageID %s' % languageID)
 
 
-def GetGroupLink(groupID, text = None):
+def GetGroupLink(groupID, text=None):
     if text is None:
         text = str(groupID)
     return '<a href="/localization/localizationbrowser.py#/f:%d/">%s</a>' % (groupID, text)
 
 
-def GetMessageLink(messageID, text = None):
+def GetMessageLink(messageID, text=None):
     if text is None:
         text = str(messageID)
     return '<a href="/localization/localizationbrowser.py#/m:%d/">%s</a>' % (messageID, text)

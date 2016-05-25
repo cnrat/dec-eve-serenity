@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\carbon\common\lib\jinja2\debug.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\carbon\common\lib\jinja2\debug.py
 import sys
 import traceback
 from types import TracebackType
@@ -21,6 +22,7 @@ class TracebackFrameProxy(object):
     def __init__(self, tb):
         self.tb = tb
         self._tb_next = None
+        return
 
     @property
     def tb_next(self):
@@ -34,6 +36,7 @@ class TracebackFrameProxy(object):
                 pass
 
         self._tb_next = next
+        return
 
     @property
     def is_jinja_frame(self):
@@ -47,16 +50,17 @@ def make_frame_proxy(frame):
     proxy = TracebackFrameProxy(frame)
     if tproxy is None:
         return proxy
+    else:
 
-    def operation_handler(operation, *args, **kwargs):
-        if operation in ('__getattribute__', '__getattr__'):
-            return getattr(proxy, args[0])
-        if operation == '__setattr__':
-            proxy.__setattr__(*args, **kwargs)
-        else:
-            return getattr(proxy, operation)(*args, **kwargs)
+        def operation_handler(operation, *args, **kwargs):
+            if operation in ('__getattribute__', '__getattr__'):
+                return getattr(proxy, args[0])
+            if operation == '__setattr__':
+                proxy.__setattr__(*args, **kwargs)
+            else:
+                return getattr(proxy, operation)(*args, **kwargs)
 
-    return tproxy(TracebackType, operation_handler)
+        return tproxy(TracebackType, operation_handler)
 
 
 class ProcessedTraceback(object):
@@ -72,12 +76,13 @@ class ProcessedTraceback(object):
             prev_tb = tb
 
         prev_tb.set_next(None)
+        return
 
-    def render_as_text(self, limit = None):
+    def render_as_text(self, limit=None):
         lines = traceback.format_exception(self.exc_type, self.exc_value, self.frames[0], limit=limit)
         return ''.join(lines).rstrip()
 
-    def render_as_html(self, full = False):
+    def render_as_html(self, full=False):
         from jinja2.debugrenderer import render_traceback
         return u'%s\n\n<!--\n%s\n-->' % (render_traceback(self, full=full), self.render_as_text().decode('utf-8', 'replace'))
 
@@ -97,7 +102,7 @@ class ProcessedTraceback(object):
         return (self.exc_type, self.exc_value, tb)
 
 
-def make_traceback(exc_info, source_hint = None):
+def make_traceback(exc_info, source_hint=None):
     exc_type, exc_value, tb = exc_info
     if isinstance(exc_value, TemplateSyntaxError):
         exc_info = translate_syntax_error(exc_value, source_hint)
@@ -107,7 +112,7 @@ def make_traceback(exc_info, source_hint = None):
     return translate_exception(exc_info, initial_skip)
 
 
-def translate_syntax_error(error, source = None):
+def translate_syntax_error(error, source=None):
     error.source = source
     error.translated = True
     exc_info = (error.__class__, error, None)
@@ -117,7 +122,7 @@ def translate_syntax_error(error, source = None):
     return fake_exc_info(exc_info, filename, error.lineno)
 
 
-def translate_exception(exc_info, initial_skip = 0):
+def translate_exception(exc_info, initial_skip=0):
     tb = exc_info[2]
     frames = []
     for x in xrange(initial_skip):
@@ -230,6 +235,7 @@ def _init_ugly_crap():
             next = _Traceback.from_address(id(next))
             next.ob_refcnt += 1
             obj.tb_next = ctypes.pointer(next)
+        return
 
     return tb_set_next
 

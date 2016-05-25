@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\client\script\ui\shared\fitting\baseSlot.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\client\script\ui\shared\fitting\baseSlot.py
 from carbon.common.script.sys.serviceConst import ROLE_GML, ROLE_WORLDMOD
 from carbon.common.script.util.timerstuff import AutoTimer
 from carbonui import const as uiconst
@@ -9,6 +10,7 @@ from eve.client.script.ui.shared.fitting.utilBtns import UtilBtnData
 import inventorycommon.const as invConst
 from localization import GetByLabel
 import localization
+import blue
 
 class FittingSlotBase(Transform):
     slotsToHintDict = {}
@@ -37,7 +39,7 @@ class FittingSlotBase(Transform):
     def HideSlot(self):
         self.state = uiconst.UI_HIDDEN
 
-    def ColorUnderlay(self, color = None):
+    def ColorUnderlay(self, color=None):
         a = self.sr.underlay.color.a
         r, g, b = color or (1.0, 1.0, 1.0)
         self.sr.underlay.color.SetRGB(r, g, b, a)
@@ -52,7 +54,7 @@ class FittingSlotBase(Transform):
             if self.controller.IsRigSlot():
                 m += [(MenuLabel('UI/Fitting/Destroy'), self.controller.Unfit)]
             else:
-                if session.stationid2 is not None:
+                if session.stationid2 is not None or session.structureid is not None:
                     m += [(MenuLabel('UI/Fitting/Unfit'), self.controller.Unfit)]
                 if self.controller.IsOnlineable():
                     if self.controller.IsOnline():
@@ -60,6 +62,8 @@ class FittingSlotBase(Transform):
                     else:
                         m.append((MenuLabel('UI/Fitting/PutOnline'), self.ToggleOnline))
             return m
+        else:
+            return
 
     def OnClick(self, *args):
         uicore.registry.SetFocus(self)
@@ -83,6 +87,7 @@ class FittingSlotBase(Transform):
             self.hint = self._emptyHint
             self.Hilite(1)
             uicore.Message('ListEntryEnter')
+        return
 
     def OnMouseExit(self, *args):
         if not self.controller.GetModule():
@@ -106,6 +111,7 @@ class FittingSlotBase(Transform):
                 self.Hilite(1)
             if flagID is not None and self.controller.GetFlagID() == flagID:
                 self.Hilite(1)
+        return
 
     def GetDroppedItems(self, nodes):
         items = []
@@ -128,8 +134,9 @@ class FittingSlotBase(Transform):
         slotKey = self.GetSlotKey(flagID)
         if slotKey is None or slotKey not in self.slotsToHintDict:
             return (GetByLabel('UI/Fitting/EmptySlot'), '')
-        labelPath, tooltipName = self.slotsToHintDict[slotKey]
-        return (GetByLabel(labelPath), tooltipName)
+        else:
+            labelPath, tooltipName = self.slotsToHintDict[slotKey]
+            return (GetByLabel(labelPath), tooltipName)
 
     def GetSlotKey(self, flagID):
         if flagID in invConst.hiSlotFlags:
@@ -146,20 +153,22 @@ class FittingSlotBase(Transform):
     def UpdateOnlineDisplay(self):
         if self.controller.parentController.GetItemID() == self.controller.dogmaLocation.shipIDBeingDisembarked:
             return
-        if self.controller.GetModule() is not None and self.controller.IsOnlineable():
-            if self.controller.IsOnline():
-                self.flagIcon.SetRGBA(1.0, 1.0, 1.0, 1.0)
-                if GetAttrs(self, 'sr', 'onlineButton') and self.sr.onlineButton.hint == localization.GetByLabel('UI/Fitting/PutOnline'):
-                    self.sr.onlineButton.hint = localization.GetByLabel('UI/Fitting/PutOffline')
-            else:
-                self.flagIcon.SetRGBA(1.0, 1.0, 1.0, 0.25)
-                if GetAttrs(self, 'sr', 'onlineButton') and self.sr.onlineButton.hint == localization.GetByLabel('UI/Fitting/PutOffline'):
-                    self.sr.onlineButton.hint = localization.GetByLabel('UI/Fitting/PutOnline')
-        elif self.flagIcon:
-            if self.controller.GetModule() is None or self.controller.SlotExists():
-                self.flagIcon.SetRGBA(1.0, 1.0, 1.0, 1.0)
-            else:
-                self.flagIcon.SetRGBA(0.7, 0.0, 0.0, 0.5)
+        else:
+            if self.controller.GetModule() is not None and self.controller.IsOnlineable():
+                if self.controller.IsOnline():
+                    self.flagIcon.SetRGBA(1.0, 1.0, 1.0, 1.0)
+                    if GetAttrs(self, 'sr', 'onlineButton') and self.sr.onlineButton.hint == localization.GetByLabel('UI/Fitting/PutOnline'):
+                        self.sr.onlineButton.hint = localization.GetByLabel('UI/Fitting/PutOffline')
+                else:
+                    self.flagIcon.SetRGBA(1.0, 1.0, 1.0, 0.25)
+                    if GetAttrs(self, 'sr', 'onlineButton') and self.sr.onlineButton.hint == localization.GetByLabel('UI/Fitting/PutOffline'):
+                        self.sr.onlineButton.hint = localization.GetByLabel('UI/Fitting/PutOnline')
+            elif self.flagIcon:
+                if self.controller.GetModule() is None or self.controller.SlotExists():
+                    self.flagIcon.SetRGBA(1.0, 1.0, 1.0, 1.0)
+                else:
+                    self.flagIcon.SetRGBA(0.7, 0.0, 0.0, 0.5)
+            return
 
     def GetRigsBtns(self):
         btns = [UtilBtnData(localization.GetByLabel('UI/Fitting/Destroy'), 'ui_38_16_200', self.controller.Unfit, 1, 0), UtilBtnData(localization.GetByLabel('UI/Commands/ShowInfo'), 'ui_38_16_208', self.ShowInfo, 1, 0)]
@@ -181,11 +190,13 @@ class FittingSlotBase(Transform):
 
         self.utilButtonsTimer = AutoTimer(500, self.HideUtilButtons)
 
-    def HideUtilButtons(self, force = 0):
+    def HideUtilButtons(self, force=0):
         mo = uicore.uilib.mouseOver
         if not force and (mo in self.utilButtons or mo == self or IsUnder(mo, self)):
             return
-        for button in self.utilButtons:
-            button.Hide()
+        else:
+            for button in self.utilButtons:
+                button.Hide()
 
-        self.utilButtonsTimer = None
+            self.utilButtonsTimer = None
+            return

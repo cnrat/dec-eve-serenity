@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\packages\carbonui\primitives\layoutGrid.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\packages\carbonui\primitives\layoutGrid.py
 import carbonui.const as uiconst
 import blue
 import weakref
@@ -48,11 +49,13 @@ class LayoutGridCell(Container):
     def CloseCellObject(self, cellObject, *args):
         if cellObject.destroyed:
             return
-        cellObject._originalClose()
-        cellObject._originalUpdateAlignment = None
-        cellObject._originalClose = None
-        if not self._containerClosing:
-            self.Close()
+        else:
+            cellObject._originalClose()
+            cellObject._originalUpdateAlignment = None
+            cellObject._originalClose = None
+            if not self._containerClosing:
+                self.Close()
+            return
 
     def Close(self, *args):
         parent = self.parent
@@ -112,13 +115,13 @@ class LayoutGridCell(Container):
                 value = None
             if self._cellPadding != value:
                 self._cellPadding = value
+            return
 
         def fget(self):
             if self._cellPadding:
                 return self._cellPadding
             if self.gridCellPadding:
                 return self.gridCellPadding
-            return (0, 0, 0, 0)
 
         return property(**locals())
 
@@ -337,27 +340,28 @@ class LayoutGrid(Container):
         self._layoutDirty = True
         self.FlagAlignmentDirty()
 
-    def AddCell(self, cellObject = None, colSpan = 1, rowSpan = 1, cellPadding = None, bgColor = None, cellClipChildren = False, cellClass = None, **keywords):
+    def AddCell(self, cellObject=None, colSpan=1, rowSpan=1, cellPadding=None, bgColor=None, cellClipChildren=False, cellClass=None, **keywords):
         if self.destroyed:
             return
-        if cellObject is None:
-            cellObject = Container()
         else:
-            cellObjects = [ child.GetCellObject() for child in self.children if isinstance(child, LayoutGridCell) ]
-            if cellObject in cellObjects:
-                raise RuntimeError('This object has already been inserted to the layout grid', cellObject)
-        if cellClass is None:
-            cellClass = LayoutGridCell
-        cell = cellClass(parent=self, align=uiconst.NOALIGN, colSpan=colSpan, rowSpan=rowSpan, cellObject=cellObject, cellPadding=cellPadding, gridCellPadding=self.cellPadding, clipChildren=cellClipChildren, bgColor=bgColor)
-        if self.debug_showCells:
-            Frame(bgParent=cell, color=(1, 0, 0, 0.5))
-        self.FlagGridLayoutDirty()
-        return cell
+            if cellObject is None:
+                cellObject = Container()
+            else:
+                cellObjects = [ child.GetCellObject() for child in self.children if isinstance(child, LayoutGridCell) ]
+                if cellObject in cellObjects:
+                    raise RuntimeError('This object has already been inserted to the layout grid', cellObject)
+            if cellClass is None:
+                cellClass = LayoutGridCell
+            cell = cellClass(parent=self, align=uiconst.NOALIGN, colSpan=colSpan, rowSpan=rowSpan, cellObject=cellObject, cellPadding=cellPadding, gridCellPadding=self.cellPadding, clipChildren=cellClipChildren, bgColor=bgColor)
+            if self.debug_showCells:
+                Frame(bgParent=cell, color=(1, 0, 0, 0.5))
+            self.FlagGridLayoutDirty()
+            return cell
 
     def DebugCells(self):
         self.debug_showCells = True
 
-    def AddRow(self, rowObjects = None, rowClass = None, **keywords):
+    def AddRow(self, rowObjects=None, rowClass=None, **keywords):
         keywords['columns'] = self.columns
         keywords.setdefault('cellPadding', self.cellPadding)
         keywords.setdefault('cellSpacing', self.cellSpacing)
@@ -379,7 +383,7 @@ class LayoutGrid(Container):
 
         self.FlagGridLayoutDirty()
 
-    def SetFixedGridWidth(self, fixedWidth = None):
+    def SetFixedGridWidth(self, fixedWidth=None):
         if fixedWidth and self.align in TOPBOTTOM_ALIGNMENTS:
             raise RuntimeError('Cannot set fixedWidth when using TOTOP or TOBOTTOM alignment')
         elif self.isAffectedByPushAlignment:
@@ -558,6 +562,7 @@ class LayoutGrid(Container):
                 self.height = maxScaledHeight + mt + mb
             if self.OnGridSizeChanged and (self.width, self.height) != (preWidth, preHeight):
                 self.OnGridSizeChanged(self.width, self.height)
+        return
 
     def UpdateGridLayout(self):
         rows = []
@@ -598,6 +603,7 @@ class LayoutGrid(Container):
         self._layoutData = rows
         self._layoutDirty = False
         self._sizesDirty = True
+        return
 
     def GetFirstEmpty(self, rows):
         rowIndex = 0

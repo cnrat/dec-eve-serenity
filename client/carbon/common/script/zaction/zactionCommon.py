@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\carbon\common\script\zaction\zactionCommon.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\carbon\common\script\zaction\zactionCommon.py
 import GameWorld
 import log
 import carbon.common.script.sys.service as service
@@ -31,6 +32,8 @@ class ActionComponent:
         except:
             log.LogException()
             self.defaultAction = action
+
+        return
 
     def GetDefaultAction(self):
         return self.defaultAction
@@ -136,6 +139,8 @@ class zactionCommonBase(service.Service):
                     else:
                         treeNode.AddActionProcRecord(str(proc.procType), proc.procID, proc.isMaster)
 
+        return
+
     def GetActionTree(self):
         return self.treeManager
 
@@ -207,7 +212,7 @@ def AddPropertyForCurrentPythonProc(propDict):
 class ProcTypeDef(object):
     __guid__ = 'zaction.ProcTypeDef'
 
-    def __init__(self, procCategory = None, isMaster = True, isConditional = False, properties = [], displayName = None, pythonProc = None, description = None, stepLocationRequirements = None, stepTypeRequirements = None, invalidProcDef = False):
+    def __init__(self, procCategory=None, isMaster=True, isConditional=False, properties=[], displayName=None, pythonProc=None, description=None, stepLocationRequirements=None, stepTypeRequirements=None, invalidProcDef=False):
         self.isMaster = isMaster
         self.isConditional = isConditional
         self.properties = properties
@@ -228,7 +233,7 @@ class ProcTypeDef(object):
 class ProcPropertyTypeDef(object):
     __guid__ = 'zaction.ProcPropertyTypeDef'
 
-    def __init__(self, name, dataType, userDataType = None, isPrivate = True, displayName = None, default = None, show = True):
+    def __init__(self, name, dataType, userDataType=None, isPrivate=True, displayName=None, default=None, show=True):
         self.name = name
         self.dataType = dataType
         self.userDataType = userDataType
@@ -252,33 +257,34 @@ def _ProcNameHelper(displayName, procRow):
         propName = name.group(1)
         if propName not in propDict:
             return '(ERR: ' + propName + ')'
-        propRows = ztree.NodeProperty.GetAllPropertiesByTreeNodeID(procRow.actionID)
-        for propRow in propRows:
-            if propRow.propertyName == propName:
-                for propDef in propDefs:
-                    if propDef.name == propName:
-                        dictVal = propDict[propName]
-                        subString = str(dictVal)
-                        if propDef.userDataType != None:
-                            typeInfo = getattr(actionProperties, propDef.userDataType, None)
-                            if typeInfo is not None and types.TupleType == type(typeInfo):
-                                if 'listMethod' == typeInfo[0]:
-                                    list = typeInfo[1](propRow)
-                                elif 'list' == typeInfo[0]:
-                                    list = typeInfo[1]
-                                else:
-                                    list = None
-                                for tuple in list:
-                                    name, val, desc = tuple[:3]
-                                    if val == dictVal:
-                                        subString = str(name)
-                                        break
+        else:
+            propRows = ztree.NodeProperty.GetAllPropertiesByTreeNodeID(procRow.actionID)
+            for propRow in propRows:
+                if propRow.propertyName == propName:
+                    for propDef in propDefs:
+                        if propDef.name == propName:
+                            dictVal = propDict[propName]
+                            subString = str(dictVal)
+                            if propDef.userDataType != None:
+                                typeInfo = getattr(actionProperties, propDef.userDataType, None)
+                                if typeInfo is not None and types.TupleType == type(typeInfo):
+                                    if 'listMethod' == typeInfo[0]:
+                                        list = typeInfo[1](propRow)
+                                    elif 'list' == typeInfo[0]:
+                                        list = typeInfo[1]
+                                    else:
+                                        list = None
+                                    for tuple in list:
+                                        name, val, desc = tuple[:3]
+                                        if val == dictVal:
+                                            subString = str(name)
+                                            break
 
-                        return subString
+                            return subString
 
-                break
+                    break
 
-        return '(ERR: ' + propName + ')'
+            return '(ERR: ' + propName + ')'
 
     return re.sub('(%\\(.*?\\).)', InterpretSub, displayName)
 

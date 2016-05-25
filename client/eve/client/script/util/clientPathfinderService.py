@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\client\script\util\clientPathfinderService.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\client\script\util\clientPathfinderService.py
 import service
 import util
 import const
@@ -34,12 +35,13 @@ class ClientPathfinderService(service.Service):
     __dependencies__ = ['settings', 'map', 'objectCaching']
     __notifyevents__ = ['OnSessionChanged']
 
-    def Run(self, memStream = None):
+    def Run(self, memStream=None):
         self.LogInfo('Starting Client Pathfinder Service')
 
     def OnSessionChanged(self, isRemote, session, change):
         if 'charid' in change and change['charid'][1] is not None:
             self.Initialize()
+        return
 
     def Initialize(self):
         self.LogInfo('Initializing the pathfinding internals')

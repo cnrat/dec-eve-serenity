@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\client\script\entities\entityMonitor.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\client\script\entities\entityMonitor.py
 import uicls
 import util
 
@@ -20,11 +21,9 @@ class EveEntityBrowser(uicls.EntityBrowserCore):
         return 'Entity %s' % entity.entityID
 
     def GetEntitySpawnID(self, entity):
-        if entity.HasComponent('info') and entity.info.spawnID:
-            return entity.info.spawnID
-        return 'UNKNOWN'
+        if entity.HasComponent('info'):
+            return entity.info.spawnID and entity.info.spawnID
 
     def GetEntityRecipeID(self, entity):
         if entity.HasComponent('info') and entity.info.recipeID:
             return entity.info.recipeID
-        return 'UNKNOWN'

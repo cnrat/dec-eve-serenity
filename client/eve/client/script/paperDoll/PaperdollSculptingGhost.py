@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\client\script\paperDoll\PaperdollSculptingGhost.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\client\script\paperDoll\PaperdollSculptingGhost.py
 import math
 from paperDoll import AvatarGhost
 from paperDoll import SetOrAddMap
@@ -7,7 +8,7 @@ from paperDoll import BeFrameNice
 class PaperdollSculptingGhost(AvatarGhost):
     __guid__ = 'PaperdollSculptingGhost.PaperdollSculptingGhost'
 
-    def __init__(self, zonePath, texturePath, noisePath, meshFilter = [], tiling = 40, ignoreZ = False):
+    def __init__(self, zonePath, texturePath, noisePath, meshFilter=[], tiling=40, ignoreZ=False):
         self.fx = None
         self.zonePath = zonePath
         self.texturePath = texturePath
@@ -16,6 +17,7 @@ class PaperdollSculptingGhost(AvatarGhost):
         self.ignoreZ = ignoreZ
         self.meshFilter = meshFilter
         self.isStarting = False
+        return
 
     def Start(self, avatar):
         if self.isStarting:
@@ -61,6 +63,7 @@ class PaperdollSculptingGhost(AvatarGhost):
     def Stop(self):
         self.StopGhostRenderJob()
         self.fx = None
+        return
 
     def IsActive(self):
         return self.fx is not None

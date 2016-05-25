@@ -1,20 +1,13 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\packages\projectdiscovery\client\projects\subcellular\processingview.py
-__author__ = 'ru.Hjalti'
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\packages\projectdiscovery\client\projects\subcellular\processingview.py
 import math
-import blue
-import uthread
-import uicontrols
-import uiprimitives
-import localization
-import taskimages
 import carbonui.const as uiconst
-from projectdiscovery.client import const
+import uiprimitives
 from carbonui.uianimations import animations
-from carbon.common.script.util.format import FmtAmt
+from projectdiscovery.client import const
 from projectdiscovery.client.util.eventlistener import eventlistener, on_event
 
 @eventlistener()
-
 class ProcessingView(uiprimitives.Container):
     default_height = 470
     default_width = 843
@@ -24,6 +17,7 @@ class ProcessingView(uiprimitives.Container):
         super(ProcessingView, self).ApplyAttributes(attributes)
         self.player_selection = None
         self.setup_layout()
+        return
 
     def setup_layout(self):
         self.processing_container = uiprimitives.Container(name='processingContainer', parent=self, width=842, height=70, align=uiconst.CENTER)
@@ -53,7 +47,7 @@ class ProcessingView(uiprimitives.Container):
     @on_event(const.Events.ContinueFromResult)
     def start(self):
         self.reset_processing_screen()
-        animations.FadeIn(self, timeOffset=0.2, callback=self.expand_screen)
+        animations.FadeIn(self, timeOffset=0.1, callback=self.expand_screen, duration=0.5)
 
     @property
     def gradient_height(self):

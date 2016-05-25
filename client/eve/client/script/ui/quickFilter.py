@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\client\script\ui\quickFilter.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\client\script\ui\quickFilter.py
 import uicontrols
 import blue
 import localization
@@ -25,6 +26,7 @@ class QuickFilterEdit(uicontrols.SinglelineEdit):
         self.OnFocusLost = self.RegisterInput
         self.OnClearFilter = attributes.OnClearFilter
         self.SetQuickFilterInput()
+        return
 
     def OnClearButtonClick(self, *args, **kwds):
         uicontrols.SinglelineEdit.OnClearButtonClick(self, *args, **kwds)
@@ -46,6 +48,7 @@ class QuickFilterEdit(uicontrols.SinglelineEdit):
         if self.filterThread is not None:
             self.filterThread.kill()
         self.filterThread = uthread.new(self._SetQuickFilterInput)
+        return
 
     def _SetQuickFilterInput(self):
         try:
@@ -54,20 +57,23 @@ class QuickFilterEdit(uicontrols.SinglelineEdit):
             self.filterThread = None
 
         self.DoReload()
+        return
 
     def DoReload(self):
         strFilter = self.GetValue()
         if self.lastStrFilter == strFilter:
             return
-        self.lastStrFilter = strFilter
-        if len(strFilter) > 0:
-            self.quickFilterInput = strFilter.lower()
-            self.ReloadFunction()
         else:
-            prefilter = self.quickFilterInput
-            self.quickFilterInput = None
-            if prefilter != None:
+            self.lastStrFilter = strFilter
+            if len(strFilter) > 0:
+                self.quickFilterInput = strFilter.lower()
                 self.ReloadFunction()
+            else:
+                prefilter = self.quickFilterInput
+                self.quickFilterInput = None
+                if prefilter != None:
+                    self.ReloadFunction()
+            return
 
     def ReloadFunction(self, *args):
         pass

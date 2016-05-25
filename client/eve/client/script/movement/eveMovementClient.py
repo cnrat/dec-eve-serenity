@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\client\script\movement\eveMovementClient.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\client\script\movement\eveMovementClient.py
 import GameWorld
 import geo2
 import log
@@ -15,6 +16,7 @@ class MovementClientComponent(CommonMovementComponent):
         self.IsFlyMode = False
         self.flySpeed = 0.15
         self.relay = None
+        return
 
 
 class EveMovementClient(MovementClient):
@@ -86,6 +88,8 @@ class EveMovementClient(MovementClient):
                     sys.exc_clear()
                     myMovement.IsFlyMode = False
 
+        return
+
     def OnMouseDown(self, button, posX, posY, entityID):
         self.drive = True
         self.TryFlyUpdate()
@@ -119,26 +123,29 @@ class EveMovementClient(MovementClient):
             height = self.gameWorldClient.GetFloorHeight(point, session.worldspaceid)
             destination = geo2.Vector(point.x, height, point.z)
             return destination
+            return
 
     def PathPlayerToCursorLocation(self):
         playerEntity = self.entityService.GetPlayerEntity()
         if playerEntity is None:
             return
-        aoSvc = sm.GetService('actionObjectClientSvc')
-        if aoSvc.IsEntityUsingActionObject(playerEntity.entityID) is True:
-            return
-        myMovement = playerEntity.GetComponent('movement')
-        destination = self._PickPointToPath()
-        if destination is None:
-            return
-        sm.GetService('debugRenderClient').ClearAllShapes()
-        sm.GetService('debugRenderClient').RenderSphere(destination, 0.2, 65280)
-        sm.GetService('infoGatheringSvc').LogInfoEvent(eventTypeID=const.infoEventDoubleclickToMove, itemID=session.charid, int_1=1)
-        if isinstance(myMovement.moveModeManager.GetCurrentMode(), GameWorld.PathToMode):
-            myMovement.moveModeManager.GetCurrentMode().SetDestination(destination)
         else:
-            pathToMode = GameWorld.PathToMode(destination, 0.1, False, True)
-            myMovement.moveModeManager.PushMoveMode(pathToMode)
+            aoSvc = sm.GetService('actionObjectClientSvc')
+            if aoSvc.IsEntityUsingActionObject(playerEntity.entityID) is True:
+                return
+            myMovement = playerEntity.GetComponent('movement')
+            destination = self._PickPointToPath()
+            if destination is None:
+                return
+            sm.GetService('debugRenderClient').ClearAllShapes()
+            sm.GetService('debugRenderClient').RenderSphere(destination, 0.2, 65280)
+            sm.GetService('infoGatheringSvc').LogInfoEvent(eventTypeID=const.infoEventDoubleclickToMove, itemID=session.charid, int_1=1)
+            if isinstance(myMovement.moveModeManager.GetCurrentMode(), GameWorld.PathToMode):
+                myMovement.moveModeManager.GetCurrentMode().SetDestination(destination)
+            else:
+                pathToMode = GameWorld.PathToMode(destination, 0.1, False, True)
+                myMovement.moveModeManager.PushMoveMode(pathToMode)
+            return
 
     def ToggleExtrapolation(self):
         for entity in self.entityService.GetEntityScene(session.worldspaceid).entities.values():

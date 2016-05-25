@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\devtools\script\localizationUtil\localization_window.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\devtools\script\localizationUtil\localization_window.py
 import uicontrols
 import uicls
 import uiprimitives
@@ -126,10 +127,11 @@ class LocalizationWindow(uicontrols.Window):
     def HideMessageContainer(self):
         self.messageContainerMain.state = uiconst.UI_HIDDEN
 
-    def UpdateScroll(self, localizationData = None):
+    def UpdateScroll(self, localizationData=None):
         if localizationData is None:
             localizationData = self.localizationHandler.GetScrollList()
         self.leftScroll.Load(contentList=localizationData)
+        return
 
     def Submit(self, *args):
         label = self.msgLabelEdit.GetValue()
@@ -143,6 +145,7 @@ class LocalizationWindow(uicontrols.Window):
         else:
             self.selectedMessage.UpdateMessage(self.selectedMessage, label, text, context)
             self.UpdateScroll()
+        return
 
     def AddDate(self, *args):
         self.AddFormatting('{[datetime]', ', date=medium, time=short}')

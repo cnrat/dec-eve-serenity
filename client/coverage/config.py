@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\carbon\common\stdlib\coverage\config.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\carbon\common\stdlib\coverage\config.py
 import os, re, sys
 from coverage.backward import string_class, iitems
 try:
@@ -23,6 +24,7 @@ class HandyConfigParser(configparser.RawConfigParser):
                 return '$'
             else:
                 return os.environ.get(word, '')
+                return
 
         dollar_pattern = '(?x)   # Use extended regex syntax\n            \\$(?:                   # A dollar sign, then\n            (?P<v1>\\w+) |           #   a plain word,\n            {(?P<v2>\\w+)} |         #   or a {-wrapped word,\n            (?P<char>[$])           #   or a dollar sign.\n            )\n            '
         v = re.sub(dollar_pattern, dollar_replace, v)
@@ -73,6 +75,7 @@ class CoverageConfig(object):
         self.html_title = 'Coverage report'
         self.xml_output = 'coverage.xml'
         self.paths = {}
+        return
 
     def from_environment(self, env_var):
         env = os.environ.get(env_var, '')
@@ -88,6 +91,8 @@ class CoverageConfig(object):
                     v = [v]
                 setattr(self, k, v)
 
+        return
+
     def from_file(self, filename):
         self.attempted_config_files.append(filename)
         cp = HandyConfigParser()
@@ -100,6 +105,8 @@ class CoverageConfig(object):
         if cp.has_section('paths'):
             for option in cp.options('paths'):
                 self.paths[option] = cp.getlist('paths', option)
+
+        return
 
     CONFIG_FILE_OPTIONS = [('branch', 'run:branch', 'boolean'),
      ('cover_pylib', 'run:cover_pylib', 'boolean'),
@@ -123,7 +130,7 @@ class CoverageConfig(object):
      ('html_title', 'html:title'),
      ('xml_output', 'xml:output')]
 
-    def set_attr_from_config_option(self, cp, attr, where, type_ = ''):
+    def set_attr_from_config_option(self, cp, attr, where, type_=''):
         section, option = where.split(':')
         if cp.has_option(section, option):
             method = getattr(cp, 'get' + type_)

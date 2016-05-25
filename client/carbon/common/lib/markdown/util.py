@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\carbon\common\lib\markdown\util.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\carbon\common\lib\markdown\util.py
 import re
 from logging import CRITICAL
 import etree_loader
@@ -24,7 +25,7 @@ class AtomicString(unicode):
 
 class Processor:
 
-    def __init__(self, markdown_instance = None):
+    def __init__(self, markdown_instance=None):
         if markdown_instance:
             self.markdown = markdown_instance
 
@@ -35,7 +36,7 @@ class HtmlStash:
         self.html_counter = 0
         self.rawHtmlBlocks = []
 
-    def store(self, html, safe = False):
+    def store(self, html, safe=False):
         self.rawHtmlBlocks.append((html, safe))
         placeholder = self.get_placeholder(self.html_counter)
         self.html_counter += 1

@@ -1,4 +1,5 @@
-#Embedded file name: C:\jamieb_jamieb-pc_STABLE_1796\fsdSchemas\nestedIndexedOffsetData.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: C:\jamieb_jamieb-pc_STABLE_1796\fsdSchemas\nestedIndexedOffsetData.py
 import logging
 log = logging.getLogger(__name__)
 import time
@@ -21,7 +22,7 @@ class NestedKeyDuplicationError(Exception):
 
 class IndexedOffsetData(object):
 
-    def __init__(self, offset = 0):
+    def __init__(self, offset=0):
         self.offset = offset
         self.offsetData = {}
         self.nestedIndexedOffsetDataList = []

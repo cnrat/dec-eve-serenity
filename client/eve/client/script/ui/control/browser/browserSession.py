@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\client\script\ui\control\browser\browserSession.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\client\script\ui\control\browser\browserSession.py
 import browser
 import browserutil
 import corebrowserutil
@@ -19,7 +20,7 @@ import uiutil
 import ccpmetrics
 import utillib
 t = 0
-metrics = ccpmetrics.CCPMetrics(ccpmetrics.METRICS_SERVER, ccpmetrics.METRICS_SERVER_PORT)
+metrics = ccpmetrics.Client('public-metrics.tech.ccp.is')
 
 def ThreadDeco(f):
 
@@ -38,14 +39,14 @@ def ThreadDeco(f):
 
 class EveBrowserSession(browser.CoreBrowserSession):
 
-    def AppStartup(self, sessionName, initialUrl = None, browserEventHandler = None, autoHandleLockdown = True, *args):
+    def AppStartup(self, sessionName, initialUrl=None, browserEventHandler=None, autoHandleLockdown=True, *args):
         self.title = localization.GetByLabel('UI/Browser/UntitledPage')
 
     def AppCleanup(self):
         pass
 
     def AppGetJavascriptObjectName(self):
-        return 'CCPEVE'
+        pass
 
     def AppSetupBrowserSession(self):
         self.RegisterCommonJavascriptCallbacks()
@@ -136,16 +137,19 @@ class EveBrowserSession(browser.CoreBrowserSession):
             x, y = min(uicore.desktop.width - mv.width, x), min(uicore.desktop.height - mv.height, y)
             mv.left, mv.top = x, y
             uicore.layer.menu.children.insert(0, mv)
+        return
 
     def AddJavascriptCallbackForRestrictedFunction(self, callbackName, callbackFunction):
         if not self:
             return
-        if not hasattr(self, 'browser') or self.browser is None:
+        elif not hasattr(self, 'browser') or self.browser is None:
             return
-        self.browser.RegisterJavaScriptCallback(self.AppGetJavascriptObjectName(), callbackName, callbackFunction)
-        self.browserHostManager.AssignCallbackToList(self.AppGetJavascriptObjectName(), callbackName, 'trusted')
-        self.browserHostManager.AssignCallbackToList(self.AppGetJavascriptObjectName(), callbackName, 'CCP')
-        self.browserHostManager.AssignCallbackToList(self.AppGetJavascriptObjectName(), callbackName, 'COMMUNITY')
+        else:
+            self.browser.RegisterJavaScriptCallback(self.AppGetJavascriptObjectName(), callbackName, callbackFunction)
+            self.browserHostManager.AssignCallbackToList(self.AppGetJavascriptObjectName(), callbackName, 'trusted')
+            self.browserHostManager.AssignCallbackToList(self.AppGetJavascriptObjectName(), callbackName, 'CCP')
+            self.browserHostManager.AssignCallbackToList(self.AppGetJavascriptObjectName(), callbackName, 'COMMUNITY')
+            return
 
     def RegisterCommonJavascriptCallbacks(self):
         self.AddJavascriptCallback('openEveMail', OpenEveMail)
@@ -200,57 +204,61 @@ class EveBrowserSession(browser.CoreBrowserSession):
         submit_metric('igb_show_route_to')
         if not self._IsBrowserWindowActive():
             return
-        destinationID = None
-        sourceID = None
-        if len(args) < 1:
-            log.LogError('Insufficient arguments for CCPEVE.ShowRouteTo. You must pass in at least one argument.')
-            return
-        if len(args) == 1:
-            fromto = args[0].split('::')
-            if len(fromto) == 2:
-                destinationID = fromto[0]
-                sourceID = fromto[1]
+        else:
+            destinationID = None
+            sourceID = None
+            if len(args) < 1:
+                log.LogError('Insufficient arguments for CCPEVE.ShowRouteTo. You must pass in at least one argument.')
+                return
+            if len(args) == 1:
+                fromto = args[0].split('::')
+                if len(fromto) == 2:
+                    destinationID = fromto[0]
+                    sourceID = fromto[1]
+                else:
+                    destinationID = args[0]
             else:
                 destinationID = args[0]
-        else:
-            destinationID = args[0]
-            sourceID = args[1]
-        if eve.session.stationid:
-            sm.GetService('station').CleanUp()
-        destinationID = browserutil.SanitizedSolarsystemID(destinationID)
-        if sourceID is not None:
-            sourceID = browserutil.SanitizedSolarsystemID(sourceID)
-        if destinationID is None:
-            log.LogError('Error when converting destinationID in CCPEVE.ShowRouteTo. First argument must be an integer.')
+                sourceID = args[1]
+            if eve.session.stationid:
+                sm.GetService('station').CleanUp()
+            destinationID = browserutil.SanitizedSolarsystemID(destinationID)
+            if sourceID is not None:
+                sourceID = browserutil.SanitizedSolarsystemID(sourceID)
+            if destinationID is None:
+                log.LogError('Error when converting destinationID in CCPEVE.ShowRouteTo. First argument must be an integer.')
+                return
+            interestID = sourceID if sourceID is not None else eve.session.regionid
+            from eve.client.script.ui.shared.mapView.mapViewUtil import OpenMap
+            OpenMap(interestID=interestID, drawRoute=(sourceID, destinationID))
+            if self.browserEventHandler and hasattr(self.browserEventHandler, 'Minimize'):
+                self.browserEventHandler.Minimize()
             return
-        interestID = sourceID if sourceID is not None else eve.session.regionid
-        from eve.client.script.ui.shared.mapView.mapViewUtil import OpenMap
-        OpenMap(interestID=interestID, drawRoute=(sourceID, destinationID))
-        if self.browserEventHandler and hasattr(self.browserEventHandler, 'Minimize'):
-            self.browserEventHandler.Minimize()
 
     @ThreadDeco
     def ShowMap(self, *args):
         submit_metric('igb_show_map')
         if not self._IsBrowserWindowActive():
             return
-        interestID = None
-        for arg in args:
-            solarsystemIDs = [ ssID for ssID in arg.split('//') ]
-            for ssID in solarsystemIDs:
-                interestID = browserutil.SanitizedSolarsystemID(ssID)
+        else:
+            interestID = None
+            for arg in args:
+                solarsystemIDs = [ ssID for ssID in arg.split('//') ]
+                for ssID in solarsystemIDs:
+                    interestID = browserutil.SanitizedSolarsystemID(ssID)
+                    if interestID is not None:
+                        break
+
                 if interestID is not None:
                     break
 
-            if interestID is not None:
-                break
-
-        if interestID is None:
-            interestID = session.solarsystemid2
-        from eve.client.script.ui.shared.mapView.mapViewUtil import OpenMap
-        OpenMap(interestID=interestID)
-        if self.browserEventHandler and hasattr(self.browserEventHandler, 'Minimize'):
-            self.browserEventHandler.Minimize()
+            if interestID is None:
+                interestID = session.solarsystemid2
+            from eve.client.script.ui.shared.mapView.mapViewUtil import OpenMap
+            OpenMap(interestID=interestID)
+            if self.browserEventHandler and hasattr(self.browserEventHandler, 'Minimize'):
+                self.browserEventHandler.Minimize()
+            return
 
     @ThreadDeco
     def SetDestination(self, *args):
@@ -262,6 +270,7 @@ class EveBrowserSession(browser.CoreBrowserSession):
                 break
 
         sm.GetService('starmap').SetWaypoint(destinationID, clearOtherWaypoints=True)
+        return
 
     @ThreadDeco
     def AddWaypoint(self, *args):
@@ -278,6 +287,8 @@ class EveBrowserSession(browser.CoreBrowserSession):
                 if destinationID not in starMapSvc.GetWaypoints():
                     starMapSvc.SetWaypoint(destinationID, clearOtherWaypoints=False, first=False)
 
+        return
+
     def RequestTrust(self, inputUrl):
         submit_metric('igb_request_trust')
         uthread.new(self._RequestTrust, inputUrl)
@@ -286,44 +297,50 @@ class EveBrowserSession(browser.CoreBrowserSession):
         if not inputUrl.startswith('http://') and not inputUrl.startswith('https://'):
             log.LogError('CCPEVE.RequestTrust - Input URL must start with either http:// or https:// -- received', inputUrl)
             return
-        scheme, netloc, path, query, fragment = urlparse.urlsplit(inputUrl)
-        if path is None or path == '':
-            path = '/'
-        trustUrl = '%s://%s%s' % (scheme, netloc, path)
-        if sm.GetService('sites').IsTrusted(trustUrl) or sm.GetService('sites').IsIgnored(trustUrl):
-            log.LogInfo('CCPEVE.RequestTrust - Received top-level URL is already trusted or ignored:', trustUrl)
+        else:
+            scheme, netloc, path, query, fragment = urlparse.urlsplit(inputUrl)
+            if path is None or path == '':
+                path = '/'
+            trustUrl = '%s://%s%s' % (scheme, netloc, path)
+            if sm.GetService('sites').IsTrusted(trustUrl) or sm.GetService('sites').IsIgnored(trustUrl):
+                log.LogInfo('CCPEVE.RequestTrust - Received top-level URL is already trusted or ignored:', trustUrl)
+                return
+            currentUrl = self.GetCurrentURL()
+            if sm.GetService('sites').IsIgnored(currentUrl):
+                log.LogInfo('CCPEVE.RequestTrust - Calling URL is ignored, discarding:', currentUrl)
+                return
+            wnd = uicls.TrustedSitePromptWindow.GetIfOpen(windowID='trustPromptWindow_%s' % netloc)
+            if wnd:
+                wnd.Maximize()
+                log.LogWarn('CCPEVE.RequestTrust - Trust prompt window was already open - skipping!')
+                return
+            wnd = uicls.TrustedSitePromptWindow.Open(windowID='trustPromptWindow_%s' % netloc, trustUrl=inputUrl, inputUrl=currentUrl)
             return
-        currentUrl = self.GetCurrentURL()
-        if sm.GetService('sites').IsIgnored(currentUrl):
-            log.LogInfo('CCPEVE.RequestTrust - Calling URL is ignored, discarding:', currentUrl)
-            return
-        wnd = uicls.TrustedSitePromptWindow.GetIfOpen(windowID='trustPromptWindow_%s' % netloc)
-        if wnd:
-            wnd.Maximize()
-            log.LogWarn('CCPEVE.RequestTrust - Trust prompt window was already open - skipping!')
-            return
-        wnd = uicls.TrustedSitePromptWindow.Open(windowID='trustPromptWindow_%s' % netloc, trustUrl=inputUrl, inputUrl=currentUrl)
 
     @ThreadDeco
     def JoinChannel(self, channelName):
         submit_metric('igb_join_channel')
         if channelName is None:
             return
-        channelName = channelName.strip()
-        if len(channelName) > 0:
-            sm.GetService('LSC').CreateOrJoinChannel(channelName, create=False)
+        else:
+            channelName = channelName.strip()
+            if len(channelName) > 0:
+                sm.GetService('LSC').CreateOrJoinChannel(channelName, create=False)
+            return
 
     @ThreadDeco
     def JoinMailingList(self, mailingListName):
         submit_metric('igb_join_mailing_list')
         if mailingListName is None:
             return
-        listName = mailingListName.strip()
-        if len(listName) > 0:
-            sm.GetService('mailinglists').JoinMailingList(listName)
+        else:
+            listName = mailingListName.strip()
+            if len(listName) > 0:
+                sm.GetService('mailinglists').JoinMailingList(listName)
+            return
 
     @ThreadDeco
-    def CreateContract(self, contractType, stationID = None, itemIDs = None):
+    def CreateContract(self, contractType, stationID=None, itemIDs=None):
         submit_metric('igb_create_contract')
         if contractType:
             contractType = int(contractType)
@@ -495,6 +512,7 @@ class EveBrowserSession(browser.CoreBrowserSession):
         locationID = ValidLocationID(locationID)
         parentID = sm.GetService('map').GetParentLocationID(locationID)
         sm.GetService('addressbook').BookmarkLocationPopup(locationID, None, parentID)
+        return
 
     @ThreadDeco
     def ShowSovereignty(self, itemID):
@@ -556,36 +574,38 @@ def ShowInfo(*args):
     if len(args) <= 0:
         log.LogError('CCPEVE.ShowInfo requires at least one argument!')
         return
-    if len(args) == 1:
-        typeID = args[0]
-        if typeID.find('//') >= 0:
-            log.LogWarn('CCPEVE.ShowInfo: Old-style arguments are being passed in!')
-            ids = typeID.split('//')
-            typeID = ids[0]
-            itemID = None
-            if len(ids) > 1:
-                try:
-                    itemID = int(ids[1])
-                except:
-                    log.LogError('CCPEVE.ShowInfo failed to convert itemID in string:' + ids[1])
-                    return
+    else:
+        if len(args) == 1:
+            typeID = args[0]
+            if typeID.find('//') >= 0:
+                log.LogWarn('CCPEVE.ShowInfo: Old-style arguments are being passed in!')
+                ids = typeID.split('//')
+                typeID = ids[0]
+                itemID = None
+                if len(ids) > 1:
+                    try:
+                        itemID = int(ids[1])
+                    except:
+                        log.LogError('CCPEVE.ShowInfo failed to convert itemID in string:' + ids[1])
+                        return
 
-    else:
-        typeID = args[0]
-        itemID = args[1]
-    safeTypeID = browserutil.SanitizedTypeID(typeID)
-    if safeTypeID is None:
-        log.LogError('Type ID passed to CCPEVE.ShowInfo was invalid:', typeID)
+        else:
+            typeID = args[0]
+            itemID = args[1]
+        safeTypeID = browserutil.SanitizedTypeID(typeID)
+        if safeTypeID is None:
+            log.LogError('Type ID passed to CCPEVE.ShowInfo was invalid:', typeID)
+            return
+        if itemID is not None:
+            itemID = browserutil.SanitizedItemID(itemID)
+        if evetypes.GetCategoryID(safeTypeID) == const.categoryAbstract:
+            abstractinfo = util.KeyVal()
+            if typeID == const.typeCertificate:
+                abstractinfo.certificateID = itemID
+            sm.GetService('info').ShowInfo(safeTypeID, itemID, abstractinfo=abstractinfo)
+        else:
+            sm.GetService('info').ShowInfo(safeTypeID, itemID)
         return
-    if itemID is not None:
-        itemID = browserutil.SanitizedItemID(itemID)
-    if evetypes.GetCategoryID(safeTypeID) == const.categoryAbstract:
-        abstractinfo = util.KeyVal()
-        if typeID == const.typeCertificate:
-            abstractinfo.certificateID = itemID
-        sm.GetService('info').ShowInfo(safeTypeID, itemID, abstractinfo=abstractinfo)
-    else:
-        sm.GetService('info').ShowInfo(safeTypeID, itemID)
 
 
 @ThreadDeco
@@ -595,7 +615,9 @@ def ShowPreview(typeID):
     if safeTypeID is None or not util.IsPreviewable(safeTypeID):
         log.LogError('Type ID passed to Client.ShowPreview was invalid:', typeID)
         return
-    sm.GetService('preview').PreviewType(safeTypeID)
+    else:
+        sm.GetService('preview').PreviewType(safeTypeID)
+        return
 
 
 @ThreadDeco
@@ -610,27 +632,29 @@ def ShowContract(*args):
     if len(args) < 1:
         log.LogError('CCPEVE.ShowContract received insufficient arguments. This method requires a SolarSystemID and a ContractID.')
         return
-    if len(args) == 1:
-        ids = args[0].split('//')
-        if len(ids) < 2:
-            log.LogError('CCPEVE.ShowContract received old-style insufficient arguments. This method requires a SolarSystemID and a ContractID.')
-            return
-        contractID = ids[1]
-        solarSystemID = ids[0]
     else:
-        contractID = args[1]
-        solarSystemID = args[0]
-    try:
-        contractID = int(contractID)
-    except:
-        log.LogError('CCPEVE.ShowContract failed to convert contractID to an integer:', contractID)
-        return
+        if len(args) == 1:
+            ids = args[0].split('//')
+            if len(ids) < 2:
+                log.LogError('CCPEVE.ShowContract received old-style insufficient arguments. This method requires a SolarSystemID and a ContractID.')
+                return
+            contractID = ids[1]
+            solarSystemID = ids[0]
+        else:
+            contractID = args[1]
+            solarSystemID = args[0]
+        try:
+            contractID = int(contractID)
+        except:
+            log.LogError('CCPEVE.ShowContract failed to convert contractID to an integer:', contractID)
+            return
 
-    solarSystemID = browserutil.SanitizedSolarsystemID(solarSystemID)
-    if contractID is None or solarSystemID is None:
-        log.LogError('CCPEVE.ShowContract received invalid contract or solarsystem IDs; contractID:', contractID, 'solarSystemID:', solarSystemID)
+        solarSystemID = browserutil.SanitizedSolarsystemID(solarSystemID)
+        if contractID is None or solarSystemID is None:
+            log.LogError('CCPEVE.ShowContract received invalid contract or solarsystem IDs; contractID:', contractID, 'solarSystemID:', solarSystemID)
+            return
+        sm.GetService('contracts').ShowContract(contractID)
         return
-    sm.GetService('contracts').ShowContract(contractID)
 
 
 @ThreadDeco
@@ -644,7 +668,9 @@ def ShowMarketDetails(typeID):
     if safeTypeID is None:
         log.LogError('Type ID passed to Client.ShowMarketDetails was invalid:', typeID)
         return
-    sm.GetService('marketutils').ShowMarketDetails(safeTypeID, None)
+    else:
+        sm.GetService('marketutils').ShowMarketDetails(safeTypeID, None)
+        return
 
 
 def submit_metric(metric_name):

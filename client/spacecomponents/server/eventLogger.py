@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\packages\spacecomponents\server\eventLogger.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\packages\spacecomponents\server\eventLogger.py
 from eveexceptions.exceptionEater import ExceptionEater
 EVENT_DECAYED = 'spacecomponent::decay_Decayed'
 EVENT_BECOMEACTIVE = 'spacecomponent::activate_BecomeActive'

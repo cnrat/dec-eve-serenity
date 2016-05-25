@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\carbon\common\lib\cherrypy\lib\httputil.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\carbon\common\lib\cherrypy\lib\httputil.py
 from binascii import b2a_base64
 from cherrypy._cpcompat import BaseHTTPRequestHandler, HTTPDate, ntob, ntou, reversed, sorted
 from cherrypy._cpcompat import basestring, iteritems, unicodestr, unquote_qs
@@ -23,34 +24,36 @@ def protocol_from_http(protocol_str):
 def get_ranges(headervalue, content_length):
     if not headervalue:
         return None
-    result = []
-    bytesunit, byteranges = headervalue.split('=', 1)
-    for brange in byteranges.split(','):
-        start, stop = [ x.strip() for x in brange.split('-', 1) ]
-        if start:
-            if not stop:
-                stop = content_length - 1
-            start, stop = int(start), int(stop)
-            if start >= content_length:
-                continue
-            if stop < start:
-                return None
-            result.append((start, stop + 1))
-        else:
-            if not stop:
-                return None
-            result.append((content_length - int(stop), content_length))
+    else:
+        result = []
+        bytesunit, byteranges = headervalue.split('=', 1)
+        for brange in byteranges.split(','):
+            start, stop = [ x.strip() for x in brange.split('-', 1) ]
+            if start:
+                if not stop:
+                    stop = content_length - 1
+                start, stop = int(start), int(stop)
+                if start >= content_length:
+                    continue
+                if stop < start:
+                    return None
+                result.append((start, stop + 1))
+            else:
+                if not stop:
+                    return None
+                result.append((content_length - int(stop), content_length))
 
-    return result
+        return result
 
 
 class HeaderElement(object):
 
-    def __init__(self, value, params = None):
+    def __init__(self, value, params=None):
         self.value = value
         if params is None:
             params = {}
         self.params = params
+        return
 
     def __cmp__(self, other):
         return cmp(self.value, other.value)
@@ -153,7 +156,7 @@ def valid_status(status):
     status = str(status)
     parts = status.split(' ', 1)
     if len(parts) == 1:
-        code, = parts
+        code = parts
         reason = None
     else:
         code, reason = parts
@@ -174,7 +177,7 @@ def valid_status(status):
     return (code, reason, message)
 
 
-def _parse_qs(qs, keep_blank_values = 0, strict_parsing = 0, encoding = 'utf-8'):
+def _parse_qs(qs, keep_blank_values=0, strict_parsing=0, encoding='utf-8'):
     pairs = [ s2 for s1 in qs.split('&') for s2 in s1.split(';') ]
     d = {}
     for name_value in pairs:
@@ -203,7 +206,7 @@ def _parse_qs(qs, keep_blank_values = 0, strict_parsing = 0, encoding = 'utf-8')
 
 image_map_pattern = re.compile('[0-9]+,[0-9]+')
 
-def parse_query_string(query_string, keep_blank_values = True, encoding = 'utf-8'):
+def parse_query_string(query_string, keep_blank_values=True, encoding='utf-8'):
     if image_map_pattern.match(query_string):
         pm = query_string.split(',')
         pm = {'x': int(pm[0]),
@@ -227,7 +230,7 @@ class CaseInsensitiveDict(dict):
     def __contains__(self, key):
         return dict.__contains__(self, str(key).title())
 
-    def get(self, key, default = None):
+    def get(self, key, default=None):
         return dict.get(self, str(key).title(), default)
 
     def has_key(self, key):
@@ -237,7 +240,7 @@ class CaseInsensitiveDict(dict):
         for k in E.keys():
             self[str(k).title()] = E[k]
 
-    def fromkeys(cls, seq, value = None):
+    def fromkeys(cls, seq, value=None):
         newdict = cls()
         for k in seq:
             newdict[str(k).title()] = value
@@ -246,7 +249,7 @@ class CaseInsensitiveDict(dict):
 
     fromkeys = classmethod(fromkeys)
 
-    def setdefault(self, key, x = None):
+    def setdefault(self, key, x=None):
         key = str(key).title()
         try:
             return self[key]
@@ -307,12 +310,13 @@ class Host(object):
     port = 80
     name = 'unknown.tld'
 
-    def __init__(self, ip, port, name = None):
+    def __init__(self, ip, port, name=None):
         self.ip = ip
         self.port = port
         if name is None:
             name = ip
         self.name = name
+        return
 
     def __repr__(self):
         return 'httputil.Host(%r, %r, %r)' % (self.ip, self.port, self.name)

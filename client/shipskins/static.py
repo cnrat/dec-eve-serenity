@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\packages\shipskins\static.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\packages\shipskins\static.py
 import fsdlite
 from itertools import chain
 import os
@@ -71,7 +72,7 @@ def SkinMaterialStorage():
 
 class SkinStaticData(object):
 
-    def __init__(self, bootrole = 'client', packaged = False, resolvePathFunc = None, region = None):
+    def __init__(self, bootrole='client', packaged=False, resolvePathFunc=None, region=None):
         self._bootrole = bootrole
         self._packaged = packaged
         self._ResolvePath = resolvePathFunc

@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\carbon\common\stdlib\unittest\test\test_setups.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\carbon\common\stdlib\unittest\test\test_setups.py
 import sys
 from cStringIO import StringIO
 import unittest
@@ -403,6 +404,7 @@ class TestSetups(unittest.TestCase):
         sys.modules.pop('Module', None)
         result = self.runTests(Test)
         self.assertEqual(result.testsRun, 2)
+        return
 
     def test_teardown_module(self):
 

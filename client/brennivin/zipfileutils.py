@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\packages\brennivin\zipfileutils.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\packages\brennivin\zipfileutils.py
 import os as _os
 import zipfile as _zipfile
 from zipfile import ZipFile
@@ -23,7 +24,7 @@ class FileComparisonError(Exception):
 ALL = dochelpers.pretty_func(lambda _: True, 'ALL')
 NONE = dochelpers.pretty_func(lambda _: False, 'NONE')
 
-def write_files(fullpaths, zfile, include = ALL, exclude = NONE, subdir = None, rootpath = None):
+def write_files(fullpaths, zfile, include=ALL, exclude=NONE, subdir=None, rootpath=None):
     for path in fullpaths:
         if include(path) and not exclude(path):
             arcname = None
@@ -33,12 +34,14 @@ def write_files(fullpaths, zfile, include = ALL, exclude = NONE, subdir = None, 
                     arcname = _os.path.join(subdir, arcname)
             zfile.write(path, arcname)
 
+    return
 
-def write_dir(rootpath, zfile, include = ALL, exclude = NONE, subdir = None):
+
+def write_dir(rootpath, zfile, include=ALL, exclude=NONE, subdir=None):
     write_files(osutils.iter_files(rootpath), zfile, include, exclude, subdir, rootpath)
 
 
-def zip_dir(rootdir, outfile, include = ALL, exclude = NONE, subdir = None):
+def zip_dir(rootdir, outfile, include=ALL, exclude=NONE, subdir=None):
     outdir = _os.path.dirname(outfile)
     if not _os.path.exists(outdir):
         _os.makedirs(outdir)

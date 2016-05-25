@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\client\script\ui\shared\planet\planetUIPins.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\client\script\ui\shared\planet\planetUIPins.py
 import carbonui.const as uiconst
 import evetypes
 import util
@@ -64,8 +65,9 @@ class SpherePinStack():
         self.rotateThread = None
         self.destroyed = False
         self.model3D = None
+        return
 
-    def CreateSpherePin(self, textureName, layer, radius, transform, isGauge = False, scale = 1.01, color = util.Color.WHITE, display = True, offsetScale = 1.0, xOffset = 0.0, yOffset = 0.0, maxRadius = None):
+    def CreateSpherePin(self, textureName, layer, radius, transform, isGauge=False, scale=1.01, color=util.Color.WHITE, display=True, offsetScale=1.0, xOffset=0.0, yOffset=0.0, maxRadius=None):
         if isGauge:
             shaderName = 'res:/Graphics/Effect/Managed/Space/UI/SpherePinThreshold.fx'
         else:
@@ -89,7 +91,7 @@ class SpherePinStack():
         sp.pinColor = color
         return sp
 
-    def CreateIconSpherePin(self, layer, radius, transform, typeID, scale = 1.01, color = util.Color.WHITE):
+    def CreateIconSpherePin(self, layer, radius, transform, typeID, scale=1.01, color=util.Color.WHITE):
         iconFile = inventorycommon.typeHelpers.GetIcon(typeID).iconFile
         path = uicontrols.Icon.ConvertIconNoToResPath(None, iconFile)
         return self.CreateSpherePin(textureName=path, layer=layer, radius=radius, transform=transform, scale=scale, color=color, offsetScale=1.0, xOffset=0.0, yOffset=0.0)
@@ -140,11 +142,13 @@ class SpherePinStack():
     def Hide3dModel(self):
         if not self.model3D:
             return
-        if self.model3D in self.transform.children:
-            self.transform.children.remove(self.model3D)
-        if self.rotateThread is not None:
-            self.rotateThread.kill()
-            self.rotateThread = None
+        else:
+            if self.model3D in self.transform.children:
+                self.transform.children.remove(self.model3D)
+            if self.rotateThread is not None:
+                self.rotateThread.kill()
+                self.rotateThread = None
+            return
 
 
 class BasePlanetPin(SpherePinStack):
@@ -152,7 +156,7 @@ class BasePlanetPin(SpherePinStack):
     __notifyevents__ = ['ProcessColonyDataSet']
     baseColor = planetCommonUI.PLANET_COLOR_STORAGE
 
-    def __init__(self, surfacePoint, pin, transform, maxRadius = RADIUS_PINEXTENDED):
+    def __init__(self, surfacePoint, pin, transform, maxRadius=RADIUS_PINEXTENDED):
         SpherePinStack.__init__(self, surfacePoint, maxRadius)
         sm.RegisterNotify(self)
         self.renderState = util.KeyVal(mouseHover=False, asRoute=False, selected=False)
@@ -411,6 +415,7 @@ class CommandCenterPin(BasePlanetPin):
             self.cpuGauge.pinAlphaThreshold = min(1.0, float(colony.colonyData.GetColonyCpuUsage()) / float(colony.colonyData.GetColonyCpuSupply())) / 2.0
         else:
             self.cpuGauge.pinAlphaThreshold = 0.0
+        return
 
     def GetGMMenu(self):
         menu = []
@@ -566,6 +571,7 @@ class EcuPin(BasePlanetPin):
         if link:
             link.Remove()
             self.linksByHeadID.pop(headID)
+        return
 
     def MoveExtractionHeadTo(self, headID, surfacePoint):
         head = self.extractionHeadsByNum.get(headID, None)
@@ -578,6 +584,8 @@ class EcuPin(BasePlanetPin):
         self.Hide3dModel()
         for head in self.extractionHeadsByNum.values():
             head.Hide3dModel()
+
+        return
 
     def ResetPinData(self, newPin):
         oldHeads = [ head for head in self.pin.heads ]
@@ -606,7 +614,9 @@ class EcuPin(BasePlanetPin):
             if head:
                 head.SetOverlapValue(overlapVal)
 
-    def SetExtractionHeadRadius(self, radius, time = 1000.0):
+        return
+
+    def SetExtractionHeadRadius(self, radius, time=1000.0):
         uthread.new(self._SetExtractionHeadRadius, radius, time)
 
     def _SetExtractionHeadRadius(self, radius, time):
@@ -718,7 +728,7 @@ LINK_COLOR_INACTIVE = (0.0,
 class LinkBase():
     __guid__ = 'planet.ui.LinkBase'
 
-    def __init__(self, lsName, surfacePoint1, surfacePoint2, color = LINK_COLOR_DEFAULT):
+    def __init__(self, lsName, surfacePoint1, surfacePoint2, color=LINK_COLOR_DEFAULT):
         self.state = util.KeyVal(mouseHover=False, link1AsRoute=False, link2AsRoute=False, selected=False, link1Active=False, link2Active=False)
         self.lsName = lsName
         self.clDrawer = sm.GetService('planetUI').curveLineDrawer
@@ -730,7 +740,7 @@ class LinkBase():
         self.clDrawer.SetLineSetNumSegments(lsName, self.linkGraphicID, numSegments)
         self.SetAnimation(color=color, isActive=True)
 
-    def SetAnimation(self, color, isActive, speed = 1.0):
+    def SetAnimation(self, color, isActive, speed=1.0):
         self.clDrawer.ChangeLineAnimation(self.lsName, self.linkGraphicID, color, speed * self.flowSpeed, self.texWidth)
         self.clDrawer.SubmitLineset(self.lsName)
 
@@ -741,7 +751,7 @@ class LinkBase():
 class Link():
     __guid__ = 'planet.ui.Link'
 
-    def __init__(self, surfacePoint1, surfacePoint2, parentID, childID, typeID, link = None):
+    def __init__(self, surfacePoint1, surfacePoint2, parentID, childID, typeID, link=None):
         self.link = link
         self.state = util.KeyVal(mouseHover=False, link1AsRoute=False, link2AsRoute=False, selected=False, link1Active=False, link2Active=False)
         self.clDrawer = sm.GetService('planetUI').curveLineDrawer
@@ -763,6 +773,7 @@ class Link():
         self._InitInfoBracket()
         self.state.link1Active, self.state.link2Active = self._GetLinksActiveState()
         self.RenderAccordingToState()
+        return
 
     def _InitInfoBracket(self):
         self.infoBracket = uiprimitives.Bracket()
@@ -811,6 +822,7 @@ class Link():
         bandwidthUsage = localization.GetByLabel('UI/PI/Common/LinkCapacityUsed', usedPercentage=usedPercentage, addedText=addedText)
         self.infoText.text = bandwidthUsage
         self._ResizeInfoBracket()
+        return
 
     def _GetLinkEndPoints(self, sp1, sp2):
         p1 = geo2.Vector(*sp1.GetAsXYZTuple())
@@ -852,7 +864,7 @@ class Link():
             self.SetLinkAppearance(color)
             self.infoBracket.state = uiconst.UI_HIDDEN
 
-    def SetLinkAppearance(self, color, graphicID = None, speed = 1.0):
+    def SetLinkAppearance(self, color, graphicID=None, speed=1.0):
         link1Active, link2Active = self._GetLinksActiveState()
         if graphicID is None:
             self.clDrawer.ChangeLineAnimation('links', self.linkGraphicID1, color, link1Active * speed * self.flowSpeed, self.texWidth)
@@ -869,31 +881,33 @@ class Link():
         else:
             self.clDrawer.ChangeLineColor('links', self.linkGraphicID2, LINK_COLOR_INACTIVE)
         self.clDrawer.SubmitLineset('links')
+        return
 
     def _GetLinksActiveState(self):
         link1Active = link2Active = False
         planet = sm.GetService('planetUI').GetCurrentPlanet()
         if planet is None:
             return (False, False)
-        colony = planet.GetColonyByPinID(self.IDTuple[0])
-        if colony is None:
-            return (False, False)
-        for routeID in self.link.routesTransiting:
-            route = colony.GetRoute(routeID)
-            if route is None:
-                continue
-            route = route.path
-            prevId = route[0]
-            for currId in route[1:]:
-                if prevId == self.IDTuple[0] and currId == self.IDTuple[1]:
-                    link1Active = True
-                if prevId == self.IDTuple[1] and currId == self.IDTuple[0]:
-                    link2Active = True
-                prevId = currId
-                if link1Active and link2Active:
-                    break
+        else:
+            colony = planet.GetColonyByPinID(self.IDTuple[0])
+            if colony is None:
+                return (False, False)
+            for routeID in self.link.routesTransiting:
+                route = colony.GetRoute(routeID)
+                if route is None:
+                    continue
+                route = route.path
+                prevId = route[0]
+                for currId in route[1:]:
+                    if prevId == self.IDTuple[0] and currId == self.IDTuple[1]:
+                        link1Active = True
+                    if prevId == self.IDTuple[1] and currId == self.IDTuple[0]:
+                        link2Active = True
+                    prevId = currId
+                    if link1Active and link2Active:
+                        break
 
-        return (link1Active, link2Active)
+            return (link1Active, link2Active)
 
     def RemoveAsRoute(self, id):
         graphicID = self.graphicIDbyID[id]
@@ -903,8 +917,9 @@ class Link():
             self.state.link2AsRoute = False
         self.RenderAccordingToState()
         self.currentRouteVolume = None
+        return
 
-    def ShowAsRoute(self, id, numRoute, numTotal, volume = None):
+    def ShowAsRoute(self, id, numRoute, numTotal, volume=None):
         self.currentRouteVolume = volume
         graphicID = self.graphicIDbyID[id]
         if graphicID == self.linkGraphicID1:
@@ -962,6 +977,7 @@ class Link():
         if self.infoBracket in pinInfoParent.children:
             pinInfoParent.children.remove(self.infoBracket)
         self.infoBracket = None
+        return
 
     def SetCurrentRouteVolume(self, volume):
         self.currentRouteVolume = volume
@@ -1005,7 +1021,7 @@ class OtherPlayersPin(SpherePinStack):
     HOVERCOLOR = (1.0, 1.0, 1.0, 0.9)
     DEFAULTCOLOR = (0.0, 1.0, 1.0, 0.3)
 
-    def __init__(self, surfacePoint, pinID, typeID, ownerID, transform, isActive = False):
+    def __init__(self, surfacePoint, pinID, typeID, ownerID, transform, isActive=False):
         SpherePinStack.__init__(self, surfacePoint, RADIUS_PINOTHERS)
         self.pinID = pinID
         self.typeID = typeID
@@ -1081,6 +1097,7 @@ class ExtractionHeadPin(SpherePinStack):
         uthread.new(self.AnimateDrillArea)
         uthread.new(self.AnimateWaves)
         uthread.new(self.AnimateNoise)
+        return
 
     def Get3DModel(self):
         if sm.GetService('planetUI').planet.planetTypeID == const.typePlanetGas:
@@ -1089,13 +1106,15 @@ class ExtractionHeadPin(SpherePinStack):
             id = 10097
         return trinity.Load(cfg.graphics.Get(id).graphicFile)
 
-    def SetExtractionHeadRadius(self, radius, time = 250.0):
+    def SetExtractionHeadRadius(self, radius, time=250.0):
         if radius is None:
             return
-        self.headRadius = radius
-        if self.animationThread:
-            self.animationThread.kill()
-        self.animationThread = uicls.UIEffects().MorphUI(self.drillArea, 'pinRadius', radius, time=time, float=1, newthread=1, maxSteps=1000)
+        else:
+            self.headRadius = radius
+            if self.animationThread:
+                self.animationThread.kill()
+            self.animationThread = uicls.UIEffects().MorphUI(self.drillArea, 'pinRadius', radius, time=time, float=1, newthread=1, maxSteps=1000)
+            return
 
     def SetOverlapValue(self, disturbanceVal):
         self.disturbanceVal = min(1.0, max(0.0, disturbanceVal))

@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\packages\carbonui\modules\loadingWindow.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\packages\carbonui\modules\loadingWindow.py
 import blue
 import uthread
 import types
@@ -25,6 +26,7 @@ class LoadingWndCore(Window):
         self.sr.progressBar = None
         self.sr.progressText = None
         Window.ApplyAttributes(self, attributes)
+        return
 
     def Setup(self, *args):
         self.SetPosition(0, 0)
@@ -45,15 +47,18 @@ class LoadingWndCore(Window):
             self.sr.progressBarParent = fr
             self.sr.progressText = Label(parent=par, pos=(0, 12, 300, 0), fontsize=9, uppercase=1, letterspace=2, align=uiconst.BOTTOMLEFT)
             self.sr.progressParent = par
+        return
 
     def Prepare_Caption_(self):
         if self.sr.loading_caption is None:
             self.sr.loading_caption = Label(align=uiconst.CENTERTOP, fontsize=22, parent=self.sr.content, letterspace=0, pos=(0, 12, 280, 0))
+        return
 
     def _OnClose(self, *args):
         if self.abortbtn:
             self.abortbtn.Close()
         self.abortbtn = None
+        return
 
     def SetAbortFunc(self, func):
         args = None
@@ -69,6 +74,7 @@ class LoadingWndCore(Window):
         else:
             self.abortbtnpar.state = uiconst.UI_NORMAL
             self.abortbtn.OnClick = (func, args)
+        return
 
     def Update_ProgressText_(self, text):
         if self.sr.progressText and self.sr.progressText.text != text:
@@ -77,33 +83,35 @@ class LoadingWndCore(Window):
     def Update_ProgressBar_(self, portion, total, useMorph):
         if not self.sr.progressBar:
             return
-        maxWidth = getattr(self, 'maxWidth', None)
-        if maxWidth is None:
-            l, t, w, h = self.sr.progressBarParent.GetAbsolute()
-            maxWidth = w - 2
-        if portion is not None and total is not None:
-            if portion > total:
-                portion = total
-            if portion / float(total) == 1.0:
+        else:
+            maxWidth = getattr(self, 'maxWidth', None)
+            if maxWidth is None:
+                l, t, w, h = self.sr.progressBarParent.GetAbsolute()
+                maxWidth = w - 2
+            if portion is not None and total is not None:
+                if portion > total:
+                    portion = total
+                if portion / float(total) == 1.0:
+                    new = maxWidth
+                else:
+                    new = int(maxWidth * portion / float(total))
+            elif total == 0:
                 new = maxWidth
             else:
-                new = int(maxWidth * portion / float(total))
-        elif total == 0:
-            new = maxWidth
-        else:
-            new = 0
-        minWidth = getattr(self, 'minWidth', None)
-        if minWidth is not None:
-            new = max(minWidth, new)
-        if new < self.sr.progressBar.width:
-            self.sr.progressBar.width = new
-        elif useMorph and minWidth != new:
-            diff = new - self.sr.progressBar.width
-            if diff > 0:
-                uicore.effect.MorphUI(self.sr.progressBar, 'width', new, float(1.5 * diff), ifWidthConstrain=0)
-        else:
-            self.sr.progressBar.width = new
-            blue.pyos.synchro.Yield()
+                new = 0
+            minWidth = getattr(self, 'minWidth', None)
+            if minWidth is not None:
+                new = max(minWidth, new)
+            if new < self.sr.progressBar.width:
+                self.sr.progressBar.width = new
+            elif useMorph and minWidth != new:
+                diff = new - self.sr.progressBar.width
+                if diff > 0:
+                    uicore.effect.MorphUI(self.sr.progressBar, 'width', new, float(1.5 * diff), ifWidthConstrain=0)
+            else:
+                self.sr.progressBar.width = new
+                blue.pyos.synchro.Yield()
+            return
 
     def Update_Height_(self):
         newheight = 12
@@ -121,31 +129,32 @@ class LoadingWndCore(Window):
             blue.pyos.synchro.SleepWallclock(250)
             self.height = newheight
 
-    def SetStatus(self, title, strng, portion = None, total = None, abortFunc = None, useMorph = 1, autoTick = 1):
+    def SetStatus(self, title, strng, portion=None, total=None, abortFunc=None, useMorph=1, autoTick=1):
         if self is None or self.destroyed:
             return 1
-        self.Prepare_ProgressBar_()
-        self._SetCaption(title)
-        self.SetAbortFunc(abortFunc)
-        if len(strng) > 128:
-            strng = strng[:128] + '...'
-        self.Update_ProgressText_(strng)
-        self.Update_ProgressBar_(portion, total, useMorph)
-        self.Update_Height_()
-        if portion is not None and total is not None:
-            if portion >= total:
-                self.sr.tickTimer = None
-                self.stophide = 0
-                self.AutoDelayHideOnProgressComplete()
-            else:
-                if autoTick:
-                    self.sr.tickTimer = AutoTimer(75, self.Tick)
-                else:
+        else:
+            self.Prepare_ProgressBar_()
+            self._SetCaption(title)
+            self.SetAbortFunc(abortFunc)
+            if len(strng) > 128:
+                strng = strng[:128] + '...'
+            self.Update_ProgressText_(strng)
+            self.Update_ProgressBar_(portion, total, useMorph)
+            self.Update_Height_()
+            if portion is not None and total is not None:
+                if portion >= total:
                     self.sr.tickTimer = None
-                self.stophide = 1
-                if self.parent and not self.parent.destroyed:
-                    self.parent.state = uiconst.UI_NORMAL
-        return 0
+                    self.stophide = 0
+                    self.AutoDelayHideOnProgressComplete()
+                else:
+                    if autoTick:
+                        self.sr.tickTimer = AutoTimer(75, self.Tick)
+                    else:
+                        self.sr.tickTimer = None
+                    self.stophide = 1
+                    if self.parent and not self.parent.destroyed:
+                        self.parent.state = uiconst.UI_NORMAL
+            return 0
 
     def AutoDelayHideOnProgressComplete(self):
         uthread.new(self.DelayHide)
@@ -162,12 +171,14 @@ class LoadingWndCore(Window):
                 new = maxWidth
                 self.sr.tickTimer = None
             self.sr.progressBar.width = new
+        return
 
     def _SetCaption(self, title):
         self.Prepare_Caption_()
         if self.sr.loading_caption and self.sr.get('loading_title', None) != title:
             self.sr.loading_caption.text = ['<center>', title]
             self.sr.loading_title = title
+        return
 
     def HideWnd(self):
         sm.GetService('loading').StopCycle()

@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\packages\requests\api.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\packages\requests\api.py
 from . import sessions
 
 def request(method, url, **kwargs):
@@ -21,15 +22,15 @@ def head(url, **kwargs):
     return request('head', url, **kwargs)
 
 
-def post(url, data = None, **kwargs):
+def post(url, data=None, **kwargs):
     return request('post', url, data=data, **kwargs)
 
 
-def put(url, data = None, **kwargs):
+def put(url, data=None, **kwargs):
     return request('put', url, data=data, **kwargs)
 
 
-def patch(url, data = None, **kwargs):
+def patch(url, data=None, **kwargs):
     return request('patch', url, data=data, **kwargs)
 
 

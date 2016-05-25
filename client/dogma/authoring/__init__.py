@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\packages\dogma\authoring\__init__.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\packages\dogma\authoring\__init__.py
 from .attributeAuthoring import AttributeAuthoring as GetAttributeAuthoring
 from dogma.authoring.data import DogmaData
 import yaml
@@ -18,6 +19,7 @@ DOMAINS = ['shipID',
  'charID',
  'targetID',
  'otherID',
+ 'structureID',
  None]
 
 def GetReadableOperatorNames(operatorID):

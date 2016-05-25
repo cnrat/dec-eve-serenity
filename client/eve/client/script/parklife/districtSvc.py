@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\client\script\parklife\districtSvc.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\client\script\parklife\districtSvc.py
 import geo2
 import evetypes
 import util
@@ -43,6 +44,7 @@ class DistrictSvc(service.Service):
         self.brackets = None
         self.Reload()
         self.state = service.SERVICE_RUNNING
+        return
 
     def GetDistricts(self):
         return self.districts.values()
@@ -66,27 +68,32 @@ class DistrictSvc(service.Service):
                 district['name'] = localization.GetImportantByLabel('UI/Locations/LocationDistrictFormatter', solarSystemID=district['solarSystemID'], romanCelestialIndex=util.IntToRoman(district['celestialIndex']), districtIndex=district['index'])
 
             self._AddDistrictsToPlanets()
+        return
 
-    def EnableDistrict(self, districtID, force = False):
+    def EnableDistrict(self, districtID, force=False):
         self.district = self.GetDistrict(districtID)
         if not self.district.get('interactable', False) and not force:
             self.district = None
             return
-        if self.district:
-            if self.brackets:
-                self.brackets.Close()
-            self.brackets = xtriui.DistrictBracket(self.district)
+        else:
+            if self.district:
+                if self.brackets:
+                    self.brackets.Close()
+                self.brackets = xtriui.DistrictBracket(self.district)
+            return
 
-    def DisableDistrict(self, districtID = None):
+    def DisableDistrict(self, districtID=None):
         if districtID and self.district and districtID != self.district['districtID']:
             return
-        with util.ExceptionEater('DisconnectDistrict'):
-            self.DisconnectDistrict()
-        if self.brackets:
-            self.brackets.Close()
-        self.brackets = None
-        self.district = None
-        self.battle = None
+        else:
+            with util.ExceptionEater('DisconnectDistrict'):
+                self.DisconnectDistrict()
+            if self.brackets:
+                self.brackets.Close()
+            self.brackets = None
+            self.district = None
+            self.battle = None
+            return
 
     def ReloadDistrict(self):
         if self.district:
@@ -145,6 +152,8 @@ class DistrictSvc(service.Service):
              'target': target})
             blue.pyos.synchro.SleepWallclock(1200)
 
+        return
+
     def OnDistrictBattle(self, solarSystemID, districtID, battleID, status):
         district = self.GetDistrict(districtID)
         if district:
@@ -154,7 +163,7 @@ class DistrictSvc(service.Service):
                 district['battles'].add(battleID)
             self._DisplayDistrictBattles(district)
 
-    def OnDistrictDisconnect(self, solarSystemID, districtID, userError = None):
+    def OnDistrictDisconnect(self, solarSystemID, districtID, userError=None):
         if self.district and districtID == self.district['districtID']:
             self.DisconnectDistrict()
             if userError:
@@ -182,15 +191,18 @@ class DistrictSvc(service.Service):
         ballpark = self.michelle.GetBallpark()
         if ballpark is None:
             return
-        for district in self.districts.itervalues():
-            if district.get('planet'):
-                continue
-            district['planet'] = ballpark.GetBall(district.get('planetID'))
-            if district.get('planet'):
-                direction = geo2.Vec3Normalize(planet.SurfacePoint(phi=district['latitude'], theta=district['longitude']).GetAsXYZTuple())
-                district['uniqueName'] = 'district-%s' % district['districtID']
-                district['planet'].AddDistrict(district['uniqueName'], direction, 0.1, False)
-                self._DisplayDistrictBattles(district)
+        else:
+            for district in self.districts.itervalues():
+                if district.get('planet'):
+                    continue
+                district['planet'] = ballpark.GetBall(district.get('planetID'))
+                if district.get('planet'):
+                    direction = geo2.Vec3Normalize(planet.SurfacePoint(phi=district['latitude'], theta=district['longitude']).GetAsXYZTuple())
+                    district['uniqueName'] = 'district-%s' % district['districtID']
+                    district['planet'].AddDistrict(district['uniqueName'], direction, 0.1, False)
+                    self._DisplayDistrictBattles(district)
+
+            return
 
     def _LoadTargetBalls(self):
         ballpark = self.michelle.GetBallpark()
@@ -235,6 +247,7 @@ class DistrictSvc(service.Service):
                 ballpark.slimItems[targetBall.id] = targetItem
                 cfg.evelocations.Hint(targetBall.id, [targetBall.id,
                  cfg.eveowners.Get(target['characterID']).name,
+                 ballpark.solarsystemID,
                  targetBall.x,
                  targetBall.y,
                  targetBall.z,
@@ -246,6 +259,8 @@ class DistrictSvc(service.Service):
                 sm.GetService('target').OnTargetLost(ball.id, None)
                 sm.GetService('target').ArrangeTargets()
                 uthread.new(self._DestroyTargetBall, itemID)
+
+        return
 
     def _CreateTargetBall(self, district, itemID):
         if itemID not in self.balls:
@@ -268,14 +283,16 @@ class DistrictSvc(service.Service):
         ball = self.balls.pop(itemID, None)
         if ball is None:
             return
-        scene = sm.GetService('sceneManager').GetRegisteredScene('default')
-        if scene and ball.model in scene.objects:
-            scene.objects.remove(ball.model)
-        ball.model = None
-        ballpark = self.michelle.GetBallpark()
-        if ballpark:
-            ballpark.RemoveClientSideBall(ball.id)
-            ballpark.slimItems.pop(ball.id, None)
+        else:
+            scene = sm.GetService('sceneManager').GetRegisteredScene('default')
+            if scene and ball.model in scene.objects:
+                scene.objects.remove(ball.model)
+            ball.model = None
+            ballpark = self.michelle.GetBallpark()
+            if ballpark:
+                ballpark.RemoveClientSideBall(ball.id)
+                ballpark.slimItems.pop(ball.id, None)
+            return
 
     def _DisplayDistrictBattles(self, district):
         if district['planet']:

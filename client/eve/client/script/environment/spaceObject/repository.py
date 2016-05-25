@@ -1,11 +1,13 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\client\script\environment\spaceObject\repository.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\client\script\environment\spaceObject\repository.py
+from eve.client.script.environment.spaceObject.structure import Structure
 import eve.common.lib.appConst as const
 from eve.client.script.environment.spaceObject.spaceObject import SpaceObject
 from eve.client.script.environment.spaceObject.asteroid import Asteroid
 from eve.client.script.environment.spaceObject.asteroidBelt import AsteroidBelt
 from eve.client.script.environment.spaceObject.backgroundObject import BackgroundObject
 from eve.client.script.environment.spaceObject.basicOrbital import BasicOrbital
-from eve.client.script.environment.spaceObject.billboard import Billboard
+from eve.client.script.environment.spaceObject.beacon import Beacon
 from eve.client.script.environment.spaceObject.cargo import Cargo
 from eve.client.script.environment.spaceObject.cloud import Cloud
 from eve.client.script.environment.spaceObject.corpse import Corpse
@@ -25,7 +27,6 @@ from eve.client.script.environment.spaceObject.satellite import Satellite
 from eve.client.script.environment.spaceObject.scannerProbe import ScannerProbe
 from eve.client.script.environment.spaceObject.sentryGun import SentryGun
 from eve.client.script.environment.spaceObject.sovereigntyClaimMarker import SovereigntyClaimMarker
-from eve.client.script.environment.spaceObject.sovereigntyInfrastructueHub import SovereigntyInfrastructueHub
 from eve.client.script.environment.spaceObject.spewContainer import SpewContainer
 from eve.client.script.environment.spaceObject.stargate import Stargate
 from eve.client.script.environment.spaceObject.station import Station
@@ -35,6 +36,7 @@ from eve.client.script.environment.spaceObject.warpgate import WarpGate
 from eve.client.script.environment.spaceObject.wormhole import Wormhole
 from eve.client.script.environment.spaceObject.wreck import Wreck
 from eve.client.script.environment.spaceObject.DeployableSpaceObject import DeployableSpaceObject
+from eve.client.script.environment.spaceObject.fighterSquadron import FighterSquadron
 import evetypes
 import threadutils
 CATEGORY_TO_SPACEOBJECT_MAPPING = {const.categoryShip: PlayerShip,
@@ -45,9 +47,10 @@ CATEGORY_TO_SPACEOBJECT_MAPPING = {const.categoryShip: PlayerShip,
  const.categoryOrbital: BasicOrbital,
  const.categoryEntity: EntityShip,
  const.categoryDrone: Drone,
- const.categoryFighter: Drone}
+ const.categoryFighter: FighterSquadron,
+ const.categoryStructure: Structure}
 GROUP_TO_SPACEOBJECT_MAPPING = {const.groupAsteroidBelt: AsteroidBelt,
- const.groupBillboard: Billboard,
+ const.groupBillboard: LargeCollidableObject,
  const.groupBiomass: Corpse,
  const.groupCargoContainer: Cargo,
  const.groupWreck: Wreck,
@@ -122,6 +125,8 @@ GROUP_TO_SPACEOBJECT_MAPPING = {const.groupAsteroidBelt: AsteroidBelt,
  const.groupSovereigntyClaimMarkers: SovereigntyClaimMarker,
  const.groupInfrastructureHub: DeployableSpaceObject,
  const.groupBeacon: LargeCollidableObject,
+ const.groupSuperWeaponBeacon: Beacon,
+ const.groupEffectBeacon: SpaceObject,
  const.groupSatellite: Satellite,
  const.groupPlanetaryCustomsOffices: CustomsOffice,
  const.groupSpewContainer: SpewContainer,

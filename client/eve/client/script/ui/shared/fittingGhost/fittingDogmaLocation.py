@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\client\script\ui\shared\fittingGhost\fittingDogmaLocation.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\client\script\ui\shared\fittingGhost\fittingDogmaLocation.py
 import weakref
 from dogma.effects.environment import Environment
 from eve.client.script.ui.shared.fitting.fittingUtil import GetSensorStrengthAttribute
@@ -9,6 +10,7 @@ from dogma.items.dblessDogmaItem import DBLessDogmaItem
 from dogma.items.droneDogmaItem import DroneDogmaItem
 from dogma.items.moduleDogmaItem import GhostModuleDogmaItem
 from dogma.items.shipDogmaItem import GhostShipDogmaItem
+from inventorycommon.util import IsShipFittable
 from shipfitting.fittingDogmaLocationUtil import GetFittingItemDragData, GetOptimalDroneDamage, GetTurretAndMissileDps, CapacitorSimulator
 import uthread
 import log
@@ -26,6 +28,7 @@ class FittingDogmaLocation(BaseDogmaLocation):
         self.instanceFlagQuantityCache = {}
         self.shipID = None
         self.LoadItem(session.charid)
+        return
 
     def LoadMyShip(self, typeID):
         s = GhostFittingDataObject(None, 0, typeID)
@@ -44,33 +47,35 @@ class FittingDogmaLocation(BaseDogmaLocation):
     def FitItemToLocation(self, locationID, itemID, flagID):
         if locationID not in (self.shipID, session.charid):
             return
-        self.LogInfo('FitItemtoLocation', locationID, itemID, flagID)
-        wasItemLoaded = itemID in self.dogmaItems
-        log.LogNotice('FitItemToLocation, locationID=%s' % locationID)
-        if locationID not in self.dogmaItems:
-            self.LoadItem(locationID)
-            if not wasItemLoaded:
-                self.LogInfo('Neither location not item loaded, returning early', locationID, itemID)
+        else:
+            self.LogInfo('FitItemtoLocation', locationID, itemID, flagID)
+            wasItemLoaded = itemID in self.dogmaItems
+            log.LogNotice('FitItemToLocation, locationID=%s' % locationID)
+            if locationID not in self.dogmaItems:
+                self.LoadItem(locationID)
+                if not wasItemLoaded:
+                    self.LogInfo('Neither location not item loaded, returning early', locationID, itemID)
+                    return
+            if itemID not in self.dogmaItems:
+                self.LoadItem(itemID)
                 return
-        if itemID not in self.dogmaItems:
-            self.LoadItem(itemID)
+            locationDogmaItem = self.SafeGetDogmaItem(locationID)
+            if locationDogmaItem is None:
+                self.LogInfo('FitItemToLocation::Fitted to None item', itemID, locationID, flagID)
+                return
+            dogmaItem = self.GetDogmaItem(itemID)
+            log.LogNotice('FitItemToLocation, dogmaItem=%s' % dogmaItem)
+            dogmaItem.SetLocation(locationID, locationDogmaItem, flagID)
+            startedEffects = self.StartPassiveEffects(itemID, dogmaItem.typeID)
+            sm.ScatterEvent('OnFittingUpdateStatsNeeded')
             return
-        locationDogmaItem = self.SafeGetDogmaItem(locationID)
-        if locationDogmaItem is None:
-            self.LogInfo('FitItemToLocation::Fitted to None item', itemID, locationID, flagID)
-            return
-        dogmaItem = self.GetDogmaItem(itemID)
-        log.LogNotice('FitItemToLocation, dogmaItem=%s' % dogmaItem)
-        dogmaItem.SetLocation(locationID, locationDogmaItem, flagID)
-        startedEffects = self.StartPassiveEffects(itemID, dogmaItem.typeID)
-        sm.ScatterEvent('OnFittingUpdateStatsNeeded')
 
     def UnfitItemFromShip(self, itemID):
         self.UnfitItemFromLocation(self.shipID, itemID)
         self.UnloadItem(itemID)
 
     def GetQuantityFromCache(self, locationID, flagID):
-        return 1
+        pass
 
     def GetInstance(self, item):
         instanceRow = [item.itemID]
@@ -110,7 +115,7 @@ class FittingDogmaLocation(BaseDogmaLocation):
             item = self.godma.GetItem(itemID)
         return item
 
-    def GetCharacter(self, itemID, flush = False):
+    def GetCharacter(self, itemID, flush=False):
         return self.GetItem(itemID)
 
     def ShouldStartChanceBasedEffect(self, *args, **kwargs):
@@ -119,11 +124,12 @@ class FittingDogmaLocation(BaseDogmaLocation):
     def StartSystemEffect(self):
         pass
 
-    def ChangeModuleStatus(self, itemKey, effectID = None):
+    def ChangeModuleStatus(self, itemKey, effectID=None):
         dogmaItem = self.GetDogmaItem(itemKey)
         envInfo = dogmaItem.GetEnvironmentInfo()
-        env = Environment(itemID=envInfo.itemID, charID=envInfo.charID, shipID=self.shipID, targetID=envInfo.targetID, otherID=envInfo.otherID, effectID=effectID, dogmaLM=weakref.proxy(self), expressionID=None)
+        env = Environment(itemID=envInfo.itemID, charID=envInfo.charID, shipID=self.shipID, targetID=envInfo.targetID, otherID=envInfo.otherID, effectID=effectID, dogmaLM=weakref.proxy(self), expressionID=None, structureID=envInfo.structureID)
         self.StartEffect(effectID, itemKey, env, checksOnly=None)
+        return
 
     def CheckSkillRequirementsForType(self, typeID, *args):
         missingSkills = self._GetMissingSkills(typeID)
@@ -167,7 +173,7 @@ class FittingDogmaLocation(BaseDogmaLocation):
     def GetClassForItem(self, item):
         if item.categoryID == const.categoryShip:
             return GhostShipDogmaItem
-        if item.categoryID in (const.categoryModule, const.categorySubSystem):
+        if IsShipFittable(item.categoryID):
             return GhostModuleDogmaItem
         return BaseDogmaLocation.GetClassForItem(self, item)
 
@@ -232,6 +238,8 @@ class FittingDogmaLocation(BaseDogmaLocation):
             if fittedItem.categoryID == const.categoryCharge:
                 return fittedItem
 
+        return None
+
     def GetSensorStrengthAttribute(self, shipID):
         return GetSensorStrengthAttribute(self, shipID)
 
@@ -273,6 +281,8 @@ class FittingDogmaLocation(BaseDogmaLocation):
         finally:
             uthread.UnLock(self, 'makeShipActive')
 
+        return
+
     def GetCapacity(self, shipID, attributeID, flagID):
         capacity = self.GetAttributeValue(shipID, attributeID)
         used = 0
@@ -293,16 +303,19 @@ class FittingDogmaLocation(BaseDogmaLocation):
                     self.UnloadItem(itemKey)
 
             self.moduleListsByShipGroup.pop(self.shipID, None)
+            self.moduleListsByShipType.pop(self.shipID, None)
         finally:
             self.scatterAttributeChanges = True
 
-    def OnAttributeChanged(self, attributeID, itemKey, value = None, oldValue = None):
+        return
+
+    def OnAttributeChanged(self, attributeID, itemKey, value=None, oldValue=None):
         value = BaseDogmaLocation.OnAttributeChanged(self, attributeID, itemKey, value=value, oldValue=oldValue)
         if self.scatterAttributeChanges:
             sm.ScatterEvent('OnDogmaAttributeChanged', self.shipID, itemKey, attributeID, value)
 
     def GetQuantity(self, itemID):
-        return 1
+        pass
 
     def GetAccurateAttributeValue(self, itemID, attributeID, *args):
         return self.GetAttributeValue(itemID, attributeID)
@@ -319,7 +332,7 @@ class FittingDogmaLocation(BaseDogmaLocation):
                 self.broker.LogWarn('No actingItem in IncreaseItemAttribute', itemKey, attributeID, itemKey2, attributeID2)
         return new
 
-    def IncreaseItemAttributeEx(self, itemKey, attributeID, value, silently = 0, alsoReturnOldValue = False):
+    def IncreaseItemAttributeEx(self, itemKey, attributeID, value, silently=0, alsoReturnOldValue=False):
         dogmaItem = self.GetDogmaItem(itemKey)
         if not dogmaItem.CanAttributeBeModified():
             if alsoReturnOldValue:

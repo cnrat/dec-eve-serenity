@@ -1,12 +1,14 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\client\script\ui\control\historyBuffer.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\client\script\ui\control\historyBuffer.py
 import collections
 
 class HistoryBuffer:
 
-    def __init__(self, maxLen = None):
+    def __init__(self, maxLen=None):
         self.maxLen = maxLen
         self.deque = collections.deque(maxlen=self.maxLen)
         self.idx = None
+        return
 
     def Append(self, data):
         if len(self.deque) and self.idx is not None:
@@ -14,6 +16,7 @@ class HistoryBuffer:
         if not len(self.deque) or data != self.deque[-1]:
             self.deque.append(data)
         self.idx = len(self.deque) - 1
+        return
 
     def GoBack(self):
         if self.IsBackEnabled():

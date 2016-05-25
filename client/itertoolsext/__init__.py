@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\packages\itertoolsext\__init__.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\packages\itertoolsext\__init__.py
 from brennivin.itertoolsext import *
 
 def get_column(columnid, *rows):
@@ -14,7 +15,7 @@ def get_first_matching_index(iterable, predicate):
             return i
 
 
-def dump_dic(dic, indent = 0):
+def dump_dic(dic, indent=0):
     buff = []
     ind = []
     for i in xrange(0, indent):

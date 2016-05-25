@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\packages\eveSpaceObject\__init__.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\packages\eveSpaceObject\__init__.py
 import geo2
 import trinity
 import eve.common.lib.appConst as const
@@ -66,11 +67,9 @@ gfxDroneGroupUtility = 3
 gfxDroneGroupMining = 4
 gfxDroneGroupNpc = 5
 gfxDroneGroupSalvager = 6
-droneGroupFromTypeGroup = {const.groupFighterBomber: gfxDroneGroupFighterBomber,
- const.groupMiningDrone: gfxDroneGroupMining,
+droneGroupFromTypeGroup = {const.groupMiningDrone: gfxDroneGroupMining,
  const.groupSalvageDrone: gfxDroneGroupSalvager,
  const.groupCombatDrone: gfxDroneGroupCombat,
- const.groupFighterDrone: gfxDroneGroupCombat,
  const.groupElectronicWarfareDrone: gfxDroneGroupCombat,
  const.groupStasisWebifyingDrone: gfxDroneGroupCombat,
  const.groupUnanchoringDrone: gfxDroneGroupCombat,
@@ -132,9 +131,21 @@ def GetDeathExplosionInfo(model, radius, raceName):
         size = '_h_'
         delay = 1000
         scale = radius / 6000.0
-    else:
+    elif radius < 20000:
         size = '_t_'
         delay = 2000
+        scale = 1.0
+    elif radius < 50000:
+        size = '_structure_m_'
+        delay = 18000
+        scale = 1.0
+    elif radius < 90000:
+        size = '_structure_l_'
+        delay = 26500
+        scale = 1.0
+    else:
+        size = '_structure_xl_'
+        delay = 31000
         scale = 1.0
     path = EXPLOSION_BASE_PATH + size + raceName + '.red'
     info = (delay, scale)

@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\packages\achievements\client\achievementSettings.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\packages\achievements\client\achievementSettings.py
 from achievements.common.achievementConst import AchievementSettingConst
 from carbonui import const as uiconst
 from carbonui.primitives.container import Container
@@ -94,6 +95,7 @@ class OpportunitiesSettingsMenu(Container):
         self.settingsObject = None
         self.settingMenu = UtilMenu(parent=self, align=uiconst.BOTTOMLEFT, GetUtilMenu=self.GetOpportunitySettings, texturePath='res:/UI/Texture/SettingsCogwheel.png', iconSize=18, pos=(0, 0, 18, 18))
         self.settingMenu.OnMenuClosed = self.OnMenuClosed
+        return
 
     def GetOpportunitySettings(self, menuParent):
         if self.settingsObject is None:
@@ -108,3 +110,4 @@ class OpportunitiesSettingsMenu(Container):
         if self.settingsObject:
             self.settingsObject.StoreChanges()
             self.settingsObject = None
+        return

@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\client\script\ui\shared\neocom\corporation\corp_ui_member_titles.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\client\script\ui\shared\neocom\corporation\corp_ui_member_titles.py
 import uicontrols
 import blue
 import sys
@@ -31,16 +32,17 @@ class CorpTitles(uiprimitives.Container):
         self.sr.crits = {}
         self.sr.debug = False
         self.sr.ignoreDirtyFlag = False
+        return
 
     def LogInfo(self, *args):
         lg.Info(self.__guid__, *args)
 
-    def __EnterCriticalSection(self, k, v = None):
+    def __EnterCriticalSection(self, k, v=None):
         if (k, v) not in self.sr.crits:
             self.sr.crits[k, v] = uthread.CriticalSection((k, v))
         self.sr.crits[k, v].acquire()
 
-    def __LeaveCriticalSection(self, k, v = None):
+    def __LeaveCriticalSection(self, k, v=None):
         self.sr.crits[k, v].release()
         if (k, v) in self.sr.crits and self.sr.crits[k, v].IsCool():
             del self.sr.crits[k, v]
@@ -65,26 +67,28 @@ class CorpTitles(uiprimitives.Container):
             self.LogInfo('----------------------------------------------')
         if not (self and not self.destroyed):
             return
-        if self.sr.progressTotal == 0:
-            self.sr.progressCurrent = 0
-            self.sr.progressTotal = 1
-        self.sr.progressCurrent += 1
-        sm.GetService('loading').ProgressWnd(self.sr.titles[titleID].titleName, 'Updated', self.sr.progressCurrent, self.sr.progressTotal)
-        blue.pyos.synchro.Yield()
-        if self.sr.scroll is None:
-            return
-        for entry in self.sr.scroll.GetNodes():
-            if entry is None or entry.rec is None:
-                continue
-            if entry.panel is None or entry.panel.destroyed:
-                continue
-            if entry.rec.titleID == titleID:
-                entry.panel.OnTitleChanged(corpID, titleID, change)
-                break
+        else:
+            if self.sr.progressTotal == 0:
+                self.sr.progressCurrent = 0
+                self.sr.progressTotal = 1
+            self.sr.progressCurrent += 1
+            sm.GetService('loading').ProgressWnd(self.sr.titles[titleID].titleName, 'Updated', self.sr.progressCurrent, self.sr.progressTotal)
+            blue.pyos.synchro.Yield()
+            if self.sr.scroll is None:
+                return
+            for entry in self.sr.scroll.GetNodes():
+                if entry is None or entry.rec is None:
+                    continue
+                if entry.panel is None or entry.panel.destroyed:
+                    continue
+                if entry.rec.titleID == titleID:
+                    entry.panel.OnTitleChanged(corpID, titleID, change)
+                    break
 
-        if self.sr.progressCurrent >= self.sr.progressTotal:
-            self.sr.progressCurrent = 0
-            self.sr.progressTotal = 0
+            if self.sr.progressCurrent >= self.sr.progressTotal:
+                self.sr.progressCurrent = 0
+                self.sr.progressTotal = 0
+            return
 
     def CreateWindow(self):
         toppar = uiprimitives.Container(name='options', parent=self, align=uiconst.TOTOP, height=36)
@@ -122,6 +126,7 @@ class CorpTitles(uiprimitives.Container):
           (),
           81]])
         self.children.insert(0, btns)
+        return
 
     def Load(self, args):
         if not self.sr.Get('inited', 0):
@@ -134,7 +139,7 @@ class CorpTitles(uiprimitives.Container):
             return
         self.PopulateView()
 
-    def SetHint(self, hintstr = None):
+    def SetHint(self, hintstr=None):
         if self.sr.scroll:
             self.sr.scroll.ShowHint(hintstr)
 
@@ -200,6 +205,8 @@ class CorpTitles(uiprimitives.Container):
             sm.GetService('loading').ProgressWnd(localization.GetByLabel('UI/Common/Loading'), '', nCount, nCount)
             blue.pyos.synchro.Yield()
 
+        return
+
     def OnColumnChanged(self, tabstops):
         if self.sr.debug:
             self.LogInfo('ENTRIES [', len(self.sr.scroll.GetNodes()), ']:', self.sr.scroll.GetNodes())
@@ -215,6 +222,8 @@ class CorpTitles(uiprimitives.Container):
                 panel.OnUpdateTabstops(tabstops)
             finally:
                 panel.Unlock()
+
+        return
 
     def OnComboChange(self, entry, header, value, *args):
         uthread.new(self.OnComboChangeImpl, entry.name, value)
@@ -283,6 +292,8 @@ class CorpTitles(uiprimitives.Container):
         finally:
             self.__LeaveCriticalSection('corp_ui_titles')
 
+        return
+
     def GetHeaderValues(self, roleGroupingID):
         roleGroup = self.sr.roleGroupings[roleGroupingID]
         headers = [localization.GetByLabel('UI/Corporations/CorporationWindow/Members/CorpMemberName')]
@@ -328,6 +339,8 @@ class CorpTitles(uiprimitives.Container):
         finally:
             sm.GetService('loading').StopCycle()
 
+        return
+
     def SaveChanges(self, *args):
         nodesToUpdate = []
         try:
@@ -370,66 +383,68 @@ class CorpTitles(uiprimitives.Container):
             sm.GetService('loading').ProgressWnd(localization.GetByLabel('UI/Common/PleaseWait'), '', 1, 1)
             blue.pyos.synchro.Yield()
             return
-        self.sr.progressCurrent = 0
-        self.sr.progressTotal = nCount
-        nIndex = 0
-        try:
-            sm.GetService('loading').ProgressWnd(localization.GetByLabel('UI/Common/Updating'), '', nIndex, nCount)
-            blue.pyos.synchro.Yield()
-            rows = None
-            for node in nodesToUpdate:
-                entry = node.rec
-                src = node.srcRec
-                titleID = src.titleID
-                titleName = entry.titleName
-                roles = entry.roles
-                grantableRoles = entry.grantableRoles
-                rolesAtHQ = entry.rolesAtHQ
-                grantableRolesAtHQ = entry.grantableRolesAtHQ
-                rolesAtBase = entry.rolesAtBase
-                grantableRolesAtBase = entry.grantableRolesAtBase
-                rolesAtOther = entry.rolesAtOther
-                grantableRolesAtOther = entry.grantableRolesAtOther
-                roles &= ~const.corpRoleDirector
-                grantableRoles &= ~const.corpRoleDirector
-                rolesAtHQ &= ~const.corpRoleDirector
-                grantableRolesAtHQ &= ~const.corpRoleDirector
-                rolesAtBase &= ~const.corpRoleDirector
-                grantableRolesAtBase &= ~const.corpRoleDirector
-                rolesAtOther &= ~const.corpRoleDirector
-                grantableRolesAtOther &= ~const.corpRoleDirector
-                if rows is None:
-                    rows = Rowset(['titleID',
-                     'titleName',
-                     'roles',
-                     'grantableRoles',
-                     'rolesAtHQ',
-                     'grantableRolesAtHQ',
-                     'rolesAtBase',
-                     'grantableRolesAtBase',
-                     'rolesAtOther',
-                     'grantableRolesAtOther'])
-                rows.append([titleID,
-                 titleName,
-                 roles,
-                 grantableRoles,
-                 rolesAtHQ,
-                 grantableRolesAtHQ,
-                 rolesAtBase,
-                 grantableRolesAtBase,
-                 rolesAtOther,
-                 grantableRolesAtOther])
-
-            if rows is not None:
-                sm.GetService('corp').UpdateTitles(rows)
-        finally:
-            if nCount:
-                sm.GetService('loading').ProgressWnd(localization.GetByLabel('UI/Common/Updated'), '', nCount - 1, nCount)
-                blue.pyos.synchro.SleepWallclock(500)
-                sm.GetService('loading').ProgressWnd(localization.GetByLabel('UI/Common/Updated'), '', nCount, nCount)
+        else:
+            self.sr.progressCurrent = 0
+            self.sr.progressTotal = nCount
+            nIndex = 0
+            try:
+                sm.GetService('loading').ProgressWnd(localization.GetByLabel('UI/Common/Updating'), '', nIndex, nCount)
                 blue.pyos.synchro.Yield()
+                rows = None
+                for node in nodesToUpdate:
+                    entry = node.rec
+                    src = node.srcRec
+                    titleID = src.titleID
+                    titleName = entry.titleName
+                    roles = entry.roles
+                    grantableRoles = entry.grantableRoles
+                    rolesAtHQ = entry.rolesAtHQ
+                    grantableRolesAtHQ = entry.grantableRolesAtHQ
+                    rolesAtBase = entry.rolesAtBase
+                    grantableRolesAtBase = entry.grantableRolesAtBase
+                    rolesAtOther = entry.rolesAtOther
+                    grantableRolesAtOther = entry.grantableRolesAtOther
+                    roles &= ~const.corpRoleDirector
+                    grantableRoles &= ~const.corpRoleDirector
+                    rolesAtHQ &= ~const.corpRoleDirector
+                    grantableRolesAtHQ &= ~const.corpRoleDirector
+                    rolesAtBase &= ~const.corpRoleDirector
+                    grantableRolesAtBase &= ~const.corpRoleDirector
+                    rolesAtOther &= ~const.corpRoleDirector
+                    grantableRolesAtOther &= ~const.corpRoleDirector
+                    if rows is None:
+                        rows = Rowset(['titleID',
+                         'titleName',
+                         'roles',
+                         'grantableRoles',
+                         'rolesAtHQ',
+                         'grantableRolesAtHQ',
+                         'rolesAtBase',
+                         'grantableRolesAtBase',
+                         'rolesAtOther',
+                         'grantableRolesAtOther'])
+                    rows.append([titleID,
+                     titleName,
+                     roles,
+                     grantableRoles,
+                     rolesAtHQ,
+                     grantableRolesAtHQ,
+                     rolesAtBase,
+                     grantableRolesAtBase,
+                     rolesAtOther,
+                     grantableRolesAtOther])
 
-        self.PopulateView()
+                if rows is not None:
+                    sm.GetService('corp').UpdateTitles(rows)
+            finally:
+                if nCount:
+                    sm.GetService('loading').ProgressWnd(localization.GetByLabel('UI/Common/Updated'), '', nCount - 1, nCount)
+                    blue.pyos.synchro.SleepWallclock(500)
+                    sm.GetService('loading').ProgressWnd(localization.GetByLabel('UI/Common/Updated'), '', nCount, nCount)
+                    blue.pyos.synchro.Yield()
+
+            self.PopulateView()
+            return
 
 
 class CorpTitleEntry(listentry.Generic):
@@ -474,16 +489,19 @@ class CorpTitleEntry(listentry.Generic):
          'isDirector',
          'IAmCEO',
          'IAmDirector']
+        return
 
     def Lock(self):
         if self.sr.lock is None:
             self.sr.lock = uthread.Semaphore()
         self.sr.lock.acquire()
+        return
 
     def Unlock(self):
         self.sr.lock.release()
         if self.sr.lock.IsCool():
             self.sr.lock = None
+        return
 
     def GetViewRoleGroupingID(self):
         return self.sr.node.parent.sr.viewRoleGroupingID
@@ -525,50 +543,53 @@ class CorpTitleEntry(listentry.Generic):
 
         try:
             try:
-                self.Lock()
-                s = blue.os.GetWallclockTimeNow()
-                if self.sr.node is None:
-                    return
-                if self.sr.node.rec is None or self.sr.node.rec.titleID != node.srcRec.titleID:
-                    self.sr.node = node
-                    self.GetTitlesListData()
-                if 0 == len(self.sr.loadingTitleID) or loadingTitleID != self.sr.loadingTitleID[-1]:
-                    return
-            finally:
-                self.LogInfo('Load 1 took %s ms.' % blue.os.TimeDiffInMs(s, blue.os.GetWallclockTimeNow()))
-                self.Unlock()
+                try:
+                    self.Lock()
+                    s = blue.os.GetWallclockTimeNow()
+                    if self.sr.node is None:
+                        return
+                    if self.sr.node.rec is None or self.sr.node.rec.titleID != node.srcRec.titleID:
+                        self.sr.node = node
+                        self.GetTitlesListData()
+                    if 0 == len(self.sr.loadingTitleID) or loadingTitleID != self.sr.loadingTitleID[-1]:
+                        return
+                finally:
+                    self.LogInfo('Load 1 took %s ms.' % blue.os.TimeDiffInMs(s, blue.os.GetWallclockTimeNow()))
+                    self.Unlock()
 
-            try:
-                self.Lock()
-                s = blue.os.GetWallclockTimeNow()
-                if self.sr.node is None:
-                    return
-                self.LoadColumns(loadingTitleID)
-                if 0 == len(self.sr.loadingTitleID) or loadingTitleID != self.sr.loadingTitleID[-1]:
-                    return
-            finally:
-                self.LogInfo('Load 2 took %s ms.' % blue.os.TimeDiffInMs(s, blue.os.GetWallclockTimeNow()))
-                self.Unlock()
+                try:
+                    self.Lock()
+                    s = blue.os.GetWallclockTimeNow()
+                    if self.sr.node is None:
+                        return
+                    self.LoadColumns(loadingTitleID)
+                    if 0 == len(self.sr.loadingTitleID) or loadingTitleID != self.sr.loadingTitleID[-1]:
+                        return
+                finally:
+                    self.LogInfo('Load 2 took %s ms.' % blue.os.TimeDiffInMs(s, blue.os.GetWallclockTimeNow()))
+                    self.Unlock()
 
-            try:
-                self.Lock()
-                s = blue.os.GetWallclockTimeNow()
-                if self.sr.node is None:
-                    return
-                self.UpdateLabelText()
-            finally:
-                self.LogInfo('Load 3 took %s ms.' % blue.os.TimeDiffInMs(s, blue.os.GetWallclockTimeNow()))
-                self.Unlock()
+                try:
+                    self.Lock()
+                    s = blue.os.GetWallclockTimeNow()
+                    if self.sr.node is None:
+                        return
+                    self.UpdateLabelText()
+                finally:
+                    self.LogInfo('Load 3 took %s ms.' % blue.os.TimeDiffInMs(s, blue.os.GetWallclockTimeNow()))
+                    self.Unlock()
 
-        except:
-            log.LogException()
-            sys.exc_clear()
+            except:
+                log.LogException()
+                sys.exc_clear()
+
         finally:
             if loadingTitleID in self.sr.loadingTitleID:
                 self.sr.loadingTitleID.remove(loadingTitleID)
 
         self.state = uiconst.UI_NORMAL
         self.sr.label.Update()
+        return
 
     def OnTitleChanged(self, corpID, titleID, change):
         self.LogInfo('----------------------------------------------')
@@ -673,120 +694,125 @@ class CorpTitleEntry(listentry.Generic):
         rec = self.GetRec()
         if rec is None:
             return
-        self.LoadColumns(rec.titleID)
+        else:
+            self.LoadColumns(rec.titleID)
+            return
 
     def LoadColumns(self, loadingTitleID):
         if len(self.sr.loadingTitleID) and loadingTitleID != self.sr.loadingTitleID[-1]:
             return
-        data = self.sr.node
-        tabstops = data.parent.tabstops
-        rec = self.GetRec()
-        viewtype = data.viewtype
-        viewRoleGroupingID = self.GetViewRoleGroupingID()
-        roleGroup = self.sr.roleGroupings[viewRoleGroupingID]
-        nMaxColumnIndex = len(roleGroup.columns)
-        oldColumns = []
-        if self.sr.columns:
-            oldColumns.extend(self.sr.columns)
-        self.sr.columns = [None] * (1 + nMaxColumnIndex)
-        align = uiconst.RELATIVE
-        height = 12
-        i = -1
-        previousTabPosition = 0
-        relevantRoles = self.GetRelevantRoles()
-        try:
-            for tabstop in tabstops:
-                if len(self.sr.loadingTitleID) and loadingTitleID != self.sr.loadingTitleID[-1]:
-                    return
-                i += 1
-                text, column, columnContents = '', None, []
-                left = previousTabPosition + 4
-                width = tabstop - previousTabPosition - 4
-                if i == 0:
-                    if not oldColumns or oldColumns[i] is None:
-                        column = uicontrols.SinglelineEdit(name='titleName', parent=self, setvalue=rec.titleName, width=width - 1, left=left - 3, top=-1, align=uiconst.TOPLEFT, maxLength=100)
-                        column.OnChange = self.OnEditChange
-                        columnContents.append(column)
-                    else:
-                        oldColumn = oldColumns[i]
-                        column = oldColumn[0]
-                        column.SetValue(rec.titleName)
-                        column.left = left - 3
-                        column.width = width - 1
-                        columnContents = [column]
-                        oldColumns[i] = []
-                else:
-                    columnNumber = i - 1
-                    column = roleGroup.columns[columnNumber]
-                    columnName, subColumns = column
-                    controlNumber = -1
-                    controlWidth = width / len(subColumns)
-                    for subColumn in subColumns:
-                        controlNumber += 1
-                        subColumnName, role = subColumn
-                        roleID = role.roleID
-                        value = relevantRoles & roleID == roleID
-                        if value:
-                            text = localization.GetByLabel('UI/Corporations/CorporationWindow/Members/TitleHasRoleY', corpRole=subColumnName)
-                        else:
-                            text = localization.GetByLabel('UI/Corporations/CorporationWindow/Members/TitleDoesNotHaveRoleN', corpRole=subColumnName)
-                        canEditRole = self.GetCanEditRole(roleID)
-                        canRecycle = 0
-                        checkBoxes = []
-                        textControls = []
-                        if oldColumns and len(oldColumns) > i and oldColumns[i] is not None and len(oldColumns[i]):
-                            for column in oldColumns[i]:
-                                if isinstance(column, uicontrols.CheckboxCore):
-                                    checkBoxes.append(column)
-                                elif isinstance(column, uicontrols.LabelCore):
-                                    textControls.append(column)
-
-                            checkBoxesRequired = 0
-                            textControlsRequired = 0
-                            if canEditRole:
-                                checkBoxesRequired += 1
-                            else:
-                                textControlsRequired += 1
-                            if checkBoxesRequired == len(checkBoxes) and textControlsRequired == len(textControls):
-                                canRecycle = 1
-                        if not canRecycle:
-                            if canEditRole:
-                                column = self.AddCheckBox(['%s' % i,
-                                 roleID,
-                                 subColumnName,
-                                 value], self, align, controlWidth, height, left, None)
-                            else:
-                                column = uicontrols.EveLabelSmall(text=text, parent=self, width=controlWidth, height=height, left=left, state=uiconst.UI_NORMAL)
+        else:
+            data = self.sr.node
+            tabstops = data.parent.tabstops
+            rec = self.GetRec()
+            viewtype = data.viewtype
+            viewRoleGroupingID = self.GetViewRoleGroupingID()
+            roleGroup = self.sr.roleGroupings[viewRoleGroupingID]
+            nMaxColumnIndex = len(roleGroup.columns)
+            oldColumns = []
+            if self.sr.columns:
+                oldColumns.extend(self.sr.columns)
+            self.sr.columns = [None] * (1 + nMaxColumnIndex)
+            align = uiconst.RELATIVE
+            height = 12
+            i = -1
+            previousTabPosition = 0
+            relevantRoles = self.GetRelevantRoles()
+            try:
+                for tabstop in tabstops:
+                    if len(self.sr.loadingTitleID) and loadingTitleID != self.sr.loadingTitleID[-1]:
+                        return
+                    i += 1
+                    text, column, columnContents = '', None, []
+                    left = previousTabPosition + 4
+                    width = tabstop - previousTabPosition - 4
+                    if i == 0:
+                        if not oldColumns or oldColumns[i] is None:
+                            column = uicontrols.SinglelineEdit(name='titleName', parent=self, setvalue=rec.titleName, width=width - 1, left=left - 3, top=-1, align=uiconst.TOPLEFT, maxLength=100)
+                            column.OnChange = self.OnEditChange
                             columnContents.append(column)
-                            left += controlWidth
                         else:
-                            if canEditRole:
-                                checkbox = checkBoxes.pop()
-                                self.UpdateCheckBox(checkbox, ['%s' % i,
-                                 roleID,
-                                 subColumnName,
-                                 value], controlWidth, height, left)
-                                columnContents.append(checkbox)
-                            else:
-                                textControl = textControls.pop()
-                                self.UpdateTextControl(textControl, text, controlWidth, left)
-                                columnContents.append(textControl)
-                            left += controlWidth
+                            oldColumn = oldColumns[i]
+                            column = oldColumn[0]
+                            column.SetValue(rec.titleName)
+                            column.left = left - 3
+                            column.width = width - 1
+                            columnContents = [column]
                             oldColumns[i] = []
-                            oldColumns[i].extend(checkBoxes)
-                            oldColumns[i].extend(textControls)
+                    else:
+                        columnNumber = i - 1
+                        column = roleGroup.columns[columnNumber]
+                        columnName, subColumns = column
+                        controlNumber = -1
+                        controlWidth = width / len(subColumns)
+                        for subColumn in subColumns:
+                            controlNumber += 1
+                            subColumnName, role = subColumn
+                            roleID = role.roleID
+                            value = relevantRoles & roleID == roleID
+                            if value:
+                                text = localization.GetByLabel('UI/Corporations/CorporationWindow/Members/TitleHasRoleY', corpRole=subColumnName)
+                            else:
+                                text = localization.GetByLabel('UI/Corporations/CorporationWindow/Members/TitleDoesNotHaveRoleN', corpRole=subColumnName)
+                            canEditRole = self.GetCanEditRole(roleID)
+                            canRecycle = 0
+                            checkBoxes = []
+                            textControls = []
+                            if oldColumns and len(oldColumns) > i and oldColumns[i] is not None and len(oldColumns[i]):
+                                for column in oldColumns[i]:
+                                    if isinstance(column, uicontrols.CheckboxCore):
+                                        checkBoxes.append(column)
+                                    elif isinstance(column, uicontrols.LabelCore):
+                                        textControls.append(column)
 
-                self.sr.columns[i] = columnContents
-                previousTabPosition = tabstop
+                                checkBoxesRequired = 0
+                                textControlsRequired = 0
+                                if canEditRole:
+                                    checkBoxesRequired += 1
+                                else:
+                                    textControlsRequired += 1
+                                if checkBoxesRequired == len(checkBoxes) and textControlsRequired == len(textControls):
+                                    canRecycle = 1
+                            if not canRecycle:
+                                if canEditRole:
+                                    column = self.AddCheckBox(['%s' % i,
+                                     roleID,
+                                     subColumnName,
+                                     value], self, align, controlWidth, height, left, None)
+                                else:
+                                    column = uicontrols.EveLabelSmall(text=text, parent=self, width=controlWidth, height=height, left=left, state=uiconst.UI_NORMAL)
+                                columnContents.append(column)
+                                left += controlWidth
+                            else:
+                                if canEditRole:
+                                    checkbox = checkBoxes.pop()
+                                    self.UpdateCheckBox(checkbox, ['%s' % i,
+                                     roleID,
+                                     subColumnName,
+                                     value], controlWidth, height, left)
+                                    columnContents.append(checkbox)
+                                else:
+                                    textControl = textControls.pop()
+                                    self.UpdateTextControl(textControl, text, controlWidth, left)
+                                    columnContents.append(textControl)
+                                left += controlWidth
+                                oldColumns[i] = []
+                                oldColumns[i].extend(checkBoxes)
+                                oldColumns[i].extend(textControls)
 
-        finally:
-            if oldColumns:
-                for column in oldColumns:
-                    if column is None:
-                        continue
-                    for control in column:
-                        if control and not control.destroyed:
-                            control.Close()
+                    self.sr.columns[i] = columnContents
+                    previousTabPosition = tabstop
+
+            finally:
+                if oldColumns:
+                    for column in oldColumns:
+                        if column is None:
+                            continue
+                        for control in column:
+                            if control and not control.destroyed:
+                                control.Close()
+
+            return
 
     def UpdateLabelText(self):
         viewRoleGroupingID = self.GetViewRoleGroupingID()
@@ -831,7 +857,6 @@ class CorpTitleEntry(listentry.Generic):
             return (self.GetCanEditRole(roleID[0]), self.GetCanEditRole(roleID[1]))
         if roleID == const.corpRoleDirector:
             return 0
-        return 1
 
     def UpdateTextControl(self, textControl, text, width, left):
         textControl.text = text
@@ -849,6 +874,7 @@ class CorpTitleEntry(listentry.Generic):
         checkbox.SetChecked(default)
         checkbox.OnChange = self.CheckBoxChange
         checkbox.clipChildren = True
+        return
 
     def AddCheckBox(self, config, where, align, width, height, left, group):
         cfgname, retval, desc, default = config
@@ -888,6 +914,7 @@ class CorpTitleEntry(listentry.Generic):
             else:
                 setattr(rec, roleGroup.appliesTo, getattr(rec, roleGroup.appliesTo) & ~roleID)
         self.UpdateLabelText()
+        return
 
     def OnEditChange(self, updatedText):
         self.LogInfo('OnEditChange', updatedText)
@@ -897,3 +924,4 @@ class CorpTitleEntry(listentry.Generic):
                     column = self.sr.columns[0][0]
                     rec = self.GetRec()
                     rec.titleName = uiutil.StripTags(updatedText, stripOnly=['font', 'fontsize', 'br'])
+        return

@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\carbon\client\script\movement\movementClient.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\carbon\client\script\movement\movementClient.py
 import const
 import GameWorld
 import carbon.common.script.movement.movementService as movsvc
@@ -22,6 +23,7 @@ class MovementClient(movsvc.MovementService):
     def OnSessionChanged(self, isRemote, sess, change):
         newworldspaceid = change.get('worldspaceid', (None, None))[1]
         self.LookupWorldSpaceNodeID(newworldspaceid)
+        return None
 
     def LookupWorldSpaceNodeID(self, newworldspaceid):
         if newworldspaceid and newworldspaceid not in self.addressCache:
@@ -50,6 +52,7 @@ class MovementClient(movsvc.MovementService):
             component.moveModeManager = GameWorld.MoveModeManager(entity.entityID, component.sceneID, const.movement.AVATARTYPE_CLIENT_NPC, component.moveState, positionComponent, component.physics, component.characterController, GameWorld.ClientRemoteMode(), -1)
         component.InitializeCharacterControllerRefs(positionComponent)
         sm.GetService('navigation')
+        return
 
     def RegisterComponent(self, entity, component):
         movsvc.MovementService.RegisterComponent(self, entity, component)

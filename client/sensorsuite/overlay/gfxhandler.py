@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\packages\sensorsuite\overlay\gfxhandler.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\packages\sensorsuite\overlay\gfxhandler.py
 import math
 from carbon.common.lib.const import SEC
 import evecamera
@@ -21,96 +22,112 @@ class GfxHandler:
         self.gfxActiveSensorResults = {}
         self.suppressGfxReasons = set()
         self.gfxSwipeThread = None
+        return
 
     def Reset(self):
         self.gfxSensorSwipe = None
         self.gfxActiveSensorResults = {}
         self.suppressGfxReasons.discard(SUPPRESS_GFX_WARPING)
         self.gfxSwipeThread = None
+        return
 
     def StopGfxSwipe(self):
         if self.gfxSensorSwipe is None:
             return
-        uthread.new(self._StopGfxSwipe)
+        else:
+            uthread.new(self._StopGfxSwipe)
+            return
 
     def _StopGfxSwipe(self):
         if self.gfxSensorSwipe is None:
             return
-        fadeOutTime = 0.25
-        for cs in self.gfxSensorSwipe.curveSets:
-            if cs.name == 'Play':
-                fadeOutTime = cs.GetMaxCurveDuration()
-                cs.scale = -1.0
-                cs.PlayFrom(fadeOutTime)
-                break
+        else:
+            fadeOutTime = 0.25
+            for cs in self.gfxSensorSwipe.curveSets:
+                if cs.name == 'Play':
+                    fadeOutTime = cs.GetMaxCurveDuration()
+                    cs.scale = -1.0
+                    cs.PlayFrom(fadeOutTime)
+                    break
 
-        uthread2.SleepSim(fadeOutTime)
-        if self.gfxSensorSwipe is None:
+            uthread2.SleepSim(fadeOutTime)
+            if self.gfxSensorSwipe is None:
+                return
+            self.gfxSensorSwipe.display = False
+            scene = self.sceneManager.GetRegisteredScene('default')
+            if scene is not None:
+                if self.gfxSensorSwipe in scene.objects:
+                    scene.objects.fremove(self.gfxSensorSwipe)
+            self.gfxSensorSwipe = None
             return
-        self.gfxSensorSwipe.display = False
-        scene = self.sceneManager.GetRegisteredScene('default')
-        if scene is not None:
-            if self.gfxSensorSwipe in scene.objects:
-                scene.objects.fremove(self.gfxSensorSwipe)
-        self.gfxSensorSwipe = None
 
     def StopSwipeThread(self):
         if self.gfxSwipeThread is not None:
             self.gfxSwipeThread.kill()
             self.gfxSwipeThread = None
+        return
 
     def StartGfxSwipeThread(self, viewAngleInPlane):
         if self.gfxSwipeThread is not None:
             return
-        self.gfxSwipeThread = uthread.worker('sensorSuite::_GfxSwipeThread', self._GfxSwipeThread, viewAngleInPlane)
+        else:
+            self.gfxSwipeThread = uthread.worker('sensorSuite::_GfxSwipeThread', self._GfxSwipeThread, viewAngleInPlane)
+            return
 
     def _GfxSwipeThread(self, viewAngleInPlane):
         try:
-            uthread2.SleepSim(SWEEP_START_GRACE_TIME_SEC)
-            if self.sensorSuiteService.IsOverlayActive() or self.sensorSuiteService.sensorSweepActive:
-                logger.debug('triggering a gfx swipe')
-                self.StartGfxSwipe(viewAngleInPlane)
-                uthread2.SleepSim(SWEEP_CYCLE_TIME_SEC)
-                self.StopGfxSwipe()
-        except InvalidClientStateError:
-            pass
+            try:
+                uthread2.SleepSim(SWEEP_START_GRACE_TIME_SEC)
+                if self.sensorSuiteService.IsOverlayActive() or self.sensorSuiteService.sensorSweepActive:
+                    logger.debug('triggering a gfx swipe')
+                    self.StartGfxSwipe(viewAngleInPlane)
+                    uthread2.SleepSim(SWEEP_CYCLE_TIME_SEC)
+                    self.StopGfxSwipe()
+            except InvalidClientStateError:
+                pass
+
         finally:
             logger.debug('exiting gfx swipe thread')
             self.gfxSwipeThread = None
 
+        return
+
     def StartGfxSwipe(self, viewAngleInPlane):
         if self.suppressGfxReasons:
             return
-        if self.gfxSensorSwipe is None:
-            self.gfxSensorSwipe = blue.recycler.RecycleOrLoad('res:/fisfx/scanner/background.red')
-        adjustedViewAngleInPlane = viewAngleInPlane + math.pi
-        for child in self.gfxSensorSwipe.children:
-            if child.mesh is not None:
-                for area in list(child.mesh.transparentAreas) + list(child.mesh.additiveAreas):
-                    if area.effect is not None:
-                        for param in area.effect.parameters:
-                            if param.name == 'SwipeData':
-                                param.value = (param.value[0],
-                                 adjustedViewAngleInPlane / (2.0 * math.pi),
-                                 param.value[2],
-                                 param.value[3])
+        else:
+            if self.gfxSensorSwipe is None:
+                self.gfxSensorSwipe = blue.recycler.RecycleOrLoad('res:/fisfx/scanner/background.red')
+            adjustedViewAngleInPlane = viewAngleInPlane + math.pi
+            for child in self.gfxSensorSwipe.children:
+                if child.mesh is not None:
+                    for area in list(child.mesh.transparentAreas) + list(child.mesh.additiveAreas):
+                        if area.effect is not None:
+                            for param in area.effect.parameters:
+                                if param.name == 'SwipeData':
+                                    param.value = (param.value[0],
+                                     adjustedViewAngleInPlane / (2.0 * math.pi),
+                                     param.value[2],
+                                     param.value[3])
 
-        self.gfxSensorSwipe.display = True
-        scene = self.sceneManager.GetRegisteredScene('default')
-        if scene is not None:
-            if self.gfxSensorSwipe not in scene.objects:
-                scene.objects.append(self.gfxSensorSwipe)
-            for cs in self.gfxSensorSwipe.curveSets:
-                if cs.name == 'Rotater':
-                    for c in cs.curves:
-                        if c.name == 'Speed':
-                            c.length = SWEEP_CYCLE_TIME_SEC
+            self.gfxSensorSwipe.display = True
+            scene = self.sceneManager.GetRegisteredScene('default')
+            if scene is not None:
+                if self.gfxSensorSwipe not in scene.objects:
+                    scene.objects.append(self.gfxSensorSwipe)
+                for cs in self.gfxSensorSwipe.curveSets:
+                    if cs.name == 'Rotater':
+                        for c in cs.curves:
+                            if c.name == 'Speed':
+                                c.length = SWEEP_CYCLE_TIME_SEC
 
-                    cs.scale = 1.0
-                    cs.Play()
-                elif cs.name == 'Play':
-                    cs.scale = 1.0
-                    cs.Play()
+                        cs.scale = 1.0
+                        cs.Play()
+                    elif cs.name == 'Play':
+                        cs.scale = 1.0
+                        cs.Play()
+
+            return
 
     def GetViewAngleInPlane(self):
         camera = self.sceneManager.GetActiveCamera()
@@ -144,3 +161,4 @@ class GfxHandler:
 
         if scene is None:
             raise InvalidClientStateError('Failed to find the default space scene')
+        return

@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\packages\carbonui\modules\fpsmonitor.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\packages\carbonui\modules\fpsmonitor.py
 import blue
 import trinity
 import uthread
@@ -32,6 +33,7 @@ class GraphRenderer(Base):
     def Close(self):
         Base.Close(self)
         self.renderer.scaleChangeCallback = None
+        return
 
     def AdjustViewport(self):
         l, t = self.displayX, self.displayY

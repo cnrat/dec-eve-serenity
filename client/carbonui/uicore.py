@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\packages\carbonui\uicore.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\packages\carbonui\uicore.py
 import uthread
 import blue
 import log
@@ -23,7 +24,9 @@ class UIDeviceResource():
     def OnCreate(self, dev):
         if getattr(uicore, 'uilib', None) is None:
             return
-        uicore.UpdateCursor(uicore.uilib.mouseOver, 1)
+        else:
+            uicore.UpdateCursor(uicore.uilib.mouseOver, 1)
+            return
 
 
 class UICoreBase():
@@ -34,7 +37,7 @@ class UICoreBase():
     tooltipHandler = None
     dpiScaling = 1.0
 
-    def __init__(self, appName = None):
+    def __init__(self, appName=None):
         import __builtin__
         if 'uicore' in __builtin__.__dict__.keys():
             pass
@@ -63,8 +66,9 @@ class UICoreBase():
             __builtin__.uicore = self
         self.textObjects = weakref.WeakSet()
         self.deviceResource = UIDeviceResource()
+        return
 
-    def Startup(self, layerlist = None, clientStartup = True):
+    def Startup(self, layerlist=None, clientStartup=True):
         if clientStartup:
             sm.GetService('settings').LoadSettings()
             deviceSvc = sm.StartServiceAndWaitForRunningState('device')
@@ -87,6 +91,7 @@ class UICoreBase():
         self.animations = carbonui.uianimations.animations
         trinity.device.RegisterResource(self)
         self.isRunning = True
+        return
 
     def LoadBaseFontHandler(self):
         from carbonui.services.font import FontHandler
@@ -116,10 +121,12 @@ class UICoreBase():
     def OnInvalidate(self, *args):
         self.layer.hint.Flush()
         self._hint = None
+        return
 
     def OnCreate(self, *args):
         self.layer.hint.Flush()
         self._hint = None
+        return
 
     def LoadLayers(self, layerlist):
         self.layer = carbonui.control.layer.LayerManager()
@@ -145,7 +152,7 @@ class UICoreBase():
     def CheckHint(self):
         pass
 
-    def UpdateHint(self, item, force = 0):
+    def UpdateHint(self, item, force=0):
         pass
 
     def IsHintVisible(self):
@@ -155,7 +162,7 @@ class UICoreBase():
         if self.IsHintVisible():
             self._hint.LoadHint('')
 
-    def UpdateCursor(self, item, force = 0):
+    def UpdateCursor(self, item, force=0):
         cursor = 0
         ic = getattr(item, 'cursor', None)
         if ic is not None and ic >= 0:
@@ -176,6 +183,7 @@ class UICoreBase():
         if force or self._lastCursor != cursor:
             self.uilib.SetCursor(cursor)
             self._lastCursor = cursor
+        return
 
     def GetLayer(self, name):
         return self.layer.GetLayer(name)
@@ -207,12 +215,15 @@ class UICoreBase():
                 return 0
 
         else:
-            return int(value)
+            try:
+                return int(value)
+            except ValueError:
+                return 0
 
     def IsDragging(self):
         return not self.dragObject == None
 
-    def DrawDebugLine(self, pos1, pos2, width = 2, color1 = None, color2 = None):
+    def DrawDebugLine(self, pos1, pos2, width=2, color1=None, color2=None):
         import util
         color1 = color1 or util.Color.YELLOW
         color2 = color2 or util.Color.RED
@@ -220,7 +231,7 @@ class UICoreBase():
         self.debugLineSet.AddStraightLine(pos1, color1, pos2, color2, width)
         self.debugLineSet.SubmitChanges()
 
-    def DrawDebugAxis(self, pos = None, lineWidth = 5, len = 1000.0):
+    def DrawDebugAxis(self, pos=None, lineWidth=5, len=1000.0):
         import geo2, util
         self.ConstructDebugLineset()
         if not pos:

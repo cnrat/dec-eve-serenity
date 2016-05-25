@@ -1,8 +1,9 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\carbon\common\stdlib\unittest\util.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\carbon\common\stdlib\unittest\util.py
 __unittest = True
 _MAX_LENGTH = 80
 
-def safe_repr(obj, short = False):
+def safe_repr(obj, short=False):
     try:
         result = repr(obj)
     except Exception:
@@ -56,7 +57,7 @@ def sorted_list_difference(expected, actual):
     return (missing, unexpected)
 
 
-def unorderable_list_difference(expected, actual, ignore_duplicate = False):
+def unorderable_list_difference(expected, actual, ignore_duplicate=False):
     missing = []
     unexpected = []
     while expected:

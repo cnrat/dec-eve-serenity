@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\carbon\common\lib\werkzeug\contrib\profiler.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\carbon\common\lib\werkzeug\contrib\profiler.py
 import sys
 try:
     try:
@@ -25,7 +26,7 @@ class MergeStream(object):
 
 class ProfilerMiddleware(object):
 
-    def __init__(self, app, stream = None, sort_by = ('time', 'calls'), restrictions = ()):
+    def __init__(self, app, stream=None, sort_by=('time', 'calls'), restrictions=()):
         if not available:
             raise RuntimeError('the profiler is not available because profile or pstat is not installed.')
         self._app = app
@@ -36,7 +37,7 @@ class ProfilerMiddleware(object):
     def __call__(self, environ, start_response):
         response_body = []
 
-        def catching_start_response(status, headers, exc_info = None):
+        def catching_start_response(status, headers, exc_info=None):
             start_response(status, headers, exc_info)
             return response_body.append
 
@@ -58,11 +59,12 @@ class ProfilerMiddleware(object):
         return [body]
 
 
-def make_action(app_factory, hostname = 'localhost', port = 5000, threaded = False, processes = 1, stream = None, sort_by = ('time', 'calls'), restrictions = ()):
+def make_action(app_factory, hostname='localhost', port=5000, threaded=False, processes=1, stream=None, sort_by=('time', 'calls'), restrictions=()):
 
-    def action(hostname = ('h', hostname), port = ('p', port), threaded = threaded, processes = processes):
+    def action(hostname=('h', hostname), port=('p', port), threaded=threaded, processes=processes):
         from werkzeug.serving import run_simple
         app = ProfilerMiddleware(app_factory(), stream, sort_by, restrictions)
         run_simple(hostname, port, app, False, None, threaded, processes)
+        return
 
     return action

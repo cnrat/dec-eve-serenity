@@ -1,5 +1,6 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\client\script\environment\effects\skinChange.py
-from eve.client.script.environment.effects.GenericEffect import ShipRenderEffect
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\client\script\environment\effects\skinChange.py
+from eve.client.script.environment.effects.shipRenderEffect import ShipRenderEffect
 
 class SkinChange(ShipRenderEffect):
     __guid__ = 'effects.SkinChange'

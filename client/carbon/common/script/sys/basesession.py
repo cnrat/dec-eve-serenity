@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\carbon\common\script\sys\basesession.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\carbon\common\script\sys\basesession.py
 import copy
 import sys
 import types
@@ -73,7 +74,7 @@ class ObjectConnection():
      'RedirectObject': 1,
      'Objectcast': 1}
 
-    def __init__(self, sess, object, c2ooid, serviceName = None, bindParams = None):
+    def __init__(self, sess, object, c2ooid, serviceName=None, bindParams=None):
         if object is None:
             sess.LogSessionError('Establishing an object connection to None')
             log.LogTraceback()
@@ -111,6 +112,8 @@ class ObjectConnection():
                 self.PseudoMethodCall(object, 'OnSessionAttach')
                 object.sessionConnections[sess.sid] = sess
                 object.objectConnections[sess.sid] = {}
+            else:
+                self.PseudoMethodCall(object, 'OnSessionReattach')
             object.objectConnections[sess.sid][c2ooid] = self
             sess.connectedObjects[self.__c2ooid__] = (self,)
             self.__disconnected__ = 0
@@ -122,6 +125,7 @@ class ObjectConnection():
                 sm.GetService(serviceName).UnLockService(lock[1], lock[0])
 
         self.__dict__['__constructing__'] = 0
+        return
 
     def GetSession(self):
         return self.__session__
@@ -187,20 +191,22 @@ class ObjectConnection():
                  result]
             timer = PushMark(logname + '::LogPseudoMethodCall')
             try:
-                s = ''.join(map(strx, logwhat))
-                if len(s) > 2500:
-                    s = s[:2500]
-                while len(s) > 255:
-                    logChannel.Log(s[:253], log.LGINFO, 1)
-                    s = '- ' + s[253:]
+                try:
+                    s = ''.join(map(strx, logwhat))
+                    if len(s) > 2500:
+                        s = s[:2500]
+                    while len(s) > 255:
+                        logChannel.Log(s[:253], log.LGINFO, 1)
+                        s = '- ' + s[253:]
 
-                logChannel.Log(s, log.LGINFO, 1)
-            except TypeError:
-                logChannel.Log('[X]'.join(map(strx, logwhat)).replace('\x00', '\\0'), log.LGINFO, 1)
-                sys.exc_clear()
-            except UnicodeEncodeError:
-                logChannel.Log('[U]'.join(map(lambda x: x.encode('ascii', 'replace'), map(unicode, logwhat))), log.LGINFO, 1)
-                sys.exc_clear()
+                    logChannel.Log(s, log.LGINFO, 1)
+                except TypeError:
+                    logChannel.Log('[X]'.join(map(strx, logwhat)).replace('\x00', '\\0'), log.LGINFO, 1)
+                    sys.exc_clear()
+                except UnicodeEncodeError:
+                    logChannel.Log('[U]'.join(map(lambda x: x.encode('ascii', 'replace'), map(unicode, logwhat))), log.LGINFO, 1)
+                    sys.exc_clear()
+
             finally:
                 PopMark(timer)
 
@@ -210,14 +216,15 @@ class ObjectConnection():
     def __GetObjectType(self):
         return 'ObjectConnection to ' + self.GetObjectConnectionLogClass()
 
-    def RedirectObject(self, serviceName = None, bindParams = None):
+    def RedirectObject(self, serviceName=None, bindParams=None):
         if serviceName is None:
             serviceName = self.__serviceName__
         if bindParams is None:
             bindParams = self.__bindParams__
         self.__redirectObject__ = (serviceName, bindParams)
+        return
 
-    def DisconnectObject(self, delaySecs = 0):
+    def DisconnectObject(self, delaySecs=0):
         if delaySecs:
             if not self.__pendingDisconnect__:
                 dyingObjects.append((blue.os.GetWallclockTime() + delaySecs * const.SEC, self))
@@ -228,53 +235,56 @@ class ObjectConnection():
                     if not prefs.GetValue('suppressObjectKillahDupSpam', 0):
                         log.LogTraceback('Many duplicate requests (%d) to add object to objectKillah dyingObjects list - %r %r' % (self.__pendingDisconnect__, self, self.GetObjectConnectionLogClass()), severity=log.LGWARN)
             return
-        if not self.__disconnected__:
-            self.__disconnected__ = 1
-            try:
-                if not sm.IsServiceRunning(self.__serviceName__):
-                    return
-                service = sm.GetService(self.__serviceName__)
-                lock = None
-                if self.__session__.role & ROLE_PLAYER:
-                    charid = getattr(self.__session__, 'charid')
-                    lock = sm.GetService(self.__serviceName__).LockService((self.__bindParams__, charid))
+        else:
+            if not self.__disconnected__:
+                self.__disconnected__ = 1
                 try:
-                    objectID = GetObjectUUID(self)
-                    if objectID in self.__session__.machoObjectsByID:
-                        objectType = self.__GetObjectType()
-                        self.__session__.LogSessionHistory('%s object %s disconnected from this session by the server' % (objectType, objectID), strx(self.__object__))
-                        self.__session__.UnregisterMachoObject(objectID, None, 0)
-                    service.RemoveSessionConnectionFromObject(self)
-                finally:
-                    if lock:
-                        sm.GetService(self.__serviceName__).UnLockService((self.__bindParams__, charid), lock)
+                    if not sm.IsServiceRunning(self.__serviceName__):
+                        return
+                    service = sm.GetService(self.__serviceName__)
+                    lock = None
+                    if self.__session__.role & ROLE_PLAYER:
+                        charid = getattr(self.__session__, 'charid')
+                        lock = sm.GetService(self.__serviceName__).LockService((self.__bindParams__, charid))
+                    try:
+                        objectID = GetObjectUUID(self)
+                        if objectID in self.__session__.machoObjectsByID:
+                            objectType = self.__GetObjectType()
+                            self.__session__.LogSessionHistory('%s object %s disconnected from this session by the server' % (objectType, objectID), strx(self.__object__))
+                            self.__session__.UnregisterMachoObject(objectID, None, 0)
+                        service.RemoveSessionConnectionFromObject(self)
+                    finally:
+                        if lock:
+                            sm.GetService(self.__serviceName__).UnLockService((self.__bindParams__, charid), lock)
 
-            except ReferenceError:
-                pass
-            except StandardError:
-                log.LogException()
+                except ReferenceError:
+                    pass
+                except StandardError:
+                    log.LogException()
 
-            self.__object__ = None
+                self.__object__ = None
+            return
 
     def __getattr__(self, method):
         if method in self.__dict__:
             return self.__dict__[method]
-        if not method.isupper():
-            if method in self.__dict__['__publicattributes__']:
-                return getattr(self.__object__, method)
-            if method.startswith('__'):
-                raise AttributeError(method)
-        if self.__c2ooid__ not in self.__session__.connectedObjects:
-            self.__session__.LogSessionHistory('Object no longer live:  c2ooid=' + strx(self.__c2ooid__) + ', serviceName=' + strx(self.__serviceName__) + ', bindParams=' + strx(self.__bindParams__) + ', uuid=' + strx(self.__machoObjectUUID__), None, 1)
-            self.__session__.LogSessionError('This object connection is no longer live')
-            raise RuntimeError('This object connection is no longer live')
-        self.__dict__['__last_used__'] = blue.os.GetWallclockTime()
-        if self.__session__.role & (ROLE_SERVICE | ROLE_REMOTESERVICE) == ROLE_SERVICE:
-            if method.endswith('_Ex'):
-                return FastCallWrapper(self.__session__, self.__object__, method[:-3], self)
-            else:
-                return FastCallWrapper(self.__session__, self.__object__, method, self)
-        return CallWrapper(self.__session__, self.__object__, method, self, self.GetObjectConnectionLogClass())
+        else:
+            if not method.isupper():
+                if method in self.__dict__['__publicattributes__']:
+                    return getattr(self.__object__, method)
+                if method.startswith('__'):
+                    raise AttributeError(method)
+            if self.__c2ooid__ not in self.__session__.connectedObjects:
+                self.__session__.LogSessionHistory('Object no longer live:  c2ooid=' + strx(self.__c2ooid__) + ', serviceName=' + strx(self.__serviceName__) + ', bindParams=' + strx(self.__bindParams__) + ', uuid=' + strx(self.__machoObjectUUID__), None, 1)
+                self.__session__.LogSessionError('This object connection is no longer live')
+                raise RuntimeError('This object connection is no longer live')
+            self.__dict__['__last_used__'] = blue.os.GetWallclockTime()
+            if self.__session__.role & (ROLE_SERVICE | ROLE_REMOTESERVICE) == ROLE_SERVICE:
+                if method.endswith('_Ex'):
+                    return FastCallWrapper(self.__session__, self.__object__, method[:-3], self)
+                else:
+                    return FastCallWrapper(self.__session__, self.__object__, method, self)
+            return CallWrapper(self.__session__, self.__object__, method, self, self.GetObjectConnectionLogClass())
 
 
 def FindClientsAndHoles(attr, val, maxCount):
@@ -284,7 +294,7 @@ def FindClientsAndHoles(attr, val, maxCount):
     if attributes[0] not in sessionsByAttribute:
         log.LogWarn('FindClientsAndHoles by non-existent attribute ', attributes[0])
         return (0, ret, nf)
-    if len(attributes) > 1:
+    elif len(attributes) > 1:
         if len(attributes) != len(val):
             raise RuntimeError('For a complex session query, the value must be a tuple of equal length to the complex query params')
         for i in range(len(val[0])):
@@ -329,27 +339,28 @@ def FindClientsAndHoles(attr, val, maxCount):
             nf2[0] = nf
             nf = nf2
         return (0, ret, nf)
-    for v in val:
-        f = 0
-        r = []
-        for sid in sessionsByAttribute[attr].get(v, {}).iterkeys():
-            if sid in sessionsBySID:
-                clientID = getattr(sessionsBySID[sid], 'clientID', None)
-                if clientID is not None:
-                    if maxCount is not None and len(ret) >= maxCount:
-                        return (1, [], [])
-                    ret.append(clientID)
-                    f = 1
-            else:
-                r.append(sid)
+    else:
+        for v in val:
+            f = 0
+            r = []
+            for sid in sessionsByAttribute[attr].get(v, {}).iterkeys():
+                if sid in sessionsBySID:
+                    clientID = getattr(sessionsBySID[sid], 'clientID', None)
+                    if clientID is not None:
+                        if maxCount is not None and len(ret) >= maxCount:
+                            return (1, [], [])
+                        ret.append(clientID)
+                        f = 1
+                else:
+                    r.append(sid)
 
-        for each in r:
-            del sessionsByAttribute[attr][v][each]
+            for each in r:
+                del sessionsByAttribute[attr][v][each]
 
-        if not f:
-            nf.append(v)
+            if not f:
+                nf.append(v)
 
-    return (0, ret, nf)
+        return (0, ret, nf)
 
 
 def FindSessions(attr, val):
@@ -383,6 +394,8 @@ def FindSessionClient(attr, val):
     session = FindSessions(attr, val)
     if session:
         return getattr(session[0], 'clientID', None)
+    else:
+        return None
 
 
 callTimerKeys = {}
@@ -405,6 +418,7 @@ class RealCallTimer():
             self.mask = None
         self.start = blue.os.GetWallclockTimeNow()
         outstandingCallTimers.append((k, self.start))
+        return
 
     def Done(self):
         stop = blue.os.GetWallclockTimeNow()
@@ -547,7 +561,7 @@ def GetNewSid():
     return random.getrandbits(63)
 
 
-def CloseSession(sess, isRemote = False):
+def CloseSession(sess, isRemote=False):
     if sess is not None:
         if hasattr(sess, 'remoteServiceSessionRefCount'):
             sess.__dict__['remoteServiceSessionRefCount'] -= 1
@@ -555,6 +569,7 @@ def CloseSession(sess, isRemote = False):
                 return
         if sess.sid in sessionsBySID:
             sess.ClearAttributes(isRemote)
+    return
 
 
 class CoreSession():
@@ -579,7 +594,7 @@ class CoreSession():
      'irrelevanceTime']
     __attributesWithDefaultValueOfZero__ = []
 
-    def __init__(self, sid, localSID, role, sessionType, defaultVarList = []):
+    def __init__(self, sid, localSID, role, sessionType, defaultVarList=[]):
         global __contextOnlyTypes__
         if sessionType not in const.session.VALID_SESSION_TYPES:
             raise ValueError('Trying to create a session with an invalid session type')
@@ -622,8 +637,9 @@ class CoreSession():
         d['contextOnly'] = machobase.mode == 'server' and sessionType in __contextOnlyTypes__
         self.__ChangeAttribute('role', role)
         self.LogSessionHistory('Session created')
+        return
 
-    def Throttle(self, key, throttleTimes, throttleInterval, userErrorMessage, userErrorParams = None):
+    def Throttle(self, key, throttleTimes, throttleInterval, userErrorMessage, userErrorParams=None):
         lastKeyTimes = self.callThrottling.get(key, [])
         now = blue.os.GetWallclockTime()
         if len(lastKeyTimes) >= throttleTimes:
@@ -646,6 +662,7 @@ class CoreSession():
                 lastKeyTimes = temp
         lastKeyTimes.append(now)
         self.callThrottling[key] = lastKeyTimes
+        return
 
     def IsMutating(self):
         return self.mutating
@@ -690,6 +707,7 @@ class CoreSession():
                 del self.machoObjectConnectionsByObjectID[objectID]
                 return refID
             return None
+            return None
 
     def RegisterMachoObject(self, objectID, object, refID):
         if objectID not in sessionsByAttribute['objectID']:
@@ -701,7 +719,7 @@ class CoreSession():
         else:
             self.machoObjectsByID[objectID] = [refID, object]
 
-    def UnregisterMachoObject(self, objectID, refID, suppressnotification = 1):
+    def UnregisterMachoObject(self, objectID, refID, suppressnotification=1):
         try:
             if objectID in self.machoObjectConnectionsByObjectID:
                 del self.machoObjectConnectionsByObjectID[objectID]
@@ -722,6 +740,8 @@ class CoreSession():
         except StandardError:
             log.LogException()
             sys.exc_clear()
+
+        return
 
     def DumpSession(self, prefix, reason):
         loglines = [prefix + ':  ' + reason + ".  It's history is as follows:"]
@@ -751,8 +771,9 @@ class CoreSession():
                 sys.exc_clear()
 
         log.general.Log('\n'.join(loglines), 1, 2)
+        return
 
-    def Masquerade(self, props = None):
+    def Masquerade(self, props=None):
         w = weakref.ref(self)
         if self.charid:
             tmp = {'base.session': w,
@@ -766,32 +787,35 @@ class CoreSession():
     def GetActualSession(self):
         return self
 
-    def LogSessionHistory(self, reason, details = None, noBlather = 0):
+    def LogSessionHistory(self, reason, details=None, noBlather=0):
         if self.role & ROLE_SERVICE and not self.hasproblems:
             return
-        timer = PushMark('LogSessionHistory')
-        try:
-            if details is None:
-                details = ''
-                for each in ['sid', 'clientID'] + self.__persistvars__:
-                    if getattr(self, each, None) is not None:
-                        details = details + each + ':' + strx(getattr(self, each)) + ', '
+        else:
+            timer = PushMark('LogSessionHistory')
+            try:
+                if details is None:
+                    details = ''
+                    for each in ['sid', 'clientID'] + self.__persistvars__:
+                        if getattr(self, each, None) is not None:
+                            details = details + each + ':' + strx(getattr(self, each)) + ', '
 
-                details = 'session=' + details[:-2]
-            else:
-                details = 'info=' + strx(details)
-            self.__dict__['sessionhist'].append((blue.os.GetWallclockTime(), strx(reason)[:255], strx(details)[:255]))
-            if len(self.__dict__['sessionhist']) > 120:
-                self.__dict__['sessionhist'] = self.__dict__['sessionhist'][70:]
-            if not noBlather and log.general.IsOpen(1):
-                log.general.Log('SessionHistory:  reason=%s, %s' % (reason, strx(details)), 1, 1)
-        finally:
-            PopMark(timer)
+                    details = 'session=' + details[:-2]
+                else:
+                    details = 'info=' + strx(details)
+                self.__dict__['sessionhist'].append((blue.os.GetWallclockTime(), strx(reason)[:255], strx(details)[:255]))
+                if len(self.__dict__['sessionhist']) > 120:
+                    self.__dict__['sessionhist'] = self.__dict__['sessionhist'][70:]
+                if not noBlather and log.general.IsOpen(1):
+                    log.general.Log('SessionHistory:  reason=%s, %s' % (reason, strx(details)), 1, 1)
+            finally:
+                PopMark(timer)
 
-    def LogSessionError(self, what, novalidate = 0):
+            return
+
+    def LogSessionError(self, what, novalidate=0):
         self.__LogSessionProblem(what, 4, novalidate)
 
-    def __LogSessionProblem(self, what, how, novalidate = 0):
+    def __LogSessionProblem(self, what, how, novalidate=0):
         self.hasproblems = 1
         self.LogSessionHistory(what)
         if log.general.IsOpen(how):
@@ -818,6 +842,7 @@ class CoreSession():
             log.general.Log('\n'.join(lines), how, 2)
         if not novalidate:
             self.ValidateSession('session-error-dump')
+        return
 
     def SetSessionVariable(self, k, v):
         if v is None:
@@ -828,8 +853,9 @@ class CoreSession():
 
         else:
             self.__dict__['sessionVariables'][k] = v
+        return
 
-    def GetSessionVariable(self, k, defaultValue = None):
+    def GetSessionVariable(self, k, defaultValue=None):
         try:
             return self.__dict__['sessionVariables'][k]
         except:
@@ -838,6 +864,8 @@ class CoreSession():
                 self.__dict__['sessionVariables'][k] = defaultValue
                 return defaultValue
             return
+
+        return
 
     def GetDistributedProps(self, getAll):
         retval = []
@@ -869,14 +897,16 @@ class CoreSession():
     def GetDefaultValueOfAttribute(self, attribute):
         if attribute == 'role':
             return ROLE_LOGIN
-        if attribute == 'sessionType':
+        elif attribute == 'sessionType':
             return self.__dict__.get('sessionType', None)
-        if attribute in self.__attributesWithDefaultValueOfZero__:
+        elif attribute in self.__attributesWithDefaultValueOfZero__:
             return 0
-        if attribute == 'languageID' and machobase.mode == 'client':
+        elif attribute == 'languageID' and machobase.mode == 'client':
             return strx(prefs.GetValue('languageID', 'EN'))
+        else:
+            return None
 
-    def ClearAttributes(self, isRemote = 0, dontSendMessage = False):
+    def ClearAttributes(self, isRemote=0, dontSendMessage=False):
         if prefs.GetValue('quickShutdown', False):
             machoNet = sm.GetServiceIfRunning('machoNet')
             if machoNet and machoNet.IsClusterShuttingDown() and self.userid:
@@ -923,6 +953,8 @@ class CoreSession():
         finally:
             self.changing = None
 
+        return
+
     def ValidateSession(self, prefix):
         bad = False
         if not self.contextOnly:
@@ -966,6 +998,8 @@ class CoreSession():
                     except StandardError:
                         log.LogException()
                         sys.exc_clear()
+
+        return
 
     def CallProcessChangeOnObjects(self, notify, isRemote):
         objects = []
@@ -1031,10 +1065,12 @@ class CoreSession():
                     self.DumpSession('ARGH!!!', 'This session is blowing up during change attribute')
                     raise
 
+        return
+
     def RecalculateDependantAttributes(self, d):
         pass
 
-    def SetAttributes(self, requestedChanges, isRemote = 0, dontSendMessage = False):
+    def SetAttributes(self, requestedChanges, isRemote=0, dontSendMessage=False):
         if prefs.GetValue('quickShutdown', False):
             machoNet = sm.GetServiceIfRunning('machoNet')
             if machoNet and machoNet.IsClusterShuttingDown() and getattr(self, 'userid', None):
@@ -1124,6 +1160,8 @@ class CoreSession():
         finally:
             self.changing = None
 
+        return
+
     def RecalculateDependantAttributesWithChanges(self, changes):
         pass
 
@@ -1172,6 +1210,8 @@ class CoreSession():
         finally:
             self.changing = None
 
+        return
+
     def DelayedInitialStateChange(self):
         if self.role & ROLE_SERVICE != 0:
             errorString = 'A service session may not change via DelayedInitialStateChange'
@@ -1212,6 +1252,8 @@ class CoreSession():
             self.LogSessionHistory('Delayed ApplyInitialState')
             self.changing = None
 
+        return
+
     def __repr__(self):
         ret = '<Session: ('
         for each in ['sid',
@@ -1234,7 +1276,7 @@ class CoreSession():
         else:
             self.__dict__[attr] = value
 
-    def DisconnectObject(self, object, key = None, delaySecs = 1):
+    def DisconnectObject(self, object, key=None, delaySecs=1):
         caller = localstorage.GetLocalStorage().get('base.caller', None)
         if caller:
             caller = caller()
@@ -1242,22 +1284,26 @@ class CoreSession():
                 caller.DisconnectObject(delaySecs)
                 return
         for k, v in self.connectedObjects.items():
-            obConn, = v
+            obConn = v
             if obConn.__object__ is object and (key is None or key == (obConn.__dict__['__session__'].sid, obConn.__dict__['__c2ooid__'])):
                 obConn.DisconnectObject(delaySecs)
 
-    def RedirectObject(self, object, serviceName = None, bindParams = None, key = None):
+        return
+
+    def RedirectObject(self, object, serviceName=None, bindParams=None, key=None):
         for k, v in self.connectedObjects.items():
-            obConn, = v
+            obConn = v
             if obConn.__object__ is object and (key is None or key == (obConn.__dict__['__session__'].sid, obConn.__dict__['__c2ooid__'])):
                 obConn.RedirectObject(serviceName, bindParams)
 
-    def ConnectToObject(self, object, serviceName = None, bindParams = None):
+        return
+
+    def ConnectToObject(self, object, serviceName=None, bindParams=None):
         c2ooid = self.__dict__['c2ooid']
         self.__dict__['c2ooid'] += 1
         return ObjectConnection(self, object, c2ooid, serviceName, bindParams)
 
-    def ConnectToClientService(self, svc, idtype = None, theID = None):
+    def ConnectToClientService(self, svc, idtype=None, theID=None):
         if theID is None or idtype is None:
             if self.role & ROLE_SERVICE:
                 log.LogTraceback()
@@ -1275,12 +1321,12 @@ class CoreSession():
     def ConnectToService(self, svc, **keywords):
         return ServiceConnection(self, svc, **keywords)
 
-    def ConnectToAllServices(self, svc, batchInterval = 0):
+    def ConnectToAllServices(self, svc, batchInterval=0):
         if not self.role & ROLE_SERVICE and machobase.mode != 'client' and not IsInClientContext():
             raise RuntimeError('You cannot cross the wire except in the context of a service')
         return sm.services['machoNet'].ConnectToAllServices(svc, self, batchInterval=batchInterval)
 
-    def ConnectToRemoteService(self, svc, nodeID = None):
+    def ConnectToRemoteService(self, svc, nodeID=None):
         if not self.role & ROLE_SERVICE and machobase.mode != 'client' and not IsInClientContext():
             raise RuntimeError('You cannot cross the wire except in the context of a service')
         if machobase.mode == 'server' and nodeID is None:
@@ -1291,9 +1337,10 @@ class CoreSession():
                 return self.ConnectToService(svc)
         if nodeID is not None and nodeID == sm.services['machoNet'].GetNodeID():
             return self.ConnectToService(svc)
-        return sm.services['machoNet'].ConnectToRemoteService(svc, nodeID, self)
+        else:
+            return sm.services['machoNet'].ConnectToRemoteService(svc, nodeID, self)
 
-    def ConnectToSolServerService(self, svc, nodeID = None):
+    def ConnectToSolServerService(self, svc, nodeID=None):
         if not self.role & ROLE_SERVICE and machobase.mode != 'client' and not IsInClientContext():
             raise RuntimeError('You cannot cross the wire except in the context of a service')
         if machobase.mode == 'server' and nodeID is None:
@@ -1306,14 +1353,16 @@ class CoreSession():
             return self.ConnectToService(svc)
         else:
             return sm.services['machoNet'].ConnectToRemoteService(svc, nodeID, self)
+            return
 
-    def ConnectToProxyServerService(self, svc, nodeID = None):
+    def ConnectToProxyServerService(self, svc, nodeID=None):
         if not self.role & ROLE_SERVICE and machobase.mode != 'client' and not IsInClientContext():
             raise RuntimeError('You cannot cross the wire except in the context of a service')
         if machobase.mode == 'proxy' and (nodeID is None or nodeID == sm.services['machoNet'].GetNodeID()):
             return self.ConnectToService(svc)
         else:
             return sm.services['machoNet'].ConnectToRemoteService(svc, nodeID, self)
+            return
 
     def ConnectToAnyService(self, svc):
         if not self.role & ROLE_SERVICE and machobase.mode != 'client' and not IsInClientContext():
@@ -1323,12 +1372,12 @@ class CoreSession():
         else:
             return self.ConnectToRemoteService(svc)
 
-    def ConnectToAllNeighboringServices(self, svc, batchInterval = 0):
+    def ConnectToAllNeighboringServices(self, svc, batchInterval=0):
         if not self.role & ROLE_SERVICE and machobase.mode != 'client' and not IsInClientContext():
             raise RuntimeError('You cannot cross the wire except in the context of a service')
         return sm.services['machoNet'].ConnectToAllNeighboringServices(svc, self, batchInterval=batchInterval)
 
-    def ConnectToAllProxyServerServices(self, svc, batchInterval = 0):
+    def ConnectToAllProxyServerServices(self, svc, batchInterval=0):
         if not self.role & ROLE_SERVICE and machobase.mode != 'client' and not IsInClientContext():
             raise RuntimeError('You cannot cross the wire except in the context of a service')
         if machobase.mode == 'proxy':
@@ -1336,7 +1385,7 @@ class CoreSession():
         else:
             return sm.services['machoNet'].ConnectToAllNeighboringServices(svc, self, batchInterval=batchInterval)
 
-    def ConnectToAllSolServerServices(self, svc, batchInterval = 0):
+    def ConnectToAllSolServerServices(self, svc, batchInterval=0):
         if not self.role & ROLE_SERVICE and machobase.mode != 'client' and not IsInClientContext():
             raise RuntimeError('You cannot cross the wire except in the context of a service')
         if machobase.mode == 'server':
@@ -1363,6 +1412,7 @@ class CoreSession():
     def ResetSessionChangeTimer(self, reason):
         sm.GetService('sessionMgr').LogInfo("Resetting next legal session change timer, reason='", reason, "', was ", formatUtil.FmtDateEng(self.nextSessionChange or blue.os.GetSimTime()))
         self.nextSessionChange = None
+        return
 
     def ServiceProxy(self, serviceName):
         return ServiceProxy(serviceName, self)
@@ -1403,7 +1453,7 @@ class ServiceConnection():
             return self.__session__.ConnectToRemoteService(self.__service__, nodeID)
 
     def __nonzero__(self):
-        return 1
+        pass
 
     def __str__(self):
         sess = 'unknown'
@@ -1454,6 +1504,7 @@ class MasqueradeMask(object):
     def UnMask(self):
         localstorage.SetLocalStorage(self.__prevStorage)
         self.__prevStorage = None
+        return
 
 
 class Session(CoreSession):
@@ -1472,6 +1523,7 @@ class Session(CoreSession):
      'stationid',
      'stationid2',
      'worldspaceid',
+     'structureid',
      'solarsystemid',
      'solarsystemid2',
      'hqID',
@@ -1497,6 +1549,7 @@ class Session(CoreSession):
                 'fleetid',
                 'shipid',
                 'stationid',
+                'structureid',
                 'solarsystemid',
                 'bloodlineID',
                 'raceID',
@@ -1556,11 +1609,7 @@ class Session(CoreSession):
 
     def RecalculateDependantAttributes(self, d):
         if 'stationid' in d or 'solarsystemid' in d or 'worldspaceid' in d:
-            d['locationid'] = d.get('worldspaceid', None)
-            if d['locationid'] is None:
-                d['locationid'] = d.get('stationid', None)
-                if d['locationid'] is None:
-                    d['locationid'] = d.get('solarsystemid', None)
+            d['locationid'] = d.get('worldspaceid') or d.get('stationid') or d.get('solarsystemid')
         if d.get('stationid', None):
             d['worldspaceid'] = d['stationid']
         for each in ('hqID', 'baseID', 'rolesAtAll', 'rolesAtHQ', 'rolesAtBase', 'rolesAtOther', 'stationid', 'solarsystemid'):
@@ -1581,6 +1630,8 @@ class Session(CoreSession):
                         corprole = rolesAtAll | rolesAtBase
                 d['corprole'] = corprole
                 break
+
+        return
 
     def RecalculateDependantAttributesWithChanges(self, changes):
         if 'stationid' in changes or 'solarsystemid' in changes or 'worldspaceid' in changes:
@@ -1616,8 +1667,10 @@ class Session(CoreSession):
                     changes['corprole'] = (old, corprole)
                 break
 
+        return
 
-def CreateSession(sid = None, sessionType = const.session.SESSION_TYPE_GAME, role = ROLE_LOGIN):
+
+def CreateSession(sid=None, sessionType=const.session.SESSION_TYPE_GAME, role=ROLE_LOGIN):
     global local_sid
     if sessionType not in const.session.VALID_SESSION_TYPES:
         raise ValueError('Trying to create a session with an invalid session type')
@@ -1634,7 +1687,7 @@ def CreateSession(sid = None, sessionType = const.session.SESSION_TYPE_GAME, rol
     return s
 
 
-def GetServiceSession(serviceKey, refcounted = False):
+def GetServiceSession(serviceKey, refcounted=False):
     if serviceKey not in service_sessions:
         ret = CreateSession(GetNewSid(), const.session.SESSION_TYPE_SERVICE, ROLE_SERVICE)
         ret.serviceName = serviceKey
@@ -1705,6 +1758,8 @@ def GetObjectByUUID(uuid):
         sys.exc_clear()
         return None
 
+    return None
+
 
 def ReadContextSessionTypesPrefs():
     global __contextOnlyTypes__
@@ -1725,6 +1780,8 @@ def ReadContextSessionTypesPrefs():
             log.LogInfo('CTXSESS: %s not provided, no context sessions will be created', PREFS_PARAMETER)
     except StandardError:
         log.LogException("Exception while parsing prefs parameter '%s'" % PREFS_PARAMETER)
+
+    return
 
 
 ReadContextSessionTypesPrefs()

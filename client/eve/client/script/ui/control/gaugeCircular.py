@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\client\script\ui\control\gaugeCircular.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\client\script\ui\control\gaugeCircular.py
 import math
 import carbonui.const as uiconst
 from carbonui.primitives.container import Container
@@ -76,6 +77,7 @@ class GaugeCircular(Container):
         self.Reconstruct()
         if self.autoUpdate:
             uthread.new(self.UpdateThread)
+        return
 
     def UpdateThread(self):
         while not self.destroyed:
@@ -97,6 +99,7 @@ class GaugeCircular(Container):
         self.bgGauge = self.ConstructLine(self.colorBg, self.colorBg)
         self.bgGauge.end = self.bgPortion
         self.bgGauge.name = 'backgroundLine'
+        return
 
     def GetLinePoint(self, t, w):
         if not self.isClockwise:
@@ -125,7 +128,7 @@ class GaugeCircular(Container):
 
         return line
 
-    def SetValue(self, value, animate = True):
+    def SetValue(self, value, animate=True):
         if value == self.value:
             return
         if not animate:
@@ -135,7 +138,7 @@ class GaugeCircular(Container):
     def SetMarkerValue(self, value):
         self.markerTransform.rotation = self.GetOffsetMarkerValue(value)
 
-    def SetValueAndMarker(self, value, animated = True):
+    def SetValueAndMarker(self, value, animated=True):
         self.SetValue(value, animated)
         self.SetMarkerValue(value)
 
@@ -165,7 +168,7 @@ class GaugeCircular(Container):
         newRotation = math.pi * 1.5 - self.startAngle + offSet
         return newRotation
 
-    def SetColor(self, colorStart, colorEnd = None):
+    def SetColor(self, colorStart, colorEnd=None):
         self.gauge.Close()
         self.gauge = self.ConstructLine(colorStart, colorEnd)
         self.gauge.end = self.value

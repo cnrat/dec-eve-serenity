@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\carbon\common\script\world\GameWorldService.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\carbon\common\script\world\GameWorldService.py
 import service
 import GameWorld
 import locks
@@ -58,13 +59,14 @@ class GameWorldService(service.Service):
         gw = self.gameworlds.get(gameWorldID, None)
         if gw:
             return gw
-        if gameWorldID not in self.waitingForGameWorlds:
-            self.waitingForGameWorlds[gameWorldID] = locks.Event('GameWorldLoad_%s' % gameWorldID)
-        self.LogInfo('Waiting for gameworld instance', gameWorldID)
-        self.waitingForGameWorlds[gameWorldID].wait()
-        self.LogInfo('Done Waiting for gameworld instance', gameWorldID)
-        gw = self.gameworlds.get(gameWorldID, None)
-        return gw
+        else:
+            if gameWorldID not in self.waitingForGameWorlds:
+                self.waitingForGameWorlds[gameWorldID] = locks.Event('GameWorldLoad_%s' % gameWorldID)
+            self.LogInfo('Waiting for gameworld instance', gameWorldID)
+            self.waitingForGameWorlds[gameWorldID].wait()
+            self.LogInfo('Done Waiting for gameworld instance', gameWorldID)
+            gw = self.gameworlds.get(gameWorldID, None)
+            return gw
 
     def HasGameWorld(self, gameworldID):
         return gameworldID in self.gameworlds
@@ -72,35 +74,39 @@ class GameWorldService(service.Service):
     def GetGameWorldManager(self):
         return self.gameWorldManager
 
-    def GetFloorHeight(self, pos, instanceID, upLength = 30.0, downLength = 10.0):
+    def GetFloorHeight(self, pos, instanceID, upLength=30.0, downLength=10.0):
         floorHeight = pos.y
         gameWorld = self.GetGameWorld(instanceID)
         if gameWorld == None:
             return pos.y
-        floorHit = gameWorld.GetHeightAtPoint(pos, upLength, downLength)
-        if floorHit != None:
-            floorHeight = floorHit[0][1]
-            if pos.y < floorHeight - const.FLOAT_TOLERANCE:
-                return pos.y
-        return floorHeight
+        else:
+            floorHit = gameWorld.GetHeightAtPoint(pos, upLength, downLength)
+            if floorHit != None:
+                floorHeight = floorHit[0][1]
+                if pos.y < floorHeight - const.FLOAT_TOLERANCE:
+                    return pos.y
+            return floorHeight
 
-    def GetHeightAtPoint(self, position, instanceID, upLength = 100.0, downLength = 100.0):
+    def GetHeightAtPoint(self, position, instanceID, upLength=100.0, downLength=100.0):
         gameWorld = self.GetGameWorld(instanceID)
         if gameWorld:
             floorHit = gameWorld.GetHeightAtPoint(position, upLength, downLength)
             return floorHit
+        else:
+            return None
 
     def GetFloorInfo(self, position, worldSpaceID):
         position.y = self.GetFloorHeight(position, worldSpaceID)
         return position
 
-    def EntityLOS(self, startEntity, endPosition, offset = 1.8):
+    def EntityLOS(self, startEntity, endPosition, offset=1.8):
         vStart = geo2.Vector(*startEntity.GetComponent('position').position)
         vEnd = geo2.Vector(endPosition[0], endPosition[1], endPosition[2])
         gameWorld = self.GetGameWorld(startEntity.scene.sceneID)
         if not gameWorld:
             return False
-        vStart.y += offset
-        vEnd.y += offset
-        tRes = gameWorld.LineTest(vStart, vEnd)
-        return tRes == None
+        else:
+            vStart.y += offset
+            vEnd.y += offset
+            tRes = gameWorld.LineTest(vStart, vEnd)
+            return tRes == None

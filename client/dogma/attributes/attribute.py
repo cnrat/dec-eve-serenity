@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\packages\dogma\attributes\attribute.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\packages\dogma\attributes\attribute.py
 import dogma
 from dogma.dogmaLogging import *
 from characterskills import GetSkillLevelRaw
@@ -10,6 +11,7 @@ import blue
 import pytelemetry.zoning as zoning
 import itertools
 import dogma.const as const
+from eveuniverse.security import *
 import weakref
 from ccpProfile import TimedFunction
 OPERATOR_OFFSET = const.dgmOperatorOffset
@@ -17,7 +19,8 @@ OPERATOR_OFFSET = const.dgmOperatorOffset
 def Seq(sequenceOrNone):
     if sequenceOrNone is None:
         return []
-    return sequenceOrNone
+    else:
+        return sequenceOrNone
 
 
 class NewItemAttributeFactory():
@@ -41,11 +44,15 @@ class NewItemAttributeFactory():
             return HeatAttribute(attrID, baseValue, self.item, self.dogmaLocation, staticAttr)
         elif not staticAttr.stackable:
             return StackingNurfedAttribute(attrID, baseValue, self.item, self.dogmaLocation, staticAttr)
+        elif attrID == const.attributeSecurityModifier:
+            return SecurityModifierAttribute(attrID, self.item, self.dogmaLocation, staticAttr)
         else:
             return Attribute(attrID, baseValue, self.item, self.dogmaLocation, staticAttr)
+            return
 
 
 class AttributeInterface(object):
+    __slots__ = ['__weakref__']
 
     def __str__(self):
         return self.__class__.__name__
@@ -89,13 +96,29 @@ class AttributeInterface(object):
             return True
 
     def GetBaseValue(self):
-        return '<no base value reported>'
+        pass
 
     def GetValue(self):
-        return '<no value reported>'
+        pass
 
 
 class Attribute(AttributeInterface):
+    __slots__ = ['category',
+     'currentValue',
+     'baseValue',
+     'typeValue',
+     'invItem',
+     'incomingModifiers',
+     '_outgoingModifiers',
+     'capAttrib',
+     'item',
+     'dirty',
+     'highIsGood',
+     'dogmaLM',
+     'attribID',
+     '_onChangeCallbacks',
+     'nonModifyingDependants',
+     'clientSideValue']
 
     def __str__(self):
         return self.performantStr()
@@ -201,6 +224,8 @@ class Attribute(AttributeInterface):
         except:
             LogNotice('Exception thrown when logging InitAttr!')
 
+        return
+
     def IsAnOrphan(self):
         try:
             testWhetherItemIsStillValid = self.item.invItem
@@ -216,6 +241,7 @@ class Attribute(AttributeInterface):
         ownerItem = self.dogmaLM.dogmaItems.get(pilotID, None)
         if ownerItem and self.item.IsOwnerModifiable():
             ownerItem._PickUpInitialModifiersFromOwnerTo(self)
+        return
 
     def Update(self):
         prevValue = self.currentValue
@@ -240,6 +266,7 @@ class Attribute(AttributeInterface):
         self.currentValue = val
         self.dirty = False
         self._PerformCallbacksIfValueChanged(prevValue)
+        return
 
     def _ApplyModifierOperationsToVal(self, val):
         if self.incomingModifiers:
@@ -255,56 +282,70 @@ class Attribute(AttributeInterface):
             self.Update()
         return self.currentValue
 
-    def MarkDirty(self, silent = False):
+    def MarkDirty(self, silent=False):
         self.dirty = True
         for op, nowDirtyAttrib in list(Seq(self._outgoingModifiers)):
-            nowDirtyAttrib().MarkDirty()
+            try:
+                nowDirtyAttrib().MarkDirty()
+            except AttributeError:
+                continue
 
         for nowDirtyAttrib in Seq(self.nonModifyingDependants):
-            nowDirtyAttrib.MarkDirty()
+            try:
+                nowDirtyAttrib.MarkDirty()
+            except AttributeError:
+                continue
 
         if silent:
             return
-        ownerID = None
-        if True:
-            try:
-                ownerID = self.item.ownerID
-            except AttributeError:
-                LogError('Attribute {} has no `ownerID` on its `item`, just: {}'.format(self, sorted(vars(self.item))))
+        else:
+            ownerID = None
+            if True:
+                try:
+                    ownerID = self.item.ownerID
+                except AttributeError:
+                    LogError('Attribute {} has no `ownerID` on its `item`, just: {}'.format(self, sorted(vars(self.item))))
 
-        if self.attribID in self.dogmaLM.attributeChangeCallbacksByAttributeID and not self.dogmaLM.IsIgnoringOwnerEvents(ownerID):
-            try:
-                oldValue = self.currentValue
-                newValue = self.GetValue()
-                self.dogmaLM.attributeChangeCallbacksByAttributeID[self.attribID](self.attribID, self.item.itemID, newValue, oldValue)
-            except Exception:
-                LogException('Error broadcasting attribute change {}'.format(self.dogmaLM.attributeChangeCallbacksByAttributeID[self.attribID]))
+            if self.attribID in self.dogmaLM.attributeChangeCallbacksByAttributeID and not self.dogmaLM.IsIgnoringOwnerEvents(ownerID):
+                try:
+                    oldValue = self.currentValue
+                    newValue = self.GetValue()
+                    self.dogmaLM.attributeChangeCallbacksByAttributeID[self.attribID](self.attribID, self.item.itemID, newValue, oldValue)
+                except Exception:
+                    LogException('Error broadcasting attribute change {}'.format(self.dogmaLM.attributeChangeCallbacksByAttributeID[self.attribID]))
 
-        if dogma.IsClient():
+            if dogma.IsClient():
+                return
+            if not self.dogmaLM.IsIgnoringOwnerEvents(ownerID):
+                try:
+                    if self.attribID is not None:
+                        self.dogmaLM.msgMgr.AddAttribute(self)
+                except Exception:
+                    LogException('Error broadcasting attribute change')
+
             return
-        if not self.dogmaLM.IsIgnoringOwnerEvents(ownerID):
-            try:
-                if self.attribID is not None:
-                    self.dogmaLM.msgMgr.AddAttribute(self)
-            except Exception:
-                LogException('Error broadcasting attribute change')
 
     def AddCallbackForChanges(self, func, params):
         if self._onChangeCallbacks is None:
             self._onChangeCallbacks = {}
         self._onChangeCallbacks[func] = params
+        return
 
     def RemoveCallbackForChanges(self, func):
         del self._onChangeCallbacks[func]
         if not self._onChangeCallbacks:
             self._onChangeCallbacks = None
+        return
 
     def _PerformCallbacksIfValueChanged(self, prevValue):
         if self._onChangeCallbacks is None:
             return
-        if prevValue != self.currentValue:
-            for func, params in self._onChangeCallbacks.iteritems():
-                func(self, prevValue, self.currentValue, *params)
+        else:
+            if prevValue != self.currentValue:
+                for func, params in self._onChangeCallbacks.iteritems():
+                    func(self, prevValue, self.currentValue, *params)
+
+            return
 
     def ConstructMessage(self):
         try:
@@ -335,6 +376,7 @@ class Attribute(AttributeInterface):
                   blue.os.GetWallclockTime()))
         else:
             return
+        return
 
     def _makeEmptyIncomingModifiers(self):
         return tuple((set() for x in xrange(const.dgmNumOperators)))
@@ -349,6 +391,7 @@ class Attribute(AttributeInterface):
         opIndex = op + OPERATOR_OFFSET
         self.incomingModifiers[opIndex].add(attribute)
         self.MarkDirty()
+        return
 
     @WrappedMethod
     def RemoveIncomingModifier(self, op, attribute):
@@ -364,17 +407,20 @@ class Attribute(AttributeInterface):
 
         if self.incomingModifiers is None:
             return
-        if not any(self.incomingModifiers):
-            self.incomingModifiers = None
+        else:
+            if not any(self.incomingModifiers):
+                self.incomingModifiers = None
+            return
 
     def GetIncomingModifiers(self):
         if self.incomingModifiers is None:
             return []
-        result = []
-        for opIdx, attribSet in enumerate(self.incomingModifiers):
-            result.extend(((opIdx - OPERATOR_OFFSET, attrib) for attrib in attribSet))
+        else:
+            result = []
+            for opIdx, attribSet in enumerate(self.incomingModifiers):
+                result.extend(((opIdx - OPERATOR_OFFSET, attrib) for attrib in attribSet))
 
-        return result
+            return result
 
     def CountIncomingModifiers(self):
         return len(self.GetIncomingModifiers())
@@ -384,6 +430,7 @@ class Attribute(AttributeInterface):
             self.nonModifyingDependants = set()
         self.nonModifyingDependants.add(attribute)
         attribute.MarkDirty(silent=True)
+        return
 
     def _makeEmptyOutgoingModifiers(self):
         return set()
@@ -397,6 +444,7 @@ class Attribute(AttributeInterface):
             self._initOutgoingModifiers()
         weak = weakref.ref(attribute)
         self._outgoingModifiers.add((op, weak))
+        return
 
     @WrappedMethod
     def RemoveOutgoingModifier(self, op, attribute):
@@ -408,11 +456,13 @@ class Attribute(AttributeInterface):
 
         if not any(self._outgoingModifiers):
             self._outgoingModifiers = None
+        return
 
     def GetOutgoingModifiers(self):
         if self._outgoingModifiers is None:
             return []
-        return [ (opIdx, attrib_weakref()) for opIdx, attrib_weakref in self._outgoingModifiers ]
+        else:
+            return [ (opIdx, attrib_weakref()) for opIdx, attrib_weakref in self._outgoingModifiers ]
 
     def CountOutgoingModifiers(self):
         return len(self.GetOutgoingModifiers())
@@ -429,6 +479,7 @@ class Attribute(AttributeInterface):
     def _DiscardAllModifiers(self):
         self.incomingModifiers = None
         self._outgoingModifiers = None
+        return
 
     def GetBaseValue(self):
         return self.baseValue
@@ -459,16 +510,18 @@ class Attribute(AttributeInterface):
         modifyingItems = set()
         if self.incomingModifiers is None:
             return modifyingItems
-        for srcAttrib in itertools.chain(*self.incomingModifiers):
-            if srcAttrib.item is not None:
-                modifyingItems.add(srcAttrib.item.itemID)
+        else:
+            for srcAttrib in itertools.chain(*self.incomingModifiers):
+                if srcAttrib.item is not None:
+                    modifyingItems.add(srcAttrib.item.itemID)
 
-        return modifyingItems
+            return modifyingItems
 
     def GetPersistData(self):
         if self.baseValue != self.typeValue:
             return self.baseValue
         else:
+            return None
             return None
 
     @zoning.ZONE_METHOD
@@ -490,6 +543,7 @@ class SkillLevelAttribute(Attribute):
             self.currentValue = GetSkillLevelRaw(self.skillPointAttribute().GetValue(), self.skillTimeConstant)
         self.dirty = False
         self._PerformCallbacksIfValueChanged(prevValue)
+        return
 
     def AddIncomingModifier(self, op, attribute):
         LogTraceback('Cannot modify a skill level!')
@@ -551,7 +605,7 @@ class ChargedAttribute(Attribute):
             self.Update()
         return (self.currentValue, self.prevCap, self.rechargeRate)
 
-    def MarkDirty(self, silent = False):
+    def MarkDirty(self, silent=False):
         super(ChargedAttribute, self).MarkDirty(silent)
         if not silent:
             self.Update()
@@ -586,6 +640,11 @@ class ChargedAttribute(Attribute):
 
 
 class HeatAttribute(Attribute):
+    __slots__ = ['heatGenerationMultiplierAttribute',
+     'heatDissipationRateAttribute',
+     'prevCap',
+     'lastCalcTime',
+     'incomingHeat']
 
     def __init__(self, attribID, baseValue, dogmaItem, dogmaLM, staticAttr):
         super(HeatAttribute, self).__init__(attribID, baseValue, dogmaItem, dogmaLM, staticAttr)
@@ -603,6 +662,7 @@ class HeatAttribute(Attribute):
         self.prevCap = capVal
         self.lastCalcTime = blue.os.GetSimTime()
         self.incomingHeat = Attribute(None, 0, dogmaItem, dogmaLM, staticAttr)
+        return
 
     def Update(self):
         currentTime = blue.os.GetSimTime()
@@ -635,7 +695,7 @@ class HeatAttribute(Attribute):
          self.heatDissipationRateAttribute.currentValue,
          self.lastCalcTime)
 
-    def SetBaseValue(self, newBaseValue, asPercentage = False):
+    def SetBaseValue(self, newBaseValue, asPercentage=False):
         if self.currentValue != newBaseValue:
             if asPercentage:
                 newBaseValue *= self.currentValue
@@ -675,11 +735,13 @@ def StackingOperator(valueDenomTuple):
 
 
 class StackingNurfedAttribute(Attribute):
+    __slots__ = ['unnurfedMods', 'nurfedMods']
 
     def __init__(self, attribID, baseValue, dogmaItem, dogmaLM, staticAttr):
         self.unnurfedMods = None
         self.nurfedMods = None
         super(StackingNurfedAttribute, self).__init__(attribID, baseValue, dogmaItem, dogmaLM, staticAttr)
+        return
 
     def _initIncomingUnNurfedModifiers(self):
         self.unnurfedMods = self._makeEmptyIncomingModifiers()
@@ -697,6 +759,7 @@ class StackingNurfedAttribute(Attribute):
                 self._initIncomingNurfedModifiers()
             self.nurfedMods[op + OPERATOR_OFFSET].add(attribute)
         super(StackingNurfedAttribute, self).AddIncomingModifier(op, attribute)
+        return
 
     def RemoveIncomingModifier(self, op, attribute):
         try:
@@ -713,6 +776,7 @@ class StackingNurfedAttribute(Attribute):
             pass
 
         super(StackingNurfedAttribute, self).RemoveIncomingModifier(op, attribute)
+        return
 
     def _ShouldNotNurf(self, op, attribute):
         if op not in (const.dgmAssPreMul,
@@ -721,17 +785,18 @@ class StackingNurfedAttribute(Attribute):
          const.dgmAssPreDiv,
          const.dgmAssPostDiv):
             return True
-        try:
-            if attribute.item is not None and attribute.item.invItem.categoryID in const.dgmUnnerfedCategories:
-                return True
-        except ReferenceError:
-            LogWarn("_ShouldNotNurf: 'Orphan' Attribute detected (its dogmaItem has gone!):", attribute)
-            LogWarn('TraceReferrers is BEING SUPPRESSED in case it overloads the node! (Sorry)')
-            LogTraceback('Orphan Attribute! (via _ShouldNotNurf)')
+        else:
+            try:
+                if attribute.item is not None and attribute.item.invItem.categoryID in const.dgmUnnerfedCategories:
+                    return True
+            except ReferenceError:
+                LogWarn("_ShouldNotNurf: 'Orphan' Attribute detected (its dogmaItem has gone!):", attribute)
+                LogWarn('TraceReferrers is BEING SUPPRESSED in case it overloads the node! (Sorry)')
+                LogTraceback('Orphan Attribute! (via _ShouldNotNurf)')
 
-        if hasattr(attribute, 'forceUnnurfed') and attribute.forceUnnurfed:
-            return True
-        return False
+            if hasattr(attribute, 'forceUnnurfed') and attribute.forceUnnurfed:
+                return True
+            return False
 
     def _ApplyModifierOperationsToVal(self, val):
         unnurfedMods = self.unnurfedMods if self.unnurfedMods else self._makeEmptyIncomingModifiers()
@@ -755,10 +820,12 @@ class StackingNurfedAttribute(Attribute):
 
 
 class LiteralAttribute(AttributeInterface):
+    __slots__ = ['value', 'item']
 
     def __init__(self, value):
         self.value = value
         self.item = None
+        return
 
     def __str__(self):
         return 'LiteralAttribute value %s' % self.value
@@ -779,7 +846,31 @@ class LiteralAttribute(AttributeInterface):
         return True
 
 
+class SecurityModifierAttribute(Attribute):
+
+    def __init__(self, attribID, dogmaItem, dogmaLM, staticAttr):
+        securityLevel = dogmaLM.GetSecurityClass()
+        attributeID = None
+        if securityLevel == securityClassHighSec:
+            attributeID = const.attributeHiSecModifier
+        elif securityLevel == securityClassLowSec:
+            attributeID = const.attributeLowSecModifier
+        elif securityLevel == securityClassZeroSec:
+            attributeID = const.attributeNullSecModifier
+        if attributeID is not None:
+            baseValue = dogmaItem.GetValue(attributeID)
+        else:
+            baseValue = -1
+            LogTraceback('Got a weird security class from dogmaLocation')
+        super(SecurityModifierAttribute, self).__init__(attribID, baseValue, dogmaItem, dogmaLM, staticAttr)
+        return
+
+    def SetBaseValue(self, newBaseValue):
+        pass
+
+
 class BrainLiteralAttribute(LiteralAttribute):
+    __slots__ = ['skills', 'forceUnnurfed', 'noPropagation']
 
     def __init__(self, value):
         self.skills, value = value

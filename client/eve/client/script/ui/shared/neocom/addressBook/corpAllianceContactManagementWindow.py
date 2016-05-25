@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\client\script\ui\shared\neocom\addressBook\corpAllianceContactManagementWindow.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\client\script\ui\shared\neocom\addressBook\corpAllianceContactManagementWindow.py
 import math
 import sys
 import service
@@ -42,6 +43,7 @@ class CorpAllianceContactManagementWnd(uicontrols.Window):
         self.notify = False
         self.contactType = contactType
         self.ConstructLayout()
+        return
 
     def ConstructLayout(self):
         topCont = uiprimitives.Container(name='topCont', parent=self.sr.main, align=uiconst.TOTOP, pos=(0, 0, 0, 76), padding=(const.defaultPadding,
@@ -122,8 +124,9 @@ class CorpAllianceContactManagementWnd(uicontrols.Window):
         btn = self.btnGroup.GetBtnByLabel(btnText)
         uicore.registry.SetFocus(btn)
         uthread.new(self.SetWindowSize)
+        return
 
-    def AddSlider(self, where, config, minval, maxval, header, hint = '', startVal = 0):
+    def AddSlider(self, where, config, minval, maxval, header, hint='', startVal=0):
         h = 10
         _par = uiprimitives.Container(name=config + '_slider', parent=where, align=uiconst.TOTOP, pos=(0, 0, 124, 10), padding=(0, 0, 0, 0))
         par = uiprimitives.Container(name=config + '_slider_sub', parent=_par, align=uiconst.TOPLEFT, pos=(0, 0, 124, 10), padding=(0, 0, 0, 0))
@@ -162,15 +165,18 @@ class CorpAllianceContactManagementWnd(uicontrols.Window):
         if self.levelText.text == localization.GetByLabel('UI/PeopleAndPlaces/SelectStanding'):
             eve.Message('NoStandingsSelected')
             return
-        relationshipID = round(self.sr.slider.value, 1)
-        contactLabel = None
-        if hasattr(self, 'labelsCombo'):
-            contactLabel = self.labelsCombo.GetValue()
-        self.result = (relationshipID, contactLabel)
-        if getattr(self, 'isModal', None):
-            self.SetModalResult(1)
+        else:
+            relationshipID = round(self.sr.slider.value, 1)
+            contactLabel = None
+            if hasattr(self, 'labelsCombo'):
+                contactLabel = self.labelsCombo.GetValue()
+            self.result = (relationshipID, contactLabel)
+            if getattr(self, 'isModal', None):
+                self.SetModalResult(1)
+            return
 
     def Cancel(self):
         self.result = None
         if getattr(self, 'isModal', None):
             self.SetModalResult(0)
+        return

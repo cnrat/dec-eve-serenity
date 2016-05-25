@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\client\script\ui\inflight\moduleEffectTimer.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\client\script\ui\inflight\moduleEffectTimer.py
 import carbonui.const as uiconst
 import math
 import trinity
@@ -53,11 +54,14 @@ class ModuleEffectTimer(Container):
     def RemoveTimer(self):
         if self.destroyed:
             return
-        for sideName in ('leftSide', 'rightSide'):
-            side = getattr(self, sideName, None)
-            if side:
-                side.Close()
-                setattr(self, sideName, None)
+        else:
+            for sideName in ('leftSide', 'rightSide'):
+                side = getattr(self, sideName, None)
+                if side:
+                    side.Close()
+                    setattr(self, sideName, None)
+
+            return
 
     def SetTimerOpacity(self, timerOpacity):
         self.timerOpacity = timerOpacity
@@ -68,6 +72,7 @@ class ModuleEffectTimer(Container):
             right.SetRGB(*timerRGB)
         if left and not left.destroyed:
             left.SetRGB(*timerRGB)
+        return
 
     def _GetTimers(self):
         right = getattr(self, 'rightSide', None)
@@ -94,21 +99,23 @@ class ModuleEffectTimer(Container):
         self.leftSide = leftSide
         return (leftSide, rightSide)
 
-    def _CreateTimer(self, timerName = 'timer', rotation = 0, texturePath = None, textureSecondaryPath = None, color = None):
+    def _CreateTimer(self, timerName='timer', rotation=0, texturePath=None, textureSecondaryPath=None, color=None):
         if not texturePath or not textureSecondaryPath:
             return None
-        timer = Sprite(name=timerName, parent=self, align=uiconst.TOALL, texturePath=texturePath, textureSecondaryPath=textureSecondaryPath, blendMode=1, spriteEffect=trinity.TR2_SFX_MODULATE, state=uiconst.UI_DISABLED)
-        if color:
-            timer.SetRGB(*color)
-        timer.baseRotation = rotation
-        timer.rotationSecondary = rotation
-        return timer
+        else:
+            timer = Sprite(name=timerName, parent=self, align=uiconst.TOALL, texturePath=texturePath, textureSecondaryPath=textureSecondaryPath, blendMode=1, spriteEffect=trinity.TR2_SFX_MODULATE, state=uiconst.UI_DISABLED)
+            if color:
+                timer.SetRGB(*color)
+            timer.baseRotation = rotation
+            timer.rotationSecondary = rotation
+            return timer
 
     def _BlinkModule(self):
         self.blinkTimer = None
         if self.parent and not self.parent.destroyed:
             numLoops = self.BLINK_MAX_DURATION / self.BLINK_LOOP_DURATION
             animations.BlinkIn(self.parent, startVal=0.0, endVal=1.0, duration=self.BLINK_LOOP_DURATION, loops=numLoops)
+        return
 
     def _AreTimerTexturePathsSet(self):
         return self.timerRightCounterTexturePath and self.timerLeftCounterTexturePath and self.timerCounterGaugeTexturePath

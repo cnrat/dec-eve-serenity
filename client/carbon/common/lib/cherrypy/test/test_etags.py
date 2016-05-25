@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\carbon\common\lib\cherrypy\test\test_etags.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\carbon\common\lib\cherrypy\test\test_etags.py
 import cherrypy
 from cherrypy.test import helper
 
@@ -9,7 +10,7 @@ class ETagTest(helper.CPWebCase):
         class Root:
 
             def resource(self):
-                return 'Oh wah ta goo Siam.'
+                pass
 
             resource.exposed = True
 
@@ -23,7 +24,7 @@ class ETagTest(helper.CPWebCase):
             fail.exposed = True
 
             def unicoded(self):
-                return u'I am a \u1ee4nicode string.'
+                pass
 
             unicoded.exposed = True
             unicoded._cp_config = {'tools.encode.on': True}

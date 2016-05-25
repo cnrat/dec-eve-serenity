@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\client\script\ui\inflight\scannerFiles\pieCircle.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\client\script\ui\inflight\scannerFiles\pieCircle.py
 import math
 from carbonui.primitives.container import Container
 import carbonui.const as uiconst
@@ -39,8 +40,9 @@ class PieCircle(Container):
         self.halfCircleSpriteRight.rotationSecondary = 0
         if setValue:
             self.SetDegree(setValue, animate=False)
+        return
 
-    def SetDegree(self, degree, animate = True):
+    def SetDegree(self, degree, animate=True):
         halfRadians = math.pi / 180 * degree * 0.5
         leftValue = -math.pi + halfRadians
         rightValue = -halfRadians

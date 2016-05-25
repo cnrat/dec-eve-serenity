@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\client\script\ui\login\charcreation\eveDollRandomizer.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\client\script\ui\login\charcreation\eveDollRandomizer.py
 from eve.common.script.util.paperDollBloodLineAssets import bloodlineAssets
 from eve.common.script.paperDoll.paperDollRandomizer import DollRandomizer, AbstractRandomizer
 import eve.common.script.paperDoll.paperDollDefinitions as pdDef
@@ -19,6 +20,7 @@ class EveDollRandomizer(DollRandomizer):
         self.__bloodline = None
         self.isNewCharacter = False
         self.fullRandomization = False
+        return
 
     def GetBloodline(self):
         if not self.__bloodline:
@@ -124,7 +126,9 @@ class EveDollRandomizer(DollRandomizer):
                         charSvc.SetColorValueByCategory(charID, cat, colorTuple, None, doUpdate=False)
                     modifier.weight = weight
 
-    def RandomizeHairColor(self, charID, randomizeFacialDarkness = True):
+        return
+
+    def RandomizeHairColor(self, charID, randomizeFacialDarkness=True):
         genderID = 0 if self.gender == pdDef.GENDER.FEMALE else 1
         charSvc = sm.GetService('character')
         p, s = charSvc.GetAvailableColorsForCategory(pdDef.DOLL_PARTS.HAIR, genderID, self.bloodline)

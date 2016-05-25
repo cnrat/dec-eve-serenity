@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\packages\uthread2_plugins\stackless_sleep.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\packages\uthread2_plugins\stackless_sleep.py
 __all__ = ['sleep', 'wake']
 import threading
 import stackless
@@ -45,6 +46,7 @@ def wake(t):
         else:
             return
     channel.send(None)
+    return
 
 
 def _manage():
@@ -60,6 +62,8 @@ def _manage():
                 cond.wait(sleeping_tasklets[0][0] - time.time())
             else:
                 cond.wait()
+
+    return
 
 
 if not manager_running:

@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\carbon\common\stdlib\email\quoprimime.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\carbon\common\stdlib\email\quoprimime.py
 __all__ = ['body_decode',
  'body_encode',
  'body_quopri_check',
@@ -52,7 +53,7 @@ def body_quopri_len(str):
     return count
 
 
-def _max_append(L, s, maxlen, extra = ''):
+def _max_append(L, s, maxlen, extra=''):
     if not L:
         L.append(s.lstrip())
     elif len(L[-1]) + len(s) <= maxlen:
@@ -69,83 +70,85 @@ def quote(c):
     return '=%02X' % ord(c)
 
 
-def header_encode(header, charset = 'iso-8859-1', keep_eols = False, maxlinelen = 76, eol = NL):
+def header_encode(header, charset='iso-8859-1', keep_eols=False, maxlinelen=76, eol=NL):
     if not header:
         return header
-    if not keep_eols:
-        header = fix_eols(header)
-    quoted = []
-    if maxlinelen is None:
-        max_encoded = 100000
     else:
-        max_encoded = maxlinelen - len(charset) - MISC_LEN - 1
-    for c in header:
-        if c == ' ':
-            _max_append(quoted, '_', max_encoded)
-        elif not hqre.match(c):
-            _max_append(quoted, c, max_encoded)
+        if not keep_eols:
+            header = fix_eols(header)
+        quoted = []
+        if maxlinelen is None:
+            max_encoded = 100000
         else:
-            _max_append(quoted, '=%02X' % ord(c), max_encoded)
+            max_encoded = maxlinelen - len(charset) - MISC_LEN - 1
+        for c in header:
+            if c == ' ':
+                _max_append(quoted, '_', max_encoded)
+            elif not hqre.match(c):
+                _max_append(quoted, c, max_encoded)
+            else:
+                _max_append(quoted, '=%02X' % ord(c), max_encoded)
 
-    joiner = eol + ' '
-    return joiner.join([ '=?%s?q?%s?=' % (charset, line) for line in quoted ])
+        joiner = eol + ' '
+        return joiner.join([ '=?%s?q?%s?=' % (charset, line) for line in quoted ])
 
 
-def encode(body, binary = False, maxlinelen = 76, eol = NL):
+def encode(body, binary=False, maxlinelen=76, eol=NL):
     if not body:
         return body
-    if not binary:
-        body = fix_eols(body)
-    encoded_body = ''
-    lineno = -1
-    lines = body.splitlines(1)
-    for line in lines:
-        if line.endswith(CRLF):
-            line = line[:-2]
-        elif line[-1] in CRLF:
-            line = line[:-1]
-        lineno += 1
-        encoded_line = ''
-        prev = None
-        linelen = len(line)
-        for j in range(linelen):
-            c = line[j]
-            prev = c
-            if bqre.match(c):
-                c = quote(c)
-            elif j + 1 == linelen:
-                if c not in ' \t':
-                    encoded_line += c
-                prev = c
-                continue
-            if len(encoded_line) + len(c) >= maxlinelen:
-                encoded_body += encoded_line + '=' + eol
-                encoded_line = ''
-            encoded_line += c
-
-        if prev and prev in ' \t':
-            if lineno + 1 == len(lines):
-                prev = quote(prev)
-                if len(encoded_line) + len(prev) > maxlinelen:
-                    encoded_body += encoded_line + '=' + eol + prev
-                else:
-                    encoded_body += encoded_line + prev
-            else:
-                encoded_body += encoded_line + prev + '=' + eol
+    else:
+        if not binary:
+            body = fix_eols(body)
+        encoded_body = ''
+        lineno = -1
+        lines = body.splitlines(1)
+        for line in lines:
+            if line.endswith(CRLF):
+                line = line[:-2]
+            elif line[-1] in CRLF:
+                line = line[:-1]
+            lineno += 1
             encoded_line = ''
-        if lines[lineno].endswith(CRLF) or lines[lineno][-1] in CRLF:
-            encoded_body += encoded_line + eol
-        else:
-            encoded_body += encoded_line
-        encoded_line = ''
+            prev = None
+            linelen = len(line)
+            for j in range(linelen):
+                c = line[j]
+                prev = c
+                if bqre.match(c):
+                    c = quote(c)
+                elif j + 1 == linelen:
+                    if c not in ' \t':
+                        encoded_line += c
+                    prev = c
+                    continue
+                if len(encoded_line) + len(c) >= maxlinelen:
+                    encoded_body += encoded_line + '=' + eol
+                    encoded_line = ''
+                encoded_line += c
 
-    return encoded_body
+            if prev and prev in ' \t':
+                if lineno + 1 == len(lines):
+                    prev = quote(prev)
+                    if len(encoded_line) + len(prev) > maxlinelen:
+                        encoded_body += encoded_line + '=' + eol + prev
+                    else:
+                        encoded_body += encoded_line + prev
+                else:
+                    encoded_body += encoded_line + prev + '=' + eol
+                encoded_line = ''
+            if lines[lineno].endswith(CRLF) or lines[lineno][-1] in CRLF:
+                encoded_body += encoded_line + eol
+            else:
+                encoded_body += encoded_line
+            encoded_line = ''
+
+        return encoded_body
 
 
 body_encode = encode
 encodestring = encode
 
-def decode(encoded, eol = NL):
+def decode(encoded, eol=NL):
     if not encoded:
         return encoded
     decoded = ''

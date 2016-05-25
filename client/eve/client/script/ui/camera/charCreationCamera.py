@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\client\script\ui\camera\charCreationCamera.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\client\script\ui\camera\charCreationCamera.py
 import cameras
 import math
 import geo2
@@ -13,7 +14,7 @@ CONTROL_BOTH = 2
 class CharCreationCamera(cameras.PolarCamera):
     __guid__ = 'cameras.CharCreationCamera'
 
-    def __init__(self, avatar, modeName = ccConst.CAMERA_MODE_DEFAULT):
+    def __init__(self, avatar, modeName=ccConst.CAMERA_MODE_DEFAULT):
         cameras.PolarCamera.__init__(self)
         self.frontClip = 0.1
         self.backClip = 1000.0
@@ -29,8 +30,9 @@ class CharCreationCamera(cameras.PolarCamera):
         self.xFactor = 0.0
         self.yFactor = 0.0
         self.ToggleMode(modeName, avatar)
+        return
 
-    def ToggleMode(self, modeName, avatar = None, transformTime = None):
+    def ToggleMode(self, modeName, avatar=None, transformTime=None):
         self.avatar = avatar
         self.UpdateAvatarStats()
         self.updateFocus = True
@@ -125,6 +127,8 @@ class CharCreationCamera(cameras.PolarCamera):
             else:
                 setattr(self, k, v)
 
+        return
+
     def UpdatePortraitInfo(self):
         self.UpdateAvatarStats()
         self.nearFocusY = self.avatarEyeHeight
@@ -137,7 +141,8 @@ class CharCreationCamera(cameras.PolarCamera):
                 return (0.0, 0.0, 0.0)
             ret = self.avatar.GetBonePosition(joint)
             return ret
-        return (0.0, 0.0, 0.0)
+        else:
+            return (0.0, 0.0, 0.0)
 
     def UpdateAvatarStats(self):
         if self.avatar is not None and self.avatar.animationUpdater is not None:
@@ -146,6 +151,7 @@ class CharCreationCamera(cameras.PolarCamera):
             self.avatarEyeHeight = pos[1]
         else:
             self.avatarEyeHeight = 0.0
+        return
 
     def PlacePortraitCamera(self, pos, poi):
         direction = geo2.Subtract(pos, poi)
@@ -258,30 +264,33 @@ class CharCreationCamera(cameras.PolarCamera):
     def AdjustYaw(self, delta):
         if self.controlStyle == CONTROL_NONE:
             return
-        if self._rotateAvatar:
-            delta = min(35.0, max(-35.0, delta)) * 0.005
-            yaw, pitch, roll = geo2.QuaternionRotationGetYawPitchRoll(self.avatar.rotation)
-            yaw = yaw + delta
-            if self.maxRotation is not None and self.minRotation is not None:
-                if yaw < math.pi:
-                    yaw = min(yaw, self.minRotation)
-                else:
-                    yaw = max(yaw, self.maxRotation)
-            rotation = geo2.QuaternionRotationSetYawPitchRoll(yaw, pitch, roll)
-            self.avatar.rotation = rotation
-            charSvc = sm.GetService('character')
-            if uiutil.GetAttrs(charSvc, 'sculpting', 'highlightGhost', 'avatar'):
-                charSvc.sculpting.highlightGhost.avatar.rotation = rotation
-            if uiutil.GetAttrs(charSvc, 'sculpting', 'bodyHighlightGhost', 'avatar'):
-                charSvc.sculpting.bodyHighlightGhost.avatar.rotation = rotation
-            self.Update()
         else:
-            cameras.PolarCamera.AdjustYaw(self, delta * 0.005)
+            if self._rotateAvatar:
+                delta = min(35.0, max(-35.0, delta)) * 0.005
+                yaw, pitch, roll = geo2.QuaternionRotationGetYawPitchRoll(self.avatar.rotation)
+                yaw = yaw + delta
+                if self.maxRotation is not None and self.minRotation is not None:
+                    if yaw < math.pi:
+                        yaw = min(yaw, self.minRotation)
+                    else:
+                        yaw = max(yaw, self.maxRotation)
+                rotation = geo2.QuaternionRotationSetYawPitchRoll(yaw, pitch, roll)
+                self.avatar.rotation = rotation
+                charSvc = sm.GetService('character')
+                if uiutil.GetAttrs(charSvc, 'sculpting', 'highlightGhost', 'avatar'):
+                    charSvc.sculpting.highlightGhost.avatar.rotation = rotation
+                if uiutil.GetAttrs(charSvc, 'sculpting', 'bodyHighlightGhost', 'avatar'):
+                    charSvc.sculpting.bodyHighlightGhost.avatar.rotation = rotation
+                self.Update()
+            else:
+                cameras.PolarCamera.AdjustYaw(self, delta * 0.005)
+            return
 
-    def SetYaw(self, yaw, ignoreUpdate = True):
+    def SetYaw(self, yaw, ignoreUpdate=True):
         if self.maxRotation is not None and self.minRotation is not None:
             yaw = max(self.minRotation, min(self.maxRotation, yaw))
         cameras.PolarCamera.SetYaw(self, yaw)
+        return
 
     def AdjustPitch(self, delta):
         if self.controlStyle == CONTROL_NONE:
@@ -315,7 +324,7 @@ class CharCreationCameraHandler(cameras.CameraBehavior):
 
     @staticmethod
     def GetName(self):
-        return 'CharCreationCameraHandler'
+        pass
 
     def ProcessCameraUpdate(self, camera, now, frameTime):
         if camera._transformDistance:
@@ -335,3 +344,4 @@ class CharCreationCameraHandler(cameras.CameraBehavior):
             camera.pitch = min(camera.maxPitch, max(camera.minPitch, camera.pitch))
             camera.LimitPanning()
         camera.UpdateProjectionMatrix()
+        return

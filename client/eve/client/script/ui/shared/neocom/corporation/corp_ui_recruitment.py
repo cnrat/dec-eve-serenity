@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\client\script\ui\shared\neocom\corporation\corp_ui_recruitment.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\client\script\ui\shared\neocom\corporation\corp_ui_recruitment.py
 import time
 from math import pi
 from carbon.common.script.util.format import FmtAmt
@@ -195,6 +196,7 @@ class CorpRecruitment(uiprimitives.Container):
             self.applicationsEnabled = uicontrols.Checkbox(text=localization.GetByLabel('UI/Corporations/CorpDetails/MembershipApplicationEnabled'), parent=checkboxCont, configName='applicationsEnabled', retval=None, checked=corp.isRecruiting, callback=self.OnCheckboxRecruitmentChange)
             checkboxCont.width = self.applicationsEnabled.sr.label.textwidth + 30
         self.corpAdvertsScroll = uicontrols.BasicDynamicScroll(parent=self.corpAdvertContentContainer, padding=const.defaultPadding)
+        return
 
     def OnCheckboxRecruitmentChange(self, cb, *args):
         corp = sm.GetService('corp').GetCorporation()
@@ -210,6 +212,7 @@ class CorpRecruitment(uiprimitives.Container):
                 btn.Disable()
             else:
                 btn.Enable()
+        return
 
     def OnCorporationChanged(self, corpID, change, *args):
         if 'isRecruiting' in change:
@@ -218,6 +221,7 @@ class CorpRecruitment(uiprimitives.Container):
                 return
             isChecked = change['isRecruiting'][1]
             cb.SetChecked(isChecked, report=0)
+        return
 
     def LoadAdverts(self):
         adverts = self.GetCorpRecruitmentAds()
@@ -230,6 +234,7 @@ class CorpRecruitment(uiprimitives.Container):
             corpName = cfg.eveowners.Get(session.corpid).name
             hint = localization.GetByLabel('UI/Corporations/CorporationWindow/Recruitment/CorpHasNoRecruitmentAdvertisements', corpName=corpName)
             self.corpAdvertsScroll.ShowHint(hint)
+        return
 
     def CreateCorpAdvertClick(self, clickObj):
         windowID = 'newCorpAd'
@@ -304,15 +309,17 @@ class CorpRecruitment(uiprimitives.Container):
     def CorpViewRecruitmentMenu(self, entry, *args):
         if self.destroyed:
             return
-        m = []
-        if entry.sr.node.advert:
-            if util.IsCorporation(entry.sr.node.corporationID):
-                m += [(uiutil.MenuLabel('UI/Common/Corporation'), sm.GetService('menu').GetMenuFormItemIDTypeID(entry.sr.node.corporationID, const.typeCorporation))]
-            if util.IsAlliance(entry.sr.node.allianceID):
-                m += [(uiutil.MenuLabel('UI/Common/Alliance'), sm.GetService('menu').GetMenuFormItemIDTypeID(entry.sr.node.allianceID, const.typeAlliance))]
-            if m:
-                m += [None]
-            return m
+        else:
+            m = []
+            if entry.sr.node.advert:
+                if util.IsCorporation(entry.sr.node.corporationID):
+                    m += [(uiutil.MenuLabel('UI/Common/Corporation'), sm.GetService('menu').GetMenuFormItemIDTypeID(entry.sr.node.corporationID, const.typeCorporation))]
+                if util.IsAlliance(entry.sr.node.allianceID):
+                    m += [(uiutil.MenuLabel('UI/Common/Alliance'), sm.GetService('menu').GetMenuFormItemIDTypeID(entry.sr.node.allianceID, const.typeAlliance))]
+                if m:
+                    m += [None]
+                return m
+            return
 
     def OpenEditWindow(self, advertData, *args):
         windowID = 'advert_%s' % advertData.adID
@@ -354,6 +361,7 @@ class ContactContainer(uiprimitives.Container):
         uiprimitives.Fill(parent=self, color=(0, 0, 0, 0.5))
         uicontrols.Frame(parent=self, color=(1, 1, 1, 0.15), idx=0)
         self.Clear()
+        return
 
     def Clear(self):
         self.iconContainer.Flush()
@@ -363,8 +371,9 @@ class ContactContainer(uiprimitives.Container):
         self.contactNameLabel.text = localization.GetByLabel('UI/Corporations/CorporationWindow/Recruitment/NoRecruiterAssigned')
         self.removeContactButton.Hide()
         self.iconContainer.Hide()
+        return
 
-    def Set(self, charID = None):
+    def Set(self, charID=None):
         self.iconContainer.Flush()
         if charID:
             self.charID = charID
@@ -393,7 +402,7 @@ class ContactContainer(uiprimitives.Container):
 class CorpRecruitmentContainerBase(uiprimitives.Container):
     __guid__ = 'uicls.CorpRecruitmentContainerBase'
 
-    def AddTimeZonePicker(self, parent, callback, startTimeZoneProportion, endTimeZoneProportion, header = None, minRange = 1 / 24.0, OnEndDragChange = None):
+    def AddTimeZonePicker(self, parent, callback, startTimeZoneProportion, endTimeZoneProportion, header=None, minRange=1 / 24.0, OnEndDragChange=None):
         adGroups = sm.GetService('corp').GetCorpAdvertGroups()
         if header is None:
             self.CreateLabel(parent, adGroups[TIMEZONE_GROUPID].groupName, adGroups[TIMEZONE_GROUPID].description, padTop=6)
@@ -446,7 +455,7 @@ class CorpRecruitmentContainerBase(uiprimitives.Container):
             return
         uthread.new(utilMenu.ExpandMenu)
 
-    def CreateLabel(self, parent, text, hint = '', padTop = 0, padLeft = None, align = None):
+    def CreateLabel(self, parent, text, hint='', padTop=0, padLeft=None, align=None):
         if padLeft is None:
             padLeft = const.defaultPadding * 2
         label = uicontrols.EveLabelMedium(parent=parent, text=text, hint=hint, state=uiconst.UI_NORMAL, align=align or uiconst.TOTOP, bold=True, padTop=padTop, padLeft=padLeft)
@@ -477,7 +486,7 @@ class CorpRecruitmentContainerCreation(CorpRecruitmentContainerBase):
         self.PopulateCorpAdvertsEdit(advertData=attributes.advertData)
         self.ownerWnd = attributes.ownerWnd
 
-    def PopulateCorpAdvertsEdit(self, advertData = None):
+    def PopulateCorpAdvertsEdit(self, advertData=None):
         self.Flush()
         if advertData:
             advertID = advertData.adID
@@ -670,6 +679,7 @@ class CorpRecruitmentContainerCreation(CorpRecruitmentContainerBase):
           'recruiters']]
         tabGroup = uicontrols.TabGroup(name='corpAdEditTabGroup', parent=sidePanel, align=uiconst.TOTOP, padTop=const.defaultPadding * 2, idx=0)
         tabGroup.Startup(tabs)
+        return
 
     def TogglePlayStyleGroup(self, playStyleGroupID):
         mask = self.adCreateMask
@@ -855,7 +865,7 @@ class CorpRecruitmentContainerCreation(CorpRecruitmentContainerBase):
         checkboxVal = checkbox.data['value']
         self.adCreateDuration = checkboxVal
 
-    def UpdateAdvert(self, advertID = None):
+    def UpdateAdvert(self, advertID=None):
         title = self.corpTitleEdit.GetValue().strip()
         if not title:
             raise UserError('CustomInfo', {'info': localization.GetByLabel('UI/Corporations/CorporationWindow/Recruitment/EnterTitleForAd')})
@@ -880,6 +890,7 @@ class CorpRecruitmentContainerCreation(CorpRecruitmentContainerBase):
             settings.char.ui.Set('corp_recruitment_lastCreateLanguageMask', languageMask)
             self.corpSvc.CreateRecruitmentAd(days, typeMask, languageMask, description, channel, recruiters, title, timeZoneMask1, timeZoneMask2, minSP)
         self.CloseAdWindow()
+        return
 
     def OnAdCreateTimezoneRangeChange(self, rangeSelector, fromData, toData, fromProportion, toProportion):
         self.adCreateTimeZone1 = (fromProportion, toProportion)
@@ -1064,6 +1075,7 @@ class CorpRecruitmentContainerSearch(CorpRecruitmentContainerBase):
             self.PopulateSearchResultsByCorpID(searchCorpID)
         else:
             self.SearchAdverts()
+        return
 
     def OnSearchFieldChanged(self, *args):
         if self.searchField.GetValue().strip() == '':
@@ -1071,18 +1083,21 @@ class CorpRecruitmentContainerSearch(CorpRecruitmentContainerBase):
             self.corpSearchResultsScroll.RemoveNodes(self.corpSearchResultsScroll.GetNodes())
             self.DelayedSearchAdverts()
             settings.char.ui.Set('corpRecruitmentSearchCorpID', None)
+        return
 
     def SearchByCorpName(self, *args):
         searchText = self.searchField.GetValue().strip()
         if searchText.strip() == '':
             self.EnableSearchOptions()
             return
-        corpID = uix.Search(searchText.lower(), const.groupCorporation, None, hideNPC=1, exact=const.searchByPartialTerms, searchWndName='corpRecruitment')
-        if corpID is None:
-            self.searchField.SetValue('')
-            settings.char.ui.Set('corpRecruitmentSearchCorpID', None)
+        else:
+            corpID = uix.Search(searchText.lower(), const.groupCorporation, None, hideNPC=1, exact=const.searchByPartialTerms, searchWndName='corpRecruitment')
+            if corpID is None:
+                self.searchField.SetValue('')
+                settings.char.ui.Set('corpRecruitmentSearchCorpID', None)
+                return
+            self.PopulateSearchResultsByCorpID(corpID)
             return
-        self.PopulateSearchResultsByCorpID(corpID)
 
     def PopulateSearchResultsByCorpID(self, corpID, *args):
         corpName = cfg.eveowners.Get(corpID).name
@@ -1099,6 +1114,7 @@ class CorpRecruitmentContainerSearch(CorpRecruitmentContainerBase):
         else:
             hint = localization.GetByLabel('UI/Corporations/CorporationWindow/Recruitment/NoAdsFound')
         self.corpSearchResultsScroll.ShowHint(hint)
+        return
 
     def MakeRecruitmentEntriesFromAdList(self, adList, wantMask, wantLanguageMask, expandedAd):
         allData = sm.GetService('corp').GetRecruitementEntryDataList(adList, wantMask, wantLanguageMask, expandedAd)
@@ -1127,7 +1143,7 @@ class CorpRecruitmentContainerSearch(CorpRecruitmentContainerBase):
             self.GetSearchFilterOptions(menuParent, adTypeIDs, 'playStyle', header=groupName)
             menuParent.AddSpace()
 
-    def GetSearchFilterOptions(self, menuParent, adTypeIDs, configName, header = None):
+    def GetSearchFilterOptions(self, menuParent, adTypeIDs, configName, header=None):
         if configName == 'language':
             callback = self.ToggleSearchFilterStateLanguage
             filterStates = self.GetFilterStatesLanguages()
@@ -1272,7 +1288,7 @@ class CorpRecruitmentContainerSearch(CorpRecruitmentContainerBase):
         settings.char.ui.Set(settingString, newValue)
         self.DelayedSearchAdverts()
 
-    def DelayedSearchAdverts(self, delay = 800):
+    def DelayedSearchAdverts(self, delay=800):
         if getattr(self, '_searchReady', False):
             self.delayedSearchAdverts = base.AutoTimer(delay, self.SearchAdverts)
             self.IndicateLoadingState(loading=True)
@@ -1322,8 +1338,9 @@ class CorpRecruitmentContainerSearch(CorpRecruitmentContainerBase):
                 each.panel.Load(each)
 
         self.IndicateLoadingState(loading=0)
+        return
 
-    def IndicateLoadingState(self, loading = False):
+    def IndicateLoadingState(self, loading=False):
         try:
             if loading:
                 self.loadingWheel.Show()
@@ -1504,6 +1521,7 @@ class RecruitmentEntry(SE_BaseClassCore):
     def _OnSizeChange_NoBlock(self, newWidth, newHeight):
         if getattr(self, 'corpNameLabel', None):
             self.UpdateTextFade(duration=0)
+        return
 
     def UpdateDetailsContainer(self, *args):
         self.detailsContainer.height = max(self.expandedTextLabelLeft.textheight, self.expandedTextLabelRight.textheight)
@@ -1559,6 +1577,7 @@ class RecruitmentEntry(SE_BaseClassCore):
             self.LoadRecruiters()
         else:
             self.expandedParent.display = False
+        return
 
     def LoadRecruiters(self):
         node = self.sr.node
@@ -1685,28 +1704,28 @@ class RecruitmentEntry(SE_BaseClassCore):
         fromHour = int(fromProportion * 24)
         toHour = int(toProportion * 24)
         color = MATCHED_COLOR
-        if showSearchMatch:
-            if (fromHour <= f1 and toHour >= t1 or f1 < fromHour < t1 or f1 < toHour < t1) and SHOWSEARCHMATCH and node.searchMask is not None:
+        if not (showSearchMatch and (fromHour <= f1 and toHour >= t1 or f1)) < fromHour < t1:
+            if f1 < toHour < t1 and SHOWSEARCHMATCH and node.searchMask is not None:
                 color = MATCHED_COLOR
             else:
                 color = UNMATCHED_COLOR
         text += color + localization.GetByLabel('UI/Corporations/CorporationWindow/Recruitment/TimeZoneToAndFrom2', startTime=f1 * const.HOUR, endTime=t1 * const.HOUR, timeZoneText=localization.GetByLabel('UI/Corporations/CorporationWindow/Recruitment/TimeZone1'))
-        if f2 is not None and t2 is not None:
-            color = MATCHED_COLOR
-            text += '<br>'
-            if showSearchMatch:
-                if (fromHour <= f2 and toHour >= t2 or f2 < fromHour < t2 or f2 < toHour < t2) and SHOWSEARCHMATCH and node.searchMask is not None:
-                    color = MATCHED_COLOR
-                else:
-                    color = UNMATCHED_COLOR
-            text += color + localization.GetByLabel('UI/Corporations/CorporationWindow/Recruitment/TimeZoneToAndFrom2', startTime=long(f2 * const.HOUR), endTime=long(t2 * const.HOUR), timeZoneText=localization.GetByLabel('UI/Corporations/CorporationWindow/Recruitment/TimeZone2'))
-            text += '<br>'
-        if node.channelID:
-            channel = sm.GetService('LSC').GetChannelInfoForAnyChannel(node.channelID)
-            if channel:
-                channelName = channel.get('displayName', None)
-                if channelName:
-                    text += '<br><b>'
+        color = f2 is not None and t2 is not None and MATCHED_COLOR
+        text += '<br>'
+        if showSearchMatch:
+            if not (fromHour <= f2 and toHour >= t2):
+                if not f2 < fromHour < t2:
+                    if f2 < toHour < t2 and SHOWSEARCHMATCH and node.searchMask is not None:
+                        color = MATCHED_COLOR
+                    else:
+                        color = UNMATCHED_COLOR
+                text += color + localization.GetByLabel('UI/Corporations/CorporationWindow/Recruitment/TimeZoneToAndFrom2', startTime=long(f2 * const.HOUR), endTime=long(t2 * const.HOUR), timeZoneText=localization.GetByLabel('UI/Corporations/CorporationWindow/Recruitment/TimeZone2'))
+                text += '<br>'
+            if node.channelID:
+                channel = sm.GetService('LSC').GetChannelInfoForAnyChannel(node.channelID)
+                if channel:
+                    channelName = channel.get('displayName', None)
+                    channelName and text += '<br><b>'
                     text += localization.GetByLabel('UI/Corporations/CorporationWindow/Recruitment/RecruitmentChannelHeader')
                     text += '</b><br>'
                     text += '<a href="joinChannel:%s//%s//%s">%s</a>' % (node.channelID,
@@ -1736,6 +1755,7 @@ class RecruitmentEntry(SE_BaseClassCore):
 
             if infoWnd.sr.maintabs:
                 infoWnd.sr.maintabs.ShowPanelByName(localization.GetByLabel('UI/InfoWindow/TabNames/WarHistory'))
+        return
 
     def GetDynamicHeight(node, width):
         cls = RecruitmentEntry
@@ -1816,6 +1836,7 @@ class RecruitmentEntry(SE_BaseClassCore):
             self.sr.node.expandedView = True
             self.sr.node.fadeSize = (RecruitmentEntry.GetDynamicHeight(self.sr.node, self.width), self.height)
         self.sr.node.scroll.ReloadNodes(reloadNodes, updateHeight=True)
+        return
 
     def Apply(self, *args):
         applicationID = self.corpSvc.ApplyForMembership(self.sr.node.corporationID)
@@ -1829,6 +1850,7 @@ class RecruitmentEntry(SE_BaseClassCore):
     def DeleteRecruitmentAd(self, *args):
         if eve.Message('CorpAdsAreYouSureYouWantToDelete', None, uiconst.YESNO, suppress=uiconst.ID_YES) == uiconst.ID_YES:
             self.corpSvc.DeleteRecruitmentAd(self.sr.node.advert.adID)
+        return
 
     def EditRecruitmentAd(self, *args):
         self.sr.node.editFunc(self.sr.node.advert)
@@ -1856,15 +1878,18 @@ class RecruitmentEntry(SE_BaseClassCore):
     def _CheckIfStillHilited(self):
         if self.sr.node.standaloneMode:
             return
-        if uiutil.IsUnder(uicore.uilib.mouseOver, self) or uicore.uilib.mouseOver is self:
+        elif uiutil.IsUnder(uicore.uilib.mouseOver, self) or uicore.uilib.mouseOver is self:
             return
-        self.HideHilite()
-        self.hiliteTimer = None
-        for each in (self.applyButton, self.editButton, self.removeButton):
-            if each.display:
-                uicore.animations.FadeTo(each, each.opacity, 0.0, duration=0.1, callback=self.HideButtons)
+        else:
+            self.HideHilite()
+            self.hiliteTimer = None
+            for each in (self.applyButton, self.editButton, self.removeButton):
+                if each.display:
+                    uicore.animations.FadeTo(each, each.opacity, 0.0, duration=0.1, callback=self.HideButtons)
 
-    def SetRightContWidth(self, isCorpView = False):
+            return
+
+    def SetRightContWidth(self, isCorpView=False):
         if isCorpView:
             width = self.expiryLabel.textwidth + self.expiryLabel.left
             if self.removeButton.display:
@@ -1899,7 +1924,7 @@ class RecruitmentEntry(SE_BaseClassCore):
             self.removeButton.display = False
         self.UpdateTextFade()
 
-    def UpdateTextFade(self, duration = 0.3):
+    def UpdateTextFade(self, duration=0.3):
         self.SetRightContWidth(isCorpView=self.sr.node.corpView)
         if self.sr.node.corpView:
             rightPad = self.rightCont.width
@@ -1949,24 +1974,25 @@ def BuildMask(from1, to1):
 def GetTimeZoneFromMask(timeMaskInt):
     if timeMaskInt <= 0:
         return (0, 24)
-    toHour = 24
-    fromHour = None
-    counter = 0
-    while timeMaskInt != 0:
-        timeMaskInt, bitSet = divmod(timeMaskInt, 2)
-        if bitSet == 1:
-            if fromHour is None:
-                fromHour = counter
-            elif fromHour is not None and toHour < 24:
-                fromHour = counter
-                break
-        elif fromHour is not None and toHour == 24:
-            toHour = counter
-        counter += 1
+    else:
+        toHour = 24
+        fromHour = None
+        counter = 0
+        while timeMaskInt != 0:
+            timeMaskInt, bitSet = divmod(timeMaskInt, 2)
+            if bitSet == 1:
+                if fromHour is None:
+                    fromHour = counter
+                elif fromHour is not None and toHour < 24:
+                    fromHour = counter
+                    break
+            elif fromHour is not None and toHour == 24:
+                toHour = counter
+            counter += 1
 
-    if toHour == 24:
-        toHour = counter
-    return (fromHour, toHour)
+        if toHour == 24:
+            toHour = counter
+        return (fromHour, toHour)
 
 
 class CorpRecruitmentAdStandaloneWindow(uicontrols.Window):
@@ -2001,6 +2027,7 @@ class CorpRecruitmentAdStandaloneWindow(uicontrols.Window):
         data.expandedView = True
         if getattr(data, 'recruiters', None) is None:
             data.recruiters = sm.GetService('corp').GetRecruiters(data.advert.adID)
+        return
 
     def ApplyToCorp(self, corpID):
         sm.GetService('corp').ApplyForMembership(corpID)
@@ -2035,6 +2062,7 @@ class WelcomeMailWindow(uicontrols.Window):
             self.welcomeMailEditLabel.display = False
         self.welcomeMailContentContainer = uicls.EditPlainText(parent=self.sr.main, align=uiconst.TOALL, showattributepanel=1, padding=const.defaultPadding)
         self.welcomeMailContentContainer.SetValue(welcomeMail.welcomeMail)
+        return
 
     def SaveWelcomeMail(self, *args):
         welcomeMail = sm.GetService('corp').GetCorpWelcomeMail()
@@ -2058,3 +2086,4 @@ class WelcomeMailWindow(uicontrols.Window):
                 color = util.Color(1.0, 0.0, 0.0, 0.0).GetRGBA()
             self.welcomeMailEditLabel.color = color
             uicore.animations.FadeIn(self.welcomeMailEditLabel, endVal=1.0, duration=1.0)
+        return

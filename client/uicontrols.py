@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\common\modules\nice\client\_nastyspace\uicontrols.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\common\modules\nice\client\_nastyspace\uicontrols.py
 from carbonui.control.baselink import BaseLinkCore
 from carbonui.control.basicDynamicScroll import BasicDynamicScroll
 from carbonui.control.buttons import ButtonCore

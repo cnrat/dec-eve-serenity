@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\client\script\ui\shared\radialMenu\radialMenu.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\client\script\ui\shared\radialMenu\radialMenu.py
 from eve.client.script.ui.shared.radialMenu.radialMenuLayer import RadialMenuLayer, RadialMenuShadow
 from eve.client.script.ui.shared.radialMenu.radialMenuUtils import RadialMenuOptionsInfo, RangeRadialMenuAction, SimpleRadialMenuAction, RadialMenuSizeInfo
 from eve.client.script.ui.shared.radialMenu import spaceRadialMenuFunctions, inventoryRadialMenuFunctions
@@ -70,6 +71,7 @@ class RadialMenu(uiprimitives.Transform):
         self.updateOptionsTimer = base.AutoTimer(250, self.UpdateOptions)
         self.UpdateIndicator()
         sm.GetService('audio').SendUIEvent('ui_radial_open_play')
+        return
 
     def AddMenuLayers(self):
         self.secondLayerCont = RadialMenuLayer(parent=self, name='secondLayerCont', pos=(0,
@@ -135,51 +137,60 @@ class RadialMenu(uiprimitives.Transform):
     def SetOptionText(self, text):
         if not getattr(self, 'optionLabel', None):
             return
-        self.optionLabel.display = True
-        if text != self.optionLabel.text:
-            self.optionLabel.text = text
-            self.AdjustTextShadow()
+        else:
+            self.optionLabel.display = True
+            if text != self.optionLabel.text:
+                self.optionLabel.text = text
+                self.AdjustTextShadow()
+            return
 
     def ClearOptionText(self, *args):
         if not getattr(self, 'optionLabel', None):
             return
-        self.optionLabel.display = False
-        if self.optionLabel.text:
-            self.optionLabel.text = ''
-        if getattr(self, 'labelShadow', None):
-            self.labelShadow.display = False
+        else:
+            self.optionLabel.display = False
+            if self.optionLabel.text:
+                self.optionLabel.text = ''
+            if getattr(self, 'labelShadow', None):
+                self.labelShadow.display = False
+            return
 
-    def SetOptionRangeText(self, text = None, display = True):
+    def SetOptionRangeText(self, text=None, display=True):
         if not getattr(self, 'optionRangeLabel', None):
             return
-        if text:
-            self.optionRangeLabel.text = text
-        self.optionRangeLabel.display = display
-        self.AdjustTextShadow()
+        else:
+            if text:
+                self.optionRangeLabel.text = text
+            self.optionRangeLabel.display = display
+            self.AdjustTextShadow()
+            return
 
     def ClearOptionRangeText(self, *args):
         if not getattr(self, 'optionRangeLabel', None):
             return
-        self.optionRangeLabel.display = False
-        if self.optionRangeLabel.text:
-            self.optionRangeLabel.text = ''
-            self.AdjustTextShadow()
+        else:
+            self.optionRangeLabel.display = False
+            if self.optionRangeLabel.text:
+                self.optionRangeLabel.text = ''
+                self.AdjustTextShadow()
+            return
 
     def UpdateOptions(self):
         self.LoadMyActions(doReset=False)
         if self.secondLayerCont.isExpanded and self.secondLayerCont.expandedButton:
             self.UpdateSecondLevel(self.secondLayerCont.expandedButton, animate=False)
 
-    def LoadMyActions(self, doReset = False, animate = False):
+    def LoadMyActions(self, doReset=False, animate=False):
         pass
 
-    def AnimateMenuFromCenter(self, sizeRatio = 0.5, opacityRatio = 0.5, duration = 0.25, grow = True, sleep = False, skipBnts = ()):
+    def AnimateMenuFromCenter(self, sizeRatio=0.5, opacityRatio=0.5, duration=0.25, grow=True, sleep=False, skipBnts=()):
         animationDuration = uix.GetTiDiAdjustedAnimationTime(duration, minTiDiValue=0.1, minValue=0.02)
         curveSet = None
         curveSet = self.firstLayerCont.AnimateFromCenter(curveSet, animationDuration, sizeRatio, opacityRatio, grow, skipBnts)
         curveSet = self.secondLayerCont.AnimateFromCenter(curveSet, animationDuration, sizeRatio, opacityRatio, grow, skipBnts)
         curveSet = self.shadow.AnimateFromCenter(animationDuration, sizeRatio, opacityRatio, grow)
         curveSet = self.rangeCont.AnimateFromCenter(curveSet, animationDuration, opacityRatio, grow, sleep)
+        return
 
     def ClickButton(self, btn):
         self.CleanUp()
@@ -191,7 +202,7 @@ class RadialMenu(uiprimitives.Transform):
         btnClickThread = uthread.new(self.RunClosingAnimation_thread, btn, duration)
         btnClickThread.context = 'RadialMenu::ClickButton:RunClosingAnimation_thread'
 
-    def RunClosingAnimation_thread(self, btn, duration = 0.5):
+    def RunClosingAnimation_thread(self, btn, duration=0.5):
         self.isClosing = True
         self.CleanUp()
         self.AnimateMenuFromCenter(opacityRatio=0.0, duration=duration * 0.5, grow=False, sleep=False, skipBnts=(btn,))
@@ -233,40 +244,42 @@ class RadialMenu(uiprimitives.Transform):
         now = blue.os.GetWallclockTime()
         if now - self.lastMoveTime < 250000:
             return
-        self.lastMoveTime = now
-        if getattr(self, 'isClosing', False):
-            return
-        length = self.GetLengthFromCenter()
-        if length < self.actionDistance - self.buttonHeight + self.buttonPaddingBottom:
-            self.ResetFromCenter()
-            return
-        if not self.IsRadialMenuButtonActive() and length > self.actionDistance - self.sizeInfo.buttonPaddingTop:
-            self.ResetFromCenter()
-            return
-        currentDegree = self.GetCurrentDegree()
-        if self.secondLayerCont.isExpanded:
-            buttonLayer = self.secondLayerCont
         else:
-            buttonLayer = self.firstLayerCont
-        if self.selectedBtn and isinstance(self.selectedBtn.actionButton, uicls.RadialMenuRangeAction) and length > self.selectedBtn.actionButton.minRangeDistance:
-            buttonFound = self.selectedBtn
-        else:
-            self.rangeCont.display = False
-            buttonFound = self.FindMyButton(currentDegree, buttonLayer, self.stepSize)
-        self.HiliteOneButton(buttonFound, buttonLayer)
-        self.SelectButton(btn=None)
-        if buttonFound:
-            if isinstance(buttonFound.actionButton, uicls.RadialMenuRangeAction):
-                moveMouseResults = self.MoveMouseRangeAction(buttonFound, buttonFound.actionButton, length, currentDegree)
-            elif isinstance(buttonFound.actionButton, uicls.RadialMenuActioSecondLevel):
-                uthread.new(self.MoveMouseSecondLevel, buttonFound, buttonFound.actionButton, length, currentDegree)
-                self.MoveMouseRangeCallback(usingRangeOption=False)
+            self.lastMoveTime = now
+            if getattr(self, 'isClosing', False):
+                return
+            length = self.GetLengthFromCenter()
+            if length < self.actionDistance - self.buttonHeight + self.buttonPaddingBottom:
+                self.ResetFromCenter()
+                return
+            if not self.IsRadialMenuButtonActive() and length > self.actionDistance - self.sizeInfo.buttonPaddingTop:
+                self.ResetFromCenter()
+                return
+            currentDegree = self.GetCurrentDegree()
+            if self.secondLayerCont.isExpanded:
+                buttonLayer = self.secondLayerCont
             else:
-                self.SelectButton(buttonFound)
+                buttonLayer = self.firstLayerCont
+            if self.selectedBtn and isinstance(self.selectedBtn.actionButton, uicls.RadialMenuRangeAction) and length > self.selectedBtn.actionButton.minRangeDistance:
+                buttonFound = self.selectedBtn
+            else:
+                self.rangeCont.display = False
+                buttonFound = self.FindMyButton(currentDegree, buttonLayer, self.stepSize)
+            self.HiliteOneButton(buttonFound, buttonLayer)
+            self.SelectButton(btn=None)
+            if buttonFound:
+                if isinstance(buttonFound.actionButton, uicls.RadialMenuRangeAction):
+                    moveMouseResults = self.MoveMouseRangeAction(buttonFound, buttonFound.actionButton, length, currentDegree)
+                elif isinstance(buttonFound.actionButton, uicls.RadialMenuActioSecondLevel):
+                    uthread.new(self.MoveMouseSecondLevel, buttonFound, buttonFound.actionButton, length, currentDegree)
+                    self.MoveMouseRangeCallback(usingRangeOption=False)
+                else:
+                    self.SelectButton(buttonFound)
+                    self.ClearOptionRangeText()
+                    self.MoveMouseRangeCallback(usingRangeOption=False)
+            else:
                 self.ClearOptionRangeText()
-                self.MoveMouseRangeCallback(usingRangeOption=False)
-        else:
-            self.ClearOptionRangeText()
+            return
 
     def MoveMouseRangeAction(self, buttonCont, actionButton, length, currentDegree):
         moveMouseResults = actionButton.MoveMouse(length, currentDegree)
@@ -278,7 +291,7 @@ class RadialMenu(uiprimitives.Transform):
             self.SelectButton(buttonCont)
         return moveMouseResults
 
-    def MoveMouseRangeCallback(self, usingRangeOption, currentRange = None, percOfAllRange = None):
+    def MoveMouseRangeCallback(self, usingRangeOption, currentRange=None, percOfAllRange=None):
         pass
 
     def MoveMouseSecondLevel(self, buttonParent, actionButton, length, currentDegree):
@@ -294,18 +307,20 @@ class RadialMenu(uiprimitives.Transform):
             if getattr(self, 'labelShadow', None):
                 self.labelShadow.display = False
             return
-        if self.optionRangeLabel.display:
-            centerWidth = max(self.optionLabel.textwidth, self.optionRangeLabel.textwidth)
-            height = self.optionLabel.textheight + self.optionRangeLabel.textheight + 4
-            top = 0
         else:
-            centerWidth = self.optionLabel.textwidth
-            height = self.optionLabel.textheight + 4
-            top = -10
-        self.labelShadow.display = True
-        self.labelShadow.SetCenterSizeAndTop(centerWidth, height, top=top)
+            if self.optionRangeLabel.display:
+                centerWidth = max(self.optionLabel.textwidth, self.optionRangeLabel.textwidth)
+                height = self.optionLabel.textheight + self.optionRangeLabel.textheight + 4
+                top = 0
+            else:
+                centerWidth = self.optionLabel.textwidth
+                height = self.optionLabel.textheight + 4
+                top = -10
+            self.labelShadow.display = True
+            self.labelShadow.SetCenterSizeAndTop(centerWidth, height, top=top)
+            return
 
-    def UpdateSecondLevel(self, buttonParent, animate = False):
+    def UpdateSecondLevel(self, buttonParent, animate=False):
         optionsInfo = self.GetSecondLevelOptions(buttonParent)
         if not optionsInfo or len(optionsInfo.allWantedMenuOptions) < 1:
             return
@@ -320,7 +335,7 @@ class RadialMenu(uiprimitives.Transform):
     def GetSecondLevelOptions(self, buttonParent):
         return None
 
-    def LoadSecondLevelActions(self, buttonParent, optionsInfo = None, animate = False):
+    def LoadSecondLevelActions(self, buttonParent, optionsInfo=None, animate=False):
         return False
 
     def OnMouseUp(self, button, *args):
@@ -353,8 +368,9 @@ class RadialMenu(uiprimitives.Transform):
         if btnCont is None:
             self.ClearOptionText()
             self.ClearOptionRangeText()
+        return
 
-    def SelectButton(self, btn = None):
+    def SelectButton(self, btn=None):
         self.selectedBtn = btn
 
     def HideCursor(self):
@@ -409,6 +425,7 @@ class RadialMenu(uiprimitives.Transform):
         if getattr(self, 'moduleOpacityChanged', False):
             uicore.layer.shipui.ResetModuleButtonOpacity()
             self.moduleOpacityChanged = False
+        return
 
     def SetPosition(self):
         normalX = self.currentCenterX - self.width / 2
@@ -438,6 +455,7 @@ class RadialMenu(uiprimitives.Transform):
         self.offsetY = 0
         self.left = left
         self.top = top
+        return
 
     def CleanUp(self):
         self.cleanupStarted = True
@@ -450,6 +468,7 @@ class RadialMenu(uiprimitives.Transform):
         self.cleanUpDone = True
         if getattr(self, 'mouseMoveCookie', None):
             uicore.event.UnregisterForTriuiEvents(self.mouseMoveCookie)
+        return
 
     def ResetCursor(self):
         try:
@@ -474,18 +493,21 @@ class RadialMenu(uiprimitives.Transform):
         sm.GetService('audio').SendUIEvent('ui_radial_close')
         uicontrols.Window._OnClose(self, *args)
         self.clickedObject = None
+        return
 
     def SetRangeCircle(self, degree, percOfAllRange):
         self.rangeCont.SetRangeCircle(degree, percOfAllRange)
         if percOfAllRange is None:
             self.AdjustTextShadow()
+        return
 
     def ResetSecondLevel(self):
         self.secondLayerCont.display = False
         self.secondLayerCont.isExpanded = False
         self.secondLayerCont.expandedButton = None
+        return
 
-    def LoadButtons(self, parentLayer, optionsInfo, alternate = False, startingDegree = 0, animate = False, doReset = False):
+    def LoadButtons(self, parentLayer, optionsInfo, alternate=False, startingDegree=0, animate=False, doReset=False):
         if getattr(self, 'busyReloading', False):
             return
         self.busyReloading = True
@@ -493,7 +515,7 @@ class RadialMenu(uiprimitives.Transform):
         self.OnGlobalMove()
         self.busyReloading = False
 
-    def GetIconTexturePath(self, activeOption, menuOptions = None):
+    def GetIconTexturePath(self, activeOption, menuOptions=None):
         return None
 
     def GetMyActions(self):
@@ -527,11 +549,12 @@ class ThreePartContainer(uiprimitives.Container):
         rightTexture = uiprimitives.Sprite(parent=rightSide, name='rightTexture', pos=(0, 0, 0, 0), texturePath=rightTexturePath, align=uiconst.TOALL, color=color, idx=0)
         centerTexture = uiprimitives.Sprite(parent=self, name='centerTexture', pos=(0, 0, 0, 0), texturePath=centerTexturePath, align=uiconst.TOALL, color=color)
 
-    def SetCenterSizeAndTop(self, centerWidth, height, top = None):
+    def SetCenterSizeAndTop(self, centerWidth, height, top=None):
         self.width = centerWidth + 2 * self.sideSize
         self.height = height
         if top is not None:
             self.top = top
+        return
 
 
 class RadialMenuSpace(RadialMenu):
@@ -548,6 +571,7 @@ class RadialMenuSpace(RadialMenu):
         self.typeID = attributes.get('typeID', None)
         self.siteData = attributes.get('siteData', None)
         self.SetFallbackDisplayName()
+        return
 
     def SetFallbackDisplayName(self, *args):
         try:
@@ -560,39 +584,42 @@ class RadialMenuSpace(RadialMenu):
         except:
             self.fallBackDisplayName = ''
 
-    def LoadMyActions(self, doReset = False, animate = False):
+    def LoadMyActions(self, doReset=False, animate=False):
         self.SetSlimItemAndItemIDIfNeeded()
         optionsInfo = spaceRadialMenuFunctions.FindRadialMenuOptions(slimItem=self.slimItem, itemID=self.itemID, typeID=self.typeID, bookmarkInfo=self.bookmarkInfo, manyItemsData=self.manyItemsData, siteData=self.siteData)
         if optionsInfo is None:
             return
-        if self.itemID is None and self.slimItem is not None:
-            self.itemID = self.slimItem.itemID
-        self.LoadButtons(self.firstLayerCont, optionsInfo, doReset=doReset)
-        if animate:
-            self.AnimateMenuFromCenter(duration=0.1)
+        else:
+            if self.itemID is None and self.slimItem is not None:
+                self.itemID = self.slimItem.itemID
+            self.LoadButtons(self.firstLayerCont, optionsInfo, doReset=doReset)
+            if animate:
+                self.AnimateMenuFromCenter(duration=0.1)
+            return
 
-    def LoadSecondLevelActions(self, buttonParent, optionsInfo = None, animate = False):
+    def LoadSecondLevelActions(self, buttonParent, optionsInfo=None, animate=False):
         self.SetSlimItemAndItemIDIfNeeded()
         if not optionsInfo:
             optionsInfo = self.GetSecondLevelOptions(buttonParent)
         if optionsInfo is None:
             return False
-        if self.itemID is None and self.slimItem is not None:
-            self.itemID = self.slimItem.itemID
-        self.secondLayerCont.display = True
-        self.LoadButtons(self.secondLayerCont, optionsInfo, alternate=True, startingDegree=buttonParent.degree, doReset=animate, animate=animate)
-        return True
+        else:
+            if self.itemID is None and self.slimItem is not None:
+                self.itemID = self.slimItem.itemID
+            self.secondLayerCont.display = True
+            self.LoadButtons(self.secondLayerCont, optionsInfo, alternate=True, startingDegree=buttonParent.degree, doReset=animate, animate=animate)
+            return True
 
     def GetSecondLevelOptions(self, buttonParent):
         if self.itemID is None and self.slimItem is not None:
             self.itemID = self.slimItem.itemID
         return spaceRadialMenuFunctions.FindRadialMenuOptions(slimItem=self.slimItem, itemID=self.itemID, typeID=self.typeID, primaryActions=False, bookmarkInfo=self.bookmarkInfo, manyItemsData=self.manyItemsData, siteData=self.siteData)
 
-    def GetIconTexturePath(self, activeOption, menuOptions = None):
+    def GetIconTexturePath(self, activeOption, menuOptions=None):
         texturePath = spaceRadialMenuFunctions.GetIconPath(activeOption)
         return texturePath
 
-    def MoveMouseRangeCallback(self, usingRangeOption, currentRange = None, percOfAllRange = None):
+    def MoveMouseRangeCallback(self, usingRangeOption, currentRange=None, percOfAllRange=None):
         if usingRangeOption:
             uicore.layer.shipui.ChangeOpacityForRange(currentRange=currentRange)
             self.moduleOpacityChanged = True
@@ -612,6 +639,7 @@ class RadialMenuSpace(RadialMenu):
         uicls.RadialMenu._OnClose(self, *args)
         uicore.layer.shipui.ResetModuleButtonOpacity()
         uicore.layer.menu.radialMenu = None
+        return
 
     def UpdateDisplayName(self):
         displayName = ''
@@ -651,26 +679,28 @@ class RadialMenuSpace(RadialMenu):
     def CloseWithoutActionCallback(self, button):
         if self.clickedObject is None:
             return
-        now = blue.os.GetWallclockTime()
-        diff = now - self.creationTime
-        if diff > self.CLICKCOUNTRESETTIME * const.MSEC:
-            return
-        xDistance = self.currentCenterX - self.offsetX - uicore.uilib.x
-        yDistance = self.currentCenterY - self.offsetY - uicore.uilib.y
-        menuButton = self.GetRadialMenuButton()
-        if xDistance != 0 or yDistance != 0:
-            return
-        if menuButton not in (uiconst.MOUSELEFT, uiconst.MOUSERIGHT):
-            return
-        self.blocker.display = False
-        if menuButton == uiconst.MOUSELEFT:
-            uthread.new(self.clickedObject.OnMouseUp, button)
-            uthread.new(self.clickedObject.OnClick)
-        elif menuButton == uiconst.MOUSERIGHT:
-            if uicore.uilib.leftbtn:
+        else:
+            now = blue.os.GetWallclockTime()
+            diff = now - self.creationTime
+            if diff > self.CLICKCOUNTRESETTIME * const.MSEC:
                 return
-            if getattr(self.clickedObject, 'GetMenu', None):
-                uthread.new(menu.ShowMenu, self.clickedObject, uicore.uilib.GetAuxMouseOver())
+            xDistance = self.currentCenterX - self.offsetX - uicore.uilib.x
+            yDistance = self.currentCenterY - self.offsetY - uicore.uilib.y
+            menuButton = self.GetRadialMenuButton()
+            if xDistance != 0 or yDistance != 0:
+                return
+            if menuButton not in (uiconst.MOUSELEFT, uiconst.MOUSERIGHT):
+                return
+            self.blocker.display = False
+            if menuButton == uiconst.MOUSELEFT:
+                uthread.new(self.clickedObject.OnMouseUp, button)
+                uthread.new(self.clickedObject.OnClick)
+            elif menuButton == uiconst.MOUSERIGHT:
+                if uicore.uilib.leftbtn:
+                    return
+                if getattr(self.clickedObject, 'GetMenu', None):
+                    uthread.new(menu.ShowMenu, self.clickedObject, uicore.uilib.GetAuxMouseOver())
+            return
 
 
 class RadialMenuSpaceCharacter(RadialMenuSpace):
@@ -685,6 +715,7 @@ class RadialMenuSpaceCharacter(RadialMenuSpace):
             self.slimItem = util.SlimItemFromCharID(self.charID)
             if self.slimItem is not None:
                 self.itemID = self.slimItem.itemID
+        return
 
     def UpdateDisplayName(self):
         if self.itemID == session.shipid or self.slimItem:
@@ -700,28 +731,31 @@ class RadialMenuInventory(RadialMenuSpace):
         uicls.RadialMenuSpace.SetSpecificValues(self, attributes)
         self.rec = attributes.rec
 
-    def LoadMyActions(self, doReset = False, animate = False):
+    def LoadMyActions(self, doReset=False, animate=False):
         optionsInfo = inventoryRadialMenuFunctions.FindRadialMenuOptions(itemID=self.itemID, typeID=self.typeID, manyItemsData=self.manyItemsData, rec=self.rec)
         if optionsInfo is None:
             return
-        self.LoadButtons(self.firstLayerCont, optionsInfo, doReset=doReset)
-        if animate:
-            self.AnimateMenuFromCenter(duration=0.1)
+        else:
+            self.LoadButtons(self.firstLayerCont, optionsInfo, doReset=doReset)
+            if animate:
+                self.AnimateMenuFromCenter(duration=0.1)
+            return
 
-    def LoadSecondLevelActions(self, buttonParent, optionsInfo = None, animate = False):
+    def LoadSecondLevelActions(self, buttonParent, optionsInfo=None, animate=False):
         if not optionsInfo:
             optionsInfo = self.GetSecondLevelOptions(buttonParent)
         if optionsInfo is None:
             return False
-        self.secondLayerCont.display = True
-        self.LoadButtons(self.secondLayerCont, optionsInfo, alternate=True, startingDegree=buttonParent.degree, doReset=animate, animate=animate)
-        return True
+        else:
+            self.secondLayerCont.display = True
+            self.LoadButtons(self.secondLayerCont, optionsInfo, alternate=True, startingDegree=buttonParent.degree, doReset=animate, animate=animate)
+            return True
 
     def GetSecondLevelOptions(self, buttonParent):
         levelType = buttonParent.levelType
         return inventoryRadialMenuFunctions.FindRadialMenuOptions(itemID=self.itemID, typeID=self.typeID, primaryActions=False, manyItemsData=self.manyItemsData, rec=self.rec, levelType=levelType)
 
-    def GetIconTexturePath(self, activeOption, menuOptions = None):
+    def GetIconTexturePath(self, activeOption, menuOptions=None):
         texturePath = inventoryRadialMenuFunctions.GetIconPath(activeOption)
         return texturePath
 
@@ -738,13 +772,15 @@ class RadialMenuTest(RadialMenu):
     sizeInfo = RMTEST_SizeInfo
     default_showActionText = False
 
-    def LoadMyActions(self, doReset = False, animate = False):
+    def LoadMyActions(self, doReset=False, animate=False):
         optionsInfo = self.GetMyActions()
         if optionsInfo is None:
             return
-        self.LoadButtons(self.firstLayerCont, optionsInfo, doReset=doReset)
-        if animate:
-            self.AnimateMenuFromCenter(duration=0.1)
+        else:
+            self.LoadButtons(self.firstLayerCont, optionsInfo, doReset=doReset)
+            if animate:
+                self.AnimateMenuFromCenter(duration=0.1)
+            return
 
     def GetMyActions(self, *args):
         inactiveRangeOptions = set()
@@ -771,7 +807,7 @@ class RadialMenuTest(RadialMenu):
     def TestD(self, *args):
         print 'TestD'
 
-    def GetIconTexturePath(self, activeOption, menuOptions = None, *args):
+    def GetIconTexturePath(self, activeOption, menuOptions=None, *args):
         return menuOptions.iconPath
 
     def Orbit(self, itemID, value, *args):

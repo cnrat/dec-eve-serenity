@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\packages\reprocessing\ui\tileplacer.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\packages\reprocessing\ui\tileplacer.py
 from carbonui.const import TOTOP
 from collections import OrderedDict
 import math
@@ -36,6 +37,7 @@ class TilePlacer(object):
             updateFrom = min(oldItemsPerLine, newItemsPerLine)
         if updateFrom is not None:
             self._UpdatePositions(newItemsPerLine, updateFrom)
+        return
 
     def _UpdatePositions(self, itemsPerLine, updateFromIdx):
         for offset, item in enumerate(self.items.values()[updateFromIdx:]):
@@ -70,3 +72,4 @@ class TilePlacer(object):
         containerToRemove = self.items.pop(ctrlID)
         containerToRemove.SetParent(None)
         self._UpdatePositions(self._GetItemsPerLine(self.width), idx)
+        return

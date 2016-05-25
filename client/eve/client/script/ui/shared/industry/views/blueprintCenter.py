@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\client\script\ui\shared\industry\views\blueprintCenter.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\client\script\ui\shared\industry\views\blueprintCenter.py
 from math import pi, ceil
 from carbonui.primitives.frame import Frame
 from carbonui.primitives.transform import Transform
@@ -57,6 +58,7 @@ class BlueprintCenter(Container):
         self.runsRemainingLabel = EveLabelMediumBold(name='runsRemainingLabel', parent=self.runsRemainingCont, align=uiconst.CENTERTOP, top=14)
         self.UpdateState()
         self.AnimEntry()
+        return
 
     def OnRunsRemainingContClicked(self, *args):
         if self.runsEdit.state == uiconst.UI_NORMAL:
@@ -73,6 +75,7 @@ class BlueprintCenter(Container):
     def NumericInputTimer(self):
         blue.synchro.SleepWallclock(1000)
         self.numericInputTimer = None
+        return
 
     def OnJobUpdated(self, job):
         if self.jobData and self.jobData == job:
@@ -154,12 +157,14 @@ class BlueprintCenter(Container):
             self.gauge = None
         if not self.jobData:
             return
-        color = GetJobColor(self.jobData)
-        h, s, b = Color(*color).GetHSB()
-        colorEnd = Color(*color).SetBrightness(b * 0.5).GetRGBA()
-        self.gauge = BlueprintGaugeCircular(name='gauge', parent=self, align=uiconst.CENTER, radius=64, lineWidth=4, colorStart=color, colorEnd=colorEnd, jobData=self.jobData)
+        else:
+            color = GetJobColor(self.jobData)
+            h, s, b = Color(*color).GetHSB()
+            colorEnd = Color(*color).SetBrightness(b * 0.5).GetRGBA()
+            self.gauge = BlueprintGaugeCircular(name='gauge', parent=self, align=uiconst.CENTER, radius=64, lineWidth=4, colorStart=color, colorEnd=colorEnd, jobData=self.jobData)
+            return
 
-    def AnimWedges(self, startVal, endVal, duration, curveType = None):
+    def AnimWedges(self, startVal, endVal, duration, curveType=None):
         uicore.animations.MorphScalar(self.topWedge, 'top', startVal, endVal, duration=duration, curveType=curveType)
         uicore.animations.MorphScalar(self.bottomWedge, 'top', startVal, endVal, duration=duration, curveType=curveType)
         uicore.animations.MorphScalar(self.leftWedge, 'left', startVal, endVal, duration=duration, curveType=curveType)
@@ -224,6 +229,7 @@ class BlueprintCenter(Container):
         if self.setJobRunsThread is None:
             self.setJobRunsThread = uthread.new(self._SetJobRuns)
         self.newNumRuns = value
+        return
 
     def _SetJobRuns(self):
         while self.jobData and self.newNumRuns is not None:
@@ -235,6 +241,7 @@ class BlueprintCenter(Container):
             blue.synchro.SleepWallclock(100)
 
         self.setJobRunsThread = None
+        return
 
     def OnRunsEdit(self, value):
         try:
@@ -313,6 +320,7 @@ class BlueprintCenter(Container):
         self.UpdateState()
         self.AnimEntry()
         self.numericInputTimer = None
+        return
 
     def OnIndustryWndMouseWheel(self, *args):
         if not self.jobData:

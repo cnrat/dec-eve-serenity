@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\packages\notifications\common\formatters\killMailVictim.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\packages\notifications\common\formatters\killMailVictim.py
 import localization
 from notifications.common.formatters.attributeConstants import VICTIM_SHIP_TYPE_ID
 from notifications.common.formatters.killMailBase import KillMailBaseFormatter

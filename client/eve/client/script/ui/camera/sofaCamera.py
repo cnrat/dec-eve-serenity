@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\client\script\ui\camera\sofaCamera.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\client\script\ui\camera\sofaCamera.py
 import geo2
 import cameras
 import cameraUtils
@@ -17,6 +18,7 @@ class SofaCamera(cameras.IncarnaCamera):
         self.colliding = False
         self.gameWorld = None
         self.entity = None
+        return
 
     def SetEntity(self, entity):
         self.entity = entity

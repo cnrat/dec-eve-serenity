@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\carbon\common\lib\cherrypy\test\test_httpauth.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\carbon\common\lib\cherrypy\test\test_httpauth.py
 import cherrypy
 from cherrypy._cpcompat import md5, sha, ntob
 from cherrypy.lib import httpauth
@@ -11,7 +12,7 @@ class HTTPAuthTest(helper.CPWebCase):
         class Root:
 
             def index(self):
-                return 'This is public.'
+                pass
 
             index.exposed = True
 
@@ -142,3 +143,4 @@ class HTTPAuthTest(helper.CPWebCase):
         self.getPage('/digest/', [('Authorization', auth)])
         self.assertStatus('200 OK')
         self.assertBody("Hello test, you've been authorized.")
+        return

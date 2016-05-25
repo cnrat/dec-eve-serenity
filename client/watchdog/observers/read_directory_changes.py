@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\packages\watchdog\observers\read_directory_changes.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\packages\watchdog\observers\read_directory_changes.py
 from __future__ import with_statement
 import ctypes
 import threading
@@ -11,10 +12,11 @@ WATCHDOG_TRAVERSE_MOVED_DIR_DELAY = 1
 
 class WindowsApiEmitter(EventEmitter):
 
-    def __init__(self, event_queue, watch, timeout = DEFAULT_EMITTER_TIMEOUT):
+    def __init__(self, event_queue, watch, timeout=DEFAULT_EMITTER_TIMEOUT):
         EventEmitter.__init__(self, event_queue, watch, timeout)
         self._lock = threading.Lock()
         self._handle = None
+        return
 
     def on_thread_start(self):
         self._handle = get_directory_handle(self.watch.path)
@@ -63,5 +65,5 @@ class WindowsApiEmitter(EventEmitter):
 
 class WindowsApiObserver(BaseObserver):
 
-    def __init__(self, timeout = DEFAULT_OBSERVER_TIMEOUT):
+    def __init__(self, timeout=DEFAULT_OBSERVER_TIMEOUT):
         BaseObserver.__init__(self, emitter_class=WindowsApiEmitter, timeout=timeout)

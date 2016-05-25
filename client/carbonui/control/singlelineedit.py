@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\packages\carbonui\control\singlelineedit.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\packages\carbonui\control\singlelineedit.py
 import math
 from carbonui.control.window import WindowCoreOverride as Window
 from carbonui.primitives.frame import FrameCoreOverride as Frame
@@ -117,6 +118,7 @@ class SinglelineEditCore(Container):
         if OnAnyChar:
             self.OnAnyChar = OnAnyChar
         uicore.event.RegisterForTriuiEvents(uiconst.UI_MOUSEDOWN, self.OnGlobalMouseDownCallback)
+        return
 
     def OnGlobalMouseDownCallback(self, uiObject, *args, **kwds):
         if self.destroyed:
@@ -137,7 +139,7 @@ class SinglelineEditCore(Container):
         self.hinttext = hint
         self.CheckHintText()
 
-    def AutoFitToText(self, text = None, minWidth = None):
+    def AutoFitToText(self, text=None, minWidth=None):
         if self.align in (uiconst.TOTOP, uiconst.TOBOTTOM, uiconst.TOALL):
             raise RuntimeError('Incorrect alignment for SingleLine.AutoFitToText')
         if text is not None:
@@ -149,6 +151,7 @@ class SinglelineEditCore(Container):
             autoWidth = max(minWidth, autoWidth)
         self.width = autoWidth
         self.sr.text.left = self.TEXTLEFTMARGIN
+        return
 
     def CheckHintText(self):
         if self.GetText():
@@ -172,7 +175,7 @@ class SinglelineEditCore(Container):
          1,
          1), idx=0, state=uiconst.UI_HIDDEN)
 
-    def ShowClearButton(self, icon = None, hint = None, showOnLetterCount = 1):
+    def ShowClearButton(self, icon=None, hint=None, showOnLetterCount=1):
         if self._clearButton:
             self._clearButton.Close()
         icon = icon or 'res:/UI/Texture/Icons/73_16_210.png'
@@ -186,7 +189,7 @@ class SinglelineEditCore(Container):
     def OnClearButtonClick(self):
         self.SetValue(u'')
 
-    def AddIconButton(self, texturePath, hint = None):
+    def AddIconButton(self, texturePath, hint=None):
         from eve.client.script.ui.control.buttons import ButtonIcon
         rightAlignedButton = ButtonIcon(texturePath=texturePath, pos=(0, 0, 16, 16), align=uiconst.CENTERRIGHT, parent=self, hint=hint, idx=0)
         self.rightAlignedButtons.add(rightAlignedButton)
@@ -216,7 +219,7 @@ class SinglelineEditCore(Container):
             self.RefreshSelectionDisplay()
             self.RefreshTextClipper()
 
-    def LoadCombo(self, id, options, callback = None, setvalue = None, comboIsTabStop = 1):
+    def LoadCombo(self, id, options, callback=None, setvalue=None, comboIsTabStop=1):
         for each in self.children[:]:
             if each.name == 'combo':
                 each.Close()
@@ -258,6 +261,8 @@ class SinglelineEditCore(Container):
     def GetComboValue(self):
         if self.sr.combo:
             return self.sr.combo.GetValue()
+        else:
+            return None
 
     def OnComboChange(self, combo, label, value, *args):
         self.SetValue(label, updateIndex=0)
@@ -270,27 +275,30 @@ class SinglelineEditCore(Container):
             del all[id]
             settings.user.ui.Set('editHistory', all)
 
-    def RegisterHistory(self, value = None):
+    def RegisterHistory(self, value=None):
         if self.integermode or self.floatmode or self.passwordchar is not None or not self.registerHistory:
             return
-        id, mine, all = self.GetHistory(getAll=1)
-        current = (value or self.GetValue(registerHistory=0)).rstrip()
-        if current not in mine:
-            mine.append(current)
-        all[id] = mine
-        settings.user.ui.Set('editHistory', all)
+        else:
+            id, mine, all = self.GetHistory(getAll=1)
+            current = (value or self.GetValue(registerHistory=0)).rstrip()
+            if current not in mine:
+                mine.append(current)
+            all[id] = mine
+            settings.user.ui.Set('editHistory', all)
+            return
 
     def CheckHistory(self):
         if self.integermode or self.floatmode or self.passwordchar is not None or self.displayHistory == 0:
             return
-        if self.readonly:
+        elif self.readonly:
             return
-        valid = self.GetValid()
-        if valid:
-            self.ShowHistoryMenu(valid[:5])
-            return 1
-        self.CloseHistoryMenu()
-        return 0
+        else:
+            valid = self.GetValid()
+            if valid:
+                self.ShowHistoryMenu(valid[:5])
+                return 1
+            self.CloseHistoryMenu()
+            return 0
 
     def GetValid(self):
         current = self.GetValue(registerHistory=0)
@@ -327,7 +335,7 @@ class SinglelineEditCore(Container):
             displayText, editText = entry if isinstance(entry, tuple) else (entry, entry)
             self.GetHistoryMenuEntry(displayText, editText, mps, mp)
 
-    def GetHistoryMenuEntry(self, displayText, text, menuSub, mp, info = None):
+    def GetHistoryMenuEntry(self, displayText, text, menuSub, mp, info=None):
         ep = Container(name='entryParent', parent=menuSub, clipChildren=1, pos=(0, 0, 0, 16), align=uiconst.TOTOP, state=uiconst.UI_NORMAL)
         ep.OnMouseEnter = (self.HEMouseEnter, ep)
         ep.OnMouseDown = (self.HEMouseDown, ep)
@@ -364,7 +372,7 @@ class SinglelineEditCore(Container):
         entry.sr.hilite.state = uiconst.UI_DISABLED
         entry.selected = 1
 
-    def GetHistory(self, getAll = 0):
+    def GetHistory(self, getAll=0):
         id = self.GetHistoryID()
         all = settings.user.ui.Get('editHistory', {})
         if type(all) == list:
@@ -386,6 +394,7 @@ class SinglelineEditCore(Container):
                 self.active = None
                 historyMenu.Close()
                 self.historyMenu = None
+        return
 
     def BrowseHistory(self, down):
         justopened = 0
@@ -405,24 +414,26 @@ class SinglelineEditCore(Container):
 
         if justopened:
             return
-        if currentIdx is None:
-            if down:
-                currentIdx = 0
-            else:
-                currentIdx = len(hm.sr.entries.children) - 1
-        elif down:
-            currentIdx += 1
-            if currentIdx >= len(hm.sr.entries.children):
-                currentIdx = 0
         else:
-            currentIdx -= 1
-            if currentIdx < 0:
-                currentIdx = len(hm.sr.entries.children) - 1
-        self.active = active = hm.sr.entries.children[currentIdx]
-        active.sr.hilite.state = uiconst.UI_DISABLED
-        active.selected = 1
-        if not getattr(self, 'blockSetValue', 0):
-            self.SetValue(active.string, updateIndex=1)
+            if currentIdx is None:
+                if down:
+                    currentIdx = 0
+                else:
+                    currentIdx = len(hm.sr.entries.children) - 1
+            elif down:
+                currentIdx += 1
+                if currentIdx >= len(hm.sr.entries.children):
+                    currentIdx = 0
+            else:
+                currentIdx -= 1
+                if currentIdx < 0:
+                    currentIdx = len(hm.sr.entries.children) - 1
+            self.active = active = hm.sr.entries.children[currentIdx]
+            active.sr.hilite.state = uiconst.UI_DISABLED
+            active.selected = 1
+            if not getattr(self, 'blockSetValue', 0):
+                self.SetValue(active.string, updateIndex=1)
+            return
 
     def GetHistoryID(self):
         id = ''
@@ -450,24 +461,26 @@ class SinglelineEditCore(Container):
     def OnSetFocus(self, *args):
         if self.pickState != uiconst.TR2_SPS_ON:
             return
-        if not self.readonly and uicore.imeHandler:
-            uicore.imeHandler.SetFocus(self)
-        if self and not self.destroyed and self.parent and self.parent.name == 'inlines':
-            if self.parent.parent and getattr(self.parent.parent.sr, 'node', None):
-                browser = GetBrowser(self)
-                if browser:
-                    uthread.new(browser.ShowObject, self)
-        self.sr.background.AnimEntry()
-        if self.integermode or self.floatmode:
-            self.SetText(self.text)
-            self.caretIndex = self.GetCursorFromIndex(-1)
-        self.ShowCaret()
-        if self.autoselect:
-            self.SelectAll()
         else:
-            self.RefreshSelectionDisplay()
-        if self.__OnSetFocus:
-            self.__OnSetFocus(*args)
+            if not self.readonly and uicore.imeHandler:
+                uicore.imeHandler.SetFocus(self)
+            if self and not self.destroyed and self.parent and self.parent.name == 'inlines':
+                if self.parent.parent and getattr(self.parent.parent.sr, 'node', None):
+                    browser = GetBrowser(self)
+                    if browser:
+                        uthread.new(browser.ShowObject, self)
+            self.sr.background.AnimEntry()
+            if self.integermode or self.floatmode:
+                self.SetText(self.text)
+                self.caretIndex = self.GetCursorFromIndex(-1)
+            self.ShowCaret()
+            if self.autoselect:
+                self.SelectAll()
+            else:
+                self.RefreshSelectionDisplay()
+            if self.__OnSetFocus:
+                self.__OnSetFocus(*args)
+            return
 
     def OnKillFocus(self, *args):
         if not self.readonly and uicore.imeHandler:
@@ -486,8 +499,9 @@ class SinglelineEditCore(Container):
         self.CloseHistoryMenu()
         if self.OnFocusLost:
             uthread.new(self.OnFocusLost, self)
+        return
 
-    def SetValue(self, text, add = 0, keepSelection = 0, updateIndex = 1, docallback = 1):
+    def SetValue(self, text, add=0, keepSelection=0, updateIndex=1, docallback=1):
         text = text or ''
         isString = isinstance(text, basestring)
         if isString:
@@ -509,8 +523,9 @@ class SinglelineEditCore(Container):
         self.selFrom = self.selTo = None
         self.RefreshSelectionDisplay()
         self.OnTextChange(docallback)
+        return
 
-    def GetValue(self, refreshDigits = 1, raw = 0, registerHistory = 1):
+    def GetValue(self, refreshDigits=1, raw=0, registerHistory=1):
         ret = self.text
         if refreshDigits and (self.integermode or self.floatmode):
             ret = self.CheckBounds(ret, 0)
@@ -537,7 +552,7 @@ class SinglelineEditCore(Container):
             self.RegisterHistory()
         return ret
 
-    def IntMode(self, minint = None, maxint = None):
+    def IntMode(self, minint=None, maxint=None):
         if maxint is None:
             maxint = sys.maxint
         self.integermode = (minint, min(sys.maxint, maxint))
@@ -546,14 +561,16 @@ class SinglelineEditCore(Container):
         if minint and not self.text:
             self.SetValue(minint)
         self.ShowNumericControls()
+        return
 
-    def FloatMode(self, minfloat = None, maxfloat = None, digits = 1):
+    def FloatMode(self, minfloat=None, maxfloat=None, digits=1):
         self.floatmode = (minfloat, maxfloat, int(digits))
         self.integermode = None
         self.OnMouseWheel = self.MouseWheel
         if minfloat and not self.text:
             self.SetValue(minfloat)
         self.ShowNumericControls()
+        return
 
     def ShowNumericControls(self):
         if self.numericControlsCont:
@@ -578,6 +595,7 @@ class SinglelineEditCore(Container):
         if self.updateNumericInputThread:
             self.updateNumericInputThread.kill()
             self.updateNumericInputThread = None
+        return
 
     def OnNumericUpButtonMouseUp(self, *args):
         ButtonIcon.OnMouseUp(self.upButton, *args)
@@ -620,28 +638,30 @@ class SinglelineEditCore(Container):
             self.downButton.Blink(0.2)
         self.ClampMinMaxValue(val)
 
-    def ClampMinMaxValue(self, change = 0):
+    def ClampMinMaxValue(self, change=0):
         if not (self.integermode or self.floatmode):
             return
-        try:
-            current = self.GetValue(registerHistory=0)
-        except ValueError:
-            current = errorValue
-            sys.exc_clear()
-
-        text = self.CheckBounds(repr(current + change), 0)
-        if self.floatmode:
-            floatdigits = self.floatmode[2]
-            text = '%%.%df' % floatdigits % float(text)
-        if uicore.registry.GetFocus() is self:
-            self.SetText(text)
         else:
-            self.SetText(text, format=True)
-        self.caretIndex = self.GetCursorFromIndex(-1)
-        self.selFrom = None
-        self.selTo = None
-        self.RefreshSelectionDisplay()
-        self.OnTextChange()
+            try:
+                current = self.GetValue(registerHistory=0)
+            except ValueError:
+                current = errorValue
+                sys.exc_clear()
+
+            text = self.CheckBounds(repr(current + change), 0)
+            if self.floatmode:
+                floatdigits = self.floatmode[2]
+                text = '%%.%df' % floatdigits % float(text)
+            if uicore.registry.GetFocus() is self:
+                self.SetText(text)
+            else:
+                self.SetText(text, format=True)
+            self.caretIndex = self.GetCursorFromIndex(-1)
+            self.selFrom = None
+            self.selTo = None
+            self.RefreshSelectionDisplay()
+            self.OnTextChange()
+            return
 
     def OnDblClick(self, *args):
         self.caretIndex = self.GetIndexUnderCursor()
@@ -654,30 +674,32 @@ class SinglelineEditCore(Container):
     def OnMouseDown(self, button, *etc):
         if uicore.uilib.mouseTravel > 10:
             return
-        if hasattr(self, 'RegisterFocus'):
-            self.RegisterFocus(self)
-        gettingFocus = uicore.registry.GetFocus() != self
-        if gettingFocus:
-            uicore.registry.SetFocus(self)
-        leftClick = button == uiconst.MOUSELEFT
-        if uicore.uilib.Key(uiconst.VK_SHIFT):
-            if self.selFrom is None:
-                self.selFrom = self.caretIndex
-            self.selTo = self.caretIndex = self.GetIndexUnderCursor()
-            self.RefreshCaretPosition()
-            self.RefreshSelectionDisplay()
-            self.RefreshTextClipper()
-        elif leftClick:
-            self.caretIndex = self.mouseDownCaretIndex = self.GetIndexUnderCursor()
-            self.selFrom = None
-            self.selTo = None
-            self.RefreshCaretPosition()
-            self.RefreshSelectionDisplay()
-            self.RefreshTextClipper()
-            if self.autoselect and gettingFocus:
-                self.SelectAll()
-            else:
-                self.sr.selectionTimer = AutoTimer(50, self.UpdateSelection)
+        else:
+            if hasattr(self, 'RegisterFocus'):
+                self.RegisterFocus(self)
+            gettingFocus = uicore.registry.GetFocus() != self
+            if gettingFocus:
+                uicore.registry.SetFocus(self)
+            leftClick = button == uiconst.MOUSELEFT
+            if uicore.uilib.Key(uiconst.VK_SHIFT):
+                if self.selFrom is None:
+                    self.selFrom = self.caretIndex
+                self.selTo = self.caretIndex = self.GetIndexUnderCursor()
+                self.RefreshCaretPosition()
+                self.RefreshSelectionDisplay()
+                self.RefreshTextClipper()
+            elif leftClick:
+                self.caretIndex = self.mouseDownCaretIndex = self.GetIndexUnderCursor()
+                self.selFrom = None
+                self.selTo = None
+                self.RefreshCaretPosition()
+                self.RefreshSelectionDisplay()
+                self.RefreshTextClipper()
+                if self.autoselect and gettingFocus:
+                    self.SelectAll()
+                else:
+                    self.sr.selectionTimer = AutoTimer(50, self.UpdateSelection)
+            return
 
     def SetSelection(self, start, end):
         if start < 0:
@@ -704,10 +726,12 @@ class SinglelineEditCore(Container):
         self.selFrom = (None, None)
         self.selTo = (None, None)
         self.RefreshSelectionDisplay()
+        return None
 
     def OnMouseUp(self, *args):
         self.mouseDownCaretIndex = None
         self.sr.selectionTimer = None
+        return
 
     def GetIndexUnderCursor(self):
         l, t = self.sr.text.GetAbsolutePosition()
@@ -752,22 +776,26 @@ class SinglelineEditCore(Container):
         self.sr.caretTimer = None
         if self.sr.get('caret', None):
             self.sr.caret.state = uiconst.UI_HIDDEN
+        return
 
     HideCursor = HideCaret
 
     def GetCaret(self):
         if not self.sr.get('caret', None) and not self.destroyed:
             self.Prepare_Caret_()
+        return
 
     def BlinkCaret(self):
         if self.destroyed:
             self.sr.caretTimer = None
             return
-        if self.sr.get('caret', None):
-            if not trinity.app.IsActive():
-                self.sr.caret.state = uiconst.UI_HIDDEN
-                return
-            self.sr.caret.state = [uiconst.UI_HIDDEN, uiconst.UI_DISABLED][self.sr.caret.state == uiconst.UI_HIDDEN]
+        else:
+            if self.sr.get('caret', None):
+                if not trinity.app.IsActive():
+                    self.sr.caret.state = uiconst.UI_HIDDEN
+                    return
+                self.sr.caret.state = [uiconst.UI_HIDDEN, uiconst.UI_DISABLED][self.sr.caret.state == uiconst.UI_HIDDEN]
+            return
 
     def OnChar(self, char, flag):
         if self.floatmode:
@@ -832,62 +860,64 @@ class SinglelineEditCore(Container):
         SHIFT = uicore.uilib.Key(uiconst.VK_SHIFT)
         if self.destroyed:
             return
-        oldCaretIndex = self.caretIndex
-        selection = self.GetSelectionBounds()
-        index = self.caretIndex[0]
-        if vkey == uiconst.VK_LEFT:
-            if CTRL:
-                index = self.text.rfind(' ', 0, max(index - 1, 0)) + 1 or 0
-            else:
-                index = max(index - 1, 0)
-        elif vkey == uiconst.VK_RIGHT:
-            if CTRL:
-                index = self.text.find(' ', index) + 1 or len(self.text)
-            else:
-                index = index + 1
-            index = min(index, len(self.text))
-        elif vkey == HOME:
-            index = 0
-        elif vkey == END:
-            index = len(self.text)
-        elif vkey in (uiconst.VK_DELETE,):
-            if self.GetSelectionBounds() != (None, None):
-                self.DeleteSelected()
-                return
-            self.Delete(1)
         else:
-            if vkey in (uiconst.VK_UP, uiconst.VK_DOWN):
-                self.BrowseHistory(vkey == uiconst.VK_DOWN)
-                if vkey == uiconst.VK_UP:
-                    self.ChangeNumericValue(1)
-                elif vkey == uiconst.VK_DOWN:
-                    self.ChangeNumericValue(-1)
+            oldCaretIndex = self.caretIndex
+            selection = self.GetSelectionBounds()
+            index = self.caretIndex[0]
+            if vkey == uiconst.VK_LEFT:
+                if CTRL:
+                    index = self.text.rfind(' ', 0, max(index - 1, 0)) + 1 or 0
+                else:
+                    index = max(index - 1, 0)
+            elif vkey == uiconst.VK_RIGHT:
+                if CTRL:
+                    index = self.text.find(' ', index) + 1 or len(self.text)
+                else:
+                    index = index + 1
+                index = min(index, len(self.text))
+            elif vkey == HOME:
+                index = 0
+            elif vkey == END:
+                index = len(self.text)
+            elif vkey in (uiconst.VK_DELETE,):
+                if self.GetSelectionBounds() != (None, None):
+                    self.DeleteSelected()
+                    return
+                self.Delete(1)
             else:
-                self.OnUnusedKeyDown(self, vkey, flag)
+                if vkey in (uiconst.VK_UP, uiconst.VK_DOWN):
+                    self.BrowseHistory(vkey == uiconst.VK_DOWN)
+                    if vkey == uiconst.VK_UP:
+                        self.ChangeNumericValue(1)
+                    elif vkey == uiconst.VK_DOWN:
+                        self.ChangeNumericValue(-1)
+                else:
+                    self.OnUnusedKeyDown(self, vkey, flag)
+                return
+            self.caretIndex = self.GetCursorFromIndex(index)
+            if vkey in (uiconst.VK_LEFT,
+             uiconst.VK_RIGHT,
+             HOME,
+             END):
+                if SHIFT:
+                    if self.selTo is not None:
+                        self.selTo = self.caretIndex
+                    elif self.selTo is None:
+                        self.selFrom = oldCaretIndex
+                        self.selTo = self.caretIndex
+                elif selection != (None, None):
+                    if vkey == uiconst.VK_LEFT:
+                        index = selection[0][0]
+                    elif vkey == uiconst.VK_RIGHT:
+                        index = selection[1][0]
+                    self.caretIndex = self.GetCursorFromIndex(index)
+                if not SHIFT or self.selFrom == self.selTo:
+                    self.selFrom = self.selTo = None
+                self.CloseHistoryMenu()
+            self.RefreshCaretPosition()
+            self.RefreshSelectionDisplay()
+            self.RefreshTextClipper()
             return
-        self.caretIndex = self.GetCursorFromIndex(index)
-        if vkey in (uiconst.VK_LEFT,
-         uiconst.VK_RIGHT,
-         HOME,
-         END):
-            if SHIFT:
-                if self.selTo is not None:
-                    self.selTo = self.caretIndex
-                elif self.selTo is None:
-                    self.selFrom = oldCaretIndex
-                    self.selTo = self.caretIndex
-            elif selection != (None, None):
-                if vkey == uiconst.VK_LEFT:
-                    index = selection[0][0]
-                elif vkey == uiconst.VK_RIGHT:
-                    index = selection[1][0]
-                self.caretIndex = self.GetCursorFromIndex(index)
-            if not SHIFT or self.selFrom == self.selTo:
-                self.selFrom = self.selTo = None
-            self.CloseHistoryMenu()
-        self.RefreshCaretPosition()
-        self.RefreshSelectionDisplay()
-        self.RefreshTextClipper()
 
     def OnUnusedKeyDown(self, *args):
         pass
@@ -931,61 +961,63 @@ class SinglelineEditCore(Container):
     def Insert(self, ins):
         if self.readonly:
             return None
-        if not isinstance(ins, basestring):
-            text = unichr(ins)
         else:
-            text = ins
-        text = text.replace(u'\r', u' ').replace(u'\n', u'')
-        current = self.GetText()
-        if self.GetSelectionBounds() != (None, None):
-            self.DeleteSelected()
-        if (self.integermode or self.floatmode) and text:
-            if self.floatmode:
-                if self.DECIMAL in text and self.DECIMAL in self.text:
-                    uicore.Message('uiwarning03')
-                    return None
-            if text == u'-':
-                newvalue = self.text[:self.caretIndex[0]] + text + self.text[self.caretIndex[0]:]
-                if newvalue != u'-':
-                    newvalue = self.StripNumberString(newvalue)
+            if not isinstance(ins, basestring):
+                text = unichr(ins)
+            else:
+                text = ins
+            text = text.replace(u'\r', u' ').replace(u'\n', u'')
+            current = self.GetText()
+            if self.GetSelectionBounds() != (None, None):
+                self.DeleteSelected()
+            if (self.integermode or self.floatmode) and text:
+                if self.floatmode:
+                    if self.DECIMAL in text and self.DECIMAL in self.text:
+                        uicore.Message('uiwarning03')
+                        return None
+                if text == u'-':
+                    newvalue = self.text[:self.caretIndex[0]] + text + self.text[self.caretIndex[0]:]
+                    if newvalue != u'-':
+                        newvalue = self.StripNumberString(newvalue)
+                        try:
+                            if self.integermode:
+                                long(newvalue)
+                            else:
+                                float(newvalue)
+                        except ValueError as e:
+                            uicore.Message('uiwarning03')
+                            sys.exc_clear()
+                            return None
+
+                elif text != self.DECIMAL:
+                    text = self.StripNumberString(text)
                     try:
                         if self.integermode:
-                            long(newvalue)
+                            long(text)
                         else:
-                            float(newvalue)
+                            float(text)
                     except ValueError as e:
                         uicore.Message('uiwarning03')
                         sys.exc_clear()
                         return None
 
-            elif text != self.DECIMAL:
-                text = self.StripNumberString(text)
-                try:
-                    if self.integermode:
-                        long(text)
-                    else:
-                        float(text)
-                except ValueError as e:
+                elif text not in '0123456789' and self.integermode:
                     uicore.Message('uiwarning03')
-                    sys.exc_clear()
                     return None
-
-            elif text not in '0123456789' and self.integermode:
+            before = self.text[:self.caretIndex[0]]
+            after = self.text[self.caretIndex[0]:]
+            become = before + text + after
+            if self.maxletters and len(become) > self.maxletters:
+                become = become[:self.maxletters]
                 uicore.Message('uiwarning03')
-                return None
-        before = self.text[:self.caretIndex[0]]
-        after = self.text[self.caretIndex[0]:]
-        become = before + text + after
-        if self.maxletters and len(become) > self.maxletters:
-            become = become[:self.maxletters]
-            uicore.Message('uiwarning03')
-        self.autoselect = False
-        if (self.integermode or self.floatmode) and become and become[-1] not in (self.DECIMAL, '-'):
-            become = self.StripNumberString(become)
-        self.SetText(become)
-        index = self.caretIndex[0] + len(text)
-        self.caretIndex = self.GetCursorFromIndex(index)
-        self.OnTextChange()
+            self.autoselect = False
+            if (self.integermode or self.floatmode) and become and become[-1] not in (self.DECIMAL, '-'):
+                become = self.StripNumberString(become)
+            self.SetText(become)
+            index = self.caretIndex[0] + len(text)
+            self.caretIndex = self.GetCursorFromIndex(index)
+            self.OnTextChange()
+            return None
 
     def GetMenu(self):
         m = []
@@ -1008,55 +1040,56 @@ class SinglelineEditCore(Container):
                 m += [(MenuLabel('/Carbon/UI/Controls/Common/ClearHistory'), self.ClearHistory, (None,))]
         return m
 
-    def OnTextChange(self, docallback = 1):
+    def OnTextChange(self, docallback=1):
         self.CheckHintText()
         self.RefreshCaretPosition()
         self.RefreshTextClipper()
         if docallback and self.OnChange:
             self.OnChange(self.text)
 
-    def CheckBounds(self, qty, warnsnd = 0, allowEmpty = 1, returnNoneIfOK = 0):
+    def CheckBounds(self, qty, warnsnd=0, allowEmpty=1, returnNoneIfOK=0):
         if allowEmpty and not qty:
             return ''
-        if qty == '-' or qty is None:
-            qty = 0
-        isInt = self.integermode is not None
-        isFloat = self.floatmode is not None
-        if isFloat:
-            minbound, maxbound = self.floatmode[:2]
-        elif isInt:
-            minbound, maxbound = self.integermode
         else:
-            return str(qty)
-        pQty = self.StripNumberString(repr(qty))
-        minusIndex = pQty.find('-')
-        if minusIndex > 0 and pQty[minusIndex - 1] != 'e':
-            uicore.Message('uiwarning03')
-            if minbound is not None:
-                return minbound
-            return ''
-        if isFloat:
-            if pQty == self.DECIMAL:
+            if qty == '-' or qty is None:
+                qty = 0
+            isInt = self.integermode is not None
+            isFloat = self.floatmode is not None
+            if isFloat:
+                minbound, maxbound = self.floatmode[:2]
+            elif isInt:
+                minbound, maxbound = self.integermode
+            else:
+                return str(qty)
+            pQty = self.StripNumberString(repr(qty))
+            minusIndex = pQty.find('-')
+            if minusIndex > 0 and pQty[minusIndex - 1] != 'e':
                 uicore.Message('uiwarning03')
                 if minbound is not None:
                     return minbound
                 return ''
-            qty = float(pQty or 0)
-        else:
-            qty = long(pQty or 0)
-        warn = 0
-        ret = qty
-        if maxbound is not None and qty > maxbound:
-            warn = 1
-            ret = maxbound
-        elif minbound is not None and qty < minbound:
-            warn = 1
-            ret = minbound
-        elif returnNoneIfOK:
-            return
-        if warn and warnsnd:
-            uicore.Message('uiwarning03')
-        return ret
+            if isFloat:
+                if pQty == self.DECIMAL:
+                    uicore.Message('uiwarning03')
+                    if minbound is not None:
+                        return minbound
+                    return ''
+                qty = float(pQty or 0)
+            else:
+                qty = long(pQty or 0)
+            warn = 0
+            ret = qty
+            if maxbound is not None and qty > maxbound:
+                warn = 1
+                ret = maxbound
+            elif minbound is not None and qty < minbound:
+                warn = 1
+                ret = minbound
+            elif returnNoneIfOK:
+                return
+            if warn and warnsnd:
+                uicore.Message('uiwarning03')
+            return ret
 
     def RefreshSelectionDisplay(self):
         selection = self.GetSelectionBounds()
@@ -1068,11 +1101,13 @@ class SinglelineEditCore(Container):
             self.sr.selection.state = uiconst.UI_DISABLED
         elif self.sr.selection:
             self.sr.selection.state = uiconst.UI_HIDDEN
+        return None
 
     def GetSelectionBounds(self):
         if self.selFrom and self.selTo and self.selFrom[0] != self.selTo[0]:
             return (min(self.selFrom, self.selTo), max(self.selFrom, self.selTo))
-        return (None, None)
+        else:
+            return (None, None)
 
     def GetSelectionLayer(self):
         w, h = self.GetAbsoluteSize()
@@ -1085,13 +1120,15 @@ class SinglelineEditCore(Container):
     def DeleteSelected(self):
         if self.readonly:
             return
-        start, end = self.GetSelectionBounds()
-        self.selFrom = self.selTo = None
-        self.RefreshSelectionDisplay()
-        text = self.GetText()
-        self.SetText(text[:start[0]] + text[end[0]:])
-        self.caretIndex = start
-        self.OnTextChange()
+        else:
+            start, end = self.GetSelectionBounds()
+            self.selFrom = self.selTo = None
+            self.RefreshSelectionDisplay()
+            text = self.GetText()
+            self.SetText(text[:start[0]] + text[end[0]:])
+            self.caretIndex = start
+            self.OnTextChange()
+            return
 
     def SelectAll(self):
         self.selFrom = self.GetCursorFromIndex(0)
@@ -1102,8 +1139,9 @@ class SinglelineEditCore(Container):
         if self.GetSelectionBounds() != (None, None):
             self.Copy()
             self.DeleteSelected()
+        return None
 
-    def Copy(self, selectStart = None, selectEnd = None):
+    def Copy(self, selectStart=None, selectEnd=None):
         if self.passwordchar is None:
             text = self.GetText()
             if self.floatmode:
@@ -1118,6 +1156,7 @@ class SinglelineEditCore(Container):
                 blue.pyos.SetClipboardData(text)
             else:
                 blue.pyos.SetClipboardData(text[start[0]:end[0]])
+        return
 
     def GetLocalizedDecimal(self):
         if session:
@@ -1126,7 +1165,7 @@ class SinglelineEditCore(Container):
             localizedDecimal = prefs.GetValue('decimal', '.')
         return localizedDecimal
 
-    def Paste(self, paste, deleteStart = None, deleteEnd = None, forceFocus = False):
+    def Paste(self, paste, deleteStart=None, deleteEnd=None, forceFocus=False):
         if self.floatmode:
             haveIllegalChar = False
             legalChars = '-0123456789e,.'
@@ -1154,6 +1193,7 @@ class SinglelineEditCore(Container):
         self.Insert(paste)
         if (hadFocus or forceFocus) and not uicore.registry.GetFocus() == self:
             uicore.registry.SetFocus(self)
+        return
 
     def EncodeOutput(self, otext):
         if not otext:
@@ -1174,7 +1214,7 @@ class SinglelineEditCore(Container):
     def GetText(self):
         return self.text
 
-    def SetText(self, text, format = 0):
+    def SetText(self, text, format=0):
         if not isinstance(text, basestring):
             if self.integermode:
                 text = repr(int(text))
@@ -1194,8 +1234,9 @@ class SinglelineEditCore(Container):
         displayText = StripTags(displayText, stripOnly=['localized'])
         self.sr.text.text = displayText.replace('<', '&lt;').replace('>', '&gt;')
         self.text = text
+        return
 
-    def Delete(self, direction = 1):
+    def Delete(self, direction=1):
         if self.readonly:
             return
         if direction:

@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\packages\dogma\fleetBonuses\fleetBonusMgr.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\packages\dogma\fleetBonuses\fleetBonusMgr.py
 from dogma.dogmaLogging import *
 from operator import itemgetter
 from ccpProfile import TimedFunction
@@ -7,7 +8,7 @@ from utillib import KeyVal
 
 class FleetBonusAttribute(AttributeInterface):
 
-    def __init__(self, modifierTypeName, targetAttribID, op, ownerCellID, isActive = True):
+    def __init__(self, modifierTypeName, targetAttribID, op, ownerCellID, isActive=True):
         self._modifierTypeName = modifierTypeName
         self._targetAttribID = targetAttribID
         self._op = op
@@ -21,6 +22,7 @@ class FleetBonusAttribute(AttributeInterface):
         self.outgoingModifiers = set()
         self.isActive = isActive
         self.dirty = True
+        return
 
     def __str__(self):
         return "%s 'mod %s op %s -> %s (%s)' (FBA) on (Cell %s) [i%s:o%s]" % ('Active' if self.isActive else 'INACTIVE',
@@ -88,7 +90,7 @@ class FleetBonusAttribute(AttributeInterface):
             self.MarkDirty()
 
     def GetBaseValue(self):
-        return '<no base>'
+        pass
 
     def GetValue(self):
         if self.dirty:
@@ -150,6 +152,7 @@ class FleetBonusCell(object):
         self.children = {}
         self._active = True
         self.FBAs = {}
+        return
 
     def __str__(self):
         parentCellID = self.parent.cellID if self.parent else None
@@ -185,6 +188,8 @@ class FleetBonusCell(object):
         for joiningMember in toBeAdded:
             self._AddMember(joiningMember)
 
+        return
+
     def RemoveUsingShipID(self, shipID):
         if self.booster is not None:
             if self.booster.shipID == shipID:
@@ -194,18 +199,24 @@ class FleetBonusCell(object):
                 self._RemoveMember(member)
                 return
 
+        return
+
     @TimedFunction('FleetBonusCell::SetCellBooster')
     def SetCellBooster(self, booster, booster_modifiers):
         if booster is None:
             self.RemoveCellBooster()
             return
-        self.booster = booster
-        for modType, modInfoList in booster_modifiers.iteritems():
-            for modInfo in modInfoList:
-                self.SetUpModifier(modType, modInfo)
+        else:
+            self.booster = booster
+            for modType, modInfoList in booster_modifiers.iteritems():
+                for modInfo in modInfoList:
+                    self.SetUpModifier(modType, modInfo)
+
+            return
 
     @TimedFunction('FleetBonusCell::RemoveCellBooster')
     def RemoveCellBooster(self):
+        self.booster = None
         removes = []
         for fleetBonusAttrib in self.FBAs.itervalues():
             for incomingAttrib in fleetBonusAttrib.incomingModifiers:
@@ -215,6 +226,8 @@ class FleetBonusCell(object):
         for fleetBonusAttrib, incomingAttrib in removes:
             fleetBonusAttrib.RemoveIncomingFleetBonus(incomingAttrib)
             incomingAttrib.RemoveOutgoingModifier(None, fleetBonusAttrib)
+
+        return
 
     def SetCellActive(self, isActive):
         self._active = isActive
@@ -241,9 +254,12 @@ class FleetBonusCell(object):
         fromAttrib.AddModifierTo(operation=None, toAttrib=fleetAttrib)
         if isExistingAttrib:
             return
-        self._ApplyBonusToMembers(FBA_Key)
-        for childCell in self.children.itervalues():
-            childCell.SetUpModifier_recurse(FBA_Key, fleetAttrib)
+        else:
+            self._ApplyBonusToMembers(FBA_Key)
+            for childCell in self.children.itervalues():
+                childCell.SetUpModifier_recurse(FBA_Key, fleetAttrib)
+
+            return
 
     @TimedFunction('FleetBonusCell::TearDownModifier')
     def TearDownModifier(self, modType, modInfo):
@@ -256,6 +272,7 @@ class FleetBonusCell(object):
             fromAttrib.RemoveOutgoingModifier(None, recvAttrib)
         else:
             self.dogmaLM.LogError('FleetBonusCell::TearDownModifier : Cell %s trying to tear down a non existent modifier : %s' % (self.cellID, key))
+        return
 
     @TimedFunction('FleetBonusCell::RemoveFleetBonusTreeChild__ONLY_USED_BY_TESTS')
     def RemoveFleetBonusTreeChild__ONLY_USED_BY_TESTS(self, childCell):
@@ -276,10 +293,13 @@ class FleetBonusCell(object):
 
         self.parent = None
         self.dogmaLM.LogInfo('RemoveFleetBonusTreeChild__ONLY_USED_BY_TESTS', childCell.cellID, self.cellID)
+        return
 
     def GetChild(self, childCellID):
         if childCellID in self.children:
             return self.children[childCellID]
+        else:
+            return None
 
     def _AddMember(self, newMember):
         if newMember not in self.members:
@@ -306,6 +326,8 @@ class FleetBonusCell(object):
         for member in self.members:
             charID = member.characterID
             toShipID = member.shipID
+            if self.dogmaLM.IsItemIdStructure(toShipID):
+                continue
             ApplyBonus[modType[0]](self.dogmaLM, toShipID, targetAttribID, op, modType, fromFleetAttrib)
 
     @TimedFunction('FleetBonusCell::_RemoveBonusFromMembers__NOT_USED')
@@ -321,6 +343,8 @@ class FleetBonusCell(object):
     def _ApplyBonusesToMember(self, member):
         charID = member.characterID
         toShipID = member.shipID
+        if self.dogmaLM.IsItemIdStructure(toShipID):
+            return
         for (modType, targetAttribID, op), fromFleetAttrib in self.FBAs.iteritems():
             ApplyBonus[modType[0]](self.dogmaLM, toShipID, targetAttribID, op, modType, fromFleetAttrib)
 
@@ -373,6 +397,8 @@ class FleetBonusManagement(object):
             else:
                 self._EvaluateDeadCell(fleetBonusCell, cellPath)
 
+        return
+
     @WrappedMethod
     def _GetCurrentCells(self, fleetBonusCell, cellID, cellPath, cellLevelName, structureCell):
         if len(cellPath) > 1:
@@ -404,6 +430,7 @@ class FleetBonusManagement(object):
                 fleetBonusCell.SetCellBooster(structureCell.booster, booster_modifiers)
         else:
             fleetBonusCell.RemoveCellBooster()
+        return
 
     @WrappedMethod
     def _EvaluateDeadCell(self, fleetBonusCell, cellPath):
@@ -428,6 +455,8 @@ class FleetBonusManagement(object):
                                 return fleetBonusCell
                             break
 
+        return
+
     def FindShipsCell(self, shipID):
         if shipID in self.cellPathForShip:
             cellPath = self.cellPathForShip[shipID]
@@ -445,13 +474,16 @@ class FleetBonusManagement(object):
                                 if shipID == member.shipID:
                                     return fleetBonusCell
 
-    def PreemptiveGangRemoval(self, shipID, suppress = False):
+        return None
+
+    def PreemptiveGangRemoval(self, shipID, suppress=False):
         fleetSliceRoot = self.FindShipsCell(shipID)
         if fleetSliceRoot is not None:
             fleetSliceRoot.RemoveUsingShipID(shipID)
             self.broker.LogNotice(self.locationID, 'PreemptiveGangRemoval : Ship removed.', shipID, 'cellID =', fleetSliceRoot.cellID)
         else:
             self.broker.LogInfo(self.locationID, 'PreemptiveGangRemoval : Ship not found.', shipID)
+        return
 
     def GenericAddRecord(self, shipID, operation, fromAttrib, k):
         k2 = k + (shipID, fromAttrib)
@@ -557,11 +589,13 @@ class FleetBonusManagement(object):
         fleetSliceRoot = self.FindFirstCellThatShipIsBoostingFor(shipID)
         if fleetSliceRoot is not None:
             fleetSliceRoot.SetUpModifier(k, rec)
+        return
 
     def TearDownGangModifierIfBooster(self, shipID, k, rec):
         fleetSliceRoot = self.FindFirstCellThatShipIsBoostingFor(shipID)
         if fleetSliceRoot is not None:
             fleetSliceRoot.TearDownModifier(k, rec)
+        return
 
     @TimedFunction('fleetBonusMgr::ClearShipFromCell')
     def ClearShipFromCell(self, shipID):

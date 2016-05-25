@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\common\script\util\facwarCommon.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\common\script\util\facwarCommon.py
 import math
 import eve.common.lib.appConst as const
 COLOR_FRIEND = (0.078, 0.118, 0.18, 1.0)

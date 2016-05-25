@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\client\script\ui\inflight\scannerFiles\scannerToolsPalette.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\client\script\ui\inflight\scannerFiles\scannerToolsPalette.py
 import weakref
 import functools
 from carbon.common.script.util.timerstuff import AutoTimer
@@ -39,6 +40,7 @@ import blue
 def AddFilter(*args):
     editor = ScannerFilterEditor.Open()
     editor.LoadData(None)
+    return
 
 
 def UserErrorIfScanning(action, *args, **kwargs):
@@ -131,15 +133,17 @@ class ScannerToolsPalette(Container):
         self.LoadProbeList()
         if self.destroyed:
             return
-        ballpark = sm.GetService('michelle').GetBallpark()
-        if ballpark is not None:
-            uthread.new(self.LoadResultList)
-        self.Refresh()
-        self.keyUpCookie = uicore.event.RegisterForTriuiEvents(uiconst.UI_KEYUP, self.OnGlobalKeyUpCallback)
-        solarSystemView = self.GetSolarSystemView()
-        if solarSystemView:
-            solarSystemView.StartProbeHandler()
-        sm.RegisterNotify(self)
+        else:
+            ballpark = sm.GetService('michelle').GetBallpark()
+            if ballpark is not None:
+                uthread.new(self.LoadResultList)
+            self.Refresh()
+            self.keyUpCookie = uicore.event.RegisterForTriuiEvents(uiconst.UI_KEYUP, self.OnGlobalKeyUpCallback)
+            solarSystemView = self.GetSolarSystemView()
+            if solarSystemView:
+                solarSystemView.StartProbeHandler()
+            sm.RegisterNotify(self)
+            return
 
     def Close(self, *args):
         sm.UnregisterNotify(self)
@@ -278,9 +282,11 @@ class ScannerToolsPalette(Container):
     def ReloadFilteredBoxTooltip(self):
         if not self.filteredBoxTooltip or self.destroyed:
             return
-        filteredBoxTooltip = self.filteredBoxTooltip()
-        if filteredBoxTooltip is not None:
-            self._LoadFilterTooltipPanel(filteredBoxTooltip)
+        else:
+            filteredBoxTooltip = self.filteredBoxTooltip()
+            if filteredBoxTooltip is not None:
+                self._LoadFilterTooltipPanel(filteredBoxTooltip)
+            return
 
     def LoadIgnoredTooltipPanel(self, tooltipPanel, *args):
         tooltipPanel.Flush()
@@ -321,12 +327,14 @@ class ScannerToolsPalette(Container):
         ignoredTooltip = self.ignoredTooltip()
         if ignoredTooltip is not None:
             self.LoadIgnoredTooltipPanel(ignoredTooltip)
+        return
 
     def UnIgnoreResult(self, resultID, *args):
         self.scanSvc.ShowIgnoredResult(resultID)
         ignoredTooltip = self.ignoredTooltip()
         if ignoredTooltip is not None:
             self.LoadIgnoredTooltipPanel(ignoredTooltip)
+        return
 
     def OnShowAnomaliesCheckBoxChange(self, settingKey, settingState, *args):
         settings.user.ui.Set('scannerShowAnomalies', settingState)
@@ -347,7 +355,7 @@ class ScannerToolsPalette(Container):
         else:
             self.scanSvc.RemoveFromActiveFilterSet(settingKey)
 
-    def ValidateProbesState(self, probeIDs, isEntryButton = False):
+    def ValidateProbesState(self, probeIDs, isEntryButton=False):
         probeData = self.scanSvc.GetProbeData()
         for probeID in probeIDs:
             if probeID in probeData:
@@ -397,6 +405,7 @@ class ScannerToolsPalette(Container):
         if cnt <= 1:
             uthread.new(self.LoadProbeList)
         self.CheckButtonStates()
+        return
 
     def OnProbeAdded(self, probe):
         uthread.new(self.LoadProbeList)
@@ -420,73 +429,76 @@ class ScannerToolsPalette(Container):
     def LoadResultList(self):
         if self.destroyed:
             return
-        currentScan = self.scanSvc.GetCurrentScan()
-        scanningProbes = self.scanSvc.GetScanningProbes()
-        bp = sm.GetService('michelle').GetBallpark(doWait=True)
-        if bp is None:
-            return
-        if not bp.ego:
-            return
-        ego = bp.balls[bp.ego]
-        myPos = (ego.x, ego.y, ego.z)
-        results, ignored, filtered, filteredAnomalies = self.scanSvc.GetResults(useFilterSet=True)
-        columnWidths = self.sortHeaders.GetColumnWidths()
-        resultList = []
-        if currentScan and blue.os.TimeDiffInMs(currentScan.startTime, blue.os.GetSimTime()) < currentScan.duration:
-            return
-        if scanningProbes and session.shipid not in scanningProbes:
-            return
-        if results:
-            for result in results:
-                displayName = self.scanSvc.GetDisplayName(result)
-                scanGroupName = self.scanSvc.GetScanGroupName(result)
-                groupName = self.scanSvc.GetGroupName(result)
-                typeName = self.scanSvc.GetTypeName(result)
-                distance = result.GetDistance(myPos)
-                sortValues = [distance,
-                 result.id,
-                 displayName,
-                 groupName,
-                 min(1.0, result.certainty)]
-                data = KeyVal()
-                data.sortValues = sortValues
-                data.columnID = 'probeResultColumn'
-                data.displayName = displayName
-                data.scanGroupName = scanGroupName
-                data.groupName = groupName
-                data.typeName = typeName
-                data.result = result
-                data.GetMenu = self.ResultMenu
-                data.distance = distance
-                data.newResult = True
-                data.columnWidths = columnWidths
-                resultList.append(listentry.Get(decoClass=ScanResultNew, data=data))
-
-        scrollPosition = self.resultScroll.GetScrollProportion()
-        self.resultScroll.Clear()
-        columns = ScanResultNew.GetColumns()
-        activeColumn, columnDirection = self.sortHeaders.GetActiveColumnAndDirection()
-        activeColumnIndex = columns.index(activeColumn)
-
-        def GetSortValue(_node):
-            return _node.sortValues[activeColumnIndex]
-
-        sortedScrollNodes = sorted(resultList, key=GetSortValue, reverse=not columnDirection)
-        self.resultScroll.AddNodes(0, sortedScrollNodes)
-        if scrollPosition:
-            self.resultScroll.ScrollToProportion(scrollPosition)
-        if sortedScrollNodes:
-            self.resultScroll.ShowHint()
-            self.sortHeaders.Show()
         else:
-            self.resultScroll.ShowHint(localization.GetByLabel('UI/Inflight/Scanner/NoScanResult'))
-            self.sortHeaders.Hide()
-        self.ShowFilteredAndIgnored(filtered, ignored, filteredAnomalies)
-        probeHandler = self.GetProbeHandler()
-        if probeHandler:
-            probeHandler.SetResultFilter([], update=True)
+            currentScan = self.scanSvc.GetCurrentScan()
+            scanningProbes = self.scanSvc.GetScanningProbes()
+            bp = sm.GetService('michelle').GetBallpark(doWait=True)
+            if bp is None:
+                return
+            if not bp.ego:
+                return
+            ego = bp.balls[bp.ego]
+            myPos = (ego.x, ego.y, ego.z)
+            results, ignored, filtered, filteredAnomalies = self.scanSvc.GetResults(useFilterSet=True)
+            columnWidths = self.sortHeaders.GetColumnWidths()
+            resultList = []
+            if currentScan and blue.os.TimeDiffInMs(currentScan.startTime, blue.os.GetSimTime()) < currentScan.duration:
+                return
+            if scanningProbes and session.shipid not in scanningProbes:
+                return
+            if results:
+                for result in results:
+                    displayName = self.scanSvc.GetDisplayName(result)
+                    scanGroupName = self.scanSvc.GetScanGroupName(result)
+                    groupName = self.scanSvc.GetGroupName(result)
+                    typeName = self.scanSvc.GetTypeName(result)
+                    distance = result.GetDistance(myPos)
+                    sortValues = [distance,
+                     result.id,
+                     displayName,
+                     groupName,
+                     min(1.0, result.certainty)]
+                    data = KeyVal()
+                    data.sortValues = sortValues
+                    data.columnID = 'probeResultColumn'
+                    data.displayName = displayName
+                    data.scanGroupName = scanGroupName
+                    data.groupName = groupName
+                    data.typeName = typeName
+                    data.result = result
+                    data.GetMenu = self.ResultMenu
+                    data.distance = distance
+                    data.newResult = True
+                    data.columnWidths = columnWidths
+                    data.itemID = result.itemID
+                    resultList.append(listentry.Get(decoClass=ScanResultNew, data=data))
 
-    def GetProbeEntry(self, probe, selectedIDs = None):
+            scrollPosition = self.resultScroll.GetScrollProportion()
+            self.resultScroll.Clear()
+            columns = ScanResultNew.GetColumns()
+            activeColumn, columnDirection = self.sortHeaders.GetActiveColumnAndDirection()
+            activeColumnIndex = columns.index(activeColumn)
+
+            def GetSortValue(_node):
+                return _node.sortValues[activeColumnIndex]
+
+            sortedScrollNodes = sorted(resultList, key=GetSortValue, reverse=not columnDirection)
+            self.resultScroll.AddNodes(0, sortedScrollNodes)
+            if scrollPosition:
+                self.resultScroll.ScrollToProportion(scrollPosition)
+            if sortedScrollNodes:
+                self.resultScroll.ShowHint()
+                self.sortHeaders.Show()
+            else:
+                self.resultScroll.ShowHint(localization.GetByLabel('UI/Inflight/Scanner/NoScanResult'))
+                self.sortHeaders.Hide()
+            self.ShowFilteredAndIgnored(filtered, ignored, filteredAnomalies)
+            probeHandler = self.GetProbeHandler()
+            if probeHandler:
+                probeHandler.SetResultFilter([], update=True)
+            return
+
+    def GetProbeEntry(self, probe, selectedIDs=None):
         from eve.client.script.ui.inflight.scannerListEntries import ScanProbeEntryNew
         selectedIDs = selectedIDs or []
         data = KeyVal()
@@ -512,6 +524,7 @@ class ScannerToolsPalette(Container):
         self.probesScroll.Load(contentList=scrolllist)
         self.CheckButtonStates()
         self.sr.loadProbeList = None
+        return
 
     def CheckButtonStates(self):
         if self.destroyed:
@@ -589,7 +602,7 @@ class ScannerToolsPalette(Container):
                 for _probeID in probeIDs:
                     self.scanSvc.DestroyProbe(_probeID)
 
-    def GetSelectedProbes(self, asIds = 0):
+    def GetSelectedProbes(self, asIds=0):
         selected = self.probesScroll.GetSelected()
         returnVal = []
         for each in selected:
@@ -656,9 +669,11 @@ class ScannerToolsPalette(Container):
         self.refreshTimer = None
         if self.destroyed:
             return
-        self.CheckButtonStates()
-        self.LoadProbeList()
-        self.LoadResultList()
+        else:
+            self.CheckButtonStates()
+            self.LoadProbeList()
+            self.LoadResultList()
+            return
 
     def OnRefreshScanResults(self):
         self.Refresh()

@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\client\script\movement\apertureClient.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\client\script\movement\apertureClient.py
 import service
 import util
 import uthread
@@ -49,3 +50,4 @@ class ApertureClient(service.Service):
         if charactersCreated:
             uthread.new(cfg.eveowners.Prime, charactersCreated)
         uthread.parallel(callsToMake)
+        return

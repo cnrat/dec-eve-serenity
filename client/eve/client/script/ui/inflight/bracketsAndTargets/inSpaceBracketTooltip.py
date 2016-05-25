@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\client\script\ui\inflight\bracketsAndTargets\inSpaceBracketTooltip.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\client\script\ui\inflight\bracketsAndTargets\inSpaceBracketTooltip.py
 from itertools import chain
 from carbonui.control.scrollContainer import ScrollContainer
 from carbonui.primitives.container import Container
@@ -232,7 +233,7 @@ class BracketShadowLabel(Container):
         self.mainShadowLabel = mainShadowLabel
         self.text = attributes.text
 
-    def SetSideMargins(self, leftMargin = 0, rightMargin = 0):
+    def SetSideMargins(self, leftMargin=0, rightMargin=0):
         self.sideMargins = (leftMargin, rightMargin)
 
     @apply
@@ -290,6 +291,7 @@ class BracketTooltipSidePanel(Container):
     def Close(self, *args):
         Container.Close(self, *args)
         self.textLabels = None
+        return
 
 
 class BracketTooltipRowBase(LayoutGridRow):
@@ -308,21 +310,23 @@ class BracketTooltipRowBase(LayoutGridRow):
         self.bracket = bracket
         if not self.IsBracketStillValid():
             return
-        self.hilite = Fill(bgParent=self, color=(1, 1, 1, 0.0))
-        self.iconParent = Container(align=uiconst.CENTER, pos=(0,
-         0,
-         26,
-         MINENTRYHEIGHT), parent=self)
-        self.iconObj = self.CreateIcon()
-        self.radialMenuSprite = None
-        if self.isCompact:
-            self.mainLabel = attributes.sideContainer.CreateBracketEntry()
-            self.mainLabel.DelegateEvents(self)
         else:
-            self.mainLabel = BracketShadowLabel(text='', align=uiconst.CENTERLEFT, width=TOOLTIPLABELCUTOFF, autoFitToText=True, state=uiconst.UI_DISABLED)
-            self.AddCell(cellObject=self.mainLabel, cellPadding=(2, 2, 6, 2))
-            self.distanceLabel = EveLabelSmall(parent=self, align=uiconst.CENTERRIGHT, left=4)
-        self.dynamicsUpdateTimer = None
+            self.hilite = Fill(bgParent=self, color=(1, 1, 1, 0.0))
+            self.iconParent = Container(align=uiconst.CENTER, pos=(0,
+             0,
+             26,
+             MINENTRYHEIGHT), parent=self)
+            self.iconObj = self.CreateIcon()
+            self.radialMenuSprite = None
+            if self.isCompact:
+                self.mainLabel = attributes.sideContainer.CreateBracketEntry()
+                self.mainLabel.DelegateEvents(self)
+            else:
+                self.mainLabel = BracketShadowLabel(text='', align=uiconst.CENTERLEFT, width=TOOLTIPLABELCUTOFF, autoFitToText=True, state=uiconst.UI_DISABLED)
+                self.AddCell(cellObject=self.mainLabel, cellPadding=(2, 2, 6, 2))
+                self.distanceLabel = EveLabelSmall(parent=self, align=uiconst.CENTERRIGHT, left=4)
+            self.dynamicsUpdateTimer = None
+            return
 
     def UpdateDynamicValues(self):
         pass
@@ -342,13 +346,14 @@ class BracketTooltipRowBase(LayoutGridRow):
         self.bracket = None
         self.mainLabel = None
         self.dynamicsUpdateTimer = None
+        return
 
-    def ShowRadialMenuIndicator(self, slimItem = None, *args):
+    def ShowRadialMenuIndicator(self, slimItem=None, *args):
         if not self.radialMenuSprite:
             self.radialMenuSprite = Sprite(name='radialMenuSprite', parent=self.iconParent, texturePath='res:/UI/Texture/classes/RadialMenu/bracketHilite.png', pos=(0, 0, 20, 20), color=(0.5, 0.5, 0.5, 0.5), align=uiconst.CENTER, state=uiconst.UI_DISABLED)
         self.radialMenuSprite.display = True
 
-    def HideRadialMenuIndicator(self, slimItem = None, *args):
+    def HideRadialMenuIndicator(self, slimItem=None, *args):
         if self.radialMenuSprite:
             self.radialMenuSprite.display = False
 
@@ -356,14 +361,16 @@ class BracketTooltipRowBase(LayoutGridRow):
         bracket = self.bracket
         if bracket and not bracket.destroyed:
             return bracket
-        if self.destroyed:
+        elif self.destroyed:
             return
-        self.state = uiconst.UI_DISABLED
-        self.opacity = 0.2
-        self.bracket = None
-        if self.isCompact and not self.mainLabel.destroyed:
-            self.mainLabel.state = uiconst.UI_DISABLED
-            self.mainLabel.opacity = 0.2
+        else:
+            self.state = uiconst.UI_DISABLED
+            self.opacity = 0.2
+            self.bracket = None
+            if self.isCompact and not self.mainLabel.destroyed:
+                self.mainLabel.state = uiconst.UI_DISABLED
+                self.mainLabel.opacity = 0.2
+            return
 
     def SetHilited(self, hiliteState):
         bracket = self.GetBracket()
@@ -408,7 +415,7 @@ class BracketTooltipRowBase(LayoutGridRow):
         if bracket:
             bracket.OnMouseExit()
 
-    def AlignContent(self, align = uiconst.TOLEFT):
+    def AlignContent(self, align=uiconst.TOLEFT):
         if not self.isCompact:
             return
         if align == uiconst.TOLEFT:
@@ -437,6 +444,7 @@ class BracketTooltipRow(BracketTooltipRowBase):
             self.SetSelected(selected)
             self.SetHilited(hilited)
         self.StartDynamicUpdates()
+        return
 
     def CreateIcon(self):
         self.iconObj = SpaceObjectIcon(state=uiconst.UI_DISABLED, pos=(0, 0, 16, 16), align=uiconst.CENTER, parent=self.iconParent)
@@ -451,17 +459,19 @@ class BracketTooltipRow(BracketTooltipRowBase):
     def UpdateIcon(self):
         if not self.bracket or self.bracket.destroyed:
             return
-        ball = self.bracket.ball
-        slimItem = self.bracket.slimItem
-        if slimItem:
-            self.iconObj.UpdateSpaceObjectIcon(slimItem, ball)
-            self.iconObj.UpdateSpaceObjectIconColor(slimItem, ball)
-            self.iconObj.UpdateSpaceObjectState(slimItem, ball)
-            self.iconObj.UpdateSpaceObjectFlagAndBackgroundColor(slimItem, ball)
         else:
-            iconNo = getattr(self.bracket, 'iconNo', None)
-            if iconNo:
-                self.iconObj.iconSprite.LoadIcon(iconNo)
+            ball = self.bracket.ball
+            slimItem = self.bracket.slimItem
+            if slimItem:
+                self.iconObj.UpdateSpaceObjectIcon(slimItem, ball)
+                self.iconObj.UpdateSpaceObjectIconColor(slimItem, ball)
+                self.iconObj.UpdateSpaceObjectState(slimItem, ball)
+                self.iconObj.UpdateSpaceObjectFlagAndBackgroundColor(slimItem, ball)
+            else:
+                iconNo = getattr(self.bracket, 'iconNo', None)
+                if iconNo:
+                    self.iconObj.iconSprite.LoadIcon(iconNo)
+            return
 
     def SetSelected(self, selectedState):
         if selectedState:
@@ -474,58 +484,60 @@ class BracketTooltipRow(BracketTooltipRowBase):
     def UpdateDynamicValues(self):
         if self.destroyed:
             return
-        bracket = self.GetBracket()
-        if not bracket or bracket.destroyed:
-            self.dynamicsUpdateTimer = None
-            return
-        distance = None
-        if getattr(bracket, 'showDistance', 1):
-            distance = bracket.GetDistance()
-            if distance:
-                if not self.isCompact:
-                    self.distanceLabel.text = FmtDist(distance)
-        rightAligned = self.mainLabel.align != uiconst.CENTERLEFT
-        fleetBroadcastType = getattr(bracket, 'fleetBroadcastType', None)
-        if fleetBroadcastType:
-            if fleetBroadcastType != self.fleetBroadcastType:
-                self.fleetBroadcastType = fleetBroadcastType
-                icon = fleetbr.types[fleetBroadcastType]['smallIcon']
-                if not self.fleetBroadcastSprite:
-                    self.fleetBroadcastSprite = Sprite(parent=self.mainLabel, pos=(0, 0, 16, 16), state=uiconst.UI_NORMAL, align=uiconst.CENTERLEFT, idx=0)
-                    self.fleetBroadcastSprite.DelegateEvents(self)
-                self.fleetBroadcastSprite.LoadIcon(icon)
+        else:
+            bracket = self.GetBracket()
+            if not bracket or bracket.destroyed:
+                self.dynamicsUpdateTimer = None
+                return
+            distance = None
+            if getattr(bracket, 'showDistance', 1):
+                distance = bracket.GetDistance()
+                if distance:
+                    if not self.isCompact:
+                        self.distanceLabel.text = FmtDist(distance)
+            rightAligned = self.mainLabel.align != uiconst.CENTERLEFT
+            fleetBroadcastType = getattr(bracket, 'fleetBroadcastType', None)
+            if fleetBroadcastType:
+                if fleetBroadcastType != self.fleetBroadcastType:
+                    self.fleetBroadcastType = fleetBroadcastType
+                    icon = fleetbr.types[fleetBroadcastType]['smallIcon']
+                    if not self.fleetBroadcastSprite:
+                        self.fleetBroadcastSprite = Sprite(parent=self.mainLabel, pos=(0, 0, 16, 16), state=uiconst.UI_NORMAL, align=uiconst.CENTERLEFT, idx=0)
+                        self.fleetBroadcastSprite.DelegateEvents(self)
+                    self.fleetBroadcastSprite.LoadIcon(icon)
+                if rightAligned:
+                    self.mainLabel.SetSideMargins(0, 18)
+                    self.fleetBroadcastSprite.align = uiconst.CENTERRIGHT
+                else:
+                    self.mainLabel.SetSideMargins(18, 0)
+            elif self.fleetBroadcastSprite:
+                self.fleetBroadcastSprite.Close()
+                self.fleetBroadcastSprite = None
+                self.fleetBroadcastType = None
+                self.mainLabel.SetSideMargins()
+            tagAndTargetStr = getattr(bracket, 'tagAndTargetStr', None)
+            subinfoString = None
+            if hasattr(bracket, 'GetSubLabelCallback'):
+                subinfoCallback = bracket.GetSubLabelCallback()
+                if subinfoCallback:
+                    subinfoString = subinfoCallback()
+            combinedString = ''
             if rightAligned:
-                self.mainLabel.SetSideMargins(0, 18)
-                self.fleetBroadcastSprite.align = uiconst.CENTERRIGHT
-            else:
-                self.mainLabel.SetSideMargins(18, 0)
-        elif self.fleetBroadcastSprite:
-            self.fleetBroadcastSprite.Close()
-            self.fleetBroadcastSprite = None
-            self.fleetBroadcastType = None
-            self.mainLabel.SetSideMargins()
-        tagAndTargetStr = getattr(bracket, 'tagAndTargetStr', None)
-        subinfoString = None
-        if hasattr(bracket, 'GetSubLabelCallback'):
-            subinfoCallback = bracket.GetSubLabelCallback()
-            if subinfoCallback:
-                subinfoString = subinfoCallback()
-        combinedString = ''
-        if rightAligned:
-            combinedString = '<right>'
-        combinedString += bracket.displayName
-        if self.isCompact and distance:
-            combinedString += ' ' + FmtDist(distance)
-        if subinfoString or tagAndTargetStr:
-            combinedString += '<br>'
-            if tagAndTargetStr:
-                combinedString += '<b>' + tagAndTargetStr + '</b>'
-            if subinfoString:
+                combinedString = '<right>'
+            combinedString += bracket.displayName
+            if self.isCompact and distance:
+                combinedString += ' ' + FmtDist(distance)
+            if subinfoString or tagAndTargetStr:
+                combinedString += '<br>'
                 if tagAndTargetStr:
-                    combinedString += '  '
-                combinedString += '[' + subinfoString + ']'
-        self.mainLabel.text = combinedString
-        self.iconParent.height = max(MINENTRYHEIGHT, self.mainLabel.height)
+                    combinedString += '<b>' + tagAndTargetStr + '</b>'
+                if subinfoString:
+                    if tagAndTargetStr:
+                        combinedString += '  '
+                    combinedString += '[' + subinfoString + ']'
+            self.mainLabel.text = combinedString
+            self.iconParent.height = max(MINENTRYHEIGHT, self.mainLabel.height)
+            return
 
 
 class SensorOverlaySiteTooltipRow(BracketTooltipRowBase):
@@ -543,7 +555,7 @@ class SensorOverlaySiteTooltipRow(BracketTooltipRowBase):
     def IsBracketStillValid(self):
         return True
 
-    def AlignContent(self, align = uiconst.TOLEFT):
+    def AlignContent(self, align=uiconst.TOLEFT):
         if not self.isCompact:
             return
         if align == uiconst.TOLEFT:
@@ -556,25 +568,27 @@ class SensorOverlaySiteTooltipRow(BracketTooltipRowBase):
     def UpdateDynamicValues(self):
         if self.destroyed:
             return
-        bracket = self.GetBracket()
-        if not bracket or bracket.destroyed:
-            self.dynamicsUpdateTimer = None
+        else:
+            bracket = self.GetBracket()
+            if not bracket or bracket.destroyed:
+                self.dynamicsUpdateTimer = None
+                return
+            distance = None
+            if getattr(bracket, 'showDistance', 1):
+                distance = bracket.GetDistance()
+                if distance:
+                    if not self.isCompact:
+                        self.distanceLabel.text = FmtDist(distance)
+            rightAligned = self.mainLabel.align != uiconst.CENTERLEFT
+            combinedString = ''
+            if rightAligned:
+                combinedString = '<right>'
+            combinedString += self.GetDisplayName()
+            if self.isCompact and distance:
+                combinedString += ' ' + FmtDist(distance)
+            self.mainLabel.text = combinedString
+            self.iconParent.height = max(MINENTRYHEIGHT, self.mainLabel.height)
             return
-        distance = None
-        if getattr(bracket, 'showDistance', 1):
-            distance = bracket.GetDistance()
-            if distance:
-                if not self.isCompact:
-                    self.distanceLabel.text = FmtDist(distance)
-        rightAligned = self.mainLabel.align != uiconst.CENTERLEFT
-        combinedString = ''
-        if rightAligned:
-            combinedString = '<right>'
-        combinedString += self.GetDisplayName()
-        if self.isCompact and distance:
-            combinedString += ' ' + FmtDist(distance)
-        self.mainLabel.text = combinedString
-        self.iconParent.height = max(MINENTRYHEIGHT, self.mainLabel.height)
 
     def GetMenu(self, *args):
         bracket = self.GetBracket()
@@ -590,6 +604,7 @@ class SensorOverlaySiteTooltipRow(BracketTooltipRowBase):
         bracket = self.GetBracket()
         if bracket:
             sm.GetService('menu').TryExpandActionMenu(None, self, siteData=bracket.data)
+        return
 
     def GetDisplayName(self):
         return self.displayName

@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\packages\requests\packages\chardet\latin1prober.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\packages\requests\packages\chardet\latin1prober.py
 from .charsetprober import CharSetProber
 from .constants import eNotMe
 from .compat import wrap_ord
@@ -282,7 +283,7 @@ class Latin1Prober(CharSetProber):
         CharSetProber.reset(self)
 
     def get_charset_name(self):
-        return 'windows-1252'
+        pass
 
     def feed(self, aBuf):
         aBuf = self.filter_with_english_letters(aBuf)

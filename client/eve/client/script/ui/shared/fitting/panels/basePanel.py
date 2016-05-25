@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\client\script\ui\shared\fitting\panels\basePanel.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\client\script\ui\shared\fitting\panels\basePanel.py
 from carbonui import const as uiconst, const
 from carbonui.primitives.container import Container
 from carbonui.primitives.layoutGrid import LayoutGrid
@@ -38,7 +39,7 @@ class BaseMenuPanel(Container):
     def SetShipID(self, shipID):
         self.shipID = shipID
 
-    def FinalizePanelLoading(self, initialLoad = False):
+    def FinalizePanelLoading(self, initialLoad=False):
         if not initialLoad:
             sm.ScatterEvent('OnFittingUpdateStatsNeeded')
         self.panelLoaded = True
@@ -54,7 +55,7 @@ class BaseMenuPanel(Container):
     def GetHeaderLabel(self, parent):
         return EveLabelMedium(text='', parent=parent, left=8, top=1, aidx=0, state=uiconst.UI_NORMAL, align=uiconst.CENTERRIGHT)
 
-    def SetStatusText(self, text, hintText = None):
+    def SetStatusText(self, text, hintText=None):
         self.statusText.text = text
         if hintText:
             self.statusText.hint = hintText
@@ -63,11 +64,13 @@ class BaseMenuPanel(Container):
         label = self.statsLabelsByIdentifier.get(identifier, None)
         if label:
             label.text = text
+        return
 
     def LoadIcon(self, identifier, iconID):
         icon = self.statsIconsByIdentifier.get(identifier, None)
         if icon:
             icon.LoadIcon(iconID, ignoreSize=True)
+        return
 
     def GetValueCont(self, iconSize):
         attributeCont = LayoutGrid(columns=3, state=uiconst.UI_NORMAL, align=uiconst.CENTERLEFT, padTop=1)
@@ -77,7 +80,7 @@ class BaseMenuPanel(Container):
         attributeCont.AddCell(cellObject=Container(name='heightSpacer', align=uiconst.TOTOP, height=26))
         return attributeCont
 
-    def GetValueParentGrid(self, columns = 2):
+    def GetValueParentGrid(self, columns=2):
         self.state = uiconst.UI_PICKCHILDREN
         l, t, w, h = self.GetAbsolute()
         step = w / columns

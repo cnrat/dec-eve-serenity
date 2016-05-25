@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\client\script\ui\login\charcreation\assetRenderer.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\client\script\ui\login\charcreation\assetRenderer.py
 from eve.client.script.ui.control.buttons import Button
 from eve.client.script.ui.control.checkbox import Checkbox
 from carbonui.control.layer import LayerCore
@@ -41,7 +42,7 @@ class AssetRenderer(object):
     __guid__ = 'cc.AssetRenderer'
     __exportedcalls__ = {}
 
-    def __init__(self, showUI = True):
+    def __init__(self, showUI=True):
         trinity.SetFpsEnabled(False)
         if uicore.layer.charactercreation.isopen:
             uicore.layer.charactercreation.TearDown()
@@ -61,7 +62,7 @@ class AssetRenderer(object):
         self.factory.compressTextures = False
         self.SetupUI(showUI=showUI)
 
-    def SetupUI(self, showUI = True):
+    def SetupUI(self, showUI=True):
         uicore.layer.main.Flush()
         col1 = Container(parent=uicore.layer.main, align=uiconst.TOLEFT, width=160, padLeft=20, padTop=10)
         self.femaleCB = self.AddCheckbox('female', col1)
@@ -128,7 +129,7 @@ class AssetRenderer(object):
              b2]:
                 each.display = False
 
-    def AddCheckbox(self, cbName, parent, groupname = None):
+    def AddCheckbox(self, cbName, parent, groupname=None):
         setting = Bunch(settings.user.ui.Get('assetRenderState', {}))
         cb = Checkbox(parent=parent, text=cbName, checked=bool(setting.Get(cbName, None)), callback=self.CBChange, groupname=groupname)
         cb.name = cbName
@@ -158,7 +159,7 @@ class AssetRenderer(object):
     def RenderLoopAll(self, *args):
         self.RenderLoop(tryout=False)
 
-    def RenderLoop(self, tryout = False, fromWebtools = False):
+    def RenderLoop(self, tryout=False, fromWebtools=False):
         try:
             self._RenderLoop(tryout=tryout, fromWebtools=fromWebtools)
         finally:
@@ -169,7 +170,7 @@ class AssetRenderer(object):
             print 'in finally'
             prefs.NoRandomize = self.oldNonRandomize
 
-    def _RenderLoop(self, tryout = False, fromWebtools = False):
+    def _RenderLoop(self, tryout=False, fromWebtools=False):
         self.FindWhatToRender()
         self.characterSvc.characters = {}
         self.characterSvc.TearDown()
@@ -195,6 +196,7 @@ class AssetRenderer(object):
         blue.pyos.synchro.SleepWallclock(2000)
         self.DoLightsAndPoses(camera, scene)
         self.DoAssets(camera, scene, tryout)
+        return
 
     def SetupRenderJob(self):
         for each in trinity.renderJobs.recurring:
@@ -236,6 +238,8 @@ class AssetRenderer(object):
 
             if tryout:
                 break
+
+        return
 
     def PosesAndLightThumbnails(self, bloodlineID, altCategory, camera, genderID, scene):
         self.characterSvc.RemoveCharacter(self.charID)
@@ -336,15 +340,16 @@ class AssetRenderer(object):
                 self.DoRenderMannequinAssetType(avatar, eachSet, genderID, mannequin, scene, 'set')
 
             return avatar
-        for category in self.assetCategoriesToRender:
-            self.LoadMannequinAndCamera(mannequin, genderID, category, camera, scene)
-            typeData = self.characterSvc.GetAvailableTypesByCategory(category, genderID, -1)
-            for itemType in typeData:
-                wasRendered = self.RenderMannequinAssetType(avatar, genderID, mannequin, scene, itemType, category)
-                if wasRendered and tryout:
-                    break
+        else:
+            for category in self.assetCategoriesToRender:
+                self.LoadMannequinAndCamera(mannequin, genderID, category, camera, scene)
+                typeData = self.characterSvc.GetAvailableTypesByCategory(category, genderID, -1)
+                for itemType in typeData:
+                    wasRendered = self.RenderMannequinAssetType(avatar, genderID, mannequin, scene, itemType, category)
+                    if wasRendered and tryout:
+                        break
 
-        return avatar
+            return avatar
 
     def LoadMannequinAndCamera(self, mannequin, genderID, category, camera, scene):
         doll = mannequin.doll
@@ -366,10 +371,11 @@ class AssetRenderer(object):
         typeID = itemType[2]
         if typeID in (None, -1):
             return False
-        typeIDs = self.GetTypeIDsFromField()
-        if typeIDs and typeID not in typeIDs:
-            return False
-        return self.DoRenderMannequinAssetType(avatar, [typeID], genderID, mannequin, scene, category)
+        else:
+            typeIDs = self.GetTypeIDsFromField()
+            if typeIDs and typeID not in typeIDs:
+                return False
+            return self.DoRenderMannequinAssetType(avatar, [typeID], genderID, mannequin, scene, category)
 
     def DoRenderMannequinAssetType(self, avatar, typeIDs, genderID, mannequin, scene, category):
         if category == ccConst.bottommiddle:
@@ -462,28 +468,29 @@ class AssetRenderer(object):
         modifer = self.characterSvc.ApplyTypeToDoll(self.charID, itemType)
         if not modifer:
             return False
-        typeInfo = itemType[1]
-        if typeInfo[0].startswith('scars'):
-            self.SetCameraForScar(typeInfo, character, camera, scene)
-        if typeInfo[0].startswith(PIERCINGCATEGORIES):
-            self.SetCameraAndLightPiercings(category, typeInfo, character, camera, scene)
-        self.ApplyTuckingIfNeeded(category)
-        self.TrySetColor(bloodlineID, category, genderID, typeInfo)
-        if (category, genderID) in EXAGGERATE:
-            if getattr(modifer, 'weight', None) is not None:
-                modifer.weight = 1.5 * modifer.weight
-        self.characterSvc.UpdateDoll(self.charID, fromWhere='RenderLoop')
-        self.SetShadow(character.avatar, scene)
-        blue.pyos.synchro.SleepWallclock(500)
-        self.WaitForDoll(doll)
-        blue.resMan.Wait()
-        trinity.WaitForResourceLoads()
-        path = '_'.join(list(itemType[1]))
-        outputPath = self.GetOutputPath(assetPath=path, genderID=genderID, category=category, bloodlineID=bloodlineID, typeID=typeID)
-        renderRGB = self.rgbCB.GetValue()
-        self.SaveScreenShot(outputPath, rgb=renderRGB)
-        doll.RemoveResource(modifer.GetResPath(), self.factory)
-        return True
+        else:
+            typeInfo = itemType[1]
+            if typeInfo[0].startswith('scars'):
+                self.SetCameraForScar(typeInfo, character, camera, scene)
+            if typeInfo[0].startswith(PIERCINGCATEGORIES):
+                self.SetCameraAndLightPiercings(category, typeInfo, character, camera, scene)
+            self.ApplyTuckingIfNeeded(category)
+            self.TrySetColor(bloodlineID, category, genderID, typeInfo)
+            if (category, genderID) in EXAGGERATE:
+                if getattr(modifer, 'weight', None) is not None:
+                    modifer.weight = 1.5 * modifer.weight
+            self.characterSvc.UpdateDoll(self.charID, fromWhere='RenderLoop')
+            self.SetShadow(character.avatar, scene)
+            blue.pyos.synchro.SleepWallclock(500)
+            self.WaitForDoll(doll)
+            blue.resMan.Wait()
+            trinity.WaitForResourceLoads()
+            path = '_'.join(list(itemType[1]))
+            outputPath = self.GetOutputPath(assetPath=path, genderID=genderID, category=category, bloodlineID=bloodlineID, typeID=typeID)
+            renderRGB = self.rgbCB.GetValue()
+            self.SaveScreenShot(outputPath, rgb=renderRGB)
+            doll.RemoveResource(modifer.GetResPath(), self.factory)
+            return True
 
     def ApplyTuckingIfNeeded(self, category):
         if category not in TUCKINDEX:
@@ -499,23 +506,27 @@ class AssetRenderer(object):
         if category in (ccConst.beard, ccConst.hair, ccConst.eyebrows):
             category = ccConst.hair
         try:
-            if typeInfo[1] or typeInfo[2]:
-                return
-            categoryColors = self.characterSvc.GetAvailableColorsForCategory(category, genderID, bloodlineID)
-            if not categoryColors:
-                return
-            primary, secondary = categoryColors
-            primaryVal = (primary[1][0], primary[1][2])
-            if primary and secondary:
-                secondaryVal = (secondary[1][0], secondary[1][2])
-                self.characterSvc.SetColorValueByCategory(self.charID, category, primaryVal, secondaryVal)
-            else:
-                self.characterSvc.SetColorValueByCategory(self.charID, category, primaryVal, None)
-        except:
-            pass
+            try:
+                if typeInfo[1] or typeInfo[2]:
+                    return
+                categoryColors = self.characterSvc.GetAvailableColorsForCategory(category, genderID, bloodlineID)
+                if not categoryColors:
+                    return
+                primary, secondary = categoryColors
+                primaryVal = (primary[1][0], primary[1][2])
+                if primary and secondary:
+                    secondaryVal = (secondary[1][0], secondary[1][2])
+                    self.characterSvc.SetColorValueByCategory(self.charID, category, primaryVal, secondaryVal)
+                else:
+                    self.characterSvc.SetColorValueByCategory(self.charID, category, primaryVal, None)
+            except:
+                pass
+
         finally:
             if category == ccConst.hair:
                 sm.GetService('character').SetHairDarkness(0, 0.5)
+
+        return
 
     def ReformatAssetPath(self, path):
         assetResPath = path.replace('/', '_').replace('.type', '')
@@ -570,6 +581,7 @@ class AssetRenderer(object):
         ss = paperDoll.SkinSpotLightShadows(scene, debugVisualize=False, size=2048)
         ss.SetupSkinnedObject(avatar)
         paperDoll.SkinSpotLightShadows.instance = ss
+        return
 
     def SetCameraAndLightPiercings(self, category, typeInfo, character, camera, scene):
         typeName, a, b = typeInfo
@@ -586,7 +598,9 @@ class AssetRenderer(object):
         if group is None:
             print 'couldnt find the group, return'
             return
-        self.SetUpCamera(camera, group, character, SCARCAMERASETINGS, scene)
+        else:
+            self.SetUpCamera(camera, group, character, SCARCAMERASETINGS, scene)
+            return
 
     def SetCamera(self, camera, poi, distance, yaw, pitch):
         camera.SetPointOfInterest(poi)
@@ -596,7 +610,7 @@ class AssetRenderer(object):
         camera.SetPitch(pitch)
         camera.Update()
 
-    def SetUpCamera(self, camera, category, character, categoryList = SETUP, scene = None, genderID = None):
+    def SetUpCamera(self, camera, category, character, categoryList=SETUP, scene=None, genderID=None):
         if (category, genderID) in categoryList:
             options = categoryList[category, genderID]
         else:
@@ -639,6 +653,7 @@ class AssetRenderer(object):
              poi)
         else:
             return
+            return
 
     def GetHairColor(self, genderID, bloodlineID):
         colorsA, colorsB = sm.GetService('character').GetAvailableColorsForCategory(ccConst.hair, genderID, bloodlineID)
@@ -655,13 +670,14 @@ class AssetRenderer(object):
             color1Value, color1Name, color2Name, variation = sm.GetService('character').GetColorsToUse(colorA, colorB)
         if color1Value:
             return var
-        if colorB:
-            var = variation
-        elif len(colorA) > 0:
-            var = colorA[1]
-        return var
+        else:
+            if colorB:
+                var = variation
+            elif len(colorA) > 0:
+                var = colorA[1]
+            return var
 
-    def GetOutputPath(self, assetPath, genderID, category = None, bloodlineID = -1, typeID = None):
+    def GetOutputPath(self, assetPath, genderID, category=None, bloodlineID=-1, typeID=None):
         assetResPath = self.ReformatAssetPath(assetPath)
         renderRGB = self.rgbCB.GetValue()
         categoryPath = self.ReformatAssetPath(category)
@@ -685,7 +701,7 @@ class AssetRenderer(object):
             outputPath = outputPath + '%s_g%s_b%s.png' % (assetResPath, genderID, bloodlineID)
         return outputPath
 
-    def SaveScreenShot(self, outputPath, rgb = False):
+    def SaveScreenShot(self, outputPath, rgb=False):
         if rgb:
             clearColors = (('R', (1.0, 0.0, 0.0, 0.0)), ('G', (0.0, 1.0, 0.0, 0.0)), ('B', (0.0, 0.0, 1.0, 0.0)))
         else:
@@ -708,3 +724,5 @@ class AssetRenderer(object):
                 bmp.Save(outputPath[:-4] + '_' + channel + outputPath[-4:])
             else:
                 bmp.Save(outputPath)
+
+        return None

@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\carbon\common\stdlib\unittest\test\test_functiontestcase.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\carbon\common\stdlib\unittest\test\test_functiontestcase.py
 import unittest
 from .support import LoggingResult
 
@@ -105,6 +106,7 @@ class Test_FunctionTestCase(unittest.TestCase):
     def test_shortDescription__no_docstring(self):
         test = unittest.FunctionTestCase(lambda : None)
         self.assertEqual(test.shortDescription(), None)
+        return
 
     def test_shortDescription__singleline_docstring(self):
         desc = 'this tests foo'

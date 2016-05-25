@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\packages\eveclientqatools\performancebenchmarkdata.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\packages\eveclientqatools\performancebenchmarkdata.py
 SHIP_DISTANCE_DEFAULT = 1000.0
 SHIP_DISTANCE_RACE_SPECIFIC = 15000.0
 SHIP_DISTANCE_CAPITAL_WRECKS = 7500.0

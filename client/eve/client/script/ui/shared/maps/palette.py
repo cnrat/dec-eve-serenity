@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\client\script\ui\shared\maps\palette.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\client\script\ui\shared\maps\palette.py
 import evetypes
 import uiprimitives
 import uicontrols
@@ -58,86 +59,88 @@ class MapPalette(uicontrols.Window):
         self.loadedTab = None
         if self.destroyed:
             return
-        self.sr.scroll = uicontrols.Scroll(parent=self.sr.main, padding=(const.defaultPadding,
-         const.defaultPadding,
-         const.defaultPadding,
-         const.defaultPadding))
-        self.sr.scroll.sr.id = 'mapspalletescroll_withsort'
-        self.sr.scroll2 = uicontrols.Scroll(parent=self.sr.main, padding=(const.defaultPadding,
-         const.defaultPadding,
-         const.defaultPadding,
-         const.defaultPadding))
-        self.sr.scroll2.sr.id = 'mapspalletescroll_withhoutsort'
-        self.sr.scroll2.OnSelectionChange = self.OnSelectionChange
-        flattened = settings.user.ui.Get('mapFlattened', 1)
-        toggleFlatLabel = localization.GetByLabel('UI/Map/MapPallet/btnFlattenMap')
-        if flattened:
-            toggleFlatLabel = localization.GetByLabel('UI/Map/MapPallet/btnUnflattenMap')
-        if sm.GetService('viewState').IsViewActive('starmap'):
-            toggleMapLabel = localization.GetByLabel('UI/Map/MapPallet/btnSolarsystemMap')
         else:
-            toggleMapLabel = localization.GetByLabel('UI/Map/MapPallet/btnStarMap')
-        btns = ([localization.GetByLabel('UI/Map/MapPallet/btnCloseMap'),
-          sm.GetService('viewState').CloseSecondaryView,
-          (),
-          80], [toggleMapLabel,
-          self.ToggleMapMode,
-          (),
-          130], [toggleFlatLabel,
-          self.ClickToggleFlatten,
-          'self',
-          80])
-        self.sr.flattenBtns = uicontrols.ButtonGroup(btns=btns, parent=self.sr.topParent, align=uiconst.CENTER, line=0, idx=0, fixedWidth=True, unisize=False)
-        searchpar = uiprimitives.Container(name='searchpar', parent=self.sr.main, align=uiconst.TOTOP, pos=(0, 0, 0, 40), idx=0)
-        searchpar.OnTabSelect = self.GiveInputFocus
-        inpt = uicontrols.SinglelineEdit(name='', parent=searchpar, pos=(5, 22, 98, 0), maxLength=64)
-        inpt.OnReturn = self.OnReturnSearch
-        self.sr.searchinput = inpt
-        uicontrols.EveLabelSmall(text=localization.GetByLabel('UI/Map/MapPallet/lblSearchForLocation'), parent=inpt, left=0, top=-14, state=uiconst.UI_DISABLED)
-        uicontrols.Button(parent=inpt.parent, label=localization.GetByLabel('UI/Map/MapPallet/btnSearchForLocation'), func=self.Search, args=1, pos=(inpt.left + inpt.width + 4,
-         inpt.top,
-         0,
-         0), btn_default=1)
-        starviewstabs = uicontrols.TabGroup(name='tabparent', parent=self.sr.main, idx=0)
-        starviewstabs.Startup([[localization.GetByLabel('UI/Map/MapPallet/tabStars'),
-          self.sr.scroll2,
-          self,
-          'starview_color'],
-         [localization.GetByLabel('UI/Map/MapPallet/tabLabels'),
-          self.sr.scroll2,
-          self,
-          'mapsettings_labels'],
-         [localization.GetByLabel('UI/Map/MapPallet/tabMapLines'),
-          self.sr.scroll2,
-          self,
-          'mapsettings_lines'],
-         [localization.GetByLabel('UI/Map/MapPallet/tabTiles'),
-          self.sr.scroll2,
-          self,
-          'mapsettings_tiles'],
-         [localization.GetByLabel('UI/Map/MapPallet/tabLegend'),
-          self.sr.scroll2,
-          self,
-          'mapsettings_legend'],
-         [localization.GetByLabel('UI/Map/MapPallet/tabMapAnimation'),
-          self.sr.scroll2,
-          self,
-          'mapsettings_other']], 'starviewssub', autoselecttab=0)
-        self.sr.starviewstabs = starviewstabs
-        self.sr.maintabs = uicontrols.TabGroup(name='tabparent', parent=self.sr.main, idx=0)
-        self.sr.maintabs.Startup([[localization.GetByLabel('UI/Map/MapPallet/tabSearch'),
-          self.sr.scroll,
-          self,
-          'mapsearchpanel',
-          searchpar], [localization.GetByLabel('UI/Map/MapPallet/tabStarMap'),
-          self.sr.scroll2,
-          self,
-          'mapsettings',
-          starviewstabs], [localization.GetByLabel('UI/Map/MapPallet/tabSolarSystemMap'),
-          self.sr.scroll2,
-          self,
-          'mapsettings_solarsystem',
-          None]], 'mapspalette', autoselecttab=1)
+            self.sr.scroll = uicontrols.Scroll(parent=self.sr.main, padding=(const.defaultPadding,
+             const.defaultPadding,
+             const.defaultPadding,
+             const.defaultPadding))
+            self.sr.scroll.sr.id = 'mapspalletescroll_withsort'
+            self.sr.scroll2 = uicontrols.Scroll(parent=self.sr.main, padding=(const.defaultPadding,
+             const.defaultPadding,
+             const.defaultPadding,
+             const.defaultPadding))
+            self.sr.scroll2.sr.id = 'mapspalletescroll_withhoutsort'
+            self.sr.scroll2.OnSelectionChange = self.OnSelectionChange
+            flattened = settings.user.ui.Get('mapFlattened', 1)
+            toggleFlatLabel = localization.GetByLabel('UI/Map/MapPallet/btnFlattenMap')
+            if flattened:
+                toggleFlatLabel = localization.GetByLabel('UI/Map/MapPallet/btnUnflattenMap')
+            if sm.GetService('viewState').IsViewActive('starmap'):
+                toggleMapLabel = localization.GetByLabel('UI/Map/MapPallet/btnSolarsystemMap')
+            else:
+                toggleMapLabel = localization.GetByLabel('UI/Map/MapPallet/btnStarMap')
+            btns = ([localization.GetByLabel('UI/Map/MapPallet/btnCloseMap'),
+              sm.GetService('viewState').CloseSecondaryView,
+              (),
+              80], [toggleMapLabel,
+              self.ToggleMapMode,
+              (),
+              130], [toggleFlatLabel,
+              self.ClickToggleFlatten,
+              'self',
+              80])
+            self.sr.flattenBtns = uicontrols.ButtonGroup(btns=btns, parent=self.sr.topParent, align=uiconst.CENTER, line=0, idx=0, fixedWidth=True, unisize=False)
+            searchpar = uiprimitives.Container(name='searchpar', parent=self.sr.main, align=uiconst.TOTOP, pos=(0, 0, 0, 40), idx=0)
+            searchpar.OnTabSelect = self.GiveInputFocus
+            inpt = uicontrols.SinglelineEdit(name='', parent=searchpar, pos=(5, 22, 98, 0), maxLength=64)
+            inpt.OnReturn = self.OnReturnSearch
+            self.sr.searchinput = inpt
+            uicontrols.EveLabelSmall(text=localization.GetByLabel('UI/Map/MapPallet/lblSearchForLocation'), parent=inpt, left=0, top=-14, state=uiconst.UI_DISABLED)
+            uicontrols.Button(parent=inpt.parent, label=localization.GetByLabel('UI/Map/MapPallet/btnSearchForLocation'), func=self.Search, args=1, pos=(inpt.left + inpt.width + 4,
+             inpt.top,
+             0,
+             0), btn_default=1)
+            starviewstabs = uicontrols.TabGroup(name='tabparent', parent=self.sr.main, idx=0)
+            starviewstabs.Startup([[localization.GetByLabel('UI/Map/MapPallet/tabStars'),
+              self.sr.scroll2,
+              self,
+              'starview_color'],
+             [localization.GetByLabel('UI/Map/MapPallet/tabLabels'),
+              self.sr.scroll2,
+              self,
+              'mapsettings_labels'],
+             [localization.GetByLabel('UI/Map/MapPallet/tabMapLines'),
+              self.sr.scroll2,
+              self,
+              'mapsettings_lines'],
+             [localization.GetByLabel('UI/Map/MapPallet/tabTiles'),
+              self.sr.scroll2,
+              self,
+              'mapsettings_tiles'],
+             [localization.GetByLabel('UI/Map/MapPallet/tabLegend'),
+              self.sr.scroll2,
+              self,
+              'mapsettings_legend'],
+             [localization.GetByLabel('UI/Map/MapPallet/tabMapAnimation'),
+              self.sr.scroll2,
+              self,
+              'mapsettings_other']], 'starviewssub', autoselecttab=0)
+            self.sr.starviewstabs = starviewstabs
+            self.sr.maintabs = uicontrols.TabGroup(name='tabparent', parent=self.sr.main, idx=0)
+            self.sr.maintabs.Startup([[localization.GetByLabel('UI/Map/MapPallet/tabSearch'),
+              self.sr.scroll,
+              self,
+              'mapsearchpanel',
+              searchpar], [localization.GetByLabel('UI/Map/MapPallet/tabStarMap'),
+              self.sr.scroll2,
+              self,
+              'mapsettings',
+              starviewstabs], [localization.GetByLabel('UI/Map/MapPallet/tabSolarSystemMap'),
+              self.sr.scroll2,
+              self,
+              'mapsettings_solarsystem',
+              None]], 'mapspalette', autoselecttab=1)
+            return
 
     def GiveInputFocus(self, *args):
         uicore.registry.SetFocus(self.sr.searchinput)
@@ -200,27 +203,29 @@ class MapPalette(uicontrols.Window):
     def Search_thread(self, errorifnothing):
         if not self or self.destroyed:
             return
-        self.searchresult = None
-        search = self.sr.searchinput.GetValue().strip()
-        if len(search) < 1:
-            if errorifnothing:
-                raise UserError('Min3Chars')
-                return
-        elif len(search) < 3 and not localization.util.IsSearchTextIdeographic(localization.util.GetLanguageID(), search):
-            raise UserError('Min3Chars')
         else:
-            self.SetHint()
-            if self is not None and not self.destroyed:
-                self.ShowLoad()
+            self.searchresult = None
+            search = self.sr.searchinput.GetValue().strip()
+            if len(search) < 1:
+                if errorifnothing:
+                    raise UserError('Min3Chars')
+                    return
+            elif len(search) < 3 and not localization.util.IsSearchTextIdeographic(localization.util.GetLanguageID(), search):
+                raise UserError('Min3Chars')
             else:
+                self.SetHint()
+                if self is not None and not self.destroyed:
+                    self.ShowLoad()
+                else:
+                    return
+                self.searchresult = sm.GetService('map').FindByName(search)
+            if self is None or self.destroyed:
                 return
-            self.searchresult = sm.GetService('map').FindByName(search)
-        if self is None or self.destroyed:
+            self.ShowSearchResult()
+            if self == None:
+                return
+            self.HideLoad()
             return
-        self.ShowSearchResult()
-        if self == None:
-            return
-        self.HideLoad()
 
     def ShowSearchResult(self, *args):
         self.listtype = 'location'
@@ -253,10 +258,12 @@ class MapPalette(uicontrols.Window):
 
         if self is None or self.destroyed:
             return
-        headers = [localization.GetByLabel('UI/Map/MapPallet/hdrSearchName'), localization.GetByLabel('UI/Map/MapPallet/hdrSearchType')]
-        self.sr.scroll.Load(contentList=scrolllist, headers=headers)
-        if not len(scrolllist):
-            self.SetHint(localization.GetByLabel('UI/Map/MapPallet/lblSearchNothingFound'))
+        else:
+            headers = [localization.GetByLabel('UI/Map/MapPallet/hdrSearchName'), localization.GetByLabel('UI/Map/MapPallet/hdrSearchType')]
+            self.sr.scroll.Load(contentList=scrolllist, headers=headers)
+            if not len(scrolllist):
+                self.SetHint(localization.GetByLabel('UI/Map/MapPallet/lblSearchNothingFound'))
+            return
 
     def Confirm(self, *args):
         pass
@@ -398,7 +405,9 @@ class MapPalette(uicontrols.Window):
 
         if self.destroyed:
             return
-        self.sr.scroll2.Load(contentList=scrolllist)
+        else:
+            self.sr.scroll2.Load(contentList=scrolllist)
+            return
 
     def GetActiveStarColorMode(self):
         starscolorby = settings.user.ui.Get('starscolorby', mapcommon.STARMODE_SECURITY)
@@ -437,17 +446,18 @@ class MapPalette(uicontrols.Window):
         if not func:
             log.LogError('Missing function to provide options for', forGroup)
             return []
-        scrolllist = []
-        sublevel = 2 if forGroup.find('_') > 0 else 0
-        for label, flag in func():
-            config = ['starscolorby',
-             flag,
-             label,
-             starscolorby == flag]
-            entry = self.AddCheckBox(config, None, 'starscolorby', sublevel=sublevel)
-            scrolllist.append(entry)
+        else:
+            scrolllist = []
+            sublevel = 2 if forGroup.find('_') > 0 else 0
+            for label, flag in func():
+                config = ['starscolorby',
+                 flag,
+                 label,
+                 starscolorby == flag]
+                entry = self.AddCheckBox(config, None, 'starscolorby', sublevel=sublevel)
+                scrolllist.append(entry)
 
-        return scrolllist
+            return scrolllist
 
     def GetAllStarColorGroupLabels(self):
         self.GetStarColorGroupsSorted()
@@ -534,7 +544,7 @@ class MapPalette(uicontrols.Window):
 
         return scrolllist
 
-    def GetSubContent(self, data, newitems = 0):
+    def GetSubContent(self, data, newitems=0):
         if data.groupItems:
             return self.GetStarColorSubGroups(data.groupItems)
         for entry in self.sr.scroll.GetNodes():
@@ -599,12 +609,12 @@ class MapPalette(uicontrols.Window):
 
         return scrolllist
 
-    def SetHint(self, hintstr = None):
+    def SetHint(self, hintstr=None):
         if self.sr.scroll:
             self.sr.scroll.ShowHint(hintstr)
             self.sr.scroll2.ShowHint(hintstr)
 
-    def AddCheckBox(self, config, scrolllist, group = None, usecharsettings = 0, sublevel = 0):
+    def AddCheckBox(self, config, scrolllist, group=None, usecharsettings=0, sublevel=0):
         cfgname, retval, desc, default = config
         data = util.KeyVal()
         data.label = desc
@@ -619,6 +629,7 @@ class MapPalette(uicontrols.Window):
             scrolllist.append(listentry.Get('Checkbox', data=data))
         else:
             return listentry.Get('Checkbox', data=data)
+        return
 
     def CheckBoxChange(self, checkbox):
         starmapSvc = sm.GetService('starmap')
@@ -653,11 +664,12 @@ class MapPalette(uicontrols.Window):
                 starmapSvc.CheckAllLabels('Mappalette::CheckBoxChange2')
             elif key.startswith('map_tile_'):
                 starmapSvc.UpdateHexMap()
+        return
 
     def AddSeperator(self, height, where):
         uiprimitives.Container(name='push', align=uiconst.TOTOP, height=height, parent=where)
 
-    def AddHeader(self, header, where, height = 12):
+    def AddHeader(self, header, where, height=12):
         uicontrols.EveLabelMedium(text=header, parent=where, align=uiconst.TOTOP, height=12, state=uiconst.UI_NORMAL)
 
     def OnSelectionChange(self, selected):
@@ -672,6 +684,7 @@ class MapPalette(uicontrols.Window):
 
         if sm.GetService('viewState').IsViewActive('starmap'):
             sm.GetService('starmap').HighlightTiles(dataList, colorList)
+        return
 
     def Minimize(self, *args, **kwds):
         if self.windowID == 'mapspalette':

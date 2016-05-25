@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\carbon\common\lib\cherrypy\lib\reprconf.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\carbon\common\lib\cherrypy\lib\reprconf.py
 try:
     from configparser import ConfigParser
 except ImportError:
@@ -35,15 +36,17 @@ class NamespaceSet(dict):
                 callable = handler.__enter__()
                 no_exc = True
                 try:
-                    for k, v in ns_confs.get(ns, {}).items():
-                        callable(k, v)
+                    try:
+                        for k, v in ns_confs.get(ns, {}).items():
+                            callable(k, v)
 
-                except:
-                    no_exc = False
-                    if exit is None:
-                        raise
-                    if not exit(*sys.exc_info()):
-                        raise
+                    except:
+                        no_exc = False
+                        if exit is None:
+                            raise
+                        if not exit(*sys.exc_info()):
+                            raise
+
                 finally:
                     if no_exc and exit:
                         exit(None, None, None)
@@ -51,6 +54,8 @@ class NamespaceSet(dict):
             else:
                 for k, v in ns_confs.get(ns, {}).items():
                     handler(k, v)
+
+        return
 
     def __repr__(self):
         return '%s.%s(%s)' % (self.__module__, self.__class__.__name__, dict.__repr__(self))
@@ -68,12 +73,13 @@ class Config(dict):
     environments = {}
     namespaces = NamespaceSet()
 
-    def __init__(self, file = None, **kwargs):
+    def __init__(self, file=None, **kwargs):
         self.reset()
         if file is not None:
             self.update(file)
         if kwargs:
             self.update(kwargs)
+        return
 
     def reset(self):
         self.clear()
@@ -119,7 +125,7 @@ class Parser(ConfigParser):
             finally:
                 fp.close()
 
-    def as_dict(self, raw = False, vars = None):
+    def as_dict(self, raw=False, vars=None):
         result = {}
         for section in self.sections():
             if section not in result:
@@ -187,22 +193,24 @@ class _Builder:
         name = o.name
         if name == 'None':
             return
-        if name == 'True':
+        elif name == 'True':
             return True
-        if name == 'False':
+        elif name == 'False':
             return False
-        try:
-            return modules(name)
-        except ImportError:
-            pass
+        else:
+            try:
+                return modules(name)
+            except ImportError:
+                pass
 
-        try:
-            import __builtin__
-            return getattr(__builtin__, name)
-        except AttributeError:
-            pass
+            try:
+                import __builtin__
+                return getattr(__builtin__, name)
+            except AttributeError:
+                pass
 
-        raise TypeError('unrepr could not resolve the name %s' % repr(name))
+            raise TypeError('unrepr could not resolve the name %s' % repr(name))
+            return
 
     def build_Add(self, o):
         left, right = map(self.build, o.getChildren())

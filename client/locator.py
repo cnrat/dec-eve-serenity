@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\carbon\common\lib\locator.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\carbon\common\lib\locator.py
 import carbon.common.lib.world as world
 if world.WORLD_SPACE_SCHEMA == 'zworld':
     LOCATOR_SCHEMA = 'zworld'

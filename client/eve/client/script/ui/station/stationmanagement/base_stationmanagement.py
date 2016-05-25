@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\client\script\ui\station\stationmanagement\base_stationmanagement.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\client\script\ui\station\stationmanagement\base_stationmanagement.py
 import uix
 import uiutil
 import util
@@ -63,32 +64,34 @@ class StationManagementDialog(uicontrols.Window):
         self.HideLoad()
         if not self or not self or self.destroyed:
             return
+        else:
 
-        def CreateTab(label, arg, useScroll2 = False):
-            scroll = self.sr.scroll
-            if useScroll2:
-                scroll = self.sr.scroll2
-            return [localization.GetByLabel(label),
-             scroll,
-             self,
-             arg,
-             scroll]
+            def CreateTab(label, arg, useScroll2=False):
+                scroll = self.sr.scroll
+                if useScroll2:
+                    scroll = self.sr.scroll2
+                return [localization.GetByLabel(label),
+                 scroll,
+                 self,
+                 arg,
+                 scroll]
 
-        maintabs = uicontrols.TabGroup(name='tabparent', parent=self.sr.main, idx=0, groupID='stationmanagementpanel')
-        maintabs.Startup([CreateTab('UI/Station/StationManagment/StationDetails', 'station_details'), CreateTab('UI/Station/StationManagment/ServiceAccessControl', 'station_service_access_control')], groupID='stationmanagementpanel')
-        tabs = [CreateTab('UI/Station/StationManagment/CostModifiers', 'cost_modifiers'), CreateTab('UI/Station/StationManagment/CloneContracts', 'clone_contracts')]
-        serviceMask = self.GetStationServiceMask()
-        if const.stationServiceOfficeRental == const.stationServiceOfficeRental & serviceMask:
-            tabs.append(CreateTab('UI/Corporations/Common/Offices', 'offices', useScroll2=True))
-        if self.ShouldDisplayImprovements():
-            tabs.append(CreateTab('UI/Station/StationManagment/StationImprovements', 'improvements'))
-        subtabs = uicontrols.TabGroup(name='tabparent', parent=self.sr.main, idx=1, groupID='stationmanagementpanel')
-        subtabs.Startup(tabs, groupID='stationmanagementpanel', autoselecttab=0)
-        self.sr.maintabs = maintabs
-        self.sr.subtabs = subtabs
-        self.sr.maintabs.AddRow(subtabs)
-        self.sr.maintabs.AutoSelect()
-        sm.GetService('loading').ProgressWnd(localization.GetByLabel('UI/Commands/ProgressDone'), localization.GetByLabel('UI/Common/GettingData'), 4, 4)
+            maintabs = uicontrols.TabGroup(name='tabparent', parent=self.sr.main, idx=0, groupID='stationmanagementpanel')
+            maintabs.Startup([CreateTab('UI/Station/StationManagment/StationDetails', 'station_details'), CreateTab('UI/Station/StationManagment/ServiceAccessControl', 'station_service_access_control')], groupID='stationmanagementpanel')
+            tabs = [CreateTab('UI/Station/StationManagment/CostModifiers', 'cost_modifiers'), CreateTab('UI/Station/StationManagment/CloneContracts', 'clone_contracts')]
+            serviceMask = self.GetStationServiceMask()
+            if const.stationServiceOfficeRental == const.stationServiceOfficeRental & serviceMask:
+                tabs.append(CreateTab('UI/Corporations/Common/Offices', 'offices', useScroll2=True))
+            if self.ShouldDisplayImprovements():
+                tabs.append(CreateTab('UI/Station/StationManagment/StationImprovements', 'improvements'))
+            subtabs = uicontrols.TabGroup(name='tabparent', parent=self.sr.main, idx=1, groupID='stationmanagementpanel')
+            subtabs.Startup(tabs, groupID='stationmanagementpanel', autoselecttab=0)
+            self.sr.maintabs = maintabs
+            self.sr.subtabs = subtabs
+            self.sr.maintabs.AddRow(subtabs)
+            self.sr.maintabs.AutoSelect()
+            sm.GetService('loading').ProgressWnd(localization.GetByLabel('UI/Commands/ProgressDone'), localization.GetByLabel('UI/Common/GettingData'), 4, 4)
+            return
 
     def LoadServices(self):
         self.corpStationMgr = sm.GetService('corp').GetCorpStationManager()
@@ -145,6 +148,7 @@ class StationManagementDialog(uicontrols.Window):
 
         if len(owners):
             cfg.eveowners.Prime(owners)
+        return
 
     def DisplayLogo(self):
         self.SetWndIcon()
@@ -175,6 +179,8 @@ class StationManagementDialog(uicontrols.Window):
             finally:
                 self.ddxFunction = None
                 self.ddxArguments = {}
+
+        return
 
     def CheckBoxChange(self, checkbox):
         if checkbox.data['key'] == 'roles':
@@ -266,6 +272,7 @@ class StationManagementDialog(uicontrols.Window):
              'OnClick': self.TransferStation}))
         self.ddxFunction = self.DDXTabStationDetails
         self.sr.scroll.Load(fixedEntryHeight=24, contentList=scrolllist)
+        return
 
     def GetHours(self):
         hours = []
@@ -302,6 +309,7 @@ class StationManagementDialog(uicontrols.Window):
         if ret is not None and len(ret):
             self.corpStationMgr.UpdateStationOwner(ret[1])
             self.CloseByUser()
+        return
 
     def DDXTabStationDetails(self):
         try:
@@ -386,6 +394,7 @@ class StationManagementDialog(uicontrols.Window):
         self.ddxArguments = {}
         self.ddxFunction = self.DDXTabStationServiceAccessControl
         self.sr.scroll.Load(fixedEntryHeight=24, contentList=scrolllist)
+        return
 
     def StandingOwnerCheckBoxChange(self, checkbox):
         if checkbox.checked:
@@ -399,6 +408,8 @@ class StationManagementDialog(uicontrols.Window):
             if entry.name == name:
                 return entry
 
+        return None
+
     def FindNode(self, nodeName):
         entries = self.sr.scroll.GetNodes() + self.sr.scroll2.GetNodes()
         for entry in entries:
@@ -409,7 +420,9 @@ class StationManagementDialog(uicontrols.Window):
         node = self.FindNode(nodeName)
         if node is not None:
             return node.setValue
-        raise RuntimeError('ChildNotFound', nodeName)
+        else:
+            raise RuntimeError('ChildNotFound', nodeName)
+            return
 
     def DDXTabStationServiceAccessControl(self):
         try:
@@ -462,6 +475,7 @@ class StationManagementDialog(uicontrols.Window):
 
         self.ddxFunction = self.DDXTabCostModifiers
         self.sr.scroll.Load(fixedEntryHeight=24, contentList=scrolllist)
+        return
 
     def DDXTabCostModifiers(self):
         try:
@@ -527,6 +541,7 @@ class StationManagementDialog(uicontrols.Window):
 
         self.ddxFunction = self.DDXTabOffices
         self.sr.scroll2.Load(fixedEntryHeight=24, contentList=scrolllist, headers=scrollHeaders)
+        return
 
     def DDXTabOffices(self):
         try:
@@ -694,6 +709,7 @@ class StationManagementDialog(uicontrols.Window):
 
         scrolllist.append(listentry.Get('Empty', data=util.KeyVal(height=30)))
         self.sr.scroll.Load(contentList=scrolllist)
+        return
 
     def RevokeCloneContractsAtStation(self, viewCorpID, corpID, charID, *args):
         self.corpStationMgr.RevokeCloneContractsAtStation(corpID, charID)
@@ -856,6 +872,8 @@ class ImprovementTierLinesEntry(uicontrols.SE_BaseClassCore):
             else:
                 line.color.a = ImprovementsMetrics.lineAlpha - 0.25 * (data.tier - 1)
 
+        return
+
     def GetHeight(self, node, width):
         if node.tier == 1:
             node.height = ImprovementsMetrics.firstLineHeight
@@ -909,6 +927,8 @@ class ImprovementTierIconsEntry(uicontrols.SE_BaseClassCore):
                     icon.color.a = 0.4
                     tierFill = 'empty'
                 tier.LoadIcon('ui_38_16_%i' % self.tierIcons[tierFill][data.tier])
+
+        return
 
     def GetHeight(self, node, width):
         node.height = ImprovementsMetrics.iconSize

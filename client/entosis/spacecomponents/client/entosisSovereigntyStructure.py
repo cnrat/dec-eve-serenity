@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\packages\entosis\spacecomponents\client\entosisSovereigntyStructure.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\packages\entosis\spacecomponents\client\entosisSovereigntyStructure.py
 import logging
 from entosis.spacecomponents.client.entosisCaptureTarget import EntosisCaptureTarget
 TIMER_COLORS = ((1.0, 1.0, 1.0, 0.5), (1.0, 1.0, 1.0, 0.25), (0.3, 0.3, 0.3, 1.0))

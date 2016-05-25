@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\client\script\ui\control\checkbox.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\client\script\ui\control\checkbox.py
 from carbonui.control.checkbox import CheckboxCore
 from eve.client.script.ui.control.eveLabel import EveLabelSmall
 from eve.client.script.ui.control.eveWindowUnderlay import CheckboxUnderlay, RadioButtonUnderlay
@@ -53,6 +54,7 @@ class Checkbox(CheckboxCore):
             maxLines = None
         self.sr.label = EveLabelSmall(text='', parent=self, name='text', align=align, state=uiconst.UI_DISABLED, padding=padding, pos=pos, maxLines=maxLines)
         self.sr.label.OnSizeChanged = self.OnSizeChanged
+        return
 
     def Prepare_Diode_(self):
         if self.sr.diode:
@@ -66,11 +68,12 @@ class Checkbox(CheckboxCore):
             self.sr.active = uiprimitives.Sprite(parent=self.sr.diode, pos=(1, 1, 14, 14), name='active', state=uiconst.UI_HIDDEN, texturePath='res:/UI/Texture/classes/RadioButton/frame.png', opacity=0.1)
             self.checkMark = uiprimitives.Sprite(parent=self.sr.diode, pos=(1, 1, 14, 14), name='self_ok', state=uiconst.UI_HIDDEN, texturePath='res:/UI/Texture/classes/RadioButton/selected.png')
             self.underlay = RadioButtonUnderlay(parent=self.sr.diode, padding=2)
+        return
 
     def Prepare_Active_(self):
         pass
 
-    def SetChecked(self, onoff, report = 1):
+    def SetChecked(self, onoff, report=1):
         onoff = onoff or 0
         self._checked = int(onoff)
         if self.sr.diode is None:
@@ -84,6 +87,7 @@ class Checkbox(CheckboxCore):
             self.underlay.Select(animate=report)
         else:
             self.underlay.Deselect(animate=report)
+        return
 
     def ToggleState(self, *args):
         if not self or self.destroyed:

@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\common\lib\webbrowser.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\common\lib\webbrowser.py
 import os
 import shlex
 import sys
@@ -19,7 +20,7 @@ class Error(Exception):
 _browsers = {}
 _tryorder = []
 
-def register(name, klass, instance = None, update_tryorder = 1):
+def register(name, klass, instance=None, update_tryorder=1):
     _browsers[name.lower()] = [klass, instance]
     if update_tryorder > 0:
         _tryorder.append(name)
@@ -27,7 +28,7 @@ def register(name, klass, instance = None, update_tryorder = 1):
         _tryorder.insert(0, name)
 
 
-def get(using = None):
+def get(using=None):
     if using is not None:
         alternatives = [using]
     else:
@@ -51,9 +52,10 @@ def get(using = None):
                 return command[0]()
 
     raise Error('could not locate runnable browser')
+    return
 
 
-def open(url, new = 0, autoraise = True):
+def open(url, new=0, autoraise=True):
     for name in _tryorder:
         browser = get(name)
         if browser.open(url, new, autoraise):
@@ -70,7 +72,7 @@ def open_new_tab(url):
     return open(url, 2)
 
 
-def _synthesize(browser, update_tryorder = 1):
+def _synthesize(browser, update_tryorder=1):
     cmd = browser.split()[0]
     if not _iscommand(cmd):
         return [None, None]
@@ -88,7 +90,8 @@ def _synthesize(browser, update_tryorder = 1):
         controller.basename = os.path.basename(browser)
         register(browser, None, controller, update_tryorder)
         return [None, controller]
-    return [None, None]
+    else:
+        return [None, None]
 
 
 if sys.platform[:3] == 'win':
@@ -131,11 +134,11 @@ def _iscommand(cmd):
 class BaseBrowser(object):
     args = ['%s']
 
-    def __init__(self, name = ''):
+    def __init__(self, name=''):
         self.name = name
         self.basename = name
 
-    def open(self, url, new = 0, autoraise = True):
+    def open(self, url, new=0, autoraise=True):
         raise NotImplementedError
 
     def open_new(self, url):
@@ -156,7 +159,7 @@ class GenericBrowser(BaseBrowser):
             self.args = name[1:]
         self.basename = os.path.basename(self.name)
 
-    def open(self, url, new = 0, autoraise = True):
+    def open(self, url, new=0, autoraise=True):
         cmdline = [self.name] + [ arg.replace('%s', url) for arg in self.args ]
         try:
             if sys.platform[:3] == 'win':
@@ -170,7 +173,7 @@ class GenericBrowser(BaseBrowser):
 
 class BackgroundBrowser(GenericBrowser):
 
-    def open(self, url, new = 0, autoraise = True):
+    def open(self, url, new=0, autoraise=True):
         cmdline = [self.name] + [ arg.replace('%s', url) for arg in self.args ]
         try:
             if sys.platform[:3] == 'win':
@@ -183,6 +186,8 @@ class BackgroundBrowser(GenericBrowser):
             return p.poll() is None
         except OSError:
             return False
+
+        return
 
 
 class UnixBrowser(BaseBrowser):
@@ -219,15 +224,17 @@ class UnixBrowser(BaseBrowser):
                 if rc is None:
                     return True
             return not rc
-        if self.background:
-            if p.poll() is None:
-                return True
-            else:
-                return False
         else:
-            return not p.wait()
+            if self.background:
+                if p.poll() is None:
+                    return True
+                else:
+                    return False
+            else:
+                return not p.wait()
+            return
 
-    def open(self, url, new = 0, autoraise = True):
+    def open(self, url, new=0, autoraise=True):
         if new == 0:
             action = self.remote_action
         elif new == 1:
@@ -246,6 +253,7 @@ class UnixBrowser(BaseBrowser):
             return self._invoke(args, False, False)
         else:
             return True
+            return
 
 
 class Mozilla(UnixBrowser):
@@ -297,7 +305,7 @@ class Elinks(UnixBrowser):
 
 class Konqueror(BaseBrowser):
 
-    def open(self, url, new = 0, autoraise = True):
+    def open(self, url, new=0, autoraise=True):
         if new == 2:
             action = 'newTab'
         else:
@@ -328,6 +336,7 @@ class Konqueror(BaseBrowser):
             return False
 
         return p.poll() is None
+        return
 
 
 class Grail(BaseBrowser):
@@ -343,18 +352,21 @@ class Grail(BaseBrowser):
         maybes = glob.glob(filename)
         if not maybes:
             return
-        s = socket.socket(socket.AF_UNIX, socket.SOCK_STREAM)
-        for fn in maybes:
-            try:
-                s.connect(fn)
-            except socket.error:
+        else:
+            s = socket.socket(socket.AF_UNIX, socket.SOCK_STREAM)
+            for fn in maybes:
                 try:
-                    os.unlink(fn)
-                except IOError:
-                    pass
+                    s.connect(fn)
+                except socket.error:
+                    try:
+                        os.unlink(fn)
+                    except IOError:
+                        pass
 
-            else:
-                return s
+                else:
+                    return s
+
+            return
 
     def _remote(self, action):
         s = self._find_grail_rc()
@@ -362,9 +374,8 @@ class Grail(BaseBrowser):
             return 0
         s.send(action)
         s.close()
-        return 1
 
-    def open(self, url, new = 0, autoraise = True):
+    def open(self, url, new=0, autoraise=True):
         if new:
             ok = self._remote('LOADNEW ' + url)
         else:
@@ -407,6 +418,7 @@ def register_X_browsers():
         register('mosaic', None, BackgroundBrowser('mosaic'))
     if _iscommand('grail'):
         register('grail', Grail, None)
+    return
 
 
 if os.environ.get('DISPLAY'):
@@ -426,7 +438,7 @@ if sys.platform[:3] == 'win':
 
     class WindowsDefault(BaseBrowser):
 
-        def open(self, url, new = 0, autoraise = True):
+        def open(self, url, new=0, autoraise=True):
             try:
                 os.startfile(url)
             except WindowsError:
@@ -456,7 +468,7 @@ if sys.platform == 'darwin':
         def __init__(self, name):
             self.name = name
 
-        def open(self, url, new = 0, autoraise = True):
+        def open(self, url, new=0, autoraise=True):
             if ':' not in url:
                 url = 'file:' + url
             new = int(bool(new))
@@ -472,9 +484,10 @@ if sys.platform == 'darwin':
             osapipe = os.popen('osascript', 'w')
             if osapipe is None:
                 return False
-            osapipe.write(script)
-            rc = osapipe.close()
-            return not rc
+            else:
+                osapipe.write(script)
+                rc = osapipe.close()
+                return not rc
 
 
     class MacOSXOSAScript(BaseBrowser):
@@ -482,7 +495,7 @@ if sys.platform == 'darwin':
         def __init__(self, name):
             self._name = name
 
-        def open(self, url, new = 0, autoraise = True):
+        def open(self, url, new=0, autoraise=True):
             if self._name == 'default':
                 script = 'open location "%s"' % url.replace('"', '%22')
             else:
@@ -490,9 +503,10 @@ if sys.platform == 'darwin':
             osapipe = os.popen('osascript', 'w')
             if osapipe is None:
                 return False
-            osapipe.write(script)
-            rc = osapipe.close()
-            return not rc
+            else:
+                osapipe.write(script)
+                rc = osapipe.close()
+                return not rc
 
 
     register('safari', None, MacOSXOSAScript('safari'), -1)

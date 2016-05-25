@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\carbon\common\stdlib\re.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\carbon\common\stdlib\re.py
 import sys
 import sre_compile
 import sre_parse
@@ -36,38 +37,38 @@ T = TEMPLATE = sre_compile.SRE_FLAG_TEMPLATE
 DEBUG = sre_compile.SRE_FLAG_DEBUG
 error = sre_compile.error
 
-def match(pattern, string, flags = 0):
+def match(pattern, string, flags=0):
     return _compile(pattern, flags).match(string)
 
 
-def search(pattern, string, flags = 0):
+def search(pattern, string, flags=0):
     return _compile(pattern, flags).search(string)
 
 
-def sub(pattern, repl, string, count = 0, flags = 0):
+def sub(pattern, repl, string, count=0, flags=0):
     return _compile(pattern, flags).sub(repl, string, count)
 
 
-def subn(pattern, repl, string, count = 0, flags = 0):
+def subn(pattern, repl, string, count=0, flags=0):
     return _compile(pattern, flags).subn(repl, string, count)
 
 
-def split(pattern, string, maxsplit = 0, flags = 0):
+def split(pattern, string, maxsplit=0, flags=0):
     return _compile(pattern, flags).split(string, maxsplit)
 
 
-def findall(pattern, string, flags = 0):
+def findall(pattern, string, flags=0):
     return _compile(pattern, flags).findall(string)
 
 
 if sys.hexversion >= 33685504:
     __all__.append('finditer')
 
-    def finditer(pattern, string, flags = 0):
+    def finditer(pattern, string, flags=0):
         return _compile(pattern, flags).finditer(string)
 
 
-def compile(pattern, flags = 0):
+def compile(pattern, flags=0):
     return _compile(pattern, flags)
 
 
@@ -76,7 +77,7 @@ def purge():
     _cache_repl.clear()
 
 
-def template(pattern, flags = 0):
+def template(pattern, flags=0):
     return _compile(pattern, flags | T)
 
 
@@ -110,38 +111,40 @@ def _compile(*key):
     p = _cache.get(cachekey)
     if p is not None:
         return p
-    pattern, flags = key
-    if isinstance(pattern, _pattern_type):
-        if flags:
-            raise ValueError('Cannot process flags argument with a compiled pattern')
-        return pattern
-    if not sre_compile.isstring(pattern):
-        raise TypeError, 'first argument must be string or compiled pattern'
-    try:
-        p = sre_compile.compile(pattern, flags)
-    except error as v:
-        raise error, v
+    else:
+        pattern, flags = key
+        if isinstance(pattern, _pattern_type):
+            if flags:
+                raise ValueError('Cannot process flags argument with a compiled pattern')
+            return pattern
+        if not sre_compile.isstring(pattern):
+            raise TypeError, 'first argument must be string or compiled pattern'
+        try:
+            p = sre_compile.compile(pattern, flags)
+        except error as v:
+            raise error, v
 
-    if len(_cache) >= _MAXCACHE:
-        _cache.clear()
-    _cache[cachekey] = p
-    return p
+        if len(_cache) >= _MAXCACHE:
+            _cache.clear()
+        _cache[cachekey] = p
+        return p
 
 
 def _compile_repl(*key):
     p = _cache_repl.get(key)
     if p is not None:
         return p
-    repl, pattern = key
-    try:
-        p = sre_parse.parse_template(repl, pattern)
-    except error as v:
-        raise error, v
+    else:
+        repl, pattern = key
+        try:
+            p = sre_parse.parse_template(repl, pattern)
+        except error as v:
+            raise error, v
 
-    if len(_cache_repl) >= _MAXCACHE:
-        _cache_repl.clear()
-    _cache_repl[key] = p
-    return p
+        if len(_cache_repl) >= _MAXCACHE:
+            _cache_repl.clear()
+        _cache_repl[key] = p
+        return p
 
 
 def _expand(pattern, match, template):
@@ -154,7 +157,7 @@ def _subx(pattern, template):
     if not template[0] and len(template[1]) == 1:
         return template[1][0]
 
-    def filter(match, template = template):
+    def filter(match, template=template):
         return sre_parse.expand_template(template, match)
 
     return filter
@@ -170,7 +173,7 @@ copy_reg.pickle(_pattern_type, _pickle, _compile)
 
 class Scanner:
 
-    def __init__(self, lexicon, flags = 0):
+    def __init__(self, lexicon, flags=0):
         from sre_constants import BRANCH, SUBPATTERN
         self.lexicon = lexicon
         p = []
@@ -182,6 +185,7 @@ class Scanner:
         s.groups = len(p) + 1
         p = sre_parse.SubPattern(s, [(BRANCH, (None, p))])
         self.scanner = sre_compile.compile(p)
+        return
 
     def scan(self, string):
         result = []

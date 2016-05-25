@@ -1,30 +1,45 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\client\script\ui\inflight\squadrons\abilitiesCont.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\client\script\ui\inflight\squadrons\abilitiesCont.py
 import carbonui.const as uiconst
-from carbonui.primitives.containerAutoSize import ContainerAutoSize
+from carbonui.primitives.container import Container
 from eve.client.script.ui.inflight.squadrons.abilityController import AbilityController
 from eve.client.script.ui.inflight.squadrons.abilityIcon import AbilityIcon
 from fighters import IterTypeAbilities
 
-class AbilitiesCont(ContainerAutoSize):
+class AbilitiesCont(Container):
     default_width = 64
+    default_height = 150
     default_align = uiconst.TOPLEFT
 
     def ApplyAttributes(self, attributes):
-        ContainerAutoSize.ApplyAttributes(self, attributes)
-        self.fighterTypeID = attributes.fighterTypeID
-        self.fighterID = attributes.fighterID
-        self.controller = attributes.controller
-        self.DrawModules()
+        Container.ApplyAttributes(self, attributes)
+        self.abilityIcons = {}
 
-    def DrawModules(self):
-        abilities = self.controller.GetAbilities(self.fighterTypeID)
-        if not abilities:
-            return
-        for slotID, typeAbility in abilities:
+    def SetNewSquadron(self, fighterItemID, typeID):
+        self.fighterID = fighterItemID
+        self.fighterTypeID = typeID
+        self._SetupAbilityIcons()
+
+    def _SetupAbilityIcons(self):
+        self._RemoveAbilityIcons()
+        for slotID, typeAbility in IterTypeAbilities(self.fighterTypeID):
             if typeAbility is not None:
-                abilityID = typeAbility.abilityID
-                abilityController = AbilityController(abilityID, self.fighterID, slotID)
-                self.AddAbility(abilityController)
+                self._AddAbilityIcon(slotID, typeAbility.abilityID)
 
-    def AddAbility(self, controller):
-        AbilityIcon(parent=self, controller=controller, fighterID=self.fighterID, align=uiconst.TOBOTTOM)
+        return
+
+    def _RemoveAbilityIcons(self):
+        for icon in self.abilityIcons.itervalues():
+            icon.Close()
+
+        self.abilityIcons.clear()
+
+    def _AddAbilityIcon(self, slotID, abilityID):
+        abilityController = AbilityController(abilityID, self.fighterID, slotID, self.fighterTypeID)
+        self.abilityIcons[slotID] = AbilityIcon(parent=self, controller=abilityController, fighterID=self.fighterID, fighterTypeID=self.fighterTypeID, align=uiconst.TOBOTTOM, top=2)
+
+    def HideModules(self):
+        self.display = False
+
+    def ShowModules(self):
+        self.display = True

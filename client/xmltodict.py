@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\carbon\common\lib\xmltodict.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\carbon\common\lib\xmltodict.py
 from xml.parsers import expat
 from xml.sax.saxutils import XMLGenerator
 from xml.sax.xmlreader import AttributesImpl
@@ -35,7 +36,7 @@ class ParsingInterrupted(Exception):
 
 class _DictSAXHandler(object):
 
-    def __init__(self, item_depth = 0, item_callback = lambda *args: True, xml_attribs = True, attr_prefix = '@', cdata_key = '#text', force_cdata = False, cdata_separator = '', postprocessor = None, dict_constructor = OrderedDict):
+    def __init__(self, item_depth=0, item_callback=lambda *args: True, xml_attribs=True, attr_prefix='@', cdata_key='#text', force_cdata=False, cdata_separator='', postprocessor=None, dict_constructor=OrderedDict):
         self.path = []
         self.stack = []
         self.data = None
@@ -49,6 +50,7 @@ class _DictSAXHandler(object):
         self.cdata_separator = cdata_separator
         self.postprocessor = postprocessor
         self.dict_constructor = dict_constructor
+        return
 
     def startElement(self, name, attrs):
         attrs = self.dict_constructor(zip(attrs[0::2], attrs[1::2]))
@@ -61,6 +63,7 @@ class _DictSAXHandler(object):
                 attrs = None
             self.item = attrs or None
             self.data = None
+        return
 
     def endElement(self, name):
         if len(self.path) == self.item_depth:
@@ -84,6 +87,7 @@ class _DictSAXHandler(object):
         else:
             self.item = self.data = None
         self.path.pop()
+        return
 
     def characters(self, data):
         if not self.data:
@@ -125,7 +129,7 @@ def parse(xml_input, *args, **kwargs):
     return handler.item
 
 
-def _emit(key, value, content_handler, attr_prefix = '@', cdata_key = '#text', root = True, preprocessor = None):
+def _emit(key, value, content_handler, attr_prefix='@', cdata_key='#text', root=True, preprocessor=None):
     if preprocessor is not None:
         result = preprocessor(key, value)
         if result is None:
@@ -162,9 +166,11 @@ def _emit(key, value, content_handler, attr_prefix = '@', cdata_key = '#text', r
             content_handler.characters(cdata)
         content_handler.endElement(key)
 
+    return
 
-def unparse(item, output = None, encoding = 'utf-8', **kwargs):
-    (key, value), = item.items()
+
+def unparse(item, output=None, encoding='utf-8', **kwargs):
+    (key, value) = item.items()
     must_return = False
     if output == None:
         output = StringIO()
@@ -181,3 +187,5 @@ def unparse(item, output = None, encoding = 'utf-8', **kwargs):
             pass
 
         return value
+    else:
+        return

@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\carbon\common\stdlib\numbers.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\carbon\common\stdlib\numbers.py
 from __future__ import division
 from abc import ABCMeta, abstractmethod, abstractproperty
 __all__ = ['Number',
@@ -153,7 +154,7 @@ class Real(Complex):
 
     @property
     def imag(self):
-        return 0
+        pass
 
     def conjugate(self):
         return +self
@@ -187,7 +188,7 @@ class Integral(Rational):
         return long(self)
 
     @abstractmethod
-    def __pow__(self, exponent, modulus = None):
+    def __pow__(self, exponent, modulus=None):
         raise NotImplementedError
 
     @abstractmethod
@@ -243,7 +244,7 @@ class Integral(Rational):
 
     @property
     def denominator(self):
-        return 1
+        pass
 
 
 Integral.register(int)

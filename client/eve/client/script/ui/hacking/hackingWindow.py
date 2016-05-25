@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\client\script\ui\hacking\hackingWindow.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\client\script\ui\hacking\hackingWindow.py
 import evetypes
 import uicls
 import carbonui.const as uiconst
@@ -12,6 +13,7 @@ import trinity
 import hackingcommon.hackingConstants as hackingConst
 import hackingui as hackingUI
 import hackingUIConst
+from carbonui.primitives.sprite import StreamingVideoSprite
 
 class hackingWindow(uicontrols.Window):
     __guid__ = 'form.HackingWindow'
@@ -48,7 +50,7 @@ class hackingWindow(uicontrols.Window):
         self.virusInfo = hackingUI.VirusInfo(parent=self.bottomCont, left=15, top=10, opacity=0.0)
         self.boardTransform = uiprimitives.Transform(name='boardTransform', parent=self.sr.main, align=uiconst.TOALL, state=uiconst.UI_NORMAL, scalingCenter=(0.5, 0.5))
         self.boardContainer = uiprimitives.Container(name='boardContainer', parent=self.boardTransform, align=uiconst.TOPLEFT, opacity=0.0)
-        self.backgroundVideo = uiprimitives.VideoSprite(bgParent=self.sr.maincontainer, videoPath='res:/video/hacking/bgLoop_alpha.bik', videoLoop=True, spriteEffect=trinity.TR2_SFX_COPY, color=hackingUIConst.COLOR_WINDOW_BG, opacity=0.0)
+        self.backgroundVideo = StreamingVideoSprite(bgParent=self.sr.maincontainer, videoPath='res:/video/hacking/bgLoop_alpha.webm', videoLoop=True, spriteEffect=trinity.TR2_SFX_COPY, color=hackingUIConst.COLOR_WINDOW_BG, opacity=0.0)
         sm.GetService('audio').SendUIEvent('minigame_start')
 
     def Close(self, *args, **kw):

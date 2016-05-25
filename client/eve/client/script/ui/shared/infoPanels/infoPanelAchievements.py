@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\client\script\ui\shared\infoPanels\infoPanelAchievements.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\client\script\ui\shared\infoPanels\infoPanelAchievements.py
 from achievements.client.achievementGroupEntry import AchievementGroupEntry
 from achievements.client.achievementSettings import OpportunitySettings
 from achievements.client.achievementTreeWindow import AchievementTreeWindow
@@ -38,6 +39,7 @@ class InfoPanelAchievements(InfoPanelBase):
         self.settingsObject = None
         self.titleLabel = self.headerCls(name='title', text='<color=white>' + GetByLabel('UI/Achievements/InfoPanelHeader'), parent=self.headerCont, align=uiconst.CENTERLEFT, state=uiconst.UI_DISABLED)
         self.headerButton.OnMenuClosed = self.OnSettingsMenuClosed
+        return
 
     @staticmethod
     def IsAvailable():
@@ -48,8 +50,9 @@ class InfoPanelAchievements(InfoPanelBase):
     def ConstructCompact(self):
         self.mainCont.Flush()
         self.achievementContent = None
+        return
 
-    def ConstructNormal(self, blinkAchievementID = None):
+    def ConstructNormal(self, blinkAchievementID=None):
         if not self.achievementContent or self.achievementContent.destroyed:
             self.mainCont.Flush()
             self.achievementContent = ContainerAutoSize(parent=self.mainCont, name='achievementContent', align=uiconst.TOTOP, alignMode=uiconst.TOTOP)
@@ -61,7 +64,7 @@ class InfoPanelAchievements(InfoPanelBase):
         groupID = sm.GetService('achievementSvc').GetActiveAchievementGroupID()
         self.LoadContent(groupID, blinkAchievementID=blinkAchievementID)
 
-    def LoadContent(self, groupID = None, blinkAchievementID = None):
+    def LoadContent(self, groupID=None, blinkAchievementID=None):
         activeGroupData = GetAchievementGroup(groupID)
         if activeGroupData:
             if self.groupEntry is None or self.groupEntry.destroyed:
@@ -70,9 +73,11 @@ class InfoPanelAchievements(InfoPanelBase):
             else:
                 self.groupEntry.LoadGroupData(activeGroupData, blinkAchievementID=blinkAchievementID, animateIn=True)
             return
-        self.achievementContent.Flush()
-        self.groupEntry = None
-        label = InfoPanelLabel(name='noActiveOpp', text=GetByLabel('Achievements/UI/noActiveOpp'), parent=self.achievementContent, fontsize=EVE_LARGE_FONTSIZE, padding=(0, 2, 0, 2), state=uiconst.UI_NORMAL, align=uiconst.TOTOP)
+        else:
+            self.achievementContent.Flush()
+            self.groupEntry = None
+            label = InfoPanelLabel(name='noActiveOpp', text=GetByLabel('Achievements/UI/noActiveOpp'), parent=self.achievementContent, fontsize=EVE_LARGE_FONTSIZE, padding=(0, 2, 0, 2), state=uiconst.UI_NORMAL, align=uiconst.TOTOP)
+            return
 
     def OpenAchievementAuraWindow(self, *args):
         AchievementAuraWindow.Open()
@@ -97,11 +102,12 @@ class InfoPanelAchievements(InfoPanelBase):
         else:
             blinkAchievementID = None
         self.Refresh(blinkAchievementID)
+        return
 
     def OnAchievementsDataInitialized(self):
         self.Refresh()
 
-    def Refresh(self, blinkAchievementID = None):
+    def Refresh(self, blinkAchievementID=None):
         if self.mode != infoPanelConst.MODE_NORMAL:
             self.ConstructCompact()
         else:
@@ -120,3 +126,4 @@ class InfoPanelAchievements(InfoPanelBase):
         if self.settingsObject:
             self.settingsObject.StoreChanges()
             self.settingsObject = None
+        return

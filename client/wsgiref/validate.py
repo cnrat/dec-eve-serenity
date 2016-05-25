@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\carbon\common\lib\wsgiref\validate.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\carbon\common\lib\wsgiref\validate.py
 __all__ = ['validator']
 import re
 import sys
@@ -215,6 +216,7 @@ def check_status(status):
     assert_(status_int >= 100, 'Status code is invalid: %r' % status_int)
     if len(status) < 4 or status[3] != ' ':
         warnings.warn('The status string (%r) should be a three-digit integer followed by a single space and a status explanation' % status, WSGIWarning)
+    return
 
 
 def check_headers(headers):
@@ -232,6 +234,8 @@ def check_headers(headers):
         if bad_header_value_re.search(value):
             assert_(0, 'Bad header value: %r (bad char: %r)' % (value, bad_header_value_re.search(value).group(0)))
 
+    return
+
 
 def check_content_type(status, headers):
     code = int(status.split(None, 1)[0])
@@ -244,10 +248,12 @@ def check_content_type(status, headers):
 
     if code not in NO_MESSAGE_BODY:
         assert_(0, 'No Content-Type header found in headers (%s)' % headers)
+    return
 
 
 def check_exc_info(exc_info):
     assert_(exc_info is None or type(exc_info) is type(()), 'exc_info (%r) is not a tuple: %r' % (exc_info, type(exc_info)))
+    return
 
 
 def check_iterator(iterator):

@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\carbon\common\lib\cherrypy\test\test_tools.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\carbon\common\lib\cherrypy\test\test_tools.py
 import gzip
 import sys
 from cherrypy._cpcompat import BytesIO, copyitems, itervalues, IncompleteRead, ntob, ntou, xrange
@@ -15,7 +16,7 @@ class ToolTests(helper.CPWebCase):
     def setup_server():
         myauthtools = cherrypy._cptools.Toolbox('myauth')
 
-        def check_access(default = False):
+        def check_access(default=False):
             if not getattr(cherrypy.request, 'userid', default):
                 raise cherrypy.HTTPError(401)
 
@@ -110,7 +111,7 @@ class ToolTests(helper.CPWebCase):
         class Root:
 
             def index(self):
-                return 'Howdy earth!'
+                pass
 
             index.exposed = True
 
@@ -165,30 +166,30 @@ class ToolTests(helper.CPWebCase):
         class Demo(Test):
             _cp_config = {'tools.nadsat.on': True}
 
-            def index(self, id = None):
-                return 'A good piece of cherry pie'
+            def index(self, id=None):
+                pass
 
             def ended(self, id):
                 return repr(tools.nadsat.ended[id])
 
-            def err(self, id = None):
+            def err(self, id=None):
                 raise ValueError()
 
-            def errinstream(self, id = None):
+            def errinstream(self, id=None):
                 yield 'nonconfidential'
                 raise ValueError()
                 yield 'confidential'
 
             def restricted(self):
-                return 'Welcome!'
+                pass
 
             restricted = myauthtools.check_access()(restricted)
             userid = restricted
 
             def err_in_onstart(self):
-                return 'success!'
+                pass
 
-            def stream(self, id = None):
+            def stream(self, id=None):
                 for x in xrange(100000000):
                     yield str(x)
 
@@ -264,6 +265,8 @@ class ToolTests(helper.CPWebCase):
         finally:
             if old_timeout is not None:
                 httpserver.timeout = old_timeout
+
+        return
 
     def testGuaranteedHooks(self):
         self.getPage('/demo/err_in_onstart')

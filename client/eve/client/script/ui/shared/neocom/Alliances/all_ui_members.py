@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\client\script\ui\shared\neocom\Alliances\all_ui_members.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\client\script\ui\shared\neocom\Alliances\all_ui_members.py
 from eve.client.script.ui.control.infoIcon import InfoIcon
 import uiprimitives
 import uicontrols
@@ -40,9 +41,11 @@ class FormAlliancesMembers(uicontrols.SE_BaseClassCore):
             notInAllianceLabel = localization.GetByLabel('UI/Corporations/CorporationWindow/Alliances/CorpNotInAlliance', corpName=cfg.eveowners.Get(eve.session.corpid).ownerName)
             self.sr.scroll.Load(fixedEntryHeight=19, contentList=[], noContentHint=notInAllianceLabel)
             return
-        self.ShowMembers()
+        else:
+            self.ShowMembers()
+            return
 
-    def SetHint(self, hintstr = None):
+    def SetHint(self, hintstr=None):
         if self.sr.scroll:
             self.sr.scroll.ShowHint(hintstr)
 
@@ -56,15 +59,16 @@ class FormAlliancesMembers(uicontrols.SE_BaseClassCore):
             if self is None or self.destroyed:
                 log.LogInfo('ShowAllianceApplications Destroyed or None')
                 hint = '\xfe\xfa s\xe1st mig ekki.'
-            elif eve.session.allianceid is None:
-                hint = localization.GetByLabel('UI/Corporations/CorporationWindow/Alliances/Members/CorporationNotInAllianceATM', corpName=cfg.eveowners.Get(eve.session.corpid).ownerName)
             else:
-                members = sm.GetService('alliance').GetMembers()
-                log.LogInfo('ShowMembers len(members):', len(members))
-                owners = []
-                for member in members.itervalues():
-                    if member.corporationID not in owners:
-                        owners.append(member.corporationID)
+                if eve.session.allianceid is None:
+                    hint = localization.GetByLabel('UI/Corporations/CorporationWindow/Alliances/Members/CorporationNotInAllianceATM', corpName=cfg.eveowners.Get(eve.session.corpid).ownerName)
+                else:
+                    members = sm.GetService('alliance').GetMembers()
+                    log.LogInfo('ShowMembers len(members):', len(members))
+                    owners = []
+                    for member in members.itervalues():
+                        if member.corporationID not in owners:
+                            owners.append(member.corporationID)
 
                 if len(owners):
                     cfg.eveowners.Prime(owners)
@@ -75,6 +79,8 @@ class FormAlliancesMembers(uicontrols.SE_BaseClassCore):
             self.sr.scroll.Load(contentList=scrolllist, headers=self.sr.headers, noContentHint=hint)
         finally:
             sm.GetService('corpui').HideLoad()
+
+        return
 
     def __AddToList(self, member, scrolllist):
         data = util.KeyVal()
@@ -116,52 +122,56 @@ class FormAlliancesMembers(uicontrols.SE_BaseClassCore):
             if entry.member.allianceID == allianceID and entry.member.corporationID == corporationID:
                 return entry
 
+        return
+
     def OnAllianceMemberChanged(self, allianceID, corporationID, change):
         log.LogInfo('OnAllianceMemberChanged allianceID', allianceID, 'corporationID', corporationID, 'change', change)
         if eve.session.allianceid != allianceID:
             return
-        if self.state not in (uiconst.UI_NORMAL, uiconst.UI_PICKCHILDREN):
+        elif self.state not in (uiconst.UI_NORMAL, uiconst.UI_PICKCHILDREN):
             log.LogInfo('OnAllianceMemberChanged state != UI_NORMAL', self.state)
             return
-        if self.sr.scroll is None:
+        elif self.sr.scroll is None:
             log.LogInfo('OnAllianceMemberChanged no scroll')
             return
-        bAdd = 1
-        bRemove = 1
-        for old, new in change.itervalues():
-            if old is not None:
-                bAdd = 0
-            if new is not None:
-                bRemove = 0
-
-        if bAdd and bRemove:
-            raise RuntimeError('members::OnAllianceMemberChanged WTF')
-        if bAdd:
-            log.LogInfo('OnAllianceMemberChanged adding member')
-            member = sm.GetService('alliance').GetMembers()[corporationID]
-            self.SetHint()
-            scrolllist = []
-            self.__AddToList(member, scrolllist)
-            if len(self.sr.scroll.sr.headers) > 0:
-                self.sr.scroll.AddEntries(-1, scrolllist)
-            else:
-                self.sr.scroll.Load(contentList=scrolllist, headers=self.sr.headers)
-        elif bRemove:
-            log.LogInfo('OnAllianceMemberChanged removing member')
-            entry = self.GetEntry(allianceID, corporationID)
-            if entry is not None:
-                self.sr.scroll.RemoveEntries([entry])
-            else:
-                log.LogWarn('OnAllianceMemberChanged member not found')
         else:
-            log.LogInfo('OnAllianceMemberChanged updating member')
-            entry = self.GetEntry(allianceID, corporationID)
-            if entry is None:
-                log.LogWarn('OnAllianceMemberChanged member not found')
-            if entry is not None:
-                label = self.__GetLabel(corporationID)
-                entry.panel.sr.node.label = label
-                entry.panel.sr.label.text = label
+            bAdd = 1
+            bRemove = 1
+            for old, new in change.itervalues():
+                if old is not None:
+                    bAdd = 0
+                if new is not None:
+                    bRemove = 0
+
+            if bAdd and bRemove:
+                raise RuntimeError('members::OnAllianceMemberChanged WTF')
+            if bAdd:
+                log.LogInfo('OnAllianceMemberChanged adding member')
+                member = sm.GetService('alliance').GetMembers()[corporationID]
+                self.SetHint()
+                scrolllist = []
+                self.__AddToList(member, scrolllist)
+                if len(self.sr.scroll.sr.headers) > 0:
+                    self.sr.scroll.AddEntries(-1, scrolllist)
+                else:
+                    self.sr.scroll.Load(contentList=scrolllist, headers=self.sr.headers)
+            elif bRemove:
+                log.LogInfo('OnAllianceMemberChanged removing member')
+                entry = self.GetEntry(allianceID, corporationID)
+                if entry is not None:
+                    self.sr.scroll.RemoveEntries([entry])
+                else:
+                    log.LogWarn('OnAllianceMemberChanged member not found')
+            else:
+                log.LogInfo('OnAllianceMemberChanged updating member')
+                entry = self.GetEntry(allianceID, corporationID)
+                if entry is None:
+                    log.LogWarn('OnAllianceMemberChanged member not found')
+                if entry is not None:
+                    label = self.__GetLabel(corporationID)
+                    entry.panel.sr.node.label = label
+                    entry.panel.sr.label.text = label
+            return
 
     def DeclareSupportForm(self, *args):
         format = []
@@ -191,6 +201,7 @@ class FormAlliancesMembers(uicontrols.SE_BaseClassCore):
         if retval is not None:
             corpID = retval['members']
             sm.GetService('alliance').DeclareExecutorSupport(corpID)
+        return
 
     def DeleteMember(self, corpID):
         if corpID == eve.session.corpid:
@@ -217,6 +228,8 @@ class Corporation(listentry.Generic):
         self.sr.events = ('OnClick', 'OnMouseDown', 'OnMouseUp', 'OnDblClick', 'OnMouseHover')
         for eventName in self.sr.events:
             setattr(self.sr, eventName, None)
+
+        return
 
     def Load(self, node):
         self.sr.node = node
@@ -254,6 +267,8 @@ class Corporation(listentry.Generic):
             for size in [51, 66, 81]:
                 if self.sr.Get('button%s' % size, None):
                     self.sr.Get('button%s' % size, None).state = uiconst.UI_HIDDEN
+
+        return
 
     def GetHeight(self, *args):
         node, width = args

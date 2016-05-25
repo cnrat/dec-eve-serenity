@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\client\script\ui\shared\neocom\corporation\corp_ui_accounts.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\client\script\ui\shared\neocom\corporation\corp_ui_accounts.py
 import blue
 import evetypes
 import uiprimitives
@@ -11,13 +12,37 @@ import log
 import carbonui.const as uiconst
 import sys
 import localization
+from carbonui.control.menuLabel import MenuLabel
 from contractutils import DoParseItemType
 from carbon.common.script.sys.row import Row
+from eve.client.script.ui.shared.assets.assetSafety import AssetSafetyCont
+from eve.client.script.ui.shared.assets.assetSafetyControllers import SafetyControllerCorp
+FLAGNAME_OFFICES = 'offices'
+FLAGNAME_JUNK = 'junk'
+FLAGNAME_PROPERTY = 'property'
+FLAGNAME_DELIVERIES = 'deliveries'
+FLAGNAME_IMPOUNDED = 'impounded'
+KEYNAME_LOCKDOWN = 'lockdown'
+KEYNAME_SAFETY = 'safety'
+KEYNAME_SEARCH = 'search'
+FLAG_OFFICES = 71
+FLAG_JUNK = 72
+FLAG_PROPERTY = 74
+FLAG_DELIVERIES = 75
+FLAG_TO_FLAGNAME = {FLAG_OFFICES: FLAGNAME_OFFICES,
+ FLAG_JUNK: FLAGNAME_JUNK,
+ FLAG_PROPERTY: FLAGNAME_PROPERTY,
+ FLAG_DELIVERIES: FLAGNAME_DELIVERIES}
+FLAGNAME_TO_FLAG = {FLAGNAME_OFFICES: FLAG_OFFICES,
+ FLAGNAME_IMPOUNDED: FLAG_JUNK,
+ FLAGNAME_JUNK: FLAG_JUNK,
+ FLAGNAME_PROPERTY: FLAG_PROPERTY,
+ FLAGNAME_DELIVERIES: FLAG_DELIVERIES}
 
 class CorpAccounts(uiprimitives.Container):
     __guid__ = 'form.CorpAccounts'
     __nonpersistvars__ = ['assets']
-    __notifyevents__ = ['OnCorpAssetChange']
+    __notifyevents__ = ['OnCorpAssetChange', 'OnReloadCorpAssets']
 
     def ApplyAttributes(self, attributes):
         uiprimitives.Container.ApplyAttributes(self, attributes)
@@ -25,16 +50,22 @@ class CorpAccounts(uiprimitives.Container):
         self.sr.journalToDate = blue.os.GetWallclockTime() + const.HOUR
         self.sr.viewMode = 'details'
         self.key = None
+        self.safetyCont = None
         self.sr.search_inited = 0
         sm.RegisterNotify(self)
+        return
+
+    def OnReloadCorpAssets(self):
+        if self.sr.tabs:
+            self.sr.tabs.ReloadVisible()
 
     def OnCorpAssetChange(self, items, stationID):
         if items[0].locationID != stationID:
             id = ('corpofficeassets', (stationID, items[0].flagID))
-            which = 'deliveries'
+            which = FLAGNAME_DELIVERIES
         else:
             id = ('corpassets', stationID)
-            which = 'offices'
+            which = FLAGNAME_OFFICES
         if not self.sr.Get('inited', 0):
             return
         for node in self.sr.scroll.GetNodes():
@@ -42,7 +73,7 @@ class CorpAccounts(uiprimitives.Container):
                 rows = sm.RemoteSvc('corpmgr').GetAssetInventory(eve.session.corpid, which)
                 for row in rows:
                     if stationID == row.locationID:
-                        node.data = self.GetLocationData(row, 71, scrollID=self.sr.scroll.sr.id)
+                        node.data = self.GetLocationData(row, FLAG_OFFICES, scrollID=self.sr.scroll.sr.id)
 
                 if node.panel:
                     node.panel.Load(node)
@@ -63,65 +94,84 @@ class CorpAccounts(uiprimitives.Container):
             self.sr.scroll.sr.minColumnWidth = {localization.GetByLabel('UI/Common/Name'): 44}
             self.sr.scroll.SetColumnsHiddenByDefault(uix.GetInvItemDefaultHiddenHeaders())
             self.sr.tabs = uicontrols.TabGroup(name='tabparent', parent=self, idx=0)
-            self.sr.tabs.Startup([[localization.GetByLabel('UI/Corporations/Common/Offices'),
+            tabs = [[localization.GetByLabel('UI/Corporations/Common/Offices'),
               self.sr.scroll,
               self,
-              'offices'],
+              FLAGNAME_OFFICES],
              [localization.GetByLabel('UI/Corporations/Assets/Impounded'),
               self.sr.scroll,
               self,
-              'impounded'],
+              FLAGNAME_IMPOUNDED],
              [localization.GetByLabel('UI/Corporations/Assets/InSpace'),
               self.sr.scroll,
               self,
-              'property'],
+              FLAGNAME_PROPERTY],
              [localization.GetByLabel('UI/Corporations/Assets/Deliveries'),
               self.sr.scroll,
               self,
-              'deliveries'],
+              FLAGNAME_DELIVERIES],
              [localization.GetByLabel('UI/Corporations/Assets/Lockdown'),
               self.sr.scroll,
               self,
-              'lockdown'],
+              KEYNAME_LOCKDOWN],
              [localization.GetByLabel('UI/Common/Search'),
               self.sr.scroll,
               self,
-              'search']], 'corpassetstab', autoselecttab=0)
+              KEYNAME_SEARCH]]
+            if self.IsDirector():
+                self.safetyParent = uiprimitives.Container(parent=self)
+                safetyTabInfo = [localization.GetByLabel('UI/Inventory/AssetSafety/Safety'),
+                 self.safetyParent,
+                 self,
+                 KEYNAME_SAFETY]
+                tabs.insert(-1, safetyTabInfo)
+            self.sr.tabs.Startup(tabs, 'corpassetstab', autoselecttab=0)
         self.sr.scroll.Load(contentList=[], headers=uix.GetInvItemDefaultHeaders())
         self.sr.scroll.OnNewHeaders = self.OnNewHeadersSet
         self.sr.scroll.allowFilterColumns = 0
         if self.sr.Get('search_cont', None):
             self.sr.search_cont.state = uiconst.UI_HIDDEN
         if key == 'accounts':
-            key = 'offices'
+            key = FLAGNAME_OFFICES
             self.sr.tabs.AutoSelect()
             return
-        if key != 'search':
-            if not getattr(self, 'filt_inited', False):
-                sortKey = settings.char.ui.Get('corpAssetsSortKey', None)
-                self.sr.filt_cont = uiprimitives.Container(align=uiconst.TOTOP, height=37, parent=self, top=2, idx=1)
-                self.sr.sortcombo = uicontrols.Combo(label=localization.GetByLabel('UI/Common/SortBy'), parent=self.sr.filt_cont, options=[], name='sortcombo', select=sortKey, callback=self.Filter, width=100, pos=(5, 16, 0, 0))
-                l = self.sr.sortcombo.width + self.sr.sortcombo.left + const.defaultPadding
-                self.sr.filtcombo = uicontrols.Combo(label=localization.GetByLabel('UI/Common/View'), parent=self.sr.filt_cont, options=[], name='filtcombo', select=None, callback=self.Filter, width=100, pos=(l,
-                 16,
-                 0,
-                 0))
-                self.sr.filt_cont.height = self.sr.filtcombo.top + self.sr.filtcombo.height
-                self.filt_inited = 1
-            self.sr.filt_cont.state = uiconst.UI_PICKCHILDREN
-        elif self.sr.Get('filt_cont', None):
-            self.sr.filt_cont.state = uiconst.UI_HIDDEN
-        if key in 'lockdown':
-            uthread.new(self.ShowLockdown, None, None)
-        elif key == 'search':
-            self.sr.scroll.OnNewHeaders = self.Search
-            uthread.new(self.ShowSearch)
         else:
-            uthread.new(self.ShowAssets, key, None, None)
+            if key not in (KEYNAME_SEARCH, KEYNAME_SAFETY):
+                if not getattr(self, 'filt_inited', False):
+                    self.InitAssetFilters()
+                self.sr.filt_cont.state = uiconst.UI_PICKCHILDREN
+            elif self.sr.Get('filt_cont', None):
+                self.sr.filt_cont.state = uiconst.UI_HIDDEN
+            if key in (KEYNAME_LOCKDOWN,):
+                uthread.new(self.ShowLockdown, None, None)
+            elif key == KEYNAME_SEARCH:
+                self.sr.scroll.OnNewHeaders = self.Search
+                uthread.new(self.ShowSearch)
+            elif key == KEYNAME_SAFETY:
+                if self.safetyCont is None or self.safetyCont.destroyed:
+                    self.safetyCont = AssetSafetyCont(parent=self.safetyParent, padding=4, controller=SafetyControllerCorp())
+                self.safetyCont.display = True
+                self.safetyCont.Load()
+            else:
+                uthread.new(self.ShowAssets, key, None, None)
+            return
+
+    def InitAssetFilters(self):
+        sortKey = settings.char.ui.Get('corpAssetsSortKey', None)
+        self.sr.filt_cont = uiprimitives.Container(align=uiconst.TOTOP, height=37, parent=self, top=2, idx=1)
+        self.sr.sortcombo = uicontrols.Combo(label=localization.GetByLabel('UI/Common/SortBy'), parent=self.sr.filt_cont, options=[], name='sortcombo', select=sortKey, callback=self.Filter, width=100, pos=(5, 16, 0, 0))
+        l = self.sr.sortcombo.width + self.sr.sortcombo.left + const.defaultPadding
+        self.sr.filtcombo = uicontrols.Combo(label=localization.GetByLabel('UI/Common/View'), parent=self.sr.filt_cont, options=[], name='filtcombo', select=None, callback=self.Filter, width=100, pos=(l,
+         16,
+         0,
+         0))
+        self.sr.filt_cont.height = self.sr.filtcombo.top + self.sr.filtcombo.height
+        self.filt_inited = 1
+        return
 
     def UpdateSortOptions(self, currentlySelected, sortKey):
         sortOptions = [(localization.GetByLabel('UI/Common/Name'), 0), (localization.GetByLabel('UI/Common/NumberOfJumps'), 1)]
-        if currentlySelected == 'deliveries':
+        if currentlySelected == FLAGNAME_DELIVERIES:
             sortOptions.append((localization.GetByLabel('UI/Common/NumberOfItems'), 2))
         self.sr.sortcombo.LoadOptions(sortOptions, None)
         if sortKey is None:
@@ -135,7 +185,7 @@ class CorpAccounts(uiprimitives.Container):
     def Filter(self, *args):
         flagName, regionKey = self.sr.filtcombo.GetValue()
         sortKey = self.sr.sortcombo.GetValue()
-        if flagName == 'lockdown':
+        if flagName == KEYNAME_LOCKDOWN:
             self.ShowLockdown(sortKey, regionKey)
         else:
             self.ShowAssets(flagName, sortKey, regionKey)
@@ -152,14 +202,10 @@ class CorpAccounts(uiprimitives.Container):
         if regionKey is None:
             regionKey = settings.char.ui.Get('corpAssetsKeyID_%s' % flagName, 0)
         settings.char.ui.Set('corpAssetsKeyID_%s' % flagName, regionKey)
-        flag = {'offices': 71,
-         'impounded': 72,
-         'property': 74,
-         'deliveries': 75}[flagName]
-        which = {71: 'offices',
-         72: 'junk',
-         74: 'property',
-         75: 'deliveries'}[flag]
+        flag = FLAGNAME_TO_FLAG[flagName]
+        which = flagName
+        if flagName == FLAGNAME_IMPOUNDED:
+            which = FLAGNAME_JUNK
         rows = sm.RemoteSvc('corpmgr').GetAssetInventory(eve.session.corpid, which)
         options = self.GetFilterOptions(rows, flagName)
         try:
@@ -184,26 +230,28 @@ class CorpAccounts(uiprimitives.Container):
             self.SetHint(localization.GetByLabel('UI/Corporations/Assets/NeedAccountantOrJuniorRole'))
             sm.GetService('corpui').HideLoad()
             return
-        self.sr.scroll.allowFilterColumns = 1
-        data = []
-        scrolllist = []
-        for row in rows:
-            data.append(self.GetLocationData(row, flag, scrollID=self.sr.scroll.sr.id))
+        else:
+            self.sr.scroll.allowFilterColumns = 1
+            data = []
+            scrolllist = []
+            for row in rows:
+                data.append(self.GetLocationData(row, flag, scrollID=self.sr.scroll.sr.id))
 
-        data.sort(lambda x, y: cmp(x['label'], y['label']))
-        for row in data:
-            if regionKey == 1:
-                scrolllist.append(listentry.Get('Group', row))
-            elif regionKey == 0:
-                if row['regionID'] == eve.session.regionid:
+            data.sort(lambda x, y: cmp(x['label'], y['label']))
+            for row in data:
+                if regionKey == 1:
                     scrolllist.append(listentry.Get('Group', row))
-            elif row['regionID'] == regionKey:
-                scrolllist.append(listentry.Get('Group', row))
-            uicore.registry.SetListGroupOpenState(('corpassets', row['locationID']), 0)
+                elif regionKey == 0:
+                    if row['regionID'] == eve.session.regionid:
+                        scrolllist.append(listentry.Get('Group', row))
+                elif row['regionID'] == regionKey:
+                    scrolllist.append(listentry.Get('Group', row))
+                uicore.registry.SetListGroupOpenState(('corpassets', row['locationID']), 0)
 
-        scrolllist.sort(CmpFunc)
-        self.sr.scroll.Load(fixedEntryHeight=42, contentList=scrolllist, sortby='label', headers=uix.GetInvItemDefaultHeaders(), noContentHint=localization.GetByLabel('UI/Corporations/Assets/NoItemsFound'))
-        sm.GetService('corpui').HideLoad()
+            scrolllist.sort(CmpFunc)
+            self.sr.scroll.Load(fixedEntryHeight=42, contentList=scrolllist, sortby='label', headers=uix.GetInvItemDefaultHeaders(), noContentHint=localization.GetByLabel('UI/Corporations/Assets/NoItemsFound'))
+            sm.GetService('corpui').HideLoad()
+            return
 
     def GetFilterOptions(self, rows, flagName):
         filterOptions = self.GetRegions(rows, flagName)
@@ -225,7 +273,7 @@ class CorpAccounts(uiprimitives.Container):
         mapSvc = sm.GetService('map')
         regionIDs = []
         for row in rows:
-            if flagName == 'lockdown':
+            if flagName == KEYNAME_LOCKDOWN:
                 locationID = row
             else:
                 locationID = row.locationID
@@ -243,19 +291,15 @@ class CorpAccounts(uiprimitives.Container):
 
         return regionIDs
 
-    def GetLocationData(self, row, flag, scrollID = None):
+    def GetLocationData(self, row, flag, scrollID=None):
         jumps = -1
+        solarSystemID = row.solarsystemID
         try:
-            solarSystemID = sm.GetService('ui').GetStation(row.locationID).solarSystemID
-        except:
-            solarSystemID = row.locationID
-
-        try:
-            mapSvc = sm.GetService('map')
-            jumps = sm.GetService('clientPathfinderService').GetJumpCountFromCurrent(solarSystemID)
             locationName = localization.GetByLabel('UI/Common/LocationDynamic', location=row.locationID)
+            mapSvc = sm.GetService('map')
             constellationID = mapSvc.GetParent(solarSystemID)
             regionID = mapSvc.GetParent(constellationID)
+            jumps = sm.GetService('clientPathfinderService').GetJumpCountFromCurrent(solarSystemID)
             label = localization.GetByLabel('UI/Corporations/Assets/LocationAndJumps', location=row.locationID, jumps=jumps)
         except:
             log.LogException()
@@ -277,86 +321,115 @@ class CorpAccounts(uiprimitives.Container):
          'locationID': row.locationID,
          'showicon': 'hide',
          'MenuFunction': self.GetLocationMenu,
+         'solarSystemID': solarSystemID,
          'regionID': regionID,
-         'scrollID': scrollID}
+         'scrollID': scrollID,
+         'locationTypeID': getattr(row, 'typeID', None)}
         return data
 
+    def IsLocationStructure(self, node):
+        locationTypeID = node.locationTypeID
+        if not locationTypeID:
+            return False
+        categoryID = evetypes.GetCategoryID(locationTypeID)
+        return categoryID == const.categoryStructure
+
     def GetLocationMenu(self, node):
-        if util.IsStation(node.locationID):
-            stationInfo = sm.GetService('ui').GetStation(node.locationID)
-            menu = sm.GetService('menu').CelestialMenu(node.locationID, typeID=stationInfo.stationTypeID, parentID=stationInfo.solarSystemID)
-            if node.flag == 72:
-                checkIsDirector = const.corpRoleDirector == eve.session.corprole & const.corpRoleDirector
-                if checkIsDirector:
-                    menu.append((localization.GetByLabel('UI/Corporations/Assets/TrashItemsAtLocation'), self.TrashJunkAtLocation, (node.locationID,)))
+        locationID = node.locationID
+        if util.IsStation(locationID) or self.IsLocationStructure(node):
+            if util.IsStation(locationID):
+                stationInfo = sm.GetService('ui').GetStation(locationID)
+                typeID = stationInfo.stationTypeID
+            else:
+                typeID = node.locationTypeID
+            solarSystemID = node.solarSystemID
+            menu = sm.GetService('menu').CelestialMenu(locationID, typeID=typeID, parentID=solarSystemID)
+            checkIsDirector = self.IsDirector()
+            if checkIsDirector:
+                if node.flag == FLAG_JUNK:
+                    menu.append((MenuLabel('UI/Corporations/Assets/TrashItemsAtLocation'), self.TrashJunkAtLocation, (locationID,)))
+                if self.IsLocationStructure(node):
+                    if util.IsWormholeSystem(solarSystemID):
+                        label = MenuLabel('UI/Inventory/AssetSafety/MoveItemsToSpace')
+                    else:
+                        label = MenuLabel('UI/Inventory/AssetSafety/MoveItemsToSafety')
+                    menu.append((label, self.MoveItemsToSafety, (solarSystemID, locationID)))
             return menu
-        if util.IsSolarSystem(node.locationID):
-            return sm.GetService('menu').CelestialMenu(node.locationID)
+        if util.IsSolarSystem(locationID):
+            return sm.GetService('menu').CelestialMenu(locationID)
         return []
 
+    def IsDirector(self):
+        checkIsDirector = const.corpRoleDirector == session.corprole & const.corpRoleDirector
+        return checkIsDirector
+
     def TrashJunkAtLocation(self, locationID):
-        items = sm.RemoteSvc('corpmgr').GetAssetInventoryForLocation(eve.session.corpid, locationID, 'junk')
+        items = sm.RemoteSvc('corpmgr').GetAssetInventoryForLocation(eve.session.corpid, locationID, FLAGNAME_JUNK)
         sm.GetService('menu').TrashInvItems(items)
 
+    def MoveItemsToSafety(self, solarSystemID, structureID):
+        sm.GetService('assetSafety').MoveItemsInStructureToAssetSafetyForCorp(solarSystemID, structureID)
+
     def GetSubContent(self, nodedata, *args):
-        which = {71: 'offices',
-         72: 'junk',
-         74: 'property',
-         75: 'deliveries'}[nodedata.flag]
+        which = FLAG_TO_FLAGNAME[nodedata.flag]
         items = sm.RemoteSvc('corpmgr').GetAssetInventoryForLocation(eve.session.corpid, nodedata.locationID, which)
         scrolllist = []
         if len(items) == 0:
             label = localization.GetByLabel('/Carbon/UI/Controls/Common/NoItem')
-            if nodedata.flag == 71:
+            if nodedata.flag == FLAG_OFFICES:
                 label = localization.GetByLabel('UI/Corporations/Assets/UnusedCorpOffice')
             return [listentry.Get('Generic', {'label': label,
               'sublevel': nodedata.Get('sublevel', 0) + 1})]
-        items.header.virtual = items.header.virtual + [('groupID', lambda row: evetypes.GetGroupID(row.typeID)), ('categoryID', lambda row: evetypes.GetCategoryID(row.typeID))]
-        searchCondition = nodedata.Get('searchCondition', None)
-        if which == 'offices' and searchCondition is None:
-            divisionNames = sm.GetService('corp').GetDivisionNames()
-            divisionIdFromHangarFlag = {const.flagHangar: 1,
-             const.flagCorpSAG2: 2,
-             const.flagCorpSAG3: 3,
-             const.flagCorpSAG4: 4,
-             const.flagCorpSAG5: 5,
-             const.flagCorpSAG6: 6,
-             const.flagCorpSAG7: 7}
-            for flag, divisionNumber in divisionIdFromHangarFlag.iteritems():
-                label = divisionNames[divisionNumber]
-                data = {'GetSubContent': self.GetSubContentDivision,
-                 'label': label,
-                 'groupItems': None,
-                 'flag': flag,
-                 'id': ('corpofficeassets', (nodedata.locationID, flag)),
-                 'tabs': [],
-                 'state': 'locked',
-                 'locationID': nodedata.locationID,
-                 'showicon': 'hide',
-                 'sublevel': nodedata.Get('sublevel', 0) + 1,
-                 'viewMode': self.sr.viewMode,
-                 'scrollID': nodedata.scrollID}
-                scrolllist.append(listentry.Get('Group', data))
-                uicore.registry.SetListGroupOpenState(('corpofficeassets', (nodedata.locationID, flag)), 0)
-
         else:
-            if nodedata.flag in (71, 72):
-                sm.GetService('corp').GetLockedItemsByLocation(nodedata.locationID)
-            for each in items:
-                if searchCondition is not None:
-                    if searchCondition.typeID is not None and searchCondition.typeID != each.typeID or searchCondition.groupID is not None and searchCondition.groupID != each.groupID or searchCondition.categoryID is not None and searchCondition.categoryID != each.categoryID or searchCondition.qty > each.stacksize:
-                        continue
-                data = uix.GetItemData(each, self.sr.viewMode, viewOnly=1, scrollID=nodedata.scrollID)
-                data.id = each.itemID
-                data.remote = True
-                if nodedata.flag in (71, 72) and each.categoryID == const.categoryBlueprint:
-                    data.locked = sm.GetService('corp').IsItemLocked(each)
-                scrolllist.append(listentry.Get('InvItem', data=data))
+            items.header.virtual = items.header.virtual + [('groupID', lambda row: evetypes.GetGroupID(row.typeID)), ('categoryID', lambda row: evetypes.GetCategoryID(row.typeID))]
+            searchCondition = nodedata.Get('searchCondition', None)
+            if which == FLAGNAME_OFFICES and searchCondition is None:
+                divisionNames = sm.GetService('corp').GetDivisionNames()
+                if util.IsStation(nodedata.locationID):
+                    divisionIdFromHangarFlag = {const.flagHangar: 1}
+                else:
+                    divisionIdFromHangarFlag = {const.flagCorpSAG1: 1}
+                divisionIdFromHangarFlag.update({const.flagCorpSAG2: 2,
+                 const.flagCorpSAG3: 3,
+                 const.flagCorpSAG4: 4,
+                 const.flagCorpSAG5: 5,
+                 const.flagCorpSAG6: 6,
+                 const.flagCorpSAG7: 7})
+                for flag, divisionNumber in divisionIdFromHangarFlag.iteritems():
+                    label = divisionNames[divisionNumber]
+                    data = {'GetSubContent': self.GetSubContentDivision,
+                     'label': label,
+                     'groupItems': None,
+                     'flag': flag,
+                     'id': ('corpofficeassets', (nodedata.locationID, flag)),
+                     'tabs': [],
+                     'state': 'locked',
+                     'locationID': nodedata.locationID,
+                     'showicon': 'hide',
+                     'sublevel': nodedata.Get('sublevel', 0) + 1,
+                     'viewMode': self.sr.viewMode,
+                     'scrollID': nodedata.scrollID}
+                    scrolllist.append(listentry.Get('Group', data))
+                    uicore.registry.SetListGroupOpenState(('corpofficeassets', (nodedata.locationID, flag)), 0)
 
-        return scrolllist
+            else:
+                if nodedata.flag in (FLAG_OFFICES, FLAG_JUNK):
+                    sm.GetService('corp').GetLockedItemsByLocation(nodedata.locationID)
+                for each in items:
+                    if searchCondition is not None:
+                        if searchCondition.typeID is not None and searchCondition.typeID != each.typeID or searchCondition.groupID is not None and searchCondition.groupID != each.groupID or searchCondition.categoryID is not None and searchCondition.categoryID != each.categoryID or searchCondition.qty > each.stacksize:
+                            continue
+                    data = uix.GetItemData(each, self.sr.viewMode, viewOnly=1, scrollID=nodedata.scrollID)
+                    data.id = each.itemID
+                    data.remote = True
+                    if nodedata.flag in (FLAG_OFFICES, FLAG_JUNK) and each.categoryID == const.categoryBlueprint:
+                        data.locked = sm.GetService('corp').IsItemLocked(each)
+                    scrolllist.append(listentry.Get('InvItem', data=data))
+
+            return scrolllist
 
     def GetSubContentDivision(self, nodedata, *args):
-        items = sm.RemoteSvc('corpmgr').GetAssetInventoryForLocation(eve.session.corpid, nodedata.locationID, 'offices')
+        items = sm.RemoteSvc('corpmgr').GetAssetInventoryForLocation(eve.session.corpid, nodedata.locationID, FLAGNAME_OFFICES)
         scrolllist = []
         if len(items) == 0:
             label = localization.GetByLabel('UI/Corporations/Assets/UnusedCorpOffice')
@@ -365,7 +438,8 @@ class CorpAccounts(uiprimitives.Container):
             data.sublevel = nodedata.Get('sublevel', 1) + 1
             data.id = nodedata.flag
             return [listentry.Get('Generic', data=data)]
-        items.header.virtual = items.header.virtual + [('groupID', lambda row: evetypes.GetGroupID(row.typeID)), ('categoryID', lambda row: evetypes.GetCategoryID(row.typeID))]
+        if not set(['groupID', 'categoryID']) & {i[0] for i in items.header.virtual}:
+            items.header.virtual = items.header.virtual + [('groupID', lambda row: evetypes.GetGroupID(row.typeID)), ('categoryID', lambda row: evetypes.GetCategoryID(row.typeID))]
         sm.GetService('corp').GetLockedItemsByLocation(nodedata.locationID)
         for each in items:
             if each.flagID != nodedata.flag:
@@ -393,27 +467,29 @@ class CorpAccounts(uiprimitives.Container):
             self.sr.scroll.Clear()
             sm.GetService('corpui').HideLoad()
             return
-        keymap = sm.GetService('account').GetKeyMap()
-        scrolllist = []
-        for row in keymap:
-            label = '%s (%s - %s)' % (row.keyName.capitalize(), util.FmtDate(self.sr.journalFromDate, 'ls'), util.FmtDate(self.sr.journalToDate, 'ls'))
-            data = {'GetSubContent': self.GetJournalSubContent,
-             'label': label,
-             'groupItems': None,
-             'id': ('corpaccounts', row.keyName),
-             'tabs': [],
-             'state': 'locked',
-             'accountKey': row.keyID,
-             'showicon': 'hide',
-             'fromDate': self.sr.journalFromDate}
-            scrolllist.append(listentry.Get('Group', data))
+        else:
+            keymap = sm.GetService('account').GetKeyMap()
+            scrolllist = []
+            for row in keymap:
+                label = '%s (%s - %s)' % (row.keyName.capitalize(), util.FmtDate(self.sr.journalFromDate, 'ls'), util.FmtDate(self.sr.journalToDate, 'ls'))
+                data = {'GetSubContent': self.GetJournalSubContent,
+                 'label': label,
+                 'groupItems': None,
+                 'id': ('corpaccounts', row.keyName),
+                 'tabs': [],
+                 'state': 'locked',
+                 'accountKey': row.keyID,
+                 'showicon': 'hide',
+                 'fromDate': self.sr.journalFromDate}
+                scrolllist.append(listentry.Get('Group', data))
 
-        self.sr.scroll.Load(fixedEntryHeight=19, contentList=scrolllist, headers=[localization.GetByLabel('UI/Common/Date'),
-         localization.GetByLabel('UI/Common/ID'),
-         localization.GetByLabel('UI/Common/Amount'),
-         localization.GetByLabel('UI/Common/Description'),
-         localization.GetByLabel('UI/Common/Amount')])
-        sm.GetService('corpui').HideLoad()
+            self.sr.scroll.Load(fixedEntryHeight=19, contentList=scrolllist, headers=[localization.GetByLabel('UI/Common/Date'),
+             localization.GetByLabel('UI/Common/ID'),
+             localization.GetByLabel('UI/Common/Amount'),
+             localization.GetByLabel('UI/Common/Description'),
+             localization.GetByLabel('UI/Common/Amount')])
+            sm.GetService('corpui').HideLoad()
+            return
 
     def GetJournalSubContent(self, nodedata, *args):
         items = sm.GetService('account').GetJournal(nodedata.keyID, nodedata.fromDate, None, 1)
@@ -440,10 +516,11 @@ class CorpAccounts(uiprimitives.Container):
 
     def OnLockedItemChangeUI(self, itemID, ownerID, locationID, change):
         self.LogInfo(self.__class__.__name__, 'OnLockedItemChangeUI')
-        if self.sr.tabs.GetSelectedArgs() == 'lockdown':
+        if self.sr.tabs.GetSelectedArgs() == KEYNAME_LOCKDOWN:
             sortKey = settings.char.ui.Get('corpAssetsSortKey', None)
             regionKey = settings.char.ui.Get('corpAssetsKeyID_lockdown', 0)
             self.ShowLockdown(sortKey, regionKey)
+        return
 
     def ShowLockdown(self, sortKey, regionKey, *args):
         if self is not None and not self.destroyed:
@@ -461,79 +538,81 @@ class CorpAccounts(uiprimitives.Container):
             self.sr.scroll.Clear()
             sm.GetService('corpui').HideLoad()
             return
-        scrolllistTmp = []
-        self.sr.scroll.allowFilterColumns = 1
-        locationIDs = sm.GetService('corp').GetLockedItemLocations()
-        options = self.GetFilterOptions(locationIDs, 'lockdown')
-        try:
-            self.sr.filtcombo.LoadOptions(options, None)
-            if regionKey and regionKey not in (0, 1):
-                self.sr.filtcombo.SelectItemByLabel(cfg.evelocations.Get(regionKey).name)
-            else:
-                self.sr.filtcombo.SelectItemByIndex(regionKey)
-        except (Exception,) as e:
-            sys.exc_clear()
-
-        def CmpFunc(a, b):
-            if sortKey == 1:
-                return cmp(a.jumps, b.jumps)
-            else:
-                return cmp(a.label, b.label)
-
-        for locationID in locationIDs:
+        else:
+            scrolllistTmp = []
+            self.sr.scroll.allowFilterColumns = 1
+            locationIDs = sm.GetService('corp').GetLockedItemLocations()
+            options = self.GetFilterOptions(locationIDs, KEYNAME_LOCKDOWN)
             try:
-                solarSystemID = sm.GetService('ui').GetStation(locationID).solarSystemID
-            except:
-                solarSystemID = row.locationID
+                self.sr.filtcombo.LoadOptions(options, None)
+                if regionKey and regionKey not in (0, 1):
+                    self.sr.filtcombo.SelectItemByLabel(cfg.evelocations.Get(regionKey).name)
+                else:
+                    self.sr.filtcombo.SelectItemByIndex(regionKey)
+            except (Exception,) as e:
+                sys.exc_clear()
 
-            try:
-                mapSvc = sm.GetService('map')
-                jumps = sm.GetService('clientPathfinderService').GetJumpCountFromCurrent(solarSystemID)
-                locationName = localization.GetByLabel('UI/Common/LocationDynamic', location=locationID)
-                constellationID = mapSvc.GetParent(solarSystemID)
-                regionID = mapSvc.GetParent(constellationID)
-                label = localization.GetByLabel('UI/Corporations/Assets/LocationAndJumps', location=locationID, jumps=jumps)
-            except:
-                log.LogException()
-                label = locationName
+            def CmpFunc(a, b):
+                if sortKey == 1:
+                    return cmp(a.jumps, b.jumps)
+                else:
+                    return cmp(a.label, b.label)
 
-            data = {'label': label,
-             'jumps': jumps,
-             'GetSubContent': self.ShowLockdownSubcontent,
-             'locationID': locationID,
-             'regionID': regionID,
-             'groupItems': None,
-             'id': ('itemlocking', locationID),
-             'tabs': [],
-             'state': 'locked',
-             'showicon': 'hide',
-             'scrollID': self.sr.scroll.sr.id}
-            scrolllistTmp.append(listentry.Get('Group', data))
+            for locationID in locationIDs:
+                try:
+                    solarSystemID = sm.GetService('ui').GetStation(locationID).solarSystemID
+                except:
+                    solarSystemID = row.locationID
 
-        scrolllistTmp.sort(lambda x, y: cmp(x['label'], y['label']))
-        scrolllist = []
-        for row in scrolllistTmp:
-            if regionKey == 1:
-                scrolllist.append(listentry.Get('Group', row))
-            elif regionKey == 0:
-                if row['regionID'] == eve.session.regionid:
+                try:
+                    mapSvc = sm.GetService('map')
+                    jumps = sm.GetService('clientPathfinderService').GetJumpCountFromCurrent(solarSystemID)
+                    locationName = localization.GetByLabel('UI/Common/LocationDynamic', location=locationID)
+                    constellationID = mapSvc.GetParent(solarSystemID)
+                    regionID = mapSvc.GetParent(constellationID)
+                    label = localization.GetByLabel('UI/Corporations/Assets/LocationAndJumps', location=locationID, jumps=jumps)
+                except:
+                    log.LogException()
+                    label = locationName
+
+                data = {'label': label,
+                 'jumps': jumps,
+                 'GetSubContent': self.ShowLockdownSubcontent,
+                 'locationID': locationID,
+                 'regionID': regionID,
+                 'groupItems': None,
+                 'id': ('itemlocking', locationID),
+                 'tabs': [],
+                 'state': 'locked',
+                 'showicon': 'hide',
+                 'scrollID': self.sr.scroll.sr.id}
+                scrolllistTmp.append(listentry.Get('Group', data))
+
+            scrolllistTmp.sort(lambda x, y: cmp(x['label'], y['label']))
+            scrolllist = []
+            for row in scrolllistTmp:
+                if regionKey == 1:
                     scrolllist.append(listentry.Get('Group', row))
-            elif row['regionID'] == regionKey:
-                scrolllist.append(listentry.Get('Group', row))
-            uicore.registry.SetListGroupOpenState(('corpassets', row['locationID']), 0)
+                elif regionKey == 0:
+                    if row['regionID'] == eve.session.regionid:
+                        scrolllist.append(listentry.Get('Group', row))
+                elif row['regionID'] == regionKey:
+                    scrolllist.append(listentry.Get('Group', row))
+                uicore.registry.SetListGroupOpenState(('corpassets', row['locationID']), 0)
 
-        scrolllist.sort(CmpFunc)
-        self.sr.scroll.Load(fixedEntryHeight=19, contentList=scrolllist, headers=uix.GetInvItemDefaultHeaders(), noContentHint=localization.GetByLabel('UI/Corporations/Assets/NoItemsFound'))
-        sm.GetService('corpui').HideLoad()
+            scrolllist.sort(CmpFunc)
+            self.sr.scroll.Load(fixedEntryHeight=19, contentList=scrolllist, headers=uix.GetInvItemDefaultHeaders(), noContentHint=localization.GetByLabel('UI/Corporations/Assets/NoItemsFound'))
+            sm.GetService('corpui').HideLoad()
+            return
 
     def ShowLockdownSubcontent(self, nodedata, *args):
         scrolllist = []
         items = sm.GetService('corp').GetLockedItemsByLocation(nodedata.locationID)
         locationID = nodedata.locationID
-        offices = sm.GetService('corp').GetMyCorporationsOffices().SelectByUniqueColumnValues('stationID', [locationID])
+        offices = sm.GetService('corp').GetMyCorporationsOffices().SelectByUniqueColumnValues('locationID', [locationID])
         if offices and len(offices):
             for office in offices:
-                if locationID == office.stationID:
+                if locationID == office.locationID:
                     locationID = office.officeID
 
         header = ['itemID',
@@ -564,7 +643,7 @@ class CorpAccounts(uiprimitives.Container):
 
         return scrolllist
 
-    def SetHint(self, hintstr = None):
+    def SetHint(self, hintstr=None):
         if self.sr.scroll:
             self.sr.scroll.ShowHint(hintstr)
 
@@ -583,10 +662,10 @@ class CorpAccounts(uiprimitives.Container):
                 if c[2]:
                     catOptions.append((c[0], c[1]))
 
-            typeOptions = [(localization.GetByLabel('UI/Corporations/Common/Offices'), 'offices'),
-             (localization.GetByLabel('UI/Corporations/Assets/Impounded'), 'junk'),
-             (localization.GetByLabel('UI/Corporations/Assets/InSpace'), 'property'),
-             (localization.GetByLabel('UI/Corporations/Assets/Deliveries'), 'deliveries')]
+            typeOptions = [(localization.GetByLabel('UI/Corporations/Common/StationOffices'), FLAGNAME_OFFICES),
+             (localization.GetByLabel('UI/Corporations/Assets/Impounded'), FLAGNAME_JUNK),
+             (localization.GetByLabel('UI/Corporations/Assets/InSpace'), FLAGNAME_PROPERTY),
+             (localization.GetByLabel('UI/Corporations/Assets/StationDeliveries'), FLAGNAME_DELIVERIES)]
             left = 5
             top = 17
             self.sr.fltType = c = uicontrols.Combo(label=localization.GetByLabel('UI/Common/Where'), parent=search_cont, options=typeOptions, name='flt_type', select=settings.user.ui.Get('corp_assets_filter_type', None), callback=self.ComboChange, width=90, pos=(left,
@@ -618,12 +697,13 @@ class CorpAccounts(uiprimitives.Container):
         self.sr.search_cont.state = uiconst.UI_PICKCHILDREN
         self.sr.scroll.Load(fixedEntryHeight=42, contentList=[], sortby='label', headers=uix.GetInvItemDefaultHeaders()[:], noContentHint=localization.GetByLabel('UI/Corporations/Assets/NoItemsFound'))
         self.Search()
+        return
 
     def ComboChange(self, wnd, *args):
         if wnd.name == 'flt_category':
             self.PopulateGroupCombo()
 
-    def PopulateGroupCombo(self, isSel = False):
+    def PopulateGroupCombo(self, isSel=False):
         categoryID = self.sr.fltCategories.GetValue()
         groups = [(localization.GetByLabel('UI/Common/All'), None)]
         if categoryID:
@@ -636,95 +716,97 @@ class CorpAccounts(uiprimitives.Container):
         if isSel:
             sel = settings.user.ui.Get('contracts_filter_groups', None)
         self.sr.fltGroups.LoadOptions(groups, sel)
+        return
 
     def ParseItemType(self, wnd, *args):
         if self.destroyed:
             return
-        if not hasattr(self, 'parsingItemType'):
-            self.parsingItemType = None
-        typeID = DoParseItemType(wnd, self.parsingItemType)
-        if typeID:
-            self.parsingItemType = evetypes.GetName(typeID)
-        return typeID
+        else:
+            if not hasattr(self, 'parsingItemType'):
+                self.parsingItemType = None
+            typeID = DoParseItemType(wnd, self.parsingItemType)
+            if typeID:
+                self.parsingItemType = evetypes.GetName(typeID)
+            return typeID
 
     def Search(self, *args):
         if self is None or self.destroyed:
             return
-        sm.GetService('corpui').ShowLoad()
-        self.sr.scroll.Load(fixedEntryHeight=42, contentList=[], sortby='label', headers=uix.GetInvItemDefaultHeaders()[:])
-        self.SetHint(localization.GetByLabel('UI/Common/Searching'))
-        scrolllist = []
-        try:
-            itemTypeID = None
-            itemCategoryID = None
-            itemGroupID = None
-            txt = self.sr.fltItemType.GetValue()
-            if txt != '':
-                for t in sm.GetService('contracts').GetMarketTypes():
-                    if txt == t.typeName:
-                        itemTypeID = t.typeID
-                        break
-
-                if not itemTypeID:
-                    itemTypeID = self.ParseItemType(self.sr.fltItemType)
-            txt = self.sr.fltGroups.GetValue()
-            txtc = self.sr.fltCategories.GetValue()
-            if txt and int(txt) > 0:
-                itemGroupID = int(txt)
-            elif txtc and int(txtc) > 0:
-                itemCategoryID = int(txtc)
-            qty = self.sr.fltQuantity.GetValue() or None
+        else:
+            sm.GetService('corpui').ShowLoad()
+            self.sr.scroll.Load(fixedEntryHeight=42, contentList=[], sortby='label', headers=uix.GetInvItemDefaultHeaders()[:])
+            self.SetHint(localization.GetByLabel('UI/Common/Searching'))
+            scrolllist = []
             try:
-                qty = int(qty)
-                if qty < 0:
-                    qty = 0
-            except:
-                qty = None
+                itemTypeID = None
+                itemCategoryID = None
+                itemGroupID = None
+                txt = self.sr.fltItemType.GetValue()
+                if txt != '':
+                    for t in sm.GetService('contracts').GetMarketTypes():
+                        if txt == t.typeName:
+                            itemTypeID = t.typeID
+                            break
 
-            which = self.sr.fltType.GetValue() or None
-            settings.user.ui.Set('corp_assets_filter_type', which)
-            settings.user.ui.Set('corp_assets_filter_categories', itemCategoryID)
-            settings.user.ui.Set('corp_assets_filter_groups', itemGroupID)
-            settings.user.ui.Set('corp_assets_filter_itemtype', self.sr.fltItemType.GetValue())
-            settings.user.ui.Set('corp_assets_filter_quantity', qty)
-            rows = sm.RemoteSvc('corpmgr').SearchAssets(which, itemCategoryID, itemGroupID, itemTypeID, qty)
-            searchCond = util.KeyVal(categoryID=itemCategoryID, groupID=itemGroupID, typeID=itemTypeID, qty=qty)
-            flag = {'offices': 71,
-             'junk': 72,
-             'property': 74,
-             'deliveries': 75}[which]
-            self.SetHint(None)
-            self.sr.scroll.allowFilterColumns = 1
-            for row in rows:
-                jumps = -1
+                    if not itemTypeID:
+                        itemTypeID = self.ParseItemType(self.sr.fltItemType)
+                txt = self.sr.fltGroups.GetValue()
+                txtc = self.sr.fltCategories.GetValue()
+                if txt and int(txt) > 0:
+                    itemGroupID = int(txt)
+                elif txtc and int(txtc) > 0:
+                    itemCategoryID = int(txtc)
+                qty = self.sr.fltQuantity.GetValue() or None
                 try:
-                    solarSystemID = sm.GetService('ui').GetStation(row.locationID).solarSystemID
+                    qty = int(qty)
+                    if qty < 0:
+                        qty = 0
                 except:
-                    solarSystemID = row.locationID
+                    qty = None
 
-                try:
-                    jumps = sm.GetService('clientPathfinderService').GetJumpCountFromCurrent(solarSystemID)
-                    locationName = cfg.evelocations.Get(row.locationID).locationName
-                    label = localization.GetByLabel('UI/Corporations/Assets/LocationAndJumps', location=row.locationID, jumps=jumps)
-                except:
-                    log.LogException()
-                    label = locationName
+                which = self.sr.fltType.GetValue() or None
+                settings.user.ui.Set('corp_assets_filter_type', which)
+                settings.user.ui.Set('corp_assets_filter_categories', itemCategoryID)
+                settings.user.ui.Set('corp_assets_filter_groups', itemGroupID)
+                settings.user.ui.Set('corp_assets_filter_itemtype', self.sr.fltItemType.GetValue())
+                settings.user.ui.Set('corp_assets_filter_quantity', qty)
+                rows = sm.RemoteSvc('corpmgr').SearchAssets(which, itemCategoryID, itemGroupID, itemTypeID, qty)
+                searchCond = util.KeyVal(categoryID=itemCategoryID, groupID=itemGroupID, typeID=itemTypeID, qty=qty)
+                flag = FLAGNAME_TO_FLAG[which]
+                self.SetHint(None)
+                self.sr.scroll.allowFilterColumns = 1
+                for row in rows:
+                    jumps = -1
+                    try:
+                        solarSystemID = sm.GetService('ui').GetStation(row.locationID).solarSystemID
+                    except:
+                        solarSystemID = row.locationID
 
-                data = {'GetSubContent': self.GetSubContent,
-                 'label': label,
-                 'groupItems': None,
-                 'flag': flag,
-                 'id': ('corpassets', row.locationID),
-                 'tabs': [],
-                 'state': 'locked',
-                 'locationID': row.locationID,
-                 'showicon': 'hide',
-                 'MenuFunction': self.GetLocationMenu,
-                 'searchCondition': searchCond,
-                 'scrollID': self.sr.scroll.sr.id}
-                scrolllist.append(listentry.Get('Group', data))
-                uicore.registry.SetListGroupOpenState(('corpassets', row.locationID), 0)
+                    try:
+                        jumps = sm.GetService('clientPathfinderService').GetJumpCountFromCurrent(solarSystemID)
+                        locationName = cfg.evelocations.Get(row.locationID).locationName
+                        label = localization.GetByLabel('UI/Corporations/Assets/LocationAndJumps', location=row.locationID, jumps=jumps)
+                    except:
+                        log.LogException()
+                        label = locationName
 
-            self.sr.scroll.Load(fixedEntryHeight=42, contentList=scrolllist, sortby='label', headers=uix.GetInvItemDefaultHeaders(), noContentHint=localization.GetByLabel('UI/Corporations/Assets/NoItemsFound'))
-        finally:
-            sm.GetService('corpui').HideLoad()
+                    data = {'GetSubContent': self.GetSubContent,
+                     'label': label,
+                     'groupItems': None,
+                     'flag': flag,
+                     'id': ('corpassets', row.locationID),
+                     'tabs': [],
+                     'state': 'locked',
+                     'locationID': row.locationID,
+                     'showicon': 'hide',
+                     'MenuFunction': self.GetLocationMenu,
+                     'searchCondition': searchCond,
+                     'scrollID': self.sr.scroll.sr.id}
+                    scrolllist.append(listentry.Get('Group', data))
+                    uicore.registry.SetListGroupOpenState(('corpassets', row.locationID), 0)
+
+                self.sr.scroll.Load(fixedEntryHeight=42, contentList=scrolllist, sortby='label', headers=uix.GetInvItemDefaultHeaders(), noContentHint=localization.GetByLabel('UI/Corporations/Assets/NoItemsFound'))
+            finally:
+                sm.GetService('corpui').HideLoad()
+
+            return

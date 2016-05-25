@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\client\script\ui\inflight\overviewConst.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\client\script\ui\inflight\overviewConst.py
 HTML_ENTITIES = '&gt;|&lt;|&amp;|&GT;|&LT;|&AMP;'
 HTML_ENTITY_REPLACEMENTS = {'&gt;': u'>',
  '&lt;': u'<',
@@ -52,7 +53,4 @@ FMT_M = None
 FMT_KM = None
 FMT_AU = None
 FMT_VELOCITY = None
-global FMT_AU ## Warning: Unused global
-global FMT_M ## Warning: Unused global
-global FMT_KM ## Warning: Unused global
-global FMT_VELOCITY ## Warning: Unused global
+# global FMT_AU ## Warning: Unused global# global FMT_M ## Warning: Unused global# global FMT_KM ## Warning: Unused global# global FMT_VELOCITY ## Warning: Unused global

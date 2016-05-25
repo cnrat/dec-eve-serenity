@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\devtools\script\insider.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\devtools\script\insider.py
 import math
 from achievements.client.achievementWindow import AchievementWindow
 from eve.devtools.script.cameraTool import CameraTool
@@ -87,8 +88,8 @@ class InsiderWnd(uicontrols.Window):
 
 
 class InsiderService(service.Service):
+    """Insider v2.0"""
     __module__ = __name__
-    __doc__ = 'Insider v2.0'
     __exportedcalls__ = {'Show': [],
      'WarpTo': [service.ROLE_IGB],
      'TravelTo': [service.ROLE_IGB]}
@@ -106,7 +107,7 @@ class InsiderService(service.Service):
         for entry in containers:
             self.HealRemove(entry)
 
-    def HealRemove(self, type, group = True):
+    def HealRemove(self, type, group=True):
         targets = []
         bp = sm.GetService('michelle').GetBallpark()
         if bp:
@@ -166,6 +167,7 @@ class InsiderService(service.Service):
             mv.top = min(uicore.desktop.width - mv.height, y)
         mv.left = min(uicore.desktop.width - mv.width, x)
         uicore.layer.menu.children.insert(0, mv)
+        return
 
     def TravelTo(self, destination, *args):
         try:
@@ -194,7 +196,7 @@ class InsiderService(service.Service):
 
             sys.exc_clear()
 
-    def RegionBunkerTest(self, positive = True, faction = 'All', *args):
+    def RegionBunkerTest(self, positive=True, faction='All', *args):
         amarr = [10000036, 10000038]
         caldari = [10000033, 10000069]
         gallente = [10000064, 10000068, 10000048]
@@ -309,7 +311,7 @@ class InsiderService(service.Service):
         except:
             sys.exc_clear()
 
-    def EntitySpawn(self, label = None, chosenGroup = None, *args):
+    def EntitySpawn(self, label=None, chosenGroup=None, *args):
         entityDict = {}
         lootEntities = []
         respawnEntities = []
@@ -460,7 +462,7 @@ class InsiderService(service.Service):
         except:
             sys.exc_clear()
 
-    def RegionGateTest(self, constellation = None, *args):
+    def RegionGateTest(self, constellation=None, *args):
 
         def Populate(areaOfInterest):
             data = {}
@@ -681,7 +683,7 @@ class InsiderService(service.Service):
 
         Progress('Mapping Complete!', 'Done!', 1, 1)
 
-    def RegionBeltTest(self, constellation = None, *args):
+    def RegionBeltTest(self, constellation=None, *args):
 
         def Populate(areaOfInterest):
             systems = []
@@ -818,6 +820,7 @@ class InsiderService(service.Service):
         log.LogError('FINISHED V3 testing...')
         log.LogError('DETECTED at least ' + str(errorCount) + ' problems!')
         myShip.model.display = True
+        return
 
     def CycleNebulas(self, *args):
         CycleNebulaPanel(parent=uicore.layer.main, name='CycleNebulaPanel', caption='Cycle Nebulas')
@@ -829,6 +832,7 @@ class InsiderService(service.Service):
             scriptPath = dlgRes.Get('files')[0]
             log.LogWarn('script: ' + str(scriptPath))
             uthread.new(self._V3TestingLoop, str(scriptPath))
+        return
 
     def Automated(self, *args):
         fw = []
@@ -902,30 +906,30 @@ class InsiderService(service.Service):
                     allIDs.append(id)
 
         for displayName, idList in entityByGroup.iteritems():
-            spawnMenu.append((displayName, lambda label = displayName, ids = idList: self.EntitySpawn(label, ids)))
+            spawnMenu.append((displayName, lambda label=displayName, ids=idList: self.EntitySpawn(label, ids)))
 
         spawnMenu.sort()
         spawnMenu.append(None)
-        spawnMenu.append(('No loot entities', lambda label = 'noloot', ids = noLootEntities: self.EntitySpawn(label, ids)))
+        spawnMenu.append(('No loot entities', lambda label='noloot', ids=noLootEntities: self.EntitySpawn(label, ids)))
         spawnMenu.append(None)
-        spawnMenu.append(('<color=0xffff8080>All', lambda label = 'All', ids = allIDs: self.EntitySpawn(label, ids)))
+        spawnMenu.append(('<color=0xffff8080>All', lambda label='All', ids=allIDs: self.EntitySpawn(label, ids)))
         beltMenu = []
         constellationInRegion = cfg.mapRegionCache[session.regionid].constellationIDs
         for constellationID in constellationInRegion:
             label = cfg.evelocations.Get(constellationID).name
-            beltMenu.append((label, lambda ids = constellationID: self.RegionBeltTest(ids)))
+            beltMenu.append((label, lambda ids=constellationID: self.RegionBeltTest(ids)))
 
         beltMenu.sort()
         beltMenu.append(None)
-        beltMenu.append(('<color=0xffff8080>All', lambda ids = constellationInRegion: self.RegionBeltTest(ids)))
+        beltMenu.append(('<color=0xffff8080>All', lambda ids=constellationInRegion: self.RegionBeltTest(ids)))
         gateMenu = []
         for constellationID in constellationInRegion:
             label = cfg.evelocations.Get(constellationID).name
-            gateMenu.append((label, lambda ids = constellationID: self.RegionGateTest(ids)))
+            gateMenu.append((label, lambda ids=constellationID: self.RegionGateTest(ids)))
 
         gateMenu.sort()
         gateMenu.append(None)
-        gateMenu.append(('<color=0xffff8080>All', lambda ids = constellationInRegion: self.RegionGateTest(ids)))
+        gateMenu.append(('<color=0xffff8080>All', lambda ids=constellationInRegion: self.RegionGateTest(ids)))
         (fw.append(('FW Bunker Locations', [('Amarr - Positive', lambda : self.RegionBunkerTest(True, 'Amarr')),
            ('Amarr - Negative', lambda : self.RegionBunkerTest(False, 'Amarr')),
            None,
@@ -1019,6 +1023,7 @@ class InsiderService(service.Service):
 
         if debugRenderJob:
             trinity.renderJobs.recurring.remove(debugRenderJob)
+        return
 
     def CreateDebugRenderer(self):
         job = getattr(self, 'DebugRenderJob', None)
@@ -1034,6 +1039,7 @@ class InsiderService(service.Service):
             sm.services['sceneManager'].incarnaRenderJob.AddStep('RENDER_INFO', trinity.TriStepRunJob(render_job))
             GameWorld.SetDebugRenderer(dr)
             setattr(self, 'DebugRenderJob', True)
+        return
 
     def IncarnaMenu(self, *args):
         m = []
@@ -1146,6 +1152,7 @@ class InsiderService(service.Service):
                 sm.GetService('debugRenderClient').SetDebugRendering(True)
             else:
                 testThreadWeakRef().kill()
+            return
 
         def _MaterialCheckLoop():
             namesByID = {}
@@ -1182,6 +1189,8 @@ class InsiderService(service.Service):
                         playerEntity.audioEmitter.emitter.SetSwitch(u'Materials', u'Invalid')
                         playerEntity.audioEmitter.emitter.SendEvent(u'footfall_loud_play')
                 blue.synchro.SleepWallclock(500)
+
+            return
 
         graphicsEntries.append(('Toggle Material Check', ToggleMaterialCheck))
 
@@ -1239,6 +1248,7 @@ class InsiderService(service.Service):
                 player.animation.controller.animationNetwork = None
                 player.movement.avatar.animation = None
                 player.game.GetAnimObject().animController = None
+            return
 
         movementItems.append(('Toggle Animation Driven Movement', ToggleADM))
 
@@ -1247,6 +1257,7 @@ class InsiderService(service.Service):
             if getattr(self, 'liveLinkRef', None) is None:
                 self.liveLinkRef = GameWorld.LiveLinkManager()
                 self.liveLinkRef.InitLiveLinkManager()
+            return
 
         def ConnectTargetToLiveLink():
             InitializeLiveLink()
@@ -1255,6 +1266,7 @@ class InsiderService(service.Service):
                 network = ent.animation.controller.animationNetwork
                 self.liveLinkRef.AddNetDef(network)
                 self.liveLinkRef.AddNetwork(network, ent.info.name)
+            return
 
         movementItems.append(('Add To LiveLink', ConnectTargetToLiveLink))
 
@@ -1350,17 +1362,15 @@ class InsiderService(service.Service):
         visualizations.append(('Spawn 31 characters', lambda : SpawnCharacters(31)))
         return visualizations
 
-    def ToggleCameraIdleMovement(self):
-        sceneManager = sm.services.get('sceneManager', None)
-        if sceneManager:
-            camera = sceneManager.GetRegisteredCamera(evecamera.CAM_HANGAR) or sceneManager.GetRegisteredCamera(evecamera.CAM_SPACE_PRIMARY)
-            if camera:
-                camera.idleMove = not camera.idleMove
-
     def QAMenu(self, *args):
         m = []
         m.append(('Automated Tasks', self.Automated()))
         m.append(None)
+
+        def ToggleCapitalHangar():
+            import eve.client.script.ui.view.hangarView as hv
+            hv.USE_CITADEL_HANGAR = not hv.USE_CITADEL_HANGAR
+            sm.GetService('viewState').ActivateView('hangar')
 
         def GetAsteroidEnvToggler(settingsKey, flag):
 
@@ -1387,6 +1397,16 @@ class InsiderService(service.Service):
             else:
                 params[idx] = (name, (1,) + val[1:])
             scene.backgroundEffect.RebuildCachedData()
+            return None
+
+        def ToggleSphericalRange():
+            from evegraphics.ui.lineController import LineController
+            gi = LineController.GetGlobalInstance()
+            gi._debugShowSpheredNavRange = not gi._debugShowSpheredNavRange
+
+        def ToggleNewOverlay(enable):
+            tactical = sm.GetService('tactical')
+            tactical.ToggleNewTacticalOverlay(enable)
 
         m.append(('Graphics', [('V3 testing', lambda : self.V3Testing()),
           ('Cycle nebulas', lambda : self.CycleNebulas()),
@@ -1397,6 +1417,7 @@ class InsiderService(service.Service):
           ('Warp Effect Debug', gfxreports.ShowWarpEffectReport),
           ('Flight Controls Debug', sm.GetService('flightControls').simulation.ToggleDebug),
           ('Toggle Background Dithering', ToggleBackgroundDithering),
+          ('TacticalOverlay2', (('Enable', lambda : ToggleNewOverlay(True)), ('Disable', lambda : ToggleNewOverlay(False)))),
           ('Asteroid Environment', (('Enable Environment', GetAsteroidEnvToggler(gfxsettings.UI_ASTEROID_ATMOSPHERICS, True)),
             ('Disable Environment', GetAsteroidEnvToggler(gfxsettings.UI_ASTEROID_ATMOSPHERICS, False)),
             ('Enable Godrays', GetAsteroidEnvToggler(gfxsettings.UI_ASTEROID_GODRAYS, True)),
@@ -1407,6 +1428,9 @@ class InsiderService(service.Service):
             ('Disable Fog', GetAsteroidEnvToggler(gfxsettings.UI_ASTEROID_FOG, False)),
             ('Enable Rock Particles', GetAsteroidEnvToggler(gfxsettings.UI_ASTEROID_PARTICLES, True)),
             ('Disable Rock Particles', GetAsteroidEnvToggler(gfxsettings.UI_ASTEROID_PARTICLES, False)))),
+          ('Hangar', (('Toggle Capital Hangars', ToggleCapitalHangar),)),
+          None,
+          ('Tactical Navigation', (('Toggle Spherical Range', ToggleSphericalRange),)),
           None,
           ('Managed RT Report', gfxreports.ShowManagedRTReport),
           ('Blue Resources', gfxreports.ShowBlueResourceReport),
@@ -1425,12 +1449,13 @@ class InsiderService(service.Service):
         m.append(None)
         m.append(('Store', [('Clear cache', lambda : sm.GetService('vgsService').ClearCache())]))
         m.append(None)
-        m.append(('Camera', [('Toggle Camera Idle Movement', self.ToggleCameraIdleMovement)]))
+        m.append(('Camera', [('Debug Camera', lambda : CameraTool.Open())]))
         m.append(None)
         m.append(('Open Impact window', impactVisualization.ImpactVisualizer().ShowUI))
         m.append(None)
         m.append(('Auto Bot', AutoBotWindow.Open))
         self.MakeMenu(m, 'QA_Btn')
+        return
 
     def GetEncounterMenu(self, *args):
         m = []
@@ -1452,6 +1477,7 @@ class InsiderService(service.Service):
                 m.append(None)
 
         self.MakeMenu(m, 'Implants_Btn')
+        return
 
     def DroneMenu(self, *args):
         m = []
@@ -1466,6 +1492,7 @@ class InsiderService(service.Service):
                     m.append(None)
 
         self.MakeMenu(m, 'Drones_Btn')
+        return
 
     def ChargeMenu(self, *args):
         m = []
@@ -1482,6 +1509,7 @@ class InsiderService(service.Service):
                 m.append(None)
 
         self.MakeMenu(m, 'Charges_Btn')
+        return
 
     def ToggleMyShip(self):
         ship = sm.GetService('michelle').GetBall(session.shipid)
@@ -1492,35 +1520,37 @@ class InsiderService(service.Service):
         shipmenu = sm.StartService('copycat').GetMenu_Ship()
         if shipmenu is None:
             return
-        shipmenu += [None, ('Show/Hide My Ship', self.ToggleMyShip)]
-        menu = []
-        submenu = []
-        for menuentry in shipmenu:
-            if isinstance(menuentry, types.TupleType):
-                if len(menuentry) == 2:
-                    display, func = menuentry
-                    if isinstance(func, types.TupleType):
-                        subFunc = func[1]()
-                        for entry in subFunc:
-                            if isinstance(entry, types.TupleType):
-                                submenu.append((entry, None))
-                                submenu.append(None)
-                            elif isinstance(entry, types.DictType):
-                                submenu.append((entry['label'], entry['action'], entry['args']))
+        else:
+            shipmenu += [None, ('Show/Hide My Ship', self.ToggleMyShip)]
+            menu = []
+            submenu = []
+            for menuentry in shipmenu:
+                if isinstance(menuentry, types.TupleType):
+                    if len(menuentry) == 2:
+                        display, func = menuentry
+                        if isinstance(func, types.TupleType):
+                            subFunc = func[1]()
+                            for entry in subFunc:
+                                if isinstance(entry, types.TupleType):
+                                    submenu.append((entry, None))
+                                    submenu.append(None)
+                                elif isinstance(entry, types.DictType):
+                                    submenu.append((entry['label'], entry['action'], entry['args']))
 
-                        if len(submenu) == 0:
-                            submenu = [('Nothing found', None)]
-                        menu.append((display, submenu))
-                        submenu = []
-                    else:
-                        menu.append((display, func))
-                elif len(menuentry) == 3:
-                    display, func, args = menuentry
-                    menu.append((display, func, args))
-            elif isinstance(menuentry, types.NoneType):
-                menu.append(None)
+                            if len(submenu) == 0:
+                                submenu = [('Nothing found', None)]
+                            menu.append((display, submenu))
+                            submenu = []
+                        else:
+                            menu.append((display, func))
+                    elif len(menuentry) == 3:
+                        display, func, args = menuentry
+                        menu.append((display, func, args))
+                elif isinstance(menuentry, types.NoneType):
+                    menu.append(None)
 
-        self.MakeMenu(menu, 'Ship_Btn')
+            self.MakeMenu(menu, 'Ship_Btn')
+            return
 
     def MacroMenu(self, *args):
         m = []
@@ -1551,10 +1581,8 @@ class InsiderService(service.Service):
         toolMenu.append(('Text style test', lambda : uicls.LoadFlagTester.Open()))
         toolMenu.append(('Scaling    ', lambda : form.UIScaling.Open()))
         toolMenu.append(('Opportunities   ', lambda : AchievementWindow.Open()))
-        toolMenu.append(('Camera Tool', lambda : CameraTool.Open()))
         toolMenu.append(None)
         toolMenu.append(('Toggle Black Background', self.ToggleBlackBackground))
-        toolMenu.append(('Toggle Camera Wobble', self.ToggleCameraWobble))
         toolMenu.append(('Reload UI textures', self.ReloadUITextures))
         toolMenu.append(('Reload UI Pixel Shader', self.ReloadUIShader))
         toolMenu.append(None)
@@ -1562,6 +1590,7 @@ class InsiderService(service.Service):
         toolMenu.append(('Reload FSD localization pickles', self.ReloadFSDLocalizationPickles))
         toolMenu.append(('Rebuild FSD localization pickles', self.RebuildFSDLocalizationPickles))
         self.MakeMenu(toolMenu, 'UI_Btn')
+        return
 
     def OpenLocalizationWindow(self):
         if blue.pyos.packaged:
@@ -1618,10 +1647,6 @@ class InsiderService(service.Service):
         else:
             color = util.Color.FUCHSIA if uicore.uilib.Key(uiconst.VK_SHIFT) else util.Color.BLACK
             c = uiprimitives.Fill(name='colorFill', parent=uicore.desktop, color=color)
-
-    def ToggleCameraWobble(self):
-        camera = sm.GetService('sceneManager').GetRegisteredCamera(evecamera.CAM_SPACE_PRIMARY)
-        camera.idleMove = not camera.idleMove
 
     def ToolMenu(self, *args):
 
@@ -1690,11 +1715,11 @@ class InsiderService(service.Service):
             toolMenu.append(('Turn FPS Monitor ON', trinity.SetFpsEnabled, (True,)))
         toolMenu.append(('Engine tools', lambda : EngineToolsLauncher.Open()))
         toolMenu.append(('Report Bug', lambda : sm.GetService('bugReporting').StartCreateBugReport()))
-        toolMenu.append(('Get camera distance', lambda : self.GetDistanceFromCamera()))
         toolMenu.append(('Tutorial videos override', lambda : self.TutorialVideosOverride()))
         toolMenu.append(None)
         toolMenu += self.ExpoMenu()
         self.MakeMenu(toolMenu, 'Tools_Btn')
+        return
 
     def TutorialVideosOverride(self):
         import eve.client.script.ui.shared.neocom.help as help
@@ -1702,6 +1727,7 @@ class InsiderService(service.Service):
         path = uix.GetFileDialog(selectionType=uix.SEL_FOLDERS)
         if path is not None:
             help.TUTORIAL_VIDEOS_INDEX = VideoIndex(os.path.join(path.folders[0], 'index.json'))
+        return
 
     def CreateDefect(self, *args):
         sm.GetService('bugReporting').StartCreateBugReport()
@@ -1718,56 +1744,49 @@ class InsiderService(service.Service):
         form.InsiderWnd.CloseIfOpen()
         self.Show(force=True)
 
-    def Show(self, show = True, force = False):
+    def Show(self, show=True, force=False):
         if not session.role & service.ROLEMASK_ELEVATEDPLAYER:
             return
-        INSIDERDIR = self.GetInsiderDir()
-        if not os.path.exists(INSIDERDIR):
-            os.mkdir(INSIDERDIR)
-        form.InsiderWnd.CloseIfOpen()
-        if not show:
+        else:
+            INSIDERDIR = self.GetInsiderDir()
+            if not os.path.exists(INSIDERDIR):
+                os.mkdir(INSIDERDIR)
+            form.InsiderWnd.CloseIfOpen()
+            if not show:
+                return
+            settings.public.ui.Set('Insider', show)
+            btn = []
+            menus = [['Tools', self.ToolMenu, service.ROLEMASK_ELEVATEDPLAYER],
+             ['Macro', self.MacroMenu, service.ROLE_GML],
+             ['Ship', self.ShipMenu, service.ROLEMASK_ELEVATEDPLAYER],
+             ['Charges', self.ChargeMenu, service.ROLE_GML],
+             ['Drones', self.DroneMenu, service.ROLE_GML],
+             ['Implants', self.ImplantsMenu, service.ROLE_GML],
+             ['QA', self.QAMenu, service.ROLE_QA],
+             ['Incarna', self.IncarnaMenu, service.ROLE_QA],
+             ['UI', self.UIMenu, service.ROLEMASK_ELEVATEDPLAYER],
+             ['Defect', self.CreateDefect, service.ROLE_GML]]
+            for label, func, role in menus:
+                if session.role & role:
+                    btn.append([label,
+                     func,
+                     None,
+                     None])
+
+            wnd = form.InsiderWnd.Open()
+            if wnd:
+                btn = uicontrols.ButtonGroup(btns=btn, parent=wnd.sr.main, line=0, unisize=1, align=uiconst.CENTER)
             return
-        settings.public.ui.Set('Insider', show)
-        btn = []
-        menus = [['Tools', self.ToolMenu, service.ROLEMASK_ELEVATEDPLAYER],
-         ['Macro', self.MacroMenu, service.ROLE_GML],
-         ['Ship', self.ShipMenu, service.ROLEMASK_ELEVATEDPLAYER],
-         ['Charges', self.ChargeMenu, service.ROLE_GML],
-         ['Drones', self.DroneMenu, service.ROLE_GML],
-         ['Implants', self.ImplantsMenu, service.ROLE_GML],
-         ['QA', self.QAMenu, service.ROLE_QA],
-         ['Incarna', self.IncarnaMenu, service.ROLE_QA],
-         ['UI', self.UIMenu, service.ROLEMASK_ELEVATEDPLAYER],
-         ['Defect', self.CreateDefect, service.ROLE_GML]]
-        for label, func, role in menus:
-            if session.role & role:
-                btn.append([label,
-                 func,
-                 None,
-                 None])
 
-        wnd = form.InsiderWnd.Open()
-        if wnd:
-            btn = uicontrols.ButtonGroup(btns=btn, parent=wnd.sr.main, line=0, unisize=1, align=uiconst.CENTER)
-
-    def Toggle(self, forceShow = False, *args):
+    def Toggle(self, forceShow=False, *args):
         if settings.public.ui.Get('Insider', False):
             self.Hide()
         else:
             self.Show(force=forceShow)
 
-    def WarpTo(self, itemID = None):
+    def WarpTo(self, itemID=None):
         if itemID:
             sm.GetService('slash').SlashCmd('warpto %d' % itemID)
-
-    def GetDistanceFromCamera(self):
-        registeredCamera = sm.GetService('sceneManager').GetRegisteredCamera(evecamera.CAM_SPACE_PRIMARY)
-        cameraPosition = registeredCamera.pos
-        interestPosition = registeredCamera.parent.translation
-        distance = math.sqrt(pow(cameraPosition.x - interestPosition.x, 2) + pow(cameraPosition.y - interestPosition.y, 2) + pow(cameraPosition.z - interestPosition.z, 2))
-        distance = math.trunc(distance)
-        distance = '{:,}'.format(distance)
-        uicore.Message('CustomInfo', {'info': 'The distance from camera to subject is %s meters' % distance})
 
     exports = {'insider.Show': Show,
      'insider.Hide': Hide,

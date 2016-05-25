@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\carbon\common\lib\cherrypy\test\test_auth_basic.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\carbon\common\lib\cherrypy\test\test_auth_basic.py
 import cherrypy
 from cherrypy._cpcompat import md5, ntob
 from cherrypy.lib import auth_basic
@@ -11,7 +12,7 @@ class BasicAuthTest(helper.CPWebCase):
         class Root:
 
             def index(self):
-                return 'This is public.'
+                pass
 
             index.exposed = True
 

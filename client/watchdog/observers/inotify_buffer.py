@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\packages\watchdog\observers\inotify_buffer.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\packages\watchdog\observers\inotify_buffer.py
 import logging
 from watchdog.utils import BaseThread
 from watchdog.utils.delayed_queue import DelayedQueue
@@ -8,7 +9,7 @@ logger = logging.getLogger(__name__)
 class InotifyBuffer(BaseThread):
     delay = 0.5
 
-    def __init__(self, path, recursive = False):
+    def __init__(self, path, recursive=False):
         BaseThread.__init__(self)
         self._queue = DelayedQueue(self.delay)
         self._inotify = Inotify(path, recursive)
@@ -43,3 +44,5 @@ class InotifyBuffer(BaseThread):
                         self._queue.put(inotify_event)
                 else:
                     self._queue.put(inotify_event)
+
+        return

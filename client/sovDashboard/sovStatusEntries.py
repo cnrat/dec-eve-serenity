@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\packages\sovDashboard\sovStatusEntries.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\packages\sovDashboard\sovStatusEntries.py
 from carbon.common.script.util.timerstuff import AutoTimer
 from carbonui.control.scrollentries import SE_BaseClassCore
 from carbonui.primitives.container import Container
@@ -30,20 +31,26 @@ class MouseInsideScrollEntry(SE_BaseClassCore):
         if self.onMouseEntyerThread is None:
             SE_BaseClassCore.OnMouseEnter(self, *args)
             self.onMouseEntyerThread = AutoTimer(10, self.MonitorMouseOver)
+        return
 
     def OnMouseExit(self, *args):
         if not self.IsMouseInsideEntry():
-            self.KillHilite()
+            self.OnMouseNoLongerInEntry()
 
     def KillHilite(self):
         SE_BaseClassCore.OnMouseExit(self)
         self.onMouseEntyerThread = None
+        return
 
     def MonitorMouseOver(self):
         if self.destroyed:
             self.onMouseEntyerThread = None
         elif not self.IsMouseInsideEntry():
-            self.KillHilite()
+            self.OnMouseNoLongerInEntry()
+        return
+
+    def OnMouseNoLongerInEntry(self):
+        self.KillHilite()
 
 
 class SovSystemStatusEntry(MouseInsideScrollEntry):
@@ -85,6 +92,7 @@ class SovSystemStatusEntry(MouseInsideScrollEntry):
             text = GetByLabel('UI/Sovereignty/DefenseMultiplierDisplayNumber', bonusMultiplier=bonusMultiplier)
             self.bonusMultiplierLabel.text = text
             self.bonusMultiplierLabel.display = True
+        return
 
     def AddDeltaSprite(self, indexID):
         self.devIndices = sm.GetService('sov').GetDevelopmentIndicesForSystem(session.solarsystemid2)
@@ -93,6 +101,7 @@ class SovSystemStatusEntry(MouseInsideScrollEntry):
         changeSprite = uiprimitives.Sprite(parent=self, align=uiconst.CENTERRIGHT, pos=(0, 0, 16, 16))
         SetDeltaSprite(changeSprite, indexInfo)
         changeSprite.left = self.indexBars.left + self.indexBars.width + 4
+        return
 
     def Load(self, *args):
         pass
@@ -124,12 +133,14 @@ class SovStructureStatusEntry(MouseInsideScrollEntry):
         if not allianceID:
             self.allianceIcon = None
             return
-        allianceName = cfg.eveowners.Get(allianceID).name
-        self.allianceIcon = GetLogoIcon(itemID=allianceID, parent=self, acceptNone=False, align=uiconst.CENTERRIGHT, pos=(RIGHT_PADDING,
-         0,
-         32,
-         32), state=uiconst.UI_NORMAL, hint=allianceName)
-        self.allianceIcon.OnClick = lambda *args: sm.GetService('info').ShowInfo(typeID=invConst.typeAlliance, itemID=allianceID)
+        else:
+            allianceName = cfg.eveowners.Get(allianceID).name
+            self.allianceIcon = GetLogoIcon(itemID=allianceID, parent=self, acceptNone=False, align=uiconst.CENTERRIGHT, pos=(RIGHT_PADDING,
+             0,
+             32,
+             32), state=uiconst.UI_NORMAL, hint=allianceName)
+            self.allianceIcon.OnClick = lambda *args: sm.GetService('info').ShowInfo(typeID=invConst.typeAlliance, itemID=allianceID)
+            return
 
     def AddStatusCont(self):
         if self.destroyed:
@@ -151,7 +162,7 @@ class SovStructureStatusEntry(MouseInsideScrollEntry):
         m = sm.GetService('menu').GetMenuFormItemIDTypeID(itemID=self.node.structureInfo.get('itemID', None), typeID=self.node.structureInfo.get('typeID', None))
         return m
 
-    def OnSolarsystemSovStructureChanged(self, solarsystemID, whatChanged, sourceItemID = None):
+    def OnSolarsystemSovStructureChanged(self, solarsystemID, whatChanged, sourceItemID=None):
         if STRUCTURE_SCORE_UPDATED in whatChanged:
             if ShouldUpdateStructureInfo(self.node.structureInfo, sourceItemID):
                 newStructureInfo = sm.GetService('sov').GetSpecificSovStructuresInfoInSolarSystem(solarsystemID, sourceItemID)

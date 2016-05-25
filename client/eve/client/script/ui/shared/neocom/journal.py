@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\client\script\ui\shared\neocom\journal.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\client\script\ui\shared\neocom\journal.py
 import service
 import uiprimitives
 import uicontrols
@@ -85,7 +86,7 @@ class JournalSvc(service.Service):
     __displayname__ = 'Journal Client Service'
     __dependencies__ = ['window', 'settings']
 
-    def Run(self, memStream = None):
+    def Run(self, memStream=None):
         log.LogInfo('Starting Journal')
         self.Reset()
         self.outdatedAgentJournals = []
@@ -93,10 +94,11 @@ class JournalSvc(service.Service):
         self.lpMapping = []
         self.pathPlexPositionByInstanceID = {}
 
-    def Stop(self, memStream = None):
+    def Stop(self, memStream=None):
         wnd = self.GetWnd()
         if wnd is not None and not wnd.destroyed:
             wnd.Close()
+        return
 
     def ProcessSessionChange(self, isremote, session, change):
         if eve.session.charid is None:
@@ -104,12 +106,13 @@ class JournalSvc(service.Service):
             self.Reset()
         if 'locationid' in change:
             self.pathPlexPositionByInstanceID = {}
+        return
 
     def ProcessUIRefresh(self):
         self.Reset()
 
     @telemetry.ZONE_METHOD
-    def OnAgentMissionChange(self, what, agentID, tutorialID = None):
+    def OnAgentMissionChange(self, what, agentID, tutorialID=None):
         if agentID is None:
             self.agentjournal = None
         elif agentID not in self.outdatedAgentJournals:
@@ -120,9 +123,11 @@ class JournalSvc(service.Service):
          const.agentMissionCompleted,
          const.agentMissionQuit,
          const.agentMissionOfferAccepted,
-         const.agentMissionOfferDeclined):
+         const.agentMissionOfferDeclined,
+         const.agentMissionDungeonMoved):
             sm.GetService('neocom').Blink(form.Journal.default_windowID)
         sm.ScatterEvent('OnAgentMissionChanged', what, agentID, tutorialID=tutorialID)
+        return
 
     def OnLPChange(self, what):
         self.outdatedCorpLP = True
@@ -157,6 +162,7 @@ class JournalSvc(service.Service):
             data.fakerec = True
             data.rec = data
             self.PopupDungeonDescription(data)
+        return
 
     def OnLPStoreAcceptOffer(self):
         self.outdatedCorpLP = True
@@ -177,13 +183,15 @@ class JournalSvc(service.Service):
         self.launchsRowSet = None
         self.lpMapping = []
         self.outdatedCorpLP = True
+        return
 
     def Refresh(self):
         wnd = self.GetWnd()
         if wnd is not None and not wnd.destroyed:
             wnd.sr.maintabs.ReloadVisible()
+        return
 
-    def GetWnd(self, new = 0, skipAutoSelect = False):
+    def GetWnd(self, new=0, skipAutoSelect=False):
         if new:
             wnd = form.Journal.Open(skipAutoSelect=skipAutoSelect)
         else:
@@ -194,14 +202,16 @@ class JournalSvc(service.Service):
         wnd = self.GetWnd()
         if wnd is not None and not wnd.destroyed:
             wnd.ShowContracts(*args)
+        return
 
-    def ShowIncursionTab(self, flag = None, constellationID = None, taleID = None, open = False):
+    def ShowIncursionTab(self, flag=None, constellationID=None, taleID=None, open=False):
         wnd = self.GetWnd(new=open, skipAutoSelect=True)
         if wnd is not None and not wnd.destroyed:
             blue.pyos.synchro.Yield()
             wnd.ShowIncursionTab(flag, constellationID, taleID)
+        return
 
-    def GetLaunches(self, force = 0):
+    def GetLaunches(self, force=0):
         if self.launchsRowSet is None or force:
             self.launchsRowSet = sm.RemoteSvc('planetMgr').GetMyLaunchesDetails()
         return self.launchsRowSet
@@ -209,8 +219,9 @@ class JournalSvc(service.Service):
     def OnPILaunchesChange(self, *args):
         self.launchsRowSet = None
         sm.GetService('neocom').Blink(form.Journal.default_windowID)
+        return
 
-    def GetExpeditions(self, force = 0):
+    def GetExpeditions(self, force=0):
         if self.expeditionRowset and not force:
             return self.expeditionRowset
         if not self.expeditionRowset or force:
@@ -251,6 +262,7 @@ class JournalSvc(service.Service):
         data.hasDungeonWarp = True
         data.instanceID = did
         wnd = sm.GetService('transmission').OnIncomingTransmission(data)
+        return
 
     def GetMyAgentJournalDetails(self):
         s = getattr(self, 'semaphore', None)
@@ -355,6 +367,7 @@ class EscalatingPathLocationEntry(listentry.Generic):
             self.Deselect()
         self.state = uiconst.UI_NORMAL
         self.sr.label.Update()
+        return
 
     def OpenDetails(self):
         sm.GetService('journal').PopupDungeonDescription(self.sr.node)
@@ -400,6 +413,7 @@ class EscalatingPathLocationEntry(listentry.Generic):
         if bp is not None:
             bp.CmdGotoDirection(x, y, z)
             sm.GetService('menu').ClearAlignTargets()
+        return
 
     def DeleteExpeditionEntry(self, instanceID, *args):
         rm = []
@@ -416,6 +430,7 @@ class EscalatingPathLocationEntry(listentry.Generic):
         bp = sm.StartService('michelle').GetRemotePark()
         if bp is not None:
             bp.CmdWarpToStuff('epinstance', instanceID)
+        return
 
 
 class PlanetaryInteractionLaunchEntry(listentry.Generic):
@@ -433,6 +448,7 @@ class PlanetaryInteractionLaunchEntry(listentry.Generic):
             self.Deselect()
         self.state = uiconst.UI_NORMAL
         self.sr.label.Update()
+        return
 
     def GetMenu(self):
         node = self.sr.node
@@ -458,11 +474,13 @@ class PlanetaryInteractionLaunchEntry(listentry.Generic):
         bp = sm.StartService('michelle').GetRemotePark()
         if bp is not None:
             bp.CmdFollowBall(launchID, 50)
+        return
 
     def WarpToLaunchPickup(self, launchID, node, *args):
         bp = sm.StartService('michelle').GetRemotePark()
         if bp is not None:
             bp.CmdWarpToStuff('launch', launchID)
+        return
 
     def DeleteLaunchEntry(self, launchID, *args):
         rm = []
@@ -494,6 +512,7 @@ class JournalWindow(uicontrols.Window):
     default_descriptionLabelPath = 'Tooltips/Neocom/Journal_description'
     default_iconNum = 'res:/ui/Texture/WindowIcons/journal.png'
     default_topParentHeight = 0
+    default_scrollPanelPadding = 10
 
     def ApplyAttributes(self, attributes):
         uicontrols.Window.ApplyAttributes(self, attributes)
@@ -514,7 +533,7 @@ class JournalWindow(uicontrols.Window):
         self.LoadIncursionDistributions()
         divider = Divider(name='incursionEncountersDivider', align=uiconst.TOLEFT, width=const.defaultPadding, parent=self.sr.main, state=uiconst.UI_HIDDEN)
         dividerMin = 100
-        dividerMax = self.sr.incursionEncounterScroll.GetMaxTextWidth(200)
+        dividerMax = self.sr.incursionEncounterScroll.GetMaxTextWidth(200) + self.default_scrollPanelPadding
         divider.Startup(self.sr.incursionEncounterScroll, 'width', 'x', dividerMin, dividerMax)
         divider.OnSizeChanged = self.OnIncursionEncounterResize
         self.sr.incursionEncounterDivider = divider
@@ -621,6 +640,7 @@ class JournalWindow(uicontrols.Window):
         if not skipAutoSelect:
             self.sr.maintabs.AutoSelect()
         sm.RegisterNotify(self)
+        return
 
     def MouseDown(self, *args):
         sm.GetService('neocom').BlinkOff(self.default_windowID)
@@ -735,6 +755,7 @@ class JournalWindow(uicontrols.Window):
         elif key.startswith('incursions'):
             self.sr.incursiontabs.Show()
             self.ShowIncursionTab(flag)
+        return
 
     def OnAgentEnglishCheckBoxChange(self, checkbox):
         if checkbox.checked:
@@ -743,8 +764,9 @@ class JournalWindow(uicontrols.Window):
             settings.user.localization.Delete(ENGLISH_MISSIONS_SETTING)
         if getattr(self.sr, 'maintabs', None):
             self.sr.maintabs.ReloadVisible()
+        return
 
-    def ShowAgentTab(self, statusflag = -1):
+    def ShowAgentTab(self, statusflag=-1):
         self._SelectTab(self.sr.maintabs.sr.Get(localization.GetByLabel('UI/Journal/JournalWindow/AgentsTab') + '_tab'))
         self.sr.agenttabs.Show()
         self.ShowLoad()
@@ -914,12 +936,15 @@ class JournalWindow(uicontrols.Window):
             self.sr.scroll.Load(contentList=scrolllist, headers=[localization.GetByLabel('UI/Journal/JournalWindow/Agents/HeaderIssuingCorporation'), localization.GetByLabel('UI/Journal/JournalWindow/Agents/LoyaltyPoints')], noContentHint=localization.GetByLabel('UI/Journal/JournalWindow/Agents/NoLP'))
             self._SelectTab(self.sr.agenttabs.sr.tabs[2])
         self.HideLoad()
+        return
 
     def _SelectTab(self, tab):
         if tab is None:
             return
-        if not tab.IsSelected():
-            tab.Select(True)
+        else:
+            if not tab.IsSelected():
+                tab.Select(True)
+            return
 
     def ShowCorpMenu(self, entry):
         self.entry = entry
@@ -956,7 +981,7 @@ class JournalWindow(uicontrols.Window):
         self.LoadEpicJournal(self.selectedArc)
         self._SelectTab(self.sr.maintabs.sr.Get(localization.GetByLabel('UI/Journal/JournalWindow/EpicJournalTab') + '_tab'))
 
-    def LoadEpicJournal(self, selectedArcName = None):
+    def LoadEpicJournal(self, selectedArcName=None):
         scrolllist = []
         arcs = self.GetEpicArcs()
         selectIndex = 0
@@ -988,7 +1013,7 @@ class JournalWindow(uicontrols.Window):
         self.epicArcScroll.multiSelect = 0
         divider = Divider(name='epicArcDivider', align=uiconst.TOLEFT, width=const.defaultPadding, parent=self.sr.epicJournalWnd, state=uiconst.UI_NORMAL)
         dividerMin = 100
-        dividerMax = self.epicArcScroll.GetMaxTextWidth(150)
+        dividerMax = self.epicArcScroll.GetMaxTextWidth(150) + self.default_scrollPanelPadding
         divider.Startup(self.epicArcContainer, 'width', 'x', dividerMin, dividerMax)
         divider.OnSizeChanged = self.OnEpicArcSizeChanged
         epicMissionContainerWidth = settings.user.ui.Get('journalEpicMissionWidth', 150)
@@ -999,7 +1024,7 @@ class JournalWindow(uicontrols.Window):
         self.epicMissionScroll.multiSelect = 0
         divider = Divider(name='epicMissionDivider', align=uiconst.TORIGHT, width=const.defaultPadding, parent=self.sr.epicJournalWnd, state=uiconst.UI_NORMAL)
         dividerMin = 100
-        dividerMax = self.epicMissionScroll.GetMaxTextWidth(200)
+        dividerMax = self.epicMissionScroll.GetMaxTextWidth(200) + self.default_scrollPanelPadding
         divider.Startup(self.epicMissionContainer, 'width', 'x', dividerMin, dividerMax)
         divider.OnSizeChanged = self.OnEpicMissionSizeChanged
         epicMainContainer = uiprimitives.Container(name='epicMainContainer', parent=self.sr.epicJournalWnd, align=uiconst.TOALL, clipChildren=1)
@@ -1035,6 +1060,7 @@ class JournalWindow(uicontrols.Window):
     def OnEpicJournalChange(self):
         self.epicJournalData = None
         self.LoadEpicJournal(self.selectedArc)
+        return
 
     def LoadEpicArc(self, epicArcId):
         self.curEpicArcId = epicArcId
@@ -1068,23 +1094,25 @@ class JournalWindow(uicontrols.Window):
     def GetEpicArcGraphic(self, epicArcIndex):
         return self.GetMyEpicJournalData()[epicArcIndex].graphic
 
-    def LoadEpicArcText(self, selectedMissionId = None):
+    def LoadEpicArcText(self, selectedMissionId=None):
         if self.curEpicArcId is None:
             return
-        missionTextList = []
-        for i, (chapterTitle, missionName, missionText, branches) in enumerate(self.GetEpicArcMissions(self.curEpicArcId)):
-            if chapterTitle:
-                if i != 0:
-                    missionTextList.append('<br>')
-                missionTextList.append('<font size=16>' + chapterTitle + '</font>')
-            if missionText:
-                if selectedMissionId == i:
-                    text = localization.GetByLabel('UI/Journal/JournalWindow/EpicArcs/EmphasisedMissionText', imageHTML='<img src=icon:38_254 size=16>', missionText=missionText)
-                    missionTextList.append('<font size=14>' + text + '</font>')
-                else:
-                    missionTextList.append('<img src=icon:38_254 size=12>' + missionText)
+        else:
+            missionTextList = []
+            for i, (chapterTitle, missionName, missionText, branches) in enumerate(self.GetEpicArcMissions(self.curEpicArcId)):
+                if chapterTitle:
+                    if i != 0:
+                        missionTextList.append('<br>')
+                    missionTextList.append('<font size=16>' + chapterTitle + '</font>')
+                if missionText:
+                    if selectedMissionId == i:
+                        text = localization.GetByLabel('UI/Journal/JournalWindow/EpicArcs/EmphasisedMissionText', imageHTML='<img src=icon:38_254 size=16>', missionText=missionText)
+                        missionTextList.append('<font size=14>' + text + '</font>')
+                    else:
+                        missionTextList.append('<img src=icon:38_254 size=12>' + missionText)
 
-        self.epicJournalText.SetText('<br>'.join(missionTextList))
+            self.epicJournalText.SetText('<br>'.join(missionTextList))
+            return
 
     def GetEpicArcMissions(self, epicArcIndex):
         return self.GetMyEpicJournalData()[epicArcIndex].displayMissions
@@ -1127,7 +1155,7 @@ class JournalWindow(uicontrols.Window):
             self.epicJournalData.sort()
         return self.epicJournalData
 
-    def ShowExpeditions(self, reload = 0):
+    def ShowExpeditions(self, reload=0):
         expeditionRowset = sm.GetService('journal').GetExpeditions(force=reload)
         self.ShowLoad()
         try:
@@ -1175,23 +1203,28 @@ class JournalWindow(uicontrols.Window):
             self._SelectTab(self.sr.maintabs.sr.Get(localization.GetByLabel('UI/Journal/JournalWindow/ExpeditionsTab') + '_tab'))
             self.HideLoad()
 
+        return
+
     def AutoUpdateExpeditionTimes(self):
         if self.destroyed or self.sr.maintabs.GetSelectedArgs()[0] != 'expeditions':
             self.sr.expeditiontimer = None
             return
-        for entry in self.sr.scroll.GetNodes():
-            text = entry.label
-            if not entry.rec:
-                continue
-            expiryLabel = ''
-            expiryNumeric = entry.rec.expiryTime - blue.os.GetWallclockTime()
-            if expiryNumeric > 0:
-                expiryLabel = '<color=0xFFFFFF00>' + localization.formatters.FormatTimeIntervalWritten(expiryNumeric, showFrom='day', showTo='second') + '</color>'
-            else:
-                expiryLabel = '<color=0xffeb3700>' + localization.GetByLabel('UI/Journal/JournalWindow/Expeditions/Expired') + '</color>'
-            entry.label = expiryLabel + text[text.find('<t>'):]
-            if entry.panel:
-                entry.panel.Load(entry)
+        else:
+            for entry in self.sr.scroll.GetNodes():
+                text = entry.label
+                if not entry.rec:
+                    continue
+                expiryLabel = ''
+                expiryNumeric = entry.rec.expiryTime - blue.os.GetWallclockTime()
+                if expiryNumeric > 0:
+                    expiryLabel = '<color=0xFFFFFF00>' + localization.formatters.FormatTimeIntervalWritten(expiryNumeric, showFrom='day', showTo='second') + '</color>'
+                else:
+                    expiryLabel = '<color=0xffeb3700>' + localization.GetByLabel('UI/Journal/JournalWindow/Expeditions/Expired') + '</color>'
+                entry.label = expiryLabel + text[text.find('<t>'):]
+                if entry.panel:
+                    entry.panel.Load(entry)
+
+            return
 
     def OnEscalatingPathChange(self, *args):
         self.ShowExpeditions(True)
@@ -1199,7 +1232,7 @@ class JournalWindow(uicontrols.Window):
     def OnEscalatingPathMessage(self, instanceID):
         self.ShowExpeditions(True)
 
-    def ShowPILaunches(self, reload = 0):
+    def ShowPILaunches(self, reload=0):
         launchsRowSet = sm.GetService('journal').GetLaunches(force=reload)
         self.ShowLoad()
         try:
@@ -1229,6 +1262,8 @@ class JournalWindow(uicontrols.Window):
             self._SelectTab(self.sr.maintabs.sr.Get(localization.GetByLabel('UI/Journal/JournalWindow/PlanetaryLaunchesTab') + '_tab'))
             self.HideLoad()
 
+        return
+
     def OnPILaunchesChange(self, *args):
         self.ShowPILaunches(True)
 
@@ -1236,80 +1271,86 @@ class JournalWindow(uicontrols.Window):
         if not self or self.destroyed or self.sr.maintabs.GetSelectedArgs()[0] != 'launches':
             self.sr.launchtimer = None
             return
-        for entry in self.sr.scroll.GetNodes():
-            text = entry.label
-            if not entry.rec:
-                continue
-            expiryLabel = ''
-            expiryNumeric = blue.os.GetWallclockTime() - entry.rec.launchTime
-            if expiryNumeric < const.piLaunchOrbitDecayTime:
-                expiryLabel = '<color=0xFFFFFF00>' + localization.formatters.FormatTimeIntervalShortWritten(const.piLaunchOrbitDecayTime - expiryNumeric) + '</color>'
-            else:
-                expiryLabel = '<color=0xffeb3700>' + localization.GetByLabel('UI/Journal/JournalWindow/PI/BurnedUp') + '</color>'
-                entry.expired = True
-            entry.label = expiryLabel + text[text.find('<t>'):]
-            if entry.panel:
-                entry.panel.Load(entry)
+        else:
+            for entry in self.sr.scroll.GetNodes():
+                text = entry.label
+                if not entry.rec:
+                    continue
+                expiryLabel = ''
+                expiryNumeric = blue.os.GetWallclockTime() - entry.rec.launchTime
+                if expiryNumeric < const.piLaunchOrbitDecayTime:
+                    expiryLabel = '<color=0xFFFFFF00>' + localization.formatters.FormatTimeIntervalShortWritten(const.piLaunchOrbitDecayTime - expiryNumeric) + '</color>'
+                else:
+                    expiryLabel = '<color=0xffeb3700>' + localization.GetByLabel('UI/Journal/JournalWindow/PI/BurnedUp') + '</color>'
+                    entry.expired = True
+                entry.label = expiryLabel + text[text.find('<t>'):]
+                if entry.panel:
+                    entry.panel.Load(entry)
+
+            return
 
     def GetJumpCount(self, toID):
         jumps = self.clientPathfinderService.GetAutopilotJumpCount(session.solarsystemid2, toID)
         if IsUnreachableJumpCount(jumps):
             return None
-        return jumps
+        else:
+            return jumps
 
-    def ShowIncursionTab(self, flag = None, constellationID = None, taleID = None):
+    def ShowIncursionTab(self, flag=None, constellationID=None, taleID=None):
         if self.showingIncursionTab:
             return
-        self.showingIncursionTab = True
-        if flag is None:
-            flag = settings.char.ui.Get('journalIncursionTab', IncursionTab.GlobalReport)
-        settings.char.ui.Set('journalIncursionTab', flag)
-        self._SelectTab(self.sr.maintabs.sr.Get(localization.GetByLabel('UI/Journal/JournalWindow/IncursionsTab') + '_tab'))
-        self._SelectTab(self.sr.incursiontabs.sr.tabs[flag])
-        if flag == IncursionTab.GlobalReport:
-            self.sr.scroll.Show()
-            self.sr.incursionReportFilter.state = uiconst.UI_PICKCHILDREN
-            starmap = sm.GetService('starmap')
-            map = starmap.map
-            report = sm.RemoteSvc('map').GetIncursionGlobalReport()
-            rewardGroupIDs = [ r.rewardGroupID for r in report ]
-            delayedRewards = sm.GetService('incursion').GetDelayedRewardsByGroupIDs(rewardGroupIDs)
-            scrolllist = []
-            factionsToPrime = set()
-            for data in report:
-                data.jumps = self.GetJumpCount(data.stagingSolarSystemID)
-                data.influenceData = util.KeyVal(influence=data.influence, lastUpdated=data.lastUpdated, graceTime=data.graceTime, decayRate=data.decayRate)
-                ssitem = map.GetItem(data.stagingSolarSystemID)
-                data.stagingSolarSystemName = ssitem.itemName
-                data.security = map.GetSecurityStatus(data.stagingSolarSystemID)
-                data.constellationID = ssitem.locationID
-                data.constellationName = map.GetItem(ssitem.locationID).itemName
-                data.factionID = ssitem.factionID or starmap.GetAllianceSolarSystems().get(data.stagingSolarSystemID, None)
-                factionsToPrime.add(data.factionID)
-                rewards = delayedRewards.get(data.rewardGroupID, None)
-                data.loyaltyPoints = rewards[0].rewardQuantity if rewards else 0
-                scrolllist.append(listentry.Get('GlobalIncursionReportEntry', data))
+        else:
+            self.showingIncursionTab = True
+            if flag is None:
+                flag = settings.char.ui.Get('journalIncursionTab', IncursionTab.GlobalReport)
+            settings.char.ui.Set('journalIncursionTab', flag)
+            self._SelectTab(self.sr.maintabs.sr.Get(localization.GetByLabel('UI/Journal/JournalWindow/IncursionsTab') + '_tab'))
+            self._SelectTab(self.sr.incursiontabs.sr.tabs[flag])
+            if flag == IncursionTab.GlobalReport:
+                self.sr.scroll.Show()
+                self.sr.incursionReportFilter.state = uiconst.UI_PICKCHILDREN
+                starmap = sm.GetService('starmap')
+                map = starmap.map
+                report = sm.RemoteSvc('map').GetIncursionGlobalReport()
+                rewardGroupIDs = [ r.rewardGroupID for r in report ]
+                delayedRewards = sm.GetService('incursion').GetDelayedRewardsByGroupIDs(rewardGroupIDs)
+                scrolllist = []
+                factionsToPrime = set()
+                for data in report:
+                    data.jumps = self.GetJumpCount(data.stagingSolarSystemID)
+                    data.influenceData = util.KeyVal(influence=data.influence, lastUpdated=data.lastUpdated, graceTime=data.graceTime, decayRate=data.decayRate)
+                    ssitem = map.GetItem(data.stagingSolarSystemID)
+                    data.stagingSolarSystemName = ssitem.itemName
+                    data.security = map.GetSecurityStatus(data.stagingSolarSystemID)
+                    data.constellationID = ssitem.locationID
+                    data.constellationName = map.GetItem(ssitem.locationID).itemName
+                    data.factionID = ssitem.factionID or starmap.GetAllianceSolarSystems().get(data.stagingSolarSystemID, None)
+                    factionsToPrime.add(data.factionID)
+                    rewards = delayedRewards.get(data.rewardGroupID, None)
+                    data.loyaltyPoints = rewards[0].rewardQuantity if rewards else 0
+                    scrolllist.append(listentry.Get('GlobalIncursionReportEntry', data))
 
-            cfg.eveowners.Prime(list(factionsToPrime))
-            self.sr.scroll.LoadContent(contentList=scrolllist, scrollTo=0.0)
-            self.SortIncursionGlobalReport()
-        elif flag == IncursionTab.LPLog:
-            self.sr.incursionLPLogFilters.Show()
-            self.sr.scroll.Show()
-            if taleID is not None and constellationID is not None:
-                self.LoadIncursionLPLog(self.sr.scroll, taleID, constellationID)
-            elif self.incursionLPLogData is None:
-                self.sr.scroll.Clear()
-                self.sr.scroll.ShowHint(localization.GetByLabel('UI/Incursion/Journal/LoadData'))
-            else:
-                self.UpdateIncursionLPLog(self.incursionLPLogData)
-        elif flag == IncursionTab.Encounters:
-            self.sr.incursionEncounterEdit.Show()
-            self.sr.incursionEncounterScroll.Show()
-            self.sr.incursionEncounterDivider.Show()
-        self.showingIncursionTab = False
+                cfg.eveowners.Prime(list(factionsToPrime))
+                self.sr.scroll.LoadContent(contentList=scrolllist, scrollTo=0.0)
+                self.SortIncursionGlobalReport()
+            elif flag == IncursionTab.LPLog:
+                self.sr.incursionLPLogFilters.Show()
+                self.sr.scroll.Show()
+                if taleID is not None and constellationID is not None:
+                    self.LoadIncursionLPLog(self.sr.scroll, taleID, constellationID)
+                elif self.incursionLPLogData is None:
+                    self.sr.scroll.Clear()
+                    self.sr.scroll.ShowHint(localization.GetByLabel('UI/Incursion/Journal/LoadData'))
+                else:
+                    self.UpdateIncursionLPLog(self.incursionLPLogData)
+            elif flag == IncursionTab.Encounters:
+                self.sr.incursionEncounterEdit.Show()
+                self.sr.incursionEncounterScroll.Show()
+                self.sr.incursionEncounterDivider.Show()
+            self.showingIncursionTab = False
+            return
 
-    def SortIncursionGlobalReport(self, sortBy = None):
+    def SortIncursionGlobalReport(self, sortBy=None):
         if sortBy is None:
             sortBy = settings.char.ui.Get('journalIncursionReportSort', ReportSortBy.Constellation)
         else:
@@ -1318,13 +1359,14 @@ class JournalWindow(uicontrols.Window):
         scroll = self.sr.scroll
         scroll.sr.nodes = sorted(scroll.sr.nodes, key=attrgetter(attrName), reverse=reverse)
         scroll.UpdatePositionThreaded(fromWhere='SortIncursionGlobalReport')
+        return
 
-    def LoadIncursionLPLog(self, scroll, taleID = None, constellationID = None):
+    def LoadIncursionLPLog(self, scroll, taleID=None, constellationID=None):
         rewardMgr = session.ConnectToRemoteService('rewardMgr')
         self.incursionLPLogData = rewardMgr.GetRewardLPLogs()
         self.UpdateIncursionLPLog(self.incursionLPLogData, taleID, constellationID)
 
-    def UpdateIncursionLPLog(self, data, selectedTaleID = None, selectedConstellationID = None):
+    def UpdateIncursionLPLog(self, data, selectedTaleID=None, selectedConstellationID=None):
         mapsvc = sm.GetService('map')
         taleIDFilter = self.sr.incursionLPTaleIDFilter.selectedValue
         solarsystemTypeFilter = self.sr.incursionLPTypeFilter.selectedValue
@@ -1473,6 +1515,7 @@ class JournalWindow(uicontrols.Window):
         else:
             self.sr.scroll.Clear()
             self.sr.scroll.ShowHint(localization.GetByLabel('UI/Incursion/Journal/NoRecordFound'))
+        return
 
     def FetchContracts(self, *args):
         status = self.statusCombo.GetValue()
@@ -1708,14 +1751,17 @@ class JournalWindow(uicontrols.Window):
     def ProcessSessionChange(self, isremote, session, change):
         if getattr(self.sr, 'maintabs', None):
             self.sr.maintabs.ReloadVisible()
+        return
 
-    def OnAgentMissionChange(self, what, agentID, tutorialID = None):
+    def OnAgentMissionChange(self, what, agentID, tutorialID=None):
         if getattr(self.sr, 'maintabs', None):
             self.sr.maintabs.ReloadVisible()
+        return
 
     def OnLPChange(self, what):
         if getattr(self.sr, 'maintabs', None):
             self.sr.maintabs.ReloadVisible()
+        return
 
     def OnDeleteContract(self, contractID, *args):
         listNodes = self.sr.contractsListWnd.GetNodes()

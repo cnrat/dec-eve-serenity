@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\client\script\ui\control\eveImage.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\client\script\ui\control\eveImage.py
 from carbonui.control.image import ImageCore
 from eve.client.script.ui.control.eveIcon import DraggableIcon
 import uicontrols
@@ -132,7 +133,7 @@ class Image(ImageCore):
                 m += uicontrols.BaseLink().GetLinkMenu(self, self.attrs.a.href)
         return m
 
-    def LoadPortrait(self, orderIfMissing = True):
+    def LoadPortrait(self, orderIfMissing=True):
         attrs = self.attrs
         uiutil.Flush(self)
         sprite = uicontrols.Icon(parent=self, align=uiconst.TOALL, state=uiconst.UI_DISABLED, pos=(0, 0, 0, 0))
@@ -203,6 +204,7 @@ class Image(ImageCore):
                 uicontrols.Icon(parent=self, align=uiconst.TOALL, state=uiconst.UI_DISABLED, pos=(0, 0, 0, 0), typeID=typeID, size=attrs.width, isCopy=isCopy)
         else:
             log.LogInfo('Couldnt convert', attrs.src[9:], 'to typeID')
+        return
 
     def LoadIcon(self, *args):
         sprite = uiprimitives.Sprite(parent=self, align=uiconst.TOALL, state=uiconst.UI_DISABLED, idx=0, pos=(0, 0, 0, 0))

@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\carbon\common\script\entities\baseEntity.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\carbon\common\script\entities\baseEntity.py
 import bluepy
 import carbon.common.script.sys.service as service
 import uthread
@@ -11,7 +12,7 @@ import GameWorld
 import blue
 import stackless
 
-def BeCefNice(ms = 40):
+def BeCefNice(ms=40):
     if ms < 1.0:
         ms = 1.0
     if not stackless.current.is_main:
@@ -48,6 +49,7 @@ class Entity:
             self.components[name] = component
         else:
             log.LogWarn('Unable to add component', name, 'to entity', self.entityID)
+        return
 
     def HasComponent(self, name):
         return name in self.components
@@ -95,10 +97,11 @@ class EntitySceneState:
 
 class EventQueue(object):
 
-    def __init__(self, emptyEvent = None):
+    def __init__(self, emptyEvent=None):
         self._task = None
         self._queue = collections.deque()
         self._emptyEvent = emptyEvent
+        return
 
     def AddEvent(self, event, *args):
         semaphore = locks.Event('event_%s' % event)
@@ -109,6 +112,7 @@ class EventQueue(object):
         if self._task is None:
             self._task = uthread.new(self._PumpEvent)
             self._task.context = 'EventQueue update'
+        return
 
     def GetLastSemaphore(self):
         try:
@@ -118,11 +122,15 @@ class EventQueue(object):
             log.LogError('Missing semaphore')
             return None
 
+        return None
+
     def _ProcessEvent(self, semaphore, event, *args):
         try:
-            event(*args)
-        except:
-            log.LogException()
+            try:
+                event(*args)
+            except:
+                log.LogException()
+
         finally:
             semaphore.set()
 
@@ -136,6 +144,7 @@ class EventQueue(object):
         self._task = None
         if self._emptyEvent is not None:
             self._emptyEvent()
+        return
 
 
 class BaseEntityScene(object):
@@ -164,6 +173,7 @@ class BaseEntityScene(object):
         self.broker._RegisterScene(self, self.loadSemaphore)
         self._startupEntities = self._entityList.keys()
         self.broker.LogInfo('Asynch scene load finished for scene', self.sceneID)
+        return
 
     def _UnloadScene(self):
         self.broker.LogInfo('Asynch scene unload started for scene', self.sceneID)
@@ -191,6 +201,7 @@ class BaseEntityScene(object):
         self.broker.LogInfo('Scene unload starting TearDown for scene', self.sceneID)
         self.broker._TearDownScene(self)
         self.broker.LogInfo('Asynch scene unload finished for scene', self.sceneID)
+        return
 
     def LoadScene(self, scene):
         semaphore = None
@@ -218,19 +229,20 @@ class BaseEntityScene(object):
             self.broker.LogInfo('Done Waiting on startup entities for scene', self.sceneID)
             self._startupEntities = None
             self.broker.LogInfo('Finished waiting on startup entities for scene', self.sceneID)
+        return
 
-    def CreateEntity(self, entity, initData = None):
+    def CreateEntity(self, entity, initData=None):
         self._entityList[entity.entityID] = entity
         channel = self.broker._AddEvent(entity.entityID, self.broker._CreateEntity, entity, self.loadSemaphore, initData)
         self.broker._StartEvents(entity.entityID)
         return channel
 
-    def RegisterEntity(self, entity, initData = None):
+    def RegisterEntity(self, entity, initData=None):
         channel = self.broker._AddEvent(entity.entityID, self.broker._RegisterEntity, entity, initData)
         self.broker._StartEvents(entity.entityID)
         return channel
 
-    def UpdateEntity(self, entity, updateData = None):
+    def UpdateEntity(self, entity, updateData=None):
         channel = self.broker._AddEvent(entity.entityID, self.broker._UpdateEntity, entity, updateData)
         self.broker._StartEvents(entity.entityID)
         return channel
@@ -246,7 +258,7 @@ class BaseEntityScene(object):
         self.broker._StartEvents(entity.entityID)
         return channel
 
-    def CreateAndRegisterEntity(self, entity, initData = None):
+    def CreateAndRegisterEntity(self, entity, initData=None):
         self._entityList[entity.entityID] = entity
         channel = self.broker._AddEvent(entity.entityID, self.broker._CreateEntityAndRegister, entity, self.loadSemaphore, initData)
         self.broker._StartEvents(entity.entityID)
@@ -271,6 +283,7 @@ class BaseEntityScene(object):
     def ReceiveRemoteEntity(self, fromSceneID, entityID, packedState):
         semaphore = self.broker.ReceiveRemoteEntity(fromSceneID, entityID, self.sceneID, packedState)
         semaphore.wait()
+        return None
 
 
 class BaseEntityService(service.Service):
@@ -322,10 +335,11 @@ class BaseEntityService(service.Service):
     def LoadEntityScene(self, sceneID):
         if sceneID in self.scenes:
             return self.scenes[sceneID]
-        scene = self.__entitySceneType__(self, sceneID)
-        self.scenes[sceneID] = scene
-        self.loadingScenes[sceneID] = scene.LoadScene(self.unloadingScenes.get(sceneID, None))
-        return scene
+        else:
+            scene = self.__entitySceneType__(self, sceneID)
+            self.scenes[sceneID] = scene
+            self.loadingScenes[sceneID] = scene.LoadScene(self.unloadingScenes.get(sceneID, None))
+            return scene
 
     def LoadEntitySceneAndBlock(self, sceneID):
         self.LogInfo('Getting entity scene', sceneID)
@@ -352,12 +366,13 @@ class BaseEntityService(service.Service):
         if scene is None:
             self.LogWarn("Requesting unload of entity scene I don't have")
             return
-        self.LogInfo('Removing Scene reference for scene', sceneID)
-        del self.scenes[sceneID]
-        if sceneID in self.loadingScenes:
-            del self.loadingScenes[sceneID]
-        self.unloadingScenes[sceneID] = scene
-        return scene.UnloadScene()
+        else:
+            self.LogInfo('Removing Scene reference for scene', sceneID)
+            del self.scenes[sceneID]
+            if sceneID in self.loadingScenes:
+                del self.loadingScenes[sceneID]
+            self.unloadingScenes[sceneID] = scene
+            return scene.UnloadScene()
 
     def GetEntityScene(self, sceneID):
         return self.scenes.get(sceneID, None)
@@ -455,6 +470,8 @@ class BaseEntityService(service.Service):
             if component is None:
                 self.LogInfo('Factory returned None for component: ', name)
             return component
+        else:
+            return
 
     def GetComponentSystems(self, componentType):
         return self.componentSystems[componentType]
@@ -469,13 +486,15 @@ class BaseEntityService(service.Service):
 
     def GetComponentState(self, entity, componentName):
         try:
-            ret = None
-            factory = self.componentFactories[componentName]
-            component = entity.components[componentName]
-            ret = factory.ReportState(component, entity)
-        except (KeyError, AttributeError):
-            log.LogException()
-            sys.exc_clear()
+            try:
+                ret = None
+                factory = self.componentFactories[componentName]
+                component = entity.components[componentName]
+                ret = factory.ReportState(component, entity)
+            except (KeyError, AttributeError):
+                log.LogException()
+                sys.exc_clear()
+
         finally:
             return ret
 
@@ -483,7 +502,7 @@ class BaseEntityService(service.Service):
         entity = self.FindEntityByID(entityID)
         return self.GetComponentState(entity, componentName)
 
-    def _SetupComponents(self, entity, initData = None):
+    def _SetupComponents(self, entity, initData=None):
         entityAlreadyThere = entity.scene.entities.get(entity.entityID, None)
         if entityAlreadyThere:
             if session.charid and entity.entityID == session.charid:
@@ -493,62 +512,63 @@ class BaseEntityService(service.Service):
                 log.LogTraceback(extraText=errorText)
             GameWorld.GetNetworkEntityQueueManager().ClearEntity(entity.entityID)
             return False
-        with entity.entityLock:
-            try:
-                if entity.state == const.cef.ENTITY_STATE_UNINITIALIZED:
-                    self.loadingEntities[entity.entityID] = entity
-                    entity.state = const.cef.ENTITY_STATE_CREATING
-                    self.entitySceneManager.Prepare(entity.entityID, entity.scene.sceneID)
-                    preperationCalls = []
-                    funcContexts = []
-                    for name, component in entity.components.iteritems():
-                        systems = self.GetComponentSystems(name)
-                        if systems:
-                            for system in systems:
-                                f = getattr(system, 'PrepareComponent', None)
-                                if f:
-                                    preperationCalls.append((CEFParellelHelper, (f, (entity.scene.sceneID, entity.entityID, component))))
-                                    funcContexts.append(system.__guid__)
+        else:
+            with entity.entityLock:
+                try:
+                    if entity.state == const.cef.ENTITY_STATE_UNINITIALIZED:
+                        self.loadingEntities[entity.entityID] = entity
+                        entity.state = const.cef.ENTITY_STATE_CREATING
+                        self.entitySceneManager.Prepare(entity.entityID, entity.scene.sceneID)
+                        preperationCalls = []
+                        funcContexts = []
+                        for name, component in entity.components.iteritems():
+                            systems = self.GetComponentSystems(name)
+                            if systems:
+                                for system in systems:
+                                    f = getattr(system, 'PrepareComponent', None)
+                                    if f:
+                                        preperationCalls.append((CEFParellelHelper, (f, (entity.scene.sceneID, entity.entityID, component))))
+                                        funcContexts.append(system.__guid__)
 
-                    if preperationCalls:
-                        uthread.parallel(preperationCalls, contextSuffix='PrepareComponent', funcContextSuffixes=funcContexts)
-                    setupCalls = []
-                    funcContexts = []
-                    for name, component in entity.components.iteritems():
-                        systems = self.GetComponentSystems(name)
-                        if systems:
-                            for system in systems:
-                                f = getattr(system, 'SetupComponent', None)
-                                if f:
-                                    setupCalls.append((CEFParellelHelper, (f, (entity, component))))
-                                    funcContexts.append(system.__guid__)
+                        if preperationCalls:
+                            uthread.parallel(preperationCalls, contextSuffix='PrepareComponent', funcContextSuffixes=funcContexts)
+                        setupCalls = []
+                        funcContexts = []
+                        for name, component in entity.components.iteritems():
+                            systems = self.GetComponentSystems(name)
+                            if systems:
+                                for system in systems:
+                                    f = getattr(system, 'SetupComponent', None)
+                                    if f:
+                                        setupCalls.append((CEFParellelHelper, (f, (entity, component))))
+                                        funcContexts.append(system.__guid__)
 
-                    if setupCalls:
-                        uthread.parallel(setupCalls, contextSuffix='SetupComponent', funcContextSuffixes=funcContexts)
-                    setupCalls = []
-                    funcContexts = []
-                    for name, component in entity.components.iteritems():
-                        systems = self.GetComponentSystems(name)
-                        if systems:
-                            for system in systems:
-                                f = getattr(system, 'NetworkSyncComponent', None)
-                                if f:
-                                    setupCalls.append((CEFParellelHelper, (f, (entity, component))))
-                                    funcContexts.append(system.__guid__)
+                        if setupCalls:
+                            uthread.parallel(setupCalls, contextSuffix='SetupComponent', funcContextSuffixes=funcContexts)
+                        setupCalls = []
+                        funcContexts = []
+                        for name, component in entity.components.iteritems():
+                            systems = self.GetComponentSystems(name)
+                            if systems:
+                                for system in systems:
+                                    f = getattr(system, 'NetworkSyncComponent', None)
+                                    if f:
+                                        setupCalls.append((CEFParellelHelper, (f, (entity, component))))
+                                        funcContexts.append(system.__guid__)
 
-                    if setupCalls:
-                        uthread.parallel(setupCalls, contextSuffix='NetworkSyncComponent', funcContextSuffixes=funcContexts)
-                    entity.scene.entities[entity.entityID] = entity
-                else:
-                    self.LogError('SetupComponents: Entity state should be', const.cef.ENTITY_STATE_NAMES[const.cef.ENTITY_STATE_UNINITIALIZED], ', is instead ', const.cef.ENTITY_STATE_NAMES[entity.state], '. Entity is:', str(entity))
-            except Exception as e:
-                self._deadEntityList[entity.entityID] = entity
-                log.LogException(e)
-                return False
+                        if setupCalls:
+                            uthread.parallel(setupCalls, contextSuffix='NetworkSyncComponent', funcContextSuffixes=funcContexts)
+                        entity.scene.entities[entity.entityID] = entity
+                    else:
+                        self.LogError('SetupComponents: Entity state should be', const.cef.ENTITY_STATE_NAMES[const.cef.ENTITY_STATE_UNINITIALIZED], ', is instead ', const.cef.ENTITY_STATE_NAMES[entity.state], '. Entity is:', str(entity))
+                except Exception as e:
+                    self._deadEntityList[entity.entityID] = entity
+                    log.LogException(e)
+                    return False
 
-        return True
+            return True
 
-    def _RegisterComponents(self, entity, initData = None):
+    def _RegisterComponents(self, entity, initData=None):
         with uthread.BlockTrapSection():
             with entity.entityLock:
                 try:
@@ -579,6 +599,8 @@ class BaseEntityService(service.Service):
                     if entity.scene and entity.entityID in entity.scene.entities:
                         del entity.scene.entities[entity.entityID]
                         self.entitySceneManager.Unregister(entity.entityID)
+
+        return
 
     def _UnRegisterComponents(self, entity):
         with uthread.BlockTrapSection():
@@ -614,6 +636,8 @@ class BaseEntityService(service.Service):
                         self.entitySceneManager.Unregister(entity.entityID)
                     log.LogException(e)
 
+        return
+
     def _TearDownComponents(self, entity):
         with entity.entityLock:
             try:
@@ -648,6 +672,8 @@ class BaseEntityService(service.Service):
             except Exception as e:
                 self._deadEntityList[entity.entityID] = entity
                 log.LogException(e)
+
+        return
 
     def CreateEntityFromRecipe(self, scene, recipe, entityItemID):
         newEntity = Entity(scene, entityItemID)
@@ -695,19 +721,24 @@ class BaseEntityService(service.Service):
                     return entity
 
             return
+        return
 
     def DestroyEntityByID(self, entid):
         entity = self.FindEntityByID(entid)
         if entity is not None:
             self.DestroyEntity(entity)
+        return
 
     def DestroyEntity(self, entity):
         if entity is not None:
             entity.scene.UnregisterAndDestroyEntity(entity)
+        return
 
     def GetEntityIdsInScene(self, sceneID):
         if sceneID in self.scenes:
             return self.scenes[sceneID].GetAllEntityIds()
+        else:
+            return None
 
     def GetEntityState(self, entity):
         ret = {}
@@ -734,11 +765,14 @@ class BaseEntityService(service.Service):
             eventQueue.GetLastSemaphore().wait()
             eventQueue = self._entityQueues.get(entityID, None)
 
+        return
+
     def _CreateEntity(self, entity, loadSemaphore, initData):
         if loadSemaphore is not None:
             loadSemaphore.wait()
         with bluepy.Timer('EntityService::_SetupComponents'):
             self._SetupComponents(entity, initData)
+        return
 
     def _CreateEntityAndRegister(self, entity, loadSemaphore, initData):
         with bluepy.Timer('EntityService::_CreateEntityAndRegister'):
@@ -747,6 +781,7 @@ class BaseEntityService(service.Service):
             createSuccess = self._SetupComponents(entity, initData)
             if createSuccess:
                 self._RegisterEntity(entity, initData)
+        return
 
     def _RegisterEntity(self, entity, initData):
         self._RegisterComponents(entity, initData)
@@ -760,6 +795,7 @@ class BaseEntityService(service.Service):
     def _DestroyEntity(self, entity):
         self._TearDownComponents(entity)
         entity.scene = None
+        return
 
     def _AddEvent(self, entityID, event, *args):
         queue = self._entityQueues.setdefault(entityID, EventQueue(lambda : self._RemoveEntityQueue(entityID)))

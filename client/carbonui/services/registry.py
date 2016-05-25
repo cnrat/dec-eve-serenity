@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\packages\carbonui\services\registry.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\packages\carbonui\services\registry.py
 import uthread
 import carbonui.const as uiconst
 from carbonui.util.various_unsorted import SortListOfTuples, GetDesktopObject
@@ -25,7 +26,7 @@ class RegistryHandler(object):
         except:
             print 'Failed to reset window settings'
 
-    def GetRegisteredWindowState(self, windowID, statename, default = None):
+    def GetRegisteredWindowState(self, windowID, statename, default=None):
         try:
             all = settings.char.windows.Get('%sWindows' % statename, {})
         except:
@@ -55,7 +56,7 @@ class RegistryHandler(object):
                 if getattr(wnd, 'windowID', wnd.name) == windowID:
                     return wnd
 
-    def GetStack(self, stackID, stackClass = None, useDefaultPos = False):
+    def GetStack(self, stackID, stackClass=None, useDefaultPos=False):
         if stackID.startswith('windowStack_'):
             stackName = stackID
         else:
@@ -63,8 +64,9 @@ class RegistryHandler(object):
         stack = self.GetWindow(stackName)
         if stack is not None and not stack.destroyed:
             return stack
-        stackClass = stackClass or WindowStackCore
-        return stackClass.Open(windowID=stackID, parent=uicore.layer.main, useDefaultPos=useDefaultPos)
+        else:
+            stackClass = stackClass or WindowStackCore
+            return stackClass.Open(windowID=stackID, parent=uicore.layer.main, useDefaultPos=useDefaultPos)
 
     def GetTopLevelWindowAboveItem(self, item):
         checkPar = item.parent
@@ -89,7 +91,7 @@ class RegistryHandler(object):
         from carbonui.control.windowstack import WindowStackCore
         return isinstance(item, WindowStackCore)
 
-    def GetValidWindows(self, getModals = 0, floatingOnly = False, getHidden = 0):
+    def GetValidWindows(self, getModals=0, floatingOnly=False, getHidden=0):
         validWnds = []
         for wnd in self.GetWindows():
             if not self.IsWindow(wnd) or wnd.sr.stack is not None or getattr(wnd, '_changing', 0):
@@ -108,7 +110,7 @@ class RegistryHandler(object):
 
         return validWnds
 
-    def CheckMoveActiveState(self, topLevelLeaving = None):
+    def CheckMoveActiveState(self, topLevelLeaving=None):
         modal = self.GetModalWindow(topLevelLeaving)
         if modal:
             self.SetFocus(modal)
@@ -142,7 +144,9 @@ class RegistryHandler(object):
                         if focus and focus.IsUnder(topLevel):
                             break
 
-    def GetModalWindow(self, exclude = None):
+        return
+
+    def GetModalWindow(self, exclude=None):
         if self.modals:
             mdl = self.modals[-1]
             if mdl is None or mdl.destroyed or exclude and mdl == exclude:
@@ -150,6 +154,7 @@ class RegistryHandler(object):
                 return self.GetModalWindow()
             return mdl
         else:
+            return
             return
 
     def AddModalWindow(self, wnd):
@@ -218,8 +223,9 @@ class RegistryHandler(object):
                 item.OnSetFocus()
         else:
             self._focus = None
+        return
 
-    def __SetActive(self, wnd = None):
+    def __SetActive(self, wnd=None):
         while not self.IsTopLevelWindow(wnd):
             if wnd == uicore.desktop:
                 break
@@ -239,6 +245,7 @@ class RegistryHandler(object):
                 wnd.SetOrder(0)
         if hasattr(wnd, 'SetActive'):
             wnd.SetActive()
+        return
 
     def RegisterFocusItem(self, item):
         if item and not item.destroyed and item != uicore.desktop:
@@ -249,11 +256,14 @@ class RegistryHandler(object):
                     setattr(tabstop, 'hasFocus', 0)
 
                 setattr(item, 'hasFocus', 1)
+        return
 
-    def GetFocus(self, active = None):
+    def GetFocus(self, active=None):
         focus = self._focus
         if focus and not focus.destroyed:
             return focus
+        else:
+            return None
 
     def GetActive(self):
         focus = self.GetFocus()
@@ -262,7 +272,7 @@ class RegistryHandler(object):
                 return focus
             return self.GetTopLevelWindowAboveItem(focus)
 
-    def FindFocus(self, browse = 0):
+    def FindFocus(self, browse=0):
         modal = self.GetModalWindow()
         if modal:
             active = modal
@@ -292,8 +302,10 @@ class RegistryHandler(object):
                 idx = 0
             self.SetFocus(tabstops[idx])
             return
-        if len(tabstops) and focus != tabstops[0]:
+        elif len(tabstops) and focus != tabstops[0]:
             self.SetFocus(tabstops[0])
+            return
+        else:
             return
 
     def CrawlForTabstops(self, fromwhere):
@@ -332,7 +344,7 @@ class RegistryHandler(object):
             current = current[0]
         return (current, SortListOfTuples(sorted))
 
-    def GetModalResult(self, default, funcname = 'btn_default'):
+    def GetModalResult(self, default, funcname='btn_default'):
         result = None
         modal = self.GetModalWindow()
         if modal:
@@ -348,56 +360,57 @@ class RegistryHandler(object):
     def BlockConfirm(self):
         self._blockConfirm = 1
 
-    def Confirm(self, starter = None):
+    def Confirm(self, starter=None):
         if self._blockConfirm:
             self._blockConfirm = 0
             return False
-        if uicore.imeHandler and uicore.imeHandler.IsVisible():
+        elif uicore.imeHandler and uicore.imeHandler.IsVisible():
             return
-        focus = self.GetFocus()
-        active = self.GetActive()
-        modal = self.GetModalWindow()
-        if modal:
-            if focus and focus.IsUnder(modal):
-                if hasattr(focus, 'Confirm') and focus != starter:
-                    return uthread.new(focus.Confirm)
-            if hasattr(modal, 'Confirm') and modal != starter:
-                if not getattr(modal, 'blockconfirmonreturn', 0) or uicore.uilib.Key(uiconst.VK_CONTROL):
-                    modal.Confirm()
-                    return True
-            else:
-                result = self.GetModalResult(uiconst.ID_OK)
-                modal.SetModalResult(result)
-                return True
-            return False
-        if getattr(focus, 'Confirm', None) and focus != starter:
-            uthread.new(focus.Confirm)
-            return True
-        if hasattr(active, 'IsCurrentDialog') and active.IsCurrentDialog():
-            active.SetModalResult(uiconst.ID_OK)
-            return True
-        if getattr(active, 'Confirm', None) and active != starter:
-            uthread.new(active.Confirm)
-            return True
-        if focus and focus.HasEventHandler('OnClick'):
-            uthread.new(focus.OnClick, focus)
-            return True
-        if focus:
-            searchFrom = self.GetTopLevelWindowAboveItem(focus)
         else:
-            searchFrom = uicore.desktop
-        if searchFrom:
-            wnds = [ w for w in searchFrom.Find('trinity.Tr2Sprite2dContainer') + searchFrom.Find('trinity.Tr2Sprite2d') if getattr(w, 'btn_default', 0) == 1 ]
-            if len(wnds):
-                for wnd in wnds:
-                    if starter and starter == wnd:
-                        continue
-                    if wnd.IsVisible():
-                        if wnd.HasEventHandler('OnClick'):
-                            uthread.new(wnd.OnClick, wnd)
+            focus = self.GetFocus()
+            active = self.GetActive()
+            modal = self.GetModalWindow()
+            if modal:
+                if focus and focus.IsUnder(modal):
+                    if hasattr(focus, 'Confirm') and focus != starter:
+                        return uthread.new(focus.Confirm)
+                if hasattr(modal, 'Confirm') and modal != starter:
+                    if not getattr(modal, 'blockconfirmonreturn', 0) or uicore.uilib.Key(uiconst.VK_CONTROL):
+                        modal.Confirm()
                         return True
+                else:
+                    result = self.GetModalResult(uiconst.ID_OK)
+                    modal.SetModalResult(result)
+                    return True
+                return False
+            elif getattr(focus, 'Confirm', None) and focus != starter:
+                uthread.new(focus.Confirm)
+                return True
+            elif hasattr(active, 'IsCurrentDialog') and active.IsCurrentDialog():
+                active.SetModalResult(uiconst.ID_OK)
+                return True
+            elif getattr(active, 'Confirm', None) and active != starter:
+                uthread.new(active.Confirm)
+                return True
+            elif focus and focus.HasEventHandler('OnClick'):
+                uthread.new(focus.OnClick, focus)
+                return True
+            if focus:
+                searchFrom = self.GetTopLevelWindowAboveItem(focus)
+            else:
+                searchFrom = uicore.desktop
+            if searchFrom:
+                wnds = [ w for w in searchFrom.Find('trinity.Tr2Sprite2dContainer') + searchFrom.Find('trinity.Tr2Sprite2d') if getattr(w, 'btn_default', 0) == 1 ]
+                if len(wnds):
+                    for wnd in wnds:
+                        if starter and starter == wnd:
+                            continue
+                        if wnd.IsVisible():
+                            if wnd.HasEventHandler('OnClick'):
+                                uthread.new(wnd.OnClick, wnd)
+                            return True
 
-        return False
+            return False
 
     def AddToListGroup(self, listID_groupID, add):
         listID = unicode(listID_groupID[0])
@@ -429,7 +442,7 @@ class RegistryHandler(object):
         if wnd:
             wnd.LoadContent()
 
-    def AddListGroup(self, listID, listgroupName = None):
+    def AddListGroup(self, listID, listgroupName=None):
         import uiutil
         groupname = uiutil.AskName(localization.GetByLabel('/Carbon/UI/Common/TypeName'), localization.GetByLabel('/Carbon/UI/Common/TypeNameForFolder'))
         if not groupname:
@@ -444,7 +457,7 @@ class RegistryHandler(object):
         group['open'] = 0
         return group
 
-    def GetLockedGroup(self, listID, listgroupName, label, openState = 0):
+    def GetLockedGroup(self, listID, listgroupName, label, openState=0):
         id = (listID, listgroupName)
         group = self.GetListGroup(id)
         group['label'] = label
@@ -509,7 +522,9 @@ class RegistryHandler(object):
                 if itemID in groups[listID][groupID]['groupItems']:
                     return (listID, groupID)
 
-    def GetListGroupOpenState(self, listID_groupID, default = False):
+        return None
+
+    def GetListGroupOpenState(self, listID_groupID, default=False):
         listID = unicode(listID_groupID[0])
         groupID = unicode(listID_groupID[1])
         groups = self.GetAllGroups()
@@ -540,19 +555,21 @@ class RegistryHandler(object):
 
             self.toggleState = None
             return
-        state = []
-        wnds = self.GetValidWindows(floatingOnly=True)
-        for wnd in wnds:
-            if not getattr(wnd, 'windowID', None):
-                continue
-            if not wnd.IsCollapsed():
-                windowID = wnd.windowID
-                wnd.Collapse()
-                state.append(windowID)
-
-        if not state:
+        else:
+            state = []
+            wnds = self.GetValidWindows(floatingOnly=True)
             for wnd in wnds:
-                if wnd.IsCollapsed():
-                    wnd.Expand()
+                if not getattr(wnd, 'windowID', None):
+                    continue
+                if not wnd.IsCollapsed():
+                    windowID = wnd.windowID
+                    wnd.Collapse()
+                    state.append(windowID)
 
-        self.toggleState = state
+            if not state:
+                for wnd in wnds:
+                    if wnd.IsCollapsed():
+                        wnd.Expand()
+
+            self.toggleState = state
+            return

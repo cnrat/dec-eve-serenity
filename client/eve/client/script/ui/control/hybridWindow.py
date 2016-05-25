@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\client\script\ui\control\hybridWindow.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\client\script\ui\control\hybridWindow.py
 from eve.client.script.ui.util.form import FormWnd
 import uiprimitives
 import uicontrols
@@ -88,25 +89,28 @@ class HybridWindow(uicontrols.Window):
         self.form = None
         self.sr.queue = None
         self.locked = 0
+        return
 
     def Close(self, *args, **kwds):
         if self.HasPendingModalResult():
             return uicontrols.Window.Close(self, *args, **kwds)
-        if self.sr.queue is not None:
-            self.sr.queue.send(None)
-        self.form.OnChange = None
-        self.form.sr.focus = None
-        for each in self.form.sr.panels.itervalues():
-            each.OnChange = None
+        else:
+            if self.sr.queue is not None:
+                self.sr.queue.send(None)
+            self.form.OnChange = None
+            self.form.sr.focus = None
+            for each in self.form.sr.panels.itervalues():
+                each.OnChange = None
 
-        self.form.Close()
-        self.form = None
-        self.retfields = None
-        self.reqresult = None
-        self.panels = None
-        self.errorcheck = None
-        self.ResetSelf()
-        uicontrols.Window.Close(self, *args, **kwds)
+            self.form.Close()
+            self.form = None
+            self.retfields = None
+            self.reqresult = None
+            self.panels = None
+            self.errorcheck = None
+            self.ResetSelf()
+            uicontrols.Window.Close(self, *args, **kwds)
+            return
 
     def OnChange(self, *args):
         self.OnScale_(*args)
@@ -117,39 +121,41 @@ class HybridWindow(uicontrols.Window):
     def OnEndScale_(self, *args):
         self.RefreshSize_()
 
-    def RefreshSize_(self, update = 0, *args):
+    def RefreshSize_(self, update=0, *args):
         self.RefreshTextControls(self.refresh)
         if self.locked:
             return
-        minformheight = 0
-        notformheight = 0
-        hasTab = 0
-        minw = 0
-        for each in self.form.children:
-            if each.name == 'form':
-                for each2 in each.children:
-                    if each2.name == 'form':
-                        uix2.RefreshHeight(each2)
+        else:
+            minformheight = 0
+            notformheight = 0
+            hasTab = 0
+            minw = 0
+            for each in self.form.children:
+                if each.name == 'form':
+                    for each2 in each.children:
+                        if each2.name == 'form':
+                            uix2.RefreshHeight(each2)
 
-                uix2.RefreshHeight(each)
-                minformheight = max(minformheight, each.height)
-            elif each.name == 'tabparent':
-                hasTab = 1
-                if each.width > minw:
-                    minw = each.width
-            else:
-                notformheight += each.height
+                    uix2.RefreshHeight(each)
+                    minformheight = max(minformheight, each.height)
+                elif each.name == 'tabparent':
+                    hasTab = 1
+                    if each.width > minw:
+                        minw = each.width
+                else:
+                    notformheight += each.height
 
-        if self.form.align in (uiconst.TOTOP, uiconst.TOBOTTOM):
-            self.form.height = minformheight + notformheight
-        totHeight = minformheight + sum([ each.height + each.padTop + each.padBottom for each in self.form.parent.children if each.align in (uiconst.TOTOP, uiconst.TOBOTTOM) ])
-        if hasTab == 1:
-            if self.minsize[0] < minw:
-                self.minsize[0] = minw
-        preheight = self.height
-        minHeight = totHeight + (self.sr.stack is not None) * 6 + 51
-        if minHeight > self.minsize[1]:
-            self.SetMinSize([self.minsize[0], minHeight], 1)
+            if self.form.align in (uiconst.TOTOP, uiconst.TOBOTTOM):
+                self.form.height = minformheight + notformheight
+            totHeight = minformheight + sum([ each.height + each.padTop + each.padBottom for each in self.form.parent.children if each.align in (uiconst.TOTOP, uiconst.TOBOTTOM) ])
+            if hasTab == 1:
+                if self.minsize[0] < minw:
+                    self.minsize[0] = minw
+            preheight = self.height
+            minHeight = totHeight + (self.sr.stack is not None) * 6 + 51
+            if minHeight > self.minsize[1]:
+                self.SetMinSize([self.minsize[0], minHeight], 1)
+            return
 
     def RefreshTextControls(self, rlist):
         for each in rlist:
@@ -171,7 +177,7 @@ class HybridWindow(uicontrols.Window):
         self.sr.queue = None
         return ret
 
-    def Confirm(self, sender = None, *args):
+    def Confirm(self, sender=None, *args):
         uicore.registry.SetFocus(uicore.desktop)
         if sender is None:
             if getattr(uicore.registry.GetFocus(), 'stopconfirm', 0):
@@ -179,14 +185,16 @@ class HybridWindow(uicontrols.Window):
         self.result = sm.GetService('form').ProcessForm(self.retfields, self.reqresult, self.errorcheck)
         if self.result is None:
             return
-        if uicore.registry.GetModalWindow() == self:
-            import triui
-            self.SetModalResult(triui.ID_OK)
         else:
-            if self.sr.queue is not None:
-                self.sr.queue.send(self.result)
-            ret = self.result
-            self.Close()
-            return ret
+            if uicore.registry.GetModalWindow() == self:
+                import triui
+                self.SetModalResult(triui.ID_OK)
+            else:
+                if self.sr.queue is not None:
+                    self.sr.queue.send(self.result)
+                ret = self.result
+                self.Close()
+                return ret
+            return
 
     ConfirmFunction = Confirm

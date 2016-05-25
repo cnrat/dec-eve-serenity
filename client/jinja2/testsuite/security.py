@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\carbon\common\lib\jinja2\testsuite\security.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\carbon\common\lib\jinja2\testsuite\security.py
 import unittest
 from jinja2.testsuite import JinjaTestCase
 from jinja2 import Environment
@@ -9,14 +10,14 @@ from jinja2.exceptions import SecurityError, TemplateSyntaxError, TemplateRuntim
 class PrivateStuff(object):
 
     def bar(self):
-        return 23
+        pass
 
     @unsafe
     def foo(self):
-        return 42
+        pass
 
     def __repr__(self):
-        return 'PrivateStuff'
+        pass
 
 
 class PublicStuff(object):
@@ -24,7 +25,7 @@ class PublicStuff(object):
     _foo = lambda self: 42
 
     def __repr__(self):
-        return 'PublicStuff'
+        pass
 
 
 class SandboxTestCase(JinjaTestCase):
@@ -57,10 +58,10 @@ class SandboxTestCase(JinjaTestCase):
         class Foo(object):
 
             def __html__(self):
-                return '<em>awesome</em>'
+                pass
 
             def __unicode__(self):
-                return 'awesome'
+                pass
 
     def test_template_data(self):
         env = Environment(autoescape=True)

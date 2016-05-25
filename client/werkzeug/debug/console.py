@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\carbon\common\lib\werkzeug\debug\console.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\carbon\common\lib\werkzeug\debug\console.py
 import sys
 import code
 from types import CodeType
@@ -22,7 +23,7 @@ class HTMLStringO(object):
     def flush(self):
         pass
 
-    def seek(self, n, mode = 0):
+    def seek(self, n, mode=0):
         raise IOError('Bad file descriptor')
 
     def readline(self):
@@ -72,6 +73,7 @@ class ThreadedStream(object):
 
         if obj is not None:
             stream._write(debug_repr(obj))
+        return
 
     displayhook = staticmethod(displayhook)
 
@@ -167,7 +169,7 @@ class _InteractiveConsole(code.InteractiveInterpreter):
         tb = get_current_traceback(skip=1)
         sys.stdout._write(tb.render_summary())
 
-    def showsyntaxerror(self, filename = None):
+    def showsyntaxerror(self, filename=None):
         from werkzeug.debug.tbtools import get_current_traceback
         tb = get_current_traceback(skip=4)
         sys.stdout._write(tb.render_summary())
@@ -178,12 +180,13 @@ class _InteractiveConsole(code.InteractiveInterpreter):
 
 class Console(object):
 
-    def __init__(self, globals = None, locals = None):
+    def __init__(self, globals=None, locals=None):
         if locals is None:
             locals = {}
         if globals is None:
             globals = {}
         self._ipy = _InteractiveConsole(globals, locals)
+        return
 
     def eval(self, code):
         return self._ipy.runsource(code)

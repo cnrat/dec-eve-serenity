@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\carbon\common\stdlib\unittest2\test\test_unittest2.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\carbon\common\stdlib\unittest2\test\test_unittest2.py
 import os
 import re
 import sys
@@ -231,6 +232,7 @@ class Test_TestLoader(unittest2.TestCase):
         load_tests_args = []
         suite = loader.loadTestsFromModule(m, use_load_tests=False)
         self.assertEquals(load_tests_args, [])
+        return
 
     def test_loadTestsFromName__empty_name(self):
         loader = unittest2.TestLoader()
@@ -452,7 +454,7 @@ class Test_TestLoader(unittest2.TestCase):
         m = types.ModuleType('m')
 
         def return_wrong():
-            return 6
+            pass
 
         m.return_wrong = return_wrong
         loader = unittest2.TestLoader()
@@ -708,7 +710,7 @@ class Test_TestLoader(unittest2.TestCase):
         m = types.ModuleType('m')
 
         def return_wrong():
-            return 6
+            pass
 
         m.return_wrong = return_wrong
         loader = unittest2.TestLoader()
@@ -1007,6 +1009,7 @@ class Test_TestLoader(unittest2.TestCase):
         loader.sortTestMethodsUsing = None
         test_names = ['test_2', 'test_1']
         self.assertEqual(set(loader.getTestCaseNames(Foo)), set(test_names))
+        return
 
     def test_suiteClass__loadTestsFromTestCase(self):
 
@@ -1405,6 +1408,7 @@ class Test_FunctionTestCase(unittest2.TestCase):
     def test_shortDescription__no_docstring(self):
         test = unittest2.FunctionTestCase(lambda : None)
         self.assertEqual(test.shortDescription(), None)
+        return
 
     def test_shortDescription__singleline_docstring(self):
         desc = 'this tests foo'
@@ -1544,14 +1548,17 @@ class Test_TestResult(unittest2.TestCase):
     def testGetDescriptionWithoutDocstring(self):
         result = unittest2.TextTestResult(None, True, 1)
         self.assertEqual(result.getDescription(self), 'testGetDescriptionWithoutDocstring (' + __name__ + '.Test_TestResult)')
+        return
 
     def testGetDescriptionWithOneLineDocstring(self):
         result = unittest2.TextTestResult(None, True, 1)
         self.assertEqual(result.getDescription(self), 'testGetDescriptionWithOneLineDocstring (' + __name__ + '.Test_TestResult)\nTests getDescription() for a method with a docstring.')
+        return
 
     def testGetDescriptionWithMultiLineDocstring(self):
         result = unittest2.TextTestResult(None, True, 1)
         self.assertEqual(result.getDescription(self), 'testGetDescriptionWithMultiLineDocstring (' + __name__ + '.Test_TestResult)\nTests getDescription() for a method with a longer docstring.')
+        return
 
 
 class Foo(unittest2.TestCase):
@@ -1964,11 +1971,12 @@ class Test_TestCase(unittest2.TestCase, TestEquality, TestHashing):
         s1, s2 = SadSnake(), SadSnake()
         self.assertFalse(s1 == s2)
 
-        def AllSnakesCreatedEqual(a, b, msg = None):
+        def AllSnakesCreatedEqual(a, b, msg=None):
             return type(a) == type(b) == SadSnake
 
         self.addTypeEqualityFunc(SadSnake, AllSnakesCreatedEqual)
         self.assertEqual(s1, s2)
+        return
 
     def testAssertIs(self):
         thing = object()
@@ -2099,6 +2107,7 @@ class Test_TestCase(unittest2.TestCase, TestEquality, TestHashing):
         self.assertSameElements([[1, 2], [3, 4]], [[3, 4], [1, 2]])
         self.assertSameElements([{'a': 1}, {'b': 2}], [{'b': 2}, {'a': 1}])
         self.assertRaises(self.failureException, self.assertSameElements, [[1]], [[2]])
+        return
 
     def testAssertSetEqual(self):
         set1 = set()
@@ -2130,6 +2139,7 @@ class Test_TestCase(unittest2.TestCase, TestEquality, TestHashing):
         set1 = set([(0, 1), (2, 3)])
         set2 = set([(4, 5)])
         self.assertRaises(self.failureException, self.assertSetEqual, set1, set2)
+        return
 
     def testInequality(self):
         self.assertGreater(2, 1)
@@ -2220,6 +2230,7 @@ class Test_TestCase(unittest2.TestCase, TestEquality, TestHashing):
         self.assertRaises(self.failureException, self.assertIsNone, False)
         self.assertIsNotNone('DjZoPloGears on Rails')
         self.assertRaises(self.failureException, self.assertIsNotNone, None)
+        return
 
     def testAssertRegexpMatches(self):
         self.assertRegexpMatches('asdfabasdf', 'ab+')
@@ -2438,6 +2449,7 @@ class TestLongMessage(unittest2.TestCase):
         self.assertEquals(self.testableFalse._formatMessage('foo', 'bar'), 'foo')
         self.assertEquals(self.testableTrue._formatMessage(None, 'foo'), 'foo')
         self.assertEquals(self.testableTrue._formatMessage('foo', 'bar'), 'bar : foo')
+        return
 
     def assertMessages(self, methodName, args, errors):
 
@@ -2498,24 +2510,28 @@ class TestLongMessage(unittest2.TestCase):
          '^oops$',
          '\\+ \\[None\\]$',
          '\\+ \\[None\\] : oops$'])
+        return
 
     def testAssertSetEqual(self):
         self.assertMessages('assertSetEqual', (set(), set([None])), ['None$',
          '^oops$',
          'None$',
          'None : oops$'])
+        return
 
     def testAssertIn(self):
         self.assertMessages('assertIn', (None, []), ['^None not found in \\[\\]$',
          '^oops$',
          '^None not found in \\[\\]$',
          '^None not found in \\[\\] : oops$'])
+        return
 
     def testAssertNotIn(self):
         self.assertMessages('assertNotIn', (None, [None]), ['^None unexpectedly found in \\[None\\]$',
          '^oops$',
          '^None unexpectedly found in \\[None\\]$',
          '^None unexpectedly found in \\[None\\] : oops$'])
+        return
 
     def testAssertDictEqual(self):
         self.assertMessages('assertDictEqual', ({}, {'key': 'value'}), ["\\+ \\{'key': 'value'\\}$",
@@ -2534,6 +2550,7 @@ class TestLongMessage(unittest2.TestCase):
          '^oops$',
          '\\[None\\]$',
          '\\[None\\] : oops$'])
+        return
 
     def testAssertMultiLineEqual(self):
         self.assertMessages('assertMultiLineEqual', ('', 'foo'), ['\\+ foo$',
@@ -2576,18 +2593,21 @@ class TestLongMessage(unittest2.TestCase):
          '^oops$',
          '^unexpectedly None$',
          '^unexpectedly None : oops$'])
+        return None
 
     def testAssertIs(self):
         self.assertMessages('assertIs', (None, 'foo'), ["^None is not 'foo'$",
          '^oops$',
          "^None is not 'foo'$",
          "^None is not 'foo' : oops$"])
+        return None
 
     def testAssertIsNot(self):
         self.assertMessages('assertIsNot', (None, None), ['^unexpectedly identical: None$',
          '^oops$',
          '^unexpectedly identical: None$',
          '^unexpectedly identical: None : oops$'])
+        return None
 
 
 class TestCleanUp(unittest2.TestCase):
@@ -2916,7 +2936,6 @@ class TestDiscovery(unittest2.TestCase):
 
                     def load_tests(loader, tests, pattern):
                         self.load_tests_args.append((loader, tests, pattern))
-                        return 'load_tests'
 
                     self.load_tests = load_tests
 
@@ -3034,7 +3053,6 @@ class TestDiscovery(unittest2.TestCase):
 
             def discover(self, start_dir, pattern, top_level_dir):
                 self.args.append((start_dir, pattern, top_level_dir))
-                return 'tests'
 
         program._do_discovery(['-v'], Loader=Loader)
         self.assertEqual(program.verbosity, 2)
@@ -3090,6 +3108,7 @@ class TestDiscovery(unittest2.TestCase):
         self.assertEqual(program.test, 'tests')
         self.assertEqual(Loader.args, [('fish', 'eggs', None)])
         self.assertEqual(program.verbosity, 2)
+        return None
 
 
 if __name__ == '__main__':

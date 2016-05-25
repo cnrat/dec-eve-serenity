@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\client\script\ui\eveUIProcs.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\client\script\ui\eveUIProcs.py
 import uthread
 import eve.common.script.sys.eveCfg as util
 import locks
@@ -30,14 +31,16 @@ class EveUIProcSvc(svc.uiProcSvc):
          'EnterHangar': self.cmd.CmdEnterHangar,
          'GiveNavigationFocus': self._GiveNavigationFocus_Callback}
         self.isOpeningPI = False
+        return
 
     def _PerformUICallback(self, callbackKey):
         callback = self.uiCallbackDict.get(callbackKey, None)
         if callback is not None:
             uthread.worker('_PerformUICallback_%s' % callbackKey, self._PerformUICallbackTasklet, callbackKey, callback)
             return True
-        self.LogError('ActionObject.PerformUICallback: Unknown callbackKey', callbackKey)
-        return False
+        else:
+            self.LogError('ActionObject.PerformUICallback: Unknown callbackKey', callbackKey)
+            return False
 
     def _PerformUICallbackTasklet(self, callbackKey, callback):
         try:
@@ -60,23 +63,26 @@ class EveUIProcSvc(svc.uiProcSvc):
     def _OpenCorporationPanel_Planets_Callback(self):
         if self.isOpeningPI:
             return
-        self.isOpeningPI = True
-        try:
-            if sm.GetService('planetSvc').GetMyPlanets():
-                self.cmd.OpenPlanets()
-            else:
-                systemData = sm.GetService('map').GetSolarsystemItems(session.solarsystemid2)
-                systemPlanets = []
-                for orbitalBody in systemData:
-                    if orbitalBody.groupID == const.groupPlanet:
-                        systemPlanets.append(orbitalBody)
+        else:
+            self.isOpeningPI = True
+            try:
+                if sm.GetService('planetSvc').GetMyPlanets():
+                    self.cmd.OpenPlanets()
+                else:
+                    systemData = sm.GetService('map').GetSolarsystemItems(session.solarsystemid2)
+                    systemPlanets = []
+                    for orbitalBody in systemData:
+                        if orbitalBody.groupID == const.groupPlanet:
+                            systemPlanets.append(orbitalBody)
 
-                planetID = systemPlanets[random.randrange(0, len(systemPlanets))].itemID
-                sm.GetService('viewState').ActivateView('planet', planetID=planetID)
-                if not settings.user.suppress.Get('suppress.PI_Info', None):
-                    uicore.Message('PlanetaryInteractionIntroText')
-        finally:
-            self.isOpeningPI = False
+                    planetID = systemPlanets[random.randrange(0, len(systemPlanets))].itemID
+                    sm.GetService('viewState').ActivateView('planet', planetID=planetID)
+                    if not settings.user.suppress.Get('suppress.PI_Info', None):
+                        uicore.Message('PlanetaryInteractionIntroText')
+            finally:
+                self.isOpeningPI = False
+
+            return
 
     def __OpenStationDoor_Callback(self):
         uicore.Message('CaptainsQuartersStationDoorClosed')

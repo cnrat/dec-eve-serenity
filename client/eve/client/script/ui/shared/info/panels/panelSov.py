@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\client\script\ui\shared\info\panels\panelSov.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\client\script\ui\shared\info\panels\panelSov.py
 from carbonui.primitives.container import Container
 from eve.client.script.ui.control.eveScroll import Scroll
 from eve.client.script.ui.control import entries as listentry
@@ -46,6 +47,7 @@ class PanelSov(Container):
                 contentList.append(structureEntry)
 
         self.scroll.Load(contentList=contentList)
+        return
 
     def GetIndexAndMultiplierInfo(self, sovInfo, isCapital):
         if isCapital:

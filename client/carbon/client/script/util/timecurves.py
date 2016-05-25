@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\carbon\client\script\util\timecurves.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\carbon\client\script\util\timecurves.py
 import blue
 
 def ReadTimeAndSoundCurvesF(tf):
@@ -15,7 +16,7 @@ def ReadTimeCurvesF(tf):
     return tf.Find(('trinity.TriScalarCurve', 'trinity.TriVectorCurve', 'trinity.TriRotationCurve', 'trinity.TriColorCurve'), -1, 1)
 
 
-def ResetTimeCurvesF(curves, now = None):
+def ResetTimeCurvesF(curves, now=None):
     if not now:
         now = blue.os.GetSimTime()
     for curve in curves:
@@ -87,53 +88,62 @@ def ReadCurves(tf):
     return tf.Find(curvetypes)
 
 
-def ResetTimeCurves(curves, starttime = None, scaling = None):
+def ResetTimeCurves(curves, starttime=None, scaling=None):
     if not curves:
         return
-    if type(curves) != type([]):
-        curves = ReadCurves(curves)
-    if starttime is None:
-        starttime = blue.os.GetSimTime()
-    for curve in curves:
-        curve.start = starttime
-        if scaling:
-            curve.ScaleTime(scaling)
+    else:
+        if type(curves) != type([]):
+            curves = ReadCurves(curves)
+        if starttime is None:
+            starttime = blue.os.GetSimTime()
+        for curve in curves:
+            curve.start = starttime
+            if scaling:
+                curve.ScaleTime(scaling)
+
+        return
 
 
-def ResetTimeAndSoundCurves(tf, starttime = None):
+def ResetTimeAndSoundCurves(tf, starttime=None):
     if tf is None:
         return
-    if type(tf) != type([]):
-        curves = tf.Find(('trinity.TriScalarCurve', 'trinity.TriVectorCurve', 'trinity.TriRotationCurve', 'trinity.TriColorCurve', 'audio.Node', 'audio.SoundNode'), -1, 1)
     else:
-        curves = tf
-    if starttime is None:
-        now = blue.os.GetSimTime()
-    else:
-        now = starttime
-    for curve in curves:
-        if curve.__typename__ == 'Node' or curve.__typename__ == 'SoundNode':
-            curve.Play()
+        if type(tf) != type([]):
+            curves = tf.Find(('trinity.TriScalarCurve', 'trinity.TriVectorCurve', 'trinity.TriRotationCurve', 'trinity.TriColorCurve', 'audio.Node', 'audio.SoundNode'), -1, 1)
         else:
-            curve.start = now
+            curves = tf
+        if starttime is None:
+            now = blue.os.GetSimTime()
+        else:
+            now = starttime
+        for curve in curves:
+            if curve.__typename__ == 'Node' or curve.__typename__ == 'SoundNode':
+                curve.Play()
+            else:
+                curve.start = now
+
+        return
 
 
-def ResetTimeAndSoundCurvesAndCuePoints(tf, starttime = None):
+def ResetTimeAndSoundCurvesAndCuePoints(tf, starttime=None):
     if tf is None:
         return
-    if type(tf) != type([]):
-        curves = tf.Find(('trinity.TriScalarCurve', 'trinity.TriVectorCurve', 'trinity.TriRotationCurve', 'trinity.TriColorCurve', 'audio.Node', 'audio.SoundNode', 'trinity.TriCuePoints'), -1, 1)
     else:
-        curves = tf
-    if starttime is None:
-        now = blue.os.GetSimTime()
-    else:
-        now = starttime
-    for curve in curves:
-        if curve.__typename__ == 'Node' or curve.__typename__ == 'SoundNode':
-            curve.Play()
+        if type(tf) != type([]):
+            curves = tf.Find(('trinity.TriScalarCurve', 'trinity.TriVectorCurve', 'trinity.TriRotationCurve', 'trinity.TriColorCurve', 'audio.Node', 'audio.SoundNode', 'trinity.TriCuePoints'), -1, 1)
         else:
-            curve.start = now
+            curves = tf
+        if starttime is None:
+            now = blue.os.GetSimTime()
+        else:
+            now = starttime
+        for curve in curves:
+            if curve.__typename__ == 'Node' or curve.__typename__ == 'SoundNode':
+                curve.Play()
+            else:
+                curve.start = now
+
+        return
 
 
 def PlaySounds(tf):
@@ -143,46 +153,55 @@ def PlaySounds(tf):
 def ReverseTimeCurves(tf):
     if tf is None:
         return
-    if type(tf) != type([]):
-        curves = ReadCurves(tf)
     else:
-        curves = tf
-    if len(curves) == 0:
-        return
-    for curve in curves:
-        length = curve.length
-        if length > 0.0:
-            curve.Sort()
-            curve.ScaleTime(-1.0)
-            for key in curve.keys:
-                key.time = key.time + length
+        if type(tf) != type([]):
+            curves = ReadCurves(tf)
+        else:
+            curves = tf
+        if len(curves) == 0:
+            return
+        for curve in curves:
+            length = curve.length
+            if length > 0.0:
+                curve.Sort()
+                curve.ScaleTime(-1.0)
+                for key in curve.keys:
+                    key.time = key.time + length
 
-            curve.Sort()
+                curve.Sort()
+
+        return
 
 
 def ScaleTime(tf, scaling):
     if tf is None:
         return
-    now = blue.os.GetSimTime()
-    if type(tf) != type([]):
-        curves = ReadCurves(tf)
     else:
-        curves = tf
-    for curve in curves:
-        if curve.length > 0.0:
-            curve.ScaleTime(float(scaling))
+        now = blue.os.GetSimTime()
+        if type(tf) != type([]):
+            curves = ReadCurves(tf)
+        else:
+            curves = tf
+        for curve in curves:
+            if curve.length > 0.0:
+                curve.ScaleTime(float(scaling))
+
+        return
 
 
 def SetCurveExtrapolation(tf, value):
     if tf is None:
         return
-    now = blue.os.GetSimTime()
-    if type(tf) != type([]):
-        curves = ReadCurves(tf)
     else:
-        curves = tf
-    for curve in curves:
-        curve.extrapolation = value
+        now = blue.os.GetSimTime()
+        if type(tf) != type([]):
+            curves = ReadCurves(tf)
+        else:
+            curves = tf
+        for curve in curves:
+            curve.extrapolation = value
+
+        return
 
 
 def SetDuration(tf, duration):

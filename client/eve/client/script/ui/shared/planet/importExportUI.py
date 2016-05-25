@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\client\script\ui\shared\planet\importExportUI.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\client\script\ui\shared\planet\importExportUI.py
 import evetypes
 from inventorycommon.util import GetTypeVolume
 import carbonui.const as uiconst
@@ -76,6 +77,7 @@ class PlanetaryImportExportUI(uicontrols.Window):
         self.Layout()
         self._OnResize()
         self.ResetContents()
+        return
 
     def Layout(self):
         self.SetMinSize([560, 400])
@@ -141,6 +143,7 @@ class PlanetaryImportExportUI(uicontrols.Window):
         self.__OnResizeUpdate()
         self.sr.customsListScroll = uicontrols.Scroll(parent=self.sr.customsList, name='customsList')
         self.sr.spaceportListScroll = uicontrols.Scroll(parent=self.sr.spaceportList, name='spaceportList')
+        return
 
     def ResetContents(self):
         self.LoadDestComboOptions()
@@ -167,18 +170,20 @@ class PlanetaryImportExportUI(uicontrols.Window):
         if colony is None:
             self.sr.spaceportCombo.LoadOptions([(localization.GetByLabel('UI/PI/Common/NoDestinationsFound'), None)])
             return
-        self.endpoints = colony.GetImportEndpoints()
-        if len(self.endpoints) < 1:
-            self.sr.spaceportCombo.LoadOptions([(localization.GetByLabel('UI/PI/Common/NoDestinationsFound'), None)])
-            return
-        options = []
-        for endpoint in self.endpoints:
-            pin = self.planet.GetPin(endpoint.id)
-            options.append((planetCommon.GetGenericPinName(pin.typeID, pin.id), endpoint.id))
+        else:
+            self.endpoints = colony.GetImportEndpoints()
+            if len(self.endpoints) < 1:
+                self.sr.spaceportCombo.LoadOptions([(localization.GetByLabel('UI/PI/Common/NoDestinationsFound'), None)])
+                return
+            options = []
+            for endpoint in self.endpoints:
+                pin = self.planet.GetPin(endpoint.id)
+                options.append((planetCommon.GetGenericPinName(pin.typeID, pin.id), endpoint.id))
 
-        if self.spaceportPinID is None:
-            self.spaceportPinID = options[0][1]
-        self.sr.spaceportCombo.LoadOptions(options, select=self.spaceportPinID)
+            if self.spaceportPinID is None:
+                self.spaceportPinID = options[0][1]
+            self.sr.spaceportCombo.LoadOptions(options, select=self.spaceportPinID)
+            return
 
     def SetCustomsOfficeContent(self):
         self.customsOfficeContents = {}
@@ -193,15 +198,18 @@ class PlanetaryImportExportUI(uicontrols.Window):
         self.spaceportContents = {}
         if self.spaceportPinID is None:
             return
-        if self.planet.GetColony(session.charid) is None:
+        elif self.planet.GetColony(session.charid) is None:
             log.LogWarn('Unable to update spaceport contents, colony not yet loaded')
             return
-        pin = self.planet.GetPin(self.spaceportPinID)
-        if pin is None:
-            raise UserError('CannotImportEndpointNotFound')
-        for typeID, qty in pin.GetContents().iteritems():
-            name = evetypes.GetName(typeID)
-            self.spaceportContents[None, typeID] = util.KeyVal(itemID=None, typeID=typeID, quantity=qty, name=name)
+        else:
+            pin = self.planet.GetPin(self.spaceportPinID)
+            if pin is None:
+                raise UserError('CannotImportEndpointNotFound')
+            for typeID, qty in pin.GetContents().iteritems():
+                name = evetypes.GetName(typeID)
+                self.spaceportContents[None, typeID] = util.KeyVal(itemID=None, typeID=typeID, quantity=qty, name=name)
+
+            return
 
     def LoadContentToScroll(self, contentList, transferList, scroll, onDropDataCallback):
         scroll.sr.content.OnDropData = onDropDataCallback
@@ -226,8 +234,9 @@ class PlanetaryImportExportUI(uicontrols.Window):
             sortBy = localization.GetByLabel('UI/Common/Commodity')
         scroll.LoadContent(contentList=scrollContents, headers=scrollHeaders, noContentHint=scrollNoContentText, sortby=sortBy)
         scroll.RefreshSort()
+        return
 
-    def GetCommodityVolume(self, commodities = None, excluded = None):
+    def GetCommodityVolume(self, commodities=None, excluded=None):
         volume = 0
         for key, item in commodities.iteritems():
             if excluded is None or key not in excluded:
@@ -250,7 +259,7 @@ class PlanetaryImportExportUI(uicontrols.Window):
         capacity = self.GetCustomsCapacityTotal()
         return capacity - used
 
-    def CheckAvailableSpaceInCustoms(self, commodities = None):
+    def CheckAvailableSpaceInCustoms(self, commodities=None):
         available = self.GetCustomsCapacityAvailable()
         required = self.GetCommodityVolume(commodities, self.importContents)
         if required - available > 1e-05:
@@ -281,7 +290,7 @@ class PlanetaryImportExportUI(uicontrols.Window):
         capacity = self.GetSpaceportCapacityTotal()
         return capacity - used
 
-    def CheckAvailableSpaceInSpaceport(self, commodities = None):
+    def CheckAvailableSpaceInSpaceport(self, commodities=None):
         available = self.GetSpaceportCapacityAvailable()
         required = self.GetCommodityVolume(commodities, self.exportContents)
         if required - available > 1e-05:
@@ -307,6 +316,7 @@ class PlanetaryImportExportUI(uicontrols.Window):
             self.sr.customsGauge.SetSubText(localization.GetByLabel('UI/PI/Common/StorageUsed', capacityUsed=capacityUsed, capacityMax=capacityMax))
             self.sr.customsGauge.SetValue(capacityUsed / capacityMax)
         self.RefreshCostText()
+        return
 
     def GetCommodities(self, source):
         commods = {}
@@ -337,6 +347,7 @@ class PlanetaryImportExportUI(uicontrols.Window):
             self.windowCaption.SetSubcaption(localization.GetByLabel('UI/PI/Common/CustomsOfficeTaxRate', taxRate=self.taxRate * 100))
         else:
             self.windowCaption.SetSubcaption(localization.GetByLabel('UI/PI/Common/CustomsOfficeAccessDenied'))
+        return
 
     def UpdateTaxRate(self):
         self.taxRate = moniker.GetPlanetOrbitalRegistry(session.solarsystemid).GetTaxRate(self.id)
@@ -347,7 +358,7 @@ class PlanetaryImportExportUI(uicontrols.Window):
             self.spaceportPinID = spaceportPinID
             self.ResetContents()
 
-    def OnItemChange(self, item = None, change = None):
+    def OnItemChange(self, item=None, change=None):
         locationIdx = const.ixLocationID
         if self.id not in (item[locationIdx], change.get(locationIdx, 'No location change')):
             return
@@ -414,6 +425,7 @@ class PlanetaryImportExportUI(uicontrols.Window):
                 self.AddStuff(key, item, self.importContents)
 
         self.RefreshLists()
+        return
 
     def ExportCommodity(self, nodes):
         if self.taxRate is None:
@@ -428,8 +440,9 @@ class PlanetaryImportExportUI(uicontrols.Window):
                 self.AddStuff(key, item, self.exportContents)
 
         self.RefreshLists()
+        return
 
-    def CommoditiesToTransfer(self, commodities, toSpaceport = False):
+    def CommoditiesToTransfer(self, commodities, toSpaceport=False):
         toMove = {}
         for item in commodities:
             toMove[item.itemID, item.typeID] = util.KeyVal(name=evetypes.GetName(item.typeID), itemID=item.itemID, typeID=item.typeID, quantity=item.quantity, item=getattr(item, 'item', item))
@@ -480,6 +493,8 @@ class PlanetaryImportExportUI(uicontrols.Window):
             for key, item in items.iteritems():
                 self.customsOffice.Add(key[0], sourceLocation, qty=item.quantity)
 
+        return
+
     def ConfirmCommodityTransfer(self, *args):
         if self.spaceportPinID is None:
             raise UserError('CannotImportEndpointNotFound')
@@ -504,3 +519,5 @@ class PlanetaryImportExportUI(uicontrols.Window):
                 customsOfficeInventory.ImportExportWithPlanet(self.spaceportPinID, importData, exportData, self.taxRate)
             else:
                 self.ResetContents()
+
+        return

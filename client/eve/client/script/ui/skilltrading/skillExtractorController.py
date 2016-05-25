@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\client\script\ui\skilltrading\skillExtractorController.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\client\script\ui\skilltrading\skillExtractorController.py
 import characterskills as charskills
 from collections import defaultdict
 import signals
@@ -59,6 +60,7 @@ class SkillExtractorControllerBase(SkillSourceInterface):
         self.onUpdate = signals.Signal()
         self.onSkillListUpdate = signals.Signal()
         self.onSkillListUpdate.connect(self.onUpdate)
+        return
 
     @property
     def extractedPoints(self):
@@ -212,6 +214,7 @@ class SkillExtractorControllerBase(SkillSourceInterface):
         self._skills = None
         self._skillsByID = None
         self.onSkillListUpdate()
+        return
 
     def OnSkillQueueUpdated(self):
         extractedBefore = self.extractedPoints
@@ -244,6 +247,8 @@ class SkillExtractorControllerBase(SkillSourceInterface):
         if self._skills is not None:
             for skill in self._skills:
                 skill.onUpdate.clear()
+
+        return
 
     def OnSkillRestrictionsUpdated(self):
         for skill in self.skills:
@@ -307,6 +312,7 @@ class SkillBase(SkillStaticDataInterface):
         self._level = None
         self._dirty = False
         self.onUpdate = signals.Signal()
+        return
 
     @property
     def typeID(self):
@@ -321,6 +327,7 @@ class SkillBase(SkillStaticDataInterface):
         self._dirty |= points != self._points
         self._points = points
         self._level = None
+        return
 
     @property
     def unmodifiedPoints(self):
@@ -500,6 +507,7 @@ class SkillExtractorController(SkillExtractorControllerBase, SkillServiceSkillSo
         self._cached_clone_restrictions = None
         self._cached_implant_restrictions = None
         sm.RegisterNotify(self)
+        return
 
     def Close(self):
         super(SkillExtractorController, self).Close()
@@ -532,22 +540,27 @@ class SkillExtractorController(SkillExtractorControllerBase, SkillServiceSkillSo
         self._cached_clone_restrictions = None
         self._cached_implant_restrictions = None
         self.OnSkillRestrictionsUpdated()
+        return
 
     def OnImplantsChanged(self):
         self._cached_implant_restrictions = None
         self.OnSkillRestrictionsUpdated()
+        return
 
     def OnNewSkillQueueSaved(self, newQueue):
         self._cached_queue = None
         self.OnSkillQueueUpdated()
+        return
 
     def OnPlanetChangesSubmitted(self, planetID):
         self._cached_planet_restrictions = None
         self.OnSkillRestrictionsUpdated()
+        return
 
     def OnPlanetCommandCenterDeployedOrRemoved(self):
         self._cached_planet_restrictions = None
         self.OnSkillRestrictionsUpdated()
+        return
 
     def OnSkillsChanged(self, skillInfo):
         for skillID, info in skillInfo.iteritems():

@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\packages\carbonui\control\animatedsprite.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\packages\carbonui\control\animatedsprite.py
 import carbonui.const as uiconst
 import blue
 import uthread
@@ -25,6 +26,7 @@ class AnimSprite(Sprite):
         self.step = 0
         self.play = 0
         self.playing = 0
+        return
 
     def Loop(self):
         while not self.destroyed:

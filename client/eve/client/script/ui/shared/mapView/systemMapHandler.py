@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\client\script\ui\shared\mapView\systemMapHandler.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\client\script\ui\shared\mapView\systemMapHandler.py
 from carbon.common.script.util.format import FmtDist, FmtAmt
 from carbonui.primitives.layoutGrid import LayoutGrid
 from eve.client.script.environment.spaceObject.planet import Planet
@@ -36,7 +37,7 @@ class SystemMapHandler(object):
     rangeIndicator = None
     _mapView = None
 
-    def __init__(self, mapView, solarsystemID, scaling = 1.0, position = None):
+    def __init__(self, mapView, solarsystemID, scaling=1.0, position=None):
         if mapView:
             self.mapView = mapView
             self.scene = mapView.scene
@@ -71,6 +72,7 @@ class SystemMapHandler(object):
         self.systemMapTransform = None
         self.scene = None
         self.localMarkerIDs = None
+        return
 
     def OnCameraMoved(self):
         if self.directionalScanHandler:
@@ -86,6 +88,7 @@ class SystemMapHandler(object):
         if self.probeHandler:
             self.probeHandler.StopHandler()
         self.probeHandler = None
+        return
 
     def EnableDirectionalScanHandler(self):
         self.StopDirectionalScanHandler()
@@ -95,6 +98,7 @@ class SystemMapHandler(object):
         if self.directionalScanHandler:
             self.directionalScanHandler.StopHandler()
         self.directionalScanHandler = None
+        return
 
     @apply
     def mapView():
@@ -108,6 +112,7 @@ class SystemMapHandler(object):
                 self._mapView = weakref.ref(value)
             else:
                 self._mapView = None
+            return
 
         return property(**locals())
 
@@ -178,6 +183,7 @@ class SystemMapHandler(object):
         if self.rangeIndicator and self.rangeIndicator.rootTransform in self.systemMapTransform.children:
             self.rangeIndicator.systemMapTransform.children.remove(self.rangeIndicator.rootTransform)
         self.rangeIndicator = None
+        return
 
     def LoadRangeIndicator(self):
         self.HideRangeIndicator()
@@ -194,19 +200,20 @@ class SystemMapHandler(object):
         planet.LoadPlanet(planetID, forPhotoService=True, rotate=False, hiTextures=True)
         if planet.model is None or planet.model.highDetail is None:
             return
-        planetTransform = trinity.EveTransform()
-        planetTransform.name = 'planet'
-        planetTransform.children.append(planet.model.highDetail)
-        renderTarget, size = self.CreateRenderTarget()
-        planet.DoPreProcessEffect(size, None, renderTarget)
-        trinity.WaitForResourceLoads()
-        for t in planet.model.highDetail.children:
-            if t.mesh is not None:
-                if len(t.mesh.transparentAreas) > 0:
-                    t.sortValueMultiplier = 2.0
+        else:
+            planetTransform = trinity.EveTransform()
+            planetTransform.name = 'planet'
+            planetTransform.children.append(planet.model.highDetail)
+            renderTarget, size = self.CreateRenderTarget()
+            planet.DoPreProcessEffect(size, None, renderTarget)
+            trinity.WaitForResourceLoads()
+            for t in planet.model.highDetail.children:
+                if t.mesh is not None:
+                    if len(t.mesh.transparentAreas) > 0:
+                        t.sortValueMultiplier = 2.0
 
-        self.systemMapTransform.children.append(planetTransform)
-        return planetTransform
+            self.systemMapTransform.children.append(planetTransform)
+            return planetTransform
 
     def LoadSolarSystemMap(self):
         self.maxRadius = 0.0
@@ -262,6 +269,7 @@ class SystemMapHandler(object):
 
         self.solarSystemRadius = maxRadius
         cfg.evelocations.Prime(objectPositions.keys(), 0)
+        return
 
     def CreatePlanet(self, planetPosition):
         scaling = 0.01 / mapViewConst.SOLARSYSTEM_SCALE
@@ -338,44 +346,47 @@ class SystemMapHandler(object):
 
                 sunTransform.children.append(transform)
 
-    def LoadMarkers(self, showChanges = False):
+    def LoadMarkers(self, showChanges=False):
         mapView = self.mapView
         if not mapView or not mapView.markersHandler:
             return
-        loadedCelestialMarkers = set()
-        loadMarkerGroups = GetMapViewSetting(VIEWMODE_MARKERS_SETTINGS, mapView.mapViewID)
-        if self.solarsystemID == session.solarsystemid:
-            ballpark = sm.GetService('michelle').GetBallpark()
-            for itemID, ball in ballpark.balls.iteritems():
-                if ballpark is None:
-                    break
-                slimItem = ballpark.GetInvItem(itemID)
-                if not slimItem:
+        else:
+            loadedCelestialMarkers = set()
+            loadMarkerGroups = GetMapViewSetting(VIEWMODE_MARKERS_SETTINGS, mapView.mapViewID)
+            if self.solarsystemID == session.solarsystemid:
+                ballpark = sm.GetService('michelle').GetBallpark()
+                if ballpark:
+                    for itemID, ball in ballpark.balls.iteritems():
+                        if ballpark is None:
+                            break
+                        slimItem = ballpark.GetInvItem(itemID)
+                        if not slimItem:
+                            continue
+                        markerID = (MARKERID_SOLARSYSTEM_CELESTIAL, slimItem.itemID)
+                        if slimItem.groupID in loadMarkerGroups:
+                            markerObject = mapView.markersHandler.AddSolarSystemBasedMarker(markerID, MarkerSpaceObject, celestialData=slimItem, solarSystemID=self.solarsystemID, highlightOnLoad=showChanges, mapPositionLocal=SolarSystemPosToMapPos((ball.x, ball.y, ball.z)), mapPositionSolarSystem=self.position)
+                            loadedCelestialMarkers.add(markerID)
+
+            solarSystemData = self.systemMapSvc.GetSolarsystemData(self.solarsystemID)
+            for each in solarSystemData:
+                markerID = (MARKERID_SOLARSYSTEM_CELESTIAL, each.itemID)
+                if markerID in loadedCelestialMarkers:
                     continue
-                markerID = (MARKERID_SOLARSYSTEM_CELESTIAL, slimItem.itemID)
-                if slimItem.groupID in loadMarkerGroups:
-                    markerObject = mapView.markersHandler.AddSolarSystemBasedMarker(markerID, MarkerSpaceObject, celestialData=slimItem, solarSystemID=self.solarsystemID, highlightOnLoad=showChanges, mapPositionLocal=SolarSystemPosToMapPos((ball.x, ball.y, ball.z)), mapPositionSolarSystem=self.position)
+                if each.groupID in loadMarkerGroups:
+                    markerObject = mapView.markersHandler.AddSolarSystemBasedMarker(markerID, MarkerSpaceObject, celestialData=each, solarSystemID=self.solarsystemID, highlightOnLoad=showChanges, mapPositionLocal=SolarSystemPosToMapPos((each.x, each.y, each.z)), mapPositionSolarSystem=self.position)
                     loadedCelestialMarkers.add(markerID)
 
-        solarSystemData = self.systemMapSvc.GetSolarsystemData(self.solarsystemID)
-        for each in solarSystemData:
-            markerID = (MARKERID_SOLARSYSTEM_CELESTIAL, each.itemID)
-            if markerID in loadedCelestialMarkers:
-                continue
-            if each.groupID in loadMarkerGroups:
-                markerObject = mapView.markersHandler.AddSolarSystemBasedMarker(markerID, MarkerSpaceObject, celestialData=each, solarSystemID=self.solarsystemID, highlightOnLoad=showChanges, mapPositionLocal=SolarSystemPosToMapPos((each.x, each.y, each.z)), mapPositionSolarSystem=self.position)
-                loadedCelestialMarkers.add(markerID)
+            for markerID in self.localMarkerIDs.copy():
+                if markerID[0] != MARKERID_SOLARSYSTEM_CELESTIAL:
+                    continue
+                if markerID not in loadedCelestialMarkers:
+                    mapView.markersHandler.RemoveMarker(markerID, fadeOut=showChanges)
+                    self.localMarkerIDs.remove(markerID)
 
-        for markerID in self.localMarkerIDs.copy():
-            if markerID[0] != MARKERID_SOLARSYSTEM_CELESTIAL:
-                continue
-            if markerID not in loadedCelestialMarkers:
-                mapView.markersHandler.RemoveMarker(markerID, fadeOut=showChanges)
-                self.localMarkerIDs.remove(markerID)
-
-        self.localMarkerIDs.update(loadedCelestialMarkers)
-        self.LoadProbeMarkers()
-        uthread.new(self.LoadBookmarkMarkers, showChanges)
+            self.localMarkerIDs.update(loadedCelestialMarkers)
+            self.LoadProbeMarkers()
+            uthread.new(self.LoadBookmarkMarkers, showChanges)
+            return
 
     def GetMarkerIDs(self):
         return self.localMarkerIDs
@@ -383,36 +394,39 @@ class SystemMapHandler(object):
     def GetProbeMarkerIDs(self):
         return [ markerID for markerID in self.localMarkerIDs if markerID[0] == MARKERID_PROBE ]
 
-    def LoadBookmarkMarkers(self, showChanges = False):
+    def LoadBookmarkMarkers(self, showChanges=False):
         loadedMarkerIDs = self.bookmarkHandler.LoadBookmarkMarkers(loadSolarSystemID=self.solarsystemID, showChanges=showChanges)
         self.localMarkerIDs = self.localMarkerIDs.union(loadedMarkerIDs)
 
     def LoadProbeMarkers(self, *args):
         if not self.probeHandler:
             return
-        mapView = self.mapView
-        if not mapView:
-            return
-        currentProbeMarkers = self.GetProbeMarkerIDs()
-        scanSvc = sm.GetService('scanSvc')
-        probes = scanSvc.GetProbeData()
-        loadMarkerGroups = GetMapViewSetting(VIEWMODE_MARKERS_SETTINGS, mapView.mapViewID)
-        showProbes = const.groupScannerProbe in loadMarkerGroups
-        if showProbes and probes is not None and len(probes) > 0:
-            for probe in probes.itervalues():
-                markerID = (MARKERID_PROBE, probe.probeID)
-                markerObject = mapView.markersHandler.GetMarkerByID(markerID)
-                if markerObject:
-                    markerObject.UpdateMapPositionLocal(SolarSystemPosToMapPos(probe.pos))
-                else:
-                    markerObject = mapView.markersHandler.AddSolarSystemBasedMarker(markerID, MarkerProbe, probeData=probe, solarSystemID=self.solarsystemID, mapPositionLocal=SolarSystemPosToMapPos(probe.pos), mapPositionSolarSystem=self.position, trackObjectID=probe.probeID)
-                self.localMarkerIDs.add(markerID)
-                if markerID in currentProbeMarkers:
-                    currentProbeMarkers.remove(markerID)
+        else:
+            mapView = self.mapView
+            if not mapView:
+                return
+            currentProbeMarkers = self.GetProbeMarkerIDs()
+            scanSvc = sm.GetService('scanSvc')
+            probes = scanSvc.GetProbeData()
+            loadMarkerGroups = GetMapViewSetting(VIEWMODE_MARKERS_SETTINGS, mapView.mapViewID)
+            showProbes = const.groupScannerProbe in loadMarkerGroups
+            if showProbes and probes is not None and len(probes) > 0:
+                for probe in probes.itervalues():
+                    markerID = (MARKERID_PROBE, probe.probeID)
+                    markerObject = mapView.markersHandler.GetMarkerByID(markerID)
+                    if markerObject:
+                        markerObject.UpdateMapPositionLocal(SolarSystemPosToMapPos(probe.pos))
+                    else:
+                        markerObject = mapView.markersHandler.AddSolarSystemBasedMarker(markerID, MarkerProbe, probeData=probe, solarSystemID=self.solarsystemID, mapPositionLocal=SolarSystemPosToMapPos(probe.pos), mapPositionSolarSystem=self.position, trackObjectID=probe.probeID)
+                    self.localMarkerIDs.add(markerID)
+                    if markerID in currentProbeMarkers:
+                        currentProbeMarkers.remove(markerID)
 
-        for markerID in currentProbeMarkers:
-            mapView.markersHandler.RemoveMarker(markerID)
-            self.localMarkerIDs.remove(markerID)
+            for markerID in currentProbeMarkers:
+                mapView.markersHandler.RemoveMarker(markerID)
+                self.localMarkerIDs.remove(markerID)
+
+            return
 
     def CreateRenderTarget(self):
         textureQuality = gfxsettings.Get(gfxsettings.GFX_TEXTURE_QUALITY)
@@ -453,6 +467,7 @@ class SystemMapHandler(object):
                 curveSet.bindings.append(binding)
                 transform.curveSets.append(curveSet)
                 curveSet.Play()
+        return
 
 
 class OrbitCircle(object):
@@ -490,7 +505,7 @@ class RangeIndicator(object):
     labelColor = (0.5, 0.5, 0.5, 0.7)
     defaultRangeSteps = [ each * const.AU for each in (30, 25, 20, 15, 10, 5) ]
 
-    def __init__(self, parentTransform = None, rangeSteps = None, contextScaling = 1.0):
+    def __init__(self, parentTransform=None, rangeSteps=None, contextScaling=1.0):
         rangeCircles = trinity.EveTransform()
         rangeCircles.name = 'RangeIndicator'
         if parentTransform:
@@ -532,6 +547,7 @@ class RangeIndicator(object):
             self.AddRangeLabel(label, drawRadius)
 
         lineSet.SubmitChanges()
+        return
 
     def AddRangeLabel(self, text, radius):
         for x, z in [(0.0, radius),

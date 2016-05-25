@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\packages\reprocessing\ui\outputItemAdder.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\packages\reprocessing\ui\outputItemAdder.py
 from collections import defaultdict
 import itertools
 import inventorycommon.typeHelpers
@@ -70,15 +71,15 @@ class OutputItemAdder(object):
         return (itemsToAdd, itemsToUpdate)
 
     def _GetContainerInfo(self):
-        containerInfo = defaultdict(lambda : Bundle(typeID=None, fromTypeInfo=defaultdict(float), fromItemIDs=[], client=0, station=0, unrecoverable=0))
+        containerInfo = defaultdict(lambda : Bundle(typeID=None, fromTypeInfo=defaultdict(float), fromItemIDs=[], client=0, unrecoverable=0, iskCost=0.0))
         for material in self.materialFetcher.GetMaterials():
             ci = containerInfo[material.typeID]
             ci.typeID = material.typeID
             ci.fromItemIDs.append(material.fromItemID)
-            ci.fromTypeInfo[material.fromTypeID] = material.client + material.station + material.unrecoverable
+            ci.fromTypeInfo[material.fromTypeID] = material.client + material.unrecoverable
             ci.client += material.client
-            ci.station += material.station
             ci.unrecoverable += material.unrecoverable
+            ci.iskCost += material.iskCost
 
         return containerInfo
 
@@ -86,7 +87,8 @@ class OutputItemAdder(object):
         price = inventorycommon.typeHelpers.GetAveragePrice(typeID)
         if price is None:
             return 0.0
-        return price
+        else:
+            return price
 
     def _UpdateItemInfo(self, items):
         numItems = len(items)
@@ -97,18 +99,24 @@ class OutputItemAdder(object):
     def GetItems(self):
         return self.items
 
+    def GetTotalIskCost(self):
+        items = self._GetContainerInfo()
+        if not items:
+            return 0.0
+        return sum((i.iskCost for i in items.itervalues()))
+
 
 def GetAddParams(item, createOutputItems):
     return (item.typeID, createOutputItems(item.typeID, (item.typeID,
       item.fromItemIDs,
       item.fromTypeInfo,
-      (item.client, item.station, item.unrecoverable),
+      (item.client, item.iskCost, item.unrecoverable),
       CanBeReprocessed(item.typeID))))
 
 
 def GetUpdateParams(item):
     return (item.typeID,
-     (item.client, item.station, item.unrecoverable),
+     (item.client, item.iskCost, item.unrecoverable),
      item.fromItemIDs,
      item.fromTypeInfo)
 
@@ -125,6 +133,6 @@ class MaterialFetcher(object):
         ret = []
         for itemID, item in self.IterQuotes():
             for r in item.recoverables:
-                ret.append(Bundle(typeID=r.typeID, fromTypeID=item.typeID, fromItemID=itemID, client=r.client, station=r.station, unrecoverable=r.unrecoverable))
+                ret.append(Bundle(typeID=r.typeID, fromTypeID=item.typeID, fromItemID=itemID, client=r.client, iskCost=r.iskCost, unrecoverable=r.unrecoverable))
 
         return ret

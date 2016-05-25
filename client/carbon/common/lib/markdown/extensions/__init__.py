@@ -1,12 +1,13 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\carbon\common\lib\markdown\extensions\__init__.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\carbon\common\lib\markdown\extensions\__init__.py
 
 
 class Extension:
 
-    def __init__(self, configs = {}):
+    def __init__(self, configs={}):
         self.config = configs
 
-    def getConfig(self, key, default = ''):
+    def getConfig(self, key, default=''):
         if key in self.config:
             return self.config[key][0]
         else:

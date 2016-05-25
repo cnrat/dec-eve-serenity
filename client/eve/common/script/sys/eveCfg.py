@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\common\script\sys\eveCfg.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\common\script\sys\eveCfg.py
 import math
 import sys
 import types
@@ -73,7 +74,7 @@ class Standings():
     def __repr__(self):
         return self.__str__()
 
-    def CanUseAgent(self, level, agentTypeID = None, noL1Check = 1):
+    def CanUseAgent(self, level, agentTypeID=None, noL1Check=1):
         return CanUseAgent(level, agentTypeID, self.faction.char, self.corp.char, self.char.char, self.fromCorpID, self.fromFactionID, {}, noL1Check)
 
     def __getattr__(self, theKey):
@@ -87,7 +88,7 @@ class Standings():
             if m is None:
                 return 0.0
             return m
-        if theKey == 'maximum':
+        elif theKey == 'maximum':
             m = None
             for each in (self.faction, self.corp, self.char):
                 for other in (each.faction, each.corp, each.char):
@@ -97,36 +98,38 @@ class Standings():
             if m is None:
                 return 0.0
             return m
-        if theKey == 'direct':
-            if self.fromID == self.fromFactionID:
-                tmp = self.faction
-            elif self.fromID == self.fromCorpID:
-                tmp = self.corp
-            elif self.fromID == self.fromCharID:
-                tmp = self.char
-            if self.toID == self.toFactionID:
-                return tmp.faction
-            elif self.toID == self.toCorpID:
-                return tmp.corp
-            elif self.toID == self.toCharID:
-                return tmp.char
-            else:
-                return 0.0
         else:
-            if theKey == 'all':
-                return [(self.fromFactionID, self.toFactionID, self.faction.faction),
-                 (self.fromFactionID, self.toCorpID, self.faction.corp),
-                 (self.fromFactionID, self.toCharID, self.faction.char),
-                 (self.fromCorpID, self.toFactionID, self.corp.faction),
-                 (self.fromCorpID, self.toCorpID, self.corp.corp),
-                 (self.fromCorpID, self.toCharID, self.corp.char),
-                 (self.fromCharID, self.toFactionID, self.char.faction),
-                 (self.fromCharID, self.toCorpID, self.char.corp),
-                 (self.fromCharID, self.toCharID, self.char.char)]
-            raise AttributeError(theKey)
+            if theKey == 'direct':
+                if self.fromID == self.fromFactionID:
+                    tmp = self.faction
+                elif self.fromID == self.fromCorpID:
+                    tmp = self.corp
+                elif self.fromID == self.fromCharID:
+                    tmp = self.char
+                if self.toID == self.toFactionID:
+                    return tmp.faction
+                elif self.toID == self.toCorpID:
+                    return tmp.corp
+                elif self.toID == self.toCharID:
+                    return tmp.char
+                else:
+                    return 0.0
+            else:
+                if theKey == 'all':
+                    return [(self.fromFactionID, self.toFactionID, self.faction.faction),
+                     (self.fromFactionID, self.toCorpID, self.faction.corp),
+                     (self.fromFactionID, self.toCharID, self.faction.char),
+                     (self.fromCorpID, self.toFactionID, self.corp.faction),
+                     (self.fromCorpID, self.toCorpID, self.corp.corp),
+                     (self.fromCorpID, self.toCharID, self.corp.char),
+                     (self.fromCharID, self.toFactionID, self.char.faction),
+                     (self.fromCharID, self.toCorpID, self.char.corp),
+                     (self.fromCharID, self.toCharID, self.char.char)]
+                raise AttributeError(theKey)
+            return
 
 
-def CanUseAgent(level, agentTypeID, fac, coc, cac, fromCorpID, fromFactionID, skills, noL1Check = 1):
+def CanUseAgent(level, agentTypeID, fac, coc, cac, fromCorpID, fromFactionID, skills, noL1Check=1):
     if agentTypeID == const.agentTypeAura:
         return True
     elif level == 1 and agentTypeID != const.agentTypeResearchAgent and noL1Check:
@@ -195,6 +198,7 @@ class EveConfig(sysCfg.Config):
         self.rawCelestialCache = {}
         self.localdb = None
         self.mapObjectsDb = None
+        return
 
     def Release(self):
         sysCfg.Config.Release(self)
@@ -244,6 +248,7 @@ class EveConfig(sysCfg.Config):
         self.messages = None
         self.localdb = None
         self.mapObjectsDb = None
+        return
 
     def GetStartupData(self):
         sysCfg.Config.GetStartupData(self)
@@ -256,7 +261,7 @@ class EveConfig(sysCfg.Config):
         return True
 
     @telemetry.ZONE_METHOD
-    def GetMessage(self, key, dict = None, onNotFound = 'return', onDictMissing = 'error', languageID = None):
+    def GetMessage(self, key, dict=None, onNotFound='return', onDictMissing='error', languageID=None):
         try:
             msg = self.messages[key]
         except KeyError:
@@ -267,7 +272,7 @@ class EveConfig(sysCfg.Config):
         return utillib.KeyVal(text=text, title=title, type=msg.dialogType, audio=msg.urlAudio, icon=msg.urlIcon, suppress=msg.suppressable)
 
     @telemetry.ZONE_METHOD
-    def GetMessageTypeAndText(self, key, paramDict, onNotFound = 'return', onDictMissing = 'error', languageID = None):
+    def GetMessageTypeAndText(self, key, paramDict, onNotFound='return', onDictMissing='error', languageID=None):
         try:
             msg = self.messages[key]
         except KeyError:
@@ -306,6 +311,7 @@ class EveConfig(sysCfg.Config):
         if msg:
             if msg.titleID is not None:
                 return localization._GetRawByMessageID(msg.titleID)
+        return
 
     def IsChargeCompatible(self, item):
         if not item[const.ixSingleton]:
@@ -313,13 +319,10 @@ class EveConfig(sysCfg.Config):
         else:
             return item[const.ixGroupID] in self.__chargecompatiblegroups__
 
-    def IsFittableCategory(self, categoryID):
-        return categoryID in (const.categoryModule, const.categorySubSystem, const.categoryInfrastructureUpgrade)
-
     def IsSubSystemVisible(self, flag):
         return flag >= const.flagSubSystemSlot0 and flag < const.flagSubSystemSlot0 + const.visibleSubSystems
 
-    def IsContainer(self, item, doSpaceComponentCheck = True):
+    def IsContainer(self, item, doSpaceComponentCheck=True):
         if not item.singleton:
             return False
         elif item.categoryID in self.__containercategories__ or item.groupID in self.__containergroups__:
@@ -338,13 +341,14 @@ class EveConfig(sysCfg.Config):
         self.GotInitData(initdata)
         configSvc.RegisterTablesForUpdates()
 
-    def ReportLoginProgress(self, section, stepNum, totalSteps = None):
+    def ReportLoginProgress(self, section, stepNum, totalSteps=None):
         if totalSteps is not None:
             self.totalLogonSteps = totalSteps
         if machobase.mode == 'client':
             sm.ScatterEvent('OnProcessLoginProgress', 'loginprogress::gettingbulkdata', section, stepNum, self.totalLogonSteps)
         else:
             cfg.LogInfo(section, stepNum)
+        return
 
     def LoadMapObjectsDB(self):
         res = blue.ResFile()
@@ -504,10 +508,13 @@ class EveConfig(sysCfg.Config):
          const.groupMissileLauncherHeavyAssault,
          const.groupMissileLauncherRocket,
          const.groupMissileLauncherStandard,
-         const.groupMissileLauncherCitadel,
+         const.groupMissileLauncherXLTorpedo,
+         const.groupMissileLauncherXLCruise,
+         const.groupMissileLauncherRapidTorpedo,
          const.groupMissileLauncherFestival,
          const.groupBubbleProbeLauncher,
          const.groupSensorBooster,
+         const.groupStructureECM,
          const.groupRemoteSensorBooster,
          const.groupRemoteSensorDamper,
          const.groupTrackingComputer,
@@ -519,7 +526,15 @@ class EveConfig(sysCfg.Config):
          const.groupSurveyProbeLauncher,
          const.groupMissileLauncherRapidHeavy,
          const.groupDroneTrackingModules,
-         const.groupMissileGuidanceComputer)
+         const.groupMissileGuidanceComputer,
+         const.groupStructureAreaMissileLauncher,
+         const.groupStructureECMScript,
+         const.groupStructureFlakMissileLauncher,
+         const.groupStructureMissileLauncher,
+         const.groupFlexArmorHardener,
+         const.groupFlexShieldHardener,
+         const.groupFueledRemoteShieldBooster,
+         const.groupFueledRemoteArmorRepairer)
         self.spaceComponentStaticData = spacecomponents.common.factory.CreateComponentStaticData('res:/staticdata/spacecomponents.static')
         if boot.role == 'server':
             if prefs.GetValue('enableTrueMoonMinerals', False):
@@ -530,6 +545,7 @@ class EveConfig(sysCfg.Config):
                  const.typeSilicates: 1,
                  const.typeHydrocarbons: 1}
                 self._moonMinerals = collections.defaultdict(lambda : testMoonMineralDistribution)
+        return
 
     @telemetry.ZONE_METHOD
     def __prepdict(self, dict):
@@ -575,7 +591,7 @@ class EveConfig(sysCfg.Config):
         system = self.mapSystemCache[solarSystemID]
         return getattr(system, 'wormholeClassID', const.INVALID_WORMHOLE_CLASS_ID)
 
-    def GetNebula(self, solarSystemID, constellationID, regionID, returnPath = True):
+    def GetNebula(self, solarSystemID, constellationID, regionID, returnPath=True):
         if returnPath:
             return self.mapRegionCache.Get(regionID).nebulaPath
         else:
@@ -643,6 +659,7 @@ class EveConfig(sysCfg.Config):
          0,
          None,
          None])
+        return
 
     def UpdateEveOwnerName(self, ownerID, ownerName):
         owner = self.eveowners.Get(ownerID)
@@ -662,6 +679,7 @@ class EveConfig(sysCfg.Config):
     def GetLocationRowDescriptor(self):
         return blue.DBRowDescriptor((('locationID', const.DBTYPE_I8),
          ('locationName', const.DBTYPE_WSTR),
+         ('solarSystemID', const.DBTYPE_I8),
          ('x', const.DBTYPE_R5),
          ('y', const.DBTYPE_R5),
          ('z', const.DBTYPE_R5),
@@ -674,6 +692,7 @@ class EveConfig(sysCfg.Config):
         self.evelocations = sysCfg.Recordset(EveLocations, 'locationID', 'GetLocationsEx', 'GetMultiLocationsEx', 'GetLocationsLocal')
         self.evelocations.header = ['locationID',
          'locationName',
+         'solarSystemID',
          'x',
          'y',
          'z',
@@ -682,6 +701,7 @@ class EveConfig(sysCfg.Config):
             regionName = localization.GetImportantByMessageID(region.nameID)
             self.evelocations.data[regionID] = blue.DBRow(rowDescriptor, [regionID,
              regionName,
+             None,
              region.center[0],
              region.center[1],
              region.center[2],
@@ -691,6 +711,7 @@ class EveConfig(sysCfg.Config):
             constellationName = localization.GetImportantByMessageID(constellation.nameID)
             self.evelocations.data[constellationID] = blue.DBRow(rowDescriptor, [constellationID,
              constellationName,
+             None,
              constellation.center.x,
              constellation.center.y,
              constellation.center.z,
@@ -700,6 +721,7 @@ class EveConfig(sysCfg.Config):
             solarSystemName = localization.GetImportantByMessageID(solarSystem.nameID)
             self.evelocations.data[solarSystemID] = blue.DBRow(rowDescriptor, [solarSystemID,
              solarSystemName,
+             solarSystemID,
              solarSystem.center.x,
              solarSystem.center.y,
              solarSystem.center.z,
@@ -715,10 +737,13 @@ class EveConfig(sysCfg.Config):
                 stationName = row.stationName
             self.evelocations.data[row.stationID] = blue.DBRow(rowDescriptor, [row.stationID,
              stationName,
+             row.solarSystemID,
              row.x,
              row.y,
              row.z,
              None])
+
+        return
 
     @telemetry.ZONE_METHOD
     def PrimeStationCelestials(self):
@@ -775,7 +800,7 @@ class EveConfig(sysCfg.Config):
         return skillReqs
 
     @telemetry.ZONE_METHOD
-    def GetLocationsLocalBySystem(self, solarSystemID, requireLocalizedTexts = True, doYields = False):
+    def GetLocationsLocalBySystem(self, solarSystemID, requireLocalizedTexts=True, doYields=False):
         if boot.role != 'client':
             raise RuntimeError('GetLocationsLocalBySystem::Non-clientbased call made!!')
         solarSystemObjectRowDescriptor = blue.DBRowDescriptor((('groupID', const.DBTYPE_I4),
@@ -863,6 +888,7 @@ class EveConfig(sysCfg.Config):
             celestialName = localization.GetImportantByLabel(celestialNameData[0], **celestialNameData[1])
             data.append(blue.DBRow(rowDescriptor, [row['celestialID'],
              celestialName,
+             row['solarSystemID'],
              row['x'],
              row['y'],
              row['z'],
@@ -872,7 +898,7 @@ class EveConfig(sysCfg.Config):
         return (data.columns, data)
 
     @telemetry.ZONE_METHOD
-    def GetNPCStationNameFromLocalRow(self, row, requireLocalizedTexts = True):
+    def GetNPCStationNameFromLocalRow(self, row, requireLocalizedTexts=True):
         if not requireLocalizedTexts:
             return ''
         if row['useOperationName']:
@@ -914,12 +940,14 @@ class EveConfig(sysCfg.Config):
         return celestialNameData
 
     @telemetry.ZONE_METHOD
-    def GetCelestialNameFromLocalRow(self, row, requireLocalizedTexts = True):
+    def GetCelestialNameFromLocalRow(self, row, requireLocalizedTexts=True):
         if not requireLocalizedTexts:
             return ''
-        lbl, kwargs = self._GetCelestialNameDataFromLocalRow(row)
-        if lbl:
-            return localization.GetByLabel(lbl, **kwargs)
+        else:
+            lbl, kwargs = self._GetCelestialNameDataFromLocalRow(row)
+            if lbl:
+                return localization.GetByLabel(lbl, **kwargs)
+            return None
 
     def ReloadLocalizedNames(self):
         self.LoadEveOwners()
@@ -1111,7 +1139,6 @@ def Singleton(item):
         return -item[const.ixQuantity]
     if 30000000 <= item[const.ixLocationID] < 40000000:
         return 1
-    return 0
 
 
 def RamActivityVirtualColumn(row):
@@ -1175,11 +1202,19 @@ def IsCharacter(ownerID):
         return 0
 
 
+def CheckShipHasFighterBay(shipID):
+    item = sm.GetService('godma').GetItem(shipID)
+    if not item:
+        return False
+    godmaSM = sm.GetService('godma').GetStateManager()
+    return godmaSM.GetType(item.typeID).fighterCapacity > 0
+
+
 def IsPlayerAvatar(itemID):
     return IsCharacter(itemID)
 
 
-def IsOwner(ownerID, fetch = 1):
+def IsOwner(ownerID, fetch=1):
     if ownerID >= 500000 and ownerID < 1000000 or ownerID >= 1000000 and ownerID < 2000000 or ownerID >= 3000000 and ownerID < 4000000:
         return 1
     if IsNPC(ownerID):
@@ -1297,7 +1332,12 @@ def IsOrbital(categoryID):
 def IsPreviewable(typeID):
     if not evetypes.Exists(typeID):
         return False
-    return evetypes.GetCategoryID(typeID) in const.previewCategories or evetypes.GetGroupID(typeID) in const.previewGroups
+    elif IsApparel(typeID):
+        return True
+    elif evetypes.GetGraphicID(typeID) is None:
+        return False
+    else:
+        return evetypes.GetCategoryID(typeID) in const.previewCategories or evetypes.GetGroupID(typeID) in const.previewGroups
 
 
 def IsApparel(typeID):
@@ -1354,7 +1394,11 @@ def GetCharacterType(characterID):
 
 
 def IsOutlawStatus(securityStatus):
-    return round(securityStatus, 1) <= const.outlawSecurityStatus
+    if securityStatus is None:
+        return False
+    else:
+        return round(securityStatus, 1) <= const.outlawSecurityStatus
+        return
 
 
 OWNER_NAME_OVERRIDES = {OWNER_AURA_IDENTIFIER: 'UI/Agents/AuraAgentName',
@@ -1372,17 +1416,19 @@ class EveOwners(sysCfg.Row):
             return evetypes.GetGroupID(self.typeID)
         if name == 'ownerName' and boot.role != 'client' and self.ownerNameID is not None:
             return localization.GetByMessageID(self.ownerNameID)
-        return sysCfg.Row.__getattr__(self, name)
+        else:
+            return sysCfg.Row.__getattr__(self, name)
 
     def __str__(self):
         return 'EveOwner ID: %d, "%s"' % (self.ownerID, self.ownerName)
 
-    def GetRawName(self, languageID = None):
+    def GetRawName(self, languageID=None):
         if self.ownerNameID is not None:
             if self.ownerNameID in OWNER_NAME_OVERRIDES:
                 return localization.GetByLabel(OWNER_NAME_OVERRIDES[self.ownerNameID], languageID)
             return localization.GetByMessageID(self.ownerNameID, languageID)
-        return self.name
+        else:
+            return self.name
 
     def IsSystem(self):
         return self.ownerID <= 15
@@ -1491,18 +1537,20 @@ class EveLocations(sysCfg.Row):
             elif boot.role != 'client' and self.locationNameID is not None:
                 locationName = localization.GetByMessageID(self.locationNameID)
             return locationName
-        return sysCfg.Row.__getattr__(self, name)
+        else:
+            return sysCfg.Row.__getattr__(self, name)
 
     def __str__(self):
         return 'EveLocation ID: %d, "%s"' % (self.locationID, self.locationName)
 
-    def GetRawName(self, languageID = None):
+    def GetRawName(self, languageID=None):
         if self.locationNameID is not None:
             return localization.GetByMessageID(self.locationNameID, languageID)
-        if self.locationID in cfg.rawCelestialCache:
+        elif self.locationID in cfg.rawCelestialCache:
             lbl, kwargs = cfg.rawCelestialCache[self.locationID]
             return localization.GetByLabel(lbl, languageID, **kwargs)
-        return self.name
+        else:
+            return self.name
 
     def Station(self):
         return cfg.GetSvc('stationSvc').GetStation(self.id)
@@ -1713,10 +1761,11 @@ def IsWarInHostileState(row):
 def IsWarActive(row):
     if row.timeFinished is None or blue.os.GetWallclockTime() < row.timeFinished:
         return 1
-    return 0
+    else:
+        return 0
 
 
-def IsAllyActive(row, time = None):
+def IsAllyActive(row, time=None):
     if time is None:
         time = blue.os.GetWallclockTime()
     return row.timeStarted < time < row.timeFinished
@@ -1801,7 +1850,7 @@ def GetShipFlagLocationName(flag):
         locationName = localization.GetByLabel('UI/Ship/DroneBay')
     elif flag == const.flagShipHangar:
         locationName = localization.GetByLabel('UI/Ship/ShipMaintenanceBay')
-    elif flag == const.flagHangar or flag >= const.flagCorpSAG2 and flag <= const.flagCorpSAG7:
+    elif flag == const.flagHangar or flag >= const.flagCorpSAG1 and flag <= const.flagCorpSAG7:
         locationName = localization.GetByLabel('UI/Corporations/Common/CorporateHangar')
     elif flag == const.flagSpecializedFuelBay:
         locationName = localization.GetByLabel('UI/Ship/FuelBay')
@@ -1836,29 +1885,38 @@ def GetShipFlagLocationName(flag):
     return locationName
 
 
-def GetPlanetWarpInPoint(planetID, locVec, r):
-    dx = float(locVec[0])
-    dz = float(locVec[2])
+def GetPlanetWarpInPoint(ballID, position, radius):
+    dx = float(position[0])
+    dz = float(-position[2])
     f = float(dz) / float(math.sqrt(dx ** 2 + dz ** 2))
     if dz > 0 and dx > 0 or dz < 0 and dx > 0:
         f *= -1.0
     theta = math.asin(f)
-    myRandom = random.Random(planetID)
+    myRandom = random.Random(ballID)
     rr = (myRandom.random() - 1.0) / 3.0
     theta += rr
     offset = 1000000
     FACTOR = 20.0
-    dd = math.pow((FACTOR - 5.0 * math.log10(r / 1000000) - 0.5) / FACTOR, FACTOR) * FACTOR
+    dd = math.pow((FACTOR - 5.0 * math.log10(radius / 1000000) - 0.5) / FACTOR, FACTOR) * FACTOR
     dd = min(10.0, max(0.0, dd))
     dd += 0.5
-    offset += r * dd
-    d = r + offset
+    offset += radius * dd
+    d = radius + offset
     x = 1000000
     z = 0
-    x = math.sin(theta) * d
-    z = math.cos(theta) * d
-    y = r * math.sin(rr) * 0.5
-    return utillib.KeyVal(x=x, y=y, z=z)
+    x = position[0] + math.sin(theta) * d
+    y = position[1] + radius * math.sin(rr) * 0.5
+    z = position[2] - math.cos(theta) * d
+    return (x, y, z)
+
+
+def GetWarpInPoint(ballID, position, radius):
+    offset = 5000000
+    p = const.jumpRadiusFactor / 100.0
+    x = position[0] + (radius + offset) * math.cos(radius)
+    y = position[1] + p * radius - 7500.0
+    z = position[2] - (radius + offset) * math.sin(radius)
+    return (x, y, z)
 
 
 def GraphicFile(graphicID):
@@ -1877,6 +1935,34 @@ def IconFile(iconID):
 
 def GetActiveShip():
     return session.shipid
+
+
+def InSpace():
+    return bool(session.solarsystemid) and bool(session.shipid) and session.structureid in (session.shipid, None)
+
+
+def InShip():
+    return bool(session.shipid) and bool(session.shipid != session.structureid)
+
+
+def InShipInSpace():
+    return bool(session.solarsystemid) and bool(session.shipid) and not bool(session.structureid)
+
+
+def IsDocked():
+    return bool(session.stationid2) or IsDockedInStructure()
+
+
+def InStructure():
+    return bool(session.structureid)
+
+
+def IsDockedInStructure():
+    return bool(session.structureid) and bool(session.structureid != session.shipid)
+
+
+def IsControllingStructure():
+    return bool(session.structureid) and bool(session.structureid == session.shipid)
 
 
 def IsBookmarkModerator(corpRole):

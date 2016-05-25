@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\carbon\common\lib\markdown\extensions\nl2br.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\carbon\common\lib\markdown\extensions\nl2br.py
 import markdown
 BR_RE = '\\n'
 
@@ -9,5 +10,5 @@ class Nl2BrExtension(markdown.Extension):
         md.inlinePatterns.add('nl', br_tag, '_end')
 
 
-def makeExtension(configs = None):
+def makeExtension(configs=None):
     return Nl2BrExtension(configs)

@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\client\script\ui\shared\neocom\corporation\corp_ui_member_find.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\client\script\ui\shared\neocom\corporation\corp_ui_member_find.py
 import blue
 import uiprimitives
 import uicontrols
@@ -115,11 +116,12 @@ class CorpQueryMembersForm():
          'startDateTime': 'date_picker',
          'characterID': 'edit_control',
          'titleMask': 'title_picker'}
+        return
 
     def LogInfo(self, *args):
         lg.Info(self.__guid__, *args)
 
-    def Load(self, parentWindow, lpfnQueryCompleted = None):
+    def Load(self, parentWindow, lpfnQueryCompleted=None):
         self.lpfnQueryCompleted = lpfnQueryCompleted
         parentWindow.left = parentWindow.width = parentWindow.height = const.defaultPadding
         wndForm = uiprimitives.Container(name='form', parent=parentWindow, align=uiconst.TOALL, pos=(0, 0, 0, 0))
@@ -172,6 +174,7 @@ class CorpQueryMembersForm():
                     settings.user.ui.Set(config, checkbox.checked)
                 else:
                     settings.user.ui.Set(config, checkbox.data['value'])
+        return
 
     def ShowAppropriateInputField(self):
         currentProperty = self.comboProperty.GetValue()
@@ -220,7 +223,8 @@ class CorpQueryMembersForm():
             rows = self.offices
             if rows and len(rows):
                 for row in rows:
-                    bases.append((cfg.evelocations.Get(row.stationID).locationName, row.stationID))
+                    if util.IsStation(row.locationID):
+                        bases.append((cfg.evelocations.Get(row.locationID).locationName, row.locationID))
 
             requestedControl = uicontrols.Combo(label='', parent=self.wndInputFieldArea, options=bases, name=requestedControlType, width=146, pos=(const.defaultPadding,
              0,
@@ -244,6 +248,7 @@ class CorpQueryMembersForm():
         requestedControl.state = uiconst.UI_NORMAL
         self.propertyControls[requestedControlType] = requestedControl
         self.propertyControls['current'] = requestedControlType
+        return
 
     def ExecuteQuery(self, *args):
         query = []
@@ -265,6 +270,7 @@ class CorpQueryMembersForm():
         self.memberIDs = sm.GetService('corp').GetMemberIDsByQuery(query, includeImplied, searchTitles)
         if self.lpfnQueryCompleted is not None:
             self.lpfnQueryCompleted()
+        return
 
     def MakeLabel(self, joinOperator, property, operator, value):
         localizedJoinOperator = None
@@ -366,38 +372,42 @@ class CorpQueryMembersForm():
         finally:
             sm.GetService('loading').StopCycle()
 
+        return
+
     def SaveEditedSearchTerm(self, *args):
         if self.currentlyEditing is None:
             return
-        joinOperator = None
-        if self.comboJoinOperator.state == uiconst.UI_NORMAL:
-            joinOperator = self.comboJoinOperator.GetValue()
-        property = self.comboProperty.GetValue()
-        operator = self.comboOperator.GetValue()
-        value = None
-        if self.propertyControls.has_key('current'):
-            currentControlType = self.propertyControls['current']
-            currentControl = self.propertyControls[currentControlType]
-            value = currentControl.GetValue()
-        entry = self.currentlyEditing
-        label = self.MakeLabel(joinOperator, property, operator, value)
-        entry.panel.label = label
-        entry.panel.sr.label.text = label
-        entry.label = label
-        entry.args1 = label
-        entry.args2 = label
-        entry.joinOperator = joinOperator
-        entry.property = property
-        entry.operator = operator
-        entry.value = value
-        self.currentlyEditing = None
-        if len(self.scrollQuery.GetNodes()) == 0:
-            self.comboJoinOperator.state = uiconst.UI_HIDDEN
         else:
-            self.comboJoinOperator.state = uiconst.UI_NORMAL
-        self.addEditButton.state = uiconst.UI_NORMAL
-        self.saveEditButton.state = uiconst.UI_HIDDEN
-        self.cancelEditButton.state = uiconst.UI_HIDDEN
+            joinOperator = None
+            if self.comboJoinOperator.state == uiconst.UI_NORMAL:
+                joinOperator = self.comboJoinOperator.GetValue()
+            property = self.comboProperty.GetValue()
+            operator = self.comboOperator.GetValue()
+            value = None
+            if self.propertyControls.has_key('current'):
+                currentControlType = self.propertyControls['current']
+                currentControl = self.propertyControls[currentControlType]
+                value = currentControl.GetValue()
+            entry = self.currentlyEditing
+            label = self.MakeLabel(joinOperator, property, operator, value)
+            entry.panel.label = label
+            entry.panel.sr.label.text = label
+            entry.label = label
+            entry.args1 = label
+            entry.args2 = label
+            entry.joinOperator = joinOperator
+            entry.property = property
+            entry.operator = operator
+            entry.value = value
+            self.currentlyEditing = None
+            if len(self.scrollQuery.GetNodes()) == 0:
+                self.comboJoinOperator.state = uiconst.UI_HIDDEN
+            else:
+                self.comboJoinOperator.state = uiconst.UI_NORMAL
+            self.addEditButton.state = uiconst.UI_NORMAL
+            self.saveEditButton.state = uiconst.UI_HIDDEN
+            self.cancelEditButton.state = uiconst.UI_HIDDEN
+            return
 
     def CancelEditedSearchTerm(self, *args):
         if len(self.scrollQuery.GetNodes()) == 0:
@@ -435,6 +445,7 @@ class CorpQueryMembersForm():
         self.addEditButton.state = uiconst.UI_HIDDEN
         self.saveEditButton.state = uiconst.UI_NORMAL
         self.cancelEditButton.state = uiconst.UI_NORMAL
+        return
 
     def OnClickRemove(self, args, button):
         entry = self.GetEntryByLabel(args)
@@ -447,34 +458,39 @@ class CorpQueryMembersForm():
         self.addEditButton.state = uiconst.UI_NORMAL
         self.saveEditButton.state = uiconst.UI_HIDDEN
         self.cancelEditButton.state = uiconst.UI_HIDDEN
+        return
 
     def RemoveJoinOperatorFromFirstEntry(self):
         self.LogInfo('RemoveJoinOperatorFromFirstEntry')
         if not len(self.scrollQuery.GetNodes()):
             self.LogInfo('no entries')
             return
-        entry = self.scrollQuery.GetNodes()[0]
-        joinOperator = entry.joinOperator
-        property = entry.property
-        operator = entry.operator
-        value = entry.value
-        self.LogInfo('joinOperator: ', joinOperator, 'property: ', property, 'operator: ', operator, 'value: ', value)
-        if joinOperator is None:
-            self.LogInfo('no join operator')
+        else:
+            entry = self.scrollQuery.GetNodes()[0]
+            joinOperator = entry.joinOperator
+            property = entry.property
+            operator = entry.operator
+            value = entry.value
+            self.LogInfo('joinOperator: ', joinOperator, 'property: ', property, 'operator: ', operator, 'value: ', value)
+            if joinOperator is None:
+                self.LogInfo('no join operator')
+                return
+            joinOperator = None
+            label = self.MakeLabel(joinOperator, property, operator, value)
+            entry.panel.label = label
+            entry.panel.sr.label.text = label
+            entry.label = label
+            entry.args1 = label
+            entry.args2 = label
+            entry.joinOperator = joinOperator
             return
-        joinOperator = None
-        label = self.MakeLabel(joinOperator, property, operator, value)
-        entry.panel.label = label
-        entry.panel.sr.label.text = label
-        entry.label = label
-        entry.args1 = label
-        entry.args2 = label
-        entry.joinOperator = joinOperator
 
     def GetEntryByLabel(self, label):
         for entry in self.scrollQuery.GetNodes():
             if entry.label == label:
                 return entry
+
+        return None
 
     def OnComboChange(self, entry, header, value, *args):
         if entry.name == 'property':
@@ -495,6 +511,7 @@ class CorpFindMembersInRole(uiprimitives.Container):
         self.sr.wndButtonContainer = None
         self.sr.outputTypeCombo = None
         self.sr.outputWindow = None
+        return
 
     def LogInfo(self, *args):
         lg.Info(self.__guid__, *args)
@@ -533,6 +550,7 @@ class CorpFindMembersInRole(uiprimitives.Container):
             viewClass = self.sr.outputTypeCombo.GetValue()
             self.SwitchToView(viewClass)
         sm.GetService('corpui').LoadTop('res:/ui/Texture/WindowIcons/corporationmembers.png', localization.GetByLabel('UI/Corporations/CorporationWindow/Members/FindMemberInRole/FindMemberInRole'))
+        return
 
     def _OnClose(self, *args):
         if self.sr.outputWindow and hasattr(self.sr.outputWindow, '_OnClose'):
@@ -557,7 +575,7 @@ class CorpFindMembersInRole(uiprimitives.Container):
             viewClass = self.sr.outputTypeCombo.GetValue()
             uthread.new(self.SwitchToView, viewClass)
 
-    def SwitchToView(self, viewClass, populate = 1):
+    def SwitchToView(self, viewClass, populate=1):
         try:
             sm.GetService('loading').Cycle('Loading')
             if self.sr.outputWindow is None or self.sr.outputWindow.__guid__ != viewClass.__guid__:
@@ -575,6 +593,8 @@ class CorpFindMembersInRole(uiprimitives.Container):
                 self.sr.outputWindow.PopulateView(self.sr.wndQuery.memberIDs)
         finally:
             sm.GetService('loading').StopCycle()
+
+        return
 
     def PopulateView(self):
         viewClass = self.sr.outputTypeCombo.GetValue()

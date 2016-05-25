@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\packages\watchdog\observers\inotify_c.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\packages\watchdog\observers\inotify_c.py
 from __future__ import with_statement
 import os
 import errno
@@ -20,10 +21,13 @@ def _load_libc():
 
     if libc_path is not None:
         return ctypes.CDLL(libc_path)
-    try:
-        return ctypes.CDLL('libc.so')
-    except (OSError, IOError):
-        return ctypes.CDLL('libc.so.6')
+    else:
+        try:
+            return ctypes.CDLL('libc.so')
+        except (OSError, IOError):
+            return ctypes.CDLL('libc.so.6')
+
+        return
 
 
 libc = _load_libc()
@@ -96,7 +100,7 @@ DEFAULT_EVENT_BUFFER_SIZE = DEFAULT_NUM_EVENTS * (EVENT_SIZE + 16)
 
 class Inotify(object):
 
-    def __init__(self, path, recursive = False, event_mask = WATCHDOG_ALL_EVENTS):
+    def __init__(self, path, recursive=False, event_mask=WATCHDOG_ALL_EVENTS):
         inotify_fd = inotify_init()
         if inotify_fd == -1:
             Inotify._raise_error()
@@ -134,6 +138,7 @@ class Inotify(object):
             return self._moved_from_events[destination_event.cookie].src_path
         else:
             return None
+            return None
 
     def remember_move_from_event(self, event):
         self._moved_from_events[event.cookie] = event
@@ -154,7 +159,7 @@ class Inotify(object):
             inotify_rm_watch(self._inotify_fd, wd)
             os.close(self._inotify_fd)
 
-    def read_events(self, event_buffer_size = DEFAULT_EVENT_BUFFER_SIZE):
+    def read_events(self, event_buffer_size=DEFAULT_EVENT_BUFFER_SIZE):
 
         def _recursive_simulate(src_path):
             events = []

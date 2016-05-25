@@ -1,11 +1,13 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\client\script\ui\camera\shipOrbitCamera.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\client\script\ui\camera\shipOrbitCamera.py
+import math
 import destiny
 from eve.client.script.parklife import states
+from eve.client.script.ui.camera.baseCamera import K_ZOOMPOWER
 from eve.client.script.ui.camera.cameraUtil import GetDurationByDistance, GetBallPosition, GetBall, GetBallMaxZoom, Vector3Chaser, VectorLerper, IsAutoTrackingEnabled, CheckShowModelTurrets
 from eve.client.script.ui.camera.baseSpaceCamera import BaseSpaceCamera
 import evecamera
 import blue
-import math
 import geo2
 import uthread
 import evegraphics.settings as gfxsettings
@@ -13,39 +15,36 @@ MAX_SPEED_OFFSET_SPEED = 3000.0
 MAX_SPEED_OFFSET_LOGSPEED = math.log(MAX_SPEED_OFFSET_SPEED) ** 2
 FOV_MIN = 0.55
 FOV_MAX = 1.1
+TRACK_RESET_SPEED = 60.0
 
 class ShipOrbitCamera(BaseSpaceCamera):
-    __notifyevents__ = BaseSpaceCamera.__notifyevents__[:] + ['DoBallsRemove',
-     'DoBallRemove',
-     'OnBallparkSetState',
-     'OnStateChange']
+    __notifyevents__ = BaseSpaceCamera.__notifyevents__[:] + ['OnBallparkSetState', 'OnStateChange']
     cameraID = evecamera.CAM_SHIPORBIT
-    minZoom = 500000
     isBobbingCamera = True
     minFov = 0.3
     maxFov = 1.2
 
     def __init__(self):
         BaseSpaceCamera.__init__(self)
-        self._speedOffsetProportion = 0.0
         self.lookAtBall = None
         self.trackBall = None
         self.orbitFreezeProp = 0.0
         self.speedDir = None
         self._zoomPropCache = None
         self._eyeOffsetChaser = Vector3Chaser()
-        self._atOffsetChaser = Vector3Chaser()
-        self.trackLerper = None
+        self._trackOffsetChaser = Vector3Chaser()
+        self._speedOffsetLerper = VectorLerper(duration=1.0)
+        self.speedOffset = (0, 0, 0)
+        self.trackLerper = VectorLerper(duration=1.5)
         self.isManualFovEnabled = False
         self._trackSpeed = 1.0
+        return
 
-    def OnActivated(self, itemID = None, lastCamera = None, **kwargs):
+    def OnActivated(self, itemID=None, lastCamera=None, **kwargs):
         BaseSpaceCamera.OnActivated(self, **kwargs)
+        self._LerpSpeedOffset()
         settings.char.ui.Set('spaceCameraID', evecamera.CAM_SHIPORBIT)
-        if lastCamera and lastCamera.cameraID in (evecamera.CAM_TACTICAL,
-         evecamera.CAM_SHIPPOV,
-         evecamera.CAM_FARLOOK,
-         evecamera.CAM_JUMP):
+        if lastCamera and lastCamera.cameraID in (evecamera.CAM_TACTICAL, evecamera.CAM_SHIPPOV, evecamera.CAM_JUMP):
             itemID = itemID or getattr(lastCamera, 'lastLookAtID', None) or self.ego
             self._SetLookAtBall(itemID)
             atPos1 = self.GetTrackPosition(self.lookAtBall)
@@ -54,29 +53,27 @@ class ShipOrbitCamera(BaseSpaceCamera):
             else:
                 dist = self.GetLookAtRadius()
             eyePos1 = geo2.Vec3Add(atPos1, geo2.Vec3Scale(lastCamera.GetLookAtDirection(), dist))
-            if lastCamera.cameraID in (evecamera.CAM_TACTICAL, evecamera.CAM_FARLOOK, evecamera.CAM_JUMP):
+            if lastCamera.cameraID in (evecamera.CAM_TACTICAL, evecamera.CAM_JUMP):
                 if lastCamera.cameraID == evecamera.CAM_JUMP:
                     duration = 0.1
-                if lastCamera.cameraID == evecamera.CAM_FARLOOK:
-                    self._bobbingAngle = lastCamera._bobbingAngle
-                    duration = 1.0
                 else:
                     duration = GetDurationByDistance(lastCamera.eyePosition, eyePos1, 0.4, 0.6)
                 self.Transit(lastCamera.atPosition, lastCamera.eyePosition, atPos1, eyePos1, duration=duration, smoothing=0.0)
                 self.fov = lastCamera.fov
             else:
-                self._atPosition = atPos1
-                self._eyePosition = eyePos1
+                self.SetAtPosition(atPos1)
+                self.SetEyePosition(eyePos1)
         elif itemID:
             self._SetLookAtBall(itemID)
         elif not self.lookAtBall:
             self._SetLookAtBall(self.ego)
+        return
 
     def GetFov(self):
         if not self.IsDynamicFovEnabled():
             return 1.0
-        if self._transitOffset:
-            atPos = geo2.Vec3Subtract(self.atPosition, self._transitOffset)
+        if self._atTransitOffset:
+            atPos = geo2.Vec3Subtract(self.atPosition, self._atTransitOffset)
         else:
             atPos = self.atPosition
         dist = geo2.Vec3Distance(self.eyePosition, atPos)
@@ -95,30 +92,54 @@ class ShipOrbitCamera(BaseSpaceCamera):
     def GetLookAtItemID(self):
         return self.GetItemID()
 
-    def LookAt(self, itemID, forceUpdate = False, radius = None):
-        if not self.IsManualControlEnabled():
+    def LookAt(self, itemID, forceUpdate=False, objRadius=None):
+        lookAtBall = self._TrySetLookAtBall(itemID, forceUpdate, objRadius)
+        if lookAtBall:
+            radius = self.GetLookAtRadius(objRadius)
+            self._LookAtAnimate(itemID, radius)
+
+    def _TrySetLookAtBall(self, itemID, forceUpdate=False, objRadius=None):
+        if not self.IsLookAtAllowed(itemID):
             return
-        if self.IsBallWarping(itemID) and itemID != self.ego:
-            return
-        self.Track(None)
-        self.DisableManualFov()
-        if not forceUpdate and self.lookAtBall and self.lookAtBall.id == itemID:
-            if radius is None:
+        else:
+            self.Track(None)
+            self.DisableManualFov()
+            isAlreadyLookingAt = self.lookAtBall and self.lookAtBall.id == itemID
+            if not forceUpdate and isAlreadyLookingAt and not objRadius:
+                if itemID != self.ego:
+                    self._SetLookAtBall(self.ego)
+                    return self.lookAtBall
+                else:
+                    return
+            self._ScatterLookAtEvent(itemID)
+            if self.CheckObjectTooFar(itemID):
+                self.Track(itemID)
                 return
+            self._SetLookAtBall(itemID)
+            return self.lookAtBall
+
+    def _ScatterLookAtEvent(self, itemID):
         if itemID == self.ego:
             sm.ScatterEvent('OnLookAtMyShip', itemID)
         else:
             sm.ScatterEvent('OnLookAtOther', itemID)
-        if self.CheckObjectTooFar(itemID):
-            self.Track(itemID)
-            return
-        self._speedOffsetProportion = 0.0
-        if itemID is None:
-            self.lookAtBall = None
-        else:
-            self._SetLookAtBall(itemID)
-            if self.lookAtBall:
-                self._LookAtAnimate(itemID, radius)
+
+    def IsLookAtAllowed(self, itemID):
+        if not self.IsManualControlEnabled():
+            return False
+        if self.IsBallWarping(itemID) and itemID != self.ego:
+            return False
+        return True
+
+    def LookAtMaintainDistance(self, itemID):
+        lookAtBall = self._TrySetLookAtBall(itemID)
+        if lookAtBall:
+            radius = self.GetZoomDistance()
+            self._LookAtAnimate(itemID, radius)
+
+    def _LerpSpeedOffset(self, duration=3.0):
+        self._speedOffsetLerper.SetStartValue(self.speedOffset)
+        self._speedOffsetLerper.Reset(duration)
 
     def IsBallWarping(self, itemID):
         trackBall = GetBall(itemID)
@@ -136,8 +157,10 @@ class ShipOrbitCamera(BaseSpaceCamera):
         if not self.lookAtBall:
             self.ResetAnchorPos()
             return
-        self.UpdateMaxZoom()
-        self.UpdateAnchorPos()
+        else:
+            self.UpdateMaxZoom()
+            self.UpdateAnchorPos()
+            return
 
     def UpdateMaxZoom(self):
         ball = self.lookAtBall
@@ -147,15 +170,16 @@ class ShipOrbitCamera(BaseSpaceCamera):
     def _LookAtAnimate(self, itemID, radius):
         atPos1 = GetBallPosition(self.lookAtBall)
         eyePos1 = self._GetNewLookAtEyePos(atPos1, itemID, radius)
-        duration = GetDurationByDistance(self.eyePosition, eyePos1, 0.4, 1.5)
-        self.TransitTo(atPos1, eyePos1, duration=duration)
+        duration = GetDurationByDistance(self.eyePosition, eyePos1, 0.5, 1.5)
+        self._LerpSpeedOffset(duration)
+        self.TransitTo(atPos1, eyePos1, duration=duration, smoothing=0.0)
 
     def _GetNewLookAtEyePos(self, atPos1, itemID, radius):
-        direction = self.GetLookAtDirectionWithOffset()
-        eyePos1 = geo2.Vec3Add(atPos1, geo2.Vec3Scale(direction, self.GetLookAtRadius(radius)))
+        direction = self.GetLookAtDirection()
+        eyePos1 = geo2.Vec3Add(atPos1, geo2.Vec3Scale(direction, radius))
         return eyePos1
 
-    def GetLookAtRadius(self, objRadius = None):
+    def GetLookAtRadius(self, objRadius=None):
         kPower = 0.95
         a = 1.0 / self.minZoom ** kPower
         b = FOV_MIN / 2.0
@@ -167,79 +191,83 @@ class ShipOrbitCamera(BaseSpaceCamera):
 
     def _UpdateAtOffset(self):
         if not self.lookAtBall:
-            self._atOffsetChaser.ResetValue()
+            self._trackOffsetChaser.ResetValue()
             return
-        self.speedDir = self.GetSpeedDirection()
-        if self.IsSpeedOffsetEnabled():
-            offsetAmount = self._GetSpeedOffset()
-            atOffset = geo2.Vec3Scale(self.speedDir, offsetAmount)
         else:
             atOffset = None
-        if self.IsTracking():
-            offsetDir = geo2.Vec3Cross(self.upDirection, geo2.Vec3Direction(self._atPosition, self.GetTrackPosition(self.trackBall)))
-            trackOffset = geo2.Vec3Subtract(self.GetTrackPosition(self.trackBall), self._atPosition)
-            length = geo2.Vec3Length(trackOffset)
-            maxLen = 25000
-            if length > maxLen:
-                trackOffset = geo2.Vec3Scale(trackOffset, maxLen / length)
-            if atOffset:
-                atOffset = geo2.Vec3Add(atOffset, trackOffset)
-            else:
-                atOffset = trackOffset
-            speed = 30.0
-        else:
-            isChasingSelf = self.IsChasing() and self.lookAtBall.id == self.ego
-            if isChasingSelf:
-                speed = 1.2
-            else:
-                speed = 60.0
-        if atOffset:
-            self._atOffsetChaser.SetValue(atOffset, speed * self._trackSpeed)
-        else:
-            self._atOffsetChaser.ResetValue(30.0)
-        self._atOffsetChaser.Update()
-        self._AddToAtOffset(self._atOffsetChaser.GetValue())
+            self.speedDir = self.GetSpeedDirection()
+            self.UpdateSpeedOffset()
+            self._UpdateTrackOffset()
+            trackOffset = self._trackOffsetChaser.GetValue()
+            self._AddToAtOffset(geo2.Vec3Add(trackOffset, self.GetSpeedOffset()))
+            return
 
-    def IsSpeedOffsetEnabled(self):
-        return gfxsettings.Get(gfxsettings.UI_CAMERA_SPEED_OFFSET)
+    def GetSpeedOffset(self):
+        return self._speedOffsetLerper.GetValue(v1=self.speedOffset)
+
+    def UpdateSpeedOffset(self):
+        if self.IsCenterOffsetEnabled() and not self.IsTracking():
+            speedProp = self.GetSpeedOffsetProportion()
+            offsetAmount = speedProp * 0.5 * self.maxZoom
+            self.speedOffset = geo2.Vec3Scale(self.speedDir, offsetAmount)
+        else:
+            self.speedOffset = (0, 0, 0)
+
+    def _UpdateTrackOffset(self):
+        if self.IsTracking() and self.IsCenterOffsetEnabled():
+            trackOffset = self._GetTrackAtOffset()
+            self._trackOffsetChaser.SetTargetValue(trackOffset, 30.0 * self._trackSpeed)
+        else:
+            self._trackOffsetChaser.ResetValue(TRACK_RESET_SPEED * self._trackSpeed)
+
+    def _GetTrackAtOffset(self):
+        trackOffset = geo2.Vec3Subtract(self.GetTrackPosition(self.trackBall), self._atPosition)
+        length = geo2.Vec3Length(trackOffset)
+        maxLen = 250000
+        if length > maxLen:
+            trackOffset = geo2.Vec3Scale(trackOffset, maxLen / length)
+        return trackOffset
+
+    def _GetTrackEyeOffset(self):
+        offsetProp = 1.0 - self.GetZoomProportion() ** K_ZOOMPOWER
+        offsetDir = self._GetTrackEyeOffsetDirection()
+        offsetAmount = offsetProp * self.maxZoom
+        offset = geo2.Vec3Scale(offsetDir, offsetAmount)
+        return offset
+
+    def _GetTrackEyeOffsetDirection(self):
+        pitch = self.GetPitch() - 0.5 * math.pi
+        rotMat = geo2.MatrixRotationAxis(self.GetZAxis(), -pitch)
+        return geo2.Vec3Transform(self.GetYAxis(), rotMat)
+
+    def IsCenterOffsetEnabled(self):
+        return gfxsettings.Get(gfxsettings.UI_CAMERA_CENTER_OFFSET)
 
     def IsDynamicFovEnabled(self):
         return gfxsettings.Get(gfxsettings.UI_CAMERA_DYNAMIC_FOV)
 
-    def _GetSpeedOffset(self):
-        speedProp = self.GetSpeedOffsetProportion()
-        zoomProp = max(0.0, 1.0 - 30 * self.GetZoomProportion())
-        speedProp *= zoomProp
-        diff = speedProp - self._speedOffsetProportion
-        dt = 1.0 / blue.os.fps
-        diff *= dt * 0.5
-        self._speedOffsetProportion += diff
-        maxOffset = self.GetMaxSpeedOffsetScalar()
-        offsetAmount = self._speedOffsetProportion * maxOffset
-        return offsetAmount
-
     def GetSpeedDirection(self):
         if getattr(self.lookAtBall, 'model', None) and hasattr(self.lookAtBall.model.rotationCurve, 'value'):
-            return geo2.QuaternionTransformVector(self.lookAtBall.model.rotationCurve.value, (0, 0, 1))
+            quat = self.lookAtBall.model.rotationCurve.value
         else:
-            return geo2.Vec3Normalize(self.GetLookAtBallSpeed())
+            quat = self.lookAtBall.GetQuaternionAt(blue.os.GetSimTime())
+            quat = (quat.x,
+             quat.y,
+             quat.z,
+             quat.w)
+        return geo2.QuaternionTransformVector(quat, (0, 0, 1))
 
     def _UpdateEyeOffset(self):
-        if self.IsChasing() and self.speedDir:
+        if self.IsChasing():
             offset = (0, 0.5 * self.maxZoom, 0)
             eyeOffset = self.GetChaseEyeOffset()
             offset = geo2.Vec3Subtract(offset, eyeOffset)
-            self._eyeOffsetChaser.SetValue(offset, 1.0)
-        elif self.IsTracking():
-            offsetAmount = (1.0 - self.GetZoomProportion()) * 1.0 * self.maxZoom
-            upDir = self.GetYAxis()
-            offsetDir = geo2.Vec3Cross(upDir, geo2.Vec3Direction(self._atPosition, self.GetTrackPosition(self.trackBall)))
-            offset = geo2.Vec3Scale(offsetDir, offsetAmount)
-            offset = geo2.Vec3Add(offset, geo2.Vec3Scale(self.GetZAxis(), -2 * self.maxZoom))
-            self._eyeOffsetChaser.SetValue(offset, self._trackSpeed * 0.7)
+            self._eyeOffsetChaser.SetTargetValue(offset, 1.0)
+        elif self.IsTracking() and self.IsCenterOffsetEnabled():
+            offset = self._GetTrackEyeOffset()
+            self._eyeOffsetChaser.SetTargetValue(offset, TRACK_RESET_SPEED * self._trackSpeed)
         else:
-            self._eyeOffsetChaser.ResetValue(5.0)
-        self._eyeOffsetChaser.Update()
+            self._eyeOffsetChaser.ResetValue(TRACK_RESET_SPEED * self._trackSpeed)
         self._AddToEyeOffset(self._eyeOffsetChaser.GetValue())
 
     def GetSpeedOffsetProportion(self):
@@ -252,50 +280,41 @@ class ShipOrbitCamera(BaseSpaceCamera):
         else:
             return 1.0
 
-    def GetMaxSpeedOffsetScalar(self):
-        kMaxSpeedOffset = 0.18
-        th = math.radians(90 * self.fov / 2.0)
-        maxOffset = 2 * self.GetZoomDistance() * math.tan(th) * kMaxSpeedOffset
-        return maxOffset
-
     def Update(self):
+        self._UpdateAnchorPosition()
         BaseSpaceCamera.Update(self)
+        if not self.lookAtBall or not self.ego:
+            return
         zoomProp = self.GetZoomProportion()
-        if self.lookAtBall:
-            self._UpdateAtOffset()
+        self._UpdateAtOffset()
         self._UpdateEyeOffset()
-        if self.lookAtBall:
-            newAtPos = self.GetTrackPosition(self.lookAtBall)
-            atDiff = geo2.Vec3Subtract(newAtPos, self._atPosition)
-            zoomDist = self.GetZoomDistance()
-            self._atPosition = newAtPos
-            if self.IsChasing():
-                self._eyePosition = self.trackLerper.GetValue(self._eyePosition, self.GetChaseEyePosition())
-            elif self.IsTracking():
-                self._eyePosition = self.trackLerper.GetValue(self._eyePosition, self.GetTrackingEyePosition())
-            else:
-                prop = self._GetEyePosDriftProporition()
-                eyeOffset = geo2.Vec3Scale(atDiff, prop)
-                self._eyePosition = geo2.Vec3Add(self._eyePosition, eyeOffset)
-            if not self.IsInTransit():
-                if self.GetItemID() == self.ego or self.IsTracking():
-                    self.SetZoom(zoomProp)
-                elif self.GetZoomProportionUnfiltered() < self.GetMinZoomProp():
-                    self.SetZoom(0.0)
-            if not self.isManualFovEnabled:
-                self.SetFovTarget(self.GetFov())
-            if self.lookAtBall.mode == destiny.DSTBALL_WARP:
-                self.ResetAnchorPos()
-            elif not self._anchorBall:
-                self.UpdateAnchorPos()
-            if self._anchorBall and geo2.Vec3Length(GetBallPosition(self._anchorBall)) > evecamera.LOOKATRANGE_MAX_NEW:
-                self.UpdateAnchorPos()
+        newAtPos = self.GetTrackPosition(self.lookAtBall)
+        atDiff = geo2.Vec3Subtract(newAtPos, self._atPosition)
+        self.SetAtPosition(newAtPos)
+        if self.IsChasing():
+            self.SetEyePosition(self.trackLerper.GetValue(self._eyePosition, self.GetChaseEyePosition()))
+        elif self.IsTracking():
+            self.SetEyePosition(self.trackLerper.GetValue(self._eyePosition, self.GetTrackingEyePosition()))
+        else:
+            prop = self._GetEyePosDriftProporition()
+            eyeOffset = geo2.Vec3Scale(atDiff, prop)
+            self.SetEyePosition(geo2.Vec3Add(self._eyePosition, eyeOffset))
+        if not self.IsInTransit():
+            if self.GetItemID() == self.ego or self.IsTracking() or self.IsChasing():
+                self.SetZoom(zoomProp)
+            self.EnforceMinZoom()
+        if not self.isManualFovEnabled:
+            self.SetFovTarget(self.GetFov())
+
+    def _UpdateAnchorPosition(self):
+        if self.lookAtBall and self.lookAtBall.mode == destiny.DSTBALL_WARP:
+            self.ResetAnchorPos()
+        elif not self._anchorBall or geo2.Vec3Length(GetBallPosition(self._anchorBall)) > evecamera.LOOKATRANGE_MAX_NEW:
+            self.UpdateAnchorPos()
 
     def GetTrackingEyePosition(self):
         trackPos = self.GetTrackPosition(self.trackBall)
-        lookAtPos = self.GetTrackPosition(self.lookAtBall)
-        lookAtPos = self._atPosition
-        direction = geo2.Vec3Subtract(lookAtPos, trackPos)
+        direction = geo2.Vec3Subtract(self._atPosition, trackPos)
         direction = geo2.Vec3Normalize(direction)
         offset = geo2.Vec3Scale(direction, self.GetZoomDistance())
         return geo2.Vec3Add(self._atPosition, offset)
@@ -308,32 +327,40 @@ class ShipOrbitCamera(BaseSpaceCamera):
         return self.trackBall is not None and self.trackBall != self.lookAtBall
 
     def GetChaseEyeOffset(self):
-        k = self._GetCameraSpeedMultiplier() ** 3 * 0.5
-        eyeOffset = geo2.Vec3Scale(self.speedDir, k * self.maxZoom)
+        offsetAmount = geo2.Vec3Length(self.GetSpeedOffset())
+        eyeOffset = geo2.Vec3Scale(self.speedDir, offsetAmount)
         return eyeOffset
 
-    def Track(self, itemID = None):
+    def Track(self, itemID=None):
         if self.trackBall and self.trackBall.id == itemID:
             return
-        if not self.trackBall and itemID is None:
+        elif not self.trackBall and itemID is None:
             return
-        self.StopUpdateThreads()
-        self.trackBall = GetBall(itemID)
-        self._trackSpeed = 0.0
-        uicore.animations.MorphScalar(self, '_trackSpeed', self._trackSpeed, 1.0, duration=2.0)
-        if self.trackBall:
-            self.trackLerper = VectorLerper(duration=3.0)
         else:
-            self.trackLerper = None
+            self.StopUpdateThreads()
+            if itemID and self.trackBall is None:
+                self._TrackZoomOutIfTooClose()
+            self.trackBall = GetBall(itemID)
+            self._RampUpTrackSpeed()
+            self.trackLerper.Reset()
+            return
+
+    def _TrackZoomOutIfTooClose(self):
+        if self.GetZoomProportion() < 0.45:
+            self.SetZoomTarget(0.45)
+
+    def _RampUpTrackSpeed(self):
+        self._trackSpeed = 0.0
+        uicore.animations.MorphScalar(self, '_trackSpeed', self._trackSpeed, 1.0, duration=1.5)
 
     def _GetEyePosDriftProporition(self):
-        if self.GetItemID() == self.ego:
-            x = min(0.1, self._speedOffsetProportion)
-            return 1.0 - 0.01 * x
+        if not self.IsCenterOffsetEnabled():
+            return 1.0
+        elif self.GetItemID() == self.ego:
+            return 0.999
         else:
             zoomProp = self.GetZoomProportion()
-            k = 0.7
-            prop = k * (1.0 - zoomProp)
+            prop = 0.7 * (1.0 - zoomProp)
             prop = max(0.5, prop)
             if prop < 1.0:
                 prop += self.orbitFreezeProp * (1.0 - prop)
@@ -341,11 +368,11 @@ class ShipOrbitCamera(BaseSpaceCamera):
             return prop
 
     def IsChasing(self):
-        return self.lookAtBall == self.trackBall
+        return self.lookAtBall == self.trackBall and self.speedDir and geo2.Vec3Length(self.speedDir) > 0.0
 
-    def GetLookAtBallSpeed(self, offset = 0):
+    def GetLookAtBallSpeed(self):
         ball = self.lookAtBall
-        vec = ball.GetVectorDotAt(blue.os.GetSimTime() + int(offset))
+        vec = ball.GetVectorDotAt(blue.os.GetSimTime())
         vec = (vec.x, vec.y, vec.z)
         return vec
 
@@ -360,32 +387,38 @@ class ShipOrbitCamera(BaseSpaceCamera):
         BaseSpaceCamera.ResetCameraPosition(self)
         self._SetLookAtBall(self.ego)
 
-    def Orbit(self, *args):
-        BaseSpaceCamera.Orbit(self, *args)
-        if self.IsTracking() or self.IsChasing():
-            self.Track(None)
+    def Orbit(self, dx=0, dy=0):
+        if self.IsTransitioningToOrFromTracking() and self.IsCenterOffsetEnabled():
+            return
+        else:
+            BaseSpaceCamera.Orbit(self, dx, dy)
+            if self.IsTracking() or self.IsChasing():
+                self.Track(None)
+            return
+
+    def IsTransitioningToOrFromTracking(self):
+        return self._trackSpeed < 0.4
 
     def OnDeactivated(self):
         BaseSpaceCamera.OnDeactivated(self)
         self._zoomPropCache = self.GetZoomProportion()
         self.lookAtBall = None
-        self._speedOffsetProportion = 0.0
-        self._atOffsetChaser.ResetValue()
+        self._trackOffsetChaser.ResetValue()
         self.ResetAnchorPos()
         self.DisableManualFov()
+        self._trackSpeed = 1.0
+        return
 
     def GetItemID(self):
         if self.lookAtBall:
             return self.lookAtBall.id
+        else:
+            return None
 
     def ClearCameraParent(self):
         self._SetLookAtBall(self.ego)
 
-    def DoBallsRemove(self, pythonBalls, isRelease):
-        for ball, slimItem, terminal in pythonBalls:
-            self.DoBallRemove(ball, slimItem, terminal)
-
-    def DoBallRemove(self, ball, slimItem, terminal):
+    def OnBallRemoved(self, ball):
         if ball == self.lookAtBall:
             if not self.isActive or ball.id == self.ego:
                 self._SetLookAtBall(None)
@@ -395,6 +428,7 @@ class ShipOrbitCamera(BaseSpaceCamera):
                 self.LookAt(self.ego)
         if ball == self.trackBall:
             self.Track(None)
+        return
 
     def _HandleTargetKilled(self, ball):
         delay = ball.GetExplosionLookAtDelay()
@@ -406,10 +440,12 @@ class ShipOrbitCamera(BaseSpaceCamera):
             self._SetLookAtBall(self.ego)
         else:
             self._SetLookAtBall(None)
+        return
 
     def OnCurrentShipWarping(self):
         if self.GetLookAtItemID() is not None and self.GetLookAtItemID() != self.ego:
             self.LookAt(self.ego)
+        return
 
     def OnMouseDown(self, button):
         if self.IsTracking() or self.IsChasing():
@@ -426,5 +462,13 @@ class ShipOrbitCamera(BaseSpaceCamera):
         self.isManualFovEnabled = True
 
     def OnStateChange(self, itemID, flag, flagState, *args):
-        if flag == states.selected and IsAutoTrackingEnabled():
-            self.Track(itemID)
+        if flagState and flag == states.selected and IsAutoTrackingEnabled():
+            if not uicore.cmd.IsSomeCombatCommandLoaded():
+                self.Track(itemID)
+
+    def GetZoomToPoint(self):
+        offset = BaseSpaceCamera.GetZoomToPoint(self)
+        speedOffset = self.GetSpeedOffset()
+        if speedOffset:
+            offset = geo2.Vec3AddD(offset, speedOffset)
+        return offset

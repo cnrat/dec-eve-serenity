@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\carbon\common\stdlib\urllib.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\carbon\common\stdlib\urllib.py
 import string
 import socket
 import os
@@ -51,7 +52,7 @@ else:
 
 _urlopener = None
 
-def urlopen(url, data = None, proxies = None):
+def urlopen(url, data=None, proxies=None):
     global _urlopener
     from warnings import warnpy3k
     warnpy3k('urllib.urlopen() has been removed in Python 3.0 in favor of urllib2.urlopen()', stacklevel=2)
@@ -66,9 +67,10 @@ def urlopen(url, data = None, proxies = None):
         return opener.open(url)
     else:
         return opener.open(url, data)
+        return
 
 
-def urlretrieve(url, filename = None, reporthook = None, data = None):
+def urlretrieve(url, filename=None, reporthook=None, data=None):
     global _urlopener
     if not _urlopener:
         _urlopener = FancyURLopener()
@@ -102,7 +104,7 @@ class URLopener():
     __tempfiles = None
     version = 'Python-urllib/%s' % __version__
 
-    def __init__(self, proxies = None, **x509):
+    def __init__(self, proxies=None, **x509):
         if proxies is None:
             proxies = getproxies()
         self.proxies = proxies
@@ -113,6 +115,7 @@ class URLopener():
         self.__unlink = os.unlink
         self.tempcache = None
         self.ftpcache = ftpcache
+        return
 
     def __del__(self):
         self.close()
@@ -135,108 +138,112 @@ class URLopener():
     def addheader(self, *args):
         self.addheaders.append(args)
 
-    def open(self, fullurl, data = None):
+    def open(self, fullurl, data=None):
         fullurl = unwrap(toBytes(fullurl))
         fullurl = quote(fullurl, safe="%/:=&?~#+!$,;'@()*[]|")
         if self.tempcache and fullurl in self.tempcache:
             filename, headers = self.tempcache[fullurl]
             fp = open(filename, 'rb')
             return addinfourl(fp, headers, fullurl)
-        urltype, url = splittype(fullurl)
-        if not urltype:
-            urltype = 'file'
-        if urltype in self.proxies:
-            proxy = self.proxies[urltype]
-            urltype, proxyhost = splittype(proxy)
-            host, selector = splithost(proxyhost)
-            url = (host, fullurl)
         else:
-            proxy = None
-        name = 'open_' + urltype
-        self.type = urltype
-        name = name.replace('-', '_')
-        if not hasattr(self, name):
-            if proxy:
-                return self.open_unknown_proxy(proxy, fullurl, data)
+            urltype, url = splittype(fullurl)
+            if not urltype:
+                urltype = 'file'
+            if urltype in self.proxies:
+                proxy = self.proxies[urltype]
+                urltype, proxyhost = splittype(proxy)
+                host, selector = splithost(proxyhost)
+                url = (host, fullurl)
             else:
-                return self.open_unknown(fullurl, data)
-        try:
-            if data is None:
-                return getattr(self, name)(url)
-            return getattr(self, name)(url, data)
-        except socket.error as msg:
-            raise IOError, ('socket error', msg), sys.exc_info()[2]
+                proxy = None
+            name = 'open_' + urltype
+            self.type = urltype
+            name = name.replace('-', '_')
+            if not hasattr(self, name):
+                if proxy:
+                    return self.open_unknown_proxy(proxy, fullurl, data)
+                else:
+                    return self.open_unknown(fullurl, data)
+            try:
+                if data is None:
+                    return getattr(self, name)(url)
+                return getattr(self, name)(url, data)
+            except socket.error as msg:
+                raise IOError, ('socket error', msg), sys.exc_info()[2]
 
-    def open_unknown(self, fullurl, data = None):
+            return
+
+    def open_unknown(self, fullurl, data=None):
         type, url = splittype(fullurl)
         raise IOError, ('url error', 'unknown url type', type)
 
-    def open_unknown_proxy(self, proxy, fullurl, data = None):
+    def open_unknown_proxy(self, proxy, fullurl, data=None):
         type, url = splittype(fullurl)
         raise IOError, ('url error', 'invalid proxy for %s' % type, proxy)
 
-    def retrieve(self, url, filename = None, reporthook = None, data = None):
+    def retrieve(self, url, filename=None, reporthook=None, data=None):
         url = unwrap(toBytes(url))
         if self.tempcache and url in self.tempcache:
             return self.tempcache[url]
-        type, url1 = splittype(url)
-        if filename is None and (not type or type == 'file'):
-            try:
-                fp = self.open_local_file(url1)
-                hdrs = fp.info()
-                fp.close()
-                return (url2pathname(splithost(url1)[1]), hdrs)
-            except IOError:
-                pass
+        else:
+            type, url1 = splittype(url)
+            if filename is None and (not type or type == 'file'):
+                try:
+                    fp = self.open_local_file(url1)
+                    hdrs = fp.info()
+                    fp.close()
+                    return (url2pathname(splithost(url1)[1]), hdrs)
+                except IOError:
+                    pass
 
-        fp = self.open(url, data)
-        try:
-            headers = fp.info()
-            if filename:
-                tfp = open(filename, 'wb')
-            else:
-                import tempfile
-                garbage, path = splittype(url)
-                garbage, path = splithost(path or '')
-                path, garbage = splitquery(path or '')
-                path, garbage = splitattr(path or '')
-                suffix = os.path.splitext(path)[1]
-                fd, filename = tempfile.mkstemp(suffix)
-                self.__tempfiles.append(filename)
-                tfp = os.fdopen(fd, 'wb')
+            fp = self.open(url, data)
             try:
-                result = (filename, headers)
-                if self.tempcache is not None:
-                    self.tempcache[url] = result
-                bs = 8192
-                size = -1
-                read = 0
-                blocknum = 0
-                if reporthook:
-                    if 'content-length' in headers:
-                        size = int(headers['Content-Length'])
-                    reporthook(blocknum, bs, size)
-                while 1:
-                    block = fp.read(bs)
-                    if block == '':
-                        break
-                    read += len(block)
-                    tfp.write(block)
-                    blocknum += 1
+                headers = fp.info()
+                if filename:
+                    tfp = open(filename, 'wb')
+                else:
+                    import tempfile
+                    garbage, path = splittype(url)
+                    garbage, path = splithost(path or '')
+                    path, garbage = splitquery(path or '')
+                    path, garbage = splitattr(path or '')
+                    suffix = os.path.splitext(path)[1]
+                    fd, filename = tempfile.mkstemp(suffix)
+                    self.__tempfiles.append(filename)
+                    tfp = os.fdopen(fd, 'wb')
+                try:
+                    result = (filename, headers)
+                    if self.tempcache is not None:
+                        self.tempcache[url] = result
+                    bs = 8192
+                    size = -1
+                    read = 0
+                    blocknum = 0
                     if reporthook:
+                        if 'content-length' in headers:
+                            size = int(headers['Content-Length'])
                         reporthook(blocknum, bs, size)
+                    while 1:
+                        block = fp.read(bs)
+                        if block == '':
+                            break
+                        read += len(block)
+                        tfp.write(block)
+                        blocknum += 1
+                        if reporthook:
+                            reporthook(blocknum, bs, size)
+
+                finally:
+                    tfp.close()
 
             finally:
-                tfp.close()
+                fp.close()
 
-        finally:
-            fp.close()
+            if size >= 0 and read < size:
+                raise ContentTooShortError('retrieval incomplete: got only %i out of %i bytes' % (read, size), result)
+            return result
 
-        if size >= 0 and read < size:
-            raise ContentTooShortError('retrieval incomplete: got only %i out of %i bytes' % (read, size), result)
-        return result
-
-    def open_http(self, url, data = None):
+    def open_http(self, url, data=None):
         import httplib
         user_passwd = None
         proxy_passwd = None
@@ -303,8 +310,9 @@ class URLopener():
             return self.http_error(url, fp, errcode, errmsg, headers)
         else:
             return self.http_error(url, fp, errcode, errmsg, headers, data)
+            return
 
-    def http_error(self, url, fp, errcode, errmsg, headers, data = None):
+    def http_error(self, url, fp, errcode, errmsg, headers, data=None):
         name = 'http_error_%d' % errcode
         if hasattr(self, name):
             method = getattr(self, name)
@@ -326,7 +334,7 @@ class URLopener():
 
     if _have_ssl:
 
-        def open_https(self, url, data = None):
+        def open_https(self, url, data=None):
             import httplib
             user_passwd = None
             proxy_passwd = None
@@ -391,6 +399,7 @@ class URLopener():
                 return self.http_error(url, fp, errcode, errmsg, headers)
             else:
                 return self.http_error(url, fp, errcode, errmsg, headers, data)
+                return
 
     def open_file(self, url):
         if not isinstance(url, str):
@@ -501,7 +510,9 @@ class URLopener():
         except ftperrors() as msg:
             raise IOError, ('ftp error', msg), sys.exc_info()[2]
 
-    def open_data(self, url, data = None):
+        return
+
+    def open_data(self, url, data=None):
         if not isinstance(url, str):
             raise IOError, ('data error', 'proxy support for data protocol currently not implemented')
         import mimetools
@@ -551,7 +562,7 @@ class FancyURLopener(URLopener):
     def http_error_default(self, url, fp, errcode, errmsg, headers):
         return addinfourl(fp, headers, 'http:' + url, errcode)
 
-    def http_error_302(self, url, fp, errcode, errmsg, headers, data = None):
+    def http_error_302(self, url, fp, errcode, errmsg, headers, data=None):
         self.tries += 1
         if self.maxtries and self.tries >= self.maxtries:
             if hasattr(self, 'http_error_500'):
@@ -576,19 +587,20 @@ class FancyURLopener(URLopener):
         newurl = basejoin(self.type + ':' + url, newurl)
         return self.open(newurl)
 
-    def http_error_301(self, url, fp, errcode, errmsg, headers, data = None):
+    def http_error_301(self, url, fp, errcode, errmsg, headers, data=None):
         return self.http_error_302(url, fp, errcode, errmsg, headers, data)
 
-    def http_error_303(self, url, fp, errcode, errmsg, headers, data = None):
+    def http_error_303(self, url, fp, errcode, errmsg, headers, data=None):
         return self.http_error_302(url, fp, errcode, errmsg, headers, data)
 
-    def http_error_307(self, url, fp, errcode, errmsg, headers, data = None):
+    def http_error_307(self, url, fp, errcode, errmsg, headers, data=None):
         if data is None:
             return self.http_error_302(url, fp, errcode, errmsg, headers, data)
         else:
             return self.http_error_default(url, fp, errcode, errmsg, headers)
+            return
 
-    def http_error_401(self, url, fp, errcode, errmsg, headers, data = None):
+    def http_error_401(self, url, fp, errcode, errmsg, headers, data=None):
         if 'www-authenticate' not in headers:
             URLopener.http_error_default(self, url, fp, errcode, errmsg, headers)
         stuff = headers['www-authenticate']
@@ -604,8 +616,9 @@ class FancyURLopener(URLopener):
             return getattr(self, name)(url, realm)
         else:
             return getattr(self, name)(url, realm, data)
+            return
 
-    def http_error_407(self, url, fp, errcode, errmsg, headers, data = None):
+    def http_error_407(self, url, fp, errcode, errmsg, headers, data=None):
         if 'proxy-authenticate' not in headers:
             URLopener.http_error_default(self, url, fp, errcode, errmsg, headers)
         stuff = headers['proxy-authenticate']
@@ -621,8 +634,9 @@ class FancyURLopener(URLopener):
             return getattr(self, name)(url, realm)
         else:
             return getattr(self, name)(url, realm, data)
+            return
 
-    def retry_proxy_http_basic_auth(self, url, realm, data = None):
+    def retry_proxy_http_basic_auth(self, url, realm, data=None):
         host, selector = splithost(url)
         newurl = 'http://' + host + selector
         proxy = self.proxies['http']
@@ -633,14 +647,15 @@ class FancyURLopener(URLopener):
         user, passwd = self.get_user_passwd(proxyhost, realm, i)
         if not (user or passwd):
             return
-        proxyhost = quote(user, safe='') + ':' + quote(passwd, safe='') + '@' + proxyhost
-        self.proxies['http'] = 'http://' + proxyhost + proxyselector
-        if data is None:
-            return self.open(newurl)
         else:
+            proxyhost = quote(user, safe='') + ':' + quote(passwd, safe='') + '@' + proxyhost
+            self.proxies['http'] = 'http://' + proxyhost + proxyselector
+            if data is None:
+                return self.open(newurl)
             return self.open(newurl, data)
+            return
 
-    def retry_proxy_https_basic_auth(self, url, realm, data = None):
+    def retry_proxy_https_basic_auth(self, url, realm, data=None):
         host, selector = splithost(url)
         newurl = 'https://' + host + selector
         proxy = self.proxies['https']
@@ -651,42 +666,45 @@ class FancyURLopener(URLopener):
         user, passwd = self.get_user_passwd(proxyhost, realm, i)
         if not (user or passwd):
             return
-        proxyhost = quote(user, safe='') + ':' + quote(passwd, safe='') + '@' + proxyhost
-        self.proxies['https'] = 'https://' + proxyhost + proxyselector
-        if data is None:
-            return self.open(newurl)
         else:
+            proxyhost = quote(user, safe='') + ':' + quote(passwd, safe='') + '@' + proxyhost
+            self.proxies['https'] = 'https://' + proxyhost + proxyselector
+            if data is None:
+                return self.open(newurl)
             return self.open(newurl, data)
+            return
 
-    def retry_http_basic_auth(self, url, realm, data = None):
+    def retry_http_basic_auth(self, url, realm, data=None):
         host, selector = splithost(url)
         i = host.find('@') + 1
         host = host[i:]
         user, passwd = self.get_user_passwd(host, realm, i)
         if not (user or passwd):
             return
-        host = quote(user, safe='') + ':' + quote(passwd, safe='') + '@' + host
-        newurl = 'http://' + host + selector
-        if data is None:
-            return self.open(newurl)
         else:
+            host = quote(user, safe='') + ':' + quote(passwd, safe='') + '@' + host
+            newurl = 'http://' + host + selector
+            if data is None:
+                return self.open(newurl)
             return self.open(newurl, data)
+            return
 
-    def retry_https_basic_auth(self, url, realm, data = None):
+    def retry_https_basic_auth(self, url, realm, data=None):
         host, selector = splithost(url)
         i = host.find('@') + 1
         host = host[i:]
         user, passwd = self.get_user_passwd(host, realm, i)
         if not (user or passwd):
             return
-        host = quote(user, safe='') + ':' + quote(passwd, safe='') + '@' + host
-        newurl = 'https://' + host + selector
-        if data is None:
-            return self.open(newurl)
         else:
+            host = quote(user, safe='') + ':' + quote(passwd, safe='') + '@' + host
+            newurl = 'https://' + host + selector
+            if data is None:
+                return self.open(newurl)
             return self.open(newurl, data)
+            return
 
-    def get_user_passwd(self, host, realm, clear_cache = 0):
+    def get_user_passwd(self, host, realm, clear_cache=0):
         key = realm + '@' + host.lower()
         if key in self.auth_cache:
             if clear_cache:
@@ -707,6 +725,8 @@ class FancyURLopener(URLopener):
         except KeyboardInterrupt:
             print
             return (None, None)
+
+        return
 
 
 _localhost = None
@@ -755,7 +775,7 @@ def noheaders():
 
 class ftpwrapper():
 
-    def __init__(self, user, passwd, host, port, dirs, timeout = socket._GLOBAL_DEFAULT_TIMEOUT):
+    def __init__(self, user, passwd, host, port, dirs, timeout=socket._GLOBAL_DEFAULT_TIMEOUT):
         self.user = user
         self.passwd = passwd
         self.host = host
@@ -802,9 +822,11 @@ class ftpwrapper():
             if file:
                 pwd = self.ftp.pwd()
                 try:
-                    self.ftp.cwd(file)
-                except ftplib.error_perm as reason:
-                    raise IOError, ('ftp error', reason), sys.exc_info()[2]
+                    try:
+                        self.ftp.cwd(file)
+                    except ftplib.error_perm as reason:
+                        raise IOError, ('ftp error', reason), sys.exc_info()[2]
+
                 finally:
                     self.ftp.cwd(pwd)
 
@@ -860,6 +882,7 @@ class addbase():
         if self.fp:
             self.fp.close()
         self.fp = None
+        return
 
 
 class addclosehook(addbase):
@@ -875,6 +898,7 @@ class addclosehook(addbase):
             self.closehook(*self.hookargs)
             self.closehook = None
             self.hookargs = None
+        return
 
 
 class addinfo(addbase):
@@ -889,7 +913,7 @@ class addinfo(addbase):
 
 class addinfourl(addbase):
 
-    def __init__(self, fp, headers, url, code = None):
+    def __init__(self, fp, headers, url, code=None):
         addbase.__init__(self, fp)
         self.headers = headers
         self.url = url
@@ -910,7 +934,7 @@ try:
 except NameError:
 
     def _is_unicode(x):
-        return 0
+        pass
 
 
 else:
@@ -949,7 +973,8 @@ def splittype(url):
     if match:
         scheme = match.group(1)
         return (scheme.lower(), url[len(scheme) + 1:])
-    return (None, url)
+    else:
+        return (None, url)
 
 
 _hostprog = None
@@ -966,7 +991,8 @@ def splithost(url):
         if path and not path.startswith('/'):
             path = '/' + path
         return (host_port, path)
-    return (None, url)
+    else:
+        return (None, url)
 
 
 _userprog = None
@@ -979,7 +1005,8 @@ def splituser(host):
     match = _userprog.match(host)
     if match:
         return match.group(1, 2)
-    return (None, host)
+    else:
+        return (None, host)
 
 
 _passwdprog = None
@@ -992,7 +1019,8 @@ def splitpasswd(user):
     match = _passwdprog.match(user)
     if match:
         return match.group(1, 2)
-    return (user, None)
+    else:
+        return (user, None)
 
 
 _portprog = None
@@ -1005,12 +1033,13 @@ def splitport(host):
     match = _portprog.match(host)
     if match:
         return match.group(1, 2)
-    return (host, None)
+    else:
+        return (host, None)
 
 
 _nportprog = None
 
-def splitnport(host, defport = -1):
+def splitnport(host, defport=-1):
     global _nportprog
     if _nportprog is None:
         import re
@@ -1026,7 +1055,8 @@ def splitnport(host, defport = -1):
             nport = None
 
         return (host, nport)
-    return (host, defport)
+    else:
+        return (host, defport)
 
 
 _queryprog = None
@@ -1039,7 +1069,8 @@ def splitquery(url):
     match = _queryprog.match(url)
     if match:
         return match.group(1, 2)
-    return (url, None)
+    else:
+        return (url, None)
 
 
 _tagprog = None
@@ -1052,7 +1083,8 @@ def splittag(url):
     match = _tagprog.match(url)
     if match:
         return match.group(1, 2)
-    return (url, None)
+    else:
+        return (url, None)
 
 
 def splitattr(url):
@@ -1070,7 +1102,8 @@ def splitvalue(attr):
     match = _valueprog.match(attr)
     if match:
         return match.group(1, 2)
-    return (attr, None)
+    else:
+        return (attr, None)
 
 
 _hexdig = '0123456789ABCDEFabcdef'
@@ -1124,7 +1157,7 @@ for i, c in zip(xrange(256), str(bytearray(xrange(256)))):
 
 _safe_quoters = {}
 
-def quote(s, safe = '/'):
+def quote(s, safe='/'):
     if not s:
         if s is None:
             raise TypeError('None object cannot be quoted')
@@ -1141,26 +1174,27 @@ def quote(s, safe = '/'):
 
     if not s.rstrip(safe):
         return s
-    return ''.join(map(quoter, s))
+    else:
+        return ''.join(map(quoter, s))
 
 
 quote_inner = quote
 
-def quote(s, safe = '/'):
+def quote(s, safe='/'):
     try:
         return quote_inner(s, safe)
     except KeyError:
         return quote_inner(s.encode('utf-8', safe))
 
 
-def quote_plus(s, safe = ''):
+def quote_plus(s, safe=''):
     if ' ' in s:
         s = quote(s, safe + ' ')
         return s.replace(' ', '+')
     return quote(s, safe)
 
 
-def urlencode(query, doseq = 0):
+def urlencode(query, doseq=0):
     if hasattr(query, 'items'):
         query = query.items()
     else:
@@ -1218,8 +1252,6 @@ def proxy_bypass_environment(host):
     for name in no_proxy.split(','):
         if name and (hostonly.endswith(name) or host.endswith(name)):
             return 1
-
-    return 0
 
 
 if sys.platform == 'darwin':
@@ -1371,8 +1403,6 @@ elif os.name == 'nt':
                 if re.match(test, val, re.I):
                     return 1
 
-        return 0
-
 
     def proxy_bypass(host):
         if getproxies_environment():
@@ -1407,7 +1437,7 @@ def reporthook(blocknum, blocksize, totalsize):
     print 'Block number: %d, Block size: %d, Total size: %d' % (blocknum, blocksize, totalsize)
 
 
-def test(args = []):
+def test(args=[]):
     if not args:
         args = ['/etc/passwd',
          'file:/etc/passwd',
@@ -1438,6 +1468,8 @@ def test(args = []):
         print '-' * 40
     finally:
         urlcleanup()
+
+    return
 
 
 def main():

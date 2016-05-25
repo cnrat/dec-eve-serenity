@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\client\script\ui\shared\mapView\mapViewConst.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\client\script\ui\shared\mapView\mapViewConst.py
 from eve.client.script.ui.shared.maps.mapcommon import STARMODE_SECURITY
 UNIVERSE_SCALE = 1.5e-13
 SOLARSYSTEM_SCALE = 1e-10

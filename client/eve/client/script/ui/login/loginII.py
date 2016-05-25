@@ -1,5 +1,7 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\client\script\ui\login\loginII.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\client\script\ui\login\loginII.py
 import zlib
+import evecamera
 import uicontrols
 import blue
 import uiprimitives
@@ -64,6 +66,7 @@ class Login(uicls.LayerCore):
         self.scene = None
         self.ship = None
         self.Flush()
+        return
 
     def ProcessUIRefresh(self):
         if self.isopen:
@@ -77,6 +80,7 @@ class Login(uicls.LayerCore):
             self.reloading = 0
             if self.pendingReload:
                 self.pendingReload = 0
+        return
 
     def OnEndChangeDevice(self, *args):
         if self.isopen:
@@ -121,6 +125,7 @@ class Login(uicls.LayerCore):
         self.pendingReload = 0
         self.maintabs = None
         self.isShowingUpdateDialog = False
+        return
 
     @telemetry.ZONE_METHOD
     def OnOpenView(self):
@@ -180,6 +185,7 @@ class Login(uicls.LayerCore):
         self.eulaBlock = None
         settings.public.generic.Set('eulaCRC', self.eulaCRC)
         uthread.new(self.LoadMotd)
+        return
 
     def ScrollingEula(self, scroll, *args):
         if self.eulaBrowser.viewing == 'eula_ccp':
@@ -195,7 +201,7 @@ class Login(uicls.LayerCore):
         sprite.Close()
 
     @telemetry.ZONE_METHOD
-    def Layout(self, reloading = 0, pushBtnArgs = None, setUsername = None, setPassword = None):
+    def Layout(self, reloading=0, pushBtnArgs=None, setUsername=None, setPassword=None):
         if not reloading:
             self.sceneLoadedEvent = locks.Event('loginScene')
             uthread.new(self.LoadScene)
@@ -323,6 +329,7 @@ class Login(uicls.LayerCore):
             sprite.rectWidth = esrbNoticeWidth
             sprite.rectHeight = esrbNoticeHeight
             uthread.new(uix.FadeCont, cont, 0, after=6000, fadeTime=500.0)
+        return
 
     def Load(self, key, *args):
         self.eulaBrowser.viewing = key
@@ -336,10 +343,12 @@ class Login(uicls.LayerCore):
         if self.scrollText is not None:
             self.scrollText.text = text
         self.eulaBrowser.LoadHTML(eula)
+        return
 
     def OnGraphicSettingsChanged(self, changes):
         if self.isopen and 'shaderQuality' in changes and getattr(self, 'scene', None):
             self.CheckHeightMaps()
+        return
 
     @telemetry.ZONE_METHOD
     def CheckHeightMaps(self):
@@ -355,7 +364,6 @@ class Login(uicls.LayerCore):
 
     @telemetry.ZONE_METHOD
     def LoadScene(self):
-        self.camera = trinity.Load('res:/dx9/scene/login_screen_camera.red')
         self.scene = trinity.Load('res:/dx9/scene/login_screen.red')
         blue.resMan.Wait()
         self.CheckHeightMaps()
@@ -363,9 +371,9 @@ class Login(uicls.LayerCore):
         for station in stations:
             station.PlayAnimationEx('NormalLoop', 0, 0, 0.2)
 
-        self.camera.audio2Listener = audio2.GetListener(0)
-        sm.GetService('sceneManager').SetActiveCamera(self.camera)
-        sm.GetService('sceneManager').SetActiveScene(self.scene)
+        sceneMan = sm.GetService('sceneManager')
+        sceneMan.SetActiveScene(self.scene)
+        sceneMan.SetPrimaryCamera(evecamera.CAM_LOGIN)
         sm.GetService('dynamicMusic').UpdateDynamicMusic()
         self.sceneLoadedEvent.set()
         blue.pyos.synchro.Yield()
@@ -377,8 +385,9 @@ class Login(uicls.LayerCore):
                 self.OnButtonDeselected(btnID)
             else:
                 self.pushButtons.SelectByID('settings')
+        return
 
-    def OnButtonDeselected(self, btnID = None):
+    def OnButtonDeselected(self, btnID=None):
         self.pushButtons.DeselectAll()
         if btnID == 'settings' and not self.reloading:
             sys = uicore.layer.systemmenu
@@ -414,15 +423,15 @@ class Login(uicls.LayerCore):
         return localization.GetByLabel('EULA/EveEULA', tabName=localization.GetByLabel('UI/Login/EULA/ThirdPartyEULAHeader'))
 
     def GetEulaOthers(self, *args):
-        tgEula = ''
-        if blue.sysinfo.isTransgaming:
-            tgEula = localization.GetByLabel('EULA/TransGaming')
-        else:
-            tgEula = localization.GetByLabel('EULA/DirectX')
-        return tgEula + '<p><p>' + localization.GetByLabel('EULA/Chrome') + '<p><p>' + localization.GetByLabel('EULA/Xiph')
+        eulas = ('EULA/TransGaming' if blue.sysinfo.isTransgaming else 'EULA/DirectX',
+         'EULA/Chrome',
+         'EULA/Xiph',
+         'EULA/libvpx',
+         'EULA/Nestegg')
+        return '<p><p>'.join((localization.GetByLabel(x) for x in eulas))
 
     @telemetry.ZONE_METHOD
-    def LoadMotd(self, hidden = False):
+    def LoadMotd(self, hidden=False):
         ip = self.serverIP
         try:
             extraParam = WebUtils.GetWebRequestParameters()
@@ -471,28 +480,32 @@ class Login(uicls.LayerCore):
                 log.LogException('Exception in status text worker')
                 sys.exc_clear()
 
+        return
+
     @telemetry.ZONE_METHOD
-    def __SetServerStatusText(self, refreshOnNone = False):
+    def __SetServerStatusText(self, refreshOnNone=False):
         if self.serverStatusTextFunc is None:
             self.ClearServerStatus()
             return
-        statusText = apply(self.serverStatusTextFunc[0])
-        if statusText is None:
-            self.ClearServerStatus()
-            if refreshOnNone:
-                uthread.new(self.UpdateServerStatus, False)
+        else:
+            statusText = apply(self.serverStatusTextFunc[0])
+            if statusText is None:
+                self.ClearServerStatus()
+                if refreshOnNone:
+                    uthread.new(self.UpdateServerStatus, False)
+                return
+            serverversion, serverbuild, serverUserCount = self.serverStatusTextFunc[1:]
+            self.SetNameText(localization.GetByLabel('UI/Login/ServerStatus/Server', serverName=self.serverName))
+            label, parameters = statusText
+            self.SetStatusText(localization.GetByLabel('UI/Login/ServerStatus/Status', statusText=localization.GetByLabel(label, **parameters)))
+            if serverUserCount is not None:
+                self.SetPlayerCountText(localization.GetByLabel('UI/Login/ServerStatus/PlayerCount', players=int(serverUserCount)))
+            eve.serverVersion = serverversion
+            eve.serverBuild = serverbuild
+            if serverversion and serverbuild:
+                if '%.2f' % serverversion != '%.2f' % boot.version or serverbuild > boot.build:
+                    self.SetVersionText(localization.GetByLabel('UI/Login/ServerStatus/VersionIncompatible', serverVersion=serverversion, serverBuild=serverbuild))
             return
-        serverversion, serverbuild, serverUserCount = self.serverStatusTextFunc[1:]
-        self.SetNameText(localization.GetByLabel('UI/Login/ServerStatus/Server', serverName=self.serverName))
-        label, parameters = statusText
-        self.SetStatusText(localization.GetByLabel('UI/Login/ServerStatus/Status', statusText=localization.GetByLabel(label, **parameters)))
-        if serverUserCount is not None:
-            self.SetPlayerCountText(localization.GetByLabel('UI/Login/ServerStatus/PlayerCount', players=int(serverUserCount)))
-        eve.serverVersion = serverversion
-        eve.serverBuild = serverbuild
-        if serverversion and serverbuild:
-            if '%.2f' % serverversion != '%.2f' % boot.version or serverbuild > boot.build:
-                self.SetVersionText(localization.GetByLabel('UI/Login/ServerStatus/VersionIncompatible', serverVersion=serverversion, serverBuild=serverbuild))
 
     def IsChina(self):
         return boot.region == 'optic'
@@ -519,10 +532,10 @@ class Login(uicls.LayerCore):
 
         return True
 
-    def UpdateServerStatus(self, allowPatch = True):
+    def UpdateServerStatus(self, allowPatch=True):
         self.InternalUpdateServerStatus(allowPatch=allowPatch, bootbuild=boot.build, bootversion=boot.version)
 
-    def DisplayOutOfDateMessageAndQuitGame(self, reason = None):
+    def DisplayOutOfDateMessageAndQuitGame(self, reason=None):
         self.isShowingUpdateDialog = True
         uicore.Message('LoginUpdateAvailable', {'info': 'Client is out of date'})
         uicore.cmd.DoQuitGame()
@@ -531,6 +544,7 @@ class Login(uicls.LayerCore):
         if statusMessage is not None and 'Incompatible' in statusMessage[0] or '%.2f' % serverversion != '%.2f' % bootversion or serverbuild > bootbuild:
             if serverbuild > bootbuild and isAutoPatch:
                 self.DisplayOutOfDateMessageAndQuitGame('OutOfDate')
+        return
 
     def GetActualStatusMessage(self, serverUserCount, serverbuild, serverversion, statusMessage):
         self.serverStatusTextFunc = None
@@ -556,47 +570,50 @@ class Login(uicls.LayerCore):
         blue.pyos.synchro.Yield()
         if self.isShowingUpdateDialog:
             return
-        if not self.IsServerPortValid():
+        elif not self.IsServerPortValid():
             return
-        serverUserCount = serverversion = serverbuild = servercodename = None
-        isAutoPatch = self.GetIsAutoPatch(allowPatch)
-        try:
-            log.LogInfo('checking status of %s' % self.serverIP)
+        else:
+            serverUserCount = serverversion = serverbuild = servercodename = None
+            isAutoPatch = self.GetIsAutoPatch(allowPatch)
             try:
-                if self.firstCheck:
-                    forceQueueCheck = True
-                    self.firstCheck = False
-                else:
-                    forceQueueCheck = False
-                statusMessage, serverStatus = sm.GetService('machoNet').GetServerStatus('%s:%s' % (self.serverIP, self.serverPort), forceQueueCheck=forceQueueCheck)
-            except UserError as e:
-                if e.msg == 'AlreadyConnecting':
-                    sys.exc_clear()
-                    return
-                raise
+                log.LogInfo('checking status of %s' % self.serverIP)
+                try:
+                    if self.firstCheck:
+                        forceQueueCheck = True
+                        self.firstCheck = False
+                    else:
+                        forceQueueCheck = False
+                    statusMessage, serverStatus = sm.GetService('machoNet').GetServerStatus('%s:%s' % (self.serverIP, self.serverPort), forceQueueCheck=forceQueueCheck)
+                except UserError as e:
+                    if e.msg == 'AlreadyConnecting':
+                        sys.exc_clear()
+                        return
+                    raise
 
-            if not self.isopen:
-                return
-            self.serverStatus[self.serverIP] = (serverStatus.get('cluster_usercount', None),
-             serverStatus.get('boot_version', None),
-             serverStatus.get('boot_build', None),
-             str(serverStatus.get('boot_codename', const.responseUnknown)),
-             serverStatus.get('update_info', const.responseUnknown))
-            serverUserCount, serverversion, serverbuild, servercodename, updateinfo = self.serverStatus[self.serverIP]
-            if serverUserCount:
-                uthread.new(self.StartXFire, str(fmtutil.FmtAmt(serverUserCount)))
-            actualStatusMsg = self.GetActualStatusMessage(serverUserCount, serverbuild, serverversion, statusMessage)
-            if serverversion and serverbuild:
-                self.CompareVersionsAndAct(bootbuild, bootversion, isAutoPatch, serverbuild, serverversion, actualStatusMsg)
-            elif actualStatusMsg is not None and 'IncompatibleProtocol' in actualStatusMsg:
-                self.DisplayOutOfDateMessageAndQuitGame('Incompatable protocol')
-            else:
-                raise Exception('Invalid answer from server GetServerStatus')
-        except Exception as e:
-            log.LogError(e)
-            sys.exc_clear()
-            self.SetStatusText(localization.GetByLabel('UI/Login/UnableToConnect', IP=self.serverIP, port=self.serverPort))
-            self.serverStatusTextFunc = None
+                if not self.isopen:
+                    return
+                self.serverStatus[self.serverIP] = (serverStatus.get('cluster_usercount', None),
+                 serverStatus.get('boot_version', None),
+                 serverStatus.get('boot_build', None),
+                 str(serverStatus.get('boot_codename', const.responseUnknown)),
+                 serverStatus.get('update_info', const.responseUnknown))
+                serverUserCount, serverversion, serverbuild, servercodename, updateinfo = self.serverStatus[self.serverIP]
+                if serverUserCount:
+                    uthread.new(self.StartXFire, str(fmtutil.FmtAmt(serverUserCount)))
+                actualStatusMsg = self.GetActualStatusMessage(serverUserCount, serverbuild, serverversion, statusMessage)
+                if serverversion and serverbuild:
+                    self.CompareVersionsAndAct(bootbuild, bootversion, isAutoPatch, serverbuild, serverversion, actualStatusMsg)
+                elif actualStatusMsg is not None and 'IncompatibleProtocol' in actualStatusMsg:
+                    self.DisplayOutOfDateMessageAndQuitGame('Incompatable protocol')
+                else:
+                    raise Exception('Invalid answer from server GetServerStatus')
+            except Exception as e:
+                log.LogError(e)
+                sys.exc_clear()
+                self.SetStatusText(localization.GetByLabel('UI/Login/UnableToConnect', IP=self.serverIP, port=self.serverPort))
+                self.serverStatusTextFunc = None
+
+            return
 
     def StartXFire(self, serverUserCount):
         blue.pyos.synchro.SleepWallclock(5000)
@@ -635,98 +652,105 @@ class Login(uicls.LayerCore):
     def _Connect(self):
         if self.connecting:
             return
-        self.connecting = True
-        giveFocus = None
-        try:
-            if sm.GetService('gameui').UsingSingleSignOn():
-                for arg in blue.pyos.GetArg()[1:]:
-                    if arg.startswith('/ssoToken'):
-                        try:
-                            argName, token = arg.split('=')
-                        except:
-                            raise RuntimeError('Invalid format of SSO token, should be /ssoToken=<token>')
-
-                sm.GetService('gameui').DoLogin(token)
-                return
-            user = self.usernameEditCtrl.GetValue()
-            password = fmtutil.PasswordString(self.passwordEditCtrl.GetValue(raw=1))
+        else:
+            self.connecting = True
             giveFocus = None
-            if user is None or len(user) == 0:
-                giveFocus = 'username'
-            if password is None or len(password) == 0:
-                giveFocus = 'password' if giveFocus is None else giveFocus
-            if giveFocus is not None:
-                eve.Message('LoginAuthFailed')
-                self.CancelLogin()
-                self.SetFocus(giveFocus)
-                return
-            log.LogInfo('server: %s selected' % self.serverIP)
-            blue.pyos.synchro.Yield()
-            if self.serverPort == sm.StartService('machoNet').defaultProxyPortOffset:
-                if self.serverIP not in self.serverStatus:
-                    self.UpdateServerStatus()
-                try:
-                    serverUserCount, serverversion, serverbuild, servercodename, updateinfo = self.serverStatus[self.serverIP]
-                    if serverbuild > boot.build:
-                        if self.serverIP == LIVE_SERVER:
-                            if eve.Message('PatchLiveServerConnectWrongVersion', {'serverVersion': serverbuild,
-                             'clientVersion': boot.build}, uiconst.YESNO) == uiconst.ID_YES:
-                                self.UpdateServerStatus()
-                        else:
-                            eve.Message('PatchTestServerWarning', {'serverVersion': serverbuild,
-                             'clientVersion': boot.build})
-                        self.CancelLogin()
-                        return
-                except:
-                    log.LogInfo('No serverStatus found for server %s' % self.serverIP)
-                    sys.exc_clear()
-                    eve.Message('UnableToConnectToServer')
-                    self.CancelLogin()
-                    return
-
-            sm.GetService('loading').ProgressWnd(localization.GetByLabel('UI/Login/LoggingIn'), localization.GetByLabel('UI/Login/ConnectingToCluster'), 1, 100)
-            blue.pyos.synchro.Yield()
-            eve.Message('OnConnecting')
-            blue.pyos.synchro.Yield()
-            eve.Message('OnConnecting2')
-            blue.pyos.synchro.Yield()
             try:
-                sm.GetService('connection').Login([user,
-                 password,
-                 self.serverIP,
-                 self.serverPort,
-                 0])
-            except:
-                self.CancelLogin()
-                raise
+                try:
+                    if sm.GetService('gameui').UsingSingleSignOn():
+                        for arg in blue.pyos.GetArg()[1:]:
+                            if arg.startswith('/ssoToken'):
+                                try:
+                                    argName, token = arg.split('=')
+                                except:
+                                    raise RuntimeError('Invalid format of SSO token, should be /ssoToken=<token>')
 
-            settings.public.ui.Set('username', user or '-')
-            prefs.newbie = 0
-            knownUserNames = settings.public.ui.Get('usernames', [])[:]
-            if user and user not in knownUserNames:
-                knownUserNames.append(user)
-                settings.public.ui.Set('usernames', knownUserNames)
-        except UserError as e:
-            if e.msg.startswith('LoginAuthFailed'):
-                giveFocus = 'password'
-            eve.Message(e.msg, e.dict)
-            self.CancelLogin()
-            self.SetFocus(giveFocus)
-        finally:
-            if not self.destroyed:
-                self.connecting = 0
+                        sm.GetService('gameui').DoLogin(token)
+                        return
+                    user = self.usernameEditCtrl.GetValue()
+                    password = fmtutil.PasswordString(self.passwordEditCtrl.GetValue(raw=1))
+                    giveFocus = None
+                    if user is None or len(user) == 0:
+                        giveFocus = 'username'
+                    if password is None or len(password) == 0:
+                        giveFocus = 'password' if giveFocus is None else giveFocus
+                    if giveFocus is not None:
+                        eve.Message('LoginAuthFailed')
+                        self.CancelLogin()
+                        self.SetFocus(giveFocus)
+                        return
+                    log.LogInfo('server: %s selected' % self.serverIP)
+                    blue.pyos.synchro.Yield()
+                    if self.serverPort == sm.StartService('machoNet').defaultProxyPortOffset:
+                        if self.serverIP not in self.serverStatus:
+                            self.UpdateServerStatus()
+                        try:
+                            serverUserCount, serverversion, serverbuild, servercodename, updateinfo = self.serverStatus[self.serverIP]
+                            if serverbuild > boot.build:
+                                if self.serverIP == LIVE_SERVER:
+                                    if eve.Message('PatchLiveServerConnectWrongVersion', {'serverVersion': serverbuild,
+                                     'clientVersion': boot.build}, uiconst.YESNO) == uiconst.ID_YES:
+                                        self.UpdateServerStatus()
+                                else:
+                                    eve.Message('PatchTestServerWarning', {'serverVersion': serverbuild,
+                                     'clientVersion': boot.build})
+                                self.CancelLogin()
+                                return
+                        except:
+                            log.LogInfo('No serverStatus found for server %s' % self.serverIP)
+                            sys.exc_clear()
+                            eve.Message('UnableToConnectToServer')
+                            self.CancelLogin()
+                            return
+
+                    sm.GetService('loading').ProgressWnd(localization.GetByLabel('UI/Login/LoggingIn'), localization.GetByLabel('UI/Login/ConnectingToCluster'), 1, 100)
+                    blue.pyos.synchro.Yield()
+                    eve.Message('OnConnecting')
+                    blue.pyos.synchro.Yield()
+                    eve.Message('OnConnecting2')
+                    blue.pyos.synchro.Yield()
+                    try:
+                        sm.GetService('connection').Login([user,
+                         password,
+                         self.serverIP,
+                         self.serverPort,
+                         0])
+                    except:
+                        self.CancelLogin()
+                        raise
+
+                    settings.public.ui.Set('username', user or '-')
+                    prefs.newbie = 0
+                    knownUserNames = settings.public.ui.Get('usernames', [])[:]
+                    if user and user not in knownUserNames:
+                        knownUserNames.append(user)
+                        settings.public.ui.Set('usernames', knownUserNames)
+                except UserError as e:
+                    if e.msg.startswith('LoginAuthFailed'):
+                        giveFocus = 'password'
+                    eve.Message(e.msg, e.dict)
+                    self.CancelLogin()
+                    self.SetFocus(giveFocus)
+
+            finally:
+                if not self.destroyed:
+                    self.connecting = 0
+
+            return
 
     def CancelLogin(self):
         sm.GetService('loading').CleanUp()
 
-    def SetFocus(self, where = None):
+    def SetFocus(self, where=None):
         if where is None:
             return
-        if where == 'username':
-            uicore.registry.SetFocus(self.usernameEditCtrl)
-        elif where == 'password':
-            self.passwordEditCtrl.SetValue('')
-            uicore.registry.SetFocus(self.passwordEditCtrl)
+        else:
+            if where == 'username':
+                uicore.registry.SetFocus(self.usernameEditCtrl)
+            elif where == 'password':
+                self.passwordEditCtrl.SetValue('')
+                uicore.registry.SetFocus(self.passwordEditCtrl)
+            return
 
 
 servers = SERVERS

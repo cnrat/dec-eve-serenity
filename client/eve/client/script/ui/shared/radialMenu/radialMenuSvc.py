@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\client\script\ui\shared\radialMenu\radialMenuSvc.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\client\script\ui\shared\radialMenu\radialMenuSvc.py
 import uix
 import util
 import carbon.common.script.sys.service as service
@@ -13,8 +14,9 @@ from eve.client.script.ui.shared.radialMenu import spaceRadialMenuFunctions
 class RadialMenuSvc(service.Service):
     __guid__ = 'svc.radialmenu'
 
-    def Run(self, memStream = None):
+    def Run(self, memStream=None):
         self.expandTimer = None
+        return
 
     def TryExpandActionMenu(self, itemID, clickedObject, *args, **kwargs):
         if uicore.uilib.Key(uiconst.VK_MENU) or uicore.uilib.Key(uiconst.VK_CONTROL):
@@ -37,7 +39,6 @@ class RadialMenuSvc(service.Service):
             uthread.new(self._TryExpandActionMenu, itemID, x, y, clickedObject, **kwargs)
         else:
             self.expandTimer = base.AutoTimer(int(expandTime), self._TryExpandActionMenu, itemID, x, y, clickedObject, **kwargs)
-        return 1
 
     def _TryExpandActionMenu(self, itemID, x, y, clickedObject, **kwargs):
         if getattr(clickedObject, 'isDragObject', False):
@@ -46,10 +47,12 @@ class RadialMenuSvc(service.Service):
         self.expandTimer = None
         if clickedObject.destroyed:
             return
-        v = geo2.Vector(uicore.uilib.x - x, uicore.uilib.y - y)
-        if int(geo2.Vec2Length(v) > 12):
+        else:
+            v = geo2.Vector(uicore.uilib.x - x, uicore.uilib.y - y)
+            if int(geo2.Vec2Length(v) > 12):
+                return
+            self.ExpandActionMenu(itemID, x, y, clickedObject, **kwargs)
             return
-        self.ExpandActionMenu(itemID, x, y, clickedObject, **kwargs)
 
     def ExpandActionMenu(self, itemID, x, y, clickedObject, **kwargs):
         if util.IsCharacter(itemID):
@@ -81,3 +84,4 @@ class RadialMenuSvc(service.Service):
             radialMenuOwner = getattr(radialMenu, 'clickedObject', None)
             if radialMenuOwner and not radialMenuOwner.destroyed:
                 return radialMenuOwner
+        return

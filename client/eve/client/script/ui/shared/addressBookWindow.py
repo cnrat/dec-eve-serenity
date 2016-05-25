@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\client\script\ui\shared\addressBookWindow.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\client\script\ui\shared\addressBookWindow.py
 import blue
 import uicontrols
 import form
@@ -109,6 +110,7 @@ class AddressBookWindow(uicontrols.Window):
          localization.GetByLabel('UI/PeopleAndPlaces/Creator')]
         self.sr.maintabs = maintabs
         self.inited = 1
+        return
 
     def DropInAgents(self, *args):
         sm.GetService('addressbook').DropInAgents(*args)
@@ -149,6 +151,7 @@ class AddressBookWindow(uicontrols.Window):
         if bookmarkIDsToMove:
             bookmarkSvc.MoveBookmarksToFolder(ownerID, folderID, bookmarkIDsToMove)
         self.RefreshWindow()
+        return
 
     def _AddBookmarksFromVoucher(self, bookmarkIDs, ownerID, folderID, bookmarkSvc):
         bookmarkSvc.LogInfo('_AddBookmarksFromVoucher', bookmarkIDs, ownerID, folderID)
@@ -174,6 +177,8 @@ class AddressBookWindow(uicontrols.Window):
             if self is not None and not self.destroyed and self.inited:
                 self.HideLoad()
 
+        return
+
     def BookmarkCurrentLocation(self, *args):
         sm.GetService('addressbook').BookmarkCurrentLocation(*args)
 
@@ -185,6 +190,7 @@ class AddressBookWindow(uicontrols.Window):
         if not self.destroyed and self.inited:
             if getattr(self.sr, 'maintabs', None) is not None:
                 self.sr.maintabs.ReloadVisible()
+        return
 
     def _OnClose(self, *args):
         uicore.registry.GetLockedGroup('agentgroups', 'all', localization.GetByLabel('UI/PeopleAndPlaces/AllAgents'))
@@ -274,6 +280,7 @@ class AddressBookWindow(uicontrols.Window):
         setattr(self, 'personalshown', 1)
         if not self.destroyed:
             self.HideLoad()
+        return
 
     def _GetAgentScrollData(self):
         agents = sm.GetService('addressbook').GetAgents()
@@ -325,6 +332,8 @@ class AddressBookWindow(uicontrols.Window):
         finally:
             self.semaphore.release()
 
+        return
+
     def GetAgentPlacesScrollList(self):
         missiongroupState = uicore.registry.GetListGroupOpenState(('missiongroups', 'agentmissions'))
         agentGroup = uicore.registry.GetLockedGroup('missiongroups', 'agentmissions', localization.GetByLabel('UI/PeopleAndPlaces/AgentMissions'), openState=missiongroupState)
@@ -344,7 +353,7 @@ class AddressBookWindow(uicontrols.Window):
         localization.util.Sort(scrolllist, key=lambda x: x.label)
         return [groupEntry] + scrolllist
 
-    def GetPlacesSubContent_AgentMissions(self, nodedata, newitems = 0):
+    def GetPlacesSubContent_AgentMissions(self, nodedata, newitems=0):
         if newitems:
             nodedata.groupItems = sm.GetService('bookmarkSvc').GetAgentBookmarks()
         agentMenu = sm.GetService('journal').GetMyAgentJournalBookmarks()
@@ -380,7 +389,7 @@ class AddressBookWindow(uicontrols.Window):
 
         return scrolllist
 
-    def GetPlacesSubContent_AgentMissions2(self, nodedata, newitems = 0):
+    def GetPlacesSubContent_AgentMissions2(self, nodedata, newitems=0):
         if newitems:
             nodedata.groupItems = sm.GetService('bookmarkSvc').GetAgentBookmarks()
         groupID = nodedata.id
@@ -430,11 +439,11 @@ class AddressBookWindow(uicontrols.Window):
          'allowGuids': ['listentry.PlaceEntry', 'xtriui.InvItem', 'listentry.InvItem']}
         return listentry.Get(decoClass=BookmarkFolderEntry, data=data)
 
-    def GetPlacesEntries(self, nodedata, newitems = 0):
+    def GetPlacesEntries(self, nodedata, newitems=0):
         bookmarkFolders = sm.GetService('bookmarkSvc').GetBookmarksInFoldersForOwner(nodedata.folder.ownerID)
         return self.GetPlacesScrollList(bookmarkFolders[nodedata.folderID].bookmarks, nodedata.folderID, sublevel=2)
 
-    def GetPlacesFolders(self, nodedata, newitems = 0):
+    def GetPlacesFolders(self, nodedata, newitems=0):
         ownerID = nodedata.ownerID
         groupKey = nodedata.id[0]
         bookmarkFolders = sm.GetService('bookmarkSvc').GetBookmarksInFoldersForOwner(ownerID)
@@ -516,7 +525,7 @@ class AddressBookWindow(uicontrols.Window):
             groupKey = ('corpPlaces', bookmark.folderID)
         self.DropInPlacesGroup(groupKey, nodes)
 
-    def GetAgentsSubContent(self, nodedata, newitems = 0):
+    def GetAgentsSubContent(self, nodedata, newitems=0):
         if not len(nodedata.groupItems):
             return []
         charsToPrime = []

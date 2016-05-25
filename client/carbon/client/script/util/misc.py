@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\carbon\client\script\util\misc.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\carbon\client\script\util\misc.py
 import os
 import blue
 import telemetry
@@ -18,12 +19,12 @@ class _ResFileRaw(object):
         self.resfile.OpenAlways(respath)
         self.closed = False
 
-    def read(self, size = -1):
+    def read(self, size=-1):
         if self.closed:
             raise ValueError('file is closed')
         return self.resfile.Read(size)
 
-    def seek(self, offset, whence = 0):
+    def seek(self, offset, whence=0):
         if whence == 0:
             r = self.resfile.Seek(offset)
         elif whence == 1:
@@ -42,7 +43,7 @@ class _ResFileRaw(object):
         self.closed = True
 
 
-def ResFile(respath, mode = 'rb', bufsize = -1):
+def ResFile(respath, mode='rb', bufsize=-1):
     if mode.count('b'):
         return _ResFileRaw(respath)
     else:
@@ -69,7 +70,7 @@ def ResFileToCache(respath):
         return ''
 
 
-def BlueFile(bluefilename, mode = 'r', bufsize = -1):
+def BlueFile(bluefilename, mode='r', bufsize=-1):
     filename = blue.paths.ResolvePath(bluefilename)
     try:
         f = file(filename, mode, bufsize)
@@ -90,6 +91,7 @@ def DelTree(path):
 
     os.path.walk(path, DelFiles, None)
     _RemoveDirs(path, 0)
+    return
 
 
 def _RemoveDirs(path, nukebase):
@@ -159,7 +161,7 @@ def Decorator(f):
 
 Decorator = Decorator(Decorator)
 
-def Uthreaded(f, name = None):
+def Uthreaded(f, name=None):
     if name is None:
         name = f.__name__
 
@@ -185,7 +187,7 @@ def RunOnceMethod(fn):
 class Despammer:
     ___guid__ = 'util.Despammer'
 
-    def __init__(self, fn, delay = 0):
+    def __init__(self, fn, delay=0):
         self._fn = fn
         self._delay = delay
         self._channel = stackless.channel()

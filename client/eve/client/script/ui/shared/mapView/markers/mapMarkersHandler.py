@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\client\script\ui\shared\mapView\markers\mapMarkersHandler.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\client\script\ui\shared\mapView\markers\mapMarkersHandler.py
 from carbon.common.script.util.timerstuff import AutoTimer
 import carbonui.const as uiconst
 from eve.client.script.ui.shared.mapView.markers.mapMarkerContellation import MarkerLabelConstellation
@@ -52,7 +53,7 @@ class MapViewMarkersHandler(object):
     clickTimer = None
     cameraTranslationFromParent = 1.0
 
-    def __init__(self, mapView, markerCurveSet, markerLayer, eventHandler = None, stackMarkers = True):
+    def __init__(self, mapView, markerCurveSet, markerLayer, eventHandler=None, stackMarkers=True):
         self.mapView = mapView
         self.projectBrackets = {}
         self.hilightMarkers = set()
@@ -120,6 +121,8 @@ class MapViewMarkersHandler(object):
                 else:
                     markerObject.SetOverlappedState(False)
 
+        return
+
     def GetExtraMouseOverInfoForMarker(self, markerID):
         if self.mapView:
             return self.mapView.GetExtraMouseOverInfoForItemID(markerID)
@@ -138,6 +141,8 @@ class MapViewMarkersHandler(object):
                 markerObject.displayStateOverride = None
             else:
                 markerObject.displayStateOverride = False
+
+        return
 
     def UpdateMarkerPositions(self, changedSolarSystemPositions, yScaleFactor):
         for markerID, markerObject in self.projectBrackets.iteritems():
@@ -158,14 +163,15 @@ class MapViewMarkersHandler(object):
         self.markerLayer = None
         self.markerCurveSet = None
         self.eventHandler = None
+        return
 
     def OnMarkerHilighted(self, marker):
         self.mapView.SetHilightItem(marker.markerID)
 
-    def OnMarkerSelected(self, marker, zoomTo = False):
+    def OnMarkerSelected(self, marker, zoomTo=False):
         self.mapView.SetActiveMarker(marker, zoomToItem=zoomTo)
 
-    def HilightMarkers(self, markerIDs, add = False):
+    def HilightMarkers(self, markerIDs, add=False):
         hilightMarkers = markerIDs
         if not add:
             for oldMarkerID in self.hilightMarkers:
@@ -215,7 +221,7 @@ class MapViewMarkersHandler(object):
     def IsActiveOrHilighted(self, markerID):
         return markerID in self.activeMarkers or markerID in self.hilightMarkers
 
-    def RemoveMarker(self, markerID, fadeOut = False):
+    def RemoveMarker(self, markerID, fadeOut=False):
         try:
             self.overlapMarkers.remove(markerID)
         except:
@@ -232,6 +238,7 @@ class MapViewMarkersHandler(object):
                 markerObject.FadeOutAndClose()
             else:
                 markerObject.Close()
+        return
 
     def GetMarkerByID(self, markerID):
         return self.projectBrackets.get(markerID, None)
@@ -243,14 +250,15 @@ class MapViewMarkersHandler(object):
         markerID = kwds.get('markerID', None)
         if markerID in self.projectBrackets:
             return self.projectBrackets[markerID]
-        kwds['parentContainer'] = self.markerLayer
-        kwds['curveSet'] = self.markerCurveSet
-        kwds['markerHandler'] = self
-        kwds['eventHandler'] = self.eventHandler
-        markerClass = kwds.get('markerClass', None)
-        markerObject = markerClass(**kwds)
-        self.projectBrackets[markerID] = markerObject
-        return markerObject
+        else:
+            kwds['parentContainer'] = self.markerLayer
+            kwds['curveSet'] = self.markerCurveSet
+            kwds['markerHandler'] = self
+            kwds['eventHandler'] = self.eventHandler
+            markerClass = kwds.get('markerClass', None)
+            markerObject = markerClass(**kwds)
+            self.projectBrackets[markerID] = markerObject
+            return markerObject
 
     def RegisterMarker(self, markerObject):
         self.projectBrackets[markerObject.markerID] = markerObject

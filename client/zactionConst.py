@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\carbon\common\lib\zactionConst.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\carbon\common\lib\zactionConst.py
 ACTION_SCHEMA = 'zaction'
 _ACTION_PREFIX = ACTION_SCHEMA + '.'
 _ACTION_TREE_TABLE_NAME = 'trees'

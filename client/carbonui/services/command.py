@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\packages\carbonui\services\command.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\packages\carbonui\services\command.py
 import blue
 import service
 from carbonui.control.menu import ClearMenuLayer, CloseContextMenus
@@ -52,7 +53,7 @@ labelsByFuncName = {'CmdCloseActiveWindow': '/Carbon/UI/Commands/CmdCloseActiveW
 
 class CommandMapping:
 
-    def __init__(self, callback, shortcut, category = None, isLocked = False, enabled = True, ignoreModifierKey = False, repeatable = False):
+    def __init__(self, callback, shortcut, category=None, isLocked=False, enabled=True, ignoreModifierKey=False, repeatable=False):
         self.callback = callback
         self.name = self.callback.func_name
         self.SetShortcut(shortcut)
@@ -88,23 +89,28 @@ class CommandMapping:
     def GetDescription(self):
         if hasattr(self.callback, 'nameLabelPath'):
             return localization.GetByLabel(self.callback.nameLabelPath)
-        if getattr(self.callback, 'nameString', None):
+        elif getattr(self.callback, 'nameString', None):
             return self.callback.nameString
-        return uicore.cmd.FuncToDesc(self.name)
+        else:
+            return uicore.cmd.FuncToDesc(self.name)
 
     def GetName(self):
         if getattr(self.callback, 'nameLabelPath', None):
             return localization.GetByLabel(self.callback.nameLabelPath)
-        if getattr(self.callback, 'nameString', None):
+        elif getattr(self.callback, 'nameString', None):
             return self.callback.nameString
+        else:
+            return
 
     def GetDetailedDescription(self):
         if hasattr(self.callback, 'detailedDescription'):
             return localization.GetByLabel(self.callback.detailedDescription)
-        if getattr(self.callback, 'descriptionLabelPath', None):
+        elif getattr(self.callback, 'descriptionLabelPath', None):
             return localization.GetByLabel(self.callback.descriptionLabelPath)
-        if getattr(self.callback, 'descriptionString', None):
+        elif getattr(self.callback, 'descriptionString', None):
             return self.callback.descriptionString
+        else:
+            return
 
     def SetShortcut(self, shortcut):
         self.shortcut = self._ValidateShortcut(shortcut)
@@ -112,25 +118,27 @@ class CommandMapping:
     def _ValidateShortcut(self, shortcut):
         if shortcut is None:
             return
-        if type(shortcut) is int:
-            shortcut = (shortcut,)
-        return shortcut
+        else:
+            if type(shortcut) is int:
+                shortcut = (shortcut,)
+            return shortcut
 
     def GetAccelerator(self):
         if not self.shortcut:
             return None
-        vkey = self.shortcut[-1]
-        shortcutModKeys = self.shortcut[:-1]
-        modKeys = []
-        for modKey in uiconst.MODKEYS:
-            modKeys.append(modKey in shortcutModKeys)
+        else:
+            vkey = self.shortcut[-1]
+            shortcutModKeys = self.shortcut[:-1]
+            modKeys = []
+            for modKey in uiconst.MODKEYS:
+                modKeys.append(modKey in shortcutModKeys)
 
-        return (tuple(modKeys), vkey)
+            return (tuple(modKeys), vkey)
 
 
 class CommandMap:
 
-    def __init__(self, defaultCmds = [], customCmds = {}):
+    def __init__(self, defaultCmds=[], customCmds={}):
         self.commandsByName = {}
         self.commandsByShortcut = {}
         self.accelerators = {}
@@ -152,8 +160,9 @@ class CommandMap:
                 self.commandsByShortcut[command.shortcut] = command
         else:
             log.LogWarn('Trying to add the same command twice: %s' % command.name)
+        return
 
-    def RemapCommand(self, cmdname, newShortcut = None):
+    def RemapCommand(self, cmdname, newShortcut=None):
         if newShortcut:
             newShortcut = tuple(newShortcut)
         cmd = self.GetCommandByName(cmdname)
@@ -171,24 +180,25 @@ class CommandMap:
     def _ModernizeOldTypeShortcut(self, shortcut):
         if not shortcut or len(shortcut) != 4:
             return shortcut
-        for i in xrange(3):
-            if shortcut[i] not in (0, 1):
-                return shortcut
+        else:
+            for i in xrange(3):
+                if shortcut[i] not in (0, 1):
+                    return shortcut
 
-        newShortcut = []
-        if shortcut[0]:
-            newShortcut.append(uiconst.VK_CONTROL)
-        if shortcut[1]:
-            newShortcut.append(uiconst.VK_MENU)
-        if shortcut[2]:
-            newShortcut.append(uiconst.VK_SHIFT)
-        try:
-            vkKey = getattr(uiconst, 'VK_%s' % shortcut[-1].upper())
-        except:
-            return None
+            newShortcut = []
+            if shortcut[0]:
+                newShortcut.append(uiconst.VK_CONTROL)
+            if shortcut[1]:
+                newShortcut.append(uiconst.VK_MENU)
+            if shortcut[2]:
+                newShortcut.append(uiconst.VK_SHIFT)
+            try:
+                vkKey = getattr(uiconst, 'VK_%s' % shortcut[-1].upper())
+            except:
+                return None
 
-        newShortcut.append(vkKey)
-        return tuple(newShortcut)
+            newShortcut.append(vkKey)
+            return tuple(newShortcut)
 
     def GetAllCommands(self):
         return self.commandsByName.values()
@@ -240,13 +250,17 @@ class CommandMap:
         accelerator = cmd.GetAccelerator()
         if accelerator is None:
             return
-        self.accelerators[accelerator] = cmd
+        else:
+            self.accelerators[accelerator] = cmd
+            return
 
     def UnloadAccelerator(self, cmd):
         accelerator = cmd.GetAccelerator()
         if accelerator is None or accelerator not in self.accelerators:
             return
-        del self.accelerators[accelerator]
+        else:
+            del self.accelerators[accelerator]
+            return
 
     def LoadAllAccelerators(self):
         for c in self.GetAllCommands():
@@ -263,12 +277,12 @@ class CommandService(service.Service):
     __startupdependencies__ = ['settings']
     __notifyevents__ = ['OnSessionChanged']
 
-    def Run(self, memStream = None):
+    def Run(self, memStream=None):
         service.Service.Run(self, memStream)
         self.labelsByFuncName = labelsByFuncName
         self.Reload()
 
-    def Reload(self, forceGenericOnly = False):
+    def Reload(self, forceGenericOnly=False):
         if not settings.user.cmd.customCmds:
             settings.user.cmd.customCmds = {}
         self.defaultShortcutMapping = self.SetDefaultShortcutMappingCORE()
@@ -281,6 +295,7 @@ class CommandService(service.Service):
             self.commandMap.LoadAllAccelerators()
         else:
             self.commandMap.LoadAcceleratorsByCategory('general')
+        return
 
     def Stop(self, stream):
         service.Service.Stop(self)
@@ -353,7 +368,7 @@ class CommandService(service.Service):
         avail = self.GetAvailableCmds()
         return bool(cmdname in avail)
 
-    def EditCmd(self, cmdname, context = None):
+    def EditCmd(self, cmdname, context=None):
         if self.IsLocked(cmdname):
             uicore.Message('ShortcutLocked')
             return
@@ -369,15 +384,17 @@ class CommandService(service.Service):
         edit.SetValue(self.GetKeyNameFromVK(vkey))
 
     def MapCmdErrorCheck(self, retval):
-        return ''
+        pass
 
-    def ClearMappedCmd(self, cmdname, showMsg = 1):
+    def ClearMappedCmd(self, cmdname, showMsg=1):
         if self.IsLocked(cmdname):
             if showMsg:
                 uicore.Message('ShortcutLocked')
             return
-        self.commandMap.RemapCommand(cmdname, None)
-        sm.ScatterEvent('OnMapShortcut', cmdname, None, None, None, None)
+        else:
+            self.commandMap.RemapCommand(cmdname, None)
+            sm.ScatterEvent('OnMapShortcut', cmdname, None, None, None, None)
+            return
 
     def RestoreDefaults(self):
         settings.user.cmd.customCmds = {}
@@ -416,8 +433,9 @@ class CommandService(service.Service):
             return command.name
         else:
             return None
+            return None
 
-    def GetShortcutByFuncName(self, funcname, format = False):
+    def GetShortcutByFuncName(self, funcname, format=False):
         command = self.commandMap.GetCommandByName(funcname)
         if command:
             if format:
@@ -426,6 +444,7 @@ class CommandService(service.Service):
                 return command.shortcut
         else:
             return None
+        return None
 
     def GetShortcutStringByFuncName(self, funcname):
         command = self.commandMap.GetCommandByName(funcname)
@@ -439,6 +458,7 @@ class CommandService(service.Service):
         if command and command.shortcut:
             return command.GetShortcutAsString()
         else:
+            return None
             return None
 
     def UnpackFuncName(self, funcname):
@@ -463,7 +483,7 @@ class CommandService(service.Service):
 
         return cmdname
 
-    def GetAvailableCmds(self, reload = False):
+    def GetAvailableCmds(self, reload=False):
         if not getattr(self, 'availableCmds', None) or reload:
             self.availableCmds = []
             for cmdattr in dir(self):
@@ -482,10 +502,11 @@ class CommandService(service.Service):
         function = getattr(fromWhere, cmdattr, None)
         if function is None:
             return False
-        availabiltyCheck = getattr(function, 'availabiltyCheck', None)
-        if availabiltyCheck and not availabiltyCheck():
-            return False
-        return True
+        else:
+            availabiltyCheck = getattr(function, 'availabiltyCheck', None)
+            if availabiltyCheck and not availabiltyCheck():
+                return False
+            return True
 
     def GetActiveCmds(self):
         return self.commandMap.GetAllMappedCommands()
@@ -496,7 +517,7 @@ class CommandService(service.Service):
     def GetCustomCmd(self, cmdname):
         return self.customCmds.get(cmdname, None)
 
-    def Execute(self, cmdname, cmdNameExact = False):
+    def Execute(self, cmdname, cmdNameExact=False):
         if not cmdNameExact:
             cmdname = cmdname.lower()
             if cmdname[0] == '/':
@@ -511,6 +532,8 @@ class CommandService(service.Service):
                 return '%s executed' % cmdname
             except:
                 pass
+
+        return
 
     def CheckCtrlUp(self, wnd, msgID, ckey):
         chooseWndMenu = getattr(self, 'chooseWndMenu', None)
@@ -635,6 +658,7 @@ class CommandService(service.Service):
             uicore.registry.ToggleCollapseAllWindows()
         else:
             uicore.registry.FindFocus([1, -1][uicore.uilib.Key(uiconst.VK_SHIFT)])
+        return
 
     def CmdBack(self):
         activeWnd = uicore.registry.GetActive()
@@ -669,11 +693,15 @@ class CommandService(service.Service):
         focus = uicore.registry.GetFocus()
         if getattr(focus, 'Copy', None):
             return focus.Copy()
+        else:
+            return
 
     def OnCtrlX(self):
         focus = uicore.registry.GetFocus()
         if getattr(focus, 'Cut', None):
             return focus.Cut()
+        else:
+            return
 
     def OnCtrlV(self):
         text = GetClipboardData()
@@ -699,29 +727,30 @@ class CommandService(service.Service):
     def GetWndMenu(self):
         if uicore.registry.GetModalWindow():
             return
-        if not getattr(self, 'chooseWndMenu', None) or self.chooseWndMenu.destroyed or self.chooseWndMenu.state == uiconst.UI_HIDDEN:
-            ClearMenuLayer()
-            wnds = [ each for each in uicore.registry.GetWindows() if not getattr(each, 'defaultExcludeFromWindowMenu', 0) ]
-            showhide = uicore.layer.main.state == uiconst.UI_PICKCHILDREN
-            m = []
-            for each in wnds:
-                if not hasattr(each, 'Maximize'):
-                    continue
-                if hasattr(each, 'GetCaption'):
-                    label = each.GetCaption()
-                else:
-                    label = each.name
-                m.append((label, each.Maximize))
+        else:
+            if not getattr(self, 'chooseWndMenu', None) or self.chooseWndMenu.destroyed or self.chooseWndMenu.state == uiconst.UI_HIDDEN:
+                ClearMenuLayer()
+                wnds = [ each for each in uicore.registry.GetWindows() if not getattr(each, 'defaultExcludeFromWindowMenu', 0) ]
+                showhide = uicore.layer.main.state == uiconst.UI_PICKCHILDREN
+                m = []
+                for each in wnds:
+                    if not hasattr(each, 'Maximize'):
+                        continue
+                    if hasattr(each, 'GetCaption'):
+                        label = each.GetCaption()
+                    else:
+                        label = each.name
+                    m.append((label, each.Maximize))
 
-            if m:
-                mv = menu.CreateMenuView(menu.CreateMenuFromList(m), None, None)
-                mv.left, mv.top = (uicore.desktop.width - mv.width) // 2, (uicore.desktop.height - mv.height) // 2
-                uicore.layer.menu.children.insert(0, mv)
-                self.chooseWndMenu = mv
-                self.wmTimer = AutoTimer(10, self._CheckWndMenu)
-            else:
-                self.chooseWndMenu = None
-        return self.chooseWndMenu
+                if m:
+                    mv = menu.CreateMenuView(menu.CreateMenuFromList(m), None, None)
+                    mv.left, mv.top = (uicore.desktop.width - mv.width) // 2, (uicore.desktop.height - mv.height) // 2
+                    uicore.layer.menu.children.insert(0, mv)
+                    self.chooseWndMenu = mv
+                    self.wmTimer = AutoTimer(10, self._CheckWndMenu)
+                else:
+                    self.chooseWndMenu = None
+            return self.chooseWndMenu
 
     def _CheckWndMenu(self, *args):
         ctrl = uicore.uilib.Key(uiconst.VK_CONTROL)
@@ -731,15 +760,16 @@ class CommandService(service.Service):
         if chooseWndMenu and not chooseWndMenu.destroyed and chooseWndMenu.state != uiconst.UI_HIDDEN:
             chooseWndMenu.ChooseHilited()
         self.chooseWndMenu = None
+        return
 
-    def OnEsc(self, stopLoading = True):
+    def OnEsc(self, stopLoading=True):
         if CloseContextMenus():
             return 1
         modalResult = uicore.registry.GetModalResult(uiconst.ID_CANCEL, 'btn_cancel')
         if modalResult is not None:
             uicore.registry.GetModalWindow().SetModalResult(modalResult)
             return True
-        if stopLoading and uicore.layer.loading.state == uiconst.UI_NORMAL:
+        elif stopLoading and uicore.layer.loading.state == uiconst.UI_NORMAL:
             uthread.new(sm.GetService('loading').HideAllLoad)
             return True
         sys = uicore.layer.systemmenu
@@ -749,6 +779,8 @@ class CommandService(service.Service):
             else:
                 uthread.new(sys.OpenView)
             return True
+        else:
+            return
 
     OnEsc_Core = OnEsc
 

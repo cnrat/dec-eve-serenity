@@ -1,5 +1,7 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\client\script\ui\shared\mapView\mapViewSolarSystem.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\client\script\ui\shared\mapView\mapViewSolarSystem.py
 import logging
+from brennivin.itertoolsext import Bundle
 from carbon.common.script.util.timerstuff import AutoTimer
 from eve.client.script.ui.control.buttons import ButtonIcon
 from eve.client.script.ui.control.eveLabel import EveLabelSmall
@@ -9,10 +11,10 @@ from eve.client.script.ui.shared.mapView.markers.mapMarkerMyHome import MarkerMy
 from eve.client.script.ui.shared.mapView.markers.mapMarkerMyLocation import MarkerMyLocation
 from eve.client.script.ui.shared.mapView.markers.mapMarkersHandler import MapViewMarkersHandler
 from eve.client.script.ui.shared.mapView.mapViewSceneContainer import MapViewSceneContainer
-from eve.client.script.ui.shared.mapView.mapViewUtil import SolarSystemPosToMapPos, ScaleSolarSystemValue, GetTranslationFromParentWithRadius, UpdateDebugOutput
+from eve.client.script.ui.shared.mapView.mapViewUtil import SolarSystemPosToMapPos, ScaleSolarSystemValue, GetTranslationFromParentWithRadius, UpdateDebugOutput, TryGetPosFromItemID
 from eve.client.script.ui.shared.mapView.systemMapHandler import SystemMapHandler, SolarSystemInfoBox
 import blue
-from eve.common.script.sys.idCheckers import IsSolarSystem
+from eve.common.script.sys.idCheckers import IsSolarSystem, IsStation
 from inventorycommon.util import IsWormholeSystem
 import trinity
 import uthread
@@ -129,6 +131,7 @@ class MapViewSolarSystem(Container):
         self.mapNavigation = None
         self.debugOutputTimer = None
         Container.Close(self, *args, **kwds)
+        return
 
     def UpdateDebugOutput(self):
         if self.destroyed:
@@ -164,6 +167,7 @@ class MapViewSolarSystem(Container):
         settings.char.ui.Set('%s_autoFocusEnabled_%s' % (SETTING_PREFIX, self.mapViewID), False)
         self.autoFocusEnabled = False
         self.camera.FollowMarker(None)
+        return
 
     @apply
     def solarSystemTransform():
@@ -231,11 +235,12 @@ class MapViewSolarSystem(Container):
         item = self.mapSvc.GetItem(itemID, retall=True)
         if not item:
             return []
-        m = []
-        m.append(None)
-        filterFunc = [MenuLabel('UI/Commands/ShowLocationOnMap')]
-        m += sm.GetService('menu').CelestialMenu(itemID, noTrace=1, mapItem=item, filterFunc=filterFunc)
-        return m
+        else:
+            m = []
+            m.append(None)
+            filterFunc = [MenuLabel('UI/Commands/ShowLocationOnMap')]
+            m += sm.GetService('menu').CelestialMenu(itemID, noTrace=1, mapItem=item, filterFunc=filterFunc)
+            return m
 
     def ShowMyHomeStation(self):
         if self.destroyed:
@@ -247,16 +252,23 @@ class MapViewSolarSystem(Container):
         except:
             pass
 
-        homeStationID = sm.RemoteSvc('charMgr').GetHomeStation()
+        homeStationRow = sm.RemoteSvc('charMgr').GetHomeStationRow()
+        homeStationID = homeStationRow.stationID
         if not homeStationID or self.destroyed:
             return
-        stationInfo = self.mapSvc.GetStation(homeStationID)
         if self.destroyed:
             return
-        if stationInfo.solarSystemID != self.currentSolarsystem.solarsystemID:
+        solarsystemID = homeStationRow.solarSystemID
+        if solarsystemID != self.currentSolarsystem.solarsystemID:
             return
-        localPosition = SolarSystemPosToMapPos((stationInfo.x, stationInfo.y, stationInfo.z))
-        markerObject = self.markersHandler.AddSolarSystemBasedMarker(markerID, MarkerMyHome, stationInfo=stationInfo, solarSystemID=stationInfo.solarSystemID, mapPositionLocal=localPosition, mapPositionSolarSystem=(0, 0, 0))
+        if IsStation(homeStationID):
+            stationInfo = self.mapSvc.GetStation(homeStationID)
+            pos = (stationInfo.x, stationInfo.y, stationInfo.z)
+        else:
+            stationInfo = Bundle(stationID=homeStationID, stationTypeID=homeStationRow.stationTypeID)
+            pos = TryGetPosFromItemID(homeStationID, solarsystemID)
+        localPosition = SolarSystemPosToMapPos(pos)
+        markerObject = self.markersHandler.AddSolarSystemBasedMarker(markerID, MarkerMyHome, stationInfo=stationInfo, solarSystemID=solarsystemID, mapPositionLocal=localPosition, mapPositionSolarSystem=(0, 0, 0))
         self.markersAlwaysVisible.add(markerID)
 
     def RemoveMyLocation(self):
@@ -266,37 +278,41 @@ class MapViewSolarSystem(Container):
     def ShowMyLocation(self):
         if self.destroyed:
             return
-        if self.mapRoot is None:
+        elif self.mapRoot is None:
             return
-        self.RemoveMyLocation()
-        markerID = (MARKERID_MYPOS, session.charid)
-        try:
-            self.markersAlwaysVisible.remove(markerID)
-        except:
-            pass
+        else:
+            self.RemoveMyLocation()
+            markerID = (MARKERID_MYPOS, session.charid)
+            try:
+                self.markersAlwaysVisible.remove(markerID)
+            except:
+                pass
 
-        if self.solarSystemID == session.solarsystemid2:
-            if session.stationid:
-                stationInfo = self.mapSvc.GetStation(session.stationid)
-                if self.destroyed:
-                    return
-                localPosition = SolarSystemPosToMapPos((stationInfo.x, stationInfo.y, stationInfo.z))
-                markerObject = self.markersHandler.AddSolarSystemBasedMarker(markerID, MarkerMyLocation, solarSystemID=session.solarsystemid2, mapPositionLocal=localPosition, mapPositionSolarSystem=(0, 0, 0))
-            else:
-                markerObject = self.markersHandler.AddSolarSystemBasedMarker(markerID, MarkerMyLocation, trackObjectID=session.shipid or session.stationid, solarSystemID=session.solarsystemid2, mapPositionLocal=(0, 0, 0), mapPositionSolarSystem=(0, 0, 0))
-            self.markersAlwaysVisible.add(markerID)
-            if self.autoFocusEnabled:
-                self.FocusSelf()
+            if self.solarSystemID == session.solarsystemid2:
+                if session.stationid:
+                    stationInfo = self.mapSvc.GetStation(session.stationid)
+                    if self.destroyed:
+                        return
+                    localPosition = SolarSystemPosToMapPos((stationInfo.x, stationInfo.y, stationInfo.z))
+                    markerObject = self.markersHandler.AddSolarSystemBasedMarker(markerID, MarkerMyLocation, solarSystemID=session.solarsystemid2, mapPositionLocal=localPosition, mapPositionSolarSystem=(0, 0, 0))
+                else:
+                    markerObject = self.markersHandler.AddSolarSystemBasedMarker(markerID, MarkerMyLocation, trackObjectID=session.shipid or session.stationid, solarSystemID=session.solarsystemid2, mapPositionLocal=(0, 0, 0), mapPositionSolarSystem=(0, 0, 0))
+                self.markersAlwaysVisible.add(markerID)
+                if self.autoFocusEnabled:
+                    self.FocusSelf()
+            return
 
     def OnCameraMoved(self):
         camera = self.camera
         if camera is None:
             return
-        if self.currentSolarsystem:
-            self.currentSolarsystem.OnCameraMoved()
-        cameraDistance = camera.GetCameraDistanceFromInterest()
-        if self.markersHandler:
-            self.markersHandler.RegisterCameraTranslationFromParent(cameraDistance)
+        else:
+            if self.currentSolarsystem:
+                self.currentSolarsystem.OnCameraMoved()
+            cameraDistance = camera.GetCameraDistanceFromInterest()
+            if self.markersHandler:
+                self.markersHandler.RegisterCameraTranslationFromParent(cameraDistance)
+            return
 
     def SetCameraPointOfInterestSolarSystemPosition(self, solarSystemID, position):
         if solarSystemID != self.solarSystemID:
@@ -342,6 +358,7 @@ class MapViewSolarSystem(Container):
             uthread.new(self.ShowMyLocation)
             if self.infoBox:
                 self.infoBox.LoadSolarSystemID(solarSystemID)
+        return
 
     def FrameSolarSystem(self):
         radius = ScaleSolarSystemValue(self.currentSolarsystem.solarSystemRadius)

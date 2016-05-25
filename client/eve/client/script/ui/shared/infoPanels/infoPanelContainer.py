@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\client\script\ui\shared\infoPanels\infoPanelContainer.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\client\script\ui\shared\infoPanels\infoPanelContainer.py
 import uiprimitives
 import uicontrols
 import uicls
@@ -56,7 +57,7 @@ class InfoPanelContainer(uicontrols.ContainerAutoSize):
         infoPanelSvc.CheckAllPanelsFit()
 
     @telemetry.ZONE_FUNCTION
-    def Reconstruct(self, animate = False):
+    def Reconstruct(self, animate=False):
         uthread.Lock(self)
         try:
             self.ConstructTopIcons()
@@ -95,6 +96,7 @@ class InfoPanelContainer(uicontrols.ContainerAutoSize):
             else:
                 oldTypeID = None
             sm.GetService('infoPanel').MovePanelInFrontOf(infoPanelCls, oldTypeID)
+        return
 
     def OnButtonDragMove(self, *args):
         if not self.isDraggingButton:
@@ -171,6 +173,7 @@ class ButtonIconInfoPanel(uicontrols.ButtonIcon):
         self.infoPanelCls = attributes.infoPanelCls
         self.bgCollapsedFill = uiprimitives.Fill(bgParent=self, opacity=0.0)
         self.UpdateMode()
+        return
 
     def GetHint(self):
         return self.infoPanelCls.GetClassHint()

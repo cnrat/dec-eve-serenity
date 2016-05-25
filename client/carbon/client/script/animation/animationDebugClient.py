@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\carbon\client\script\animation\animationDebugClient.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\carbon\client\script\animation\animationDebugClient.py
 import time
 import math
 import service
@@ -93,6 +94,7 @@ class AnimationDebugClient(service.Service):
         self.positionTrace = None
         self.velocityTrace = None
         self.rotationalTrace = None
+        return
 
     def Run(self, *args):
         service.Service.Run(self, *args)
@@ -135,6 +137,7 @@ class AnimationDebugClient(service.Service):
         if self.mouseUpCookie:
             uicore.event.UnregisterForTriuiEvents(self.mouseUpCookie)
             self.mouseUpCookie = None
+        return
 
     def OnGlobalKeyDownCallback(self, wnd, eventID, (vkey, flag)):
         playerEnt = self.entityClient.GetPlayerEntity()
@@ -199,12 +202,14 @@ class AnimationDebugClient(service.Service):
         entity = self.debugSelectionClient.GetSelectedEntity()
         if entity is None:
             return
-        playerEnt = self.entityClient.GetPlayerEntity()
-        if entity is playerEnt:
-            self.registered = True
-            self.RegisterPositionTraceKeyEvents()
-        self.lastPos = entity.position.position
-        self.positionTrace = uthread.worker('animationDebugClient.PositionTrace', self._DrawPositionTrace)
+        else:
+            playerEnt = self.entityClient.GetPlayerEntity()
+            if entity is playerEnt:
+                self.registered = True
+                self.RegisterPositionTraceKeyEvents()
+            self.lastPos = entity.position.position
+            self.positionTrace = uthread.worker('animationDebugClient.PositionTrace', self._DrawPositionTrace)
+            return
 
     def TurnOffPositionTrace(self):
         self.positionTrace.kill()
@@ -212,6 +217,7 @@ class AnimationDebugClient(service.Service):
         if self.registered:
             self.UnRegisterPositionTraceKeyEvents()
             self.registered = False
+        return
 
     def _DrawPositionTrace(self):
         while True:
@@ -227,6 +233,8 @@ class AnimationDebugClient(service.Service):
                 log.LogException()
 
             blue.pyos.synchro.SleepWallclock(const.ONE_TICK / const.MSEC)
+
+        return
 
     def IsPositionTrace(self):
         return self.positionTraceOn
@@ -252,16 +260,19 @@ class AnimationDebugClient(service.Service):
         entity = self.debugSelectionClient.GetSelectedEntity()
         if entity is None:
             return
-        if not entity.HasComponent('movement'):
+        elif not entity.HasComponent('movement'):
             return
-        pos = entity.position.position
-        self.lastVelPos = pos
-        self.lastVelRulePos = pos
-        self.velocityTrace = uthread.worker('animationDebugClient.VelocityTrace', self._DrawVelocityTrace)
+        else:
+            pos = entity.position.position
+            self.lastVelPos = pos
+            self.lastVelRulePos = pos
+            self.velocityTrace = uthread.worker('animationDebugClient.VelocityTrace', self._DrawVelocityTrace)
+            return
 
     def TurnOffVelocityTrace(self):
         self.velocityTrace.kill()
         self.velocityTrace = None
+        return
 
     def _DrawVelocityTrace(self):
         while True:
@@ -288,6 +299,8 @@ class AnimationDebugClient(service.Service):
 
             blue.pyos.synchro.SleepWallclock(const.ONE_TICK / const.MSEC)
 
+        return
+
     def IsVelocityTrace(self):
         return self.velocityTraceOn
 
@@ -312,17 +325,20 @@ class AnimationDebugClient(service.Service):
         entity = self.debugSelectionClient.GetSelectedEntity()
         if entity is None:
             return
-        pos = entity.position.position
-        rot = entity.position.rotation
-        self.lastRotPos = pos
-        self.lastRot = rot
-        self.lastRotTime = time.time()
-        self.lastRotVel = 0
-        self.rotationalTrace = uthread.worker('animationDebugClient.RotationalTrace', self._DrawRotationalTrace)
+        else:
+            pos = entity.position.position
+            rot = entity.position.rotation
+            self.lastRotPos = pos
+            self.lastRot = rot
+            self.lastRotTime = time.time()
+            self.lastRotVel = 0
+            self.rotationalTrace = uthread.worker('animationDebugClient.RotationalTrace', self._DrawRotationalTrace)
+            return
 
     def TurnOffRotationalTrace(self):
         self.rotationalTrace.kill()
         self.rotationalTrace = None
+        return
 
     def _DrawRotationalTrace(self):
         while True:
@@ -367,6 +383,8 @@ class AnimationDebugClient(service.Service):
 
             blue.pyos.synchro.SleepWallclock(const.ONE_TICK / const.MSEC)
 
+        return
+
     def IsRotationalTrace(self):
         return self.rotationalTraceOn
 
@@ -375,6 +393,7 @@ class AnimationDebugClient(service.Service):
         entity = self.debugSelectionClient.GetSelectedEntity()
         if entity is not None and entity.HasComponent('animation'):
             entity.animation.controller.animationNetwork.displaySkeleton = value
+        return
 
     def IsAnimationSkeletonEnabled(self):
         return self.animationSkeletonOn
@@ -393,18 +412,21 @@ class AnimationDebugClient(service.Service):
         entity = self.debugSelectionClient.GetSelectedEntity()
         if entity is None:
             return False
-        if not entity.HasComponent('movement'):
+        elif not entity.HasComponent('movement'):
             return False
-        return entity.GetComponent('movement').characterController.renderDebug
+        else:
+            return entity.GetComponent('movement').characterController.renderDebug
 
     def SetPlayerAvatarDebugDraw(self, value):
         self.CreateDebugRenderer()
         entity = self.debugSelectionClient.GetSelectedEntity()
         if entity is None:
             return
-        if not entity.HasComponent('movement'):
+        elif not entity.HasComponent('movement'):
             return
-        entity.GetComponent('movement').characterController.renderDebug = bool(value)
+        else:
+            entity.GetComponent('movement').characterController.renderDebug = bool(value)
+            return
 
     def SetNetDebugDraw(self, desireOn):
         if self.netDebugDrawOn != desireOn:
@@ -420,7 +442,9 @@ class AnimationDebugClient(service.Service):
         entity = self.debugSelectionClient.GetSelectedEntity()
         if entity is None:
             return
-        GameWorld.SetNetMoveDebugDraw(entity.entityID, True)
+        else:
+            GameWorld.SetNetMoveDebugDraw(entity.entityID, True)
+            return
 
     def TurnOffNetDebugDraw(self):
         try:
@@ -430,6 +454,8 @@ class AnimationDebugClient(service.Service):
             GameWorld.SetNetMoveDebugDraw(entity.entityID, False)
         except:
             pass
+
+        return
 
     def IsNetDebugDraw(self):
         return self.netDebugDrawOn
@@ -448,7 +474,9 @@ class AnimationDebugClient(service.Service):
         entity = self.debugSelectionClient.GetSelectedEntity()
         if entity is None:
             return
-        GameWorld.SetNetMoveDebugDrawHistory(entity.entityID, True)
+        else:
+            GameWorld.SetNetMoveDebugDrawHistory(entity.entityID, True)
+            return
 
     def TurnOffNetDebugDrawHistory(self):
         try:
@@ -458,6 +486,8 @@ class AnimationDebugClient(service.Service):
             GameWorld.SetNetMoveDebugDrawHistory(entity.entityID, False)
         except:
             pass
+
+        return
 
     def IsNetDebugDrawHistory(self):
         return self.netDebugDrawHistoryOn
@@ -473,6 +503,7 @@ class AnimationDebugClient(service.Service):
             render = sm.GetService('debugRenderClient')
             render.SetDebugRendering(True)
             setattr(self, 'DebugRenderJob', True)
+        return
 
     def ReloadAnimationNetwork(self):
         animService = sm.GetService('animationClient')

@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\client\script\environment\spaceObject\DeployableSpaceObject.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\client\script\environment\spaceObject\DeployableSpaceObject.py
 import blue
 from eve.client.script.environment.spaceObject.spaceObject import SpaceObject
 from eve.client.script.environment.model.turretSet import TurretSet
@@ -18,38 +19,42 @@ class DeployableSpaceObject(SpaceObject):
     def Assemble(self):
         if self.ballpark is None:
             return
-        registry = self._GetComponentRegistry()
-        if not IsActiveComponent(registry, self.typeID, self.id):
-            self.TriggerAnimation('idle')
-            registry.SubscribeToItemMessage(self.id, MSG_ON_ACTIVATE_TIMER_UPDATED, self.ActivateTimerUpdate)
         else:
-            self.TriggerAnimation('active')
-        if gfxsettings.Get(gfxsettings.UI_TURRETS_ENABLED):
-            self.FitHardpoints()
-        self.SetupSharedAmbientAudio()
+            registry = self._GetComponentRegistry()
+            if not IsActiveComponent(registry, self.typeID, self.id):
+                self.TriggerAnimation('idle')
+                registry.SubscribeToItemMessage(self.id, MSG_ON_ACTIVATE_TIMER_UPDATED, self.ActivateTimerUpdate)
+            else:
+                self.TriggerAnimation('active')
+            if gfxsettings.Get(gfxsettings.UI_TURRETS_ENABLED):
+                self.FitHardpoints()
+            self.SetupSharedAmbientAudio()
+            return
 
     def ActivateTimerUpdate(self, component, slimItem):
         if component.isActive:
             self.TriggerAnimation('active')
 
-    def FitHardpoints(self, blocking = False):
+    def FitHardpoints(self, blocking=False):
         if self.fitted:
             return
-        if self.model is None:
+        elif self.model is None:
             self.LogWarn('FitHardpoints - No model')
             return
-        if self.typeID is None:
+        elif self.typeID is None:
             self.LogWarn('FitHardpoints - No typeID')
             return
-        self.fitted = True
-        self.modules = {}
-        groupID = self.typeData.get('groupID', None)
-        if groupID is not None:
-            turretTypeID = TURRET_TYPE_ID.get(groupID, None)
-            if turretTypeID is not None:
-                ts = TurretSet.FitTurret(self.model, turretTypeID, 1, self.typeData.get('sofFactionName', None))
-                if ts is not None:
-                    self.modules[self.id] = ts
+        else:
+            self.fitted = True
+            self.modules = {}
+            groupID = self.typeData.get('groupID', None)
+            if groupID is not None:
+                turretTypeID = TURRET_TYPE_ID.get(groupID, None)
+                if turretTypeID is not None:
+                    ts = TurretSet.FitTurret(self.model, turretTypeID, 1, self.typeData.get('sofFactionName', None))
+                    if ts is not None:
+                        self.modules[self.id] = ts
+            return
 
     def LookAtMe(self):
         if not self.model:
@@ -60,10 +65,12 @@ class DeployableSpaceObject(SpaceObject):
     def Release(self):
         if self.released:
             return
-        self.modules = None
-        SpaceObject.Release(self)
+        else:
+            self.modules = None
+            SpaceObject.Release(self)
+            return
 
-    def Explode(self, explosionURL = None, scaling = 1.0, managed = False, delay = 0.0):
+    def Explode(self, explosionURL=None, scaling=1.0, managed=False, delay=0.0):
         explosionPath, (delay, scaling) = self.GetExplosionInfo()
         if not self.exploded:
             self.sm.ScatterEvent('OnShipExplode', self.GetModel())

@@ -1,9 +1,10 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\packages\trinutils\searchpath.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\packages\trinutils\searchpath.py
 import contextlib
 import blue
 
 @contextlib.contextmanager
-def change_search_path_ctx(value, key = 'res'):
+def change_search_path_ctx(value, key='res'):
 
     def get_search_path():
         return blue.paths.GetSearchPath(key)
@@ -18,3 +19,5 @@ def change_search_path_ctx(value, key = 'res'):
     finally:
         if orig is not None:
             set_search_path(orig)
+
+    return

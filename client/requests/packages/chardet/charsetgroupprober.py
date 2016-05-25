@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\packages\requests\packages\chardet\charsetgroupprober.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\packages\requests\packages\chardet\charsetgroupprober.py
 from . import constants
 import sys
 from .charsetprober import CharSetProber
@@ -10,6 +11,7 @@ class CharSetGroupProber(CharSetProber):
         self._mActiveNum = 0
         self._mProbers = []
         self._mBestGuessProber = None
+        return
 
     def reset(self):
         CharSetProber.reset(self)
@@ -21,6 +23,7 @@ class CharSetGroupProber(CharSetProber):
                 self._mActiveNum += 1
 
         self._mBestGuessProber = None
+        return
 
     def get_charset_name(self):
         if not self._mBestGuessProber:
@@ -54,7 +57,7 @@ class CharSetGroupProber(CharSetProber):
         st = self.get_state()
         if st == constants.eFoundIt:
             return 0.99
-        if st == constants.eNotMe:
+        elif st == constants.eNotMe:
             return 0.01
         bestConf = 0.0
         self._mBestGuessProber = None
@@ -74,4 +77,5 @@ class CharSetGroupProber(CharSetProber):
 
         if not self._mBestGuessProber:
             return 0.0
-        return bestConf
+        else:
+            return bestConf

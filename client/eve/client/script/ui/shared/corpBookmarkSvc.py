@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\client\script\ui\shared\corpBookmarkSvc.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\client\script\ui\shared\corpBookmarkSvc.py
 import blue
 import bookmarkUtil
 from service import Service
@@ -6,18 +7,20 @@ from service import Service
 class CorpBookmarkSvc(Service):
     __guid__ = 'svc.corpBookmarkSvc'
 
-    def Run(self, memStream = None):
+    def Run(self, memStream=None):
         Service.Run(self, memStream)
         self.remoteCorpBookmarkMgr = sm.RemoteSvc('corpBookmarkMgr')
         self.lastUpdateTime = None
         self.getFromBookmarkID = None
         self.GetBookmarks()
+        return
 
     def CopyBookmarks(self, bookmarkIDs):
         newBookmarks, message = self.remoteCorpBookmarkMgr.CopyBookmarks(bookmarkIDs)
         if message is not None:
             eve.Message(*message)
         self.bookmarkCache.update(newBookmarks)
+        return
 
     def DeleteBookmarks(self, bookmarkIDs):
         deletedBookmarkIDs = self.remoteCorpBookmarkMgr.DeleteBookmarks(bookmarkIDs)
@@ -67,6 +70,7 @@ class CorpBookmarkSvc(Service):
         bookmark = self.remoteCorpBookmarkMgr.UpdateBookmark(bookmarkID, memo, note)
         if bookmark is not None:
             self.bookmarkCache[bookmark.bookmarkID] = bookmark
+        return
 
     def GetBookmarkMenuForSystem(self):
         return bookmarkUtil.GetBookmarkMenuForSystem(self.bookmarkCache, self.folders)

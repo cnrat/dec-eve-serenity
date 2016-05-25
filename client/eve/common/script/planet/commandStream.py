@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\common\script\planet\commandStream.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\common\script\planet\commandStream.py
 import utillib as util
 COMMAND_CREATEPIN = 1
 COMMAND_REMOVEPIN = 2
@@ -198,7 +199,7 @@ class CommandStream():
 
         return serializedStream
 
-    def Deserialize(self, serializedStream, overwrite = True):
+    def Deserialize(self, serializedStream, overwrite=True):
         if overwrite:
             self.stream = []
         for commandID, argTuple in serializedStream:
@@ -206,7 +207,7 @@ class CommandStream():
             if commandID == COMMAND_CREATEPIN:
                 newCommand.pinID, newCommand.typeID, newCommand.latitude, newCommand.longitude = argTuple
             elif commandID == COMMAND_REMOVEPIN:
-                newCommand.pinID, = argTuple
+                newCommand.pinID = argTuple
             elif commandID == COMMAND_CREATELINK:
                 newCommand.endpoint1, newCommand.endpoint2, newCommand.level = argTuple
             elif commandID == COMMAND_REMOVELINK:
@@ -216,7 +217,7 @@ class CommandStream():
             elif commandID == COMMAND_CREATEROUTE:
                 newCommand.routeID, newCommand.path, newCommand.typeID, newCommand.quantity = argTuple
             elif commandID == COMMAND_REMOVEROUTE:
-                newCommand.routeID, = argTuple
+                newCommand.routeID = argTuple
             elif commandID == COMMAND_SETSCHEMATIC:
                 newCommand.pinID, newCommand.schematicID = argTuple
             elif commandID == COMMAND_UPGRADECOMMANDCENTER:

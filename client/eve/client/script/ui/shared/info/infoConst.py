@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\client\script\ui\shared\info\infoConst.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\client\script\ui\shared\info\infoConst.py
 import const
 TYPE_CHARACTER = 1
 TYPE_CORPORATION = 2
@@ -21,6 +22,8 @@ TYPE_SKINDESCRIPTION = 18
 TYPE_PLEX = 59
 TYPE_SKILLINJECTOR = 66
 TYPE_SKILLEXTRACTOR = 67
+TYPE_STRUCTURE_MODULE = 68
+TYPE_FIGHTER = 69
 TYPE_STARGATE = 30
 TYPE_CONTROLTOWER = 31
 TYPE_CONSTRUCTIONPLATFORM = 32
@@ -40,6 +43,7 @@ TYPE_ASTEROID = 55
 TYPE_DEPLOYABLE = 56
 TYPE_ENTOSISNODE = 57
 TYPE_COMMANDNODEBEACON = 58
+TYPE_STRUCTURE_OLD = 70
 TYPE_RANK = 60
 TYPE_MEDAL = 61
 TYPE_RIBBON = 62
@@ -72,7 +76,7 @@ infoTypeByGroupID = {const.groupCharacter: TYPE_CHARACTER,
  const.groupPlanetaryCustomsOffices: TYPE_CUSTOMSOFFICE,
  const.groupPlanet: TYPE_PLANET,
  const.groupWormhole: TYPE_WORMHOLE,
- const.groupMobileWarpDisruptor: TYPE_STRUCTURE,
+ const.groupMobileWarpDisruptor: TYPE_STRUCTURE_OLD,
  const.groupLargeCollidableStructure: TYPE_CELESTIAL,
  const.groupDeadspaceOverseersStructure: TYPE_CELESTIAL,
  const.groupHarvestableCloud: TYPE_ASTEROID,
@@ -82,21 +86,24 @@ infoTypeByGroupID = {const.groupCharacter: TYPE_CHARACTER,
  const.groupStation: TYPE_STATION,
  const.groupCargoContainer: TYPE_CONTAINER,
  const.groupFreightContainer: TYPE_CONTAINER,
- const.groupOrbitalConstructionPlatforms: TYPE_STRUCTURE,
+ const.groupOrbitalConstructionPlatforms: TYPE_STRUCTURE_OLD,
  const.groupShipSkins: TYPE_SKINLICENSE}
 infoTypeByCategoryID = {const.categoryShip: TYPE_SHIP,
  const.categoryModule: TYPE_MODULE,
  const.categorySubSystem: TYPE_MODULE,
+ const.categoryStructureModule: TYPE_STRUCTURE_MODULE,
  const.categoryCharge: TYPE_CHARGE,
  const.categoryBlueprint: TYPE_BLUEPRINT,
  const.categoryAncientRelic: TYPE_BLUEPRINT,
  const.categoryReaction: TYPE_REACTION,
  const.categoryDrone: TYPE_DRONE,
+ const.categoryFighter: TYPE_FIGHTER,
  const.categoryApparel: TYPE_APPAREL,
  const.categoryImplant: TYPE_GENERICITEM,
  const.categoryAccessories: TYPE_GENERICITEM,
- const.categoryStarbase: TYPE_STRUCTURE,
- const.categorySovereigntyStructure: TYPE_STRUCTURE,
+ const.categoryStarbase: TYPE_STRUCTURE_OLD,
+ const.categorySovereigntyStructure: TYPE_STRUCTURE_OLD,
+ const.categoryStructure: TYPE_STRUCTURE,
  const.categoryInfrastructureUpgrade: TYPE_STRUCTUREUPGRADE,
  const.categoryEntity: TYPE_ENTITY,
  const.categoryPlanetaryInteraction: TYPE_PLANETPIN,
@@ -119,7 +126,8 @@ ownedGroups = (const.groupWreck,
 ownedCategories = (const.categoryStarbase,
  const.categorySovereigntyStructure,
  const.categoryOrbital,
- const.categoryDeployable)
+ const.categoryDeployable,
+ const.categoryStructure)
 TAB_ATTIBUTES = 1
 TAB_CORPMEMBERS = 2
 TAB_NEIGHBORS = 3
@@ -177,11 +185,13 @@ TAB_SKINMATERIAL = 66
 TAB_SHIPAVAILABLESKINLICENSES = 67
 TAB_SOV = 69
 TAB_SOV_CONSTELLATION = 70
+TAB_FIGHTER_ABILITIES = 71
 INFO_TABS = ((TAB_TRAITS, [], 'UI/InfoWindow/TabNames/Traits'),
  (TAB_BIO, [], 'UI/InfoWindow/TabNames/Bio'),
  (TAB_INDUSTRY, [], 'UI/InfoWindow/TabNames/Industry'),
  (TAB_DESCRIPTION, [], 'UI/InfoWindow/TabNames/Description'),
  (TAB_ATTIBUTES, [], 'UI/InfoWindow/TabNames/Attributes'),
+ (TAB_FIGHTER_ABILITIES, [], 'UI/InfoWindow/TabNames/Abilities'),
  (TAB_USEDWITH, [], 'UI/InfoWindow/TabNames/UsedWith'),
  (TAB_CORPMEMBERS, [], 'UI/InfoWindow/TabNames/CorpMembers'),
  (TAB_NEIGHBORS, [], 'UI/InfoWindow/TabNames/Neighbors'),

@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\client\script\ui\control\slider.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\client\script\ui\control\slider.py
 from eve.client.script.ui.control.eveFrame import Frame
 from eve.client.script.ui.control.eveLabel import EveLabelSmall
 from eve.client.script.ui.control.themeColored import SpriteThemeColored
@@ -41,8 +42,9 @@ class Slider(uiprimitives.Container):
         self.valueHint.display = False
         SpriteThemeColored(parent=self, name='handle', state=uiconst.UI_DISABLED, texturePath='res:/UI/Texture/classes/Slider/handle.png', align=uiconst.TOALL)
         Frame(parent=self.parent, color=(0.5, 0.5, 0.5, 0.3))
+        return
 
-    def Startup(self, sliderID, minValue, maxValue, config = None, displayName = None, increments = None, usePrefs = 0, startVal = None):
+    def Startup(self, sliderID, minValue, maxValue, config=None, displayName=None, increments=None, usePrefs=0, startVal=None):
         self.sliderID = sliderID
         self.minValue = minValue
         self.maxValue = maxValue
@@ -85,12 +87,13 @@ class Slider(uiprimitives.Container):
             self.SetValue(startVal)
         else:
             self.state = uiconst.UI_NORMAL
+        return
 
     def Close(self):
         self.valueHint.Close()
         super(Slider, self).Close()
 
-    def SetIncrements(self, increments, draw = 1):
+    def SetIncrements(self, increments, draw=1):
         if len(increments) < 3:
             return
         self.increments = [[], []]
@@ -114,34 +117,36 @@ class Slider(uiprimitives.Container):
                 uiprimitives.Line(parent=self.parent, align=uiconst.RELATIVE, height=height, width=1, left=int(each * maxX) + self.width / 2 - 1, top=self.height - 6)
                 i += 1
 
-    def SetLabel(self, label, leftright = 'left'):
+    def SetLabel(self, label, leftright='left'):
         EveLabelSmall(text='<%s>%s' % (leftright, label), parent=self.parent, left=4, top=-4, width=self.parent.width, state=uiconst.UI_DISABLED)
 
     def GetValue(self):
         return self.value
 
-    def MorphTo(self, value, time = 150.0):
+    def MorphTo(self, value, time=150.0):
         if getattr(self, 'morphTo', None) is not None:
             self.pendingMorph = (value, time)
             return
-        self.morphTo = value
-        startPos = self.value / (self.maxValue - self.minValue)
-        endPos = value / (self.maxValue - self.minValue)
-        start, ndt = blue.os.GetWallclockTime(), 0.0
-        while ndt != 1.0:
-            ndt = min(blue.os.TimeDiffInMs(start, blue.os.GetWallclockTime()) / time, 1.0)
-            newVal = mathUtil.Lerp(startPos, endPos, ndt)
-            self.SlideTo(newVal)
-            self.SetValue(newVal)
-            blue.pyos.synchro.Yield()
+        else:
+            self.morphTo = value
+            startPos = self.value / (self.maxValue - self.minValue)
+            endPos = value / (self.maxValue - self.minValue)
+            start, ndt = blue.os.GetWallclockTime(), 0.0
+            while ndt != 1.0:
+                ndt = min(blue.os.TimeDiffInMs(start, blue.os.GetWallclockTime()) / time, 1.0)
+                newVal = mathUtil.Lerp(startPos, endPos, ndt)
+                self.SlideTo(newVal)
+                self.SetValue(newVal)
+                blue.pyos.synchro.Yield()
 
-        self.morphTo = None
-        if getattr(self, 'pendingMorph', None):
-            value, time = self.pendingMorph
-            self.MorphTo(value, time)
-        self.pendingMorph = None
+            self.morphTo = None
+            if getattr(self, 'pendingMorph', None):
+                value, time = self.pendingMorph
+                self.MorphTo(value, time)
+            self.pendingMorph = None
+            return
 
-    def SlideTo(self, value, update = 1):
+    def SlideTo(self, value, update=1):
         l, t, w, h = self.parent.GetAbsolute()
         maxX = w - self.width
         left = max(0, int(maxX * value))
@@ -208,6 +213,7 @@ class Slider(uiprimitives.Container):
                 settings.user.ui.Set(self.config, self.value)
         if self.EndSetSliderValue:
             self.EndSetSliderValue(self)
+        return
 
     def OnMouseMove(self, *blah):
         if self.dragging:
@@ -231,8 +237,10 @@ class Slider(uiprimitives.Container):
         self.valueHint.display = False
 
     def ShowValueHint(self):
-        self.valueHint.display = True
-        self.valueHint.SetTooltipString(self.GetSliderHint(self.sliderID, self.displayName, self.GetValue()), self)
+        hint = self.GetSliderHint(self.sliderID, self.displayName, self.GetValue())
+        if hint:
+            self.valueHint.display = True
+            self.valueHint.SetTooltipString(hint, self)
 
     def GetSliderHint(self, idname, dname, value):
         return localization.formatters.FormatNumeric(value, decimalPlaces=2)

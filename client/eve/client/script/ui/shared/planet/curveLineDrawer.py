@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\client\script\ui\shared\planet\curveLineDrawer.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\client\script\ui\shared\planet\curveLineDrawer.py
 import util
 import math
 import trinity
@@ -13,8 +14,9 @@ class CurveLineDrawer:
         self.lineSets = {}
         self.lastZoom = None
         self.transformsByLineSets = {}
+        return
 
-    def CreateLineSet(self, lsName, transform, animationTexture = None, scale = 1.0):
+    def CreateLineSet(self, lsName, transform, animationTexture=None, scale=1.0):
         ls = trinity.EveCurveLineSet()
         ls.scaling = (scale, scale, scale)
         tex2D_1 = trinity.TriTextureParameter()
@@ -64,9 +66,11 @@ class CurveLineDrawer:
     def ClearLines(self, lsName):
         if lsName not in self.lineSets:
             return None
-        ls = self.lineSets[lsName]
-        ls.ClearLines()
-        ls.SubmitChanges()
+        else:
+            ls = self.lineSets[lsName]
+            ls.ClearLines()
+            ls.SubmitChanges()
+            return None
 
     def ChangeLineColor(self, lsName, lineID, color):
         ls = self.GetLineSet(lsName)
@@ -92,14 +96,14 @@ class CurveLineDrawer:
         ls = self.GetLineSet(lsName)
         ls.ChangeLineAnimation(lineID, color, speed, scale)
 
-    def DrawArc(self, lsName, surfacePoint1, surfacePoint2, lineWidth = 1.0, color1 = util.Color.WHITE, color2 = util.Color.WHITE):
+    def DrawArc(self, lsName, surfacePoint1, surfacePoint2, lineWidth=1.0, color1=util.Color.WHITE, color2=util.Color.WHITE):
         ls = self.GetLineSet(lsName)
         p1 = surfacePoint1.GetAsXYZTuple()
         p2 = surfacePoint2.GetAsXYZTuple()
         lineID = ls.AddSpheredLineCrt(p1, color1, p2, color2, self.p0, lineWidth)
         return lineID
 
-    def DrawLine(self, lsName, surfacePoint1, surfacePoint2, lineWidth = 1.0, color1 = util.Color.WHITE, color2 = util.Color.WHITE):
+    def DrawLine(self, lsName, surfacePoint1, surfacePoint2, lineWidth=1.0, color1=util.Color.WHITE, color2=util.Color.WHITE):
         ls = self.GetLineSet(lsName)
         p1 = surfacePoint1.GetAsXYZTuple()
         p2 = surfacePoint2.GetAsXYZTuple()
@@ -126,7 +130,9 @@ class CurveLineDrawer:
             else:
                 ls.lineWidthFactor = 0.0
 
-    def _DrawMesh(self, lsName, numPhi = 30, numTheta = 60, phiSkip = 0, lineWidth = 2.0, col = (1.0, 1.0, 1.0, 0.01)):
+        return
+
+    def _DrawMesh(self, lsName, numPhi=30, numTheta=60, phiSkip=0, lineWidth=2.0, col=(1.0, 1.0, 1.0, 0.01)):
         col = (0.8, 0.8, 1.0, 0.3)
         colAnim = (1.0, 1.0, 1.0, 1.0)
         speedAnim = 0.06

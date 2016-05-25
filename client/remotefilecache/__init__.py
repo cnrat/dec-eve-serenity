@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\packages\remotefilecache\__init__.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\packages\remotefilecache\__init__.py
 __author__ = 'snorri.sturluson'
 import logging
 import os
@@ -33,7 +34,7 @@ def set_cache_folder(location):
             os.makedirs(folder_name)
 
 
-def prepare(index_list, server = 'http://res.eveprobe.ccpgames.com/', prefix = ''):
+def prepare(index_list, server='http://res.eveprobe.ccpgames.com/', prefix=''):
     blue.remoteFileCache.server = server
     blue.remoteFileCache.prefix = prefix
     blue.remoteFileCache.backupServer = 'http://dm794883twbxj.cloudfront.net/'
@@ -73,7 +74,7 @@ def gather_files_conditionally_to_prefetch(folder, condition, file_set, dependen
                 add_file_if_needs_download(filename, each)
 
 
-def prefetch_single_file(filename, verify = False):
+def prefetch_single_file(filename, verify=False):
     basename, extension = os.path.splitext(filename)
     if extension == '.red':
         filename = basename + '.black'

@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\devtools\script\svc_trainer.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\devtools\script\svc_trainer.py
 import evetypes
 import uicontrols
 import uiprimitives
@@ -15,7 +16,7 @@ from service import *
 SERVICENAME = 'trainer'
 Progress = lambda title, text, current, total: sm.GetService('loading').ProgressWnd(title, text, current, total)
 Slash = lambda command: sm.RemoteSvc('slash').SlashCmd(command)
-Message = lambda title, body, icon = triui.INFO: sm.GetService('gameui').MessageBox(body, title, buttons=uiconst.OK, icon=icon)
+Message = lambda title, body, icon=triui.INFO: sm.GetService('gameui').MessageBox(body, title, buttons=uiconst.OK, icon=icon)
 
 class TrainerService(Service):
     """Trainer"""
@@ -52,17 +53,16 @@ class TrainerService(Service):
         for charID in confirmedTargets:
             self.ApplyProfile(profile, charID)
 
-        return 'Ok'
-
-    def Run(self, memStream = None):
+    def Run(self, memStream=None):
         self.wnd = None
         self.skillGroups = []
         self.skillsByGroupID = {}
         self.skillLevel = 5
         self.currentProfileName = None
         self.currentProfile = {}
+        return
 
-    def Stop(self, memStream = None):
+    def Stop(self, memStream=None):
         self.Hide()
         Service.Stop(self, memStream)
 
@@ -86,101 +86,104 @@ class TrainerService(Service):
         if not (hasattr(eve.session, 'solarsystemid') and eve.session.solarsystemid2):
             Message('Hold your horses!', 'The trainer UI requires you to be logged in.')
             return
-        if self.wnd:
+        elif self.wnd:
             self.wnd.Maximize()
             return
-        self.InitSkills()
-        self.wnd = wnd = uicontrols.Window.Open(windowID=SERVICENAME)
-        wnd._OnClose = self.Hide
-        wnd.SetWndIcon(None)
-        wnd.SetTopparentHeight(0)
-        wnd.SetCaption('Trainer')
-        root = uiutil.GetChild(wnd, 'main')
-        main = uiprimitives.Container(name='main2', parent=root, pos=(const.defaultPadding,
-         const.defaultPadding,
-         const.defaultPadding,
-         const.defaultPadding))
-        SKILLWIDTH = 256
-        CENTERWIDTH = 128
-        wnd.sr.scroll = s = uicontrols.Scroll(name='left', parent=main, align=uiconst.TOLEFT, width=SKILLWIDTH)
-        middle = uiprimitives.Container(name='middle', parent=main, align=uiconst.TOLEFT, width=CENTERWIDTH)
-        for x, y, icon, func, hint in [(CENTERWIDTH / 8,
-          CENTERWIDTH * 1 / 4,
-          'ui_23_64_2',
-          self.AddSelected,
-          'Add skills selected in the left panel to the current profile with the selected default level'),
-         (CENTERWIDTH * 3 / 8,
-          CENTERWIDTH,
-          'ui_23_64_1',
-          self.DelSelected,
-          'Remove skills selected in the right panel from the current profile'),
-         (CENTERWIDTH * 3 / 8,
-          CENTERWIDTH * 3 / 2,
-          'ui_27_64_3',
-          self.Profile_Fix,
-          'For each skill in the current profile, modify or add all required skills with the selected default level or the required level, whichever is higher'),
-         (CENTERWIDTH * 3 / 8,
-          CENTERWIDTH * 4 / 2,
-          'res:/ui/Texture/WindowIcons/augmentations.png',
-          self.Profile_ToCurrentCharacter,
-          'Give skills in the current profile to current character'),
-         (CENTERWIDTH * 3 / 8,
-          CENTERWIDTH * 5 / 2,
-          'ui_25_64_9',
-          lambda *args: self.Profile_ToCharacter(),
-          'Give skills in the current profile to a different character')]:
-            btn = uix.GetBigButton(CENTERWIDTH / 2, middle, left=x, top=y, hint=hint)
-            btn.sr.icon.LoadIcon(icon)
-            btn.OnClick = func
+        else:
+            self.InitSkills()
+            self.wnd = wnd = uicontrols.Window.Open(windowID=SERVICENAME)
+            wnd._OnClose = self.Hide
+            wnd.SetWndIcon(None)
+            wnd.SetTopparentHeight(0)
+            wnd.SetCaption('Trainer')
+            root = uiutil.GetChild(wnd, 'main')
+            main = uiprimitives.Container(name='main2', parent=root, pos=(const.defaultPadding,
+             const.defaultPadding,
+             const.defaultPadding,
+             const.defaultPadding))
+            SKILLWIDTH = 256
+            CENTERWIDTH = 128
+            wnd.sr.scroll = s = uicontrols.Scroll(name='left', parent=main, align=uiconst.TOLEFT, width=SKILLWIDTH)
+            middle = uiprimitives.Container(name='middle', parent=main, align=uiconst.TOLEFT, width=CENTERWIDTH)
+            for x, y, icon, func, hint in [(CENTERWIDTH / 8,
+              CENTERWIDTH * 1 / 4,
+              'ui_23_64_2',
+              self.AddSelected,
+              'Add skills selected in the left panel to the current profile with the selected default level'),
+             (CENTERWIDTH * 3 / 8,
+              CENTERWIDTH,
+              'ui_23_64_1',
+              self.DelSelected,
+              'Remove skills selected in the right panel from the current profile'),
+             (CENTERWIDTH * 3 / 8,
+              CENTERWIDTH * 3 / 2,
+              'ui_27_64_3',
+              self.Profile_Fix,
+              'For each skill in the current profile, modify or add all required skills with the selected default level or the required level, whichever is higher'),
+             (CENTERWIDTH * 3 / 8,
+              CENTERWIDTH * 4 / 2,
+              'res:/ui/Texture/WindowIcons/augmentations.png',
+              self.Profile_ToCurrentCharacter,
+              'Give skills in the current profile to current character'),
+             (CENTERWIDTH * 3 / 8,
+              CENTERWIDTH * 5 / 2,
+              'ui_25_64_9',
+              lambda *args: self.Profile_ToCharacter(),
+              'Give skills in the current profile to a different character')]:
+                btn = uix.GetBigButton(CENTERWIDTH / 2, middle, left=x, top=y, hint=hint)
+                btn.sr.icon.LoadIcon(icon)
+                btn.OnClick = func
 
-        uicontrols.Button(parent=middle, label='Level', pos=(CENTERWIDTH / 8,
-         0,
-         0,
-         0), func=self.CycleDefaultLevel)
-        wnd.sr.level = uicontrols.Label(text=str(self.skillLevel), parent=middle, color=None, left=CENTERWIDTH / 2 + 5, top=2, height=16, state=uiconst.UI_NORMAL)
-        content = []
-        for gid in self.skillGroups:
-            node = {'label': evetypes.GetGroupNameByGroup(gid),
-             'iconMargin': 18,
-             'showlen': True,
-             'groupItems': self.skillsByGroupID[gid],
-             'state': 0,
-             'allowCopy': 0,
-             'GetSubContent': self.GetSubContent,
-             'selected': 0,
-             'id': (str(gid), gid),
-             'sublevel': 0,
-             'open': 0}
-            content.append(listentry.Get('Group', node))
+            uicontrols.Button(parent=middle, label='Level', pos=(CENTERWIDTH / 8,
+             0,
+             0,
+             0), func=self.CycleDefaultLevel)
+            wnd.sr.level = uicontrols.Label(text=str(self.skillLevel), parent=middle, color=None, left=CENTERWIDTH / 2 + 5, top=2, height=16, state=uiconst.UI_NORMAL)
+            content = []
+            for gid in self.skillGroups:
+                node = {'label': evetypes.GetGroupNameByGroup(gid),
+                 'iconMargin': 18,
+                 'showlen': True,
+                 'groupItems': self.skillsByGroupID[gid],
+                 'state': 0,
+                 'allowCopy': 0,
+                 'GetSubContent': self.GetSubContent,
+                 'selected': 0,
+                 'id': (str(gid), gid),
+                 'sublevel': 0,
+                 'open': 0}
+                content.append(listentry.Get('Group', node))
 
-        s.Startup()
-        s.sr.sortBy = 'name'
-        s.sr.id = 'TrainerSkillTree'
-        s.Load(contentList=content, fixedEntryHeight=None, headers=['Name'])
-        r = uiprimitives.Container(name='right', parent=main, align=uiconst.TOLEFT, width=SKILLWIDTH)
-        top = uiprimitives.Container(name='top', parent=r, align=uiconst.TOTOP, height=24)
-        arrow = uicontrols.MenuIcon(size=24, ignoreSize=True)
-        arrow.align = uiconst.TOLEFT
-        arrow.left = top.left
-        arrow.GetMenu = self.Profile_GetMenu
-        arrow.state = uiconst.UI_NORMAL
-        top.children.append(arrow)
-        uicontrols.Button(parent=top, label='Save', align=uiconst.TORIGHT, func=self.Profile_SaveCurrent)
-        uicontrols.Button(parent=top, label='Clear', align=uiconst.TORIGHT, func=self.Profile_New)
-        wnd.sr.profile = uicontrols.Label(text='', parent=top, color=None, left=20, top=5, height=16)
-        wnd.sr.scroll2 = s = uicontrols.Scroll(name='profile', parent=r, align=uiconst.TOALL)
-        s.Startup()
-        s.sr.sortBy = 'name'
-        s.sr.id = 'ProfileSkillTree'
-        self.Profile_Refresh()
-        wnd.fixedWidth = wnd.width = const.defaultPadding + SKILLWIDTH + CENTERWIDTH + SKILLWIDTH + const.defaultPadding
-        wnd.SetMinSize((wnd.fixedWidth, 416))
-        wnd.Maximize(1)
+            s.Startup()
+            s.sr.sortBy = 'name'
+            s.sr.id = 'TrainerSkillTree'
+            s.Load(contentList=content, fixedEntryHeight=None, headers=['Name'])
+            r = uiprimitives.Container(name='right', parent=main, align=uiconst.TOLEFT, width=SKILLWIDTH)
+            top = uiprimitives.Container(name='top', parent=r, align=uiconst.TOTOP, height=24)
+            arrow = uicontrols.MenuIcon(size=24, ignoreSize=True)
+            arrow.align = uiconst.TOLEFT
+            arrow.left = top.left
+            arrow.GetMenu = self.Profile_GetMenu
+            arrow.state = uiconst.UI_NORMAL
+            top.children.append(arrow)
+            uicontrols.Button(parent=top, label='Save', align=uiconst.TORIGHT, func=self.Profile_SaveCurrent)
+            uicontrols.Button(parent=top, label='Clear', align=uiconst.TORIGHT, func=self.Profile_New)
+            wnd.sr.profile = uicontrols.Label(text='', parent=top, color=None, left=20, top=5, height=16)
+            wnd.sr.scroll2 = s = uicontrols.Scroll(name='profile', parent=r, align=uiconst.TOALL)
+            s.Startup()
+            s.sr.sortBy = 'name'
+            s.sr.id = 'ProfileSkillTree'
+            self.Profile_Refresh()
+            wnd.fixedWidth = wnd.width = const.defaultPadding + SKILLWIDTH + CENTERWIDTH + SKILLWIDTH + const.defaultPadding
+            wnd.SetMinSize((wnd.fixedWidth, 416))
+            wnd.Maximize(1)
+            return
 
     def Hide(self, *args):
         if self.wnd:
             self.wnd.Close()
             self.wnd = None
+        return
 
     def ProcessRestartUI(self):
         if self.wnd:
@@ -257,6 +260,7 @@ class TrainerService(Service):
         self.currentProfile = {}
         self.currentProfileName = None
         self.Profile_Refresh()
+        return
 
     def Profile_GetSubContent(self, node, *args):
         content = []
@@ -300,8 +304,9 @@ class TrainerService(Service):
 
         self.wnd.sr.scroll2.Load(contentList=content, fixedEntryHeight=None, headers=['Name'])
         self.wnd.sr.profile.text = self.currentProfileName or '&lt;New Profile&gt;'
+        return
 
-    def Profile_ToCharacter(self, charID = None):
+    def Profile_ToCharacter(self, charID=None):
         if not charID:
             ret = uiutil.NamePopup('Give Skills', 'Name of character to give skills to', setvalue='', maxLength=37)
             if ret:

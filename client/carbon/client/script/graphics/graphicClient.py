@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\carbon\client\script\graphics\graphicClient.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\carbon\client\script\graphics\graphicClient.py
 import service
 import carbon.client.script.graphics.graphicWrappers.loadAndWrap as graphicWrappers
 import trinity
@@ -53,15 +54,20 @@ class GraphicClient(service.Service):
             return self.scenes[sceneID]
         else:
             return None
+            return None
 
     def GetModelFilePath(self, graphicID):
         if graphicID in cfg.graphics:
             return cfg.graphics.Get(graphicID).graphicFile
+        else:
+            return None
 
     def GetGraphicName(self, graphicID):
         graphicFile = self.GetModelFilePath(graphicID)
         if graphicFile:
             return graphicFile[graphicFile.rfind('/') + 1:graphicFile.rfind('.')]
+        else:
+            return None
 
     def GetIsServiceReady(self):
         return self.isServiceReady

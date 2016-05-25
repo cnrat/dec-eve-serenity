@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\carbon\common\lib\wsgiref\simple_server.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\carbon\common\lib\wsgiref\simple_server.py
 from BaseHTTPServer import BaseHTTPRequestHandler, HTTPServer
 import urllib, sys
 from wsgiref.handlers import SimpleHandler
@@ -107,7 +108,7 @@ def demo_app(environ, start_response):
     return [stdout.getvalue()]
 
 
-def make_server(host, port, app, server_class = WSGIServer, handler_class = WSGIRequestHandler):
+def make_server(host, port, app, server_class=WSGIServer, handler_class=WSGIRequestHandler):
     server = server_class((host, port), handler_class)
     server.set_app(app)
     return server

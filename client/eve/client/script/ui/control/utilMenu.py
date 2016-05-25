@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\client\script\ui\control\utilMenu.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\client\script\ui\control\utilMenu.py
 import weakref
 import carbonui.const as uiconst
 from carbon.common.script.util.timerstuff import AutoTimer
@@ -42,10 +43,12 @@ class UtilMenu(ButtonIcon):
     def Close(self, *args):
         if self.destroyed:
             return
-        self._getMenuFunction = None
-        ButtonIcon.Close(self, *args)
-        if self.IsExpanded():
-            self.CloseMenu()
+        else:
+            self._getMenuFunction = None
+            ButtonIcon.Close(self, *args)
+            if self.IsExpanded():
+                self.CloseMenu()
+            return
 
     def CloseMenu(self, *args):
         if self._menu:
@@ -78,6 +81,7 @@ class UtilMenu(ButtonIcon):
         self.maxWidth = attributes.get('maxWidth', self.default_maxWidth)
         if attributes.label:
             self.SetLabel(attributes.label, attributes.labelAlign or uiconst.CENTERLEFT)
+        return
 
     def SetLabel(self, label, labelAlign):
         if labelAlign not in (uiconst.CENTERLEFT, uiconst.CENTERRIGHT):
@@ -101,6 +105,7 @@ class UtilMenu(ButtonIcon):
         background = self.AccessBackground()
         background.align = uiconst.CENTERLEFT
         background.width = self.width
+        return
 
     def GetFullWidth(self):
         margin = self.height - self.iconSize
@@ -128,31 +133,33 @@ class UtilMenu(ButtonIcon):
     def ExpandMenu(self, *args):
         if self.destroyed:
             return
-        if self.IsExpanded():
+        elif self.IsExpanded():
             self.CloseMenu()
             return
-        background = self.AccessBackground()
-        icon = self.AccessIcon()
-        l, t, w, h = background.GetAbsolute()
-        buttonCopy = Container(parent=uicore.layer.utilmenu, align=uiconst.TOPLEFT, pos=(l,
-         t,
-         self.GetFullWidth(),
-         h), state=uiconst.UI_NORMAL, idx=0)
-        buttonCopy.OnMouseDown = self.CloseMenu
-        if self._label is not None:
-            label = EveLabelMedium(parent=buttonCopy, text=self._label.text, align=self._label.align, bold=True, left=self._label.left)
-        Sprite(parent=buttonCopy, texturePath=self.closeTexturePath, state=uiconst.UI_DISABLED, align=icon.align, width=icon.width, height=icon.height, left=icon.left)
-        topOrBottomLine = LineThemeColored(parent=buttonCopy, align=uiconst.TOTOP, opacity=OPACITY_LINES)
-        if self.menuAlign in (uiconst.BOTTOMLEFT, uiconst.BOTTOMRIGHT):
-            topOrBottomLine.align = uiconst.TOBOTTOM
-        LineThemeColored(parent=buttonCopy, align=uiconst.TOLEFT, opacity=OPACITY_LINES)
-        LineThemeColored(parent=buttonCopy, align=uiconst.TORIGHT, opacity=OPACITY_LINES)
-        FillThemeColored(bgParent=buttonCopy, opacity=OPACITY_BG)
-        menuParent = ExpandedUtilMenu(parent=uicore.layer.utilmenu, controller=self, GetUtilMenu=self._getMenuFunction, minWidth=self.GetFullWidth() + 16, idx=1, menuAlign=self.menuAlign)
-        self._menu = weakref.ref(menuParent)
-        self._menuButton = weakref.ref(buttonCopy)
-        uicore.animations.MorphScalar(buttonCopy, 'opacity', startVal=0.5, endVal=1.0, duration=0.2)
-        uthread.new(uicore.registry.SetFocus, menuParent)
+        else:
+            background = self.AccessBackground()
+            icon = self.AccessIcon()
+            l, t, w, h = background.GetAbsolute()
+            buttonCopy = Container(parent=uicore.layer.utilmenu, align=uiconst.TOPLEFT, pos=(l,
+             t,
+             self.GetFullWidth(),
+             h), state=uiconst.UI_NORMAL, idx=0)
+            buttonCopy.OnMouseDown = self.CloseMenu
+            if self._label is not None:
+                label = EveLabelMedium(parent=buttonCopy, text=self._label.text, align=self._label.align, bold=True, left=self._label.left)
+            Sprite(parent=buttonCopy, texturePath=self.closeTexturePath, state=uiconst.UI_DISABLED, align=icon.align, width=icon.width, height=icon.height, left=icon.left)
+            topOrBottomLine = LineThemeColored(parent=buttonCopy, align=uiconst.TOTOP, opacity=OPACITY_LINES)
+            if self.menuAlign in (uiconst.BOTTOMLEFT, uiconst.BOTTOMRIGHT):
+                topOrBottomLine.align = uiconst.TOBOTTOM
+            LineThemeColored(parent=buttonCopy, align=uiconst.TOLEFT, opacity=OPACITY_LINES)
+            LineThemeColored(parent=buttonCopy, align=uiconst.TORIGHT, opacity=OPACITY_LINES)
+            FillThemeColored(bgParent=buttonCopy, opacity=OPACITY_BG)
+            menuParent = ExpandedUtilMenu(parent=uicore.layer.utilmenu, controller=self, GetUtilMenu=self._getMenuFunction, minWidth=self.GetFullWidth() + 16, idx=1, menuAlign=self.menuAlign)
+            self._menu = weakref.ref(menuParent)
+            self._menuButton = weakref.ref(buttonCopy)
+            uicore.animations.MorphScalar(buttonCopy, 'opacity', startVal=0.5, endVal=1.0, duration=0.2)
+            uthread.new(uicore.registry.SetFocus, menuParent)
+            return
 
 
 class ExpandedUtilMenu(ContainerAutoSize):
@@ -269,43 +276,43 @@ class ExpandedUtilMenu(ContainerAutoSize):
                 return True
         raise RuntimeError('Callback has to be callable or tuple with callable as first argument')
 
-    def AddHeader(self, text, callback = None, hint = None, icon = None):
+    def AddHeader(self, text, callback=None, hint=None, icon=None):
         if callback:
             self.VerifyCallback(callback)
         return UtilMenuHeader(parent=self, text=text, callback=callback, hint=hint, icon=icon)
 
-    def AddIconEntry(self, icon, text, callback = None, hint = None, toggleMode = None):
+    def AddIconEntry(self, icon, text, callback=None, hint=None, toggleMode=None):
         if callback:
             self.VerifyCallback(callback)
         return UtilMenuIconEntry(parent=self, icon=icon, text=text, callback=callback, hint=hint, toggleMode=toggleMode)
 
-    def AddButton(self, text, callback = None, hint = None, toggleMode = None):
+    def AddButton(self, text, callback=None, hint=None, toggleMode=None):
         if callback:
             self.VerifyCallback(callback)
         return UtilMenuButton(parent=self, text=text, callback=callback, hint=hint, toggleMode=toggleMode)
 
-    def AddCheckBox(self, text, checked, callback = None, icon = None, hint = None, indentation = None):
+    def AddCheckBox(self, text, checked, callback=None, icon=None, hint=None, indentation=None):
         if callback:
             self.VerifyCallback(callback)
         return UtilMenuCheckBox(parent=self, text=text, checked=checked, icon=icon, hint=hint, callback=callback, indentation=indentation)
 
-    def AddCheckBoxWithSubIcon(self, text, checked, subIcon, callback = None, subIconCallback = None, icon = None, subIconHint = None, hint = None):
+    def AddCheckBoxWithSubIcon(self, text, checked, subIcon, callback=None, subIconCallback=None, icon=None, subIconHint=None, hint=None):
         if callback:
             self.VerifyCallback(callback)
         UtilMenuCheckBoxWithButton(parent=self, text=text, checked=checked, icon=icon, hint=hint, callback=callback, subIcon=subIcon, subIconCallback=subIconCallback, subIconHint=subIconHint)
 
-    def AddRadioButton(self, text, checked, callback = None, icon = None, hint = None):
+    def AddRadioButton(self, text, checked, callback=None, icon=None, hint=None):
         if callback:
             self.VerifyCallback(callback)
         return UtilMenuRadioBox(parent=self, text=text, checked=checked, icon=icon, hint=hint, callback=callback)
 
-    def AddText(self, text, minTextWidth = 100):
+    def AddText(self, text, minTextWidth=100):
         return UtilMenuText(parent=self, text=text, minTextWidth=minTextWidth)
 
-    def AddSpace(self, height = 5):
+    def AddSpace(self, height=5):
         return UtilMenuSpace(parent=self, height=height)
 
-    def AddDivider(self, padding = 0):
+    def AddDivider(self, padding=0):
         return UtilMenuDivider(parent=self, padding=padding)
 
     def AddContainer(self, *args, **kwargs):
@@ -337,6 +344,7 @@ class UtilMenuEntryBase(Container):
             self.icon = SpriteThemeColored(parent=self, texturePath=icon, colorType=uiconst.COLORTYPE_UIHILIGHTGLOW, state=uiconst.UI_DISABLED, left=iconLeft, width=16, height=16, align=uiconst.CENTERLEFT, ignoreSize=True)
         self.ResetOpacity()
         self.UpdateEntryHeight()
+        return
 
     def UpdateEntryHeight(self):
         self.height = max(18, self.label.textheight + 4)
@@ -390,6 +398,7 @@ class UtilMenuEntryBase(Container):
         self.hiliteTimer = None
         if self._hiliteSprite and self._hiliteSprite.display:
             uicore.animations.FadeOut(self._hiliteSprite, duration=uiconst.TIME_EXIT)
+        return
 
     def _CheckIfStillHilited(self):
         if IsUnder(uicore.uilib.mouseOver, self) or uicore.uilib.mouseOver is self:
@@ -428,6 +437,7 @@ class UtilMenuCheckBox(UtilMenuEntryBase):
             else:
                 attributes.icon = 'res:/UI/Texture/classes/UtilMenu/checkBoxInactive.png'
         UtilMenuEntryBase.ApplyAttributes(self, attributes)
+        return
 
 
 class UtilMenuCheckBoxWithButton(UtilMenuCheckBox):
@@ -476,6 +486,7 @@ class UtilMenuRadioBox(UtilMenuEntryBase):
             else:
                 attributes.icon = 'res:/UI/Texture/classes/UtilMenu/radioButtonInactive.png'
         UtilMenuEntryBase.ApplyAttributes(self, attributes)
+        return
 
 
 class UtilMenuHeader(UtilMenuEntryBase):
@@ -535,7 +546,7 @@ class UtilMenuSpace(Container):
         Container.ApplyAttributes(self, attributes)
 
     def GetEntryWidth(self):
-        return 0
+        pass
 
 
 class UtilMenuDivider(Container):
@@ -549,7 +560,7 @@ class UtilMenuDivider(Container):
         LineThemeColored(parent=self, align=uiconst.TOTOP, padTop=padding, padLeft=1, padRight=1, opacity=OPACITY_LINES)
 
     def GetEntryWidth(self):
-        return 0
+        pass
 
 
 class UtilMenuLayoutGrid(UtilMenuEntryBase, LayoutGrid):
@@ -582,7 +593,7 @@ class UtilMenuContainer(UtilMenuEntryBase, ContainerAutoSize):
         self.UpdateEntryHeight()
 
     def GetEntryWidth(self):
-        return 100
+        pass
 
     def UpdateEntryHeight(self):
         pass

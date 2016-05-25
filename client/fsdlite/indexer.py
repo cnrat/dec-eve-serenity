@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\packages\fsdlite\indexer.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\packages\fsdlite\indexer.py
 import re
 
 def index(obj, indexes):
@@ -11,7 +12,7 @@ def index(obj, indexes):
     return indexed
 
 
-def from_primitives(data, indexes, path = None):
+def from_primitives(data, indexes, path=None):
     results = match_indexes(indexes, path)
     if isinstance(data, dict):
         for key, value in data.iteritems():

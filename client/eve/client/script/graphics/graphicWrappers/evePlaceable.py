@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\client\script\graphics\graphicWrappers\evePlaceable.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\client\script\graphics\graphicWrappers\evePlaceable.py
 import util
 import trinity
 import carbon.client.script.graphics.graphicWrappers.baseGraphicWrapper as graphicWrappers

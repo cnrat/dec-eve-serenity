@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\packages\bugreporter\__init__.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\packages\bugreporter\__init__.py
 from bugreporter.util import GuessMimeType
 import httplib2
 import json
@@ -8,12 +9,13 @@ from cStringIO import StringIO
 
 class BugReporter(object):
 
-    def __init__(self, serverUrl, cacheFolder = None):
+    def __init__(self, serverUrl, cacheFolder=None):
         if cacheFolder is None:
             cacheFolder = '.cache'
         self.cacheFolder = cacheFolder
         self.logger = logging.getLogger(__name__)
         self.baseUrl = serverUrl
+        return
 
     def GetCategories(self):
         ret = []
@@ -86,7 +88,7 @@ class BugReporter(object):
     def _HttpPost(self, urlAddition, data):
         return json.loads(self._Request('issue', 'POST', json.dumps(data)))
 
-    def _Request(self, urlAddition, method, body = None, contentType = None):
+    def _Request(self, urlAddition, method, body=None, contentType=None):
         self.logger.info("making a '%s' call to the bugs service '%s'", method, urlAddition)
         h = httplib2.Http(self.cacheFolder)
         url = '{}/{}'.format(self.baseUrl, urlAddition)

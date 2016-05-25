@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\client\script\ui\shared\neocom\charsheet\skins.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\client\script\ui\shared\neocom\charsheet\skins.py
 from carbonui import const as uiconst
 from carbonui.primitives.container import Container
 from carbonui.primitives.containerAutoSize import ContainerAutoSize
@@ -48,6 +49,7 @@ class CharacterSkinsPanel(Container):
                 entries.append(entry)
 
         self.scroll.Load(contentList=sorted(entries, key=lambda e: e.label), noContentHint=localization.GetByLabel('UI/SkillQueue/NoResultsForFilters'))
+        return
 
     def _GetFilteredSkinsByMaterialID(self):
         skinSvc = sm.GetService('skinSvc')
@@ -64,7 +66,7 @@ class CharacterSkinsPanel(Container):
             skins = filter(lambda s: not s.licensed, skins)
         return bucket(skins, keyprojection=lambda s: s.materialID)
 
-    def _CreateSkinObject(self, staticSkin, licensedSkin = None):
+    def _CreateSkinObject(self, staticSkin, licensedSkin=None):
         material = sm.GetService('skinSvc').static.GetMaterialByID(staticSkin.skinMaterialID)
         licensed = licensedSkin is not None
         expires = licensedSkin.expires if licensedSkin else None
@@ -74,18 +76,19 @@ class CharacterSkinsPanel(Container):
         skinsByShipID = self._GroupAndFilterByShip(skins)
         if not skinsByShipID:
             return None
-        material = sm.GetService('skinSvc').GetStaticMaterialByID(materialID)
-        owned = count((ship for ship, skins in skinsByShipID.iteritems() if any((s.licensed for s in skins))))
-        label = localization.GetByLabel('UI/CharacterSheet/CharacterSheetWindow/SkinsGroupWithCount', groupName=material.name, skinsOwned=owned, skinsTotal=len(skinsByShipID))
-        data = {'label': label,
-         'id': ('SkinMaterials', material.materialID),
-         'showicon': material.iconTexturePath,
-         'groupItems': skinsByShipID,
-         'GetSubContent': self._GetSkinsSubContent,
-         'showlen': False,
-         'BlockOpenWindow': True,
-         'state': 'locked'}
-        return listentry.Get('Group', data=data)
+        else:
+            material = sm.GetService('skinSvc').GetStaticMaterialByID(materialID)
+            owned = count((ship for ship, skins in skinsByShipID.iteritems() if any((s.licensed for s in skins))))
+            label = localization.GetByLabel('UI/CharacterSheet/CharacterSheetWindow/SkinsGroupWithCount', groupName=material.name, skinsOwned=owned, skinsTotal=len(skinsByShipID))
+            data = {'label': label,
+             'id': ('SkinMaterials', material.materialID),
+             'showicon': material.iconTexturePath,
+             'groupItems': skinsByShipID,
+             'GetSubContent': self._GetSkinsSubContent,
+             'showlen': False,
+             'BlockOpenWindow': True,
+             'state': 'locked'}
+            return listentry.Get('Group', data=data)
 
     def _GroupAndFilterByShip(self, skins):
         skinsByShipID = defaultdict(list)

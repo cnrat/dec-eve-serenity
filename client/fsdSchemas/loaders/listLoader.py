@@ -1,4 +1,5 @@
-#Embedded file name: C:\jamieb_jamieb-pc_STABLE_1796\fsdSchemas\loaders\listLoader.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: C:\jamieb_jamieb-pc_STABLE_1796\fsdSchemas\loaders\listLoader.py
 import ctypes
 import collections
 from fsdSchemas.path import FsdDataPathObject
@@ -28,7 +29,7 @@ class FixedSizeListIterator(object):
 
 class FixedSizeListRepresentation(object):
 
-    def __init__(self, data, offset, itemSchema, path, extraState, knownLength = None):
+    def __init__(self, data, offset, itemSchema, path, extraState, knownLength=None):
         self.data = data
         self.offset = offset
         self.itemSchema = itemSchema
@@ -41,6 +42,7 @@ class FixedSizeListRepresentation(object):
             self.count = knownLength
             self.fixedLength = True
         self.itemSize = itemSchema['size']
+        return
 
     def __iter__(self):
         countOffset = 0 if self.fixedLength else 4
@@ -61,7 +63,7 @@ class FixedSizeListRepresentation(object):
 
 class VariableSizedListRepresentation(object):
 
-    def __init__(self, data, offset, itemSchema, path, extraState, knownLength = None):
+    def __init__(self, data, offset, itemSchema, path, extraState, knownLength=None):
         self.data = data
         self.offset = offset
         self.itemSchema = itemSchema
@@ -73,6 +75,7 @@ class VariableSizedListRepresentation(object):
         else:
             self.count = knownLength
             self.fixedLength = True
+        return
 
     def __len__(self):
         return self.count
@@ -87,7 +90,7 @@ class VariableSizedListRepresentation(object):
         return self.__extraState__.RepresentSchemaNode(self.data, self.offset + dataOffsetFromObjectStart, FsdDataPathObject('[%s]' % str(key), parent=self.__path__), self.itemSchema)
 
 
-def ListFromBinaryString(data, offset, schema, path, extraState, knownLength = None):
+def ListFromBinaryString(data, offset, schema, path, extraState, knownLength=None):
     knownLength = schema.get('length', knownLength)
     if 'fixedItemSize' in schema:
         listLikeObject = FixedSizeListRepresentation(data, offset, schema['itemTypes'], path, extraState, knownLength)

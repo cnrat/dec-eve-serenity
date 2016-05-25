@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\client\script\ui\shared\mapView\mapViewProbeHandlerStandalone.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\client\script\ui\shared\mapView\mapViewProbeHandlerStandalone.py
 from carbon.common.script.util.timerstuff import AutoTimer
 from eve.client.script.ui.inflight.probeControl_MapView import BaseProbeControl, ProbeControl, BASE_PROBE_COLOR
 from eve.client.script.ui.inflight.scanner import FORMATION_CONTROL_ID
@@ -95,6 +96,7 @@ class MapViewProbeHandlerStandalone(object):
         self.Cleanup()
         self.systemMapHandler.systemMapTransform.children.remove(self.parentTransform)
         self.systemMapHandler = None
+        return
 
     def Cleanup(self):
         if getattr(self, 'parentTransform', None):
@@ -112,6 +114,7 @@ class MapViewProbeHandlerStandalone(object):
         self.probeControlsByID = {}
         self.resultObjectsByID = {}
         self.resultMarkers = set()
+        return
 
     def UpdateInputState(self):
         self.CheckKeyState()
@@ -300,7 +303,7 @@ class MapViewProbeHandlerStandalone(object):
         for probe in self.probeControlsByID.values():
             probe.SetScanDronesState(value)
 
-    def SetResultFilter(self, showResults, update = False):
+    def SetResultFilter(self, showResults, update=False):
         self._filterResults = showResults
         if update:
             self.UpdateScanResult()
@@ -385,8 +388,9 @@ class MapViewProbeHandlerStandalone(object):
             self.centerProbeControl.SetPosition(self.probeTracker.GetCenterOfActiveProbes())
         if self.systemMapHandler:
             self.systemMapHandler.LoadProbeMarkers()
+        return
 
-    def HighlightCursors(self, activeProbeControl = None, axis = None):
+    def HighlightCursors(self, activeProbeControl=None, axis=None):
         SHIFT = uicore.uilib.Key(uiconst.VK_SHIFT)
         self.highlightCursorData = (activeProbeControl, axis)
         if self.centerProbeControl:
@@ -404,7 +408,9 @@ class MapViewProbeHandlerStandalone(object):
             else:
                 probeControl.SetCursorState(probeControl.STATE_IDLE, axis)
 
-    def HighlightProbeIntersections(self, showAll = False):
+        return
+
+    def HighlightProbeIntersections(self, showAll=False):
         probeIDs = self.probeTracker.GetActiveProbes()
         probeIDs.sort()
         possiblePairs = [ pair for pair in itertools.combinations(probeIDs, 2) ]
@@ -449,19 +455,20 @@ class MapViewProbeHandlerStandalone(object):
     def ComputeHighlightCircle(self, distance, pos1, pos2, rad1, rad2):
         if not distance:
             return None
-        rad1_sq = rad1 ** 2
-        rad2_sq = rad2 ** 2
-        dist_sq = distance ** 2
-        distToPoint = (rad1_sq - rad2_sq + dist_sq) / (2 * distance)
-        radius_sq = rad1_sq - distToPoint ** 2
-        if radius_sq < 0.0:
-            return None
-        radius = math.sqrt(radius_sq)
-        normal = geo2.Vec3Normalize(pos2 - pos1)
-        normal = geo2.Vector(*normal)
-        point = pos1 + normal * distToPoint
-        rotation = geo2.QuaternionRotationArc(AXIS_Z, normal)
-        return (point, rotation, radius)
+        else:
+            rad1_sq = rad1 ** 2
+            rad2_sq = rad2 ** 2
+            dist_sq = distance ** 2
+            distToPoint = (rad1_sq - rad2_sq + dist_sq) / (2 * distance)
+            radius_sq = rad1_sq - distToPoint ** 2
+            if radius_sq < 0.0:
+                return None
+            radius = math.sqrt(radius_sq)
+            normal = geo2.Vec3Normalize(pos2 - pos1)
+            normal = geo2.Vector(*normal)
+            point = pos1 + normal * distToPoint
+            rotation = geo2.QuaternionRotationArc(AXIS_Z, normal)
+            return (point, rotation, radius)
 
     def SetIntersectionHighlight(self, pair, config):
         intersection = self.probeIntersectionsByPair[pair]
@@ -505,7 +512,9 @@ class MapViewProbeHandlerStandalone(object):
         intersection = self.probeIntersectionsByPair.get(pairID, None)
         if not intersection:
             return
-        uicore.animations.MorphScalar(intersection, 'opacity', startVal=intersection.opacity, endVal=INTERSECTION_INACTIVE, duration=1.5)
+        else:
+            uicore.animations.MorphScalar(intersection, 'opacity', startVal=intersection.opacity, endVal=INTERSECTION_INACTIVE, duration=1.5)
+            return
 
     def ShowCentroidLines(self):
         if self.centroidLines is None:
@@ -551,6 +560,7 @@ class MapViewProbeHandlerStandalone(object):
                     self.centroidLines.AddStraightLine(startPosition, CENTROID_LINE_COLOR, position, CENTROID_LINE_COLOR, CENTROID_LINE_WIDTH)
 
             self.centroidLines.SubmitChanges()
+        return
 
     def RemoveCentroidLines(self):
         if self.centroidLines and self.centroidLines in self.parentTransform.children:
@@ -558,6 +568,7 @@ class MapViewProbeHandlerStandalone(object):
         self.centroidLines = None
         self.centroidTimer = None
         self.lastProbeIDs = None
+        return
 
     @property
     def probeTracker(self):
@@ -568,6 +579,7 @@ class MapViewProbeHandlerStandalone(object):
             return self.centerProbeControl
         else:
             return self.probeControlsByID.get(int(probeID), None)
+            return None
 
     def GetProbeControls(self):
         return self.probeControlsByID
@@ -620,6 +632,7 @@ class MapViewProbeHandlerStandalone(object):
         self.UpdateProbeSpheres()
         self.UpdateProbeControlDisplay()
         self._activeEditMode = None
+        return
 
     def RegisterProbeMove(self, *args):
         probes = self.probeTracker.GetProbeData()
@@ -639,6 +652,7 @@ class MapViewProbeHandlerStandalone(object):
         self.UpdateProbeControlDisplay()
         self.HighlightMarkersInProbeRange()
         self._activeEditMode = None
+        return
 
     def ScaleProbe(self, probeControl, currentCursorPosInProbePlane, currentCursorPosInCenterPlane):
         probeScenePosition, centerScenePosition, mousePositionInProbePlane, mousePositionInCenterPlane = self.initProbeScaleData
@@ -752,6 +766,7 @@ class MapViewProbeHandlerStandalone(object):
 
         self.HighlightMarkersInProbeRange()
         self._activeEditMode = None
+        return
 
     def FocusOnProbe(self, probeID):
         try:
@@ -823,7 +838,7 @@ class MapViewProbeHandlerStandalone(object):
                 self.systemMapHandler.markersHandler.AddSolarSystemBasedMarker(markerID, MarkerScanResult, resultData=result, solarSystemID=self.systemMapHandler.solarsystemID, mapPositionLocal=SolarSystemPosToMapPos(position), mapPositionSolarSystem=self.systemMapHandler.position)
             self.resultMarkers.add(markerID)
 
-    def HighlightProbeBorder(self, probeControl = None):
+    def HighlightProbeBorder(self, probeControl=None):
         probeControls = self.GetProbeControls()
         for _probeID, _probeControl in probeControls.iteritems():
             if probeControl and _probeControl is probeControl:
@@ -868,6 +883,8 @@ class MapViewProbeHandlerStandalone(object):
             if not markerObject or not hasattr(markerObject, 'SetInRangeIndicatorState'):
                 continue
             markerObject.SetInRangeIndicatorState(markerID in inRangeOfProbe)
+
+        return
 
 
 class ProbesIntersection(object):

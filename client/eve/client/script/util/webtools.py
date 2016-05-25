@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\client\script\util\webtools.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\client\script\util\webtools.py
 from time import strftime, gmtime
 import blue
 import login
@@ -32,7 +33,7 @@ class WebTools(service.Service):
         service.Service.__init__(self)
         self.Reset()
 
-    def Run(self, memStream = None):
+    def Run(self, memStream=None):
         service.Service.Run(self, memStream)
 
     def Stop(self, stream):
@@ -52,6 +53,7 @@ class WebTools(service.Service):
         s = sm.GetService('sceneManager').GetActiveScene()
         if s is not None:
             s.display = 0
+        return
 
     def SetVars(self, renderVars):
         rv = util.KeyVal(username='', password='')
@@ -75,6 +77,7 @@ class WebTools(service.Service):
                 self.GoCharsel()
                 self.WaitForViewStateIn('station', 'hangar', 'inflight')
                 self.GoRoutine(rv.routine, func)
+        return
 
     def GoLogin(self, username, password):
         sm.GetService('overviewPresetSvc')
@@ -116,6 +119,7 @@ class WebTools(service.Service):
 
         if characterid:
             sm.GetService('sessionMgr').PerformSessionChange('charsel', sm.RemoteSvc('charUnboundMgr').SelectCharacterID, characterid)
+        return
 
     def GoRoutine(self, routine, func):
         uthread.pool('Webtools :: GoRoutine :: %sRender' % routine.capitalize(), func)
@@ -158,8 +162,9 @@ class LoggingRoutines:
 
     def __init__(self):
         self.logfile = None
+        return
 
-    def CreateLogFile(self, ex = ''):
+    def CreateLogFile(self, ex=''):
         logfilepath = blue.sysinfo.GetUserDocumentsDirectory() + '/EVE/logs/RenderLogs/'
         logfilename = '%s_%s_renderlog.txt' % (strftime('%Y.%m.%d-%H.%M', gmtime()), ex)
         dr = DirectoryRoutines()
@@ -190,7 +195,7 @@ class DirectoryRoutines:
     def __init__(self):
         self.createdDirectories = {}
 
-    def DeleteCachedFile(self, itemID, folder = 'Portraits', flush = 0):
+    def DeleteCachedFile(self, itemID, folder='Portraits', flush=0):
         resPath = blue.paths.ResolvePath(u'cache:/Pictures/%s/' % folder)
         for rRoot, dirs, files in os.walk(resPath):
             for rFile in files:
@@ -201,7 +206,7 @@ class DirectoryRoutines:
                     except:
                         sys.exc_clear()
 
-    def GenericCheckCreateDirectory(self, name, dry_run = 0):
+    def GenericCheckCreateDirectory(self, name, dry_run=0):
         if DEBUGMODE:
             self.createdDirectories = {}
         name = os.path.normpath(name)

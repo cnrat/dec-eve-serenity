@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\carbon\common\stdlib\mimetools.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\carbon\common\stdlib\mimetools.py
 import os
 import sys
 import tempfile
@@ -18,7 +19,7 @@ __all__ = ['Message',
 
 class Message(rfc822.Message):
 
-    def __init__(self, fp, seekable = 1):
+    def __init__(self, fp, seekable=1):
         rfc822.Message.__init__(self, fp, seekable)
         self.encodingheader = self.getheader('content-transfer-encoding')
         self.typeheader = self.getheader('content-type')
@@ -42,6 +43,7 @@ class Message(rfc822.Message):
         self.type = '/'.join(fields)
         self.maintype = fields[0]
         self.subtype = '/'.join(fields[1:])
+        return
 
     def parseplist(self):
         str = self.plisttext
@@ -69,6 +71,8 @@ class Message(rfc822.Message):
             if p[:n] == name:
                 return rfc822.unquote(p[n:])
 
+        return None
+
     def getparamnames(self):
         result = []
         for p in self.plist:
@@ -81,7 +85,8 @@ class Message(rfc822.Message):
     def getencoding(self):
         if self.encodingheader is None:
             return '7bit'
-        return self.encodingheader.lower()
+        else:
+            return self.encodingheader.lower()
 
     def gettype(self):
         return self.type

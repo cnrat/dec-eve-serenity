@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\carbon\common\lib\cherrypy\wsgiserver\ssl_builtin.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\carbon\common\lib\cherrypy\wsgiserver\ssl_builtin.py
 try:
     import ssl
 except ImportError:
@@ -10,12 +11,13 @@ class BuiltinSSLAdapter(wsgiserver.SSLAdapter):
     certificate = None
     private_key = None
 
-    def __init__(self, certificate, private_key, certificate_chain = None):
+    def __init__(self, certificate, private_key, certificate_chain=None):
         if ssl is None:
             raise ImportError('You must install the ssl module to use HTTPS.')
         self.certificate = certificate
         self.private_key = private_key
         self.certificate_chain = certificate_chain
+        return
 
     def bind(self, sock):
         return sock
@@ -41,5 +43,5 @@ class BuiltinSSLAdapter(wsgiserver.SSLAdapter):
          'SSL_CIPHER': cipher[0]}
         return ssl_environ
 
-    def makefile(self, sock, mode = 'r', bufsize = -1):
+    def makefile(self, sock, mode='r', bufsize=-1):
         return wsgiserver.CP_fileobject(sock, mode, bufsize)

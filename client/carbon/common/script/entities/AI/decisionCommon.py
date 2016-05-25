@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\carbon\common\script\entities\AI\decisionCommon.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\carbon\common\script\entities\AI\decisionCommon.py
 import zaction
 import GameWorld
 import collections
@@ -32,10 +33,14 @@ class DecisionTreeCommon(zaction.zactionCommonBase):
                 component.instances[index].SetDefaultActionID(component.rootIDs[index])
                 component.instances[index].ForceAction(treeNode)
 
+        return
+
     def UnRegisterComponent(self, entity, component):
         for index in range(const.ai.DECISION_MAX_INSTANCES):
             if component.instances[index] is not None:
                 self.treeManager.RemoveTreeInstance(component.instances[index])
+
+        return
 
     def ReportState(self, component, entity):
         report = collections.OrderedDict()

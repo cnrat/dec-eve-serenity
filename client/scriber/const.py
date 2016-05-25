@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\packages\scriber\const.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\packages\scriber\const.py
 import re
 LOGGER_NAME = 'scriber'
 EMAIL_TAG_GRABBER = re.compile('<(/?[\\w._%+-]+@[\\w.-]+\\.[\\S]{2,4} ?/?)>')

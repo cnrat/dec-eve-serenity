@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\common\modules\nice\client\_nastyspace\dogmaXP.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\common\modules\nice\client\_nastyspace\dogmaXP.py
 from eve.common.script.dogma.fitting import LauncherFittedEffect
 from eve.common.script.dogma.fitting import SubSystemFittedEffect
 from eve.common.script.dogma.fitting import TurretFittedEffect

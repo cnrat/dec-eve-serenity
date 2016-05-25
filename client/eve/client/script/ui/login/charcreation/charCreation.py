@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\client\script\ui\login\charcreation\charCreation.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\client\script\ui\login\charcreation\charCreation.py
 import uicontrols
 import carbonui.const as uiconst
 import uicls
@@ -110,6 +111,7 @@ class BaseCharacterCreationStep(uiprimitives.Container):
         self.sr.rightSide = uiprimitives.Container(name='rightSide', parent=self.sr.uiContainer, align=uiconst.TORIGHT, pos=(0, 0, 0, 0))
         self.UpdateSideContainerWidth()
         settings.user.ui.Get('assetMenuState', {ccConst.BODYGROUP: True})
+        return
 
     def UpdateSideContainerWidth(self):
         mainCenterSize = min(uicore.desktop.width, uicore.desktop.height)
@@ -149,6 +151,7 @@ class BaseCharacterCreationStep(uiprimitives.Container):
                 if bloodlineID is not None:
                     if genderID is not None:
                         layer.Approve()
+        return
 
     def OnMouseDown(self, btn, *args):
         if self.stepID not in (ccConst.CUSTOMIZATIONSTEP,
@@ -156,113 +159,119 @@ class BaseCharacterCreationStep(uiprimitives.Container):
          ccConst.RACESTEP,
          ccConst.BLOODLINESTEP):
             return
-        self.storedMousePos = None
-        pos = (int(uicore.uilib.x * uicore.desktop.dpiScaling), int(uicore.uilib.y * uicore.desktop.dpiScaling))
-        layer = uicore.layer.charactercreation
-        if btn == uiconst.MOUSELEFT and self.stepID == ccConst.BLOODLINESTEP:
-            if getattr(layer, 'bloodlineSelector', None) is not None:
-                picked = layer.PickObject(pos)
-                bloodlineID, genderID = uicore.layer.charactercreation.bloodlineSelector.GetBloodlineAndGender(picked)
-                if bloodlineID is not None:
-                    uthread.new(layer.SelectBloodline, bloodlineID)
-                if genderID is not None:
-                    uthread.new(layer.SelectGender, genderID)
-            return
-        if btn == uiconst.MOUSERIGHT and self.stepID not in (ccConst.RACESTEP, ccConst.BLOODLINESTEP):
-            self._cameraActive = True
-            self._activeSculptZone = None
-        elif btn == uiconst.MOUSELEFT and not self._cameraActive and self.charSvc.IsSculptingReady():
-            self._didSculptMotion = False
-            self._latestPickTime = blue.os.GetWallclockTime()
-            if self.CanSculpt():
-                layer.StartEditMode(mode='sculpt', callback=self.ChangeSculptingCursor)
-                pickedSculpt = layer.PassMouseEventToSculpt('LeftDown', *pos)
-                if pickedSculpt >= 0:
-                    uicore.layer.charactercreation.TryFreezeAnimation()
-                    self.storedMousePos = (uicore.uilib.x, uicore.uilib.y)
-                    self.cursor = uiconst.UICURSOR_NONE
-                    self._cameraActive = False
-                    self._activeSculptZone = pickedSculpt
-                else:
-                    self._cameraActive = True
-                    self._activeSculptZone = None
-            elif self.stepID == ccConst.PORTRAITSTEP:
-                info = self.GetInfo()
-                self.charSvc.StartPosing(info.charID, callback=self.ChangeSculptingCursor)
-                pickedSculpt = layer.PassMouseEventToSculpt('LeftDown', *pos)
-                if pickedSculpt >= 0:
-                    self._cameraActive = False
-                    self._activeSculptZone = pickedSculpt
-                else:
-                    self._cameraActive = True
-                    self._activeSculptZone = None
-            else:
+        else:
+            self.storedMousePos = None
+            pos = (int(uicore.uilib.x * uicore.desktop.dpiScaling), int(uicore.uilib.y * uicore.desktop.dpiScaling))
+            layer = uicore.layer.charactercreation
+            if btn == uiconst.MOUSELEFT and self.stepID == ccConst.BLOODLINESTEP:
+                if getattr(layer, 'bloodlineSelector', None) is not None:
+                    picked = layer.PickObject(pos)
+                    bloodlineID, genderID = uicore.layer.charactercreation.bloodlineSelector.GetBloodlineAndGender(picked)
+                    if bloodlineID is not None:
+                        uthread.new(layer.SelectBloodline, bloodlineID)
+                    if genderID is not None:
+                        uthread.new(layer.SelectGender, genderID)
+                return
+            if btn == uiconst.MOUSERIGHT and self.stepID not in (ccConst.RACESTEP, ccConst.BLOODLINESTEP):
                 self._cameraActive = True
                 self._activeSculptZone = None
-        elif btn == uiconst.MOUSELEFT and self.stepID == ccConst.CUSTOMIZATIONSTEP and not layer.CanChangeBaseAppearance():
-            self._cameraActive = True
-        else:
+            elif btn == uiconst.MOUSELEFT and not self._cameraActive and self.charSvc.IsSculptingReady():
+                self._didSculptMotion = False
+                self._latestPickTime = blue.os.GetWallclockTime()
+                if self.CanSculpt():
+                    layer.StartEditMode(mode='sculpt', callback=self.ChangeSculptingCursor)
+                    pickedSculpt = layer.PassMouseEventToSculpt('LeftDown', *pos)
+                    if pickedSculpt >= 0:
+                        uicore.layer.charactercreation.TryFreezeAnimation()
+                        self.storedMousePos = (uicore.uilib.x, uicore.uilib.y)
+                        self.cursor = uiconst.UICURSOR_NONE
+                        self._cameraActive = False
+                        self._activeSculptZone = pickedSculpt
+                    else:
+                        self._cameraActive = True
+                        self._activeSculptZone = None
+                elif self.stepID == ccConst.PORTRAITSTEP:
+                    info = self.GetInfo()
+                    self.charSvc.StartPosing(info.charID, callback=self.ChangeSculptingCursor)
+                    pickedSculpt = layer.PassMouseEventToSculpt('LeftDown', *pos)
+                    if pickedSculpt >= 0:
+                        self._cameraActive = False
+                        self._activeSculptZone = pickedSculpt
+                    else:
+                        self._cameraActive = True
+                        self._activeSculptZone = None
+                else:
+                    self._cameraActive = True
+                    self._activeSculptZone = None
+            elif btn == uiconst.MOUSELEFT and self.stepID == ccConst.CUSTOMIZATIONSTEP and not layer.CanChangeBaseAppearance():
+                self._cameraActive = True
+            else:
+                return
+            uicore.uilib.ClipCursor(0, 0, uicore.desktop.width, uicore.desktop.height)
+            uicore.uilib.SetCapture(self)
             return
-        uicore.uilib.ClipCursor(0, 0, uicore.desktop.width, uicore.desktop.height)
-        uicore.uilib.SetCapture(self)
 
     def OnMouseUp(self, btn, *args):
         if self.stepID not in (ccConst.CUSTOMIZATIONSTEP, ccConst.PORTRAITSTEP):
             return
-        uicore.layer.charactercreation.UnfreezeAnimationIfNeeded()
-        if getattr(self, 'storedMousePos', None) is not None:
-            uicore.uilib.SetCursorPos(*self.storedMousePos)
-            self.storedMousePos = None
-        if btn == uiconst.MOUSELEFT:
-            uicore.layer.charactercreation.PassMouseEventToSculpt('LeftUp', uicore.uilib.x, uicore.uilib.y)
-            if self.CanSculpt():
-                if self._activeSculptZone is not None and self._didSculptMotion:
-                    uicore.layer.charactercreation.TryStoreDna(False, 'Sculpting', sculpting=True)
-                    charID = uicore.layer.charactercreation.GetInfo().charID
-                    sm.ScatterEvent('OnDollUpdated', charID, False, 'sculpting')
-                    self.charSvc.UpdateTattoos(charID)
-                elif self._latestPickTime:
-                    if blue.os.TimeDiffInMs(self._latestPickTime, blue.os.GetWallclockTime()) < 250.0:
-                        pickedMakeup, pickedHair, pickedBody, pickedSculpt = self.GetPickInfo((uicore.uilib.x, uicore.uilib.y))
-                        log.LogInfo('Pickinfo: makeup, hair, bodyselect, sculpt = ', pickedMakeup, pickedHair, pickedBody, pickedSculpt)
-                        for each in (('hair', pickedHair),
-                         ('makeup', pickedMakeup),
-                         ('clothes', pickedBody),
-                         ('sculpt', pickedSculpt)):
-                            if each in ccConst.PICKMAPPING:
-                                pickedModifier = ccConst.PICKMAPPING[each]
-                                self.ExpandMenuByModifier(pickedModifier)
-                                break
+        else:
+            uicore.layer.charactercreation.UnfreezeAnimationIfNeeded()
+            if getattr(self, 'storedMousePos', None) is not None:
+                uicore.uilib.SetCursorPos(*self.storedMousePos)
+                self.storedMousePos = None
+            if btn == uiconst.MOUSELEFT:
+                uicore.layer.charactercreation.PassMouseEventToSculpt('LeftUp', uicore.uilib.x, uicore.uilib.y)
+                if self.CanSculpt():
+                    if self._activeSculptZone is not None and self._didSculptMotion:
+                        uicore.layer.charactercreation.TryStoreDna(False, 'Sculpting', sculpting=True)
+                        charID = uicore.layer.charactercreation.GetInfo().charID
+                        sm.ScatterEvent('OnDollUpdated', charID, False, 'sculpting')
+                        self.charSvc.UpdateTattoos(charID)
+                    elif self._latestPickTime:
+                        if blue.os.TimeDiffInMs(self._latestPickTime, blue.os.GetWallclockTime()) < 250.0:
+                            pickedMakeup, pickedHair, pickedBody, pickedSculpt = self.GetPickInfo((uicore.uilib.x, uicore.uilib.y))
+                            log.LogInfo('Pickinfo: makeup, hair, bodyselect, sculpt = ', pickedMakeup, pickedHair, pickedBody, pickedSculpt)
+                            for each in (('hair', pickedHair),
+                             ('makeup', pickedMakeup),
+                             ('clothes', pickedBody),
+                             ('sculpt', pickedSculpt)):
+                                if each in ccConst.PICKMAPPING:
+                                    pickedModifier = ccConst.PICKMAPPING[each]
+                                    self.ExpandMenuByModifier(pickedModifier)
+                                    break
 
-            self._activeSculptZone = None
-        if not uicore.uilib.rightbtn and not uicore.uilib.leftbtn:
-            uicore.layer.charactercreation.PassMouseEventToSculpt('Motion', uicore.uilib.x, uicore.uilib.y)
-            self._cameraActive = False
-            self._activeSculptZone = None
-            self.cursor = uiconst.UICURSOR_DEFAULT
-            uicore.uilib.UnclipCursor()
-            if uicore.uilib.GetCapture() is self:
-                uicore.uilib.ReleaseCapture()
+                self._activeSculptZone = None
+            if not uicore.uilib.rightbtn and not uicore.uilib.leftbtn:
+                uicore.layer.charactercreation.PassMouseEventToSculpt('Motion', uicore.uilib.x, uicore.uilib.y)
+                self._cameraActive = False
+                self._activeSculptZone = None
+                self.cursor = uiconst.UICURSOR_DEFAULT
+                uicore.uilib.UnclipCursor()
+                if uicore.uilib.GetCapture() is self:
+                    uicore.uilib.ReleaseCapture()
+            return
 
     def OnMouseMove(self, *args):
         if self.stepID not in (ccConst.CUSTOMIZATIONSTEP, ccConst.PORTRAITSTEP):
             return
-        pos = (int(uicore.uilib.x * uicore.desktop.dpiScaling), int(uicore.uilib.y * uicore.desktop.dpiScaling))
-        if self._cameraActive:
-            if uicore.uilib.leftbtn and uicore.uilib.rightbtn:
-                modifier = uicore.mouseInputHandler.GetCameraZoomModifier()
-                uicore.layer.charactercreation.camera.Dolly(modifier * uicore.uilib.dy)
-            if uicore.uilib.leftbtn:
-                uicore.layer.charactercreation.camera.AdjustYaw(uicore.uilib.dx)
-                if not uicore.uilib.rightbtn:
-                    uicore.layer.charactercreation.camera.AdjustPitch(uicore.uilib.dy)
-            elif uicore.uilib.rightbtn:
-                uicore.layer.charactercreation.camera.Pan(uicore.uilib.dx, uicore.uilib.dy)
         else:
-            if self._activeSculptZone is not None and self.stepID == ccConst.CUSTOMIZATIONSTEP:
-                uicore.layer.charactercreation.CheckDnaLog('OnMouseMove')
-                self._didSculptMotion = True
-            uicore.layer.charactercreation.PassMouseEventToSculpt('Motion', *pos)
+            pos = (int(uicore.uilib.x * uicore.desktop.dpiScaling), int(uicore.uilib.y * uicore.desktop.dpiScaling))
+            if self._cameraActive:
+                if uicore.uilib.leftbtn and uicore.uilib.rightbtn:
+                    modifier = uicore.mouseInputHandler.GetCameraZoomModifier()
+                    uicore.layer.charactercreation.camera.Dolly(modifier * uicore.uilib.dy)
+                if uicore.uilib.leftbtn:
+                    uicore.layer.charactercreation.camera.AdjustYaw(uicore.uilib.dx)
+                    if not uicore.uilib.rightbtn:
+                        uicore.layer.charactercreation.camera.AdjustPitch(uicore.uilib.dy)
+                elif uicore.uilib.rightbtn:
+                    uicore.layer.charactercreation.camera.Pan(uicore.uilib.dx, uicore.uilib.dy)
+            else:
+                if self._activeSculptZone is not None and self.stepID == ccConst.CUSTOMIZATIONSTEP:
+                    uicore.layer.charactercreation.CheckDnaLog('OnMouseMove')
+                    self._didSculptMotion = True
+                uicore.layer.charactercreation.PassMouseEventToSculpt('Motion', *pos)
+            return
 
     def OnMouseWheel(self, *args):
         if not uicore.layer.charactercreation.camera:
@@ -273,37 +282,42 @@ class BaseCharacterCreationStep(uiprimitives.Container):
     def ChangeSculptingCursor(self, zone, isFront, isHead):
         if self.destroyed:
             return
-        if self.stepID == ccConst.CUSTOMIZATIONSTEP:
-            if isFront:
-                cursor = ZONEMAP.get(zone, uiconst.UICURSOR_DEFAULT)
-            else:
-                cursor = ZONEMAP_SIDE.get(zone, uiconst.UICURSOR_DEFAULT)
-            self.cursor = cursor
-        elif self.stepID == ccConst.PORTRAITSTEP:
-            if isHead:
-                cursor = ZONEMAP_ANIM.get(zone, uiconst.UICURSOR_DEFAULT)
-            else:
-                cursor = ZONEMAP_ANIMBODY.get(zone, uiconst.UICURSOR_DEFAULT)
-            self.cursor = cursor
-        lastZone = getattr(self, '_lastZone', None)
-        if lastZone != zone:
-            sm.StartService('audio').SendUIEvent(unicode('wise:/ui_icc_sculpting_mouse_over_loop_play'))
-            self._lastZone = zone
-            if self._lastZone == -1:
-                sm.StartService('audio').SendUIEvent(unicode('wise:/ui_icc_sculpting_mouse_over_loop_stop'))
+        else:
+            if self.stepID == ccConst.CUSTOMIZATIONSTEP:
+                if isFront:
+                    cursor = ZONEMAP.get(zone, uiconst.UICURSOR_DEFAULT)
+                else:
+                    cursor = ZONEMAP_SIDE.get(zone, uiconst.UICURSOR_DEFAULT)
+                self.cursor = cursor
+            elif self.stepID == ccConst.PORTRAITSTEP:
+                if isHead:
+                    cursor = ZONEMAP_ANIM.get(zone, uiconst.UICURSOR_DEFAULT)
+                else:
+                    cursor = ZONEMAP_ANIMBODY.get(zone, uiconst.UICURSOR_DEFAULT)
+                self.cursor = cursor
+            lastZone = getattr(self, '_lastZone', None)
+            if lastZone != zone:
+                sm.StartService('audio').SendUIEvent(unicode('wise:/ui_icc_sculpting_mouse_over_loop_play'))
+                self._lastZone = zone
+                if self._lastZone == -1:
+                    sm.StartService('audio').SendUIEvent(unicode('wise:/ui_icc_sculpting_mouse_over_loop_stop'))
+            return
 
     def ExpandMenuByModifier(self, modifier):
         if not self.sr.assetMenu:
             return
-        lastParentGroup = None
-        allMenus = [ each for each in self.sr.assetMenu.sr.mainCont.children if isinstance(each, uicls.CharCreationAssetPicker) ]
-        for menu in allMenus:
-            if not menu.isSubmenu:
-                lastParentGroup = menu
-            if getattr(menu, 'modifier', None) == modifier:
-                if lastParentGroup and not lastParentGroup.IsExpanded():
-                    uthread.new(lastParentGroup.Expand)
-                uthread.new(menu.Expand)
+        else:
+            lastParentGroup = None
+            allMenus = [ each for each in self.sr.assetMenu.sr.mainCont.children if isinstance(each, uicls.CharCreationAssetPicker) ]
+            for menu in allMenus:
+                if not menu.isSubmenu:
+                    lastParentGroup = menu
+                if getattr(menu, 'modifier', None) == modifier:
+                    if lastParentGroup and not lastParentGroup.IsExpanded():
+                        uthread.new(lastParentGroup.Expand)
+                    uthread.new(menu.Expand)
+
+            return
 
     def OnHideUI(self, *args):
         self.sr.uiContainer.state = uiconst.UI_HIDDEN
@@ -317,7 +331,8 @@ class BaseCharacterCreationStep(uiprimitives.Container):
     def IsDollReady(self, *args):
         if uicore.layer.charactercreation.doll is None:
             return False
-        return not uicore.layer.charactercreation.doll.busyUpdating
+        else:
+            return not uicore.layer.charactercreation.doll.busyUpdating
 
     def OnUIScalingChange(self, *args):
         self.UpdateLayout()
@@ -413,32 +428,38 @@ class CCHeadBodyPicker(uiprimitives.Container):
         sprite.rectLeft, sprite.rectTop, sprite.rectWidth, sprite.rectHeight = (0, 0, 0, 0)
         self.sr.updateTimer = base.AutoTimer(33, self.UpdatePosition)
         uthread.new(uicore.effect.CombineEffects, self, opacity=1.0, time=250.0)
+        return
 
     def UpdatePosition(self, *args):
         if self.destroyed:
             return
-        camera = getattr(uicore.layer.charactercreation, 'camera', None)
-        if camera is not None:
-            portion = camera.GetPortionFromDistance()
-            self.sr.headSolid.SetOpacity(max(0.2, 1.0 - portion))
-            self.sr.bodySolid.SetOpacity(max(0.2, portion))
-            for hex in (self.sr.headHex, self.sr.bodyHex):
-                if hex.selection.opacity >= 0.5 and len(self.children) and hex == self.children[-1]:
-                    toSwap = self.children[-2]
-                    self.children.remove(toSwap)
-                    self.children.append(toSwap)
-                    break
+        else:
+            camera = getattr(uicore.layer.charactercreation, 'camera', None)
+            if camera is not None:
+                portion = camera.GetPortionFromDistance()
+                self.sr.headSolid.SetOpacity(max(0.2, 1.0 - portion))
+                self.sr.bodySolid.SetOpacity(max(0.2, portion))
+                for hex in (self.sr.headHex, self.sr.bodyHex):
+                    if hex.selection.opacity >= 0.5 and len(self.children) and hex == self.children[-1]:
+                        toSwap = self.children[-2]
+                        self.children.remove(toSwap)
+                        self.children.append(toSwap)
+                        break
+
+            return
 
     def MouseOverPart(self, frameName, *args):
         sm.StartService('audio').SendUIEvent(unicode('wise:/ui_icc_button_mouse_over_play'))
         frame = self.sr.get(frameName, None)
         if frame:
             frame.state = uiconst.UI_DISABLED
+        return
 
     def MouseExitPart(self, frameName, *args):
         frame = self.sr.get(frameName, None)
         if frame:
             frame.state = uiconst.UI_HIDDEN
+        return
 
     def HeadClicked(self, *args):
         sm.StartService('audio').SendUIEvent(unicode('wise:/ui_icc_button_mouse_down_play'))
@@ -511,12 +532,15 @@ class BitSlider(uiprimitives.Container):
         if attributes.setvalue is not None:
             self.SetValue(attributes.setvalue)
         self.onSetValueCallback = attributes.OnSetValue
+        return
 
     def OnMouseDown(self, mouseBtn, *args):
         if mouseBtn != uiconst.MOUSELEFT:
             return
-        self.sr.softSlideTimer = None
-        self.sr.slideTimer = base.AutoTimer(33, self.UpdateSliderPortion)
+        else:
+            self.sr.softSlideTimer = None
+            self.sr.slideTimer = base.AutoTimer(33, self.UpdateSliderPortion)
+            return
 
     def OnMouseEnter(self, *args):
         self.sr.softSlideTimer = base.AutoTimer(33, self.UpdateSoftSliderPortion)
@@ -538,6 +562,7 @@ class BitSlider(uiprimitives.Container):
         else:
             self.sr.softSlideTimer = None
             self.ShowSoftLit(0.0)
+        return
 
     def UpdateSliderPortion(self, *args):
         l, t, w, h = self.bitParent.GetAbsolute()
@@ -548,11 +573,13 @@ class BitSlider(uiprimitives.Container):
     def OnMouseUp(self, mouseBtn, *args):
         if mouseBtn != uiconst.MOUSELEFT:
             return
-        self.sr.slideTimer = None
-        l, t, w, h = self.bitParent.GetAbsolute()
-        portion = max(0.0, min(1.0, (uicore.uilib.x - l) / float(w)))
-        self.sr.handle.left = int((w - self.sr.handle.width) * portion)
-        self.SetValue(portion)
+        else:
+            self.sr.slideTimer = None
+            l, t, w, h = self.bitParent.GetAbsolute()
+            portion = max(0.0, min(1.0, (uicore.uilib.x - l) / float(w)))
+            self.sr.handle.left = int((w - self.sr.handle.width) * portion)
+            self.SetValue(portion)
+            return
 
     def ShowLit(self, portion):
         l, t, w, h = self.bitParent.GetAbsolute()
@@ -581,7 +608,7 @@ class BitSlider(uiprimitives.Container):
             else:
                 each.SetOpacity(0.333)
 
-    def SetValue(self, value, doCallback = True):
+    def SetValue(self, value, doCallback=True):
         callback = value != self._value
         self._value = max(0.0, min(1.0, value))
         self.ShowLit(self._value)
@@ -632,6 +659,7 @@ class GradientSlider(uiprimitives.Container):
             self.SetValue(attributes.setvalue)
         self.onSetValueCallback = attributes.OnSetValue
         self.ChangeGradientColor(secondColor=(1.0, (1, 1, 0)))
+        return
 
     def OnMouseDown(self, mouseBtn, *args):
         if mouseBtn != uiconst.MOUSELEFT:
@@ -646,13 +674,15 @@ class GradientSlider(uiprimitives.Container):
     def OnMouseUp(self, mouseBtn, *args):
         if mouseBtn != uiconst.MOUSELEFT:
             return
-        self.sr.slideTimer = None
-        l, t, w, h = self.gradientSprite.GetAbsolute()
-        portion = max(0.0, min(1.0, (uicore.uilib.x - l) / float(w)))
-        self.sr.handle.left = int(w * portion)
-        self.SetValue(portion)
+        else:
+            self.sr.slideTimer = None
+            l, t, w, h = self.gradientSprite.GetAbsolute()
+            portion = max(0.0, min(1.0, (uicore.uilib.x - l) / float(w)))
+            self.sr.handle.left = int(w * portion)
+            self.SetValue(portion)
+            return
 
-    def SetValue(self, value, doCallback = True):
+    def SetValue(self, value, doCallback=True):
         callback = value != self._value
         self._value = max(0.0, min(1.0, value))
         self.SetHandle(self._value)
@@ -668,7 +698,7 @@ class GradientSlider(uiprimitives.Container):
     def GetValue(self):
         return self._value
 
-    def ChangeGradientColor(self, firstColor = None, secondColor = None):
+    def ChangeGradientColor(self, firstColor=None, secondColor=None):
         colorData = self.gradientSprite.colorData
         if len(colorData) < 2:
             firstColor = secondColor
@@ -677,3 +707,4 @@ class GradientSlider(uiprimitives.Container):
         if secondColor is not None and len(colorData) > 1:
             colorData[1] = secondColor
         self.gradientSprite.SetGradient()
+        return

@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\client\script\ui\hacking\hackingVirusInfo.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\client\script\ui\hacking\hackingVirusInfo.py
 import carbonui.const as uiconst
 import uiprimitives
 import util
@@ -40,6 +41,7 @@ class VirusInfo(uiprimitives.Container):
         self.iconBG = uiprimitives.Sprite(name='iconBG', texturePath='res:/UI/Texture/classes/hacking/hudIconBG.png', parent=self, align=uiconst.CENTER, state=uiconst.UI_DISABLED, pos=(0, 0, 118, 118), opacity=0.0)
         self.animateIconThread = None
         self.AnimateIconBG()
+        return
 
     def SetIntensity(self, value):
         for noise in self.noiseSprites:
@@ -84,6 +86,7 @@ class VirusInfo(uiprimitives.Container):
             sm.GetService('audio').SendUIEvent('minigame_coherence_low_stop')
         self.coherence = coherence
         self.strength = strength
+        return
 
 
 class VirusInfoBar(uiprimitives.Container):

@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\client\script\ui\shared\radialMenu\inventoryRadialMenuFunctions.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\client\script\ui\shared\radialMenu\inventoryRadialMenuFunctions.py
 from eve.client.script.ui.shared.radialMenu.radialMenuUtils import SecondLevelRadialMenuAction, SimpleRadialMenuAction
 from eve.client.script.ui.services.menuSvcExtras.menuConsts import MOUSEBUTTONS
 import carbonui.const as uiconst
@@ -29,7 +30,7 @@ baseActionMapping = {1: SimpleRadialMenuAction(),
  8: SimpleRadialMenuAction()}
 actionsMapping = {}
 
-def AddReworkToMapping(category, mapping = None):
+def AddReworkToMapping(category, mapping=None):
     if mapping is None:
         mapping = baseActionMapping.copy()
     mapping.update({3: SecondLevelRadialMenuAction(hasExtraOptions=True, levelType='rework')})
@@ -45,6 +46,7 @@ moduleMapping = baseActionMapping.copy()
 moduleMapping.update({1: SimpleRadialMenuAction(option1='UI/Inventory/ItemActions/FitToActiveShip'),
  3: SecondLevelRadialMenuAction(hasExtraOptions=True, levelType='rework')})
 actionsMapping[const.categoryModule] = moduleMapping
+actionsMapping[const.categoryStructureModule] = moduleMapping
 asteroidMapping = baseActionMapping.copy()
 asteroidMapping.update({1: SimpleRadialMenuAction(option1='UI/Inventory/ItemActions/Refine')})
 actionsMapping[const.categoryAsteroid] = asteroidMapping
@@ -75,13 +77,13 @@ AddReworkToMapping(const.categorySubSystem)
 secondaryOptionsMapping = {'rework': [SimpleRadialMenuAction('UI/Inventory/ItemActions/GetRepairQuote'), SimpleRadialMenuAction('UI/Inventory/ItemActions/Repackage'), SimpleRadialMenuAction('UI/Inventory/ItemActions/Reprocess')],
  'market': [SimpleRadialMenuAction('UI/Inventory/ItemActions/ViewTypesMarketDetails'), SimpleRadialMenuAction('UI/Inventory/ItemActions/SellThisItem'), SimpleRadialMenuAction('UI/Inventory/ItemActions/BuyThisType')]}
 
-def GetObjectsActions(categoryID, groupID, typeID = None, itemID = None, *args):
+def GetObjectsActions(categoryID, groupID, typeID=None, itemID=None, *args):
     generalActions = GetGeneralActions(categoryID, groupID, typeID=typeID, itemID=itemID)
     myActions = generalActions[:]
     return myActions
 
 
-def GetObjectsSecondaryActions(categoryID, groupID, typeID = None, itemID = None, levelType = ''):
+def GetObjectsSecondaryActions(categoryID, groupID, typeID=None, itemID=None, levelType=''):
     myActions = secondaryOptionsMapping.get(levelType, [])
     if myActions:
         myActions = [SecondLevelRadialMenuAction(hasExtraOptions=False)] + myActions
@@ -99,7 +101,7 @@ def GetGeneralActions(categoryID, groupID, typeID, itemID):
     return generalActions
 
 
-def FindRadialMenuOptions(itemID = None, typeID = None, primaryActions = True, manyItemsData = None, rec = None, levelType = None):
+def FindRadialMenuOptions(itemID=None, typeID=None, primaryActions=True, manyItemsData=None, rec=None, levelType=None):
     filterList = []
     allMenuOptions = sm.GetService('menu').InvItemMenu(rec)
     if typeID is not None:

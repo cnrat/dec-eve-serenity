@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\carbon\common\stdlib\rsa\_version133.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\carbon\common\stdlib\rsa\_version133.py
 __author__ = 'Sybren Stuvel, Marloes de Boer and Ivo Tamboer'
 __date__ = '2010-02-05'
 __version__ = '1.3.3'

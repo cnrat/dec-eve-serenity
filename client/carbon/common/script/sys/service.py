@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\carbon\common\script\sys\service.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\carbon\common\script\sys\service.py
 import types
 import blue
 import stackless
@@ -64,7 +65,7 @@ class CallWrapper():
          'PreCall_Lock']
     __postcall__ = ['PostCall_CachedMethodCall', 'PostCall_LogCompletedMethodCall', 'PostCall_UnLock']
 
-    def __init__(self, session, object, method, parent, logname = None):
+    def __init__(self, session, object, method, parent, logname=None):
         global callWrapperID
         if logname is None:
             import carbon.common.script.net.machobase as macho
@@ -83,6 +84,7 @@ class CallWrapper():
         self.requiredRole = ROLE_SERVICE
         callWrapperID += 1
         allCallWrappers[callWrapperID] = self
+        return
 
     def __call__(self, *args, **keywords):
         if prefs.GetValue('quickShutdown', False):
@@ -199,6 +201,7 @@ class CallWrapper():
                 self.__dict__.clear()
 
             return result
+        return
 
     def PreCall_StartCallTimer(self, method, args, keywords, **mykeywords):
         from base import CallTimer
@@ -208,6 +211,7 @@ class CallWrapper():
         sct = cookies.get('PreCall_StartCallTimer', None)
         if sct is not None:
             sct.Done()
+        return
 
     __machomethods__ = ('MachoResolve', 'MachoBindObject', 'MachoResolveObject', 'MachoGetObjectBoundToSession')
 
@@ -256,6 +260,8 @@ class CallWrapper():
                      self.__method_without_Ex__,
                      each,
                      str(session)))
+
+        return
 
     def PostCall_LogCompletedMethodCall(self, cookies, result, method, args, keywords, **mykeywords):
         logChannel = log.methodcalls
@@ -362,6 +368,8 @@ class CallWrapper():
             l[0].acquire()
             l[1] = (method, args, keywords)
             return k
+        else:
+            return
 
     def PostCall_UnLock(self, cookies, result, method, args, keywords, **mykeywords):
         k = cookies.get('PreCall_Lock', None)
@@ -375,6 +383,8 @@ class CallWrapper():
                         del callWrapperLocks[k]
                 except KeyError:
                     pass
+
+        return
 
     def PreCall_CachedMethodCall(self, method, args, keywords, **mykeywords):
         machoVersion = keywords.get('machoVersion', None)
@@ -417,6 +427,7 @@ class CallWrapper():
                     else:
                         errorDesc = "ObjectCaching %s::%s (%s) - the client didn't provide a macho version, not even the default value.  Probably an unbound call to a cached method call, which is NOT supported." % (self.__logname__, self.__method_without_Ex__, args)
                         log.LogTraceback(errorDesc)
+        return
 
 
 class ServiceCallWrapper(CallWrapper):
@@ -546,6 +557,8 @@ class CoreService():
     def MachoResolve(self, sess):
         if self.__machoresolve__ is not None:
             return self._MachoResolveAdditional(sess)
+        else:
+            return
 
     def _MachoResolveAdditional(self, sess):
         if self.__machoresolve__ is not None:
@@ -593,6 +606,7 @@ class CoreService():
                     if self.__machoresolve__.startswith('clustersingleton'):
                         return GetClusterSingletonNodeFromAddress(mn, self.__machoresolve__)
                     raise RuntimeError('This service is crap (%s)' % self.__logname__)
+        return
 
     def __GetCachedObject(self, key):
         return self.boundObjects.get(key, None)
@@ -696,12 +710,12 @@ class CoreService():
     def LockedService(self, lockKey):
         return self.LockedServiceCtxt(self, lockKey)
 
-    def StartMiniTrace(self, funcName, depth = 16):
+    def StartMiniTrace(self, funcName, depth=16):
         if funcName not in globalMiniTraceStats:
             globalMiniTraceStats[self.__guid__, funcName] = {}
             setattr(self, funcName, MiniTraceCallWrapper(self, getattr(self, funcName), funcName, depth))
 
-    def StopMiniTrace(self, funcName, depth = 16):
+    def StopMiniTrace(self, funcName, depth=16):
         if funcName not in globalMiniTraceStats:
             del globalMiniTraceStats[self.__guid__, funcName]
             setattr(self, funcName, getattr(self, funcName).func)
@@ -833,6 +847,8 @@ class CoreService():
                 if charsession and not boot.role == 'client':
                     charsession.LogSessionHistory(x, None, 1)
 
+        return
+
     def LogError(self, *args, **keywords):
         if self.logChannel.IsOpen(4) or charsession:
             try:
@@ -861,6 +877,8 @@ class CoreService():
                 if charsession and not boot.role == 'client':
                     charsession.LogSessionHistory(x, None, 1)
 
+        return
+
     def LogNotice(self, *args, **keywords):
         if getattr(self, 'isLogNotice', 0) and self.logChannel.IsLogChannelOpen(log.LGNOTICE):
             try:
@@ -876,21 +894,21 @@ class CoreService():
                 self.logChannel.Log('[U]'.join(map(lambda x: x.encode('ascii', 'replace'), map(unicode, args))), log.LGNOTICE, 1, force=True)
                 sys.exc_clear()
 
-    def LogException(self, extraText = ''):
+    def LogException(self, extraText=''):
         log.LogException(extraText, channel=self.__guid__)
         sys.exc_clear()
 
-    def LogTraceback(self, extraText = ''):
+    def LogTraceback(self, extraText=''):
         log.LogTraceback(extraText, channel=self.__guid__)
 
-    def Run(self, memStream = None):
+    def Run(self, memStream=None):
         self.LogInfo('Service: %s starting' % (self.__guid__,))
         self.boundObjects = {}
 
     def Entering(self):
         pass
 
-    def Stop(self, memStream = None):
+    def Stop(self, memStream=None):
         for bo in self.boundObjects.values():
             for sess in bo.sessionConnections.values():
                 sess.DisconnectObject(bo)
@@ -900,7 +918,7 @@ class CoreService():
     def IsRunning(self):
         return getattr(self, 'state', SERVICE_STOPPED) == SERVICE_RUNNING
 
-    def GetSessionState(self, session_ = None):
+    def GetSessionState(self, session_=None):
         if session_ is not None:
             session = session_
         if session is None:
@@ -918,84 +936,86 @@ class CoreService():
          SERVICE_FAILED: 'Failed to start'}
         return states.get(self.state, 'unknown')
 
-    def GetHtmlState(self, writer, session = None, request = None):
+    def GetHtmlState(self, writer, session=None, request=None):
         import htmlwriter
         wr = htmlwriter.HtmlWriter()
         if writer is None:
             return '(no info available)'
-        writer.Write(self.HTMLDumpProperties('Basic Service properties', 'wpServiceProperties', self, session, request))
-        if len(self.__configvalues__):
-            hd = ['Key',
-             'Pretty Name',
-             'Value',
-             'Default Value',
-             'Info']
-            li = []
-            for each in self.__configvalues__.iterkeys():
-                prettyname = each
-                info = None
-                value = getattr(self, each)
-                if hasattr(self, 'GetHtmlStateDetails'):
-                    r = self.GetHtmlStateDetails(each, value, 0)
-                    if r:
-                        prettyname, info = r[0], r[1]
-                if value != self.__configvalues__[each]:
-                    value = '<b>%s</b>' % value
-                li.append([each,
-                 prettyname,
-                 value,
-                 self.__configvalues__[each],
-                 info])
+        else:
+            writer.Write(self.HTMLDumpProperties('Basic Service properties', 'wpServiceProperties', self, session, request))
+            if len(self.__configvalues__):
+                hd = ['Key',
+                 'Pretty Name',
+                 'Value',
+                 'Default Value',
+                 'Info']
+                li = []
+                for each in self.__configvalues__.iterkeys():
+                    prettyname = each
+                    info = None
+                    value = getattr(self, each)
+                    if hasattr(self, 'GetHtmlStateDetails'):
+                        r = self.GetHtmlStateDetails(each, value, 0)
+                        if r:
+                            prettyname, info = r[0], r[1]
+                    if value != self.__configvalues__[each]:
+                        value = '<b>%s</b>' % value
+                    li.append([each,
+                     prettyname,
+                     value,
+                     self.__configvalues__[each],
+                     info])
 
-            li.sort(lambda a, b: -(a[0].upper() < b[0].upper()))
-            edit = '<a href="/admin/services.py?action=EditConfigValues&svcname=%s">Click to edit</a>' % (self.__servicename__,)
-            writer.Write(htmlwriter.WebPart('Service Config Values - ' + edit, wr.GetTable(hd, li, useFilter=True), 'wpServiceConfigValues'))
-        if len(self.__counters__):
-            hd = ['Key',
-             'Pretty Name',
-             'Type',
-             'Current Value',
-             'Description']
-            li = []
-            for each in self.__counters__.iterkeys():
-                cname = each
-                prettyname = cname
-                ctype = self.__counters__[each]
-                cvalue = 0
-                if hasattr(self, each):
-                    cvalue = getattr(self, each).Value()
-                info = ''
-                if hasattr(self, 'GetHtmlStateDetails'):
-                    r = self.GetHtmlStateDetails(each, cvalue, 0)
-                    if r:
-                        prettyname, info = r[0], r[1]
-                li.append([cname,
-                 prettyname,
-                 ctype,
-                 cvalue,
-                 info])
+                li.sort(lambda a, b: -(a[0].upper() < b[0].upper()))
+                edit = '<a href="/admin/services.py?action=EditConfigValues&svcname=%s">Click to edit</a>' % (self.__servicename__,)
+                writer.Write(htmlwriter.WebPart('Service Config Values - ' + edit, wr.GetTable(hd, li, useFilter=True), 'wpServiceConfigValues'))
+            if len(self.__counters__):
+                hd = ['Key',
+                 'Pretty Name',
+                 'Type',
+                 'Current Value',
+                 'Description']
+                li = []
+                for each in self.__counters__.iterkeys():
+                    cname = each
+                    prettyname = cname
+                    ctype = self.__counters__[each]
+                    cvalue = 0
+                    if hasattr(self, each):
+                        cvalue = getattr(self, each).Value()
+                    info = ''
+                    if hasattr(self, 'GetHtmlStateDetails'):
+                        r = self.GetHtmlStateDetails(each, cvalue, 0)
+                        if r:
+                            prettyname, info = r[0], r[1]
+                    li.append([cname,
+                     prettyname,
+                     ctype,
+                     cvalue,
+                     info])
 
-            li.sort(lambda a, b: -(a[0].upper() < b[0].upper()))
-            reset = '<a href="/admin/services.py?action=ResetCounters&svcname=%s" onClick="return confirm(\'Are you sure?\')">Click to reset</a>' % (self.__servicename__,)
-            writer.Write(htmlwriter.WebPart('Service Counters - ' + reset, wr.GetTable(hd, li, useFilter=True), 'wpServiceCounters'))
-        det = '<a href="/admin/services.py?svcname=%s&propertyDetail=yes">Click to view details</a><br>' % self.__servicename__
-        writer.Write(htmlwriter.WebPart('Service Member Variables - %s' % det, self.HTMLDumpGenericMembers(self, session, request), 'wpServiceMemberVariables'))
-        if hasattr(self, 'boundObjects'):
-            if request:
-                objectDetail = request.QueryString('objectDetail')
-                if objectDetail is not None:
-                    objectDetail = cPickle.loads(binascii.a2b_hex(objectDetail))
-            else:
-                objectDetail = None
-            object = self.boundObjects.get(objectDetail, None)
-            if object:
-                writer.WriteH2('Bound Object %s' % unicode(objectDetail))
-                if object.__doc__ is not None:
-                    writer.Write(htmlwriter.Swing(object.__doc__).replace('\n', '<br>'))
-                writer.Write(self.HTMLDumpProperties('Properties of Bound Object %s' % unicode(objectDetail), 'wpBoundObjectProperties %s' % unicode(objectDetail), object, session, request))
-                writer.Write(self.HTMLDumpGenericMembers(object, session, request))
-        self.HTMLWriteServiceMethods(writer, session, request)
-        self.HTMLWriteExtraState(writer, session, request)
+                li.sort(lambda a, b: -(a[0].upper() < b[0].upper()))
+                reset = '<a href="/admin/services.py?action=ResetCounters&svcname=%s" onClick="return confirm(\'Are you sure?\')">Click to reset</a>' % (self.__servicename__,)
+                writer.Write(htmlwriter.WebPart('Service Counters - ' + reset, wr.GetTable(hd, li, useFilter=True), 'wpServiceCounters'))
+            det = '<a href="/admin/services.py?svcname=%s&propertyDetail=yes">Click to view details</a><br>' % self.__servicename__
+            writer.Write(htmlwriter.WebPart('Service Member Variables - %s' % det, self.HTMLDumpGenericMembers(self, session, request), 'wpServiceMemberVariables'))
+            if hasattr(self, 'boundObjects'):
+                if request:
+                    objectDetail = request.QueryString('objectDetail')
+                    if objectDetail is not None:
+                        objectDetail = cPickle.loads(binascii.a2b_hex(objectDetail))
+                else:
+                    objectDetail = None
+                object = self.boundObjects.get(objectDetail, None)
+                if object:
+                    writer.WriteH2('Bound Object %s' % unicode(objectDetail))
+                    if object.__doc__ is not None:
+                        writer.Write(htmlwriter.Swing(object.__doc__).replace('\n', '<br>'))
+                    writer.Write(self.HTMLDumpProperties('Properties of Bound Object %s' % unicode(objectDetail), 'wpBoundObjectProperties %s' % unicode(objectDetail), object, session, request))
+                    writer.Write(self.HTMLDumpGenericMembers(object, session, request))
+            self.HTMLWriteServiceMethods(writer, session, request)
+            self.HTMLWriteExtraState(writer, session, request)
+            return
 
     def HTMLWriteExtraState(self, writer, session, request):
         pass
@@ -1149,7 +1169,8 @@ class CoreService():
 
         if not something:
             return 'This service does not have any custom member variables'
-        return wr.GetTable([], li)
+        else:
+            return wr.GetTable([], li)
 
     def HTMLDumpProperties(self, title, page, dumpWho, session, request):
         import htmlwriter
@@ -1203,7 +1224,7 @@ class CoreService():
         if hasattr(dumpWho, '__sessionfilter__'):
             sessionfilter = dumpWho.__sessionfilter__
 
-        def Alphabetize(arr, objectDetail = False, dependency = False):
+        def Alphabetize(arr, objectDetail=False, dependency=False):
             try:
                 li = arr[:]
                 li.sort(lambda a, b: -(Str(a).upper() < Str(b).upper()))
@@ -1281,29 +1302,39 @@ class AppProxyService(CoreService):
     def __init__(self):
         self.solNodeID = None
         CoreService.__init__(self)
+        return
 
     def GetSolNodeService(self):
         if not getattr(self, '__solservice__'):
             self.LogError('Application Proxy Service incorrectly configured. The service requires the __solservice__ attribute which is a tuple of (solServiceName, serviceMask, serviceBucket)')
             return
-        solServiceName, serviceMask, bucket = self.__solservice__
-        if self.solNodeID is not None:
-            if self.solNodeID not in sm.services['machoNet'].transportIDbySolNodeID:
-                self.LogWarn('Sol node', self.solNodeID, ' is no longer available. Finding a new one...')
-                self.solNodeID = None
-        if self.solNodeID is None:
-            svc = self.session.ConnectToSolServerService('machoNet', None)
-            nodeID = svc.GetNodeFromAddress(serviceMask, bucket)
-            if nodeID is None or nodeID <= 0:
-                raise RuntimeError('Could not find any sol nodes with mask %s' % serviceMask)
-            self.LogInfo('Found a new sol node at', nodeID)
-            self.solNodeID = nodeID
-        svc = self.session.ConnectToSolServerService(solServiceName, nodeID=self.solNodeID)
-        return svc
+        else:
+            solServiceName, serviceMask, bucket = self.__solservice__
+            if self.solNodeID is not None:
+                if self.solNodeID not in sm.services['machoNet'].transportIDbySolNodeID:
+                    self.LogWarn('Sol node', self.solNodeID, ' is no longer available. Finding a new one...')
+                    self.solNodeID = None
+            if self.solNodeID is None:
+                svc = self.session.ConnectToSolServerService('machoNet', None)
+                nodeID = svc.GetNodeFromAddress(serviceMask, bucket)
+                if nodeID is None or nodeID <= 0:
+                    raise RuntimeError('Could not find any sol nodes with mask %s' % serviceMask)
+                self.LogInfo('Found a new sol node at', nodeID)
+                self.solNodeID = nodeID
+            svc = self.session.ConnectToSolServerService(solServiceName, nodeID=self.solNodeID)
+            return svc
 
 
 class ClusterSingletonService(CoreService):
     __ready__ = 0
+    __startupdependencies__ = ['machoNet']
+
+    def __init__(self):
+        for dep in ClusterSingletonService.__startupdependencies__:
+            if dep not in self.__startupdependencies__:
+                self.__startupdependencies__.append(dep)
+
+        CoreService.__init__(self)
 
     def Run(self, *args):
         CoreService.Run(self, *args)
@@ -1335,12 +1366,14 @@ class ClusterSingletonService(CoreService):
         with locks.TempLock((self, 'PrimeService')):
             if not self.__ready__:
                 try:
-                    self.LogInfo('Priming clustersingleton service...')
-                    startTime = blue.os.GetWallclockTimeNow()
-                    self.PrimeService()
-                    self.LogNotice('Done priming clustersingleton service %s in %.3f seconds.' % (self.__logname__, (blue.os.GetWallclockTimeNow() - startTime) / float(const.SEC)))
-                except Exception as e:
-                    log.LogException('Error priming Cluster Singleton service %s' % self.__logname__)
+                    try:
+                        self.LogInfo('Priming clustersingleton service...')
+                        startTime = blue.os.GetWallclockTimeNow()
+                        self.PrimeService()
+                        self.LogNotice('Done priming clustersingleton service %s in %.3f seconds.' % (self.__logname__, (blue.os.GetWallclockTimeNow() - startTime) / float(const.SEC)))
+                    except Exception as e:
+                        log.LogException('Error priming Cluster Singleton service %s' % self.__logname__)
+
                 finally:
                     self.__ready__ = 1
 
@@ -1359,7 +1392,7 @@ class ClusterSingletonService(CoreService):
         self.LogNotice('I am the right node for this cluster singleton service at startup. Priming the service...')
         self._PrimeService()
 
-    def OnNodeDeath(self, nodeID, confirmed, reason = None):
+    def OnNodeDeath(self, nodeID, confirmed, reason=None):
         if not self._ShouldPrimeService():
             return
         self.LogWarn('Old Cluster Singleton node %s for this service has died. I will now service calls. Starting by priming Service' % nodeID)

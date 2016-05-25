@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\carbon\common\stdlib\unittest\test\test_loader.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\carbon\common\stdlib\unittest\test\test_loader.py
 import sys
 import types
 import unittest
@@ -132,6 +133,7 @@ class Test_TestLoader(unittest.TestCase):
         load_tests_args = []
         suite = loader.loadTestsFromModule(m, use_load_tests=False)
         self.assertEqual(load_tests_args, [])
+        return
 
     def test_loadTestsFromModule__faulty_load_tests(self):
         m = types.ModuleType('m')
@@ -367,7 +369,7 @@ class Test_TestLoader(unittest.TestCase):
         m = types.ModuleType('m')
 
         def return_wrong():
-            return 6
+            pass
 
         m.return_wrong = return_wrong
         loader = unittest.TestLoader()
@@ -390,6 +392,8 @@ class Test_TestLoader(unittest.TestCase):
         finally:
             if module_name in sys.modules:
                 del sys.modules[module_name]
+
+        return
 
     def test_loadTestsFromNames__empty_name_list(self):
         loader = unittest.TestLoader()
@@ -622,7 +626,7 @@ class Test_TestLoader(unittest.TestCase):
         m = types.ModuleType('m')
 
         def return_wrong():
-            return 6
+            pass
 
         m.return_wrong = return_wrong
         loader = unittest.TestLoader()
@@ -645,6 +649,8 @@ class Test_TestLoader(unittest.TestCase):
         finally:
             if module_name in sys.modules:
                 del sys.modules[module_name]
+
+        return
 
     def test_getTestCaseNames(self):
 
@@ -920,6 +926,7 @@ class Test_TestLoader(unittest.TestCase):
         loader.sortTestMethodsUsing = None
         test_names = ['test_2', 'test_1']
         self.assertEqual(set(loader.getTestCaseNames(Foo)), set(test_names))
+        return
 
     def test_suiteClass__loadTestsFromTestCase(self):
 

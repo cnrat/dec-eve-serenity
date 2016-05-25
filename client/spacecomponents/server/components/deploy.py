@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\packages\spacecomponents\server\components\deploy.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\packages\spacecomponents\server\components\deploy.py
 import itertools
 from ballpark import GRIDSIZE_LEGACY, AlignToLegacyGrid
 from ballpark.deploymenthelper import CheckDeploymentPositionNearPlanetIsValid
@@ -27,6 +28,7 @@ class Deploy(object):
 
     def OnDeployed(self, ballpark, characterID, shipID):
         ballpark.dbLog.LogItemGenericEvent(None, eventSpaceComponentDeployed, self.itemID, referenceID=ballpark.solarsystemID, int_1=self.typeID, bigint_1=characterID, bigint_2=shipID)
+        return
 
     @staticmethod
     def GetEspTypeInfo(typeID, spaceComponentStaticData):
@@ -59,7 +61,7 @@ class Deploy(object):
         return infoString
 
 
-def CheckBallForProximityRestrictions(ballID, position, radius, typeID, ballpark, groupProximityChecks, forbidOverlap = False):
+def CheckBallForProximityRestrictions(ballID, position, radius, typeID, ballpark, groupProximityChecks, forbidOverlap=False):
     ballSlimItem = ballpark.slims[ballID]
     ballGroupID = ballSlimItem.groupID
     distance = GetDistanceFromBallSurface(ballID, position, radius, ballpark)
@@ -129,7 +131,7 @@ def GetLauncherOwnerID(spaceComponentStaticData, typeID):
     return getattr(componentAttributes, 'defaultOwner', None)
 
 
-def CheckLaunchRestrictions(shipID, spaceComponentStaticData, position, radius, typeID, ballpark, forbidOverlap = False):
+def CheckLaunchRestrictions(shipID, spaceComponentStaticData, position, radius, typeID, ballpark, forbidOverlap=False):
     componentAttributes = spaceComponentStaticData.GetAttributes(typeID, DEPLOY_CLASS)
     CheckPlayerOwnableSpace(ballpark, typeID, componentAttributes)
     if hasattr(componentAttributes, 'maxPerSolarSystem'):
@@ -173,6 +175,7 @@ def CheckOwnerRestrictions(spaceComponentStaticData, typeID, corpID, allianceReg
     componentAttributes = spaceComponentStaticData.GetAttributes(typeID, DEPLOY_CLASS)
     if componentAttributes.requiresAlliance and allianceRegistry.AllianceIDFromCorpID(corpID) is None:
         raise UserError('CannotLaunchRequiresAlliance', {'deployTypeID': typeID})
+    return
 
 
 def DeployItem(charID, corpID, shipItem, deployableItem, ownerID, radius, ballpark, allianceRegistry, spaceComponentStaticData, deployAction):

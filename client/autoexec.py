@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\carbon\common\lib\autoexec.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\carbon\common\lib\autoexec.py
 import inifile
 inifile.Init()
 import blue
@@ -35,6 +36,7 @@ if not blue.pyos.packaged:
     import debuggingutils.pydevdebugging as pydevdebugging
     __builtin__.GOPYCHARM = pydevdebugging.ConnectExeFileToDebugger3
     __builtin__.GOPYCHARM4 = pydevdebugging.ConnectExeFileToDebugger4
+    __builtin__.GOPYCHARM5 = pydevdebugging.ConnectExeFileToDebugger5
     __builtin__.NOPYCHARM = pydevdebugging.StopPycharm
     allArgs = blue.pyos.GetArg()
     containsToolParam = False

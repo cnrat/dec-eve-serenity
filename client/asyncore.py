@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\carbon\common\stdlib\asyncore.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\carbon\common\stdlib\asyncore.py
 import select
 import socket
 import sys
@@ -78,7 +79,7 @@ def readwrite(obj, flags):
         obj.handle_error()
 
 
-def poll(timeout = 0.0, map = None):
+def poll(timeout=0.0, map=None):
     if map is None:
         map = socket_map
     if map:
@@ -124,8 +125,10 @@ def poll(timeout = 0.0, map = None):
                 continue
             _exception(obj)
 
+    return
 
-def poll2(timeout = 0.0, map = None):
+
+def poll2(timeout=0.0, map=None):
     if map is None:
         map = socket_map
     if timeout is not None:
@@ -155,10 +158,12 @@ def poll2(timeout = 0.0, map = None):
                 continue
             readwrite(obj, flags)
 
+    return
+
 
 poll3 = poll2
 
-def loop(timeout = 30.0, use_poll = False, map = None, count = None):
+def loop(timeout=30.0, use_poll=False, map=None, count=None):
     if map is None:
         map = socket_map
     if use_poll and hasattr(select, 'poll'):
@@ -174,6 +179,8 @@ def loop(timeout = 30.0, use_poll = False, map = None, count = None):
             poll_fun(timeout, map)
             count = count - 1
 
+    return
+
 
 class dispatcher():
     debug = False
@@ -183,7 +190,7 @@ class dispatcher():
     addr = None
     ignore_log_types = frozenset(['warning'])
 
-    def __init__(self, sock = None, map = None):
+    def __init__(self, sock=None, map=None):
         if map is None:
             self._map = socket_map
         else:
@@ -204,6 +211,7 @@ class dispatcher():
 
         else:
             self.socket = None
+        return
 
     def __repr__(self):
         status = [self.__class__.__module__ + '.' + self.__class__.__name__]
@@ -221,18 +229,20 @@ class dispatcher():
 
     __str__ = __repr__
 
-    def add_channel(self, map = None):
+    def add_channel(self, map=None):
         if map is None:
             map = self._map
         map[self._fileno] = self
+        return
 
-    def del_channel(self, map = None):
+    def del_channel(self, map=None):
         fd = self._fileno
         if map is None:
             map = self._map
         if fd in map:
             del map[fd]
         self._fileno = None
+        return
 
     def create_socket(self, family, type):
         self.family_and_type = (family, type)
@@ -240,7 +250,7 @@ class dispatcher():
         sock.setblocking(0)
         self.set_socket(sock)
 
-    def set_socket(self, sock, map = None):
+    def set_socket(self, sock, map=None):
         self.socket = sock
         self._fileno = sock.fileno()
         self.add_channel(map)
@@ -289,6 +299,8 @@ class dispatcher():
             raise
         else:
             return (conn, addr)
+
+        return None
 
     def send(self, data):
         try:
@@ -345,7 +357,7 @@ class dispatcher():
     def log(self, message):
         sys.stderr.write('log: %s\n' % str(message))
 
-    def log_info(self, message, type = 'info'):
+    def log_info(self, message, type='info'):
         if type not in self.ignore_log_types:
             print '%s: %s' % (type, message)
 
@@ -417,7 +429,7 @@ class dispatcher():
 
 class dispatcher_with_send(dispatcher):
 
-    def __init__(self, sock = None, map = None):
+    def __init__(self, sock=None, map=None):
         dispatcher.__init__(self, sock, map)
         self.out_buffer = ''
 
@@ -457,7 +469,7 @@ def compact_traceback():
      info)
 
 
-def close_all(map = None, ignore_all = False):
+def close_all(map=None, ignore_all=False):
     if map is None:
         map = socket_map
     for x in map.values():
@@ -475,6 +487,7 @@ def close_all(map = None, ignore_all = False):
                 raise
 
     map.clear()
+    return
 
 
 if os.name == 'posix':
@@ -491,7 +504,7 @@ if os.name == 'posix':
         def send(self, *args):
             return os.write(self.fd, *args)
 
-        def getsockopt(self, level, optname, buflen = None):
+        def getsockopt(self, level, optname, buflen=None):
             if level == socket.SOL_SOCKET and optname == socket.SO_ERROR and not buflen:
                 return 0
             raise NotImplementedError('Only asyncore specific behaviour implemented.')
@@ -508,7 +521,7 @@ if os.name == 'posix':
 
     class file_dispatcher(dispatcher):
 
-        def __init__(self, fd, map = None):
+        def __init__(self, fd, map=None):
             dispatcher.__init__(self, None, map)
             self.connected = True
             try:
@@ -520,6 +533,7 @@ if os.name == 'posix':
             flags = fcntl.fcntl(fd, fcntl.F_GETFL, 0)
             flags = flags | os.O_NONBLOCK
             fcntl.fcntl(fd, fcntl.F_SETFL, flags)
+            return
 
         def set_file(self, fd):
             self.socket = file_wrapper(fd)

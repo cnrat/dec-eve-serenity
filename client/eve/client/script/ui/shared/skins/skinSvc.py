@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\client\script\ui\shared\skins\skinSvc.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\client\script\ui\shared\skins\skinSvc.py
 import blue
 import localization
 from localization.formatters.timeIntervalFormatters import FormatTimeIntervalShortWritten, TIME_CATEGORY_DAY
@@ -11,7 +12,7 @@ class SkinService(Service):
     __guid__ = 'svc.skinSvc'
     __notifyevents__ = ['OnSkinLicenseActivated']
 
-    def Run(self, memStream = None):
+    def Run(self, memStream=None):
         Service.Run(self, memStream)
         sm.FavourMe(self.OnSkinLicenseActivated)
         self.static = shipskins.SkinStaticData(bootrole=boot.role, packaged=blue.pyos.packaged, resolvePathFunc=blue.paths.ResolvePath, region=boot.region)
@@ -21,11 +22,12 @@ class SkinService(Service):
     def ResetCache(self):
         self._licensedSkins = None
         self._licensedSkinsByType = {}
+        return
 
     def ActivateSkinLicense(self, itemID, typeID):
         sm.RemoteSvc('shipSkinMgr').ActivateSkinLicense(itemID)
 
-    def GetAppliedSkinMaterialSetID(self, characterID, itemID, typeID = None):
+    def GetAppliedSkinMaterialSetID(self, characterID, itemID, typeID=None):
         shipSkinMgr = sm.RemoteSvc('shipSkinMgr')
         return shipSkinMgr.GetAppliedSkinMaterialSetID(characterID, itemID, typeID)
 
@@ -56,11 +58,12 @@ class SkinService(Service):
             self._licensedSkinsByType[typeID] = licensedSkins
         return self._licensedSkinsByType[typeID]
 
-    def GetAppliedSkin(self, characterID, itemID, typeID = None):
+    def GetAppliedSkin(self, characterID, itemID, typeID=None):
         skin = sm.RemoteSvc('shipSkinMgr').GetAppliedSkin(characterID, itemID, typeID)
         if skin is None:
             return
-        return self._CreateSkinFromID(skin.skinID, licensed=True, expires=skin.expires)
+        else:
+            return self._CreateSkinFromID(skin.skinID, licensed=True, expires=skin.expires)
 
     def GetSkinByLicenseType(self, typeID):
         license = self.static.licenses[typeID]
@@ -74,8 +77,9 @@ class SkinService(Service):
             skinID = skin.skinID if skin is not None else None
             sm.RemoteSvc('shipSkinMgr').ApplySkin(itemID, skinID)
             blue.synchro.SleepWallclock(1000)
+        return
 
-    def _CreateSkinFromID(self, skinID, licensed = False, expires = None):
+    def _CreateSkinFromID(self, skinID, licensed=False, expires=None):
         skin = self.static.skins[skinID]
         material = self.static.materials[skin.skinMaterialID]
         return Skin(material, skin=skin, licensed=licensed, expires=expires)
@@ -199,6 +203,10 @@ class StaticMaterial(object):
         return self._material.skinMaterialID
 
     @property
+    def materialSetID(self):
+        return self._material.materialSetID
+
+    @property
     def name(self):
         messageID = int(self._material.displayNameID)
         return localization.GetByMessageID(messageID)
@@ -211,7 +219,7 @@ class StaticMaterial(object):
 
 class Skin(object):
 
-    def __init__(self, material, skin = None, licensed = False, expires = None):
+    def __init__(self, material, skin=None, licensed=False, expires=None):
         self._skin = skin
         self._material = material
         self._materialSet = cfg.graphicMaterialSets.GetIfExists(self._material.materialSetID)
@@ -223,6 +231,7 @@ class Skin(object):
         if self._skin:
             return self._skin.skinID
         else:
+            return None
             return None
 
     @property
@@ -236,13 +245,14 @@ class Skin(object):
     def GetExpiresLabel(self):
         if not self.licensed:
             return
-        if self.expires is None:
+        elif self.expires is None:
             return localization.GetByLabel('UI/Skins/PermanentLicense')
-        duration = self.expires - blue.os.GetWallclockTime()
-        if duration < 0:
-            return localization.GetByLabel('UI/Skins/ExpiredLicense')
-        expires = FormatTimeIntervalShortWritten(duration, showFrom=TIME_CATEGORY_DAY)
-        return localization.GetByLabel('UI/Skins/LicenseExpiresIn', expires=expires)
+        else:
+            duration = self.expires - blue.os.GetWallclockTime()
+            if duration < 0:
+                return localization.GetByLabel('UI/Skins/ExpiredLicense')
+            expires = FormatTimeIntervalShortWritten(duration, showFrom=TIME_CATEGORY_DAY)
+            return localization.GetByLabel('UI/Skins/LicenseExpiresIn', expires=expires)
 
     @property
     def materialSetID(self):
@@ -284,15 +294,16 @@ class Skin(object):
     def __eq__(self, other):
         if other is None:
             return False
-        if not hasattr(other, 'skinID'):
+        elif not hasattr(other, 'skinID'):
             return False
-        if not hasattr(other, 'materialID'):
+        elif not hasattr(other, 'materialID'):
             return False
-        if not hasattr(other, 'licensed'):
+        elif not hasattr(other, 'licensed'):
             return False
-        if not hasattr(other, 'expires'):
+        elif not hasattr(other, 'expires'):
             return False
-        return self.skinID == other.skinID and self.materialID == other.materialID and self.licensed == other.licensed and self.expires == other.expires
+        else:
+            return self.skinID == other.skinID and self.materialID == other.materialID and self.licensed == other.licensed and self.expires == other.expires
 
     def __repr__(self):
         return "<%s material='%s' skinID=%s licensed=%s expires='%s'>" % (self.__class__.__name__,

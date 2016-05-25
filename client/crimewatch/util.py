@@ -1,8 +1,36 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\packages\crimewatch\util.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\packages\crimewatch\util.py
 import hashlib
 import const
 import collections
 import math
+from inventorycommon.const import categoryDrone, categoryFighter
+import evetypes
+try:
+    from carbon.common.script.sys.basesession import FindSessions
+except ImportError:
+    FindSession = lambda x, y: None
+
+def GetShipIDForCharID(charID):
+    sessions = FindSessions('charid', [charID])
+    if sessions:
+        return sessions[0].shipid
+
+
+def GetAggressorIdFromEffectData(effect_key, effect_info):
+    category_id = evetypes.GetCategoryID(effect_info.moduleTypeID)
+    source_owner_id = effect_info.sourceOwnerID
+    aggressor_id = effect_key.shipID
+    return GetAggressorId(category_id, source_owner_id, aggressor_id)
+
+
+def GetAggressorId(category_id, source_owner_id, aggressor_id):
+    if category_id in (categoryDrone, categoryFighter):
+        ship_id = GetShipIDForCharID(source_owner_id)
+        if ship_id:
+            return ship_id
+    return aggressor_id
+
 
 def CalculateTagRequirementsForSecIncrease(startSecStatus, requestedSecStatus):
     if not const.characterSecurityStatusMin < requestedSecStatus <= const.characterSecurityStatusMax:

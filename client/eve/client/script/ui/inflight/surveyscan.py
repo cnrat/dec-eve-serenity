@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\client\script\ui\inflight\surveyscan.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\client\script\ui\inflight\surveyscan.py
 import evetypes
 import uicontrols
 import carbonui.const as uiconst
@@ -65,7 +66,7 @@ class SurveyScanView(uicontrols.Window):
         scrolllist = localization.util.Sort(scrolllist, key=lambda x: x.label)
         self.sr.scroll.Load(contentList=scrolllist, headers=headers)
 
-    def GetTypeSubContent(self, nodedata, newitems = 0):
+    def GetTypeSubContent(self, nodedata, newitems=0):
         scrolllist = []
         bp = sm.GetService('michelle').GetBallpark()
         for ballID, qty in nodedata.groupItems:

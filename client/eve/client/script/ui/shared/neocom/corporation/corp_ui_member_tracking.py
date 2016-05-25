@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\client\script\ui\shared\neocom\corporation\corp_ui_member_tracking.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\client\script\ui\shared\neocom\corporation\corp_ui_member_tracking.py
 from carbonui.util.various_unsorted import NiceFilter
 from eve.client.script.ui.quickFilter import QuickFilterEdit
 import evetypes
@@ -46,6 +47,7 @@ class CorpMemberTracking(uiprimitives.Container):
              const.defaultPadding,
              const.defaultPadding))
             self.ShowMemberTracking()
+        return
 
     def OnFilterChange(self, *args):
         self.ShowMemberTracking()
@@ -68,6 +70,7 @@ class CorpMemberTracking(uiprimitives.Container):
             return localization.GetByLabel('UI/Corporations/CorpMemberTracking/LastMonth')
         else:
             return localization.GetByLabel('UI/Corporations/CorpMemberTracking/MoreThanAMonth')
+            return
 
     def ShowMemberTracking(self):
         fltRole = self.sr.fltRole.GetValue()
@@ -85,59 +88,58 @@ class CorpMemberTracking(uiprimitives.Container):
              localization.GetByLabel('UI/Common/Offline')])
         sm.GetService('loading').Cycle('Loading')
         try:
-            if eve.session.corprole & const.corpRoleDirector != const.corpRoleDirector and 0:
-                header = []
-                scrolllist.append(listentry.Get('Text', {'text': localization.GetByLabel('UI/Corporations/CorporationWindow/Members/AccessDeniedDirectorRoleRequired'),
-                 'line': 1}))
-            else:
-                memberTracking = sm.GetService('corp').GetMemberTrackingInfo()
-                memberNames = []
-                for member in memberTracking:
-                    memberNames.append(KeyVal(name=cfg.eveowners.Get(member.characterID).name, member=member))
+            memberTracking = sm.GetService('corp').GetMemberTrackingInfo()
+            memberNames = []
+            for member in memberTracking:
+                memberNames.append(KeyVal(name=cfg.eveowners.Get(member.characterID).name, member=member))
 
-                guestFilter = self.quickFilter.GetValue()
-                if len(guestFilter):
-                    memberNames = NiceFilter(self.quickFilter.QuickFilter, memberNames)
-                for each in memberNames:
-                    member = each.member
-                    if fltRole and not (member.roles & fltRole > 0 or member.grantableRoles & fltRole > 0 or member.roles & const.corpRoleDirector > 0):
+            guestFilter = self.quickFilter.GetValue()
+            if len(guestFilter):
+                memberNames = NiceFilter(self.quickFilter.QuickFilter, memberNames)
+            for each in memberNames:
+                member = each.member
+                if fltRole and not (member.roles & fltRole > 0 or member.grantableRoles & fltRole > 0 or member.roles & const.corpRoleDirector > 0):
+                    continue
+                if fltOnline > 0:
+                    if member.lastOnline == None or member.lastOnline >= 0:
                         continue
-                    if fltOnline > 0:
-                        if member.lastOnline == None or member.lastOnline >= 0:
-                            continue
-                    base = ''
-                    if member.baseID:
-                        base = cfg.evelocations.Get(member.baseID).locationName
-                    name = cfg.eveowners.Get(member.characterID).ownerName
-                    label = '%s<t>%s<t>%s<t>%s<t>%s' % (name,
-                     self.GetLastLoggedOnText(member.lastOnline),
-                     member.title,
-                     base,
-                     util.FmtDate(member.startDateTime, 'ln'))
-                    if eve.session.corprole & const.corpRoleDirector > 0:
-                        shipTypeName = localization.GetByLabel('UI/Generic/None')
-                        if member.shipTypeID is not None:
-                            shipTypeName = evetypes.GetName(member.shipTypeID)
-                        locationName = localization.GetByLabel('UI/Generic/Unknown')
-                        if member.locationID is not None:
+                base = ''
+                if member.baseID:
+                    base = cfg.evelocations.Get(member.baseID).locationName
+                name = cfg.eveowners.Get(member.characterID).ownerName
+                label = '%s<t>%s<t>%s<t>%s<t>%s' % (name,
+                 self.GetLastLoggedOnText(member.lastOnline),
+                 member.title,
+                 base,
+                 util.FmtDate(member.startDateTime, 'ln'))
+                if eve.session.corprole & const.corpRoleDirector > 0:
+                    shipTypeName = localization.GetByLabel('UI/Generic/None')
+                    if member.shipTypeID is not None:
+                        shipTypeName = evetypes.GetName(member.shipTypeID)
+                    locationName = localization.GetByLabel('UI/Generic/Unknown')
+                    if member.locationID is not None:
+                        try:
                             locationName = cfg.evelocations.Get(member.locationID).locationName
-                        label += '<t>%s<t>%s<t>%s<t>%s' % (shipTypeName,
-                         locationName,
-                         util.FmtDate(member.logonDateTime, 'ls') if member.logonDateTime is not None else localization.GetByLabel('UI/Generic/Unknown'),
-                         util.FmtDate(member.logoffDateTime, 'ls') if member.logoffDateTime is not None else localization.GetByLabel('UI/Generic/Unknown'))
-                    data = util.KeyVal()
-                    data.charID = member.characterID
-                    data.corporationID = member.corporationID
-                    if eve.session.corprole & const.corpRoleDirector > 0:
-                        data.logonDateTime = member.logonDateTime
-                        data.logoffDateTime = member.logoffDateTime
-                    data.label = label
-                    data.showinfo = True
-                    data.typeID = const.typeCharacterAmarr
-                    data.itemID = member.characterID
-                    data.slimuser = True
-                    data.Set('sort_%s' % localization.GetByLabel('UI/Corporations/CorporationWindow/Members/Tracking/LastOnlineColumnHeader'), member.lastOnline)
-                    scrolllist.append(listentry.Get('MemberTracking', data=data))
+                        except KeyError:
+                            pass
+
+                    label += '<t>%s<t>%s<t>%s<t>%s' % (shipTypeName,
+                     locationName,
+                     util.FmtDate(member.logonDateTime, 'ls') if member.logonDateTime is not None else localization.GetByLabel('UI/Generic/Unknown'),
+                     util.FmtDate(member.logoffDateTime, 'ls') if member.logoffDateTime is not None else localization.GetByLabel('UI/Generic/Unknown'))
+                data = util.KeyVal()
+                data.charID = member.characterID
+                data.corporationID = member.corporationID
+                if eve.session.corprole & const.corpRoleDirector > 0:
+                    data.logonDateTime = member.logonDateTime
+                    data.logoffDateTime = member.logoffDateTime
+                data.label = label
+                data.showinfo = True
+                data.typeID = const.typeCharacterAmarr
+                data.itemID = member.characterID
+                data.slimuser = True
+                data.Set('sort_%s' % localization.GetByLabel('UI/Corporations/CorporationWindow/Members/Tracking/LastOnlineColumnHeader'), member.lastOnline)
+                scrolllist.append(listentry.Get('MemberTracking', data=data))
 
             if 0 == len(scrolllist):
                 header = []
@@ -148,6 +150,8 @@ class CorpMemberTracking(uiprimitives.Container):
             self.sr.scroll.sr.id = 'member_tracking'
             self.sr.scroll.Load(fixedEntryHeight=18, contentList=scrolllist, headers=header)
             sm.GetService('loading').StopCycle()
+
+        return
 
     def OnMemberMenu(self, entry):
         selected = self.sr.scroll.GetSelected()

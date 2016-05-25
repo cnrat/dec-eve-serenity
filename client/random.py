@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\carbon\common\stdlib\random.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\carbon\common\stdlib\random.py
 from __future__ import division
 from warnings import warn as _warn
 from types import MethodType as _MethodType, BuiltinMethodType as _BuiltinMethodType
@@ -43,11 +44,12 @@ import _random
 class Random(_random.Random):
     VERSION = 3
 
-    def __init__(self, x = None):
+    def __init__(self, x=None):
         self.seed(x)
         self.gauss_next = None
+        return
 
-    def seed(self, a = None):
+    def seed(self, a=None):
         if a is None:
             try:
                 a = long(_hexlify(_urandom(16)), 16)
@@ -57,6 +59,7 @@ class Random(_random.Random):
 
         super(Random, self).seed(a)
         self.gauss_next = None
+        return
 
     def getstate(self):
         return (self.VERSION, super(Random, self).getstate(), self.gauss_next)
@@ -91,7 +94,7 @@ class Random(_random.Random):
     def __reduce__(self):
         return (self.__class__, (), self.getstate())
 
-    def randrange(self, start, stop = None, step = 1, int = int, default = None, maxwidth = 1L << BPF):
+    def randrange(self, start, stop=None, step=1, int=int, default=None, maxwidth=1L << BPF):
         istart = int(start)
         if istart != start:
             raise ValueError, 'non-integer arg 1 for randrange()'
@@ -129,7 +132,7 @@ class Random(_random.Random):
     def randint(self, a, b):
         return self.randrange(a, b + 1)
 
-    def _randbelow(self, n, _log = _log, int = int, _maxwidth = 1L << BPF, _Method = _MethodType, _BuiltinMethod = _BuiltinMethodType):
+    def _randbelow(self, n, _log=_log, int=int, _maxwidth=1L << BPF, _Method=_MethodType, _BuiltinMethod=_BuiltinMethodType):
         try:
             getrandbits = self.getrandbits
         except AttributeError:
@@ -150,12 +153,14 @@ class Random(_random.Random):
     def choice(self, seq):
         return seq[int(self.random() * len(seq))]
 
-    def shuffle(self, x, random = None, int = int):
+    def shuffle(self, x, random=None, int=int):
         if random is None:
             random = self.random
         for i in reversed(xrange(1, len(x))):
             j = int(random() * (i + 1))
             x[i], x[j] = x[j], x[i]
+
+        return
 
     def sample(self, population, k):
         n = len(population)
@@ -196,7 +201,7 @@ class Random(_random.Random):
     def uniform(self, a, b):
         return a + (b - a) * self.random()
 
-    def triangular(self, low = 0.0, high = 1.0, mode = None):
+    def triangular(self, low=0.0, high=1.0, mode=None):
         u = self.random()
         c = 0.5 if mode is None else (mode - low) / (high - low)
         if u > c:
@@ -325,7 +330,7 @@ class Random(_random.Random):
 class WichmannHill(Random):
     VERSION = 1
 
-    def seed(self, a = None):
+    def seed(self, a=None):
         if a is None:
             try:
                 a = long(_hexlify(_urandom(16)), 16)
@@ -340,6 +345,7 @@ class WichmannHill(Random):
         a, z = divmod(a, 30322)
         self._seed = (int(x) + 1, int(y) + 1, int(z) + 1)
         self.gauss_next = None
+        return
 
     def random(self):
         x, y, z = self._seed
@@ -368,7 +374,7 @@ class WichmannHill(Random):
         z = int(z * pow(170, n, 30323)) % 30323
         self._seed = (x, y, z)
 
-    def __whseed(self, x = 0, y = 0, z = 0):
+    def __whseed(self, x=0, y=0, z=0):
         if not type(x) == type(y) == type(z) == int:
             raise TypeError('seeds must be integers')
         if not (0 <= x < 256 and 0 <= y < 256 and 0 <= z < 256):
@@ -382,19 +388,22 @@ class WichmannHill(Random):
             t, z = divmod(t, 256)
         self._seed = (x or 1, y or 1, z or 1)
         self.gauss_next = None
+        return
 
-    def whseed(self, a = None):
+    def whseed(self, a=None):
         if a is None:
             self.__whseed()
             return
-        a = hash(a)
-        a, x = divmod(a, 256)
-        a, y = divmod(a, 256)
-        a, z = divmod(a, 256)
-        x = (x + a) % 256 or 1
-        y = (y + a) % 256 or 1
-        z = (z + a) % 256 or 1
-        self.__whseed(x, y, z)
+        else:
+            a = hash(a)
+            a, x = divmod(a, 256)
+            a, y = divmod(a, 256)
+            a, z = divmod(a, 256)
+            x = (x + a) % 256 or 1
+            y = (y + a) % 256 or 1
+            z = (z + a) % 256 or 1
+            self.__whseed(x, y, z)
+            return
 
 
 class SystemRandom(Random):
@@ -447,7 +456,7 @@ def _test_generator(n, func, args):
      largest)
 
 
-def _test(N = 2000):
+def _test(N=2000):
     _test_generator(N, random, ())
     _test_generator(N, normalvariate, (0.0, 1.0))
     _test_generator(N, lognormvariate, (0.0, 1.0))

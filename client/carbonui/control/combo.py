@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\packages\carbonui\control\combo.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\packages\carbonui\control\combo.py
 from carbonui.control.basicDynamicScroll import BasicDynamicScrollOverride
 from carbonui.control.menu import ClearMenuLayer
 from carbonui.control.scroll import ScrollCoreOverride
@@ -76,6 +77,7 @@ class ComboCore(Container):
             self.height = 0
         else:
             self.height = attributes.Get('height', self.default_height)
+        return
 
     def Prepare_(self):
         self.sr.content = Container(parent=self, name='__maincontent', padLeft=3)
@@ -140,7 +142,7 @@ class ComboCore(Container):
                 if browser:
                     uthread.new(browser.ShowObject, self)
 
-    def LoadOptions(self, entries, select = None, hints = None):
+    def LoadOptions(self, entries, select=None, hints=None):
         screwed = [ each for each in entries if not isinstance(each[0], basestring) ]
         if screwed:
             raise RuntimeError('NonStringKeys', repr(screwed))
@@ -156,6 +158,7 @@ class ComboCore(Container):
         if not success:
             self.SelectItemByValue(self.entries[0][1])
         self.AutoAdjustWidth_()
+        return
 
     def AutoAdjustWidth_(self):
         currentAlign = self.GetAlign()
@@ -171,6 +174,7 @@ class ComboCore(Container):
         if self.selectedValue is not None:
             return self.selectedValue
         else:
+            return
             return
 
     def GetIndex(self):
@@ -218,11 +222,13 @@ class ComboCore(Container):
         prefskey = self.prefskey
         if prefskey is None:
             return
-        config = prefskey[-1]
-        prefstype = prefskey[:-1]
-        s = GetAttrs(settings, *prefstype)
-        if s:
-            s.Set(config, self.GetValue())
+        else:
+            config = prefskey[-1]
+            prefstype = prefskey[:-1]
+            s = GetAttrs(settings, *prefstype)
+            if s:
+                s.Set(config, self.GetValue())
+            return
 
     def _Expanded(self):
         return bool(self._comboDropDown and self._comboDropDown())
@@ -271,7 +277,7 @@ class ComboCore(Container):
             width += 16
         return width
 
-    def GetScrollEntry(self, label, returnValue, hint = None, icon = None, indentLevel = None):
+    def GetScrollEntry(self, label, returnValue, hint=None, icon=None, indentLevel=None):
         if not hint and self.hints:
             hint = self.hints.get(label, '')
         data = KeyVal()
@@ -313,7 +319,7 @@ class ComboCore(Container):
 
         return scrolllist
 
-    def Expand(self, position = None):
+    def Expand(self, position=None):
         if self._expanding:
             return
         try:
@@ -330,17 +336,19 @@ class ComboCore(Container):
             totalHeight = sum([ each.height for each in scroll.sr.nodes[:6] ])
             menu.height = totalHeight + 2 + scroll.padTop + scroll.padBottom
             menu.left = l
-            menu.top = min(t + h + 1, uicore.desktop.height - menu.height - 8)
+            self.SetMenuTop(menu, t, h)
             self._comboDropDown = _weakref.ref(menu)
             uthread.new(self.ShowSelected)
             return scroll
         finally:
             self._expanding = False
 
+    def SetMenuTop(self, menu, t, h):
+        menu.top = min(t + h + 1, uicore.desktop.height - menu.height - 8)
+
     def GetExpanderIconWidth(self):
         if self.sr.expanderParent:
             return self.sr.expanderParent.width + self.sr.expanderParent.padLeft + self.sr.expanderParent.padRight
-        return 0
 
     def ShowSelected(self, *args):
         blue.synchro.Yield()
@@ -362,12 +370,13 @@ class ComboCore(Container):
     def OnComboClose(self, *args):
         self.Cleanup(0)
 
-    def Cleanup(self, setfocus = 1):
+    def Cleanup(self, setfocus=1):
         if self._comboDropDown:
             ClearMenuLayer()
         self._comboDropDown = None
         if setfocus:
             uicore.registry.SetFocus(self)
+        return
 
     def OnScrollFocusLost(self, *args):
         self.Confirm()

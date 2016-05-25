@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\carbon\common\stdlib\stacklesslib\util.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\carbon\common\stdlib\stacklesslib\util.py
 import sys
 import stackless
 import contextlib
@@ -25,7 +26,7 @@ def atomic():
 
 
 @contextlib.contextmanager
-def block_trap(trap = True):
+def block_trap(trap=True):
     c = stackless.getcurrent()
     old = c.block_trap
     c.block_trap = trap
@@ -36,7 +37,7 @@ def block_trap(trap = True):
 
 
 @contextlib.contextmanager
-def ignore_nesting(flag = True):
+def ignore_nesting(flag=True):
     c = stackless.getcurrent()
     old = c.set_ignore_nesting(flag)
     try:
@@ -85,27 +86,30 @@ class WaitTimeoutError(RuntimeError):
     pass
 
 
-def channel_wait(chan, timeout = None):
+def channel_wait(chan, timeout=None):
     if timeout is None:
         return chan.receive()
-    waiting_tasklet = stackless.getcurrent()
+    else:
+        waiting_tasklet = stackless.getcurrent()
 
-    def break_wait():
+        def break_wait():
+            with atomic():
+                if waiting_tasklet and waiting_tasklet.blocked:
+                    waiting_tasklet.raise_exception(WaitTimeoutError)
+
         with atomic():
-            if waiting_tasklet and waiting_tasklet.blocked:
-                waiting_tasklet.raise_exception(WaitTimeoutError)
+            try:
+                main.event_queue.push_after(break_wait, timeout)
+                return chan.receive()
+            finally:
+                waiting_tasklet = None
 
-    with atomic():
-        try:
-            main.event_queue.push_after(break_wait, timeout)
-            return chan.receive()
-        finally:
-            waiting_tasklet = None
+        return
 
 
 class ValueEvent(stackless.channel):
 
-    def __new__(cls, timeout = None, timeoutException = None, timeoutExceptionValue = None):
+    def __new__(cls, timeout=None, timeoutException=None, timeoutExceptionValue=None):
         obj = super(ValueEvent, cls).__new__(cls)
         obj.timeout = timeout
         if timeout > 0.0:
@@ -126,7 +130,7 @@ class ValueEvent(stackless.channel):
          self.queue,
          self.timeout)
 
-    def set(self, value = None):
+    def set(self, value=None):
         if self.closed:
             raise RuntimeError('ValueEvent object already signaled or aborted.')
         while self.queue:
@@ -135,7 +139,7 @@ class ValueEvent(stackless.channel):
         self.close()
         self.exception, self.value = RuntimeError, ('Already resumed',)
 
-    def abort(self, exception = None, *value):
+    def abort(self, exception=None, *value):
         if self.closed:
             raise RuntimeError('ValueEvent object already signaled or aborted.')
         if exception is None:
@@ -146,6 +150,7 @@ class ValueEvent(stackless.channel):
             self.send_exception(exception, *value)
 
         self.close()
+        return
 
     def wait(self):
         if self.closed:
@@ -153,21 +158,23 @@ class ValueEvent(stackless.channel):
         return self.receive()
 
 
-def send_throw(channel, exc, val = None, tb = None):
+def send_throw(channel, exc, val=None, tb=None):
     if hasattr(channel, 'send_throw'):
         return channel.send_throw(exc, val, tb)
-    if exc is None:
-        if val is None:
-            val = sys.exc_info()[1]
-        exc = val.__class__
-    elif val is None:
-        if isinstance(type, exc):
-            exc, val = exc, ()
-        else:
-            exc, val = exc.__class__, exc
-    if not isinstance(val, tuple):
-        val = val.args
-    channel.send_exception(exc, *val)
+    else:
+        if exc is None:
+            if val is None:
+                val = sys.exc_info()[1]
+            exc = val.__class__
+        elif val is None:
+            if isinstance(type, exc):
+                exc, val = exc, ()
+            else:
+                exc, val = exc.__class__, exc
+        if not isinstance(val, tuple):
+            val = val.args
+        channel.send_exception(exc, *val)
+        return
 
 
 class qchannel(stackless.channel):
@@ -193,7 +200,7 @@ class qchannel(stackless.channel):
     def send_exception(self, exc, *args):
         self.send_throw(exc, args)
 
-    def send_throw(self, exc, value = None, tb = None):
+    def send_throw(self, exc, value=None, tb=None):
         sup = super(qchannel, self)
         with atomic():
             if sup.balance >= 0 and not sup.closing:
@@ -214,6 +221,8 @@ class qchannel(stackless.channel):
             finally:
                 tb = None
 
+        return
+
     def send_sequence(self, sequence):
         for i in sequence:
             self.send(i)
@@ -222,7 +231,7 @@ class qchannel(stackless.channel):
         return self.receive()
 
 
-def call_async(dispatcher, function, args = (), kwargs = {}, timeout = None, timeout_exception = WaitTimeoutError):
+def call_async(dispatcher, function, args=(), kwargs={}, timeout=None, timeout_exception=WaitTimeoutError):
     chan = qchannel()
 
     def helper():
@@ -257,7 +266,7 @@ def released(lock):
 
 class dummy_threadpool(object):
 
-    def __init__(self, stack_size = None):
+    def __init__(self, stack_size=None):
         self.stack_size = stack_size
 
     def stop(self):
@@ -276,13 +285,15 @@ class dummy_threadpool(object):
             if stack_size is not None:
                 _realthreading.stack_size(prev_stacksize)
 
+        return
+
     def submit(self, job):
         self.start_thread(job)
 
 
 class simple_threadpool(dummy_threadpool):
 
-    def __init__(self, stack_size = None, n_threads = 1):
+    def __init__(self, stack_size=None, n_threads=1):
         super(simple_threadpool, self).__init__(stack_size)
         self.threads_max = n_threads
         self.threads_n = 0
@@ -332,8 +343,10 @@ class simple_threadpool(dummy_threadpool):
             finally:
                 self.threads_n -= 1
 
+        return
 
-def call_on_thread(function, args = (), kwargs = {}, stack_size = None, threadpool = None, timeout = None):
+
+def call_on_thread(function, args=(), kwargs={}, stack_size=None, threadpool=None, timeout=None):
     if not threadpool:
         threadpool = dummy_threadpool(stack_size)
     return call_async(threadpool.submit, function, args, kwargs, timeout=timeout)

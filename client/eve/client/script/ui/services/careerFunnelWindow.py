@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\client\script\ui\services\careerFunnelWindow.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\client\script\ui\services\careerFunnelWindow.py
 from carbonui import const as uiconst
 from eve.client.script.ui.control import entries as listentry
 from eve.client.script.ui.services.careerAgentEntry import CareerAgentEntry
@@ -66,6 +67,7 @@ class CareerFunnelWindow(uicontrols.Window):
         height += 440
         self.height = height
         self.inited = True
+        return
 
     def GetAgents(self):
         return sm.GetService('tutorial').GetCareerFunnelAgents()
@@ -76,6 +78,7 @@ class CareerFunnelWindow(uicontrols.Window):
                 content.panel.Load(content)
 
         self.sr.contentList.Load(None, self.contentItemList, headers=None, noContentHint=localization.GetByLabel('UI/Generic/Unknown'))
+        return
 
     def CloseByUser(self, *args):
         if eve.Message('CareerFunnelClose', {}, uiconst.YESNO, suppress=uiconst.ID_YES) == uiconst.ID_YES:

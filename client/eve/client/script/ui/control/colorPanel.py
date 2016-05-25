@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\client\script\ui\control\colorPanel.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\client\script\ui\control\colorPanel.py
 from carbonui.primitives.layoutGrid import LayoutGrid
 from carbonui.primitives.container import Container
 from carbonui.primitives.frame import Frame
@@ -32,3 +33,4 @@ class ColorPanel(LayoutGrid):
             c = Frame(name='colorFill', pos=colorPos, color=(1, 1, 1, 0.2), align=uiconst.NOALIGN, state=uiconst.UI_NORMAL)
             c.OnClick = (self.callback, None)
             self.AddCell(cellObject=c, colSpan=1)
+        return

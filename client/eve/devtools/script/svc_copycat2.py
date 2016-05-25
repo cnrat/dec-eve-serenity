@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\devtools\script\svc_copycat2.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\devtools\script\svc_copycat2.py
 import evetypes
 CFG_USEONLINE = 0
 myversion = '2.4'
@@ -38,7 +39,7 @@ def GetTypeName(typeID):
 
 Progress = lambda title, text, current, total: sm.GetService('loading').ProgressWnd(title, text, current, total)
 Slash = lambda command: sm.RemoteSvc('slash').SlashCmd(command)
-Message = lambda title, body, icon = triui.INFO: sm.GetService('gameui').MessageBox(body, title, buttons=uiconst.OK, icon=icon)
+Message = lambda title, body, icon=triui.INFO: sm.GetService('gameui').MessageBox(body, title, buttons=uiconst.OK, icon=icon)
 AUTOSAVE_IMMEDIATE = 3
 AUTOSAVE_TIMED = 2
 AUTOSAVE_EXITONLY = 1
@@ -52,20 +53,21 @@ def IsRepeatable(module):
     dogmaLocation = sm.GetService('clientDogmaIM').GetDogmaLocation()
     if module.IsOnline() is False:
         return False
-    for effectID in dogmaLocation.dogmaStaticMgr.effectsByType[module.typeID]:
-        effect = dogmaLocation.dogmaStaticMgr.effects[effectID]
-        if effect.effectCategory not in [const.dgmEffActivation, const.dgmEffTarget]:
-            continue
-        if effect.durationAttributeID is None:
-            continue
-        if effectID == const.effectOnline:
-            continue
-        return True
+    else:
+        for effectID in dogmaLocation.dogmaStaticMgr.effectsByType[module.typeID]:
+            effect = dogmaLocation.dogmaStaticMgr.effects[effectID]
+            if effect.effectCategory not in [const.dgmEffActivation, const.dgmEffTarget]:
+                continue
+            if effect.durationAttributeID is None:
+                continue
+            if effectID == const.effectOnline:
+                continue
+            return True
 
-    return False
+        return False
 
 
-def AskFile(title = 'Title goes here', body = 'Enter name of file:', setvalue = '', mustexist = True):
+def AskFile(title='Title goes here', body='Enter name of file:', setvalue='', mustexist=True):
     while True:
         ret = uiutil.NamePopup(caption=title, label=body, setvalue=setvalue, maxLength=256)
         if not ret:
@@ -77,6 +79,8 @@ def AskFile(title = 'Title goes here', body = 'Enter name of file:', setvalue = 
             Message('File not found', 'Could not locate the file:<br>  %s' % filename, icon=triui.WARNING)
             continue
         return filename
+
+    return None
 
 
 def EscapeString(unescaped):
@@ -99,11 +103,11 @@ class CCItem(object):
 
     def __init__(self):
         self.parent = None
+        return
 
     def __repr__(self):
         if hasattr(self, 'name'):
             return '<Item name="%s">' % self.name
-        return '<Item name=Unspecified>'
 
     def Remove(self):
         if self.parent:
@@ -123,6 +127,7 @@ class CCFolder(CCItem):
     def RemoveItem(self, this):
         self.content.remove(this)
         this.parent = None
+        return
 
     def ContainsItem(self, this):
         while this.parent:
@@ -133,7 +138,7 @@ class CCFolder(CCItem):
         return False
 
     def __repr__(self):
-        return '<CCFolder>'
+        pass
 
 
 def CreateTreeFromDict(dict):
@@ -178,12 +183,13 @@ class CopycatService(Service):
                 return 'Ok'
             raise
 
+        return
+
     def cmd_getshipsetup(self, p):
         dnaKey = sm.RemoteSvc('slash').SlashCmd('/getshipsetup ' + p.line)
         dna.Ship(dnaKey=dnaKey).ShowInfo()
-        return 'Ok'
 
-    def igb(self, action = '', key = '', name = None):
+    def igb(self, action='', key='', name=None):
         action = action.lower()
         if action == 'open':
             dna.Popup(key, name)
@@ -214,13 +220,13 @@ class CopycatService(Service):
         Scan(self.tree)
         return hits
 
-    def ShowInfo(self, what = None, name = None):
+    def ShowInfo(self, what=None, name=None):
         dna.Popup(what, name, buttons=False)
 
     def GetInsiderDir(self):
         return sm.GetService('insider').GetInsiderDir()
 
-    def Run(self, memStream = None):
+    def Run(self, memStream=None):
         self.state = SERVICE_START_PENDING
         try:
             self.lockout = False
@@ -247,7 +253,9 @@ class CopycatService(Service):
         finally:
             self.state = SERVICE_RUNNING
 
-    def Stop(self, memStream = None):
+        return
+
+    def Stop(self, memStream=None):
         self.Hide()
         if self.dbautosave:
             self.SaveDatabaseIfChanged()
@@ -286,6 +294,7 @@ class CopycatService(Service):
         self.prefs.autosave = self.dbautosave = mode
         self.SaveDatabaseIfChanged()
         self.UpdateStatus()
+        return
 
     def SaveDatabaseIfChanged(self):
         if self.dbchanged:
@@ -320,8 +329,10 @@ class CopycatService(Service):
 
         if folder.content:
             return folder
+        else:
+            return None
 
-    def ReadDatabase(self, filename = None):
+    def ReadDatabase(self, filename=None):
         self._root = None
         if filename is None or filename == '':
             filename = self.dbfilename
@@ -354,14 +365,16 @@ class CopycatService(Service):
         def XMLTagData(data):
             if not self.currenttag:
                 return
-            data = data.replace('\n', '').replace('\r', '')
-            if not data:
+            else:
+                data = data.replace('\n', '').replace('\r', '')
+                if not data:
+                    return
+                if self.currenttag == 'name':
+                    self.currentitem.name = UnEscapeString(eval("'" + data.replace("'", "\\'") + "'"))
+                elif self.currenttag == 'dna':
+                    self.currentitem.dna = data
+                self.currenttag = None
                 return
-            if self.currenttag == 'name':
-                self.currentitem.name = UnEscapeString(eval("'" + data.replace("'", "\\'") + "'"))
-            elif self.currenttag == 'dna':
-                self.currentitem.dna = data
-            self.currenttag = None
 
         try:
             f = open(filename, 'r')
@@ -381,7 +394,7 @@ class CopycatService(Service):
         self._root = None
         return root
 
-    def WriteDatabase(self, tree, filename = None):
+    def WriteDatabase(self, tree, filename=None):
         if not filename:
             filename = self.dbfilename
         list = []
@@ -399,7 +412,7 @@ class CopycatService(Service):
                 (RuntimeError, 'Endless cycle detected: %s' % item)
             list.append(item)
 
-        def XMLDumpFolder(f, folder, tag = 'data', indent = ''):
+        def XMLDumpFolder(f, folder, tag='data', indent=''):
             deeper = indent + '\t'
             if not indent:
                 f.write("<?xml version='1.0' encoding='utf-8'?>\r\n")
@@ -428,6 +441,7 @@ class CopycatService(Service):
             self.wnd.Close()
             self.wnd = None
             self.infotemplate = None
+        return
 
     def RetrieveDefaultDatabase(self, dbpath):
         try:
@@ -441,83 +455,85 @@ class CopycatService(Service):
         if not (hasattr(eve.session, 'solarsystemid') and eve.session.solarsystemid2):
             Message('Hold your horses!', 'The copycat UI requires you to be logged in.')
             return
-        if self.wnd:
+        elif self.wnd:
             self.wnd.Maximize()
             return
-        initing = True
-        self.wnd = wnd = uicontrols.Window.Open(windowID=SERVICENAME)
-        wnd._OnClose = self.Hide
-        wnd.SetWndIcon(None)
-        wnd.SetTopparentHeight(0)
-        wnd.SetCaption('Copycat')
-        wnd.sr.main = main = uiutil.GetChild(wnd, 'main')
-        top = uiprimitives.Container(name='push', align=uiconst.TOTOP, height=14, parent=main)
-        uiprimitives.Line(parent=top, align=uiconst.TOBOTTOM)
-        push = uiprimitives.Container(name='push', parent=top, align=uiconst.TOLEFT, width=const.defaultPadding, state=uiconst.UI_DISABLED)
-        uiprimitives.Line(parent=push, align=uiconst.TORIGHT)
-        for label, func in [('File', self.GetMenu_File), ('My Ship', self.GetMenu_Ship)]:
-            menu = uicls.WindowDropDownMenu(name='menu', parent=top, align=uiconst.TOLEFT, state=uiconst.UI_NORMAL)
-            menu.Setup(label, func)
-
-        uiprimitives.Container(name='bottompush', parent=main, state=uiconst.UI_DISABLED, align=uiconst.TOBOTTOM, height=const.defaultPadding)
-        c = uiprimitives.Container(name='', parent=main, state=uiconst.UI_PICKCHILDREN, align=uiconst.TOBOTTOM, height=10)
-        wnd.sr.filenamelabel = uicontrols.Label(text='', parent=c, align=uiconst.TOALL, padLeft=const.defaultPadding, color=None, state=uiconst.UI_NORMAL)
-        self.UpdateStatus()
-        wnd.sr.tabs = uicontrols.TabGroup(name='tabsparent', parent=main)
-        body = uiprimitives.Container(name='scroll', parent=main, pos=(const.defaultPadding,
-         const.defaultPadding,
-         const.defaultPadding,
-         const.defaultPadding))
-        wnd.sr.info = info = dna.InfoPanel(name='infopanel', parent=body, align=uiconst.TORIGHT)
-        info.Setup(readonly=True)
-        info.width = settings.user.ui.Get(UI_WINFO, 288)
-        self.scaling = 0
-        wnd.sr.div = div = uiprimitives.Container(name='meow', parent=body, align=uiconst.TORIGHT)
-        uiprimitives.Fill(parent=body, color=(1.0, 1.0, 1.0, 0.5), width=2, align=uiconst.TORIGHT)
-        wnd.sr.scroll = uicontrols.Scroll(parent=body)
-        wnd.sr.scroll.sr.sortBy = 'Name'
-        wnd.sr.scroll.Startup()
-        wnd.sr.scroll.sr.id = 'Copycat2Scroll'
-        wnd.sr.scroll.sr.content.OnDropData = self.OnDropData
-        wnd.OnDropData = self.OnDropData
-
-        def toggleview(*args):
-            x = settings.user.ui.Get(UI_USEINFO, 0)
-            if not initing:
-                x = not x
-            settings.user.ui.Set(UI_USEINFO, x)
-            b.state = uiconst.UI_HIDDEN
-            self.wnd.width = (self.smallwidth, self.bigwidth)[x]
-            self.UpdateInfoPanelStuff()
-
-        icon = uiprimitives.Sprite(parent=main, width=16, height=16, align=uiconst.TOPRIGHT, top=14, left=const.defaultPadding, texturePath='res:/UI/Texture/classes/Browser/backIdle.png')
-        icon.OnClick = toggleview
-        self.wnd.sr.infotoggle = b = icon
-        self.viewmode = VIEW_USER
-        self.fixedgroups = {}
-        wnd.sr.tabs.Startup([['Normal',
-          self.wnd.sr.scroll,
-          self,
-          VIEW_USER], ['Grouped',
-          self.wnd.sr.scroll,
-          self,
-          VIEW_GROUPED], ['Market',
-          self.wnd.sr.scroll,
-          self,
-          VIEW_MARKET]], 'copycattabs')
-        self.smallwidth = settings.user.ui.Get(UI_WSMALL, 200)
-        self.bigwidth = settings.user.ui.Get(UI_WBIG, 400)
-        self.lastdna = None
-        toggleview()
-        if info.state != uiconst.UI_HIDDEN:
-            wnd.width = self.bigwidth
         else:
-            wnd.width = self.smallwidth
-        wnd.Maximize(1)
-        wnd.OnEndScale_ = self.UpdateInfoPanelStuff
-        if eve.session.role > 1:
-            self.ShowContent()
-        initing = False
+            initing = True
+            self.wnd = wnd = uicontrols.Window.Open(windowID=SERVICENAME)
+            wnd._OnClose = self.Hide
+            wnd.SetWndIcon(None)
+            wnd.SetTopparentHeight(0)
+            wnd.SetCaption('Copycat')
+            wnd.sr.main = main = uiutil.GetChild(wnd, 'main')
+            top = uiprimitives.Container(name='push', align=uiconst.TOTOP, height=14, parent=main)
+            uiprimitives.Line(parent=top, align=uiconst.TOBOTTOM)
+            push = uiprimitives.Container(name='push', parent=top, align=uiconst.TOLEFT, width=const.defaultPadding, state=uiconst.UI_DISABLED)
+            uiprimitives.Line(parent=push, align=uiconst.TORIGHT)
+            for label, func in [('File', self.GetMenu_File), ('My Ship', self.GetMenu_Ship)]:
+                menu = uicls.WindowDropDownMenu(name='menu', parent=top, align=uiconst.TOLEFT, state=uiconst.UI_NORMAL)
+                menu.Setup(label, func)
+
+            uiprimitives.Container(name='bottompush', parent=main, state=uiconst.UI_DISABLED, align=uiconst.TOBOTTOM, height=const.defaultPadding)
+            c = uiprimitives.Container(name='', parent=main, state=uiconst.UI_PICKCHILDREN, align=uiconst.TOBOTTOM, height=10)
+            wnd.sr.filenamelabel = uicontrols.Label(text='', parent=c, align=uiconst.TOALL, padLeft=const.defaultPadding, color=None, state=uiconst.UI_NORMAL)
+            self.UpdateStatus()
+            wnd.sr.tabs = uicontrols.TabGroup(name='tabsparent', parent=main)
+            body = uiprimitives.Container(name='scroll', parent=main, pos=(const.defaultPadding,
+             const.defaultPadding,
+             const.defaultPadding,
+             const.defaultPadding))
+            wnd.sr.info = info = dna.InfoPanel(name='infopanel', parent=body, align=uiconst.TORIGHT)
+            info.Setup(readonly=True)
+            info.width = settings.user.ui.Get(UI_WINFO, 288)
+            self.scaling = 0
+            wnd.sr.div = div = uiprimitives.Container(name='meow', parent=body, align=uiconst.TORIGHT)
+            uiprimitives.Fill(parent=body, color=(1.0, 1.0, 1.0, 0.5), width=2, align=uiconst.TORIGHT)
+            wnd.sr.scroll = uicontrols.Scroll(parent=body)
+            wnd.sr.scroll.sr.sortBy = 'Name'
+            wnd.sr.scroll.Startup()
+            wnd.sr.scroll.sr.id = 'Copycat2Scroll'
+            wnd.sr.scroll.sr.content.OnDropData = self.OnDropData
+            wnd.OnDropData = self.OnDropData
+
+            def toggleview(*args):
+                x = settings.user.ui.Get(UI_USEINFO, 0)
+                if not initing:
+                    x = not x
+                settings.user.ui.Set(UI_USEINFO, x)
+                b.state = uiconst.UI_HIDDEN
+                self.wnd.width = (self.smallwidth, self.bigwidth)[x]
+                self.UpdateInfoPanelStuff()
+
+            icon = uiprimitives.Sprite(parent=main, width=16, height=16, align=uiconst.TOPRIGHT, top=14, left=const.defaultPadding, texturePath='res:/UI/Texture/classes/Browser/backIdle.png')
+            icon.OnClick = toggleview
+            self.wnd.sr.infotoggle = b = icon
+            self.viewmode = VIEW_USER
+            self.fixedgroups = {}
+            wnd.sr.tabs.Startup([['Normal',
+              self.wnd.sr.scroll,
+              self,
+              VIEW_USER], ['Grouped',
+              self.wnd.sr.scroll,
+              self,
+              VIEW_GROUPED], ['Market',
+              self.wnd.sr.scroll,
+              self,
+              VIEW_MARKET]], 'copycattabs')
+            self.smallwidth = settings.user.ui.Get(UI_WSMALL, 200)
+            self.bigwidth = settings.user.ui.Get(UI_WBIG, 400)
+            self.lastdna = None
+            toggleview()
+            if info.state != uiconst.UI_HIDDEN:
+                wnd.width = self.bigwidth
+            else:
+                wnd.width = self.smallwidth
+            wnd.Maximize(1)
+            wnd.OnEndScale_ = self.UpdateInfoPanelStuff
+            if eve.session.role > 1:
+                self.ShowContent()
+            initing = False
+            return
 
     def ScaleStart(self, *args):
         self.wnd.sr.info.state = uiconst.UI_DISABLED
@@ -561,13 +577,13 @@ class CopycatService(Service):
         b.state = uiconst.UI_NORMAL
         self.ShowDNA(force=True)
 
-    def ShowInfo(self, dnaKey = None, shipID = None, name = None):
+    def ShowInfo(self, dnaKey=None, shipID=None, name=None):
         if dnaKey:
             dna.Ship(dnaKey=dnaKey, name=name).ShowInfo()
         elif shipID:
             dna.Ship(shipID=shipID).ShowInfo()
 
-    def ShowDNA(self, name = None, dnaKey = None, force = False):
+    def ShowDNA(self, name=None, dnaKey=None, force=False):
         info = self.wnd.sr.info
         if not force:
             if info.state == uiconst.UI_HIDDEN:
@@ -582,6 +598,7 @@ class CopycatService(Service):
             self.infotemplate = t = dna.Ship(dnaKey=dnaKey, name=name)
         if t:
             info.Load(t)
+        return
 
     def Load(self, viewmode):
         s = self.wnd.sr.scroll
@@ -592,27 +609,29 @@ class CopycatService(Service):
     def Refresh(self):
         self.wnd.sr.scroll.Refresh()
 
-    def ShowContent(self, resetPos = True):
+    def ShowContent(self, resetPos=True):
         if not self.wnd:
             return
-        s = self.wnd.sr.scroll
-        p = s.sr.position
-        tree = self.tree
-        if self.viewmode == VIEW_USER:
-            h = ['Name', 'Type', 'Group']
-        elif self.viewmode == VIEW_GROUPED:
-            tree = self.ReorganisedByInvGroup(self.tree)
-            h = ['Name', 'Type']
-        elif self.viewmode == VIEW_MARKET:
-            tree = self.ReorganisedByMarketGroup(self.tree)
-            h = ['Name', 'Type']
         else:
-            raise RuntimeError('Unrecognized View Mode: %s' % tree)
-        self.LogInfo('ShowContent calling self.BuildTreeList')
-        s.Load(contentList=self.BuildTreeList(tree), fixedEntryHeight=None, headers=h)
-        if not resetPos:
-            s.sr.position = p
-            s.UpdatePosition()
+            s = self.wnd.sr.scroll
+            p = s.sr.position
+            tree = self.tree
+            if self.viewmode == VIEW_USER:
+                h = ['Name', 'Type', 'Group']
+            elif self.viewmode == VIEW_GROUPED:
+                tree = self.ReorganisedByInvGroup(self.tree)
+                h = ['Name', 'Type']
+            elif self.viewmode == VIEW_MARKET:
+                tree = self.ReorganisedByMarketGroup(self.tree)
+                h = ['Name', 'Type']
+            else:
+                raise RuntimeError('Unrecognized View Mode: %s' % tree)
+            self.LogInfo('ShowContent calling self.BuildTreeList')
+            s.Load(contentList=self.BuildTreeList(tree), fixedEntryHeight=None, headers=h)
+            if not resetPos:
+                s.sr.position = p
+                s.UpdatePosition()
+            return
 
     def UpdateStatus(self):
         if not self.wnd:
@@ -633,7 +652,7 @@ class CopycatService(Service):
             status += 'wtf?'
         self.wnd.sr.filenamelabel.hint = status
 
-    def UpdateContent(self, everything = True):
+    def UpdateContent(self, everything=True):
         self.ShowContent(False)
         self.dbchanged = True
         if self.dbautosave == AUTOSAVE_IMMEDIATE:
@@ -734,7 +753,7 @@ class CopycatService(Service):
 
         return newtree
 
-    def BuildTreeList(self, folder, sublevel = 0):
+    def BuildTreeList(self, folder, sublevel=0):
         ret = []
         guid = 'DNAEntry'
         self.LogInfo('folder: %s' % folder)
@@ -798,7 +817,7 @@ class CopycatService(Service):
 
         return ret
 
-    def GroupGetSubContent(self, node, newitems = 0):
+    def GroupGetSubContent(self, node, newitems=0):
         if not len(node.groupItems):
             return []
         sublevel = node.get('sublevel', 0)
@@ -812,20 +831,21 @@ class CopycatService(Service):
         id[1].name = newlabel
         self.UpdateContent()
 
-    def GroupAdd(self, name = None, parent = None):
+    def GroupAdd(self, name=None, parent=None):
         if not name:
             ret = uiutil.NamePopup(caption='New folder', label='Enter name for new folder:', setvalue='New Folder', maxLength=64)
             if ret:
                 name = ret
         if not name:
             return None
-        f = CCFolder()
-        f.name = name
-        if not parent:
-            parent = self.tree
-        parent.AddItem(f)
-        self.UpdateContent()
-        return f
+        else:
+            f = CCFolder()
+            f.name = name
+            if not parent:
+                parent = self.tree
+            parent.AddItem(f)
+            self.UpdateContent()
+            return f
 
     def GroupDelete(self, id):
         id[1].Remove()
@@ -853,6 +873,7 @@ class CopycatService(Service):
 
         if changed:
             self.UpdateContent()
+        return
 
     def GetMenu_File(self):
         mutexgfx = (('ui_9_64_14', 1.0 / 4.0), ('ui_38_16_193', 1.0 / 16.0))
@@ -927,7 +948,7 @@ class CopycatService(Service):
         else:
             Message('Database %s Error' % verb, 'The file is not a valid Copycat DNA Database, or contained no entries.', icon=triui.WARNING)
 
-    def DoSave(self, mode = 'default'):
+    def DoSave(self, mode='default'):
         if mode == 'default':
             self.WriteDatabase(self.tree)
             self.dbchanged = False
@@ -965,7 +986,7 @@ class CopycatService(Service):
             uthread.new(Message, 'No ship... No pod...', "You might want to get into a ship, it's cold out there.")
             return
 
-        def cf(func, condition = True):
+        def cf(func, condition=True):
             if condition and HaveShip:
                 return func
             return False
@@ -1022,7 +1043,7 @@ class CopycatService(Service):
             m.insert(0, ('Recently lost ships', None))
         return m
 
-    def DoOnline(self, shipID = None):
+    def DoOnline(self, shipID=None):
         if CFG_USEONLINE:
             if eve.session.role & ROLE_GML:
                 sm.RemoteSvc('slash').SlashCmd('/online me')
@@ -1034,55 +1055,56 @@ class CopycatService(Service):
             shipID = util.GetActiveShip()
         if shipID is None:
             return
-        dogmaLocation = sm.GetService('clientDogmaIM').GetDogmaLocation()
-        ship = dogmaLocation.GetDogmaItem(shipID)
-        onlined = 0
-        offlinemods = []
-        if eve.session.stationid:
-            title = 'Turbo Power Up'
         else:
-            if not eve.session.role & ROLE_HEALSELF:
-                sm.GetService('gameui').MessageBox('To use this function in space, you need %s.' % roles, 'Function not available', buttons=uiconst.OK, icon=triui.INFO)
-                return
-            title = 'Power up'
-        c = 0
-        for slot in (const.flagLoSlot0, const.flagMedSlot0, const.flagHiSlot0):
-            for flag in xrange(slot + 7, slot - 1, -1):
-                c += 1
-                Progress(title, 'Checking for offline modules...', c, 24)
-                for module in ship.GetFittedItems().itervalues():
-                    if module.flagID == flag and module.categoryID is not const.categoryCharge:
-                        if not module.IsOnline():
-                            offlinemods.append(module)
-                        break
-
-        def ONLINE(state, control):
-            try:
-                dogmaLocation.OnlineModule(control.itemID)
-            except:
-                pass
-
-            state[0] += 1
-            Progress(title, 'Activating module %s of %s' % (state[0], state[1]), state[0], state[1])
-
-        offlinemodcount = len(offlinemods)
-        if offlinemodcount > 0:
-            state = [0, offlinemodcount]
-            w = sm.RemoteSvc('slash')
+            dogmaLocation = sm.GetService('clientDogmaIM').GetDogmaLocation()
+            ship = dogmaLocation.GetDogmaItem(shipID)
+            onlined = 0
+            offlinemods = []
             if eve.session.stationid:
-                parallelCalls = []
-                for control in offlinemods:
-                    parallelCalls.append((ONLINE, (state, control)))
-
-                uthread.parallel(parallelCalls)
+                title = 'Turbo Power Up'
             else:
-                for control in offlinemods:
-                    w.SlashCmd('/heal me capac=1')
-                    ONLINE(state, control)
+                if not eve.session.role & ROLE_HEALSELF:
+                    sm.GetService('gameui').MessageBox('To use this function in space, you need %s.' % roles, 'Function not available', buttons=uiconst.OK, icon=triui.INFO)
+                    return
+                title = 'Power up'
+            c = 0
+            for slot in (const.flagLoSlot0, const.flagMedSlot0, const.flagHiSlot0):
+                for flag in xrange(slot + 7, slot - 1, -1):
+                    c += 1
+                    Progress(title, 'Checking for offline modules...', c, 24)
+                    for module in ship.GetFittedItems().itervalues():
+                        if module.flagID == flag and module.categoryID is not const.categoryCharge:
+                            if not module.IsOnline():
+                                offlinemods.append(module)
+                            break
 
-                w.SlashCmd('/heal me capac=1')
-        Progress(title, 'Done', 1, 1)
-        return offlinemodcount
+            def ONLINE(state, control):
+                try:
+                    dogmaLocation.OnlineModule(control.itemID)
+                except:
+                    pass
+
+                state[0] += 1
+                Progress(title, 'Activating module %s of %s' % (state[0], state[1]), state[0], state[1])
+
+            offlinemodcount = len(offlinemods)
+            if offlinemodcount > 0:
+                state = [0, offlinemodcount]
+                w = sm.RemoteSvc('slash')
+                if eve.session.stationid:
+                    parallelCalls = []
+                    for control in offlinemods:
+                        parallelCalls.append((ONLINE, (state, control)))
+
+                    uthread.parallel(parallelCalls)
+                else:
+                    for control in offlinemods:
+                        w.SlashCmd('/heal me capac=1')
+                        ONLINE(state, control)
+
+                    w.SlashCmd('/heal me capac=1')
+            Progress(title, 'Done', 1, 1)
+            return offlinemodcount
 
     def DoRepeat(self, *args):
         dogmaLocation = sm.GetService('clientDogmaIM').GetDogmaLocation()
@@ -1099,7 +1121,7 @@ class CopycatService(Service):
                 else:
                     settings.char.autorepeat.Set(module.itemID, 1000)
 
-    def DoStore(self, dnaKey = None, name = None, shipID = None):
+    def DoStore(self, dnaKey=None, name=None, shipID=None):
         if dnaKey:
             template = dna.Ship(dnaKey=dnaKey)
             action = 'Import'
@@ -1130,11 +1152,12 @@ class CopycatService(Service):
                 Slash('/copyship %s 1' % util.GetActiveShip())
                 Progress('Clone %s' % tname, 'Done', 1, 1)
                 return
+        return
 
     def DoClone(self):
         dna.Ship().ImportFromShip().Assemble(clone=1)
 
-    def DoShowInfo(self, node = None):
+    def DoShowInfo(self, node=None):
         dna.Ship().ImportFromShip().ShowInfo()
 
 
@@ -1163,6 +1186,7 @@ class DNAGroup(listentry.Group):
              (('Change Label', 'ui_7_64_15'), (None, self.ChangeLabel)[not node.locked]),
              (('Delete Folder', '04_16'), self.DeleteFolder)]
         spiffy.CreateMenu(m)
+        return
 
     def GetDragData(self, *args):
         if self.sr.node.locked:
@@ -1214,7 +1238,7 @@ class DNAEntry(listentry.Generic):
 
     def GetMenu(self):
 
-        def cf(func, condition = True):
+        def cf(func, condition=True):
             if condition:
                 return func
             return False
@@ -1230,6 +1254,7 @@ class DNAEntry(listentry.Generic):
             m += dna.Ship(dnaKey=item.dna, name=item.name).GetMenuInline(store=False)
             m += [None, (('Rename Setup...', 'ui_7_64_15'), self.Rename), (('Delete Setup...', '04_16'), self.Delete)]
         spiffy.CreateMenu(m)
+        return
 
     def OnMouseUp(self, *args):
         try:
@@ -1238,7 +1263,7 @@ class DNAEntry(listentry.Generic):
         except:
             sys.exc_clear()
 
-    def Delete(self, nodes = None):
+    def Delete(self, nodes=None):
         if not nodes:
             nodes = [self.sr.node]
         text = 'You are about to delete the setup(s):<br>'

@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\client\script\ui\view\aurumstore\aurumStoreContainer.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\client\script\ui\view\aurumstore\aurumStoreContainer.py
 import logging
 import collections
 import math
@@ -107,6 +108,7 @@ class AurumStoreContainer(Container):
         self.SetFilterOptions()
         self.currentAurBalance = 0
         self._OnResize()
+        return
 
     def _OnResize(self, *args):
         top, left, width, height = self.GetAbsolute()
@@ -183,16 +185,18 @@ class AurumStoreContainer(Container):
     def LoadCategoryPage(self, categoryId):
         if self.page == PAGE_CATEGORY and self.selectedRootCategoryId == categoryId and self.selectedCategoryId is None:
             return
-        logger.debug('Loading category page: %s', categoryId)
-        self.SelectCategory(categoryId)
-        categoriesById = self.store.GetCategories()
-        category = categoriesById[categoryId]
-        subcategories = [ categoriesById[subCatId] for subCatId in category.subcategories ]
-        subcategories = localization.util.Sort(subcategories, key=lambda c: c.name)
-        self.SetSubCategories(subcategories)
-        self.SelectSubCategory(None)
-        self.SetOffersAndTags(categoryId)
-        self.page = PAGE_CATEGORY
+        else:
+            logger.debug('Loading category page: %s', categoryId)
+            self.SelectCategory(categoryId)
+            categoriesById = self.store.GetCategories()
+            category = categoriesById[categoryId]
+            subcategories = [ categoriesById[subCatId] for subCatId in category.subcategories ]
+            subcategories = localization.util.Sort(subcategories, key=lambda c: c.name)
+            self.SetSubCategories(subcategories)
+            self.SelectSubCategory(None)
+            self.SetOffersAndTags(categoryId)
+            self.page = PAGE_CATEGORY
+            return
 
     def OnClickSubCategory(self, subcategoryId):
         self.LoadSubCategoryPage(subcategoryId)
@@ -223,15 +227,17 @@ class AurumStoreContainer(Container):
         logger.debug('LoadLandingPage')
         if self.page == PAGE_HOME:
             return
-        logger.debug('Loading landing page')
-        self._SetSubCategories(None)
-        self.SelectCategory(None)
-        self.SelectSubCategory(None)
-        self.SetFilterTags([])
-        self.ShowBanner()
-        offers = self.store.GetOffers().values()
-        self.SetOffers(offers)
-        self.page = PAGE_HOME
+        else:
+            logger.debug('Loading landing page')
+            self._SetSubCategories(None)
+            self.SelectCategory(None)
+            self.SelectSubCategory(None)
+            self.SetFilterTags([])
+            self.ShowBanner()
+            offers = self.store.GetOffers().values()
+            self.SetOffers(offers)
+            self.page = PAGE_HOME
+            return
 
     @RunThreadOnce('VGS.ShowBanner')
     def ShowBanner(self):
@@ -240,6 +246,7 @@ class AurumStoreContainer(Container):
             self.banner.display = True
             self.SetSubCategories(None)
             uicore.animations.MoveInFromTop(self.banner, amount=self.banner.height, sleep=True)
+        return
 
     @RunThreadOnce('VGS.HideBanner')
     def HideBanner(self):
@@ -298,6 +305,7 @@ class AurumStoreContainer(Container):
         self._SetSubCategories(None)
         self.SetFilterTags([])
         sm.GetService('viewState').GetView(ViewState.VirtualGoodsStore).Search(searchString)
+        return
 
     @RunThreadOnce('VGS.SetSubCategories')
     def SetSubCategories(self, subcategories):
@@ -316,6 +324,8 @@ class AurumStoreContainer(Container):
                 button = SubCategoryButton(parent=self.subCategoryButtonContainer, label=subcategory.name, align=uiconst.NOALIGN, height=CATEGORIES_HEIGHT, categoryId=subcategory.id, onClick=self.OnClickSubCategory)
                 self.subcategoryButtons.append(button)
 
+        return
+
     def SetOffers(self, offers):
         if self.selectedCategoryId is None and self.selectedRootCategoryId is None:
             specialOffers = [ o for o in offers if o.label is not None ]
@@ -325,6 +335,7 @@ class AurumStoreContainer(Container):
         else:
             offers = SortOffers(offers)
         self.grid.SetOffers(offers)
+        return
 
     def SetFilterOptions(self):
         self.filterContainer.Flush()

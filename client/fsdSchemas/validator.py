@@ -1,4 +1,5 @@
-#Embedded file name: C:\jamieb_jamieb-pc_STABLE_1796\fsdSchemas\validator.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: C:\jamieb_jamieb-pc_STABLE_1796\fsdSchemas\validator.py
 import re
 import collections
 import os
@@ -23,6 +24,7 @@ class SchemaMismatch(Exception):
         self.filePath = None
         self.path = path
         self.message = message
+        return
 
     def SetFilePath(self, filePath):
         self.filePath = filePath
@@ -32,6 +34,7 @@ class SchemaMismatch(Exception):
             return self.message
         else:
             return self.filePath + ':\n\t' + self.message
+            return
 
 
 class SchemaTypeError(SchemaMismatch):
@@ -60,6 +63,7 @@ class ValidationException(SchemaMismatch):
         self.filePath = None
         self.path = path
         self.message = '\n\t'.join([ str(error) for error in errors ])
+        return
 
 
 class SchemaError(Exception):
@@ -83,7 +87,7 @@ def AllFloatValues(i):
     return all(map(lambda x: type(x) in (float, int, long), i))
 
 
-def ValidateInt(schemaNode, o, path = 'root', state = {}):
+def ValidateInt(schemaNode, o, path='root', state={}):
     if type(o) not in (int, long):
         return [SchemaTypeError(path, '%s: Type Mismatch - should be an integer: %s' % (path, str(o)))]
     errors = []
@@ -102,21 +106,21 @@ def ValidateInt(schemaNode, o, path = 'root', state = {}):
     return errors
 
 
-def ValidateTypeID(schemaNode, o, path = 'root', state = {}):
+def ValidateTypeID(schemaNode, o, path='root', state={}):
     errors = ValidateInt(schemaNode, o, path, state)
     if not ListContainsType(errors, SchemaTypeError) and o < 0:
         errors.append(SchemaComparisonError(path, '%s: Range Mismatch - typeIDs should be > 0, this is %i' % (path, o)))
     return errors
 
 
-def ValidateLocalizationID(schemaNode, o, path = 'root', state = {}):
+def ValidateLocalizationID(schemaNode, o, path='root', state={}):
     errors = ValidateInt(schemaNode, o, path, state)
     if not ListContainsType(errors, SchemaTypeError) and o < 0:
         errors.append(SchemaComparisonError(path, '%s: Range Mismatch - typeIDs should be > 0, this is %i' % (path, o)))
     return errors
 
 
-def ValidateFloat(schemaNode, o, path = 'root', state = {}):
+def ValidateFloat(schemaNode, o, path='root', state={}):
     errors = []
     if type(o) not in (float, int, long):
         return [SchemaTypeError(path, '%s: Type Mismatch - should be a float' % path)]
@@ -135,7 +139,7 @@ def ValidateFloat(schemaNode, o, path = 'root', state = {}):
     return errors
 
 
-def ValidateBool(schemaNode, o, path = 'root', state = {}):
+def ValidateBool(schemaNode, o, path='root', state={}):
     errors = []
     if type(o) is not bool:
         errors.append(SchemaTypeError(path, '%s: Type Mismatch - should be a bool' % path))
@@ -178,19 +182,19 @@ def ValidateCommonStringAttributes(schemaNode, o, path):
     return errors
 
 
-def ValidateString(schemaNode, o, path = 'root', state = {}):
+def ValidateString(schemaNode, o, path='root', state={}):
     if type(o) is not str:
         return [SchemaTypeError(path, '%s: Type Mismatch - should be a string' % path)]
     return ValidateCommonStringAttributes(schemaNode, o, path)
 
 
-def ValidateUnicode(schemaNode, o, path = 'root', state = {}):
+def ValidateUnicode(schemaNode, o, path='root', state={}):
     if type(o) not in (unicode, str):
         return [SchemaTypeError(path, '%s: Type Mismatch - should be unicode' % path)]
     return ValidateCommonStringAttributes(schemaNode, o, path)
 
 
-def ValidateResPath(schemaNode, o, path = 'root', state = {}):
+def ValidateResPath(schemaNode, o, path='root', state={}):
     errors = ValidateString(schemaNode, o, path, state)
     if not ListContainsType(errors, SchemaTypeError):
         if not o.startswith('res:/'):
@@ -208,7 +212,7 @@ def ValidateResPath(schemaNode, o, path = 'root', state = {}):
     return errors
 
 
-def ValidateVector2(schemaNode, o, path = 'root', state = {}):
+def ValidateVector2(schemaNode, o, path='root', state={}):
     if type(o) not in (tuple, list):
         return [SchemaTypeError(path, '%s: Type Mismatch - should be a vector2' % path)]
     errors = []
@@ -219,7 +223,7 @@ def ValidateVector2(schemaNode, o, path = 'root', state = {}):
     return errors
 
 
-def ValidateVector3(schemaNode, o, path = 'root', state = {}):
+def ValidateVector3(schemaNode, o, path='root', state={}):
     if type(o) not in (tuple, list):
         return [SchemaTypeError(path, '%(path)s: Type Mismatch - should be a vector3: (%(repr)s)' % {'path': path,
           'repr': repr(o)})]
@@ -231,7 +235,7 @@ def ValidateVector3(schemaNode, o, path = 'root', state = {}):
     return errors
 
 
-def ValidateVector4(schemaNode, o, path = 'root', state = {}):
+def ValidateVector4(schemaNode, o, path='root', state={}):
     if type(o) not in (tuple, list):
         return [SchemaTypeError(path, '%s: Type Mismatch - should be a vector4' % path)]
     errors = []
@@ -242,7 +246,7 @@ def ValidateVector4(schemaNode, o, path = 'root', state = {}):
     return errors
 
 
-def ValidateObject(schemaNode, o, path = 'root', state = {}):
+def ValidateObject(schemaNode, o, path='root', state={}):
     errors = []
     if type(o) is not dict:
         return [SchemaTypeError(path, '%s: Type Mismatch - should be an object' % path)]
@@ -259,7 +263,7 @@ def ValidateObject(schemaNode, o, path = 'root', state = {}):
     return errors
 
 
-def ValidateList(schemaNode, o, path = 'root', state = {}):
+def ValidateList(schemaNode, o, path='root', state={}):
     try:
         it = enumerate(o)
     except TypeError:
@@ -304,7 +308,7 @@ def ValidateList(schemaNode, o, path = 'root', state = {}):
     return errors
 
 
-def ValidateDict(schemaNode, o, path = 'root', state = {}):
+def ValidateDict(schemaNode, o, path='root', state={}):
     if type(o) not in (dict, collections.OrderedDict, collections.defaultdict):
         return [SchemaTypeError(path, '%s: Type Mismatch - should be itterable' % path)]
     errors = []
@@ -315,13 +319,13 @@ def ValidateDict(schemaNode, o, path = 'root', state = {}):
     return errors
 
 
-def ValidateEnum(schemaNode, o, path = 'root', state = {}):
+def ValidateEnum(schemaNode, o, path='root', state={}):
     if o not in schemaNode.get('values', {}):
         return [SchemaTypeError(path, '%s: Enum value not found in schema: %s' % (path, repr(o)))]
     return []
 
 
-def ValidateUnion(schemaNode, o, path = 'root', state = {}):
+def ValidateUnion(schemaNode, o, path='root', state={}):
     for s in schemaNode['optionTypes']:
         validationErrors = Validate(s, o, path, state)
         if len(validationErrors) == 0:
@@ -371,89 +375,91 @@ def ValidateReference(schemaNode, o, path, state):
     referenceInfo = schemaNode.get('reference')
     if not state.get('validateReferences', False):
         return []
-    if 'database' in referenceInfo and dbConnectionForValidationAvailable:
-        serverDB = (referenceInfo['server'], referenceInfo['database'])
-        if serverDB in dbConnections:
-            connection, cursor = dbConnections[serverDB]
-        else:
-            try:
-                print 'Connecting to DB'
-                connection = pyodbc.connect('DRIVER={SQL Server};SERVER=%s;DATABASE=%s;Trusted_Connection=yes' % serverDB)
-                cursor = connection.cursor()
-                dbConnections[serverDB] = (connection, cursor)
-            except pyodbc.Error:
-                print 'ERROR: Could not connect to server %s and database %s to validate external reference. It may be that you do not have domain account access to read this DB.' % serverDB
-                connection = None
-                cursor = None
-                dbConnections[serverDB] = (None, None)
+    else:
+        if 'database' in referenceInfo and dbConnectionForValidationAvailable:
+            serverDB = (referenceInfo['server'], referenceInfo['database'])
+            if serverDB in dbConnections:
+                connection, cursor = dbConnections[serverDB]
+            else:
+                try:
+                    print 'Connecting to DB'
+                    connection = pyodbc.connect('DRIVER={SQL Server};SERVER=%s;DATABASE=%s;Trusted_Connection=yes' % serverDB)
+                    cursor = connection.cursor()
+                    dbConnections[serverDB] = (connection, cursor)
+                except pyodbc.Error:
+                    print 'ERROR: Could not connect to server %s and database %s to validate external reference. It may be that you do not have domain account access to read this DB.' % serverDB
+                    connection = None
+                    cursor = None
+                    dbConnections[serverDB] = (None, None)
+                    return []
+
+            if connection is None:
                 return []
-
-        if connection is None:
-            return []
-        if 'cachedKeySets' not in state:
-            state['cachedKeySets'] = {}
-        cachedKey = (referenceInfo['key'], referenceInfo['table'])
-        if cachedKey not in state['cachedKeySets']:
-            setOfKeys = GetSetOfKeysFromBSDTable(cursor, referenceInfo['key'], referenceInfo['table'])
-            state['cachedKeySets'][cachedKey] = setOfKeys
-        else:
-            setOfKeys = state['cachedKeySets'][cachedKey]
-        if o not in setOfKeys:
-            errorString = '%(path)s: ' + referenceInfo['errorMessage']
-            return [ExternalReferenceError(path, errorString % {'path': path,
-              'key': str(o),
-              'server': referenceInfo['server'],
-              'database': referenceInfo['database'],
-              'table': referenceInfo['table']})]
-    elif 'schema' in referenceInfo and 'branchRoot' in state:
-        if 'openSchemas' not in state:
-            state['openSchemas'] = {}
-            state['openData'] = {}
-        otherSchemaPath = os.path.abspath(os.path.join(state['branchRoot'], referenceInfo['schema']))
-        if 'schemaCache' in state and otherSchemaPath in state['schemaCache']:
-            otherSchema = state['schemaCache'].Get(otherSchemaPath)
-        elif otherSchemaPath not in state['openSchemas']:
-            with open(otherSchemaPath, 'r') as otherSchemaFile:
-                otherSchema = state['openSchemas'][otherSchemaPath] = persistence.LoadSchema(otherSchemaFile)
-        else:
-            otherSchema = state['openSchemas'][otherSchemaPath]
-        editorSchema = persistence.GetEditorSchema(otherSchema)
-        editorFile = otherSchema['editorFile'] % {'key': o}
-        fullEditorFilePath = os.path.abspath(os.path.join(state['branchRoot'], editorFile))
-        if 'dataCache' in state and fullEditorFilePath in state['dataCache']:
-            otherData = state['dataCache'].Get(fullEditorFilePath)
-        elif fullEditorFilePath not in state['openData']:
-            with open(fullEditorFilePath, 'r') as otherDataFile:
-                otherData = state['openData'][fullEditorFilePath] = yaml.load(otherDataFile)
-        else:
-            otherData = state['openData'][fullEditorFilePath]
-        if o not in otherData:
-            errorString = '%(path)s: ' + referenceInfo['errorMessage']
-            return [ExternalReferenceError(path, errorString % {'path': path,
-              'key': str(o),
-              'dataFile': fullEditorFilePath})]
-    return []
+            if 'cachedKeySets' not in state:
+                state['cachedKeySets'] = {}
+            cachedKey = (referenceInfo['key'], referenceInfo['table'])
+            if cachedKey not in state['cachedKeySets']:
+                setOfKeys = GetSetOfKeysFromBSDTable(cursor, referenceInfo['key'], referenceInfo['table'])
+                state['cachedKeySets'][cachedKey] = setOfKeys
+            else:
+                setOfKeys = state['cachedKeySets'][cachedKey]
+            if o not in setOfKeys:
+                errorString = '%(path)s: ' + referenceInfo['errorMessage']
+                return [ExternalReferenceError(path, errorString % {'path': path,
+                  'key': str(o),
+                  'server': referenceInfo['server'],
+                  'database': referenceInfo['database'],
+                  'table': referenceInfo['table']})]
+        elif 'schema' in referenceInfo and 'branchRoot' in state:
+            if 'openSchemas' not in state:
+                state['openSchemas'] = {}
+                state['openData'] = {}
+            otherSchemaPath = os.path.abspath(os.path.join(state['branchRoot'], referenceInfo['schema']))
+            if 'schemaCache' in state and otherSchemaPath in state['schemaCache']:
+                otherSchema = state['schemaCache'].Get(otherSchemaPath)
+            elif otherSchemaPath not in state['openSchemas']:
+                with open(otherSchemaPath, 'r') as otherSchemaFile:
+                    otherSchema = state['openSchemas'][otherSchemaPath] = persistence.LoadSchema(otherSchemaFile)
+            else:
+                otherSchema = state['openSchemas'][otherSchemaPath]
+            editorSchema = persistence.GetEditorSchema(otherSchema)
+            editorFile = otherSchema['editorFile'] % {'key': o}
+            fullEditorFilePath = os.path.abspath(os.path.join(state['branchRoot'], editorFile))
+            if 'dataCache' in state and fullEditorFilePath in state['dataCache']:
+                otherData = state['dataCache'].Get(fullEditorFilePath)
+            elif fullEditorFilePath not in state['openData']:
+                with open(fullEditorFilePath, 'r') as otherDataFile:
+                    otherData = state['openData'][fullEditorFilePath] = yaml.load(otherDataFile)
+            else:
+                otherData = state['openData'][fullEditorFilePath]
+            if o not in otherData:
+                errorString = '%(path)s: ' + referenceInfo['errorMessage']
+                return [ExternalReferenceError(path, errorString % {'path': path,
+                  'key': str(o),
+                  'dataFile': fullEditorFilePath})]
+        return []
 
 
-def Validate(schemaNode, o, path = 'root', state = {}):
+def Validate(schemaNode, o, path='root', state={}):
     nodeType = schemaNode.get('type', None)
     if nodeType is None:
         return [SchemaError(path, "%s: Could not find a 'type' for the schema node" % path, schemaNode, o)]
-    errors = []
-    if schemaNode.get('generatedData', False):
-        return errors
-    if 'reference' in schemaNode:
-        errors.extend(ValidateReference(schemaNode, o, path, state))
-    if nodeType in state.get('overrides', {}):
-        errors.extend(state.get('overrides', {})[nodeType](schemaNode, o, path, state))
-    elif nodeType in builtInValdationFunctions:
-        errors.extend(builtInValdationFunctions[nodeType](schemaNode, o, path, state))
     else:
-        return [SchemaError(path, "%s: Could not find a known 'type' for the schema node: %s" % (path, nodeType), schemaNode, o)]
-    return errors
+        errors = []
+        if schemaNode.get('generatedData', False):
+            return errors
+        if 'reference' in schemaNode:
+            errors.extend(ValidateReference(schemaNode, o, path, state))
+        if nodeType in state.get('overrides', {}):
+            errors.extend(state.get('overrides', {})[nodeType](schemaNode, o, path, state))
+        elif nodeType in builtInValdationFunctions:
+            errors.extend(builtInValdationFunctions[nodeType](schemaNode, o, path, state))
+        else:
+            return [SchemaError(path, "%s: Could not find a known 'type' for the schema node: %s" % (path, nodeType), schemaNode, o)]
+        return errors
 
 
-def ValidateWithExceptions(schemaNode, o, path = 'root', state = {}, showOnlyFirstError = True):
+def ValidateWithExceptions(schemaNode, o, path='root', state={}, showOnlyFirstError=True):
     errors = Validate(schemaNode, o, path, state)
     if len(errors):
         if showOnlyFirstError:

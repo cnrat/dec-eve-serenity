@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\client\script\ui\view\stationView.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\client\script\ui\view\stationView.py
 import sys
 from eveSpaceObject import spaceobjaudio
 import evetypes
@@ -33,11 +34,12 @@ class StationView(View):
     def __init__(self):
         View.__init__(self)
         self.activeshipmodel = None
+        return
 
-    def ShowShip(self, shipID, maintainZoomLevel = False):
+    def ShowShip(self, shipID, maintainZoomLevel=False):
         self.WaitForShip(shipID)
         hangarInv = self.invCache.GetInventory(const.containerHangar)
-        hangarItems = hangarInv.List()
+        hangarItems = hangarInv.List(const.flagHangar)
         for each in hangarItems:
             if each.itemID == shipID:
                 self.activeShipItem = each
@@ -60,6 +62,7 @@ class StationView(View):
                 del cs.curves[:]
 
         View.HideView(self)
+        return
 
     def WaitForShip(self, shipID):
         maximumWait = 10000
@@ -76,28 +79,34 @@ class StationView(View):
     def SetupAnimation(self, model, shipItem):
         if model is None:
             return
-        if not evetypes.Exists(shipItem.typeID):
+        elif not evetypes.Exists(shipItem.typeID):
             return
-        animationStates = inventorycommon.typeHelpers.GetAnimationStates(shipItem.typeID)
-        spaceobjanimation.LoadAnimationStates(animationStates, cfg.graphicStates, model, trinity)
-        if model.animationSequencer is not None:
-            model.animationSequencer.GoToState('normal')
-            spaceobjanimation.SetShipAnimationStance(model, shipstance.get_ship_stance(shipItem.itemID, shipItem.typeID))
+        else:
+            animationStates = inventorycommon.typeHelpers.GetAnimationStates(shipItem.typeID)
+            spaceobjanimation.LoadAnimationStates(animationStates, cfg.graphicStates, model, trinity)
+            if model.animationSequencer is not None:
+                model.animationSequencer.GoToState('normal')
+                spaceobjanimation.SetShipAnimationStance(model, shipstance.get_ship_stance(shipItem.itemID, shipItem.typeID))
+            return
 
     def OnDogmaItemChange(self, item, change):
         if item.locationID == change.get(const.ixLocationID, None) and item.flagID == change.get(const.ixFlag):
             return
-        activeShipID = util.GetActiveShip()
-        if item.locationID == activeShipID and IsShipFittingFlag(item.flagID) and item.categoryID == const.categorySubSystem:
-            self.ShowShip(activeShipID)
+        else:
+            activeShipID = util.GetActiveShip()
+            if item.locationID == activeShipID and IsShipFittingFlag(item.flagID) and item.categoryID == const.categorySubSystem:
+                self.ShowShip(activeShipID)
+            return
 
     def OnActiveShipSkinChange(self, itemID, skinID):
         if session.stationid2 is None:
             return
-        if not hasattr(self, 'activeShipItem'):
+        elif not hasattr(self, 'activeShipItem'):
             return
-        if itemID == self.activeShipItem.itemID:
-            self.ShowShip(self.activeShipItem.itemID, maintainZoomLevel=True)
+        else:
+            if itemID == self.activeShipItem.itemID:
+                self.ShowShip(self.activeShipItem.itemID, maintainZoomLevel=True)
+            return
 
     def OnDamageStateChanged(self, itemID):
         if self.activeShipItem.itemID == itemID:
@@ -131,3 +140,4 @@ class StationView(View):
     def SetupGeneralAudioEntity(self, newModel):
         if newModel is not None and hasattr(newModel, 'observers'):
             self.generalAudioEntity = spaceobjaudio.SetupAudioEntity(newModel)
+        return

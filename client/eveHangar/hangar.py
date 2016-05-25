@@ -1,34 +1,47 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\packages\eveHangar\hangar.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\packages\eveHangar\hangar.py
 import geo2
 import blue
 import trinity
 import uthread
 import random
 import math
+import logging
+log = logging.getLogger(__name__)
 racialHangarScenes = {1: 20271,
  2: 20272,
  4: 20273,
  8: 20274}
 SHIP_FLOATING_HEIGHT = 360.0
+SHIP_CLASS_TRAVEL_DURATION = {'bc': (20.0, 30.0),
+ 'b': (40.0, 50.0),
+ 'ca': (60.0, 70.0),
+ 'c': (15.0, 20.0),
+ 'dn': (70.0, 90.0),
+ 'faux': (90.0, 110.0),
+ 'f': (10.0, 15.0)}
+
+def GetShipTravelDurationFromShipName(shipName):
+    modifiedShipName = shipName.split('_')[0]
+    modifiedShipName = modifiedShipName[1:]
+    modifiedShipName = ''.join([ i for i in modifiedShipName if not i.isdigit() ])
+    modifiedShipName = modifiedShipName.lower()
+    if modifiedShipName not in SHIP_CLASS_TRAVEL_DURATION:
+        log.warn("Got an invalid shipClass for hangar traffic, got '%s' for ship '%s' was expecting one of the following [%s]" % (modifiedShipName, shipName, ', '.join(SHIP_CLASS_TRAVEL_DURATION.keys())))
+        modifiedShipName = 'c'
+    return SHIP_CLASS_TRAVEL_DURATION[modifiedShipName]
+
 
 class HangarTraffic:
 
     def __init__(self):
         self.threadList = []
 
-    def AnimateTraffic(self, ship, area, shipClass):
+    def AnimateTraffic(self, ship, area):
         initialAdvance = random.random()
         while True:
-            if shipClass == 'b':
-                duration = random.uniform(40.0, 50.0)
-            elif shipClass == 'bc':
-                duration = random.uniform(20.0, 30.0)
-            elif shipClass == 'c':
-                duration = random.uniform(15.0, 20.0)
-            elif shipClass == 'f':
-                duration = random.uniform(10.0, 15.0)
-            else:
-                duration = random.uniform(15.0, 20.0)
+            minDuration, maxDuration = GetShipTravelDurationFromShipName(ship.name)
+            duration = random.uniform(minDuration, maxDuration)
             if ship.translationCurve and ship.rotationCurve and len(ship.translationCurve.keys) == 2:
                 now = blue.os.GetSimTime()
                 s01 = random.random()
@@ -79,15 +92,12 @@ class HangarTraffic:
                     obj.translationCurve = trinity.TriVectorCurve()
                     obj.translationCurve.keys.append(trinity.TriVectorKey())
                     obj.translationCurve.keys.append(trinity.TriVectorKey())
-                    shipClass = ''
-                    if len(obj.name) > 2:
-                        shipClass = obj.name[1].lower()
                     obj.rotationCurve = trinity.TriRotationCurve()
                     if random.randint(0, 1) == 0:
                         obj.rotationCurve.value = geo2.QuaternionRotationSetYawPitchRoll(0.5 * math.pi, 0.0, 0.0)
                     else:
                         obj.rotationCurve.value = geo2.QuaternionRotationSetYawPitchRoll(-0.5 * math.pi, 0.0, 0.0)
-                    uthreadObj = uthread.new(self.AnimateTraffic, obj, trafficStartEndArea, shipClass)
+                    uthreadObj = uthread.new(self.AnimateTraffic, obj, trafficStartEndArea)
                     uthreadObj.context = 'HangarTraffic::SetupScene'
                     self.threadList.append(uthreadObj)
 

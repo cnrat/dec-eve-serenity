@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\client\script\ui\inflight\probeControl.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\client\script\ui\inflight\probeControl.py
 from carbon.common.script.util.mathUtil import DegToRad
 from carbonui.primitives.bracket import Bracket
 from eve.client.script.ui.inflight.probeBracket import ProbeBracket
@@ -14,7 +15,7 @@ TR2TM_LOOK_AT_CAMERA = 3
 
 class BaseProbeControl(object):
 
-    def __init__(self, uniqueID, parent, newMap = False):
+    def __init__(self, uniqueID, parent, newMap=False):
         locator = trinity.EveTransform()
         locator.name = 'spherePar_%s' % uniqueID
         try:
@@ -78,7 +79,7 @@ class BaseProbeControl(object):
 class ProbeControl(BaseProbeControl):
     __update_on_reload__ = 1
 
-    def __init__(self, probeID, probe, parent, scanner, newMap = False):
+    def __init__(self, probeID, probe, parent, scanner, newMap=False):
         scanSvc = sm.GetService('scanSvc')
         BaseProbeControl.__init__(self, probeID, parent, newMap)
         if not newMap:
@@ -150,6 +151,7 @@ class ProbeControl(BaseProbeControl):
         self.scanrangeCircles = None
         self._highlighted = True
         self.HighlightBorder(0)
+        return
 
     def SetScanDronesState(self, state):
         for c in self.sphere.children[0].children:
@@ -166,27 +168,29 @@ class ProbeControl(BaseProbeControl):
     def GetRange(self):
         return self.sphere.scaling[0]
 
-    def HighlightBorder(self, on = 1):
+    def HighlightBorder(self, on=1):
         if bool(on) == self._highlighted:
             return
-        self._highlighted = bool(on)
-        curveSets = self.sphere.Find('trinity.TriCurveSet')
-        curveSet = None
-        for each in curveSets:
-            if getattr(each, 'name', None) == 'Highlight':
-                curveSet = each
-                break
+        else:
+            self._highlighted = bool(on)
+            curveSets = self.sphere.Find('trinity.TriCurveSet')
+            curveSet = None
+            for each in curveSets:
+                if getattr(each, 'name', None) == 'Highlight':
+                    curveSet = each
+                    break
 
-        if curveSet:
-            curveSet.Stop()
-            if on:
-                curveSet.scale = 1.0
-                curveSet.Play()
-            else:
-                curveSet.scale = -1.0
-                curveSet.PlayFrom(curveSet.GetMaxCurveDuration())
+            if curveSet:
+                curveSet.Stop()
+                if on:
+                    curveSet.scale = 1.0
+                    curveSet.Play()
+                else:
+                    curveSet.scale = -1.0
+                    curveSet.PlayFrom(curveSet.GetMaxCurveDuration())
+            return
 
-    def ShowIntersection(self, axis = None, side = None):
+    def ShowIntersection(self, axis=None, side=None):
         if axis == 'xy':
             q = geo2.QuaternionRotationSetYawPitchRoll(0.0, 0.0, 0.0)
             self.intersection.rotation = q
@@ -209,6 +213,7 @@ class ProbeControl(BaseProbeControl):
     def HideScanRanges(self):
         if self.scanrangeCircles is not None:
             self.scanrangeCircles.display = False
+        return
 
     def ShowScanRanges(self):
         if self.scanrangeCircles is None:
@@ -223,6 +228,7 @@ class ProbeControl(BaseProbeControl):
                 par.children.append(sr)
 
         self.scanrangeCircles.display = True
+        return
 
     def HighlightProbe(self):
         self.HighlightBorder(1)

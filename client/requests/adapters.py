@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\packages\requests\adapters.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\packages\requests\adapters.py
 import socket
 from .models import Response
 from .packages.urllib3.poolmanager import PoolManager, proxy_from_url
@@ -38,7 +39,7 @@ class HTTPAdapter(BaseAdapter):
      '_pool_maxsize',
      '_pool_block']
 
-    def __init__(self, pool_connections = DEFAULT_POOLSIZE, pool_maxsize = DEFAULT_POOLSIZE, max_retries = DEFAULT_RETRIES, pool_block = DEFAULT_POOLBLOCK):
+    def __init__(self, pool_connections=DEFAULT_POOLSIZE, pool_maxsize=DEFAULT_POOLSIZE, max_retries=DEFAULT_RETRIES, pool_block=DEFAULT_POOLBLOCK):
         self.max_retries = max_retries
         self.config = {}
         self.proxy_manager = {}
@@ -59,7 +60,7 @@ class HTTPAdapter(BaseAdapter):
 
         self.init_poolmanager(self._pool_connections, self._pool_maxsize, block=self._pool_block)
 
-    def init_poolmanager(self, connections, maxsize, block = DEFAULT_POOLBLOCK):
+    def init_poolmanager(self, connections, maxsize, block=DEFAULT_POOLBLOCK):
         self._pool_connections = connections
         self._pool_maxsize = maxsize
         self._pool_block = block
@@ -85,6 +86,7 @@ class HTTPAdapter(BaseAdapter):
                 conn.key_file = cert[1]
             else:
                 conn.cert_file = cert
+        return
 
     def build_response(self, req, resp):
         response = Response()
@@ -102,7 +104,7 @@ class HTTPAdapter(BaseAdapter):
         response.connection = self
         return response
 
-    def get_connection(self, url, proxies = None):
+    def get_connection(self, url, proxies=None):
         proxies = proxies or {}
         proxy = proxies.get(urlparse(url.lower()).scheme)
         if proxy:
@@ -140,7 +142,7 @@ class HTTPAdapter(BaseAdapter):
             headers['Proxy-Authorization'] = _basic_auth_str(username, password)
         return headers
 
-    def send(self, request, stream = False, timeout = None, verify = True, cert = None, proxies = None):
+    def send(self, request, stream=False, timeout=None, verify=True, cert=None, proxies=None):
         conn = self.get_connection(request.url, proxies)
         self.cert_verify(conn, request.url, verify, cert)
         url = self.request_url(request, proxies)

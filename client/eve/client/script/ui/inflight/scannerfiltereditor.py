@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\client\script\ui\inflight\scannerfiltereditor.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\client\script\ui\inflight\scannerfiltereditor.py
 import evetypes
 import uiprimitives
 import uicontrols
@@ -44,6 +45,7 @@ class ScannerFilterEditor(uicontrols.Window):
          const.probeScanGroupDronesAndProbes: evetypes.GetCategoryNameByCategory(const.categoryDrone)}
         self.Maximize()
         self.OnResizeUpdate()
+        return
 
     def LoadData(self, filterID):
         self.tempState = {}
@@ -58,6 +60,7 @@ class ScannerFilterEditor(uicontrols.Window):
 
         self._originalName = filterName
         self.LoadTypes()
+        return
 
     def OnResizeUpdate(self, *args):
         self.sr.topParent.height = sum([ each.height + each.top + each.padTop + each.padBottom for each in self.sr.topParent.children if each.align == uiconst.TOTOP ])
@@ -68,29 +71,31 @@ class ScannerFilterEditor(uicontrols.Window):
             eve.Message('CustomNotify', {'notify': localization.GetByLabel('UI/Inflight/Scanner/PleaseNameFilter')})
             self.sr.nameEdit.SetFocus()
             return
-        if name.lower() == localization.GetByLabel('UI/Common/Show all').lower():
+        elif name.lower() == localization.GetByLabel('UI/Common/Show all').lower():
             eve.Message('CustomNotify', {'notify': localization.GetByLabel('UI/Inflight/Scanner/CannotNameFilter')})
             return
-        groups = [ key for key, value in self.tempState.iteritems() if bool(value) ]
-        if not groups:
-            eve.Message('CustomNotify', {'notify': localization.GetByLabel('UI/Inflight/Scanner/SelectGroupsForFilter')})
-            self.sr.scroll.SetFocus()
-            return
-        current = settings.user.ui.Get('probeScannerFilters', {})
-        if name in current:
-            if eve.Message('OverwriteFilter', {'filter': name}, uiconst.YESNO) != uiconst.ID_YES:
-                return
-        if name != self._originalName and self._originalName in current:
-            del current[self._originalName]
-        if self.filterID is None:
-            sm.GetService('scanSvc').CreateResultFilter(name, groups)
         else:
-            sm.GetService('scanSvc').EditResultFilter(self.filterID, name, groups)
-        current[name] = groups
-        settings.user.ui.Set('probeScannerFilters', current)
-        settings.user.ui.Set('activeProbeScannerFilter', name)
-        sm.ScatterEvent('OnNewScannerFilterSet', name, current[name])
-        self.Close()
+            groups = [ key for key, value in self.tempState.iteritems() if bool(value) ]
+            if not groups:
+                eve.Message('CustomNotify', {'notify': localization.GetByLabel('UI/Inflight/Scanner/SelectGroupsForFilter')})
+                self.sr.scroll.SetFocus()
+                return
+            current = settings.user.ui.Get('probeScannerFilters', {})
+            if name in current:
+                if eve.Message('OverwriteFilter', {'filter': name}, uiconst.YESNO) != uiconst.ID_YES:
+                    return
+            if name != self._originalName and self._originalName in current:
+                del current[self._originalName]
+            if self.filterID is None:
+                sm.GetService('scanSvc').CreateResultFilter(name, groups)
+            else:
+                sm.GetService('scanSvc').EditResultFilter(self.filterID, name, groups)
+            current[name] = groups
+            settings.user.ui.Set('probeScannerFilters', current)
+            settings.user.ui.Set('activeProbeScannerFilter', name)
+            sm.ScatterEvent('OnNewScannerFilterSet', name, current[name])
+            self.Close()
+            return
 
     def LoadTypes(self):
         categoryList = {}
@@ -157,7 +162,7 @@ class ScannerFilterEditor(uicontrols.Window):
 
         self.LoadTypes()
 
-    def GetCatSubContent(self, nodedata, newitems = 0):
+    def GetCatSubContent(self, nodedata, newitems=0):
         scrolllist = []
         for groupID, groupName in nodedata.groupItems:
             if groupID == const.groupCosmicSignature:

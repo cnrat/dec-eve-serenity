@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\carbon\common\stdlib\traceback.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\carbon\common\stdlib\traceback.py
 import linecache
 import sys
 import types
@@ -17,17 +18,19 @@ __all__ = ['extract_stack',
  'print_tb',
  'tb_lineno']
 
-def _print(file, str = '', terminator = '\n'):
+def _print(file, str='', terminator='\n'):
     file.write(str + terminator)
 
 
-def print_list(extracted_list, file = None):
+def print_list(extracted_list, file=None):
     if file is None:
         file = sys.stderr
     for filename, lineno, name, line in extracted_list:
         _print(file, '  File "%s", line %d, in %s' % (filename, lineno, name))
         if line:
             _print(file, '    %s' % line.strip())
+
+    return
 
 
 def format_list(extracted_list):
@@ -41,7 +44,7 @@ def format_list(extracted_list):
     return list
 
 
-def print_tb(tb, limit = None, file = None):
+def print_tb(tb, limit=None, file=None):
     if file is None:
         file = sys.stderr
     if limit is None:
@@ -62,12 +65,14 @@ def print_tb(tb, limit = None, file = None):
         tb = tb.tb_next
         n = n + 1
 
+    return
 
-def format_tb(tb, limit = None):
+
+def format_tb(tb, limit=None):
     return format_list(extract_tb(tb, limit))
 
 
-def extract_tb(tb, limit = None):
+def extract_tb(tb, limit=None):
     if limit is None:
         if hasattr(sys, 'tracebacklimit'):
             limit = sys.tracebacklimit
@@ -95,7 +100,7 @@ def extract_tb(tb, limit = None):
     return list
 
 
-def print_exception(etype, value, tb, limit = None, file = None):
+def print_exception(etype, value, tb, limit=None, file=None):
     if file is None:
         file = sys.stderr
     if tb:
@@ -105,8 +110,10 @@ def print_exception(etype, value, tb, limit = None, file = None):
     for line in lines:
         _print(file, line, '')
 
+    return
 
-def format_exception(etype, value, tb, limit = None):
+
+def format_exception(etype, value, tb, limit=None):
     if tb:
         list = ['Traceback (most recent call last):\n']
         list = list + format_tb(tb, limit)
@@ -119,27 +126,28 @@ def format_exception(etype, value, tb, limit = None):
 def format_exception_only(etype, value):
     if isinstance(etype, BaseException) or isinstance(etype, types.InstanceType) or etype is None or type(etype) is str:
         return [_format_final_exc_line(etype, value)]
-    stype = etype.__name__
-    if not issubclass(etype, SyntaxError):
-        return [_format_final_exc_line(stype, value)]
-    lines = []
-    try:
-        msg, (filename, lineno, offset, badline) = value.args
-    except Exception:
-        pass
     else:
-        filename = filename or '<string>'
-        lines.append('  File "%s", line %d\n' % (filename, lineno))
-        if badline is not None:
-            lines.append('    %s\n' % badline.strip())
-            if offset is not None:
-                caretspace = badline.rstrip('\n')[:offset].lstrip()
-                caretspace = (c.isspace() and c or ' ' for c in caretspace)
-                lines.append('   %s^\n' % ''.join(caretspace))
-        value = msg
+        stype = etype.__name__
+        if not issubclass(etype, SyntaxError):
+            return [_format_final_exc_line(stype, value)]
+        lines = []
+        try:
+            msg, (filename, lineno, offset, badline) = value.args
+        except Exception:
+            pass
+        else:
+            filename = filename or '<string>'
+            lines.append('  File "%s", line %d\n' % (filename, lineno))
+            if badline is not None:
+                lines.append('    %s\n' % badline.strip())
+                if offset is not None:
+                    caretspace = badline.rstrip('\n')[:offset].lstrip()
+                    caretspace = (c.isspace() and c or ' ' for c in caretspace)
+                    lines.append('   %s^\n' % ''.join(caretspace))
+            value = msg
 
-    lines.append(_format_final_exc_line(stype, value))
-    return lines
+        lines.append(_format_final_exc_line(stype, value))
+        return lines
 
 
 def _format_final_exc_line(etype, value):
@@ -166,7 +174,7 @@ def _some_str(value):
     return '<unprintable %s object>' % type(value).__name__
 
 
-def print_exc(limit = None, file = None):
+def print_exc(limit=None, file=None):
     if file is None:
         file = sys.stderr
     try:
@@ -175,24 +183,29 @@ def print_exc(limit = None, file = None):
     finally:
         etype = value = tb = None
 
+    return
 
-def format_exc(limit = None):
+
+def format_exc(limit=None):
     try:
         etype, value, tb = sys.exc_info()
         return ''.join(format_exception(etype, value, tb, limit))
     finally:
         etype = value = tb = None
 
+    return
 
-def print_last(limit = None, file = None):
+
+def print_last(limit=None, file=None):
     if not hasattr(sys, 'last_type'):
         raise ValueError('no last exception')
     if file is None:
         file = sys.stderr
     print_exception(sys.last_type, sys.last_value, sys.last_traceback, limit, file)
+    return
 
 
-def print_stack(f = None, limit = None, file = None):
+def print_stack(f=None, limit=None, file=None):
     if f is None:
         try:
             raise ZeroDivisionError
@@ -200,9 +213,10 @@ def print_stack(f = None, limit = None, file = None):
             f = sys.exc_info()[2].tb_frame.f_back
 
     print_list(extract_stack(f, limit), file)
+    return
 
 
-def format_stack(f = None, limit = None):
+def format_stack(f=None, limit=None):
     if f is None:
         try:
             raise ZeroDivisionError
@@ -212,7 +226,7 @@ def format_stack(f = None, limit = None):
     return format_list(extract_stack(f, limit))
 
 
-def extract_stack(f = None, limit = None):
+def extract_stack(f=None, limit=None):
     if f is None:
         try:
             raise ZeroDivisionError

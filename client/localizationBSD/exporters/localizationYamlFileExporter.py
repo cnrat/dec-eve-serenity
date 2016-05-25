@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\packages\localizationBSD\exporters\localizationYamlFileExporter.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\packages\localizationBSD\exporters\localizationYamlFileExporter.py
 import zipfile
 import os
 import yaml
@@ -9,7 +10,7 @@ class LocalizationYamlFileExporter(localizationExporter.LocalizationExporterBase
     EXPORT_DESCRIPTION = 'Exports language data into staticdata files that are used by the DUST vault generation process.'
 
     @classmethod
-    def ExportWithProjectSettingsToZipFileObject(cls, projectID, fileObject, exportFileName, getSubmittedOnly = True, bsdBranchID = None):
+    def ExportWithProjectSettingsToZipFileObject(cls, projectID, fileObject, exportFileName, getSubmittedOnly=True, bsdBranchID=None):
         from fsdCommon.fsdYamlExtensions import FsdYamlDumper
         if not exportFileName:
             exportFileName = 'localization-'
@@ -25,7 +26,7 @@ class LocalizationYamlFileExporter(localizationExporter.LocalizationExporterBase
         return (zipDataFile, exportedFileNames)
 
     @classmethod
-    def ExportWithProjectSettings(cls, projectID, exportLocation, exportFileName, getSubmittedOnly = True, **kwargs):
+    def ExportWithProjectSettings(cls, projectID, exportLocation, exportFileName, getSubmittedOnly=True, **kwargs):
         from fsdCommon.fsdYamlExtensions import FsdYamlDumper
         if not exportLocation or not exportFileName:
             raise LocalizationExporterError('Filepath strings are incomplete. exportLocation, exportFileName: %s, %s.' % (exportLocation, exportFileName))
@@ -41,7 +42,7 @@ class LocalizationYamlFileExporter(localizationExporter.LocalizationExporterBase
         return exportedFileNames
 
     @classmethod
-    def _GetFileContents(cls, projectID, getSubmittedOnly, bsdBranchID = None):
+    def _GetFileContents(cls, projectID, getSubmittedOnly, bsdBranchID=None):
         exportData = cls._GetLocalizationMessageDataForExport(projectID, getSubmittedOnly, bsdBranchID=bsdBranchID)
         messagesDict = exportData[1]
         localizationFiles = {}

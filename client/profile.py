@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\carbon\common\stdlib\profile.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\carbon\common\stdlib\profile.py
 import sys
 import os
 import time
@@ -10,7 +11,7 @@ __all__ = ['run',
  'help',
  'Profile']
 
-def run(statement, filename = None, sort = -1):
+def run(statement, filename=None, sort=-1):
     prof = Profile()
     try:
         prof = prof.run(statement)
@@ -21,9 +22,10 @@ def run(statement, filename = None, sort = -1):
         prof.dump_stats(filename)
     else:
         return prof.print_stats(sort)
+    return
 
 
-def runctx(statement, globals, locals, filename = None, sort = -1):
+def runctx(statement, globals, locals, filename=None, sort=-1):
     prof = Profile()
     try:
         prof = prof.runctx(statement, globals, locals)
@@ -34,6 +36,7 @@ def runctx(statement, globals, locals, filename = None, sort = -1):
         prof.dump_stats(filename)
     else:
         return prof.print_stats(sort)
+    return
 
 
 def help():
@@ -43,7 +46,7 @@ def help():
 
 if hasattr(os, 'times'):
 
-    def _get_time_times(timer = os.times):
+    def _get_time_times(timer=os.times):
         t = timer()
         return t[0] + t[1]
 
@@ -53,7 +56,7 @@ try:
     import resource
     resgetrusage = lambda : resource.getrusage(resource.RUSAGE_SELF)
 
-    def _get_time_resource(timer = resgetrusage):
+    def _get_time_resource(timer=resgetrusage):
         t = timer()
         return t[0] + t[1]
 
@@ -65,7 +68,7 @@ except ImportError:
 class Profile():
     bias = 0
 
-    def __init__(self, timer = None, bias = None):
+    def __init__(self, timer=None, bias=None):
         self.timings = {}
         self.cur = None
         self.cmd = ''
@@ -102,13 +105,14 @@ class Profile():
                 else:
                     self.dispatcher = self.trace_dispatch_l
 
-                def get_time_timer(timer = timer, sum = sum):
+                def get_time_timer(timer=timer, sum=sum):
                     return sum(timer())
 
                 self.get_time = get_time_timer
 
         self.t = self.get_time()
         self.simulate_call('profiler')
+        return
 
     def trace_dispatch(self, frame, event, arg):
         timer = self.timer
@@ -163,7 +167,6 @@ class Profile():
          rfn,
          rframe,
          rcur)
-        return 1
 
     def trace_dispatch_call(self, frame, t):
         if self.cur and frame.f_back is not self.cur[-2]:
@@ -192,7 +195,6 @@ class Profile():
              0,
              0,
              {})
-        return 1
 
     re_func = re.compile('method (\\S+) of (\\S+) object')
 
@@ -230,7 +232,6 @@ class Profile():
              0,
              0,
              {})
-        return 1
 
     def trace_dispatch_return(self, frame, t):
         if frame is not self.cur[-2]:
@@ -259,7 +260,6 @@ class Profile():
          tt + rit,
          ct,
          callers)
-        return 1
 
     dispatch = {'call': trace_dispatch_call,
      'exception': trace_dispatch_exception,
@@ -299,6 +299,7 @@ class Profile():
             pframe = None
         frame = self.fake_frame(code, pframe)
         self.dispatch['call'](self, frame, 0)
+        return
 
     def simulate_cmd_complete(self):
         get_time = self.get_time
@@ -309,7 +310,7 @@ class Profile():
 
         self.t = get_time() - t
 
-    def print_stats(self, sort = -1):
+    def print_stats(self, sort=-1):
         import pstats
         pstats.Stats(self).strip_dirs().sort_stats(sort).print_stats()
 
@@ -360,7 +361,9 @@ class Profile():
         finally:
             sys.setprofile(None)
 
-    def calibrate(self, m, verbose = 0):
+        return
+
+    def calibrate(self, m, verbose=0):
         if self.__class__ is not Profile:
             raise TypeError('Subclasses must override .calibrate().')
         saved_bias = self.bias
@@ -377,7 +380,7 @@ class Profile():
             for i in range(n):
                 x = 1
 
-        def f(m, f1 = f1):
+        def f(m, f1=f1):
             for i in range(m):
                 f1(100)
 

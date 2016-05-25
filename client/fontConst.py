@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\common\modules\nice\client\_nastyspace\fontConst.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\common\modules\nice\client\_nastyspace\fontConst.py
 from carbonui.fontconst import DEFAULT_FONTSIZE
 from carbonui.fontconst import DEFAULT_LETTERSPACE
 from carbonui.fontconst import DEFAULT_LINESPACE

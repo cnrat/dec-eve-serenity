@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\carbon\common\stdlib\poplib.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\carbon\common\stdlib\poplib.py
 import re, socket
 __all__ = ['POP3', 'error_proto']
 
@@ -14,7 +15,7 @@ CRLF = CR + LF
 
 class POP3():
 
-    def __init__(self, host, port = POP3_PORT, timeout = socket._GLOBAL_DEFAULT_TIMEOUT):
+    def __init__(self, host, port=POP3_PORT, timeout=socket._GLOBAL_DEFAULT_TIMEOUT):
         self.host = host
         self.port = port
         self.sock = socket.create_connection((host, port), timeout)
@@ -98,10 +99,11 @@ class POP3():
         sizeMessages = int(rets[2])
         return (numMessages, sizeMessages)
 
-    def list(self, which = None):
+    def list(self, which=None):
         if which is not None:
             return self._shortcmd('LIST %s' % which)
-        return self._longcmd('LIST')
+        else:
+            return self._longcmd('LIST')
 
     def retr(self, which):
         return self._longcmd('RETR %s' % which)
@@ -144,10 +146,11 @@ class POP3():
     def top(self, which, howmuch):
         return self._longcmd('TOP %s %s' % (which, howmuch))
 
-    def uidl(self, which = None):
+    def uidl(self, which=None):
         if which is not None:
             return self._shortcmd('UIDL %s' % which)
-        return self._longcmd('UIDL')
+        else:
+            return self._longcmd('UIDL')
 
 
 try:
@@ -158,7 +161,7 @@ else:
 
     class POP3_SSL(POP3):
 
-        def __init__(self, host, port = POP3_SSL_PORT, keyfile = None, certfile = None):
+        def __init__(self, host, port=POP3_SSL_PORT, keyfile=None, certfile=None):
             self.host = host
             self.port = port
             self.keyfile = keyfile
@@ -185,6 +188,7 @@ else:
             self.sslobj = ssl.wrap_socket(self.sock, self.keyfile, self.certfile)
             self._debugging = 0
             self.welcome = self._getresp()
+            return
 
         def _fillBuffer(self):
             localbuf = self.sslobj.read()

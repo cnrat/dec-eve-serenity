@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\carbon\client\script\graphics\highlightClient.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\carbon\client\script\graphics\highlightClient.py
 import service
 import trinity
 
@@ -11,6 +12,7 @@ class HighlightComponent:
         self.highlighted = False
         self.curveSet = None
         self.curve = None
+        return
 
 
 class HighlightClient(service.Service):
@@ -47,60 +49,63 @@ class HighlightClient(service.Service):
         if component.highlighted:
             self.HighlightEntity(entity, False)
         component.curve = None
+        return
 
     def HighlightEntity(self, entity, highlight):
         highlightComponent = entity.GetComponent('highlight')
         if highlightComponent is None:
             return
-        if highlightComponent.highlighted == highlight:
+        elif highlightComponent.highlighted == highlight:
             return
-        if highlightComponent.curve is None:
+        elif highlightComponent.curve is None:
             return
-        placeableComponent = entity.GetComponent('interiorPlaceable')
-        if placeableComponent is None:
+        else:
+            placeableComponent = entity.GetComponent('interiorPlaceable')
+            if placeableComponent is None:
+                return
+            elif placeableComponent.renderObject is None:
+                return
+            highlightParameters = []
+            curveSets = None
+            object = placeableComponent.renderObject
+            if hasattr(object, 'detailMeshes'):
+                rebind = False
+                for mesh in object.detailMeshes:
+                    rebind |= self._FindMeshHighlightParameters(mesh, highlightComponent.highlightAreas, highlightParameters, highlight)
+
+                if rebind:
+                    object.BindLowLevelShaders()
+                curveSets = object.curveSets
+            elif hasattr(object, 'placeableRes') and object.placeableRes is not None and object.placeableRes.visualModel is not None:
+                rebind = False
+                for mesh in object.placeableRes.visualModel.meshes:
+                    rebind |= self._FindMeshHighlightParameters(mesh, highlightComponent.highlightAreas, highlightParameters, highlight)
+
+                if rebind:
+                    object.BindLowLevelShaders()
+                curveSets = object.placeableRes.curveSets
+            if curveSets is not None and len(highlightParameters) > 0:
+                if highlight:
+                    highlightComponent.curveSet = trinity.TriCurveSet()
+                    highlightComponent.curveSet.curves.append(highlightComponent.curve)
+                    for parameter in highlightParameters:
+                        binding = trinity.TriValueBinding()
+                        binding.sourceObject = highlightComponent.curve
+                        binding.sourceAttribute = 'value'
+                        binding.destinationObject = parameter
+                        binding.destinationAttribute = 'value'
+                        highlightComponent.curveSet.bindings.append(binding)
+
+                    curveSets.append(highlightComponent.curveSet)
+                    highlightComponent.curveSet.Play()
+                elif highlightComponent.curveSet is not None and not highlight:
+                    curveSets.remove(highlightComponent.curveSet)
+                    highlightComponent.curveSet = None
+                    for parameter in highlightParameters:
+                        parameter.value = (0.0, 0.0, 0.0, 0.0)
+
+            highlightComponent.highlighted = highlight
             return
-        if placeableComponent.renderObject is None:
-            return
-        highlightParameters = []
-        curveSets = None
-        object = placeableComponent.renderObject
-        if hasattr(object, 'detailMeshes'):
-            rebind = False
-            for mesh in object.detailMeshes:
-                rebind |= self._FindMeshHighlightParameters(mesh, highlightComponent.highlightAreas, highlightParameters, highlight)
-
-            if rebind:
-                object.BindLowLevelShaders()
-            curveSets = object.curveSets
-        elif hasattr(object, 'placeableRes') and object.placeableRes is not None and object.placeableRes.visualModel is not None:
-            rebind = False
-            for mesh in object.placeableRes.visualModel.meshes:
-                rebind |= self._FindMeshHighlightParameters(mesh, highlightComponent.highlightAreas, highlightParameters, highlight)
-
-            if rebind:
-                object.BindLowLevelShaders()
-            curveSets = object.placeableRes.curveSets
-        if curveSets is not None and len(highlightParameters) > 0:
-            if highlight:
-                highlightComponent.curveSet = trinity.TriCurveSet()
-                highlightComponent.curveSet.curves.append(highlightComponent.curve)
-                for parameter in highlightParameters:
-                    binding = trinity.TriValueBinding()
-                    binding.sourceObject = highlightComponent.curve
-                    binding.sourceAttribute = 'value'
-                    binding.destinationObject = parameter
-                    binding.destinationAttribute = 'value'
-                    highlightComponent.curveSet.bindings.append(binding)
-
-                curveSets.append(highlightComponent.curveSet)
-                highlightComponent.curveSet.Play()
-            elif highlightComponent.curveSet is not None and not highlight:
-                curveSets.remove(highlightComponent.curveSet)
-                highlightComponent.curveSet = None
-                for parameter in highlightParameters:
-                    parameter.value = (0.0, 0.0, 0.0, 0.0)
-
-        highlightComponent.highlighted = highlight
 
     def _FindMeshHighlightParameters(self, mesh, highlightAreas, highlightParameters, highlight):
         rebind = False
@@ -115,16 +120,17 @@ class HighlightClient(service.Service):
     def _FindAreaHighlightParameters(self, area, highlightAreas, highlightParameters, highlight):
         if len(highlightAreas) > 0 and area.name not in highlightAreas:
             return False
-        if area.effect is None or type(area.effect) != trinity.Tr2ShaderMaterial:
+        elif area.effect is None or type(area.effect) != trinity.Tr2ShaderMaterial:
             return False
-        if 'MaterialHighlight' not in area.effect.parameters:
-            if highlight:
-                parameter = trinity.Tr2Vector4Parameter()
-                parameter.name = 'MaterialHighlight'
-                parameter.value = (0, 0, 0, 0)
-                area.effect.parameters['MaterialHighlight'] = parameter
-                highlightParameters.append(parameter)
-                return True
         else:
-            highlightParameters.append(area.effect.parameters['MaterialHighlight'])
-        return False
+            if 'MaterialHighlight' not in area.effect.parameters:
+                if highlight:
+                    parameter = trinity.Tr2Vector4Parameter()
+                    parameter.name = 'MaterialHighlight'
+                    parameter.value = (0, 0, 0, 0)
+                    area.effect.parameters['MaterialHighlight'] = parameter
+                    highlightParameters.append(parameter)
+                    return True
+            else:
+                highlightParameters.append(area.effect.parameters['MaterialHighlight'])
+            return False

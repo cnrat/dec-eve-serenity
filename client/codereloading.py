@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\carbon\common\lib\codereloading.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\carbon\common\lib\codereloading.py
 import __builtin__
 import inspect
 import logging
@@ -14,12 +15,14 @@ def _OnFileReloaded(filename, module):
     if sm is None:
         logger.warn('sm not defined, cannot reload services.')
         return
-    guids = [ cls.__guid__[4:] for name, cls in inspect.getmembers(module, inspect.isclass) if getattr(cls, '__guid__', '').startswith('svc.') ]
-    sm.Reload(set(guids))
-    reloadHook = getattr(module, '__SakeReloadHook', None)
-    if reloadHook is not None:
-        reloadHook()
-    print 'Reloaded', filename
+    else:
+        guids = [ cls.__guid__[4:] for name, cls in inspect.getmembers(module, inspect.isclass) if getattr(cls, '__guid__', '').startswith('svc.') ]
+        sm.Reload(set(guids))
+        reloadHook = getattr(module, '__SakeReloadHook', None)
+        if reloadHook is not None:
+            reloadHook()
+        print 'Reloaded', filename
+        return
 
 
 def _OnFileReloadFailed(filename, exc_info):

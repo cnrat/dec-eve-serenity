@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\client\script\environment\spaceObject\backgroundObject.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\client\script\environment\spaceObject\backgroundObject.py
 from eve.client.script.environment.spaceObject.spaceObject import SpaceObject
 import trinity
 
@@ -14,7 +15,10 @@ class BackgroundObject(SpaceObject):
     def Release(self):
         if self.released:
             return
-        scene = self.spaceMgr.GetScene()
-        scene.backgroundObjects.fremove(self.backgroundObject)
-        self.backgroundObject = None
-        SpaceObject.Release(self, 'BackgroundObject')
+        else:
+            scene = self.spaceMgr.GetScene()
+            if scene:
+                scene.backgroundObjects.fremove(self.backgroundObject)
+            self.backgroundObject = None
+            SpaceObject.Release(self, 'BackgroundObject')
+            return

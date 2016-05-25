@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\client\script\environment\spaceObject\satellite.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\client\script\environment\spaceObject\satellite.py
 import uthread
 import eve.common.lib.appConst as const
 from eve.client.script.environment.spaceObject.LargeCollidableStructure import LargeCollidableStructure
@@ -24,3 +25,4 @@ class Satellite(LargeCollidableStructure):
                 uthread.new(self.sm.GetService('district').EnableDistrict, self.districtID)
             else:
                 uthread.new(self.sm.GetService('district').DisableDistrict, self.districtID)
+        return

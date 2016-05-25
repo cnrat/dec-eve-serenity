@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\client\script\ui\shared\neocom\addressBook\contactManagementMultiEditWindow.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\client\script\ui\shared\neocom\addressBook\contactManagementMultiEditWindow.py
 import math
 import sys
 import service
@@ -36,6 +37,7 @@ class ContactManagementMultiEditWnd(uicontrols.Window):
         self.level = None
         self.contactType = contactType
         self.ConstructLayout()
+        return
 
     def ConstructLayout(self):
         topCont = ContainerAutoSize(name='topCont', parent=self.sr.main, align=uiconst.TOTOP, padding=const.defaultPadding, callback=self.OnMainContainerSizeChanged)
@@ -94,11 +96,12 @@ class ContactManagementMultiEditWnd(uicontrols.Window):
             self.levelText.text = localization.GetByLabel('UI/PeopleAndPlaces/SelectStanding')
             btn = self.btnGroup.GetBtnByLabel(btnText)
             uicore.registry.SetFocus(btn)
+        return
 
     def OnMainContainerSizeChanged(self, *args, **kwds):
         self.SetMinSize([250, self.mainContainer.height + 55], refresh=True)
 
-    def AddSlider(self, where, config, minval, maxval, header, hint = '', startVal = 0):
+    def AddSlider(self, where, config, minval, maxval, header, hint='', startVal=0):
         h = 10
         _par = uiprimitives.Container(name=config + '_slider', parent=where, align=uiconst.TOTOP, pos=(0, 0, 210, 10), padding=(0, 0, 0, 0))
         par = uiprimitives.Container(name=config + '_slider_sub', parent=_par, align=uiconst.TOPLEFT, pos=(0, 0, 210, 10), padding=(0, 0, 0, 0))
@@ -146,8 +149,10 @@ class ContactManagementMultiEditWnd(uicontrols.Window):
         self.result = relationshipID
         if getattr(self, 'isModal', None):
             self.SetModalResult(1)
+        return
 
     def Cancel(self):
         self.result = None
         if getattr(self, 'isModal', None):
             self.SetModalResult(0)
+        return

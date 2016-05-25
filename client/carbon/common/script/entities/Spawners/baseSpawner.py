@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\carbon\common\script\entities\Spawners\baseSpawner.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\carbon\common\script\entities\Spawners\baseSpawner.py
 
 
 class BaseSpawner(object):
@@ -25,9 +26,10 @@ class BaseSpawner(object):
     def CanSpawn(self):
         if self.GetPosition() is None:
             return False
-        if self.GetRotation() is None:
+        elif self.GetRotation() is None:
             return False
-        return True
+        else:
+            return True
 
     def _OverrideRecipePosition(self, recipeOverrides, position, rotation):
         if const.cef.POSITION_COMPONENT_ID not in recipeOverrides:

@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\packages\dogma\items\slimDogmaItem.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\packages\dogma\items\slimDogmaItem.py
 import itertools
 import weakref
 from dogma.dogmaLogging import *
@@ -28,7 +29,7 @@ OPERATOR_OFFSET = 1
 class SlimDogmaItem(object):
 
     @TimedFunction('SlimDogmaItem::__init__')
-    def __init__(self, dogmaLocation, invItem, clientIDFunc, attributes = None):
+    def __init__(self, dogmaLocation, invItem, clientIDFunc, attributes=None):
         self._owner = None
         self.dogmaLocation = dogmaLocation
         self.dogmaLocation.dogmaItems[invItem.itemID] = self
@@ -53,6 +54,8 @@ class SlimDogmaItem(object):
                 with ExceptionEater('Contents callback excepted'):
                     callBack(self)
 
+        return
+
     def __str__(self):
         return '<%s::%s::%s>' % (self.__class__.__name__, self.itemID, self.typeID)
 
@@ -67,6 +70,8 @@ class SlimDogmaItem(object):
             return None
         except ReferenceError:
             return None
+
+        return None
 
     @owner.setter
     def owner(self, value):
@@ -87,6 +92,8 @@ class SlimDogmaItem(object):
             if self.invItem.locationID is not None:
                 self.__MarkMissingLocation()
 
+        return
+
     def _SetupOwnerLinks(self):
         self.ownedItems = self.__ClaimOwnedItems()
         for theOwnedItem in self.ownedItems:
@@ -102,6 +109,8 @@ class SlimDogmaItem(object):
             self.owner = None
             if self.invItem.ownerID is not None:
                 self.__MarkMissingOwner()
+
+        return
 
     def __ClaimSubItems(self):
         if self.itemID not in self.dogmaLocation.itemsMissingLocation:
@@ -168,24 +177,26 @@ class SlimDogmaItem(object):
                 myOwnerReqSkillMods = fromSelf.ownerReqSkillMods[skillID][attribID]
                 fromSelf._ApplyModsToAttrib(myOwnerReqSkillMods, toAttrib, debugContext='PickUp OwnerReqSkillMods')
 
-    def _ApplyModsToAttrib(self, modSeq, toAttrib, callOnAttributeChanged = False, debugContext = '<no debug context>'):
+    def _ApplyModsToAttrib(self, modSeq, toAttrib, callOnAttributeChanged=False, debugContext='<no debug context>'):
         if not modSeq:
             return
-        itemsToPurge = None
-        for modifier in modSeq:
-            operation, fromAttrib = modifier
-            if fromAttrib.IsAnOrphan():
-                if itemsToPurge is None:
-                    itemsToPurge = set()
-                itemsToPurge.add(modifier)
-            else:
-                fromAttrib.AddModifierTo(operation, toAttrib)
-                if callOnAttributeChanged:
-                    self.dogmaLocation.OnAttributeChanged(toAttrib.attribID, self.itemID)
+        else:
+            itemsToPurge = None
+            for modifier in modSeq:
+                operation, fromAttrib = modifier
+                if fromAttrib.IsAnOrphan():
+                    if itemsToPurge is None:
+                        itemsToPurge = set()
+                    itemsToPurge.add(modifier)
+                else:
+                    fromAttrib.AddModifierTo(operation, toAttrib)
+                    if callOnAttributeChanged:
+                        self.dogmaLocation.OnAttributeChanged(toAttrib.attribID, self.itemID)
 
-        if itemsToPurge:
-            self.dogmaLocation.LogError('SlimDogmaItem::_ApplyModsToAttrib PURGING ORPHANS (attempting self-repair)! \nmodSeq = {}, \nitemsToPurge = {}, \ntoAttrib = {} \n, debugContext = {}'.format(modSeq, itemsToPurge, toAttrib, debugContext))
-            modSeq.difference_update(itemsToPurge)
+            if itemsToPurge:
+                self.dogmaLocation.LogError('SlimDogmaItem::_ApplyModsToAttrib PURGING ORPHANS (attempting self-repair)! \nmodSeq = {}, \nitemsToPurge = {}, \ntoAttrib = {} \n, debugContext = {}'.format(modSeq, itemsToPurge, toAttrib, debugContext))
+                modSeq.difference_update(itemsToPurge)
+            return
 
     def CanAttributeBeModified(self):
         return True
@@ -204,10 +215,6 @@ class SlimDogmaItem(object):
     @property
     def ownerID(self):
         return self.invItem.ownerID
-
-    @ownerID.setter
-    def ownerID(self, ownerID):
-        self.invItem.ownerID = ownerID
 
     def GetPilot(self):
         return None
@@ -240,6 +247,7 @@ class SlimDogmaItem(object):
 
         else:
             self.__UnmarkMissingLocation(self.invItem.locationID)
+        self.dogmaLocation.PersistItem2(self.itemID)
 
     def RemoveModifierSet(self, modifiers):
         for attribID, modSet in modifiers.iteritems():
@@ -302,6 +310,8 @@ class SlimDogmaItem(object):
                 else:
                     self.AddModifierSet(locationReqSkillMods)
 
+        return
+
     def HandlePilotChange(self, pilotID):
         if not pilotID:
             oldPilotItem = self.dogmaLocation.dogmaItems[self.GetPilot()]
@@ -355,6 +365,8 @@ class SlimDogmaItem(object):
 
                 self.dogmaLocation.HandleDogmaLocationEffectsOnItem(self)
 
+        return
+
     @WrappedMethod
     def FlushAllModifiers(self):
         for attrib in self.attributes.itervalues():
@@ -389,6 +401,7 @@ class _SlimDogmaItemPacker(object):
                 attributeValues.append((attribID, persistData))
 
         packedItem.attributeValues = attributeValues
+        return
 
     def PackModifiers(self, packedItem):
         outgoingModifiers = defaultdict(list)
@@ -403,6 +416,7 @@ class _SlimDogmaItemPacker(object):
         sanitized = {}
         sanitized.update(outgoingModifiers)
         packedItem.outgoingModifiers = sanitized
+        return
 
     def _SerializeModifierSet(self, modSet):
         modList = []
@@ -461,6 +475,8 @@ class _SlimDogmaItemUnpacker(object):
                 destAttrib = destItem.attributes[destAttribID]
                 attrib.AddModifierTo(operator, destAttrib)
 
+        return
+
     def _UnpackModifierSet(self, modSet, packedData):
         for attribID, operation, fromItemID, fromAttribID in packedData:
             fromItem = self.dogmaLM.dogmaItems.get(fromItemID)
@@ -468,6 +484,8 @@ class _SlimDogmaItemUnpacker(object):
                 continue
             fromAttrib = fromItem.attributes[fromAttribID]
             modSet[attribID].add((operation, fromAttrib))
+
+        return
 
     @TimedFunction('DogmaLocation::UnpackProp::ModSets')
     def UnpackModifierSets(self):
@@ -494,7 +512,7 @@ class _SlimDogmaItemUnpacker(object):
                                 toAttrib.AddIncomingModifier(operator, fromAttrib)
 
     def _MakeEnvironment(self, effectID, otherID):
-        return Environment(self.dogmaItem.itemID, self.charID, self.shipID, None, otherID, effectID, self.dogmaLM, None)
+        return Environment(self.dogmaItem.itemID, self.charID, self.shipID, None, otherID, effectID, self.dogmaLM, None, None)
 
     @TimedFunction('DogmaLocation::UnpackProp::Effects')
     def UnpackEffects(self):
@@ -539,3 +557,5 @@ class _SlimDogmaItemUnpacker(object):
                  -1,
                  self._MakeEnvironment(effectID, otherID),
                  0]
+
+        return

@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\client\script\ui\shared\maps\mapSvc.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\client\script\ui\shared\maps\mapSvc.py
 import fsdSchemas.binaryLoader as fsdBinaryLoader
 import uicontrols
 import service
@@ -26,17 +27,19 @@ class MapSvc(service.Service):
     __update_on_reload__ = 0
     __startupdependencies__ = ['settings']
 
-    def Run(self, memStream = None):
+    def Run(self, memStream=None):
         self.state = SERVICE_START_PENDING
         self.LogInfo('Starting Map Client Svc')
         self.Reset()
         self.state = SERVICE_RUNNING
 
-    def Stop(self, memStream = None):
+    def Stop(self, memStream=None):
         if trinity.device is None:
             return
-        self.LogInfo('Map svc')
-        self.Reset()
+        else:
+            self.LogInfo('Map svc')
+            self.Reset()
+            return
 
     def OnSessionChanged(self, isRemote, sess, change):
         if 'charid' in change:
@@ -50,6 +53,7 @@ class MapSvc(service.Service):
         self.mapconnectionscache = None
         self.landmarks = None
         sm.ScatterEvent('OnMapReset')
+        return
 
     def Open(self):
         viewSvc = sm.GetService('viewState')
@@ -61,10 +65,12 @@ class MapSvc(service.Service):
         return settings.user.ui.Get('activeMap', 'starmap')
 
     def MinimizeWindows(self):
-        lobby = form.Lobby.GetIfOpen()
+        from eve.client.script.ui.shared.dockedUI import GetLobbyClass
+        lobbyClass = GetLobbyClass()
+        lobby = lobbyClass.GetIfOpen()
         if lobby and not lobby.destroyed and lobby.state != uiconst.UI_HIDDEN and not lobby.IsMinimized() and not lobby.IsCollapsed():
             lobby.Minimize()
-            self.minimizedWindows.append(form.Lobby.default_windowID)
+            self.minimizedWindows.append(lobbyClass.default_windowID)
 
     def ResetMinimizedWindows(self):
         if len(self.minimizedWindows) > 0:
@@ -96,7 +102,7 @@ class MapSvc(service.Service):
     def GetSecColorList(self):
         return COLORCURVE_SECURITY
 
-    def GetSecurityStatus(self, solarSystemID, getColor = False):
+    def GetSecurityStatus(self, solarSystemID, getColor=False):
         if self.securityInfo is None:
             uthread.Lock(self)
             try:
@@ -114,7 +120,7 @@ class MapSvc(service.Service):
         return util.SecurityClassFromLevel(secLevel)
 
     @telemetry.ZONE_METHOD
-    def GetSolarsystemItems(self, solarsystemID, requireLocalizedTexts = True, doYields = False):
+    def GetSolarsystemItems(self, solarsystemID, requireLocalizedTexts=True, doYields=False):
         local, playerStations = uthread.parallel([(cfg.GetLocationsLocalBySystem, (solarsystemID, requireLocalizedTexts, doYields)), (sm.RemoteSvc('config').GetDynamicCelestials, (solarsystemID,))], contextSuffix='GetSolarsystemItems')
         for station in playerStations:
             local.InsertNew(station)
@@ -141,23 +147,25 @@ class MapSvc(service.Service):
             self.mapconnectionscache = settings.user.ui.Get('map_cacheconnectionsfile', {})
         return self.mapconnectionscache or {}
 
-    def GetItem(self, itemID, retall = False):
+    def GetItem(self, itemID, retall=False):
         if util.IsStation(itemID):
             station = cfg.stations.Get(itemID)
             return util.KeyVal(itemID=itemID, locationID=station.solarSystemID, itemName=cfg.evelocations.Get(itemID).name, typeID=station.stationTypeID, groupID=const.groupStation, x=station.x, y=station.y, z=station.z)
-        if util.IsSolarSystem(itemID):
+        elif util.IsSolarSystem(itemID):
             solarSystem = cfg.mapSystemCache.Get(itemID)
             return util.KeyVal(itemID=itemID, locationID=solarSystem.constellationID, itemName=cfg.evelocations.Get(itemID).name, typeID=const.typeSolarSystem, groupID=const.groupSolarSystem, factionID=getattr(solarSystem, 'factionID', None), neighbours=[ i.solarSystemID for i in solarSystem.neighbours ], x=solarSystem.center.x, y=solarSystem.center.y, z=solarSystem.center.z, security=solarSystem.securityStatus)
-        if util.IsConstellation(itemID):
+        elif util.IsConstellation(itemID):
             constellation = cfg.mapConstellationCache.Get(itemID)
             return util.KeyVal(itemID=itemID, locationID=constellation.regionID, itemName=cfg.evelocations.Get(itemID).name, typeID=const.typeConstellation, neighbours=list(constellation.neighbours), groupID=const.groupConstellation, x=constellation.center.x, y=constellation.center.y, z=constellation.center.z)
-        if util.IsRegion(itemID):
+        elif util.IsRegion(itemID):
             region = cfg.mapRegionCache.Get(itemID)
             return util.KeyVal(itemID=itemID, locationID=const.locationUniverse, itemName=cfg.evelocations.Get(itemID).name, neighbours=list(region.neighbours), typeID=const.typeRegion, groupID=const.groupRegion, x=region.center.x, y=region.center.y, z=region.center.z)
-        if util.IsCelestial(itemID):
+        elif util.IsCelestial(itemID):
             solarSystemID = cfg.mapCelestialLocationCache[itemID]
             typeID, pos = self._GetCelestialsTypeIdAndPosition(itemID, solarSystemID)
             return util.KeyVal(itemID=itemID, locationID=solarSystemID, itemName=cfg.evelocations.Get(itemID).name, typeID=typeID, x=pos[0], y=pos[1], z=pos[2])
+        else:
+            return None
 
     def _GetCelestialsTypeIdAndPosition(self, itemID, solarSystemID):
         if itemID in cfg.mapSolarSystemContentCache.celestials:
@@ -177,20 +185,20 @@ class MapSvc(service.Service):
              solarSystem.constellationID,
              locationID,
              None)
-        if util.IsConstellation(locationID):
+        elif util.IsConstellation(locationID):
             constellation = cfg.mapConstellationCache.Get(locationID)
             return (const.locationUniverse,
              constellation.regionID,
              locationID,
              None,
              None)
-        if util.IsRegion(locationID):
+        elif util.IsRegion(locationID):
             return (const.locationUniverse,
              locationID,
              None,
              None,
              None)
-        if util.IsCelestial(locationID):
+        elif util.IsCelestial(locationID):
             solarSystemID = cfg.mapCelestialLocationCache[locationID]
             solarSystem = cfg.mapSystemCache.Get(solarSystemID)
             return (const.locationUniverse,
@@ -198,7 +206,7 @@ class MapSvc(service.Service):
              solarSystem.constellationID,
              solarSystemID,
              locationID)
-        if util.IsStation(locationID):
+        elif util.IsStation(locationID):
             station = cfg.stations.Get(locationID)
             ssID = station.solarSystemID
             solarSystem = cfg.mapSystemCache.Get(ssID)
@@ -207,13 +215,14 @@ class MapSvc(service.Service):
              solarSystem.constellationID,
              ssID,
              locationID)
-        return (const.locationUniverse,
-         None,
-         None,
-         None,
-         locationID)
+        else:
+            return (const.locationUniverse,
+             None,
+             None,
+             None,
+             locationID)
 
-    def FindByName(self, searchstr, ignorecommas = 1):
+    def FindByName(self, searchstr, ignorecommas=1):
         searchGroupList = [const.searchResultConstellation, const.searchResultSolarSystem, const.searchResultRegion]
         results = searchUtil.QuickSearch(searchstr, searchGroupList)
         return map(self.GetItem, results)
@@ -256,6 +265,7 @@ class MapSvc(service.Service):
             return station.solarSystemID
         else:
             return None
+            return None
 
     def GetRegionForSolarSystem(self, solarSystemID):
         if util.IsSolarSystem(solarSystemID):
@@ -263,12 +273,14 @@ class MapSvc(service.Service):
             return solarSystem.regionID
         else:
             return None
+            return None
 
     def GetConstellationForSolarSystem(self, solarSystemID):
         if util.IsSolarSystem(solarSystemID):
             solarSystem = cfg.mapSystemCache.Get(solarSystemID)
             return solarSystem.constellationID
         else:
+            return None
             return None
 
     def GetLocationChildren(self, itemID):
@@ -311,7 +323,7 @@ class MapSvc(service.Service):
     def GetNumberOfStargates(self, itemID):
         return len(cfg.mapSolarSystemContentCache[itemID].stargates)
 
-    def IterateSolarSystemIDs(self, itemID = None):
+    def IterateSolarSystemIDs(self, itemID=None):
         if itemID is None:
             for regionID in self.GetKnownspaceRegions():
                 for s in cfg.mapRegionCache.Get(regionID).solarSystemIDs:
@@ -327,12 +339,14 @@ class MapSvc(service.Service):
             for systemID in cfg.mapRegionCache.Get(itemID).solarSystemIDs:
                 yield systemID
 
+        return
+
     def IterateKnownSpaceSolarSystems(self):
         for systemID, system in cfg.mapSystemCache.iteritems():
             if not util.IsWormholeSystem(systemID):
                 yield (systemID, system)
 
-    def GetPlanetInfo(self, planetID, hierarchy = False):
+    def GetPlanetInfo(self, planetID, hierarchy=False):
         p = cfg.mapSolarSystemContentCache.planets[planetID]
         typeID = p.typeID
         solarSystemID = p.solarSystemID
@@ -347,14 +361,14 @@ class MapSvc(service.Service):
         for planetID, planetData in cfg.mapSolarSystemContentCache.planets.iteritems():
             yield self.PlanetInfo(planetID, planetData.solarSystemID, planetData.typeID)
 
-    def CreateLineSet(self, path = LINESET_EFFECT):
+    def CreateLineSet(self, path=LINESET_EFFECT):
         lineSet = trinity.EveLineSet()
         lineSet.effect = trinity.Tr2Effect()
         lineSet.effect.effectFilePath = path
         lineSet.renderTransparent = False
         return lineSet
 
-    def CreateCurvedLineSet(self, effectPath = None):
+    def CreateCurvedLineSet(self, effectPath=None):
         lineSet = trinity.EveCurveLineSet()
         if effectPath is not None:
             lineSet.lineEffect.effectFilePath = effectPath

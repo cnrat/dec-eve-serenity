@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\packages\trinity\takeScreenshot.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\packages\trinity\takeScreenshot.py
 import wx
 import trinity
 import math
@@ -35,6 +36,7 @@ def GetProjection(rj):
                             return step2.projection
 
     noSetProjectionRjList.append(rj)
+    return
 
 
 def GetViewport(rj):
@@ -60,7 +62,9 @@ def GetViewport(rj):
 
     if TrinityPanelWrapper.GetViewport() is not None:
         return TrinityPanelWrapper.GetViewport()
-    noSetViewportRjList.append(rj)
+    else:
+        noSetViewportRjList.append(rj)
+        return
 
 
 def SetProjection(rj, newProj):
@@ -68,26 +72,30 @@ def SetProjection(rj, newProj):
         rj.CallMethodOnChildren('SetCameraProjection', newProj)
         rj.CallMethodOnChildren('AddStep', 'SET_PROJECTION', trinity.TriStepSetProjection(newProj))
         return
-    if hasattr(rj, 'SetCameraProjection'):
+    elif hasattr(rj, 'SetCameraProjection'):
         rj.SetCameraProjection(newProj)
         return
-    if hasattr(rj, 'GetStep'):
-        projStep = rj.GetStep('SET_PROJECTION')
-        if projStep is not None:
-            projStep.projection = newProj
+    else:
+        if hasattr(rj, 'GetStep'):
+            projStep = rj.GetStep('SET_PROJECTION')
+            if projStep is not None:
+                projStep.projection = newProj
+        return
 
 
 def SetViewport(rj, newVP):
     if hasattr(rj, 'CallMethodOnChildren'):
         rj.CallMethodOnChildren('AddStep', 'SET_VIEWPORT', trinity.TriStepSetViewport(newVP))
         return
-    if hasattr(rj, 'GetStep'):
-        vpStep = rj.GetStep('SET_VIEWPORT')
-        if vpStep is not None:
-            vpStep.viewport = newVP
-        else:
-            rj.SetViewport(newVP)
-    TrinityPanelWrapper.SetViewport(newVP)
+    else:
+        if hasattr(rj, 'GetStep'):
+            vpStep = rj.GetStep('SET_VIEWPORT')
+            if vpStep is not None:
+                vpStep.viewport = newVP
+            else:
+                rj.SetViewport(newVP)
+        TrinityPanelWrapper.SetViewport(newVP)
+        return
 
 
 def BackupAllProjectionsAndViewports(rjList):
@@ -111,6 +119,8 @@ def RestoreAllProjectionsAndViewports():
     for rj in noSetViewportRjList:
         rj.SetViewport(None)
 
+    return
+
 
 def OverrideAllProjectionsAndViewports(rjList, newProj, newVP):
     for rj in rjList:
@@ -133,6 +143,8 @@ def RestoreInteriorFlares(flarePreviousState):
     for flare in flarePreviousState:
         flare.updateVisibility = flarePreviousState[flare]
         flare.OverrideViewport(None)
+
+    return
 
 
 def OverrideInteriorFlareViewports(flarePreviousState, x, y, width, height):
@@ -192,7 +204,7 @@ class StreamingBitmapSaver:
         self.screenShot.CopyFromRenderTargetRegion(rt, left, top, right, bottom, offsetx, offsety)
 
 
-def TakeScreenshot(filename, tilesAcross, saverClass = HostBitmapSaver):
+def TakeScreenshot(filename, tilesAcross, saverClass=HostBitmapSaver):
     successful = False
     errorHint = ''
     performanceOverlayRJ = 0

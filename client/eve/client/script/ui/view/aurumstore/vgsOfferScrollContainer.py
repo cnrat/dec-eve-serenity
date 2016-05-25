@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\client\script\ui\view\aurumstore\vgsOfferScrollContainer.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\client\script\ui\view\aurumstore\vgsOfferScrollContainer.py
 from carbonui.control.scrollContainer import ScrollContainer
 from eve.client.script.ui.util.uiComponents import RunThreadOnce
 LAZY_LOADING_BUFFER = 0.9
@@ -13,6 +14,7 @@ class OfferScrollContainer(ScrollContainer):
         self.contentLoader = None
         self.runningScrollUpdate = False
         self.clipCont.clipChildren = False
+        return
 
     def RegisterContentLoader(self, contentLoader):
         if self.contentLoader:

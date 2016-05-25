@@ -1,29 +1,41 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\packages\dogma\items\chargeDogmaItem.py
-from shipFittableDogmaItem import ShipFittableDogmaItem
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\packages\dogma\items\chargeDogmaItem.py
+from fittableDogmaItem import FittableDogmaItem
 import util
-import inventorycommon.const as invconst
 
-class ChargeDogmaItem(ShipFittableDogmaItem):
+class ChargeDogmaItem(FittableDogmaItem):
 
-    def GetEnvironmentInfo(self):
-        otherID = None
-        if self.location is not None:
+    def GetOtherID(self):
+        if self.location:
             otherID = self.dogmaLocation.GetSlotOther(self.location.itemID, self.flagID)
             if otherID is None and self.dogmaLocation.IsItemSubLocation(self.itemID):
                 otherID = self.location.itemID
-        return util.KeyVal(itemID=self.itemID, shipID=self.GetShipID(), charID=self.GetPilot(), otherID=otherID, targetID=None, effectID=None)
+            return otherID
+        else:
+            return
 
-    def IsValidFittingCategory(self, categoryID):
-        return categoryID in (invconst.categoryShip, invconst.categoryStarbase)
+    def IsValidFittingLocation(self, location):
+        return location.categoryID in (const.categoryShip, const.categoryStarbase, const.categoryStructure)
 
     def IsOwnerModifiable(self):
-        pilotID = self.location.GetPilot()
-        if not pilotID:
+        if not self.location:
             return False
-        shipID = self.locationID
-        if not shipID:
+        else:
+            pilotID = self.location.GetPilot()
+            if not pilotID:
+                return False
+            shipID = self.locationID
+            if not shipID:
+                return False
+            if self.dogmaLocation.IsItemSubLocation(self.itemID):
+                if shipID == self.dogmaLocation.shipsByPilotID.get(pilotID, None):
+                    return True
             return False
-        if self.dogmaLocation.IsItemSubLocation(self.itemID):
-            if shipID == self.dogmaLocation.shipsByPilotID.get(pilotID, None):
-                return True
-        return False
+
+    def GetStructureID(self):
+        pilotID = self.GetPilot()
+        shipID = self.dogmaLocation.shipsByPilotID.get(pilotID, None)
+        return self.dogmaLocation.GetStructureIdForEnvironment(shipID)
+
+    def GetCharacterID(self):
+        return self.GetPilot()

@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\devtools\script\uiDebugger.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\devtools\script\uiDebugger.py
 import uiprimitives
 import uicontrols
 import carbonui.const as uiconst
@@ -56,6 +57,7 @@ class UIDebugger(uicontrols.Window):
         self.scroll = uicontrols.Scroll(parent=self.sr.maincontainer, name='scroll', align=uiconst.TOALL)
         self.scroll.OnSelectionChange = self.OnScrollSelectionChange
         self.OnAlwaysOnTopChanged()
+        return
 
     def OnScrollSelectionChange(self, nodes):
         if not nodes:
@@ -66,62 +68,64 @@ class UIDebugger(uicontrols.Window):
         self.attributeCont.Flush()
         if not cont:
             return
-        self.currAttrCont = cont
-        uicontrols.Label(name='attrNameLabel', parent=self.attributeCont, text='<color=red>%s' % cont.name, fontsize=20, align=uiconst.TOTOP, padBottom=0)
-        classLabel = uicontrols.Label(name='attrGuidLabel', parent=self.attributeCont, text=cont.__class__.__name__, state=uiconst.UI_NORMAL, fontsize=12, align=uiconst.TOTOP)
-        classLabel.OnClick = (self.OnClassLabelClicked, cont)
-        uicontrols.Button(parent=self.attributeCont, align=uiconst.TOTOP, label='Open in jessica', func=self._OpenInJessica, args=(cont,), hint='Open selected object in jessica tree view')
-        uicontrols.Button(parent=self.attributeCont, align=uiconst.TOTOP, label='Animate', func=self._GetAnimationWindow, args=(cont,), hint='Open selected object in the animation test window', padBottom=10)
-        uicontrols.Label(parent=self.attributeCont, align=uiconst.TOTOP, text='STATE')
-        options = (('UI_NORMAL', uiconst.UI_NORMAL),
-         ('UI_DISABLED', uiconst.UI_DISABLED),
-         ('UI_HIDDEN', uiconst.UI_HIDDEN),
-         ('UI_PICKCHILDREN', uiconst.UI_PICKCHILDREN))
-        for label, value in options:
-            self.attrStateRadioBtn = uicontrols.Checkbox(parent=self.attributeCont, text=label, options=options, groupname='stateGroup', name='attrStateCombo', checked=cont.state == value, retval=value, callback=self.OnAttrStateCombo, align=uiconst.TOTOP, padTop=0)
-
-        self.attrState = cont.state
-        options = (('TOPLEFT', uiconst.TOPLEFT),
-         ('CENTERTOP', uiconst.CENTERTOP),
-         ('TOPRIGHT', uiconst.TOPRIGHT),
-         ('CENTERRIGHT', uiconst.CENTERRIGHT),
-         ('BOTTOMRIGHT', uiconst.BOTTOMRIGHT),
-         ('CENTERBOTTOM', uiconst.CENTERBOTTOM),
-         ('BOTTOMLEFT', uiconst.BOTTOMLEFT),
-         ('CENTERLEFT', uiconst.CENTERLEFT),
-         ('CENTER', uiconst.CENTER),
-         ('TOALL', uiconst.TOALL),
-         ('TOLEFT', uiconst.TOLEFT),
-         ('TOTOP', uiconst.TOTOP),
-         ('TORIGHT', uiconst.TORIGHT),
-         ('TOBOTTOM', uiconst.TOBOTTOM),
-         ('TOLEFT_PROP', uiconst.TOLEFT_PROP),
-         ('TOTOP_PROP', uiconst.TOTOP_PROP),
-         ('TORIGHT_PROP', uiconst.TORIGHT_PROP),
-         ('TOBOTTOM_PROP', uiconst.TOBOTTOM_PROP),
-         ('TOPLEFT_PROP', uiconst.TOPLEFT_PROP),
-         ('ABSOLUTE', uiconst.ABSOLUTE))
-        self.attrAlignCombo = uicontrols.Combo(parent=self.attributeCont, label='align', options=options, name='attrAlignCombo', select=cont.align, callback=self.OnAttrsChanged, align=uiconst.TOTOP, padTop=20)
-        posCont = uiprimitives.Container(parent=self.attributeCont, align=uiconst.TOTOP, height=20, padTop=20)
-        if cont.align in (uiconst.TOLEFT_PROP,
-         uiconst.TOTOP_PROP,
-         uiconst.TORIGHT_PROP,
-         uiconst.TOBOTTOM_PROP,
-         uiconst.TOPLEFT_PROP):
-            ints = None
-            floats = (0.0, 10.0)
         else:
-            ints = (-10000, 10000)
-            floats = None
-        self.attrLeftEdit = uicontrols.SinglelineEdit(parent=posCont, name='left', align=uiconst.TOLEFT, label='left', ints=ints, floats=floats, setvalue=cont.left, OnChange=self.OnAttrsChanged, width=50)
-        self.attrTopEdit = uicontrols.SinglelineEdit(parent=posCont, name='top', align=uiconst.TOLEFT, label='top', ints=ints, floats=floats, setvalue=cont.top, OnChange=self.OnAttrsChanged, width=50)
-        self.attrWidthEdit = uicontrols.SinglelineEdit(parent=posCont, name='width', align=uiconst.TOLEFT, label='width', ints=ints, floats=floats, setvalue=cont.width, OnChange=self.OnAttrsChanged, width=50)
-        self.attrHeightEdit = uicontrols.SinglelineEdit(parent=posCont, name='height', align=uiconst.TOLEFT, label='height', ints=ints, floats=floats, setvalue=cont.height, OnChange=self.OnAttrsChanged, width=50)
-        padCont = uiprimitives.Container(parent=self.attributeCont, align=uiconst.TOTOP, height=20, padTop=20)
-        self.attrPadLeftEdit = uicontrols.SinglelineEdit(parent=padCont, name='padLeft', align=uiconst.TOLEFT, label='padLeft', ints=ints, floats=floats, setvalue=cont.padLeft, OnChange=self.OnAttrsChanged, width=50)
-        self.attrPadTopEdit = uicontrols.SinglelineEdit(parent=padCont, name='padTop', align=uiconst.TOLEFT, label='padTop', ints=ints, floats=floats, setvalue=cont.padTop, OnChange=self.OnAttrsChanged, width=50)
-        self.attrPadRightEdit = uicontrols.SinglelineEdit(parent=padCont, name='padRight', align=uiconst.TOLEFT, label='padRight', ints=ints, floats=floats, setvalue=cont.padRight, OnChange=self.OnAttrsChanged, width=50)
-        self.attrPadBottomEdit = uicontrols.SinglelineEdit(parent=padCont, name='padBottom', align=uiconst.TOLEFT, label='padBottom', ints=ints, floats=floats, setvalue=cont.padBottom, OnChange=self.OnAttrsChanged, width=50)
+            self.currAttrCont = cont
+            uicontrols.Label(name='attrNameLabel', parent=self.attributeCont, text='<color=red>%s' % cont.name, fontsize=20, align=uiconst.TOTOP, padBottom=0)
+            classLabel = uicontrols.Label(name='attrGuidLabel', parent=self.attributeCont, text=cont.__class__.__name__, state=uiconst.UI_NORMAL, fontsize=12, align=uiconst.TOTOP)
+            classLabel.OnClick = (self.OnClassLabelClicked, cont)
+            uicontrols.Button(parent=self.attributeCont, align=uiconst.TOTOP, label='Open in jessica', func=self._OpenInJessica, args=(cont,), hint='Open selected object in jessica tree view')
+            uicontrols.Button(parent=self.attributeCont, align=uiconst.TOTOP, label='Animate', func=self._GetAnimationWindow, args=(cont,), hint='Open selected object in the animation test window', padBottom=10)
+            uicontrols.Label(parent=self.attributeCont, align=uiconst.TOTOP, text='STATE')
+            options = (('UI_NORMAL', uiconst.UI_NORMAL),
+             ('UI_DISABLED', uiconst.UI_DISABLED),
+             ('UI_HIDDEN', uiconst.UI_HIDDEN),
+             ('UI_PICKCHILDREN', uiconst.UI_PICKCHILDREN))
+            for label, value in options:
+                self.attrStateRadioBtn = uicontrols.Checkbox(parent=self.attributeCont, text=label, options=options, groupname='stateGroup', name='attrStateCombo', checked=cont.state == value, retval=value, callback=self.OnAttrStateCombo, align=uiconst.TOTOP, padTop=0)
+
+            self.attrState = cont.state
+            options = (('TOPLEFT', uiconst.TOPLEFT),
+             ('CENTERTOP', uiconst.CENTERTOP),
+             ('TOPRIGHT', uiconst.TOPRIGHT),
+             ('CENTERRIGHT', uiconst.CENTERRIGHT),
+             ('BOTTOMRIGHT', uiconst.BOTTOMRIGHT),
+             ('CENTERBOTTOM', uiconst.CENTERBOTTOM),
+             ('BOTTOMLEFT', uiconst.BOTTOMLEFT),
+             ('CENTERLEFT', uiconst.CENTERLEFT),
+             ('CENTER', uiconst.CENTER),
+             ('TOALL', uiconst.TOALL),
+             ('TOLEFT', uiconst.TOLEFT),
+             ('TOTOP', uiconst.TOTOP),
+             ('TORIGHT', uiconst.TORIGHT),
+             ('TOBOTTOM', uiconst.TOBOTTOM),
+             ('TOLEFT_PROP', uiconst.TOLEFT_PROP),
+             ('TOTOP_PROP', uiconst.TOTOP_PROP),
+             ('TORIGHT_PROP', uiconst.TORIGHT_PROP),
+             ('TOBOTTOM_PROP', uiconst.TOBOTTOM_PROP),
+             ('TOPLEFT_PROP', uiconst.TOPLEFT_PROP),
+             ('ABSOLUTE', uiconst.ABSOLUTE))
+            self.attrAlignCombo = uicontrols.Combo(parent=self.attributeCont, label='align', options=options, name='attrAlignCombo', select=cont.align, callback=self.OnAttrsChanged, align=uiconst.TOTOP, padTop=20)
+            posCont = uiprimitives.Container(parent=self.attributeCont, align=uiconst.TOTOP, height=20, padTop=20)
+            if cont.align in (uiconst.TOLEFT_PROP,
+             uiconst.TOTOP_PROP,
+             uiconst.TORIGHT_PROP,
+             uiconst.TOBOTTOM_PROP,
+             uiconst.TOPLEFT_PROP):
+                ints = None
+                floats = (0.0, 10.0)
+            else:
+                ints = (-10000, 10000)
+                floats = None
+            self.attrLeftEdit = uicontrols.SinglelineEdit(parent=posCont, name='left', align=uiconst.TOLEFT, label='left', ints=ints, floats=floats, setvalue=cont.left, OnChange=self.OnAttrsChanged, width=50)
+            self.attrTopEdit = uicontrols.SinglelineEdit(parent=posCont, name='top', align=uiconst.TOLEFT, label='top', ints=ints, floats=floats, setvalue=cont.top, OnChange=self.OnAttrsChanged, width=50)
+            self.attrWidthEdit = uicontrols.SinglelineEdit(parent=posCont, name='width', align=uiconst.TOLEFT, label='width', ints=ints, floats=floats, setvalue=cont.width, OnChange=self.OnAttrsChanged, width=50)
+            self.attrHeightEdit = uicontrols.SinglelineEdit(parent=posCont, name='height', align=uiconst.TOLEFT, label='height', ints=ints, floats=floats, setvalue=cont.height, OnChange=self.OnAttrsChanged, width=50)
+            padCont = uiprimitives.Container(parent=self.attributeCont, align=uiconst.TOTOP, height=20, padTop=20)
+            self.attrPadLeftEdit = uicontrols.SinglelineEdit(parent=padCont, name='padLeft', align=uiconst.TOLEFT, label='padLeft', ints=ints, floats=floats, setvalue=cont.padLeft, OnChange=self.OnAttrsChanged, width=50)
+            self.attrPadTopEdit = uicontrols.SinglelineEdit(parent=padCont, name='padTop', align=uiconst.TOLEFT, label='padTop', ints=ints, floats=floats, setvalue=cont.padTop, OnChange=self.OnAttrsChanged, width=50)
+            self.attrPadRightEdit = uicontrols.SinglelineEdit(parent=padCont, name='padRight', align=uiconst.TOLEFT, label='padRight', ints=ints, floats=floats, setvalue=cont.padRight, OnChange=self.OnAttrsChanged, width=50)
+            self.attrPadBottomEdit = uicontrols.SinglelineEdit(parent=padCont, name='padBottom', align=uiconst.TOLEFT, label='padBottom', ints=ints, floats=floats, setvalue=cont.padBottom, OnChange=self.OnAttrsChanged, width=50)
+            return
 
     def GetClassPath(self, obj):
         ret = None
@@ -213,7 +217,7 @@ class UIDebugger(uicontrols.Window):
         self.currCont = cont
         return True
 
-    def HighlightCont(self, cont, updateAttrsCont = True):
+    def HighlightCont(self, cont, updateAttrsCont=True):
         self.CleanContHighLight()
         ancestors = self.GetAncestors(cont)
         children = getattr(cont, 'children', [])
@@ -425,6 +429,7 @@ class UIDebugger(uicontrols.Window):
             self.GetAncestorsRecurs(cont.parent, ancestorList)
         if hasattr(cont, 'GetAbsolute'):
             ancestorList.append(cont)
+        return
 
     def GetColor(self, num, maxNum):
         hue = min(1.0, 0.1 + 0.85 * float(num) / maxNum)
@@ -436,6 +441,7 @@ class UIDebugger(uicontrols.Window):
         self.childrenConts = []
         self.backgroundConts = []
         self.selectedCont = None
+        return
 
     def OnAlwaysOnTopChanged(self, *args):
         if self.onTopCheckbox.checked:
@@ -531,7 +537,7 @@ class UISnapshotSvc(service.Service):
     __guid__ = 'svc.UISnapshot'
     __update_on_reload__ = 1
 
-    def Run(self, memStream = None):
+    def Run(self, memStream=None):
         service.Service.Run(self, memStream)
         self.snapshots = []
 
@@ -542,7 +548,7 @@ class UISnapshotSvc(service.Service):
         if w:
             w.UpdateSnapshotBtns()
 
-    def CreateSnapshot(self, cont, caption = ''):
+    def CreateSnapshot(self, cont, caption=''):
         snapshot = self._CreateSnapshot(cont)
         snapshot.caption = caption
         self.snapshots.append(snapshot)
@@ -551,7 +557,7 @@ class UISnapshotSvc(service.Service):
         if w:
             w.UpdateSnapshotBtns()
 
-    def _CreateSnapshot(self, cont, parent = None):
+    def _CreateSnapshot(self, cont, parent=None):
         ret = FakeContainer(parent=parent, name=cont.name, align=cont.align, state=cont.state, left=cont.left, top=cont.top, width=cont.width, height=cont.height)
         ret.displayX = cont.displayX
         ret.displayY = cont.displayY

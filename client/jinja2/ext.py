@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\carbon\common\lib\jinja2\ext.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\carbon\common\lib\jinja2\ext.py
 from collections import deque
 from jinja2 import nodes
 from jinja2.defaults import *
@@ -30,7 +31,7 @@ class Extension(object):
         rv.environment = environment
         return rv
 
-    def preprocess(self, source, name, filename = None):
+    def preprocess(self, source, name, filename=None):
         return source
 
     def filter_stream(self, stream):
@@ -39,10 +40,10 @@ class Extension(object):
     def parse(self, parser):
         raise NotImplementedError()
 
-    def attr(self, name, lineno = None):
+    def attr(self, name, lineno=None):
         return nodes.ExtensionAttribute(self.identifier, name, lineno=lineno)
 
-    def call_method(self, name, args = None, kwargs = None, dyn_args = None, dyn_kwargs = None, lineno = None):
+    def call_method(self, name, args=None, kwargs=None, dyn_args=None, dyn_kwargs=None, lineno=None):
         if args is None:
             args = []
         if kwargs is None:
@@ -88,7 +89,7 @@ class InternationalizationExtension(Extension):
         environment.globals['_'] = _gettext_alias
         environment.extend(install_gettext_translations=self._install, install_null_translations=self._install_null, install_gettext_callables=self._install_callables, uninstall_gettext_translations=self._uninstall, extract_translations=self._extract, newstyle_gettext=False)
 
-    def _install(self, translations, newstyle = None):
+    def _install(self, translations, newstyle=None):
         gettext = getattr(translations, 'ugettext', None)
         if gettext is None:
             gettext = translations.gettext
@@ -96,23 +97,27 @@ class InternationalizationExtension(Extension):
         if ngettext is None:
             ngettext = translations.ngettext
         self._install_callables(gettext, ngettext, newstyle)
+        return
 
-    def _install_null(self, newstyle = None):
+    def _install_null(self, newstyle=None):
         self._install_callables(lambda x: x, lambda s, p, n: (n != 1 and (p,) or (s,))[0], newstyle)
 
-    def _install_callables(self, gettext, ngettext, newstyle = None):
+    def _install_callables(self, gettext, ngettext, newstyle=None):
         if newstyle is not None:
             self.environment.newstyle_gettext = newstyle
         if self.environment.newstyle_gettext:
             gettext = _make_new_gettext(gettext)
             ngettext = _make_new_ngettext(ngettext)
         self.environment.globals.update(gettext=gettext, ngettext=ngettext)
+        return
 
     def _uninstall(self, translations):
         for key in ('gettext', 'ngettext'):
             self.environment.globals.pop(key, None)
 
-    def _extract(self, source, gettext_functions = GETTEXT_FUNCTIONS):
+        return
+
+    def _extract(self, source, gettext_functions=GETTEXT_FUNCTIONS):
         if isinstance(source, basestring):
             source = self.environment.parse(source)
         return extract_from_ast(source, gettext_functions)
@@ -275,7 +280,7 @@ class AutoEscapeExtension(Extension):
         return nodes.Scope([node])
 
 
-def extract_from_ast(node, gettext_functions = GETTEXT_FUNCTIONS, babel_style = True):
+def extract_from_ast(node, gettext_functions=GETTEXT_FUNCTIONS, babel_style=True):
     for node in node.find_all(nodes.Call):
         if not isinstance(node.node, nodes.Name) or node.node.name not in gettext_functions:
             continue
@@ -303,6 +308,8 @@ def extract_from_ast(node, gettext_functions = GETTEXT_FUNCTIONS, babel_style = 
             strings = tuple(strings)
         yield (node.lineno, node.node.name, strings)
 
+    return
+
 
 class _CommentFinder(object):
 
@@ -328,6 +335,8 @@ class _CommentFinder(object):
         finally:
             self.offset = offset
 
+        return
+
     def find_comments(self, lineno):
         if not self.comment_tags or self.last_lineno > lineno:
             return []
@@ -349,7 +358,7 @@ def babel_extract(fileobj, keywords, comment_tags, options):
     if InternationalizationExtension not in extensions:
         extensions.add(InternationalizationExtension)
 
-    def getbool(options, key, default = False):
+    def getbool(options, key, default=False):
         return options.get(key, str(default)).lower() in ('1', 'on', 'yes', 'true')
 
     silent = getbool(options, 'silent', True)

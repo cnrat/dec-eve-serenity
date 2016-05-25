@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\carbon\common\script\net\addressCache.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\carbon\common\script\net\addressCache.py
 
 
 class AddressCache:
@@ -12,6 +13,8 @@ class AddressCache:
             return self._addressCache[service, address]
         except KeyError:
             return None
+
+        return None
 
     def Set(self, service, address, nodeID):
         key = (service, address)

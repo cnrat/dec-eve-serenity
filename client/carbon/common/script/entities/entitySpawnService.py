@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\carbon\common\script\entities\entitySpawnService.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\carbon\common\script\entities\entitySpawnService.py
 import service
 
 class EntitySpawnService(service.Service):
@@ -19,11 +20,12 @@ class EntitySpawnService(service.Service):
     def LoadEntityFromSpawner(self, spawner):
         if not spawner.CanSpawn():
             return
-        itemID = spawner.GetEntityID()
-        if itemID is False:
-            itemID = self.GetNextEntityID()
-        scene = self.entityService.LoadEntityScene(spawner.GetSceneID())
-        spawnedEntity = self.entityService.CreateEntityFromRecipe(scene, spawner.GetRecipe(self.entityRecipeSvc), itemID)
-        if spawnedEntity is not None:
-            scene.CreateAndRegisterEntity(spawnedEntity)
-        return spawnedEntity
+        else:
+            itemID = spawner.GetEntityID()
+            if itemID is False:
+                itemID = self.GetNextEntityID()
+            scene = self.entityService.LoadEntityScene(spawner.GetSceneID())
+            spawnedEntity = self.entityService.CreateEntityFromRecipe(scene, spawner.GetRecipe(self.entityRecipeSvc), itemID)
+            if spawnedEntity is not None:
+                scene.CreateAndRegisterEntity(spawnedEntity)
+            return spawnedEntity

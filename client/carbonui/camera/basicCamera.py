@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\packages\carbonui\camera\basicCamera.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\packages\carbonui\camera\basicCamera.py
 import blue
 import math
 import geo2
@@ -26,6 +27,7 @@ class BasicCamera(object):
         self.cameraBehaviors = []
         self.lastUpdateTime = blue.os.GetWallclockTime()
         self.audio2Listener = None
+        return
 
     def Reset(self):
         pass
@@ -152,7 +154,7 @@ class BasicCamera(object):
         self.viewMatrix.transform = self.CreateViewMatrix()
         self.baseViewMatrix.transform = self.CreateViewMatrix()
 
-    def AddBehavior(self, behavior, priority = 100):
+    def AddBehavior(self, behavior, priority=100):
         self.cameraBehaviors.append((priority, behavior))
         self.cameraBehaviors.sort()
         behavior.OnBehaviorAdded(self)
@@ -166,13 +168,16 @@ class BasicCamera(object):
 
         if toRemove is not None:
             self.cameraBehaviors.remove(toRemove)
+        return
 
     def GetBehavior(self, behaviorType):
         for priority, behavior in self.cameraBehaviors:
             if type(behavior) is behaviorType:
                 return behavior
 
-    def PerformPick(self, x, y, ignoreEntID = -1):
+        return None
+
+    def PerformPick(self, x, y, ignoreEntID=-1):
         raise NotImplementedError('PerformPick must be implemented on derived camera classes')
 
     def GetRay(self, x, y):

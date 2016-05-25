@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\client\script\ui\camera\characterSmoothBehindBehavior.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\client\script\ui\camera\characterSmoothBehindBehavior.py
 import geo2
 import cameras
 import cameraUtils
@@ -21,6 +22,7 @@ class CharacterSmoothBehindBehavior(cameras.CameraBehavior):
         self.enableTriggerableSmoothBehind = 0
         self.smoothBehindEnabled = 1
         self.smoothBehind = False
+        return
 
     def SmoothBehind(self):
         yawDiff = cameraUtils.GetAngleFromEntityToCamera(self.entity)
@@ -42,35 +44,37 @@ class CharacterSmoothBehindBehavior(cameras.CameraBehavior):
     def ProcessCameraUpdate(self, camera, now, frameTime):
         if not self.smoothBehindEnabled:
             return
-        self.camera = camera
-        self.frameTime = frameTime
-        if self.entity is None:
-            self.entity = self._GetEntity(self.charEntID)
+        else:
+            self.camera = camera
+            self.frameTime = frameTime
             if self.entity is None:
-                raise RuntimeError("Problem retrieving the avatar's entity. cameras.CameraBehavior._GetEntity returned None for entityID", self.charEntID)
-        if self.model is None:
-            self.model = self._GetEntityModel(self.charEntID)
+                self.entity = self._GetEntity(self.charEntID)
+                if self.entity is None:
+                    raise RuntimeError("Problem retrieving the avatar's entity. cameras.CameraBehavior._GetEntity returned None for entityID", self.charEntID)
             if self.model is None:
-                raise RuntimeError("Problem retrieving the avatar's model object. entityClient.FindEntityByID returned None for entityID", self.charEntID)
-        if not camera.mouseLeftButtonDown and not camera.mouseRightButtonDown:
-            avatarHasMoved = geo2.Vec3Distance(self.model.translation, self.lastAvatarPosition) > const.FLOAT_TOLERANCE
-            avatarHasRotated = geo2.Vec3Distance(geo2.QuaternionRotationGetYawPitchRoll(self.model.rotation), self.lastAvatarRotation) > const.FLOAT_TOLERANCE
-            movementDetected = avatarHasMoved or avatarHasRotated
-            self.lastAvatarPosition = self.model.translation
-            self.lastAvatarRotation = geo2.QuaternionRotationGetYawPitchRoll(self.model.rotation)
-            if movementDetected:
-                self.rotationSpeed = cameras.SMOOTH_BEHIND_ANIMATION_SPEED_REALLY_FAST
-            else:
-                self.rotationSpeed = cameras.SMOOTH_BEHIND_ANIMATION_SPEED
-            if self.enableTriggerableSmoothBehind:
+                self.model = self._GetEntityModel(self.charEntID)
+                if self.model is None:
+                    raise RuntimeError("Problem retrieving the avatar's model object. entityClient.FindEntityByID returned None for entityID", self.charEntID)
+            if not camera.mouseLeftButtonDown and not camera.mouseRightButtonDown:
+                avatarHasMoved = geo2.Vec3Distance(self.model.translation, self.lastAvatarPosition) > const.FLOAT_TOLERANCE
+                avatarHasRotated = geo2.Vec3Distance(geo2.QuaternionRotationGetYawPitchRoll(self.model.rotation), self.lastAvatarRotation) > const.FLOAT_TOLERANCE
+                movementDetected = avatarHasMoved or avatarHasRotated
+                self.lastAvatarPosition = self.model.translation
+                self.lastAvatarRotation = geo2.QuaternionRotationGetYawPitchRoll(self.model.rotation)
                 if movementDetected:
+                    self.rotationSpeed = cameras.SMOOTH_BEHIND_ANIMATION_SPEED_REALLY_FAST
+                else:
+                    self.rotationSpeed = cameras.SMOOTH_BEHIND_ANIMATION_SPEED
+                if self.enableTriggerableSmoothBehind:
+                    if movementDetected:
+                        self.smoothBehind = True
+                else:
                     self.smoothBehind = True
             else:
-                self.smoothBehind = True
-        else:
-            self.smoothBehind = False
-        if self.smoothBehind:
-            self.SmoothBehind()
+                self.smoothBehind = False
+            if self.smoothBehind:
+                self.SmoothBehind()
+            return
 
 
 import carbon.common.script.util.autoexport as autoexport

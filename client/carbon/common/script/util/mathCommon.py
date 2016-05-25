@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\carbon\common\script\util\mathCommon.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\carbon\common\script\util\mathCommon.py
 import math
 import geo2
 import random
@@ -35,7 +36,7 @@ def ConvertTriToTupleMatrix(triMatrix):
       triMatrix._44))
 
 
-def FloatCloseEnough(a, b, epsilon = None):
+def FloatCloseEnough(a, b, epsilon=None):
     if not epsilon:
         epsilon = const.FLOAT_TOLERANCE
     return abs(a - b) < epsilon
@@ -71,7 +72,7 @@ def GetRandomHemisphereVector(axis):
     return randVec
 
 
-def RandomVector(radius = 1.0, width = 0.0):
+def RandomVector(radius=1.0, width=0.0):
     t = random.random() * 2.0 * math.pi
     u = (random.random() - 0.5) * 2.0
     sq = math.sqrt(1.0 - u * u)
@@ -190,7 +191,7 @@ def CalcLinearIntpValue(startVal, targetVal, startTime, curTime, howLong):
         return startVal + timeFactor * (targetVal - startVal)
 
 
-def CalcScaledValueOverInterval(startVal, targetVal, intervalLength, intervalRemaining, minFactor = None, maxFactor = None):
+def CalcScaledValueOverInterval(startVal, targetVal, intervalLength, intervalRemaining, minFactor=None, maxFactor=None):
     if intervalLength == 0:
         return targetVal
     factor = 1.0 - 1.0 * intervalRemaining / intervalLength

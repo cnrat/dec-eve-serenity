@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\carbon\common\script\net\objectCaching.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\carbon\common\script\net\objectCaching.py
 import blue
 import telemetry
 import uthread
@@ -115,7 +116,7 @@ class CoreObjectCachingSvc(service.Service):
 
                 return ('Object Cache Statistics', '%d distinct objects returned via %d calls, totalling %d bytes' % (len(v), totCalls, totBytes))
 
-    def Run(self, memStream = None):
+    def Run(self, memStream=None):
         service.Service.Run(self, memStream)
         self.methodCallCachingDetails = {}
         self.cachedMethodCalls = {}
@@ -222,6 +223,7 @@ class CoreObjectCachingSvc(service.Service):
             invalidate.append(k)
 
         self.InvalidateCachedObjects(invalidate)
+        return
 
     def __ListPartialMatch(self, l, o, pm):
         if len(pm) == len(l) and len(l) == len(o):
@@ -235,9 +237,8 @@ class CoreObjectCachingSvc(service.Service):
                         return 0
 
             return 1
-        return 0
 
-    def InvalidateCachedObjects(self, objectIDs, forward = 1):
+    def InvalidateCachedObjects(self, objectIDs, forward=1):
         deleted = 0
         for each in objectIDs:
             if each in self.cachedMethodCalls:
@@ -258,17 +259,21 @@ class CoreObjectCachingSvc(service.Service):
         gpcs.GetGPCS()
         if macho.mode == 'client':
             return
-        if macho.mode == 'proxy':
-            for eachNodeID in sm.services['machoNet'].GetConnectedSolNodes():
-                gpcs.RemoteServiceNotify(self.session, MachoAddress(nodeID=eachNodeID, service='objectCaching'), 'objectCaching', 'InvalidateCachedObjects', objectIDs, 0)
+        else:
+            if macho.mode == 'proxy':
+                for eachNodeID in sm.services['machoNet'].GetConnectedSolNodes():
+                    gpcs.RemoteServiceNotify(self.session, MachoAddress(nodeID=eachNodeID, service='objectCaching'), 'objectCaching', 'InvalidateCachedObjects', objectIDs, 0)
 
-        elif forward and sm.services['machoNet'].GetConnectedProxyNodes():
-            eachNodeID = random.choice(sm.services['machoNet'].GetConnectedProxyNodes())
-            gpcs.RemoteServiceNotify(self.session, MachoAddress(nodeID=eachNodeID, service='objectCaching'), 'objectCaching', 'InvalidateCachedObjects', objectIDs, 0)
+            elif forward and sm.services['machoNet'].GetConnectedProxyNodes():
+                eachNodeID = random.choice(sm.services['machoNet'].GetConnectedProxyNodes())
+                gpcs.RemoteServiceNotify(self.session, MachoAddress(nodeID=eachNodeID, service='objectCaching'), 'objectCaching', 'InvalidateCachedObjects', objectIDs, 0)
+            return
 
     def GetCachedObject(self, objectID):
         if objectID in self.cachedObjects and not isinstance(self.cachedObjects[objectID], uthread.Semaphore):
             return self.cachedObjects[objectID].object
+        else:
+            return None
 
     def GetCachedObjectVersion(self, objectID):
         if objectID in self.cachedObjects and not isinstance(self.cachedObjects[objectID], uthread.Semaphore):
@@ -277,6 +282,7 @@ class CoreObjectCachingSvc(service.Service):
                 return v[1]
             else:
                 return v
+        return
 
     def GetCachableObject(self, shared, objectID, objectVersion, nodeID):
         callTimer = base.CallTimer('objectCaching::GetCachableObject')
@@ -349,6 +355,8 @@ class CoreObjectCachingSvc(service.Service):
         finally:
             callTimer.Done()
 
+        return
+
     def CacheObject(self, object):
         shared, objectID, objectVersion, nodeID, cachedObject, thePickle, compressed = object.MachoGetCachedObjectGuts()
         if objectID not in self.cachedObjects or not isinstance(self.cachedObjects[objectID], uthread.Semaphore) and self.__NewerVersion(self.cachedObjects[objectID].version, objectVersion):
@@ -362,16 +370,15 @@ class CoreObjectCachingSvc(service.Service):
             else:
                 log.LogTraceback('Unexpected CacheObject request')
             self.__CacheIsDirty('cachedObjects', objectID)
+        return
 
     def __NewerVersion(self, oldVersion, newVersion):
         if oldVersion[1] != newVersion[1]:
             return newVersion[0] > oldVersion[0]
-        return 0
 
     def __OlderVersion(self, oldVersion, newVersion):
         if oldVersion[1] != newVersion[1]:
             return oldVersion[0] < newVersion[0]
-        return 0
 
     def __GetMethodCallCachingDetails(self, serviceOrObject, serviceOrObjectName, method):
         if serviceOrObject is not None:
@@ -384,6 +391,7 @@ class CoreObjectCachingSvc(service.Service):
             return
         else:
             return self.methodCallCachingDetails.get((serviceOrObjectName, method), None)
+            return
 
     def GetCachedMethodCallVersion(self, serviceOrObject, serviceOrObjectName, method, args):
         details = self.__GetMethodCallCachingDetails(serviceOrObject, serviceOrObjectName, method)
@@ -442,7 +450,7 @@ class CoreObjectCachingSvc(service.Service):
          cacheKey,
          cacheDetails)
 
-    def PerformCachedMethodCall(self, serviceOrObject, serviceOrObjectName, method, args, remoteVersion = None):
+    def PerformCachedMethodCall(self, serviceOrObject, serviceOrObjectName, method, args, remoteVersion=None):
         details = self.__GetMethodCallCachingDetails(serviceOrObject, serviceOrObjectName, method)
         if details is not None:
             si = []
@@ -477,6 +485,7 @@ class CoreObjectCachingSvc(service.Service):
                 return self.ReturnCachedResults(1, 0, 0, None, k, details)
         else:
             return self.ReturnCachedResults(0, 0, 0, None, None, None)
+        return
 
     if cacheSessionVariables is not None:
         __cachedsessionvariables__ = tuple(list(cacheSessionVariables) + __cachedsessionvariables__)
@@ -509,6 +518,7 @@ class CoreObjectCachingSvc(service.Service):
              'used': used,
              'runid': self.runid}
             self.LogInfo('ObjectCaching ', serviceOrObjectName, '::', method, '(', args, ') cached the method call for future reference.')
+        return
 
     def __GetVersionCheckType(self, details):
         vc = details.get('versionCheck', 'run')
@@ -524,10 +534,11 @@ class CoreObjectCachingSvc(service.Service):
     def IsCachedOnProxy(self, details):
         if details.get('sessionInfo', None) and details.get('sessionInfo', None) not in self.__cachedsessionvariables__:
             return False
-        vc = details.get('versionCheck', 'run')
-        if type(vc) == types.TupleType:
-            return vc[1] is not None
-        return vc is not None
+        else:
+            vc = details.get('versionCheck', 'run')
+            if type(vc) == types.TupleType:
+                return vc[1] is not None
+            return vc is not None
 
     def UpdateVersionCheckPeriod(self, cacheKey):
         try:
@@ -539,6 +550,8 @@ class CoreObjectCachingSvc(service.Service):
                 cacheEntry['version'][0] = blue.os.GetWallclockTime()
         except Exception as e:
             log.LogException('ObjectCaching unknown exception while resetting validity period')
+
+        return
 
     def __ShouldVersionCheck(self, details, info):
         vc = self.__GetVersionCheckType(details)
@@ -612,6 +625,7 @@ class CachedObject():
     def __setstate__(self, state):
         self.object = None
         self.version, self.object, self.nodeID, self.shared, self.pickle, self.compressed, self.objectID = state
+        return
 
     def GetObject(self):
         if self.object is None:
@@ -636,7 +650,8 @@ class CachedObject():
     def CompressedPart(self):
         if not self.compressed or self.pickle is None:
             return 0
-        return len(self.pickle)
+        else:
+            return len(self.pickle)
 
     def GetSize(self):
         if self.pickle is None:
@@ -660,6 +675,7 @@ class CachedMethodCallResult():
         else:
             self.result = blue.marshal.Save(result)
             self.version = [blue.os.GetWallclockTime(), zlib.adler32(self.result)]
+        return
 
     def __getstate__(self):
         return (self.details, self.result, self.version)
@@ -675,7 +691,6 @@ class CachedMethodCallResult():
     def IsSameVersion(self, machoVersion):
         if machoVersion != 1:
             return self.GetVersion()[1] == machoVersion[1]
-        return 0
 
     def GetResult(self):
         if isinstance(self.result, utilCachedObject):
@@ -697,5 +712,5 @@ class CacheOK(StandardError):
     __guid__ = 'objectCaching.CacheOK'
     __passbyvalue__ = 1
 
-    def __init__(self, value = 'CacheOK', *args):
+    def __init__(self, value='CacheOK', *args):
         StandardError.__init__(self, value, *args)

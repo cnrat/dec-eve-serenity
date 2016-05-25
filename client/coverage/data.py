@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\carbon\common\stdlib\coverage\data.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\carbon\common\stdlib\coverage\data.py
 import os
 from coverage.backward import iitems, pickle, sorted
 from coverage.files import PathAliases
@@ -6,7 +7,7 @@ from coverage.misc import file_be_gone
 
 class CoverageData(object):
 
-    def __init__(self, basename = None, collector = None, debug = None):
+    def __init__(self, basename=None, collector=None, debug=None):
         self.collector = collector or 'unknown'
         self.debug = debug
         self.use_file = True
@@ -15,7 +16,7 @@ class CoverageData(object):
         self.lines = {}
         self.arcs = {}
 
-    def usefile(self, use_file = True):
+    def usefile(self, use_file=True):
         self.use_file = use_file
 
     def read(self):
@@ -24,7 +25,7 @@ class CoverageData(object):
         else:
             self.lines, self.arcs = {}, {}
 
-    def write(self, suffix = None):
+    def write(self, suffix=None):
         if self.use_file:
             filename = self.filename
             if suffix:
@@ -87,7 +88,7 @@ class CoverageData(object):
 
         return (lines, arcs)
 
-    def combine_parallel_data(self, aliases = None):
+    def combine_parallel_data(self, aliases=None):
         aliases = aliases or PathAliases()
         data_dir, local = os.path.split(self.filename)
         localdot = local + '.'
@@ -130,7 +131,7 @@ class CoverageData(object):
         hasher.update(self.executed_lines(filename))
         hasher.update(self.executed_arcs(filename))
 
-    def summary(self, fullpath = False):
+    def summary(self, fullpath=False):
         summ = {}
         if fullpath:
             filename_fn = lambda f: f

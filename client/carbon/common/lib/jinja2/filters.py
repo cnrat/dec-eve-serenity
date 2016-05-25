@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\carbon\common\lib\jinja2\filters.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\carbon\common\lib\jinja2\filters.py
 import re
 import math
 from random import choice
@@ -56,20 +57,22 @@ def do_urlencode(value):
 
     if itemiter is None:
         return unicode_urlencode(value)
-    return u'&'.join((unicode_urlencode(k) + '=' + unicode_urlencode(v) for k, v in itemiter))
+    else:
+        return u'&'.join((unicode_urlencode(k) + '=' + unicode_urlencode(v) for k, v in itemiter))
 
 
 @evalcontextfilter
-def do_replace(eval_ctx, s, old, new, count = None):
+def do_replace(eval_ctx, s, old, new, count=None):
     if count is None:
         count = -1
     if not eval_ctx.autoescape:
         return unicode(s).replace(unicode(old), unicode(new), count)
-    if hasattr(old, '__html__') or hasattr(new, '__html__') and not hasattr(s, '__html__'):
-        s = escape(s)
     else:
-        s = soft_unicode(s)
-    return s.replace(soft_unicode(old), soft_unicode(new), count)
+        if hasattr(old, '__html__') or hasattr(new, '__html__') and not hasattr(s, '__html__'):
+            s = escape(s)
+        else:
+            s = soft_unicode(s)
+        return s.replace(soft_unicode(old), soft_unicode(new), count)
 
 
 def do_upper(s):
@@ -81,7 +84,7 @@ def do_lower(s):
 
 
 @evalcontextfilter
-def do_xmlattr(_eval_ctx, d, autospace = True):
+def do_xmlattr(_eval_ctx, d, autospace=True):
     rv = u' '.join((u'%s="%s"' % (escape(key), escape(value)) for key, value in d.iteritems() if value is not None and not isinstance(value, Undefined)))
     if autospace and rv:
         rv = u' ' + rv
@@ -98,7 +101,7 @@ def do_title(s):
     return soft_unicode(s).title()
 
 
-def do_dictsort(value, case_sensitive = False, by = 'key'):
+def do_dictsort(value, case_sensitive=False, by='key'):
     if by == 'key':
         pos = 0
     elif by == 'value':
@@ -116,7 +119,7 @@ def do_dictsort(value, case_sensitive = False, by = 'key'):
 
 
 @environmentfilter
-def do_sort(environment, value, reverse = False, case_sensitive = False, attribute = None):
+def do_sort(environment, value, reverse=False, case_sensitive=False, attribute=None):
     if not case_sensitive:
 
         def sort_func(item):
@@ -129,25 +132,25 @@ def do_sort(environment, value, reverse = False, case_sensitive = False, attribu
     if attribute is not None:
         getter = make_attrgetter(environment, attribute)
 
-        def sort_func(item, processor = sort_func or (lambda x: x)):
+        def sort_func(item, processor=sort_func or (lambda x: x)):
             return processor(getter(item))
 
     return sorted(value, key=sort_func, reverse=reverse)
 
 
-def do_default(value, default_value = u'', boolean = False):
+def do_default(value, default_value=u'', boolean=False):
     if boolean and not value or isinstance(value, Undefined):
         return default_value
     return value
 
 
 @evalcontextfilter
-def do_join(eval_ctx, value, d = u'', attribute = None):
+def do_join(eval_ctx, value, d=u'', attribute=None):
     if attribute is not None:
         value = imap(make_attrgetter(eval_ctx.environment, attribute), value)
     if not eval_ctx.autoescape:
         return unicode(d).join(imap(unicode, value))
-    if not hasattr(d, '__html__'):
+    elif not hasattr(d, '__html__'):
         value = list(value)
         do_escape = False
         for idx, item in enumerate(value):
@@ -161,10 +164,11 @@ def do_join(eval_ctx, value, d = u'', attribute = None):
         else:
             d = unicode(d)
         return d.join(value)
-    return soft_unicode(d).join(imap(soft_unicode, value))
+    else:
+        return soft_unicode(d).join(imap(soft_unicode, value))
 
 
-def do_center(value, width = 80):
+def do_center(value, width=80):
     return unicode(value).center(width)
 
 
@@ -192,7 +196,7 @@ def do_random(environment, seq):
         return environment.undefined('No random item, sequence was empty.')
 
 
-def do_filesizeformat(value, binary = False):
+def do_filesizeformat(value, binary=False):
     bytes = float(value)
     base = binary and 1024 or 1000
     prefixes = [binary and 'KiB' or 'kB',
@@ -216,19 +220,19 @@ def do_filesizeformat(value, binary = False):
         return '%.1f %s' % (base * bytes / unit, prefix)
 
 
-def do_pprint(value, verbose = False):
+def do_pprint(value, verbose=False):
     return pformat(value, verbose=verbose)
 
 
 @evalcontextfilter
-def do_urlize(eval_ctx, value, trim_url_limit = None, nofollow = False):
+def do_urlize(eval_ctx, value, trim_url_limit=None, nofollow=False):
     rv = urlize(value, trim_url_limit, nofollow)
     if eval_ctx.autoescape:
         rv = Markup(rv)
     return rv
 
 
-def do_indent(s, width = 4, indentfirst = False):
+def do_indent(s, width=4, indentfirst=False):
     indention = u' ' * width
     rv = (u'\n' + indention).join(s.splitlines())
     if indentfirst:
@@ -236,7 +240,7 @@ def do_indent(s, width = 4, indentfirst = False):
     return rv
 
 
-def do_truncate(s, length = 255, killwords = False, end = '...'):
+def do_truncate(s, length=255, killwords=False, end='...'):
     if len(s) <= length:
         return s
     if killwords:
@@ -255,7 +259,7 @@ def do_truncate(s, length = 255, killwords = False, end = '...'):
 
 
 @environmentfilter
-def do_wordwrap(environment, s, width = 79, break_long_words = True):
+def do_wordwrap(environment, s, width=79, break_long_words=True):
     import textwrap
     return environment.newline_sequence.join(textwrap.wrap(s, width=width, expand_tabs=False, replace_whitespace=False, break_long_words=break_long_words))
 
@@ -264,7 +268,7 @@ def do_wordcount(s):
     return len(_word_re.findall(s))
 
 
-def do_int(value, default = 0):
+def do_int(value, default=0):
     try:
         return int(value)
     except (TypeError, ValueError):
@@ -274,7 +278,7 @@ def do_int(value, default = 0):
             return default
 
 
-def do_float(value, default = 0.0):
+def do_float(value, default=0.0):
     try:
         return float(value)
     except (TypeError, ValueError):
@@ -297,7 +301,7 @@ def do_striptags(value):
     return Markup(unicode(value)).striptags()
 
 
-def do_slice(value, slices, fill_with = None):
+def do_slice(value, slices, fill_with=None):
     seq = list(value)
     length = len(seq)
     items_per_slice = length // slices
@@ -313,8 +317,10 @@ def do_slice(value, slices, fill_with = None):
             tmp.append(fill_with)
         yield tmp
 
+    return
 
-def do_batch(value, linecount, fill_with = None):
+
+def do_batch(value, linecount, fill_with=None):
     result = []
     tmp = []
     for item in value:
@@ -327,9 +333,10 @@ def do_batch(value, linecount, fill_with = None):
         if fill_with is not None and len(tmp) < linecount:
             tmp += [fill_with] * (linecount - len(tmp))
         yield tmp
+    return
 
 
-def do_round(value, precision = 0, method = 'common'):
+def do_round(value, precision=0, method='common'):
     if method not in ('common', 'ceil', 'floor'):
         raise FilterArgumentError('method must be common, ceil or floor')
     if method == 'common':
@@ -354,7 +361,7 @@ class _GroupTuple(tuple):
 
 
 @environmentfilter
-def do_sum(environment, iterable, attribute = None, start = 0):
+def do_sum(environment, iterable, attribute=None, start=0):
     if attribute is not None:
         iterable = imap(make_attrgetter(environment, attribute), iterable)
     return sum(iterable, start)

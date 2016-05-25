@@ -1,14 +1,14 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\common\script\sys\eveSessions.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\common\script\sys\eveSessions.py
 import math
 import blue
-from eve.common.script.sys.eveCfg import IsSolarSystem, IsStation, IsCharacter
+from eve.common.script.sys.eveCfg import IsStation, IsCharacter
 import carbon.common.script.net.machobase as macho
 import carbon.common.script.sys.service as service
 from carbon.common.script.sys.service import *
 from inventorycommon.util import IsNPC
 import const
 import base
-import logConst
 import localization
 eveSessionsByAttribute = {'regionid': {},
  'constellationid': {},
@@ -20,6 +20,7 @@ eveSessionsByAttribute = {'regionid': {},
  'stationid': {},
  'stationid2': {},
  'worldspaceid': {},
+ 'structureid': {},
  'locationid': {},
  'solarsystemid': {},
  'solarsystemid2': {},
@@ -38,12 +39,10 @@ def GetCharLocation2(charID):
         locationGroupID = None
 
     if locationGroupID is None:
-        charUnboundMgr = sm.services['charUnboundMgr']
-        charMgr = sm.services['charMgr']
-        charUnboundMgr.MoveCharacter(charID, charMgr.GetHomeStation(charID), 0)
+        sm.services['charUnboundMgr'].RecoverCharacter(charID)
         locationID, locationGroupID, charLocationID = GetCharLocationEx(charID)
         if locationGroupID is None:
-            raise RuntimeError('Bogus character item state', charID, x, z)
+            raise RuntimeError('Bogus character item state', charID, locationID, charLocationID)
     return (locationID, locationGroupID, charLocationID)
 
 
@@ -78,6 +77,7 @@ def GetCharLocationEx(charID):
         if locationInfo.locationGroupID in (const.groupStation, const.groupSolarSystem, const.groupWorldSpace):
             return (locationInfo.locationID, locationInfo.locationGroupID, locationInfo.characterLocationID)
         return (locationInfo.locationID, None, locationInfo.characterLocationID)
+    return
 
 
 def IsUndockingSessionChange(session, change):
@@ -136,6 +136,7 @@ class SessionMgr(base.SessionMgr):
          'stationid',
          'stationid2',
          'worldspaceid',
+         'structureid',
          'fleetid',
          'wingid',
          'squadid',
@@ -144,7 +145,7 @@ class SessionMgr(base.SessionMgr):
          'corpAccountKey',
          'inDetention']
 
-    def AppRun(self, memstream = None):
+    def AppRun(self, memstream=None):
         if macho.mode == 'server':
             self.dbcharacter = self.DB2.GetSchema('character')
 
@@ -270,24 +271,14 @@ class SessionMgr(base.SessionMgr):
             return
         if const.ixLocationID not in change and const.ixFlag not in change:
             return
-        locationID = locationGroupID = None
-        if const.ixLocationID in change:
-            locationID = change[const.ixLocationID][1]
-            if IsSolarSystem(locationID):
-                locationGroupID = const.groupSolarSystem
-            elif IsStation(locationID):
-                locationGroupID = const.groupStation
         chars = {}
         for item in items:
-            if item.categoryID == const.categoryShip and None not in (locationID, locationGroupID):
-                inv2 = self.i2.GetInventory(locationID, locationGroupID)
-                for i in inv2.SelectItems(item.itemID):
-                    if i.groupID == const.groupCharacter:
-                        chars[i.itemID] = self.GetSessionValuesFromItemID(item.itemID, inventory2, item)
+            if item.categoryID == const.categoryShip:
+                for sess in base.FindSessions('shipid', [item.itemID]):
+                    if sess.charid == item.ownerID:
+                        chars[sess.charid] = self.GetSessionValuesFromItemID(item.itemID, inventory2, item)
 
             elif item.groupID == const.groupCharacter:
-                if const.ixLocationID in change and item.customInfo == logConst.eventMovementUndock:
-                    continue
                 chars[item.itemID] = self.GetSessionValuesFromItemID(item.itemID, inventory2, item)
 
         if len(chars) == 0:
@@ -298,7 +289,7 @@ class SessionMgr(base.SessionMgr):
                 sess.SetAttributes(updateDict)
                 sess.LogSessionHistory('Transmogrified OnInventoryChange to SetAttributes')
 
-    def GetSessionValuesFromItemID(self, itemID, inventory2 = None, theItem = None):
+    def GetSessionValuesFromItemID(self, itemID, inventory2=None, theItem=None):
         if itemID == const.locationAbstract:
             raise RuntimeError('Invalid argument, itemID cannot be 0')
 
@@ -308,6 +299,7 @@ class SessionMgr(base.SessionMgr):
         updateDict = {'shipid': None,
          'stationid': None,
          'stationid2': None,
+         'structureid': None,
          'solarsystemid': None,
          'solarsystemid2': None,
          'regionid': None,
@@ -338,6 +330,8 @@ class SessionMgr(base.SessionMgr):
                 updateDict['worldspaceid'] = itemID
                 solsysID = item.locationID
                 break
+            elif item.categoryID == const.categoryStructure:
+                updateDict['structureid'] = itemID
             elif item.groupID == const.groupWorldSpace:
                 updateDict['worldspaceid'] = itemID
                 locationID = item.locationID
@@ -380,6 +374,7 @@ class SessionMgr(base.SessionMgr):
          'squadid': None,
          'shipid': si.shipID,
          'stationid': None,
+         'structureid': si.structureID,
          'solarsystemid': None,
          'regionid': None,
          'constellationid': None,
@@ -409,12 +404,14 @@ class SessionMgr(base.SessionMgr):
                     sessValues['regionid'] = primeditems[sessValues['constellationid']].locationID
         return sessValues
 
-    def GetInitialValuesFromCharID(self, charID):
+    def GetInitialValuesFromCharID(self, charactedID):
         if macho.mode != 'server':
             return {}
-        rs = self.dbcharacter.Characters_Session2(charID)
-        si = rs[0]
-        return self.GetSessionValuesFromRowset(si)
+        values = self.GetSessionValuesFromRowset(self.dbcharacter.Characters_Session2(charactedID)[0])
+        if not values.get('stationid') and not values.get('solarsystemid') and not values.get('worldspaceid'):
+            sm.services['charUnboundMgr'].RecoverCharacter(charactedID)
+            return self.GetSessionValuesFromRowset(self.dbcharacter.Characters_Session2(charactedID)[0])
+        return values
 
     def IsPlayerCharacter(self, charID):
         return IsCharacter(charID) and not IsNPC(charID)
@@ -423,21 +420,26 @@ class SessionMgr(base.SessionMgr):
         s = base.FindSessions('charid', [charID])
         if not s:
             return None
-        return s[0]
+        else:
+            return s[0]
 
     def GetUserSession(self, userid):
         foundSessions = base.FindSessions('userid', [userid])
         if not foundSessions:
             return
-        for foundSession in foundSessions:
-            if foundSession.charid is None:
-                return foundSession
+        else:
+            for foundSession in foundSessions:
+                if foundSession.charid is None:
+                    return foundSession
+
+            return
 
     def GetCharacterSession(self, charid):
         s = base.FindSessions('charid', [charid])
         if not s:
             return None
-        return s[0]
+        else:
+            return s[0]
 
     def CreateCrestSession(self, userID, charID, details, sessionID, clientID):
         sessionInit = {'userid': userID,
@@ -493,6 +495,7 @@ class SessionMgr(base.SessionMgr):
         self.sessionStatistics['DUST:Online'] = (dust_online, {None: dust_online})
         self.sessionStatistics['DUST:Battle'] = (dust_battle, {None: dust_battle})
         self.sessionStatistics['DUST:User'] = (dust_crest, {None: dust_crest})
+        return
 
 
 exports = {'base.GetCharLocation': GetCharLocation,

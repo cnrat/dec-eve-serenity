@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\client\script\ui\services\reprocessingsvc.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\client\script\ui\services\reprocessingsvc.py
 import service
 import util
 import moniker
@@ -26,46 +27,49 @@ class ReprocessingSvc(service.Service):
         self.crits = {}
         self.oreEfficiency = None
         self.efficiency = None
+        return
 
     def LogInfo(self, *args):
         lg.Info(self.__guid__, *args)
 
-    def Run(self, memStream = None):
+    def Run(self, memStream=None):
         self.LogInfo('Starting Reprocessing Service')
         self.ReleaseReprocessingSvc()
 
-    def Stop(self, memStream = None):
+    def Stop(self, memStream=None):
         self.ReleaseReprocessingSvc()
 
-    def __EnterCriticalSection(self, k, v = None):
+    def __EnterCriticalSection(self, k, v=None):
         if (k, v) not in self.crits:
             self.crits[k, v] = uthread.CriticalSection((k, v))
         self.crits[k, v].acquire()
 
-    def __LeaveCriticalSection(self, k, v = None):
+    def __LeaveCriticalSection(self, k, v=None):
         self.crits[k, v].release()
         if (k, v) in self.crits and self.crits[k, v].IsCool():
             del self.crits[k, v]
 
     def ProcessSessionChange(self, isremote, session, change):
-        if 'charid' in change or 'stationid2' in change:
+        if 'charid' in change or 'stationid2' in change or 'structureid' in change:
             self.ReleaseReprocessingSvc()
 
     def DoSessionChanging(self, isRemote, session, change):
-        if 'charid' in change or 'stationid2' in change:
+        if 'charid' in change or 'stationid2' in change or 'structureID' in change:
             sm.StopService(self.__guid__[4:])
 
     def GetReprocessingSvc(self):
         if hasattr(self, 'moniker') and self.moniker is not None:
             return self.moniker
-        self.moniker = moniker.GetReprocessingManager()
-        return self.moniker
+        else:
+            self.moniker = moniker.GetReprocessingManager()
+            return self.moniker
 
     def ReleaseReprocessingSvc(self):
         if hasattr(self, 'moniker') and self.moniker is not None:
             self.moniker = None
+        return
 
-    def ReprocessDlg(self, items = None):
+    def ReprocessDlg(self, items=None):
         uthread.new(self.uthread_ReprocessDlg, items)
 
     def uthread_ReprocessDlg(self, items):

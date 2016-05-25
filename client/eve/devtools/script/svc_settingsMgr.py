@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\devtools\script\svc_settingsMgr.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\devtools\script\svc_settingsMgr.py
 import uiprimitives
 import uicontrols
 import os
@@ -35,7 +36,7 @@ class PrefsEntry(listentry.Generic):
 class ValuePopup:
     __wndname__ = 'ValuePopup'
 
-    def __init__(self, default = None, caption = None, label = None):
+    def __init__(self, default=None, caption=None, label=None):
         if default is None:
             default = '0'
         if caption is None:
@@ -59,6 +60,7 @@ class ValuePopup:
          {'type': 'bbline'}]
         OKCANCEL = 1
         self.popup = uix.HybridWnd(format, caption, 1, None, OKCANCEL, None, minW=240, minH=80)
+        return
 
     def __getitem__(self, *args):
         return args
@@ -70,7 +72,7 @@ class ValuePopup:
 class AddPopup:
     __wndname__ = 'AddPopup'
 
-    def __init__(self, caption = None, labeltop = None, labelbtm = None):
+    def __init__(self, caption=None, labeltop=None, labelbtm=None):
         if caption is None:
             caption = u'Type in name'
         if labeltop is None:
@@ -107,6 +109,7 @@ class AddPopup:
          {'type': 'bbline'}]
         OKCANCEL = 1
         self.popup = uix.HybridWnd(format, caption, 1, None, OKCANCEL, None, minW=240, minH=80)
+        return
 
     def __getitem__(self, *args):
         return args
@@ -165,6 +168,7 @@ class SettingsMgr(uicontrols.Window):
         self.scroll = uicontrols.Scroll(parent=main)
         self.scroll.sr.id = 'PrefsScroll'
         self.Refresh()
+        return
 
     def Refresh(self, *args):
         contentList = []
@@ -189,8 +193,9 @@ class SettingsMgr(uicontrols.Window):
         node = self.scroll.GetSelected()
         if not node:
             return (None, None)
-        node = node[0]
-        return (node.key, node.value)
+        else:
+            node = node[0]
+            return (node.key, node.value)
 
     def AddEntry(self, *args):
         a = AddPopup(caption='Prefs.ini', labeltop='Name', labelbtm='Value')
@@ -199,7 +204,7 @@ class SettingsMgr(uicontrols.Window):
             prefs.SetValue(ret['name'], ret['value'])
             self.Refresh()
 
-    def EditAttribute(self, k = None, v = None):
+    def EditAttribute(self, k=None, v=None):
         if k is None or v is None:
             k, v = self.GetNode()
             if k is None or v is None:
@@ -210,8 +215,9 @@ class SettingsMgr(uicontrols.Window):
             newValue = ret['qty']
             prefs.SetValue(k, newValue)
             self.Refresh()
+        return
 
-    def DeleteKey(self, k = None):
+    def DeleteKey(self, k=None):
         if k is None:
             k, v = self.GetNode()
             if k is None or v is None:
@@ -222,8 +228,9 @@ class SettingsMgr(uicontrols.Window):
          'question': question}, uiconst.YESNO) == uiconst.ID_YES:
             prefs.DeleteValue(k)
             self.Refresh()
+        return
 
-    def OpenPrefs(self, prefs = True, *args):
+    def OpenPrefs(self, prefs=True, *args):
         if not prefs:
             blue.os.ShellExecute(os.path.dirname(self.prefs.ini.filename))
         else:

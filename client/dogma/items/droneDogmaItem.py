@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\packages\dogma\items\droneDogmaItem.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\packages\dogma\items\droneDogmaItem.py
 import weakref
 from inventorycommon import const as invconst
 from baseDogmaItem import BaseDogmaItem
@@ -14,9 +15,10 @@ class DroneDogmaItem(BaseDogmaItem):
             return
         else:
             return self.dogmaLocation.dogmaItems.get(shipID, None)
+            return
 
-    def GetEnvironmentInfo(self):
-        return KeyVal(itemID=self.itemID, shipID=self.itemID, charID=self.invItem.ownerID, otherID=None, targetID=None, effectID=None)
+    def GetCharacterID(self):
+        return self.invItem.ownerID
 
     def SetLocation(self, locationID, locationDogmaItem, flagID):
         oldOwnerID, oldLocationID, oldFlagID = self.GetLocationInfo()
@@ -27,6 +29,7 @@ class DroneDogmaItem(BaseDogmaItem):
     def UnsetLocation(self, locationDogmaItem):
         self.flagID = None
         locationDogmaItem.UnregisterDrone(self.itemID)
+        return
 
     @TimedFunction('DroneDogmaItem::HandleLocationChange')
     def HandleLocationChange(self, oldLocationID):
@@ -49,39 +52,45 @@ class DroneDogmaItem(BaseDogmaItem):
         elif self.IsOwnerModifiable():
             self.__AddDroneOwnerModifiers()
 
-    def RemoveDroneOwnerModifiers(self, ownerID = None):
+    def RemoveDroneOwnerModifiers(self, ownerID=None):
         if not ownerID:
             ownerID = self.ownerID
         owner = self.dogmaLocation.dogmaItems.get(ownerID, None)
         if not owner:
             self.dogmaLocation.broker.LogWarn('__RemoveDroneOwnerModifiers::DroneDogmaItem %s could not find its owner?')
             return
-        for skillID in self.reqSkills:
-            ownerMods = owner.ownerReqSkillMods.get(skillID, {})
-            self.dogmaLocation.broker.LogInfo('__RemoveDroneOwnerModifiers is removing modifiers %s from DroneDogmaItem %s owned by %s' % (ownerMods, self.itemID, ownerID))
-            for attribID, modSet in ownerMods.iteritems():
-                if attribID in self.attributes:
-                    toAttrib = self.attributes[attribID]
-                    for operation, fromAttrib in modSet:
-                        fromAttrib.RemoveOutgoingModifier(operation, toAttrib)
-                        toAttrib.RemoveIncomingModifier(operation, fromAttrib)
+        else:
+            for skillID in self.reqSkills:
+                ownerMods = owner.ownerReqSkillMods.get(skillID, {})
+                self.dogmaLocation.broker.LogInfo('__RemoveDroneOwnerModifiers is removing modifiers %s from DroneDogmaItem %s owned by %s' % (ownerMods, self.itemID, ownerID))
+                for attribID, modSet in ownerMods.iteritems():
+                    if attribID in self.attributes:
+                        toAttrib = self.attributes[attribID]
+                        for operation, fromAttrib in modSet:
+                            fromAttrib.RemoveOutgoingModifier(operation, toAttrib)
+                            toAttrib.RemoveIncomingModifier(operation, fromAttrib)
 
-    def __AddDroneOwnerModifiers(self, ownerID = None):
+            return
+
+    def __AddDroneOwnerModifiers(self, ownerID=None):
         if not ownerID:
             ownerID = self.ownerID
         owner = self.dogmaLocation.dogmaItems.get(ownerID, None)
         if not owner:
             self.dogmaLocation.broker.LogWarn('__AddDroneOwnerModifiers::DroneDogmaItem %s could not find its owner?')
             return
-        for skillID in self.reqSkills:
-            ownerMods = owner.ownerReqSkillMods.get(skillID, {})
-            self.dogmaLocation.broker.LogInfo('__AddDroneOwnerModifiers is adding modifiers %s from DroneDogmaItem %s owned by %s' % (ownerMods, self.itemID, ownerID))
-            for attribID, modSet in ownerMods.iteritems():
-                if attribID in self.attributes:
-                    toAttrib = self.attributes[attribID]
-                    self._ApplyModsToAttrib(modSet, toAttrib, callOnAttributeChanged=True, debugContext='__AddDroneOwnerModifiers')
+        else:
+            for skillID in self.reqSkills:
+                ownerMods = owner.ownerReqSkillMods.get(skillID, {})
+                self.dogmaLocation.broker.LogInfo('__AddDroneOwnerModifiers is adding modifiers %s from DroneDogmaItem %s owned by %s' % (ownerMods, self.itemID, ownerID))
+                for attribID, modSet in ownerMods.iteritems():
+                    if attribID in self.attributes:
+                        toAttrib = self.attributes[attribID]
+                        self._ApplyModsToAttrib(modSet, toAttrib, callOnAttributeChanged=True, debugContext='__AddDroneOwnerModifiers')
 
-    def IsOwnerModifiable(self, locationID = None):
+            return
+
+    def IsOwnerModifiable(self, locationID=None):
         if not locationID:
             locationID = self.locationID
         pilotID = self.ownerID

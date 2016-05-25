@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\client\script\ui\services\corporation\base_corporation.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\client\script\ui\services\corporation\base_corporation.py
 from service import SERVICE_START_PENDING, SERVICE_RUNNING, Service, ROLE_IGB, ROLE_ANY
 from brennivin.threadutils import expiring_memoize
 from carbon.common.script.sys.row import Row
@@ -189,6 +190,7 @@ class Corporation(Service):
         self.hasImpoundedItemsCache = None
         self.hasImpoundedItemsCacheTime = None
         self.resigning = False
+        return
 
     def GetDependencies(self):
         return self.__dependencies__
@@ -196,7 +198,7 @@ class Corporation(Service):
     def GetObjectNames(self):
         return self.__functionalobjects__
 
-    def Run(self, memStream = None):
+    def Run(self, memStream=None):
         self.LogInfo('Starting Corporation')
         self.state = SERVICE_START_PENDING
         sm.FavourMe(self.OnSessionChanged)
@@ -237,16 +239,19 @@ class Corporation(Service):
                 uthread.new(self.GetMyCorporationsOffices)
         self.bulletins = None
         self.bulletinsTimestamp = 0
+        return
 
-    def Stop(self, memStream = None):
+    def Stop(self, memStream=None):
         self.__corpRegistry = None
         self.__corpRegistryCorpID = None
         self.__corpStationManager = None
         self.__corpStationManagerStationID = None
+        return
 
     def RefreshMoniker(self):
         if self.__corpRegistry is not None:
             self.__corpRegistry.UnBind()
+        return
 
     def GetCorpRegistry(self):
         if self.__corpRegistry is None:
@@ -300,6 +305,7 @@ class Corporation(Service):
         kw2['violateSafetyTimer'] = violateSafetyTimer
         kw2['wait'] = 1
         sm.StartService('sessionMgr').PerformSessionChange(reason, func, *args, **kw2)
+        return
 
     def SetAccountKey(self, accountKey):
         self.PerformSelectiveSessionChange('corp.setaccountkey', self.members.SetAccountKey, accountKey)
@@ -307,7 +313,8 @@ class Corporation(Service):
     def GetCorpAccountName(self, acctID):
         if acctID is None:
             return
-        return self.GetDivisionNames()[acctID - 1000 + 8]
+        else:
+            return self.GetDivisionNames()[acctID - 1000 + 8]
 
     def GetMyCorpAccountName(self):
         return eve.session.corpAccountKey and self.GetCorpAccountName(eve.session.corpAccountKey)
@@ -318,6 +325,8 @@ class Corporation(Service):
             function = getattr(object, functionName, None)
             if function is not None:
                 function(*args)
+
+        return
 
     def DoSessionChanging(self, isRemote, session, change):
         if 'stationid2' in change:
@@ -333,15 +342,20 @@ class Corporation(Service):
         self.CallDelegates('DoSessionChanging', isRemote, session, change)
         if 'charid' in change and change['charid'][0] or 'userid' in change and change['userid'][0]:
             sm.StopService(self.__guid__[4:])
+        return
 
     def OnSessionChanged(self, isRemote, session, change):
         self.CallDelegates('OnSessionChanged', isRemote, session, change)
         if 'corpid' in change:
             self.bulletins = None
             self.bulletinsTimestamp = 0
+        return
 
-    def GetCorporation(self, corpid = None, new = 0):
+    def GetCorporation(self, corpid=None, new=0):
         return self.corporations.GetCorporation(corpid, new)
+
+    def GetCorporations(self, corporations, new=0):
+        return self.corporations.GetCorporations(corporations, new)
 
     def GetCostForCreatingACorporation(self):
         return self.corporations.GetCostForCreatingACorporation()
@@ -358,13 +372,13 @@ class Corporation(Service):
     def GetSuggestedTickerNames(self, corporationName):
         return self.corporations.GetSuggestedTickerNames(corporationName)
 
-    def AddCorporation(self, corporationName, tickerName, description, url = '', taxRate = 0.0, shape1 = None, shape2 = None, shape3 = None, color1 = None, color2 = None, color3 = None, typeface = None, applicationsEnabled = 1, friendlyFireEnabled = False):
+    def AddCorporation(self, corporationName, tickerName, description, url='', taxRate=0.0, shape1=None, shape2=None, shape3=None, color1=None, color2=None, color3=None, typeface=None, applicationsEnabled=1, friendlyFireEnabled=False):
         return self.corporations.AddCorporation(corporationName, tickerName, description, url, taxRate, shape1, shape2, shape3, color1, color2, color3, typeface, applicationsEnabled, friendlyFireEnabled)
 
     def OnCorporationChanged(self, corpID, change):
         self.corporations.OnCorporationChanged(corpID, change)
 
-    def GetDivisionNames(self, new = 0):
+    def GetDivisionNames(self, new=0):
         names = self.corporations.GetDivisionNames(new)
         return names
 
@@ -429,7 +443,7 @@ class Corporation(Service):
     def GetMembersAsEveOwners(self):
         return self.members.GetMembersAsEveOwners()
 
-    def UpdateMember(self, charIDToUpdate, title = None, divisionID = None, squadronID = None, roles = None, grantableRoles = None, rolesAtHQ = None, grantableRolesAtHQ = None, rolesAtBase = None, grantableRolesAtBase = None, rolesAtOther = None, grantableRolesAtOther = None, baseID = None, titleMask = None, blockRoles = None):
+    def UpdateMember(self, charIDToUpdate, title=None, divisionID=None, squadronID=None, roles=None, grantableRoles=None, rolesAtHQ=None, grantableRolesAtHQ=None, rolesAtBase=None, grantableRolesAtBase=None, rolesAtOther=None, grantableRolesAtOther=None, baseID=None, titleMask=None, blockRoles=None):
         return self.members.UpdateMember(charIDToUpdate, title, divisionID, squadronID, roles, grantableRoles, rolesAtHQ, grantableRolesAtHQ, rolesAtBase, grantableRolesAtBase, rolesAtOther, grantableRolesAtOther, baseID, titleMask, blockRoles)
 
     def UpdateMembers(self, rows):
@@ -445,7 +459,6 @@ class Corporation(Service):
         if eve.session.corprole & const.corpRoleDirector:
             if self.UserIsCEO():
                 return 1
-        return 0
 
     def MemberCanRunForCEO(self):
         return self.members.MemberCanRunForCEO()
@@ -464,7 +477,7 @@ class Corporation(Service):
             return 0
         return self.GetCorpRegistry().CanBeKickedOut(charID)
 
-    def KickOut(self, charID, confirm = True):
+    def KickOut(self, charID, confirm=True):
         if not self.CanKickOut(charID):
             raise UserError('CrpAccessDenied', {'reason': localization.GetByLabel('UI/Corporations/BaseCorporationUI/CannotKickMember')})
         warEntityID = session.allianceid or session.corpid
@@ -482,31 +495,34 @@ class Corporation(Service):
                 return
         if self.resigning:
             return
-        try:
-            self.resigning = True
-            if confirm:
-                if charID == eve.session.charid:
-                    if eve.Message('ConfirmQuitCorporation', {}, uiconst.OKCANCEL) != uiconst.ID_OK:
-                        return
-                elif eve.Message('ConfirmKickCorpMember', {'member': charID}, uiconst.OKCANCEL) != uiconst.ID_OK:
-                    return
-        finally:
-            self.resigning = False
-
-        res = None
-        if charID == eve.session.charid:
-            sm.GetService('sessionMgr').PerformSessionChange('corp.kickself', self.GetCorpRegistry().KickOutMember, charID)
         else:
-            res = self.GetCorpRegistry().KickOutMember(charID)
-        return res
+            try:
+                self.resigning = True
+                if confirm:
+                    if charID == eve.session.charid:
+                        if eve.Message('ConfirmQuitCorporation', {}, uiconst.OKCANCEL) != uiconst.ID_OK:
+                            return
+                    elif eve.Message('ConfirmKickCorpMember', {'member': charID}, uiconst.OKCANCEL) != uiconst.ID_OK:
+                        return
+            finally:
+                self.resigning = False
+
+            res = None
+            if charID == eve.session.charid:
+                sm.GetService('sessionMgr').PerformSessionChange('corp.kickself', self.GetCorpRegistry().KickOutMember, charID)
+            else:
+                res = self.GetCorpRegistry().KickOutMember(charID)
+            return res
 
     def GetPendingAutoKicks(self):
         return self.GetCorpRegistry().GetPendingAutoKicks()
 
-    def RemoveAllRoles(self, silent = False):
+    def RemoveAllRoles(self, silent=False):
         if not silent and eve.Message('ConfirmRemoveAllRoles', {}, uiconst.OKCANCEL) != uiconst.ID_OK:
             return
-        self.UpdateMember(eve.session.charid, None, None, None, 0, 0, 0, 0, 0, 0, 0, 0, None, 0, 1)
+        else:
+            self.UpdateMember(eve.session.charid, None, None, None, 0, 0, 0, 0, 0, 0, 0, 0, None, 0, 1)
+            return
 
     def GetMemberIDsWithMoreThanAvgShares(self):
         return self.GetCorpRegistry().GetMemberIDsWithMoreThanAvgShares()
@@ -544,7 +560,7 @@ class Corporation(Service):
     def OnTitleChanged(self, corpID, titleID, change):
         self.titles.OnTitleChanged(corpID, titleID, change)
 
-    def GetSharesByShareholder(self, corpShares = 0):
+    def GetSharesByShareholder(self, corpShares=0):
         return self.shares.GetSharesByShareholder(corpShares)
 
     def GetShareholders(self):
@@ -561,10 +577,10 @@ class Corporation(Service):
         self.members.OnShareChange(shareholderID, corporationID, change)
         self.voting.OnShareChange(shareholderID, corporationID, change)
 
-    def GetVoteCasesByCorporation(self, corpid, new = 0, maxLen = 0):
+    def GetVoteCasesByCorporation(self, corpid, new=0, maxLen=0):
         return self.voting.GetVoteCasesByCorporation(corpid, new, maxLen)
 
-    def GetVoteCaseOptions(self, voteID, corpID = None):
+    def GetVoteCaseOptions(self, voteID, corpID=None):
         return self.voting.GetVoteCaseOptions(voteID, corpID)
 
     def OnCorporationVoteCaseChanged(self, corporationID, voteCaseID, change):
@@ -576,19 +592,19 @@ class Corporation(Service):
     def OnCorporationVoteChanged(self, corporationID, voteCaseID, characterID, change):
         self.voting.OnCorporationVoteChanged(corporationID, voteCaseID, characterID, change)
 
-    def CanViewVotes(self, corpid, new = 0):
+    def CanViewVotes(self, corpid, new=0):
         return self.voting.CanViewVotes(corpid, new)
 
     def GetSanctionedActionsByCorporation(self, corporationID, state):
         return self.sanctionedActions.GetSanctionedActionsByCorporation(corporationID, state)
 
-    def UpdateSanctionedAction(self, voteCaseID, inEffect, reason = ''):
+    def UpdateSanctionedAction(self, voteCaseID, inEffect, reason=''):
         return self.sanctionedActions.UpdateSanctionedAction(voteCaseID, inEffect, reason)
 
     def OnSanctionedActionChanged(self, corpID, voteCaseID, change):
         return self.sanctionedActions.OnSanctionedActionChanged(corpID, voteCaseID, change)
 
-    def InsertVoteCase(self, voteCaseText, description, corporationID, voteType, voteCaseOptions, startDateTime = None, endDateTime = None):
+    def InsertVoteCase(self, voteCaseText, description, corporationID, voteType, voteCaseOptions, startDateTime=None, endDateTime=None):
         return self.voting.InsertVoteCase(voteCaseText, description, corporationID, voteType, voteCaseOptions, startDateTime, endDateTime)
 
     def GetVotes(self, corporationID, voteCaseID):
@@ -615,7 +631,7 @@ class Corporation(Service):
     def OnCorporationApplicationChanged(self, corpID, applicantID, applicationID, newApplication):
         self.applications.OnCorporationApplicationChanged(corpID, applicantID, applicationID, newApplication)
 
-    def GetApplications(self, characterID = -1, forceUpdate = False):
+    def GetApplications(self, characterID=-1, forceUpdate=False):
         return self.applications.GetApplications(characterID, forceUpdate)
 
     def GetApplicationsWithStatus(self, status):
@@ -624,7 +640,7 @@ class Corporation(Service):
     def GetOldApplicationsWithStatus(self, status):
         return self.applications.GetOldApplicationsWithStatus(status)
 
-    def GetMyApplications(self, corporationID = -1, forceUpdate = False):
+    def GetMyApplications(self, corporationID=-1, forceUpdate=False):
         return self.applications.GetMyApplications(corporationID, forceUpdate)
 
     def GetMyApplicationsWithStatus(self, status):
@@ -636,7 +652,7 @@ class Corporation(Service):
     def InsertApplication(self, corporationID, applicationText):
         return self.applications.InsertApplication(corporationID, applicationText)
 
-    def UpdateApplicationOffer(self, applicationID, characterID, corporationID, applicationText, status, customMessage = '', applicationDateTime = None):
+    def UpdateApplicationOffer(self, applicationID, characterID, corporationID, applicationText, status, customMessage='', applicationDateTime=None):
         return self.applications.UpdateApplicationOffer(applicationID, characterID, corporationID, applicationText, status, customMessage, applicationDateTime)
 
     def GetActiveApplication(self, corpid):
@@ -644,6 +660,8 @@ class Corporation(Service):
         for application in applications:
             if application.status in const.crpApplicationActiveStatuses:
                 return application
+
+        return None
 
     def ApplyForMembership(self, corpid):
         if eve.session.corpid == corpid:
@@ -661,27 +679,29 @@ class Corporation(Service):
             if retval is not None:
                 sm.GetService('corp').UpdateApplicationOffer(application.applicationID, application.characterID, application.corporationID, application.applicationText, retval)
             return
-        corporation = self.GetCorporation(corpid)
-        wnd = form.ApplyToCorpWnd.Open(corpid=corpid, corporation=corporation)
-        if wnd.ShowModal() == 1:
-            retval = wnd.result
         else:
-            retval = None
-        if retval is not None:
-            try:
-                return self.InsertApplication(corpid, retval)
-            except UserError as e:
-                if e.msg is 'TrialAccountRestriction':
-                    uicore.cmd.OpenTrialUpsell(origin=ORIGIN_CORPORATIONAPPLICATIONS, reason='TooManyOpenApplications')
-                else:
-                    raise
+            corporation = self.GetCorporation(corpid)
+            wnd = form.ApplyToCorpWnd.Open(corpid=corpid, corporation=corporation)
+            if wnd.ShowModal() == 1:
+                retval = wnd.result
+            else:
+                retval = None
+            if retval is not None:
+                try:
+                    return self.InsertApplication(corpid, retval)
+                except UserError as e:
+                    if e.msg is 'TrialAccountRestriction':
+                        uicore.cmd.OpenTrialUpsell(origin=ORIGIN_CORPORATIONAPPLICATIONS, reason='TooManyOpenApplications')
+                    else:
+                        raise
+
+            return
 
     def CheckApplication(self, retval):
         if retval.has_key('appltext'):
             applicationText = retval['appltext']
             if len(applicationText) > 1000:
                 return localization.GetByLabel('UI/Corporations/BaseCorporationUI/ApplicationTextTooLong', length=len(applicationText))
-        return ''
 
     def GetCorpWelcomeMail(self):
         return self.applications.GetCorpWelcomeMail()
@@ -691,6 +711,7 @@ class Corporation(Service):
 
     def OnCorporationWelcomeMailChanged(self, characterID, changeDate):
         self.applications.SetCorpWelcomeMail(None)
+        return
 
     def GetPublicStationInfo(self):
         return self.locations.GetPublicStationInfo()
@@ -701,7 +722,7 @@ class Corporation(Service):
     def GetOffices(self):
         return self.locations.GetOffices()
 
-    def GetOffice(self, corpID = None):
+    def GetOffice(self, corpID=None):
         return self.locations.GetOffice(corpID)
 
     def GetOffice_NoWireTrip(self):
@@ -731,10 +752,10 @@ class Corporation(Service):
     def OnCorporationRecruitmentAdChanged(self):
         self.recruitment.OnCorporationRecruitmentAdChanged()
 
-    def CreateRecruitmentAd(self, days, typeMask, langMask, description = None, channelID = None, recruiters = (), title = None, hourMask1 = 0, hourMask2 = 0, minSP = 0):
+    def CreateRecruitmentAd(self, days, typeMask, langMask, description=None, channelID=None, recruiters=(), title=None, hourMask1=0, hourMask2=0, minSP=0):
         return sm.ProxySvc('corpRecProxy').CreateRecruitmentAd(days, typeMask, langMask, description, channelID, recruiters, title, hourMask1, hourMask2, minSP)
 
-    def UpdateRecruitmentAd(self, adID, typeMask, langMask, description = None, channelID = None, recruiters = (), title = None, addedDays = 0, hourMask1 = 0, hourMask2 = 0, minSP = 0):
+    def UpdateRecruitmentAd(self, adID, typeMask, langMask, description=None, channelID=None, recruiters=(), title=None, addedDays=0, hourMask1=0, hourMask2=0, minSP=0):
         return sm.ProxySvc('corpRecProxy').UpdateRecruitmentAd(adID, typeMask, langMask, description, channelID, recruiters, title, addedDays, hourMask1, hourMask2, minSP=minSP)
 
     def DeleteRecruitmentAd(self, adID):
@@ -816,7 +837,7 @@ class Corporation(Service):
             self.__roleGroups = self.GetCorpRegistry().GetRoleGroups()
         return self.__roleGroups
 
-    def GetRoleGroupings(self, forTitles = 0):
+    def GetRoleGroupings(self, forTitles=0):
         roleGroups = self.GetRoleGroups()
         divisionNames = self.GetDivisionNames()
         roles = self.GetRoles()
@@ -887,6 +908,7 @@ class Corporation(Service):
         else:
             self.__roleGroupings = IndexRowset(header, lines, 'roleGroupID')
             return self.__roleGroupings
+            return
 
     def GetLocationalRoles(self):
         return self.__locationalRoles
@@ -901,51 +923,53 @@ class Corporation(Service):
         self.__roleGroupingsForTitles = None
         return res
 
-    def __ResignFromCEO(self, newCeoID = None):
+    def __ResignFromCEO(self, newCeoID=None):
         if newCeoID is None and eve.session.allianceid is not None and len(self.members.GetMembers()) < 2:
             raise UserError('CanNotDestroyCorpInAlliance')
         return self.GetCorpRegistry().ResignFromCEO(newCeoID)
 
     def ResignFromCEO(self):
-        if not session.stationid2:
+        if util.InSpace():
             eve.Message('CrpCanNotChangeCorpInSpace')
             return
-        if not self.UserIsCEO():
+        elif not self.UserIsCEO():
             eve.Message('OnlyCEOCanResign')
             return
-        memberCount = len(self.GetMembers())
-        if memberCount <= 1:
-            if eve.Message('CrpDestroyCorpWarning', {}, uiconst.YESNO, default=uiconst.ID_NO) != uiconst.ID_YES:
-                return
         else:
-            potentialCEOs = len(self.members.GetNumberOfPotentialCEOs())
-            if potentialCEOs > 0:
-                if eve.Message('AskResignAsCEO', {'memberCount': potentialCEOs}, uiconst.YESNO, default=uiconst.ID_NO) != uiconst.ID_YES:
+            memberCount = len(self.GetMembers())
+            if memberCount <= 1:
+                if eve.Message('CrpDestroyCorpWarning', {}, uiconst.YESNO, default=uiconst.ID_NO) != uiconst.ID_YES:
                     return
-            elif eve.Message('CrpDestroyNonEmptyCorpWarning', {}, uiconst.YESNO, default=uiconst.ID_NO) != uiconst.ID_YES:
+            else:
+                potentialCEOs = len(self.members.GetNumberOfPotentialCEOs())
+                if potentialCEOs > 0:
+                    if eve.Message('AskResignAsCEO', {'memberCount': potentialCEOs}, uiconst.YESNO, default=uiconst.ID_NO) != uiconst.ID_YES:
+                        return
+                elif eve.Message('CrpDestroyNonEmptyCorpWarning', {}, uiconst.YESNO, default=uiconst.ID_NO) != uiconst.ID_YES:
+                    return
+            res = sm.GetService('sessionMgr').PerformSessionChange('corp.resignceo', self.__ResignFromCEO)
+            if res is None:
                 return
-        res = sm.GetService('sessionMgr').PerformSessionChange('corp.resignceo', self.__ResignFromCEO)
-        if res is None:
+            owners = []
+            for charID in res:
+                if charID not in owners:
+                    owners.append(charID)
+
+            if len(owners):
+                cfg.eveowners.Prime(owners)
+            tmplist = []
+            for charID in res:
+                owner = cfg.eveowners.Get(charID)
+                tmplist.append((owner.name, charID, owner.typeID))
+
+            newCEO = uix.ListWnd(tmplist, 'character', localization.GetByLabel('UI/Corporations/BaseCorporationUI/SelectReplacementCEO'), localization.GetByLabel('UI/Corporations/BaseCorporationUI/SelectReplacementCEOText'), 1)
+            if newCEO:
+                newCeoID = newCEO[1]
+                eve.session.ResetSessionChangeTimer('Retrying with selected alternate CEO')
+                sm.GetService('sessionMgr').PerformSessionChange('corp.resignceo', self.__ResignFromCEO, newCeoID)
             return
-        owners = []
-        for charID in res:
-            if charID not in owners:
-                owners.append(charID)
 
-        if len(owners):
-            cfg.eveowners.Prime(owners)
-        tmplist = []
-        for charID in res:
-            owner = cfg.eveowners.Get(charID)
-            tmplist.append((owner.name, charID, owner.typeID))
-
-        newCEO = uix.ListWnd(tmplist, 'character', localization.GetByLabel('UI/Corporations/BaseCorporationUI/SelectReplacementCEO'), localization.GetByLabel('UI/Corporations/BaseCorporationUI/SelectReplacementCEOText'), 1)
-        if newCEO:
-            newCeoID = newCEO[1]
-            eve.session.ResetSessionChangeTimer('Retrying with selected alternate CEO')
-            sm.GetService('sessionMgr').PerformSessionChange('corp.resignceo', self.__ResignFromCEO, newCeoID)
-
-    def GetInfoWindowDataForChar(self, charID, acceptBlank = 0):
+    def GetInfoWindowDataForChar(self, charID, acceptBlank=0):
         data = self.GetCorpRegistry().GetInfoWindowDataForChar(charID)
         if not acceptBlank:
             if data.title1 is not None and len(data.title1) == 0:
@@ -994,7 +1018,7 @@ class Corporation(Service):
     def GetRentalDetailsCorp(self):
         return self.GetCorpRegistry().GetRentalDetailsCorp()
 
-    def GetBulletins(self, isAlliance = False):
+    def GetBulletins(self, isAlliance=False):
         if isAlliance:
             bulletins = sm.GetService('alliance').GetAllianceBulletins()
         else:
@@ -1013,7 +1037,7 @@ class Corporation(Service):
             self.bulletinsTimestamp = blue.os.GetWallclockTime() + 15 * const.MIN
         return self.bulletins
 
-    def GetBulletinEntries(self, isAlliance = False):
+    def GetBulletinEntries(self, isAlliance=False):
         bulletins = self.GetBulletins(isAlliance)
         canEditCorp = const.corpRoleChatManager & session.corprole == const.corpRoleChatManager
         se = []
@@ -1054,7 +1078,7 @@ class Corporation(Service):
                 raise UserError('CorpBulletinNotFound')
         return bulletin
 
-    def EditBulletin(self, id, isAlliance = False):
+    def EditBulletin(self, id, isAlliance=False):
         if not const.corpRoleChatManager & eve.session.corprole == const.corpRoleChatManager:
             raise UserError('CrpAccessDenied', {'reason': localization.GetByLabel('UI/Corporations/BaseCorporationUI/DoNotHaveRole', roleName=localization.GetByMessageID(COMMUNICATIONS_OFFICER_ROLE_ID))})
         bulletin = self.GetBulletin(id)
@@ -1085,7 +1109,7 @@ class Corporation(Service):
             self.GetCorpRegistry().AddBulletin(title, body)
         self.RefreshBulletins()
 
-    def UpdateBulletin(self, bulletinID, title, body, isAlliance, editDateTime = None):
+    def UpdateBulletin(self, bulletinID, title, body, isAlliance, editDateTime=None):
         try:
             if isAlliance:
                 sm.GetService('alliance').GetMoniker().AddBulletin(title, body, bulletinID=bulletinID, editDateTime=editDateTime)
@@ -1100,6 +1124,7 @@ class Corporation(Service):
         self.bulletins = None
         sm.GetService('alliance').bulletins = None
         sm.GetService('corpui').ResetWindow(1)
+        return
 
     def OnLockedItemChange(self, itemID, ownerID, locationID, change):
         self.itemLocking.OnLockedItemChange(itemID, ownerID, locationID, change)
@@ -1165,13 +1190,13 @@ class Corporation(Service):
     def GetLabels(self):
         return self.GetCorpRegistry().GetLabels()
 
-    def CreateLabel(self, name, color = 0):
+    def CreateLabel(self, name, color=0):
         return self.GetCorpRegistry().CreateLabel(name, color)
 
     def DeleteLabel(self, labelID):
         self.GetCorpRegistry().DeleteLabel(labelID)
 
-    def EditLabel(self, labelID, name = None, color = None):
+    def EditLabel(self, labelID, name=None, color=None):
         self.GetCorpRegistry().EditLabel(labelID, name, color)
 
     def AssignLabels(self, contactIDs, labelMask):
@@ -1233,13 +1258,15 @@ class Corporation(Service):
         corpAd = self.GetAdFromCorpAndAdID(corpID, adID)
         if not corpAd:
             return
-        ads = [(None, corpAd)]
-        dataList = self.GetRecruitementEntryDataList(ads, None, None, {})
-        wnd = uicls.CorpRecruitmentAdStandaloneWindow.GetIfOpen(windowID='corAd_%s' % adID)
-        if wnd and not wnd.destroyed:
-            wnd.Maximize()
         else:
-            uicls.CorpRecruitmentAdStandaloneWindow(windowID='corAd_%s' % adID, data=dataList[0])
+            ads = [(None, corpAd)]
+            dataList = self.GetRecruitementEntryDataList(ads, None, None, {})
+            wnd = uicls.CorpRecruitmentAdStandaloneWindow.GetIfOpen(windowID='corAd_%s' % adID)
+            if wnd and not wnd.destroyed:
+                wnd.Maximize()
+            else:
+                uicls.CorpRecruitmentAdStandaloneWindow(windowID='corAd_%s' % adID, data=dataList[0])
+            return
 
     def GetRecruitementEntryDataList(self, ads, wantMask, wantLanguageMask, expandedAd, *args):
         dataList = []

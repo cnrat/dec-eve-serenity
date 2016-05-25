@@ -1,10 +1,11 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\carbon\common\lib\cherrypy\tutorial\tut04_complex_site.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\carbon\common\lib\cherrypy\tutorial\tut04_complex_site.py
 import cherrypy
 
 class HomePage:
 
     def index(self):
-        return '\n            <p>Hi, this is the home page! Check out the other\n            fun stuff on this site:</p>\n            \n            <ul>\n                <li><a href="/joke/">A silly joke</a></li>\n                <li><a href="/links/">Useful links</a></li>\n            </ul>'
+        pass
 
     index.exposed = True
 
@@ -12,7 +13,7 @@ class HomePage:
 class JokePage:
 
     def index(self):
-        return '\n            <p>"In Python, how do you create a string of random\n            characters?" -- "Read a Perl file!"</p>\n            <p>[<a href="../">Return</a>]</p>'
+        pass
 
     index.exposed = True
 
@@ -23,7 +24,7 @@ class LinksPage:
         self.extra = ExtraLinksPage()
 
     def index(self):
-        return '\n            <p>Here are some useful links:</p>\n            \n            <ul>\n                <li><a href="http://www.cherrypy.org">The CherryPy Homepage</a></li>\n                <li><a href="http://www.python.org">The Python Homepage</a></li>\n            </ul>\n            \n            <p>You can check out some extra useful\n            links <a href="./extra/">here</a>.</p>\n            \n            <p>[<a href="../">Return</a>]</p>\n        '
+        pass
 
     index.exposed = True
 
@@ -31,7 +32,7 @@ class LinksPage:
 class ExtraLinksPage:
 
     def index(self):
-        return '\n            <p>Here are some extra useful links:</p>\n            \n            <ul>\n                <li><a href="http://del.icio.us">del.icio.us</a></li>\n                <li><a href="http://www.mornography.de">Hendrik\'s weblog</a></li>\n            </ul>\n            \n            <p>[<a href="../">Return to links page</a>]</p>'
+        pass
 
     index.exposed = True
 

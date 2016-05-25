@@ -1,15 +1,17 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\client\script\ui\inflight\navigation.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\client\script\ui\inflight\navigation.py
 from itertools import chain
 from carbonui.uianimations import animations
 from eve.client.script.parklife import states
 from eve.client.script.ui.camera.cameraUtil import IsNewCameraActive, GetCameraMaxLookAtRange, GetBallPosition
-from eve.client.script.ui.camera.farLookCameraController import FarLookCameraController
+from eve.client.script.ui.camera.debugCameraController import DebugCameraController
 from eve.client.script.ui.camera.shipOrbitCameraController import ShipOrbitCameraController
 from eve.client.script.ui.camera.shipPOVCameraController import ShipPOVCameraController
 from eve.client.script.ui.camera.spaceCameraController import SpaceCameraController
 from eve.client.script.ui.camera.tacticalCameraController import TacticalCameraController
 from eve.client.script.ui.control.marqueeCont import MarqueeCont
 from eve.client.script.ui.inflight.bracketsAndTargets.bracketVarious import GetOverlaps
+from eve.client.script.ui.services.menuSvcExtras import movementFunctions
 from eve.client.script.ui.shared.infoPanels.infoPanelLocationInfo import ListSurroundingsBtn
 from eve.client.script.ui.tooltips.tooltipHandler import TOOLTIP_SETTINGS_BRACKET, TOOLTIP_DELAY_BRACKET
 import positionalControl
@@ -48,6 +50,7 @@ class InflightLayer(uicls.LayerCore):
         uiprimitives.Line(parent=self.sr.tcursor, align=uiconst.TOPRIGHT, left=10, width=3000, height=1)
         uiprimitives.Line(parent=self.sr.tcursor, align=uiconst.RELATIVE, top=10, width=1, height=3000)
         uiprimitives.Line(parent=self.sr.tcursor, align=uiconst.BOTTOMLEFT, top=10, width=1, height=3000)
+        return
 
     def OnOpenView(self):
         camera = sm.GetService('sceneManager').GetActiveCamera()
@@ -63,11 +66,12 @@ class InflightLayer(uicls.LayerCore):
             self.cameraController = TacticalCameraController()
         elif cameraID == evecamera.CAM_SHIPPOV:
             self.cameraController = ShipPOVCameraController()
-        elif cameraID == evecamera.CAM_FARLOOK:
-            self.cameraController = FarLookCameraController()
+        elif cameraID == evecamera.CAM_DEBUG:
+            self.cameraController = DebugCameraController()
         else:
             self.cameraController = None
         self.positionalControl.SetCameraController(self.cameraController)
+        return
 
     def GetSpaceMenu(self):
         if self.sr.spacemenu:
@@ -93,39 +97,41 @@ class InflightLayer(uicls.LayerCore):
     def PrepareTooltipLoad(self, bracket):
         if uicore.uilib.leftbtn or uicore.uilib.rightbtn:
             return None
-        currentPos = (uicore.uilib.x, uicore.uilib.y)
-        lastPos = getattr(self, 'lastLoadPos', (None, None))
-        if lastPos == currentPos:
-            return None
-        self.lastLoadPos = currentPos
-        self.tooltipBracket = bracket
-        currentTooltip = uicore.uilib.tooltipHandler.GetPersistentTooltipByOwner(self)
-        if currentTooltip and not (currentTooltip.destroyed or currentTooltip.beingDestroyed):
-            if currentTooltip.IsOverlapBracket(bracket):
+        else:
+            currentPos = (uicore.uilib.x, uicore.uilib.y)
+            lastPos = getattr(self, 'lastLoadPos', (None, None))
+            if lastPos == currentPos:
                 return None
-            currentTooltip.Close()
-        isFloating = bracket.IsFloating()
-        overlaps, boundingBox = GetOverlaps(bracket, useMousePosition=isinstance(bracket, SensorSuiteBracket), customBracketParent=uicore.layer.bracket)
-        overlapSites = sm.GetService('sensorSuite').GetOverlappingSites()
-        if isFloating and len(overlaps) + len(overlapSites) == 1:
+            self.lastLoadPos = currentPos
+            self.tooltipBracket = bracket
+            currentTooltip = uicore.uilib.tooltipHandler.GetPersistentTooltipByOwner(self)
+            if currentTooltip and not (currentTooltip.destroyed or currentTooltip.beingDestroyed):
+                if currentTooltip.IsOverlapBracket(bracket):
+                    return None
+                currentTooltip.Close()
+            isFloating = bracket.IsFloating()
+            overlaps, boundingBox = GetOverlaps(bracket, useMousePosition=isinstance(bracket, SensorSuiteBracket), customBracketParent=uicore.layer.bracket)
+            overlapSites = sm.GetService('sensorSuite').GetOverlappingSites()
+            if isFloating and len(overlaps) + len(overlapSites) == 1:
+                return None
+            overlapSites.sort(key=lambda x: x.data.GetSortKey())
+            self.tooltipPositionRect = bracket.GetAbsolute()
+            ro = bracket.renderObject
+            self.bracketPosition = (ro.displayX,
+             ro.displayY,
+             ro.displayWidth,
+             ro.displayHeight)
+            for bracket in chain(overlaps, overlapSites):
+                bracket.opacity = 2.0
+
+            for layer in (uicore.layer.inflight, uicore.layer.sensorSuite):
+                animations.FadeTo(layer, startVal=layer.opacity, endVal=0.5, duration=0.5)
+
+            uicore.uilib.tooltipHandler.LoadPersistentTooltip(self, loadArguments=(bracket,
+             overlaps,
+             boundingBox,
+             overlapSites), customTooltipClass=PersistentInSpaceBracketTooltip, customPositionRect=boundingBox)
             return None
-        overlapSites.sort(key=lambda x: x.data.GetSortKey())
-        self.tooltipPositionRect = bracket.GetAbsolute()
-        ro = bracket.renderObject
-        self.bracketPosition = (ro.displayX,
-         ro.displayY,
-         ro.displayWidth,
-         ro.displayHeight)
-        for bracket in chain(overlaps, overlapSites):
-            bracket.opacity = 2.0
-
-        for layer in (uicore.layer.inflight, uicore.layer.sensorSuite):
-            animations.FadeTo(layer, startVal=layer.opacity, endVal=0.5, duration=0.5)
-
-        uicore.uilib.tooltipHandler.LoadPersistentTooltip(self, loadArguments=(bracket,
-         overlaps,
-         boundingBox,
-         overlapSites), customTooltipClass=PersistentInSpaceBracketTooltip, customPositionRect=boundingBox)
 
     def OnRadialMenuExpanded(self, *args):
         self.StopMarqueeSelection()
@@ -199,57 +205,65 @@ class InflightLayer(uicls.LayerCore):
     def HideTargetingCursor(self):
         self.sr.tcursor.state = uiconst.UI_HIDDEN
 
-    def GetMenu(self, itemID = None):
-        if self.locked or sm.GetService('target').IsSomeModuleWaitingForTargetClick():
+    def GetMenu(self, itemID=None):
+        if self.positionalControl.IsActive():
+            self.positionalControl.AbortCommand()
+            return
+        elif self.locked or sm.GetService('target').IsSomeModuleWaitingForTargetClick():
             return []
-        m = []
-        if not itemID and self.cameraController:
-            picktype, pickobject = self.cameraController.GetPick()
-            if pickobject and hasattr(pickobject, 'translationCurve') and hasattr(pickobject.translationCurve, 'id'):
-                itemID = pickobject.translationCurve.id
-            if pickobject:
-                if sm.GetService('posAnchor').IsActive():
-                    if pickobject.name[:6].lower() == 'cursor':
-                        m.append((uiutil.MenuLabel('UI/Inflight/POS/AnchorHere'), sm.GetService('posAnchor').SubmitAnchorPosSelect, ()))
-                        m.append(None)
-                        m.append((uiutil.MenuLabel('UI/Inflight/POS/CancelAnchoring'), sm.GetService('posAnchor').CancelAchorPosSelect, ()))
-                        return m
-        if not itemID:
-            mm = []
-            if not (eve.rookieState and eve.rookieState < 32):
-                mm = self.GetSpaceMenu().GetMenu()
-            m += [(uiutil.MenuLabel('UI/Inflight/ResetCamera'), sm.GetService('sceneManager').GetActiveCamera().ResetCamera, ())]
-            m += [None, [uiutil.MenuLabel('UI/Inflight/ShowSystemInMapBrowser'), sm.GetService('menu').ShowInMapBrowser, (eve.session.solarsystemid2,)], None]
-            return m + mm
-        bp = sm.GetService('michelle').GetBallpark()
-        if not bp:
+        else:
+            m = []
+            if not itemID and self.cameraController:
+                picktype, pickobject = self.cameraController.GetPick()
+                if pickobject and hasattr(pickobject, 'translationCurve') and hasattr(pickobject.translationCurve, 'id'):
+                    itemID = pickobject.translationCurve.id
+                if pickobject:
+                    if sm.GetService('posAnchor').IsActive():
+                        if pickobject.name[:6].lower() == 'cursor':
+                            m.append((uiutil.MenuLabel('UI/Inflight/POS/AnchorHere'), sm.GetService('posAnchor').SubmitAnchorPosSelect, ()))
+                            m.append(None)
+                            m.append((uiutil.MenuLabel('UI/Inflight/POS/CancelAnchoring'), sm.GetService('posAnchor').CancelAchorPosSelect, ()))
+                            return m
+            if not itemID:
+                mm = []
+                if not (eve.rookieState and eve.rookieState < 32):
+                    mm = self.GetSpaceMenu().GetMenu()
+                m += [(uiutil.MenuLabel('UI/Inflight/ResetCamera'), sm.GetService('sceneManager').GetActiveCamera().ResetCamera, ())]
+                m += [None, [uiutil.MenuLabel('UI/Inflight/ShowSystemInMapBrowser'), sm.GetService('menu').ShowInMapBrowser, (eve.session.solarsystemid2,)], None]
+                return m + mm
+            bp = sm.GetService('michelle').GetBallpark()
+            if not bp:
+                return m
+            slimItem = bp.GetInvItem(itemID)
+            if slimItem is None:
+                return m
+            pickid = slimItem.itemID
+            groupID = slimItem.groupID
+            categoryID = slimItem.categoryID
+            if eve.session.shipid is None:
+                return m
+            m += sm.GetService('menu').CelestialMenu(slimItem.itemID, slimItem=slimItem)
             return m
-        slimItem = bp.GetInvItem(itemID)
-        if slimItem is None:
-            return m
-        pickid = slimItem.itemID
-        groupID = slimItem.groupID
-        categoryID = slimItem.categoryID
-        if eve.session.shipid is None:
-            return m
-        m += sm.GetService('menu').CelestialMenu(slimItem.itemID, slimItem=slimItem)
-        return m
 
     def ShowRadialMenuIndicator(self, slimItem, *args):
         if not slimItem:
             return
-        bracket = sm.GetService('bracket').GetBracket(slimItem.itemID)
-        if bracket is None:
+        else:
+            bracket = sm.GetService('bracket').GetBracket(slimItem.itemID)
+            if bracket is None:
+                return
+            bracket.ShowRadialMenuIndicator()
             return
-        bracket.ShowRadialMenuIndicator()
 
     def HideRadialMenuIndicator(self, slimItem, *args):
         if slimItem is None:
             return
-        bracket = sm.GetService('bracket').GetBracket(slimItem.itemID)
-        if bracket is None:
+        else:
+            bracket = sm.GetService('bracket').GetBracket(slimItem.itemID)
+            if bracket is None:
+                return
+            bracket.HideRadialMenuIndicator()
             return
-        bracket.HideRadialMenuIndicator()
 
     def OnDropData(self, dragObj, nodes):
         if dragObj.__guid__ in ('listentry.DroneMainGroup', 'listentry.DroneSubGroup', 'listentry.DroneEntry'):
@@ -260,6 +274,9 @@ class InflightLayer(uicls.LayerCore):
                 if node.item.ownerID != session.charid:
                     return
                 if node.item.locationID != session.shipid:
+                    return
+                if node.item.categoryID == const.categoryStructure:
+                    sm.GetService('structureDeployment').Deploy(node.item)
                     return
                 if HasDeployComponent(node.item.typeID):
                     deployItems.append(node.item)
@@ -275,23 +292,24 @@ class InflightLayer(uicls.LayerCore):
             uicore.layer.main.state = uiconst.UI_DISABLED
         if not self.cameraController:
             return
-        if self.positionalControl.IsActive():
-            if uicore.uilib.rightbtn:
-                self.positionalControl.AbortCommand()
-            else:
-                self.positionalControl.AddPoint()
-            return
         pickObject = self.cameraController.OnMouseDown(*args)
+        if self.positionalControl.IsActive():
+            return
         self.TryExpandActionMenu(pickObject)
         uicore.uilib.ClipCursor(0, 0, uicore.desktop.width, uicore.desktop.height)
-        if IsNewCameraActive():
+        if pickObject and pickObject.name == 'StructurePlacement':
+            sm.GetService('structureDeployment').StartMovingStructure()
+        elif IsNewCameraActive():
             if uicore.uilib.leftbtn and not uicore.uilib.rightbtn and uicore.cmd.IsSomeCombatCommandLoaded():
-                self.StopMarqueeSelection()
-                self.marqueeCont = MarqueeCont(parent=self)
+                self.StartMarqueeSelection()
             elif uicore.uilib.rightbtn:
                 self.StopMarqueeSelection()
 
-    def OnMouseUp(self, *args):
+    def StartMarqueeSelection(self):
+        self.StopMarqueeSelection()
+        self.marqueeCont = MarqueeCont(parent=self)
+
+    def OnMouseUp(self, btnID):
         if not uicore.cmd.IsUIHidden():
             uicore.layer.main.state = uiconst.UI_PICKCHILDREN
         if not uicore.uilib.leftbtn and not uicore.uilib.rightbtn:
@@ -300,40 +318,60 @@ class InflightLayer(uicls.LayerCore):
                 uicore.uilib.ReleaseCapture()
         elif uicore.uilib.leftbtn or uicore.uilib.rightbtn:
             uicore.uilib.SetCapture(self)
+        if sm.GetService('structureDeployment').IsMovingStructure():
+            sm.GetService('structureDeployment').EndMovingStructure()
         if not self.cameraController:
             return
-        if self.positionalControl.IsActive():
-            return
-        if self.IsMarqueeActivated():
-            self.ApplyMarqueeCommands()
-            self.cameraController.mouseDownPos = None
-        else:
-            self.cameraController.OnMouseUp(*args)
+        elif self.positionalControl.IsActive():
             if not self.cameraController.IsMouseDragged():
-                sm.GetService('state').ResetByFlag(states.multiSelected)
-        self.StopMarqueeSelection()
+                if btnID == 0:
+                    self.positionalControl.AddPoint()
+            return
+        else:
+            if uicore.cmd.IsCombatCommandLoaded('CmdApproachItem') and not self.IsMarqueeActivated():
+                self.positionalControl.StartMoveCommand()
+            if self.IsMarqueeActivated():
+                self.ApplyMarqueeCommands()
+                self.cameraController.mouseDownPos = None
+            else:
+                if not self.cameraController.IsMouseDragged() and not uicore.cmd.IsSomeCombatCommandLoaded():
+                    sm.GetService('state').ResetByFlag(states.multiSelected)
+                self.cameraController.OnMouseUp(btnID)
+            self.StopMarqueeSelection()
+            return
 
     def ApplyMarqueeCommands(self):
         balls = self.GetMarqueeSelectedBalls()
         if balls:
             sm.GetService('state').SetState(balls[0].id, states.selected, True)
-            if len(balls) > 1:
-                combatCmd = uicore.cmd.GetCombatCmdLoadedName()
-                if combatCmd and combatCmd.name in multiTargetCmds:
-                    ballsWithBracket = [ ball for ball in balls if ball.id in sm.GetService('bracket').brackets ]
-                    if ballsWithBracket:
-                        balls = ballsWithBracket
-                    for ball in balls:
-                        uicore.cmd.ExecuteActiveCombatCommand(ball.id)
+            combatCmd = uicore.cmd.GetCombatCmdLoadedName()
+            if not combatCmd:
+                return
+            if len(balls) > 1 and combatCmd and combatCmd.name in multiTargetCmds:
+                self._ApplyCommandToMultiple(balls, combatCmd)
+            else:
+                self._ApplyCommandToNearest(balls, combatCmd)
 
-                elif combatCmd.name == 'CmdToggleLookAtItem':
-                    radius = self._GetLookAtRadius(balls)
-                    uicore.cmd.ExecuteCombatCommand(balls[0].id, uiconst.UI_CLICK, radius=radius)
-                else:
-                    uicore.cmd.ExecuteCombatCommand(balls[0].id, uiconst.UI_CLICK)
-            elif len(balls) == 1:
-                ball = balls[0]
-                uicore.cmd.ExecuteCombatCommand(ball.id, uiconst.UI_CLICK)
+    def _ApplyCommandToNearest(self, balls, combatCmd):
+        if combatCmd.name == 'CmdToggleLookAtItem':
+            radius = self._GetLookAtRadius(balls)
+            uicore.cmd.ExecuteCombatCommand(balls[0].id, uiconst.UI_CLICK, radius=radius)
+        else:
+            uicore.cmd.ExecuteCombatCommand(balls[0].id, uiconst.UI_CLICK)
+
+    def _ApplyCommandToMultiple(self, balls, combatCmd):
+        ballsWithBracket = [ ball for ball in balls if ball.id in sm.GetService('bracket').brackets ]
+        if ballsWithBracket:
+            balls = ballsWithBracket
+        balls = self._FilterBallsByCombatCmd(balls, combatCmd)
+        for ball in balls:
+            uicore.cmd.ExecuteActiveCombatCommand(ball.id)
+
+    def _FilterBallsByCombatCmd(self, balls, combatCmd):
+        if combatCmd.name == 'CmdLockTargetItem':
+            maxTargets = sm.GetService('target').GetNumAdditionalTargetsAllowed()
+            balls = balls[:int(maxTargets)]
+        return balls
 
     def _GetLookAtRadius(self, balls):
         ret = 0.0
@@ -363,11 +401,6 @@ class InflightLayer(uicls.LayerCore):
             if self.IsMarqueeSelected(x, y):
                 ret.append(itemID)
 
-        if not ret and self.cameraController:
-            x, y = self.marqueeCont.GetCenterPoint()
-            pickType, pickObj = self.cameraController.GetPick(x, y)
-            if pickObj:
-                ret = [int(pickObj.name)]
         michelle = sm.GetService('michelle')
         ret = [ michelle.GetBall(itemID) for itemID in ret ]
         ret = [ ball for ball in ret if ball is not None ]
@@ -382,6 +415,8 @@ class InflightLayer(uicls.LayerCore):
         ret = []
         for itemID in self._GetAllSlimAndSiteItemIDs():
             ball = bp.GetBall(itemID)
+            if not ball:
+                continue
             vec = ball.GetVectorAt(blue.os.GetSimTime())
             vec = (vec.x, vec.y, vec.z)
             if camera.IsInFrontOfCamera(vec):
@@ -416,6 +451,8 @@ class InflightLayer(uicls.LayerCore):
             return True
 
     def OnDblClick(self, *args):
+        if self.positionalControl.IsActive():
+            return
         if self.cameraController:
             self.cameraController.OnDblClick(*args)
 
@@ -426,11 +463,18 @@ class InflightLayer(uicls.LayerCore):
     def OnMouseEnter(self, *args):
         if self.destroyed or self.parent is None or self.parent.destroyed:
             return
-        if not uicore.cmd.IsUIHidden():
-            uicore.layer.main.state = uiconst.UI_PICKCHILDREN
-        if sm.IsServiceRunning('tactical'):
-            uthread.new(sm.GetService('tactical').ResetTargetingRanges)
-        uiutil.SetOrder(self, -1)
+        else:
+            if not uicore.cmd.IsUIHidden():
+                uicore.layer.main.state = uiconst.UI_PICKCHILDREN
+            if sm.IsServiceRunning('tactical'):
+                uthread.new(sm.GetService('tactical').ResetTargetingRanges)
+            if uicore.cmd.IsCombatCommandLoaded('CmdApproachItem') and not self.positionalControl.IsActive():
+                self.positionalControl.StartMoveCommand()
+            uiutil.SetOrder(self, -1)
+            return
+
+    def OnMouseExit(self, *args):
+        self.positionalControl.OnSceneMouseExit()
 
     def OnMouseMove(self, *args):
         if uicore.IsDragging():
@@ -438,18 +482,39 @@ class InflightLayer(uicls.LayerCore):
         self.sr.hint = ''
         self.sr.tcursor.left = uicore.uilib.x - 1
         self.sr.tcursor.top = uicore.uilib.y
+        self.CheckStartMoveCommand()
         if self.positionalControl.IsActive():
-            return
-        if self.cameraController:
+            if uicore.uilib.leftbtn and self.cameraController.IsMouseDragged():
+                self.positionalControl.AbortCommand()
+                self.StartMarqueeSelection()
+            else:
+                return
+        if sm.GetService('structureDeployment').IsMovingStructure():
+            if uicore.uilib.leftbtn:
+                if uicore.uilib.Key(uiconst.VK_CONTROL):
+                    sm.GetService('structureDeployment').RotateDragObject()
+                else:
+                    sm.GetService('structureDeployment').MoveDragObject()
+            elif uicore.uilib.rightbtn:
+                sm.GetService('structureDeployment').RotateDragObject()
+        elif self.cameraController:
             if self.cameraController.CheckMoveSceneCursor():
                 self.StopMarqueeSelection()
             elif not self.marqueeCont:
                 self.cameraController.OnMouseMove(*args)
 
+    def CheckStartMoveCommand(self):
+        isMouseDown = uicore.uilib.leftbtn
+        approachCmdActive = uicore.cmd.IsCombatCommandLoaded('CmdApproachItem')
+        moveCommandActive = self.positionalControl.IsActive()
+        if approachCmdActive and not moveCommandActive and not isMouseDown:
+            self.positionalControl.StartMoveCommand()
+
     def StopMarqueeSelection(self):
         if self.marqueeCont:
             self.marqueeCont.Close()
             self.marqueeCont = None
+        return
 
     def TryExpandActionMenu(self, pickObj):
         if pickObj and hasattr(pickObj, 'translationCurve') and hasattr(pickObj.translationCurve, 'id'):

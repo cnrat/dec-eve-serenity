@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\client\script\ui\shared\planet\otherPinManager.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\client\script\ui\shared\planet\otherPinManager.py
 import evetypes
 import uthread
 from eve.common.script.util.planetCommon import SurfacePoint
@@ -14,6 +15,7 @@ class OtherPinManager:
         self.otherPlayerPinsByPinID = {}
         self.otherPlayerVisiblePins = []
         self.otherPlayerExtractors = []
+        return
 
     def Close(self):
         sm.UnregisterNotify(self)
@@ -21,6 +23,7 @@ class OtherPinManager:
         self.otherPlayerPinsByPinID = None
         self.otherPlayerVisiblePins = None
         self.otherPlayerExtractors = None
+        return
 
     def OnPlanetViewOpened(self):
         self.planetUISvc = sm.GetService('planetUI')
@@ -89,6 +92,7 @@ class OtherPinManager:
         if self.currentOtherExpandedCommandPin:
             self.currentOtherExpandedCommandPin.RenderAsDefault()
             self.currentOtherExpandedCommandPin = None
+        return
 
     def RenderOtherPlayersExtractors(self, resourceTypeID):
         self.HideOtherPlayersExtractors()
@@ -115,22 +119,24 @@ class OtherPinManager:
     def GetExtractorsOfOtherCharacters(self, resourceTypeID):
         if self.planetUISvc.planet is None:
             return
-        extractors = sm.GetService('planetSvc').GetExtractorsForPlanet(self.planetUISvc.planet.planetID)
-        ret = []
-        for extractor in extractors:
-            extractedType = sm.GetService('godma').GetTypeAttribute(extractor.typeID, const.attributeHarvesterType)
-            if extractedType != resourceTypeID:
-                continue
-            if extractor.ownerID == session.charid:
-                continue
-            ret.append(extractor)
+        else:
+            extractors = sm.GetService('planetSvc').GetExtractorsForPlanet(self.planetUISvc.planet.planetID)
+            ret = []
+            for extractor in extractors:
+                extractedType = sm.GetService('godma').GetTypeAttribute(extractor.typeID, const.attributeHarvesterType)
+                if extractedType != resourceTypeID:
+                    continue
+                if extractor.ownerID == session.charid:
+                    continue
+                ret.append(extractor)
 
-        return ret
+            return ret
 
     def GetOtherCharactersNetwork(self, charid):
         if self.planetUISvc.planet is None:
             return
-        return sm.GetService('planetSvc').GetColonyForCharacter(self.planetUISvc.planet.planetID, charid)
+        else:
+            return sm.GetService('planetSvc').GetColonyForCharacter(self.planetUISvc.planet.planetID, charid)
 
     def GetPinMenuOther(self, pinID):
         pin = self.otherPlayerPinsByPinID.get(pinID)

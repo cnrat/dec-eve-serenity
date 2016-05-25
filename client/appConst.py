@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\common\lib\appConst.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\common\lib\appConst.py
 from carbon.common.lib.const import *
 from eve.common.lib.infoEventConst import *
 from inventorycommon.const import *
@@ -9,6 +10,7 @@ from probescanning.const import *
 from characterskills.const import *
 from eve.common.script.util.notificationconst import *
 from evefleet.const import *
+from eveuniverse.security import securityClassZeroSec, securityClassLowSec, securityClassHighSec
 FEMALE = 0
 MALE = 1
 TYPEID_NONE = -1
@@ -639,6 +641,7 @@ corpRoleInfrastructureTacticalOfficer = 144115188075855872L
 corpRoleTerrestrialCombatOfficer = 1152921504606846976L
 corpRoleTerrestrialLogisticsOfficer = 2305843009213693952L
 corpHangarTakeRolesByFlag = {flagHangar: corpRoleHangarCanTake1,
+ flagCorpSAG1: corpRoleHangarCanTake1,
  flagCorpSAG2: corpRoleHangarCanTake2,
  flagCorpSAG3: corpRoleHangarCanTake3,
  flagCorpSAG4: corpRoleHangarCanTake4,
@@ -646,6 +649,7 @@ corpHangarTakeRolesByFlag = {flagHangar: corpRoleHangarCanTake1,
  flagCorpSAG6: corpRoleHangarCanTake6,
  flagCorpSAG7: corpRoleHangarCanTake7}
 corpHangarQueryRolesByFlag = {flagHangar: corpRoleHangarCanQuery1,
+ flagCorpSAG1: corpRoleHangarCanQuery1,
  flagCorpSAG2: corpRoleHangarCanQuery2,
  flagCorpSAG3: corpRoleHangarCanQuery3,
  flagCorpSAG4: corpRoleHangarCanQuery4,
@@ -653,6 +657,7 @@ corpHangarQueryRolesByFlag = {flagHangar: corpRoleHangarCanQuery1,
  flagCorpSAG6: corpRoleHangarCanQuery6,
  flagCorpSAG7: corpRoleHangarCanQuery7}
 corpContainerTakeRolesByFlag = {flagHangar: corpRoleContainerCanTake1,
+ flagCorpSAG1: corpRoleContainerCanTake1,
  flagCorpSAG2: corpRoleContainerCanTake2,
  flagCorpSAG3: corpRoleContainerCanTake3,
  flagCorpSAG4: corpRoleContainerCanTake4,
@@ -822,6 +827,7 @@ dungeonSpawnLocations = {dungeonSpawnBelts: 'Asteroid Belts',
  dungeonSpawnDeep: 'Deep Space',
  dungeonSpawnStations: 'Stations'}
 locationAbstract = 0
+locationAssetSafety = 2004
 locationSystem = 1
 locationBank = 2
 locationTemp = 5
@@ -951,6 +957,7 @@ refCloneTransfer = 52
 refAccelerationGateFee = 53
 refTransactionTax = 54
 refJumpCloneInstallationFee = 55
+refJumpCloneActivationFee = 128
 refManufacturing = 56
 refResearchingTechnology = 57
 refResearchingTimeProductivity = 58
@@ -1009,16 +1016,21 @@ refIndustryTeamEscrowReimbursement = 119
 refIndustryFacilityTax = 120
 refSweatAurum = 121
 refInfrastructureHubBill = 122
+refAssetSafetyTax = 123
 refOpportunityReward = 124
+refProjectDiscoveryReward = 125
+refReprocessingTax = 127
 refMaxEve = 10000
 refCorporationTaxNpcBounties = 92
 refCorporationTaxAgentRewards = 93
 refCorporationTaxAgentBonusRewards = 94
 refCorporationTaxRewards = 103
+refProjectDiscoveryTaxRewards = 126
 derivedTransactionParentMapping = {refCorporationTaxNpcBounties: refBountyPrize,
  refCorporationTaxAgentRewards: refAgentMissionReward,
  refCorporationTaxAgentBonusRewards: refAgentMissionTimeBonusReward,
- refCorporationTaxRewards: refRewardManager}
+ refCorporationTaxRewards: refRewardManager,
+ refProjectDiscoveryTaxRewards: refProjectDiscoveryReward}
 recDescription = 'DESC'
 recDescNpcBountyList = 'NBL'
 recDescNpcBountyListTruncated = 'NBLT'
@@ -1625,6 +1637,7 @@ blockSmugglingCartel = 3
 blockTerrorist = 4
 cargoContainerLifetime = 120
 wreckLifetimeRookieSystem = 30
+containerAssetSafety = 10013
 containerCharacter = 10011
 containerCorpMarket = 10012
 containerGlobal = 10002
@@ -1633,9 +1646,10 @@ containerOffices = 10009
 containerRecycler = 10008
 containerSolarSystem = 10003
 containerStationCharacters = 10010
+containerStructure = 10014
 containerWallet = 10001
 costCloneContract = 100000
-costJumpClone = 100000
+costJumpClone = 900000
 crpApplicationAppliedByCharacter = 0
 crpApplicationRenegotiatedByCharacter = 1
 crpApplicationAcceptedByCharacter = 2
@@ -1918,7 +1932,9 @@ iconModuleStasisWeb = 1284
 iconModuleTargetPainter = 2983
 iconModuleTrackingDisruptor = 1639
 iconModuleWarpScrambler = 111
+iconModuleFighterTackle = 21613
 iconModuleWarpScramblerMWD = 3433
+iconModuleTethering = 91
 iconSkill = 33
 iconUnknown = 0
 iconWillpower = 3127
@@ -1933,7 +1949,7 @@ jumpRadiusRandom = 15000
 lifetimeOfDefaultContainer = 120
 lifetimeOfDurableContainers = 43200
 lockedContainerAccessTime = 180000
-marketCommissionPercentage = 1
+marketCommissionPercentage = 3
 maxBoardingDistance = 6550
 maxBuildDistance = 10000
 maxCargoContainerTransferDistance = 2500
@@ -1947,6 +1963,8 @@ maxStargateJumpingDistance = 2500
 maxWormholeEnterDistance = 5000
 maxWarpEndDistance = 100000
 maxDroneAssist = 50
+maxApproachDistance = 10000000
+maxFleetBroadcastTargetDistance = 10000000
 minAutoPilotWarpInDistance = 15000
 minCloakingDistance = 2000
 minDungeonPlacementDistance = 25
@@ -1960,7 +1978,7 @@ mktMinimumFee = 100
 mktModificationDelay = 300
 mktOrderCancelled = 3
 mktOrderExpired = 2
-mktTransactionTax = 1.5
+mktTransactionTax = 2
 npcCorpMax = 1999999
 npcCorpMin = 1000000
 npcDivisionAccounting = 1
@@ -2023,7 +2041,7 @@ solarsystemTimeout = 86400
 sovereigntyDisruptorAnchorRange = 20000
 sovereigntyDisruptorAnchorRangeMinBetween = 45000
 starbaseSecurityLimit = 800
-terminalExplosionDelay = 30
+terminalExplosionDelay = 60
 visibleSubSystems = 5
 voteCEO = 0
 voteGeneral = 4
@@ -2053,9 +2071,6 @@ leaderboardPeopleBuddies = 1
 leaderboardPeopleCorpMembers = 2
 leaderboardPeopleAllianceMembers = 3
 leaderboardPeoplePlayersInSim = 4
-securityClassZeroSec = 0
-securityClassLowSec = 1
-securityClassHighSec = 2
 contestionStateNone = 0
 contestionStateContested = 1
 contestionStateVulnerable = 2
@@ -2140,23 +2155,23 @@ shipColor = {'MAIN': {raceAmarr: {0: (0.5, 0.5, 0.5, 1.0)},
                           4: (0.99, 0.65, 0.43, 1.0)},
             raceGallente: {0: (0.5, 0.5, 0.5, 1.0)},
             raceMinmatar: {0: (0.5, 0.5, 0.5, 1.0)}}}
+agentMissionAccepted = 'accepted'
+agentMissionCompleted = 'completed'
+agentMissionDeclined = 'declined'
+agentMissionDungeonMoved = 'dungeon_moved'
+agentMissionFailed = 'failed'
+agentMissionModified = 'modified'
 agentMissionOffered = 'offered'
 agentMissionOfferAccepted = 'offer_accepted'
 agentMissionOfferDeclined = 'offer_declined'
 agentMissionOfferExpired = 'offer_expired'
 agentMissionOfferRemoved = 'offer_removed'
-agentMissionAccepted = 'accepted'
-agentMissionDeclined = 'declined'
-agentMissionCompleted = 'completed'
-agentTalkToMissionCompleted = 'talk_to_completed'
-agentMissionQuit = 'quit'
-agentMissionFailed = 'failed'
-agentMissionResearchUpdatePPD = 'research_update_ppd'
-agentMissionResearchStarted = 'research_started'
 agentMissionProlonged = 'prolong'
+agentMissionQuit = 'quit'
+agentMissionResearchStarted = 'research_started'
+agentMissionResearchUpdatePPD = 'research_update_ppd'
 agentMissionReset = 'reset'
-agentMissionModified = 'modified'
-agentMissionFailed = 'failed'
+agentTalkToMissionCompleted = 'talk_to_completed'
 agentMissionStateAllocated = 0
 agentMissionStateOffered = 1
 agentMissionStateAccepted = 2
@@ -2254,10 +2269,6 @@ actionTypes = {1: 'Play_MLS_Audio',
  3: 'Open_MLS_Message',
  4: 'Poll_Criteria_Open_Tutorial',
  5: 'SpaceObject_UI_Pointer'}
-neocomButtonScopeEverywhere = 1
-neocomButtonScopeInflight = 2
-neocomButtonScopeStation = 3
-neocomButtonScopeStationOrWorldspace = 4
 marketCategoryBluePrints = 2
 marketCategoryShips = 4
 marketCategoryShipEquipment = 9
@@ -2497,20 +2508,6 @@ singleCharsAllowedForShortcut = ['OEM_1',
  'F7',
  'F8',
  'F9']
-repackableInStationCategories = (categoryStarbase,
- categoryShip,
- categoryDrone,
- categoryModule,
- categorySubSystem,
- categorySovereigntyStructure,
- categoryDeployable)
-repackableInStationGroups = (groupCargoContainer,
- groupSecureCargoContainer,
- groupAuditLogSecureContainer,
- groupFreightContainer,
- groupTool,
- groupMobileWarpDisruptor)
-repackableInStructureCategories = (categoryDrone, categoryModule)
 vcPrefixAlliance = 'allianceid'
 vcPrefixFleet = 'fleetid'
 vcPrefixCorp = 'corpid'
@@ -2636,7 +2633,7 @@ OVERVIEW_AUTO_PILOT_DESTINATION_COLOR = (1.0, 1.0, 0.0)
 OVERVIEW_FORBIDDEN_CONTAINER_COLOR = (1.0, 1.0, 0.0)
 OVERVIEW_ABANDONED_CONTAINER_COLOR = (0.2, 0.5, 1.0)
 OVERVIEW_OWN_SHIP_COLOR = (0.7, 0.7, 0.7)
-OVERVIEW_IGNORE_GROUPS = ()
+OVERVIEW_IGNORE_TYPES = (typeUnlitModularEffectBeacon,)
 MAX_FOLDERNAME_LENGTH = 40
 maxCorpBookmarkCount = 500
 maxCharBookmarkCount = 13000
@@ -2687,20 +2684,6 @@ CHT_MAX_INPUT = CHT_MAX_STRIPPED_INPUT * 2
 mapHistoryStatJumps = 1
 mapHistoryStatKills = 3
 mapHistoryStatFacWarKills = 5
-corpInvFlagByDivision = {0: flagHangar,
- 1: flagCorpSAG2,
- 2: flagCorpSAG3,
- 3: flagCorpSAG4,
- 4: flagCorpSAG5,
- 5: flagCorpSAG6,
- 6: flagCorpSAG7}
-corpDivisionByInvFlag = {flagHangar: 0,
- flagCorpSAG2: 1,
- flagCorpSAG3: 2,
- flagCorpSAG4: 3,
- flagCorpSAG5: 4,
- flagCorpSAG6: 5,
- flagCorpSAG7: 6}
 zmetricCounter_EVEOnline = 10
 zmetricCounter_EVETrial = 11
 zmetricCounter_EVECREST = 12

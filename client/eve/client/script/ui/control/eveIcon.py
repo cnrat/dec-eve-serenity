@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\client\script\ui\control\eveIcon.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\client\script\ui\control\eveIcon.py
 import types
 from carbonui.primitives.container import Container
 from carbonui.primitives.sprite import Sprite
@@ -316,60 +317,64 @@ class Icon(uiprimitives.Sprite):
     def ApplyAttributes(self, attributes):
         if attributes.__gotShape__ and len(attributes.keys()) == 1:
             return
-        for each in ('iconID', 'path'):
-            if each in attributes:
-                log.LogInfo('Someone creating icon with', each, 'as keyword', attributes.Get(each, 'None'))
-
-        size = attributes.get('size', self.default_size)
-        if attributes.get('align', self.default_align) != uiconst.TOALL:
-            if size:
-                attributes.width = attributes.height = size
         else:
-            attributes.pos = (0, 0, 0, 0)
-            attributes.width = attributes.height = 0
-        icon = attributes.get('icon', self.default_icon)
-        if 'icon' in attributes:
-            del attributes['icon']
-        uiprimitives.Sprite.ApplyAttributes(self, attributes)
-        ignoreSize = attributes.get('ignoreSize', self.default_ignoreSize)
-        self.typeID = attributes.get('typeID', self.default_typeID)
-        self.itemID = attributes.get('itemID', self.default_itemID)
-        graphicID = attributes.get('graphicID', self.default_graphicID)
-        isCopy = attributes.get('isCopy', False)
-        if icon:
-            self.LoadIcon(icon, ignoreSize=ignoreSize)
-        elif self.typeID:
-            self.LoadIconByTypeID(self.typeID, itemID=self.itemID, size=size, ignoreSize=ignoreSize, isCopy=isCopy)
-        elif graphicID:
-            self.LoadIconByGraphicID(graphicID, ignoreSize=ignoreSize)
-        else:
-            self.LoadTexture('res:/UI/Texture/None.dds')
-        onClick = attributes.get('OnClick', None)
-        if onClick:
-            self.OnClick = onClick
+            for each in ('iconID', 'path'):
+                if each in attributes:
+                    log.LogInfo('Someone creating icon with', each, 'as keyword', attributes.Get(each, 'None'))
 
-    def LoadIconByGraphicID(self, graphicID, ignoreSize = False):
+            size = attributes.get('size', self.default_size)
+            if attributes.get('align', self.default_align) != uiconst.TOALL:
+                if size:
+                    attributes.width = attributes.height = size
+            else:
+                attributes.pos = (0, 0, 0, 0)
+                attributes.width = attributes.height = 0
+            icon = attributes.get('icon', self.default_icon)
+            if 'icon' in attributes:
+                del attributes['icon']
+            uiprimitives.Sprite.ApplyAttributes(self, attributes)
+            ignoreSize = attributes.get('ignoreSize', self.default_ignoreSize)
+            self.typeID = attributes.get('typeID', self.default_typeID)
+            self.itemID = attributes.get('itemID', self.default_itemID)
+            graphicID = attributes.get('graphicID', self.default_graphicID)
+            isCopy = attributes.get('isCopy', False)
+            if icon:
+                self.LoadIcon(icon, ignoreSize=ignoreSize)
+            elif self.typeID:
+                self.LoadIconByTypeID(self.typeID, itemID=self.itemID, size=size, ignoreSize=ignoreSize, isCopy=isCopy)
+            elif graphicID:
+                self.LoadIconByGraphicID(graphicID, ignoreSize=ignoreSize)
+            else:
+                self.LoadTexture('res:/UI/Texture/None.dds')
+            onClick = attributes.get('OnClick', None)
+            if onClick:
+                self.OnClick = onClick
+            return
+
+    def LoadIconByGraphicID(self, graphicID, ignoreSize=False):
         graphic = cfg.icons.Get(graphicID)
         if graphic and graphic.iconFile:
             iconFile = graphic.iconFile.strip()
             self.LoadIcon(iconFile, ignoreSize)
 
-    def LoadIcon(self, icon, ignoreSize = False):
+    def LoadIcon(self, icon, ignoreSize=False):
         if not icon:
             return
-        if type(icon) == types.IntType:
+        elif type(icon) == types.IntType:
             return self.LoadIconByGraphicID(icon, ignoreSize=ignoreSize)
-        icon = uiprimitives.Sprite.LoadIcon(self, icon, ignoreSize)
-        if icon is not None:
-            fullPathData = self.ConvertIconNoToResPath(icon)
-            if fullPathData:
-                resPath, iconSize = fullPathData
-                self.LoadTexture(resPath)
-                if not ignoreSize and self.GetAlign() != uiconst.TOALL and self.texture.atlasTexture:
-                    self.width = iconSize
-                    self.height = iconSize
+        else:
+            icon = uiprimitives.Sprite.LoadIcon(self, icon, ignoreSize)
+            if icon is not None:
+                fullPathData = self.ConvertIconNoToResPath(icon)
+                if fullPathData:
+                    resPath, iconSize = fullPathData
+                    self.LoadTexture(resPath)
+                    if not ignoreSize and self.GetAlign() != uiconst.TOALL and self.texture.atlasTexture:
+                        self.width = iconSize
+                        self.height = iconSize
+            return
 
-    def LoadIconByTypeID(self, typeID, itemID = None, size = None, ignoreSize = False, isCopy = False):
+    def LoadIconByTypeID(self, typeID, itemID=None, size=None, ignoreSize=False, isCopy=False):
         self.typeID = typeID
         sm.GetService('photo').GetIconByType(self, typeID, itemID=itemID, size=size, ignoreSize=ignoreSize, isCopy=isCopy)
 
@@ -378,32 +383,34 @@ class Icon(uiprimitives.Sprite):
         resPath = None
         if iconNo.startswith('res:'):
             return (iconNo, 0)
-        parts = iconNo.split('_')
-        if len(parts) == 2:
-            sheet, iconNum = parts
-            iconSize = GetIconSize(sheet)
-            resPath = 'res:/ui/texture/icons/%s_%s_%s.png' % (int(sheet), int(iconSize), int(iconNum))
-        elif iconNo.startswith('ui_'):
-            u, sheet, iconSize, iconNum = parts
-            iconSize = int(iconSize)
-            resPath = 'res:/ui/texture/icons/%s_%s_%s.png' % (int(sheet), int(iconSize), int(iconNum))
-        elif iconNo.startswith('corps_'):
-            resPath = 'res:/ui/texture/corps/' + iconNo[6:] + '.png'
-            iconSize = 128
-        elif iconNo.startswith('alliance_'):
-            resPath = 'res:/ui/texture/alliance/' + iconNo[9:] + '.png'
-            iconSize = 128
-        elif iconNo.startswith('c_'):
-            c, sheet, iconNum = parts
-            resPath = 'res:/ui/texture/corps/%s_128_%s.png' % (int(sheet), int(iconNum))
-            iconSize = 128
-        elif iconNo.startswith('a_'):
-            a, sheet, iconNum = parts
-            resPath = 'res:/ui/texture/alliance/%s_128_%s.png' % (int(sheet), int(iconNum))
-            iconSize = 128
-        if resPath:
-            return (resPath, iconSize)
-        log.LogWarn('Icon: MISSING CONVERSION HANDLING FOR', iconNo)
+        else:
+            parts = iconNo.split('_')
+            if len(parts) == 2:
+                sheet, iconNum = parts
+                iconSize = GetIconSize(sheet)
+                resPath = 'res:/ui/texture/icons/%s_%s_%s.png' % (int(sheet), int(iconSize), int(iconNum))
+            elif iconNo.startswith('ui_'):
+                u, sheet, iconSize, iconNum = parts
+                iconSize = int(iconSize)
+                resPath = 'res:/ui/texture/icons/%s_%s_%s.png' % (int(sheet), int(iconSize), int(iconNum))
+            elif iconNo.startswith('corps_'):
+                resPath = 'res:/ui/texture/corps/' + iconNo[6:] + '.png'
+                iconSize = 128
+            elif iconNo.startswith('alliance_'):
+                resPath = 'res:/ui/texture/alliance/' + iconNo[9:] + '.png'
+                iconSize = 128
+            elif iconNo.startswith('c_'):
+                c, sheet, iconNum = parts
+                resPath = 'res:/ui/texture/corps/%s_128_%s.png' % (int(sheet), int(iconNum))
+                iconSize = 128
+            elif iconNo.startswith('a_'):
+                a, sheet, iconNum = parts
+                resPath = 'res:/ui/texture/alliance/%s_128_%s.png' % (int(sheet), int(iconNum))
+                iconSize = 128
+            if resPath:
+                return (resPath, iconSize)
+            log.LogWarn('Icon: MISSING CONVERSION HANDLING FOR', iconNo)
+            return
 
 
 class DraggableIcon(uiprimitives.Container):
@@ -418,7 +425,7 @@ class DraggableIcon(uiprimitives.Container):
         self.sr.shadow = Frame(parent=self, offset=-9, cornerSize=13, name='shadow', state=uiconst.UI_DISABLED, texturePath='res:/UI/Texture/Shared/bigButtonShadow.png')
         self.ChangeIcon(**attributes)
 
-    def ChangeIcon(self, typeID = None, itemID = None, icon = None, isCopy = False, **kw):
+    def ChangeIcon(self, typeID=None, itemID=None, icon=None, isCopy=False, **kw):
         if icon:
             self.sr.icon.LoadIcon(icon, ignoreSize=True)
         elif typeID:
@@ -427,7 +434,7 @@ class DraggableIcon(uiprimitives.Container):
     def LoadIcon(self, icon, *args, **kwds):
         self.ChangeIcon(icon=icon)
 
-    def LoadIconByTypeID(self, typeID, itemID = None, isCopy = False, *args, **kwds):
+    def LoadIconByTypeID(self, typeID, itemID=None, isCopy=False, *args, **kwds):
         self.ChangeIcon(typeID=typeID, itemID=itemID, isCopy=isCopy)
 
 
@@ -457,9 +464,10 @@ class LogoIcon(Icon):
             icon = 'ui_1_16_256'
         attributes['icon'] = icon
         Icon.ApplyAttributes(self, attributes)
+        return
 
     @staticmethod
-    def GetFactionIconID(factionID, isSmall = default_isSmall):
+    def GetFactionIconID(factionID, isSmall=default_isSmall):
         if isSmall and factionID in IN_SMALL_ICONS:
             return IN_SMALL_ICONS.get(factionID)
         elif factionID in IN_ICONS:
@@ -468,9 +476,10 @@ class LogoIcon(Icon):
             return IN_CORP_ICONS.get(factionID)
         else:
             return None
+            return None
 
     @staticmethod
-    def GetFactionIconTexturePath(factionID, isSmall = True):
+    def GetFactionIconTexturePath(factionID, isSmall=True):
         iconNo = LogoIcon.GetFactionIconID(factionID, isSmall)
         texturePath, _ = Icon.ConvertIconNoToResPath(iconNo)
         return texturePath
@@ -508,6 +517,7 @@ class CorpIcon(uiprimitives.Container):
             self.DoLayout(corpID, attributes)
         else:
             uthread.new(self.DoLayout, corpID, attributes)
+        return
 
     def DoLayout(self, corpID, attributes):
         big = attributes.get('big', False)
@@ -515,64 +525,68 @@ class CorpIcon(uiprimitives.Container):
         logoData = attributes.get('logoData', None)
         if corpID in CORP_ICONS:
             return CORP_ICONS[corpID]
-        if logoData is None:
-            if not corpID:
-                return
-            logoData = cfg.corptickernames.Get(corpID)
-        if logoData:
-            log.LogInfo('LogoIcon.GetCorpIconID', 'corpID:', corpID, 'shape1:', logoData.shape1, 'shape2:', logoData.shape2, 'shape3:', logoData.shape3, 'color1:', logoData.color1, 'color2:', logoData.color2, 'color3:', logoData.color3)
-            shapeIDs = (logoData.shape1, logoData.shape2, logoData.shape3)
-            colorIDs = (logoData.color1, logoData.color2, logoData.color3)
-            for i in xrange(3):
-                shapeID = shapeIDs[i]
-                colorID = colorIDs[i]
-                if shapeID is not None and shapeID == int(shapeID):
-                    self.SetLayerShapeAndColor(i, shapeID, colorID, big)
+        else:
+            if logoData is None:
+                if not corpID:
+                    return
+                logoData = cfg.corptickernames.Get(corpID)
+            if logoData:
+                log.LogInfo('LogoIcon.GetCorpIconID', 'corpID:', corpID, 'shape1:', logoData.shape1, 'shape2:', logoData.shape2, 'shape3:', logoData.shape3, 'color1:', logoData.color1, 'color2:', logoData.color2, 'color3:', logoData.color3)
+                shapeIDs = (logoData.shape1, logoData.shape2, logoData.shape3)
+                colorIDs = (logoData.color1, logoData.color2, logoData.color3)
+                for i in xrange(3):
+                    shapeID = shapeIDs[i]
+                    colorID = colorIDs[i]
+                    if shapeID is not None and shapeID == int(shapeID):
+                        self.SetLayerShapeAndColor(i, shapeID, colorID, big)
 
-        elif onlyValid:
-            raise RuntimeError('not valid corpID')
+            elif onlyValid:
+                raise RuntimeError('not valid corpID')
+            return
 
-    def SetLayerShapeAndColor(self, layerNum, shapeID = None, colorID = None, isBig = False):
+    def SetLayerShapeAndColor(self, layerNum, shapeID=None, colorID=None, isBig=False):
         if self.destroyed:
             return
-        layer = self.children[layerNum]
-        if shapeID is None:
-            shapeID = self.shapeIDs[layerNum]
         else:
-            self.shapeIDs[layerNum] = shapeID
-        if colorID is None:
-            colorID = self.colorIDs[layerNum]
-        else:
-            self.colorIDs[layerNum] = colorID
-        texturePath = const.graphicCorpLogoLibShapes.get(shapeID, const.graphicCorpLogoLibShapes[const.graphicCorpLogoLibNoShape])
-        if isBig:
-            texturePath = '%s/large/%s' % tuple(texturePath.rsplit('/', 1))
-        if colorID is not None and colorID == int(colorID):
-            color, blendMode = const.graphicCorpLogoLibColors.get(colorID, const.CORPLOGO_DEFAULT_COLOR)
-        else:
-            color, blendMode = const.CORPLOGO_DEFAULT_COLOR
-        if blendMode == const.CORPLOGO_BLEND:
-            layer.SetTexturePath(texturePath)
-            layer.SetSecondaryTexturePath(None)
-            layer.spriteEffect = trinity.TR2_SFX_COPY
-            layer.SetRGB(*color)
-        elif blendMode == const.CORPLOGO_SOLID:
-            layer.SetTexturePath('res:/UI/Texture/fill.dds')
-            layer.SetSecondaryTexturePath(texturePath)
-            layer.spriteEffect = trinity.TR2_SFX_MASK
-            layer.SetRGB(*color)
-        elif blendMode == const.CORPLOGO_GRADIENT:
-            layer.SetTexturePath('res:/UI/Texture/corpLogoLibs/%s.png' % colorID)
-            layer.SetSecondaryTexturePath(texturePath)
-            layer.spriteEffect = trinity.TR2_SFX_MASK
-            layer.SetRGB(1.0, 1.0, 1.0, 1.0)
+            layer = self.children[layerNum]
+            if shapeID is None:
+                shapeID = self.shapeIDs[layerNum]
+            else:
+                self.shapeIDs[layerNum] = shapeID
+            if colorID is None:
+                colorID = self.colorIDs[layerNum]
+            else:
+                self.colorIDs[layerNum] = colorID
+            texturePath = const.graphicCorpLogoLibShapes.get(shapeID, const.graphicCorpLogoLibShapes[const.graphicCorpLogoLibNoShape])
+            if isBig:
+                texturePath = '%s/large/%s' % tuple(texturePath.rsplit('/', 1))
+            if colorID is not None and colorID == int(colorID):
+                color, blendMode = const.graphicCorpLogoLibColors.get(colorID, const.CORPLOGO_DEFAULT_COLOR)
+            else:
+                color, blendMode = const.CORPLOGO_DEFAULT_COLOR
+            if blendMode == const.CORPLOGO_BLEND:
+                layer.SetTexturePath(texturePath)
+                layer.SetSecondaryTexturePath(None)
+                layer.spriteEffect = trinity.TR2_SFX_COPY
+                layer.SetRGB(*color)
+            elif blendMode == const.CORPLOGO_SOLID:
+                layer.SetTexturePath('res:/UI/Texture/fill.dds')
+                layer.SetSecondaryTexturePath(texturePath)
+                layer.spriteEffect = trinity.TR2_SFX_MASK
+                layer.SetRGB(*color)
+            elif blendMode == const.CORPLOGO_GRADIENT:
+                layer.SetTexturePath('res:/UI/Texture/corpLogoLibs/%s.png' % colorID)
+                layer.SetSecondaryTexturePath(texturePath)
+                layer.spriteEffect = trinity.TR2_SFX_MASK
+                layer.SetRGB(1.0, 1.0, 1.0, 1.0)
+            return
 
 
 def CheckCorpID(corpID):
     return corpID in CORP_ICONS
 
 
-def GetLogoIcon(itemID = None, **kw):
+def GetLogoIcon(itemID=None, **kw):
     if util.IsAlliance(itemID):
         logo = Icon(icon=None, **kw)
         sm.GetService('photo').GetAllianceLogo(itemID, 128, logo)
@@ -581,9 +595,10 @@ def GetLogoIcon(itemID = None, **kw):
         return LogoIcon(itemID=itemID, **kw)
     else:
         return CorpIcon(corpID=itemID, **kw)
+        return
 
 
-def GetOwnerLogo(parent, ownerID, size = 64, noServerCall = False, callback = False, orderIfMissing = True):
+def GetOwnerLogo(parent, ownerID, size=64, noServerCall=False, callback=False, orderIfMissing=True):
     if util.IsCharacter(ownerID) or util.IsAlliance(ownerID):
         logo = Icon(icon=None, parent=parent, pos=(0,
          0,
@@ -594,14 +609,15 @@ def GetOwnerLogo(parent, ownerID, size = 64, noServerCall = False, callback = Fa
         else:
             path = sm.GetService('photo').GetPortrait(ownerID, size, logo, callback=callback, orderIfMissing=orderIfMissing)
         return path is not None
-    if util.IsCorporation(ownerID) or util.IsFaction(ownerID):
-        GetLogoIcon(itemID=ownerID, parent=parent, pos=(0,
-         0,
-         size,
-         size), ignoreSize=True)
     else:
-        raise RuntimeError('ownerID %d is not of an owner type!!' % ownerID)
-    return True
+        if util.IsCorporation(ownerID) or util.IsFaction(ownerID):
+            GetLogoIcon(itemID=ownerID, parent=parent, pos=(0,
+             0,
+             size,
+             size), ignoreSize=True)
+        else:
+            raise RuntimeError('ownerID %d is not of an owner type!!' % ownerID)
+        return True
 
 
 class PreviewIcon(Icon):
@@ -657,8 +673,9 @@ class ItemIcon(Container):
         self.techIcon = Sprite(name='techIcon', parent=self, width=16, height=16)
         self.icon = Icon(parent=self, align=uiconst.TOALL, state=uiconst.UI_DISABLED)
         self.SetTypeID(self.typeID, self.bpData)
+        return
 
-    def SetTypeID(self, typeID, bpData = None):
+    def SetTypeID(self, typeID, bpData=None):
         self.typeID = typeID
         self.bpData = bpData
         self.icon.LoadIconByTypeID(typeID, ignoreSize=True, isCopy=self.IsBlueprintCopy())
@@ -732,7 +749,6 @@ def GetIconSize(sheetNum):
         return 32
     if sheetNum in sixteen:
         return 16
-    return 64
 
 
 exports = {'uiutil.GetLogoIcon': GetLogoIcon,

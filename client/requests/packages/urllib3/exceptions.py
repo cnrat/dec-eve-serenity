@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\packages\requests\packages\urllib3\exceptions.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\packages\requests\packages\urllib3\exceptions.py
 
 
 class HTTPError(Exception):
@@ -39,7 +40,7 @@ class DecodeError(HTTPError):
 
 class MaxRetryError(RequestError):
 
-    def __init__(self, pool, url, reason = None):
+    def __init__(self, pool, url, reason=None):
         self.reason = reason
         message = 'Max retries exceeded with url: %s' % url
         if reason:
@@ -51,7 +52,7 @@ class MaxRetryError(RequestError):
 
 class HostChangedError(RequestError):
 
-    def __init__(self, pool, url, retries = 3):
+    def __init__(self, pool, url, retries=3):
         message = 'Tried to open a foreign host with url: %s' % url
         RequestError.__init__(self, pool, url, message)
         self.retries = retries

@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\client\script\ui\station\assembleModularShip.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\client\script\ui\station\assembleModularShip.py
 from eve.client.script.ui.control.listwindow import ListWindow
 from eve.client.script.ui.control import entries as listentry
 import uiprimitives
@@ -44,16 +45,17 @@ class AssembleShip(ListWindow):
         setselected = attributes.setselected
         if setselected is not None:
             self.SetSelected(setselected)
+        return
 
     def SelectAll(self, *args):
         pass
 
-    def UpdateShip(self, ship, selectedSubSystems = {}):
+    def UpdateShip(self, ship, selectedSubSystems={}):
         self.ship = ship
         self.startSubSystems = selectedSubSystems
         self.LoadScrollList()
 
-    def SetSelected(self, subSystems = {}):
+    def SetSelected(self, subSystems={}):
         self.startSubSystems = subSystems
         self.LoadScrollList()
 
@@ -69,11 +71,11 @@ class AssembleShip(ListWindow):
                         subSystemsByGroupID[groupID].append((typeID, typeID))
 
         else:
-            if not session.stationid:
+            if not util.IsDocked():
                 return
             inv = sm.GetService('invCache').GetInventory(const.containerHangar)
             subSystemsByGroupID = {}
-            for item in inv.List():
+            for item in inv.List(const.flagHangar):
                 if item.categoryID != const.categorySubSystem:
                     continue
                 if godma.GetTypeAttribute(item.typeID, const.attributeFitsToShipType) != self.ship.typeID:
@@ -122,6 +124,7 @@ class AssembleShip(ListWindow):
 
         self.UpdateHint()
         self.scroll.Load(contentList=scrolllist, scrolltotop=0)
+        return
 
     def ClickEntry(self, entry, *args):
         slotFlag = int(sm.services['godma'].GetTypeAttribute(entry.typeID, const.attributeSubSystemSlot))
@@ -144,19 +147,21 @@ class AssembleShip(ListWindow):
         node = self.GetNode(entry)
         if node is None:
             return
-        self.selectedSubSystemsByFlag[slotFlag] = entry.itemID
-        entry.HiliteMe(uiconst.UI_DISABLED)
-        node = self.GetNode(entry)
-        if node is not None:
-            node.isSelected = True
-        self.subSystems[slotFlag] = entry.itemID
-        self.UpdateHint()
-        if self.isPreview:
-            subSystems = {}
-            for s in self.subSystems.values():
-                subSystems[evetypes.GetGroupID(s)] = s
+        else:
+            self.selectedSubSystemsByFlag[slotFlag] = entry.itemID
+            entry.HiliteMe(uiconst.UI_DISABLED)
+            node = self.GetNode(entry)
+            if node is not None:
+                node.isSelected = True
+            self.subSystems[slotFlag] = entry.itemID
+            self.UpdateHint()
+            if self.isPreview:
+                subSystems = {}
+                for s in self.subSystems.values():
+                    subSystems[evetypes.GetGroupID(s)] = s
 
-            sm.GetService('preview').PreviewType(self.ship.typeID, subSystems, animate=False)
+                sm.GetService('preview').PreviewType(self.ship.typeID, subSystems, animate=False)
+            return
 
     def GetNode(self, entry):
         for node in self.scroll.GetNodes():
@@ -183,30 +188,35 @@ class AssembleShip(ListWindow):
             ep.height = t.height + 8
         else:
             ep.state = uiconst.UI_HIDDEN
+        return
 
     def Refresh(self):
         self.groupIDs = None
         self.subSystems = {}
         self.LoadScrollList()
+        return
 
     def Submit(self, *args):
         lenGroupIDs = 0
         if self.groupIDs is not None:
             lenGroupIDs = len(self.groupIDs)
-        hangarContents = {i.itemID for i in sm.GetService('invCache').GetInventory(const.containerHangar).List()}
+        hangarContents = {i.itemID for i in sm.GetService('invCache').GetInventory(const.containerHangar).List(const.flagHangar)}
         subSystems = set(self.subSystems.values())
         if subSystems & hangarContents != subSystems:
             self.Refresh()
         if len(self.subSystems) != const.visibleSubSystems - lenGroupIDs:
             self.Refresh()
             return
-        sm.StartService('gameui').GetShipAccess().AssembleShip(self.ship.itemID, subSystems=self.subSystems.values())
-        self.Close()
+        else:
+            sm.StartService('gameui').GetShipAccess().AssembleShip(self.ship.itemID, subSystems=self.subSystems.values())
+            self.Close()
+            return
 
     def Cancel(self, *args):
         if self.groupIDs is not None:
             uthread.new(sm.StartService('station').SelectShipDlg)
         self.Close()
+        return
 
 
 class AssembleShipEntry(listentry.Generic):

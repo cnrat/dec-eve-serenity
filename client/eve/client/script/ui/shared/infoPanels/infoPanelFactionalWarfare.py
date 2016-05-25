@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\client\script\ui\shared\infoPanels\infoPanelFactionalWarfare.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\client\script\ui\shared\infoPanels\infoPanelFactionalWarfare.py
 import uicls
 import carbonui.const as uiconst
 import infoPanelConst
@@ -40,6 +41,7 @@ class InfoPanelFactionalWarfare(uicls.InfoPanelBase):
         self.bottomContainer = uicontrols.ContainerAutoSize(parent=self.mainCont, name='bottomContainer', align=uiconst.TOTOP)
         self.bottomContainer.EnableAutoSize()
         self.mainCont.EnableAutoSize()
+        return
 
     @staticmethod
     def IsAvailable():
@@ -102,7 +104,7 @@ class InfoPanelFactionalWarfare(uicls.InfoPanelBase):
             self.headerTextCont.Show()
             uicore.animations.FadeTo(self.headerTextCont, 0.0, 1.0, duration=0.3)
 
-    def UpdateGauge(self, animate = True):
+    def UpdateGauge(self, animate=True):
         animate = animate and self.isGaugeInitialized
         for gauge in (self.controlGauge, self.headerControlGauge):
             fwSvc = sm.GetService('facwar')

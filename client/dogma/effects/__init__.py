@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\packages\dogma\effects\__init__.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\packages\dogma\effects\__init__.py
 import evetypes
 from dogma import const
 EXPRESSIONS = {'LocationRequiredSkillModifier': 'on all items located in {domain} requiring skill {skillTypeID}',
@@ -39,7 +40,7 @@ def IsCloakingEffect(effectID):
     return effectID in [const.effectCloaking, const.effectCloakingWarpSafe, const.effectCloakingPrototype]
 
 
-class Effect:
+class Effect(object):
     __guid__ = 'dogmaXP.Effect'
     isPythonEffect = True
     __modifier_only__ = False
@@ -82,10 +83,11 @@ def GetEwarTypeByEffectID(effectID):
     effect = cfg.dgmeffects.Get(effectID)
     if effect.electronicChance:
         return 'electronic'
-    if effect.propulsionChance:
+    elif effect.propulsionChance:
         return 'propulsion'
-    ewarType = ALL_EWAR_TYPES.get(effectID, None)
-    return ewarType
+    else:
+        ewarType = ALL_EWAR_TYPES.get(effectID, None)
+        return ewarType
 
 
 ALL_EWAR_TYPES = {}
@@ -118,7 +120,41 @@ OFFENSIVE_EWAR_TYPES = {const.effectEwTargetPaint: 'ewTargetPaint',
  const.effectEssWarpScramble: 'warpScrambler',
  const.effectWarpScrambleTargetMWDBlockActivationForEntity: 'warpScramblerMWD',
  const.effectEwTestEffectJam: 'electronic',
- const.effectEntityTargetJam: 'electronic'}
+ const.effectEntityTargetJam: 'electronic',
+ const.effectFighterAbilityECM: 'electronic',
+ const.effectFighterAbilityEnergyNeutralizer: 'ewEnergyNeut',
+ const.effectFighterAbilityStasisWebifier: 'webify',
+ const.effectFighterAbilityWarpDisruption: 'warpScrambler',
+ const.effectFighterAbilityTackle: 'fighterTackle',
+ const.effectRemoteSensorDampFalloff: 'ewRemoteSensorDamp',
+ const.effectRemoteTargetPaintFalloff: 'ewTargetPaint',
+ const.effectRemoteTrackingDisruptFalloff: 'ewTrackingDisrupt',
+ const.effectRemoteWebifierFalloff: 'webify',
+ const.effectRemoteGuidanceDisruptFalloff: 'ewGuidanceDisrupt',
+ const.effectRemoteECMFalloff: 'electronic',
+ const.effectStructureEwEffectJam: 'electronic',
+ const.effectStructureEwTargetPaint: 'ewTargetPaint',
+ const.effectStructureEnergyNeutralizerFalloff: 'ewEnergyNeut',
+ const.effectStructureWarpScrambleBlockMWDWithNPCEffect: 'warpScramblerMWD',
+ const.effectStructureDecreaseTargetSpeed: 'webify',
+ const.effectStructureTargetMaxTargetRangeAndScanResolutionBonusHostile: 'ewRemoteSensorDamp',
+ const.effectStructureTargetGunneryMaxRangeAndTrackingSpeedAndFalloffBonusHostile: 'ewTrackingDisrupt',
+ const.effectDoomsdayAOEECM: 'electronic',
+ const.effectDoomsdayAOEPaint: 'ewTargetPaint',
+ const.effectDoomsdayAOENeut: 'ewEnergyNeut',
+ const.effectDoomsdayAOEWeb: 'webify',
+ const.effectDoomsdayAOETrack: 'ewTrackingDisrupt',
+ const.effectDoomsdayAOEDamp: 'ewRemoteSensorDamp',
+ const.effectStructureModuleEffectStasisWebifier: 'webify',
+ const.effectStructureModuleEffectTargetPainter: 'ewTargetPaint',
+ const.effectStructureModuleEffectRemoteSensorDampener: 'ewRemoteSensorDamp',
+ const.effectStructureModuleEffectECM: 'electronic',
+ const.effectStructureModuleEffectWeaponDisruption: 'ewTrackingDisrupt',
+ const.effectEnergyNeutralizerEntity: 'ewEnergyNeut',
+ const.effectRemoteSensorDampEntity: 'ewRemoteSensorDamp',
+ const.effectRemoteTargetPaintEntity: 'ewTargetPaint',
+ const.effectRemoteWeaponDisruptEntity: 'ewTrackingDisrupt',
+ const.effectRemoteWebifierEntity: 'webify'}
 DEFENSIVE_EWAR_TYPES = {const.effectRemoteTracking: 'remoteTracking',
  const.effectEnergyTransfer: 'energyTransfer',
  const.effectTargetMaxTargetRangeAndScanResolutionBonusAssistance: 'sensorBooster',
@@ -129,6 +165,14 @@ DEFENSIVE_EWAR_TYPES = {const.effectRemoteTracking: 'remoteTracking',
  const.effectRemoteArmorRepairFalloff: 'remoteArmorRepair',
  const.effectRemoteEnergyTransferFalloff: 'energyTransfer',
  const.effectRemoteHullRepairFalloff: 'remoteHullRepair',
- const.effectRemoteShieldTransferFalloff: 'shieldTransfer'}
+ const.effectRemoteShieldTransferFalloff: 'shieldTransfer',
+ const.effectRemoteSensorBoostFalloff: 'sensorBooster',
+ const.effectRemoteTrackingAssistFalloff: 'remoteTracking',
+ const.effectRemoteECCMFalloff: 'eccmProjector',
+ const.effectStructureTargetMaxTargetRangeAndScanResolutionBonusAssistance: 'sensorBooster',
+ const.effectStructureTargetGunneryMaxRangeFalloffTrackingSpeedBonusAssistance: 'remoteTracking',
+ const.effectRemoteArmorRepairEntity: 'remoteArmorRepair',
+ const.effectRemoteHullRepairEntity: 'shieldTransfer',
+ const.effectRemoteShieldTransferEntity: 'remoteHullRepair'}
 ALL_EWAR_TYPES = OFFENSIVE_EWAR_TYPES.copy()
 ALL_EWAR_TYPES.update(DEFENSIVE_EWAR_TYPES)

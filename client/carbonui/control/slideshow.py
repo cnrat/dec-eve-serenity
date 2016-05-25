@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\packages\carbonui\control\slideshow.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\packages\carbonui\control\slideshow.py
 import blue
 from carbonui.primitives.container import Container
 
@@ -49,6 +50,7 @@ class SlideShow(Container):
         module = __import__(moduleName)
         constructor = getattr(module, className)
         self.controls[name] = constructor(**classArgs)
+        return
 
     def _HandleClose(self, args):
         self.controls[args].Close()

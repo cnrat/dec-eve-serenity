@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\client\script\ui\shared\planet\planetUISvc.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\client\script\ui\shared\planet\planetUISvc.py
 import math
 from eve.client.script.ui.camera.planetCamera import PlanetCamera
 import evecamera
@@ -46,7 +47,7 @@ class PlanetUISvc(service.Service):
     __displayname__ = 'Planet UI Client Service'
     __update_on_reload__ = 0
 
-    def Run(self, memStream = None):
+    def Run(self, memStream=None):
         self.state = service.SERVICE_START_PENDING
         self.LogInfo('Starting Planet UI Client Svc')
         uicore.layer.planet.Flush()
@@ -81,15 +82,18 @@ class PlanetUISvc(service.Service):
         self.planetUIContainer = uiprimitives.Container(parent=uicore.layer.planet, name='planetUIContainer', align=uiconst.TOALL, state=uiconst.UI_PICKCHILDREN)
         self.state = service.SERVICE_RUNNING
         self.LogInfo('Planet UI Client Svc Started')
+        return
 
-    def Stop(self, memStream = None):
+    def Stop(self, memStream=None):
         if trinity.device is None:
             return
-        self.LogInfo('service is stopping')
-        if self.spherePinLoadThread:
-            self.spherePinLoadThread.kill()
-            self.spherePinLoadThread = None
-        self.Reset()
+        else:
+            self.LogInfo('service is stopping')
+            if self.spherePinLoadThread:
+                self.spherePinLoadThread.kill()
+                self.spherePinLoadThread = None
+            self.Reset()
+            return
 
     def Reset(self):
         self.LogInfo('PlanetUISvc Reset')
@@ -118,6 +122,7 @@ class PlanetUISvc(service.Service):
             self.scanController = None
         self.resourceLayer = None
         self.isLoadingResource = False
+        return
 
     def CleanView(self):
         if self.planetTransform is not None:
@@ -141,6 +146,7 @@ class PlanetUISvc(service.Service):
             self.scanController.Close()
             self.scanController = None
         self.resourceLayer = None
+        return
 
     def ProcessUIRefresh(self):
         self.oldPlanetID = None
@@ -148,17 +154,21 @@ class PlanetUISvc(service.Service):
             self.oldPlanetID = self.planetID
             self.planetID = None
         self.Reset()
+        return
 
     def OnUIRefresh(self):
         if self.oldPlanetID:
             self.Open(self.oldPlanetID)
             self.oldPlanetID = None
+        return
 
     def MinimizeWindows(self):
-        lobby = form.Lobby.GetIfOpen()
+        from eve.client.script.ui.shared.dockedUI import GetLobbyClass
+        lobbyClass = GetLobbyClass()
+        lobby = lobbyClass.GetIfOpen()
         if lobby and not lobby.destroyed and lobby.state != uiconst.UI_HIDDEN and not lobby.IsMinimized() and not lobby.IsCollapsed():
             lobby.Minimize()
-            self.minimizedWindows.append(form.Lobby.default_windowID)
+            self.minimizedWindows.append(lobbyClass.default_windowID)
 
     def Open(self, planetID):
         sm.GetService('viewState').ActivateView('planet', planetID=planetID)
@@ -191,50 +201,51 @@ class PlanetUISvc(service.Service):
         sm.StartService('audio').SendUIEvent(unicode(AMBIENT_SOUNDS[self.typeID].start))
         self.planetAccessRequired = session.solarsystemid2 == self.solarSystemID or sm.GetService('planetSvc').IsPlanetColonizedByMe(planetID)
 
-    def Close(self, clearAll = True):
+    def Close(self, clearAll=True):
         if getattr(self, 'busy', 0):
             return True
-        self.busy = 1
-        try:
-            self.planetNav.camera.Close()
-        except AttributeError:
-            pass
-
-        if hasattr(self, 'typeID'):
-            sm.StartService('audio').SendUIEvent(unicode(AMBIENT_SOUNDS[self.typeID].stop))
-        if len(self.minimizedWindows) > 0:
-            for windowID in self.minimizedWindows:
-                wnd = uicontrols.Window.GetIfOpen(windowID=windowID)
-                if wnd and wnd.IsMinimized():
-                    wnd.Maximize()
-
-            self.minimizedWindows = []
-        if getattr(self, 'planetNav', None):
-            settings.char.ui.Set('planet_camera_zoom', self.planetNav.zoom)
         else:
-            settings.char.ui.Set('planet_camera_zoom', 1.0)
-        sm.GetService('sceneManager').SetRegisteredScenes('default')
-        self.busy = 0
-        if self.eventManager:
-            self.eventManager.OnPlanetViewClosed()
-        if self.myPinManager:
-            self.myPinManager.OnPlanetViewClosed()
-        if self.otherPinManager:
-            self.otherPinManager.OnPlanetViewClosed()
-        self.CleanScene()
-        self.StopSpherePinLoadThread()
-        sm.ScatterEvent('OnPlanetViewChanged', None, self.planetID)
-        self.LogPlanetAccess()
-        self.planetID = None
-        self.planet = None
-        self.selectedResourceTypeID = None
-        sm.GetService('audio').SendUIEvent('wise:/msg_pi_general_closing_play')
-        if clearAll:
-            self.cameraScene = None
-            self.planetScene = None
-            sm.GetService('sceneManager').UnregisterScene('planet')
-            sm.GetService('sceneManager').UnregisterCamera(evecamera.CAM_PLANET)
-        return True
+            self.busy = 1
+            try:
+                self.planetNav.camera.Close()
+            except AttributeError:
+                pass
+
+            if hasattr(self, 'typeID'):
+                sm.StartService('audio').SendUIEvent(unicode(AMBIENT_SOUNDS[self.typeID].stop))
+            if len(self.minimizedWindows) > 0:
+                for windowID in self.minimizedWindows:
+                    wnd = uicontrols.Window.GetIfOpen(windowID=windowID)
+                    if wnd and wnd.IsMinimized():
+                        wnd.Maximize()
+
+                self.minimizedWindows = []
+            if getattr(self, 'planetNav', None):
+                settings.char.ui.Set('planet_camera_zoom', self.planetNav.zoom)
+            else:
+                settings.char.ui.Set('planet_camera_zoom', 1.0)
+            sm.GetService('sceneManager').SetRegisteredScenes('default')
+            self.busy = 0
+            if self.eventManager:
+                self.eventManager.OnPlanetViewClosed()
+            if self.myPinManager:
+                self.myPinManager.OnPlanetViewClosed()
+            if self.otherPinManager:
+                self.otherPinManager.OnPlanetViewClosed()
+            self.CleanScene()
+            self.StopSpherePinLoadThread()
+            sm.ScatterEvent('OnPlanetViewChanged', None, self.planetID)
+            self.LogPlanetAccess()
+            self.planetID = None
+            self.planet = None
+            self.selectedResourceTypeID = None
+            sm.GetService('audio').SendUIEvent('wise:/msg_pi_general_closing_play')
+            if clearAll:
+                self.cameraScene = None
+                self.planetScene = None
+                sm.GetService('sceneManager').UnregisterScene('planet')
+                sm.GetService('sceneManager').UnregisterCamera(evecamera.CAM_PLANET)
+            return True
 
     def InitUI(self, planetChanged):
         self.LogInfo('Initializing UI')
@@ -265,8 +276,9 @@ class PlanetUISvc(service.Service):
         uthread.new(self.FocusCameraOnCommandCenter, 3.0)
         self.UpdateLoadingBar('planet_ui_init', localization.GetByLabel('UI/PI/Common/PlanetMode'), localization.GetByLabel('UI/PI/Common/LoadingPlanetResources'), 4, 4)
         self.StopLoadingBar('planet_ui_init')
+        return
 
-    def LoadPI(self, newScene = True):
+    def LoadPI(self, newScene=True):
         self.InitTrinityTransforms()
         self.InitUIContainers()
         self.InitLinesets()
@@ -359,22 +371,24 @@ class PlanetUISvc(service.Service):
         self.trinityPlanet = planet
         if planet.model is None or planet.model.highDetail is None:
             return
-        planetTransform = trinity.EveTransform()
-        planetTransform.name = 'planet'
-        planetTransform.scaling = (PLANET_SCALE, PLANET_SCALE, PLANET_SCALE)
-        planetTransform.children.append(planet.model.highDetail)
-        self.PreProcessPlanet()
-        scene = self.planetScene
-        trinity.WaitForResourceLoads()
-        for t in planet.model.highDetail.children:
-            if t.mesh is not None:
-                if len(t.mesh.transparentAreas) > 0:
-                    t.sortValueMultiplier = 2.0
+        else:
+            planetTransform = trinity.EveTransform()
+            planetTransform.name = 'planet'
+            planetTransform.scaling = (PLANET_SCALE, PLANET_SCALE, PLANET_SCALE)
+            planetTransform.children.append(planet.model.highDetail)
+            self.PreProcessPlanet()
+            scene = self.planetScene
+            trinity.WaitForResourceLoads()
+            for t in planet.model.highDetail.children:
+                if t.mesh is not None:
+                    if len(t.mesh.transparentAreas) > 0:
+                        t.sortValueMultiplier = 2.0
 
-        scene.sunDirection = (0.0, 0.0, 1.0)
-        scene.sunDiffuseColor = (1.0, 1.0, 1.0, 1.0)
-        self.planetTransform = planetTransform
-        self.planetRoot.children.append(self.planetTransform)
+            scene.sunDirection = (0.0, 0.0, 1.0)
+            scene.sunDiffuseColor = (1.0, 1.0, 1.0, 1.0)
+            self.planetTransform = planetTransform
+            self.planetRoot.children.append(self.planetTransform)
+            return
 
     def LoadOrbitalObjects(self, scene):
         orbitalObjects = sm.GetService('planetInfo').GetOrbitalsForPlanet(self.planetID, const.groupPlanetaryCustomsOffices)
@@ -482,10 +496,13 @@ class PlanetUISvc(service.Service):
         for model in addedObjects:
             model.display = 1
 
+        return
+
     def GetCurrentPlanet(self):
         if not self.planetID:
             return None
-        return sm.GetService('planetSvc').GetPlanet(self.planetID)
+        else:
+            return sm.GetService('planetSvc').GetPlanet(self.planetID)
 
     def PreProcessPlanet(self):
         renderTarget = self.CreateRenderTarget()
@@ -495,15 +512,18 @@ class PlanetUISvc(service.Service):
         if getattr(self, 'loadingBarActive', None) is None:
             sm.GetService('loading').ProgressWnd(tile, action, 0, total)
             self.loadingBarActive = key
+        return
 
     def UpdateLoadingBar(self, key, tile, action, part, total):
         if getattr(self, 'loadingBarActive', None) == key:
             sm.GetService('loading').ProgressWnd(tile, action, part, total)
+        return
 
     def StopLoadingBar(self, key):
         if getattr(self, 'loadingBarActive', None) == key:
             sm.GetService('loading').StopCycle()
             self.loadingBarActive = None
+        return
 
     def OnSetDevice(self):
         if sm.GetService('viewState').IsViewActive('planet'):
@@ -515,6 +535,7 @@ class PlanetUISvc(service.Service):
             self.PreProcessPlanet()
             if self.selectedResourceTypeID is not None:
                 self.ShowResource(self.selectedResourceTypeID)
+        return
 
     def ShowResource(self, resourceTypeID):
         self.LogInfo('ShowResource', resourceTypeID)
@@ -538,23 +559,28 @@ class PlanetUISvc(service.Service):
 
             if resourceTypeID == self.selectedResourceTypeID:
                 self.ShowResource(resourceTypeID)
+        return
 
     def _ShowResource(self, resourceTypeID):
         self.LogInfo('_ShowResource', resourceTypeID)
         inRange = False
         try:
-            inRange, texture = self.GetResourceAndRender(resourceTypeID)
-            if self.planetTransform is not None:
-                self.EnableResourceLayer()
-                self.SetResourceTexture(texture)
-        except ResourceRenderAbortedError:
-            pass
+            try:
+                inRange, texture = self.GetResourceAndRender(resourceTypeID)
+                if self.planetTransform is not None:
+                    self.EnableResourceLayer()
+                    self.SetResourceTexture(texture)
+            except ResourceRenderAbortedError:
+                pass
+
         finally:
             self.isLoadingResource = False
             if self.modeController is not None and hasattr(self.modeController, 'resourceControllerTab') and self.modeController.resourceControllerTab is not None:
                 self.modeController.resourceControllerTab.StopLoadingResources(resourceTypeID)
             if self.otherPinManager is not None and inRange:
                 self.otherPinManager.RenderOtherPlayersExtractors(resourceTypeID)
+
+        return
 
     def EnableResourceLayer(self):
         if self.planetTransform is not None:
@@ -589,6 +615,7 @@ class PlanetUISvc(service.Service):
                 self.resourceLayer.display = True
             low, hi = settings.char.ui.Get('planet_resource_display_range', (0.0, 1.0))
             self.SetResourceDisplayRange(low, hi)
+        return
 
     def GetResourceTexture(self):
         effect = self.resourceLayer.mesh.transparentAreas[0].effect
@@ -620,9 +647,10 @@ class PlanetUISvc(service.Service):
     def GetCurrentResourceValueAt(self, phi, theta):
         if not self.currSphericalHarmonic:
             return None
-        return builder.GetValueAt(self.currSphericalHarmonic, phi, theta)
+        else:
+            return builder.GetValueAt(self.currSphericalHarmonic, phi, theta)
 
-    def CreateChartFromSamples(self, width, height, dataX, dataY, dataZ, rangeXY = None):
+    def CreateChartFromSamples(self, width, height, dataX, dataY, dataZ, rangeXY=None):
         startTime = blue.os.GetWallclockTime()
         if rangeXY:
             minX, minY, maxX, maxY = rangeXY
@@ -698,7 +726,9 @@ class PlanetUISvc(service.Service):
                     elif param.name == 'HeatOffset':
                         param.value = offset
 
-    def OpenPlanetCustomsOfficeImportWindow(self, customsOfficeID, spaceportPinID = None):
+        return
+
+    def OpenPlanetCustomsOfficeImportWindow(self, customsOfficeID, spaceportPinID=None):
         wnd = form.PlanetaryImportExportUI.GetIfOpen()
         if wnd:
             if wnd.customsOfficeID != customsOfficeID or wnd.spaceportPinID != spaceportPinID:
@@ -708,6 +738,7 @@ class PlanetUISvc(service.Service):
                 wnd.Maximize()
         if not wnd:
             form.PlanetaryImportExportUI.Open(customsOfficeID=customsOfficeID, spaceportPinID=spaceportPinID)
+        return
 
     def OpenUpgradeWindow(self, orbitalID):
         wnd = form.OrbitalMaterialUI.GetIfOpen()
@@ -719,6 +750,7 @@ class PlanetUISvc(service.Service):
                 wnd.Maximize()
         if not wnd:
             form.OrbitalMaterialUI.Open(orbitalID=orbitalID)
+        return
 
     def OpenConfigureWindow(self, orbitalItem):
         wnd = form.OrbitalConfigurationWindow.GetIfOpen()
@@ -732,6 +764,7 @@ class PlanetUISvc(service.Service):
             if getattr(orbitalItem, 'locationID', None) is None:
                 orbitalItem.locationID = session.solarsystemid
             form.OrbitalConfigurationWindow.Open(orbitalItem=orbitalItem)
+        return
 
     def GetSurveyWindow(self, ecuPinID):
         wnd = form.PlanetSurvey.Open(ecuPinID=ecuPinID)
@@ -745,11 +778,13 @@ class PlanetUISvc(service.Service):
     def EnterSurveyMode(self, ecuPinID):
         if self.modeController is not None and hasattr(self.modeController, 'resourceControllerTab') and self.modeController.resourceControllerTab is not None:
             self.modeController.resourceControllerTab.EnterSurveyMode()
+        return
 
     def ExitSurveyMode(self):
         if self.modeController is not None and hasattr(self.modeController, 'resourceControllerTab') and self.modeController.resourceControllerTab is not None:
             self.modeController.resourceControllerTab.ExitSurveyMode()
         self.myPinManager.LockHeads()
+        return
 
     def CloseSurveyWindow(self):
         form.PlanetSurvey.CloseIfOpen()
@@ -761,7 +796,7 @@ class PlanetUISvc(service.Service):
         sh = builder.CreateSHFromBuffer(data.data, data.numBands)
         self.ShowSH(sh, scaleIt=layer == 'base')
 
-    def ShowSH(self, sh, scaleIt = True):
+    def ShowSH(self, sh, scaleIt=True):
         if scaleIt:
             builder.ScaleSH(sh, 1.0 / const.planetResourceMaxValue)
         chart = self.ChartResourceLayer(sh)
@@ -773,6 +808,7 @@ class PlanetUISvc(service.Service):
         if self.planetTransform is not None:
             self.EnableResourceLayer()
             self.SetResourceTexture(texture)
+        return
 
     def GMCreateNuggetLayer(self, typeID):
         self.planet.remoteHandler.GMCreateNuggetLayer(self.planetID, typeID)
@@ -790,13 +826,15 @@ class PlanetUISvc(service.Service):
 
             sm.GetService('infoGatheringSvc').LogInfoEvent(eventTypeID=const.infoEventPlanetUserAccess, itemID=session.charid, int_1=planetAccessed, int_2=1, int_3=colonized)
             self.planetAccessRequired = None
+        return
 
-    def SetPlanet(self, planetID = None):
+    def SetPlanet(self, planetID=None):
         pID = planetID
         if pID is None:
             pID = self.planetID
         self.planet = sm.GetService('planetSvc').GetPlanet(pID)
         self.planet.StartTicking()
+        return
 
     def OpenContainer(self, pin):
         self.CloseCurrentlyOpenContainer()
@@ -806,14 +844,16 @@ class PlanetUISvc(service.Service):
     def CloseCurrentlyOpenContainer(self):
         if not self.currentContainer:
             return
-        self.currentContainer.updateInfoContTimer.KillTimer()
-        self.currentContainer.Close()
-        self.currentContainer = None
-        self.currentExpandedPin.OnSomethingElseClicked()
-        self.currentExpandedPin = None
-        sm.GetService('audio').SendUIEvent('wise:/msg_pi_pininteraction_close_play')
+        else:
+            self.currentContainer.updateInfoContTimer.KillTimer()
+            self.currentContainer.Close()
+            self.currentContainer = None
+            self.currentExpandedPin.OnSomethingElseClicked()
+            self.currentExpandedPin = None
+            sm.GetService('audio').SendUIEvent('wise:/msg_pi_pininteraction_close_play')
+            return
 
-    def FocusCameraOnCommandCenter(self, time = 1.0):
+    def FocusCameraOnCommandCenter(self, time=1.0):
         for p in self.myPinManager.pinsByID.values():
             if p.pin.IsCommandCenter():
                 try:
@@ -847,9 +887,11 @@ class PlanetUISvc(service.Service):
         currentPlanet = self.GetCurrentPlanet()
         if currentPlanet is None:
             return
-        pin = currentPlanet.CancelInstallProgram(pinID, pinData)
-        if pin is not None:
-            self.myPinManager.ReRenderPin(pin)
+        else:
+            pin = currentPlanet.CancelInstallProgram(pinID, pinData)
+            if pin is not None:
+                self.myPinManager.ReRenderPin(pin)
+            return
 
     def LoadSpherePinResources(self, spherePin, textureName):
         self.spherePinsPendingLoad.append((spherePin, textureName))
@@ -882,13 +924,16 @@ class PlanetUISvc(service.Service):
         if self.spherePinLoadThread:
             self.spherePinLoadThread.kill()
             self.spherePinLoadThread = None
+        return
 
     def EnteredEditMode(self, planetID):
         self.inEditMode = True
         if self.planetID == planetID and self.myPinManager is not None:
             self.myPinManager.OnPlanetEnteredEditMode()
+        return
 
     def ExitedEditMode(self, planetID):
         self.inEditMode = False
         if self.planetID == planetID and self.myPinManager is not None:
             self.myPinManager.OnPlanetExitedEditMode()
+        return

@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\packages\carbonui\util\color.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\packages\carbonui\util\color.py
 
 
 class Color(object):
@@ -57,6 +58,7 @@ class Color(object):
                 self.SetAlpha(args[3])
         else:
             raise ValueError('util.Color: Invalid startup parameters')
+        return
 
     def GetRGB(self):
         return (self.r, self.g, self.b)
@@ -71,7 +73,7 @@ class Color(object):
          b,
          self.a)
 
-    def SetRGB(self, r, g, b, alpha = None):
+    def SetRGB(self, r, g, b, alpha=None):
         SanitizeRGBValues(r, g, b)
         self.r = r
         self.g = g
@@ -83,7 +85,7 @@ class Color(object):
     def GetiRGB(self):
         return Color.RGBtoiRGB(self.r, self.g, self.b)
 
-    def SetiRGB(self, iR, iG, iB, alpha = None):
+    def SetiRGB(self, iR, iG, iB, alpha=None):
         SanitizeiRGBValues(iR, iG, iB)
         self.r, self.g, self.b = Color.iRGBtoRGB(iR, iG, iB)
         if alpha is not None:
@@ -102,7 +104,7 @@ class Color(object):
     def GetBrightness(self):
         return self.GetHSB()[2]
 
-    def SetHSB(self, hue, saturation, brightness, alpha = None):
+    def SetHSB(self, hue, saturation, brightness, alpha=None):
         SanitizeHSBValues(hue, saturation, brightness)
         self.r, self.g, self.b = Color.HSBtoRGB(hue, saturation, brightness)
         if alpha is not None:
@@ -139,17 +141,17 @@ class Color(object):
          self.a)
 
     @staticmethod
-    def RGBtoiRGB(r, g, b, a = None):
+    def RGBtoiRGB(r, g, b, a=None):
         SanitizeRGBValues(r, g, b)
         return (int(round(255 * r)), int(round(255 * g)), int(round(255 * b)))
 
     @staticmethod
-    def iRGBtoRGB(r, g, b, a = None):
+    def iRGBtoRGB(r, g, b, a=None):
         SanitizeiRGBValues(r, g, b)
         return (round(r / 255.0, 3), round(g / 255.0, 3), round(b / 255.0, 3))
 
     @staticmethod
-    def RGBtoHSB(r, g, b, a = None):
+    def RGBtoHSB(r, g, b, a=None):
         SanitizeRGBValues(r, g, b)
         return Color.iRGBtoHSB(255 * r, 255 * g, 255 * b)
 
@@ -230,12 +232,12 @@ class Color(object):
         return (r, g, b)
 
     @staticmethod
-    def RGBtoHex(r, g, b, a = 1.0):
+    def RGBtoHex(r, g, b, a=1.0):
         r, g, b = Color.RGBtoiRGB(r, g, b)
         return Color.iRGBtoHex(r, g, b, a)
 
     @staticmethod
-    def iRGBtoHex(r, g, b, a = 1.0):
+    def iRGBtoHex(r, g, b, a=1.0):
         SanitizeiRGBValues(r, g, b)
         SanitizeAlphaValue(a)
         return '0x%.2X%.2X%.2X%.2X' % (int(255 * a),
@@ -244,7 +246,7 @@ class Color(object):
          b)
 
     @staticmethod
-    def HSBtoHex(h, s, v, a = 1.0):
+    def HSBtoHex(h, s, v, a=1.0):
         r, g, b = Color.HSBtoiRGB(h, s, v)
         return Color.iRGBtoHex(r, g, b, a)
 
@@ -291,7 +293,7 @@ class Color(object):
          a)
 
     @staticmethod
-    def GetGrayRGBA(brightness, alpha = 1.0):
+    def GetGrayRGBA(brightness, alpha=1.0):
         SanitizeRGBValues(brightness)
         SanitizeAlphaValue(alpha)
         return (brightness,
@@ -328,7 +330,7 @@ def SanitizeHexValue(value):
         raise ValueError("Invalid value (%s). HexARGB value must be a string on the form '0xFF00FF00' or '#FF00FF00'" % value)
 
 
-def GetColor(baseColor, alpha, brightness = None, saturation = None):
+def GetColor(baseColor, alpha, brightness=None, saturation=None):
     myColor = Color(*baseColor)
     myColor.SetAlpha(alpha)
     if brightness:

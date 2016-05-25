@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\carbon\common\stdlib\tempfile.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\carbon\common\stdlib\tempfile.py
 __all__ = ['NamedTemporaryFile',
  'TemporaryFile',
  'SpooledTemporaryFile',
@@ -208,7 +209,7 @@ def gettempdir():
     return tempdir
 
 
-def mkstemp(suffix = '', prefix = template, dir = None, text = False):
+def mkstemp(suffix='', prefix=template, dir=None, text=False):
     if dir is None:
         dir = gettempdir()
     if text:
@@ -218,7 +219,7 @@ def mkstemp(suffix = '', prefix = template, dir = None, text = False):
     return _mkstemp_inner(dir, prefix, suffix, flags)
 
 
-def mkdtemp(suffix = '', prefix = template, dir = None):
+def mkdtemp(suffix='', prefix=template, dir=None):
     if dir is None:
         dir = gettempdir()
     names = _get_candidate_names()
@@ -234,9 +235,10 @@ def mkdtemp(suffix = '', prefix = template, dir = None):
             raise
 
     raise IOError, (_errno.EEXIST, 'No usable temporary directory name found')
+    return
 
 
-def mktemp(suffix = '', prefix = template, dir = None):
+def mktemp(suffix='', prefix=template, dir=None):
     if dir is None:
         dir = gettempdir()
     names = _get_candidate_names()
@@ -247,11 +249,12 @@ def mktemp(suffix = '', prefix = template, dir = None):
             return file
 
     raise IOError, (_errno.EEXIST, 'No usable temporary filename found')
+    return
 
 
 class _TemporaryFileWrapper:
 
-    def __init__(self, file, name, delete = True):
+    def __init__(self, file, name, delete=True):
         self.file = file
         self.name = name
         self.close_called = False
@@ -292,7 +295,7 @@ class _TemporaryFileWrapper:
             self.file.__exit__(exc, value, tb)
 
 
-def NamedTemporaryFile(mode = 'w+b', bufsize = -1, suffix = '', prefix = template, dir = None, delete = True):
+def NamedTemporaryFile(mode='w+b', bufsize=-1, suffix='', prefix=template, dir=None, delete=True):
     if dir is None:
         dir = gettempdir()
     if 'b' in mode:
@@ -310,7 +313,7 @@ if _os.name != 'posix' or _os.sys.platform == 'cygwin':
     TemporaryFile = NamedTemporaryFile
 else:
 
-    def TemporaryFile(mode = 'w+b', bufsize = -1, suffix = '', prefix = template, dir = None):
+    def TemporaryFile(mode='w+b', bufsize=-1, suffix='', prefix=template, dir=None):
         if dir is None:
             dir = gettempdir()
         if 'b' in mode:
@@ -325,11 +328,13 @@ else:
             _os.close(fd)
             raise
 
+        return
+
 
 class SpooledTemporaryFile:
     _rolled = False
 
-    def __init__(self, max_size = 0, mode = 'w+b', bufsize = -1, suffix = '', prefix = template, dir = None):
+    def __init__(self, max_size=0, mode='w+b', bufsize=-1, suffix='', prefix=template, dir=None):
         self._file = _StringIO()
         self._max_size = max_size
         self._rolled = False

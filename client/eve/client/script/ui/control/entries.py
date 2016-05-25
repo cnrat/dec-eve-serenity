@@ -1,5 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\client\script\ui\control\entries.py
-from carbon.common.script.util.linkUtil import IsLink
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\client\script\ui\control\entries.py
 from carbon.common.script.util.timerstuff import AutoTimer
 from carbonui.control.scrollentries import SE_BaseClassCore
 from carbonui.primitives.container import Container
@@ -9,6 +9,7 @@ from eve.client.script.ui.control.eveIcon import Icon
 from eve.client.script.ui.control.glowSprite import GlowSprite
 from eve.client.script.ui.control.infoIcon import InfoIcon, MoreInfoIcon
 from eve.client.script.ui.control.themeColored import FillThemeColored
+from eve.client.script.ui.util.linkUtil import IsLink
 from eve.common.script.util.industryCommon import IsBlueprintCategory
 import evetypes
 import moniker
@@ -71,6 +72,7 @@ class Generic(SE_BaseClassCore):
             setattr(self.sr, eventName, None)
 
         uicontrols.SE_BaseClassCore._OnClose(self)
+        return
 
     def Startup(self, *args):
         self.sr.label = uicontrols.EveLabelMedium(text='', parent=self, left=5, state=uiconst.UI_DISABLED, color=None, maxLines=1, align=uiconst.CENTERLEFT)
@@ -78,6 +80,7 @@ class Generic(SE_BaseClassCore):
             setattr(self.sr, eventName, None)
 
         self.sr.infoicon = None
+        return
 
     def Load(self, node):
         self.sr.node = node
@@ -111,12 +114,14 @@ class Generic(SE_BaseClassCore):
         self.sr.label.text = data.label
         self.sr.label.Update()
         self.sr.label.autoUpdate = preAutoUpdateFlag
+        return
 
     def UpdateHint(self):
         data = self.sr.node
         hint = data.hint
         if hint is not None:
             self.hint = hint
+        return
 
     def GetHeight(self, *args):
         node, width = args
@@ -129,6 +134,7 @@ class Generic(SE_BaseClassCore):
     def OnMouseHover(self, *args):
         if self.sr.node and self.sr.node.Get('OnMouseHover', None):
             self.sr.node.OnMouseHover(self)
+        return
 
     def OnMouseEnter(self, *args):
         SE_BaseClassCore.OnMouseEnter(self, *args)
@@ -136,12 +142,14 @@ class Generic(SE_BaseClassCore):
             eve.Message('ListEntryEnter')
             if self.sr.node.Get('OnMouseEnter', None):
                 self.sr.node.OnMouseEnter(self)
+        return
 
     def OnMouseExit(self, *args):
         SE_BaseClassCore.OnMouseExit(self, *args)
         if self.sr.node:
             if self.sr.node.Get('OnMouseExit', None):
                 self.sr.node.OnMouseExit(self)
+        return
 
     def OnClick(self, *args):
         if util.GetAttrs(self, 'sr', 'node'):
@@ -152,6 +160,7 @@ class Generic(SE_BaseClassCore):
                 return
             if self.sr.node.Get('OnClick', None):
                 self.sr.node.OnClick(self)
+        return
 
     def OnDblClick(self, *args):
         if self.sr.node:
@@ -166,32 +175,38 @@ class Generic(SE_BaseClassCore):
                 uicore.registry.Confirm()
             elif self.sr.node.Get('typeID', None):
                 self.ShowInfo()
+        return
 
     def OnMouseDown(self, *args):
         uicontrols.SE_BaseClassCore.OnMouseDown(self, *args)
         if self.sr.node and self.sr.node.Get('OnMouseDown', None):
             self.sr.node.OnMouseDown(self)
+        return
 
     def OnMouseUp(self, *args):
         uicontrols.SE_BaseClassCore.OnMouseUp(self, *args)
         if not self or self.destroyed:
             return
-        if self.sr.node and self.sr.node.Get('OnMouseUp', None):
-            self.sr.node.OnMouseUp(self)
+        else:
+            if self.sr.node and self.sr.node.Get('OnMouseUp', None):
+                self.sr.node.OnMouseUp(self)
+            return
 
     def ShowInfo(self, *args):
         if self.sr.node.Get('isStation', 0):
             stationinfo = sm.RemoteSvc('stationSvc').GetStation(self.itemID)
             sm.GetService('info').ShowInfo(stationinfo.stationTypeID, self.itemID)
             return
-        if self.sr.node.Get('typeID', None):
-            abstractinfo = self.sr.node.Get('abstractinfo', util.KeyVal())
-            typeID = self.sr.node.Get('typeID', None)
-            itemID = self.sr.node.Get('itemID', None)
-            if IsBlueprintCategory(evetypes.GetCategoryID(typeID)):
-                isCopy = self.sr.node.isCopy
-                abstractinfo.bpData = sm.GetService('blueprintSvc').GetBlueprintTypeCopy(typeID=typeID, original=not isCopy)
-            sm.GetService('info').ShowInfo(typeID, itemID, abstractinfo=abstractinfo)
+        else:
+            if self.sr.node.Get('typeID', None):
+                abstractinfo = self.sr.node.Get('abstractinfo', util.KeyVal())
+                typeID = self.sr.node.Get('typeID', None)
+                itemID = self.sr.node.Get('itemID', None)
+                if IsBlueprintCategory(evetypes.GetCategoryID(typeID)):
+                    isCopy = self.sr.node.isCopy
+                    abstractinfo.bpData = sm.GetService('blueprintSvc').GetBlueprintTypeCopy(typeID=typeID, original=not isCopy)
+                sm.GetService('info').ShowInfo(typeID, itemID, abstractinfo=abstractinfo)
+            return
 
     def GetMenu(self):
         if not self.sr.node.Get('ignoreRightClick', 0):
@@ -208,17 +223,18 @@ class Generic(SE_BaseClassCore):
         if data.OnDropData:
             data.OnDropData(dragObj, nodes)
 
-    def DoSelectNode(self, toggle = 0):
+    def DoSelectNode(self, toggle=0):
         self.sr.node.scroll.GetSelectedNodes(self.sr.node, toggle=toggle)
 
-    def GetRadialMenuIndicator(self, create = True, *args):
+    def GetRadialMenuIndicator(self, create=True, *args):
         indicator = getattr(self, 'radialMenuIndicator', None)
         if indicator and not indicator.destroyed:
             return indicator
-        if not create:
+        elif not create:
             return
-        self.radialMenuIndicator = uiprimitives.Fill(bgParent=self, color=(1, 1, 1, 0.25), name='radialMenuIndicator')
-        return self.radialMenuIndicator
+        else:
+            self.radialMenuIndicator = uiprimitives.Fill(bgParent=self, color=(1, 1, 1, 0.25), name='radialMenuIndicator')
+            return self.radialMenuIndicator
 
     def ShowRadialMenuIndicator(self, slimItem, *args):
         indicator = self.GetRadialMenuIndicator(create=True)
@@ -239,6 +255,7 @@ class CorpOfficeEntry(Generic):
     def Startup(self, *args):
         self.unrentButton = None
         Generic.Startup(self, *args)
+        return
 
     def Load(self, node):
         Generic.Load(self, node)
@@ -248,8 +265,11 @@ class CorpOfficeEntry(Generic):
     def UnrentOffice(self):
         if eve.Message('crpUnrentOffice', {}, uiconst.YESNO) != uiconst.ID_YES:
             return
-        corpStationMgr = moniker.GetCorpStationManagerEx(self.itemID)
-        corpStationMgr.CancelRentOfOffice()
+        if util.IsStation(self.itemID):
+            corpStationMgr = moniker.GetCorpStationManagerEx(self.itemID)
+            corpStationMgr.CancelRentOfOffice()
+        else:
+            sm.GetService('structureOffices').UnrentOffice(self.itemID)
 
     def OnMouseEnter(self, *args):
         Generic.OnMouseEnter(self, *args)
@@ -263,8 +283,10 @@ class CorpOfficeEntry(Generic):
         mo = uicore.uilib.mouseOver
         if mo in (self, self.unrentButton):
             return
-        self.mouseovertimer = None
-        self.unrentButton.display = False
+        else:
+            self.mouseovertimer = None
+            self.unrentButton.display = False
+            return
 
     def IsDirector(self):
         return session.corprole & const.corpRoleDirector == const.corpRoleDirector
@@ -285,6 +307,7 @@ class ComboEntry(Generic):
                 icon.left += left
             self.sr.label.left += left
             self.sr.label.SetRGB(*Color.GRAY7)
+        return
 
 
 class ItemWithLocation(Generic):
@@ -300,6 +323,8 @@ class ItemWithLocation(Generic):
         self.sr.techIcon = uiprimitives.Sprite(name='techIcon', parent=self, left=1, width=16, height=16, idx=0)
         for eventName in events:
             setattr(self.sr, eventName, None)
+
+        return
 
     def Load(self, node):
         self.sr.node = node
@@ -326,6 +351,7 @@ class ItemWithLocation(Generic):
                 setattr(self.sr, eventName, data.Get(eventName, None))
 
         self.sr.label.Update()
+        return
 
     def GetHeight(self, *args):
         node, width = args
@@ -337,11 +363,12 @@ class ItemWithLocation(Generic):
             self.OnClick()
         if self.sr.node.Get('GetMenu', None):
             return self.sr.node.GetMenu(self)
-        if self.itemID:
+        elif self.itemID:
             return sm.GetService('menu').GetMenuFormItemIDTypeID(self.itemID, self.typeID, ignoreMarketDetails=0)
-        if self.typeID:
+        elif self.typeID:
             return sm.GetService('menu').GetMenuFormItemIDTypeID(None, self.typeID, ignoreMarketDetails=0)
-        return []
+        else:
+            return []
 
 
 class Item(Generic):
@@ -358,6 +385,8 @@ class Item(Generic):
         self.sr.techIcon = uiprimitives.Sprite(name='techIcon', parent=self, left=1, width=16, height=16, idx=0)
         for eventName in events:
             setattr(self.sr, eventName, None)
+
+        return
 
     def Load(self, node):
         self.sr.node = node
@@ -393,6 +422,7 @@ class Item(Generic):
         else:
             self.Deselect()
         self.sr.label.Update()
+        return
 
     def GetHeight(self, *args):
         node, width = args
@@ -404,19 +434,20 @@ class Item(Generic):
             self.OnClick()
         if self.sr.node.Get('GetMenu', None):
             return self.sr.node.GetMenu(self)
-        if self.itemID:
+        elif self.itemID:
             return sm.GetService('menu').GetMenuFormItemIDTypeID(self.itemID, self.typeID, ignoreMarketDetails=0)
-        if self.typeID:
+        elif self.typeID:
             if getattr(self.sr.node, 'isCopy', False):
                 bpData = sm.GetService('blueprintSvc').GetBlueprintTypeCopy(self.typeID, original=False)
                 abstractInfo = util.KeyVal(bpData=bpData)
             else:
                 abstractInfo = None
             return sm.GetService('menu').GetMenuFormItemIDTypeID(None, self.typeID, ignoreMarketDetails=0, abstractInfo=abstractInfo)
-        return []
+        else:
+            return []
 
     def GetDragData(self, *args):
-        return [self.sr.node]
+        return self.sr.node.scroll.GetSelectedNodes(self.sr.node)
 
     def LoadTooltipPanel(self, tooltipPanel, *args):
         if HasTraits(self.typeID):
@@ -547,12 +578,14 @@ class ScanProbeEntry(SE_BaseClassCore):
         if self.sr.node:
             if self.sr.node.Get('OnMouseEnter', None):
                 self.sr.node.OnMouseEnter(self)
+        return
 
     def OnMouseExit(self, *args):
         SE_BaseClassCore.OnMouseExit(self, *args)
         if self.sr.node:
             if self.sr.node.Get('OnMouseExit', None):
                 self.sr.node.OnMouseExit(self)
+        return
 
     def OnClick(self, *args):
         if self.sr.node:
@@ -561,6 +594,7 @@ class ScanProbeEntry(SE_BaseClassCore):
             eve.Message('ListEntryClick')
             if self.sr.node.Get('OnClick', None):
                 self.sr.node.OnClick(self)
+        return
 
     def GetMenu(self):
         if hasattr(self, 'sr'):
@@ -715,11 +749,13 @@ class ScanResult(SE_BaseClassCore):
         SE_BaseClassCore.OnMouseEnter(self, *args)
         if self.sr.node and self.sr.node.Get('OnMouseEnter', None):
             self.sr.node.OnMouseEnter(self)
+        return
 
     def OnMouseExit(self, *args):
         SE_BaseClassCore.OnMouseExit(self, *args)
         if self.sr.node and self.sr.node.Get('OnMouseExit', None):
             self.sr.node.OnMouseExit(self)
+        return
 
     def OnClick(self, *args):
         if self.sr.node:
@@ -728,12 +764,14 @@ class ScanResult(SE_BaseClassCore):
             eve.Message('ListEntryClick')
             if self.sr.node.Get('OnClick', None):
                 self.sr.node.OnClick(self)
+        return
 
     def OnDblClick(self, *args):
         if self.sr.node and self.sr.node.Get('CenterMapOnResult', None):
             if isinstance(self.sr.node.result.data, tuple):
                 self.sr.node.CenterMapOnResult(self.sr.node.result.data)
         sm.ScatterEvent('OnProbeScanner_FocusOnResult', self.sr.node.result)
+        return
 
     def GetMenu(self):
         if hasattr(self, 'sr'):
@@ -789,11 +827,13 @@ class Slider(Generic):
         if data.Get('endsetslidervalue', None) is not None:
             slider.EndSetSliderValue = data.endsetslidervalue
         slider.Startup(data.Get('sliderID', 'slider'), data.Get('minValue', 0), data.Get('maxValue', 10), data.Get('config', None), data.Get('displayName', None), data.Get('increments', None), data.Get('usePrefs', 0), data.Get('startVal', None))
+        return
 
     def SetSliderLabel(self, label, idname, dname, value):
         self.sr.lbl.text = dname
         if self.sr.node.Get('setsliderlabel', None) is not None:
             self.sr.node.setsliderlabel(label, idname, dname, value)
+        return
 
     def GetHeight(self, *args):
         node, width = args
@@ -830,6 +870,7 @@ class Checkbox(Generic):
         self.sr.checkbox.left = 6 + 16 * data.Get('sublevel', 0)
         self.sr.label.left = 24 + 16 * data.Get('sublevel', 0)
         self.sr.label.Update()
+        return
 
     def CheckBoxChange(self, *args):
         self.sr.node.checked = self.sr.checkbox.checked
@@ -838,23 +879,25 @@ class Checkbox(Generic):
     def OnClick(self, *args):
         if not self or self.destroyed:
             return
-        if self.sr.checkbox.checked:
-            eve.Message('DiodeDeselect')
         else:
-            eve.Message('DiodeClick')
-        if self.sr.checkbox.groupName is None:
-            self.sr.checkbox.SetChecked(not self.sr.checkbox.checked)
-            return
-        for node in self.sr.node.scroll.GetNodes():
-            if node.Get('__guid__', None) in ('listentry.Checkbox', 'listentry.ImgCheckbox') and node.Get('group', None) == self.sr.checkbox.groupName:
-                if node.panel:
-                    node.panel.sr.checkbox.SetChecked(0, 0)
-                    node.checked = 0
-                else:
-                    node.checked = 0
+            if self.sr.checkbox.checked:
+                eve.Message('DiodeDeselect')
+            else:
+                eve.Message('DiodeClick')
+            if self.sr.checkbox.groupName is None:
+                self.sr.checkbox.SetChecked(not self.sr.checkbox.checked)
+                return
+            for node in self.sr.node.scroll.GetNodes():
+                if node.Get('__guid__', None) in ('listentry.Checkbox', 'listentry.ImgCheckbox') and node.Get('group', None) == self.sr.checkbox.groupName:
+                    if node.panel:
+                        node.panel.sr.checkbox.SetChecked(0, 0)
+                        node.checked = 0
+                    else:
+                        node.checked = 0
 
-        if not self.destroyed:
-            self.sr.checkbox.SetChecked(1)
+            if not self.destroyed:
+                self.sr.checkbox.SetChecked(1)
+            return
 
     def GetHeight(self, *args):
         node, width = args
@@ -864,7 +907,6 @@ class Checkbox(Generic):
 
     def OnCharSpace(self, enteredChar, *args):
         uthread.pool('checkbox::OnChar', self.OnClick, self)
-        return 1
 
     def GetDynamicHeight(node, width):
         height = max(19, uix.GetTextHeight(node.label, maxLines=1) + 4)
@@ -944,6 +986,7 @@ class ColumnLine(SE_BaseClassCore):
         self.sr.clickTimer = None
         self.sr.columns = []
         self.cursor = 0
+        return
 
     @telemetry.ZONE_METHOD
     def Load(self, node):
@@ -962,6 +1005,7 @@ class ColumnLine(SE_BaseClassCore):
             self.sr.overlay = node.overlay
         self.UpdateOverlay()
         self.UpdateTriangles()
+        return
 
     def _OnSizeChange_NoBlock(self, *args):
         self.UpdateOverlay()
@@ -974,6 +1018,7 @@ class ColumnLine(SE_BaseClassCore):
             else:
                 totalColWidth = sum([ each.width for each in self.sr.columns ])
             self.sr.overlay.left = max(totalColWidth, self.width - self.sr.overlay.width)
+        return
 
     def LoadLite(self, node):
         i = 0
@@ -988,7 +1033,7 @@ class ColumnLine(SE_BaseClassCore):
         self.UpdateColumnOrder(0)
 
     @telemetry.ZONE_METHOD
-    def UpdateColumnOrder(self, updateEntries = 1, onlyVisible = False):
+    def UpdateColumnOrder(self, updateEntries=1, onlyVisible=False):
         displayOrder = settings.user.ui.Get('columnDisplayOrder_%s' % self.sr.node.columnID, None) or [ i for i in xrange(len(self.sr.columns)) ]
         customTabstops = GetCustomTabstops(self.sr.node.columnID)
         if displayOrder is not None and len(displayOrder) == len(self.sr.columns):
@@ -1010,17 +1055,21 @@ class ColumnLine(SE_BaseClassCore):
                     node.panel.UpdateColumnOrder(0)
                     node.panel.UpdateOverlay()
 
+        return
+
     def OnMouseEnter(self, *args):
         SE_BaseClassCore.OnMouseEnter(self, *args)
         if self.sr.node:
             if self.sr.node.Get('OnMouseEnter', None):
                 self.sr.node.OnMouseEnter(self)
+        return
 
     def OnMouseExit(self, *args):
         SE_BaseClassCore.OnMouseExit(self, *args)
         if self.sr.node:
             if self.sr.node.Get('OnMouseExit', None):
                 self.sr.node.OnMouseExit(self)
+        return
 
     def OnClick(self, *args):
         if self.sr.node:
@@ -1029,15 +1078,17 @@ class ColumnLine(SE_BaseClassCore):
             eve.Message('ListEntryClick')
             if self.sr.node.Get('OnClick', None):
                 self.sr.node.OnClick(self)
+        return
 
     def GetMenu(self):
         if self.sr.node and self.sr.node.Get('scroll', None) and getattr(self.sr.node.scroll, 'GetSelectedNodes', None):
             self.sr.node.scroll.GetSelectedNodes(self.sr.node)
         if self.sr.node and self.sr.node.Get('GetMenu', None):
             return self.sr.node.GetMenu(self)
-        if getattr(self, 'itemID', None) or getattr(self, 'typeID', None):
+        elif getattr(self, 'itemID', None) or getattr(self, 'typeID', None):
             return sm.GetService('menu').GetMenuFormItemIDTypeID(getattr(self, 'itemID', None), getattr(self, 'typeID', None))
-        return []
+        else:
+            return []
 
     def LoadColumn(self, idx, textOrObject):
         node = self.sr.node
@@ -1086,6 +1137,7 @@ class ColumnLine(SE_BaseClassCore):
             col.state = uiconst.UI_PICKCHILDREN
             if col.sr.editHandle:
                 col.sr.editHandle.state = uiconst.UI_HIDDEN
+        return
 
     def FindAssociatingEntries(self):
         ret = []
@@ -1120,6 +1172,7 @@ class ColumnLine(SE_BaseClassCore):
             sender.parent.width = max(MINCOLWIDTH, self._scaleColumnInitialWidth + diff)
             self.sr.node.customTabstops[self._scaleColumnIdx] = sender.parent.width
             self.UpdateColumnOrder(onlyVisible=True)
+        return
 
     def EndScaleCol(self, sender, *args):
         prefsID = self.sr.node.Get('columnID', None)
@@ -1130,6 +1183,7 @@ class ColumnLine(SE_BaseClassCore):
         self.sr.node.customTabstops[self._scaleColumnIdx] = sender.parent.width
         self.sr.scaleEntries = None
         self._startScalePosition = 0
+        return
 
     def ChangeSort(self, sender, *args):
         columnID = self.sr.node.Get('columnID', None)
@@ -1151,6 +1205,7 @@ class ColumnLine(SE_BaseClassCore):
         callback = self.sr.node.Get('OnSortChange', None)
         if callback:
             callback()
+        return
 
     def UpdateColumnSort(self, entries, columnID):
         if not entries:
@@ -1171,7 +1226,8 @@ class ColumnLine(SE_BaseClassCore):
         prefsID = self.sr.node.Get('columnID', None)
         if prefsID:
             return settings.user.ui.Get('columnSorts_%s' % prefsID, {})
-        return {}
+        else:
+            return {}
 
     def OnHeaderDblClick(self, sender, *args):
         self._clicks += 1
@@ -1193,6 +1249,7 @@ class ColumnLine(SE_BaseClassCore):
         newDisplayOrder.insert(max(0, direction + currentlyInDisplayOrder), column.columnIdx)
         settings.user.ui.Set('columnDisplayOrder_%s' % self.sr.node.columnID, newDisplayOrder)
         self.UpdateColumnOrder()
+        return
 
     def ExecClick(self, sender, *args):
         if self._clicks > 1:
@@ -1202,6 +1259,7 @@ class ColumnLine(SE_BaseClassCore):
         if not self.destroyed:
             self._clicks = 0
             self.sr.clickTimer = None
+        return
 
     def ResetColumn(self, sender, *args):
         shift = uicore.uilib.Key(uiconst.VK_SHIFT)
@@ -1319,6 +1377,7 @@ class Text(SE_BaseClassCore):
         self.sr.infoicon = InfoIcon(left=2, parent=self, idx=0, align=uiconst.CENTERRIGHT)
         self.sr.infoicon.OnClick = self.ShowInfo
         self.sr.icon = uicontrols.Icon(parent=self, pos=(1, 2, 24, 24), align=uiconst.TOPLEFT, idx=0, ignoreSize=True)
+        return
 
     def Load(self, node):
         self.sr.node = node
@@ -1354,6 +1413,7 @@ class Text(SE_BaseClassCore):
             self.sr.text.state = uiconst.UI_NORMAL
         else:
             self.sr.text.state = uiconst.UI_DISABLED
+        return
 
     def OnClick(self, *args):
         OnClick = self.sr.node.Get('OnClick', None)
@@ -1362,20 +1422,24 @@ class Text(SE_BaseClassCore):
                 OnClick()
             else:
                 OnClick[0](*OnClick[1:])
+        return
 
     def OnDblClick(self, *args):
         if self.sr.node.Get('OnDblClick', None):
             self.sr.node.OnDblClick(self)
         elif self.sr.node.Get('canOpen', None):
             uix.TextBox(self.sr.node.canOpen, uiutil.GetAsUnicode(self.sr.node.text).replace('<t>', '<br>').replace('\r', ''), preformatted=1)
+        return
 
     def ShowInfo(self, *args):
         if self.sr.node.Get('isStation', 0) and self.itemID:
             stationinfo = sm.RemoteSvc('stationSvc').GetStation(self.itemID)
             sm.GetService('info').ShowInfo(stationinfo.stationTypeID, self.itemID)
             return
-        if self.sr.node.Get('typeID', None):
-            sm.GetService('info').ShowInfo(self.sr.node.typeID, self.sr.node.Get('itemID', None))
+        else:
+            if self.sr.node.Get('typeID', None):
+                sm.GetService('info').ShowInfo(self.sr.node.typeID, self.sr.node.Get('itemID', None))
+            return
 
     def GetHeight(self, *args):
         node, width = args
@@ -1519,6 +1583,7 @@ class KillMail(SE_BaseClassCore):
             self.sr.copyicon.state = uiconst.UI_HIDDEN
             self.sr.linkicon.state = uiconst.UI_HIDDEN
             self.GetMenu = None
+        return
 
     def _GetCorpAndOrAllianceText(self, corpID, allianceID):
         corpName = None
@@ -1548,7 +1613,7 @@ class KillMail(SE_BaseClassCore):
             text = localization.GetByLabel('UI/Control/Entries/KillMailCorpOrAlliance', name=allianceName, ticker=allianceTicker)
         return text
 
-    def AddOrSetTextLine(self, text, configName = '', top = 0):
+    def AddOrSetTextLine(self, text, configName='', top=0):
         if text:
             label = getattr(self, configName, None)
             if label is not None:
@@ -1557,6 +1622,7 @@ class KillMail(SE_BaseClassCore):
                 label = uicontrols.EveLabelSmall(text=text, parent=self.sr.middlebox, align=uiconst.TOPLEFT, top=top)
                 if configName:
                     setattr(self, configName, label)
+        return
 
     def GetMenu(self):
         m = []
@@ -1584,8 +1650,9 @@ class KillMail(SE_BaseClassCore):
             sm.StartService('info').ShowInfo(const.typeCorporation, kill.victimCorporationID)
         elif kill.allianceID is not None:
             sm.StartService('info').ShowInfo(const.typeAlliance, kill.victimAllianceID)
+        return
 
-    def GetCombatText(self, isCopy = 0, *args):
+    def GetCombatText(self, isCopy=0, *args):
         mail = self.sr.node.mail
         ret = util.CombatLog_CopyText(mail)
         if isCopy:
@@ -1604,6 +1671,7 @@ class KillMail(SE_BaseClassCore):
     def _OnClose(self):
         self.timer = None
         uicontrols.SE_BaseClassCore.Close(self)
+        return
 
     def GetHeight(self, *args):
         node, width = args
@@ -1616,6 +1684,7 @@ class KillMail(SE_BaseClassCore):
         if kill is not None:
             from eve.client.script.ui.shared.killReportUtil import OpenKillReport
             OpenKillReport(kill)
+        return
 
     def GetDragData(self, *args):
         nodes = [self.sr.node]
@@ -1702,6 +1771,7 @@ class IconLabelText(SE_BaseClassCore):
         elif iconPositioning == IconLabelText.ICON_POS_BEHIND_TEXT:
             textOffset = self.margin + self.sr.text.left + self.sr.text.width
             self.InsertIcon(textOffset)
+        return
 
     def InsertIcon(self, offset):
         self.sr.icon = uicontrols.Icon(icon=self.iconID, parent=self, pos=(offset,
@@ -1746,6 +1816,7 @@ class TextTimer(Text):
         else:
             self.sr.text.text = localization.GetByLabel('UI/Control/Entries/TimeUnknown')
             self.sr.timeOutTimer = None
+        return
 
     def GetHeight(self, *args):
         node, width = args
@@ -1754,7 +1825,7 @@ class TextTimer(Text):
         node.height = 2 + labelheight + textheight
         return node.height
 
-    def UpdateTime(self, countdownTime = None, countupTime = None, finalText = None):
+    def UpdateTime(self, countdownTime=None, countupTime=None, finalText=None):
         if countupTime:
             timerText = localization.GetByLabel('UI/Control/Entries/TimeAgo', time=blue.os.GetWallclockTime() - countupTime)
             self.sr.text.text = timerText
@@ -1769,6 +1840,7 @@ class TextTimer(Text):
             self.hint = timerText
         if getattr(self.sr.node, 'text', None) is not None:
             self.sr.node.text = self.sr.text.text
+        return
 
 
 class LabelTextTop(Text):
@@ -1782,6 +1854,7 @@ class LabelTextTop(Text):
         self.sr.label = uicontrols.EveLabelSmall(text='', parent=self, left=8, top=2, state=uiconst.UI_DISABLED)
         self.textClipper = Container(parent=self)
         self.sr.text = uicontrols.EveLabelMedium(parent=self.textClipper, left=8, top=12, state=uiconst.UI_DISABLED, color=None, maxLines=1, align=uiconst.TOPLEFT, autoFadeSides=32)
+        return
 
     def Load(self, node):
         Text.Load(self, node)
@@ -1830,11 +1903,11 @@ class LabelTextSides(Text):
             self.sr.label.left = 8
         else:
             self.sr.label.left = self.sr.icon.width + 4
+        return
 
     def GetHeight(self, *args):
         node, width = args
         node.height = 30
-        return 30
 
     def _OnSizeChange_NoBlock(self, newWidth, newHeight):
         textWidth = self.sr.text.textwidth
@@ -1890,6 +1963,7 @@ class LabelMultilineTextTop(LabelTextSides):
         self.sr.label.SetAlign(uiconst.TOPLEFT)
         self.sr.label.top = 10
         self.sr.text.maxLines = None
+        return
 
     def Load(self, node):
         LabelTextSides.Load(self, node)
@@ -1934,8 +2008,9 @@ class LocationGroup(ListGroup):
         dragDataFunc = self.sr.node.get('GetDragDataFunc', None)
         if dragDataFunc:
             return dragDataFunc(self.sr.node)
-        nodes = [self.sr.node]
-        return nodes
+        else:
+            nodes = [self.sr.node]
+            return nodes
 
     def Load(self, node):
         ListGroup.Load(self, node)
@@ -1971,6 +2046,7 @@ class Button(SE_BaseClassCore):
             l, t, w, h = self.GetAbsolute()
             self.sr.label.width = w - btnWidth - self.sr.label.left * 2
         self.sr.label.text = self.sr.node.label
+        return
 
     def GetHeight(self, *args):
         node, width = args
@@ -2026,6 +2102,7 @@ class Combo(SE_BaseClassCore):
         self.sr.push.width = max(128, self.sr.label.textwidth + 10)
         if self.sr.node.Get('name', ''):
             self.sr.combo.name = self.sr.node.name
+        return
 
     def OnComboChange(self, combo, header, value, *args):
         if self.sr.node.Get('settingsUser', 0):
@@ -2072,10 +2149,12 @@ class Edit(SE_BaseClassCore):
         if self.sr.node.Get('name', ''):
             self.sr.edit.name = self.sr.node.name
         self.sr.edit.OnChange = self.OnChange
+        return
 
     def OnChange(self, *args):
         if self is not None and not self.destroyed and self.sr.node is not None:
             self.sr.node.setValue = self.sr.edit.GetValue()
+        return
 
     def GetHeight(self, *args):
         node, width = args
@@ -2114,10 +2193,12 @@ class TextEdit(SE_BaseClassCore):
         self.sr.edit.OnChange = self.OnChange
         if getattr(self.sr.node, 'killFocus', None):
             self.sr.edit.OnKillFocus()
+        return
 
     def OnChange(self, *args):
         if self is not None and not self.destroyed and self.sr.node is not None:
             self.sr.node.setValue = self.sr.edit.GetValue()
+        return
 
     def GetHeight(self, *args):
         node, width = args
@@ -2139,6 +2220,7 @@ class ImplantEntry(SE_BaseClassCore):
     def Load(self, node):
         self.sr.node = node
         data = node
+        sublevel = node.sublevel or 0
         if evetypes.GetGroupID(self.sr.node.implant_booster.typeID) == const.groupBooster:
             slot = getattr(sm.GetService('godma').GetType(node.implant_booster.typeID), 'boosterness', None)
             timeToEnd = node.implant_booster.expiryTime
@@ -2157,6 +2239,10 @@ class ImplantEntry(SE_BaseClassCore):
         else:
             self.sr.timeLabel.text = ''
             self.sr.timeOutTimer = None
+        offset = sublevel * 16
+        self.sr.icon.left = offset
+        self.sr.label.left = self.sr.icon.left + self.sr.icon.width
+        return
 
     def UpdateTime(self, timeToEnd):
         timeInterval = timeToEnd - blue.os.GetWallclockTime()
@@ -2179,6 +2265,7 @@ class ImplantEntry(SE_BaseClassCore):
 
     def ShowInfo(self, *args):
         sm.GetService('info').ShowInfo(self.sr.node.implant_booster.typeID, getattr(self.sr.node.implant_booster, 'itemID', None))
+        return
 
     def RemoveImplant(self, itemID):
         if eve.Message('ConfirmUnPlugInImplant', {}, uiconst.OKCANCEL) == uiconst.ID_OK:
@@ -2218,6 +2305,7 @@ class IconEntry(SE_BaseClassCore):
             self.Deselect()
         if node.Get('hint', None):
             self.hint = data.hint
+        return
 
     def OnClick(self, *args):
         if self.sr.node and self.sr.node.Get('selectable', 1):
@@ -2226,6 +2314,7 @@ class IconEntry(SE_BaseClassCore):
             eve.Message('ListEntryClick')
             if self.sr.node.Get('OnClick', None):
                 self.sr.node.OnClick(self)
+        return
 
     def GetHeight(self, *args):
         node, width = args
@@ -2233,7 +2322,7 @@ class IconEntry(SE_BaseClassCore):
         node.height = iconsize
         return node.height
 
-    def Blink(self, hint = None, force = 1, blinkcount = 3, frequency = 750, bright = 0):
+    def Blink(self, hint=None, force=1, blinkcount=3, frequency=750, bright=0):
         blink = self.GetBlink()
         blink.state = uiconst.UI_DISABLED
         sm.GetService('ui').BlinkSpriteRGB(blink, min(1.0, self.r * (1.0 + bright * 0.25)), min(1.0, self.g * (1.0 + bright * 0.25)), min(1.0, self.b * (1.0 + bright * 0.25)), frequency, blinkcount, passColor=1)
@@ -2241,16 +2330,18 @@ class IconEntry(SE_BaseClassCore):
     def BlinkOff(self):
         if self.sr.Get('blink', None) is not None:
             self.sr.blink.state = uiconst.UI_HIDDEN
+        return
 
     def GetBlink(self):
         if self.sr.Get('blink', None):
             return self.sr.blink
-        blink = uiprimitives.Fill(bgParent=self, name='hiliteFrame', state=uiconst.UI_HIDDEN, color=(0.28, 0.3, 0.35, 1.0), align=uiconst.TOALL)
-        self.sr.blink = blink
-        self.r = 0.28
-        self.g = 0.3
-        self.b = 0.35
-        return self.sr.blink
+        else:
+            blink = uiprimitives.Fill(bgParent=self, name='hiliteFrame', state=uiconst.UI_HIDDEN, color=(0.28, 0.3, 0.35, 1.0), align=uiconst.TOALL)
+            self.sr.blink = blink
+            self.r = 0.28
+            self.g = 0.3
+            self.b = 0.35
+            return self.sr.blink
 
     @classmethod
     def GetCopyData(cls, node):
@@ -2345,6 +2436,8 @@ class FittingEntry(Generic):
         for eventName in events:
             setattr(self.sr, eventName, None)
 
+        return
+
     def Load(self, node):
         Generic.Load(self, node)
         hasSkill = self.HasSkill(node)
@@ -2361,6 +2454,7 @@ class FittingEntry(Generic):
         self.sr.have.SetSize(16, 16)
         self.sr.have.hint = hint
         self.sr.label.Update()
+        return
 
     def GetHeight(self, *args):
         node, width = args
@@ -2410,9 +2504,10 @@ class FittingModuleEntry(Item):
     def GetMenu(self):
         if self.sr.node and self.sr.node.Get('GetMenu', None):
             return self.sr.node.GetMenu(self)
-        if getattr(self, 'itemID', None) or getattr(self, 'typeID', None):
+        elif getattr(self, 'itemID', None) or getattr(self, 'typeID', None):
             return sm.GetService('menu').GetMenuFormItemIDTypeID(getattr(self, 'itemID', None), getattr(self, 'typeID', None), ignoreMarketDetails=0)
-        return []
+        else:
+            return []
 
 
 class SkillTreeEntry(Text):
@@ -2465,6 +2560,7 @@ class SkillTreeEntry(Text):
             self.bgFill.SetRGBA(*self.COLOR_NOTTRAINED)
         self.sr.have.left = 15 * data.indent - 11
         self.sr.text.left = 15 * data.indent + 7
+        return
 
     def GetSkillText(self, typeID, lvl):
         if int(lvl) <= 0:
@@ -2484,7 +2580,7 @@ class SkillTreeEntry(Text):
         return nodes
 
     def GetHeight(self, *args):
-        return 28
+        pass
 
 
 HEIGHT = 28
@@ -2599,7 +2695,7 @@ class CertEntryBasic(SE_BaseClassCore):
         sm.StartService('info').ShowInfo(const.typeCertificate, abstractinfo=abstractinfo)
 
     def GetDynamicHeight(self, width):
-        return 24
+        pass
 
     def GetHint(self):
         return sm.GetService('certificates').GetCertificate(self.node.certID).GetDescription()
@@ -2650,6 +2746,7 @@ class PermissionEntry(Generic):
 
         if self.sr.node.scroll.sr.tabs:
             self.OnColumnChanged()
+        return
 
     def OnColumnChanged(self, *args):
         tabs = self.sr.node.scroll.sr.tabs
@@ -2685,7 +2782,7 @@ class DraggableItem(Item):
         return self.sr.node.scroll.GetSelectedNodes(self.sr.node)
 
 
-def Get(entryType = None, settings = {}, data = None, decoClass = None):
+def Get(entryType=None, settings={}, data=None, decoClass=None):
     if data is None:
         if isinstance(settings, util.KeyVal):
             data = settings.__dict__
@@ -2704,7 +2801,7 @@ def Get(entryType = None, settings = {}, data = None, decoClass = None):
     return uicontrols.ScrollEntryNode(**data)
 
 
-def GetFromClass(entryType, settings = {}, data = None):
+def GetFromClass(entryType, settings={}, data=None):
     if data is None:
         if isinstance(settings, util.KeyVal):
             data = settings.__dict__
@@ -2717,42 +2814,44 @@ def GetFromClass(entryType, settings = {}, data = None):
     return uicontrols.ScrollEntryNode(**data)
 
 
-def SortNodeList(nodes, columnID, reverse = False):
+def SortNodeList(nodes, columnID, reverse=False):
     if not nodes:
         return nodes
-    displayOrder = settings.user.ui.Get('columnDisplayOrder_%s' % columnID, None) or [ i for i in xrange(len(nodes[0].sortData)) ]
-    c = 0
-    sortData = []
-    for node in nodes:
-        if not c:
-            c = len(node.sortData)
-        elif c != len(node.sortData):
-            raise RuntimeError('Mismatch in column sizes')
-        sortData.append((ReorderSortData(node.sortData[:], columnID, displayOrder), node))
+    else:
+        displayOrder = settings.user.ui.Get('columnDisplayOrder_%s' % columnID, None) or [ i for i in xrange(len(nodes[0].sortData)) ]
+        c = 0
+        sortData = []
+        for node in nodes:
+            if not c:
+                c = len(node.sortData)
+            elif c != len(node.sortData):
+                raise RuntimeError('Mismatch in column sizes')
+            sortData.append((ReorderSortData(node.sortData[:], columnID, displayOrder), node))
 
-    sortData = uiutil.SortListOfTuples(sortData, reverse)
-    return sortData
+        sortData = uiutil.SortListOfTuples(sortData, reverse)
+        return sortData
 
 
 def SortColumnEntries(nodes, columnID):
     if not nodes:
         return nodes
-    displayOrder = settings.user.ui.Get('columnDisplayOrder_%s' % columnID, None) or [ i for i in xrange(len(nodes[0].sortData)) ]
-    c = 0
-    sortData = []
-    for node in nodes:
-        if not c:
-            c = len(node.sortData)
-        elif c != len(node.sortData):
-            raise RuntimeError('Mismatch in column sizes')
-        sortData.append((ReorderSortData(node.sortData[:], columnID, displayOrder), node))
+    else:
+        displayOrder = settings.user.ui.Get('columnDisplayOrder_%s' % columnID, None) or [ i for i in xrange(len(nodes[0].sortData)) ]
+        c = 0
+        sortData = []
+        for node in nodes:
+            if not c:
+                c = len(node.sortData)
+            elif c != len(node.sortData):
+                raise RuntimeError('Mismatch in column sizes')
+            sortData.append((ReorderSortData(node.sortData[:], columnID, displayOrder), node))
 
-    sortDirections = settings.user.ui.Get('columnSorts_%s' % columnID, [0, {}])
-    sortData = uiutil.SortListOfTuples(sortData)
-    activeColumn = settings.user.ui.Get('activeSortColumns', {}).get(columnID, 0)
-    if activeColumn in sortDirections and sortDirections[activeColumn] is False:
-        sortData.reverse()
-    return sortData
+        sortDirections = settings.user.ui.Get('columnSorts_%s' % columnID, [0, {}])
+        sortData = uiutil.SortListOfTuples(sortData)
+        activeColumn = settings.user.ui.Get('activeSortColumns', {}).get(columnID, 0)
+        if activeColumn in sortDirections and sortDirections[activeColumn] is False:
+            sortData.reverse()
+        return sortData
 
 
 def ReorderSortData(sortData, columnID, displayOrder):
@@ -2779,34 +2878,36 @@ def InitCustomTabstops(columnID, entries):
 
     if not len(idxs):
         return
-    current = GetCustomTabstops(columnID)
-    if current is not None:
-        if len(current) == len(idxs):
-            return
-    retval = []
-    for columnIdx in idxs:
-        textsInColumn = []
-        columnWidths = []
-        for node in entries:
-            text = node.texts[columnIdx]
-            textsInColumn.append(text)
-            padLeft = node.Get('padLeft', 6)
-            padRight = node.Get('padRight', 6)
-            fontsize = node.Get('fontsize', 12)
-            hspace = node.Get('letterspace', 0)
-            uppercase = node.Get('uppercase', 0)
-            if isinstance(text, basestring):
-                textWidth = uicore.font.GetTextWidth(text, fontsize, hspace, uppercase)
-            else:
-                textWidth = text.width
-            extraSpace = 0
-            if node.Get('editable', 0):
-                extraSpace = 10
-            columnWidths.append(padLeft + textWidth + padRight + 3 + extraSpace)
+    else:
+        current = GetCustomTabstops(columnID)
+        if current is not None:
+            if len(current) == len(idxs):
+                return
+        retval = []
+        for columnIdx in idxs:
+            textsInColumn = []
+            columnWidths = []
+            for node in entries:
+                text = node.texts[columnIdx]
+                textsInColumn.append(text)
+                padLeft = node.Get('padLeft', 6)
+                padRight = node.Get('padRight', 6)
+                fontsize = node.Get('fontsize', 12)
+                hspace = node.Get('letterspace', 0)
+                uppercase = node.Get('uppercase', 0)
+                if isinstance(text, basestring):
+                    textWidth = uicore.font.GetTextWidth(text, fontsize, hspace, uppercase)
+                else:
+                    textWidth = text.width
+                extraSpace = 0
+                if node.Get('editable', 0):
+                    extraSpace = 10
+                columnWidths.append(padLeft + textWidth + padRight + 3 + extraSpace)
 
-        retval.append(max(columnWidths))
+            retval.append(max(columnWidths))
 
-    settings.user.ui.Set('listentryColumns_%s' % columnID, retval)
+        settings.user.ui.Set('listentryColumns_%s' % columnID, retval)
+        return
 
 
 def GetCustomTabstops(columnID):

@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\packages\carbonui\control\browser\browserCacheSvc.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\packages\carbonui\control\browser\browserCacheSvc.py
 import service
 import blue
 import os.path
@@ -19,6 +20,7 @@ class BrowserCache(service.Service):
                 sys.exc_clear()
 
         self.Load()
+        return
 
     def Stop(self, *etc):
         service.Service.Stop(self, *etc)
@@ -32,8 +34,9 @@ class BrowserCache(service.Service):
             if os.path.exists(f[0].replace('cache:/', blue.paths.ResolvePath(u'cache:/'))):
                 return f
             self.ClearCache(cacheID)
+        return
 
-    def Cache(self, cacheID, cacheData, fromWhere = None):
+    def Cache(self, cacheID, cacheData, fromWhere=None):
         if not self.imgindex:
             self.Load()
         self.ClearCache(cacheID)
@@ -66,12 +69,15 @@ class BrowserCache(service.Service):
                 except:
                     sys.exc_clear()
 
+        return
+
     def GetImgIndex(self):
         return self.imgindex
 
     def Save(self):
         self.imgindex.Unload()
         self.imgindex = None
+        return
 
     def CheckForIndexFile(self):
         file = blue.ResFile()

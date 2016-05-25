@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\carbon\common\lib\markdown\extensions\extra.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\carbon\common\lib\markdown\extensions\extra.py
 import markdown
 extensions = ['smart_strong',
  'fenced_code',
@@ -15,5 +16,5 @@ class ExtraExtension(markdown.Extension):
         md.preprocessors['html_block'].markdown_in_raw = True
 
 
-def makeExtension(configs = {}):
+def makeExtension(configs={}):
     return ExtraExtension(configs=dict(configs))

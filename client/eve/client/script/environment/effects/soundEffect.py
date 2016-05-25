@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\client\script\environment\effects\soundEffect.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\client\script\environment\effects\soundEffect.py
 from eve.client.script.environment.effects.GenericEffect import GenericEffect, STOP_REASON_DEFAULT
 from eveSpaceObject.spaceobjaudio import GetBoosterSizeStr
 
@@ -13,7 +14,7 @@ class SoundEffect(GenericEffect):
         eventType = 'play'
         self.SendEffectEvent(eventType)
 
-    def Stop(self, reason = STOP_REASON_DEFAULT):
+    def Stop(self, reason=STOP_REASON_DEFAULT):
         eventType = 'stop'
         self.SendEffectEvent(eventType)
 
@@ -35,14 +36,16 @@ class SoundEffect(GenericEffect):
         ship = self.GetEffectShipBall()
         if ship is None or ship.model is None:
             return
-        for item in ship.model.observers:
-            if item.observer.name.startswith('ship') and item.observer.name.endswith('booster'):
-                emitter = item.observer
-                break
+        else:
+            for item in ship.model.observers:
+                if item.observer.name.startswith('ship') and item.observer.name.endswith('booster'):
+                    emitter = item.observer
+                    break
 
-        if emitter is not None:
-            soundEvent = self.GetEventName(eventType, ship)
-            emitter.SendEvent(unicode(soundEvent))
+            if emitter is not None:
+                soundEvent = self.GetEventName(eventType, ship)
+                emitter.SendEvent(unicode(soundEvent))
+            return
 
 
 def GetEffectTypeFromTrigger(trigger):

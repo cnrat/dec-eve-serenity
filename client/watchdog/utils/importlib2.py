@@ -1,7 +1,8 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\packages\watchdog\utils\importlib2.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\packages\watchdog\utils\importlib2.py
 
 
-def import_module(target, relative_to = None):
+def import_module(target, relative_to=None):
     target_parts = target.split('.')
     target_depth = target_parts.count('')
     target_path = target_parts[target_depth:]

@@ -1,21 +1,24 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\carbon\common\script\util\dbutil.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\carbon\common\script\util\dbutil.py
 from collections import defaultdict
 
 def SQLStringify(data):
     if isinstance(data, str) or isinstance(data, unicode):
         return "'" + data.replace("'", "''") + "'"
-    if data is None:
+    elif data is None:
         return 'NULL'
-    if isinstance(data, bool):
-        if data:
-            return '1'
-        else:
-            return '0'
     else:
-        return str(data)
+        if isinstance(data, bool):
+            if data:
+                return '1'
+            else:
+                return '0'
+        else:
+            return str(data)
+        return
 
 
-def TuplesToCSVStrings(tuplelist, numLists, maxOutputLength = 4000):
+def TuplesToCSVStrings(tuplelist, numLists, maxOutputLength=4000):
     if len(tuplelist) == 0:
         return (tuple([ '' for i in xrange(numLists) ]), tuplelist)
     maxstringlen = 0
@@ -84,6 +87,7 @@ def ExecuteProcInBlocks(proc, **kwargs):
             readyKwargs[name] = ','.join(value)
 
         proc(**readyKwargs)
+    return
 
 
 import carbon.common.script.util.autoexport as autoexport

@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\common\modules\nice\client\_nastyspace\htmlwriter.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\common\modules\nice\client\_nastyspace\htmlwriter.py
 from carbon.common.script.util.ajaxwriter import AjaxWriter
 from carbon.common.script.util.htmlwriter import BarChart
 from carbon.common.script.util.htmlwriter import BrowserCheck

@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\devtools\script\param.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\devtools\script\param.py
 
 
 def _typecast(cls, value):
@@ -89,7 +90,7 @@ class ParamObject:
 
         self.argc = len(self.args)
 
-    def Parse(self, template, offset = 0):
+    def Parse(self, template, offset=0):
         ret = []
         a = ret.append
         n = offset

@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\carbon\common\script\world\proximity.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\carbon\common\script\world\proximity.py
 import service
 import GameWorld
 import locks
@@ -78,6 +79,7 @@ class Proximity(service.Service):
         if sceneID in self.waitingForProximityTrees:
             self.waitingForProximityTrees.pop(sceneID).set()
         self.LogInfo('Done Unloading the proximity scene for', sceneID)
+        return
 
     def RegisterComponent(self, entity, component):
         if entity.scene.sceneID not in self.proximityTrees:
@@ -104,16 +106,18 @@ class Proximity(service.Service):
             self.OnSensorExit(index, [entity.entityID])
 
         component.tree = None
+        return
 
     def GetProximityTree(self, sceneID):
         tree = self.proximityTrees.get(sceneID, None)
         if tree:
             return tree
-        if sceneID not in self.waitingForProximityTrees:
-            self.waitingForProximityTrees[sceneID] = locks.Event('ProximityTreeLoad_%s' % sceneID)
-        self.waitingForProximityTrees[sceneID].wait()
-        tree = self.proximityTrees.get(sceneID, None)
-        return tree
+        else:
+            if sceneID not in self.waitingForProximityTrees:
+                self.waitingForProximityTrees[sceneID] = locks.Event('ProximityTreeLoad_%s' % sceneID)
+            self.waitingForProximityTrees[sceneID].wait()
+            tree = self.proximityTrees.get(sceneID, None)
+            return tree
 
     def GetEntIDsInRange(self, instanceID, pos, range):
         return self.Proximity.GetEntIDsInRange(instanceID, pos, range)
@@ -148,7 +152,7 @@ class Proximity(service.Service):
             onExitCallback(callbackArgs, filteredList)
             entIDSet.difference_update(filteredList)
 
-    def AddCallbacks(self, instanceID, pos, range, msToCheck, onEnterCallback, onExitCallback, callbackArgs, lookAcrossInstances = True):
+    def AddCallbacks(self, instanceID, pos, range, msToCheck, onEnterCallback, onExitCallback, callbackArgs, lookAcrossInstances=True):
         newIndex = self._FindOrCreateFreeIndex()
         entry = ((instanceID,
           pos,
@@ -164,7 +168,7 @@ class Proximity(service.Service):
         self._UpdateAllCallbacks()
         return newIndex
 
-    def AddCylinderCallbacks(self, instanceID, pos, radius, height, msToCheck, onEnterCallback, onExitCallback, callbackArgs, lookAcrossInstances = True):
+    def AddCylinderCallbacks(self, instanceID, pos, radius, height, msToCheck, onEnterCallback, onExitCallback, callbackArgs, lookAcrossInstances=True):
         newIndex = self._FindOrCreateFreeIndex()
         entry = ((instanceID,
           pos,
@@ -216,6 +220,8 @@ class Proximity(service.Service):
                     gw.grid.RemoveListener(instanceLookup[instanceID])
                     del instanceLookup[instanceID]
 
+        return
+
     def RemoveCallback(self, index):
         callbackDef, instanceLookup, entIDSet = self.storedCallBacks[index]
         for instanceID, listener in instanceLookup.iteritems():
@@ -240,6 +246,8 @@ class Proximity(service.Service):
                     gw.grid.AddListener(listener)
                     instanceLookup[instanceID] = listener
 
+        return
+
     def _RemoveInstanceFromCallbacks(self, instance):
         worldSpaceID = instance.GetWorldSpaceID()
         for entry in self.storedCallBacks.itervalues():
@@ -259,6 +267,8 @@ class Proximity(service.Service):
         ent = self.entityService.FindEntityByID(entid)
         if ent:
             return self.GetEntIDsInRangeOfEntity(ent, range)
+        else:
+            return None
 
     def GetEntIDsInRangeOfEntity(self, ent, range):
         if ent.HasComponent('position'):

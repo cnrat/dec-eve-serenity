@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\client\script\ui\login\charcreation\ccUtil.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\client\script\ui\login\charcreation\ccUtil.py
 import paperDoll
 import charactercreator.const as ccConst
 import telemetry
@@ -25,7 +26,7 @@ def PaperDollGenderToGenderID(gender):
 
 
 @telemetry.ZONE_FUNCTION
-def SetupLighting(scene, lightScene, lightColorScene, lightIntensity = 0.5):
+def SetupLighting(scene, lightScene, lightColorScene, lightIntensity=0.5):
     intensityMultiplier = 0.75 + lightIntensity / 2.0
     if scene is not None:
         lightList = []
@@ -49,6 +50,7 @@ def SetupLighting(scene, lightScene, lightColorScene, lightIntensity = 0.5):
 
         if paperDoll.SkinSpotLightShadows.instance is not None:
             paperDoll.SkinSpotLightShadows.instance.RefreshLights()
+    return
 
 
 @telemetry.ZONE_FUNCTION

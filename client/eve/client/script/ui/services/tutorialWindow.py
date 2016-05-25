@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\client\script\ui\services\tutorialWindow.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\client\script\ui\services\tutorialWindow.py
 import math
 from carbonui import const as uiconst, const
 from carbonui.primitives.sprite import Sprite
@@ -67,6 +68,7 @@ class TutorialWindow(uicontrols.Window):
         self.SetParent(uicore.layer.abovemain)
         uicore.animations.SpSwoopBlink(self.blinkFill, rotation=math.pi - 0.5, duration=3.0, loops=TutorialConstants.NUM_BLINKS)
         uicore.animations.SpSwoopBlink(self.blinkBorder, rotation=math.pi - 0.5, duration=3.0, loops=TutorialConstants.NUM_BLINKS)
+        return
 
     def Prepare_Background_(self):
         self.sr.underlay = WindowUnderlay(parent=self, name='underlay', state=uiconst.UI_DISABLED)
@@ -75,7 +77,7 @@ class TutorialWindow(uicontrols.Window):
         uicontrols.Frame(name='frame', bgParent=self.sr.underlay, color=TutorialColor.WINDOW_FRAME, frameConst=uiconst.FRAME_BORDER1_CORNER0)
         BlurredSceneUnderlay(bgParent=self.sr.underlay)
 
-    def RegisterPositionAndSize(self, key = None, windowID = None):
+    def RegisterPositionAndSize(self, key=None, windowID=None):
         uicontrols.Window.RegisterPositionAndSize(self, key, windowID)
         self.currentBottom = self.top + self.height
 
@@ -172,6 +174,7 @@ class TutorialWindow(uicontrols.Window):
         self.Close()
         if getattr(self, 'showTutorialReminder', True):
             uthread.new(self._TutorialReminder)
+        return
 
     def _TutorialReminder(self):
         blue.pyos.synchro.SleepWallclock(1000)
@@ -181,6 +184,7 @@ class TutorialWindow(uicontrols.Window):
         browser = tutorialSvc.GetTutorialBrowser(create=False)
         if browser is None:
             tutorialSvc.uipointerSvc.ClearPointers()
+        return
 
     def CheckTopHeight(self):
         h = 0
@@ -207,14 +211,16 @@ class TutorialWindow(uicontrols.Window):
     def ChangeWindowHeight(self, currentClipperHeight, contentHeight):
         if self.defaultClipperHeight is None:
             return
-        if self.defaultClipperHeight > contentHeight and self.defaultClipperHeight <= currentClipperHeight:
-            diff = currentClipperHeight - self.defaultClipperHeight
-            uicore.animations.MorphScalar(self, 'height', startVal=self.height, endVal=self.height - diff, duration=0.2, loops=1, curveType=2, callback=None, sleep=False)
-            uicore.animations.MorphScalar(self, 'top', startVal=self.top, endVal=max(self.top + diff, 0), duration=0.2, loops=1, curveType=2, callback=None, sleep=True)
         else:
-            diff = currentClipperHeight - max(contentHeight, self.defaultClipperHeight)
-            uicore.animations.MorphScalar(self, 'height', startVal=self.height, endVal=self.height - diff, duration=0.2, loops=1, curveType=2, callback=None, sleep=False)
-            uicore.animations.MorphScalar(self, 'top', startVal=self.top, endVal=max(self.top + diff, 0), duration=0.2, loops=1, curveType=2, callback=None, sleep=True)
+            if self.defaultClipperHeight > contentHeight and self.defaultClipperHeight <= currentClipperHeight:
+                diff = currentClipperHeight - self.defaultClipperHeight
+                uicore.animations.MorphScalar(self, 'height', startVal=self.height, endVal=self.height - diff, duration=0.2, loops=1, curveType=2, callback=None, sleep=False)
+                uicore.animations.MorphScalar(self, 'top', startVal=self.top, endVal=max(self.top + diff, 0), duration=0.2, loops=1, curveType=2, callback=None, sleep=True)
+            else:
+                diff = currentClipperHeight - max(contentHeight, self.defaultClipperHeight)
+                uicore.animations.MorphScalar(self, 'height', startVal=self.height, endVal=self.height - diff, duration=0.2, loops=1, curveType=2, callback=None, sleep=False)
+                uicore.animations.MorphScalar(self, 'top', startVal=self.top, endVal=max(self.top + diff, 0), duration=0.2, loops=1, curveType=2, callback=None, sleep=True)
+            return
 
     def ShowScrollControlIfNeeded(self, *args):
         if self.sr.browser.scrollingRange:
@@ -248,7 +254,7 @@ class TutorialWindow(uicontrols.Window):
             sm.GetService('tutorial').GiveGoodies(tutorialID, pageID, pageNo)
             return goodieHtml
 
-    def LoadTutorial(self, tutorialID = None, pageNo = None, pageID = None, sequenceID = None, force = 0, VID = None, skipCriteria = False, checkBack = 0, diffMouseClicks = 0, diffKeyboardClicks = 0):
+    def LoadTutorial(self, tutorialID=None, pageNo=None, pageID=None, sequenceID=None, force=0, VID=None, skipCriteria=False, checkBack=0, diffMouseClicks=0, diffKeyboardClicks=0):
         self.sr.browser.scrollEnabled = 0
         self.backBtn.state = uiconst.UI_HIDDEN
         self.nextBtn.state = uiconst.UI_HIDDEN
@@ -439,15 +445,18 @@ class TutorialWindow(uicontrols.Window):
         fadeOut.Stop()
         uicore.animations.FadeIn(self.sr.browser.sr.clipper, endVal=1.0, duration=0.3, loops=1, curveType=2, callback=None, sleep=False)
         self.CheckHeight()
+        return
 
-    def LoadHTML(self, html, newThread = 1):
+    def LoadHTML(self, html, newThread=1):
         self.ShowLoad()
         self.sr.browser.LoadHTML(html, newThread=newThread)
 
     def LoadEnd(self):
         self.HideLoad()
 
-    def Reload(self, forced = 1, *args):
+    def Reload(self, forced=1, *args):
         if not self.sr.browser:
             return
-        uthread.new(self.sr.browser.LoadHTML, None, scrollTo=self.sr.browser.GetScrollProportion())
+        else:
+            uthread.new(self.sr.browser.LoadHTML, None, scrollTo=self.sr.browser.GetScrollProportion())
+            return

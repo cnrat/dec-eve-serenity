@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\client\script\ui\shared\neocom\corporation\corp_ui_member_roleentry.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\client\script\ui\shared\neocom\corporation\corp_ui_member_roleentry.py
 import weakref
 from carbon.common.script.sys.row import Row
 from carbonui.primitives.container import Container
@@ -83,6 +84,7 @@ class BaseRoleEntry(BaseListEntryCustomColumns):
         self.myGrantableRolesAtHQ = grantableRolesAtHQ
         self.myGrantableRolesAtBase = grantableRolesAtBase
         self.myGrantableRolesAtOther = grantableRolesAtOther
+        return
 
     def AddColumnName(self):
         col = self.AddColumnContainer(width=NAME_COL_WIDTH)
@@ -102,6 +104,7 @@ class BaseRoleEntry(BaseListEntryCustomColumns):
             locationName = cfg.evelocations.Get(self.member.baseID).locationName
         else:
             locationName = None
+        return
 
     def OnBaseChange(self, *args):
         self.node.rec.baseID = self.baseCombo.GetValue()
@@ -524,11 +527,12 @@ class VerticalScrollHeader(Container):
         self.fixedColumns = None
         self.defaultColumn = None
         self.scroll = weakref.ref(attributes.scroll)
+        return
 
     def SetDefaultColumn(self, columnID, direction):
         self.defaultColumn = (columnID, direction)
 
-    def CreateColumns(self, columns, fixedColumns = None):
+    def CreateColumns(self, columns, fixedColumns=None):
         self.headerContainer.Flush()
         self.columnIDs = columns
         if columns:
@@ -551,6 +555,7 @@ class VerticalScrollHeader(Container):
                 header.label.SetRightAlphaFade(fadeEnd=self.height - 10, maxFadeWidth=20)
 
             self.UpdateActiveState()
+        return
 
     def UpdateActiveState(self):
         currentActive, currentDirection = self.GetCurrentActive()
@@ -581,15 +586,16 @@ class VerticalScrollHeader(Container):
             if currentActive not in self.columnIDs:
                 return (None, True)
             return (currentActive, currentDirection)
-        if self.defaultColumn is not None:
-            columnID, direction = self.defaultColumn
-            if columnID in self.columnIDs:
-                return self.defaultColumn
-        if self.columnIDs:
-            currentActive, currentDirection = self.columnIDs[0], True
-        return (currentActive, currentDirection)
+        else:
+            if self.defaultColumn is not None:
+                columnID, direction = self.defaultColumn
+                if columnID in self.columnIDs:
+                    return self.defaultColumn
+            if self.columnIDs:
+                currentActive, currentDirection = self.columnIDs[0], True
+            return (currentActive, currentDirection)
 
-    def SetCurrentActive(self, columnID, doCallback = True):
+    def SetCurrentActive(self, columnID, doCallback=True):
         currentActive, currentDirection = self.GetCurrentActive()
         if currentActive == columnID:
             sortDirection = not currentDirection

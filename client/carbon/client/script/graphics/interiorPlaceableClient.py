@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\carbon\client\script\graphics\interiorPlaceableClient.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\carbon\client\script\graphics\interiorPlaceableClient.py
 import cef
 import collections
 import geo2
@@ -59,13 +60,15 @@ class InteriorPlaceableClient(service.Service):
         if component.graphicID <= 0:
             component.renderObject = None
             return
-        renderObject = trinity.Tr2InteriorPlaceable()
-        self._LoadModel(component, renderObject)
-        renderObject.isStatic = True
-        renderObject.probeOffset = component.probeOffset
-        renderObject.depthOffset = component.depthOffset
-        renderObject.name = '%s: %s' % (self.graphicClient.GetGraphicName(component.graphicID) or 'BadAsset', entityID)
-        component.renderObject = renderObject
+        else:
+            renderObject = trinity.Tr2InteriorPlaceable()
+            self._LoadModel(component, renderObject)
+            renderObject.isStatic = True
+            renderObject.probeOffset = component.probeOffset
+            renderObject.depthOffset = component.depthOffset
+            renderObject.name = '%s: %s' % (self.graphicClient.GetGraphicName(component.graphicID) or 'BadAsset', entityID)
+            component.renderObject = renderObject
+            return
 
     def _LoadModel(self, component, renderObject):
         if component.minSpecOverideMetaMaterialPath is not None and component.minSpecOverideMetaMaterialPath != 'None' and sm.GetService('device').GetAppFeatureState('Interior.lowSpecMaterialsEnabled', False):
@@ -74,18 +77,21 @@ class InteriorPlaceableClient(service.Service):
             modelFile = self.graphicClient.GetModelFilePath(component.graphicID)
         if renderObject.placeableResPath != modelFile:
             renderObject.placeableResPath = modelFile
+        return
 
     def SetupComponent(self, entity, component):
         if not component.renderObject:
             return
-        positionComponent = entity.GetComponent('position')
-        if positionComponent:
-            scale = None
-            if not entity.HasComponent('collisionMesh'):
-                scale = component.scale
-            component.renderObject.transform = util.ConvertTupleToTriMatrix(geo2.MatrixTransformation(None, None, scale, None, positionComponent.rotation, positionComponent.position))
-        scene = self.graphicClient.GetScene(entity.scene.sceneID)
-        scene.AddDynamic(component.renderObject)
+        else:
+            positionComponent = entity.GetComponent('position')
+            if positionComponent:
+                scale = None
+                if not entity.HasComponent('collisionMesh'):
+                    scale = component.scale
+                component.renderObject.transform = util.ConvertTupleToTriMatrix(geo2.MatrixTransformation(None, None, scale, None, positionComponent.rotation, positionComponent.position))
+            scene = self.graphicClient.GetScene(entity.scene.sceneID)
+            scene.AddDynamic(component.renderObject)
+            return
 
     def RegisterComponent(self, entity, component):
         if not component.renderObject:

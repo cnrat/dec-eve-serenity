@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\packages\carbonui\control\editutils\parserbase.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\packages\carbonui\control\editutils\parserbase.py
 import _weakref
 import blue
 import log
@@ -51,6 +52,7 @@ class ParserBaseCore(object):
         self.sr.overlays_content = Container(parent=parent, name='overlays_content', align=uiconst.TOPLEFT, idx=idx)
         self.sr.background = Container(parent=parent, name='background')
         self.sr.cacheContainer = Container(name='cacheContainer', parent=self, state=uiconst.UI_HIDDEN)
+        return
 
     def Loading(self, *args):
         if self.sr.window and hasattr(self.sr.window, 'ShowLoadBar'):
@@ -60,7 +62,7 @@ class ParserBaseCore(object):
         if self.sr.window and hasattr(self.sr.window, 'ShowStatus'):
             self.sr.window.ShowStatus(*args)
 
-    def ShowHint(self, hint = None):
+    def ShowHint(self, hint=None):
         if self.sr.window and hasattr(self.sr.window, 'ShowHint'):
             self.sr.window.ShowHint(hint)
 
@@ -68,66 +70,72 @@ class ParserBaseCore(object):
     def OnStartTag(self, tag, attrs):
         if not self or not getattr(self, 'sr', None):
             return
-        closeTags = HtmlOptionalClose.get(tag, ())
-        if self.attrStack[-1]['tag'] in closeTags:
-            self.OnEndTag(self.attrStack[-1]['tag'])
-        if tag == 'table' and self.sr.table:
-            self.blockBufferClose += 1
-        elif tag == 'div' and self.divs:
-            self.divs += 1
-        if self.attrStack[-1]['bufferStack'] is not None:
-            attrs.form = self.sr.form
-            self.attrStack[-1]['bufferStack'].append(('OnStartTag', (tag, attrs)))
-            return
-        f = getattr(self, 'OnStart_%s' % tag, None)
-        if f:
-            f(attrs)
         else:
-            self.OnStart_default(tag, attrs)
+            closeTags = HtmlOptionalClose.get(tag, ())
+            if self.attrStack[-1]['tag'] in closeTags:
+                self.OnEndTag(self.attrStack[-1]['tag'])
+            if tag == 'table' and self.sr.table:
+                self.blockBufferClose += 1
+            elif tag == 'div' and self.divs:
+                self.divs += 1
+            if self.attrStack[-1]['bufferStack'] is not None:
+                attrs.form = self.sr.form
+                self.attrStack[-1]['bufferStack'].append(('OnStartTag', (tag, attrs)))
+                return
+            f = getattr(self, 'OnStart_%s' % tag, None)
+            if f:
+                f(attrs)
+            else:
+                self.OnStart_default(tag, attrs)
+            return
 
     @telemetry.ZONE_METHOD
     def OnEndTag(self, tag):
         if not self or not getattr(self, 'sr', None):
             return
-        if self.attrStack[-1]['bufferStack'] is not None:
-            if tag == 'table' and self.sr.table:
-                self.blockBufferClose = max(0, self.blockBufferClose - 1)
-            if tag == 'div' and self.divs:
-                self.divs = max(0, self.divs - 1)
-            if (tag in 'div' and self.sr.table is None or tag in ('td', 'th', 'tr') and self.sr.table) and not self.blockBufferClose and not self.divs:
-                self.attrStack[-1]['bufferStack'].append(('FlushBuffer', (None,)))
-            else:
-                self.attrStack[-1]['bufferStack'].append(('OnEndTag', (tag,)))
-                return
-        closeTags = HtmlAutoClose.get(tag, ())
-        if self.attrStack[-1]['tag'] != tag and self.attrStack[-1]['tag'] in closeTags:
-            self.OnEndTag(self.attrStack[-1]['tag'])
-        f = getattr(self, 'OnEnd_%s' % tag, None)
-        if f:
-            f()
         else:
-            self.OnEnd_default(tag)
+            if self.attrStack[-1]['bufferStack'] is not None:
+                if tag == 'table' and self.sr.table:
+                    self.blockBufferClose = max(0, self.blockBufferClose - 1)
+                if tag == 'div' and self.divs:
+                    self.divs = max(0, self.divs - 1)
+                if (tag in 'div' and self.sr.table is None or tag in ('td', 'th', 'tr') and self.sr.table) and not self.blockBufferClose and not self.divs:
+                    self.attrStack[-1]['bufferStack'].append(('FlushBuffer', (None,)))
+                else:
+                    self.attrStack[-1]['bufferStack'].append(('OnEndTag', (tag,)))
+                    return
+            closeTags = HtmlAutoClose.get(tag, ())
+            if self.attrStack[-1]['tag'] != tag and self.attrStack[-1]['tag'] in closeTags:
+                self.OnEndTag(self.attrStack[-1]['tag'])
+            f = getattr(self, 'OnEnd_%s' % tag, None)
+            if f:
+                f()
+            else:
+                self.OnEnd_default(tag)
+            return
 
     def OnData(self, data, *args):
         if not self or not getattr(self, 'sr', None):
             return
-        if self.attrStack[-1]['bufferStack'] is not None:
+        elif self.attrStack[-1]['bufferStack'] is not None:
             self.attrStack[-1]['bufferStack'].append(('OnData', (data,)))
             return
-        tag, attrs = self.attrStack[-1]['tag'], self.attrStack[-1]['attr']
-        data = self.sr.buffer + data
-        self.sr.buffer = u''
-        if not data:
-            return
-        f = getattr(self, 'OnData_%s' % (tag or ''), None)
-        if f:
-            f(data, attrs)
-        elif isinstance(data, basestring):
-            data = self.StripText(data)
-            if data:
-                self.AddTextToBuffer(data, fromW='Ondata')
         else:
-            log.LogWarn('NonString data outside any tag', repr(data))
+            tag, attrs = self.attrStack[-1]['tag'], self.attrStack[-1]['attr']
+            data = self.sr.buffer + data
+            self.sr.buffer = u''
+            if not data:
+                return
+            f = getattr(self, 'OnData_%s' % (tag or ''), None)
+            if f:
+                f(data, attrs)
+            elif isinstance(data, basestring):
+                data = self.StripText(data)
+                if data:
+                    self.AddTextToBuffer(data, fromW='Ondata')
+            else:
+                log.LogWarn('NonString data outside any tag', repr(data))
+            return
 
     def StripText(self, text):
         text = text.replace('\n', u' ').replace('\r', u' ').replace('\t', u' ')
@@ -141,7 +149,7 @@ class ParserBaseCore(object):
         return text
 
     @telemetry.ZONE_METHOD
-    def OnStart_default(self, tag, attrs, defaultStyles = None):
+    def OnStart_default(self, tag, attrs, defaultStyles=None):
         self.attrStack.append(self.attrStack[-1].copy())
         self.attrStack[-1]['tag'] = tag
         self.attrStack[-1]['attr'] = attrs
@@ -163,7 +171,7 @@ class ParserBaseCore(object):
         if len(self.attrStack) > abs(idx):
             self.attrStack[idx - 1]['lasttag'] = tag
 
-    def FlushBuffer(self, fakeLines = None):
+    def FlushBuffer(self, fakeLines=None):
         data = self.StripText(self.sr.buffer)
         self.sr.buffer = u''
         if data:
@@ -176,17 +184,19 @@ class ParserBaseCore(object):
             self.BreakLines(self.textbuffer)
             self.textbuffer = []
             return
-        if fakeLines is not None:
+        elif fakeLines is not None:
             _lines = self.BuildEntries(fakeLines, self.textbuffer, self.attrStack[-1])
             self.textbuffers.append(([self.GetTextObject('')], self.attrStack[-1]))
             self.AddLines(_lines)
             return
-        if len(self.textbuffer):
-            self.textbuffers.append((self.textbuffer, self.attrStack[-1]))
-            lines = self.BreakLines(self.textbuffer)
-            scrollNodes = self.BuildEntries(lines, self.textbuffer, self.attrStack[-1])
-            self.AddLines(scrollNodes)
-        self.textbuffer = []
+        else:
+            if len(self.textbuffer):
+                self.textbuffers.append((self.textbuffer, self.attrStack[-1]))
+                lines = self.BreakLines(self.textbuffer)
+                scrollNodes = self.BuildEntries(lines, self.textbuffer, self.attrStack[-1])
+                self.AddLines(scrollNodes)
+            self.textbuffer = []
+            return
 
     def GetFontFlagFromStack(self):
         fontFlag = 0
@@ -202,18 +212,20 @@ class ParserBaseCore(object):
     def _LoadHTML(self, htmlstr):
         if self.destroyed:
             return
-        self.title = None
-        self.sr.htmlstr = htmlstr
-        self._Reset()
-        if self.destroyed:
+        else:
+            self.title = None
+            self.sr.htmlstr = htmlstr
+            self._Reset()
+            if self.destroyed:
+                return
+            self.sr.parser.reset()
+            self.sr.parser.feed(self.sr.htmlstr)
+            if self.destroyed:
+                return
+            self.sr.parser.close()
             return
-        self.sr.parser.reset()
-        self.sr.parser.feed(self.sr.htmlstr)
-        if self.destroyed:
-            return
-        self.sr.parser.close()
 
-    def LoadBuffer(self, buff, getWidths = 0, setWidth = None, singleWordMax = None):
+    def LoadBuffer(self, buff, getWidths=0, setWidth=None, singleWordMax=None):
         self._Reset()
         self.getWidths = getWidths
         self.minWidth = 0
@@ -227,6 +239,8 @@ class ParserBaseCore(object):
                 apply(getattr(self, func, None), args)
 
         if self.getWidths:
+            return
+        else:
             return
 
     @telemetry.ZONE_METHOD
@@ -318,6 +332,7 @@ class ParserBaseCore(object):
         self.attrStack.append(attrEntry)
         self.css.Reset()
         self.Reset()
+        return
 
     def GetLinespace(self):
         return int(self.attrStack[-1]['line-height'] or self.attrStack[-1]['font-size'])
@@ -338,12 +353,13 @@ class ParserBaseCore(object):
              'bgcolor': None}
             se = ScrollEntryNode(**data)
             return [se]
-        _lines = []
-        for each in lines:
-            entry = self.GetTextEntry(attrs, stack, *each)
-            _lines.append(entry)
+        else:
+            _lines = []
+            for each in lines:
+                entry = self.GetTextEntry(attrs, stack, *each)
+                _lines.append(entry)
 
-        return _lines
+            return _lines
 
     def GetFirstLine(self):
         lpush, rpush = self.GetMargins(0, self.GetLinespace())
@@ -352,7 +368,7 @@ class ParserBaseCore(object):
         self.textbuffers.append(([textObj], self.attrStack[-1]))
         return self.GetTextEntry(self.attrStack[-1], [textObj], lpush=lpush, rpush=rpush)
 
-    def GetTextEntry(self, attrs, stack, glyphString = None, inlines = None, links = None, lpush = 0, rpush = 0, bBox = None, baseHeight = 12, baseLine = 10, abspos = 0):
+    def GetTextEntry(self, attrs, stack, glyphString=None, inlines=None, links=None, lpush=0, rpush=0, bBox=None, baseHeight=12, baseLine=10, abspos=0):
         lineWidth = 0
         if bBox is not None:
             lineWidth = bBox.Width()
@@ -382,7 +398,7 @@ class ParserBaseCore(object):
         self.AddNodes(idx, nodes)
         return nodes
 
-    def Simplify(self, quiet = 0):
+    def Simplify(self, quiet=0):
         rem = []
         for idx, (stack, attrs) in enumerate(self.textbuffers):
             oldSize = None
@@ -416,14 +432,16 @@ class ParserBaseCore(object):
         for idx in rem:
             self.textbuffers.pop(idx)
 
+        return
+
     def AddLines(self, lines):
         self.sr.lines += lines
 
-    def AddTextToBuffer(self, text, width = None, fromW = None):
+    def AddTextToBuffer(self, text, width=None, fromW=None):
         self.AddObjectToBuffer(self.GetTextObject(text, width))
 
     @telemetry.ZONE_METHOD
-    def GetTextObject(self, text, width = None):
+    def GetTextObject(self, text, width=None):
         obj = Bunch()
         obj.spacing = self.attrStack[-1]['letter-spacing']
         obj.a = self.a
@@ -487,6 +505,7 @@ class ParserBaseCore(object):
           linespace,
           0,
           0)])
+        return
 
     @telemetry.ZONE_METHOD
     def GetMargins(self, fromY, toY):
@@ -514,7 +533,7 @@ class ParserBaseCore(object):
         return (lpush, rpush)
 
     @telemetry.ZONE_METHOD
-    def StackPosToObjPos(self, stack, abspos, allobj = 0):
+    def StackPosToObjPos(self, stack, abspos, allobj=0):
         objpos = 0
         pos = abspos
         for obj in stack:
@@ -573,6 +592,7 @@ class ParserBaseCore(object):
 
         self.minWidth = max(self.minWidth, wordWidth)
         self.totalWidth = max(self.totalWidth, s.width)
+        return
 
     @telemetry.ZONE_METHOD
     def GetLine(self, textbuffer, startpos, recurse):
@@ -704,6 +724,7 @@ class ParserBaseCore(object):
              startpos + lastLineWrapIndex,
              line,
              self.GetOthers(inlines, links, uicore.ReverseScaleDpi(scaledGlyphStringPosition), uicore.ReverseScaleDpi(scaledNewLineWidth), fParams))
+        return
 
     @telemetry.ZONE_METHOD
     def GetOthers(self, inlines, links, x, width, fParam):
@@ -734,7 +755,7 @@ class ParserBaseCore(object):
         return (newinlines, newlinks)
 
     @telemetry.ZONE_METHOD
-    def BreakLines(self, textbuffer, batchHeight = 0, abspos = 0, recurse = 1):
+    def BreakLines(self, textbuffer, batchHeight=0, abspos=0, recurse=1):
         if self.getWidths:
             self.GetWidths(textbuffer)
             return
@@ -781,7 +802,7 @@ class ParserBaseCore(object):
 
         return lines
 
-    def AddOverlay(self, attrs, x, y, lpush = None, rpush = None):
+    def AddOverlay(self, attrs, x, y, lpush=None, rpush=None):
         attrs.height = getattr(attrs, 'height', 1) or 1
         if lpush is None or rpush is None:
             lpush, rpush = self.GetMargins(y, y + attrs.height)
@@ -846,6 +867,7 @@ class ParserBaseCore(object):
          getattr(attrs, 'left', 0),
          attrs.top))
         self.blockBufferClose = 0
+        return
 
     def GetOverlay_Underlay(self, data, container):
         if getattr(data, 'attrs', None) and getattr(data.attrs, 'uiwindow', None):
@@ -931,6 +953,7 @@ class ParserBaseCore(object):
     def SetStyles(self, s):
         if s is not None:
             self.attrStack[-1].update(s)
+        return
 
     def ParseStdStyles(self, attrs):
         if getattr(attrs, 'style', None):
@@ -952,11 +975,13 @@ class ParserBaseCore(object):
                         continue
                     self.attrStack[-1][key] = value
 
+        return
+
     def AddStyles(self, stack, css):
         self.attrStack.append(stack)
         self.css = css.copy()
 
-    def CheckURL(self, URL, getAnchor = 0):
+    def CheckURL(self, URL, getAnchor=0):
         browser = GetBrowser(self)
         currentURL = None
         if browser:
@@ -973,7 +998,8 @@ class ParserBaseCore(object):
             URL = base + URL[3:]
         if getAnchor:
             return (URL, anchor)
-        return URL
+        else:
+            return URL
 
     def LocalizeURL(self, url):
         if prefs.languageID != 'EN' and url and (url[:4] == 'res:' or url.find('res') > 0):
@@ -1137,6 +1163,7 @@ class ParserBaseCore(object):
             obj.rpush = rpush
             self.AddObjectToBuffer(obj)
         self.attrStack.pop()
+        return
 
     def OnStart_script(self, attrs):
         self.OnStart_default('script', attrs)
@@ -1218,6 +1245,7 @@ class ParserBaseCore(object):
         self.AddObjectToBuffer(obj)
         self.OnStart_default('li', attrs)
         self.list += 1
+        return
 
     @telemetry.ZONE_METHOD
     def OnEnd_li(self):
@@ -1387,30 +1415,33 @@ class ParserBaseCore(object):
         href = attrs.href
         if not rel or not href:
             return
-        if rel.lower() == 'stylesheet':
-            url = self.CheckURL(href)
-            browser = GetBrowser(self)
-            currentURL = None
-            if browser:
-                currentURL = browser.sr.currentURL
-            if href.startswith('res:') or href.startswith('script:'):
+        else:
+            if rel.lower() == 'stylesheet':
+                url = self.CheckURL(href)
+                browser = GetBrowser(self)
+                currentURL = None
+                if browser:
+                    currentURL = browser.sr.currentURL
+                if href.startswith('res:') or href.startswith('script:'):
+                    try:
+                        f = blue.ResFile()
+                        f.OpenAlways(href)
+                        self.css.ParseCSSData(str(f.Read()))
+                        del f
+                    except Exception:
+                        log.LogException()
+
+                    return
+                fullPath = corebrowserutil.ParseURL(url, currentURL)[0]
                 try:
-                    f = blue.ResFile()
-                    f.OpenAlways(href)
-                    self.css.ParseCSSData(str(f.Read()))
-                    del f
+                    buff = corebrowserutil.GetStringFromURL(*(corebrowserutil.ParseURL(fullPath)[:1] + (None,))).read()
+                    self.css.ParseCSSData(buff)
+                except urllib2.URLError as what:
+                    sys.exc_clear()
                 except Exception:
                     log.LogException()
 
-                return
-            fullPath = corebrowserutil.ParseURL(url, currentURL)[0]
-            try:
-                buff = corebrowserutil.GetStringFromURL(*(corebrowserutil.ParseURL(fullPath)[:1] + (None,))).read()
-                self.css.ParseCSSData(buff)
-            except urllib2.URLError as what:
-                sys.exc_clear()
-            except Exception:
-                log.LogException()
+            return
 
     @telemetry.ZONE_METHOD
     def OnStart_title(self, attrs):
@@ -1422,6 +1453,7 @@ class ParserBaseCore(object):
         self.title = data
         if self.sr.window and getattr(self.sr.window, 'SetCaption', None):
             self.sr.window.SetCaption(data)
+        return
 
     @telemetry.ZONE_METHOD
     def OnEnd_title(self):
@@ -1431,17 +1463,20 @@ class ParserBaseCore(object):
     def OnStart_form(self, attrs):
         if not self or getattr(self, 'sr', None) is None:
             return
-        if self.sr.form:
-            self.OnEnd_form()
-        if self.sr.Get('browser', None):
-            self.sr.form = corebrowserutil.NewBrowserForm(attrs, _weakref.proxy(self.sr.browser))
         else:
-            self.sr.form = corebrowserutil.NewBrowserForm(attrs, _weakref.proxy(self))
+            if self.sr.form:
+                self.OnEnd_form()
+            if self.sr.Get('browser', None):
+                self.sr.form = corebrowserutil.NewBrowserForm(attrs, _weakref.proxy(self.sr.browser))
+            else:
+                self.sr.form = corebrowserutil.NewBrowserForm(attrs, _weakref.proxy(self))
+            return
 
     @telemetry.ZONE_METHOD
     def OnEnd_form(self):
         self.sr.forms.append(self.sr.form)
         self.sr.form = None
+        return
 
     @telemetry.ZONE_METHOD
     def OnStart_input(self, attrs):
@@ -1464,6 +1499,7 @@ class ParserBaseCore(object):
         if obj:
             self.AddObjectToBuffer(obj)
         self.attrStack.pop()
+        return
 
     def OnEnd_input(self):
         pass
@@ -1483,6 +1519,7 @@ class ParserBaseCore(object):
         attrs.fontcolor = self.attrStack[-1]['color']
         attrs.width = self.attrStack[-1]['width']
         attrs.height = self.attrStack[-1]['height']
+        return
 
     @telemetry.ZONE_METHOD
     def OnEnd_select(self):
@@ -1493,6 +1530,7 @@ class ParserBaseCore(object):
             self.AddObjectToBuffer(obj)
         self.sr.select = None
         self.OnEnd_default('select')
+        return
 
     def OnData_select(self, data, attrs):
         pass
@@ -1515,6 +1553,7 @@ class ParserBaseCore(object):
         else:
             log.LogWarn('Bogus HTML syntax, Option outside any select')
         self.OnEnd_default('option')
+        return
 
     @telemetry.ZONE_METHOD
     def OnStart_textarea(self, attrs):
@@ -1528,6 +1567,7 @@ class ParserBaseCore(object):
         attrs.width = self.attrStack[-1]['width']
         attrs.height = self.attrStack[-1]['height']
         attrs.form = form
+        return
 
     @telemetry.ZONE_METHOD
     def OnData_textarea(self, data, attrs):
@@ -1570,6 +1610,7 @@ class ParserBaseCore(object):
             self.AddObjectToBuffer(obj)
         self.attrStack[-1]['pstart'] = self.contentHeight
         self.AddTopBorders()
+        return
 
     @telemetry.ZONE_METHOD
     def OnEnd_p(self):
@@ -1617,6 +1658,7 @@ class ParserBaseCore(object):
         if getattr(attrs, 'color', None):
             s['color'] = ParseHTMLColor(getattr(attrs, 'color', None), 1)
         self.OnStart_default('font', attrs, s)
+        return
 
     @telemetry.ZONE_METHOD
     def OnEnd_font(self):
@@ -1666,6 +1708,7 @@ class ParserBaseCore(object):
             s['margin-%s' % side] = 0
 
         s['background-color'] = None
+        return
 
     def OnStart_blockquote(self, attrs):
         self.NewLine()
@@ -1758,6 +1801,7 @@ class ParserBaseCore(object):
         else:
             self.attrStack[-1]['pstart'] = self.contentHeight
             self.AddTopBorders()
+        return
 
     @telemetry.ZONE_METHOD
     def OnEnd_div(self):
@@ -1789,6 +1833,7 @@ class ParserBaseCore(object):
 
         self.attrStack[-1]['table-width'] = attrs.width
         self.attrStack[-1]['table-height'] = attrs.height
+        return
 
     @telemetry.ZONE_METHOD
     def OnEnd_table(self):
@@ -1796,31 +1841,33 @@ class ParserBaseCore(object):
             self.OnEnd_default('table')
             self.FlushBuffer()
             return
-        attrs = self.attrStack[-1]['attr']
-        attrs.type = 'table'
-        attrs.charset = self.charset
-        se = self.GetScrollEntry(attrs)
-        se.attrs = self.sr.table
-        table = self.GetInline(se)
-        if getattr(attrs, 'align', None) is None:
-            obj = Bunch()
-            obj.type = '<table>'
-            obj.width = table.width
-            obj.height = table.height
-            obj.attrs = attrs
-            obj.valign = self.attrStack[-1]['vertical-align']
-            obj.control = table
-            self.AddObjectToBuffer(obj)
         else:
-            attrs.height = table.height
-            attrs.width = table.width
-            table.Close()
-            self.AddOverlay(attrs, 0, self.contentHeight)
-        if self.destroyed:
+            attrs = self.attrStack[-1]['attr']
+            attrs.type = 'table'
+            attrs.charset = self.charset
+            se = self.GetScrollEntry(attrs)
+            se.attrs = self.sr.table
+            table = self.GetInline(se)
+            if getattr(attrs, 'align', None) is None:
+                obj = Bunch()
+                obj.type = '<table>'
+                obj.width = table.width
+                obj.height = table.height
+                obj.attrs = attrs
+                obj.valign = self.attrStack[-1]['vertical-align']
+                obj.control = table
+                self.AddObjectToBuffer(obj)
+            else:
+                attrs.height = table.height
+                attrs.width = table.width
+                table.Close()
+                self.AddOverlay(attrs, 0, self.contentHeight)
+            if self.destroyed:
+                return
+            self.sr.table = None
+            self.OnEnd_default('table')
+            self.FlushBuffer()
             return
-        self.sr.table = None
-        self.OnEnd_default('table')
-        self.FlushBuffer()
 
     def OnData_table(self, data, attrs):
         pass
@@ -1859,11 +1906,13 @@ class ParserBaseCore(object):
     def OnStart_colgroup(self, attrs):
         if self.sr.table is None:
             return
-        s = {}
-        s['colgroup-width'] = attrs.width
-        s['colgroup-span'] = attrs.span
-        s['cols'] = []
-        self.OnStart_default('colgroup', attrs, s)
+        else:
+            s = {}
+            s['colgroup-width'] = attrs.width
+            s['colgroup-span'] = attrs.span
+            s['cols'] = []
+            self.OnStart_default('colgroup', attrs, s)
+            return
 
     def OnData_colgroup(self, data, attrs):
         pass
@@ -1881,45 +1930,50 @@ class ParserBaseCore(object):
     def OnStart_col(self, attrs):
         if self.sr.table is None:
             return
-        if not self.attrStack[-1].has_key('cols'):
+        elif not self.attrStack[-1].has_key('cols'):
             return
-        for i in xrange(attrs.span or 1):
-            self.attrStack[-1]['cols'].append(attrs.width)
+        else:
+            for i in xrange(attrs.span or 1):
+                self.attrStack[-1]['cols'].append(attrs.width)
+
+            return
 
     @telemetry.ZONE_METHOD
     def OnStart_tr(self, attrs):
         if self.sr.table is None:
             return
-        attrs.cols = []
-        if unicode(attrs.height).isdigit():
-            attrs.height = int(attrs.height or 0)
         else:
-            attrs.height = 0
-        s = {}
-        for side in ['left',
-         'top',
-         'right',
-         'bottom']:
-            if getattr(attrs, 'border', 0):
-                s['border-%s-width' % side] = int(attrs.border or 0)
-            if getattr(attrs, 'bordercolor', None):
-                s['border-%s-color' % side] = ParseHTMLColor(attrs.bordercolor or '#000000', 1)
-            if hasattr(attrs, 'cellspacing') and attrs.cellspacing is not None:
-                s['spacing-%s' % side] = max(0, int((int(attrs.cellspacing) + [0, 1][side in ('right', 'bottom')]) / 2))
-            if hasattr(attrs, 'cellpadding') and attrs.cellpadding is not None:
-                s['padding-%s' % side] = max(0, int(attrs.cellpadding))
+            attrs.cols = []
+            if unicode(attrs.height).isdigit():
+                attrs.height = int(attrs.height or 0)
+            else:
+                attrs.height = 0
+            s = {}
+            for side in ['left',
+             'top',
+             'right',
+             'bottom']:
+                if getattr(attrs, 'border', 0):
+                    s['border-%s-width' % side] = int(attrs.border or 0)
+                if getattr(attrs, 'bordercolor', None):
+                    s['border-%s-color' % side] = ParseHTMLColor(attrs.bordercolor or '#000000', 1)
+                if hasattr(attrs, 'cellspacing') and attrs.cellspacing is not None:
+                    s['spacing-%s' % side] = max(0, int((int(attrs.cellspacing) + [0, 1][side in ('right', 'bottom')]) / 2))
+                if hasattr(attrs, 'cellpadding') and attrs.cellpadding is not None:
+                    s['padding-%s' % side] = max(0, int(attrs.cellpadding))
 
-        if attrs.valign is not None:
-            s['vertical-align'] = getattr(html, 'ALIGN%s' % unicode(attrs.valign).upper(), 1)
-        else:
-            s['vertical-align'] = html.ALIGNTOP
-        s['background-image'] = None
-        s['background-color'] = None
-        if attrs.bgcolor is not None:
-            s['background-color'] = ParseHTMLColor(attrs.bgcolor, 1)
-        self.OnStart_default('tr', attrs, s)
-        attrs.styles = self.attrStack[-1].copy()
-        self.sr.table.rows.append(attrs)
+            if attrs.valign is not None:
+                s['vertical-align'] = getattr(html, 'ALIGN%s' % unicode(attrs.valign).upper(), 1)
+            else:
+                s['vertical-align'] = html.ALIGNTOP
+            s['background-image'] = None
+            s['background-color'] = None
+            if attrs.bgcolor is not None:
+                s['background-color'] = ParseHTMLColor(attrs.bgcolor, 1)
+            self.OnStart_default('tr', attrs, s)
+            attrs.styles = self.attrStack[-1].copy()
+            self.sr.table.rows.append(attrs)
+            return
 
     @telemetry.ZONE_METHOD
     def OnEnd_tr(self):
@@ -1931,8 +1985,9 @@ class ParserBaseCore(object):
     def GetInt(self, stringVal):
         if stringVal is None:
             return stringVal
-        stringVal = filter(lambda x: x in '0123456789', unicode(stringVal))
-        return int(stringVal)
+        else:
+            stringVal = filter(lambda x: x in '0123456789', unicode(stringVal))
+            return int(stringVal)
 
     def GetPercent(self, value, reference):
         if type(value) == str and value.endswith('%'):
@@ -1952,33 +2007,35 @@ class ParserBaseCore(object):
     def OnStart_td(self, attrs):
         if self.sr.table is None:
             return
-        if not getattr(self.sr.table, 'rows', None):
-            attrs.height = getattr(attrs, 'height', None)
-            self.OnStart_tr(attrs)
-        h = unicode(getattr(attrs, 'height', None))
-        if h and h[-1] == '%':
-            attrs.height = None
-        attrs.content = []
-        s = {}
-        s['text-align'] = 'left'
-        for side in ['left',
-         'top',
-         'right',
-         'bottom']:
-            s['border-%s-width' % side] = int(getattr(attrs, 'border', 0))
-            if getattr(attrs, 'bordercolor', None):
-                s['border-%s-color' % side] = ParseHTMLColor(attrs.bordercolor or '#000000', 1)
+        else:
+            if not getattr(self.sr.table, 'rows', None):
+                attrs.height = getattr(attrs, 'height', None)
+                self.OnStart_tr(attrs)
+            h = unicode(getattr(attrs, 'height', None))
+            if h and h[-1] == '%':
+                attrs.height = None
+            attrs.content = []
+            s = {}
+            s['text-align'] = 'left'
+            for side in ['left',
+             'top',
+             'right',
+             'bottom']:
+                s['border-%s-width' % side] = int(getattr(attrs, 'border', 0))
+                if getattr(attrs, 'bordercolor', None):
+                    s['border-%s-color' % side] = ParseHTMLColor(attrs.bordercolor or '#000000', 1)
 
-        if getattr(attrs, 'valign', None):
-            s['vertical-align'] = getattr(html, 'ALIGN%s' % unicode(attrs.valign).upper(), 1)
-        s['text-align'] = getattr(attrs, 'align', None) or s['text-align']
-        if attrs.bgcolor is not None:
-            s['background-color'] = ParseHTMLColor(attrs.bgcolor, 1)
-        self.OnStart_default('td', attrs, s)
-        attrs.styles = self.attrStack[-1].copy()
-        attrs.css = self.css.copy()
-        self.attrStack[-1]['bufferStack'] = []
-        self.sr.table.rows[-1].cols.append(attrs)
+            if getattr(attrs, 'valign', None):
+                s['vertical-align'] = getattr(html, 'ALIGN%s' % unicode(attrs.valign).upper(), 1)
+            s['text-align'] = getattr(attrs, 'align', None) or s['text-align']
+            if attrs.bgcolor is not None:
+                s['background-color'] = ParseHTMLColor(attrs.bgcolor, 1)
+            self.OnStart_default('td', attrs, s)
+            attrs.styles = self.attrStack[-1].copy()
+            attrs.css = self.css.copy()
+            self.attrStack[-1]['bufferStack'] = []
+            self.sr.table.rows[-1].cols.append(attrs)
+            return
 
     @telemetry.ZONE_METHOD
     def OnEnd_td(self):
@@ -1988,39 +2045,42 @@ class ParserBaseCore(object):
         else:
             log.LogWarn('Ending unknown td')
         self.OnEnd_default('td')
+        return
 
     @telemetry.ZONE_METHOD
     def OnStart_th(self, attrs):
         if self.sr.table is None:
             return
-        if not getattr(self.sr.table, 'rows', None):
-            attrs.height = getattr(attrs, 'height', None)
-            self.OnStart_tr(attrs)
-        h = unicode(getattr(attrs, 'height', None))
-        if h and h[-1] == '%':
-            attrs.height = None
-        attrs.content = []
-        s = {}
-        s['text-align'] = 'center'
-        s['font-weight'] = 'b'
-        for side in ['left',
-         'top',
-         'right',
-         'bottom']:
-            s['border-%s-width' % side] = int(getattr(attrs, 'border', 0))
-            if getattr(attrs, 'bordercolor', None):
-                s['border-%s-color' % side] = ParseHTMLColor(attrs.bordercolor or '#000000', 1)
+        else:
+            if not getattr(self.sr.table, 'rows', None):
+                attrs.height = getattr(attrs, 'height', None)
+                self.OnStart_tr(attrs)
+            h = unicode(getattr(attrs, 'height', None))
+            if h and h[-1] == '%':
+                attrs.height = None
+            attrs.content = []
+            s = {}
+            s['text-align'] = 'center'
+            s['font-weight'] = 'b'
+            for side in ['left',
+             'top',
+             'right',
+             'bottom']:
+                s['border-%s-width' % side] = int(getattr(attrs, 'border', 0))
+                if getattr(attrs, 'bordercolor', None):
+                    s['border-%s-color' % side] = ParseHTMLColor(attrs.bordercolor or '#000000', 1)
 
-        if getattr(attrs, 'valign', None):
-            s['vertical-align'] = getattr(html, 'ALIGN%s' % unicode(attrs.valign).upper(), 1)
-        s['text-align'] = getattr(attrs, 'align', None) or s['text-align']
-        if attrs.bgcolor is not None:
-            s['background-color'] = ParseHTMLColor(attrs.bgcolor, 1)
-        self.OnStart_default('th', attrs, s)
-        attrs.styles = self.attrStack[-1].copy()
-        attrs.css = self.css.copy()
-        self.attrStack[-1]['bufferStack'] = []
-        self.sr.table.rows[-1].cols.append(attrs)
+            if getattr(attrs, 'valign', None):
+                s['vertical-align'] = getattr(html, 'ALIGN%s' % unicode(attrs.valign).upper(), 1)
+            s['text-align'] = getattr(attrs, 'align', None) or s['text-align']
+            if attrs.bgcolor is not None:
+                s['background-color'] = ParseHTMLColor(attrs.bgcolor, 1)
+            self.OnStart_default('th', attrs, s)
+            attrs.styles = self.attrStack[-1].copy()
+            attrs.css = self.css.copy()
+            self.attrStack[-1]['bufferStack'] = []
+            self.sr.table.rows[-1].cols.append(attrs)
+            return
 
     @telemetry.ZONE_METHOD
     def OnEnd_th(self):
@@ -2030,6 +2090,7 @@ class ParserBaseCore(object):
         else:
             log.LogWarn('Ending unknown th')
         self.OnEnd_default('th')
+        return
 
     @telemetry.ZONE_METHOD
     def OnStart_a(self, attrs):
@@ -2041,6 +2102,7 @@ class ParserBaseCore(object):
         self.attrStack[-1]['link-color'] = self.attrStack[-1]['link-color'] or self.attrStack[-1]['color']
         attrs.color = [self.attrStack[-1]['link-color'], self.attrStack[-1]['vlink-color'] or self.attrStack[-1]['link-color']][attrs.href in visited]
         self.a = attrs
+        return
 
     def CheckForMailAddress(self, attrs):
         pass
@@ -2048,6 +2110,7 @@ class ParserBaseCore(object):
     def OnEnd_a(self):
         self.a = None
         self.OnEnd_default('a')
+        return
 
     def OnStart_span(self, attrs):
         self.OnStart_default('span', attrs)

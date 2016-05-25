@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\client\script\ui\shared\systemMenu\generalSettings.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\client\script\ui\shared\systemMenu\generalSettings.py
 from carbonui.control.scrollContainer import ScrollContainer
 from carbonui.primitives.container import Container
 from carbonui.primitives.fill import Fill
@@ -61,19 +62,19 @@ class GenericSystemMenu(object):
           None,
           (localization.GetByLabel('UI/SystemMenu/GeneralSettings/Tooltips/NoTooltipsDelay'), localization.GetByLabel('UI/SystemMenu/GeneralSettings/Tooltips/LongTooltipsDelay'))), ('toppush', 4)]
 
-    def CloseOrValidateColumn(self, column, doValidate = True):
+    def CloseOrValidateColumn(self, column, doValidate=True):
         if len(column.children) == 1:
             column.Close()
         elif doValidate:
             self.ValidateMenuSize(column)
 
-    def AddColumn(self, columnWidth, name = 'column'):
+    def AddColumn(self, columnWidth, name='column'):
         column = uiprimitives.Container(name=name, align=uiconst.TOLEFT, width=columnWidth, padLeft=8, parent=self.parent)
         column.isTabOrderGroup = 1
         BumpedUnderlay(isInFocus=True, parent=column)
         return column
 
-    def AppendToColumn(self, menuData, column, validateEntries = True):
+    def AppendToColumn(self, menuData, column, validateEntries=True):
         self.ParseDataCallback(entries=menuData, parent=column, validateEntries=validateEntries)
 
     def MakeColumn1(self, columnWidth):
@@ -126,6 +127,7 @@ class GenericSystemMenu(object):
         bottomPar = uiprimitives.Container(name='bottomPar', parent=None, align=uiconst.TOALL)
         bottomBtnPar = uiprimitives.Container(name='bottomBtnPar', parent=bottomPar, align=uiconst.CENTERTOP, height=26)
         column.children.append(bottomPar)
+        return
 
     def ConstructAndAppendOptionalClientUpdate(self, column):
         optionalUpgradeData = [('header', localization.GetByLabel('UI/SystemMenu/GeneralSettings/ClientUpdate/Header'))]
@@ -200,6 +202,7 @@ class GenericSystemMenu(object):
                  'entryWidth': columnWidth - 16}))
 
             scroll.Load(contentList=scrollList)
+        return
 
     def ConstructInflightMenuData(self):
         atOps = []
@@ -244,9 +247,11 @@ class GenericSystemMenu(object):
 
     def EnableDisableBreakpad(self, checkbox):
         try:
-            blue.EnableBreakpad(checkbox.checked)
-        except RuntimeError:
-            pass
+            try:
+                blue.EnableBreakpad(checkbox.checked)
+            except RuntimeError:
+                pass
+
         finally:
             prefs.SetValue('breakpadUpload', 1 if checkbox.checked else 0)
 

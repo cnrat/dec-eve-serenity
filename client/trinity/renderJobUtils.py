@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\packages\trinity\renderJobUtils.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\packages\trinity\renderJobUtils.py
 from . import _trinity
 from . import _singletons
 import blue as _blue
@@ -14,23 +15,24 @@ class RenderTargetManager(object):
             if not rt.isValid:
                 function(target=rt, *args)
             return rt
+        else:
 
-        def DeleteObject():
-            self.targets.pop(key)
+            def DeleteObject():
+                self.targets.pop(key)
 
-        rt = function(*args)
-        self.targets[key] = _blue.BluePythonWeakRef(rt)
-        self.targets[key].callback = DeleteObject
-        return rt
+            rt = function(*args)
+            self.targets[key] = _blue.BluePythonWeakRef(rt)
+            self.targets[key].callback = DeleteObject
+            return rt
 
     @staticmethod
-    def _CreateDepthStencilAL(width, height, format, msaaType, msaaQuality, target = None):
+    def _CreateDepthStencilAL(width, height, format, msaaType, msaaQuality, target=None):
         if target is None:
             target = _trinity.Tr2DepthStencil()
         target.Create(width, height, format, msaaType, msaaQuality)
         return target
 
-    def GetDepthStencilAL(self, width, height, format, msaaType = 1, msaaQuality = 0, index = 0):
+    def GetDepthStencilAL(self, width, height, format, msaaType=1, msaaQuality=0, index=0):
         key = (RenderTargetManager._CreateDepthStencilAL,
          index,
          width,
@@ -41,20 +43,20 @@ class RenderTargetManager(object):
         return self._Get(key, RenderTargetManager._CreateDepthStencilAL, width, height, format, msaaType, msaaQuality)
 
     @staticmethod
-    def _CreateRenderTargetAL(width, height, mipLevels, format, target = None):
+    def _CreateRenderTargetAL(width, height, mipLevels, format, target=None):
         if target is None:
             target = _trinity.Tr2RenderTarget()
         target.Create(width, height, mipLevels, format)
         return target
 
     @staticmethod
-    def _CreateRenderTargetMsaaAL(width, height, format, msaaType, msaaQuality, target = None):
+    def _CreateRenderTargetMsaaAL(width, height, format, msaaType, msaaQuality, target=None):
         if target is None:
             target = _trinity.Tr2RenderTarget()
         target.CreateMsaa(width, height, format, msaaType, msaaQuality)
         return target
 
-    def GetRenderTargetAL(self, width, height, mipLevels, format, index = 0):
+    def GetRenderTargetAL(self, width, height, mipLevels, format, index=0):
         key = (RenderTargetManager._CreateRenderTargetAL,
          index,
          width,
@@ -63,7 +65,7 @@ class RenderTargetManager(object):
          format)
         return self._Get(key, RenderTargetManager._CreateRenderTargetAL, width, height, mipLevels, format)
 
-    def GetRenderTargetMsaaAL(self, width, height, format, msaaType, msaaQuality, index = 0):
+    def GetRenderTargetMsaaAL(self, width, height, format, msaaType, msaaQuality, index=0):
         key = (RenderTargetManager._CreateRenderTargetMsaaAL,
          index,
          width,

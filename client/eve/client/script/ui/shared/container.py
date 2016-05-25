@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\client\script\ui\shared\container.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\client\script\ui\shared\container.py
 from carbonui.control.scrollentries import SE_BaseClassCore
 from eve.client.script.ui.control.themeColored import FillThemeColored, FrameThemeColored
 import evetypes
@@ -35,6 +36,7 @@ class InvContViewBtns(uicontrols.ContainerAutoSize):
         self.btnViewModeIcons = uicontrols.ButtonIcon(texturePath='res:/UI/Texture/Icons/38_16_188.png', parent=self, width=self.height, align=uiconst.TOLEFT, func=self.SetViewModeIcons, hint=localization.GetByLabel('UI/Inventory/Icons'))
         self.btnViewModeIconList = uicontrols.ButtonIcon(texturePath='res:/UI/Texture/Icons/38_16_189.png', parent=self, align=uiconst.TOLEFT, width=self.height, func=self.SetViewModeIconList, hint=localization.GetByLabel('UI/Inventory/Details'))
         self.btnViewModeList = uicontrols.ButtonIcon(texturePath='res:/UI/Texture/Icons/38_16_190.png', parent=self, align=uiconst.TOLEFT, width=self.height, func=self.SetViewModeList, hint=localization.GetByLabel('UI/Inventory/List'))
+        return
 
     def SetViewModeIcons(self):
         self._SetViewMode(0)
@@ -71,6 +73,7 @@ class InvContQuickFilter(uiprimitives.Container):
         self.quickFilterInputBox.SetHistoryVisibility(0)
         if self.invCont:
             self.SetInvCont(self.invCont)
+        return
 
     def SetInvCont(self, invCont):
         self.invCont = invCont
@@ -95,6 +98,7 @@ class InvContQuickFilter(uiprimitives.Container):
         if self.invCont:
             self.invCont.SetQuickFilterInput(self.quickFilterInputBox.GetValue())
         self.inputThread = None
+        return
 
 
 class InvContCapacityGauge(uiprimitives.Container):
@@ -129,6 +133,7 @@ class InvContCapacityGauge(uiprimitives.Container):
             self.SetInvCont(invCont)
         else:
             self.invCont = None
+        return
 
     def SetInvCont(self, invCont):
         self.invCont = invCont
@@ -177,7 +182,7 @@ class InvContCapacityGauge(uiprimitives.Container):
         return self.capacityText.text
 
     @telemetry.ZONE_METHOD
-    def SetAdditionalVolume(self, items = []):
+    def SetAdditionalVolume(self, items=[]):
         if not self.invCont:
             return
         volume = 0
@@ -199,7 +204,7 @@ class InvContCapacityGauge(uiprimitives.Container):
         self.UpdateLabel()
 
     @telemetry.ZONE_METHOD
-    def SetSecondaryVolume(self, items = []):
+    def SetSecondaryVolume(self, items=[]):
         volume = 0
         for item in items:
             volume += GetItemVolume(item)
@@ -216,9 +221,8 @@ class InvContCapacityGauge(uiprimitives.Container):
             cap = self.invCont.invController.GetCapacity()
             if cap.capacity:
                 return min(1.0, volume / cap.capacity)
-        return 0
 
-    def OnItemChange(self, item = None, change = None):
+    def OnItemChange(self, item=None, change=None):
         if not self.invCont:
             return
         if item.itemID == util.GetActiveShip():
@@ -247,6 +251,8 @@ class InvContCapacityGauge(uiprimitives.Container):
 
         finally:
             self.refreshGaugesThread = None
+
+        return
 
 
 class _InvContBase(uiprimitives.Container):
@@ -290,6 +296,7 @@ class _InvContBase(uiprimitives.Container):
             uicls.InvContViewBtns(parent=self.topCont, align=uiconst.CENTERLEFT, controller=self)
             uicls.InvContQuickFilter(parent=self.topCont, align=uiconst.CENTERRIGHT, invCont=self)
         self.ConstructUI()
+        return
 
     def ConstructUI(self):
         self.scroll = uicontrols.Scroll(parent=self, state=uiconst.UI_PICKCHILDREN)
@@ -319,7 +326,7 @@ class _InvContBase(uiprimitives.Container):
     def SetInvContViewMode(self, value):
         self.ChangeViewMode(value)
 
-    def SetQuickFilterInput(self, filterTxt = ''):
+    def SetQuickFilterInput(self, filterTxt=''):
         if len(filterTxt) > 0:
             self.quickFilterInput = filterTxt.lower()
             self.Refresh()
@@ -329,6 +336,7 @@ class _InvContBase(uiprimitives.Container):
             if prefilter != None:
                 self.Refresh()
             self.hintText = None
+        return
 
     def QuickFilter(self, item):
         name = uix.GetItemName(item).lower()
@@ -354,6 +362,7 @@ class _InvContBase(uiprimitives.Container):
         elif combo and combo.name == 'filterGroup':
             settings.user.ui.Set('containerGroupFilter%s' % self.name.title(), value)
         self.Refresh()
+        return
 
     def OnPostCfgDataChanged(self, what, data):
         if what == 'evelocations':
@@ -366,36 +375,41 @@ class _InvContBase(uiprimitives.Container):
                         each.panel.UpdateLabel()
                     return
 
+        return
+
     def _OnClose(self, *args):
         if self.itemChangeThread:
             self.itemChangeThread.kill()
 
-    def ChangeViewMode(self, viewMode = 0):
+    def ChangeViewMode(self, viewMode=0):
         if self.changeViewModeThread:
             self.changeViewModeThread.kill()
         self.changeViewModeThread = uthread.new(self._ChangeViewMode, viewMode)
 
-    def _ChangeViewMode(self, viewMode = 0):
+    def _ChangeViewMode(self, viewMode=0):
         if self.destroyed:
             return
-        self.viewMode = ['icons', 'details', 'list'][viewMode]
-        settings.user.ui.Set('containerViewMode_%s' % self.name, self.viewMode)
-        self.items = self.invController.GetItems()
-        self.invController.OnItemsViewed()
-        self.PrimeItems([ item for item in self.items if item is not None ])
-        if self.items:
-            self.items = self.FilterItems(self.items)
-        self.UpdateHint()
-        try:
-            if self.viewMode == 'icons':
-                self.SortIconsBy(self.sortIconsBy, self.sortIconsDir)
-            else:
-                self.RefreshView()
-        except UserError:
-            self.Close()
-            if self.sr.Get('cookie', None):
-                sm.GetService('inv').Unregister(self.invSvcCookie)
-            raise
+        else:
+            self.viewMode = ['icons', 'details', 'list'][viewMode]
+            settings.user.ui.Set('containerViewMode_%s' % self.name, self.viewMode)
+            self.items = self.invController.GetItems()
+            self.invController.OnItemsViewed()
+            self.PrimeItems([ item for item in self.items if item is not None ])
+            if self.items:
+                self.items = self.FilterItems(self.items)
+            self.UpdateHint()
+            try:
+                if self.viewMode == 'icons':
+                    self.SortIconsBy(self.sortIconsBy, self.sortIconsDir)
+                else:
+                    self.RefreshView()
+            except UserError:
+                self.Close()
+                if self.sr.Get('cookie', None):
+                    sm.GetService('inv').Unregister(self.invSvcCookie)
+                raise
+
+            return
 
     def FilterItems(self, items):
         oldNum = len(items)
@@ -480,6 +494,7 @@ class _InvContBase(uiprimitives.Container):
             sortedList.reverse()
         self.items = sortedList
         self.RefreshView()
+        return
 
     def _OnSizeChange_NoBlock(self, *args):
         self.sr.resizeTimer = base.AutoTimer(250, self.OnEndScale_)
@@ -488,65 +503,69 @@ class _InvContBase(uiprimitives.Container):
         if self.destroyed:
             self.sr.resizeTimer = None
             return
-        if not self.initialized:
+        elif not self.initialized:
             return
-        self.sr.resizeTimer = None
-        oldcols = self.cols
-        self.RefreshCols()
-        if self.viewMode == 'icons':
-            if self.refreshingView:
-                self.reRefreshView = True
-                return
-            if oldcols != self.cols:
-                uthread.new(self.RefreshView)
+        else:
+            self.sr.resizeTimer = None
+            oldcols = self.cols
+            self.RefreshCols()
+            if self.viewMode == 'icons':
+                if self.refreshingView:
+                    self.reRefreshView = True
+                    return
+                if oldcols != self.cols:
+                    uthread.new(self.RefreshView)
+            return
 
     @telemetry.ZONE_METHOD
-    def AddItem(self, rec, index = None, fromWhere = None):
+    def AddItem(self, rec, index=None, fromWhere=None):
         if self.quickFilterInput:
             if not self.QuickFilter(rec):
                 return
         if not self.FilterItems([rec]):
             return
-        lg.Info('vcont', 'AddItem', fromWhere, rec.stacksize, evetypes.GetName(rec.typeID))
-        for node in self.scroll.sr.nodes:
-            if self.viewMode in ('details', 'list'):
-                if node is not None and node.Get('item', None) and node.item.itemID == rec.itemID:
-                    lg.Warn('vcont', 'Tried to add an item that is already there??')
-                    self.UpdateItem(node.item)
-                    return
-            else:
-                for internalNode in node.internalNodes:
-                    if internalNode is not None and internalNode.item.itemID == rec.itemID:
-                        lg.Warn('vcont', 'Tried to add an item that is already there??')
-                        self.UpdateItem(internalNode.item)
-                        return
-
-        import listentry
-        if self.viewMode in ('details', 'list'):
-            self.items.append(rec)
-            self.scroll.AddEntries(-1, [listentry.Get('InvItem', data=uix.GetItemData(rec, self.viewMode, self.invController.viewOnly, container=self, scrollID=self.scroll.sr.id))])
-            self.UpdateHint()
         else:
-            if index is not None:
-                while index < len(self.items):
-                    if self.items[index] is None:
-                        return self.SetItem(index, rec)
-                    index += 1
+            lg.Info('vcont', 'AddItem', fromWhere, rec.stacksize, evetypes.GetName(rec.typeID))
+            for node in self.scroll.sr.nodes:
+                if self.viewMode in ('details', 'list'):
+                    if node is not None and node.Get('item', None) and node.item.itemID == rec.itemID:
+                        lg.Warn('vcont', 'Tried to add an item that is already there??')
+                        self.UpdateItem(node.item)
+                        return
+                else:
+                    for internalNode in node.internalNodes:
+                        if internalNode is not None and internalNode.item.itemID == rec.itemID:
+                            lg.Warn('vcont', 'Tried to add an item that is already there??')
+                            self.UpdateItem(internalNode.item)
+                            return
 
-                while index >= len(self.scroll.sr.nodes) * self.cols:
+            import listentry
+            if self.viewMode in ('details', 'list'):
+                self.items.append(rec)
+                self.scroll.AddEntries(-1, [listentry.Get('InvItem', data=uix.GetItemData(rec, self.viewMode, self.invController.viewOnly, container=self, scrollID=self.scroll.sr.id))])
+                self.UpdateHint()
+            else:
+                if index is not None:
+                    while index < len(self.items):
+                        if self.items[index] is None:
+                            return self.SetItem(index, rec)
+                        index += 1
+
+                    while index >= len(self.scroll.sr.nodes) * self.cols:
+                        self.AddRow()
+
+                    return self.SetItem(index, rec)
+                if len(self.items) and None in self.items:
+                    idx = self.tmpDropIdx.get(rec.itemID, None)
+                    if idx is None:
+                        idx = self.items.index(None)
+                    return self.SetItem(idx, rec)
+                if not self.cols:
+                    self.RefreshCols()
+                if index >= len(self.scroll.sr.nodes) * self.cols:
                     self.AddRow()
-
-                return self.SetItem(index, rec)
-            if len(self.items) and None in self.items:
-                idx = self.tmpDropIdx.get(rec.itemID, None)
-                if idx is None:
-                    idx = self.items.index(None)
-                return self.SetItem(idx, rec)
-            if not self.cols:
-                self.RefreshCols()
-            if index >= len(self.scroll.sr.nodes) * self.cols:
-                self.AddRow()
-            return self.SetItem(0, rec)
+                return self.SetItem(0, rec)
+            return
 
     @telemetry.ZONE_METHOD
     def UpdateItem(self, rec, *etc):
@@ -580,6 +599,7 @@ class _InvContBase(uiprimitives.Container):
                     i += 1
 
         lg.Warn('vcont', 'Tried to update an item that is not there??')
+        return
 
     @telemetry.ZONE_METHOD
     def RemoveItem(self, rec):
@@ -613,6 +633,7 @@ class _InvContBase(uiprimitives.Container):
                 i += 1
 
             self.CleanupRows()
+        return
 
     @telemetry.ZONE_METHOD
     def CleanupRows(self):
@@ -626,6 +647,7 @@ class _InvContBase(uiprimitives.Container):
 
         if rm:
             self.scroll.RemoveEntries(rm)
+        return
 
     @telemetry.ZONE_METHOD
     def AddRow(self):
@@ -638,6 +660,7 @@ class _InvContBase(uiprimitives.Container):
           'hilightable': False,
           'container': self})])
         self.scroll.UpdatePosition()
+        return
 
     @telemetry.ZONE_METHOD
     def StackAll(self):
@@ -651,6 +674,7 @@ class _InvContBase(uiprimitives.Container):
             idx = self.cols * len(self.scroll.sr.nodes) + (uicore.uilib.x - l) // (64 + colMargin)
         sm.ScatterEvent('OnInvContDragExit', self.invController.GetInvID(), [])
         self.OnDropDataWithIdx(nodes, idx)
+        return
 
     def OnDragEnter(self, dragObj, nodes):
         sm.ScatterEvent('OnInvContDragEnter', self.invController.GetInvID(), nodes)
@@ -681,13 +705,14 @@ class _InvContBase(uiprimitives.Container):
                     invController = invCtrl.StationItems() if session.stationid else invCtrl.ShipCargo()
                     blue.synchro.SleepWallclock(100)
                     newItem = invController.GetItem(itemID)
-                    self.invController.AddItems([newItem])
+                    if newItem:
+                        self.invController.AddItems([newItem])
 
         else:
             self.invController.OnDropData(items)
 
     @telemetry.ZONE_METHOD
-    def OnDropDataWithIdx(self, nodes, idx = None):
+    def OnDropDataWithIdx(self, nodes, idx=None):
         self.scroll.ClearSelection()
         if len(nodes) and getattr(nodes[0], 'scroll', None) and not nodes[0].scroll.destroyed:
             nodes[0].scroll.ClearSelection()
@@ -708,7 +733,8 @@ class _InvContBase(uiprimitives.Container):
                 self.OnItemDrop(idx, node)
 
             return
-        return self.invController.OnDropData(nodes)
+        else:
+            return self.invController.OnDropData(nodes)
 
     @telemetry.ZONE_METHOD
     def OnItemDrop(self, index, node):
@@ -721,47 +747,49 @@ class _InvContBase(uiprimitives.Container):
         lg.Info('vcont', 'SetItem', index, rec and '[%s %s]' % (rec.stacksize, evetypes.GetName(rec.typeID)))
         if not self or self.destroyed:
             return
-        if index < len(self.items) and rec and self.items[index] is not None and self.items[index].itemID != rec.itemID:
-            while index < len(self.items) and self.items[index] is not None:
-                index += 1
-
-        if self.cols:
-            rowIndex = index // self.cols
         else:
-            rowIndex = 0
-        while rowIndex >= len(self.scroll.sr.nodes):
-            self.AddRow()
+            if index < len(self.items) and rec and self.items[index] is not None and self.items[index].itemID != rec.itemID:
+                while index < len(self.items) and self.items[index] is not None:
+                    index += 1
 
-        while index >= len(self.items):
-            self.items += [None]
-
-        self.items[index] = rec
-        try:
-            self.scroll.sr.nodes[rowIndex].rec[index % self.cols] = rec
-            self.UpdateHint()
-            node = None
-            if rec:
-                node = uix.GetItemData(rec, self.viewMode, self.invController.viewOnly, container=self, scrollID=self.scroll.sr.id)
-                if not self or self.destroyed:
-                    return
-                node.scroll = self.scroll
-                node.panel = None
-                node.idx = index
-                node.__guid__ = 'xtriui.InvItem'
-            self.scroll.sr.nodes[index // self.cols].internalNodes[index % self.cols] = node
-        except IndexError:
-            return
-
-        icon = self.GetIcon(index)
-        if icon:
-            if rec is None:
-                icon.state = uiconst.UI_HIDDEN
-                icon.sr.node = None
+            if self.cols:
+                rowIndex = index // self.cols
             else:
-                icon.state = uiconst.UI_NORMAL
-                node.panel = icon
-                node.viewOnly = self.invController.viewOnly
-                icon.Load(node)
+                rowIndex = 0
+            while rowIndex >= len(self.scroll.sr.nodes):
+                self.AddRow()
+
+            while index >= len(self.items):
+                self.items += [None]
+
+            self.items[index] = rec
+            try:
+                self.scroll.sr.nodes[rowIndex].rec[index % self.cols] = rec
+                self.UpdateHint()
+                node = None
+                if rec:
+                    node = uix.GetItemData(rec, self.viewMode, self.invController.viewOnly, container=self, scrollID=self.scroll.sr.id)
+                    if not self or self.destroyed:
+                        return
+                    node.scroll = self.scroll
+                    node.panel = None
+                    node.idx = index
+                    node.__guid__ = 'xtriui.InvItem'
+                self.scroll.sr.nodes[index // self.cols].internalNodes[index % self.cols] = node
+            except IndexError:
+                return
+
+            icon = self.GetIcon(index)
+            if icon:
+                if rec is None:
+                    icon.state = uiconst.UI_HIDDEN
+                    icon.sr.node = None
+                else:
+                    icon.state = uiconst.UI_NORMAL
+                    node.panel = icon
+                    node.viewOnly = self.invController.viewOnly
+                    icon.Load(node)
+            return
 
     @telemetry.ZONE_METHOD
     def RefreshCols(self):
@@ -797,73 +825,76 @@ class _InvContBase(uiprimitives.Container):
     def RefreshView(self, *args):
         if self.refreshingView:
             return
-        self.refreshingView = 1
-        try:
-            if self.viewMode in ('details', 'list'):
-                self.scroll.sr.id = 'containerWnd_%s' % self.invController.GetName()
-                self.scroll.hiliteSorted = 1
-                scrolllist = []
-                import listentry
-                for rec in self.items:
-                    if rec:
-                        id = self.scroll.sr.id
-                        theData = uix.GetItemData(rec, self.viewMode, self.invController.viewOnly, container=self, scrollID=id)
-                        list = listentry.Get('InvItem', data=theData)
-                        scrolllist.append(list)
+        else:
+            self.refreshingView = 1
+            try:
+                if self.viewMode in ('details', 'list'):
+                    self.scroll.sr.id = 'containerWnd_%s' % self.invController.GetName()
+                    self.scroll.hiliteSorted = 1
+                    scrolllist = []
+                    import listentry
+                    for rec in self.items:
+                        if rec:
+                            id = self.scroll.sr.id
+                            theData = uix.GetItemData(rec, self.viewMode, self.invController.viewOnly, container=self, scrollID=id)
+                            list = listentry.Get('InvItem', data=theData)
+                            scrolllist.append(list)
 
-                hdr = uix.GetInvItemDefaultHeaders()
-                scrll = self.scroll.GetScrollProportion()
-                theSc = self.scroll
-                theSc.Load(contentList=scrolllist, headers=hdr, scrollTo=scrll)
-            else:
-                if not self.cols:
-                    self.RefreshCols()
-                while self.items and self.items[-1] is None:
-                    self.items = self.items[:-1]
-
-                content = []
-                selectedItems = [ node.item for node in self.scroll.GetSelected() ]
-                import listentry
-                for i in xrange(len(self.items)):
-                    blue.pyos.BeNice()
-                    if not i % self.cols:
-                        entry = [None] * self.cols
-                        nodes = [None] * self.cols
-                        content.append(listentry.Get('VirtualContainerRow', {'lenitems': i,
-                         'rec': entry,
-                         'internalNodes': nodes,
-                         'parentWindow': self,
-                         'hilightable': False,
-                         'container': self}))
-                    if self.items[i]:
-                        node = uix.GetItemData(self.items[i], self.viewMode, self.invController.viewOnly, container=self)
-                        node.scroll = self.scroll
-                        node.panel = None
-                        node.__guid__ = 'xtriui.InvItem'
-                        node.idx = i
-                        node.selected = node.item in selectedItems
-                        nodes[i % self.cols] = node
-                        entry[i % self.cols] = self.items[i]
-
-                self.scroll.sr.sortBy = None
-                self.scroll.sr.id = None
-                self.scroll.Load(fixedEntryHeight=self.iconHeight + rowMargin, contentList=content, scrollTo=self.scroll.GetScrollProportion())
-                self.CleanupRows()
-            self.UpdateHint()
-            self.initialized = True
-            sm.ScatterEvent('OnInvContRefreshed', self)
-        finally:
-            if not self.destroyed:
-                if self.viewMode == 'details':
-                    self.scroll.sr.minColumnWidth = {localization.GetByLabel('UI/Common/Name'): 44}
-                    self.scroll.UpdateTabStops()
+                    hdr = uix.GetInvItemDefaultHeaders()
+                    scrll = self.scroll.GetScrollProportion()
+                    theSc = self.scroll
+                    theSc.Load(contentList=scrolllist, headers=hdr, scrollTo=scrll)
                 else:
-                    self.scroll.sr.minColumnWidth = {}
-                self.refreshingView = 0
-                if self.reRefreshView:
-                    self.reRefreshView = False
-                    self.RefreshCols()
-                    uthread.new(self.RefreshView)
+                    if not self.cols:
+                        self.RefreshCols()
+                    while self.items and self.items[-1] is None:
+                        self.items = self.items[:-1]
+
+                    content = []
+                    selectedItems = [ node.item for node in self.scroll.GetSelected() ]
+                    import listentry
+                    for i in xrange(len(self.items)):
+                        blue.pyos.BeNice()
+                        if not i % self.cols:
+                            entry = [None] * self.cols
+                            nodes = [None] * self.cols
+                            content.append(listentry.Get('VirtualContainerRow', {'lenitems': i,
+                             'rec': entry,
+                             'internalNodes': nodes,
+                             'parentWindow': self,
+                             'hilightable': False,
+                             'container': self}))
+                        if self.items[i]:
+                            node = uix.GetItemData(self.items[i], self.viewMode, self.invController.viewOnly, container=self)
+                            node.scroll = self.scroll
+                            node.panel = None
+                            node.__guid__ = 'xtriui.InvItem'
+                            node.idx = i
+                            node.selected = node.item in selectedItems
+                            nodes[i % self.cols] = node
+                            entry[i % self.cols] = self.items[i]
+
+                    self.scroll.sr.sortBy = None
+                    self.scroll.sr.id = None
+                    self.scroll.Load(fixedEntryHeight=self.iconHeight + rowMargin, contentList=content, scrollTo=self.scroll.GetScrollProportion())
+                    self.CleanupRows()
+                self.UpdateHint()
+                self.initialized = True
+                sm.ScatterEvent('OnInvContRefreshed', self)
+            finally:
+                if not self.destroyed:
+                    if self.viewMode == 'details':
+                        self.scroll.sr.minColumnWidth = {localization.GetByLabel('UI/Common/Name'): 44}
+                        self.scroll.UpdateTabStops()
+                    else:
+                        self.scroll.sr.minColumnWidth = {}
+                    self.refreshingView = 0
+                    if self.reRefreshView:
+                        self.reRefreshView = False
+                        self.RefreshCols()
+                        uthread.new(self.RefreshView)
+
+            return
 
     def SelectAll(self):
         if not self.destroyed:
@@ -890,6 +921,7 @@ class _InvContBase(uiprimitives.Container):
                 FillThemeColored(parent=self.dragContainer, frameConst=uiconst.FRAME_FILLED_CORNER3, opacity=0.3)
             self.dragContainer.Hide()
             uthread.new(self.RubberbandSelection_thread)
+        return
 
     def RubberbandSelection_thread(self, *args):
         while self.dragStart and uicore.uilib.leftbtn and trinity.app.IsActive():
@@ -961,6 +993,7 @@ class _InvContBase(uiprimitives.Container):
         self.previouslyHighlighted = None
         self.scrollTimer = None
         self.dragContainer.Hide()
+        return
 
     def OnScrollMouseUp(self, *args):
         if self.dragStart and args[0] == uiconst.MOUSELEFT:
@@ -1000,16 +1033,19 @@ class _InvContBase(uiprimitives.Container):
             self.previouslyHighlighted = None
             self.scrollTimer = None
             self.dragContainer.Hide()
+        return
 
     def ScrollTimer(self):
         if not self.dragStart:
             self.scrollTimer = None
             return
-        aL, aT, aW, aH = self.scroll.GetAbsolute()
-        if uicore.uilib.y < aT + 10:
-            self.scroll.Scroll(1)
-        elif uicore.uilib.y > aT + aH - 10:
-            self.scroll.Scroll(-1)
+        else:
+            aL, aT, aW, aH = self.scroll.GetAbsolute()
+            if uicore.uilib.y < aT + 10:
+                self.scroll.Scroll(1)
+            elif uicore.uilib.y > aT + aH - 10:
+                self.scroll.Scroll(-1)
+            return
 
     def GetIcon(self, index):
         for each in self.scroll.GetContentContainer().children:
@@ -1018,6 +1054,7 @@ class _InvContBase(uiprimitives.Container):
                 return each.sr.icons[index % self.cols]
 
         lg.Info('vcont', 'GetIcon(', index, ') found nothing')
+        return None
 
     def RegisterSpecialActionButton(self, button):
         pass
@@ -1036,34 +1073,37 @@ class Row(SE_BaseClassCore):
     def Load(self, node):
         if self.initialized:
             return
-        self.initialized = True
-        self.sr.node = node
-        self.index = node.lenitems
-        import xtriui
-        for i in range(len(self.sr.icons), len(node.internalNodes)):
-            icon = xtriui.InvItem(parent=self)
-            icon.top = rowMargin
-            icon.left = colMargin + (icon.width + colMargin) * i
-            icon.height = xtriui.InvItem.GetInvItemHeight()
-            self.sr.icons.append(icon)
+        else:
+            self.initialized = True
+            self.sr.node = node
+            self.index = node.lenitems
+            import xtriui
+            for i in range(len(self.sr.icons), len(node.internalNodes)):
+                icon = xtriui.InvItem(parent=self)
+                icon.top = rowMargin
+                icon.left = colMargin + (icon.width + colMargin) * i
+                icon.height = xtriui.InvItem.GetInvItemHeight()
+                self.sr.icons.append(icon)
 
-        for icon in self.sr.icons[self.dad.cols:]:
-            icon.sr.node = None
-            icon.subnodeIdx = None
-
-        i = 0
-        for subnode in node.internalNodes:
-            icon = self.sr.icons[i]
-            if subnode is None:
-                icon.state = uiconst.UI_HIDDEN
+            for icon in self.sr.icons[self.dad.cols:]:
                 icon.sr.node = None
                 icon.subnodeIdx = None
-            else:
-                subnode.panel = icon
-                icon.Load(subnode)
-                icon.state = uiconst.UI_NORMAL
-                icon.subnodeIdx = subnode.idx = self.index + i
-            i += 1
+
+            i = 0
+            for subnode in node.internalNodes:
+                icon = self.sr.icons[i]
+                if subnode is None:
+                    icon.state = uiconst.UI_HIDDEN
+                    icon.sr.node = None
+                    icon.subnodeIdx = None
+                else:
+                    subnode.panel = icon
+                    icon.Load(subnode)
+                    icon.state = uiconst.UI_NORMAL
+                    icon.subnodeIdx = subnode.idx = self.index + i
+                i += 1
+
+            return
 
     def GetMenu(self):
         return GetContainerMenu(self.dad)
@@ -1099,28 +1139,29 @@ def GetContainerMenu(containerWindow):
     m = []
     if eve.rookieState:
         return m
-    m += [(uiutil.MenuLabel('UI/Common/SelectAll'), containerWindow.SelectAll), (uiutil.MenuLabel('UI/Inventory/InvertSelection'), containerWindow.InvertSelection)]
-    if eve.session.role & (service.ROLE_GML | service.ROLE_WORLDMOD):
-        m += [(uiutil.MenuLabel('UI/Commands/Refresh'), containerWindow.Refresh)]
-    if containerWindow.viewMode == 'icons':
-        m += [(uiutil.MenuLabel('UI/Common/SortBy'), [(uiutil.MenuLabel('UI/Common/Name'), containerWindow.SortIconsBy, ('name', 0)),
-           (uiutil.MenuLabel('UI/Inventory/NameReversed'), containerWindow.SortIconsBy, ('name', 1)),
-           None,
-           (uiutil.MenuLabel('UI/Inventory/ItemQuantity'), containerWindow.SortIconsBy, ('qty', 0)),
-           (uiutil.MenuLabel('UI/Inventory/QuantityReversed'), containerWindow.SortIconsBy, ('qty', 1)),
-           None,
-           (uiutil.MenuLabel('UI/Common/Type'), containerWindow.SortIconsBy, ('type', 0)),
-           (uiutil.MenuLabel('UI/Inventory/TypeReversed'), containerWindow.SortIconsBy, ('type', 1))])]
-    if containerWindow.invController.viewOnly:
+    else:
+        m += [(uiutil.MenuLabel('UI/Common/SelectAll'), containerWindow.SelectAll), (uiutil.MenuLabel('UI/Inventory/InvertSelection'), containerWindow.InvertSelection)]
+        if eve.session.role & (service.ROLE_GML | service.ROLE_WORLDMOD):
+            m += [(uiutil.MenuLabel('UI/Commands/Refresh'), containerWindow.Refresh)]
+        if containerWindow.viewMode == 'icons':
+            m += [(uiutil.MenuLabel('UI/Common/SortBy'), [(uiutil.MenuLabel('UI/Common/Name'), containerWindow.SortIconsBy, ('name', 0)),
+               (uiutil.MenuLabel('UI/Inventory/NameReversed'), containerWindow.SortIconsBy, ('name', 1)),
+               None,
+               (uiutil.MenuLabel('UI/Inventory/ItemQuantity'), containerWindow.SortIconsBy, ('qty', 0)),
+               (uiutil.MenuLabel('UI/Inventory/QuantityReversed'), containerWindow.SortIconsBy, ('qty', 1)),
+               None,
+               (uiutil.MenuLabel('UI/Common/Type'), containerWindow.SortIconsBy, ('type', 0)),
+               (uiutil.MenuLabel('UI/Inventory/TypeReversed'), containerWindow.SortIconsBy, ('type', 1))])]
+        if containerWindow.invController.viewOnly:
+            return m
+        containerItem = containerWindow.invController.GetInventoryItem()
+        containerOwnerID = containerItem.ownerID
+        myOwnerIDs = (session.charid, session.corpid, session.allianceid)
+        containerSlim = sm.GetService('michelle').GetItem(containerItem.itemID)
+        stackAll = containerItem.groupID in (const.groupStation, const.groupPlanetaryCustomsOffices) or containerItem.categoryID in (const.categoryStructure,) or containerOwnerID in myOwnerIDs or session.corpid == getattr(containerSlim, 'corpID', None) or session.allianceid and session.allianceid == getattr(containerSlim, 'allianceID', None)
+        if stackAll:
+            m += [(uiutil.MenuLabel('UI/Inventory/StackAll'), containerWindow.StackAll)]
         return m
-    containerItem = containerWindow.invController.GetInventoryItem()
-    containerOwnerID = containerItem.ownerID
-    myOwnerIDs = (session.charid, session.corpid, session.allianceid)
-    containerSlim = sm.GetService('michelle').GetItem(containerItem.itemID)
-    stackAll = containerItem.groupID in (const.groupStation, const.groupPlanetaryCustomsOffices) or containerOwnerID in myOwnerIDs or session.corpid == getattr(containerSlim, 'corpID', None) or session.allianceid and session.allianceid == getattr(containerSlim, 'allianceID', None)
-    if stackAll:
-        m += [(uiutil.MenuLabel('UI/Inventory/StackAll'), containerWindow.StackAll)]
-    return m
 
 
 class MiniButton(uicontrols.Icon):

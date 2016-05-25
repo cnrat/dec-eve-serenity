@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\client\script\ui\shared\industry\browserJobs.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\client\script\ui\shared\industry\browserJobs.py
 from carbonui.primitives.container import Container
 from carbonui.util.bunch import Bunch
 from eve.client.script.ui.control.buttonGroup import ButtonGroup
@@ -104,11 +105,14 @@ class BrowserJobs(Container):
     def OnFacilityReload(self, facilityID):
         if self.destroyed or self.IsHidden():
             return
-        if self.isInitialized and self.display:
-            for node in self.scroll.GetNodes():
-                if facilityID is None or node.jobData.facilityID == facilityID:
-                    self.UpdateScroll()
-                    return
+        else:
+            if self.isInitialized and self.display:
+                for node in self.scroll.GetNodes():
+                    if facilityID is None or node.jobData.facilityID == facilityID:
+                        self.UpdateScroll()
+                        return
+
+            return
 
     def OnSessionChanged(self, isRemote, session, change):
         if 'solarsystemid2' in change or 'stationid2' in change:
@@ -217,6 +221,7 @@ class BrowserJobs(Container):
           STATUS_ICONS[STATUS_COMPLETED]))
         select = settings.user.ui.Get('IndustryJobBrowserStatus', STATUS_INCOMPLETE)
         self.statusCombo.LoadOptions(options, select=select)
+        return
 
     def OnActivityCombo(self, *args):
         self.UpdateScroll()
@@ -264,6 +269,7 @@ class BrowserJobs(Container):
              'res:/UI/Texture/classes/Industry/iconCorp.png'))
         select = settings.user.ui.Get('IndustryBlueprintBrowserOwner', OWNER_ME)
         self.ownerCombo.LoadOptions(options, select=select)
+        return
 
     def _UpdateJobCountersThread(self):
         msecs = 0

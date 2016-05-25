@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\client\script\ui\inflight\scannerListEntries.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\client\script\ui\inflight\scannerListEntries.py
 from carbon.common.script.util.format import FmtDist
 from carbon.common.script.util.timerstuff import AutoTimer
 from carbonui.control.scrollentries import SE_BaseClassCore
@@ -9,6 +10,7 @@ from eve.client.script.ui.control.buttons import ButtonIcon
 from eve.client.script.ui.control.eveIcon import Icon
 from eve.client.script.ui.control.eveLabel import EveLabelMediumBold, EveLabelMedium
 from eve.client.script.ui.graphs.bargraph import BarGraphBarHorizontal
+from eve.common.script.sys.eveCfg import InShipInSpace
 import localization
 import evetypes
 import blue
@@ -51,27 +53,29 @@ class ScanProbeEntryNew(SE_BaseClassCore):
         if self.destroyed:
             self.updateStateTimer = None
             return
-        probe = self.sr.node.probe
-        if probe.expiry is None:
-            expiryText = localization.GetByLabel('UI/Generic/None')
         else:
-            expiry = max(0L, long(probe.expiry) - blue.os.GetSimTime())
-            if expiry <= 0:
-                expiryText = localization.GetByLabel('UI/Inflight/Scanner/Expired')
-            elif expiry >= const.MIN:
-                expiryText = localization.formatters.FormatTimeIntervalShortWritten(expiry, showFrom='day', showTo='minute')
+            probe = self.sr.node.probe
+            if probe.expiry is None:
+                expiryText = localization.GetByLabel('UI/Generic/None')
             else:
-                expiryText = localization.formatters.FormatTimeIntervalShortWritten(expiry, showFrom='day', showTo='second')
-        self.probeExpiry.text = expiryText
-        if probe.state == const.probeStateInactive:
-            self.opacity = 0.5
-        else:
-            self.opacity = 1.0
-        if probe.scanRange < const.AU:
-            probeScanRangeText = FmtDist(probe.scanRange, maxdemicals=2)
-        else:
-            probeScanRangeText = FmtDist(probe.scanRange, maxdemicals=0)
-        self.probeScanRange.text = probeScanRangeText
+                expiry = max(0L, long(probe.expiry) - blue.os.GetSimTime())
+                if expiry <= 0:
+                    expiryText = localization.GetByLabel('UI/Inflight/Scanner/Expired')
+                elif expiry >= const.MIN:
+                    expiryText = localization.formatters.FormatTimeIntervalShortWritten(expiry, showFrom='day', showTo='minute')
+                else:
+                    expiryText = localization.formatters.FormatTimeIntervalShortWritten(expiry, showFrom='day', showTo='second')
+            self.probeExpiry.text = expiryText
+            if probe.state == const.probeStateInactive:
+                self.opacity = 0.5
+            else:
+                self.opacity = 1.0
+            if probe.scanRange < const.AU:
+                probeScanRangeText = FmtDist(probe.scanRange, maxdemicals=2)
+            else:
+                probeScanRangeText = FmtDist(probe.scanRange, maxdemicals=0)
+            self.probeScanRange.text = probeScanRangeText
+            return
 
     def OnDblClick(self, *args):
         sm.ScatterEvent('OnProbeScanner_FocusOnProbe', self.sr.node.probeID)
@@ -96,13 +100,15 @@ class ScanProbeEntryNew(SE_BaseClassCore):
             eve.Message('ListEntryClick')
             if self.sr.node.Get('OnClick', None):
                 self.sr.node.OnClick(self)
+        return
 
     def GetMenu(self):
         if self.sr.node and self.sr.node.Get('GetMenu', None):
             return self.sr.node.GetMenu(self)
-        if getattr(self, 'itemID', None) or getattr(self, 'typeID', None):
+        elif getattr(self, 'itemID', None) or getattr(self, 'typeID', None):
             return sm.GetService('menu').GetMenuFormItemIDTypeID(getattr(self, 'itemID', None), getattr(self, 'typeID', None))
-        return []
+        else:
+            return []
 
 
 class ScanResultNew(BaseListEntryCustomColumns):
@@ -131,7 +137,7 @@ class ScanResultNew(BaseListEntryCustomColumns):
         self.columns.append(self.signalColumn)
         self.statusBar = BarGraphBarHorizontal(parent=self, align=uiconst.TOBOTTOM_NOPUSH, pos=(0, 0, 0, 2), bgColor=(0, 0, 0, 0), state=uiconst.UI_DISABLED)
 
-    def AddColumn(self, textAlign = None):
+    def AddColumn(self, textAlign=None):
         column = Container(align=uiconst.TOLEFT, parent=self.pushColumnContainer, clipChildren=True, padRight=1)
         self.columns.append(column)
         column.label = EveLabelMedium(parent=column, align=textAlign or uiconst.CENTERLEFT, left=6)
@@ -156,7 +162,7 @@ class ScanResultNew(BaseListEntryCustomColumns):
         certChange = newCert - oldCert
         signalText = ''
         from eve.client.script.ui.control.entries import IsResultWithinWarpDistance
-        if node.result.isPerfect and IsResultWithinWarpDistance(node.result):
+        if node.result.isPerfect and IsResultWithinWarpDistance(node.result) and InShipInSpace():
             if not self.warpButton:
                 self.warpButton = ButtonIcon(name='warpButton', func=self.WarpToAction, parent=self.signalColumn, align=uiconst.CENTERRIGHT, width=22, left=6, iconSize=22, texturePath='res:/UI/Texture/Icons/44_32_18.png', hint=localization.GetByLabel('UI/Commands/WarpTo'))
                 if newResult:
@@ -208,7 +214,8 @@ class ScanResultNew(BaseListEntryCustomColumns):
     def GetMenu(self):
         if self.sr.node and self.sr.node.Get('GetMenu', None):
             return self.sr.node.GetMenu(self)
-        return []
+        else:
+            return []
 
     def GetHint(self):
         node = self.sr.node

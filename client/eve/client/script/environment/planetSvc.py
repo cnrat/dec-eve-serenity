@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\client\script\environment\planetSvc.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\client\script\environment\planetSvc.py
 import service
 import moniker
 import planet.clientPlanet as clientPlanet
@@ -12,7 +13,7 @@ class PlanetService(service.Service):
     __displayName__ = 'Planet Service'
     __notifyevents__ = ['OnMajorPlanetStateUpdate', 'OnPlanetChangesSubmitted', 'OnPlanetViewChanged']
 
-    def Run(self, memStream = None):
+    def Run(self, memStream=None):
         self.LogInfo('Starting planet service')
         self.planets = {}
         self.simPlanets = {}
@@ -21,6 +22,7 @@ class PlanetService(service.Service):
         self.foreignColoniesByPlanet = {}
         self.commandPinsByPlanet = {}
         self.extractorsByPlanet = {}
+        return
 
     def GetPlanet(self, planetID):
         if planetID not in self.planets:
@@ -73,7 +75,7 @@ class PlanetService(service.Service):
             self.extractorsByPlanet[planetID] = extractorData
         return extractorData.data
 
-    def OnMajorPlanetStateUpdate(self, planetID, numCommandCentersChanged = False):
+    def OnMajorPlanetStateUpdate(self, planetID, numCommandCentersChanged=False):
         if planetID in self.planets:
             self.planets[planetID].Init()
         if planetID in self.simPlanets:
@@ -107,23 +109,27 @@ class PlanetService(service.Service):
                     newEntry = util.KeyVal(solarSystemID=self.planets[planetID].solarSystemID, planetID=planetID, typeID=self.planets[planetID].GetPlanetTypeID(), numberOfPins=len(colony.colonyData.pins), celestialIndex=planet.celestialIndex)
                     self.colonizationData.append(newEntry)
         sm.ScatterEvent('OnColonyPinCountUpdated', planetID)
+        return
 
     def _UpdateColonyNumberOfPins(self, planetID):
         planet = self.planets.get(planetID, None)
         if not planet:
             return
-        data = self.GetMyPlanets()
-        for dataRow in data:
-            if dataRow.planetID == planetID:
-                colony = planet.GetColony(session.charid)
-                if colony is not None and colony.colonyData is not None:
-                    if dataRow.numberOfPins != len(colony.colonyData.pins):
-                        dataRow.numberOfPins = len(colony.colonyData.pins)
+        else:
+            data = self.GetMyPlanets()
+            for dataRow in data:
+                if dataRow.planetID == planetID:
+                    colony = planet.GetColony(session.charid)
+                    if colony is not None and colony.colonyData is not None:
+                        if dataRow.numberOfPins != len(colony.colonyData.pins):
+                            dataRow.numberOfPins = len(colony.colonyData.pins)
+                            sm.ScatterEvent('OnColonyPinCountUpdated', planetID)
+                    else:
+                        dataRow.numberOfPins = 0
                         sm.ScatterEvent('OnColonyPinCountUpdated', planetID)
-                else:
-                    dataRow.numberOfPins = 0
-                    sm.ScatterEvent('OnColonyPinCountUpdated', planetID)
-                break
+                    break
+
+            return
 
     def OnPlanetViewChanged(self, newPlanetID, oldPlanetID):
         if oldPlanetID in self.planets:

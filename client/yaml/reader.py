@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\carbon\common\stdlib\yaml\reader.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\carbon\common\stdlib\yaml\reader.py
 __all__ = ['Reader', 'ReaderError']
 from error import YAMLError, Mark
 import codecs, re
@@ -7,25 +8,25 @@ try:
     from codecs import utf_8_decode, utf_16_le_decode, utf_16_be_decode
 except TypeError:
 
-    def utf_16_le_decode(data, errors, finish = False):
+    def utf_16_le_decode(data, errors, finish=False):
         if not finish and len(data) % 2 == 1:
             data = data[:-1]
         return codecs.utf_16_le_decode(data, errors)
 
 
-    def utf_16_be_decode(data, errors, finish = False):
+    def utf_16_be_decode(data, errors, finish=False):
         if not finish and len(data) % 2 == 1:
             data = data[:-1]
         return codecs.utf_16_be_decode(data, errors)
 
 
-    def utf_8_decode(data, errors, finish = False):
-        if not finish:
-            count = 0
-            while count < 5 and count < len(data) and '\x80' <= data[-count - 1] <= '\xbf':
-                count -= 1
+    def utf_8_decode(data, errors, finish=False):
+        count = finish or 0
+        while count < 5 and count < len(data):
+            '\x80' <= data[-count - 1] <= '\xbf' and count -= 1
 
-            if count < 5 and count < len(data) and '\xc0' <= data[-count - 1] <= '\xfd':
+        if count < 5 and count < len(data):
+            if '\xc0' <= data[-count - 1] <= '\xfd':
                 data = data[:-count - 1]
         return codecs.utf_8_decode(data, errors)
 
@@ -82,20 +83,21 @@ class Reader(object):
             self.eof = False
             self.raw_buffer = ''
             self.determine_encoding()
+        return
 
-    def peek(self, index = 0):
+    def peek(self, index=0):
         try:
             return self.buffer[self.pointer + index]
         except IndexError:
             self.update(index + 1)
             return self.buffer[self.pointer + index]
 
-    def prefix(self, length = 1):
+    def prefix(self, length=1):
         if self.pointer + length >= len(self.buffer):
             self.update(length)
         return self.buffer[self.pointer:self.pointer + length]
 
-    def forward(self, length = 1):
+    def forward(self, length=1):
         if self.pointer + length + 1 >= len(self.buffer):
             self.update(length + 1)
         while length:
@@ -114,6 +116,7 @@ class Reader(object):
             return Mark(self.name, self.index, self.line, self.column, self.buffer, self.pointer)
         else:
             return Mark(self.name, self.index, self.line, self.column, None, None)
+            return
 
     def determine_encoding(self):
         while not self.eof and len(self.raw_buffer) < 2:
@@ -143,34 +146,37 @@ class Reader(object):
     def update(self, length):
         if self.raw_buffer is None:
             return
-        self.buffer = self.buffer[self.pointer:]
-        self.pointer = 0
-        while len(self.buffer) < length:
-            if not self.eof:
-                self.update_raw()
-            if self.raw_decode is not None:
-                try:
-                    data, converted = self.raw_decode(self.raw_buffer, 'strict', self.eof)
-                except UnicodeDecodeError as exc:
-                    character = exc.object[exc.start]
-                    if self.stream is not None:
-                        position = self.stream_pointer - len(self.raw_buffer) + exc.start
-                    else:
-                        position = exc.start
-                    raise ReaderError(self.name, position, character, exc.encoding, exc.reason)
+        else:
+            self.buffer = self.buffer[self.pointer:]
+            self.pointer = 0
+            while len(self.buffer) < length:
+                if not self.eof:
+                    self.update_raw()
+                if self.raw_decode is not None:
+                    try:
+                        data, converted = self.raw_decode(self.raw_buffer, 'strict', self.eof)
+                    except UnicodeDecodeError as exc:
+                        character = exc.object[exc.start]
+                        if self.stream is not None:
+                            position = self.stream_pointer - len(self.raw_buffer) + exc.start
+                        else:
+                            position = exc.start
+                        raise ReaderError(self.name, position, character, exc.encoding, exc.reason)
 
-            else:
-                data = self.raw_buffer
-                converted = len(data)
-            self.check_printable(data)
-            self.buffer += data
-            self.raw_buffer = self.raw_buffer[converted:]
-            if self.eof:
-                self.buffer += u'\x00'
-                self.raw_buffer = None
-                break
+                else:
+                    data = self.raw_buffer
+                    converted = len(data)
+                self.check_printable(data)
+                self.buffer += data
+                self.raw_buffer = self.raw_buffer[converted:]
+                if self.eof:
+                    self.buffer += u'\x00'
+                    self.raw_buffer = None
+                    break
 
-    def update_raw(self, size = 1024):
+            return
+
+    def update_raw(self, size=1024):
         data = self.stream.read(size)
         if data:
             self.raw_buffer += data

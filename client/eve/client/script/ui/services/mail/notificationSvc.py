@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\client\script\ui\services\mail\notificationSvc.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\client\script\ui\services\mail\notificationSvc.py
 import sys
 import copy
 import yaml
@@ -26,7 +27,7 @@ class notificationSvc(service.Service):
     def __init__(self):
         service.Service.__init__(self)
 
-    def Run(self, ms = None):
+    def Run(self, ms=None):
         self.state = service.SERVICE_RUNNING
         self.notificationMgr = sm.RemoteSvc('notificationMgr')
         self.notifications = {}
@@ -38,11 +39,13 @@ class notificationSvc(service.Service):
         self.delayedNotificationsByID = {const.notificationTypeCloneActivationMsg: set(),
          const.notificationTypeCloneActivationMsg2: set()}
         self.registry = NotificationFormatMapper()
+        return
 
     def ClearCache(self):
         self.notifications = {}
         self.unreadCount = {}
         self.unreadNotifications = None
+        return
 
     def GetNotificationsByGroupID(self, groupID):
         if groupID not in self.notifications:
@@ -62,7 +65,7 @@ class notificationSvc(service.Service):
     def MakeAndScatterNotification(self, type, data):
         sm.ScatterEvent('OnNotificationReceived', -1, type, session.charid, blue.os.GetWallclockTime(), data=data)
 
-    def GetAllNotifications(self, fromID = 0):
+    def GetAllNotifications(self, fromID=0):
         if self.allNotifications is None:
             allServerNotifications = self.notificationMgr.GetAllNotifications(fromID=fromID)
             newSenders = []
@@ -77,8 +80,9 @@ class notificationSvc(service.Service):
 
     def ClearAllNotificationsCache(self):
         self.allNotifications = None
+        return
 
-    def GetAllFormattedNotifications(self, fromID = 0):
+    def GetAllFormattedNotifications(self, fromID=0):
         return self.FormatNotifications(self.GetAllNotifications(fromID=fromID))
 
     def GetUnreadNotifications(self):
@@ -178,6 +182,7 @@ class notificationSvc(service.Service):
 
         cfg.evelocations.Prime(locationIDs)
         cfg.eveowners.Prime(ownerIDs)
+        return
 
     def MarkAllReadInGroup(self, groupID):
         notifications = self.GetNotificationsByGroupID(groupID)
@@ -208,21 +213,23 @@ class notificationSvc(service.Service):
     def MarkAsRead(self, notificationIDs):
         if self.unreadNotifications is None:
             return
-        notificationIDsToMarkAsRead = set()
-        for notificationID in notificationIDs:
-            for notification in self.unreadNotifications:
-                if notificationID == notification.notificationID:
-                    notificationIDsToMarkAsRead.add(notificationID)
+        else:
+            notificationIDsToMarkAsRead = set()
+            for notificationID in notificationIDs:
+                for notification in self.unreadNotifications:
+                    if notificationID == notification.notificationID:
+                        notificationIDsToMarkAsRead.add(notificationID)
 
-        numToMark = len(notificationIDsToMarkAsRead)
-        if numToMark < 1:
+            numToMark = len(notificationIDsToMarkAsRead)
+            if numToMark < 1:
+                return
+            if numToMark > const.notificationsMaxUpdated:
+                txt = localization.GetByLabel('UI/Mail/Notifications/TooManySelected', num=numToMark, max=const.notificationsMaxUpdated)
+                raise UserError('CustomInfo', {'info': txt})
+            notificationsList = list(notificationIDsToMarkAsRead)
+            self.notificationMgr.MarkAsProcessed(notificationsList)
+            self.UpdateCacheAfterMarkingRead(notificationsList)
             return
-        if numToMark > const.notificationsMaxUpdated:
-            txt = localization.GetByLabel('UI/Mail/Notifications/TooManySelected', num=numToMark, max=const.notificationsMaxUpdated)
-            raise UserError('CustomInfo', {'info': txt})
-        notificationsList = list(notificationIDsToMarkAsRead)
-        self.notificationMgr.MarkAsProcessed(notificationsList)
-        self.UpdateCacheAfterMarkingRead(notificationsList)
 
     def UpdateCacheAfterMarkingRead(self, notificationIDs):
         for readID in notificationIDs:
@@ -247,6 +254,8 @@ class notificationSvc(service.Service):
             if groupID in self.unreadCount:
                 self.unreadCount[groupID] = self.unreadCount[groupID] - 1
 
+        return
+
     def DeleteAllFromGroup(self, groupID):
         notifications = self.GetNotificationsByGroupID(groupID)
         if len(notifications) < 1:
@@ -269,6 +278,7 @@ class notificationSvc(service.Service):
                 self.notifications[groupID] = []
 
         sm.ScatterEvent('OnNotificationsRefresh')
+        return
 
     def DeleteNotifications(self, notificationIDs):
         numToDelete = len(notificationIDs)
@@ -308,6 +318,8 @@ class notificationSvc(service.Service):
                             toclear.remove(deletedID)
                             break
 
+        return
+
     def OnNotificationDeleted(self, notificationIDs):
         toclear = copy.copy(notificationIDs)
         if self.unreadNotifications is not None:
@@ -337,6 +349,7 @@ class notificationSvc(service.Service):
                             break
 
         sm.ScatterEvent('OnNotificationsRefresh')
+        return
 
     def OnNotificationUndeleted(self, notificationIDs):
         self.ClearCache()
@@ -353,8 +366,9 @@ class notificationSvc(service.Service):
             else:
                 self.unreadCount[groupID] = 1
             self.unreadNotifications.insert(0, notification)
+        return
 
-    def OnNotificationReceived(self, notificationID, typeID, senderID, created, data = {}):
+    def OnNotificationReceived(self, notificationID, typeID, senderID, created, data={}):
         notification = Notification(notificationID=notificationID, typeID=typeID, senderID=senderID, receiverID=session.charid, processed=False, created=created, data=data)
         groupID = GetTypeGroup(typeID)
         if groupID is None:
@@ -366,6 +380,7 @@ class notificationSvc(service.Service):
             self.delayedNotificationsByID[typeID].add(notification)
         else:
             self.ProcessNotification(notification)
+        return
 
     def ProcessNotification(self, notification):
         n = self.FormatNotifications([notification])
@@ -379,10 +394,12 @@ class notificationSvc(service.Service):
         delayedNotifications = self.delayedNotificationsByID.get(notificationTypeID, None)
         if delayedNotifications is None:
             return
-        for eachNotification in delayedNotifications:
-            self.ProcessNotification(eachNotification)
+        else:
+            for eachNotification in delayedNotifications:
+                self.ProcessNotification(eachNotification)
 
-        self.delayedNotificationsByID[notificationTypeID] = set()
+            self.delayedNotificationsByID[notificationTypeID] = set()
+            return
 
     def GetReadingText(self, senderID, subject, created, message):
         sender = cfg.eveowners.Get(senderID)
@@ -408,3 +425,4 @@ class notificationSvc(service.Service):
             blue.pyos.synchro.SleepWallclock(1)
             txt = sm.GetService('notificationSvc').GetReadingText(info.senderID, info.subject, info.created, info.body)
             wnd.SetText(txt)
+        return

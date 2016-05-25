@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\carbon\common\lib\jinja2\compiler.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\carbon\common\lib\jinja2\compiler.py
 from cStringIO import StringIO
 from itertools import chain
 from copy import deepcopy
@@ -38,19 +39,21 @@ def unoptimize_before_dead_code():
 
 unoptimize_before_dead_code = bool(unoptimize_before_dead_code().func_closure)
 
-def generate(node, environment, name, filename, stream = None, defer_init = False):
+def generate(node, environment, name, filename, stream=None, defer_init=False):
     if not isinstance(node, nodes.Template):
         raise TypeError("Can't compile non template nodes")
     generator = CodeGenerator(environment, name, filename, stream, defer_init)
     generator.visit(node)
     if stream is None:
         return generator.stream.getvalue()
+    else:
+        return
 
 
 def has_safe_repr(value):
     if value is None or value is NotImplemented or value is Ellipsis:
         return True
-    if isinstance(value, (bool,
+    elif isinstance(value, (bool,
      int,
      long,
      float,
@@ -59,7 +62,7 @@ def has_safe_repr(value):
      xrange,
      Markup)):
         return True
-    if isinstance(value, (tuple,
+    elif isinstance(value, (tuple,
      list,
      set,
      frozenset)):
@@ -68,7 +71,7 @@ def has_safe_repr(value):
                 return False
 
         return True
-    if isinstance(value, dict):
+    elif isinstance(value, dict):
         for key, value in value.iteritems():
             if not has_safe_repr(key):
                 return False
@@ -76,7 +79,8 @@ def has_safe_repr(value):
                 return False
 
         return True
-    return False
+    else:
+        return False
 
 
 def find_undeclared(nodes, names):
@@ -115,7 +119,7 @@ class Identifiers(object):
 
 class Frame(object):
 
-    def __init__(self, eval_ctx, parent = None):
+    def __init__(self, eval_ctx, parent=None):
         self.eval_ctx = eval_ctx
         self.identifiers = Identifiers()
         self.toplevel = False
@@ -129,6 +133,7 @@ class Frame(object):
             self.identifiers.declared.update(parent.identifiers.declared | parent.identifiers.declared_parameter | parent.assigned_names)
             self.identifiers.outer_undeclared.update(parent.identifiers.undeclared - self.identifiers.declared)
             self.buffer = parent.buffer
+        return
 
     def copy(self):
         rv = object.__new__(self.__class__)
@@ -142,7 +147,7 @@ class Frame(object):
         for node in nodes:
             visitor.visit(node)
 
-    def find_shadowed(self, extra = ()):
+    def find_shadowed(self, extra=()):
         i = self.identifiers
         return (i.declared | i.outer_undeclared) & (i.declared_locally | i.declared_parameter) | set((x for x in extra if i.is_declared(x)))
 
@@ -273,7 +278,7 @@ class CompilerExit(Exception):
 
 class CodeGenerator(NodeVisitor):
 
-    def __init__(self, environment, name, filename, stream = None, defer_init = False):
+    def __init__(self, environment, name, filename, stream=None, defer_init=False):
         if stream is None:
             stream = StringIO()
         self.environment = environment
@@ -296,6 +301,7 @@ class CodeGenerator(NodeVisitor):
         self._first_write = True
         self._last_identifier = 0
         self._indentation = 0
+        return
 
     def fail(self, msg, lineno):
         raise TemplateAssertionError(msg, lineno, self.name, self.filename)
@@ -326,20 +332,22 @@ class CodeGenerator(NodeVisitor):
     def indent(self):
         self._indentation += 1
 
-    def outdent(self, step = 1):
+    def outdent(self, step=1):
         self._indentation -= step
 
-    def start_write(self, frame, node = None):
+    def start_write(self, frame, node=None):
         if frame.buffer is None:
             self.writeline('yield ', node)
         else:
             self.writeline('%s.append(' % frame.buffer, node)
+        return
 
     def end_write(self, frame):
         if frame.buffer is not None:
             self.write(')')
+        return
 
-    def simple_write(self, s, frame, node = None):
+    def simple_write(self, s, frame, node=None):
         self.start_write(frame, node)
         self.write(s)
         self.end_write(frame)
@@ -356,6 +364,8 @@ class CodeGenerator(NodeVisitor):
         except CompilerExit:
             pass
 
+        return
+
     def write(self, x):
         if self._new_lines:
             if not self._first_write:
@@ -368,18 +378,20 @@ class CodeGenerator(NodeVisitor):
             self.stream.write('    ' * self._indentation)
             self._new_lines = 0
         self.stream.write(x)
+        return
 
-    def writeline(self, x, node = None, extra = 0):
+    def writeline(self, x, node=None, extra=0):
         self.newline(node, extra)
         self.write(x)
 
-    def newline(self, node = None, extra = 0):
+    def newline(self, node=None, extra=0):
         self._new_lines = max(self._new_lines, 1 + extra)
         if node is not None and node.lineno != self._last_line:
             self._write_debug_info = node.lineno
             self._last_line = node.lineno
+        return
 
-    def signature(self, node, frame, extra_kwargs = None):
+    def signature(self, node, frame, extra_kwargs=None):
         kwarg_workaround = False
         for kwarg in chain((x.key for x in node.kwargs), extra_kwargs or ()):
             if is_python_keyword(kwarg):
@@ -425,6 +437,7 @@ class CodeGenerator(NodeVisitor):
         elif node.dyn_kwargs is not None:
             self.write(', **')
             self.visit(node.dyn_kwargs, frame)
+        return
 
     def pull_locals(self, frame):
         for name in frame.identifiers.undeclared:
@@ -446,7 +459,7 @@ class CodeGenerator(NodeVisitor):
         if frame.identifiers.declared:
             self.writeline('%sdummy(%s)' % (unoptimize_before_dead_code and 'if 0: ' or '', ', '.join(('l_' + name for name in frame.identifiers.declared))))
 
-    def push_scope(self, frame, extra_vars = ()):
+    def push_scope(self, frame, extra_vars=()):
         aliases = {}
         for name in frame.find_shadowed(extra_vars):
             aliases[name] = ident = self.temporary_identifier()
@@ -473,7 +486,7 @@ class CodeGenerator(NodeVisitor):
         if to_delete:
             self.writeline(' = '.join(to_delete) + ' = missing')
 
-    def function_scoping(self, node, frame, children = None, find_special = True):
+    def function_scoping(self, node, frame, children=None, find_special=True):
         if children is None:
             children = node.iter_child_nodes()
         children = list(children)
@@ -485,26 +498,27 @@ class CodeGenerator(NodeVisitor):
         func_frame.identifiers.undeclared -= func_frame.identifiers.undeclared & func_frame.identifiers.declared
         if not find_special:
             return func_frame
-        func_frame.accesses_kwargs = False
-        func_frame.accesses_varargs = False
-        func_frame.accesses_caller = False
-        func_frame.arguments = args = [ 'l_' + x.name for x in node.args ]
-        undeclared = find_undeclared(children, ('caller', 'kwargs', 'varargs'))
-        if 'caller' in undeclared:
-            func_frame.accesses_caller = True
-            func_frame.identifiers.add_special('caller')
-            args.append('l_caller')
-        if 'kwargs' in undeclared:
-            func_frame.accesses_kwargs = True
-            func_frame.identifiers.add_special('kwargs')
-            args.append('l_kwargs')
-        if 'varargs' in undeclared:
-            func_frame.accesses_varargs = True
-            func_frame.identifiers.add_special('varargs')
-            args.append('l_varargs')
-        return func_frame
+        else:
+            func_frame.accesses_kwargs = False
+            func_frame.accesses_varargs = False
+            func_frame.accesses_caller = False
+            func_frame.arguments = args = [ 'l_' + x.name for x in node.args ]
+            undeclared = find_undeclared(children, ('caller', 'kwargs', 'varargs'))
+            if 'caller' in undeclared:
+                func_frame.accesses_caller = True
+                func_frame.identifiers.add_special('caller')
+                args.append('l_caller')
+            if 'kwargs' in undeclared:
+                func_frame.accesses_kwargs = True
+                func_frame.identifiers.add_special('kwargs')
+                args.append('l_kwargs')
+            if 'varargs' in undeclared:
+                func_frame.accesses_varargs = True
+                func_frame.identifiers.add_special('varargs')
+                args.append('l_varargs')
+            return func_frame
 
-    def macro_body(self, node, frame, children = None):
+    def macro_body(self, node, frame, children=None):
         frame = self.function_scoping(node, frame, children)
         frame.require_output_check = False
         args = frame.arguments
@@ -530,6 +544,7 @@ class CodeGenerator(NodeVisitor):
             self.write(', ')
 
         self.write('), %r, %r, %r)' % (bool(frame.accesses_kwargs), bool(frame.accesses_varargs), bool(frame.accesses_caller)))
+        return
 
     def position(self, node):
         rv = 'line %d' % node.lineno
@@ -537,7 +552,7 @@ class CodeGenerator(NodeVisitor):
             rv += ' in ' + repr(self.name)
         return rv
 
-    def visit_Template(self, node, frame = None):
+    def visit_Template(self, node, frame=None):
         eval_ctx = EvalContext(self.environment, self.name)
         from jinja2.runtime import __all__ as exported
         self.writeline('from __future__ import division')
@@ -606,6 +621,7 @@ class CodeGenerator(NodeVisitor):
 
         self.writeline('blocks = {%s}' % ', '.join(('%r: block_%s' % (x, x) for x in self.blocks)), extra=1)
         self.writeline('debug_info = %r' % '&'.join(('%s=%s' % x for x in self.debug_info)))
+        return
 
     def visit_Block(self, node, frame):
         level = 1
@@ -815,6 +831,7 @@ class CodeGenerator(NodeVisitor):
             self.visit(node.iter, frame)
             self.write(', loop)')
             self.end_write(frame)
+        return
 
     def visit_If(self, node, frame):
         if_frame = frame.soft()
@@ -869,109 +886,111 @@ class CodeGenerator(NodeVisitor):
     def visit_Output(self, node, frame):
         if self.has_known_extends and frame.require_output_check:
             return
-        if self.environment.finalize:
-            finalize = lambda x: unicode(self.environment.finalize(x))
         else:
-            finalize = unicode
-        outdent_later = False
-        if frame.require_output_check:
-            self.writeline('if parent_template is None:')
-            self.indent()
-            outdent_later = True
-        body = []
-        for child in node.nodes:
-            try:
-                const = child.as_const(frame.eval_ctx)
-            except nodes.Impossible:
-                body.append(child)
-                continue
-
-            try:
-                if frame.eval_ctx.autoescape:
-                    if hasattr(const, '__html__'):
-                        const = const.__html__()
-                    else:
-                        const = escape(const)
-                const = finalize(const)
-            except Exception:
-                body.append(child)
-                continue
-
-            if body and isinstance(body[-1], list):
-                body[-1].append(const)
+            if self.environment.finalize:
+                finalize = lambda x: unicode(self.environment.finalize(x))
             else:
-                body.append([const])
-
-        if len(body) < 3 or frame.buffer is not None:
-            if frame.buffer is not None:
-                if len(body) == 1:
-                    self.writeline('%s.append(' % frame.buffer)
-                else:
-                    self.writeline('%s.extend((' % frame.buffer)
+                finalize = unicode
+            outdent_later = False
+            if frame.require_output_check:
+                self.writeline('if parent_template is None:')
                 self.indent()
-            for item in body:
-                if isinstance(item, list):
-                    val = repr(concat(item))
-                    if frame.buffer is None:
-                        self.writeline('yield ' + val)
-                    else:
-                        self.writeline(val + ', ')
+                outdent_later = True
+            body = []
+            for child in node.nodes:
+                try:
+                    const = child.as_const(frame.eval_ctx)
+                except nodes.Impossible:
+                    body.append(child)
+                    continue
+
+                try:
+                    if frame.eval_ctx.autoescape:
+                        if hasattr(const, '__html__'):
+                            const = const.__html__()
+                        else:
+                            const = escape(const)
+                    const = finalize(const)
+                except Exception:
+                    body.append(child)
+                    continue
+
+                if body and isinstance(body[-1], list):
+                    body[-1].append(const)
                 else:
-                    if frame.buffer is None:
-                        self.writeline('yield ', item)
+                    body.append([const])
+
+            if len(body) < 3 or frame.buffer is not None:
+                if frame.buffer is not None:
+                    if len(body) == 1:
+                        self.writeline('%s.append(' % frame.buffer)
                     else:
-                        self.newline(item)
-                    close = 1
+                        self.writeline('%s.extend((' % frame.buffer)
+                    self.indent()
+                for item in body:
+                    if isinstance(item, list):
+                        val = repr(concat(item))
+                        if frame.buffer is None:
+                            self.writeline('yield ' + val)
+                        else:
+                            self.writeline(val + ', ')
+                    else:
+                        if frame.buffer is None:
+                            self.writeline('yield ', item)
+                        else:
+                            self.newline(item)
+                        close = 1
+                        if frame.eval_ctx.volatile:
+                            self.write('(context.eval_ctx.autoescape and escape or to_string)(')
+                        elif frame.eval_ctx.autoescape:
+                            self.write('escape(')
+                        else:
+                            self.write('to_string(')
+                        if self.environment.finalize is not None:
+                            self.write('environment.finalize(')
+                            close += 1
+                        self.visit(item, frame)
+                        self.write(')' * close)
+                        if frame.buffer is not None:
+                            self.write(', ')
+
+                if frame.buffer is not None:
+                    self.outdent()
+                    self.writeline(len(body) == 1 and ')' or '))')
+            else:
+                format = []
+                arguments = []
+                for item in body:
+                    if isinstance(item, list):
+                        format.append(concat(item).replace('%', '%%'))
+                    else:
+                        format.append('%s')
+                        arguments.append(item)
+
+                self.writeline('yield ')
+                self.write(repr(concat(format)) + ' % (')
+                idx = -1
+                self.indent()
+                for argument in arguments:
+                    self.newline(argument)
+                    close = 0
                     if frame.eval_ctx.volatile:
                         self.write('(context.eval_ctx.autoescape and escape or to_string)(')
+                        close += 1
                     elif frame.eval_ctx.autoescape:
                         self.write('escape(')
-                    else:
-                        self.write('to_string(')
+                        close += 1
                     if self.environment.finalize is not None:
                         self.write('environment.finalize(')
                         close += 1
-                    self.visit(item, frame)
-                    self.write(')' * close)
-                    if frame.buffer is not None:
-                        self.write(', ')
+                    self.visit(argument, frame)
+                    self.write(')' * close + ', ')
 
-            if frame.buffer is not None:
                 self.outdent()
-                self.writeline(len(body) == 1 and ')' or '))')
-        else:
-            format = []
-            arguments = []
-            for item in body:
-                if isinstance(item, list):
-                    format.append(concat(item).replace('%', '%%'))
-                else:
-                    format.append('%s')
-                    arguments.append(item)
-
-            self.writeline('yield ')
-            self.write(repr(concat(format)) + ' % (')
-            idx = -1
-            self.indent()
-            for argument in arguments:
-                self.newline(argument)
-                close = 0
-                if frame.eval_ctx.volatile:
-                    self.write('(context.eval_ctx.autoescape and escape or to_string)(')
-                    close += 1
-                elif frame.eval_ctx.autoescape:
-                    self.write('escape(')
-                    close += 1
-                if self.environment.finalize is not None:
-                    self.write('environment.finalize(')
-                    close += 1
-                self.visit(argument, frame)
-                self.write(')' * close + ', ')
-
-            self.outdent()
-            self.writeline(')')
-        if outdent_later:
-            self.outdent()
+                self.writeline(')')
+            if outdent_later:
+                self.outdent()
+            return
 
     def visit_Assign(self, node, frame):
         self.newline(node)
@@ -1051,7 +1070,7 @@ class CodeGenerator(NodeVisitor):
 
         self.write('}')
 
-    def binop(operator, interceptable = True):
+    def binop(operator, interceptable=True):
 
         def visitor(self, node, frame):
             if self.environment.sandboxed and operator in self.environment.intercepted_binops:
@@ -1068,7 +1087,7 @@ class CodeGenerator(NodeVisitor):
 
         return visitor
 
-    def uaop(operator, interceptable = True):
+    def uaop(operator, interceptable=True):
 
         def visitor(self, node, frame):
             if self.environment.sandboxed and operator in self.environment.intercepted_unops:
@@ -1146,6 +1165,7 @@ class CodeGenerator(NodeVisitor):
         if node.step is not None:
             self.write(':')
             self.visit(node.step, frame)
+        return
 
     def visit_Filter(self, node, frame):
         self.write(self.filters[node.name] + '(')
@@ -1168,6 +1188,7 @@ class CodeGenerator(NodeVisitor):
             self.write('concat(%s)' % frame.buffer)
         self.signature(node, frame)
         self.write(')')
+        return
 
     def visit_Test(self, node, frame):
         self.write(self.tests[node.name] + '(')
@@ -1182,7 +1203,9 @@ class CodeGenerator(NodeVisitor):
         def write_expr2():
             if node.expr2 is not None:
                 return self.visit(node.expr2, frame)
-            self.write('environment.undefined(%r)' % ('the inline if-expression on %s evaluated to false and no else section was defined.' % self.position(node)))
+            else:
+                self.write('environment.undefined(%r)' % ('the inline if-expression on %s evaluated to false and no else section was defined.' % self.position(node)))
+                return
 
         if not have_condexpr:
             self.write('((')
@@ -1201,7 +1224,7 @@ class CodeGenerator(NodeVisitor):
             write_expr2()
             self.write(')')
 
-    def visit_Call(self, node, frame, forward_caller = False):
+    def visit_Call(self, node, frame, forward_caller=False):
         if self.environment.sandboxed:
             self.write('environment.call(context, ')
         else:
@@ -1210,6 +1233,7 @@ class CodeGenerator(NodeVisitor):
         extra_kwargs = forward_caller and {'caller': 'caller'} or None
         self.signature(node, frame, extra_kwargs)
         self.write(')')
+        return
 
     def visit_Keyword(self, node, frame):
         self.write(node.key + '=')

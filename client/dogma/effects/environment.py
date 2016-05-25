@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\packages\dogma\effects\environment.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\packages\dogma\effects\environment.py
 from dogma.const import effectUseMissiles, effectWarpDisruptSphere, effectOrbitalStrike
 from inventorycommon.const import orbitalStrikeAmmo
 from dogma.effects import GetEwarTypeByEffectID
@@ -11,6 +12,7 @@ class Environment:
     targetIDs = None
     otherID = None
     effectID = None
+    structureID = None
     startTime = None
     currentStartTime = None
     currentSeed = None
@@ -25,7 +27,7 @@ class Environment:
     unexpectedStop = False
     actualEffectID = None
 
-    def __init__(self, itemID, charID, shipID, targetID, otherID, effectID, dogmaLM, expressionID):
+    def __init__(self, itemID, charID, shipID, targetID, otherID, effectID, dogmaLM, expressionID, structureID):
         self.effectID = effectID
         self.dogmaLM = dogmaLM
         self.expressionID = expressionID
@@ -64,6 +66,9 @@ class Environment:
                 self.actualEffectID = defEffectID
         if self.otherTypeID in orbitalStrikeAmmo:
             self.actualEffectID = effectOrbitalStrike
+        if structureID:
+            self.structureID = structureID
+        return
 
     def Line(self):
         return [self.itemID,
@@ -72,7 +77,8 @@ class Environment:
          self.targetID,
          self.otherID,
          [],
-         self.effectID]
+         self.effectID,
+         self.structureID]
 
     def UpdateOtherID(self, otherID):
         self.otherID = otherID
@@ -89,19 +95,21 @@ class Environment:
             if effect.rangeChance or effect.electronicChance or effect.propulsionChance:
                 self.jammingType = GetEwarTypeByEffectID(self.effectID)
         self.currentStartTime = t
+        return
 
     def __repr__(self):
-        return ' ItemID: %s, EffectID: %s, CharID: %s, ShipID: %s, TargetID: %s, OtherID: %s' % (self.itemID,
+        return ' ItemID: %s, EffectID: %s, CharID: %s, ShipID: %s, TargetID: %s, OtherID: %s, StructureID: %s' % (self.itemID,
          self.effectID,
          self.charID,
          self.shipID,
          self.targetID,
-         self.otherID)
+         self.otherID,
+         self.structureID)
 
 
 class BrainEnvironment(Environment):
 
-    def __init__(self, itemID, charID, shipID, targetID, otherID, effectID, dogmaLM, expressionID):
+    def __init__(self, itemID, charID, shipID, targetID, otherID, effectID, dogmaLM, expressionID, structureID):
         self.effectID = effectID
         self.dogmaLM = dogmaLM
         self.expressionID = expressionID
@@ -125,4 +133,7 @@ class BrainEnvironment(Environment):
                 self.otherTypeID = otherID[2]
             else:
                 self.otherTypeID = dogmaLM.GetItem(otherID).typeID
+        if structureID:
+            self.structureID = structureID
         self.actualEffectID = effectID
+        return

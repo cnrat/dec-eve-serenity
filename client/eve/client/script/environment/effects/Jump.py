@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\client\script\environment\effects\Jump.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\client\script\environment\effects\Jump.py
 import random
 import blue
 import geo2
@@ -37,6 +38,7 @@ class JumpTransitionTunnel(object):
         self.randomSoundNumber = 0
         self.cameraLookAnimation = None
         self.fxSequencer = sm.GetService('FxSequencer')
+        return
 
     def _FindCurveSets(self, model):
         self.initCS = None
@@ -59,6 +61,8 @@ class JumpTransitionTunnel(object):
                 each.bindings[2].copyValueCallable = propValue
             elif each.name == 'main':
                 self.mainCS = each
+
+        return
 
     def SetScene(self, scene):
         self.scene = scene
@@ -107,7 +111,7 @@ class JumpTransitionTunnel(object):
         self._FindCurveSets(self.effect)
         if IsNewCameraActive():
             sceneMan = sm.GetService('sceneManager')
-            self.camera = sceneMan.SetActiveCameraByID(evecamera.CAM_JUMP)
+            self.camera = sceneMan.SetPrimaryCamera(evecamera.CAM_JUMP)
         else:
             self.camera = self.GetCamera()
             self.camera.useExtraTranslation = True
@@ -131,6 +135,7 @@ class JumpTransitionTunnel(object):
             self.StartWarpTransitionAudio()
         blue.synchro.SleepSim(1500)
         self.GetCamera().shakeController.DoCameraShake(self.shakeJumpInit)
+        return
 
     def GetCamera(self):
         if IsNewCameraActive():
@@ -142,19 +147,21 @@ class JumpTransitionTunnel(object):
         if self.ending:
             self.fxSequencer.LogWarn('Jump Transition: Trying to play tunnel start sequence while ending.')
             return
-        normDir = geo2.QuaternionTransformVector(self.effectRoot.rotation, (0, 0, 1))
-        self.normDir = normDir
-        camera = self.GetCamera()
-        camera.shakeController.DoCameraShake(self.shakeJumpOut)
-        if self.initCS is not None:
-            self.initCS.Stop()
-        if self.startCS is not None:
-            self.startCS.Play()
-        offset = geo2.Vec3Scale(normDir, self.camOffsetStart)
-        if not IsNewCameraActive():
-            camera.animationController.Schedule(transitioncam.OutExtraTransl(self.startCamDurationS, offset))
-        camera.animationController.Schedule(transitioncam.OutFOV(self.startCamDurationS))
-        blue.synchro.SleepSim(500)
+        else:
+            normDir = geo2.QuaternionTransformVector(self.effectRoot.rotation, (0, 0, 1))
+            self.normDir = normDir
+            camera = self.GetCamera()
+            camera.shakeController.DoCameraShake(self.shakeJumpOut)
+            if self.initCS is not None:
+                self.initCS.Stop()
+            if self.startCS is not None:
+                self.startCS.Play()
+            offset = geo2.Vec3Scale(normDir, self.camOffsetStart)
+            if not IsNewCameraActive():
+                camera.animationController.Schedule(transitioncam.OutExtraTransl(self.startCamDurationS, offset))
+            camera.animationController.Schedule(transitioncam.OutFOV(self.startCamDurationS))
+            blue.synchro.SleepSim(500)
+            return
 
     def _PlayMidTransitionCurves(self):
         self.transition.ApplyDestinationScene()
@@ -162,6 +169,7 @@ class JumpTransitionTunnel(object):
         if self.mainCS is not None:
             self.mainCS.Play()
             self.StopWarpTransitionAudio()
+        return
 
     def _DelayedStart(self):
         with ExceptionEater('JumpTransitionTunnelStart'):
@@ -201,6 +209,7 @@ class JumpTransitionTunnel(object):
         uthread.new(self._DelayedCleanup)
         if IsNewCameraActive():
             self.cameraLookAnimation.OnJumpDone()
+        return
 
     def _DelayedCleanup(self):
         blue.synchro.SleepSim(2000)
@@ -210,10 +219,12 @@ class JumpTransitionTunnel(object):
             self.scene.warpTunnel = None
         self.effect = None
         self.effectRoot = None
+        return
 
     def DoCameraLookAnimation(self):
         if self.cameraLookAnimation is not None:
             self.cameraLookAnimation.Start()
+        return
 
     def BlinkSystemName(self):
         blue.synchro.Sleep(1000)
@@ -291,6 +302,7 @@ class JumpTransitionGate(JumpTransitionTunnel):
         self.transition.InitializeGateTransition(destSystem, destStargate)
         finalTranslation = self.shipBall.radius * 10
         self.cameraLookAnimation = transitioncam.LookAnimation(self.camera, self.effectRoot.rotation, startFocusID=stargateID, endFocusID=destStargate, startTranslation=gateSize * 3, endTranslation=finalTranslation)
+        return
 
 
 class JumpTransitionCyno(JumpTransitionTunnel):
@@ -321,14 +333,17 @@ class JumpTransitionWormhole(object):
         self.mainSequenceFinished = False
         self.translationFromWormhole = 6000.0
         self.activeCameraID = None
+        return
 
     def SetScene(self, scene):
         if self.model is None:
             return
-        if self.scene is not None:
-            self.scene.objects.fremove(self.model)
-        scene.objects.append(self.model)
-        self.scene = scene
+        else:
+            if self.scene is not None:
+                self.scene.objects.fremove(self.model)
+            scene.objects.append(self.model)
+            self.scene = scene
+            return
 
     def Prepare(self, wormholeItem, destNebulaPath, srcNebulaPath):
         if self.resPath is not None:
@@ -356,7 +371,8 @@ class JumpTransitionWormhole(object):
         if IsNewCameraActive():
             sceneMan = sm.GetService('sceneManager')
             self.activeCameraID = sceneMan.GetActiveSpaceCamera().cameraID
-            self.camera = sceneMan.SetActiveCameraByID(evecamera.CAM_JUMP)
+            self.camera = sceneMan.SetPrimaryCamera(evecamera.CAM_JUMP)
+        return
 
     def _PlayMidCurves(self):
         blue.synchro.Sleep(500)
@@ -367,6 +383,7 @@ class JumpTransitionWormhole(object):
         if self.midCS is not None:
             self.midCS.Play()
         self.mainSequenceFinished = True
+        return
 
     def GetCamera(self):
         return sm.GetService('sceneManager').GetActiveSpaceCamera()
@@ -392,11 +409,13 @@ class JumpTransitionWormhole(object):
 
         uthread.new(_waitForFinish)
 
-    def Stop(self, reason = STOP_REASON_DEFAULT):
+    def Stop(self, reason=STOP_REASON_DEFAULT):
         uthread.new(self.BlinkSystemName)
         if self.model is None:
             return
-        uthread.new(self._DelayedStop)
+        else:
+            uthread.new(self._DelayedStop)
+            return
 
     def _DelayedStop(self):
         if self.startCS is not None:
@@ -404,7 +423,7 @@ class JumpTransitionWormhole(object):
         if self.stopCS is not None:
             self.stopCS.Play()
         if IsNewCameraActive():
-            sm.GetService('sceneManager').SetActiveCameraByID(self.activeCameraID)
+            sm.GetService('sceneManager').SetPrimaryCamera(self.activeCameraID)
             blue.synchro.SleepSim(2000)
         else:
             blue.synchro.SleepSim(500)
@@ -415,6 +434,7 @@ class JumpTransitionWormhole(object):
             self.scene.objects.fremove(self.model)
             self.scene = None
         self.model = None
+        return
 
     def BlinkSystemName(self):
         blue.synchro.Sleep(1000)
@@ -438,12 +458,15 @@ class JumpDriveIn(ShipEffect):
         if shipBall is None:
             self.fxSequencer.LogError(self.__guid__, ' could not find a ball')
             return
-        ShipEffect.Start(self, duration)
+        else:
+            ShipEffect.Start(self, duration)
+            return
 
     def DelayedHide(self, shipBall, delay):
         blue.pyos.synchro.SleepSim(delay)
         if shipBall is not None and shipBall.model is not None:
             shipBall.model.display = False
+        return
 
 
 class JumpDriveInBO(JumpDriveIn):
@@ -512,12 +535,14 @@ class JumpOut(ShipEffect):
 
         targetBall.Activate()
         targetBall.JumpDeparture()
+        return
 
     def DelayedHide(self, shipBall):
         blue.pyos.synchro.SleepSim(880)
         self.fxSequencer.OnSpecialFX(shipBall.id, None, None, None, None, 'effects.Uncloak', 0, 0, 0)
         if shipBall is not None and shipBall.model is not None:
             shipBall.model.display = False
+        return
 
 
 class JumpOutWormhole(JumpDriveIn):
@@ -544,14 +569,16 @@ class JumpOutWormhole(JumpDriveIn):
             self.playerEffect.Start()
         self.PlayNamedAnimations(wormholeBall.model, 'Activate')
         wormholeBall.PlaySound('worldobject_wormhole_jump_play')
+        return
 
-    def Stop(self, reason = STOP_REASON_DEFAULT):
+    def Stop(self, reason=STOP_REASON_DEFAULT):
         if self.GetEffectShipID() == session.shipid and reason == STOP_REASON_DEFAULT:
             self.playerEffect.Abort()
         shipID = self.ballIDs[0]
         shipBall = self.fxSequencer.GetBall(shipID)
         if shipBall is not None and shipBall.model is not None:
             shipBall.model.display = True
+        return
 
 
 class GateActivity(GenericEffect):
@@ -568,16 +595,19 @@ class GateActivity(GenericEffect):
         if gateBall is None:
             self.fxSequencer.LogError('GateActivity could not find a gate ball')
             return
-        if gateBall.model is None:
+        elif gateBall.model is None:
             self.fxSequencer.LogError('GateActivity could not find a gate ball')
             return
-        gateBall.Activate()
-        gateBall.JumpArrival()
+        else:
+            gateBall.Activate()
+            gateBall.JumpArrival()
+            return
 
-    def Stop(self, reason = STOP_REASON_DEFAULT):
+    def Stop(self, reason=STOP_REASON_DEFAULT):
         if self.observer in self.gfx.observers:
             self.gfx.observers.remove(self.observer)
         self.observer.observer = None
+        return
 
 
 class WormholeActivity(GenericEffect):
@@ -589,8 +619,10 @@ class WormholeActivity(GenericEffect):
         if wormholeBall is None:
             self.fxSequencer.LogError('WormholeActivity could not find a wormhole ball')
             return
-        if wormholeBall.model is None:
+        elif wormholeBall.model is None:
             self.fxSequencer.LogError('WormholeActivity could not find a wormhole ball')
             return
-        self.PlayNamedAnimations(wormholeBall.model, 'Activate')
-        wormholeBall.PlaySound('worldobject_wormhole_jump_play')
+        else:
+            self.PlayNamedAnimations(wormholeBall.model, 'Activate')
+            wormholeBall.PlaySound('worldobject_wormhole_jump_play')
+            return

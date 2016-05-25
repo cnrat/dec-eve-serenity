@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\common\script\planet\entities\baseRoute.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\common\script\planet\entities\baseRoute.py
 import weakref
 import evetypes
 import util
@@ -31,12 +32,14 @@ class BaseRoute(object):
     def GetSourcePinID(self):
         if len(self.path) < 1:
             return None
-        return self.path[0]
+        else:
+            return self.path[0]
 
     def GetDestinationPinID(self):
         if len(self.path) < 1:
             return None
-        return self.path[-1]
+        else:
+            return self.path[-1]
 
     def SetSourcePin(self, sourcePin):
         self.path = [sourcePin.id]
@@ -78,6 +81,7 @@ class BaseRoute(object):
             return bwth
         else:
             return planetCommon.GetBandwidth(bwth, cycleTime)
+            return
 
     def GetRouteCycleTime(self):
         sourcePin = self.colony.GetPin(self.GetSourcePinID())
@@ -88,7 +92,6 @@ class BaseRoute(object):
             if destinationPin.IsConsumer():
                 return destinationPin.GetCycleTime()
             return 0.0
-        return 0.0
 
     def Serialize(self):
         ret = util.KeyVal(routeID=self.routeID, charID=self.charID, path=self.path, commodityTypeID=self.commodityTypeID, commodityQuantity=self.commodityQuantity)

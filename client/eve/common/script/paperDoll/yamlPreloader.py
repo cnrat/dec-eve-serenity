@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\common\script\paperDoll\yamlPreloader.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\common\script\paperDoll\yamlPreloader.py
 import telemetry
 import cStringIO
 import weakref
@@ -102,7 +103,7 @@ class YamlPreloader(object):
     def Clear():
         YamlPreloader.__shared_state.clear()
 
-    def Preload(self, rootFolder = None, extensions = None, yamlFilter = None):
+    def Preload(self, rootFolder=None, extensions=None, yamlFilter=None):
         extensions = extensions or ['.yaml']
 
         def doPreload():
@@ -126,7 +127,9 @@ class YamlPreloader(object):
         except:
             log.LogError('paperDoll::YamlPreloader::Preload - Failed loading yaml for path: {0}'.format(path))
 
-    def Preload_t(self, rootFolder, extensions = None, yamlFilter = None):
+        return
+
+    def Preload_t(self, rootFolder, extensions=None, yamlFilter=None):
         yamlFiles = []
         extensions = extensions or ['.yaml']
         for root, dirs, files in walk.walk(rootFolder):
@@ -161,6 +164,8 @@ class YamlPreloader(object):
             self.AddToCache(yamlPath, yamlData)
         if yamlData:
             return copy.deepcopy(yamlData)
+        else:
+            return
 
     def SaveCacheAsPickle(self, outputPath):
         if self.IsLoading():
@@ -204,7 +209,7 @@ class YamlPreloader(object):
         uthread.new(tasklet_proc)
 
 
-def LoadYamlFileNicely(pathToFile, enableCache = True):
+def LoadYamlFileNicely(pathToFile, enableCache=True):
     if enableCache:
         yamlPreloader = YamlPreloader()
         return yamlPreloader.LoadYaml(pathToFile)

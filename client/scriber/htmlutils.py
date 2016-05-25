@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\packages\scriber\htmlutils.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\packages\scriber\htmlutils.py
 import re
 import HTMLParser
 import typeutils
@@ -16,7 +17,7 @@ class TolerantParser(HTMLParser.HTMLParser):
         self.parse_errors = []
 
     def on_error_replace_with(self):
-        return '&lt;'
+        pass
 
     def parse_starttag(self, i):
         try:
@@ -132,12 +133,13 @@ class TolerantParser(HTMLParser.HTMLParser):
 
 class TagStripper(TolerantParser):
 
-    def __init__(self, tag_list = tuple(), preserve_content_list = tuple()):
+    def __init__(self, tag_list=tuple(), preserve_content_list=tuple()):
         TolerantParser.__init__(self)
         self._stripped = []
         self.tag_list = tag_list
         self.preserve_content_list = preserve_content_list
         self.ignore_content_until = None
+        return
 
     def handle_data(self, data):
         if not self.ignore_content_until:
@@ -158,6 +160,7 @@ class TagStripper(TolerantParser):
             self.ignore_content_until = None
         if tag not in self.tag_list:
             self._stripped.append('</%s>' % tag)
+        return
 
     def handle_entityref(self, name):
         if not self.ignore_content_until:
@@ -193,7 +196,7 @@ class HTMLStripper(TolerantParser):
      'canvas',
      'meta']
 
-    def __init__(self, preserve_links = True, preserve_images = False, decode_chars = True, error_tolerance = True):
+    def __init__(self, preserve_links=True, preserve_images=False, decode_chars=True, error_tolerance=True):
         TolerantParser.__init__(self)
         self._text = []
         self.preserve_links = preserve_links
@@ -202,6 +205,7 @@ class HTMLStripper(TolerantParser):
         self.error_tolerance = error_tolerance
         self.link = ''
         self.ignore_content_until = None
+        return
 
     def handle_data(self, data):
         if not self.ignore_content_until:
@@ -229,6 +233,7 @@ class HTMLStripper(TolerantParser):
         elif tag == 'a' and self.preserve_links and self.link:
             self._text.append(' [%s]' % self.link)
             self.link = ''
+        return
 
     def handle_entityref(self, name):
         if not self.ignore_content_until:
@@ -250,7 +255,7 @@ class HTMLStripper(TolerantParser):
         else:
             return '&lt;'
 
-    def _add_linefeed(self, count = 1):
+    def _add_linefeed(self, count=1):
         self._text.append('{{LF}}' * count)
 
     def get_text(self):
@@ -266,7 +271,7 @@ class HTMLStripper(TolerantParser):
         return text
 
 
-def strip_html(html_string, preserve_links = True, preserve_images = False, decode_chars = True):
+def strip_html(html_string, preserve_links=True, preserve_images=False, decode_chars=True):
     stripper = HTMLStripper(preserve_links, preserve_images, decode_chars)
     stripper.feed(html_string)
     return stripper.get_text()
@@ -284,7 +289,7 @@ def unsanitize(string):
     return reduce(lambda string, params: string.replace(*params), (('&gt;', '>'), ('&lt;', '<'), ('&amp;', '&')), string)
 
 
-def esc_email_tags(html, replacer = const.EMAIL_TAG_REPLACE_HTML):
+def esc_email_tags(html, replacer=const.EMAIL_TAG_REPLACE_HTML):
     return const.EMAIL_TAG_GRABBER.sub(replacer, html)
 
 
@@ -294,7 +299,7 @@ def strip_bad_tags(html_string):
     return stripper.get_stripped()
 
 
-def attr_str(attribute_list, xhtml_strict = False):
+def attr_str(attribute_list, xhtml_strict=False):
     buff = []
     if isinstance(attribute_list, dict):
         attribute_list = attribute_list.items()
@@ -362,13 +367,13 @@ def esp_item_link(item):
     elif item.item_type.category_id == iconst.categoryCelestial:
         if item.item_type.group_id == iconst.groupRegion:
             return '/gd/universe.py?action=Region&regionID=%d' % item.item_id
-        elif item.item_type.group_id == iconst.groupConstellation:
+        if item.item_type.group_id == iconst.groupConstellation:
             return '/gd/universe.py?action=Constellation&constellationID=%s' % item.item_id
-        elif item.item_type.group_id == iconst.groupSolarSystem:
+        if item.item_type.group_id == iconst.groupSolarSystem:
             return '/gd/universe.py?action=System&systemID=%d' % item.item_id
-        elif item.item_type.group_id == iconst.groupAsteroidBelt:
+        if item.item_type.group_id == iconst.groupAsteroidBelt:
             return '/gd/universe.py?action=AsteroidBelt&asteroidBeltID=%d' % item.item_id
-        else:
+        if item.item_type.group_id in [iconst.groupPlanet, iconst.groupMoon]:
             return '/gd/universe.py?action=Celestial&celestialID=%d' % item.item_id
     elif item.item_type.category_id == iconst.categoryStation:
         if item.item_type.group_id == iconst.groupStation:

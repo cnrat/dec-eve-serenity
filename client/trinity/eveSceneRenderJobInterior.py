@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\packages\trinity\eveSceneRenderJobInterior.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\packages\trinity\eveSceneRenderJobInterior.py
 import blue
 import yaml
 import geo2
@@ -9,7 +10,7 @@ from .sceneRenderJobBase import SceneRenderJobBase
 from .renderJobUtils import renderTargetManager as rtm
 from . import renderSSAOJob
 
-def CreateEveSceneRenderJobInterior(name = None, stageKey = None):
+def CreateEveSceneRenderJobInterior(name=None, stageKey=None):
     newRJ = EveSceneRenderJobInterior()
     if name is not None:
         newRJ.ManualInit(name)
@@ -58,6 +59,7 @@ class EveSceneRenderJobInterior(SceneRenderJobBase):
      'SET_VAR_LIGHTS',
      'SET_FOG_MAP',
      'RENDER_GATHER',
+     'SET_FULLSCREEN_RENDERMODE',
      'UPDATE_LUT',
      'SET_POST_PROCESS_DEPTH_STENCIL',
      'SET_VAR_POST_PROCESS_GATHER',
@@ -162,7 +164,7 @@ class EveSceneRenderJobInterior(SceneRenderJobBase):
      ('TEARDOWN', True, ['RESTORE_DEPTH'])]
     visualizations = []
 
-    def _ManualInit(self, name = 'EveSceneRenderJobInterior'):
+    def _ManualInit(self, name='EveSceneRenderJobInterior'):
         self.depthFormat = None
         self.prePassFormat = None
         self.lightAccumulationFormat = None
@@ -208,6 +210,7 @@ class EveSceneRenderJobInterior(SceneRenderJobBase):
         trinity.AddMipLevelSkipExclusionDirectory('res:/graphics/shared_texture/global/prepasslightlookup')
         self.SetSettingsBasedOnPerformancePreferences()
         self.ChooseBufferFormats()
+        return
 
     def Enable(self):
         SceneRenderJobBase.Enable(self)
@@ -246,6 +249,7 @@ class EveSceneRenderJobInterior(SceneRenderJobBase):
         if currentScene is not None:
             currentScene.shadowUpdatesPerFrame = self.numShadowUpdates
             currentScene.enableSHSolver = trinity.HasGlobalSituationFlag('OPT_INTERIOR_SM_HIGH')
+        return
 
     def _GetFXAAQuality(self, quality):
         if quality >= gfxsettings.AA_QUALITY_MSAA_HIGH:
@@ -254,7 +258,6 @@ class EveSceneRenderJobInterior(SceneRenderJobBase):
             return 'FXAA_Medium'
         if quality == gfxsettings.AA_QUALITY_MSAA_LOW:
             return 'FXAA_Low'
-        return ''
 
     def _GetRenderTargetIndex(self, format, width, height):
         key = (format, width, height)
@@ -284,16 +287,19 @@ class EveSceneRenderJobInterior(SceneRenderJobBase):
         self.SetStepAttr('RENDER_GATHER', 'scene', scene)
         self.SetStepAttr('RENDER_FLARES', 'scene', scene)
         self.SetStepAttr('END_MANAGED_RENDERING', 'scene', scene)
+        return
 
     def ReloadPostprocessingParameters(self):
         scene = self.GetScene()
         if not scene:
             return None
-        if hasattr(scene, 'id'):
-            path = 'res:/Graphics/PostProcess/%i_postprocess.yaml' % scene.id
-            self._LoadPostprocessingParameters(path, scene, True)
         else:
-            self.postProcessingParameters = {}
+            if hasattr(scene, 'id'):
+                path = 'res:/Graphics/PostProcess/%i_postprocess.yaml' % scene.id
+                self._LoadPostprocessingParameters(path, scene, True)
+            else:
+                self.postProcessingParameters = {}
+            return None
 
     def _LoadPostprocessingParameters(self, path, scene, forceReload):
         if blue.paths.exists(path):
@@ -311,45 +317,47 @@ class EveSceneRenderJobInterior(SceneRenderJobBase):
         def UpdateLUT():
             if getattr(self.view, 'object', None) is None or self.lutTransitions is None:
                 return
-            position = geo2.MatrixInverse(self.view.object.transform)[3]
-            closest = None
-            closestDistance = 0
-            for transition in self.lutTransitions:
-                distance = geo2.Vec4Dot(position, transition['plane'])
-                if closest is None or abs(distance) < abs(closestDistance):
-                    closest = transition
-                    closestDistance = distance
+            else:
+                position = geo2.MatrixInverse(self.view.object.transform)[3]
+                closest = None
+                closestDistance = 0
+                for transition in self.lutTransitions:
+                    distance = geo2.Vec4Dot(position, transition['plane'])
+                    if closest is None or abs(distance) < abs(closestDistance):
+                        closest = transition
+                        closestDistance = distance
 
-            transitionTime = 1
-            if closest is not None:
-                if closestDistance > 0:
-                    map = closest['mapA']
-                    transitionTime = closest['toSideATime']
-                else:
-                    map = closest['mapB']
-                    transitionTime = closest['toSideBTime']
-                if map != self.nextLUTMap:
-                    if map == self.previousLUTMap:
-                        temp = self.nextLUTMap
-                        self.nextLUTMap = self.previousLUTMap
-                        self.previousLUTMap = temp
-                        self.lutBlend = 1 - self.lutBlend
-                    elif self.previousLUTMap is None:
-                        self.previousLUTMap = map
-                        self.nextLUTMap = map
-                        self.lutBlend = 0
+                transitionTime = 1
+                if closest is not None:
+                    if closestDistance > 0:
+                        map = closest['mapA']
+                        transitionTime = closest['toSideATime']
                     else:
-                        self.previousLUTMap = self.nextLUTMap
-                        self.nextLUTMap = map
-                        self.lutBlend = 0
-                    self.SetLUTMaps(self.previousLUTMap, self.nextLUTMap)
-            time = blue.os.GetWallclockTime()
-            if self.lutPreviousTime == 0L:
+                        map = closest['mapB']
+                        transitionTime = closest['toSideBTime']
+                    if map != self.nextLUTMap:
+                        if map == self.previousLUTMap:
+                            temp = self.nextLUTMap
+                            self.nextLUTMap = self.previousLUTMap
+                            self.previousLUTMap = temp
+                            self.lutBlend = 1 - self.lutBlend
+                        elif self.previousLUTMap is None:
+                            self.previousLUTMap = map
+                            self.nextLUTMap = map
+                            self.lutBlend = 0
+                        else:
+                            self.previousLUTMap = self.nextLUTMap
+                            self.nextLUTMap = map
+                            self.lutBlend = 0
+                        self.SetLUTMaps(self.previousLUTMap, self.nextLUTMap)
+                time = blue.os.GetWallclockTime()
+                if self.lutPreviousTime == 0L:
+                    self.lutPreviousTime = time
+                dt = min(blue.os.TimeDiffInMs(self.lutPreviousTime, time) / 1000.0, 0.1)
                 self.lutPreviousTime = time
-            dt = min(blue.os.TimeDiffInMs(self.lutPreviousTime, time) / 1000.0, 0.1)
-            self.lutPreviousTime = time
-            self.lutBlend = min(self.lutBlend + dt / transitionTime, 1.0)
-            self.SetLUTBlendAmount(self.lutBlend)
+                self.lutBlend = min(self.lutBlend + dt / transitionTime, 1.0)
+                self.SetLUTBlendAmount(self.lutBlend)
+                return
 
         return UpdateLUT
 
@@ -399,6 +407,7 @@ class EveSceneRenderJobInterior(SceneRenderJobBase):
         self.AddStep('RENDER_GATHER', trinity.TriStepRenderPass(self.GetScene(), trinity.TRIPASS_GATHER_PASS))
         self.AddStep('RENDER_FLARES', trinity.TriStepRenderPass(self.GetScene(), trinity.TRIPASS_FLARE_PASS))
         self.AddStep('END_MANAGED_RENDERING', trinity.TriStepRenderPass(self.GetScene(), trinity.TRIPASS_END_RENDER))
+        return
 
     def AddBloomStep(self, source, target, step, kernelWidth):
         self.AddStep('SET_VAR_ILR_THRESHOLD_%d' % step, trinity.TriStepSetVariableStore('BloomMap', source))
@@ -427,6 +436,7 @@ class EveSceneRenderJobInterior(SceneRenderJobBase):
         if not customDepthFormat:
             self.RemoveStep('SET_DEPTH')
             self.RemoveStep('RESTORE_DEPTH')
+        return
 
     def DoReleaseResources(self, level):
         self.SetRenderTargets(None, None, None, None, None, None, None, None, None, None, None)
@@ -443,6 +453,7 @@ class EveSceneRenderJobInterior(SceneRenderJobBase):
         self.ilrBloomTarget2 = None
         self.ssaoTarget = None
         self.renderTargetCount = {}
+        return
 
     def InitializeShaders(self):
         self.ilrBloomShader = trinity.Tr2ShaderMaterial()
@@ -458,51 +469,53 @@ class EveSceneRenderJobInterior(SceneRenderJobBase):
     def DoPrepareResources(self):
         if not self.enabled or not self.canCreateRenderTargets:
             return
-        if self.fogTexturePath != '':
-            texture = blue.resMan.GetResource(self.fogTexturePath)
-            self.AddStep('SET_FOG_MAP', trinity.TriStepSetVariableStore('FogRampMap', texture))
-        self.lightingLUT = blue.resMan.GetResource('res:/Graphics/Shared_Texture/Global/prepassLightLookup.dds')
-        self.fresnelLUT = blue.resMan.GetResource('res:/Graphics/Shared_Texture/Global/prepassLightLookupFresnel.dds')
-        self.AddStep('SET_VAR_LIGHT_LUT', trinity.TriStepSetVariableStore('LightingLUT', self.lightingLUT))
-        self.AddStep('SET_VAR_LIGHT_FRESNEL', trinity.TriStepSetVariableStore('FresnelLUT', self.fresnelLUT))
-        if self.renderTargetList is None:
-            width, height = self.GetBackBufferSize()
-            self.ChooseBufferFormats()
-            if self.backBufferRenderTarget is None:
-                self.backBufferRenderTarget = self.GetBackBufferRenderTarget()
-            if self.depthFormat is not None and self.prePassDepthStencil is None:
-                self.prePassDepthStencil = self.GetDepthStencilWithRTMAL(self.depthFormat, None, self._GetRenderTargetIndex(self.depthFormat, width, height))
-                try:
-                    self.prePassDepthStencil.name = 'sceneRenderJobInterior.prePassDepthStencil'
-                except:
-                    pass
+        else:
+            if self.fogTexturePath != '':
+                texture = blue.resMan.GetResource(self.fogTexturePath)
+                self.AddStep('SET_FOG_MAP', trinity.TriStepSetVariableStore('FogRampMap', texture))
+            self.lightingLUT = blue.resMan.GetResource('res:/Graphics/Shared_Texture/Global/prepassLightLookup.dds')
+            self.fresnelLUT = blue.resMan.GetResource('res:/Graphics/Shared_Texture/Global/prepassLightLookupFresnel.dds')
+            self.AddStep('SET_VAR_LIGHT_LUT', trinity.TriStepSetVariableStore('LightingLUT', self.lightingLUT))
+            self.AddStep('SET_VAR_LIGHT_FRESNEL', trinity.TriStepSetVariableStore('FresnelLUT', self.fresnelLUT))
+            if self.renderTargetList is None:
+                width, height = self.GetBackBufferSize()
+                self.ChooseBufferFormats()
+                if self.backBufferRenderTarget is None:
+                    self.backBufferRenderTarget = self.GetBackBufferRenderTarget()
+                if self.depthFormat is not None and self.prePassDepthStencil is None:
+                    self.prePassDepthStencil = self.GetDepthStencilWithRTMAL(self.depthFormat, None, self._GetRenderTargetIndex(self.depthFormat, width, height))
+                    try:
+                        self.prePassDepthStencil.name = 'sceneRenderJobInterior.prePassDepthStencil'
+                    except:
+                        pass
 
-            if self.prePassFormat is not None and self.prePassRenderTarget is None:
-                self.prePassRenderTarget = rtm.GetRenderTargetAL(width, height, 1, self.prePassFormat, index=self._GetRenderTargetIndex(self.prePassFormat, width, height))
-                if self.prePassRenderTarget is not None:
-                    self.prePassRenderTarget.name = 'sceneRenderJobInterior.prePassRenderTarget'
-            if self.lightAccumulationFormat is not None and self.lightAccumulationTarget is None:
-                self.lightAccumulationTarget = rtm.GetRenderTargetAL(width, height, 1, self.lightAccumulationFormat, index=self._GetRenderTargetIndex(self.lightAccumulationFormat, width, height))
-                if self.lightAccumulationTarget is not None:
-                    self.lightAccumulationTarget.name = 'sceneRenderJobInterior.lightAccumulationTarget'
-            self._RebuildPostProcess()
-            if self.ssaoEnabled:
-                self.ssaoTarget = self.CreateSSAORenderTarget()
-            else:
-                self.ssaoTarget = blue.resMan.GetResource('res:/Texture/Global/white.dds')
-            self.renderTargetList = (blue.BluePythonWeakRef(self.backBufferDepthStencil),
-             blue.BluePythonWeakRef(self.backBufferRenderTarget),
-             blue.BluePythonWeakRef(self.prePassDepthStencil),
-             blue.BluePythonWeakRef(self.prePassRenderTarget),
-             blue.BluePythonWeakRef(self.lightAccumulationTarget),
-             blue.BluePythonWeakRef(self.ilrBloomTarget0),
-             blue.BluePythonWeakRef(self.ilrBloomTarget1),
-             blue.BluePythonWeakRef(self.ilrBloomTarget2),
-             blue.BluePythonWeakRef(self.ilrMergeTarget),
-             blue.BluePythonWeakRef(self.gatherTarget),
-             blue.BluePythonWeakRef(self.ssaoTarget))
-        thingToSet = (x.object for x in self.renderTargetList)
-        self.SetRenderTargets(*thingToSet)
+                if self.prePassFormat is not None and self.prePassRenderTarget is None:
+                    self.prePassRenderTarget = rtm.GetRenderTargetAL(width, height, 1, self.prePassFormat, index=self._GetRenderTargetIndex(self.prePassFormat, width, height))
+                    if self.prePassRenderTarget is not None:
+                        self.prePassRenderTarget.name = 'sceneRenderJobInterior.prePassRenderTarget'
+                if self.lightAccumulationFormat is not None and self.lightAccumulationTarget is None:
+                    self.lightAccumulationTarget = rtm.GetRenderTargetAL(width, height, 1, self.lightAccumulationFormat, index=self._GetRenderTargetIndex(self.lightAccumulationFormat, width, height))
+                    if self.lightAccumulationTarget is not None:
+                        self.lightAccumulationTarget.name = 'sceneRenderJobInterior.lightAccumulationTarget'
+                self._RebuildPostProcess()
+                if self.ssaoEnabled:
+                    self.ssaoTarget = self.CreateSSAORenderTarget()
+                else:
+                    self.ssaoTarget = blue.resMan.GetResource('res:/Texture/Global/white.dds')
+                self.renderTargetList = (blue.BluePythonWeakRef(self.backBufferDepthStencil),
+                 blue.BluePythonWeakRef(self.backBufferRenderTarget),
+                 blue.BluePythonWeakRef(self.prePassDepthStencil),
+                 blue.BluePythonWeakRef(self.prePassRenderTarget),
+                 blue.BluePythonWeakRef(self.lightAccumulationTarget),
+                 blue.BluePythonWeakRef(self.ilrBloomTarget0),
+                 blue.BluePythonWeakRef(self.ilrBloomTarget1),
+                 blue.BluePythonWeakRef(self.ilrBloomTarget2),
+                 blue.BluePythonWeakRef(self.ilrMergeTarget),
+                 blue.BluePythonWeakRef(self.gatherTarget),
+                 blue.BluePythonWeakRef(self.ssaoTarget))
+            thingToSet = (x.object for x in self.renderTargetList)
+            self.SetRenderTargets(*thingToSet)
+            return
 
     def SetUI(self, ui):
         if ui is None:
@@ -511,6 +524,7 @@ class EveSceneRenderJobInterior(SceneRenderJobBase):
         else:
             self.AddStep('UPDATE_UI', trinity.TriStepUpdate(ui))
             self.AddStep('RENDER_UI', trinity.TriStepRenderUI(ui))
+        return
 
     def SetCameraView(self, view):
         SceneRenderJobBase.SetCameraView(self, view)
@@ -578,6 +592,7 @@ class EveSceneRenderJobInterior(SceneRenderJobBase):
             self.AddStep('SET_BACKGROUND_PROJECTION', trinity.TriStepSetProjection(projection))
             self.backgroundUpdateFunction = updateFunction
             self.UpdateBackgroundCameraCallbackWithNewForegroundCamera()
+        return
 
     def UpdateBackgroundCameraCallbackWithNewForegroundCamera(self):
         if self.view is not None:
@@ -594,12 +609,14 @@ class EveSceneRenderJobInterior(SceneRenderJobBase):
             return
         if self.backgroundUpdateFunction is None:
             return
-        if originalProjection is not None and originalView is not None:
-            callback = self.GetBackgroundUpdateCallbackFunction(originalView, originalProjection, self.backgroundUpdateFunction)
-            upd = self.AddStep('UPDATE_BACKGROUND_CAMERA', trinity.TriStepPythonCB())
-            if upd is not None:
-                upd.SetCallback(callback)
-                return True
+        else:
+            if originalProjection is not None and originalView is not None:
+                callback = self.GetBackgroundUpdateCallbackFunction(originalView, originalProjection, self.backgroundUpdateFunction)
+                upd = self.AddStep('UPDATE_BACKGROUND_CAMERA', trinity.TriStepPythonCB())
+                if upd is not None:
+                    upd.SetCallback(callback)
+                    return True
+            return
 
     def SetBackgroundScene(self, scene):
         if scene is None:
@@ -619,6 +636,7 @@ class EveSceneRenderJobInterior(SceneRenderJobBase):
             if self.gatherTarget is not None:
                 self.AddStep('SET_BACKGROUND_RT', trinity.TriStepSetRenderTarget(self.gatherTarget))
             self.backgroundScene = blue.BluePythonWeakRef(scene)
+        return
 
     def SuspendRendering(self):
         self.Pause()
@@ -645,6 +663,7 @@ class EveSceneRenderJobInterior(SceneRenderJobBase):
         else:
             self.RemoveStep('CLEAR_PREPASS')
             self.RemoveStep('CLEAR_LIGHTS')
+        return
 
     def CreateSSAORenderTarget(self):
         width, height = self.GetBackBufferSize()
@@ -684,44 +703,47 @@ class EveSceneRenderJobInterior(SceneRenderJobBase):
         self.ssaoTarget = blue.resMan.GetResource('res:/Texture/Global/white.dds')
         self.AddStep('SET_VAR_SSAO', trinity.TriStepSetVariableStore('SSAOMap', self.ssaoTarget))
         self.RemoveStep('RENDER_SSAO')
+        return
 
     def LoadILRSettings(self):
         import yaml
         scene = self.GetScene()
         if not scene:
             return
-        if hasattr(scene, 'id'):
-            resPath = 'res:\\Graphics\\PostProcess\\ILR_%s.yaml' % scene.id
-            if resPath is None:
-                return
         else:
+            if hasattr(scene, 'id'):
+                resPath = 'res:\\Graphics\\PostProcess\\ILR_%s.yaml' % scene.id
+                if resPath is None:
+                    return
+            else:
+                return
+            if blue.paths.exists(resPath):
+                rf = blue.ResFile()
+                rf.Open(resPath)
+                yamlStr = rf.read()
+                rf.close()
+                ilrValues = yaml.load(yamlStr)
+                ref0 = (ilrValues.get('Reflection0', 1),
+                 ilrValues.get('Reflection1', 1),
+                 ilrValues.get('Reflection2', 1),
+                 ilrValues.get('Reflection3', 1))
+                ref1 = (ilrValues.get('Reflection4', 1),
+                 ilrValues.get('Reflection5', 1),
+                 ilrValues.get('Reflection6', 1),
+                 ilrValues.get('Intensity', 1))
+                tint0 = (ilrValues.get('TintR_Center', 1),
+                 ilrValues.get('TintG_Center', 1),
+                 ilrValues.get('TintB_Center', 1),
+                 1.0)
+                tint1 = (ilrValues.get('TintR_Edge', 1),
+                 ilrValues.get('TintG_Edge', 1),
+                 ilrValues.get('TintB_Edge', 1),
+                 1.0)
+                width = ilrValues.get('BloomWidth', 1)
+                self.SetReflections(ref0, ref1)
+                self.SetTints(tint0, tint1)
+                self.SetBlurKernel(width)
             return
-        if blue.paths.exists(resPath):
-            rf = blue.ResFile()
-            rf.Open(resPath)
-            yamlStr = rf.read()
-            rf.close()
-            ilrValues = yaml.load(yamlStr)
-            ref0 = (ilrValues.get('Reflection0', 1),
-             ilrValues.get('Reflection1', 1),
-             ilrValues.get('Reflection2', 1),
-             ilrValues.get('Reflection3', 1))
-            ref1 = (ilrValues.get('Reflection4', 1),
-             ilrValues.get('Reflection5', 1),
-             ilrValues.get('Reflection6', 1),
-             ilrValues.get('Intensity', 1))
-            tint0 = (ilrValues.get('TintR_Center', 1),
-             ilrValues.get('TintG_Center', 1),
-             ilrValues.get('TintB_Center', 1),
-             1.0)
-            tint1 = (ilrValues.get('TintR_Edge', 1),
-             ilrValues.get('TintG_Edge', 1),
-             ilrValues.get('TintB_Edge', 1),
-             1.0)
-            width = ilrValues.get('BloomWidth', 1)
-            self.SetReflections(ref0, ref1)
-            self.SetTints(tint0, tint1)
-            self.SetBlurKernel(width)
 
     def SetReflections(self, ref0, ref1):
         self.AddStep('SET_VAR_ILR_REFLECTIONS_0', trinity.TriStepSetVariableStore('BloomReflections0', ref0))
@@ -731,7 +753,7 @@ class EveSceneRenderJobInterior(SceneRenderJobBase):
         self.AddStep('SET_VAR_ILR_TINT_0', trinity.TriStepSetVariableStore('BloomTint0', tint0))
         self.AddStep('SET_VAR_ILR_TINT_1', trinity.TriStepSetVariableStore('BloomTint1', tint1))
 
-    def SetBlurKernel(self, width = 1.5):
+    def SetBlurKernel(self, width=1.5):
         self.AddBloomStep(self.ilrBloomTarget0, self.ilrBloomTarget1, 0, width)
         self.AddBloomStep(self.ilrBloomTarget1, self.ilrBloomTarget2, 1, width * 2)
 
@@ -754,6 +776,7 @@ class EveSceneRenderJobInterior(SceneRenderJobBase):
             self.postProcessShader.parameters['LUTMap1'].SetResource(LUTMap1)
             if rebind:
                 self.postProcessShader.BindLowLevelShader([])
+        return
 
     def SetLUTBlendAmount(self, lutBlend):
         if 'LUTBlendAmount' not in self.postProcessShader.parameters:
@@ -776,12 +799,14 @@ class EveSceneRenderJobInterior(SceneRenderJobBase):
         self.lutEnabled = enable
         if self.enabled and self.renderTargetList is not None:
             self._RebuildPostProcess()
+        return
 
-    def EnableFXAA(self, enable, mode = 'FXAA_Medium'):
+    def EnableFXAA(self, enable, mode='FXAA_Medium'):
         self.fxaaEnabled = enable
         self.fxaaQuality = mode
         if self.enabled and self.renderTargetList is not None:
             self._RebuildPostProcess()
+        return
 
     def HasPostProcess(self):
         return self.fxaaEnabled or self.lutEnabled or self.ilrEnabled or self.noiseEnabled
@@ -790,11 +815,13 @@ class EveSceneRenderJobInterior(SceneRenderJobBase):
         self.ilrEnabled = isEnabled
         if self.enabled and self.renderTargetList is not None:
             self._RebuildPostProcess()
+        return
 
     def EnableNoise(self, isEnabled):
         self.noiseEnabled = isEnabled
         if self.enabled and self.renderTargetList is not None:
             self._RebuildPostProcess()
+        return
 
     def _RebuildPostProcess(self):
         BLOOM_BUFFER_SCALE_0 = 4
@@ -902,6 +929,7 @@ class EveSceneRenderJobInterior(SceneRenderJobBase):
                 self.postProcessShader.defaultSituation += ' ' + self.fxaaQuality
             self.postProcessShader.BindLowLevelShader([])
             self.SetStepAttr('SET_GATHER_RT', 'renderTarget', self.gatherTarget)
+            self.AddStep('SET_FULLSCREEN_RENDERMODE', trinity.TriStepSetStdRndStates(trinity.RM_FULLSCREEN))
             self.AddStep('SET_VAR_POST_PROCESS_GATHER', trinity.TriStepSetVariableStore('GatherMap', self.gatherTarget))
             self.AddStep('SET_POST_PROCESS_DEPTH_STENCIL', trinity.TriStepPushDepthStencil(None))
             self.AddStep('RESTORE_DEPTH_STENCIL_FOR_TOOLS', trinity.TriStepPopDepthStencil())
@@ -915,6 +943,7 @@ class EveSceneRenderJobInterior(SceneRenderJobBase):
                 self.LoadILRSettings()
         else:
             self.RemoveStep('POST_PROCESS')
+            self.RemoveStep('SET_FULLSCREEN_RENDERMODE')
             self.RemoveStep('SET_VAR_POST_PROCESS_GATHER')
             self.RemoveStep('SET_POST_PROCESS_DEPTH_STENCIL')
             self.RemoveStep('RESTORE_DEPTH_STENCIL_FOR_TOOLS')
@@ -939,6 +968,7 @@ class EveSceneRenderJobInterior(SceneRenderJobBase):
          blue.BluePythonWeakRef(self.ilrMergeTarget),
          blue.BluePythonWeakRef(self.gatherTarget),
          blue.BluePythonWeakRef(self.ssaoTarget))
+        return
 
     def _ClearILRSteps(self):
         self.RemoveStep('SET_VAR_ILR_BLOOM')
@@ -1012,6 +1042,7 @@ class EveSceneRenderJobInterior(SceneRenderJobBase):
         self.fresnelLUT = blue.resMan.GetResource('res:/Graphics/Shared_Texture/Global/prepassLightLookupFresnel.dds')
         self.AddStep('SET_VAR_LIGHT_LUT', trinity.TriStepSetVariableStore('LightingLUT', self.lightingLUT))
         self.AddStep('SET_VAR_LIGHT_FRESNEL', trinity.TriStepSetVariableStore('FresnelLUT', self.fresnelLUT))
+        return
 
     def GetRenderTargets(self):
         return self.renderTargetList
@@ -1023,11 +1054,13 @@ class EveSceneRenderJobInterior(SceneRenderJobBase):
         step = self.GetStep('CLEAR_GATHER_RT')
         if step is not None:
             step.color = color
+        return
 
     def GetInsiderVisualizationMenu(self):
         if not self.enabled:
             return [('None', None)]
-        return self._CreateVisualizationMenu(self.visualizations)
+        else:
+            return self._CreateVisualizationMenu(self.visualizations)
 
     def _CreateVisualizationMenu(self, visualizations):
         menu = []

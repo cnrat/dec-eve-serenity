@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\client\script\ui\inflight\shipHud\ewarContainer.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\client\script\ui\inflight\shipHud\ewarContainer.py
 import evetypes
 import localization
 import state
@@ -7,9 +8,53 @@ import uicontrols
 import uiprimitives
 import uiutil
 from carbonui import const as uiconst
-from dogma.effects import DEFENSIVE_EWAR_TYPES
 from eve.client.script.ui.inflight.moduleEffectTimer import ModuleEffectTimer
 from collections import OrderedDict
+OFFENSIVE_STATES = {'warpScramblerMWD': const.iconModuleWarpScramblerMWD,
+ 'warpScrambler': const.iconModuleWarpScrambler,
+ 'fighterTackle': const.iconModuleFighterTackle,
+ 'focusedWarpScrambler': const.iconModuleFocusedWarpScrambler,
+ 'webify': const.iconModuleStasisWeb,
+ 'electronic': const.iconModuleECM,
+ 'ewRemoteSensorDamp': const.iconModuleSensorDamper,
+ 'ewTrackingDisrupt': const.iconModuleTrackingDisruptor,
+ 'ewGuidanceDisrupt': const.iconModuleGuidanceDisruptor,
+ 'ewTargetPaint': const.iconModuleTargetPainter,
+ 'ewEnergyVampire': const.iconModuleNosferatu,
+ 'ewEnergyNeut': const.iconModuleEnergyNeutralizer}
+DEFENSIVE_STATES = {'remoteTracking': const.iconModuleRemoteTracking,
+ 'energyTransfer': const.iconModuleEnergyTransfer,
+ 'sensorBooster': const.iconModuleSensorBooster,
+ 'eccmProjector': const.iconModuleECCMProjector,
+ 'remoteHullRepair': const.iconModuleHullRepairer,
+ 'remoteArmorRepair': const.iconModuleArmorRepairer,
+ 'shieldTransfer': const.iconModuleShieldBooster,
+ 'tethering': const.iconModuleTethering,
+ 'tetheringRepair': const.iconModuleHullRepairer}
+STATES = dict(DEFENSIVE_STATES, **OFFENSIVE_STATES)
+HINTS = {'warpScramblerMWD': 'UI/Inflight/EwarHints/WarpScrambledMWD',
+ 'fighterTackle': 'UI/Inflight/EwarHints/FighterTackled',
+ 'warpScrambler': 'UI/Inflight/EwarHints/WarpScrambled',
+ 'focusedWarpScrambler': 'UI/Inflight/EwarHints/FocusedWarpScrambled',
+ 'webify': 'UI/Inflight/EwarHints/Webified',
+ 'electronic': 'UI/Inflight/EwarHints/Jammed',
+ 'ewRemoteSensorDamp': 'UI/Inflight/EwarHints/SensorDampened',
+ 'ewTrackingDisrupt': 'UI/Inflight/EwarHints/TrackingDisrupted',
+ 'ewGuidanceDisrupt': 'UI/Inflight/EwarHints/GuidanceDisrupted',
+ 'ewTargetPaint': 'UI/Inflight/EwarHints/TargetPainted',
+ 'ewEnergyVampire': 'UI/Inflight/EwarHints/CapDrained',
+ 'ewEnergyNeut': 'UI/Inflight/EwarHints/CapNeutralized',
+ 'remoteTracking': 'UI/Inflight/EwarHints/RemoteTracking',
+ 'energyTransfer': 'UI/Inflight/EwarHints/EnergyTransfer',
+ 'sensorBooster': 'UI/Inflight/EwarHints/SensorBooster',
+ 'eccmProjector': 'UI/Inflight/EwarHints/ECCMProjector',
+ 'remoteHullRepair': 'UI/Inflight/EwarHints/RemoteHullRepair',
+ 'remoteArmorRepair': 'UI/Inflight/EwarHints/RemoteArmorRepair',
+ 'shieldTransfer': 'UI/Inflight/EwarHints/ShieldTransfer',
+ 'tethering': 'UI/Inflight/EwarHints/Tethered',
+ 'tetheringRepair': 'UI/Inflight/EwarHints/TetheredRepair'}
+FX_STATES = {'tethering': 'effects.Tethering',
+ 'tetheringRepair': 'effects.TetheringRepair'}
 
 class EwarContainer(uicontrols.ContainerAutoSize):
     __guid__ = 'uicls.EwarUIContainer'
@@ -17,7 +62,10 @@ class EwarContainer(uicontrols.ContainerAutoSize):
     default_height = 500
     default_name = 'ewarcont'
     default_state = uiconst.UI_PICKCHILDREN
-    __notifyevents__ = ['OnEwarStartFromTactical', 'OnEwarEndFromTactical']
+    __notifyevents__ = ['OnEwarStartFromTactical',
+     'OnEwarEndFromTactical',
+     'OnAddFX',
+     'OnRemoveFX']
     MAXNUMBERINHINT = 6
     ICONSIZE = 40
     PADRIGHT = 5
@@ -26,54 +74,16 @@ class EwarContainer(uicontrols.ContainerAutoSize):
         self.pending = False
         self.busyRefreshing = False
         uiprimitives.Container.ApplyAttributes(self, attributes)
-        self.ewarOffensiveStates = {'warpScramblerMWD': const.iconModuleWarpScramblerMWD,
-         'warpScrambler': const.iconModuleWarpScrambler,
-         'focusedWarpScrambler': const.iconModuleFocusedWarpScrambler,
-         'webify': const.iconModuleStasisWeb,
-         'electronic': const.iconModuleECM,
-         'ewRemoteSensorDamp': const.iconModuleSensorDamper,
-         'ewTrackingDisrupt': const.iconModuleTrackingDisruptor,
-         'ewGuidanceDisrupt': const.iconModuleGuidanceDisruptor,
-         'ewTargetPaint': const.iconModuleTargetPainter,
-         'ewEnergyVampire': const.iconModuleNosferatu,
-         'ewEnergyNeut': const.iconModuleEnergyNeutralizer}
-        self.ewarDefensiveStates = {'remoteTracking': const.iconModuleRemoteTracking,
-         'energyTransfer': const.iconModuleEnergyTransfer,
-         'sensorBooster': const.iconModuleSensorBooster,
-         'eccmProjector': const.iconModuleECCMProjector,
-         'remoteHullRepair': const.iconModuleHullRepairer,
-         'remoteArmorRepair': const.iconModuleArmorRepairer,
-         'shieldTransfer': const.iconModuleShieldBooster}
-        self.ewarStates = self.ewarDefensiveStates.copy()
-        self.ewarStates.update(self.ewarOffensiveStates)
-        self.ewarHints = {'warpScramblerMWD': 'UI/Inflight/EwarHints/WarpScrambledMWD',
-         'warpScrambler': 'UI/Inflight/EwarHints/WarpScrambled',
-         'focusedWarpScrambler': 'UI/Inflight/EwarHints/FocusedWarpScrambled',
-         'webify': 'UI/Inflight/EwarHints/Webified',
-         'electronic': 'UI/Inflight/EwarHints/Jammed',
-         'ewRemoteSensorDamp': 'UI/Inflight/EwarHints/SensorDampened',
-         'ewTrackingDisrupt': 'UI/Inflight/EwarHints/TrackingDisrupted',
-         'ewGuidanceDisrupt': 'UI/Inflight/EwarHints/GuidanceDisrupted',
-         'ewTargetPaint': 'UI/Inflight/EwarHints/TargetPainted',
-         'ewEnergyVampire': 'UI/Inflight/EwarHints/CapDrained',
-         'ewEnergyNeut': 'UI/Inflight/EwarHints/CapNeutralized',
-         'remoteTracking': 'UI/Inflight/EwarHints/RemoteTracking',
-         'energyTransfer': 'UI/Inflight/EwarHints/EnergyTransfer',
-         'sensorBooster': 'UI/Inflight/EwarHints/SensorBooster',
-         'eccmProjector': 'UI/Inflight/EwarHints/ECCMProjector',
-         'remoteHullRepair': 'UI/Inflight/EwarHints/RemoteHullRepair',
-         'remoteArmorRepair': 'UI/Inflight/EwarHints/RemoteArmorRepair',
-         'shieldTransfer': 'UI/Inflight/EwarHints/ShieldTransfer'}
         self.RefreshAllButtons()
         sm.RegisterNotify(self)
 
-    def RefreshAllButtons(self, doAnimate = True):
+    def RefreshAllButtons(self, doAnimate=True):
         self.CreateAllButtons()
         self.RefreshAllButtonDisplay(doAnimate)
 
     def CreateAllButtons(self, *args):
         self.Flush()
-        for key, value in self.ewarStates.iteritems():
+        for key, value in STATES.iteritems():
             btn, btnPar = self.AddButton(key, value)
             btnPar.display = False
 
@@ -88,38 +98,50 @@ class EwarContainer(uicontrols.ContainerAutoSize):
         btn.OnClick = (self.OnButtonClick, btn)
         return (btn, btnPar)
 
-    def OnEwarStartFromTactical(self, doAnimate = True, *args):
+    def OnAddFX(self, effect, ballID):
+        if ballID == session.shipid and effect in FX_STATES.values():
+            self.RefreshAllButtonDisplay(True)
+
+    def OnRemoveFX(self, effect, ballID):
+        if ballID == session.shipid and effect in FX_STATES.values():
+            self.RefreshAllButtonDisplay(True)
+
+    def OnEwarStartFromTactical(self, doAnimate=True, *args):
         self.RefreshAllButtonDisplay(doAnimate)
 
-    def OnEwarEndFromTactical(self, jammingType = None, ewarId = None, doAnimate = True, *args):
+    def OnEwarEndFromTactical(self, jammingType=None, ewarId=None, doAnimate=True, *args):
         self.RefreshAllButtonDisplay(doAnimate)
         if jammingType and ewarId:
             self.RemoveTimer(jammingType, ewarId)
 
-    def ShowButton(self, jammingType, doAnimate = True):
+    def ShowButton(self, jammingType, doAnimate=True):
         btnPar = getattr(self, jammingType, None)
         if btnPar:
-            isBuff = jammingType in self.ewarDefensiveStates
+            isBuff = jammingType in DEFENSIVE_STATES
             order = -1 if isBuff else self.GetNumberOfActiveDebuffs() - 1
             self.FadeButtonIn(btnPar, doAnimate, order)
+        return
 
-    def HideButton(self, jammingType, doAnimate = True):
+    def HideButton(self, jammingType, doAnimate=True):
         btnPar = getattr(self, jammingType, None)
         if btnPar:
             self.FadeButtonOut(btnPar, doAnimate)
+        return
 
     def StartTimer(self, jammingType, id, duration, *args):
         btnPar = getattr(self, jammingType, None)
         if btnPar and btnPar.btn:
             timer = btnPar.btn.GetTimer(id)
             timer.StartTimer(duration)
+        return
 
     def RemoveTimer(self, jammingType, id):
         btnPar = getattr(self, jammingType, None)
         if btnPar and btnPar.btn:
             btnPar.btn.RemoveTimer(id)
+        return
 
-    def RefreshAllButtonDisplay(self, doAnimate = True):
+    def RefreshAllButtonDisplay(self, doAnimate=True):
         if self.busyRefreshing:
             self.pending = True
             return
@@ -127,11 +149,18 @@ class EwarContainer(uicontrols.ContainerAutoSize):
         self.busyRefreshing = True
         try:
             jammersByType = sm.GetService('tactical').jammersByJammingType
-            for jammingType in self.ewarStates.iterkeys():
+            for jammingType in STATES.iterkeys():
                 if not jammersByType.get(jammingType, set()):
                     self.HideButton(jammingType, doAnimate)
                 else:
                     self.ShowButton(jammingType, doAnimate)
+
+            effects = sm.GetService('FxSequencer').GetAllBallActivationNames(session.shipid)
+            for effectType, effectName in FX_STATES.iteritems():
+                if effectName in effects:
+                    self.ShowButton(effectType, doAnimate)
+                else:
+                    self.HideButton(effectType, doAnimate)
 
         finally:
             self.busyRefreshing = False
@@ -142,13 +171,13 @@ class EwarContainer(uicontrols.ContainerAutoSize):
     def GetNumberOfActiveDebuffs(self):
         jammersByType = sm.GetService('tactical').jammersByJammingType
         numberOfActiveDebuffs = 0
-        for jammingType in self.ewarOffensiveStates:
+        for jammingType in OFFENSIVE_STATES:
             if jammersByType.get(jammingType, set()):
                 numberOfActiveDebuffs += 1
 
         return numberOfActiveDebuffs
 
-    def FadeButtonIn(self, btnPar, doAnimate = False, order = -1):
+    def FadeButtonIn(self, btnPar, doAnimate=False, order=-1):
         if not btnPar.display or btnPar.fadingOut:
             btnPar.fadingOut = False
             uiutil.SetOrder(btnPar, order)
@@ -161,7 +190,7 @@ class EwarContainer(uicontrols.ContainerAutoSize):
                 btnPar.width = 40
         self._ResetButtonHint(btnPar)
 
-    def FadeButtonOut(self, btnPar, doAnimate = True):
+    def FadeButtonOut(self, btnPar, doAnimate=True):
         if btnPar.display and not btnPar.fadingOut:
             btnPar.fadingOut = True
             self._ResetButtonHint(btnPar)
@@ -174,9 +203,10 @@ class EwarContainer(uicontrols.ContainerAutoSize):
                 btnPar.opacity = 0.0
                 btnPar.width = 0
 
-    def _ResetButtonHint(self, btnPar = None):
+    def _ResetButtonHint(self, btnPar=None):
         if btnPar and btnPar.btn:
             btnPar.btn.hint = None
+        return
 
     def GetButtonHint(self, btn, jammingType, *args):
         if jammingType == 'electronic':
@@ -203,7 +233,7 @@ class EwarContainer(uicontrols.ContainerAutoSize):
         return hintList
 
     def GetEwarHintCaption(self, jammingType):
-        ewarHintPath = self.ewarHints.get(jammingType, None)
+        ewarHintPath = HINTS.get(jammingType, None)
         if ewarHintPath is not None:
             ewarHint = localization.GetByLabel(ewarHintPath)
         else:
@@ -359,7 +389,7 @@ class EwarButton(uiprimitives.Container):
         self.orgTop = None
         self.pickRadius = -1
         self.timers = OrderedDict()
-        self.isOffensive = self.jammingType not in DEFENSIVE_EWAR_TYPES.values()
+        self.isOffensive = self.jammingType not in DEFENSIVE_STATES
         graphicID = attributes.graphicID
         iconSize = self.height
         iconColor = self.OFFENSIVE_ICON_COLOR if self.isOffensive else self.DEFENSIVE_ICON_COLOR
@@ -371,6 +401,7 @@ class EwarButton(uiprimitives.Container):
         uiprimitives.Sprite(parent=self, name='slot_gradient', align=uiconst.TOALL, state=uiconst.UI_DISABLED, color=slotColor, blendMode=trinity.TR2_SBM_ADD, texturePath=self.SLOT_GRADIENT_TEXTURE_PATH, opacity=self.SLOT_GRADIENT_ALPHA)
         uiprimitives.Sprite(parent=self, name='slot_base', align=uiconst.TOALL, state=uiconst.UI_DISABLED, color=slotColor, blendMode=trinity.TR2_SBM_ADD, texturePath=self.SLOT_TEXTURE_PATH, opacity=self.SLOT_BASE_ALPHA)
         uiprimitives.Sprite(parent=self, name='shadow', align=uiconst.TOALL, state=uiconst.UI_DISABLED, color=self.SHADOW_COLOR, texturePath=self.SHADOW_TEXTURE_PATH)
+        return
 
     def GetTimer(self, id):
         if id not in self.timers:
@@ -401,3 +432,4 @@ class EwarButton(uiprimitives.Container):
         if getattr(self, 'orgTop', None) is not None:
             self.top = self.orgTop
         self.icon.SetAlpha(self.ICON_BASE_ALPHA)
+        return

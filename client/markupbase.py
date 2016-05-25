@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\carbon\common\stdlib\markupbase.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\carbon\common\stdlib\markupbase.py
 import re
 _declname_match = re.compile('[a-zA-Z][-_.a-zA-Z0-9]*\\s*').match
 _declstringlit_match = re.compile('(\\\'[^\\\']*\\\'|"[^"]*")\\s*').match
@@ -85,9 +86,7 @@ class ParserBase:
             if j < 0:
                 return j
 
-        return -1
-
-    def parse_marked_section(self, i, report = 1):
+    def parse_marked_section(self, i, report=1):
         rawdata = self.rawdata
         sectName, j = self._scan_name(i + 3, i)
         if j < 0:
@@ -105,7 +104,7 @@ class ParserBase:
             self.unknown_decl(rawdata[i + 3:j])
         return match.end(0)
 
-    def parse_comment(self, i, report = 1):
+    def parse_comment(self, i, report=1):
         rawdata = self.rawdata
         if rawdata[i:i + 4] != '<!--':
             self.error('unexpected call to parse_comment()')
@@ -175,8 +174,6 @@ class ParserBase:
                 self.updatepos(declstartpos, j)
                 self.error('unexpected char %r in internal subset' % c)
 
-        return -1
-
     def _parse_doctype_element(self, i, declstartpos):
         name, j = self._scan_name(i, declstartpos)
         if j == -1:
@@ -184,7 +181,6 @@ class ParserBase:
         rawdata = self.rawdata
         if '>' in rawdata[j:]:
             return rawdata.find('>', j) + 1
-        return -1
 
     def _parse_doctype_attlist(self, i, declstartpos):
         rawdata = self.rawdata
@@ -298,15 +294,17 @@ class ParserBase:
         n = len(rawdata)
         if i == n:
             return (None, -1)
-        m = _declname_match(rawdata, i)
-        if m:
-            s = m.group()
-            name = s.strip()
-            if i + len(s) == n:
-                return (None, -1)
-            return (name.lower(), m.end())
-        self.updatepos(declstartpos, i)
-        self.error('expected name token at %r' % rawdata[declstartpos:declstartpos + 20])
+        else:
+            m = _declname_match(rawdata, i)
+            if m:
+                s = m.group()
+                name = s.strip()
+                if i + len(s) == n:
+                    return (None, -1)
+                return (name.lower(), m.end())
+            self.updatepos(declstartpos, i)
+            self.error('expected name token at %r' % rawdata[declstartpos:declstartpos + 20])
+            return None
 
     def unknown_decl(self, data):
         pass

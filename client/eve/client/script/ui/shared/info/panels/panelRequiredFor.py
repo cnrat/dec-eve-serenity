@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\client\script\ui\shared\info\panels\panelRequiredFor.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\client\script\ui\shared\info\panels\panelRequiredFor.py
 from carbonui.primitives.container import Container
 from eve.client.script.ui.control.buttons import ToggleButtonGroup
 import carbonui.const as uiconst
@@ -28,6 +29,7 @@ class PanelRequiredFor(Container):
 
         self.scroll = Scroll(name='scroll', parent=self, padding=const.defaultPadding)
         btnGroup.SelectFirst()
+        return
 
     def LoadRequiredForLevel(self, level):
         scrolllist = self.GetRequiredForLevelSubContent(self.typeID, level)

@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\carbon\common\stdlib\unittest\test\test_program.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\carbon\common\stdlib\unittest\test\test_program.py
 from cStringIO import StringIO
 import os
 import sys
@@ -115,11 +116,12 @@ class TestCommandLineArgs(unittest.TestCase):
         FakeRunner.initArgs = None
         FakeRunner.test = None
         FakeRunner.raiseError = False
+        return
 
     def testHelpAndUnknown(self):
         program = self.program
 
-        def usageExit(msg = None):
+        def usageExit(msg=None):
             program.msg = msg
             program.exit = True
 
@@ -133,6 +135,7 @@ class TestCommandLineArgs(unittest.TestCase):
         program.parseArgs([None, '-$'])
         self.assertTrue(program.exit)
         self.assertIsNotNone(program.msg)
+        return
 
     def testVerbosity(self):
         program = self.program
@@ -145,6 +148,8 @@ class TestCommandLineArgs(unittest.TestCase):
             program.verbosity = 1
             program.parseArgs([None, opt])
             self.assertEqual(program.verbosity, 2)
+
+        return
 
     def testBufferCatchFailfast(self):
         program = self.program
@@ -163,6 +168,8 @@ class TestCommandLineArgs(unittest.TestCase):
                 setattr(program, attr, not_none)
                 program.parseArgs([None, opt])
                 self.assertEqual(getattr(program, attr), not_none)
+
+        return
 
     def testRunTestsRunnerClass(self):
         program = self.program
@@ -185,6 +192,7 @@ class TestCommandLineArgs(unittest.TestCase):
         self.assertIsNone(FakeRunner.initArgs)
         self.assertEqual(FakeRunner.test, 'test')
         self.assertIs(program.result, RESULT)
+        return
 
     def testRunTestsOldRunnerClass(self):
         program = self.program

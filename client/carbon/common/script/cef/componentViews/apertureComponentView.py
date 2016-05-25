@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\carbon\common\script\cef\componentViews\apertureComponentView.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\carbon\common\script\cef\componentViews\apertureComponentView.py
 from carbon.common.script.cef.baseComponentView import BaseComponentView
 
 class ApertureComponentView(BaseComponentView):
@@ -12,6 +13,7 @@ class ApertureComponentView(BaseComponentView):
     def SetupInputs(cls):
         cls.RegisterComponent(cls)
         cls._AddInput(cls.FLAGS, None, cls.RUNTIME, const.cef.COMPONENTDATA_NON_PRIMITIVE_TYPE, displayName='Flags')
+        return
 
 
 ApertureComponentView.SetupInputs()

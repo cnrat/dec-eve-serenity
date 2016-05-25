@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\client\script\ui\shared\planet\dust\dustPins.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\client\script\ui\shared\planet\dust\dustPins.py
 import eveDustCommon.planetSurface as eveDustPlanetSurface
 from eve.client.script.ui.shared.planet.planetUIPins import SpherePinStack
 import eve.client.script.ui.shared.planet.planetCommon as planetCommonUI
@@ -65,6 +66,7 @@ class PlanetBase(SpherePinStack):
         self.SetModel(RADIUS_PIN * 1.5)
         self.AssignIDsToPins()
         self.UIContainer = None
+        return
 
     def GetMenu(self):
         menu = []
@@ -104,15 +106,17 @@ class PlanetBase(SpherePinStack):
             self.model = trinity.Load('res:/dx9/model/worldobject/Orbital/UI/Terrestrial/Command/CommT_T1/CommT_T1.red')
         if not self.model:
             return
-        EXT = 1.026
-        self.model.scaling = (scale, scale, scale)
-        self.model.sortValueMultiplier = 0.5
-        self.model.translation = (EXT * self.surfacePoint.x, EXT * self.surfacePoint.y, EXT * self.surfacePoint.z)
-        plnSurfRotMat = geo2.MatrixRotationAxis(geo2.Vec3Cross(geo2.Vec3Normalize(self.surfacePoint.GetAsXYZTuple()), (0.0, 1.0, 0.0)), -math.acos(geo2.Vec3Dot(geo2.Vec3Normalize(self.surfacePoint.GetAsXYZTuple()), (0.0, 1.0, 0.0))))
-        rotQuat = geo2.QuaternionRotationMatrix(plnSurfRotMat)
-        self.model.rotation = rotQuat
-        self.model.name = '%s,%s' % (planetCommonUI.PINTYPE_NORMAL, self.pinKv.id)
-        self.transform.children.append(self.model)
+        else:
+            EXT = 1.026
+            self.model.scaling = (scale, scale, scale)
+            self.model.sortValueMultiplier = 0.5
+            self.model.translation = (EXT * self.surfacePoint.x, EXT * self.surfacePoint.y, EXT * self.surfacePoint.z)
+            plnSurfRotMat = geo2.MatrixRotationAxis(geo2.Vec3Cross(geo2.Vec3Normalize(self.surfacePoint.GetAsXYZTuple()), (0.0, 1.0, 0.0)), -math.acos(geo2.Vec3Dot(geo2.Vec3Normalize(self.surfacePoint.GetAsXYZTuple()), (0.0, 1.0, 0.0))))
+            rotQuat = geo2.QuaternionRotationMatrix(plnSurfRotMat)
+            self.model.rotation = rotQuat
+            self.model.name = '%s,%s' % (planetCommonUI.PINTYPE_NORMAL, self.pinKv.id)
+            self.transform.children.append(self.model)
+            return
 
     def Remove(self):
         SpherePinStack.Remove(self)
@@ -209,8 +213,9 @@ class DustBasePinContainer(uiprimitives.Container):
         elif self.top > dh - self.height:
             self.top = dh - self.height
         uicls.UIEffects().MorphUI(self, 'opacity', 1.0, time=250.0, float=1, newthread=1, maxSteps=100)
+        return
 
-    def _DrawAlignTopCont(self, height, name, padding = (0, 0, 0, 0), state = uiconst.UI_PICKCHILDREN):
+    def _DrawAlignTopCont(self, height, name, padding=(0, 0, 0, 0), state=uiconst.UI_PICKCHILDREN):
         return uiprimitives.Container(parent=self.main, name=name, pos=(0,
          0,
          0,

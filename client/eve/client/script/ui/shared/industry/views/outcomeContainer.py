@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\client\script\ui\shared\industry\views\outcomeContainer.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\client\script\ui\shared\industry\views\outcomeContainer.py
 from carbonui import const as uiconst
 from carbonui.primitives.container import Container
 from carbonui.primitives.containerAutoSize import ContainerAutoSize
@@ -41,6 +42,7 @@ class OutcomeContainer(Container):
         self.errorFrame = ErrorFrame(bgParent=self, padding=1)
         self.outcomeItem = OutcomeItemContainer(parent=self)
         FillThemeColored(bgParent=self, opacity=0.5)
+        return
 
     def LoadProbabilityTooltipPanel(self, tooltipPanel, *args):
         if not self.jobData:

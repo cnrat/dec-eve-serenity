@@ -1,6 +1,7 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\client\script\parklife\sensorSuiteService.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\client\script\parklife\sensorSuiteService.py
+import bluepy
 import math
-from carbon.common.lib import telemetry
 from carbon.common.lib.const import SEC
 from carbon.common.script.sys import service
 from carbon.common.script.util.logUtil import LogException
@@ -8,6 +9,8 @@ from carbon.common.script.util.timerstuff import AutoTimer
 from carbonui.uianimations import animations
 from carbonui.util.various_unsorted import IsUnder
 from eve.common.lib.appConst import AU
+from eve.common.script.sys.eveCfg import InSpace
+from eveexceptions import UserError
 from locks import RLock
 from sensorsuite.overlay.const import SWEEP_CYCLE_TIME, SWEEP_START_GRACE_TIME_SEC, SWEEP_START_GRACE_TIME, SUPPRESS_GFX_WARPING, SUPPRESS_GFX_NO_UI
 import sensorsuite.overlay.const as overlayConst
@@ -20,6 +23,7 @@ from sensorsuite.overlay.staticsites import StaticSiteHandler
 from sensorsuite.overlay.controllers.probescanner import ProbeScannerController
 from sensorsuite.overlay.missions import MissionHandler
 from sensorsuite.overlay.signatures import SignatureHandler
+from sensorsuite.overlay.structures import StructureHandler
 import uthread
 import carbonui.const as uiconst
 import audio2
@@ -39,13 +43,16 @@ AUDIO_STATE_BY_DIFFICULTY = {common.SITE_DIFFICULTY_EASY: 'ui_scanner_state_diff
  common.SITE_DIFFICULTY_HARD: 'ui_scanner_state_difficulty_hard'}
 BRACKET_OVERLAP_DISTANCE = 8
 SWEEP_CYCLE_TIME_SEC = float(SWEEP_CYCLE_TIME) / SEC
+UPDATE_STRUCTURES_TIMEOUT = 1000
+UPDATE_SITES_TIMEOUT = 200
 
 class SensorSuiteService(service.Service):
     __guid__ = 'svc.sensorSuite'
-    __notifyevents__ = ['OnSessionChanged',
+    __notifyevents__ = ['OnEnterSpace',
      'OnSignalTrackerFullState',
      'OnSignalTrackerAnomalyUpdate',
      'OnSignalTrackerSignatureUpdate',
+     'OnSignalTrackerStructureUpdate',
      'OnUpdateWindowPosition',
      'OnReleaseBallpark',
      'DoBallClear',
@@ -56,7 +63,11 @@ class SensorSuiteService(service.Service):
      'OnShowUI',
      'OnHideUI',
      'OnRefreshBookmarks',
-     'OnAgentMissionChanged']
+     'OnAgentMissionChanged',
+     'OnStructuresVisibilityUpdated',
+     'OnBallAdded',
+     'DoBallRemove',
+     'DoBallsRemove']
     __dependencies__ = ['sceneManager',
      'michelle',
      'audio',
@@ -78,17 +89,22 @@ class SensorSuiteService(service.Service):
         self.siteController.AddSiteHandler(BOOKMARK, BookmarkHandler(self, self.bookmarkSvc))
         self.siteController.AddSiteHandler(CORP_BOOKMARK, CorpBookmarkHandler(self, self.bookmarkSvc))
         self.siteController.AddSiteHandler(MISSION, MissionHandler(self.bookmarkSvc))
+        self.siteController.AddSiteHandler(STRUCTURE, StructureHandler())
         self.Initialize()
+        self.UpdateVisibleStructures()
 
     def IsSweepDone(self):
         return self.systemReadyTime and not self.sensorSweepActive
 
     def IsSolarSystemReady(self):
-        return self.systemReadyTime is not None
+        isSolarSystemAvailable = session.solarsystemid is not None
+        isSolarSystemReadyTimeSet = self.systemReadyTime is not None
+        return isSolarSystemAvailable and isSolarSystemReadyTimeSet
 
     def NotifySweepStartedIfRequired(self, handler, messageName):
         if messageName is overlayConst.MESSAGE_ON_SENSOR_OVERLAY_SWEEP_STARTED and self.sweepStartedData is not None:
             uthread.new(handler, *self.sweepStartedData)
+        return
 
     def Subscribe(self, messageName, handler):
         self.NotifySweepStartedIfRequired(handler, messageName)
@@ -111,6 +127,7 @@ class SensorSuiteService(service.Service):
         self.OnUpdateWindowPosition(leftPush, rightPush)
         self.sensorSweepActive = False
         self.sweepStartedData = None
+        return
 
     def UpdateScanner(self, removedSites):
         targetIDs = []
@@ -130,28 +147,43 @@ class SensorSuiteService(service.Service):
             if guid is not None and 'effects.JumpOut' in guid:
                 self.LogInfo('Jumping out, hiding the overlay')
                 self._Hide()
+        return
 
-    def OnSessionChanged(self, isRemote, session, change):
-        if 'solarsystemid' in change:
-            self.Reset()
-            oldSolarSystemID, newSolarSystemID = change['solarsystemid']
-            if newSolarSystemID is not None:
-                self.Initialize()
-                self._SetOverlayActive(settings.char.ui.Get(SENSOR_SUITE_ENABLED, True))
-                self.LogInfo('Entered new system', newSolarSystemID)
+    def OnEnterSpace(self):
+        self.Reset()
+        if session.solarsystemid:
+            self.Initialize()
+            self._SetOverlayActive(settings.char.ui.Get(SENSOR_SUITE_ENABLED, True))
+            self.LogInfo('Entered new system', session.solarsystemid)
+            try:
                 sm.RemoteSvc('scanMgr').SignalTrackerRegister()
-                for siteType in (BOOKMARK, CORP_BOOKMARK, MISSION):
-                    self.siteController.GetSiteHandler(siteType).LoadSites(newSolarSystemID)
+            except UserError as e:
+                if e.msg == 'UnMachoDestination':
+                    self.LogInfo('Entered new system failed due to match as session seems to have changed')
+                    return
+                raise
+
+            for siteType in (BOOKMARK, CORP_BOOKMARK, MISSION):
+                self.siteController.GetSiteHandler(siteType).LoadSites(session.solarsystemid)
+
+        if InSpace() and session.structureid is not None and self.michelle.GetBallpark():
+            self._InitiateSensorSweep()
+        return
 
     def OnReleaseBallpark(self):
+        self.LogInfo('OnReleaseBallpark')
         self.Reset()
 
     def DoBallClear(self, _):
+        self._InitiateSensorSweep()
+
+    def _InitiateSensorSweep(self):
         self.LogInfo('Ballpark is ready so we start the sweep timer')
         self.systemReadyTime = gametime.GetSimTime()
         self.StartSensorSweep()
 
     def Reset(self):
+        self.LogInfo('Clearing all overlay objects')
         self.siteController.ClearFromBallpark()
         self.siteController.Clear()
         uicore.layer.sensorSuite.Flush()
@@ -194,6 +226,7 @@ class SensorSuiteService(service.Service):
         try:
             if not self.sensorSweepActive:
                 self.UpdateVisibleSites()
+                self.UpdateVisibleStructures()
                 self.audio.SendUIEvent('ui_scanner_stop')
                 self.EnableMouseTracking()
         except InvalidClientStateError:
@@ -203,6 +236,7 @@ class SensorSuiteService(service.Service):
         self.LogInfo('Hiding overlay')
         self.gfxHandler.StopGfxSwipe()
         self.UpdateVisibleSites()
+        self.UpdateVisibleStructures()
         self.audio.SendUIEvent('ui_scanner_stop')
         self.doMouseTrackingUpdates = False
 
@@ -255,65 +289,69 @@ class SensorSuiteService(service.Service):
 
     def _DoSystemEnterScan(self):
         self.LogInfo('_DoSystemEnterScan entered')
-        if session.solarsystemid is None:
+        if not InSpace():
             return
-        self.sensorSweepActive = True
-        try:
-            self.CreateResults()
-            viewAngleInPlane = self.gfxHandler.GetViewAngleInPlane()
-        except InvalidClientStateError:
-            self.sensorSweepActive = False
-            return
-
-        ballpark = self.michelle.GetBallpark()
-        if ballpark is None:
-            return
-        self.LogInfo('Sensor sweep stating from angle', viewAngleInPlane)
-        sitesOrdered = self.GetSiteListOrderedByDelay(ballpark, SWEEP_CYCLE_TIME_SEC, viewAngleInPlane)
-        if self.IsOverlayActive():
-            self.SetupSiteSweepAnimation(sitesOrdered)
-            self.gfxHandler.StartGfxSwipeThread(viewAngleInPlane=viewAngleInPlane)
-            self.audio.SendUIEvent('ui_scanner_start')
-            uthread.new(self.PlayResultEffects, sitesOrdered)
         else:
-            self.sensorSweepActive = False
-            self._Hide()
-        self.LogInfo('Sweep started observers notified')
-        self.sweepStartedData = (self.systemReadyTime,
-         SWEEP_CYCLE_TIME_SEC,
-         viewAngleInPlane,
-         sitesOrdered,
-         SWEEP_START_GRACE_TIME_SEC)
-        self.SendMessage(overlayConst.MESSAGE_ON_SENSOR_OVERLAY_SWEEP_STARTED, *self.sweepStartedData)
+            self.sensorSweepActive = True
+            try:
+                self.CreateResults()
+                viewAngleInPlane = self.gfxHandler.GetViewAngleInPlane()
+            except InvalidClientStateError:
+                self.sensorSweepActive = False
+                return
 
-    @telemetry.ZONE_METHOD
+            ballpark = self.michelle.GetBallpark()
+            if ballpark is None:
+                return
+            self.LogInfo('Sensor sweep stating from angle', viewAngleInPlane)
+            sitesOrdered = self.GetSiteListOrderedByDelay(ballpark, SWEEP_CYCLE_TIME_SEC, viewAngleInPlane)
+            if self.IsOverlayActive():
+                self.SetupSiteSweepAnimation(sitesOrdered)
+                self.gfxHandler.StartGfxSwipeThread(viewAngleInPlane=viewAngleInPlane)
+                self.audio.SendUIEvent('ui_scanner_start')
+                uthread.new(self.PlayResultEffects, sitesOrdered)
+            else:
+                self.sensorSweepActive = False
+                self._Hide()
+            self.LogInfo('Sweep started observers notified')
+            self.sweepStartedData = (self.systemReadyTime,
+             SWEEP_CYCLE_TIME_SEC,
+             viewAngleInPlane,
+             sitesOrdered,
+             SWEEP_START_GRACE_TIME_SEC)
+            self.SendMessage(overlayConst.MESSAGE_ON_SENSOR_OVERLAY_SWEEP_STARTED, *self.sweepStartedData)
+            return
+
+    @bluepy.TimedFunction('sensorSuiteService::ShowSiteDuringSweep')
     def ShowSiteDuringSweep(self, locatorData, scene, siteData, sleepTimeSec, soundLocators, vectorCurve):
         ball = locatorData.ballRef()
         if ball is None:
             return
-        audio = audio2.AudEmitter('sensor_overlay_site_%s' % str(siteData.siteID))
-        obs = trinity.TriObserverLocal()
-        obs.front = (0.0, -1.0, 0.0)
-        obs.observer = audio
-        vectorSequencer = trinity.TriVectorSequencer()
-        vectorSequencer.operator = trinity.TRIOP_MULTIPLY
-        vectorSequencer.functions.append(ball)
-        vectorSequencer.functions.append(vectorCurve)
-        tr = trinity.EveRootTransform()
-        tr.name = 'sensorSuiteSoundLocator_%s' % str(siteData.siteID)
-        tr.translationCurve = vectorSequencer
-        tr.observers.append(obs)
-        scene.objects.append(tr)
-        soundLocators.append(tr)
-        uthread2.SleepSim(sleepTimeSec)
-        if siteData.GetSiteType() == ANOMALY:
-            audio.SendEvent('ui_scanner_result_anomaly')
-        elif siteData.GetSiteType() == SIGNATURE:
-            audio.SendEvent('ui_scanner_result_signature')
-        locatorData.bracket.DoEntryAnimation(enable=False)
-        locatorData.bracket.state = uiconst.UI_DISABLED
+        else:
+            audio = audio2.AudEmitter('sensor_overlay_site_%s' % str(siteData.siteID))
+            obs = trinity.TriObserverLocal()
+            obs.front = (0.0, -1.0, 0.0)
+            obs.observer = audio
+            vectorSequencer = trinity.TriVectorSequencer()
+            vectorSequencer.operator = trinity.TRIOP_MULTIPLY
+            vectorSequencer.functions.append(ball)
+            vectorSequencer.functions.append(vectorCurve)
+            tr = trinity.EveRootTransform()
+            tr.name = 'sensorSuiteSoundLocator_%s' % str(siteData.siteID)
+            tr.translationCurve = vectorSequencer
+            tr.observers.append(obs)
+            scene.objects.append(tr)
+            soundLocators.append(tr)
+            uthread2.SleepSim(sleepTimeSec)
+            if siteData.GetSiteType() == ANOMALY:
+                audio.SendEvent('ui_scanner_result_anomaly')
+            elif siteData.GetSiteType() == SIGNATURE:
+                audio.SendEvent('ui_scanner_result_signature')
+            locatorData.bracket.DoEntryAnimation(enable=False)
+            locatorData.bracket.state = uiconst.UI_DISABLED
+            return
 
-    @telemetry.ZONE_METHOD
+    @bluepy.TimedFunction('sensorSuiteService::PlayResultEffects')
     def PlayResultEffects(self, sitesOrdered):
         self.LogInfo('PlayResultEffects')
         scene = self.sceneManager.GetRegisteredScene('default')
@@ -323,38 +361,40 @@ class SensorSuiteService(service.Service):
         vectorCurve.value = (invAU, invAU, invAU)
         self.EnableMouseTracking()
         try:
-            startTimeSec = float(self.systemReadyTime + SWEEP_START_GRACE_TIME) / SEC
-            lastPlayTimeSec = startTimeSec
-            for delaySec, siteData in sitesOrdered:
-                locatorData = self.siteController.spaceLocations.GetBySiteID(siteData.siteID)
-                if IsSiteInstantlyAccessible(siteData):
-                    locatorData.bracket.state = uiconst.UI_NORMAL
-                    locatorData.bracket.DoEntryAnimation(enable=True)
-                    continue
-                playTimeSec = startTimeSec + delaySec
-                sleepTimeSec = playTimeSec - lastPlayTimeSec
-                lastPlayTimeSec = playTimeSec
-                self.ShowSiteDuringSweep(locatorData, scene, siteData, sleepTimeSec, soundLocators, vectorCurve)
-
-            currentTimeSec = gametime.GetSimTime()
-            endTimeSec = startTimeSec + SWEEP_CYCLE_TIME_SEC
-            timeLeftSec = endTimeSec - currentTimeSec
-            if timeLeftSec > 0:
-                uthread2.SleepSim(timeLeftSec)
-            self.audio.SendUIEvent('ui_scanner_stop')
-            self.sensorSweepActive = False
-            if not self.IsOverlayActive():
-                self._Hide()
-            else:
-                for locatorData in self.siteController.spaceLocations.IterLocations():
-                    if not IsSiteInstantlyAccessible(locatorData.siteData):
-                        locatorData.bracket.DoEnableAnimation()
+            try:
+                startTimeSec = float(self.systemReadyTime + SWEEP_START_GRACE_TIME) / SEC
+                lastPlayTimeSec = startTimeSec
+                for delaySec, siteData in sitesOrdered:
+                    locatorData = self.siteController.spaceLocations.GetBySiteID(siteData.siteID)
+                    if IsSiteInstantlyAccessible(siteData):
                         locatorData.bracket.state = uiconst.UI_NORMAL
+                        locatorData.bracket.DoEntryAnimation(enable=True)
+                        continue
+                    playTimeSec = startTimeSec + delaySec
+                    sleepTimeSec = playTimeSec - lastPlayTimeSec
+                    lastPlayTimeSec = playTimeSec
+                    self.ShowSiteDuringSweep(locatorData, scene, siteData, sleepTimeSec, soundLocators, vectorCurve)
 
-            uthread2.SleepSim(1.0)
-            self.DoScanEnded(sitesOrdered)
-        except (InvalidClientStateError, KeyError):
-            pass
+                currentTimeSec = gametime.GetSimTime()
+                endTimeSec = startTimeSec + SWEEP_CYCLE_TIME_SEC
+                timeLeftSec = endTimeSec - currentTimeSec
+                if timeLeftSec > 0:
+                    uthread2.SleepSim(timeLeftSec)
+                self.audio.SendUIEvent('ui_scanner_stop')
+                self.sensorSweepActive = False
+                if not self.IsOverlayActive():
+                    self._Hide()
+                else:
+                    for locatorData in self.siteController.spaceLocations.IterLocations():
+                        if not IsSiteInstantlyAccessible(locatorData.siteData):
+                            locatorData.bracket.DoEnableAnimation()
+                            locatorData.bracket.state = uiconst.UI_NORMAL
+
+                uthread2.SleepSim(1.0)
+                self.DoScanEnded(sitesOrdered)
+            except (InvalidClientStateError, KeyError):
+                pass
+
         finally:
             self.sensorSweepActive = False
             if scene is not None:
@@ -366,6 +406,7 @@ class SensorSuiteService(service.Service):
             self.SendMessage(overlayConst.MESSAGE_ON_SENSOR_OVERLAY_SWEEP_ENDED)
 
         self.UpdateVisibleSites()
+        return
 
     def DoScanEnded(self, sitesOrdered):
         self.LogInfo('DoScanEnded')
@@ -411,9 +452,13 @@ class SensorSuiteService(service.Service):
 
     def OnSignalTrackerFullState(self, solarSystemID, fullState):
         self.LogInfo('OnSignalTrackerFullState', solarSystemID, fullState)
-        anomalies, signatures, staticSites = fullState
-        for siteType, rawSites in ((ANOMALY, anomalies), (SIGNATURE, signatures), (STATIC_SITE, staticSites)):
-            self.siteController.GetSiteHandler(siteType).ProcessSiteUpdate(rawSites, set())
+        anomalies, signatures, staticSites, structures = fullState
+        for siteType, rawSites in ((ANOMALY, anomalies),
+         (SIGNATURE, signatures),
+         (STATIC_SITE, staticSites),
+         (STRUCTURE, structures)):
+            if rawSites:
+                self.siteController.GetSiteHandler(siteType).ProcessSiteUpdate(rawSites, set())
 
         self.probeScannerController.InjectSiteScanResults(self.siteController.siteMaps.IterSitesByKeys(ANOMALY, SIGNATURE))
 
@@ -424,6 +469,10 @@ class SensorSuiteService(service.Service):
     def OnSignalTrackerSignatureUpdate(self, solarSystemID, addedSignatures, removedSignatures):
         self.LogInfo('OnSignalTrackerSignatureUpdate', solarSystemID, addedSignatures, removedSignatures)
         self.siteController.GetSiteHandler(SIGNATURE).ProcessSiteUpdate(addedSignatures, removedSignatures)
+
+    def OnSignalTrackerStructureUpdate(self, solarSystemID, addedStructures, removedStructures):
+        self.LogInfo('OnSignalTrackerStructureUpdate', solarSystemID, addedStructures, removedStructures)
+        self.siteController.GetSiteHandler(STRUCTURE).ProcessSiteUpdate(addedStructures, removedStructures)
 
     def OnUpdateWindowPosition(self, leftPush, rightPush):
         uicore.layer.sensorsuite.padLeft = -leftPush
@@ -438,7 +487,7 @@ class SensorSuiteService(service.Service):
 
         return False
 
-    @telemetry.ZONE_METHOD
+    @bluepy.TimedFunction('sensorSuiteService::UpdateMouseHoverSound')
     def UpdateMouseHoverSound(self, activeBracket, bestProximity, closestBracket, lastSoundStrength):
         soundStrength = bestProximity or 0
         if closestBracket is not None:
@@ -458,7 +507,7 @@ class SensorSuiteService(service.Service):
         lastSoundStrength = soundStrength
         return (activeBracket, lastSoundStrength)
 
-    @telemetry.ZONE_METHOD
+    @bluepy.TimedFunction('sensorSuiteService::UpdateMouseTracking')
     def UpdateMouseTracking(self):
         self.LogInfo('Mouse tracking update thread started')
         lastSoundStrength = 0.0
@@ -467,73 +516,76 @@ class SensorSuiteService(service.Service):
         self.audio.SetGlobalRTPC('scanner_mouseover', 0)
         while self.doMouseTrackingUpdates:
             try:
-                if not self.IsMouseInSpaceView():
-                    if activeBracket is not None:
-                        self.DisableMouseOverSound()
-                        activeBracket = None
-                        lastSoundStrength = 0.0
-                    continue
-                desktopWidth = uicore.desktop.width
-                desktopHeight = uicore.desktop.height
-                mouseX = uicore.uilib.x
-                mouseY = uicore.uilib.y
-                self.currentOverlapCoordinates = (mouseX, mouseY)
-                closestBracket = None
-                bestProximity = None
-                for data in self.siteController.spaceLocations.IterLocations():
-                    self.sitesUnderCursor.discard(data.siteData)
-                    bracket = data.bracket
-                    if bracket is None or bracket.destroyed:
+                try:
+                    if not self.IsMouseInSpaceView():
+                        if activeBracket is not None:
+                            self.DisableMouseOverSound()
+                            activeBracket = None
+                            lastSoundStrength = 0.0
                         continue
-                    if bracket.state == uiconst.UI_DISABLED:
-                        continue
-                    centerX = bracket.left + bracket.width / 2
-                    centerY = bracket.top + bracket.height / 2
-                    if centerX < 0:
-                        continue
-                    if centerX > desktopWidth:
-                        continue
-                    if centerY < 0:
-                        continue
-                    if centerY > desktopHeight:
-                        continue
-                    if mouseX < centerX - MAX_MOUSEOVER_RANGE:
-                        continue
-                    if mouseX > centerX + MAX_MOUSEOVER_RANGE:
-                        continue
-                    if mouseY < centerY - MAX_MOUSEOVER_RANGE:
-                        continue
-                    if mouseY > centerY + MAX_MOUSEOVER_RANGE:
-                        continue
-                    dx = centerX - mouseX
-                    dy = centerY - mouseY
-                    if -BRACKET_OVERLAP_DISTANCE <= dx <= BRACKET_OVERLAP_DISTANCE and -BRACKET_OVERLAP_DISTANCE <= dy <= BRACKET_OVERLAP_DISTANCE:
-                        self.sitesUnderCursor.add(data.siteData)
-                    if data.siteData.hoverSoundEvent is None:
-                        continue
-                    distanceSquared = dx * dx + dy * dy
-                    if distanceSquared >= MAX_MOUSEOVER_RANGE_SQUARED:
-                        continue
-                    proximity = MAX_RTPC_VALUE - distanceSquared / MAX_MOUSEOVER_RANGE_SQUARED * MAX_RTPC_VALUE
-                    if closestBracket is not None:
-                        if proximity < bestProximity:
+                    desktopWidth = uicore.desktop.width
+                    desktopHeight = uicore.desktop.height
+                    mouseX = uicore.uilib.x
+                    mouseY = uicore.uilib.y
+                    self.currentOverlapCoordinates = (mouseX, mouseY)
+                    closestBracket = None
+                    bestProximity = None
+                    for data in self.siteController.spaceLocations.IterLocations():
+                        self.sitesUnderCursor.discard(data.siteData)
+                        bracket = data.bracket
+                        if bracket is None or bracket.destroyed:
+                            continue
+                        if bracket.state == uiconst.UI_DISABLED:
+                            continue
+                        centerX = bracket.left + bracket.width / 2
+                        centerY = bracket.top + bracket.height / 2
+                        if centerX < 0:
+                            continue
+                        if centerX > desktopWidth:
+                            continue
+                        if centerY < 0:
+                            continue
+                        if centerY > desktopHeight:
+                            continue
+                        if mouseX < centerX - MAX_MOUSEOVER_RANGE:
+                            continue
+                        if mouseX > centerX + MAX_MOUSEOVER_RANGE:
+                            continue
+                        if mouseY < centerY - MAX_MOUSEOVER_RANGE:
+                            continue
+                        if mouseY > centerY + MAX_MOUSEOVER_RANGE:
+                            continue
+                        dx = centerX - mouseX
+                        dy = centerY - mouseY
+                        if -BRACKET_OVERLAP_DISTANCE <= dx <= BRACKET_OVERLAP_DISTANCE:
+                            if -BRACKET_OVERLAP_DISTANCE <= dy <= BRACKET_OVERLAP_DISTANCE:
+                                self.sitesUnderCursor.add(data.siteData)
+                            if data.siteData.hoverSoundEvent is None:
+                                continue
+                            distanceSquared = dx * dx + dy * dy
+                            if distanceSquared >= MAX_MOUSEOVER_RANGE_SQUARED:
+                                continue
+                            proximity = MAX_RTPC_VALUE - distanceSquared / MAX_MOUSEOVER_RANGE_SQUARED * MAX_RTPC_VALUE
+                            if closestBracket is not None:
+                                closestBracket = proximity < bestProximity and bracket
+                                bestProximity = proximity
+                        else:
                             closestBracket = bracket
                             bestProximity = proximity
-                    else:
-                        closestBracket = bracket
-                        bestProximity = proximity
 
-                activeBracket, lastSoundStrength = self.UpdateMouseHoverSound(activeBracket, bestProximity, closestBracket, lastSoundStrength)
-            except (ValueError, OverflowError):
-                pass
-            except Exception:
-                LogException('The sound update loop errored out')
+                    activeBracket, lastSoundStrength = self.UpdateMouseHoverSound(activeBracket, bestProximity, closestBracket, lastSoundStrength)
+                except (ValueError, OverflowError):
+                    pass
+                except Exception:
+                    LogException('The sound update loop errored out')
+
             finally:
                 uthread2.Sleep(0.025)
 
         if activeBracket is not None:
             self.DisableMouseOverSound()
         self.LogInfo('Mouse tracking update thread ended')
+        return
 
     def DisableMouseOverSound(self):
         self.audio.SendUIEvent('ui_scanner_mouseover_stop')
@@ -575,19 +627,63 @@ class SensorSuiteService(service.Service):
     def SetSiteFilter(self, siteType, enabled):
         handler = self.siteController.GetSiteHandler(siteType)
         handler.SetFilterEnabled(enabled)
-        self.UpdateVisibleSites()
+        if siteType in STRUCTURE_SITE_TYPES:
+            self.UpdateVisibleStructures()
+        else:
+            self.UpdateVisibleSites()
 
+    def OnStructuresVisibilityUpdated(self):
+        self.UpdateVisibleStructures()
+
+    def OnBallAdded(self, slimItem):
+        if slimItem.categoryID == const.categoryStructure:
+            self.UpdateVisibleStructures()
+
+    def DoBallRemove(self, ball, slimItem, terminal):
+        if slimItem.categoryID == const.categoryStructure:
+            self.UpdateVisibleStructures()
+
+    def DoBallsRemove(self, pythonBalls, isRelease):
+        for _ball, slimItem, _terminal in pythonBalls:
+            if slimItem.categoryID == const.categoryStructure:
+                self.UpdateVisibleStructures()
+                return
+
+    @bluepy.TimedFunction('sensorSuiteService::UpdateVisibleStructures')
+    def UpdateVisibleStructures(self):
+        setattr(self, 'updateVisibleStructuresTimerThread', AutoTimer(UPDATE_STRUCTURES_TIMEOUT, self._UpdateVisibleStructures))
+
+    @bluepy.TimedFunction('sensorSuiteService::_UpdateVisibleStructures')
+    def _UpdateVisibleStructures(self):
+        self.LogInfo('UpdateVisibleStructures')
+        try:
+            if not self.IsSolarSystemReady():
+                return
+            self.siteController.UpdateSiteVisibility(siteTypesToUpdate=STRUCTURE_SITE_TYPES)
+        finally:
+            self.updateVisibleStructuresTimerThread = None
+
+        return
+
+    @bluepy.TimedFunction('sensorSuiteService::UpdateVisibleSites')
     def UpdateVisibleSites(self):
-        setattr(self, 'updateVisibleSitesTimerThread', AutoTimer(200, self._UpdateVisibleSites))
+        setattr(self, 'updateVisibleSitesTimerThread', AutoTimer(UPDATE_SITES_TIMEOUT, self._UpdateVisibleSites))
 
-    @telemetry.ZONE_METHOD
+    @bluepy.TimedFunction('sensorSuiteService::_UpdateVisibleSites')
     def _UpdateVisibleSites(self):
         self.LogInfo('UpdateVisibleSites')
         try:
-            if session.solarsystemid is None:
-                return
             if not self.IsSolarSystemReady():
                 return
-            self.siteController.UpdateSiteVisibility()
+            self.siteController.UpdateSiteVisibility(siteTypesToUpdate=NON_STRUCTURE_SITE_TYPES)
         finally:
             self.updateVisibleSitesTimerThread = None
+
+        return
+
+    def GetPositionalSiteItemIDFromTargetID(self, targetID):
+        for site in self.siteController.siteMaps.IterSitesByKeys(ANOMALY, STRUCTURE):
+            if site.targetID == targetID:
+                return (site.siteID, site.groupID)
+
+        return (None, None)

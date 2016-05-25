@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\client\script\parklife\damageSvc.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\client\script\parklife\damageSvc.py
 import telemetry
 import service
 import blue
@@ -23,7 +24,7 @@ class DamageService(service.Service):
         self.targetLODLevel = 1
         self.generatedDamageLocators = 40
 
-    def Run(self, memStream = None):
+    def Run(self, memStream=None):
         service.Service.Run(self, memStream)
 
     def Stop(self, ms):
@@ -56,61 +57,63 @@ class DamageService(service.Service):
     def SetLocatorCacheTime(self, time):
         pass
 
-    def GetTargetLocators(self, attackerID, targetID, locatorVariance = 1):
+    def GetTargetLocators(self, attackerID, targetID, locatorVariance=1):
         timer = blue.pyos.taskletTimer.EnterTasklet('DamageService::GetTargetLocators')
         result = []
         try:
-            targetBall = sm.GetService('michelle').GetBall(targetID)
-            targetModel = getattr(targetBall, 'model', None)
-            attackerBall = sm.GetService('michelle').GetBall(attackerID)
-            attackerModel = getattr(attackerBall, 'model', None)
-            if targetBall is None:
-                self.LogError('DamageService::GetTargetLocators cannot find ball of targetID', targetID)
-                return []
-            if targetModel is None:
-                self.LogError('DamageService::GetTargetLocators target ball has no model', targetID)
-                return []
-            if attackerBall is None:
-                self.LogError('DamageService::GetTargetLocators cannot find ball of attackerID', attackerID)
-                return []
-            if attackerModel is None:
-                self.LogError('DamageService::GetTargetLocators attacker ball has no model', attackerID)
-                return []
-            if (targetID, attackerID) in self.targets:
-                cachedResultTime, cachedResultList = self.targets[targetID, attackerID]
-                if blue.os.TimeDiffInMs(cachedResultTime, blue.os.GetWallclockTimeNow()) < self.targetResultCacheTime:
-                    if len(cachedResultList) >= locatorVariance:
-                        return cachedResultList[:locatorVariance]
-                if targetID in self.failedTargets:
-                    return [targetModel]
-                del self.targets[targetID, attackerID]
-            result = [targetModel]
-            if hasattr(targetModel, 'activeLevel'):
-                if targetModel.activeLevel >= self.targetLODLevel:
-                    return [targetModel]
-            self.LogInfo('Regenerating damage locator cache for pair: ', targetID, ' - ', attackerID)
-            targetDamageLocators = getattr(targetBall, 'targets', None)
-            if targetDamageLocators is None or len(targetDamageLocators) == 0:
-                if targetID in self.failedTargets:
-                    return [targetModel]
-                self.LogWarn('DamageService::GetTargetLocators must regenerate damage locators', targetID)
-                locators = self.GenerateDamageLocators(targetModel, self.generatedDamageLocators)
-                if len(locators) == 0:
-                    self.failedTargets[targetID] = targetModel
-                    self.LogError("Couldn't generate damage locators on ", targetModel.name)
-                    return [targetModel]
-                targetDamageLocators = locators
-                targetBall.targets = locators
-            closestTargets = []
-            for targetLocator in targetDamageLocators:
-                closestTargets.append([(targetLocator.worldPosition - attackerModel.worldPosition).Length(), targetLocator])
+            try:
+                targetBall = sm.GetService('michelle').GetBall(targetID)
+                targetModel = getattr(targetBall, 'model', None)
+                attackerBall = sm.GetService('michelle').GetBall(attackerID)
+                attackerModel = getattr(attackerBall, 'model', None)
+                if targetBall is None:
+                    self.LogError('DamageService::GetTargetLocators cannot find ball of targetID', targetID)
+                    return []
+                if targetModel is None:
+                    self.LogError('DamageService::GetTargetLocators target ball has no model', targetID)
+                    return []
+                if attackerBall is None:
+                    self.LogError('DamageService::GetTargetLocators cannot find ball of attackerID', attackerID)
+                    return []
+                if attackerModel is None:
+                    self.LogError('DamageService::GetTargetLocators attacker ball has no model', attackerID)
+                    return []
+                if (targetID, attackerID) in self.targets:
+                    cachedResultTime, cachedResultList = self.targets[targetID, attackerID]
+                    if blue.os.TimeDiffInMs(cachedResultTime, blue.os.GetWallclockTimeNow()) < self.targetResultCacheTime:
+                        if len(cachedResultList) >= locatorVariance:
+                            return cachedResultList[:locatorVariance]
+                    if targetID in self.failedTargets:
+                        return [targetModel]
+                    del self.targets[targetID, attackerID]
+                result = [targetModel]
+                if hasattr(targetModel, 'activeLevel'):
+                    if targetModel.activeLevel >= self.targetLODLevel:
+                        return [targetModel]
+                self.LogInfo('Regenerating damage locator cache for pair: ', targetID, ' - ', attackerID)
+                targetDamageLocators = getattr(targetBall, 'targets', None)
+                if targetDamageLocators is None or len(targetDamageLocators) == 0:
+                    if targetID in self.failedTargets:
+                        return [targetModel]
+                    self.LogWarn('DamageService::GetTargetLocators must regenerate damage locators', targetID)
+                    locators = self.GenerateDamageLocators(targetModel, self.generatedDamageLocators)
+                    if len(locators) == 0:
+                        self.failedTargets[targetID] = targetModel
+                        self.LogError("Couldn't generate damage locators on ", targetModel.name)
+                        return [targetModel]
+                    targetDamageLocators = locators
+                    targetBall.targets = locators
+                closestTargets = []
+                for targetLocator in targetDamageLocators:
+                    closestTargets.append([(targetLocator.worldPosition - attackerModel.worldPosition).Length(), targetLocator])
 
-            closestTargets.sort()
-            result = [ x[1] for x in closestTargets ]
-            self.targets[targetID, attackerID] = (blue.os.GetWallclockTimeNow(), result)
-            result = result[:locatorVariance]
-        except:
-            log.LogException()
+                closestTargets.sort()
+                result = [ x[1] for x in closestTargets ]
+                self.targets[targetID, attackerID] = (blue.os.GetWallclockTimeNow(), result)
+                result = result[:locatorVariance]
+            except:
+                log.LogException()
+
         finally:
             blue.pyos.taskletTimer.ReturnFromTasklet(timer)
 
@@ -124,26 +127,30 @@ class DamageService(service.Service):
                 self.LogError('DamageService::GetDamageLocatorGeneratorTransformHeirarchy: Passed an empty LODGroup. Not much that can be done here anyway.')
                 return None
         self.LogError('DamageService::GetDamageLocatorGeneratorTransformHeirarchy: Attempting to generate damage locators on a', transform.__typename__)
+        return None
 
-    def GetDamageLocatorGeneratorTransform(self, transform, depth = 0):
+    def GetDamageLocatorGeneratorTransform(self, transform, depth=0):
         if depth == 0 and not hasattr(transform, 'object'):
             return
-        if transform.display == 0:
+        elif transform.display == 0:
             return
-        if hasattr(transform, 'object') and transform.object is not None:
-            if transform.object.__typename__ == 'TriModel':
-                if transform.object.vertices != 'res:/Model/Global/locatorObject.tri':
-                    if hasattr(transform, 'name'):
-                        self.LogWarn('DamageService.GetDamageLocatorGeneratorTransform: Picked:', transform.name)
+        else:
+            if hasattr(transform, 'object') and transform.object is not None:
+                if transform.object.__typename__ == 'TriModel':
+                    if transform.object.vertices != 'res:/Model/Global/locatorObject.tri':
+                        if hasattr(transform, 'name'):
+                            self.LogWarn('DamageService.GetDamageLocatorGeneratorTransform: Picked:', transform.name)
+                        return [transform]
+                if transform.object.__typename__ == 'TriParticleCloud':
                     return [transform]
-            if transform.object.__typename__ == 'TriParticleCloud':
-                return [transform]
-        result = None
-        if depth < 3:
-            for child in transform.children:
-                result = self.GetDamageLocatorGeneratorTransform(child, depth + 1)
-                if result is not None:
-                    return [transform] + result
+            result = None
+            if depth < 3:
+                for child in transform.children:
+                    result = self.GetDamageLocatorGeneratorTransform(child, depth + 1)
+                    if result is not None:
+                        return [transform] + result
+
+            return
 
     def GenerateDamageLocators(self, rootTransform, generateNumber):
         timer = blue.pyos.taskletTimer.EnterTasklet('DamageService::GenerateDamageLocators')
@@ -162,6 +169,8 @@ class DamageService(service.Service):
                     if getattr(tf1, attribute, None) is not None:
                         setattr(tf2, attribute, getattr(tf1, attribute).CopyTo())
 
+                return
+
             def CheckEmptyTransformation(tf):
                 if tf.__typename__ != 'TriTransform':
                     return True
@@ -174,11 +183,12 @@ class DamageService(service.Service):
                         return False
                 if tf.scaling.x != 1.0 or tf.scaling.y != 1.0 or tf.scaling.z != 1.0:
                     return False
-                if tf.translation.x != 0.0 or tf.translation.y != 0.0 or tf.translation.z != 0.0:
+                elif tf.translation.x != 0.0 or tf.translation.y != 0.0 or tf.translation.z != 0.0:
                     return False
-                if tf.rotation.x != 0.0 or tf.rotation.y != 0.0 or tf.rotation.z != 0.0 or tf.rotation.w != 1.0:
+                elif tf.rotation.x != 0.0 or tf.rotation.y != 0.0 or tf.rotation.z != 0.0 or tf.rotation.w != 1.0:
                     return False
-                return True
+                else:
+                    return True
 
             for transformDepthIndex in range(len(targetTransformHeirarchy)):
                 if CheckEmptyTransformation(targetTransformHeirarchy[transformDepthIndex]):

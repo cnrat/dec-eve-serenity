@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\carbon\common\lib\markdown\odict.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\carbon\common\lib\markdown\odict.py
 
 
 class OrderedDict(dict):
@@ -8,7 +9,7 @@ class OrderedDict(dict):
         instance.keyOrder = []
         return instance
 
-    def __init__(self, data = None):
+    def __init__(self, data=None):
         if data is None:
             data = {}
         super(OrderedDict, self).__init__(data)
@@ -19,6 +20,8 @@ class OrderedDict(dict):
             for key, value in data:
                 if key not in self.keyOrder:
                     self.keyOrder.append(key)
+
+        return
 
     def __deepcopy__(self, memo):
         from copy import deepcopy
@@ -132,6 +135,7 @@ class OrderedDict(dict):
             self.insert(i, key, value)
         else:
             self.__setitem__(key, value)
+        return
 
     def link(self, key, location):
         n = self.keyOrder.index(key)
@@ -145,3 +149,5 @@ class OrderedDict(dict):
         except Exception as e:
             self.keyOrder.insert(n, key)
             raise e
+
+        return

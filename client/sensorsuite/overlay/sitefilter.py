@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\packages\sensorsuite\overlay\sitefilter.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\packages\sensorsuite\overlay\sitefilter.py
 import carbonui.const as uiconst
 from carbonui.primitives.container import Container
 from carbonui.primitives.sprite import Sprite
@@ -13,7 +14,6 @@ from sensorsuite.overlay.brackets import OUTER_BRACKET_ORIENTATIONS, INNER_ICON_
 logger = logging.getLogger(__name__)
 
 @Component(HoverEffect(color=(1.0, 1.0, 1.0, 0.15)))
-
 class SiteButton(Container):
     default_height = 36
     default_align = uiconst.TOPLEFT

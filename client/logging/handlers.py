@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\carbon\common\stdlib\logging\handlers.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\carbon\common\stdlib\logging\handlers.py
 import logging, socket, os, cPickle, struct, time, re
 from stat import ST_DEV, ST_INO, ST_MTIME
 try:
@@ -22,12 +23,13 @@ _MIDNIGHT = 86400
 
 class BaseRotatingHandler(logging.FileHandler):
 
-    def __init__(self, filename, mode, encoding = None, delay = 0):
+    def __init__(self, filename, mode, encoding=None, delay=0):
         if codecs is None:
             encoding = None
         logging.FileHandler.__init__(self, filename, mode, encoding, delay)
         self.mode = mode
         self.encoding = encoding
+        return
 
     def emit(self, record):
         try:
@@ -42,7 +44,7 @@ class BaseRotatingHandler(logging.FileHandler):
 
 class RotatingFileHandler(BaseRotatingHandler):
 
-    def __init__(self, filename, mode = 'a', maxBytes = 0, backupCount = 0, encoding = None, delay = 0):
+    def __init__(self, filename, mode='a', maxBytes=0, backupCount=0, encoding=None, delay=0):
         if maxBytes > 0:
             mode = 'a'
         BaseRotatingHandler.__init__(self, filename, mode, encoding, delay)
@@ -81,7 +83,7 @@ class RotatingFileHandler(BaseRotatingHandler):
 
 class TimedRotatingFileHandler(BaseRotatingHandler):
 
-    def __init__(self, filename, when = 'h', interval = 1, backupCount = 0, encoding = None, delay = False, utc = False):
+    def __init__(self, filename, when='h', interval=1, backupCount=0, encoding=None, delay=False, utc=False):
         BaseRotatingHandler.__init__(self, filename, 'a', encoding, delay)
         self.when = when.upper()
         self.backupCount = backupCount
@@ -156,7 +158,6 @@ class TimedRotatingFileHandler(BaseRotatingHandler):
         t = int(time.time())
         if t >= self.rolloverAt:
             return 1
-        return 0
 
     def getFilesToDelete(self):
         dirName, baseName = os.path.split(self.baseFilename)
@@ -213,7 +214,7 @@ class TimedRotatingFileHandler(BaseRotatingHandler):
 
 class WatchedFileHandler(logging.FileHandler):
 
-    def __init__(self, filename, mode = 'a', encoding = None, delay = 0):
+    def __init__(self, filename, mode='a', encoding=None, delay=0):
         logging.FileHandler.__init__(self, filename, mode, encoding, delay)
         if not os.path.exists(self.baseFilename):
             self.dev, self.ino = (-1, -1)
@@ -236,6 +237,7 @@ class WatchedFileHandler(logging.FileHandler):
                 stat = os.stat(self.baseFilename)
             self.dev, self.ino = stat[ST_DEV], stat[ST_INO]
         logging.FileHandler.emit(self, record)
+        return
 
 
 class SocketHandler(logging.Handler):
@@ -250,8 +252,9 @@ class SocketHandler(logging.Handler):
         self.retryStart = 1.0
         self.retryMax = 30.0
         self.retryFactor = 2.0
+        return
 
-    def makeSocket(self, timeout = 1):
+    def makeSocket(self, timeout=1):
         s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
         if hasattr(s, 'settimeout'):
             s.settimeout(timeout)
@@ -277,6 +280,8 @@ class SocketHandler(logging.Handler):
                         self.retryPeriod = self.retryMax
                 self.retryTime = now + self.retryPeriod
 
+        return
+
     def send(self, s):
         if self.sock is None:
             self.createSocket()
@@ -296,6 +301,8 @@ class SocketHandler(logging.Handler):
                 self.sock.close()
                 self.sock = None
 
+        return
+
     def makePickle(self, record):
         ei = record.exc_info
         if ei:
@@ -313,6 +320,7 @@ class SocketHandler(logging.Handler):
             self.sock = None
         else:
             logging.Handler.handleError(self, record)
+        return
 
     def emit(self, record):
         try:
@@ -328,6 +336,7 @@ class SocketHandler(logging.Handler):
             self.sock.close()
             self.sock = None
         logging.Handler.close(self)
+        return
 
 
 class DatagramHandler(SocketHandler):
@@ -344,6 +353,7 @@ class DatagramHandler(SocketHandler):
         if self.sock is None:
             self.createSocket()
         self.sock.sendto(s, (self.host, self.port))
+        return
 
 
 class SysLogHandler(logging.Handler):
@@ -414,7 +424,7 @@ class SysLogHandler(logging.Handler):
      'ERROR': 'error',
      'CRITICAL': 'critical'}
 
-    def __init__(self, address = ('localhost', SYSLOG_UDP_PORT), facility = LOG_USER, socktype = socket.SOCK_DGRAM):
+    def __init__(self, address=('localhost', SYSLOG_UDP_PORT), facility=LOG_USER, socktype=socket.SOCK_DGRAM):
         logging.Handler.__init__(self)
         self.address = address
         self.facility = facility
@@ -428,6 +438,7 @@ class SysLogHandler(logging.Handler):
             if socktype == socket.SOCK_STREAM:
                 self.socket.connect(address)
         self.formatter = None
+        return
 
     def _connect_unixsocket(self, address):
         self.socket = socket.socket(socket.AF_UNIX, socket.SOCK_DGRAM)
@@ -483,7 +494,7 @@ class SysLogHandler(logging.Handler):
 
 class SMTPHandler(logging.Handler):
 
-    def __init__(self, mailhost, fromaddr, toaddrs, subject, credentials = None, secure = None):
+    def __init__(self, mailhost, fromaddr, toaddrs, subject, credentials=None, secure=None):
         logging.Handler.__init__(self)
         if isinstance(mailhost, tuple):
             self.mailhost, self.mailport = mailhost
@@ -499,6 +510,7 @@ class SMTPHandler(logging.Handler):
         self.toaddrs = toaddrs
         self.subject = subject
         self.secure = secure
+        return
 
     def getSubject(self, record):
         return self.subject
@@ -530,10 +542,12 @@ class SMTPHandler(logging.Handler):
         except:
             self.handleError(record)
 
+        return
+
 
 class NTEventLogHandler(logging.Handler):
 
-    def __init__(self, appname, dllname = None, logtype = 'Application'):
+    def __init__(self, appname, dllname=None, logtype='Application'):
         logging.Handler.__init__(self)
         try:
             import win32evtlogutil, win32evtlog
@@ -556,11 +570,13 @@ class NTEventLogHandler(logging.Handler):
             print 'The Python Win32 extensions for NT (service, event logging) appear not to be available.'
             self._welu = None
 
+        return
+
     def getMessageID(self, record):
-        return 1
+        pass
 
     def getEventCategory(self, record):
-        return 0
+        pass
 
     def getEventType(self, record):
         return self.typemap.get(record.levelno, self.deftype)
@@ -584,7 +600,7 @@ class NTEventLogHandler(logging.Handler):
 
 class HTTPHandler(logging.Handler):
 
-    def __init__(self, host, url, method = 'GET'):
+    def __init__(self, host, url, method='GET'):
         logging.Handler.__init__(self)
         method = method.upper()
         if method not in ('GET', 'POST'):
@@ -624,6 +640,8 @@ class HTTPHandler(logging.Handler):
         except:
             self.handleError(record)
 
+        return
+
 
 class BufferingHandler(logging.Handler):
 
@@ -650,7 +668,7 @@ class BufferingHandler(logging.Handler):
 
 class MemoryHandler(BufferingHandler):
 
-    def __init__(self, capacity, flushLevel = logging.ERROR, target = None):
+    def __init__(self, capacity, flushLevel=logging.ERROR, target=None):
         BufferingHandler.__init__(self, capacity)
         self.flushLevel = flushLevel
         self.target = target
@@ -672,3 +690,4 @@ class MemoryHandler(BufferingHandler):
         self.flush()
         self.target = None
         BufferingHandler.close(self)
+        return

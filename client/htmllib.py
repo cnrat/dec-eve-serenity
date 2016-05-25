@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\carbon\common\stdlib\htmllib.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\carbon\common\stdlib\htmllib.py
 from warnings import warnpy3k
 warnpy3k('the htmllib module has been removed in Python 3.0', stacklevel=2)
 del warnpy3k
@@ -13,7 +14,7 @@ class HTMLParseError(sgmllib.SGMLParseError):
 class HTMLParser(sgmllib.SGMLParser):
     from htmlentitydefs import entitydefs
 
-    def __init__(self, formatter, verbose = 0):
+    def __init__(self, formatter, verbose=0):
         sgmllib.SGMLParser.__init__(self, verbose)
         self.formatter = formatter
 
@@ -30,6 +31,7 @@ class HTMLParser(sgmllib.SGMLParser):
         self.anchorlist = []
         self.nofill = 0
         self.list_stack = []
+        return
 
     def handle_data(self, data):
         if self.savedata is not None:
@@ -38,6 +40,7 @@ class HTMLParser(sgmllib.SGMLParser):
             self.formatter.add_literal_data(data)
         else:
             self.formatter.add_flowing_data(data)
+        return
 
     def save_bgn(self):
         self.savedata = ''
@@ -58,6 +61,7 @@ class HTMLParser(sgmllib.SGMLParser):
         if self.anchor:
             self.handle_data('[%d]' % len(self.anchorlist))
             self.anchor = None
+        return
 
     def handle_image(self, src, alt, *args):
         self.handle_data(alt)
@@ -267,7 +271,7 @@ class HTMLParser(sgmllib.SGMLParser):
         self.formatter.push_margin('dd')
         self.list_stack.append(['dd', '', 0])
 
-    def ddpop(self, bl = 0):
+    def ddpop(self, bl=0):
         self.formatter.end_paragraph(bl)
         if self.list_stack:
             if self.list_stack[-1][0] == 'dd':
@@ -408,7 +412,7 @@ class HTMLParser(sgmllib.SGMLParser):
         pass
 
 
-def test(args = None):
+def test(args=None):
     import sys, formatter
     if not args:
         args = sys.argv[1:]

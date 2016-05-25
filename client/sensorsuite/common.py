@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\packages\sensorsuite\common.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\packages\sensorsuite\common.py
 SITE_DIFFICULTY_EASY = 1
 SITE_DIFFICULTY_MEDIUM = 2
 SITE_DIFFICULTY_HARD = 3
@@ -12,3 +13,4 @@ def MapDungeonDifficulty(dungeonDifficulty):
         return SITE_DIFFICULTY_MEDIUM
     else:
         return SITE_DIFFICULTY_HARD
+        return

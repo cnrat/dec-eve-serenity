@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\client\script\ui\control\browser\eveBrowserWindow.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\client\script\ui\control\browser\eveBrowserWindow.py
 import evetypes
 import uthread
 import blue
@@ -50,6 +51,7 @@ class BrowserWindow(uicls.BrowserWindowCore):
         activeShipID = util.GetActiveShip()
         if activeShipID is not None:
             self.AddShipToAllTrustedSites(activeShipID)
+        return
 
     def OnSessionChanged(self, isRemote, sess, change):
         uicls.BrowserWindowCore.OnSessionChanged(self, isRemote, sess, change)
@@ -94,6 +96,7 @@ class BrowserWindow(uicls.BrowserWindowCore):
             self.AddShipToAllTrustedSites(shipID)
         else:
             self.RemoveShipFromAllTrustedSites()
+        return
 
     def AddShipToAllTrustedSites(self, shipID):
         self.AddToAllTrustedSites('EVE_SHIPID', '%s' % shipID)

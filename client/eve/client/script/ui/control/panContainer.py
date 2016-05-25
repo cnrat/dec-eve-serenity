@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\client\script\ui\control\panContainer.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\client\script\ui\control\panContainer.py
 from carbonui.primitives.container import Container
 from carbonui.primitives.containerAutoSize import ContainerAutoSize
 from carbonui.const import UI_PICKCHILDREN, TOPLEFT, UICURSOR_DRAGGABLE, UI_NORMAL, CENTER
@@ -35,13 +36,14 @@ class PanContainer(Container):
         self.panTarget = None
         self.transform = Transform(parent=self, align=TOPLEFT, state=UI_PICKCHILDREN, scalingCenter=(0.5, 0.5))
         self.mainCont = ContainerAutoSize(name='mainCont', parent=self.transform, align=CENTER, state=UI_PICKCHILDREN)
+        return
 
     def OnMouseMove(self, *args):
         if uicore.uilib.leftbtn and not uicore.uilib.rightbtn:
             k = self.panAmount / self.scale
             self.Pan(k * uicore.uilib.dx, k * uicore.uilib.dy)
 
-    def Pan(self, dx = 0, dy = 0):
+    def Pan(self, dx=0, dy=0):
         if self.panTarget is None:
             self.panTarget = geo2.Vector(0, 0)
         if self.IsClampedHorizontally():
@@ -51,8 +53,9 @@ class PanContainer(Container):
         self.panTarget += geo2.Vector(dx, dy)
         if not self.panUpdateThread:
             self.panUpdateThread = uthread.new(self._PanUpdateThread)
+        return
 
-    def IsClampedHorizontally(self, includeMargin = True):
+    def IsClampedHorizontally(self, includeMargin=True):
         width = self.transform.width
         parWidth, _ = self.GetAbsoluteSize()
         bLeft, _, bRight, _ = self.border
@@ -61,7 +64,7 @@ class PanContainer(Container):
             return True
         return False
 
-    def IsClampedVertically(self, includeMargin = True):
+    def IsClampedVertically(self, includeMargin=True):
         height = self.transform.height
         _, parHeight = self.GetAbsoluteSize()
         _, bTop, _, bBottom = self.border
@@ -70,7 +73,7 @@ class PanContainer(Container):
             return True
         return False
 
-    def PanTo(self, panLeft, panTop, animate = True, duration = None, timeOffset = 0.0, sleep = False):
+    def PanTo(self, panLeft, panTop, animate=True, duration=None, timeOffset=0.0, sleep=False):
         if animate:
             if not duration:
                 length = geo2.Vec3Distance((panLeft, panTop, 0), (self.panLeft, self.panTop, 0))
@@ -81,7 +84,7 @@ class PanContainer(Container):
             self.panLeft = panLeft
             self.panTop = panTop
 
-    def PanToMouseOver(self, duration = None, timeOffset = 0.0, sleep = False):
+    def PanToMouseOver(self, duration=None, timeOffset=0.0, sleep=False):
         panLeft, panTop = self.GetMousePositionProportional()
         if not duration:
             length = geo2.Vec2Length((panLeft - self.panLeft, panTop - self.panTop))
@@ -131,6 +134,7 @@ class PanContainer(Container):
 
         self.panUpdateThread = None
         self.panTarget = None
+        return
 
     def GetPanLeft(self):
         return self._panLeft

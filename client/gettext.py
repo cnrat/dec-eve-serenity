@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\carbon\common\stdlib\gettext.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\carbon\common\stdlib\gettext.py
 import locale, copy, os, re, struct, sys
 from errno import ENOENT
 __all__ = ['NullTranslations',
@@ -110,13 +111,14 @@ def _expand_lang(locale):
 
 class NullTranslations:
 
-    def __init__(self, fp = None):
+    def __init__(self, fp=None):
         self._info = {}
         self._charset = None
         self._output_charset = None
         self._fallback = None
         if fp is not None:
             self._parse(fp)
+        return
 
     def _parse(self, fp):
         pass
@@ -178,7 +180,7 @@ class NullTranslations:
     def set_output_charset(self, charset):
         self._output_charset = charset
 
-    def install(self, unicode = False, names = None):
+    def install(self, unicode=False, names=None):
         import __builtin__
         __builtin__.__dict__['_'] = unicode and self.ugettext or self.gettext
         if hasattr(names, '__contains__'):
@@ -260,6 +262,8 @@ class GNUTranslations(NullTranslations):
             masteridx += 8
             transidx += 8
 
+        return
+
     def gettext(self, message):
         missing = object()
         tmsg = self._catalog.get(message, missing)
@@ -337,7 +341,7 @@ class GNUTranslations(NullTranslations):
         return tmsg
 
 
-def find(domain, localedir = None, languages = None, all = 0):
+def find(domain, localedir=None, languages=None, all=0):
     if localedir is None:
         localedir = _default_localedir
     if languages is None:
@@ -375,7 +379,7 @@ def find(domain, localedir = None, languages = None, all = 0):
 
 _translations = {}
 
-def translation(domain, localedir = None, languages = None, class_ = None, fallback = False, codeset = None):
+def translation(domain, localedir=None, languages=None, class_=None, fallback=False, codeset=None):
     if class_ is None:
         class_ = GNUTranslations
     mofiles = find(domain, localedir, languages, all=1)
@@ -401,7 +405,7 @@ def translation(domain, localedir = None, languages = None, class_ = None, fallb
     return result
 
 
-def install(domain, localedir = None, unicode = False, codeset = None, names = None):
+def install(domain, localedir=None, unicode=False, codeset=None, names=None):
     t = translation(domain, localedir, fallback=True, codeset=codeset)
     t.install(unicode, names)
 
@@ -410,21 +414,21 @@ _localedirs = {}
 _localecodesets = {}
 _current_domain = 'messages'
 
-def textdomain(domain = None):
+def textdomain(domain=None):
     global _current_domain
     if domain is not None:
         _current_domain = domain
     return _current_domain
 
 
-def bindtextdomain(domain, localedir = None):
+def bindtextdomain(domain, localedir=None):
     global _localedirs
     if localedir is not None:
         _localedirs[domain] = localedir
     return _localedirs.get(domain, _default_localedir)
 
 
-def bind_textdomain_codeset(domain, codeset = None):
+def bind_textdomain_codeset(domain, codeset=None):
     global _localecodesets
     if codeset is not None:
         _localecodesets[domain] = codeset

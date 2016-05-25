@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\packages\carbonui\maingame\charControl.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\packages\carbonui\maingame\charControl.py
 import carbonui.const as uiconst
 from carbonui.control.layer import LayerCore
 
@@ -27,6 +28,7 @@ class CoreCharControl(LayerCore):
         nav.controlLayer = None
         nav.hasFocus = False
         nav.RecreatePlayerMovement()
+        return
 
     def OnSetFocus(self, *args):
         nav = sm.GetService('navigation')

@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\packages\dogma\items\notWantedDogmaItem.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\packages\dogma\items\notWantedDogmaItem.py
 from dogma.items.baseDogmaItem import BaseDogmaItem
 RESISTANCEMATRIX = {const.attributeShieldCharge: [0,
                                0,

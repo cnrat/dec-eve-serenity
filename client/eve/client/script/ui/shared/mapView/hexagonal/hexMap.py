@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\client\script\ui\shared\mapView\hexagonal\hexMap.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\client\script\ui\shared\mapView\hexagonal\hexMap.py
 import math
 import logging
 from carbon.common.script.util.timerstuff import AutoTimer
@@ -73,6 +74,7 @@ class HexMap(Container):
     def Close(self, *args):
         Container.Close(self, *args)
         self.parentMap = None
+        return
 
     @apply
     def morphGlobalScaling():
@@ -107,30 +109,32 @@ class HexMap(Container):
     def UpdateChildren(self):
         pass
 
-    def TraverseHexMap(self, viewportRect = None, scaling = None):
+    def TraverseHexMap(self, viewportRect=None, scaling=None):
         if not self.parent:
             return
-        if scaling is None:
-            scaling = self.globalScaling
-        self.globalScaling = scaling
-        if self.objectByID:
-            if viewportRect is None:
-                viewportRect = (self.left,
-                 self.top,
-                 ReverseScaleDpi(self.parent.displayWidth),
-                 ReverseScaleDpi(self.parent.displayHeight))
-            else:
-                vX, vY, vW, vH = viewportRect
-                viewportRect = (vX + self.left,
-                 vY + self.top,
-                 vW,
-                 vH)
-            for objectID, hexCell in self.objectByID.iteritems():
-                hexCell.TraverseHexCell(viewportRect, self.globalScaling * self.localScaling)
+        else:
+            if scaling is None:
+                scaling = self.globalScaling
+            self.globalScaling = scaling
+            if self.objectByID:
+                if viewportRect is None:
+                    viewportRect = (self.left,
+                     self.top,
+                     ReverseScaleDpi(self.parent.displayWidth),
+                     ReverseScaleDpi(self.parent.displayHeight))
+                else:
+                    vX, vY, vW, vH = viewportRect
+                    viewportRect = (vX + self.left,
+                     vY + self.top,
+                     vW,
+                     vH)
+                for objectID, hexCell in self.objectByID.iteritems():
+                    hexCell.TraverseHexCell(viewportRect, self.globalScaling * self.localScaling)
 
-            self.UpdateJumpLines()
+                self.UpdateJumpLines()
+            return
 
-    def UpdateAlignment(self, budgetLeft = 0, budgetTop = 0, budgetWidth = 0, budgetHeight = 0, updateChildrenOnly = False):
+    def UpdateAlignment(self, budgetLeft=0, budgetTop=0, budgetWidth=0, budgetHeight=0, updateChildrenOnly=False):
         ret = Container.UpdateAlignment(self, budgetLeft, budgetTop, budgetWidth, budgetHeight, updateChildrenOnly)
         return ret
 
@@ -202,7 +206,7 @@ class HexMap(Container):
         self.markersByID = {}
         self.slotsByPosition = {}
 
-    def GetVectorBetweenObjectsOnSameLevel(self, fromObjectID, toObjectID, parentObjectID, i = 0):
+    def GetVectorBetweenObjectsOnSameLevel(self, fromObjectID, toObjectID, parentObjectID, i=0):
         plotData = GetPlotDataForObject(parentObjectID, ignoreFixed=False)
         if fromObjectID in plotData:
             column1, row1 = plotData[fromObjectID]
@@ -260,70 +264,72 @@ class HexMap(Container):
                 marker.state = uiconst.UI_NORMAL
                 marker.hint = '%s' % toID
 
-    def LoadMapData(self, objectID, loadLayout = True, ignoreFixedLayout = None, loadCombined = False):
+    def LoadMapData(self, objectID, loadLayout=True, ignoreFixedLayout=None, loadCombined=False):
         if objectID not in uicore.mapObjectDataByID:
             return
-        loadCombined = loadCombined or settings.user.ui.Get('mapLoadCombined', 0)
-        if loadCombined and IsRegion(objectID):
-            self.isCombinedMap = True
-            layoutData, connectionData, exitConnectionData, size = PrepareCombinedMap(objectID)
-            objectData = layoutData.keys()
-            plotData = layoutData
         else:
-            self.isCombinedMap = False
-            objectData = uicore.mapObjectDataByID[objectID]
-            connectionData = uicore.mapConnectionDataByID.get(objectID, [])
-            plotData = GetPlotDataForObject(objectID, ignoreFixedLayout)
-            if plotData:
-                size = GetHexMapSizeForObject(objectID)
+            loadCombined = loadCombined or settings.user.ui.Get('mapLoadCombined', 0)
+            if loadCombined and IsRegion(objectID):
+                self.isCombinedMap = True
+                layoutData, connectionData, exitConnectionData, size = PrepareCombinedMap(objectID)
+                objectData = layoutData.keys()
+                plotData = layoutData
             else:
-                size = 10
-            exitConnectionData = []
-        self.objectID = objectID
-        self.exitConnectionData = exitConnectionData
-        self.FlushMap()
-        from eve.client.script.ui.shared.mapView.hexagonal.hexCell import HexCell
-        for childObjectID in objectData:
-            hexCell = HexCell(parent=self, hexGrid=self, hexSize=self.hexGridSize * 0.5, hexGridSize=self.hexGridSize, opacity=1.0, state=uiconst.UI_NORMAL, isFlatTop=self.isFlatTop, editMode=self.editMode, idx=0)
-            hexCell.OnMouseWheelCallback = self.OnMouseWheel
-            hexCell.OnDragCallback = self.OnHexCellDrag
-            hexCell.OnDragEndCallback = self.OnHexCellEndDrag
-            hexCell.renderObject.pickRadius = -1
-            hexCell.objectID = childObjectID
-            self.objectByID[childObjectID] = hexCell
+                self.isCombinedMap = False
+                objectData = uicore.mapObjectDataByID[objectID]
+                connectionData = uicore.mapConnectionDataByID.get(objectID, [])
+                plotData = GetPlotDataForObject(objectID, ignoreFixedLayout)
+                if plotData:
+                    size = GetHexMapSizeForObject(objectID)
+                else:
+                    size = 10
+                exitConnectionData = []
+            self.objectID = objectID
+            self.exitConnectionData = exitConnectionData
+            self.FlushMap()
+            from eve.client.script.ui.shared.mapView.hexagonal.hexCell import HexCell
+            for childObjectID in objectData:
+                hexCell = HexCell(parent=self, hexGrid=self, hexSize=self.hexGridSize * 0.5, hexGridSize=self.hexGridSize, opacity=1.0, state=uiconst.UI_NORMAL, isFlatTop=self.isFlatTop, editMode=self.editMode, idx=0)
+                hexCell.OnMouseWheelCallback = self.OnMouseWheel
+                hexCell.OnDragCallback = self.OnHexCellDrag
+                hexCell.OnDragEndCallback = self.OnHexCellEndDrag
+                hexCell.renderObject.pickRadius = -1
+                hexCell.objectID = childObjectID
+                self.objectByID[childObjectID] = hexCell
 
-        if loadLayout:
-            if plotData:
-                try:
-                    for _objectID in objectData:
-                        hexCell = self.objectByID[_objectID]
-                        col, row = plotData[_objectID]
-                        hexCell.MoveToCR(col, row)
+            if loadLayout:
+                if plotData:
+                    try:
+                        for _objectID in objectData:
+                            hexCell = self.objectByID[_objectID]
+                            col, row = plotData[_objectID]
+                            hexCell.MoveToCR(col, row)
 
-                except KeyError as e:
-                    if ignoreFixedLayout is None:
-                        return self.LoadMapData(objectID, ignoreFixedLayout=True)
+                    except KeyError as e:
+                        if ignoreFixedLayout is None:
+                            return self.LoadMapData(objectID, ignoreFixedLayout=True)
+                        return
+
+                else:
                     return
+                self.SetMapSize(size)
+            loadExitpoints = settings.user.ui.Get('mapDebugShowExitPoints', 0)
+            if loadExitpoints:
+                self.DrawOutline()
+                parentID = uicore.mapObjectParentByID.get(self.objectID, None)
+                if parentID and parentID in uicore.mapConnectionDataByID:
+                    parentConnections = uicore.mapConnectionDataByID[parentID]
+                    self.LoadExitPoints(parentConnections, parentID)
+            loadHexLines = settings.user.ui.Get('mapDebugLoadHexLines', 0)
+            self.LoadConnections(connectionData, createHexLines=loadHexLines)
+            self.LoadConnections(self.exitConnectionData, createHexLines=loadHexLines)
+            if loadHexLines:
+                self.UpdateJumpLines(refreshLayout=True)
+            if not self.isChild:
+                self.TraverseHexMap()
+            return
 
-            else:
-                return
-            self.SetMapSize(size)
-        loadExitpoints = settings.user.ui.Get('mapDebugShowExitPoints', 0)
-        if loadExitpoints:
-            self.DrawOutline()
-            parentID = uicore.mapObjectParentByID.get(self.objectID, None)
-            if parentID and parentID in uicore.mapConnectionDataByID:
-                parentConnections = uicore.mapConnectionDataByID[parentID]
-                self.LoadExitPoints(parentConnections, parentID)
-        loadHexLines = settings.user.ui.Get('mapDebugLoadHexLines', 0)
-        self.LoadConnections(connectionData, createHexLines=loadHexLines)
-        self.LoadConnections(self.exitConnectionData, createHexLines=loadHexLines)
-        if loadHexLines:
-            self.UpdateJumpLines(refreshLayout=True)
-        if not self.isChild:
-            self.TraverseHexMap()
-
-    def LoadConnections(self, connectionData, createHexLines = False):
+    def LoadConnections(self, connectionData, createHexLines=False):
         for fromID, toID in connectionData:
             if (fromID, toID) in self.connectionsByID or (toID, fromID) in self.connectionsByID:
                 continue
@@ -428,8 +434,9 @@ class HexMap(Container):
         self.left = min(parentWidth / 2, max(parentWidth / 2 - w, initLeft - dX))
         self.top = min(parentHeight / 2, max(parentHeight / 2 - h, initTop - dY))
         self.TraverseHexMap()
+        return
 
-    def UpdateJumpLines(self, refreshLayout = False):
+    def UpdateJumpLines(self, refreshLayout=False):
         if self.markersByID:
             for markerID, marker in self.markersByID.iteritems():
                 marker.left = marker.unscaledPosition[0] * self.globalScaling * self.localScaling
@@ -476,16 +483,19 @@ class HexMap(Container):
                     line.display = False
                     line.display = False
 
+        return
+
     def ApplyLineMargin(self, p1, p2, radius1, radius2):
         v = geo2.Vec2Subtract(p1, p2)
         vn = geo2.Vec2Normalize(v)
         l = geo2.Vec2Length(v)
         if not l:
             return (None, None)
-        s = (radius1 + radius2) / l
-        mp1 = geo2.Vec2Subtract(p1, geo2.Vec2Scale(vn, radius1))
-        mp2 = geo2.Vec2Add(p2, geo2.Vec2Scale(vn, radius2))
-        return (mp1, mp2)
+        else:
+            s = (radius1 + radius2) / l
+            mp1 = geo2.Vec2Subtract(p1, geo2.Vec2Scale(vn, radius1))
+            mp2 = geo2.Vec2Add(p2, geo2.Vec2Scale(vn, radius2))
+            return (mp1, mp2)
 
     def SetMapSize(self, size):
         size = self.setMapSize or size
@@ -516,7 +526,7 @@ class HexMap(Container):
             y_i = ReverseScaleDpi(self.displayHeight * 0.5 + outlineRad * math.sin(angle))
             outline.AddPoint((x_i, y_i), (1, 0, 0, 0.8))
 
-    def AddMarker(self, markerID, x, y, color = (1, 1, 1, 0.5), size = 10):
+    def AddMarker(self, markerID, x, y, color=(1, 1, 1, 0.5), size=10):
         marker = Container(parent=self, align=uiconst.CENTER, pos=(x,
          y,
          size,
@@ -554,51 +564,53 @@ class HexMap(Container):
 
             self.AddToPathFinding(self.pathFindingPairs)
             return
-        self.column_row_to_pathfinder = column_row_to_pathfinder = {}
-        self.pathfinder_to_xy = pathfinder_to_xy = []
-        self.pathfinderIndexGrid = indexGrid = []
-        self.pathFindingPairs = pathFindingPairs = set()
-        self.pathFindingPairSequence = pathFindingPairSequence = {}
-        showDebug = not self.isChild and settings.user.ui.Get('mapDebugSubdivision', 0)
-        self.pathfinderSize = (xRange, yRange)
-        i = 0
-        for y in xrange(yRange):
-            row = []
-            indexGrid.append(row)
-            yOdd = y & 1
-            for x in xrange(xRange):
-                row.append(i)
-                posX = x * xStep
-                posY = y * yStep
-                if y % 2:
-                    posX += xStep / 2
-                isPrimary = not (x - yOdd + self.mapsize / 2 % 3) % 3
-                if isPrimary:
-                    px_hx = hexUtil.pixel_to_hex(posX - self.width / 2, posY - self.height / 2, self.hexGridSize, isFlatTop=self.isFlatTop)
-                    ax_cu = hexUtil.axial_to_cube_coordinate(*px_hx)
-                    ax_cu_rounded = hexUtil.hex_round(*ax_cu)
-                    cu_ax = hexUtil.cube_to_odd_q_axial_coordinate(*ax_cu_rounded)
-                    column_row_to_pathfinder[cu_ax] = i
-                for cMod, rMod in ((-1, 0), (-1 + yOdd, -1), (yOdd, -1)):
-                    cIndex = x + cMod
-                    rIndex = y + rMod
-                    if rIndex >= 0 and cIndex >= 0:
-                        try:
-                            pathFindingPairs.add((i, indexGrid[rIndex][cIndex]))
-                        except IndexError:
-                            pass
-
-                if showDebug:
+        else:
+            self.column_row_to_pathfinder = column_row_to_pathfinder = {}
+            self.pathfinder_to_xy = pathfinder_to_xy = []
+            self.pathfinderIndexGrid = indexGrid = []
+            self.pathFindingPairs = pathFindingPairs = set()
+            self.pathFindingPairSequence = pathFindingPairSequence = {}
+            showDebug = not self.isChild and settings.user.ui.Get('mapDebugSubdivision', 0)
+            self.pathfinderSize = (xRange, yRange)
+            i = 0
+            for y in xrange(yRange):
+                row = []
+                indexGrid.append(row)
+                yOdd = y & 1
+                for x in xrange(xRange):
+                    row.append(i)
+                    posX = x * xStep
+                    posY = y * yStep
+                    if y % 2:
+                        posX += xStep / 2
+                    isPrimary = not (x - yOdd + self.mapsize / 2 % 3) % 3
                     if isPrimary:
-                        textColor = (1, 0, 0, 1)
-                    else:
-                        textColor = (0, 1, 0, 1)
-                    EveLabelSmall(parent=self, text=str(i), left=posX - self.width / 2, top=posY - self.height / 2, align=uiconst.CENTER, color=textColor)
-                pathfinder_to_xy.append((posX, posY))
-                pathMap.CreateSolarSystem(i, -2, -1)
-                i += 1
+                        px_hx = hexUtil.pixel_to_hex(posX - self.width / 2, posY - self.height / 2, self.hexGridSize, isFlatTop=self.isFlatTop)
+                        ax_cu = hexUtil.axial_to_cube_coordinate(*px_hx)
+                        ax_cu_rounded = hexUtil.hex_round(*ax_cu)
+                        cu_ax = hexUtil.cube_to_odd_q_axial_coordinate(*ax_cu_rounded)
+                        column_row_to_pathfinder[cu_ax] = i
+                    for cMod, rMod in ((-1, 0), (-1 + yOdd, -1), (yOdd, -1)):
+                        cIndex = x + cMod
+                        rIndex = y + rMod
+                        if rIndex >= 0 and cIndex >= 0:
+                            try:
+                                pathFindingPairs.add((i, indexGrid[rIndex][cIndex]))
+                            except IndexError:
+                                pass
 
-        self.AddToPathFinding(self.pathFindingPairs, showDebug)
+                    if showDebug:
+                        if isPrimary:
+                            textColor = (1, 0, 0, 1)
+                        else:
+                            textColor = (0, 1, 0, 1)
+                        EveLabelSmall(parent=self, text=str(i), left=posX - self.width / 2, top=posY - self.height / 2, align=uiconst.CENTER, color=textColor)
+                    pathfinder_to_xy.append((posX, posY))
+                    pathMap.CreateSolarSystem(i, -2, -1)
+                    i += 1
+
+            self.AddToPathFinding(self.pathFindingPairs, showDebug)
+            return
 
     def RefreshHexGridConnectionsLayout(self):
         self.PreparePathFinder()
@@ -642,7 +654,7 @@ class HexMap(Container):
 
         self.AddToPathFinding(pathFindingPairs, showDebug, groupID=-1)
 
-    def AddToPathFinding(self, pathFindingPairs, showDebug = False, groupID = 0, debugColor = None):
+    def AddToPathFinding(self, pathFindingPairs, showDebug=False, groupID=0, debugColor=None):
         pathfinder_to_xy = self.pathfinder_to_xy
         for _p1, _p2 in pathFindingPairs:
             self.pathMap.AddJump(_p1, _p2, groupID)
@@ -652,7 +664,7 @@ class HexMap(Container):
 
         self.pathMap.Finalize()
 
-    def UpdateHexGridConnections(self, connectionIDs, busyPrimary, lineColor = None):
+    def UpdateHexGridConnections(self, connectionIDs, busyPrimary, lineColor=None):
         column_row_to_pathfinder = self.column_row_to_pathfinder
         pathfinder_to_xy = self.pathfinder_to_xy
         unresolvedConnections = []
@@ -701,7 +713,7 @@ class HexMap(Container):
 
         return unresolvedConnections
 
-    def _DebugDrawLine(self, p1, p2, color = (1, 0, 0, 0.8), margin = 10):
+    def _DebugDrawLine(self, p1, p2, color=(1, 0, 0, 0.8), margin=10):
         if margin:
             p1, p2 = self.ApplyLineMargin(p1, p2, margin, margin)
         line = VectorLineTrace(parent=self, lineWidth=1, idx=0)
@@ -723,4 +735,4 @@ class HexMapPathfinderInterface(StandardPathfinderInterface):
         return self.blockedSpots + self.usedSpots
 
     def GetSecurityPenalty(self):
-        return 0.0
+        pass

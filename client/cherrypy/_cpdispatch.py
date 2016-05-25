@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\carbon\common\lib\cherrypy\_cpdispatch.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\carbon\common\lib\cherrypy\_cpdispatch.py
 import string
 import sys
 import types
@@ -100,6 +101,7 @@ def test_callable_spec(callable, callable_args, callable_kwargs):
             if show_mismatched_params:
                 message = 'Unexpected body parameters: %s' % ', '.join(extra_body_params)
             raise cherrypy.HTTPError(400, message=message)
+    return
 
 
 try:
@@ -126,7 +128,7 @@ punctuation_to_underscores = string.maketrans(string.punctuation, '_' * len(stri
 class Dispatcher(object):
     dispatch_method_name = '_cp_dispatch'
 
-    def __init__(self, dispatch_method_name = None, translate = punctuation_to_underscores):
+    def __init__(self, dispatch_method_name=None, translate=punctuation_to_underscores):
         if not isinstance(translate, str) or len(translate) != 256:
             raise ValueError('The translate argument must be a str of len 256.')
         self.translate = translate
@@ -264,11 +266,12 @@ class MethodDispatcher(Dispatcher):
                 request.handler = cherrypy.HTTPError(405)
         else:
             request.handler = cherrypy.NotFound()
+        return
 
 
 class RoutesDispatcher(object):
 
-    def __init__(self, full_result = False):
+    def __init__(self, full_result=False):
         import routes
         self.full_result = full_result
         self.controllers = {}
@@ -355,7 +358,7 @@ class RoutesDispatcher(object):
         return handler
 
 
-def XMLRPCDispatcher(next_dispatcher = Dispatcher()):
+def XMLRPCDispatcher(next_dispatcher=Dispatcher()):
     from cherrypy.lib import xmlrpc
 
     def xmlrpc_dispatch(path_info):
@@ -365,7 +368,7 @@ def XMLRPCDispatcher(next_dispatcher = Dispatcher()):
     return xmlrpc_dispatch
 
 
-def VirtualHost(next_dispatcher = Dispatcher(), use_x_forwarded_host = True, **domains):
+def VirtualHost(next_dispatcher=Dispatcher(), use_x_forwarded_host=True, **domains):
     from cherrypy.lib import httputil
 
     def vhost_dispatch(path_info):

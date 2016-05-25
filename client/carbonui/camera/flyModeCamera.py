@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\packages\carbonui\camera\flyModeCamera.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\packages\carbonui\camera\flyModeCamera.py
 import geo2
 import math
 import trinity
@@ -24,6 +25,7 @@ class FlyModeCamera(cameras.BasicCamera):
         self.cameraPosition = avatarCamera.cameraPosition
         self.gameWorldClient = sm.GetService('gameWorldClient')
         self.updateMouse = True
+        return
 
     def AdjustPitch(self, delta):
         delta = delta / MOUSE_DELTA_SLOW_DOWN
@@ -38,7 +40,7 @@ class FlyModeCamera(cameras.BasicCamera):
         delta = delta / MOUSE_DELTA_SLOW_DOWN
         self.SetYaw(self.yaw + delta)
 
-    def PerformPick(self, x, y, ignoreEntID = -1):
+    def PerformPick(self, x, y, ignoreEntID=-1):
         startPoint, endPoint = self.GetRay(x, y)
         if not session.worldspaceid:
             return None
@@ -49,6 +51,7 @@ class FlyModeCamera(cameras.BasicCamera):
                 p = gameWorld.LineTestEntId(startPoint, endPoint, ignoreEntID, collisionGroups)
                 return p
             return None
+            return None
 
     def TurnOffAvatar(self):
         if self.avatar is None:
@@ -56,6 +59,7 @@ class FlyModeCamera(cameras.BasicCamera):
             if entity and entity.HasComponent('paperdoll'):
                 self.avatar = entity.GetComponent('paperdoll')
                 self.avatar.doll.avatar.display = False
+        return
 
     def Update(self):
         cameras.BasicCamera.Update(self)

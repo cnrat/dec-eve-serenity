@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\client\script\ui\services\eveDevice.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\client\script\ui\services\eveDevice.py
 import uicontrols
 import blue
 import trinity
@@ -74,7 +75,6 @@ class EveDeviceMgr(DeviceMgr):
                 return 'SM_3_0_DEPTH'
         elif val == 2:
             return 'SM_3_0_HI'
-        return 'SM_3_0_LO'
 
     def GetWindowModes(self):
         self.LogInfo('GetWindowModes')
@@ -110,12 +110,13 @@ class EveDeviceMgr(DeviceMgr):
     def GetAppMipLevelSkipExclusionDirectories(self):
         return ['res:/Texture/IntroScene', 'res:/UI/Texture']
 
-    def IsWindowed(self, settings = None):
+    def IsWindowed(self, settings=None):
         if settings is None:
             settings = self.GetSettings()
         if blue.sysinfo.isTransgaming:
             return not self.cider.GetFullscreen()
-        return settings.Windowed
+        else:
+            return settings.Windowed
 
     def SetToSafeMode(self):
         gfxsettings.Set(gfxsettings.GFX_TEXTURE_QUALITY, 2, pending=False)
@@ -180,7 +181,7 @@ class EveDeviceMgr(DeviceMgr):
         devSettings.BackBufferWidth, devSettings.BackBufferHeight = self.GetPreferedResolution(windowed)
         uthread.new(self.SetDevice, devSettings, hideTitle=True)
 
-    def RefreshSupportedAATypes(self, deviceSettings = None, formats = None, shaderModel = None):
+    def RefreshSupportedAATypes(self, deviceSettings=None, formats=None, shaderModel=None):
         self.msaaTypes = {gfxsettings.AA_QUALITY_DISABLED: 0}
         self.aaTypes = [gfxsettings.AA_QUALITY_DISABLED]
 
@@ -209,6 +210,8 @@ class EveDeviceMgr(DeviceMgr):
                 if each in gfxsettings.AA_TO_MSAA and gfxsettings.AA_TO_MSAA[each] in self.msaaTypes:
                     self.msaaTypes[each] = self.msaaTypes[gfxsettings.AA_TO_MSAA[each]]
 
+        return
+
     def GetAntiAliasingLabel(self, aaQuality):
         aaLabels = {gfxsettings.AA_QUALITY_DISABLED: localization.GetByLabel('/Carbon/UI/Common/Disabled'),
          gfxsettings.AA_QUALITY_MSAA_LOW: localization.GetByLabel('UI/SystemMenu/DisplayAndGraphics/Common/LowQuality'),
@@ -216,7 +219,7 @@ class EveDeviceMgr(DeviceMgr):
          gfxsettings.AA_QUALITY_TAA_HIGH: localization.GetByLabel('UI/SystemMenu/DisplayAndGraphics/Common/HighQuality')}
         return aaLabels[aaQuality]
 
-    def GetAntiAliasingOptions(self, deviceSettings = None, formats = None, shaderModel = None):
+    def GetAntiAliasingOptions(self, deviceSettings=None, formats=None, shaderModel=None):
         if deviceSettings is None:
             deviceSettings = self.GetSettings()
         if formats is None:
@@ -235,7 +238,7 @@ class EveDeviceMgr(DeviceMgr):
         devSettings.MultiSampleQuality = 0
         return devSettings
 
-    def GetAdapterResolutionsAndRefreshRates(self, set = None):
+    def GetAdapterResolutionsAndRefreshRates(self, set=None):
         options, resoptions = DeviceMgr.GetAdapterResolutionsAndRefreshRates(self, set)
         if set.Windowed:
             maxWidth = trinity.app.GetVirtualScreenWidth()
@@ -297,8 +300,9 @@ class EveDeviceMgr(DeviceMgr):
             return interiorShaderQuality > 0
         else:
             return featureDefaultState
+            return
 
-    def GetUIScalingOptions(self, height = None):
+    def GetUIScalingOptions(self, height=None):
         if height:
             desktopHeight = height
         else:

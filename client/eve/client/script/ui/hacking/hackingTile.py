@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\client\script\ui\hacking\hackingTile.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\client\script\ui\hacking\hackingTile.py
 from math import pi
 import carbonui.const as uiconst
 import uiprimitives
@@ -46,8 +47,9 @@ class Tile(uiprimitives.Container):
         self.healingGivenSprite = None
         self.healingReceivedSprite = None
         self.UpdateTileState(hackingConst.EVENT_TILE_CREATED)
+        return
 
-    def UpdateTileState(self, eventID = None, tileData = None):
+    def UpdateTileState(self, eventID=None, tileData=None):
         tileType = self.tileData.type
         tileSubType = self.tileData.subtype
         self.tileBgSprite.SetTexturePath(self.GetTileBackgroundTexturePath())
@@ -130,6 +132,7 @@ class Tile(uiprimitives.Container):
             return hackingUIConst.ICONPATH_BY_SUBTYPE[self.tileData.subtype]
         else:
             return None
+            return None
 
     def GetEmptySegmentTexturePath(self):
         if not self.emptySegmentTexturePath:
@@ -139,6 +142,7 @@ class Tile(uiprimitives.Container):
     def ConstructMarkerSprite(self):
         if self.utilElementMarkerSprite is None:
             self.utilElementMarkerSprite = uiprimitives.Sprite(name='utilElementMarkerSprite', bgParent=self, texturePath='res:/UI/Texture/classes/hacking/utilTileMouseDown.png', opacity=0.0, padding=-20)
+        return
 
     def ShowCoherence(self):
         self.ConstructCoherenceCont()
@@ -148,6 +152,7 @@ class Tile(uiprimitives.Container):
     def ConstructCoherenceCont(self):
         if self.coherenceCont is None:
             self.coherenceCont = StatContainer(name='coherenceCont', statType=hackingUIConst.STAT_COHERENCE, parent=self, align=uiconst.CENTERTOP, top=-3)
+        return
 
     def HideCoherence(self):
         if self.coherenceCont:
@@ -161,6 +166,7 @@ class Tile(uiprimitives.Container):
     def ConstructStrengthCont(self):
         if self.strengthCont is None:
             self.strengthCont = StatContainer(name='strengthCont', statType=hackingUIConst.STAT_STRENGTH, parent=self, align=uiconst.CENTERBOTTOM, top=-3)
+        return
 
     def HideStrength(self):
         if self.strengthCont:
@@ -173,6 +179,7 @@ class Tile(uiprimitives.Container):
         blue.synchro.SleepSim(1200)
         uicore.animations.FadeOut(self.distanceIndicatorCont, duration=0.6)
         self.tileData.distanceIndicator = 0
+        return
 
     def OnSelectedUtilityElementChanged(self, selected):
         if self.IsAttackable(self.tileData.type) and selected is not None:
@@ -181,6 +188,7 @@ class Tile(uiprimitives.Container):
         elif self.utilElementMarkerSprite:
             uicore.animations.FadeOut(self.utilElementMarkerSprite, duration=0.2, callback=self.utilElementMarkerSprite.Close)
             self.utilElementMarkerSprite = None
+        return
 
     def OnHackingUEDurationReduced(self, index, coord):
         if coord == self.tileData.coord:
@@ -218,6 +226,7 @@ class Tile(uiprimitives.Container):
             uicore.animations.SpColorMorphTo(self.iconSprite, self.iconSprite.GetRGBA(), self.iconColor, duration=0.3)
         else:
             uicore.animations.FadeOut(self.mouseHoverSprite, duration=0.3)
+        return
 
     def OnMouseMove(self, *args):
         l, t = self.GetAbsolutePosition()
@@ -279,7 +288,9 @@ class Tile(uiprimitives.Container):
     def ConstructHealingGivenSprite(self):
         if self.healingGivenSprite is None:
             self.healingGivenSprite = uiprimitives.Sprite(name='healingGivenSprite', parent=self, align=uiconst.CENTER, state=uiconst.UI_DISABLED, color=hackingUIConst.COLOR_UNEXPLORED, texturePath='res:/UI/Texture/classes/hacking/healRing1.png', opacity=0.0)
+        return
 
     def ConstructHealingReceivedSprite(self):
         if self.healingReceivedSprite is None:
             self.healingReceivedSprite = uiprimitives.Sprite(name='healingReceivedSprite', parent=self, align=uiconst.CENTER, state=uiconst.UI_DISABLED, color=hackingUIConst.COLOR_UNEXPLORED, texturePath='res:/UI/Texture/classes/hacking/healRing2.png', opacity=0.0)
+        return

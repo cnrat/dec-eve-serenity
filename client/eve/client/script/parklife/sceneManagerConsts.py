@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\client\script\parklife\sceneManagerConsts.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\client\script\parklife\sceneManagerConsts.py
 SCENE_TYPE_CHARACTER_CREATION = 0
 SCENE_TYPE_INTERIOR = 1
 SCENE_TYPE_SPACE = 2

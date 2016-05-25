@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\packages\dogma\const.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\packages\dogma\const.py
 import inventorycommon.const
 dgmAssPreAssignment = -1
 dgmAssPreMul = 0
@@ -192,11 +193,16 @@ attributeDevIndexSovereignty = 1615
 attributeDevIndexUpgrade = 1616
 attributeDisallowActivateInForcefield = 1920
 attributeDisallowAssistance = 854
+attributeDisallowDocking = 2354
 attributeDisallowEarlyDeactivation = 906
 attributeDisallowInEmpireSpace = 1074
 attributeDisallowInHighSec = 1970
 attributeDisallowOffensiveModifiers = 872
 attributeDisallowRepeatingActivation = 1014
+attributeDisallowTethering = 2343
+attributeDisallowWhenInvulnerable = 2395
+attributeDisallowTethering = 2343
+attributeDisallowDocking = 2354
 attributeDistributionID01 = 1755
 attributeDistributionID02 = 1756
 attributeDistributionID03 = 1757
@@ -268,6 +274,18 @@ attributeDistributionIDSerpentis08 = 1752
 attributeDistributionIDSerpentis09 = 1753
 attributeDistributionIDSerpentis10 = 1754
 attributeDoesNotEmergencyWarp = 1854
+attributeDoomsdayDamageCycleTime = 2265
+attributeDoomsdayDamageDuration = 2264
+attributeDoomsdayDamageRadius = 2263
+attributeDoomsdayEnergyNeutAmount = 2260
+attributeDoomsdayEnergyNeutRadius = 2259
+attributeDoomsdayEnergyNeutSignatureRadius = 2261
+attributeDoomsdayImmobilityDuration = 2428
+attributeDoomsdayNoJumpOrCloakDuration = 2427
+attributeDoomsdayWarningDuration = 2262
+attributeDoomsdayAOEDuration = 2280
+attributeDoomsdayAOERange = 2279
+attributeDoomsdayAOESignatureRadius = 2281
 attributeDeactivateIfOffensive = 1934
 attributeDrawback = 1138
 attributeDroneBandwidth = 1271
@@ -366,6 +384,12 @@ attributeEntitySuperWeaponOptimalSignatureRadius = 2049
 attributeEntitySuperWeaponThermalDamage = 2012
 attributeEntitySuperWeaponTrackingSpeed = 2048
 attributeEntityWarpScrambleChance = 504
+attributeEntityShieldBoostDelayChanceSmallMultiplier = 1015
+attributeEntityShieldBoostDelayChanceMediumMultiplier = 1016
+attributeEntityShieldBoostDelayChanceLargeMultiplier = 1017
+attributeEntityArmorRepairDelayChanceSmallMultiplier = 1018
+attributeEntityArmorRepairDelayChanceMediumMultiplier = 1019
+attributeEntityArmorRepairDelayChanceLargeMultiplier = 1020
 attributeExpiryTime = 1088
 attributeExplosionDelay = 281
 attributeExplosionDelayWreck = 1162
@@ -384,7 +408,6 @@ attributeFalloffBonus = 349
 attributeFalloffEffectiveness = 2044
 attributeFastTalkPercentage = 359
 attributeFighterAttackAndFollow = 1283
-attributeFighterCapacity = 2055
 attributeFitsToShipType = 1380
 attributeFollowsJumpClones = 1916
 attributeFwLpKill = 1555
@@ -415,6 +438,7 @@ attributeHeatAbsorbtionRateModifier = 1180
 attributeHeatHi = 1175
 attributeHeatLow = 1177
 attributeHeatMed = 1176
+attributeHiSecModifier = 2355
 attributeHiSlotModifier = 1374
 attributeHiSlots = 14
 attributeHitsMissilesOnly = 823
@@ -444,6 +468,7 @@ attributeIsGlobal = 1207
 attributeIsHacking = 1330
 attributeIsOnline = 2
 attributeIsPlayerOwnable = 589
+attributeIsPointTargeted = 2269
 attributeIsRAMcompatible = 998
 attributeJobCostMultiplier = 1954
 attributeJumpClonesLeft = 1336
@@ -458,7 +483,6 @@ attributeJumpHarmonics = 1253
 attributeJumpPortalCapacitorNeed = 1005
 attributeJumpPortalConsumptionMassFactor = 1001
 attributeJumpPortalDuration = 1002
-attributejumpDelayDuration = 1221
 attributeKineticDamage = 117
 attributeKineticDamageResistanceBonus = 986
 attributeKineticDamageResonance = 109
@@ -466,8 +490,12 @@ attributeKineticDamageResonanceMultiplier = 131
 attributeLauncherGroup = 137
 attributeLauncherHardPointModifier = 1369
 attributeLauncherSlotsLeft = 101
+attributeLightningWeaponDamageLossTarget = 2106
+attributeLightningWeaponTargetAmount = 2104
+attributeLightningWeaponTargetRange = 2105
 attributeLogisticalCapacity = 1631
 attributeLootRespawnTime = 470
+attributeLowSecModifier = 2356
 attributeLowSlotModifier = 1376
 attributeLowSlots = 12
 attributeManufactureCostMultiplier = 369
@@ -502,6 +530,7 @@ attributeMaxSubSystems = 1367
 attributeMaxTargetRange = 76
 attributeMaxTargetRangeMultiplier = 237
 attributeMaxTractorVelocity = 1045
+attributeMaxTypeFitted = 2431
 attributeMaxVelocity = 37
 attributeMaxVelocityActivationLimit = 1334
 attributeMaxVelocityLimited = 1333
@@ -548,10 +577,17 @@ attributeNPCRemoteShieldBoostAmount = 1460
 attributeNPCRemoteShieldBoostDuration = 1458
 attributeNPCRemoteShieldBoostMaxTargets = 1502
 attributeNPCRemoteShieldBoostThreshold = 1462
+attributeNullSecModifier = 2357
 attributeOnliningDelay = 677
 attributeOnliningRequiresSovUpgrade1 = 1601
 attributeOrbitalStrikeAccuracy = 1844
 attributeOrbitalStrikeDamage = 1845
+attributeOnDeathAOERadius = 2275
+attributeOnDeathSignatureRadius = 2276
+attributeOnDeathDamageEM = 2271
+attributeOnDeathDamageTherm = 2272
+attributeOnDeathDamageKin = 2273
+attributeOnDeathDamageExp = 2274
 attributeEntityOverviewShipGroupID = 1766
 attributePinCycleTime = 1643
 attributePinExtractionQuantity = 1642
@@ -615,6 +651,11 @@ attributeReactionGroup2 = 843
 attributeRechargeRate = 55
 attributeRefineryCapacity = 720
 attributeRefiningDelayMultiplier = 721
+attributeRefiningYieldAdvancedOre = 2445
+attributeRefiningYieldBasicOre = 2444
+attributeRefiningYieldCalAmarrIce = 2446
+attributeRefiningYieldGalMinIce = 2447
+attributeRefiningYieldSpecialIce = 2448
 attributeRefiningYieldMultiplier = 717
 attributeRefiningYieldMutator = 379
 attributeRefiningYieldPercentage = 378
@@ -639,21 +680,30 @@ attributeRequiredThermoDynamicsSkill = 1212
 attributeResistanceShiftAmount = 1849
 attributeRigSize = 1547
 attributeRigSlots = 1137
+attributeSecurityModifier = 2358
+attributeServiceSlots = 2056
+attributeServiceModuleFuelAmount = 2109
+attributeServiceModuleOnlineAmount = 2110
 attributeScanAllStrength = 1136
 attributeScanFrequencyResult = 1161
 attributeScanGravimetricStrength = 211
 attributeScanGravimetricStrengthBonus = 238
 attributeScanGravimetricStrengthPercent = 1027
+attributeScanGravimetricStrengthPercentInterim = 2255
 attributeScanLadarStrength = 209
 attributeScanLadarStrengthBonus = 239
 attributeScanLadarStrengthPercent = 1028
+attributeScanLadarStrengthPercentInterim = 2256
 attributeScanMagnetometricStrength = 210
 attributeScanMagnetometricStrengthBonus = 240
 attributeScanMagnetometricStrengthPercent = 1029
+attributeScanMagnetometricStrengthPercentInterim = 2257
 attributeScanRadarStrength = 208
 attributeScanRadarStrengthBonus = 241
 attributeScanRadarStrengthPercent = 1030
+attributeScanRadarStrengthPercentInterim = 2258
 attributeScanWormholeStrength = 1908
+attributeEwTargetJam = 831
 attributeScanRange = 765
 attributeScanResolution = 564
 attributeScanResolutionBonus = 566
@@ -729,6 +779,7 @@ attributeSpecialisationAsteroidYieldMultiplier = 782
 attributeSpeedBonus = 80
 attributeSpeedBoostFactor = 567
 attributeSpeedFactor = 20
+attributeSpeedFactorFloor = 2266
 attributeStanceSwitchTime = 1985
 attributeStationOreRefiningBonus = 1939
 attributeStationTypeID = 472
@@ -736,6 +787,7 @@ attributeStructureBonus = 82
 attributeStructureDamageAmount = 83
 attributeStructureDamageLimit = 2036
 attributeStructureHPMultiplier = 150
+attributeStructureItemVisualFlag = 2334
 attributeStructureRepairLimit = 2039
 attributeStructureUniformity = 525
 attributeSubSystemSlot = 1366
@@ -749,6 +801,7 @@ attributeTargetHostileRange = 143
 attributeTargetSwitchDelay = 691
 attributeTargetSwitchTimer = 1416
 attributeTechLevel = 422
+attributeTetheringRange = 2268
 attributeThermalDamage = 118
 attributeThermalDamageResistanceBonus = 987
 attributeThermalDamageResonance = 110
@@ -768,6 +821,7 @@ attributeUpgradeLoad = 1152
 attributeUpgradeSlotsLeft = 1154
 attributeUsageWeighting = 862
 attributeVolume = 161
+attributeVulnerabilityRequired = 2111
 attributeVelocityModifier = 1076
 attributeWarpBubbleImmune = 1538
 attributeWarpCapacitorNeed = 153
@@ -831,17 +885,41 @@ attributeAsteroidRadiusGrowthFactor = 1980
 attributeAsteroidRadiusUnitSize = 1981
 attributeMicroJumpPortalRadius = 2067
 attributeMicroJumpPortalDistance = 2066
+attributeFighterCapacity = 2055
+attributeFighterTubes = 2216
+attributeFighterLightSlots = 2217
+attributeFighterSupportSlots = 2218
+attributeFighterHeavySlots = 2219
 attributeFighterSquadronSize = 2150
-attributeFighterAbilityAttackDamageMultiplier = 2178
-attributeFighterAbilityAttackDuration = 2177
-attributeFighterAbilityAttackEMDamage = 2171
-attributeFighterAbilityAttackExpDamage = 2174
-attributeFighterAbilityAttackFalloffRange = 2176
-attributeFighterAbilityAttackKinDamage = 2173
-attributeFighterAbilityAttackOptimalRange = 2175
-attributeFighterAbilityAttackSignatureResolution = 2179
-attributeFighterAbilityAttackThermDamage = 2172
-attributeFighterAbilityAttackTrackingSpeed = 2180
+attributeFighterSquadronMaxSize = 2215
+attributeFighterSquadronIsHeavy = 2214
+attributeFighterSquadronIsLight = 2212
+attributeFighterSquadronIsSupport = 2213
+attributeFighterSquadronRole = 2270
+attributeFighterRefuelingTime = 2426
+attributeFighterAbilityAntiFighterMissileResistance = 2189
+attributeFighterAbilityAttackTurretDamageMultiplier = 2178
+attributeFighterAbilityAttackTurretDuration = 2177
+attributeFighterAbilityAttackTurretDamageEM = 2171
+attributeFighterAbilityAttackTurretDamageTherm = 2172
+attributeFighterAbilityAttackTurretDamageKin = 2173
+attributeFighterAbilityAttackTurretDamageExp = 2174
+attributeFighterAbilityAttackTurretRangeOptimal = 2175
+attributeFighterAbilityAttackTurretRangeFalloff = 2176
+attributeFighterAbilityAttackTurretSignatureResolution = 2179
+attributeFighterAbilityAttackTurretTrackingSpeed = 2180
+attributeFighterAbilityAttackMissileDamageEM = 2227
+attributeFighterAbilityAttackMissileDamageTherm = 2228
+attributeFighterAbilityAttackMissileDamageKin = 2229
+attributeFighterAbilityAttackMissileDamageExp = 2230
+attributeFighterAbilityAttackMissileDamageMultiplier = 2226
+attributeFighterAbilityAttackMissileReductionFactor = 2231
+attributeFighterAbilityAttackMissileReductionSensitivity = 2232
+attributeFighterAbilityAttackMissileDuration = 2233
+attributeFighterAbilityAttackMissileExplosionRadius = 2234
+attributeFighterAbilityAttackMissileExplosionVelocity = 2235
+attributeFighterAbilityAttackMissileRangeOptimal = 2236
+attributeFighterAbilityAttackMissileRangeFalloff = 2237
 attributeFighterAbilityAfterburnerDuration = 2158
 attributeFighterAbilityAfterburnerSpeedBonus = 2151
 attributeFighterAbilityMicroWarpDriveDuration = 2157
@@ -855,6 +933,8 @@ attributeFighterAbilityEvasiveManeuversEmResonance = 2118
 attributeFighterAbilityEvasiveManeuversExpResonance = 2121
 attributeFighterAbilityEvasiveManeuversKinResonance = 2120
 attributeFighterAbilityEvasiveManeuversThermResonance = 2119
+attributeFighterAbilityEvasiveManeuversSignatureRadiusBonus = 2225
+attributeFighterAbilityEvasiveManeuversSpeedBonus = 2224
 attributeFighterAbilityMissilesDuration = 2182
 attributeFighterAbilityMissilesRange = 2149
 attributeFighterAbilityMissilesDamageReductionFactor = 2127
@@ -866,24 +946,45 @@ attributeFighterAbilityMissilesEMDamage = 2131
 attributeFighterAbilityMissilesThermDamage = 2132
 attributeFighterAbilityMissilesKinDamage = 2133
 attributeFighterAbilityMissilesExpDamage = 2134
-attributeFighterAbilitySpecialMissileDuration = 2181
-attributeFighterAbilitySpecialMissileRange = 2168
-attributeFighterAbilitySpecialMissileResistanceID = 2170
-attributeFighterAbilitySpecialMissileDamageReductionFactor = 2160
-attributeFighterAbilitySpecialMissileDamageReductionSensitivity = 2161
-attributeFighterAbilitySpecialMissileExplosionRadius = 2166
-attributeFighterAbilitySpecialMissileExplosionVelocity = 2167
-attributeFighterAbilitySpecialMissileDamageMultiplier = 2159
-attributeFighterAbilitySpecialMissileEMDamage = 2162
-attributeFighterAbilitySpecialMissileThermDamage = 2163
-attributeFighterAbilitySpecialMissileKinDamage = 2164
-attributeFighterAbilitySpecialMissileExpDamage = 2165
+attributeFighterAbilityMissilesResistanceID = 2170
 attributeFighterAbilityStasisWebifierDuration = 2183
 attributeFighterAbilityStasisWebifierFalloffRange = 2187
 attributeFighterAbilityStasisWebifierOptimalRange = 2186
 attributeFighterAbilityStasisWebifierResistanceID = 2188
 attributeFighterAbilityStasisWebifierSpeedPenalty = 2184
 attributeFighterAbilityStasisWebifierSpeedPenaltyInterim = 2185
+attributeFighterAbilityEnergyNeutralizerAmount = 2211
+attributeFighterAbilityEnergyNeutralizerDuration = 2208
+attributeFighterAbilityEnergyNeutralizerFalloffRange = 2210
+attributeFighterAbilityEnergyNeutralizerOptimalRange = 2209
+attributeFighterAbilityEnergyNeutralizerResistanceID = 2207
+attributeFighterAbilityWarpDisruptionDuration = 2203
+attributeFighterAbilityWarpDisruptionPointStrength = 2205
+attributeFighterAbilityWarpDisruptionPointStrengthInterim = 2206
+attributeFighterAbilityWarpDisruptionRange = 2204
+attributeFighterAbilityECMDuration = 2220
+attributeFighterAbilityECMResistanceID = 2252
+attributeFighterAbilityECMRangeOptimal = 2221
+attributeFighterAbilityECMRangeFalloff = 2222
+attributeFighterAbilityECMStrengthGravimetric = 2246
+attributeFighterAbilityECMStrengthLadar = 2247
+attributeFighterAbilityECMStrengthMagnetometric = 2248
+attributeFighterAbilityECMStrengthRadar = 2249
+attributeFighterAbilityECMTargetJam = 2251
+attributeFighterAbilityTackleDuration = 2238
+attributeFighterAbilityTackleRange = 2239
+attributeFighterAbilityTackleWebSpeedPenalty = 2242
+attributeFighterAbilityTackleWebSpeedPenaltyInterim = 2243
+attributeFighterAbilityTackleWarpDisruptionPointStrength = 2425
+attributeFighterAbilityKamikazeSignatureRadius = 2329
+attributeFighterAbilityKamikazeRange = 2330
+attributeFighterAbilityKamikazeDamageEM = 2325
+attributeFighterAbilityKamikazeDamageExp = 2328
+attributeFighterAbilityKamikazeDamageKin = 2327
+attributeFighterAbilityKamikazeDamageTherm = 2326
+attributeFighterAbilityKamikazeResistanceID = 2432
+attributeFighterAbilityKamikazeResistance = 2433
+attributeFighterAbilityLaunchBombType = 2324
 operandADD = 1
 operandAGGM = 2
 operandAGIM = 3
@@ -981,6 +1082,7 @@ effectDefenderMissileLaunching = 103
 effectDeployPledge = 4774
 effectDoHacking = 1738
 effectECMBurst = 53
+effectEmergencyHullEnergizer = 6484
 effectEmpWave = 38
 effectEmpWaveGrid = 2071
 effectEnergyDestabilizationForStructure = 3003
@@ -1039,6 +1141,7 @@ effectJumpPortalGenerationBO = 3674
 effectLauncherFitted = 40
 effectLeech = 3250
 effectLoPower = 11
+effectLightningWeapon = 6447
 effectMarauderModeEffect = 5788
 effectMaxTargetRangeBonus = 2646
 effectMedPower = 13
@@ -1085,12 +1188,37 @@ effectShieldResonanceMultiplyOnline = 105
 effectShieldTransfer = 18
 effectShipMaxTargetRangeBonusOnline = 3659
 effectSiegeModeEffect = 4877
+effectServiceSlot = 6306
 effectSkillEffect = 132
 effectSlashWeapon = 6201
+effectDoomsdayAOEECM = 6513
+effectDoomsdayBeamDOT = 6472
+effectDoomsdayConeDOT = 6473
+effectDoomsdayHOG = 6474
+effectDoomsdayAOEBubble = 6482
+effectDoomsdayAOEDamp = 6481
+effectDoomsdayAOENeut = 6477
+effectDoomsdayAOEPaint = 6478
+effectDoomsdayAOETrack = 6479
+effectDoomsdayAOEWeb = 6476
 effectSlotModifier = 3774
 effectSnowBallLaunching = 2413
+effectStructureModuleEffectStasisWebifier = 6682
+effectStructureModuleEffectTargetPainter = 6683
+effectStructureModuleEffectRemoteSensorDampener = 6684
+effectStructureModuleEffectECM = 6685
+effectStructureModuleEffectWeaponDisruption = 6686
+effectStructureDecreaseTargetSpeed = 6219
+effectStructureEnergyNeutralizerFalloff = 6216
+effectStructureEwEffectJam = 6218
+effectStructureEwTargetPaint = 6221
 effectStructureRepair = 26
 effectStructureUnanchorForced = 1129
+effectStructureWarpScrambleBlockMWDWithNPCEffect = 6222
+effectStructureTargetMaxTargetRangeAndScanResolutionBonusAssistance = 6223
+effectStructureTargetMaxTargetRangeAndScanResolutionBonusHostile = 6217
+effectStructureTargetGunneryMaxRangeFalloffTrackingSpeedBonusAssistance = 6225
+effectStructureTargetGunneryMaxRangeAndTrackingSpeedAndFalloffBonusHostile = 6220
 effectSubSystem = 3772
 effectSuicideBomb = 885
 effectSuperWeaponAmarr = 4489
@@ -1111,6 +1239,7 @@ effectTargetTrackingDisruptorCombinedGunneryAndMissileEffect = 4932
 effectTorpedoLaunching = 127
 effectTorpedoLaunchingIsOffensive = 2576
 effectTractorBeamCan = 2255
+effectTractorBeamShip = 6445
 effectTriageMode = 4839
 effectTriageMode7 = 4893
 effectTurretFitted = 42
@@ -1129,28 +1258,42 @@ effectRemoteEnergyTransferFalloff = 6184
 effectRemoteGuidanceAssistFalloff = 6429
 effectRemoteTrackingAssistFalloff = 6428
 effectRemoteSensorBoostFalloff = 6427
+effectRemoteECCMFalloff = 6471
+effectAncillaryRemoteArmorRepairer = 6651
+effectAncillaryRemoteShieldBooster = 6652
 effectRemoteGuidanceDisruptFalloff = 6423
 effectRemoteTrackingDisruptFalloff = 6424
 effectRemoteSensorDampFalloff = 6422
 effectRemoteTargetPaintFalloff = 6425
 effectRemoteWebifierFalloff = 6426
-effectFighterAbilityAttack = 6430
+effectRemoteECMFalloff = 6470
+effectEnergyNeutralizerEntity = 6691
+effectRemoteArmorRepairEntity = 6687
+effectRemoteHullRepairEntity = 6689
+effectRemoteSensorDampEntity = 6693
+effectRemoteShieldTransferEntity = 6688
+effectRemoteTargetPaintEntity = 6692
+effectRemoteWeaponDisruptEntity = 6694
+effectRemoteWebifierEntity = 6690
+effectFighterAbilityAttackTurret = 6430
+effectFighterAbilityAttackMissile = 6465
 effectFighterAbilityEvasiveManeuvers = 6439
-effectFighterAbilityDamageBoost = 6438
 effectFighterAbilityAfterburner = 6440
 effectFighterAbilityMicroWarpDrive = 6441
 effectFighterAbilityMicroJumpDrive = 6442
 effectFighterAbilityMissiles = 6431
-effectFighterAbilitySpecialMissile = 6432
 effectFighterAbilityECM = 6437
 effectFighterAbilityEnergyNeutralizer = 6434
 effectFighterAbilityStasisWebifier = 6435
 effectFighterAbilityWarpDisruption = 6436
+effectFighterAbilityTackle = 6464
+effectFighterAbilityLaunchBomb = 6485
 effectFighterDecreaseTargetSpeed = 6418
 effectFighterTargetPaint = 6419
 effectFighterDamageMultiply = 6420
 effectFighterMicroJumpDrive = 6421
-JUMP_DRIVE_DISRUPTION_EFFECTS = (effectWarpScrambleBlockMWDWithNPCEffect, effectWarpDisruptSphere)
+effectFighterAbilityKamikaze = 6554
+JUMP_DRIVE_DISRUPTION_EFFECTS = (effectWarpScrambleBlockMWDWithNPCEffect, effectWarpDisruptSphere, effectFighterAbilityTackle)
 dgmAttributesByIdx = {1: attributeIsOnline,
  2: attributeDamage,
  3: attributeCharge,
@@ -1163,7 +1306,9 @@ dgmGroupableGroupIDs = set([inventorycommon.const.groupEnergyWeapon,
  inventorycommon.const.groupHybridWeapon,
  inventorycommon.const.groupMissileLauncher,
  inventorycommon.const.groupMissileLauncherAssault,
- inventorycommon.const.groupMissileLauncherCitadel,
+ inventorycommon.const.groupMissileLauncherXLTorpedo,
+ inventorycommon.const.groupMissileLauncherXLCruise,
+ inventorycommon.const.groupMissileLauncherRapidTorpedo,
  inventorycommon.const.groupMissileLauncherCruise,
  inventorycommon.const.groupMissileLauncherDefender,
  inventorycommon.const.groupMissileLauncherHeavy,
@@ -1171,7 +1316,10 @@ dgmGroupableGroupIDs = set([inventorycommon.const.groupEnergyWeapon,
  inventorycommon.const.groupMissileLauncherRocket,
  inventorycommon.const.groupMissileLauncherSiege,
  inventorycommon.const.groupMissileLauncherStandard,
- inventorycommon.const.groupMissileLauncherRapidHeavy])
+ inventorycommon.const.groupMissileLauncherRapidHeavy,
+ inventorycommon.const.groupStructureAreaMissileLauncher,
+ inventorycommon.const.groupStructureFlakMissileLauncher,
+ inventorycommon.const.groupStructureMissileLauncher])
 damageTypeAttributes = [attributeEmDamage,
  attributeThermalDamage,
  attributeKineticDamage,
@@ -1224,12 +1372,30 @@ basicAttributes = [attributeRadius,
  attributeCapacity,
  attributeRaceID,
  attributePublished]
+heatAttributes = [attributeHeatHi, attributeHeatMed, attributeHeatLow]
 falloffEffectivnessModuleGroups = [inventorycommon.const.groupEnergyDestabilizer,
  inventorycommon.const.groupEnergyVampire,
  inventorycommon.const.groupEnergyTransferArray,
  inventorycommon.const.groupArmorRepairProjector,
  inventorycommon.const.groupShieldTransporter,
- inventorycommon.const.groupRemoteHullRepairer]
+ inventorycommon.const.groupRemoteHullRepairer,
+ inventorycommon.const.groupRemoteSensorDamper,
+ inventorycommon.const.groupElectronicCounterMeasures,
+ inventorycommon.const.groupRemoteSensorBooster,
+ inventorycommon.const.groupTrackingLink,
+ inventorycommon.const.groupStatisGrappler,
+ inventorycommon.const.groupTargetPainter,
+ inventorycommon.const.groupTrackingDisruptor]
+singlePointTargetedEffects = [effectDoomsdayBeamDOT,
+ effectDoomsdayConeDOT,
+ effectDoomsdayHOG,
+ effectDoomsdayAOEBubble,
+ effectDoomsdayAOEDamp,
+ effectDoomsdayAOEECM,
+ effectDoomsdayAOENeut,
+ effectDoomsdayAOEPaint,
+ effectDoomsdayAOETrack,
+ effectDoomsdayAOEWeb]
 unitAbsolutePercent = 127
 unitAttributeID = 119
 unitAttributePoints = 120

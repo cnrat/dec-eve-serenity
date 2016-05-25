@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\common\modules\nice\client\_nastyspace\entities.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\common\modules\nice\client\_nastyspace\entities.py
 from carbon.common.script.entities.baseEntity import BaseEntityScene
 from carbon.common.script.entities.baseEntity import Entity
 from carbon.common.script.entities.collisionMeshService import StaticShapeComponent

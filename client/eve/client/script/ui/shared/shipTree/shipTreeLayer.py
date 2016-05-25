@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\client\script\ui\shared\shipTree\shipTreeLayer.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\client\script\ui\shared\shipTree\shipTreeLayer.py
 import uicls
 import carbonui.const as uiconst
 from shipTreeContainer import ShipTreeContainer
@@ -27,6 +28,7 @@ class ShipTreeLayer(uicls.LayerCore):
         self.bg = Fill(name='bg', bgParent=self, color=COLOR_BG)
         self.panCont = PanContainer(parent=self, state=uiconst.UI_PICKCHILDREN, callback=self.OnPanContainer)
         self.UpdatePanContainerBorder()
+        return
 
     def UpdatePanContainerBorder(self):
         camOffset = settings.user.ui.Get('cameraOffset', 0) / 100.0
@@ -44,7 +46,7 @@ class ShipTreeLayer(uicls.LayerCore):
     def OnGraphicSettingsChanged(self, *args):
         self.UpdatePanContainerBorder()
 
-    def SelectFaction(self, factionID, oldFactionID = None):
+    def SelectFaction(self, factionID, oldFactionID=None):
         if self.shipTreeCont:
             uicore.animations.FadeOut(self.shipTreeCont, callback=self.shipTreeCont.Close, duration=0.15)
         blue.synchro.Sleep(200)
@@ -62,6 +64,7 @@ class ShipTreeLayer(uicls.LayerCore):
                 self.PanToFirstNode()
         elif not (factionID in MAIN_FACTIONS and oldFactionID in MAIN_FACTIONS):
             self.PanToFirstNode()
+        return
 
     def OnMainContResize(self):
         width = self.panCont.mainCont.width
@@ -123,7 +126,7 @@ class ShipTreeLayer(uicls.LayerCore):
         elif uicore.uilib.leftbtn:
             sm.GetService('shipTreeUI').CloseInfoBubble()
 
-    def PanToNode(self, node, animate = True):
+    def PanToNode(self, node, animate=True):
         x, y = node.GetPositionProportional()
         s = 0.1
         x = (1.0 + 2 * s) * x - s
@@ -136,7 +139,7 @@ class ShipTreeLayer(uicls.LayerCore):
         node = self.shipTreeCont.rootNode.children[0]
         self.PanToNode(node, animate=False)
 
-    def PanToShipGroup(self, shipGroupID, animate = True):
+    def PanToShipGroup(self, shipGroupID, animate=True):
         node = self.shipTreeCont.rootNode.GetChildByID(shipGroupID)
         self.PanToNode(node, animate)
 

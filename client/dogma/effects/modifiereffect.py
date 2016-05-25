@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\packages\dogma\effects\modifiereffect.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\packages\dogma\effects\modifiereffect.py
 from dogma.effects import Effect
 import dogma.const as dgmconst
 
@@ -12,6 +13,7 @@ class ModifierEffect(Effect):
     def __init__(self, effectInfo, modifiers):
         self.isPythonEffect = False
         self.__modifies_ship__ = IsPassiveEffect(effectInfo) and any((m.IsShipModifier() for m in modifiers))
+        self.__modifies_structure__ = IsPassiveEffect(effectInfo) and any((m.IsStructureModifier() for m in modifiers))
         self.__modifies_character__ = IsPassiveEffect(effectInfo) and any((m.IsCharModifier() for m in modifiers))
         self.modifiers = modifiers
 

@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\carbon\client\script\animation\animationClient.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\carbon\client\script\animation\animationClient.py
 import os
 import service
 import yaml
@@ -36,6 +37,7 @@ class AnimationComponent:
         self.attachments = {}
         self.poseObject = None
         self.idlePose = 'None'
+        return
 
     def AttachObject(self, obj, boneName, curveSet):
         if boneName in self.attachments:
@@ -91,7 +93,7 @@ class AnimationClient(service.Service):
     def _SetEntityMovement(self, ent, pos, rot, vel):
         raise StandardError('Not implemented')
 
-    def _SwitchPlayerToDirectControlMode(self, force = False, remainingFacingAngle = 0.0):
+    def _SwitchPlayerToDirectControlMode(self, force=False, remainingFacingAngle=0.0):
         raise StandardError('Not implemented')
 
     def _ProcessMorphemeDiscreteEvent(self, animationController, animRef, eventUserData, trackUserData):
@@ -108,12 +110,13 @@ class AnimationClient(service.Service):
     def GetAnimationControllerFromNetwork(self, networkReference):
         return self.networkToController.get(networkReference, None)
 
-    def RegisterAnimationController(self, animationController, audioCueFile = EVENT_TRACK_SOUND_LOOKUP_PATH):
+    def RegisterAnimationController(self, animationController, audioCueFile=EVENT_TRACK_SOUND_LOOKUP_PATH):
         if audioCueFile is not None:
             self.registeredControllers[animationController] = audioCueFile
             self._GetAudioCueFile(audioCueFile)
         self.networkToController[animationController.animationNetwork] = animationController
         animationController.animationNetwork.SetOnDiscreteEventCallback(OnMorphemeDiscreteEvents)
+        return
 
     def UnregisterAnimationController(self, animationController):
         animationController.Stop(None)
@@ -121,6 +124,7 @@ class AnimationClient(service.Service):
             del self.registeredControllers[animationController]
         if animationController.animationNetwork in self.networkToController:
             del self.networkToController[animationController.animationNetwork]
+        return
 
     def PackUpForSceneTransfer(self, component, destinationSceneID):
         state = {'updater': component.updater,
@@ -148,47 +152,52 @@ class AnimationClient(service.Service):
             component.updater = GameWorld.GWAnimation(None)
             component.updater.updateMode = 0
             component.updaterWaitingChannel = stackless.channel()
+        return
 
     def SetupComponent(self, entity, component):
         if not entity.HasComponent('movement'):
             self.LogError('Animation component is missing a sibling movement component on entity', entity.entityID, '. Will not setup')
             return
-        if component.updater.network is None:
-            if component.resPath is not None:
-                component.updater.InitMorpheme(component.resPath)
-            else:
-                if not entity.HasComponent('info'):
-                    self.LogError('Animation component is missing a sibling info component on entity', entity.entityID, '. Will not setup')
-                    return
-                self._InitializeAnimationNetwork(component, entity)
         else:
-            component.poseState = None
-            component.poseStateControlParms = None
-        if component.updaterWaitingChannel:
-            component.updaterWaitingChannel.send(None)
-        if component.controller is None:
-            if component.isClientPlayer == True:
-                component.controller = PlayerAnimationController(component.updater.network)
+            if component.updater.network is None:
+                if component.resPath is not None:
+                    component.updater.InitMorpheme(component.resPath)
+                else:
+                    if not entity.HasComponent('info'):
+                        self.LogError('Animation component is missing a sibling info component on entity', entity.entityID, '. Will not setup')
+                        return
+                    self._InitializeAnimationNetwork(component, entity)
             else:
-                component.controller = BipedAnimationController(component.updater.network)
-            component.updater.SetUpdateCallback(component.controller.Update)
-        component.controller.entityRef = entity
-        self._AnimationSetupHook(entity, component)
-        component.updater.positionComponent = entity.GetComponent('position')
-        self.AnimManager.AddEntity(entity.entityID, component.updater)
+                component.poseState = None
+                component.poseStateControlParms = None
+            if component.updaterWaitingChannel:
+                component.updaterWaitingChannel.send(None)
+            if component.controller is None:
+                if component.isClientPlayer == True:
+                    component.controller = PlayerAnimationController(component.updater.network)
+                else:
+                    component.controller = BipedAnimationController(component.updater.network)
+                component.updater.SetUpdateCallback(component.controller.Update)
+            component.controller.entityRef = entity
+            self._AnimationSetupHook(entity, component)
+            component.updater.positionComponent = entity.GetComponent('position')
+            self.AnimManager.AddEntity(entity.entityID, component.updater)
+            return
 
     def RegisterComponent(self, entity, component):
         if not component.controller:
             self.LogError('Animation component', entity.entityID, 'missing controller. Not registering.')
             return
-        if component.poseStateControlParms is not None:
-            for key, value in component.poseStateControlParms.iteritems():
-                component.controller.SetControlParameter(key, float(value))
+        else:
+            if component.poseStateControlParms is not None:
+                for key, value in component.poseStateControlParms.iteritems():
+                    component.controller.SetControlParameter(key, float(value))
 
-            component.poseStateControlParms = None
-        if component.poseState is not None:
-            component.updater.SetPoseByName(component.poseState)
-            component.poseState = None
+                component.poseStateControlParms = None
+            if component.poseState is not None:
+                component.updater.SetPoseByName(component.poseState)
+                component.poseState = None
+            return
 
     def _AnimationSetupHook(self, entity, component):
         pass
@@ -211,6 +220,7 @@ class AnimationClient(service.Service):
         component.updater = None
         component.controller.entityRef = None
         component.controller = None
+        return
 
     def TearDownComponent(self, entity, component):
         pass

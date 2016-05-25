@@ -1,9 +1,10 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\packages\industry\modifiers.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\packages\industry\modifiers.py
 import industry
 
 class Modifier(industry.Base):
 
-    def __init__(self, amount, reference = None, activity = None, output = False, blueprints = None, categoryID = None, groupID = None):
+    def __init__(self, amount, reference=None, activity=None, output=False, blueprints=None, categoryID=None, groupID=None):
         self.amount = amount
         self.reference = reference
         self.activity = activity

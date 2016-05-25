@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\common\script\net\eveBroadcastStuffGPCS.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\common\script\net\eveBroadcastStuffGPCS.py
 import base
 import macho
 import gpcs
@@ -127,9 +128,25 @@ class BroadcastStuff(gpcs.CoreBroadcastStuff):
         finally:
             callTimer.Done()
 
+    def NarrowcastByStructureIDs(self, structureids, method, *args):
+        if not structureids:
+            return
+        callTimer = base.CallTimer('NarrowcastByStructureIDs::%s (Broadcast\\Client)' % method)
+        try:
+            self.ForwardNotifyDown(macho.Notification(destination=macho.MachoAddress(broadcastID=method, idtype='structureid', narrowcast=structureids), payload=(1, args)))
+        finally:
+            callTimer.Done()
+
     def SinglecastByStationID2(self, stationid2, method, *args):
         callTimer = base.CallTimer('SinglecastByStationID2::%s (Broadcast\\Client)' % method)
         try:
             self.ForwardNotifyDown(macho.Notification(destination=macho.MachoAddress(broadcastID=method, idtype='stationid2', narrowcast=[stationid2]), payload=(1, args)))
+        finally:
+            callTimer.Done()
+
+    def SinglecastByStructureID(self, structureid, method, *args):
+        callTimer = base.CallTimer('SinglecastByStructureID::%s (Broadcast\\Client)' % method)
+        try:
+            self.ForwardNotifyDown(macho.Notification(destination=macho.MachoAddress(broadcastID=method, idtype='structureid', narrowcast=[structureid]), payload=(1, args)))
         finally:
             callTimer.Done()

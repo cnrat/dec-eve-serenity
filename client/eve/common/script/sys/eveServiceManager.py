@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\common\script\sys\eveServiceManager.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\common\script\sys\eveServiceManager.py
 import carbon.common.script.sys.service as service
 
 class DustNotEnabledError(Exception):
@@ -9,7 +10,7 @@ class DustNotEnabledError(Exception):
         self.args = []
 
     def __repr__(self):
-        return 'DUST is not currently enabled.  Please set enableDust=1 in your prefs to use DUST functionality.'
+        pass
 
 
 class FakeDustService(object):

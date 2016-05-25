@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\packages\requests\packages\chardet\escprober.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\packages\requests\packages\chardet\escprober.py
 from . import constants
 from .escsm import HZSMModel, ISO2022CNSMModel, ISO2022JPSMModel, ISO2022KRSMModel
 from .charsetprober import CharSetProber
@@ -25,6 +26,7 @@ class EscCharSetProber(CharSetProber):
 
         self._mActiveSM = len(self._mCodingSM)
         self._mDetectedCharset = None
+        return
 
     def get_charset_name(self):
         return self._mDetectedCharset

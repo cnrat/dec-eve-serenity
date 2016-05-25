@@ -1,10 +1,11 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\common\script\util\pagedCollection.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\common\script\util\pagedCollection.py
 
 
 class PagedCollection(object):
     __guid__ = 'util.PagedCollection'
 
-    def __init__(self, resultSet = None, perPage = 50, totalCount = 0):
+    def __init__(self, resultSet=None, perPage=50, totalCount=0):
         self.page = 0
         self.collection = []
         self.totalCount = totalCount
@@ -56,14 +57,13 @@ class PagedCollection(object):
     def PageCount(self):
         if self.totalCount:
             return self.totalCount / self.perPage + 1
-        return 0
 
 
 class PagedResultSet(object):
     __guid__ = 'util.PagedResultSet'
     __passbyvalue__ = 1
 
-    def __init__(self, collection = None, totalCount = None, page = None, perPage = 50):
+    def __init__(self, collection=None, totalCount=None, page=None, perPage=50):
         self.collection = collection or []
         self.totalCount = totalCount
         self.page = page

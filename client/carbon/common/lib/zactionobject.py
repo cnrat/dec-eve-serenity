@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\carbon\common\lib\zactionobject.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\carbon\common\lib\zactionobject.py
 ACTIONOBJECT_SCHEMA = 'zactionobject'
 _ACTIONOBJECT_PREFIX = ACTIONOBJECT_SCHEMA + '.'
 ACTIONOBJECT_TABLE_NAME = 'actionObjects'

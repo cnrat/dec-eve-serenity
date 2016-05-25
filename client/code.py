@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\carbon\common\stdlib\code.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\carbon\common\stdlib\code.py
 import sys
 import traceback
 from codeop import CommandCompiler, compile_command
@@ -24,14 +25,15 @@ def softspace(file, newvalue):
 
 class InteractiveInterpreter:
 
-    def __init__(self, locals = None):
+    def __init__(self, locals=None):
         if locals is None:
             locals = {'__name__': '__console__',
              '__doc__': None}
         self.locals = locals
         self.compile = CommandCompiler()
+        return
 
-    def runsource(self, source, filename = '<input>', symbol = 'single'):
+    def runsource(self, source, filename='<input>', symbol='single'):
         try:
             code = self.compile(source, filename, symbol)
         except (OverflowError, SyntaxError, ValueError):
@@ -40,8 +42,9 @@ class InteractiveInterpreter:
 
         if code is None:
             return True
-        self.runcode(code)
-        return False
+        else:
+            self.runcode(code)
+            return False
 
     def runcode(self, code):
         try:
@@ -54,7 +57,7 @@ class InteractiveInterpreter:
             if softspace(sys.stdout, 0):
                 print
 
-    def showsyntaxerror(self, filename = None):
+    def showsyntaxerror(self, filename=None):
         type, value, sys.last_traceback = sys.exc_info()
         sys.last_type = type
         sys.last_value = value
@@ -89,6 +92,7 @@ class InteractiveInterpreter:
             tblist = tb = None
 
         map(self.write, list)
+        return
 
     def write(self, data):
         sys.stderr.write(data)
@@ -96,7 +100,7 @@ class InteractiveInterpreter:
 
 class InteractiveConsole(InteractiveInterpreter):
 
-    def __init__(self, locals = None, filename = '<console>'):
+    def __init__(self, locals=None, filename='<console>'):
         InteractiveInterpreter.__init__(self, locals)
         self.filename = filename
         self.resetbuffer()
@@ -104,7 +108,7 @@ class InteractiveConsole(InteractiveInterpreter):
     def resetbuffer(self):
         self.buffer = []
 
-    def interact(self, banner = None):
+    def interact(self, banner=None):
         try:
             sys.ps1
         except AttributeError:
@@ -146,7 +150,9 @@ class InteractiveConsole(InteractiveInterpreter):
                 self.resetbuffer()
                 more = 0
 
-    def push(self, line, symbol = 'single'):
+        return
+
+    def push(self, line, symbol='single'):
         self.buffer.append(line)
         source = '\n'.join(self.buffer)
         more = self.runsource(source, self.filename, symbol)
@@ -154,11 +160,11 @@ class InteractiveConsole(InteractiveInterpreter):
             self.resetbuffer()
         return more
 
-    def raw_input(self, prompt = ''):
+    def raw_input(self, prompt=''):
         return raw_input(prompt)
 
 
-def interact(banner = None, readfunc = None, local = None):
+def interact(banner=None, readfunc=None, local=None):
     console = InteractiveConsole(local)
     if readfunc is not None:
         console.raw_input = readfunc
@@ -169,6 +175,7 @@ def interact(banner = None, readfunc = None, local = None):
             pass
 
     console.interact(banner)
+    return
 
 
 if __name__ == '__main__':

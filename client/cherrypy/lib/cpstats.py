@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\carbon\common\lib\cherrypy\lib\cpstats.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\carbon\common\lib\cherrypy\lib\cpstats.py
 import logging
 if not hasattr(logging, 'statistics'):
     logging.statistics = {}
@@ -45,17 +46,17 @@ class ByteCountWrapper(object):
         self.rfile = rfile
         self.bytes_read = 0
 
-    def read(self, size = -1):
+    def read(self, size=-1):
         data = self.rfile.read(size)
         self.bytes_read += len(data)
         return data
 
-    def readline(self, size = -1):
+    def readline(self, size=-1):
         data = self.rfile.readline(size)
         self.bytes_read += len(data)
         return data
 
-    def readlines(self, sizehint = 0):
+    def readlines(self, sizehint=0):
         total = 0
         lines = []
         line = self.readline()
@@ -108,8 +109,9 @@ class StatsTool(cherrypy.Tool):
          'Request-Line': request.request_line,
          'Response Status': None,
          'Start Time': time.time()}
+        return
 
-    def record_stop(self, uriset = None, slow_queries = 1.0, slow_queries_count = 100, debug = False, **kwargs):
+    def record_stop(self, uriset=None, slow_queries=1.0, slow_queries_count=100, debug=False, **kwargs):
         w = appstats['Requests'][threading._get_ident()]
         r = cherrypy.request.rfile.bytes_read
         w['Bytes Read'] = r
@@ -146,6 +148,7 @@ class StatsTool(cherrypy.Tool):
             sq.append(w.copy())
             if len(sq) > slow_queries_count:
                 sq.pop(0)
+        return
 
 
 import cherrypy
@@ -269,6 +272,8 @@ class StatsPage(object):
                     scalars.append((k, v))
 
             yield (title, scalars, collections)
+
+        return
 
     def get_dict_collection(self, v, formatting):
         headers = []

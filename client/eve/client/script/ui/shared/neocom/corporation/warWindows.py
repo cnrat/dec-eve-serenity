@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\client\script\ui\shared\neocom\corporation\warWindows.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\client\script\ui\shared\neocom\corporation\warWindows.py
 import localization
 import uiprimitives
 import uicontrols
@@ -40,6 +41,7 @@ class NegotiationWnd(uicontrols.Window):
         self.SetTopparentHeight(0)
         self.ConstructLayout()
         self.LoadNegotiation()
+        return
 
     def ConstructLayout(self):
         mainCont = uiprimitives.Container(parent=self.sr.main, align=uiconst.TOALL, padding=const.defaultPadding)
@@ -89,7 +91,8 @@ class NegotiationWnd(uicontrols.Window):
         myID = session.corpid if session.allianceid is None else session.allianceid
         if self.defenderID == myID:
             return True
-        return False
+        else:
+            return False
 
     def GetEntityInfo(self, entityID):
         entityName = cfg.eveowners.Get(entityID).name
@@ -102,7 +105,7 @@ class NegotiationWnd(uicontrols.Window):
         return (entityName, ('showinfo', entityLinkType, entityID))
 
     def GetWndIconAndPath(self):
-        return ('res:/UI/Texture/Icons/Mercenary_64.png', 'ui_1337_64_4')
+        pass
 
     def GetOfferAmountText(self):
         return localization.GetByLabel('UI/Corporations/Wars/MercenaryFee')
@@ -155,14 +158,14 @@ class NegotiationWnd(uicontrols.Window):
             self.CloseByUser()
 
     def GetBaseIskValue(self):
-        return 0.0
+        pass
 
 
 class WarSurrenderWnd(NegotiationWnd):
     __guid__ = 'form.WarSurrenderWnd'
 
     def GetWndIconAndPath(self):
-        return ('res:/UI/Texture/Icons/Surrender_64.png', 'ui_1337_64_5')
+        pass
 
     def _AcceptOffer(self, *args):
         if self.isRequest:
@@ -202,6 +205,7 @@ class WarAssistanceOfferWnd(NegotiationWnd):
     def OnWarChanged(self, war, ownerIDs, change):
         if war is not None and war.warID == self.warID:
             self.offerLabel.text = self.GetOfferText()
+        return
 
     def GetOfferText(self):
         entityID = session.allianceid or session.corpid
@@ -239,6 +243,7 @@ class WarContainer(uiprimitives.Container):
         war = attributes.get('war', None)
         self.ConstructLayout()
         sm.RegisterNotify(self)
+        return
 
     def ConstructLayout(self):
         self.attackerlogoCont = uiprimitives.Container(parent=self, align=uiconst.TOLEFT, state=uiconst.UI_PICKCHILDREN, width=32, padding=2)
@@ -314,6 +319,7 @@ class WarContainer(uiprimitives.Container):
         self.defenderLogo.SetSize(32, 32)
         self.defenderLogo.OnClick = (self.ShowInfo, defenderID, defenderLinkType)
         self.defenderLogo.hint = '%s<br>%s' % (cfg.eveowners.Get(defenderID).name, localization.GetByLabel('UI/Corporations/Wars/Defender'))
+        return
 
     def ShowInfo(self, itemID, typeID, *args):
         sm.GetService('info').ShowInfo(typeID, itemID)
@@ -377,6 +383,7 @@ class AllyWnd(uicontrols.Window):
              'isAlly': True}))
 
         self.allyScroll.Load(contentList=scrolllist, noContentHint=localization.GetByLabel('UI/Corporations/Wars/NoAlliesInWar'))
+        return
 
 
 class WarEntry(uicontrols.SE_BaseClassCore):
@@ -404,6 +411,7 @@ class WarEntry(uicontrols.SE_BaseClassCore):
         self.surrenderNegotiation.hint = localization.GetByLabel('UI/Corporations/Wars/SurrenderPending')
         self.warCont = uicls.WarContainer(parent=warCont, top=2)
         sm.RegisterNotify(self)
+        return
 
     def Load(self, node):
         self.sr.node = node
@@ -460,7 +468,8 @@ class WarEntry(uicontrols.SE_BaseClassCore):
         warRetracted = self.war.retracted
         if warRetracted is not None:
             return True
-        return False
+        else:
+            return False
 
     def IsFinished(self):
         warFinished = self.war.timeFinished
@@ -482,36 +491,38 @@ class WarEntry(uicontrols.SE_BaseClassCore):
         if util.IsFaction(self.defenderID):
             menuParent.AddIconEntry(icon='res:/UI/Texture/Icons/FactionalWarfare_64.png', text=localization.GetByLabel('UI/Commands/OpenFactionalWarfare'), callback=sm.GetService('cmd').OpenMilitia)
             return
-        if not isMutual:
-            if self.IsMyWar() and self.IsDirector() and not self.IsFinished():
-                if self.IsDefender():
-                    if self.warIsOpen:
-                        isOpen = True
+        else:
+            if not isMutual:
+                if self.IsMyWar() and self.IsDirector() and not self.IsFinished():
+                    if self.IsDefender():
+                        if self.warIsOpen:
+                            isOpen = True
+                        else:
+                            isOpen = False
+                        menuParent.AddCheckBox(text=localization.GetByLabel('UI/Corporations/Wars/OpenForAllies'), checked=isOpen, callback=(self.SetOpenForAllies, not isOpen))
+                if not self.IsMyWar() and self.IsDirector() and not self.IsAlly() and not self.IsFinished():
+                    if self.IsNegotiating():
+                        menuParent.AddIconEntry(icon='res:/UI/Texture/Icons/Mercenary_Attention_64.png', text=localization.GetByLabel('UI/Corporations/Wars/ViewAssistanceOffer'), callback=self.ShowWarNegotiation)
                     else:
-                        isOpen = False
-                    menuParent.AddCheckBox(text=localization.GetByLabel('UI/Corporations/Wars/OpenForAllies'), checked=isOpen, callback=(self.SetOpenForAllies, not isOpen))
-            if not self.IsMyWar() and self.IsDirector() and not self.IsAlly() and not self.IsFinished():
-                if self.IsNegotiating():
-                    menuParent.AddIconEntry(icon='res:/UI/Texture/Icons/Mercenary_Attention_64.png', text=localization.GetByLabel('UI/Corporations/Wars/ViewAssistanceOffer'), callback=self.ShowWarNegotiation)
+                        menuParent.AddIconEntry(icon='res:/UI/Texture/Icons/Mercenary_Add_64.png', text=localization.GetByLabel('UI/Corporations/Wars/OfferAssistance'), callback=self.OpenRequestWindow)
+                numAllies = self.GetNumAllies()
+                if numAllies > 0:
+                    menuParent.AddIconEntry(icon='res:/UI/Texture/Icons/Mercenary_Ally_64.png', text=localization.GetByLabel('UI/Corporations/Wars/ViewNumAllies', num=numAllies), callback=self.OpenAllyWindow)
                 else:
-                    menuParent.AddIconEntry(icon='res:/UI/Texture/Icons/Mercenary_Add_64.png', text=localization.GetByLabel('UI/Corporations/Wars/OfferAssistance'), callback=self.OpenRequestWindow)
-            numAllies = self.GetNumAllies()
-            if numAllies > 0:
-                menuParent.AddIconEntry(icon='res:/UI/Texture/Icons/Mercenary_Ally_64.png', text=localization.GetByLabel('UI/Corporations/Wars/ViewNumAllies', num=numAllies), callback=self.OpenAllyWindow)
-            else:
-                menuParent.AddIconEntry(icon='res:/UI/Texture/Icons/Mercenary_Ally_64.png', text=localization.GetByLabel('UI/Corporations/Wars/ViewAllies'))
-        if self.IsDefender() and self.IsInCharge() and not self.IsFinished():
-            menuParent.AddCheckBox(text=localization.GetByLabel('UI/Corporations/CorporationWindow/Wars/DeclareMutualMenuOption'), checked=isMutual, callback=(self.ChangeMutualWarFlag, not isMutual))
-        if self.IsMyWar() and self.IsDirector() and not self.IsFinished():
-            if not self.IsRetracted():
-                if self.warNegotiationID:
-                    menuParent.AddIconEntry(icon='res:/UI/Texture/Icons/Surrender_Attention_64.png', text=localization.GetByLabel('UI/Corporations/Wars/ViewSurrenderOffer'), callback=self.SurrenderClick)
-                else:
-                    menuParent.AddIconEntry(icon='res:/UI/Texture/Icons/Surrender_64.png', text=localization.GetByLabel('UI/Corporations/Wars/SendSurrenderOffer'), callback=self.SurrenderClick)
-                if getattr(self.war, 'canBeRetracted', None):
-                    if self.war.canBeRetracted and not self.IsDefender():
-                        menuParent.AddIconEntry(icon='res:/UI/Texture/Icons/Surrender_64.png', text=localization.GetByLabel('UI/Corporations/Wars/RetractWar'), callback=self.RetractWarClick)
-        menuParent.AddIconEntry(icon='res:/UI/Texture/Icons/1337_64_2.png', text=localization.GetByLabel('UI/Corporations/Wars/OpenWarReport'), callback=self.OpenWarReport)
+                    menuParent.AddIconEntry(icon='res:/UI/Texture/Icons/Mercenary_Ally_64.png', text=localization.GetByLabel('UI/Corporations/Wars/ViewAllies'))
+            if self.IsDefender() and self.IsInCharge() and not self.IsFinished():
+                menuParent.AddCheckBox(text=localization.GetByLabel('UI/Corporations/CorporationWindow/Wars/DeclareMutualMenuOption'), checked=isMutual, callback=(self.ChangeMutualWarFlag, not isMutual))
+            if self.IsMyWar() and self.IsDirector() and not self.IsFinished():
+                if not self.IsRetracted():
+                    if self.warNegotiationID:
+                        menuParent.AddIconEntry(icon='res:/UI/Texture/Icons/Surrender_Attention_64.png', text=localization.GetByLabel('UI/Corporations/Wars/ViewSurrenderOffer'), callback=self.SurrenderClick)
+                    else:
+                        menuParent.AddIconEntry(icon='res:/UI/Texture/Icons/Surrender_64.png', text=localization.GetByLabel('UI/Corporations/Wars/SendSurrenderOffer'), callback=self.SurrenderClick)
+                    if getattr(self.war, 'canBeRetracted', None):
+                        if self.war.canBeRetracted and not self.IsDefender():
+                            menuParent.AddIconEntry(icon='res:/UI/Texture/Icons/Surrender_64.png', text=localization.GetByLabel('UI/Corporations/Wars/RetractWar'), callback=self.RetractWarClick)
+            menuParent.AddIconEntry(icon='res:/UI/Texture/Icons/1337_64_2.png', text=localization.GetByLabel('UI/Corporations/Wars/OpenWarReport'), callback=self.OpenWarReport)
+            return
 
     def LoadEntry(self, war):
         if not util.IsFaction(self.attackerID) and not self.IsFinished():
@@ -535,6 +546,7 @@ class WarEntry(uicontrols.SE_BaseClassCore):
         self.warCont.corpLabels.OnMouseExit = self.OnMouseExit
         self.warCont.attackerLogo.OnMouseExit = self.OnMouseExit
         self.warCont.defenderLogo.OnMouseExit = self.OnMouseExit
+        return
 
     def OnWarEntryChanged(self, warID, war, *args):
         if warID == self.warID:
@@ -590,6 +602,7 @@ class WarEntry(uicontrols.SE_BaseClassCore):
             self.OpenAllyWindow()
         else:
             self.OpenRequestWindow()
+        return
 
     def GetAllies(self):
         try:
@@ -621,6 +634,7 @@ class WarEntry(uicontrols.SE_BaseClassCore):
             WarSurrenderWnd.CloseIfOpen()
             requesterID = session.corpid if session.allianceid is None else session.allianceid
             WarSurrenderWnd.Open(war=self.war, requesterID=requesterID, isSurrender=True, isAllyRequest=False, isRequest=True)
+        return
 
     def RetractWarClick(self, *args):
         headerLabel = localization.GetByLabel('UI/Corporations/Wars/RetractWar')
@@ -682,6 +696,7 @@ class WarEntry(uicontrols.SE_BaseClassCore):
             return session.corpid == sm.GetService('alliance').GetAlliance().executorCorpID and session.corprole & const.corpRoleDirector == const.corpRoleDirector
         else:
             return sm.GetService('corp').UserIsActiveCEO()
+            return
 
     def ChangeMutualWarFlag(self, mutual, *args):
         warID = self.war.warID
@@ -695,20 +710,25 @@ class WarEntry(uicontrols.SE_BaseClassCore):
                 sm.GetService('alliance').ChangeMutualWarFlag(warID, mutual)
             else:
                 sm.GetService('corp').ChangeMutualWarFlag(warID, mutual)
+        return
 
     def GMSetStartTime(self, war):
         ret = uiutil.NamePopup(caption='Set Start Time', label='Type in Start Time', setvalue=util.FmtDate(war.timeDeclared))
         if ret is None:
             return
-        newTime = util.ParseDateTime(ret)
-        sm.GetService('war').GMSetWarStartTime(war.warID, newTime)
+        else:
+            newTime = util.ParseDateTime(ret)
+            sm.GetService('war').GMSetWarStartTime(war.warID, newTime)
+            return
 
     def GMSetFinishTime(self, war):
         ret = uiutil.NamePopup(caption='Set Finished Time', label='Type in Finished Time', setvalue=util.FmtDate(war.timeFinished))
         if ret is None:
             return
-        newTime = util.ParseDateTime(ret)
-        sm.GetService('war').GMSetWarFinishTime(war.warID, newTime)
+        else:
+            newTime = util.ParseDateTime(ret)
+            sm.GetService('war').GMSetWarFinishTime(war.warID, newTime)
+            return
 
     def GMForceFinishWar(self, war):
         sm.GetService('war').GMSetWarFinishTime(war.warID, blue.os.GetTime() - const.DAY)
@@ -740,6 +760,7 @@ class AllyEntry(uicontrols.SE_BaseClassCore):
             self.timeFinished = node.allyRow.timeFinished
         self.warNegotiation = node.warNegotiation
         self.LoadEntry(node.warID, node.allyID, node.isAlly)
+        return
 
     def LoadEntry(self, warID, allyID, isAlly):
         if hasattr(self, 'allyLogo'):

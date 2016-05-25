@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\packages\overviewPresets\overviewPresetUtil.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\packages\overviewPresets\overviewPresetUtil.py
 import hashlib
 import yaml
 MAX_SHARED_PRESETS = 15
@@ -103,3 +104,5 @@ def ReorderList(parentDict, namesToReorder):
         if listToReorder is None:
             continue
         listToReorder.sort()
+
+    return

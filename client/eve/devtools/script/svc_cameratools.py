@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\devtools\script\svc_cameratools.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\devtools\script\svc_cameratools.py
 import blue
 import evecamera
 import uthread
@@ -23,10 +24,11 @@ class InsiderCameraTools(service.Service):
     __neocommenuitem__ = (('Camera Tools', None), 'Show', service.ROLE_GML)
     __update_on_reload__ = 1
 
-    def Run(self, memStream = None):
+    def Run(self, memStream=None):
         self.wnd = None
+        return
 
-    def Stop(self, memStream = None):
+    def Stop(self, memStream=None):
         self.Hide()
         service.Service.Stop(self, memStream)
 
@@ -65,6 +67,7 @@ class InsiderCameraTools(service.Service):
     def Hide(self, *args):
         if self.wnd:
             self.wnd = None
+        return
 
     def ProcessRestartUI(self):
         if self.wnd:

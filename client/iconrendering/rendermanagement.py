@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\packages\iconrendering\rendermanagement.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\packages\iconrendering\rendermanagement.py
 import contextlib
 import os
 import time
@@ -15,7 +16,7 @@ class RenderCancelledError(iconrendering.IconRenderingException):
 
 class RenderManager(object):
 
-    def __init__(self, resmapper, inventorymapper, logger, outdir, takeonly = None):
+    def __init__(self, resmapper, inventorymapper, logger, outdir, takeonly=None):
         self.logger = logger
         self.outdir = outdir
         self.takeonly = takeonly
@@ -25,6 +26,7 @@ class RenderManager(object):
         self.blueprintGraphicIDs = None
         logger.info('Starting %s', iconrendering.APPNAME)
         logger.info('Output: %s', outdir)
+        return
 
     def RenderIEC(self):
         with self._TimeIt('All Renderings'):
@@ -67,6 +69,8 @@ class RenderManager(object):
             except Exception:
                 self.logger.warn('Failed to render: %s, %s, %s', funcname, funcargs, funckwargs)
 
+        return
+
     def _YieldRenderFuncAndArgsForTypes(self, outdir, size, **kwargs):
         return rendersetup.YieldAllRenderFuncsAndArgsForTypes(self.resmapper, self.inventoryMapper, outdir, size, self.logger, **kwargs)
 
@@ -97,46 +101,53 @@ class RenderManager(object):
 
             renderCount += 1
 
+        return
+
     def _Invoke(self, func, funcargs, funckwargs):
         return func(*funcargs, **funckwargs)
 
-    def RenderSingle(self, resPath = None, dnaString = None):
+    def RenderSingle(self, resPath=None, dnaString=None):
         if resPath is None and dnaString is None:
             self.logger.warn('Neither resPath nor dna was supplied!')
             return
-        with self._TimeIt('RenderSingle'):
-            self._RenderSingle([64, 128], resPath=resPath, dnaString=dnaString)
+        else:
+            with self._TimeIt('RenderSingle'):
+                self._RenderSingle([64, 128], resPath=resPath, dnaString=dnaString)
+            return
 
-    def _RenderSingle(self, sizes, resPath = None, dnaString = None):
+    def _RenderSingle(self, sizes, resPath=None, dnaString=None):
         graphicIDs = self.resmapper.GetGraphicIdsForGraphicFile(resPath)
         graphicIDs += self.resmapper.GetGraphicIdsForSOFData(dnaString)
         if len(graphicIDs) == 0:
             self.logger.warn('No graphicIDs found for resPath: "%s" and dnaString: "%s"' % (resPath, dnaString))
             self.logger.warn('No icons generated')
             return
-        blueprintIDs = self.GetBlueprintGraphicIDs()
-        for vals in rendersetup.YieldAllRenderFuncsAndArgsForGraphics(self.resmapper, self.outdir, self.logger, blueprintIDs, graphicIDs=graphicIDs):
-            if vals is None:
-                continue
-            func, funcargs, funckwargs = vals
-            funcname = getattr(func, '__name__', 'no func name')
-            size = funckwargs['size']
-            if self.stop:
-                raise RenderCancelledError()
-            try:
-                if os.path.exists(funcargs[0]):
-                    self.logger.debug('File exists! %s' % funcargs[0])
-                else:
-                    self.logger.debug('Invoking: %s, %s', funcname, funcargs, funckwargs)
-                    func(*funcargs, **funckwargs)
-            except Exception:
-                self._OnRenderError(size, funcname, funcargs)
+        else:
+            blueprintIDs = self.GetBlueprintGraphicIDs()
+            for vals in rendersetup.YieldAllRenderFuncsAndArgsForGraphics(self.resmapper, self.outdir, self.logger, blueprintIDs, graphicIDs=graphicIDs):
+                if vals is None:
+                    continue
+                func, funcargs, funckwargs = vals
+                funcname = getattr(func, '__name__', 'no func name')
+                size = funckwargs['size']
+                if self.stop:
+                    raise RenderCancelledError()
+                try:
+                    if os.path.exists(funcargs[0]):
+                        self.logger.debug('File exists! %s' % funcargs[0])
+                    else:
+                        self.logger.debug('Invoking: %s, %s', funcname, funcargs, funckwargs)
+                        func(*funcargs, **funckwargs)
+                except Exception:
+                    self._OnRenderError(size, funcname, funcargs)
+
+            return
 
     def Stop(self):
         self.logger.info('Stop requested.')
         self.stop = True
 
-    def _OnRenderError(self, size, funcname, funcargs, funckwargs = {}):
+    def _OnRenderError(self, size, funcname, funcargs, funckwargs={}):
         self.logger.error('Error: %s, %s, %s', funcname, funcargs, funckwargs)
         self.logger.debug('Fallback: RenderIcon(%s size=%s)', funcargs[0], size)
         photo.RenderIcon(funcargs[0], size=size, iconPath=rendersetup.FALLBACK_ICON)

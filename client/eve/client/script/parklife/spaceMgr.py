@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\client\script\parklife\spaceMgr.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\client\script\parklife\spaceMgr.py
 import math
 import sys
 import evetypes
@@ -21,6 +22,7 @@ import telemetry
 import evegraphics.settings as gfxsettings
 import eve.client.script.environment.spaceObject.repository as repository
 import eve.client.script.environment.spaceObject.spaceObject as spaceObject
+from carbon.common.script.util.exceptionEater import ExceptionEater
 import inventorycommon.typeHelpers
 
 class SpaceMgr(service.Service):
@@ -63,9 +65,11 @@ class SpaceMgr(service.Service):
         self.prioritizedIDs = set()
         self.planetManager = PlanetManager()
         self.asteroids = {}
+        self.unloadables = set()
         self.npcStations = cfg.mapSolarSystemContentCache.npcStations
+        return
 
-    def Run(self, memStream = None):
+    def Run(self, memStream=None):
         service.Service.Run(self, memStream)
         sm.FavourMe(self.DoBallsAdded)
         for each in uicore.layer.shipui.children[:]:
@@ -76,14 +80,20 @@ class SpaceMgr(service.Service):
         self.setIndicationText = None
         self.caption = None
         self.indicateTimer = base.AutoTimer(250, self.Indicate_thread)
+        self.unloadableTimer = base.AutoTimer(1000, self.HandleUnloadables)
         self.shortcutText = None
         self.shortcutSubText = None
+        return
 
     def Stop(self, stream):
         self.ClearIndicateText()
         self.ClearShortcutText()
+        self.indicateTimer.KillTimer()
         self.indicateTimer = None
+        self.unloadableTimer.KillTimer()
+        self.unloadableTimer = None
         service.Service.Stop(self)
+        return
 
     def ProcessSessionChange(self, *args):
         self.ClearIndicateText()
@@ -110,6 +120,7 @@ class SpaceMgr(service.Service):
         data['graphicFile'] = graphicFile
         data['animationStates'] = inventorycommon.typeHelpers.GetAnimationStates(slimItem.typeID)
         graphicInfo = cfg.graphics.GetIfExists(graphicID)
+        data['animationStateObjects'] = getattr(graphicInfo, 'animationStateObjects', {})
         data['sofRaceName'] = getattr(graphicInfo, 'sofRaceName', None)
         data['sofFactionName'] = getattr(graphicInfo, 'sofFactionName', None)
         dunRotation = getattr(slimItem, 'dunRotation', None)
@@ -122,60 +133,93 @@ class SpaceMgr(service.Service):
     def LoadObject(self, ball, slimItem, ob):
         if slimItem is None:
             return
-        if getattr(ob, 'released', 1):
+        elif getattr(ob, 'released', 1):
             self.LogWarn(slimItem.itemID, 'has already been released')
             return
-        try:
-            ob.Prepare()
-        except Exception:
-            log.LogException('Error adding SpaceObject of type', str(ob.__klass__), 'to scene')
-            sys.exc_clear()
+        elif getattr(ob, '__unloadable__', False):
+            ob.unloaded = True
+            self.unloadables.add(slimItem.itemID)
+            return
+        else:
+            try:
+                ob.Prepare()
+            except Exception:
+                log.LogException('Error adding SpaceObject of type', str(ob.__klass__), 'to scene')
+                sys.exc_clear()
 
-        self._NotifyComponents(ball)
+            self._NotifyComponents(ball)
+            return
 
     def _NotifyComponents(self, ball):
         bp = self.michelle.GetBallpark()
         if bp:
             bp.GetComponentRegistry().SendMessageToItem(ball.id, MSG_ON_LOAD_OBJECT, ball)
 
+    def HandleUnloadables(self):
+        with ExceptionEater('HandleUnloadables'):
+            if not self.unloadables:
+                return
+            ballpark = self.michelle.GetBallpark()
+            if not ballpark or not ballpark.ego:
+                return
+            for ballID in list(self.unloadables):
+                ball = ballpark.GetBall(ballID)
+                if not ball:
+                    self.unloadables.discard(ballID)
+                    continue
+                with ExceptionEater('HandleUnloadable'):
+                    visible = ballpark.IsBallVisible(ballID)
+                    unloaded = getattr(ball, 'unloaded', True)
+                    if visible and unloaded:
+                        if getattr(ball, 'released', False):
+                            ball.released = False
+                        ball.unloaded = False
+                        ball.Prepare()
+                    elif not visible and not unloaded:
+                        ball.unloaded = True
+                        ball.Release()
+                blue.pyos.BeNice()
+
     def HandleAsteroidParticles(self):
         if not (gfxsettings.Get(gfxsettings.UI_ASTEROID_ATMOSPHERICS) and gfxsettings.Get(gfxsettings.UI_ASTEROID_PARTICLES)):
             return
-        scene = self.GetScene()
-        if scene is None:
-            return
-        if len(self.asteroids) == 0:
-            scene.staticParticles.ClearClusters()
-            return
-        particles = scene.staticParticles
-        if particles.transform is None:
-            particles.transform = trinity.Load('res:/dx9/scene/asteroidrockfield.red')
-            particles.maxParticleCount = 50000
-            particles.maxSize = 100.0
-            particles.minSize = 5.0
-            particles.clusterParticleDensity = 1.0
-        for id, asteroid in self.asteroids.iteritems():
-            ball, slimItem, isAdded = asteroid
-            if isAdded:
-                continue
-            self.asteroids[id] = (ball, slimItem, True)
-            groupData = cfg.groupGraphics.get(int(slimItem.groupID), None)
-            color = getattr(groupData, 'color', None)
-            baseColor = (0.13, 0.13, 0.12, 1.0)
-            if color is None:
-                if hasattr(groupData, 'typeIDs'):
-                    typeData = groupData.typeIDs.get(int(slimItem.typeID), None)
-                    color = typeData.color
-                    baseColor = (0.4, 0.6, 0.7, 1.0)
-            if color is None:
-                continue
-            seed = int(id % 123456)
-            particles.AddCluster((ball.x, ball.y, ball.z), ball.radius, (color.r,
-             color.g,
-             color.b,
-             color.a), baseColor, seed)
+        else:
+            scene = self.GetScene()
+            if scene is None:
+                return
+            if len(self.asteroids) == 0:
+                scene.staticParticles.ClearClusters()
+                return
+            particles = scene.staticParticles
+            if particles.transform is None:
+                particles.transform = trinity.Load('res:/dx9/scene/asteroidrockfield.red')
+                particles.maxParticleCount = 50000
+                particles.maxSize = 100.0
+                particles.minSize = 5.0
+                particles.clusterParticleDensity = 1.0
+            for id, asteroid in self.asteroids.iteritems():
+                ball, slimItem, isAdded = asteroid
+                if isAdded:
+                    continue
+                self.asteroids[id] = (ball, slimItem, True)
+                groupData = cfg.groupGraphics.get(int(slimItem.groupID), None)
+                color = getattr(groupData, 'color', None)
+                baseColor = (0.13, 0.13, 0.12, 1.0)
+                if color is None:
+                    if hasattr(groupData, 'typeIDs'):
+                        typeData = groupData.typeIDs.get(int(slimItem.typeID), None)
+                        color = typeData.color
+                        baseColor = (0.4, 0.6, 0.7, 1.0)
+                if color is None:
+                    continue
+                seed = int(id % 123456)
+                particles.AddCluster((ball.x, ball.y, ball.z), ball.radius, (color.r,
+                 color.g,
+                 color.b,
+                 color.a), baseColor, seed)
 
-        particles.Rebuild()
+            particles.Rebuild()
+            return
 
     @telemetry.ZONE_METHOD
     def DoBallsAdded(self, *args, **kw):
@@ -215,6 +259,7 @@ class SpaceMgr(service.Service):
             self.DoBallsAdded_(lst)
         if len(self.asteroids) != asteroidCount:
             uthread.new(self.HandleAsteroidParticles)
+        return
 
     @telemetry.ZONE_METHOD
     def SplitListByThreat(self, bp, ballsToAdd):
@@ -245,7 +290,7 @@ class SpaceMgr(service.Service):
     def PrioritizeLoadingForIDs(self, ids):
         self.prioritizedIDs.update(ids)
 
-    def _LoadObjects(self, objects, info = 'Loading'):
+    def _LoadObjects(self, objects, info='Loading'):
         numBallsAdded = 0
         numLostBalls = 0
         michelle = sm.GetService('michelle')
@@ -275,48 +320,18 @@ class SpaceMgr(service.Service):
         bp = sm.GetService('michelle').GetBallpark()
         if bp is None:
             return
-        self.LogInfo('DoBallsAdded_ - Starting to add', len(ballsToAdd), ' balls. lazy = ', settings.public.generic.Get('lazyLoading', 1))
-        numBallsToAdd = len(ballsToAdd)
-        numLostBalls = 0
-        numBallsAdded = 0
-        preEmptiveLoads = []
-        self.lazyLoadQueueCount = len(ballsToAdd)
-        timeStarted = blue.os.GetWallclockTimeNow()
-        nonPrioritized = []
-        prioritized = []
-        for each in ballsToAdd:
-            ball, slimItem, ob = each
-            itemID = slimItem.itemID
-            slimItem = bp.GetInvItem(slimItem.itemID)
-            if slimItem is None:
-                self.LogInfo('Lost ball', itemID)
-                numLostBalls += 1
-                continue
-            itemID = slimItem.itemID
-            if slimItem.groupID == const.groupSun:
-                prioritized.append(each)
-            elif itemID == session.shipid:
-                prioritized.append(each)
-            elif itemID in self.prioritizedIDs:
-                prioritized.append(each)
-                self.prioritizedIDs.remove(itemID)
-            else:
-                nonPrioritized.append(each)
-
-        ballsToAdd = nonPrioritized
-        added, lost = self._LoadObjects(prioritized, 'Preemtively loading prioritized')
-        numBallsAdded += added
-        numLostBalls += lost
-        startOfTimeSlice = blue.os.GetWallclockTimeNow()
-        nextThreatCheck = startOfTimeSlice + 500 * const.MSEC
-        while len(ballsToAdd):
-            try:
-                ball, slimItem, ob = ballsToAdd.pop(0)
-                self.LogInfo('Handling ball', slimItem.itemID)
-                self.lazyLoadQueueCount = len(ballsToAdd)
-                bp = sm.GetService('michelle').GetBallpark()
-                if bp is None:
-                    return
+        else:
+            self.LogInfo('DoBallsAdded_ - Starting to add', len(ballsToAdd), ' balls. lazy = ', settings.public.generic.Get('lazyLoading', 1))
+            numBallsToAdd = len(ballsToAdd)
+            numLostBalls = 0
+            numBallsAdded = 0
+            preEmptiveLoads = []
+            self.lazyLoadQueueCount = len(ballsToAdd)
+            timeStarted = blue.os.GetWallclockTimeNow()
+            nonPrioritized = []
+            prioritized = []
+            for each in ballsToAdd:
+                ball, slimItem, ob = each
                 itemID = slimItem.itemID
                 slimItem = bp.GetInvItem(slimItem.itemID)
                 if slimItem is None:
@@ -324,35 +339,68 @@ class SpaceMgr(service.Service):
                     numLostBalls += 1
                     continue
                 itemID = slimItem.itemID
-                self.LogInfo('Loading', itemID)
-                self.LoadObject(ball, slimItem, ob)
-                numBallsAdded += 1
-                if blue.os.GetWallclockTimeNow() > nextThreatCheck:
-                    ballsToAdd, threatening, lost = self.SplitListByThreat(bp, ballsToAdd)
-                    numLostBalls += lost
-                    added, lost = self._LoadObjects(threatening, 'Preemptively loading threat')
-                    numBallsAdded += added
-                    numLostBalls += lost
-                    nextThreatCheck = blue.os.GetWallclockTimeNow() + 500 * const.MSEC
-                self.lazyLoadQueueCount = len(ballsToAdd)
-                if settings.public.generic.Get('lazyLoading', 1):
-                    if blue.os.GetWallclockTimeNow() > startOfTimeSlice + self.maxTimeInDoBallsAdded:
-                        blue.synchro.Yield()
-                        startOfTimeSlice = blue.os.GetWallclockTimeNow()
-            except:
-                self.LogError('DoBallsAdded - failed to add ball', (ball, slimItem))
-                log.LogException()
-                sys.exc_clear()
+                if slimItem.groupID == const.groupSun:
+                    prioritized.append(each)
+                elif itemID == session.shipid:
+                    prioritized.append(each)
+                elif itemID in self.prioritizedIDs:
+                    prioritized.append(each)
+                    self.prioritizedIDs.remove(itemID)
+                else:
+                    nonPrioritized.append(each)
 
-        self.LogInfo('DoBallsAdded_ - Done adding', numBallsToAdd, ' balls in', util.FmtDate(blue.os.GetWallclockTimeNow() - timeStarted, 'nl'), '.', numLostBalls, 'balls were lost. lazy = ', settings.public.generic.Get('lazyLoading', 1))
-        if numBallsAdded + numLostBalls != numBallsToAdd:
-            self.LogError("DoBallsAdded - balls don't add up! numBallsAdded:", numBallsAdded, 'numLostBalls:', numLostBalls, 'numBallsToAdd:', numBallsToAdd)
+            ballsToAdd = nonPrioritized
+            added, lost = self._LoadObjects(prioritized, 'Preemtively loading prioritized')
+            numBallsAdded += added
+            numLostBalls += lost
+            startOfTimeSlice = blue.os.GetWallclockTimeNow()
+            nextThreatCheck = startOfTimeSlice + 500 * const.MSEC
+            while len(ballsToAdd):
+                try:
+                    ball, slimItem, ob = ballsToAdd.pop(0)
+                    self.LogInfo('Handling ball', slimItem.itemID)
+                    self.lazyLoadQueueCount = len(ballsToAdd)
+                    bp = sm.GetService('michelle').GetBallpark()
+                    if bp is None:
+                        return
+                    itemID = slimItem.itemID
+                    slimItem = bp.GetInvItem(slimItem.itemID)
+                    if slimItem is None:
+                        self.LogInfo('Lost ball', itemID)
+                        numLostBalls += 1
+                        continue
+                    itemID = slimItem.itemID
+                    self.LogInfo('Loading', itemID)
+                    self.LoadObject(ball, slimItem, ob)
+                    numBallsAdded += 1
+                    if blue.os.GetWallclockTimeNow() > nextThreatCheck:
+                        ballsToAdd, threatening, lost = self.SplitListByThreat(bp, ballsToAdd)
+                        numLostBalls += lost
+                        added, lost = self._LoadObjects(threatening, 'Preemptively loading threat')
+                        numBallsAdded += added
+                        numLostBalls += lost
+                        nextThreatCheck = blue.os.GetWallclockTimeNow() + 500 * const.MSEC
+                    self.lazyLoadQueueCount = len(ballsToAdd)
+                    if settings.public.generic.Get('lazyLoading', 1):
+                        if blue.os.GetWallclockTimeNow() > startOfTimeSlice + self.maxTimeInDoBallsAdded:
+                            blue.synchro.Yield()
+                            startOfTimeSlice = blue.os.GetWallclockTimeNow()
+                except:
+                    self.LogError('DoBallsAdded - failed to add ball', (ball, slimItem))
+                    log.LogException()
+                    sys.exc_clear()
+
+            self.LogInfo('DoBallsAdded_ - Done adding', numBallsToAdd, ' balls in', util.FmtDate(blue.os.GetWallclockTimeNow() - timeStarted, 'nl'), '.', numLostBalls, 'balls were lost. lazy = ', settings.public.generic.Get('lazyLoading', 1))
+            if numBallsAdded + numLostBalls != numBallsToAdd:
+                self.LogError("DoBallsAdded - balls don't add up! numBallsAdded:", numBallsAdded, 'numLostBalls:', numLostBalls, 'numBallsToAdd:', numBallsToAdd)
+            return
 
     @telemetry.ZONE_METHOD
     def DoBallsRemove(self, pythonBalls, isRelease):
         asteroidCount = len(self.asteroids)
         if isRelease:
             for ball, slimItem, terminal in pythonBalls:
+                self.unloadables.discard(ball.id)
                 if hasattr(ball, 'Release'):
                     uthread.new(ball.Release)
                 if slimItem.categoryID == const.categoryAsteroid:
@@ -375,11 +423,14 @@ class SpaceMgr(service.Service):
     def DoBallRemove(self, ball, slimItem, terminal):
         if ball is None:
             return
-        self.LogInfo('DoBallRemove::spaceMgr', ball.id)
-        if hasattr(ball, 'Release'):
-            uthread.new(ball.Release)
-        if slimItem.groupID == const.groupPlanet or slimItem.groupID == const.groupMoon:
-            self.planetManager.UnRegisterPlanetBall(ball)
+        else:
+            self.LogInfo('DoBallRemove::spaceMgr', ball.id)
+            self.unloadables.discard(ball.id)
+            if hasattr(ball, 'Release'):
+                uthread.new(ball.Release)
+            if slimItem.groupID == const.groupPlanet or slimItem.groupID == const.groupMoon:
+                self.planetManager.UnRegisterPlanetBall(ball)
+            return
 
     @telemetry.ZONE_METHOD
     def OnBallparkCall(self, functionName, args):
@@ -402,6 +453,7 @@ class SpaceMgr(service.Service):
             ball = sm.GetService('michelle').GetBall(ballID)
             if hasattr(ball, 'SetRadius'):
                 ball.SetRadius(newRadius)
+        return
 
     @telemetry.ZONE_METHOD
     def OnNotifyPreload(self, typeIDList):
@@ -422,8 +474,9 @@ class SpaceMgr(service.Service):
             self.LogInfo('Setting local warp destination for fleet warp')
             celestialID = warpInfoDict.get('celestialID', None)
             self.WarpDestination(celestialID=celestialID)
+        return
 
-    def WarpDestination(self, celestialID = None, bookmarkID = None, fleetMemberID = None):
+    def WarpDestination(self, celestialID=None, bookmarkID=None, fleetMemberID=None):
         self.warpDestinationCache[0] = celestialID
         self.warpDestinationCache[1] = bookmarkID
         self.warpDestinationCache[2] = fleetMemberID
@@ -433,7 +486,7 @@ class SpaceMgr(service.Service):
         eve.Message('WarpDriveActive')
         self.LogNotice('StartWarpIndication', self.warpDestText, 'autopilot =', sm.GetService('autoPilot').GetState())
 
-    def OnSpecialFX(self, shipID, moduleID, moduleTypeID, targetID, otherTypeID, guid, isOffensive, start, active, duration = -1, repeat = None, startTime = None, timeFromStart = 0, graphicInfo = None):
+    def OnSpecialFX(self, shipID, moduleID, moduleTypeID, targetID, otherTypeID, guid, isOffensive, start, active, duration=-1, repeat=None, startTime=None, timeFromStart=0, graphicInfo=None):
         self.LogInfo('Space::OnSpecialFX - ', guid)
         if util.IsFullLogging():
             self.LogInfo(shipID, moduleID, moduleTypeID, targetID, otherTypeID, guid, isOffensive, start, active, duration, repeat)
@@ -467,12 +520,17 @@ class SpaceMgr(service.Service):
                 self.IndicateAction(localization.GetByLabel('UI/Inflight/Messages/JumpingThroughWormhole'), localization.GetByLabel('UI/Inflight/Messages/NotifyJumpingThroughWormhole', wormholeClass=wormholeClassName))
             elif guid in ('effects.JumpDriveOut', 'effects.JumpDriveOutBO'):
                 self.IndicateAction(localization.GetByLabel('UI/Inflight/Messages/Jumping'), localization.GetByLabel('UI/Inflight/Messages/NotifyJumpingToBeacon'))
+        return
 
-    def OnDockingAccepted(self, stationID):
+    def OnDockingAccepted(self, itemID):
         eve.Message('DockingAccepted')
-        self.IndicateAction(localization.GetByLabel('UI/Inflight/Messages/Docking'), localization.GetByLabel('UI/Inflight/Messages/DestinationStation', station=stationID))
+        if util.IsStation(itemID):
+            name = localization.GetByLabel('UI/Inflight/Messages/DestinationStation', station=itemID)
+        else:
+            name = self.GetWarpDestinationName(itemID)
+        self.IndicateAction(localization.GetByLabel('UI/Inflight/Messages/Docking'), name)
 
-    def CanWarp(self, targetID = None, forTut = False):
+    def CanWarp(self, targetID=None, forTut=False):
         tutorialBrowser = sm.GetService('tutorial').GetTutorialBrowser(create=0)
         if tutorialBrowser and not forTut and hasattr(tutorialBrowser, 'current'):
             _tutorialID, _pageNo, _pageID, _pageCount, _sequenceID, _VID, _pageActionID = tutorialBrowser.current
@@ -482,6 +540,7 @@ class SpaceMgr(service.Service):
 
     def OnReleaseBallpark(self):
         self.flashTransform = None
+        return
 
     def CheckWarpDestination(self, warpPoint, destinationPoint, egoPoint, angularTolerance, distanceTolerance):
         destinationOffset = [destinationPoint[0] - warpPoint[0], destinationPoint[1] - warpPoint[1], destinationPoint[2] - warpPoint[2]]
@@ -522,63 +581,66 @@ class SpaceMgr(service.Service):
         ballPark = sm.GetService('michelle').GetBallpark()
         if not ballPark:
             return
-        egoball = ballPark.GetBall(ballPark.ego)
-        if destinationItemID:
-            if destinationItemID in ballPark.balls:
-                b = ballPark.balls[destinationItemID]
-                if self.CheckWarpDestination(destinationPosition, (b.x, b.y, b.z), (egoball.x, egoball.y, egoball.z), math.pi / 32, 20000000):
-                    self.warpDestinationCache[4] = (b.x, b.y, b.z)
-                    name = self.GetWarpDestinationName(destinationItemID)
-                    self.warpDestText = localization.GetByLabel('UI/Inflight/Messages/WarpDestination', destinationName=name) + '<br>'
-        elif destinationBookmarkID:
-            bookmark = sm.GetService('addressbook').GetBookmark(destinationBookmarkID)
-            if bookmark is not None:
-                if bookmark.x is None:
-                    if bookmark.memo:
-                        titleEndPosition = bookmark.memo.find('\t')
-                        if titleEndPosition > -1:
-                            memoTitle = bookmark.memo[:titleEndPosition]
-                        else:
-                            memoTitle = bookmark.memo
-                        self.warpDestText = localization.GetByLabel('UI/Inflight/Messages/WarpDestination', destinationName=memoTitle) + '<br>'
-                        if bookmark.itemID is not None:
-                            b = ballPark.balls[bookmark.itemID]
-                            if self.CheckWarpDestination(destinationPosition, (b.x, b.y, b.z), (egoball.x, egoball.y, egoball.z), math.pi / 32, 20000000):
-                                self.warpDestinationCache[4] = (b.x, b.y, b.z)
-                elif self.CheckWarpDestination(destinationPosition, (bookmark.x, bookmark.y, bookmark.z), (egoball.x, egoball.y, egoball.z), math.pi / 32, 20000000):
-                    if bookmark.memo:
-                        titleEndPosition = bookmark.memo.find('\t')
-                        if titleEndPosition > -1:
-                            memoTitle = bookmark.memo[:titleEndPosition]
-                        else:
-                            memoTitle = bookmark.memo
-                        self.warpDestText = localization.GetByLabel('UI/Inflight/Messages/WarpDestination', destinationName=memoTitle) + '<br>'
-                        self.warpDestinationCache[4] = (bookmark.x, bookmark.y, bookmark.z)
+        else:
+            egoball = ballPark.GetBall(ballPark.ego)
+            if destinationItemID:
+                if destinationItemID in ballPark.balls:
+                    b = ballPark.balls[destinationItemID]
+                    if self.CheckWarpDestination(destinationPosition, (b.x, b.y, b.z), (egoball.x, egoball.y, egoball.z), math.pi / 32, 20000000):
+                        self.warpDestinationCache[4] = (b.x, b.y, b.z)
+                        name = self.GetWarpDestinationName(destinationItemID)
+                        self.warpDestText = localization.GetByLabel('UI/Inflight/Messages/WarpDestination', destinationName=name) + '<br>'
+            elif destinationBookmarkID:
+                bookmark = sm.GetService('addressbook').GetBookmark(destinationBookmarkID)
+                if bookmark is not None:
+                    if bookmark.x is None:
+                        if bookmark.memo:
+                            titleEndPosition = bookmark.memo.find('\t')
+                            if titleEndPosition > -1:
+                                memoTitle = bookmark.memo[:titleEndPosition]
+                            else:
+                                memoTitle = bookmark.memo
+                            self.warpDestText = localization.GetByLabel('UI/Inflight/Messages/WarpDestination', destinationName=memoTitle) + '<br>'
+                            if bookmark.itemID is not None:
+                                b = ballPark.balls[bookmark.itemID]
+                                if self.CheckWarpDestination(destinationPosition, (b.x, b.y, b.z), (egoball.x, egoball.y, egoball.z), math.pi / 32, 20000000):
+                                    self.warpDestinationCache[4] = (b.x, b.y, b.z)
+                    elif self.CheckWarpDestination(destinationPosition, (bookmark.x, bookmark.y, bookmark.z), (egoball.x, egoball.y, egoball.z), math.pi / 32, 20000000):
+                        if bookmark.memo:
+                            titleEndPosition = bookmark.memo.find('\t')
+                            if titleEndPosition > -1:
+                                memoTitle = bookmark.memo[:titleEndPosition]
+                            else:
+                                memoTitle = bookmark.memo
+                            self.warpDestText = localization.GetByLabel('UI/Inflight/Messages/WarpDestination', destinationName=memoTitle) + '<br>'
+                            self.warpDestinationCache[4] = (bookmark.x, bookmark.y, bookmark.z)
+            return
 
     def IndicateWarp(self):
         destinationItemID, destinationBookmarkID, destinationfleetMemberID, destinationPosition, actualDestinationPosition = self.warpDestinationCache
         if not destinationPosition:
             return (None, None)
-        ballPark = sm.GetService('michelle').GetBallpark()
-        if not ballPark:
-            self.LogWarn('Space::IndicateWarp: Trying to indicate warp without a ballpark?')
-            return (None, None)
-        centeredDestText = '<center>' + getattr(self, 'warpDestText', '')
-        text = centeredDestText
-        egoball = ballPark.GetBall(ballPark.ego)
-        if actualDestinationPosition is not None:
-            warpDirection = [actualDestinationPosition[0] - egoball.x, actualDestinationPosition[1] - egoball.y, actualDestinationPosition[2] - egoball.z]
         else:
-            warpDirection = [destinationPosition[0] - egoball.x, destinationPosition[1] - egoball.y, destinationPosition[2] - egoball.z]
-        dist = self.VectorLength(warpDirection)
-        if dist:
-            distanceText = '<center>' + localization.GetByLabel('UI/Inflight/ActiveItem/SelectedItemDistance', distToItem=util.FmtDist(dist))
-            if actualDestinationPosition is None:
-                text = localization.GetByLabel('UI/Inflight/Messages/WarpIndicatorWithDistanceAndBubble', warpDestination=centeredDestText, distance=distanceText)
+            ballPark = sm.GetService('michelle').GetBallpark()
+            if not ballPark:
+                self.LogWarn('Space::IndicateWarp: Trying to indicate warp without a ballpark?')
+                return (None, None)
+            centeredDestText = '<center>' + getattr(self, 'warpDestText', '')
+            text = centeredDestText
+            egoball = ballPark.GetBall(ballPark.ego)
+            if actualDestinationPosition is not None:
+                warpDirection = [actualDestinationPosition[0] - egoball.x, actualDestinationPosition[1] - egoball.y, actualDestinationPosition[2] - egoball.z]
             else:
-                text = localization.GetByLabel('UI/Inflight/Messages/WarpIndicatorWithDistance', warpDestination=centeredDestText, distance=distanceText)
-        self.LogInfo('Space::IndicateWarp', text)
-        return (localization.GetByLabel('UI/Inflight/Messages/WarpDriveActive'), text)
+                warpDirection = [destinationPosition[0] - egoball.x, destinationPosition[1] - egoball.y, destinationPosition[2] - egoball.z]
+            dist = self.VectorLength(warpDirection)
+            if dist:
+                distanceText = '<center>' + localization.GetByLabel('UI/Inflight/ActiveItem/SelectedItemDistance', distToItem=util.FmtDist(dist))
+                if actualDestinationPosition is None:
+                    text = localization.GetByLabel('UI/Inflight/Messages/WarpIndicatorWithDistanceAndBubble', warpDestination=centeredDestText, distance=distanceText)
+                else:
+                    text = localization.GetByLabel('UI/Inflight/Messages/WarpIndicatorWithDistance', warpDestination=centeredDestText, distance=distanceText)
+            self.LogInfo('Space::IndicateWarp', text)
+            return (localization.GetByLabel('UI/Inflight/Messages/WarpDriveActive'), text)
 
     def Indicate_thread(self, *args):
         indicateProperties = self.GetHUDActionIndicateProperties()
@@ -587,42 +649,47 @@ class SpaceMgr(service.Service):
             wasDisplayed = self.UpdateHUDActionIndicator(storeText=False)
             if wasDisplayed:
                 self.indicateProperties = indicateProperties
+        return
 
     def GetHUDActionIndicateProperties(self, *args):
         ballpark = sm.GetService('michelle').GetBallpark()
         if not ballpark:
             return
-        ball = ballpark.GetBall(ballpark.ego)
-        if ball is None:
-            return
-        if ball.mode == destiny.DSTBALL_STOP:
-            speed = ball.GetVectorDotAt(blue.os.GetSimTime()).Length()
         else:
-            speed = None
-        alignTargetID, aligningToBookmark = sm.GetService('menu').GetLastAlignTarget()
-        return (ball.followId,
-         ball.mode,
-         ball.followRange,
-         alignTargetID or aligningToBookmark,
-         speed)
+            ball = ballpark.GetBall(ballpark.ego)
+            if ball is None:
+                return
+            if ball.mode == destiny.DSTBALL_STOP:
+                speed = ball.GetVectorDotAt(blue.os.GetSimTime()).Length()
+            else:
+                speed = None
+            alignTargetID, aligningToBookmark = sm.GetService('menu').GetLastAlignTarget()
+            return (ball.followId,
+             ball.mode,
+             ball.followRange,
+             alignTargetID or aligningToBookmark,
+             speed)
 
-    def UpdateHUDActionIndicator(self, storeText = False, *args):
+    def UpdateHUDActionIndicator(self, storeText=False, *args):
         header, subText = self.GetHeaderAndSubtextFromBall()
         if header is not None and subText is not None:
             return self.IndicateAction(header, subText, storeText=storeText)
-        if not self.setIndicationText:
-            self.ClearIndicateText()
+        else:
+            if not self.setIndicationText:
+                self.ClearIndicateText()
+            return
 
     def GetHeaderAndSubtextFromBall(self, *args):
         ballpark = sm.GetService('michelle').GetBallpark()
         if not ballpark:
             return (None, None)
-        ball = ballpark.GetBall(ballpark.ego)
-        if ball is None:
-            return (None, None)
-        return self.GetHeaderAndSubtextForActionIndication(ball.mode, ball.followId, ball.followRange, ball=ball)
+        else:
+            ball = ballpark.GetBall(ballpark.ego)
+            if ball is None:
+                return (None, None)
+            return self.GetHeaderAndSubtextForActionIndication(ball.mode, ball.followId, ball.followRange, ball=ball)
 
-    def GetHeaderAndSubtextForActionIndication(self, ballMode, followId, followRange, ball = None, *args):
+    def GetHeaderAndSubtextForActionIndication(self, ballMode, followId, followRange, ball=None, *args):
         headerText = None
         subText = None
         if ballMode != destiny.DSTBALL_GOTO and ball is not None:
@@ -683,11 +750,13 @@ class SpaceMgr(service.Service):
         blue.pyos.synchro.SleepWallclock(2000)
         if self.setIndicationText is None:
             return
-        if self.setIndicationText == (header, subText):
-            sm.GetService('space').ClearIndicateText()
-            sm.GetService('space').UpdateHUDActionIndicator()
-            uicore.animations.SpColorMorphToWhite(self.caption, duration=0.2)
-            uicore.animations.SpColorMorphToWhite(self.indicationtext, duration=0.2)
+        else:
+            if self.setIndicationText == (header, subText):
+                sm.GetService('space').ClearIndicateText()
+                sm.GetService('space').UpdateHUDActionIndicator()
+                uicore.animations.SpColorMorphToWhite(self.caption, duration=0.2)
+                uicore.animations.SpColorMorphToWhite(self.indicationtext, duration=0.2)
+            return
 
     def ClearIndicateText(self, *args):
         self.indicateProperties = None
@@ -698,41 +767,44 @@ class SpaceMgr(service.Service):
             self.caption.display = False
             self.caption.text = ''
         self.setIndicationText = None
+        return
 
-    def IndicateAction(self, header = None, subText = None, storeText = True, *args):
+    def IndicateAction(self, header=None, subText=None, storeText=True, *args):
         if not storeText and self.setIndicationText or getattr(self, 'displayingShortcut', False):
             return False
-        if storeText:
-            self.setIndicationText = (header, subText)
-            self.indicateProperties = None
-        if header is None and subText is None:
-            if self.indicationtext is not None and not self.indicationtext.destroyed:
-                self.indicationtext.display = False
-            if self.caption is not None and not self.caption.destroyed:
-                self.caption.display = False
-            return False
-        if uicore.layer.shipui.sr.indicationContainer is None or uicore.layer.shipui.sr.indicationContainer.destroyed:
-            self.indicateProperties = None
-            return False
-        if self.indicationtext is None or self.indicationtext.destroyed or self.indicationtext.parent is None:
-            self.CreateIndicationTextsIfNeeded()
         else:
-            self.indicationtext.display = True
-            self.caption.display = True
-        self.indicationtext.text = '<center>' + subText
-        self.caption.text = header
-        if uicore.layer.shipui.sr.indicationContainer is None:
-            self.indicateProperties = None
-            return False
-        self.indicationtext.left = (uicore.layer.shipui.sr.indicationContainer.width - self.indicationtext.width) / 2
-        self.indicationtext.top = self.caption.top + self.caption.height
-        return True
+            if storeText:
+                self.setIndicationText = (header, subText)
+                self.indicateProperties = None
+            if header is None and subText is None:
+                if self.indicationtext is not None and not self.indicationtext.destroyed:
+                    self.indicationtext.display = False
+                if self.caption is not None and not self.caption.destroyed:
+                    self.caption.display = False
+                return False
+            if uicore.layer.shipui.sr.indicationContainer is None or uicore.layer.shipui.sr.indicationContainer.destroyed:
+                self.indicateProperties = None
+                return False
+            if self.indicationtext is None or self.indicationtext.destroyed or self.indicationtext.parent is None:
+                self.CreateIndicationTextsIfNeeded()
+            else:
+                self.indicationtext.display = True
+                self.caption.display = True
+            self.indicationtext.text = '<center>' + subText
+            self.caption.text = header
+            if uicore.layer.shipui.sr.indicationContainer is None:
+                self.indicateProperties = None
+                return False
+            self.indicationtext.left = (uicore.layer.shipui.sr.indicationContainer.width - self.indicationtext.width) / 2
+            self.indicationtext.top = self.caption.top + self.caption.height
+            return True
 
     def CreateIndicationTextsIfNeeded(self, *args):
         if self.indicationtext is None or self.indicationtext.destroyed:
             self.indicationtext = uicontrols.EveLabelMedium(parent=uicore.layer.shipui.sr.indicationContainer, name='indicationtext2', text='', align=uiconst.TOPLEFT, width=400, state=uiconst.UI_DISABLED)
         if self.caption is None or self.caption.destroyed:
             self.caption = uicontrols.CaptionLabel(text='', parent=uicore.layer.shipui.sr.indicationContainer, align=uiconst.CENTERTOP, state=uiconst.UI_DISABLED, top=1)
+        return
 
     def OnShipUIReset(self, *args):
         self.indicateProperties = None
@@ -740,8 +812,9 @@ class SpaceMgr(service.Service):
             self.indicationtext.Close()
         if self.caption:
             self.caption.Close()
+        return
 
-    def ChangeHUDActionVisiblity(self, doDisplay = True):
+    def ChangeHUDActionVisiblity(self, doDisplay=True):
         if doDisplay:
             if self.indicationtext:
                 self.indicationtext.display = True
@@ -753,42 +826,46 @@ class SpaceMgr(service.Service):
             if self.caption:
                 self.caption.display = False
 
-    def SetShortcutText(self, headerText, text, delayMs = 0, *args):
+    def SetShortcutText(self, headerText, text, delayMs=0, *args):
         if uicore.layer.shipui.sr.indicationContainer is None or uicore.layer.shipui.sr.indicationContainer.destroyed:
             self.shortcutText = None
             self.shortcutSubText = None
             return
-        if self.shortcutText is None or self.shortcutText.destroyed:
-            self.shortcutText = uicontrols.CaptionLabel(text='', parent=uicore.layer.shipui.sr.indicationContainer, align=uiconst.CENTERTOP, state=uiconst.UI_DISABLED, top=1)
         else:
-            self.shortcutText.display = True
-        if self.shortcutSubText is None or self.shortcutSubText.destroyed:
-            self.shortcutSubText = uicontrols.EveLabelMedium(parent=uicore.layer.shipui.sr.indicationContainer, name='shortcutSubText', text='', align=uiconst.CENTERTOP, width=400, state=uiconst.UI_DISABLED, top=-20)
-        else:
-            self.shortcutSubText.display = True
-            self.shortcutSubText.SetAlpha(1.0)
-        self.shortcutText.text = headerText
-        self.shortcutSubText.text = text
-        self.shortcutSubText.left = (uicore.layer.shipui.sr.indicationContainer.width - self.shortcutSubText.width) / 2
-        self.shortcutSubText.top = self.shortcutText.top + self.shortcutText.height
-        self.displayingShortcut = True
-        if delayMs:
-            uthread.new(self._DelayShowShortcutMsg, delayMs)
-        else:
-            self.ChangeHUDActionVisiblity(doDisplay=False)
+            if self.shortcutText is None or self.shortcutText.destroyed:
+                self.shortcutText = uicontrols.CaptionLabel(text='', parent=uicore.layer.shipui.sr.indicationContainer, align=uiconst.CENTERTOP, state=uiconst.UI_DISABLED, top=1)
+            else:
+                self.shortcutText.display = True
+            if self.shortcutSubText is None or self.shortcutSubText.destroyed:
+                self.shortcutSubText = uicontrols.EveLabelMedium(parent=uicore.layer.shipui.sr.indicationContainer, name='shortcutSubText', text='', align=uiconst.CENTERTOP, width=400, state=uiconst.UI_DISABLED, top=-20)
+            else:
+                self.shortcutSubText.display = True
+                self.shortcutSubText.SetAlpha(1.0)
+            self.shortcutText.text = headerText
+            self.shortcutSubText.text = text
+            self.shortcutSubText.left = (uicore.layer.shipui.sr.indicationContainer.width - self.shortcutSubText.width) / 2
+            self.shortcutSubText.top = self.shortcutText.top + self.shortcutText.height
+            self.displayingShortcut = True
+            if delayMs:
+                uthread.new(self._DelayShowShortcutMsg, delayMs)
+            else:
+                self.ChangeHUDActionVisiblity(doDisplay=False)
+            return
 
     def _DelayShowShortcutMsg(self, delayMs):
         if self.shortcutSubText is None or self.shortcutSubText.destroyed:
             return
-        self.shortcutSubText.SetAlpha(0.0)
-        self.shortcutText.SetAlpha(0.0)
-        blue.pyos.synchro.SleepWallclock(delayMs)
-        if self.displayingShortcut:
-            self.ChangeHUDActionVisiblity(doDisplay=False)
-        if self.shortcutSubText:
-            self.shortcutSubText.SetAlpha(1.0)
-        if self.shortcutText:
-            self.shortcutText.SetAlpha(1.0)
+        else:
+            self.shortcutSubText.SetAlpha(0.0)
+            self.shortcutText.SetAlpha(0.0)
+            blue.pyos.synchro.SleepWallclock(delayMs)
+            if self.displayingShortcut:
+                self.ChangeHUDActionVisiblity(doDisplay=False)
+            if self.shortcutSubText:
+                self.shortcutSubText.SetAlpha(1.0)
+            if self.shortcutText:
+                self.shortcutText.SetAlpha(1.0)
+            return
 
     def ClearShortcutText(self, *args):
         self.displayingShortcut = False
@@ -803,7 +880,8 @@ class SpaceMgr(service.Service):
     def GetHeader(self):
         if self.caption is None or self.caption.destroyed:
             return
-        return self.caption.text
+        else:
+            return self.caption.text
 
     def StopWarpIndication(self):
         self.LogNotice('StopWarpIndication', getattr(self, 'warpDestText', '-'), 'autopilot =', sm.GetService('autoPilot').GetState())
@@ -816,6 +894,7 @@ class SpaceMgr(service.Service):
         self.transmission.StopWarpIndication()
         if self.planetManager is not None:
             self.planetManager.StopPlanetPreloading()
+        return
 
     def KillIndicationTimer(self, guid):
         self.warpDestinationCache = [None,
@@ -826,8 +905,9 @@ class SpaceMgr(service.Service):
         if hasattr(self, guid):
             delattr(self, guid)
             self.ClearIndicateText()
+        return
 
-    def StartPartitionDisplayTimer(self, boxsize = 7):
+    def StartPartitionDisplayTimer(self, boxsize=7):
         self.StopPartitionDisplayTimer()
         settings.user.ui.Set('partition_box_size', boxsize)
         self.partitionDisplayTimer = base.AutoTimer(50, self.UpdatePartitionDisplay)
@@ -835,6 +915,7 @@ class SpaceMgr(service.Service):
     def StopPartitionDisplayTimer(self):
         self.partitionDisplayTimer = None
         self.CleanPartitionDisplay()
+        return
 
     def UpdatePartitionDisplay(self):
         if getattr(self, 'partitionTF', None) is None:
@@ -847,47 +928,52 @@ class SpaceMgr(service.Service):
         if not ballpark:
             self.StopPartitionDisplayTimer()
             return
-        egoball = ballpark.GetBall(ballpark.ego)
-        if allboxes == 1:
-            boxRange = range(boxRange, 8)
         else:
-            boxRange = [boxRange]
-        numChildren = len(self.partitionTF.children)
-        count = [0]
+            egoball = ballpark.GetBall(ballpark.ego)
+            if allboxes == 1:
+                boxRange = range(boxRange, 8)
+            else:
+                boxRange = [boxRange]
+            numChildren = len(self.partitionTF.children)
+            count = [0]
 
-        def GetTransform():
-            if count[0] >= numChildren:
-                tf = blue.resMan.LoadObject('res:/model/global/partitionBox.red')
-                self.partitionTF.children.append(tf)
+            def GetTransform():
+                if count[0] >= numChildren:
+                    tf = blue.resMan.LoadObject('res:/model/global/partitionBox.red')
+                    self.partitionTF.children.append(tf)
+                    count[0] += 1
+                    return tf
+                tf = self.partitionTF.children[count[0]]
                 count[0] += 1
                 return tf
-            tf = self.partitionTF.children[count[0]]
-            count[0] += 1
-            return tf
 
-        for boxSize in boxRange:
-            boxes = ballpark.GetActiveBoxes(boxSize)
-            width, coords = boxes
-            if not boxes:
-                continue
-            for x, y, z in coords:
-                tf = GetTransform()
-                x = x - egoball.x + width / 2
-                y = y - egoball.y + width / 2
-                z = z - egoball.z + width / 2
-                tf.scaling = (width, width, width)
-                tf.translation = (x, y, z)
+            for boxSize in boxRange:
+                boxes = ballpark.GetActiveBoxes(boxSize)
+                width, coords = boxes
+                if not boxes:
+                    continue
+                for x, y, z in coords:
+                    tf = GetTransform()
+                    x = x - egoball.x + width / 2
+                    y = y - egoball.y + width / 2
+                    z = z - egoball.z + width / 2
+                    tf.scaling = (width, width, width)
+                    tf.translation = (x, y, z)
 
-        while count[0] < numChildren:
-            numChildren -= 1
-            self.partitionTF.children.removeAt(numChildren)
+            while count[0] < numChildren:
+                numChildren -= 1
+                self.partitionTF.children.removeAt(numChildren)
+
+            return
 
     def CleanPartitionDisplay(self):
         if getattr(self, 'partitionTF', None) is None:
             return
-        scene = sm.GetService('sceneManager').GetRegisteredScene('default')
-        scene.objects.fremove(self.partitionTF)
-        self.partitionTF = None
+        else:
+            scene = sm.GetService('sceneManager').GetRegisteredScene('default')
+            scene.objects.fremove(self.partitionTF)
+            self.partitionTF = None
+            return
 
     def GetNebulaTextureForType(self, nebulaType):
         sceneName = cfg.graphics.Get(nebulaType).graphicFile
@@ -906,6 +992,7 @@ class PlanetManager():
         self.format = trinity.PIXEL_FORMAT.B8G8R8A8_UNORM
         self.maxSize = 2048
         self.maxSizeLimit = 2048
+        return
 
     def Release(self):
         self.planets = []
@@ -917,6 +1004,7 @@ class PlanetManager():
         planet = self.GetPlanet(planet.id)
         if planet is not None:
             self.planets.remove(planet)
+        return
 
     def DoPlanetPreprocessing(self, planet, size):
         self.processingList.append((planet, size))
@@ -924,6 +1012,7 @@ class PlanetManager():
             if self.worker.alive:
                 return
         self.worker = uthread.new(self.PreProcessAll)
+        return
 
     def CreateRenderTarget(self):
         textureQuality = gfxsettings.Get(gfxsettings.GFX_TEXTURE_QUALITY)
@@ -948,10 +1037,14 @@ class PlanetManager():
                 size = self.maxSizeLimit
             planet.DoPreProcessEffect(size, self.format, self.renderTarget)
 
+        return
+
     def GetPlanet(self, ballid):
         for planet in self.planets:
             if planet.id == ballid:
                 return planet
+
+        return None
 
     def StopPlanetPreloading(self):
         for planet in self.planets:
@@ -962,9 +1055,10 @@ class PlanetManager():
         c1 = geo2.Vec3Dot(v, w)
         if c1 <= 0:
             return None
-        if c2 <= c1:
+        elif c2 <= c1:
             return geo2.Vec3Distance(p, p1)
-        return geo2.Vec3Distance(p, geo2.Vec3Add(p0, geo2.Vec3Scale(v, c1 / c2)))
+        else:
+            return geo2.Vec3Distance(p, geo2.Vec3Add(p0, geo2.Vec3Scale(v, c1 / c2)))
 
     def CheckPlanetPreloadingOnWarp(self, destinationWarpPoint):
         uthread.new(self._CheckPlanetPreloadingOnWarp, destinationWarpPoint)
@@ -973,21 +1067,24 @@ class PlanetManager():
         ballpark = sm.GetService('michelle').GetBallpark()
         if ballpark is None:
             return
-        shipBall = ballpark.GetBall(eve.session.shipid)
-        if shipBall is None:
+        else:
+            shipBall = ballpark.GetBall(eve.session.shipid)
+            if shipBall is None:
+                return
+            p1 = destinationWarpPoint
+            p0 = (shipBall.x, shipBall.y, shipBall.z)
+            v = geo2.Vec3Subtract(p1, p0)
+            c2 = geo2.Vec3Dot(v, v)
+            for planet in self.planets:
+                blue.pyos.BeNice()
+                planetBall = ballpark.GetBall(planet.id)
+                if planetBall is not None:
+                    p = (planetBall.x, planetBall.y, planetBall.z)
+                    distance = self.DistanceFromSegment(p, p0, p1, v, c2)
+                    if distance is not None:
+                        planet.PrepareForWarp(distance, destinationWarpPoint)
+
             return
-        p1 = destinationWarpPoint
-        p0 = (shipBall.x, shipBall.y, shipBall.z)
-        v = geo2.Vec3Subtract(p1, p0)
-        c2 = geo2.Vec3Dot(v, v)
-        for planet in self.planets:
-            blue.pyos.BeNice()
-            planetBall = ballpark.GetBall(planet.id)
-            if planetBall is not None:
-                p = (planetBall.x, planetBall.y, planetBall.z)
-                distance = self.DistanceFromSegment(p, p0, p1, v, c2)
-                if distance is not None:
-                    planet.PrepareForWarp(distance, destinationWarpPoint)
 
 
 space = SpaceMgr

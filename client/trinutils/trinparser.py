@@ -1,9 +1,10 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\packages\trinutils\trinparser.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\packages\trinutils\trinparser.py
 import blue
 import trinity
 import yamlext
 
-def DictToTrinityParser(trinityrecipe, persistedAttributesOnly = True):
+def DictToTrinityParser(trinityrecipe, persistedAttributesOnly=True):
     dr = blue.DictReader()
     dr.persistedAttributesOnly = persistedAttributesOnly
     result = dr.CreateObject(trinityrecipe)

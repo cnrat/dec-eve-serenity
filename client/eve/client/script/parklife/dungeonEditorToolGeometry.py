@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\client\script\parklife\dungeonEditorToolGeometry.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\client\script\parklife\dungeonEditorToolGeometry.py
 import geo2
 import trinity
 import math
@@ -97,7 +98,7 @@ def GenBoxTriangles():
     return triangles
 
 
-def GenCubeTriangles(size = 0.075):
+def GenCubeTriangles(size=0.075):
     points = [(-size, -size, size),
      (size, -size, size),
      (-size, size, size),
@@ -159,7 +160,7 @@ def GenConeTriangles():
     return triangles
 
 
-def GenCirclePoints(radius, subd = 20):
+def GenCirclePoints(radius, subd=20):
     pi = math.pi
     rad = pi / (subd / 2.0)
     lines = []
@@ -170,7 +171,7 @@ def GenCirclePoints(radius, subd = 20):
     return lines
 
 
-def GenCircleTriangles(radius, subd = 20):
+def GenCircleTriangles(radius, subd=20):
     pi = math.pi
     rad = pi / (subd / 2.0)
     triangles = []
@@ -183,7 +184,7 @@ def GenCircleTriangles(radius, subd = 20):
     return triangles
 
 
-def GenLightSpikes(radius, subd = 8):
+def GenLightSpikes(radius, subd=8):
     pi = math.pi
     rad = pi / (subd / 2.0)
     lines = []
@@ -284,7 +285,7 @@ def GetSolidAroundLines(poslist, width):
 
 class basearea(object):
 
-    def __init__(self, name, color = (0.0, 0.0, 0.0, 1.0), primitiveScene = None):
+    def __init__(self, name, color=(0.0, 0.0, 0.0, 1.0), primitiveScene=None):
         object.__init__(self)
         self.name = name
         self._color = color
@@ -299,7 +300,9 @@ class basearea(object):
             for each in iter(self.primitives):
                 self.primitiveScene.primitives.fremove(each)
 
-    def SetSourceObject(self, obj, attr, call = None):
+        return
+
+    def SetSourceObject(self, obj, attr, call=None):
         for each in iter(self.valuebindings):
             each.sourceAttribute = attr
             each.sourceObject = obj
@@ -318,6 +321,7 @@ class basearea(object):
                     self.primitiveScene.primitives.fremove(each)
 
         self._display = val
+        return
 
     def GetDisplay(self):
         return self._display
@@ -342,7 +346,7 @@ class basearea(object):
 
 class area(basearea):
 
-    def __init__(self, name, color = (0.0, 0.0, 0.0, 1.0), scaleByDistance = True, viewOriented = False, primitiveScene = None):
+    def __init__(self, name, color=(0.0, 0.0, 0.0, 1.0), scaleByDistance=True, viewOriented=False, primitiveScene=None):
         basearea.__init__(self, name, color, primitiveScene)
         self._lineset = trinity.Tr2LineSet()
         self._lineset.scaleByDistanceToView = scaleByDistance
@@ -412,7 +416,7 @@ class area(basearea):
 
         self._lineset.SubmitChanges()
 
-    def AddToLineSet(self, poslist, genPickingGeo = False):
+    def AddToLineSet(self, poslist, genPickingGeo=False):
         if len(poslist) % 2 != 0:
             raise RuntimeError('The number of points must be a multiple of 2')
         for i in xrange(0, len(poslist), 2):
@@ -490,6 +494,8 @@ class geometry(object):
         for each in self.areas:
             if each.name == name:
                 return each
+
+        return None
 
     def SetArea(self, name, area):
         found = False

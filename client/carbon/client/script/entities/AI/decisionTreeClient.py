@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\carbon\client\script\entities\AI\decisionTreeClient.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\carbon\client\script\entities\AI\decisionTreeClient.py
 import GameWorld
 import zaction
 from carbon.common.script.entities.AI.decisionCommon import DecisionTreeCommon as decisionTreeCommon
@@ -34,5 +35,7 @@ class DecisionTreeClient(decisionTreeCommon):
     def PrepareComponent(self, sceneID, entityID, component):
         if component.rootIDs[const.ai.DECISION_BRAIN_INDEX] == None:
             return
-        component.instances[const.ai.DECISION_BRAIN_INDEX] = GameWorld.DecisionTreeInstance(entityID, const.ztree.GENERATE_TREE_INSTANCE_ID)
-        component.rootIDs[const.ai.DECISION_BRAIN_INDEX] = int(component.rootIDs[const.ai.DECISION_BRAIN_INDEX])
+        else:
+            component.instances[const.ai.DECISION_BRAIN_INDEX] = GameWorld.DecisionTreeInstance(entityID, const.ztree.GENERATE_TREE_INSTANCE_ID)
+            component.rootIDs[const.ai.DECISION_BRAIN_INDEX] = int(component.rootIDs[const.ai.DECISION_BRAIN_INDEX])
+            return

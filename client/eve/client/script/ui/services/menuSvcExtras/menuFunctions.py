@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\client\script\ui\services\menuSvcExtras\menuFunctions.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\client\script\ui\services\menuSvcExtras\menuFunctions.py
 import sys
 import types
 import evetypes
@@ -107,7 +108,7 @@ def FindDist(currentDist, bookmark, ownBall, bp):
     return dist
 
 
-def AddToQuickBar(typeID, parent = 0):
+def AddToQuickBar(typeID, parent=0):
     sm.GetService('marketutils').AddTypeToQuickBar(typeID, parent)
 
 
@@ -126,17 +127,18 @@ def RemoveFromQuickBar(node):
         del current[toDelete]
     settings.user.ui.Set('quickbar', current)
     sm.ScatterEvent('OnMarketQuickbarChange')
+    return
 
 
-def TryLookAt(itemID, radius = None):
+def TryLookAt(itemID, radius=None):
     slimItem = uix.GetBallparkRecord(itemID)
     isSiteBall = sm.GetService('sensorSuite').IsSiteBall(itemID)
     if not slimItem and not isSiteBall:
         return
-    sm.GetService('sceneManager').GetActiveCamera().LookAt(itemID, radius=radius)
+    sm.GetService('sceneManager').GetActiveCamera().LookAt(itemID, objRadius=radius)
 
 
-def ToggleLookAt(itemID, radius = None):
+def ToggleLookAt(itemID, radius=None):
     bp = sm.GetService('michelle').GetBallpark()
     if bp:
         ball = bp.GetBall(session.shipid)
@@ -153,9 +155,11 @@ def AbandonLoot(wreckID):
         allowedGroup = localPark.slimItems[wreckID].groupID
     if eve.Message('ConfirmAbandonLoot', {'type': (const.UE_GROUPID, allowedGroup)}, uiconst.YESNO, suppress=uiconst.ID_YES) != uiconst.ID_YES:
         return
-    remotePark = sm.GetService('michelle').GetRemotePark()
-    if remotePark is not None:
-        remotePark.CmdAbandonLoot([wreckID])
+    else:
+        remotePark = sm.GetService('michelle').GetRemotePark()
+        if remotePark is not None:
+            remotePark.CmdAbandonLoot([wreckID])
+        return
 
 
 def AbandonAllLoot(wreckID):
@@ -164,20 +168,22 @@ def AbandonAllLoot(wreckID):
     remotePark = twit.GetRemotePark()
     if remotePark is None:
         return
-    wrecks = []
-    allowedGroup = None
-    if wreckID in localPark.slimItems:
-        allowedGroup = localPark.slimItems[wreckID].groupID
-    if eve.Message('ConfirmAbandonLootAll', {'type': (const.UE_GROUPID, allowedGroup)}, uiconst.YESNO, suppress=uiconst.ID_YES) != uiconst.ID_YES:
-        return
-    bp = sm.GetService('michelle').GetBallpark()
-    for itemID, slimItem in localPark.slimItems.iteritems():
-        if slimItem.groupID == allowedGroup:
-            if bp.HaveLootRight(itemID) and not bp.IsAbandoned(itemID):
-                wrecks.append(itemID)
+    else:
+        wrecks = []
+        allowedGroup = None
+        if wreckID in localPark.slimItems:
+            allowedGroup = localPark.slimItems[wreckID].groupID
+        if eve.Message('ConfirmAbandonLootAll', {'type': (const.UE_GROUPID, allowedGroup)}, uiconst.YESNO, suppress=uiconst.ID_YES) != uiconst.ID_YES:
+            return
+        bp = sm.GetService('michelle').GetBallpark()
+        for itemID, slimItem in localPark.slimItems.iteritems():
+            if slimItem.groupID == allowedGroup:
+                if bp.HaveLootRight(itemID) and not bp.IsAbandoned(itemID):
+                    wrecks.append(itemID)
 
-    if remotePark is not None:
-        remotePark.CmdAbandonLoot(wrecks)
+        if remotePark is not None:
+            remotePark.CmdAbandonLoot(wrecks)
+        return
 
 
 def Eject():
@@ -190,6 +196,7 @@ def Eject():
                 log.LogNotice('Ejecting from ship', session.shipid)
                 sm.ScatterEvent('OnBeforeActiveShipChanged', None, util.GetActiveShip())
                 sm.StartService('sessionMgr').PerformSessionChange('eject', ship.Eject)
+    return
 
 
 def Board(itemID):
@@ -221,7 +228,7 @@ def SafeLogoff():
         eve.Message('CustomNotify', {'notify': '<br>'.join([localization.GetByLabel('UI/Inflight/SafeLogoff/ConditionsFailedHeader')] + [ localization.GetByLabel(error) for error in failedConditions ])})
 
 
-def AskNewContainerPassword(invCacheSvc, id_, desc, which = 1, setnew = '', setold = ''):
+def AskNewContainerPassword(invCacheSvc, id_, desc, which=1, setnew='', setold=''):
     container = invCacheSvc.GetInventoryFromId(id_)
     wndFormat = []
     if container.HasExistingPasswordSet(which):
@@ -259,6 +266,7 @@ def AskNewContainerPassword(invCacheSvc, id_, desc, which = 1, setnew = '', seto
             eve.Message('NewPasswordMismatch')
             return AskNewContainerPassword(id_, desc, which, new, old)
         container.SetPassword(which, old, new)
+    return
 
 
 def ConfigureALSC(itemID, invCacheSvc):
@@ -305,13 +313,15 @@ def ConfigureALSC(itemID, invCacheSvc):
     retval = uix.HybridWnd(formFormat, localization.GetByLabel('UI/Menusvc/ContainerConfigurationHeader'), 1, None, uiconst.OKCANCEL, unresizeAble=1, minW=300)
     if retval is None:
         return
-    settings.user.ui.Delete('defaultContainerLock_%s' % itemID)
-    newconfig = 0
-    for k, v in retval.iteritems():
-        newconfig |= k * v
+    else:
+        settings.user.ui.Delete('defaultContainerLock_%s' % itemID)
+        newconfig = 0
+        for k, v in retval.iteritems():
+            newconfig |= k * v
 
-    if config != newconfig:
-        container.ALSCConfigSet(newconfig)
+        if config != newconfig:
+            container.ALSCConfigSet(newconfig)
+        return
 
 
 def RetrievePasswordALSC(itemID, invCacheSvc):
@@ -336,7 +346,9 @@ def RetrievePasswordALSC(itemID, invCacheSvc):
     retval = uix.HybridWnd(formFormat, localization.GetByLabel('UI/Commands/RetrievePassword'), 1, None, uiconst.OKCANCEL)
     if retval is None:
         return
-    container.RetrievePassword(retval['which_password'])
+    else:
+        container.RetrievePassword(retval['which_password'])
+        return
 
 
 def SetName(invOrSlimItem, invCacheSvc):
@@ -353,7 +365,7 @@ def SetName(invOrSlimItem, invCacheSvc):
         categoryID = evetypes.GetCategoryID(invOrSlimItem.typeID)
         if categoryID == const.categoryShip:
             maxLength = 20
-        elif categoryID == const.categoryStarbase:
+        elif categoryID in (const.categoryStarbase, const.categoryStructure):
             maxLength = 32
         nameRet = uiutil.NamePopup(localization.GetByLabel('UI/Menusvc/SetName'), localization.GetByLabel('UI/Menusvc/TypeInNewName'), setvalue=setval, maxLength=maxLength)
         if nameRet:
@@ -464,6 +476,7 @@ def DeclareWarAgainst(againstID):
     if eve.Message(messageName, {'against': cfg.eveowners.Get(againstID).ownerName,
      'price': util.FmtISK(cost, showFractionsAlways=0)}, uiconst.YESNO) == uiconst.ID_YES:
         svc.DeclareWarAgainst(againstID, cost)
+    return
 
 
 def TransferOwnership(itemID):
@@ -473,20 +486,22 @@ def TransferOwnership(itemID):
     localPark = twit.GetBallpark()
     if itemID not in localPark.slimItems:
         return
-    oldOwnerID = localPark.slimItems[itemID].ownerID
-    owners = {member.corporationID for member in members.itervalues()}
-    if len(owners):
-        cfg.eveowners.Prime(owners)
-    tmplist = []
-    for member in members.itervalues():
-        if oldOwnerID != member.corporationID:
-            tmplist.append((cfg.eveowners.Get(member.corporationID).ownerName, member.corporationID))
+    else:
+        oldOwnerID = localPark.slimItems[itemID].ownerID
+        owners = {member.corporationID for member in members.itervalues()}
+        if len(owners):
+            cfg.eveowners.Prime(owners)
+        tmplist = []
+        for member in members.itervalues():
+            if oldOwnerID != member.corporationID:
+                tmplist.append((cfg.eveowners.Get(member.corporationID).ownerName, member.corporationID))
 
-    ret = uix.ListWnd(tmplist, 'generic', localization.GetByLabel('UI/Corporations/Common/SelectCorporation'), None, 1)
-    if ret is not None and len(ret):
-        newOwnerID = ret[1]
-        if remotePark is not None:
-            remotePark.CmdChangeStructureOwner(itemID, oldOwnerID, newOwnerID)
+        ret = uix.ListWnd(tmplist, 'generic', localization.GetByLabel('UI/Corporations/Common/SelectCorporation'), None, 1)
+        if ret is not None and len(ret):
+            newOwnerID = ret[1]
+            if remotePark is not None:
+                remotePark.CmdChangeStructureOwner(itemID, oldOwnerID, newOwnerID)
+        return
 
 
 def AbortSelfDestructStructure(itemID):
@@ -498,6 +513,7 @@ def AbortSelfDestructStructure(itemID):
         remotePark = michelle.GetRemotePark()
         if remotePark is not None:
             remotePark.CmdAbortSelfDestructStructure(itemID)
+    return
 
 
 def SelfDestructStructure(itemID):
@@ -512,6 +528,7 @@ def SelfDestructStructure(itemID):
         remotePark = michelle.GetRemotePark()
         if remotePark is not None:
             remotePark.CmdSelfDestructStructure(itemID)
+    return
 
 
 def TransferCorporationOwnership(itemID):
@@ -520,11 +537,13 @@ def TransferCorporationOwnership(itemID):
     localPark = michelle.GetBallpark()
     if itemID not in localPark.slimItems or remotePark is None:
         return
-    oldOwnerID = localPark.slimItems[itemID].ownerID
-    name = uiutil.NamePopup(localization.GetByLabel('UI/Corporations/Common/TransferOwnership'), localization.GetByLabel('UI/Corporations/Common/TransferOwnershipLabel'))
-    if name is None:
+    else:
+        oldOwnerID = localPark.slimItems[itemID].ownerID
+        name = uiutil.NamePopup(localization.GetByLabel('UI/Corporations/Common/TransferOwnership'), localization.GetByLabel('UI/Corporations/Common/TransferOwnershipLabel'))
+        if name is None:
+            return
+        owner = uix.SearchOwners(searchStr=name, groupIDs=[const.groupCorporation], hideNPC=True, notifyOneMatch=True, searchWndName='AddToBlockSearch')
+        if owner is None or owner == oldOwnerID:
+            return
+        remotePark.CmdChangeStructureOwner(itemID, oldOwnerID, owner)
         return
-    owner = uix.SearchOwners(searchStr=name, groupIDs=[const.groupCorporation], hideNPC=True, notifyOneMatch=True, searchWndName='AddToBlockSearch')
-    if owner is None or owner == oldOwnerID:
-        return
-    remotePark.CmdChangeStructureOwner(itemID, oldOwnerID, owner)

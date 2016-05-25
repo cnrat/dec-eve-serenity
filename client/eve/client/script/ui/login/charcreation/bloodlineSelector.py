@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\client\script\ui\login\charcreation\bloodlineSelector.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\client\script\ui\login\charcreation\bloodlineSelector.py
 import GameWorld
 import os
 import paperDoll as PD
@@ -28,62 +29,65 @@ class BloodlineSelector(object):
         self.lineUp = []
         self.scene = scene
         self.currentSelection = None
+        return
 
-    def LoadRace(self, raceID, callBack = None):
+    def LoadRace(self, raceID, callBack=None):
         if self.race == raceID:
             return
-        if self.race is not None:
-            self.TearDown()
-        self.currentSelection = None
-        self.SetLightScene(LIGHT_RIGS[raceID], self.scene)
-        factory = sm.GetService('character').factory
-        if raceID in RACE_PATHS_MAPPING:
-            self.race = raceID
-            for bloodline in RACE_PATHS_MAPPING[raceID]:
-                female = PD.PaperDollCharacter.ImportCharacter(factory, self.scene, bloodline[0][0])
-                male = PD.PaperDollCharacter.ImportCharacter(factory, self.scene, bloodline[0][1])
-                self.lineUp.append(self.Platform((female, male), bloodline[1], bloodline[2]))
-
         else:
-            log.LogError('raceID ' + raceID + ' not valid')
-            return
-        remotefilecache.prefetch_folder(os.path.dirname(MORPHEME_NETWORK))
-        for platform in self.lineUp:
-            for i, each in enumerate(platform.pair):
-                animation = GameWorld.GWAnimation(MORPHEME_NETWORK)
-                if animation.network is not None:
-                    animation.network.SetAnimationSetIndex(i)
-                    animation.network.SetControlParameter('ControlParameters|NetworkMode', 0)
-                    animation.network.SetControlParameter('ControlParameters|BloodlinePoseNumber', platform.poseID)
-                    each.avatar.animationUpdater = animation
-
-            platform.Deactivate()
-
-        self.PositionLineUp()
-        for each in self.lineUp:
-            if each.position[0] < -0.5:
-                for light in self.scene.lights:
-                    if light.name == 'FrontMain1':
-                        each.lightCurve.bindings[0].destinationObject = light
-                        self.scene.curveSets.append(each.lightCurve)
-
-            elif each.position[0] > 0.5:
-                for light in self.scene.lights:
-                    if light.name == 'FrontMain3':
-                        each.lightCurve.bindings[0].destinationObject = light
-                        self.scene.curveSets.append(each.lightCurve)
+            if self.race is not None:
+                self.TearDown()
+            self.currentSelection = None
+            self.SetLightScene(LIGHT_RIGS[raceID], self.scene)
+            factory = sm.GetService('character').factory
+            if raceID in RACE_PATHS_MAPPING:
+                self.race = raceID
+                for bloodline in RACE_PATHS_MAPPING[raceID]:
+                    female = PD.PaperDollCharacter.ImportCharacter(factory, self.scene, bloodline[0][0])
+                    male = PD.PaperDollCharacter.ImportCharacter(factory, self.scene, bloodline[0][1])
+                    self.lineUp.append(self.Platform((female, male), bloodline[1], bloodline[2]))
 
             else:
-                for light in self.scene.lights:
-                    if light.name == 'FrontMain2':
-                        each.lightCurve.bindings[0].destinationObject = light
-                        self.scene.curveSets.append(each.lightCurve)
+                log.LogError('raceID ' + raceID + ' not valid')
+                return
+            remotefilecache.prefetch_folder(os.path.dirname(MORPHEME_NETWORK))
+            for platform in self.lineUp:
+                for i, each in enumerate(platform.pair):
+                    animation = GameWorld.GWAnimation(MORPHEME_NETWORK)
+                    if animation.network is not None:
+                        animation.network.SetAnimationSetIndex(i)
+                        animation.network.SetControlParameter('ControlParameters|NetworkMode', 0)
+                        animation.network.SetControlParameter('ControlParameters|BloodlinePoseNumber', platform.poseID)
+                        each.avatar.animationUpdater = animation
 
-        if callBack is not None:
-            blue.resMan.Wait()
-            callBack()
+                platform.Deactivate()
 
-    def SetLightScene(self, lightPath, scene = None):
+            self.PositionLineUp()
+            for each in self.lineUp:
+                if each.position[0] < -0.5:
+                    for light in self.scene.lights:
+                        if light.name == 'FrontMain1':
+                            each.lightCurve.bindings[0].destinationObject = light
+                            self.scene.curveSets.append(each.lightCurve)
+
+                elif each.position[0] > 0.5:
+                    for light in self.scene.lights:
+                        if light.name == 'FrontMain3':
+                            each.lightCurve.bindings[0].destinationObject = light
+                            self.scene.curveSets.append(each.lightCurve)
+
+                else:
+                    for light in self.scene.lights:
+                        if light.name == 'FrontMain2':
+                            each.lightCurve.bindings[0].destinationObject = light
+                            self.scene.curveSets.append(each.lightCurve)
+
+            if callBack is not None:
+                blue.resMan.Wait()
+                callBack()
+            return
+
+    def SetLightScene(self, lightPath, scene=None):
         scene = scene or self.scene
         lightScene = trinity.Load(lightPath)
         if scene:
@@ -99,6 +103,7 @@ class BloodlineSelector(object):
 
             if paperDoll.SkinSpotLightShadows.instance is not None:
                 paperDoll.SkinSpotLightShadows.instance.RefreshLights()
+        return
 
     def PositionLineUp(self):
         if len(self.lineUp) != 3:
@@ -161,27 +166,29 @@ class BloodlineSelector(object):
     def TearDown(self):
         self.race = None
         self.lineUp = []
+        return
 
     def GetProjectedPosition(self, bloodlineID, genderID, camera):
         if camera is None:
             return
-        avatar = None
-        camera.Update()
-        for platform in self.lineUp:
-            if platform.bloodlineID == bloodlineID:
-                if genderID is None:
-                    position = geo2.Add(platform.position, (0.0, 2.0, 0.0))
-                    return camera.ProjectPoint(position)
-                for i, each in enumerate(platform.pair):
-                    if i == genderID:
-                        avatar = each.avatar
+        else:
+            avatar = None
+            camera.Update()
+            for platform in self.lineUp:
+                if platform.bloodlineID == bloodlineID:
+                    if genderID is None:
+                        position = geo2.Add(platform.position, (0.0, 2.0, 0.0))
+                        return camera.ProjectPoint(position)
+                    for i, each in enumerate(platform.pair):
+                        if i == genderID:
+                            avatar = each.avatar
 
-        if avatar == None:
-            log.LogError('Could not get the projected head position for character with bloodlineID %s and genderID %s', (bloodlineID, genderID))
-            return (0, 0)
-        index = avatar.GetBoneIndex('Head')
-        position = avatar.GetBonePosition(index)
-        return camera.ProjectPoint(position)
+            if avatar == None:
+                log.LogError('Could not get the projected head position for character with bloodlineID %s and genderID %s', (bloodlineID, genderID))
+                return (0, 0)
+            index = avatar.GetBoneIndex('Head')
+            position = avatar.GetBonePosition(index)
+            return camera.ProjectPoint(position)
 
     class Platform(object):
 

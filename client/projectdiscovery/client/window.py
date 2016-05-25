@@ -1,34 +1,33 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\packages\projectdiscovery\client\window.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\packages\projectdiscovery\client\window.py
+import logging
 import math
 import blue
+import carbonui.const as uiconst
 import const
+import localization
 import uicls
-import uthread
-import trinity
-import listentry
-import datetime
-import logging
 import uicontrols
 import uiprimitives
-import localization
-import carbonui.const as uiconst
-from utillib import KeyVal
-from carbonui.primitives.fill import Fill
-from carbonui.uianimations import animations
+import uthread
 from carbon.common.script.util.format import FmtAmt
-from projectdiscovery.common.const import xpNeededForRank
-from eve.client.script.ui.control.eveScroll import Scroll
+from carbonui.primitives.base import ScaleDpi
+from carbonui.uianimations import animations
+from eve.client.script.ui.control import themeColored
 from eve.client.script.ui.control.eveWindow import Window
-from projectdiscovery.client.util.tutorial import Tutorial
-from eve.client.script.ui.control.eveLabel import EveLabelLargeBold
-from projectdiscovery.client.util.eventlistener import eventlistener, on_event
-from projectdiscovery.client.projects.subcellular.trainingphase import TrainingPhase
 from eve.client.script.ui.tooltips.tooltipUtil import SetTooltipHeaderAndDescription
+from projectdiscovery.client.const import Events
 from projectdiscovery.client.projects.subcellular.subcellularatlas import SubcellularAtlas
+from projectdiscovery.client.projects.subcellular.tutorial import Tutorial
+from projectdiscovery.client.util.dialogue import Dialogue
+from projectdiscovery.client.util.eventlistener import eventlistener, on_event
+from projectdiscovery.client.util.tutorialtooltips import TutorialTooltips
+from projectdiscovery.client.util.util import calculate_score_bar_length
+from projectdiscovery.common.const import INITIAL_PLAYER_SCORE, PLAYER_NOT_IN_DATABASE_ERROR_CODE
+from projectdiscovery.common.exceptions import NoConnectionToAPIError, MissingKeyError
 logger = logging.getLogger(__name__)
 
 @eventlistener()
-
 class ProjectDiscoveryWindow(Window):
     __guid__ = 'ProjectDiscoveryWindow'
     default_captionLabelPath = 'UI/Industry/Industry'
@@ -39,9 +38,8 @@ class ProjectDiscoveryWindow(Window):
     default_topParentHeight = 0
     default_isStackable = False
     default_isCollapseable = False
-    default_minSize = (875, 565)
-    default_fixedWidth = 875
-    default_fixedHeight = 565
+    default_minSize = (900, 600)
+    default_maxSize = (1250, 785)
 
     @on_event('OnWindowClosed')
     def on_window_closed(self, wndID, wndCaption, wndGUID):
@@ -54,14 +52,27 @@ class ProjectDiscoveryWindow(Window):
         sm.GetService('audio').SendUIEvent(const.Sounds.MainImageLoopStop)
         sm.GetService('audio').SendUIEvent(const.Sounds.MainImageLoadStop)
         sm.GetService('audio').SendUIEvent(const.Sounds.RewardsWindowLoopStop)
+        self._minimize_tutorial_tooltips()
+
+    def _minimize_tutorial_tooltips(self):
+        if self.tutorial_tooltips is not None:
+            self.tutorial_tooltips.hide_tooltip()
+        return
 
     @on_event('OnWindowMaximized')
     def on_window_maximized(self, wnd, wasMinimized):
         sm.GetService('audio').SendUIEvent(const.Sounds.MainImageLoopPlay)
+        self._maximize_tutorial_tooltips()
+
+    def _maximize_tutorial_tooltips(self):
+        if self.tutorial_tooltips is not None:
+            self.tutorial_tooltips.show_tooltip()
+        return
 
     @on_event('OnProjectDiscoveryHeaderDragged')
     def on_drag_header(self):
-        self._BeginDrag()
+        if not self.IsLocked():
+            self._BeginDrag()
 
     @on_event('OnProjectDiscoveryMouseDownOnHeader')
     def on_mouse_down_header(self):
@@ -75,66 +86,72 @@ class ProjectDiscoveryWindow(Window):
     def on_mouse_exit_header(self):
         uicore.uilib.SetCursor(uiconst.UICURSOR_POINTER)
 
+    def OnResizeUpdate(self, *args):
+        scale = self.get_scale()
+        self.resize_background(scale)
+        sm.ScatterEvent('OnProjectDiscoveryResized', scale)
+
+    def get_scale(self):
+        scale = self.width / float(self.default_minSize[0])
+        if self.width > self.height * (self.default_minSize[0] / float(self.default_minSize[1])):
+            scale = self.height / float(self.default_minSize[1])
+        return scale
+
+    def resize_background(self, scale):
+        self.project_container.SetSize(self.original_project_width * scale, self.original_project_height * scale)
+        self.gridBackground.SetSize(self.width, self.height)
+        self.gridBackground.scale = (2 * (1 / scale), 2 * (1 / scale))
+        self.gridBackground.scalingCenter = (0.5 * scale, 0.5)
+        self.result_background.SetSize(self.width, self.height)
+        self.result_background.scale = (2 * (1 / scale), 2 * (1 / scale))
+        self.result_background.scalingCenter = (0.5 * scale, 0.5)
+
+    def OnEndScale_(self, wnd, *args):
+        sm.ScatterEvent('OnProjectDiscoveryEndResize')
+
+    def OnStartScale_(self, wnd, *args):
+        sm.ScatterEvent('OnProjectDiscoveryStartResize')
+
     def ApplyAttributes(self, attributes):
         super(ProjectDiscoveryWindow, self).ApplyAttributes(attributes)
+        self.main = self.GetMainArea()
         self.isTraining = False
-        self.isSubHistoryOpen = False
         self.projectdiscoverySvc = sm.RemoteSvc('ProjectDiscovery')
         settings.char.ui.Set('loadStatisticsAfterSubmission', False)
-        self.training = None
-        self.project = None
         self.tutorial = None
-        self.oldScrollList = []
+        self.project = None
+        self.tutorial_tooltips = None
         self.playerState = self.projectdiscoverySvc.get_player_state()
-        self.main = self.GetMainArea()
-        uthread.new(self.setup_layout)
-        uthread.new(self.show_background_grid)
-        uthread.new(self.animate_background)
+        self.player_statistics = None
+        try:
+            self.player_statistics = self.projectdiscoverySvc.player_statistics(get_history=True)
+        except (NoConnectionToAPIError, MissingKeyError):
+            self.show_connection_error_dialogue()
+
+        self.setup_layout()
+        if self.player_statistics:
+            uthread.new(self.load_project)
+        return
 
     def setup_layout(self):
         self.setup_side_panels()
-        self.dialogue_container = uiprimitives.Container(name='dialogue_container', parent=self.main)
-        self.project_container = uiprimitives.Container(name='ProjectContainer', parent=self.main, align=uiconst.TOALL)
-        self.header = WindowHeader(parent=self.main.parent, align=uiconst.CENTERTOP, height=53, width=355, idx=0, top=2, bgTexturePath='res:/UI/Texture/classes/ProjectDiscovery/headerBG.png', playerState=self.playerState)
-        self.submissionHistoryContainer = uiprimitives.Container(name='submissionHistoryContainer', parent=self.project_container, width=270, align=uiconst.CENTERTOP, height=300, bgColor=(0, 0, 0, 0.8), opacity=0, top=-45, state=uiconst.UI_HIDDEN)
-        uicontrols.Frame(parent=self.submissionHistoryContainer, color=(0.31, 0.31, 0.31, 1))
-        EveLabelLargeBold(name='submissionHistoryLabel', parent=self.submissionHistoryContainer, align=uiconst.CENTERTOP, fontSize=24, text=localization.GetByLabel('UI/ProjectDiscovery/SubmissionHistoryLabel'), top=10)
-        self.submissionHistoryScroll = Scroll(name='submissionHistoryScroll', parent=self.submissionHistoryContainer, align=uiconst.CENTERTOP, id='submissionHistoryScrollID', width=250, height=250, bgColor=(0, 0, 0, 0.8), top=35)
-        self.help_button = uicontrols.ButtonIcon(name='helpButton', parent=self.project_container, align=uiconst.BOTTOMLEFT, iconSize=22, width=22, height=22, texturePath='res:/UI/Texture/WindowIcons/question.png', func=lambda : self.start_tutorial())
+        self.bottom_container = uiprimitives.Container(name='bottom_container', parent=self.sr.main, align=uiconst.TOBOTTOM, height=50)
+        self.project_container = uiprimitives.Container(name='ProjectContainer', parent=self.main, align=uiconst.TOPLEFT, height=self.default_minSize[1], width=self.default_minSize[0], top=-20)
+        self.original_project_height = self.project_container.height
+        self.original_project_width = self.project_container.width
+        self.show_background_grid()
+        self.header = WindowHeader(parent=self.main.parent, align=uiconst.CENTERTOP, height=53, width=355, idx=0, top=2, bgTexturePath='res:/UI/Texture/classes/ProjectDiscovery/headerBG.png', playerState=self.playerState, playerStatistics=self.player_statistics)
+        self.help_button = uicontrols.ButtonIcon(name='helpButton', parent=self.bottom_container, align=uiconst.BOTTOMLEFT, iconSize=22, width=22, height=22, texturePath='res:/UI/Texture/WindowIcons/question.png', func=lambda : self.start_tutorial())
         SetTooltipHeaderAndDescription(targetObject=self.help_button, headerText='', descriptionText=localization.GetByLabel('UI/ProjectDiscovery/HelpTutorialTooltip'))
-        uthread.new(self.load_project)
+        uthread.new(self.animate_background)
 
     def setup_side_panels(self):
         uiprimitives.Sprite(parent=self.main, align=uiconst.CENTERRIGHT, width=14, height=416, top=-20, texturePath='res:/UI/Texture/classes/ProjectDiscovery/sideElement.png')
         uiprimitives.Sprite(parent=uiprimitives.Transform(parent=self.main, align=uiconst.CENTERLEFT, width=14, height=416, top=-20, rotation=math.pi), align=uiconst.TOLEFT_NOPUSH, width=14, height=416, texturePath='res:/UI/Texture/classes/ProjectDiscovery/sideElement.png')
 
-    def hide_submission_history(self):
-        self.submissionHistoryContainer.state = uiconst.UI_HIDDEN
-
-    def enable_submission_history_button(self):
-        self.header.submissionHistoryButton.state = uiconst.UI_NORMAL
-
-    def disable_submission_history_button(self):
-        self.header.submissionHistoryButton.state = uiconst.UI_DISABLED
-
-    def toggle_submission_history(self):
-        if not self.isSubHistoryOpen:
-            self.submissionHistoryContainer.state = uiconst.UI_NORMAL
-            self.disable_submission_history_button()
-            animations.MoveOutBottom(self.submissionHistoryContainer, amount=60, duration=0.85, curveType=uiconst.ANIM_OVERSHOT, callback=self.enable_submission_history_button)
-            animations.FadeIn(self.submissionHistoryContainer, duration=0.5)
-            self.isSubHistoryOpen = not self.isSubHistoryOpen
-        else:
-            self.disable_submission_history_button()
-            animations.MoveOutTop(self.submissionHistoryContainer, amount=60, duration=0.5, callback=self.enable_submission_history_button)
-            animations.FadeOut(self.submissionHistoryContainer, duration=0.3, callback=self.hide_submission_history)
-            self.isSubHistoryOpen = not self.isSubHistoryOpen
-            return
-        scroll_list = self.header.get_scroll_content()
-        if len(scroll_list) > len(self.oldScrollList):
-            self.oldScrollList = scroll_list
-            self.submissionHistoryScroll.Load(contentList=scroll_list, headers=(localization.GetByLabel('UI/ProjectDiscovery/SubmissionHistoryHeaderLabel1'), localization.GetByLabel('UI/ProjectDiscovery/SubmissionHistoryHeaderLabel2')), fixedEntryHeight=30)
-        self.header.submissionHistoryButton.SetTexturePath('res:/UI/Texture/classes/ProjectDiscovery/iconSubmissionsEmpty.png')
+    @on_event(const.Events.NoConnectionToAPI)
+    def show_connection_error_dialogue(self):
+        self.dialogue = Dialogue(name='ConnectionErrorDialogue', parent=self.main, align=uiconst.CENTER, width=450, height=150, messageText=localization.GetByLabel('UI/ProjectDiscovery/ConnectionErrorDialogueMessage'), messageHeaderText=localization.GetByLabel('UI/ProjectDiscovery/ConnectionErrorDialogueHeader'), label=localization.GetByLabel('UI/ProjectDiscovery/NotificationHeader'), buttonLabel=localization.GetByLabel('UI/ProjectDiscovery/CloseProjectDiscoveryButtonLabel'), onCloseEvent=Events.CloseWindow)
 
     def load_project(self):
         if not self.playerState.finishedTutorial:
@@ -142,62 +159,80 @@ class ProjectDiscoveryWindow(Window):
         else:
             uthread.new(self.start_project, False)
 
-    @on_event(const.Events.ProjectDiscoveryStarted)
+    @on_event(Events.ProjectDiscoveryStarted)
     def start_project(self, show_dialogue):
-        if self.training:
-            self.training.close()
-            self.isTraining = False
-        self.project = SubcellularAtlas(parent=self.project_container, playerState=self.playerState)
+        self._clear_tutorial_and_project()
+        if self.destroyed:
+            return
+        self.help_button.Enable()
+        self.project = SubcellularAtlas(parent=self.project_container, playerState=self.playerState, starting_scale=self.get_scale())
         self.project.start(show_dialogue)
 
     def start_tutorial(self):
-        if self.project:
-            self.project.result_window.Close()
-            self.project.rewards_view.Close()
-            self.project.processing_view.Close()
-            self.project.Close()
-            self.project = None
-        if self.isTraining:
+        self._clear_tutorial_and_project()
+        if self.destroyed:
             return
-        self.training = TrainingPhase(parent=self.project_container, playerState=self.playerState)
+        if self.isTraining:
+            self.start_tutorial_tooltips()
+            return
         self.isTraining = True
-        self.training.start()
-
-    @on_event(const.Events.StartTutorial)
-    def play_ui_help(self):
-        if not self.tutorial:
-            self.tutorial = Tutorial()
-            if self.isTraining:
-                self.tutorial.add_steps(self.training.get_tutorial_steps())
-            else:
-                self.tutorial.add_steps(self.project.get_tutorial_steps())
-            self.tutorial.add_steps(self.get_tutorial_steps())
+        self.help_button.Disable()
+        self.tutorial = Tutorial(parent=self.project_container, playerState=self.playerState, starting_scale=self.get_scale())
         self.tutorial.start()
 
-    @on_event(const.Events.QuitTutorial)
-    def close_tutorial(self):
-        self.tutorial = None
+    def _clear_tutorial_and_project(self):
+        self._clear_tutorial()
+        self._clear_project()
 
-    def get_tutorial_steps(self):
+    def _clear_tutorial(self):
+        if self.tutorial:
+            self.tutorial.close()
+            self.isTraining = False
+            self.tutorial = None
+        return
+
+    def _clear_project(self):
+        if self.project:
+            self.project.close()
+            self.project = None
+        return
+
+    @on_event(Events.StartTutorial)
+    def start_tutorial_tooltips(self):
+        if self.destroyed:
+            return
+        self.help_button.Enable()
+        if not self.tutorial_tooltips:
+            self.tutorial_tooltips = TutorialTooltips()
+            if self.isTraining:
+                self.tutorial_tooltips.add_steps(self.tutorial.get_tutorial_tooltip_steps())
+            else:
+                self.tutorial_tooltips.add_steps(self.project.get_tutorial_tooltip_steps())
+            self.tutorial_tooltips.add_steps(self.get_tutorial_tooltip_steps())
+        self.tutorial_tooltips.start()
+
+    @on_event(Events.QuitTutorialTooltips)
+    def close_tutorial_tooltips(self):
+        self.tutorial_tooltips = None
+        return
+
+    def get_tutorial_tooltip_steps(self):
         return [{'owner': self.header.rankIcon,
           'header': localization.GetByLabel('UI/ProjectDiscovery/Subcellular/Tutorial/RankIconHeader'),
-          'text': localization.GetByLabel('UI/ProjectDiscovery/Subcellular/Tutorial/RankIconText')},
-         {'owner': self.header.accuracyRatingContainer,
+          'text': localization.GetByLabel('UI/ProjectDiscovery/Subcellular/Tutorial/RankIconText')}, {'owner': self.header.accuracyRatingContainer,
           'header': localization.GetByLabel('UI/ProjectDiscovery/Subcellular/Tutorial/AccuracyRatingHeader'),
-          'text': localization.GetByLabel('UI/ProjectDiscovery/Subcellular/Tutorial/AccuracyRatingText')},
-         {'owner': self.header.submissionHistoryButton,
-          'header': localization.GetByLabel('UI/ProjectDiscovery/Subcellular/Tutorial/SubmissionHistoryHeader'),
-          'text': localization.GetByLabel('UI/ProjectDiscovery/Subcellular/Tutorial/SubmissionHistoryText')},
-         {'owner': self.help_button,
+          'text': localization.GetByLabel('UI/ProjectDiscovery/Subcellular/Tutorial/AccuracyRatingText')}, {'owner': self.help_button,
           'header': localization.GetByLabel('UI/ProjectDiscovery/Subcellular/Tutorial/FooterButtonsHeader'),
           'text': localization.GetByLabel('UI/ProjectDiscovery/Subcellular/Tutorial/FooterButtonsText')}]
 
     def show_background_grid(self):
-        self.gridContainer = uiprimitives.Container(name='gridContainer', parent=self.main, align=uiconst.TOALL, clipChildren=True)
-        self.gridBackground = uiprimitives.Sprite(name='gridBackground', parent=self.gridContainer, align=uiconst.CENTER, pos=(0, 0, 874, 610), textureSecondaryPath='res:/UI/Texture/classes/ProjectDiscovery/gradient.png', texturePath='res:/UI/Texture/classes/ProjectDiscovery/hexFieldBackground.png', spriteEffect=trinity.TR2_SFX_MODULATE, top=-10)
-        self.result_background = uiprimitives.Sprite(name='gridBackgroundResult', parent=self.gridContainer, align=uiconst.CENTER, pos=(0, 0, 874, 610), textureSecondaryPath='res:/UI/Texture/classes/ProjectDiscovery/gradient.png', texturePath='res:/UI/Texture/classes/ProjectDiscovery/hexFieldBackgroundResults.png', spriteEffect=trinity.TR2_SFX_MODULATE, opacity=0, top=-10)
-        self.fill = Fill(name='backgroundFill', align=uiconst.TOALL, parent=self.main, color=(0.0, 0.0, 0.0, 0.5), padTop=-20, padLeft=2, padRight=2, padBottom=2)
-        self.fillResult = Fill(name='backgroundFillResult', align=uiconst.TOALL, parent=self.main, color=(0.14, 0.21, 0.21, 0.5), padTop=-20, padLeft=2, padRight=2, padBottom=2, opacity=0)
+        self.gridContainer = uiprimitives.Container(name='gridContainer', parent=self.main, align=uiconst.TOALL, clipChildren=True, padBottom=-49)
+        self.background_shade = uiprimitives.Sprite(name='background_shade', parent=self.gridContainer, align=uiconst.TOALL, texturePath='res:/UI/Texture/classes/ProjectDiscovery/backgroundShade.png', padTop=-20, padLeft=2, padRight=2, padBottom=0, opacity=0.5)
+        self.gridBackground = uiprimitives.Sprite(name='gridBackground', parent=self.gridContainer, align=uiconst.TOPLEFT, texturePath='res:/UI/Texture/classes/ProjectDiscovery/hexBGTile.png', tileX=True, tileY=True, scale=(2, 2))
+        self.gridBackground.scalingCenter = (0.4, 0.5)
+        self.result_background = themeColored.SpriteThemeColored(name='gridBackgroundResult', parent=self.gridContainer, align=uiconst.TOPLEFT, texturePath='res:/UI/Texture/classes/ProjectDiscovery/hexBGTileResults.png', opacity=0, tileX=True, tileY=True)
+        self.result_background.scalingCenter = (0.4, 0.5)
+        self.fill = themeColored.FillThemeColored(name='backgroundFill', align=uiconst.TOALL, parent=self.main, padTop=-20, padLeft=2, padRight=2, padBottom=-50, opacity=1)
 
     def animate_background(self):
         animations.FadeTo(self.gridBackground, duration=1, curveType=uiconst.ANIM_OVERSHOT5)
@@ -206,23 +241,36 @@ class ProjectDiscoveryWindow(Window):
         self.gridContainer.Flush()
         self.gridContainer.Close()
 
-    @on_event(const.Events.ResultReceived)
+    @on_event(Events.PercentageCountFinished)
     def animate_result_background_in(self):
         animations.FadeOut(self.gridBackground, duration=0.5)
-        animations.FadeIn(self.result_background, duration=1, curveType=uiconst.ANIM_OVERSHOT5)
+        animations.FadeIn(self.result_background, duration=1, curveType=uiconst.ANIM_OVERSHOT5, endVal=1.5)
 
-    @on_event(const.Events.ContinueFromReward)
+    @on_event(Events.ContinueFromReward)
     def animate_normal_background(self):
         animations.FadeOut(self.result_background, duration=0.5)
         animations.FadeIn(self.gridBackground, duration=1, curveType=uiconst.ANIM_OVERSHOT5)
 
-    @on_event(const.Events.ContinueFromTrainingResult)
+    @on_event(Events.ContinueFromTrainingResult)
     def animate_training_background(self):
         self.animate_normal_background()
 
+    @on_event(Events.UpdateAnalysisKredits)
+    def on_analysis_kredits_update(self):
+        player_state = self.projectdiscoverySvc.get_player_state()
+        self.header.update_analysis_kredits(player_state)
+
+    @on_event(Events.RestartWindow)
+    def restart_window(self):
+        self.CloseByUser()
+        uicore.cmd.ToggleProjectDiscovery()
+
+    @on_event(Events.CloseWindow)
+    def close_window(self):
+        self.CloseByUser()
+
 
 @eventlistener()
-
 class WindowHeader(uiprimitives.Container):
     default_state = uiconst.UI_HIDDEN
 
@@ -230,30 +278,30 @@ class WindowHeader(uiprimitives.Container):
         super(WindowHeader, self).ApplyAttributes(attributes)
         self.pdService = sm.RemoteSvc('ProjectDiscovery')
         self.playerState = attributes.get('playerState')
+        self.player_statistics = attributes.get('playerStatistics')
         self.experience = self.playerState.experience
         self.rank = self.playerState.rank
-        self.totalNeededExperience = xpNeededForRank[self.rank + 1]
+        self.total_xp_needed_for_next_rank = self.pdService.get_total_needed_xp(self.rank + 1)
+        self.total_xp_needed_for_current_rank = self.pdService.get_total_needed_xp(self.rank)
         self.full_needle_rotation = -4.7
         self.setup_layout()
-        self.oldScoreBarLength = self.calculate_score_bar_length()
-        self.oldUnscoredSubmissionsCount = 0
-        self.submissionHistory = []
-        if self.playerState.finishedTutorial and not settings.char.ui.Get('loadStatisticsAfterSubmission'):
-            self.update_header()
+        self.score = 0
+        self.needle_Rotation = self.score * self.full_needle_rotation
         self.state = uiconst.UI_NORMAL
+        self.update_header()
 
     def setup_layout(self):
         self.headerContainer = uiprimitives.Container(name='headerContainer', parent=self, align=uiconst.CENTERTOP, height=34, width=230)
         self.scoreBarContainer = uiprimitives.Container(name='scoreBarContainer', parent=self, align=uiconst.CENTERBOTTOM, height=8, width=self.headerContainer.width - 10, bgColor=(0.62, 0.54, 0.53, 0.26), top=10)
-        self.scoreBarLength = self.scoreBarContainer.width - 10
+        self._initialize_score_bar_length()
         self.scoreBar = uicls.VectorLine(name='scoreBar', parent=self.scoreBarContainer, align=uiconst.CENTERLEFT, translationFrom=(0, 0), translationTo=(self.calculate_score_bar_length(), 0), colorFrom=(1.0, 1.0, 1.0, 0.95), colorTo=(1.0, 1.0, 1.0, 0.95), widthFrom=3, widthTo=3, left=3)
-        uicls.VectorLine(name='emptyScoreBar', parent=self.scoreBarContainer, align=uiconst.CENTERLEFT, translationFrom=(0, 0), translationTo=(self.scoreBarContainer.width - 7, 0), colorFrom=(0.0, 0.0, 0.0, 0.75), colorTo=(0.0, 0.0, 0.0, 0.75), widthFrom=3, widthTo=3, left=5)
-        self.rankInfoContainer = uiprimitives.Container(name='rankInfoContainer', parent=self.headerContainer, align=uiconst.TOLEFT, width=75)
+        uicls.VectorLine(name='emptyScoreBar', parent=self.scoreBarContainer, align=uiconst.CENTERLEFT, translationFrom=(0, 0), translationTo=(self.scoreBarLength, 0), colorFrom=(0.0, 0.0, 0.0, 0.75), colorTo=(0.0, 0.0, 0.0, 0.75), widthFrom=3, widthTo=3, left=5)
+        self.rankInfoContainer = uiprimitives.Container(name='rankInfoContainer', parent=self.headerContainer, align=uiconst.TOLEFT, width=75, top=3)
         self.rankIcon = uiprimitives.Sprite(name='rankIcon', parent=self.rankInfoContainer, texturePath=self.get_rank_icon_path(), height=36, width=36, align=uiconst.TOLEFT, left=5)
-        SetTooltipHeaderAndDescription(targetObject=self.rankIcon, headerText='', descriptionText=localization.GetByLabel('UI/ProjectDiscovery/AnalystRankTooltip'))
+        SetTooltipHeaderAndDescription(targetObject=self.rankIcon, headerText=localization.GetByLabel('UI/ProjectDiscovery/AnalystRankTooltip'), descriptionText=localization.GetByLabel('UI/ProjectDiscovery/AnalysisKreditsLabel') + ': ' + str(FmtAmt(self.playerState.analysisKredits)))
         self.rankLabel = uicontrols.Label(parent=self.rankInfoContainer, fontsize=16, text=self.rank, align=uiconst.CENTERLEFT, height=20, left=40)
-        self.accuracyRatingContainer = uiprimitives.Container(name='accuracyRatingContainer', parent=self.headerContainer, align=uiconst.TOLEFT, width=70)
-        self.accuracyRatingIconContainer = uiprimitives.Container(name='accuracyRatingIconContainer', parent=self.accuracyRatingContainer, height=32, width=32, align=uiconst.CENTERLEFT, left=40, bgTexturePath='res:/UI/Texture/classes/ProjectDiscovery/accuracyMeterBack.png')
+        self.accuracyRatingContainer = uiprimitives.Container(name='accuracyRatingContainer', parent=self.headerContainer, align=uiconst.TORIGHT, width=75, left=5, top=3)
+        self.accuracyRatingIconContainer = uiprimitives.Container(name='accuracyRatingIconContainer', parent=self.accuracyRatingContainer, height=32, width=32, align=uiconst.CENTER, left=20, bgTexturePath='res:/UI/Texture/classes/ProjectDiscovery/accuracyMeterBack.png')
         self.emptySprite = uiprimitives.Sprite(name='emptySprite', parent=self.accuracyRatingIconContainer, width=32, height=32, align=uiconst.CENTER)
         SetTooltipHeaderAndDescription(targetObject=self.emptySprite, headerText='', descriptionText=localization.GetByLabel('UI/ProjectDiscovery/AccuracyRatingTooltip'))
         self.accuracyNeedleIconContainer = uiprimitives.Transform(parent=self.accuracyRatingIconContainer, height=32, width=32, align=uiconst.TORIGHT, rotation=0)
@@ -261,11 +309,11 @@ class WindowHeader(uiprimitives.Container):
         self.accuracyArcFill = uicls.Polygon(parent=self.accuracyRatingIconContainer, align=uiconst.CENTER)
         self.accuracyArcFill.MakeArc(radius=0, outerRadius=10, fromDeg=-225.0, toDeg=-225.0, outerColor=(1.0, 1.0, 0, 0.7), innerColor=(1.0, 1.0, 0, 0.7))
         self.accuracyRatingLabel = uicontrols.Label(name='AccuracyRating', parent=self.accuracyRatingContainer, fontsize=16, text='00,0%', align=uiconst.CENTERLEFT, autoFitToText=True, height=20)
-        self.submissionHistoryContainer = uiprimitives.Container(name='submissionHistoryContainer', parent=self.headerContainer, align=uiconst.TORIGHT, width=75)
-        self.submissionHistoryButton = uicontrols.ButtonIcon(name='submissionHistoryButton', parent=self.submissionHistoryContainer, align=uiconst.CENTERRIGHT, width=36, height=36, iconSize=36, texturePath='res:/UI/Texture/classes/ProjectDiscovery/iconSubmissionsEmpty.png', func=self.toggle_submission_history, iconColor=(1, 1, 1, 1))
-        SetTooltipHeaderAndDescription(targetObject=self.submissionHistoryButton, headerText='', descriptionText=localization.GetByLabel('UI/ProjectDiscovery/SubmissionHistoryTooltip'))
-        self.unscoredSubmissionsLabel = uicontrols.Label(name='submissionLabel', parent=self.submissionHistoryContainer, fontsize=16, text='0', align=uiconst.CENTERRIGHT, autoFitToText=True, height=20, left=35)
         self.state = uiconst.UI_NORMAL
+
+    def _initialize_score_bar_length(self):
+        self.scoreBarLength = self.scoreBarContainer.width - 10
+        self.oldScoreBarLength = self.calculate_score_bar_length()
 
     def OnMouseDownDrag(self, *args):
         sm.ScatterEvent('OnProjectDiscoveryHeaderDragged')
@@ -279,17 +327,14 @@ class WindowHeader(uiprimitives.Container):
     def OnMouseExit(self, *args):
         sm.ScatterEvent('OnProjectDiscoveryMouseExitHeader')
 
-    def toggle_submission_history(self):
-        self.parent.parent.toggle_submission_history()
-
     def get_player_statistics(self, get_history):
-        return self.pdService.player_statistics(get_history)
+        statistics = None
+        try:
+            statistics = self.pdService.player_statistics(get_history)
+        except (NoConnectionToAPIError, MissingKeyError):
+            sm.ScatterEvent(const.Events.NoConnectionToAPI)
 
-    def check_submission_count(self):
-        if self.unscored_submissions_count < self.oldUnscoredSubmissionsCount:
-            self.submissionHistoryButton.SetTexturePath('res:/UI/Texture/classes/ProjectDiscovery/iconSubmissionsNew.png')
-        self.oldUnscoredSubmissionsCount = self.unscored_submissions_count
-        self.unscoredSubmissionsLabel.SetText(FmtAmt(self.unscored_submissions_count))
+        return statistics
 
     def update_accuracy_rating_text(self):
         self.accuracyRatingLabel.SetText(str(FmtAmt(self.score * 100, showFraction=1) + '%'))
@@ -300,42 +345,46 @@ class WindowHeader(uiprimitives.Container):
 
     @on_event('OnUpdateHeader')
     def update_header(self):
-        self.player_Statistics = self.get_player_statistics(True)
-        if 'message' in self.player_Statistics:
-            logger.error(self.player_Statistics)
-            if 'code' in self.player_Statistics:
-                if self.player_Statistics['code'] == 103010:
-                    self.score = 0.5
-                    self.needle_Rotation = self.score * self.full_needle_rotation
-        else:
-            self.unscored_submissions_count = self.player_Statistics['projects'][0]['classificationCountUnscored']
-            self.score = self.player_Statistics['projects'][0]['score']
-            self.needle_Rotation = self.score * self.full_needle_rotation
-            self.submissionHistory = self.player_Statistics['projects'][0]['history']
-            self.check_submission_count()
-        self.update_accuracy_rating_text()
-        self.update_accuracy_meter()
+        if self.player_statistics:
+            if 'message' in self.player_statistics:
+                logger.warning('ProjectDiscovery::update_header::Unhandled message received from the API: %s' % self.player_statistics['message'])
+                if 'code' in self.player_statistics:
+                    if self.player_statistics['code'] == PLAYER_NOT_IN_DATABASE_ERROR_CODE:
+                        self.score = INITIAL_PLAYER_SCORE
+                        self.needle_Rotation = self.score * self.full_needle_rotation
+                        self.update_accuracy_rating_text()
+                        self.update_accuracy_meter()
+            else:
+                self.score = self.player_statistics['projects'][0]['score']
+                self.needle_Rotation = self.score * self.full_needle_rotation
+                self.update_accuracy_rating_text()
+                self.update_accuracy_meter()
 
-    @on_event(const.Events.CloseResult)
+    @on_event(Events.CloseResult)
     def on_result_closed(self, result):
         self.score = result['player']['score']
         self.needle_Rotation = self.score * self.full_needle_rotation
         self.update_accuracy_rating_text()
         self.update_accuracy_meter()
+        self.player_statistics = self.get_player_statistics(True)
         self.update_header()
 
-    @on_event(const.Events.UpdateScoreBar)
+    @on_event(Events.UpdateScoreBar)
     def on_score_bar_update(self, player_state):
         self.playerState = player_state
         self.rank = self.playerState.rank
-        self.totalNeededExperience = xpNeededForRank[self.rank + 1]
+        self.total_xp_needed_for_current_rank = self.pdService.get_total_needed_xp(self.rank)
+        self.total_xp_needed_for_next_rank = self.pdService.get_total_needed_xp(self.rank + 1)
         self.experience = self.playerState.experience
+        self.update_analysis_kredits(player_state)
         uthread.new(self.update_score_bar)
 
+    def update_analysis_kredits(self, player_state):
+        self.playerState = player_state
+        SetTooltipHeaderAndDescription(targetObject=self.rankIcon, headerText=localization.GetByLabel('UI/ProjectDiscovery/AnalystRankTooltip'), descriptionText=localization.GetByLabel('UI/ProjectDiscovery/AnalysisKreditsLabel') + ': ' + str(FmtAmt(self.playerState.analysisKredits)))
+
     def calculate_score_bar_length(self):
-        xp_needed_for_current_rank = xpNeededForRank[self.rank]
-        ratio = (self.experience - xp_needed_for_current_rank) / float(self.totalNeededExperience - xp_needed_for_current_rank)
-        return ratio * self.scoreBarLength
+        return calculate_score_bar_length(self.experience, self.total_xp_needed_for_current_rank, self.total_xp_needed_for_next_rank, self.scoreBarLength)
 
     def update_score_bar(self):
         new_score_bar_length = self.calculate_score_bar_length()
@@ -343,17 +392,18 @@ class WindowHeader(uiprimitives.Container):
         self.oldScoreBarLength = new_score_bar_length
         while counter >= new_score_bar_length:
             counter += 0.5
-            if counter >= self.scoreBarLength - 5:
+            if counter >= ScaleDpi(self.scoreBarLength - 5):
                 counter = -1
                 self.update_rank_values()
             else:
-                if self.scoreBar.renderObject.translationTo:
+                if self.scoreBar.renderObject:
                     self.scoreBar.renderObject.translationTo = (counter, 0)
                 blue.synchro.Sleep(1)
 
         while counter < new_score_bar_length:
             counter += 0.5
-            self.scoreBar.renderObject.translationTo = (counter, 0)
+            if self.scoreBar.renderObject:
+                self.scoreBar.renderObject.translationTo = (counter, 0)
             blue.synchro.Sleep(1)
 
         self.update_rank_values()
@@ -362,6 +412,8 @@ class WindowHeader(uiprimitives.Container):
         rank_band = int(math.ceil(float(self.rank) / 10 + 0.1))
         if rank_band < 1:
             rank_band = 1
+        elif rank_band > 11:
+            rank_band = 11
         return 'res:/UI/Texture/classes/ProjectDiscovery/rankIcon' + str(rank_band) + '.png'
 
     def update_rank_values(self):
@@ -370,51 +422,6 @@ class WindowHeader(uiprimitives.Container):
         self.rankLabel.SetText(self.rank)
         self.rankLabel.ResolveAutoSizing()
 
-    def get_scroll_content(self):
-        if not self.submissionHistory:
-            return []
-        entries = []
-        for i in self.submissionHistory:
-            red_state = False
-            green_state = False
-            if i['playerScoreChange'] is None:
-                value1 = datetime.datetime.strptime(i['createdAt'], '%Y-%m-%dT%H:%M:%S.%fZ')
-                value1 = value1.strftime('%Y-%m-%d %H:%M:%S')
-                value2 = localization.GetByLabel('UI/ProjectDiscovery/SubmissionHistoryPendingLabel')
-            else:
-                value1 = datetime.datetime.strptime(i['createdAt'], '%Y-%m-%dT%H:%M:%S.%fZ')
-                value1 = value1.strftime('%Y-%m-%d %H:%M:%S')
-                value2 = str(FmtAmt(i['playerScoreChange'] * 100, showFraction=4) + '%')
-                if i['playerScoreChange'] > 0:
-                    value2 = '+' + value2
-                    green_state = True
-                elif i['playerScoreChange'] < 0:
-                    red_state = True
-                else:
-                    value2 = localization.GetByLabel('UI/ProjectDiscovery/SubmissionHistoryNoChangeLabel')
-            data = KeyVal(label='%s<t>%s' % (value1, value2), redstate=red_state, greenstate=green_state)
-            entry = listentry.Get(decoClass=SubmissionHistoryEntry, data=data)
-            entries.append(entry)
-
-        return entries
-
-
-class SubmissionHistoryEntry(listentry.Generic):
-
-    def ApplyAttributes(self, attributes):
-        listentry.Generic.ApplyAttributes(self, attributes)
-        self.bgColor = Fill(bgParent=self)
-
-    def Load(self, *args, **kwds):
-        listentry.Generic.Load(self, *args, **kwds)
-        if args[0].redstate:
-            self.bgColor.color = (0.1607, 0.0705, 0.0745, 1)
-            self.bgColor.display = True
-        elif args[0].greenstate:
-            self.bgColor.color = (0.11, 0.129, 0.08, 1)
-            self.bgColor.display = True
-        else:
-            self.bgColor.display = False
-
-    def GetHeight(self, *args):
-        return 30
+    @on_event('OnUIScalingChange')
+    def update_score_bar_scale(self, change):
+        self.scoreBar.translationTo = (self.calculate_score_bar_length(), 0)

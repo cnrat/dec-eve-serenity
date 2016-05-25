@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\client\script\parklife\transmissionMgr.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\client\script\parklife\transmissionMgr.py
 import form
 import service
 import sys
@@ -22,6 +23,7 @@ class TransmissionSvc(service.Service):
     def Run(self, ms):
         service.Service.Run(self, ms)
         self.delayedTransmission = None
+        return
 
     def Stop(self, stream):
         service.Service.Stop(self)
@@ -32,7 +34,7 @@ class TransmissionSvc(service.Service):
             if each.name == 'telecom':
                 each.Close()
 
-    def OnIncomingTransmission(self, transmission, isAgentMission = 0, *args):
+    def OnIncomingTransmission(self, transmission, isAgentMission=0, *args):
         if transmission.header is not None:
             if isinstance(transmission.header, (int, long)):
                 transmission.header = localization.GetByMessageID(transmission.header)
@@ -43,6 +45,7 @@ class TransmissionSvc(service.Service):
             self.delayedTransmission = transmission
         else:
             self.ShowTransmission(transmission)
+        return
 
     def ShowTransmission(self, transmission):
         wnd = form.Telecom.Open(transmission=transmission)
@@ -58,6 +61,7 @@ class TransmissionSvc(service.Service):
         if self.delayedTransmission:
             self.ShowTransmission(self.delayedTransmission)
             self.delayedTransmission = None
+        return
 
     def OnIncomingAgentMessage(self, agentID, message):
         self.ShowAgentAlert(agentID, message)
@@ -122,6 +126,7 @@ class Telecom(uicontrols.Window):
                 self.DefineButtons(uiconst.OKCANCEL, okLabel=okLabel, okFunc=okFunc, cancelLabel=localization.GetByLabel('UI/Generic/Close'), cancelFunc=self.Close)
             else:
                 self.DefineButtons(uiconst.OK, okLabel=localization.GetByLabel('UI/Generic/Close'), okFunc=self.Close)
+        return
 
     def SetDestination(self, *args):
         sm.StartService('starmap').SetWaypoint(self.sr.solarSystemID, clearOtherWaypoints=True)
@@ -137,6 +142,7 @@ class Telecom(uicontrols.Window):
         if self.sr.instanceID is not None and bp is not None:
             bp.CmdWarpToStuff('epinstance', self.sr.instanceID)
         self.Close()
+        return
 
     def ShowMessage(self, header, text, icon):
         self.sr.header.text = header

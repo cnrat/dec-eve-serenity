@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\packages\carbonui\primitives\childrenlist.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\packages\carbonui\primitives\childrenlist.py
 from .base import Base
 import weakref
 
@@ -20,17 +21,19 @@ class PyChildrenList(object):
         if not isinstance(obj, Base):
             print 'Someone trying to add item which is not of correct type', obj
             return
-        owner = self.GetOwner()
-        if owner:
-            obj._parentRef = weakref.ref(owner)
-            if idx == -1 or idx is None:
-                self._childrenObjects.append(obj)
-                owner._AppendChildRO(obj)
-            else:
-                self._childrenObjects.insert(idx, obj)
-                owner._InsertChildRO(idx, obj)
-            obj.FlagAlignmentDirty()
-            return self
+        else:
+            owner = self.GetOwner()
+            if owner:
+                obj._parentRef = weakref.ref(owner)
+                if idx == -1 or idx is None:
+                    self._childrenObjects.append(obj)
+                    owner._AppendChildRO(obj)
+                else:
+                    self._childrenObjects.insert(idx, obj)
+                    owner._InsertChildRO(idx, obj)
+                obj.FlagAlignmentDirty()
+                return self
+            return
 
     def remove(self, obj):
         obj._parentRef = None

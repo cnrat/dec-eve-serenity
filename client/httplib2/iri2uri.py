@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\packages\httplib2\iri2uri.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\packages\httplib2\iri2uri.py
 __author__ = 'Joe Gregorio (joe@bitworking.org)'
 __copyright__ = 'Copyright 2006, Joe Gregorio'
 __contributors__ = []

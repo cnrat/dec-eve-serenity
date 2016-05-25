@@ -1,4 +1,6 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\client\script\ui\station\base.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\client\script\ui\station\base.py
+from eve.client.script.ui.station import stationServiceConst
 from eve.client.script.ui.station.askForUndock import IsOkToBoardWithModulesLackingSkills
 from eve.client.script.ui.station.assembleModularShip import AssembleShip
 from eveSpaceObject import spaceobjanimation
@@ -19,6 +21,7 @@ import uicls
 import carbonui.const as uiconst
 import localization
 from reprocessing.ui.reprocessingWnd import ReprocessingWnd
+from eve.client.script.ui.shared.dockedUI import ReloadLobbyWnd, GetLobbyClass
 
 class StationSvc(service.Service):
     __guid__ = 'svc.station'
@@ -31,7 +34,6 @@ class StationSvc(service.Service):
      'LoadSvc': [],
      'GiveHint': [],
      'ClearHint': [],
-     'GetStationServiceInfo': [],
      'StopAllStationServices': [],
      'CleanUp': [],
      'SelectShipDlg': [],
@@ -52,7 +54,7 @@ class StationSvc(service.Service):
      'OnActiveShipModelChange',
      'OnStanceActive']
 
-    def Run(self, memStream = None):
+    def Run(self, memStream=None):
         self.LogInfo('Starting Station Service')
         self.CleanUp(clearGuestList=True)
 
@@ -69,6 +71,7 @@ class StationSvc(service.Service):
                 self.GetServiceStates(1)
             else:
                 self.serviceItemsState = None
+        return
 
     def ProcessStationServiceItemChange(self, stationID, solarSystemID, serviceID, stationServiceItemID, isEnabled):
         self.GetServiceStates()
@@ -78,7 +81,7 @@ class StationSvc(service.Service):
             state.isEnabled = isEnabled
         sm.ScatterEvent('OnProcessStationServiceItemChange', stationID, solarSystemID, serviceID, stationServiceItemID, isEnabled)
 
-    def GetServiceStates(self, force = 0):
+    def GetServiceStates(self, force=0):
         if not self.serviceItemsState or force:
             if util.IsOutpost(eve.session.stationid) or sm.GetService('godma').GetType(eve.stationItem.stationTypeID).isPlayerOwnable == 1:
                 self.serviceItemsState = sm.RemoteSvc('corpStationMgr').GetStationServiceStates()
@@ -97,12 +100,14 @@ class StationSvc(service.Service):
         if charID not in self.guests:
             self.guests[charID] = (corpID, allianceID, warFactionID)
         self.serviceItemsState = None
+        return
 
     def OnCharNoLongerInStation(self, rec):
         charID, corpID, allianceID, factionID = rec
         if charID in self.guests:
             self.guests.pop(charID)
         self.serviceItemsState = None
+        return
 
     def GetGuests(self):
         if not self.guestListReceived:
@@ -118,7 +123,7 @@ class StationSvc(service.Service):
             self.GetGuests()
         return whoID in self.guests
 
-    def Stop(self, memStream = None):
+    def Stop(self, memStream=None):
         self.LogInfo('Stopping Station Service')
         self.CleanUp(clearGuestList=True)
 
@@ -126,7 +131,7 @@ class StationSvc(service.Service):
         if util.GetActiveShip() != session.shipid:
             if eve.session.shipid:
                 hangarInv = sm.GetService('invCache').GetInventory(const.containerHangar)
-                hangarItems = hangarInv.List()
+                hangarItems = hangarInv.List(const.flagHangar)
                 for each in hangarItems:
                     if each.itemID == session.shipid:
                         self.activeShipItem = each
@@ -135,51 +140,16 @@ class StationSvc(service.Service):
     def GetStation(self):
         self.station = sm.GetService('ui').GetStation(eve.session.stationid)
 
-    def GetStationServiceInfo(self, sortBy = None, stationInfo = None):
-        if not self.station and eve.session.stationid:
-            self.GetStation()
-        services = []
-        for service, info in self.GetStationServices().iteritems():
-            sortItem = info.index
-            if sortBy == 'name':
-                sortItem = info.label
-            services.append(((sortItem, service), info))
-
-        services = uiutil.SortListOfTuples(services)
-        return services
-
     def GetServiceDisplayName(self, service):
-        s = self.GetStationServices(service)
+        s = self.GetStationServiceData(service)
         if s:
             return s.label
         return localization.GetByLabel('UI/Common/Unknown')
 
-    def GetStationServices(self, service = None):
-        mapping = [util.KeyVal(name='charcustomization', command='OpenCharacterCustomization', label=localization.GetByLabel('UI/Station/CharacterRecustomization'), iconID='res:/UI/Texture/WindowIcons/charcustomization.png', scope=const.neocomButtonScopeStation, serviceIDs=(-1,)),
-         util.KeyVal(name='medical', command='OpenMedical', label=localization.GetByLabel('UI/Medical/Medical'), iconID='res:/ui/Texture/WindowIcons/cloneBay.png', scope=const.neocomButtonScopeStation, serviceIDs=(const.stationServiceCloning, const.stationServiceSurgery, const.stationServiceDNATherapy)),
-         util.KeyVal(name='repairshop', command='OpenRepairshop', label=localization.GetByLabel('UI/Station/Repairshop'), iconID='res:/ui/Texture/WindowIcons/repairshop.png', scope=const.neocomButtonScopeStation, serviceIDs=(const.stationServiceRepairFacilities,)),
-         util.KeyVal(name='reprocessingPlant', command='OpenReprocessingPlant', label=localization.GetByLabel('UI/Station/ReprocessingPlant'), texturePath='res:/UI/Texture/WindowIcons/Reprocess.png', scope=const.neocomButtonScopeStation, serviceIDs=(const.stationServiceReprocessingPlant,)),
-         util.KeyVal(name='market', command='OpenMarket', label=localization.GetByLabel('UI/Station/Market'), iconID='res:/ui/Texture/WindowIcons/market.png', scope=const.neocomButtonScopeStationOrWorldspace, serviceIDs=(const.stationServiceMarket,)),
-         util.KeyVal(name='fitting', command='OpenFitting', label=localization.GetByLabel('UI/Station/Fitting'), iconID='res:/ui/Texture/WindowIcons/fitting.png', scope=const.neocomButtonScopeStationOrWorldspace, serviceIDs=(const.stationServiceFitting,)),
-         util.KeyVal(name='industry', command='OpenIndustry', label=localization.GetByLabel('UI/Industry/Industry'), iconID='res:/UI/Texture/WindowIcons/Industry.png', scope=const.neocomButtonScopeStation, serviceIDs=(const.stationServiceFactory, const.stationServiceLaboratory)),
-         util.KeyVal(name='bountyoffice', command='OpenBountyOffice', label=localization.GetByLabel('UI/Station/BountyOffice/BountyOffice'), iconID='res:/ui/Texture/WindowIcons/bountyoffice.png', scope=const.neocomButtonScopeStationOrWorldspace, serviceIDs=(-1,)),
-         util.KeyVal(name='navyoffices', command='OpenMilitia', label=localization.GetByLabel('UI/Station/MilitiaOffice'), iconID='res:/ui/Texture/WindowIcons/factionalwarfare.png', scope=const.neocomButtonScopeStationOrWorldspace, serviceIDs=(const.stationServiceNavyOffices,)),
-         util.KeyVal(name='insurance', command='OpenInsurance', label=localization.GetByLabel('UI/Station/Insurance'), iconID='res:/ui/Texture/WindowIcons/insurance.png', scope=const.neocomButtonScopeStationOrWorldspace, serviceIDs=(const.stationServiceInsurance,)),
-         util.KeyVal(name='lpstore', command='OpenLpstore', label=localization.GetByLabel('UI/Station/LPStore'), iconID='res:/ui/Texture/WindowIcons/lpstore.png', scope=const.neocomButtonScopeStationOrWorldspace, serviceIDs=(const.stationServiceLoyaltyPointStore,)),
-         util.KeyVal(name='securityoffice', command='OpenSecurityOffice', label=localization.GetByLabel('UI/Station/SecurityOffice'), iconID='res:/UI/Texture/WindowIcons/concord.png', scope=const.neocomButtonScopeStationOrWorldspace, serviceIDs=(const.stationServiceSecurityOffice,))]
-        newmapping = {}
-        for i, info in enumerate(mapping):
-            info.index = i
-            newmapping[info.name] = info
+    def GetStationServiceData(self, serviceName):
+        return stationServiceConst.serviceDataByNameID.get(serviceName, None)
 
-        if service:
-            return newmapping.get(service, None)
-        return newmapping
-
-    def CheckHasStationService(self, service, serviceMask):
-        pass
-
-    def CleanUp(self, storeCamera = 1, clearGuestList = False):
+    def CleanUp(self, storeCamera=1, clearGuestList=False):
         try:
             if getattr(self, 'underlay', None):
                 uicore.registry.UnregisterWindow(self.underlay)
@@ -221,14 +191,14 @@ class StationSvc(service.Service):
         if clearGuestList:
             self.guests = {}
             self.guestListReceived = False
+        return
 
     def StopAllStationServices(self):
-        services = self.GetStationServiceInfo()
-        for service in services:
-            if sm.IsServiceRunning(service.name):
-                sm.services[service.name].Stop()
+        for serviceData in stationServiceConst.serviceData:
+            if sm.IsServiceRunning(serviceData.name):
+                sm.services[serviceData.name].Stop()
 
-    def Setup(self, reloading = 0):
+    def Setup(self, reloading=0):
         self.CleanUp(0)
         self.loading = 1
         if not reloading:
@@ -247,6 +217,7 @@ class StationSvc(service.Service):
                 sm.GetService('tutorial').OpenTutorialSequence_Check(uix.cloningWhenPoddedTutorial)
             if sm.GetService('skills').GetSkillPoints() >= 1500000:
                 sm.GetService('tutorial').OpenTutorialSequence_Check(uix.cloningTutorial)
+        return
 
     def GetPaperdollStateCache(self):
         if self.paperdollState is None:
@@ -258,10 +229,10 @@ class StationSvc(service.Service):
 
     def ClearPaperdollStateCache(self):
         self.paperdollState = None
+        return
 
     def BlinkButton(self, what):
-        from eve.client.script.ui.station.lobby import Lobby
-        lobby = Lobby.GetIfOpen()
+        lobby = GetLobbyClass().GetIfOpen()
         if lobby:
             lobby.BlinkButton(what)
 
@@ -269,32 +240,35 @@ class StationSvc(service.Service):
         if sm.GetService('godma').GetType(eve.stationItem.stationTypeID).isPlayerOwnable == 1:
             eve.Message('POStationWarning')
 
-    def TryActivateShip(self, invitem, onSessionChanged = 0, secondTry = 0):
+    def TryActivateShip(self, invitem, onSessionChanged=0, secondTry=0):
         shipid = invitem.itemID
         dogmaLocation = sm.GetService('clientDogmaIM').GetDogmaLocation()
         if shipid == dogmaLocation.GetCurrentShipID():
             return
-        if self.activatingShip:
+        elif self.activatingShip:
             return
-        dogmaLocation.CheckSkillRequirementsForType(None, invitem.typeID, 'ShipHasSkillPrerequisites')
-        sm.GetService('invCache').TryLockItem(shipid, 'lockItemActivating', {'itemType': invitem.typeID}, 1)
-        self.activatingShip = 1
-        try:
-            if IsModularShip(invitem.typeID):
-                if eve.Message('AskActivateTech3Ship', {}, uiconst.YESNO, suppress=uiconst.ID_YES) != uiconst.ID_YES:
-                    return
-            dogmaLocation = sm.GetService('clientDogmaIM').GetDogmaLocation()
-            dogmaLocation.MakeShipActive(shipid)
-            self.activeShipItem = invitem
-            if invitem.groupID != const.groupRookieship:
-                sm.GetService('tutorial').OpenTutorialSequence_Check(uix.insuranceTutorial)
-            sm.GetService('fleet').UpdateFleetInfo()
-            sm.ScatterEvent('OnClient_ShipActivated')
-        finally:
-            self.activatingShip = 0
-            sm.GetService('invCache').UnlockItem(shipid)
+        else:
+            dogmaLocation.CheckSkillRequirementsForType(None, invitem.typeID, 'ShipHasSkillPrerequisites')
+            sm.GetService('invCache').TryLockItem(shipid, 'lockItemActivating', {'itemType': invitem.typeID}, 1)
+            self.activatingShip = 1
+            try:
+                if IsModularShip(invitem.typeID):
+                    if eve.Message('AskActivateTech3Ship', {}, uiconst.YESNO, suppress=uiconst.ID_YES) != uiconst.ID_YES:
+                        return
+                dogmaLocation = sm.GetService('clientDogmaIM').GetDogmaLocation()
+                dogmaLocation.MakeShipActive(shipid)
+                self.activeShipItem = invitem
+                if invitem.groupID != const.groupRookieship:
+                    sm.GetService('tutorial').OpenTutorialSequence_Check(uix.insuranceTutorial)
+                sm.GetService('fleet').UpdateFleetInfo()
+                sm.ScatterEvent('OnClient_ShipActivated')
+            finally:
+                self.activatingShip = 0
+                sm.GetService('invCache').UnlockItem(shipid)
 
-    def TryLeaveShip(self, invitem, onSessionChanged = 0, secondTry = 0):
+            return
+
+    def TryLeaveShip(self, invitem, onSessionChanged=0, secondTry=0):
         shipid = invitem.itemID
         dogmaLocation = sm.GetService('clientDogmaIM').GetDogmaLocation()
         if shipid != dogmaLocation.GetCurrentShipID():
@@ -325,8 +299,10 @@ class StationSvc(service.Service):
     def OnDogmaItemChange(self, item, change):
         if session.stationid is None:
             return
-        if item.groupID in const.turretModuleGroups:
-            self.FitHardpoints()
+        else:
+            if item.groupID in const.turretModuleGroups:
+                self.FitHardpoints()
+            return
 
     def OnActiveShipModelChange(self, model, shipItem):
         self.activeshipmodel = model
@@ -337,17 +313,20 @@ class StationSvc(service.Service):
         if util.GetActiveShip() == shipID:
             if self.activeshipmodel is not None:
                 spaceobjanimation.SetShipAnimationStance(self.activeshipmodel, stanceID)
+        return
 
     def FitHardpoints(self):
         if not self.activeshipmodel or self.activeShipTypeID is None or self.refreshingfitting:
             return
-        self.refreshingfitting = True
-        activeShip = util.GetActiveShip()
-        graphicInfo = cfg.graphics.GetIfExists(evetypes.GetGraphicID(self.activeShipTypeID))
-        if graphicInfo is None:
+        else:
+            self.refreshingfitting = True
+            activeShip = util.GetActiveShip()
+            graphicInfo = cfg.graphics.GetIfExists(evetypes.GetGraphicID(self.activeShipTypeID))
+            if graphicInfo is None:
+                return
+            turretSet.TurretSet.FitTurrets(activeShip, self.activeshipmodel, getattr(graphicInfo, 'sofFactionName', None))
+            self.refreshingfitting = False
             return
-        turretSet.TurretSet.FitTurrets(activeShip, self.activeshipmodel, getattr(graphicInfo, 'sofFactionName', None))
-        self.refreshingfitting = False
 
     def ModuleListFromGodmaSlimItem(self, slimItem):
         list = []
@@ -403,46 +382,48 @@ class StationSvc(service.Service):
             if getattr(each, 'isDockWnd', 0) == 1 and each.state == uiconst.UI_NORMAL:
                 uiutil.SetOrder(each, -1)
 
-    def LoadSvc(self, service, close = 1):
-        serviceInfo = self.GetStationServices(service)
+    def LoadSvc(self, service, close=1):
+        serviceInfo = self.GetStationServiceData(service)
         if service is not None and serviceInfo is not None:
             self.ExecuteCommand(serviceInfo.command)
             return
-        if getattr(self, 'loadingSvc', 0):
+        elif getattr(self, 'loadingSvc', 0):
             return
-        self.loadingSvc = 1
-        while self.loading:
-            blue.pyos.synchro.SleepWallclock(500)
-
-        if self.selected_service is None:
-            if service:
-                self._LoadSvc(1, service)
-        elif service == self.selected_service:
-            if close:
-                self._LoadSvc(0)
         else:
-            self._LoadSvc(0, service)
-        self.loadingSvc = 0
+            self.loadingSvc = 1
+            while self.loading:
+                blue.pyos.synchro.SleepWallclock(500)
+
+            if self.selected_service is None:
+                if service:
+                    self._LoadSvc(1, service)
+            elif service == self.selected_service:
+                if close:
+                    self._LoadSvc(0)
+            else:
+                self._LoadSvc(0, service)
+            self.loadingSvc = 0
+            return
 
     def ExecuteCommand(self, cmdstr):
         func = getattr(uicore.cmd, cmdstr, None)
         if func:
             func()
+        return
 
-    def GetSvc(self, svcname = None):
+    def GetSvc(self, svcname=None):
         if self.active_service is not None:
             if svcname is not None:
                 if self.selected_service == svcname:
                     return self.active_service
             else:
                 return self.active_service
+        return
 
     def ReloadLobby(self):
-        from eve.client.script.ui.station.lobby import Lobby
-        Lobby.CloseIfOpen()
-        Lobby.Open()
+        ReloadLobbyWnd()
 
-    def _LoadSvc(self, inout, service = None):
+    def _LoadSvc(self, inout, service=None):
         self.loading = 1
         wnd = self.GetUnderlay()
         newsvc = None
@@ -492,11 +473,12 @@ class StationSvc(service.Service):
             self._LoadSvc(1, service)
         if inout == 0 and service is None:
             uix.Flush(wnd.sr.svcparent)
+        return
 
     def Startup(self, svc):
         uthread.new(svc.Startup, self)
 
-    def GiveHint(self, hintstr, left = 80, top = 320, width = 300):
+    def GiveHint(self, hintstr, left=80, top=320, width=300):
         self.ClearHint()
         if self.hint is None:
             par = uiprimitives.Container(name='captionParent', parent=self.GetUnderlay().sr.main, align=uiconst.TOPLEFT, top=top, left=left, width=width, height=256, idx=0)
@@ -505,10 +487,12 @@ class StationSvc(service.Service):
         self.hint.parent.left = left
         self.hint.parent.width = width
         self.hint.text = hintstr or ''
+        return
 
     def ClearHint(self):
         if self.hint is not None:
             self.hint.text = ''
+        return
 
     def SetupService(self, wnd, servicename):
         uix.Flush(wnd.sr.svcparent)
@@ -538,6 +522,7 @@ class StationSvc(service.Service):
 
     def CloseSvc(self, *args):
         uthread.new(self.LoadSvc, None)
+        return
 
     def PastUndockPointOfNoReturn(self):
         return getattr(self, 'pastUndockPointOfNoReturn', False)
@@ -548,98 +533,100 @@ class StationSvc(service.Service):
         self.ReloadLobby()
         sm.GetService('tutorial').UnhideTutorialWindow()
         viewSvc = sm.GetService('viewState')
-        hangarView = viewSvc.GetView('hangar')
-        if hangarView is not None:
-            hangarView.StopExitAnimation()
-            hangarView.StopExitAudio()
+        currentView = viewSvc.GetCurrentView()
+        if currentView.name == 'hangar':
+            currentView.StopExitAnimation()
+            currentView.StopExitAudio()
 
     def Exit(self, *args):
         if self.exitingstation:
             self.AbortUndock()
             return False
-        viewSvc = sm.GetService('viewState')
-        hangarView = viewSvc.GetView('hangar')
-        if hangarView is not None:
-            hangarView.StartExitAnimation()
-            hangarView.StartExitAudio()
-        if sm.GetService('actionObjectClientSvc').IsEntityUsingActionObject(session.charid):
-            sm.GetService('actionObjectClientSvc').ExitActionObject(session.charid)
-        if settings.user.suppress.Get('suppress.AskUndockInEnemySystem', None) is None:
-            if cfg.mapSystemCache[session.solarsystemid2].securityStatus < 0.0:
-                if util.IsOutpost(session.stationid2) or sm.GetService('godma').GetType(eve.stationItem.stationTypeID).isPlayerOwnable == 1:
-                    try:
-                        sm.GetService('corp').GetCorpStationManager().DoStandingCheckForStationService(const.stationServiceDocking)
-                    except UserError as e:
-                        sovHolderName = cfg.eveowners.Get(eve.stationItem.ownerID).ownerName
-                        if uicore.Message('AskUndockInEnemySystem', {'sovHolderName': sovHolderName}, uiconst.YESNO, suppress=uiconst.ID_YES) != uiconst.ID_YES:
-                            return False
+        else:
+            viewSvc = sm.GetService('viewState')
+            currentView = viewSvc.GetCurrentView()
+            if currentView.name == 'hangar':
+                currentView.StartExitAnimation()
+                currentView.StartExitAudio()
+            if sm.GetService('actionObjectClientSvc').IsEntityUsingActionObject(session.charid):
+                sm.GetService('actionObjectClientSvc').ExitActionObject(session.charid)
+            if settings.user.suppress.Get('suppress.AskUndockInEnemySystem', None) is None:
+                if cfg.mapSystemCache[session.solarsystemid2].securityStatus < 0.0:
+                    if util.IsOutpost(session.stationid2) or sm.GetService('godma').GetType(eve.stationItem.stationTypeID).isPlayerOwnable == 1:
+                        try:
+                            sm.GetService('corp').GetCorpStationManager().DoStandingCheckForStationService(const.stationServiceDocking)
+                        except UserError as e:
+                            sovHolderName = cfg.eveowners.Get(eve.stationItem.ownerID).ownerName
+                            if uicore.Message('AskUndockInEnemySystem', {'sovHolderName': sovHolderName}, uiconst.YESNO, suppress=uiconst.ID_YES) != uiconst.ID_YES:
+                                return False
 
-            else:
-                facwarSvc = sm.GetService('facwar')
-                if facwarSvc.IsFacWarSystem(session.solarsystemid2):
-                    occupierID = facwarSvc.GetSystemOccupier(session.solarsystemid2)
-                    if facwarSvc.IsEnemyCorporation(session.corpid, occupierID):
-                        sovHolderName = cfg.eveowners.Get(occupierID).ownerName
-                        if uicore.Message('AskUndockInEnemySystem', {'sovHolderName': sovHolderName}, uiconst.YESNO, suppress=uiconst.ID_YES) != uiconst.ID_YES:
-                            return False
-        if not IsOkToBoardWithModulesLackingSkills(sm.GetService('clientDogmaIM').GetDogmaLocation(), uicore.Message):
-            return False
-        systemSecStatus = sm.StartService('map').GetSecurityClass(eve.session.solarsystemid2)
-        beenWarned = False
-        if self.crimewatchSvc.IsCriminal(session.charid):
-            if systemSecStatus == const.securityClassHighSec:
-                beenWarned = True
-                if eve.Message('UndockCriminalConfirm', {}, uiconst.YESNO) != uiconst.ID_YES:
-                    return False
-        if not beenWarned:
-            if systemSecStatus > const.securityClassZeroSec:
-                engagements = self.crimewatchSvc.GetMyEngagements()
-                if len(engagements):
-                    if eve.Message('UndockAggressionConfirm', {}, uiconst.YESNO, suppress=uiconst.ID_YES) != uiconst.ID_YES:
+                else:
+                    facwarSvc = sm.GetService('facwar')
+                    if facwarSvc.IsFacWarSystem(session.solarsystemid2):
+                        occupierID = facwarSvc.GetSystemOccupier(session.solarsystemid2)
+                        if facwarSvc.IsEnemyCorporation(session.corpid, occupierID):
+                            sovHolderName = cfg.eveowners.Get(occupierID).ownerName
+                            if uicore.Message('AskUndockInEnemySystem', {'sovHolderName': sovHolderName}, uiconst.YESNO, suppress=uiconst.ID_YES) != uiconst.ID_YES:
+                                return False
+            if not IsOkToBoardWithModulesLackingSkills(sm.GetService('clientDogmaIM').GetDogmaLocation(), uicore.Message):
+                return False
+            systemSecStatus = sm.StartService('map').GetSecurityClass(eve.session.solarsystemid2)
+            beenWarned = False
+            if self.crimewatchSvc.IsCriminal(session.charid):
+                if systemSecStatus == const.securityClassHighSec:
+                    beenWarned = True
+                    if eve.Message('UndockCriminalConfirm', {}, uiconst.YESNO) != uiconst.ID_YES:
                         return False
-        shipID = util.GetActiveShip()
-        if shipID is None:
-            shipID = self.ShipPicker()
+            if not beenWarned:
+                if systemSecStatus > const.securityClassZeroSec:
+                    engagements = self.crimewatchSvc.GetMyEngagements()
+                    if len(engagements):
+                        if eve.Message('UndockAggressionConfirm', {}, uiconst.YESNO, suppress=uiconst.ID_YES) != uiconst.ID_YES:
+                            return False
+            shipID = util.GetActiveShip()
             if shipID is None:
-                eve.Message('NeedShipToUndock')
-                return False
-            sm.GetService('clientDogmaIM').GetDogmaLocation().MakeShipActive(shipID)
-        if settings.user.suppress.Get('suppress.CourierUndockMissingCargo', None) is None:
-            if not sm.GetService('journal').CheckUndock(session.stationid2):
-                return False
-        self.exitingstation = 1
-        uthread.new(self.LoadSvc, None)
-        uthread.new(self.Undock_Thread, shipID)
-        return True
+                shipID = self.ShipPicker()
+                if shipID is None:
+                    eve.Message('NeedShipToUndock')
+                    return False
+                sm.GetService('clientDogmaIM').GetDogmaLocation().MakeShipActive(shipID)
+            if settings.user.suppress.Get('suppress.CourierUndockMissingCargo', None) is None:
+                if not sm.GetService('journal').CheckUndock(session.stationid2):
+                    return False
+            self.exitingstation = 1
+            uthread.new(self.LoadSvc, None)
+            uthread.new(self.Undock_Thread, shipID)
+            return True
 
     def Undock_Thread(self, shipID):
-        from eve.client.script.ui.station.lobby import Lobby
         if not self.exitingstation:
-            lobby = Lobby.GetIfOpen()
+            lobby = GetLobbyClass().GetIfOpen()
             if lobby and not lobby.destroyed:
                 lobby.SetUndockProgress(None)
             return
-        undockSteps = 3
-        undockDelay = 5000
-        if session and session.nextSessionChange:
-            duration = session.nextSessionChange - blue.os.GetSimTime()
-            if duration > 0:
-                undockDelay = max(undockDelay, (duration / const.SEC + 1) * 1000)
-        for i in xrange(undockSteps):
-            lobby = Lobby.GetIfOpen()
-            if lobby and not lobby.destroyed:
-                lobby.SetUndockProgress(i * 1.0 / undockSteps)
-            blue.synchro.SleepSim(undockDelay / undockSteps)
-            if not self.exitingstation:
+        else:
+            undockSteps = 3
+            undockDelay = 5000
+            if session and session.nextSessionChange:
+                duration = session.nextSessionChange - blue.os.GetSimTime()
+                if duration > 0:
+                    undockDelay = max(undockDelay, (duration / const.SEC + 1) * 1000)
+            for i in xrange(undockSteps):
+                lobby = GetLobbyClass().GetIfOpen()
                 if lobby and not lobby.destroyed:
-                    lobby.SetUndockProgress(None)
-                return
+                    lobby.SetUndockProgress(i * 1.0 / undockSteps)
+                blue.synchro.SleepSim(undockDelay / undockSteps)
+                if not self.exitingstation:
+                    if lobby and not lobby.destroyed:
+                        lobby.SetUndockProgress(None)
+                    return
 
-        lobby = Lobby.GetIfOpen()
-        if lobby and not lobby.destroyed:
-            lobby.SetUndockProgress(1)
-        self.pastUndockPointOfNoReturn = True
-        self.UndockAttempt(shipID)
+            lobby = GetLobbyClass().GetIfOpen()
+            if lobby and not lobby.destroyed:
+                lobby.SetUndockProgress(1)
+            self.pastUndockPointOfNoReturn = True
+            self.UndockAttempt(shipID)
+            return
 
     def UndockAttempt(self, shipID):
         systemCheckSupressed = settings.user.suppress.Get('suppress.FacWarWarningUndock', None) == uiconst.ID_OK
@@ -652,6 +639,7 @@ class StationSvc(service.Service):
                     self.AbortUndock()
                     return
         self.DoUndockAttempt(False, True, shipID)
+        return
 
     def DoUndockAttempt(self, ignoreContraband, observedSuppressed, shipID):
         try:
@@ -691,13 +679,14 @@ class StationSvc(service.Service):
 
         self.exitingstation = 0
         self.hangarScene = None
+        return
 
     def CloseStationWindows(self):
         ReprocessingWnd.CloseIfOpen()
 
     def ShipPicker(self):
         hangarInv = sm.GetService('invCache').GetInventory(const.containerHangar)
-        items = hangarInv.List()
+        items = hangarInv.List(const.flagHangar)
         tmplst = []
         for item in items:
             if item[const.ixCategoryID] == const.categoryShip and item[const.ixSingleton]:
@@ -706,11 +695,12 @@ class StationSvc(service.Service):
         ret = uix.ListWnd(tmplst, 'item', localization.GetByLabel('UI/Station/SelectShip'), None, 1)
         if ret is None:
             return
-        return ret[1]
+        else:
+            return ret[1]
 
     def SelectShipDlg(self):
         hangarInv = sm.GetService('invCache').GetInventory(const.containerHangar)
-        items = hangarInv.List()
+        items = hangarInv.List(const.flagHangar)
         tmplst = []
         activeShipID = util.GetActiveShip()
         for item in items:
@@ -721,16 +711,19 @@ class StationSvc(service.Service):
             self.exitingstation = 0
             eve.Message('NeedShipToUndock')
             return
-        ret = uix.ListWnd(tmplst, 'item', localization.GetByLabel('UI/Station/SelectShip'), None, 1)
-        if ret is None or ret[1].itemID == activeShipID:
-            self.exitingstation = 0
+        else:
+            ret = uix.ListWnd(tmplst, 'item', localization.GetByLabel('UI/Station/SelectShip'), None, 1)
+            if ret is None or ret[1].itemID == activeShipID:
+                self.exitingstation = 0
+                return
+            newActiveShip = ret[1]
+            try:
+                self.TryActivateShip(newActiveShip)
+            except:
+                self.exitingstation = 0
+                raise
+
             return
-        newActiveShip = ret[1]
-        try:
-            self.TryActivateShip(newActiveShip)
-        except:
-            self.exitingstation = 0
-            raise
 
     def ChangeColorOfActiveShip(self, typeName, colorID, typeID):
         self.previewColorIDs[typeName] = colorID
@@ -739,8 +732,10 @@ class StationSvc(service.Service):
     def ConfirmChangeColor(self):
         if self.previewColorIDs is None:
             return
-        sm.GetService('invCache').GetInventoryFromId(util.GetActiveShip()).ChangeColor(self.previewColorIDs)
-        eve.Message('ColorOfShipHasBeenChanged')
+        else:
+            sm.GetService('invCache').GetInventoryFromId(util.GetActiveShip()).ChangeColor(self.previewColorIDs)
+            eve.Message('ColorOfShipHasBeenChanged')
+            return
 
     def OnDogmaAttributeChanged(self, shipID, itemID, attributeID, value):
         if self.activeshipmodel and attributeID == const.attributeIsOnline and shipID == util.GetActiveShip():
@@ -761,6 +756,8 @@ class StationSvc(service.Service):
                             turretSet.EnterStateIdle()
                         else:
                             turretSet.EnterStateDeactive()
+
+        return
 
 
 class StationLayer(uicls.LayerCore):

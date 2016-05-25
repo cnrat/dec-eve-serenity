@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\client\script\ui\shared\skins\test\test_controller.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\client\script\ui\shared\skins\test\test_controller.py
 import contextlib
 import mock
 import unittest
@@ -6,7 +7,7 @@ import signals
 
 class MockSkin(object):
 
-    def __init__(self, materialID, skinID = None, licensed = False):
+    def __init__(self, materialID, skinID=None, licensed=False):
         self.materialID = materialID
         self.skinID = skinID
         self.licensed = licensed
@@ -18,7 +19,8 @@ class MockSkin(object):
     def __eq__(self, other):
         if other is None:
             return False
-        return self.materialID == other.materialID and self.skinID == other.skinID and self.licensed == other.licensed
+        else:
+            return self.materialID == other.materialID and self.skinID == other.skinID and self.licensed == other.licensed
 
     def __repr__(self):
         return '<MockSkin materialID=%s skinID=%s licensed=%s>' % (self.materialID, self.skinID, self.licensed)
@@ -31,6 +33,7 @@ class MockFittingController(object):
         self.typeID = typeID
         self.on_new_itemID = signals.Signal()
         self.material = None
+        return
 
     def GetItemID(self):
         return self.itemID
@@ -100,14 +103,14 @@ class SkinPanelControllerBase(unittest.TestCase):
         self.lock = MockLock(mock.MagicMock())
         self.locks_module.Lock.return_value = self.lock
 
-    def prime_skins_cache(self, cached = None, fresh = None):
+    def prime_skins_cache(self, cached=None, fresh=None):
         cached = cached or []
         fresh = fresh or []
         self.adapter.GetSkins.return_value = cached
         self.controller.skins
         self.adapter.GetSkins.return_value = fresh
 
-    def assertSkinState(self, applied = None, pending = None, previewed = None):
+    def assertSkinState(self, applied=None, pending=None, previewed=None):
         if applied is None:
             self.assertIsNone(self.controller.applied)
         else:
@@ -120,6 +123,7 @@ class SkinPanelControllerBase(unittest.TestCase):
             self.assertIsNone(self.controller.previewed)
         else:
             self.assertEqual(self.controller.previewed, previewed)
+        return
 
     @contextlib.contextmanager
     def assertLockedTransaction(self):
@@ -158,6 +162,7 @@ class TestSkinPanelController(SkinPanelControllerBase):
     def test_initial_state(self):
         self.assertEqual(self.controller.typeID, TYPE_ID)
         self.assertSkinState(applied=None, previewed=None, pending=None)
+        return
 
     def test_change_type(self):
         with self.assertLockedTransaction():
@@ -166,6 +171,7 @@ class TestSkinPanelController(SkinPanelControllerBase):
         self.events.onSkinsChange.assert_called_once_with()
         self.assertEqual(self.controller.typeID, OTHER_TYPE_ID)
         self.assertSkinState(applied=None, previewed=None, pending=None)
+        return
 
     def test_pick_skin(self):
         with self.assertLockedTransaction():
@@ -177,16 +183,19 @@ class TestSkinPanelController(SkinPanelControllerBase):
         self.controller.PickSkin(SKIN)
         self.controller.typeID = OTHER_TYPE_ID
         self.assertSkinState(applied=None, previewed=None, pending=None)
+        return
 
     def test_pick_same_skin_again(self):
         self.controller.PickSkin(SKIN)
         self.controller.PickSkin(SKIN)
         self.assertSkinState(applied=None, previewed=None, pending=None)
+        return
 
     def test_pick_none_skin_after_another_skin(self):
         self.controller.PickSkin(SKIN)
         self.controller.PickSkin(None)
         self.assertSkinState(applied=None, previewed=None, pending=None)
+        return
 
     def test_pick_another_skin(self):
         self.controller.PickSkin(SKIN)
@@ -198,6 +207,7 @@ class TestSkinPanelController(SkinPanelControllerBase):
         self.controller.typeID = OTHER_TYPE_ID
         self.assertEqual(self.controller.typeID, OTHER_TYPE_ID)
         self.assertSkinState(previewed=None)
+        return
 
     def test_get_skins(self):
         self.adapter.GetSkins.return_value = self.SKIN_LIST
@@ -263,8 +273,9 @@ class TestFittingSkinPanelController(SkinPanelControllerBase):
         self.events = mock.Mock()
         self.controller.onChange.connect(self.events.onChange)
         self.controller.onSkinsChange.connect(self.events.onSkinsChange)
+        return
 
-    def apply_skin(self, skin, itemID = None):
+    def apply_skin(self, skin, itemID=None):
         itemID = itemID or self.fitting.itemID
         self.controller.PickSkin(skin)
         self.controller.OnActiveShipSkinChange(self.fitting.itemID, skin.skinID)
@@ -274,6 +285,7 @@ class TestFittingSkinPanelController(SkinPanelControllerBase):
     def test_initial_state(self):
         self.assertEqual(self.controller.typeID, TYPE_ID)
         self.assertSkinState(applied=None, previewed=None, pending=None)
+        return
 
     def test_pick_none_with_nothing_picked(self):
         with self.assertLockedTransaction():
@@ -281,6 +293,7 @@ class TestFittingSkinPanelController(SkinPanelControllerBase):
         self.assertFalse(self.events.onChange.called)
         self.assertSkinState(applied=None, previewed=None, pending=None)
         self.assertIsNone(self.fitting.material)
+        return
 
     def test_pick_unlicensed_skin(self):
         with self.assertLockedTransaction():
@@ -306,6 +319,7 @@ class TestFittingSkinPanelController(SkinPanelControllerBase):
         self.events.onChange.assert_called_once_with()
         self.assertSkinState(previewed=None, pending=None)
         self.assertIsNone(self.fitting.material)
+        return
 
     def test_unpicking_applied_skin_does_not_reset_previewed_skin(self):
         self.apply_skin(LICENSED_SKIN)
@@ -314,6 +328,7 @@ class TestFittingSkinPanelController(SkinPanelControllerBase):
         self.adapter.ApplySkin.assert_called_once_with(self.controller, ITEM_ID, None)
         self.assertSkinState(previewed=UNLICENSED_SKIN)
         self.assertEqual(self.fitting.material, UNLICENSED_SKIN.material)
+        return
 
     def test_picked_skins_must_be_actually_available(self):
         self.adapter.GetSkins.return_value = []
@@ -345,12 +360,14 @@ class TestFittingSkinPanelController(SkinPanelControllerBase):
         self.adapter.ApplySkin.assert_called_once_with(self.controller, ITEM_ID, None)
         self.assertSkinState(pending=None)
         self.assertIsNone(self.fitting.material)
+        return
 
     def test_pick_same_unlicensed_skin_again(self):
         self.controller.PickSkin(UNLICENSED_SKIN)
         self.controller.PickSkin(UNLICENSED_SKIN)
         self.assertSkinState(previewed=None)
         self.assertIsNone(self.fitting.material)
+        return
 
     def test_pick_applied_skin_again(self):
         self.apply_skin(LICENSED_SKIN)
@@ -358,18 +375,21 @@ class TestFittingSkinPanelController(SkinPanelControllerBase):
         self.adapter.ApplySkin.assert_called_once_with(self.controller, ITEM_ID, None)
         self.assertSkinState(applied=None)
         self.assertIsNone(self.fitting.material)
+        return
 
     def test_pick_none_skin_after_unlicensed_skin(self):
         self.controller.PickSkin(UNLICENSED_SKIN)
         self.controller.PickSkin(None)
         self.assertSkinState(previewed=None)
         self.assertIsNone(self.fitting.material)
+        return
 
     def test_pick_none_skin_after_licensed_skin(self):
         self.controller.PickSkin(LICENSED_SKIN)
         self.controller.PickSkin(None)
         self.assertSkinState(pending=None)
         self.assertIsNone(self.fitting.material)
+        return
 
     def test_controller_registers_for_events(self):
         self.assertIn('OnActiveShipSkinChange', self.controller.__notifyevents__)
@@ -383,12 +403,14 @@ class TestFittingSkinPanelController(SkinPanelControllerBase):
         self.assertEqual(self.controller.typeID, OTHER_TYPE_ID)
         self.assertEqual(self.controller.itemID, OTHER_ITEM_ID)
         self.assertSkinState(applied=None, previewed=None, pending=None)
+        return
 
     def test_new_fitting_item_id_resets_pick(self):
         self.controller.PickSkin(LICENSED_SKIN)
         with self.assertLockedTransaction():
             self.fitting.UpdateItem(OTHER_ITEM_ID, OTHER_TYPE_ID)
         self.assertSkinState(pending=None)
+        return
 
     def test_skin_change_event(self):
         with self.assertLockedTransaction():
@@ -402,11 +424,13 @@ class TestFittingSkinPanelController(SkinPanelControllerBase):
         self.controller.OnActiveShipSkinChange(OTHER_ITEM_ID, LICENSED_SKIN.skinID)
         self.assertFalse(self.events.onChange.called)
         self.assertSkinState(applied=None, pending=LICENSED_SKIN)
+        return
 
     def test_skin_change_event_updates_pending_skin_to_applied(self):
         self.controller.PickSkin(LICENSED_SKIN)
         self.controller.OnActiveShipSkinChange(self.fitting.itemID, LICENSED_SKIN.skinID)
         self.assertSkinState(applied=LICENSED_SKIN, pending=None)
+        return
 
     def test_skin_change_event_does_not_mess_with_other_pending_skins(self):
         self.controller.PickSkin(LICENSED_SKIN)
@@ -426,6 +450,7 @@ class TestFittingSkinPanelController(SkinPanelControllerBase):
         self.controller.OnActiveShipSkinChange(self.fitting.itemID, LICENSED_SKIN.skinID)
         self.assertFalse(self.events.onChange.called)
         self.assertSkinState(applied=LICENSED_SKIN, pending=None)
+        return
 
     def test_pick_none_skin_with_applied_skin(self):
         self.apply_skin(LICENSED_SKIN)
@@ -433,12 +458,14 @@ class TestFittingSkinPanelController(SkinPanelControllerBase):
         self.events.onChange.assert_called_once_with()
         self.assertSkinState(applied=None, previewed=None, pending=None)
         self.assertIsNone(self.fitting.material)
+        return
 
     def test_skin_change_event_handles_none_skin_with_nothing_picked(self):
         self.controller.OnActiveShipSkinChange(self.fitting.itemID, None)
         self.assertFalse(self.events.onChange.called)
         self.assertSkinState(applied=None, previewed=None, pending=None)
         self.assertIsNone(self.fitting.material)
+        return
 
     def test_skin_change_event_handles_none_skin_with_applied_skin(self):
         self.apply_skin(LICENSED_SKIN)
@@ -446,6 +473,7 @@ class TestFittingSkinPanelController(SkinPanelControllerBase):
         self.events.onChange.assert_called_once_with()
         self.assertSkinState(applied=None, previewed=None, pending=None)
         self.assertIsNone(self.fitting.material)
+        return
 
     def test_skin_change_event_handles_none_skin_with_pending_skin(self):
         self.controller.PickSkin(LICENSED_SKIN)
@@ -454,6 +482,7 @@ class TestFittingSkinPanelController(SkinPanelControllerBase):
         self.assertFalse(self.events.onChange.called)
         self.assertSkinState(pending=LICENSED_SKIN)
         self.assertEqual(self.fitting.material, LICENSED_SKIN.material)
+        return
 
     def test_skin_change_event_handles_none_skin_with_previewed_skin(self):
         self.controller.PickSkin(UNLICENSED_SKIN)
@@ -462,6 +491,7 @@ class TestFittingSkinPanelController(SkinPanelControllerBase):
         self.assertFalse(self.events.onChange.called)
         self.assertSkinState(previewed=UNLICENSED_SKIN)
         self.assertEqual(self.fitting.material, UNLICENSED_SKIN.material)
+        return
 
     def test_applied_skin_is_initially_pulled_from_storage(self):
         self.adapter.GetAppliedSkin.return_value = LICENSED_SKIN
@@ -483,6 +513,7 @@ class TestFittingSkinPanelController(SkinPanelControllerBase):
         self.events.onChange.assert_called_once_with()
         self.assertSkinState(pending=None)
         self.assertIsNone(self.fitting.material)
+        return
 
     def test_on_apply_failed_reverts_to_known_applied(self):
         self.adapter.GetAppliedSkin.return_value = LICENSED_SKIN
@@ -490,6 +521,7 @@ class TestFittingSkinPanelController(SkinPanelControllerBase):
         self.controller.OnApplySkinFailed(ITEM_ID, OTHER_LICENSED_SKIN)
         self.assertSkinState(applied=LICENSED_SKIN, pending=None)
         self.assertEqual(self.fitting.material, LICENSED_SKIN.material)
+        return
 
     def test_on_apply_failed_for_irrelevant_item(self):
         self.controller.PickSkin(LICENSED_SKIN)
@@ -513,6 +545,7 @@ class TestFittingSkinPanelController(SkinPanelControllerBase):
         self.events.onSkinsChange.assert_called_once_with()
         self.assertSkinState(applied=None, previewed=None, pending=None)
         self.assertIsNone(self.fitting.material)
+        return
 
     def test_on_skin_license_activated_with_previewed_skin(self):
         skin = MockSkin(UNLICENSED_SKIN.materialID, skinID=SKIN_ID, licensed=True)
@@ -524,6 +557,7 @@ class TestFittingSkinPanelController(SkinPanelControllerBase):
         self.events.onSkinsChange.assert_called_once_with()
         self.assertSkinState(previewed=None)
         self.assertIsNone(self.fitting.material)
+        return
 
     def test_on_skin_license_activated_with_pending_skin(self):
         self.controller.PickSkin(LICENSED_SKIN)
@@ -534,6 +568,7 @@ class TestFittingSkinPanelController(SkinPanelControllerBase):
         self.events.onSkinsChange.assert_called_once_with()
         self.assertSkinState(pending=None)
         self.assertIsNone(self.fitting.material)
+        return
 
     def test_on_skin_license_activated_with_applied_skin(self):
         self.apply_skin(LICENSED_SKIN)
@@ -542,12 +577,14 @@ class TestFittingSkinPanelController(SkinPanelControllerBase):
         self.events.onSkinsChange.assert_called_once_with()
         self.assertSkinState(applied=None)
         self.assertIsNone(self.fitting.material)
+        return
 
     def test_picking_skin_while_item_changes_applies_to_correct_item(self):
 
         def change_item_id():
             self.lock.acquire.side_effect = None
             self.fitting.UpdateItem(OTHER_ITEM_ID, OTHER_TYPE_ID)
+            return
 
         self.lock.acquire.side_effect = change_item_id
         self.controller.PickSkin(LICENSED_SKIN)

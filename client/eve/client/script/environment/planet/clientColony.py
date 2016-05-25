@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\client\script\environment\planet\clientColony.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\client\script\environment\planet\clientColony.py
 from eve.common.script.planet.baseColony import BaseColony
 from eve.common.script.planet.surfacePoint import SurfacePoint
 import eve.common.script.util.planetCommon as planetCommon
@@ -76,6 +77,7 @@ class ClientColony(BaseColony):
         if len(lackingSkills) > 0:
             raise UserError('CannotPlacePinNotEnoughSkill', {'requiredSkills': ', '.join(lackingSkills),
              'itemName': evetypes.GetName(typeID)})
+        return
 
     def PostValidateRemovePin(self, charID, pinID):
         pin = self.GetPin(pinID)
@@ -94,6 +96,7 @@ class ClientColony(BaseColony):
              'requestedLevel': level})
         cost = planetCommon.GetUpgradeCost(self.colonyData.level, level)
         self.cumulativeUpgradeCost += cost
+        return
 
     def PostValidateInstallProgram(self, pinID, typeID, headRadius):
         pin = self.GetPin(pinID)
@@ -119,6 +122,7 @@ class ClientColony(BaseColony):
             raise UserError('CannotAddToColonyCPUUsageExceeded', {'typeName': localization.GetByLabel('UI/PI/Common/ExtractorHead')})
         if powerDelta + self.colonyData.GetColonyPowerUsage() > self.colonyData.GetColonyPowerSupply():
             raise UserError('CannotAddToColonyPowerUsageExceeded', {'typeName': localization.GetByLabel('UI/PI/Common/ExtractorHead')})
+        return
 
     def OnPinRemoved(self, pinID):
         BaseColony.OnPinRemoved(self, pinID)
@@ -158,7 +162,7 @@ class ClientColony(BaseColony):
     def FindShortestPath(self, sourcePin, destinationPin):
         if sourcePin is None or destinationPin is None:
             return
-        if sourcePin == destinationPin:
+        elif sourcePin == destinationPin:
             return []
         distanceDict, predecessorDict = self.Dijkstra(sourcePin, destinationPin)
         if destinationPin not in distanceDict or destinationPin not in predecessorDict:
@@ -176,7 +180,8 @@ class ClientColony(BaseColony):
         path.reverse()
         if path[0] != sourcePin.id:
             return []
-        return path
+        else:
+            return path
 
     def FindShortestPathIDs(self, sourcePinID, destinationPinID):
         return self.FindShortestPath(self.GetPin(sourcePinID), self.GetPin(destinationPinID))

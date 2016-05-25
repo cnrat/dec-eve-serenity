@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\packages\achievements\client\achievementSvc.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\packages\achievements\client\achievementSvc.py
 from achievements.client.eventHandler import EventHandler
 from achievements.common.achievementConst import AchievementSettingConst
 from achievements.common.statsTracker import StatsTracker
@@ -30,7 +31,7 @@ class AchievementTrackerClientService(service.Service):
     hasAllData = False
     achievementsEnabled = False
 
-    def Run(self, memStream = None, remoteService = None, scatterService = sm):
+    def Run(self, memStream=None, remoteService=None, scatterService=sm):
         self.scatterService = scatterService
         self.eventHandler = EventHandler(self)
         self._allAchievements = self.LoadAchievements(getDisabled=True)
@@ -52,7 +53,7 @@ class AchievementTrackerClientService(service.Service):
     def IsEnabled(self):
         return self.achievementsEnabled
 
-    def GetDebugStatsFromCharacter(self, force = False):
+    def GetDebugStatsFromCharacter(self, force=False):
         if self._debugStatsForCharacter is None or force is True:
             self._debugStatsForCharacter = self.remoteService.GetDebugStatsFromCharacter(session.charid)
         return self._debugStatsForCharacter
@@ -73,6 +74,7 @@ class AchievementTrackerClientService(service.Service):
         infoPanelSuppressed = OpportunitySettingUtil.GetIsInfoPanelSuppressed()
         notificationSuppressed = OpportunitySettingUtil.GetIsNotificationSettingSuppressed()
         sm.GetService('infoGatheringSvc').LogInfoEvent(eventTypeID=infoEventConst.infoEventTaskCompleted, itemID=charID, itemID2=userID, int_1=int(taskCompletedID), int_2=int(activeAchievementID), int_3=int(self.IsAchievementInGroup(taskCompletedID, activeAchievementID)), float_1=float(auraSuppressed), float_2=float(infoPanelSuppressed), float_3=float(notificationSuppressed))
+        return
 
     def OnAchievementsReset(self):
         self.completedDict = {}
@@ -88,8 +90,9 @@ class AchievementTrackerClientService(service.Service):
         settings.char.ui.Set('opportunities_aura_introduced', False)
         settings.char.ui.Set('opportunities_aura_activated', [])
         self.SetActiveAchievementGroupID(None)
+        return
 
-    def SetActiveAchievementGroupID(self, groupID, emphasize = False):
+    def SetActiveAchievementGroupID(self, groupID, emphasize=False):
         if groupID != self.GetActiveAchievementGroupID():
             settings.char.ui.Set('opportunities_active_group', groupID)
             sm.ScatterEvent('OnAchievementActiveGroupChanged', groupID, emphasize)
@@ -110,24 +113,27 @@ class AchievementTrackerClientService(service.Service):
         auraWindow = AchievementAuraWindow.Open()
         return auraWindow
 
-    def HandleAchievementsUnlocked(self, achievementDict, taskIdsForMe = None):
+    def HandleAchievementsUnlocked(self, achievementDict, taskIdsForMe=None):
         self.MarkAchievementAsCompleted(achievementDict)
         if not self.IsEnabled():
             return
-        taskIdsForMyGroup = taskIdsForMe
-        if taskIdsForMyGroup is None:
-            taskIdsForMyGroup = GetTaskIds()
-        for achievementID in achievementDict:
-            if achievementID not in self._allAchievements:
-                continue
-            if achievementID not in taskIdsForMyGroup:
-                continue
-            achievement = self._allAchievements[achievementID]
-            self.SendAchievementNotification(achievementID)
-            self.SendOpportunityNotification(achievementID)
-            isActiveGroupCompleted = self.IsGroupForTaskActiveAndCompleted(achievementID)
-            self.TriggerAura(achievementID, isActiveGroupCompleted)
-            sm.ScatterEvent('OnAchievementChanged', achievement, activeGroupCompleted=isActiveGroupCompleted)
+        else:
+            taskIdsForMyGroup = taskIdsForMe
+            if taskIdsForMyGroup is None:
+                taskIdsForMyGroup = GetTaskIds()
+            for achievementID in achievementDict:
+                if achievementID not in self._allAchievements:
+                    continue
+                if achievementID not in taskIdsForMyGroup:
+                    continue
+                achievement = self._allAchievements[achievementID]
+                self.SendAchievementNotification(achievementID)
+                self.SendOpportunityNotification(achievementID)
+                isActiveGroupCompleted = self.IsGroupForTaskActiveAndCompleted(achievementID)
+                self.TriggerAura(achievementID, isActiveGroupCompleted)
+                sm.ScatterEvent('OnAchievementChanged', achievement, activeGroupCompleted=isActiveGroupCompleted)
+
+            return
 
     def TriggerAura(self, achievementID, activeGroupCompleted):
         if settings.user.ui.Get(AchievementSettingConst.AURA_DISABLE_CONFIG, False):
@@ -196,7 +202,7 @@ class AchievementTrackerClientService(service.Service):
             if achievementID in self._allAchievements:
                 self._allAchievements[achievementID].completed = True
 
-    def LoadAchievements(self, getDisabled = False):
+    def LoadAchievements(self, getDisabled=False):
         return AchievementLoader().GetAchievements(getDisabled=getDisabled)
 
     def IsAchievementCompleted(self, achievementID):
@@ -217,6 +223,7 @@ class AchievementTrackerClientService(service.Service):
             self.UpdateEnabledStatus()
         if 'stationid' in change and change['stationid'][1] or 'solarsystemid' in change and change['solarsystemid'][1]:
             self.AuraIntroduction()
+        return
 
     def ProcessShutdown(self):
         try:
@@ -235,8 +242,9 @@ class AchievementTrackerClientService(service.Service):
         if not auraDisabled and not settings.char.ui.Get('opportunities_aura_introduced', False):
             from achievements.client.auraAchievementWindow import AchievementAuraWindow
             AchievementAuraWindow.Open()
+        return
 
-    def LogClientEvent(self, eventName, value = 1):
+    def LogClientEvent(self, eventName, value=1):
         achievementsWithEvent = self.achievementsByEventsDict.get(eventName, set())
         achievementsLeft = achievementsWithEvent - set(self.completedDict.keys())
         if not achievementsLeft:

@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\carbon\client\script\localization\localizationClient.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\carbon\client\script\localization\localizationClient.py
 import service
 import blue
 import uthread
@@ -13,7 +14,7 @@ class LocalizationClient(service.Service):
     def __init__(self):
         service.Service.__init__(self)
 
-    def Run(self, memStream = None):
+    def Run(self, memStream=None):
         service.Service.Run(self, memStream)
         self.broadcasting = False
 
@@ -26,6 +27,7 @@ class LocalizationClient(service.Service):
                 LogInfo('Localization Client: preparing to load initial text and label data from server')
                 sm.RemoteSvc('localizationServer').GetAllTextChanges(hashData)
                 LogInfo('Localization Client: done asking for initial text and label data from server')
+        return
 
     def OnUpdateLocalizationTextCache(self, cacheData):
         messagePerLanguage, metaDataPerLanguage, labelsDict = cacheData

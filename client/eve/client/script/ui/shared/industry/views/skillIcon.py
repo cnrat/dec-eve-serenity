@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\client\script\ui\shared\industry\views\skillIcon.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\client\script\ui\shared\industry\views\skillIcon.py
 import carbonui.const as uiconst
 from carbonui.primitives.container import Container
 from carbonui.primitives.sprite import Sprite
@@ -37,9 +38,11 @@ class SkillIcon(Container):
         if not self.jobData:
             self.skills = []
             return
-        skills = self.jobData.required_skills
-        self.skills = [ (skill.typeID, skill.level) for skill in skills if skill.typeID is not None ]
-        self.UpdateState()
+        else:
+            skills = self.jobData.required_skills
+            self.skills = [ (skill.typeID, skill.level) for skill in skills if skill.typeID is not None ]
+            self.UpdateState()
+            return
 
     def LoadTooltipPanel(self, tooltipPanel, *args):
         self.tooltipPanel = SkillTooltipPanel(skills=self.skills, tooltipPanel=tooltipPanel)

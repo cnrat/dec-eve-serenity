@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\client\script\ui\shared\mapView\markers\mapMarkerLandmark.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\client\script\ui\shared\mapView\markers\mapMarkerLandmark.py
 from carbonui.control.menuLabel import MenuLabel
 from carbonui.primitives.base import ScaleDpi
 import eve.client.script.ui.shared.mapView.mapViewConst as mapViewConst

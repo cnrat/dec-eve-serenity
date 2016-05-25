@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\packages\carbonui\control\browser\browserPane.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\packages\carbonui\control\browser\browserPane.py
 import trinity
 import corebrowserutil
 from carbonui.primitives.base import Base
@@ -86,6 +87,7 @@ class CoreBrowserPane(Base):
         self.renderTextureStep = self.renderJob.RenderTexture(self.texture)
         trinity.device.RegisterResource(self)
         self.StartBrowserView()
+        return
 
     @apply
     def browserSession():
@@ -113,12 +115,14 @@ class CoreBrowserPane(Base):
             self.browserSession.OnSetFocus(args)
             if uicore.imeHandler:
                 uicore.imeHandler.SetFocus(self)
+        return
 
     def OnKillFocus(self, *args):
         if self.browserSession is not None:
             self.browserSession.OnKillFocus(args)
             if uicore.imeHandler:
                 uicore.imeHandler.KillFocus(self)
+        return
 
     def CheckFocusChange(self, browse):
         return True
@@ -141,24 +145,26 @@ class CoreBrowserPane(Base):
     def AdjustTextureSize(self):
         if not hasattr(self, 'isReady'):
             return
-        w = self.displayWidth
-        if w < 16:
-            w = 16
-        h = self.displayHeight
-        if h < 16:
-            h = 16
-        if self.browserSession is not None:
-            self.browserSession.SetBrowserSize(w, h)
         else:
-            print 'browserSession is None'
-        if w > self.textureWidth or h > self.textureHeight or w < self.textureWidth / 2 or h < self.textureHeight / 2:
-            self.textureWidth = min(corebrowserutil.NextPowerOfTwo(max(w, self.AppGetMinWidth())), self.AppGetMaxWidth())
-            self.textureHeight = min(corebrowserutil.NextPowerOfTwo(max(h, self.AppGetMinHeight())), self.AppGetMaxHeight())
-            dev = trinity.device
-            self.OnCreate(dev)
-        if self.textureAwaitingSwap:
+            w = self.displayWidth
+            if w < 16:
+                w = 16
+            h = self.displayHeight
+            if h < 16:
+                h = 16
+            if self.browserSession is not None:
+                self.browserSession.SetBrowserSize(w, h)
+            else:
+                print 'browserSession is None'
+            if w > self.textureWidth or h > self.textureHeight or w < self.textureWidth / 2 or h < self.textureHeight / 2:
+                self.textureWidth = min(corebrowserutil.NextPowerOfTwo(max(w, self.AppGetMinWidth())), self.AppGetMaxWidth())
+                self.textureHeight = min(corebrowserutil.NextPowerOfTwo(max(h, self.AppGetMinHeight())), self.AppGetMaxHeight())
+                dev = trinity.device
+                self.OnCreate(dev)
+            if self.textureAwaitingSwap:
+                return
+            self.renderTextureStep.brTexCoord = (float(w) / self.textureWidth, float(h) / self.textureHeight)
             return
-        self.renderTextureStep.brTexCoord = (float(w) / self.textureWidth, float(h) / self.textureHeight)
 
     def GetTooltipPosition(self, *args, **kwds):
         return (uicore.uilib.x - 5,
@@ -172,18 +178,21 @@ class CoreBrowserPane(Base):
         self.surface = texture
         if self.browserSession is not None:
             self.browserSession.SetBrowserSurface(self.surface, self._OnSurfaceReady)
+        return
 
     def _OnClose(self):
         Container._OnClose(self)
         self.browserSession = None
         self.renderTextureStep = None
         self.renderJob = None
+        return
 
     def _OnSurfaceReady(self):
         if self.textureAwaitingSwap:
             self.renderTextureStep.brTexCoord = (float(self.displayWidth) / self.textureWidth, float(self.displayHeight) / self.textureHeight)
             self.renderTextureStep.texture = self.textureAwaitingSwap
             self.textureAwaitingSwap = None
+        return
 
     def ResizeBrowser(self):
         self.AdjustTextureSize()
@@ -197,15 +206,19 @@ class CoreBrowserPane(Base):
     def OnKeyDown(self, vkey, flag):
         if self.browserSession is not None:
             self.browserSession.OnKeyDown(vkey, flag)
+        return
 
     def OnKeyUp(self, vkey, flag):
         if self.browserSession is not None:
             self.browserSession.OnKeyUp(vkey, flag)
+        return
 
     def OnChar(self, char, flag):
         if self.browserSession is not None:
             self.browserSession.OnChar(char, flag)
             return True
+        else:
+            return
 
     def OnMouseMove(self, *args):
         if self.browserSession is not None:
@@ -213,33 +226,37 @@ class CoreBrowserPane(Base):
             x = int((uicore.uilib.x - l) * uicore.desktop.dpiScaling)
             y = int((uicore.uilib.y - t) * uicore.desktop.dpiScaling)
             self.browserSession.OnMouseMove(x, y)
+        return
 
     def OnMouseDown(self, *args):
         if self.browserSession is not None:
             self.browserSession.OnMouseDown(args[0])
+        return
 
     def OnMouseUp(self, *args):
         if self.browserSession is not None:
             self.browserSession.OnMouseUp(args[0])
+        return
 
     def OnMouseWheel(self, *args):
         if self.browserSession is not None:
             self.browserSession.OnMouseWheel(uicore.uilib.dz)
+        return
 
     def GetSurface(self):
         return self.surface
 
     def AppGetMinWidth(self):
-        return 16
+        pass
 
     def AppGetMinHeight(self):
-        return 16
+        pass
 
     def AppGetMaxWidth(self):
-        return 4096
+        pass
 
     def AppGetMaxHeight(self):
-        return 4096
+        pass
 
     def SetLangIndicator(self, lang):
         pass

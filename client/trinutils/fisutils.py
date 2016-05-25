@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\packages\trinutils\fisutils.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\packages\trinutils\fisutils.py
 import os
 import blue
 import osutils
@@ -18,29 +19,34 @@ def ApplyBoosters(trinobjs, race):
     validobjs = filter(lambda o: hasattr(o, 'boosters'), trinobjs)
     if not validobjs:
         return
+    else:
 
-    def clearbooster(obj):
-        obj.boosters = None
+        def clearbooster(obj):
+            obj.boosters = None
+            return
 
-    if race is None:
-        uthread2.map(clearbooster, validobjs)
+        if race is None:
+            uthread2.map(clearbooster, validobjs)
+            return
+        booster_filepath = '%s/booster_%s.red' % (BOOSTER_RES_PATH, race)
+        booster = trinity.Load(booster_filepath)
+        if not booster:
+            raise IOError("Could not load file '%s'" % booster_filepath)
+
+        def loadit(obj):
+            boost = trinity.Load(booster_filepath)
+            obj.boosters = boost
+            obj.boosters.alwaysOn = True
+            obj.RebuildBoosterSet()
+
+        uthread2.map(lambda o: uthread2.start_tasklet(loadit, o), validobjs)
         return
-    booster_filepath = '%s/booster_%s.red' % (BOOSTER_RES_PATH, race)
-    booster = trinity.Load(booster_filepath)
-    if not booster:
-        raise IOError("Could not load file '%s'" % booster_filepath)
-
-    def loadit(obj):
-        boost = trinity.Load(booster_filepath)
-        obj.boosters = boost
-        obj.boosters.alwaysOn = True
-        obj.RebuildBoosterSet()
-
-    uthread2.map(lambda o: uthread2.start_tasklet(loadit, o), validobjs)
 
 
 def SafeCallMethod(trinobj, methodname, *args, **kwargs):
     f = getattr(trinobj, methodname, None)
     if f is None or not callable(f):
         return
-    f(*args, **kwargs)
+    else:
+        f(*args, **kwargs)
+        return

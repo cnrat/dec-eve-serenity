@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\devtools\script\menu_implant.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\devtools\script\menu_implant.py
 import os
 import sys
 import blue
@@ -12,8 +13,8 @@ IMPLANTFILE = 'implants.ini'
 Progress = lambda text, current, total: sm.GetService('loading').ProgressWnd('Messing with your head!', text, current, total)
 
 class ImplantService(Service):
+    """Insider Implant"""
     __module__ = __name__
-    __doc__ = 'Insider Implant'
     __exportedcalls__ = {}
     __guid__ = 'svc.implant'
     __servicename__ = 'implant'
@@ -179,17 +180,19 @@ class ImplantService(Service):
         mygodma = godma.GetItem(eve.session.charid)
         if not mygodma:
             return
-        imps = uiutil.SortListOfTuples([ (getattr(godma.GetType(implant.typeID), 'implantness', None), implant) for implant in mygodma.implants ])
-        ret = uix.NamePopup('Save Implant Set', 'Enter name for set', setvalue='New', maxLength=32)
-        if not ret:
-            return
-        name = ret['name']
-        if name.lower() in self.implants:
-            ret = sm.GetService('gameui').MessageBox(title='Overwrite set?', text="An implant set named '%s' already exists.<br><br>Click OK to overwrite the old set." % name, buttons=uiconst.OKCANCEL, icon=uiconst.WARNING)
-            if ret[0] != uiconst.ID_OK:
+        else:
+            imps = uiutil.SortListOfTuples([ (getattr(godma.GetType(implant.typeID), 'implantness', None), implant) for implant in mygodma.implants ])
+            ret = uix.NamePopup('Save Implant Set', 'Enter name for set', setvalue='New', maxLength=32)
+            if not ret:
                 return
-        key = 'IMP:' + ':'.join([ str(row.typeID) for row in imps ])
-        self.implants[name.lower()] = (name, key)
-        self.Save(self.implants, TARGET)
+            name = ret['name']
+            if name.lower() in self.implants:
+                ret = sm.GetService('gameui').MessageBox(title='Overwrite set?', text="An implant set named '%s' already exists.<br><br>Click OK to overwrite the old set." % name, buttons=uiconst.OKCANCEL, icon=uiconst.WARNING)
+                if ret[0] != uiconst.ID_OK:
+                    return
+            key = 'IMP:' + ':'.join([ str(row.typeID) for row in imps ])
+            self.implants[name.lower()] = (name, key)
+            self.Save(self.implants, TARGET)
+            return
 
     exports = {'insider.ImplantMenu': ImplantMenu}

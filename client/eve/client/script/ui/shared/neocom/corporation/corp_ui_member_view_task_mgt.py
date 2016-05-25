@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\client\script\ui\shared\neocom\corporation\corp_ui_member_view_task_mgt.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\client\script\ui\shared\neocom\corporation\corp_ui_member_view_task_mgt.py
 import uiprimitives
 import uicontrols
 import util
@@ -71,6 +72,7 @@ class CorpMembersViewTaskManagement(uiprimitives.Container):
          const.CTPG_CASH: 'isk_amount_picker',
          const.CTPG_SHARES: 'share_amount_picker',
          'titleMask': 'title_picker'}
+        return
 
     def LogInfo(self, *args):
         lg.Info(self.__guid__, *args)
@@ -214,31 +216,35 @@ class CorpMembersViewTaskManagement(uiprimitives.Container):
         finally:
             sm.GetService('loading').StopCycle()
 
+        return
+
     def SaveEditedSearchTerm(self, *args):
         if self.currentlyEditing is None:
             return
-        verb = self.comboVerb.GetValue()
-        property = self.comboProperty.GetValue()
-        value = None
-        if self.propertyControls.has_key('current'):
-            currentControlType = self.propertyControls['current']
-            if currentControlType is not None:
-                currentControl = self.propertyControls[currentControlType]
-                value = currentControl.GetValue()
-        entry = self.currentlyEditing
-        label = self.MakeLabel(verb, property, value)
-        entry.panel.label = label
-        entry.panel.sr.label.text = label
-        entry.label = label
-        entry.args1 = label
-        entry.args2 = label
-        entry.verb = verb
-        entry.property = property
-        entry.value = value
-        self.currentlyEditing = None
-        self.addEditButton.state = uiconst.UI_NORMAL
-        self.saveEditButton.state = uiconst.UI_HIDDEN
-        self.cancelEditButton.state = uiconst.UI_HIDDEN
+        else:
+            verb = self.comboVerb.GetValue()
+            property = self.comboProperty.GetValue()
+            value = None
+            if self.propertyControls.has_key('current'):
+                currentControlType = self.propertyControls['current']
+                if currentControlType is not None:
+                    currentControl = self.propertyControls[currentControlType]
+                    value = currentControl.GetValue()
+            entry = self.currentlyEditing
+            label = self.MakeLabel(verb, property, value)
+            entry.panel.label = label
+            entry.panel.sr.label.text = label
+            entry.label = label
+            entry.args1 = label
+            entry.args2 = label
+            entry.verb = verb
+            entry.property = property
+            entry.value = value
+            self.currentlyEditing = None
+            self.addEditButton.state = uiconst.UI_NORMAL
+            self.saveEditButton.state = uiconst.UI_HIDDEN
+            self.cancelEditButton.state = uiconst.UI_HIDDEN
+            return
 
     def CancelEditedSearchTerm(self, *args):
         self.addEditButton.state = uiconst.UI_NORMAL
@@ -267,6 +273,7 @@ class CorpMembersViewTaskManagement(uiprimitives.Container):
         self.addEditButton.state = uiconst.UI_HIDDEN
         self.saveEditButton.state = uiconst.UI_NORMAL
         self.cancelEditButton.state = uiconst.UI_NORMAL
+        return
 
     def OnClickRemove(self, args, button):
         entry = self.GetEntryByLabel(args)
@@ -277,11 +284,14 @@ class CorpMembersViewTaskManagement(uiprimitives.Container):
         self.addEditButton.state = uiconst.UI_NORMAL
         self.saveEditButton.state = uiconst.UI_HIDDEN
         self.cancelEditButton.state = uiconst.UI_HIDDEN
+        return
 
     def GetEntryByLabel(self, label):
         for entry in self.scrollQuery.GetNodes():
             if entry.label == label:
                 return entry
+
+        return None
 
     def OnComboChange(self, entry, header, value, *args):
         if entry.name == 'verb':
@@ -337,7 +347,8 @@ class CorpMembersViewTaskManagement(uiprimitives.Container):
             rows = self.offices
             if rows and len(rows):
                 for row in rows:
-                    bases.append((cfg.evelocations.Get(row.stationID).locationName, row.stationID))
+                    if util.IsStation(row.locationID):
+                        bases.append((cfg.evelocations.Get(row.locationID).locationName, row.locationID))
 
             requestedControl = uicontrols.Combo(label='', parent=self.wndInputFieldArea, options=bases, name=requestedControlType, width=146, pos=(const.defaultPadding,
              0,
@@ -358,6 +369,7 @@ class CorpMembersViewTaskManagement(uiprimitives.Container):
             requestedControl.state = uiconst.UI_NORMAL
         self.propertyControls[requestedControlType] = requestedControl
         self.propertyControls['current'] = requestedControlType
+        return
 
     def CreateTargetsWindow(self):
         self.wndTargets = uiprimitives.Container(name='wndTargets', parent=self, align=uiconst.TOALL, pos=(const.defaultPadding,
@@ -397,8 +409,9 @@ class CorpMembersViewTaskManagement(uiprimitives.Container):
             if self.wndAction is not None:
                 self.wndAction.state = uiconst.UI_HIDDEN
             self.UpdateTargetsTabLabel()
+        return
 
-    def PopulateView(self, memberIDs = None):
+    def PopulateView(self, memberIDs=None):
         if memberIDs is not None:
             self.memberIDs = memberIDs
             self.targetIDs = memberIDs
@@ -408,6 +421,7 @@ class CorpMembersViewTaskManagement(uiprimitives.Container):
         self.width = -const.defaultPadding
         self.UpdateActionsTabLabel()
         self.UpdateTargetsTabLabel()
+        return
 
     def LoadTargets(self):
         self.targetIDs = []
@@ -423,18 +437,21 @@ class CorpMembersViewTaskManagement(uiprimitives.Container):
         self.scrollTargets.Load(None, scrolllist)
         self.scrollNoneTargets.Load(None, [])
         self.UpdateTargetsTabLabel()
+        return
 
     def UpdateActionsTabLabel(self):
         if self.wndTabs is not None:
             actionsTabName = '%s_tab' % localization.GetByLabel('UI/Corporations/CorporationWindow/Members/FindMemberInRole/Actions')
             actionsLabel = localization.GetByLabel('UI/Corporations/CorporationWindow/Members/FindMemberInRole/ActionsTabLabel', numberOfActions=len(self.scrollQuery.GetNodes()))
             self.wndTabs.sr.Get(actionsTabName, None).SetLabel(actionsLabel)
+        return
 
     def UpdateTargetsTabLabel(self):
         if self.wndTabs is not None:
             targetsTabName = '%s_tab' % localization.GetByLabel('UI/Corporations/CorporationWindow/Members/FindMemberInRole/Targets')
             targetsLabel = localization.GetByLabel('UI/Corporations/CorporationWindow/Members/FindMemberInRole/TargetsTabLabel', targetCount=len(self.targetIDs), nonTargetCount=len(self.noneTargetIDs))
             self.wndTabs.sr.Get(targetsTabName, None).SetLabel(targetsLabel)
+        return
 
     def OnRemove(self, memberID, button):
         self.LogInfo('OnRemove memberID:', memberID)
@@ -466,3 +483,5 @@ class CorpMembersViewTaskManagement(uiprimitives.Container):
         for entry in scroll.GetNodes():
             if entry.args == args:
                 return entry
+
+        return None

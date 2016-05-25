@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\packages\localization\const.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\packages\localization\const.py
 LOCALE_SHORT_ENGLISH = 'en-us'
 LOCALE_SHORT_GERMAN = 'de'
 LOCALE_SHORT_FRENCH = 'fr'

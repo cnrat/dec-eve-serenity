@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\packages\brennivin\logutils.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\packages\brennivin\logutils.py
 import fnmatch as _fnmatch
 import logging as _logging
 import os as _os
@@ -24,7 +25,7 @@ class Fmt(object):
 
 class MultiLineIndentFormatter(_logging.Formatter):
 
-    def __init__(self, fmt = None, datefmt = None, sep = ' '):
+    def __init__(self, fmt=None, datefmt=None, sep=' '):
         _logging.Formatter.__init__(self, fmt, datefmt)
         self.sep = sep
 
@@ -35,7 +36,7 @@ class MultiLineIndentFormatter(_logging.Formatter):
         return s
 
 
-def timestamped_filename(filename, fmt = '%Y-%m-%d-%H-%M-%S', timestruct = None, sep = '_'):
+def timestamped_filename(filename, fmt='%Y-%m-%d-%H-%M-%S', timestruct=None, sep='_'):
     head, ext = _os.path.splitext(filename)
     timestr = timestamp(fmt, timestruct)
     return '%s%s%s%s' % (head,
@@ -44,11 +45,11 @@ def timestamped_filename(filename, fmt = '%Y-%m-%d-%H-%M-%S', timestruct = None,
      ext)
 
 
-def timestamp(fmt, timestruct = None):
+def timestamp(fmt, timestruct=None):
     return _time.strftime(fmt, timestruct or _time.gmtime())
 
 
-def get_timestamped_logfilename(folder, basename = None, ext = '.log', fmt = '%Y-%m-%d-%H-%M-%S', timestruct = None, _getpid = _os.getpid):
+def get_timestamped_logfilename(folder, basename=None, ext='.log', fmt='%Y-%m-%d-%H-%M-%S', timestruct=None, _getpid=_os.getpid):
     if basename is None:
         basename = _os.path.basename(folder)
     timestamped = timestamp(fmt, timestruct)
@@ -63,7 +64,7 @@ def get_timestamped_logfilename(folder, basename = None, ext = '.log', fmt = '%Y
     return logfilename
 
 
-def get_filenames_from_loggers(loggers = None, _loggingmodule = None):
+def get_filenames_from_loggers(loggers=None, _loggingmodule=None):
     _loggingmodule = _loggingmodule or _logging
     if loggers is None:
         loggers = [_loggingmodule.root]
@@ -77,7 +78,7 @@ def get_filenames_from_loggers(loggers = None, _loggingmodule = None):
     return tuple(allfilenames)
 
 
-def remove_old_files(root, namepattern = '*', maxfiles = 1):
+def remove_old_files(root, namepattern='*', maxfiles=1):
     if maxfiles < 0:
         raise ValueError('maxfiles must be >= 0, got %s' % maxfiles)
     lstFiles = []
@@ -94,7 +95,7 @@ def remove_old_files(root, namepattern = '*', maxfiles = 1):
             pass
 
 
-def wrap_line(s, maxlines, maxlen = 254, pfx = '- '):
+def wrap_line(s, maxlines, maxlen=254, pfx='- '):
     e = len(s)
     if e <= maxlen:
         yield s

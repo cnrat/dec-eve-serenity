@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\common\modules\nice\client\_nastyspace\xtriui.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\common\modules\nice\client\_nastyspace\xtriui.py
 from eve.client.script.ui.control.buttons import BigButton
 from eve.client.script.ui.control.datepicker import DatePicker
 from eve.client.script.ui.control.divider import Divider
@@ -16,7 +17,6 @@ from eve.client.script.ui.inflight.moonmining import TypeIcon
 from eve.client.script.ui.inflight.shipModuleButton.shipmodulebutton import ModuleButton
 from eve.client.script.ui.inflight.target import Target
 from eve.client.script.ui.services.menuAction import Action
-from eve.client.script.ui.services.menuAction import ActionMenu
 from eve.client.script.ui.shared.fittingMgmtWindow import FittingDraggableIcon
 from eve.client.script.ui.shared.fleet.fleet import ChannelsPanelAction
 from eve.client.script.ui.shared.fleet.fleet import FleetAction

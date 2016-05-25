@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\packages\notifications\client\development\notificationDevUI.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\packages\notifications\client\development\notificationDevUI.py
 from notifications.common.notification import SimpleNotification
 from eve.client.script.ui.control.eveWindow import Window
 from eve.client.script.ui.control.buttons import Button
@@ -88,7 +89,7 @@ from eve.client.script.ui.services.mail.notificationSvc import Notification
 
 class FakeNotificationMaker:
 
-    def MakeFakeData(self, senderID = 98000002):
+    def MakeFakeData(self, senderID=98000002):
         data = {}
         data['addCloneInfo'] = 1
         data['againstID'] = 98000002
@@ -205,6 +206,8 @@ class FakeNotificationMaker:
         except:
             print 'exception'
             print sys.exc_info()[0]
+
+        return
 
     def MakeAndScatterAllClassicNotifications(self):
         counter = 0

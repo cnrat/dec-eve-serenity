@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\packages\watchdog\observers\inotify.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\packages\watchdog\observers\inotify.py
 from __future__ import with_statement
 import os
 import threading
@@ -9,10 +10,11 @@ from watchdog.utils import unicode_paths
 
 class InotifyEmitter(EventEmitter):
 
-    def __init__(self, event_queue, watch, timeout = DEFAULT_EMITTER_TIMEOUT):
+    def __init__(self, event_queue, watch, timeout=DEFAULT_EMITTER_TIMEOUT):
         EventEmitter.__init__(self, event_queue, watch, timeout)
         self._lock = threading.Lock()
         self._inotify = None
+        return
 
     def on_thread_start(self):
         path = unicode_paths.encode(self.watch.path)
@@ -66,6 +68,7 @@ class InotifyEmitter(EventEmitter):
                 cls = DirCreatedEvent if event.is_directory else FileCreatedEvent
                 self.queue_event(cls(src_path))
                 self.queue_event(DirModifiedEvent(os.path.dirname(src_path)))
+        return
 
     def _decode_path(self, path):
         if isinstance(self.watch.path, bytes):
@@ -75,5 +78,5 @@ class InotifyEmitter(EventEmitter):
 
 class InotifyObserver(BaseObserver):
 
-    def __init__(self, timeout = DEFAULT_OBSERVER_TIMEOUT):
+    def __init__(self, timeout=DEFAULT_OBSERVER_TIMEOUT):
         BaseObserver.__init__(self, emitter_class=InotifyEmitter, timeout=timeout)

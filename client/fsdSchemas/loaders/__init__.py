@@ -1,4 +1,5 @@
-#Embedded file name: C:\jamieb_jamieb-pc_STABLE_1796\fsdSchemas\loaders\__init__.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: C:\jamieb_jamieb-pc_STABLE_1796\fsdSchemas\loaders\__init__.py
 import ctypes
 import fsdSchemas.schemaOptimizer as schemaOptimizer
 import fsdSchemas.predefinedStructTypes as structTypes

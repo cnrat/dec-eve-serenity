@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\carbon\common\stdlib\unittest\test\test_discovery.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\carbon\common\stdlib\unittest\test\test_discovery.py
 import os
 import re
 import sys
@@ -103,7 +104,6 @@ class TestDiscovery(unittest.TestCase):
 
                     def load_tests(loader, tests, pattern):
                         self.load_tests_args.append((loader, tests, pattern))
-                        return 'load_tests'
 
                     self.load_tests = load_tests
 
@@ -231,7 +231,6 @@ class TestDiscovery(unittest.TestCase):
 
             def discover(self, start_dir, pattern, top_level_dir):
                 self.args.append((start_dir, pattern, top_level_dir))
-                return 'tests'
 
         program._do_discovery(['-v'], Loader=Loader)
         self.assertEqual(program.verbosity, 2)
@@ -293,6 +292,7 @@ class TestDiscovery(unittest.TestCase):
         self.assertEqual(program.verbosity, 2)
         self.assertTrue(program.failfast)
         self.assertTrue(program.catchbreak)
+        return None
 
     def test_detect_module_clash(self):
 

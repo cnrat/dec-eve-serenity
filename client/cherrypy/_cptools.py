@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\carbon\common\lib\cherrypy\_cptools.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\carbon\common\lib\cherrypy\_cptools.py
 import sys
 import warnings
 import cherrypy
@@ -21,7 +22,7 @@ _attr_error = 'CherryPy Tools cannot be turned on directly. Instead, turn them o
 class Tool(object):
     namespace = 'tools'
 
-    def __init__(self, point, callable, name = None, priority = 50):
+    def __init__(self, point, callable, name=None, priority=50):
         self._point = point
         self.callable = callable
         self._name = name
@@ -52,7 +53,9 @@ class Tool(object):
         except IndexError:
             pass
 
-    def _merged_args(self, d = None):
+        return
+
+    def _merged_args(self, d=None):
         if d:
             conf = d.copy()
         else:
@@ -86,11 +89,12 @@ class Tool(object):
         if p is None:
             p = getattr(self.callable, 'priority', self._priority)
         cherrypy.serving.request.hooks.attach(self._point, self.callable, priority=p, **conf)
+        return
 
 
 class HandlerTool(Tool):
 
-    def __init__(self, callable, name = None):
+    def __init__(self, callable, name=None):
         Tool.__init__(self, 'before_handler', callable, name)
 
     def handler(self, *args, **kwargs):
@@ -107,6 +111,7 @@ class HandlerTool(Tool):
     def _wrapper(self, **kwargs):
         if self.callable(**kwargs):
             cherrypy.serving.request.handler = None
+        return
 
     def _setup(self):
         conf = self._merged_args()
@@ -114,17 +119,18 @@ class HandlerTool(Tool):
         if p is None:
             p = getattr(self.callable, 'priority', self._priority)
         cherrypy.serving.request.hooks.attach(self._point, self._wrapper, priority=p, **conf)
+        return
 
 
 class HandlerWrapperTool(Tool):
 
-    def __init__(self, newhandler, point = 'before_handler', name = None, priority = 50):
+    def __init__(self, newhandler, point='before_handler', name=None, priority=50):
         self.newhandler = newhandler
         self._point = point
         self._name = name
         self._priority = priority
 
-    def callable(self, debug = False):
+    def callable(self, debug=False):
         innerfunc = cherrypy.serving.request.handler
 
         def wrap(*args, **kwargs):
@@ -135,8 +141,9 @@ class HandlerWrapperTool(Tool):
 
 class ErrorTool(Tool):
 
-    def __init__(self, callable, name = None):
+    def __init__(self, callable, name=None):
         Tool.__init__(self, None, callable, name)
+        return
 
     def _wrapper(self):
         self.callable(**self._merged_args())
@@ -172,6 +179,7 @@ class SessionTool(Tool):
             hooks.attach('before_request_body', self._lock_session, priority=60)
         hooks.attach('before_finalize', _sessions.save)
         hooks.attach('on_end_request', _sessions.close)
+        return
 
     def regenerate(self):
         sess = cherrypy.serving.session
@@ -207,6 +215,8 @@ class SessionAuthTool(HandlerTool):
             if not name.startswith('__'):
                 setattr(self, name, None)
 
+        return
+
 
 class CachingTool(Tool):
 
@@ -216,6 +226,7 @@ class CachingTool(Tool):
             request.handler = None
         elif request.cacheable:
             request.hooks.attach('before_finalize', _caching.tee_output, priority=90)
+        return
 
     _wrapper.priority = 20
 
@@ -223,6 +234,7 @@ class CachingTool(Tool):
         conf = self._merged_args()
         p = conf.pop('priority', None)
         cherrypy.serving.request.hooks.attach('before_handler', self._wrapper, priority=p, **conf)
+        return
 
 
 class Toolbox(object):
@@ -236,6 +248,7 @@ class Toolbox(object):
                 value._name = name
             value.namespace = self.namespace
         object.__setattr__(self, name, value)
+        return
 
     def __enter__(self):
         cherrypy.serving.request.toolmaps[self.namespace] = map = {}
@@ -260,10 +273,11 @@ class DeprecatedTool(Tool):
     _name = None
     warnmsg = 'This Tool is deprecated.'
 
-    def __init__(self, point, warnmsg = None):
+    def __init__(self, point, warnmsg=None):
         self.point = point
         if warnmsg is not None:
             self.warnmsg = warnmsg
+        return
 
     def __call__(self, *args, **kwargs):
         warnings.warn(self.warnmsg)

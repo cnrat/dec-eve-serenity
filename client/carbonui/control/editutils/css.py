@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\packages\carbonui\control\editutils\css.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\packages\carbonui\control\editutils\css.py
 import sys
 from carbonui.util.various_unsorted import ParseHTMLColor
 
@@ -85,12 +86,13 @@ class css:
         cl = getattr(astack['attr'], 'class', '').lower()
         if csel['tag'] not in (tag, '*') and csel['tag']:
             return
-        if csel['class']:
-            if csel['class'] not in cl.split(' '):
+        else:
+            if csel['class']:
+                if csel['class'] not in cl.split(' '):
+                    return
+            if csel['id'] and tid != csel['id']:
                 return
-        if csel['id'] and tid != csel['id']:
-            return
-        return 1
+            return 1
 
     def SplitSelector(self, sel):
         s = {}
@@ -110,7 +112,7 @@ class css:
         icount = sel.count('#')
         if ccount + acount + icount > 1:
             return
-        if ccount == 1:
+        elif ccount == 1:
             h = sel.split('.')
             if len(h) == 1:
                 s['class'] = h[0]
@@ -118,7 +120,7 @@ class css:
                 s['tag'] = h[0]
                 s['class'] = h[1]
             return s
-        if acount == 1:
+        elif acount == 1:
             h = sel.split('[')
             if sel[-1] == ']':
                 if len(h) == 1:
@@ -129,7 +131,7 @@ class css:
             else:
                 return
             return s
-        if icount == 1:
+        elif icount == 1:
             h = sel.split('#')
             if len(h) == 1:
                 s['id'] = h[0]
@@ -137,8 +139,9 @@ class css:
                 s['tag'] = h[0]
                 s['id'] = h[1]
             return s
-        s['tag'] = sel
-        return s
+        else:
+            s['tag'] = sel
+            return s
 
     def GetClass(self, classID):
         classID = classID.lower()
@@ -147,6 +150,8 @@ class css:
                 return c
             if c['class'] == classID:
                 return c
+
+        return None
 
     def HandlePseudoClass(self, pclass):
         links = [('link', 'link-color'),
@@ -227,6 +232,8 @@ class css:
                         s['prio'] = 10000
                     self.classes.append(s)
 
+        return
+
     def ParseStyleData(self, cssdata):
         data = {}
         imp = {}
@@ -248,15 +255,17 @@ class css:
 
         return (data, imp)
 
-    def ParseCSS(self, attrs = None):
+    def ParseCSS(self, attrs=None):
         self.s = {}
         sattr = getattr(attrs, 'style', None)
         if sattr:
             data, imp = self.ParseStyleData(sattr)
             data.update(imp)
             return self.ParseStyle(data)
+        else:
+            return
 
-    def ParseStyle(self, style = None):
+    def ParseStyle(self, style=None):
         if style:
             for k, v in style.iteritems():
                 if k in self.styleDict:
@@ -268,14 +277,17 @@ class css:
         value = unicode(value).lower().strip()
         if value.isdigit():
             return int(value)
-        if value.endswith('%'):
+        elif value.endswith('%'):
             return value
-        if value[-2:] in self.absStyleUnits and value[:-2].isdigit():
+        elif value[-2:] in self.absStyleUnits and value[:-2].isdigit():
             return int(self.absStyleUnits[value[-2:]] * float(value[:-2].strip()))
-        try:
-            return int(value)
-        except:
-            sys.exc_clear()
+        else:
+            try:
+                return int(value)
+            except:
+                sys.exc_clear()
+                return None
+
             return None
 
     absStyleUnits = {'px': 1.0,
@@ -294,6 +306,7 @@ class css:
             if v is None or not type(v) == int and not v.isdigit():
                 return
             self.s['font-size'] = int(v)
+        return
 
     def ParseFontStyle(self, k, v):
         if v:
@@ -440,6 +453,8 @@ class css:
                 if color:
                     self.s['background-color'] = color
 
+        return
+
     def ParseBackgroundRepeat(self, k, v):
         if v in ('repeat', 'repeat-x', 'repeat-y', 'no-repeat'):
             self.s['background-repeat'] = v
@@ -500,6 +515,7 @@ class css:
             self.s['float'] = None
         elif v == 'inherit' and self.s.has_key('float'):
             del self.s['float']
+        return
 
     fontSize = {'small': 8,
      'x-small': 7,

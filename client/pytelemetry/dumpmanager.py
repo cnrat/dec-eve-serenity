@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\packages\pytelemetry\dumpmanager.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\packages\pytelemetry\dumpmanager.py
 import os
 import sys
 import shutil
@@ -32,6 +33,7 @@ class AsyncZipAndSaveTelemetryFiles(threading.Thread):
             shutil.move(zip_file + '.zip', self.output_folder)
             discard_newest_capture_files()
         zip_thread = None
+        return
 
 
 TELEMETRY_DUMP_PATH = os.path.join(blue.paths.ResolvePath(u'root:/server/cache'))

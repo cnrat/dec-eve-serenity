@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\client\script\ui\standingLevelSelector.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\client\script\ui\standingLevelSelector.py
 from eve.client.script.ui.shared.stateFlag import AddAndSetFlagIcon
 import uiprimitives
 import uicontrols
@@ -18,6 +19,7 @@ class StandingLevelSelector(uiprimitives.Container):
         if attributes.get('callback', None):
             self.OnStandingLevelSelected = attributes.get('callback', None)
         self.ConstructLayout()
+        return
 
     def ConstructLayout(self):
         self.standingList = {const.contactHighStanding: localization.GetByLabel('UI/PeopleAndPlaces/ExcellentStanding'),
@@ -69,8 +71,9 @@ class StandingsContainer(uiprimitives.Container):
         self.windowName = windowName
         self.Prepare_(text, level)
         self.cursor = 1
+        return
 
-    def Prepare_(self, text = '', contactLevel = None, *args):
+    def Prepare_(self, text='', contactLevel=None, *args):
         self.isTabStop = 1
         self.state = uiconst.UI_NORMAL
         flag = None
@@ -94,6 +97,7 @@ class StandingsContainer(uiprimitives.Container):
             self.sr.hilite = uicontrols.Frame(parent=flagContainer, color=(1.0, 1.0, 1.0, 0.75), state=uiconst.UI_DISABLED, idx=0)
             self.sr.hilite.display = False
             self.hint = text
+        return
 
     def OnMouseEnter(self, *args):
         if self.sr.hilite:

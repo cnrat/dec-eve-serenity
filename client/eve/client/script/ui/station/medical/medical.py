@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\client\script\ui\station\medical\medical.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\client\script\ui\station\medical\medical.py
 import blue
 import carbonui.const as uiconst
 import dogma.const
@@ -17,9 +18,12 @@ from eve.client.script.ui.control.buttons import Button
 from eve.client.script.ui.control.eveIcon import ItemIcon
 from eve.client.script.ui.control.eveLabel import EveLabelLargeBold, EveLabelMedium, EveLabelMediumBold, WndCaptionLabel
 from eve.client.script.ui.control.eveWindow import Window
+from eve.client.script.ui.station.medical import GetMedicalController
 from eve.client.script.ui.station.medical.cloneStation import CloneStationWindow
 from eve.client.script.ui.shared.shipTree.infoBubble import SkillEntry
 import evetypes
+from eve.client.script.ui.structure import ChangeSignalConnect
+from eve.common.script.sys.idCheckers import IsStation
 from itertoolsext import Bundle
 BACKGROUND_GRAY_COLOR = (0.2,
  0.2,
@@ -67,18 +71,27 @@ class MedicalWindow(Window):
 
     def ApplyAttributes(self, attributes):
         Window.ApplyAttributes(self, attributes)
-        self.homeStationID = GetHomeStation()
-        self.jumpCloneID = GetJumpClone()
+        self.medicalController = GetMedicalController()
+        self.currentLocationID = attributes.currentLocationID
+        homeStationRow = self.medicalController.GetHomeStationRow()
+        self.homeStationID = homeStationRow.stationID
+        self.homeStationTypeID = homeStationRow.stationTypeID
+        self.jumpCloneID = GetJumpClone(self.currentLocationID)
         self.Layout()
         uthread.new(self.Reload)
+        self.ChangeSignalConnection(connect=True)
+
+    def ChangeSignalConnection(self, connect=True):
+        signalAndCallback = [(self.medicalController.on_home_station_changed, self.OnHomeStationChanged)]
+        ChangeSignalConnect(signalAndCallback, connect)
 
     def Layout(self):
         self.HideHeader()
         self.MakeUnResizeable()
         self.SetWndIcon(self.iconNum, mainTop=2, mainLeft=6)
         self.SetTopparentHeight(self.TOP_PARENT_HEIGHT)
-        station = cfg.stations.Get(session.stationid2)
-        WndCaptionLabel(parent=self.sr.topParent, align=uiconst.RELATIVE, text=localization.GetByLabel('UI/Medical/Medical'), subcaption=station.stationName)
+        locationInfo = cfg.evelocations.Get(self.currentLocationID)
+        WndCaptionLabel(parent=self.sr.topParent, align=uiconst.RELATIVE, text=localization.GetByLabel('UI/Medical/Medical'), subcaption=locationInfo.name)
         self.container = ContainerAutoSize(parent=self.GetMainArea(), align=uiconst.TOTOP, alignMode=uiconst.TOTOP, state=uiconst.UI_PICKCHILDREN, padding=(self.PADDING,
          self.PADDING,
          self.PADDING,
@@ -89,6 +102,20 @@ class MedicalWindow(Window):
          0,
          self.HALF_PADDING))
         self.homeStation = CreateSectionContainer(self.container)
+        if self.medicalController.HasAbilityToActivateClone():
+            self.AddSelfDestructSection()
+        EveLabelLargeBold(parent=self.container, align=uiconst.TOTOP, text=localization.GetByLabel('UI/Medical/JumpClone'), padding=(0,
+         self.PADDING,
+         0,
+         0))
+        EveLabelMedium(parent=self.container, align=uiconst.TOTOP, text=localization.GetByLabel('UI/Medical/JumpCloneDescription'), color=GRAY_COLOR, padding=(0,
+         0,
+         0,
+         self.HALF_PADDING))
+        self.jumpClone = CreateSectionContainer(self.container)
+        animations.FadeIn(self.container, duration=0.5)
+
+    def AddSelfDestructSection(self):
         EveLabelLargeBold(parent=self.container, align=uiconst.TOTOP, text=localization.GetByLabel('UI/Medical/ActiveClone'), padding=(0,
          self.PADDING,
          0,
@@ -102,52 +129,74 @@ class MedicalWindow(Window):
          0,
          self.HALF_PADDING))
         self.activeClone = CreateSectionContainer(self.container)
-        EveLabelLargeBold(parent=self.container, align=uiconst.TOTOP, text=localization.GetByLabel('UI/Medical/JumpClone'), padding=(0,
-         self.PADDING,
-         0,
-         0))
-        EveLabelMedium(parent=self.container, align=uiconst.TOTOP, text=localization.GetByLabel('UI/Medical/JumpCloneDescription'), color=GRAY_COLOR, padding=(0,
-         0,
-         0,
-         self.HALF_PADDING))
-        self.jumpClone = CreateSectionContainer(self.container)
-        animations.FadeIn(self.container, duration=0.5)
 
     def Reload(self):
         if self.destroyed:
             return
-        homeStationID = GetHomeStation()
+        homeStationID = self.medicalController.GetHomeStation()
         animate = homeStationID != self.homeStationID
         self.homeStationID = homeStationID
         uthread.new(self.ReloadHomeStation, animate=animate)
-        uthread.new(self.ReloadSelfDestruct, animate=animate)
-        jumpCloneID = GetJumpClone()
+        if self.medicalController.HasAbilityToActivateClone():
+            uthread.new(self.ReloadSelfDestruct, animate=animate)
+        jumpCloneID = GetJumpClone(self.currentLocationID)
         animate = jumpCloneID != self.jumpCloneID
         self.jumpCloneID = jumpCloneID
         uthread.new(self.ReloadJumpClone, animate=animate)
 
-    def ReloadHomeStation(self, animate = False):
+    def ReloadHomeStation(self, animate=False):
         if animate:
             HideContainerContent(self.homeStation)
-        stationNameLabel = PrepareStationLink(self.homeStationID)
+        stationNameLabel = PrepareStationLink(self.homeStationID, self.homeStationTypeID)
         opacity = 0.0 if animate else 1.0
         with FlushAndLockAutoSize(self.homeStation):
-            SectionEntry(parent=self.homeStation, align=uiconst.TOTOP, iconPath='res:/UI/Texture/WindowIcons/medical.png', title=localization.GetByLabel('UI/Medical/Clone/HomeStation'), titleColor=GREEN_COLOR, text=stationNameLabel, actionText=localization.GetByLabel('UI/Medical/ChangeStation'), actionCallback=lambda _: OpenHomeStationDialog(), opacity=opacity)
+            SectionEntry(parent=self.homeStation, align=uiconst.TOTOP, iconPath='res:/UI/Texture/WindowIcons/medical.png', title=localization.GetByLabel('UI/Medical/Clone/HomeStation'), titleColor=GREEN_COLOR, text=stationNameLabel, actionText=localization.GetByLabel('UI/Medical/ChangeStation'), actionCallback=lambda _: self.OpenHomeStationDialog(), opacity=opacity)
             if animate:
                 RevealContainerContent(self.homeStation)
 
-    def ReloadSelfDestruct(self, animate = False):
+    def OpenHomeStationDialog(self):
+        CloneStationWindow.Open(medicalController=self.medicalController)
+
+    def ReloadSelfDestruct(self, animate=False):
         if animate:
             HideContainerContent(self.activeClone)
-        stationNameLabel = PrepareStationLink(self.homeStationID)
+        stationNameLabel = PrepareStationLink(self.homeStationID, self.homeStationTypeID)
         opacity = 0.0 if animate else 1.0
         with FlushAndLockAutoSize(self.activeClone):
-            errors = ValidateSelfDestruct()
-            SectionEntry(parent=self.activeClone, align=uiconst.TOTOP, iconPath='res:/UI/Texture/WindowIcons/terminate.png', title=localization.GetByLabel('UI/Medical/SelfDestructHeader'), titleColor=GRAY_COLOR, text=stationNameLabel, actionText=localization.GetByLabel('UI/Medical/SelfDestruct'), actionCallback=lambda _: ActivateClone(), actionErrors=errors, opacity=opacity)
+            errors = self.ValidateSelfDestruct()
+            SectionEntry(parent=self.activeClone, align=uiconst.TOTOP, iconPath='res:/UI/Texture/WindowIcons/terminate.png', title=localization.GetByLabel('UI/Medical/SelfDestructHeader'), titleColor=GRAY_COLOR, text=stationNameLabel, actionText=localization.GetByLabel('UI/Medical/SelfDestruct'), actionCallback=lambda _: self.ActivateClone(), actionErrors=errors, opacity=opacity)
             if animate:
                 RevealContainerContent(self.activeClone)
 
-    def ReloadJumpClone(self, animate = False):
+    def ValidateSelfDestruct(self):
+        errors = []
+        homeStationID = self.medicalController.GetHomeStation()
+        if session.stationid2 == homeStationID:
+            errors.append(localization.GetByLabel('UI/Medical/ErrorAlreadyAtHomeStation'))
+        return errors
+
+    def ActivateClone(self):
+        if not self.medicalController.HasAbilityToActivateClone():
+            return
+        self.medicalController.VerifiedDocked()
+        if not self.ConfirmActivateClone():
+            return
+        self.medicalController.VerifiedDocked()
+        self.medicalController.ActivateClone()
+
+    def ConfirmActivateClone(self):
+        station = self.medicalController.GetHomeStation()
+        messageData = {'station': station}
+        implants = GetDestructibleImplants()
+        if len(implants):
+            message = 'AskStationSelfDestructImplants'
+            implants = [ '<t>- %s<br>' % cfg.FormatConvert(const.UE_TYPEIDANDQUANTITY, implant.typeID, 1) for implant in implants ]
+            messageData['items'] = ''.join(implants)
+        else:
+            message = 'AskStationSelfDestruct'
+        return eve.Message(message, messageData, uiconst.YESNO) == uiconst.ID_YES
+
+    def ReloadJumpClone(self, animate=False):
         if animate:
             HideContainerContent(self.jumpClone)
         if self.jumpCloneID:
@@ -155,7 +204,7 @@ class MedicalWindow(Window):
             header = localization.GetByLabel('UI/Medical/JumpCloneInstalled')
             headerColor = BLUE_COLOR
             buttonText = localization.GetByLabel('UI/Medical/DestroyJumpClone')
-            buttonFunc = lambda _: DestroyJumpClone()
+            buttonFunc = lambda _: DestroyJumpClone(self.currentLocationID)
             actionErrors = []
             clone = GetJumpCloneDetails()
             if clone.implants:
@@ -192,6 +241,7 @@ class MedicalWindow(Window):
             SectionEntry(parent=self.jumpClone, align=uiconst.TOTOP, iconPath='res:/UI/Texture/WindowIcons/jumpclones.png', iconColor=iconColor, title=header, titleColor=headerColor, text=subtext, textTooltipCallback=loadSubtextTooltip, textColor=subtextColor, actionText=buttonText, actionCallback=buttonFunc, actionErrors=actionErrors, opacity=opacity)
             if animate:
                 RevealContainerContent(self.jumpClone)
+        return
 
     def OnCloneJumpUpdate(self):
         uthread.new(self.Reload)
@@ -201,7 +251,7 @@ class MedicalWindow(Window):
         totalHeight = self.container.height + self.TOP_PARENT_HEIGHT + self.PADDING * 2
         self.height = totalHeight
 
-    def OnHomeStationChanged(self, stationID):
+    def OnHomeStationChanged(self, stationID=None):
         uthread.new(self.Reload)
 
     def OnSessionChanged(self, isRemote, sess, change):
@@ -213,6 +263,12 @@ class MedicalWindow(Window):
             if skillTypeID in JUMP_CLONE_SKILLS:
                 uthread.new(self.Reload)
                 break
+
+    def Close(self, *args, **kwargs):
+        try:
+            self.ChangeSignalConnection(connect=False)
+        finally:
+            Window.Close(self, *args, **kwargs)
 
 
 class SectionEntry(ContainerAutoSize):
@@ -255,6 +311,7 @@ class SectionEntry(ContainerAutoSize):
             button.Disable()
             button.LoadTooltipPanel = self.LoadActionErrorTooltip
         self.SetSizeAutomatically()
+        return
 
     def LoadActionErrorTooltip(self, tooltipPanel, parent):
         if not self.actionErrors:
@@ -273,34 +330,6 @@ def CreateSectionContainer(parent):
     Line(parent=parent, align=uiconst.TOTOP, color=LINE_COLOR)
     SpriteThemeColored(bgParent=container, name='blinkSprite', texturePath='res:/UI/Texture/classes/Neocom/buttonBlink.png', state=uiconst.UI_HIDDEN, colorType=uiconst.COLORTYPE_UIHILIGHTGLOW)
     return container
-
-
-def OpenHomeStationDialog():
-    CloneStationWindow.Open()
-
-
-def ActivateClone():
-    if ConfirmActivateClone():
-        if not session.stationid2:
-            raise UserError('MustBeDocked')
-        stationMgr = sm.GetService('corp').GetCorpStationManager()
-        sm.GetService('sessionMgr').PerformSessionChange('clonejump', stationMgr.ActivateClone)
-
-
-def ConfirmActivateClone():
-    messageData = {'station': GetHomeStation()}
-    implants = GetDestructibleImplants()
-    if len(implants):
-        message = 'AskStationSelfDestructImplants'
-        implants = [ '<t>- %s<br>' % cfg.FormatConvert(const.UE_TYPEIDANDQUANTITY, implant.typeID, 1) for implant in implants ]
-        messageData['items'] = ''.join(implants)
-    else:
-        message = 'AskStationSelfDestruct'
-    return eve.Message(message, messageData, uiconst.YESNO) == uiconst.ID_YES
-
-
-def GetHomeStation():
-    return sm.RemoteSvc('charMgr').GetHomeStation()
 
 
 def GetDestructibleImplants():
@@ -323,15 +352,15 @@ def InstallJumpClone():
     sm.GetService('clonejump').InstallCloneInStation()
 
 
-def DestroyJumpClone():
-    cloneID = GetJumpClone()
+def DestroyJumpClone(currentLocation):
+    cloneID = GetJumpClone(currentLocation)
     if cloneID:
         sm.GetService('clonejump').DestroyInstalledClone(cloneID)
 
 
-def GetJumpClone():
+def GetJumpClone(currentLocationID):
     clonejump = sm.GetService('clonejump')
-    cloneID, _ = clonejump.GetCloneAtLocation(session.stationid2)
+    cloneID, _ = clonejump.GetCloneAtLocation(currentLocationID)
     return cloneID
 
 
@@ -350,16 +379,9 @@ def GetJumpCloneCountAndLimit():
     return (cloneCount, cloneLimit)
 
 
-def PrepareStationLink(stationID):
-    station = cfg.stations.Get(stationID)
-    return '<url=showinfo:%d//%d>%s</url>' % (station.stationTypeID, station.stationID, station.stationName)
-
-
-def ValidateSelfDestruct():
-    errors = []
-    if session.stationid2 == GetHomeStation():
-        errors.append(localization.GetByLabel('UI/Medical/ErrorAlreadyAtHomeStation'))
-    return errors
+def PrepareStationLink(stationID, typeID):
+    name = cfg.evelocations.Get(stationID).name
+    return '<url=showinfo:%d//%d>%s</url>' % (typeID, stationID, name)
 
 
 def ValidateInstallJumpClone():
@@ -377,7 +399,7 @@ def LoadJumpCloneCapacityTooltip(tooltipPanel, parent):
         tooltipPanel.AddRow(rowClass=SkillEntry, typeID=typeID, level=0, showLevel=False)
 
 
-def LoadJumpCloneImplantTooltip(tooltipPanel, parent, implants = None):
+def LoadJumpCloneImplantTooltip(tooltipPanel, parent, implants=None):
     tooltipPanel.state = uiconst.UI_NORMAL
     tooltipPanel.LoadGeneric1ColumnTemplate()
     tooltipPanel.margin = (8, 8, 8, 8)

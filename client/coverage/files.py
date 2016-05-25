@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\carbon\common\stdlib\coverage\files.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\carbon\common\stdlib\coverage\files.py
 from coverage.backward import to_string
 from coverage.misc import CoverageException
 import fnmatch, os, os.path, re, sys
@@ -48,6 +49,8 @@ class FileLocator(object):
                     continue
 
                 return to_string(data)
+
+        return
 
 
 if sys.platform == 'win32':
@@ -167,7 +170,7 @@ def sep(s):
 
 class PathAliases(object):
 
-    def __init__(self, locator = None):
+    def __init__(self, locator=None):
         self.aliases = []
         self.locator = locator
 

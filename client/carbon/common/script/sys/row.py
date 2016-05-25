@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\carbon\common\script\sys\row.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\carbon\common\script\sys\row.py
 import types
 import sys
 
@@ -6,7 +7,7 @@ class Row:
     __guid__ = 'util.Row'
     __passbyvalue__ = 1
 
-    def __init__(self, header = None, line = None):
+    def __init__(self, header=None, line=None):
         self.__dict__['header'] = header or []
         self.__dict__['line'] = line or []
 

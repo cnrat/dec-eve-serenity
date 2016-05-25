@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\client\script\parklife\recorder.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\client\script\parklife\recorder.py
 import service
 import blue
 
@@ -41,8 +42,9 @@ class EventRecorder(service.Service):
         self.initialState = None
         self.capturingState = False
         self.capturedStateUpdates = []
+        return
 
-    def Run(self, memStream = None):
+    def Run(self, memStream=None):
         service.Service.Run(self, memStream)
 
     def Stop(self, ms):
@@ -71,6 +73,7 @@ class EventRecorder(service.Service):
         globalState['initialTime'] = blue.os.GetSimTime()
         globalState['regionid'] = session.regionid
         self.initialState = (globalState, itemState)
+        return
 
     def StartStateCapture(self):
         self.capturingState = True
@@ -85,7 +88,7 @@ class EventRecorder(service.Service):
         cPickle.dump((self.initialState[0], self.initialState[1], self.capturedStateUpdates), f)
         f.close()
 
-    def DoDestinyUpdate(self, state, waitForBubble, dogmaMessages = [], doDump = True):
+    def DoDestinyUpdate(self, state, waitForBubble, dogmaMessages=[], doDump=True):
         if self.capturingState:
             filteredStates = []
             for stamp, (funcName, args) in state:
@@ -111,3 +114,4 @@ class EventRecorder(service.Service):
             stateUpdate.append((ball.id, ballState))
 
         self.capturedStateUpdates.append((blue.os.GetSimTime(), [(0, ('DoBallsAdded', stateUpdate))]))
+        return

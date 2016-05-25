@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\client\script\ui\shared\neocom\attributes.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\client\script\ui\shared\neocom\attributes.py
 import blue
 import uiprimitives
 import uicontrols
@@ -188,6 +189,7 @@ class AttributeRespecWindow(uicontrols.Window):
               self.CloseByUser,
               (),
               None]], parent=self.sr.main, idx=0)
+        return
 
     def OnMainGridSizeChanged(self, width, height, *args, **kwds):
         self.mainGrid.top = self.headerText.height + self.headerText.padTop + self.headerText.padBottom
@@ -228,6 +230,7 @@ class AttributeRespecWindow(uicontrols.Window):
                 raise UserError('RespecTooSoon', {'nextTime': respecInfo['nextTimedRespec']})
             self.skillHandler.RespecCharacter(newAttributes)
         self.CloseByUser()
+        return
 
     def IncreaseAttribute(self, attribute, *args):
         if self.respecBar[attribute].GetValue() >= const.respecMaximumAttributeValue - const.respecMinimumAttributeValue:
@@ -255,19 +258,21 @@ class AttributeRespecWindow(uicontrols.Window):
     def OnMemberBoxClick(self, oldValue, newValue):
         if oldValue is None or oldValue == newValue:
             return
-        if self.readOnly:
+        elif self.readOnly:
             return
-        self.unspentPts -= newValue - oldValue
-        self.sr.unassignedBar.SetValue(self.unspentPts)
-        unspentPtsText = localization.formatters.FormatNumeric(self.unspentPts, decimalPlaces=0)
-        self.availableLabel.text = unspentPtsText
-        for x in xrange(0, 5):
-            totalPts = const.respecMinimumAttributeValue + self.respecBar[x].GetValue() + self.implantModifier[x]
-            totalPtsText = localization.formatters.FormatNumeric(int(totalPts), decimalPlaces=0)
-            self.totalLabels[x].text = totalPtsText
+        else:
+            self.unspentPts -= newValue - oldValue
+            self.sr.unassignedBar.SetValue(self.unspentPts)
+            unspentPtsText = localization.formatters.FormatNumeric(self.unspentPts, decimalPlaces=0)
+            self.availableLabel.text = unspentPtsText
+            for x in xrange(0, 5):
+                totalPts = const.respecMinimumAttributeValue + self.respecBar[x].GetValue() + self.implantModifier[x]
+                totalPtsText = localization.formatters.FormatNumeric(int(totalPts), decimalPlaces=0)
+                self.totalLabels[x].text = totalPtsText
 
-        if self.unspentPts <= 0:
-            self.sr.saveWarningText.state = uiconst.UI_HIDDEN
+            if self.unspentPts <= 0:
+                self.sr.saveWarningText.state = uiconst.UI_HIDDEN
+            return
 
 
 class AttributeRespecEntry(uicontrols.SE_BaseClassCore):
@@ -282,6 +287,7 @@ class AttributeRespecEntry(uicontrols.SE_BaseClassCore):
         self.sr.numberOfRemaps = uicontrols.EveLabelMedium(text='', parent=self, left=8, top=38, maxLines=1, state=uiconst.UI_HIDDEN)
         self.sr.respecButton = uicontrols.Button(parent=self, label=localization.GetByLabel('UI/CharacterSheet/CharacterSheetWindow/Attributes/RemapStatsNow'), align=uiconst.TOPRIGHT, pos=(2, 16, 0, 0), func=self.OpenRespecWindow, args=(False,))
         self.hint = localization.GetByLabel('UI/CharacterSheet/CharacterSheetWindow/Attributes/CharacterSheetHint')
+        return
 
     def Load(self, node):
         self.sr.node = node
@@ -306,6 +312,7 @@ class AttributeRespecEntry(uicontrols.SE_BaseClassCore):
         if not canRemap:
             self.sr.respecButton.SetLabel(localization.GetByLabel('UI/CharacterSheet/CharacterSheetWindow/Attributes/AttributesOverview'))
             self.sr.respecButton.args = (True,)
+        return
 
     def OpenRespecWindow(self, readOnly, *args):
         wnd = form.attributeRespecWindow.GetIfOpen()
@@ -313,6 +320,7 @@ class AttributeRespecEntry(uicontrols.SE_BaseClassCore):
             wnd.Maximize()
         else:
             form.attributeRespecWindow.Open(readOnly=readOnly)
+        return
 
     def RefreshThread(self):
         if not self or self.destroyed:

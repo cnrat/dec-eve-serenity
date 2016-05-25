@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\packages\carbonui\control\editutils\parser.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\packages\carbonui\control\editutils\parser.py
 import hparser
 import _weakref
 import htmlentitydefs
@@ -98,7 +99,6 @@ class Parser(hparser.HtmlScraper):
         if self.__handler.destroyed:
             return
         self.__handler.OnStartTag(tag, attrs)
-        return ''
 
     def emptytag(self, tag):
         self.handletag(tag, [], tag)
@@ -109,15 +109,13 @@ class Parser(hparser.HtmlScraper):
         if self.__handler.destroyed:
             return
         self.__handler.OnEndTag(tag)
-        return ''
 
     def pdata(self, data):
         if hasattr(self.__handler, 'OnData'):
             self.__handler.OnData(self.decode_string(data))
-        return ''
 
     def pdecl(self, tag):
-        return ''
+        pass
 
     def decode_string(self, data):
         if type(data) == types.StringType:
@@ -151,19 +149,20 @@ class Parser(hparser.HtmlScraper):
         code = htmlentitydefs.name2codepoint.get(name, None)
         if code:
             return unichr(code)
-        if name.startswith('x'):
-            try:
-                return unichr(int('0' + name, 16))
-            except:
-                sys.exc_clear()
+        else:
+            if name.startswith('x'):
+                try:
+                    return unichr(int('0' + name, 16))
+                except:
+                    sys.exc_clear()
 
-        elif name.isdigit():
-            try:
-                return unichr(int(name))
-            except:
-                sys.exc_clear()
+            elif name.isdigit():
+                try:
+                    return unichr(int(name))
+                except:
+                    sys.exc_clear()
 
-        return name
+            return name
 
     handle_entityref = handle_charref
 
@@ -176,6 +175,8 @@ class Tag:
     def SetDefault(self, *attrs):
         for name in attrs:
             setattr(self, name, getattr(self, name, None))
+
+        return
 
     def SetBoolean(self, *attrs):
         for each in attrs:
@@ -193,6 +194,7 @@ class Tag_img(Tag):
         self.SetDefault('alt', 'align', 'width', 'height', 'border', 'bordercolor', 'hspace', 'vspace', 'usemap')
         if hasattr(self, 'size'):
             self.size = int(self.size)
+        return
 
 
 class Tag_a(Tag):
@@ -216,6 +218,7 @@ class Tag_form(Tag):
         self.SetDefault('method', 'action')
         if self.method is None:
             self.method = 'get'
+        return
 
 
 class Tag_input(Tag):
@@ -224,6 +227,7 @@ class Tag_input(Tag):
         Tag.__init__(self, **attrs)
         self.size = int(getattr(self, 'size', None) or 0)
         self.SetDefault('type', 'name', 'value', 'valign')
+        return
 
 
 class Tag_textarea(Tag):
@@ -237,6 +241,7 @@ class Tag_textarea(Tag):
             raise RuntimeError('ParsingError', {'what': 'TextArea %s has uninitialized or bad rows or cols.' % getattr(self, 'name', '[Unnamed]')})
 
         self.SetDefault('name', 'value')
+        return
 
 
 class Tag_div(Tag):

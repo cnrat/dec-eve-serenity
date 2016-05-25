@@ -1,4 +1,8 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\packages\sofDnaLibrary\data.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\packages\sofDnaLibrary\data.py
+import os
+import site
+site.addsitedir(os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
 from evetypes.storages import TypeStorage
 from shipskins.static import SkinStorage, SkinMaterialStorage
 import fsdSchemas.binaryLoader as fsdBinaryLoader

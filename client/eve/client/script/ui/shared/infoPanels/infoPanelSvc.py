@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\client\script\ui\shared\infoPanels\infoPanelSvc.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\client\script\ui\shared\infoPanels\infoPanelSvc.py
 from eve.client.script.ui.shared.infoPanels.infoPanelAchievements import InfoPanelAchievements
 from eveexceptions.exceptionEater import ExceptionEater
 import service
@@ -15,7 +16,7 @@ import log
 import telemetry
 import const
 from eve.client.script.ui.view.viewStateConst import ViewState
-from infoPanelConst import PANEL_LOCATION_INFO, PANEL_ROUTE, PANEL_MISSIONS, PANEL_INCURSIONS, PANEL_FACTIONAL_WARFARE, PANEL_PLANETARY_INTERACTION, PANEL_SHIP_TREE, PANEL_ACHIEVEMENTS
+from infoPanelConst import PANEL_LOCATION_INFO, PANEL_ROUTE, PANEL_MISSIONS, PANEL_INCURSIONS, PANEL_FACTIONAL_WARFARE, PANEL_PLANETARY_INTERACTION, PANEL_SHIP_TREE, PANEL_ACHIEVEMENTS, PANEL_QUESTS
 import infoPanelConst
 from infoPanelShipTree import InfoPanelShipTree
 from infoPanelLocationInfo import InfoPanelLocationInfo
@@ -24,6 +25,7 @@ from infoPanelIncursions import InfoPanelIncursions
 from infoPanelMissions import InfoPanelMissions
 from infoPanelFactionalWarfare import InfoPanelFactionalWarfare
 from infoPanelPlanetaryInteraction import InfoPanelPlanetaryInteraction
+from infoPanelQuest import InfoPanelQuests
 from eve.client.script.ui.shared.infoPanels.infoPanelContainer import InfoPanelContainer
 from collections import defaultdict
 
@@ -101,6 +103,7 @@ class InfoPanelSvc(service.Service):
         self.infoPanelContainer = None
         self.sessionTimer = None
         self.sessionTimerUpdatePending = False
+        return
 
     def Reload(self):
         if self.sidePanel:
@@ -127,12 +130,13 @@ class InfoPanelSvc(service.Service):
         else:
             self.sessionTimerUpdatePending = True
 
-    def ShowHideSidePanel(self, hide = 1, *args):
+    def ShowHideSidePanel(self, hide=1, *args):
         if self.sidePanel is not None and not self.sidePanel.destroyed:
             if hide:
                 self.sidePanel.state = uiconst.UI_HIDDEN
             else:
                 self.sidePanel.state = uiconst.UI_PICKCHILDREN
+        return
 
     def GetCurrentPanelClasses(self):
         panelSettings = self.GetPanelModeSettings()
@@ -164,6 +168,8 @@ class InfoPanelSvc(service.Service):
             return InfoPanelShipTree
         if panelTypeID == PANEL_ACHIEVEMENTS:
             return InfoPanelAchievements
+        if panelTypeID == PANEL_QUESTS:
+            return InfoPanelQuests
 
     def GetModeForPanel(self, panelTypeID):
         settingsEntry = self.GetPanelSettingsEntryByTypeID(panelTypeID)
@@ -215,12 +221,12 @@ class InfoPanelSvc(service.Service):
         return infoPanelSettings
 
     @telemetry.ZONE_FUNCTION
-    def CheckAllPanelsFit(self, triggeredByPanel = None):
+    def CheckAllPanelsFit(self, triggeredByPanel=None):
         if self.infoPanelContainer:
             uthread.new(self._CheckAllPanelsFit, triggeredByPanel)
 
     @telemetry.ZONE_FUNCTION
-    def _CheckAllPanelsFit(self, triggeredByPanel = None):
+    def _CheckAllPanelsFit(self, triggeredByPanel=None):
         panels = self.GetPanelModeSettings()[:]
         panels.reverse()
         for mode in (infoPanelConst.MODE_COMPACT, infoPanelConst.MODE_COLLAPSED):
@@ -236,7 +242,7 @@ class InfoPanelSvc(service.Service):
                     panel.SetMode(mode)
 
     @telemetry.ZONE_FUNCTION
-    def MovePanelInFrontOf(self, infoPanelCls, oldTypeID = None):
+    def MovePanelInFrontOf(self, infoPanelCls, oldTypeID=None):
         panelSettings = self.GetPanelModeSettings()
         entry = self.GetPanelSettingsEntryByTypeID(infoPanelCls.panelTypeID)
         if oldTypeID:
@@ -286,7 +292,7 @@ class InfoPanelSvc(service.Service):
             self.ReconstructAllPanels(True)
 
     @telemetry.ZONE_FUNCTION
-    def ReconstructAllPanels(self, animate = False):
+    def ReconstructAllPanels(self, animate=False):
         if not session.charid:
             return
         if not self.sidePanel:
@@ -297,13 +303,15 @@ class InfoPanelSvc(service.Service):
     def UpdateAllPanels(self):
         if not session.charid or not self.sidePanel:
             return
-        sm.ChainEvent('ProcessUpdateInfoPanel', None)
+        else:
+            sm.ChainEvent('ProcessUpdateInfoPanel', None)
+            return
 
     def UpdateTopIcons(self):
         if self.infoPanelContainer:
             self.infoPanelContainer.ConstructTopIcons()
 
-    def OnAgentMissionChange(self, what, agentID, tutorialID = None, *args):
+    def OnAgentMissionChange(self, what, agentID, tutorialID=None, *args):
         with ExceptionEater('exception during - missiontracker remove/add agent'):
             if what == 'quit':
                 if agentID in self.agentList:
@@ -431,7 +439,7 @@ class InfoPanelSvc(service.Service):
             allMissionsList = uiutil.SortListOfTuples(allMissionsList)
         return allMissionsList
 
-    def GetSolarSystemTrace(self, itemID, altText = None, traceFontSize = 12):
+    def GetSolarSystemTrace(self, itemID, altText=None, traceFontSize=12):
         if util.IsStation(itemID):
             solarSystemID = cfg.stations.Get(itemID).solarSystemID
         else:
@@ -474,7 +482,7 @@ class InfoPanelSvc(service.Service):
             inView = ['nearest', 'sovereignty']
         return inView
 
-    def GetSolarSystemStatusText(self, systemStatus = None, returnNone = False):
+    def GetSolarSystemStatusText(self, systemStatus=None, returnNone=False):
         if systemStatus is None:
             systemStatus = sm.StartService('facwar').GetSystemStatus()
         xtra = ''

@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\carbon\common\script\util\ttimerutil.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\carbon\common\script\util\ttimerutil.py
 import cPickle
 import sys
 import blue
@@ -76,7 +77,7 @@ class Resources(object):
 
     GetModes = classmethod(GetModes)
 
-    def SetMode(self, m = 'wallclock'):
+    def SetMode(self, m='wallclock'):
         if m:
             self.mode = self.modes.index(m)
         else:
@@ -112,7 +113,7 @@ class Resources(object):
     def GetType(self):
         return self.types[self.mode]
 
-    def __init__(self, o = None):
+    def __init__(self, o=None):
         for i in self.__slots__:
             setattr(self, i, 0)
 
@@ -158,7 +159,7 @@ class Timer(object):
      'callees',
      'callers']
 
-    def __init__(self, name = 'unset'):
+    def __init__(self, name='unset'):
         self.name = self.key = name
         self.own = Resources()
         self.cum = Resources()
@@ -246,7 +247,7 @@ class Callee(object):
         return self
 
 
-def GetChains(filter = None, root = True):
+def GetChains(filter=None, root=True):
     import sys
     if hasattr(sys, 'getmemcontexts'):
         taskletmem = sys.getmemcontexts()
@@ -291,7 +292,7 @@ def GetChains(filter = None, root = True):
     return (chains, threadTimes, processTimes)
 
 
-def TimersFromChains(chains, filter = None):
+def TimersFromChains(chains, filter=None):
     timers = {}
     added = {}
     for chain in chains:
@@ -387,7 +388,7 @@ class TaskletSnapshot(dict):
         timers = ClockThis('TaskletSnapshot::TimersFromChains', TimersFromChains, chains)
         self.update(timers)
 
-    def Save(self, filename = None):
+    def Save(self, filename=None):
         if filename:
             file = open(filename, 'wb')
             try:
@@ -475,6 +476,7 @@ class TaskletSnapshot(dict):
                 callee.cum.CallgrindPrint(f)
 
         print >> f, '#end'
+        return
 
 
 def SetTimeMode(*args, **kwargs):

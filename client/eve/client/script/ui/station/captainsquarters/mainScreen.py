@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\client\script\ui\station\captainsquarters\mainScreen.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\client\script\ui\station\captainsquarters\mainScreen.py
 import uicls
 import carbonui.const as uiconst
 import uiprimitives
@@ -35,6 +36,7 @@ class MainScreen(uiprimitives.Container):
         self.hoverFill = uiprimitives.Fill(parent=self, color=(1.0, 1.0, 1.0, 0.0))
         self.mainCont = uiprimitives.Container(name='mainCont', parent=self, state=uiconst.UI_DISABLED)
         self.mainCont.cursor = uiconst.UICURSOR_SELECT
+        return
 
     @telemetry.ZONE_METHOD
     def PlayTemplate(self, template, data):
@@ -44,6 +46,7 @@ class MainScreen(uiprimitives.Container):
         self.currentTemplate = template(parent=self.mainCont, uiDesktop=self.parent, state=uiconst.UI_DISABLED)
         self.currentTemplate.Play(data)
         self.currentTemplate = None
+        return
 
     def SetScreenClickAction(self, function, args, label):
         self.clickFunc = function
@@ -146,6 +149,7 @@ class MainScreenTestWindow(uicontrols.Window):
         self.checkbox = uicontrols.Checkbox(parent=self.bottomCont, text='Render to screen', align=uiconst.TOPLEFT, pos=(230, 0, 250, 0), checked=False, callback=self.OnCheckboxChanged)
         uicontrols.EveLabelMedium(parent=self.bottomCont, text='Press R to reload', align=uiconst.TOPRIGHT)
         self.checkbox.OnKeyDown = self.OnKeyDown
+        return
 
     def OnCheckboxChanged(self, checkbox):
         if checkbox.checked:

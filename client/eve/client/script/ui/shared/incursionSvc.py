@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\client\script\ui\shared\incursionSvc.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\client\script\ui\shared\incursionSvc.py
 from service import Service
 import blue
 import uthread
@@ -46,6 +47,7 @@ class IncursionSvc(Service):
          const.groupStation: 10007,
          const.groupAsteroidBelt: 10003,
          'enterSystem': 10005}
+        return
 
     def OnTaleData(self, solarSystemID, data):
         for taleData in data.itervalues():
@@ -54,7 +56,7 @@ class IncursionSvc(Service):
     def OnTaleStart(self, data):
         self.SetIncursion(data, fadeEffect=True, reason='Tale just started')
 
-    def SetIncursion(self, data, fadeEffect = False, reason = None):
+    def SetIncursion(self, data, fadeEffect=False, reason=None):
         if data.templateClassID in INCURSION_TEMPLATES:
             self.LogInfo('Starting the incursion UI for tale', data.taleID, '. Reason:', reason)
             self.incursionData = data
@@ -69,17 +71,20 @@ class IncursionSvc(Service):
                 self.AddIncursionStationSoundIfApplicable()
             sm.GetService('infoPanel').UpdateIncursionsPanel()
             sm.GetService('dynamicMusic').UpdateDynamicMusic()
+        return
 
     def OnTaleRemove(self, taleID):
         if self.incursionData is None:
             return
-        self.LogInfo('OnTaleRemove', taleID)
-        self.enableSoundOverrides = False
-        if session.solarsystemid:
-            self._StopIncursionVisualEffects(session.solarsystemid)
-        self.incursionData = None
-        sm.GetService('infoPanel').UpdateIncursionsPanel()
-        self.StartTimeoutOfIncursionChat(taleID)
+        else:
+            self.LogInfo('OnTaleRemove', taleID)
+            self.enableSoundOverrides = False
+            if session.solarsystemid:
+                self._StopIncursionVisualEffects(session.solarsystemid)
+            self.incursionData = None
+            sm.GetService('infoPanel').UpdateIncursionsPanel()
+            self.StartTimeoutOfIncursionChat(taleID)
+            return
 
     def OnSessionChanged(self, isremote, sess, change):
         for taleID in self.incursionChatInfoByTaleId:
@@ -107,6 +112,7 @@ class IncursionSvc(Service):
             oldStationID, newStationID = change['stationid']
             if newStationID != None:
                 self.AddIncursionStationSoundIfApplicable()
+        return
 
     def _IsSystemInIncursion(self, solarsystemID):
         return self.incursionData is not None and solarsystemID in self.incursionData.incursedSystems
@@ -115,6 +121,7 @@ class IncursionSvc(Service):
         if self._IsSystemInIncursion(solarsystemid):
             if self.incursionData is not None:
                 return getattr(self.incursionData, 'musicState', None)
+        return
 
     def _StartIncursionVisualEffects(self, solarsystemID):
         visualEffect = self._GetIncursionVisualEffect()
@@ -131,6 +138,8 @@ class IncursionSvc(Service):
     def _GetIncursionVisualEffect(self):
         if hasattr(self.incursionData, 'visualEffect') and self.incursionData.visualEffect > 0:
             return TALE_VISUAL_OVERLAYS[self.incursionData.visualEffect]
+        else:
+            return None
 
     def _EndTimeoutOfIncursionChat(self, taleID):
         if taleID in self.waitingIncursionChannelTaleID:
@@ -145,7 +154,8 @@ class IncursionSvc(Service):
     def IsIncursionActive(self):
         if self.incursionData is not None:
             return self.incursionData.templateClassID in INCURSION_TEMPLATES
-        return False
+        else:
+            return False
 
     def GetActiveIncursionData(self):
         return self.incursionData
@@ -230,13 +240,13 @@ class IncursionSvc(Service):
     def GetConstellationNameFromTaleIDForIncursionChat(self, taleID):
         if taleID in self.incursionChatInfoByTaleId and self.incursionChatInfoByTaleId[taleID]['constellationId']:
             return cfg.evelocations.Get(self.incursionChatInfoByTaleId[taleID]['constellationId']).name
-        return ''
 
     def GetDistributionName(self, taleId):
         distributionNameId = self.incursionChatInfoByTaleId.get(taleId, None)['distributionNameId']
         if distributionNameId:
             return localization.GetByMessageID(distributionNameId)
-        return localization.GetByLabel('UI/Generic/Unknown')
+        else:
+            return localization.GetByLabel('UI/Generic/Unknown')
 
     def GetDelayedRewardsByGroupIDs(self, rewardGroupIDs):
         rewardGroupIDs.sort()
@@ -377,21 +387,23 @@ class IncursionSvc(Service):
         f.close()
         icon.LoadTexture(resPath)
         icon.SetRect(0, 0, size, size)
+        return
 
     def GetSoundUrlByKey(self, key):
         if self.enableSoundOverrides == False:
             return
-        soundID = self.soundUrlByKey.get(key, None)
-        if soundID is not None:
-            soundRecord = cfg.sounds.GetIfExists(soundID)
-            if soundRecord is None:
-                self.LogError('Unable to find a sound for key', key, 'and soundID', soundID)
-                soundUrl = None
-            else:
-                soundUrl = soundRecord.soundFile
         else:
-            soundUrl = None
-        return soundUrl
+            soundID = self.soundUrlByKey.get(key, None)
+            if soundID is not None:
+                soundRecord = cfg.sounds.GetIfExists(soundID)
+                if soundRecord is None:
+                    self.LogError('Unable to find a sound for key', key, 'and soundID', soundID)
+                    soundUrl = None
+                else:
+                    soundUrl = soundRecord.soundFile
+            else:
+                soundUrl = None
+            return soundUrl
 
     def AddIncursionStationSoundIfApplicable(self):
         if not self.addStationSoundThreadRunning and self.enableSoundOverrides:
@@ -423,12 +435,15 @@ class IncursionSvc(Service):
         if success == False:
             self.LogError('Incursion station audio could not be added after 60 tries')
         self.addStationSoundThreadRunning = False
+        return
 
 
 def FindSoundLocatorThatStartsWith(scene, startingString):
     for transform in scene.objects:
         if transform.name.startswith(startingString):
             return transform
+
+    return None
 
 
 def ReplaceHangarSound(soundLocator, soundEvent):

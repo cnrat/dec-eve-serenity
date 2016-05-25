@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\devtools\script\svc_cspam.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\devtools\script\svc_cspam.py
 import uicontrols
 import uiprimitives
 import sys
@@ -99,27 +100,29 @@ class ChannelSpam(service.Service):
                 if text in self.channels:
                     self.channels[text] = ((var, getattr(eve.session, var)),)
 
-    def Run(self, memStream = None):
+    def Run(self, memStream=None):
         self.state = SERVICE_START_PENDING
         Service.Run(self, memStream)
         self.state = SERVICE_RUNNING
 
-    def Stop(self, memStream = None):
+    def Stop(self, memStream=None):
         self.state = SERVICE_STOP_PENDING
         Service.Stop(self, memStream)
         self.state = SERVICE_STOPPED
 
-    def Setup(self, min = DEFAULTTMIN, max = DEFAULTTMAX, more = None, *args):
+    def Setup(self, min=DEFAULTTMIN, max=DEFAULTTMAX, more=None, *args):
         if more is None:
             return
-        if not len(self.channels.keys()):
+        elif not len(self.channels.keys()):
             return
-        self.min = min
-        self.max = max
-        self.runs = more
-        if not hasattr(self, 'lines'):
-            self.Parse()
-        self.Go()
+        else:
+            self.min = min
+            self.max = max
+            self.runs = more
+            if not hasattr(self, 'lines'):
+                self.Parse()
+            self.Go()
+            return
 
     def Parse(self, *args):
         INSIDERDIR = sm.StartService('insider').GetInsiderDir()
@@ -194,34 +197,42 @@ class ChannelSpam(service.Service):
             self.dict[chat.GetDisplayName(channel.channelID).lower()] = channel
             self.dict[channel.displayName.lower()] = channel
 
-    def GetChannel(self, name = None, *args):
+    def GetChannel(self, name=None, *args):
         if name is None:
             return
-        if not hasattr(self, 'dict'):
+        else:
+            if not hasattr(self, 'dict'):
+                self.MakeDict()
+            if name.lower() in self.dict:
+                return self.dict[name.lower()]
+            return
+
+    def AddChannel(self, name=None, *args):
+        if name is None:
+            return
+        else:
+            ret = sm.RemoteSvc('LSC').CreateChannel(name, joinExisting=True, memberless=False, create=True)
             self.MakeDict()
-        if name.lower() in self.dict:
-            return self.dict[name.lower()]
-
-    def AddChannel(self, name = None, *args):
-        if name is None:
             return
-        ret = sm.RemoteSvc('LSC').CreateChannel(name, joinExisting=True, memberless=False, create=True)
-        self.MakeDict()
 
-    def AddToList(self, cname = None, cid = None, *args):
+    def AddToList(self, cname=None, cid=None, *args):
         if cname is None:
             return
-        if cid is None:
+        elif cid is None:
             return
-        name = self.GetName(cname, cid)
-        self.channels[name] = cid
+        else:
+            name = self.GetName(cname, cid)
+            self.channels[name] = cid
+            return
 
-    def DeleteFromList(self, key = None, *args):
+    def DeleteFromList(self, key=None, *args):
         if key is None:
             return
-        del self.channels[key]
+        else:
+            del self.channels[key]
+            return
 
-    def LookupChannel(self, name = None, *args):
+    def LookupChannel(self, name=None, *args):
         if name is None:
             return
         else:
@@ -230,34 +241,38 @@ class ChannelSpam(service.Service):
             if name in self.dict:
                 return True
             return False
+            return
 
-    def JoinChannel(self, id = None, *args):
+    def JoinChannel(self, id=None, *args):
         if id is None:
             return
-        if not sm.StartService('LSC').IsJoined(id):
-            sm.StartService('LSC').JoinOrLeaveChannel(channelID=id, onlyJoin=True)
+        else:
+            if not sm.StartService('LSC').IsJoined(id):
+                sm.StartService('LSC').JoinOrLeaveChannel(channelID=id, onlyJoin=True)
+            return
 
-    def GetName(self, dictName = None, dictID = None, *args):
+    def GetName(self, dictName=None, dictID=None, *args):
         if dictID is None:
             return
-        if not hasattr(self, 'dict'):
-            self.MakeDict()
-        if type(dictID) is types.IntType:
-            if dictName in self.dict:
-                info = self.dict[dictName]
-            else:
-                tmp = [ c for c in sm.StartService('LSC').GetChannels(refresh=1) if c.channelID == dictID ]
-                if len(tmp):
-                    info = tmp[0]
-                else:
-                    return
-            name = info.displayName
-            length = len(name.split('\\'))
-            if length > 1:
-                name = name.split('\\')[1]
         else:
-            name = chat.GetDisplayName(dictID)
-        return name
+            if not hasattr(self, 'dict'):
+                self.MakeDict()
+            if type(dictID) is types.IntType:
+                if dictName in self.dict:
+                    info = self.dict[dictName]
+                else:
+                    tmp = [ c for c in sm.StartService('LSC').GetChannels(refresh=1) if c.channelID == dictID ]
+                    if len(tmp):
+                        info = tmp[0]
+                    else:
+                        return
+                name = info.displayName
+                length = len(name.split('\\'))
+                if length > 1:
+                    name = name.split('\\')[1]
+            else:
+                name = chat.GetDisplayName(dictID)
+            return name
 
 
 class ChannelSpamForm(uicontrols.Window):
@@ -355,6 +370,7 @@ class ChannelSpamForm(uicontrols.Window):
         self.scroll.sr.id = 'chatchannels'
         self.scroll.Load(contentList=[], headers=['Channels', 'ID'])
         self.svc.ClearChannels()
+        return
 
     def Start(self, *args):
         minVal = int(self.min.GetValue())
@@ -383,7 +399,7 @@ class ChannelSpamForm(uicontrols.Window):
     def Cease(self, *args):
         prefs.SetValue('spamcount', 0)
 
-    def GetSystemChannels(self, refresh = False, *args):
+    def GetSystemChannels(self, refresh=False, *args):
         if not refresh:
             if hasattr(self, 'systemcache'):
                 return self.systemcache
@@ -477,18 +493,21 @@ class ChannelSpamForm(uicontrols.Window):
         m.append(('Custom', self.CustomChannel))
         self.Refresh()
         self.MakeMenu(m, 'Add_Btn')
+        return
 
-    def DeleteChannel(self, cname = None, *args):
+    def DeleteChannel(self, cname=None, *args):
         del self.channels[cname]
         self.svc.DeleteFromList(cname)
         self.Refresh()
 
-    def Join(self, channelID = None, *args):
+    def Join(self, channelID=None, *args):
         if channelID is None:
             return
-        list = [ cid for cid in sm.StartService('LSC').channels ]
-        if channelID not in list:
-            sm.StartService('LSC').JoinOrLeaveChannel(channelID)
+        else:
+            list = [ cid for cid in sm.StartService('LSC').channels ]
+            if channelID not in list:
+                sm.StartService('LSC').JoinOrLeaveChannel(channelID)
+            return
 
     def CustomChannel(self, *args):
         ret = uix.NamePopup(u'Create / Join Channel', u'Type in name', '')
@@ -502,20 +521,23 @@ class ChannelSpamForm(uicontrols.Window):
                 self.svc.AddToList(dname, info.channelID)
                 self.channels[dname] = info.channelID
                 self.Refresh()
+        return
 
-    def MakeMenu(self, list = None, anchor = None):
+    def MakeMenu(self, list=None, anchor=None):
         if list is None:
             return
-        if anchor is None:
+        elif anchor is None:
             return
-        mv = menu.CreateMenuView(menu.CreateMenuFromList(list), None, None)
-        anchorwindow = self
-        x = max(uiutil.GetChild(anchorwindow, anchor).GetAbsolute()[0], 0)
-        y = anchorwindow.top + anchorwindow.height
-        if anchorwindow.top + anchorwindow.height + mv.height > uicore.desktop.height:
-            mv.top = min(form.InsiderWnd.GetIfOpen().top - mv.height, y)
         else:
-            mv.top = min(uicore.desktop.width - mv.height, y)
-        mv.left = min(uicore.desktop.width - mv.width, x)
-        uicontrols.Frame(parent=mv, color=(1.0, 1.0, 1.0, 0.2))
-        uicore.layer.menu.children.insert(0, mv)
+            mv = menu.CreateMenuView(menu.CreateMenuFromList(list), None, None)
+            anchorwindow = self
+            x = max(uiutil.GetChild(anchorwindow, anchor).GetAbsolute()[0], 0)
+            y = anchorwindow.top + anchorwindow.height
+            if anchorwindow.top + anchorwindow.height + mv.height > uicore.desktop.height:
+                mv.top = min(form.InsiderWnd.GetIfOpen().top - mv.height, y)
+            else:
+                mv.top = min(uicore.desktop.width - mv.height, y)
+            mv.left = min(uicore.desktop.width - mv.width, x)
+            uicontrols.Frame(parent=mv, color=(1.0, 1.0, 1.0, 0.2))
+            uicore.layer.menu.children.insert(0, mv)
+            return

@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\packages\carbonui\primitives\gradientSprite.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\packages\carbonui\primitives\gradientSprite.py
 from .sprite import Sprite
 import math
 import trinity
@@ -38,7 +39,7 @@ class GradientSprite(Sprite):
         self.SetGradient()
         trinity.device.RegisterResource(self)
 
-    def SetGradient(self, colorData = None, alphaData = None):
+    def SetGradient(self, colorData=None, alphaData=None):
         if colorData:
             self.colorData = colorData
         if alphaData:
@@ -86,6 +87,7 @@ class GradientSprite(Sprite):
     def OnInvalidate(self, level):
         if self.texture:
             self.texture.atlasTexture = None
+        return
 
     def OnCreate(self, dev):
         self.SetTexturePath(self.gradientDataString)
@@ -118,6 +120,7 @@ class Gradient2DSprite(Sprite):
     def OnInvalidate(self, level):
         if self.texture:
             self.texture.atlasTexture = None
+        return
 
     def OnCreate(self, dev):
         self.SetTexturePath(self.gradientDataString)

@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\client\script\ui\services\accountsvc.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\client\script\ui\services\accountsvc.py
 import carbonui.const as uiconst
 import service
 import blue
@@ -27,13 +28,14 @@ class Account(service.Service):
         self.defaultContactCost = None
         self.blocked = None
         self.nocharge = None
+        return
 
-    def Run(self, memStream = None):
+    def Run(self, memStream=None):
         self.LogInfo('Starting AccountSvc')
         self.journalData = {}
         self.ReleaseAccountSvc()
 
-    def Stop(self, memStream = None):
+    def Stop(self, memStream=None):
         self.ReleaseAccountSvc()
 
     def ProcessSessionChange(self, isremote, session, change):
@@ -46,18 +48,20 @@ class Account(service.Service):
     def GetAccountSvc(self):
         if hasattr(self, 'moniker') and self.moniker is not None:
             return self.moniker
-        self.moniker = sm.RemoteSvc('account')
-        return self.moniker
+        else:
+            self.moniker = sm.RemoteSvc('account')
+            return self.moniker
 
     def ReleaseAccountSvc(self):
         if hasattr(self, 'moniker') and self.moniker is not None:
             self.moniker = None
             self.data = {}
+        return
 
     def ProcessUIRefresh(self):
         self.data = {}
 
-    def GetStaticData(self, itemName, trCol = None, trID = None, *args):
+    def GetStaticData(self, itemName, trCol=None, trID=None, *args):
         if not self.data.has_key(itemName):
             account = self.GetAccountSvc()
             data = getattr(account, itemName)(*args)
@@ -77,10 +81,14 @@ class Account(service.Service):
             if rec.keyID == accountKey:
                 return rec
 
+        return None
+
     def GetAccountKeyID(self, keyName):
         for rec in self.GetKeyMap():
             if rec.keyName == keyName:
                 return rec.keyID
+
+        return None
 
     def GetEntryTypes(self):
         return self.GetStaticData('GetEntryTypes', 'entryTypeName', 'entryTypeNameID')
@@ -90,7 +98,9 @@ class Account(service.Service):
             if rec.entryTypeID == entryTypeID:
                 return rec
 
-    def GetJournal(self, accountKey, fromDate = None, entryTypeID = None, corpAccount = 0, transactionID = None, rev = 0):
+        return None
+
+    def GetJournal(self, accountKey, fromDate=None, entryTypeID=None, corpAccount=0, transactionID=None, rev=0):
         if entryTypeID in const.derivedTransactionParentMapping:
             entryTypeID = const.derivedTransactionParentMapping[entryTypeID]
         key = (accountKey,
@@ -104,7 +114,7 @@ class Account(service.Service):
         self.journalData[key] = self.GetAccountSvc().GetJournal(accountKey, fromDate, entryTypeID, corpAccount, transactionID, rev)
         return self.journalData[key]
 
-    def GetJournalForAccounts(self, accountKeys, fromDate = None, entryTypeID = None, corpAccount = 0, transactionID = None, rev = 0):
+    def GetJournalForAccounts(self, accountKeys, fromDate=None, entryTypeID=None, corpAccount=0, transactionID=None, rev=0):
         if entryTypeID in const.derivedTransactionParentMapping:
             entryTypeID = const.derivedTransactionParentMapping[entryTypeID]
         key = (str(accountKeys),
@@ -118,13 +128,13 @@ class Account(service.Service):
         self.journalData[key] = self.GetAccountSvc().GetJournalForAccounts(accountKeys, fromDate, entryTypeID, corpAccount, transactionID, rev)
         return self.journalData[key]
 
-    def GetWalletDivisionsInfo(self, force = False):
+    def GetWalletDivisionsInfo(self, force=False):
         now = blue.os.GetWallclockTime()
         if self.walletDivisionsInfo is None or self.walletDivisionsInfo.expires < now or force:
             self.walletDivisionsInfo = util.KeyVal(info=self.GetAccountSvc().GetWalletDivisionsInfo(), expires=now + 5 * const.MIN)
         return self.walletDivisionsInfo.info
 
-    def AskYesNoQuestion(self, question, props, defaultChoice = 1):
+    def AskYesNoQuestion(self, question, props, defaultChoice=1):
         if defaultChoice:
             defaultChoice = uiconst.ID_YES
         else:
@@ -147,3 +157,4 @@ class Account(service.Service):
     def BlockAll(self):
         self.GetAccountSvc().SetContactCost(None)
         self.defaultContactCost = -1
+        return

@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\client\script\ui\control\tooltips.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\client\script\ui\control\tooltips.py
 from carbonui.control.menu import ObjectHasMenu, GetContextMenuOwner
 from carbonui.primitives.container import Container
 from carbonui.primitives.fill import Fill
@@ -167,6 +168,7 @@ class TooltipGeneric(Container):
         if self.scaleTransform:
             self.scaleTransform.Close()
             self.scaleTransform = None
+        return
 
 
 class TooltipPanel(PointerPanel):
@@ -180,12 +182,14 @@ class TooltipPanel(PointerPanel):
             now = blue.os.GetWallclockTime()
             uicore.uilib.tooltipHandler.lastCloseTime = now
         PointerPanel.Close(self, *args)
+        return
 
     def CloseWithFade(self, *args):
         if getattr(uicore.uilib, 'tooltipHandler', None) and len(self.children):
             now = blue.os.GetWallclockTime()
             uicore.uilib.tooltipHandler.lastCloseTime = now
         FadeOutPanelAndClose(self)
+        return
 
     def ShowPanel(self, owner):
         PointerPanel.ShowPanel(self, owner)
@@ -212,9 +216,11 @@ class TooltipPanel(PointerPanel):
         self.expandTimer = None
         if self.destroyed or self.beingDestroyed:
             return
-        if owner.destroyed:
+        elif owner.destroyed:
             return
-        owner.LoadExtendedTooltipPanel(self)
+        else:
+            owner.LoadExtendedTooltipPanel(self)
+            return
 
     def HoldTillMouseOutside(self, graceTime):
         lastOnTime = blue.os.GetWallclockTime()
@@ -309,10 +315,12 @@ class TooltipPanel(PointerPanel):
         self.expandTimer = None
         if self.destroyed or self.beingDestroyed:
             return
-        if owner.destroyed:
+        elif owner.destroyed:
             return
-        if hasattr(owner, 'LoadExtendedTooltipPanel'):
-            owner.LoadExtendedTooltipPanel(self)
+        else:
+            if hasattr(owner, 'LoadExtendedTooltipPanel'):
+                owner.LoadExtendedTooltipPanel(self)
+            return
 
     def AddCommandTooltip(self, command):
         label = command.GetName()
@@ -341,13 +349,13 @@ class TooltipPanel(PointerPanel):
             shortcutObj = None
         return (labelObj, shortcutObj)
 
-    def AddLabelValue(self, label, value, valueColor = COLOR_NUMBERVALUE):
+    def AddLabelValue(self, label, value, valueColor=COLOR_NUMBERVALUE):
         self.FillRow()
         labelObj = self.AddLabelMedium(text=label, align=uiconst.CENTERLEFT, bold=True, cellPadding=(0, 0, 7, 0))
         valueObj = self.AddLabelMedium(text=value, align=uiconst.CENTERRIGHT, color=valueColor, top=1, colSpan=self.columns - 1, cellPadding=(7, 0, 0, 0))
         return (labelObj, valueObj)
 
-    def AddIconLabel(self, icon, label, iconSize = 32):
+    def AddIconLabel(self, icon, label, iconSize=32):
         self.FillRow()
         iconObj = Sprite(pos=(0,
          0,
@@ -358,7 +366,7 @@ class TooltipPanel(PointerPanel):
         labelObj = self.AddLabelMedium(text=label, align=uiconst.CENTERLEFT, bold=True, cellPadding=(0, 0, 7, 0))
         return (iconObj, labelObj)
 
-    def AddIconLabelValue(self, icon, label, value, valueColor = COLOR_NUMBERVALUE, iconSize = 32):
+    def AddIconLabelValue(self, icon, label, value, valueColor=COLOR_NUMBERVALUE, iconSize=32):
         self.FillRow()
         iconObj = Sprite(pos=(0,
          0,
@@ -370,18 +378,18 @@ class TooltipPanel(PointerPanel):
         valueObj = self.AddLabelMedium(align=uiconst.CENTERRIGHT, bold=True, color=valueColor, top=1, colSpan=self.columns - 2, cellPadding=(7, 0, 0, 0))
         return (iconObj, labelObj, valueObj)
 
-    def AddDivider(self, color = (1, 1, 1, 0.3), cellPadding = None):
+    def AddDivider(self, color=(1, 1, 1, 0.3), cellPadding=None):
         self.FillRow()
         divider = Fill(align=uiconst.TOTOP, state=uiconst.UI_DISABLED, color=color, height=1, padding=(0, 3, 0, 3))
         self.AddCell(divider, colSpan=self.columns, cellPadding=cellPadding)
         return divider
 
-    def AddSpacer(self, width, height, colSpan = 1, rowSpan = 1):
+    def AddSpacer(self, width, height, colSpan=1, rowSpan=1):
         spacer = Fill(align=uiconst.TOPLEFT, state=uiconst.UI_DISABLED, width=width, height=height, color=(0, 0, 0, 0))
         self.AddCell(spacer, colSpan=colSpan, rowSpan=rowSpan)
         return spacer
 
-    def AddLabelSmall(self, state = uiconst.UI_DISABLED, wrapWidth = None, **keywords):
+    def AddLabelSmall(self, state=uiconst.UI_DISABLED, wrapWidth=None, **keywords):
         if wrapWidth:
             keywords['width'] = wrapWidth
             keywords['autoFitToText'] = True
@@ -389,7 +397,7 @@ class TooltipPanel(PointerPanel):
         self.AddCell(label, **keywords)
         return label
 
-    def AddLabelMedium(self, state = uiconst.UI_DISABLED, wrapWidth = None, **keywords):
+    def AddLabelMedium(self, state=uiconst.UI_DISABLED, wrapWidth=None, **keywords):
         if wrapWidth:
             keywords['width'] = wrapWidth
             keywords['autoFitToText'] = True
@@ -397,7 +405,7 @@ class TooltipPanel(PointerPanel):
         self.AddCell(label, **keywords)
         return label
 
-    def AddLabelLarge(self, state = uiconst.UI_DISABLED, wrapWidth = None, **keywords):
+    def AddLabelLarge(self, state=uiconst.UI_DISABLED, wrapWidth=None, **keywords):
         if wrapWidth:
             keywords['width'] = wrapWidth
             keywords['autoFitToText'] = True
@@ -405,7 +413,7 @@ class TooltipPanel(PointerPanel):
         self.AddCell(label, **keywords)
         return label
 
-    def AddCaptionSmall(self, state = uiconst.UI_DISABLED, wrapWidth = None, **keywords):
+    def AddCaptionSmall(self, state=uiconst.UI_DISABLED, wrapWidth=None, **keywords):
         if wrapWidth:
             keywords['width'] = wrapWidth
             keywords['autoFitToText'] = True
@@ -413,7 +421,7 @@ class TooltipPanel(PointerPanel):
         self.AddCell(label, **keywords)
         return label
 
-    def AddInfoIcon(self, typeID = None, itemID = None, align = uiconst.TOPRIGHT, **keywords):
+    def AddInfoIcon(self, typeID=None, itemID=None, align=uiconst.TOPRIGHT, **keywords):
         infoIcon = InfoIcon(typeID=typeID, itemID=itemID, align=align, left=0, top=0)
         self.AddCell(infoIcon, **keywords)
         return infoIcon

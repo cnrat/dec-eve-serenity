@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\common\modules\nice\client\_nastyspace\animation.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\common\modules\nice\client\_nastyspace\animation.py
 from carbon.common.lib.animation import *
 from carbon.client.script.animation.animationBehavior import AnimationBehavior as animationBehavior
 from carbon.client.script.animation.animationClient import AnimationComponent

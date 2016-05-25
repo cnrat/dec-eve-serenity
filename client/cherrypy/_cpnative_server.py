@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\carbon\common\lib\cherrypy\_cpnative_server.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\carbon\common\lib\cherrypy\_cpnative_server.py
 import logging
 import sys
 import cherrypy
@@ -66,6 +67,8 @@ class NativeGateway(wsgiserver.Gateway):
             s, h, b = bare_error()
             self.send_response(s, h, b)
 
+        return
+
     def send_response(self, status, headers, body):
         req = self.req
         req.status = str(status or '500 Server Error')
@@ -81,7 +84,7 @@ class NativeGateway(wsgiserver.Gateway):
 
 class CPHTTPServer(wsgiserver.HTTPServer):
 
-    def __init__(self, server_adapter = cherrypy.server):
+    def __init__(self, server_adapter=cherrypy.server):
         self.server_adapter = server_adapter
         server_name = self.server_adapter.socket_host or self.server_adapter.socket_file or None
         wsgiserver.HTTPServer.__init__(self, server_adapter.bind_addr, NativeGateway, minthreads=server_adapter.thread_pool, maxthreads=server_adapter.thread_pool_max, server_name=server_name)
@@ -100,3 +103,4 @@ class CPHTTPServer(wsgiserver.HTTPServer):
         elif self.server_adapter.ssl_certificate:
             adapter_class = wsgiserver.get_ssl_adapter_class(ssl_module)
             self.ssl_adapter = adapter_class(self.server_adapter.ssl_certificate, self.server_adapter.ssl_private_key, self.server_adapter.ssl_certificate_chain)
+        return

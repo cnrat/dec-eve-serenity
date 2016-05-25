@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\client\script\sys\clientStatsSvc.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\client\script\sys\clientStatsSvc.py
 import service
 import sys
 import os
@@ -75,7 +76,7 @@ class ClientStatsSvc(service.Service):
         else:
             self.SampleStats(STATE_UNINITIALIZEDSTART)
 
-    def Run(self, memStream = None):
+    def Run(self, memStream=None):
         self.sessionFilePath = blue.paths.ResolvePathForWriting('cache:/%d_%d.session' % (blue.os.pid, session.sid))
         try:
             self.LogInfo('Creating session file at', self.sessionFilePath)
@@ -114,6 +115,7 @@ class ClientStatsSvc(service.Service):
         self.timeWhenStateEntered = blue.os.GetWallclockTime()
         blue.statistics.ResetPeaks()
         blue.statistics.ResetDerived()
+        return
 
     def Stop(self, ms):
         self.LogInfo('ClientStatsSvc::Stop - Sampling')
@@ -123,17 +125,19 @@ class ClientStatsSvc(service.Service):
 
     def ReadFile(self, filename):
         try:
-            filein = file(filename, 'r')
-            datain = cPickle.load(filein)
-            return datain
-        except Exception as e:
-            log.LogException('Error reading file')
-            sys.exc_clear()
+            try:
+                filein = file(filename, 'r')
+                datain = cPickle.load(filein)
+                return datain
+            except Exception as e:
+                log.LogException('Error reading file')
+                sys.exc_clear()
+
         finally:
             filein.close()
 
     @telemetry.ZONE_METHOD
-    def SendContentsToServer(self, contents = None):
+    def SendContentsToServer(self, contents=None):
         try:
             if not sm.services['machoNet'].IsConnected():
                 return
@@ -176,6 +180,8 @@ class ClientStatsSvc(service.Service):
         finally:
             uthread.UnLock(self, 'sendContents')
 
+        return
+
     def Persist(self):
         if not self.fileStarted and os.path.exists(self.filename):
             os.remove(self.filename)
@@ -188,35 +194,37 @@ class ClientStatsSvc(service.Service):
     def SampleStats(self, state):
         self.currentState = state
         try:
-            uthread.Lock(self, 'sampleStats')
-            if self.entries.has_key(state):
-                stats = self.entries[state]
-            else:
-                stats = {}
-            lastStageSampleTime = self.lastStageSampleTime
-            self.lastStageSampleTime = time.clock()
-            stats[STAT_TIME_SINCE_LAST_STATE] = int((self.lastStageSampleTime - lastStageSampleTime) * 1000)
-            if state < STATE_GAMEEXITING:
-                stats[STAT_MACHONET_AVG_PINGTIME] = self.GetMachoPingTime()
-            if len(blue.pyos.cpuUsage) > 0:
-                memdata = blue.pyos.cpuUsage[-1][2]
-                if len(memdata) >= 2:
-                    stats[STAT_PYTHONMEMORY] = memdata[0]
+            try:
+                uthread.Lock(self, 'sampleStats')
+                if self.entries.has_key(state):
+                    stats = self.entries[state]
+                else:
+                    stats = {}
+                lastStageSampleTime = self.lastStageSampleTime
+                self.lastStageSampleTime = time.clock()
+                stats[STAT_TIME_SINCE_LAST_STATE] = int((self.lastStageSampleTime - lastStageSampleTime) * 1000)
+                if state < STATE_GAMEEXITING:
+                    stats[STAT_MACHONET_AVG_PINGTIME] = self.GetMachoPingTime()
+                if len(blue.pyos.cpuUsage) > 0:
+                    memdata = blue.pyos.cpuUsage[-1][2]
+                    if len(memdata) >= 2:
+                        stats[STAT_PYTHONMEMORY] = memdata[0]
+                    else:
+                        stats[STAT_PYTHONMEMORY] = 0L
                 else:
                     stats[STAT_PYTHONMEMORY] = 0L
-            else:
-                stats[STAT_PYTHONMEMORY] = 0L
-            cpuProcessTime = blue.sysinfo.GetProcessTimes()
-            cpuProcessTime = cpuProcessTime.userTime + cpuProcessTime.systemTime
-            stats[STAT_CPU] = int(cpuProcessTime * 10000000.0)
-            self.entries[state] = stats
-            self.stateMask = self.stateMask + state
-            if not hasattr(self, 'prevContents'):
-                self.Persist()
-            blue.SetCrashKeyValues(u'ClientStatsState', unicode(SHORT_STATE_STRINGS.get(state, u'Unknown')))
-        except Exception as e:
-            log.LogException('Error while sampling clientStats')
-            sys.exc_clear()
+                cpuProcessTime = blue.sysinfo.GetProcessTimes()
+                cpuProcessTime = cpuProcessTime.userTime + cpuProcessTime.systemTime
+                stats[STAT_CPU] = int(cpuProcessTime * 10000000.0)
+                self.entries[state] = stats
+                self.stateMask = self.stateMask + state
+                if not hasattr(self, 'prevContents'):
+                    self.Persist()
+                blue.SetCrashKeyValues(u'ClientStatsState', unicode(SHORT_STATE_STRINGS.get(state, u'Unknown')))
+            except Exception as e:
+                log.LogException('Error while sampling clientStats')
+                sys.exc_clear()
+
         finally:
             uthread.UnLock(self, 'sampleStats')
 
@@ -235,6 +243,7 @@ class ClientStatsSvc(service.Service):
             return totalTime / numSamples
         else:
             return -1
+            return
 
     @telemetry.ZONE_METHOD
     def OnProcessExit(self):
@@ -309,7 +318,7 @@ class ClientStatsSvc(service.Service):
     def OnLoginStarted(self):
         self.SampleStats(STATE_LOGINSTARTED)
 
-    def OnDisconnect(self, reason = 0, msg = ''):
+    def OnDisconnect(self, reason=0, msg=''):
         self.SampleStats(STATE_DISCONNECT)
 
     def OnProcessLoginProgress(self, *args):
@@ -397,25 +406,29 @@ class ClientStatsSvc(service.Service):
         except:
             return None
 
+        return None
+
     def ReadSavedStats(self, pathOnDisk, checksum):
         package = None
         f = open(pathOnDisk)
         try:
-            self.LogInfo('Found session file from an earlier session - reading stats data')
-            contents = f.read()
-            contentsChecksum = zlib.crc32(contents)
-            if checksum == contentsChecksum:
-                package = yaml.load(contents)
-                if package is None:
-                    self.LogInfo('No stats data found')
-                elif package[0] in ('login', 'charsel'):
-                    package = None
-            else:
-                self.LogInfo('Invalid session file')
-        except Exception:
-            log.LogException()
-            sys.exc_clear()
-            package = None
+            try:
+                self.LogInfo('Found session file from an earlier session - reading stats data')
+                contents = f.read()
+                contentsChecksum = zlib.crc32(contents)
+                if checksum == contentsChecksum:
+                    package = yaml.load(contents)
+                    if package is None:
+                        self.LogInfo('No stats data found')
+                    elif package[0] in ('login', 'charsel'):
+                        package = None
+                else:
+                    self.LogInfo('Invalid session file')
+            except Exception:
+                log.LogException()
+                sys.exc_clear()
+                package = None
+
         finally:
             f.close()
 
@@ -436,13 +449,15 @@ class ClientStatsSvc(service.Service):
                 if baseName.startswith('closed'):
                     baseName = baseName[6:]
                     try:
-                        pid, checksum = baseName.split('_')
-                        checksum = int(checksum, 16)
-                        package = self.ReadSavedStats(pathOnDisk, checksum)
-                        if package:
-                            packagesToSend.append(package)
-                    except ValueError:
-                        pass
+                        try:
+                            pid, checksum = baseName.split('_')
+                            checksum = int(checksum, 16)
+                            package = self.ReadSavedStats(pathOnDisk, checksum)
+                            if package:
+                                packagesToSend.append(package)
+                        except ValueError:
+                            pass
+
                     finally:
                         try:
                             os.remove(pathOnDisk)
@@ -469,17 +484,19 @@ class ClientStatsSvc(service.Service):
                             foundCrashData = False
                             f = open(pathOnDisk)
                             try:
-                                crashData = yaml.load(f)
-                                crashData = self.ValidateCrashData(crashData, sid)
-                                if crashData:
-                                    foundCrashData = True
-                                    if crashData[0] == 'shutdown':
-                                        crashData = None
-                                    else:
-                                        self.LogInfo('Found crash info:', crashData[0], crashData[1], crashData[2], crashData[3])
-                            except Exception:
-                                log.LogException()
-                                sys.exc_clear()
+                                try:
+                                    crashData = yaml.load(f)
+                                    crashData = self.ValidateCrashData(crashData, sid)
+                                    if crashData:
+                                        foundCrashData = True
+                                        if crashData[0] == 'shutdown':
+                                            crashData = None
+                                        else:
+                                            self.LogInfo('Found crash info:', crashData[0], crashData[1], crashData[2], crashData[3])
+                                except Exception:
+                                    log.LogException()
+                                    sys.exc_clear()
+
                             finally:
                                 f.close()
 
@@ -535,7 +552,9 @@ class ClientStatsSvc(service.Service):
     def DoSessionChanging(self, isremote, session, change):
         if 'locationid' not in change or change['locationid'][0] is None:
             return
-        uthread.new(self.GatherStats, self.lastClientState, session.locationid)
+        else:
+            uthread.new(self.GatherStats, self.lastClientState, session.locationid)
+            return
 
     @telemetry.ZONE_METHOD
     def PrepareStatsPackage(self, event, stats):

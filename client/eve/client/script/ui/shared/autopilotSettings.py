@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\client\script\ui\shared\autopilotSettings.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\client\script\ui\shared\autopilotSettings.py
 from eve.client.script.ui.control.entries import LocationTextEntry
 import evetypes
 import uiprimitives
@@ -50,6 +51,7 @@ class AutopilotSettings(Window):
           'avoidconf',
           None]], 'autopilottabs', autoselecttab=1)
         self.sr.autopilottabs = autopilottabs
+        return
 
     def Load(self, key):
         self.SetHint()
@@ -63,10 +65,10 @@ class AutopilotSettings(Window):
             return
         self.loadedTab = key
 
-    def MoveWaypoints(self, dragObj, entries, orderID = -1, *args):
+    def MoveWaypoints(self, dragObj, entries, orderID=-1, *args):
         self.ChangeWaypointSorting(orderID=orderID)
 
-    def ChangeWaypointSorting(self, orderID = -1, *args):
+    def ChangeWaypointSorting(self, orderID=-1, *args):
         if self.isChangingOrder:
             return
         try:
@@ -98,6 +100,7 @@ class AutopilotSettings(Window):
             val = checkbox.checked
         settings.user.ui.Set('expandwaypoints', val)
         self.LoadWaypoints()
+        return
 
     def LoadWaypoints(self, *args):
         mapSvc = sm.GetService('map')
@@ -157,12 +160,14 @@ class AutopilotSettings(Window):
 
         if self == None:
             return
-        destinationPath = starmapSvc.GetDestinationPath()
-        self.sr.scroll2.Load(contentList=scrolllist)
-        if not len(scrolllist):
-            self.SetHint(localization.GetByLabel('UI/Map/MapPallet/hintNoWaypoints'))
-        if selectedItem is not None:
-            self.sr.scroll2.SetSelected(selectedItem)
+        else:
+            destinationPath = starmapSvc.GetDestinationPath()
+            self.sr.scroll2.Load(contentList=scrolllist)
+            if not len(scrolllist):
+                self.SetHint(localization.GetByLabel('UI/Map/MapPallet/hintNoWaypoints'))
+            if selectedItem is not None:
+                self.sr.scroll2.SetSelected(selectedItem)
+            return
 
     def LoadAvoidance(self, *args):
         mapSvc = sm.StartService('map')
@@ -196,8 +201,9 @@ class AutopilotSettings(Window):
         self.sr.scroll2.Load(contentList=scrolllist)
         if not len(scrolllist):
             self.SetHint(localization.GetByLabel('UI/Map/MapPallet/hintNoAdvoidanceItems'))
+        return
 
-    def SetHint(self, hintstr = None):
+    def SetHint(self, hintstr=None):
         if self.sr.scroll2:
             self.sr.scroll2.ShowHint(hintstr)
 

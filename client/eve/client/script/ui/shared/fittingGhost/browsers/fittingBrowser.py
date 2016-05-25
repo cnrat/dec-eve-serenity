@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\client\script\ui\shared\fittingGhost\browsers\fittingBrowser.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\client\script\ui\shared\fittingGhost\browsers\fittingBrowser.py
 from collections import defaultdict
 import itertools
 from carbon.common.script.sys.serviceConst import ROLE_WORLDMOD, ROLEMASK_ELEVATEDPLAYER
@@ -21,6 +22,8 @@ class FittingBrowserListProvider(object):
                 self.fittingSpawner = sm.GetService('fittingspawner')
             except:
                 self.fittingSpawner = None
+
+        return
 
     def GetFittingScrolllist(self, ownerID, *args):
         scrolllist = []
@@ -180,7 +183,8 @@ class FittingBrowserListProvider(object):
         ownerID = entry.sr.node.ownerID
         if session.role & ROLE_WORLDMOD and self.fittingSpawner is not None:
             return [('Make ship', self.fittingSpawner.SpawnFitting, [ownerID, entry.sr.node.fitting])]
-        return []
+        else:
+            return []
 
     def OnFittingClicked(self, entry, *args):
         fitting = entry.sr.node.fitting
@@ -195,6 +199,7 @@ class ShipTypeGroup(Group):
         Group.Startup(self, args)
         self.shipTypeID = None
         self.corpAccessBtn = ButtonIcon(name='corpAccessBtn', parent=self, align=uiconst.TORIGHT, width=14, padLeft=1, iconSize=8, texturePath='res:/UI/Texture/Icons/Plus.png', func=self.SimulateShip)
+        return
 
     def Load(self, node):
         Group.Load(self, node)

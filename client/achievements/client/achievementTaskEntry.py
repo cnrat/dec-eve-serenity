@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\packages\achievements\client\achievementTaskEntry.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\packages\achievements\client\achievementTaskEntry.py
 from achievements.client.auraAchievementWindow import AchievementAuraWindow
 from achievements.common.extraInfoForTasks import ACHIEVEMENT_TASK_EXTRAINFO, TaskInfoEntry_Text, TaskInfoEntry_ImageText
 from carbon.common.script.util.timerstuff import AutoTimer
@@ -26,10 +27,12 @@ def CheckMouseOverUtil(uiObject, callback):
     def IsMouseOver(uiObject):
         if uicore.uilib.mouseOver is uiObject:
             return
-        if uicore.uilib.mouseOver.IsUnder(uiObject):
+        elif uicore.uilib.mouseOver.IsUnder(uiObject):
             return
-        uiObject.__checkMouseOverTimer = None
-        callback(uiObject)
+        else:
+            uiObject.__checkMouseOverTimer = None
+            callback(uiObject)
+            return
 
     uiObject.__checkMouseOverTimer = AutoTimer(1, IsMouseOver, uiObject)
 
@@ -105,6 +108,7 @@ class AchievementTaskEntry(ContainerAutoSize):
             detailsParent.DisableAutoSize()
             uicore.animations.FadeOut(detailsParent, duration=0.15)
             uicore.animations.MorphScalar(detailsParent, 'height', detailsParent.height, 0, duration=0.15, callback=detailsParent.Close)
+        return
 
     def ShowDetails(self):
         if self.detailsParent and not self.detailsParent.destroyed:
@@ -114,34 +118,36 @@ class AchievementTaskEntry(ContainerAutoSize):
     def _ShowDetails(self):
         if not self.autoShowDetails:
             return
-        self.detailsParent = ContainerAutoSize(align=uiconst.TOTOP, parent=self, clipChildren=True)
-        if self.callbackTaskExpanded:
-            self.callbackTaskExpanded(self)
-        self.detailsParent.DisableAutoSize()
-        label = EveLabelMedium(parent=self.detailsParent, text=self.achievementTask.description, align=uiconst.TOTOP, padding=(6, 3, 6, 2))
-        extraInfo = ACHIEVEMENT_TASK_EXTRAINFO.get(self.achievementTask.achievementID, None)
-        if extraInfo:
-            grid = LayoutGrid(parent=self.detailsParent, align=uiconst.TOTOP, cellPadding=2, columns=2, padding=4)
-            for taskInfoEntry in extraInfo:
-                if isinstance(taskInfoEntry, TaskInfoEntry_Text):
-                    label = EveLabelMedium(text=taskInfoEntry.text, color=taskInfoEntry.textColor, width=240)
-                    grid.AddCell(label, colSpan=2)
-                elif isinstance(taskInfoEntry, TaskInfoEntry_ImageText):
-                    texturePath = taskInfoEntry.GetTexturePath()
-                    icon = Sprite(name='icon', parent=grid, pos=(0,
-                     0,
-                     taskInfoEntry.imageSize,
-                     taskInfoEntry.imageSize), texturePath=texturePath, state=uiconst.UI_DISABLED, align=uiconst.CENTER, color=taskInfoEntry.imageColor)
-                    text = GetByLabel(taskInfoEntry.textPath)
-                    label = EveLabelMedium(text=text, color=taskInfoEntry.textColor, width=220, align=uiconst.CENTERLEFT)
-                    grid.AddCell(label)
+        else:
+            self.detailsParent = ContainerAutoSize(align=uiconst.TOTOP, parent=self, clipChildren=True)
+            if self.callbackTaskExpanded:
+                self.callbackTaskExpanded(self)
+            self.detailsParent.DisableAutoSize()
+            label = EveLabelMedium(parent=self.detailsParent, text=self.achievementTask.description, align=uiconst.TOTOP, padding=(6, 3, 6, 2))
+            extraInfo = ACHIEVEMENT_TASK_EXTRAINFO.get(self.achievementTask.achievementID, None)
+            if extraInfo:
+                grid = LayoutGrid(parent=self.detailsParent, align=uiconst.TOTOP, cellPadding=2, columns=2, padding=4)
+                for taskInfoEntry in extraInfo:
+                    if isinstance(taskInfoEntry, TaskInfoEntry_Text):
+                        label = EveLabelMedium(text=taskInfoEntry.text, color=taskInfoEntry.textColor, width=240)
+                        grid.AddCell(label, colSpan=2)
+                    elif isinstance(taskInfoEntry, TaskInfoEntry_ImageText):
+                        texturePath = taskInfoEntry.GetTexturePath()
+                        icon = Sprite(name='icon', parent=grid, pos=(0,
+                         0,
+                         taskInfoEntry.imageSize,
+                         taskInfoEntry.imageSize), texturePath=texturePath, state=uiconst.UI_DISABLED, align=uiconst.CENTER, color=taskInfoEntry.imageColor)
+                        text = GetByLabel(taskInfoEntry.textPath)
+                        label = EveLabelMedium(text=text, color=taskInfoEntry.textColor, width=220, align=uiconst.CENTERLEFT)
+                        grid.AddCell(label)
 
-        blue.synchro.Yield()
-        height = self.detailsParent.GetAutoSize()[1]
-        uicore.animations.FadeIn(self.detailsParent, duration=0.3)
-        uicore.animations.MorphScalar(self.detailsParent, 'height', self.detailsParent.height, height, duration=0.25, sleep=True)
-        if self.detailsParent and not self.detailsParent.destroyed:
-            self.detailsParent.EnableAutoSize()
+            blue.synchro.Yield()
+            height = self.detailsParent.GetAutoSize()[1]
+            uicore.animations.FadeIn(self.detailsParent, duration=0.3)
+            uicore.animations.MorphScalar(self.detailsParent, 'height', self.detailsParent.height, height, duration=0.25, sleep=True)
+            if self.detailsParent and not self.detailsParent.destroyed:
+                self.detailsParent.EnableAutoSize()
+            return
 
     def OnMouseEnter(self, *args):
         uicore.animations.MorphScalar(self.headerContainer, 'opacity', startVal=self.opacity, endVal=2.0, curveType=uiconst.ANIM_OVERSHOT, duration=0.5)
@@ -166,7 +172,7 @@ class AchievementTaskEntry(ContainerAutoSize):
         completedTasks = sm.GetService('achievementSvc').GetCompletedTaskIds()
         return self.achievementTask.achievementID in completedTasks
 
-    def UpdateAchievementTaskState(self, animate = False):
+    def UpdateAchievementTaskState(self, animate=False):
         if self.IsTaskCompleted():
             self.checkbox.SetTexturePath(self.checkedTexturePath)
             if animate:
@@ -186,24 +192,27 @@ class AchievementTaskEntry(ContainerAutoSize):
         return
         if uicore.uilib.tooltipHandler.IsUnderTooltip(self):
             return
-        achievementID = self.achievementTask.achievementID
-        tooltipPanel.LoadGeneric2ColumnTemplate()
-        if self.achievementTask.description:
-            tooltipPanel.AddLabelMedium(text=self.achievementTask.description, colSpan=tooltipPanel.columns, wrapWidth=200)
-        extraInfo = ACHIEVEMENT_TASK_EXTRAINFO.get(achievementID, None)
-        if extraInfo:
-            for taskInfoEntry in extraInfo:
-                if isinstance(taskInfoEntry, TaskInfoEntry_Text):
-                    tooltipPanel.AddLabelMedium(text=taskInfoEntry.text, color=taskInfoEntry.textColor, colSpan=tooltipPanel.columns, wrapWidth=200)
-                elif isinstance(taskInfoEntry, TaskInfoEntry_ImageText):
-                    texturePath = taskInfoEntry.GetTexturePath()
-                    icon = Sprite(name='icon', parent=tooltipPanel, pos=(0,
-                     0,
-                     taskInfoEntry.imageSize,
-                     taskInfoEntry.imageSize), texturePath=texturePath, state=uiconst.UI_DISABLED, align=uiconst.CENTER, color=taskInfoEntry.imageColor)
-                    text = GetByLabel(taskInfoEntry.textPath)
-                    label = EveLabelMedium(text=text, color=taskInfoEntry.textColor, width=180, align=uiconst.CENTERLEFT)
-                    tooltipPanel.AddCell(label)
+        else:
+            achievementID = self.achievementTask.achievementID
+            tooltipPanel.LoadGeneric2ColumnTemplate()
+            if self.achievementTask.description:
+                tooltipPanel.AddLabelMedium(text=self.achievementTask.description, colSpan=tooltipPanel.columns, wrapWidth=200)
+            extraInfo = ACHIEVEMENT_TASK_EXTRAINFO.get(achievementID, None)
+            if extraInfo:
+                for taskInfoEntry in extraInfo:
+                    if isinstance(taskInfoEntry, TaskInfoEntry_Text):
+                        tooltipPanel.AddLabelMedium(text=taskInfoEntry.text, color=taskInfoEntry.textColor, colSpan=tooltipPanel.columns, wrapWidth=200)
+                    elif isinstance(taskInfoEntry, TaskInfoEntry_ImageText):
+                        texturePath = taskInfoEntry.GetTexturePath()
+                        icon = Sprite(name='icon', parent=tooltipPanel, pos=(0,
+                         0,
+                         taskInfoEntry.imageSize,
+                         taskInfoEntry.imageSize), texturePath=texturePath, state=uiconst.UI_DISABLED, align=uiconst.CENTER, color=taskInfoEntry.imageColor)
+                        text = GetByLabel(taskInfoEntry.textPath)
+                        label = EveLabelMedium(text=text, color=taskInfoEntry.textColor, width=180, align=uiconst.CENTERLEFT)
+                        tooltipPanel.AddCell(label)
+
+            return
 
     def GetHint(self):
         return None

@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\client\script\environment\spaceObject\ship.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\client\script\environment\spaceObject\ship.py
 from eve.client.script.ui.camera.cameraUtil import IsNewCameraActive
 from eveexceptions.exceptionEater import ExceptionEater
 import evetypes
@@ -40,6 +41,7 @@ class Ship(SpaceObject):
         self.LoadT3ShipWithThrottle = CallCombiner(self.LoadT3Ship, 1.0)
         self._SkinLock = locks.RLock()
         self._modelChangeCallbacks = []
+        return
 
     def _LockT3Loading(self):
         uthread.Lock(self, 'LoadT3Model')
@@ -63,6 +65,8 @@ class Ship(SpaceObject):
 
             t3ShipSvc = self.sm.GetService('t3ShipSvc')
             model = t3ShipSvc.GetTech3ShipFromDict(self.typeID, subsystems, self.typeData.get('sofRaceName', None))
+            if self.released:
+                return
             if model is not None:
                 SpaceObject.LoadModel(self, None, loadedModel=model)
                 self.Assemble()
@@ -73,11 +77,12 @@ class Ship(SpaceObject):
 
         if oldModel is not None:
             self.RemoveAndClearModel(oldModel)
+        return
 
     def IsModularShip(self):
         return IsModularShip(self.typeID)
 
-    def LoadModel(self, fileName = None, loadedModel = None):
+    def LoadModel(self, fileName=None, loadedModel=None):
         if self.IsModularShip():
             self.LoadT3Ship()
         else:
@@ -89,20 +94,24 @@ class Ship(SpaceObject):
         if self.model is None:
             self.LogError('OnSlimItemUpdated - no model to remove')
             return
-        self.fitted = False
-        uthread2.StartTasklet(self.LoadT3ShipWithThrottle)
+        else:
+            self.fitted = False
+            uthread2.StartTasklet(self.LoadT3ShipWithThrottle)
+            return
 
     def GetStanceIDFromSlimItem(self, slimItem):
         if slimItem.shipStance is None:
             return
-        _, _, stanceID = slimItem.shipStance
-        return stanceID
+        else:
+            _, _, stanceID = slimItem.shipStance
+            return stanceID
 
     def OnDamageState(self, damageState):
         SpaceObject.OnDamageState(self, damageState)
         if self.model is not None and damageState is not None:
             states = [ (d if d is not None else 0.0) for d in damageState ]
             self.model.SetImpactDamageState(states[0], states[1], states[2], False)
+        return
 
     def OnSlimItemUpdated(self, slimItem):
         with ExceptionEater('ship::OnSlimItemUpdated failed'):
@@ -132,88 +141,95 @@ class Ship(SpaceObject):
                 self.sm.GetService('FxSequencer').OnSpecialFX(self.id, None, None, None, None, 'effects.WarpIn', 0, 1, 0)
         elif self.GetCurrentAnimationState(spaceobjanimation.STATE_MACHINE_SHIP_STANDARD) is None:
             self.TriggerAnimation('normal')
-
-    def _UpdateImpacts(self):
-        states = self.GetDamageState()
-        if states is not None and self.model is not None:
-            damageState = [ (d if d is not None else 0.0) for d in states ]
-            self.model.SetImpactDamageState(damageState[0], damageState[1], damageState[2], True)
+        return
 
     def Assemble(self):
         if self.model is None:
             return
-        self.UnSync()
-        if self.id == eve.session.shipid:
-            self.FitHardpoints()
-        self._SetInitialState()
-        self._UpdateImpacts()
+        else:
+            self.UnSync()
+            if self.id == eve.session.shipid:
+                self.FitHardpoints()
+            self._SetInitialState()
+            self._UpdateImpacts()
+            return
 
     def Release(self):
         self._UnlockT3Loading()
         if self.released:
             return
-        if self.model is None:
+        elif self.model is None:
             return
-        self.modules = {}
-        self.LoadT3ShipWithThrottle = None
-        SpaceObject.Release(self, 'Ship')
-        self._modelChangeCallbacks = []
+        else:
+            self.modules = {}
+            self.LoadT3ShipWithThrottle = None
+            SpaceObject.Release(self, 'Ship')
+            self._modelChangeCallbacks = []
+            audsvc = self.sm.GetServiceIfRunning('audio')
+            if audsvc.lastLookedAt == self:
+                audsvc.lastLookedAt = None
+            return
 
     def LookAtMe(self):
         if not self.model:
             return
-        if not self.fitted:
-            self.FitHardpoints()
-        audsvc = self.sm.GetServiceIfRunning('audio')
-        if audsvc.active:
-            lookedAt = audsvc.lastLookedAt
-            if lookedAt is None:
-                self.SetupAmbientAudio()
-                audsvc.lastLookedAt = self
-            elif lookedAt is not self:
-                lookedAt.PlayGeneralAudioEvent('shipsounds_stop')
-                self.SetupAmbientAudio()
-                audsvc.lastLookedAt = self
-            else:
-                return
+        else:
+            if not self.fitted:
+                self.FitHardpoints()
+            audsvc = self.sm.GetServiceIfRunning('audio')
+            if audsvc.active:
+                lookedAt = audsvc.lastLookedAt
+                if lookedAt is None:
+                    self.SetupAmbientAudio()
+                    audsvc.lastLookedAt = self
+                elif lookedAt is not self:
+                    lookedAt.PlayGeneralAudioEvent('shipsounds_stop')
+                    self.SetupAmbientAudio()
+                    audsvc.lastLookedAt = self
+                else:
+                    return
+            return
 
-    def FitBoosters(self, alwaysOn = False, enableTrails = True, isNPC = False):
+    def FitBoosters(self, alwaysOn=False, enableTrails=True, isNPC=False):
         if self.typeID is None:
             return
-        raceName = self.typeData.get('sofRaceName', None)
-        if raceName is None:
-            self.LogError('SpaceObject type %s has invaldi raceID (not set!) ' % self.typeID)
-            raceName = 'generic'
-        boosterSoundName = BOOSTER_GFX_SND_RESPATHS[raceName][1]
-        boosterResPath = BOOSTER_GFX_SND_RESPATHS[raceName][0]
-        if self.model is None:
-            self.LogWarn('No model to fit boosters to on spaceobject with id = ' + str(self.id))
+        else:
+            raceName = self.typeData.get('sofRaceName', None)
+            if raceName is None:
+                self.LogError('SpaceObject type %s has invaldi raceID (not set!) ' % self.typeID)
+                raceName = 'generic'
+            boosterSoundName = BOOSTER_GFX_SND_RESPATHS[raceName][1]
+            boosterResPath = BOOSTER_GFX_SND_RESPATHS[raceName][0]
+            if self.model is None:
+                self.LogWarn('No model to fit boosters to on spaceobject with id = ' + str(self.id))
+                return
+            if not hasattr(self.model, 'boosters'):
+                self.LogWarn('Model has no attribute boosters on spaceobject with id = ' + str(self.id))
+                return
+            if self.model.boosters is None and boosterResPath:
+                boosterFxObj = trinity.Load(boosterResPath)
+                if boosterFxObj is not None:
+                    self.model.boosters = boosterFxObj
+                    self.model.RebuildBoosterSet()
+            if self.model.boosters:
+                self.model.boosters.maxVel = self.maxVelocity
+                self.model.boosters.alwaysOn = alwaysOn
+                if not enableTrails:
+                    self.model.boosters.trails = None
+            slimItem = self.typeData['slimItem']
+            groupID = slimItem.groupID
+            tmpEntity, boosterAudioEvent = spaceobjaudio.GetBoosterEmitterAndEvent(self.model, groupID, boosterSoundName)
+            if tmpEntity:
+                self._audioEntities.append(tmpEntity)
+                dogmaAttr = const.attributeMaxVelocity
+                if isNPC:
+                    dogmaAttr = const.attributeEntityCruiseSpeed
+                velocity = self.sm.GetService('godma').GetTypeAttribute(self.typeID, dogmaAttr)
+                if velocity is None:
+                    velocity = 1.0
+                self.model.maxSpeed = velocity
+                spaceobjaudio.SendEvent(tmpEntity, boosterAudioEvent)
             return
-        if not hasattr(self.model, 'boosters'):
-            self.LogWarn('Model has no attribute boosters on spaceobject with id = ' + str(self.id))
-            return
-        if self.model.boosters is None:
-            boosterFxObj = trinity.Load(boosterResPath)
-            if boosterFxObj is not None:
-                self.model.boosters = boosterFxObj
-                self.model.RebuildBoosterSet()
-        self.model.boosters.maxVel = self.maxVelocity
-        self.model.boosters.alwaysOn = alwaysOn
-        if not enableTrails:
-            self.model.boosters.trails = None
-        slimItem = self.typeData['slimItem']
-        groupID = slimItem.groupID
-        tmpEntity, boosterAudioEvent = spaceobjaudio.GetBoosterEmitterAndEvent(self.model, groupID, boosterSoundName)
-        if tmpEntity:
-            self._audioEntities.append(tmpEntity)
-            dogmaAttr = const.attributeMaxVelocity
-            if isNPC:
-                dogmaAttr = const.attributeEntityCruiseSpeed
-            velocity = self.sm.GetService('godma').GetTypeAttribute(self.typeID, dogmaAttr)
-            if velocity is None:
-                velocity = 1.0
-            self.model.maxSpeed = velocity
-            spaceobjaudio.SendEvent(tmpEntity, boosterAudioEvent)
 
     def EnterWarp(self):
         for t in self.turrets:
@@ -247,7 +263,7 @@ class Ship(SpaceObject):
         del self.turrets[:]
         self.fitted = False
 
-    def FitHardpoints(self, blocking = False):
+    def FitHardpoints(self, blocking=False):
         if getattr(self.fittingThread, 'alive', False):
             self.fitted = False
             self.fittingThread.kill()
@@ -259,15 +275,18 @@ class Ship(SpaceObject):
     def _FitHardpoints(self):
         if self.fitted:
             return
-        if self.model is None:
+        elif self.model is None:
             self.LogWarn('FitHardpoints - No model')
             return
-        self.fitted = True
-        newTurretSetDict = TurretSet.FitTurrets(self.id, self.model, self.typeData.get('sofFactionName', None))
-        self.turrets = []
-        for key, val in newTurretSetDict.iteritems():
-            self.modules[key] = val
-            self.turrets.append(val)
+        else:
+            self.fitted = True
+            newTurretSetDict = TurretSet.FitTurrets(self.id, self.model, self.typeData.get('sofFactionName', None))
+            self.turrets = []
+            for key, val in newTurretSetDict.iteritems():
+                self.modules[key] = val
+                self.turrets.append(val)
+
+            return
 
     def Explode(self):
         explosionPath, (delay, scaling) = self.GetExplosionInfo()
@@ -288,6 +307,7 @@ class Ship(SpaceObject):
                 if self._skinChangeTasklet is not None:
                     self._skinChangeTasklet.kill()
         self._skinChangeTasklet = uthread.new(self._ChangeSkin)
+        return
 
     def _ChangeSkin(self):
         with self._SkinLock:
@@ -322,24 +342,7 @@ class Ship(SpaceObject):
             if self.model:
                 self.model.clipSphereFactor = 0.0
                 self.model.activationStrength = 1.0
-
-    def EnableLink(self, target, barrierRadius = None, barrierRadiusZone = None):
-        invulLinkID = 21190
-        if target is None:
-            if self.model is not None:
-                currentLinks = self.model.effectChildren.Find('trinity.EveChildLink')
-                for l in currentLinks:
-                    self.model.effectChildren.remove(l)
-
-        else:
-            path = gfxutils.GetResPathFromGraphicID(invulLinkID)
-            if path is not None:
-                linkFX = blue.resMan.LoadObject(path)
-                linkFX.target = target
-                linkFX.linkBarrier = barrierRadius
-                linkFX.linkBarrierZone = barrierRadiusZone
-                if self.model is not None:
-                    self.model.effectChildren.append(linkFX)
+        return
 
     def ApplyTorqueAtDamageLocator(self, damageLocatorID, impactVelocity, impactObjectMass):
         if not self.model:

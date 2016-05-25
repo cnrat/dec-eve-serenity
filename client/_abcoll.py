@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\carbon\common\stdlib\_abcoll.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\carbon\common\stdlib\_abcoll.py
 from abc import ABCMeta, abstractmethod
 import sys
 __all__ = ['Hashable',
@@ -30,7 +31,7 @@ class Hashable:
 
     @abstractmethod
     def __hash__(self):
-        return 0
+        pass
 
     @classmethod
     def __subclasshook__(cls, C):
@@ -56,6 +57,8 @@ class Iterable:
     def __iter__(self):
         while False:
             yield
+
+        return
 
     @classmethod
     def __subclasshook__(cls, C):
@@ -89,7 +92,7 @@ class Sized:
 
     @abstractmethod
     def __len__(self):
-        return 0
+        pass
 
     @classmethod
     def __subclasshook__(cls, C):
@@ -302,7 +305,7 @@ class Mapping(Sized, Iterable, Container):
     def __getitem__(self, key):
         raise KeyError
 
-    def get(self, key, default = None):
+    def get(self, key, default=None):
         try:
             return self[key]
         except KeyError:
@@ -419,7 +422,7 @@ class MutableMapping(Mapping):
 
     __marker = object()
 
-    def pop(self, key, default = __marker):
+    def pop(self, key, default=__marker):
         try:
             value = self[key]
         except KeyError:
@@ -470,7 +473,7 @@ class MutableMapping(Mapping):
         for key, value in kwds.items():
             self[key] = value
 
-    def setdefault(self, key, default = None):
+    def setdefault(self, key, default=None):
         try:
             return self[key]
         except KeyError:
@@ -551,7 +554,7 @@ class MutableSequence(Sequence):
         for v in values:
             self.append(v)
 
-    def pop(self, index = -1):
+    def pop(self, index=-1):
         v = self[index]
         del self[index]
         return v

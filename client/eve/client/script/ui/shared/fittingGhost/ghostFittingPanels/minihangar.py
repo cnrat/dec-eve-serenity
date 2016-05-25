@@ -1,8 +1,9 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\client\script\ui\shared\fittingGhost\ghostFittingPanels\minihangar.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\client\script\ui\shared\fittingGhost\ghostFittingPanels\minihangar.py
 from carbonui.primitives.container import Container
 from carbonui.primitives.fill import Fill
 from eve.client.script.ui.shared.fittingGhost.fittingUtilGhost import GetColoredText
-from inventorycommon.util import IsShipFittingFlag
+from inventorycommon.util import IsShipFittingFlag, IsShipFittable
 import uicontrols
 import uthread
 import util
@@ -88,7 +89,7 @@ class CargoSlots(Container):
         coloredText = GetColoredText(isBetter=capacityInfo.isBetterThanBefore, text=cap2)
         self.SetStatusText(used, coloredText, '')
 
-    def GetCapacity(self, flag = None):
+    def GetCapacity(self, flag=None):
         if self.controller.IsSimulated():
             return KeyVal(used=0)
         else:
@@ -117,7 +118,7 @@ class CargoDroneSlots(CargoSlots):
     def OnClick(self, *args):
         uicore.cmd.OpenDroneBayOfActiveShip()
 
-    def GetCapacityInfo(self, flag = None):
+    def GetCapacityInfo(self, flag=None):
         return self.controller.GetDroneCapacity()
 
 
@@ -137,7 +138,7 @@ class CargoCargoSlots(CargoSlots):
             if IsShipFittingFlag(item.flagID):
                 dogmaLocation = sm.GetService('clientDogmaIM').GetDogmaLocation()
                 shipID = util.GetActiveShip()
-                if cfg.IsFittableCategory(item.categoryID):
+                if IsShipFittable(item.categoryID):
                     dogmaLocation.UnloadModuleToContainer(shipID, item.itemID, (shipID,), flag=const.flagCargo)
                     return
                 if item.categoryID == const.categoryCharge:
@@ -149,5 +150,5 @@ class CargoCargoSlots(CargoSlots):
     def OnClick(self, *args):
         uicore.cmd.OpenCargoHoldOfActiveShip()
 
-    def GetCapacityInfo(self, flag = None):
+    def GetCapacityInfo(self, flag=None):
         return self.controller.GetCargoCapacity()

@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\packages\entosis\spacecomponents\client\entosisCaptureTarget.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\packages\entosis\spacecomponents\client\entosisCaptureTarget.py
 from carbon.common.lib.const import SEC
 import entosis.ui.entosisController
 from entosis.ui.entosisTimer import EntosisTimer
@@ -37,6 +38,7 @@ class EntosisCaptureTarget(Component):
             self.controllingTeamId, self.scoringTeamId, self.scoringAttributes, self.defenderTeamId = slimItem.entosis_score
             if self.scoringAttributes and self.entosisCounterController is not None:
                 self.entosisCounterController.SetScoreValues(self.controllingTeamId, self.scoringTeamId, self.scoringAttributes, self.defenderTeamId)
+        return
 
     def GetCaptureTime(self):
         return self.attributes.captureTimeSeconds
@@ -47,10 +49,12 @@ class EntosisCaptureTarget(Component):
     def SetTimerColor(self, foregroundColor, backgroundColor, arrowColor):
         if self.entosisCounterController is not None:
             self.entosisCounterController.timer.SetTimerColor(foregroundColor, backgroundColor, arrowColor)
+        return
 
     def SetTimerInvertedMode(self, isInverted):
         if self.entosisCounterController is not None:
             self.entosisCounterController.SetTimerInvertedMode(isInverted)
+        return
 
     @staticmethod
     def GetAttributeInfo(godmaService, typeID, attributes, instance, localization):

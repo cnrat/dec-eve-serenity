@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\client\script\ui\control\scenecontainer.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\client\script\ui\control\scenecontainer.py
 import blue
 from carbonui.primitives.base import Base
 from carbonui.primitives.container import Container
@@ -42,8 +43,9 @@ class SceneContainer(Base):
         self.minZoom = attributes.Get('minZoom', self.default_minZoom)
         self.maxZoom = attributes.Get('maxZoom', self.default_maxZoom)
         self._zoom = 0.5
+        return
 
-    def SetParent(self, parent, idx = None):
+    def SetParent(self, parent, idx=None):
         Base.SetParent(self, parent, idx)
         wnd = GetWindowAbove(self)
         if wnd:
@@ -53,18 +55,19 @@ class SceneContainer(Base):
         self.PrepareCamera()
         self.DisplayScene()
 
-    def PrepareSpaceScene(self, maxPitch = 1.4, scenePath = None, offscreen = False):
+    def PrepareSpaceScene(self, maxPitch=1.4, scenePath=None, offscreen=False):
         self.offscreen = offscreen
         if scenePath is None:
             scenePath = 'res:/dx9/scene/fitting/previewAmmo.red'
         self.scene = trinity.Load(scenePath)
         self.frontClip = 1.0
-        self.backClip = 350000.0
+        self.backClip = 400000.0
         self.fieldOfView = 1.0
         self.minPitch = -1.4
         self.maxPitch = maxPitch
         self.SetupCamera()
         self.DisplaySpaceScene()
+        return
 
     def CreateBracketCurveSet(self):
         self.bracketCurveSet = trinity.TriCurveSet()
@@ -74,7 +77,7 @@ class SceneContainer(Base):
         step.name = 'Update brackets'
         self.renderJob.AddStep('UPDATE_BRACKETS', step)
 
-    def PrepareInteriorScene(self, addShadowStep = False, backgroundImage = None):
+    def PrepareInteriorScene(self, addShadowStep=False, backgroundImage=None):
         self.scene = trinity.Load('res:/Graphics/Interior/characterCreation/Preview.red')
         self.frontClip = 0.1
         self.backClip = 10.0
@@ -97,7 +100,7 @@ class SceneContainer(Base):
         behavior = trinity.EveLocalPositionBehavior.centerBounds
         self.cameraParent = self.camera.parent = trinity.EveLocalPositionCurve(behavior)
 
-    def DisplaySpaceScene(self, blendMode = None):
+    def DisplaySpaceScene(self, blendMode=None):
         from trinity.sceneRenderJobSpaceEmbedded import CreateEmbeddedRenderJobSpace
         self.renderJob = CreateEmbeddedRenderJobSpace()
         rj = self.renderJob
@@ -124,7 +127,7 @@ class SceneContainer(Base):
         rj.SetSettingsBasedOnPerformancePreferences()
         self.renderObject.renderJob = self.renderJob
 
-    def DisplayScene(self, addClearStep = False, addBitmapStep = False, addShadowStep = False, backgroundImage = None):
+    def DisplayScene(self, addClearStep=False, addBitmapStep=False, addShadowStep=False, backgroundImage=None):
         self.renderJob = trinity.CreateRenderJob('SceneInScene')
         self.renderJob.SetViewport(self.viewport)
         self.projection.PerspectiveFov(self.fieldOfView, self.viewport.GetAspectRatio(), self.frontClip, self.backClip)
@@ -142,20 +145,23 @@ class SceneContainer(Base):
             self.renderJob.steps.append(step)
         self.renderJob.RenderScene(self.scene)
         self.renderObject.renderJob = self.renderJob
+        return
 
-    def SetStencilMap(self, path = 'res:/UI/Texture/circleStencil.dds'):
+    def SetStencilMap(self, path='res:/UI/Texture/circleStencil.dds'):
         if hasattr(self.renderJob, 'SetStencil'):
             self.renderJob.SetStencil(path)
 
-    def AddToScene(self, model, clear = 1):
+    def AddToScene(self, model, clear=1):
         if model == None or self.scene == None:
             return
-        if clear:
-            del self.scene.objects[:]
-        self.scene.objects.append(model)
-        self.scene.UpdateScene(blue.os.GetSimTime())
-        self.cameraParent.parent = model
-        self.camera.rotationOfInterest = geo2.QuaternionIdentity()
+        else:
+            if clear:
+                del self.scene.objects[:]
+            self.scene.objects.append(model)
+            self.scene.UpdateScene(blue.os.GetSimTime())
+            self.cameraParent.parent = model
+            self.camera.rotationOfInterest = geo2.QuaternionIdentity()
+            return
 
     def ClearScene(self):
         self.scene.UpdateScene(blue.os.GetSimTime())
@@ -203,13 +209,14 @@ class SceneContainer(Base):
             if hasattr(self.renderJob, 'Disable'):
                 self.renderJob.Disable()
             self.renderJob = None
+        return
 
-    def AnimEntry(self, yaw0 = 0.0, pitch0 = 0.0, yaw1 = -0.5, pitch1 = -0.5, duration = 2.0):
+    def AnimEntry(self, yaw0=0.0, pitch0=0.0, yaw1=-0.5, pitch1=-0.5, duration=2.0):
         uicore.animations.MorphScalar(self, 'zoom', (1.0 - self.zoom) / 2.0, self.zoom, duration=duration)
         uicore.animations.MorphVector2(self, 'orbit', (yaw0, pitch0), (yaw1, pitch1), duration=duration)
 
     def GetOrbit(self):
-        return (0.0, 0.0)
+        pass
 
     def SetOrbit(self, yawPitch):
         self.camera.SetOrbit(*yawPitch)
@@ -272,6 +279,7 @@ class SceneContainerBaseNavigation(Container):
         if self.sr.cookie:
             uicore.event.UnregisterForTriuiEvents(self.sr.cookie)
             self.sr.cookie = None
+        return
 
     def SetMinMaxZoom(self, minZoom, maxZoom):
         self.sr.sceneContainer.SetMinMaxZoom(minZoom, maxZoom)
@@ -300,7 +308,6 @@ class SceneContainerBaseNavigation(Container):
         if btn and btn[0] == uiconst.MOUSERIGHT:
             if self.sr.sceneContainer and self.sr.sceneContainer.camera:
                 self.sr.sceneContainer.camera.rotationOfInterest = geo2.QuaternionIdentity()
-        return 1
 
 
 class SceneContainerBrackets(Base):
@@ -333,7 +340,7 @@ class SceneContainerBrackets(Base):
         self.CreateBracketCurveSet()
         self.UpdateViewPort()
 
-    def SetParent(self, parent, idx = None):
+    def SetParent(self, parent, idx=None):
         Base.SetParent(self, parent, idx)
         wnd = GetWindowAbove(self)
         if wnd:
@@ -399,6 +406,7 @@ class SceneContainerBrackets(Base):
         self.renderJob.Update(self.scene)
         self.renderJob.RenderScene(self.scene)
         self.renderObject.renderJob = self.renderJob
+        return
 
     def CreateBracketCurveSet(self):
         self.bracketCurveSet = trinity.TriCurveSet()
@@ -432,9 +440,10 @@ class SceneContainerBrackets(Base):
         if hasattr(self.renderJob, 'Disable'):
             self.renderJob.Disable()
         self.renderJob = None
+        return
 
     def GetOrbit(self):
-        return (0.0, 0.0)
+        pass
 
     def SetOrbit(self, yawPitch):
         self.camera.SetOrbit(*yawPitch)

@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\carbon\common\lib\cherrypy\test\logtest.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\carbon\common\lib\cherrypy\test\logtest.py
 import sys
 import time
 import cherrypy
@@ -71,31 +72,33 @@ class LogCase(object):
     def emptyLog(self):
         open(self.logfile, 'wb').write('')
 
-    def markLog(self, key = None):
+    def markLog(self, key=None):
         if key is None:
             key = str(time.time())
         self.lastmarker = key
         open(self.logfile, 'ab+').write('%s%s\n' % (self.markerPrefix, key))
+        return
 
-    def _read_marked_region(self, marker = None):
+    def _read_marked_region(self, marker=None):
         logfile = self.logfile
         marker = marker or self.lastmarker
         if marker is None:
             return open(logfile, 'rb').readlines()
-        data = []
-        in_region = False
-        for line in open(logfile, 'rb'):
-            if in_region:
-                if line.startswith(self.markerPrefix) and marker not in line:
-                    break
-                else:
-                    data.append(line)
-            elif marker in line:
-                in_region = True
+        else:
+            data = []
+            in_region = False
+            for line in open(logfile, 'rb'):
+                if in_region:
+                    if line.startswith(self.markerPrefix) and marker not in line:
+                        break
+                    else:
+                        data.append(line)
+                elif marker in line:
+                    in_region = True
 
-        return data
+            return data
 
-    def assertInLog(self, line, marker = None):
+    def assertInLog(self, line, marker=None):
         data = self._read_marked_region(marker)
         for logline in data:
             if line in logline:
@@ -104,14 +107,14 @@ class LogCase(object):
         msg = '%r not found in log' % line
         self._handleLogError(msg, data, marker, line)
 
-    def assertNotInLog(self, line, marker = None):
+    def assertNotInLog(self, line, marker=None):
         data = self._read_marked_region(marker)
         for logline in data:
             if line in logline:
                 msg = '%r found in log' % line
                 self._handleLogError(msg, data, marker, line)
 
-    def assertLog(self, sliceargs, lines, marker = None):
+    def assertLog(self, sliceargs, lines, marker=None):
         data = self._read_marked_region(marker)
         if isinstance(sliceargs, int):
             if isinstance(lines, (tuple, list)):

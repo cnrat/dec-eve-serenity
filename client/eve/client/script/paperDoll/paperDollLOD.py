@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\client\script\paperDoll\paperDollLOD.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\client\script\paperDoll\paperDollLOD.py
 import blue
 import trinity
 import uthread
@@ -71,7 +72,9 @@ class LodQueue(object):
     def OnDollUpdateDoneStatic():
         if LodQueue.instance is None:
             return
-        LodQueue.instance.updateEvent.set()
+        else:
+            LodQueue.instance.updateEvent.set()
+            return
 
     @staticmethod
     def QueueMonitorThread(weakSelf):
@@ -104,6 +107,8 @@ class LodQueue(object):
 
             self.queueActiveUpStat.Set(busyUp)
             self.queueActiveDownStat.Set(busyDown)
+
+        return
 
     def UpdateQueue(self, wakeUpTime):
         i = 0
@@ -157,78 +162,86 @@ class LodQueue(object):
         avatar = queueEntry.avatar.object
         if doll is None or factory is None or avatar is None:
             return False
-        if queueEntry.lodWanted == doll.overrideLod:
+        elif queueEntry.lodWanted == doll.overrideLod:
             return False
-        if queueEntry.lodWanted < doll.overrideLod and not allowUp:
+        elif queueEntry.lodWanted < doll.overrideLod and not allowUp:
             return False
-        doll.overrideLod = queueEntry.lodWanted
-        doll.AddUpdateDoneListener(LodQueue.OnDollUpdateDoneStatic)
-        queueEntry.timeUpdateStarted = time.time()
-        doll.Update(factory, avatar)
-        return True
+        else:
+            doll.overrideLod = queueEntry.lodWanted
+            doll.AddUpdateDoneListener(LodQueue.OnDollUpdateDoneStatic)
+            queueEntry.timeUpdateStarted = time.time()
+            doll.Update(factory, avatar)
+            return True
 
 
-def SetupLODFromPaperdoll(avatar, doll, factory, animation, loadStub = True):
+def SetupLODFromPaperdoll(avatar, doll, factory, animation, loadStub=True):
     if doll is None or avatar is None:
         return
-    stub = None
-    if loadStub:
-        if type(avatar) == trinity.Tr2IntSkinnedObject:
-            stub = blue.resMan.LoadObject(LoadingStubPath)
-    if hasattr(stub, 'visualModel'):
-        stub = stub.visualModel
+    else:
+        stub = None
+        if loadStub:
+            if type(avatar) == trinity.Tr2IntSkinnedObject:
+                stub = blue.resMan.LoadObject(LoadingStubPath)
+        if hasattr(stub, 'visualModel'):
+            stub = stub.visualModel
 
-    class InPlaceBuilder:
+        class InPlaceBuilder:
 
-        def __init__(self, avatar, doll, factory, stub):
-            self.avatar = blue.BluePythonWeakRef(avatar)
-            self.doll = weakref.ref(doll)
-            self.factory = weakref.ref(factory)
-            doll.overrideLod = LodQueue.magicLOD
+            def __init__(self, avatar, doll, factory, stub):
+                self.avatar = blue.BluePythonWeakRef(avatar)
+                self.doll = weakref.ref(doll)
+                self.factory = weakref.ref(factory)
+                doll.overrideLod = LodQueue.magicLOD
 
-            def MakeBuilder(lod):
-                lodBuilder = blue.BlueObjectBuilderPython()
-                lodBuilder.SetCreateMethod(lambda objectMarker, callingProxy: self.DoCreate(callingProxy, lod))
-                lodBuilder.SetSelectedHandler(lambda objectMarker, callingProxy: self.OnSelected(callingProxy, lod))
-                proxy = blue.BlueObjectProxy()
-                proxy.builder = lodBuilder
-                return proxy
+                def MakeBuilder(lod):
+                    lodBuilder = blue.BlueObjectBuilderPython()
+                    lodBuilder.SetCreateMethod(lambda objectMarker, callingProxy: self.DoCreate(callingProxy, lod))
+                    lodBuilder.SetSelectedHandler(lambda objectMarker, callingProxy: self.OnSelected(callingProxy, lod))
+                    proxy = blue.BlueObjectProxy()
+                    proxy.builder = lodBuilder
+                    return proxy
 
-            avatar.highDetailModel = MakeBuilder(0)
-            avatar.mediumDetailModel = MakeBuilder(1)
-            avatar.lowDetailModel = MakeBuilder(2)
-            factory.AppendMeshesToVisualModel(avatar.visualModel, stub.meshes)
+                avatar.highDetailModel = MakeBuilder(0)
+                avatar.mediumDetailModel = MakeBuilder(1)
+                avatar.lowDetailModel = MakeBuilder(2)
+                factory.AppendMeshesToVisualModel(avatar.visualModel, stub.meshes)
 
-        def DoCreate(self, callingProxy, lod):
-            if self.avatar.object is None:
-                return
-            return self.avatar.object.visualModel
-
-        def OnSelected(self, callingProxy, lod):
-            doll = self.doll()
-            factory = self.factory()
-            avatar = self.avatar.object
-            if doll is None or factory is None or avatar is None:
-                return
-            if doll.overrideLod != lod:
-                if LodQueue.instance is None:
-                    doll.overrideLod = lod
-                    doll.Update(factory, avatar)
+            def DoCreate(self, callingProxy, lod):
+                if self.avatar.object is None:
+                    return
                 else:
-                    LodQueue.instance.AddToQueue(self.avatar, self.doll, self.factory, lod)
+                    return self.avatar.object.visualModel
 
-    simpleBuilder = InPlaceBuilder(avatar, doll, factory, stub)
+            def OnSelected(self, callingProxy, lod):
+                doll = self.doll()
+                factory = self.factory()
+                avatar = self.avatar.object
+                if doll is None or factory is None or avatar is None:
+                    return
+                else:
+                    if doll.overrideLod != lod:
+                        if LodQueue.instance is None:
+                            doll.overrideLod = lod
+                            doll.Update(factory, avatar)
+                        else:
+                            LodQueue.instance.AddToQueue(self.avatar, self.doll, self.factory, lod)
+                    return
+
+        simpleBuilder = InPlaceBuilder(avatar, doll, factory, stub)
+        return
 
 
 def AbortAllLod(avatar):
     if avatar is None:
         return
-    if avatar.highDetailModel is not None:
-        avatar.highDetailModel.object = None
-    if avatar.mediumDetailModel is not None:
-        avatar.mediumDetailModel.object = None
-    if avatar.lowDetailModel is not None:
-        avatar.lowDetailModel.object = None
+    else:
+        if avatar.highDetailModel is not None:
+            avatar.highDetailModel.object = None
+        if avatar.mediumDetailModel is not None:
+            avatar.mediumDetailModel.object = None
+        if avatar.lowDetailModel is not None:
+            avatar.lowDetailModel.object = None
+        return
 
 
 import carbon.common.script.util.autoexport as autoexport

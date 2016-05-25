@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\packages\eveclientqatools\probeperformancebenchmark.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\packages\eveclientqatools\probeperformancebenchmark.py
 import argparse
 import os
 import math
@@ -29,7 +30,7 @@ def _enumerate_ships(start_pos, test_case):
         yCount += 1
 
 
-def create_sequence(benchmark, camera, output_path, time = 12, telemetry = True):
+def create_sequence(benchmark, camera, output_path, time=12, telemetry=True):
     static_data = os.path.join(devenv.EVEROOT, 'staticData')
     type_ids = yamlext.loadfile(os.path.join(static_data, 'typeIDs', 'types.staticdata'))
     graphic_ids = yamlext.loadfile(os.path.join(static_data, 'graphicIDs', 'graphicIDs.staticdata'))
@@ -62,7 +63,7 @@ def create_sequence(benchmark, camera, output_path, time = 12, telemetry = True)
             out_file.write('  - [sleep, %s]\n' % time)
 
 
-def run_benchmark(benchmark, camera, time = 12, telemetry = True, additional_args = None):
+def run_benchmark(benchmark, camera, time=12, telemetry=True, additional_args=None):
     additional_args = additional_args or []
     temp_dir = tempfile.mkdtemp()
     try:

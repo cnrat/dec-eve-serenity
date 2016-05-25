@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\client\script\environment\spaceObject\spewContainer.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\client\script\environment\spaceObject\spewContainer.py
 from eve.client.script.environment.spaceObject.spaceObject import SpaceObject
 import evegraphics.settings as gfxsettings
 import hackingcommon.hackingConstants as hackingConst
@@ -21,6 +22,7 @@ class SpewContainer(SpaceObject):
         self.SetSecurityState(state)
         self.SetupSharedAmbientAudio()
         self.SetStaticRotation()
+        return
 
     def SetSecurityState(self, securityState):
         if securityState == hackingConst.hackingStateBeingHacked:

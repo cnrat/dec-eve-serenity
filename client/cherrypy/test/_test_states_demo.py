@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\carbon\common\lib\cherrypy\test\_test_states_demo.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\carbon\common\lib\cherrypy\test\_test_states_demo.py
 import os
 import sys
 import time
@@ -8,7 +9,7 @@ import cherrypy
 class Root:
 
     def index(self):
-        return 'Hello World'
+        pass
 
     index.exposed = True
 
@@ -45,12 +46,14 @@ def unsub_sig():
         pass
     else:
 
-        def old_term_handler(signum = None, frame = None):
+        def old_term_handler(signum=None, frame=None):
             cherrypy.log('I am an old SIGTERM handler.')
             sys.exit(0)
 
         cherrypy.log('Subscribing the new one.')
         signal(SIGTERM, old_term_handler)
+
+    return
 
 
 cherrypy.engine.subscribe('start', unsub_sig, priority=100)

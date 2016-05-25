@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\packages\evefisfx\jumptransitioncamera.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\packages\evefisfx\jumptransitioncamera.py
 import blue
 import carbon.common.script.util.mathUtil as mathUtil
 from eve.client.script.ui.camera.cameraUtil import IsNewCameraActive
@@ -14,7 +15,7 @@ import eve.client.script.parklife.states as states
 class LookAnimation(object):
     __guid__ = 'effects.JumpTransitionLookAnimation'
 
-    def __init__(self, camera, rotation, startFocusID = None, endFocusID = None, startTranslation = None, endTranslation = None):
+    def __init__(self, camera, rotation, startFocusID=None, endFocusID=None, startTranslation=None, endTranslation=None):
         self.camera = camera
         self.rotation = rotation
         self.startBall = None
@@ -25,18 +26,20 @@ class LookAnimation(object):
         self.cameraIntroTime = 2.0
         self.cameraOutroDelay = 1.0
         self.ending = False
+        return
 
     def _GetFocusPosition(self):
         if self.startFocusID is None:
             return (0, 0, 0)
-        park = sm.GetService('michelle').GetBallpark()
-        if park is None:
-            return (0, 0, 0)
-        ball = park.GetBall(self.startFocusID)
-        if ball is None:
-            return (0, 0, 0)
-        pos = ball.GetVectorAt(blue.os.GetSimTime())
-        return (pos.x, pos.y, pos.z)
+        else:
+            park = sm.GetService('michelle').GetBallpark()
+            if park is None:
+                return (0, 0, 0)
+            ball = park.GetBall(self.startFocusID)
+            if ball is None:
+                return (0, 0, 0)
+            pos = ball.GetVectorAt(blue.os.GetSimTime())
+            return (pos.x, pos.y, pos.z)
 
     def Stop(self):
         self.ending = True
@@ -49,7 +52,10 @@ class LookAnimation(object):
             uthread2.StartTasklet(self._DoCameraLookAnimation_Thread)
 
     def _DoCameraLookAnimation_Thread_New(self):
-        targetTranslation = self.startTranslation
+        if self.startTranslation:
+            targetTranslation = self.startTranslation
+        else:
+            targetTranslation = self.camera.GetZoomDistance()
         direction = geo2.Vec3Scale(geo2.QuaternionTransformVector(self.rotation, (0, 0, 1)), -targetTranslation)
         atPosition = self._GetFocusPosition()
         eyePosition = geo2.Vec3Add(atPosition, direction)
@@ -102,12 +108,15 @@ class LookAnimation(object):
                     self.OnJumpDone()
                     break
 
+        return
+
     def OnJumpDone(self):
         itemID = self.GetJumpEndLookAtID()
         if itemID is not None:
             sm.GetService('state').SetState(itemID, states.selected, 1)
             if not IsNewCameraActive():
                 self.camera.targetTracker.SetTemporaryTrackSpeed(itemID, math.pi / 4000)
+        return
 
     def GetJumpEndLookAtID(self):
         lookatID = self.endFocusID
@@ -157,6 +166,7 @@ class AnimateGateLookAt(camanim.BaseCameraAnimation):
             cameraParent.translationCurve = None
         else:
             self.startPos = cameraParent.translation
+        return
 
     def Tick(self, camera, simTime, clockTime):
         if self.isDone:

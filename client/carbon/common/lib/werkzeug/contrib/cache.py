@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\carbon\common\lib\werkzeug\contrib\cache.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\carbon\common\lib\werkzeug\contrib\cache.py
 import os
 import re
 try:
@@ -12,7 +13,7 @@ from cPickle import loads, dumps, load, dump, HIGHEST_PROTOCOL
 
 class BaseCache(object):
 
-    def __init__(self, default_timeout = 300):
+    def __init__(self, default_timeout=300):
         self.default_timeout = default_timeout
 
     def get(self, key):
@@ -27,13 +28,13 @@ class BaseCache(object):
     def get_dict(self, *keys):
         return dict(izip(keys, self.get_many(*keys)))
 
-    def set(self, key, value, timeout = None):
+    def set(self, key, value, timeout=None):
         pass
 
-    def add(self, key, value, timeout = None):
+    def add(self, key, value, timeout=None):
         pass
 
-    def set_many(self, mapping, timeout = None):
+    def set_many(self, mapping, timeout=None):
         for key, value in mapping.iteritems():
             self.set(key, value, timeout)
 
@@ -44,10 +45,10 @@ class BaseCache(object):
     def clear(self):
         pass
 
-    def inc(self, key, delta = 1):
+    def inc(self, key, delta=1):
         self.set(key, (self.get(key) or 0) + delta)
 
-    def dec(self, key, delta = 1):
+    def dec(self, key, delta=1):
         self.set(key, (self.get(key) or 0) - delta)
 
 
@@ -57,7 +58,7 @@ class NullCache(BaseCache):
 
 class SimpleCache(BaseCache):
 
-    def __init__(self, threshold = 500, default_timeout = 300):
+    def __init__(self, threshold=500, default_timeout=300):
         BaseCache.__init__(self, default_timeout)
         self._cache = {}
         self.clear = self._cache.clear
@@ -70,35 +71,42 @@ class SimpleCache(BaseCache):
                 if expires <= now or idx % 3 == 0:
                     self._cache.pop(key, None)
 
+        return
+
     def get(self, key):
         now = time()
         expires, value = self._cache.get(key, (0, None))
         if expires > time():
             return loads(value)
+        else:
+            return None
 
-    def set(self, key, value, timeout = None):
+    def set(self, key, value, timeout=None):
         if timeout is None:
             timeout = self.default_timeout
         self._prune()
         self._cache[key] = (time() + timeout, dumps(value, HIGHEST_PROTOCOL))
+        return
 
-    def add(self, key, value, timeout = None):
+    def add(self, key, value, timeout=None):
         if timeout is None:
             timeout = self.default_timeout
         if len(self._cache) > self._threshold:
             self._prune()
         item = (time() + timeout, dumps(value, HIGHEST_PROTOCOL))
         self._cache.setdefault(key, item)
+        return
 
     def delete(self, key):
         self._cache.pop(key, None)
+        return
 
 
 _test_memcached_key = re.compile('[^\\x00-\\x21\\xff]{1,250}$').match
 
 class MemcachedCache(BaseCache):
 
-    def __init__(self, servers, default_timeout = 300, key_prefix = None):
+    def __init__(self, servers, default_timeout=300, key_prefix=None):
         BaseCache.__init__(self, default_timeout)
         if isinstance(servers, (list, tuple)):
             try:
@@ -160,7 +168,7 @@ class MemcachedCache(BaseCache):
 
         return rv
 
-    def add(self, key, value, timeout = None):
+    def add(self, key, value, timeout=None):
         if timeout is None:
             timeout = self.default_timeout
         if isinstance(key, unicode):
@@ -168,8 +176,9 @@ class MemcachedCache(BaseCache):
         if self.key_prefix:
             key = self.key_prefix + key
         self._client.add(key, value, timeout)
+        return
 
-    def set(self, key, value, timeout = None):
+    def set(self, key, value, timeout=None):
         if timeout is None:
             timeout = self.default_timeout
         if isinstance(key, unicode):
@@ -177,12 +186,13 @@ class MemcachedCache(BaseCache):
         if self.key_prefix:
             key = self.key_prefix + key
         self._client.set(key, value, timeout)
+        return
 
     def get_many(self, *keys):
         d = self.get_dict(*keys)
         return [ d[key] for key in keys ]
 
-    def set_many(self, mapping, timeout = None):
+    def set_many(self, mapping, timeout=None):
         if timeout is None:
             timeout = self.default_timeout
         new_mapping = {}
@@ -194,6 +204,7 @@ class MemcachedCache(BaseCache):
             new_mapping[key] = value
 
         self._client.set_multi(new_mapping, timeout)
+        return
 
     def delete(self, key):
         if isinstance(key, unicode):
@@ -218,14 +229,14 @@ class MemcachedCache(BaseCache):
     def clear(self):
         self._client.flush_all()
 
-    def inc(self, key, delta = 1):
+    def inc(self, key, delta=1):
         if isinstance(key, unicode):
             key = key.encode('utf-8')
         if self.key_prefix:
             key = self.key_prefix + key
         self._client.incr(key, delta)
 
-    def dec(self, key, delta = 1):
+    def dec(self, key, delta=1):
         if isinstance(key, unicode):
             key = key.encode('utf-8')
         if self.key_prefix:
@@ -235,14 +246,14 @@ class MemcachedCache(BaseCache):
 
 class GAEMemcachedCache(MemcachedCache):
 
-    def __init__(self, default_timeout = 300, key_prefix = None):
+    def __init__(self, default_timeout=300, key_prefix=None):
         from google.appengine.api import memcache
         MemcachedCache.__init__(self, memcache.Client(), default_timeout, key_prefix)
 
 
 class FileSystemCache(BaseCache):
 
-    def __init__(self, cache_dir, threshold = 500, default_timeout = 300):
+    def __init__(self, cache_dir, threshold=500, default_timeout=300):
         BaseCache.__init__(self, default_timeout)
         self._path = cache_dir
         self._threshold = threshold
@@ -282,12 +293,14 @@ class FileSystemCache(BaseCache):
         except:
             return
 
-    def add(self, key, value, timeout = None):
+        return
+
+    def add(self, key, value, timeout=None):
         filename = self._get_filename(key)
         if not os.path.exists(filename):
             self.set(key, value, timeout)
 
-    def set(self, key, value, timeout = None):
+    def set(self, key, value, timeout=None):
         if timeout is None:
             timeout = self.default_timeout
         filename = self._get_filename(key)
@@ -302,6 +315,8 @@ class FileSystemCache(BaseCache):
 
         except (IOError, OSError):
             pass
+
+        return
 
     def delete(self, key):
         try:

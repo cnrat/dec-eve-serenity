@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\packages\httplib2\socks.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\packages\httplib2\socks.py
 import base64
 import socket
 import struct
@@ -41,7 +42,7 @@ _socks5errors = ('succeeded', 'general SOCKS server failure', 'connection not al
 _socks5autherrors = ('succeeded', 'authentication is required', 'all offered authentication methods were rejected', 'unknown username or invalid password', 'unknown error')
 _socks4errors = ('request granted', 'request rejected or failed', 'request rejected because SOCKS server cannot connect to identd on the client', 'request rejected because the client program and identd report different user-ids', 'unknown error')
 
-def setdefaultproxy(proxytype = None, addr = None, port = None, rdns = True, username = None, password = None):
+def setdefaultproxy(proxytype=None, addr=None, port=None, rdns=True, username=None, password=None):
     global _defaultproxy
     _defaultproxy = (proxytype,
      addr,
@@ -56,11 +57,12 @@ def wrapmodule(module):
         module.socket.socket = socksocket
     else:
         raise GeneralProxyError((4, 'no proxy specified'))
+    return
 
 
 class socksocket(socket.socket):
 
-    def __init__(self, family = socket.AF_INET, type = socket.SOCK_STREAM, proto = 0, _sock = None):
+    def __init__(self, family=socket.AF_INET, type=socket.SOCK_STREAM, proto=0, _sock=None):
         _orgsocket.__init__(self, family, type, proto, _sock)
         if _defaultproxy != None:
             self.__proxy = _defaultproxy
@@ -69,6 +71,7 @@ class socksocket(socket.socket):
         self.__proxysockname = None
         self.__proxypeername = None
         self.__httptunnel = True
+        return
 
     def __recvall(self, count):
         data = self.recv(count)
@@ -112,7 +115,7 @@ class socksocket(socket.socket):
         auth = self.__proxy[4] + ':' + self.__proxy[5]
         return 'Proxy-Authorization: Basic ' + base64.b64encode(auth)
 
-    def setproxy(self, proxytype = None, addr = None, port = None, rdns = True, username = None, password = None):
+    def setproxy(self, proxytype=None, addr=None, port=None, rdns=True, username=None, password=None):
         self.__proxy = (proxytype,
          addr,
          port,
@@ -184,6 +187,7 @@ class socksocket(socket.socket):
             self.__proxypeername = (socket.inet_ntoa(ipaddr), destport)
         else:
             self.__proxypeername = (destaddr, destport)
+        return
 
     def getproxysockname(self):
         return self.__proxysockname
@@ -228,6 +232,7 @@ class socksocket(socket.socket):
             self.__proxypeername = (socket.inet_ntoa(ipaddr), destport)
         else:
             self.__proxypeername = (destaddr, destport)
+        return
 
     def __negotiatehttp(self, destaddr, destport):
         if not self.__proxy[3]:
@@ -263,6 +268,7 @@ class socksocket(socket.socket):
             raise HTTPError((statuscode, statusline[2]))
         self.__proxysockname = ('0.0.0.0', 0)
         self.__proxypeername = (addr, destport)
+        return
 
     def connect(self, destpair):
         if type(destpair) not in (list, tuple) or len(destpair) < 2 or not isinstance(destpair[0], basestring) or type(destpair[1]) != int:
@@ -302,3 +308,4 @@ class socksocket(socket.socket):
             _orgsocket.connect(self, (destpair[0], destpair[1]))
         else:
             raise GeneralProxyError((4, _generalerrors[4]))
+        return

@@ -1,10 +1,11 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\client\script\environment\effects\siegeMode.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\client\script\environment\effects\siegeMode.py
 from eve.client.script.environment.effects.GenericEffect import GenericEffect, STOP_REASON_DEFAULT
 
 class SiegeMode(GenericEffect):
     __guid__ = 'effects.SiegeMode'
 
-    def Stop(self, reason = STOP_REASON_DEFAULT):
+    def Stop(self, reason=STOP_REASON_DEFAULT):
         shipID = self.ballIDs[0]
         shipBall = self.fxSequencer.GetBall(shipID)
         shipBall.TriggerAnimation('normal')

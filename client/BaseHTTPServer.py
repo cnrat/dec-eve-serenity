@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\carbon\common\stdlib\BaseHTTPServer.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\carbon\common\stdlib\BaseHTTPServer.py
 __version__ = '0.3'
 __all__ = ['HTTPServer', 'BaseHTTPRequestHandler']
 import sys
@@ -109,7 +110,7 @@ class BaseHTTPRequestHandler(SocketServer.StreamRequestHandler):
         while not self.close_connection:
             self.handle_one_request()
 
-    def send_error(self, code, message = None):
+    def send_error(self, code, message=None):
         try:
             short, long = self.responses[code]
         except KeyError:
@@ -128,11 +129,12 @@ class BaseHTTPRequestHandler(SocketServer.StreamRequestHandler):
         self.end_headers()
         if self.command != 'HEAD' and code >= 200 and code not in (204, 304):
             self.wfile.write(content)
+        return
 
     error_message_format = DEFAULT_ERROR_MESSAGE
     error_content_type = DEFAULT_ERROR_CONTENT_TYPE
 
-    def send_response(self, code, message = None):
+    def send_response(self, code, message=None):
         self.log_request(code)
         if message is None:
             if code in self.responses:
@@ -143,6 +145,7 @@ class BaseHTTPRequestHandler(SocketServer.StreamRequestHandler):
             self.wfile.write('%s %d %s\r\n' % (self.protocol_version, code, message))
         self.send_header('Server', self.version_string())
         self.send_header('Date', self.date_time_string())
+        return
 
     def send_header(self, keyword, value):
         if self.request_version != 'HTTP/0.9':
@@ -157,7 +160,7 @@ class BaseHTTPRequestHandler(SocketServer.StreamRequestHandler):
         if self.request_version != 'HTTP/0.9':
             self.wfile.write('\r\n')
 
-    def log_request(self, code = '-', size = '-'):
+    def log_request(self, code='-', size='-'):
         self.log_message('"%s" %s %s', self.requestline, str(code), str(size))
 
     def log_error(self, format, *args):
@@ -169,7 +172,7 @@ class BaseHTTPRequestHandler(SocketServer.StreamRequestHandler):
     def version_string(self):
         return self.server_version + ' ' + self.sys_version
 
-    def date_time_string(self, timestamp = None):
+    def date_time_string(self, timestamp=None):
         if timestamp is None:
             timestamp = time.time()
         year, month, day, hh, mm, ss, wd, y, z = time.gmtime(timestamp)
@@ -262,7 +265,7 @@ class BaseHTTPRequestHandler(SocketServer.StreamRequestHandler):
      505: ('HTTP Version Not Supported', 'Cannot fulfill request.')}
 
 
-def test(HandlerClass = BaseHTTPRequestHandler, ServerClass = HTTPServer, protocol = 'HTTP/1.0'):
+def test(HandlerClass=BaseHTTPRequestHandler, ServerClass=HTTPServer, protocol='HTTP/1.0'):
     if sys.argv[1:]:
         port = int(sys.argv[1])
     else:

@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\client\script\ui\shared\neocom\compare.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\client\script\ui\shared\neocom\compare.py
 import blue
 from inventorycommon.const import compareCategories
 import uiprimitives
@@ -50,6 +51,7 @@ class TypeCompare(uicontrols.Window):
         self.SetMinSize([350, 400])
         self.LoadPanels()
         self.LoadCompare()
+        return
 
     def LoadPanels(self):
         bottomparent = uiprimitives.Container(name='bottomparent', parent=self.sr.main, align=uiconst.TOBOTTOM, height=25)
@@ -90,13 +92,15 @@ class TypeCompare(uicontrols.Window):
               None]], parent=self.sr.bottomparent, idx=0, unisize=0)
             self.sr.typescroll.sr.content.OnDropData = self.OnDropData
             self.compareinited = 1
+        return
 
     def RemoveAllEntries(self, *args):
         self.typeIDs = []
         self.topLevelMarketGroup = None
         self.SelectAll()
+        return
 
-    def SelectAll(self, onOff = 0):
+    def SelectAll(self, onOff=0):
         if onOff:
             return
         self.attrDictChecked = []
@@ -141,8 +145,9 @@ class TypeCompare(uicontrols.Window):
             self.attrDictChecked = []
             self.topLevelMarketGroup = None
         self.OnColumnChanged()
+        return
 
-    def OnColumnChanged(self, force = 1, *args):
+    def OnColumnChanged(self, force=1, *args):
         self.GetCombinedDogmaAttributes()
         if force:
             self.GetAttributeScroll()
@@ -177,6 +182,7 @@ class TypeCompare(uicontrols.Window):
 
             return mg.marketGroupID
         else:
+            return None
             return None
 
     def CompareErrorMessage(self, topLevelMarketGroupID):
@@ -459,15 +465,17 @@ class AttributeCheckbox(listentry.LabelTextTop):
         if self.sr.checkbox.groupName is None:
             self.sr.checkbox.SetChecked(not self.sr.checkbox.checked)
             return
-        if self.sr.checkbox.diode is None:
-            self.sr.checkbox.Prepare_Diode_()
-        for node in self.sr.node.scroll.GetNodes():
-            if node.Get('__guid__', None) == 'listentry.Checkbox' and node.Get('group', None) == self.sr.checkbox.groupName:
-                if node.panel:
-                    node.panel.sr.checkbox.SetChecked(0, 0)
-                    node.checked = 0
-                else:
-                    node.checked = 0
+        else:
+            if self.sr.checkbox.diode is None:
+                self.sr.checkbox.Prepare_Diode_()
+            for node in self.sr.node.scroll.GetNodes():
+                if node.Get('__guid__', None) == 'listentry.Checkbox' and node.Get('group', None) == self.sr.checkbox.groupName:
+                    if node.panel:
+                        node.panel.sr.checkbox.SetChecked(0, 0)
+                        node.checked = 0
+                    else:
+                        node.checked = 0
 
-        if not self.destroyed:
-            self.sr.checkbox.SetChecked(1)
+            if not self.destroyed:
+                self.sr.checkbox.SetChecked(1)
+            return

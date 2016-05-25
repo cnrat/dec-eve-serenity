@@ -1,5 +1,9 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\common\modules\nice\client\_nastyspace\invCont.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\common\modules\nice\client\_nastyspace\invCont.py
 from eve.client.script.ui.shared.container import _InvContBase
+from eve.client.script.ui.shared.inventory.invContainers import AssetSafetyContainer
+from eve.client.script.ui.shared.inventory.invContainers import AssetSafetyCorpContainer
+from eve.client.script.ui.shared.inventory.invContainers import AssetSafetyDeliveries
 from eve.client.script.ui.shared.inventory.invContainers import ItemFloatingCargo
 from eve.client.script.ui.shared.inventory.invContainers import ItemWreck
 from eve.client.script.ui.shared.inventory.invContainers import POSConstructionPlatform
@@ -45,4 +49,12 @@ from eve.client.script.ui.shared.inventory.invContainers import StationShips
 from eve.client.script.ui.shared.inventory.invContainers import _BaseCelestialContainer
 from eve.client.script.ui.station.pvptrade.pvptradewnd import PlayerTrade
 from eve.client.script.ui.shared.inventory.invContainers import SpaceComponentInventory
+from eve.client.script.ui.shared.inventory.invContainers import Structure
+from eve.client.script.ui.shared.inventory.invContainers import StructureAmmoBay
+from eve.client.script.ui.shared.inventory.invContainers import StructureFuelBay
+from eve.client.script.ui.shared.inventory.invContainers import StructureFighterBay
+from eve.client.script.ui.shared.inventory.invContainers import StructureItemHangar
+from eve.client.script.ui.shared.inventory.invContainers import StructureShipHangar
+from eve.client.script.ui.shared.inventory.invContainers import StructureCorpHangar
+from eve.client.script.ui.shared.inventory.invContainers import StructureDeliveriesHangar
 from eve.client.script.ui.shared.inventory.invContainers import ItemSiphonPseudoSilo

@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\packages\notifications\common\formatters\sovAllianceCapitalChange.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\packages\notifications\common\formatters\sovAllianceCapitalChange.py
 import localization
 from notifications.common.formatters.sovBase import SovCaptureBaseNotification, ALLIANCE_ID, SOLAR_SYSTEM_ID
 from eve.common.script.util.notificationUtil import CreateItemInfoLink
@@ -20,5 +21,5 @@ class SovAllianceCapitalChanged(SovCaptureBaseNotification):
         notification.body = localization.GetByLabel(self.bodyLabel, allianceName=CreateItemInfoLink(data[ALLIANCE_ID]))
 
     @staticmethod
-    def MakeSampleData(variant = 0):
+    def MakeSampleData(variant=0):
         return SovAllianceCapitalChanged.MakeData(30004797, 99000001 + variant)

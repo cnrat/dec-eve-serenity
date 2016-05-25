@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\carbon\common\lib\jinja2\_markupsafe\_constants.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\carbon\common\lib\jinja2\_markupsafe\_constants.py
 HTML_ENTITIES = {'AElig': 198,
  'Aacute': 193,
  'Acirc': 194,

@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\carbon\common\stdlib\socket.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\carbon\common\stdlib\socket.py
 import _socket
 from _socket import *
 from functools import partial
@@ -9,7 +10,7 @@ except ImportError:
     pass
 else:
 
-    def ssl(sock, keyfile = None, certfile = None):
+    def ssl(sock, keyfile=None, certfile=None):
         import ssl as _realssl
         warnings.warn('socket.ssl() is deprecated.  Use ssl.wrap_socket() instead.', DeprecationWarning, stacklevel=2)
         return _realssl.sslwrap_simple(sock, keyfile, certfile)
@@ -53,7 +54,7 @@ if sys.platform.lower().startswith('win'):
     errorTab[10065] = 'The host is unreachable.'
     __all__.append('errorTab')
 
-def getfqdn(name = ''):
+def getfqdn(name=''):
     name = name.strip()
     if not name or name == '0.0.0.0':
         try:
@@ -121,17 +122,19 @@ class _closedsocket(object):
 
 
 class _socketobject(object):
-    __doc__ = _realsocket.__doc__
+    """_sock"""
     __slots__ = ['_sock', '__weakref__'] + list(_delegate_methods)
 
-    def __init__(self, family = AF_INET, type = SOCK_STREAM, proto = 0, _sock = None):
+    def __init__(self, family=AF_INET, type=SOCK_STREAM, proto=0, _sock=None):
         if _sock is None:
             _sock = _realsocket(family, type, proto)
         self._sock = _sock
         for method in _delegate_methods:
             setattr(self, method, getattr(_sock, method))
 
-    def close(self, _closedsocket = _closedsocket, _delegate_methods = _delegate_methods, setattr = setattr):
+        return
+
+    def close(self, _closedsocket=_closedsocket, _delegate_methods=_delegate_methods, setattr=setattr):
         self._sock = _closedsocket()
         dummy = self._sock._dummy
         for method in _delegate_methods:
@@ -148,7 +151,7 @@ class _socketobject(object):
     def dup(self):
         return _socketobject(_sock=self._sock)
 
-    def makefile(self, mode = 'r', bufsize = -1):
+    def makefile(self, mode='r', bufsize=-1):
         return _fileobject(self._sock, mode, bufsize)
 
     family = property(lambda self: self._sock.family, doc='the socket family')
@@ -183,7 +186,7 @@ class _fileobject(object):
      '_wbuf_len',
      '_close']
 
-    def __init__(self, sock, mode = 'rb', bufsize = -1, close = False):
+    def __init__(self, sock, mode='rb', bufsize=-1, close=False):
         self._sock = sock
         self.mode = mode
         if bufsize < 0:
@@ -215,6 +218,8 @@ class _fileobject(object):
             if self._close:
                 self._sock.close()
             self._sock = None
+
+        return
 
     def __del__(self):
         try:
@@ -262,8 +267,9 @@ class _fileobject(object):
         self._wbuf.extend(lines)
         if self._wbufsize <= 1 or self._wbuf_len >= self._wbufsize:
             self.flush()
+        return
 
-    def read(self, size = -1):
+    def read(self, size=-1):
         rbufsize = max(self._rbufsize, self.default_bufsize)
         buf = self._rbuf
         buf.seek(0, 2)
@@ -315,7 +321,7 @@ class _fileobject(object):
 
             return buf.getvalue()
 
-    def readline(self, size = -1):
+    def readline(self, size=-1):
         buf = self._rbuf
         buf.seek(0, 2)
         if buf.tell() > 0:
@@ -412,8 +418,9 @@ class _fileobject(object):
                 buf_len += n
 
             return buf.getvalue()
+            return
 
-    def readlines(self, sizehint = 0):
+    def readlines(self, sizehint=0):
         total = 0
         list = []
         while True:
@@ -439,7 +446,7 @@ class _fileobject(object):
 
 _GLOBAL_DEFAULT_TIMEOUT = object()
 
-def create_connection(address, timeout = _GLOBAL_DEFAULT_TIMEOUT, source_address = None):
+def create_connection(address, timeout=_GLOBAL_DEFAULT_TIMEOUT, source_address=None):
     host, port = address
     err = None
     for res in getaddrinfo(host, port, 0, SOCK_STREAM):
@@ -462,3 +469,4 @@ def create_connection(address, timeout = _GLOBAL_DEFAULT_TIMEOUT, source_address
         raise err
     else:
         raise error('getaddrinfo returns an empty list')
+    return

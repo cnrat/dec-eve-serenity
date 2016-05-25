@@ -1,10 +1,11 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\carbon\common\lib\cherrypy\tutorial\tut01_helloworld.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\carbon\common\lib\cherrypy\tutorial\tut01_helloworld.py
 import cherrypy
 
 class HelloWorld:
 
     def index(self):
-        return 'Hello world!'
+        pass
 
     index.exposed = True
 

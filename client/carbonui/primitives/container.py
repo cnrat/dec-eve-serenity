@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\packages\carbonui\primitives\container.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\packages\carbonui\primitives\container.py
 import carbonui.const as uiconst
 import trinity
 from .base import Base
@@ -48,19 +49,21 @@ class Container(Base):
     def Close(self):
         if getattr(self, 'destroyed', False):
             return
-        self._containerClosing = True
-        for child in self.children:
-            child.Close()
-
-        self.children = []
-        if self._backgroundlist:
-            for child in self.background[:]:
+        else:
+            self._containerClosing = True
+            for child in self.children:
                 child.Close()
 
-            self.background = None
-        Base.Close(self)
+            self.children = []
+            if self._backgroundlist:
+                for child in self.background[:]:
+                    child.Close()
 
-    def UpdateAlignment(self, budgetLeft = 0, budgetTop = 0, budgetWidth = 0, budgetHeight = 0, updateChildrenOnly = False):
+                self.background = None
+            Base.Close(self)
+            return
+
+    def UpdateAlignment(self, budgetLeft=0, budgetTop=0, budgetWidth=0, budgetHeight=0, updateChildrenOnly=False):
         displayDirty = self._displayDirty
         if updateChildrenOnly:
             childrenDirty = True
@@ -148,9 +151,10 @@ class Container(Base):
             if kwds.get('raiseError', False):
                 raise RuntimeError('ChildNotFound', (self.name, names))
             return
-        return ret
+        else:
+            return ret
 
-    def _FindChildByName(self, name, lvl = 0):
+    def _FindChildByName(self, name, lvl=0):
         for child in self.children:
             if child.name == name:
                 return child
@@ -160,6 +164,8 @@ class Container(Base):
                 ret = child._FindChildByName(name, lvl + 1)
                 if ret is not None:
                     return ret
+
+        return
 
     def Find(self, triTypeName):
 

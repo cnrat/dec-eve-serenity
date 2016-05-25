@@ -1,11 +1,12 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\packages\eveprefs\yamlformat.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\packages\eveprefs\yamlformat.py
 import yamlext
 from . import strip_spaces
 from .filebased import FileBasedIniFile
 
 class YamlIniFile(FileBasedIniFile):
 
-    def __init__(self, shortname, root = None, readOnly = False):
+    def __init__(self, shortname, root=None, readOnly=False):
         FileBasedIniFile.__init__(self, shortname, '.yaml', root, readOnly)
         obj = yamlext.loads(self._Read()) or {}
         self.keyval = strip_spaces(obj)
@@ -32,7 +33,7 @@ class YamlIniFile(FileBasedIniFile):
 
 class YamlIniFileTester(YamlIniFile):
 
-    def __init__(self, shortname, root = None, readOnly = False, forceReload = False):
+    def __init__(self, shortname, root=None, readOnly=False, forceReload=False):
         import os, osutils
         from .iniformat import IniIniFile
         ini = IniIniFile(shortname, root, readOnly)

@@ -1,11 +1,12 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\carbon\common\lib\cherrypy\_cpwsgi_server.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\carbon\common\lib\cherrypy\_cpwsgi_server.py
 import sys
 import cherrypy
 from cherrypy import wsgiserver
 
 class CPWSGIServer(wsgiserver.CherryPyWSGIServer):
 
-    def __init__(self, server_adapter = cherrypy.server):
+    def __init__(self, server_adapter=cherrypy.server):
         self.server_adapter = server_adapter
         self.max_request_header_size = self.server_adapter.max_request_header_size or 0
         self.max_request_body_size = self.server_adapter.max_request_body_size or 0
@@ -23,3 +24,4 @@ class CPWSGIServer(wsgiserver.CherryPyWSGIServer):
         elif self.server_adapter.ssl_certificate:
             adapter_class = wsgiserver.get_ssl_adapter_class(ssl_module)
             self.ssl_adapter = adapter_class(self.server_adapter.ssl_certificate, self.server_adapter.ssl_private_key, self.server_adapter.ssl_certificate_chain)
+        return

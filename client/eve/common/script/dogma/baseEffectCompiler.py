@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\common\script\dogma\baseEffectCompiler.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\common\script\dogma\baseEffectCompiler.py
 import cPickle
 import carbon.common.script.sys.service as service
 import string
@@ -98,6 +99,7 @@ class BaseEffectCompiler(service.Service):
                  arg1[1][0],
                  arg1[1][1],
                  arg2)
+        return
 
     def SetupEffects(self):
         if prefs.GetValue('enableNewStyleEffectAuthoring', True):
@@ -121,6 +123,8 @@ class BaseEffectCompiler(service.Service):
                             self.LogError('Namespace item', item, 'has non-existant effect name reference', effectName)
                             continue
                     self.effects[effectID] = inst
+
+        return
 
     def ParseEffect(self, effectID):
         dogmaStaticMgr = self.GetDogmaStaticMgr()
@@ -185,7 +189,7 @@ class BaseEffectCompiler(service.Service):
             ret += '\n\n'
         return ret
 
-    def ParseExpression(self, expression, indent = '', restricted = 0, topLevel = 0):
+    def ParseExpression(self, expression, indent='', restricted=0, topLevel=0):
         dogma = sm.GetService('dogma')
         operandID = expression.operandID
         operand = dogma.operands[operandID]
@@ -379,6 +383,8 @@ class BaseEffectCompiler(service.Service):
                     if modifiersOnly == 2:
                         self.modifyingExpr[expression.expressionID] = True
 
+        return
+
     def PickledSortedList(self, v):
         v.sort()
         return cPickle.dumps(v)
@@ -477,7 +483,7 @@ class BaseEffectCompiler(service.Service):
         self.effects[effectID].StartChecks(env, env.dogmaLM, env.itemID, env.shipID, env.charID, env.otherID, env.targetID)
 
     @telemetry.ZONE_METHOD
-    def StopEffect(self, effectID, env, restricted = 0):
+    def StopEffect(self, effectID, env, restricted=0):
         if restricted:
             return self.effects[effectID].RestrictedStop(env, env.dogmaLM, env.itemID, env.shipID, env.charID, env.otherID, env.targetID)
         else:

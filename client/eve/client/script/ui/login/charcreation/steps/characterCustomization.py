@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\client\script\ui\login\charcreation\steps\characterCustomization.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\client\script\ui\login\charcreation\steps\characterCustomization.py
 from carbonui import const as uiconst
 from charactercreator import const as ccConst
 from eve.client.script.ui.login.charcreation import ccUtil
@@ -62,8 +63,9 @@ class CharacterCustomization(BaseCharacterCreationStep):
             self.sr.loadingWheelThread.kill()
             self.sr.loadingWheelThread = None
         self.sr.loadingWheelThread = uthread.new(self.ShowLoadingWheel_thread)
+        return
 
-    def SetHintText(self, modifier, hintText = ''):
+    def SetHintText(self, modifier, hintText=''):
         text = hintText
         if modifier in ccConst.HELPTEXTS:
             labelPath = ccConst.HELPTEXTS[modifier]
@@ -109,7 +111,7 @@ class CharacterCustomization(BaseCharacterCreationStep):
             self.sr.assetMenuPar.width += difference
             self.sr.hintBox.left = self.assetMenuMainWidth + 20
 
-    def RandomizeCharacter(self, randomizingPart = None, *args):
+    def RandomizeCharacter(self, randomizingPart=None, *args):
         info = self.GetInfo()
         doll = self.charSvc.GetSingleCharactersDoll(info.charID)
         if doll.busyUpdating:
@@ -147,7 +149,7 @@ class CharacterCustomization(BaseCharacterCreationStep):
         if randomButton and not randomButton.destroyed:
             randomButton.SetRotation(0)
 
-    def LoadMenu(self, animate = 0, forcedMode = 0, *arg):
+    def LoadMenu(self, animate=0, forcedMode=0, *arg):
         sm.GetService('cc').LogInfo('CharacterCustomization::LoadMenu')
         menu = None
         if self.menuMode == self.ASSETMENU:
@@ -156,24 +158,26 @@ class CharacterCustomization(BaseCharacterCreationStep):
             menu = self.GetTattooMenu(forcedMode)
         if menu is None:
             return
-        if animate:
-            mainCont = menu.sr.mainCont
-            if self.menuMode == self.TATTOOMENU:
-                fullHeight = menu.sr.mainCont.height
-                mainCont.height = menu.sr.menuToggler.height
-                menu.state = uiconst.UI_DISABLED
-                uicore.effect.MorphUIMassSpringDamper(mainCont, 'height', fullHeight, newthread=False, float=False, frequency=15.0, dampRatio=0.85)
-                menu.state = uiconst.UI_PICKCHILDREN
-            else:
-                menu.state = uiconst.UI_DISABLED
-                uicore.effect.MorphUIMassSpringDamper(mainCont, 'top', 0, newthread=False, float=False, frequency=15.0, dampRatio=0.85)
-                menu.sr.mainCont.height = uicore.desktop.height
-                menu.state = uiconst.UI_PICKCHILDREN
         else:
-            menu.state = uiconst.UI_PICKCHILDREN
-        menu.CheckIfOversize()
+            if animate:
+                mainCont = menu.sr.mainCont
+                if self.menuMode == self.TATTOOMENU:
+                    fullHeight = menu.sr.mainCont.height
+                    mainCont.height = menu.sr.menuToggler.height
+                    menu.state = uiconst.UI_DISABLED
+                    uicore.effect.MorphUIMassSpringDamper(mainCont, 'height', fullHeight, newthread=False, float=False, frequency=15.0, dampRatio=0.85)
+                    menu.state = uiconst.UI_PICKCHILDREN
+                else:
+                    menu.state = uiconst.UI_DISABLED
+                    uicore.effect.MorphUIMassSpringDamper(mainCont, 'top', 0, newthread=False, float=False, frequency=15.0, dampRatio=0.85)
+                    menu.sr.mainCont.height = uicore.desktop.height
+                    menu.state = uiconst.UI_PICKCHILDREN
+            else:
+                menu.state = uiconst.UI_PICKCHILDREN
+            menu.CheckIfOversize()
+            return
 
-    def GetTattooMenu(self, forcedMode = 0, *args):
+    def GetTattooMenu(self, forcedMode=0, *args):
         sm.GetService('cc').LogInfo('CharacterCustomization::GetTattooMenu')
         if not forcedMode and self.sr.tattooMenu and not self.sr.tattooMenu.destroyed:
             if self.sr.assetMenu:
@@ -200,18 +204,18 @@ class CharacterCustomization(BaseCharacterCreationStep):
          ccConst.p_chin)
         scarSub = (ccConst.s_head,)
         tattooSub = (ccConst.t_head, ccConst.t_armleft, ccConst.t_armright)
-        prostheticsSub = (ccConst.pr_armleft, ccConst.pr_armright)
+        augmentations = (ccConst.pr_armleft, ccConst.pr_armright, ccConst.augm_face)
         groups = []
         groups += [(ccConst.PIERCINGGROUP, piercingSub)]
         groups += [(ccConst.TATTOOGROUP, tattooSub)]
         groups += [(ccConst.SCARSGROUP, scarSub)]
-        groups += [(ccConst.PROSTHETICS, prostheticsSub)]
+        groups += [(ccConst.AUGMENTATIONS, augmentations)]
         tattoooMenuWidth = min(MAXMENUSIZE + uicls.CCColorPalette.COLORPALETTEWIDTH, self.sr.rightSide.width - 32)
         self.sr.tattooMenu = uicls.CharCreationAssetMenu(menuType='tattooMenu', parent=self.sr.assetMenuPar, bloodlineID=info.bloodlineID, state=uiconst.UI_PICKCHILDREN, genderID=info.genderID, charID=info.charID, groups=groups, align=uiconst.CENTERTOP, width=tattoooMenuWidth, height=uicore.desktop.height, top=16, toggleFunc=self.GoToAssetMode, togglerIdx=0)
         self.sr.tattooMenu.width = tattoooMenuWidth
         return self.sr.tattooMenu
 
-    def GetAssetMenu(self, forcedMode = 0, *args):
+    def GetAssetMenu(self, forcedMode=0, *args):
         sm.GetService('cc').LogInfo('CharacterCustomization::GetAssetMenu')
         if not forcedMode and self.sr.assetMenu and not self.sr.assetMenu.destroyed:
             if self.sr.tattooMenu and not self.sr.tattooMenu.destroyed:
@@ -311,7 +315,7 @@ class CharacterCustomization(BaseCharacterCreationStep):
             itemInfo = (resourceID, itemTypeData[:3], paperdollResource.typeID)
             uicore.layer.charactercreation.SetItemType(itemInfo)
 
-    def GoToTattooMode(self, animate = 1, forcedMode = 0, *args):
+    def GoToTattooMode(self, animate=1, forcedMode=0, *args):
         if not sm.StartService('device').SupportsSM3():
             eve.Message('CustomInfo', {'info': localization.GetByLabel('UI/CharacterCreation/BodyModificationsNeedSM3')})
             return
@@ -328,7 +332,7 @@ class CharacterCustomization(BaseCharacterCreationStep):
             uicore.effect.MorphUIMassSpringDamper(mainCont, 'top', -h, newthread=False, float=False, frequency=15.0, dampRatio=0.85)
         self.LoadMenu(animate=animate, forcedMode=forcedMode)
 
-    def GoToAssetMode(self, animate = 1, forcedMode = 0, *args):
+    def GoToAssetMode(self, animate=1, forcedMode=0, *args):
         self.menuMode = self.ASSETMENU
         if self.sr.tattooMenu and not self.sr.tattooMenu.destroyed:
             if self.tattooChangeMade:
@@ -384,6 +388,8 @@ class CharacterCustomization(BaseCharacterCreationStep):
                 layer.HideLoading()
             blue.pyos.synchro.SleepWallclock(100)
 
+        return
+
     def CheckAppFocus(self, wnd, msgID, vkey):
         focused = vkey[0]
         if not focused:
@@ -391,7 +397,6 @@ class CharacterCustomization(BaseCharacterCreationStep):
             uicore.layer.charactercreation.PassMouseEventToSculpt('LeftUp', uicore.uilib.x, uicore.uilib.y)
             self.ChangeSculptingCursor(-1, 0, 0)
             uicore.layer.charactercreation.UnfreezeAnimationIfNeeded()
-        return 1
 
     def StoreHistorySliderPosition(self, *args):
         if self.sr.historySlider:
@@ -399,3 +404,4 @@ class CharacterCustomization(BaseCharacterCreationStep):
         else:
             currentIndex = None
         uicore.layer.charactercreation.lastLitHistoryBit = currentIndex
+        return

@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\carbon\common\script\sys\loadService.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\carbon\common\script\sys\loadService.py
 import math
 import itertools
 from time import clock
@@ -49,7 +50,7 @@ class LoadService(Service):
     def GetConfig(self):
         return dict([ (v, getattr(self, v)) for v in self.configVariables ])
 
-    def SetConfig(self, conf, updateOtherNodes = True):
+    def SetConfig(self, conf, updateOtherNodes=True):
         for v in self.configVariables:
             if v in conf:
                 setattr(self, v, conf[v])
@@ -64,8 +65,10 @@ class LoadService(Service):
     def RemainingTime(self):
         if self.duration is not None:
             return self.duration - (blue.os.GetWallclockTime() * 1e-07 - self.startTime)
+        else:
+            return
 
-    def StartLoadOnAllNodes(self, duration = None):
+    def StartLoadOnAllNodes(self, duration=None):
         self.session.ConnectToAllServices('loadService').StartLoad(duration)
 
     def StopLoadOnAllNodes(self):
@@ -83,7 +86,7 @@ class LoadService(Service):
         self.nTasklets += 1
         return Wrapped
 
-    def StartLoad(self, duration = None):
+    def StartLoad(self, duration=None):
         self.running = True
         self.startProcessTime = blue.pyos.taskletTimer.GetProcessTimes()
         self.startThreadTime = blue.pyos.taskletTimer.GetThreadTimes()
@@ -160,7 +163,7 @@ class LoadService(Service):
          func.__name__,
          int(slowCount / float(loopCount) * 100)))
 
-    def Calibrate(self, duration = 2):
+    def Calibrate(self, duration=2):
         startTime = blue.os.GetWallclockTimeNow()
         stepCount = 0
         while blue.os.GetWallclockTimeNow() - startTime < duration * 10000000:
@@ -262,6 +265,7 @@ class LoadService(Service):
             stats['maxLatency'] = latency
         elif latency < stats['minLatency']:
             stats['minLatency'] = latency
+        return
 
     def GetNetworkStats(self):
         for node in self.netStats:

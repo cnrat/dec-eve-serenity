@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\carbon\common\lib\builtinmangler.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\carbon\common\lib\builtinmangler.py
 import __builtin__
 import inspect
 import logging
@@ -18,7 +19,7 @@ class NamespaceFailedException(ImportError):
         return 'NamespaceFailed: The namespace ' + self.args[0] + ' was not found.'
 
 
-def CreateInstance(cid, arguments = ()):
+def CreateInstance(cid, arguments=()):
     try:
         namespace, name = cid.split('.')
     except Exception as e:
@@ -115,7 +116,7 @@ def MangleBuiltins():
     stateholder._constsmangled = True
 
 
-def CreateInstance(guid, arguments = ()):
+def CreateInstance(guid, arguments=()):
     try:
         namespace, typename = guid.split('.')
     except:

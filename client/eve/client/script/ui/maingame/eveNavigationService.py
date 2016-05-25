@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\client\script\ui\maingame\eveNavigationService.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\client\script\ui\maingame\eveNavigationService.py
 import math
 import trinity
 import carbonui.const as uiconst
@@ -14,7 +15,7 @@ class EveNavigationService(navsvc.CoreNavigationService):
     __replaceservice__ = 'navigation'
     __dependencies__ = ['movementClient', 'entityClient', 'mouseInput']
 
-    def Run(self, memStream = None):
+    def Run(self, memStream=None):
         navsvc.CoreNavigationService.Run(self, memStream)
         self.inputMap = None
         self.lastHeading = None
@@ -27,6 +28,7 @@ class EveNavigationService(navsvc.CoreNavigationService):
         self.aoClient = sm.GetService('actionObjectClientSvc')
         self.mouseInput.RegisterCallback(const.INPUT_TYPE_MOUSEDOWN, self.OnMouseDown)
         self.mouseInput.RegisterCallback(const.INPUT_TYPE_MOUSEUP, self.OnMouseUp)
+        return
 
     def Stop(self, stream):
         if sm.IsServiceRunning('mouseInput'):
@@ -70,50 +72,52 @@ class EveNavigationService(navsvc.CoreNavigationService):
             self.inputMap = EveInputMap()
         if getattr(self, '_delayedMouseUpStillPending', False):
             return
-        player = self.entityClient.GetPlayerEntity()
-        if player:
-            isPathing = isinstance(player.movement.moveModeManager.GetCurrentMode(), GameWorld.PathToMode)
-            if self.HasControl() and trinity.app.IsActive() and player.movement.moveModeManager.allowedToMove:
-                curKeyState = self.GetKeyState()
-                fwdActive, backActive, moveLActive, moveRActive = curKeyState
-                isKeyPressed = fwdActive or backActive or moveLActive or moveRActive
-                isMouseDriving = self.leftMouseDown and self.rightMouseDown
-                if isKeyPressed or isMouseDriving:
-                    if isPathing:
-                        player.movement.moveModeManager.PushMoveMode(GameWorld.PlayerInputMode())
-                        isPathing = False
-                    if self.aoClient.IsEntityUsingActionObject(player.entityID):
-                        self.aoClient.ExitActionObject(player.entityID)
-                        return
-                heading[1] = 0.0
-                heading[2] = 0.0
-                if backActive and fwdActive and self.lastForwardBackward == const.MOVDIR_BACKWARD or backActive and not fwdActive:
-                    heading[2] = -1.0
-                elif fwdActive or isMouseDriving:
-                    heading[2] = 1.0
-                heading[0] = 0.0
-                if moveLActive and moveRActive and self.lastLeftRight == const.MOVDIR_LEFT or moveLActive and not moveRActive:
-                    heading[0] = 1.0
-                elif moveRActive:
-                    heading[0] = -1.0
-                if not isPathing:
-                    heading = self.CheckForStop(heading)
-                    mode = player.movement.moveModeManager.GetCurrentMode()
-                    cc = sm.GetService('cameraClient')
-                    cameraOrbitMode = self.rightMouseDown and not self.leftMouseDown
-                    if cameraOrbitMode:
-                        yawValue, trash, trash = geo2.QuaternionRotationGetYawPitchRoll(player.GetComponent('position').rotation)
-                        moving = 1 if heading[2] == 1 else 0
-                        self.inputMap.SetIntendedState(0, moving, 0, False, yawValue)
-                    else:
-                        yawValue = -math.pi / 2.0 - cc.GetActiveCamera().yaw
-                        self.inputMap.SetIntendedState(heading[0], heading[2], int(isMouseDriving), False, yawValue)
-                    if hasattr(mode, 'SetDynamicState'):
-                        if heading[0] != 0 or heading[2] != 0:
-                            mode.SetDynamicState(yawValue)
-            elif not isPathing:
-                self.inputMap.SetIntendedState(0, 0, 0, 0, 0)
-        self.lastHeading = heading
+        else:
+            player = self.entityClient.GetPlayerEntity()
+            if player:
+                isPathing = isinstance(player.movement.moveModeManager.GetCurrentMode(), GameWorld.PathToMode)
+                if self.HasControl() and trinity.app.IsActive() and player.movement.moveModeManager.allowedToMove:
+                    curKeyState = self.GetKeyState()
+                    fwdActive, backActive, moveLActive, moveRActive = curKeyState
+                    isKeyPressed = fwdActive or backActive or moveLActive or moveRActive
+                    isMouseDriving = self.leftMouseDown and self.rightMouseDown
+                    if isKeyPressed or isMouseDriving:
+                        if isPathing:
+                            player.movement.moveModeManager.PushMoveMode(GameWorld.PlayerInputMode())
+                            isPathing = False
+                        if self.aoClient.IsEntityUsingActionObject(player.entityID):
+                            self.aoClient.ExitActionObject(player.entityID)
+                            return
+                    heading[1] = 0.0
+                    heading[2] = 0.0
+                    if backActive and fwdActive and self.lastForwardBackward == const.MOVDIR_BACKWARD or backActive and not fwdActive:
+                        heading[2] = -1.0
+                    elif fwdActive or isMouseDriving:
+                        heading[2] = 1.0
+                    heading[0] = 0.0
+                    if moveLActive and moveRActive and self.lastLeftRight == const.MOVDIR_LEFT or moveLActive and not moveRActive:
+                        heading[0] = 1.0
+                    elif moveRActive:
+                        heading[0] = -1.0
+                    if not isPathing:
+                        heading = self.CheckForStop(heading)
+                        mode = player.movement.moveModeManager.GetCurrentMode()
+                        cc = sm.GetService('cameraClient')
+                        cameraOrbitMode = self.rightMouseDown and not self.leftMouseDown
+                        if cameraOrbitMode:
+                            yawValue, trash, trash = geo2.QuaternionRotationGetYawPitchRoll(player.GetComponent('position').rotation)
+                            moving = 1 if heading[2] == 1 else 0
+                            self.inputMap.SetIntendedState(0, moving, 0, False, yawValue)
+                        else:
+                            yawValue = -math.pi / 2.0 - cc.GetActiveCamera().yaw
+                            self.inputMap.SetIntendedState(heading[0], heading[2], int(isMouseDriving), False, yawValue)
+                        if hasattr(mode, 'SetDynamicState'):
+                            if heading[0] != 0 or heading[2] != 0:
+                                mode.SetDynamicState(yawValue)
+                elif not isPathing:
+                    self.inputMap.SetIntendedState(0, 0, 0, 0, 0)
+            self.lastHeading = heading
+            return
 
     def CheckForStop(self, heading):
         returnValue = heading
@@ -141,7 +145,7 @@ class EveNavigationService(navsvc.CoreNavigationService):
     def _TurnPlayerToCamera(self):
         pass
 
-    def SetMovementKey(self, direction, keyDown = True):
+    def SetMovementKey(self, direction, keyDown=True):
         triapp = trinity.app
         triapp.SetActive()
         fwdKey, backKey, moveLKey, moveRKey = self.PrimeNavKeys()
@@ -167,26 +171,28 @@ class EveNavigationService(navsvc.CoreNavigationService):
         if not hasattr(uicore, 'cmd'):
             self.navKeys = []
             return []
-        fwdCommand = uicore.cmd.GetShortcutByFuncName('CmdMoveForward')
-        backCommand = uicore.cmd.GetShortcutByFuncName('CmdMoveBackward')
-        moveLCommand = uicore.cmd.GetShortcutByFuncName('CmdMoveLeft')
-        moveRCommand = uicore.cmd.GetShortcutByFuncName('CmdMoveRight')
-        self.navKeys = []
-        for each in (fwdCommand,
-         backCommand,
-         moveLCommand,
-         moveRCommand):
-            if each is not None:
-                self.navKeys.append(each[-1])
-            else:
-                self.navKeys.append(None)
+        else:
+            fwdCommand = uicore.cmd.GetShortcutByFuncName('CmdMoveForward')
+            backCommand = uicore.cmd.GetShortcutByFuncName('CmdMoveBackward')
+            moveLCommand = uicore.cmd.GetShortcutByFuncName('CmdMoveLeft')
+            moveRCommand = uicore.cmd.GetShortcutByFuncName('CmdMoveRight')
+            self.navKeys = []
+            for each in (fwdCommand,
+             backCommand,
+             moveLCommand,
+             moveRCommand):
+                if each is not None:
+                    self.navKeys.append(each[-1])
+                else:
+                    self.navKeys.append(None)
 
-        return self.navKeys
+            return self.navKeys
 
     def Reset(self):
         self.navKeys = None
         self.leftMouseDown = False
         self.rightMouseDown = False
+        return
 
     def Focus(self):
         charControlLayer = sm.GetService('viewState').GetView('station').layer

@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\client\script\ui\shared\factionalWarfare\infrastructureHub.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\client\script\ui\shared\factionalWarfare\infrastructureHub.py
 import uicls
 import carbonui.const as uiconst
 import uiprimitives
@@ -69,8 +70,9 @@ class FWInfrastructureHub(uicontrols.Window):
         self.UpdateMyLPAmount()
         self.UpdateMyLPToIHubLabel()
         uthread.new(self.CheckOpenThread)
+        return
 
-    def UpdateMyLPToIHubLabel(self, refreshTax = False):
+    def UpdateMyLPToIHubLabel(self, refreshTax=False):
         lpAmount = self.donateAmountEdit.GetValue()
         donationTax = facwarCommon.GetDonationTax(session.warfactionid)
         tax = math.ceil(donationTax * lpAmount)
@@ -220,7 +222,7 @@ class FWUpgradeLevelCont(uiprimitives.Container):
             return localization.GetByLabel('UI/FactionWarfare/IHub/Buffer')
         return uiutil.IntToRoman(self.level)
 
-    def SetLPAmount(self, lpAmount, init = False):
+    def SetLPAmount(self, lpAmount, init=False):
         self.lastAmount = self.lpAmount
         self.lpAmount = lpAmount
         if not init:
@@ -260,7 +262,7 @@ class FWUpgradeLevelCont(uiprimitives.Container):
         else:
             self.bgFrame.color = color
 
-    def ShowBar(self, init = False):
+    def ShowBar(self, init=False):
         if self.lastAmount and self.lastAmount > self.lpAmount:
             self.progressGauge.SetValueInstantly(self.GetLastValue())
         if init:
@@ -269,7 +271,7 @@ class FWUpgradeLevelCont(uiprimitives.Container):
             uicore.animations.FadeIn(self.progressGauge)
         self.progressGauge.SetValue(self.GetValue())
 
-    def HideBar(self, init = False):
+    def HideBar(self, init=False):
         if not init:
             self.progressGauge.SetValueInstantly(self.GetLastValue())
             self.progressGauge.SetValue(self.GetValue())

@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\client\script\ui\camera\characterOffsetBehavior.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\client\script\ui\camera\characterOffsetBehavior.py
 import geo2
 import math
 import cameras
@@ -35,12 +36,14 @@ class CharacterOffsetBehavior(cameras.CameraBehavior):
         self.lerpPoiCamStats = (0, 0, 0)
         self.lerpPoiAvatarStats = (0, 0, 0)
         self.lastCenterPoint = (0, 0, 0)
+        return
 
     def AdjustOffset(self, newOffsetModifier):
         if newOffsetModifier is not None:
             self.cameraOffsetModifier = newOffsetModifier
+        return
 
-    def CalcCorrectCameraPoi(self, yaw, pitch, overrideZoom = None):
+    def CalcCorrectCameraPoi(self, yaw, pitch, overrideZoom=None):
         zoom = overrideZoom
         if zoom is None:
             zoom = self.camera.userSelectedZoom
@@ -81,6 +84,7 @@ class CharacterOffsetBehavior(cameras.CameraBehavior):
             self.camera.desiredZoom = self.camera.userSelectedZoom
             self.camera.collisionZoom = self.camera.zoom
             self.colliding = False
+        return
 
     def CalcCamCurrAndAdvancedPosition(self):
         self.centerPoint = (self.entity.GetComponent('position').position[0], self.entity.GetComponent('position').position[1] + cameras.AVATAR_SHOULDER_HEIGHT, self.entity.GetComponent('position').position[2])
@@ -92,72 +96,74 @@ class CharacterOffsetBehavior(cameras.CameraBehavior):
     def HandleZooming(self):
         if self.camera.zoomRequest is None:
             return
-        if abs(self.camera.zoomRequest - self.camera.zoom) < const.FLOAT_TOLERANCE or abs(self.camera.zoomRequest - self.desiredZoom) < const.FLOAT_TOLERANCE:
+        elif abs(self.camera.zoomRequest - self.camera.zoom) < const.FLOAT_TOLERANCE or abs(self.camera.zoomRequest - self.desiredZoom) < const.FLOAT_TOLERANCE:
             self.camera.zoomRequest = None
             return
-        self.useLerp = False
-        if self.desiredPoi is not None:
-            self.camera.zoomRequest = self.desiredZoom + self.camera.lastScrollDelta
-            if self.camera.zoomRequest > self.camera.maxZoom:
-                self.camera.zoomRequest = self.camera.maxZoom
-            elif self.camera.zoomRequest < self.camera.minZoom:
-                self.camera.zoomRequest = self.camera.minZoom
-            self.useLerp = True
-        zoomingOut = False
-        if self.camera.zoomRequest > self.camera.zoom:
-            zoomingOut = True
-        futurePoi = self.CalcCorrectCameraPoi(self.camera.yaw, self.camera.pitch, overrideZoom=self.camera.zoomRequest)
-        cameraAdvancedPos = geo2.Vec3Add(futurePoi, self.camera.YawPitchDistToPoint(self.camera.yaw, self.camera.pitch, self.camera.zoomRequest))
-        futurePoiCollision = self.gameWorld.SweptSphere(self.centerPoint, cameraAdvancedPos, cameras.ZOOM_COLLISION_SPHERE)
-        collAtSource = self.gameWorld.SphereTest(self.centerPoint, cameras.ZOOM_COLLISION_SPHERE)
-        vect = geo2.Vec3Normalize(geo2.Vec3Subtract(self.cameraAdvancedPos, self.centerPoint))
-        cameraAdvancedPos = geo2.Vec3Add(self.centerPoint, (val * self.camera.zoomRequest for val in vect))
-        currPosCollision = self.gameWorld.SweptSphere(self.centerPoint, cameraAdvancedPos, cameras.NORMAL_COLLISION_SPHERE)
-        if futurePoiCollision and not currPosCollision and collAtSource:
-            futurePoiCollision = None
-        if not self.colliding:
-            if futurePoiCollision is None:
-                self.desiredPoi = self.CalcCorrectCameraPoi(self.camera.yaw, self.camera.pitch, overrideZoom=self.camera.zoomRequest)
-                cameraAdvancedPos = geo2.Vec3Add(self.desiredPoi, self.camera.YawPitchDistToPoint(self.camera.yaw, self.camera.pitch, self.camera.zoomRequest))
-                checkColl = self.gameWorld.SweptSphere(self.centerPoint, cameraAdvancedPos, cameras.ZOOM_COLLISION_SPHERE)
-                if checkColl:
-                    self.desiredPoi = None
-                else:
-                    self.desiredZoom = self.camera.zoomRequest
-                    self.camera.userSelectedZoom = self.camera.zoomRequest
-                    self.lerpPoiCamStats = (self.camera.yaw, self.camera.pitch, 0.0)
-                    self.lerpPoiAvatarStats = self.entity.GetComponent('position').position
-                    self.CalcCamCurrAndAdvancedPosition()
-            else:
-                safeSpot = geo2.Vec3Add(futurePoiCollision[0], (val * cameras.ZOOM_COLLISION_SPHERE for val in futurePoiCollision[1]))
-                dist = max(self.camera.minZoom, geo2.Vec3Distance(self.centerPoint, safeSpot))
-                dist = min(self.camera.maxZoom, dist)
-                if abs(dist - self.camera.zoom) > ZOOM_COLLISION_TOLERANCE:
-                    oldPoi = self.desiredPoi
-                    self.desiredPoi = self.CalcCorrectCameraPoi(self.camera.yaw, self.camera.pitch, overrideZoom=dist)
-                    cameraAdvancedPos = geo2.Vec3Add(self.desiredPoi, self.camera.YawPitchDistToPoint(self.camera.yaw, self.camera.pitch, dist))
+        else:
+            self.useLerp = False
+            if self.desiredPoi is not None:
+                self.camera.zoomRequest = self.desiredZoom + self.camera.lastScrollDelta
+                if self.camera.zoomRequest > self.camera.maxZoom:
+                    self.camera.zoomRequest = self.camera.maxZoom
+                elif self.camera.zoomRequest < self.camera.minZoom:
+                    self.camera.zoomRequest = self.camera.minZoom
+                self.useLerp = True
+            zoomingOut = False
+            if self.camera.zoomRequest > self.camera.zoom:
+                zoomingOut = True
+            futurePoi = self.CalcCorrectCameraPoi(self.camera.yaw, self.camera.pitch, overrideZoom=self.camera.zoomRequest)
+            cameraAdvancedPos = geo2.Vec3Add(futurePoi, self.camera.YawPitchDistToPoint(self.camera.yaw, self.camera.pitch, self.camera.zoomRequest))
+            futurePoiCollision = self.gameWorld.SweptSphere(self.centerPoint, cameraAdvancedPos, cameras.ZOOM_COLLISION_SPHERE)
+            collAtSource = self.gameWorld.SphereTest(self.centerPoint, cameras.ZOOM_COLLISION_SPHERE)
+            vect = geo2.Vec3Normalize(geo2.Vec3Subtract(self.cameraAdvancedPos, self.centerPoint))
+            cameraAdvancedPos = geo2.Vec3Add(self.centerPoint, (val * self.camera.zoomRequest for val in vect))
+            currPosCollision = self.gameWorld.SweptSphere(self.centerPoint, cameraAdvancedPos, cameras.NORMAL_COLLISION_SPHERE)
+            if futurePoiCollision and not currPosCollision and collAtSource:
+                futurePoiCollision = None
+            if not self.colliding:
+                if futurePoiCollision is None:
+                    self.desiredPoi = self.CalcCorrectCameraPoi(self.camera.yaw, self.camera.pitch, overrideZoom=self.camera.zoomRequest)
+                    cameraAdvancedPos = geo2.Vec3Add(self.desiredPoi, self.camera.YawPitchDistToPoint(self.camera.yaw, self.camera.pitch, self.camera.zoomRequest))
                     checkColl = self.gameWorld.SweptSphere(self.centerPoint, cameraAdvancedPos, cameras.ZOOM_COLLISION_SPHERE)
                     if checkColl:
-                        self.desiredPoi = oldPoi
-                    elif zoomingOut and dist < self.camera.zoom:
-                        self.desiredPoi = oldPoi
+                        self.desiredPoi = None
                     else:
-                        self.CalcCamCurrAndAdvancedPosition()
-                        self.desiredZoom = dist
-                        self.camera.userSelectedZoom = dist
+                        self.desiredZoom = self.camera.zoomRequest
+                        self.camera.userSelectedZoom = self.camera.zoomRequest
                         self.lerpPoiCamStats = (self.camera.yaw, self.camera.pitch, 0.0)
                         self.lerpPoiAvatarStats = self.entity.GetComponent('position').position
-        elif futurePoiCollision is None:
-            self.desiredZoom = self.camera.zoomRequest
-            self.camera.userSelectedZoom = self.camera.zoomRequest
-            self.desiredPoi = self.CalcCorrectCameraPoi(self.camera.yaw, self.camera.pitch, overrideZoom=self.camera.zoomRequest)
-            self.lerpPoiCamStats = (self.camera.yaw, self.camera.pitch, 0.0)
-            self.lerpPoiAvatarStats = self.entity.GetComponent('position').position
-            self.CalcCamCurrAndAdvancedPosition()
-        self.lerpTimeLeft = LERP_TIME
-        self.startZoom = self.camera.zoom
-        self.originalPoi = self.camera.poi
-        self.camera.zoomRequest = None
+                        self.CalcCamCurrAndAdvancedPosition()
+                else:
+                    safeSpot = geo2.Vec3Add(futurePoiCollision[0], (val * cameras.ZOOM_COLLISION_SPHERE for val in futurePoiCollision[1]))
+                    dist = max(self.camera.minZoom, geo2.Vec3Distance(self.centerPoint, safeSpot))
+                    dist = min(self.camera.maxZoom, dist)
+                    if abs(dist - self.camera.zoom) > ZOOM_COLLISION_TOLERANCE:
+                        oldPoi = self.desiredPoi
+                        self.desiredPoi = self.CalcCorrectCameraPoi(self.camera.yaw, self.camera.pitch, overrideZoom=dist)
+                        cameraAdvancedPos = geo2.Vec3Add(self.desiredPoi, self.camera.YawPitchDistToPoint(self.camera.yaw, self.camera.pitch, dist))
+                        checkColl = self.gameWorld.SweptSphere(self.centerPoint, cameraAdvancedPos, cameras.ZOOM_COLLISION_SPHERE)
+                        if checkColl:
+                            self.desiredPoi = oldPoi
+                        elif zoomingOut and dist < self.camera.zoom:
+                            self.desiredPoi = oldPoi
+                        else:
+                            self.CalcCamCurrAndAdvancedPosition()
+                            self.desiredZoom = dist
+                            self.camera.userSelectedZoom = dist
+                            self.lerpPoiCamStats = (self.camera.yaw, self.camera.pitch, 0.0)
+                            self.lerpPoiAvatarStats = self.entity.GetComponent('position').position
+            elif futurePoiCollision is None:
+                self.desiredZoom = self.camera.zoomRequest
+                self.camera.userSelectedZoom = self.camera.zoomRequest
+                self.desiredPoi = self.CalcCorrectCameraPoi(self.camera.yaw, self.camera.pitch, overrideZoom=self.camera.zoomRequest)
+                self.lerpPoiCamStats = (self.camera.yaw, self.camera.pitch, 0.0)
+                self.lerpPoiAvatarStats = self.entity.GetComponent('position').position
+                self.CalcCamCurrAndAdvancedPosition()
+            self.lerpTimeLeft = LERP_TIME
+            self.startZoom = self.camera.zoom
+            self.originalPoi = self.camera.poi
+            self.camera.zoomRequest = None
+            return
 
     def HandlePointOfInterest(self):
         if self.desiredPoi is not None:
@@ -186,6 +192,7 @@ class CharacterOffsetBehavior(cameras.CameraBehavior):
         else:
             newPoi = self.CalcCorrectCameraPoi(self.camera.yaw, self.camera.pitch)
         self.camera.SetPointOfInterest(newPoi)
+        return
 
     def Plerp(self, start, end, timeLeft):
         doneSoFar = LERP_TIME - timeLeft
@@ -228,12 +235,14 @@ class CharacterOffsetBehavior(cameras.CameraBehavior):
             self.model = self._GetEntityModel(self.entityID)
             if self.model is None:
                 raise RuntimeError("Problem retrieving the avatar's model object. entityClient.FindEntityByID returned None for entityID", self.entityID)
+        return
 
     def Reset(self):
         self.model = None
         self.entity = None
         self.gameWorld = None
         self._LoadGameWorld()
+        return
 
     def ProcessCameraUpdate(self, camera, now, frameTime):
         self.camera = camera
@@ -241,22 +250,24 @@ class CharacterOffsetBehavior(cameras.CameraBehavior):
         self.AcquireGameworldObjects()
         if self.entity is None or session.worldspaceid is None or self.gameWorld is None:
             return
-        if self.charGender is None:
-            try:
-                self.charGender = self.entity.GetComponent('info').gender
-            except:
-                sys.exc_clear()
-
-        self.camera.CalcCameraDirection()
-        self.CalcCamCurrAndAdvancedPosition()
-        self.HandleModelVisibility()
-        self.HandlePointOfInterest()
-        self.HandleZooming()
-        if self.gameWorld is not None:
-            self.AvoidCollision()
         else:
-            self._LoadGameWorld()
-        self.lastCenterPoint = self.centerPoint
+            if self.charGender is None:
+                try:
+                    self.charGender = self.entity.GetComponent('info').gender
+                except:
+                    sys.exc_clear()
+
+            self.camera.CalcCameraDirection()
+            self.CalcCamCurrAndAdvancedPosition()
+            self.HandleModelVisibility()
+            self.HandlePointOfInterest()
+            self.HandleZooming()
+            if self.gameWorld is not None:
+                self.AvoidCollision()
+            else:
+                self._LoadGameWorld()
+            self.lastCenterPoint = self.centerPoint
+            return
 
 
 import carbon.common.script.util.autoexport as autoexport

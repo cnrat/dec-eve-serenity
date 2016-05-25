@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\client\script\ui\shared\neocom\notepad.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\client\script\ui\shared\neocom\notepad.py
 import blue
 import uiprimitives
 import uicontrols
@@ -61,6 +62,7 @@ class NotepadWindow(uicontrols.Window):
         self.notedata = {}
         self.lastid = 0
         uthread.new(self.LoadNotesData)
+        return
 
     def OnTitleSizeChanged(self, *args, **kwds):
         self.sr.titlecont.height = max(48, self.sr.titletext.textheight + self.sr.titletext.padTop * 2)
@@ -126,6 +128,7 @@ class NotepadWindow(uicontrols.Window):
         self.sr.autosaveTimer = base.AutoTimer(60000, self.SaveNote)
         self.activeNode = None
         self.ShowNote(settings.char.notepad.Get('activeNote', None))
+        return
 
     def CloseByUser(self, *args):
         if not self.SaveNote():
@@ -173,21 +176,22 @@ class NotepadWindow(uicontrols.Window):
     def GetSetting(self, id):
         if self.settingStrs.has_key(id):
             return self.settingStrs[id]
-        if not self.settings.has_key(id):
+        elif not self.settings.has_key(id):
             return None
-        parallelCalls = []
-        for noteID in self.settings[id]:
-            parallelCalls.append((sm.RemoteSvc('charMgr').GetOwnerNote, (int(noteID),)))
+        else:
+            parallelCalls = []
+            for noteID in self.settings[id]:
+                parallelCalls.append((sm.RemoteSvc('charMgr').GetOwnerNote, (int(noteID),)))
 
-        if len(parallelCalls):
-            notes = uthread.parallel(parallelCalls)
-        self.settingStrs[id] = ''
-        for note in notes:
-            self.settingStrs[id] += note[0].note
+            if len(parallelCalls):
+                notes = uthread.parallel(parallelCalls)
+            self.settingStrs[id] = ''
+            for note in notes:
+                self.settingStrs[id] += note[0].note
 
-        return self.settingStrs[id]
+            return self.settingStrs[id]
 
-    def WriteNote(self, name, text, folderID, noteID = None):
+    def WriteNote(self, name, text, folderID, noteID=None):
         if not noteID:
             noteID = sm.RemoteSvc('charMgr').AddOwnerNote('N:' + name, '<br>')
         self.AddNote(folderID, 'N', noteID)
@@ -199,7 +203,7 @@ class NotepadWindow(uicontrols.Window):
         uthread.pool('notepad::SetNote', sm.RemoteSvc('charMgr').EditOwnerNote, int(noteID), 'N:' + self.notes['N:' + str(noteID)].label, text)
         return noteID
 
-    def GetNotesByType(self, t = 'N'):
+    def GetNotesByType(self, t='N'):
         notes = []
         for n in self.notes:
             if n.find(t + ':') == 0:
@@ -245,7 +249,7 @@ class NotepadWindow(uicontrols.Window):
         if not self.destroyed:
             self.sr.nav.width = max(100, min(self.sr.nav.width, self.displayWidth - 154))
 
-    def GoTo(self, URL, data = None, args = {}, scrollTo = None):
+    def GoTo(self, URL, data=None, args={}, scrollTo=None):
         uicore.cmd.OpenBrowser(URL, data=data, args=args)
 
     def LoadNotes(self):
@@ -296,7 +300,7 @@ class NotepadWindow(uicontrols.Window):
     def RefreshNotes(self):
         self.LoadNotes()
 
-    def GetAllFolderContent(self, nodedata, newitems = 0):
+    def GetAllFolderContent(self, nodedata, newitems=0):
         scrolllist = []
         for key, note in self.notes.iteritems():
             data = {'itemID': None,
@@ -314,7 +318,7 @@ class NotepadWindow(uicontrols.Window):
         scrolllist = uiutil.SortListOfTuples(scrolllist)
         return scrolllist
 
-    def GetGroupSubContent(self, nodedata, newitems = 0):
+    def GetGroupSubContent(self, nodedata, newitems=0):
         scrolllist = []
         notelist = self.GetNotes(nodedata.id[1])
         if len(notelist):
@@ -394,7 +398,7 @@ class NotepadWindow(uicontrols.Window):
              'CreateEntry': self.GroupCreateEntry,
              'RefreshScroll': self.RefreshNotes}
             return listentry.Get('Group', data)
-        if note.type == 'I':
+        elif note.type == 'I':
             charinfo = cfg.eveowners.Get(note.data)
             data = {'charID': int(note.data),
              'id': (note.data, id),
@@ -406,38 +410,40 @@ class NotepadWindow(uicontrols.Window):
              'noteID': 'I:' + str(note.data),
              'label': charinfo.name}
             return listentry.Get('User', data)
-        if note.type == 'B':
-            bookmarkSvc = sm.GetService('bookmarkSvc')
-            if self.bms is None:
-                self.bms = bookmarkSvc.GetBookmarks()
-            if int(note.data) in self.bms:
-                bookmark = self.bms[int(note.data)]
-                hint, comment = bookmarkSvc.UnzipMemo(bookmark.memo)
-                text = '%s' % hint
-                data = {'itemID': bookmark.itemID,
-                 'typeID': bookmark.typeID,
-                 'bm': bookmark,
-                 'text': text,
-                 'hint': hint,
-                 'listGroupID': (note.data, id),
-                 'id': (note.data, id),
-                 'label': hint,
-                 'GetMenu': self.GetBMMenu,
-                 'OnClick': self.OnBookmarkClick,
-                 'sublevel': sublevel,
-                 'noteID': 'B:' + str(note.data)}
-                return listentry.Get('PlaceEntry', data)
-        if note.type == 'N':
-            if 'N:' + str(note.data) in self.notes:
-                data = {'itemID': None,
-                 'typeID': None,
-                 'id': (note.data, id),
-                 'label': self.notes['N:' + str(note.data)].label,
-                 'sublevel': sublevel,
-                 'noteID': 'N:' + str(note.data),
-                 'type': 'N'}
-                return listentry.Get('NoteItem', data)
-        del self.folders[id]
+        else:
+            if note.type == 'B':
+                bookmarkSvc = sm.GetService('bookmarkSvc')
+                if self.bms is None:
+                    self.bms = bookmarkSvc.GetBookmarks()
+                if int(note.data) in self.bms:
+                    bookmark = self.bms[int(note.data)]
+                    hint, comment = bookmarkSvc.UnzipMemo(bookmark.memo)
+                    text = '%s' % hint
+                    data = {'itemID': bookmark.itemID,
+                     'typeID': bookmark.typeID,
+                     'bm': bookmark,
+                     'text': text,
+                     'hint': hint,
+                     'listGroupID': (note.data, id),
+                     'id': (note.data, id),
+                     'label': hint,
+                     'GetMenu': self.GetBMMenu,
+                     'OnClick': self.OnBookmarkClick,
+                     'sublevel': sublevel,
+                     'noteID': 'B:' + str(note.data)}
+                    return listentry.Get('PlaceEntry', data)
+            if note.type == 'N':
+                if 'N:' + str(note.data) in self.notes:
+                    data = {'itemID': None,
+                     'typeID': None,
+                     'id': (note.data, id),
+                     'label': self.notes['N:' + str(note.data)].label,
+                     'sublevel': sublevel,
+                     'noteID': 'N:' + str(note.data),
+                     'type': 'N'}
+                    return listentry.Get('NoteItem', data)
+            del self.folders[id]
+            return
 
     def GroupGetContentIDList(self, id):
         ids = self.GetNotes(id[1])
@@ -471,15 +477,15 @@ class NotepadWindow(uicontrols.Window):
     def OnBookmarkClick(self, entry):
         self.ShowNote(entry.sr.node.noteID)
 
-    def ShowNote(self, id, force = 0):
+    def ShowNote(self, id, force=0):
         while getattr(self.sr.browser, 'loading', 0):
             blue.pyos.synchro.Yield()
 
         if not force and hasattr(self, 'activeNode') and id is not None and self.activeNode == id:
             return True
-        if not force and not self.SaveNote():
+        elif not force and not self.SaveNote():
             return False
-        if id is None or not id.upper().startswith('I:') and str(id) not in self.bookmarknotes and str(id) not in self.notes:
+        elif id is None or not id.upper().startswith('I:') and str(id) not in self.bookmarknotes and str(id) not in self.notes:
             self.sr.titletext.text = (localization.GetByLabel('UI/Notepad/GeneralInformation'),)
             self.sr.icon.LoadIcon('res:/ui/Texture/WindowIcons/notepad.png')
             self.sr.icon.width = self.sr.icon.height = 32
@@ -487,57 +493,59 @@ class NotepadWindow(uicontrols.Window):
             self.sr.browser.ReadOnly()
             self.activeNote = None
             return True
-        self.sr.browser.Editable()
-        noteID = id.split(':')
-        if len(noteID) != 2:
+        else:
+            self.sr.browser.Editable()
+            noteID = id.split(':')
+            if len(noteID) != 2:
+                return True
+            t, id = noteID
+            if not force and self.activeNode == t + ':' + str(id):
+                return True
+            if t == 'I':
+                charid = int(id)
+                note = sm.RemoteSvc('charMgr').GetNote(charid)
+                charinfo = cfg.eveowners.Get(charid)
+                sm.GetService('photo').GetPortrait(charid, 64, self.sr.icon)
+                self.sr.titletext.text = charinfo.name
+                self.sr.browser.SetValue(note)
+            if t == 'N':
+                if 'N:' + str(id) in self.notes:
+                    noteID = int(id)
+                    if self.notes['N:' + str(id)].text is None:
+                        note = sm.RemoteSvc('charMgr').GetOwnerNote(noteID)
+                        self.notes['N:' + str(id)].text = note[0].note.strip()
+                        self.notes['N:' + str(id)].label = note[0].label[2:]
+                    self.sr.icon.LoadIcon('res:/ui/Texture/WindowIcons/note.png')
+                    self.sr.icon.SetSize(32, 32)
+                    self.sr.titletext.text = self.notes['N:' + str(id)].label
+                    self.sr.browser.SetValue(self.notes['N:' + str(id)].text)
+            self.activeNode = t + ':' + str(id)
+            settings.char.notepad.Set('activeNote', self.activeNode)
+            uicore.registry.SetFocus(self.sr.browser)
             return True
-        t, id = noteID
-        if not force and self.activeNode == t + ':' + str(id):
-            return True
-        if t == 'I':
-            charid = int(id)
-            note = sm.RemoteSvc('charMgr').GetNote(charid)
-            charinfo = cfg.eveowners.Get(charid)
-            sm.GetService('photo').GetPortrait(charid, 64, self.sr.icon)
-            self.sr.titletext.text = charinfo.name
-            self.sr.browser.SetValue(note)
-        if t == 'N':
-            if 'N:' + str(id) in self.notes:
-                noteID = int(id)
-                if self.notes['N:' + str(id)].text is None:
-                    note = sm.RemoteSvc('charMgr').GetOwnerNote(noteID)
-                    self.notes['N:' + str(id)].text = note[0].note.strip()
-                    self.notes['N:' + str(id)].label = note[0].label[2:]
-                self.sr.icon.LoadIcon('res:/ui/Texture/WindowIcons/note.png')
-                self.sr.icon.SetSize(32, 32)
-                self.sr.titletext.text = self.notes['N:' + str(id)].label
-                self.sr.browser.SetValue(self.notes['N:' + str(id)].text)
-        self.activeNode = t + ':' + str(id)
-        settings.char.notepad.Set('activeNote', self.activeNode)
-        uicore.registry.SetFocus(self.sr.browser)
-        return True
 
     def SaveNote(self, *args):
         if self.destroyed:
             self.sr.autosaveTimer = None
             return
-        if getattr(self, 'activeNode', None) is not None:
-            t, id = self.activeNode.split(':')
-            txt = self.sr.browser.GetValue()
-            if len(txt) >= 3900:
-                return not eve.Message('NoteTooLong', {'total': len(txt)}, uiconst.YESNO) == uiconst.ID_YES
-            if t == 'I':
-                uthread.pool('notepad::SetNote', sm.RemoteSvc('charMgr').SetNote, int(id), txt)
-            if t == 'B':
-                if 'B:' + str(id) not in self.bookmarknotes or self.bookmarknotes['B:' + str(id)].text != txt:
-                    if 'B:' + str(id) in self.bookmarknotes:
-                        self.bookmarknotes['B:' + str(id)].text = txt
-                    sm.GetService('addressbook').UpdateBookmark(int(id), note=txt)
-            if t == 'N':
-                if 'N:' + str(id) in self.notes and self.notes['N:' + str(id)].text != txt:
-                    self.notes['N:' + str(id)].text = txt
-                    uthread.pool('notepad::SetNote', sm.RemoteSvc('charMgr').EditOwnerNote, int(id), 'N:' + self.notes['N:' + str(id)].label, txt)
-        return True
+        else:
+            if getattr(self, 'activeNode', None) is not None:
+                t, id = self.activeNode.split(':')
+                txt = self.sr.browser.GetValue()
+                if len(txt) >= 3900:
+                    return not eve.Message('NoteTooLong', {'total': len(txt)}, uiconst.YESNO) == uiconst.ID_YES
+                if t == 'I':
+                    uthread.pool('notepad::SetNote', sm.RemoteSvc('charMgr').SetNote, int(id), txt)
+                if t == 'B':
+                    if 'B:' + str(id) not in self.bookmarknotes or self.bookmarknotes['B:' + str(id)].text != txt:
+                        if 'B:' + str(id) in self.bookmarknotes:
+                            self.bookmarknotes['B:' + str(id)].text = txt
+                        sm.GetService('addressbook').UpdateBookmark(int(id), note=txt)
+                if t == 'N':
+                    if 'N:' + str(id) in self.notes and self.notes['N:' + str(id)].text != txt:
+                        self.notes['N:' + str(id)].text = txt
+                        uthread.pool('notepad::SetNote', sm.RemoteSvc('charMgr').EditOwnerNote, int(id), 'N:' + self.notes['N:' + str(id)].label, txt)
+            return True
 
     def GetNotes(self, folderID):
         notes = {}
@@ -551,6 +559,8 @@ class NotepadWindow(uicontrols.Window):
     def GetNote(self, noteID):
         if noteID in self.folders.keys():
             return self.folders[noteID]
+        else:
+            return None
 
     def GetParentFolder(self, nodeID):
         n = self.folders.get(nodeID, None)
@@ -558,8 +568,9 @@ class NotepadWindow(uicontrols.Window):
             return n.parent
         else:
             return
+            return
 
-    def RenameFolder(self, folderID = 0, entry = None, name = None, *args):
+    def RenameFolder(self, folderID=0, entry=None, name=None, *args):
         if name is None:
             ret = uiutil.NamePopup(localization.GetByLabel('UI/Notepad/FolderName'), localization.GetByLabel('UI/Notepad/TypeNewFolderName'), maxLength=20)
             if ret is None:
@@ -568,10 +579,11 @@ class NotepadWindow(uicontrols.Window):
         if self.AlreadyExists('F', name):
             eve.Message('CustomInfo', {'info': localization.GetByLabel('UI/Notepad/FolderAlreadyExists')})
             return
-        self.folders[folderID].data = name
-        return name
+        else:
+            self.folders[folderID].data = name
+            return name
 
-    def NewFolder(self, folderID = 0, node = None, *args):
+    def NewFolder(self, folderID=0, node=None, *args):
         ret = uiutil.NamePopup(localization.GetByLabel('UI/Notepad/FolderName'), localization.GetByLabel('UI/Notepad/TypeNewFolderName'), maxLength=20)
         if ret is not None:
             name = ret
@@ -584,11 +596,13 @@ class NotepadWindow(uicontrols.Window):
              'parent': folderID}
             self.LoadNotes()
             return data
+        else:
+            return
 
     def NewFolderClick(self, *args):
         self.NewFolder()
 
-    def RemoveFolder(self, folderID = 0, entry = None, ask = 1):
+    def RemoveFolder(self, folderID=0, entry=None, ask=1):
         if folderID in self.folders:
             if not ask or eve.Message('DeleteEntry', {}, uiconst.YESNO) == uiconst.ID_YES:
                 if self.activeNode == self.folders[folderID].type + ':' + str(self.folders[folderID].data):
@@ -597,8 +611,9 @@ class NotepadWindow(uicontrols.Window):
                 parent = self.GetParentFolder(folderID)
                 del self.folders[folderID]
                 self.LoadNotes()
+        return
 
-    def NewNote(self, folderID = 0, node = None, *args):
+    def NewNote(self, folderID=0, node=None, *args):
         ret = uiutil.NamePopup(localization.GetByLabel('UI/Notepad/NoteName'), localization.GetByLabel('UI/Notepad/TypeNewNoteLabel'), maxLength=80)
         if ret is not None:
             name = ret
@@ -615,22 +630,25 @@ class NotepadWindow(uicontrols.Window):
             self.notes['N:' + str(noteID)] = n
             self.LoadNotes()
             self.ShowNote('N:' + str(noteID))
+        return
 
     def RenameNote(self, noteID):
         if noteID in self.folders:
             noteID = self.folders[noteID].type + ':' + str(self.folders[noteID].data)
         if noteID not in self.notes:
             return
-        ret = uiutil.NamePopup(localization.GetByLabel('UI/Notepad/NoteName'), localization.GetByLabel('UI/Notepad/TypeNewNoteLabel'), self.notes[noteID].label, maxLength=80)
-        if ret is not None:
-            if self.AlreadyExists('N', ret):
-                eve.Message('CustomInfo', {'info': localization.GetByLabel('UI/Notepad/NoteAlreadyExists')})
-                return
-            self.notes[noteID].label = ret
-            sm.RemoteSvc('charMgr').EditOwnerNote(self.notes[noteID].noteID, 'N:' + ret)
-            self.LoadNotes()
-            if getattr(self, 'activeNode', None) == noteID:
-                self.sr.titletext.text = ret
+        else:
+            ret = uiutil.NamePopup(localization.GetByLabel('UI/Notepad/NoteName'), localization.GetByLabel('UI/Notepad/TypeNewNoteLabel'), self.notes[noteID].label, maxLength=80)
+            if ret is not None:
+                if self.AlreadyExists('N', ret):
+                    eve.Message('CustomInfo', {'info': localization.GetByLabel('UI/Notepad/NoteAlreadyExists')})
+                    return
+                self.notes[noteID].label = ret
+                sm.RemoteSvc('charMgr').EditOwnerNote(self.notes[noteID].noteID, 'N:' + ret)
+                self.LoadNotes()
+                if getattr(self, 'activeNode', None) == noteID:
+                    self.sr.titletext.text = ret
+            return
 
     def AlreadyExists(self, type, name):
         if type == 'N':
@@ -671,6 +689,7 @@ class NotepadWindow(uicontrols.Window):
                 sm.RemoteSvc('charMgr').RemoveOwnerNote(int(note.noteID))
                 del self.notes[noteID]
                 self.LoadNotes()
+        return
 
 
 class NoteItem(listentry.Generic):
@@ -710,7 +729,7 @@ class NoteItem(listentry.Generic):
         return m
 
     def GetHeight(self, *args):
-        return 18
+        pass
 
     def GetDragData(self, *args):
         nodes = [self.sr.node]

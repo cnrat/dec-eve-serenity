@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\client\script\ui\services\careerAgentEntry.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\client\script\ui\services\careerAgentEntry.py
 from carbonui import const as uiconst, const
 from eve.client.script.ui.control.themeColored import LineThemeColored
 from eve.common.lib import appConst as const, appConst
@@ -89,6 +90,7 @@ class CareerAgentEntry(uicontrols.SE_BaseClassCore):
             careerDesc = localization.GetByLabel('UI/Tutorial/AdvMilitaryDesc')
         uicontrols.EveCaptionMedium(text=careerText, parent=self.sr.careerContainer, state=uiconst.UI_DISABLED, align=uiconst.TOTOP)
         uicontrols.EveLabelMedium(text=careerDesc, parent=self.sr.careerContainer, state=uiconst.UI_DISABLED, align=uiconst.TOTOP)
+        return
 
     def GetHeight(self, *args):
         node, width = args
@@ -118,3 +120,4 @@ class CareerAgentEntry(uicontrols.SE_BaseClassCore):
     def SetDestination(self, stationID):
         if stationID is not None:
             sm.StartService('starmap').SetWaypoint(stationID, clearOtherWaypoints=True)
+        return

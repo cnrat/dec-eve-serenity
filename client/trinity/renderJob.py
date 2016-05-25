@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\packages\trinity\renderJob.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\packages\trinity\renderJob.py
 import decometaclass
 import blue
 from . import _trinity as trinity
@@ -23,25 +24,29 @@ class RenderJob(object):
         if self in renderJobs.chained:
             renderJobs.chained.remove(self)
 
-    def ScheduleRecurring(self, scheduledRecurring = None, insertFront = False):
+    def ScheduleRecurring(self, scheduledRecurring=None, insertFront=False):
         if scheduledRecurring is None:
             scheduledRecurring = renderJobs.recurring
         if insertFront == False:
             scheduledRecurring.append(self)
         else:
             scheduledRecurring.insert(0, self)
+        return
 
-    def ScheduleUpdate(self, scheduledUpdate = None, insertFront = False):
+    def ScheduleUpdate(self, scheduledUpdate=None, insertFront=False):
         self.ScheduleRecurring(renderJobs.updateRecurring if scheduledUpdate is None else scheduledUpdate, insertFront)
+        return
 
-    def UnscheduleRecurring(self, scheduledRecurring = None):
+    def UnscheduleRecurring(self, scheduledRecurring=None):
         if scheduledRecurring is None:
             scheduledRecurring = renderJobs.recurring
         if self in scheduledRecurring:
             scheduledRecurring.remove(self)
+        return
 
-    def UnscheduleUpdate(self, scheduledUpdate = None):
+    def UnscheduleUpdate(self, scheduledUpdate=None):
         self.UnscheduleRecurring(renderJobs.updateRecurring if scheduledUpdate is None else scheduledUpdate)
+        return
 
     def WaitForFinish(self):
         while not (self.status == trinity.RJ_DONE or self.status == trinity.RJ_FAILED or self.cancelled):
@@ -60,7 +65,7 @@ def _GetRenderJobCreationClosure(functionName, doc, classThunker):
     return CreateStep
 
 
-def CreateRenderJob(name = None):
+def CreateRenderJob(name=None):
     job = RenderJob()
     if name:
         job.name = name

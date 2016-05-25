@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\carbon\common\lib\urllib3\_collections.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\carbon\common\lib\urllib3\_collections.py
 from collections import deque
 from threading import RLock
 __all__ = ['RecentlyUsedContainer']
@@ -6,7 +7,7 @@ __all__ = ['RecentlyUsedContainer']
 class AccessEntry(object):
     __slots__ = ('key', 'is_valid')
 
-    def __init__(self, key, is_valid = True):
+    def __init__(self, key, is_valid=True):
         self.key = key
         self.is_valid = is_valid
 
@@ -14,7 +15,7 @@ class AccessEntry(object):
 class RecentlyUsedContainer(dict):
     CLEANUP_FACTOR = 10
 
-    def __init__(self, maxsize = 10):
+    def __init__(self, maxsize=10):
         self._maxsize = maxsize
         self._container = {}
         self.access_log = deque()
@@ -47,6 +48,8 @@ class RecentlyUsedContainer(dict):
             self.access_lookup.pop(p.key, None)
             num -= 1
 
+        return
+
     def _prune_invalidated_entries(self):
         self.access_log_lock.acquire()
         self.access_log = deque((e for e in self.access_log if e.is_valid))
@@ -76,8 +79,9 @@ class RecentlyUsedContainer(dict):
         self._invalidate_entry(key)
         self.access_lookup.pop(key, None)
         dict.__delitem__(self, key)
+        return
 
-    def get(self, key, default = None):
+    def get(self, key, default=None):
         try:
             return self[key]
         except KeyError:

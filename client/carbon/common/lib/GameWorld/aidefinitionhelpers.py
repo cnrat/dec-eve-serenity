@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\carbon\common\lib\GameWorld\aidefinitionhelpers.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\carbon\common\lib\GameWorld\aidefinitionhelpers.py
 
 
 def AddAperiodic(aiDef, name, priority, TPF, maxCalls):
@@ -13,7 +14,7 @@ def AddPeriodic(aiDef, name, freq):
     fld.SetAttribute('Period', str(freq))
 
 
-def AddEntity(aiDef, name, className, actionClass, brain, profile = 'Human'):
+def AddEntity(aiDef, name, className, actionClass, brain, profile='Human'):
     fld = aiDef.GetFolder('Entity', name)
     fld.SetAttribute('Class', className)
     if actionClass != '':
@@ -43,16 +44,17 @@ def AddModifier(svc, typeName, name, className, defModifier):
     return (fld, fld2)
 
 
-def AddDatabase(fld, pathDBName, pathDBFilePath, concreteSlotsCount = None, maxGraphHandles = 500):
+def AddDatabase(fld, pathDBName, pathDBFilePath, concreteSlotsCount=None, maxGraphHandles=500):
     dbFld = fld.GetFolder('Database', pathDBName)
     dbFld.SetAttribute('HandleAIMeshes', 'True')
     if concreteSlotsCount is not None:
         dbFld.SetAttribute('ConcreteSlotsCount', str(concreteSlotsCount))
     dbFld.SetAttribute('MaxGraphHandles', str(maxGraphHandles))
     dbFld.SetAttribute('Path', pathDBFilePath)
+    return
 
 
-def DefineGraphDatabase(aiDef, pathDBName, pathDBFilePath, concreateSlotsCount = None, maxGraphHandles = 500):
+def DefineGraphDatabase(aiDef, pathDBName, pathDBFilePath, concreateSlotsCount=None, maxGraphHandles=500):
     svc = aiDef.AddService('Fpd::CGraphManager', 'GraphManager', True)
     return svc
 
@@ -87,7 +89,7 @@ def DefineFleeTraversal(svc):
     fld.SetAttribute('AperiodicTask', 'AStarTraversalTask')
 
 
-def DefineMeshLayerManager(aiDef, dbName, layers, maxMeshCount = 500, maxObstacles = 1000, maxProjections = 4000):
+def DefineMeshLayerManager(aiDef, dbName, layers, maxMeshCount=500, maxObstacles=1000, maxProjections=4000):
     if layers == []:
         return
     svc = aiDef.AddService('CAiMeshLayerManager', 'MeshLayerManager', True)

@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\packages\carbonui\services\paperdollSvc.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\packages\carbonui\services\paperdollSvc.py
 import service
 import uthread
 
@@ -18,13 +19,16 @@ class PaperdollSvc(service.Service):
         currentCharsPaperDollData = self.currentCharsPaperDollData.get(charID, None)
         if currentCharsPaperDollData is not None:
             return currentCharsPaperDollData
-        uthread.Lock(self)
-        try:
-            if self.currentCharsPaperDollData.get(charID, None) is None:
-                self.currentCharsPaperDollData[charID] = sm.RemoteSvc('paperDollServer').GetMyPaperDollData(charID)
-            return self.currentCharsPaperDollData.get(charID, None)
-        finally:
-            uthread.UnLock(self)
+        else:
+            uthread.Lock(self)
+            try:
+                if self.currentCharsPaperDollData.get(charID, None) is None:
+                    self.currentCharsPaperDollData[charID] = sm.RemoteSvc('paperDollServer').GetMyPaperDollData(charID)
+                return self.currentCharsPaperDollData.get(charID, None)
+            finally:
+                uthread.UnLock(self)
+
+            return
 
     def ClearCurrentPaperDollData(self):
         self.currentCharsPaperDollData = {}

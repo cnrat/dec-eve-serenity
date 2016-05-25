@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\carbon\common\lib\jinja2\nodes.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\carbon\common\lib\jinja2\nodes.py
 import operator
 from itertools import chain, izip
 from collections import deque
@@ -42,7 +43,7 @@ class NodeType(type):
 
 class EvalContext(object):
 
-    def __init__(self, environment, template_name = None):
+    def __init__(self, environment, template_name=None):
         self.environment = environment
         if callable(environment.autoescape):
             self.autoescape = environment.autoescape(template_name)
@@ -63,7 +64,8 @@ def get_eval_context(node, ctx):
         if node.environment is None:
             raise RuntimeError('if no eval context is passed, the node must have an attached environment.')
         return EvalContext(node.environment)
-    return ctx
+    else:
+        return ctx
 
 
 class Node(object):
@@ -88,8 +90,9 @@ class Node(object):
 
         if attributes:
             raise TypeError('unknown attribute %r' % iter(attributes).next())
+        return
 
-    def iter_fields(self, exclude = None, only = None):
+    def iter_fields(self, exclude=None, only=None):
         for name in self.fields:
             if exclude is only is None or exclude is not None and name not in exclude or only is not None and name in only:
                 try:
@@ -97,7 +100,9 @@ class Node(object):
                 except AttributeError:
                     pass
 
-    def iter_child_nodes(self, exclude = None, only = None):
+        return
+
+    def iter_child_nodes(self, exclude=None, only=None):
         for field, item in self.iter_fields(exclude, only):
             if isinstance(item, list):
                 for n in item:
@@ -128,7 +133,7 @@ class Node(object):
 
         return self
 
-    def set_lineno(self, lineno, override = False):
+    def set_lineno(self, lineno, override=False):
         todo = deque([self])
         while todo:
             node = todo.popleft()
@@ -225,7 +230,7 @@ class Assign(Stmt):
 class Expr(Node):
     abstract = True
 
-    def as_const(self, eval_ctx = None):
+    def as_const(self, eval_ctx=None):
         raise Impossible()
 
     def can_assign(self):
@@ -237,7 +242,7 @@ class BinExpr(Expr):
     operator = None
     abstract = True
 
-    def as_const(self, eval_ctx = None):
+    def as_const(self, eval_ctx=None):
         eval_ctx = get_eval_context(self, eval_ctx)
         if self.environment.sandboxed and self.operator in self.environment.intercepted_binops:
             raise Impossible()
@@ -253,7 +258,7 @@ class UnaryExpr(Expr):
     operator = None
     abstract = True
 
-    def as_const(self, eval_ctx = None):
+    def as_const(self, eval_ctx=None):
         eval_ctx = get_eval_context(self, eval_ctx)
         if self.environment.sandboxed and self.operator in self.environment.intercepted_unops:
             raise Impossible()
@@ -278,11 +283,11 @@ class Literal(Expr):
 class Const(Literal):
     fields = ('value',)
 
-    def as_const(self, eval_ctx = None):
+    def as_const(self, eval_ctx=None):
         return self.value
 
     @classmethod
-    def from_untrusted(cls, value, lineno = None, environment = None):
+    def from_untrusted(cls, value, lineno=None, environment=None):
         from compiler import has_safe_repr
         if not has_safe_repr(value):
             raise Impossible()
@@ -292,7 +297,7 @@ class Const(Literal):
 class TemplateData(Literal):
     fields = ('data',)
 
-    def as_const(self, eval_ctx = None):
+    def as_const(self, eval_ctx=None):
         eval_ctx = get_eval_context(self, eval_ctx)
         if eval_ctx.volatile:
             raise Impossible()
@@ -304,7 +309,7 @@ class TemplateData(Literal):
 class Tuple(Literal):
     fields = ('items', 'ctx')
 
-    def as_const(self, eval_ctx = None):
+    def as_const(self, eval_ctx=None):
         eval_ctx = get_eval_context(self, eval_ctx)
         return tuple((x.as_const(eval_ctx) for x in self.items))
 
@@ -319,7 +324,7 @@ class Tuple(Literal):
 class List(Literal):
     fields = ('items',)
 
-    def as_const(self, eval_ctx = None):
+    def as_const(self, eval_ctx=None):
         eval_ctx = get_eval_context(self, eval_ctx)
         return [ x.as_const(eval_ctx) for x in self.items ]
 
@@ -327,7 +332,7 @@ class List(Literal):
 class Dict(Literal):
     fields = ('items',)
 
-    def as_const(self, eval_ctx = None):
+    def as_const(self, eval_ctx=None):
         eval_ctx = get_eval_context(self, eval_ctx)
         return dict((x.as_const(eval_ctx) for x in self.items))
 
@@ -335,7 +340,7 @@ class Dict(Literal):
 class Pair(Helper):
     fields = ('key', 'value')
 
-    def as_const(self, eval_ctx = None):
+    def as_const(self, eval_ctx=None):
         eval_ctx = get_eval_context(self, eval_ctx)
         return (self.key.as_const(eval_ctx), self.value.as_const(eval_ctx))
 
@@ -343,7 +348,7 @@ class Pair(Helper):
 class Keyword(Helper):
     fields = ('key', 'value')
 
-    def as_const(self, eval_ctx = None):
+    def as_const(self, eval_ctx=None):
         eval_ctx = get_eval_context(self, eval_ctx)
         return (self.key, self.value.as_const(eval_ctx))
 
@@ -351,19 +356,20 @@ class Keyword(Helper):
 class CondExpr(Expr):
     fields = ('test', 'expr1', 'expr2')
 
-    def as_const(self, eval_ctx = None):
+    def as_const(self, eval_ctx=None):
         eval_ctx = get_eval_context(self, eval_ctx)
         if self.test.as_const(eval_ctx):
             return self.expr1.as_const(eval_ctx)
-        if self.expr2 is None:
-            raise Impossible()
-        return self.expr2.as_const(eval_ctx)
+        else:
+            if self.expr2 is None:
+                raise Impossible()
+            return self.expr2.as_const(eval_ctx)
 
 
 class Filter(Expr):
     fields = ('node', 'name', 'args', 'kwargs', 'dyn_args', 'dyn_kwargs')
 
-    def as_const(self, eval_ctx = None):
+    def as_const(self, eval_ctx=None):
         eval_ctx = get_eval_context(self, eval_ctx)
         if eval_ctx.volatile or self.node is None:
             raise Impossible()
@@ -394,6 +400,8 @@ class Filter(Expr):
         except Exception:
             raise Impossible()
 
+        return
+
 
 class Test(Expr):
     fields = ('node', 'name', 'args', 'kwargs', 'dyn_args', 'dyn_kwargs')
@@ -402,7 +410,7 @@ class Test(Expr):
 class Call(Expr):
     fields = ('node', 'args', 'kwargs', 'dyn_args', 'dyn_kwargs')
 
-    def as_const(self, eval_ctx = None):
+    def as_const(self, eval_ctx=None):
         eval_ctx = get_eval_context(self, eval_ctx)
         if eval_ctx.volatile:
             raise Impossible()
@@ -433,11 +441,13 @@ class Call(Expr):
         except Exception:
             raise Impossible()
 
+        return
+
 
 class Getitem(Expr):
     fields = ('node', 'arg', 'ctx')
 
-    def as_const(self, eval_ctx = None):
+    def as_const(self, eval_ctx=None):
         eval_ctx = get_eval_context(self, eval_ctx)
         if self.ctx != 'load':
             raise Impossible()
@@ -453,7 +463,7 @@ class Getitem(Expr):
 class Getattr(Expr):
     fields = ('node', 'attr', 'ctx')
 
-    def as_const(self, eval_ctx = None):
+    def as_const(self, eval_ctx=None):
         if self.ctx != 'load':
             raise Impossible()
         try:
@@ -469,13 +479,14 @@ class Getattr(Expr):
 class Slice(Expr):
     fields = ('start', 'stop', 'step')
 
-    def as_const(self, eval_ctx = None):
+    def as_const(self, eval_ctx=None):
         eval_ctx = get_eval_context(self, eval_ctx)
 
         def const(obj):
             if obj is None:
                 return
-            return obj.as_const(eval_ctx)
+            else:
+                return obj.as_const(eval_ctx)
 
         return slice(const(self.start), const(self.stop), const(self.step))
 
@@ -483,7 +494,7 @@ class Slice(Expr):
 class Concat(Expr):
     fields = ('nodes',)
 
-    def as_const(self, eval_ctx = None):
+    def as_const(self, eval_ctx=None):
         eval_ctx = get_eval_context(self, eval_ctx)
         return ''.join((unicode(x.as_const(eval_ctx)) for x in self.nodes))
 
@@ -491,7 +502,7 @@ class Concat(Expr):
 class Compare(Expr):
     fields = ('expr', 'ops')
 
-    def as_const(self, eval_ctx = None):
+    def as_const(self, eval_ctx=None):
         eval_ctx = get_eval_context(self, eval_ctx)
         result = value = self.expr.as_const(eval_ctx)
         try:
@@ -541,7 +552,7 @@ class Pow(BinExpr):
 class And(BinExpr):
     operator = 'and'
 
-    def as_const(self, eval_ctx = None):
+    def as_const(self, eval_ctx=None):
         eval_ctx = get_eval_context(self, eval_ctx)
         return self.left.as_const(eval_ctx) and self.right.as_const(eval_ctx)
 
@@ -549,7 +560,7 @@ class And(BinExpr):
 class Or(BinExpr):
     operator = 'or'
 
-    def as_const(self, eval_ctx = None):
+    def as_const(self, eval_ctx=None):
         eval_ctx = get_eval_context(self, eval_ctx)
         return self.left.as_const(eval_ctx) or self.right.as_const(eval_ctx)
 
@@ -588,7 +599,7 @@ class InternalName(Expr):
 class MarkSafe(Expr):
     fields = ('expr',)
 
-    def as_const(self, eval_ctx = None):
+    def as_const(self, eval_ctx=None):
         eval_ctx = get_eval_context(self, eval_ctx)
         return Markup(self.expr.as_const(eval_ctx))
 
@@ -596,7 +607,7 @@ class MarkSafe(Expr):
 class MarkSafeIfAutoescape(Expr):
     fields = ('expr',)
 
-    def as_const(self, eval_ctx = None):
+    def as_const(self, eval_ctx=None):
         eval_ctx = get_eval_context(self, eval_ctx)
         if eval_ctx.volatile:
             raise Impossible()

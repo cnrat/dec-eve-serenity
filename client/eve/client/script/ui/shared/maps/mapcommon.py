@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\client\script\ui\shared\maps\mapcommon.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\client\script\ui\shared\maps\mapcommon.py
 import trinity
 import utillib as util
 MODE_SOLARSYSTEM = 1
@@ -223,7 +224,7 @@ JUMPBRIDGE_ANIMATION_SPEED = 1.0
 
 class LegendItem(object):
 
-    def __init__(self, order, caption, color, data = None, highlight = True):
+    def __init__(self, order, caption, color, data=None, highlight=True):
         self.order = order
         self.caption = caption
         self.color = color

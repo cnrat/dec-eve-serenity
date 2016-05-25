@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\client\script\ui\inflight\scannerFiles\directionalScanHandler.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\client\script\ui\inflight\scannerFiles\directionalScanHandler.py
 from carbon.common.script.util.mathCommon import GetLesserAngleBetweenYaws
 from carbon.common.script.util.mathUtil import RadToDeg
 from eve.client.script.ui.camera.baseCamera import Camera
@@ -44,6 +45,7 @@ class MapViewDirectionalScanHandler(object):
         self.scanAngle = settings.user.ui.Get('scan_angleSlider', 360)
         self.coneLineSets = []
         uthread.new(self.DrawDirectionalScanCone)
+        return
 
     def StopHandler(self):
         sm.UnregisterNotify(self)
@@ -97,6 +99,7 @@ class MapViewDirectionalScanHandler(object):
         lineset.ChangeLineColor(linequart2, newcolor, newcolor)
         lineset.ChangeLineColor(linequart3, newcolor, newcolor)
         lineset.ChangeLineColor(linequart4, newcolor, newcolor)
+        return
 
     def _RemoveFromScene(self):
         if self.dScanTransform in self.systemMapHandler.systemMapTransform.children:
@@ -105,6 +108,7 @@ class MapViewDirectionalScanHandler(object):
         self.dScanSubTransform = None
         self.dScanUpdateTimer = None
         self.systemMapHandler = None
+        return
 
     def GetPosition(self):
         if self.dScanTransform:
@@ -126,7 +130,7 @@ class MapViewDirectionalScanHandler(object):
         if self.dScanSubTransform:
             self.dScanSubTransform.display = displayState
 
-    def SwitchToScanMode(self, scanMode, initing = False):
+    def SwitchToScanMode(self, scanMode, initing=False):
         if scanMode == SCANMODE_CAMERA:
             camera = self.systemMapHandler.mapView.camera
             endRotation = self.GetSpaceCameraRotation()
@@ -153,6 +157,7 @@ class MapViewDirectionalScanHandler(object):
             self.dScanTransform.modifier = TR2TM_NONE
             camera = self.systemMapHandler.mapView.camera
             camera.SetPointOfInterestOverrideHandler(None)
+        return
 
     def _OnConeAligned(self):
         self.dScanTransform.modifier = TR2TM_LOOK_AT_CAMERA
@@ -169,7 +174,7 @@ class MapViewDirectionalScanHandler(object):
     def GetPointOfInterestOverride(self):
         return self.dScanTransform.worldTransform[3][:3]
 
-    def SetScanTarget(self, itemID, mapPosition, callback = None):
+    def SetScanTarget(self, itemID, mapPosition, callback=None):
         conePosition = self.dScanTransform.worldTransform[3][:3]
         ball = sm.GetService('michelle').GetBall(itemID)
         if not ball:
@@ -225,6 +230,7 @@ class MapViewDirectionalScanHandler(object):
                 self._systemMapHandler = weakref.ref(value)
             else:
                 self._systemMapHandler = None
+            return
 
         return property(**locals())
 
@@ -234,66 +240,68 @@ class MapViewDirectionalScanHandler(object):
         systemMapHandler = self.systemMapHandler
         if not systemMapHandler:
             return
-        if self.dScanLineSet is None:
-            self.dScanTransform = trinity.EveTransform()
-            self.dScanTransform.name = 'dScanTransform'
-            systemMapHandler.systemMapTransform.children.append(self.dScanTransform)
-            systemMapHandler.SetupMyPositionTracker(self.dScanTransform)
-            self.dScanSubTransform = trinity.EveTransform()
-            self.dScanSubTransform.name = 'dScanSubTransform'
-            self.dScanSubTransform.display = GetScanConeDisplayState()
-            self.dScanTransform.children.append(self.dScanSubTransform)
-            scanCone = trinity.Load('res:/dx9/model/UI/scancone.red')
-            scanCone.rotation = geo2.QuaternionRotationSetYawPitchRoll(0.0, -math.pi / 2, 0.0)
-            self.dScanSubTransform.children.append(scanCone)
-            self.scanConeTransform = scanCone
-            scanConeHalf = trinity.Load('res:/dx9/model/UI/scanconehalfsphere.red')
-            self.dScanSubTransform.children.append(scanConeHalf)
-            self.scanConeHalfTransform = scanConeHalf
-            scanConeFull = trinity.Load('res:/dx9/model/UI/scanconesphere.red')
-            self.dScanSubTransform.children.append(scanConeFull)
-            self.scanConeFullTransform = scanConeFull
-            lineSet = CreatePlanarLineSet(texturePath='res:/dx9/texture/ui/linePlanarSmoothAdditive.dds')
-            lineSet.scaling = (self.lineSetScaling, self.lineSetScaling, self.lineSetScaling)
-            lineSet.rotation = geo2.QuaternionRotationSetYawPitchRoll(0.0, -math.pi / 2, 0.0)
-            lineSet.additive = True
-            self.dScanSubTransform.children.append(lineSet)
-            self.dScanLineSet = lineSet
-            blue.synchro.Yield()
-            self.SwitchToScanMode(GetActiveScanMode(), initing=True)
         else:
-            lineSet = self.dScanLineSet
-        lineSet.ClearLines()
-        if scanAngle < 180.0:
-            scanAngleRad = math.radians(scanAngle)
-            scanAngleCos = math.cos(scanAngleRad * 0.5)
-            lineWidth = 5000.0
-            color = (0.1, 0.4, 0.6, 0.125)
-            centerLineDistance = AU
-            while centerLineDistance < scanRange:
-                step = centerLineDistance * scanAngleCos
-                radius = math.tan(scanAngleRad * 0.5) * step
-                lineIDs = mapViewUtil.DrawCircle(lineSet, (0, step / self.lineSetScaling, 0), radius / self.lineSetScaling, lineWidth=lineWidth, startColor=color, endColor=color)
-                centerLineDistance += const.AU
+            if self.dScanLineSet is None:
+                self.dScanTransform = trinity.EveTransform()
+                self.dScanTransform.name = 'dScanTransform'
+                systemMapHandler.systemMapTransform.children.append(self.dScanTransform)
+                systemMapHandler.SetupMyPositionTracker(self.dScanTransform)
+                self.dScanSubTransform = trinity.EveTransform()
+                self.dScanSubTransform.name = 'dScanSubTransform'
+                self.dScanSubTransform.display = GetScanConeDisplayState()
+                self.dScanTransform.children.append(self.dScanSubTransform)
+                scanCone = trinity.Load('res:/dx9/model/UI/scancone.red')
+                scanCone.rotation = geo2.QuaternionRotationSetYawPitchRoll(0.0, -math.pi / 2, 0.0)
+                self.dScanSubTransform.children.append(scanCone)
+                self.scanConeTransform = scanCone
+                scanConeHalf = trinity.Load('res:/dx9/model/UI/scanconehalfsphere.red')
+                self.dScanSubTransform.children.append(scanConeHalf)
+                self.scanConeHalfTransform = scanConeHalf
+                scanConeFull = trinity.Load('res:/dx9/model/UI/scanconesphere.red')
+                self.dScanSubTransform.children.append(scanConeFull)
+                self.scanConeFullTransform = scanConeFull
+                lineSet = CreatePlanarLineSet(texturePath='res:/dx9/texture/ui/linePlanarSmoothAdditive.dds')
+                lineSet.scaling = (self.lineSetScaling, self.lineSetScaling, self.lineSetScaling)
+                lineSet.rotation = geo2.QuaternionRotationSetYawPitchRoll(0.0, -math.pi / 2, 0.0)
+                lineSet.additive = True
+                self.dScanSubTransform.children.append(lineSet)
+                self.dScanLineSet = lineSet
+                blue.synchro.Yield()
+                self.SwitchToScanMode(GetActiveScanMode(), initing=True)
+            else:
+                lineSet = self.dScanLineSet
+            lineSet.ClearLines()
+            if scanAngle < 180.0:
+                scanAngleRad = math.radians(scanAngle)
+                scanAngleCos = math.cos(scanAngleRad * 0.5)
+                lineWidth = 5000.0
+                color = (0.1, 0.4, 0.6, 0.125)
+                centerLineDistance = AU
+                while centerLineDistance < scanRange:
+                    step = centerLineDistance * scanAngleCos
+                    radius = math.tan(scanAngleRad * 0.5) * step
+                    lineIDs = mapViewUtil.DrawCircle(lineSet, (0, step / self.lineSetScaling, 0), radius / self.lineSetScaling, lineWidth=lineWidth, startColor=color, endColor=color)
+                    centerLineDistance += const.AU
 
-            self.scanConeHalfTransform.display = False
-            self.scanConeFullTransform.display = False
-            z = scanRange * scanAngleCos
-            endCapAngle = scanAngleRad * 0.5
-            radius = scanRange * math.sin(endCapAngle)
-            self.scanConeTransform.scaling = (radius * 2, z, radius * 2)
-            self.scanConeTransform.display = True
-        elif scanAngle < 360.0:
-            self.scanConeTransform.display = False
-            self.scanConeFullTransform.display = False
-            self.scanConeHalfTransform.scaling = (-scanRange, -scanRange, -scanRange)
-            self.scanConeHalfTransform.display = True
-        else:
-            self.scanConeTransform.display = False
-            self.scanConeHalfTransform.display = False
-            self.scanConeFullTransform.scaling = (-scanRange, -scanRange, -scanRange)
-            self.scanConeFullTransform.display = True
-        lineSet.SubmitChanges()
+                self.scanConeHalfTransform.display = False
+                self.scanConeFullTransform.display = False
+                z = scanRange * scanAngleCos
+                endCapAngle = scanAngleRad * 0.5
+                radius = scanRange * math.sin(endCapAngle)
+                self.scanConeTransform.scaling = (radius * 2, z, radius * 2)
+                self.scanConeTransform.display = True
+            elif scanAngle < 360.0:
+                self.scanConeTransform.display = False
+                self.scanConeFullTransform.display = False
+                self.scanConeHalfTransform.scaling = (-scanRange, -scanRange, -scanRange)
+                self.scanConeHalfTransform.display = True
+            else:
+                self.scanConeTransform.display = False
+                self.scanConeHalfTransform.display = False
+                self.scanConeFullTransform.scaling = (-scanRange, -scanRange, -scanRange)
+                self.scanConeFullTransform.display = True
+            lineSet.SubmitChanges()
+            return
 
     def GetSpaceCamera(self):
         return self.sceneManager.GetActiveSpaceCamera()
@@ -312,7 +320,7 @@ class MapViewDirectionalScanHandler(object):
                 viewVector = camera.GetViewVector()
                 self.AlignSpaceCameraToViewVector(viewVector)
 
-    def AlignSpaceCameraToViewVector(self, viewVector, duration = None, callback = None, sleep = False):
+    def AlignSpaceCameraToViewVector(self, viewVector, duration=None, callback=None, sleep=False):
         rotation = geo2.QuaternionRotationArc((0, 0, 1), viewVector)
         y, p, r = geo2.QuaternionRotationGetYawPitchRoll(rotation)
         if duration:

@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\carbon\common\lib\werkzeug\formparser.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\carbon\common\lib\werkzeug\formparser.py
 import re
 from cStringIO import StringIO
 from tempfile import TemporaryFile
@@ -8,13 +9,13 @@ _empty_string_iter = repeat('')
 _multipart_boundary_re = re.compile('^[ -~]{0,200}[!-~]$')
 _supported_multipart_encodings = frozenset(['base64', 'quoted-printable'])
 
-def default_stream_factory(total_content_length, filename, content_type, content_length = None):
+def default_stream_factory(total_content_length, filename, content_type, content_length=None):
     if total_content_length > 512000:
         return TemporaryFile('wb+')
     return StringIO()
 
 
-def parse_form_data(environ, stream_factory = None, charset = 'utf-8', errors = 'ignore', max_form_memory_size = None, max_content_length = None, cls = None, silent = True):
+def parse_form_data(environ, stream_factory=None, charset='utf-8', errors='ignore', max_form_memory_size=None, max_content_length=None, cls=None, silent=True):
     content_type, extra = parse_options_header(environ.get('CONTENT_TYPE', ''))
     try:
         content_length = int(environ['CONTENT_LENGTH'])
@@ -69,14 +70,12 @@ def _find_terminator(iterator):
         if line:
             return line
 
-    return ''
-
 
 def is_valid_multipart_boundary(boundary):
     return _multipart_boundary_re.match(boundary) is not None
 
 
-def parse_multipart(file, boundary, content_length, stream_factory = None, charset = 'utf-8', errors = 'ignore', buffer_size = 10240, max_form_memory_size = None):
+def parse_multipart(file, boundary, content_length, stream_factory=None, charset='utf-8', errors='ignore', buffer_size=10240, max_form_memory_size=None):
     if stream_factory is None:
         stream_factory = default_stream_factory
     if not boundary:

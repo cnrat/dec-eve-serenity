@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\client\script\parklife\surveyscan.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\client\script\parklife\surveyscan.py
 import service
 import form
 import sys
@@ -48,7 +49,7 @@ class SurveyScanSvc(service.Service):
             traceback.print_exc()
             sys.exc_clear()
 
-    def GetWnd(self, create = 0):
+    def GetWnd(self, create=0):
         if create:
             return form.SurveyScanView.Open()
         return form.SurveyScanView.GetIfOpen()

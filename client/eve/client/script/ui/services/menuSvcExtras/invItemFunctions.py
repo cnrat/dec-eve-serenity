@@ -1,9 +1,11 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\client\script\ui\services\menuSvcExtras\invItemFunctions.py
-from collections import defaultdict
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\client\script\ui\services\menuSvcExtras\invItemFunctions.py
 from eve.client.script.ui.shared.inventory.containerContentWindow import ContainerContentWindow
+from eve.client.script.ui.shared.neocom.ownerSearch import OwnerSearchWindow
 import evetypes
 from inventorycommon.util import IsModularShip, IsShipFittingFlag
 import uicontrols
+import collections
 import util
 import blue
 import form
@@ -36,7 +38,7 @@ def Jettison(invItems):
 
 
 def Refine(invItems):
-    if not session.stationid:
+    if not session.stationid and not session.structureid:
         return
     sm.StartService('reprocessing').ReprocessDlg(invItems)
 
@@ -74,12 +76,40 @@ def ConsumeBooster(invItems):
         sm.StartService('godma').GetDogmaLM().UseBooster(invItem.itemID, invItem.locationID)
 
 
+def DeliverToStructure(items, characterID=None):
+    if not session.structureid:
+        return
+    if not isinstance(items, collections.Iterable):
+        items = [items]
+    items = [ item for item in items if item.locationID == session.structureid ]
+    if not items:
+        return
+
+    def Confirm(characterID):
+        formatted = [ '<t>- %s<br>' % cfg.FormatConvert(const.UE_TYPEIDANDQUANTITY, item.typeID, item.stacksize) for item in items ]
+        data = {'items': ''.join(formatted),
+         'character': characterID}
+        if eve.Message('ConfirmDeliverItems', data, uiconst.YESNO) == uiconst.ID_YES:
+            sm.RemoteSvc('structureDeliveries').Deliver(session.structureid, characterID, [ item.itemID for item in items ])
+
+    def Deliver(results):
+        for row in results():
+            OwnerSearchWindow.CloseIfOpen(windowID='DeliverToStructure')
+            return Confirm(row.charID)
+
+    if characterID:
+        Confirm(characterID)
+    else:
+        OwnerSearchWindow.CloseIfOpen(windowID='DeliverToStructure')
+        OwnerSearchWindow.Open(windowID='DeliverToStructure', actionBtns=[('Deliver Items', Deliver, True)], caption='Deliver Items To', input='', showContactList=True, multiSelect=False, ownerGroups=[const.groupCharacter])
+
+
 def AssembleShip(invItems):
     itemIDs = []
     for item in invItems:
         invItem = invItems[0]
         if IsModularShip(invItem.typeID):
-            if session.stationid is None:
+            if not util.IsDocked():
                 eve.Message('CantAssembleModularShipInSpace')
                 return
             wndName = 'assembleWindow_%s' % item.itemID
@@ -92,6 +122,7 @@ def AssembleShip(invItems):
         itemIDs.append(item.itemID)
 
     sm.StartService('gameui').GetShipAccess().AssembleShip(itemIDs)
+    return
 
 
 def CheckItemsInSamePlace(invItems):
@@ -137,24 +168,35 @@ def CheckIfInHangarOrCorpHangarAndCanTake(invItem):
     corpMember = False
     stationID = None
     bp = sm.StartService('michelle').GetBallpark()
+    corpHangarFlags = list(const.flagCorpSAGs) + [const.flagCorpSAG1]
     if invItem.ownerID == session.charid:
         if util.IsStation(invItem.locationID) and invItem.flagID == const.flagHangar:
             canTake = True
-        elif bp is not None and invItem.flagID == const.flagHangar and invItem.locationID in bp.slimItems and bp.slimItems[invItem.locationID].groupID == const.groupPersonalHangar:
+        elif bp is not None:
+            if invItem.flagID == const.flagHangar:
+                if invItem.locationID in bp.slimItems:
+                    if bp.slimItems[invItem.locationID].groupID == const.groupPersonalHangar:
+                        canTake = True
+                    elif bp.slimItems[invItem.locationID].categoryID == const.categoryStructure:
+                        canTake = True
+        elif InSameStructureWithCorrectFlag(invItem, [const.flagHangar]):
             canTake = True
     elif session.solarsystemid and bp is not None and invItem.locationID in bp.slimItems and invItem.ownerID == bp.slimItems[invItem.locationID].ownerID:
         corpMember = True
     elif invItem.ownerID == session.corpid and not util.IsNPC(invItem.ownerID):
         stationID = None
-        rows = sm.StartService('corp').GetMyCorporationsOffices().SelectByUniqueColumnValues('officeID', [invItem.locationID])
-        if rows and len(rows):
-            for row in rows:
-                if invItem.locationID == row.officeID:
-                    stationID = row.stationID
-                    break
+        if InSameStructureWithCorrectFlag(invItem, corpHangarFlags):
+            stationID = session.structureid
+        else:
+            rows = sm.StartService('corp').GetMyCorporationsOffices().SelectByUniqueColumnValues('officeID', [invItem.locationID])
+            if rows and len(rows):
+                for row in rows:
+                    if invItem.locationID == row.officeID and util.IsStation(row.locationID):
+                        stationID = row.locationID
+                        break
 
     if stationID is not None or corpMember:
-        flags = [const.flagHangar] + list(const.flagCorpSAGs)
+        flags = [const.flagHangar] + corpHangarFlags
         if invItem.flagID in flags:
             if stationID is not None and stationID == session.hqID:
                 roles = session.rolesAtHQ
@@ -164,6 +206,7 @@ def CheckIfInHangarOrCorpHangarAndCanTake(invItem):
                 roles = session.rolesAtOther
             if invItem.ownerID == session.corpid or corpMember:
                 rolesByFlag = {const.flagHangar: const.corpRoleHangarCanTake1,
+                 const.flagCorpSAG1: const.corpRoleHangarCanTake1,
                  const.flagCorpSAG2: const.corpRoleHangarCanTake2,
                  const.flagCorpSAG3: const.corpRoleHangarCanTake3,
                  const.flagCorpSAG4: const.corpRoleHangarCanTake4,
@@ -176,37 +219,41 @@ def CheckIfInHangarOrCorpHangarAndCanTake(invItem):
     return bool(canTake)
 
 
+def InSameStructureWithCorrectFlag(invItem, allowedFlags):
+    currentStructureID = session.structureid
+    if not currentStructureID:
+        return False
+    if invItem.locationID != currentStructureID:
+        return False
+    if invItem.flagID in allowedFlags:
+        return True
+    return False
+
+
+def CheckIfInPrimedOffice(invItem):
+    office = sm.StartService('corp').GetOffice_NoWireTrip()
+    return office is not None and invItem.locationID == office.itemID
+
+
 def CheckSameStation(invItem):
-    inSameLocation = 0
     if session.stationid2:
         if invItem.locationID == session.stationid2:
-            inSameLocation = 1
-        elif util.IsPlayerItem(invItem.locationID):
-            if 'stationID' in invItem.__columns__:
-                if invItem.stationID == session.stationid2:
-                    inSameLocation = 1
-            else:
-                inSameLocation = 1
-        else:
-            office = sm.StartService('corp').GetOffice_NoWireTrip()
-            if office is not None:
-                if invItem.locationID == office.itemID:
-                    inSameLocation = 1
-    return inSameLocation
+            return 1
+        if 'stationID' in invItem.__columns__ and invItem.stationID == session.stationid2:
+            return 1
+        if CheckIfInPrimedOffice(invItem):
+            return 1
+        if util.IsPlayerItem(invItem.locationID) and sm.GetService('invCache').IsInventoryPrimedAndListed(invItem.locationID):
+            return 1
 
 
 def CheckSameLocation(invItem):
     inSameLocation = 0
     if session.stationid:
-        if invItem.locationID == session.stationid:
+        inSameLocation = CheckSameStation(invItem)
+    elif session.structureid:
+        if invItem.locationID == session.structureid:
             inSameLocation = 1
-        elif util.IsPlayerItem(invItem.locationID):
-            inSameLocation = 1
-        else:
-            office = sm.StartService('corp').GetOffice_NoWireTrip()
-            if office is not None:
-                if invItem.locationID == office.itemID:
-                    inSameLocation = 1
     if invItem.locationID == session.shipid and invItem.flagID != const.flagShipHangar:
         inSameLocation = 1
     elif session.solarsystemid and invItem.locationID == session.solarsystemid:
@@ -228,66 +275,70 @@ def InvalidateItemLocation(ownerID, stationID, flag, invCacheSvc):
 def DeliverToCorpHangarFolder(invItemAndFlagList, invCacheSvc):
     if len(invItemAndFlagList) == 0:
         return
-    invItems = []
-    itemIDs = []
-    for item in invItemAndFlagList:
-        invItems.append(item[0])
-        itemIDs.append(item[0].itemID)
+    else:
+        invItems = []
+        itemIDs = []
+        for item in invItemAndFlagList:
+            invItems.append(item[0])
+            itemIDs.append(item[0].itemID)
 
-    CheckItemsInSamePlace(invItems)
-    fromID = invItems[0].locationID
-    doSplit = bool(uicore.uilib.Key(uiconst.VK_SHIFT) and len(invItemAndFlagList) == 1 and invItemAndFlagList[0][0].stacksize > 1)
-    stationID = invCacheSvc.GetStationIDOfItem(invItems[0])
-    if stationID is None:
-        raise UserError('CanOnlyDoInStations')
-    ownerID = invItems[0].ownerID
-    flag = invItems[0].flagID
-    deliverToFlag = invItemAndFlagList[0][1]
-    qty = None
-    if doSplit:
-        invItem = invItems[0]
-        ret = uix.QtyPopup(invItem.stacksize, 1, 1, None, localization.GetByLabel('UI/Inventory/ItemActions/DivideItemStack'))
-        if ret is not None:
-            qty = ret['qty']
-    invCacheSvc.GetInventoryMgr().DeliverToCorpHangar(fromID, stationID, itemIDs, qty, ownerID, deliverToFlag)
-    InvalidateItemLocation(ownerID, stationID, flag, invCacheSvc)
-    if ownerID == session.corpid:
-        sm.ScatterEvent('OnCorpAssetChange', invItems, stationID)
-
-
-def DeliverToCorpMember(invItems, invCacheSvc):
-    if len(invItems) == 0:
-        return
-    CheckItemsInSamePlace(invItems)
-    corpMemberIDs = sm.GetService('corp').GetMemberIDs()
-    cfg.eveowners.Prime(corpMemberIDs)
-    memberslist = []
-    for memberID in corpMemberIDs:
-        if util.IsDustCharacter(memberID):
-            continue
-        who = cfg.eveowners.Get(memberID)
-        memberslist.append([who.ownerName, memberID, who.typeID])
-
-    doSplit = uicore.uilib.Key(uiconst.VK_SHIFT) and len(invItems) == 1 and invItems[0].stacksize > 1
-    stationID = invCacheSvc.GetStationIDOfItem(invItems[0])
-    if stationID is None:
-        raise UserError('CanOnlyDoInStations')
-    ownerID = invItems[0].ownerID
-    flagID = invItems[0].flagID
-    itemIDs = [ item.itemID for item in invItems ]
-    res = uix.ListWnd(memberslist, 'character', localization.GetByLabel('UI/Corporations/Common/SelectCorpMember'), localization.GetByLabel('UI/Corporations/Common/SelectCorpMemberToDeliverTo'), 1)
-    if res:
-        corporationMemberID = res[1]
+        CheckItemsInSamePlace(invItems)
+        fromID = invItems[0].locationID
+        doSplit = bool(uicore.uilib.Key(uiconst.VK_SHIFT) and len(invItemAndFlagList) == 1 and invItemAndFlagList[0][0].stacksize > 1)
+        stationID = invCacheSvc.GetStationIDOfItem(invItems[0])
+        if stationID is None:
+            raise UserError('CanOnlyDoInStations')
+        ownerID = invItems[0].ownerID
+        flag = invItems[0].flagID
+        deliverToFlag = invItemAndFlagList[0][1]
         qty = None
         if doSplit:
             invItem = invItems[0]
             ret = uix.QtyPopup(invItem.stacksize, 1, 1, None, localization.GetByLabel('UI/Inventory/ItemActions/DivideItemStack'))
             if ret is not None:
                 qty = ret['qty']
-        invCacheSvc.GetInventoryMgr().DeliverToCorpMember(corporationMemberID, stationID, itemIDs, qty, ownerID, flagID)
-        InvalidateItemLocation(ownerID, stationID, flagID, invCacheSvc)
+        invCacheSvc.GetInventoryMgr().DeliverToCorpHangar(fromID, stationID, itemIDs, qty, ownerID, deliverToFlag)
+        InvalidateItemLocation(ownerID, stationID, flag, invCacheSvc)
         if ownerID == session.corpid:
             sm.ScatterEvent('OnCorpAssetChange', invItems, stationID)
+        return
+
+
+def DeliverToCorpMember(invItems, invCacheSvc):
+    if len(invItems) == 0:
+        return
+    else:
+        CheckItemsInSamePlace(invItems)
+        corpMemberIDs = sm.GetService('corp').GetMemberIDs()
+        cfg.eveowners.Prime(corpMemberIDs)
+        memberslist = []
+        for memberID in corpMemberIDs:
+            if util.IsDustCharacter(memberID):
+                continue
+            who = cfg.eveowners.Get(memberID)
+            memberslist.append([who.ownerName, memberID, who.typeID])
+
+        doSplit = uicore.uilib.Key(uiconst.VK_SHIFT) and len(invItems) == 1 and invItems[0].stacksize > 1
+        stationID = invCacheSvc.GetStationIDOfItem(invItems[0])
+        if stationID is None:
+            raise UserError('CanOnlyDoInStations')
+        ownerID = invItems[0].ownerID
+        flagID = invItems[0].flagID
+        itemIDs = [ item.itemID for item in invItems ]
+        res = uix.ListWnd(memberslist, 'character', localization.GetByLabel('UI/Corporations/Common/SelectCorpMember'), localization.GetByLabel('UI/Corporations/Common/SelectCorpMemberToDeliverTo'), 1)
+        if res:
+            corporationMemberID = res[1]
+            qty = None
+            if doSplit:
+                invItem = invItems[0]
+                ret = uix.QtyPopup(invItem.stacksize, 1, 1, None, localization.GetByLabel('UI/Inventory/ItemActions/DivideItemStack'))
+                if ret is not None:
+                    qty = ret['qty']
+            invCacheSvc.GetInventoryMgr().DeliverToCorpMember(corporationMemberID, stationID, itemIDs, qty, ownerID, flagID)
+            InvalidateItemLocation(ownerID, stationID, flagID, invCacheSvc)
+            if ownerID == session.corpid:
+                sm.ScatterEvent('OnCorpAssetChange', invItems, stationID)
+        return
 
 
 def SplitStack(invItems, invCacheSvc):
@@ -306,6 +357,7 @@ def SplitStack(invItems, invCacheSvc):
         if invItem.ownerID == session.corpid:
             invItem.quantity = invItem.quantity - qty
             sm.ScatterEvent('OnCorpAssetChange', [invItem], stationID)
+    return
 
 
 def LockDownBlueprint(invItem, invCacheSvc):
@@ -329,6 +381,7 @@ def LockDownBlueprint(invItem, invCacheSvc):
     dlg.locationID = stationID
     dlg.GoToStep(len(dlg.steps))
     dlg.ShowModal()
+    return
 
 
 def UnlockBlueprint(invItem, invCacheSvc):
@@ -373,6 +426,7 @@ def UnlockBlueprint(invItem, invCacheSvc):
     dlg.locationID = stationID
     dlg.GoToStep(len(dlg.steps))
     dlg.ShowModal()
+    return
 
 
 def ALSCLock(invItems, invCacheSvc):
@@ -428,53 +482,61 @@ def CheckLocked(func, invItemsOrIDs, invCacheSvc):
     return ret
 
 
-def RepackageItemsInStation(invItems, invCacheSvc):
+def CheckRepackageItems(invItems):
     if eve.Message('ConfirmRepackageItem', {}, uiconst.YESNO) != uiconst.ID_YES:
         return
-    validIDsByStationID = defaultdict(list)
-    insuranceQ_OK = 0
-    insuranceContracts = None
-    checksToSkip = set()
-    godma = sm.GetService('godma')
-    for invItem in invItems:
-        skipThis = False
-        itemState = godma.GetItem(invItem.itemID)
-        if itemState and (itemState.damage or invItem.categoryID in (const.categoryShip, const.categoryDrone) and itemState.armorDamage):
-            eve.Message('CantRepackageDamagedItem')
-            continue
-        if invItem.categoryID == const.categoryShip:
-            if insuranceContracts is None:
-                insuranceContracts = sm.StartService('insurance').GetContracts()
-            if not insuranceQ_OK and invItem.itemID in insuranceContracts:
-                if eve.Message('RepairUnassembleVoidsContract', {}, uiconst.YESNO) != uiconst.ID_YES:
-                    continue
-                insuranceQ_OK = 1
-            if invCacheSvc.IsInventoryPrimedAndListed(invItem.itemID):
-                inv = invCacheSvc.GetInventoryFromId(invItem.itemID)
-                dogmaStaticMgr = sm.GetService('clientDogmaStaticSvc')
-                for item in [ i for i in inv.List() if IsShipFittingFlag(i.flagID) ]:
-                    if dogmaStaticMgr.TypeHasEffect(item.typeID, const.effectRigSlot):
-                        if eve.Message('ConfirmRepackageSomethingWithUpgrades', {'what': (const.UE_LOCID, invItem.itemID)}, uiconst.YESNO, suppress=uiconst.ID_YES) == uiconst.ID_YES:
-                            checksToSkip.add('ConfirmRepackageSomethingWithUpgrades')
-                        else:
-                            skipThis = True
-                            break
+    else:
+        insuranceQ_OK = 0
+        insuranceContracts = None
+        godma = sm.GetService('godma')
+        repackage = []
+        for item in invItems:
+            itemState = godma.GetItem(item.itemID)
+            if itemState and (itemState.damage or item.categoryID in (const.categoryShip, const.categoryDrone) and itemState.armorDamage):
+                eve.Message('CantRepackageDamagedItem')
+                continue
+            if item.categoryID == const.categoryShip:
+                if insuranceContracts is None:
+                    insuranceContracts = sm.StartService('insurance').GetContracts()
+                if not insuranceQ_OK and item.itemID in insuranceContracts:
+                    if eve.Message('RepairUnassembleVoidsContract', {}, uiconst.YESNO) != uiconst.ID_YES:
+                        continue
+                    insuranceQ_OK = 1
+            repackage.append(item)
 
-                if skipThis:
-                    continue
-        stationID = invCacheSvc.GetStationIDOfItem(invItem)
+        return repackage
+
+
+def RepackageItemsInStation(invItems):
+    invItems = CheckRepackageItems(invItems)
+    invCache = sm.GetService('invCache')
+    itemsByStation = collections.defaultdict(list)
+    for item in invItems:
+        stationID = invCache.GetStationIDOfItem(item)
         if stationID is not None:
-            validIDsByStationID[stationID].append((invItem.itemID, invItem.locationID))
+            itemsByStation[stationID].append((item.itemID, item.locationID))
 
-    if len(validIDsByStationID) == 0:
-        return
+    if len(itemsByStation):
+        RepackageWithDestroyConfirmation(sm.RemoteSvc('repairSvc'), 'DisassembleItems', dict(itemsByStation))
+    return
+
+
+def RepackageItemsInStructure(invItems):
+    invItems = CheckRepackageItems(invItems)
+    locationID = invItems[0].locationID
+    inventory = sm.GetService('invCache').GetInventoryFromId(locationID)
+    RepackageWithDestroyConfirmation(inventory, 'RepackageItems', [ item.itemID for item in invItems ], locationID)
+
+
+def RepackageWithDestroyConfirmation(service, method, *args):
     try:
-        sm.RemoteSvc('repairSvc').DisassembleItems(dict(validIDsByStationID), list(checksToSkip))
-    except UserError as e:
-        if cfg.messages[e.msg].dialogType == 'question' and eve.Message(e.msg, e.dict, uiconst.YESNO, suppress=uiconst.ID_YES) == uiconst.ID_YES:
-            checksToSkip.add(e.msg)
-            return sm.RemoteSvc('repairSvc').DisassembleItems(dict(validIDsByStationID), list(checksToSkip))
-        raise
+        getattr(service, method)(*args)
+    except UserError as exception:
+        if exception.msg == 'ConfirmRepackageSomethingWithUpgrades':
+            if eve.Message(exception.msg, exception.dict, uiconst.YESNO, suppress=uiconst.ID_YES) == uiconst.ID_YES:
+                getattr(service, method)(destroyable=True, *args)
+        else:
+            raise
 
 
 def Break(invItems, invCacheSvc):
@@ -498,7 +560,7 @@ def CompressItem(item, locationItem, invCacheSvc):
          'size': int(minQuantity)}
         eve.Message('SizeInvalidForCompression', messageParams)
         return
-    if locationItem.groupID == const.groupCapitalIndustrialShip:
+    if locationItem.groupID == const.groupCapitalIndustrialShip or locationItem.categoryID == const.categoryStructure:
         invCacheSvc.GetInventoryMgr().CompressItem(item.itemID)
     elif locationItem.groupID == const.groupCompressionArray:
         invCacheSvc.GetInventoryFromId(item.locationID).CompressItem(item.itemID)

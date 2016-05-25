@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\packages\carbonui\primitives\base.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\packages\carbonui\primitives\base.py
 import carbonui.const as uiconst
 import types
 import log
@@ -169,30 +170,33 @@ class Base(DragDropObject):
                 self.SetParent(parent, attributes.get('idx', self.default_idx))
         self._constructingBase = False
         self.FlagAlignmentDirty()
+        return
 
     def Close(self):
         if getattr(self, 'destroyed', False):
             return
-        self.destroyed = True
-        uicore.uilib.ReleaseObject(self)
-        notifyevents = getattr(self, '__notifyevents__', None)
-        if notifyevents:
-            sm.UnregisterNotify(self)
-        self._OnClose()
-        parent = self.parent
-        if parent and not parent._containerClosing:
-            parent.children.remove(self)
-            parent.background.remove(self)
-        if self.isAnimated:
-            self.StopAnimations()
-        self.renderObject = None
-        self._alignFunc = None
-        if self._delegatingEvents:
-            for eventName in DELEGATE_EVENTNAMES:
-                setattr(self, eventName, None)
+        else:
+            self.destroyed = True
+            uicore.uilib.ReleaseObject(self)
+            notifyevents = getattr(self, '__notifyevents__', None)
+            if notifyevents:
+                sm.UnregisterNotify(self)
+            self._OnClose()
+            parent = self.parent
+            if parent and not parent._containerClosing:
+                parent.children.remove(self)
+                parent.background.remove(self)
+            if self.isAnimated:
+                self.StopAnimations()
+            self.renderObject = None
+            self._alignFunc = None
+            if self._delegatingEvents:
+                for eventName in DELEGATE_EVENTNAMES:
+                    setattr(self, eventName, None)
+
+            return
 
     def _GetLegacyDeadAttr(self):
-        log.LogTraceback('UIObject.dead attribute is deprecated, use UIObject.destroyed')
         return self.destroyed
 
     dead = property(_GetLegacyDeadAttr)
@@ -208,21 +212,23 @@ class Base(DragDropObject):
         handlerArgs, handler = self.FindEventHandler(handlerName)
         if not handler:
             return False
-        baseHandler = getattr(Base, handlerName, None)
-        if baseHandler and getattr(handler, 'im_func', None) is baseHandler.im_func:
-            return False
-        return bool(handler)
+        else:
+            baseHandler = getattr(Base, handlerName, None)
+            if baseHandler and getattr(handler, 'im_func', None) is baseHandler.im_func:
+                return False
+            return bool(handler)
 
     def FindEventHandler(self, handlerName):
         handler = getattr(self, handlerName, None)
         if not handler:
             return (None, None)
-        if type(handler) == types.TupleType:
-            handlerArgs = handler[1:]
-            handler = handler[0]
         else:
-            handlerArgs = ()
-        return (handlerArgs, handler)
+            if type(handler) == types.TupleType:
+                handlerArgs = handler[1:]
+                handler = handler[0]
+            else:
+                handlerArgs = ()
+            return (handlerArgs, handler)
 
     def StopAnimations(self):
         uicore.animations.StopAllAnimations(self)
@@ -237,13 +243,14 @@ class Base(DragDropObject):
     def GetRenderObject(self):
         return self.renderObject
 
-    def SetParent(self, parent, idx = None):
+    def SetParent(self, parent, idx=None):
         currentParent = self.parent
         if currentParent:
             currentParent.children.remove(self)
         if parent is not None:
             self.isTransformed = parent.isTransformed or self.isTransformed
             parent.children.insert(idx, self)
+        return
 
     def GetParent(self):
         if self._parentRef:
@@ -711,7 +718,7 @@ class Base(DragDropObject):
             return True
         return dad.IsClickable()
 
-    def IsUnder(self, ancestor_maybe, retfailed = False):
+    def IsUnder(self, ancestor_maybe, retfailed=False):
         dad = self.parent
         if not dad:
             if retfailed:
@@ -721,17 +728,18 @@ class Base(DragDropObject):
             return True
         return dad.IsUnder(ancestor_maybe, retfailed)
 
-    def IsUnderClass(self, parentClass, returnParent = False):
+    def IsUnderClass(self, parentClass, returnParent=False):
         dad = self.parent
         if not dad:
             if returnParent:
                 return None
             return False
-        if isinstance(dad, parentClass):
+        elif isinstance(dad, parentClass):
             if returnParent:
                 return dad
             return True
-        return dad.IsUnderClass(parentClass, returnParent)
+        else:
+            return dad.IsUnderClass(parentClass, returnParent)
 
     def IsVisible(self):
         if self.destroyed or not hasattr(self, 'state') or not hasattr(self, 'parent'):
@@ -747,7 +755,7 @@ class Base(DragDropObject):
             return True
         return dad.IsVisible()
 
-    def IsClippedBy(self, clipper = None):
+    def IsClippedBy(self, clipper=None):
         if self.GetAbsoluteTop() > clipper.GetAbsoluteBottom():
             return True
         if self.GetAbsoluteBottom() < clipper.GetAbsoluteTop():
@@ -765,7 +773,7 @@ class Base(DragDropObject):
     def GetSize(self):
         return (self.width, self.height)
 
-    def GetAbsoluteViewport(self, doPrint = False):
+    def GetAbsoluteViewport(self, doPrint=False):
         if not self.display:
             return (0, 0, 0, 0)
         w, h = self.GetAbsoluteSize()
@@ -775,7 +783,7 @@ class Base(DragDropObject):
          w,
          h)
 
-    def GetAbsolute(self, doPrint = False):
+    def GetAbsolute(self, doPrint=False):
         if not self.display:
             return (0, 0, 0, 0)
         w, h = self.GetAbsoluteSize()
@@ -812,7 +820,7 @@ class Base(DragDropObject):
         return (scaleX, scaleY)
 
     def _GetScale(self):
-        return (1.0, 1.0)
+        pass
 
     def GetCurrentAbsoluteSize(self):
         if self.destroyed or not self.display:
@@ -849,6 +857,7 @@ class Base(DragDropObject):
                             each.FlagAlignmentDirty()
 
                 parent.UpdateAlignment(updateChildrenOnly=True)
+        return
 
     @telemetry.ZONE_METHOD
     def GetAbsolutePosition(self):
@@ -924,7 +933,7 @@ class Base(DragDropObject):
 
     state = property(GetState, SetState)
 
-    def FlagAlignmentDirty(self, hint = None):
+    def FlagAlignmentDirty(self, hint=None):
         if not self.display or self._constructingBase:
             return
         self._alignmentDirty = True
@@ -1405,7 +1414,7 @@ class Base(DragDropObject):
         return budget
 
     @telemetry.ZONE_METHOD
-    def UpdateAlignmentAsRoot(self, caller = None):
+    def UpdateAlignmentAsRoot(self, caller=None):
         if self.destroyed or not self.display:
             return
         if self.align == uiconst.NOALIGN:
@@ -1413,7 +1422,7 @@ class Base(DragDropObject):
         else:
             self.UpdateAlignment(0, 0, self.displayWidth, self.displayHeight)
 
-    def UpdateAlignment(self, budgetLeft = 0, budgetTop = 0, budgetWidth = 0, budgetHeight = 0, updateChildrenOnly = False):
+    def UpdateAlignment(self, budgetLeft=0, budgetTop=0, budgetWidth=0, budgetHeight=0, updateChildrenOnly=False):
         if self.destroyed:
             return (budgetLeft,
              budgetTop,
@@ -1471,6 +1480,8 @@ class Base(DragDropObject):
                 return parent
             parent = parent.GetParent()
 
+        return None
+
     @apply
     def cursor():
         doc = 'Cursor value of this object. Triggers cursor update when set'
@@ -1521,6 +1532,8 @@ class Base(DragDropObject):
             if toHandler:
                 setattr(self, eventName, toHandler)
 
+        return
+
     def DelegateEventsNotImplemented(self, delegateTo):
         self._delegatingEvents = True
         for eventName in DELEGATE_EVENTNAMES:
@@ -1530,6 +1543,8 @@ class Base(DragDropObject):
                 if toHandler:
                     setattr(self, eventName, toHandler)
 
+        return
+
     @apply
     def __bluetype__():
         doc = 'legacy trinity name of object'
@@ -1537,6 +1552,8 @@ class Base(DragDropObject):
         def fget(self):
             if self.__renderObject__:
                 return self.__renderObject__().__bluetype__
+            else:
+                return None
 
         return property(**locals())
 
@@ -1547,6 +1564,8 @@ class Base(DragDropObject):
         def fget(self):
             if self.__renderObject__:
                 return self.__renderObject__().__typename__
+            else:
+                return None
 
         return property(**locals())
 

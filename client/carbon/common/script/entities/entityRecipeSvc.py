@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\carbon\common\script\entities\entityRecipeSvc.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\carbon\common\script\entities\entityRecipeSvc.py
 import cef
 import copy
 import entityCommon
@@ -34,7 +35,7 @@ class EntityRecipeService(service.Service):
         bsdTable.RegisterForTableCacheChanges(const.cef.INGREDIENTS_TABLE_FULL_NAME, self._HandleIngredientTableChange)
         bsdTable.RegisterForTableCacheChanges(const.cef.INGREDIENT_INITS_TABLE_FULL_NAME, self._HandleIngredientInitTableChange)
 
-    def GetRecipe(self, recipeID, overrideDict = None):
+    def GetRecipe(self, recipeID, overrideDict=None):
         recipe = self.recipes.get(recipeID, None)
         if recipe is None:
             recipe = self._LoadRecipe(recipeID)
@@ -47,39 +48,41 @@ class EntityRecipeService(service.Service):
         recipeRow = cfg.recipes.GetIfExists(recipeID)
         if recipeRow is None:
             return {}
-        if recipeRow.parentRecipeID:
-            recipe = self.GetRecipe(recipeRow.parentRecipeID)
         else:
-            recipe = {}
-        ingredients = cfg.entityIngredientsByRecipeID.get(recipeID, [])
-        for row in ingredients:
-            if row.componentID not in recipe:
-                recipe[row.componentID] = BaseComponentView.GetDefaultRecipe(row.componentID)
-            self._LoadInitValues(recipe[row.componentID], row.ingredientID)
+            if recipeRow.parentRecipeID:
+                recipe = self.GetRecipe(recipeRow.parentRecipeID)
+            else:
+                recipe = {}
+            ingredients = cfg.entityIngredientsByRecipeID.get(recipeID, [])
+            for row in ingredients:
+                if row.componentID not in recipe:
+                    recipe[row.componentID] = BaseComponentView.GetDefaultRecipe(row.componentID)
+                self._LoadInitValues(recipe[row.componentID], row.ingredientID)
 
-        spawn = cfg.entitySpawnsByRecipeID.get(recipeID, None)
-        if spawn:
-            spawn = spawn[0]
-            recipeWithDefaults = {}
-            for componentID, componentRecipe in recipe.iteritems():
-                componentRecipe['_spawnID'] = spawn.spawnID
-                defaultsDict = BaseComponentView.GetDefaultRecipe(componentID, groupFilter=cef.BaseComponentView.ALL_STATIC)
-                recipeWithDefaults[componentID] = defaultsDict
+            spawn = cfg.entitySpawnsByRecipeID.get(recipeID, None)
+            if spawn:
+                spawn = spawn[0]
+                recipeWithDefaults = {}
+                for componentID, componentRecipe in recipe.iteritems():
+                    componentRecipe['_spawnID'] = spawn.spawnID
+                    defaultsDict = BaseComponentView.GetDefaultRecipe(componentID, groupFilter=cef.BaseComponentView.ALL_STATIC)
+                    recipeWithDefaults[componentID] = defaultsDict
 
-            self._IntegrateDicts(recipeWithDefaults, recipe)
-            recipe = recipeWithDefaults
-        for componentState in recipe.itervalues():
-            componentState['_recipeID'] = recipeID
+                self._IntegrateDicts(recipeWithDefaults, recipe)
+                recipe = recipeWithDefaults
+            for componentState in recipe.itervalues():
+                componentState['_recipeID'] = recipeID
 
-        self.recipes[recipeID] = recipe
-        return recipe
+            self.recipes[recipeID] = recipe
+            return recipe
 
-    def GetSpawnRecipe(self, spawnID, overrideDict = None):
+    def GetSpawnRecipe(self, spawnID, overrideDict=None):
         spawnRow = cfg.entitySpawns.GetIfExists(spawnID)
         if spawnRow is None or spawnRow.recipeID is None:
             self.LogError('spawnID', spawnID, 'has no recipe set')
             return {}
-        return self.GetRecipe(spawnRow.recipeID, overrideDict=overrideDict)
+        else:
+            return self.GetRecipe(spawnRow.recipeID, overrideDict=overrideDict)
 
     def GetIngredient(self, ingredientID):
         return cfg.ingredients.GetIfExists(ingredientID)
@@ -105,6 +108,8 @@ class EntityRecipeService(service.Service):
                                 else:
                                     keyNameDict.update(valueDict)
 
+        return
+
     def _LoadInitValues(self, recipeComponent, ingredientID):
         cachedInitVals = cfg.entityIngredientInitialValues
         if ingredientID not in cachedInitVals:
@@ -123,18 +128,19 @@ class EntityRecipeService(service.Service):
             if row.keyName not in recipeComponent['keyedData']:
                 recipeComponent['keyedData'][row.keyName] = {}
             recipeComponent['keyedData'][row.keyName][row.initialValueName] = val
+        return
 
     def _HandleRecipeTableChange(self, tableChanges):
-        for (recipeID,), (oldDataKeyVal, newDataKeyVal) in tableChanges.iteritems():
+        for (recipeID), (oldDataKeyVal, newDataKeyVal) in tableChanges.iteritems():
             self._ClearRecipe(recipeID)
 
     def _HandleIngredientTableChange(self, tableChanges):
-        for (ingredientID,), (oldDataKeyVal, newDataKeyVal) in tableChanges.iteritems():
+        for (ingredientID), (oldDataKeyVal, newDataKeyVal) in tableChanges.iteritems():
             validKeyVal = oldDataKeyVal or newDataKeyVal
             self._ClearRecipe(validKeyVal.recipeID)
 
     def _HandleIngredientInitTableChange(self, tableChanges):
-        for (ingredientInitialValueID,), (oldDataKeyVal, newDataKeyVal) in tableChanges.iteritems():
+        for (ingredientInitialValueID), (oldDataKeyVal, newDataKeyVal) in tableChanges.iteritems():
             validKeyVal = oldDataKeyVal or newDataKeyVal
             self._ClearIngredientInit(validKeyVal.ingredientID)
 
@@ -156,6 +162,7 @@ class EntityRecipeService(service.Service):
         ingredientRow = self.GetIngredient(ingredientID)
         if ingredientRow is not None:
             self._ClearRecipe(ingredientRow.recipeID)
+        return
 
     def _ClearRecipe(self, recipeID):
         if recipeID in self.recipes:
@@ -182,3 +189,4 @@ class EntityRecipeService(service.Service):
             recipeClearWeakSet = []
             callback.recipeClearWeakSet = recipeClearWeakSet
         recipeClearWeakSet.append(weakSet)
+        return

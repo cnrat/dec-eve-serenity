@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\client\script\ui\shared\industry\simpleCurtain.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\client\script\ui\shared\industry\simpleCurtain.py
 from functools import partial
 from math import pi
 import log
@@ -115,3 +116,5 @@ class SimpleCurtain(Container):
                 self.callback(self.isUp)
         except Exception:
             log.LogException('Failed to call callback when curtain was clicked')
+
+        return

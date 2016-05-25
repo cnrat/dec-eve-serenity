@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\packages\notifications\common\formatters\sovIHubBillAboutToExpire.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\packages\notifications\common\formatters\sovIHubBillAboutToExpire.py
 from notifications.common.formatters.baseFormatter import BaseNotificationFormatter
 from localization import GetByLabel
 CORP_ID = 'corpID'
@@ -24,5 +25,5 @@ class IHubBillAboutToExpire(BaseNotificationFormatter):
          DUE_DATETIME: dueDateTime}
 
     @staticmethod
-    def MakeSampleData(variant = 0):
+    def MakeSampleData(variant=0):
         return IHubBillAboutToExpire.MakeData(0, 99000001, 30004797, 135808394095944399L)

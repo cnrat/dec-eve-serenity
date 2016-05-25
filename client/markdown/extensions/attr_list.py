@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\carbon\common\lib\markdown\extensions\attr_list.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\carbon\common\lib\markdown\extensions\attr_list.py
 import markdown
 import re
 from markdown.util import isBlockLevel
@@ -96,5 +97,5 @@ class AttrListExtension(markdown.extensions.Extension):
             md.treeprocessors.add('attr_list', AttrListTreeprocessor(md), '>inline')
 
 
-def makeExtension(configs = {}):
+def makeExtension(configs={}):
     return AttrListExtension(configs=configs)

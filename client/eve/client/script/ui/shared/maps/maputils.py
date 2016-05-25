@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\client\script\ui\shared\maps\maputils.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\client\script\ui\shared\maps\maputils.py
 import types
 import evetypes
 import trinity
@@ -51,26 +52,27 @@ def GetMyPos():
     return myPos
 
 
-def GetDistance(slimItem = None, mapData = None, ball = None, transform = None):
+def GetDistance(slimItem=None, mapData=None, ball=None, transform=None):
     if ball:
         return ball.surfaceDist
-    if slimItem:
-        ballPark = sm.GetService('michelle').GetBallpark()
-        if ballPark and slimItem.itemID in ballPark.balls:
-            return ballPark.balls[slimItem.itemID].surfaceDist
-    myPos = GetMyPos()
-    if mapData:
-        pos = trinity.TriVector(mapData.x, mapData.y, mapData.z)
-    elif transform:
-        pos = transform.translation
-        if type(pos) == types.TupleType:
-            pos = trinity.TriVector(*pos)
     else:
-        return None
-    return (pos - myPos).Length()
+        if slimItem:
+            ballPark = sm.GetService('michelle').GetBallpark()
+            if ballPark and slimItem.itemID in ballPark.balls:
+                return ballPark.balls[slimItem.itemID].surfaceDist
+        myPos = GetMyPos()
+        if mapData:
+            pos = trinity.TriVector(mapData.x, mapData.y, mapData.z)
+        elif transform:
+            pos = transform.translation
+            if type(pos) == types.TupleType:
+                pos = trinity.TriVector(*pos)
+        else:
+            return None
+        return (pos - myPos).Length()
 
 
-def GetNameFromMapCache(messageID, messageType = None):
+def GetNameFromMapCache(messageID, messageType=None):
     return localization.GetByMessageID(messageID)
 
 

@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\client\script\industry\mixins.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\client\script\industry\mixins.py
 import blue
 from eve.common.script.sys.eveCfg import IsStation
 import evetypes
@@ -22,7 +23,7 @@ from eve.common.script.util.slimItem import SlimItem
 from carbonui.util.color import Color
 from utillib import KeyVal
 
-def GetFacilityName(facilityID, typeID = None, solarSystemID = None):
+def GetFacilityName(facilityID, typeID=None, solarSystemID=None):
     name = cfg.evelocations.Get(facilityID).name
     if not name and typeID:
         name = evetypes.GetName(typeID)
@@ -133,19 +134,20 @@ class BlueprintMixin(object):
     def IsSameBlueprint(self, bpData):
         if bpData is None:
             return False
-        if self.blueprintTypeID != bpData.blueprintTypeID:
+        elif self.blueprintTypeID != bpData.blueprintTypeID:
             return False
-        if self.blueprintID != bpData.blueprintID:
+        elif self.blueprintID != bpData.blueprintID:
             return False
-        if self.locationID != bpData.locationID:
+        elif self.locationID != bpData.locationID:
             return False
-        if self.flagID != bpData.flagID:
+        elif self.flagID != bpData.flagID:
             return False
-        if self.ownerID != bpData.ownerID:
+        elif self.ownerID != bpData.ownerID:
             return False
-        if self.original != bpData.original:
+        elif self.original != bpData.original:
             return False
-        return True
+        else:
+            return True
 
     def IsAncientRelic(self):
         return evetypes.GetCategoryID(self.blueprintTypeID) == const.categoryAncientRelic
@@ -153,12 +155,13 @@ class BlueprintMixin(object):
     def IsWithinRange(self):
         if IsStation(self.facilityID):
             return self.facilityID == session.stationid2
-        if session.solarsystemid:
+        elif session.solarsystemid:
             bp = sm.GetService('michelle').GetBallpark()
             if bp is None:
                 return False
             return bp.GetBall(self.facilityID) is not None
-        return False
+        else:
+            return False
 
     def GetCopy(self):
         bpData = sm.GetService('blueprintSvc').GetBlueprintType(self.blueprintTypeID).copy()
@@ -189,7 +192,7 @@ class ActivityMixin(object):
     def GetIcon(self):
         return ACTIVITY_ICONS_SMALL[self.activityID]
 
-    def GetTime(self, runs = 1):
+    def GetTime(self, runs=1):
         return FormatTimeInterval(self.time * runs * const.SEC)
 
     def GetMaterialsByGroups(self):
@@ -276,8 +279,9 @@ class MaterialMixin(object):
     def IsSelectable(self):
         if not self.IsOptional():
             return False
-        typeIDs = [ material.typeID for material in self.options ]
-        return None not in typeIDs
+        else:
+            typeIDs = [ material.typeID for material in self.options ]
+            return None not in typeIDs
 
     def IsOptionSelected(self):
         return self.typeID is not None
@@ -371,6 +375,8 @@ class JobMixin(object):
     def GetProductNewBlueprint(self):
         if isinstance(self.product, industry.Blueprint) and self.product.blueprintID is None:
             return self.product
+        else:
+            return
 
     def GetRunsRemainingCaption(self):
         if self.activityID in (industry.MANUFACTURING, industry.INVENTION):
@@ -497,6 +503,8 @@ class JobMixin(object):
         except KeyError:
             return GetFacilityName(self.stationID, None, self.solarSystemID)
 
+        return None
+
     def GetFacilityType(self):
         try:
             if self.facility:
@@ -530,12 +538,10 @@ class LocationMixin(object):
         if groupID in CONTAINERGROUPS:
             invController = invCtrl.StationContainer(self.itemID, self.typeID)
         elif self.typeID == const.typeOffice:
-            corpFlags = const.corpHangarTakeRolesByFlag.keys()
-            divisionNum = corpFlags.index(self.flagID)
+            divisionNum = const.corporationDivisionFromFlag.get(self.flagID)
             invController = invCtrl.StationCorpHangar(self.itemID, divisionNum)
         elif groupID in (const.groupAssemblyArray, const.groupMobileLaboratory):
-            corpFlags = const.corpHangarTakeRolesByFlag.keys()
-            divisionNum = corpFlags.index(self.flagID)
+            divisionNum = const.corporationDivisionFromFlag.get(self.flagID)
             invController = invCtrl.POSCorpHangar(self.itemID, divisionNum)
         else:
             invController = invCtrl.StationItems(self.itemID)

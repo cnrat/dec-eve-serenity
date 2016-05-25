@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\client\script\ui\inflight\probeScannerWindow.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\client\script\ui\inflight\probeScannerWindow.py
 import carbonui.const as uiconst
 from eve.client.script.ui.control.eveWindow import Window
 from eve.client.script.ui.inflight.scannerFiles.scannerToolsPalette import ScannerToolsPalette
@@ -19,6 +20,7 @@ class ProbeScannerWindow(Window):
         self.HideMainIcon()
         self.SetTopparentHeight(0)
         self.scannerTools = ScannerToolsPalette(parent=self.GetMainArea(), align=uiconst.TOALL, state=uiconst.UI_PICKCHILDREN, padding=const.defaultPadding, idx=0)
+        return
 
     def Confirm(self, *args):
         self.scannerTools.Confirm()

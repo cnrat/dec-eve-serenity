@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\carbon\common\lib\werkzeug\http.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\carbon\common\lib\werkzeug\http.py
 import re
 import inspect
 try:
@@ -39,7 +40,7 @@ _hop_by_pop_headers = frozenset(['connection',
  'transfer-encoding',
  'upgrade'])
 
-def quote_header_value(value, extra_chars = '', allow_token = True):
+def quote_header_value(value, extra_chars='', allow_token=True):
     value = str(value)
     if allow_token:
         token_chars = _token_chars | set(extra_chars)
@@ -48,11 +49,11 @@ def quote_header_value(value, extra_chars = '', allow_token = True):
     return '"%s"' % value.replace('\\', '\\\\').replace('"', '\\"')
 
 
-def unquote_header_value(value, is_filename = False):
-    if value and value[0] == value[-1] == '"':
-        value = value[1:-1]
-        if not is_filename or value[:2] != '\\\\':
-            return value.replace('\\\\', '\\').replace('\\"', '"')
+def unquote_header_value(value, is_filename=False):
+    if value:
+        if value[0] == value[-1] == '"':
+            value = value[1:-1]
+            return (not is_filename or value[:2] != '\\\\') and value.replace('\\\\', '\\').replace('\\"', '"')
     return value
 
 
@@ -69,7 +70,7 @@ def dump_options_header(header, options):
     return '; '.join(segments)
 
 
-def dump_header(iterable, allow_token = True):
+def dump_header(iterable, allow_token=True):
     if isinstance(iterable, dict):
         items = []
         for key, value in iterable.iteritems():
@@ -117,6 +118,8 @@ def parse_options_header(value):
                 value = unquote_header_value(value, key == 'filename')
             yield (key, value)
 
+        return
+
     if not value:
         return ('', {})
     parts = _tokenize(';' + value)
@@ -125,35 +128,38 @@ def parse_options_header(value):
     return (name, extra)
 
 
-def parse_accept_header(value, cls = None):
+def parse_accept_header(value, cls=None):
     if cls is None:
         cls = Accept
     if not value:
         return cls(None)
-    result = []
-    for match in _accept_re.finditer(value):
-        quality = match.group(2)
-        if not quality:
-            quality = 1
-        else:
-            quality = max(min(float(quality), 1), 0)
-        result.append((match.group(1), quality))
+    else:
+        result = []
+        for match in _accept_re.finditer(value):
+            quality = match.group(2)
+            if not quality:
+                quality = 1
+            else:
+                quality = max(min(float(quality), 1), 0)
+            result.append((match.group(1), quality))
 
-    return cls(result)
+        return cls(result)
 
 
-def parse_cache_control_header(value, on_update = None, cls = None):
+def parse_cache_control_header(value, on_update=None, cls=None):
     if cls is None:
         cls = RequestCacheControl
     if not value:
         return cls(None, on_update)
-    return cls(parse_dict_header(value), on_update)
+    else:
+        return cls(parse_dict_header(value), on_update)
 
 
-def parse_set_header(value, on_update = None):
+def parse_set_header(value, on_update=None):
     if not value:
         return HeaderSet(None, on_update)
-    return HeaderSet(parse_list_header(value), on_update)
+    else:
+        return HeaderSet(parse_list_header(value), on_update)
 
 
 def parse_authorization_header(value):
@@ -173,28 +179,31 @@ def parse_authorization_header(value):
 
         return Authorization('basic', {'username': username,
          'password': password})
-    if auth_type == 'digest':
+    elif auth_type == 'digest':
         auth_map = parse_dict_header(auth_info)
         for key in ('username', 'realm', 'nonce', 'uri', 'nc', 'cnonce', 'response'):
             if key not in auth_map:
                 return
 
         return Authorization('digest', auth_map)
+    else:
+        return
 
 
-def parse_www_authenticate_header(value, on_update = None):
+def parse_www_authenticate_header(value, on_update=None):
     if not value:
         return WWWAuthenticate(on_update=on_update)
-    try:
-        auth_type, auth_info = value.split(None, 1)
-        auth_type = auth_type.lower()
-    except (ValueError, AttributeError):
-        return WWWAuthenticate(value.strip().lower(), on_update=on_update)
+    else:
+        try:
+            auth_type, auth_info = value.split(None, 1)
+            auth_type = auth_type.lower()
+        except (ValueError, AttributeError):
+            return WWWAuthenticate(value.strip().lower(), on_update=on_update)
 
-    return WWWAuthenticate(auth_type, parse_dict_header(auth_info), on_update)
+        return WWWAuthenticate(auth_type, parse_dict_header(auth_info), on_update)
 
 
-def quote_etag(etag, weak = False):
+def quote_etag(etag, weak=False):
     if '"' in etag:
         raise ValueError('invalid etag')
     etag = '"%s"' % etag
@@ -206,39 +215,41 @@ def quote_etag(etag, weak = False):
 def unquote_etag(etag):
     if not etag:
         return (None, None)
-    etag = etag.strip()
-    weak = False
-    if etag[:2] in ('w/', 'W/'):
-        weak = True
-        etag = etag[2:]
-    if etag[:1] == etag[-1:] == '"':
-        etag = etag[1:-1]
-    return (etag, weak)
+    else:
+        etag = etag.strip()
+        weak = False
+        if etag[:2] in ('w/', 'W/'):
+            weak = True
+            etag = etag[2:]
+        if etag[:1] == etag[-1:] == '"':
+            etag = etag[1:-1]
+        return (etag, weak)
 
 
 def parse_etags(value):
     if not value:
         return ETags()
-    strong = []
-    weak = []
-    end = len(value)
-    pos = 0
-    while pos < end:
-        match = _etag_re.match(value, pos)
-        if match is None:
-            break
-        is_weak, quoted, raw = match.groups()
-        if raw == '*':
-            return ETags(star_tag=True)
-        if quoted:
-            raw = quoted
-        if is_weak:
-            weak.append(raw)
-        else:
-            strong.append(raw)
-        pos = match.end()
+    else:
+        strong = []
+        weak = []
+        end = len(value)
+        pos = 0
+        while pos < end:
+            match = _etag_re.match(value, pos)
+            if match is None:
+                break
+            is_weak, quoted, raw = match.groups()
+            if raw == '*':
+                return ETags(star_tag=True)
+            if quoted:
+                raw = quoted
+            if is_weak:
+                weak.append(raw)
+            else:
+                strong.append(raw)
+            pos = match.end()
 
-    return ETags(strong, weak)
+        return ETags(strong, weak)
 
 
 def generate_etag(data):
@@ -259,28 +270,31 @@ def parse_date(value):
             except (ValueError, OverflowError):
                 return
 
+    return
 
-def is_resource_modified(environ, etag = None, data = None, last_modified = None):
+
+def is_resource_modified(environ, etag=None, data=None, last_modified=None):
     if etag is None and data is not None:
         etag = generate_etag(data)
     elif data is not None:
         raise TypeError('both data and etag given')
     if environ['REQUEST_METHOD'] not in ('GET', 'HEAD'):
         return False
-    unmodified = False
-    if isinstance(last_modified, basestring):
-        last_modified = parse_date(last_modified)
-    modified_since = parse_date(environ.get('HTTP_IF_MODIFIED_SINCE'))
-    if modified_since and last_modified and last_modified <= modified_since:
-        unmodified = True
-    if etag:
-        if_none_match = parse_etags(environ.get('HTTP_IF_NONE_MATCH'))
-        if if_none_match:
-            unmodified = if_none_match.contains_raw(etag)
-    return not unmodified
+    else:
+        unmodified = False
+        if isinstance(last_modified, basestring):
+            last_modified = parse_date(last_modified)
+        modified_since = parse_date(environ.get('HTTP_IF_MODIFIED_SINCE'))
+        if modified_since and last_modified and last_modified <= modified_since:
+            unmodified = True
+        if etag:
+            if_none_match = parse_etags(environ.get('HTTP_IF_NONE_MATCH'))
+            if if_none_match:
+                unmodified = if_none_match.contains_raw(etag)
+        return not unmodified
 
 
-def remove_entity_headers(headers, allowed = ('expires', 'content-location')):
+def remove_entity_headers(headers, allowed=('expires', 'content-location')):
     allowed = set((x.lower() for x in allowed))
     headers[:] = [ (key, value) for key, value in headers if not is_entity_header(key) or key.lower() in allowed ]
 

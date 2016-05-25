@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\client\script\ui\shared\fitting\fittingLayout.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\client\script\ui\shared\fitting\fittingLayout.py
 from carbon.common.script.util.format import FmtAmt
 from carbonui.primitives.sprite import Sprite
 import carbonui.const as uiconst
@@ -53,7 +54,7 @@ class FittingGauge(GaugeCircular):
         self.bgGauge.GetTooltipPosition = self.GetTooltipPosition
         self.currentValue = 0
 
-    def SetValue(self, value, animate = True):
+    def SetValue(self, value, animate=True):
         if value > 1.0:
             uicore.animations.FadeTo(self, 0.25, 1.0, duration=0.5, loops=uiconst.ANIM_REPEAT)
         else:

@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\common\modules\nice\client\_nastyspace\bracket.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\common\modules\nice\client\_nastyspace\bracket.py
 from eve.client.script.ui.inflight.bracket import LABELMARGIN
 from eve.client.script.ui.inflight.bracket import SHOWLABELS_ALWAYS
 from eve.client.script.ui.inflight.bracket import SHOWLABELS_NEVER

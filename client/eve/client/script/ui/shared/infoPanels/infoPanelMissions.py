@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\client\script\ui\shared\infoPanels\infoPanelMissions.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\client\script\ui\shared\infoPanels\infoPanelMissions.py
 import ast
 import evetypes
 import uicontrols
@@ -56,6 +57,8 @@ class MissionInfo(Container):
             if bm['locationType'] == 'dungeon':
                 return bm
 
+        return None
+
     def ShowHintIcon(self, parent, missionInfo, bmInfo):
         if missionInfo[0] == 'TravelTo':
             locationID = int(self.missionInfo[1])
@@ -84,7 +87,7 @@ class MissionInfo(Container):
             itemLink = localization.GetByLabel('UI/Contracts/ContractsWindow/ShowInfoLink', showInfoName=typeName, info=('showinfo', typeID))
             self.missionHint = localization.GetByLabel('UI/Agents/MissionTracker/FetchItem', item=itemLink)
             return
-        if missionInfo[0] == 'MissionFetchContainer':
+        elif missionInfo[0] == 'MissionFetchContainer':
             typeID = int(self.missionInfo[1])
             containerID = long(self.missionInfo[2])
             self.iconTypeID = typeID
@@ -94,7 +97,7 @@ class MissionInfo(Container):
             itemLink = localization.GetByLabel('UI/Contracts/ContractsWindow/ShowInfoLink', showInfoName=typeName, info=('showinfo', typeID))
             self.missionHint = localization.GetByLabel('UI/Agents/MissionTracker/RetrieveFromContainer', item=itemLink)
             return
-        if self.missionInfo[0] == 'MissionFetchMine':
+        elif self.missionInfo[0] == 'MissionFetchMine':
             typeID = int(self.missionInfo[1])
             quantity = int(self.missionInfo[2])
             self.iconTypeID = typeID
@@ -103,7 +106,7 @@ class MissionInfo(Container):
             itemLink = localization.GetByLabel('UI/Contracts/ContractsWindow/ShowInfoLink', showInfoName=typeName, info=('showinfo', typeID))
             self.missionHint = localization.GetByLabel('UI/Agents/MissionTracker/FetchMine', item=itemLink) + ' (%s)' % format(quantity, ',d')
             return
-        if self.missionInfo[0] == 'MissionFetchMineTrigger':
+        elif self.missionInfo[0] == 'MissionFetchMineTrigger':
             typeID = int(self.missionInfo[1])
             self.iconTypeID = typeID
             self.icon = Sprite(parent=parent, opacity=0.6, width=20, height=20, left=0, top=0, state=uiconst.UI_DISABLED, texturePath='res:/UI/Texture/classes/MissionTracker/tracker_mining.png')
@@ -111,7 +114,7 @@ class MissionInfo(Container):
             itemLink = localization.GetByLabel('UI/Contracts/ContractsWindow/ShowInfoLink', showInfoName=typeName, info=('showinfo', typeID))
             self.missionHint = localization.GetByLabel('UI/Agents/MissionTracker/FetchMine', item=itemLink)
             return
-        if self.missionInfo[0] == 'MissionFetchTarget':
+        elif self.missionInfo[0] == 'MissionFetchTarget':
             itemTypeID = int(self.missionInfo[1])
             itemTypeName = self._GetTypeName(itemTypeID)
             targetTypeID = int(self.missionInfo[2])
@@ -121,24 +124,24 @@ class MissionInfo(Container):
             self.icon = Sprite(parent=parent, opacity=0.6, width=20, height=20, left=0, top=0, state=uiconst.UI_DISABLED, texturePath='res:/UI/Texture/classes/MissionTracker/tracker_kill.png')
             self.missionHint = localization.GetByLabel('UI/Agents/MissionTracker/FetchTarget', npc=targetLink, item=itemLink)
             return
-        if missionInfo[0] == 'AllObjectivesComplete':
+        elif missionInfo[0] == 'AllObjectivesComplete':
             self.iconItemID = agentID = long(self.missionInfo[1])
             self.iconTypeID = agentTypeID = cfg.eveowners.Get(self.iconItemID).typeID
             self.icon = Sprite(parent=parent, opacity=0.6, width=20, color=util.Color.GREEN, height=20, left=0, top=0, state=uiconst.UI_DISABLED, texturePath='res:/UI/Texture/classes/MissionTracker/tracker_check.png')
             agentLink = localization.GetByLabel('UI/Contracts/ContractsWindow/ShowInfoLink', showInfoName=cfg.eveowners.Get(agentID).name, info=('showinfo', agentTypeID, agentID))
             self.missionHint = localization.GetByLabel('UI/Agents/MissionTracker/MissionComplete', agent=agentLink)
             return
-        if self.missionInfo[0] == 'TransportItemsPresent':
+        elif self.missionInfo[0] == 'TransportItemsPresent':
             self.ShowHintIconTransportItemsPresent(parent=parent, agentID=bmInfo.agentID)
             return
-        if self.missionInfo[0] == 'TransportItemsMissing':
+        elif self.missionInfo[0] == 'TransportItemsMissing':
             self.icon = Sprite(parent=parent, opacity=0.6, width=20, height=20, left=0, top=0, state=uiconst.UI_DISABLED, texturePath='res:/UI/Texture/classes/MissionTracker/tracker_pickup.png')
             self.iconTypeID = itemTypeID = int(self.missionInfo[1])
             itemTypeName = self.GetTypeName(self.iconTypeID)
             itemLink = localization.GetByLabel('UI/Contracts/ContractsWindow/ShowInfoLink', showInfoName=itemTypeName, info=('showinfo', itemTypeID))
             self.missionHint = localization.GetByLabel('UI/Agents/MissionTracker/TransportItemsMissing', item=itemLink)
             return
-        if self.missionInfo[0] == 'FetchObjectAcquiredDungeonDone':
+        elif self.missionInfo[0] == 'FetchObjectAcquiredDungeonDone':
             self.icon = Sprite(parent=parent, opacity=0.6, width=20, height=20, left=0, top=0, state=uiconst.UI_DISABLED, texturePath='res:/UI/Texture/classes/MissionTracker/tracker_dropoff.png')
             self.iconTypeID = itemTypeID = int(self.missionInfo[1])
             itemTypeName = self.GetTypeName(self.iconTypeID)
@@ -152,13 +155,13 @@ class MissionInfo(Container):
             agentLink = localization.GetByLabel('UI/Contracts/ContractsWindow/ShowInfoLink', showInfoName=cfg.eveowners.Get(agentID).name, info=('showinfo', agentTypeID, agentID))
             self.missionHint = localization.GetByLabel('UI/Agents/MissionTracker/FetchItemReturn', item=itemLink, agent=agentLink)
             return
-        if self.missionInfo[0] == 'GoToGate':
+        elif self.missionInfo[0] == 'GoToGate':
             self.iconItemID = long(self.missionInfo[1])
             self.iconTypeID = const.typeAccelerationGate
             self.icon = Sprite(parent=parent, opacity=0.7, width=20, height=20, left=0, top=0, state=uiconst.UI_DISABLED, texturePath='res:/UI/Texture/classes/MissionTracker/tracker_destination.png')
             self.missionHint = localization.GetByLabel('UI/Agents/MissionTracker/GoToGate')
             return
-        if self.missionInfo[0] == 'KillTrigger':
+        elif self.missionInfo[0] == 'KillTrigger':
             self.iconTypeID = targetTypeID = int(self.missionInfo[1])
             self.iconItemID = targetItemID = long(self.missionInfo[2])
             eventTypeName = self.missionInfo[3]
@@ -167,7 +170,7 @@ class MissionInfo(Container):
             targetLink = localization.GetByLabel('UI/Contracts/ContractsWindow/ShowInfoLink', showInfoName=targetName, info=('showinfo', targetTypeID, targetItemID))
             self.missionHint = localization.GetByLabel('UI/Agents/MissionTracker/KillTrigger', target=targetLink) + ' ' + eventTypeName
             return
-        if self.missionInfo[0] == 'DestroyLCSAndAll':
+        elif self.missionInfo[0] == 'DestroyLCSAndAll':
             self.iconTypeID = targetTypeID = int(self.missionInfo[1])
             self.iconItemID = targetItemID = long(self.missionInfo[2])
             self.icon = Sprite(parent=parent, opacity=0.6, width=20, height=20, left=0, top=0, state=uiconst.UI_DISABLED, texturePath='res:/UI/Texture/classes/MissionTracker/tracker_kill.png')
@@ -175,7 +178,7 @@ class MissionInfo(Container):
             targetLink = localization.GetByLabel('UI/Contracts/ContractsWindow/ShowInfoLink', showInfoName=targetName, info=('showinfo', targetTypeID, targetItemID))
             self.missionHint = localization.GetByLabel('UI/Agents/MissionTracker/DestroyLCSAndAll', lcs=targetLink)
             return
-        if self.missionInfo[0] == 'Destroy':
+        elif self.missionInfo[0] == 'Destroy':
             self.iconTypeID = targetTypeID = int(self.missionInfo[1])
             self.iconItemID = targetItemID = long(self.missionInfo[2])
             self.icon = Sprite(parent=parent, opacity=0.6, width=20, height=20, left=0, top=0, state=uiconst.UI_DISABLED, texturePath='res:/UI/Texture/classes/MissionTracker/tracker_kill.png')
@@ -183,7 +186,7 @@ class MissionInfo(Container):
             targetLink = localization.GetByLabel('UI/Contracts/ContractsWindow/ShowInfoLink', showInfoName=targetName, info=('showinfo', targetTypeID, targetItemID))
             self.missionHint = localization.GetByLabel('UI/Agents/MissionTracker/Destroy', lcs=targetLink)
             return
-        if self.missionInfo[0] == 'Attack':
+        elif self.missionInfo[0] == 'Attack':
             self.iconTypeID = targetTypeID = int(self.missionInfo[1])
             self.iconItemID = targetItemID = long(self.missionInfo[2])
             self.icon = Sprite(parent=parent, opacity=0.6, width=20, height=20, left=0, top=0, state=uiconst.UI_DISABLED, texturePath='res:/UI/Texture/classes/MissionTracker/tracker_kill.png')
@@ -191,7 +194,7 @@ class MissionInfo(Container):
             targetLink = localization.GetByLabel('UI/Contracts/ContractsWindow/ShowInfoLink', showInfoName=targetName, info=('showinfo', targetTypeID, targetItemID))
             self.missionHint = localization.GetByLabel('UI/Agents/MissionTracker/Attack', target=targetLink)
             return
-        if self.missionInfo[0] == 'Approach':
+        elif self.missionInfo[0] == 'Approach':
             self.iconTypeID = targetTypeID = int(self.missionInfo[1])
             self.iconItemID = targetItemID = long(self.missionInfo[2])
             self.icon = Sprite(parent=parent, opacity=0.6, width=20, height=20, left=0, top=0, state=uiconst.UI_DISABLED, texturePath='res:/UI/Texture/classes/MissionTracker/tracker_approach.png')
@@ -199,7 +202,7 @@ class MissionInfo(Container):
             targetLink = localization.GetByLabel('UI/Contracts/ContractsWindow/ShowInfoLink', showInfoName=targetName, info=('showinfo', targetTypeID, targetItemID))
             self.missionHint = localization.GetByLabel('UI/Agents/MissionTracker/Approach', target=targetLink)
             return
-        if self.missionInfo[0] == 'Hack':
+        elif self.missionInfo[0] == 'Hack':
             self.iconTypeID = targetTypeID = int(self.missionInfo[1])
             self.iconItemID = targetItemID = long(self.missionInfo[2])
             self.icon = Sprite(parent=parent, opacity=0.6, width=20, height=20, left=0, top=0, state=uiconst.UI_DISABLED, texturePath='res:/UI/Texture/classes/MissionTracker/tracker_hack.png')
@@ -207,7 +210,7 @@ class MissionInfo(Container):
             targetLink = localization.GetByLabel('UI/Contracts/ContractsWindow/ShowInfoLink', showInfoName=targetName, info=('showinfo', targetTypeID, targetItemID))
             self.missionHint = localization.GetByLabel('UI/Agents/MissionTracker/Hack', target=targetLink)
             return
-        if self.missionInfo[0] == 'Salvage':
+        elif self.missionInfo[0] == 'Salvage':
             self.iconTypeID = targetTypeID = int(self.missionInfo[1])
             self.iconItemID = targetItemID = long(self.missionInfo[2])
             self.icon = Sprite(parent=parent, opacity=0.6, width=20, height=20, left=0, top=0, state=uiconst.UI_DISABLED, texturePath='res:/UI/Texture/classes/MissionTracker/tracker_kill.png')
@@ -215,12 +218,14 @@ class MissionInfo(Container):
             targetLink = localization.GetByLabel('UI/Contracts/ContractsWindow/ShowInfoLink', showInfoName=targetName, info=('showinfo', targetTypeID, targetItemID))
             self.missionHint = localization.GetByLabel('UI/Agents/MissionTracker/Approach', target=targetLink)
             return
-        if self.missionInfo[0] == 'DestroyAll':
+        elif self.missionInfo[0] == 'DestroyAll':
             self.icon = Sprite(parent=parent, opacity=0.6, width=20, height=20, left=0, top=0, state=uiconst.UI_DISABLED, texturePath='res:/UI/Texture/classes/MissionTracker/tracker_kill.png')
             self.missionHint = localization.GetByLabel('UI/Agents/MissionTracker/DestroyAll')
             return
-        self.missionHint = localization.GetByLabel('UI/Agents/MissionTracker/ReadJournal')
-        self.icon = Sprite(parent=parent, opacity=0.6, width=20, height=20, left=0, top=0, state=uiconst.UI_DISABLED, texturePath='res:/UI/Texture/classes/MissionTracker/tracker_read.png')
+        else:
+            self.missionHint = localization.GetByLabel('UI/Agents/MissionTracker/ReadJournal')
+            self.icon = Sprite(parent=parent, opacity=0.6, width=20, height=20, left=0, top=0, state=uiconst.UI_DISABLED, texturePath='res:/UI/Texture/classes/MissionTracker/tracker_read.png')
+            return
 
     def ShowHintIconTransportItemsPresent(self, parent, agentID):
         self.icon = Sprite(parent=parent, opacity=0.6, width=20, height=20, left=0, top=0, state=uiconst.UI_DISABLED, texturePath='res:/UI/Texture/classes/MissionTracker/tracker_dropoff.png')
@@ -266,6 +271,7 @@ class MissionInfo(Container):
         self.ShowHintIcon(self, self.missionInfo, bmInfo)
         if self.icon and previousInfo != self.missionInfo:
             uicore.animations.SpGlowFadeTo(self.icon, loops=5, glowExpand=0.0, duration=0.5)
+        return
 
 
 class InfoPanelMissions(uicls.InfoPanelBase):
@@ -312,7 +318,7 @@ class InfoPanelMissions(uicls.InfoPanelBase):
             headerText = headerText.strip(' ').strip('-').strip(' ')
             menuParent.AddHeader(text=headerText)
             menuCont = menuParent.AddContainer(name='menuCont', align=uiconst.TOTOP, height=40)
-            menuCont.GetEntryWidth = lambda mc = menuCont: self.GetContainerEntryWidth(mc)
+            menuCont.GetEntryWidth = lambda mc=menuCont: self.GetContainerEntryWidth(mc)
             startLocationInfoTag = '<url=showinfo:%d//%d>' % (bmTypeID, bm.itemID)
             locationName = self.GetColorCodedSecurityStringForLocation(bm.solarsystemID, cfg.evelocations.Get(bm.itemID).name)
             locationText = localization.GetByLabel('UI/Agents/InfoLink', startInfoTag=startLocationInfoTag, startColorTag=startInfoColorTag, objectName=locationName, endColorTag=endColorTag, endnfoTag=endInfoTag)

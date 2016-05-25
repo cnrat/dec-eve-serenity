@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\packages\uthread\__init__.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\packages\uthread\__init__.py
 __version__ = '0.1'
 __license__ = 'Python Microthread Library version 0.1\nCopyright (C)2000  Will Ware, Christian Tismer\n\nPermission to use, copy, modify, and distribute this software and its\ndocumentation for any purpose and without fee is hereby granted,\nprovided that the above copyright notice appear in all copies and that\nboth that copyright notice and this permission notice appear in\nsupporting documentation, and that the names of the authors not be\nused in advertising or publicity pertaining to distribution of the\nsoftware without specific, written prior permission.\n\nWILL WARE AND CHRISTIAN TISMER DISCLAIM ALL WARRANTIES WITH REGARD TO\nTHIS SOFTWARE, INCLUDING ALL IMPLIED WARRANTIES OF MERCHANTABILITY AND\nFITNESS. IN NO EVENT SHALL WILL WARE OR CHRISTIAN TISMER BE LIABLE FOR\nANY SPECIAL, INDIRECT OR CONSEQUENTIAL DAMAGES OR ANY DAMAGES\nWHATSOEVER RESULTING FROM LOSS OF USE, DATA OR PROFITS, WHETHER IN AN\nACTION OF CONTRACT, NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT\nOF OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.'
 import stackless
@@ -68,8 +69,10 @@ def waitForJoinable(t, timeout):
                 exce = None
 
         return result
-    t.isTimedOut = True
-    raise TaskletWaitTimeout()
+    else:
+        t.isTimedOut = True
+        raise TaskletWaitTimeout()
+        return
 
 
 class TaskletWaitTimeout(Exception):
@@ -100,7 +103,7 @@ def GetSemaphores():
 class Semaphore:
     __guid__ = 'uthread.Semaphore'
 
-    def __init__(self, semaphoreName = None, maxcount = 1, strict = True):
+    def __init__(self, semaphoreName=None, maxcount=1, strict=True):
         self.semaphoreName = semaphoreName
         self.maxcount = maxcount
         self.count = maxcount
@@ -111,6 +114,7 @@ class Semaphore:
         self.lockedWhen = None
         self.strict = strict
         locks.Register(self)
+        return
 
     def IsCool(self):
         return self.count == self.maxcount and not self.n_waiting
@@ -130,10 +134,12 @@ class Semaphore:
             while self.count == 0:
                 self.n_waiting += 1
                 try:
-                    self.waiting.receive()
-                except:
-                    self._safe_pump()
-                    raise
+                    try:
+                        self.waiting.receive()
+                    except:
+                        self._safe_pump()
+                        raise
+
                 finally:
                     self.n_waiting -= 1
 
@@ -155,7 +161,7 @@ class Semaphore:
                 return True
             return False
 
-    def release(self, override = False):
+    def release(self, override=False):
         with atomic():
             if self.strict and not override:
                 if stackless.getcurrent() not in self.threads:
@@ -164,6 +170,7 @@ class Semaphore:
             self.threads.remove(stackless.getcurrent())
             self.lockedWhen = None
             self._pump()
+        return
 
     def _safe_pump(self):
         try:
@@ -174,6 +181,8 @@ class Semaphore:
     def _pump(self):
         for i in range(min(self.count, -self.waiting.balance)):
             self.waiting.send(None)
+
+        return
 
     def __enter__(self):
         self.acquire()
@@ -208,7 +217,7 @@ class Semaphore:
 class CriticalSection(Semaphore):
     __guid__ = 'uthread.CriticalSection'
 
-    def __init__(self, semaphoreName = None, strict = True):
+    def __init__(self, semaphoreName=None, strict=True):
         Semaphore.__init__(self, semaphoreName)
         self.__reentrantRefs = 0
 
@@ -260,11 +269,13 @@ def FNext(f):
         first = None
         cursor = None
 
+    return
+
 
 class RWLock(object):
     __guid__ = 'uthread.RWLock'
 
-    def __init__(self, lockName = ''):
+    def __init__(self, lockName=''):
         self.name = lockName
         self.rchan = stackless.channel()
         self.wchan = stackless.channel()
@@ -273,6 +284,7 @@ class RWLock(object):
         self.tasklets = []
         self.lockedWhen = None
         locks.Register(self)
+        return
 
     def __repr__(self):
         return '<RWLock %r, state:%d, rdwait:%d, wrwait:%d, t:%f at %#x>' % (self.name,
@@ -309,7 +321,7 @@ class RWLock(object):
             return True
         return False
 
-    def Unlock(self, tasklet = None):
+    def Unlock(self, tasklet=None):
         if tasklet is None:
             tasklet = stackless.getcurrent()
         try:
@@ -324,8 +336,9 @@ class RWLock(object):
         if self.state == 0:
             self.lockedWhen = None
         self._Pump()
+        return
 
-    def _AddTasklet(self, tasklet = None):
+    def _AddTasklet(self, tasklet=None):
         if not tasklet:
             tasklet = stackless.getcurrent()
         self.tasklets.append(tasklet)
@@ -349,6 +362,8 @@ class RWLock(object):
                     chan.send(None)
                     continue
             return
+
+        return
 
     def __enter__(self):
         self.RDLock()
@@ -422,10 +437,10 @@ def GetChannels():
 class Channel(stackless.channel):
     __guid__ = 'uthread.Channel'
 
-    def __new__(cls, channelName = None):
+    def __new__(cls, channelName=None):
         return stackless.channel.__new__(cls)
 
-    def __init__(self, channelName = None):
+    def __init__(self, channelName=None):
         stackless.channel.__init__(self)
         self.channelName = channelName
         channels[self] = 1
@@ -477,7 +492,7 @@ class Queue(FIFO):
     __guid__ = 'uthread.Queue'
     __slots__ = 'chan'
 
-    def __init__(self, preference = 0):
+    def __init__(self, preference=0):
         FIFO.__init__(self)
         self.chan = stackless.channel()
         self.chan.preference = preference
@@ -526,6 +541,8 @@ def LockCheck():
             log.LogException()
             sys.exc_clear()
 
+    return
+
 
 def PoolWorker(ctx, func, *args, **keywords):
     return PoolWithoutTheStars(ctx, func, args, keywords, True)
@@ -535,7 +552,7 @@ def PoolWorkerWithoutTheStars(ctx, func, args, keywords):
     return PoolWithoutTheStars(ctx, func, args, keywords, True)
 
 
-def PoolWithoutTheStars(ctx, func, args, kw, notls = False):
+def PoolWithoutTheStars(ctx, func, args, kw, notls=False):
     if not ctx:
         ctx = ctxtfilter.sub('at (snip)', repr(func))
     if ctx[0] != '^':
@@ -567,56 +584,60 @@ def ParallelHelper(ch, idx, what):
     queue.put(ret)
 
 
-def Parallel(funcs, exceptionHandler = None, maxcount = 30, contextSuffix = None, funcContextSuffixes = None):
+def Parallel(funcs, exceptionHandler=None, maxcount=30, contextSuffix=None, funcContextSuffixes=None):
     if not funcs:
         return
-    context = blue.pyos.taskletTimer.GetCurrent()
-    if contextSuffix:
-        context += '::' + contextSuffix
-    ch = (Queue(preference=-1), stackless.getcurrent())
-    n = len(funcs)
-    ret = [None] * n
-    if n > maxcount:
-        n = maxcount
-    for i in xrange(n):
-        funcContext = context
-        if funcContextSuffixes is not None:
-            funcContext = funcContext + '::' + funcContextSuffixes[i]
-        Pool(funcContext, ParallelHelper, ch, i, funcs[i])
+    else:
+        context = blue.pyos.taskletTimer.GetCurrent()
+        if contextSuffix:
+            context += '::' + contextSuffix
+        ch = (Queue(preference=-1), stackless.getcurrent())
+        n = len(funcs)
+        ret = [None] * n
+        if n > maxcount:
+            n = maxcount
+        for i in xrange(n):
+            funcContext = context
+            if funcContextSuffixes is not None:
+                funcContext = funcContext + '::' + funcContextSuffixes[i]
+            Pool(funcContext, ParallelHelper, ch, i, funcs[i])
 
-    error = None
-    try:
-        for i in xrange(len(funcs)):
-            ok, bunch = ch[0].get()
-            if ok:
-                idx, val = bunch
-                ret[idx] = val
-            else:
-                error = bunch
-            if n < len(funcs):
-                funcContext = context
-                if funcContextSuffixes is not None:
-                    funcContext = funcContext + '::' + funcContextSuffixes[i]
-                Pool(funcContext, ParallelHelper, ch, n, funcs[n])
-                n += 1
+        error = None
+        try:
+            for i in xrange(len(funcs)):
+                ok, bunch = ch[0].get()
+                if ok:
+                    idx, val = bunch
+                    ret[idx] = val
+                else:
+                    error = bunch
+                if n < len(funcs):
+                    funcContext = context
+                    if funcContextSuffixes is not None:
+                        funcContext = funcContext + '::' + funcContextSuffixes[i]
+                    Pool(funcContext, ParallelHelper, ch, n, funcs[n])
+                    n += 1
 
-        if error:
-            if exceptionHandler:
-                exceptionHandler(error[1])
-            else:
-                raise error[0], error[1], error[2]
-        return ret
-    finally:
-        del error
+            if error:
+                if exceptionHandler:
+                    exceptionHandler(error[1])
+                else:
+                    raise error[0], error[1], error[2]
+            return ret
+        finally:
+            del error
+
+        return
 
 
 class TaskletSequencer(object):
 
-    def __init__(self, expected = None):
+    def __init__(self, expected=None):
         self.queue = []
         self.expected = expected
         self.lastThrough = None
         self.closed = False
+        return
 
     def State(self):
         return [self.expected, self.lastThrough, self.closed]
@@ -636,31 +657,33 @@ class TaskletSequencer(object):
     def Pass(self, sequenceNo):
         if self.closed:
             return
-        if self.expected is None:
-            self.expected = sequenceNo
-        if sequenceNo < self.expected:
-            return
-        while sequenceNo > self.expected:
-            me = (sequenceNo, stackless.getcurrent())
-            heapq.heappush(self.queue, me)
-            self.OnSleep(sequenceNo)
-            stackless.schedule_remove()
-            self.OnWakeUp(sequenceNo)
-            if self.closed:
+        else:
+            if self.expected is None:
+                self.expected = sequenceNo
+            if sequenceNo < self.expected:
                 return
+            while sequenceNo > self.expected:
+                me = (sequenceNo, stackless.getcurrent())
+                heapq.heappush(self.queue, me)
+                self.OnSleep(sequenceNo)
+                stackless.schedule_remove()
+                self.OnWakeUp(sequenceNo)
+                if self.closed:
+                    return
 
-        self.Assert(self.expected == sequenceNo)
-        self.expected += 1
-        expected = self.expected
-        while self.queue and self.queue[0][0] == expected:
-            self.OnWakingUp(sequenceNo, expected)
-            expected += 1
-            other = heapq.heappop(self.queue)
-            other[1].insert()
+            self.Assert(self.expected == sequenceNo)
+            self.expected += 1
+            expected = self.expected
+            while self.queue and self.queue[0][0] == expected:
+                self.OnWakingUp(sequenceNo, expected)
+                expected += 1
+                other = heapq.heappop(self.queue)
+                other[1].insert()
 
-        if self.lastThrough is not None:
-            self.Assert(self.lastThrough + 1 == sequenceNo)
-        self.lastThrough = sequenceNo
+            if self.lastThrough is not None:
+                self.Assert(self.lastThrough + 1 == sequenceNo)
+            self.lastThrough = sequenceNo
+            return
 
     def OnSleep(self, sequenceNo):
         pass
@@ -672,16 +695,18 @@ class TaskletSequencer(object):
         pass
 
 
-def CallOnThread(cmd, args = (), kwds = {}):
+def CallOnThread(cmd, args=(), kwds={}):
     chan = stackless.channel()
 
     def Helper():
         try:
-            r = cmd(*args, **kwds)
-            chan.send(r)
-        except:
-            e, v = sys.exc_info()[:2]
-            chan.send_exception(e, v)
+            try:
+                r = cmd(*args, **kwds)
+                chan.send(r)
+            except:
+                e, v = sys.exc_info()[:2]
+                chan.send_exception(e, v)
+
         finally:
             blue.pyos.NextScheduledEvent(0)
 
@@ -763,32 +788,37 @@ class BlockTrapSection(object):
         stackless.getcurrent().block_trap = self.oldBlockTrap
 
 
-def ChannelWait(chan, timeout = None):
+def ChannelWait(chan, timeout=None):
     if timeout is None:
         return (True, chan.receive())
-    waiting_tasklet = stackless.getcurrent()
+    else:
+        waiting_tasklet = stackless.getcurrent()
 
-    def break_wait():
-        try:
-            blue.pyos.synchro.SleepWallclock(int(timeout * 1000))
-        except _TimeoutError:
-            return
+        def break_wait():
+            try:
+                blue.pyos.synchro.SleepWallclock(int(timeout * 1000))
+            except _TimeoutError:
+                return
+
+            with atomic():
+                if waiting_tasklet and waiting_tasklet.blocked:
+                    waiting_tasklet.raise_exception(_TimeoutError)
 
         with atomic():
-            if waiting_tasklet and waiting_tasklet.blocked:
-                waiting_tasklet.raise_exception(_TimeoutError)
+            breaker = new(break_wait)
+            try:
+                try:
+                    result = chan.receive()
+                    if breaker.blocked:
+                        breaker.raise_exception(_TimeoutError)
+                    return (True, result)
+                except _TimeoutError:
+                    return (False, None)
 
-    with atomic():
-        breaker = new(break_wait)
-        try:
-            result = chan.receive()
-            if breaker.blocked:
-                breaker.raise_exception(_TimeoutError)
-            return (True, result)
-        except _TimeoutError:
-            return (False, None)
-        finally:
-            waiting_tasklet = None
+            finally:
+                waiting_tasklet = None
+
+        return
 
 
 class _TimeoutError(Exception):

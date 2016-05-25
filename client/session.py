@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\carbon\common\lib\session.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\carbon\common\lib\session.py
 SESSION_TYPE_INVALID = 0
 SESSION_TYPE_EXECUTIONCONTEXT = 1
 SESSION_TYPE_SERVICE = 2

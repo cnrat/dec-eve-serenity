@@ -1,7 +1,8 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\packages\walk\__init__.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\packages\walk\__init__.py
 import blue
 
-def walk(top, topdown = True, onerror = None):
+def walk(top, topdown=True, onerror=None):
     if top.endswith('/'):
         top = top[:-1]
     try:
@@ -27,3 +28,4 @@ def walk(top, topdown = True, onerror = None):
 
     if not topdown:
         yield (top, dirs, nondirs)
+    return

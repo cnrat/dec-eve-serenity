@@ -1,23 +1,19 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\packages\dogma\items\moduleDogmaItem.py
-from shipFittableDogmaItem import ShipFittableDogmaItem
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\packages\dogma\items\moduleDogmaItem.py
+from fittableDogmaItem import FittableDogmaItem
 from utillib import KeyVal
 import dogma.const as dgmconst
 
-class ModuleDogmaItem(ShipFittableDogmaItem):
+class ModuleDogmaItem(FittableDogmaItem):
 
-    def GetEnvironmentInfo(self):
-        otherID = None
-        locationDogmaItem = self.location
-        if locationDogmaItem is not None:
-            otherID = locationDogmaItem.subLocations.get(self.flagID, None)
-            if otherID is None:
-                other = self.dogmaLocation.GetChargeNonDB(locationDogmaItem.itemID, self.flagID)
-                if other is not None:
-                    otherID = other.itemID
-        return KeyVal(itemID=self.itemID, shipID=self.GetShipID(), charID=self.GetPilot(), otherID=otherID, targetID=None, effectID=None)
+    def GetCharacterID(self):
+        return self.GetPilot()
 
     def IsOnline(self):
         return dgmconst.effectOnline in self.activeEffects
+
+    def IsValidFittingLocation(self, location):
+        return location.categoryID == const.categoryShip
 
 
 class GhostModuleDogmaItem(ModuleDogmaItem):

@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\client\script\ui\services\facWarSvc.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\client\script\ui\services\facWarSvc.py
 import carbonui.const as uiconst
 import service
 import blue
@@ -61,8 +62,9 @@ class FactionalWarfare(service.Service):
         self.solarSystemVictoryPointThreshold = None
         self.FWSystems = None
         self.FWSystemOccupiers = None
+        return
 
-    def Run(self, memStream = None):
+    def Run(self, memStream=None):
         self.LogInfo('Starting Factional Warfare Svc')
         self.objectCaching = sm.GetService('objectCaching')
 
@@ -128,15 +130,16 @@ class FactionalWarfare(service.Service):
     def GetDistanceToEnemySystems(self):
         if session.warfactionid is None:
             return
-        enemyFactions = self.GetEnemies(session.warfactionid)
-        enemySystems = [ util.KeyVal(solarSystemID=k, occupierID=v, numJumps=0) for k, v in self.GetFacWarSystemsOccupiers().iteritems() if v in enemyFactions ]
-        pathfinder = sm.GetService('clientPathfinderService')
-        for s in enemySystems:
-            s.numJumps = pathfinder.GetJumpCountFromCurrent(s.solarSystemID)
-            blue.pyos.BeNice()
+        else:
+            enemyFactions = self.GetEnemies(session.warfactionid)
+            enemySystems = [ util.KeyVal(solarSystemID=k, occupierID=v, numJumps=0) for k, v in self.GetFacWarSystemsOccupiers().iteritems() if v in enemyFactions ]
+            pathfinder = sm.GetService('clientPathfinderService')
+            for s in enemySystems:
+                s.numJumps = pathfinder.GetJumpCountFromCurrent(s.solarSystemID)
+                blue.pyos.BeNice()
 
-        enemySystems.sort(lambda x, y: cmp(x.numJumps, y.numJumps))
-        return enemySystems
+            enemySystems.sort(lambda x, y: cmp(x.numJumps, y.numJumps))
+            return enemySystems
 
     def GetMostDangerousSystems(self):
         historyDB = sm.RemoteSvc('map').GetHistory(const.mapHistoryStatFacWarKills, 24)
@@ -155,10 +158,11 @@ class FactionalWarfare(service.Service):
                     return factionID
 
             return None
-        ret = self.facWarMgr.GetCorporationWarFactionID(corpID)
-        if not ret:
-            return None
-        return ret
+        else:
+            ret = self.facWarMgr.GetCorporationWarFactionID(corpID)
+            if not ret:
+                return None
+            return ret
 
     def GetFactionCorporations(self, factionID):
         return self.facWarMgr.GetFactionCorporations(factionID)
@@ -201,6 +205,8 @@ class FactionalWarfare(service.Service):
         except KeyError:
             return None
 
+        return None
+
     def IsFacWarSystem(self, solarSystemID):
         return solarSystemID in self.GetFacWarSystems()
 
@@ -236,7 +242,8 @@ class FactionalWarfare(service.Service):
         ret = self.facWarMgr.GetFactionMilitiaCorporation(factionID)
         if not ret:
             return None
-        return ret
+        else:
+            return ret
 
     def GetFacWarZoneInfo(self, factionID):
         return sm.RemoteSvc('map').GetFacWarZoneInfo(factionID)
@@ -381,17 +388,19 @@ class FactionalWarfare(service.Service):
     def GetWarFactions(self):
         return self.facWarMgr.GetWarFactions()
 
-    def GetCharacterRankInfo(self, charID, corpID = None):
+    def GetCharacterRankInfo(self, charID, corpID=None):
         if corpID is None or self.GetCorporationWarFactionID(corpID) is not None:
             if charID == session.charid:
                 return self.facWarMgr.GetMyCharacterRankInfo()
             else:
                 return self.facWarMgr.GetCharacterRankInfo(charID)
+        return
 
     def GetCharacterRankOverview(self, charID):
         if not charID == session.charid:
             return None
-        return self.facWarMgr.GetMyCharacterRankOverview()
+        else:
+            return self.facWarMgr.GetMyCharacterRankOverview()
 
     def RefreshCorps(self):
         return self.facWarMgr.RefreshCorps()
@@ -405,6 +414,7 @@ class FactionalWarfare(service.Service):
                     self.DoOnRankChange(oldrank, newrank)
         invalidate = [('facWarMgr', 'GetMyCharacterRankInfo', ()), ('facWarMgr', 'GetMyCharacterRankOverview', ())]
         self.objectCaching.InvalidateCachedMethodCalls(invalidate)
+        return
 
     def DoOnRankChange(self, oldrank, newrank):
         messageID = 'RankGained' if newrank > oldrank else 'RankLost'
@@ -541,7 +551,7 @@ class FactionalWarfare(service.Service):
         systemsThatWillSwitchNextDownTime = uiutil.SortListOfTuples(tempList, reverse=1)
         return systemsThatWillSwitchNextDownTime
 
-    def CheckOwnerInFaction(self, ownerID, factionID = None):
+    def CheckOwnerInFaction(self, ownerID, factionID=None):
         factions = [ each for each in self.GetWarFactions() ]
         if not self.warFactionByOwner.has_key(ownerID):
             faction = sm.GetService('faction').GetFaction(ownerID)
@@ -558,7 +568,7 @@ class FactionalWarfare(service.Service):
         self.LogInfo('GetSystemStatus: Returning status from server:', status)
         return status
 
-    def CheckForSafeSystem(self, stationItem, factionID, solarSystemID = None):
+    def CheckForSafeSystem(self, stationItem, factionID, solarSystemID=None):
         ss = sm.GetService('map').GetSecurityClass(solarSystemID or session.solarsystemid2)
         if ss != const.securityClassHighSec:
             return True
@@ -569,19 +579,21 @@ class FactionalWarfare(service.Service):
         eof = self.GetEnemies(factionID)
         if foss in eof:
             return False
-        return True
+        else:
+            return True
 
     def CheckStationElegibleForMilitia(self):
         if session.warfactionid:
             return session.warfactionid
-        if not session.stationid2:
+        elif not session.stationid2:
             return False
-        ownerID = eve.stationItem.ownerID
-        if ownerID:
-            check = self.CheckOwnerInFaction(ownerID)
-            if check is not None:
-                return check
-        return False
+        else:
+            ownerID = eve.stationItem.ownerID
+            if ownerID:
+                check = self.CheckOwnerInFaction(ownerID)
+                if check is not None:
+                    return check
+            return False
 
     def GetRankLabel(self, factionID, rank):
         rank = min(9, rank)

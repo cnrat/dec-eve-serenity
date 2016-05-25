@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\carbon\common\lib\cherrypy\process\wspbus.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\carbon\common\lib\cherrypy\process\wspbus.py
 import atexit
 import os
 import sys
@@ -64,13 +65,14 @@ class Bus(object):
         self.listeners = dict([ (channel, set()) for channel in ('start', 'stop', 'exit', 'graceful', 'log', 'main') ])
         self._priorities = {}
 
-    def subscribe(self, channel, callback, priority = None):
+    def subscribe(self, channel, callback, priority=None):
         if channel not in self.listeners:
             self.listeners[channel] = set()
         self.listeners[channel].add(callback)
         if priority is None:
             priority = getattr(callback, 'priority', 50)
         self._priorities[channel, callback] = priority
+        return
 
     def unsubscribe(self, channel, callback):
         listeners = self.listeners.get(channel)
@@ -152,7 +154,7 @@ class Bus(object):
         self.log('Bus graceful')
         self.publish('graceful')
 
-    def block(self, interval = 0.1):
+    def block(self, interval=0.1):
         try:
             self.wait(states.EXITING, interval=interval, channel='main')
         except (KeyboardInterrupt, IOError):
@@ -177,7 +179,7 @@ class Bus(object):
         if self.execv:
             self._do_execv()
 
-    def wait(self, state, interval = 0.1, channel = None):
+    def wait(self, state, interval=0.1, channel=None):
         if isinstance(state, (tuple, list)):
             states = state
         else:
@@ -215,7 +217,7 @@ class Bus(object):
         self.state = states.STOPPED
         self.log('Bus STOPPED')
 
-    def start_with_callback(self, func, args = None, kwargs = None):
+    def start_with_callback(self, func, args=None, kwargs=None):
         if args is None:
             args = ()
         if kwargs is None:
@@ -232,7 +234,7 @@ class Bus(object):
         self.start()
         return t
 
-    def log(self, msg = '', level = 20, traceback = False):
+    def log(self, msg='', level=20, traceback=False):
         if traceback:
             exc = sys.exc_info()
             msg += '\n' + ''.join(_traceback.format_exception(*exc))

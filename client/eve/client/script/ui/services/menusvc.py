@@ -1,22 +1,27 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\client\script\ui\services\menusvc.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\client\script\ui\services\menusvc.py
 import sys
 import types
 import random
 import datetime
+import structures
 from eve.client.script.parklife import states
 from eve.client.script.ui.camera.cameraUtil import GetCameraMaxLookAtRange, IsNewCameraActive
 from eve.client.script.ui.services.menuSvcExtras.menuConsts import GetReasonsDict, GetMultiFunctionList
+from eve.client.script.ui.services.menuSvcExtras import movementFunctions
 from eve.client.script.ui.shared.fitting.fittingUtil import TryFit
 from eve.client.script.ui.shared.industry.industryWnd import Industry
 from eve.client.script.ui.shared.mapView.mapViewUtil import OpenMap
+from eve.client.script.ui.station.medical import GetMedicalController
 from eve.common.script.util import industryCommon
 from eve.common.script.net import eveMoniker
 import carbon.common.script.util.format as fmtutil
 import evecamera
 import evetypes
 from inventorycommon.const import compareCategories
-from inventorycommon.util import IsModularShip, IsShipFittingFlag
+from inventorycommon.util import IsModularShip, IsShipFittable
 from shipfitting.multiBuyUtil import BuyMultipleTypes
+from eve.client.script.ui.services.menuSvcExtras import marketMenu
 import uix
 import uiutil
 import uthread
@@ -43,6 +48,7 @@ import eve.client.script.environment.spaceObject.planet as planet
 import eve.client.script.ui.util.defaultRangeUtils as defaultRangeUtils
 import const
 import evefleet.menu
+import repackaging
 import evegraphics.settings as gfxsettings
 import evegraphics.utils as gfxutils
 from eveexceptions import UserError
@@ -71,6 +77,7 @@ from .menuSvcExtras import openFunctions
 from carbon.common.script.sys.service import ROLE_GMH
 from carbonui.control.menu import DISABLED_ENTRY0, CloseContextMenus
 import inventorycommon.typeHelpers
+from eve.common.script.sys.eveCfg import InShipInSpace, IsDockedInStructure, InStructure, IsControllingStructure
 CELESTIAL_MENU_CATEGORIES = (const.categoryCelestial,
  const.categoryStarbase,
  const.categoryStation,
@@ -79,7 +86,9 @@ CELESTIAL_MENU_CATEGORIES = (const.categoryCelestial,
  const.categoryDrone,
  const.categoryAsteroid,
  const.categoryDeployable,
- const.categorySovereigntyStructure)
+ const.categorySovereigntyStructure,
+ const.categoryStructure,
+ const.categoryFighter)
 
 class MenuSvc(service.Service):
     __guid__ = 'svc.menu'
@@ -96,11 +105,12 @@ class MenuSvc(service.Service):
      'invCache',
      'viewState',
      'crimewatchSvc',
-     'clientPathfinderService']
+     'clientPathfinderService',
+     'fighters']
     __notifyevents__ = ['OnSessionChanged']
     __startupdependencies__ = ['settings']
 
-    def Run(self, memStream = None):
+    def Run(self, memStream=None):
         self.primedMoons = {}
         self.multiFunctions = GetMultiFunctionList()
         self.allReasonsDict = GetReasonsDict()
@@ -115,12 +125,14 @@ class MenuSvc(service.Service):
 
     def Stop(self, *args):
         self.expandTimer = None
+        return
 
     def OnSessionChanged(self, isremote, session, change):
         self.expandTimer = None
         CloseContextMenus()
         if 'solarsystemid' in change:
             self.PrimeMoons()
+        return
 
     def TryExpandActionMenu(self, itemID, clickedObject, *args, **kwargs):
         sm.GetService('radialmenu').TryExpandActionMenu(itemID, clickedObject, *args, **kwargs)
@@ -128,7 +140,7 @@ class MenuSvc(service.Service):
     def AddHint(self, *args):
         return menuFunctions.AddHint(*args)
 
-    def MapMenu(self, itemIDs, unparsed = 0):
+    def MapMenu(self, itemIDs, unparsed=0):
         if type(itemIDs) == list:
             menus = []
             for itemID in itemIDs:
@@ -138,7 +150,7 @@ class MenuSvc(service.Service):
         else:
             return self._MapMenu(itemIDs, unparsed)
 
-    def _MapMenu(self, itemID, unparsed = 0):
+    def _MapMenu(self, itemID, unparsed=0):
         menuEntries = []
         if util.IsSolarSystem(itemID) or util.IsStation(itemID):
             waypoints = sm.StartService('starmap').GetWaypoints()
@@ -155,9 +167,10 @@ class MenuSvc(service.Service):
             return []
         if unparsed:
             return menuEntries
-        return self.ParseMenu(menuEntries)
+        else:
+            return self.ParseMenu(menuEntries)
 
-    def InvItemMenu(self, invItems, viewOnly = 0, voucher = None, unparsed = 0, filterFunc = None):
+    def InvItemMenu(self, invItems, viewOnly=0, voucher=None, unparsed=0, filterFunc=None):
         if type(invItems) == list:
             menus = []
             for invItem, viewOnly, voucher in invItems:
@@ -166,406 +179,456 @@ class MenuSvc(service.Service):
             return self.MergeMenus(menus)
         else:
             return self.MergeMenus([self._InvItemMenu(invItems, viewOnly, voucher, unparsed, filterFunc=filterFunc, allInvItems=None)])
+            return None
 
-    def _InvItemMenu(self, invItem, viewOnly, voucher, unparsed = 0, multi = 0, filterFunc = None, allInvItems = None):
+    def _InvItemMenu(self, invItem, viewOnly, voucher, unparsed=0, multi=0, filterFunc=None, allInvItems=None):
         if invItem.groupID == const.groupMoney:
             return []
-        godmaSM = self.godma.GetStateManager()
-        groupID = evetypes.GetGroupID(invItem.typeID)
-        categoryID = evetypes.GetCategoryIDByGroup(groupID)
-        serviceMask = None
-        if session.stationid:
-            serviceMask = eve.stationItem.serviceMask
-        checkIfInSpace = self.GetCheckInSpace()
-        checkIfInStation = self.GetCheckInStation()
-        checkIfDrone = categoryID == const.categoryDrone
-        checkIfInDroneBay = invItem.flagID == const.flagDroneBay
-        checkIfInHangar = invItem.flagID == const.flagHangar
-        checkIfInCargo = invItem.flagID == const.flagCargo
-        checkIfInFleetHangar = invItem.flagID == const.flagFleetHangar
-        checkIfInOreHold = invItem.flagID == const.flagSpecializedOreHold
-        locationItem = checkIfInSpace and self.michelle.GetItem(invItem.locationID) or None
-        checkIfDBLessAmmo = type(invItem.itemID) is tuple and locationItem is not None and locationItem.categoryID == const.categoryStarbase
-        checkIfInWreck = locationItem is not None and locationItem.groupID == const.groupWreck
-        checkIfInMyShip = invItem.locationID == session.shipid
-        checkIfInShipMA = locationItem is not None and locationItem.groupID in (const.groupShipMaintenanceArray, const.groupAssemblyArray)
-        checkIfInShipMAShip = locationItem is not None and locationItem.categoryID == const.categoryShip and godmaSM.GetType(locationItem.typeID).hasShipMaintenanceBay and invItem.flagID == const.flagShipHangar
-        checkIfInShipMAShip2 = locationItem is not None and locationItem.categoryID == const.categoryShip and godmaSM.GetType(locationItem.typeID).hasShipMaintenanceBay and invItem.flagID == const.flagShipHangar and invItem.locationID != session.shipid
-        checkIfShipMAShip = categoryID == const.categoryShip and bool(godmaSM.GetType(invItem.typeID).hasShipMaintenanceBay)
-        checkIfShipFHShip = categoryID == const.categoryShip and bool(godmaSM.GetType(invItem.typeID).hasFleetHangars)
-        checkIfShipCloneShip = bool(godmaSM.GetType(invItem.typeID).canReceiveCloneJumps)
-        checkMAInRange = self.CheckMAInRange(const.maxConfigureDistance)
-        checkIfCompressible = bool(self.godma.GetTypeAttribute2(invItem.typeID, const.attributeCompressionTypeID))
-        checkIfShipFuelBay = categoryID == const.categoryShip and bool(godmaSM.GetType(invItem.typeID).specialFuelBayCapacity)
-        checkIfShipOreHold = categoryID == const.categoryShip and bool(godmaSM.GetType(invItem.typeID).specialOreHoldCapacity)
-        checkIfShipGasHold = categoryID == const.categoryShip and bool(godmaSM.GetType(invItem.typeID).specialGasHoldCapacity)
-        checkIfShipMineralHold = categoryID == const.categoryShip and bool(godmaSM.GetType(invItem.typeID).specialMineralHoldCapacity)
-        checkIfShipSalvageHold = categoryID == const.categoryShip and bool(godmaSM.GetType(invItem.typeID).specialSalvageHoldCapacity)
-        checkIfShipShipHold = categoryID == const.categoryShip and bool(godmaSM.GetType(invItem.typeID).specialShipHoldCapacity)
-        checkIfShipSmallShipHold = categoryID == const.categoryShip and bool(godmaSM.GetType(invItem.typeID).specialSmallShipHoldCapacity)
-        checkIfShipMediumShipHold = categoryID == const.categoryShip and bool(godmaSM.GetType(invItem.typeID).specialMediumShipHoldCapacity)
-        checkIfShipLargeShipHold = categoryID == const.categoryShip and bool(godmaSM.GetType(invItem.typeID).specialLargeShipHoldCapacity)
-        checkIfShipIndustrialShipHold = categoryID == const.categoryShip and bool(godmaSM.GetType(invItem.typeID).specialIndustrialShipHoldCapacity)
-        checkIfShipAmmoHold = categoryID == const.categoryShip and bool(godmaSM.GetType(invItem.typeID).specialAmmoHoldCapacity)
-        checkIfShipCommandCenterHold = categoryID == const.categoryShip and bool(godmaSM.GetType(invItem.typeID).specialCommandCenterHoldCapacity)
-        checkIfShipPlanetaryCommoditiesHold = categoryID == const.categoryShip and bool(godmaSM.GetType(invItem.typeID).specialPlanetaryCommoditiesHoldCapacity)
-        checkIfShipHasQuafeBay = categoryID == const.categoryShip and bool(godmaSM.GetType(invItem.typeID).specialQuafeHoldCapacity)
-        checkIfShipHasDroneBay = categoryID == const.categoryShip and bool(godmaSM.GetType(invItem.typeID).droneCapacity or IsModularShip(invItem.typeID))
-        checkIfShipHasFighterBay = categoryID == const.categoryShip and bool(godmaSM.GetType(invItem.typeID).fighterCapacity)
-        checkViewOnly = bool(viewOnly)
-        checkIfAtStation = util.IsStation(invItem.locationID)
-        checkIfActiveShip = invItem.itemID == util.GetActiveShip()
-        checkIfInHangarAtStation = not (bool(checkIfInHangar) and invItem.locationID != session.stationid)
-        isJettisonable = self.IsJettisonable(invItem, locationItem)
-        isPlayerDeployedContainer = invItem.groupID in const.playerDeployedContainers
-        checkCanContain = cfg.IsContainer(invItem)
-        checkSingleton = bool(invItem.singleton)
-        checkBPSingleton = bool(invItem.singleton) and invItem.categoryID == const.categoryBlueprint
-        checkPlasticWrap = invItem.typeID == const.typePlasticWrap
-        checkIsStation = util.IsStation(invItem.itemID)
-        checkIfMineOrCorps = invItem.ownerID in [session.corpid, session.charid]
-        checkIfImInStation = bool(session.stationid2)
-        checkIfIsMine = invItem.ownerID == session.charid
-        checkIfIsShip = invItem.categoryID == const.categoryShip
-        checkIfIsCapsule = invItem.groupID == const.groupCapsule
-        checkIfIsMyCorps = invItem.ownerID == session.corpid
-        checkIfIsStarbase = invItem.categoryID == const.categoryStarbase
-        checkIfIsSovStructure = categoryID == const.categorySovereigntyStructure
-        checkIfOrbital = categoryID == const.categoryOrbital
-        checkIfIsHardware = evetypes.IsCategoryHardwareByCategory(categoryID)
-        checkActiveShip = util.GetActiveShip() is not None
-        checkIsOrbital = util.IsOrbital(invItem.categoryID)
-        checkIfRepackableInStation = categoryID in const.repackableInStationCategories or groupID in const.repackableInStationGroups
-        checkIfRepackableInStructure = categoryID in const.repackableInStructureCategories
-        checkIfNoneLocation = invItem.flagID == const.flagNone
-        checkIfAnchorable = evetypes.GetIsGroupAnchorableByGroup(groupID)
-        checkConstructionPF = groupID in (const.groupConstructionPlatform, const.groupStationUpgradePlatform, const.groupStationImprovementPlatform)
-        checkMineable = categoryID == const.categoryAsteroid or groupID == const.groupHarvestableCloud
-        checkRefining = bool(session.stationid) and bool(serviceMask & const.stationServiceRefinery or serviceMask & const.stationServiceReprocessingPlant)
-        checkRefinable = bool(checkRefining) and sm.StartService('reprocessing').GetOptionsForItemTypes({invItem.typeID: 0})[invItem.typeID].isRefinable
-        checkSkill = categoryID == const.categorySkill
-        checkImplant = categoryID == const.categoryImplant and bool(godmaSM.GetType(invItem.typeID).implantness)
-        checkBooster = groupID == const.groupBooster and bool(godmaSM.GetType(invItem.typeID).boosterness)
-        checkPilotLicence = invItem.typeID == const.typePilotLicence
-        checkAurumToken = invItem.groupID == const.groupGameTime
-        checkReSculptToken = invItem.typeID == const.typeReSculptToken
-        checkMultiTrainingToken = invItem.typeID == const.typeMultiTrainingToken
-        checkServiceItem = invItem.groupID == const.groupServices
-        checkReverseRedeemable = invItem.groupID in const.reverseRedeemingLegalGroups
-        checkShipSkin = invItem.groupID == const.groupShipSkins
-        checkSkillExtractor = invItem.typeID == const.typeSkillExtractor
-        checkSkillInjector = invItem.typeID == const.typeSkillInjector
-        checkTrashable = not checkIfActiveShip and not checkPilotLicence and not checkAurumToken and not checkServiceItem
-        checkSecContainer = groupID in (const.groupSecureCargoContainer, const.groupAuditLogSecureContainer)
-        checkIfInQuickBar = invItem.typeID in settings.user.ui.Get('marketquickbar', [])
-        checkMultiSelection = bool(multi)
-        checkAuditLogSecureContainer = groupID == const.groupAuditLogSecureContainer
-        checkIfLockedInALSC = invItem.flagID == const.flagLocked
-        checkIfUnlockedInALSC = invItem.flagID == const.flagUnlocked
-        checkSameLocation = self.CheckSameLocation(invItem)
-        checkSameStation = self.CheckSameStation(invItem)
-        checkHasMarketGroup = evetypes.GetMarketGroupID(invItem.typeID) is not None
-        checkIsPublished = evetypes.IsPublished(invItem.typeID)
-        chckInsuranceService = bool(session.stationid) and bool(serviceMask & const.stationServiceInsurance)
-        checkRepairService = bool(session.stationid) and bool(serviceMask & const.stationServiceRepairFacilities)
-        checkIfRepairable = util.IsItemOfRepairableType(invItem)
-        checkLocationInSpace = locationItem is not None
-        checkLocationCorpHangarArrayEquivalent = locationItem is not None and locationItem.groupID in (const.groupCorporateHangarArray, const.groupAssemblyArray, const.groupPersonalHangar)
-        checkShipInStarbase = locationItem is not None and locationItem.categoryID == const.categoryStarbase and invItem.categoryID == const.categoryShip
-        checkInControlTower = locationItem is not None and locationItem.groupID == const.groupControlTower
-        checkIfInHighSec = checkIfInSpace and sm.GetService('map').GetSecurityClass(session.solarsystemid) >= const.securityClassHighSec
-        checkIfInHangarOrCorpHangarAndCanTake = self.CheckIfInHangarOrCorpHangarAndCanTake(invItem)
-        checkIfInDeliveries = invItem.flagID == const.flagCorpMarket
-        checkIfInHangarOrCorpHangarOrDeliveriesAndCanTake = checkIfInHangarOrCorpHangarAndCanTake or checkIfInDeliveries
-        isBlueprintItem = industryCommon.IsBlueprintCategory(invItem.categoryID)
-        checkIfLockableBlueprint = self.CheckIfLockableBlueprint(invItem)
-        checkIfUnlockableBlueprint = self.CheckIfUnlockableBlueprint(invItem)
-        checkIfIAmDirector = session.corprole & const.corpRoleDirector > 0
-        checkItemIsInSpace = bool(const.minSolarSystem <= invItem.locationID <= const.maxSolarSystem)
-        checkStack = invItem.stacksize > 1
-        checkIfQueueOpen = sm.GetService('skillqueue').IsQueueWndOpen()
-        checkMultStations = False
-        if allInvItems and len(allInvItems) > 0:
-            checkIsMultipleStations = False
-            locationIDCompare = allInvItems[0][0].locationID
-            for item in allInvItems:
-                item = item[0]
-                if item.locationID != locationIDCompare:
-                    checkIsMultipleStations = True
-                    break
-
-            checkMultStations = checkIsMultipleStations
-        menuEntries = MenuList()
-        if not checkMultiSelection:
-            menuEntries += [[uiutil.MenuLabel('UI/Commands/ShowInfo'), self.ShowInfo, (invItem.typeID,
-               invItem.itemID,
-               0,
-               invItem,
-               None)]]
-        if checkIfInSpace and checkIfDrone and checkIfInDroneBay and not checkViewOnly:
-            menuEntries += [[uiutil.MenuLabel('UI/Drones/LaunchDrones'), self.LaunchDrones, [invItem]]]
         else:
-            prereqs = [('notInSpace', checkIfInSpace, True), ('badGroup',
-              checkIfDrone,
-              True,
-              {'groupName': evetypes.GetCategoryNameByCategory(categoryID)})]
-            reason = self.FindReasonNotAvailable(prereqs)
-            if reason:
-                menuEntries.reasonsWhyNotAvailable['UI/Drones/LaunchDrones'] = reason
-        if checkStack and not checkIfInDeliveries and checkIfIsMyCorps and checkIfInHangarOrCorpHangarAndCanTake and checkIfInStation:
-            menuEntries += [[uiutil.MenuLabel('UI/Inventory/ItemActions/SplitStack'), self.SplitStack, [invItem]]]
-        menuEntries += [None]
-        if checkIfInStation and checkRefining and not checkViewOnly and not checkIfInDeliveries:
-            if checkMineable and checkRefinable and checkIfAtStation and checkIfInHangarAtStation:
-                menuEntries += [[uiutil.MenuLabel('UI/Inventory/ItemActions/Reprocess'), self.Refine, [invItem]]]
-            if checkSameLocation and checkRefining and checkIfAtStation and not checkIfActiveShip:
-                menuEntries += [[uiutil.MenuLabel('UI/Inventory/ItemActions/Reprocess'), self.Refine, [invItem]]]
-            if checkMineable and not checkIfAtStation and checkRefinable:
-                menuEntries += [[uiutil.MenuLabel('UI/Inventory/ItemActions/Reprocess'), self.RefineToHangar, [invItem]]]
-        menuEntries += [None]
-        if not checkViewOnly:
-            if checkSameLocation:
-                if checkSkill and not checkIfQueueOpen:
-                    menuEntries += [[uiutil.MenuLabel('UI/SkillQueue/AddSkillMenu/TrainNowToLevel1'), self.TrainNow, [invItem]]]
-                if checkSkill:
-                    menuEntries += [[uiutil.MenuLabel('UI/SkillQueue/InjectSkill'), self.InjectSkillIntoBrain, [invItem]]]
-                if checkImplant:
-                    menuEntries += [[uiutil.MenuLabel('UI/Inventory/ItemActions/PlugInImplant'), self.PlugInImplant, [invItem]]]
-                if checkBooster:
-                    menuEntries += [[uiutil.MenuLabel('UI/Inventory/ItemActions/ConsumeBooster'), self.ConsumeBooster, [invItem]]]
-            if checkPilotLicence and not checkMultiSelection:
-                menuEntries += [[uiutil.MenuLabel('UI/Commands/ActivatePlex'), self.ActivatePlex, (invItem.itemID,)]]
-            if checkShipSkin and not checkMultiSelection:
-                menuEntries += [[uiutil.MenuLabel('UI/Commands/ActivateSkinLicense'), self.ActivateShipSkin, (invItem.itemID, invItem.typeID)]]
-            if checkReverseRedeemable and not checkMultiSelection:
-                menuEntries += [[uiutil.MenuLabel('UI/Inventory/ItemActions/ReverseRedeem'), sm.GetService('redeem').ReverseRedeem, (invItem,)]]
-            if checkAurumToken and checkIfInStation and checkSameLocation and not checkMultiSelection:
-                menuEntries += [[uiutil.MenuLabel('UI/Inventory/ItemActions/RedeemForAurum'), self.ApplyAurumToken, (invItem, invItem.stacksize)]]
-            if checkReSculptToken and not checkMultiSelection:
-                menuEntries += [[uiutil.MenuLabel('UI/Commands/ActivateCharacterReSculptToken'), self.ActivateCharacterReSculpt, (invItem.itemID,)]]
-            if checkMultiTrainingToken and not checkMultiSelection:
-                menuEntries += [[uiutil.MenuLabel('UI/Commands/ActivateMultiTrainingToken'), self.ActivateMultiTraining, (invItem.itemID,)]]
-            if checkSkillExtractor and not checkMultiSelection:
-                menuEntries += [[uiutil.MenuLabel('UI/Commands/ActivateSkillExtractor'), self.ActivateSkillExtractor, (invItem,)]]
-            if checkSkillInjector and not checkMultiSelection:
-                label = uiutil.MenuLabel('UI/Commands/ActivateSkillInjector', {'injector': const.typeSkillInjector,
-                 'quantity': invItem.stacksize})
-                menuEntries += [[label, self.ActivateSkillInjector, (invItem.itemID, invItem.stacksize)]]
-        menuEntries += [None]
-        if not checkViewOnly and checkSameLocation and not checkMultiSelection and checkSingleton:
-            if checkSecContainer and checkIfInStation:
-                desc = localization.GetByLabel('UI/Menusvc/SetNewPasswordForContainerDesc')
-                menuEntries += [[uiutil.MenuLabel('UI/Inventory/ItemActions/SetNewPasswordForContainer'), self.AskNewContainerPwd, ([invItem], desc, const.SCCPasswordTypeGeneral)]]
-            if checkAuditLogSecureContainer and checkIfInStation:
-                desc = localization.GetByLabel('UI/Menusvc/SetNewPasswordForContainerDesc')
-                menuEntries += [[uiutil.MenuLabel('UI/Inventory/ItemActions/SetNewConfigPasswordForContainer'), self.AskNewContainerPwd, ([invItem], desc, const.SCCPasswordTypeConfig)]]
-            if checkAuditLogSecureContainer and checkIfMineOrCorps:
-                menuEntries += [[uiutil.MenuLabel('UI/Inventory/ItemActions/ViewLog'), openFunctions.ViewAuditLogForALSC, (invItem.itemID,)], [uiutil.MenuLabel('UI/Inventory/ItemActions/ConfigureALSContainer'), self.ConfigureALSC, (invItem.itemID,)], [uiutil.MenuLabel('UI/Commands/RetrievePassword'), self.RetrievePasswordALSC, (invItem.itemID,)]]
-            if isPlayerDeployedContainer and not checkIsOrbital:
-                menuEntries += [[uiutil.MenuLabel('UI/Commands/SetName'), self.SetName, (invItem,)]]
-        if isPlayerDeployedContainer and groupID != const.groupSiphonPseudoSilo and checkIfInStation and not checkSingleton and not checkViewOnly and checkSameLocation:
-            menuEntries += [[uiutil.MenuLabel('UI/Inventory/ItemActions/AssembleContainer'), self.AssembleContainer, [invItem]]]
-        menuEntries += [None]
-        if checkConstructionPF and not checkViewOnly and checkSingleton and not checkMultiSelection:
-            desc1 = localization.GetByLabel('UI/Menusvc/SetAccessPasswordOnPlatformDesc')
-            desc2 = localization.GetByLabel('UI/Menusvc/SetBuildPasswordOnPlatformDesc')
-            menuEntries += [[uiutil.MenuLabel('UI/Inflight/POS/SetPlatformAccessPassword'), self.AskNewContainerPwd, ([invItem], desc1, const.SCCPasswordTypeGeneral)]]
-            menuEntries += [[uiutil.MenuLabel('UI/Inflight/POS/SetPlatformBuildPassword'), self.AskNewContainerPwd, ([invItem], desc2, const.SCCPasswordTypeConfig)]]
-        if checkIfInSpace and checkIfDBLessAmmo and not checkMultiSelection:
-            menuEntries += [[uiutil.MenuLabel('UI/Inventory/ItemActions/TransferAmmoToCarbo'), self.TransferToCargo, (invItem.itemID,)]]
-        menuEntries += [None]
-        if checkIfUnlockedInALSC:
-            menuEntries += [[uiutil.MenuLabel('UI/Inventory/ItemActions/LockItem'), self.ALSCLock, [invItem]]]
-        if checkIfLockedInALSC:
-            menuEntries += [[uiutil.MenuLabel('UI/Inventory/ItemActions/UnlockItem'), self.ALSCUnlock, [invItem]]]
-        if checkIfLockableBlueprint:
-            menuEntries += [[uiutil.MenuLabel('UI/Inventory/ItemActions/ProposeBlueprintLockdownVote'), self.LockDownBlueprint, (invItem,)]]
-        if checkIfUnlockableBlueprint:
-            menuEntries += [[uiutil.MenuLabel('UI/Inventory/ItemActions/ProposeBlueprintUnlockVote'), self.UnlockBlueprint, (invItem,)]]
-        if checkIfIsShip and checkIfInStation and chckInsuranceService and checkSameStation and checkSingleton:
-            if (checkIfIsMine or checkIfMineOrCorps and session.corprole & (const.corpRoleJuniorAccountant | const.corpRoleAccountant != 0)) and sm.GetService('insurance').GetInsurancePrice(invItem.typeID) > 0:
-                menuEntries += [[uiutil.MenuLabel('UI/Insurance/InsuranceWindow/Commands/Insure'), sm.GetService('insurance').Insure, (invItem,)]]
-        if checkIfInStation and checkRepairService and checkIfRepairable and checkIfAtStation and checkSameLocation and checkIfIsMine:
-            menuEntries += [[uiutil.MenuLabel('UI/Inventory/ItemActions/GetRepairQuote'), openFunctions.RepairItems, [invItem]]]
-        if checkHasMarketGroup and not checkIsStation:
-            menuEntries += [[uiutil.MenuLabel('UI/Inventory/ItemActions/ViewTypesMarketDetails'), self.ShowMarketDetails, (invItem,)]]
-            if checkIfMineOrCorps and not checkIfActiveShip and checkIfInHangarOrCorpHangarAndCanTake and not checkBPSingleton and not invItem.singleton:
-                if allInvItems and len(allInvItems) > 1:
-                    sellMenuLabel = 'UI/Inventory/ItemActions/MultiSell'
-                    sellItems = allInvItems
-                else:
-                    sellMenuLabel = 'UI/Inventory/ItemActions/SellThisItem'
-                    sellItems = [allInvItems]
-                menuEntries += [[uiutil.MenuLabel(sellMenuLabel), self.MultiSell, [sellItems]]]
+            godmaSM = self.godma.GetStateManager()
+            groupID = evetypes.GetGroupID(invItem.typeID)
+            categoryID = evetypes.GetCategoryIDByGroup(groupID)
+            serviceMask = None
+            if session.stationid:
+                serviceMask = eve.stationItem.serviceMask
+            checkInflightView = sm.GetService('viewState').IsViewActive('inflight')
+            checkIfInSpace = self.GetCheckInSpace()
+            checkIfInStation = self.GetCheckInStation()
+            checkIfInStructure = InStructure()
+            checkIfInStationOrStructure = checkIfInStation or checkIfInStructure
+            checkIfDrone = categoryID == const.categoryDrone
+            checkIfInDroneBay = invItem.flagID == const.flagDroneBay
+            checkIfInHangar = invItem.flagID == const.flagHangar
+            checkIfInDeliveries = invItem.flagID == const.flagDeliveries
+            checkIfInCargo = invItem.flagID == const.flagCargo
+            checkIfInFleetHangar = invItem.flagID == const.flagFleetHangar
+            checkIfInOreHold = invItem.flagID == const.flagSpecializedOreHold
+            inSpaceLocationItem = checkIfInSpace and self.michelle.GetItem(invItem.locationID) or None
+            checkIfDBLessAmmo = type(invItem.itemID) is tuple and inSpaceLocationItem is not None and inSpaceLocationItem.categoryID == const.categoryStarbase
+            checkIfInWreck = inSpaceLocationItem is not None and inSpaceLocationItem.groupID == const.groupWreck
+            checkIfInCargoCont = inSpaceLocationItem is not None and inSpaceLocationItem.groupID == const.groupCargoContainer
+            checkIfInMyShip = invItem.locationID == session.shipid
+            checkIfInShipMA = inSpaceLocationItem is not None and inSpaceLocationItem.groupID in (const.groupShipMaintenanceArray, const.groupAssemblyArray)
+            checkIfInShipMAShip = inSpaceLocationItem is not None and inSpaceLocationItem.categoryID == const.categoryShip and godmaSM.GetType(inSpaceLocationItem.typeID).hasShipMaintenanceBay and invItem.flagID == const.flagShipHangar
+            checkIfInShipMAShip2 = inSpaceLocationItem is not None and inSpaceLocationItem.categoryID == const.categoryShip and godmaSM.GetType(inSpaceLocationItem.typeID).hasShipMaintenanceBay and invItem.flagID == const.flagShipHangar and invItem.locationID != session.shipid
+            checkIfShipMAShip = categoryID == const.categoryShip and bool(godmaSM.GetType(invItem.typeID).hasShipMaintenanceBay)
+            checkIfShipFHShip = categoryID == const.categoryShip and bool(godmaSM.GetType(invItem.typeID).hasFleetHangars)
+            checkIfShipCloneShip = bool(godmaSM.GetType(invItem.typeID).canReceiveCloneJumps)
+            checkMAInRange = self.CheckMAInRange(const.maxConfigureDistance)
+            checkIfCompressible = bool(self.godma.GetTypeAttribute2(invItem.typeID, const.attributeCompressionTypeID))
+            checkIfShipFuelBay = categoryID == const.categoryShip and bool(godmaSM.GetType(invItem.typeID).specialFuelBayCapacity)
+            checkIfShipOreHold = categoryID == const.categoryShip and bool(godmaSM.GetType(invItem.typeID).specialOreHoldCapacity)
+            checkIfShipGasHold = categoryID == const.categoryShip and bool(godmaSM.GetType(invItem.typeID).specialGasHoldCapacity)
+            checkIfShipMineralHold = categoryID == const.categoryShip and bool(godmaSM.GetType(invItem.typeID).specialMineralHoldCapacity)
+            checkIfShipSalvageHold = categoryID == const.categoryShip and bool(godmaSM.GetType(invItem.typeID).specialSalvageHoldCapacity)
+            checkIfShipShipHold = categoryID == const.categoryShip and bool(godmaSM.GetType(invItem.typeID).specialShipHoldCapacity)
+            checkIfShipSmallShipHold = categoryID == const.categoryShip and bool(godmaSM.GetType(invItem.typeID).specialSmallShipHoldCapacity)
+            checkIfShipMediumShipHold = categoryID == const.categoryShip and bool(godmaSM.GetType(invItem.typeID).specialMediumShipHoldCapacity)
+            checkIfShipLargeShipHold = categoryID == const.categoryShip and bool(godmaSM.GetType(invItem.typeID).specialLargeShipHoldCapacity)
+            checkIfShipIndustrialShipHold = categoryID == const.categoryShip and bool(godmaSM.GetType(invItem.typeID).specialIndustrialShipHoldCapacity)
+            checkIfShipAmmoHold = categoryID == const.categoryShip and bool(godmaSM.GetType(invItem.typeID).specialAmmoHoldCapacity)
+            checkIfShipCommandCenterHold = categoryID == const.categoryShip and bool(godmaSM.GetType(invItem.typeID).specialCommandCenterHoldCapacity)
+            checkIfShipPlanetaryCommoditiesHold = categoryID == const.categoryShip and bool(godmaSM.GetType(invItem.typeID).specialPlanetaryCommoditiesHoldCapacity)
+            checkIfShipHasQuafeBay = categoryID == const.categoryShip and bool(godmaSM.GetType(invItem.typeID).specialQuafeHoldCapacity)
+            checkIfShipHasDroneBay = categoryID == const.categoryShip and bool(godmaSM.GetType(invItem.typeID).droneCapacity or IsModularShip(invItem.typeID))
+            checkIfShipHasFighterBay = categoryID == const.categoryShip and bool(godmaSM.GetType(invItem.typeID).fighterCapacity)
+            checkViewOnly = bool(viewOnly)
+            checkIfAtStation = util.IsStation(invItem.locationID)
+            checkIfAtStructure = session.structureid and invItem.locationID == session.structureid
+            checkIfActiveShip = invItem.itemID == util.GetActiveShip()
+            checkIfInHangarAtStation = not (bool(checkIfInHangar) and invItem.locationID != session.stationid)
+            isJettisonable = self.IsJettisonable(invItem, inSpaceLocationItem)
+            isPlayerDeployedContainer = invItem.groupID in const.playerDeployedContainers
+            checkCanContain = cfg.IsContainer(invItem)
+            checkSingleton = bool(invItem.singleton)
+            checkBPSingleton = bool(invItem.singleton) and invItem.categoryID == const.categoryBlueprint
+            checkPlasticWrap = invItem.typeID == const.typePlasticWrap
+            checkIsStation = util.IsStation(invItem.itemID)
+            checkIfMineOrCorps = invItem.ownerID in [session.corpid, session.charid]
+            checkIfImInStation = bool(session.stationid2)
+            checkIfIsMine = invItem.ownerID == session.charid
+            checkIfIsShip = invItem.categoryID == const.categoryShip
+            checkIfIsCapsule = invItem.groupID == const.groupCapsule
+            checkIfIsMyCorps = invItem.ownerID == session.corpid
+            checkIfIsStarbase = invItem.categoryID == const.categoryStarbase
+            checkIfIsStructure = invItem.categoryID == const.categoryStructure
+            checkIfIsSovStructure = categoryID == const.categorySovereigntyStructure
+            checkIfOrbital = categoryID == const.categoryOrbital
+            checkIfIsHardware = evetypes.IsCategoryHardwareByCategory(categoryID)
+            checkActiveShip = util.GetActiveShip() is not None
+            checkIsOrbital = util.IsOrbital(invItem.categoryID)
+            checkIfRepackable = repackaging.CanRepackageType(invItem.typeID)
+            checkIfNoneLocation = invItem.flagID == const.flagNone
+            checkIfAnchorable = evetypes.GetIsGroupAnchorableByGroup(groupID)
+            checkConstructionPF = groupID in (const.groupConstructionPlatform, const.groupStationUpgradePlatform, const.groupStationImprovementPlatform)
+            checkMineable = categoryID == const.categoryAsteroid or groupID == const.groupHarvestableCloud
+            checkRefining = self._CheckCanReprocess(serviceMask)
+            checkRefinable = bool(checkRefining) and sm.StartService('reprocessing').GetOptionsForItemTypes({invItem.typeID: 0})[invItem.typeID].isRefinable
+            checkSkill = categoryID == const.categorySkill
+            checkImplant = categoryID == const.categoryImplant and bool(godmaSM.GetType(invItem.typeID).implantness)
+            checkBooster = groupID == const.groupBooster and bool(godmaSM.GetType(invItem.typeID).boosterness)
+            checkPilotLicence = invItem.typeID == const.typePilotLicence
+            checkAurumToken = invItem.groupID == const.groupGameTime
+            checkReSculptToken = invItem.typeID == const.typeReSculptToken
+            checkMultiTrainingToken = invItem.typeID == const.typeMultiTrainingToken
+            checkServiceItem = invItem.groupID == const.groupServices
+            checkReverseRedeemable = invItem.groupID in const.reverseRedeemingLegalGroups
+            checkShipSkin = invItem.groupID == const.groupShipSkins
+            checkSkillExtractor = invItem.typeID == const.typeSkillExtractor
+            checkSkillInjector = invItem.typeID == const.typeSkillInjector
+            checkTrashable = not checkIfActiveShip and not checkPilotLicence and not checkAurumToken and not checkServiceItem
+            checkSecContainer = groupID in (const.groupSecureCargoContainer, const.groupAuditLogSecureContainer)
+            checkIfInQuickBar = invItem.typeID in settings.user.ui.Get('marketquickbar', [])
+            checkMultiSelection = bool(multi)
+            checkAuditLogSecureContainer = groupID == const.groupAuditLogSecureContainer
+            checkIfLockedInALSC = invItem.flagID == const.flagLocked
+            checkIfUnlockedInALSC = invItem.flagID == const.flagUnlocked
+            checkSameLocation = self.CheckSameLocation(invItem)
+            checkSameStation = self.CheckSameStation(invItem)
+            checkHasMarketGroup = evetypes.GetMarketGroupID(invItem.typeID) is not None
+            checkIsPublished = evetypes.IsPublished(invItem.typeID)
+            chckInsuranceService = bool(session.stationid) and bool(serviceMask & const.stationServiceInsurance)
+            checkRepairService = bool(session.stationid) and bool(serviceMask & const.stationServiceRepairFacilities)
+            checkIfRepairable = util.IsItemOfRepairableType(invItem)
+            checkLocationInSpace = inSpaceLocationItem is not None
+            checkLocationCorpHangarArrayEquivalent = inSpaceLocationItem is not None and inSpaceLocationItem.groupID in (const.groupCorporateHangarArray, const.groupAssemblyArray, const.groupPersonalHangar)
+            checkShipInStarbase = inSpaceLocationItem is not None and inSpaceLocationItem.categoryID == const.categoryStarbase and invItem.categoryID == const.categoryShip
+            checkInControlTower = inSpaceLocationItem is not None and inSpaceLocationItem.groupID == const.groupControlTower
+            checkIfInHighSec = checkIfInSpace and sm.GetService('map').GetSecurityClass(session.solarsystemid) >= const.securityClassHighSec
+            checkIfInHangarOrCorpHangarAndCanTake = self.CheckIfInHangarOrCorpHangarAndCanTake(invItem)
+            checkIfInCorpDeliveries = invItem.flagID == const.flagCorpMarket
+            checkIfInHangarOrCorpHangarOrDeliveriesAndCanTake = checkIfInHangarOrCorpHangarAndCanTake or checkIfInCorpDeliveries
+            isBlueprintItem = industryCommon.IsBlueprintCategory(invItem.categoryID)
+            checkIfLockableBlueprint = self.CheckIfLockableBlueprint(invItem)
+            checkIfUnlockableBlueprint = self.CheckIfUnlockableBlueprint(invItem)
+            checkIfIAmDirector = session.corprole & const.corpRoleDirector > 0
+            checkIfIAmStationManager = session.corprole & const.corpRoleStationManager > 0
+            checkItemIsInSpace = bool(const.minSolarSystem <= invItem.locationID <= const.maxSolarSystem)
+            checkStack = invItem.stacksize > 1
+            checkIfQueueOpen = sm.GetService('skillqueue').IsQueueWndOpen()
+            checkMultStations = False
+            if allInvItems and len(allInvItems) > 0:
+                checkIsMultipleStations = False
+                locationIDCompare = allInvItems[0][0].locationID
+                for item in allInvItems:
+                    item = item[0]
+                    if item.locationID != locationIDCompare:
+                        checkIsMultipleStations = True
+                        break
+
+                checkMultStations = checkIsMultipleStations
+            menuEntries = MenuList()
             if not checkMultiSelection:
-                menuEntries += [[uiutil.MenuLabel('UI/Inventory/ItemActions/BuyThisType'), self.QuickBuy, (invItem.typeID,)]]
-            elif allInvItems:
-                menuEntries += [[uiutil.MenuLabel('UI/Market/MarketQuote/BuyAll'), BuyMultipleTypes, [allInvItems]]]
-        if not checkIsStation and checkIfMineOrCorps and not checkIfActiveShip and not checkMultStations and checkIfInHangarOrCorpHangarOrDeliveriesAndCanTake:
-            menuEntries += [[uiutil.MenuLabel('UI/Inventory/ItemActions/CreateContract'), self.QuickContract, [invItem]]]
-        if checkIsPublished and not checkMultiSelection and not checkIsStation:
-            menuEntries += [[uiutil.MenuLabel('UI/Inventory/ItemActions/FindInContracts'), sm.GetService('contracts').FindRelated, (invItem.typeID,
-               None,
-               None,
-               None,
-               None,
-               None)]]
-        if not checkIfInQuickBar and not checkMultiSelection and not checkIsStation and not checkIfIsCapsule:
-            menuEntries += [[uiutil.MenuLabel('UI/Inventory/ItemActions/AddTypeToMarketQuickbar'), self.AddToQuickBar, (invItem.typeID,)]]
-        if checkIfInQuickBar and not checkMultiSelection:
-            menuEntries += [[uiutil.MenuLabel('UI/Inventory/ItemActions/RemoveTypeFromMarketQuickbar'), self.RemoveFromQuickBar, (invItem,)]]
-        if checkIfInHangar and checkIfAtStation and checkIfIsMine and checkCanContain and not checkIfIsCapsule:
-            menuEntries += [[uiutil.MenuLabel('UI/Inventory/ItemActions/ViewContents'), self.GetContainerContents, [invItem]]]
-        if not checkViewOnly and checkSingleton:
-            if checkSameLocation and isPlayerDeployedContainer and not checkIfInDeliveries:
-                menuEntries += [[uiutil.MenuLabel('UI/Inventory/ItemActions/OpenContainer'), openFunctions.OpenCargoContainer, [invItem]]]
-                if checkIfAtStation and checkIfInHangar and checkPlasticWrap:
-                    menuEntries += [[uiutil.MenuLabel('UI/Contracts/BreakContract'), self.Break, [invItem]]]
-                    menuEntries += [[uiutil.MenuLabel('UI/Inventory/ItemActions/ContractsDelieverCourierPackage'), self.DeliverCourierContract, [invItem]]]
-            if checkSameStation and checkIfIsShip and checkIfImInStation and checkIfAtStation and checkIfInHangar and checkIfIsMine and not checkMultiSelection:
-                if not checkIfActiveShip and checkIfMineOrCorps:
-                    menuEntries += [[uiutil.MenuLabel('UI/Inventory/ItemActions/MakeShipActive'), self.ActivateShip, (invItem,)]]
-                if checkIfActiveShip and checkIfMineOrCorps and not checkIfIsCapsule:
-                    menuEntries += [[uiutil.MenuLabel('UI/Inventory/ItemActions/LeaveShip'), self.LeaveShip, (invItem,)]]
+                menuEntries += [[uiutil.MenuLabel('UI/Commands/ShowInfo'), self.ShowInfo, (invItem.typeID,
+                   invItem.itemID,
+                   0,
+                   invItem,
+                   None)]]
+            if checkIfInSpace and checkIfDrone and checkIfInDroneBay and not checkViewOnly:
+                menuEntries += [[uiutil.MenuLabel('UI/Drones/LaunchDrones'), self.LaunchDrones, [invItem]]]
+            else:
+                prereqs = [('notInSpace', checkIfInSpace, True), ('badGroup',
+                  checkIfDrone,
+                  True,
+                  {'groupName': evetypes.GetCategoryNameByCategory(categoryID)})]
+                reason = self.FindReasonNotAvailable(prereqs)
+                if reason:
+                    menuEntries.reasonsWhyNotAvailable['UI/Drones/LaunchDrones'] = reason
+            if checkStack and not checkIfInCorpDeliveries and checkIfIsMyCorps and checkIfInHangarOrCorpHangarAndCanTake and checkIfInStation:
+                menuEntries += [[uiutil.MenuLabel('UI/Inventory/ItemActions/SplitStack'), self.SplitStack, [invItem]]]
+            menuEntries += [None]
+            if checkIfInStationOrStructure and checkRefining and not (checkViewOnly or checkIfInCorpDeliveries):
+                if checkMineable and checkRefinable and checkIfInStationOrStructure and checkIfInHangarAtStation:
+                    menuEntries += [[uiutil.MenuLabel('UI/Inventory/ItemActions/Reprocess'), self.Refine, [invItem]]]
+                if checkSameLocation and checkRefining and checkIfInStationOrStructure and not checkIfActiveShip and not self._CheckIfInAssetSafety(invItem):
+                    menuEntries += [[uiutil.MenuLabel('UI/Inventory/ItemActions/Reprocess'), self.Refine, [invItem]]]
+                if checkMineable and not checkIfInStationOrStructure and checkRefinable:
+                    menuEntries += [[uiutil.MenuLabel('UI/Inventory/ItemActions/Reprocess'), self.RefineToHangar, [invItem]]]
+            menuEntries += [None]
+            if not checkViewOnly:
+                if checkSameLocation:
+                    if checkSkill and not checkIfQueueOpen:
+                        menuEntries += [[uiutil.MenuLabel('UI/SkillQueue/AddSkillMenu/TrainNowToLevel1'), self.TrainNow, [invItem]]]
+                    if checkSkill:
+                        menuEntries += [[uiutil.MenuLabel('UI/SkillQueue/InjectSkill'), self.InjectSkillIntoBrain, [invItem]]]
+                    if checkImplant:
+                        menuEntries += [[uiutil.MenuLabel('UI/Inventory/ItemActions/PlugInImplant'), self.PlugInImplant, [invItem]]]
+                    if checkBooster:
+                        menuEntries += [[uiutil.MenuLabel('UI/Inventory/ItemActions/ConsumeBooster'), self.ConsumeBooster, [invItem]]]
+                if checkPilotLicence and not checkMultiSelection:
+                    menuEntries += [[uiutil.MenuLabel('UI/Commands/ActivatePlex'), self.ActivatePlex, (invItem.itemID,)]]
+                if checkShipSkin and not checkMultiSelection:
+                    menuEntries += [[uiutil.MenuLabel('UI/Commands/ActivateSkinLicense'), self.ActivateShipSkin, (invItem.itemID, invItem.typeID)]]
+                if checkReverseRedeemable and not checkMultiSelection:
+                    menuEntries += [[uiutil.MenuLabel('UI/Inventory/ItemActions/ReverseRedeem'), sm.GetService('redeem').ReverseRedeem, (invItem,)]]
+                if checkAurumToken and checkIfInStation and checkSameLocation and not checkMultiSelection:
+                    menuEntries += [[uiutil.MenuLabel('UI/Inventory/ItemActions/RedeemForAurum'), self.ApplyAurumToken, (invItem, invItem.stacksize)]]
+                if checkReSculptToken and not checkMultiSelection:
+                    menuEntries += [[uiutil.MenuLabel('UI/Commands/ActivateCharacterReSculptToken'), self.ActivateCharacterReSculpt, (invItem.itemID,)]]
+                if checkMultiTrainingToken and not checkMultiSelection:
+                    menuEntries += [[uiutil.MenuLabel('UI/Commands/ActivateMultiTrainingToken'), self.ActivateMultiTraining, (invItem.itemID,)]]
+                if checkSkillExtractor and not checkMultiSelection:
+                    menuEntries += [[uiutil.MenuLabel('UI/Commands/ActivateSkillExtractor'), self.ActivateSkillExtractor, (invItem,)]]
+                if checkSkillInjector and not checkMultiSelection:
+                    label = uiutil.MenuLabel('UI/Commands/ActivateSkillInjector', {'injector': const.typeSkillInjector,
+                     'quantity': invItem.stacksize})
+                    menuEntries += [[label, self.ActivateSkillInjector, (invItem.itemID, invItem.stacksize)]]
+            menuEntries += [None]
+            if not checkViewOnly and checkSameLocation and not checkMultiSelection and checkSingleton:
+                if checkSecContainer and checkIfInStation:
+                    desc = localization.GetByLabel('UI/Menusvc/SetNewPasswordForContainerDesc')
+                    menuEntries += [[uiutil.MenuLabel('UI/Inventory/ItemActions/SetNewPasswordForContainer'), self.AskNewContainerPwd, ([invItem], desc, const.SCCPasswordTypeGeneral)]]
+                if checkAuditLogSecureContainer and checkIfInStation:
+                    desc = localization.GetByLabel('UI/Menusvc/SetNewPasswordForContainerDesc')
+                    menuEntries += [[uiutil.MenuLabel('UI/Inventory/ItemActions/SetNewConfigPasswordForContainer'), self.AskNewContainerPwd, ([invItem], desc, const.SCCPasswordTypeConfig)]]
+                if checkAuditLogSecureContainer and checkIfMineOrCorps:
+                    menuEntries += [[uiutil.MenuLabel('UI/Inventory/ItemActions/ViewLog'), openFunctions.ViewAuditLogForALSC, (invItem.itemID,)], [uiutil.MenuLabel('UI/Inventory/ItemActions/ConfigureALSContainer'), self.ConfigureALSC, (invItem.itemID,)], [uiutil.MenuLabel('UI/Commands/RetrievePassword'), self.RetrievePasswordALSC, (invItem.itemID,)]]
+                if isPlayerDeployedContainer and not checkIsOrbital:
+                    menuEntries += [[uiutil.MenuLabel('UI/Commands/SetName'), self.SetName, (invItem,)]]
+            if isPlayerDeployedContainer and groupID != const.groupSiphonPseudoSilo and (checkIfInStation or checkIfInStructure) and not checkSingleton and not checkViewOnly and checkSameLocation:
+                menuEntries += [[uiutil.MenuLabel('UI/Inventory/ItemActions/AssembleContainer'), self.AssembleContainer, [invItem]]]
+            menuEntries += [None]
+            if checkConstructionPF and not checkViewOnly and checkSingleton and not checkMultiSelection:
+                desc1 = localization.GetByLabel('UI/Menusvc/SetAccessPasswordOnPlatformDesc')
+                desc2 = localization.GetByLabel('UI/Menusvc/SetBuildPasswordOnPlatformDesc')
+                menuEntries += [[uiutil.MenuLabel('UI/Inflight/POS/SetPlatformAccessPassword'), self.AskNewContainerPwd, ([invItem], desc1, const.SCCPasswordTypeGeneral)]]
+                menuEntries += [[uiutil.MenuLabel('UI/Inflight/POS/SetPlatformBuildPassword'), self.AskNewContainerPwd, ([invItem], desc2, const.SCCPasswordTypeConfig)]]
+            if checkIfInSpace and checkIfDBLessAmmo and not checkMultiSelection:
+                menuEntries += [[uiutil.MenuLabel('UI/Inventory/ItemActions/TransferAmmoToCarbo'), self.TransferToCargo, (invItem.itemID,)]]
+            menuEntries += [None]
+            if checkIfUnlockedInALSC:
+                menuEntries += [[uiutil.MenuLabel('UI/Inventory/ItemActions/LockItem'), self.ALSCLock, [invItem]]]
+            if checkIfLockedInALSC:
+                menuEntries += [[uiutil.MenuLabel('UI/Inventory/ItemActions/UnlockItem'), self.ALSCUnlock, [invItem]]]
+            if checkIfLockableBlueprint:
+                menuEntries += [[uiutil.MenuLabel('UI/Inventory/ItemActions/ProposeBlueprintLockdownVote'), self.LockDownBlueprint, (invItem,)]]
+            if checkIfUnlockableBlueprint:
+                menuEntries += [[uiutil.MenuLabel('UI/Inventory/ItemActions/ProposeBlueprintUnlockVote'), self.UnlockBlueprint, (invItem,)]]
+            if checkIfIsShip and checkIfInStation and chckInsuranceService and checkSameStation and checkSingleton and not self._CheckIfInAssetSafety(invItem):
+                if (checkIfIsMine or checkIfMineOrCorps and session.corprole & (const.corpRoleJuniorAccountant | const.corpRoleAccountant != 0)) and sm.GetService('insurance').GetInsurancePrice(invItem.typeID) > 0:
+                    menuEntries += [[uiutil.MenuLabel('UI/Insurance/InsuranceWindow/Commands/Insure'), sm.GetService('insurance').Insure, (invItem,)]]
+            if checkIfInStation and checkRepairService and checkIfRepairable and checkIfAtStation and checkSameLocation and checkIfIsMine:
+                menuEntries += [[uiutil.MenuLabel('UI/Inventory/ItemActions/GetRepairQuote'), openFunctions.RepairItems, [invItem]]]
+            if checkHasMarketGroup and not checkIsStation:
+                menuEntries += [[uiutil.MenuLabel('UI/Inventory/ItemActions/ViewTypesMarketDetails'), self.ShowMarketDetails, (invItem,)]]
+                if checkIfMineOrCorps and not checkIfActiveShip and checkIfInHangarOrCorpHangarAndCanTake and not checkBPSingleton and not invItem.singleton:
+                    if allInvItems and len(allInvItems) > 1:
+                        sellMenuLabel = 'UI/Inventory/ItemActions/MultiSell'
+                        sellItems = allInvItems
+                    else:
+                        sellMenuLabel = 'UI/Inventory/ItemActions/SellThisItem'
+                        sellItems = [allInvItems]
+                    menuEntries += [[uiutil.MenuLabel(sellMenuLabel), self.MultiSell, [sellItems]]]
+                if not checkMultiSelection:
+                    menuEntries += [[uiutil.MenuLabel('UI/Inventory/ItemActions/BuyThisType'), self.QuickBuy, (invItem.typeID,)]]
+                elif allInvItems:
+                    menuEntries += [[uiutil.MenuLabel('UI/Market/MarketQuote/BuyAll'), BuyMultipleTypes, [allInvItems]]]
+            if not checkIsStation and checkIfMineOrCorps and not checkIfActiveShip and not checkMultStations and checkIfInHangarOrCorpHangarOrDeliveriesAndCanTake:
+                menuEntries += [[uiutil.MenuLabel('UI/Inventory/ItemActions/CreateContract'), self.QuickContract, [invItem]]]
+            if checkIfAtStructure and checkIfMineOrCorps and not checkIfActiveShip and not checkMultStations and checkIfInHangarOrCorpHangarOrDeliveriesAndCanTake:
+                menuEntries += [[uiutil.MenuLabel('UI/Inventory/ItemActions/DeliverTo'), self.DeliverToStructure, [invItem]]]
+            if checkIsPublished and not checkMultiSelection and not checkIsStation:
+                menuEntries += [[uiutil.MenuLabel('UI/Inventory/ItemActions/FindInContracts'), sm.GetService('contracts').FindRelated, (invItem.typeID,
+                   None,
+                   None,
+                   None,
+                   None,
+                   None)]]
+            if not checkIfInQuickBar and not checkMultiSelection and not checkIsStation and not checkIfIsCapsule:
+                menuEntries += [[uiutil.MenuLabel('UI/Inventory/ItemActions/AddTypeToMarketQuickbar'), self.AddToQuickBar, (invItem.typeID,)]]
+            if checkIfInQuickBar and not checkMultiSelection:
+                menuEntries += [[uiutil.MenuLabel('UI/Inventory/ItemActions/RemoveTypeFromMarketQuickbar'), self.RemoveFromQuickBar, (invItem,)]]
+            if checkIfInHangar and checkIfAtStation and checkIfIsMine and checkCanContain and not checkIfIsCapsule:
+                menuEntries += [[uiutil.MenuLabel('UI/Inventory/ItemActions/ViewContents'), self.GetContainerContents, [invItem]]]
+            if not checkViewOnly and checkSingleton:
+                if checkSameLocation and isPlayerDeployedContainer and not checkIfInCorpDeliveries:
+                    menuEntries += [[uiutil.MenuLabel('UI/Inventory/ItemActions/OpenContainer'), openFunctions.OpenCargoContainer, [invItem]]]
+                    if checkIfAtStation and checkIfInHangar and checkPlasticWrap:
+                        menuEntries += [[uiutil.MenuLabel('UI/Contracts/BreakContract'), self.Break, [invItem]]]
+                        menuEntries += [[uiutil.MenuLabel('UI/Inventory/ItemActions/ContractsDelieverCourierPackage'), self.DeliverCourierContract, [invItem]]]
+                if checkSameStation and checkIfIsShip and checkIfImInStation and checkIfAtStation and checkIfInHangar and checkIfIsMine and not checkMultiSelection:
+                    if not checkIfActiveShip and checkIfMineOrCorps:
+                        menuEntries += [[uiutil.MenuLabel('UI/Inventory/ItemActions/MakeShipActive'), self.ActivateShip, (invItem,)]]
+                    if checkIfActiveShip and checkIfMineOrCorps and not checkIfIsCapsule:
+                        menuEntries += [[uiutil.MenuLabel('UI/Inventory/ItemActions/LeaveShip'), self.LeaveShip, (invItem,)]]
+                    if not checkIfIsCapsule:
+                        menuEntries += [[uiutil.MenuLabel('UI/Inventory/ItemActions/StripFitting'), self.StripFitting, [invItem]]]
+                if checkIfIsShip and checkIfAtStructure and checkIfInHangar and checkIfIsMine and not checkMultiSelection:
+                    if not checkIfActiveShip and checkIfMineOrCorps:
+                        menuEntries += [[uiutil.MenuLabel('UI/Inventory/ItemActions/MakeShipActive'), sm.GetService('structureDocking').ActivateShip, (invItem.itemID,)]]
+                    if checkIfActiveShip and checkIfMineOrCorps and not checkIfIsCapsule:
+                        menuEntries += [[uiutil.MenuLabel('UI/Inventory/ItemActions/LeaveShip'), sm.GetService('structureDocking').LeaveShip, (invItem.itemID,)]]
+            if isPlayerDeployedContainer and checkPlasticWrap:
+                menuEntries += [[uiutil.MenuLabel('UI/Inventory/ItemActions/FindContract'), self.FindCourierContract, [invItem]]]
+            menuEntries += [None]
+            if isBlueprintItem:
+                text = uiutil.MenuLabel('UI/Industry/UseBlueprint')
+                menuEntries += [[text, self.ShowInIndustryWindow, [invItem]]]
+            menuEntries += [None]
+            if not checkViewOnly:
+                if checkIfIsShip and checkSameLocation and checkIfImInStation and checkIfAtStation and checkIfInHangar and checkIfIsMine and not checkSingleton:
+                    menuEntries += [[uiutil.MenuLabel('UI/Inventory/ItemActions/AssembleShip'), self.AssembleShip, [invItem]]]
+                if checkIfIsShip and checkIfInSpace and checkIfInCargo and checkIfIsMine and not checkSingleton:
+                    menuEntries += [[uiutil.MenuLabel('UI/Inventory/ItemActions/AssembleShip'), self.AssembleShip, [invItem]]]
+                if checkIfIsShip and checkIfInSpace and checkLocationCorpHangarArrayEquivalent and checkLocationInSpace and not checkSingleton:
+                    menuEntries += [[uiutil.MenuLabel('UI/Inventory/ItemActions/AssembleShip'), self.AssembleShip, [invItem]]]
+                if checkIfIsShip and checkIfAtStructure and checkIfInHangar and checkIfIsMine and not checkSingleton:
+                    menuEntries += [[uiutil.MenuLabel('UI/Inventory/ItemActions/AssembleShip'), self.AssembleShip, [invItem]]]
+                if (checkIfImInStation and checkSameStation or checkIfInStructure and checkSameLocation) and checkIfIsHardware and checkActiveShip and not checkImplant and not checkBooster:
+                    menuEntries += [[uiutil.MenuLabel('UI/Inventory/ItemActions/FitToActiveShip'), TryFit, [invItem]]]
+                if checkIfInSpace and not checkIfInDroneBay and checkIfDrone and checkMAInRange:
+                    menuEntries += [[uiutil.MenuLabel('UI/Drones/MoveToDroneBay'), self.FitDrone, [invItem]]]
+            menuEntries += [None]
+            if checkIfInHangar and checkIfIsShip and checkSingleton and (checkSameStation or checkIfAtStructure) and not self._CheckIfInAssetSafety(invItem):
+                if checkIfActiveShip and checkIfShipCloneShip:
+                    menuEntries += [[uiutil.MenuLabel('UI/Commands/ConfigureShipCloneFacility'), self.ShipCloneConfig, (invItem.itemID,)]]
                 if not checkIfIsCapsule:
-                    menuEntries += [[uiutil.MenuLabel('UI/Inventory/ItemActions/StripFitting'), self.StripFitting, [invItem]]]
-        if isPlayerDeployedContainer and checkPlasticWrap:
-            menuEntries += [[uiutil.MenuLabel('UI/Inventory/ItemActions/FindContract'), self.FindCourierContract, [invItem]]]
-        menuEntries += [None]
-        if isBlueprintItem:
-            text = uiutil.MenuLabel('UI/Industry/UseBlueprint')
-            menuEntries += [[text, self.ShowInIndustryWindow, [invItem]]]
-        menuEntries += [None]
-        if not checkViewOnly:
-            if checkIfIsShip and checkSameLocation and checkIfImInStation and checkIfAtStation and checkIfInHangar and checkIfIsMine and not checkSingleton:
-                menuEntries += [[uiutil.MenuLabel('UI/Inventory/ItemActions/AssembleShip'), self.AssembleShip, [invItem]]]
-            if checkIfIsShip and checkIfInSpace and checkIfInCargo and checkIfIsMine and not checkSingleton:
-                menuEntries += [[uiutil.MenuLabel('UI/Inventory/ItemActions/AssembleShip'), self.AssembleShip, [invItem]]]
-            if checkIfIsShip and checkIfInSpace and checkLocationCorpHangarArrayEquivalent and checkLocationInSpace and not checkSingleton:
-                menuEntries += [[uiutil.MenuLabel('UI/Inventory/ItemActions/AssembleShip'), self.AssembleShip, [invItem]]]
-            if checkIfImInStation and checkIfIsHardware and checkActiveShip and checkSameStation and not checkImplant and not checkBooster:
-                menuEntries += [[uiutil.MenuLabel('UI/Inventory/ItemActions/FitToActiveShip'), TryFit, [invItem]]]
-            if checkIfInSpace and not checkIfInDroneBay and checkIfDrone and checkMAInRange:
-                menuEntries += [[uiutil.MenuLabel('UI/Drones/MoveToDroneBay'), self.FitDrone, [invItem]]]
-        menuEntries += [None]
-        if checkIfImInStation and checkIfInHangar and checkIfIsShip and checkSingleton and checkSameStation:
-            if checkIfActiveShip and checkIfShipCloneShip:
-                menuEntries += [[uiutil.MenuLabel('UI/Commands/ConfigureShipCloneFacility'), self.ShipCloneConfig, (invItem.itemID,)]]
-            if not checkIfIsCapsule:
-                menuEntries += [[uiutil.MenuLabel('UI/Commands/OpenCargoHold'), openFunctions.OpenShipHangarCargo, [invItem.itemID]]]
-            if checkIfShipHasDroneBay:
-                menuEntries += [[uiutil.MenuLabel('UI/Commands/OpenDroneBay'), openFunctions.OpenDroneBay, [invItem.itemID]]]
-            if checkIfShipHasFighterBay:
-                menuEntries += [[uiutil.MenuLabel('UI/Commands/OpenFighterBay'), openFunctions.OpenFighterBay, [invItem.itemID]]]
-            if checkIfShipMAShip:
-                menuEntries += [[uiutil.MenuLabel('UI/Commands/OpenShipMaintenanceBay'), openFunctions.OpenShipMaintenanceBayShip, (invItem.itemID, localization.GetByLabel('UI/Commands/OpenShipMaintenanceBayError'))]]
-            if checkIfShipFHShip:
-                menuEntries += [[uiutil.MenuLabel('UI/Commands/OpenFleetHangar'), openFunctions.OpenFleetHangar, (invItem.itemID,)]]
-            if checkIfShipFuelBay:
-                menuEntries += [[uiutil.MenuLabel('UI/Commands/OpenFuelBay'), self.OpenFuelBay, [invItem.itemID]]]
-            if checkIfShipOreHold:
-                menuEntries += [[uiutil.MenuLabel('UI/Commands/OpenOreHold'), self.OpenOreHold, [invItem.itemID]]]
-            if checkIfShipGasHold:
-                menuEntries += [[uiutil.MenuLabel('UI/Commands/OpenGasHold'), self.OpenGasHold, [invItem.itemID]]]
-            if checkIfShipMineralHold:
-                menuEntries += [[uiutil.MenuLabel('UI/Commands/OpenMineralHold'), self.OpenMineralHold, [invItem.itemID]]]
-            if checkIfShipSalvageHold:
-                menuEntries += [[uiutil.MenuLabel('UI/Commands/OpenSalvageHold'), self.OpenSalvageHold, [invItem.itemID]]]
-            if checkIfShipShipHold:
-                menuEntries += [[uiutil.MenuLabel('UI/Commands/OpenShipHold'), self.OpenShipHold, [invItem.itemID]]]
-            if checkIfShipSmallShipHold:
-                menuEntries += [[uiutil.MenuLabel('UI/Commands/OpenSmallShipHold'), self.OpenSmallShipHold, [invItem.itemID]]]
-            if checkIfShipMediumShipHold:
-                menuEntries += [[uiutil.MenuLabel('UI/Commands/OpenMediumShipHold'), self.OpenMediumShipHold, [invItem.itemID]]]
-            if checkIfShipLargeShipHold:
-                menuEntries += [[uiutil.MenuLabel('UI/Commands/OpenLargeShipHold'), self.OpenLargeShipHold, [invItem.itemID]]]
-            if checkIfShipIndustrialShipHold:
-                menuEntries += [[uiutil.MenuLabel('UI/Commands/OpenIndustrialShipHold'), self.OpenIndustrialShipHold, [invItem.itemID]]]
-            if checkIfShipAmmoHold:
-                menuEntries += [[uiutil.MenuLabel('UI/Commands/OpenAmmoHold'), self.OpenAmmoHold, [invItem.itemID]]]
-            if checkIfShipCommandCenterHold:
-                menuEntries += [[uiutil.MenuLabel('UI/Commands/OpenCommandCenterHold'), self.OpenCommandCenterHold, [invItem.itemID]]]
-            if checkIfShipPlanetaryCommoditiesHold:
-                menuEntries += [[uiutil.MenuLabel('UI/PI/Common/OpenPlanetaryCommoditiesHold'), self.OpenPlanetaryCommoditiesHold, [invItem.itemID]]]
-            if checkIfShipHasQuafeBay:
-                menuEntries += [[uiutil.MenuLabel('UI/Commands/OpenQuafeBay'), self.OpenQuafeHold, [invItem.itemID]]]
-        menuEntries += [None]
-        if checkSameStation and checkIfImInStation and checkIfInHangar and checkIfIsShip and checkIfIsMine and checkSingleton and not checkMultiSelection and not checkViewOnly:
-            menuEntries += [[uiutil.MenuLabel('UI/Commands/ChangeName'), self.SetName, (invItem,)]]
-        if checkSingleton and checkIfInHangarOrCorpHangarAndCanTake and checkIfMineOrCorps:
-            if not checkIsStation and not checkLocationInSpace and not checkIfActiveShip and checkIfRepackableInStation:
-                menuEntries += [[uiutil.MenuLabel('UI/Inventory/ItemActions/Repackage'), self.RepackageItemsInStation, [invItem]]]
-            elif checkLocationCorpHangarArrayEquivalent and checkIfRepackableInStructure:
+                    menuEntries += [[uiutil.MenuLabel('UI/Commands/OpenCargoHold'), openFunctions.OpenShipHangarCargo, [invItem.itemID]]]
+                if checkIfShipHasDroneBay:
+                    menuEntries += [[uiutil.MenuLabel('UI/Commands/OpenDroneBay'), openFunctions.OpenDroneBay, [invItem.itemID]]]
+                if checkIfShipHasFighterBay:
+                    menuEntries += [[uiutil.MenuLabel('UI/Commands/OpenFighterBay'), openFunctions.OpenFighterBay, [invItem.itemID]]]
+                if checkIfShipMAShip:
+                    menuEntries += [[uiutil.MenuLabel('UI/Commands/OpenShipMaintenanceBay'), openFunctions.OpenShipMaintenanceBayShip, (invItem.itemID, localization.GetByLabel('UI/Commands/OpenShipMaintenanceBayError'))]]
+                if checkIfShipFHShip:
+                    menuEntries += [[uiutil.MenuLabel('UI/Commands/OpenFleetHangar'), openFunctions.OpenFleetHangar, (invItem.itemID,)]]
+                if checkIfShipFuelBay:
+                    menuEntries += [[uiutil.MenuLabel('UI/Commands/OpenFuelBay'), self.OpenFuelBay, [invItem.itemID]]]
+                if checkIfShipOreHold:
+                    menuEntries += [[uiutil.MenuLabel('UI/Commands/OpenOreHold'), self.OpenOreHold, [invItem.itemID]]]
+                if checkIfShipGasHold:
+                    menuEntries += [[uiutil.MenuLabel('UI/Commands/OpenGasHold'), self.OpenGasHold, [invItem.itemID]]]
+                if checkIfShipMineralHold:
+                    menuEntries += [[uiutil.MenuLabel('UI/Commands/OpenMineralHold'), self.OpenMineralHold, [invItem.itemID]]]
+                if checkIfShipSalvageHold:
+                    menuEntries += [[uiutil.MenuLabel('UI/Commands/OpenSalvageHold'), self.OpenSalvageHold, [invItem.itemID]]]
+                if checkIfShipShipHold:
+                    menuEntries += [[uiutil.MenuLabel('UI/Commands/OpenShipHold'), self.OpenShipHold, [invItem.itemID]]]
+                if checkIfShipSmallShipHold:
+                    menuEntries += [[uiutil.MenuLabel('UI/Commands/OpenSmallShipHold'), self.OpenSmallShipHold, [invItem.itemID]]]
+                if checkIfShipMediumShipHold:
+                    menuEntries += [[uiutil.MenuLabel('UI/Commands/OpenMediumShipHold'), self.OpenMediumShipHold, [invItem.itemID]]]
+                if checkIfShipLargeShipHold:
+                    menuEntries += [[uiutil.MenuLabel('UI/Commands/OpenLargeShipHold'), self.OpenLargeShipHold, [invItem.itemID]]]
+                if checkIfShipIndustrialShipHold:
+                    menuEntries += [[uiutil.MenuLabel('UI/Commands/OpenIndustrialShipHold'), self.OpenIndustrialShipHold, [invItem.itemID]]]
+                if checkIfShipAmmoHold:
+                    menuEntries += [[uiutil.MenuLabel('UI/Commands/OpenAmmoHold'), self.OpenAmmoHold, [invItem.itemID]]]
+                if checkIfShipCommandCenterHold:
+                    menuEntries += [[uiutil.MenuLabel('UI/Commands/OpenCommandCenterHold'), self.OpenCommandCenterHold, [invItem.itemID]]]
+                if checkIfShipPlanetaryCommoditiesHold:
+                    menuEntries += [[uiutil.MenuLabel('UI/PI/Common/OpenPlanetaryCommoditiesHold'), self.OpenPlanetaryCommoditiesHold, [invItem.itemID]]]
+                if checkIfShipHasQuafeBay:
+                    menuEntries += [[uiutil.MenuLabel('UI/Commands/OpenQuafeBay'), self.OpenQuafeHold, [invItem.itemID]]]
+            menuEntries += [None]
+            if (checkSameStation or checkIfAtStructure) and checkIfInHangar and checkIfIsShip and checkIfIsMine and checkSingleton and not checkMultiSelection and not checkViewOnly:
+                menuEntries += [[uiutil.MenuLabel('UI/Commands/ChangeName'), self.SetName, (invItem,)]]
+            if checkSingleton and checkIfAtStructure and checkIfMineOrCorps and checkIfRepackable and not checkIfActiveShip:
                 menuEntries += [[uiutil.MenuLabel('UI/Inventory/ItemActions/Repackage'), self.RepackageItemsInStructure, [invItem]]]
-        menuEntries += [None]
-        if checkIfInSpace and not checkViewOnly:
-            if checkIfInCargo or checkIfInFleetHangar:
-                if HasDeployComponent(invItem.typeID):
-                    menuEntries.extend(deploy.GetDeployMenu(invItem))
-                elif checkIfAnchorable and checkIfInMyShip:
-                    if not checkConstructionPF and not checkIfIsStarbase and not checkIfIsSovStructure and not checkIfOrbital:
-                        menuEntries.append([uiutil.MenuLabel('UI/Inventory/ItemActions/LaunchForSelf'), self.LaunchForSelf, [invItem]])
-                    menuEntries.append([uiutil.MenuLabel('UI/Inventory/ItemActions/LaunchForCorp'), self.LaunchForCorp, [invItem]])
-            if isJettisonable:
-                if invItem.flagID in const.jettisonableFlags and not checkPlasticWrap:
-                    menuEntries += [[uiutil.MenuLabel('UI/Inventory/ItemActions/Jettison'), self.Jettison, [invItem]]]
-            elif isPlayerDeployedContainer and not checkIfAnchorable:
-                menuEntries += [[uiutil.MenuLabel('UI/Inventory/ItemActions/LaunchForSelf'), self.Jettison, [invItem]]]
-            if checkIfIsShip and not checkMultiSelection:
-                if checkIfInShipMA:
-                    menuEntries += [[uiutil.MenuLabel('UI/Inventory/ItemActions/LaunchShip'), self.LaunchSMAContents, [invItem]]]
-                    menuEntries += [[uiutil.MenuLabel('UI/Inflight/BoardShip'), self.BoardSMAShip, (invItem.locationID, invItem.itemID)]]
-                if checkIfInShipMAShip:
-                    menuEntries += [[uiutil.MenuLabel('UI/Inventory/ItemActions/LaunchShipFromBay'), self.LaunchSMAContents, [invItem]]]
-                if checkIfInShipMAShip2:
-                    menuEntries += [[uiutil.MenuLabel('UI/Inflight/POS/BoardShipFromBay'), self.BoardSMAShip, (invItem.locationID, invItem.itemID)]]
-                if checkIfInWreck and invItem.singleton:
-                    menuEntries += [[uiutil.MenuLabel('UI/Inventory/ItemActions/LaunchShip'), self.LaunchSMAContents, [invItem]]]
-        if checkIfImInStation and checkSameStation and checkIfIsShip and checkIfActiveShip:
-            menuEntries += [[uiutil.MenuLabel('UI/Commands/UndockFromStation'), self.ExitStation, (invItem,)]]
-        if locationItem is not None and checkIfCompressible and locationItem.groupID in (const.groupCompressionArray, const.groupCapitalIndustrialShip):
-            menuEntries += [[uiutil.MenuLabel('UI/Commands/Compress'), self.CompressItem, (invItem, locationItem)]]
-        if locationItem is not None and locationItem.groupID == const.groupReprocessingArray:
-            if invItem.categoryID == const.categoryAsteroid or invItem.groupID == const.groupRefinables:
-                menuEntries += [[uiutil.MenuLabel('UI/ScienceAndIndustry/Reprocess'), self.Reprocess, (invItem, locationItem)]]
-        if not util.IsNPC(session.corpid) and checkIfIsMyCorps:
-            deliverToMenu = []
-            divisions = sm.GetService('corp').GetDivisionNames()
-            deliverToCorpHangarMenu = [(divisions[1], self.DeliverToCorpHangarFolder, [[invItem, const.flagHangar]]),
-             (divisions[2], self.DeliverToCorpHangarFolder, [[invItem, const.flagCorpSAG2]]),
-             (divisions[3], self.DeliverToCorpHangarFolder, [[invItem, const.flagCorpSAG3]]),
-             (divisions[4], self.DeliverToCorpHangarFolder, [[invItem, const.flagCorpSAG4]]),
-             (divisions[5], self.DeliverToCorpHangarFolder, [[invItem, const.flagCorpSAG5]]),
-             (divisions[6], self.DeliverToCorpHangarFolder, [[invItem, const.flagCorpSAG6]]),
-             (divisions[7], self.DeliverToCorpHangarFolder, [[invItem, const.flagCorpSAG7]])]
-            deliverToMenu.append([uiutil.MenuLabel('UI/Corporations/CorpHangarSubmenu'), deliverToCorpHangarMenu])
-            deliverToMenu.append((uiutil.MenuLabel('UI/Corporations/CorporationWindow/Members/CorpMember'), self.DeliverToCorpMember, [invItem]))
-            if not checkIfNoneLocation and not checkLocationCorpHangarArrayEquivalent and checkIfInHangarOrCorpHangarOrDeliveriesAndCanTake:
-                menuEntries += [None]
-                menuEntries += [[uiutil.MenuLabel('UI/Corporations/DeliverCorpStuffTo'), deliverToMenu]]
-        menuEntries += [None]
-        if checkTrashable:
-            if checkIfInHangar and checkIfAtStation and checkIfIsMine:
-                menuEntries += [[uiutil.MenuLabel('UI/Inventory/ItemActions/TrashIt'), self.TrashInvItems, [invItem]]]
-            if checkIfIsMyCorps and checkIfIAmDirector and not checkItemIsInSpace and not checkShipInStarbase and not checkInControlTower and checkIfInHangarOrCorpHangarAndCanTake:
-                menuEntries += [[uiutil.MenuLabel('UI/Inventory/ItemActions/TrashIt'), self.TrashInvItems, [invItem]]]
-        checkCanConfigureOrbital = invItem and invItem.groupID != const.groupOrbitalConstructionPlatforms
-        checkIsStationManager = session.corprole & const.corpRoleStationManager == const.corpRoleStationManager
-        checkIsOrbital = util.IsOrbital(invItem.categoryID)
-        if checkIsOrbital and checkCanConfigureOrbital and checkIsStationManager:
-            menuEntries += [[uiutil.MenuLabel('UI/DustLink/ConfigureOrbital'), self.ConfigureOrbital, (invItem,)]]
-        if categoryID in compareCategories:
-            menuEntries += [(uiutil.MenuLabel('UI/Compare/CompareButton'), self.CompareType, (invItem.typeID,))]
-        if unparsed:
-            return menuEntries
-        m = []
-        if not (filterFunc and 'GM / WM Extras' in filterFunc) and session.role & (service.ROLE_GML | service.ROLE_WORLDMOD):
-            m = [('GM / WM Extras', ('isDynamic', self.GetGMMenu, (invItem.itemID,
-                None,
-                None,
-                invItem,
-                None)))]
-        return m + self.ParseMenu(menuEntries, filterFunc)
+            elif checkSingleton and checkIfInHangarOrCorpHangarAndCanTake and checkIfMineOrCorps:
+                if not checkIsStation and not checkLocationInSpace and not checkIfActiveShip and checkIfRepackable:
+                    menuEntries += [[uiutil.MenuLabel('UI/Inventory/ItemActions/Repackage'), self.RepackageItemsInStation, [invItem]]]
+                elif checkLocationCorpHangarArrayEquivalent and checkIfRepackable:
+                    menuEntries += [[uiutil.MenuLabel('UI/Inventory/ItemActions/Repackage'), self.RepackageItemsInStructure, [invItem]]]
+            menuEntries += [None]
+            if checkIfInSpace and not checkViewOnly:
+                if checkIfInCargo or checkIfInFleetHangar:
+                    if checkIfIsStructure and checkIfIAmStationManager and checkInflightView:
+                        menuEntries.append([uiutil.MenuLabel('UI/Inventory/ItemActions/LaunchForCorp'), self.DeployStructure, [invItem]])
+                    elif HasDeployComponent(invItem.typeID):
+                        menuEntries.extend(deploy.GetDeployMenu(invItem))
+                    elif checkIfAnchorable and checkIfInMyShip:
+                        if not checkConstructionPF and not checkIfIsStarbase and not checkIfIsSovStructure and not checkIfOrbital:
+                            menuEntries.append([uiutil.MenuLabel('UI/Inventory/ItemActions/LaunchForSelf'), self.LaunchForSelf, [invItem]])
+                        menuEntries.append([uiutil.MenuLabel('UI/Inventory/ItemActions/LaunchForCorp'), self.LaunchForCorp, [invItem]])
+                if isJettisonable:
+                    if invItem.flagID in const.jettisonableFlags and not checkPlasticWrap:
+                        menuEntries += [[uiutil.MenuLabel('UI/Inventory/ItemActions/Jettison'), self.Jettison, [invItem]]]
+                elif isPlayerDeployedContainer and not checkIfAnchorable:
+                    menuEntries += [[uiutil.MenuLabel('UI/Inventory/ItemActions/LaunchForSelf'), self.Jettison, [invItem]]]
+                if checkIfIsShip and not checkMultiSelection:
+                    if checkIfInShipMA:
+                        menuEntries += [[uiutil.MenuLabel('UI/Inventory/ItemActions/LaunchShip'), self.LaunchSMAContents, [invItem]]]
+                        menuEntries += [[uiutil.MenuLabel('UI/Inflight/BoardShip'), self.BoardSMAShip, (invItem.locationID, invItem.itemID)]]
+                    if checkIfInShipMAShip:
+                        menuEntries += [[uiutil.MenuLabel('UI/Inventory/ItemActions/LaunchShipFromBay'), self.LaunchSMAContents, [invItem]]]
+                    if checkIfInShipMAShip2:
+                        menuEntries += [[uiutil.MenuLabel('UI/Inflight/POS/BoardShipFromBay'), self.BoardSMAShip, (invItem.locationID, invItem.itemID)]]
+                    if (checkIfInWreck or checkIfInCargoCont) and invItem.singleton:
+                        menuEntries += [[uiutil.MenuLabel('UI/Inventory/ItemActions/LaunchShip'), self.LaunchSMAContents, [invItem]]]
+            if checkIfImInStation and checkSameStation and checkIfIsShip and checkIfActiveShip:
+                menuEntries += [[uiutil.MenuLabel('UI/Commands/UndockFromStation'), self.ExitStation, (invItem,)]]
+            if checkIfAtStructure and checkIfIsShip and checkIfActiveShip:
+                menuEntries += [[uiutil.MenuLabel('UI/Commands/UndockFromStructure'), sm.GetService('structureDocking').Undock, [session.structureid]]]
+            if inSpaceLocationItem is not None and checkIfCompressible and self._IsCompressionAvailable(invItem, inSpaceLocationItem):
+                menuEntries += [[uiutil.MenuLabel('UI/Commands/Compress'), self.CompressItem, (invItem, inSpaceLocationItem)]]
+            elif checkIfCompressible and checkIfInStructure and self._IsCompressionAvailable(invItem, None):
+                locationItem = sm.GetService('invCache').GetInventory(session.structureid).GetItem()
+                menuEntries += [[uiutil.MenuLabel('UI/Commands/Compress'), self.CompressItem, (invItem, locationItem)]]
+            if inSpaceLocationItem is not None and inSpaceLocationItem.groupID == const.groupReprocessingArray:
+                if invItem.categoryID == const.categoryAsteroid or invItem.groupID == const.groupRefinables:
+                    menuEntries += [[uiutil.MenuLabel('UI/ScienceAndIndustry/Reprocess'), self.Reprocess, (invItem, inSpaceLocationItem)]]
+            if not util.IsNPC(session.corpid) and checkIfIsMyCorps:
+                deliverToMenu = []
+                divisions = sm.GetService('corp').GetDivisionNames()
+                deliverToCorpHangarMenu = [(divisions[1], self.DeliverToCorpHangarFolder, [[invItem, const.flagHangar]]),
+                 (divisions[2], self.DeliverToCorpHangarFolder, [[invItem, const.flagCorpSAG2]]),
+                 (divisions[3], self.DeliverToCorpHangarFolder, [[invItem, const.flagCorpSAG3]]),
+                 (divisions[4], self.DeliverToCorpHangarFolder, [[invItem, const.flagCorpSAG4]]),
+                 (divisions[5], self.DeliverToCorpHangarFolder, [[invItem, const.flagCorpSAG5]]),
+                 (divisions[6], self.DeliverToCorpHangarFolder, [[invItem, const.flagCorpSAG6]]),
+                 (divisions[7], self.DeliverToCorpHangarFolder, [[invItem, const.flagCorpSAG7]])]
+                deliverToMenu.append([uiutil.MenuLabel('UI/Corporations/CorpHangarSubmenu'), deliverToCorpHangarMenu])
+                deliverToMenu.append((uiutil.MenuLabel('UI/Corporations/CorporationWindow/Members/CorpMember'), self.DeliverToCorpMember, [invItem]))
+                if not checkIfNoneLocation and not checkLocationCorpHangarArrayEquivalent and checkIfInHangarOrCorpHangarOrDeliveriesAndCanTake:
+                    menuEntries += [None]
+                    menuEntries += [[uiutil.MenuLabel('UI/Corporations/DeliverCorpStuffTo'), deliverToMenu]]
+            menuEntries += [None]
+            if checkTrashable:
+                if (checkIfInHangar or checkIfInDeliveries) and (checkIfAtStation or checkIfAtStructure) and checkIfIsMine:
+                    menuEntries += [[uiutil.MenuLabel('UI/Inventory/ItemActions/TrashIt'), self.TrashInvItems, [invItem]]]
+                if checkIfIsMyCorps and checkIfIAmDirector and not checkItemIsInSpace and not checkShipInStarbase and not checkInControlTower and checkIfInHangarOrCorpHangarAndCanTake:
+                    menuEntries += [[uiutil.MenuLabel('UI/Inventory/ItemActions/TrashIt'), self.TrashInvItems, [invItem]]]
+            checkCanConfigureOrbital = invItem and invItem.groupID != const.groupOrbitalConstructionPlatforms
+            checkIsStationManager = session.corprole & const.corpRoleStationManager == const.corpRoleStationManager
+            checkIsOrbital = util.IsOrbital(invItem.categoryID)
+            if checkIsOrbital and checkCanConfigureOrbital and checkIsStationManager:
+                menuEntries += [[uiutil.MenuLabel('UI/DustLink/ConfigureOrbital'), self.ConfigureOrbital, (invItem,)]]
+            if categoryID in compareCategories:
+                menuEntries += [(uiutil.MenuLabel('UI/Compare/CompareButton'), self.CompareType, (invItem.typeID,))]
+            if unparsed:
+                return menuEntries
+            m = []
+            if not (filterFunc and 'GM / WM Extras' in filterFunc) and session.role & (service.ROLE_GML | service.ROLE_WORLDMOD):
+                m = [('GM / WM Extras', ('isDynamic', self.GetGMMenu, (invItem.itemID,
+                    None,
+                    None,
+                    invItem,
+                    None)))]
+            return m + self.ParseMenu(menuEntries, filterFunc)
+
+    def _CheckIfInAssetSafety(self, item):
+        if item.typeID == const.typeAssetSafetyWrap:
+            return True
+        if util.IsStation(item.locationID) or util.IsSolarSystem(item.locationID):
+            return False
+        if item.locationID in (session.locationid, session.structureid):
+            return False
+        locationItem = self.invCache.GetInventoryFromId(item.locationID).GetItem()
+        while locationItem and locationItem.itemID not in (session.stationid, session.structureid) and locationItem.locationID > const.minStation:
+            if locationItem.typeID == const.typeAssetSafetyWrap:
+                return True
+            locationItem = self.invCache.GetInventoryFromId(locationItem.locationID).GetItem()
+
+        return False
+
+    def _CheckCanReprocess(self, serviceMask):
+        if session.stationid:
+            if serviceMask & const.stationServiceRefinery or serviceMask & const.stationServiceReprocessingPlant:
+                return True
+        elif session.structureid:
+            return sm.GetService('structureServices').IsServiceAvailable(structures.SERVICE_REPROCESSING)
+        return False
 
     def CheckItemsInSamePlace(self, invItems):
         return invItemFunctions.CheckItemsInSamePlace(invItems)
@@ -585,12 +648,12 @@ class MenuSvc(service.Service):
     def GetDroneMenu(self, data):
         return self.DroneMenu(data, unmerged=0)
 
-    def DroneMenu(self, data, unmerged = 0):
+    def DroneMenu(self, data, unmerged=0):
         menu = self.GetGroupSpecificDroneMenu(data, unmerged=unmerged)
         menu += self.GetCommonDroneMenu(data, unmerged=unmerged)
         return menu
 
-    def GetGroupSpecificDroneMenu(self, data, unmerged = 0):
+    def GetGroupSpecificDroneMenu(self, data, unmerged=0):
         menuEntries = MenuList()
         targetID = sm.GetService('target').GetActiveTargetID()
         for droneID, groupID, ownerID in data:
@@ -680,10 +743,11 @@ class MenuSvc(service.Service):
 
         if unmerged:
             return menuEntries
-        merged = self.MergeMenus(menuEntries)
-        return merged
+        else:
+            merged = self.MergeMenus(menuEntries)
+            return merged
 
-    def GetCommonDroneMenu(self, data, unmerged = 0):
+    def GetCommonDroneMenu(self, data, unmerged=0):
         menuEntries = MenuList()
         for droneID, groupID, ownerID in data:
             droneState = sm.StartService('michelle').GetDroneState(droneID)
@@ -736,10 +800,11 @@ class MenuSvc(service.Service):
 
         if unmerged:
             return menuEntries
-        merged = self.MergeMenus(menuEntries)
-        return merged
+        else:
+            merged = self.MergeMenus(menuEntries)
+            return merged
 
-    def CharacterMenu(self, charid, charIDs = [], corpid = None, unparsed = 0, filterFunc = None, **kwargs):
+    def CharacterMenu(self, charid, charIDs=[], corpid=None, unparsed=0, filterFunc=None, **kwargs):
         if type(charid) == list:
             menus = []
             for chid, coid in charid:
@@ -749,134 +814,135 @@ class MenuSvc(service.Service):
         else:
             return self._CharacterMenu(charid, corpid, unparsed, filterFunc, **kwargs)
 
-    def _CharacterMenu(self, charid, corpid, unparsed = 0, filterFunc = None, multi = 0, **kwargs):
+    def _CharacterMenu(self, charid, corpid, unparsed=0, filterFunc=None, multi=0, **kwargs):
         if not charid:
             return []
-        addressBookSvc = sm.GetService('addressbook')
-        checkIsNPC = util.IsNPC(charid)
-        checkIsAgent = sm.GetService('agents').IsAgent(charid)
-        checkInStation = bool(session.stationid)
-        checkInAddressbook = bool(addressBookSvc.IsInAddressBook(charid, 'contact'))
-        checkInCorpAddressbook = bool(addressBookSvc.IsInAddressBook(charid, 'corpcontact'))
-        checkInAllianceAddressbook = bool(addressBookSvc.IsInAddressBook(charid, 'alliancecontact'))
-        checkIfBlocked = addressBookSvc.IsBlocked(charid)
-        checkIfGuest = session.stationid and sm.StartService('station').IsGuest(charid)
-        checkIfMe = charid == session.charid
-        checkHaveCloneBay = sm.GetService('clonejump').HasCloneReceivingBay()
-        checkIfExecCorp = session.allianceid and sm.GetService('alliance').GetAlliance(session.allianceid).executorCorpID == session.corpid
-        checkIAmDiplomat = (const.corpRoleDirector | const.corpRoleDiplomat) & session.corprole != 0
-        checkIfEmpireSpace = sm.GetService('map').GetSecurityClass(session.solarsystemid2) != const.securityClassZeroSec
-        checkIfDustCharacter = util.IsDustCharacter(charid)
-        checkMultiSelection = bool(multi)
-        menuEntries = MenuList()
-        doShowInfo = True
-        if checkIsAgent:
-            agentInfo = sm.GetService('agents').GetAgentByID(charid)
-            if agentInfo and agentInfo.agentTypeID == const.agentTypeAura:
-                doShowInfo = False
-        if doShowInfo:
-            menuEntries += [(uiutil.MenuLabel('UI/Commands/ShowInfo'), self.ShowInfo, (cfg.eveowners.Get(charid).typeID, charid))]
-        if not checkMultiSelection and not checkIfMe and not checkIsNPC:
-            isRecruiting = None
-            if 'isRecruiting' in kwargs:
-                isRecruiting = kwargs['isRecruiting']
-            menuEntries += [[uiutil.MenuLabel('UI/Chat/StartConversation'), sm.StartService('LSC').Invite, (charid, None, isRecruiting)]]
         else:
-            prereqs = [('checkMultiSelection', checkMultiSelection, False), ('checkIfMe', checkIfMe, False), ('checkIsNPC', checkIsNPC, False)]
-            reason = self.FindReasonNotAvailable(prereqs)
-            if reason:
-                menuEntries.reasonsWhyNotAvailable['UI/Chat/StartConversation'] = reason
-        if not checkMultiSelection and not checkIfMe and checkIsNPC and checkIsAgent:
-            menuEntries += [[uiutil.MenuLabel('UI/Chat/StartConversationAgent'), sm.StartService('agents').InteractWith, (charid,)]]
-        else:
-            prereqs = [('checkMultiSelection', checkMultiSelection, False),
-             ('checkIfMe', checkIfMe, False),
-             ('checkIsNPC', checkIsNPC, True),
-             ('checkIsAgent', checkIsAgent, True)]
-            reason = self.FindReasonNotAvailable(prereqs)
-            if reason:
-                menuEntries.reasonsWhyNotAvailable['UI/Chat/StartConversation'] = reason
-        if not checkIfMe:
-            if not checkInAddressbook and checkIsNPC and checkIsAgent:
-                menuEntries += [[uiutil.MenuLabel('UI/PeopleAndPlaces/AddToAddressbook'), addressBookSvc.AddToPersonalMulti, [charid]]]
-            if not checkIsNPC:
-                if not checkMultiSelection:
-                    menuEntries += [[uiutil.MenuLabel('UI/Chat/InviteToChat'), ('isDynamic', self.__GetInviteMenu, (charid,))]]
-                menuEntries += [[uiutil.MenuLabel('UI/EVEMail/SendPilotEVEMail'), sm.StartService('mailSvc').SendMsgDlg, ([charid], None, None)]]
-                if not checkMultiSelection and not checkInAddressbook:
-                    menuEntries += [[uiutil.MenuLabel('UI/PeopleAndPlaces/AddContact'), addressBookSvc.AddToPersonalMulti, [charid, 'contact']]]
-                if not checkMultiSelection and checkInAddressbook:
-                    menuEntries += [[uiutil.MenuLabel('UI/PeopleAndPlaces/EditContact'), addressBookSvc.AddToPersonalMulti, [charid, 'contact', True]]]
-                if not checkMultiSelection and checkInAddressbook:
-                    menuEntries += [[uiutil.MenuLabel('UI/PeopleAndPlaces/RemoveContact'), addressBookSvc.DeleteEntryMulti, [[charid], 'contact']]]
-            if checkInAddressbook and checkIsNPC and checkIsAgent:
-                menuEntries += [[uiutil.MenuLabel('UI/PeopleAndPlaces/RemoveFromAddressbook'), addressBookSvc.DeleteEntryMulti, [charid]]]
-            if not checkMultiSelection and checkIfBlocked:
-                menuEntries += [[uiutil.MenuLabel('UI/PeopleAndPlaces/UnblockContact'), addressBookSvc.UnblockOwner, ([charid],)]]
-            if not checkMultiSelection and not checkIsNPC and not checkIfBlocked:
-                menuEntries += [[uiutil.MenuLabel('UI/PeopleAndPlaces/BlockContact'), addressBookSvc.BlockOwner, (charid,)]]
-        if not checkIsNPC and checkIAmDiplomat:
-            if not checkInCorpAddressbook:
-                menuEntries += [[uiutil.MenuLabel('UI/PeopleAndPlaces/AddCorpContact'), addressBookSvc.AddToPersonalMulti, [charid, 'corpcontact']]]
+            addressBookSvc = sm.GetService('addressbook')
+            checkIsNPC = util.IsNPC(charid)
+            checkIsAgent = sm.GetService('agents').IsAgent(charid)
+            checkInStation = bool(session.stationid)
+            checkInAddressbook = bool(addressBookSvc.IsInAddressBook(charid, 'contact'))
+            checkInCorpAddressbook = bool(addressBookSvc.IsInAddressBook(charid, 'corpcontact'))
+            checkInAllianceAddressbook = bool(addressBookSvc.IsInAddressBook(charid, 'alliancecontact'))
+            checkIfBlocked = addressBookSvc.IsBlocked(charid)
+            checkIfGuest = session.stationid and sm.StartService('station').IsGuest(charid)
+            checkIfMe = charid == session.charid
+            checkHaveCloneBay = sm.GetService('clonejump').HasCloneReceivingBay()
+            checkIfExecCorp = session.allianceid and sm.GetService('alliance').GetAlliance(session.allianceid).executorCorpID == session.corpid
+            checkIAmDiplomat = (const.corpRoleDirector | const.corpRoleDiplomat) & session.corprole != 0
+            checkIfEmpireSpace = sm.GetService('map').GetSecurityClass(session.solarsystemid2) != const.securityClassZeroSec
+            checkIfDustCharacter = util.IsDustCharacter(charid)
+            checkMultiSelection = bool(multi)
+            menuEntries = MenuList()
+            doShowInfo = True
+            if checkIsAgent:
+                agentInfo = sm.GetService('agents').GetAgentByID(charid)
+                if agentInfo and agentInfo.agentTypeID == const.agentTypeAura:
+                    doShowInfo = False
+            if doShowInfo:
+                menuEntries += [(uiutil.MenuLabel('UI/Commands/ShowInfo'), self.ShowInfo, (cfg.eveowners.Get(charid).typeID, charid))]
+            if not checkMultiSelection and not checkIfMe and not checkIsNPC:
+                isRecruiting = None
+                if 'isRecruiting' in kwargs:
+                    isRecruiting = kwargs['isRecruiting']
+                menuEntries += [[uiutil.MenuLabel('UI/Chat/StartConversation'), sm.StartService('LSC').Invite, (charid, None, isRecruiting)]]
             else:
-                menuEntries += [[uiutil.MenuLabel('UI/PeopleAndPlaces/EditCorpContact'), addressBookSvc.AddToPersonalMulti, [charid, 'corpcontact', True]]]
-                menuEntries += [[uiutil.MenuLabel('UI/PeopleAndPlaces/RemoveCorpContact'), addressBookSvc.DeleteEntryMulti, [[charid], 'corpcontact']]]
-            if checkIfExecCorp and not checkIfDustCharacter:
-                if not checkInAllianceAddressbook:
-                    menuEntries += [[uiutil.MenuLabel('UI/PeopleAndPlaces/AddAllianceContact'), addressBookSvc.AddToPersonalMulti, [charid, 'alliancecontact']]]
+                prereqs = [('checkMultiSelection', checkMultiSelection, False), ('checkIfMe', checkIfMe, False), ('checkIsNPC', checkIsNPC, False)]
+                reason = self.FindReasonNotAvailable(prereqs)
+                if reason:
+                    menuEntries.reasonsWhyNotAvailable['UI/Chat/StartConversation'] = reason
+            if not checkMultiSelection and not checkIfMe and checkIsNPC and checkIsAgent:
+                menuEntries += [[uiutil.MenuLabel('UI/Chat/StartConversationAgent'), sm.StartService('agents').InteractWith, (charid,)]]
+            else:
+                prereqs = [('checkMultiSelection', checkMultiSelection, False),
+                 ('checkIfMe', checkIfMe, False),
+                 ('checkIsNPC', checkIsNPC, True),
+                 ('checkIsAgent', checkIsAgent, True)]
+                reason = self.FindReasonNotAvailable(prereqs)
+                if reason:
+                    menuEntries.reasonsWhyNotAvailable['UI/Chat/StartConversation'] = reason
+            if not checkIfMe:
+                if not checkInAddressbook and checkIsNPC and checkIsAgent:
+                    menuEntries += [[uiutil.MenuLabel('UI/PeopleAndPlaces/AddToAddressbook'), addressBookSvc.AddToPersonalMulti, [charid]]]
+                if not checkIsNPC:
+                    if not checkMultiSelection:
+                        menuEntries += [[uiutil.MenuLabel('UI/Chat/InviteToChat'), ('isDynamic', self.__GetInviteMenu, (charid,))]]
+                    menuEntries += [[uiutil.MenuLabel('UI/EVEMail/SendPilotEVEMail'), sm.StartService('mailSvc').SendMsgDlg, ([charid], None, None)]]
+                    if not checkMultiSelection and not checkInAddressbook:
+                        menuEntries += [[uiutil.MenuLabel('UI/PeopleAndPlaces/AddContact'), addressBookSvc.AddToPersonalMulti, [charid, 'contact']]]
+                    if not checkMultiSelection and checkInAddressbook:
+                        menuEntries += [[uiutil.MenuLabel('UI/PeopleAndPlaces/EditContact'), addressBookSvc.AddToPersonalMulti, [charid, 'contact', True]]]
+                    if not checkMultiSelection and checkInAddressbook:
+                        menuEntries += [[uiutil.MenuLabel('UI/PeopleAndPlaces/RemoveContact'), addressBookSvc.DeleteEntryMulti, [[charid], 'contact']]]
+                if checkInAddressbook and checkIsNPC and checkIsAgent:
+                    menuEntries += [[uiutil.MenuLabel('UI/PeopleAndPlaces/RemoveFromAddressbook'), addressBookSvc.DeleteEntryMulti, [charid]]]
+                if not checkMultiSelection and checkIfBlocked:
+                    menuEntries += [[uiutil.MenuLabel('UI/PeopleAndPlaces/UnblockContact'), addressBookSvc.UnblockOwner, ([charid],)]]
+                if not checkMultiSelection and not checkIsNPC and not checkIfBlocked:
+                    menuEntries += [[uiutil.MenuLabel('UI/PeopleAndPlaces/BlockContact'), addressBookSvc.BlockOwner, (charid,)]]
+            if not checkIsNPC and checkIAmDiplomat:
+                if not checkInCorpAddressbook:
+                    menuEntries += [[uiutil.MenuLabel('UI/PeopleAndPlaces/AddCorpContact'), addressBookSvc.AddToPersonalMulti, [charid, 'corpcontact']]]
                 else:
-                    menuEntries += [[uiutil.MenuLabel('UI/PeopleAndPlaces/EditAllianceContact'), addressBookSvc.AddToPersonalMulti, [charid, 'alliancecontact', True]]]
-                    menuEntries += [[uiutil.MenuLabel('UI/PeopleAndPlaces/RemoveAllianceContact'), addressBookSvc.DeleteEntryMulti, [[charid], 'alliancecontact']]]
-        if not checkMultiSelection and not checkIfMe and not checkIsNPC and not checkIfDustCharacter:
-            menuEntries += [[uiutil.MenuLabel('UI/Commands/GiveMoney'), sm.StartService('wallet').TransferMoney, (session.charid,
-               None,
-               charid,
-               None)]]
-            if checkHaveCloneBay and not checkIfDustCharacter:
-                menuEntries += [[uiutil.MenuLabel('UI/CloneJump/OfferCloneInstallation'), sm.StartService('clonejump').OfferShipCloneInstallation, (charid,)]]
-        if not multi:
-            agentInfo = sm.StartService('agents').GetAgentByID(charid)
-            if agentInfo:
-                if agentInfo.solarsystemID and agentInfo.solarsystemID != session.solarsystemid2:
-                    menuEntries += [None]
-                    menuEntries += self.MapMenu(agentInfo.stationID, unparsed=1)
-        if not checkMultiSelection and not checkIfMe and checkInStation and not checkIsNPC and checkIfGuest and not checkIfDustCharacter:
-            menuEntries += [[uiutil.MenuLabel('UI/Market/TradeWithCharacter'), sm.StartService('pvptrade').StartTradeSession, (charid,)]]
-        if not checkMultiSelection and not checkIsNPC and not checkIfDustCharacter:
-            menuEntries += [[uiutil.MenuLabel('UI/Station/BountyOffice/PlaceBounty'), openFunctions.OpenBountyOffice, (charid,)]]
-        if not checkIsNPC and not util.IsDustCharacter(charid):
-            menuEntries += [[uiutil.MenuLabel('UI/Commands/CapturePortrait'), sm.StartService('photo').SavePortraits, [charid]]]
-        if not checkIsNPC and not checkIfDustCharacter:
-            if session.fleetid is not None:
-                fleetSvc = sm.GetService('fleet')
-                members = fleetSvc.GetMembers()
-                checkIfImLeader = self.ImFleetLeaderOrCommander()
-                member = members.get(charid, None)
-                if member is None:
-                    if not checkMultiSelection and checkIfImLeader:
-                        menuEntries += [[uiutil.MenuLabel('UI/Fleet/InvitePilotToFleet'), self.FleetInviteMenu(charid)]]
-                elif not checkMultiSelection:
-                    menuEntries += [[uiutil.MenuLabel('UI/Fleet/Fleet'), ('isDynamic', self.FleetMenu, (charid, False))]]
-            else:
-                menuEntries += [[uiutil.MenuLabel('UI/Fleet/FormFleetWith'), self.InviteToFleet, [charid]]]
-        if checkIfEmpireSpace and not (checkIsNPC or checkIfMe or checkIfDustCharacter or checkMultiSelection):
-            if not self.crimewatchSvc.HasLimitedEngagmentWith(charid):
-                menuEntries += [[uiutil.MenuLabel('UI/Crimewatch/Duel/DuelMenuEntry'), self.crimewatchSvc.StartDuel, (charid,)]]
-        if not checkIsNPC:
-            menuEntries += self.CorpMemberMenu(charid, multi)
-        if unparsed:
-            return menuEntries
-        m = []
-        if not (filterFunc and 'GM / WM Extras' in filterFunc) and session.role & (service.ROLE_GML | service.ROLE_WORLDMOD | service.ROLE_LEGIONEER):
-            m = [('GM / WM Extras', ('isDynamic', self.GetGMMenu, (None,
-                None,
-                charid,
-                None,
-                None)))]
-        return m + self.ParseMenu(menuEntries, filterFunc)
+                    menuEntries += [[uiutil.MenuLabel('UI/PeopleAndPlaces/EditCorpContact'), addressBookSvc.AddToPersonalMulti, [charid, 'corpcontact', True]]]
+                    menuEntries += [[uiutil.MenuLabel('UI/PeopleAndPlaces/RemoveCorpContact'), addressBookSvc.DeleteEntryMulti, [[charid], 'corpcontact']]]
+                if checkIfExecCorp and not checkIfDustCharacter:
+                    if not checkInAllianceAddressbook:
+                        menuEntries += [[uiutil.MenuLabel('UI/PeopleAndPlaces/AddAllianceContact'), addressBookSvc.AddToPersonalMulti, [charid, 'alliancecontact']]]
+                    else:
+                        menuEntries += [[uiutil.MenuLabel('UI/PeopleAndPlaces/EditAllianceContact'), addressBookSvc.AddToPersonalMulti, [charid, 'alliancecontact', True]]]
+                        menuEntries += [[uiutil.MenuLabel('UI/PeopleAndPlaces/RemoveAllianceContact'), addressBookSvc.DeleteEntryMulti, [[charid], 'alliancecontact']]]
+            if not checkMultiSelection and not checkIfMe and not checkIsNPC and not checkIfDustCharacter:
+                menuEntries += [[uiutil.MenuLabel('UI/Commands/GiveMoney'), sm.StartService('wallet').TransferMoney, (session.charid,
+                   None,
+                   charid,
+                   None)]]
+                if checkHaveCloneBay and not checkIfDustCharacter:
+                    menuEntries += [[uiutil.MenuLabel('UI/CloneJump/OfferCloneInstallation'), sm.StartService('clonejump').OfferShipCloneInstallation, (charid,)]]
+            if not multi:
+                agentInfo = sm.StartService('agents').GetAgentByID(charid)
+                if agentInfo:
+                    if agentInfo.solarsystemID and agentInfo.solarsystemID != session.solarsystemid2:
+                        menuEntries += [None]
+                        menuEntries += self.MapMenu(agentInfo.stationID, unparsed=1)
+            if not checkMultiSelection and not checkIfMe and checkInStation and not checkIsNPC and checkIfGuest and not checkIfDustCharacter:
+                menuEntries += [[uiutil.MenuLabel('UI/Market/TradeWithCharacter'), sm.StartService('pvptrade').StartTradeSession, (charid,)]]
+            if not checkMultiSelection and not checkIsNPC and not checkIfDustCharacter:
+                menuEntries += [[uiutil.MenuLabel('UI/Station/BountyOffice/PlaceBounty'), openFunctions.OpenBountyOffice, (charid,)]]
+            if not checkIsNPC and not util.IsDustCharacter(charid):
+                menuEntries += [[uiutil.MenuLabel('UI/Commands/CapturePortrait'), sm.StartService('photo').SavePortraits, [charid]]]
+            if not checkIsNPC and not checkIfDustCharacter:
+                if session.fleetid is not None:
+                    fleetSvc = sm.GetService('fleet')
+                    members = fleetSvc.GetMembers()
+                    checkIfImLeader = self.ImFleetLeaderOrCommander()
+                    member = members.get(charid, None)
+                    if member is None:
+                        if not checkMultiSelection and checkIfImLeader:
+                            menuEntries += [[uiutil.MenuLabel('UI/Fleet/InvitePilotToFleet'), self.FleetInviteMenu(charid)]]
+                    elif not checkMultiSelection:
+                        menuEntries += [[uiutil.MenuLabel('UI/Fleet/Fleet'), ('isDynamic', self.FleetMenu, (charid, False))]]
+                else:
+                    menuEntries += [[uiutil.MenuLabel('UI/Fleet/FormFleetWith'), self.InviteToFleet, [charid]]]
+            if checkIfEmpireSpace and not (checkIsNPC or checkIfMe or checkIfDustCharacter or checkMultiSelection):
+                if not self.crimewatchSvc.HasLimitedEngagmentWith(charid):
+                    menuEntries += [[uiutil.MenuLabel('UI/Crimewatch/Duel/DuelMenuEntry'), self.crimewatchSvc.StartDuel, (charid,)]]
+            if not checkIsNPC:
+                menuEntries += self.CorpMemberMenu(charid, multi)
+            if unparsed:
+                return menuEntries
+            m = []
+            if not (filterFunc and 'GM / WM Extras' in filterFunc) and session.role & (service.ROLE_GML | service.ROLE_WORLDMOD | service.ROLE_LEGIONEER):
+                m = [('GM / WM Extras', ('isDynamic', self.GetGMMenu, (None,
+                    None,
+                    charid,
+                    None,
+                    None)))]
+            return m + self.ParseMenu(menuEntries, filterFunc)
 
     def GetCheckInSpace(self):
-        return bool(session.solarsystemid)
+        return util.InShipInSpace()
 
     def GetCheckInStation(self):
         return bool(session.stationid)
@@ -930,143 +996,146 @@ class MenuSvc(service.Service):
     def CheckImSquadCmdr(self):
         return session.fleetrole == const.fleetRoleSquadCmdr
 
-    def FleetMenu(self, charID, unparsed = True):
+    def FleetMenu(self, charID, unparsed=True):
 
         def ParsedMaybe(menuEntries):
             if unparsed:
                 return menuEntries
             else:
                 return self.ParseMenu(menuEntries, None)
+                return None
 
         if session.fleetid is None:
             return []
-        fleetSvc = sm.GetService('fleet')
-        vivox = sm.GetService('vivox')
-        members = fleetSvc.GetMembers()
-        shipItem = util.SlimItemFromCharID(charID)
-        bp = sm.StartService('michelle').GetBallpark()
-        otherBall = bp and shipItem and bp.GetBall(shipItem.itemID) or None
-        me = members[session.charid]
-        checkIfImLeader = self.ImFleetLeaderOrCommander()
-        checkIfImWingCommanderOrHigher = self.CheckImFleetLeaderOrBoss() or self.CheckImWingCmdr()
-        member = members.get(charID)
-        char = cfg.eveowners.Get(charID)
-        if member is None:
-            menuEntries = [[uiutil.MenuLabel('UI/Commands/ShowInfo'), self.ShowInfo, (char.typeID,
-               charID,
-               0,
-               None,
-               None)]]
-            return menuEntries
-        isTitan = False
-        isJumpDrive = False
-        if session.solarsystemid and session.shipid:
-            ship = sm.StartService('godma').GetItem(session.shipid)
-            if ship.canJump:
-                isJumpDrive = True
-            if ship.groupID in [const.groupTitan, const.groupBlackOps]:
-                isTitan = True
-        checkImCreator = bool(me.job & const.fleetJobCreator)
-        checkIfMe = charID == session.charid
-        checkIfInSpace = self.GetCheckInSpace()
-        checkIfActiveBeacon = fleetSvc.HasActiveBeacon(charID)
-        checkIsTitan = isTitan
-        checkIsJumpDrive = isJumpDrive
-        checkBoosterFleet = bool(member.roleBooster == const.fleetBoosterFleet)
-        checkBoosterWing = bool(member.roleBooster == const.fleetBoosterWing)
-        checkBoosterSquad = bool(member.roleBooster == const.fleetBoosterSquad)
-        checkBoosterAny = bool(checkBoosterFleet or checkBoosterWing or checkBoosterSquad)
-        checkSubordinate = self.CheckImFleetLeaderOrBoss() or me.role == const.fleetRoleWingCmdr and member.wingID == me.wingID or me.role == const.fleetRoleSquadCmdr and member.squadID == me.squadID
-        checkBoss = member.job & const.fleetJobCreator
-        checkWingCommander = member.role == const.fleetRoleWingCmdr
-        checkFleetCommander = member.role == const.fleetRoleLeader
-        checkBoosterSubordinate = checkBoosterAny and (checkImCreator or me.role == const.fleetRoleLeader) or (checkBoosterWing or checkBoosterSquad) and me.role == const.fleetRoleWingCmdr or checkBoosterSquad and me.role == const.fleetRoleSquadCmdr
-        checkBoosterSubordinateOrSelf = checkBoosterSubordinate or checkBoosterAny and checkIfMe
-        checkIfFavorite = fleetSvc.IsFavorite(charID)
-        checkIfIsBubble = shipItem is not None
-        checkMultiSelection = False
-        dist = sys.maxint
-        if otherBall:
-            dist = max(0, otherBall.surfaceDist)
-        checkWarpDist = dist > const.minWarpDistance
-        checkIsVoiceEnabled = sm.StartService('vivox').Enabled()
-        checkCanMute = fleetSvc.CanIMuteOrUnmuteCharInMyChannel(charID) > 0
-        checkCanUnmute = fleetSvc.CanIMuteOrUnmuteCharInMyChannel(charID) < 0
-        checkIfPrivateMuted = charID in vivox.GetMutedParticipants()
-        if session.fleetrole == const.fleetRoleWingCmdr:
-            muteString = uiutil.MenuLabel('UI/Fleet/MuteFromWingChannel')
-            unmuteString = uiutil.MenuLabel('UI/Fleet/UnmuteFromWingChannel')
-        elif session.fleetrole == const.fleetRoleSquadCmdr:
-            muteString = uiutil.MenuLabel('UI/Fleet/MuteFromSquadChannel')
-            unmuteString = uiutil.MenuLabel('UI/Fleet/UnmuteFromSquadChannel')
         else:
-            muteString = uiutil.MenuLabel('UI/Fleet/MuteFromFleetChannel')
-            unmuteString = uiutil.MenuLabel('UI/Fleet/UnmuteFromFleetChannel')
-        defaultWarpDist = sm.GetService('menu').GetDefaultActionDistance('WarpTo')
-        menuEntries = []
-        if not checkMultiSelection:
-            menuEntries += [[uiutil.MenuLabel('UI/Commands/ShowInfo'), self.ShowInfo, (char.typeID,
-               charID,
-               0,
-               None,
-               None)]]
-        menuEntries += [None]
-        if checkSubordinate and not checkIfMe and not checkBoss:
-            menuEntries += [[uiutil.MenuLabel('UI/Fleet/KickFleetMember'), self.ConfirmMenu(lambda *x: fleetSvc.KickMember(charID))]]
-        if not checkIfMe and checkImCreator:
-            menuEntries += [[uiutil.MenuLabel('UI/Fleet/MakeFleetLeader'), fleetSvc.MakeLeader, (charID,)]]
-        if not checkMultiSelection and not checkIfFavorite and not checkIfMe:
-            menuEntries += [[uiutil.MenuLabel('UI/Fleet/AddPilotToWatchlist'), fleetSvc.AddFavorite, ([charID],)]]
-        if self.CheckImFleetLeaderOrBoss() and not checkBoosterAny and checkSubordinate:
-            menuEntries += [[uiutil.MenuLabel('UI/Fleet/SetFleetBooster'), fleetSvc.SetBooster, (charID, const.fleetBoosterFleet)]]
-        if checkIfImWingCommanderOrHigher and not checkBoosterAny and not checkFleetCommander and checkSubordinate:
-            menuEntries += [[uiutil.MenuLabel('UI/Fleet/SetWingBooster'), fleetSvc.SetBooster, (charID, const.fleetBoosterWing)]]
-        if not checkBoosterAny and not checkWingCommander and not checkFleetCommander and checkSubordinate:
-            menuEntries += [[uiutil.MenuLabel('UI/Fleet/SetSquadBooster'), fleetSvc.SetBooster, (charID, const.fleetBoosterSquad)]]
-        if checkBoosterSubordinateOrSelf:
-            menuEntries += [[uiutil.MenuLabel('UI/Fleet/RevokeFleetBooster'), fleetSvc.SetBooster, (charID, const.fleetBoosterNone)]]
-        if checkIfImLeader and checkIfMe:
-            label = uiutil.MenuLabel('UI/Fleet/FleetBroadcast/Commands/BroadcastTravelToMe')
-            menuEntries += [[label, sm.GetService('fleet').SendBroadcast_TravelTo, (session.solarsystemid2,)]]
-        if checkWarpDist and checkIfInSpace and not checkIfMe:
-            menuEntries += [[uiutil.MenuLabel('UI/Fleet/WarpToMember'), self.WarpToMember, (charID, float(defaultWarpDist))]]
-            menuEntries += [[uiutil.MenuLabel('UI/Fleet/WarpToMemberSubmenuOption'), self.WarpToMenu(self.WarpToMember, charID)]]
-            if self.CheckImFleetLeader():
-                menuEntries += [[uiutil.MenuLabel('UI/Fleet/WarpFleetToMember'), self.WarpFleetToMember, (charID, float(defaultWarpDist))]]
-                menuEntries += [[uiutil.MenuLabel('UI/Fleet/FleetSubmenus/WarpFleetToMember'), self.WarpToMenu(self.WarpFleetToMember, charID)]]
-            if self.CheckImWingCmdr():
-                menuEntries += [[uiutil.MenuLabel('UI/Fleet/WarpWingToMember'), self.WarpFleetToMember, (charID, float(defaultWarpDist))]]
-                menuEntries += [[uiutil.MenuLabel('UI/Fleet/FleetSubmenus/WarpWingToMember'), self.WarpToMenu(self.WarpFleetToMember, charID)]]
-            if self.CheckImSquadCmdr():
-                menuEntries += [[uiutil.MenuLabel('UI/Fleet/WarpSquadToMember'), self.WarpFleetToMember, (charID, float(defaultWarpDist))]]
-                menuEntries += [[uiutil.MenuLabel('UI/Fleet/FleetSubmenus/WarpSquadToMember'), self.WarpToMenu(self.WarpFleetToMember, charID)]]
-        if not checkIfIsBubble and checkIfInSpace and not checkIfMe and checkIfActiveBeacon:
-            if checkIsJumpDrive:
-                menuEntries += [[uiutil.MenuLabel('UI/Inflight/JumpToFleetMember'), self.JumpToMember, (charID,)]]
-            if checkIsTitan:
-                menuEntries += [[uiutil.MenuLabel('UI/Fleet/BridgeToMember'), self.BridgeToMember, (charID,)]]
-        if not checkMultiSelection and checkIfFavorite:
-            menuEntries += [[uiutil.MenuLabel('UI/Fleet/RemovePilotFromWatchlist'), fleetSvc.RemoveFavorite, (charID,)]]
-        if not checkIfMe and checkCanMute:
-            menuEntries += [[muteString, fleetSvc.AddToVoiceMute, (charID,)]]
-        if checkCanUnmute:
-            menuEntries += [[unmuteString, fleetSvc.ExcludeFromVoiceMute, (charID,)]]
-        if checkIsVoiceEnabled and not checkIfPrivateMuted and not checkIfMe:
-            menuEntries += [[uiutil.MenuLabel('UI/Fleet/MuteFleetMemberVoice'), vivox.MuteParticipantForMe, (charID, 1)]]
-        if checkIsVoiceEnabled and checkIfPrivateMuted and not checkIfMe:
-            menuEntries += [[uiutil.MenuLabel('UI/Fleet/FleetUnmuteVoice'), vivox.MuteParticipantForMe, (charID, 0)]]
-        if checkIfMe:
-            menuEntries += [[uiutil.MenuLabel('UI/Fleet/LeaveMyFleet'), self.ConfirmMenu(fleetSvc.LeaveFleet)]]
-        menuEntries = ParsedMaybe(menuEntries)
-        moveMenu = self.GetFleetMemberMenu2(charID, fleetSvc.MoveMember, True)
-        if moveMenu:
-            menuEntries.extend([[uiutil.MenuLabel('UI/Fleet/FleetSubmenus/MoveFleetMember'), moveMenu]])
-        return menuEntries
+            fleetSvc = sm.GetService('fleet')
+            vivox = sm.GetService('vivox')
+            members = fleetSvc.GetMembers()
+            shipItem = util.SlimItemFromCharID(charID)
+            bp = sm.StartService('michelle').GetBallpark()
+            otherBall = bp and shipItem and bp.GetBall(shipItem.itemID) or None
+            me = members[session.charid]
+            checkIfImLeader = self.ImFleetLeaderOrCommander()
+            checkIfImWingCommanderOrHigher = self.CheckImFleetLeaderOrBoss() or self.CheckImWingCmdr()
+            member = members.get(charID)
+            char = cfg.eveowners.Get(charID)
+            if member is None:
+                menuEntries = [[uiutil.MenuLabel('UI/Commands/ShowInfo'), self.ShowInfo, (char.typeID,
+                   charID,
+                   0,
+                   None,
+                   None)]]
+                return menuEntries
+            isTitan = False
+            isJumpDrive = False
+            if session.solarsystemid and session.shipid:
+                ship = sm.StartService('godma').GetItem(session.shipid)
+                if ship.canJump:
+                    isJumpDrive = True
+                if ship.groupID in [const.groupTitan, const.groupBlackOps]:
+                    isTitan = True
+            checkImCreator = bool(me.job & const.fleetJobCreator)
+            checkIfMe = charID == session.charid
+            checkIfInSpace = self.GetCheckInSpace()
+            checkInShipInSpace = InShipInSpace()
+            checkIfActiveBeacon = fleetSvc.HasActiveBeacon(charID)
+            checkIsTitan = isTitan
+            checkIsJumpDrive = isJumpDrive
+            checkBoosterFleet = bool(member.roleBooster == const.fleetBoosterFleet)
+            checkBoosterWing = bool(member.roleBooster == const.fleetBoosterWing)
+            checkBoosterSquad = bool(member.roleBooster == const.fleetBoosterSquad)
+            checkBoosterAny = bool(checkBoosterFleet or checkBoosterWing or checkBoosterSquad)
+            checkSubordinate = self.CheckImFleetLeaderOrBoss() or me.role == const.fleetRoleWingCmdr and member.wingID == me.wingID or me.role == const.fleetRoleSquadCmdr and member.squadID == me.squadID
+            checkBoss = member.job & const.fleetJobCreator
+            checkWingCommander = member.role == const.fleetRoleWingCmdr
+            checkFleetCommander = member.role == const.fleetRoleLeader
+            checkBoosterSubordinate = checkBoosterAny and (checkImCreator or me.role == const.fleetRoleLeader) or (checkBoosterWing or checkBoosterSquad) and me.role == const.fleetRoleWingCmdr or checkBoosterSquad and me.role == const.fleetRoleSquadCmdr
+            checkBoosterSubordinateOrSelf = checkBoosterSubordinate or checkBoosterAny and checkIfMe
+            checkIfFavorite = fleetSvc.IsFavorite(charID)
+            checkIfIsBubble = shipItem is not None
+            checkMultiSelection = False
+            dist = sys.maxint
+            if otherBall:
+                dist = max(0, otherBall.surfaceDist)
+            checkWarpDist = dist > const.minWarpDistance
+            checkIsVoiceEnabled = sm.StartService('vivox').Enabled()
+            checkCanMute = fleetSvc.CanIMuteOrUnmuteCharInMyChannel(charID) > 0
+            checkCanUnmute = fleetSvc.CanIMuteOrUnmuteCharInMyChannel(charID) < 0
+            checkIfPrivateMuted = charID in vivox.GetMutedParticipants()
+            if session.fleetrole == const.fleetRoleWingCmdr:
+                muteString = uiutil.MenuLabel('UI/Fleet/MuteFromWingChannel')
+                unmuteString = uiutil.MenuLabel('UI/Fleet/UnmuteFromWingChannel')
+            elif session.fleetrole == const.fleetRoleSquadCmdr:
+                muteString = uiutil.MenuLabel('UI/Fleet/MuteFromSquadChannel')
+                unmuteString = uiutil.MenuLabel('UI/Fleet/UnmuteFromSquadChannel')
+            else:
+                muteString = uiutil.MenuLabel('UI/Fleet/MuteFromFleetChannel')
+                unmuteString = uiutil.MenuLabel('UI/Fleet/UnmuteFromFleetChannel')
+            defaultWarpDist = sm.GetService('menu').GetDefaultActionDistance('WarpTo')
+            menuEntries = []
+            if not checkMultiSelection:
+                menuEntries += [[uiutil.MenuLabel('UI/Commands/ShowInfo'), self.ShowInfo, (char.typeID,
+                   charID,
+                   0,
+                   None,
+                   None)]]
+            menuEntries += [None]
+            if checkSubordinate and not checkIfMe and not checkBoss:
+                menuEntries += [[uiutil.MenuLabel('UI/Fleet/KickFleetMember'), self.ConfirmMenu(lambda *x: fleetSvc.KickMember(charID))]]
+            if not checkIfMe and checkImCreator:
+                menuEntries += [[uiutil.MenuLabel('UI/Fleet/MakeFleetLeader'), fleetSvc.MakeLeader, (charID,)]]
+            if not checkMultiSelection and not checkIfFavorite and not checkIfMe:
+                menuEntries += [[uiutil.MenuLabel('UI/Fleet/AddPilotToWatchlist'), fleetSvc.AddFavorite, ([charID],)]]
+            if self.CheckImFleetLeaderOrBoss() and not checkBoosterAny and checkSubordinate:
+                menuEntries += [[uiutil.MenuLabel('UI/Fleet/SetFleetBooster'), fleetSvc.SetBooster, (charID, const.fleetBoosterFleet)]]
+            if checkIfImWingCommanderOrHigher and not checkBoosterAny and not checkFleetCommander and checkSubordinate:
+                menuEntries += [[uiutil.MenuLabel('UI/Fleet/SetWingBooster'), fleetSvc.SetBooster, (charID, const.fleetBoosterWing)]]
+            if not checkBoosterAny and not checkWingCommander and not checkFleetCommander and checkSubordinate:
+                menuEntries += [[uiutil.MenuLabel('UI/Fleet/SetSquadBooster'), fleetSvc.SetBooster, (charID, const.fleetBoosterSquad)]]
+            if checkBoosterSubordinateOrSelf:
+                menuEntries += [[uiutil.MenuLabel('UI/Fleet/RevokeFleetBooster'), fleetSvc.SetBooster, (charID, const.fleetBoosterNone)]]
+            if checkIfImLeader and checkIfMe:
+                label = uiutil.MenuLabel('UI/Fleet/FleetBroadcast/Commands/BroadcastTravelToMe')
+                menuEntries += [[label, sm.GetService('fleet').SendBroadcast_TravelTo, (session.solarsystemid2,)]]
+            if checkWarpDist and checkInShipInSpace and not checkIfMe:
+                menuEntries += [[uiutil.MenuLabel('UI/Fleet/WarpToMember'), self.WarpToMember, (charID, float(defaultWarpDist))]]
+                menuEntries += [[uiutil.MenuLabel('UI/Fleet/WarpToMemberSubmenuOption'), self.WarpToMenu(self.WarpToMember, charID)]]
+                if self.CheckImFleetLeader():
+                    menuEntries += [[uiutil.MenuLabel('UI/Fleet/WarpFleetToMember'), self.WarpFleetToMember, (charID, float(defaultWarpDist))]]
+                    menuEntries += [[uiutil.MenuLabel('UI/Fleet/FleetSubmenus/WarpFleetToMember'), self.WarpToMenu(self.WarpFleetToMember, charID)]]
+                if self.CheckImWingCmdr():
+                    menuEntries += [[uiutil.MenuLabel('UI/Fleet/WarpWingToMember'), self.WarpFleetToMember, (charID, float(defaultWarpDist))]]
+                    menuEntries += [[uiutil.MenuLabel('UI/Fleet/FleetSubmenus/WarpWingToMember'), self.WarpToMenu(self.WarpFleetToMember, charID)]]
+                if self.CheckImSquadCmdr():
+                    menuEntries += [[uiutil.MenuLabel('UI/Fleet/WarpSquadToMember'), self.WarpFleetToMember, (charID, float(defaultWarpDist))]]
+                    menuEntries += [[uiutil.MenuLabel('UI/Fleet/FleetSubmenus/WarpSquadToMember'), self.WarpToMenu(self.WarpFleetToMember, charID)]]
+            if not checkIfIsBubble and checkInShipInSpace and not checkIfMe and checkIfActiveBeacon:
+                if checkIsJumpDrive:
+                    menuEntries += [[uiutil.MenuLabel('UI/Inflight/JumpToFleetMember'), self.JumpToMember, (charID,)]]
+                if checkIsTitan:
+                    menuEntries += [[uiutil.MenuLabel('UI/Fleet/BridgeToMember'), self.BridgeToMember, (charID,)]]
+            if not checkMultiSelection and checkIfFavorite:
+                menuEntries += [[uiutil.MenuLabel('UI/Fleet/RemovePilotFromWatchlist'), fleetSvc.RemoveFavorite, (charID,)]]
+            if not checkIfMe and checkCanMute:
+                menuEntries += [[muteString, fleetSvc.AddToVoiceMute, (charID,)]]
+            if checkCanUnmute:
+                menuEntries += [[unmuteString, fleetSvc.ExcludeFromVoiceMute, (charID,)]]
+            if checkIsVoiceEnabled and not checkIfPrivateMuted and not checkIfMe:
+                menuEntries += [[uiutil.MenuLabel('UI/Fleet/MuteFleetMemberVoice'), vivox.MuteParticipantForMe, (charID, 1)]]
+            if checkIsVoiceEnabled and checkIfPrivateMuted and not checkIfMe:
+                menuEntries += [[uiutil.MenuLabel('UI/Fleet/FleetUnmuteVoice'), vivox.MuteParticipantForMe, (charID, 0)]]
+            if checkIfMe:
+                menuEntries += [[uiutil.MenuLabel('UI/Fleet/LeaveMyFleet'), self.ConfirmMenu(fleetSvc.LeaveFleet)]]
+            menuEntries = ParsedMaybe(menuEntries)
+            moveMenu = self.GetFleetMemberMenu2(charID, fleetSvc.MoveMember, True)
+            if moveMenu:
+                menuEntries.extend([[uiutil.MenuLabel('UI/Fleet/FleetSubmenus/MoveFleetMember'), moveMenu]])
+            return menuEntries
 
     def FleetInviteMenu(self, charID):
         return self.GetFleetMemberMenu2(charID, lambda *args: self.DoInviteToFleet(*args))
 
-    def GetFleetMemberMenu2(self, charID, callback, isMove = False):
+    def GetFleetMemberMenu2(self, charID, callback, isMove=False):
         wings = sm.GetService('fleet').GetWings()
         members = sm.GetService('fleet').GetMembers()
         ret = evefleet.menu.MemberMenu(charID, wings, members, callback, sm.GetService('fleet').GetOptions().isFreeMove, isMove, uiutil.MenuLabel, localization.GetByLabel).Get()
@@ -1075,7 +1144,7 @@ class MenuSvc(service.Service):
     def DoInviteToFleet(self, charID, wingID, squadID, role):
         sm.GetService('fleet').Invite(charID, wingID, squadID, role)
 
-    def CorpMemberMenu(self, charID, multi = 0):
+    def CorpMemberMenu(self, charID, multi=0):
         checkInSameCorp = charID in sm.StartService('corp').GetMemberIDs()
         checkIAmDirector = const.corpRoleDirector & session.corprole == const.corpRoleDirector
         checkICanKickThem = session.charid == charID or const.corpRoleDirector & session.corprole == const.corpRoleDirector
@@ -1138,7 +1207,7 @@ class MenuSvc(service.Service):
     def ShowCorpMemberDetails(self, charID):
         form.CorpMembers().MemberDetails(charID)
 
-    def __GetInviteMenu(self, charID, submenu = None):
+    def __GetInviteMenu(self, charID, submenu=None):
 
         def Invite(charID, channelID):
             sm.StartService('LSC').Invite(charID, channelID)
@@ -1168,94 +1237,95 @@ class MenuSvc(service.Service):
     def SlashCmdTr(self, cmd):
         return devFunctions.SlashCmdTr(cmd)
 
-    def GetGMTypeMenu(self, typeID, itemID = None, divs = False, unload = False):
+    def GetGMTypeMenu(self, typeID, itemID=None, divs=False, unload=False):
         if not session.role & (service.ROLE_GML | service.ROLE_WORLDMOD):
             return []
+        else:
 
-        def _wrapMulti(command, what = None, maxValue = 2147483647):
-            if uicore.uilib.Key(uiconst.VK_SHIFT):
-                if not what:
-                    what = command.split(' ', 1)[0]
-                result = uix.QtyPopup(maxvalue=maxValue, minvalue=1, caption=what, label=localization.GetByLabel('UI/Common/Quantity'), hint='')
-                if result:
-                    qty = result['qty']
+            def _wrapMulti(command, what=None, maxValue=2147483647):
+                if uicore.uilib.Key(uiconst.VK_SHIFT):
+                    if not what:
+                        what = command.split(' ', 1)[0]
+                    result = uix.QtyPopup(maxvalue=maxValue, minvalue=1, caption=what, label=localization.GetByLabel('UI/Common/Quantity'), hint='')
+                    if result:
+                        qty = result['qty']
+                    else:
+                        return
                 else:
-                    return
-            else:
-                qty = 1
-            return sm.GetService('slash').SlashCmd(command % qty)
+                    qty = 1
+                return sm.GetService('slash').SlashCmd(command % qty)
 
-        cat = evetypes.GetCategoryID(typeID)
-        if unload:
-            if type(itemID) is tuple:
-                for row in self.invCache.GetInventoryFromId(itemID[0]).ListHardwareModules():
-                    if row.flagID == itemID[1]:
-                        itemID = row.itemID
-                        break
-                else:
-                    itemID = None
-
-            else:
-                charge = self.godma.GetItem(itemID)
-                if charge and charge.categoryID == const.categoryCharge:
-                    for row in self.invCache.GetInventoryFromId(charge.locationID).ListHardwareModules():
-                        if row.flagID == charge.flagID and row.itemID != itemID:
+            cat = evetypes.GetCategoryID(typeID)
+            if unload:
+                if type(itemID) is tuple:
+                    for row in self.invCache.GetInventoryFromId(itemID[0]).ListHardwareModules():
+                        if row.flagID == itemID[1]:
                             itemID = row.itemID
                             break
                     else:
                         itemID = None
 
-        gm = []
-        if divs:
-            gm.append(None)
-        if session.role & (service.ROLE_WORLDMOD | service.ROLE_SPAWN):
-            if not session.stationid:
-                if cat == const.categoryShip:
-                    gm.append(('WM: /Spawn this type', lambda *x: _wrapMulti('/spawnN %%d 4000 %d' % typeID, '/Spawn', 50)))
-                    gm.append(('WM: /Unspawn this ship', lambda *x: sm.RemoteSvc('slash').SlashCmd('/unspawn %d' % itemID)))
-                if cat == const.categoryEntity:
-                    gm.append(('WM: /Entity deploy this type', lambda *x: _wrapMulti('/entity deploy %%d %d' % typeID, '/Entity', 100)))
-        if typeID != const.typeSolarSystem and cat not in [const.categoryStation, const.categoryOwner]:
-            if session.role & service.ROLE_WORLDMOD:
-                gm.append(('WM: /create this type', lambda *x: _wrapMulti('/create %d %%d' % typeID)))
-            gm.append(('GM: /load me this type', lambda *x: _wrapMulti('/load me %d %%d' % typeID)))
-            graphicID = evetypes.GetGraphicID(typeID)
-            graphicFile = util.GraphicFile(graphicID)
-            if graphicFile is '':
-                graphicFile = None
-            g = cfg.graphics.GetIfExists(graphicID)
-            sofHull = getattr(g, 'sofHullName', None)
-            gm.append(('res', [('typeID: ' + str(typeID), blue.pyos.SetClipboardData, (str(typeID),)),
-              ('graphicID: ' + str(graphicID), blue.pyos.SetClipboardData, (str(graphicID),)),
-              ('graphicFile: ' + str(graphicFile), blue.pyos.SetClipboardData, (str(graphicFile),)),
-              ('SOF hull: ' + str(sofHull), blue.pyos.SetClipboardData, (str(sofHull),))]))
-            if itemID is not None and session.stationid is not None:
-                if self.godma.GetItem(itemID) is not None:
-                    dirtTimeStamp = eveMoniker.GetShipAccess().GetDirtTimestamp(itemID)
-                    dirtTimeStampStr = fmtutil.FmtDateEng(dirtTimeStamp)
-                    dirtTimeDiff = blue.os.TimeDiffInMs(dirtTimeStamp, blue.os.GetWallclockTime())
-                    killCounter = sm.RemoteSvc('shipKillCounter').GetItemKillCountPlayer(itemID)
-                    gm.append(('iShip', [('Last cleaning: ' + str(dirtTimeStampStr), blue.pyos.SetClipboardData, (str(dirtTimeStampStr),)),
-                      ('msecs since last cleaning: ' + str(dirtTimeDiff), blue.pyos.SetClipboardData, (str(dirtTimeDiff),)),
-                      None,
-                      ('kill counter: ' + str(killCounter), blue.pyos.SetClipboardData, (str(killCounter),))]))
-        if cfg.IsFittableCategory(cat):
-            gm.append(('GM: /fit me this type', lambda *x: _wrapMulti('/loop %%d /fit me %d' % typeID, '/Fit', 8)))
-            if unload:
-                if itemID:
-                    gm.append(('GM: /unload me this item', lambda *x: sm.RemoteSvc('slash').SlashCmd('/unload me %d' % itemID)))
-                gm.append(('GM: /unload me this type', lambda *x: sm.RemoteSvc('slash').SlashCmd('/unload me %d' % typeID)))
-                if itemID:
-                    module = self.godma.GetItem(itemID)
-                    if module and module.damage:
-                        gm.append(('GM: Repair this module', lambda *x: sm.RemoteSvc('slash').SlashCmd('/heal %d' % itemID)))
-        if itemID:
-            gm.append(('GM: Inspect Attributes', self.InspectAttributes, (itemID, typeID)))
-        if session.role & service.ROLE_PROGRAMMER:
-            gm.append(('PROG: Modify Attributes', ('isDynamic', self.AttributeMenu, (itemID, typeID))))
-        if divs:
-            gm.append(None)
-        return gm
+                else:
+                    charge = self.godma.GetItem(itemID)
+                    if charge and charge.categoryID == const.categoryCharge:
+                        for row in self.invCache.GetInventoryFromId(charge.locationID).ListHardwareModules():
+                            if row.flagID == charge.flagID and row.itemID != itemID:
+                                itemID = row.itemID
+                                break
+                        else:
+                            itemID = None
+
+            gm = []
+            if divs:
+                gm.append(None)
+            if session.role & (service.ROLE_WORLDMOD | service.ROLE_SPAWN):
+                if not session.stationid:
+                    if cat in (const.categoryShip, const.categoryStructure):
+                        gm.append(('WM: /Spawn this type', lambda *x: _wrapMulti('/spawnN %%d 4000 %d' % typeID, '/Spawn', 50)))
+                        gm.append(('WM: /Unspawn this item', lambda *x: sm.RemoteSvc('slash').SlashCmd('/unspawn %d' % itemID)))
+                    if cat == const.categoryEntity:
+                        gm.append(('WM: /Entity deploy this type', lambda *x: _wrapMulti('/entity deploy %%d %d' % typeID, '/Entity', 100)))
+            if typeID != const.typeSolarSystem and cat not in [const.categoryStation, const.categoryOwner]:
+                if session.role & service.ROLE_WORLDMOD:
+                    gm.append(('WM: /create this type', lambda *x: _wrapMulti('/create %d %%d' % typeID)))
+                gm.append(('GM: /load me this type', lambda *x: _wrapMulti('/load me %d %%d' % typeID)))
+                graphicID = evetypes.GetGraphicID(typeID)
+                graphicFile = util.GraphicFile(graphicID)
+                if graphicFile is '':
+                    graphicFile = None
+                g = cfg.graphics.GetIfExists(graphicID)
+                sofHull = getattr(g, 'sofHullName', None)
+                gm.append(('res', [('typeID: ' + str(typeID), blue.pyos.SetClipboardData, (str(typeID),)),
+                  ('graphicID: ' + str(graphicID), blue.pyos.SetClipboardData, (str(graphicID),)),
+                  ('graphicFile: ' + str(graphicFile), blue.pyos.SetClipboardData, (str(graphicFile),)),
+                  ('SOF hull: ' + str(sofHull), blue.pyos.SetClipboardData, (str(sofHull),))]))
+                if itemID is not None and session.stationid is not None:
+                    if self.godma.GetItem(itemID) is not None:
+                        dirtTimeStamp = eveMoniker.GetShipAccess().GetDirtTimestamp(itemID)
+                        dirtTimeStampStr = fmtutil.FmtDateEng(dirtTimeStamp)
+                        dirtTimeDiff = blue.os.TimeDiffInMs(dirtTimeStamp, blue.os.GetWallclockTime())
+                        killCounter = sm.RemoteSvc('shipKillCounter').GetItemKillCountPlayer(itemID)
+                        gm.append(('iShip', [('Last cleaning: ' + str(dirtTimeStampStr), blue.pyos.SetClipboardData, (str(dirtTimeStampStr),)),
+                          ('msecs since last cleaning: ' + str(dirtTimeDiff), blue.pyos.SetClipboardData, (str(dirtTimeDiff),)),
+                          None,
+                          ('kill counter: ' + str(killCounter), blue.pyos.SetClipboardData, (str(killCounter),))]))
+            if IsShipFittable(cat):
+                gm.append(('GM: /fit me this type', lambda *x: _wrapMulti('/loop %%d /fit me %d' % typeID, '/Fit', 8)))
+                if unload:
+                    if itemID:
+                        gm.append(('GM: /unload me this item', lambda *x: sm.RemoteSvc('slash').SlashCmd('/unload me %d' % itemID)))
+                    gm.append(('GM: /unload me this type', lambda *x: sm.RemoteSvc('slash').SlashCmd('/unload me %d' % typeID)))
+                    if itemID:
+                        module = self.godma.GetItem(itemID)
+                        if module and module.damage:
+                            gm.append(('GM: Repair this module', lambda *x: sm.RemoteSvc('slash').SlashCmd('/heal %d' % itemID)))
+            if itemID:
+                gm.append(('GM: Inspect Attributes', self.InspectAttributes, (itemID, typeID)))
+            if session.role & service.ROLE_PROGRAMMER:
+                gm.append(('PROG: Modify Attributes', ('isDynamic', self.AttributeMenu, (itemID, typeID))))
+            if divs:
+                gm.append(None)
+            return gm
 
     def InspectAttributes(self, itemID, typeID):
         form.AttributeInspector.Open(itemID=itemID, typeID=typeID)
@@ -1284,226 +1354,228 @@ class MenuSvc(service.Service):
     def GetFromESP(self, action):
         return devFunctions.GetFromESP(action)
 
-    def GetGMMenu(self, itemID = None, slimItem = None, charID = None, invItem = None, mapItem = None, typeID = None):
+    def GetGMMenu(self, itemID=None, slimItem=None, charID=None, invItem=None, mapItem=None, typeID=None):
         if not session.role & (service.ROLE_GML | service.ROLE_WORLDMOD):
             if charID and session.role & service.ROLE_LEGIONEER:
                 return [('Gag ISK Spammer', self.GagIskSpammer, (charID,))]
             return []
-        gm = [(str(itemID or charID), blue.pyos.SetClipboardData, (str(itemID or charID),))]
-        if mapItem and not slimItem:
-            gm.append(('TR me here!', self.SlashCmdTr, ('/tr me ' + str(mapItem.itemID),)))
+        else:
+            gm = [(str(itemID or charID), blue.pyos.SetClipboardData, (str(itemID or charID),))]
+            if mapItem and not slimItem:
+                gm.append(('TR me here!', self.SlashCmdTr, ('/tr me ' + str(mapItem.itemID),)))
+                gm.append(None)
+            elif charID:
+                gm.append(('TR me to %s' % cfg.eveowners.Get(charID).name, self.SlashCmdTr, ('/tr me ' + str(charID),)))
+                gm.append(None)
+            elif slimItem:
+                gm.append(('TR me here!', self.SlashCmdTr, ('/tr me ' + str(itemID),)))
+                gm.append(None)
+            elif itemID:
+                gm.append(('TR me here!', self.SlashCmdTr, ('/tr me ' + str(itemID),)))
+                gm.append(None)
+            if invItem:
+                gm += [('Copy ID/Qty', self.CopyItemIDAndMaybeQuantityToClipboard, (invItem,))]
+                typeText = 'copy typeID (%s)' % invItem.typeID
+                gm += [(typeText, blue.pyos.SetClipboardData, (str(invItem.typeID),))]
+                gm.append(('Edit', self.GetAdamEditType, [invItem.typeID]))
+                gm.append(None)
+                typeID = invItem.typeID
+                gm.append(('typeID: ' + str(typeID) + ' (%s)' % evetypes.GetName(typeID), blue.pyos.SetClipboardData, (str(typeID),)))
+                group = evetypes.GetGroupID(typeID)
+                gm.append(('groupID: ' + str(group) + ' (%s)' % evetypes.GetGroupName(typeID), blue.pyos.SetClipboardData, (str(group),)))
+                category = evetypes.GetCategoryID(typeID)
+                categoryName = evetypes.GetCategoryNameByCategory(category)
+                gm.append(('categID: ' + str(category) + ' (%s)' % categoryName, blue.pyos.SetClipboardData, (str(category),)))
+                graphic = inventorycommon.typeHelpers.GetGraphic(typeID)
+                if graphic is not None:
+                    gm.append(('graphicID: ' + str(evetypes.GetGraphicID(typeID)), blue.pyos.SetClipboardData, (str(evetypes.GetGraphicID(typeID)),)))
+                    if hasattr(graphic, 'graphicFile'):
+                        gm.append(('graphicFile: ' + str(graphic.graphicFile), blue.pyos.SetClipboardData, (str(graphic.graphicFile),)))
+            if charID and not util.IsNPC(charID):
+                action = 'gm/character.py?action=Character&characterID=' + str(charID)
+                gm.append(('Show in ESP', self.GetFromESP, (action,)))
+                gm.append(None)
+                gm.append(('Gag ISK Spammer', self.GagIskSpammer, (charID,)))
+                gm.append(('Ban ISK Spammer', self.BanIskSpammer, (charID,)))
+                action = 'gm/users.py?action=BanUserByCharacterID&characterID=' + str(charID)
+                gm.append(('Ban User (ESP)', self.GetFromESP, (action,)))
+                gm += [('Gag User', [('30 minutes', self.GagPopup, (charID, 30)),
+                   ('1 hour', self.GagPopup, (charID, 60)),
+                   ('6 hours', self.GagPopup, (charID, 360)),
+                   ('24 hours', self.GagPopup, (charID, 1440)),
+                   None,
+                   ('Ungag', lambda *x: self.SlashCmd('/ungag %s' % charID))])]
             gm.append(None)
-        elif charID:
-            gm.append(('TR me to %s' % cfg.eveowners.Get(charID).name, self.SlashCmdTr, ('/tr me ' + str(charID),)))
-            gm.append(None)
-        elif slimItem:
-            gm.append(('TR me here!', self.SlashCmdTr, ('/tr me ' + str(itemID),)))
-            gm.append(None)
-        elif itemID:
-            gm.append(('TR me here!', self.SlashCmdTr, ('/tr me ' + str(itemID),)))
-            gm.append(None)
-        if invItem:
-            gm += [('Copy ID/Qty', self.CopyItemIDAndMaybeQuantityToClipboard, (invItem,))]
-            typeText = 'copy typeID (%s)' % invItem.typeID
-            gm += [(typeText, blue.pyos.SetClipboardData, (str(invItem.typeID),))]
-            gm.append(('Edit', self.GetAdamEditType, [invItem.typeID]))
-            gm.append(None)
-            typeID = invItem.typeID
-            gm.append(('typeID: ' + str(typeID) + ' (%s)' % evetypes.GetName(typeID), blue.pyos.SetClipboardData, (str(typeID),)))
-            group = evetypes.GetGroupID(typeID)
-            gm.append(('groupID: ' + str(group) + ' (%s)' % evetypes.GetGroupName(typeID), blue.pyos.SetClipboardData, (str(group),)))
-            category = evetypes.GetCategoryID(typeID)
-            categoryName = evetypes.GetCategoryNameByCategory(category)
-            gm.append(('categID: ' + str(category) + ' (%s)' % categoryName, blue.pyos.SetClipboardData, (str(category),)))
-            graphic = inventorycommon.typeHelpers.GetGraphic(typeID)
-            if graphic is not None:
-                gm.append(('graphicID: ' + str(evetypes.GetGraphicID(typeID)), blue.pyos.SetClipboardData, (str(evetypes.GetGraphicID(typeID)),)))
-                if hasattr(graphic, 'graphicFile'):
-                    gm.append(('graphicFile: ' + str(graphic.graphicFile), blue.pyos.SetClipboardData, (str(graphic.graphicFile),)))
-        if charID and not util.IsNPC(charID):
-            action = 'gm/character.py?action=Character&characterID=' + str(charID)
-            gm.append(('Show in ESP', self.GetFromESP, (action,)))
-            gm.append(None)
-            gm.append(('Gag ISK Spammer', self.GagIskSpammer, (charID,)))
-            gm.append(('Ban ISK Spammer', self.BanIskSpammer, (charID,)))
-            action = 'gm/users.py?action=BanUserByCharacterID&characterID=' + str(charID)
-            gm.append(('Ban User (ESP)', self.GetFromESP, (action,)))
-            gm += [('Gag User', [('30 minutes', self.GagPopup, (charID, 30)),
-               ('1 hour', self.GagPopup, (charID, 60)),
-               ('6 hours', self.GagPopup, (charID, 360)),
-               ('24 hours', self.GagPopup, (charID, 1440)),
-               None,
-               ('Ungag', lambda *x: self.SlashCmd('/ungag %s' % charID))])]
-        gm.append(None)
-        item = slimItem or invItem
-        if item:
-            if item.categoryID == const.categoryShip and (item.singleton or not session.stationid):
-                import dna
-                if item.ownerID in [session.corpid, session.charid] or session.role & service.ROLE_WORLDMOD:
-                    try:
-                        menu = dna.Ship().ImportFromShip(shipID=item.itemID, ownerID=item.ownerID, deferred=True).GetMenuInline(spiffy=False, fit=item.itemID != session.shipid)
-                        gm.append(('Copycat', menu))
-                    except RuntimeError:
-                        pass
-
-                gm += [('/Online modules', lambda shipID = item.itemID: self.SlashCmd('/online %d' % shipID))]
-            gm += self.GetGMTypeMenu(item.typeID, itemID=item.itemID)
-            if getattr(slimItem, 'categoryID', None) == const.categoryEntity or getattr(slimItem, 'groupID', None) == const.groupWreck:
-                gm.append(('NPC Info', ('isDynamic', self.NPCInfoMenu, (item,))))
-            gm.append(None)
-        elif typeID:
-            gm += self.GetGMTypeMenu(typeID)
-        if session.role & service.ROLE_CONTENT:
-            if slimItem:
-                if getattr(slimItem, 'dunObjectID', None) != None:
-                    if not sm.StartService('scenario').IsSelected(itemID):
-                        gm.append(('Add to Selection', sm.StartService('scenario').AddSelected, (itemID,)))
-                    else:
-                        gm.append(('Remove from Selection', sm.StartService('scenario').RemoveSelected, (itemID,)))
-        if slimItem:
-            itemID = slimItem.itemID
-            graphicID = evetypes.GetGraphicID(item.typeID)
-            if slimItem.categoryID == const.categoryStation and slimItem.itemID:
-                npcStation = cfg.mapSolarSystemContentCache.npcStations.get(itemID, None)
-                if npcStation:
-                    graphicID = npcStation.graphicID
-            animations = inventorycommon.typeHelpers.GetAnimationStates(item.typeID)
-            graphicFile = util.GraphicFile(graphicID)
-            if graphicFile is '':
-                graphicFile = None
-            g = cfg.graphics.GetIfExists(graphicID)
-            raceName = getattr(g, 'sofRaceName', None)
-            sofDNA = None
-            ball = sm.StartService('michelle').GetBallpark().GetBall(slimItem.itemID)
-            subMenu = self.GetGMStructureStateMenu(itemID, slimItem, charID, invItem, mapItem)
-            if len(subMenu) > 0:
-                gm += [('Change State', subMenu)]
-            gm += self.GetGMBallsAndBoxesMenu(itemID, slimItem, charID, invItem, mapItem)
-            dirtLastClean = None
-            dirtCurrentValue = None
-            if ball is not None:
-                if hasattr(ball, 'GetDirtTimeStampAsStr'):
-                    dirtLastClean = ball.GetDirtTimeStampAsStr()
-                if hasattr(ball, 'model'):
-                    if ball.model is not None:
-                        dirtCurrentValue = getattr(ball.model, 'dirtLevel', None)
-            currentKillCount = None
-            if ball is not None:
-                if hasattr(ball, 'model'):
-                    if ball.model is not None:
-                        currentKillCount = getattr(ball.model, 'displayKillCounterValue', None)
-            currentGeoLODstr = 'INVALID'
-            currentTexLODmenu = []
-            if ball is not None:
-                if hasattr(ball, 'model'):
-                    if ball.model is not None:
-                        if hasattr(ball.model, 'mesh'):
-                            if ball.model.mesh is not None:
-                                currentGeoLODstr = ball.model.mesh.GetGeometryResPath()
-                                paramLst = ball.model.mesh.Find('trinity.TriTextureParameter')
-                                currentTexLODstr = {}
-                                for param in paramLst:
-                                    currentTexLODstr[param.resourcePath.lower()] = param.name
-
-                                for param in currentTexLODstr.iterkeys():
-                                    currentTexLODmenu.append((param, blue.pyos.SetClipboardData, (str(param),)))
-
-                                currentTexLODmenu.append(None)
-                                paramLst = ball.model.mesh.Find('trinity.Tr2Texture2dLodParameter')
-                                currentTexLODstr = {}
-                                for param in paramLst:
-                                    currentTexLODstr[param.GetResourcePath().lower()] = param.name
-
-                                for param in currentTexLODstr.iterkeys():
-                                    currentTexLODmenu.append((param, blue.pyos.SetClipboardData, (str(param),)))
-
-                        if hasattr(ball.model, 'dna'):
-                            sofDNA = ball.model.dna
-            gm.append(None)
-            gm.append(('charID: ' + self.GetOwnerLabel(slimItem.charID), blue.pyos.SetClipboardData, (str(slimItem.charID),)))
-            gm.append(('ownerID: ' + self.GetOwnerLabel(slimItem.ownerID), blue.pyos.SetClipboardData, (str(slimItem.ownerID),)))
-            gm.append(('corpID: ' + self.GetOwnerLabel(slimItem.corpID), blue.pyos.SetClipboardData, (str(slimItem.corpID),)))
-            gm.append(('allianceID: ' + self.GetOwnerLabel(slimItem.allianceID), blue.pyos.SetClipboardData, (str(slimItem.allianceID),)))
-            if hasattr(slimItem, 'districtID'):
-                gm.append(('districtID: ' + str(slimItem.districtID), blue.pyos.SetClipboardData, (str(slimItem.districtID),)))
-            gm.append(None)
-            gm.append(('typeID: ' + str(slimItem.typeID) + ' (%s)' % evetypes.GetName(slimItem.typeID), blue.pyos.SetClipboardData, (str(slimItem.typeID),)))
-            gm.append(('groupID: ' + str(slimItem.groupID) + ' (%s)' % evetypes.GetGroupNameByGroup(slimItem.groupID), blue.pyos.SetClipboardData, (str(slimItem.groupID),)))
-            gm.append(('categID: ' + str(slimItem.categoryID) + ' (%s)' % evetypes.GetCategoryNameByCategory(slimItem.categoryID), blue.pyos.SetClipboardData, (str(slimItem.categoryID),)))
-            gm.append(('res', [('graphicID: ' + str(graphicID), blue.pyos.SetClipboardData, (str(graphicID),)),
-              ('graphicFile: ' + str(graphicFile), blue.pyos.SetClipboardData, (str(graphicFile),)),
-              ('SOF DNA: ' + str(sofDNA), blue.pyos.SetClipboardData, (str(sofDNA),)),
-              ('race: ' + str(raceName), blue.pyos.SetClipboardData, (str(raceName),)),
-              ('current geo LOD: ' + currentGeoLODstr, blue.pyos.SetClipboardData, (currentGeoLODstr,)),
-              ('current tex LODs', currentTexLODmenu),
-              ('state machines: ' + str(animations), blue.pyos.SetClipboardData, (str(animations),)),
-              ('Save red file', self.SaveRedFile, (ball, graphicFile)),
-              modelDebugFunctions.GetGMModelInfoMenuItem(itemID)]))
-            gm.append(('iShip', [('Last cleaning: ' + str(dirtLastClean), blue.pyos.SetClipboardData, (str(dirtLastClean),)),
-              ('Current dirt value: ' + str(dirtCurrentValue), blue.pyos.SetClipboardData, (str(dirtCurrentValue),)),
-              None,
-              ('Current kill count: ' + str(currentKillCount), blue.pyos.SetClipboardData, (str(currentKillCount),)),
-              ('Randomize kill counter', self.RandomizeKillCounter, (ball,))]))
-            if slimItem.groupID == const.groupPlanet:
-                if ball is not None:
-                    if ball.typeID == const.typePlanetEarthlike:
-                        gm.append(('DUST', [('current: ' + str(len(ball.districts)), blue.pyos.SetClipboardData, (str(len(ball.districts)),)),
-                          None,
-                          ('+1 district', self.DustAddDistricts, (1, ball)),
-                          ('+10 district', self.DustAddDistricts, (10, ball)),
-                          ('+50 district', self.DustAddDistricts, (50, ball)),
-                          ('clear districts', self.DustClearDistricts, (ball,)),
-                          None,
-                          ('start battles', self.DustEnableBattles, (True, ball)),
-                          ('stop battles', self.DustEnableBattles, (False, ball)),
-                          None,
-                          ('BOOM!', self.DustStartExplosions, (True, ball)),
-                          ('Stop BOOM!', self.DustStartExplosions, (False, ball))]))
-            if slimItem.groupID == const.groupSatellite:
-                gm.append(('Orbital Strike', [('Enable District', sm.GetService('district').EnableDistrict, (slimItem.districtID, True)),
-                  ('Disable District', sm.GetService('district').DisableDistrict, ()),
-                  ('Request Strike', sm.RemoteSvc('slash').SlashCmd, ('/osrequest ' + str(slimItem.districtID),)),
-                  ('Cancel Strike', sm.RemoteSvc('slash').SlashCmd, ('/oscancel ' + str(slimItem.districtID),))]))
-            gm.append(None)
-            gm.append(('Copy Coordinates', self.CopyCoordinates, (itemID,)))
-            gm.append(None)
-            try:
-                state = slimItem.orbitalState
-                if state in (entities.STATE_UNANCHORING,
-                 entities.STATE_ONLINING,
-                 entities.STATE_ANCHORING,
-                 entities.STATE_OPERATING,
-                 entities.STATE_OFFLINING,
-                 entities.STATE_SHIELD_REINFORCE):
-                    stateText = localization.GetByLabel(pos.DISPLAY_NAMES[pos.Entity2DB(state)])
-                    gm.append(('End orbital state change (%s)' % stateText, self.CompleteOrbitalStateChange, (itemID,)))
-                elif state == entities.STATE_ANCHORED:
-                    upgradeType = sm.GetService('godma').GetTypeAttribute2(slimItem.typeID, const.attributeConstructionType)
-                    if upgradeType is not None:
-                        gm.append(('Upgrade to %s' % evetypes.GetName(upgradeType), self.GMUpgradeOrbital, (itemID,)))
-                gm.append(('GM: Take Control', self.TakeOrbitalOwnership, (itemID, slimItem.planetID)))
-            except ValueError:
-                pass
-
-            if HasBehaviorComponent(slimItem.typeID):
-                gm.extend(behavior.GetBehaviorGMMenu(slimItem))
-        gm.append(None)
-        dict = {'CHARID': charID,
-         'ITEMID': itemID,
-         'ID': charID or itemID}
-        for i in range(20):
-            item = prefs.GetValue('gmmenuslash%d' % i, None)
+            item = slimItem or invItem
             if item:
-                for k, v in dict.iteritems():
-                    if ' %s ' % k in item and v:
-                        item = item.replace(k, str(v))
-                        break
-                else:
-                    continue
+                if item.categoryID == const.categoryShip and (item.singleton or not session.stationid):
+                    import dna
+                    if item.ownerID in [session.corpid, session.charid] or session.role & service.ROLE_WORLDMOD:
+                        try:
+                            menu = dna.Ship().ImportFromShip(shipID=item.itemID, ownerID=item.ownerID, deferred=True).GetMenuInline(spiffy=False, fit=item.itemID != session.shipid)
+                            gm.append(('Copycat', menu))
+                        except RuntimeError:
+                            pass
 
-                gm.append((item, sm.RemoteSvc('slash').SlashCmd, (item,)))
+                    gm += [('/Online modules', lambda shipID=item.itemID: self.SlashCmd('/online %d' % shipID))]
+                gm += self.GetGMTypeMenu(item.typeID, itemID=item.itemID)
+                if getattr(slimItem, 'categoryID', None) == const.categoryEntity or getattr(slimItem, 'groupID', None) == const.groupWreck:
+                    gm.append(('NPC Info', ('isDynamic', self.NPCInfoMenu, (item,))))
+                gm.append(None)
+            elif typeID:
+                gm += self.GetGMTypeMenu(typeID)
+            if session.role & service.ROLE_CONTENT:
+                if slimItem:
+                    if getattr(slimItem, 'dunObjectID', None) != None:
+                        if not sm.StartService('scenario').IsSelected(itemID):
+                            gm.append(('Add to Selection', sm.StartService('scenario').AddSelected, (itemID,)))
+                        else:
+                            gm.append(('Remove from Selection', sm.StartService('scenario').RemoveSelected, (itemID,)))
+            if slimItem:
+                itemID = slimItem.itemID
+                graphicID = evetypes.GetGraphicID(item.typeID)
+                if slimItem.categoryID == const.categoryStation and slimItem.itemID:
+                    npcStation = cfg.mapSolarSystemContentCache.npcStations.get(itemID, None)
+                    if npcStation:
+                        graphicID = npcStation.graphicID
+                animations = inventorycommon.typeHelpers.GetAnimationStates(item.typeID)
+                graphicFile = util.GraphicFile(graphicID)
+                if graphicFile is '':
+                    graphicFile = None
+                g = cfg.graphics.GetIfExists(graphicID)
+                raceName = getattr(g, 'sofRaceName', None)
+                sofDNA = None
+                ball = sm.StartService('michelle').GetBallpark().GetBall(slimItem.itemID)
+                subMenu = self.GetGMStructureStateMenu(itemID, slimItem, charID, invItem, mapItem)
+                if len(subMenu) > 0:
+                    gm += [('Change State', subMenu)]
+                gm += self.GetGMBallsAndBoxesMenu(itemID, slimItem, charID, invItem, mapItem)
+                dirtLastClean = None
+                dirtCurrentValue = None
+                if ball is not None:
+                    if hasattr(ball, 'GetDirtTimeStampAsStr'):
+                        dirtLastClean = ball.GetDirtTimeStampAsStr()
+                    if hasattr(ball, 'model'):
+                        if ball.model is not None:
+                            dirtCurrentValue = getattr(ball.model, 'dirtLevel', None)
+                currentKillCount = None
+                if ball is not None:
+                    if hasattr(ball, 'model'):
+                        if ball.model is not None:
+                            currentKillCount = getattr(ball.model, 'displayKillCounterValue', None)
+                currentGeoLODstr = 'INVALID'
+                currentTexLODmenu = []
+                if ball is not None:
+                    if hasattr(ball, 'model'):
+                        if ball.model is not None:
+                            if hasattr(ball.model, 'mesh'):
+                                if ball.model.mesh is not None:
+                                    currentGeoLODstr = ball.model.mesh.GetGeometryResPath()
+                                    paramLst = ball.model.mesh.Find('trinity.TriTextureParameter')
+                                    currentTexLODstr = {}
+                                    for param in paramLst:
+                                        currentTexLODstr[param.resourcePath.lower()] = param.name
 
-        return gm
+                                    for param in currentTexLODstr.iterkeys():
+                                        currentTexLODmenu.append((param, blue.pyos.SetClipboardData, (str(param),)))
+
+                                    currentTexLODmenu.append(None)
+                                    paramLst = ball.model.mesh.Find('trinity.Tr2Texture2dLodParameter')
+                                    currentTexLODstr = {}
+                                    for param in paramLst:
+                                        currentTexLODstr[param.GetResourcePath().lower()] = param.name
+
+                                    for param in currentTexLODstr.iterkeys():
+                                        currentTexLODmenu.append((param, blue.pyos.SetClipboardData, (str(param),)))
+
+                            if hasattr(ball.model, 'dna'):
+                                sofDNA = ball.model.dna
+                gm.append(None)
+                gm.append(('charID: ' + self.GetOwnerLabel(slimItem.charID), blue.pyos.SetClipboardData, (str(slimItem.charID),)))
+                gm.append(('ownerID: ' + self.GetOwnerLabel(slimItem.ownerID), blue.pyos.SetClipboardData, (str(slimItem.ownerID),)))
+                gm.append(('corpID: ' + self.GetOwnerLabel(slimItem.corpID), blue.pyos.SetClipboardData, (str(slimItem.corpID),)))
+                gm.append(('allianceID: ' + self.GetOwnerLabel(slimItem.allianceID), blue.pyos.SetClipboardData, (str(slimItem.allianceID),)))
+                if hasattr(slimItem, 'districtID'):
+                    gm.append(('districtID: ' + str(slimItem.districtID), blue.pyos.SetClipboardData, (str(slimItem.districtID),)))
+                gm.append(None)
+                gm.append(('typeID: ' + str(slimItem.typeID) + ' (%s)' % evetypes.GetName(slimItem.typeID), blue.pyos.SetClipboardData, (str(slimItem.typeID),)))
+                gm.append(('groupID: ' + str(slimItem.groupID) + ' (%s)' % evetypes.GetGroupNameByGroup(slimItem.groupID), blue.pyos.SetClipboardData, (str(slimItem.groupID),)))
+                gm.append(('categID: ' + str(slimItem.categoryID) + ' (%s)' % evetypes.GetCategoryNameByCategory(slimItem.categoryID), blue.pyos.SetClipboardData, (str(slimItem.categoryID),)))
+                gm.append(('res', [('graphicID: ' + str(graphicID), blue.pyos.SetClipboardData, (str(graphicID),)),
+                  ('graphicFile: ' + str(graphicFile), blue.pyos.SetClipboardData, (str(graphicFile),)),
+                  ('SOF DNA: ' + str(sofDNA), blue.pyos.SetClipboardData, (str(sofDNA),)),
+                  ('race: ' + str(raceName), blue.pyos.SetClipboardData, (str(raceName),)),
+                  ('current geo LOD: ' + currentGeoLODstr, blue.pyos.SetClipboardData, (currentGeoLODstr,)),
+                  ('current tex LODs', currentTexLODmenu),
+                  ('state machines: ' + str(animations), blue.pyos.SetClipboardData, (str(animations),)),
+                  ('Save red file', self.SaveRedFile, (ball, graphicFile)),
+                  ('Toggle display', self.ToggleDisplay, (ball,)),
+                  modelDebugFunctions.GetGMModelInfoMenuItem(itemID)]))
+                gm.append(('iShip', [('Last cleaning: ' + str(dirtLastClean), blue.pyos.SetClipboardData, (str(dirtLastClean),)),
+                  ('Current dirt value: ' + str(dirtCurrentValue), blue.pyos.SetClipboardData, (str(dirtCurrentValue),)),
+                  None,
+                  ('Current kill count: ' + str(currentKillCount), blue.pyos.SetClipboardData, (str(currentKillCount),)),
+                  ('Randomize kill counter', self.RandomizeKillCounter, (ball,))]))
+                if slimItem.groupID == const.groupPlanet:
+                    if ball is not None:
+                        if ball.typeID == const.typePlanetEarthlike:
+                            gm.append(('DUST', [('current: ' + str(len(ball.districts)), blue.pyos.SetClipboardData, (str(len(ball.districts)),)),
+                              None,
+                              ('+1 district', self.DustAddDistricts, (1, ball)),
+                              ('+10 district', self.DustAddDistricts, (10, ball)),
+                              ('+50 district', self.DustAddDistricts, (50, ball)),
+                              ('clear districts', self.DustClearDistricts, (ball,)),
+                              None,
+                              ('start battles', self.DustEnableBattles, (True, ball)),
+                              ('stop battles', self.DustEnableBattles, (False, ball)),
+                              None,
+                              ('BOOM!', self.DustStartExplosions, (True, ball)),
+                              ('Stop BOOM!', self.DustStartExplosions, (False, ball))]))
+                if slimItem.groupID == const.groupSatellite:
+                    gm.append(('Orbital Strike', [('Enable District', sm.GetService('district').EnableDistrict, (slimItem.districtID, True)),
+                      ('Disable District', sm.GetService('district').DisableDistrict, ()),
+                      ('Request Strike', sm.RemoteSvc('slash').SlashCmd, ('/osrequest ' + str(slimItem.districtID),)),
+                      ('Cancel Strike', sm.RemoteSvc('slash').SlashCmd, ('/oscancel ' + str(slimItem.districtID),))]))
+                gm.append(None)
+                gm.append(('Copy Coordinates', self.CopyCoordinates, (itemID,)))
+                gm.append(None)
+                try:
+                    state = slimItem.orbitalState
+                    if state in (entities.STATE_UNANCHORING,
+                     entities.STATE_ONLINING,
+                     entities.STATE_ANCHORING,
+                     entities.STATE_OPERATING,
+                     entities.STATE_OFFLINING,
+                     entities.STATE_SHIELD_REINFORCE):
+                        stateText = localization.GetByLabel(pos.DISPLAY_NAMES[pos.Entity2DB(state)])
+                        gm.append(('End orbital state change (%s)' % stateText, self.CompleteOrbitalStateChange, (itemID,)))
+                    elif state == entities.STATE_ANCHORED:
+                        upgradeType = sm.GetService('godma').GetTypeAttribute2(slimItem.typeID, const.attributeConstructionType)
+                        if upgradeType is not None:
+                            gm.append(('Upgrade to %s' % evetypes.GetName(upgradeType), self.GMUpgradeOrbital, (itemID,)))
+                    gm.append(('GM: Take Control', self.TakeOrbitalOwnership, (itemID, slimItem.planetID)))
+                except ValueError:
+                    pass
+
+                if HasBehaviorComponent(slimItem.typeID):
+                    gm.extend(behavior.GetBehaviorGMMenu(slimItem))
+            gm.append(None)
+            dict = {'CHARID': charID,
+             'ITEMID': itemID,
+             'ID': charID or itemID}
+            for i in range(20):
+                item = prefs.GetValue('gmmenuslash%d' % i, None)
+                if item:
+                    for k, v in dict.iteritems():
+                        if ' %s ' % k in item and v:
+                            item = item.replace(k, str(v))
+                            break
+                    else:
+                        continue
+
+                    gm.append((item, sm.RemoteSvc('slash').SlashCmd, (item,)))
+
+            return gm
 
     def SaveRedFile(self, ball, graphicFile):
         return modelDebugFunctions.SaveRedFile(ball, graphicFile)
@@ -1514,6 +1586,15 @@ class MenuSvc(service.Service):
                 if ball.model is not None:
                     if hasattr(ball.model, 'displayKillCounterValue'):
                         ball.model.displayKillCounterValue = random.randint(0, 999)
+        return
+
+    def ToggleDisplay(self, ball):
+        if ball is not None:
+            if hasattr(ball, 'model'):
+                if ball.model is not None:
+                    if hasattr(ball.model, 'display'):
+                        ball.model.display = not ball.model.display
+        return
 
     def DustAddDistricts(self, count, ball):
         for each in range(0, count):
@@ -1543,8 +1624,9 @@ class MenuSvc(service.Service):
         elif getattr(self, 'triggerExplosionThreadObj', None) is not None:
             self.triggerExplosionThreadObj.kill()
             self.triggerExplosionThreadObj = None
+        return
 
-    def GetGMStructureStateMenu(self, itemID = None, slimItem = None, charID = None, invItem = None, mapItem = None):
+    def GetGMStructureStateMenu(self, itemID=None, slimItem=None, charID=None, invItem=None, mapItem=None):
         subMenu = []
         if hasattr(slimItem, 'posState') and slimItem.posState is not None:
             currentState = slimItem.posState
@@ -1562,7 +1644,7 @@ class MenuSvc(service.Service):
             subMenu.append(('Complete State', sm.RemoteSvc('slash').SlashCmd, ('/sov complete ' + str(itemID),)))
         return subMenu
 
-    def GetGMBallsAndBoxesMenu(self, itemID = None, slimItem = None, charID = None, invItem = None, mapItem = None):
+    def GetGMBallsAndBoxesMenu(self, itemID=None, slimItem=None, charID=None, invItem=None, mapItem=None):
         return modelDebugFunctions.GetGMBallsAndBoxesMenu(itemID, slimItem, charID, invItem, mapItem)
 
     def GetOwnerLabel(self, ownerID):
@@ -1575,6 +1657,8 @@ class MenuSvc(service.Service):
         blue.os.ShellExecute(url)
 
     def GetWarpOptions(self, FleetWarpToMethod, WarpToMethod, itemId):
+        if not InShipInSpace():
+            return []
         warptoLabel = movementFunctions.DefaultWarpToLabel()
         defaultWarpDist = self.GetDefaultActionDistance('WarpTo')
         ret = [(warptoLabel, WarpToMethod, (itemId, defaultWarpDist)), (uiutil.MenuLabel('UI/Inflight/Submenus/WarpToWithin'), self.WarpToMenu(WarpToMethod, itemId))]
@@ -1592,26 +1676,27 @@ class MenuSvc(service.Service):
         itemId = scanResultID
         return self.GetWarpOptions(FleetWarpToMethod, WarpToMethod, itemId)
 
-    def WarpToScanResult(self, scanResultID, minRange = None):
+    def WarpToScanResult(self, scanResultID, minRange=None):
         self._WarpXToScanResult(scanResultID, minRange)
 
-    def WarpFleetToScanResult(self, scanResultID, minRange = None):
+    def WarpFleetToScanResult(self, scanResultID, minRange=None):
         self._WarpXToScanResult(scanResultID, minRange, fleet=True)
 
-    def _WarpXToScanResult(self, scanResultID, minRange = None, fleet = False):
+    def _WarpXToScanResult(self, scanResultID, minRange=None, fleet=False):
         bp = sm.StartService('michelle').GetRemotePark()
         if bp is not None:
             if not sm.GetService('machoNet').GetGlobalConfig().get('newAutoNavigationKillSwitch', False):
                 sm.GetService('autoPilot').CancelSystemNavigation()
-            itemID = sm.GetService('sensorSuite').GetCosmicAnomalyItemIDFromTargetID(scanResultID)
+            itemID, typeID = sm.GetService('sensorSuite').GetPositionalSiteItemIDFromTargetID(scanResultID)
             if itemID is None:
                 subject, subjectID = 'scan', scanResultID
             else:
                 subject, subjectID = 'item', itemID
             bp.CmdWarpToStuff(subject, subjectID, minRange=minRange, fleet=fleet)
             sm.StartService('space').WarpDestination(celestialID=scanResultID)
+        return
 
-    def GetCelestialMenuForSelectedItem(self, itemID, ignoreShipConfig = True):
+    def GetCelestialMenuForSelectedItem(self, itemID, ignoreShipConfig=True):
         if isinstance(itemID, list):
             myData = itemID[0]
         else:
@@ -1630,7 +1715,7 @@ class MenuSvc(service.Service):
         return not ball or ball.isMoribund
 
     @telemetry.ZONE_METHOD
-    def CelestialMenu(self, itemID, mapItem = None, slimItem = None, noTrace = 0, typeID = None, parentID = None, bookmark = None, itemIDs = [], ignoreTypeCheck = 0, ignoreDroneMenu = 0, filterFunc = None, hint = None, ignoreMarketDetails = 1, ignoreShipConfig = True):
+    def CelestialMenu(self, itemID, mapItem=None, slimItem=None, noTrace=0, typeID=None, parentID=None, bookmark=None, itemIDs=[], ignoreTypeCheck=0, ignoreDroneMenu=0, filterFunc=None, hint=None, ignoreMarketDetails=1, ignoreShipConfig=True):
         if type(itemID) == list:
             menus = []
             for data in itemID:
@@ -1648,7 +1733,7 @@ class MenuSvc(service.Service):
              bookmark), ignoreTypeCheck, ignoreDroneMenu, filterFunc, hint, ignoreMarketDetails)
             return self.MergeMenus([ret])
 
-    def _AddStargateEntry(self, menuEntries, slimItem, itemID, ignoreTypeCheck, checkStargate, checkJumpDist, checkWarpActive, checkWarpgate, checkWormhole, checkWormholeDist):
+    def _AddStargateEntry(self, menuEntries, slimItem, itemID, checkStargate, checkJumpDist, checkWarpActive, checkInShipInSpace):
         dests = []
         locs = []
         for each in slimItem.jumps:
@@ -1670,13 +1755,16 @@ class MenuSvc(service.Service):
         if dests:
             currentWarpTarget = sm.GetService('space').warpDestinationCache[0]
             checkInWarpToGate = itemID == currentWarpTarget
-            if checkStargate and checkSingleJumpDest:
+            if checkStargate and checkSingleJumpDest and checkInShipInSpace:
                 if not checkWarpActive or checkInWarpToGate:
                     menuEntries += [[uiutil.MenuLabel('UI/Inflight/Jump'), dests[0][1], dests[0][2]]]
                 else:
                     self.AddDisabledEntryForWarp(menuEntries, 'UI/Inflight/Jump')
             else:
-                prereqs = [('notStargate', checkStargate, True), ('notWithinMaxJumpDist', checkJumpDist, True), ('severalJumpDest', checkSingleJumpDest, True)]
+                prereqs = [('notStargate', checkStargate, True),
+                 ('notInShipInSpace', checkInShipInSpace, True),
+                 ('notWithinMaxJumpDist', checkJumpDist, True),
+                 ('severalJumpDest', checkSingleJumpDest, True)]
                 reason = self.FindReasonNotAvailable(prereqs)
                 if reason:
                     menuEntries.reasonsWhyNotAvailable['UI/Inflight/Jump'] = reason
@@ -1687,9 +1775,10 @@ class MenuSvc(service.Service):
                 checkInWaypoints = dests[0][2][2] in waypoints
                 if checkSingleJumpDest and checkStargate and not checkInWaypoints:
                     menuEntries += [[uiutil.MenuLabel('UI/Inflight/AddFirstWaypoint'), sm.StartService('starmap').SetWaypoint, (dests[0][2][2], 0, 1)]]
+        return None
 
     @telemetry.ZONE_METHOD
-    def _CelestialMenu(self, data, ignoreTypeCheck = 0, ignoreDroneMenu = 0, filterFunc = None, hint = None, ignoreMarketDetails = 1, multi = 0, ignoreShipConfig = False):
+    def _CelestialMenu(self, data, ignoreTypeCheck=0, ignoreDroneMenu=0, filterFunc=None, hint=None, ignoreMarketDetails=1, multi=0, ignoreShipConfig=False):
         itemID, mapItem, slimItem, noTrace, typeID, parentID, bookmark = data
         categoryID = None
         bp = sm.StartService('michelle').GetBallpark()
@@ -1714,1032 +1803,1041 @@ class MenuSvc(service.Service):
                     mapItemID = mapItem.itemID
         if typeID is None:
             return []
-        groupID = evetypes.GetGroupID(typeID)
-        if categoryID == const.categoryCharge and groupID != const.groupScannerProbe:
-            return []
-        groupName = evetypes.GetGroupNameByGroup(groupID)
-        categoryID = categoryID or evetypes.GetCategoryIDByGroup(groupID)
-        godmaSM = self.godma.GetStateManager()
-        shipItem = self.godma.GetStateManager().GetItem(session.shipid)
-        isMyShip = itemID == session.shipid
-        otherBall = bp and bp.GetBall(itemID) or None
-        ownBall = bp and bp.GetBall(session.shipid) or None
-        dist = otherBall and max(0, otherBall.surfaceDist)
-        otherCharID = slimItem and (slimItem.charID or slimItem.ownerID) or None
-        if parentID is None and groupID == const.groupStation and itemID:
-            tmp = sm.StartService('ui').GetStation(itemID)
-            if tmp is not None:
-                parentID = tmp.solarSystemID
-        dist = self.FindDist(dist, bookmark, ownBall, bp)
-        checkMultiCategs1 = categoryID in (const.categoryEntity, const.categoryDrone, const.categoryShip)
-        niceRange = dist and util.FmtDist(dist) or localization.GetByLabel('UI/Inflight/NoDistanceAvailable')
-        checkIsMine = bool(slimItem) and slimItem.ownerID == session.charid
-        checkIsMyCorps = bool(slimItem) and slimItem.ownerID == session.corpid
-        checkIsMineOrCorps = bool(slimItem) and (slimItem.ownerID == session.charid or slimItem.ownerID == session.corpid)
-        checkIsMineOrCorpsOrAlliances = bool(slimItem) and (slimItem.ownerID == session.charid or slimItem.ownerID == session.corpid or session.allianceid and slimItem.allianceID == session.allianceid)
-        checkIsFree = bool(otherBall) and otherBall.isFree
-        checkBP = bool(bp)
-        checkMyShip = isMyShip
-        checkMyShipIsFHShip = shipItem and godmaSM.GetType(shipItem.typeID).hasFleetHangars
-        checkInCapsule = itemID == session.shipid and groupID == const.groupCapsule
-        checkShipBusy = bool(otherBall) and otherBall.isInteractive
-        checkInSpace = bool(session.solarsystemid)
-        checkInSystem = dist is not None and (bp and itemID in bp.balls or parentID == session.solarsystemid)
-        checkIsObserving = sm.GetService('target').IsObserving()
-        checkStation = groupID == const.groupStation
-        checkPlanetCustomsOffice = groupID == const.groupPlanetaryCustomsOffices
-        checkPlanet = groupID == const.groupPlanet
-        checkMoon = groupID == const.groupMoon
-        checkThisPlanetOpen = sm.GetService('viewState').IsViewActive('planet') and sm.GetService('planetUI').planetID == itemID
-        checkStargate = bool(slimItem) and groupID == const.groupStargate
-        checkWarpgate = groupID == const.groupWarpGate
-        checkWormhole = groupID == const.groupWormhole
-        checkControlTower = groupID == const.groupControlTower
-        checkSentry = groupID in (const.groupMobileMissileSentry, const.groupMobileProjectileSentry, const.groupMobileHybridSentry)
-        checkLaserSentry = groupID == const.groupMobileLaserSentry
-        checkShipMaintainer = groupID == const.groupShipMaintenanceArray
-        checkCorpHangarArray = groupID == const.groupCorporateHangarArray
-        checkAssemblyArray = groupID == const.groupAssemblyArray
-        checkMobileLaboratory = groupID == const.groupMobileLaboratory
-        checkSilo = groupID == const.groupSilo
-        checkReactor = groupID == const.groupMobileReactor
-        checkContainer = groupID in self.containerGroups
-        checkCynoField = typeID == const.typeCynosuralFieldI
-        checkConstructionPf = groupID in (const.groupConstructionPlatform, const.groupStationUpgradePlatform, const.groupStationImprovementPlatform)
-        checkShip = categoryID == const.categoryShip
-        checkSpacePig = (groupID == const.groupAgentsinSpace or groupID == const.groupDestructibleAgentsInSpace) and bool(sm.StartService('godma').GetType(typeID).agentID)
-        checkIfShipMAShip = slimItem and categoryID == const.categoryShip and bool(godmaSM.GetType(typeID).hasShipMaintenanceBay)
-        checkIfShipFHShip = slimItem and categoryID == const.categoryShip and bool(godmaSM.GetType(typeID).hasFleetHangars)
-        checkIfShipCloneShip = slimItem and bool(godmaSM.GetType(typeID).canReceiveCloneJumps)
-        checkSolarSystem = groupID == const.groupSolarSystem
-        checkWreck = groupID == const.groupWreck
-        checkSpewContainer = groupID == const.groupSpewContainer
-        checkZeroSecSpace = checkInSpace and sm.StartService('map').GetSecurityClass(session.solarsystemid) == const.securityClassZeroSec
-        checkIfShipDroneBay = slimItem and categoryID == const.categoryShip and bool(godmaSM.GetType(typeID).droneCapacity or IsModularShip(typeID))
-        checkIfShipFighterBay = slimItem and categoryID == const.categoryShip and bool(godmaSM.GetType(typeID).fighterCapacity)
-        checkIfShipFuelBay = slimItem and categoryID == const.categoryShip and bool(godmaSM.GetType(typeID).specialFuelBayCapacity)
-        checkIfShipOreHold = slimItem and categoryID == const.categoryShip and bool(godmaSM.GetType(typeID).specialOreHoldCapacity)
-        checkIfShipGasHold = slimItem and categoryID == const.categoryShip and bool(godmaSM.GetType(typeID).specialGasHoldCapacity)
-        checkIfShipMineralHold = slimItem and categoryID == const.categoryShip and bool(godmaSM.GetType(typeID).specialMineralHoldCapacity)
-        checkIfShipSalvageHold = slimItem and categoryID == const.categoryShip and bool(godmaSM.GetType(typeID).specialSalvageHoldCapacity)
-        checkIfShipShipHold = slimItem and categoryID == const.categoryShip and bool(godmaSM.GetType(typeID).specialShipHoldCapacity)
-        checkIfShipSmallShipHold = slimItem and categoryID == const.categoryShip and bool(godmaSM.GetType(typeID).specialSmallShipHoldCapacity)
-        checkIfShipMediumShipHold = slimItem and categoryID == const.categoryShip and bool(godmaSM.GetType(typeID).specialMediumShipHoldCapacity)
-        checkIfShipLargeShipHold = slimItem and categoryID == const.categoryShip and bool(godmaSM.GetType(typeID).specialLargeShipHoldCapacity)
-        checkIfShipIndustrialShipHold = slimItem and categoryID == const.categoryShip and bool(godmaSM.GetType(typeID).specialIndustrialShipHoldCapacity)
-        checkIfShipAmmoHold = slimItem and categoryID == const.categoryShip and bool(godmaSM.GetType(typeID).specialAmmoHoldCapacity)
-        checkIfShipCommandCenterHold = slimItem and categoryID == const.categoryShip and bool(godmaSM.GetType(typeID).specialCommandCenterHoldCapacity)
-        checkIfShipPlanetaryCommoditiesHold = slimItem and categoryID == const.categoryShip and bool(godmaSM.GetType(typeID).specialPlanetaryCommoditiesHoldCapacity)
-        checkIfShipHasQuafeBay = slimItem and categoryID == const.categoryShip and bool(godmaSM.GetType(typeID).specialQuafeHoldCapacity)
-        checkIfMaterialsHold = slimItem and bool(godmaSM.GetType(typeID).specialMaterialBayCapacity)
-        checkIfCanUpgrade = slimItem and categoryID == const.categoryOrbital and slimItem.orbitalState == entities.STATE_ANCHORED
-        maxTransferDistance = max(getattr(godmaSM.GetType(typeID), 'maxOperationalDistance', 0), const.maxCargoContainerTransferDistance)
-        checkWarpDist = dist is not None and dist > const.minWarpDistance
-        checkApproachDist = dist is not None and dist < const.minWarpDistance
-        checkAlignTo = dist is not None and dist > const.minWarpDistance
-        checkJumpDist = dist is not None and dist < const.maxStargateJumpingDistance
-        checkWormholeDist = dist is not None and dist < const.maxWormholeEnterDistance
-        checkTransferDist = dist is not None and dist < maxTransferDistance
-        checkConfigDist = dist is not None and dist < const.maxConfigureDistance
-        checkLookatDist = dist is not None and (dist < GetCameraMaxLookAtRange() or checkIsObserving)
-        checkTargetingRange = dist is not None and shipItem is not None and shipItem and dist < shipItem.maxTargetRange
-        checkSpacePigDist = dist is not None and dist < sm.StartService('godma').GetType(typeID).agentCommRange
-        checkDistNone = dist is None
-        if not checkTransferDist or not checkConfigDist:
-            if bp and bp.IsShipInRangeOfStructureControlTower(session.shipid, itemID):
-                checkTransferDist = True
-                checkConfigDist = True
-        checkWarpActive = ownBall and ownBall.mode == destiny.DSTBALL_WARP
-        checkJumpThrough = slimItem and sm.GetService('fleet').CanJumpThrough(slimItem)
-        checkWreckViewed = checkWreck and sm.GetService('wreck').IsViewedWreck(itemID)
-        checkSelfDestructActive = getattr(slimItem, 'selfDestructTime', None) is not None
-        checkFleet = bool(session.fleetid)
-        checkIfImCommander = self.ImFleetCommander()
-        checkEnemySpotted = sm.GetService('fleet').CurrentFleetBroadcastOnItem(itemID, state.gbEnemySpotted)
-        checkHasMarketGroup = evetypes.GetMarketGroupID(typeID) is not None and not ignoreMarketDetails
-        checkIsPublished = evetypes.IsPublished(typeID)
-        checkMultiSelection = bool(multi)
-        checkIfLandmark = itemID and itemID < 0
-        checkIfAgentBookmark = bookmark and getattr(bookmark, 'agentID', 0) and hasattr(bookmark, 'locationNumber')
-        checkIfReadonlyBookmark = bookmark and type(getattr(bookmark, 'bookmarkID', 0)) == types.TupleType
-        checkIsStationManager = session.corprole & const.corpRoleStationManager == const.corpRoleStationManager
-        menuEntries = MenuList()
-        defaultWarpDist = sm.GetService('menu').GetDefaultActionDistance('WarpTo')
-        m = MenuList()
-        if bp and IsShipWithinFittingRange(cfg.spaceComponentStaticData, shipItem, slimItem, bp):
-            menuEntries.extend(fitting.GetFittingMenu(uicore.cmd.OpenFitting))
-        if groupID == const.groupOrbitalTarget:
-            return [[uiutil.MenuLabel('UI/Commands/ShowInfo'), self.ShowInfo, (typeID,
-               itemID,
-               0,
-               None,
-               parentID)]]
-        if bookmark:
-            checkBookmarkWarpTo = dist is not None and (itemID == session.solarsystemid or parentID == session.solarsystemid)
-            checkBookmarkDeadspace = bool(getattr(bookmark, 'deadspace', 0))
-            if slimItem:
-                if not checkMultiSelection:
-                    menuEntries += [[uiutil.MenuLabel('UI/Commands/ShowInfo'), self.ShowInfo, (slimItem.typeID,
-                       slimItem.itemID,
-                       0,
-                       None,
-                       None)]]
-            if checkInSpace and not checkWarpActive:
-                if checkInSystem and checkApproachDist:
-                    menuEntries += [[uiutil.MenuLabel('UI/Inflight/ApproachLocationActionGroup'), movementFunctions.ApproachLocation, (bookmark,)]]
-                if checkBookmarkWarpTo and checkWarpDist:
-                    if not checkBookmarkDeadspace:
-                        label = uiutil.MenuLabel('UI/Inflight/WarpToBookmarkWithinDistance', {'warpToDistance': util.FmtDist(float(defaultWarpDist))})
-                        menuEntries += [[label, movementFunctions.WarpToBookmark, (bookmark, float(defaultWarpDist))]]
-                        menuEntries += [[uiutil.MenuLabel('UI/Inflight/WarpToBookmark'), self.WarpToMenu(movementFunctions.WarpToBookmark, bookmark)]]
-                        if checkFleet:
-                            if self.CheckImFleetLeader():
-                                label = uiutil.MenuLabel('UI/Fleet/WarpFleetToLocationWithinDistance', {'warpToDistance': util.FmtDist(float(defaultWarpDist))})
-                                menuEntries += [[label, movementFunctions.WarpToBookmark, (bookmark, float(defaultWarpDist), True)]]
-                                menuEntries += [[uiutil.MenuLabel('UI/Fleet/FleetSubmenus/WarpFleetToWithin'), self.WarpToMenu(movementFunctions.WarpFleetToBookmark, bookmark)]]
-                            if self.CheckImWingCmdr():
-                                label = uiutil.MenuLabel('UI/Fleet/WarpWingToLocationWithinDistance', {'warpToDistance': util.FmtDist(float(defaultWarpDist))})
-                                menuEntries += [[label, movementFunctions.WarpToBookmark, (bookmark, float(defaultWarpDist), True)]]
-                                menuEntries += [[uiutil.MenuLabel('UI/Fleet/FleetSubmenus/WarpWingToWithin'), self.WarpToMenu(movementFunctions.WarpFleetToBookmark, bookmark)]]
-                            if self.CheckImSquadCmdr():
-                                label = uiutil.MenuLabel('UI/Fleet/WarpSquadToLocationWithinDistance', {'warpToDistance': util.FmtDist(float(defaultWarpDist))})
-                                menuEntries += [[label, movementFunctions.WarpToBookmark, (bookmark, float(defaultWarpDist), True)]]
-                                menuEntries += [[uiutil.MenuLabel('UI/Fleet/FleetSubmenus/WarpSquadToWithin'), self.WarpToMenu(movementFunctions.WarpFleetToBookmark, bookmark)]]
-                    if checkBookmarkDeadspace:
-                        menuEntries += [[uiutil.MenuLabel('UI/Inflight/WarpToBookmark'), movementFunctions.WarpToBookmark, (bookmark, float(defaultWarpDist))]]
-                        if checkFleet:
-                            if self.CheckImFleetLeader():
-                                menuEntries += [[uiutil.MenuLabel('UI/Fleet/WarpFleetToLocation'), movementFunctions.WarpToBookmark, (bookmark, float(defaultWarpDist), True)]]
-                                menuEntries += [[uiutil.MenuLabel('UI/Fleet/FleetSubmenus/WarpFleetToWithin'), self.WarpToMenu(movementFunctions.WarpFleetToBookmark, bookmark)]]
-                            if self.CheckImWingCmdr():
-                                menuEntries += [[uiutil.MenuLabel('UI/Fleet/WarpWingToLocation'), movementFunctions.WarpToBookmark, (bookmark, float(defaultWarpDist), True)]]
-                                menuEntries += [[uiutil.MenuLabel('UI/Fleet/FleetSubmenus/WarpWingToWithin'), self.WarpToMenu(movementFunctions.WarpFleetToBookmark, bookmark)]]
-                            if self.CheckImSquadCmdr():
-                                menuEntries += [[uiutil.MenuLabel('UI/Fleet/WarpSquadToLocation'), movementFunctions.WarpToBookmark, (bookmark, float(defaultWarpDist), True)]]
-                                menuEntries += [[uiutil.MenuLabel('UI/Fleet/FleetSubmenus/WarpSquadToWithin'), self.WarpToMenu(movementFunctions.WarpFleetToBookmark, bookmark)]]
-            if checkInSystem and not checkMyShip and checkAlignTo and not checkWarpActive and not checkIfAgentBookmark:
-                menuEntries += [[uiutil.MenuLabel('UI/Inflight/AlignTo'), self.AlignToBookmark, (getattr(bookmark, 'bookmarkID', None),)]]
-            if not checkIfAgentBookmark and not checkIfReadonlyBookmark:
-                menuEntries += [[uiutil.MenuLabel('UI/Inflight/EditBookmark'), sm.GetService('addressbook').EditBookmark, (bookmark,)]]
-                menuEntries += [[uiutil.MenuLabel('UI/Inflight/RemoveBookmark'), sm.GetService('addressbook').DeleteBookmarks, ([getattr(bookmark, 'bookmarkID', None)],)]]
-            if ignoreTypeCheck or checkStation is True:
-                menuEntries += [None]
-                if checkBP and checkInSystem and checkStation:
-                    if checkWarpActive:
-                        self.AddDisabledEntryForWarp(menuEntries, 'UI/Inflight/DockInStation')
-                    else:
-                        menuEntries += [[uiutil.MenuLabel('UI/Inflight/DockInStation'), self.Dock, (itemID,)]]
-                else:
-                    prereqs = [('checkBP', checkBP, True), ('notInSystem', checkInSystem, True), ('notStation', checkStation, True)]
-                    reason = self.FindReasonNotAvailable(prereqs)
-                    if reason:
-                        menuEntries.reasonsWhyNotAvailable['UI/Inflight/DockInStation'] = reason
-            if ignoreTypeCheck or checkStargate:
-                if checkBP and checkInSystem and checkStargate:
-                    self._AddStargateEntry(menuEntries, slimItem, itemID, ignoreTypeCheck, checkStargate, checkJumpDist, checkWarpActive, checkWarpgate, checkWormhole, checkWormholeDist)
-                else:
-                    prereqs = [('checkBP', checkBP, True), ('notInSystem', checkInSystem, True)]
-                    reason = self.FindReasonNotAvailable(prereqs)
-                    if reason:
-                        menuEntries.reasonsWhyNotAvailable['UI/Inflight/DockInStation'] = reason
-        elif bp and itemID is not None:
-            checkBillboard = groupID == const.groupBillboard
-            checkStructure = categoryID in (const.categoryStarbase, const.categorySovereigntyStructure)
-            checkSovStructure = categoryID == const.categorySovereigntyStructure
+        else:
+            groupID = evetypes.GetGroupID(typeID)
+            if categoryID == const.categoryCharge and groupID != const.groupScannerProbe:
+                return []
+            groupName = evetypes.GetGroupNameByGroup(groupID)
+            categoryID = categoryID or evetypes.GetCategoryIDByGroup(groupID)
+            godmaSM = self.godma.GetStateManager()
+            shipItem = self.godma.GetStateManager().GetItem(session.shipid)
+            isMyShip = itemID == session.shipid
+            otherBall = bp and bp.GetBall(itemID) or None
+            ownBall = bp and bp.GetBall(session.shipid) or None
+            dist = otherBall and max(0, otherBall.surfaceDist)
+            otherCharID = slimItem and (slimItem.charID or slimItem.ownerID) or None
+            if parentID is None and groupID == const.groupStation and itemID:
+                tmp = sm.StartService('ui').GetStation(itemID)
+                if tmp is not None:
+                    parentID = tmp.solarSystemID
+            dist = self.FindDist(dist, bookmark, ownBall, bp)
+            checkMultiCategs1 = categoryID in (const.categoryEntity,
+             const.categoryDrone,
+             const.categoryShip,
+             const.categoryFighter)
+            niceRange = dist and util.FmtDist(dist) or localization.GetByLabel('UI/Inflight/NoDistanceAvailable')
+            checkIsMine = bool(slimItem) and slimItem.ownerID == session.charid
+            checkIsMyCorps = bool(slimItem) and slimItem.ownerID == session.corpid
+            checkIsMineOrCorps = bool(slimItem) and (slimItem.ownerID == session.charid or slimItem.ownerID == session.corpid)
+            checkIsMineOrCorpsOrAlliances = bool(slimItem) and (slimItem.ownerID == session.charid or slimItem.ownerID == session.corpid or session.allianceid and slimItem.allianceID == session.allianceid)
+            checkIsFree = bool(otherBall) and otherBall.isFree
+            checkBP = bool(bp)
+            checkMyShip = isMyShip
+            checkMyShipIsFHShip = shipItem and godmaSM.GetType(shipItem.typeID).hasFleetHangars
+            checkInCapsule = itemID == session.shipid and groupID == const.groupCapsule
+            checkShipBusy = bool(otherBall) and otherBall.isInteractive
+            checkInSpace = bool(session.solarsystemid)
+            checkInSystem = dist is not None and (bp and itemID in bp.balls or parentID == session.solarsystemid)
+            checkInShipInSpace = InShipInSpace()
+            checkDockedInStructure = bool(IsDockedInStructure())
+            checkMyShipHasFighterBay = shipItem and bool(self.godma.GetTypeAttribute2(shipItem.typeID, const.attributeFighterCapacity))
+            if checkMyShipHasFighterBay:
+                checkFightersSelectedForNavigation = movementFunctions.GetFightersSelectedForNavigation()
+            else:
+                checkFightersSelectedForNavigation = False
+            checkIsObserving = sm.GetService('target').IsObserving()
+            checkStation = groupID == const.groupStation
+            checkStructure = categoryID == const.categoryStructure
+            checkPlanetCustomsOffice = groupID == const.groupPlanetaryCustomsOffices
+            checkPlanet = groupID == const.groupPlanet
+            checkMoon = groupID == const.groupMoon
+            checkThisPlanetOpen = sm.GetService('viewState').IsViewActive('planet') and sm.GetService('planetUI').planetID == itemID
+            checkDockable = checkStation or checkStructure
+            checkStargate = bool(slimItem) and groupID == const.groupStargate
+            checkWarpgate = groupID == const.groupWarpGate
+            checkWormhole = groupID == const.groupWormhole
             checkControlTower = groupID == const.groupControlTower
-            checkContainer = groupID in self.containerGroups
-            checkMyWreck = groupID == const.groupWreck and bp.HaveLootRight(itemID)
-            checkMyCargo = groupID == const.groupCargoContainer and bp.HaveLootRight(itemID) and not typeID == const.typePlanetaryLaunchContainer
-            checkNotAbandoned = not bp.IsAbandoned(itemID)
+            checkSentry = groupID in (const.groupMobileMissileSentry, const.groupMobileProjectileSentry, const.groupMobileHybridSentry)
+            checkLaserSentry = groupID == const.groupMobileLaserSentry
+            checkShipMaintainer = groupID == const.groupShipMaintenanceArray
             checkCorpHangarArray = groupID == const.groupCorporateHangarArray
-            checkPersonalHangar = groupID == const.groupPersonalHangar
             checkAssemblyArray = groupID == const.groupAssemblyArray
             checkMobileLaboratory = groupID == const.groupMobileLaboratory
             checkSilo = groupID == const.groupSilo
+            checkReactor = groupID == const.groupMobileReactor
+            checkContainer = groupID in self.containerGroups
+            checkCynoField = typeID == const.typeCynosuralFieldI
             checkConstructionPf = groupID in (const.groupConstructionPlatform, const.groupStationUpgradePlatform, const.groupStationImprovementPlatform)
-            checkJumpPortalArray = groupID == const.groupJumpPortalArray
-            checkPMA = groupID in (const.groupPlanet, const.groupMoon, const.groupAsteroidBelt)
-            checkMultiGroups1 = groupID in (const.groupSecureCargoContainer, const.groupAuditLogSecureContainer)
-            checkMultiGroups2 = categoryID == const.categoryDrone or groupID == const.groupBiomass
-            checkAnchorDrop = godmaSM.TypeHasEffect(typeID, const.effectAnchorDrop)
-            checkAnchorLift = godmaSM.TypeHasEffect(typeID, const.effectAnchorLift)
-            checkAutoPilot = bool(sm.StartService('autoPilot').GetState())
-            checkCanRename = checkIsMine or bool(checkIsMyCorps and session.corprole & const.corpRoleEquipmentConfig and categoryID != const.categorySovereigntyStructure) or session.role & service.ROLE_WORLDMOD
-            checkAnchorable = evetypes.GetIsGroupAnchorableByGroup(groupID)
-            checkRenameable = not (groupID == const.groupStation and godmaSM.GetType(typeID).isPlayerOwnable == 1)
-            checkInTargets = itemID in sm.StartService('target').GetTargets()
-            checkBeingTargeted = sm.StartService('target').BeingTargeted(itemID)
-            checkOrbital = categoryID == const.categoryOrbital
-
-            def CheckScoopable(shipItem, groupID, categoryID, typeID):
-                if groupID == const.groupBiomass or categoryID == const.categoryDrone:
-                    return True
-                if shipItem is None:
-                    return False
-                if self.IsItemDead(bp, itemID):
-                    return False
-                if HasScoopComponent(typeID) and slimItem and IsActiveComponent(bp.componentRegistry, typeID, itemID):
-                    return slimItem.ownerID == session.charid
-                isAnchorable = checkAnchorable and checkIsFree
-                if shipItem.groupID in (const.groupFreighter, const.groupJumpFreighter):
-                    if groupID == const.groupFreightContainer:
-                        return True
-                    if isAnchorable and groupID not in (const.groupCargoContainer, const.groupAuditLogSecureContainer, const.groupSecureCargoContainer):
-                        return True
-                    return False
-                if isAnchorable or groupID in (const.groupCargoContainer, const.groupFreightContainer) and typeID not in (const.typeCargoContainer, const.typePlanetaryLaunchContainer):
-                    return True
-                return False
-
-            checkScoopable = CheckScoopable(shipItem, groupID, categoryID, typeID)
-            checkScoopableSMA = categoryID == const.categoryShip and groupID != const.groupCapsule and not isMyShip and shipItem is not None and shipItem.hasShipMaintenanceBay
-            checkKeepRangeGroups = categoryID != const.categoryAsteroid and groupID not in (const.groupHarvestableCloud,
-             const.groupMiningDrone,
-             const.groupCargoContainer,
-             const.groupSecureCargoContainer,
-             const.groupAuditLogSecureContainer,
-             const.groupStation,
-             const.groupStargate,
-             const.groupFreightContainer,
-             const.groupWreck)
-            checkLookingAtItem = bool(sm.GetService('sceneManager').GetActiveSpaceCamera().GetLookAtItemID() == itemID)
-            camera = sm.GetService('sceneManager').GetRegisteredCamera(evecamera.CAM_SPACE_PRIMARY)
-            checkInterest = bool(util.GetAttrs(camera, 'interest', 'translationCurve', 'id') == itemID)
-            advancedCamera = bool(gfxsettings.Get(gfxsettings.UI_ADVANCED_CAMERA))
-            checkHasConsumables = checkStructure and godmaSM.GetType(typeID).consumptionType != 0
-            checkAuditLogSecureContainer = groupID == const.groupAuditLogSecureContainer
-            checkShipJumpDrive = slimItem and shipItem is not None and shipItem.canJump
-            checkShipJumpPortalGenerator = slimItem and shipItem is not None and shipItem.groupID in [const.groupTitan, const.groupBlackOps] and len([ each for each in godmaSM.GetItem(session.shipid).modules if each.groupID == const.groupJumpPortalGenerator ]) > 0
-            structureShipBridge = sm.services['pwn'].GetActiveBridgeForShip(itemID)
-            checkShipHasBridge = structureShipBridge is not None
-            if structureShipBridge is not None:
-                structureShipBridgeLabel = uiutil.MenuLabel('UI/Fleet/JumpThroughToSystem', {'solarsystem': structureShipBridge[0]})
+            checkShip = categoryID == const.categoryShip
+            checkSpacePig = (groupID == const.groupAgentsinSpace or groupID == const.groupDestructibleAgentsInSpace) and bool(sm.StartService('godma').GetType(typeID).agentID)
+            checkIfShipMAShip = slimItem and categoryID == const.categoryShip and bool(godmaSM.GetType(typeID).hasShipMaintenanceBay)
+            checkIfShipFHShip = slimItem and categoryID == const.categoryShip and bool(godmaSM.GetType(typeID).hasFleetHangars)
+            checkIfShipCloneShip = slimItem and bool(godmaSM.GetType(typeID).canReceiveCloneJumps)
+            checkSolarSystem = groupID == const.groupSolarSystem
+            checkWreck = groupID == const.groupWreck
+            checkSpewContainer = groupID == const.groupSpewContainer
+            checkZeroSecSpace = checkInSpace and sm.StartService('map').GetSecurityClass(session.solarsystemid) == const.securityClassZeroSec
+            checkFighter = categoryID == const.categoryFighter
+            if checkFighter:
+                shipFighterState = sm.GetService('fighters').shipFighterState
+                checkFighterIsControlledByMe = shipFighterState.GetFighterInSpaceByID(itemID) is not None
             else:
-                structureShipBridgeLabel = uiutil.MenuLabel('UI/Inflight/JumpThroughError')
-            keepRangeMenu = self.GetKeepAtRangeMenu(itemID, dist, niceRange)
-            orbitMenu = self.GetOrbitMenu(itemID, dist, niceRange)
-            if checkEnemySpotted:
-                senderID, = checkEnemySpotted
-                label = uiutil.MenuLabel('UI/Fleet/FleetSubmenus/BroadCastEnemySpotted', {'character': senderID})
-                menuEntries += [[label, ('isDynamic', self.CharacterMenu, (senderID,))]]
-            if ignoreTypeCheck or checkShip is True:
-                checkCanStoreVessel = shipItem is not None and slimItem is not None and shipItem.groupID != const.groupCapsule and slimItem.itemID != shipItem.itemID
-                checkInSameCorp = bool(slimItem) and slimItem.ownerID in sm.StartService('corp').GetMemberIDs()
-                checkInSameFleet = bool(slimItem) and session.fleetid and slimItem.ownerID in sm.GetService('fleet').GetMembers()
-
-                @util.Memoized
-                def GetShipConfig(shipID):
-                    return sm.GetService('shipConfig').GetShipConfig(shipID)
-
-                def CanUseShipServices(serviceFlag, ignoreShipConfig):
-                    if checkMyShip or checkIsMine:
-                        return True
-                    if ignoreShipConfig:
-                        return False
-                    if not (checkInSameCorp or checkInSameFleet):
-                        return False
-                    config = GetShipConfig(slimItem.itemID)
-                    if serviceFlag == const.flagFleetHangar:
-                        if config['FleetHangar_AllowCorpAccess'] and checkInSameCorp or config['FleetHangar_AllowFleetAccess'] and checkInSameFleet:
-                            return True
-                    if serviceFlag == const.flagShipHangar:
-                        if config['SMB_AllowCorpAccess'] and checkInSameCorp or config['SMB_AllowFleetAccess'] and checkInSameFleet:
-                            return True
-                    return False
-
-                if groupID == const.groupCapsule:
-                    stopLabelPath = 'UI/Inflight/StopMyCapsule'
-                else:
-                    stopLabelPath = 'UI/Inflight/StopMyShip'
-                stopText = uiutil.MenuLabel(stopLabelPath)
-                if checkShip and checkMyShip:
-                    menuEntries += [[stopText, self.StopMyShip]]
-                else:
-                    prereqs = [('checkShip', checkShip, True), ('isNotMyShip', checkMyShip, True)]
-                    reason = self.FindReasonNotAvailable(prereqs)
-                    if reason:
-                        menuEntries.reasonsWhyNotAvailable[stopLabelPath] = reason
-                        menuEntries.reasonsWhyNotAvailable['UI/Commands/OpenMyCargo'] = reason
-                if checkShip and checkIfShipMAShip and CanUseShipServices(const.flagShipHangar, ignoreShipConfig):
-                    menuEntries += [[uiutil.MenuLabel('UI/Commands/OpenShipMaintenanceBay'), openFunctions.OpenShipMaintenanceBayShip, (itemID, localization.GetByLabel('UI/Commands/OpenShipMaintenanceBayError'))]]
-                if checkShip and checkIfShipFHShip and CanUseShipServices(const.flagFleetHangar, ignoreShipConfig):
-                    menuEntries += [[uiutil.MenuLabel('UI/Commands/OpenFleetHangar'), openFunctions.OpenFleetHangar, (itemID,)]]
-                if checkShip and checkMyShip and not checkInCapsule:
-                    menuEntries += [[uiutil.MenuLabel('UI/Commands/OpenCargoHold'), openFunctions.OpenShipHangarCargo, [itemID]]]
-                    if checkIfShipDroneBay:
-                        menuEntries += [[uiutil.MenuLabel('UI/Commands/OpenDroneBay'), openFunctions.OpenDroneBay, [itemID]]]
-                    if checkIfShipFighterBay:
-                        menuEntries += [[uiutil.MenuLabel('UI/Commands/OpenFighterBay'), openFunctions.OpenFighterBay, [itemID]]]
-                    if checkIfShipFuelBay:
-                        menuEntries += [[uiutil.MenuLabel('UI/Commands/OpenFuelBay'), self.OpenFuelBay, [itemID]]]
-                    if checkIfShipOreHold:
-                        menuEntries += [[uiutil.MenuLabel('UI/Commands/OpenOreHold'), self.OpenOreHold, [itemID]]]
-                    if checkIfShipGasHold:
-                        menuEntries += [[uiutil.MenuLabel('UI/Commands/OpenGasHold'), self.OpenGasHold, [itemID]]]
-                    if checkIfShipMineralHold:
-                        menuEntries += [[uiutil.MenuLabel('UI/Commands/OpenMineralHold'), self.OpenMineralHold, [itemID]]]
-                    if checkIfShipSalvageHold:
-                        menuEntries += [[uiutil.MenuLabel('UI/Commands/OpenSalvageHold'), self.OpenSalvageHold, [itemID]]]
-                    if checkIfShipShipHold:
-                        menuEntries += [[uiutil.MenuLabel('UI/Commands/OpenShipHold'), self.OpenShipHold, [itemID]]]
-                    if checkIfShipSmallShipHold:
-                        menuEntries += [[uiutil.MenuLabel('UI/Commands/OpenSmallShipHold'), self.OpenSmallShipHold, [itemID]]]
-                    if checkIfShipMediumShipHold:
-                        menuEntries += [[uiutil.MenuLabel('UI/Commands/OpenMediumShipHold'), self.OpenMediumShipHold, [itemID]]]
-                    if checkIfShipLargeShipHold:
-                        menuEntries += [[uiutil.MenuLabel('UI/Commands/OpenLargeShipHold'), self.OpenLargeShipHold, [itemID]]]
-                    if checkIfShipIndustrialShipHold:
-                        menuEntries += [[uiutil.MenuLabel('UI/Commands/OpenIndustrialShipHold'), self.OpenIndustrialShipHold, [itemID]]]
-                    if checkIfShipAmmoHold:
-                        menuEntries += [[uiutil.MenuLabel('UI/Commands/OpenAmmoHold'), self.OpenAmmoHold, [itemID]]]
-                    if checkIfShipCommandCenterHold:
-                        menuEntries += [[uiutil.MenuLabel('UI/Commands/OpenCommandCenterHold'), self.OpenCommandCenterHold, [itemID]]]
-                    if checkIfShipPlanetaryCommoditiesHold:
-                        menuEntries += [[uiutil.MenuLabel('UI/PI/Common/OpenPlanetaryCommoditiesHold'), self.OpenPlanetaryCommoditiesHold, [itemID]]]
-                    if checkIfShipHasQuafeBay:
-                        menuEntries += [[uiutil.MenuLabel('UI/Commands/OpenQuafeBay'), self.OpenQuafeHold, [itemID]]]
-                if checkConfigDist and checkIfShipMAShip and checkCanStoreVessel and CanUseShipServices(const.flagShipHangar, ignoreShipConfig):
-                    menuEntries += [[uiutil.MenuLabel('UI/Inflight/POS/StoreVesselInSMA'), self.StoreVessel, (itemID, session.shipid)]]
-                if checkShip and checkMyShip and checkIfShipCloneShip:
-                    menuEntries += [[uiutil.MenuLabel('UI/Commands/ConfigureShipCloneFacility'), self.ShipCloneConfig, (itemID,)]]
-                if checkShip and checkMyShip and not checkInCapsule and not checkWarpActive:
-                    menuEntries += [[uiutil.MenuLabel('UI/Inflight/EjectFromShip'), self.Eject]]
-                else:
-                    prereqs = [('checkShip', checkShip, True),
-                     ('isNotMyShip', checkMyShip, True),
-                     ('inCapsule', checkInCapsule, False),
-                     ('inWarp', checkWarpActive, False)]
-                    reason = self.FindReasonNotAvailable(prereqs)
-                    if reason:
-                        menuEntries.reasonsWhyNotAvailable['UI/Inflight/EjectFromShip'] = reason
-                if checkMyShip and not checkWarpActive:
-                    menuEntries += [[uiutil.MenuLabel('UI/Commands/ReconnectToLostDrones'), self.ReconnectToDrones]]
-                if checkMyShip and not checkWarpActive:
-                    menuEntries += [[uiutil.MenuLabel('UI/Inflight/SafeLogoff'), self.SafeLogoff]]
-                if checkMyShip and not checkWarpActive:
-                    if checkSelfDestructActive:
-                        menuEntries += [[uiutil.MenuLabel('UI/Inflight/AbortSelfDestruct'), self.AbortSelfDestructShip, (itemID,)]]
-                    else:
-                        menuEntries += [[uiutil.MenuLabel('UI/Inflight/SelfDestructShipOrPod'), self.SelfDestructShip, (itemID,)]]
-                else:
-                    prereqs = [('isNotMyShip', checkMyShip, True), ('inWarp', checkWarpActive, False)]
-                    reason = self.FindReasonNotAvailable(prereqs)
-                    if reason:
-                        menuEntries.reasonsWhyNotAvailable['UI/Inflight/SelfDestructShipOrPod'] = reason
-                if checkShip and not checkMyShip and not checkShipBusy and not checkDistNone:
-                    if checkWarpActive:
-                        self.AddDisabledEntryForWarp(menuEntries, 'UI/Inflight/BoardShip')
-                    else:
-                        menuEntries += [[uiutil.MenuLabel('UI/Inflight/BoardShip'), self.Board, (itemID,)]]
-                else:
-                    prereqs = [('checkShip', checkShip, True), ('isMyShip', checkMyShip, False), ('pilotInShip', checkShipBusy, False)]
-                    reason = self.FindReasonNotAvailable(prereqs)
-                    if reason:
-                        menuEntries.reasonsWhyNotAvailable['UI/Inflight/BoardShip'] = reason
-                if checkShip and checkMyShip:
-                    menuEntries += [[uiutil.MenuLabel('UI/Inflight/POS/EnterStarbasePassword'), self.EnterPOSPassword]]
-                if checkShip and checkMyShip and checkAutoPilot:
-                    menuEntries += [[uiutil.MenuLabel('UI/Inflight/DeactivateAutopilot'), self.ToggleAutopilot, (0,)]]
-                else:
-                    prereqs = [('checkShip', checkShip, True), ('isNotMyShip', checkMyShip, True), ('autopilotNotActive', checkAutoPilot, True)]
-                    reason = self.FindReasonNotAvailable(prereqs)
-                    if reason:
-                        menuEntries.reasonsWhyNotAvailable['UI/Inflight/DeactivateAutopilot'] = reason
-                if checkShip and checkMyShip and not checkAutoPilot:
-                    menuEntries += [[uiutil.MenuLabel('UI/Inflight/ActivateAutopilot'), self.ToggleAutopilot, (1,)]]
-                else:
-                    prereqs = [('checkShip', checkShip, True), ('isNotMyShip', checkMyShip, True), ('autopilotActive', checkAutoPilot, False)]
-                    reason = self.FindReasonNotAvailable(prereqs)
-                    if reason:
-                        menuEntries.reasonsWhyNotAvailable['UI/Inflight/ActivateAutopilot'] = reason
-                menuEntries += [None]
-                if checkMyShip and not checkInCapsule and checkShipJumpDrive:
-                    menuEntries += [[uiutil.MenuLabel('UI/Inflight/Submenus/JumpTo'), ('isDynamic', self.GetHybridBeaconJumpMenu, [])]]
-                    if checkShipJumpPortalGenerator:
-                        menuEntries += [[uiutil.MenuLabel('UI/Inflight/Submenus/BridgeTo'), ('isDynamic', self.GetHybridBridgeMenu, [])]]
-                if not checkMyShip and checkShipHasBridge:
-                    menuEntries += [[structureShipBridgeLabel, self.JumpThroughAlliance, (itemID,)]]
-                menuEntries += [None]
-                if checkShip and checkIfShipMAShip and (checkInSameCorp or checkInSameFleet):
-                    menuEntries += [[uiutil.MenuLabel('UI/Fitting/UseFittingService'), uicore.cmd.OpenFitting, ()]]
-            if ignoreTypeCheck or checkPMA is False:
-                checkDrone = groupID == const.groupMiningDrone
-                menuEntries += [None]
-                if checkInSystem and not checkMyShip and not checkPMA and not checkWarpActive:
-                    if checkApproachDist:
-                        menuEntries += [[uiutil.MenuLabel('UI/Inflight/ApproachObject'), self.Approach, (itemID, 50)]]
-                    else:
-                        reason = self.FindReasonNotAvailable([('notInApproachRange', checkApproachDist, True)])
-                        if reason:
-                            menuEntries.reasonsWhyNotAvailable['UI/Inflight/ApproachObject'] = reason
-                    if not checkWarpDist:
-                        menuEntries += [[uiutil.MenuLabel('UI/Inflight/OrbitObject'), orbitMenu]]
-                    else:
-                        reason = self.FindReasonNotAvailable([('inWarpRange', checkWarpDist, False)])
-                        if reason:
-                            menuEntries.reasonsWhyNotAvailable['UI/Inflight/OrbitObject'] = reason
-                    if not checkDrone and checkKeepRangeGroups and not checkWarpDist:
-                        menuEntries += [[uiutil.MenuLabel('UI/Inflight/Submenus/KeepAtRange'), keepRangeMenu]]
-                    else:
-                        prereqs = [('cantKeepInRange',
-                          checkKeepRangeGroups,
-                          True,
-                          {'groupName': groupName}), ('inWarpRange', checkWarpDist, False)]
-                        reason = self.FindReasonNotAvailable(prereqs)
-                        if reason:
-                            menuEntries.reasonsWhyNotAvailable['UI/Inflight/Submenus/KeepAtRange'] = reason
-                else:
-                    prereqs = [('notInSystem', checkInSystem, True),
-                     ('isMyShip', checkMyShip, False),
-                     ('badGroup',
-                      checkPMA,
-                      False,
-                      {'groupName': groupName}),
-                     ('inWarp', checkWarpActive, False)]
-                    reason = self.FindReasonNotAvailable(prereqs)
-                    if reason:
-                        menuEntries.reasonsWhyNotAvailable['UI/Inflight/ApproachObject'] = reason
-                        menuEntries.reasonsWhyNotAvailable['UI/Inflight/OrbitObject'] = reason
-                        menuEntries.reasonsWhyNotAvailable['UI/Inflight/Submenus/KeepAtRange'] = reason
-            warpRange = None
-            if checkShip and slimItem and slimItem.charID and checkInSameFleet:
-                warpFn = self.WarpToMember
-                warpFleetFn = self.WarpFleetToMember
-                warpID = slimItem.charID
-                warpRange = float(defaultWarpDist)
-            else:
-                warpFn = movementFunctions.WarpToItem
-                warpFleetFn = self.WarpFleet
-                warpID = itemID
-            validWarpTarget = False
-            if checkInSystem and not checkWarpActive and not checkMyShip and checkWarpDist:
-                if checkShip and slimItem and slimItem.charID and checkInSameFleet or not checkIsFree:
-                    validWarpTarget = True
-            if validWarpTarget:
-                menuEntries += [[movementFunctions.DefaultWarpToLabel(), warpFn, (warpID, warpRange)]]
-                menuEntries += [[uiutil.MenuLabel('UI/Inflight/Submenus/WarpToWithin'), self.WarpToMenu(warpFn, warpID)]]
-                if checkFleet:
-                    if self.CheckImFleetLeader():
-                        menuEntries += [[uiutil.MenuLabel('UI/Fleet/WarpFleet'), warpFleetFn, (warpID, float(defaultWarpDist))]]
-                    if self.CheckImFleetLeader():
-                        menuEntries += [[uiutil.MenuLabel('UI/Fleet/FleetSubmenus/WarpFleetToWithin'), self.WarpToMenu(warpFleetFn, warpID)]]
-                    if self.CheckImWingCmdr():
-                        menuEntries += [[uiutil.MenuLabel('UI/Fleet/WarpWing'), warpFleetFn, (warpID, float(defaultWarpDist))]]
-                    if self.CheckImWingCmdr():
-                        menuEntries += [[uiutil.MenuLabel('UI/Fleet/FleetSubmenus/WarpWingToWithin'), self.WarpToMenu(warpFleetFn, warpID)]]
-                    if self.CheckImSquadCmdr():
-                        menuEntries += [[uiutil.MenuLabel('UI/Fleet/WarpSquad'), warpFleetFn, (warpID, float(defaultWarpDist))]]
-                    if self.CheckImSquadCmdr():
-                        menuEntries += [[uiutil.MenuLabel('UI/Fleet/FleetSubmenus/WarpSquadToWithin'), self.WarpToMenu(warpFleetFn, warpID)]]
-                    if checkApproachDist:
-                        menuEntries += [[uiutil.MenuLabel('UI/Fleet/FleetBroadcast/Commands/BroadcastTarget'), sm.GetService('fleet').SendBroadcast_Target, (itemID,)]]
-            else:
-                prereqs = [('notInSystem', checkInSystem, True),
-                 ('inWarp', checkWarpActive, False),
-                 ('isMyShip', checkMyShip, False),
-                 ('notInWarpRange', checkWarpDist, True),
-                 ('cantWarpTo', checkIsFree, False)]
-                reason = self.FindReasonNotAvailable(prereqs)
-                if reason:
-                    menuEntries.reasonsWhyNotAvailable[movementFunctions.DefaultWarpToLabel()[0]] = reason
-            if checkInSystem and not checkMyShip:
-                if checkAlignTo and not checkWarpActive:
-                    if not checkIsFree:
-                        menuEntries += [[uiutil.MenuLabel('UI/Inflight/AlignTo'), self.AlignTo, (itemID,)]]
-            if checkInSystem and checkFleet:
-                if checkApproachDist and not checkMyShip:
-                    menuEntries += [[uiutil.MenuLabel('UI/Fleet/FleetBroadcast/Commands/BroadcastTarget'), sm.GetService('fleet').SendBroadcast_Target, (itemID,)]]
-                if not checkMultiCategs1:
-                    menuEntries += [[uiutil.MenuLabel('UI/Fleet/FleetBroadcast/Commands/BroadcastWarpTo'), sm.GetService('fleet').SendBroadcast_WarpTo, (itemID, typeID)]]
-                    menuEntries += [[uiutil.MenuLabel('UI/Fleet/FleetBroadcast/Commands/BroadcastAlignTo'), sm.GetService('fleet').SendBroadcast_AlignTo, (itemID, typeID)]]
-                if checkStargate:
-                    menuEntries += [[uiutil.MenuLabel('UI/Fleet/FleetBroadcast/Commands/BroadcastJumpTo'), sm.GetService('fleet').SendBroadcast_JumpTo, (itemID, typeID)]]
-            if ignoreTypeCheck or checkJumpThrough:
-                throughSystemID = sm.GetService('fleet').CanJumpThrough(slimItem)
-                if throughSystemID and checkInSystem and checkJumpDist and not checkWarpActive:
-                    menuEntries += [None]
-                    menuEntries += [[uiutil.MenuLabel('UI/Fleet/JumpThroughToSystem', {'solarsystem': throughSystemID}), self.JumpThroughFleet, (otherCharID, itemID)]]
-            if ignoreTypeCheck or checkStation is True:
-                menuEntries += [None]
-                if checkInSystem and checkStation:
-                    if checkWarpActive:
-                        self.AddDisabledEntryForWarp(menuEntries, 'UI/Inflight/DockInStation')
-                    else:
-                        menuEntries += [[uiutil.MenuLabel('UI/Inflight/DockInStation'), self.Dock, (itemID,)]]
-                else:
-                    prereqs = [('notInSystem', checkInSystem, True), ('notStation', checkStation, True)]
-                    reason = self.FindReasonNotAvailable(prereqs)
-                    if reason:
-                        menuEntries.reasonsWhyNotAvailable['UI/Inflight/DockInStation'] = reason
-            if ignoreTypeCheck or checkStargate:
-                self._AddStargateEntry(menuEntries, slimItem, itemID, ignoreTypeCheck, checkStargate, checkJumpDist, checkWarpActive, checkWarpgate, checkWormhole, checkWormholeDist)
-            if slimItem and (ignoreTypeCheck or checkWarpgate is True):
-                if checkWarpgate:
-                    if checkWarpActive:
-                        self.AddDisabledEntryForWarp(menuEntries, 'UI/Inflight/ActivateGate')
-                    else:
-                        menuEntries += [[uiutil.MenuLabel('UI/Inflight/ActivateGate'), self.ActivateAccelerationGate, (itemID,)]]
-                else:
-                    prereqs = [('notWarpGate', checkWarpgate, True), ('notWithinMaxJumpDist', checkJumpDist, True)]
-                    reason = self.FindReasonNotAvailable(prereqs)
-                    if reason:
-                        menuEntries.reasonsWhyNotAvailable['UI/Inflight/ActivateGate'] = reason
-            if slimItem and (ignoreTypeCheck or checkWormhole is True):
-                if checkWormhole:
-                    if checkWarpActive:
-                        self.AddDisabledEntryForWarp(menuEntries, 'UI/Inflight/EnterWormhole')
-                    else:
-                        menuEntries += [[uiutil.MenuLabel('UI/Inflight/EnterWormhole'), self.EnterWormhole, (itemID,)]]
-                else:
-                    prereqs = [('notCloseEnoughToWH', checkWormholeDist, True), ('inWarp', checkWarpActive, False)]
-                    reason = self.FindReasonNotAvailable(prereqs)
-                    if reason:
-                        menuEntries.reasonsWhyNotAvailable['UI/Inflight/EnterWormhole'] = reason
-            menuEntries += [None]
+                checkFighterIsControlledByMe = False
+            checkIfShipDroneBay = slimItem and categoryID == const.categoryShip and bool(godmaSM.GetType(typeID).droneCapacity or IsModularShip(typeID))
+            checkIfShipFighterBay = slimItem and categoryID == const.categoryShip and bool(godmaSM.GetType(typeID).fighterCapacity)
+            checkIfShipFuelBay = slimItem and categoryID == const.categoryShip and bool(godmaSM.GetType(typeID).specialFuelBayCapacity)
+            checkIfShipOreHold = slimItem and categoryID == const.categoryShip and bool(godmaSM.GetType(typeID).specialOreHoldCapacity)
+            checkIfShipGasHold = slimItem and categoryID == const.categoryShip and bool(godmaSM.GetType(typeID).specialGasHoldCapacity)
+            checkIfShipMineralHold = slimItem and categoryID == const.categoryShip and bool(godmaSM.GetType(typeID).specialMineralHoldCapacity)
+            checkIfShipSalvageHold = slimItem and categoryID == const.categoryShip and bool(godmaSM.GetType(typeID).specialSalvageHoldCapacity)
+            checkIfShipShipHold = slimItem and categoryID == const.categoryShip and bool(godmaSM.GetType(typeID).specialShipHoldCapacity)
+            checkIfShipSmallShipHold = slimItem and categoryID == const.categoryShip and bool(godmaSM.GetType(typeID).specialSmallShipHoldCapacity)
+            checkIfShipMediumShipHold = slimItem and categoryID == const.categoryShip and bool(godmaSM.GetType(typeID).specialMediumShipHoldCapacity)
+            checkIfShipLargeShipHold = slimItem and categoryID == const.categoryShip and bool(godmaSM.GetType(typeID).specialLargeShipHoldCapacity)
+            checkIfShipIndustrialShipHold = slimItem and categoryID == const.categoryShip and bool(godmaSM.GetType(typeID).specialIndustrialShipHoldCapacity)
+            checkIfShipAmmoHold = slimItem and categoryID == const.categoryShip and bool(godmaSM.GetType(typeID).specialAmmoHoldCapacity)
+            checkIfShipCommandCenterHold = slimItem and categoryID == const.categoryShip and bool(godmaSM.GetType(typeID).specialCommandCenterHoldCapacity)
+            checkIfShipPlanetaryCommoditiesHold = slimItem and categoryID == const.categoryShip and bool(godmaSM.GetType(typeID).specialPlanetaryCommoditiesHoldCapacity)
+            checkIfShipHasQuafeBay = slimItem and categoryID == const.categoryShip and bool(godmaSM.GetType(typeID).specialQuafeHoldCapacity)
+            checkIfMaterialsHold = slimItem and bool(godmaSM.GetType(typeID).specialMaterialBayCapacity)
+            checkIfCanUpgrade = slimItem and categoryID == const.categoryOrbital and slimItem.orbitalState == entities.STATE_ANCHORED
+            maxTransferDistance = max(getattr(godmaSM.GetType(typeID), 'maxOperationalDistance', 0), const.maxCargoContainerTransferDistance)
+            checkWarpDist = dist is not None and dist > const.minWarpDistance
+            checkApproachDist = dist is not None and dist < const.maxApproachDistance
+            checkAlignTo = dist is not None and dist > const.minWarpDistance
+            checkJumpDist = dist is not None and dist < const.maxStargateJumpingDistance
+            checkWormholeDist = dist is not None and dist < const.maxWormholeEnterDistance
+            checkTransferDist = dist is not None and dist < maxTransferDistance
+            checkConfigDist = dist is not None and dist < const.maxConfigureDistance
             if IsNewCameraActive():
-                _checkLookAtDist = True
+                checkIsWithinLookAtRange = dist is not None
             else:
-                _checkLookAtDist = checkLookatDist
-            if not checkWarpActive and _checkLookAtDist:
-                if not checkLookingAtItem and not checkPlanet and not checkMoon:
-                    menuEntries += [[uiutil.MenuLabel('UI/Inflight/LookAtObject'), sm.GetService('sceneManager').GetActiveSpaceCamera().LookAt, (itemID,)]]
-                else:
-                    prereqs = [('isLookingAtItem', checkLookingAtItem, False)]
-                    reason = self.FindReasonNotAvailable(prereqs)
-                    if reason:
-                        menuEntries.reasonsWhyNotAvailable['UI/Inflight/LookAtObject'] = reason
-                if not checkLookingAtItem and advancedCamera:
-                    menuEntries += [[uiutil.MenuLabel('UI/Inflight/SetAsCameraParent'), self.SetParent, (itemID,)]]
-                if not checkInterest and (advancedCamera or IsNewCameraActive()):
-                    menuEntries += [[uiutil.MenuLabel('UI/Inflight/SetAsCameraInterest'), self.SetInterest, (itemID,)]]
-            else:
-                prereqs = [('inWarp', checkWarpActive, False), ('notInLookingRange', checkLookatDist, True)]
-                reason = self.FindReasonNotAvailable(prereqs)
-                if reason:
-                    menuEntries.reasonsWhyNotAvailable['UI/Inflight/LookAtObject'] = reason
-            if checkLookingAtItem:
-                menuEntries += [[uiutil.MenuLabel('UI/Inflight/ResetCamera'), sm.GetService('sceneManager').GetActiveSpaceCamera().ResetCamera]]
-            else:
-                reason = self.FindReasonNotAvailable([('notLookingAtItem', checkLookingAtItem, True)])
-                if reason:
-                    menuEntries.reasonsWhyNotAvailable['UI/Inflight/ResetCamera'] = reason
-            if ignoreTypeCheck or checkBillboard is True:
-                newsURL = 'http://www.eveonline.com/mb2/news.asp'
-                if boot.region == 'optic':
-                    newsURL = 'http://eve.tiancity.com/client/news.html'
-                menuEntries += [None]
-                if checkBillboard:
-                    menuEntries += [[uiutil.MenuLabel('UI/Commands/ReadNews'), uicore.cmd.OpenBrowser, (newsURL, 'browser')]]
-            if not checkWarpActive and (ignoreTypeCheck or checkContainer is True):
-                menuEntries += [None]
-                if checkContainer and otherBall and not HasItemTrader(typeID):
-                    menuEntries += [[uiutil.MenuLabel('UI/Commands/OpenCargo'), self.OpenCargo, [itemID]]]
-                else:
-                    prereqs = [('notWithinMaxTransferRange', checkTransferDist, True)]
-                    reason = self.FindReasonNotAvailable(prereqs)
-                    if reason:
-                        menuEntries.reasonsWhyNotAvailable['UI/Commands/OpenCargo'] = reason
-            if ignoreTypeCheck or checkPlanetCustomsOffice is True:
-                menuEntries += [None]
-                menuEntries += [[uiutil.MenuLabel('UI/PI/Common/AccessCustomOffice'), self.OpenPlanetCustomsOfficeImportWindow, [itemID]]]
-            if checkIfMaterialsHold and checkTransferDist and checkIsMineOrCorps and checkIfCanUpgrade and checkInSystem and (groupID == const.groupOrbitalConstructionPlatforms or checkZeroSecSpace):
-                menuEntries += [[uiutil.MenuLabel('UI/DustLink/OpenUpgradeHold'), self.OpenUpgradeWindow, [itemID]]]
-            if ignoreTypeCheck or checkMyWreck is True or checkMyCargo is True:
-                if checkNotAbandoned:
-                    if checkMyWreck:
-                        menuEntries += [[uiutil.MenuLabel('UI/Inflight/AbandonWreack'), self.AbandonLoot, [itemID]]]
-                        menuEntries += [[uiutil.MenuLabel('UI/Inflight/AbandonAllWrecks'), self.AbandonAllLoot, [itemID]]]
-                    if checkMyCargo:
-                        menuEntries += [[uiutil.MenuLabel('UI/Inflight/AbandonCargo'), self.AbandonLoot, [itemID]]]
-                        menuEntries += [[uiutil.MenuLabel('UI/Inflight/AbandonAllCargo'), self.AbandonAllLoot, [itemID]]]
-            if checkScoopable and slimItem is not None:
-                menuEntries += [[uiutil.MenuLabel('UI/Inflight/ScoopToCargoHold'), self.Scoop, (itemID, typeID)]]
-                if checkMyShipIsFHShip:
-                    menuEntries += [[uiutil.MenuLabel('UI/Inflight/ScoopToFleetHangar'), self.ScoopToFleetHangar, (itemID, typeID)]]
-            if checkScoopableSMA:
-                menuEntries += [[uiutil.MenuLabel('UI/Inflight/POS/ScoopToShipMaintenanceBay'), self.ScoopSMA, (itemID,)]]
-            if checkConstructionPf is True:
-                menuEntries += [None]
-                if checkTransferDist:
-                    menuEntries += [[uiutil.MenuLabel('UI/Inflight/POS/AccessPOSResources'), self.OpenConstructionPlatform, (itemID,)]]
-                    menuEntries += [[uiutil.MenuLabel('UI/Inflight/POS/BuildConstructionPlatform'), self.BuildConstructionPlatform, (itemID,)]]
-            if checkAnchorable and checkConfigDist and checkIsMineOrCorps and checkAnchorDrop and checkIsFree:
-                menuEntries += [[uiutil.MenuLabel('UI/Inflight/POS/AnchorObject'), self.AnchorObject, (itemID, 1)]]
-            if checkAnchorable and checkConfigDist and checkIsMineOrCorps and checkAnchorLift and not checkIsFree:
-                menuEntries += [[uiutil.MenuLabel('UI/Inflight/UnanchorObject'), self.AnchorObject, (itemID, 0)]]
-            else:
-                prereqs = [('notWithinMaxConfigRange', checkConfigDist, True), ('checkIsMineOrCorps', checkIsMineOrCorps, True)]
-                reason = self.FindReasonNotAvailable(prereqs)
-                if reason:
-                    menuEntries.reasonsWhyNotAvailable['UI/Inflight/UnanchorObject'] = reason
-            structureEntries = []
-            if checkJumpPortalArray is True:
-                structureBridge = sm.services['pwn'].GetActiveBridgeForStructure(itemID)
-                checkStructureHasBridge = structureBridge is not None
-                if structureBridge is not None:
-                    bridgeJumpLabel = uiutil.MenuLabel('UI/Fleet/JumpThroughToSystem', {'solarsystem': structureBridge[1]})
-                    bridgeUnlinkLabel = uiutil.MenuLabel('UI/Inflight/UnbridgeFromSolarsystem', {'solarsystem': structureBridge[1]})
-                else:
-                    bridgeJumpLabel = uiutil.MenuLabel('UI/Inflight/JumpThroughError')
-                    bridgeUnlinkLabel = uiutil.MenuLabel('UI/Inflight/JumpThroughError')
-                checkStructureFullyOnline = sm.services['pwn'].IsStructureFullyOnline(itemID)
-                checkStructureFullyAnchored = sm.services['pwn'].IsStructureFullyAnchored(itemID)
-                if not checkInCapsule and checkIsMyCorps and checkStructureFullyAnchored and not checkStructureHasBridge:
-                    structureEntries += [[uiutil.MenuLabel('UI/Inflight/Submenus/BridgeTo'), self.JumpPortalBridgeMenu, (itemID,)]]
-                if not checkInCapsule and checkIsMyCorps and checkStructureHasBridge and checkStructureFullyAnchored:
-                    structureEntries += [[bridgeUnlinkLabel, self.UnbridgePortal, (itemID,)]]
-                if not checkInCapsule and checkStructureHasBridge and checkStructureFullyOnline and checkJumpDist:
-                    structureEntries += [[bridgeJumpLabel, self.JumpThroughPortal, (itemID,)]]
-                if checkAnchorable and checkConfigDist and checkIsMineOrCorpsOrAlliances and not checkIsFree and checkTransferDist:
-                    structureEntries += [[uiutil.MenuLabel('UI/Inflight/POS/AccessPOSResources'), self.OpenPOSJumpBridge, (itemID,)]]
-            if checkAnchorable and checkConfigDist and checkIsMineOrCorpsOrAlliances and not checkIsFree:
-                if checkControlTower:
-                    structureEntries += [[uiutil.MenuLabel('UI/Inflight/POS/AccessPOSFuelBay'), self.OpenPOSFuelBay, (itemID,)]]
-                    structureEntries += [[uiutil.MenuLabel('UI/Inflight/POS/AccessPOSStrontiumBay'), self.OpenStrontiumBay, (itemID,)]]
-                if checkSentry:
-                    structureEntries += [[uiutil.MenuLabel('UI/Inflight/POS/AccessPOSAmmo'), self.OpenPOSStructureCharges, (itemID, True)]]
-                if checkLaserSentry:
-                    structureEntries += [[uiutil.MenuLabel('UI/Inflight/POS/AccessPOSActiveCrystal'), self.OpenPOSStructureChargeCrystal, (itemID,)]]
-                    structureEntries += [[uiutil.MenuLabel('UI/Inflight/POS/AccessPOSCrystalStorage'), self.OpenPOSStructureChargesStorage, (itemID,)]]
-                checkCanStoreVessel = shipItem is not None and shipItem.groupID != const.groupCapsule
-                if checkCanStoreVessel and checkShipMaintainer:
-                    structureEntries += [[uiutil.MenuLabel('UI/Inflight/POS/StoreVesselInSMA'), self.StoreVessel, (itemID, session.shipid)]]
-                if checkShipMaintainer:
-                    structureEntries += [[uiutil.MenuLabel('UI/Fitting/UseFittingService'), uicore.cmd.OpenFitting, ()]]
-                if checkAssemblyArray:
-                    structureEntries += [[uiutil.MenuLabel('UI/Inflight/POS/AccessPOSStorage'), self.OpenCorpHangarArray, (itemID,)]]
-                if checkMobileLaboratory:
-                    structureEntries += [[uiutil.MenuLabel('UI/Inflight/POS/AccessPOSStorage'), self.OpenCorpHangarArray, (itemID,)]]
-            if checkAnchorable and not checkIsFree:
-                if checkIsMineOrCorps and checkControlTower:
-                    structureEntries += [[uiutil.MenuLabel('UI/Inflight/POS/ManageControlTower'), self.ManageControlTower, (slimItem,)]]
-                    if checkConfigDist:
-                        structureEntries += [[uiutil.MenuLabel('UI/Inflight/POS/SetNewPasswordForForceField'), self.EnterForceFieldPassword, (itemID,)]]
-                if checkTransferDist and checkIsMineOrCorpsOrAlliances and checkShipMaintainer:
-                    structureEntries += [[uiutil.MenuLabel('UI/Inflight/POS/AccessPOSVessels'), self.OpenPOSShipMaintenanceArray, (itemID,)]]
-                    structureEntries += [None]
-                else:
-                    prereqs = [('notWithinMaxTransferRange', checkTransferDist, True), ('notOwnedByYouOrCorpOrAlliance', checkIsMineOrCorpsOrAlliances, True)]
-                    reason = self.FindReasonNotAvailable(prereqs)
-                    if reason:
-                        menuEntries.reasonsWhyNotAvailable['UI/Inflight/POS/AccessPOSVessels'] = reason
-                if checkTransferDist and checkIsMineOrCorpsOrAlliances:
-                    if checkCorpHangarArray:
-                        structureEntries += [[uiutil.MenuLabel('UI/Inflight/POS/AccessPOSStorage'), self.OpenCorpHangarArray, (itemID,)]]
-                    if checkPersonalHangar:
-                        structureEntries += [[uiutil.MenuLabel('UI/Inflight/POS/AccessPOSStorage'), self.OpenPersonalHangar, (itemID,)]]
-                    if checkRenameable and (checkAssemblyArray or checkMobileLaboratory):
-                        structureEntries += [[uiutil.MenuLabel('UI/Commands/SetName'), self.SetName, (slimItem,)]]
-                    if checkSilo:
-                        structureEntries += [[uiutil.MenuLabel('UI/Inflight/POS/AccessPOSStorage'), self.OpenPOSSilo, (itemID,)]]
-                    if checkReactor:
-                        structureEntries += [[uiutil.MenuLabel('UI/Inflight/POS/AccessPOSStorage'), self.OpenPOSMobileReactor, (itemID,)]]
-                else:
-                    prereqs = [('notWithinMaxTransferRange', checkTransferDist, True), ('notOwnedByYouOrCorpOrAlliance', checkIsMineOrCorpsOrAlliances, True)]
-                    reason = self.FindReasonNotAvailable(prereqs)
-                    if reason:
-                        menuEntries.reasonsWhyNotAvailable['UI/Inflight/POS/AccessPOSVessels'] = reason
-                        menuEntries.reasonsWhyNotAvailable['UI/Inflight/POS/AccessPOSStorage'] = reason
-            checkRefineryState = otherBall and not otherBall.isFree
-            if groupID == const.groupReprocessingArray and checkRefineryState and checkTransferDist:
-                structureEntries += [[uiutil.MenuLabel('UI/Inflight/POS/AccessPOSRefinery'), self.OpenPOSRefinery, (itemID,)]]
-            else:
-                prereqs = [('notWithinMaxTransferRange', checkTransferDist, True)]
-                reason = self.FindReasonNotAvailable(prereqs)
-                if reason:
-                    menuEntries.reasonsWhyNotAvailable['UI/Inflight/POS/AccessPOSRefinery'] = reason
-            if typeID == const.typeCompressionArray and checkTransferDist:
-                structureEntries += [[uiutil.MenuLabel('UI/Inflight/POS/AccessPOSCompression'), self.OpenPOSCompression, (itemID,)]]
-            else:
-                prereqs = [('notWithinMaxTransferRange', checkTransferDist, True)]
-                reason = self.FindReasonNotAvailable(prereqs)
-                if reason:
-                    menuEntries.reasonsWhyNotAvailable['UI/Inflight/POS/AccessPOSCompression'] = reason
-            if groupID == const.groupControlBunker:
-                structureEntries += [[uiutil.MenuLabel('UI/FactionWarfare/IHub/OpenInfrastructureHubPanel'), openFunctions.OpenInfrastructureHubPanel, (itemID,)]]
-            if checkConfigDist and checkIsMyCorps:
-                checkIfIAmDirector = session.corprole & const.corpRoleDirector > 0
-                if groupID == const.groupInfrastructureHub:
-                    structureEntries += [[uiutil.MenuLabel('UI/Menusvc/OpenHubManager'), sm.GetService('sov').GetInfrastructureHubWnd, (itemID,)]]
-                if checkIfIAmDirector and groupID in (const.groupSovereigntyClaimMarkers, const.groupInfrastructureHub):
-                    structureEntries += [[uiutil.MenuLabel('UI/Inflight/POS/TransferSovStructureOwnership'), self.TransferOwnership, (itemID,)]]
-                    if checkSelfDestructActive:
-                        structureEntries += [[uiutil.MenuLabel('UI/Inflight/AbortSelfDestruct'), self.AbortSelfDestructStructure, (itemID,)]]
-                    else:
-                        structureEntries += [[uiutil.MenuLabel('UI/Inflight/SelfDestructShipOrPod'), self.SelfDestructStructure, (itemID,)]]
-            if checkStructure is True:
-                checkIsSovereigntyDisruptor = categoryID == const.categorySovereigntyStructure and groupID == const.groupSovereigntyDisruptionStructures
-                checkCanAnchorStructure = bool(slimItem) and self.pwn.CanAnchorStructure(itemID)
-                checkCanUnanchorStructure = bool(slimItem) and self.pwn.CanUnanchorStructure(itemID)
-                checkCanOnlineStructure = bool(slimItem) and self.pwn.CanOnlineStructure(itemID)
-                checkCanOfflineStructure = bool(slimItem) and self.pwn.CanOfflineStructure(itemID)
-                checkCanAssumeControlStructure = bool(slimItem) and self.pwn.CanAssumeControlStructure(itemID)
-                checkHasControlStructureTarget = bool(slimItem) and self.pwn.GetCurrentTarget(itemID) is not None
-                checkHasControl = bool(slimItem) and slimItem.controllerID is not None
-                checkHasMyControl = bool(slimItem) and slimItem.controllerID is not None and slimItem.controllerID == session.charid
-                checkIsMineOrCorpsOrAlliancesOrOrphaned = bool(slimItem) and (self.pwn.StructureIsOrphan(itemID) or checkIsMineOrCorpsOrAlliances)
-                checkInPlanetMode = sm.GetService('viewState').IsViewActive('planet')
-                if checkAnchorable and checkConfigDist and checkStructure:
-                    if checkIsMineOrCorpsOrAlliances and checkCanAnchorStructure:
-                        structureEntries += [[uiutil.MenuLabel('UI/Inflight/POS/AnchorStructure'), sm.StartService('posAnchor').StartAnchorPosSelect, (itemID,)]]
-                    if checkIsMineOrCorpsOrAlliancesOrOrphaned and checkCanUnanchorStructure:
-                        structureEntries += [[uiutil.MenuLabel('UI/Inflight/POS/UnanchorStructure'), self.UnanchorStructure, (itemID,)]]
-                    if checkIsMineOrCorpsOrAlliances and checkCanOnlineStructure and not checkIsSovereigntyDisruptor:
-                        structureEntries += [[uiutil.MenuLabel('UI/Inflight/PutStructureOnline'), self.ToggleObjectOnline, (itemID, 1)]]
-                    if checkIsMineOrCorpsOrAlliances and checkCanOfflineStructure:
-                        structureEntries += [[uiutil.MenuLabel('UI/Inflight/PutStructureOffline'), self.ToggleObjectOnline, (itemID, 0)]]
-                    if checkIsSovereigntyDisruptor and checkCanOnlineStructure:
-                        structureEntries += [[uiutil.MenuLabel('UI/Inflight/PutStructureOnline'), self.ToggleObjectOnline, (itemID, 1)]]
-                if checkAnchorable and checkIsMineOrCorpsOrAlliances and checkCanAssumeControlStructure and checkCanOfflineStructure and checkStructure and not checkSovStructure and not checkInPlanetMode:
-                    if checkHasMyControl:
-                        structureEntries += [[uiutil.MenuLabel('UI/Inflight/POS/RelinquishPOSControl'), self.pwn.RelinquishStructureControl, (slimItem,)]]
-                    if not checkHasControl:
-                        structureEntries += [[uiutil.MenuLabel('UI/Inflight/POS/AssumeStructureControl'), self.pwn.AssumeStructureControl, (slimItem,)]]
-                if checkAnchorable and checkIsMineOrCorpsOrAlliances and checkCanAssumeControlStructure and checkStructure and checkHasMyControl and checkHasControlStructureTarget and not checkSovStructure:
-                    structureEntries += [[uiutil.MenuLabel('UI/Inflight/POS/UnlcokSTructureTarget'), self.pwn.UnlockStructureTarget, (itemID,)]]
-            if slimItem and (checkOrbital or checkPlanetCustomsOffice):
-                checkCanAnchorOrbital = slimItem and slimItem.orbitalState in (None, entities.STATE_UNANCHORED)
-                checkIsOrbitalAnchored = slimItem and slimItem.orbitalState == entities.STATE_ANCHORED
-                checkCanUnanchorOrbital = slimItem and slimItem.groupID == const.groupOrbitalConstructionPlatforms
-                checkCanConfigureOrbital = slimItem and slimItem.groupID != const.groupOrbitalConstructionPlatforms
-                checkIfIAmDirector = session.corprole & const.corpRoleDirector > 0
-                if checkBP and checkAnchorable and checkCanAnchorOrbital and checkIsMyCorps:
-                    structureEntries += [[uiutil.MenuLabel('UI/Inflight/POS/AnchorObject'), self.AnchorOrbital, (itemID,)]]
-                if checkBP and checkAnchorable and checkIsOrbitalAnchored and checkCanUnanchorOrbital and checkIsMyCorps:
-                    structureEntries += [[uiutil.MenuLabel('UI/Inflight/UnanchorObject'), self.UnanchorOrbital, (itemID,)]]
-                if checkBP and checkIsOrbitalAnchored and checkCanConfigureOrbital and checkIsMyCorps and checkIsStationManager:
-                    structureEntries += [[uiutil.MenuLabel('UI/DustLink/ConfigureOrbital'), self.ConfigureOrbital, (slimItem,)]]
-                if checkBP and checkIsOrbitalAnchored and checkCanConfigureOrbital and checkIsMyCorps and checkIfIAmDirector:
-                    structureEntries += [[uiutil.MenuLabel('UI/Inflight/POS/TransferSovStructureOwnership'), self.TransferCorporationOwnership, (itemID,)]]
-            if len(structureEntries):
-                menuEntries.append(None)
-                menuEntries.extend(structureEntries)
-            if checkWreck:
-                if checkWreckViewed:
-                    menuEntries += [[uiutil.MenuLabel('UI/Inflight/MarkWreckNotViewed'), sm.GetService('wreck').MarkViewed, (itemID, False)]]
-                else:
-                    menuEntries += [[uiutil.MenuLabel('UI/Inflight/MarkWreckViewed'), sm.GetService('wreck').MarkViewed, (itemID, True)]]
-            if slimItem and (ignoreTypeCheck or checkMultiGroups2 is False):
-                menuEntries += [None]
-                checkIsOrbital = slimItem and util.IsOrbital(slimItem.categoryID)
-                if not checkMultiGroups2 and not checkCynoField and not checkIsOrbital and checkCanRename and checkRenameable:
-                    menuEntries += [[uiutil.MenuLabel('UI/Commands/SetName'), self.SetName, (slimItem,)]]
-            tagItemMenu = [(uiutil.MenuLabel('UI/Fleet/FleetTagNumber'), [ (' ' + str(i), self.TagItem, (itemID, str(i))) for i in xrange(10) ])]
-            tagItemMenu += [(uiutil.MenuLabel('UI/Fleet/FleetTagLetter'), [ (' ' + str(i), self.TagItem, (itemID, str(i))) for i in 'ABCDEFGHIJXYZ' ])]
-            menuEntries += [None]
-            if checkInTargets and not checkBeingTargeted:
-                menuEntries += [[uiutil.MenuLabel('UI/Inflight/UnlockTarget'), self.UnlockTarget, (itemID,)]]
-            else:
-                prereqs = [('notInTargets', checkInTargets, True), ('beingTargeted', checkBeingTargeted, False)]
-                reason = self.FindReasonNotAvailable(prereqs)
-                if reason:
-                    menuEntries.reasonsWhyNotAvailable['UI/Inflight/UnlockTarget'] = reason
-            if not checkMyShip and not checkInTargets and not checkBeingTargeted and not checkPMA and checkTargetingRange:
-                menuEntries += [[uiutil.MenuLabel('UI/Inflight/LockTarget'), self.LockTarget, (itemID,)]]
-            else:
-                prereqs = [('isMyShip', checkMyShip, False),
-                 ('alreadyTargeted', checkInTargets, False),
-                 ('checkBeingTargeted', checkBeingTargeted, False),
-                 ('badGroup',
-                  checkPMA,
-                  False,
-                  {'groupName': groupName}),
-                 ('notInTargetingRange', checkTargetingRange, True)]
-                reason = self.FindReasonNotAvailable(prereqs)
-                if reason:
-                    menuEntries.reasonsWhyNotAvailable['UI/Inflight/LockTarget'] = reason
-            if not checkMyShip and not checkPMA and checkFleet and checkIfImCommander:
-                menuEntries += [[uiutil.MenuLabel('UI/Fleet/FleetSubmenus/FleetTagItem'), tagItemMenu]]
-            if checkSpacePig and checkSpacePigDist:
-                menuEntries += [[uiutil.MenuLabel('UI/Chat/StartConversation'), sm.StartService('agents').InteractWith, (sm.StartService('godma').GetType(typeID).agentID,)]]
-            else:
-                prereqs = [('notSpacePig', checkSpacePig, True)]
-                reason = self.FindReasonNotAvailable(prereqs)
-                if reason:
-                    menuEntries.reasonsWhyNotAvailable['UI/Chat/StartConversation'] = reason
-            menuEntries += [None]
-            if ignoreTypeCheck or checkMultiGroups1 is True:
-                menuEntries += [None]
-                if checkMultiGroups1:
-                    desc = localization.GetByLabel('UI/Menusvc/SetNewPasswordForContainerDesc')
-                    menuEntries += [[uiutil.MenuLabel('UI/Inventory/ItemActions/SetNewPasswordForContainer'), self.AskNewContainerPassword, (itemID, desc, const.SCCPasswordTypeGeneral)]]
-                if checkAuditLogSecureContainer:
-                    desc = localization.GetByLabel('UI/Menusvc/SetNewConfigPasswordForContainer')
-                    menuEntries += [[uiutil.MenuLabel('UI/Inventory/ItemActions/SetNewConfigPasswordForContainer'), self.AskNewContainerPassword, (itemID, desc, const.SCCPasswordTypeConfig)]]
-                if checkIsMineOrCorps:
-                    if checkAuditLogSecureContainer:
-                        menuEntries += [[uiutil.MenuLabel('UI/Inventory/ItemActions/ViewLog'), openFunctions.ViewAuditLogForALSC, (itemID,)]]
-                    if checkAuditLogSecureContainer:
-                        menuEntries += [[uiutil.MenuLabel('UI/Inventory/ItemActions/ConfigureALSContainer'), self.ConfigureALSC, (itemID,)]]
-                    if checkAuditLogSecureContainer:
-                        menuEntries += [[uiutil.MenuLabel('UI/Commands/RetrievePassword'), self.RetrievePasswordALSC, (itemID,)]]
-            if typeID == const.typeMobileShippingUnit and slimItem.timerInfo is None:
-                menuEntries += [[uiutil.MenuLabel('UI/Menusvc/AccessShippingUnit'), self.OpenShippingUnitStorage, (itemID,)]]
-            if not self.IsItemDead(bp, itemID) and slimItem and IsActiveComponent(bp.componentRegistry, typeID, itemID):
-                if HasCargoBayComponent(typeID):
-                    if cargobay.IsAccessibleByCharacter(slimItem, session.charid, cfg.spaceComponentStaticData):
-                        menuEntries.extend(cargobay.GetMenu(itemID, typeID, self, cfg.spaceComponentStaticData))
-                if HasBountyEscrowComponent(typeID):
-                    from spacecomponents.common.componentConst import BOUNTYESCROW_CLASS
-                    be = bp.componentRegistry.GetComponentForItem(itemID, BOUNTYESCROW_CLASS)
-                    menuEntries.extend(be.GetMenu())
-                if HasMicroJumpDriverComponent(typeID):
-                    menuEntries.extend(microJumpDriver.GetMenu(sm.GetService('michelle'), session.shipid, itemID))
-                if HasItemTrader(typeID):
-                    ballpark = sm.StartService('michelle').GetBallpark()
-                    menuEntries.extend(itemtrader.GetMenu(ballpark, itemID))
-        if checkIsStationManager and (groupID in (const.groupAssemblyArray, const.groupMobileLaboratory) or util.IsStation(itemID)):
-            if checkIsMyCorps or util.IsStation(itemID) and sm.StartService('ui').GetStation(itemID).ownerID == session.corpid:
-                if sm.GetService('facilitySvc').IsFacility(itemID):
-                    menuEntries += [[uiutil.MenuLabel('UI/Menusvc/ConfigureFacility'), self.ConfigureIndustryTax, (itemID, typeID)]]
-        checkInTactical = sm.StartService('tactical').CheckIfGroupIDActive(groupID)
-        mapTypeID = typeID
-        mapFunctionID = itemID
-        if groupID in [const.groupSolarSystem, const.groupConstellation, const.groupRegion] and parentID != session.solarsystemid and not (bookmark and bookmark.itemID == bookmark.locationID and bookmark.x and bookmark.y and bookmark.z):
-            mapFunctionID = mapItemID or itemID
-        elif bookmark:
-            if groupID != const.groupStation:
-                mapFunctionID = bookmark.locationID
-                parentBookmarkItem = sm.GetService('map').GetItem(mapFunctionID)
-                if parentBookmarkItem and parentBookmarkItem.groupID == const.groupSolarSystem:
-                    mapTypeID = parentBookmarkItem.typeID
-        checkSameSolarSystemID = mapFunctionID and mapFunctionID == session.solarsystemid2
-        checkCanBeWaypoint = mapTypeID == const.typeSolarSystem or groupID == const.groupStation
-        if checkCanBeWaypoint:
-            waypoints = sm.GetService('starmap').GetWaypoints()
-            checkInWaypoints = mapFunctionID in waypoints
-            if util.IsSolarSystem(mapFunctionID):
-                solarSystemID = mapFunctionID
-            elif util.IsStation(mapFunctionID):
-                solarSystemID = cfg.stations.Get(mapFunctionID).solarSystemID
-            else:
-                log.LogError('mapFunctionID is not a solarsystem or a station, this will probably end up in a strange menu behaviour.', mapFunctionID)
-                solarSystemID = mapFunctionID
-            checkCanJump = session.solarsystemid is not None and solarSystemID in sm.GetService('map').GetNeighbors(session.solarsystemid)
-            menuEntries += [None]
-            if checkCanJump:
-
-                def FindStargateAndRequestJump():
-                    localStargate = uix.FindLocalStargate(solarSystemID)
-                    if localStargate is None:
-                        return
-                    destSolarSystemID = localStargate.jumps[0].locationID
-                    destStargateID = localStargate.jumps[0].toCelestialID
-                    localStargateID = localStargate.itemID
-                    self.StargateJump(localStargateID, destStargateID, destSolarSystemID)
-
-                menuEntries += [[uiutil.MenuLabel('UI/Inflight/JumpThroughStargate'), FindStargateAndRequestJump, tuple()]]
-            if mapFunctionID:
-                if not checkSameSolarSystemID:
-                    menuEntries += [[uiutil.MenuLabel('UI/Inflight/SetDestination'), sm.StartService('starmap').SetWaypoint, (mapFunctionID, True)]]
-                if checkInWaypoints:
-                    menuEntries += [[uiutil.MenuLabel('UI/Inflight/RemoveWaypoint'), sm.StartService('starmap').ClearWaypoints, (mapFunctionID,)]]
-                else:
-                    menuEntries += [[uiutil.MenuLabel('UI/Inflight/AddWaypoint'), sm.StartService('starmap').SetWaypoint, (mapFunctionID,)]]
-                if checkFleet and (checkSolarSystem or checkStation):
-                    menuEntries += [None]
-                    menuEntries += [[uiutil.MenuLabel('UI/Fleet/FleetBroadcast/Commands/BroadcastTravelTo'), sm.GetService('fleet').SendBroadcast_TravelTo, (mapFunctionID,)]]
-        elif checkStation and itemID and itemID != session.solarsystemid2:
-            menuEntries += [None]
-            menuEntries += [[uiutil.MenuLabel('UI/Inflight/SetDestination'), sm.StartService('starmap').SetWaypoint, (itemID, True)]]
-        if checkStation:
-            menuEntries += [[uiutil.MenuLabel('UI/Menusvc/SetHomeStation'), self.SetHomeStation, (itemID,)]]
-        if session.solarsystemid and not checkIfLandmark and groupID not in const.OVERVIEW_IGNORE_GROUPS:
-            if checkInTactical == True:
-                label = uiutil.MenuLabel('UI/Overview/RemoveGroupFromOverview', {'groupName': groupName})
-                changeList = [('groups', groupID, 0)]
-                menuEntries += [[label, sm.StartService('overviewPresetSvc').ChangeSettings, (changeList,)]]
-            elif checkInTactical == False:
-                label = uiutil.MenuLabel('UI/Overview/AddGroupToOverview', {'groupName': groupName})
-                changeList = [('groups', groupID, 1)]
-                menuEntries += [[label, sm.StartService('overviewPresetSvc').ChangeSettings, (changeList,)]]
-        if not bookmark and checkMultiCategs1 is False:
-            if groupID == const.groupBeacon:
-                beacon = sm.StartService('michelle').GetItem(itemID)
-                if beacon and hasattr(beacon, 'dunDescriptionID') and beacon.dunDescriptionID:
-                    hint = localization.GetByMessageID(beacon.dunDescriptionID)
-            if itemID and parentID:
-                menuEntries += [None]
-                if not checkMultiCategs1 and not checkIfLandmark:
-                    if IsTypeBookmarkable(typeID, cfg.spaceComponentStaticData):
-                        menuEntries += [[uiutil.MenuLabel('UI/Inflight/BookmarkLocation'), self.Bookmark, (itemID,
-                           typeID,
-                           parentID,
-                           hint)]]
-        if ignoreTypeCheck or mapFunctionID is not None:
-            if groupID in [const.groupSolarSystem, const.groupConstellation, const.groupRegion]:
-                checkMultiGroups3 = mapFunctionID is not None
-                menuEntries += [None]
-                if checkMultiGroups3:
-                    menuEntries += [[uiutil.MenuLabel('UI/Commands/ShowLocationOnMap'), self.ShowInMap, (mapFunctionID,)]]
-                    label = uiutil.MenuLabel('UI/Inflight/ShowInMapBrowser', {'locationType': groupName})
-                    menuEntries += [[label, self.ShowInMapBrowser, (mapFunctionID,)]]
-                    if mapFunctionID not in self.clientPathfinderService.GetAvoidanceItems():
-                        label = uiutil.MenuLabel('UI/Inflight/AvoidLocation', {'theLocation': mapFunctionID,
-                         'locationType': groupName})
-                        menuEntries += [[label, self.clientPathfinderService.AddAvoidanceItem, (mapFunctionID,)]]
-                    else:
-                        label = uiutil.MenuLabel('UI/Inflight/StopAvoidingLocation', {'theLocation': mapFunctionID,
-                         'locationType': groupName})
-                        menuEntries += [[label, self.clientPathfinderService.RemoveAvoidanceItem, (mapFunctionID,)]]
-        if checkPlanet and itemID is not None:
-            if checkPlanet and not checkThisPlanetOpen:
-                openPlanet = lambda planetID: sm.GetService('viewState').ActivateView('planet', planetID=planetID)
-                menuEntries += [[uiutil.MenuLabel('UI/PI/Common/ViewInPlanetMode'), openPlanet, (itemID,)]]
-            if checkPlanet and checkThisPlanetOpen:
-                menuEntries += [[uiutil.MenuLabel('UI/PI/Common/ExitPlanetMode'), sm.GetService('viewState').CloseSecondaryView, ()]]
-        if not ignoreDroneMenu and slimItem and categoryID == const.categoryDrone:
-            newMenuEntries = MenuList([None])
-            for me in self.DroneMenu([[itemID, groupID, slimItem.ownerID]], 1):
-                newMenuEntries.extend(me)
-
-            newMenuEntries.extend(menuEntries)
-            menuEntries = newMenuEntries
-        if not (filterFunc and localization.GetByLabel('UI/Commands/ShowInfo') in filterFunc):
-            if not checkMultiSelection:
-                menuEntries += [[uiutil.MenuLabel('UI/Commands/ShowInfo'), self.ShowInfo, (typeID,
+                checkIsWithinLookAtRange = dist is not None and (dist < GetCameraMaxLookAtRange() or checkIsObserving)
+            checkTargetingRange = dist is not None and shipItem is not None and shipItem and dist < shipItem.maxTargetRange
+            checkSpacePigDist = dist is not None and dist < sm.StartService('godma').GetType(typeID).agentCommRange
+            checkDistNone = dist is None
+            checkFleetBroadcastTargetDist = dist is not None and dist < const.maxFleetBroadcastTargetDistance
+            if not checkTransferDist or not checkConfigDist:
+                if bp and bp.IsShipInRangeOfStructureControlTower(session.shipid, itemID):
+                    checkTransferDist = True
+                    checkConfigDist = True
+            checkWarpActive = ownBall and ownBall.mode == destiny.DSTBALL_WARP
+            checkJumpThrough = slimItem and sm.GetService('fleet').CanJumpThrough(slimItem)
+            checkWreckViewed = checkWreck and sm.GetService('wreck').IsViewedWreck(itemID)
+            checkSelfDestructActive = getattr(slimItem, 'selfDestructTime', None) is not None
+            checkFleet = bool(session.fleetid)
+            checkIfImCommander = self.ImFleetCommander()
+            checkEnemySpotted = sm.GetService('fleet').CurrentFleetBroadcastOnItem(itemID, state.gbEnemySpotted)
+            checkHasMarketGroup = evetypes.GetMarketGroupID(typeID) is not None and not ignoreMarketDetails
+            checkIsPublished = evetypes.IsPublished(typeID)
+            checkMultiSelection = bool(multi)
+            checkIfLandmark = itemID and itemID < 0
+            checkIfAgentBookmark = bookmark and getattr(bookmark, 'agentID', 0) and hasattr(bookmark, 'locationNumber')
+            checkIfReadonlyBookmark = bookmark and type(getattr(bookmark, 'bookmarkID', 0)) == types.TupleType
+            checkIsStationManager = session.corprole & const.corpRoleStationManager == const.corpRoleStationManager
+            menuEntries = MenuList()
+            defaultWarpDist = sm.GetService('menu').GetDefaultActionDistance('WarpTo')
+            m = MenuList()
+            if bp and IsShipWithinFittingRange(cfg.spaceComponentStaticData, shipItem, slimItem, bp):
+                menuEntries.extend(fitting.GetFittingMenu(uicore.cmd.OpenFitting))
+            if slimItem and categoryID == const.categoryStructure:
+                from eve.client.script.ui.structure.menu import GetStructureMenu
+                m.extend(GetStructureMenu(slimItem))
+            if groupID == const.groupOrbitalTarget:
+                return [[uiutil.MenuLabel('UI/Commands/ShowInfo'), self.ShowInfo, (typeID,
                    itemID,
                    0,
                    None,
                    parentID)]]
-        m += self.ParseMenu(menuEntries, filterFunc)
-        m.reasonsWhyNotAvailable.update(getattr(menuEntries, 'reasonsWhyNotAvailable', None))
-        if groupID == const.groupPlanet:
-            moons = self.GetPrimedMoons(itemID)
-            if moons:
-                m.append((uiutil.MenuLabel('UI/Menusvc/MoonsMenuOption'), ('isDynamic', self.GetMoons, (itemID, moons))))
-            if checkBP and checkInSystem:
-                customsOfficeIDs = sm.GetService('planetInfo').GetOrbitalsForPlanet(itemID, const.groupPlanetaryCustomsOffices)
-                if customsOfficeIDs is not None and len(customsOfficeIDs) > 0:
-                    for customsOfficeID in customsOfficeIDs:
-                        customsOfficeBall = bp.GetBall(customsOfficeID)
-                        if customsOfficeBall:
-                            m.append((uiutil.MenuLabel('UI/PI/Common/CustomsOffice'), ('isDynamic', self.GetCustomsOfficeMenu, (customsOfficeID,))))
-                        break
+            if bookmark:
+                checkBookmarkWarpTo = dist is not None and (itemID == session.solarsystemid or parentID == session.solarsystemid)
+                checkBookmarkDeadspace = bool(getattr(bookmark, 'deadspace', 0))
+                if slimItem:
+                    if not checkMultiSelection:
+                        menuEntries += [[uiutil.MenuLabel('UI/Commands/ShowInfo'), self.ShowInfo, (slimItem.typeID,
+                           slimItem.itemID,
+                           0,
+                           None,
+                           None)]]
+                if checkInShipInSpace and not checkWarpActive:
+                    if checkBookmarkWarpTo and checkWarpDist:
+                        if not checkBookmarkDeadspace:
+                            label = uiutil.MenuLabel('UI/Inflight/WarpToBookmarkWithinDistance', {'warpToDistance': util.FmtDist(float(defaultWarpDist))})
+                            menuEntries += [[label, movementFunctions.WarpToBookmark, (bookmark, float(defaultWarpDist))]]
+                            menuEntries += [[uiutil.MenuLabel('UI/Inflight/WarpToBookmark'), self.WarpToMenu(movementFunctions.WarpToBookmark, bookmark)]]
+                            if checkFleet:
+                                if self.CheckImFleetLeader():
+                                    label = uiutil.MenuLabel('UI/Fleet/WarpFleetToLocationWithinDistance', {'warpToDistance': util.FmtDist(float(defaultWarpDist))})
+                                    menuEntries += [[label, movementFunctions.WarpToBookmark, (bookmark, float(defaultWarpDist), True)]]
+                                    menuEntries += [[uiutil.MenuLabel('UI/Fleet/FleetSubmenus/WarpFleetToWithin'), self.WarpToMenu(movementFunctions.WarpFleetToBookmark, bookmark)]]
+                                if self.CheckImWingCmdr():
+                                    label = uiutil.MenuLabel('UI/Fleet/WarpWingToLocationWithinDistance', {'warpToDistance': util.FmtDist(float(defaultWarpDist))})
+                                    menuEntries += [[label, movementFunctions.WarpToBookmark, (bookmark, float(defaultWarpDist), True)]]
+                                    menuEntries += [[uiutil.MenuLabel('UI/Fleet/FleetSubmenus/WarpWingToWithin'), self.WarpToMenu(movementFunctions.WarpFleetToBookmark, bookmark)]]
+                                if self.CheckImSquadCmdr():
+                                    label = uiutil.MenuLabel('UI/Fleet/WarpSquadToLocationWithinDistance', {'warpToDistance': util.FmtDist(float(defaultWarpDist))})
+                                    menuEntries += [[label, movementFunctions.WarpToBookmark, (bookmark, float(defaultWarpDist), True)]]
+                                    menuEntries += [[uiutil.MenuLabel('UI/Fleet/FleetSubmenus/WarpSquadToWithin'), self.WarpToMenu(movementFunctions.WarpFleetToBookmark, bookmark)]]
+                        if checkBookmarkDeadspace:
+                            menuEntries += [[uiutil.MenuLabel('UI/Inflight/WarpToBookmark'), movementFunctions.WarpToBookmark, (bookmark, float(defaultWarpDist))]]
+                            if checkFleet:
+                                if self.CheckImFleetLeader():
+                                    menuEntries += [[uiutil.MenuLabel('UI/Fleet/WarpFleetToLocation'), movementFunctions.WarpToBookmark, (bookmark, float(defaultWarpDist), True)]]
+                                    menuEntries += [[uiutil.MenuLabel('UI/Fleet/FleetSubmenus/WarpFleetToWithin'), self.WarpToMenu(movementFunctions.WarpFleetToBookmark, bookmark)]]
+                                if self.CheckImWingCmdr():
+                                    menuEntries += [[uiutil.MenuLabel('UI/Fleet/WarpWingToLocation'), movementFunctions.WarpToBookmark, (bookmark, float(defaultWarpDist), True)]]
+                                    menuEntries += [[uiutil.MenuLabel('UI/Fleet/FleetSubmenus/WarpWingToWithin'), self.WarpToMenu(movementFunctions.WarpFleetToBookmark, bookmark)]]
+                                if self.CheckImSquadCmdr():
+                                    menuEntries += [[uiutil.MenuLabel('UI/Fleet/WarpSquadToLocation'), movementFunctions.WarpToBookmark, (bookmark, float(defaultWarpDist), True)]]
+                                    menuEntries += [[uiutil.MenuLabel('UI/Fleet/FleetSubmenus/WarpSquadToWithin'), self.WarpToMenu(movementFunctions.WarpFleetToBookmark, bookmark)]]
+                    if checkInSystem:
+                        if checkApproachDist:
+                            menuEntries += [[uiutil.MenuLabel('UI/Inflight/ApproachLocationActionGroup'), movementFunctions.ApproachLocation, (bookmark,)]]
+                        elif not checkMyShip and checkAlignTo and not checkIfAgentBookmark:
+                            menuEntries += [[uiutil.MenuLabel('UI/Inflight/AlignTo'), self.AlignToBookmark, (getattr(bookmark, 'bookmarkID', None),)]]
+                if not checkIfAgentBookmark and not checkIfReadonlyBookmark:
+                    menuEntries += [[uiutil.MenuLabel('UI/Inflight/EditBookmark'), sm.GetService('addressbook').EditBookmark, (bookmark,)]]
+                    menuEntries += [[uiutil.MenuLabel('UI/Inflight/RemoveBookmark'), sm.GetService('addressbook').DeleteBookmarks, ([getattr(bookmark, 'bookmarkID', None)],)]]
+                if ignoreTypeCheck or checkDockable:
+                    menuEntries += [None]
+                    if checkBP and checkInSystem and checkDockable and checkInShipInSpace:
+                        if checkWarpActive:
+                            self.AddDisabledEntryForWarp(menuEntries, 'UI/Inflight/DockInStation')
+                        else:
+                            menuEntries += [[uiutil.MenuLabel('UI/Inflight/DockInStation'), self.Dock, (itemID,)]]
+                    else:
+                        prereqs = [('checkBP', checkBP, True),
+                         ('notInSystem', checkInSystem, True),
+                         ('notStation', checkDockable, True),
+                         ('notInShipInSpace', checkInShipInSpace, True)]
+                        reason = self.FindReasonNotAvailable(prereqs)
+                        if reason:
+                            menuEntries.reasonsWhyNotAvailable['UI/Inflight/DockInStation'] = reason
+                if ignoreTypeCheck or checkStargate:
+                    if checkBP and checkInSystem and checkStargate and checkInShipInSpace:
+                        self._AddStargateEntry(menuEntries, slimItem, itemID, checkStargate, checkJumpDist, checkWarpActive, checkInShipInSpace)
+                    else:
+                        prereqs = [('checkBP', checkBP, True), ('notInSystem', checkInSystem, True)]
+                        reason = self.FindReasonNotAvailable(prereqs)
+                        if reason:
+                            menuEntries.reasonsWhyNotAvailable['UI/Inflight/DockInStation'] = reason
+            elif bp and itemID is not None:
+                checkBillboard = groupID == const.groupBillboard
+                checkPosStructure = categoryID in (const.categoryStarbase, const.categorySovereigntyStructure)
+                checkSovStructure = categoryID == const.categorySovereigntyStructure
+                checkControlTower = groupID == const.groupControlTower
+                checkContainer = groupID in self.containerGroups
+                checkMyWreck = groupID == const.groupWreck and bp.HaveLootRight(itemID)
+                checkMyCargo = groupID == const.groupCargoContainer and bp.HaveLootRight(itemID) and not typeID == const.typePlanetaryLaunchContainer
+                checkNotAbandoned = not bp.IsAbandoned(itemID)
+                checkCorpHangarArray = groupID == const.groupCorporateHangarArray
+                checkPersonalHangar = groupID == const.groupPersonalHangar
+                checkAssemblyArray = groupID == const.groupAssemblyArray
+                checkMobileLaboratory = groupID == const.groupMobileLaboratory
+                checkSilo = groupID == const.groupSilo
+                checkConstructionPf = groupID in (const.groupConstructionPlatform, const.groupStationUpgradePlatform, const.groupStationImprovementPlatform)
+                checkJumpPortalArray = groupID == const.groupJumpPortalArray
+                checkPMA = groupID in (const.groupPlanet, const.groupMoon, const.groupAsteroidBelt)
+                checkMultiGroups1 = groupID in (const.groupSecureCargoContainer, const.groupAuditLogSecureContainer)
+                checkMultiGroups2 = categoryID in (const.categoryDrone, const.categoryFighter) or groupID == const.groupBiomass
+                checkAnchorDrop = godmaSM.TypeHasEffect(typeID, const.effectAnchorDrop)
+                checkAnchorLift = godmaSM.TypeHasEffect(typeID, const.effectAnchorLift)
+                checkAutoPilot = bool(sm.StartService('autoPilot').GetState())
+                checkCanRename = checkIsMine or bool(checkIsMyCorps and session.corprole & const.corpRoleEquipmentConfig and categoryID != const.categorySovereigntyStructure) or session.role & service.ROLE_WORLDMOD
+                checkAnchorable = evetypes.GetIsGroupAnchorableByGroup(groupID)
+                checkRenameable = not (groupID == const.groupStation and godmaSM.GetType(typeID).isPlayerOwnable == 1)
+                checkInTargets = itemID in sm.StartService('target').GetTargets()
+                checkBeingTargeted = sm.StartService('target').BeingTargeted(itemID)
+                checkOrbital = categoryID == const.categoryOrbital
+                checkIfInStructure = InStructure()
 
-            districts = sm.GetService('district').GetDistrictByPlanet(itemID)
-            if len(districts):
-                m.append((uiutil.MenuLabel('UI/Menusvc/DistrictsMenuOption'), ('isDynamic', self.GetDistricts, (itemID, districts))))
-        if checkShip is True and slimItem:
-            m += [None] + [(uiutil.MenuLabel('UI/Common/Pilot'), ('isDynamic', self.CharacterMenu, (slimItem.charID or slimItem.ownerID,
-                [],
-                slimItem.corpID,
-                0,
-                ['GM / WM Extras'])))]
-        if not (filterFunc and 'UI/Inventory/ItemActions/ViewTypesMarketDetails' in filterFunc) and checkHasMarketGroup:
-            m += [(uiutil.MenuLabel('UI/Inventory/ItemActions/ViewTypesMarketDetails'), self.ShowMarketDetails, (util.KeyVal(typeID=typeID),))]
-        if not (filterFunc and 'UI/Inventory/ItemActions/FindInContracts' in filterFunc) and checkIsPublished and not ignoreMarketDetails:
-            m += [(uiutil.MenuLabel('UI/Inventory/ItemActions/FindInContracts'), sm.GetService('contracts').FindRelated, (typeID,
-               None,
-               None,
-               None,
-               None,
-               None))]
-        if not (filterFunc and 'GM / WM Extras' in filterFunc) and session.role & (service.ROLE_GML | service.ROLE_WORLDMOD):
-            m.insert(0, ('GM / WM Extras', ('isDynamic', self.GetGMMenu, (itemID,
-               slimItem,
-               None,
-               None,
-               mapItem,
-               typeID))))
-        return m
+                def CheckScoopable(shipItem, groupID, categoryID, typeID):
+                    if groupID == const.groupBiomass or categoryID == const.categoryDrone:
+                        return True
+                    elif categoryID == const.categoryStructure and checkIsFree:
+                        return True
+                    elif shipItem is None:
+                        return False
+                    elif self.IsItemDead(bp, itemID):
+                        return False
+                    elif HasScoopComponent(typeID) and slimItem and IsActiveComponent(bp.componentRegistry, typeID, itemID):
+                        return slimItem.ownerID == session.charid
+                    isAnchorable = checkAnchorable and checkIsFree
+                    if shipItem.groupID in (const.groupFreighter, const.groupJumpFreighter):
+                        if groupID == const.groupFreightContainer:
+                            return True
+                        if isAnchorable and groupID not in (const.groupCargoContainer, const.groupAuditLogSecureContainer, const.groupSecureCargoContainer):
+                            return True
+                        return False
+                    elif typeID in const.nonScoopableTypes:
+                        return False
+                    elif isAnchorable or groupID in (const.groupCargoContainer, const.groupFreightContainer):
+                        return True
+                    elif checkFighter and not checkFighterIsControlledByMe:
+                        return True
+                    else:
+                        return False
 
-    def GetKeepAtRangeMenu(self, itemID, dist, currentDistance, *args):
-        keepRangeRanges = movementFunctions.GetKeepAtRangeRanges()
-        keepRangeMenu = self.GetRangeMenu(itemID=itemID, dist=dist, currentDistance=currentDistance, rangesList=keepRangeRanges, mainFunc=movementFunctions.KeepAtRange, setDefaultFunc=self.SetDefaultKeepAtRangeDist, atCurrentRangeLabel='UI/Inflight/KeepAtCurrentRange', setDefaultLabel='UI/Inflight/Submenus/SetDefaultWarpRange')
-        return keepRangeMenu
+                checkScoopable = CheckScoopable(shipItem, groupID, categoryID, typeID)
+                checkScoopableSMA = categoryID == const.categoryShip and groupID != const.groupCapsule and not isMyShip and shipItem is not None and shipItem.hasShipMaintenanceBay
+                checkKeepRangeGroups = categoryID != const.categoryAsteroid and groupID not in (const.groupHarvestableCloud,
+                 const.groupMiningDrone,
+                 const.groupCargoContainer,
+                 const.groupSecureCargoContainer,
+                 const.groupAuditLogSecureContainer,
+                 const.groupStation,
+                 const.groupStargate,
+                 const.groupFreightContainer,
+                 const.groupWreck)
+                checkLookingAtItem = bool(sm.GetService('sceneManager').GetActiveSpaceCamera().GetLookAtItemID() == itemID)
+                camera = sm.GetService('sceneManager').GetActiveSpaceCamera()
+                checkInterest = camera.GetTrackItemID() == itemID
+                advancedCamera = bool(gfxsettings.Get(gfxsettings.UI_ADVANCED_CAMERA))
+                checkHasConsumables = checkPosStructure and godmaSM.GetType(typeID).consumptionType != 0
+                checkAuditLogSecureContainer = groupID == const.groupAuditLogSecureContainer
+                checkShipJumpDrive = slimItem and shipItem is not None and shipItem.canJump
+                checkShipJumpPortalGenerator = slimItem and shipItem is not None and shipItem.groupID in [const.groupTitan, const.groupBlackOps] and len([ each for each in godmaSM.GetItem(session.shipid).modules if each.groupID == const.groupJumpPortalGenerator ]) > 0
+                structureShipBridge = sm.services['pwn'].GetActiveBridgeForShip(itemID)
+                checkShipHasBridge = structureShipBridge is not None
+                if structureShipBridge is not None:
+                    structureShipBridgeLabel = uiutil.MenuLabel('UI/Fleet/JumpThroughToSystem', {'solarsystem': structureShipBridge[0]})
+                else:
+                    structureShipBridgeLabel = uiutil.MenuLabel('UI/Inflight/JumpThroughError')
+                keepRangeMenu = movementFunctions.GetKeepAtRangeMenu(itemID, dist, niceRange)
+                orbitMenu = movementFunctions.GetOrbitMenu(itemID, dist, niceRange)
+                if checkEnemySpotted:
+                    senderID = checkEnemySpotted
+                    label = uiutil.MenuLabel('UI/Fleet/FleetSubmenus/BroadCastEnemySpotted', {'character': senderID})
+                    menuEntries += [[label, ('isDynamic', self.CharacterMenu, (senderID,))]]
+                if checkShip:
+                    checkInSameFleet = bool(slimItem) and session.fleetid and slimItem.ownerID in sm.GetService('fleet').GetMembers()
+                if (ignoreTypeCheck or checkShip is True) and not checkIfInStructure:
+                    checkCanStoreVessel = shipItem is not None and slimItem is not None and shipItem.groupID != const.groupCapsule and slimItem.itemID != shipItem.itemID
+                    checkInSameCorp = bool(slimItem) and slimItem.ownerID in sm.StartService('corp').GetMemberIDs()
 
-    def GetOrbitRanges(self, *args):
-        orbitRanges = [500,
-         1000,
-         2500,
-         5000,
-         7500,
-         10000,
-         15000,
-         20000,
-         25000,
-         30000]
-        return orbitRanges
+                    @util.Memoized
+                    def GetShipConfig(shipID):
+                        return sm.GetService('shipConfig').GetShipConfig(shipID)
 
-    def GetOrbitMenu(self, itemID, dist, currentDistance, *args):
-        orbitRanges = self.GetOrbitRanges()
-        orbitMenu = self.GetRangeMenu(itemID=itemID, dist=dist, currentDistance=currentDistance, rangesList=orbitRanges, mainFunc=movementFunctions.Orbit, setDefaultFunc=self.SetDefaultOrbitDist, atCurrentRangeLabel='UI/Inflight/OrbitAtCurrentRange', setDefaultLabel='UI/Inflight/Submenus/SetDefaultWarpRange')
-        return orbitMenu
+                    def CanUseShipServices(serviceFlag, ignoreShipConfig):
+                        if checkMyShip or checkIsMine:
+                            return True
+                        if ignoreShipConfig:
+                            return False
+                        if not (checkInSameCorp or checkInSameFleet):
+                            return False
+                        config = GetShipConfig(slimItem.itemID)
+                        if serviceFlag == const.flagFleetHangar:
+                            if config['FleetHangar_AllowCorpAccess'] and checkInSameCorp or config['FleetHangar_AllowFleetAccess'] and checkInSameFleet:
+                                return True
+                        if serviceFlag == const.flagShipHangar:
+                            if config['SMB_AllowCorpAccess'] and checkInSameCorp or config['SMB_AllowFleetAccess'] and checkInSameFleet:
+                                return True
+                        return False
 
-    def GetRangeMenu(self, itemID, dist, currentDistance, rangesList, mainFunc, setDefaultFunc, atCurrentRangeLabel, setDefaultLabel, *args):
-        rangeSubMenu = []
-        for eachRange in rangesList:
-            fmtRange = util.FmtDist(eachRange)
-            rangeSubMenu.append((fmtRange, setDefaultFunc, (eachRange,)))
+                    if groupID == const.groupCapsule:
+                        stopLabelPath = 'UI/Inflight/StopMyCapsule'
+                    else:
+                        stopLabelPath = 'UI/Inflight/StopMyShip'
+                    stopText = uiutil.MenuLabel(stopLabelPath)
+                    if checkShip and checkMyShip:
+                        menuEntries += [[stopText, self.StopMyShip]]
+                    else:
+                        prereqs = [('checkShip', checkShip, True), ('isNotMyShip', checkMyShip, True)]
+                        reason = self.FindReasonNotAvailable(prereqs)
+                        if reason:
+                            menuEntries.reasonsWhyNotAvailable[stopLabelPath] = reason
+                            menuEntries.reasonsWhyNotAvailable['UI/Commands/OpenMyCargo'] = reason
+                    if checkShip and checkIfShipMAShip and CanUseShipServices(const.flagShipHangar, ignoreShipConfig):
+                        menuEntries += [[uiutil.MenuLabel('UI/Commands/OpenShipMaintenanceBay'), openFunctions.OpenShipMaintenanceBayShip, (itemID, localization.GetByLabel('UI/Commands/OpenShipMaintenanceBayError'))]]
+                    if checkShip and checkIfShipFHShip and CanUseShipServices(const.flagFleetHangar, ignoreShipConfig):
+                        menuEntries += [[uiutil.MenuLabel('UI/Commands/OpenFleetHangar'), openFunctions.OpenFleetHangar, (itemID,)]]
+                    if checkShip and checkMyShip and not checkInCapsule:
+                        menuEntries += [[uiutil.MenuLabel('UI/Commands/OpenCargoHold'), openFunctions.OpenShipHangarCargo, [itemID]]]
+                        if checkIfShipDroneBay:
+                            menuEntries += [[uiutil.MenuLabel('UI/Commands/OpenDroneBay'), openFunctions.OpenDroneBay, [itemID]]]
+                        if checkIfShipFighterBay:
+                            menuEntries += [[uiutil.MenuLabel('UI/Commands/OpenFighterBay'), openFunctions.OpenFighterBay, [itemID]]]
+                        if checkIfShipFuelBay:
+                            menuEntries += [[uiutil.MenuLabel('UI/Commands/OpenFuelBay'), self.OpenFuelBay, [itemID]]]
+                        if checkIfShipOreHold:
+                            menuEntries += [[uiutil.MenuLabel('UI/Commands/OpenOreHold'), self.OpenOreHold, [itemID]]]
+                        if checkIfShipGasHold:
+                            menuEntries += [[uiutil.MenuLabel('UI/Commands/OpenGasHold'), self.OpenGasHold, [itemID]]]
+                        if checkIfShipMineralHold:
+                            menuEntries += [[uiutil.MenuLabel('UI/Commands/OpenMineralHold'), self.OpenMineralHold, [itemID]]]
+                        if checkIfShipSalvageHold:
+                            menuEntries += [[uiutil.MenuLabel('UI/Commands/OpenSalvageHold'), self.OpenSalvageHold, [itemID]]]
+                        if checkIfShipShipHold:
+                            menuEntries += [[uiutil.MenuLabel('UI/Commands/OpenShipHold'), self.OpenShipHold, [itemID]]]
+                        if checkIfShipSmallShipHold:
+                            menuEntries += [[uiutil.MenuLabel('UI/Commands/OpenSmallShipHold'), self.OpenSmallShipHold, [itemID]]]
+                        if checkIfShipMediumShipHold:
+                            menuEntries += [[uiutil.MenuLabel('UI/Commands/OpenMediumShipHold'), self.OpenMediumShipHold, [itemID]]]
+                        if checkIfShipLargeShipHold:
+                            menuEntries += [[uiutil.MenuLabel('UI/Commands/OpenLargeShipHold'), self.OpenLargeShipHold, [itemID]]]
+                        if checkIfShipIndustrialShipHold:
+                            menuEntries += [[uiutil.MenuLabel('UI/Commands/OpenIndustrialShipHold'), self.OpenIndustrialShipHold, [itemID]]]
+                        if checkIfShipAmmoHold:
+                            menuEntries += [[uiutil.MenuLabel('UI/Commands/OpenAmmoHold'), self.OpenAmmoHold, [itemID]]]
+                        if checkIfShipCommandCenterHold:
+                            menuEntries += [[uiutil.MenuLabel('UI/Commands/OpenCommandCenterHold'), self.OpenCommandCenterHold, [itemID]]]
+                        if checkIfShipPlanetaryCommoditiesHold:
+                            menuEntries += [[uiutil.MenuLabel('UI/PI/Common/OpenPlanetaryCommoditiesHold'), self.OpenPlanetaryCommoditiesHold, [itemID]]]
+                        if checkIfShipHasQuafeBay:
+                            menuEntries += [[uiutil.MenuLabel('UI/Commands/OpenQuafeBay'), self.OpenQuafeHold, [itemID]]]
+                    if checkConfigDist and checkIfShipMAShip and checkCanStoreVessel and CanUseShipServices(const.flagShipHangar, ignoreShipConfig):
+                        menuEntries += [[uiutil.MenuLabel('UI/Inflight/POS/StoreVesselInSMA'), self.StoreVessel, (itemID, session.shipid)]]
+                    if checkShip and checkMyShip and checkIfShipCloneShip:
+                        menuEntries += [[uiutil.MenuLabel('UI/Commands/ConfigureShipCloneFacility'), self.ShipCloneConfig, (itemID,)]]
+                    if checkShip and checkMyShip and not checkInCapsule and not checkWarpActive:
+                        menuEntries += [[uiutil.MenuLabel('UI/Inflight/EjectFromShip'), self.Eject]]
+                    else:
+                        prereqs = [('checkShip', checkShip, True),
+                         ('isNotMyShip', checkMyShip, True),
+                         ('inCapsule', checkInCapsule, False),
+                         ('inWarp', checkWarpActive, False)]
+                        reason = self.FindReasonNotAvailable(prereqs)
+                        if reason:
+                            menuEntries.reasonsWhyNotAvailable['UI/Inflight/EjectFromShip'] = reason
+                    if checkMyShip and not checkWarpActive:
+                        menuEntries += [[uiutil.MenuLabel('UI/Commands/ReconnectToLostDrones'), self.ReconnectToDrones]]
+                    if checkMyShip and not checkWarpActive:
+                        menuEntries += [[uiutil.MenuLabel('UI/Inflight/SafeLogoff'), self.SafeLogoff]]
+                    if checkMyShip and not checkWarpActive:
+                        if checkSelfDestructActive:
+                            menuEntries += [[uiutil.MenuLabel('UI/Inflight/AbortSelfDestruct'), self.AbortSelfDestructShip, (itemID,)]]
+                        else:
+                            menuEntries += [[uiutil.MenuLabel('UI/Inflight/SelfDestructShipOrPod'), self.SelfDestructShip, (itemID,)]]
+                    else:
+                        prereqs = [('isNotMyShip', checkMyShip, True), ('inWarp', checkWarpActive, False)]
+                        reason = self.FindReasonNotAvailable(prereqs)
+                        if reason:
+                            menuEntries.reasonsWhyNotAvailable['UI/Inflight/SelfDestructShipOrPod'] = reason
+                    if checkShip and not checkMyShip and not checkShipBusy and not checkDistNone and checkInShipInSpace:
+                        if checkWarpActive:
+                            self.AddDisabledEntryForWarp(menuEntries, 'UI/Inflight/BoardShip')
+                        else:
+                            menuEntries += [[uiutil.MenuLabel('UI/Inflight/BoardShip'), self.Board, (itemID,)]]
+                    else:
+                        prereqs = [('checkShip', checkShip, True),
+                         ('isMyShip', checkMyShip, False),
+                         ('pilotInShip', checkShipBusy, False),
+                         ('notInShipInSpace', checkInShipInSpace, True)]
+                        reason = self.FindReasonNotAvailable(prereqs)
+                        if reason:
+                            menuEntries.reasonsWhyNotAvailable['UI/Inflight/BoardShip'] = reason
+                    if checkShip and checkMyShip:
+                        menuEntries += [[uiutil.MenuLabel('UI/Inflight/POS/EnterStarbasePassword'), self.EnterPOSPassword]]
+                    if checkShip and checkMyShip and checkAutoPilot:
+                        menuEntries += [[uiutil.MenuLabel('UI/Inflight/DeactivateAutopilot'), self.ToggleAutopilot, (0,)]]
+                    else:
+                        prereqs = [('checkShip', checkShip, True), ('isNotMyShip', checkMyShip, True), ('autopilotNotActive', checkAutoPilot, True)]
+                        reason = self.FindReasonNotAvailable(prereqs)
+                        if reason:
+                            menuEntries.reasonsWhyNotAvailable['UI/Inflight/DeactivateAutopilot'] = reason
+                    if checkShip and checkMyShip and not checkAutoPilot:
+                        menuEntries += [[uiutil.MenuLabel('UI/Inflight/ActivateAutopilot'), self.ToggleAutopilot, (1,)]]
+                    else:
+                        prereqs = [('checkShip', checkShip, True), ('isNotMyShip', checkMyShip, True), ('autopilotActive', checkAutoPilot, False)]
+                        reason = self.FindReasonNotAvailable(prereqs)
+                        if reason:
+                            menuEntries.reasonsWhyNotAvailable['UI/Inflight/ActivateAutopilot'] = reason
+                    menuEntries += [None]
+                    if checkMyShip and not checkInCapsule and checkShipJumpDrive:
+                        menuEntries += [[uiutil.MenuLabel('UI/Inflight/Submenus/JumpTo'), ('isDynamic', self.GetHybridBeaconJumpMenu, [])]]
+                        if checkShipJumpPortalGenerator:
+                            menuEntries += [[uiutil.MenuLabel('UI/Inflight/Submenus/BridgeTo'), ('isDynamic', self.GetHybridBridgeMenu, [])]]
+                    if not checkMyShip and checkShipHasBridge:
+                        menuEntries += [[structureShipBridgeLabel, self.JumpThroughAlliance, (itemID,)]]
+                    menuEntries += [None]
+                    if checkShip and checkIfShipMAShip and (checkInSameCorp or checkInSameFleet):
+                        menuEntries += [[uiutil.MenuLabel('UI/Fitting/UseFittingService'), uicore.cmd.OpenFitting, ()]]
+                warpRange = None
+                if checkShip and slimItem and slimItem.charID and checkInSameFleet:
+                    warpFn = self.WarpToMember
+                    warpFleetFn = self.WarpFleetToMember
+                    warpID = slimItem.charID
+                    warpRange = float(defaultWarpDist)
+                else:
+                    warpFn = movementFunctions.WarpToItem
+                    warpFleetFn = self.WarpFleet
+                    warpID = itemID
+                validWarpTarget = False
+                if checkInSystem and not checkWarpActive and not checkMyShip and checkWarpDist and checkInShipInSpace:
+                    if checkShip and slimItem and slimItem.charID and checkInSameFleet or not checkIsFree:
+                        validWarpTarget = True
+                if validWarpTarget:
+                    menuEntries += [[movementFunctions.DefaultWarpToLabel(), warpFn, (warpID, warpRange)]]
+                    menuEntries += [[uiutil.MenuLabel('UI/Inflight/Submenus/WarpToWithin'), self.WarpToMenu(warpFn, warpID)]]
+                    if checkFleet:
+                        if self.CheckImFleetLeader():
+                            menuEntries += [[uiutil.MenuLabel('UI/Fleet/WarpFleet'), warpFleetFn, (warpID, float(defaultWarpDist))]]
+                        if self.CheckImFleetLeader():
+                            menuEntries += [[uiutil.MenuLabel('UI/Fleet/FleetSubmenus/WarpFleetToWithin'), self.WarpToMenu(warpFleetFn, warpID)]]
+                        if self.CheckImWingCmdr():
+                            menuEntries += [[uiutil.MenuLabel('UI/Fleet/WarpWing'), warpFleetFn, (warpID, float(defaultWarpDist))]]
+                        if self.CheckImWingCmdr():
+                            menuEntries += [[uiutil.MenuLabel('UI/Fleet/FleetSubmenus/WarpWingToWithin'), self.WarpToMenu(warpFleetFn, warpID)]]
+                        if self.CheckImSquadCmdr():
+                            menuEntries += [[uiutil.MenuLabel('UI/Fleet/WarpSquad'), warpFleetFn, (warpID, float(defaultWarpDist))]]
+                        if self.CheckImSquadCmdr():
+                            menuEntries += [[uiutil.MenuLabel('UI/Fleet/FleetSubmenus/WarpSquadToWithin'), self.WarpToMenu(warpFleetFn, warpID)]]
+                        if checkFleetBroadcastTargetDist:
+                            menuEntries += [[uiutil.MenuLabel('UI/Fleet/FleetBroadcast/Commands/BroadcastTarget'), sm.GetService('fleet').SendBroadcast_Target, (itemID,)]]
+                else:
+                    prereqs = [('notInSystem', checkInSystem, True),
+                     ('inWarp', checkWarpActive, False),
+                     ('isMyShip', checkMyShip, False),
+                     ('notInWarpRange', checkWarpDist, True),
+                     ('cantWarpTo', checkIsFree, False),
+                     ('notInShipInSpace', checkInShipInSpace, True)]
+                    reason = self.FindReasonNotAvailable(prereqs)
+                    if reason:
+                        menuEntries.reasonsWhyNotAvailable[movementFunctions.DefaultWarpToLabel()[0]] = reason
+                if ignoreTypeCheck or not checkPMA:
+                    menuEntries += [None]
+                    if checkInSystem and not checkMyShip and not checkWarpActive and (checkInShipInSpace or self.ControllingStructureWithFightersSelected()):
+                        if checkApproachDist:
+                            menuEntries += [[uiutil.MenuLabel('UI/Inflight/ApproachObject'), movementFunctions.Approach, (itemID,)]]
+                            menuEntries += [[uiutil.MenuLabel('UI/Inflight/OrbitObject'), orbitMenu]]
+                        else:
+                            cannotApproachReason = self.FindReasonNotAvailable([('notInApproachRange', checkApproachDist, True)])
+                            if cannotApproachReason:
+                                menuEntries.reasonsWhyNotAvailable['UI/Inflight/ApproachObject'] = cannotApproachReason
+                            cannotOrbitReason = self.FindReasonNotAvailable([('notInOrbitRange', checkApproachDist, True)])
+                            if cannotOrbitReason:
+                                menuEntries.reasonsWhyNotAvailable['UI/Inflight/OrbitObject'] = cannotOrbitReason
+                        if groupID != const.groupMiningDrone and checkKeepRangeGroups and checkApproachDist:
+                            menuEntries += [[uiutil.MenuLabel('UI/Inflight/Submenus/KeepAtRange'), keepRangeMenu]]
+                        else:
+                            prereqs = [('cantKeepInRange',
+                              checkKeepRangeGroups,
+                              True,
+                              {'groupName': groupName}), ('notInApproachRange', checkApproachDist, True)]
+                            cannotKeepRangeReason = self.FindReasonNotAvailable(prereqs)
+                            if cannotKeepRangeReason:
+                                menuEntries.reasonsWhyNotAvailable['UI/Inflight/Submenus/KeepAtRange'] = cannotKeepRangeReason
+                    else:
+                        prereqs = [('notInSystem', checkInSystem, True),
+                         ('isMyShip', checkMyShip, False),
+                         ('badGroup',
+                          checkPMA,
+                          False,
+                          {'groupName': groupName}),
+                         ('inWarp', checkWarpActive, False),
+                         ('notInShipInSpace', checkInShipInSpace, True)]
+                        reason = self.FindReasonNotAvailable(prereqs)
+                        if reason:
+                            menuEntries.reasonsWhyNotAvailable['UI/Inflight/ApproachObject'] = reason
+                            menuEntries.reasonsWhyNotAvailable['UI/Inflight/OrbitObject'] = reason
+                            menuEntries.reasonsWhyNotAvailable['UI/Inflight/Submenus/KeepAtRange'] = reason
+                if checkInSystem and not checkMyShip and checkInShipInSpace:
+                    if checkAlignTo and not checkWarpActive and not checkIsFree:
+                        if not checkApproachDist or checkPMA and not ignoreTypeCheck:
+                            menuEntries += [[uiutil.MenuLabel('UI/Inflight/AlignTo'), self.AlignTo, (itemID,)]]
+                if checkInSystem and checkFleet:
+                    if checkFleetBroadcastTargetDist and not checkMyShip:
+                        menuEntries += [[uiutil.MenuLabel('UI/Fleet/FleetBroadcast/Commands/BroadcastTarget'), sm.GetService('fleet').SendBroadcast_Target, (itemID,)]]
+                    if not checkMultiCategs1:
+                        menuEntries += [[uiutil.MenuLabel('UI/Fleet/FleetBroadcast/Commands/BroadcastWarpTo'), sm.GetService('fleet').SendBroadcast_WarpTo, (itemID, typeID)]]
+                        menuEntries += [[uiutil.MenuLabel('UI/Fleet/FleetBroadcast/Commands/BroadcastAlignTo'), sm.GetService('fleet').SendBroadcast_AlignTo, (itemID, typeID)]]
+                    if checkStargate:
+                        menuEntries += [[uiutil.MenuLabel('UI/Fleet/FleetBroadcast/Commands/BroadcastJumpTo'), sm.GetService('fleet').SendBroadcast_JumpTo, (itemID, typeID)]]
+                if ignoreTypeCheck or checkJumpThrough:
+                    throughSystemID = sm.GetService('fleet').CanJumpThrough(slimItem)
+                    if throughSystemID and checkInSystem and checkJumpDist and not checkWarpActive and checkInShipInSpace:
+                        menuEntries += [None]
+                        menuEntries += [[uiutil.MenuLabel('UI/Fleet/JumpThroughToSystem', {'solarsystem': throughSystemID}), self.JumpThroughFleet, (otherCharID, itemID)]]
+                if ignoreTypeCheck or checkDockable:
+                    menuEntries += [None]
+                    if checkInSystem and checkDockable and checkInShipInSpace:
+                        if checkWarpActive:
+                            self.AddDisabledEntryForWarp(menuEntries, 'UI/Inflight/DockInStation')
+                        else:
+                            menuEntries += [[uiutil.MenuLabel('UI/Inflight/DockInStation'), self.Dock, (itemID,)]]
+                    else:
+                        prereqs = [('notInSystem', checkInSystem, True), ('notStation', checkDockable, True), ('notInShipInSpace', checkInShipInSpace, True)]
+                        reason = self.FindReasonNotAvailable(prereqs)
+                        if reason:
+                            menuEntries.reasonsWhyNotAvailable['UI/Inflight/DockInStation'] = reason
+                if ignoreTypeCheck or checkStargate:
+                    self._AddStargateEntry(menuEntries, slimItem, itemID, checkStargate, checkJumpDist, checkWarpActive, checkInShipInSpace)
+                if slimItem and (ignoreTypeCheck or checkWarpgate is True):
+                    if checkWarpgate:
+                        if checkWarpActive:
+                            self.AddDisabledEntryForWarp(menuEntries, 'UI/Inflight/ActivateGate')
+                        else:
+                            menuEntries += [[uiutil.MenuLabel('UI/Inflight/ActivateGate'), self.ActivateAccelerationGate, (itemID,)]]
+                    else:
+                        prereqs = [('notWarpGate', checkWarpgate, True), ('notWithinMaxJumpDist', checkJumpDist, True)]
+                        reason = self.FindReasonNotAvailable(prereqs)
+                        if reason:
+                            menuEntries.reasonsWhyNotAvailable['UI/Inflight/ActivateGate'] = reason
+                if slimItem and (ignoreTypeCheck or checkWormhole is True):
+                    if checkWormhole:
+                        if checkWarpActive:
+                            self.AddDisabledEntryForWarp(menuEntries, 'UI/Inflight/EnterWormhole')
+                        else:
+                            menuEntries += [[uiutil.MenuLabel('UI/Inflight/EnterWormhole'), self.EnterWormhole, (itemID,)]]
+                    else:
+                        prereqs = [('notCloseEnoughToWH', checkWormholeDist, True), ('inWarp', checkWarpActive, False)]
+                        reason = self.FindReasonNotAvailable(prereqs)
+                        if reason:
+                            menuEntries.reasonsWhyNotAvailable['UI/Inflight/EnterWormhole'] = reason
+                menuEntries += [None]
+                if not checkWarpActive and checkIsWithinLookAtRange:
+                    if not checkLookingAtItem and not checkPlanet and not checkMoon:
+                        menuEntries += [[uiutil.MenuLabel('UI/Inflight/LookAtObject'), sm.GetService('sceneManager').GetActiveSpaceCamera().LookAt, (itemID,)]]
+                    else:
+                        prereqs = [('isLookingAtItem', checkLookingAtItem, False)]
+                        reason = self.FindReasonNotAvailable(prereqs)
+                        if reason:
+                            menuEntries.reasonsWhyNotAvailable['UI/Inflight/LookAtObject'] = reason
+                    if not checkLookingAtItem and advancedCamera:
+                        menuEntries += [[uiutil.MenuLabel('UI/Inflight/SetAsCameraParent'), self.SetParent, (itemID,)]]
+                else:
+                    prereqs = [('inWarp', checkWarpActive, False), ('notInLookingRange', checkIsWithinLookAtRange, True)]
+                    reason = self.FindReasonNotAvailable(prereqs)
+                    if reason:
+                        menuEntries.reasonsWhyNotAvailable['UI/Inflight/LookAtObject'] = reason
+                if not checkInterest and (advancedCamera or IsNewCameraActive()) and checkInSystem and not IsDockedInStructure():
+                    menuEntries += [[uiutil.MenuLabel('UI/Inflight/SetAsCameraInterest'), self.SetInterest, (itemID,)]]
+                if checkLookingAtItem:
+                    menuEntries += [[uiutil.MenuLabel('UI/Inflight/ResetCamera'), sm.GetService('sceneManager').GetActiveSpaceCamera().ResetCamera]]
+                else:
+                    reason = self.FindReasonNotAvailable([('notLookingAtItem', checkLookingAtItem, True)])
+                    if reason:
+                        menuEntries.reasonsWhyNotAvailable['UI/Inflight/ResetCamera'] = reason
+                if ignoreTypeCheck or checkBillboard is True:
+                    newsURL = 'http://www.eveonline.com/mb2/news.asp'
+                    if boot.region == 'optic':
+                        newsURL = 'http://eve.tiancity.com/client/news.html'
+                    menuEntries += [None]
+                    if checkBillboard:
+                        menuEntries += [[uiutil.MenuLabel('UI/Commands/ReadNews'), uicore.cmd.OpenBrowser, (newsURL, 'browser')]]
+                if not checkWarpActive and (ignoreTypeCheck or checkContainer is True):
+                    menuEntries += [None]
+                    if checkContainer and otherBall and not HasItemTrader(typeID):
+                        menuEntries += [[uiutil.MenuLabel('UI/Commands/OpenCargo'), self.OpenCargo, [itemID]]]
+                    else:
+                        prereqs = [('notWithinMaxTransferRange', checkTransferDist, True)]
+                        reason = self.FindReasonNotAvailable(prereqs)
+                        if reason:
+                            menuEntries.reasonsWhyNotAvailable['UI/Commands/OpenCargo'] = reason
+                if ignoreTypeCheck or checkPlanetCustomsOffice is True:
+                    menuEntries += [None]
+                    menuEntries += [[uiutil.MenuLabel('UI/PI/Common/AccessCustomOffice'), self.OpenPlanetCustomsOfficeImportWindow, [itemID]]]
+                if checkIfMaterialsHold and checkTransferDist and checkIsMineOrCorps and checkIfCanUpgrade and checkInSystem and (groupID == const.groupOrbitalConstructionPlatforms or checkZeroSecSpace):
+                    menuEntries += [[uiutil.MenuLabel('UI/DustLink/OpenUpgradeHold'), self.OpenUpgradeWindow, [itemID]]]
+                if ignoreTypeCheck or checkMyWreck is True or checkMyCargo is True:
+                    if checkNotAbandoned:
+                        if checkMyWreck:
+                            menuEntries += [[uiutil.MenuLabel('UI/Inflight/AbandonWreack'), self.AbandonLoot, [itemID]]]
+                            menuEntries += [[uiutil.MenuLabel('UI/Inflight/AbandonAllWrecks'), self.AbandonAllLoot, [itemID]]]
+                        if checkMyCargo:
+                            menuEntries += [[uiutil.MenuLabel('UI/Inflight/AbandonCargo'), self.AbandonLoot, [itemID]]]
+                            menuEntries += [[uiutil.MenuLabel('UI/Inflight/AbandonAllCargo'), self.AbandonAllLoot, [itemID]]]
+                if checkScoopable and slimItem is not None and session.structureid is None:
+                    menuEntries += [[uiutil.MenuLabel('UI/Inflight/ScoopToCargoHold'), self.Scoop, (itemID, typeID)]]
+                    if checkMyShipIsFHShip:
+                        menuEntries += [[uiutil.MenuLabel('UI/Inflight/ScoopToFleetHangar'), self.ScoopToFleetHangar, (itemID, typeID)]]
+                    if checkFighter and checkMyShipHasFighterBay:
+                        menuEntries += [[uiutil.MenuLabel('UI/Inflight/ScoopToFighterBay'), self.ScoopToFighterBay, (itemID, typeID)]]
+                if checkScoopableSMA:
+                    menuEntries += [[uiutil.MenuLabel('UI/Inflight/POS/ScoopToShipMaintenanceBay'), self.ScoopSMA, (itemID,)]]
+                if checkConstructionPf is True:
+                    menuEntries += [None]
+                    if checkTransferDist:
+                        menuEntries += [[uiutil.MenuLabel('UI/Inflight/POS/AccessPOSResources'), self.OpenConstructionPlatform, (itemID,)]]
+                        menuEntries += [[uiutil.MenuLabel('UI/Inflight/POS/BuildConstructionPlatform'), self.BuildConstructionPlatform, (itemID,)]]
+                if checkAnchorable and checkConfigDist and checkIsMineOrCorps and checkAnchorDrop and checkIsFree:
+                    menuEntries += [[uiutil.MenuLabel('UI/Inflight/POS/AnchorObject'), self.AnchorObject, (itemID, 1)]]
+                if checkAnchorable and checkConfigDist and checkIsMineOrCorps and checkAnchorLift and not checkIsFree:
+                    menuEntries += [[uiutil.MenuLabel('UI/Inflight/UnanchorObject'), self.AnchorObject, (itemID, 0)]]
+                else:
+                    prereqs = [('notWithinMaxConfigRange', checkConfigDist, True), ('checkIsMineOrCorps', checkIsMineOrCorps, True)]
+                    reason = self.FindReasonNotAvailable(prereqs)
+                    if reason:
+                        menuEntries.reasonsWhyNotAvailable['UI/Inflight/UnanchorObject'] = reason
+                structureEntries = []
+                if checkJumpPortalArray is True:
+                    structureBridge = sm.services['pwn'].GetActiveBridgeForStructure(itemID)
+                    checkStructureHasBridge = structureBridge is not None
+                    if structureBridge is not None:
+                        bridgeJumpLabel = uiutil.MenuLabel('UI/Fleet/JumpThroughToSystem', {'solarsystem': structureBridge[1]})
+                        bridgeUnlinkLabel = uiutil.MenuLabel('UI/Inflight/UnbridgeFromSolarsystem', {'solarsystem': structureBridge[1]})
+                    else:
+                        bridgeJumpLabel = uiutil.MenuLabel('UI/Inflight/JumpThroughError')
+                        bridgeUnlinkLabel = uiutil.MenuLabel('UI/Inflight/JumpThroughError')
+                    checkStructureFullyOnline = sm.services['pwn'].IsStructureFullyOnline(itemID)
+                    checkStructureFullyAnchored = sm.services['pwn'].IsStructureFullyAnchored(itemID)
+                    if not checkInCapsule and checkIsMyCorps and checkStructureFullyAnchored and not checkStructureHasBridge:
+                        structureEntries += [[uiutil.MenuLabel('UI/Inflight/Submenus/BridgeTo'), self.JumpPortalBridgeMenu, (itemID,)]]
+                    if not checkInCapsule and checkIsMyCorps and checkStructureHasBridge and checkStructureFullyAnchored:
+                        structureEntries += [[bridgeUnlinkLabel, self.UnbridgePortal, (itemID,)]]
+                    if not checkInCapsule and checkStructureHasBridge and checkStructureFullyOnline and checkJumpDist:
+                        structureEntries += [[bridgeJumpLabel, self.JumpThroughPortal, (itemID,)]]
+                    if checkAnchorable and checkConfigDist and checkIsMineOrCorpsOrAlliances and not checkIsFree and checkTransferDist:
+                        structureEntries += [[uiutil.MenuLabel('UI/Inflight/POS/AccessPOSResources'), self.OpenPOSJumpBridge, (itemID,)]]
+                if checkAnchorable and checkConfigDist and checkIsMineOrCorpsOrAlliances and not checkIsFree:
+                    if checkControlTower:
+                        structureEntries += [[uiutil.MenuLabel('UI/Inflight/POS/AccessPOSFuelBay'), self.OpenPOSFuelBay, (itemID,)]]
+                        structureEntries += [[uiutil.MenuLabel('UI/Inflight/POS/AccessPOSStrontiumBay'), self.OpenStrontiumBay, (itemID,)]]
+                    if checkSentry:
+                        structureEntries += [[uiutil.MenuLabel('UI/Inflight/POS/AccessPOSAmmo'), self.OpenPOSStructureCharges, (itemID, True)]]
+                    if checkLaserSentry:
+                        structureEntries += [[uiutil.MenuLabel('UI/Inflight/POS/AccessPOSActiveCrystal'), self.OpenPOSStructureChargeCrystal, (itemID,)]]
+                        structureEntries += [[uiutil.MenuLabel('UI/Inflight/POS/AccessPOSCrystalStorage'), self.OpenPOSStructureChargesStorage, (itemID,)]]
+                    checkCanStoreVessel = shipItem is not None and shipItem.groupID != const.groupCapsule
+                    if checkCanStoreVessel and checkShipMaintainer:
+                        structureEntries += [[uiutil.MenuLabel('UI/Inflight/POS/StoreVesselInSMA'), self.StoreVessel, (itemID, session.shipid)]]
+                    if checkShipMaintainer:
+                        structureEntries += [[uiutil.MenuLabel('UI/Fitting/UseFittingService'), uicore.cmd.OpenFitting, ()]]
+                    if checkAssemblyArray:
+                        structureEntries += [[uiutil.MenuLabel('UI/Inflight/POS/AccessPOSStorage'), self.OpenCorpHangarArray, (itemID,)]]
+                    if checkMobileLaboratory:
+                        structureEntries += [[uiutil.MenuLabel('UI/Inflight/POS/AccessPOSStorage'), self.OpenCorpHangarArray, (itemID,)]]
+                if checkAnchorable and not checkIsFree:
+                    if checkIsMineOrCorps and checkControlTower:
+                        structureEntries += [[uiutil.MenuLabel('UI/Inflight/POS/ManageControlTower'), self.ManageControlTower, (slimItem,)]]
+                        if checkConfigDist:
+                            structureEntries += [[uiutil.MenuLabel('UI/Inflight/POS/SetNewPasswordForForceField'), self.EnterForceFieldPassword, (itemID,)]]
+                    if checkTransferDist and checkIsMineOrCorpsOrAlliances and checkShipMaintainer:
+                        structureEntries += [[uiutil.MenuLabel('UI/Inflight/POS/AccessPOSVessels'), self.OpenPOSShipMaintenanceArray, (itemID,)]]
+                        structureEntries += [None]
+                    else:
+                        prereqs = [('notWithinMaxTransferRange', checkTransferDist, True), ('notOwnedByYouOrCorpOrAlliance', checkIsMineOrCorpsOrAlliances, True)]
+                        reason = self.FindReasonNotAvailable(prereqs)
+                        if reason:
+                            menuEntries.reasonsWhyNotAvailable['UI/Inflight/POS/AccessPOSVessels'] = reason
+                    if checkTransferDist and checkIsMineOrCorpsOrAlliances:
+                        if checkCorpHangarArray:
+                            structureEntries += [[uiutil.MenuLabel('UI/Inflight/POS/AccessPOSStorage'), self.OpenCorpHangarArray, (itemID,)]]
+                        if checkPersonalHangar:
+                            structureEntries += [[uiutil.MenuLabel('UI/Inflight/POS/AccessPOSStorage'), self.OpenPersonalHangar, (itemID,)]]
+                        if checkRenameable and (checkAssemblyArray or checkMobileLaboratory):
+                            structureEntries += [[uiutil.MenuLabel('UI/Commands/SetName'), self.SetName, (slimItem,)]]
+                        if checkSilo:
+                            structureEntries += [[uiutil.MenuLabel('UI/Inflight/POS/AccessPOSStorage'), self.OpenPOSSilo, (itemID,)]]
+                        if checkReactor:
+                            structureEntries += [[uiutil.MenuLabel('UI/Inflight/POS/AccessPOSStorage'), self.OpenPOSMobileReactor, (itemID,)]]
+                    else:
+                        prereqs = [('notWithinMaxTransferRange', checkTransferDist, True), ('notOwnedByYouOrCorpOrAlliance', checkIsMineOrCorpsOrAlliances, True)]
+                        reason = self.FindReasonNotAvailable(prereqs)
+                        if reason:
+                            menuEntries.reasonsWhyNotAvailable['UI/Inflight/POS/AccessPOSVessels'] = reason
+                            menuEntries.reasonsWhyNotAvailable['UI/Inflight/POS/AccessPOSStorage'] = reason
+                checkRefineryState = otherBall and not otherBall.isFree
+                if groupID == const.groupReprocessingArray and checkRefineryState and checkTransferDist:
+                    structureEntries += [[uiutil.MenuLabel('UI/Inflight/POS/AccessPOSRefinery'), self.OpenPOSRefinery, (itemID,)]]
+                else:
+                    prereqs = [('notWithinMaxTransferRange', checkTransferDist, True)]
+                    reason = self.FindReasonNotAvailable(prereqs)
+                    if reason:
+                        menuEntries.reasonsWhyNotAvailable['UI/Inflight/POS/AccessPOSRefinery'] = reason
+                if typeID == const.typeCompressionArray and checkTransferDist:
+                    structureEntries += [[uiutil.MenuLabel('UI/Inflight/POS/AccessPOSCompression'), self.OpenPOSCompression, (itemID,)]]
+                else:
+                    prereqs = [('notWithinMaxTransferRange', checkTransferDist, True)]
+                    reason = self.FindReasonNotAvailable(prereqs)
+                    if reason:
+                        menuEntries.reasonsWhyNotAvailable['UI/Inflight/POS/AccessPOSCompression'] = reason
+                if groupID == const.groupControlBunker:
+                    structureEntries += [[uiutil.MenuLabel('UI/FactionWarfare/IHub/OpenInfrastructureHubPanel'), openFunctions.OpenInfrastructureHubPanel, (itemID,)]]
+                if checkConfigDist and checkIsMyCorps:
+                    checkIfIAmDirector = session.corprole & const.corpRoleDirector > 0
+                    if groupID == const.groupInfrastructureHub:
+                        structureEntries += [[uiutil.MenuLabel('UI/Menusvc/OpenHubManager'), sm.GetService('sov').GetInfrastructureHubWnd, (itemID,)]]
+                    if checkIfIAmDirector and groupID in (const.groupSovereigntyClaimMarkers, const.groupInfrastructureHub):
+                        structureEntries += [[uiutil.MenuLabel('UI/Inflight/POS/TransferSovStructureOwnership'), self.TransferOwnership, (itemID,)]]
+                        if checkSelfDestructActive:
+                            structureEntries += [[uiutil.MenuLabel('UI/Inflight/AbortSelfDestruct'), self.AbortSelfDestructStructure, (itemID,)]]
+                        else:
+                            structureEntries += [[uiutil.MenuLabel('UI/Inflight/SelfDestructShipOrPod'), self.SelfDestructStructure, (itemID,)]]
+                if checkPosStructure is True:
+                    checkIsSovereigntyDisruptor = categoryID == const.categorySovereigntyStructure and groupID == const.groupSovereigntyDisruptionStructures
+                    checkCanAnchorStructure = bool(slimItem) and self.pwn.CanAnchorStructure(itemID)
+                    checkCanUnanchorStructure = bool(slimItem) and self.pwn.CanUnanchorStructure(itemID)
+                    checkCanOnlineStructure = bool(slimItem) and self.pwn.CanOnlineStructure(itemID)
+                    checkCanOfflineStructure = bool(slimItem) and self.pwn.CanOfflineStructure(itemID)
+                    checkCanAssumeControlStructure = bool(slimItem) and self.pwn.CanAssumeControlStructure(itemID)
+                    checkHasControlStructureTarget = bool(slimItem) and self.pwn.GetCurrentTarget(itemID) is not None
+                    checkHasControl = bool(slimItem) and slimItem.controllerID is not None
+                    checkHasMyControl = bool(slimItem) and slimItem.controllerID is not None and slimItem.controllerID == session.charid
+                    checkIsMineOrCorpsOrAlliancesOrOrphaned = bool(slimItem) and (self.pwn.StructureIsOrphan(itemID) or checkIsMineOrCorpsOrAlliances)
+                    checkInPlanetMode = sm.GetService('viewState').IsViewActive('planet')
+                    if checkAnchorable and checkConfigDist and checkPosStructure:
+                        if checkIsMineOrCorpsOrAlliances and checkCanAnchorStructure:
+                            structureEntries += [[uiutil.MenuLabel('UI/Inflight/POS/AnchorStructure'), sm.StartService('posAnchor').StartAnchorPosSelect, (itemID,)]]
+                        if checkIsMineOrCorpsOrAlliancesOrOrphaned and checkCanUnanchorStructure:
+                            structureEntries += [[uiutil.MenuLabel('UI/Inflight/POS/UnanchorStructure'), self.UnanchorStructure, (itemID,)]]
+                        if checkIsMineOrCorpsOrAlliances and checkCanOnlineStructure and not checkIsSovereigntyDisruptor:
+                            structureEntries += [[uiutil.MenuLabel('UI/Inflight/PutStructureOnline'), self.ToggleObjectOnline, (itemID, 1)]]
+                        if checkIsMineOrCorpsOrAlliances and checkCanOfflineStructure:
+                            structureEntries += [[uiutil.MenuLabel('UI/Inflight/PutStructureOffline'), self.ToggleObjectOnline, (itemID, 0)]]
+                        if checkIsSovereigntyDisruptor and checkCanOnlineStructure:
+                            structureEntries += [[uiutil.MenuLabel('UI/Inflight/PutStructureOnline'), self.ToggleObjectOnline, (itemID, 1)]]
+                    if checkAnchorable and checkIsMineOrCorpsOrAlliances and checkCanAssumeControlStructure and checkCanOfflineStructure and checkPosStructure and not checkSovStructure and not checkInPlanetMode:
+                        if checkHasMyControl:
+                            structureEntries += [[uiutil.MenuLabel('UI/Inflight/POS/RelinquishPOSControl'), self.pwn.RelinquishStructureControl, (slimItem,)]]
+                        if not checkHasControl:
+                            structureEntries += [[uiutil.MenuLabel('UI/Inflight/POS/AssumeStructureControl'), self.pwn.AssumeStructureControl, (slimItem,)]]
+                    if checkAnchorable and checkIsMineOrCorpsOrAlliances and checkCanAssumeControlStructure and checkPosStructure and checkHasMyControl and checkHasControlStructureTarget and not checkSovStructure:
+                        structureEntries += [[uiutil.MenuLabel('UI/Inflight/POS/UnlcokSTructureTarget'), self.pwn.UnlockStructureTarget, (itemID,)]]
+                if slimItem and (checkOrbital or checkPlanetCustomsOffice):
+                    checkCanAnchorOrbital = slimItem and slimItem.orbitalState in (None, entities.STATE_UNANCHORED)
+                    checkIsOrbitalAnchored = slimItem and slimItem.orbitalState == entities.STATE_ANCHORED
+                    checkCanUnanchorOrbital = slimItem and slimItem.groupID == const.groupOrbitalConstructionPlatforms
+                    checkCanConfigureOrbital = slimItem and slimItem.groupID != const.groupOrbitalConstructionPlatforms
+                    checkIfIAmDirector = session.corprole & const.corpRoleDirector > 0
+                    if checkBP and checkAnchorable and checkCanAnchorOrbital and checkIsMyCorps:
+                        structureEntries += [[uiutil.MenuLabel('UI/Inflight/POS/AnchorObject'), self.AnchorOrbital, (itemID,)]]
+                    if checkBP and checkAnchorable and checkIsOrbitalAnchored and checkCanUnanchorOrbital and checkIsMyCorps:
+                        structureEntries += [[uiutil.MenuLabel('UI/Inflight/UnanchorObject'), self.UnanchorOrbital, (itemID,)]]
+                    if checkBP and checkIsOrbitalAnchored and checkCanConfigureOrbital and checkIsMyCorps and checkIsStationManager:
+                        structureEntries += [[uiutil.MenuLabel('UI/DustLink/ConfigureOrbital'), self.ConfigureOrbital, (slimItem,)]]
+                    if checkBP and checkIsOrbitalAnchored and checkCanConfigureOrbital and checkIsMyCorps and checkIfIAmDirector:
+                        structureEntries += [[uiutil.MenuLabel('UI/Inflight/POS/TransferSovStructureOwnership'), self.TransferCorporationOwnership, (itemID,)]]
+                if len(structureEntries):
+                    menuEntries.append(None)
+                    menuEntries.extend(structureEntries)
+                if checkWreck:
+                    if checkWreckViewed:
+                        menuEntries += [[uiutil.MenuLabel('UI/Inflight/MarkWreckNotViewed'), sm.GetService('wreck').MarkViewed, (itemID, False)]]
+                    else:
+                        menuEntries += [[uiutil.MenuLabel('UI/Inflight/MarkWreckViewed'), sm.GetService('wreck').MarkViewed, (itemID, True)]]
+                if slimItem and (ignoreTypeCheck or checkMultiGroups2 is False):
+                    menuEntries += [None]
+                    checkIsOrbital = slimItem and util.IsOrbital(slimItem.categoryID)
+                    if not checkMultiGroups2 and not checkCynoField and not checkIsOrbital and checkCanRename and checkRenameable:
+                        menuEntries += [[uiutil.MenuLabel('UI/Commands/SetName'), self.SetName, (slimItem,)]]
+                tagItemMenu = [(uiutil.MenuLabel('UI/Fleet/FleetTagNumber'), [ (' ' + str(i), self.TagItem, (itemID, str(i))) for i in xrange(10) ])]
+                tagItemMenu += [(uiutil.MenuLabel('UI/Fleet/FleetTagLetter'), [ (' ' + str(i), self.TagItem, (itemID, str(i))) for i in 'ABCDEFGHIJXYZ' ])]
+                menuEntries += [None]
+                if checkInTargets and not checkBeingTargeted:
+                    menuEntries += [[uiutil.MenuLabel('UI/Inflight/UnlockTarget'), self.UnlockTarget, (itemID,)]]
+                else:
+                    prereqs = [('notInTargets', checkInTargets, True), ('beingTargeted', checkBeingTargeted, False)]
+                    reason = self.FindReasonNotAvailable(prereqs)
+                    if reason:
+                        menuEntries.reasonsWhyNotAvailable['UI/Inflight/UnlockTarget'] = reason
+                if not checkMyShip and not checkInTargets and not checkBeingTargeted and not checkPMA and checkTargetingRange and not checkDockedInStructure:
+                    menuEntries += [[uiutil.MenuLabel('UI/Inflight/LockTarget'), self.LockTarget, (itemID,)]]
+                else:
+                    prereqs = [('isMyShip', checkMyShip, False),
+                     ('alreadyTargeted', checkInTargets, False),
+                     ('checkBeingTargeted', checkBeingTargeted, False),
+                     ('badGroup',
+                      checkPMA,
+                      False,
+                      {'groupName': groupName}),
+                     ('notInTargetingRange', checkTargetingRange, True),
+                     ('dockedInStructure', checkDockedInStructure, False)]
+                    reason = self.FindReasonNotAvailable(prereqs)
+                    if reason:
+                        menuEntries.reasonsWhyNotAvailable['UI/Inflight/LockTarget'] = reason
+                if not checkMyShip and not checkPMA and checkFleet and checkIfImCommander:
+                    menuEntries += [[uiutil.MenuLabel('UI/Fleet/FleetSubmenus/FleetTagItem'), tagItemMenu]]
+                if checkSpacePig and checkSpacePigDist:
+                    menuEntries += [[uiutil.MenuLabel('UI/Chat/StartConversation'), sm.StartService('agents').InteractWith, (sm.StartService('godma').GetType(typeID).agentID,)]]
+                else:
+                    prereqs = [('notSpacePig', checkSpacePig, True)]
+                    reason = self.FindReasonNotAvailable(prereqs)
+                    if reason:
+                        menuEntries.reasonsWhyNotAvailable['UI/Chat/StartConversation'] = reason
+                menuEntries += [None]
+                if ignoreTypeCheck or checkMultiGroups1 is True:
+                    menuEntries += [None]
+                    if checkMultiGroups1:
+                        desc = localization.GetByLabel('UI/Menusvc/SetNewPasswordForContainerDesc')
+                        menuEntries += [[uiutil.MenuLabel('UI/Inventory/ItemActions/SetNewPasswordForContainer'), self.AskNewContainerPassword, (itemID, desc, const.SCCPasswordTypeGeneral)]]
+                    if checkAuditLogSecureContainer:
+                        desc = localization.GetByLabel('UI/Menusvc/SetNewConfigPasswordForContainer')
+                        menuEntries += [[uiutil.MenuLabel('UI/Inventory/ItemActions/SetNewConfigPasswordForContainer'), self.AskNewContainerPassword, (itemID, desc, const.SCCPasswordTypeConfig)]]
+                    if checkIsMineOrCorps:
+                        if checkAuditLogSecureContainer:
+                            menuEntries += [[uiutil.MenuLabel('UI/Inventory/ItemActions/ViewLog'), openFunctions.ViewAuditLogForALSC, (itemID,)]]
+                        if checkAuditLogSecureContainer:
+                            menuEntries += [[uiutil.MenuLabel('UI/Inventory/ItemActions/ConfigureALSContainer'), self.ConfigureALSC, (itemID,)]]
+                        if checkAuditLogSecureContainer:
+                            menuEntries += [[uiutil.MenuLabel('UI/Commands/RetrievePassword'), self.RetrievePasswordALSC, (itemID,)]]
+                if typeID == const.typeMobileShippingUnit and slimItem.timerInfo is None:
+                    menuEntries += [[uiutil.MenuLabel('UI/Menusvc/AccessShippingUnit'), self.OpenShippingUnitStorage, (itemID,)]]
+                if not self.IsItemDead(bp, itemID) and slimItem and IsActiveComponent(bp.componentRegistry, typeID, itemID):
+                    if HasCargoBayComponent(typeID):
+                        if cargobay.IsAccessibleByCharacter(slimItem, session.charid, cfg.spaceComponentStaticData):
+                            menuEntries.extend(cargobay.GetMenu(itemID, typeID, self, cfg.spaceComponentStaticData))
+                    if HasBountyEscrowComponent(typeID):
+                        from spacecomponents.common.componentConst import BOUNTYESCROW_CLASS
+                        be = bp.componentRegistry.GetComponentForItem(itemID, BOUNTYESCROW_CLASS)
+                        menuEntries.extend(be.GetMenu())
+                    if HasMicroJumpDriverComponent(typeID):
+                        menuEntries.extend(microJumpDriver.GetMenu(sm.GetService('michelle'), session.shipid, itemID))
+                    if HasItemTrader(typeID):
+                        ballpark = sm.StartService('michelle').GetBallpark()
+                        menuEntries.extend(itemtrader.GetMenu(ballpark, itemID))
+            if checkIsStationManager and (groupID in (const.groupAssemblyArray, const.groupMobileLaboratory) or util.IsStation(itemID)):
+                if checkIsMyCorps or util.IsStation(itemID) and sm.StartService('ui').GetStation(itemID).ownerID == session.corpid:
+                    if sm.GetService('facilitySvc').IsFacility(itemID):
+                        menuEntries += [[uiutil.MenuLabel('UI/Menusvc/ConfigureFacility'), self.ConfigureIndustryTax, (itemID, typeID)]]
+            checkInTactical = sm.StartService('tactical').CheckIfGroupIDActive(groupID)
+            mapTypeID = typeID
+            mapFunctionID = itemID
+            if groupID in [const.groupSolarSystem, const.groupConstellation, const.groupRegion] and parentID != session.solarsystemid and not (bookmark and bookmark.itemID == bookmark.locationID and bookmark.x and bookmark.y and bookmark.z):
+                mapFunctionID = mapItemID or itemID
+            elif bookmark:
+                if groupID != const.groupStation:
+                    mapFunctionID = bookmark.locationID
+                    parentBookmarkItem = sm.GetService('map').GetItem(mapFunctionID)
+                    if parentBookmarkItem and parentBookmarkItem.groupID == const.groupSolarSystem:
+                        mapTypeID = parentBookmarkItem.typeID
+            checkSameSolarSystemID = mapFunctionID and mapFunctionID == session.solarsystemid2
+            checkCanBeWaypoint = mapTypeID == const.typeSolarSystem or groupID == const.groupStation
+            if checkCanBeWaypoint:
+                waypoints = sm.GetService('starmap').GetWaypoints()
+                checkInWaypoints = mapFunctionID in waypoints
+                if util.IsSolarSystem(mapFunctionID):
+                    solarSystemID = mapFunctionID
+                elif util.IsStation(mapFunctionID):
+                    solarSystemID = cfg.stations.Get(mapFunctionID).solarSystemID
+                else:
+                    log.LogError('mapFunctionID is not a solarsystem or a station, this will probably end up in a strange menu behaviour.', mapFunctionID)
+                    solarSystemID = mapFunctionID
+                checkCanJump = session.solarsystemid is not None and solarSystemID in sm.GetService('map').GetNeighbors(session.solarsystemid) and checkInShipInSpace
+                menuEntries += [None]
+                if checkCanJump:
 
-        rangeMenu = []
-        for eachRange in rangesList:
-            fmtRange = util.FmtDist(eachRange)
-            rangeMenu.append((fmtRange, mainFunc, (itemID, eachRange)))
+                    def FindStargateAndRequestJump():
+                        localStargate = uix.FindLocalStargate(solarSystemID)
+                        if localStargate is None:
+                            return
+                        else:
+                            destSolarSystemID = localStargate.jumps[0].locationID
+                            destStargateID = localStargate.jumps[0].toCelestialID
+                            localStargateID = localStargate.itemID
+                            self.StargateJump(localStargateID, destStargateID, destSolarSystemID)
+                            return
 
-        rangeMenu += [(uiutil.MenuLabel(atCurrentRangeLabel, {'currentDistance': currentDistance}), mainFunc, (itemID, dist)), None, (uiutil.MenuLabel(setDefaultLabel), rangeSubMenu)]
-        return rangeMenu
+                    menuEntries += [[uiutil.MenuLabel('UI/Inflight/JumpThroughStargate'), FindStargateAndRequestJump, tuple()]]
+                if mapFunctionID:
+                    if not checkSameSolarSystemID:
+                        menuEntries += [[uiutil.MenuLabel('UI/Inflight/SetDestination'), sm.StartService('starmap').SetWaypoint, (mapFunctionID, True)]]
+                    if checkInWaypoints:
+                        menuEntries += [[uiutil.MenuLabel('UI/Inflight/RemoveWaypoint'), sm.StartService('starmap').ClearWaypoints, (mapFunctionID,)]]
+                    else:
+                        menuEntries += [[uiutil.MenuLabel('UI/Inflight/AddWaypoint'), sm.StartService('starmap').SetWaypoint, (mapFunctionID,)]]
+                    if checkFleet and (checkSolarSystem or checkStation):
+                        menuEntries += [None]
+                        menuEntries += [[uiutil.MenuLabel('UI/Fleet/FleetBroadcast/Commands/BroadcastTravelTo'), sm.GetService('fleet').SendBroadcast_TravelTo, (mapFunctionID,)]]
+            elif checkStation and itemID and itemID != session.solarsystemid2:
+                menuEntries += [None]
+                menuEntries += [[uiutil.MenuLabel('UI/Inflight/SetDestination'), sm.StartService('starmap').SetWaypoint, (itemID, True)]]
+            elif checkStructure and mapFunctionID and util.IsSolarSystem(parentID) and parentID != session.solarsystemid2:
+                menuEntries += [[uiutil.MenuLabel('UI/Inflight/SetDestinationToSystem'), sm.StartService('starmap').SetWaypoint, (parentID, True)]]
+            if checkStructure and checkIsMyCorps and checkIsStationManager:
+                menuEntries += [[uiutil.MenuLabel('UI/Commands/EditProfileForStructure'), openFunctions.OpenProfileSettingsForStructure, (itemID,)]]
+            if checkStation and not session.structureid:
+                menuEntries += [[uiutil.MenuLabel('UI/Menusvc/SetHomeStation'), self.SetHomeStation, (itemID,)]]
+            if session.solarsystemid and not checkIfLandmark and typeID not in const.OVERVIEW_IGNORE_TYPES:
+                if checkInTactical == True:
+                    label = uiutil.MenuLabel('UI/Overview/RemoveGroupFromOverview', {'groupName': groupName})
+                    changeList = [('groups', groupID, 0)]
+                    menuEntries += [[label, sm.StartService('overviewPresetSvc').ChangeSettings, (changeList,)]]
+                elif checkInTactical == False:
+                    label = uiutil.MenuLabel('UI/Overview/AddGroupToOverview', {'groupName': groupName})
+                    changeList = [('groups', groupID, 1)]
+                    menuEntries += [[label, sm.StartService('overviewPresetSvc').ChangeSettings, (changeList,)]]
+            if not bookmark and checkMultiCategs1 is False:
+                if groupID == const.groupBeacon:
+                    beacon = sm.StartService('michelle').GetItem(itemID)
+                    if beacon and hasattr(beacon, 'dunDescriptionID') and beacon.dunDescriptionID:
+                        hint = localization.GetByMessageID(beacon.dunDescriptionID)
+                if itemID and parentID:
+                    menuEntries += [None]
+                    if not checkMultiCategs1 and not checkIfLandmark:
+                        if IsTypeBookmarkable(typeID, cfg.spaceComponentStaticData):
+                            menuEntries += [[uiutil.MenuLabel('UI/Inflight/BookmarkLocation'), self.Bookmark, (itemID,
+                               typeID,
+                               parentID,
+                               hint)]]
+            if ignoreTypeCheck or mapFunctionID is not None:
+                if groupID in [const.groupSolarSystem, const.groupConstellation, const.groupRegion]:
+                    checkMultiGroups3 = mapFunctionID is not None
+                    menuEntries += [None]
+                    if checkMultiGroups3:
+                        menuEntries += [[uiutil.MenuLabel('UI/Commands/ShowLocationOnMap'), self.ShowInMap, (mapFunctionID,)]]
+                        label = uiutil.MenuLabel('UI/Inflight/ShowInMapBrowser', {'locationType': groupName})
+                        menuEntries += [[label, self.ShowInMapBrowser, (mapFunctionID,)]]
+                        if mapFunctionID not in self.clientPathfinderService.GetAvoidanceItems():
+                            label = uiutil.MenuLabel('UI/Inflight/AvoidLocation', {'theLocation': mapFunctionID,
+                             'locationType': groupName})
+                            menuEntries += [[label, self.clientPathfinderService.AddAvoidanceItem, (mapFunctionID,)]]
+                        else:
+                            label = uiutil.MenuLabel('UI/Inflight/StopAvoidingLocation', {'theLocation': mapFunctionID,
+                             'locationType': groupName})
+                            menuEntries += [[label, self.clientPathfinderService.RemoveAvoidanceItem, (mapFunctionID,)]]
+            if checkPlanet and itemID is not None:
+                if checkPlanet and not checkThisPlanetOpen:
+                    openPlanet = lambda planetID: sm.GetService('viewState').ActivateView('planet', planetID=planetID)
+                    menuEntries += [[uiutil.MenuLabel('UI/PI/Common/ViewInPlanetMode'), openPlanet, (itemID,)]]
+                if checkPlanet and checkThisPlanetOpen:
+                    menuEntries += [[uiutil.MenuLabel('UI/PI/Common/ExitPlanetMode'), sm.GetService('viewState').CloseSecondaryView, ()]]
+            if not ignoreDroneMenu and slimItem and categoryID == const.categoryDrone:
+                newMenuEntries = MenuList([None])
+                for me in self.DroneMenu([[itemID, groupID, slimItem.ownerID]], 1):
+                    newMenuEntries.extend(me)
+
+                newMenuEntries.extend(menuEntries)
+                menuEntries = newMenuEntries
+            if not (filterFunc and localization.GetByLabel('UI/Commands/ShowInfo') in filterFunc):
+                if not checkMultiSelection:
+                    menuEntries += [[uiutil.MenuLabel('UI/Commands/ShowInfo'), self.ShowInfo, (typeID,
+                       itemID,
+                       0,
+                       None,
+                       parentID)]]
+            m += self.ParseMenu(menuEntries, filterFunc)
+            m.reasonsWhyNotAvailable.update(getattr(menuEntries, 'reasonsWhyNotAvailable', None))
+            if groupID == const.groupPlanet:
+                moons = self.GetPrimedMoons(itemID)
+                if moons:
+                    m.append((uiutil.MenuLabel('UI/Menusvc/MoonsMenuOption'), ('isDynamic', self.GetMoons, (itemID, moons))))
+                if checkBP and checkInSystem:
+                    customsOfficeIDs = sm.GetService('planetInfo').GetOrbitalsForPlanet(itemID, const.groupPlanetaryCustomsOffices)
+                    if customsOfficeIDs is not None and len(customsOfficeIDs) > 0:
+                        for customsOfficeID in customsOfficeIDs:
+                            customsOfficeBall = bp.GetBall(customsOfficeID)
+                            if customsOfficeBall:
+                                m.append((uiutil.MenuLabel('UI/PI/Common/CustomsOffice'), ('isDynamic', self.GetCustomsOfficeMenu, (customsOfficeID,))))
+                            break
+
+                districts = sm.GetService('district').GetDistrictByPlanet(itemID)
+                if len(districts):
+                    m.append((uiutil.MenuLabel('UI/Menusvc/DistrictsMenuOption'), ('isDynamic', self.GetDistricts, (itemID, districts))))
+            if checkShip is True and slimItem:
+                m += [None] + [(uiutil.MenuLabel('UI/Common/Pilot'), ('isDynamic', self.CharacterMenu, (slimItem.charID or slimItem.ownerID,
+                    [],
+                    slimItem.corpID,
+                    0,
+                    ['GM / WM Extras'])))]
+            if not (filterFunc and 'UI/Inventory/ItemActions/ViewTypesMarketDetails' in filterFunc) and checkHasMarketGroup:
+                m += [(uiutil.MenuLabel('UI/Inventory/ItemActions/ViewTypesMarketDetails'), self.ShowMarketDetails, (util.KeyVal(typeID=typeID),))]
+            if not (filterFunc and 'UI/Inventory/ItemActions/FindInContracts' in filterFunc) and checkIsPublished and not ignoreMarketDetails:
+                m += [(uiutil.MenuLabel('UI/Inventory/ItemActions/FindInContracts'), sm.GetService('contracts').FindRelated, (typeID,
+                   None,
+                   None,
+                   None,
+                   None,
+                   None))]
+            if not (filterFunc and 'GM / WM Extras' in filterFunc) and session.role & (service.ROLE_GML | service.ROLE_WORLDMOD):
+                m.insert(0, ('GM / WM Extras', ('isDynamic', self.GetGMMenu, (itemID,
+                   slimItem,
+                   None,
+                   None,
+                   mapItem,
+                   typeID))))
+            return m
 
     def FindDist(self, currentDist, bookmark, ownBall, bp, *args):
         return menuFunctions.FindDist(currentDist, bookmark, ownBall, bp)
@@ -2771,34 +2869,37 @@ class MenuSvc(service.Service):
         bp = sm.StartService('michelle').GetRemotePark()
         if bp is None:
             return
-        slim = sm.services['michelle'].GetItem(itemID)
-        remoteStructureID = slim.remoteStructureID
-        if not remoteStructureID:
+        else:
+            slim = sm.services['michelle'].GetItem(itemID)
+            remoteStructureID = slim.remoteStructureID
+            if not remoteStructureID:
+                return
+            remoteSystemID = slim.remoteSystemID
+            self.LogNotice('Jump Through Portal', itemID, remoteStructureID, remoteSystemID)
+            sm.StartService('sessionMgr').PerformSessionChange('jump', bp.CmdJumpThroughCorporationStructure, itemID, remoteStructureID, remoteSystemID)
             return
-        remoteSystemID = slim.remoteSystemID
-        self.LogNotice('Jump Through Portal', itemID, remoteStructureID, remoteSystemID)
-        sm.StartService('sessionMgr').PerformSessionChange('jump', bp.CmdJumpThroughCorporationStructure, itemID, remoteStructureID, remoteSystemID)
 
     def GetFuelConsumptionOfJumpBridgeForMyShip(self, fromSystem, toSystem, toStructureType):
         if not session.shipid:
             return
-        myShip = sm.services['godma'].GetItem(session.shipid)
-        if myShip is None:
-            return
-        distance = uix.GetLightYearDistance(fromSystem, toSystem, False)
-        if distance is None:
-            return
-        attrDict = sm.GetService('info').GetAttributeDictForType(toStructureType)
-        if const.attributeJumpDriveConsumptionAmount in attrDict:
-            consumptionRate = attrDict[const.attributeJumpDriveConsumptionAmount]
         else:
-            consumptionRate = 1
-        shipMass = getattr(myShip, 'mass', None)
-        if shipMass is None:
-            shipMass = 1
-        if const.attributeJumpPortalConsumptionMassFactor in attrDict:
-            massFactor = shipMass * attrDict[const.attributeJumpPortalConsumptionMassFactor]
-        return (pos.GetJumpFuelConsumption(distance, consumptionRate, massFactor), attrDict.get(const.attributeJumpDriveConsumptionType, None))
+            myShip = sm.services['godma'].GetItem(session.shipid)
+            if myShip is None:
+                return
+            distance = uix.GetLightYearDistance(fromSystem, toSystem, False)
+            if distance is None:
+                return
+            attrDict = sm.GetService('info').GetAttributeDictForType(toStructureType)
+            if const.attributeJumpDriveConsumptionAmount in attrDict:
+                consumptionRate = attrDict[const.attributeJumpDriveConsumptionAmount]
+            else:
+                consumptionRate = 1
+            shipMass = getattr(myShip, 'mass', None)
+            if shipMass is None:
+                shipMass = 1
+            if const.attributeJumpPortalConsumptionMassFactor in attrDict:
+                massFactor = shipMass * attrDict[const.attributeJumpPortalConsumptionMassFactor]
+            return (pos.GetJumpFuelConsumption(distance, consumptionRate, massFactor), attrDict.get(const.attributeJumpDriveConsumptionType, None))
 
     def GetHybridBeaconJumpMenu(self):
         fleetMenu = []
@@ -2846,6 +2947,7 @@ class MenuSvc(service.Service):
             return fullMenu
         else:
             return ([uiutil.MenuLabel('UI/Inflight/NoDestination'), self.DoNothing],)
+            return
 
     def OpenCapitalNavigation(self, *args):
         if util.GetActiveShip():
@@ -2891,6 +2993,7 @@ class MenuSvc(service.Service):
             return ([uiutil.MenuLabel('UI/Inflight/NoDestination'), self.DoNothing],)
         else:
             return fleetMenu
+            return
 
     def CreateSubMenusForLongMenus(self, menuList, menuSize, subMenuFunc, *args):
         allMenuItems = []
@@ -2951,7 +3054,7 @@ class MenuSvc(service.Service):
 
     def WarpToMenu(self, func, ID):
         ranges = movementFunctions.GetWarpToRanges()
-        defMenuWarpOptions = [ (util.FmtDist(rnge), self.SetDefaultWarpToDist, (rnge,)) for rnge in ranges ]
+        defMenuWarpOptions = [ (util.FmtDist(rnge), defaultRangeUtils.SetDefaultWarpToDist, (rnge,)) for rnge in ranges ]
         warpDistMenu = [(uiutil.MenuLabel('UI/Inflight/WarpToWithin', {'distance': util.FmtDist(ranges[0])}), func, (ID, float(ranges[0]))),
          (uiutil.MenuLabel('UI/Inflight/WarpToWithin', {'distance': util.FmtDist(ranges[1])}), func, (ID, float(ranges[1]))),
          (uiutil.MenuLabel('UI/Inflight/WarpToWithin', {'distance': util.FmtDist(ranges[2])}), func, (ID, float(ranges[2]))),
@@ -2966,108 +3069,109 @@ class MenuSvc(service.Service):
     def MergeMenus(self, menus):
         if not menus:
             return []
-        allCaptions = []
-        allEntries = []
-        allReasons = {}
-        for menu in menus:
-            i = 0
-            if getattr(menu, 'reasonsWhyNotAvailable', {}):
-                allReasons.update(menu.reasonsWhyNotAvailable)
-            for each in menu:
-                if each is None:
-                    if len(allEntries) <= i:
-                        allEntries.append(None)
-                    else:
-                        while allEntries[i] != None:
-                            i += 1
-                            if i == len(allEntries):
-                                allEntries.append(None)
-                                break
-
-                else:
-                    if isinstance(each[0], uiutil.MenuLabel):
-                        eachCaption = each[0][0]
-                        kwords = each[0][1]
-                    else:
-                        eachCaption = each[0]
-                        kwords = {}
-                    if (eachCaption, kwords) not in allCaptions:
-                        allEntries.insert(i, each[0])
-                        allCaptions.append((eachCaption, kwords))
-                i += 1
-
-        menus = filter(None, [ filter(None, each) for each in menus ])
-        ret = MenuList()
-        ret.reasonsWhyNotAvailable = allReasons
-        for eachEntry in allEntries:
-            if eachEntry is None:
-                ret.append(None)
-                continue
-            keywords = {}
-            if isinstance(eachEntry, uiutil.MenuLabel):
-                caption = eachEntry[0]
-                keywords = eachEntry[1]
-            else:
-                caption = eachEntry
-            lst = []
-            isList = None
-            broken = 0
+        else:
+            allCaptions = []
+            allEntries = []
+            allReasons = {}
             for menu in menus:
-                for entry in menu:
-                    entryKeywords = {}
-                    if isinstance(eachEntry, uiutil.MenuLabel):
-                        entryCaption = entry[0][0]
-                        entryKeywords = entry[0][1]
-                    else:
-                        entryCaption = entry[0]
-                    if entryCaption == caption and entryKeywords == keywords:
-                        if type(entry[1]) in (str, unicode):
-                            ret.append((eachEntry, entry[1]))
-                            broken = 1
-                            break
-                        if type(entry[1]) == tuple and entry[1][0] == 'isDynamic' and len(entry) == 2:
-                            ret.append((eachEntry, entry[1]))
-                            broken = 1
-                            break
-                        if isList is None:
-                            isList = type(entry[1]) == list
-                        if isList != (type(entry[1]) == list):
-                            broken = 1
-                        elif isList:
-                            lst.append(entry[1])
+                i = 0
+                if getattr(menu, 'reasonsWhyNotAvailable', {}):
+                    allReasons.update(menu.reasonsWhyNotAvailable)
+                for each in menu:
+                    if each is None:
+                        if len(allEntries) <= i:
+                            allEntries.append(None)
                         else:
-                            lst.append(entry[1:])
+                            while allEntries[i] != None:
+                                i += 1
+                                if i == len(allEntries):
+                                    allEntries.append(None)
+                                    break
+
+                    else:
+                        if isinstance(each[0], uiutil.MenuLabel):
+                            eachCaption = each[0][0]
+                            kwords = each[0][1]
+                        else:
+                            eachCaption = each[0]
+                            kwords = {}
+                        if (eachCaption, kwords) not in allCaptions:
+                            allEntries.insert(i, each[0])
+                            allCaptions.append((eachCaption, kwords))
+                    i += 1
+
+            menus = filter(None, [ filter(None, each) for each in menus ])
+            ret = MenuList()
+            ret.reasonsWhyNotAvailable = allReasons
+            for eachEntry in allEntries:
+                if eachEntry is None:
+                    ret.append(None)
+                    continue
+                keywords = {}
+                if isinstance(eachEntry, uiutil.MenuLabel):
+                    caption = eachEntry[0]
+                    keywords = eachEntry[1]
+                else:
+                    caption = eachEntry
+                lst = []
+                isList = None
+                broken = 0
+                for menu in menus:
+                    for entry in menu:
+                        entryKeywords = {}
+                        if isinstance(eachEntry, uiutil.MenuLabel):
+                            entryCaption = entry[0][0]
+                            entryKeywords = entry[0][1]
+                        else:
+                            entryCaption = entry[0]
+                        if entryCaption == caption and entryKeywords == keywords:
+                            if type(entry[1]) in (str, unicode):
+                                ret.append((eachEntry, entry[1]))
+                                broken = 1
+                                break
+                            if type(entry[1]) == tuple and entry[1][0] == 'isDynamic' and len(entry) == 2:
+                                ret.append((eachEntry, entry[1]))
+                                broken = 1
+                                break
+                            if isList is None:
+                                isList = type(entry[1]) == list
+                            if isList != (type(entry[1]) == list):
+                                broken = 1
+                            elif isList:
+                                lst.append(entry[1])
+                            else:
+                                lst.append(entry[1:])
+                            break
+
+                    if broken:
                         break
 
-                if broken:
-                    break
+                if not broken:
+                    if isList:
+                        ret.append((eachEntry, self.MergeMenus(lst)))
+                    elif self.CaptionIsInMultiFunctions(caption) or len(lst) and len(lst[0]) and lst[0][0] in self.multiFunctionFunctions:
+                        mergedArgs = []
+                        rest = []
+                        for entry in lst:
+                            _func = entry[0]
+                            args = entry[1]
+                            rest = entry[2:]
+                            if type(args) == type([]):
+                                mergedArgs += args
+                            else:
+                                log.LogWarn('unsupported format of arguments for MergeMenu, function label: ', caption)
 
-            if not broken:
-                if isList:
-                    ret.append((eachEntry, self.MergeMenus(lst)))
-                elif self.CaptionIsInMultiFunctions(caption) or len(lst) and len(lst[0]) and lst[0][0] in self.multiFunctionFunctions:
-                    mergedArgs = []
-                    rest = []
-                    for entry in lst:
-                        _func = entry[0]
-                        args = entry[1]
-                        rest = entry[2:]
-                        if type(args) == type([]):
-                            mergedArgs += args
-                        else:
-                            log.LogWarn('unsupported format of arguments for MergeMenu, function label: ', caption)
+                        if isinstance(rest, tuple):
+                            rest = list(rest)
+                        if mergedArgs:
+                            if type(lst[0][0]) == tuple and lst[0][0][0] == 'isDynamic':
+                                ret.append([eachEntry, ('isDynamic', lst[0][0][1], lst[0][0][2] + (mergedArgs,))] + rest)
+                            else:
+                                ret.append([eachEntry, self.CheckLocked, (lst[0][0], mergedArgs)] + rest)
+                    else:
+                        ret.append((eachEntry, self.ExecMulti, lst))
 
-                    if isinstance(rest, tuple):
-                        rest = list(rest)
-                    if mergedArgs:
-                        if type(lst[0][0]) == tuple and lst[0][0][0] == 'isDynamic':
-                            ret.append([eachEntry, ('isDynamic', lst[0][0][1], lst[0][0][2] + (mergedArgs,))] + rest)
-                        else:
-                            ret.append([eachEntry, self.CheckLocked, (lst[0][0], mergedArgs)] + rest)
-                else:
-                    ret.append((eachEntry, self.ExecMulti, lst))
-
-        return ret
+            return ret
 
     def CaptionIsInMultiFunctions(self, caption):
         if isinstance(caption, uiutil.MenuLabel):
@@ -3083,7 +3187,7 @@ class MenuSvc(service.Service):
     def ExecAction(self, action):
         apply(*action)
 
-    def GetMenuFormItemIDTypeID(self, itemID, typeID, bookmark = None, filterFunc = None, invItem = None, ignoreMarketDetails = 1, abstractInfo = None, **kwargs):
+    def GetMenuFormItemIDTypeID(self, itemID, typeID, bookmark=None, filterFunc=None, invItem=None, ignoreMarketDetails=1, abstractInfo=None, **kwargs):
         if typeID is None:
             return []
         elif invItem:
@@ -3168,13 +3272,14 @@ class MenuSvc(service.Service):
                    None,
                    typeID))))
             return m
+            return
 
     def CompareType(self, typeID, *args):
         from eve.client.script.ui.shared.neocom.compare import TypeCompare
         typeWnd = TypeCompare.Open()
         typeWnd.AddTypeID(typeID)
 
-    def ParseMenu(self, menuEntries, filterFunc = None):
+    def ParseMenu(self, menuEntries, filterFunc=None):
         m = MenuList()
         for menuProps in menuEntries:
             if menuProps is None:
@@ -3268,43 +3373,36 @@ class MenuSvc(service.Service):
     def Activate(self, slimItem):
         if eve.rookieState and eve.rookieState < 22:
             return
-        itemID, groupID, categoryID = slimItem.itemID, slimItem.groupID, slimItem.categoryID
-        if itemID == session.shipid:
-            myship = sm.StartService('godma').GetItem(session.shipid)
-            if myship.groupID == const.groupCapsule:
-                bp = sm.StartService('michelle').GetRemotePark()
-                if bp is not None:
-                    bp.CmdStop()
-            else:
-                uicore.cmd.OpenCargoHoldOfActiveShip()
-            return
-        bp = sm.StartService('michelle').GetBallpark()
-        if bp:
-            ownBall = bp.GetBall(session.shipid)
-            otherBall = bp.GetBall(itemID)
-            dist = None
-            if ownBall and otherBall:
-                dist = bp.GetSurfaceDist(ownBall.id, otherBall.id)
-            if dist < const.minWarpDistance:
-                if groupID == const.groupStation and dist < const.maxDockingDistance:
-                    self.Dock(itemID)
-                elif groupID == const.groupControlBunker:
-                    openFunctions.OpenInfrastructureHubPanel(otherBall.id)
-                elif groupID != const.groupMissionContainer and groupID in self.containerGroups:
-                    self.OpenCargo(itemID, 'SomeCargo')
+        else:
+            itemID, groupID, categoryID = slimItem.itemID, slimItem.groupID, slimItem.categoryID
+            if itemID == session.shipid:
+                myship = sm.StartService('godma').GetItem(session.shipid)
+                if myship.groupID == const.groupCapsule:
+                    bp = sm.StartService('michelle').GetRemotePark()
+                    if bp is not None:
+                        bp.CmdStop()
                 else:
-                    self.Approach(itemID, 50)
-            else:
-                self.AlignTo(itemID)
-
-    def SetDefaultWarpToDist(self, newRange):
-        defaultRangeUtils.UpdateRangeSetting('WarpTo', newRange)
-
-    def SetDefaultOrbitDist(self, newRange, *args):
-        defaultRangeUtils.UpdateRangeSetting('Orbit', newRange)
-
-    def SetDefaultKeepAtRangeDist(self, newRange, *args):
-        defaultRangeUtils.UpdateRangeSetting('KeepAtRange', newRange)
+                    uicore.cmd.OpenCargoHoldOfActiveShip()
+                return
+            bp = sm.StartService('michelle').GetBallpark()
+            if bp:
+                ownBall = bp.GetBall(session.shipid)
+                otherBall = bp.GetBall(itemID)
+                dist = None
+                if ownBall and otherBall:
+                    dist = bp.GetSurfaceDist(ownBall.id, otherBall.id)
+                if dist < const.minWarpDistance:
+                    if groupID == const.groupStation and dist < const.maxDockingDistance:
+                        self.Dock(itemID)
+                    elif groupID == const.groupControlBunker:
+                        openFunctions.OpenInfrastructureHubPanel(otherBall.id)
+                    elif groupID != const.groupMissionContainer and groupID in self.containerGroups:
+                        self.OpenCargo(itemID, 'SomeCargo')
+                    else:
+                        movementFunctions.ShipApproach(itemID)
+                else:
+                    self.AlignTo(itemID)
+            return
 
     def FindReasonNotAvailable(self, prereqs):
         for each in prereqs:
@@ -3320,6 +3418,8 @@ class MenuSvc(service.Service):
             reasonPath = self.allReasonsDict[label]
             reason = localization.GetByLabel(reasonPath, **d)
             return reason
+
+        return None
 
     def ShowDestinyBalls(self, itemID, showType):
         return modelDebugFunctions.ShowDestinyBalls(itemID, showType)
@@ -3412,7 +3512,7 @@ class MenuSvc(service.Service):
     def ConfigureObject(self, itemID):
         self.pwn.ConfigureSentryGun(itemID)
 
-    def AskNewContainerPassword(self, id_, desc, which = 1, setnew = '', setold = ''):
+    def AskNewContainerPassword(self, id_, desc, which=1, setnew='', setold=''):
         return menuFunctions.AskNewContainerPassword(self.invCache, id_, desc, which, setnew, setold)
 
     def LockDownBlueprint(self, invItem):
@@ -3474,6 +3574,7 @@ class MenuSvc(service.Service):
             return watchlistEntry + self.GetSubFleetMemberMenu(all[0], func, args)
         else:
             return watchlistEntry + [ ('%c ... %c' % (sub[0][1][0], sub[-1][1][0]), ('isDynamic', self.GetSubFleetMemberMenu, (sub, func, args))) for sub in all ]
+            return
 
     def GetSubFleetMemberMenu(self, memberIDs, func, args):
         return [ [name, func, (charID, args)] for charID, name in memberIDs ]
@@ -3482,73 +3583,91 @@ class MenuSvc(service.Service):
         beaconStuff = sm.GetService('fleet').GetActiveBeaconForChar(charID)
         if beaconStuff is None:
             return
-        self.BridgeToBeacon(charID, beaconStuff)
+        else:
+            self.BridgeToBeacon(charID, beaconStuff)
+            return
 
     def BridgeToBeaconAlliance(self, solarSystemID, beaconID):
         bp = sm.StartService('michelle').GetRemotePark()
         if bp is None:
             return
-        bp.CmdBridgeToStructure(beaconID, solarSystemID)
+        else:
+            bp.CmdBridgeToStructure(beaconID, solarSystemID)
+            return
 
     def BridgeToBeacon(self, charID, beacon):
         solarsystemID, beaconID = beacon
         bp = sm.StartService('michelle').GetRemotePark()
         if bp is None:
             return
-        bp.CmdBridgeToMember(charID, beaconID, solarsystemID)
+        else:
+            bp.CmdBridgeToMember(charID, beaconID, solarsystemID)
+            return
 
     def JumpThroughFleet(self, otherCharID, otherShipID):
         bp = sm.StartService('michelle').GetRemotePark()
         if bp is None:
             return
-        bridge = sm.GetService('fleet').GetActiveBridgeForShip(otherShipID)
-        if bridge is None:
+        else:
+            bridge = sm.GetService('fleet').GetActiveBridgeForShip(otherShipID)
+            if bridge is None:
+                return
+            solarsystemID, beaconID = bridge
+            self.LogNotice('Jump Through Fleet', otherCharID, otherShipID, beaconID, solarsystemID)
+            sm.StartService('sessionMgr').PerformSessionChange('jump', bp.CmdJumpThroughFleet, otherCharID, otherShipID, beaconID, solarsystemID)
             return
-        solarsystemID, beaconID = bridge
-        self.LogNotice('Jump Through Fleet', otherCharID, otherShipID, beaconID, solarsystemID)
-        sm.StartService('sessionMgr').PerformSessionChange('jump', bp.CmdJumpThroughFleet, otherCharID, otherShipID, beaconID, solarsystemID)
 
     def JumpThroughAlliance(self, otherShipID):
         bp = sm.StartService('michelle').GetRemotePark()
         if bp is None:
             return
-        bridge = sm.StartService('pwn').GetActiveBridgeForShip(otherShipID)
-        if bridge is None:
+        else:
+            bridge = sm.StartService('pwn').GetActiveBridgeForShip(otherShipID)
+            if bridge is None:
+                return
+            solarsystemID, beaconID = bridge
+            self.LogNotice('Jump Through Alliance', otherShipID, beaconID, solarsystemID)
+            sm.StartService('sessionMgr').PerformSessionChange('jump', bp.CmdJumpThroughAlliance, otherShipID, beaconID, solarsystemID)
             return
-        solarsystemID, beaconID = bridge
-        self.LogNotice('Jump Through Alliance', otherShipID, beaconID, solarsystemID)
-        sm.StartService('sessionMgr').PerformSessionChange('jump', bp.CmdJumpThroughAlliance, otherShipID, beaconID, solarsystemID)
 
     def JumpToMember(self, charid):
         beaconStuff = sm.GetService('fleet').GetActiveBeaconForChar(charid)
         if beaconStuff is None:
             return
-        self.JumpToBeaconFleet(charid, beaconStuff)
+        else:
+            self.JumpToBeaconFleet(charid, beaconStuff)
+            return
 
     def JumpToBeaconFleet(self, charid, beacon):
         solarsystemID, beaconID = beacon
         bp = sm.StartService('michelle').GetRemotePark()
         if bp is None:
             return
-        self.LogNotice('Jump To Beacon Fleet', charid, beaconID, solarsystemID)
-        sm.StartService('sessionMgr').PerformSessionChange('jump', bp.CmdBeaconJumpFleet, charid, beaconID, solarsystemID)
+        else:
+            self.LogNotice('Jump To Beacon Fleet', charid, beaconID, solarsystemID)
+            sm.StartService('sessionMgr').PerformSessionChange('jump', bp.CmdBeaconJumpFleet, charid, beaconID, solarsystemID)
+            return
 
     def JumpToBeaconAlliance(self, solarSystemID, beaconID):
         bp = sm.StartService('michelle').GetRemotePark()
         if bp is None:
             return
-        self.LogNotice('Jump To Beacon Alliance', beaconID, solarSystemID)
-        sm.StartService('sessionMgr').PerformSessionChange('jump', bp.CmdBeaconJumpAlliance, beaconID, solarSystemID)
+        else:
+            self.LogNotice('Jump To Beacon Alliance', beaconID, solarSystemID)
+            sm.StartService('sessionMgr').PerformSessionChange('jump', bp.CmdBeaconJumpAlliance, beaconID, solarSystemID)
+            return
 
     def ActivateGridSmartBomb(self, charid, effect):
         beaconStuff = sm.GetService('fleet').GetActiveBeaconForChar(charid)
         if beaconStuff is None:
             return
-        solarsystemID, beaconID = beaconStuff
-        bp = sm.StartService('michelle').GetRemotePark()
-        if bp is None:
+        else:
+            solarsystemID, beaconID = beaconStuff
+            bp = sm.StartService('michelle').GetRemotePark()
+            if bp is None:
+                return
+            effect.Activate(beaconID, False)
             return
-        effect.Activate(beaconID, False)
 
     def LeaveFleet(self):
         sm.GetService('fleet').LeaveFleet()
@@ -3562,7 +3681,7 @@ class MenuSvc(service.Service):
     def DisbandFleet(self):
         sm.GetService('fleet').DisbandFleet()
 
-    def InviteToFleet(self, charIDs, ignoreWars = 0):
+    def InviteToFleet(self, charIDs, ignoreWars=0):
         if type(charIDs) != list:
             charIDs = [charIDs]
         charErrors = {}
@@ -3584,35 +3703,40 @@ class MenuSvc(service.Service):
                     charNames = cfg.eveowners.Get(charID).name
 
             raise UserError('FleetInviteMultipleErrors', {'namelist': charNames})
+        return
 
     def Regroup(self, *args):
         bp = sm.StartService('michelle').GetRemotePark()
         if bp is not None:
             bp.CmdFleetRegroup()
+        return
 
-    def WarpFleet(self, id, warpRange = None):
+    def WarpFleet(self, id, warpRange=None):
         bp = sm.StartService('michelle').GetRemotePark()
         if bp is not None:
             if not sm.GetService('machoNet').GetGlobalConfig().get('newAutoNavigationKillSwitch', False):
                 sm.GetService('autoPilot').CancelSystemNavigation()
             bp.CmdWarpToStuff('item', id, minRange=warpRange, fleet=True)
             sm.StartService('space').WarpDestination(celestialID=id)
+        return
 
-    def WarpToMember(self, charID, warpRange = None):
+    def WarpToMember(self, charID, warpRange=None):
         bp = sm.StartService('michelle').GetRemotePark()
         if bp is not None:
             if not sm.GetService('machoNet').GetGlobalConfig().get('newAutoNavigationKillSwitch', False):
                 sm.GetService('autoPilot').CancelSystemNavigation()
             bp.CmdWarpToStuff('char', charID, minRange=warpRange)
             sm.StartService('space').WarpDestination(fleetMemberID=charID)
+        return
 
-    def WarpFleetToMember(self, charID, warpRange = None):
+    def WarpFleetToMember(self, charID, warpRange=None):
         bp = sm.StartService('michelle').GetRemotePark()
         if bp is not None:
             if not sm.GetService('machoNet').GetGlobalConfig().get('newAutoNavigationKillSwitch', False):
                 sm.GetService('autoPilot').CancelSystemNavigation()
             bp.CmdWarpToStuff('char', charID, minRange=warpRange, fleet=True)
             sm.StartService('space').WarpDestination(fleetMemberID=charID)
+        return
 
     def TacticalItemClicked(self, itemID):
         isTargeted = sm.GetService('target').IsTarget(itemID)
@@ -3620,37 +3744,19 @@ class MenuSvc(service.Service):
             sm.GetService('state').SetState(itemID, state.activeTarget, 1)
         uicore.cmd.ExecuteCombatCommand(itemID, uiconst.UI_CLICK)
 
-    def Approach(self, itemID, cancelAutoNavigation = True):
-        if itemID == session.shipid or sm.GetService('sensorSuite').IsSiteBall(itemID):
-            return
-        autoPilot = sm.GetService('autoPilot')
-        if not sm.GetService('machoNet').GetGlobalConfig().get('newAutoNavigationKillSwitch', False):
-            if cancelAutoNavigation:
-                autoPilot.CancelSystemNavigation()
-        else:
-            autoPilot.AbortWarpAndTryCommand()
-            autoPilot.AbortApproachAndTryCommand(itemID)
-        bp = self.michelle.GetRemotePark()
-        if bp is not None:
-            shipBall = self.michelle.GetBall(session.shipid)
-            if shipBall is not None:
-                if shipBall.mode != destiny.DSTBALL_FOLLOW or shipBall.followId != itemID or shipBall.followRange != const.approachRange:
-                    sm.GetService('space').SetIndicationTextForcefully(ballMode=destiny.DSTBALL_FOLLOW, followId=itemID, followRange=const.approachRange)
-                    bp.CmdFollowBall(itemID, const.approachRange)
-                    sm.GetService('flightPredictionSvc').OptionActivated('Approach', itemID, const.approachRange)
-                    sm.ScatterEvent('OnClientEvent_Approach')
-
     def AlignTo(self, alignID):
         if alignID == session.shipid:
             return
-        bp = sm.StartService('michelle').GetRemotePark()
-        if bp is not None:
-            self.StoreAlignTarget(alignTargetID=alignID, aligningToBookmark=False)
-            sm.GetService('space').SetIndicationTextForcefully(ballMode=destiny.DSTBALL_GOTO, followId=alignID, followRange=None)
-            bp.CmdAlignTo(alignID)
-            if not sm.GetService('machoNet').GetGlobalConfig().get('newAutoNavigationKillSwitch', False):
-                sm.GetService('autoPilot').CancelSystemNavigation()
-            sm.GetService('flightPredictionSvc').OptionActivated('AlignTo', alignID)
+        else:
+            bp = sm.StartService('michelle').GetRemotePark()
+            if bp is not None:
+                self.StoreAlignTarget(alignTargetID=alignID, aligningToBookmark=False)
+                sm.GetService('space').SetIndicationTextForcefully(ballMode=destiny.DSTBALL_GOTO, followId=alignID, followRange=None)
+                bp.CmdAlignTo(alignID)
+                if not sm.GetService('machoNet').GetGlobalConfig().get('newAutoNavigationKillSwitch', False):
+                    sm.GetService('autoPilot').CancelSystemNavigation()
+                sm.GetService('flightPredictionSvc').OptionActivated('AlignTo', alignID)
+            return
 
     def AlignToBookmark(self, alignID):
         bp = sm.StartService('michelle').GetRemotePark()
@@ -3660,8 +3766,9 @@ class MenuSvc(service.Service):
             sm.GetService('space').SetIndicationTextForcefully(ballMode=destiny.DSTBALL_GOTO, followId=None, followRange=None)
             if not sm.GetService('machoNet').GetGlobalConfig().get('newAutoNavigationKillSwitch', False):
                 sm.GetService('autoPilot').CancelSystemNavigation()
+        return
 
-    def StoreAlignTarget(self, alignTargetID = None, aligningToBookmark = False, *args):
+    def StoreAlignTarget(self, alignTargetID=None, aligningToBookmark=False, *args):
         self.lastAlignTargetID = alignTargetID
         self.lastAlignedToBookmark = aligningToBookmark
 
@@ -3671,6 +3778,7 @@ class MenuSvc(service.Service):
     def ClearAlignTargets(self, *args):
         self.lastAlignTargetID = None
         self.lastAlignedToBookmark = None
+        return
 
     def TagItem(self, itemID, tag):
         bp = sm.StartService('michelle').GetRemotePark()
@@ -3683,7 +3791,7 @@ class MenuSvc(service.Service):
     def UnlockTarget(self, id):
         sm.StartService('target').UnlockTarget(id)
 
-    def ShowInfo(self, typeID, itemID = None, new = 0, rec = None, parentID = None, abstractInfo = None, *args):
+    def ShowInfo(self, typeID, itemID=None, new=0, rec=None, parentID=None, abstractInfo=None, *args):
         sm.GetService('info').ShowInfo(typeID, itemID, new, rec, parentID, abstractinfo=abstractInfo)
 
     def ShowInfoForItem(self, itemID):
@@ -3753,7 +3861,7 @@ class MenuSvc(service.Service):
     def OpenPOSCompression(self, itemID):
         form.Inventory.OpenOrShow(invID=('POSCompression', itemID))
 
-    def OpenPOSStructureCharges(self, itemID, showCapacity = 0):
+    def OpenPOSStructureCharges(self, itemID, showCapacity=0):
         form.Inventory.OpenOrShow(invID=('POSStructureCharges', itemID))
 
     def OpenStrontiumBay(self, itemID):
@@ -3854,7 +3962,9 @@ class MenuSvc(service.Service):
         finally:
             self._buildingPlatform = 0
 
-    def Bookmark(self, itemID, typeID, parentID, note = None):
+        return
+
+    def Bookmark(self, itemID, typeID, parentID, note=None):
         sm.StartService('addressbook').BookmarkLocationPopup(itemID, typeID, parentID, note)
 
     def ShowInMapBrowser(self, itemID, *args):
@@ -3863,13 +3973,20 @@ class MenuSvc(service.Service):
     def ShowInMap(self, itemID, *args):
         OpenMap(interestID=itemID)
 
-    def Dock(self, id):
+    def Dock(self, itemID):
+        item = sm.GetService('michelle').GetItem(itemID)
+        if item and item.categoryID == const.categoryStation:
+            self.DockStation(itemID)
+        elif item and item.categoryID == const.categoryStructure:
+            sm.GetService('structureDocking').Dock(itemID)
+
+    def DockStation(self, itemID):
         bp = sm.StartService('michelle').GetBallpark()
         if not bp:
             return
-        self.GetCloseAndTryCommand(id, movementFunctions.RealDock, (id,))
+        self.GetCloseAndTryCommand(itemID, movementFunctions.RealDock, (itemID,))
 
-    def GetIllegality(self, itemID, typeID = None, solarSystemID = None):
+    def GetIllegality(self, itemID, typeID=None, solarSystemID=None):
         if solarSystemID is None:
             solarSystemID = session.solarsystemid
         toFactionID = sm.StartService('faction').GetFactionOfSolarSystem(solarSystemID)
@@ -3880,27 +3997,28 @@ class MenuSvc(service.Service):
             if inventorycommon.typeHelpers.GetIllegality(typeID, toFactionID):
                 return evetypes.GetName(typeID)
             return ''
-        stuff = ''
-        invItem = self.invCache.GetInventoryFromId(itemID)
-        for item in invItem.List():
-            try:
-                illegality = inventorycommon.typeHelpers.GetIllegality(item.typeID, toFactionID)
-                if illegality:
-                    stuff += evetypes.GetName(item.typeID) + ', '
-                if evetypes.GetGroupID(item.typeID) in (const.groupCargoContainer,
-                 const.groupSecureCargoContainer,
-                 const.groupAuditLogSecureContainer,
-                 const.groupFreightContainer):
-                    sublegality = self.GetIllegality(item.itemID, solarSystemID=solarSystemID)
-                    if sublegality:
-                        stuff += sublegality + ', '
-            except:
-                log.LogTraceback('bork in illegality check 2')
-                sys.exc_clear()
+        else:
+            stuff = ''
+            invItem = self.invCache.GetInventoryFromId(itemID)
+            for item in invItem.List():
+                try:
+                    illegality = inventorycommon.typeHelpers.GetIllegality(item.typeID, toFactionID)
+                    if illegality:
+                        stuff += evetypes.GetName(item.typeID) + ', '
+                    if evetypes.GetGroupID(item.typeID) in (const.groupCargoContainer,
+                     const.groupSecureCargoContainer,
+                     const.groupAuditLogSecureContainer,
+                     const.groupFreightContainer):
+                        sublegality = self.GetIllegality(item.itemID, solarSystemID=solarSystemID)
+                        if sublegality:
+                            stuff += sublegality + ', '
+                except:
+                    log.LogTraceback('bork in illegality check 2')
+                    sys.exc_clear()
 
-        return stuff[:-2]
+            return stuff[:-2]
 
-    def StargateJump(self, id, beaconID = None, solarSystemID = None):
+    def StargateJump(self, id, beaconID=None, solarSystemID=None):
         if beaconID:
             self.GetCloseAndTryCommand(id, self.RealStargateJump, (id, beaconID, solarSystemID), interactionRange=const.maxStargateJumpingDistance)
 
@@ -3934,6 +4052,7 @@ class MenuSvc(service.Service):
                 sm.StartService('sessionMgr').PerformSessionChange(localization.GetByLabel('UI/Inflight/Jump'), bp.CmdStargateJump, id, beaconID, session.shipid)
                 if isSystemNextInRoute:
                     sm.ScatterEvent('OnClientEvent_JumpedToNextSystemInRoute')
+        return
 
     def ActivateAccelerationGate(self, id):
         self.GetCloseAndTryCommand(id, movementFunctions.RealActivateAccelerationGate, (id,), interactionRange=const.maxStargateJumpingDistance)
@@ -3988,7 +4107,7 @@ class MenuSvc(service.Service):
     def AbandonAllLoot(self, wreckID, *args):
         return menuFunctions.AbandonAllLoot(wreckID)
 
-    def ShipCloneConfig(self, id = None):
+    def ShipCloneConfig(self, id=None):
         if id == util.GetActiveShip():
             uthread.new(self._ShipCloneConfig)
 
@@ -4042,17 +4161,21 @@ class MenuSvc(service.Service):
 
     def SelectTarget(self, itemID):
         sm.GetService('state').SetState(itemID, states.multiSelected, True)
+        if itemID in sm.GetService('fighters').shipFighterState.GetAllFighterIDsInSpace() or itemID == session.shipid:
+            movementFunctions.SelectForNavigation(itemID)
 
-    def Scoop(self, objectID, typeID, password = None):
+    def Scoop(self, objectID, typeID, password=None):
         self.GetCloseAndTryCommand(objectID, self.RealScoop, (objectID, typeID, password))
 
-    def RealScoop(self, objectID, typeID, password = None):
+    def RealScoop(self, objectID, typeID, password=None):
         ship = sm.StartService('gameui').GetShipAccess()
         if ship:
             if not self.CheckIllegalOkay(objectID, typeID):
                 return
             try:
-                if password is None:
+                if evetypes.GetCategoryID(typeID) == const.categoryFighter:
+                    self.ScoopAbandonedFighterFromSpace(objectID, const.flagCargo)
+                elif password is None:
                     ship.Scoop(objectID)
                 else:
                     ship.Scoop(objectID, password)
@@ -4071,6 +4194,8 @@ class MenuSvc(service.Service):
                     raise
                 sys.exc_clear()
 
+        return
+
     def ScoopToFleetHangar(self, objectID, typeID):
         self.GetCloseAndTryCommand(objectID, self.RealScoopToFleetHangar, (objectID, typeID))
 
@@ -4079,7 +4204,20 @@ class MenuSvc(service.Service):
         if ship:
             if not self.CheckIllegalOkay(objectID, typeID):
                 return
-            ship.ScoopToFleetHangar(objectID)
+            if evetypes.GetCategoryID(typeID) == const.categoryFighter:
+                self.ScoopAbandonedFighterFromSpace(objectID, const.flagFleetHangar)
+            else:
+                ship.ScoopToFleetHangar(objectID)
+
+    def ScoopToFighterBay(self, objectID, typeID):
+        self.GetCloseAndTryCommand(objectID, self.RealScoopToFighterBay, (objectID, typeID))
+
+    def RealScoopToFighterBay(self, objectID, typeID):
+        ship = sm.GetService('gameui').GetShipAccess()
+        if ship:
+            if not self.CheckIllegalOkay(objectID, typeID):
+                return
+            self.ScoopAbandonedFighterFromSpace(objectID, const.flagFighterBay)
 
     def CheckIllegalOkay(self, objectID, typeID):
         toFactionID = sm.StartService('faction').GetFactionOfSolarSystem(session.solarsystemid)
@@ -4096,29 +4234,28 @@ class MenuSvc(service.Service):
         if ship:
             ship.ScoopToSMA(objectID)
 
+    def ScoopAbandonedFighterFromSpace(self, fighterID, toFlagID):
+        self.fighters.ScoopAbandonedFighterFromSpace(fighterID, toFlagID)
+
     def InteractWithAgent(self, agentID, *args):
         sm.StartService('agents').InteractWith(agentID)
 
-    def QuickBuy(self, typeID, quantity = 1):
+    def QuickBuy(self, typeID, quantity=1):
         sm.StartService('marketutils').Buy(typeID, quantity=quantity)
 
     def QuickSell(self, invItem):
         self.MultiSell([[(invItem, None, None)]])
+        return
 
     def MultiSell(self, invItems):
-        sm.GetService('marketutils').StartupCheck()
-        wnd = form.SellItems.GetIfOpen()
-        if wnd is not None:
-            wnd.AddPreItems(invItems[0])
-            wnd.Maximize()
-        else:
-            form.SellItems.Open(preItems=invItems[0])
+        return marketMenu.MultiSell(invItems)
 
     def QuickContract(self, invItems, *args):
         sm.GetService('contracts').OpenCreateContract(items=invItems)
 
     def ShowMarketDetails(self, invItem):
         uthread.new(sm.StartService('marketutils').ShowMarketDetails, invItem.typeID, None)
+        return
 
     def GetContainerContents(self, invItem):
         return invItemFunctions.GetContainerContents(invItem, self.invCache)
@@ -4126,7 +4263,7 @@ class MenuSvc(service.Service):
     def DoGetContainerContents(self, itemID, stationID, hasFlag, name):
         return invItemFunctions.DoGetContainerContents(itemID, stationID, hasFlag, name, self.invCache)
 
-    def AddToQuickBar(self, typeID, parent = 0):
+    def AddToQuickBar(self, typeID, parent=0):
         return menuFunctions.AddToQuickBar(typeID, parent)
 
     def RemoveFromQuickBar(self, node):
@@ -4153,6 +4290,7 @@ class MenuSvc(service.Service):
         if eve.Message('AskStripShip', None, uiconst.YESNO, suppress=uiconst.ID_YES) == uiconst.ID_YES:
             shipID = invItem.itemID
             self.invCache.GetInventoryFromId(shipID).StripFitting()
+        return
 
     def ExitStation(self, invItem):
         uicore.cmd.CmdExitStation()
@@ -4164,10 +4302,10 @@ class MenuSvc(service.Service):
         return invItemFunctions.CheckLocked(func, invItemsOrIDs, self.invCache)
 
     def RepackageItemsInStation(self, invItems):
-        return invItemFunctions.RepackageItemsInStation(invItems, self.invCache)
+        return invItemFunctions.RepackageItemsInStation(invItems)
 
     def RepackageItemsInStructure(self, invItems):
-        self.invCache.GetInventoryFromId(invItems[0].locationID).RepackageItemsInStructure([ item.itemID for item in invItems ])
+        return invItemFunctions.RepackageItemsInStructure(invItems)
 
     def Break(self, invItems):
         return invItemFunctions.Break(invItems, self.invCache)
@@ -4183,15 +4321,19 @@ class MenuSvc(service.Service):
         if wnd is not None:
             wnd.CloseByUser()
         form.FittingWindow.Open(shipID=invItem.itemID)
+        return
 
     def LaunchDrones(self, invItems, *args):
         sm.GetService('godma').GetStateManager().SendDroneSettings()
         util.LaunchFromShip(invItems)
 
+    def DeployStructure(self, invItems):
+        sm.GetService('structureDeployment').Deploy(invItems[0])
+
     def LaunchForSelf(self, invItems):
         util.LaunchFromShip(invItems, session.charid, maxQty=1)
 
-    def LaunchForCorp(self, invItems, ignoreWarning = False):
+    def LaunchForCorp(self, invItems, ignoreWarning=False):
         util.LaunchFromShip(invItems, session.corpid, ignoreWarning, maxQty=1)
 
     def LaunchSMAContents(self, invItems):
@@ -4242,16 +4384,24 @@ class MenuSvc(service.Service):
     def ConsumeBooster(self, invItems):
         return invItemFunctions.ConsumeBooster(invItems)
 
+    def DeliverToStructure(self, invItems):
+        return invItemFunctions.DeliverToStructure(invItems)
+
     def AssembleContainer(self, invItems):
         invMgr = self.invCache.GetInventoryMgr()
         for invItem in invItems:
             invMgr.AssembleCargoContainer(invItem.itemID, None, 0.0)
 
+        return
+
     def ShowInIndustryWindow(self, invItem):
         Industry.OpenOrShowBlueprint(blueprintID=invItem.itemID)
 
     def SetHomeStation(self, stationID):
-        form.CloneStationWindow.SetStation(stationID)
+        medicalController = GetMedicalController()
+        if not medicalController:
+            return
+        medicalController.SetHomeStation(stationID)
 
     @base.ThrottlePerSecond()
     def AssembleShip(self, invItems):
@@ -4308,7 +4458,7 @@ class MenuSvc(service.Service):
     def SetName(self, invOrSlimItem):
         return menuFunctions.SetName(invOrSlimItem, self.invCache)
 
-    def AskNewContainerPwd(self, invItems, desc, which = 1):
+    def AskNewContainerPwd(self, invItems, desc, which=1):
         for invItem in invItems:
             self.AskNewContainerPassword(invItem.itemID, desc, which)
 
@@ -4352,13 +4502,13 @@ class MenuSvc(service.Service):
         registry = moniker.GetPlanetOrbitalRegistry(session.solarsystemid)
         registry.GMChangeSpaceObjectOwner(itemID, session.corpid)
 
-    def GetCloseAndTryCommand(self, itemID, cmdMethod, args, interactionRange = 2500):
+    def GetCloseAndTryCommand(self, itemID, cmdMethod, args, interactionRange=2500):
         if not sm.GetService('machoNet').GetGlobalConfig().get('newAutoNavigationKillSwitch', False):
             sm.GetService('autoPilot').NavigateSystemTo(itemID, interactionRange, cmdMethod, *args)
         else:
             self.GetCloseAndTryCommand_Old(itemID, cmdMethod, args, interactionRange)
 
-    def GetCloseAndTryCommand_Old(self, id, cmdMethod, args, interactionRange = 2500):
+    def GetCloseAndTryCommand_Old(self, id, cmdMethod, args, interactionRange=2500):
         bp = sm.StartService('michelle').GetBallpark()
         if not bp:
             return
@@ -4393,6 +4543,23 @@ class MenuSvc(service.Service):
     def AddDisabledEntryForWarp(self, menuEntries, textPath):
         menuEntries += [[uiutil.MenuLabel(textPath), DISABLED_ENTRY0]]
         menuEntries.reasonsWhyNotAvailable[textPath] = localization.GetByLabel('UI/Menusvc/MenuHints/YouAreInWarp')
+
+    def _IsCompressionAvailable(self, invItem, locationItem):
+        if locationItem and locationItem.groupID in (const.groupCompressionArray, const.groupCapitalIndustrialShip):
+            return True
+        if session.structureid and self.CheckSameLocation(invItem) and self._CanUseStructureService(session.structureid, structures.SERVICE_REPROCESSING):
+            return True
+        return False
+
+    @util.Memoized(1)
+    def _CanUseStructureService(self, structureid, serviceID):
+        return sm.RemoteSvc('structureSettings').CharacterHasService(structureid, serviceID)
+
+    def ControllingStructureWithFightersSelected(self):
+        if not IsControllingStructure():
+            return False
+        _, selectedFighterIDs = movementFunctions.GetSelectedShipAndFighters()
+        return bool(selectedFighterIDs)
 
 
 class MenuList(list):

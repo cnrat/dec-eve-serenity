@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\carbon\common\stdlib\json\decoder.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\carbon\common\stdlib\json\decoder.py
 import re
 import sys
 import struct
@@ -30,14 +31,15 @@ def linecol(doc, pos):
     return (lineno, colno)
 
 
-def errmsg(msg, doc, pos, end = None):
+def errmsg(msg, doc, pos, end=None):
     lineno, colno = linecol(doc, pos)
     if end is None:
         fmt = '{0}: line {1} column {2} (char {3})'
         return fmt.format(msg, lineno, colno, pos)
-    endlineno, endcolno = linecol(doc, end)
-    fmt = '{0}: line {1} column {2} - line {3} column {4} (char {5} - {6})'
-    return fmt.format(msg, lineno, colno, endlineno, endcolno, pos, end)
+    else:
+        endlineno, endcolno = linecol(doc, end)
+        fmt = '{0}: line {1} column {2} - line {3} column {4} (char {5} - {6})'
+        return fmt.format(msg, lineno, colno, endlineno, endcolno, pos, end)
 
 
 _CONSTANTS = {'-Infinity': NegInf,
@@ -54,7 +56,7 @@ BACKSLASH = {'"': u'"',
  't': u'\t'}
 DEFAULT_ENCODING = 'utf-8'
 
-def py_scanstring(s, end, encoding = None, strict = True, _b = BACKSLASH, _m = STRINGCHUNK.match):
+def py_scanstring(s, end, encoding=None, strict=True, _b=BACKSLASH, _m=STRINGCHUNK.match):
     if encoding is None:
         encoding = DEFAULT_ENCODING
     chunks = []
@@ -120,7 +122,7 @@ scanstring = c_scanstring or py_scanstring
 WHITESPACE = re.compile('[ \\t\\n\\r]*', FLAGS)
 WHITESPACE_STR = ' \t\n\r'
 
-def JSONObject(s_and_end, encoding, strict, scan_once, object_hook, object_pairs_hook, _w = WHITESPACE.match, _ws = WHITESPACE_STR):
+def JSONObject(s_and_end, encoding, strict, scan_once, object_hook, object_pairs_hook, _w=WHITESPACE.match, _ws=WHITESPACE_STR):
     s, end = s_and_end
     pairs = []
     pairs_append = pairs.append
@@ -186,13 +188,14 @@ def JSONObject(s_and_end, encoding, strict, scan_once, object_hook, object_pairs
     if object_pairs_hook is not None:
         result = object_pairs_hook(pairs)
         return (result, end)
-    pairs = dict(pairs)
-    if object_hook is not None:
-        pairs = object_hook(pairs)
-    return (pairs, end)
+    else:
+        pairs = dict(pairs)
+        if object_hook is not None:
+            pairs = object_hook(pairs)
+        return (pairs, end)
 
 
-def JSONArray(s_and_end, scan_once, _w = WHITESPACE.match, _ws = WHITESPACE_STR):
+def JSONArray(s_and_end, scan_once, _w=WHITESPACE.match, _ws=WHITESPACE_STR):
     s, end = s_and_end
     values = []
     nextchar = s[end:end + 1]
@@ -231,7 +234,7 @@ def JSONArray(s_and_end, scan_once, _w = WHITESPACE.match, _ws = WHITESPACE_STR)
 
 class JSONDecoder(object):
 
-    def __init__(self, encoding = None, object_hook = None, parse_float = None, parse_int = None, parse_constant = None, strict = True, object_pairs_hook = None):
+    def __init__(self, encoding=None, object_hook=None, parse_float=None, parse_int=None, parse_constant=None, strict=True, object_pairs_hook=None):
         self.encoding = encoding
         self.object_hook = object_hook
         self.object_pairs_hook = object_pairs_hook
@@ -244,14 +247,14 @@ class JSONDecoder(object):
         self.parse_string = scanstring
         self.scan_once = make_scanner(self)
 
-    def decode(self, s, _w = WHITESPACE.match):
+    def decode(self, s, _w=WHITESPACE.match):
         obj, end = self.raw_decode(s, idx=_w(s, 0).end())
         end = _w(s, end).end()
         if end != len(s):
             raise ValueError(errmsg('Extra data', s, end, len(s)))
         return obj
 
-    def raw_decode(self, s, idx = 0):
+    def raw_decode(self, s, idx=0):
         try:
             obj, end = self.scan_once(s, idx)
         except StopIteration:

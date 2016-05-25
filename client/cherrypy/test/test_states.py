@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\carbon\common\lib\cherrypy\test\test_states.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\carbon\common\lib\cherrypy\test\test_states.py
 from cherrypy._cpcompat import BadStatusLine, ntob
 import os
 import sys
@@ -36,6 +37,7 @@ class Dependency:
 
     def startthread(self, thread_id):
         self.threads[thread_id] = None
+        return
 
     def stopthread(self, thread_id):
         del self.threads[thread_id]
@@ -48,7 +50,7 @@ def setup_server():
     class Root:
 
         def index(self):
-            return 'Hello World'
+            pass
 
         index.exposed = True
 
@@ -59,7 +61,6 @@ def setup_server():
 
         def graceful(self):
             engine.graceful()
-            return 'app was (gracefully) restarted succesfully'
 
         graceful.exposed = True
 
@@ -201,6 +202,8 @@ class ServerStateTests(helper.CPWebCase):
         finally:
             engine.exit()
 
+        return
+
     def test_4_Autoreload(self):
         p = helper.CPProcess(ssl=self.scheme.lower() == 'https')
         p.write_conf(extra='test_case_name: "test_4_Autoreload"')
@@ -220,6 +223,7 @@ class ServerStateTests(helper.CPWebCase):
             self.getPage('/exit')
 
         p.join()
+        return
 
     def test_5_Start_Error(self):
         p = helper.CPProcess(ssl=self.scheme.lower() == 'https', wait=True)

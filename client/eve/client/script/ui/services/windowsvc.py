@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\client\script\ui\services\windowsvc.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\client\script\ui\services\windowsvc.py
 from eve.client.script.ui.control.themeColored import FillThemeColored
 import service
 import uicontrols
@@ -8,7 +9,10 @@ import form
 import util
 import carbonui.const as uiconst
 import telemetry
+from carbonui.uicore import uicorebase as uicore
 from eve.client.script.ui.shared.systemMenu.betaOptions import IsBetaScannersEnabled
+from eve.client.script.ui.structure.dockedOverlay.dockedPanel import DockedPanel
+from eve.common.script.sys.eveCfg import IsDockedInStructure
 import evegraphics.settings as gfxsettings
 
 class WindowMgr(service.Service):
@@ -28,11 +32,11 @@ class WindowMgr(service.Service):
      'OnShowUI']
     __startupdependencies__ = ['settings']
 
-    def Run(self, memStream = None):
+    def Run(self, memStream=None):
         self.LogInfo('Starting Window Service')
         self.wndIntersectionsByRects = {}
 
-    def Stop(self, memStream = None):
+    def Stop(self, memStream=None):
         self.LogInfo('Stopping Window Service')
         service.Service.Stop(self)
 
@@ -64,8 +68,17 @@ class WindowMgr(service.Service):
                     each.Close()
 
     def OnSessionChanged(self, isRemote, session, change):
-        if sm.GetService('connection').IsConnected() and 'locationid' in change:
+        if sm.GetService('connection').IsConnected() and self.IsLocationChange(change):
             self.OpenWindows()
+
+    def IsLocationChange(self, change):
+        if 'locationid' in change:
+            return True
+        if 'structureid' in change:
+            return True
+        if 'shipid' in change and session.structureid in change['shipid']:
+            return True
+        return False
 
     def OnHideUI(self, *args):
         self.UpdateIntersectionBackground()
@@ -117,6 +130,7 @@ class WindowMgr(service.Service):
 
         settings.user.ui.Delete('targetOrigin')
         sm.GetService('target').ArrangeTargets()
+        return
 
     def RealignWindows(self):
         desktopLayout = getattr(self, 'PreDeviceChange_DesktopLayout', None)
@@ -124,6 +138,7 @@ class WindowMgr(service.Service):
             uicontrols.Window.LoadDesktopWindowLayout(desktopLayout)
         self.PreDeviceChange_DesktopLayout = None
         sm.GetService('target').ArrangeTargets()
+        return
 
     @telemetry.ZONE_METHOD
     def OpenWindows(self):
@@ -151,6 +166,9 @@ class WindowMgr(service.Service):
                             invID = ('StationCorpHangar', office.itemID, i)
                             wndsToCheck.append(util.KeyVal(cls=form.Inventory, cmd=self._OpenCorpHangarDivision, windowID=form.Inventory.GetWindowIDFromInvID(invID), args=(invID,)))
 
+            elif session.structureid and session.structureid != session.shipid:
+                sm.GetService('gameui').ScopeCheck(['station_inflight'])
+                wndsToCheck += [util.KeyVal(cls=form.Inventory, cmd=uicore.cmd.OpenInventory, windowID=('InventoryStructure', None)), util.KeyVal(cls=form.Inventory, cmd=uicore.cmd.OpenHangarFloor, windowID=('StructureItemHangar', session.structureid)), util.KeyVal(cls=form.Inventory, cmd=uicore.cmd.OpenShipHangar, windowID=('StructureShipHangar', session.structureid))]
             elif session.solarsystemid and session.shipid:
                 if IsBetaScannersEnabled():
                     from eve.client.script.ui.inflight.probeScannerWindow import ProbeScannerWindow
@@ -187,10 +205,9 @@ class WindowMgr(service.Service):
             finally:
                 uicore.cmd.openingWndsAutomatically = False
 
-        form.Lobby.CloseIfOpen()
-        if session.stationid2:
-            if not (eve.rookieState and eve.rookieState < 5):
-                form.Lobby.Open()
+        from eve.client.script.ui.shared.dockedUI import ReloadLobbyWnd
+        ReloadLobbyWnd()
+        return
 
     def _OpenCorpHangarDivision(self, invID):
         form.Inventory.OpenOrShow(invID=invID, usePrimary=False, toggle=False)
@@ -282,7 +299,7 @@ class WindowMgr(service.Service):
                 wnd.Close()
                 self.LogInfo('  WindowSvc.CloseContainer closing:', windowID)
 
-    def GetCameraLeftOffset(self, width, align = None, left = 0, *args):
+    def GetCameraLeftOffset(self, width, align=None, left=0, *args):
         try:
             offsetUI = gfxsettings.Get(gfxsettings.UI_OFFSET_UI_WITH_CAMERA)
         except gfxsettings.UninitializedSettingsGroupError:
@@ -300,4 +317,3 @@ class WindowMgr(service.Service):
                 return max(camerapush, -allowedOffset - left)
             if camerapush > 0:
                 return min(camerapush, allowedOffset + left)
-        return 0

@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\carbon\common\script\net\SocketGPS.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\carbon\common\script\net\SocketGPS.py
 import gps
 import socket
 import errno
@@ -63,6 +64,7 @@ class SocketTransportFactory(gps.GPSTransportFactory):
         gps.GPSTransportFactory.__init__(self, *args, **kwds)
         self.MaxPacketSize = None
         self.MaxPacketSize = 10485760
+        return
 
     @staticmethod
     def Transport():
@@ -75,7 +77,7 @@ class SocketTransportFactory(gps.GPSTransportFactory):
     def _PreSocketConnectOperations(self, socket):
         pass
 
-    def Listen(self, port, address = ''):
+    def Listen(self, port, address=''):
         s = socket.socket()
         self._PreSocketConnectOperations(s)
         if self.reuseAddress:
@@ -133,6 +135,7 @@ class SocketTransportAcceptor(gps.GPSTransportAcceptor):
     def __init__(self, *args, **kwds):
         gps.GPSTransportAcceptor.__init__(self, *args, **kwds)
         self.MaxPacketSize = None
+        return
 
     @staticmethod
     def Transport():
@@ -175,13 +178,16 @@ class SocketTransportAcceptor(gps.GPSTransportAcceptor):
                 else:
                     raise GPSException('accept failed: ', e)
 
-    def close(self, reason = None):
+        return
+
+    def close(self, reason=None):
         try:
             self.socket.close()
         except socket.error as e:
             sys.exc_clear()
 
         self.socket = None
+        return
 
 
 class SocketTransport(gps.GPSTransport):
@@ -200,6 +206,7 @@ class SocketTransport(gps.GPSTransport):
         self.statsBytesWritten = macho.EWMA.FromSampleCounts(GPSSTATS_BYTESWRITTEN_PERIODS)
         self.statsPacketsRead = macho.EWMA.FromSampleCounts(GPSSTATS_PACKETSREAD_PERIODS)
         self.statsPacketsWritten = macho.EWMA.FromSampleCounts(GPSSTATS_PACKETSWRITTEN_PERIODS)
+        return
 
     def StatsRepr(self):
         if self.socketStatsEnabled:
@@ -239,7 +246,7 @@ class SocketTransport(gps.GPSTransport):
             self.statsBytesWritten.Add(len(packet))
             self.statsPacketsWritten.Add()
 
-    def Read(self, bufsize = 4096, flags = 0):
+    def Read(self, bufsize=4096, flags=0):
         if stackless.getcurrent().is_main:
             raise RuntimeError("You can't Read from a socket in a synchronous manner without blocking, dude.")
         try:
@@ -264,7 +271,7 @@ class SocketTransport(gps.GPSTransport):
             self.statsPacketsRead.Add()
         return r
 
-    def Close(self, reason = None, reasonCode = None, reasonArgs = {}, exception = None, noSend = False):
+    def Close(self, reason=None, reasonCode=None, reasonArgs={}, exception=None, noSend=False):
         with bluepy.Timer('Socket::GPS::Close'):
             if not self.closeReason and reason is not None:
                 self.closeReason = {'reason': reason,
@@ -275,6 +282,7 @@ class SocketTransport(gps.GPSTransport):
             if s:
                 self.Nerf()
                 self._Close(s, noSend)
+        return
 
     def _Close(self, s, noSend):
         try:
@@ -297,7 +305,7 @@ class SocketTransport(gps.GPSTransport):
 
         return Helper
 
-    def SetKeepalive(self, timeout, interval = None):
+    def SetKeepalive(self, timeout, interval=None):
         if interval is None:
             interval = timeout
         try:
@@ -306,6 +314,8 @@ class SocketTransport(gps.GPSTransport):
             mylog.Log("socket doesn't support ioctl() ", log.LGWARN)
         except socket.error:
             log.LogException('socket.ioctl')
+
+        return
 
 
 class SocketPacketTransportFactory(SocketTransportFactory):
@@ -339,7 +349,7 @@ class SocketPacketTransport(SocketTransport):
         self.packetNumber = -1
         self.numReorderedPackets = 0
 
-    def Write(self, packet, header = None):
+    def Write(self, packet, header=None):
         global usingIOCP
         try:
             if header and usingIOCP:
@@ -413,6 +423,7 @@ class SocketPacketTransport(SocketTransport):
                 self.statsBytesRead.Add(len(r))
                 self.statsPacketsRead.Add()
             return r
+        return
 
     def _Close(self, s, noSend):
         flag = log.LGWARN
@@ -423,16 +434,19 @@ class SocketPacketTransport(SocketTransport):
             SocketTransport._Close(self, s, noSend)
         else:
             uthread.worker('Socket::DelayedClose', self._DelayedClose, s)
+        return
 
     def _DelayedClose(self, s):
         with bluepy.Timer('Socket::GPS::__DelayedClose'):
             try:
-                s.setblockingsend(True)
-                s.sendpacket(self.CreateClosedPacket(**self.closeReason))
-            except socket.error as e:
-                mylog.Log("Couldn't send close packet, rhe socket is probably already closed. " + str(e), log.LGINFO)
-            except AttributeError:
-                pass
+                try:
+                    s.setblockingsend(True)
+                    s.sendpacket(self.CreateClosedPacket(**self.closeReason))
+                except socket.error as e:
+                    mylog.Log("Couldn't send close packet, rhe socket is probably already closed. " + str(e), log.LGINFO)
+                except AttributeError:
+                    pass
+
             finally:
                 SocketTransport._Close(self, s, False)
 
@@ -516,7 +530,7 @@ class SSLSocketPacketTransport(SocketPacketTransport):
     UnEncryptedRead = SocketPacketTransport.Read
     UnEncryptedWrite = SocketPacketTransport.Write
 
-    def CreateClosedPacket(self, reason, reasonCode = None, reasonArgs = {}, exception = None):
+    def CreateClosedPacket(self, reason, reasonCode=None, reasonArgs={}, exception=None):
         msg = 'Creating Closed Packet: ' + reason
         if exception:
             msg += ' exception:' + repr(exception)

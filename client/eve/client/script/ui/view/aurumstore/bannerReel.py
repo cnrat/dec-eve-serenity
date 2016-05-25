@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\client\script\ui\view\aurumstore\bannerReel.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\client\script\ui\view\aurumstore\bannerReel.py
 import logging
 import urlparse
 from carbonui.primitives.container import Container
@@ -41,9 +42,11 @@ class BannerReel(ContainerAutoSize):
         self.transitionTimer = None
         self.banners = []
         uthread.new(self._CreateBanners)
+        return
 
     def _OnClose(self):
         self.transitionTimer = None
+        return
 
     def HasBanners(self):
         return len(self.banners) > 0
@@ -56,15 +59,17 @@ class BannerReel(ContainerAutoSize):
         if not self.HasBanners():
             self.display = False
             return
-        self.currentBannerIndex = 0
-        self.buttons = {}
-        self.selectedButton = None
-        if len(self.banners) > 1:
-            for index, (bannerImageUrl, action) in enumerate(self.banners):
-                self.buttons[bannerImageUrl] = BannerButton(parent=self.buttonContainer, align=uiconst.TOLEFT, bannerReel=self, bannerIndex=index)
+        else:
+            self.currentBannerIndex = 0
+            self.buttons = {}
+            self.selectedButton = None
+            if len(self.banners) > 1:
+                for index, (bannerImageUrl, action) in enumerate(self.banners):
+                    self.buttons[bannerImageUrl] = BannerButton(parent=self.buttonContainer, align=uiconst.TOLEFT, bannerReel=self, bannerIndex=index)
 
-            self.transitionTimer = AutoTimer(TRANSITION_DELAY_AUTO, self._AdvanceToNextBanner)
-        self._SetBanner(self.currentBannerIndex)
+                self.transitionTimer = AutoTimer(TRANSITION_DELAY_AUTO, self._AdvanceToNextBanner)
+            self._SetBanner(self.currentBannerIndex)
+            return
 
     def _AdvanceToNextBanner(self):
         nextBannerIndex = self.currentBannerIndex + 1
@@ -72,7 +77,7 @@ class BannerReel(ContainerAutoSize):
             nextBannerIndex = 0
         self._SetBanner(nextBannerIndex)
 
-    def _SetBanner(self, bannerIndex, nextDelay = TRANSITION_DELAY_AUTO):
+    def _SetBanner(self, bannerIndex, nextDelay=TRANSITION_DELAY_AUTO):
         self.currentBannerIndex = bannerIndex
         bannerImageUrl, action = self.banners[self.currentBannerIndex]
         log.debug('_SetBanner %d (%s)', bannerIndex, bannerImageUrl)
@@ -88,6 +93,7 @@ class BannerReel(ContainerAutoSize):
         self.selectedButton.SetSelected(True)
         if self.transitionTimer is not None:
             self.transitionTimer.Reset(nextDelay)
+        return
 
     def OnBannerClicked(self, action, bannerImageUrl):
         log.debug('OnBannerClicked (%s)', action)
@@ -128,7 +134,6 @@ def GetBannerButtonComponent(bgParent, _):
 
 
 @Component(ButtonEffect(opacityIdle=0.4, opacityHover=0.8, opacityMouseDown=0.9, bgElementFunc=GetBannerButtonComponent, audioOnClick='store_selectpage'))
-
 class BannerButton(Container):
     default_name = 'bannerButton'
     default_width = BUTTON_WIDTH

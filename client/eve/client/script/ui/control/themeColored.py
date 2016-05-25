@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\client\script\ui\control\themeColored.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\client\script\ui\control\themeColored.py
 from math import pi
 from carbonui import const as uiconst
 from carbonui.primitives.fill import Fill
@@ -30,6 +31,7 @@ class ColorThemeMixin:
             color = sm.GetService('uiColor').GetUIColor(self.colorType)
         r, g, b, _ = color
         self.SetRGB(r, g, b, self.opacity)
+        return
 
     def SetFixedColor(self, fixedColor):
         self.fixedColor = fixedColor

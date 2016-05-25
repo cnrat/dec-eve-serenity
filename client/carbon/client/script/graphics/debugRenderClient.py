@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\carbon\client\script\graphics\debugRenderClient.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\carbon\client\script\graphics\debugRenderClient.py
 import service
 import trinity
 import blue
@@ -13,7 +14,7 @@ DEBUG_RES_PATH = 'res:/' + DEBUG_FILENAME
 class DebugRay:
     __guid__ = 'debugShapes.DebugRay'
 
-    def __init__(self, src = (0.0, 0.0, 0.0), dst = (0.0, 0.0, 0.0), srcColor = 4294967295L, dstColor = 4294967295L, time = 500, pulse = False):
+    def __init__(self, src=(0.0, 0.0, 0.0), dst=(0.0, 0.0, 0.0), srcColor=4294967295L, dstColor=4294967295L, time=500, pulse=False):
         self.src = src
         self.srcColor = srcColor
         self.dst = dst
@@ -37,7 +38,7 @@ class DebugRay:
 class DebugCapsule:
     __guid__ = 'debugShapes.DebugCapsule'
 
-    def __init__(self, src = (0.0, 0.0, 0.0), dst = (0.0, 0.0, 0.0), radius = 0.0, color = 4294967295L, time = 500):
+    def __init__(self, src=(0.0, 0.0, 0.0), dst=(0.0, 0.0, 0.0), radius=0.0, color=4294967295L, time=500):
         self.src = src
         self.dst = dst
         self.radius = radius
@@ -55,7 +56,7 @@ class DebugCapsule:
 class DebugSphere:
     __guid__ = 'debugShapes.DebugSphere'
 
-    def __init__(self, src = (0.0, 0.0, 0.0), radius = 0.0, color = 4294967295L, time = 500):
+    def __init__(self, src=(0.0, 0.0, 0.0), radius=0.0, color=4294967295L, time=500):
         self.src = src
         self.radius = radius
         self.color = color
@@ -72,7 +73,7 @@ class DebugSphere:
 class DebugCylinder:
     __guid__ = 'debugShapes.DebugCylinder'
 
-    def __init__(self, src = (0.0, 0.0, 0.0), dst = (0.0, 0.0, 0.0), radius = 0.0, color = 4294967295L, time = 500):
+    def __init__(self, src=(0.0, 0.0, 0.0), dst=(0.0, 0.0, 0.0), radius=0.0, color=4294967295L, time=500):
         self.src = src
         self.dst = dst
         self.radius = radius
@@ -90,7 +91,7 @@ class DebugCylinder:
 class DebugCone:
     __guid__ = 'debugShapes.DebugCone'
 
-    def __init__(self, src = (0.0, 0.0, 0.0), dst = (0.0, 0.0, 0.0), radius = 0.0, color = 4294967295L, time = 500):
+    def __init__(self, src=(0.0, 0.0, 0.0), dst=(0.0, 0.0, 0.0), radius=0.0, color=4294967295L, time=500):
         self.src = src
         self.dst = dst
         self.radius = radius
@@ -108,7 +109,7 @@ class DebugCone:
 class DebugBox:
     __guid__ = 'debugShapes.DebugBox'
 
-    def __init__(self, min = (0.0, 0.0, 0.0), max = (0.0, 0.0, 0.0), color = 4294967295L, time = 500):
+    def __init__(self, min=(0.0, 0.0, 0.0), max=(0.0, 0.0, 0.0), color=4294967295L, time=500):
         self.min = min
         self.max = max
         self.color = color
@@ -125,7 +126,7 @@ class DebugBox:
 class DebugText:
     __guid__ = 'debugShapes.DebugText'
 
-    def __init__(self, src = (0.0, 0.0, 0.0), msg = '', color = 4294967295L, time = 500, fade = True):
+    def __init__(self, src=(0.0, 0.0, 0.0), msg='', color=4294967295L, time=500, fade=True):
         self.src = src
         self.color = color
         self.msg = msg
@@ -152,6 +153,7 @@ class DebugRenderClient(service.Service, safeThread.SafeThread):
         self.debugRender = False
         self.renderJob = None
         safeThread.SafeThread.init(self, 'debugRenderClient')
+        return
 
     def Run(self, *args):
         service.Service.Run(self, *args)
@@ -168,6 +170,7 @@ class DebugRenderClient(service.Service, safeThread.SafeThread):
         elif not enabled and self.renderJob is not None:
             self.renderJob.UnscheduleRecurring()
             self.renderJob = None
+        return
 
     def GetDebugRendering(self):
         return self.debugRender
@@ -193,33 +196,33 @@ class DebugRenderClient(service.Service, safeThread.SafeThread):
         for shape in shapesToKill:
             self.shapes.remove(shape)
 
-    def RenderRay(self, src, dst, srcColor = 4294967295L, dstColor = 4294967295L, time = 500, pulse = False):
+    def RenderRay(self, src, dst, srcColor=4294967295L, dstColor=4294967295L, time=500, pulse=False):
         self.shapes.append(DebugRay(src, dst, srcColor, dstColor, time, pulse))
 
-    def RenderText(self, pos, msg, color = 4294967295L, time = 500, fade = True):
+    def RenderText(self, pos, msg, color=4294967295L, time=500, fade=True):
         self.shapes.append(DebugText(pos, msg, color, time, fade))
 
-    def RenderCapsule(self, src, dst, radius, color, time = 500):
+    def RenderCapsule(self, src, dst, radius, color, time=500):
         self.shapes.append(DebugCapsule(src, dst, radius, color, time))
 
-    def RenderCylinder(self, src, dst, radius, color, time = 500):
+    def RenderCylinder(self, src, dst, radius, color, time=500):
         self.shapes.append(DebugCylinder(src, dst, radius, color, time))
 
-    def RenderCone(self, src, dst, radius, color, time = 500):
+    def RenderCone(self, src, dst, radius, color, time=500):
         self.shapes.append(DebugCone(src, dst, radius, color, time))
 
-    def RenderBox(self, min, max, color, time = 500):
+    def RenderBox(self, min, max, color, time=500):
         self.shapes.append(DebugBox(min, max, color, time))
 
-    def RenderSphere(self, src, radius, color = 4294967295L, time = 500):
+    def RenderSphere(self, src, radius, color=4294967295L, time=500):
         self.shapes.append(DebugSphere(src, radius, color, time))
 
-    def ExportDebugData(self, path = FULL_DEBUG_PATH):
+    def ExportDebugData(self, path=FULL_DEBUG_PATH):
         outFile = open(path, 'w')
         yaml.dump(self.shapes, outFile)
         outFile.close()
 
-    def LoadDebugData(self, path = DEBUG_RES_PATH):
+    def LoadDebugData(self, path=DEBUG_RES_PATH):
         import debugShapes
         sys.modules[debugShapes.__name__] = debugShapes
         resourceFile = blue.ResFile()

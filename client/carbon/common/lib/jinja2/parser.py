@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\carbon\common\lib\jinja2\parser.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\carbon\common\lib\jinja2\parser.py
 from jinja2 import nodes
 from jinja2.exceptions import TemplateSyntaxError, TemplateAssertionError
 from jinja2.utils import next
@@ -22,7 +23,7 @@ _compare_operators = frozenset(['eq',
 
 class Parser(object):
 
-    def __init__(self, environment, source, name = None, filename = None, state = None):
+    def __init__(self, environment, source, name=None, filename=None, state=None):
         self.environment = environment
         self.stream = environment._tokenize(source, name, filename, state)
         self.name = name
@@ -37,10 +38,11 @@ class Parser(object):
         self._tag_stack = []
         self._end_token_stack = []
 
-    def fail(self, msg, lineno = None, exc = TemplateSyntaxError):
+    def fail(self, msg, lineno=None, exc=TemplateSyntaxError):
         if lineno is None:
             lineno = self.stream.current.lineno
         raise exc(msg, lineno, self.name, self.filename)
+        return
 
     def _fail_ut_eof(self, name, end_token_stack, lineno):
         expected = []
@@ -63,24 +65,26 @@ class Parser(object):
         if self._tag_stack:
             message.append("The innermost block that needs to be closed is '%s'." % self._tag_stack[-1])
         self.fail(' '.join(message), lineno)
+        return
 
-    def fail_unknown_tag(self, name, lineno = None):
+    def fail_unknown_tag(self, name, lineno=None):
         return self._fail_ut_eof(name, self._end_token_stack, lineno)
 
-    def fail_eof(self, end_tokens = None, lineno = None):
+    def fail_eof(self, end_tokens=None, lineno=None):
         stack = list(self._end_token_stack)
         if end_tokens is not None:
             stack.append(end_tokens)
         return self._fail_ut_eof(None, stack, lineno)
 
-    def is_tuple_end(self, extra_end_rules = None):
+    def is_tuple_end(self, extra_end_rules=None):
         if self.stream.current.type in ('variable_end', 'block_end', 'rparen'):
             return True
-        if extra_end_rules is not None:
+        elif extra_end_rules is not None:
             return self.stream.current.test_any(extra_end_rules)
-        return False
+        else:
+            return False
 
-    def free_identifier(self, lineno = None):
+    def free_identifier(self, lineno=None):
         self._last_identifier += 1
         rv = object.__new__(nodes.InternalName)
         nodes.Node.__init__(rv, 'fi%d' % self._last_identifier, lineno=lineno)
@@ -109,7 +113,9 @@ class Parser(object):
             if pop_tag:
                 self._tag_stack.pop()
 
-    def parse_statements(self, end_tokens, drop_needle = False):
+        return
+
+    def parse_statements(self, end_tokens, drop_needle=False):
         self.stream.skip_if('colon')
         self.stream.expect('block_end')
         result = self.subparse(end_tokens)
@@ -289,7 +295,7 @@ class Parser(object):
 
         return node
 
-    def parse_assign_target(self, with_tuple = True, name_only = False, extra_end_rules = None):
+    def parse_assign_target(self, with_tuple=True, name_only=False, extra_end_rules=None):
         if name_only:
             token = self.stream.expect('name')
             target = nodes.Name(token.value, 'store', lineno=token.lineno)
@@ -303,7 +309,7 @@ class Parser(object):
             self.fail("can't assign to %r" % target.__class__.__name__.lower(), target.lineno)
         return target
 
-    def parse_expression(self, with_condexpr = True):
+    def parse_expression(self, with_condexpr=True):
         if with_condexpr:
             return self.parse_condexpr()
         return self.parse_or()
@@ -458,7 +464,7 @@ class Parser(object):
 
         return left
 
-    def parse_unary(self, with_filter = True):
+    def parse_unary(self, with_filter=True):
         token_type = self.stream.current.type
         lineno = self.stream.current.lineno
         if token_type == 'sub':
@@ -508,7 +514,7 @@ class Parser(object):
             self.fail("unexpected '%s'" % describe_token(token), token.lineno)
         return node
 
-    def parse_tuple(self, simplified = False, with_condexpr = True, extra_end_rules = None, explicit_parentheses = False):
+    def parse_tuple(self, simplified=False, with_condexpr=True, extra_end_rules=None, explicit_parentheses=False):
         lineno = self.stream.current.lineno
         if simplified:
             parse = self.parse_primary
@@ -687,9 +693,10 @@ class Parser(object):
              kwargs,
              dyn_args,
              dyn_kwargs)
-        return nodes.Call(node, args, kwargs, dyn_args, dyn_kwargs, lineno=token.lineno)
+        else:
+            return nodes.Call(node, args, kwargs, dyn_args, dyn_kwargs, lineno=token.lineno)
 
-    def parse_filter(self, node, start_inline = False):
+    def parse_filter(self, node, start_inline=False):
         while self.stream.current.type == 'pipe' or start_inline:
             if not start_inline:
                 next(self.stream)
@@ -737,7 +744,7 @@ class Parser(object):
             node = nodes.Not(node, lineno=token.lineno)
         return node
 
-    def subparse(self, end_tokens = None):
+    def subparse(self, end_tokens=None):
         body = []
         data_buffer = []
         add_data = data_buffer.append

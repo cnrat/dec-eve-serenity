@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\client\script\ui\services\alliances\all_cso_members.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\client\script\ui\services\alliances\all_cso_members.py
 import allianceObject
 import blue
 
@@ -8,10 +9,12 @@ class AllianceMembersO(allianceObject.base):
     def __init__(self, boundObject):
         allianceObject.base.__init__(self, boundObject)
         self.members = None
+        return
 
     def DoSessionChanging(self, isRemote, session, change):
         if 'allianceid' in change:
             self.members = None
+        return
 
     def GetMembers(self):
         if self.members is None:
@@ -30,28 +33,31 @@ class AllianceMembersO(allianceObject.base):
     def OnAllianceMemberChanged(self, allianceID, corpID, change):
         if allianceID != eve.session.allianceid:
             return
-        bAdd, bRemove = self.GetAddRemoveFromChange(change)
-        if self.members is not None:
-            if bAdd:
-                if len(change) != len(self.members.columns):
-                    self.LogWarn('IncorrectNumberOfColumns ignoring change as Add change:', change)
-                    return
-                line = []
-                for columnName in self.members.columns:
-                    line.append(change[columnName][1])
+        else:
+            bAdd, bRemove = self.GetAddRemoveFromChange(change)
+            if self.members is not None:
+                if bAdd:
+                    if len(change) != len(self.members.columns):
+                        self.LogWarn('IncorrectNumberOfColumns ignoring change as Add change:', change)
+                        return
+                    line = []
+                    for columnName in self.members.columns:
+                        line.append(change[columnName][1])
 
-                self.members[corpID] = blue.DBRow(self.members.header, line)
-            else:
-                if not self.members.has_key(corpID):
-                    return
-                if bRemove:
-                    del self.members[corpID]
+                    self.members[corpID] = blue.DBRow(self.members.header, line)
                 else:
-                    member = self.members[corpID]
-                    for columnName in change.iterkeys():
-                        setattr(member, columnName, change[columnName][1])
+                    if not self.members.has_key(corpID):
+                        return
+                    if bRemove:
+                        del self.members[corpID]
+                    else:
+                        member = self.members[corpID]
+                        for columnName in change.iterkeys():
+                            setattr(member, columnName, change[columnName][1])
 
-        sm.GetService('corpui').OnAllianceMemberChanged(allianceID, corpID, change)
+            sm.GetService('corpui').OnAllianceMemberChanged(allianceID, corpID, change)
+            return
 
     def ResetMembers(self):
         self.members = None
+        return

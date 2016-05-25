@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\common\modules\nice\client\_nastyspace\igsUtil.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\common\modules\nice\client\_nastyspace\igsUtil.py
 from carbon.common.script.util.igsUtil import AggregateEvent
 from carbon.common.script.util.igsUtil import IDX_CHAR1
 from carbon.common.script.util.igsUtil import IDX_CHAR2

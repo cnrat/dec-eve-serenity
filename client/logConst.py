@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\common\modules\nice\client\_nastyspace\logConst.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\common\modules\nice\client\_nastyspace\logConst.py
 from carbon.common.script.mgt.logConst import eventCoreCharacterCancelPrepareRemove
 from carbon.common.script.mgt.logConst import eventCoreCharacterCreate
 from carbon.common.script.mgt.logConst import eventCoreCharacterDevPaperdollClone
@@ -39,6 +40,8 @@ from eve.common.script.mgt.appLogConst import eventCalendarGMCCPEvent
 from eve.common.script.mgt.appLogConst import eventCalendarGMDelete
 from eve.common.script.mgt.appLogConst import eventCalendarGMEdit
 from eve.common.script.mgt.appLogConst import eventCalendarGMRecover
+from eve.common.script.mgt.appLogConst import eventCharacterActiveShipChanged
+from eve.common.script.mgt.appLogConst import eventCharacterActiveShipLogon
 from eve.common.script.mgt.appLogConst import eventCharacterAdd
 from eve.common.script.mgt.appLogConst import eventCharacterAddSuper
 from eve.common.script.mgt.appLogConst import eventCharacterAttributeRespecFree
@@ -478,6 +481,7 @@ from eve.common.script.mgt.appLogConst import groupTutorial
 from eve.common.script.mgt.appLogConst import groupUnspecified
 from eve.common.script.mgt.appLogConst import groupWar
 from eve.common.script.mgt.appLogConst import groupWisMiniGames
+from eve.common.script.mgt.appLogConst import movementEvents
 from eve.common.script.mgt.appLogConst import setDustBoosterTimeDurationEvents
 from eve.common.script.mgt.appLogConst import setDustSkillKnownSkillEvents
 from eve.common.script.mgt.appLogConst import setDustSkillMultiplierEvents

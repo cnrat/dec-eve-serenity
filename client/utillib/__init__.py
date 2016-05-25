@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\packages\utillib\__init__.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\packages\utillib\__init__.py
 import blue
 import os
 import collections
@@ -9,7 +10,7 @@ class KeyVal:
     __guid__ = 'util.KeyVal'
     __passbyvalue__ = 1
 
-    def __init__(self, dictLikeObject = None, **kw):
+    def __init__(self, dictLikeObject=None, **kw):
         self.__dict__ = kw
         if dictLikeObject is not None:
             if isinstance(dictLikeObject, dict):
@@ -22,6 +23,7 @@ class KeyVal:
                 self.__dict__.update(dictLikeObject.__dict__)
             else:
                 raise TypeError("%s can only be initialized with dictionaries, key/value pairs or blue.DBRow's. %s isn't one of them." % (self.__guid__, type(dictLikeObject)))
+        return
 
     def __str__(self):
         members = dict(filter(lambda (k, v): not k.startswith('__'), self.__dict__.items()))
@@ -47,10 +49,10 @@ class KeyVal:
         ret.__dict__.update(self.__dict__)
         return ret
 
-    def get(self, key, defval = None):
+    def get(self, key, defval=None):
         return self.__dict__.get(key, defval)
 
-    def Get(self, key, defval = None):
+    def Get(self, key, defval=None):
         return self.__dict__.get(key, defval)
 
     def Set(self, key, value):
@@ -122,6 +124,8 @@ def GetLoginCredentials():
                 raise RuntimeError('Format of login parameter incorrect, should be /login:<user>:<password>')
             return argParts
 
+    return None
+
 
 def extractBits(i):
     cur = 1
@@ -182,7 +186,7 @@ class DAG(object):
         self.graph[A][0].remove(B)
         self.graph[B][1].remove(A)
 
-    def RemoveNode(self, N, stitch = True):
+    def RemoveNode(self, N, stitch=True):
         connections = self.graph[N]
         del self.graph[N]
         for out in connections[0]:

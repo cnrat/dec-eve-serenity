@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\client\script\ui\services\menuSvcExtras\modelDebugFunctions.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\client\script\ui\services\menuSvcExtras\modelDebugFunctions.py
 import uix
 import log
 import blue
@@ -21,9 +22,10 @@ def SaveRedFile(ball, graphicFile):
         savePath = path + '\\' + graphicFile
         trinity.Save(ball.model, savePath)
         log.LogError('GM menu: Saved object as:', savePath)
+    return
 
 
-def GetGMModelInfoMenuItem(itemID = None):
+def GetGMModelInfoMenuItem(itemID=None):
 
     def GetModelHandler(*args):
         model = sm.StartService('michelle').GetBall(itemID).GetModel()
@@ -32,7 +34,7 @@ def GetGMModelInfoMenuItem(itemID = None):
     return ('Inspect model', GetModelHandler, (None,))
 
 
-def GetGMBallsAndBoxesMenu(itemID = None, *args, **kwargs):
+def GetGMBallsAndBoxesMenu(itemID=None, *args, **kwargs):
     spaceMgr = sm.StartService('space')
     partMenu = [('Stop partition box display ', spaceMgr.StopPartitionDisplayTimer, ()),
      None,
@@ -53,21 +55,8 @@ def GetGMBallsAndBoxesMenu(itemID = None, *args, **kwargs):
        ('Wireframe Destiny Ball', ShowDestinyBalls, (itemID, SHOW_DESTINY_BALL)),
        ('Wireframe BoundingSphere', ShowDestinyBalls, (itemID, SHOW_BOUNDING_SPHERE)),
        None,
-       ('Partition', partMenu)]), ('Damage Locators', [('Toggle damage locators', ShowDamageLocators, (itemID,)), ('Toggle shield ellipsoid', ShowShieldEllipsoid, (itemID,))]), ('Invulnerability Link', [('Remove link', RemoveLink, (itemID,)), ('Link player', AddLink, (itemID,))])]
+       ('Partition', partMenu)]), ('Damage Locators', [('Toggle damage locators', ShowDamageLocators, (itemID,)), ('Toggle shield ellipsoid', ShowShieldEllipsoid, (itemID,))])]
     return subMenu
-
-
-def RemoveLink(itemID):
-    ball = sm.StartService('michelle').GetBall(itemID)
-    if hasattr(ball, 'EnableLink'):
-        ball.EnableLink(None)
-
-
-def AddLink(itemID):
-    tgtBall = sm.StartService('michelle').GetBall(itemID)
-    playerBall = sm.StartService('michelle').GetBall(session.shipid)
-    if hasattr(playerBall, 'EnableLink'):
-        playerBall.EnableLink(tgtBall, 2.0 * tgtBall.radius, 2000.0)
 
 
 def ChangePartitionLevel(level):
@@ -84,6 +73,7 @@ def ShowShieldEllipsoid(itemID):
                 impactEffect.overallShieldImpact = 0.1
             else:
                 impactEffect.overallShieldImpact = -1.0
+    return
 
 
 def ShowDestinyBalls(itemID, showType):
@@ -91,7 +81,7 @@ def ShowDestinyBalls(itemID, showType):
     scene = sm.GetService('sceneManager').GetRegisteredScene('default')
     nameOfMiniballs = 'collisionInfo_for_' + str(itemID)
     for each in scene.objects:
-        if each.name == nameOfMiniballs:
+        if getattr(each, 'name', None) == nameOfMiniballs:
             miniballObject = each
             break
 
@@ -99,23 +89,25 @@ def ShowDestinyBalls(itemID, showType):
         scene.objects.remove(miniballObject)
     if miniballObject and showType == UNLOAD_COLLISION_INFO:
         return
-    ball = sm.StartService('michelle').GetBall(itemID)
-    if showType == SHOW_COLLISION_DATA:
-        graphicObject = CreateMiniCollisionObject(nameOfMiniballs, ball.miniBalls, ball.miniCapsules, ball.miniBoxes)
-        graphicObject.translationCurve = ball
-        graphicObject.rotationCurve = ball
-        scene.objects.append(graphicObject)
-    elif showType == SHOW_DESTINY_BALL:
-        graphicObject = CreateRadiusObject(nameOfMiniballs, ball.radius)
-        graphicObject.translationCurve = ball
-        scene.objects.append(graphicObject)
-    elif showType == SHOW_BOUNDING_SPHERE:
-        graphicObject = CreateRadiusObject(nameOfMiniballs, ball.model.GetBoundingSphereRadius())
-        pos = ball.model.GetBoundingSphereCenter()
-        graphicObject.translation = (pos[0], pos[1], pos[2])
-        graphicObject.translationCurve = ball
-        graphicObject.rotationCurve = ball
-        scene.objects.append(graphicObject)
+    else:
+        ball = sm.StartService('michelle').GetBall(itemID)
+        if showType == SHOW_COLLISION_DATA:
+            graphicObject = CreateMiniCollisionObject(nameOfMiniballs, ball.miniBalls, ball.miniCapsules, ball.miniBoxes)
+            graphicObject.translationCurve = ball
+            graphicObject.rotationCurve = ball
+            scene.objects.append(graphicObject)
+        elif showType == SHOW_DESTINY_BALL:
+            graphicObject = CreateRadiusObject(nameOfMiniballs, ball.radius)
+            graphicObject.translationCurve = ball
+            scene.objects.append(graphicObject)
+        elif showType == SHOW_BOUNDING_SPHERE:
+            graphicObject = CreateRadiusObject(nameOfMiniballs, ball.model.GetBoundingSphereRadius())
+            pos = ball.model.GetBoundingSphereCenter()
+            graphicObject.translation = (pos[0], pos[1], pos[2])
+            graphicObject.translationCurve = ball
+            graphicObject.rotationCurve = ball
+            scene.objects.append(graphicObject)
+        return
 
 
 def ShowDamageLocators(itemID):
@@ -199,11 +191,24 @@ def CreateMiniCollisionObject(name, miniballs, minicapsules, miniboxes):
         center = geo2.Vec3Add(corner, geo2.Vec3Scale(xyzAxis, 0.5))
         xNormalized = geo2.Vec3Normalize(xAxis)
         yNormalized = geo2.Vec3Normalize(yAxis)
-        xRot = geo2.QuaternionRotationArc((1, 0, 0), xNormalized)
-        yRot = geo2.QuaternionRotationArc((0, 1, 0), yNormalized)
+        zNormalized = geo2.Vec3Normalize(zAxis)
+        rotationMatrix = ((xNormalized[0],
+          xNormalized[1],
+          xNormalized[2],
+          0),
+         (yNormalized[0],
+          yNormalized[1],
+          yNormalized[2],
+          0),
+         (zNormalized[0],
+          zNormalized[1],
+          zNormalized[2],
+          0),
+         (0, 0, 0, 1))
+        rot = geo2.QuaternionRotationMatrix(rotationMatrix)
         mbox.translation = center
         mbox.scaling = geo2.Vec3Transform((1, 1, 1), geo2.MatrixScaling(geo2.Vec3Length(xAxis), geo2.Vec3Length(yAxis), geo2.Vec3Length(zAxis)))
-        mbox.rotation = geo2.QuaternionNormalize(geo2.QuaternionMultiply(xRot, yRot))
+        mbox.rotation = geo2.QuaternionNormalize(rot)
         t.children.append(mbox)
 
     t.name = name

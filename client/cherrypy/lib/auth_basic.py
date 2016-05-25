@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\carbon\common\lib\cherrypy\lib\auth_basic.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\carbon\common\lib\cherrypy\lib\auth_basic.py
 """This module provides a CherryPy 3.x tool which implements
 the server-side of HTTP Basic Access Authentication, as described in :rfc:`2617`.
 
@@ -29,7 +30,7 @@ def checkpassword_dict(user_password_dict):
     return checkpassword
 
 
-def basic_auth(realm, checkpassword, debug = False):
+def basic_auth(realm, checkpassword, debug=False):
     if '"' in realm:
         raise ValueError('Realm cannot contain the " (quote) character.')
     request = cherrypy.serving.request
@@ -49,3 +50,4 @@ def basic_auth(realm, checkpassword, debug = False):
 
     cherrypy.serving.response.headers['www-authenticate'] = 'Basic realm="%s"' % realm
     raise cherrypy.HTTPError(401, 'You are not authorized to access that resource')
+    return

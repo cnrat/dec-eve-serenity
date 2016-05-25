@@ -1,5 +1,7 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\packages\loginCharacterselection\charselData.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\packages\loginCharacterselection\charselData.py
 from itertoolsext import Bundle
+from eve.common.script.sys.idCheckers import IsStation
 
 class CharacterSelectionData:
 
@@ -11,16 +13,20 @@ class CharacterSelectionData:
         self.details = {}
         self.userDetails = None
         self.FetchCharacterInfoForUserID()
+        return
 
     def FetchCharacterInfoForUserID(self):
         if self.details:
             return None
-        self.trainingDetails = (None, None)
-        userDetails, self.trainingDetails, characterDetails = self.charRemoteSvc.GetCharacterSelectionData()
-        self.userDetails = userDetails[0]
-        for row in characterDetails:
-            character = CharacterSelectionDataForCharacter(row.characterID, row, self.cfg, self.localization, self.uiutil)
-            self.details[row.characterID] = character
+        else:
+            self.trainingDetails = (None, None)
+            userDetails, self.trainingDetails, characterDetails = self.charRemoteSvc.GetCharacterSelectionData()
+            self.userDetails = userDetails[0]
+            for row in characterDetails:
+                character = CharacterSelectionDataForCharacter(row.characterID, row, self.cfg, self.localization, self.uiutil)
+                self.details[row.characterID] = character
+
+            return None
 
     def GetCharInfo(self, charID):
         return self.details[charID]
@@ -56,7 +62,10 @@ class CharacterSelectionDataForCharacter:
         self.uiutil = uiutil
         if charDetails.stationID:
             self.stationID = charDetails.stationID
-            self.solarSystemID = self.cfg.stations.Get(self.stationID).solarSystemID
+            if charDetails.solarSystemID:
+                self.solarSystemID = charDetails.solarSystemID
+            else:
+                self.solarSystemID = self.cfg.evelocations.Get(self.stationID).solarSystemID
         elif charDetails.solarSystemID:
             self.stationID = None
             self.solarSystemID = charDetails.solarSystemID
@@ -67,6 +76,7 @@ class CharacterSelectionDataForCharacter:
             self.securityStatus = self.cfg.mapSystemCache[self.solarSystemID].securityStatus
         else:
             self.securityStatus = 0.0
+        return
 
     def GetWalletBalance(self):
         balance = self.charDetails.balance
@@ -99,28 +109,33 @@ class CharacterSelectionDataForCharacter:
     def GetCurrentStationAndStationLocation(self):
         if self.stationID is None:
             return
+        elif not IsStation(self.stationID):
+            return {'stationName': self.cfg.evelocations.Get(self.stationID).name,
+             'orbitName': '',
+             'shortOrbitName': ''}
+        else:
 
-        def CleanString(locationString):
-            locationString = self.uiutil.StripTags(locationString, stripOnly=['localized'])
-            locationString = locationString.replace(self.localization.HIGHLIGHT_IMPORTANT_MARKER, '')
-            return locationString
+            def CleanString(locationString):
+                locationString = self.uiutil.StripTags(locationString, stripOnly=['localized'])
+                locationString = locationString.replace(self.localization.HIGHLIGHT_IMPORTANT_MARKER, '')
+                return locationString
 
-        orbitID = self.cfg.stations.Get(self.stationID).orbitID
-        orbitName = self.cfg.evelocations.Get(orbitID).name
-        orbitName = CleanString(orbitName)
-        solarsystemName = self.cfg.evelocations.Get(self.solarSystemID).name
-        solarsystemName = CleanString(solarsystemName)
-        shortOrbitName = orbitName.replace(solarsystemName, '').strip()
-        moonText = self.localization.GetByLabel('UI/Locations/LocationMoonLong')
-        shortOrbitName = shortOrbitName.replace(moonText, '').replace('  ', ' ')
-        stationName = self.cfg.evelocations.Get(self.stationID).name
-        stationName = CleanString(stationName)
-        stationNameWithoutOrbit = stationName.replace(orbitName, '')
-        stationNameWithoutOrbit = stationNameWithoutOrbit.strip(' - ')
-        stationInfo = {'stationName': stationNameWithoutOrbit,
-         'orbitName': orbitName,
-         'shortOrbitName': shortOrbitName}
-        return stationInfo
+            orbitID = self.cfg.stations.Get(self.stationID).orbitID
+            orbitName = self.cfg.evelocations.Get(orbitID).name
+            orbitName = CleanString(orbitName)
+            solarsystemName = self.cfg.evelocations.Get(self.solarSystemID).name
+            solarsystemName = CleanString(solarsystemName)
+            shortOrbitName = orbitName.replace(solarsystemName, '').strip()
+            moonText = self.localization.GetByLabel('UI/Locations/LocationMoonLong')
+            shortOrbitName = shortOrbitName.replace(moonText, '').replace('  ', ' ')
+            stationName = self.cfg.evelocations.Get(self.stationID).name
+            stationName = CleanString(stationName)
+            stationNameWithoutOrbit = stationName.replace(orbitName, '')
+            stationNameWithoutOrbit = stationNameWithoutOrbit.strip(' - ')
+            stationInfo = {'stationName': stationNameWithoutOrbit,
+             'orbitName': orbitName,
+             'shortOrbitName': shortOrbitName}
+            return stationInfo
 
     def GetCurrentShip(self):
         return self.charDetails.shipTypeID

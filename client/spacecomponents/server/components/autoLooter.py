@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\packages\spacecomponents\server\components\autoLooter.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\packages\spacecomponents\server\components\autoLooter.py
 from eve.common.lib.appConst import maxCargoContainerTransferDistance
 from inventorycommon.const import typeCargoContainer, groupWreck, flagCargo
 from inventorycommon.util import GetItemVolume
@@ -23,6 +24,7 @@ class AutoLooter(Component):
         self.componentRegistry.SubscribeToItemMessage(itemID, 'OnRemovedFromSpace', self.OnRemovedFromSpace)
         self.componentRegistry.SubscribeToItemMessage(itemID, MSG_ON_BALLPARK_RELEASE, self.OnBallparkRelease)
         self.SetIntervalInSeconds(self.attributes.cycleTimeSeconds)
+        return
 
     def SetBallpark(self, ballpark):
         self.ballpark = ballpark
@@ -48,12 +50,14 @@ class AutoLooter(Component):
     def DoUnitOfWork(self):
         if not IsActiveComponent(self.componentRegistry, self.typeID, self.itemID):
             return
-        if self.IfLooterIsFull():
+        elif self.IfLooterIsFull():
             logger.debug('%s cargo is full', self.itemID)
             return
-        targetID = self.FindValidTarget()
-        if targetID is not None:
-            self.LootTarget(targetID)
+        else:
+            targetID = self.FindValidTarget()
+            if targetID is not None:
+                self.LootTarget(targetID)
+            return
 
     def ThreadWorker(self):
         if self.IsWorkerThreadActive():
@@ -75,15 +79,18 @@ class AutoLooter(Component):
         ballIDsInRange = self.ballpark.GetBallIdsAndDistInRange(self.itemID, self.lootRange)
         if len(ballIDsInRange) == 0:
             return None
-        ballIDsInRange.sort()
-        capacityLeft = self.GetCapacityLeft()
-        for distanceSq, ballID in ballIDsInRange:
-            if ballID < 0:
-                continue
-            slimItem = self.ballpark.slims[ballID]
-            if self.IsTargetValid(slimItem, capacityLeft):
-                logger.debug('%s searched for a valid target and found %s', self.itemID, ballID)
-                return ballID
+        else:
+            ballIDsInRange.sort()
+            capacityLeft = self.GetCapacityLeft()
+            for distanceSq, ballID in ballIDsInRange:
+                if ballID < 0:
+                    continue
+                slimItem = self.ballpark.slims[ballID]
+                if self.IsTargetValid(slimItem, capacityLeft):
+                    logger.debug('%s searched for a valid target and found %s', self.itemID, ballID)
+                    return ballID
+
+            return None
 
     @TimedFunction('SpaceComponent::AutoLooter::IsTargetValid')
     def IsTargetValid(self, slimItem, capacityLeft):

@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\carbon\common\lib\urllib3\poolmanager.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\carbon\common\lib\urllib3\poolmanager.py
 import logging
 from ._collections import RecentlyUsedContainer
 from .connectionpool import HTTPConnectionPool, HTTPSConnectionPool
@@ -12,11 +13,11 @@ log = logging.getLogger(__name__)
 
 class PoolManager(RequestMethods):
 
-    def __init__(self, num_pools = 10, **connection_pool_kw):
+    def __init__(self, num_pools=10, **connection_pool_kw):
         self.connection_pool_kw = connection_pool_kw
         self.pools = RecentlyUsedContainer(num_pools)
 
-    def connection_from_host(self, host, port = 80, scheme = 'http'):
+    def connection_from_host(self, host, port=80, scheme='http'):
         pool_key = (scheme, host, port)
         pool = self.pools.get(pool_key)
         if pool:
@@ -45,7 +46,7 @@ class ProxyManager(RequestMethods):
     def __init__(self, proxy_pool):
         self.proxy_pool = proxy_pool
 
-    def _set_proxy_headers(self, headers = None):
+    def _set_proxy_headers(self, headers=None):
         headers = headers or {}
         headers['Accept'] = '*/*'
         headers['Proxy-Connection'] = 'Keep-Alive'

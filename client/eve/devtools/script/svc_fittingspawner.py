@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\devtools\script\svc_fittingspawner.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\devtools\script\svc_fittingspawner.py
 from eve.client.script.ui.shared.fitting.fittingWnd import FittingWindow2
 import uix
 import blue
@@ -15,7 +16,7 @@ class FittingSpawner(Service):
         quantity = uix.QtyPopup(maxvalue=50, minvalue=1, caption='Mass Spawn Fitting', label='', hint='Specify amount of ships to spawn (Max. 50).<br>Note: this function cannot be aborted once running.')
         self.SpawnFitting(ownerID, fitting, quantity['qty'])
 
-    def SpawnFitting(self, ownerID, fitting, quantity = 1):
+    def SpawnFitting(self, ownerID, fitting, quantity=1):
         self.fittingSvc = sm.GetService('fittingSvc')
         if session.stationid is None:
             raise UserError('CannotLoadFittingInSpace')
@@ -49,3 +50,5 @@ class FittingSpawner(Service):
             if wasOpen:
                 self.fittingSvc.simulated = False
                 FittingWindow2.Open()
+
+        return

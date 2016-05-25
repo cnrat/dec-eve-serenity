@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\carbon\common\stdlib\xml\dom\minidom.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\carbon\common\stdlib\xml\dom\minidom.py
 import xml.dom
 from xml.dom import EMPTY_NAMESPACE, EMPTY_PREFIX, XMLNS_NAMESPACE, domreg
 from xml.dom.minicompat import *
@@ -16,10 +17,10 @@ class Node(xml.dom.Node):
     def __nonzero__(self):
         return True
 
-    def toxml(self, encoding = None):
+    def toxml(self, encoding=None):
         return self.toprettyxml('', '', encoding)
 
-    def toprettyxml(self, indent = '\t', newl = '\n', encoding = None):
+    def toprettyxml(self, indent='\t', newl='\n', encoding=None):
         writer = _get_StringIO()
         if encoding is not None:
             import codecs
@@ -53,31 +54,32 @@ class Node(xml.dom.Node):
                 self.insertBefore(c, refChild)
 
             return newChild
-        if newChild.nodeType not in self._child_node_types:
-            raise xml.dom.HierarchyRequestErr('%s cannot be child of %s' % (repr(newChild), repr(self)))
-        if newChild.parentNode is not None:
-            newChild.parentNode.removeChild(newChild)
-        if refChild is None:
-            self.appendChild(newChild)
         else:
-            try:
-                index = self.childNodes.index(refChild)
-            except ValueError:
-                raise xml.dom.NotFoundErr()
-
-            if newChild.nodeType in _nodeTypes_with_children:
-                _clear_id_cache(self)
-            self.childNodes.insert(index, newChild)
-            newChild.nextSibling = refChild
-            refChild.previousSibling = newChild
-            if index:
-                node = self.childNodes[index - 1]
-                node.nextSibling = newChild
-                newChild.previousSibling = node
+            if newChild.nodeType not in self._child_node_types:
+                raise xml.dom.HierarchyRequestErr('%s cannot be child of %s' % (repr(newChild), repr(self)))
+            if newChild.parentNode is not None:
+                newChild.parentNode.removeChild(newChild)
+            if refChild is None:
+                self.appendChild(newChild)
             else:
-                newChild.previousSibling = None
-            newChild.parentNode = self
-        return newChild
+                try:
+                    index = self.childNodes.index(refChild)
+                except ValueError:
+                    raise xml.dom.NotFoundErr()
+
+                if newChild.nodeType in _nodeTypes_with_children:
+                    _clear_id_cache(self)
+                self.childNodes.insert(index, newChild)
+                newChild.nextSibling = refChild
+                refChild.previousSibling = newChild
+                if index:
+                    node = self.childNodes[index - 1]
+                    node.nextSibling = newChild
+                    newChild.previousSibling = node
+                else:
+                    newChild.previousSibling = None
+                newChild.parentNode = self
+            return newChild
 
     def appendChild(self, node):
         if node.nodeType == self.DOCUMENT_FRAGMENT_NODE:
@@ -85,46 +87,48 @@ class Node(xml.dom.Node):
                 self.appendChild(c)
 
             return node
-        if node.nodeType not in self._child_node_types:
-            raise xml.dom.HierarchyRequestErr('%s cannot be child of %s' % (repr(node), repr(self)))
-        elif node.nodeType in _nodeTypes_with_children:
-            _clear_id_cache(self)
-        if node.parentNode is not None:
-            node.parentNode.removeChild(node)
-        _append_child(self, node)
-        node.nextSibling = None
-        return node
+        else:
+            if node.nodeType not in self._child_node_types:
+                raise xml.dom.HierarchyRequestErr('%s cannot be child of %s' % (repr(node), repr(self)))
+            elif node.nodeType in _nodeTypes_with_children:
+                _clear_id_cache(self)
+            if node.parentNode is not None:
+                node.parentNode.removeChild(node)
+            _append_child(self, node)
+            node.nextSibling = None
+            return node
 
     def replaceChild(self, newChild, oldChild):
         if newChild.nodeType == self.DOCUMENT_FRAGMENT_NODE:
             refChild = oldChild.nextSibling
             self.removeChild(oldChild)
             return self.insertBefore(newChild, refChild)
-        if newChild.nodeType not in self._child_node_types:
-            raise xml.dom.HierarchyRequestErr('%s cannot be child of %s' % (repr(newChild), repr(self)))
-        if newChild is oldChild:
-            return
-        if newChild.parentNode is not None:
-            newChild.parentNode.removeChild(newChild)
-        try:
-            index = self.childNodes.index(oldChild)
-        except ValueError:
-            raise xml.dom.NotFoundErr()
+        else:
+            if newChild.nodeType not in self._child_node_types:
+                raise xml.dom.HierarchyRequestErr('%s cannot be child of %s' % (repr(newChild), repr(self)))
+            if newChild is oldChild:
+                return
+            if newChild.parentNode is not None:
+                newChild.parentNode.removeChild(newChild)
+            try:
+                index = self.childNodes.index(oldChild)
+            except ValueError:
+                raise xml.dom.NotFoundErr()
 
-        self.childNodes[index] = newChild
-        newChild.parentNode = self
-        oldChild.parentNode = None
-        if newChild.nodeType in _nodeTypes_with_children or oldChild.nodeType in _nodeTypes_with_children:
-            _clear_id_cache(self)
-        newChild.nextSibling = oldChild.nextSibling
-        newChild.previousSibling = oldChild.previousSibling
-        oldChild.nextSibling = None
-        oldChild.previousSibling = None
-        if newChild.previousSibling:
-            newChild.previousSibling.nextSibling = newChild
-        if newChild.nextSibling:
-            newChild.nextSibling.previousSibling = newChild
-        return oldChild
+            self.childNodes[index] = newChild
+            newChild.parentNode = self
+            oldChild.parentNode = None
+            if newChild.nodeType in _nodeTypes_with_children or oldChild.nodeType in _nodeTypes_with_children:
+                _clear_id_cache(self)
+            newChild.nextSibling = oldChild.nextSibling
+            newChild.previousSibling = oldChild.previousSibling
+            oldChild.nextSibling = None
+            oldChild.previousSibling = None
+            if newChild.previousSibling:
+                newChild.previousSibling.nextSibling = newChild
+            if newChild.nextSibling:
+                newChild.nextSibling.previousSibling = newChild
+            return oldChild
 
     def removeChild(self, oldChild):
         try:
@@ -185,12 +189,15 @@ class Node(xml.dom.Node):
             return self
         else:
             return
+            return
 
     def getUserData(self, key):
         try:
             return self._user_data[key][0]
         except (AttributeError, KeyError):
             return None
+
+        return None
 
     def setUserData(self, key, data, handler):
         old = None
@@ -216,6 +223,8 @@ class Node(xml.dom.Node):
                 if handler is not None:
                     handler.handle(operation, key, data, src, dst)
 
+        return
+
     def unlink(self):
         self.parentNode = self.ownerDocument = None
         if self.childNodes:
@@ -225,6 +234,7 @@ class Node(xml.dom.Node):
             self.childNodes = NodeList()
         self.previousSibling = None
         self.nextSibling = None
+        return
 
     def __enter__(self):
         return self
@@ -307,7 +317,7 @@ class Attr(Node):
     _is_id = False
     _child_node_types = (Node.TEXT_NODE, Node.ENTITY_REFERENCE_NODE)
 
-    def __init__(self, qName, namespaceURI = EMPTY_NAMESPACE, localName = None, prefix = None):
+    def __init__(self, qName, namespaceURI=EMPTY_NAMESPACE, localName=None, prefix=None):
         d = self.__dict__
         d['nodeName'] = d['name'] = qName
         d['namespaceURI'] = namespaceURI
@@ -338,6 +348,7 @@ class Attr(Node):
                 _clear_id_cache(self.ownerElement)
         else:
             d[name] = value
+        return
 
     def _set_prefix(self, prefix):
         nsuri = self.namespaceURI
@@ -353,6 +364,7 @@ class Attr(Node):
         if self.ownerElement:
             _clear_id_cache(self.ownerElement)
         d['nodeName'] = d['name'] = newName
+        return
 
     def _set_value(self, value):
         d = self.__dict__
@@ -374,34 +386,37 @@ class Attr(Node):
             child.unlink()
 
         del self.childNodes[:]
+        return
 
     def _get_isId(self):
         if self._is_id:
             return True
-        doc = self.ownerDocument
-        elem = self.ownerElement
-        if doc is None or elem is None:
-            return False
-        info = doc._get_elem_info(elem)
-        if info is None:
-            return False
-        elif self.namespaceURI:
-            return info.isIdNS(self.namespaceURI, self.localName)
         else:
+            doc = self.ownerDocument
+            elem = self.ownerElement
+            if doc is None or elem is None:
+                return False
+            info = doc._get_elem_info(elem)
+            if info is None:
+                return False
+            if self.namespaceURI:
+                return info.isIdNS(self.namespaceURI, self.localName)
             return info.isId(self.nodeName)
+            return
 
     def _get_schemaType(self):
         doc = self.ownerDocument
         elem = self.ownerElement
         if doc is None or elem is None:
             return _no_type
-        info = doc._get_elem_info(elem)
-        if info is None:
-            return _no_type
-        elif self.namespaceURI:
-            return info.getAttributeTypeNS(self.namespaceURI, self.localName)
         else:
+            info = doc._get_elem_info(elem)
+            if info is None:
+                return _no_type
+            if self.namespaceURI:
+                return info.getAttributeTypeNS(self.namespaceURI, self.localName)
             return info.getAttributeType(self.nodeName)
+            return
 
 
 defproperty(Attr, 'isId', doc='True if this attribute is an ID.')
@@ -424,6 +439,8 @@ class NamedNodeMap(object):
             return self[self._attrs.keys()[index]]
         except IndexError:
             return None
+
+        return None
 
     def items(self):
         L = []
@@ -454,7 +471,7 @@ class NamedNodeMap(object):
     def values(self):
         return self._attrs.values()
 
-    def get(self, name, value = None):
+    def get(self, name, value=None):
         return self._attrs.get(name, value)
 
     __len__ = _get_length
@@ -465,6 +482,7 @@ class NamedNodeMap(object):
             return 0
         else:
             return cmp(id(self), id(other))
+            return
 
     def __getitem__(self, attname_or_tuple):
         if isinstance(attname_or_tuple, tuple):
@@ -494,11 +512,15 @@ class NamedNodeMap(object):
         except KeyError:
             return None
 
+        return None
+
     def getNamedItemNS(self, namespaceURI, localName):
         try:
             return self._attrsNS[namespaceURI, localName]
         except KeyError:
             return None
+
+        return None
 
     def removeNamedItem(self, name):
         n = self.getNamedItem(name)
@@ -509,7 +531,9 @@ class NamedNodeMap(object):
             if 'ownerElement' in n.__dict__:
                 n.__dict__['ownerElement'] = None
             return n
-        raise xml.dom.NotFoundErr()
+        else:
+            raise xml.dom.NotFoundErr()
+            return
 
     def removeNamedItemNS(self, namespaceURI, localName):
         n = self.getNamedItemNS(namespaceURI, localName)
@@ -520,7 +544,9 @@ class NamedNodeMap(object):
             if 'ownerElement' in n.__dict__:
                 n.__dict__['ownerElement'] = None
             return n
-        raise xml.dom.NotFoundErr()
+        else:
+            raise xml.dom.NotFoundErr()
+            return
 
     def setNamedItem(self, node):
         if not isinstance(node, Attr):
@@ -586,7 +612,7 @@ class Element(Node):
      Node.CDATA_SECTION_NODE,
      Node.ENTITY_REFERENCE_NODE)
 
-    def __init__(self, tagName, namespaceURI = EMPTY_NAMESPACE, prefix = None, localName = None):
+    def __init__(self, tagName, namespaceURI=EMPTY_NAMESPACE, prefix=None, localName=None):
         self.tagName = self.nodeName = tagName
         self.prefix = prefix
         self.namespaceURI = namespaceURI
@@ -607,6 +633,7 @@ class Element(Node):
         self._attrs = None
         self._attrsNS = None
         Node.unlink(self)
+        return
 
     def getAttribute(self, attname):
         try:
@@ -633,6 +660,7 @@ class Element(Node):
             d['value'] = d['nodeValue'] = value
             if attr.isId:
                 _clear_id_cache(self)
+        return
 
     def setAttributeNS(self, namespaceURI, qualifiedName, value):
         prefix, localname = _nssplit(qualifiedName)
@@ -654,6 +682,7 @@ class Element(Node):
             if attr.prefix != prefix:
                 d['prefix'] = prefix
                 d['nodeName'] = qualifiedName
+        return
 
     def getAttributeNode(self, attrname):
         return self._attrs.get(attrname)
@@ -673,8 +702,10 @@ class Element(Node):
         _set_attribute_node(self, attr)
         if old1 is not attr:
             return old1
-        if old2 is not attr:
+        elif old2 is not attr:
             return old2
+        else:
+            return
 
     setAttributeNodeNS = setAttributeNode
 
@@ -705,6 +736,7 @@ class Element(Node):
         _clear_id_cache(self)
         node.unlink()
         node.ownerDocument = self.ownerDocument
+        return
 
     removeAttributeNodeNS = removeAttributeNode
 
@@ -723,7 +755,7 @@ class Element(Node):
     def __repr__(self):
         return '<DOM Element: %s at %#x>' % (self.tagName, id(self))
 
-    def writexml(self, writer, indent = '', addindent = '', newl = ''):
+    def writexml(self, writer, indent='', addindent='', newl=''):
         writer.write(indent + '<' + self.tagName)
         attrs = self._get_attributes()
         a_names = attrs.keys()
@@ -769,6 +801,7 @@ class Element(Node):
             self._magic_id_nodes += 1
             self.ownerDocument._magic_id_count += 1
             _clear_id_cache(self)
+        return
 
 
 defproperty(Element, 'attributes', doc='NamedNodeMap of attributes on the element.')
@@ -841,7 +874,7 @@ class ProcessingInstruction(Childless, Node):
         else:
             self.__dict__[name] = value
 
-    def writexml(self, writer, indent = '', addindent = '', newl = ''):
+    def writexml(self, writer, indent='', addindent='', newl=''):
         writer.write('%s<?%s %s?>%s' % (indent,
          self.target,
          self.data,
@@ -942,7 +975,7 @@ class Text(CharacterData):
         self.data = self.data[:offset]
         return newText
 
-    def writexml(self, writer, indent = '', addindent = '', newl = ''):
+    def writexml(self, writer, indent='', addindent='', newl=''):
         _write_data(writer, '%s%s%s' % (indent, self.data, newl))
 
     def _get_wholeText(self):
@@ -994,18 +1027,20 @@ class Text(CharacterData):
             return self
         else:
             return
+            return
 
     def _get_isWhitespaceInElementContent(self):
         if self.data.strip():
             return False
-        elem = _get_containing_element(self)
-        if elem is None:
-            return False
-        info = self.ownerDocument._get_elem_info(elem)
-        if info is None:
-            return False
         else:
+            elem = _get_containing_element(self)
+            if elem is None:
+                return False
+            info = self.ownerDocument._get_elem_info(elem)
+            if info is None:
+                return False
             return info.isElementContent()
+            return
 
 
 defproperty(Text, 'isWhitespaceInElementContent', doc='True iff this text node contains only whitespace and is in element content.')
@@ -1018,6 +1053,8 @@ def _get_containing_element(node):
             return c
         c = c.parentNode
 
+    return
+
 
 def _get_containing_entref(node):
     c = node.parentNode
@@ -1025,6 +1062,8 @@ def _get_containing_entref(node):
         if c.nodeType == Node.ENTITY_REFERENCE_NODE:
             return c
         c = c.parentNode
+
+    return
 
 
 class Comment(Childless, CharacterData):
@@ -1034,7 +1073,7 @@ class Comment(Childless, CharacterData):
     def __init__(self, data):
         self.data = self.nodeValue = data
 
-    def writexml(self, writer, indent = '', addindent = '', newl = ''):
+    def writexml(self, writer, indent='', addindent='', newl=''):
         if '--' in self.data:
             raise ValueError("'--' is not allowed in a comment node")
         writer.write('%s<!--%s-->%s' % (indent, self.data, newl))
@@ -1044,7 +1083,7 @@ class CDATASection(Text):
     nodeType = Node.CDATA_SECTION_NODE
     nodeName = '#cdata-section'
 
-    def writexml(self, writer, indent = '', addindent = '', newl = ''):
+    def writexml(self, writer, indent='', addindent='', newl=''):
         if self.data.find(']]>') >= 0:
             raise ValueError("']]>' not allowed in a CDATA section")
         writer.write('<![CDATA[%s]]>' % self.data)
@@ -1053,7 +1092,7 @@ class CDATASection(Text):
 class ReadOnlySequentialNamedNodeMap(object):
     __slots__ = ('_seq',)
 
-    def __init__(self, seq = ()):
+    def __init__(self, seq=()):
         self._seq = seq
 
     def __len__(self):
@@ -1084,9 +1123,12 @@ class ReadOnlySequentialNamedNodeMap(object):
     def item(self, index):
         if index < 0:
             return None
-        try:
-            return self._seq[index]
-        except IndexError:
+        else:
+            try:
+                return self._seq[index]
+            except IndexError:
+                return None
+
             return None
 
     def removeNamedItem(self, name):
@@ -1168,8 +1210,9 @@ class DocumentType(Identified, Childless, Node):
             return clone
         else:
             return
+            return
 
-    def writexml(self, writer, indent = '', addindent = '', newl = ''):
+    def writexml(self, writer, indent='', addindent='', newl=''):
         writer.write('<!DOCTYPE ')
         writer.write(self.name)
         if self.publicId:
@@ -1184,6 +1227,7 @@ class DocumentType(Identified, Childless, Node):
             writer.write(self.internalSubset)
             writer.write(']')
         writer.write('>' + newl)
+        return
 
 
 class Entity(Identified, Node):
@@ -1280,6 +1324,7 @@ class DOMImplementation(DOMImplementationLS):
             return self
         else:
             return
+            return
 
     def _create_document(self):
         return Document()
@@ -1323,6 +1368,7 @@ def _clear_id_cache(node):
     elif _in_document(node):
         node.ownerDocument._id_cache.clear()
         node.ownerDocument._id_search_stack = None
+    return
 
 
 class Document(Node, DocumentLS):
@@ -1352,6 +1398,7 @@ class Document(Node, DocumentLS):
         self._elem_info = {}
         self._id_cache = {}
         self._id_search_stack = None
+        return
 
     def _get_elem_info(self, element):
         if element.namespaceURI:
@@ -1415,25 +1462,27 @@ class Document(Node, DocumentLS):
             self.doctype.unlink()
             self.doctype = None
         Node.unlink(self)
+        return
 
     def cloneNode(self, deep):
         if not deep:
             return
-        clone = self.implementation.createDocument(None, None, None)
-        clone.encoding = self.encoding
-        clone.standalone = self.standalone
-        clone.version = self.version
-        for n in self.childNodes:
-            childclone = _clone_node(n, deep, clone)
-            clone.childNodes.append(childclone)
-            if childclone.nodeType == Node.DOCUMENT_NODE:
-                pass
-            elif childclone.nodeType == Node.DOCUMENT_TYPE_NODE:
-                clone.doctype = childclone
-            childclone.parentNode = clone
+        else:
+            clone = self.implementation.createDocument(None, None, None)
+            clone.encoding = self.encoding
+            clone.standalone = self.standalone
+            clone.version = self.version
+            for n in self.childNodes:
+                childclone = _clone_node(n, deep, clone)
+                clone.childNodes.append(childclone)
+                if childclone.nodeType == Node.DOCUMENT_NODE:
+                    pass
+                elif childclone.nodeType == Node.DOCUMENT_TYPE_NODE:
+                    clone.doctype = childclone
+                childclone.parentNode = clone
 
-        self._call_user_data_handler(xml.dom.UserDataHandler.NODE_CLONED, self, clone)
-        return clone
+            self._call_user_data_handler(xml.dom.UserDataHandler.NODE_CLONED, self, clone)
+            return clone
 
     def createDocumentFragment(self):
         d = DocumentFragment()
@@ -1503,52 +1552,53 @@ class Document(Node, DocumentLS):
     def getElementById(self, id):
         if id in self._id_cache:
             return self._id_cache[id]
-        if not (self._elem_info or self._magic_id_count):
+        elif not (self._elem_info or self._magic_id_count):
             return
-        stack = self._id_search_stack
-        if stack is None:
-            stack = [self.documentElement]
-            self._id_search_stack = stack
-        elif not stack:
-            return
-        result = None
-        while stack:
-            node = stack.pop()
-            stack.extend([ child for child in node.childNodes if child.nodeType in _nodeTypes_with_children ])
-            info = self._get_elem_info(node)
-            if info:
-                for attr in node.attributes.values():
-                    if attr.namespaceURI:
-                        if info.isIdNS(attr.namespaceURI, attr.localName):
+        else:
+            stack = self._id_search_stack
+            if stack is None:
+                stack = [self.documentElement]
+                self._id_search_stack = stack
+            elif not stack:
+                return
+            result = None
+            while stack:
+                node = stack.pop()
+                stack.extend([ child for child in node.childNodes if child.nodeType in _nodeTypes_with_children ])
+                info = self._get_elem_info(node)
+                if info:
+                    for attr in node.attributes.values():
+                        if attr.namespaceURI:
+                            if info.isIdNS(attr.namespaceURI, attr.localName):
+                                self._id_cache[attr.value] = node
+                                if attr.value == id:
+                                    result = node
+                                elif not node._magic_id_nodes:
+                                    break
+                        elif info.isId(attr.name):
                             self._id_cache[attr.value] = node
                             if attr.value == id:
                                 result = node
                             elif not node._magic_id_nodes:
                                 break
-                    elif info.isId(attr.name):
-                        self._id_cache[attr.value] = node
-                        if attr.value == id:
-                            result = node
-                        elif not node._magic_id_nodes:
-                            break
-                    elif attr._is_id:
-                        self._id_cache[attr.value] = node
-                        if attr.value == id:
-                            result = node
-                        elif node._magic_id_nodes == 1:
-                            break
+                        elif attr._is_id:
+                            self._id_cache[attr.value] = node
+                            if attr.value == id:
+                                result = node
+                            elif node._magic_id_nodes == 1:
+                                break
 
-            elif node._magic_id_nodes:
-                for attr in node.attributes.values():
-                    if attr._is_id:
-                        self._id_cache[attr.value] = node
-                        if attr.value == id:
-                            result = node
+                elif node._magic_id_nodes:
+                    for attr in node.attributes.values():
+                        if attr._is_id:
+                            self._id_cache[attr.value] = node
+                            if attr.value == id:
+                                result = node
 
-            if result is not None:
-                break
+                if result is not None:
+                    break
 
-        return result
+            return result
 
     def getElementsByTagName(self, name):
         return _get_elements_by_tagName_helper(self, name, NodeList())
@@ -1566,13 +1616,15 @@ class Document(Node, DocumentLS):
             raise xml.dom.NotSupportedErr('cannot import document type nodes')
         return _clone_node(node, deep, self)
 
-    def writexml(self, writer, indent = '', addindent = '', newl = '', encoding = None):
+    def writexml(self, writer, indent='', addindent='', newl='', encoding=None):
         if encoding is None:
             writer.write('<?xml version="1.0" ?>' + newl)
         else:
             writer.write('<?xml version="1.0" encoding="%s"?>%s' % (encoding, newl))
         for node in self.childNodes:
             node.writexml(writer, indent, addindent, newl)
+
+        return
 
     def renameNode(self, n, namespaceURI, name):
         if n.ownerDocument is not self:
@@ -1690,6 +1742,7 @@ def _nssplit(qualifiedName):
         return fields
     else:
         return (None, fields[0])
+        return None
 
 
 def _get_StringIO():
@@ -1705,7 +1758,7 @@ def _do_pulldom_parse(func, args, kwargs):
     return rootNode
 
 
-def parse(file, parser = None, bufsize = None):
+def parse(file, parser=None, bufsize=None):
     if parser is None and not bufsize:
         from xml.dom import expatbuilder
         return expatbuilder.parse(file)
@@ -1713,18 +1766,20 @@ def parse(file, parser = None, bufsize = None):
         from xml.dom import pulldom
         return _do_pulldom_parse(pulldom.parse, (file,), {'parser': parser,
          'bufsize': bufsize})
+        return
 
 
-def parseString(string, parser = None):
+def parseString(string, parser=None):
     if parser is None:
         from xml.dom import expatbuilder
         return expatbuilder.parseString(string)
     else:
         from xml.dom import pulldom
         return _do_pulldom_parse(pulldom.parseString, (string,), {'parser': parser})
+        return
 
 
-def getDOMImplementation(features = None):
+def getDOMImplementation(features=None):
     if features:
         if isinstance(features, StringTypes):
             features = domreg._parse_feature_string(features)

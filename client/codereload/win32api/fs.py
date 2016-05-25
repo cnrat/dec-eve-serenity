@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\packages\codereload\win32api\fs.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\packages\codereload\win32api\fs.py
 import ctypes
 from ctypes.wintypes import BOOL, DWORD, HANDLE
 _k32 = ctypes.windll.kernel32
@@ -83,6 +84,7 @@ def CreateHardLink(link_name, source):
     res = _k32.CreateHardLinkW(link_name, source, None)
     if res == 0:
         raise ctypes.WinError()
+    return
 
 
 class Constants(object):
@@ -166,7 +168,7 @@ class Constants(object):
     FILE_FLAG_POSIX_SEMANTICS = 16777216
     FILE_FLAG_RANDOM_ACCESS = 268435456
     FILE_FLAG_SEQUENTIAL_SCAN = 134217728
-    FILE_FLAG_WRITE_THROUGH = -0x80000000
+    FILE_FLAG_WRITE_THROUGH = -2147483648
     FILE_GENERIC_READ = 1179785
     FILE_GENERIC_WRITE = 1179926
     FILE_IS_ENCRYPTED = 1
@@ -185,7 +187,7 @@ class Constants(object):
     FILE_UNKNOWN = 5
     FILE_USER_DISALLOWED = 7
     GENERIC_EXECUTE = 536870912
-    GENERIC_READ = -0x80000000
+    GENERIC_READ = -2147483648
     GENERIC_WRITE = 1073741824
     GetFileExInfoStandard = 1
     INVALID_HANDLE_VALUE = -1

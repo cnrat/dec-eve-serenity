@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\client\script\ui\services\corporation\bco_voting.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\client\script\ui\services\corporation\bco_voting.py
 import util
 import dbutil
 import corpObject
@@ -13,6 +14,7 @@ class VotingO(corpObject.base):
         corpObject.base.__init__(self, boundObject)
         self.__voteCaseOptionsRD = None
         self.Reset()
+        return
 
     def DoSessionChanging(self, isRemote, session, change):
         if 'corpid' in change:
@@ -23,8 +25,9 @@ class VotingO(corpObject.base):
         self.__voteCaseOptionsByCorporation = {}
         self.__votesByCorpIDByVoteCaseID = {}
         self.CanViewVotes_ = None
+        return
 
-    def GetVoteCasesByCorporation(self, corpid, status = 0, maxLen = 0):
+    def GetVoteCasesByCorporation(self, corpid, status=0, maxLen=0):
         if status == 0:
             if not self.__voteCasesByCorporation.has_key(corpid):
                 self.__voteCasesByCorporation[corpid] = self.GetCorpRegistry().GetVoteCasesByCorporation(corpid)
@@ -32,7 +35,7 @@ class VotingO(corpObject.base):
         else:
             return self.GetCorpRegistry().GetVoteCasesByCorporation(corpid, status, maxLen)
 
-    def GetVoteCaseOptions(self, voteCaseID, corpID = None):
+    def GetVoteCaseOptions(self, voteCaseID, corpID=None):
         if corpID not in self.__voteCaseOptionsByCorporation:
             self.__voteCaseOptionsByCorporation[corpID] = {}
         if voteCaseID not in self.__voteCaseOptionsByCorporation[corpID]:
@@ -47,7 +50,7 @@ class VotingO(corpObject.base):
             self.__votesByCorpIDByVoteCaseID[corpID][voteCaseID] = self.GetCorpRegistry().GetVotes(corpID, voteCaseID)
         return self.__votesByCorpIDByVoteCaseID[corpID][voteCaseID]
 
-    def InsertVoteCase(self, voteCaseText, description, corporationID, voteType, voteCaseOptions, startDateTime = None, endDateTime = None):
+    def InsertVoteCase(self, voteCaseText, description, corporationID, voteType, voteCaseOptions, startDateTime=None, endDateTime=None):
         return self.GetCorpRegistry().InsertVoteCase(voteCaseText, description, corporationID, voteType, voteCaseOptions, startDateTime, endDateTime)
 
     def InsertVote(self, corporationID, voteCaseID, voteValue):
@@ -76,6 +79,8 @@ class VotingO(corpObject.base):
 
         finally:
             uthread.new(self.OnCorporationVoteCaseChanged_thread, corporationID, voteCaseID, change).context = 'svc.corp.OnCorporationVoteCaseChanged'
+
+        return
 
     def OnCorporationVoteCaseChanged_thread(self, corporationID, voteCaseID, change):
         sm.GetService('corpui').OnCorporationVoteCaseChanged(corporationID, voteCaseID, change)
@@ -108,6 +113,8 @@ class VotingO(corpObject.base):
 
         finally:
             uthread.new(self.OnCorporationVoteCaseOptionChanged_thread, corporationID, voteCaseID, optionID, change).context = 'svc.corp.OnCorporationVoteCaseOptionChanged'
+
+        return
 
     def OnCorporationVoteCaseOptionChanged_thread(self, corporationID, voteCaseID, optionID, change):
         sm.GetService('corpui').OnCorporationVoteCaseOptionChanged(corporationID, voteCaseID, optionID, change)
@@ -142,14 +149,17 @@ class VotingO(corpObject.base):
         finally:
             uthread.new(self.OnCorporationVoteChanged_thread, corporationID, voteCaseID, characterID, change).context = 'svc.corp.OnCorporationVoteChanged'
 
+        return
+
     def OnCorporationVoteChanged_thread(self, corporationID, voteCaseID, characterID, change):
         sm.GetService('corpui').OnCorporationVoteChanged(corporationID, voteCaseID, characterID, change)
 
     def OnShareChange(self, shareholderID, corporationID, change):
         if shareholderID == eve.session.charid:
             self.CanViewVotes_ = None
+        return
 
-    def CanViewVotes(self, corpid, new = 0):
+    def CanViewVotes(self, corpid, new=0):
         bCan = 0
         if eve.session.corpid == corpid:
             if eve.session.corprole & const.corpRoleDirector == const.corpRoleDirector:

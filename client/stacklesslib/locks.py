@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\carbon\common\stdlib\stacklesslib\locks.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\carbon\common\stdlib\stacklesslib\locks.py
 from __future__ import with_statement
 from __future__ import absolute_import
 import stackless
@@ -28,8 +29,9 @@ class Lock(LockMixin):
         self.channel = stackless.channel()
         set_channel_pref(self.channel)
         self.owning = None
+        return
 
-    def acquire(self, blocking = True, timeout = None):
+    def acquire(self, blocking=True, timeout=None):
         with atomic():
             got_it = self._try_acquire()
             if got_it or not blocking:
@@ -52,20 +54,25 @@ class Lock(LockMixin):
                 if self._try_acquire():
                     return True
 
+        return
+
     def _try_acquire(self):
         if self.owning is None:
             self.owning = stackless.getcurrent()
             return True
-        return False
+        else:
+            return False
 
     def release(self):
         with atomic():
             self.owning = None
             self._pump()
+        return
 
     def _pump(self):
         if not self.owning and self.channel.balance:
             self.channel.send(None)
+        return
 
     def _safe_pump(self):
         try:
@@ -85,7 +92,8 @@ class RLock(Lock):
             self.owning = stackless.getcurrent()
             self.recursion += 1
             return True
-        return False
+        else:
+            return False
 
     def release(self):
         if self.owning is not stackless.getcurrent():
@@ -95,6 +103,7 @@ class RLock(Lock):
             if not self.recursion:
                 self.owning = None
                 self._pump()
+        return
 
     def _is_owned(self):
         return self.owning is stackless.getcurrent()
@@ -110,28 +119,29 @@ class RLock(Lock):
         self.owning, self.recursion = r
 
 
-def wait_for_condition(cond, predicate, timeout = None):
+def wait_for_condition(cond, predicate, timeout=None):
     result = predicate()
     if result:
         return result
-    endtime = None
-    while not result:
-        if timeout is not None:
-            if endtime is None:
-                endtime = elapsed_time() + timeout
-            else:
-                timeout = endtime - elapsed_time()
-                if timeout < 0:
-                    return result
-        cond.wait(timeout)
-        result = predicate()
+    else:
+        endtime = None
+        while not result:
+            if timeout is not None:
+                if endtime is None:
+                    endtime = elapsed_time() + timeout
+                else:
+                    timeout = endtime - elapsed_time()
+                    if timeout < 0:
+                        return result
+            cond.wait(timeout)
+            result = predicate()
 
-    return result
+        return result
 
 
 class Condition(LockMixin):
 
-    def __init__(self, lock = None):
+    def __init__(self, lock=None):
         if not lock:
             lock = RLock()
         self.lock = lock
@@ -159,7 +169,7 @@ class Condition(LockMixin):
         else:
             return True
 
-    def wait(self, timeout = None):
+    def wait(self, timeout=None):
         if not self._is_owned():
             raise RuntimeError('cannot wait on un-aquired lock')
         self.nWaiting += 1
@@ -173,10 +183,10 @@ class Condition(LockMixin):
 
         return got_it
 
-    def wait_for(self, predicate, timeout = None):
+    def wait_for(self, predicate, timeout=None):
         return wait_for_condition(self, predicate, timeout)
 
-    def notify(self, n = 1):
+    def notify(self, n=1):
         if not self._is_owned():
             raise RuntimeError('cannot notify on un-acquired lock')
         n = min(n, self.nWaiting)
@@ -196,22 +206,25 @@ class NLCondition(LockMixin):
         self._chan = stackless.channel()
         set_channel_pref(self._chan)
 
-    def wait(self, timeout = None):
+    def wait(self, timeout=None):
         return lock_channel_wait(self._chan, timeout)
 
-    def wait_for(self, predicate, timeout = None):
+    def wait_for(self, predicate, timeout=None):
         return wait_for_condition(self, predicate, timeout)
 
     def notify(self):
         with atomic():
             if self._chan.balance:
                 self._chan.send(None)
+        return
 
     def notify_all(self):
         with atomic():
             for i in xrange(-self._chan.balance):
                 if self._chan.balance:
                     self._chan.send(None)
+
+        return
 
     notifyAll = notify_all
 
@@ -223,7 +236,7 @@ class NLCondition(LockMixin):
 
 class Semaphore(LockMixin):
 
-    def __init__(self, value = 1):
+    def __init__(self, value=1):
         if value < 0:
             raise ValueError
         self._value = value
@@ -231,7 +244,7 @@ class Semaphore(LockMixin):
         set_channel_pref(self._chan)
         self._signaling = []
 
-    def acquire(self, blocking = True, timeout = None):
+    def acquire(self, blocking=True, timeout=None):
         with atomic():
             if self._value > 0:
                 self._value -= 1
@@ -250,7 +263,7 @@ class Semaphore(LockMixin):
                 self._signaling.remove(stackless.getcurrent())
             return result
 
-    def release(self, count = 1):
+    def release(self, count=1):
         with atomic():
             for i in xrange(count):
                 if self._chan.balance:
@@ -259,14 +272,16 @@ class Semaphore(LockMixin):
                 else:
                     self._value += 1
 
+        return
+
 
 class BoundedSemaphore(Semaphore):
 
-    def __init__(self, value = 1):
+    def __init__(self, value=1):
         Semaphore.__init__(self, value)
         self._max_value = value
 
-    def release(self, count = 1):
+    def release(self, count=1):
         with atomic():
             for i in xrange(count):
                 if self._chan.balance:
@@ -276,6 +291,8 @@ class BoundedSemaphore(Semaphore):
                     if self._value == self._max_value:
                         raise ValueError
                     self._value += 1
+
+        return
 
 
 class Event(object):
@@ -293,7 +310,7 @@ class Event(object):
     def clear(self):
         self._is_set = False
 
-    def wait(self, timeout = None):
+    def wait(self, timeout=None):
         with atomic():
             if self._is_set:
                 return True
@@ -305,3 +322,5 @@ class Event(object):
             self._is_set = True
             for i in range(-self.chan.balance):
                 self.chan.send(None)
+
+        return

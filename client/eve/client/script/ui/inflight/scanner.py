@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\client\script\ui\inflight\scanner.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\client\script\ui\inflight\scanner.py
 from carbon.common.script.util.format import FmtDist, FmtDate
 from carbon.common.script.util.mathUtil import Lerp
 from carbon.common.script.util.timerstuff import AutoTimer
@@ -101,6 +102,7 @@ FORMATION_CONTROL_ID = 'formationControl'
 def AddFilter(*args):
     editor = ScannerFilterEditor.Open()
     editor.LoadData(None)
+    return
 
 
 def UserErrorIfScanning(action, *args, **kwargs):
@@ -161,6 +163,7 @@ class FormationButton(Container):
     def LaunchClick(self, *args):
         if not self.disabled and self.selectedFormationID is not None:
             sm.GetService('scanSvc').MoveProbesToFormation(self.selectedFormationID)
+        return
 
     def Highlight(self, selection, highlight):
         selection.display = highlight
@@ -200,13 +203,13 @@ class FormationButton(Container):
         for formation in formations:
             cont = menuParent.AddContainer(align=uiconst.TOTOP, state=uiconst.UI_PICKCHILDREN)
             innerCont = Container(parent=cont, align=uiconst.TOTOP, height=25, state=uiconst.UI_NORMAL, clipChildren=True)
-            cont.GetEntryWidth = lambda mc = cont: 150
+            cont.GetEntryWidth = lambda mc=cont: 150
             self.GetFormationEntry(formation, innerCont, menuParent)
 
         if len(formations) < 10:
             menuParent.AddDivider()
             cont = menuParent.AddContainer(align=uiconst.TOTOP)
-            cont.GetEntryWidth = lambda mc = cont: 150
+            cont.GetEntryWidth = lambda mc=cont: 150
             innerCont = Container(parent=cont, align=uiconst.TOTOP, height=25, state=uiconst.UI_NORMAL)
             self.formationNameInput = self.GetFormationInput(innerCont)
 
@@ -236,6 +239,7 @@ class FormationButton(Container):
             self.Enable()
         else:
             self.Disable()
+        return
 
 
 class Scanner(Window):
@@ -389,30 +393,32 @@ class Scanner(Window):
         self.LoadProbeList()
         if self.destroyed:
             return
-        self.UpdateProbeSpheres()
-        self.LoadFilterOptions()
-        show = localization.GetByLabel('UI/Inflight/Scanner/Show')
-        showIgnored = EveLabelMedium(parent=self.filterLine, text=show, color=(0.8, 0.8, 0.0), align=uiconst.TORIGHT, state=uiconst.UI_NORMAL, padding=(0, 0, 10, 0))
-        showIgnored.OnClick = self.ClearIgnoredResults
-        showIgnored.OnMouseEnter = (self.HighlightLabelOn, showIgnored, (1, 1, 0))
-        showIgnored.OnMouseExit = (self.HighlightLabelOff, showIgnored, (1, 1, 0))
-        ignored = localization.GetByLabel('UI/Inflight/Scanner/Ignored', noIgnored=0)
-        self.ignoredLabel = EveLabelMediumBold(parent=self.filterLine, text=ignored, align=uiconst.TORIGHT, color=(0.8, 0.8, 0.8), state=uiconst.UI_NORMAL, padding=(0, 0, 10, 0))
-        EveLabelMediumBold(parent=self.filterLine, text='/', align=uiconst.TORIGHT, color=(0.8, 0.8, 0.8), state=uiconst.UI_DISABLED, padding=(10, 0, 10, 0))
-        showFiltered = EveLabelMedium(parent=self.filterLine, text=show, color=(0.8, 0.8, 0.0), align=uiconst.TORIGHT, state=uiconst.UI_NORMAL, padding=(0, 0, 0, 0))
-        showFiltered.OnClick = self.ClearFilteredResults
-        showFiltered.OnMouseEnter = (self.HighlightLabelOn, showFiltered, (1, 1, 0))
-        showFiltered.OnMouseExit = (self.HighlightLabelOff, showFiltered, (1, 1, 0))
-        filtered = localization.GetByLabel('UI/Inflight/Scanner/Filtered', noFiltered=0)
-        self.filteredLabel = EveLabelMediumBold(parent=self.filterLine, text=filtered, align=uiconst.TORIGHT, color=(0.8, 0.8, 0.8), state=uiconst.UI_NORMAL, padding=(0, 0, 10, 0))
-        self.filterLine.height = max(18, self.ignoredLabel.textheight, self.filteredLabel.textheight)
-        uthread.new(self.ApplyProbesPortion)
-        ballpark = sm.GetService('michelle').GetBallpark()
-        if ballpark is not None:
-            uthread.new(self.InitialResultLoad)
-        self.Refresh()
-        self.ApplyProbesPortion()
-        sm.ScatterEvent('OnProbeScanner_ScannerOpened')
+        else:
+            self.UpdateProbeSpheres()
+            self.LoadFilterOptions()
+            show = localization.GetByLabel('UI/Inflight/Scanner/Show')
+            showIgnored = EveLabelMedium(parent=self.filterLine, text=show, color=(0.8, 0.8, 0.0), align=uiconst.TORIGHT, state=uiconst.UI_NORMAL, padding=(0, 0, 10, 0))
+            showIgnored.OnClick = self.ClearIgnoredResults
+            showIgnored.OnMouseEnter = (self.HighlightLabelOn, showIgnored, (1, 1, 0))
+            showIgnored.OnMouseExit = (self.HighlightLabelOff, showIgnored, (1, 1, 0))
+            ignored = localization.GetByLabel('UI/Inflight/Scanner/Ignored', noIgnored=0)
+            self.ignoredLabel = EveLabelMediumBold(parent=self.filterLine, text=ignored, align=uiconst.TORIGHT, color=(0.8, 0.8, 0.8), state=uiconst.UI_NORMAL, padding=(0, 0, 10, 0))
+            EveLabelMediumBold(parent=self.filterLine, text='/', align=uiconst.TORIGHT, color=(0.8, 0.8, 0.8), state=uiconst.UI_DISABLED, padding=(10, 0, 10, 0))
+            showFiltered = EveLabelMedium(parent=self.filterLine, text=show, color=(0.8, 0.8, 0.0), align=uiconst.TORIGHT, state=uiconst.UI_NORMAL, padding=(0, 0, 0, 0))
+            showFiltered.OnClick = self.ClearFilteredResults
+            showFiltered.OnMouseEnter = (self.HighlightLabelOn, showFiltered, (1, 1, 0))
+            showFiltered.OnMouseExit = (self.HighlightLabelOff, showFiltered, (1, 1, 0))
+            filtered = localization.GetByLabel('UI/Inflight/Scanner/Filtered', noFiltered=0)
+            self.filteredLabel = EveLabelMediumBold(parent=self.filterLine, text=filtered, align=uiconst.TORIGHT, color=(0.8, 0.8, 0.8), state=uiconst.UI_NORMAL, padding=(0, 0, 10, 0))
+            self.filterLine.height = max(18, self.ignoredLabel.textheight, self.filteredLabel.textheight)
+            uthread.new(self.ApplyProbesPortion)
+            ballpark = sm.GetService('michelle').GetBallpark()
+            if ballpark is not None:
+                uthread.new(self.InitialResultLoad)
+            self.Refresh()
+            self.ApplyProbesPortion()
+            sm.ScatterEvent('OnProbeScanner_ScannerOpened')
+            return
 
     def OnShowAnomaliesCheckbox(self, checkbox):
         self.showAnomalies = checkbox.GetValue()
@@ -433,13 +439,13 @@ class Scanner(Window):
         else:
             self.sr.analyzeBtn.Disable()
 
-    def HighlightLabelOn(self, label, color = (1, 1, 1)):
+    def HighlightLabelOn(self, label, color=(1, 1, 1)):
         label.color = (color[0],
          color[1],
          color[2],
          1.0)
 
-    def HighlightLabelOff(self, label, color = (1, 1, 1)):
+    def HighlightLabelOff(self, label, color=(1, 1, 1)):
         label.color = (color[0],
          color[1],
          color[2],
@@ -510,6 +516,8 @@ class Scanner(Window):
                 diff = uicore.uilib.x - self._startScalePosition
                 self.AdjustColumnWidth(sender, w, diff)
 
+        return
+
     def EndScaleColumn(self, sender, *args):
         self.scalingColumn = False
         self.sr.scaleEntries = None
@@ -517,8 +525,9 @@ class Scanner(Window):
         colWidths = self.GetColumnWidths()
         settings.user.ui.Set('columnWidths', colWidths)
         self.LoadResultList()
+        return
 
-    def SortHeader(self, parent, label, key, ascending, align = uiconst.TOLEFT, triangleVisible = uiconst.UI_HIDDEN, resize = True):
+    def SortHeader(self, parent, label, key, ascending, align=uiconst.TOLEFT, triangleVisible=uiconst.UI_HIDDEN, resize=True):
         if resize:
             resizer = Container(parent=parent, name='resizer', width=5, state=uiconst.UI_NORMAL, align=uiconst.TORIGHT)
             Line(parent=resizer, align=uiconst.TORIGHT, idx=0, color=(1.0, 1.0, 1.0, 0.45))
@@ -579,6 +588,7 @@ class Scanner(Window):
         self.sortingByKey = settings.user.ui.Get('scannerSortingKey', self.sortBySignal.key)
         self.sortingByAscending = settings.user.ui.Get('scannerSortingAsc', self.sortBySignal.ascending)
         self.ShowSortingTriangle(self.sortingTriangles[self.sortingByKey], self.sortingByAscending)
+        return
 
     def CopyToClipboard(self):
         pass
@@ -606,7 +616,6 @@ class Scanner(Window):
 
     def OnGlobalKey(self, wnd, eventID, (vkey, flag)):
         self.UpdateProbeControlDisplay()
-        return 1
 
     def SetScanDronesState(self, value):
         for probe in self.sr.probeSpheresByID.values():
@@ -676,6 +685,7 @@ class Scanner(Window):
             uthread.new(self.LoadProbeList)
         self.CheckButtonStates()
         self.UpdateProbeSpheres()
+        return
 
     def OnProbeAdded(self, probe):
         uthread.new(self._OnProbeAdded, probe)
@@ -724,6 +734,7 @@ class Scanner(Window):
                 currentSystem.children.remove(parent)
         self.sr.systemParent = None
         systemMapSvc.HighlightItemsWithinProbeRange()
+        return
 
     def OpenMap(self, *args):
         ToggleSolarSystemMap()
@@ -834,63 +845,65 @@ class Scanner(Window):
     def LoadResultList(self):
         if self.destroyed:
             return
-        scanSvc = sm.GetService('scanSvc')
-        currentScan = scanSvc.GetCurrentScan()
-        scanningProbes = scanSvc.GetScanningProbes()
-        bp = sm.GetService('michelle').GetBallpark(doWait=True)
-        if bp is None:
-            return
-        if not bp.ego:
-            return
-        ego = bp.balls[bp.ego]
-        myPos = (ego.x, ego.y, ego.z)
-        results, ignored, filtered, filteredAnomalies = self.scanSvc.GetResults()
-        self.CleanupResultShapes()
-        sm.ScatterEvent('OnProbeScanner_CleanupResultShapes')
-        resultList = []
-        if currentScan and blue.os.TimeDiffInMs(currentScan.startTime, blue.os.GetSimTime()) < currentScan.duration:
-            return
-        if scanningProbes and session.shipid not in scanningProbes:
-            return
-        if results:
-            for result in results:
-                scanGroupName = self.scanSvc.GetScanGroupName(result)
-                groupName = self.scanSvc.GetGroupName(result)
-                typeName = self.scanSvc.GetTypeName(result)
-                distance = result.GetDistance(myPos)
-                texts = [result.id,
-                 scanGroupName,
-                 groupName,
-                 typeName,
-                 localization.GetByLabel('UI/Inflight/Scanner/SignalStrengthPercentage', signalStrength=min(1.0, result.certainty) * 100),
-                 FmtDist(distance)]
-                sortData = KeyVal(id=result.id, scanGroupName=scanGroupName, groupName=groupName, typeName=typeName, certainty=min(1.0, result.certainty) * 100, distance=distance)
-                data = KeyVal()
-                data.texts = texts
-                data.sortData = sortData
-                data.columnID = 'probeResultGroupColumn'
-                data.scanGroupName = scanGroupName
-                data.groupName = groupName
-                data.typeName = typeName
-                data.result = result
-                data.GetMenu = self.ResultMenu
-                data.GetColumnWidths = self.GetColumnWidths
-                data.distance = distance
-                data.newResult = True
-                data.CenterMapOnResult = self.CenterMapOnResult
-                resultList.append(listentry.Get('ScanResult', data=data))
+        else:
+            scanSvc = sm.GetService('scanSvc')
+            currentScan = scanSvc.GetCurrentScan()
+            scanningProbes = scanSvc.GetScanningProbes()
+            bp = sm.GetService('michelle').GetBallpark(doWait=True)
+            if bp is None:
+                return
+            if not bp.ego:
+                return
+            ego = bp.balls[bp.ego]
+            myPos = (ego.x, ego.y, ego.z)
+            results, ignored, filtered, filteredAnomalies = self.scanSvc.GetResults()
+            self.CleanupResultShapes()
+            sm.ScatterEvent('OnProbeScanner_CleanupResultShapes')
+            resultList = []
+            if currentScan and blue.os.TimeDiffInMs(currentScan.startTime, blue.os.GetSimTime()) < currentScan.duration:
+                return
+            if scanningProbes and session.shipid not in scanningProbes:
+                return
+            if results:
+                for result in results:
+                    scanGroupName = self.scanSvc.GetScanGroupName(result)
+                    groupName = self.scanSvc.GetGroupName(result)
+                    typeName = self.scanSvc.GetTypeName(result)
+                    distance = result.GetDistance(myPos)
+                    texts = [result.id,
+                     scanGroupName,
+                     groupName,
+                     typeName,
+                     localization.GetByLabel('UI/Inflight/Scanner/SignalStrengthPercentage', signalStrength=min(1.0, result.certainty) * 100),
+                     FmtDist(distance)]
+                    sortData = KeyVal(id=result.id, scanGroupName=scanGroupName, groupName=groupName, typeName=typeName, certainty=min(1.0, result.certainty) * 100, distance=distance)
+                    data = KeyVal()
+                    data.texts = texts
+                    data.sortData = sortData
+                    data.columnID = 'probeResultGroupColumn'
+                    data.scanGroupName = scanGroupName
+                    data.groupName = groupName
+                    data.typeName = typeName
+                    data.result = result
+                    data.GetMenu = self.ResultMenu
+                    data.GetColumnWidths = self.GetColumnWidths
+                    data.distance = distance
+                    data.newResult = True
+                    data.CenterMapOnResult = self.CenterMapOnResult
+                    resultList.append(listentry.Get('ScanResult', data=data))
 
-        resultList = sorted(resultList, key=lambda x: getattr(x.sortData, self.sortingByKey), reverse=not self.sortingByAscending)
-        if not resultList:
-            data = KeyVal()
-            data.label = localization.GetByLabel('UI/Inflight/Scanner/NoScanResult')
-            data.hideLines = 1
-            resultList.append(listentry.Get('Generic', data=data))
-        resultList.append(listentry.Get('Line', data=KeyVal(height=1)))
-        self.sr.resultscroll.Load(contentList=resultList)
-        self.sr.resultscroll.ShowHint('')
-        self.ShowFilteredAndIgnored(filtered, ignored, filteredAnomalies)
-        self.HighlightGoodResults()
+            resultList = sorted(resultList, key=lambda x: getattr(x.sortData, self.sortingByKey), reverse=not self.sortingByAscending)
+            if not resultList:
+                data = KeyVal()
+                data.label = localization.GetByLabel('UI/Inflight/Scanner/NoScanResult')
+                data.hideLines = 1
+                resultList.append(listentry.Get('Generic', data=data))
+            resultList.append(listentry.Get('Line', data=KeyVal(height=1)))
+            self.sr.resultscroll.Load(contentList=resultList)
+            self.sr.resultscroll.ShowHint('')
+            self.ShowFilteredAndIgnored(filtered, ignored, filteredAnomalies)
+            self.HighlightGoodResults()
+            return
 
     def ClearScanResult(self, *args):
         data = KeyVal()
@@ -899,7 +912,7 @@ class Scanner(Window):
         self.sr.resultscroll.Load(contentList=[listentry.Get('Generic', data=data)])
         self.sr.resultscroll.ShowHint('')
 
-    def GetProbeEntry(self, probe, selectedIDs = None):
+    def GetProbeEntry(self, probe, selectedIDs=None):
         selectedIDs = selectedIDs or []
         data = KeyVal()
         data.texts, data.sortData = self.GetProbeLabelAndSortData(probe)
@@ -962,8 +975,9 @@ class Scanner(Window):
         self.sr.updateProbes = AutoTimer(1000, self.UpdateProbeList)
         self.CheckButtonStates()
         self.sr.loadProbeList = None
+        return
 
-    def GetProbeLabelAndSortData(self, probe, entry = None):
+    def GetProbeLabelAndSortData(self, probe, entry=None):
         if probe.expiry is None:
             expiryText = localization.GetByLabel('UI/Generic/None')
         else:
@@ -1019,34 +1033,36 @@ class Scanner(Window):
         if self is None or self.destroyed:
             self.sr.updateProbes = None
             return
-        bracketsByProbeID = {}
-        for each in uicore.layer.systemMapBrackets.children[:]:
-            probe = getattr(each, 'probe', None)
-            if probe is None:
-                continue
-            bracketsByProbeID[probe.probeID] = each
+        else:
+            bracketsByProbeID = {}
+            for each in uicore.layer.systemMapBrackets.children[:]:
+                probe = getattr(each, 'probe', None)
+                if probe is None:
+                    continue
+                bracketsByProbeID[probe.probeID] = each
 
-        probeEntries = []
-        for entry in self.sr.scroll.GetNodes():
-            if entry.Get('probe', None) is None:
-                continue
-            probe = entry.probe
-            newTexts, newSortData = self.GetProbeLabelAndSortData(probe, entry)
-            if newTexts != entry.texts or newSortData != entry.sortData:
-                entry.needReload = 1
-            else:
-                entry.needReload = 0
-            entry.sortData = newSortData
-            entry.texts = newTexts
-            probeEntries.append(entry)
-            bracket = bracketsByProbeID.get(probe.probeID, None)
-            if bracket:
-                bracket.displayName = localization.GetByLabel('UI/Inflight/Scanner/ProbeBracket', probeLabel=newTexts[0], probeStatus=newTexts[3], probeRange=newTexts[1])
-                bracket.ShowLabel()
+            probeEntries = []
+            for entry in self.sr.scroll.GetNodes():
+                if entry.Get('probe', None) is None:
+                    continue
+                probe = entry.probe
+                newTexts, newSortData = self.GetProbeLabelAndSortData(probe, entry)
+                if newTexts != entry.texts or newSortData != entry.sortData:
+                    entry.needReload = 1
+                else:
+                    entry.needReload = 0
+                entry.sortData = newSortData
+                entry.texts = newTexts
+                probeEntries.append(entry)
+                bracket = bracketsByProbeID.get(probe.probeID, None)
+                if bracket:
+                    bracket.displayName = localization.GetByLabel('UI/Inflight/Scanner/ProbeBracket', probeLabel=newTexts[0], probeStatus=newTexts[3], probeRange=newTexts[1])
+                    bracket.ShowLabel()
 
-        self.sr.scroll.state = uiconst.UI_DISABLED
-        self.UpdateColumnSort(probeEntries, 'probeGroupColumn')
-        self.sr.scroll.state = uiconst.UI_NORMAL
+            self.sr.scroll.state = uiconst.UI_DISABLED
+            self.UpdateColumnSort(probeEntries, 'probeGroupColumn')
+            self.sr.scroll.state = uiconst.UI_NORMAL
+            return
 
     def UpdateColumnSort(self, entries, columnID):
         if not entries:
@@ -1060,7 +1076,7 @@ class Scanner(Window):
             if entry.Get('needReload', 0) and entry.panel:
                 entry.panel.Load(entry)
 
-    def ValidateProbesState(self, probeIDs, isEntryButton = False):
+    def ValidateProbesState(self, probeIDs, isEntryButton=False):
         scanSvc = sm.GetService('scanSvc')
         probeData = scanSvc.GetProbeData()
         for probeID in probeIDs:
@@ -1156,6 +1172,7 @@ class Scanner(Window):
         allIdle = self.ValidateProbesState(probes, True)
         if probeID and allIdle and eve.Message('DestroySelectedProbes', {}, uiconst.YESNO, suppress=uiconst.ID_YES) == uiconst.ID_YES:
             sm.GetService('scanSvc').DestroyProbe(probeID)
+        return
 
     @UserErrorIfScanning
     def ReconnectToLostProbes(self, *args):
@@ -1175,9 +1192,11 @@ class Scanner(Window):
         probeID = getattr(icon, 'probeID', None)
         if not probeID:
             return
-        sm.GetService('scanSvc').RecoverProbes([probeID])
+        else:
+            sm.GetService('scanSvc').RecoverProbes([probeID])
+            return
 
-    def GetSelectedProbes(self, asIds = 0):
+    def GetSelectedProbes(self, asIds=0):
         selected = self.sr.scroll.GetSelected()
         returnVal = []
         for each in selected:
@@ -1238,6 +1257,8 @@ class Scanner(Window):
             self.sr.updateProbeSpheresTimer = None
             self.UpdateAnalyzeButtonState()
 
+        return
+
     def HighlightProbeIntersections(self):
         scanSvc = sm.GetService('scanSvc')
         if self.sr.distanceRings:
@@ -1277,6 +1298,7 @@ class Scanner(Window):
         self.sr.deactivatingIntersections = False
         self.sr.fadeActiveIntersectionsTimer = AutoTimer(500, self.FadeActiveIntersections, activePairs)
         self.sr.deactivateIntersectionsTimer = AutoTimer(3000, self.DeactivateIntersections)
+        return
 
     def SetIntersectionHighlight(self, pair, config, movingProbeID):
         activePairs = []
@@ -1320,32 +1342,35 @@ class Scanner(Window):
     def ComputeHighlightCircle(self, distance, pos1, pos2, rad1, rad2):
         if not distance:
             return None
-        rad1_sq = rad1 ** 2
-        rad2_sq = rad2 ** 2
-        dist_sq = distance ** 2
-        distToPoint = (rad1_sq - rad2_sq + dist_sq) / (2 * distance)
-        radius_sq = rad1_sq - distToPoint ** 2
-        if radius_sq < 0.0:
-            return None
-        radius = math.sqrt(radius_sq)
-        normal = geo2.Vec3Normalize(pos2 - pos1)
-        normal = geo2.Vector(*normal)
-        point = pos1 + normal * distToPoint
-        rotation = geo2.QuaternionRotationArc(AXIS_Y, normal)
-        return (point * SYSTEMMAP_SCALE, rotation, radius * SYSTEMMAP_SCALE)
+        else:
+            rad1_sq = rad1 ** 2
+            rad2_sq = rad2 ** 2
+            dist_sq = distance ** 2
+            distToPoint = (rad1_sq - rad2_sq + dist_sq) / (2 * distance)
+            radius_sq = rad1_sq - distToPoint ** 2
+            if radius_sq < 0.0:
+                return None
+            radius = math.sqrt(radius_sq)
+            normal = geo2.Vec3Normalize(pos2 - pos1)
+            normal = geo2.Vector(*normal)
+            point = pos1 + normal * distToPoint
+            rotation = geo2.QuaternionRotationArc(AXIS_Y, normal)
+            return (point * SYSTEMMAP_SCALE, rotation, radius * SYSTEMMAP_SCALE)
 
     def CreateIntersectionHighlight(self, pair):
         scene = sm.GetService('sceneManager').GetRegisteredScene('systemmap')
         if not scene:
             return
-        lineSet = self.CreateLineSet()
-        scene.objects.append(lineSet)
-        self.DrawCircle(lineSet, 1.0, INTERSECTION_COLOR)
-        lineSet.SubmitChanges()
-        lineSet.translationCurve = trinity.TriVectorCurve()
-        lineSet.rotationCurve = trinity.TriRotationCurve()
-        intersection = KeyVal(lastConfig=None, lineSet=lineSet, colorState=INTERSECTION_ACTIVE)
-        self.sr.probeIntersectionsByPair[pair] = intersection
+        else:
+            lineSet = self.CreateLineSet()
+            scene.objects.append(lineSet)
+            self.DrawCircle(lineSet, 1.0, INTERSECTION_COLOR)
+            lineSet.SubmitChanges()
+            lineSet.translationCurve = trinity.TriVectorCurve()
+            lineSet.rotationCurve = trinity.TriRotationCurve()
+            intersection = KeyVal(lastConfig=None, lineSet=lineSet, colorState=INTERSECTION_ACTIVE)
+            self.sr.probeIntersectionsByPair[pair] = intersection
+            return
 
     def DrawCircle(self, lineSet, size, color):
         for idx in xrange(CIRCLE_NUM_POINTS):
@@ -1356,21 +1381,23 @@ class Scanner(Window):
     def FadeActiveIntersections(self, activePairs):
         if self.sr.distanceRings and self.sr.distanceRings.probeID:
             return
-        start = blue.os.GetWallclockTime()
-        ndt = 0.0
-        while ndt != 1.0:
-            ndt = max(0.0, min(blue.os.TimeDiffInMs(start, blue.os.GetWallclockTime()) / 500.0, 1.0))
-            colorRatio = Lerp(INTERSECTION_ACTIVE, INTERSECTION_FADED, ndt)
-            for pair in activePairs:
-                if pair in self.sr.probeIntersectionsByPair:
-                    intersection = self.sr.probeIntersectionsByPair[pair]
-                    self.SetIntersectionColor(intersection, colorRatio)
+        else:
+            start = blue.os.GetWallclockTime()
+            ndt = 0.0
+            while ndt != 1.0:
+                ndt = max(0.0, min(blue.os.TimeDiffInMs(start, blue.os.GetWallclockTime()) / 500.0, 1.0))
+                colorRatio = Lerp(INTERSECTION_ACTIVE, INTERSECTION_FADED, ndt)
+                for pair in activePairs:
+                    if pair in self.sr.probeIntersectionsByPair:
+                        intersection = self.sr.probeIntersectionsByPair[pair]
+                        self.SetIntersectionColor(intersection, colorRatio)
 
-            blue.pyos.synchro.SleepWallclock(50)
-            if self.destroyed:
-                return
+                blue.pyos.synchro.SleepWallclock(50)
+                if self.destroyed:
+                    return
 
-        self.sr.fadeActiveIntersectionsTimer = None
+            self.sr.fadeActiveIntersectionsTimer = None
+            return
 
     def DeactivateIntersections(self):
         self.sr.deactivatingIntersections = True
@@ -1387,8 +1414,9 @@ class Scanner(Window):
                 return
 
         self.sr.deactivateIntersectionsTimer = None
+        return
 
-    def SetIntersectionColor(self, intersection, colorState = 1.0):
+    def SetIntersectionColor(self, intersection, colorState=1.0):
         if intersection.colorState == colorState:
             return
         intersection.colorState = colorState
@@ -1460,6 +1488,7 @@ class Scanner(Window):
                     lineSet.rotation = (0.0, 0.0, 0.0, 0.0)
                 else:
                     self.HideDistanceRings()
+        return
 
     def HideDistanceRings(self):
         scene = sm.GetService('sceneManager').GetRegisteredScene('systemmap')
@@ -1471,6 +1500,7 @@ class Scanner(Window):
 
             self.sr.distanceRings.axis = None
             self.sr.distanceRings.probeID = None
+        return
 
     def StartScaleMode(self, point):
         self.probeTracker.SetAsScaling(point)
@@ -1478,22 +1508,24 @@ class Scanner(Window):
     def StopScaleMode(self):
         if self.lastProbeScaleInfo is None:
             return
-        self.probeTracker.UnsetAsScaling()
-        probeID = self.lastProbeScaleInfo
-        self.lastProbeScaleInfo = None
-        probe = self.probeTracker.GetProbe(probeID)
-        currentSize = probe.scanRange
-        desiredSize = self.sr.probeSpheresByID[probeID].GetRange()
-        rangeStep, desiredSize = self.probeTracker.GetRangeStepForType(probe.typeID, desiredSize)
-        if not uicore.uilib.Key(uiconst.VK_SHIFT):
-            scale = desiredSize / currentSize
-            self.probeTracker.ScaleAllProbes(scale)
         else:
-            self.probeTracker.SetProbeRangeStep(probeID, rangeStep)
-        self.probeTracker.PersistProbeFormation()
-        self.UpdateProbeSpheres()
+            self.probeTracker.UnsetAsScaling()
+            probeID = self.lastProbeScaleInfo
+            self.lastProbeScaleInfo = None
+            probe = self.probeTracker.GetProbe(probeID)
+            currentSize = probe.scanRange
+            desiredSize = self.sr.probeSpheresByID[probeID].GetRange()
+            rangeStep, desiredSize = self.probeTracker.GetRangeStepForType(probe.typeID, desiredSize)
+            if not uicore.uilib.Key(uiconst.VK_SHIFT):
+                scale = desiredSize / currentSize
+                self.probeTracker.ScaleAllProbes(scale)
+            else:
+                self.probeTracker.SetProbeRangeStep(probeID, rangeStep)
+            self.probeTracker.PersistProbeFormation()
+            self.UpdateProbeSpheres()
+            return
 
-    def ScaleProbe(self, probeControl, pos, force = 0):
+    def ScaleProbe(self, probeControl, pos, force=0):
         pVector = trinity.TriVector(*probeControl.locator.translation)
         cVector = trinity.TriVector(*(pos * (1.0 / SYSTEMMAP_SCALE)))
         s = max(probeControl.scanRanges[0], (pVector - cVector).Length())
@@ -1528,6 +1560,7 @@ class Scanner(Window):
         self.HighlightProbeIntersections()
         self.scanSvc.PurgeBackupData()
         probeControl.HideScanRanges()
+        return
 
     def UpdateProbeRangeUI(self, probeID, range, rangeStep):
         probe = self.GetProbeSphere(probeID)
@@ -1546,7 +1579,7 @@ class Scanner(Window):
     def GetProbeSpheres(self):
         return self.sr.probeSpheresByID
 
-    def HiliteCursor(self, pickObject = None):
+    def HiliteCursor(self, pickObject=None):
         for probeID, probeControl in self.sr.probeSpheresByID.iteritems():
             probeControl.ResetCursorHighlight()
 
@@ -1566,6 +1599,7 @@ class Scanner(Window):
                     self.scanSvc.ProbeControlSelect()
         else:
             self.scanSvc.ProbeControlDeselected()
+        return
 
     def ShowCentroidLines(self):
         if self.centroidLines is None:
@@ -1608,11 +1642,13 @@ class Scanner(Window):
 
             self.centroidLines.SubmitChanges()
         self.centroidTimer = AutoTimer(500, self.RemoveCentroidLines)
+        return
 
     def RemoveCentroidLines(self):
         if self.centroidLines is not None:
             self.centroidLines.display = False
         self.centroidTimer = None
+        return
 
     def RegisterProbeMove(self, *args):
         self.lastMoveUpdate = None
@@ -1632,6 +1668,7 @@ class Scanner(Window):
         self.HideDistanceRings()
         self.scanSvc.PurgeBackupData()
         sm.GetService('systemmap').HighlightItemsWithinProbeRange()
+        return
 
     def MoveProbe(self, probeControl, translation):
         if probeControl.uniqueID == FORMATION_CONTROL_ID:
@@ -1710,10 +1747,10 @@ class Scanner(Window):
                     if entry.result in self.sr.resultObjectsByID:
                         excludeSet.add(entry.result)
 
-            resultSet = set(self.sr.resultObjectsByID.keys())
-            resultsToHide = resultSet - excludeSet
-            for resultID in resultsToHide:
-                self.HideResult(resultID)
+        resultSet = set(self.sr.resultObjectsByID.keys())
+        resultsToHide = resultSet - excludeSet
+        for resultID in resultsToHide:
+            self.HideResult(resultID)
 
     def HideAllResults(self):
         for resultID in self.sr.resultObjectsByID.keys():
@@ -1747,6 +1784,7 @@ class Scanner(Window):
 
         else:
             self.CreateCircleResult(result)
+        return
 
     def HideResult(self, resultID):
         sm.ScatterEvent('OnProbeScanner_HideResult', resultID)
@@ -1864,6 +1902,7 @@ class Scanner(Window):
         parent = self.GetSystemParent()
         parent.children.append(pointLocator)
         self.RegisterMapObject(result, resultBracket)
+        return
 
     def GetIconBasedOnQuality(self, categoryID, groupID, typeID, certainty):
         if groupID in (groupCosmicAnomaly, groupCosmicSignature):
@@ -1887,18 +1926,19 @@ class Scanner(Window):
             color = POINT_COLOR_RED
         return (texturePath, color)
 
-    def GetSystemParent(self, create = 1):
+    def GetSystemParent(self, create=1):
         if not create:
             return self.sr.systemParent
-        if self.sr.systemParent is None:
-            systemParent = trinity.EveTransform()
-            systemParent.name = 'systemParent_%d' % session.solarsystemid2
-            self.sr.systemParent = systemParent
-        if sm.GetService('viewState').IsViewActive('systemmap'):
-            currentSystem = sm.GetService('systemmap').GetCurrentSolarSystem()
-            if self.sr.systemParent not in currentSystem.children:
-                currentSystem.children.append(self.sr.systemParent)
-        return self.sr.systemParent
+        else:
+            if self.sr.systemParent is None:
+                systemParent = trinity.EveTransform()
+                systemParent.name = 'systemParent_%d' % session.solarsystemid2
+                self.sr.systemParent = systemParent
+            if sm.GetService('viewState').IsViewActive('systemmap'):
+                currentSystem = sm.GetService('systemmap').GetCurrentSolarSystem()
+                if self.sr.systemParent not in currentSystem.children:
+                    currentSystem.children.append(self.sr.systemParent)
+            return self.sr.systemParent
 
     def CleanupResultShapes(self):
         bracketWnd = uicore.layer.systemMapBrackets
@@ -1920,11 +1960,14 @@ class Scanner(Window):
                     scene.objects.remove(result)
 
         self.sr.resultObjectsByID = {}
+        return
 
     def HighlightGoodResults(self):
         for entry in self.sr.resultscroll.GetNodes():
             if entry.Get('result', None) is not None:
                 self.DisplayResult(entry.result)
+
+        return
 
     def Refresh(self):
         self.sr.doRefresh = AutoTimer(200, self.DoRefresh)
@@ -1937,6 +1980,7 @@ class Scanner(Window):
         self.LoadProbeList()
         self.LoadFilterOptionsAndResults()
         self.sr.doRefresh = None
+        return
 
     def CreateLineSet(self):
         lineSet = trinity.EveLineSet()

@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\packages\eveNewCommands\client\escapeCommand.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\packages\eveNewCommands\client\escapeCommand.py
 from eve.client.script.ui.view.viewStateConst import ViewState
 
 class EscapeCommand:

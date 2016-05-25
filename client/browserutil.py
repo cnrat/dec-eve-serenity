@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\common\modules\nice\client\_nastyspace\browserutil.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\common\modules\nice\client\_nastyspace\browserutil.py
 from eve.client.script.ui.control.browser.browserutil import DefaultHomepage
 from eve.client.script.ui.control.browser.browserutil import GetFixedURL
 from eve.client.script.ui.control.browser.browserutil import SanitizedDestinationID

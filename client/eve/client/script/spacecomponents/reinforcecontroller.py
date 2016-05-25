@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\client\script\spacecomponents\reinforcecontroller.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\client\script\spacecomponents\reinforcecontroller.py
 from eve.client.script.spacecomponents.countercontroller import BaseCounterController
 from spacecomponents.client.messages import MSG_ON_REINFORCE_TIMER_UPDATED
 from spacecomponents.common.componentConst import REINFORCE_CLASS
@@ -29,3 +30,4 @@ class ReinforceCounterController(BaseCounterController):
             elif self.timer is None:
                 logger.debug('%s Adding timer for %s', self.__class__.__name__, slimItem.itemID)
                 self.AddTimer(instance.reinforceTimestamp, instance.attributes.durationSeconds)
+        return

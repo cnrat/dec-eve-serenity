@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\carbon\common\stdlib\urlparse.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\carbon\common\stdlib\urlparse.py
 __all__ = ['urlparse',
  'urlunparse',
  'urljoin',
@@ -112,6 +113,8 @@ class ResultMixin(object):
             if ':' in userinfo:
                 userinfo = userinfo.split(':', 1)[0]
             return userinfo
+        else:
+            return None
 
     @property
     def password(self):
@@ -120,6 +123,7 @@ class ResultMixin(object):
             userinfo = netloc.rsplit('@', 1)[0]
             if ':' in userinfo:
                 return userinfo.split(':', 1)[1]
+        return None
 
     @property
     def hostname(self):
@@ -132,6 +136,7 @@ class ResultMixin(object):
             return None
         else:
             return netloc.lower()
+            return None
 
     @property
     def port(self):
@@ -140,6 +145,7 @@ class ResultMixin(object):
             port = netloc.split(':')[1]
             return int(port, 10)
         else:
+            return None
             return None
 
 
@@ -159,7 +165,7 @@ class ParseResult(namedtuple('ParseResult', 'scheme netloc path params query fra
         return urlunparse(self)
 
 
-def urlparse(url, scheme = '', allow_fragments = True):
+def urlparse(url, scheme='', allow_fragments=True):
     tuple = urlsplit(url, scheme, allow_fragments)
     scheme, netloc, url, query, fragment = tuple
     if scheme in uses_params and ';' in url:
@@ -179,7 +185,7 @@ def _splitparams(url):
     return (url[:i], url[i + 1:])
 
 
-def _splitnetloc(url, start = 0):
+def _splitnetloc(url, start=0):
     delim = len(url)
     for c in '/?#':
         wdelim = url.find(c, start)
@@ -189,7 +195,7 @@ def _splitnetloc(url, start = 0):
     return (url[start:delim], url[delim:])
 
 
-def urlsplit(url, scheme = '', allow_fragments = True):
+def urlsplit(url, scheme='', allow_fragments=True):
     allow_fragments = bool(allow_fragments)
     key = (url,
      scheme,
@@ -199,43 +205,44 @@ def urlsplit(url, scheme = '', allow_fragments = True):
     cached = _parse_cache.get(key, None)
     if cached:
         return cached
-    if len(_parse_cache) >= MAX_CACHE_SIZE:
-        clear_cache()
-    netloc = query = fragment = ''
-    i = url.find(':')
-    if i > 0:
-        if url[:i] == 'http':
-            scheme = url[:i].lower()
-            url = url[i + 1:]
-            if url[:2] == '//':
-                netloc, url = _splitnetloc(url, 2)
-                if '[' in netloc and ']' not in netloc or ']' in netloc and '[' not in netloc:
-                    raise ValueError('Invalid IPv6 URL')
-            if allow_fragments and '#' in url:
-                url, fragment = url.split('#', 1)
-            if '?' in url:
-                url, query = url.split('?', 1)
-            v = SplitResult(scheme, netloc, url, query, fragment)
-            _parse_cache[key] = v
-            return v
-        if url.endswith(':') or not url[i + 1].isdigit():
-            for c in url[:i]:
-                if c not in scheme_chars:
-                    break
-            else:
-                scheme, url = url[:i].lower(), url[i + 1:]
+    else:
+        if len(_parse_cache) >= MAX_CACHE_SIZE:
+            clear_cache()
+        netloc = query = fragment = ''
+        i = url.find(':')
+        if i > 0:
+            if url[:i] == 'http':
+                scheme = url[:i].lower()
+                url = url[i + 1:]
+                if url[:2] == '//':
+                    netloc, url = _splitnetloc(url, 2)
+                    if '[' in netloc and ']' not in netloc or ']' in netloc and '[' not in netloc:
+                        raise ValueError('Invalid IPv6 URL')
+                if allow_fragments and '#' in url:
+                    url, fragment = url.split('#', 1)
+                if '?' in url:
+                    url, query = url.split('?', 1)
+                v = SplitResult(scheme, netloc, url, query, fragment)
+                _parse_cache[key] = v
+                return v
+            if url.endswith(':') or not url[i + 1].isdigit():
+                for c in url[:i]:
+                    if c not in scheme_chars:
+                        break
+                else:
+                    scheme, url = url[:i].lower(), url[i + 1:]
 
-    if url[:2] == '//':
-        netloc, url = _splitnetloc(url, 2)
-        if '[' in netloc and ']' not in netloc or ']' in netloc and '[' not in netloc:
-            raise ValueError('Invalid IPv6 URL')
-    if allow_fragments and scheme in uses_fragment and '#' in url:
-        url, fragment = url.split('#', 1)
-    if scheme in uses_query and '?' in url:
-        url, query = url.split('?', 1)
-    v = SplitResult(scheme, netloc, url, query, fragment)
-    _parse_cache[key] = v
-    return v
+        if url[:2] == '//':
+            netloc, url = _splitnetloc(url, 2)
+            if '[' in netloc and ']' not in netloc or ']' in netloc and '[' not in netloc:
+                raise ValueError('Invalid IPv6 URL')
+        if allow_fragments and scheme in uses_fragment and '#' in url:
+            url, fragment = url.split('#', 1)
+        if scheme in uses_query and '?' in url:
+            url, query = url.split('?', 1)
+        v = SplitResult(scheme, netloc, url, query, fragment)
+        _parse_cache[key] = v
+        return v
 
 
 def urlunparse(data):
@@ -264,7 +271,7 @@ def urlunsplit(data):
     return url
 
 
-def urljoin(base, url, allow_fragments = True):
+def urljoin(base, url, allow_fragments=True):
     if not base:
         return url
     if not url:
@@ -371,7 +378,7 @@ def unquote(s):
     return s
 
 
-def parse_qs(qs, keep_blank_values = 0, strict_parsing = 0):
+def parse_qs(qs, keep_blank_values=0, strict_parsing=0):
     dict = {}
     for name, value in parse_qsl(qs, keep_blank_values, strict_parsing):
         if name in dict:
@@ -382,7 +389,7 @@ def parse_qs(qs, keep_blank_values = 0, strict_parsing = 0):
     return dict
 
 
-def parse_qsl(qs, keep_blank_values = 0, strict_parsing = 0):
+def parse_qsl(qs, keep_blank_values=0, strict_parsing=0):
     pairs = [ s2 for s1 in qs.split('&') for s2 in s1.split(';') ]
     r = []
     for name_value in pairs:

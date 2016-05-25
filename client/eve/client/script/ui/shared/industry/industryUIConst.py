@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\client\script\ui\shared\industry\industryUIConst.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\client\script\ui\shared\industry\industryUIConst.py
 from carbonui.util.color import Color
 import industry
 from industry.const import MANUFACTURING
@@ -176,7 +177,8 @@ HINT_BY_INDUSTRYGROUP = {GROUP_MINERAL: 'UI/Industry/HintGroupMineral',
 def GetJobColor(jobData):
     if jobData is None:
         return COLOR_FRAME
-    return GetActivityColor(jobData.activityID)
+    else:
+        return GetActivityColor(jobData.activityID)
 
 
 def GetActivityColor(activityID):

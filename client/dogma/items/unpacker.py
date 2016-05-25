@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\packages\dogma\items\unpacker.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\packages\dogma\items\unpacker.py
 from dogma.const import attributeShieldCharge, attributeCharge
 
 def UnpackItems(packData, charID, shipID):
@@ -21,6 +22,7 @@ def UnpackItems(packData, charID, shipID):
     char.UnpackPropagationData(charData, charID, shipID)
     ship.UnpackPropagationData(shipData, charID, shipID)
     _RebaseChargeAttributes(ship, shipValuesByAttributeID)
+    return
 
 
 def _RebaseChargeAttributes(ship, shipValuesByAttributeID):
@@ -28,3 +30,5 @@ def _RebaseChargeAttributes(ship, shipValuesByAttributeID):
         for attributeID in (attributeShieldCharge, attributeCharge):
             if attributeID in shipValuesByAttributeID:
                 ship.attributes[attributeID].SetBaseValue(shipValuesByAttributeID.get(attributeID, 0.0))
+
+    return

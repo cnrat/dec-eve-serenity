@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\carbon\common\lib\markdown\extensions\footnotes.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\carbon\common\lib\markdown\extensions\footnotes.py
 import re
 import markdown
 from markdown.util import etree
@@ -45,6 +46,8 @@ class FootnoteExtension(markdown.Extension):
                         return (child, element, False)
                 finder(child)
 
+            return None
+
         res = finder(root)
         return res
 
@@ -66,31 +69,32 @@ class FootnoteExtension(markdown.Extension):
     def makeFootnotesDiv(self, root):
         if not self.footnotes.keys():
             return None
-        div = etree.Element('div')
-        div.set('class', 'footnote')
-        hr = etree.SubElement(div, 'hr')
-        ol = etree.SubElement(div, 'ol')
-        for id in self.footnotes.keys():
-            li = etree.SubElement(ol, 'li')
-            li.set('id', self.makeFootnoteId(id))
-            self.parser.parseChunk(li, self.footnotes[id])
-            backlink = etree.Element('a')
-            backlink.set('href', '#' + self.makeFootnoteRefId(id))
-            if self.md.output_format not in ('html5', 'xhtml5'):
-                backlink.set('rev', 'footnote')
-            backlink.set('class', 'footnote-backref')
-            backlink.set('title', 'Jump back to footnote %d in the text' % (self.footnotes.index(id) + 1))
-            backlink.text = FN_BACKLINK_TEXT
-            if li._children:
-                node = li[-1]
-                if node.tag == 'p':
-                    node.text = node.text + NBSP_PLACEHOLDER
-                    node.append(backlink)
-                else:
-                    p = etree.SubElement(li, 'p')
-                    p.append(backlink)
+        else:
+            div = etree.Element('div')
+            div.set('class', 'footnote')
+            hr = etree.SubElement(div, 'hr')
+            ol = etree.SubElement(div, 'ol')
+            for id in self.footnotes.keys():
+                li = etree.SubElement(ol, 'li')
+                li.set('id', self.makeFootnoteId(id))
+                self.parser.parseChunk(li, self.footnotes[id])
+                backlink = etree.Element('a')
+                backlink.set('href', '#' + self.makeFootnoteRefId(id))
+                if self.md.output_format not in ('html5', 'xhtml5'):
+                    backlink.set('rev', 'footnote')
+                backlink.set('class', 'footnote-backref')
+                backlink.set('title', 'Jump back to footnote %d in the text' % (self.footnotes.index(id) + 1))
+                backlink.text = FN_BACKLINK_TEXT
+                if li._children:
+                    node = li[-1]
+                    if node.tag == 'p':
+                        node.text = node.text + NBSP_PLACEHOLDER
+                        node.append(backlink)
+                    else:
+                        p = etree.SubElement(li, 'p')
+                        p.append(backlink)
 
-        return div
+            return div
 
 
 class FootnotePreprocessor(markdown.preprocessors.Preprocessor):
@@ -181,6 +185,7 @@ class FootnotePattern(markdown.inlinepatterns.Pattern):
             return sup
         else:
             return None
+            return None
 
 
 class FootnoteTreeprocessor(markdown.treeprocessors.Treeprocessor):
@@ -203,6 +208,7 @@ class FootnoteTreeprocessor(markdown.treeprocessors.Treeprocessor):
                     child.tail = None
             else:
                 root.append(footnotesDiv)
+        return
 
 
 class FootnotePostprocessor(markdown.postprocessors.Postprocessor):
@@ -215,5 +221,5 @@ class FootnotePostprocessor(markdown.postprocessors.Postprocessor):
         return text.replace(NBSP_PLACEHOLDER, '&#160;')
 
 
-def makeExtension(configs = []):
+def makeExtension(configs=[]):
     return FootnoteExtension(configs=configs)

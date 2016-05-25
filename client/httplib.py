@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\carbon\common\stdlib\httplib.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\carbon\common\stdlib\httplib.py
 from array import array
 import os
 import socket
@@ -138,6 +139,7 @@ class HTTPMessage(mimetools.Message):
         else:
             combined = ', '.join((prev, value))
             self.dict[key] = combined
+        return
 
     def addcontinue(self, key, more):
         prev = self.dict[key]
@@ -197,10 +199,12 @@ class HTTPMessage(mimetools.Message):
                     self.status = self.status + '; bad seek'
                 break
 
+        return
+
 
 class HTTPResponse():
 
-    def __init__(self, sock, debuglevel = 0, strict = 0, method = None, buffering = False):
+    def __init__(self, sock, debuglevel=0, strict=0, method=None, buffering=False):
         if buffering:
             self.fp = sock.makefile('rb')
         else:
@@ -216,6 +220,7 @@ class HTTPResponse():
         self.chunk_left = _UNKNOWN
         self.length = _UNKNOWN
         self.will_close = _UNKNOWN
+        return
 
     def _read_status(self):
         line = self.fp.readline()
@@ -251,61 +256,63 @@ class HTTPResponse():
     def begin(self):
         if self.msg is not None:
             return
-        while True:
-            version, status, reason = self._read_status()
-            if status != CONTINUE:
-                break
+        else:
             while True:
-                skip = self.fp.readline().strip()
-                if not skip:
+                version, status, reason = self._read_status()
+                if status != CONTINUE:
                     break
-                if self.debuglevel > 0:
-                    print 'header:', skip
+                while True:
+                    skip = self.fp.readline().strip()
+                    if not skip:
+                        break
+                    if self.debuglevel > 0:
+                        print 'header:', skip
 
-        self.status = status
-        self.reason = reason.strip()
-        if version == 'HTTP/1.0':
-            self.version = 10
-        elif version.startswith('HTTP/1.'):
-            self.version = 11
-        elif version == 'HTTP/0.9':
-            self.version = 9
-        else:
-            raise UnknownProtocol(version)
-        if self.version == 9:
-            self.length = None
-            self.chunked = 0
-            self.will_close = 1
-            self.msg = HTTPMessage(StringIO())
-            return
-        self.msg = HTTPMessage(self.fp, 0)
-        if self.debuglevel > 0:
-            for hdr in self.msg.headers:
-                print 'header:', hdr,
-
-        self.msg.fp = None
-        tr_enc = self.msg.getheader('transfer-encoding')
-        if tr_enc and tr_enc.lower() == 'chunked':
-            self.chunked = 1
-            self.chunk_left = None
-        else:
-            self.chunked = 0
-        self.will_close = self._check_close()
-        length = self.msg.getheader('content-length')
-        if length and not self.chunked:
-            try:
-                self.length = int(length)
-            except ValueError:
-                self.length = None
+            self.status = status
+            self.reason = reason.strip()
+            if version == 'HTTP/1.0':
+                self.version = 10
+            elif version.startswith('HTTP/1.'):
+                self.version = 11
+            elif version == 'HTTP/0.9':
+                self.version = 9
             else:
-                if self.length < 0:
+                raise UnknownProtocol(version)
+            if self.version == 9:
+                self.length = None
+                self.chunked = 0
+                self.will_close = 1
+                self.msg = HTTPMessage(StringIO())
+                return
+            self.msg = HTTPMessage(self.fp, 0)
+            if self.debuglevel > 0:
+                for hdr in self.msg.headers:
+                    print 'header:', hdr,
+
+            self.msg.fp = None
+            tr_enc = self.msg.getheader('transfer-encoding')
+            if tr_enc and tr_enc.lower() == 'chunked':
+                self.chunked = 1
+                self.chunk_left = None
+            else:
+                self.chunked = 0
+            self.will_close = self._check_close()
+            length = self.msg.getheader('content-length')
+            if length and not self.chunked:
+                try:
+                    self.length = int(length)
+                except ValueError:
                     self.length = None
-        else:
-            self.length = None
-        if status == NO_CONTENT or status == NOT_MODIFIED or 100 <= status < 200 or self._method == 'HEAD':
-            self.length = 0
-        if not self.will_close and not self.chunked and self.length is None:
-            self.will_close = 1
+                else:
+                    if self.length < 0:
+                        self.length = None
+            else:
+                self.length = None
+            if status == NO_CONTENT or status == NOT_MODIFIED or 100 <= status < 200 or self._method == 'HEAD':
+                self.length = 0
+            if not self.will_close and not self.chunked and self.length is None:
+                self.will_close = 1
+            return
 
     def _check_close(self):
         conn = self.msg.getheader('connection')
@@ -327,19 +334,20 @@ class HTTPResponse():
         if self.fp:
             self.fp.close()
             self.fp = None
+        return
 
     def isclosed(self):
         return self.fp is None
 
-    def read(self, amt = None):
+    def read(self, amt=None):
         if self.fp is None:
             return ''
-        if self._method == 'HEAD':
+        elif self._method == 'HEAD':
             self.close()
             return ''
-        if self.chunked:
+        elif self.chunked:
             return self._read_chunked(amt)
-        if amt is None:
+        elif amt is None:
             if self.length is None:
                 s = self.fp.read()
             else:
@@ -347,15 +355,16 @@ class HTTPResponse():
                 self.length = 0
             self.close()
             return s
-        if self.length is not None:
-            if amt > self.length:
-                amt = self.length
-        s = self.fp.read(amt)
-        if self.length is not None:
-            self.length -= len(s)
-            if not self.length:
-                self.close()
-        return s
+        else:
+            if self.length is not None:
+                if amt > self.length:
+                    amt = self.length
+            s = self.fp.read(amt)
+            if self.length is not None:
+                self.length -= len(s)
+                if not self.length:
+                    self.close()
+            return s
 
     def _read_chunked(self, amt):
         chunk_left = self.chunk_left
@@ -415,7 +424,7 @@ class HTTPResponse():
     def fileno(self):
         return self.fp.fileno()
 
-    def getheader(self, name, default = None):
+    def getheader(self, name, default=None):
         if self.msg is None:
             raise ResponseNotReady()
         return self.msg.getheader(name, default)
@@ -435,7 +444,7 @@ class HTTPConnection():
     debuglevel = 0
     strict = 0
 
-    def __init__(self, host, port = None, strict = None, timeout = socket._GLOBAL_DEFAULT_TIMEOUT, source_address = None):
+    def __init__(self, host, port=None, strict=None, timeout=socket._GLOBAL_DEFAULT_TIMEOUT, source_address=None):
         self.timeout = timeout
         self.source_address = source_address
         self.sock = None
@@ -449,8 +458,9 @@ class HTTPConnection():
         self._set_hostport(host, port)
         if strict is not None:
             self.strict = strict
+        return
 
-    def set_tunnel(self, host, port = None, headers = None):
+    def set_tunnel(self, host, port=None, headers=None):
         self._tunnel_host = host
         self._tunnel_port = port
         if headers:
@@ -475,6 +485,7 @@ class HTTPConnection():
                 host = host[1:-1]
         self.host = host
         self.port = port
+        return
 
     def set_debuglevel(self, level):
         self.debuglevel = level
@@ -509,6 +520,7 @@ class HTTPConnection():
             self.__response.close()
             self.__response = None
         self.__state = _CS_IDLE
+        return
 
     def send(self, data):
         if self.sock is None:
@@ -529,11 +541,12 @@ class HTTPConnection():
 
         else:
             self.sock.sendall(data)
+        return
 
     def _output(self, s):
         self._buffer.append(s)
 
-    def _send_output(self, message_body = None):
+    def _send_output(self, message_body=None):
         self._buffer.extend(('', ''))
         msg = '\r\n'.join(self._buffer)
         del self._buffer[:]
@@ -543,8 +556,9 @@ class HTTPConnection():
         self.send(msg)
         if message_body is not None:
             self.send(message_body)
+        return
 
-    def putrequest(self, method, url, skip_host = 0, skip_accept_encoding = 0):
+    def putrequest(self, method, url, skip_host=0, skip_accept_encoding=0):
         if self.__response and self.__response.isclosed():
             self.__response = None
         if self.__state == _CS_IDLE:
@@ -582,6 +596,7 @@ class HTTPConnection():
                         self.putheader('Host', '%s:%s' % (host_enc, self.port))
             if not skip_accept_encoding:
                 self.putheader('Accept-Encoding', 'identity')
+        return
 
     def putheader(self, header, *values):
         if self.__state != _CS_REQ_STARTED:
@@ -589,14 +604,14 @@ class HTTPConnection():
         hdr = '%s: %s' % (header, '\r\n\t'.join([ str(v) for v in values ]))
         self._output(hdr)
 
-    def endheaders(self, message_body = None):
+    def endheaders(self, message_body=None):
         if self.__state == _CS_REQ_STARTED:
             self.__state = _CS_REQ_SENT
         else:
             raise CannotSendHeader()
         self._send_output(message_body)
 
-    def request(self, method, url, body = None, headers = {}):
+    def request(self, method, url, body=None, headers={}):
         self._send_request(method, url, body, headers)
 
     def _set_content_length(self, body):
@@ -612,6 +627,7 @@ class HTTPConnection():
 
         if thelen is not None:
             self.putheader('Content-Length', thelen)
+        return
 
     def _send_request(self, method, url, body, headers):
         header_names = dict.fromkeys([ k.lower() for k in headers ])
@@ -628,7 +644,7 @@ class HTTPConnection():
 
         self.endheaders(body)
 
-    def getresponse(self, buffering = True):
+    def getresponse(self, buffering=True):
         if self.__response and self.__response.isclosed():
             self.__response = None
         if self.__state != _CS_REQ_SENT or self.__response:
@@ -656,10 +672,11 @@ class HTTP():
     debuglevel = 0
     _connection_class = HTTPConnection
 
-    def __init__(self, host = '', port = None, strict = None):
+    def __init__(self, host='', port=None, strict=None):
         if port == 0:
             port = None
         self._setup(self._connection_class(host, port, strict))
+        return
 
     def _setup(self, conn):
         self._conn = conn
@@ -671,16 +688,18 @@ class HTTP():
         conn._http_vsn = self._http_vsn
         conn._http_vsn_str = self._http_vsn_str
         self.file = None
+        return
 
-    def connect(self, host = None, port = None):
+    def connect(self, host=None, port=None):
         if host is not None:
             self._conn._set_hostport(host, port)
         self._conn.connect()
+        return
 
     def getfile(self):
         return self.file
 
-    def getreply(self, buffering = True):
+    def getreply(self, buffering=True):
         try:
             if not buffering:
                 response = self._conn.getresponse()
@@ -699,6 +718,7 @@ class HTTP():
     def close(self):
         self._conn.close()
         self.file = None
+        return
 
 
 try:
@@ -710,7 +730,7 @@ else:
     class HTTPSConnection(HTTPConnection):
         default_port = HTTPS_PORT
 
-        def __init__(self, host, port = None, key_file = None, cert_file = None, strict = None, timeout = socket._GLOBAL_DEFAULT_TIMEOUT, source_address = None):
+        def __init__(self, host, port=None, key_file=None, cert_file=None, strict=None, timeout=socket._GLOBAL_DEFAULT_TIMEOUT, source_address=None):
             HTTPConnection.__init__(self, host, port, strict, timeout, source_address)
             self.key_file = key_file
             self.cert_file = cert_file
@@ -728,12 +748,13 @@ else:
     class HTTPS(HTTP):
         _connection_class = HTTPSConnection
 
-        def __init__(self, host = '', port = None, key_file = None, cert_file = None, strict = None):
+        def __init__(self, host='', port=None, key_file=None, cert_file=None, strict=None):
             if port == 0:
                 port = None
             self._setup(self._connection_class(host, port, key_file, cert_file, strict))
             self.key_file = key_file
             self.cert_file = cert_file
+            return
 
 
     def FakeSocket(sock, sslobj):
@@ -770,7 +791,7 @@ class UnimplementedFileMode(HTTPException):
 
 class IncompleteRead(HTTPException):
 
-    def __init__(self, partial, expected = None):
+    def __init__(self, partial, expected=None):
         self.args = (partial,)
         self.partial = partial
         self.expected = expected
@@ -831,25 +852,27 @@ class LineAndFileWrapper():
         self.readline = self._file.readline
         self.readlines = self._file.readlines
 
-    def read(self, amt = None):
+    def read(self, amt=None):
         if self._line_consumed:
             return self._file.read(amt)
-        if amt is None or amt > self._line_left:
-            s = self._line[self._line_offset:]
-            self._done()
-            if amt is None:
-                return s + self._file.read()
-            else:
-                return s + self._file.read(amt - len(s))
         else:
-            i = self._line_offset
-            j = i + amt
-            s = self._line[i:j]
-            self._line_offset = j
-            self._line_left -= amt
-            if self._line_left == 0:
+            if amt is None or amt > self._line_left:
+                s = self._line[self._line_offset:]
                 self._done()
-            return s
+                if amt is None:
+                    return s + self._file.read()
+                else:
+                    return s + self._file.read(amt - len(s))
+            else:
+                i = self._line_offset
+                j = i + amt
+                s = self._line[i:j]
+                self._line_offset = j
+                self._line_left -= amt
+                if self._line_left == 0:
+                    self._done()
+                return s
+            return
 
     def readline(self):
         if self._line_consumed:
@@ -858,15 +881,16 @@ class LineAndFileWrapper():
         self._done()
         return s
 
-    def readlines(self, size = None):
+    def readlines(self, size=None):
         if self._line_consumed:
             return self._file.readlines(size)
-        L = [self._line[self._line_offset:]]
-        self._done()
-        if size is None:
-            return L + self._file.readlines()
         else:
+            L = [self._line[self._line_offset:]]
+            self._done()
+            if size is None:
+                return L + self._file.readlines()
             return L + self._file.readlines(size)
+            return
 
 
 def test():

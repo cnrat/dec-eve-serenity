@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\packages\watchdog\observers\fsevents.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\packages\watchdog\observers\fsevents.py
 from __future__ import with_statement
 import sys
 import threading
@@ -10,7 +11,7 @@ from watchdog.observers.api import BaseObserver, EventEmitter, DEFAULT_EMITTER_T
 
 class FSEventsEmitter(EventEmitter):
 
-    def __init__(self, event_queue, watch, timeout = DEFAULT_EMITTER_TIMEOUT):
+    def __init__(self, event_queue, watch, timeout=DEFAULT_EMITTER_TIMEOUT):
         EventEmitter.__init__(self, event_queue, watch, timeout)
         self._lock = threading.Lock()
         self.snapshot = DirectorySnapshot(watch.path, watch.is_recursive)
@@ -53,7 +54,7 @@ class FSEventsEmitter(EventEmitter):
     def run(self):
         try:
 
-            def callback(pathnames, flags, emitter = self):
+            def callback(pathnames, flags, emitter=self):
                 emitter.queue_events(emitter.timeout)
 
             self.pathnames = [self.watch.path]
@@ -65,10 +66,10 @@ class FSEventsEmitter(EventEmitter):
 
 class FSEventsObserver(BaseObserver):
 
-    def __init__(self, timeout = DEFAULT_OBSERVER_TIMEOUT):
+    def __init__(self, timeout=DEFAULT_OBSERVER_TIMEOUT):
         BaseObserver.__init__(self, emitter_class=FSEventsEmitter, timeout=timeout)
 
-    def schedule(self, event_handler, path, recursive = False):
+    def schedule(self, event_handler, path, recursive=False):
         try:
             str_class = unicode
         except NameError:

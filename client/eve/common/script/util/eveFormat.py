@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\common\script\util\eveFormat.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\common\script\util\eveFormat.py
 import math
 import sys
 from carbon.common.script.util.format import DECIMAL, FmtAmt
@@ -24,15 +25,15 @@ CURRENCY_FORMAT_TRANSLATIONS = {(const.creditsAURUM, 0): 'UI/Util/FmtAurNoDecima
  (const.creditsISK, 0): 'UI/Util/FmtIskNoDecimal',
  (const.creditsISK, 1): 'UI/Util/FmtIsk'}
 
-def FmtISK(isk, showFractionsAlways = 1):
+def FmtISK(isk, showFractionsAlways=1):
     return FmtCurrency(isk, showFractionsAlways, const.creditsISK)
 
 
-def FmtAUR(aur, showFractionsAlways = 0):
+def FmtAUR(aur, showFractionsAlways=0):
     return FmtCurrency(aur, showFractionsAlways, const.creditsAURUM)
 
 
-def FmtISKAndRound(isk, showFractionsAlways = 1):
+def FmtISKAndRound(isk, showFractionsAlways=1):
     return FmtISK(RoundISK(isk), showFractionsAlways)
 
 
@@ -57,7 +58,7 @@ def RoundISK(isk):
         return round(isk, -6)
 
 
-def FmtCurrency(amount, showFractionsAlways = 1, currency = None):
+def FmtCurrency(amount, showFractionsAlways=1, currency=None):
     if currency is None:
         key = (const.creditsISK, showFractionsAlways)
     else:
@@ -68,7 +69,7 @@ def FmtCurrency(amount, showFractionsAlways = 1, currency = None):
     return localization.GetByLabel(fmtPath, amount=amount)
 
 
-def FmtRef(entryTypeID, o1, o2, arg1, pretty = 1, amount = 0.0):
+def FmtRef(entryTypeID, o1, o2, arg1, pretty=1, amount=0.0):
     if entryTypeID == const.refBackwardCompatible:
         if pretty:
             return ''
@@ -287,7 +288,9 @@ def FmtRef(entryTypeID, o1, o2, arg1, pretty = 1, amount = 0.0):
                             if entryTypeID == const.refContractRewardAddedCorp:
                                 return localization.GetByLabel('UI/Generic/FormatReference/contractCorporateReward', arg=arg1, name=GetName(o1))
                             if entryTypeID == const.refJumpCloneInstallationFee:
-                                return localization.GetByLabel('UI/Generic/FormatReference/cloneInstallFee')
+                                return localization.GetByLabel('UI/Generic/FormatReference/cloneInstallFee', name1=GetName(o1), name2=GetName(o2))
+                            if entryTypeID == const.refJumpCloneActivationFee:
+                                return localization.GetByLabel('UI/Generic/FormatReference/cloneActivationFee', name1=GetName(o1), name2=GetName(o2))
                             if entryTypeID == const.refPaymentToLPStore:
                                 return localization.GetByLabel('UI/Generic/FormatReference/lpStorePayment')
                             if entryTypeID == const.refSecureEVETimeCodeExchange:
@@ -340,6 +343,12 @@ def FmtRef(entryTypeID, o1, o2, arg1, pretty = 1, amount = 0.0):
                                 return localization.GetByLabel('UI/Generic/FormatReference/industryFacilityTaxRef', arg1=arg1, name1=GetName(o1), name2=GetName(o2))
                             if entryTypeID == const.refOpportunityReward:
                                 return localization.GetByLabel('UI/Generic/FormatReference/opportunityRewardDescription')
+                            if entryTypeID == const.refAssetSafetyTax:
+                                return localization.GetByLabel('UI/Generic/FormatReference/assetSafetyTaxRef')
+                            if entryTypeID == const.refProjectDiscoveryReward:
+                                return localization.GetByLabel('UI/Generic/FormatReference/projectDiscoveryRewardDescription')
+                            if entryTypeID == const.refProjectDiscoveryTaxRewards:
+                                return localization.GetByLabel('UI/Generic/FormatReference/projectDiscoveryRewardTax')
                             if entryTypeID == const.refCloneTransport:
                                 return localization.GetByLabel('UI/Generic/FormatReference/cloneTransport', name1=GetName(o1), name2=GetName(o2))
                             if entryTypeID == const.refCloneTransportRefund:
@@ -384,9 +393,12 @@ def FmtRef(entryTypeID, o1, o2, arg1, pretty = 1, amount = 0.0):
                                 return localization.GetByLabel('UI/Generic/FormatReference/dustCPForChangingReinforcement', name1=GetName(o1), name2=GetName(o2))
                             if entryTypeID == const.refCP_CHANGE_SURFACE_INFRASTRUCTURE:
                                 return localization.GetByLabel('UI/Generic/FormatReference/dustCPForChangingSurfaceInfrastructure', name1=GetName(o1), name2=GetName(o2))
+                            if entryTypeID == const.refReprocessingTax:
+                                return localization.GetByLabel('UI/Wallet/WalletWindow/ReprocessingWalletEntryDescription')
                             if pretty:
                                 return localization.uiutil.PrepareLocalizationSafeString('-')
                             return localization.GetByLabel('UI/Generic/FormatReference/unknowenJournalReference', ID=entryTypeID, arg=arg1, o1=o1, o2=o2)
+    return
 
 
 def FmtStandingTransaction(transaction):
@@ -533,7 +545,7 @@ def FmtStandingTransaction(transaction):
     return (subject, body)
 
 
-def FmtSystemSecStatus(raw, getColor = 0):
+def FmtSystemSecStatus(raw, getColor=0):
     sec = round(raw, 1)
     if sec == -0.0:
         sec = 0.0
@@ -607,7 +619,7 @@ def GetLocation(locationID):
         return localization.GetByLabel('UI/Generic/FormatLocations/errorUnknowenLocation', id=locationID)
 
 
-def FmtProbeState(state, colorize = False):
+def FmtProbeState(state, colorize=False):
     stateText = localization.GetByLabel(PROBE_STATE_TEXT_MAP[state])
     if colorize:
         return PROBE_STATE_COLOR_MAP[state] % stateText
@@ -684,7 +696,7 @@ def FmtPlanetAttributeKeyVal(key, val):
     return (label, text)
 
 
-def FmtDist2(dist, maxDecimals = 2):
+def FmtDist2(dist, maxDecimals=2):
     if dist < 0.0:
         dist = abs(dist)
         maxDecimals = None
@@ -705,15 +717,15 @@ def FmtDist2(dist, maxDecimals = 2):
     return localization.GetByLabel(fmtUrl, distance=distStr)
 
 
-def FmtISKEng(isk, showFractionsAlways = 1):
+def FmtISKEng(isk, showFractionsAlways=1):
     return FmtCurrencyEng(isk, showFractionsAlways, const.creditsISK)
 
 
-def FmtAUREng(aur, showFractionsAlways = 0):
+def FmtAUREng(aur, showFractionsAlways=0):
     return FmtCurrencyEng(aur, showFractionsAlways, const.creditsAURUM)
 
 
-def FmtCurrencyEng(amount, showFractionsAlways = 1, currency = None):
+def FmtCurrencyEng(amount, showFractionsAlways=1, currency=None):
     if currency == const.creditsAURUM:
         currencyString = ' AUR'
     elif currency == const.creditsISK:
@@ -755,10 +767,13 @@ def FmtCurrencyEng(amount, showFractionsAlways = 1, currency = None):
 def GetAveragePrice(item):
     if item.singleton == const.singletonBlueprintCopy:
         return
-    try:
-        import inventorycommon.typeHelpers
-        return inventorycommon.typeHelpers.GetAveragePrice(item.typeID)
-    except KeyError:
+    else:
+        try:
+            import inventorycommon.typeHelpers
+            return inventorycommon.typeHelpers.GetAveragePrice(item.typeID)
+        except KeyError:
+            return
+
         return
 
 

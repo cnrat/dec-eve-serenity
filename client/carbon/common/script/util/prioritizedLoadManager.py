@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\carbon\common\script\util\prioritizedLoadManager.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\carbon\common\script\util\prioritizedLoadManager.py
 import log
 import service
 import stackless
@@ -99,6 +100,8 @@ class PrioritizedLoadManager(service.Service):
             except StandardError:
                 log.LogException()
                 sys.exc_clear()
+
+        return
 
     def ProcessRequest(self, request):
         if request.owner:

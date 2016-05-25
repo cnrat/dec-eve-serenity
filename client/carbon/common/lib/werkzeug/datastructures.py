@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\carbon\common\lib\werkzeug\datastructures.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\carbon\common\lib\werkzeug\datastructures.py
 import re
 import codecs
 import mimetypes
@@ -61,13 +62,13 @@ class ImmutableListMixin(object):
     def insert(self, pos, value):
         is_immutable(self)
 
-    def pop(self, index = -1):
+    def pop(self, index=-1):
         is_immutable(self)
 
     def reverse(self):
         is_immutable(self)
 
-    def sort(self, cmp = None, key = None, reverse = None):
+    def sort(self, cmp=None, key=None, reverse=None):
         is_immutable(self)
 
 
@@ -80,13 +81,13 @@ class ImmutableDictMixin(object):
     def __reduce_ex__(self, protocol):
         return (type(self), (dict(self),))
 
-    def setdefault(self, key, default = None):
+    def setdefault(self, key, default=None):
         is_immutable(self)
 
     def update(self, *args, **kwargs):
         is_immutable(self)
 
-    def pop(self, key, default = None):
+    def pop(self, key, default=None):
         is_immutable(self)
 
     def popitem(self):
@@ -119,7 +120,7 @@ class ImmutableMultiDictMixin(ImmutableDictMixin):
     def setlist(self, key, new_list):
         is_immutable(self)
 
-    def setlistdefault(self, key, default_list = None):
+    def setlistdefault(self, key, default_list=None):
         is_immutable(self)
 
 
@@ -149,7 +150,7 @@ class UpdateDictMixin(object):
 
 class TypeConversionDict(dict):
 
-    def get(self, key, default = None, type = None):
+    def get(self, key, default=None, type=None):
         try:
             rv = self[key]
             if type is not None:
@@ -172,7 +173,7 @@ class ImmutableTypeConversionDict(ImmutableDictMixin, TypeConversionDict):
 class MultiDict(TypeConversionDict):
     KeyError = None
 
-    def __init__(self, mapping = None):
+    def __init__(self, mapping=None):
         if isinstance(mapping, MultiDict):
             dict.__init__(self, ((k, l[:]) for k, l in mapping.iterlists()))
         elif isinstance(mapping, dict):
@@ -213,7 +214,7 @@ class MultiDict(TypeConversionDict):
     def add(self, key, value):
         dict.setdefault(self, key, []).append(value)
 
-    def getlist(self, key, type = None):
+    def getlist(self, key, type=None):
         try:
             rv = dict.__getitem__(self, key)
         except KeyError:
@@ -221,26 +222,27 @@ class MultiDict(TypeConversionDict):
 
         if type is None:
             return list(rv)
-        result = []
-        for item in rv:
-            try:
-                result.append(type(item))
-            except ValueError:
-                pass
+        else:
+            result = []
+            for item in rv:
+                try:
+                    result.append(type(item))
+                except ValueError:
+                    pass
 
-        return result
+            return result
 
     def setlist(self, key, new_list):
         dict.__setitem__(self, key, list(new_list))
 
-    def setdefault(self, key, default = None):
+    def setdefault(self, key, default=None):
         if key not in self:
             self[key] = default
         else:
             default = self[key]
         return default
 
-    def setlistdefault(self, key, default_list = None):
+    def setlistdefault(self, key, default_list=None):
         if key not in self:
             default_list = list(default_list or ())
             dict.__setitem__(self, key, default_list)
@@ -248,7 +250,7 @@ class MultiDict(TypeConversionDict):
             default_list = dict.__getitem__(self, key)
         return default_list
 
-    def items(self, multi = False):
+    def items(self, multi=False):
         return list(self.iteritems(multi))
 
     def lists(self):
@@ -260,7 +262,7 @@ class MultiDict(TypeConversionDict):
     def listvalues(self):
         return list(self.iterlistvalues())
 
-    def iteritems(self, multi = False):
+    def iteritems(self, multi=False):
         for key, values in dict.iteritems(self):
             if multi:
                 for value in values:
@@ -284,7 +286,7 @@ class MultiDict(TypeConversionDict):
     def copy(self):
         return self.__class__(self)
 
-    def to_dict(self, flat = True):
+    def to_dict(self, flat=True):
         if flat:
             return dict(self.iteritems())
         return dict(self.lists())
@@ -293,7 +295,7 @@ class MultiDict(TypeConversionDict):
         for key, value in iter_multi_items(other_dict):
             MultiDict.add(self, key, value)
 
-    def pop(self, key, default = _missing):
+    def pop(self, key, default=_missing):
         try:
             return dict.pop(self, key)[0]
         except KeyError as e:
@@ -334,6 +336,7 @@ class _omd_bucket(object):
         if omd._last_bucket is not None:
             omd._last_bucket.next = self
         omd._last_bucket = self
+        return
 
     def unlink(self, omd):
         if self.prev:
@@ -349,11 +352,12 @@ class _omd_bucket(object):
 class OrderedMultiDict(MultiDict):
     KeyError = None
 
-    def __init__(self, mapping = None):
+    def __init__(self, mapping=None):
         dict.__init__(self)
         self._first_bucket = self._last_bucket = None
         if mapping is not None:
             OrderedMultiDict.update(self, mapping)
+        return
 
     def __eq__(self, other):
         if not isinstance(other, MultiDict):
@@ -416,7 +420,7 @@ class OrderedMultiDict(MultiDict):
     def itervalues(self):
         return (value for key, value in self.iteritems())
 
-    def iteritems(self, multi = False):
+    def iteritems(self, multi=False):
         ptr = self._first_bucket
         if multi:
             while ptr is not None:
@@ -431,6 +435,8 @@ class OrderedMultiDict(MultiDict):
                     yield (ptr.key, ptr.value)
                 ptr = ptr.next
 
+        return
+
     def iterlists(self):
         returned_keys = set()
         ptr = self._first_bucket
@@ -440,6 +446,8 @@ class OrderedMultiDict(MultiDict):
                 returned_keys.add(ptr.key)
             ptr = ptr.next
 
+        return
+
     def iterlistvalues(self):
         for key, values in self.iterlists():
             yield values
@@ -447,7 +455,7 @@ class OrderedMultiDict(MultiDict):
     def add(self, key, value):
         dict.setdefault(self, key, []).append(_omd_bucket(self, key, value))
 
-    def getlist(self, key, type = None):
+    def getlist(self, key, type=None):
         try:
             rv = dict.__getitem__(self, key)
         except KeyError:
@@ -455,21 +463,22 @@ class OrderedMultiDict(MultiDict):
 
         if type is None:
             return [ x.value for x in rv ]
-        result = []
-        for item in rv:
-            try:
-                result.append(type(item.value))
-            except ValueError:
-                pass
+        else:
+            result = []
+            for item in rv:
+                try:
+                    result.append(type(item.value))
+                except ValueError:
+                    pass
 
-        return result
+            return result
 
     def setlist(self, key, new_list):
         self.poplist(key)
         for value in new_list:
             self.add(key, value)
 
-    def setlistdefault(self, key, default_list = None):
+    def setlistdefault(self, key, default_list=None):
         raise TypeError('setlistdefault is unsupported for ordered multi dicts')
 
     def update(self, mapping):
@@ -483,7 +492,7 @@ class OrderedMultiDict(MultiDict):
 
         return [ x.value for x in buckets ]
 
-    def pop(self, key, default = _missing):
+    def pop(self, key, default=_missing):
         try:
             buckets = dict.pop(self, key)
         except KeyError as e:
@@ -528,7 +537,7 @@ def _options_header_vkw(value, kw):
 class Headers(object):
     KeyError = None
 
-    def __init__(self, defaults = None, _list = None):
+    def __init__(self, defaults=None, _list=None):
         if _list is None:
             _list = []
         self._list = _list
@@ -537,12 +546,13 @@ class Headers(object):
                 self._list.extend(defaults)
             else:
                 self.extend(defaults)
+        return
 
     @classmethod
     def linked(cls, headerlist):
         return cls(_list=headerlist)
 
-    def __getitem__(self, key, _index_operation = True):
+    def __getitem__(self, key, _index_operation=True):
         if _index_operation:
             if isinstance(key, (int, long)):
                 return self._list[key]
@@ -561,7 +571,7 @@ class Headers(object):
     def __ne__(self, other):
         return not self.__eq__(other)
 
-    def get(self, key, default = None, type = None):
+    def get(self, key, default=None, type=None):
         try:
             rv = self.__getitem__(key, _index_operation=False)
         except KeyError:
@@ -569,12 +579,15 @@ class Headers(object):
 
         if type is None:
             return rv
-        try:
-            return type(rv)
-        except ValueError:
-            return default
+        else:
+            try:
+                return type(rv)
+            except ValueError:
+                return default
 
-    def getlist(self, key, type = None):
+            return
+
+    def getlist(self, key, type=None):
         ikey = key.lower()
         result = []
         for k, v in self:
@@ -592,13 +605,13 @@ class Headers(object):
     def get_all(self, name):
         return self.getlist(name)
 
-    def iteritems(self, lower = False):
+    def iteritems(self, lower=False):
         for key, value in self:
             if lower:
                 key = key.lower()
             yield (key, value)
 
-    def iterkeys(self, lower = False):
+    def iterkeys(self, lower=False):
         for key, _ in self.iteritems(lower):
             yield key
 
@@ -606,13 +619,13 @@ class Headers(object):
         for _, value in self.iteritems():
             yield value
 
-    def keys(self, lower = False):
+    def keys(self, lower=False):
         return list(self.iterkeys(lower))
 
     def values(self):
         return list(self.itervalues())
 
-    def items(self, lower = False):
+    def items(self, lower=False):
         return list(self.iteritems(lower))
 
     def extend(self, iterable):
@@ -629,7 +642,7 @@ class Headers(object):
             for key, value in iterable:
                 self.add(key, value)
 
-    def __delitem__(self, key, _index_operation = True):
+    def __delitem__(self, key, _index_operation=True):
         if _index_operation and isinstance(key, (int, long, slice)):
             del self._list[key]
             return
@@ -644,20 +657,21 @@ class Headers(object):
     def remove(self, key):
         return self.__delitem__(key, _index_operation=False)
 
-    def pop(self, key = None, default = _missing):
+    def pop(self, key=None, default=_missing):
         if key is None:
             return self._list.pop()
-        if isinstance(key, (int, long)):
+        elif isinstance(key, (int, long)):
             return self._list.pop(key)
-        try:
-            rv = self[key]
-            self.remove(key)
-        except KeyError:
-            if default is not _missing:
-                return default
-            raise
+        else:
+            try:
+                rv = self[key]
+                self.remove(key)
+            except KeyError:
+                if default is not _missing:
+                    return default
+                raise
 
-        return rv
+            return rv
 
     def popitem(self):
         return self.pop()
@@ -711,7 +725,7 @@ class Headers(object):
         else:
             self.set(key, value)
 
-    def to_list(self, charset = 'utf-8'):
+    def to_list(self, charset='utf-8'):
         result = []
         for k, v in self:
             if isinstance(v, unicode):
@@ -728,7 +742,7 @@ class Headers(object):
     def __copy__(self):
         return self.copy()
 
-    def __str__(self, charset = 'utf-8'):
+    def __str__(self, charset='utf-8'):
         strs = []
         for key, value in self.to_list(charset):
             strs.append('%s: %s' % (key, value))
@@ -761,7 +775,7 @@ class ImmutableHeadersMixin(object):
     def insert(self, pos, value):
         is_immutable(self)
 
-    def pop(self, index = -1):
+    def pop(self, index=-1):
         is_immutable(self)
 
     def popitem(self):
@@ -783,7 +797,7 @@ class EnvironHeaders(ImmutableHeadersMixin, Headers):
     def __eq__(self, other):
         return self.environ is other.environ
 
-    def __getitem__(self, key, _index_operation = False):
+    def __getitem__(self, key, _index_operation=False):
         key = key.upper().replace('-', '_')
         if key in ('CONTENT_TYPE', 'CONTENT_LENGTH'):
             return self.environ[key]
@@ -808,7 +822,7 @@ class CombinedMultiDict(ImmutableMultiDictMixin, MultiDict):
     def __reduce_ex__(self, protocol):
         return (type(self), (self.dicts,))
 
-    def __init__(self, dicts = None):
+    def __init__(self, dicts=None):
         self.dicts = dicts or []
 
     @classmethod
@@ -822,7 +836,7 @@ class CombinedMultiDict(ImmutableMultiDictMixin, MultiDict):
 
         raise self.KeyError(key)
 
-    def get(self, key, default = None, type = None):
+    def get(self, key, default=None, type=None):
         for d in self.dicts:
             if key in d:
                 if type is not None:
@@ -835,7 +849,7 @@ class CombinedMultiDict(ImmutableMultiDictMixin, MultiDict):
 
         return default
 
-    def getlist(self, key, type = None):
+    def getlist(self, key, type=None):
         rv = []
         for d in self.dicts:
             rv.extend(d.getlist(key, type))
@@ -849,7 +863,7 @@ class CombinedMultiDict(ImmutableMultiDictMixin, MultiDict):
 
         return list(rv)
 
-    def iteritems(self, multi = False):
+    def iteritems(self, multi=False):
         found = set()
         for d in self.dicts:
             for key, value in d.iteritems(multi):
@@ -866,7 +880,7 @@ class CombinedMultiDict(ImmutableMultiDictMixin, MultiDict):
     def values(self):
         return list(self.itervalues())
 
-    def items(self, multi = False):
+    def items(self, multi=False):
         return list(self.iteritems(multi))
 
     def iterlists(self):
@@ -894,7 +908,7 @@ class CombinedMultiDict(ImmutableMultiDictMixin, MultiDict):
     def copy(self):
         return self.__class__(self.dicts[:])
 
-    def to_dict(self, flat = True):
+    def to_dict(self, flat=True):
         rv = {}
         for d in reversed(self.dicts):
             rv.update(d.to_dict(flat))
@@ -919,17 +933,19 @@ class CombinedMultiDict(ImmutableMultiDictMixin, MultiDict):
 
 class FileMultiDict(MultiDict):
 
-    def add_file(self, name, file, filename = None, content_type = None):
+    def add_file(self, name, file, filename=None, content_type=None):
         if isinstance(file, FileStorage):
             self[name] = file
             return
-        if isinstance(file, basestring):
-            if filename is None:
-                filename = file
-            file = open(file, 'rb')
-        if filename and content_type is None:
-            content_type = mimetypes.guess_type(filename)[0] or 'application/octet-stream'
-        self[name] = FileStorage(file, filename, name, content_type)
+        else:
+            if isinstance(file, basestring):
+                if filename is None:
+                    filename = file
+                file = open(file, 'rb')
+            if filename and content_type is None:
+                content_type = mimetypes.guess_type(filename)[0] or 'application/octet-stream'
+            self[name] = FileStorage(file, filename, name, content_type)
+            return
 
 
 class ImmutableDict(ImmutableDictMixin, dict):
@@ -962,7 +978,7 @@ class ImmutableOrderedMultiDict(ImmutableMultiDictMixin, OrderedMultiDict):
 
 class Accept(ImmutableList):
 
-    def __init__(self, values = ()):
+    def __init__(self, values=()):
         if values is None:
             list.__init__(self)
             self.provided = False
@@ -975,6 +991,7 @@ class Accept(ImmutableList):
             values.sort()
             values.reverse()
             list.__init__(self, [ (a, b) for b, a in values ])
+        return
 
     def _value_matches(self, value, item):
         return item == '*' or item.lower() == value.lower()
@@ -988,8 +1005,6 @@ class Accept(ImmutableList):
         for item, quality in self:
             if self._value_matches(key, item):
                 return quality
-
-        return 0
 
     def __contains__(self, value):
         for item, quality in self:
@@ -1035,7 +1050,7 @@ class Accept(ImmutableList):
     def __str__(self):
         return self.to_header()
 
-    def best_match(self, matches, default = None):
+    def best_match(self, matches, default=None):
         best_quality = -1
         result = default
         for server_item in matches:
@@ -1116,15 +1131,16 @@ class _CacheControl(UpdateDictMixin, dict):
     max_age = cache_property('max-age', -1, int)
     no_transform = cache_property('no-transform', None, None)
 
-    def __init__(self, values = (), on_update = None):
+    def __init__(self, values=(), on_update=None):
         dict.__init__(self, values or ())
         self.on_update = on_update
         self.provided = values is not None
+        return
 
     def _get_cache_value(self, key, empty, type):
         if type is bool:
             return key in self
-        if key in self:
+        elif key in self:
             value = self[key]
             if value is None:
                 return empty
@@ -1135,6 +1151,8 @@ class _CacheControl(UpdateDictMixin, dict):
                     pass
 
             return value
+        else:
+            return
 
     def _set_cache_value(self, key, value, type):
         if type is bool:
@@ -1148,6 +1166,7 @@ class _CacheControl(UpdateDictMixin, dict):
             self[key] = None
         else:
             self[key] = value
+        return
 
     def _del_cache_value(self, key):
         if key in self:
@@ -1182,7 +1201,7 @@ _CacheControl.cache_property = staticmethod(cache_property)
 
 class CallbackDict(UpdateDictMixin, dict):
 
-    def __init__(self, initial = None, on_update = None):
+    def __init__(self, initial=None, on_update=None):
         dict.__init__(self, initial or ())
         self.on_update = on_update
 
@@ -1192,7 +1211,7 @@ class CallbackDict(UpdateDictMixin, dict):
 
 class HeaderSet(object):
 
-    def __init__(self, headers = None, on_update = None):
+    def __init__(self, headers=None, on_update=None):
         self._headers = list(headers or ())
         self._set = set([ x.lower() for x in self._headers ])
         self.on_update = on_update
@@ -1212,6 +1231,7 @@ class HeaderSet(object):
 
         if self.on_update is not None:
             self.on_update(self)
+        return
 
     def update(self, iterable):
         inserted_any = False
@@ -1224,6 +1244,7 @@ class HeaderSet(object):
 
         if inserted_any and self.on_update is not None:
             self.on_update(self)
+        return
 
     def discard(self, header):
         try:
@@ -1237,8 +1258,6 @@ class HeaderSet(object):
             if item.lower() == header:
                 return idx
 
-        return -1
-
     def index(self, header):
         rv = self.find(header)
         if rv < 0:
@@ -1250,8 +1269,9 @@ class HeaderSet(object):
         del self._headers[:]
         if self.on_update is not None:
             self.on_update(self)
+        return
 
-    def as_set(self, preserve_casing = False):
+    def as_set(self, preserve_casing=False):
         if preserve_casing:
             return set(self._headers)
         return set(self._set)
@@ -1267,6 +1287,7 @@ class HeaderSet(object):
         self._set.remove(rv.lower())
         if self.on_update is not None:
             self.on_update(self)
+        return
 
     def __setitem__(self, idx, value):
         old = self._headers[idx]
@@ -1275,6 +1296,7 @@ class HeaderSet(object):
         self._set.add(value.lower())
         if self.on_update is not None:
             self.on_update(self)
+        return
 
     def __contains__(self, header):
         return header.lower() in self._set
@@ -1297,12 +1319,12 @@ class HeaderSet(object):
 
 class ETags(object):
 
-    def __init__(self, strong_etags = None, weak_etags = None, star_tag = False):
+    def __init__(self, strong_etags=None, weak_etags=None, star_tag=False):
         self._strong = frozenset(not star_tag and strong_etags or ())
         self._weak = frozenset(weak_etags or ())
         self.star_tag = star_tag
 
-    def as_set(self, include_weak = False):
+    def as_set(self, include_weak=False):
         rv = set(self._strong)
         if include_weak:
             rv.update(self._weak)
@@ -1330,7 +1352,7 @@ class ETags(object):
             return '*'
         return ', '.join([ '"%s"' % x for x in self._strong ] + [ 'w/"%s"' % x for x in self._weak ])
 
-    def __call__(self, etag = None, data = None, include_weak = False):
+    def __call__(self, etag=None, data=None, include_weak=False):
         if [etag, data].count(None) != 1:
             raise TypeError('either tag or data required, but at least one')
         if etag is None:
@@ -1358,7 +1380,7 @@ class ETags(object):
 
 class Authorization(ImmutableDictMixin, dict):
 
-    def __init__(self, auth_type, data = None):
+    def __init__(self, auth_type, data=None):
         dict.__init__(self, data or {})
         self.type = auth_type
 
@@ -1390,20 +1412,20 @@ class WWWAuthenticate(UpdateDictMixin, dict):
      'opaque',
      'realm'])
 
-    def __init__(self, auth_type = None, values = None, on_update = None):
+    def __init__(self, auth_type=None, values=None, on_update=None):
         dict.__init__(self, values or ())
         if auth_type:
             self['__auth_type__'] = auth_type
         self.on_update = on_update
 
-    def set_basic(self, realm = 'authentication required'):
+    def set_basic(self, realm='authentication required'):
         dict.clear(self)
         dict.update(self, {'__auth_type__': 'basic',
          'realm': realm})
         if self.on_update:
             self.on_update(self)
 
-    def set_digest(self, realm, nonce, qop = ('auth',), opaque = None, algorithm = None, stale = False):
+    def set_digest(self, realm, nonce, qop=('auth',), opaque=None, algorithm=None, stale=False):
         d = {'__auth_type__': 'digest',
          'realm': realm,
          'nonce': nonce,
@@ -1418,6 +1440,7 @@ class WWWAuthenticate(UpdateDictMixin, dict):
         dict.update(self, d)
         if self.on_update:
             self.on_update(self)
+        return
 
     def to_header(self):
         d = dict(self)
@@ -1430,17 +1453,18 @@ class WWWAuthenticate(UpdateDictMixin, dict):
     def __repr__(self):
         return '<%s %r>' % (self.__class__.__name__, self.to_header())
 
-    def auth_property(name, doc = None):
+    def auth_property(name, doc=None):
 
         def _set_value(self, value):
             if value is None:
                 self.pop(name, None)
             else:
                 self[name] = str(value)
+            return
 
         return property(lambda x: x.get(name), _set_value, doc=doc)
 
-    def _set_property(name, doc = None):
+    def _set_property(name, doc=None):
 
         def fget(self):
 
@@ -1466,12 +1490,15 @@ class WWWAuthenticate(UpdateDictMixin, dict):
         val = self.get('stale')
         if val is not None:
             return val.lower() == 'true'
+        else:
+            return
 
     def _set_stale(self, value):
         if value is None:
             self.pop('stale', None)
         else:
             self['stale'] = value and 'TRUE' or 'FALSE'
+        return
 
     stale = property(_get_stale, _set_stale, doc='\n        A flag, indicating that the previous request from the client was\n        rejected because the nonce value was stale.')
     del _get_stale
@@ -1482,7 +1509,7 @@ class WWWAuthenticate(UpdateDictMixin, dict):
 
 class FileStorage(object):
 
-    def __init__(self, stream = None, filename = None, name = None, content_type = 'application/octet-stream', content_length = -1, headers = None):
+    def __init__(self, stream=None, filename=None, name=None, content_type='application/octet-stream', content_length=-1, headers=None):
         self.name = name
         self.stream = stream or _empty_stream
         self.filename = filename or getattr(stream, 'name', None)
@@ -1491,8 +1518,9 @@ class FileStorage(object):
         if headers is None:
             headers = Headers()
         self.headers = headers
+        return
 
-    def save(self, dst, buffer_size = 16384):
+    def save(self, dst, buffer_size=16384):
         from shutil import copyfileobj
         close_dst = False
         if isinstance(dst, basestring):

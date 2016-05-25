@@ -1,5 +1,9 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\client\script\parklife\bracketMgr.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\client\script\parklife\bracketMgr.py
 from eve.client.script.parklife.dungeonHelper import IsJessicaOpen
+from eve.client.script.ui.inflight.bracketsAndTargets.inSpaceBracket import InSpaceBracket
+from eve.client.script.ui.inflight.bracketsAndTargets.navigationBracket import NavigationBracket
+from eve.client.script.ui.inflight.squadrons.shipFighterState import GetShipFighterState
 import evetypes
 import service
 from spacecomponents.client.messages import MSG_ON_BRACKET_CREATED
@@ -26,6 +30,7 @@ import collections
 import fsdSchemas.binaryLoader as fsdBinaryLoader
 from eve.client.script.ui.inflight.bracketsAndTargets.timedBracket import TimedBracket
 from eve.client.script.ui.inflight.bracketsAndTargets.siphonBracket import SiphonSiloBracket
+from eve.client.script.ui.inflight.bracketsAndTargets.structureBracket import StructureBracket
 from spacecomponents.common.helper import HasBountyEscrowComponent
 from spacecomponents.client.components.bountyEscrow import GetSubLabel as GetBountyEscrowSubLabel
 SHOW_NONE = -1
@@ -37,6 +42,10 @@ YELLOW = (1.0, 1.0, 0, 0.3)
 RECORDED_DAMAGE_PERIOD_SECONDS = 120
 NUMBER_OF_DAMAGEDEALERS = 5
 INF = 1e+32
+BRACKET_CATEGORIES_WITH_RANGE_MARKER = (const.categoryShip,
+ const.categoryEntity,
+ const.categoryDrone,
+ const.categoryFighter)
 
 class BracketMgr(service.Service):
     __guid__ = 'svc.bracket'
@@ -69,20 +78,21 @@ class BracketMgr(service.Service):
      'OnAttributes',
      'OnCaptureChanged',
      'OnBSDTablesChanged',
-     'ProcessShipEffect',
      'ProcessBountyInfoUpdated',
      'OnUIScalingChange',
      'OnFleetJoin_Local',
      'OnFleetLeave_Local',
      'OnDamageMessage',
      'OnDamageMessages',
-     'DoBallsRemove']
+     'DoBallsRemove',
+     'OnStructureVisibilityUpdated']
     __startupdependencies__ = ['wreck']
     __dependencies__ = ['michelle',
      'tactical',
      'map',
      'settings',
-     'target']
+     'target',
+     'fighters']
 
     def __init__(self):
         service.Service.__init__(self)
@@ -102,9 +112,11 @@ class BracketMgr(service.Service):
         self.showState = SHOW_DEFAULT
         self.showingSpecials = False
 
-    def Run(self, memStream = None):
+    def Run(self, memStream=None):
         service.Service.Run(self, memStream)
         self.scenarioMgr = sm.StartService('scenario')
+        self.shipFighterState = GetShipFighterState()
+        self.shipFighterState.signalOnFighterInSpaceUpdate.connect(self.OnFighterInSpaceUpdate)
         self.Reload()
         self.CreateBracketIndexes()
 
@@ -140,7 +152,7 @@ class BracketMgr(service.Service):
             bracketID = self.bracketDataByCategoryID[categoryID]
             return self.GetBrackeDatatByID(bracketID)
 
-    def GetBracketIcon(self, typeID, isEmpty = None):
+    def GetBracketIcon(self, typeID, isEmpty=None):
         bracket = self.GetBracketDataByTypeID(typeID)
         if bracket:
             if isEmpty and hasattr(bracket, 'texturePathEmpty'):
@@ -165,6 +177,7 @@ class BracketMgr(service.Service):
         self.inTargetRangeTimer = None
         self.damageDealerTimer = None
         uicore.layer.bracket.Flush()
+        return
 
     def Hide(self):
         l_bracket = uicore.layer.bracket
@@ -189,7 +202,7 @@ class BracketMgr(service.Service):
         uthread.new(self.SoftReload)
 
     @telemetry.ZONE_METHOD
-    def SoftReload(self, showSpecials = None, bracketShowState = None):
+    def SoftReload(self, showSpecials=None, bracketShowState=None):
         if bracketShowState is not None:
             self.showState = bracketShowState
         if showSpecials is not None:
@@ -197,8 +210,11 @@ class BracketMgr(service.Service):
         ballPark = sm.GetService('michelle').GetBallpark(doWait=True)
         if not ballPark:
             return
-        for slimItem in ballPark.slimItems.itervalues():
-            self.AddBracketIfWanted(slimItem)
+        else:
+            for slimItem in ballPark.slimItems.itervalues():
+                self.AddBracketIfWanted(slimItem)
+
+            return
 
     def ShowAll(self):
         if self.showState != SHOW_ALL:
@@ -216,6 +232,7 @@ class BracketMgr(service.Service):
                 tabsetting['showAll'] = self.showState == SHOW_ALL
                 tabsetting['showNone'] = self.showState == SHOW_NONE
                 tabsetting['showSpecials'] = self.showingSpecials
+        return
 
     def ShowNone(self):
         if self.showState != SHOW_NONE:
@@ -229,6 +246,7 @@ class BracketMgr(service.Service):
             if bracket:
                 bracket.ShowOwnShip()
                 self.showHiddenTimer = base.AutoTimer(100, self.StopShowingHidden)
+        return
 
     def StopShowingHidden(self):
         alt = uicore.uilib.Key(uiconst.VK_MENU)
@@ -237,6 +255,7 @@ class BracketMgr(service.Service):
             bracket = self.brackets.get(session.shipid, None)
             if bracket:
                 bracket.SetNormalInvisibleStateForOwnShip()
+        return
 
     def ToggleShowSpecials(self):
         self.showingSpecials = not self.showingSpecials
@@ -260,7 +279,7 @@ class BracketMgr(service.Service):
         self.SoftReload()
 
     @telemetry.ZONE_METHOD
-    def IsWanted(self, ballID, typeID = None, groupID = None, categoryID = None, slimItem = None, filtered = None):
+    def IsWanted(self, ballID, typeID=None, groupID=None, categoryID=None, slimItem=None, filtered=None):
         if typeID and not self.GetBracketDataByTypeID(typeID):
             return False
         else:
@@ -275,6 +294,9 @@ class BracketMgr(service.Service):
             if groupID == const.groupDeadspaceOverseersStructure:
                 checkName = evetypes.GetName(typeID).lower()
                 if checkName in self.filterLCS:
+                    return False
+            if categoryID == const.categoryStructure:
+                if not sm.GetService('structureProximityTracker').IsStructureVisible(ballID):
                     return False
             if groupID in self.wantedGroupsWhenSelectedOnly or categoryID in self.wantedCategoriesWhenSelectedOnly:
                 return self.IsSelectedOrTargeted(ballID)
@@ -294,6 +316,7 @@ class BracketMgr(service.Service):
             filtered = filtered or sm.GetService('tactical').GetFilteredStatesFunctionNames(isBracket=True)
             alwaysShown = sm.GetService('tactical').GetAlwaysShownStatesFunctionNames()
             return sm.GetService('tactical').WantIt(slimItem, filtered, alwaysShown, isBracket=True)
+            return
 
     @telemetry.ZONE_METHOD
     def IsSelectedOrTargeted(self, ballID):
@@ -310,7 +333,6 @@ class BracketMgr(service.Service):
     def GetBracketName(self, objectID):
         if objectID in self.brackets:
             return self.brackets[objectID].displayName
-        return ''
 
     def GetBracket(self, objectID):
         return self.brackets.get(objectID, None)
@@ -324,7 +346,8 @@ class BracketMgr(service.Service):
         slimItem = sm.GetService('michelle').GetBallpark().slimItems.get(objectID, None)
         if slimItem is None:
             return ''
-        return self.GetDisplayNameForBracket(slimItem)
+        else:
+            return self.GetDisplayNameForBracket(slimItem)
 
     def DisplayName(self, slimItem, displayName):
         shiplabel = []
@@ -359,32 +382,34 @@ class BracketMgr(service.Service):
         bracket = self.GetBracket(newSlim.itemID)
         if not bracket:
             return
-        if hasattr(bracket, 'OnSlimItemChange'):
-            bracket.OnSlimItemChange(oldSlim, newSlim)
-        bracket.slimItem = newSlim
-        bracket.displayName = None
-        if util.IsStarbase(newSlim.categoryID):
-            if newSlim.posState == oldSlim.posState and newSlim.posTimestamp == oldSlim.posTimestamp and newSlim.incapacitated == oldSlim.incapacitated and newSlim.controllerID == oldSlim.controllerID and newSlim.ownerID == oldSlim.ownerID:
-                return
-            bracket.UpdateStructureState(newSlim)
-        elif util.IsOrbital(newSlim.categoryID):
-            if newSlim.orbitalState == oldSlim.orbitalState and newSlim.orbitalTimestamp == oldSlim.orbitalTimestamp and newSlim.ownerID == oldSlim.ownerID and newSlim.orbitalHackerID == oldSlim.orbitalHackerID and newSlim.orbitalHackerProgress == oldSlim.orbitalHackerProgress:
-                return
-            bracket.UpdateOrbitalState(newSlim)
-        elif newSlim.groupID == const.groupPlanet and newSlim.corpID != oldSlim.corpID:
-            if newSlim.corpID is not None:
-                bracket.displaySubLabel = localization.GetByLabel('UI/DustLink/ControlledBy', corpName=cfg.eveowners.Get(newSlim.corpID).name)
-            else:
-                bracket.displaySubLabel = None
-        elif HasBountyEscrowComponent(newSlim.typeID):
-            bracket.displaySubLabel = GetBountyEscrowSubLabel(newSlim)
-        if newSlim.corpID != oldSlim.corpID:
-            uthread.pool('BracketMgr::OnSlimItemChange --> UpdateStates', bracket.UpdateFlagAndBackground, newSlim)
-        if newSlim.groupID in const.environmentContainers:
-            if newSlim.groupID == const.groupWreck and newSlim.isEmpty and not oldSlim.isEmpty:
-                sm.GetService('state').SetState(newSlim.itemID, state.flagWreckEmpty, True)
-            bracket.Load_update(newSlim)
-        self.UpdateCaptureFromSlim(newSlim)
+        else:
+            if hasattr(bracket, 'OnSlimItemChange'):
+                bracket.OnSlimItemChange(oldSlim, newSlim)
+            bracket.slimItem = newSlim
+            bracket.displayName = None
+            if util.IsStarbase(newSlim.categoryID):
+                if newSlim.posState == oldSlim.posState and newSlim.posTimestamp == oldSlim.posTimestamp and newSlim.incapacitated == oldSlim.incapacitated and newSlim.controllerID == oldSlim.controllerID and newSlim.ownerID == oldSlim.ownerID:
+                    return
+                bracket.UpdateStructureState(newSlim)
+            elif util.IsOrbital(newSlim.categoryID):
+                if newSlim.orbitalState == oldSlim.orbitalState and newSlim.orbitalTimestamp == oldSlim.orbitalTimestamp and newSlim.ownerID == oldSlim.ownerID and newSlim.orbitalHackerID == oldSlim.orbitalHackerID and newSlim.orbitalHackerProgress == oldSlim.orbitalHackerProgress:
+                    return
+                bracket.UpdateOrbitalState(newSlim)
+            elif newSlim.groupID == const.groupPlanet and newSlim.corpID != oldSlim.corpID:
+                if newSlim.corpID is not None:
+                    bracket.displaySubLabel = localization.GetByLabel('UI/DustLink/ControlledBy', corpName=cfg.eveowners.Get(newSlim.corpID).name)
+                else:
+                    bracket.displaySubLabel = None
+            elif HasBountyEscrowComponent(newSlim.typeID):
+                bracket.displaySubLabel = GetBountyEscrowSubLabel(newSlim)
+            if newSlim.corpID != oldSlim.corpID:
+                uthread.pool('BracketMgr::OnSlimItemChange --> UpdateStates', bracket.UpdateFlagAndBackground, newSlim)
+            if newSlim.groupID in const.environmentContainers:
+                if newSlim.groupID == const.groupWreck and newSlim.isEmpty and not oldSlim.isEmpty:
+                    sm.GetService('state').SetState(newSlim.itemID, state.flagWreckEmpty, True)
+                bracket.Load_update(newSlim)
+            self.UpdateCaptureFromSlim(newSlim)
+            return
 
     def UpdateCaptureFromSlim(self, slimItem):
         if getattr(slimItem, 'capturePoint', None):
@@ -395,21 +420,29 @@ class BracketMgr(service.Service):
             bracket = self.GetBracket(slimItem.itemID)
             if bracket:
                 bracket.UpdateCaptureProgress(slimItem.capturePoint)
+        return
 
     def ProcessSessionChange(self, isremote, session, change):
         if not sm.GetService('connection').IsConnected() or session.stationid is not None or session.worldspaceid is not None or session.charid is None:
             self.CleanUp()
         elif not change.has_key('solarsystemid') and change.has_key('shipid') and change['shipid'][0] is not None:
             oldShipID, shipID = change['shipid']
-            bp = sm.GetService('michelle').GetBallpark()
-            slimItem = bp.GetInvItem(oldShipID)
+            slimItem = sm.GetService('michelle').GetItem(oldShipID)
             if slimItem is not None:
-                self.RemoveBracket(slimItem.itemID)
-                self.AddBracketIfWanted(slimItem)
-            slimItem = bp.GetInvItem(shipID)
+                self._RecreateBracket(slimItem)
+            slimItem = sm.GetService('michelle').GetItem(shipID)
             if slimItem is not None:
-                self.RemoveBracket(slimItem.itemID)
-                self.AddBracketIfWanted(slimItem)
+                self._RecreateBracket(slimItem)
+        return
+
+    def RecreateBracket(self, itemID):
+        slimItem = sm.GetService('michelle').GetItem(itemID)
+        if slimItem:
+            self._RecreateBracket(slimItem)
+
+    def _RecreateBracket(self, slimItem):
+        self.RemoveBracket(slimItem.itemID)
+        self.AddBracketIfWanted(slimItem)
 
     def GetBracketProps(self, slimItem, ball):
         bracketData = self.GetBracketDataByTypeID(slimItem.typeID)
@@ -437,6 +470,7 @@ class BracketMgr(service.Service):
                     obj = dungeon.Object.Get(objectID)
                     if obj is not None:
                         return obj.HasAnyTriggers()
+        return
 
     def PrimeLocations(self, slimItem):
         locations = []
@@ -471,9 +505,10 @@ class BracketMgr(service.Service):
             del self.brackets[itemID]
         if itemID in self.updateBrackets:
             del self.updateBrackets[itemID]
+        return
 
     @telemetry.ZONE_METHOD
-    def AddBracketIfWanted(self, slimItem, ball = None):
+    def AddBracketIfWanted(self, slimItem, ball=None):
         try:
             itemID = slimItem.itemID
             groupID = slimItem.groupID
@@ -492,7 +527,7 @@ class BracketMgr(service.Service):
             ball = ball or sm.GetService('michelle').GetBall(itemID)
             if not ball:
                 return
-            panel = self.GetNewBracket(itemID=itemID, groupID=groupID, typeID=slimItem.typeID)
+            panel = self.GetNewBracket(itemID=itemID, categoryID=categoryID, groupID=groupID, typeID=slimItem.typeID)
             self.brackets[itemID] = panel
             if self.SlimItemIsDungeonObjectWithTriggers(slimItem):
                 bracket.name = 'bracketForTriggerObject%d' % slimItem.dunObjectID
@@ -511,6 +546,8 @@ class BracketMgr(service.Service):
                 elif hasattr(slimItem, 'ownerID'):
                     if slimItem.ownerID == const.factionUnknown and groupID == const.groupPirateDrone:
                         panel.name = 'bracketNPCPirateDrone1'
+                if categoryID == const.categoryFighter and slimItem.ownerID == session.charid:
+                    self.UpdateSquadronNumber(itemID, panel)
                 panel.displayName = None
                 if groupID == const.groupPlanet and slimItem.corpID:
                     panel.displaySubLabel = localization.GetByLabel('UI/DustLink/ControlledBy', corpName=cfg.eveowners.Get(slimItem.corpID).name)
@@ -534,17 +571,47 @@ class BracketMgr(service.Service):
             log.LogException(e)
             sys.exc_clear()
 
-    def GetBracketClass(self, groupID, typeID):
-        if typeID == const.typeMobileShippingUnit:
+        return
+
+    def OnFighterInSpaceUpdate(self, fighterID, tubeFlagID):
+        try:
+            fighterBracket = self.brackets[fighterID]
+        except KeyError:
+            pass
+        else:
+            fighterInSpace = self.shipFighterState.GetFighterInSpaceByID(fighterID)
+            if fighterInSpace:
+                fighterBracket.UpdateSquadronNumber(fighterInSpace.tubeFlagID)
+            else:
+                self.RecreateBracket(fighterID)
+
+    def UpdateSquadronNumber(self, fighterID, fighterBracket):
+        fighterInSpace = self.shipFighterState.GetFighterInSpaceByID(fighterID)
+        if fighterInSpace is None:
+            tubeFlagID = None
+        else:
+            tubeFlagID = fighterInSpace.tubeFlagID
+        fighterBracket.UpdateSquadronNumber(tubeFlagID)
+        return
+
+    def GetBracketClass(self, categoryID, groupID, typeID, itemID):
+        if categoryID == const.categoryStructure:
+            return StructureBracket
+        elif typeID == const.typeMobileShippingUnit:
             return TimedBracket
         elif groupID == const.groupSiphonPseudoSilo:
             return SiphonSiloBracket
+        elif self.IsMyFighterInSpace(categoryID, itemID) or itemID == session.shipid:
+            return NavigationBracket
         else:
-            return uicls.InSpaceBracket
+            return InSpaceBracket
+
+    def IsMyFighterInSpace(self, categoryID, itemID):
+        return categoryID == const.categoryFighter and sm.GetService('fighters').shipFighterState.IsMyFighterInSpace(itemID)
 
     @telemetry.ZONE_METHOD
-    def GetNewBracket(self, itemID = '', groupID = None, typeID = None):
-        bracketCls = self.GetBracketClass(groupID, typeID)
+    def GetNewBracket(self, itemID='', categoryID=None, groupID=None, typeID=None):
+        bracketCls = self.GetBracketClass(categoryID, groupID, typeID, itemID)
         bracket = bracketCls(parent=uicore.layer.bracket, name='__inflightbracket_%s' % itemID, align=uiconst.NOALIGN, state=uiconst.UI_NORMAL)
         return bracket
 
@@ -572,7 +639,7 @@ class BracketMgr(service.Service):
         return displayName
 
     @telemetry.ZONE_METHOD
-    def SetupBracketProperties(self, bracket, ball, slimItem, props = None):
+    def SetupBracketProperties(self, bracket, ball, slimItem, props=None):
         if props is None:
             props = self.GetBracketProps(slimItem, ball)
         _iconNo, _dockType, _minDist, _maxDist, _iconOffset, _logflag = props
@@ -590,6 +657,7 @@ class BracketMgr(service.Service):
         bracket.inflight = True
         bracket.ball = ball
         bracket.invisible = False
+        return
 
     @telemetry.ZONE_METHOD
     def UpdateLabels(self):
@@ -620,6 +688,8 @@ class BracketMgr(service.Service):
             bracket.Load_update(bracket.slimItem)
             blue.pyos.BeNice()
 
+        return
+
     def RenewSingleFlag(self, charID):
         uthread.new(self._RenewSingleFlag, charID)
 
@@ -627,18 +697,21 @@ class BracketMgr(service.Service):
         bp = sm.GetService('michelle').GetBallpark()
         if not bp:
             return
-        for bracket in self.brackets.itervalues():
-            slimItem = bracket.slimItem
-            if slimItem is None:
-                continue
-            if bracket.itemID not in self.updateBrackets:
-                if slimItem.groupID not in const.containerGroupIDs:
+        else:
+            for bracket in self.brackets.itervalues():
+                slimItem = bracket.slimItem
+                if slimItem is None:
                     continue
-            if getattr(slimItem, 'ownerID', None) == charID:
-                bracket.Load_update(slimItem)
-            elif getattr(slimItem, 'charID', None) == charID:
-                bracket.Load_update(slimItem)
-            blue.pyos.BeNice()
+                if bracket.itemID not in self.updateBrackets:
+                    if slimItem.groupID not in const.containerGroupIDs:
+                        continue
+                if getattr(slimItem, 'ownerID', None) == charID:
+                    bracket.Load_update(slimItem)
+                elif getattr(slimItem, 'charID', None) == charID:
+                    bracket.Load_update(slimItem)
+                blue.pyos.BeNice()
+
+            return
 
     def OnBallparkCall(self, funcName, args):
         if funcName == 'SetBallFree':
@@ -660,16 +733,21 @@ class BracketMgr(service.Service):
             self.brackets = {}
             self.updateBrackets = {}
             return
-        for ball, slimItem, terminal in pythonBalls:
-            self.DoBallRemove(ball, slimItem, terminal)
+        else:
+            for ball, slimItem, terminal in pythonBalls:
+                self.DoBallRemove(ball, slimItem, terminal)
+
+            return
 
     def DoBallRemove(self, ball, slimItem, terminal):
         if ball is None:
             return
-        self.LogInfo('DoBallRemove::bracketMgr', ball.id)
-        self.RemoveBracket(ball.id)
-        if ball.id in getattr(self, 'capturePoints', {}).keys():
-            del self.capturePoints[ball.id]
+        else:
+            self.LogInfo('DoBallRemove::bracketMgr', ball.id)
+            self.RemoveBracket(ball.id)
+            if ball.id in getattr(self, 'capturePoints', {}).keys():
+                del self.capturePoints[ball.id]
+            return
 
     def DoBallClear(self, solitem):
         self.brackets = {}
@@ -680,7 +758,7 @@ class BracketMgr(service.Service):
     def OnUIScalingChange(self, *args):
         self.Reload()
 
-    def OnDestinationSet(self, destinationID = None):
+    def OnDestinationSet(self, destinationID=None):
         focusOn = []
         updateGroups = (const.groupStation, const.groupStargate)
         for each in uicore.layer.bracket.children:
@@ -736,6 +814,9 @@ class BracketMgr(service.Service):
             except AttributeError:
                 pass
 
+    def OnStructureVisibilityUpdated(self, structureID):
+        self.RecreateBracket(structureID)
+
     def OnAttribute(self, attributeName, item, newValue):
         if item.itemID == session.shipid and attributeName == 'scanResolution':
             for targetID in sm.GetService('target').GetTargeting():
@@ -752,6 +833,7 @@ class BracketMgr(service.Service):
             bracket = self.GetBracket(data[0])
             if bracket is not None:
                 bracket.displayName = None
+        return
 
     def OnCaptureChanged(self, ballID, captureID, lastIncident, points, captureTime, lastCapturing):
         bracket = self.GetBracket(ballID)
@@ -802,7 +884,7 @@ class BracketMgr(service.Service):
         return self.checkingOverlaps
 
     @telemetry.ZONE_METHOD
-    def CheckOverlaps(self, sender, hideRest = 0):
+    def CheckOverlaps(self, sender, hideRest=0):
         self.checkingOverlaps = sender.itemID
         self.ResetOverlaps()
         overlaps = []
@@ -853,70 +935,73 @@ class BracketMgr(service.Service):
             self.checkingOverlaps = None
             sender.parent.state = uiconst.UI_PICKCHILDREN
             return
-        if sameX:
-            while len(overlaps) < MAXEXPANDED:
-                minY = s[TOP] - totalHeight
-                maxY = s[BOTTOM]
-                oo, sameX = self.GetOverlapOverlap(sameX, minY, maxY)
-                if not oo or not sameX:
-                    break
-                for overlap in oo:
-                    overlaps.append(overlap)
-                    topMargin, bottomMargin = overlap[1].GetLockedPositionTopBottomMargin()
-                    overlap[1]._topMargin = topMargin
-                    overlap[1]._bottomMargin = bottomMargin
-                    totalHeight += topMargin + BRACKETSIZE + bottomMargin
-                    if len(overlaps) == MAXEXPANDED:
+        else:
+            if sameX:
+                while len(overlaps) < MAXEXPANDED:
+                    minY = s[TOP] - totalHeight
+                    maxY = s[BOTTOM]
+                    oo, sameX = self.GetOverlapOverlap(sameX, minY, maxY)
+                    if not oo or not sameX:
                         break
+                    for overlap in oo:
+                        overlaps.append(overlap)
+                        topMargin, bottomMargin = overlap[1].GetLockedPositionTopBottomMargin()
+                        overlap[1]._topMargin = topMargin
+                        overlap[1]._bottomMargin = bottomMargin
+                        totalHeight += topMargin + BRACKETSIZE + bottomMargin
+                        if len(overlaps) == MAXEXPANDED:
+                            break
 
-        overlaps = uiutil.SortListOfTuples(overlaps, reverse=True)
+            overlaps = uiutil.SortListOfTuples(overlaps, reverse=True)
 
-        def LockBracketPosition(bracket, left, top):
-            projectBracket = bracket.projectBracket
-            if projectBracket:
-                projectBracket.bracket = None
-            bracket.SetAlign(uiconst.TOPLEFT)
-            bracket.left = left - bracket.width / 2
-            lockedTopPos = top - (bracket.height - 16) / 2
-            bracket.top = lockedTopPos
-            bracket._lockedTopPos = lockedTopPos
-            bracket.displayX = left
-            bracket._pervious_opacity = bracket.opacity
-            bracket.opacity = 1.0
-            bracket.SetOrder(0)
-            if hasattr(bracket, 'UpdateSubItems'):
-                bracket.UpdateSubItems()
+            def LockBracketPosition(bracket, left, top):
+                projectBracket = bracket.projectBracket
+                if projectBracket:
+                    projectBracket.bracket = None
+                bracket.SetAlign(uiconst.TOPLEFT)
+                bracket.left = left - bracket.width / 2
+                lockedTopPos = top - (bracket.height - 16) / 2
+                bracket.top = lockedTopPos
+                bracket._lockedTopPos = lockedTopPos
+                bracket.displayX = left
+                bracket._pervious_opacity = bracket.opacity
+                bracket.opacity = 1.0
+                bracket.SetOrder(0)
+                if hasattr(bracket, 'UpdateSubItems'):
+                    bracket.UpdateSubItems()
+                return
 
-        top = s[TOP]
-        left = s[LEFT] + BRACKETSIZE / 2
-        sender._lockedTopPos = top
-        self.overlaps = [sender] + overlaps
-        for overlapBracket in self.overlaps:
-            hasBubble = bool(overlapBracket.sr.bubble)
-            if not hasBubble:
-                overlapBracket.ShowLabel()
-            if overlapBracket is not sender:
-                top -= overlapBracket._bottomMargin
-            LockBracketPosition(overlapBracket, left, top)
-            top -= overlapBracket._topMargin + BRACKETSIZE
-
-        self.overlapsHidden = []
-        if hideRest:
-            for bracket in sender.parent.children:
-                if bracket is sender or bracket in overlaps or not getattr(bracket, 'IsBracket', 0) or bracket.state != uiconst.UI_PICKCHILDREN or bracket.invisible:
-                    continue
-                bubble = bracket.sr.bubble
-                if bubble:
-                    bubble.state = uiconst.UI_HIDDEN
-                    self.overlapsHidden.append(bracket)
-
-        if top < 0:
+            top = s[TOP]
+            left = s[LEFT] + BRACKETSIZE / 2
+            sender._lockedTopPos = top
+            self.overlaps = [sender] + overlaps
             for overlapBracket in self.overlaps:
-                overlapBracket.top = -top + overlapBracket._lockedTopPos - BRACKETSIZE
+                hasBubble = bool(overlapBracket.sr.bubble)
+                if not hasBubble:
+                    overlapBracket.ShowLabel()
+                if overlapBracket is not sender:
+                    top -= overlapBracket._bottomMargin
+                LockBracketPosition(overlapBracket, left, top)
+                top -= overlapBracket._topMargin + BRACKETSIZE
 
-        sender.parent.state = uiconst.UI_PICKCHILDREN
-        self.checkingOverlaps = None
-        uicore.uilib.RegisterForTriuiEvents(uiconst.UI_MOUSEDOWN, self.OnGlobalMouseDown)
+            self.overlapsHidden = []
+            if hideRest:
+                for bracket in sender.parent.children:
+                    if bracket is sender or bracket in overlaps or not getattr(bracket, 'IsBracket', 0) or bracket.state != uiconst.UI_PICKCHILDREN or bracket.invisible:
+                        continue
+                    bubble = bracket.sr.bubble
+                    if bubble:
+                        bubble.state = uiconst.UI_HIDDEN
+                        self.overlapsHidden.append(bracket)
+
+            if top < 0:
+                for overlapBracket in self.overlaps:
+                    overlapBracket.top = -top + overlapBracket._lockedTopPos - BRACKETSIZE
+
+            sender.parent.state = uiconst.UI_PICKCHILDREN
+            self.checkingOverlaps = None
+            uicore.uilib.RegisterForTriuiEvents(uiconst.UI_MOUSEDOWN, self.OnGlobalMouseDown)
+            return
 
     def OnGlobalMouseDown(self, *args):
         mo = uicore.uilib.mouseOver
@@ -929,63 +1014,51 @@ class BracketMgr(service.Service):
     def GetBracket(self, bracketID):
         if getattr(self, 'brackets', None) is not None:
             return self.brackets.get(bracketID, None)
+        else:
+            return
 
     def ClearBracket(self, id, *args, **kwds):
         self.RemoveBracket(id)
 
-    def GetScanSpeed(self, source = None, target = None):
+    def GetScanSpeed(self, source=None, target=None):
         if source is None:
             source = eve.session.shipid
         if not source:
             return
-        myitem = sm.GetService('godma').GetItem(source)
-        scanSpeed = None
-        if myitem.scanResolution and target:
-            slimItem = target
-            targetitem = sm.GetService('godma').GetType(slimItem.typeID)
-            if targetitem.AttributeExists('signatureRadius'):
-                radius = targetitem.signatureRadius
-            else:
-                radius = 0
-            if radius <= 0.0:
-                bp = sm.GetService('michelle').GetBallpark()
-                radius = bp.GetBall(slimItem.itemID).radius
+        else:
+            myitem = sm.GetService('godma').GetItem(source)
+            scanSpeed = None
+            if myitem.scanResolution and target:
+                slimItem = target
+                targetitem = sm.GetService('godma').GetType(slimItem.typeID)
+                if targetitem.AttributeExists('signatureRadius'):
+                    radius = targetitem.signatureRadius
+                else:
+                    radius = 0
                 if radius <= 0.0:
-                    radius = evetypes.GetRadius(targetitem.typeID)
+                    bp = sm.GetService('michelle').GetBallpark()
+                    radius = bp.GetBall(slimItem.itemID).radius
                     if radius <= 0.0:
-                        radius = 1.0
-            scanSpeed = 40000000.0 / myitem.scanResolution / math.log(radius + math.sqrt(radius * radius + 1)) ** 2.0
-        if scanSpeed is None:
-            scanSpeed = 2000
-            log.LogWarn('GetScanSpeed returned the defauly scanspeed of %s ms ... missing scanResolution?' % scanSpeed)
-        return min(scanSpeed, 180000)
+                        radius = evetypes.GetRadius(targetitem.typeID)
+                        if radius <= 0.0:
+                            radius = 1.0
+                scanSpeed = 40000000.0 / myitem.scanResolution / math.log(radius + math.sqrt(radius * radius + 1)) ** 2.0
+            if scanSpeed is None:
+                scanSpeed = 2000
+                log.LogWarn('GetScanSpeed returned the defauly scanspeed of %s ms ... missing scanResolution?' % scanSpeed)
+            return min(scanSpeed, 180000)
 
     def GetCaptureData(self, ballID):
         if hasattr(self, 'capturePoints'):
             return self.capturePoints.get(ballID, None)
+        else:
+            return None
 
     def OnBSDTablesChanged(self, tableDataUpdated):
         if 'dungeon.triggers' in tableDataUpdated.iterkeys():
             if IsJessicaOpen():
                 for slimItem in self.scenarioMgr.GetDunObjects():
-                    self.RemoveBracket(slimItem.itemID)
-                    self.AddBracketIfWanted(slimItem)
-
-    def ProcessShipEffect(self, godmaStm, effectState):
-        moduleID, characterID, shipID, targetID, otherID, areaIDs, effectID = effectState.environment
-        if effectID == const.effectHackOrbital:
-            bracket = self.GetBracket(targetID)
-            if bracket:
-                slimItem = bracket.slimItem
-                if effectState.active:
-                    progress = sm.GetService('planetInfo').GetMyHackProgress(targetID)
-                    bracket.BeginHacking()
-                    bracket.UpdateHackProgress(progress)
-                    if slimItem:
-                        bracket.UpdateOrbitalState(slimItem)
-                else:
-                    progress = sm.GetService('planetInfo').GetMyHackProgress(targetID)
-                    bracket.StopHacking(success=progress is not None and progress >= 1.0)
+                    self._RecreateBracket(slimItem)
 
     def ProcessBountyInfoUpdated(self, itemIDs):
         for itemID in itemIDs:
@@ -1007,27 +1080,32 @@ class BracketMgr(service.Service):
             if attackType != 'me':
                 self.LogWarn('No attacker found! - damageMessagesArgs = ', damageMessagesArgs)
             return
-        damage = damageMessagesArgs['damage']
-        s = blue.os.GetSimTime() / const.SEC
-        if attackerID not in self.damageByBracketID:
-            self.damageByBracketID[attackerID] = collections.defaultdict(long)
-        self.damageByBracketID[attackerID][s] += int(damage)
-        if damage:
-            self.TryBlinkAttacker(attackerID)
+        else:
+            damage = damageMessagesArgs['damage']
+            s = blue.os.GetSimTime() / const.SEC
+            if attackerID not in self.damageByBracketID:
+                self.damageByBracketID[attackerID] = collections.defaultdict(long)
+            self.damageByBracketID[attackerID][s] += int(damage)
+            if damage:
+                self.TryBlinkAttacker(attackerID)
+            return
 
     def DisableShowingDamageDealers(self, *args):
         if self.damageDealerTimer is None:
             return
-        self.damageDealerTimer = None
-        if not session.shipid:
+        else:
+            self.damageDealerTimer = None
+            if not session.shipid:
+                return
+            oldDamageDealers = self.biggestDamageDealers[:]
+            self.RemoveDamageIndicatorFromBrackets(oldDamageDealers, [])
             return
-        oldDamageDealers = self.biggestDamageDealers[:]
-        self.RemoveDamageIndicatorFromBrackets(oldDamageDealers, [])
 
     def EnableShowingDamageDealers(self, *args):
         if self.damageDealerTimer is None:
             self.ShowBiggestDamageDealers_thread()
             self.damageDealerTimer = base.AutoTimer(1000, self.ShowBiggestDamageDealers_thread)
+        return
 
     def TryBlinkAttacker(self, attackerID, *args):
         if attackerID not in self.biggestDamageDealers:
@@ -1080,6 +1158,7 @@ class BracketMgr(service.Service):
             counter += 1
 
         self.RemoveDamageIndicatorFromBrackets(oldDamageDealers, self.biggestDamageDealers)
+        return
 
     def RemoveDamageIndicatorFromBrackets(self, oldDamageDealers, newDamageDealers, *args):
         for bracketID in oldDamageDealers:
@@ -1094,6 +1173,8 @@ class BracketMgr(service.Service):
             label = getattr(bracket, 'debugLabel', None)
             if label:
                 label.Close()
+
+        return
 
     def FindBiggestDamageDealers(self, *args):
         numDamageDealers = NUMBER_OF_DAMAGEDEALERS
@@ -1128,72 +1209,82 @@ class BracketMgr(service.Service):
     def DisableInTargetRange(self, *args):
         if self.inTargetRangeTimer is None:
             return
-        self.inTargetRangeTimer = None
-        if not session.shipid:
+        else:
+            self.inTargetRangeTimer = None
+            if not session.shipid:
+                return
+            for key, bracket in self.brackets.items():
+                canTargetSprite = bracket.GetCanTargetSprite(create=False)
+                if canTargetSprite:
+                    canTargetSprite.Close()
+
             return
-        for key, bracket in self.brackets.items():
-            canTargetSprite = bracket.GetCanTargetSprite(create=False)
-            if canTargetSprite:
-                canTargetSprite.Close()
 
     def EnableInTargetRange(self, *args):
         if self.inTargetRangeTimer is None:
             self.ShowInTargetRange()
             self.inTargetRangeTimer = base.AutoTimer(1000, self.ShowInTargetRange)
+        return
 
     def ShowInTargetRange(self, *args):
         if not session.shipid:
             return
-        bp = sm.GetService('michelle').GetBallpark()
-        ship = sm.GetService('godma').GetItem(session.shipid)
-        if ship is None:
-            return
-        maxTargetRange = ship.maxTargetRange
-        for key, bracket in self.brackets.items():
-            if not bracket or bracket.destroyed or key == session.shipid:
-                continue
-            if bracket.categoryID not in (const.categoryShip, const.categoryEntity, const.categoryDrone):
-                continue
-            settingConfigName = 'showCategoryInTargetRange_%s' % bracket.categoryID
-            showCategory = sm.GetService('overviewPresetSvc').GetSettingValueOrDefaultFromName(settingConfigName, True)
-            distance = self.GetBallDistanceFromBracketKey(bp, key)
-            if distance is None:
-                continue
-            canTargetSprite = bracket.GetCanTargetSprite()
-            if canTargetSprite is not None:
-                if distance > maxTargetRange or not showCategory:
-                    newOpacity = 0.0
-                    canTargetSprite.display = False
+        else:
+            bp = sm.GetService('michelle').GetBallpark()
+            ship = sm.GetService('godma').GetItem(session.shipid)
+            if ship is None:
+                return
+            maxTargetRange = ship.maxTargetRange
+            for key, bracket in self.brackets.items():
+                if not bracket or bracket.destroyed or key == session.shipid:
                     continue
-                elif getattr(bracket, 'brighterForRange', False):
-                    newOpacity = 1.0
-                else:
-                    newOpacity = 0.15
-                canTargetSprite.display = True
-                if canTargetSprite.opacity != newOpacity:
-                    canTargetSprite.opacity = newOpacity or 0
+                if bracket.categoryID not in BRACKET_CATEGORIES_WITH_RANGE_MARKER:
+                    continue
+                settingConfigName = 'showCategoryInTargetRange_%s' % bracket.categoryID
+                showCategory = sm.GetService('overviewPresetSvc').GetSettingValueOrDefaultFromName(settingConfigName, True)
+                distance = self.GetBallDistanceFromBracketKey(bp, key)
+                if distance is None:
+                    continue
+                canTargetSprite = bracket.GetCanTargetSprite()
+                if canTargetSprite is not None:
+                    if distance > maxTargetRange or not showCategory:
+                        newOpacity = 0.0
+                        canTargetSprite.display = False
+                        continue
+                    elif getattr(bracket, 'brighterForRange', False):
+                        newOpacity = 1.0
+                    else:
+                        newOpacity = 0.15
+                    canTargetSprite.display = True
+                    if canTargetSprite.opacity != newOpacity:
+                        canTargetSprite.opacity = newOpacity or 0
+
+            return
 
     def ShowModuleRange(self, moduleID, rangeDistance, *args):
         showInTargetRange = sm.GetService('overviewPresetSvc').GetSettingValueOrDefaultFromName('showInTargetRange', True)
         if not showInTargetRange:
             return
-        bp = sm.GetService('michelle').GetBallpark()
-        maxTargetRange = sm.GetService('godma').GetItem(session.shipid).maxTargetRange
-        for key, bracket in self.brackets.items():
-            if not bracket or bracket.destroyed or key == session.shipid:
-                continue
-            if bracket.categoryID not in (const.categoryShip, const.categoryEntity, const.categoryDrone):
-                continue
-            distance = self.GetBallDistanceFromBracketKey(bp, key)
-            if distance is None:
-                continue
-            if distance <= rangeDistance and distance <= maxTargetRange:
-                bracket.brighterForRange = True
-                canTargetSprite = bracket.GetCanTargetSprite()
-                if canTargetSprite is not None:
-                    canTargetSprite.opacity = 1.0
+        else:
+            bp = sm.GetService('michelle').GetBallpark()
+            maxTargetRange = sm.GetService('godma').GetItem(session.shipid).maxTargetRange
+            for key, bracket in self.brackets.items():
+                if not bracket or bracket.destroyed or key == session.shipid:
+                    continue
+                if bracket.categoryID not in BRACKET_CATEGORIES_WITH_RANGE_MARKER:
+                    continue
+                distance = self.GetBallDistanceFromBracketKey(bp, key)
+                if distance is None:
+                    continue
+                if distance <= rangeDistance and distance <= maxTargetRange:
+                    bracket.brighterForRange = True
+                    canTargetSprite = bracket.GetCanTargetSprite()
+                    if canTargetSprite is not None:
+                        canTargetSprite.opacity = 1.0
 
-    def ShowHairlinesForModule(self, moduleID, reverse = False):
+            return
+
+    def ShowHairlinesForModule(self, moduleID, reverse=False):
         showHairlines = sm.GetService('overviewPresetSvc').GetSettingValueOrDefaultFromName('showModuleHairlines', True)
         if not showHairlines:
             if self.hairlinesTimer:
@@ -1204,23 +1295,26 @@ class BracketMgr(service.Service):
                     self.ResetModuleIcon(moduleID)
 
             return
-        for target in sm.GetService('target').targetsByID.itervalues():
-            if not isinstance(target, (xtriui.Target, uicls.TargetInBar)):
-                continue
-            if target is None or target.destroyed:
-                continue
-            if target.activeModules.get(moduleID, False):
-                weapon = target.GetWeapon(moduleID)
-                if isinstance(target, xtriui.Target):
-                    icon = weapon
-                else:
-                    icon = weapon.icon
-                icon.SetAlpha(1.5)
-                bracket = self.brackets.get(target.itemID)
-                if bracket is None:
+        else:
+            for target in sm.GetService('target').targetsByID.itervalues():
+                if not isinstance(target, (xtriui.Target, uicls.TargetInBar)):
+                    continue
+                if target is None or target.destroyed:
+                    continue
+                if target.activeModules.get(moduleID, False):
+                    weapon = target.GetWeapon(moduleID)
+                    if isinstance(target, xtriui.Target):
+                        icon = weapon
+                    else:
+                        icon = weapon.icon
+                    icon.SetAlpha(1.5)
+                    bracket = self.brackets.get(target.itemID)
+                    if bracket is None:
+                        return
+                    self.ShowHairlines(moduleID, bracket, target, reverse)
                     return
-                self.ShowHairlines(moduleID, bracket, target, reverse)
-                return
+
+            return
 
     def ShowHairlines(self, moduleID, bracket, target, reverse, *args):
         if getattr(self, 'vectorLines', None) is None:
@@ -1229,16 +1323,19 @@ class BracketMgr(service.Service):
         self.vectorLines.UpdateHairlinePoints(moduleID, bracket, target)
         self.vectorLines.StartAnimation(reverse=reverse)
         self.hairlinesTimer = base.AutoTimer(50, self.AnimateVectorLine, moduleID, bracket, target)
+        return
 
     def AnimateVectorLine(self, moduleID, bracket, target, *args):
         if getattr(self, 'vectorLines', None) is None:
             return
-        if bracket.destroyed:
+        elif bracket.destroyed:
             self.vectorLines.StopAnimations()
             self.vectorLines.HideLines()
             self.hairlinesTimer = None
             return
-        self.vectorLines.UpdateHairlinePoints(moduleID, bracket, target)
+        else:
+            self.vectorLines.UpdateHairlinePoints(moduleID, bracket, target)
+            return
 
     def StopShowingModuleRange(self, moduleID, *args):
         for key, bracket in self.brackets.items():
@@ -1252,6 +1349,7 @@ class BracketMgr(service.Service):
 
         self.StopShowingHairlines()
         self.ResetModuleIcon(moduleID)
+        return
 
     def ResetModuleIcon(self, moduleID, *args):
         for target in sm.GetService('target').GetTargets().itervalues():
@@ -1264,14 +1362,16 @@ class BracketMgr(service.Service):
         if getattr(self, 'vectorLines', None) is not None:
             self.vectorLines.HideLines()
             self.vectorLines.StopAnimations()
+        return
 
     def GetBallDistanceFromBracketKey(self, bp, bracketKey, *args):
         ball = bp.GetBall(bracketKey)
         if ball is None:
             return
-        try:
-            distance = int(ball.surfaceDist)
-        except ValueError:
-            return
+        else:
+            try:
+                distance = int(ball.surfaceDist)
+            except ValueError:
+                return
 
-        return distance
+            return distance

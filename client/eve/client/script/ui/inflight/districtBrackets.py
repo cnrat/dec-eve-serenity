@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\client\script\ui\inflight\districtBrackets.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\client\script\ui\inflight\districtBrackets.py
 import math
 import uicontrols
 import trinity
@@ -27,6 +28,7 @@ class DistrictBracket(object):
         self.blink = None
         self.container = None
         self.Load()
+        return
 
     def Load(self):
         self.districtID = self.district['districtID']
@@ -121,6 +123,7 @@ class DistrictBracket(object):
         if getattr(self, 'container', None) is not None:
             self.container.Close()
             self.container = None
+        return
 
     def OnMouseEnter(self, *args):
         self.mouseOver = True
@@ -167,7 +170,7 @@ class DistrictBracket(object):
         uicore.animations.MorphScalar(ring, 'opacity', startVal=1, endVal=0.0, duration=duration)
         return ring
 
-    def Corners(self, parent, image, boxSize = 1, cornerSize = 1, opacity = 1, boxWidth = None, boxHeight = None):
+    def Corners(self, parent, image, boxSize=1, cornerSize=1, opacity=1, boxWidth=None, boxHeight=None):
         boxWidth = boxWidth or boxSize
         boxHeight = boxHeight or boxSize
         corners = uiprimitives.Container(parent=parent, align=uiconst.CENTER, width=boxWidth, height=boxHeight, opacity=opacity)

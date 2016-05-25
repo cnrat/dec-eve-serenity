@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\common\modules\nice\client\_nastyspace\infoPanel.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\common\modules\nice\client\_nastyspace\infoPanel.py
 from eve.client.script.ui.shared.infoPanels.infoPanelConst import LEFTPAD
 from eve.client.script.ui.shared.infoPanels.infoPanelConst import MODE_COLLAPSED
 from eve.client.script.ui.shared.infoPanels.infoPanelConst import MODE_COMPACT

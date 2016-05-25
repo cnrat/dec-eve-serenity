@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\client\script\entities\eveEntitySpawnClient.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\client\script\entities\eveEntitySpawnClient.py
 import svc
 import geo2
 
@@ -12,7 +13,7 @@ class EveEntitySpawnClient(svc.entitySpawnClient):
         svc.entitySpawnClient.Run(self, etc)
         self.charMgr = sm.RemoteSvc('charMgr')
 
-    def _ChooseSpawnLocation(self, worldspaceID, sessionChanges = {}):
+    def _ChooseSpawnLocation(self, worldspaceID, sessionChanges={}):
         searchTerm = None
         if 'charid' in sessionChanges and sessionChanges['charid'][0] == None:
             searchTerm = const.cef.CQ_NEWBIE_SPAWN

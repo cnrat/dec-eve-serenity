@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\packages\notifications\client\controls\treeViewSettingsItem.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\packages\notifications\client\controls\treeViewSettingsItem.py
 from eve.client.script.ui.control.treeViewEntry import TreeViewEntry
 from notifications.client.controls.notificationSettingEntityDeco import NotificationSettingEntityDeco
 from eve.client.script.ui.control.checkbox import Checkbox
@@ -46,8 +47,8 @@ class TreeViewSettingsItem(TreeViewEntry):
     def GetTreeViewEntryClassByTreeData(self, treeData):
         return TreeViewSettingsItem
 
-    def UpdateVisibilitySetting(self, on, report = False):
+    def UpdateVisibilitySetting(self, on, report=False):
         self.visibilityChckbox.SetChecked(onoff=on, report=report)
 
-    def UpdatePopupCheckBox(self, on, report = False):
+    def UpdatePopupCheckBox(self, on, report=False):
         self.popupCheckBox.SetChecked(onoff=on, report=report)

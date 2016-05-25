@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\client\script\ui\shared\neocom\corporation\corp_dlg_edit_member.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\client\script\ui\shared\neocom\corporation\corp_dlg_edit_member.py
 import uiprimitives
 import uicontrols
 import uthread
@@ -60,75 +61,77 @@ class EditMemberDialog(uicontrols.Window):
         if not self.member:
             self.Close()
             return
-        self.SetTopparentHeight(70)
-        self.SetCaption(localization.GetByLabel('UI/Corporations/EditMemberDialog/EditMemberCaption'))
-        self.SetMinSize([310, 300])
-        self.sr.main = uiutil.GetChild(self, 'main')
-        self.wndCombos = uiprimitives.Container(name='options', parent=self.sr.main, align=uiconst.TOTOP, height=34)
-        viewOptionsList1 = [[localization.GetByLabel('UI/Corporations/Common/Roles'), VIEW_ROLES], [localization.GetByLabel('UI/Corporations/Common/GrantableRoles'), VIEW_GRANTABLE_ROLES]]
-        viewOptionsList2 = []
-        for roleGrouping in self.roleGroupings.itervalues():
-            viewOptionsList2.append([localization.GetByMessageID(roleGrouping.roleGroupNameID), roleGrouping.roleGroupID])
-
-        i = 0
-        for optlist, label, config, defval in [(viewOptionsList1,
-          localization.GetByLabel('UI/Common/View'),
-          'viewtype',
-          1000), (viewOptionsList2,
-          localization.GetByLabel('UI/Corporations/Common/GroupType'),
-          'rolegroup',
-          None)]:
-            combo = uicontrols.Combo(label=label, parent=self.wndCombos, options=optlist, name=config, callback=self.OnComboChange, width=146, pos=(const.defaultPadding + i * 152 + 1,
-             const.defaultPadding + 12,
-             0,
-             0))
-            i += 1
-
-        self.sr.dynamicScroll = uicontrols.BasicDynamicScroll(parent=self.sr.main, padding=const.defaultPadding)
-        self.sr.scroll = uicontrols.Scroll(parent=self.sr.main, padding=const.defaultPadding)
-        self.sr.standardBtns = uicontrols.ButtonGroup(btns=[[localization.GetByLabel('UI/Common/Buttons/OK'),
-          self.OnOK,
-          (),
-          81], [localization.GetByLabel('UI/Common/Buttons/Cancel'),
-          self.OnCancel,
-          (),
-          81], [localization.GetByLabel('UI/Corporations/EditMemberDialog/Apply'),
-          self.OnApply,
-          (),
-          81]])
-        self.sr.main.children.insert(0, self.sr.standardBtns)
-        cap = uicontrols.CaptionLabel(text=cfg.eveowners.Get(self.charID).name, parent=self.sr.topParent, align=uiconst.RELATIVE, left=74, top=20)
-        if self.member.title:
-            uicontrols.EveHeaderLarge(text=self.member.title, parent=self.sr.topParent, align=uiconst.RELATIVE, left=cap.left, top=cap.top + cap.height, bold=True)
-        if util.IsDustCharacter(charID):
-            btns = []
         else:
-            btns = [[localization.GetByLabel('UI/Corporations/EditMemberDialog/GiveShares'),
-              self.OnGiveShares,
+            self.SetTopparentHeight(70)
+            self.SetCaption(localization.GetByLabel('UI/Corporations/EditMemberDialog/EditMemberCaption'))
+            self.SetMinSize([310, 300])
+            self.sr.main = uiutil.GetChild(self, 'main')
+            self.wndCombos = uiprimitives.Container(name='options', parent=self.sr.main, align=uiconst.TOTOP, height=34)
+            viewOptionsList1 = [[localization.GetByLabel('UI/Corporations/Common/Roles'), VIEW_ROLES], [localization.GetByLabel('UI/Corporations/Common/GrantableRoles'), VIEW_GRANTABLE_ROLES]]
+            viewOptionsList2 = []
+            for roleGrouping in self.roleGroupings.itervalues():
+                viewOptionsList2.append([localization.GetByMessageID(roleGrouping.roleGroupNameID), roleGrouping.roleGroupID])
+
+            i = 0
+            for optlist, label, config, defval in [(viewOptionsList1,
+              localization.GetByLabel('UI/Common/View'),
+              'viewtype',
+              1000), (viewOptionsList2,
+              localization.GetByLabel('UI/Corporations/Common/GroupType'),
+              'rolegroup',
+              None)]:
+                combo = uicontrols.Combo(label=label, parent=self.wndCombos, options=optlist, name=config, callback=self.OnComboChange, width=146, pos=(const.defaultPadding + i * 152 + 1,
+                 const.defaultPadding + 12,
+                 0,
+                 0))
+                i += 1
+
+            self.sr.dynamicScroll = uicontrols.BasicDynamicScroll(parent=self.sr.main, padding=const.defaultPadding)
+            self.sr.scroll = uicontrols.Scroll(parent=self.sr.main, padding=const.defaultPadding)
+            self.sr.standardBtns = uicontrols.ButtonGroup(btns=[[localization.GetByLabel('UI/Common/Buttons/OK'),
+              self.OnOK,
               (),
-              81]]
-        buttons = uicontrols.ButtonGroup(btns=btns)
-        self.sr.main.children.insert(1, buttons)
-        maintabs = uicontrols.TabGroup(name='tabparent', parent=self.sr.main, idx=0)
-        maintabs.Startup([[localization.GetByLabel('UI/Generic/General'),
-          self.sr.scroll,
-          self,
-          'general',
-          buttons],
-         [localization.GetByLabel('UI/Corporations/Common/Roles'),
-          self.sr.dynamicScroll,
-          self,
-          'roles'],
-         [localization.GetByLabel('UI/Corporations/Common/Titles'),
-          self.sr.dynamicScroll,
-          self,
-          'titles'],
-         [localization.GetByLabel('UI/Corporations/EditMemberDialog/RolesSummary'),
-          self.sr.scroll,
-          self,
-          'roles_summary']], 'editmemberdialog')
-        self.sr.maintabs = maintabs
-        self.DisplayPhoto()
+              81], [localization.GetByLabel('UI/Common/Buttons/Cancel'),
+              self.OnCancel,
+              (),
+              81], [localization.GetByLabel('UI/Corporations/EditMemberDialog/Apply'),
+              self.OnApply,
+              (),
+              81]])
+            self.sr.main.children.insert(0, self.sr.standardBtns)
+            cap = uicontrols.CaptionLabel(text=cfg.eveowners.Get(self.charID).name, parent=self.sr.topParent, align=uiconst.RELATIVE, left=74, top=20)
+            if self.member.title:
+                uicontrols.EveHeaderLarge(text=self.member.title, parent=self.sr.topParent, align=uiconst.RELATIVE, left=cap.left, top=cap.top + cap.height, bold=True)
+            if util.IsDustCharacter(charID):
+                btns = []
+            else:
+                btns = [[localization.GetByLabel('UI/Corporations/EditMemberDialog/GiveShares'),
+                  self.OnGiveShares,
+                  (),
+                  81]]
+            buttons = uicontrols.ButtonGroup(btns=btns)
+            self.sr.main.children.insert(1, buttons)
+            maintabs = uicontrols.TabGroup(name='tabparent', parent=self.sr.main, idx=0)
+            maintabs.Startup([[localization.GetByLabel('UI/Generic/General'),
+              self.sr.scroll,
+              self,
+              'general',
+              buttons],
+             [localization.GetByLabel('UI/Corporations/Common/Roles'),
+              self.sr.dynamicScroll,
+              self,
+              'roles'],
+             [localization.GetByLabel('UI/Corporations/Common/Titles'),
+              self.sr.dynamicScroll,
+              self,
+              'titles'],
+             [localization.GetByLabel('UI/Corporations/EditMemberDialog/RolesSummary'),
+              self.sr.scroll,
+              self,
+              'roles_summary']], 'editmemberdialog')
+            self.sr.maintabs = maintabs
+            self.DisplayPhoto()
+            return
 
     def LoadServices(self):
         self.corp = sm.GetService('corp')
@@ -152,37 +155,40 @@ class EditMemberDialog(uicontrols.Window):
         self.member = self.corp.GetMember(self.charID)
         if not self.member:
             return
-        self.divisionalRoles = self.corp.GetDivisionalRoles()
-        self.divisions = self.corp.GetDivisionNames()
-        self.locationalRoles = self.corp.GetLocationalRoles()
-        self.playerIsCEO = self.corporation.ceoID == self.charID
-        self.playerIsDirector = 0
-        if const.corpRoleDirector & self.member.roles == const.corpRoleDirector:
-            self.playerIsDirector = 1
-        self.roles = self.member.roles
-        self.grantableRoles = self.member.grantableRoles
-        self.title = self.member.title
-        self.rolesAtHQ = self.member.rolesAtHQ
-        self.grantableRolesAtHQ = self.member.grantableRolesAtHQ
-        self.rolesAtBase = self.member.rolesAtBase
-        self.grantableRolesAtBase = self.member.grantableRolesAtBase
-        self.rolesAtOther = self.member.rolesAtOther
-        self.grantableRolesAtOther = self.member.grantableRolesAtOther
-        self.baseID = self.member.baseID
-        self.titleMask = self.member.titleMask
-        self.offices = self.corp.GetMyCorporationsOffices()
-        self.offices.Fetch(0, len(self.offices))
-        self.bases = [(localization.GetByLabel('UI/Corporations/EditMemberDialog/NoBase'), None)]
-        rows = self.offices
-        if rows and len(rows):
-            stations = []
-            for row in rows:
-                stationName = localization.GetByLabel('UI/Corporations/EditMemberDialog/CorpMemberBase', station=row.stationID)
-                stations.append((stationName, (stationName, row.stationID)))
+        else:
+            self.divisionalRoles = self.corp.GetDivisionalRoles()
+            self.divisions = self.corp.GetDivisionNames()
+            self.locationalRoles = self.corp.GetLocationalRoles()
+            self.playerIsCEO = self.corporation.ceoID == self.charID
+            self.playerIsDirector = 0
+            if const.corpRoleDirector & self.member.roles == const.corpRoleDirector:
+                self.playerIsDirector = 1
+            self.roles = self.member.roles
+            self.grantableRoles = self.member.grantableRoles
+            self.title = self.member.title
+            self.rolesAtHQ = self.member.rolesAtHQ
+            self.grantableRolesAtHQ = self.member.grantableRolesAtHQ
+            self.rolesAtBase = self.member.rolesAtBase
+            self.grantableRolesAtBase = self.member.grantableRolesAtBase
+            self.rolesAtOther = self.member.rolesAtOther
+            self.grantableRolesAtOther = self.member.grantableRolesAtOther
+            self.baseID = self.member.baseID
+            self.titleMask = self.member.titleMask
+            self.offices = self.corp.GetMyCorporationsOffices()
+            self.offices.Fetch(0, len(self.offices))
+            self.bases = [(localization.GetByLabel('UI/Corporations/EditMemberDialog/NoBase'), None)]
+            rows = self.offices
+            if rows and len(rows):
+                locations = []
+                for row in rows:
+                    if util.IsStation(row.locationID):
+                        locationName = localization.GetByLabel('UI/Corporations/EditMemberDialog/CorpMemberBase', station=row.locationID)
+                        locations.append((locationName, (locationName, row.locationID)))
 
-            stations = uiutil.SortListOfTuples(stations)
-            self.bases += stations
-        self.roleGroupings = sm.GetService('corp').GetRoleGroupings()
+                locations = uiutil.SortListOfTuples(locations)
+                self.bases += locations
+            self.roleGroupings = sm.GetService('corp').GetRoleGroupings()
+            return
 
     def DisplayPhoto(self):
         self.picture = uiutil.GetChild(self, 'mainicon')
@@ -214,6 +220,7 @@ class EditMemberDialog(uicontrols.Window):
         elif args == 'roles_summary':
             self.wndCombos.state = uiconst.UI_HIDDEN
             self.OnTabRolesSummary()
+        return
 
     def FindNode(self, nodeName):
         for entry in self.sr.scroll.GetNodes():
@@ -224,7 +231,9 @@ class EditMemberDialog(uicontrols.Window):
         node = self.FindNode(nodeName)
         if node is not None:
             return node.setValue
-        raise RuntimeError('ChildNotFound', nodeName)
+        else:
+            raise RuntimeError('ChildNotFound', nodeName)
+            return
 
     def OnTabGeneral(self):
         scrolllist = []
@@ -279,6 +288,7 @@ class EditMemberDialog(uicontrols.Window):
         self.sr.scroll.Load(fixedEntryHeight=18, contentList=scrolllist)
         if canEditBase:
             self.ddxFunction = self.DDXTabGeneral
+        return
 
     def OnComboChange(self, combo, header, value, *args):
         if combo.name == 'baseID':
@@ -354,6 +364,7 @@ class EditMemberDialog(uicontrols.Window):
         if playersRoles is None:
             raise RuntimeError('WhatAreWeLookingAt')
         self.DisplayRoles(self.viewType == VIEW_GRANTABLE_ROLES, playersRoles, roleVariablesName, rolesToDisplay)
+        return
 
     def DisplayRoles(self, grantable, playersRoles, roleVariablesName, rolesToDisplay):
         self.sr.dynamicScroll.Clear()
@@ -381,7 +392,7 @@ class EditMemberDialog(uicontrols.Window):
 
         self.sr.dynamicScroll.AddNodes(0, nodesData=scrolllist)
 
-    def SetHint(self, hintstr = None):
+    def SetHint(self, hintstr=None):
         if self.sr.scroll:
             self.sr.scroll.ShowHint(hintstr)
 
@@ -400,6 +411,7 @@ class EditMemberDialog(uicontrols.Window):
             self.ddxFunction = None
 
         self.UpdateMember()
+        return
 
     def GetChangeDict(self):
         change = {}
@@ -430,64 +442,68 @@ class EditMemberDialog(uicontrols.Window):
     def UpdateMember(self):
         if self.playerIsCEO and not self.userIsCEO:
             return
-        if self.member.roles & const.corpRoleDirector == const.corpRoleDirector:
-            if self.roles & const.corpRoleDirector == const.corpRoleDirector:
-                self.roles = self.member.roles
-                self.grantableRoles = self.member.grantableRoles
-                self.rolesAtHQ = self.member.rolesAtHQ
-                self.grantableRolesAtHQ = self.member.grantableRolesAtHQ
-                self.rolesAtBase = self.member.rolesAtBase
-                self.grantableRolesAtBase = self.member.grantableRolesAtBase
-                self.rolesAtOther = self.member.rolesAtOther
-                self.grantableRolesAtOther = self.member.grantableRolesAtOther
-                self.titleMask = self.member.titleMask
-        newTitle = self.title
-        divisionID = self.member.divisionID
-        squadronID = self.member.squadronID
-        if not self.isCEOorEq:
-            newTitle = None
-            divisionID = None
-            squadronID = None
-        change = self.GetChangeDict()
-        if len(change) == 0:
+        else:
+            if self.member.roles & const.corpRoleDirector == const.corpRoleDirector:
+                if self.roles & const.corpRoleDirector == const.corpRoleDirector:
+                    self.roles = self.member.roles
+                    self.grantableRoles = self.member.grantableRoles
+                    self.rolesAtHQ = self.member.rolesAtHQ
+                    self.grantableRolesAtHQ = self.member.grantableRolesAtHQ
+                    self.rolesAtBase = self.member.rolesAtBase
+                    self.grantableRolesAtBase = self.member.grantableRolesAtBase
+                    self.rolesAtOther = self.member.rolesAtOther
+                    self.grantableRolesAtOther = self.member.grantableRolesAtOther
+                    self.titleMask = self.member.titleMask
+            newTitle = self.title
+            divisionID = self.member.divisionID
+            squadronID = self.member.squadronID
+            if not self.isCEOorEq:
+                newTitle = None
+                divisionID = None
+                squadronID = None
+            change = self.GetChangeDict()
+            if len(change) == 0:
+                return
+            roles = self.roles
+            grantableRoles = self.grantableRoles
+            rolesAtHQ = self.rolesAtHQ
+            grantableRolesAtHQ = self.grantableRolesAtHQ
+            rolesAtBase = self.rolesAtBase
+            grantableRolesAtBase = self.grantableRolesAtBase
+            rolesAtOther = self.rolesAtOther
+            grantableRolesAtOther = self.grantableRolesAtOther
+            titleMask = self.titleMask
+            if roles & const.corpRoleDirector == const.corpRoleDirector:
+                grantableRoles = 0
+                rolesAtHQ = 0
+                grantableRolesAtHQ = 0
+                rolesAtBase = 0
+                grantableRolesAtBase = 0
+                rolesAtOther = 0
+                grantableRolesAtOther = 0
+                titleMask = 0
+            if self.titleMask == self.member.titleMask:
+                titleMask = None
+            try:
+                sm.GetService('loading').ProgressWnd(localization.GetByLabel('UI/Corporations/EditMemberDialog/SavingChanges'), '', 0, 2)
+                if self.charID == eve.session.charid:
+                    sm.GetService('sessionMgr').PerformSessionChange('corp.UpdateMember', self.corp.UpdateMember, self.charID, newTitle, divisionID, squadronID, roles, grantableRoles, rolesAtHQ, grantableRolesAtHQ, rolesAtBase, grantableRolesAtBase, rolesAtOther, grantableRolesAtOther, self.baseID, titleMask)
+                else:
+                    self.corp.UpdateMember(self.charID, newTitle, divisionID, squadronID, roles, grantableRoles, rolesAtHQ, grantableRolesAtHQ, rolesAtBase, grantableRolesAtBase, rolesAtOther, grantableRolesAtOther, self.baseID, titleMask)
+                sm.GetService('loading').ProgressWnd(localization.GetByLabel('UI/Corporations/EditMemberDialog/RefreshingChanges'), '', 1, 2)
+                self.LoadChar(self.charID)
+                self.Load(self.args)
+            finally:
+                sm.GetService('loading').ProgressWnd(localization.GetByLabel('UI/Corporations/EditMemberDialog/ProgressCompleted'), '', 2, 2)
+
             return
-        roles = self.roles
-        grantableRoles = self.grantableRoles
-        rolesAtHQ = self.rolesAtHQ
-        grantableRolesAtHQ = self.grantableRolesAtHQ
-        rolesAtBase = self.rolesAtBase
-        grantableRolesAtBase = self.grantableRolesAtBase
-        rolesAtOther = self.rolesAtOther
-        grantableRolesAtOther = self.grantableRolesAtOther
-        titleMask = self.titleMask
-        if roles & const.corpRoleDirector == const.corpRoleDirector:
-            grantableRoles = 0
-            rolesAtHQ = 0
-            grantableRolesAtHQ = 0
-            rolesAtBase = 0
-            grantableRolesAtBase = 0
-            rolesAtOther = 0
-            grantableRolesAtOther = 0
-            titleMask = 0
-        if self.titleMask == self.member.titleMask:
-            titleMask = None
-        try:
-            sm.GetService('loading').ProgressWnd(localization.GetByLabel('UI/Corporations/EditMemberDialog/SavingChanges'), '', 0, 2)
-            if self.charID == eve.session.charid:
-                sm.GetService('sessionMgr').PerformSessionChange('corp.UpdateMember', self.corp.UpdateMember, self.charID, newTitle, divisionID, squadronID, roles, grantableRoles, rolesAtHQ, grantableRolesAtHQ, rolesAtBase, grantableRolesAtBase, rolesAtOther, grantableRolesAtOther, self.baseID, titleMask)
-            else:
-                self.corp.UpdateMember(self.charID, newTitle, divisionID, squadronID, roles, grantableRoles, rolesAtHQ, grantableRolesAtHQ, rolesAtBase, grantableRolesAtBase, rolesAtOther, grantableRolesAtOther, self.baseID, titleMask)
-            sm.GetService('loading').ProgressWnd(localization.GetByLabel('UI/Corporations/EditMemberDialog/RefreshingChanges'), '', 1, 2)
-            self.LoadChar(self.charID)
-            self.Load(self.args)
-        finally:
-            sm.GetService('loading').ProgressWnd(localization.GetByLabel('UI/Corporations/EditMemberDialog/ProgressCompleted'), '', 2, 2)
 
     def OnGiveShares(self, *args):
         ret = uix.QtyPopup(2147483647, 1, '1', localization.GetByLabel('UI/Corporations/EditMemberDialog/HowManySharesToGive', player=self.charID), localization.GetByLabel('UI/Corporations/EditMemberDialog/GiveShares'))
         if ret is not None:
             amount = ret['qty']
             self.corp.MoveCompanyShares(eve.session.corpid, self.charID, amount)
+        return
 
     def OnTabTitles(self):
         self.sr.dynamicScroll.Clear()
@@ -576,6 +592,7 @@ class EditMemberDialog(uicontrols.Window):
             uicore.registry.SetListGroupOpenState(roleGrouping.roleGroupName, 0)
 
         self.sr.scroll.Load(fixedEntryHeight=18, contentList=scrolllist)
+        return
 
     def GetSubContentRoleSummary(self, nodedata, *args):
         subcontent = []

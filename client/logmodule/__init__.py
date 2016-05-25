@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\packages\logmodule\__init__.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\packages\logmodule\__init__.py
 import blue
 import sys
 import traceback2
@@ -37,7 +38,6 @@ def MsgWindowStreamToMsgWindow():
         return settings.generic.Get('exceptionPopups', 0)
     if prefs:
         return prefs.GetValue('exceptionPopups', 0)
-    return 0
 
 
 def SetUiMessageFunc(func):
@@ -72,6 +72,8 @@ def __init__():
                 m = stream
             setattr(sys, name, m)
 
+    return
+
 
 def AddGlobalChannels(channels):
     g = globals()
@@ -102,7 +104,7 @@ methodcalls = GetChannel('MethodCalls')
 unittest = GetChannel('Unittest')
 logExceptionLevel = 0
 
-def LogException(extraText = '', channel = 'general', toConsole = 1, toLogServer = 1, toAlertSvc = None, toMsgWindow = 1, exctype = None, exc = None, tb = None, severity = None, show_locals = 1):
+def LogException(extraText='', channel='general', toConsole=1, toLogServer=1, toAlertSvc=None, toMsgWindow=1, exctype=None, exc=None, tb=None, severity=None, show_locals=1):
     global logExceptionLevel
     if logExceptionLevel > 0:
         return
@@ -223,6 +225,7 @@ def _LogException(exc_info, extraText, channel, toConsole, toLogServer, toAlertS
             print >> sys.stderr, '#nolog: An exception has occurred. It has been logged in the log server as exception #%d' % traceID
         else:
             print >> sys.stderr, 'There is no useful information accompanying this exception in the log server'
+    return
 
 
 def DumpMemHistory(out):
@@ -239,55 +242,58 @@ def DumpMemHistory(out):
         pass
 
 
-def LogTraceback(extraText = '', channel = 'general', toConsole = 1, toAlertSvc = None, toLogServer = 1, nthParent = 0, daStack = None, severity = ERR, show_locals = 1, limit = None):
+def LogTraceback(extraText='', channel='general', toConsole=1, toAlertSvc=None, toLogServer=1, nthParent=0, daStack=None, severity=ERR, show_locals=1, limit=None):
     if logExceptionLevel > 0:
         return
-    _tmpctx = blue.pyos.taskletTimer.EnterTasklet('logmodule::LogTraceback')
-    try:
-        if daStack is None:
-            daStack = traceback2.extract_stack(limit=limit, up=nthParent + 1, extract_locals=show_locals)
-        stack, stackID = GetStack(daStack, None, show_locals, True)
-        if toAlertSvc is None:
-            toAlertSvc = severity in (ERR,)
-        toMsgWindow = False
-        multiplexToConsole = False if toLogServer else toConsole
-        out = GetMultiplex(channel, severity, multiplexToConsole, toLogServer, toMsgWindow, toAlertSvc, stackID)
-        traceID = NextTraceID()
-        logMessage = StringIO()
-        logMessage.write('STACKTRACE #%d logged at %s %s : %s\n' % (traceID,
-         blue.os.FormatUTC()[0],
-         blue.os.FormatUTC()[2],
-         extraText))
-        logMessage.write(' \n')
-        for line in stack:
-            logMessage.write(line)
+    else:
+        _tmpctx = blue.pyos.taskletTimer.EnterTasklet('logmodule::LogTraceback')
+        try:
+            if daStack is None:
+                daStack = traceback2.extract_stack(limit=limit, up=nthParent + 1, extract_locals=show_locals)
+            stack, stackID = GetStack(daStack, None, show_locals, True)
+            if toAlertSvc is None:
+                toAlertSvc = severity in (ERR,)
+            toMsgWindow = False
+            multiplexToConsole = False if toLogServer else toConsole
+            out = GetMultiplex(channel, severity, multiplexToConsole, toLogServer, toMsgWindow, toAlertSvc, stackID)
+            traceID = NextTraceID()
+            logMessage = StringIO()
+            logMessage.write('STACKTRACE #%d logged at %s %s : %s\n' % (traceID,
+             blue.os.FormatUTC()[0],
+             blue.os.FormatUTC()[2],
+             extraText))
+            logMessage.write(' \n')
+            for line in stack:
+                logMessage.write(line)
 
-        logMessage.write(' \n')
-        _LogThreadLocals(logMessage)
-        logMessage.write('Stackhash: %s\n' % stackID[0])
-        logMessage.write('Reported from: ' + __name__ + '\n')
-        logMessage.write('STACKTRACE END')
-        print >> out, logMessage.getvalue()
-        out.flush()
-        if toConsole:
-            if toLogServer:
-                if '/jessica' in blue.pyos.GetArg():
-                    print >> sys.stderr, '#nolog: ' + logMessage.getvalue()
+            logMessage.write(' \n')
+            _LogThreadLocals(logMessage)
+            logMessage.write('Stackhash: %s\n' % stackID[0])
+            logMessage.write('Reported from: ' + __name__ + '\n')
+            logMessage.write('STACKTRACE END')
+            print >> out, logMessage.getvalue()
+            out.flush()
+            if toConsole:
+                if toLogServer:
+                    if '/jessica' in blue.pyos.GetArg():
+                        print >> sys.stderr, '#nolog: ' + logMessage.getvalue()
+                    else:
+                        print >> sys.stderr, '#nolog: A traceback has been generated. It has been logged in the log server as stacktrace #%d' % traceID
                 else:
-                    print >> sys.stderr, '#nolog: A traceback has been generated. It has been logged in the log server as stacktrace #%d' % traceID
-            else:
-                print >> sys.stderr, 'There is no useful information accompanying this traceback in the log server'
-    finally:
-        blue.pyos.taskletTimer.ReturnFromTasklet(_tmpctx)
+                    print >> sys.stderr, 'There is no useful information accompanying this traceback in the log server'
+        finally:
+            blue.pyos.taskletTimer.ReturnFromTasklet(_tmpctx)
+
+        return
 
 
-def LogMemoryStatus(extraText = '', channel = 'general'):
+def LogMemoryStatus(extraText='', channel='general'):
     out = GetMultiplex(channel, WARN, 0, 1, 0, 0, 0)
     print >> out, 'Logging memory status : ', extraText
     DumpMemoryStatus(out)
 
 
-def WhoCalledMe(up = 3):
+def WhoCalledMe(up=3):
     try:
         trc = traceback2.extract_stack(limit=1, up=up)[0]
         fileName = os.path.basename(trc[0])
@@ -347,6 +353,7 @@ def _LogThreadLocals(out):
             pass
 
     out.write('\n')
+    return
 
 
 def GetMultiplex(channel, mode, toConsole, toLogServer, toMsgWindow, toAlertSvc, stackID):
@@ -451,7 +458,7 @@ def RegisterPostStackTraceAll(func):
     postStackTraceAll = func
 
 
-def StackTraceAll(reason = '(no reason stated)'):
+def StackTraceAll(reason='(no reason stated)'):
     import stackless, traceback2, os, time
     logsFolder = blue.paths.ResolvePath(u'root:') + 'logs'
     if not os.path.exists(logsFolder):
@@ -487,9 +494,10 @@ def StackTraceAll(reason = '(no reason stated)'):
 
     if postStackTraceAll:
         postStackTraceAll(out)
+    return
 
 
-def Quit(reason = '(no reason stated)'):
+def Quit(reason='(no reason stated)'):
     try:
         StackTraceAll(reason)
     except:

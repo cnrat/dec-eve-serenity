@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\carbon\common\script\net\httpApps.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\carbon\common\script\net\httpApps.py
 import os
 import sys
 import logging
@@ -34,6 +35,8 @@ def Convert(var):
                     return None
                 else:
                     return var
+
+    return None
 
 
 def Pythonize(var):
@@ -114,6 +117,8 @@ class ServerPageHandler(object):
             del request
             del response
 
+        return
+
     def GetFiles(self, args):
         files = []
         filepath, filename = os.path.split(os.path.join(*args))
@@ -166,7 +171,7 @@ class ServerPageHandler(object):
 
             request.params[k] = v
 
-        def QueryString(variable, caseInsensitive = False, raw = False):
+        def QueryString(variable, caseInsensitive=False, raw=False):
             if variable == 'action':
                 action = request.params.get('action')
                 if action:
@@ -184,10 +189,11 @@ class ServerPageHandler(object):
                 return None
             else:
                 return params.get(variable)
+                return None
 
         request.QueryString = QueryString
 
-        def QueryStrings(raw = False):
+        def QueryStrings(raw=False):
             if raw:
                 return request.rawparams
             return request.params
@@ -223,7 +229,7 @@ class ServerPageHandler(object):
 
         response.WriteBinary = WriteBinary
 
-        def Redirect(url, args = None):
+        def Redirect(url, args=None):
             if args:
                 url = url + '?'
                 for k, v in args.iteritems():

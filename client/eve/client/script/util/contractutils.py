@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\client\script\util\contractutils.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\client\script\util\contractutils.py
 from contractscommon import *
 import eve.common.script.sys.rowset as rowset
 import uicontrols
@@ -10,7 +11,7 @@ import evetypes
 COL_PAY = '0xffcc2222'
 COL_GET = '0xff00bb00'
 
-def FmtISKWithDescription(isk, justDesc = False):
+def FmtISKWithDescription(isk, justDesc=False):
     iskFmt = util.FmtISK(isk, showFractionsAlways=0)
     isk = float(isk)
     if abs(isk) >= 1000000000:
@@ -68,7 +69,7 @@ def GetColoredContractStatusText(status):
     return '<color=0xff%s>%s</color>' % (col, st)
 
 
-def ConFmtDate(time, isText = False):
+def ConFmtDate(time, isText=False):
     if time < 0:
         return localization.GetByLabel('UI/Contracts/Util/ContractExpiredEmphasized')
     res = ''
@@ -127,6 +128,7 @@ def SelectItemTypeDlg(itemTypes):
     else:
         ret = uix.ListWnd(tmplst, 'generic', localization.GetByLabel('UI/Contracts/Util/SelectItemType'), None, 1, windowName='contractSelectItemTypeDlg')
         return ret and ret[1]
+        return
 
 
 def MatchInvTypeName(s, typeID):
@@ -166,23 +168,24 @@ def IsIdeographic(languageID):
     return languageID == 'ZH'
 
 
-def DoParseItemType(wnd, prevVal = None, marketOnly = False):
+def DoParseItemType(wnd, prevVal=None, marketOnly=False):
     itemTypes = []
     txt = wnd.GetValue()
     if len(txt) == 0 or not IsSearchStringLongEnough(txt):
         return
-    if txt == prevVal:
+    elif txt == prevVal:
         return
-    for t in GetMarketTypes():
-        if t.marketGroupID is None and marketOnly:
-            continue
-        if MatchInvTypeName(txt, t.typeID):
-            itemTypes.append(t.typeID)
+    else:
+        for t in GetMarketTypes():
+            if t.marketGroupID is None and marketOnly:
+                continue
+            if MatchInvTypeName(txt, t.typeID):
+                itemTypes.append(t.typeID)
 
-    typeID = SelectItemTypeDlg(itemTypes)
-    if typeID:
-        wnd.SetValue(TypeName(typeID))
-    return typeID
+        typeID = SelectItemTypeDlg(itemTypes)
+        if typeID:
+            wnd.SetValue(TypeName(typeID))
+        return typeID
 
 
 import carbon.common.script.util.autoexport as autoexport

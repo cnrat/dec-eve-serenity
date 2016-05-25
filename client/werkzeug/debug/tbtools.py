@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\carbon\common\lib\werkzeug\debug\tbtools.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\carbon\common\lib\werkzeug\debug\tbtools.py
 import re
 import os
 import sys
@@ -19,7 +20,7 @@ try:
 except NameError:
     pass
 
-def get_current_traceback(ignore_system_exceptions = False, show_hidden_frames = False, skip = 0):
+def get_current_traceback(ignore_system_exceptions=False, show_hidden_frames=False, skip=0):
     exc_type, exc_value, tb = sys.exc_info()
     if ignore_system_exceptions and exc_type in system_exceptions:
         raise
@@ -107,21 +108,22 @@ class Traceback(object):
 
     exception = property(exception)
 
-    def log(self, logfile = None):
+    def log(self, logfile=None):
         if logfile is None:
             logfile = sys.stderr
         tb = self.plaintext.encode('utf-8', 'replace').rstrip() + '\n'
         logfile.write(tb)
+        return
 
     def paste(self):
         from xmlrpclib import ServerProxy
         srv = ServerProxy('http://paste.pocoo.org/xmlrpc/')
         return srv.pastes.newPaste('pytb', self.plaintext)
 
-    def render_summary(self, include_title = True):
+    def render_summary(self, include_title=True):
         return render_template('traceback_summary.html', traceback=self, include_title=include_title)
 
-    def render_full(self, evalex = False):
+    def render_full(self, evalex=False):
         return render_template('traceback_full.html', traceback=self, evalex=evalex)
 
     def plaintext(self):
@@ -156,6 +158,7 @@ class Frame(object):
                 info = str(info).decode('utf-8', 'replace')
 
         self.info = info
+        return
 
     def render(self):
         return render_template('frame.html', frame=self)
@@ -184,7 +187,7 @@ class Frame(object):
 
         return render_template('source.html', frame=self, lines=lines)
 
-    def eval(self, code, mode = 'single'):
+    def eval(self, code, mode='single'):
         if isinstance(code, basestring):
             if isinstance(code, unicode):
                 code = UTF8_COOKIE + code.encode('utf-8')
@@ -218,24 +221,25 @@ class Frame(object):
 
         if isinstance(source, unicode):
             return source.splitlines()
-        charset = 'utf-8'
-        if source.startswith(UTF8_COOKIE):
-            source = source[3:]
         else:
-            for idx, match in enumerate(_line_re.finditer(source)):
-                match = _line_re.search(match.group())
-                if match is not None:
-                    charset = match.group(1)
-                    break
-                if idx > 1:
-                    break
-
-        try:
-            codecs.lookup(charset)
-        except LookupError:
             charset = 'utf-8'
+            if source.startswith(UTF8_COOKIE):
+                source = source[3:]
+            else:
+                for idx, match in enumerate(_line_re.finditer(source)):
+                    match = _line_re.search(match.group())
+                    if match is not None:
+                        charset = match.group(1)
+                        break
+                    if idx > 1:
+                        break
 
-        return source.decode(charset, 'replace').splitlines()
+            try:
+                codecs.lookup(charset)
+            except LookupError:
+                charset = 'utf-8'
+
+            return source.decode(charset, 'replace').splitlines()
 
     @property
     def current_line(self):

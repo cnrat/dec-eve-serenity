@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\client\script\ui\shared\neocom\contracts\contractsearch.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\client\script\ui\shared\neocom\contracts\contractsearch.py
 import evetypes
 import form
 import uiprimitives
@@ -56,6 +57,7 @@ class ContractSearchWindow(uiprimitives.Container):
         self.sr.Get('viewMode%s' % oldViewMode, None).Deselect()
         if self.currPage in self.pageData:
             self.RenderPage()
+        return
 
     def PopulateSortCombo(self):
         contractType = settings.user.ui.Get('contracts_search_type', cc.CONTYPE_AUCTIONANDITEMECHANGE)
@@ -80,6 +82,7 @@ class ContractSearchWindow(uiprimitives.Container):
             opt.extend([(localization.GetByLabel('UI/Contracts/ContractsSearch/PriceOption', text=lowFirst), (cc.SORT_PRICE, 0)), (localization.GetByLabel('UI/Contracts/ContractsSearch/PriceOption', text=highFirst), (cc.SORT_PRICE, 1))])
         sel = settings.user.ui.Get('contracts_search_sort_%s' % contractType, (cc.SORT_PRICE, 0) if contractType == cc.CONTYPE_AUCTIONANDITEMECHANGE else None)
         self.sr.fltSort.LoadOptions(opt, sel)
+        return
 
     def ApplyAttributes(self, attributes):
         uiprimitives.Container.ApplyAttributes(self, attributes)
@@ -159,6 +162,7 @@ class ContractSearchWindow(uiprimitives.Container):
          localization.GetByLabel('UI/Contracts/ContractsSearch/columnLocation'): 100,
          localization.GetByLabel('UI/Contracts/ContractsSearch/columnIssuer'): 100}
         self.InitFilters()
+        return
 
     def GetContractFiltersMenu(self, *args):
         m = []
@@ -216,7 +220,10 @@ class ContractSearchWindow(uiprimitives.Container):
             self.sr.fltContractOptions = c = uicontrols.Combo(label=localization.GetByLabel('UI/Contracts/ContractsWindow/ContractType'), parent=advancedCont, options=contractOptions, name='contractOptions', select=settings.user.ui.Get('contracts_search_contractOptions', None), align=uiconst.TOTOP, callback=self.ComboChange, padTop=17)
             catOptions = [(localization.GetByLabel('UI/Contracts/ContractsSearch/comboAll'), None)]
             categories = []
-            principalCategories = [const.categoryBlueprint, const.categoryModule, const.categoryShip]
+            principalCategories = [const.categoryBlueprint,
+             const.categoryModule,
+             const.categoryStructureModule,
+             const.categoryShip]
             for categoryID in evetypes.IterateCategories():
                 if categoryID > 0 and evetypes.IsCategoryPublishedByCategory(categoryID) and categoryID not in principalCategories:
                     categories.append([evetypes.GetCategoryNameByCategory(categoryID), categoryID, 0])
@@ -373,6 +380,7 @@ class ContractSearchWindow(uiprimitives.Container):
         btn.SetAlign(uiconst.CENTER)
         btn.OnClick = self.DoSearch
         self.inited = True
+        return
 
     def SetInitialFocus(self):
         uicore.registry.SetFocus(self.sr.contractlist)
@@ -436,7 +444,6 @@ class ContractSearchWindow(uiprimitives.Container):
     def OnGlobalMouseUp(self, obj, msgID, param):
         if uicore.uilib.mouseOver is self.sr.secCont or uiutil.IsUnder(obj, self.sr.secCont):
             return 1
-        return 1
 
     def GetClientFilterTextAndIcon(self, *args):
         contractType = settings.user.ui.Get('contracts_search_type', const.conTypeItemExchange)
@@ -507,7 +514,7 @@ class ContractSearchWindow(uiprimitives.Container):
         self.sr.pageFwdBtn.state = fwdState
         self.sr.pagingCont.width = 25 * len(pages) - 5
 
-    def GetExpanderDivider(self, parent, name, onText, offText, nowExpanded, collapsingCont, belowCollapsed = 1, padTop = 0, *args):
+    def GetExpanderDivider(self, parent, name, onText, offText, nowExpanded, collapsingCont, belowCollapsed=1, padTop=0, *args):
         expanderCont = uiprimitives.Container(name=name, parent=parent, height=18, align=uiconst.TOTOP, state=uiconst.UI_NORMAL, padTop=padTop)
         expanderCont.onText = onText
         expanderCont.offText = offText
@@ -526,7 +533,7 @@ class ContractSearchWindow(uiprimitives.Container):
         collapsingCont.state = [uiconst.UI_HIDDEN, uiconst.UI_PICKCHILDREN][nowExpanded]
         return expanderCont
 
-    def ToggleAdvanced(self, expanderCont, force = None, *args):
+    def ToggleAdvanced(self, expanderCont, force=None, *args):
         settingsName = 'contracts_search_expander_%s' % expanderCont.name
         if force is None:
             expanded = not settings.user.ui.Get(settingsName, 0)
@@ -542,6 +549,7 @@ class ContractSearchWindow(uiprimitives.Container):
             expanderCont.collapsingCont.state = uiconst.UI_PICKCHILDREN
         else:
             expanderCont.collapsingCont.state = uiconst.UI_HIDDEN
+        return
 
     def ToggleClientFilters(self, *args):
         settingsName = 'contracts_search_expander_clientFilterExpander'
@@ -572,6 +580,7 @@ class ContractSearchWindow(uiprimitives.Container):
         hint, icon, isFiltered = self.GetClientFilterTextAndIcon()
         self.sr.pageFilterIcon.hint = hint
         self.sr.pageFilterIcon.LoadIcon(icon)
+        return
 
     def OnJumpInputReturn(self, *args):
         value = min(self.sr.maxjumpsInput.GetValue(), MAXJUMPROUTENUM)
@@ -605,11 +614,13 @@ class ContractSearchWindow(uiprimitives.Container):
         node = nodes[0]
         if node.Get('__guid__', None) not in uiutil.AllUserEntries():
             return
-        charID = node.charID
-        if util.IsCharacter(charID) or util.IsCorporation(charID):
-            issuerName = cfg.eveowners.Get(charID).name
-            self.sr.fltIssuer.SetValue(issuerName)
-            self.sr.fltIssuerID = charID
+        else:
+            charID = node.charID
+            if util.IsCharacter(charID) or util.IsCorporation(charID):
+                issuerName = cfg.eveowners.Get(charID).name
+                self.sr.fltIssuer.SetValue(issuerName)
+                self.sr.fltIssuerID = charID
+            return
 
     def OnDropType(self, dragObj, nodes):
         node = nodes[0]
@@ -623,6 +634,7 @@ class ContractSearchWindow(uiprimitives.Container):
             typeName = evetypes.GetName(typeID)
             self.sr.typeName.SetValue(typeName)
             self.sr.fltExactType.SetChecked(1, 0)
+        return
 
     def PopulateLocationCombo(self):
         self.locationOptions = [(localization.GetByLabel('UI/Generic/CurrentStation'), 0),
@@ -647,18 +659,20 @@ class ContractSearchWindow(uiprimitives.Container):
                 pass
 
         self.sr.fltLocation.LoadOptions(self.locationOptions, settingsLocationID)
+        return
 
-    def PopulateGroupCombo(self, isSel = False):
+    def PopulateGroupCombo(self, isSel=False):
         v = self.sr.fltCategories.GetValue()
         categoryID = v[0] if v and v != -1 else None
         groups = [(localization.GetByLabel('UI/Contracts/ContractsSearch/SelectCategory'), None)]
-        if categoryID:
-            groups = [(localization.GetByLabel('UI/Contracts/ContractsSearch/comboAll'), None)]
-            if evetypes.CategoryExists(categoryID):
-                for groupID in evetypes.GetGroupIDsByCategory(categoryID):
-                    if evetypes.IsGroupPublishedByGroup(groupID):
-                        groups.append((evetypes.GetGroupNameByGroup(groupID), groupID))
+        if categoryID and evetypes.CategoryExists(categoryID):
+            groups = []
+            for groupID in evetypes.GetGroupIDsByCategory(categoryID):
+                if evetypes.IsGroupPublishedByGroup(groupID):
+                    groups.append((evetypes.GetGroupNameByGroup(groupID), groupID))
 
+            groups.sort(key=lambda x: x[0].lower())
+            groups.insert(0, (localization.GetByLabel('UI/Contracts/ContractsSearch/comboAll'), None))
         sel = None
         if isSel:
             sel = settings.user.ui.Get('contracts_search_group', None)
@@ -667,6 +681,7 @@ class ContractSearchWindow(uiprimitives.Container):
             self.sr.fltGroups.state = uiconst.UI_HIDDEN
         else:
             self.sr.fltGroups.state = uiconst.UI_NORMAL
+        return
 
     def Load(self, args):
         if not self.inited:
@@ -720,7 +735,7 @@ class ContractSearchWindow(uiprimitives.Container):
     def DoPageNext(self, *args):
         self.DoPage(1)
 
-    def DoPage(self, nav = 1, *args):
+    def DoPage(self, nav=1, *args):
         p = self.currPage + nav
         if p < 0:
             return
@@ -745,6 +760,7 @@ class ContractSearchWindow(uiprimitives.Container):
         if self.sr.fltIssuerID is not None:
             self.sr.fltIssuerID = None
             settings.user.ui.Set('contracts_search_issuer_id', None)
+        return
 
     def ClearEditField(self, editField, *args):
         editField.SetValue('')
@@ -766,10 +782,12 @@ class ContractSearchWindow(uiprimitives.Container):
     def GetLocationGroupID(self, locationID):
         if util.IsSolarSystem(locationID):
             return const.groupSolarSystem
-        if util.IsConstellation(locationID):
+        elif util.IsConstellation(locationID):
             return const.groupConstellation
-        if util.IsRegion(locationID):
+        elif util.IsRegion(locationID):
             return const.groupRegion
+        else:
+            return None
 
     def ParseDropOff(self, *args):
         if self.destroyed:
@@ -787,26 +805,27 @@ class ContractSearchWindow(uiprimitives.Container):
     def SearchLocation(self, name):
         if not name:
             return None
-        resultList = searchUtil.QuickSearch(name, const.searchResultAllLocations)
-        foundList = []
-        for l in resultList:
-            groupID = self.GetLocationGroupID(l)
-            if not groupID:
-                continue
-            groupName = {const.groupSolarSystem: localization.GetByLabel('UI/Common/LocationTypes/SolarSystem'),
-             const.groupConstellation: localization.GetByLabel('UI/Common/LocationTypes/Constellation'),
-             const.groupRegion: localization.GetByLabel('UI/Common/LocationTypes/Region')}.get(groupID, '')
-            foundList.append((localization.GetByLabel('UI/Contracts/ContractsSearch/FormatSearchLocation', locationID=l, groupName=groupName), l, groupID))
+        else:
+            resultList = searchUtil.QuickSearch(name, const.searchResultAllLocations)
+            foundList = []
+            for l in resultList:
+                groupID = self.GetLocationGroupID(l)
+                if not groupID:
+                    continue
+                groupName = {const.groupSolarSystem: localization.GetByLabel('UI/Common/LocationTypes/SolarSystem'),
+                 const.groupConstellation: localization.GetByLabel('UI/Common/LocationTypes/Constellation'),
+                 const.groupRegion: localization.GetByLabel('UI/Common/LocationTypes/Region')}.get(groupID, '')
+                foundList.append((localization.GetByLabel('UI/Contracts/ContractsSearch/FormatSearchLocation', locationID=l, groupName=groupName), l, groupID))
 
-        if not foundList:
-            raise UserError('NoLocationFound', {'name': name})
-        if len(foundList) == 1:
-            chosen = foundList[0]
-        else:
-            chosen = uix.ListWnd(foundList, '', localization.GetByLabel('UI/Contracts/ContractsSearch/SelectLocation'), localization.GetByLabel('UI/Contracts/ContractsSearch/LocationSearchHint', foundList=len(foundList)), 1, minChoices=1, isModal=1, windowName='locationsearch', unstackable=1)
-        if chosen:
-            return chosen[1]
-        else:
+            if not foundList:
+                raise UserError('NoLocationFound', {'name': name})
+            if len(foundList) == 1:
+                chosen = foundList[0]
+            else:
+                chosen = uix.ListWnd(foundList, '', localization.GetByLabel('UI/Contracts/ContractsSearch/SelectLocation'), localization.GetByLabel('UI/Contracts/ContractsSearch/LocationSearchHint', foundList=len(foundList)), 1, minChoices=1, isModal=1, windowName='locationsearch', unstackable=1)
+            if chosen:
+                return chosen[1]
+            return None
             return None
 
     def ResetTypeFilters(self):
@@ -815,6 +834,7 @@ class ContractSearchWindow(uiprimitives.Container):
         self.sr.fltCategories.SelectItemByValue(None)
         settings.user.ui.Set('contracts_search_category', None)
         self.PopulateGroupCombo()
+        return
 
     def ResetFields(self, *args):
         fields = ['fltMaxPrice',
@@ -846,6 +866,8 @@ class ContractSearchWindow(uiprimitives.Container):
         except:
             pass
 
+        return
+
     def ResetCheckboxes(self, *args):
         checkboxes = [('fltExcludeTrade', 0),
          ('fltExcludeMultiple', 0),
@@ -858,10 +880,12 @@ class ContractSearchWindow(uiprimitives.Container):
                 continue
             cb.SetValue(val)
 
-    def FindMyContracts(self, contractType = cc.CONTYPE_AUCTIONANDITEMECHANGE, isCorp = False):
+        return
+
+    def FindMyContracts(self, contractType=cc.CONTYPE_AUCTIONANDITEMECHANGE, isCorp=False):
         self.SearchContracts(contractType=contractType, availability=const.conAvailMyCorp if isCorp else const.conAvailMyself, override=True)
 
-    def FindRelated(self, typeID, groupID, categoryID, issuerID, locationID, endLocationID, avail, contractType, reset = True):
+    def FindRelated(self, typeID, groupID, categoryID, issuerID, locationID, endLocationID, avail, contractType, reset=True):
         self.ToggleAdvanced(expanderCont=self.sr.advancedDivider, force=1)
         if contractType and settings.user.ui.Get('contracts_search_type', cc.CONTYPE_AUCTIONANDITEMECHANGE) != contractType:
             settings.user.ui.Set('contracts_search_type', contractType)
@@ -899,7 +923,7 @@ class ContractSearchWindow(uiprimitives.Container):
             self.sr.fltDropOffID = endLocationID
         self.SearchContracts()
 
-    def SearchContracts(self, page = 0, reset = False, contractType = None, availability = None, override = False):
+    def SearchContracts(self, page=0, reset=False, contractType=None, availability=None, override=False):
         self.IndicateLoading(loading=1)
         self.currPage = page
         self.override = override
@@ -1256,8 +1280,9 @@ class ContractSearchWindow(uiprimitives.Container):
         self.pageData[self.currPage] = data
         self.RenderPage(reset)
         self.svc.LogInfo('Found', numFound, 'contracts in %.4f seconds' % (searchTime / float(const.SEC)))
+        return
 
-    def RenderPage(self, reset = False):
+    def RenderPage(self, reset=False):
         try:
             data = self.pageData[self.currPage]
             contractType = self.contractType
@@ -1345,7 +1370,9 @@ class ContractSearchWindow(uiprimitives.Container):
         finally:
             self.IndicateLoading(loading=0)
 
-    def IndicateLoading(self, loading = 0):
+        return
+
+    def IndicateLoading(self, loading=0):
         try:
             if loading:
                 self.sr.loadingWheel.Show()

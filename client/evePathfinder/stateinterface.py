@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\packages\evePathfinder\stateinterface.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\packages\evePathfinder\stateinterface.py
 import hashlib
 import math
 from evePathfinder.pathfinderconst import ROUTE_TYPE_SHORTEST
@@ -76,7 +77,7 @@ class AutopilotPathfinderInterface(object):
     def SetAvoidanceItems(self, items):
         self.autopilotSettings.Set('autopilot_avoidance2', items)
 
-    def SetSystemAvoidance(self, pkAvoid = None):
+    def SetSystemAvoidance(self, pkAvoid=None):
         self.autopilotSettings.Set('pfAvoidSystems', pkAvoid)
 
     def SetRouteType(self, routeType):

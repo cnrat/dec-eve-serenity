@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\carbon\common\lib\cherrypy\test\test_routes.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\carbon\common\lib\cherrypy\test\test_routes.py
 import os
 curdir = os.path.join(os.getcwd(), os.path.dirname(__file__))
 import cherrypy
@@ -16,7 +17,7 @@ class RoutesDispatchTest(helper.CPWebCase):
         class Dummy:
 
             def index(self):
-                return 'I said good day!'
+                pass
 
         class City:
 
@@ -32,7 +33,6 @@ class RoutesDispatchTest(helper.CPWebCase):
 
             def update(self, **kwargs):
                 self.population = kwargs['pop']
-                return 'OK'
 
         d = cherrypy.dispatch.RoutesDispatcher()
         d.connect(action='index', name='hounslow', route='/hounslow', controller=City('Hounslow'))
@@ -41,6 +41,7 @@ class RoutesDispatchTest(helper.CPWebCase):
         d.connect('main', ':action', controller=Dummy())
         conf = {'/': {'request.dispatch': d}}
         cherrypy.tree.mount(root=None, config=conf)
+        return
 
     setup_server = staticmethod(setup_server)
 

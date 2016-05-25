@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\carbon\common\stdlib\logging\config.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\carbon\common\stdlib\logging\config.py
 import sys, logging, logging.handlers, socket, struct, os, traceback, re
 import types, cStringIO
 try:
@@ -15,7 +16,7 @@ else:
     RESET_ERROR = 104
 _listener = None
 
-def fileConfig(fname, defaults = None, disable_existing_loggers = True):
+def fileConfig(fname, defaults=None, disable_existing_loggers=True):
     import ConfigParser
     cp = ConfigParser.ConfigParser(defaults)
     if hasattr(fname, 'readline'):
@@ -62,29 +63,30 @@ def _create_formatters(cp):
     flist = cp.get('formatters', 'keys')
     if not len(flist):
         return {}
-    flist = flist.split(',')
-    flist = _strip_spaces(flist)
-    formatters = {}
-    for form in flist:
-        sectname = 'formatter_%s' % form
-        opts = cp.options(sectname)
-        if 'format' in opts:
-            fs = cp.get(sectname, 'format', 1)
-        else:
-            fs = None
-        if 'datefmt' in opts:
-            dfs = cp.get(sectname, 'datefmt', 1)
-        else:
-            dfs = None
-        c = logging.Formatter
-        if 'class' in opts:
-            class_name = cp.get(sectname, 'class')
-            if class_name:
-                c = _resolve(class_name)
-        f = c(fs, dfs)
-        formatters[form] = f
+    else:
+        flist = flist.split(',')
+        flist = _strip_spaces(flist)
+        formatters = {}
+        for form in flist:
+            sectname = 'formatter_%s' % form
+            opts = cp.options(sectname)
+            if 'format' in opts:
+                fs = cp.get(sectname, 'format', 1)
+            else:
+                fs = None
+            if 'datefmt' in opts:
+                dfs = cp.get(sectname, 'datefmt', 1)
+            else:
+                dfs = None
+            c = logging.Formatter
+            if 'class' in opts:
+                class_name = cp.get(sectname, 'class')
+                if class_name:
+                    c = _resolve(class_name)
+            f = c(fs, dfs)
+            formatters[form] = f
 
-    return formatters
+        return formatters
 
 
 def _install_handlers(cp, formatters):
@@ -222,7 +224,7 @@ class ConvertingDict(dict):
                 result.key = key
         return result
 
-    def get(self, key, default = None):
+    def get(self, key, default=None):
         value = dict.get(self, key, default)
         result = self.configurator.convert(value)
         if value is not result:
@@ -232,7 +234,7 @@ class ConvertingDict(dict):
                 result.key = key
         return result
 
-    def pop(self, key, default = None):
+    def pop(self, key, default=None):
         value = dict.pop(self, key, default)
         result = self.configurator.convert(value)
         if value is not result:
@@ -254,7 +256,7 @@ class ConvertingList(list):
                 result.key = key
         return result
 
-    def pop(self, idx = -1):
+    def pop(self, idx=-1):
         value = list.pop(self, idx)
         result = self.configurator.convert(value)
         if value is not result:
@@ -494,6 +496,8 @@ class DictConfigurator(BaseConfigurator):
         finally:
             logging._releaseLock()
 
+        return
+
     def configure_formatter(self, config):
         if '()' in config:
             factory = config['()']
@@ -579,7 +583,7 @@ class DictConfigurator(BaseConfigurator):
             except StandardError as e:
                 raise ValueError('Unable to add handler %r: %s' % (h, e))
 
-    def common_logger_config(self, logger, config, incremental = False):
+    def common_logger_config(self, logger, config, incremental=False):
         level = config.get('level', None)
         if level is not None:
             logger.setLevel(logging._checkLevel(level))
@@ -593,15 +597,17 @@ class DictConfigurator(BaseConfigurator):
             filters = config.get('filters', None)
             if filters:
                 self.add_filters(logger, filters)
+        return
 
-    def configure_logger(self, name, config, incremental = False):
+    def configure_logger(self, name, config, incremental=False):
         logger = logging.getLogger(name)
         self.common_logger_config(logger, config, incremental)
         propagate = config.get('propagate', None)
         if propagate is not None:
             logger.propagate = propagate
+        return
 
-    def configure_root(self, config, incremental = False):
+    def configure_root(self, config, incremental=False):
         root = logging.getLogger()
         self.common_logger_config(root, config, incremental)
 
@@ -612,7 +618,7 @@ def dictConfig(config):
     dictConfigClass(config).configure()
 
 
-def listen(port = DEFAULT_LOGGING_CONFIG_PORT):
+def listen(port=DEFAULT_LOGGING_CONFIG_PORT):
     if not thread:
         raise NotImplementedError('listen() needs threading to work')
 
@@ -655,7 +661,7 @@ def listen(port = DEFAULT_LOGGING_CONFIG_PORT):
     class ConfigSocketReceiver(ThreadingTCPServer):
         allow_reuse_address = 1
 
-        def __init__(self, host = 'localhost', port = DEFAULT_LOGGING_CONFIG_PORT, handler = None, ready = None):
+        def __init__(self, host='localhost', port=DEFAULT_LOGGING_CONFIG_PORT, handler=None, ready=None):
             ThreadingTCPServer.__init__(self, (host, port), handler)
             logging._acquireLock()
             self.abort = 0
@@ -708,3 +714,5 @@ def stopListening():
             _listener = None
     finally:
         logging._releaseLock()
+
+    return

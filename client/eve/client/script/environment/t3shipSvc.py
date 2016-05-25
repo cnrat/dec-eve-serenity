@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\client\script\environment\t3shipSvc.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\client\script\environment\t3shipSvc.py
 import evetypes
 import inventorycommon.typeHelpers
 import uthread
@@ -40,10 +41,10 @@ class t3ShipSvc(service.Service):
          'gallente': 'res:/fisfx/impact/impact_gallente_01a.red',
          'minmatar': 'res:/fisfx/impact/impact_minmatar_01a.red'}
 
-    def Run(self, ms = None):
+    def Run(self, ms=None):
         self.state = service.SERVICE_RUNNING
 
-    def GetTech3ShipFromDict(self, shipTypeID, subSystems, race = None):
+    def GetTech3ShipFromDict(self, shipTypeID, subSystems, race=None):
         shipsDir = blue.paths.ResolvePathForWriting('cache:/ships/')
         if not os.path.exists(shipsDir):
             os.makedirs(shipsDir)
@@ -201,9 +202,10 @@ class t3ShipSvc(service.Service):
             AssembleShip.CloseIfOpen(windowID=windowID)
             AssembleShip.Open(windowID=windowID, ship=ship, groupIDs=subSystemIds.keys())
             return
-        if len(subSystemIds) < const.visibleSubSystems:
-            raise NotEnoughSubSystems('MakeModularShipFromShipItem - not enough subsystems')
-        return self.GetTech3ShipFromDict(ship.typeID, subSystemIds)
+        else:
+            if len(subSystemIds) < const.visibleSubSystems:
+                raise NotEnoughSubSystems('MakeModularShipFromShipItem - not enough subsystems')
+            return self.GetTech3ShipFromDict(ship.typeID, subSystemIds)
 
 
 class NotEnoughSubSystems(RuntimeError):

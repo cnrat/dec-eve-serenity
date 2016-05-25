@@ -1,4 +1,7 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\client\script\parklife\targetMgr.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\client\script\parklife\targetMgr.py
+from eve.client.script.ui.inflight.bracketsAndTargets.targetInBar import TargetInBar
+from eve.client.script.ui.inflight.bracketsAndTargets.targetInBarFighter import TargetInBarFighter
 import uicontrols
 import sys
 import service
@@ -43,7 +46,7 @@ class TargetMgr(service.Service):
     __dependencies__ = ['michelle', 'godma', 'settings']
     __update_on_reload__ = 0
 
-    def Run(self, memStream = None):
+    def Run(self, memStream=None):
         service.Service.Run(self, memStream)
         self.viewMode = 'normal'
         self.preViewMode = None
@@ -54,6 +57,7 @@ class TargetMgr(service.Service):
         self.deadShipsBeingRemoved = set()
         self.disableSpinnyReticule = False
         self.overrideBarHeight = None
+        return
 
     def Stop(self, stream):
         service.Service.Stop(self)
@@ -64,31 +68,35 @@ class TargetMgr(service.Service):
     def PlaceOrigin(self):
         if self.origin is not None:
             return
-        self.CreateOrigin()
-        self.PositionOriginWithAnchors()
-        self.UpdateOriginDirection()
+        else:
+            self.CreateOrigin()
+            self.PositionOriginWithAnchors()
+            self.UpdateOriginDirection()
+            return
 
     def CreateOrigin(self, *args):
         if not len(self.targetsByID):
             self.origin = None
             return
-        par = uicore.layer.target
-        origin = uiprimitives.Container(name='targetOrigin', parent=par, align=uiconst.RELATIVE, width=16, height=16, state=uiconst.UI_NORMAL)
-        origin.OnMouseDown = (self.OnOriginMD, origin)
-        origin.OnMouseUp = (self.OnOriginMU, origin)
-        origin.GetMenu = self.GetOriginMenu
-        origin.hint = localization.GetByLabel('UI/Inflight/TargetListAnchor/TargetListAnchorHint')
-        origin.leftline = uiprimitives.Line(parent=origin, align=uiconst.RELATIVE, width=4, height=1, left=-4, top=7, color=(1.0, 1.0, 1.0, 1.0))
-        origin.topline = uiprimitives.Line(parent=origin, align=uiconst.RELATIVE, width=1, height=4, left=7, top=-4, color=(1.0, 1.0, 1.0, 1.0))
-        origin.rightline = uiprimitives.Line(parent=origin, align=uiconst.RELATIVE, width=4, height=1, left=15, top=7, color=(1.0, 1.0, 1.0, 1.0))
-        origin.bottomline = uiprimitives.Line(parent=origin, align=uiconst.RELATIVE, width=1, height=4, left=7, top=15, color=(1.0, 1.0, 1.0, 1.0))
-        origin.opacity = 0.75
-        uicontrols.Icon(icon='ui_38_16_72', parent=origin, state=uiconst.UI_DISABLED)
-        self.origin = origin
-        if getattr(self, 'targetPar', None) is None or self.targetPar.destroyed:
-            targetPar = uiprimitives.Container(parent=uicore.layer.target, align=uiconst.TOALL)
-            self.targetPar = targetPar
-            self.targetPar.rows = []
+        else:
+            par = uicore.layer.target
+            origin = uiprimitives.Container(name='targetOrigin', parent=par, align=uiconst.RELATIVE, width=16, height=16, state=uiconst.UI_NORMAL)
+            origin.OnMouseDown = (self.OnOriginMD, origin)
+            origin.OnMouseUp = (self.OnOriginMU, origin)
+            origin.GetMenu = self.GetOriginMenu
+            origin.hint = localization.GetByLabel('UI/Inflight/TargetListAnchor/TargetListAnchorHint')
+            origin.leftline = uiprimitives.Line(parent=origin, align=uiconst.RELATIVE, width=4, height=1, left=-4, top=7, color=(1.0, 1.0, 1.0, 1.0))
+            origin.topline = uiprimitives.Line(parent=origin, align=uiconst.RELATIVE, width=1, height=4, left=7, top=-4, color=(1.0, 1.0, 1.0, 1.0))
+            origin.rightline = uiprimitives.Line(parent=origin, align=uiconst.RELATIVE, width=4, height=1, left=15, top=7, color=(1.0, 1.0, 1.0, 1.0))
+            origin.bottomline = uiprimitives.Line(parent=origin, align=uiconst.RELATIVE, width=1, height=4, left=7, top=15, color=(1.0, 1.0, 1.0, 1.0))
+            origin.opacity = 0.75
+            uicontrols.Icon(icon='ui_38_16_72', parent=origin, state=uiconst.UI_DISABLED)
+            self.origin = origin
+            if getattr(self, 'targetPar', None) is None or self.targetPar.destroyed:
+                targetPar = uiprimitives.Container(parent=uicore.layer.target, align=uiconst.TOALL)
+                self.targetPar = targetPar
+                self.targetPar.rows = []
+            return
 
     def PositionOriginWithAnchors(self):
         if not self.origin or self.origin.destroyed:
@@ -152,7 +160,7 @@ class TargetMgr(service.Service):
          pw,
          ph)
 
-    def GetOriginPosition(self, inPixels = 1, getDirection = 0):
+    def GetOriginPosition(self, inPixels=1, getDirection=0):
         d = uicore.desktop
         wnd, pl, pt, pw, ph = self.GetTargetLayerAbsolutes()
         myPrefs = settings.user.ui.Get('targetOrigin', None)
@@ -184,7 +192,8 @@ class TargetMgr(service.Service):
             ret = (portionalCX, portionalCY)
         if getDirection:
             return (ret, (bool(portionalCX > 0.5), bool(portionalCY > 0.5)))
-        return ret
+        else:
+            return ret
 
     def OnOriginMU(self, origin, btn, *args):
         if btn != 0 or settings.user.ui.Get('targetOriginLocked', 0):
@@ -285,6 +294,7 @@ class TargetMgr(service.Service):
         self.origin = None
         self.ownerToShipIDCache = {}
         uiutil.Flush(uicore.layer.target)
+        return
 
     def CheckViewMode(self):
         toggleWnds = {'main': [ child for child in uicore.layer.main.children ],
@@ -311,6 +321,8 @@ class TargetMgr(service.Service):
                         self.preViewMode.append((wnd.state, wnd.name))
                         wnd.state = uiconst.UI_HIDDEN
 
+        return
+
     def IsObserving(self):
         return bool(self.viewMode == 'observe')
 
@@ -324,7 +336,7 @@ class TargetMgr(service.Service):
         settings.user.ui.Set('targetTeamsII', self.teams[:])
         self.ArrangeTargets()
 
-    def RemoveFromTeam(self, itemID, reset = 0):
+    def RemoveFromTeam(self, itemID, reset=0):
         obs = self.IsObserving()
         if obs:
             if reset:
@@ -359,7 +371,6 @@ class TargetMgr(service.Service):
         teamOrder = self.teams[current]
         if itemID in teamOrder:
             return teamOrder.index(itemID)
-        return -1
 
     def SetTeamOrder(self, itemID, idx):
         idx = max(0, idx)
@@ -390,7 +401,7 @@ class TargetMgr(service.Service):
             self.dogmaLM = self.godma.GetDogmaLM()
         return self.dogmaLM
 
-    def OnSpecialFX(self, shipID, moduleID, moduleTypeID, targetID, otherTypeID, guid, isOffensive, start, active, duration = -1, repeat = None, startTime = None, timeFromStart = 0, graphicInfo = None):
+    def OnSpecialFX(self, shipID, moduleID, moduleTypeID, targetID, otherTypeID, guid, isOffensive, start, active, duration=-1, repeat=None, startTime=None, timeFromStart=0, graphicInfo=None):
         if isOffensive and targetID == eve.session.shipid:
             self.weaponsOnMe[shipID] = self.weaponsOnMe.get(shipID, 0) + (-1, +1)[start]
 
@@ -412,33 +423,38 @@ class TargetMgr(service.Service):
                 else:
                     self.LogError(target, "doesn't have GetDefaultEffect attr")
                 self.needtarget = []
+        return
 
     def ProcessSessionChange(self, isRemote, session, change):
         if not isRemote:
             return
-        spaceShipChange = 'ship' in change and 'solarsystemid' not in change
-        if not sm.GetService('connection').IsConnected() or eve.session.stationid is not None or eve.session.charid is None:
-            self.CleanUp()
-        elif spaceShipChange and change['shipid'][0] is not None:
-            self.OnTargetClear()
-            self.pendingTargeters = []
-        if 'solarsystemid' in change:
-            self.deadShipsBeingRemoved = set()
-        changingShipsInSpace = spaceShipChange and session.solarsystemid and session.shipid
-        loggingDirectlyIntoSpace = change.get('solarsystemid', (1, 1))[0] is None and not eve.session.stationid
-        undocking = base.IsUndockingSessionChange(session, change)
-        if changingShipsInSpace or loggingDirectlyIntoSpace or undocking:
-            for otherID in self.targetedBy:
-                sm.GetService('state').SetState(otherID, state.threatTargetsMe, 0)
+        else:
+            spaceShipChange = 'ship' in change and 'solarsystemid' not in change
+            if not sm.GetService('connection').IsConnected() or eve.session.stationid is not None or eve.session.charid is None:
+                self.CleanUp()
+            elif spaceShipChange and change['shipid'][0] is not None:
+                self.OnTargetClear()
+                self.pendingTargeters = []
+            if 'solarsystemid' in change:
+                self.deadShipsBeingRemoved = set()
+            changingShipsInSpace = spaceShipChange and session.solarsystemid and session.shipid
+            loggingDirectlyIntoSpace = change.get('solarsystemid', (1, 1))[0] is None and not eve.session.stationid
+            undocking = base.IsUndockingSessionChange(session, change)
+            if changingShipsInSpace or loggingDirectlyIntoSpace or undocking:
+                for otherID in self.targetedBy:
+                    sm.GetService('state').SetState(otherID, state.threatTargetsMe, 0)
 
-            uthread.new(self.godma.GetStateManager().RefreshTargets)
-        self.dogmaLM = None
+                if session.shipid:
+                    uthread.new(self.godma.GetStateManager().RefreshTargets)
+            self.dogmaLM = None
+            return
 
     def CleanUp(self):
         self.viewMode = 'normal'
         self.CheckViewMode()
         self.ClearingTargets()
         self.dogmaLM = None
+        return
 
     def ClearingTargets(self, *args):
         if getattr(self, 'targetsByID', None) is not None:
@@ -447,6 +463,7 @@ class TargetMgr(service.Service):
 
         self.targetsByID = {}
         self.deadShipsBeingRemoved = set()
+        return
 
     def DoBallsAdded(self, *args, **kw):
         import stackless
@@ -481,17 +498,22 @@ class TargetMgr(service.Service):
             self.rowDict = {}
             self.deadShipsBeingRemoved = set()
             return
-        for ball, slimItem, terminal in pythonBalls:
-            self.DoBallRemove(ball, slimItem, terminal)
+        else:
+            for ball, slimItem, terminal in pythonBalls:
+                self.DoBallRemove(ball, slimItem, terminal)
+
+            return
 
     def DoBallRemove(self, ball, slimItem, terminal):
         if ball is None:
             return
-        self.LogInfo('DoBallRemove::targetMgr', ball.id)
-        if ball.id in self.pendingTargets or ball.id in self.autoTargeting or ball.id in self.targeting:
-            sm.GetService('audio').StopSoundLoop('TargetLocking', 'wise:/msg_TargetLocked_play')
-        if ball.id not in self.deadShipsBeingRemoved:
-            self.ClearTarget(ball.id)
+        else:
+            self.LogInfo('DoBallRemove::targetMgr', ball.id)
+            if ball.id in self.pendingTargets or ball.id in self.autoTargeting or ball.id in self.targeting:
+                sm.GetService('audio').StopSoundLoop('TargetLocking', 'wise:/msg_TargetLocked_play')
+            if ball.id not in self.deadShipsBeingRemoved:
+                self.ClearTarget(ball.id)
+            return
 
     def DoBallClear(self, solitem):
         self.CleanUp()
@@ -500,13 +522,13 @@ class TargetMgr(service.Service):
         for each in targets:
             self.OnTarget(*each[1:])
 
-    def OnTarget(self, what, tid = None, reason = None):
+    def OnTarget(self, what, tid=None, reason=None):
         if what == 'add':
             self.OnTargetAdded(tid)
         elif what == 'clear':
             self.OnTargetClear()
         elif what == 'lost':
-            self.OnTargetLost(tid, reason)
+            uthread.new(self.OnTargetLost, tid, reason)
         elif what == 'otheradd':
             self.OnTargetByOther(tid)
         elif what == 'otherlost':
@@ -529,31 +551,40 @@ class TargetMgr(service.Service):
             if tid not in self.pendingTargets:
                 self.pendingTargets.append(tid)
             return
-        sm.GetService('state').SetState(tid, state.targeting, 0)
-        sm.GetService('state').SetState(tid, state.targeted, 1)
-        if tid in self.pendingTargets:
-            self.pendingTargets.remove(tid)
-        sm.ScatterEvent('OnClientEvent_LockItem', slimItem)
-        if tid in self.targetsByID:
-            self.ClearTarget(tid)
-        obs = self.IsObserving()
-        if obs and not (tid in self.teams[0] or tid in self.teams[1]):
-            self.teams[1].append(tid)
-        if settings.user.ui.Get('alignHorizontally', 1):
-            padBottom = 0
         else:
-            padBottom = TARGET_PADDING
-        target = uicls.TargetInBar(name='target', parent=uicore.layer.target, align=uiconst.TOPRIGHT, width=[110, 160][obs], height=[150, 80][obs], state=uiconst.UI_PICKCHILDREN, padBottom=padBottom)
-        target.Startup(slimItem)
-        self.targetsByID[slimItem.itemID] = target
-        bracket = sm.GetService('bracket').GetBracket(tid)
-        if bracket and bracket.sr.targetItem:
-            bracket.sr.targetItem.state = [uiconst.UI_DISABLED, uiconst.UI_HIDDEN][obs]
-        self.ArrangeTargets()
-        if not self.GetActiveTargetID():
-            sm.GetService('state').SetState(tid, state.activeTarget, 1)
-            if sm.GetService('state').GetExclState(state.selected) is None:
-                sm.GetService('state').SetState(tid, state.selected, 1)
+            sm.GetService('state').SetState(tid, state.targeting, 0)
+            sm.GetService('state').SetState(tid, state.targeted, 1)
+            if tid in self.pendingTargets:
+                self.pendingTargets.remove(tid)
+            sm.ScatterEvent('OnClientEvent_LockItem', slimItem)
+            if tid in self.targetsByID:
+                self.ClearTarget(tid)
+            obs = self.IsObserving()
+            if obs and not (tid in self.teams[0] or tid in self.teams[1]):
+                self.teams[1].append(tid)
+            if settings.user.ui.Get('alignHorizontally', 1):
+                padBottom = 0
+            else:
+                padBottom = TARGET_PADDING
+            targetClass = self.GetTargetClassForSlimItem(slimItem)
+            target = targetClass(name='target', parent=uicore.layer.target, align=uiconst.TOPRIGHT, width=[110, 160][obs], height=[150, 80][obs], state=uiconst.UI_PICKCHILDREN, padBottom=padBottom)
+            target.Startup(slimItem)
+            self.targetsByID[slimItem.itemID] = target
+            bracket = sm.GetService('bracket').GetBracket(tid)
+            if bracket and bracket.sr.targetItem:
+                bracket.sr.targetItem.state = [uiconst.UI_DISABLED, uiconst.UI_HIDDEN][obs]
+            self.ArrangeTargets()
+            if not self.GetActiveTargetID():
+                sm.GetService('state').SetState(tid, state.activeTarget, 1)
+                if sm.GetService('state').GetExclState(state.selected) is None:
+                    sm.GetService('state').SetState(tid, state.selected, 1)
+            return
+
+    def GetTargetClassForSlimItem(self, slimItem):
+        if slimItem.categoryID == const.categoryFighter:
+            return TargetInBarFighter
+        else:
+            return TargetInBar
 
     def OrderTarget(self, who):
         if who not in self.needtarget[:]:
@@ -563,7 +594,7 @@ class TargetMgr(service.Service):
     def IsSomeModuleWaitingForTargetClick(self):
         return bool(self.needtarget)
 
-    def CancelTargetOrder(self, who = None):
+    def CancelTargetOrder(self, who=None):
         if not who and len(self.needtarget):
             for each in self.needtarget:
                 if each and not each.destroyed:
@@ -687,64 +718,66 @@ class TargetMgr(service.Service):
         targetPar = getattr(self, 'targetPar', None)
         if targetPar is None or getattr(self, 'origin', None) is None:
             return
-        (cX, cY), (toLeft, toTop) = self.GetOriginPosition(getDirection=1)
-        originAlign = self.GetOriginAlign(toLeft, toTop)
-        baseleft, basetop = self.GetBaseLeftAndTop()
-        targetAlignment = self.PrepareRowsOrColumns(originAlign, baseleft, basetop)
-        targetsThatDontFit = []
-        targetsAdded = []
-        rows = targetPar.rows
-        for key, targetIDs in self.rowDict.iteritems():
-            if len(rows) >= key + 1:
-                cont = rows[key]
-            else:
-                targetsThatDontFit += targetIDs
-                self.rowDict[key] = []
-                continue
-            newTargetList = []
-            counter = 0
-            for eachTargetID in targetIDs:
-                eachTarget = self.GetTarget(eachTargetID)
-                if getattr(eachTarget, 'isDragging', False):
+        else:
+            (cX, cY), (toLeft, toTop) = self.GetOriginPosition(getDirection=1)
+            originAlign = self.GetOriginAlign(toLeft, toTop)
+            baseleft, basetop = self.GetBaseLeftAndTop()
+            targetAlignment = self.PrepareRowsOrColumns(originAlign, baseleft, basetop)
+            targetsThatDontFit = []
+            targetsAdded = []
+            rows = targetPar.rows
+            for key, targetIDs in self.rowDict.iteritems():
+                if len(rows) >= key + 1:
+                    cont = rows[key]
+                else:
+                    targetsThatDontFit += targetIDs
+                    self.rowDict[key] = []
                     continue
-                if eachTarget is None or eachTarget.destroyed:
-                    continue
-                if not self.DoesTargetFit(cont, baseleft, basetop, counter + 1, excludedTargetID=eachTargetID):
-                    targetsThatDontFit.append(eachTargetID)
+                newTargetList = []
+                counter = 0
+                for eachTargetID in targetIDs:
+                    eachTarget = self.GetTarget(eachTargetID)
+                    if getattr(eachTarget, 'isDragging', False):
+                        continue
+                    if eachTarget is None or eachTarget.destroyed:
+                        continue
+                    if not self.DoesTargetFit(cont, baseleft, basetop, counter + 1, excludedTargetID=eachTargetID):
+                        targetsThatDontFit.append(eachTargetID)
+                        counter += 1
+                        continue
+                    eachTarget.SetAlign(targetAlignment)
+                    eachTarget.SetParent(cont)
+                    targetsAdded.append(eachTarget.id)
+                    newTargetList.append(eachTargetID)
                     counter += 1
+
+                self.rowDict[key] = newTargetList
+
+            horizontally = settings.user.ui.Get('alignHorizontally', 1)
+            wnd, pl, pt, pw, ph = self.GetTargetLayerAbsolutes()
+            for targetID, target in self.targetsByID.iteritems():
+                if not isinstance(target, (xtriui.Target, uicls.TargetInBar)):
                     continue
-                eachTarget.SetAlign(targetAlignment)
-                eachTarget.SetParent(cont)
-                targetsAdded.append(eachTarget.id)
-                newTargetList.append(eachTargetID)
-                counter += 1
+                if targetID in targetsAdded:
+                    continue
+                if getattr(target, 'isDragging', False):
+                    continue
+                myCont, numTargets = self.FindRow(rows, baseleft, basetop)
+                target.state = uiconst.UI_PICKCHILDREN
+                target.SetAlign(targetAlignment)
+                if myCont:
+                    target.SetParent(myCont)
+                    targetList = self.rowDict.get(myCont.numRow, [])
+                    targetList.append(targetID)
+                    self.rowDict[myCont.numRow] = targetList
+                    if targetID in targetsThatDontFit:
+                        targetsThatDontFit.remove(targetID)
 
-            self.rowDict[key] = newTargetList
-
-        horizontally = settings.user.ui.Get('alignHorizontally', 1)
-        wnd, pl, pt, pw, ph = self.GetTargetLayerAbsolutes()
-        for targetID, target in self.targetsByID.iteritems():
-            if not isinstance(target, (xtriui.Target, uicls.TargetInBar)):
-                continue
-            if targetID in targetsAdded:
-                continue
-            if getattr(target, 'isDragging', False):
-                continue
-            myCont, numTargets = self.FindRow(rows, baseleft, basetop)
-            target.state = uiconst.UI_PICKCHILDREN
-            target.SetAlign(targetAlignment)
-            if myCont:
-                target.SetParent(myCont)
-                targetList = self.rowDict.get(myCont.numRow, [])
-                targetList.append(targetID)
-                self.rowDict[myCont.numRow] = targetList
-                if targetID in targetsThatDontFit:
-                    targetsThatDontFit.remove(targetID)
-
-        if len(targetsThatDontFit) > 0:
-            self.LogError('did not add the following targets: ', targetsThatDontFit)
-        uthread.new(self.AdjustRowSize)
-        sm.ScatterEvent('OnTargetsArranged')
+            if len(targetsThatDontFit) > 0:
+                self.LogError('did not add the following targets: ', targetsThatDontFit)
+            uthread.new(self.AdjustRowSize)
+            sm.ScatterEvent('OnTargetsArranged')
+            return
 
     def FindRow(self, possibleContainers, baseLeft, baseTop, *args):
         for cont in possibleContainers:
@@ -757,31 +790,34 @@ class TargetMgr(service.Service):
     def AdjustRowSize(self):
         if self.IsObserving():
             return
-        targetPar = getattr(self, 'targetPar', None)
-        if targetPar is None:
-            return
-        blue.pyos.synchro.Yield()
-        horizontally = settings.user.ui.Get('alignHorizontally', 1)
-        if horizontally:
-            for eachRow in targetPar.rows:
-                if not eachRow.display:
-                    continue
-                if self.overrideBarHeight is None:
-                    maxHeight = self.GetRowMaxHeight(eachRow, MIN_TARGET_HEIHT)
-                    uicore.animations.MorphScalar(eachRow, 'height', eachRow.height, maxHeight + TARGET_PADDING, duration=0.3)
-                else:
-                    eachRow.height = self.overrideBarHeight
-
         else:
-            maxLineHeights = self.GetLinesMaxHeights()
-            for lineIdx, values in maxLineHeights.iteritems():
-                maxH = max([ h for h, targetID in values ])
-                maxH = maxH
-                for h, targetID in values:
-                    target = self.GetTarget(targetID)
-                    if target:
-                        padBottom = maxH - target.height
-                        uicore.animations.MorphScalar(target, 'padBottom', target.padBottom, padBottom, duration=0.5)
+            targetPar = getattr(self, 'targetPar', None)
+            if targetPar is None:
+                return
+            blue.pyos.synchro.Yield()
+            horizontally = settings.user.ui.Get('alignHorizontally', 1)
+            if horizontally:
+                for eachRow in targetPar.rows:
+                    if not eachRow.display:
+                        continue
+                    if self.overrideBarHeight is None:
+                        maxHeight = self.GetRowMaxHeight(eachRow, MIN_TARGET_HEIHT)
+                        uicore.animations.MorphScalar(eachRow, 'height', eachRow.height, maxHeight + TARGET_PADDING, duration=0.3)
+                    else:
+                        eachRow.height = self.overrideBarHeight
+
+            else:
+                maxLineHeights = self.GetLinesMaxHeights()
+                for lineIdx, values in maxLineHeights.iteritems():
+                    maxH = max([ h for h, targetID in values ])
+                    maxH = maxH
+                    for h, targetID in values:
+                        target = self.GetTarget(targetID)
+                        if target:
+                            padBottom = maxH - target.height
+                            uicore.animations.MorphScalar(target, 'padBottom', target.padBottom, padBottom, duration=0.5)
+
+            return
 
     def GetRowMaxHeight(self, targetRow, minSize, *args):
         horizontally = settings.user.ui.Get('alignHorizontally', 1)
@@ -803,7 +839,7 @@ class TargetMgr(service.Service):
 
         return heightByLineIdx
 
-    def DoesTargetFit(self, cont, baseLeft, baseTop, idx = None, excludedTargetID = None, *args):
+    def DoesTargetFit(self, cont, baseLeft, baseTop, idx=None, excludedTargetID=None, *args):
         horizontally = settings.user.ui.Get('alignHorizontally', 1)
         if horizontally:
             parSize = uicore.desktop.width - baseLeft
@@ -825,16 +861,18 @@ class TargetMgr(service.Service):
     def OnMoveTarget(self, target, *args):
         if settings.user.ui.Get('targetPositionLocked', 0):
             return
-        targetPar = getattr(self, 'targetPar', None)
-        if targetPar is None or targetPar.destroyed:
-            return targetPar
-        wnd, pl, pt, pw, ph = self.GetTargetLayerAbsolutes()
-        tl, tt, tw, th = targetPar.GetAbsolute()
-        clipper = (tl - 10,
-         tt - 5,
-         tl + tw + 20,
-         tt + th + 10)
-        uthread.new(self.DoRepositionDrag, target, clipper)
+        else:
+            targetPar = getattr(self, 'targetPar', None)
+            if targetPar is None or targetPar.destroyed:
+                return targetPar
+            wnd, pl, pt, pw, ph = self.GetTargetLayerAbsolutes()
+            tl, tt, tw, th = targetPar.GetAbsolute()
+            clipper = (tl - 10,
+             tt - 5,
+             tl + tw + 20,
+             tt + th + 10)
+            uthread.new(self.DoRepositionDrag, target, clipper)
+            return
 
     def DoRepositionDrag(self, myTarget, cursorClipper):
         if uicore.uilib.leftbtn and uicore.uilib.mouseOver == myTarget.barAndImageCont:
@@ -856,102 +894,104 @@ class TargetMgr(service.Service):
         targetPar = getattr(self, 'targetPar', None)
         if not targetPar:
             return
-        myRow = None
-        posIndex = 0
-        while uicore.uilib.leftbtn:
-            (originX, originY), (toLeft, toTop) = targetSvc.GetOriginPosition(getDirection=1)
-            lessThanAll = True
-            for row in targetPar.children:
-                if not isinstance(row, uiprimitives.Container):
-                    continue
-                tl, tt, tw, th = row.GetAbsolute()
-                if tl - 2 <= uicore.uilib.x <= tl + tw + 2 and tt - 2 <= uicore.uilib.y <= tt + th + 2:
-                    myRow = row
-                    break
+        else:
+            myRow = None
+            posIndex = 0
+            while uicore.uilib.leftbtn:
+                (originX, originY), (toLeft, toTop) = targetSvc.GetOriginPosition(getDirection=1)
+                lessThanAll = True
+                for row in targetPar.children:
+                    if not isinstance(row, uiprimitives.Container):
+                        continue
+                    tl, tt, tw, th = row.GetAbsolute()
+                    if tl - 2 <= uicore.uilib.x <= tl + tw + 2:
+                        myRow = tt - 2 <= uicore.uilib.y <= tt + th + 2 and row
+                        break
 
-            if not myRow:
-                blue.pyos.synchro.Yield()
-                continue
-            counter = 0
-            mouseX = uicore.uilib.x
-            mouseY = uicore.uilib.y
-            for target in myRow.children:
-                if not isinstance(target, uicls.TargetInBar):
+                if not myRow:
+                    blue.pyos.synchro.Yield()
                     continue
-                counter += 1
-                tl, tt, tw, th = target.GetAbsolute()
-                isOverTarget = tl <= mouseX < tl + tw and tt <= mouseY < tt + th
-                if isOverTarget:
-                    if horizontalAlign:
-                        if toLeft:
-                            repositionLine.SetAlign(uiconst.TORIGHT_NOPUSH)
+                counter = 0
+                mouseX = uicore.uilib.x
+                mouseY = uicore.uilib.y
+                for target in myRow.children:
+                    if not isinstance(target, uicls.TargetInBar):
+                        continue
+                    counter += 1
+                    tl, tt, tw, th = target.GetAbsolute()
+                    isOverTarget = tl <= mouseX < tl + tw and tt <= mouseY < tt + th
+                    if isOverTarget:
+                        if horizontalAlign:
+                            if toLeft:
+                                repositionLine.SetAlign(uiconst.TORIGHT_NOPUSH)
+                                posIndex = counter
+                            else:
+                                posIndex = counter - 1
+                                repositionLine.SetAlign(uiconst.TOLEFT_NOPUSH)
+                        elif toTop:
                             posIndex = counter
+                            repositionLine.SetAlign(uiconst.TOBOTTOM_NOPUSH)
                         else:
                             posIndex = counter - 1
+                            repositionLine.SetAlign(uiconst.TOTOP_NOPUSH)
+                        repositionLine.SetParent(myRow)
+                        repositionLine.SetOrder(posIndex)
+                        lessThanAll = False
+                        break
+
+                if lessThanAll:
+                    posIndex = -1
+                    if horizontalAlign:
+                        if toLeft:
+                            if originX < mouseX:
+                                posIndex = 0
+                            repositionLine.SetAlign(uiconst.TORIGHT_NOPUSH)
+                        else:
+                            if originX > mouseX:
+                                posIndex = 0
                             repositionLine.SetAlign(uiconst.TOLEFT_NOPUSH)
                     elif toTop:
-                        posIndex = counter
+                        if originY < mouseY:
+                            posIndex = 0
                         repositionLine.SetAlign(uiconst.TOBOTTOM_NOPUSH)
                     else:
-                        posIndex = counter - 1
+                        if originY > mouseY:
+                            posIndex = 0
                         repositionLine.SetAlign(uiconst.TOTOP_NOPUSH)
                     repositionLine.SetParent(myRow)
                     repositionLine.SetOrder(posIndex)
-                    lessThanAll = False
-                    break
+                self.ColorRepositionLine(myRow, myTarget.id, repositionLine)
+                blue.pyos.synchro.Yield()
 
-            if lessThanAll:
-                posIndex = -1
-                if horizontalAlign:
-                    if toLeft:
-                        if originX < mouseX:
-                            posIndex = 0
-                        repositionLine.SetAlign(uiconst.TORIGHT_NOPUSH)
+            uicore.uilib.UnclipCursor()
+            if myRow:
+                doAddTarget = True
+                if oldParentRowOrColumn is not None:
+                    old = self.rowDict.get(oldParentRowOrColumn, [])
+                    if myTarget.id in old:
+                        targetsCurrentPos = (posIndex, posIndex - 1)
+                        if oldParentRowOrColumn == myRow.numRow:
+                            oldIndex = old.index(myTarget.id)
+                            if oldIndex in targetsCurrentPos:
+                                doAddTarget = False
+                            elif oldIndex < posIndex:
+                                posIndex -= 1
+                        if doAddTarget:
+                            old.remove(myTarget.id)
+                    self.rowDict[oldParentRowOrColumn] = old
+                if doAddTarget:
+                    posIndex = max(-1, posIndex)
+                    newRow = self.rowDict.get(myRow.numRow, [])
+                    if posIndex < 0:
+                        newRow.append(myTarget.id)
                     else:
-                        if originX > mouseX:
-                            posIndex = 0
-                        repositionLine.SetAlign(uiconst.TOLEFT_NOPUSH)
-                elif toTop:
-                    if originY < mouseY:
-                        posIndex = 0
-                    repositionLine.SetAlign(uiconst.TOBOTTOM_NOPUSH)
-                else:
-                    if originY > mouseY:
-                        posIndex = 0
-                    repositionLine.SetAlign(uiconst.TOTOP_NOPUSH)
-                repositionLine.SetParent(myRow)
-                repositionLine.SetOrder(posIndex)
-            self.ColorRepositionLine(myRow, myTarget.id, repositionLine)
-            blue.pyos.synchro.Yield()
-
-        uicore.uilib.UnclipCursor()
-        if myRow:
-            doAddTarget = True
-            if oldParentRowOrColumn is not None:
-                old = self.rowDict.get(oldParentRowOrColumn, [])
-                if myTarget.id in old:
-                    targetsCurrentPos = (posIndex, posIndex - 1)
-                    if oldParentRowOrColumn == myRow.numRow:
-                        oldIndex = old.index(myTarget.id)
-                        if oldIndex in targetsCurrentPos:
-                            doAddTarget = False
-                        elif oldIndex < posIndex:
-                            posIndex -= 1
-                    if doAddTarget:
-                        old.remove(myTarget.id)
-                self.rowDict[oldParentRowOrColumn] = old
-            if doAddTarget:
-                posIndex = max(-1, posIndex)
-                newRow = self.rowDict.get(myRow.numRow, [])
-                if posIndex < 0:
-                    newRow.append(myTarget.id)
-                else:
-                    newRow.insert(posIndex, myTarget.id)
-                self.rowDict[myRow.numRow] = newRow
-        myTarget.isDragging = False
-        repositionLine.Close()
-        myTarget.opacity = 1.0
-        targetSvc.ArrangeTargets()
+                        newRow.insert(posIndex, myTarget.id)
+                    self.rowDict[myRow.numRow] = newRow
+            myTarget.isDragging = False
+            repositionLine.Close()
+            myTarget.opacity = 1.0
+            targetSvc.ArrangeTargets()
+            return
 
     def ColorRepositionLine(self, myRow, excludedTargetID, repositionLine, *args):
         baseLeft, baseTop = self.GetBaseLeftAndTop()
@@ -964,31 +1004,36 @@ class TargetMgr(service.Service):
         activeID = self.GetActiveTargetID()
         if activeID is None:
             return
-        nextTarget = self.FindNextTarget(activeID, direction=1)
-        if nextTarget:
-            self._SetSelected(nextTarget)
+        else:
+            nextTarget = self.FindNextTarget(activeID, direction=1)
+            if nextTarget:
+                self._SetSelected(nextTarget)
+            return
 
     def SelectPrevTarget(self):
         activeID = self.GetActiveTargetID()
         if activeID is None:
             return
-        prevTarget = self.FindNextTarget(activeID, direction=-1)
-        if prevTarget:
-            self._SetSelected(prevTarget)
+        else:
+            prevTarget = self.FindNextTarget(activeID, direction=-1)
+            if prevTarget:
+                self._SetSelected(prevTarget)
+            return
 
-    def FindNextTarget(self, activeID, direction = 1):
+    def FindNextTarget(self, activeID, direction=1):
         allTargetIDsInOrder = self.GetSortedTargetList()
         if not allTargetIDsInOrder:
             return None
         elif activeID not in allTargetIDsInOrder:
             return allTargetIDsInOrder[0]
-        activeIndex = allTargetIDsInOrder.index(activeID)
-        if direction == 1:
-            if activeIndex == len(allTargetIDsInOrder) - 1:
-                return allTargetIDsInOrder[0]
-            return allTargetIDsInOrder[activeIndex + 1]
         else:
+            activeIndex = allTargetIDsInOrder.index(activeID)
+            if direction == 1:
+                if activeIndex == len(allTargetIDsInOrder) - 1:
+                    return allTargetIDsInOrder[0]
+                return allTargetIDsInOrder[activeIndex + 1]
             return allTargetIDsInOrder[activeIndex - 1]
+            return None
 
     def GetSortedTargetList(self, *args):
         sortedLists = []
@@ -1020,13 +1065,17 @@ class TargetMgr(service.Service):
         else:
             self.ClearTarget(tid, reason=reason)
 
-    def ClearDeadTarget(self, targetID, reason = None, *args):
+    def ClearDeadTarget(self, targetID, reason=None, *args):
         if targetID in self.targetsByID and targetID not in self.deadShipsBeingRemoved:
             try:
-                self.deadShipsBeingRemoved.add(targetID)
-                t = self.targetsByID[targetID]
-                self.SetFirstTargetActiveIfNoActive()
-                t.StartDeathAnimation()
+                try:
+                    self.deadShipsBeingRemoved.add(targetID)
+                    t = self.targetsByID[targetID]
+                    self.SetFirstTargetActiveIfNoActive()
+                    t.StartDeathAnimation()
+                except:
+                    self.LogException()
+
             finally:
                 self.ClearTarget(targetID, reason=reason)
 
@@ -1046,13 +1095,15 @@ class TargetMgr(service.Service):
             if otherID not in self.pendingTargeters:
                 self.pendingTargeters.append(otherID)
             return
-        if otherID in self.pendingTargeters:
-            self.pendingTargeters.remove(otherID)
-        tgts = self.GetTargets().keys() + self.targeting.keys()
-        if otherID != eve.session.shipid and otherID not in tgts and otherID not in self.autoTargeting and min(settings.user.ui.Get('autoTargetBack', 0), sm.GetService('godma').GetItem(session.charid).maxLockedTargets, sm.GetService('godma').GetItem(session.shipid).maxLockedTargets) > len(tgts):
-            if len(self.autoTargeting) < settings.user.ui.Get('autoTargetBack', 0):
-                self.autoTargeting.append(otherID)
-                uthread.pool('TargetManages::OnTargetByOther-->LockTarget', self.LockTarget, otherID, autotargeting=1)
+        else:
+            if otherID in self.pendingTargeters:
+                self.pendingTargeters.remove(otherID)
+            tgts = self.GetTargets().keys() + self.targeting.keys()
+            if otherID != eve.session.shipid and otherID not in tgts and otherID not in self.autoTargeting and min(settings.user.ui.Get('autoTargetBack', 0), sm.GetService('godma').GetItem(session.charid).maxLockedTargets, sm.GetService('godma').GetItem(session.shipid).maxLockedTargets) > len(tgts):
+                if len(self.autoTargeting) < settings.user.ui.Get('autoTargetBack', 0):
+                    self.autoTargeting.append(otherID)
+                    uthread.pool('TargetManages::OnTargetByOther-->LockTarget', self.LockTarget, otherID, autotargeting=1)
+            return
 
     def GetTarget(self, targetID):
         return self.targetsByID.get(targetID, None)
@@ -1073,6 +1124,7 @@ class TargetMgr(service.Service):
             if slimItem is not None:
                 if slimItem.ownerID and slimItem.ownerID in self.ownerToShipIDCache:
                     del self.ownerToShipIDCache[slimItem.ownerID]
+        return
 
     def OnTargetClear(self):
         for tid in self.targetsByID.keys():
@@ -1088,7 +1140,7 @@ class TargetMgr(service.Service):
     def GetTargeting(self):
         return self.targeting.keys()
 
-    def ClearTarget(self, tid, reason = None):
+    def ClearTarget(self, tid, reason=None):
         self.LogInfo('ClearTarget', tid)
         if tid in self.targetsByID:
             t = self.targetsByID[tid]
@@ -1109,6 +1161,7 @@ class TargetMgr(service.Service):
                 break
 
         self.SetFirstTargetActiveIfNoActive()
+        return
 
     def SetFirstTargetActiveIfNoActive(self):
         active = sm.GetService('state').GetExclState(state.activeTarget)
@@ -1117,6 +1170,7 @@ class TargetMgr(service.Service):
             if allTargetIDsInOrder:
                 targetToSelect = allTargetIDsInOrder[0]
                 sm.GetService('state').SetState(targetToSelect, state.activeTarget, 1)
+        return
 
     def GetTargetingStartTime(self, targetID):
         return self.targeting.get(targetID, None)
@@ -1124,7 +1178,7 @@ class TargetMgr(service.Service):
     def BeingTargeted(self, targetID):
         return targetID in self.targeting
 
-    def StartLockTarget(self, tid, autotargeting = 0):
+    def StartLockTarget(self, tid, autotargeting=0):
         if tid in self.GetTargets():
             self.ClearTarget(tid)
             sm.GetService('state').SetState(tid, state.targeting, 0)
@@ -1163,20 +1217,21 @@ class TargetMgr(service.Service):
     def IsInTargetingRange(self, itemID):
         if session.shipid is None or eve.session.solarsystemid is None or itemID == session.shipid:
             return False
-        if itemID is None or util.IsUniverseCelestial(itemID):
+        elif itemID is None or util.IsUniverseCelestial(itemID):
             return
-        shipItem = sm.GetService('godma').GetStateManager().GetItem(eve.session.shipid)
-        bp = sm.GetService('michelle').GetBallpark()
-        if bp is None:
-            return False
-        otherBall = bp and bp.GetBall(itemID) or None
-        if otherBall is None:
-            return False
-        dist = otherBall and max(0, otherBall.surfaceDist)
-        isInRange = dist is not None and shipItem is not None and shipItem and dist < shipItem.maxTargetRange
-        return isInRange
+        else:
+            shipItem = sm.GetService('godma').GetStateManager().GetItem(eve.session.shipid)
+            bp = sm.GetService('michelle').GetBallpark()
+            if bp is None:
+                return False
+            otherBall = bp and bp.GetBall(itemID) or None
+            if otherBall is None:
+                return False
+            dist = otherBall and max(0, otherBall.surfaceDist)
+            isInRange = dist is not None and shipItem is not None and shipItem and dist < shipItem.maxTargetRange
+            return isInRange
 
-    def LockTarget(self, tid, autotargeting = 0):
+    def LockTarget(self, tid, autotargeting=0):
         self.StartLockTarget(tid, autotargeting)
         try:
             flag, targetList = self.GetDogmaLM().AddTarget(tid)
@@ -1226,9 +1281,16 @@ class TargetMgr(service.Service):
         selected = sm.GetService('state').GetExclState(state.activeTarget)
         if selected and selected in self.targetsByID:
             return selected
+        else:
+            return None
 
     def GetTargets(self):
         return self.targetsByID
 
     def IsTarget(self, targetID):
         return targetID in self.targetsByID
+
+    def GetNumAdditionalTargetsAllowed(self):
+        maxTargets = sm.GetService('godma').GetItem(session.shipid).maxLockedTargets
+        currTargets = len(self.GetTargets())
+        return maxTargets - currTargets

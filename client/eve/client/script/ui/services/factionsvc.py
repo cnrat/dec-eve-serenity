@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\client\script\ui\services\factionsvc.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\client\script\ui\services\factionsvc.py
 import service
 import telemetry
 from collections import defaultdict
@@ -17,7 +18,7 @@ class Faction(service.Service):
     def __init__(self):
         service.Service.__init__(self)
 
-    def Run(self, memStream = None):
+    def Run(self, memStream=None):
         self.LogInfo('Starting Faction Svc')
         self.factionIDbyNPCCorpID = None
         self.factionRegions = None
@@ -30,6 +31,7 @@ class Faction(service.Service):
         self.npcCorpInfo = None
         self.corpsByFactionID = {}
         self.currentFactionID = None
+        return
 
     def OnSessionChanged(self, isRemote, session, change):
         if 'solarsystemid2' in change:
@@ -116,8 +118,9 @@ class Faction(service.Service):
           4,
           8]), self.factionStationCount.get(factionID, 0), self.factionSolarSystemCount.get(factionID, 0))
 
-    def Stop(self, memStream = None):
+    def Stop(self, memStream=None):
         self.factionIDbyNPCCorpID, self.factionRegions, self.factionConstellations, self.factionSolarSystems, self.factionRaces, self.factionAllies, self.factionEnemies = (None, None, None, None, None, None, None)
+        return None
 
     def GetFaction(self, corporationID):
         if self.factionIDbyNPCCorpID is None:

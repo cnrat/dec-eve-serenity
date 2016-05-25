@@ -1,6 +1,8 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\client\script\ui\inflight\shipSafetyButton.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\client\script\ui\inflight\shipSafetyButton.py
 import blue
 from eve.client.script.ui.control.themeColored import FillThemeColored
+from eve.common.script.sys.eveCfg import IsControllingStructure
 import uiprimitives
 import uicontrols
 import carbonui.const as uiconst
@@ -12,7 +14,7 @@ import localization
 from collections import namedtuple
 import crimewatchConst
 from math import pi, sqrt
-SafetyLevelData = namedtuple('SafetyLevelData', 'color safetySelectionHint hintText buttonText audioEvent')
+SafetyLevelData = namedtuple('SafetyLevelData', 'color safetySelectionHint safetySelectionHintLocked hintText buttonText audioEvent')
 BUTTON_FILL_NORMAL = (0.15, 0.15, 0.15, 1)
 BUTTON_FILL_HILIGHT = (0.25, 0.25, 0.25, 1)
 OPACITY_BG = 0.8
@@ -21,9 +23,9 @@ DOCK_POINTER_LENGTH = 15
 DOCK_MARGIN = 8
 DESELECTED_BUTTON_OPACITY = 0.3
 HINT_DELAY = 800
-SAFETY_LEVEL_DATA_MAP = {const.shipSafetyLevelFull: SafetyLevelData(crimewatchConst.Colors.Green, 'UI/Crimewatch/SafetyLevel/SafetyButtonFullOptionHint', 'UI/Crimewatch/SafetyLevel/SafetyButtonFullHint', 'UI/Crimewatch/SafetyLevel/SafetyButtonFull', 'wise:/crimewatch_on_play'),
- const.shipSafetyLevelPartial: SafetyLevelData(crimewatchConst.Colors.Yellow, 'UI/Crimewatch/SafetyLevel/SafetyButtonPartialOptionHint', 'UI/Crimewatch/SafetyLevel/SafetyButtonPartialHint', 'UI/Crimewatch/SafetyLevel/SafetyButtonPartial', 'wise:/crimewatch_partial_play'),
- const.shipSafetyLevelNone: SafetyLevelData(crimewatchConst.Colors.Red, 'UI/Crimewatch/SafetyLevel/SafetyButtonNoneOptionHint', 'UI/Crimewatch/SafetyLevel/SafetyButtonNoneHint', 'UI/Crimewatch/SafetyLevel/SafetyButtonNone', 'wise:/crimewatch_off_play')}
+SAFETY_LEVEL_DATA_MAP = {const.shipSafetyLevelFull: SafetyLevelData(crimewatchConst.Colors.Green, 'UI/Crimewatch/SafetyLevel/SafetyButtonFullOptionHint', 'UI/Crimewatch/SafetyLevel/SafetyButtonFullOptionHintLocked', 'UI/Crimewatch/SafetyLevel/SafetyButtonFullHint', 'UI/Crimewatch/SafetyLevel/SafetyButtonFull', 'wise:/crimewatch_on_play'),
+ const.shipSafetyLevelPartial: SafetyLevelData(crimewatchConst.Colors.Yellow, 'UI/Crimewatch/SafetyLevel/SafetyButtonPartialOptionHint', 'UI/Crimewatch/SafetyLevel/SafetyButtonPartialOptionHintLocked', 'UI/Crimewatch/SafetyLevel/SafetyButtonPartialHint', 'UI/Crimewatch/SafetyLevel/SafetyButtonPartial', 'wise:/crimewatch_partial_play'),
+ const.shipSafetyLevelNone: SafetyLevelData(crimewatchConst.Colors.Red, 'UI/Crimewatch/SafetyLevel/SafetyButtonNoneOptionHint', 'UI/Crimewatch/SafetyLevel/SafetyButtonNoneOptionHintLocked', 'UI/Crimewatch/SafetyLevel/SafetyButtonNoneHint', 'UI/Crimewatch/SafetyLevel/SafetyButtonNone', 'wise:/crimewatch_off_play')}
 
 class LightEmittingDiode(uiprimitives.Container):
     __guid__ = 'shipSafetyButton.LightEmittingDiode'
@@ -44,7 +46,7 @@ class LightEmittingDiode(uiprimitives.Container):
         self._color = color
         self.colorSprite.SetRGBA(*color)
 
-    def Blink(self, cycles = 2, audioAlert = True):
+    def Blink(self, cycles=2, audioAlert=True):
         if not self.isAnimating:
             self.isAnimating = True
             self.blinkCurve = uicore.animations.SpColorMorphTo(self.colorSprite, util.Color.BLACK, self._color, duration=0.5, loops=cycles, curveType=uiconst.ANIM_BOUNCE, callback=self._EndBlink, sleep=False)
@@ -56,6 +58,7 @@ class LightEmittingDiode(uiprimitives.Container):
         self.blinkCurve.Stop()
         self.blinkCurve = None
         self.SetColor(self._color)
+        return
 
 
 class SafetyButton(uiprimitives.Container):
@@ -69,6 +72,7 @@ class SafetyButton(uiprimitives.Container):
 
     def ApplyAttributes(self, attributes):
         uiprimitives.Container.ApplyAttributes(self, attributes)
+        self.canBeModified = not sm.GetService('crimewatchSvc').IsSafetyLockedToFullLevel()
         sm.RegisterNotify(self)
         self.safetyLevel = None
         self.selector = None
@@ -79,12 +83,16 @@ class SafetyButton(uiprimitives.Container):
         self.led = LightEmittingDiode(parent=self.content, align=uiconst.CENTER)
         safetyLevel = sm.GetService('crimewatchSvc').GetSafetyLevel()
         self.SetSafetyLevel(safetyLevel, doAlert=False)
+        return
 
-    def SetSafetyLevel(self, safetyLevel, doAlert = True):
+    def SetSafetyLevel(self, safetyLevel, doAlert=True):
         self.safetyLevel = safetyLevel
         data = SAFETY_LEVEL_DATA_MAP[safetyLevel]
         self.led.SetColor(data.color.GetRGBA())
-        hintText = localization.GetByLabel(data.hintText, color=data.color.GetHex())
+        if self.canBeModified:
+            hintText = localization.GetByLabel(data.hintText, color=data.color.GetHex())
+        else:
+            hintText = localization.GetByLabel('UI/Crimewatch/SafetyLevel/SafetyButtonFullHintLocked', color=data.color.GetHex())
         self.SetHint(hintText)
         if doAlert:
             sm.GetService('audio').SendUIEvent(data.audioEvent)
@@ -97,7 +105,8 @@ class SafetyButton(uiprimitives.Container):
 
     def OnClick(self):
         if self.selector is None or self.selector.destroyed:
-            self.selector = SafetyLevelSelector(parent=uicore.layer.hint, safetyLevel=self.safetyLevel, anchor=self)
+            self.selector = SafetyLevelSelector(parent=uicore.layer.hint, safetyLevel=self.safetyLevel, anchor=self, canBeModified=self.canBeModified)
+        return
 
     def OnMouseDown(self, btn, *args):
         self.content.top = 1
@@ -109,14 +118,16 @@ class SafetyButton(uiprimitives.Container):
         self.SetSafetyLevel(safetyLevel)
         if self.selector is None or self.selector.destroyed:
             return
-        self.selector.state = uiconst.UI_DISABLED
-        while self.selector.confirmationButton and not self.selector.confirmationButton.destroyed:
-            blue.pyos.synchro.SleepSim(25)
+        else:
+            self.selector.state = uiconst.UI_DISABLED
+            while self.selector.confirmationButton and not self.selector.confirmationButton.destroyed:
+                blue.pyos.synchro.SleepSim(25)
 
-        self.selector.SetSafetyLevel(safetyLevel)
-        blue.pyos.synchro.SleepSim(500)
-        self.selector.CloseSelector()
-        self.led.Blink(audioAlert=False)
+            self.selector.SetSafetyLevel(safetyLevel)
+            blue.pyos.synchro.SleepSim(500)
+            self.selector.CloseSelector()
+            self.led.Blink(audioAlert=False)
+            return
 
     def OnCrimewatchSafetyCheckFailed(self):
         self.led.Blink()
@@ -135,6 +146,7 @@ class SafetyLevelSelector(uiprimitives.Container):
         self.isTabStop = True
         self.confirmationButton = None
         self.anchor = attributes.get('anchor')
+        self.canBeModified = attributes.get('canBeModified', True)
         FillThemeColored(bgParent=self, opacity=OPACITY_BG)
         self.lineTrace = None
         bodyText = '<center>%s</center>' % localization.GetByLabel('UI/Crimewatch/SafetyLevel/SafetyLevelSelectionBody', suspectColor=crimewatchConst.Colors.Yellow.GetHex(), criminalColor=crimewatchConst.Colors.Red.GetHex())
@@ -147,7 +159,7 @@ class SafetyLevelSelector(uiprimitives.Container):
         self.securityButtons = []
         for safetyLevel in (const.shipSafetyLevelNone, const.shipSafetyLevelPartial, const.shipSafetyLevelFull):
             cont = uiprimitives.Container(parent=self, name='SecButtonCont', align=uiconst.TOTOP, height=44)
-            securityButton = SecurityButton(parent=cont, safetyLevel=safetyLevel, align=uiconst.CENTERTOP)
+            securityButton = SecurityButton(parent=cont, safetyLevel=safetyLevel, align=uiconst.CENTERTOP, canBeModified=self.canBeModified)
             securityButton.SetSelected(safetyLevel == currentSafetyLevel)
             securityButton.OnClick = (self.OnSecurityButtonClick, securityButton)
             self.securityButtons.append(securityButton)
@@ -165,6 +177,7 @@ class SafetyLevelSelector(uiprimitives.Container):
         self.opacity = 0.0
         uicore.animations.FadeIn(self, duration=0.1, loops=1)
         uicore.registry.SetFocus(self)
+        return
 
     def DrawPointer(self, alignToTop):
         pointerWidth = DOCK_POINTER_LENGTH * 2
@@ -216,6 +229,8 @@ class SafetyLevelSelector(uiprimitives.Container):
             color = color[:3] + (0.25,)
             self.lineTrace.AddPoint((x, y), color)
 
+        return
+
     def OnKillFocus(self):
         if not self.confirmationButton or self.confirmationButton.destroyed:
             uthread.new(self.Close)
@@ -225,6 +240,8 @@ class SafetyLevelSelector(uiprimitives.Container):
         self.Close()
 
     def OnSecurityButtonClick(self, securityButton):
+        if not self.canBeModified:
+            return
         if self.confirmationButton and not self.confirmationButton.destroyed:
             return
         currentSafetyLevel = sm.GetService('crimewatchSvc').GetSafetyLevel()
@@ -232,7 +249,7 @@ class SafetyLevelSelector(uiprimitives.Container):
             if button.safetyLevel == securityButton.safetyLevel:
                 button.Blink()
                 if securityButton.safetyLevel < currentSafetyLevel:
-                    self.confirmationButton = SafetyConfirmButton(parent=button.parent, left=3, top=1, height=27, color=securityButton.data.color.GetRGBA(), idx=0, align=uiconst.TOPRIGHT, safetyButton=button)
+                    self.confirmationButton = SafetyConfirmButton(parent=button.parent, left=3, top=1, height=27, color=securityButton.data.color.GetRGBA(), idx=0, align=uiconst.TOPRIGHT, safetyButton=button, canBeModified=self.canBeModified)
                     button.Highlight(False)
                     button.Pin()
                     uicore.registry.SetFocus(self.confirmationButton)
@@ -248,6 +265,7 @@ class SafetyLevelSelector(uiprimitives.Container):
                 button.SetSelected(False)
 
         selected.SetSelected(True, sleep=True)
+        return
 
 
 class SecurityButton(uiprimitives.Container):
@@ -264,9 +282,11 @@ class SecurityButton(uiprimitives.Container):
         uiprimitives.Container.ApplyAttributes(self, attributes)
         self.pinned = False
         self.isSelected = False
+        self.canBeModified = attributes.get('canBeModified', True)
         self.safetyLevel = attributes.get('safetyLevel')
         self.data = SAFETY_LEVEL_DATA_MAP[self.safetyLevel]
-        self.SetHint(localization.GetByLabel(self.data.safetySelectionHint))
+        self.normalHint = localization.GetByLabel(self.data.safetySelectionHint)
+        self.lockedHint = localization.GetByLabel(self.data.safetySelectionHintLocked)
         cont = uiprimitives.Container(name='content', parent=self, padding=3)
         self.text = uicontrols.EveHeaderSmall(name='buttonLabel', parent=cont, color=self.data.color.GetRGBA(), text=localization.GetByLabel(self.data.buttonText), align=uiconst.CENTER, opacity=DESELECTED_BUTTON_OPACITY, bold=True)
         self.defaultSprite = uiprimitives.Sprite(parent=self, name='default', texturePath='res:/UI/Texture/Crimewatch/SafetyButton_Default.png', align=uiconst.TOALL, state=uiconst.UI_DISABLED, color=self.data.color.GetRGBA(), opacity=DESELECTED_BUTTON_OPACITY)
@@ -275,6 +295,12 @@ class SecurityButton(uiprimitives.Container):
         self.leftArrowSprite = uiprimitives.Sprite(parent=self, name='leftArrows', texturePath='res:/UI/Texture/Crimewatch/Safety_Selection.png', align=uiconst.CENTERLEFT, pos=(-24, 0, 16, 13), state=uiconst.UI_DISABLED, color=self.data.color.GetRGBA(), opacity=0.0)
         self.rightArrows = uiprimitives.Transform(parent=self, name='rightArrowsTranform', align=uiconst.CENTERRIGHT, pos=(-24, 0, 16, 13), state=uiconst.UI_DISABLED, rotation=pi)
         self.rightArrowSprite = uiprimitives.Sprite(parent=self.rightArrows, name='rightArrows', texturePath='res:/UI/Texture/Crimewatch/Safety_Selection.png', align=uiconst.CENTERRIGHT, pos=(0, 0, 16, 13), state=uiconst.UI_DISABLED, color=self.data.color.GetRGBA(), opacity=0.0)
+
+    def GetHint(self):
+        if self.canBeModified:
+            return self.normalHint
+        else:
+            return self.lockedHint
 
     def Pin(self):
         self.pinned = True
@@ -286,7 +312,7 @@ class SecurityButton(uiprimitives.Container):
         self.text.opacity = DESELECTED_BUTTON_OPACITY
         self.defaultSprite.opacity = DESELECTED_BUTTON_OPACITY
 
-    def SetSelected(self, selected, sleep = False):
+    def SetSelected(self, selected, sleep=False):
         if selected:
             self.isSelected = True
             self.text.opacity = 1.0
@@ -304,6 +330,8 @@ class SecurityButton(uiprimitives.Container):
                 uicore.animations.FadeOut(self.rightArrowSprite, duration=0.25, curveSet=curveSet)
 
     def Highlight(self, enable):
+        if not self.canBeModified:
+            return
         if enable and not self.IsConfirmButtonActive():
             self.defaultSprite.Hide()
             self.highlightSprite.Show()
@@ -317,15 +345,17 @@ class SecurityButton(uiprimitives.Container):
                 self.text.opacity = DESELECTED_BUTTON_OPACITY
 
     def OnMouseEnter(self):
-        self.Highlight(True)
+        if self.canBeModified:
+            self.Highlight(True)
 
     def OnMouseExit(self):
-        self.Highlight(False)
+        if self.canBeModified:
+            self.Highlight(False)
 
     def IsConfirmButtonActive(self):
         return not (self.parent.parent.confirmationButton is None or self.parent.parent.confirmationButton.destroyed)
 
-    def Blink(self, sleep = True):
+    def Blink(self, sleep=True):
         curveSet = uicore.animations.SpGlowFadeTo(self.highlightSprite, startColor=self.data.color.GetRGBA(), glowExpand=0.0)
         uicore.animations.SpGlowFadeTo(self.defaultSprite, startColor=self.data.color.GetRGBA(), glowExpand=0.0, curveSet=curveSet)
 
@@ -342,6 +372,7 @@ class SafetyConfirmButton(uiprimitives.Container):
     def ApplyAttributes(self, attributes):
         uiprimitives.Container.ApplyAttributes(self, attributes)
         self.isTabStop = True
+        self.canBeModified = attributes.get('canBeModified', True)
         self.safetyButton = attributes.get('safetyButton')
         self.color = attributes.get('color', (1, 1, 1, 1))
         self.bgColor = (self.color[0] * 0.3,
@@ -354,12 +385,16 @@ class SafetyConfirmButton(uiprimitives.Container):
         self.SetHint(localization.GetByLabel('UI/Crimewatch/SafetyLevel/SafetyConfirmHint', color=self.safetyButton.data.color.GetHex()))
 
     def OnMouseEnter(self):
-        self.label.SetTextColor(util.Color.WHITE)
+        if self.canBeModified:
+            self.label.SetTextColor(util.Color.WHITE)
 
     def OnMouseExit(self):
-        self.label.SetTextColor(self.color)
+        if self.canBeModified:
+            self.label.SetTextColor(self.color)
 
     def OnClick(self):
+        if not self.canBeModified:
+            return
         self.state = uiconst.UI_DISABLED
         self.safetyButton.Blink()
         self.Blink()

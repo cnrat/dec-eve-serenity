@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\common\script\paperDoll\paperDollDefinitions.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\common\script\paperDoll\paperDollDefinitions.py
 import os
 import blue
 import yaml
@@ -358,7 +359,7 @@ def CreateEntries(path):
     return entries
 
 
-def GetMorphsFromGr2(path, ignoreFileNames = []):
+def GetMorphsFromGr2(path, ignoreFileNames=[]):
     import fnmatch
     filename = ''
     gr2Path = ''
@@ -428,7 +429,7 @@ def AddBlendshapeEntries(path, entries, category):
             entries[entry].append(bs)
 
 
-def DumpBlendshapes(malePath, femalePath, mode = 'w'):
+def DumpBlendshapes(malePath, femalePath, mode='w'):
 
     def DumpGender(path):
         import CCP_P4
@@ -563,6 +564,7 @@ class DNAConverter(LogMixin):
         self.modifierLocationCache = None
         self.colorNamesCache = None
         self.colorKeysCache = None
+        return
 
     def ConvertDNAForDB(self, dollInfo):
         dollData = util.KeyVal(appearance=None, sculpts=[], colors=[], modifiers=[])

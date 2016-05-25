@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\client\script\environment\fittingSvc.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\client\script\environment\fittingSvc.py
 import sys
 from collections import defaultdict
 from eve.client.script.ui.shared.fittingGhost.fittingSearchUtil import SearchFittingHelper
@@ -6,7 +7,7 @@ from eve.client.script.ui.shared.fittingMgmtWindow import ViewFitting
 from eve.common.script.sys.eveCfg import GetActiveShip
 from shipfitting import Fitting
 import inventorycommon
-from inventorycommon.util import IsShipFittingFlag
+from inventorycommon.util import IsShipFittingFlag, IsShipFittable
 import service
 import util
 import blue
@@ -35,8 +36,9 @@ class fittingSvc(service.Service):
         self.importFittingUtil = None
         self.simulated = False
         self.searchFittingHelper = SearchFittingHelper(cfg)
+        return
 
-    def Run(self, ms = None):
+    def Run(self, ms=None):
         self.state = service.SERVICE_RUNNING
         self.fittings = {}
 
@@ -57,6 +59,7 @@ class fittingSvc(service.Service):
 
     def DeleteLegacyClientFittings(self):
         settings.char.generic.Set('fittings', None)
+        return
 
     def GetFittingDictForCurrentFittingWindowShip(self):
         if self.IsShipSimulated():
@@ -84,7 +87,7 @@ class fittingSvc(service.Service):
         chargesByType = defaultdict(int)
         iceByType = defaultdict(int)
         for item in items:
-            if IsShipFittingFlag(item.flagID) and item.categoryID in (const.categoryModule, const.categorySubSystem):
+            if IsShipFittingFlag(item.flagID) and IsShipFittable(item.categoryID):
                 fitData.append((int(item.typeID), int(item.flagID), 1))
             elif item.categoryID == const.categoryDrone and item.flagID == const.flagDroneBay:
                 typeID = item.typeID
@@ -129,8 +132,9 @@ class fittingSvc(service.Service):
         fitting.description = ''
         fitting.fitData = fitData
         self.DisplayFitting(fitting)
+        return
 
-    def PersistFitting(self, ownerID, name, description, fit = None):
+    def PersistFitting(self, ownerID, name, description, fit=None):
         if name is None or name.strip() == '':
             raise UserError('FittingNeedsToHaveAName')
         name = name.strip()
@@ -200,7 +204,7 @@ class fittingSvc(service.Service):
         shipTypeName = evetypes.GetNameOrNone(fitting.shipTypeID)
         if shipTypeName is None:
             raise UserError('InvalidFittingDataTypeID', {'typeName': fitting.shipTypeID})
-        if evetypes.GetCategoryID(fitting.shipTypeID) != const.categoryShip:
+        if evetypes.GetCategoryID(fitting.shipTypeID) not in (const.categoryShip, const.categoryStructure):
             raise UserError('InvalidFittingDataShipNotShip', {'typeName': shipTypeName})
         if len(fitting.fitData) == 0:
             raise UserError('ParseFittingFittingDataEmpty')
@@ -244,11 +248,11 @@ class fittingSvc(service.Service):
         return self.LoadFitting(fitting)
 
     def LoadFitting(self, fitting):
-        if session.stationid is None:
+        if session.stationid is None and session.structureid is None:
             raise UserError('CannotLoadFittingInSpace')
         if fitting is None:
             raise UserError('FittingDoesNotExist')
-        shipInv = self.invCache.GetInventoryFromId(util.GetActiveShip(), locationID=session.stationid2)
+        shipInv = self.invCache.GetInventoryFromId(util.GetActiveShip())
         chargesByType, dronesByType, iceByType, itemTypes, modulesByFlag, rigsToFit = self.GetTypesToFit(fitting, shipInv)
         fitRigs = False
         if rigsToFit:
@@ -256,9 +260,8 @@ class fittingSvc(service.Service):
                 eve.Message('CustomNotify', {'notify': localization.GetByLabel('UI/Fitting/ShipHasRigsAlready')})
             elif eve.Message('FitRigs', {}, uiconst.YESNO) == uiconst.ID_YES:
                 fitRigs = True
-        inv = self.invCache.GetInventory(const.containerHangar)
         itemsToFit = defaultdict(set)
-        for item in inv.List():
+        for item in self.invCache.GetInventory(const.containerHangar).List(const.flagHangar):
             if item.typeID in itemTypes:
                 qtyNeeded = itemTypes[item.typeID]
                 if qtyNeeded == 0:
@@ -267,7 +270,7 @@ class fittingSvc(service.Service):
                 itemsToFit[item.typeID].add(item.itemID)
                 itemTypes[item.typeID] -= quantityToTake
 
-        failedToLoad = shipInv.FitFitting(util.GetActiveShip(), itemsToFit, session.stationid2, modulesByFlag, dronesByType, chargesByType, iceByType, fitRigs)
+        failedToLoad = shipInv.FitFitting(util.GetActiveShip(), itemsToFit, session.stationid2 or session.structureid, modulesByFlag, dronesByType, chargesByType, iceByType, fitRigs)
         for typeID, qty in failedToLoad:
             itemTypes[typeID] += qty
 
@@ -283,6 +286,9 @@ class fittingSvc(service.Service):
             text = '<br>'.join(textList)
             text = localization.GetByLabel('UI/Fitting/MissingItems', types=text)
             eve.Message('CustomInfo', {'info': text}, modal=False)
+        if settings.user.ui.Get('useFittingNameForShips', 0):
+            self.invCache.GetInventoryMgr().SetLabel(util.GetActiveShip(), fitting.get('name')[:20])
+        return
 
     def GetTypesToFit(self, fitting, shipInv):
         fittingObj = Fitting(fitting.fitData, shipInv)
@@ -305,6 +311,7 @@ class fittingSvc(service.Service):
         wnd = form.FittingMgmt.GetIfOpen()
         if wnd is not None:
             wnd.DrawFittings()
+        return
 
     def ChangeNameAndDescription(self, fittingID, ownerID, name, description):
         if name is None or name.strip() == '':
@@ -320,11 +327,14 @@ class fittingSvc(service.Service):
                 self.fittings[ownerID][fittingID].name = name
                 self.fittings[ownerID][fittingID].description = description
         self.UpdateFittingWindow()
+        return
 
     def GetFitting(self, ownerID, fittingID):
         self.PrimeFittings(ownerID)
         if fittingID in self.fittings[ownerID]:
             return self.fittings[ownerID][fittingID]
+        else:
+            return None
 
     def ChangeOwner(self, ownerID, fittingID, newOwnerID):
         fitting = self.GetFitting(ownerID, fittingID)
@@ -353,7 +363,7 @@ class fittingSvc(service.Service):
             raise UserError('FittingInvalidForViewing')
         self.DisplayFitting(fitting, truncated=truncated)
 
-    def DisplayFitting(self, fitting, truncated = False):
+    def DisplayFitting(self, fitting, truncated=False):
         if uicore.uilib.Key(uiconst.VK_SHIFT):
             fittingsList = fitting.fitData[:]
             fittingsList.sort()
@@ -376,7 +386,7 @@ class fittingSvc(service.Service):
         for typeID, flag, qty in fitting.fitData:
             categoryID = evetypes.GetCategoryID(typeID)
             groupID = evetypes.GetGroupID(typeID)
-            if categoryID in (const.categoryModule, const.categorySubSystem):
+            if IsShipFittable(categoryID):
                 typesByFlag[flag] = typeID
             elif categoryID == const.categoryDrone:
                 drones.append((typeID, qty))
@@ -417,7 +427,8 @@ class fittingSvc(service.Service):
          const.effectMedPower: const.flagMedSlot0,
          const.effectLoPower: const.flagLoSlot0,
          const.effectRigSlot: const.flagRigSlot0,
-         const.effectSubSystem: const.flagSubSystemSlot0}
+         const.effectSubSystem: const.flagSubSystemSlot0,
+         const.effectServiceSlot: const.flagServiceSlot0}
         truncated = False
         if not fittingString.endswith('::'):
             truncated = True
@@ -468,7 +479,8 @@ class fittingSvc(service.Service):
          ('medSlots', const.effectMedPower),
          ('lowSlots', const.effectLoPower),
          ('rigSlots', const.effectRigSlot),
-         ('subSystems', const.effectSubSystem)]:
+         ('subSystems', const.effectSubSystem),
+         ('serviceSlots', const.effectServiceSlot)]:
             slots = typesByRack[key]
             if len(slots) > 0:
                 label = cfg.dgmeffects.Get(effectID).displayName
@@ -524,11 +536,12 @@ class fittingSvc(service.Service):
         return scrolllist
 
     def GetTypesByRack(self, fitting):
-        ret = {'hiSlots': {},
-         'medSlots': {},
-         'lowSlots': {},
-         'rigSlots': {},
-         'subSystems': {},
+        ret = {'hiSlots': defaultdict(int),
+         'medSlots': defaultdict(int),
+         'lowSlots': defaultdict(int),
+         'rigSlots': defaultdict(int),
+         'subSystems': defaultdict(int),
+         'serviceSlots': defaultdict(int),
          'charges': {},
          'drones': {},
          'ice': {}}
@@ -538,24 +551,16 @@ class fittingSvc(service.Service):
             elif evetypes.GetGroupID(typeID) == const.groupIceProduct:
                 ret['ice'][typeID] = qty
             elif flag >= const.flagHiSlot0 and flag <= const.flagHiSlot7:
-                if typeID not in ret['hiSlots']:
-                    ret['hiSlots'][typeID] = 0
                 ret['hiSlots'][typeID] += 1
             elif flag >= const.flagMedSlot0 and flag <= const.flagMedSlot7:
-                if typeID not in ret['medSlots']:
-                    ret['medSlots'][typeID] = 0
                 ret['medSlots'][typeID] += 1
             elif flag >= const.flagLoSlot0 and flag <= const.flagLoSlot7:
-                if typeID not in ret['lowSlots']:
-                    ret['lowSlots'][typeID] = 0
                 ret['lowSlots'][typeID] += 1
             elif flag >= const.flagRigSlot0 and flag <= const.flagRigSlot7:
-                if typeID not in ret['rigSlots']:
-                    ret['rigSlots'][typeID] = 0
                 ret['rigSlots'][typeID] += 1
+            elif flag >= const.flagServiceSlot0 and flag <= const.flagServiceSlot7:
+                ret['serviceSlots'][typeID] += 1
             elif flag >= const.flagSubSystemSlot0 and flag <= const.flagSubSystemSlot7:
-                if typeID not in ret['subSystems']:
-                    ret['subSystems'][typeID] = 0
                 ret['subSystems'][typeID] += 1
             elif flag == const.flagDroneBay:
                 ret['drones'][typeID] = qty
@@ -647,6 +652,8 @@ class fittingSvc(service.Service):
             log.LogWarn('Failed to import fitting from clipboard, e = ', e)
             eve.Message('ImportingErrorFromClipboard')
 
+        return
+
     def GetImportFittingUtil(self):
         if self.importFittingUtil is None:
             self.importFittingUtil = ImportFittingUtil(cfg.dgmtypeeffects, sm.GetService('clientDogmaStaticSvc'))
@@ -665,6 +672,7 @@ class fittingSvc(service.Service):
         fitting.ownerID = 0
         windowID = 'Save_ViewFitting_%s' % fitting.shipTypeID
         ViewFitting.Open(windowID=windowID, fitting=fitting, truncated=None)
+        return
 
     def GetShipIDForFittingWindow(self):
         if self.simulated:

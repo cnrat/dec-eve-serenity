@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\common\modules\nice\client\_nastyspace\dungeonEditorToolGeometry.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\common\modules\nice\client\_nastyspace\dungeonEditorToolGeometry.py
 from eve.client.script.parklife.dungeonEditorToolGeometry import BLUE
 from eve.client.script.parklife.dungeonEditorToolGeometry import BOX_LINES
 from eve.client.script.parklife.dungeonEditorToolGeometry import BOX_TRIS

@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\packages\localizationBSD\exporters\localizationXMLResourceExporter.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\packages\localizationBSD\exporters\localizationXMLResourceExporter.py
 import xml.etree.ElementTree
 import os
 import zipfile
@@ -21,7 +22,7 @@ class LocalizationXMLResourceExporter(localizationExporter.LocalizationExporterB
     XML_STRING = 'string'
 
     @classmethod
-    def ExportWithProjectSettingsToZipFileObject(cls, projectID, fileObject, exportFileName, getSubmittedOnly = True, bsdBranchID = None):
+    def ExportWithProjectSettingsToZipFileObject(cls, projectID, fileObject, exportFileName, getSubmittedOnly=True, bsdBranchID=None):
         if not exportFileName:
             exportFileName = 'localization'
         rootElement = cls._CreateXMLElements(projectID, getSubmittedOnly)
@@ -41,7 +42,7 @@ class LocalizationXMLResourceExporter(localizationExporter.LocalizationExporterB
         return (zipDataFile, [exportFileName + '.xml'])
 
     @classmethod
-    def ExportWithProjectSettings(cls, projectID, exportLocation, exportFileName, getSubmittedOnly = True, **kwargs):
+    def ExportWithProjectSettings(cls, projectID, exportLocation, exportFileName, getSubmittedOnly=True, **kwargs):
         if not exportLocation or not exportFileName:
             raise LocalizationExporterError('Filepath strings are incomplete. exportLocation, exportFileName: %s, %s.' % (exportLocation, exportFileName))
         exportedFilenames = []
@@ -89,5 +90,5 @@ class LocalizationXMLResourceExporter(localizationExporter.LocalizationExporterB
         return rootElement
 
     @classmethod
-    def GetResourceNamesWithProjectSettings(cls, projectID, exportLocation, exportFileName, getSubmittedOnly = True, **kwargs):
+    def GetResourceNamesWithProjectSettings(cls, projectID, exportLocation, exportFileName, getSubmittedOnly=True, **kwargs):
         return [os.path.join(exportLocation, exportFileName + cls.FILE_EXT)]

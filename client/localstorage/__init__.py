@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\packages\localstorage\__init__.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\packages\localstorage\__init__.py
 from stackless import getcurrent
 import weakref
 import __builtin__
@@ -16,6 +17,8 @@ class Sissy:
             return obj
         except (KeyError, ReferenceError):
             return None
+
+        return None
 
     def __nonzero__(self):
         return bool(self._Obj())

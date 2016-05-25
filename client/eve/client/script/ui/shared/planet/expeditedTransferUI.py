@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\client\script\ui\shared\planet\expeditedTransferUI.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\client\script\ui\shared\planet\expeditedTransferUI.py
 import math
 import carbonui.const as uiconst
 import const
@@ -61,6 +62,7 @@ class ExpeditedTransferManagementWindow(uicontrols.Window):
         self.SetDestination(colony.GetPin(self.path[-1]))
         self.OnResizeUpdate()
         self.updateTimer = base.AutoTimer(100, self.SetNextTransferText)
+        return
 
     def ConstructLayout(self):
         pad = const.defaultPadding
@@ -146,6 +148,7 @@ class ExpeditedTransferManagementWindow(uicontrols.Window):
         self.sr.destPinSubText = uicontrols.EveLabelLarge(text='', parent=self.sr.destPinHeader, align=uiconst.TOTOP, top=5, state=uiconst.UI_HIDDEN)
         self.sr.destPinSubGauge = uicls.Gauge(parent=self.sr.destPinHeader, value=0.0, color=planetCommonUI.PLANET_COLOR_STORAGE, label=localization.GetByLabel('UI/PI/Common/Capacity'), left=0, top=24, state=uiconst.UI_HIDDEN)
         self.sr.destPinListScroll = uicontrols.Scroll(parent=self.sr.destPinList)
+        return
 
     def OnTransferScrollDropData(self, dragObj, nodes, *args):
         if nodes[0].scroll.name == 'pinList':
@@ -206,6 +209,7 @@ class ExpeditedTransferManagementWindow(uicontrols.Window):
             self.transferContents[typeID] += qty
 
         self.RefreshLists()
+        return
 
     def _ApplyConsumerFilter(self, toMove):
         newToMove = {}
@@ -257,6 +261,7 @@ class ExpeditedTransferManagementWindow(uicontrols.Window):
             self.pinContents[typeID] += qty
 
         self.RefreshLists()
+        return
 
     def GoForTransfer(self, *args):
         if len(self.transferContents) < 1:
@@ -304,12 +309,14 @@ class ExpeditedTransferManagementWindow(uicontrols.Window):
         self.sr.volumeText.text = localization.GetByLabel('UI/PI/Common/VolumeAmount', amount=transferVolume)
         self.SetNextTransferText()
         self.SetCooldownTimeText()
+        return
 
     def SetNextTransferText(self):
         if self.sourcePin.lastRunTime is None or self.sourcePin.lastRunTime <= blue.os.GetWallclockTime():
             self.sr.timeText.text = localization.GetByLabel('UI/PI/Common/NextTransferNow')
         else:
             self.sr.timeText.text = localization.GetByLabel('UI/PI/Common/NextTransferTime', time=self.sourcePin.lastRunTime - blue.os.GetWallclockTime())
+        return
 
     def SetCooldownTimeText(self):
         time = planetCommon.GetExpeditedTransferTime(self.availableBandwidth, self.transferContents)
@@ -331,48 +338,50 @@ class ExpeditedTransferManagementWindow(uicontrols.Window):
             self.sr.destPinSubText.state = uiconst.UI_DISABLED
             self.sr.destPinListScroll.Load(contentList=[], noContentHint=localization.GetByLabel('UI/PI/Common/NoOriginSelected'))
             return
-        self.sr.destPinText.text = localization.GetByLabel('UI/PI/Common/TransferDestinationName', typeName=planetCommon.GetGenericPinName(self.destPin.typeID, self.destPin.id))
-        scrollHeaders = []
-        scrollContents = []
-        scrollNoContentText = ''
-        if self.destPin.IsConsumer():
-            self.sr.destPinSubText.state = uiconst.UI_DISABLED
-            if self.destPin.schematicID is None:
-                self.sr.destPinSubText.text = localization.GetByLabel('UI/PI/Common/NoSchematicInstalled')
-                scrollNoContentText = localization.GetByLabel('UI/PI/Common/NoSchematicInstalled')
-            else:
-                self.sr.destPinSubText.text = localization.GetByLabel('UI/PI/Common/SchematicName', schematicName=cfg.schematics.Get(self.destPin.schematicID).schematicName)
-                scrollHeaders = []
-                demands = self.destPin.GetConsumables()
-                for typeID, qty in demands.iteritems():
-                    remainingSpace = self.destPin.CanAccept(typeID, -1)
-                    load = qty - remainingSpace
-                    fraction = load / float(qty)
-                    data = {'label': evetypes.GetName(typeID),
-                     'text': localization.GetByLabel('UI/PI/Common/UnitQuantityAndDemand', quantity=load, demand=qty),
-                     'value': fraction,
-                     'iconID': evetypes.GetIconID(typeID)}
-                    entry = listentry.Get('StatusBar', data=data)
-                    scrollContents.append(entry)
+        else:
+            self.sr.destPinText.text = localization.GetByLabel('UI/PI/Common/TransferDestinationName', typeName=planetCommon.GetGenericPinName(self.destPin.typeID, self.destPin.id))
+            scrollHeaders = []
+            scrollContents = []
+            scrollNoContentText = ''
+            if self.destPin.IsConsumer():
+                self.sr.destPinSubText.state = uiconst.UI_DISABLED
+                if self.destPin.schematicID is None:
+                    self.sr.destPinSubText.text = localization.GetByLabel('UI/PI/Common/NoSchematicInstalled')
+                    scrollNoContentText = localization.GetByLabel('UI/PI/Common/NoSchematicInstalled')
+                else:
+                    self.sr.destPinSubText.text = localization.GetByLabel('UI/PI/Common/SchematicName', schematicName=cfg.schematics.Get(self.destPin.schematicID).schematicName)
+                    scrollHeaders = []
+                    demands = self.destPin.GetConsumables()
+                    for typeID, qty in demands.iteritems():
+                        remainingSpace = self.destPin.CanAccept(typeID, -1)
+                        load = qty - remainingSpace
+                        fraction = load / float(qty)
+                        data = {'label': evetypes.GetName(typeID),
+                         'text': localization.GetByLabel('UI/PI/Common/UnitQuantityAndDemand', quantity=load, demand=qty),
+                         'value': fraction,
+                         'iconID': evetypes.GetIconID(typeID)}
+                        entry = listentry.Get('StatusBar', data=data)
+                        scrollContents.append(entry)
 
-        elif self.destPin.IsStorage():
-            self.sr.destPinSubGauge.state = uiconst.UI_DISABLED
-            self.sr.destPinSubGauge.SetText(localization.GetByLabel('UI/PI/Common/Capacity'))
-            usageRatio = self.destPin.capacityUsed / self.destPin.GetCapacity()
-            self.sr.destPinSubGauge.SetSubText(localization.GetByLabel('UI/PI/Common/CapacityProportionUsed', capacityUsed=self.destPin.capacityUsed, capacityMax=self.destPin.GetCapacity(), percentage=usageRatio * 100.0))
-            self.sr.destPinSubGauge.SetValue(usageRatio)
-            scrollHeaders = [localization.GetByLabel('UI/Common/Type'), localization.GetByLabel('UI/Common/Name'), localization.GetByLabel('UI/Common/Quantity')]
-            contents = self.destPin.GetContents()
-            for typeID, qty in contents.iteritems():
-                lbl = '<t>%s<t>%d' % (evetypes.GetName(typeID), qty)
-                scrollContents.append(listentry.Get('DraggableItem', {'itemID': None,
-                 'typeID': typeID,
-                 'label': lbl,
-                 'getIcon': 1,
-                 'quantity': qty}))
+            elif self.destPin.IsStorage():
+                self.sr.destPinSubGauge.state = uiconst.UI_DISABLED
+                self.sr.destPinSubGauge.SetText(localization.GetByLabel('UI/PI/Common/Capacity'))
+                usageRatio = self.destPin.capacityUsed / self.destPin.GetCapacity()
+                self.sr.destPinSubGauge.SetSubText(localization.GetByLabel('UI/PI/Common/CapacityProportionUsed', capacityUsed=self.destPin.capacityUsed, capacityMax=self.destPin.GetCapacity(), percentage=usageRatio * 100.0))
+                self.sr.destPinSubGauge.SetValue(usageRatio)
+                scrollHeaders = [localization.GetByLabel('UI/Common/Type'), localization.GetByLabel('UI/Common/Name'), localization.GetByLabel('UI/Common/Quantity')]
+                contents = self.destPin.GetContents()
+                for typeID, qty in contents.iteritems():
+                    lbl = '<t>%s<t>%d' % (evetypes.GetName(typeID), qty)
+                    scrollContents.append(listentry.Get('DraggableItem', {'itemID': None,
+                     'typeID': typeID,
+                     'label': lbl,
+                     'getIcon': 1,
+                     'quantity': qty}))
 
-            scrollNoContentText = localization.GetByLabel('UI/PI/Common/StorehouseIsEmpty')
-        self.sr.destPinListScroll.Load(contentList=scrollContents, headers=scrollHeaders, noContentHint=scrollNoContentText)
+                scrollNoContentText = localization.GetByLabel('UI/PI/Common/StorehouseIsEmpty')
+            self.sr.destPinListScroll.Load(contentList=scrollContents, headers=scrollHeaders, noContentHint=scrollNoContentText)
+            return
 
     def SetDestination(self, destinationPin):
         self.destPin = destinationPin

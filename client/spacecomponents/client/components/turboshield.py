@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\packages\spacecomponents\client\components\turboshield.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\packages\spacecomponents\client\components\turboshield.py
 import logging
 from clienteffects import StartShipEffect, StopShipEffect
 from spacecomponents.client.messages import MSG_ON_SLIM_ITEM_UPDATED, MSG_ON_TARGET_BRACKET_ADDED, MSG_ON_TARGET_BRACKET_REMOVED
@@ -19,6 +20,7 @@ class TurboShield(Component):
         self.SubscribeToMessage(MSG_ON_TARGET_BRACKET_ADDED, self.OnTargetBracketAdded)
         self.SubscribeToMessage(MSG_ON_TARGET_BRACKET_REMOVED, self.OnTargetBracketRemoved)
         self.targetBracket = None
+        return
 
     def OnAddedToSpace(self, slimItem):
         logger.debug('TurboShield.OnAddedToSpace %d', self.itemID)
@@ -49,7 +51,9 @@ class TurboShield(Component):
             else:
                 texturePath = None
             self.targetBracket.SetGaugeTextureForBar('shieldBar', texturePath)
+        return
 
     def OnTargetBracketRemoved(self):
         logger.debug('Target bracket removed')
         self.targetBracket = None
+        return

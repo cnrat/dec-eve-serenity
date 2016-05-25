@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\packages\carbonui\camera\cameraDebugClient.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\packages\carbonui\camera\cameraDebugClient.py
 import service
 import carbonui.const as uiconst
 import cameras
@@ -33,6 +34,7 @@ class CameraDebugClient(service.Service):
         if self.mouseEnterCookie:
             uicore.event.UnregisterForTriuiEvents(self.mouseEnterCookie)
             self.mouseEnterCookie = None
+        return
 
     def OnGlobalKeyDownCallback(self, wnd, eventID, (vkey, flag)):
         activeCamera = self.cameraClient.GetActiveCamera()
@@ -76,7 +78,7 @@ class CameraDebugClient(service.Service):
         return True
 
     def _GetMouseTurnSpeed(self):
-        return 0.003
+        pass
 
     def ToggleDebugCameraUpdate(self):
         activeCamera = self.cameraClient.GetActiveCamera()

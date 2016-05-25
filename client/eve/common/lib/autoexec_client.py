@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\common\lib\autoexec_client.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\common\lib\autoexec_client.py
 import blue
 import stackless
 from carbon.common.lib import autoexec_client_core
@@ -63,6 +64,8 @@ servicesToRun = ['counter',
  'browserImage',
  'sofService',
  'prefetchSvc',
- 'visualEffect']
+ 'visualEffect',
+ 'projectDiscoveryClient',
+ 'structureServices']
 autoexec_evecore.SetupForChina()
 autoexec_client_core.StartClient(appCacheDirs, userCacheDirs, servicesToRun)

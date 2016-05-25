@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\client\script\ui\shared\neocom\addressBook\manageLabels.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\client\script\ui\shared\neocom\addressBook\manageLabels.py
 import math
 import sys
 import service
@@ -44,6 +45,7 @@ class ManageLabels(ManageLabelsBase):
           None,
           81]], parent=self.sr.bottom, idx=0, line=1)
         self.LoadScroll()
+        return
 
     def AssignLabelFromBtn(self, *args):
         self.ManageLabel(assign=1)
@@ -51,7 +53,7 @@ class ManageLabels(ManageLabelsBase):
     def RemoveLabelFromBtn(self, *args):
         self.ManageLabel(assign=0)
 
-    def ManageLabel(self, assign = 1):
+    def ManageLabel(self, assign=1):
         labelsChecked = self.FindLabelsChecked()
         numLabels = len(labelsChecked)
         scroll = None
@@ -97,3 +99,4 @@ class ManageLabels(ManageLabelsBase):
             sm.StartService('addressbook').AssignLabelFromWnd(contactIDs, sum, displayNotify=0)
         else:
             sm.StartService('addressbook').RemoveLabelFromWnd(contactIDs, sum)
+        return

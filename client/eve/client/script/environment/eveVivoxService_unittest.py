@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\client\script\environment\eveVivoxService_unittest.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\client\script\environment\eveVivoxService_unittest.py
 import unittest
 VIVOX_NONE = 0
 VIVOX_INITIALIZING = 1
@@ -45,6 +46,7 @@ class _TestEveVivox(unittest.TestCase):
         self.sm.RemoteSvc = lambda *args: MockSvc(args[0])
         self.eve.LocalSvc = lambda *args: MockSvc(args[0])
         self.sm.GetService = lambda *args: MockSvc(args[0])
+        return
 
     def tearDown(self):
         mock.TearDown(self)

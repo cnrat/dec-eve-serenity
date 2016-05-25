@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\client\script\ui\inflight\shipModuleButton\shipmodulebutton.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\client\script\ui\inflight\shipModuleButton\shipmodulebutton.py
 from carbonui.primitives.containerAutoSize import ContainerAutoSize
 import evetypes
 from inventorycommon.util import GetItemVolume
@@ -85,8 +86,9 @@ class ModuleButton(uiprimitives.Container):
         if getattr(self, 'invCookie', None) is not None:
             sm.GetService('inv').Unregister(self.invCookie)
         uiprimitives.Container.Close(self, *args, **kwds)
+        return
 
-    def Setup(self, moduleinfo, grey = None):
+    def Setup(self, moduleinfo, grey=None):
         self.crimewatchSvc = sm.GetService('crimewatchSvc')
         if not len(self.__cgattrs__):
             self.__cgattrs__.extend([ a.attributeID for a in cfg.dgmattribs if cgre.match(a.attributeName) is not None ])
@@ -169,6 +171,7 @@ class ModuleButton(uiprimitives.Container):
         self.EnableDrag()
         self.autoreload = settings.char.autoreload.Get(self.sr.moduleInfo.itemID, 1)
         uthread.new(self.BlinkIcon)
+        return
 
     def OLButtonDown(self, btn, *args):
         btn.top = 6
@@ -225,6 +228,7 @@ class ModuleButton(uiprimitives.Container):
             quantityParent = uiprimitives.Container(parent=self, name='quantityParent', pos=(18, 27, 24, 10), align=uiconst.TOPLEFT, state=uiconst.UI_DISABLED, idx=0)
             self.sr.qtylabel = uicontrols.Label(text='', parent=quantityParent, fontsize=9, letterspace=1, left=3, top=0, width=30, state=uiconst.UI_DISABLED)
             underlay = uiprimitives.Sprite(parent=quantityParent, name='underlay', pos=(0, 0, 0, 0), align=uiconst.TOALL, state=uiconst.UI_DISABLED, texturePath='res:/UI/Texture/classes/ShipUI/slotQuantityUnderlay.png', color=(0.0, 0.0, 0.0, 1.0))
+        return
 
     def SetCharge(self, charge):
         if charge and charge.stacksize != 0:
@@ -244,6 +248,7 @@ class ModuleButton(uiprimitives.Container):
         self.CheckOverload()
         self.CheckOnline()
         self.CheckMasterSlave()
+        return
 
     def UpdateChargeQuantity(self, charge):
         if charge is self.charge:
@@ -266,6 +271,7 @@ class ModuleButton(uiprimitives.Container):
         else:
             self.sr.groupHighlight.state = uiconst.UI_DISABLED
         uthread.new(self.PulseGroupHighlight)
+        return
 
     def StopShowingGroupHighlight(self):
         self.dragging = False
@@ -289,22 +295,26 @@ class ModuleButton(uiprimitives.Container):
             if self.sr.damageState:
                 self.sr.damageState.state = uiconst.UI_HIDDEN
             return
-        imageIndex = max(1, int(damage * 8))
-        if self.sr.damageState is None:
-            if self.sr.ramps:
-                idx = OVERLOADBTN_INDEX + 2
-            else:
-                idx = OVERLOADBTN_INDEX + 1
-            self.sr.damageState = DamageStateCont(parent=self.parent, name='damageState', pos=(0, 0, 64, 64), align=uiconst.TOPLEFT, state=uiconst.UI_NORMAL, texturePath='res:/UI/Texture/classes/ShipUI/slotDamage_%s.png' % imageIndex, idx=idx)
-        self.sr.damageState.state = uiconst.UI_NORMAL
-        self.sr.damageState.SetDamage(damage)
-        amount = self.sr.moduleInfo.damage / self.sr.moduleInfo.hp * 100
-        self.sr.damageState.hint = localization.GetByLabel('UI/Inflight/Overload/hintDamagedModule', preText='', amount=amount)
-        self.sr.damageState.Blink(damage)
+        else:
+            imageIndex = max(1, int(damage * 8))
+            if self.sr.damageState is None:
+                if self.sr.ramps:
+                    idx = OVERLOADBTN_INDEX + 2
+                else:
+                    idx = OVERLOADBTN_INDEX + 1
+                self.sr.damageState = DamageStateCont(parent=self.parent, name='damageState', pos=(0, 0, 64, 64), align=uiconst.TOPLEFT, state=uiconst.UI_NORMAL, texturePath='res:/UI/Texture/classes/ShipUI/slotDamage_%s.png' % imageIndex, idx=idx)
+            self.sr.damageState.state = uiconst.UI_NORMAL
+            self.sr.damageState.SetDamage(damage)
+            amount = self.sr.moduleInfo.damage / self.sr.moduleInfo.hp * 100
+            self.sr.damageState.hint = localization.GetByLabel('UI/Inflight/Overload/hintDamagedModule', preText='', amount=amount)
+            self.sr.damageState.Blink(damage)
+            return
 
     def GetVolume(self):
         if self.charge:
             return GetItemVolume(self.charge, 1)
+        else:
+            return None
 
     def IsItemHere(self, rec):
         ret = rec.locationID == eve.session.shipid and rec.flagID == self.locationFlag and evetypes.GetCategoryID(rec.typeID) == const.categoryCharge
@@ -325,15 +335,19 @@ class ModuleButton(uiprimitives.Container):
             if self.charge and rec.itemID == self.id:
                 self.RemoveModulesBeingReloaded()
                 self.SetCharge(None)
+        return
 
     def RemoveModulesBeingReloaded(self):
         if self.stateManager.GetReloadTimes(self.sr.moduleInfo.itemID) is None:
             return
-        self.stateManager.RemoveModulesBeingReloaded(self.sr.moduleInfo.itemID)
-        slaves = self.dogmaLocation.GetSlaveModules(self.sr.moduleInfo.itemID, session.shipid)
-        if slaves:
-            for eachSlaveID in slaves:
-                self.stateManager.RemoveModulesBeingReloaded(eachSlaveID)
+        else:
+            self.stateManager.RemoveModulesBeingReloaded(self.sr.moduleInfo.itemID)
+            slaves = self.dogmaLocation.GetSlaveModules(self.sr.moduleInfo.itemID, session.shipid)
+            if slaves:
+                for eachSlaveID in slaves:
+                    self.stateManager.RemoveModulesBeingReloaded(eachSlaveID)
+
+            return
 
     def GetShell(self):
         return sm.GetService('invCache').GetInventoryFromId(eve.session.shipid)
@@ -351,7 +365,6 @@ class ModuleButton(uiprimitives.Container):
             gotChargeSize = self.__chargesizecache__[item.typeID]
         if wantChargeSize != gotChargeSize:
             return 0
-        return 1
 
     def UnloadToCargo(self, itemID):
         self.reloadingAmmo = True
@@ -360,7 +373,7 @@ class ModuleButton(uiprimitives.Container):
         finally:
             self.reloadingAmmo = False
 
-    def ReloadAmmo(self, itemID, quantity, preferSingletons = False):
+    def ReloadAmmo(self, itemID, quantity, preferSingletons=False):
         if not quantity:
             return
         self.reloadingAmmo = True
@@ -373,30 +386,32 @@ class ModuleButton(uiprimitives.Container):
     def ReloadAllAmmo(self):
         uicore.cmd.CmdReloadAmmo()
 
-    def BlinkIcon(self, time = None):
+    def BlinkIcon(self, time=None):
         if self.destroyed or self.blinking:
             return
-        startTime = blue.os.GetSimTime()
-        if time is not None:
-            timeToBlink = time * 10000
-        while self.changingAmmo or self.reloadingAmmo or self.waitingForActiveTarget or time:
+        else:
+            startTime = blue.os.GetSimTime()
             if time is not None:
-                if blue.os.GetSimTime() - startTime > timeToBlink:
-                    break
-            blue.pyos.synchro.SleepWallclock(250)
-            if self.destroyed:
-                return
-            self.icon.SetAlpha(0.25)
-            blue.pyos.synchro.SleepWallclock(250)
-            if self.destroyed:
-                return
-            self.icon.SetAlpha(1.0)
+                timeToBlink = time * 10000
+            while self.changingAmmo or self.reloadingAmmo or self.waitingForActiveTarget or time:
+                if time is not None:
+                    if blue.os.GetSimTime() - startTime > timeToBlink:
+                        break
+                blue.pyos.synchro.SleepWallclock(250)
+                if self.destroyed:
+                    return
+                self.icon.SetAlpha(0.25)
+                blue.pyos.synchro.SleepWallclock(250)
+                if self.destroyed:
+                    return
+                self.icon.SetAlpha(1.0)
 
-        if self.destroyed:
+            if self.destroyed:
+                return
+            self.blinking = 0
+            self.CheckOverload()
+            self.CheckOnline()
             return
-        self.blinking = 0
-        self.CheckOverload()
-        self.CheckOnline()
 
     def ChangeAmmo(self, itemID, quantity, ammoType):
         if not quantity:
@@ -418,63 +433,64 @@ class ModuleButton(uiprimitives.Container):
         ship = sm.GetService('godma').GetItem(eve.session.shipid)
         if ship is None:
             return []
-        m = []
-        if eve.session.role & (service.ROLE_GML | service.ROLE_WORLDMOD):
+        else:
+            m = []
+            if eve.session.role & (service.ROLE_GML | service.ROLE_WORLDMOD):
+                if cfg.IsChargeCompatible(self.sr.moduleInfo):
+                    m += [('Launcher: ' + str(self.sr.moduleInfo.itemID), self.CopyItemIDToClipboard, (self.sr.moduleInfo.itemID,))]
+                    if self.id != self.sr.moduleInfo.itemID:
+                        m += [('Charge: ' + str(self.id), self.CopyItemIDToClipboard, (self.id,)), None]
+                else:
+                    m += [(str(self.id), self.CopyItemIDToClipboard, (self.id,)), None]
+                m += sm.GetService('menu').GetGMTypeMenu(self.sr.moduleInfo.typeID, itemID=self.id, divs=True, unload=True)
+            groupID = evetypes.GetGroupID(self.sr.moduleInfo.typeID)
             if cfg.IsChargeCompatible(self.sr.moduleInfo):
-                m += [('Launcher: ' + str(self.sr.moduleInfo.itemID), self.CopyItemIDToClipboard, (self.sr.moduleInfo.itemID,))]
-                if self.id != self.sr.moduleInfo.itemID:
-                    m += [('Charge: ' + str(self.id), self.CopyItemIDToClipboard, (self.id,)), None]
-            else:
-                m += [(str(self.id), self.CopyItemIDToClipboard, (self.id,)), None]
-            m += sm.GetService('menu').GetGMTypeMenu(self.sr.moduleInfo.typeID, itemID=self.id, divs=True, unload=True)
-        groupID = evetypes.GetGroupID(self.sr.moduleInfo.typeID)
-        if cfg.IsChargeCompatible(self.sr.moduleInfo):
-            chargeTypeID, chargeQuantity, roomForReload = self.GetChargeReloadInfo()
-            chargeID = self.charge.itemID if self.charge is not None else None
-            m.extend(self.dogmaLocation.GetAmmoMenu(session.shipid, self.sr.moduleInfo.itemID, chargeID, roomForReload))
-            if self.autoreload == 0:
-                m.append((uiutil.MenuLabel('UI/Inflight/ModuleRacks/AutoReloadOn'), self.SetAutoReload, (1,)))
-            else:
-                m.append((uiutil.MenuLabel('UI/Inflight/ModuleRacks/AutoReloadOff'), self.SetAutoReload, (0,)))
-        overloadLock = settings.user.ui.Get('lockOverload', 0)
-        itemID = self.sr.moduleInfo.itemID
-        slaves = self.dogmaLocation.GetSlaveModules(itemID, session.shipid)
-        for key in self.sr.moduleInfo.effects.iterkeys():
-            effect = self.sr.moduleInfo.effects[key]
-            if self.IsEffectRepeatable(effect) and groupID not in (const.groupMiningLaser, const.groupStripMiner):
-                if self.autorepeat == 0:
-                    m.append((uiutil.MenuLabel('UI/Inflight/ModuleRacks/AutoRepeatOn'), self.SetRepeat, (1000,)))
+                chargeTypeID, chargeQuantity, roomForReload = self.GetChargeReloadInfo()
+                chargeID = self.charge.itemID if self.charge is not None else None
+                m.extend(self.dogmaLocation.GetAmmoMenu(session.shipid, self.sr.moduleInfo.itemID, chargeID, roomForReload))
+                if self.autoreload == 0:
+                    m.append((uiutil.MenuLabel('UI/Inflight/ModuleRacks/AutoReloadOn'), self.SetAutoReload, (1,)))
                 else:
-                    m.append((uiutil.MenuLabel('UI/Inflight/ModuleRacks/AutoRepeatOff'), self.SetRepeat, (0,)))
-            if effect.effectName == 'online':
-                m.append(None)
-                if not slaves:
-                    if effect.isActive:
-                        m.append((uiutil.MenuLabel('UI/Inflight/ModuleRacks/PutModuleOffline'), self.ChangeOnline, (0,)))
+                    m.append((uiutil.MenuLabel('UI/Inflight/ModuleRacks/AutoReloadOff'), self.SetAutoReload, (0,)))
+            overloadLock = settings.user.ui.Get('lockOverload', 0)
+            itemID = self.sr.moduleInfo.itemID
+            slaves = self.dogmaLocation.GetSlaveModules(itemID, session.shipid)
+            for key in self.sr.moduleInfo.effects.iterkeys():
+                effect = self.sr.moduleInfo.effects[key]
+                if self.IsEffectRepeatable(effect) and groupID not in (const.groupMiningLaser, const.groupStripMiner):
+                    if self.autorepeat == 0:
+                        m.append((uiutil.MenuLabel('UI/Inflight/ModuleRacks/AutoRepeatOn'), self.SetRepeat, (1000,)))
                     else:
-                        m.append((uiutil.MenuLabel('UI/Inflight/ModuleRacks/PutModuleOnline'), self.ChangeOnline, (1,)))
-            if not overloadLock and effect.effectCategory == const.dgmEffOverload:
-                active = effect.isActive
-                if active:
-                    m.append((uiutil.MenuLabel('UI/Inflight/Overload/TurnOffOverload'), self.Overload, (0, effect)))
-                else:
-                    m.append((uiutil.MenuLabel('UI/Inflight/Overload/TurnOnOverload'), self.Overload, (1, effect)))
-                m.append((uiutil.MenuLabel('UI/Inflight/OverloadRack'), self.OverloadRack, ()))
-                m.append((uiutil.MenuLabel('UI/Inflight/StopOverloadingRack'), self.StopOverloadRack, ()))
+                        m.append((uiutil.MenuLabel('UI/Inflight/ModuleRacks/AutoRepeatOff'), self.SetRepeat, (0,)))
+                if effect.effectName == 'online':
+                    m.append(None)
+                    if not slaves:
+                        if effect.isActive:
+                            m.append((uiutil.MenuLabel('UI/Inflight/ModuleRacks/PutModuleOffline'), self.ChangeOnline, (0,)))
+                        else:
+                            m.append((uiutil.MenuLabel('UI/Inflight/ModuleRacks/PutModuleOnline'), self.ChangeOnline, (1,)))
+                if not overloadLock and effect.effectCategory == const.dgmEffOverload:
+                    active = effect.isActive
+                    if active:
+                        m.append((uiutil.MenuLabel('UI/Inflight/Overload/TurnOffOverload'), self.Overload, (0, effect)))
+                    else:
+                        m.append((uiutil.MenuLabel('UI/Inflight/Overload/TurnOnOverload'), self.Overload, (1, effect)))
+                    m.append((uiutil.MenuLabel('UI/Inflight/OverloadRack'), self.OverloadRack, ()))
+                    m.append((uiutil.MenuLabel('UI/Inflight/StopOverloadingRack'), self.StopOverloadRack, ()))
 
-        moduleDamage = self.GetModuleDamage()
-        if moduleDamage:
-            if self.isBeingRepaired:
-                m.append((uiutil.MenuLabel('UI/Inflight/menuCancelRepair'), self.CancelRepair, ()))
-            else:
-                m.append((uiutil.MenuLabel('UI/Commands/Repair'), self.RepairModule, ()))
-        if slaves:
-            m.append((uiutil.MenuLabel('UI/Fitting/ClearGroup'), self.UnlinkModule, ()))
-        m += [(uiutil.MenuLabel('UI/Commands/ShowInfo'), sm.GetService('info').ShowInfo, (self.sr.moduleInfo.typeID,
-           self.sr.moduleInfo.itemID,
-           0,
-           self.sr.moduleInfo))]
-        return m
+            moduleDamage = self.GetModuleDamage()
+            if moduleDamage:
+                if self.isBeingRepaired:
+                    m.append((uiutil.MenuLabel('UI/Inflight/menuCancelRepair'), self.CancelRepair, ()))
+                else:
+                    m.append((uiutil.MenuLabel('UI/Commands/Repair'), self.RepairModule, ()))
+            if slaves:
+                m.append((uiutil.MenuLabel('UI/Fitting/ClearGroup'), self.UnlinkModule, ()))
+            m += [(uiutil.MenuLabel('UI/Commands/ShowInfo'), sm.GetService('info').ShowInfo, (self.sr.moduleInfo.typeID,
+               self.sr.moduleInfo.itemID,
+               0,
+               self.sr.moduleInfo))]
+            return m
 
     def RepairModule(self):
         success = self.stateManager.RepairModule(self.sr.moduleInfo.itemID)
@@ -523,7 +539,7 @@ class ModuleButton(uiprimitives.Container):
         eve.Message('LauncherLoadDelay', params)
         self.DoReloadAnimation(time)
 
-    def DoReloadAnimation(self, duration, startTime = None):
+    def DoReloadAnimation(self, duration, startTime=None):
         if startTime:
             blinkTime = max(0, duration - (blue.os.GetSimTime() - startTime) / 10000)
         else:
@@ -537,7 +553,7 @@ class ModuleButton(uiprimitives.Container):
             startTime, duration = cooldownTimes
             self.DoReactivationAnimation(duration, startTime=startTime)
 
-    def DoReactivationAnimation(self, duration, startTime = None):
+    def DoReactivationAnimation(self, duration, startTime=None):
         uthread.new(self.ShowReactivationLeft, duration, startTime)
 
     def UnlinkModule(self):
@@ -555,7 +571,7 @@ class ModuleButton(uiprimitives.Container):
     def StopOverloadRack(self):
         sm.GetService('godma').StopOverloadRack(self.sr.moduleInfo.itemID)
 
-    def GetChargeReloadInfo(self, ignoreCharge = 0):
+    def GetChargeReloadInfo(self, ignoreCharge=0):
         evetypes.RaiseIFNotExists(self.sr.moduleInfo.typeID)
         lastChargeTypeID = self.stateManager.GetAmmoTypeForModule(self.sr.moduleInfo.itemID)
         if self.charge and not ignoreCharge:
@@ -578,7 +594,7 @@ class ModuleButton(uiprimitives.Container):
         self.autoreload = on
         self.AutoReload()
 
-    def AutoReload(self, force = 0, useItemID = None, useQuant = None):
+    def AutoReload(self, force=0, useItemID=None, useQuant=None):
         if self.reloadingAmmo is not False:
             return
         if not cfg.IsChargeCompatible(self.sr.moduleInfo) or not (self.autoreload or force):
@@ -594,15 +610,17 @@ class ModuleButton(uiprimitives.Container):
     def OnItemChange(self, item, change):
         if not self or self.destroyed or not getattr(self, 'sr', None):
             return
-        if const.ixQuantity not in change:
+        elif const.ixQuantity not in change:
             return
-        if self.reloadingAmmo == item.itemID and not sm.GetService('invCache').IsItemLocked(self, item.itemID):
-            reloadsByID = uicore.layer.shipui.sr.reloadsByID
-            self.reloadingAmmo = True
-            if reloadsByID[item.itemID].balance:
-                reloadsByID[item.itemID].send(None)
-            else:
-                del reloadsByID[item.itemID]
+        else:
+            if self.reloadingAmmo == item.itemID and not sm.GetService('invCache').IsItemLocked(self, item.itemID):
+                reloadsByID = uicore.layer.shipui.sr.reloadsByID
+                self.reloadingAmmo = True
+                if reloadsByID[item.itemID].balance:
+                    reloadsByID[item.itemID].send(None)
+                else:
+                    del reloadsByID[item.itemID]
+            return
 
     def CheckPending(self):
         if not uicore.layer.shipui:
@@ -646,21 +664,23 @@ class ModuleButton(uiprimitives.Container):
     def CheckMasterSlave(self):
         if not self or self.destroyed:
             return
-        itemID = self.sr.moduleInfo.itemID
-        slaves = self.dogmaLocation.GetSlaveModules(itemID, session.shipid)
-        if slaves:
-            if self.sr.stackParent is None:
-                stackParent = uiprimitives.Container(parent=self, name='stackParent', pos=(6, 27, 12, 10), align=uiconst.TOPLEFT, state=uiconst.UI_DISABLED, idx=0)
-                self.sr.stacklabel = uicontrols.Label(text=len(slaves) + 1, parent=stackParent, fontsize=9, letterspace=1, left=5, top=0, width=30, state=uiconst.UI_DISABLED, shadowOffset=(0, 0), color=(1.0, 1.0, 1.0, 1))
-                underlay = uiprimitives.Sprite(parent=stackParent, name='underlay', pos=(0, 0, 0, 0), align=uiconst.TOALL, state=uiconst.UI_DISABLED, texturePath='res:/UI/Texture/classes/ShipUI/slotStackUnderlay.png', color=(0.51, 0.0, 0.0, 1.0))
-                self.sr.stackParent = stackParent
-            else:
-                self.sr.stackParent.state = uiconst.UI_DISABLED
-                self.sr.stacklabel.text = len(slaves) + 1
-        elif self.sr.stackParent:
-            self.sr.stackParent.state = uiconst.UI_HIDDEN
+        else:
+            itemID = self.sr.moduleInfo.itemID
+            slaves = self.dogmaLocation.GetSlaveModules(itemID, session.shipid)
+            if slaves:
+                if self.sr.stackParent is None:
+                    stackParent = uiprimitives.Container(parent=self, name='stackParent', pos=(6, 27, 12, 10), align=uiconst.TOPLEFT, state=uiconst.UI_DISABLED, idx=0)
+                    self.sr.stacklabel = uicontrols.Label(text=len(slaves) + 1, parent=stackParent, fontsize=9, letterspace=1, left=5, top=0, width=30, state=uiconst.UI_DISABLED, shadowOffset=(0, 0), color=(1.0, 1.0, 1.0, 1))
+                    underlay = uiprimitives.Sprite(parent=stackParent, name='underlay', pos=(0, 0, 0, 0), align=uiconst.TOALL, state=uiconst.UI_DISABLED, texturePath='res:/UI/Texture/classes/ShipUI/slotStackUnderlay.png', color=(0.51, 0.0, 0.0, 1.0))
+                    self.sr.stackParent = stackParent
+                else:
+                    self.sr.stackParent.state = uiconst.UI_DISABLED
+                    self.sr.stacklabel.text = len(slaves) + 1
+            elif self.sr.stackParent:
+                self.sr.stackParent.state = uiconst.UI_HIDDEN
+            return
 
-    def CheckOnline(self, sound = 0):
+    def CheckOnline(self, sound=0):
         if not self or self.destroyed:
             return
         if not util.HasAttrs(self, 'sr', 'moduleInfo', 'effects'):
@@ -676,7 +696,7 @@ class ModuleButton(uiprimitives.Container):
                     self.ShowOffline()
                 return
 
-    def ChangeOnline(self, on = 1):
+    def ChangeOnline(self, on=1):
         uthread.new(self._ChangeOnline, on)
 
     def _ChangeOnline(self, on):
@@ -714,7 +734,7 @@ class ModuleButton(uiprimitives.Container):
             self.icon.SetAlpha(1.0)
         self.CheckOverload()
 
-    def ShowOffline(self, ping = 0):
+    def ShowOffline(self, ping=0):
         self.online = False
         if self.grey:
             self.icon.SetAlpha(0.1)
@@ -729,18 +749,19 @@ class ModuleButton(uiprimitives.Container):
         slaves = self.dogmaLocation.GetSlaveModules(self.sr.moduleInfo.itemID, session.shipid)
         if not slaves:
             return False
-        self.isMaster = 1
-        onlineEffect = self.stateManager.GetEffect(self.sr.moduleInfo.itemID, 'online')
-        if onlineEffect is None or not onlineEffect.isActive:
-            return True
-        for slave in slaves:
-            onlineEffect = self.stateManager.GetEffect(slave, 'online')
+        else:
+            self.isMaster = 1
+            onlineEffect = self.stateManager.GetEffect(self.sr.moduleInfo.itemID, 'online')
             if onlineEffect is None or not onlineEffect.isActive:
                 return True
+            for slave in slaves:
+                onlineEffect = self.stateManager.GetEffect(slave, 'online')
+                if onlineEffect is None or not onlineEffect.isActive:
+                    return True
 
-        return False
+            return False
 
-    def IsEffectRepeatable(self, effect, activatibleKnown = 0):
+    def IsEffectRepeatable(self, effect, activatibleKnown=0):
         if activatibleKnown or self.IsEffectActivatible(effect):
             if not effect.item.disallowRepeatingActivation:
                 return effect.durationAttributeID is not None
@@ -756,12 +777,15 @@ class ModuleButton(uiprimitives.Container):
     def GetDefaultEffect(self):
         if not self or self.destroyed:
             return
-        if self.sr is None or self.sr.moduleInfo is None or not self.stateManager.IsItemLoaded(self.sr.moduleInfo.itemID):
+        elif self.sr is None or self.sr.moduleInfo is None or not self.stateManager.IsItemLoaded(self.sr.moduleInfo.itemID):
             return
-        for key in self.sr.moduleInfo.effects.iterkeys():
-            effect = self.sr.moduleInfo.effects[key]
-            if self.IsEffectActivatible(effect):
-                return effect
+        else:
+            for key in self.sr.moduleInfo.effects.iterkeys():
+                effect = self.sr.moduleInfo.effects[key]
+                if self.IsEffectActivatible(effect):
+                    return effect
+
+            return
 
     def OnClick(self, *args):
         if not self or self.IsBeingDragged() or not self.isInActiveState:
@@ -775,30 +799,33 @@ class ModuleButton(uiprimitives.Container):
             ctrlRepeat = 1000
         self.Click(ctrlRepeat)
 
-    def Click(self, ctrlRepeat = 0):
+    def Click(self, ctrlRepeat=0):
         if self.stateManager.GetReloadTimes(self.id) is not None:
             return
-        if self.waitingForActiveTarget:
-            sm.GetService('target').CancelTargetOrder(self)
-            self.waitingForActiveTarget = 0
-        elif self.def_effect is None:
-            log.LogWarn('No default Effect available for this moduletypeID:', self.sr.moduleInfo.typeID)
-            eve.Message('CustomNotify', {'notify': localization.GetByLabel('UI/Inflight/ModuleRacks/TryingToActivatePassiveModule')})
-        elif not self.online:
-            if getattr(self, 'isMaster', None):
-                eve.Message('ClickOffllineGroup')
-            else:
-                eve.Message('ClickOffllineModule')
-        elif self.def_effect.isActive:
-            self.DeactivateEffect(self.def_effect)
-        elif not self.effect_activating:
-            self.activationTimer = base.AutoTimer(500, self.ActivateEffectTimer)
-            self.effect_activating = 1
-            self.ActivateEffect(self.def_effect, ctrlRepeat=ctrlRepeat)
+        else:
+            if self.waitingForActiveTarget:
+                sm.GetService('target').CancelTargetOrder(self)
+                self.waitingForActiveTarget = 0
+            elif self.def_effect is None:
+                log.LogWarn('No default Effect available for this moduletypeID:', self.sr.moduleInfo.typeID)
+                eve.Message('CustomNotify', {'notify': localization.GetByLabel('UI/Inflight/ModuleRacks/TryingToActivatePassiveModule')})
+            elif not self.online:
+                if getattr(self, 'isMaster', None):
+                    eve.Message('ClickOffllineGroup')
+                else:
+                    eve.Message('ClickOffllineModule')
+            elif self.def_effect.isActive:
+                self.DeactivateEffect(self.def_effect)
+            elif not self.effect_activating:
+                self.activationTimer = base.AutoTimer(500, self.ActivateEffectTimer)
+                self.effect_activating = 1
+                self.ActivateEffect(self.def_effect, ctrlRepeat=ctrlRepeat)
+            return
 
     def ActivateEffectTimer(self, *args):
         self.effect_activating = 0
         self.activationTimer = None
+        return
 
     def OnEndDrag(self, *args):
         uthread.new(uicore.layer.shipui.ResetSwapMode)
@@ -829,27 +856,29 @@ class ModuleButton(uiprimitives.Container):
 
         if flag1 == flag2:
             return
-        if flag2 is not None:
+        elif flag2 is not None:
             uicore.layer.shipui.ChangeSlots(flag1, flag2)
             return
-        multiLoadCharges = True
-        chargeTypeID = None
-        chargeItems = []
-        for node in nodes:
-            if not hasattr(node, 'rec'):
-                return
-            chargeItem = node.rec
-            if not hasattr(chargeItem, 'categoryID'):
-                return
-            if chargeItem.categoryID != const.categoryCharge:
-                continue
-            if chargeTypeID is None:
-                chargeTypeID = chargeItem.typeID
-            if chargeItem.typeID == chargeTypeID:
-                chargeItems.append(chargeItem)
+        else:
+            multiLoadCharges = True
+            chargeTypeID = None
+            chargeItems = []
+            for node in nodes:
+                if not hasattr(node, 'rec'):
+                    return
+                chargeItem = node.rec
+                if not hasattr(chargeItem, 'categoryID'):
+                    return
+                if chargeItem.categoryID != const.categoryCharge:
+                    continue
+                if chargeTypeID is None:
+                    chargeTypeID = chargeItem.typeID
+                if chargeItem.typeID == chargeTypeID:
+                    chargeItems.append(chargeItem)
 
-        if len(chargeItems) > 0:
-            self.dogmaLocation.DropLoadChargeToModule(self.sr.moduleInfo.itemID, chargeTypeID, chargeItems=chargeItems)
+            if len(chargeItems) > 0:
+                self.dogmaLocation.DropLoadChargeToModule(self.sr.moduleInfo.itemID, chargeTypeID, chargeItems=chargeItems)
+            return
 
     def OnMouseHover(self, *args):
         if uicore.uilib.Key(uiconst.VK_SHIFT):
@@ -862,19 +891,23 @@ class ModuleButton(uiprimitives.Container):
         log.LogInfo('Module.OnMouseDown', self.id)
         if getattr(self, 'downTop', None) is not None or not self.isInActiveState or self.def_effect is None:
             return
-        self.downTop = self.parent.top
-        self.parent.top += 2
+        else:
+            self.downTop = self.parent.top
+            self.parent.top += 2
+            return
 
     def OnMouseUp(self, *args):
         uiprimitives.Container.OnMouseUp(self, *args)
         if self.destroyed:
             return
-        log.LogInfo('Module.OnMouseUp', self.id)
-        if getattr(self, 'downTop', None) is not None:
-            self.parent.top = self.downTop
-            self.downTop = None
-        if len(args) > 0 and args[0] == uiconst.MOUSERIGHT and getattr(uicore.layer.hint, 'moduleButtonHint', None):
-            uicore.layer.hint.moduleButtonHint.FadeOpacity(0.0)
+        else:
+            log.LogInfo('Module.OnMouseUp', self.id)
+            if getattr(self, 'downTop', None) is not None:
+                self.parent.top = self.downTop
+                self.downTop = None
+            if len(args) > 0 and args[0] == uiconst.MOUSERIGHT and getattr(uicore.layer.hint, 'moduleButtonHint', None):
+                uicore.layer.hint.moduleButtonHint.FadeOpacity(0.0)
+            return
 
     def OnMouseEnter(self, *args):
         uthread.pool('ShipMobuleButton::MouseEnter', self.MouseEnter)
@@ -882,23 +915,25 @@ class ModuleButton(uiprimitives.Container):
     def MouseEnter(self, *args):
         if self.destroyed or sm.GetService('godma').GetItem(self.sr.moduleInfo.itemID) is None:
             return
-        if uicore.uilib.Key(uiconst.VK_SHIFT):
-            self.OverloadHiliteOn()
-        self.SetHilite()
-        tacticalSvc = sm.GetService('tactical')
-        bracketMgr = sm.GetService('bracket')
-        maxRange, falloffDist, bombRadius = tacticalSvc.FindMaxRange(self.sr.moduleInfo, self.charge)
-        if maxRange > 0:
-            bracketMgr.ShowModuleRange(self.sr.moduleInfo.itemID, maxRange + falloffDist)
-            bracketMgr.ShowHairlinesForModule(self.sr.moduleInfo.itemID)
-        log.LogInfo('Module.OnMouseEnter', self.id)
-        eve.Message('NeocomButtonEnter')
-        if settings.user.ui.Get('showModuleTooltips', 1):
-            if self.tooltipPanelClassInfo is None:
-                self.tooltipPanelClassInfo = TooltipModuleWrapper()
         else:
-            self.tooltipPanelClassInfo = None
-        uthread.pool('ShipMobuleButton::OnMouseEnter-->UpdateTargetingRanges', tacticalSvc.UpdateTargetingRanges, self.sr.moduleInfo, self.charge)
+            if uicore.uilib.Key(uiconst.VK_SHIFT):
+                self.OverloadHiliteOn()
+            self.SetHilite()
+            tacticalSvc = sm.GetService('tactical')
+            bracketMgr = sm.GetService('bracket')
+            maxRange, falloffDist, bombRadius = tacticalSvc.FindMaxRange(self.sr.moduleInfo, self.charge)
+            if maxRange > 0:
+                bracketMgr.ShowModuleRange(self.sr.moduleInfo.itemID, maxRange + falloffDist)
+                bracketMgr.ShowHairlinesForModule(self.sr.moduleInfo.itemID)
+            log.LogInfo('Module.OnMouseEnter', self.id)
+            eve.Message('NeocomButtonEnter')
+            if settings.user.ui.Get('showModuleTooltips', 1):
+                if self.tooltipPanelClassInfo is None:
+                    self.tooltipPanelClassInfo = TooltipModuleWrapper()
+            else:
+                self.tooltipPanelClassInfo = None
+            uthread.pool('ShipMobuleButton::OnMouseEnter-->UpdateTargetingRanges', tacticalSvc.UpdateTargetingRanges, self.sr.moduleInfo, self.charge)
+            return
 
     def GetTooltipDelay(self):
         return settings.user.ui.Get(TOOLTIP_SETTINGS_MODULE, TOOLTIP_DELAY_MODULE)
@@ -909,6 +944,7 @@ class ModuleButton(uiprimitives.Container):
         self.OverloadHiliteOff()
         log.LogInfo('Module.OnMouseExit', self.id)
         self.OnMouseUp(None)
+        return
 
     def UpdateInfo_TimedCall(self):
         self.UpdateInfo()
@@ -918,18 +954,19 @@ class ModuleButton(uiprimitives.Container):
             self.moduleButtonHint = None
             self.updateTimer = None
             return False
-        if not self.stateManager.IsItemLoaded(self.id):
+        elif not self.stateManager.IsItemLoaded(self.id):
             return False
-        chargeItemID = None
-        if self.charge:
-            chargeItemID = self.charge.itemID
-        self.moduleButtonHint.UpdateAllInfo(self.sr.moduleInfo.itemID, chargeItemID)
-        requiredSafetyLevel = self.GetRequiredSafetyLevel()
-        if self.crimewatchSvc.CheckUnsafe(requiredSafetyLevel):
-            self.moduleButtonHint.SetSafetyWarning(requiredSafetyLevel)
         else:
-            self.moduleButtonHint.RemoveSafetyWarning()
-        return True
+            chargeItemID = None
+            if self.charge:
+                chargeItemID = self.charge.itemID
+            self.moduleButtonHint.UpdateAllInfo(self.sr.moduleInfo.itemID, chargeItemID)
+            requiredSafetyLevel = self.GetRequiredSafetyLevel()
+            if self.crimewatchSvc.CheckUnsafe(requiredSafetyLevel):
+                self.moduleButtonHint.SetSafetyWarning(requiredSafetyLevel)
+            else:
+                self.moduleButtonHint.RemoveSafetyWarning()
+            return True
 
     def GetSafetyWarning(self):
         requiredSafetyLevel = self.GetRequiredSafetyLevel()
@@ -937,12 +974,15 @@ class ModuleButton(uiprimitives.Container):
             return requiredSafetyLevel
         else:
             return None
+            return None
 
     def GetModuleDamage(self):
         return uicore.layer.shipui.controller.GetModuleGroupDamage(self.sr.moduleInfo.itemID)
 
-    def GetAccuracy(self, targetID = None):
+    def GetAccuracy(self, targetID=None):
         if self is None or self.destroyed:
+            return
+        else:
             return
 
     def SetActive(self):
@@ -953,6 +993,7 @@ class ModuleButton(uiprimitives.Container):
         self.activationTimer = None
         self.isInActiveState = True
         self.ActivateRamps()
+        return
 
     def SetDeactivating(self):
         self.isDeactivating = True
@@ -963,6 +1004,7 @@ class ModuleButton(uiprimitives.Container):
         sm.GetService('ui').BlinkSpriteA(self.sr.busy, 0.75, 1000, None, passColor=0)
         self.isInActiveState = False
         self.DeActivateRamps()
+        return
 
     def SetIdle(self):
         self.isDeactivating = False
@@ -976,13 +1018,14 @@ class ModuleButton(uiprimitives.Container):
         self.IdleRamps()
         self.TryStartCooldownTimers()
 
-    def SetRepairing(self, startTime = None):
+    def SetRepairing(self, startTime=None):
         self.InitGlow()
         self.sr.glow.state = uiconst.UI_DISABLED
         self.sr.glow.SetRGB(1, 1, 1, 1)
         sm.GetService('ui').BlinkSpriteA(self.sr.glow, 0.9, 2500, None, passColor=0)
         self.isInActiveState = True
         uthread.new(self.ShowRepairLeft, startTime)
+        return
 
     def RemoveRepairing(self):
         if self.sr.glow:
@@ -1018,14 +1061,17 @@ class ModuleButton(uiprimitives.Container):
     def InitSafetyGlow(self):
         if self.sr.safetyGlow is None:
             self.sr.safetyGlow = uiprimitives.Sprite(parent=self.parent, name='safetyGlow', padding=2, align=uiconst.TOALL, state=uiconst.UI_HIDDEN, texturePath='res:/UI/Texture/classes/ShipUI/slotGlow.png', color=crimewatchConst.Colors.Yellow.GetRGBA())
+        return
 
     def InitGlow(self):
         if self.sr.glow is None:
             self.sr.glow = uiprimitives.Sprite(parent=self.parent, name='glow', padding=2, align=uiconst.TOALL, state=uiconst.UI_HIDDEN, texturePath='res:/UI/Texture/classes/ShipUI/slotGlow.png', color=GLOWCOLOR)
+        return
 
     def InitBusyState(self):
         if self.sr.busy is None:
             self.sr.busy = uiprimitives.Sprite(parent=self.parent, name='busy', padding=2, align=uiconst.TOALL, state=uiconst.UI_HIDDEN, texturePath='res:/UI/Texture/classes/ShipUI/slotGlow.png', color=BUSYCOLOR)
+        return
 
     def InitHilite(self):
         if self.sr.hilite is None:
@@ -1035,6 +1081,7 @@ class ModuleButton(uiprimitives.Container):
                 idx = -1
             self.sr.hilite = uiprimitives.Sprite(parent=self.parent, name='hilite', padding=(10, 10, 10, 10), align=uiconst.TOALL, state=uiconst.UI_DISABLED, texturePath='res:/UI/Texture/classes/ShipUI/slotHilite.png', blendMode=trinity.TR2_SBM_ADDX2, idx=idx)
             self.sr.hilite.display = False
+        return
 
     def OverloadHiliteOn(self):
         self.sr.overloadButton.SetAlpha(1.5)
@@ -1047,6 +1094,8 @@ class ModuleButton(uiprimitives.Container):
             effect = self.sr.moduleInfo.effects[key]
             if effect.effectName == effectName:
                 return effect
+
+        return None
 
     def Update(self, effectState):
         if not self or self.destroyed:
@@ -1080,39 +1129,46 @@ class ModuleButton(uiprimitives.Container):
             effect = self.def_effect
         return effect
 
-    def ActivateEffect(self, effect, targetID = None, ctrlRepeat = 0):
+    def ActivateEffect(self, effect, targetID=None, ctrlRepeat=0):
         if self.charge and self.charge.typeID in const.orbitalStrikeAmmo:
             return sm.GetService('district').ActivateModule(self.sr.moduleInfo.itemID)
-        relevantEffect = self.GetRelevantEffect()
-        if relevantEffect is None:
-            typeID, _ = self.GetModuleType()
-            raise UserError('NoCharges', {'launcher': (const.UE_TYPEID, typeID)})
-        if relevantEffect and not targetID and relevantEffect.effectCategory == 2:
-            targetID = sm.GetService('target').GetActiveTargetID()
-            if not targetID:
-                sm.GetService('target').OrderTarget(self)
-                uthread.new(self.BlinkIcon)
-                self.waitingForActiveTarget = 1
-                return
-        if self.sr.Get('moduleinfo'):
-            for key in self.sr.moduleInfo.effects.iterkeys():
-                checkeffect = self.sr.moduleInfo.effects[key]
-                if checkeffect.effectName == 'online':
-                    if not checkeffect.isActive:
-                        self._ChangeOnline(1)
-                    break
-
-        if self.def_effect:
-            if relevantEffect.isOffensive:
-                if not sm.GetService('consider').DoAttackConfirmations(targetID, relevantEffect):
+        else:
+            relevantEffect = self.GetRelevantEffect()
+            if relevantEffect is None:
+                typeID, _ = self.GetModuleType()
+                raise UserError('NoCharges', {'launcher': (const.UE_TYPEID, typeID)})
+            if relevantEffect and not targetID and relevantEffect.effectCategory == 2:
+                targetID = sm.GetService('target').GetActiveTargetID()
+                if not targetID:
+                    sm.GetService('target').OrderTarget(self)
+                    uthread.new(self.BlinkIcon)
+                    self.waitingForActiveTarget = 1
                     return
-            repeats = ctrlRepeat or self.autorepeat
-            if not self.IsEffectRepeatable(self.def_effect, 1):
-                repeats = 0
-            if not self.charge:
-                self.stateManager.ChangeAmmoTypeForModule(self.sr.moduleInfo.itemID, None)
-            self.def_effect.Activate(targetID, repeats)
-            sm.ScatterEvent('OnClientEvent_ActivateModule', self.def_effect.effectID)
+            if self.sr.Get('moduleinfo'):
+                for key in self.sr.moduleInfo.effects.iterkeys():
+                    checkeffect = self.sr.moduleInfo.effects[key]
+                    if checkeffect.effectName == 'online':
+                        if not checkeffect.isActive:
+                            self._ChangeOnline(1)
+                        break
+
+            if self.def_effect:
+                if relevantEffect.isOffensive:
+                    if not sm.GetService('consider').DoAttackConfirmations(targetID, relevantEffect):
+                        return
+                repeats = ctrlRepeat or self.autorepeat
+                if not self.IsEffectRepeatable(self.def_effect, 1):
+                    repeats = 0
+                if not self.charge:
+                    self.stateManager.ChangeAmmoTypeForModule(self.sr.moduleInfo.itemID, None)
+                targetPointCount = self.sr.moduleInfo.isPointTargeted
+                if targetPointCount:
+                    eveCommands = sm.GetService('cmd')
+                    eveCommands.CmdAimWeapon(self.sr.moduleInfo.itemID, self.def_effect, targetPointCount)
+                    return
+                self.def_effect.Activate(targetID, repeats)
+                sm.ScatterEvent('OnClientEvent_ActivateModule', self.def_effect.effectID)
+            return
 
     def DeactivateEffect(self, effect):
         self.SetDeactivating()
@@ -1246,7 +1302,7 @@ class ModuleButton(uiprimitives.Container):
             rampTimers[moduleID] = (True, default)
         return rampTimers[moduleID]
 
-    def ShowRepairLeft(self, startTime = None):
+    def ShowRepairLeft(self, startTime=None):
         dmg = self.GetModuleDamage()
         rateOfRepair = self.stateManager.GetAttribute(session.charid, 'moduleRepairRate')
         repairTime = dmg / rateOfRepair
@@ -1255,23 +1311,27 @@ class ModuleButton(uiprimitives.Container):
             startTime = blue.os.GetSimTime()
         hp = self.dogmaLocation.GetAttributeValue(self.sr.moduleInfo.itemID, const.attributeHp)
         self.sr.damageState.AnimateRepair(dmg, hp, repairTime, startTime)
+        return
 
-    def ShowReloadLeft(self, reloadTime, startTime = None):
+    def ShowReloadLeft(self, reloadTime, startTime=None):
         if startTime is None:
             startTime = blue.os.GetSimTime()
         reloadTime = int(reloadTime * const.MSEC)
         if self.sr.reactivationRamps and self.sr.reactivationRamps.endTime > startTime + reloadTime:
             return
-        self.InitRamps()
-        self.sr.ramps.display = True
-        self.sr.ramps.AnimateReload(startTime, reloadTime)
+        else:
+            self.InitRamps()
+            self.sr.ramps.display = True
+            self.sr.ramps.AnimateReload(startTime, reloadTime)
+            return
 
-    def ShowReactivationLeft(self, reactivationTime, startTime = None):
+    def ShowReactivationLeft(self, reactivationTime, startTime=None):
         self.InitReactivationRamps()
         reactivationTime = int(reactivationTime * const.MSEC)
         if startTime is None:
             startTime = blue.os.GetSimTime()
         self.sr.reactivationRamps.AnimateTimer(startTime, reactivationTime)
+        return
 
     def GetEffectTiming(self):
         rampStartTime = self.GetRampStartTime()
@@ -1280,8 +1340,9 @@ class ModuleButton(uiprimitives.Container):
         item = self.stateManager.GetItem(self.def_effect.itemID)
         if item is None:
             return (0, 0.0)
-        if attr:
-            durationInMilliseconds = self.stateManager.GetAttribute(self.def_effect.itemID, attr.attributeName)
-        if not durationInMilliseconds:
-            durationInMilliseconds = getattr(self.def_effect, 'duration', 0.0)
-        return (rampStartTime, durationInMilliseconds)
+        else:
+            if attr:
+                durationInMilliseconds = self.stateManager.GetAttribute(self.def_effect.itemID, attr.attributeName)
+            if not durationInMilliseconds:
+                durationInMilliseconds = getattr(self.def_effect, 'duration', 0.0)
+            return (rampStartTime, durationInMilliseconds)

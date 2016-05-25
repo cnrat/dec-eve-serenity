@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\client\script\ui\inflight\shipAlert.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\client\script\ui\inflight\shipAlert.py
 import math
 import blue
 import uiprimitives
@@ -69,6 +70,7 @@ class ShipAlertContainer(uiprimitives.Container):
         self.UpdatePosition()
         sm.RegisterNotify(self)
         self.enteringCapsule = False
+        return
 
     def AddSideElements(self):
         name = 'red bars'
@@ -93,6 +95,7 @@ class ShipAlertContainer(uiprimitives.Container):
                 self.LevelTakenDamage(level, True)
         else:
             self.alertStartTimes[level] = None
+        return
 
     def AlertThresholdChanged(self, levelName):
         level = NAMES_TO_LEVEL[levelName]
@@ -101,33 +104,38 @@ class ShipAlertContainer(uiprimitives.Container):
             self.LevelTakenDamage(level, True)
         else:
             self.alertStartTimes[level] = None
+        return
 
     def UpdatePosition(self):
         if self.parent is None:
             return
-        self.height = uicore.desktop.height - self.parent.height
-        self.width = self.parent.width
-        self.top = self.parent.height
-        self.labelCont.height = self.height
-        self.alignedTop = IsShipHudTopAligned()
-        if not self.alignedTop:
-            self.align = uiconst.CENTERBOTTOM
-            self.warningLabelCont.align = uiconst.TOBOTTOM
-            self.exceptionLabel.align = uiconst.TOBOTTOM
         else:
-            self.align = uiconst.CENTERTOP
-            self.warningLabelCont.align = uiconst.TOTOP
-            self.exceptionLabel.align = uiconst.TOTOP
+            self.height = uicore.desktop.height - self.parent.height
+            self.width = self.parent.width
+            self.top = self.parent.height
+            self.labelCont.height = self.height
+            self.alignedTop = IsShipHudTopAligned()
+            if not self.alignedTop:
+                self.align = uiconst.CENTERBOTTOM
+                self.warningLabelCont.align = uiconst.TOBOTTOM
+                self.exceptionLabel.align = uiconst.TOBOTTOM
+            else:
+                self.align = uiconst.CENTERTOP
+                self.warningLabelCont.align = uiconst.TOTOP
+                self.exceptionLabel.align = uiconst.TOTOP
+            return
 
     def OnSessionChanged(self, isRemote, sess, change):
         if 'shipid' not in change:
             return
-        if sess.sessionChangeReason in ('eject', 'storeVessel'):
+        elif sess.sessionChangeReason in ('eject', 'storeVessel'):
             return
-        self.alertStartTimes[2] = None
-        ship = sm.GetService('godma').GetItem(change['shipid'][1])
-        if ship is not None and ship.groupID == const.groupCapsule:
-            self.DoEnteringCapsuleAnimation()
+        else:
+            self.alertStartTimes[2] = None
+            ship = sm.GetService('godma').GetItem(change['shipid'][1])
+            if ship is not None and ship.groupID == const.groupCapsule and not session.structureid:
+                self.DoEnteringCapsuleAnimation()
+            return
 
     def OnCapacitorChange(self, load, maxCap, level):
         isActive, changeDirection = self.SetDamageAmountAndCheckIfActive(3, level)
@@ -153,6 +161,8 @@ class ShipAlertContainer(uiprimitives.Container):
                     self.alertStartTimes[HULL_INDEX] = None
                     self.exceptionLabel.text = ''
 
+        return
+
     def IsLevelActive(self, level, damageAmount):
         info = SoundNotification(level)
         enabled = settings.user.notifications.Get(info.activeFlagSettingsName, 1)
@@ -176,7 +186,7 @@ class ShipAlertContainer(uiprimitives.Container):
         self.oldDamageState[level] = damageAmount
         return (isActive, changeDirection)
 
-    def LevelTakenDamage(self, level, isDamaged = True):
+    def LevelTakenDamage(self, level, isDamaged=True):
         self.isActuallyDamaged[level] = isDamaged
         self.alertStartTimes[level] = blue.os.GetSimTime()
         if level != CAPACITOR_INDEX:
@@ -184,6 +194,7 @@ class ShipAlertContainer(uiprimitives.Container):
                 self.alertAnimation_Thread = uthread.new(self.DoAlertAnimation_Thread)
         elif getattr(self, 'capacitorAnimation_Thread', None) is None:
             self.capacitorAnimation_Thread = uthread.new(self.DoCapacitorAnimation_Thread)
+        return
 
     def SetWarningText(self, text):
         if not self.enteringCapsule:
@@ -193,28 +204,31 @@ class ShipAlertContainer(uiprimitives.Container):
         alertLevel = self.GetActiveAlertLevel()
         if alertLevel is None:
             return (None, None)
-        alertStartTime = self.alertStartTimes[alertLevel]
-        return (alertLevel, alertStartTime)
+        else:
+            alertStartTime = self.alertStartTimes[alertLevel]
+            return (alertLevel, alertStartTime)
 
     def DoAlertAnimation_Thread(self):
         alertLevel, alertStartTime = self.GetAlertLevelAndStartTime()
         if alertLevel is None or alertStartTime is None:
             return
-        alertActive = True
-        while alertActive and not self.destroyed:
-            self.SetWarningText(localization.GetByLabel(self.messages[alertLevel]))
-            if not self.enteringCapsule:
-                animationMethod = self.animMethods[alertLevel]
-                animationMethod()
-            else:
-                blue.synchro.SleepSim(self.animDuration * 1000)
-            alertLevel, alertStartTime = self.GetAlertLevelAndStartTime()
-            if alertLevel is None or alertStartTime is None:
-                alertActive = False
-            else:
-                alertActive = alertStartTime < 0 or blue.os.TimeDiffInMs(alertStartTime, blue.os.GetSimTime()) < self.animDuration * 1000
+        else:
+            alertActive = True
+            while alertActive and not self.destroyed:
+                self.SetWarningText(localization.GetByLabel(self.messages[alertLevel]))
+                if not self.enteringCapsule:
+                    animationMethod = self.animMethods[alertLevel]
+                    animationMethod()
+                else:
+                    blue.synchro.SleepSim(self.animDuration * 1000)
+                alertLevel, alertStartTime = self.GetAlertLevelAndStartTime()
+                if alertLevel is None or alertStartTime is None:
+                    alertActive = False
+                else:
+                    alertActive = alertStartTime < 0 or blue.os.TimeDiffInMs(alertStartTime, blue.os.GetSimTime()) < self.animDuration * 1000
 
-        self.alertAnimation_Thread = None
+            self.alertAnimation_Thread = None
+            return
 
     def GetActiveAlertLevel(self):
         highestAlertLevel = None
@@ -241,6 +255,7 @@ class ShipAlertContainer(uiprimitives.Container):
                 alertActive = blue.os.TimeDiffInMs(capacitorAlertStartTime, blue.os.GetSimTime()) < self.animDuration * 1000
 
         self.capacitorAnimation_Thread = None
+        return
 
     def DoCapacitorAnimation(self, totalDuration):
         loops = 1.0
@@ -248,14 +263,14 @@ class ShipAlertContainer(uiprimitives.Container):
         sm.GetService('audio').SendUIEvent('ui_warning_capacitor')
         uicore.animations.MorphScalar(uicore.layer.shipui.capacitorContainer, 'opacity', 1.0, 0.5, duration=duration, loops=loops, curveType=uiconst.ANIM_WAVE)
 
-    def DoShieldAnimation(self, duration = 2.0, fromHigher = False):
+    def DoShieldAnimation(self, duration=2.0, fromHigher=False):
         uicore.animations.MorphScalar(self.damageElements, 'opacity', 0, 0.7, duration=duration, curveType=uiconst.ANIM_WAVE)
         uicore.animations.SpGlowFadeIn(uicore.layer.shipui.hpGauges.shieldGauge, duration=duration, glowColor=self.hudGlowColor, glowExpand=3.0, curveType=uiconst.ANIM_WAVE)
         if not fromHigher:
             sm.GetService('audio').SendUIEvent('ui_warning_shield')
             blue.synchro.SleepSim(duration * 1000)
 
-    def DoArmorAnimation(self, duration = 1.0, fromHigher = False):
+    def DoArmorAnimation(self, duration=1.0, fromHigher=False):
         uicore.animations.MorphScalar(self.damageElements, 'opacity', 0, 0.7, duration=duration, curveType=uiconst.ANIM_WAVE)
         uicore.animations.SpGlowFadeIn(uicore.layer.shipui.hpGauges.armorGauge, duration=duration, glowColor=self.hudGlowColor, glowExpand=3.0, curveType=uiconst.ANIM_WAVE)
         self.DoShieldAnimation(duration, True)
@@ -263,7 +278,7 @@ class ShipAlertContainer(uiprimitives.Container):
             sm.GetService('audio').SendUIEvent('ui_warning_armor')
             blue.synchro.SleepSim(duration * 1000)
 
-    def DoHullAnimation(self, duration = 0.6):
+    def DoHullAnimation(self, duration=0.6):
         uicore.animations.MorphScalar(self.damageElements, 'opacity', 0, 1, duration=duration, curveType=uiconst.ANIM_WAVE)
         uicore.animations.SpGlowFadeIn(uicore.layer.shipui.hpGauges.structureGauge, duration=duration, glowColor=self.hudGlowColor, glowExpand=3.0, curveType=uiconst.ANIM_WAVE)
         self.DoArmorAnimation(duration, True)

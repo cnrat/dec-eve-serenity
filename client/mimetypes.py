@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\carbon\common\stdlib\mimetypes.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\carbon\common\stdlib\mimetypes.py
 import os
 import sys
 import posixpath
@@ -28,7 +29,7 @@ _db = None
 
 class MimeTypes:
 
-    def __init__(self, filenames = (), strict = True):
+    def __init__(self, filenames=(), strict=True):
         global inited
         if not inited:
             init()
@@ -45,13 +46,13 @@ class MimeTypes:
         for name in filenames:
             self.read(name, strict)
 
-    def add_type(self, type, ext, strict = True):
+    def add_type(self, type, ext, strict=True):
         self.types_map[strict][ext] = type
         exts = self.types_map_inv[strict].setdefault(type, [])
         if ext not in exts:
             exts.append(ext)
 
-    def guess_type(self, url, strict = True):
+    def guess_type(self, url, strict=True):
         scheme, url = urllib.splittype(url)
         if scheme == 'data':
             comma = url.find(',')
@@ -65,31 +66,32 @@ class MimeTypes:
             if '=' in type or '/' not in type:
                 type = 'text/plain'
             return (type, None)
-        base, ext = posixpath.splitext(url)
-        while ext in self.suffix_map:
-            base, ext = posixpath.splitext(base + self.suffix_map[ext])
-
-        if ext in self.encodings_map:
-            encoding = self.encodings_map[ext]
-            base, ext = posixpath.splitext(base)
         else:
-            encoding = None
-        types_map = self.types_map[True]
-        if ext in types_map:
-            return (types_map[ext], encoding)
-        elif ext.lower() in types_map:
-            return (types_map[ext.lower()], encoding)
-        elif strict:
-            return (None, encoding)
-        types_map = self.types_map[False]
-        if ext in types_map:
-            return (types_map[ext], encoding)
-        elif ext.lower() in types_map:
-            return (types_map[ext.lower()], encoding)
-        else:
-            return (None, encoding)
+            base, ext = posixpath.splitext(url)
+            while ext in self.suffix_map:
+                base, ext = posixpath.splitext(base + self.suffix_map[ext])
 
-    def guess_all_extensions(self, type, strict = True):
+            if ext in self.encodings_map:
+                encoding = self.encodings_map[ext]
+                base, ext = posixpath.splitext(base)
+            else:
+                encoding = None
+            types_map = self.types_map[True]
+            if ext in types_map:
+                return (types_map[ext], encoding)
+            if ext.lower() in types_map:
+                return (types_map[ext.lower()], encoding)
+            if strict:
+                return (None, encoding)
+            types_map = self.types_map[False]
+            if ext in types_map:
+                return (types_map[ext], encoding)
+            if ext.lower() in types_map:
+                return (types_map[ext.lower()], encoding)
+            return (None, encoding)
+            return
+
+    def guess_all_extensions(self, type, strict=True):
         type = type.lower()
         extensions = self.types_map_inv[True].get(type, [])
         if not strict:
@@ -99,17 +101,18 @@ class MimeTypes:
 
         return extensions
 
-    def guess_extension(self, type, strict = True):
+    def guess_extension(self, type, strict=True):
         extensions = self.guess_all_extensions(type, strict)
         if not extensions:
             return None
-        return extensions[0]
+        else:
+            return extensions[0]
 
-    def read(self, filename, strict = True):
+    def read(self, filename, strict=True):
         with open(filename) as fp:
             self.readfp(fp, strict)
 
-    def readfp(self, fp, strict = True):
+    def readfp(self, fp, strict=True):
         while 1:
             line = fp.readline()
             if not line:
@@ -126,7 +129,7 @@ class MimeTypes:
             for suff in suffixes:
                 self.add_type(type, '.' + suff, strict)
 
-    def read_windows_registry(self, strict = True):
+    def read_windows_registry(self, strict=True):
         if not _winreg:
             return
 
@@ -170,32 +173,32 @@ class MimeTypes:
             pass
 
 
-def guess_type(url, strict = True):
+def guess_type(url, strict=True):
     global _db
     if _db is None:
         init()
     return _db.guess_type(url, strict)
 
 
-def guess_all_extensions(type, strict = True):
+def guess_all_extensions(type, strict=True):
     if _db is None:
         init()
     return _db.guess_all_extensions(type, strict)
 
 
-def guess_extension(type, strict = True):
+def guess_extension(type, strict=True):
     if _db is None:
         init()
     return _db.guess_extension(type, strict)
 
 
-def add_type(type, ext, strict = True):
+def add_type(type, ext, strict=True):
     if _db is None:
         init()
     return _db.add_type(type, ext, strict)
 
 
-def init(files = None):
+def init(files=None):
     global types_map
     global inited
     global encodings_map
@@ -217,6 +220,7 @@ def init(files = None):
     types_map = db.types_map[True]
     common_types = db.types_map[False]
     _db = db
+    return
 
 
 def read_mime_types(file):
@@ -379,7 +383,7 @@ if __name__ == '__main__':
     import getopt
     USAGE = 'Usage: mimetypes.py [options] type\n\nOptions:\n    --help / -h       -- print this message and exit\n    --lenient / -l    -- additionally search of some common, but non-standard\n                         types.\n    --extension / -e  -- guess extension instead of type\n\nMore than one type argument may be given.\n'
 
-    def usage(code, msg = ''):
+    def usage(code, msg=''):
         print USAGE
         if msg:
             print msg

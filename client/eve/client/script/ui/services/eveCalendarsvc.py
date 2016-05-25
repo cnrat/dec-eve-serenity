@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\client\script\ui\services\eveCalendarsvc.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\client\script\ui\services\eveCalendarsvc.py
 import carbonui.const as uiconst
 from eve.client.script.ui.shared.stateFlag import AddAndSetFlagIcon, FlagIcon
 import service
@@ -44,6 +45,7 @@ class EveCalendarSvc(svc.calendar):
     def Run(self, *etc):
         svc.calendar.Run(self, *etc)
         self._calendarProxy = None
+        return
 
     def GetCalendarProxy(self):
         if self._calendarProxy is None:
@@ -54,7 +56,7 @@ class EveCalendarSvc(svc.calendar):
         configname = 'calendarNewEventWnd_%s_%s_%s' % (year, month, monthday)
         form.CalendarNewEventWnd.Open(windowID=configname, year=year, month=month, monthday=monthday)
 
-    def CreateNewEvent(self, dateTime, duration, title, description, eventTag, important = 0, invitees = []):
+    def CreateNewEvent(self, dateTime, duration, title, description, eventTag, important=0, invitees=[]):
         if not title.strip():
             raise UserError('CalendarEventMustSpecifyTitle')
         year, month, wd, day, hour, min, sec, ms = blue.os.GetTimeParts(dateTime)
@@ -76,6 +78,7 @@ class EveCalendarSvc(svc.calendar):
             newEventID = self.calendarMgr.CreateCorporationEvent(dateTime, duration, title, description, important)
         elif eventTag == const.calendarTagAlliance:
             newEventID = self.calendarMgr.CreateAllianceEvent(dateTime, duration, title, description, important)
+        return
 
     def UpdateEventParticipants(self, eventID, charsToAdd, charsToRemove):
         if eventID is not None:
@@ -84,8 +87,9 @@ class EveCalendarSvc(svc.calendar):
             elif len(charsToRemove) > 0:
                 self.calendarMgr.UpdateEventParticipants(eventID, charsToAdd, charsToRemove)
             self.objectCaching.InvalidateCachedMethodCall('calendarMgr', 'GetResponsesToEvent', eventID, session.charid)
+        return
 
-    def EditEvent(self, eventID, oldDateTime, dateTime, duration, title, description, eventTag, important = 0):
+    def EditEvent(self, eventID, oldDateTime, dateTime, duration, title, description, eventTag, important=0):
         year, month, wd, day, hour, min, sec, ms = blue.os.GetTimeParts(dateTime)
         if self.IsTooFarInFuture(year, month):
             raise UserError('CalendarTooFarIntoFuture', {'numMonths': const.calendarViewRangeInMonths})
@@ -100,7 +104,7 @@ class EveCalendarSvc(svc.calendar):
             self.calendarMgr.EditAllianceEvent(eventID, oldDateTime, dateTime, duration, title, description, important)
         return True
 
-    def GetEventFlag(self, ownerID, autoEventType = None):
+    def GetEventFlag(self, ownerID, autoEventType=None):
         if ownerID == session.corpid:
             if autoEventType is None:
                 return const.calendarTagCorp
@@ -111,6 +115,7 @@ class EveCalendarSvc(svc.calendar):
             return const.calendarTagCCP
         else:
             return const.calendarTagPersonal
+            return
 
     def GetEventsByMonthYear(self, month, year):
         eventList = self.events.get((month, year))
@@ -141,7 +146,7 @@ class EveCalendarSvc(svc.calendar):
             self.eventDetails[eventID] = self.GetCalendarProxy().GetEventDetails(eventID, ownerID)
         return self.eventDetails[eventID]
 
-    def OpenSingleDayWnd(self, header, year, month, monthday, events, isADay = 1, wndType = 'singleWndDay', *args):
+    def OpenSingleDayWnd(self, header, year, month, monthday, events, isADay=1, wndType='singleWndDay', *args):
         configname = '%s_%s_%s_%s' % (wndType,
          year,
          month,
@@ -158,7 +163,7 @@ class EveCalendarSvc(svc.calendar):
 
         wnd = form.CalendarSingleDayWnd.Open(windowID=configname, header=header, wndType=wndType, year=year, month=month, monthday=monthday, events=events, isADay=isADay)
 
-    def OpenEventWnd(self, eventInfo, edit = 0, *args):
+    def OpenEventWnd(self, eventInfo, edit=0, *args):
         year, month, wd, monthday, hour, min, sec, ms = blue.os.GetTimeParts(eventInfo.eventDateTime)
         name = 'calendarEventWnd_%s' % eventInfo.eventID
         if edit:
@@ -179,6 +184,7 @@ class EveCalendarSvc(svc.calendar):
         sm.ScatterEvent('OnReloadToDo')
         sm.ScatterEvent('OnRespondToEvent')
         sm.ScatterEvent('OnReloadCalendar')
+        return
 
     def DeleteEvent(self, eventID, ownerID):
         if eve.Message('CalendarDeleteEvent', {}, uiconst.YESNO) != uiconst.ID_YES:
@@ -197,7 +203,7 @@ class EveCalendarSvc(svc.calendar):
             return nowMonth == const.calendarDecember and eventMonth == const.calendarJanuary
         return False
 
-    def OnNewCalendarEvent(self, eventID, ownerID, eventDateTime, eventDuration, eventTitle, importance, autoEventType = None, doBlink = True):
+    def OnNewCalendarEvent(self, eventID, ownerID, eventDateTime, eventDuration, eventTitle, importance, autoEventType=None, doBlink=True):
         year, month = util.GetYearMonthFromTime(eventDateTime)
         now = blue.os.GetWallclockTime()
         eventList = self.events.get((month, year))
@@ -214,8 +220,9 @@ class EveCalendarSvc(svc.calendar):
             sm.GetService('neocom').Blink('calendar')
         sm.ScatterEvent('OnReloadCalendar')
         sm.ScatterEvent('OnReloadToDo')
+        return
 
-    def OnEditCalendarEvent(self, eventID, ownerID, oldEventDateTime, eventDateTime, eventDuration, eventTitle, importance, autoEventType = None):
+    def OnEditCalendarEvent(self, eventID, ownerID, oldEventDateTime, eventDateTime, eventDuration, eventTitle, importance, autoEventType=None):
         oldYear, oldMonth = util.GetYearMonthFromTime(oldEventDateTime)
         if eventID in self.nextEvents:
             self.nextEvents.pop(eventID)
@@ -240,6 +247,7 @@ class EveCalendarSvc(svc.calendar):
 
             self.events[oldMonth, oldYear] = eventList
         self.OnNewCalendarEvent(eventID, ownerID, eventDateTime, eventDuration, eventTitle, importance, autoEventType, doBlink=False)
+        return
 
     def OnRemoveCalendarEvent(self, eventID, eventDateTime, isDeleted):
         year, month, wd, monthday, hour, min, sec, ms = blue.os.GetTimeParts(eventDateTime)
@@ -260,6 +268,7 @@ class EveCalendarSvc(svc.calendar):
         self.nextEventsFetched = False
         sm.ScatterEvent('OnReloadToDo')
         sm.ScatterEvent('OnReloadCalendar')
+        return
 
     def OnSessionChanged(self, isRemote, session, change):
         if 'corpid' in change or 'allianceid' in change:
@@ -309,12 +318,11 @@ class EveCalendarSvc(svc.calendar):
             return 'ui_38_16_177'
         if response == const.eventResponseMaybe:
             return 'ui_38_16_195'
-        return 'ui_38_16_192'
 
     def GetLongResponseIconPath(self, response):
         return self.GetResponseIconNum(response)
 
-    def GetMyResponseIconFromID(self, eventID, long = 0, getDeleted = 0):
+    def GetMyResponseIconFromID(self, eventID, long=0, getDeleted=0):
         if getDeleted:
             myResponse = const.eventResponseDeleted
         else:
@@ -344,8 +352,9 @@ class EveCalendarSvc(svc.calendar):
             tagIconCont = uiprimitives.Container(name='tagIconCont', parent=None, align=uiconst.TOPLEFT, pos=(0, 0, 14, 14))
             self.LoadTagIconInContainer(tag, tagIconCont, left=0, top=0)
             return tagIconCont
+            return
 
-    def LoadTagIconInContainer(self, tag, cont, left = 2, top = 4, *args):
+    def LoadTagIconInContainer(self, tag, cont, left=2, top=4, *args):
         uiutil.Flush(cont)
         if tag == const.calendarTagCorp:
             AddAndSetFlagIcon(parentCont=cont, flag=state.flagSameCorp, top=top, left=left)
@@ -361,6 +370,7 @@ class EveCalendarSvc(svc.calendar):
             container.sr.flag = FlagIcon(parent=container, left=left, top=top, state=uiconst.UI_DISABLED, align=uiconst.TOPRIGHT)
         container.sr.flag.SetBackgroundColor((0.7, 0.7, 0.7))
         container.sr.flag.SetIconTexturePath(iconIdx=2)
+        return
 
     def LoadAutomatedIcon(self, container, top, left, *args):
         if getattr(container.sr, 'flag', None) is None or container.sr.flag.destroyed:
@@ -371,8 +381,9 @@ class EveCalendarSvc(svc.calendar):
         container.sr.flag.flagIcon.texturePath = 'res:/UI/Texture/Icons/AutomatedEntry_Icon_Alpha.png'
         color = sm.GetService('state').GetStateFlagColor(state.flagSameCorp)
         container.sr.flag.SetBackgroundColor(color, opacity=0.75)
+        return
 
-    def GetMyChangedEvents(self, monthsAhead = 1):
+    def GetMyChangedEvents(self, monthsAhead=1):
         events = self.GetEventsNextXMonths(monthsAhead)
         showTag = self.GetActiveTags()
         changedEvents = {}
@@ -383,7 +394,7 @@ class EveCalendarSvc(svc.calendar):
 
         return changedEvents
 
-    def GetMyNextEvents(self, monthsAhead = 1):
+    def GetMyNextEvents(self, monthsAhead=1):
         events = self.GetEventsNextXMonths(monthsAhead)
         showTag = self.GetActiveTags()
         myNextEvents = {}
@@ -394,14 +405,14 @@ class EveCalendarSvc(svc.calendar):
 
         return myNextEvents
 
-    def GetEventsNextXMonths(self, monthsAhead = 1, force = 0):
+    def GetEventsNextXMonths(self, monthsAhead=1, force=0):
         if getattr(self, 'nextEventsFetched', False) and not force:
             return self.nextEvents
         self.nextEvents = self.FetchNextEvents(monthsAhead=monthsAhead)
         self.nextEventsFetched = True
         return self.nextEvents
 
-    def FetchNextEvents(self, monthsAhead = 1):
+    def FetchNextEvents(self, monthsAhead=1):
         now = blue.os.GetWallclockTime() + eveLocalization.GetTimeDelta() * const.SEC
         year, month, wd, day, hour, minute, sec, ms = blue.os.GetTimeParts(now)
         nextEvents = self.FetchNextEventsDict(month, year, now)
@@ -449,31 +460,32 @@ class EveCalendarSvc(svc.calendar):
     def GetEventHint(self, eventInfo, myResponse):
         if eventInfo is None:
             return ''
-        if eventInfo.eventDuration is None:
-            durationLabel = localization.GetByLabel('UI/Calendar/EventWindow/DateNotSpecified')
         else:
-            hours = eventInfo.eventDuration / 60
-            durationLabel = localization.GetByLabel('UI/Calendar/EventWindow/DateSpecified', hours=hours)
-        responseLabel = localization.GetByLabel(self.GetResponseType().get(myResponse, 'UI/Generic/Unknown'))
-        if getattr(eventInfo, 'eventTimeStamp', None) is None:
-            year, month, wd, day, hour, min, sec, ms = blue.os.GetTimeParts(eventInfo.eventDateTime)
-            ts = time.struct_time((year,
-             month,
-             day,
-             hour,
-             min,
-             sec,
-             0,
-             1,
-             0))
-            eventInfo.eventTimeStamp = localization.formatters.FormatDateTime(value=ts, dateFormat='none', timeFormat='short')
-        et = self.GetEventTypes().get(eventInfo.flag, '-')
-        if et != '-':
-            et = localization.GetByLabel(et)
-        hint = localization.GetByLabel('UI/Calendar/Hints/Event', time=eventInfo.eventTimeStamp, title=eventInfo.eventTitle, eventType=et, response=responseLabel, duration=durationLabel, owner=cfg.eveowners.Get(eventInfo.ownerID).name)
-        if eventInfo.importance > 0:
-            hint += localization.GetByLabel('UI/Calendar/Hints/EventImportant')
-        return hint
+            if eventInfo.eventDuration is None:
+                durationLabel = localization.GetByLabel('UI/Calendar/EventWindow/DateNotSpecified')
+            else:
+                hours = eventInfo.eventDuration / 60
+                durationLabel = localization.GetByLabel('UI/Calendar/EventWindow/DateSpecified', hours=hours)
+            responseLabel = localization.GetByLabel(self.GetResponseType().get(myResponse, 'UI/Generic/Unknown'))
+            if getattr(eventInfo, 'eventTimeStamp', None) is None:
+                year, month, wd, day, hour, min, sec, ms = blue.os.GetTimeParts(eventInfo.eventDateTime)
+                ts = time.struct_time((year,
+                 month,
+                 day,
+                 hour,
+                 min,
+                 sec,
+                 0,
+                 1,
+                 0))
+                eventInfo.eventTimeStamp = localization.formatters.FormatDateTime(value=ts, dateFormat='none', timeFormat='short')
+            et = self.GetEventTypes().get(eventInfo.flag, '-')
+            if et != '-':
+                et = localization.GetByLabel(et)
+            hint = localization.GetByLabel('UI/Calendar/Hints/Event', time=eventInfo.eventTimeStamp, title=eventInfo.eventTitle, eventType=et, response=responseLabel, duration=durationLabel, owner=cfg.eveowners.Get(eventInfo.ownerID).name)
+            if eventInfo.importance > 0:
+                hint += localization.GetByLabel('UI/Calendar/Hints/EventImportant')
+            return hint
 
     def GetResponseType(self, *args):
         return RESPONSETYPES

@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\client\script\ui\shared\neocom\Alliances\all_ui_systems.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\client\script\ui\shared\neocom\Alliances\all_ui_systems.py
 from carbonui.primitives.container import Container
 from carbonui.primitives.containerAutoSize import ContainerAutoSize
 from carbonui.primitives.sprite import Sprite
@@ -67,8 +68,9 @@ class FormAlliancesSystems(Container):
             currentSystemText = sm.GetService('infoPanel').GetSolarSystemTrace(currentSystem, '')
             self.SetDisplayOfCapitalLabelAndIcon(True)
         self.currentCapitalLabel.text = currentSystemText
+        return
 
-    def SetDisplayOfCapitalLabelAndIcon(self, display = True):
+    def SetDisplayOfCapitalLabelAndIcon(self, display=True):
         self.capitalLabel.display = display
         self.capitalSprite.display = display
 
@@ -85,13 +87,14 @@ class FormAlliancesSystems(Container):
     def _IsDirectorInExecCorp(self, executorCorpID):
         if session.allianceid is None:
             return False
-        if IsNPC(session.corpid):
+        elif IsNPC(session.corpid):
             return False
-        if session.corpid != executorCorpID:
+        elif session.corpid != executorCorpID:
             return False
-        if corpRoleDirector & session.corprole != corpRoleDirector:
+        elif corpRoleDirector & session.corprole != corpRoleDirector:
             return False
-        return True
+        else:
+            return True
 
     def RemoveCapital(self, *args):
         if eve.Message('CustomQuestion', {'header': GetByLabel('UI/Sovereignty/CancelPendingCapital'),

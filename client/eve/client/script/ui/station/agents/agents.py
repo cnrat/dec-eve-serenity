@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\client\script\ui\station\agents\agents.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\client\script\ui\station\agents\agents.py
 import uicontrols
 import uix
 import uthread
@@ -79,11 +80,14 @@ class Agents(service.Service):
             self.allAgentsByCorpID = newRowSet.Filter('corporationID')
             self.allAgentsByType = newRowSet.Filter('agentTypeID')
             self.allAgents = newRowSet
+        return
 
     def GetAgentByID(self, agentID):
         self.__GetAllAgents()
         if agentID in self.allAgentsByID:
             return self.allAgentsByID[agentID]
+        else:
+            return None
 
     def GetAgentsByID(self):
         self.__GetAllAgents()
@@ -124,6 +128,7 @@ class Agents(service.Service):
         self.missionArgs = {}
         self.lastMonikerAccess = blue.os.GetWallclockTime()
         uthread.worker('agents::ClearMonikers', self.__ClearAgentMonikers)
+        return
 
     def GetAgentMoniker(self, agentID):
         if agentID not in self.agentMonikers:
@@ -140,7 +145,7 @@ class Agents(service.Service):
             if blue.os.GetWallclockTime() > self.lastMonikerAccess + 30 * const.MIN:
                 self.agentMonikers.clear()
 
-    def Run(self, memStream = None):
+    def Run(self, memStream=None):
         self.LogInfo('Agent Service')
         self.processing = 0
         self.reentrancyGuard1 = 0
@@ -163,17 +168,19 @@ class Agents(service.Service):
             rejectMessage = localization.GetByLabel('UI/Agents/StandardMissionCargoCapWarning', cargoUnits=mandatoryCargoUnits)
             self.MessageBox(localization.GetByLabel('UI/Agents/CannotAcceptMission'), rejectMessage)
             return ('mission.offeredinsufficientcargospace', rejectMessage)
-        if capacity - (used + cargoUnits) < 0:
-            if capacity - (used + cargoUnits) < 1:
-                c1 = cargoUnits
-                c2 = capacity - used
-            else:
-                c1 = cargoUnits
-                c2 = capacity - used
-            if not self.YesNo(localization.GetByLabel('UI/Agents/CargoCapacityWarning'), localization.GetByLabel('UI/Agents/StandardMissionAcceptCargoCapWarning', requiredUnits=c1, availableUnits=c2), 'AgtMissionAcceptBigCargo'):
-                return 'mission.offered'
+        else:
+            if capacity - (used + cargoUnits) < 0:
+                if capacity - (used + cargoUnits) < 1:
+                    c1 = cargoUnits
+                    c2 = capacity - used
+                else:
+                    c1 = cargoUnits
+                    c2 = capacity - used
+                if not self.YesNo(localization.GetByLabel('UI/Agents/CargoCapacityWarning'), localization.GetByLabel('UI/Agents/StandardMissionAcceptCargoCapWarning', requiredUnits=c1, availableUnits=c2), 'AgtMissionAcceptBigCargo'):
+                    return 'mission.offered'
+            return
 
-    def YesNo(self, title, body, agentID = None, contentID = None, suppressID = None):
+    def YesNo(self, title, body, agentID=None, contentID=None, suppressID=None):
         if isinstance(title, basestring):
             titleText = title
         else:
@@ -189,7 +196,7 @@ class Agents(service.Service):
         ret = self.ShowMessageWindow(options, suppressID)
         return ret == uiconst.ID_YES
 
-    def MessageBox(self, title, body, agentID = None, contentID = None, suppressID = None):
+    def MessageBox(self, title, body, agentID=None, contentID=None, suppressID=None):
         if isinstance(title, basestring):
             titleText = title
         else:
@@ -204,7 +211,7 @@ class Agents(service.Service):
          'icon': triui.INFO}
         self.ShowMessageWindow(options, suppressID)
 
-    def ShowMessageWindow(self, options, suppressID = None):
+    def ShowMessageWindow(self, options, suppressID=None):
         if suppressID:
             supp = settings.user.suppress.Get('suppress.' + suppressID, None)
             if supp is not None:
@@ -215,7 +222,7 @@ class Agents(service.Service):
             settings.user.suppress.Set('suppress.' + suppressID, ret)
         return ret
 
-    def SingleChoiceBox(self, title, body, choices, agentID = None, contentID = None, suppressID = None):
+    def SingleChoiceBox(self, title, body, choices, agentID=None, contentID=None, suppressID=None):
         if isinstance(title, basestring):
             titleText = title
         else:
@@ -254,7 +261,8 @@ class Agents(service.Service):
         ret = uix.QtyPopup(**keywords)
         if not ret:
             return
-        return ret.get('qty', None)
+        else:
+            return ret.get('qty', None)
 
     def RemoteNamePopup(self, caption, label, agentID):
         if isinstance(caption, basestring):
@@ -288,8 +296,9 @@ class Agents(service.Service):
             return ret[2]
         else:
             return
+            return
 
-    def Stop(self, memStream = None):
+    def Stop(self, memStream=None):
         self.LogInfo('Stopping Agent Services')
         service.Service.Stop(self)
 
@@ -311,11 +320,13 @@ class Agents(service.Service):
             if agent.agentTypeID == const.agentTypeAura:
                 return agent.agentID
 
+        return None
+
     def OnInteractWith(self, agentID):
         self.InteractWith(agentID)
 
     @telemetry.ZONE_METHOD
-    def InteractWith(self, agentID, maximize = True):
+    def InteractWith(self, agentID, maximize=True):
         agentDialogueWindow = None
         if agentID in self.windows:
             agentDialogueWindow = self.windows[agentID]
@@ -340,65 +351,71 @@ class Agents(service.Service):
             agentDialogueWindow.sr.main.opacity = 1.0
         if not agentDialogueWindow.destroyed and hasattr(agentDialogueWindow.sr, 'stack') and agentDialogueWindow.sr.stack:
             agentDialogueWindow.RefreshBrowsers()
+        return
 
     def ProcessUIRefresh(self):
         if not getattr(self, 'divisions', None):
             return
-        for row in self.divisions.values():
-            row.divisionName = localization.GetByMessageID(row.divisionNameID)
-            row.leaderType = localization.GetByMessageID(row.leaderTypeID)
+        else:
+            for row in self.divisions.values():
+                row.divisionName = localization.GetByMessageID(row.divisionNameID)
+                row.leaderType = localization.GetByMessageID(row.leaderTypeID)
 
-        for agentID in self.windows:
-            state = self.windows[agentID].state
-            self.windows[agentID].Close()
-            self.InteractWith(agentID)
-            self.windows[agentID].SetState(state)
+            for agentID in self.windows:
+                state = self.windows[agentID].state
+                self.windows[agentID].Close()
+                self.InteractWith(agentID)
+                self.windows[agentID].SetState(state)
+
+            return
 
     def __GetConversation(self, wnd, actionID):
         if wnd is None or wnd.destroyed or wnd.sr is None:
             return (None, None, None)
-        tmp = wnd.sr.agentMoniker.DoAction(actionID)
-        if wnd is None or wnd.destroyed or wnd.sr is None:
-            return (None, None, None)
-        ret, wnd.sr.oob = tmp
-        agentSays, wnd.sr.dialogue = ret
-        if actionID is None and len(wnd.sr.dialogue):
-            self.LogInfo('Agent Service: Started a new conversation with an agent and successfully retrieved dialogue options.')
-            firstActionID = wnd.sr.dialogue[0][0]
-            firstActionDialogue = wnd.sr.dialogue[0][1]
-            agentHasLocatorService = False
-            for id, dlg in wnd.sr.dialogue:
-                if dlg == const.agentDialogueButtonLocateCharacter:
-                    agentHasLocatorService = True
+        else:
+            tmp = wnd.sr.agentMoniker.DoAction(actionID)
+            if wnd is None or wnd.destroyed or wnd.sr is None:
+                return (None, None, None)
+            ret, wnd.sr.oob = tmp
+            agentSays, wnd.sr.dialogue = ret
+            if actionID is None and len(wnd.sr.dialogue):
+                self.LogInfo('Agent Service: Started a new conversation with an agent and successfully retrieved dialogue options.')
+                firstActionID = wnd.sr.dialogue[0][0]
+                firstActionDialogue = wnd.sr.dialogue[0][1]
+                agentHasLocatorService = False
+                for id, dlg in wnd.sr.dialogue:
+                    if dlg == const.agentDialogueButtonLocateCharacter:
+                        agentHasLocatorService = True
 
-            isResearchAgent = False
-            if self.GetAgentByID(wnd.sr.agentID).agentTypeID == const.agentTypeResearchAgent:
-                isResearchAgent = True
-            if firstActionDialogue in (const.agentDialogueButtonRequestMission, const.agentDialogueButtonViewMission) and (len(wnd.sr.dialogue) == 1 or not agentHasLocatorService and not isResearchAgent):
-                self.LogInfo("Agent Service: Automatically executing the 'Ask' dialogue action for the player.")
-                tmp = wnd.sr.agentMoniker.DoAction(firstActionID)
-                if wnd is None or wnd.destroyed or wnd.sr is None:
-                    return (None, None, None)
-                ret, wnd.sr.oob = tmp
-                agentSays, wnd.sr.dialogue = ret
-        wnd.sr.agentSays = self.ProcessMessage(agentSays, wnd.sr.agentID)
-        return (wnd.sr.agentSays, wnd.sr.dialogue, wnd.sr.oob)
+                isResearchAgent = False
+                if self.GetAgentByID(wnd.sr.agentID).agentTypeID == const.agentTypeResearchAgent:
+                    isResearchAgent = True
+                if firstActionDialogue in (const.agentDialogueButtonRequestMission, const.agentDialogueButtonViewMission) and (len(wnd.sr.dialogue) == 1 or not agentHasLocatorService and not isResearchAgent):
+                    self.LogInfo("Agent Service: Automatically executing the 'Ask' dialogue action for the player.")
+                    tmp = wnd.sr.agentMoniker.DoAction(firstActionID)
+                    if wnd is None or wnd.destroyed or wnd.sr is None:
+                        return (None, None, None)
+                    ret, wnd.sr.oob = tmp
+                    agentSays, wnd.sr.dialogue = ret
+            wnd.sr.agentSays = self.ProcessMessage(agentSays, wnd.sr.agentID)
+            return (wnd.sr.agentSays, wnd.sr.dialogue, wnd.sr.oob)
 
     def GetAgentArgs(self, agentID):
         agentInfo = self.GetAgentByID(agentID)
         if not agentInfo:
             return {}
-        agentArgs = {'agentID': agentInfo.agentID}
-        agentArgs['agentCorpID'] = agentInfo.corporationID
-        agentArgs['agentFactionID'] = agentInfo.factionID
-        agentArgs['agentSolarSystemID'] = agentInfo.solarsystemID
-        agentArgs['agentLocation'] = agentInfo.solarsystemID
-        if getattr(agentInfo, 'stationID', None):
-            agentArgs['agentStationID'] = agentInfo.stationID
-            agentArgs['agentLocation'] = agentInfo.stationID
-        agentArgs['agentConstellationID'] = self.map.GetConstellationForSolarSystem(agentInfo.solarsystemID)
-        agentArgs['agentRegionID'] = self.map.GetRegionForSolarSystem(agentInfo.solarsystemID)
-        return agentArgs
+        else:
+            agentArgs = {'agentID': agentInfo.agentID}
+            agentArgs['agentCorpID'] = agentInfo.corporationID
+            agentArgs['agentFactionID'] = agentInfo.factionID
+            agentArgs['agentSolarSystemID'] = agentInfo.solarsystemID
+            agentArgs['agentLocation'] = agentInfo.solarsystemID
+            if getattr(agentInfo, 'stationID', None):
+                agentArgs['agentStationID'] = agentInfo.stationID
+                agentArgs['agentLocation'] = agentInfo.stationID
+            agentArgs['agentConstellationID'] = self.map.GetConstellationForSolarSystem(agentInfo.solarsystemID)
+            agentArgs['agentRegionID'] = self.map.GetRegionForSolarSystem(agentInfo.solarsystemID)
+            return agentArgs
 
     def PrimeMessageArguments(self, agentID, contentID):
         if contentID is not None:
@@ -409,8 +426,9 @@ class Agents(service.Service):
         if agentID is not None:
             if agentID not in self.agentArgs:
                 self.agentArgs[agentID] = self.GetAgentArgs(agentID)
+        return
 
-    def ProcessMessage(self, msg, agentID = None):
+    def ProcessMessage(self, msg, agentID=None):
         if isinstance(msg, types.TupleType):
             msgInfo, contentID = msg
             if isinstance(msgInfo, basestring):
@@ -442,8 +460,9 @@ class Agents(service.Service):
 
         else:
             return msg
+        return
 
-    def DoAction(self, agentID, actionID = None, closeWindowOnClick = False):
+    def DoAction(self, agentID, actionID=None, closeWindowOnClick=False):
         if self.reentrancyGuard1:
             return
         self.reentrancyGuard1 = 1
@@ -453,7 +472,7 @@ class Agents(service.Service):
         finally:
             self.reentrancyGuard1 = 0
 
-    def OnAgentMissionChange(self, what, agentID, tutorialID = None):
+    def OnAgentMissionChange(self, what, agentID, tutorialID=None):
         if tutorialID:
             sm.GetService('tutorial').OpenTutorialSequence_Check(tutorialID)
         if (agentID, 'offer') in self.journalwindows:
@@ -495,6 +514,7 @@ class Agents(service.Service):
 
         if what in const.agentMissionCompleted:
             sm.GetService('audio').SendUIEvent(u'ui_notify_mission_rewards_play')
+        return
 
     def OnDatacoreBought(self, characterID, agentID, balance):
         self.LogInfo('OnDatacoreBought', characterID, agentID, balance)
@@ -508,10 +528,12 @@ class Agents(service.Service):
                 if window is not None and not window.destroyed:
                     self.UpdateMissionJournal(agentID, popup=False)
 
-    def PopupMissionJournal(self, agentID, charID = None, contentID = None):
+        return
+
+    def PopupMissionJournal(self, agentID, charID=None, contentID=None):
         self.UpdateMissionJournal(agentID, charID, contentID)
 
-    def UpdateMissionJournal(self, agentID, charID = None, contentID = None, popup = True):
+    def UpdateMissionJournal(self, agentID, charID=None, contentID=None, popup=True):
         if self.reentrancyGuard2:
             return
         self.reentrancyGuard2 = 1
@@ -561,7 +583,7 @@ class Agents(service.Service):
         html += '</body></html>'
         return html
 
-    def PopupDungeonShipRestrictionList(self, agentID, charID = None, dungeonID = None):
+    def PopupDungeonShipRestrictionList(self, agentID, charID=None, dungeonID=None):
         restrictions = self.GetAgentMoniker(agentID).GetDungeonShipRestrictions(dungeonID)
         title = localization.GetByLabel('UI/Agents/Dialogue/DungeonShipRestrictionsHeader')
         ship = None
@@ -600,11 +622,12 @@ class Agents(service.Service):
          'buttons': triui.OK,
          'icon': triui.INFO}
         self.ShowMessageWindow(options)
+        return
 
     def RemoveOfferFromJournal(self, agentID):
         self.GetAgentMoniker(agentID).RemoveOfferFromJournal()
 
-    def OpenAgentDialogueWindow(self, windowName = 'agentDialogueWindow', agentID = None):
+    def OpenAgentDialogueWindow(self, windowName='agentDialogueWindow', agentID=None):
         window = form.AgentDialogueWindow.Open(windowID=windowName, agentID=agentID)
         return window
 
@@ -637,7 +660,7 @@ class Agents(service.Service):
         finally:
             self.reentrancyGuard2 = 0
 
-    def ShowMissionObjectives(self, agentID, charID = None, contentID = None, briefingTitleID = None):
+    def ShowMissionObjectives(self, agentID, charID=None, contentID=None, briefingTitleID=None):
         if agentID not in self.windows:
             self.InteractWith(agentID)
             return
@@ -687,7 +710,8 @@ class Agents(service.Service):
     def GetMissionBriefingInformation(self, wnd):
         if wnd is None or wnd.destroyed or wnd.sr is None:
             return
-        return wnd.sr.agentMoniker.GetMissionBriefingInfo()
+        else:
+            return wnd.sr.agentMoniker.GetMissionBriefingInfo()
 
     _buttonLabelMapping = {const.agentDialogueButtonViewMission: 'UI/Agents/Dialogue/Buttons/ViewMission',
      const.agentDialogueButtonRequestMission: 'UI/Agents/Dialogue/Buttons/RequestMission',
@@ -713,7 +737,7 @@ class Agents(service.Service):
         return self._buttonLabelMapping.get(buttonID, '')
 
     @telemetry.ZONE_METHOD
-    def __Interact(self, agentDialogueWindow, actionID = None, closeWindowAfterInteraction = False):
+    def __Interact(self, agentDialogueWindow, actionID=None, closeWindowAfterInteraction=False):
         if actionID:
             agentDialogueWindow.DisableButtons()
         agentSays, dialogue, extraInfo = self.__GetConversation(agentDialogueWindow, actionID)
@@ -723,134 +747,136 @@ class Agents(service.Service):
         initialContentID = None
         if agentSays is None:
             return
-        if closeWindowAfterInteraction:
+        elif closeWindowAfterInteraction:
             agentDialogueWindow.CloseByUser()
             return
-        if extraInfo.get('missionQuit', None):
+        elif extraInfo.get('missionQuit', None):
             agentDialogueWindow.CloseByUser()
             return
-        customAgentButtons = {'okLabel': [],
-         'okFunc': [],
-         'args': []}
-        disabledButtons = []
-        charSays = ''
-        extraMissionInfo = ''
-        numDialogChoices = 0
-        isAgentInteractionMission = False
-        appendCloseButton = False
-        adminBlock = ''
-        if dialogue:
-            adminOptions = []
-            for each in dialogue:
-                if not agentDialogueWindow or agentDialogueWindow.destroyed:
-                    return
-                if type(each[1]) == dict:
-                    if not isAgentInteractionMission:
-                        initialContentID = each[1]['ContentID']
-                        extraMissionInfo += '<br>'
-                    self.missionArgs[agentDialogueWindow.sr.agentID, each[1]['ContentID']] = each[1]['Mission Keywords']
-                    isAgentInteractionMission = True
-                    missionTitle = self.ProcessMessage((each[1]['Mission Title ID'], each[1]['ContentID']), agentDialogueWindow.sr.agentID)
-                    extraMissionInfo += '\n                        <span id=subheader><a href="localsvc:service=agents&method=DoAction&agentID=%d&actionID=%d">%s</a> &gt;&gt;</span><br>\n                    ' % (agentDialogueWindow.sr.agentID, each[0], missionTitle)
-                    if each[1]['Mission Briefing ID'] is not None:
-                        if isinstance(each[1]['Mission Briefing ID'], basestring) or each[1]['Mission Briefing ID'] > 0:
-                            briefingText = self.ProcessMessage((each[1]['Mission Briefing ID'], each[1]['ContentID']), agentDialogueWindow.sr.agentID)
-                        else:
-                            briefingText = localization.GetByLabel('UI/Agents/Dialogue/StandardMission/CorruptBriefing')
-                        extraMissionInfo += '\n                            <div id=basetext>%s</div>\n                            <br>\n                        ' % briefingText
-                    numDialogChoices += 1
-                elif type(each[1]) is int:
-                    labelPath = self.GetLabelForButtonID(each[1])
-                    if labelPath:
-                        label = localization.GetByLabel(labelPath)
-                    else:
-                        self.LogError('Unknown button ID for agent action, id =', each[1])
-                        label = 'Unknown ID ' + str(each[1])
-                    closeWindowOnClick = each[1] == const.agentDialogueButtonDefer
-                    if each[1] in (const.agentDialogueButtonRequestMission,
-                     const.agentDialogueButtonContinue,
-                     const.agentDialogueButtonQuit,
-                     const.agentDialogueButtonCancelResearch):
-                        appendCloseButton = True
-                    customAgentButtons['okLabel'].append(label)
-                    customAgentButtons['okFunc'].append(self.DoAction)
-                    customAgentButtons['args'].append((agentDialogueWindow.sr.agentID, each[0], closeWindowOnClick))
-                else:
-                    adminOptions.append('<a href="localsvc:service=agents&method=DoAction&agentID=%d&actionID=%d">%s</a>' % (agentDialogueWindow.sr.agentID, each[0], each[1]))
-
-            if adminOptions:
-                if len(adminOptions) == 1:
-                    adminBlock = '<br>'
-                    adminBlock += adminOptions[0]
-                else:
-                    adminBlock = '<ol>'
-                    adminBlock += ''.join([ '<br><li>%s</li>' % x for x in adminOptions ])
-                    adminBlock += '</ol>'
-        a = self.GetAgentByID(agentDialogueWindow.sr.agentID)
-        agentCorpID = a.corporationID
-        agentDivisionID = a.divisionID
-        lp = getattr(agentDialogueWindow.sr, 'oob', {}).get('loyaltyPoints', 0)
-        if isAgentInteractionMission or briefingInformation:
-            extraMissionInfo += '<br>'
-            if briefingInformation['Decline Time'] is not None:
-                if briefingInformation['Decline Time'] == -1:
-                    extraMissionInfo += localization.GetByLabel('UI/Agents/StandardMission/DeclineMessageGeneric')
-                else:
-                    timeRemaining = briefingInformation['Decline Time']
-                    timeBreakAt = 'min' if timeRemaining > const.MIN else 'sec'
-                    extraMissionInfo += localization.GetByLabel('UI/Agents/StandardMission/DeclineMessageTimeLeft', timeRemaining=util.FmtTimeInterval(timeRemaining, breakAt=timeBreakAt))
-            elif briefingInformation['Expiration Time'] is not None:
-                extraMissionInfo += localization.GetByLabel('UI/Agents/Dialogue/ThisMissionExpiresAt', expireTime=briefingInformation['Expiration Time'])
-            if not isAgentInteractionMission:
-                extraMissionInfo += '<br><center>%s</center>' % briefingInformation['Mission Image']
-        if not len(customAgentButtons['okLabel']) and not isAgentInteractionMission:
+        else:
+            customAgentButtons = {'okLabel': [],
+             'okFunc': [],
+             'args': []}
+            disabledButtons = []
+            charSays = ''
             extraMissionInfo = ''
-        missionTitle = ''
-        if briefingInformation:
-            missionTitle = '<br><span id=subheader>' + self.ProcessMessage((briefingInformation['Mission Title ID'], briefingInformation['ContentID']), agentDialogueWindow.sr.agentID) + '</span><br>'
-        if self.GetAgentByID(agentDialogueWindow.sr.agentID).agentTypeID == const.agentTypeAura:
-            agentInfoIcon = ''
-            blurbEffectiveStanding = ''
-            blurbDivision = ''
-        else:
-            agentInfoIcon = '<a href=showinfo:%d//%d><img src=icon:38_208 size=16 alt="%s"></a>' % (self.GetAgentInventoryTypeByBloodline(a.bloodlineID), a.agentID, uiutil.StripTags(localization.GetByLabel('UI/Commands/ShowInfo'), stripOnly=['localized']))
-            divisions = self.GetDivisions()
-            blurbDivision = localization.GetByLabel('UI/Agents/Dialogue/Division', divisionName=divisions[agentDivisionID].divisionName)
-        agentLocationWrap = self.GetAgentMoniker(agentDialogueWindow.sr.agentID).GetAgentLocationWrap()
-        html = '\n            <html>\n            <head>\n                <link rel="stylesheet" type="text/css" href="res:/ui/css/agentconvo.css">\n            </head>\n                <body background-color=#00000000 link=#ffa800>\n                    %(agentHeader)s\n                    <br>\n                    %(missionTitle)s\n                    <br>\n                    %(agentSays)s\n                    <br>    \n                    %(extraMissionInfo)s\n                    <br>\n                    %(adminBlock)s\n                </body>\n            </html>\n        ' % {'agentHeader': agentDialogueUtil.GetAgentLocationHeader(a, agentLocationWrap, lp),
-         'missionTitle': missionTitle,
-         'agentSays': agentSays,
-         'extraMissionInfo': extraMissionInfo,
-         'adminBlock': adminBlock}
-        if self.printHTML:
-            print '-----------------------------------------------------------------------------------'
-            print html
-            print '-----------------------------------------------------------------------------------'
-        numButtons = len(customAgentButtons['okLabel'])
-        if appendCloseButton and numButtons < 3:
-            customAgentButtons['okLabel'].append(localization.GetByLabel('UI/Common/Buttons/Close'))
-            customAgentButtons['okFunc'].append(agentDialogueWindow.CloseByUser)
-            customAgentButtons['args'].append('self')
-        if numButtons:
-            agentDialogueWindow.DefineButtons('Agent Interaction Buttons', **customAgentButtons)
-            for each in disabledButtons:
-                agentDialogueWindow.DisableButton(each)
+            numDialogChoices = 0
+            isAgentInteractionMission = False
+            appendCloseButton = False
+            adminBlock = ''
+            if dialogue:
+                adminOptions = []
+                for each in dialogue:
+                    if not agentDialogueWindow or agentDialogueWindow.destroyed:
+                        return
+                    if type(each[1]) == dict:
+                        if not isAgentInteractionMission:
+                            initialContentID = each[1]['ContentID']
+                            extraMissionInfo += '<br>'
+                        self.missionArgs[agentDialogueWindow.sr.agentID, each[1]['ContentID']] = each[1]['Mission Keywords']
+                        isAgentInteractionMission = True
+                        missionTitle = self.ProcessMessage((each[1]['Mission Title ID'], each[1]['ContentID']), agentDialogueWindow.sr.agentID)
+                        extraMissionInfo += '\n                        <span id=subheader><a href="localsvc:service=agents&method=DoAction&agentID=%d&actionID=%d">%s</a> &gt;&gt;</span><br>\n                    ' % (agentDialogueWindow.sr.agentID, each[0], missionTitle)
+                        if each[1]['Mission Briefing ID'] is not None:
+                            if isinstance(each[1]['Mission Briefing ID'], basestring) or each[1]['Mission Briefing ID'] > 0:
+                                briefingText = self.ProcessMessage((each[1]['Mission Briefing ID'], each[1]['ContentID']), agentDialogueWindow.sr.agentID)
+                            else:
+                                briefingText = localization.GetByLabel('UI/Agents/Dialogue/StandardMission/CorruptBriefing')
+                            extraMissionInfo += '\n                            <div id=basetext>%s</div>\n                            <br>\n                        ' % briefingText
+                        numDialogChoices += 1
+                    elif type(each[1]) is int:
+                        labelPath = self.GetLabelForButtonID(each[1])
+                        if labelPath:
+                            label = localization.GetByLabel(labelPath)
+                        else:
+                            self.LogError('Unknown button ID for agent action, id =', each[1])
+                            label = 'Unknown ID ' + str(each[1])
+                        closeWindowOnClick = each[1] == const.agentDialogueButtonDefer
+                        if each[1] in (const.agentDialogueButtonRequestMission,
+                         const.agentDialogueButtonContinue,
+                         const.agentDialogueButtonQuit,
+                         const.agentDialogueButtonCancelResearch):
+                            appendCloseButton = True
+                        customAgentButtons['okLabel'].append(label)
+                        customAgentButtons['okFunc'].append(self.DoAction)
+                        customAgentButtons['args'].append((agentDialogueWindow.sr.agentID, each[0], closeWindowOnClick))
+                    else:
+                        adminOptions.append('<a href="localsvc:service=agents&method=DoAction&agentID=%d&actionID=%d">%s</a>' % (agentDialogueWindow.sr.agentID, each[0], each[1]))
 
-        else:
-            agentDialogueWindow.DefineButtons(uiconst.CLOSE)
-        ret = self.GetAgentMoniker(agentDialogueWindow.sr.agentID).GetMissionObjectiveInfo()
-        if agentDialogueWindow and not agentDialogueWindow.destroyed:
-            agentDialogueWindow.SetHTML(html, where='briefingBrowser')
-            objectiveHtml = None
-            if ret and not (extraInfo['missionCompleted'] or extraInfo['missionDeclined'] or extraInfo['missionQuit']):
-                objectiveHtml = '\n                    <html>\n                    <head>\n                        <link rel="stylesheet" type="text/css" href="res:/ui/css/missionobjectives.css">\n                    </head>\n                    <body>\n                '
-                objectiveHtml += agentDialogueUtil.BuildObjectiveHTML(agentDialogueWindow.sr.agentID, ret)
-                objectiveHtml += '</body></html>'
-                agentDialogueWindow.SetHTML(objectiveHtml, where='objectiveBrowser')
-            if objectiveHtml or extraInfo.get('missionCompleted'):
-                agentDialogueWindow.SetDoublePaneView(briefingHtml=html, objectiveHtml=objectiveHtml)
+                if adminOptions:
+                    if len(adminOptions) == 1:
+                        adminBlock = '<br>'
+                        adminBlock += adminOptions[0]
+                    else:
+                        adminBlock = '<ol>'
+                        adminBlock += ''.join([ '<br><li>%s</li>' % x for x in adminOptions ])
+                        adminBlock += '</ol>'
+            a = self.GetAgentByID(agentDialogueWindow.sr.agentID)
+            agentCorpID = a.corporationID
+            agentDivisionID = a.divisionID
+            lp = getattr(agentDialogueWindow.sr, 'oob', {}).get('loyaltyPoints', 0)
+            if isAgentInteractionMission or briefingInformation:
+                extraMissionInfo += '<br>'
+                if briefingInformation['Decline Time'] is not None:
+                    if briefingInformation['Decline Time'] == -1:
+                        extraMissionInfo += localization.GetByLabel('UI/Agents/StandardMission/DeclineMessageGeneric')
+                    else:
+                        timeRemaining = briefingInformation['Decline Time']
+                        timeBreakAt = 'min' if timeRemaining > const.MIN else 'sec'
+                        extraMissionInfo += localization.GetByLabel('UI/Agents/StandardMission/DeclineMessageTimeLeft', timeRemaining=util.FmtTimeInterval(timeRemaining, breakAt=timeBreakAt))
+                elif briefingInformation['Expiration Time'] is not None:
+                    extraMissionInfo += localization.GetByLabel('UI/Agents/Dialogue/ThisMissionExpiresAt', expireTime=briefingInformation['Expiration Time'])
+                if not isAgentInteractionMission:
+                    extraMissionInfo += '<br><center>%s</center>' % briefingInformation['Mission Image']
+            if not len(customAgentButtons['okLabel']) and not isAgentInteractionMission:
+                extraMissionInfo = ''
+            missionTitle = ''
+            if briefingInformation:
+                missionTitle = '<br><span id=subheader>' + self.ProcessMessage((briefingInformation['Mission Title ID'], briefingInformation['ContentID']), agentDialogueWindow.sr.agentID) + '</span><br>'
+            if self.GetAgentByID(agentDialogueWindow.sr.agentID).agentTypeID == const.agentTypeAura:
+                agentInfoIcon = ''
+                blurbEffectiveStanding = ''
+                blurbDivision = ''
             else:
-                agentDialogueWindow.SetSinglePaneView(briefingHtml=html)
+                agentInfoIcon = '<a href=showinfo:%d//%d><img src=icon:38_208 size=16 alt="%s"></a>' % (self.GetAgentInventoryTypeByBloodline(a.bloodlineID), a.agentID, uiutil.StripTags(localization.GetByLabel('UI/Commands/ShowInfo'), stripOnly=['localized']))
+                divisions = self.GetDivisions()
+                blurbDivision = localization.GetByLabel('UI/Agents/Dialogue/Division', divisionName=divisions[agentDivisionID].divisionName)
+            agentLocationWrap = self.GetAgentMoniker(agentDialogueWindow.sr.agentID).GetAgentLocationWrap()
+            html = '\n            <html>\n            <head>\n                <link rel="stylesheet" type="text/css" href="res:/ui/css/agentconvo.css">\n            </head>\n                <body background-color=#00000000 link=#ffa800>\n                    %(agentHeader)s\n                    <br>\n                    %(missionTitle)s\n                    <br>\n                    %(agentSays)s\n                    <br>    \n                    %(extraMissionInfo)s\n                    <br>\n                    %(adminBlock)s\n                </body>\n            </html>\n        ' % {'agentHeader': agentDialogueUtil.GetAgentLocationHeader(a, agentLocationWrap, lp),
+             'missionTitle': missionTitle,
+             'agentSays': agentSays,
+             'extraMissionInfo': extraMissionInfo,
+             'adminBlock': adminBlock}
+            if self.printHTML:
+                print '-----------------------------------------------------------------------------------'
+                print html
+                print '-----------------------------------------------------------------------------------'
+            numButtons = len(customAgentButtons['okLabel'])
+            if appendCloseButton and numButtons < 3:
+                customAgentButtons['okLabel'].append(localization.GetByLabel('UI/Common/Buttons/Close'))
+                customAgentButtons['okFunc'].append(agentDialogueWindow.CloseByUser)
+                customAgentButtons['args'].append('self')
+            if numButtons:
+                agentDialogueWindow.DefineButtons('Agent Interaction Buttons', **customAgentButtons)
+                for each in disabledButtons:
+                    agentDialogueWindow.DisableButton(each)
+
+            else:
+                agentDialogueWindow.DefineButtons(uiconst.CLOSE)
+            ret = self.GetAgentMoniker(agentDialogueWindow.sr.agentID).GetMissionObjectiveInfo()
+            if agentDialogueWindow and not agentDialogueWindow.destroyed:
+                agentDialogueWindow.SetHTML(html, where='briefingBrowser')
+                objectiveHtml = None
+                if ret and not (extraInfo['missionCompleted'] or extraInfo['missionDeclined'] or extraInfo['missionQuit']):
+                    objectiveHtml = '\n                    <html>\n                    <head>\n                        <link rel="stylesheet" type="text/css" href="res:/ui/css/missionobjectives.css">\n                    </head>\n                    <body>\n                '
+                    objectiveHtml += agentDialogueUtil.BuildObjectiveHTML(agentDialogueWindow.sr.agentID, ret)
+                    objectiveHtml += '</body></html>'
+                    agentDialogueWindow.SetHTML(objectiveHtml, where='objectiveBrowser')
+                if objectiveHtml or extraInfo.get('missionCompleted'):
+                    agentDialogueWindow.SetDoublePaneView(briefingHtml=html, objectiveHtml=objectiveHtml)
+                else:
+                    agentDialogueWindow.SetSinglePaneView(briefingHtml=html)
+            return
 
     def GetAgentInventoryTypeByBloodline(self, bloodlineID):
         return const.characterTypeByBloodline[bloodlineID]
@@ -868,6 +894,7 @@ class Agents(service.Service):
             return infoFunc(data)
         else:
             return []
+            return
 
     def _ProcessResearchServiceInfo(self, data):
         header = localization.GetByLabel('UI/Agents/Research/ResearchServices', session.languageID)
@@ -939,8 +966,9 @@ class AgentBrowser(uicontrols.Window):
          const.defaultPadding), readonly=1)
         self.sr.browser.AllowResizeUpdates(0)
         self.sr.browser.sr.window = self
+        return
 
-    def LoadHTML(self, html, hideBackground = 0, newThread = 1):
+    def LoadHTML(self, html, hideBackground=0, newThread=1):
         self.sr.browser.sr.hideBackground = hideBackground
         self.sr.browser.LoadHTML(html, newThread=newThread)
 
@@ -948,11 +976,13 @@ class AgentBrowser(uicontrols.Window):
         self.reloadedScaleSize = (self.width, self.height)
         uthread.new(self.Reload, 0)
 
-    def Reload(self, forced = 1, *args):
+    def Reload(self, forced=1, *args):
         if not self or self.destroyed:
             return
-        url = self.sr.browser.sr.currentURL
-        if url and forced:
-            uthread.new(self.GoTo, url, self.sr.browser.sr.currentData, scrollTo=self.sr.browser.GetScrollProportion())
         else:
-            uthread.new(self.sr.browser.LoadHTML, None, scrollTo=self.sr.browser.GetScrollProportion())
+            url = self.sr.browser.sr.currentURL
+            if url and forced:
+                uthread.new(self.GoTo, url, self.sr.browser.sr.currentData, scrollTo=self.sr.browser.GetScrollProportion())
+            else:
+                uthread.new(self.sr.browser.LoadHTML, None, scrollTo=self.sr.browser.GetScrollProportion())
+            return

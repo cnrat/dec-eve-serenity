@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\packages\requests\auth.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\packages\requests\auth.py
 import os
 import re
 import time
@@ -49,6 +50,7 @@ class HTTPDigestAuth(AuthBase):
         self.nonce_count = 0
         self.chal = {}
         self.pos = None
+        return
 
     def build_digest_header(self, method, url):
         realm = self.chal['realm']
@@ -79,53 +81,54 @@ class HTTPDigestAuth(AuthBase):
         KD = lambda s, d: hash_utf8('%s:%s' % (s, d))
         if hash_utf8 is None:
             return
-        entdig = None
-        p_parsed = urlparse(url)
-        path = p_parsed.path
-        if p_parsed.query:
-            path += '?' + p_parsed.query
-        A1 = '%s:%s:%s' % (self.username, realm, self.password)
-        A2 = '%s:%s' % (method, path)
-        HA1 = hash_utf8(A1)
-        HA2 = hash_utf8(A2)
-        if nonce == self.last_nonce:
-            self.nonce_count += 1
         else:
-            self.nonce_count = 1
-        ncvalue = '%08x' % self.nonce_count
-        s = str(self.nonce_count).encode('utf-8')
-        s += nonce.encode('utf-8')
-        s += time.ctime().encode('utf-8')
-        s += os.urandom(8)
-        cnonce = hashlib.sha1(s).hexdigest()[:16]
-        noncebit = '%s:%s:%s:%s:%s' % (nonce,
-         ncvalue,
-         cnonce,
-         qop,
-         HA2)
-        if _algorithm == 'MD5-SESS':
-            HA1 = hash_utf8('%s:%s:%s' % (HA1, nonce, cnonce))
-        if qop is None:
-            respdig = KD(HA1, '%s:%s' % (nonce, HA2))
-        elif qop == 'auth' or 'auth' in qop.split(','):
-            respdig = KD(HA1, noncebit)
-        else:
-            return
-        self.last_nonce = nonce
-        base = 'username="%s", realm="%s", nonce="%s", uri="%s", response="%s"' % (self.username,
-         realm,
-         nonce,
-         path,
-         respdig)
-        if opaque:
-            base += ', opaque="%s"' % opaque
-        if algorithm:
-            base += ', algorithm="%s"' % algorithm
-        if entdig:
-            base += ', digest="%s"' % entdig
-        if qop:
-            base += ', qop="auth", nc=%s, cnonce="%s"' % (ncvalue, cnonce)
-        return 'Digest %s' % base
+            entdig = None
+            p_parsed = urlparse(url)
+            path = p_parsed.path
+            if p_parsed.query:
+                path += '?' + p_parsed.query
+            A1 = '%s:%s:%s' % (self.username, realm, self.password)
+            A2 = '%s:%s' % (method, path)
+            HA1 = hash_utf8(A1)
+            HA2 = hash_utf8(A2)
+            if nonce == self.last_nonce:
+                self.nonce_count += 1
+            else:
+                self.nonce_count = 1
+            ncvalue = '%08x' % self.nonce_count
+            s = str(self.nonce_count).encode('utf-8')
+            s += nonce.encode('utf-8')
+            s += time.ctime().encode('utf-8')
+            s += os.urandom(8)
+            cnonce = hashlib.sha1(s).hexdigest()[:16]
+            noncebit = '%s:%s:%s:%s:%s' % (nonce,
+             ncvalue,
+             cnonce,
+             qop,
+             HA2)
+            if _algorithm == 'MD5-SESS':
+                HA1 = hash_utf8('%s:%s:%s' % (HA1, nonce, cnonce))
+            if qop is None:
+                respdig = KD(HA1, '%s:%s' % (nonce, HA2))
+            elif qop == 'auth' or 'auth' in qop.split(','):
+                respdig = KD(HA1, noncebit)
+            else:
+                return
+            self.last_nonce = nonce
+            base = 'username="%s", realm="%s", nonce="%s", uri="%s", response="%s"' % (self.username,
+             realm,
+             nonce,
+             path,
+             respdig)
+            if opaque:
+                base += ', opaque="%s"' % opaque
+            if algorithm:
+                base += ', algorithm="%s"' % algorithm
+            if entdig:
+                base += ', digest="%s"' % entdig
+            if qop:
+                base += ', qop="auth", nc=%s, cnonce="%s"' % (ncvalue, cnonce)
+            return 'Digest %s' % base
 
     def handle_401(self, r, **kwargs):
         if self.pos is not None:
@@ -146,8 +149,9 @@ class HTTPDigestAuth(AuthBase):
             _r.history.append(r)
             _r.request = prep
             return _r
-        setattr(self, 'num_401_calls', 1)
-        return r
+        else:
+            setattr(self, 'num_401_calls', 1)
+            return r
 
     def __call__(self, r):
         if self.last_nonce:

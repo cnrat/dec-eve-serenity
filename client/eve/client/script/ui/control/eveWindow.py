@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\client\script\ui\control\eveWindow.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\client\script\ui\control\eveWindow.py
 from carbonui.control.window import WindowCore
 from carbonui.primitives.containerAutoSize import ContainerAutoSize
 from eve.client.script.ui.control.buttons import ButtonIcon
@@ -129,28 +130,30 @@ class Window(WindowCore):
     def GetNeocomButtonType(self):
         return BTNTYPE_WINDOW
 
-    def SetWndIcon(self, iconNum = None, headerIcon = 0, size = 64, fullPath = None, mainTop = -3, mainLeft = 0, hidden = False, **kw):
+    def SetWndIcon(self, iconNum=None, headerIcon=0, size=64, fullPath=None, mainTop=-3, mainLeft=0, hidden=False, **kw):
         self.iconNum = iconNum or self.GetDefaultWndIcon()
         if hidden:
             return
-        icon = self.sr.mainIcon
-        if not icon:
+        else:
+            icon = self.sr.mainIcon
+            if not icon:
+                return
+            if iconNum is None:
+                icon.state = uiconst.UI_HIDDEN
+                return
+            icon.state = uiconst.UI_DISABLED
+            icon.LoadIcon(iconNum or fullPath, ignoreSize=True)
+            icon.top = mainTop
+            icon.left = mainLeft
+            if headerIcon:
+                icon.width = icon.height = 16
+                icon.left = 4
+                icon.top = 0
+                uiutil.Transplant(icon, uiutil.GetChild(self, 'captionParent'))
+                if self.sr.caption:
+                    self.sr.caption.left = 24
+                self.sr.headerIcon = icon
             return
-        if iconNum is None:
-            icon.state = uiconst.UI_HIDDEN
-            return
-        icon.state = uiconst.UI_DISABLED
-        icon.LoadIcon(iconNum or fullPath, ignoreSize=True)
-        icon.top = mainTop
-        icon.left = mainLeft
-        if headerIcon:
-            icon.width = icon.height = 16
-            icon.left = 4
-            icon.top = 0
-            uiutil.Transplant(icon, uiutil.GetChild(self, 'captionParent'))
-            if self.sr.caption:
-                self.sr.caption.left = 24
-            self.sr.headerIcon = icon
 
     def SetTopparentHeight(self, height):
         self.sr.topParent.height = height
@@ -169,7 +172,7 @@ class Window(WindowCore):
              14,
              14))
 
-    def SetHeaderIcon(self, iconNo = 'ui_73_16_50', shiftLabel = 12, hint = None, size = 16):
+    def SetHeaderIcon(self, iconNo='ui_73_16_50', shiftLabel=12, hint=None, size=16):
         par = self.sr.captionParent
         if self.sr.headerIcon:
             self.sr.headerIcon.Close()
@@ -192,6 +195,7 @@ class Window(WindowCore):
         self.headerIconHint = hint
         if self.sr.tab:
             self.sr.tab.SetIcon(iconNo, 14, hint)
+        return
 
     def HeaderIconMouseEnter(self, *args):
         self.sr.headerIcon.SetAlpha(1.0)
@@ -205,7 +209,7 @@ class Window(WindowCore):
         else:
             self.Pin()
 
-    def Pin(self, delegate = 1, *args, **kwds):
+    def Pin(self, delegate=1, *args, **kwds):
         self.sr.underlay.Pin()
         if self.headerFill:
             self.headerFill.opacity = 0.2
@@ -225,7 +229,7 @@ class Window(WindowCore):
 
         self.RefreshHeaderButtonsIfVisible()
 
-    def Unpin(self, delegate = 1, *args, **kwds):
+    def Unpin(self, delegate=1, *args, **kwds):
         self.sr.underlay.UnPin()
         if self.headerFill:
             self.headerFill.opacity = 0.5
@@ -294,7 +298,7 @@ class Window(WindowCore):
     def IsBlinking(self):
         return self.isBlinking
 
-    def DefineButtons(self, buttons, okLabel = None, okFunc = 'default', args = 'self', cancelLabel = None, cancelFunc = 'default', okModalResult = 'default', default = None):
+    def DefineButtons(self, buttons, okLabel=None, okFunc='default', args='self', cancelLabel=None, cancelFunc='default', okModalResult='default', default=None):
         if okLabel is None:
             okLabel = localization.GetByLabel('UI/Common/Buttons/OK')
         if cancelLabel is None:
@@ -305,154 +309,156 @@ class Window(WindowCore):
                 self.sr.bottom = uiprimitives.Container(name='bottom', parent=self.sr.maincontainer, align=uiconst.TOBOTTOM, height=24, idx=0)
         if self.sr.bottom is None:
             return
-        self.sr.bottom.Flush()
-        if buttons is None:
-            self.sr.bottom.state = uiconst.UI_HIDDEN
-            return
-        self.sr.bottom.height = 24
-        if okModalResult == 'default':
-            okModalResult = uiconst.ID_OK
-        if okFunc == 'default':
-            okFunc = self.ConfirmFunction
-        if cancelFunc == 'default':
-            cancelFunc = self.ButtonResult
-        if isinstance(buttons, (types.ListType, types.TupleType)):
-            btns = []
-            for btn in buttons:
-                if btn.id == uiconst.ID_CANCEL:
-                    cancelButton = 1
-                else:
-                    cancelButton = 0
-                btns.append([btn.label,
-                 self.ButtonResult,
-                 None,
-                 None,
-                 btn.id,
-                 0,
-                 cancelButton])
-
-        elif buttons == uiconst.OK:
-            btns = [[okLabel,
-              okFunc,
-              args,
-              None,
-              okModalResult,
-              1,
-              0]]
-        elif buttons == uiconst.OKCANCEL:
-            btns = [[okLabel,
-              okFunc,
-              args,
-              None,
-              okModalResult,
-              1,
-              0], [cancelLabel,
-              cancelFunc,
-              args,
-              None,
-              uiconst.ID_CANCEL,
-              0,
-              1]]
-        elif buttons == uiconst.OKCLOSE:
-            closeLabel = localization.GetByLabel('UI/Common/Buttons/Close')
-            btns = [[okLabel,
-              okFunc,
-              args,
-              None,
-              okModalResult,
-              1,
-              0], [closeLabel,
-              self.CloseByUser,
-              args,
-              None,
-              uiconst.ID_CLOSE,
-              0,
-              1]]
-        elif buttons == uiconst.YESNO:
-            yesLabel = localization.GetByLabel('UI/Common/Buttons/Yes')
-            noLabel = localization.GetByLabel('UI/Common/Buttons/No')
-            btns = [[yesLabel,
-              self.ButtonResult,
-              args,
-              None,
-              uiconst.ID_YES,
-              1,
-              0], [noLabel,
-              self.ButtonResult,
-              args,
-              None,
-              uiconst.ID_NO,
-              0,
-              0]]
-        elif buttons == uiconst.YESNOCANCEL:
-            yesLabel = localization.GetByLabel('UI/Common/Buttons/Yes')
-            noLabel = localization.GetByLabel('UI/Common/Buttons/No')
-            btns = [[yesLabel,
-              self.ButtonResult,
-              args,
-              None,
-              uiconst.ID_YES,
-              1,
-              0], [noLabel,
-              self.ButtonResult,
-              args,
-              None,
-              uiconst.ID_NO,
-              0,
-              0], [cancelLabel,
-              cancelFunc,
-              args,
-              None,
-              uiconst.ID_CANCEL,
-              0,
-              1]]
-        elif buttons == uiconst.CLOSE:
-            closeLabel = localization.GetByLabel('UI/Common/Buttons/Close')
-            btns = [[closeLabel,
-              self.CloseByUser,
-              args,
-              None,
-              uiconst.ID_CANCEL,
-              0,
-              1]]
-        elif type(okLabel) == types.ListType or type(okLabel) == types.TupleType:
-            btns = []
-            for index in xrange(len(okLabel)):
-                label = okLabel[index]
-                additionalArguments = {'Function': okFunc,
-                 'Arguments': args,
-                 'Cancel Label': cancelLabel,
-                 'Cancel Function': cancelFunc,
-                 'Modal Result': okModalResult,
-                 'Default': default}
-                for argName in additionalArguments:
-                    if type(additionalArguments[argName]) in (types.ListType, types.TupleType) and len(additionalArguments[argName]) > index:
-                        additionalArguments[argName] = additionalArguments[argName][index]
-
-                cancel = additionalArguments['Modal Result'] == uiconst.ID_CANCEL
-                btns.append([label,
-                 additionalArguments['Function'],
-                 additionalArguments['Arguments'],
-                 None,
-                 additionalArguments['Modal Result'],
-                 additionalArguments['Default'],
-                 cancel])
-
         else:
-            btns = [[okLabel,
-              okFunc,
-              args,
-              None,
-              okModalResult,
-              1,
-              0]]
-        if default is not None:
-            for each in btns:
-                each[5] = each[4] == default
+            self.sr.bottom.Flush()
+            if buttons is None:
+                self.sr.bottom.state = uiconst.UI_HIDDEN
+                return
+            self.sr.bottom.height = 24
+            if okModalResult == 'default':
+                okModalResult = uiconst.ID_OK
+            if okFunc == 'default':
+                okFunc = self.ConfirmFunction
+            if cancelFunc == 'default':
+                cancelFunc = self.ButtonResult
+            if isinstance(buttons, (types.ListType, types.TupleType)):
+                btns = []
+                for btn in buttons:
+                    if btn.id == uiconst.ID_CANCEL:
+                        cancelButton = 1
+                    else:
+                        cancelButton = 0
+                    btns.append([btn.label,
+                     self.ButtonResult,
+                     None,
+                     None,
+                     btn.id,
+                     0,
+                     cancelButton])
 
-        buttonGroup = ButtonGroup(btns=btns, parent=self.sr.bottom, unisize=1)
-        self.sr.bottom.height = max(24, buttonGroup.height)
-        self.sr.bottom.state = uiconst.UI_PICKCHILDREN
+            elif buttons == uiconst.OK:
+                btns = [[okLabel,
+                  okFunc,
+                  args,
+                  None,
+                  okModalResult,
+                  1,
+                  0]]
+            elif buttons == uiconst.OKCANCEL:
+                btns = [[okLabel,
+                  okFunc,
+                  args,
+                  None,
+                  okModalResult,
+                  1,
+                  0], [cancelLabel,
+                  cancelFunc,
+                  args,
+                  None,
+                  uiconst.ID_CANCEL,
+                  0,
+                  1]]
+            elif buttons == uiconst.OKCLOSE:
+                closeLabel = localization.GetByLabel('UI/Common/Buttons/Close')
+                btns = [[okLabel,
+                  okFunc,
+                  args,
+                  None,
+                  okModalResult,
+                  1,
+                  0], [closeLabel,
+                  self.CloseByUser,
+                  args,
+                  None,
+                  uiconst.ID_CLOSE,
+                  0,
+                  1]]
+            elif buttons == uiconst.YESNO:
+                yesLabel = localization.GetByLabel('UI/Common/Buttons/Yes')
+                noLabel = localization.GetByLabel('UI/Common/Buttons/No')
+                btns = [[yesLabel,
+                  self.ButtonResult,
+                  args,
+                  None,
+                  uiconst.ID_YES,
+                  1,
+                  0], [noLabel,
+                  self.ButtonResult,
+                  args,
+                  None,
+                  uiconst.ID_NO,
+                  0,
+                  0]]
+            elif buttons == uiconst.YESNOCANCEL:
+                yesLabel = localization.GetByLabel('UI/Common/Buttons/Yes')
+                noLabel = localization.GetByLabel('UI/Common/Buttons/No')
+                btns = [[yesLabel,
+                  self.ButtonResult,
+                  args,
+                  None,
+                  uiconst.ID_YES,
+                  1,
+                  0], [noLabel,
+                  self.ButtonResult,
+                  args,
+                  None,
+                  uiconst.ID_NO,
+                  0,
+                  0], [cancelLabel,
+                  cancelFunc,
+                  args,
+                  None,
+                  uiconst.ID_CANCEL,
+                  0,
+                  1]]
+            elif buttons == uiconst.CLOSE:
+                closeLabel = localization.GetByLabel('UI/Common/Buttons/Close')
+                btns = [[closeLabel,
+                  self.CloseByUser,
+                  args,
+                  None,
+                  uiconst.ID_CANCEL,
+                  0,
+                  1]]
+            elif type(okLabel) == types.ListType or type(okLabel) == types.TupleType:
+                btns = []
+                for index in xrange(len(okLabel)):
+                    label = okLabel[index]
+                    additionalArguments = {'Function': okFunc,
+                     'Arguments': args,
+                     'Cancel Label': cancelLabel,
+                     'Cancel Function': cancelFunc,
+                     'Modal Result': okModalResult,
+                     'Default': default}
+                    for argName in additionalArguments:
+                        if type(additionalArguments[argName]) in (types.ListType, types.TupleType) and len(additionalArguments[argName]) > index:
+                            additionalArguments[argName] = additionalArguments[argName][index]
+
+                    cancel = additionalArguments['Modal Result'] == uiconst.ID_CANCEL
+                    btns.append([label,
+                     additionalArguments['Function'],
+                     additionalArguments['Arguments'],
+                     None,
+                     additionalArguments['Modal Result'],
+                     additionalArguments['Default'],
+                     cancel])
+
+            else:
+                btns = [[okLabel,
+                  okFunc,
+                  args,
+                  None,
+                  okModalResult,
+                  1,
+                  0]]
+            if default is not None:
+                for each in btns:
+                    each[5] = each[4] == default
+
+            buttonGroup = ButtonGroup(btns=btns, parent=self.sr.bottom, unisize=1)
+            self.sr.bottom.height = max(24, buttonGroup.height)
+            self.sr.bottom.state = uiconst.UI_PICKCHILDREN
+            return
 
     SetButtons = DefineButtons
 
@@ -469,10 +475,10 @@ class Window(WindowCore):
             return
         WindowCore.CloseByUser(self)
 
-    def SetMainIconSize(self, size = 64):
+    def SetMainIconSize(self, size=64):
         self.sr.mainIcon.width = self.sr.mainIcon.height = size
 
-    def Collapse(self, forceCollapse = False, checkchain = 1, *args):
+    def Collapse(self, forceCollapse=False, checkchain=1, *args):
         if not self._collapseable or not forceCollapse and self.IsCollapsed():
             return
         if self.sr.topParent:
@@ -483,7 +489,7 @@ class Window(WindowCore):
             self.sr.main.state = uiconst.UI_HIDDEN
         WindowCore.Collapse(self, forceCollapse, checkchain, args)
 
-    def Expand(self, checkchain = 1, *args):
+    def Expand(self, checkchain=1, *args):
         WindowCore.Expand(self, checkchain, args)
         if self.sr.topParent:
             self.sr.topParent.state = uiconst.UI_PICKCHILDREN
@@ -508,41 +514,45 @@ class Window(WindowCore):
     def UnhideHeaderButtons(self):
         self._hideHeaderButtons = False
 
-    def ShowHeaderButtons(self, refresh = False, *args):
+    def ShowHeaderButtons(self, refresh=False, *args):
         if getattr(self, '_hideHeaderButtons', False):
             return
-        if refresh and self.sr.headerButtons:
-            self.sr.headerButtons.Close()
-            self.sr.headerButtons = None
-        if self.sr.stack or self.GetAlign() != uiconst.RELATIVE or uicore.uilib.leftbtn or getattr(self, 'isImplanted', False):
+        else:
+            if refresh and self.sr.headerButtons:
+                self.sr.headerButtons.Close()
+                self.sr.headerButtons = None
+            if self.sr.stack or self.GetAlign() != uiconst.RELATIVE or uicore.uilib.leftbtn or getattr(self, 'isImplanted', False):
+                return
+            if not self.sr.headerButtons:
+                self.Prepare_HeaderButtons_()
+            if self.sr.headerButtons:
+                w = self.sr.headerButtons.width
+                if self.sr.captionParent:
+                    self.sr.captionParent.padRight = w + 6
+                if self.sr.loadingIndicator:
+                    self.sr.loadingIndicator.left = w + self.sr.headerButtons.left
+                self.sr.headerButtons.Show()
+                self.sr.headerButtonsTimer = base.AutoTimer(1000, self.CloseHeaderButtons)
             return
-        if not self.sr.headerButtons:
-            self.Prepare_HeaderButtons_()
-        if self.sr.headerButtons:
-            w = self.sr.headerButtons.width
-            if self.sr.captionParent:
-                self.sr.captionParent.padRight = w + 6
-            if self.sr.loadingIndicator:
-                self.sr.loadingIndicator.left = w + self.sr.headerButtons.left
-            self.sr.headerButtons.Show()
-            self.sr.headerButtonsTimer = base.AutoTimer(1000, self.CloseHeaderButtons)
 
-    def IndicateStackable(self, wnd = None):
+    def IndicateStackable(self, wnd=None):
         if wnd is None:
             if self.sr.snapIndicator:
                 self.sr.snapIndicator.Close()
                 self.sr.snapIndicator = None
             return
-        if not wnd.IsStackable() or not self.IsStackable():
+        elif not wnd.IsStackable() or not self.IsStackable():
             return
-        if self.sr.snapIndicator is None:
-            self.sr.snapIndicator = FillThemeColored(parent=None, colorType=uiconst.COLORTYPE_UIHILIGHTGLOW, align=uiconst.TOTOP_NOPUSH, height=20, padding=(2, 2, 2, 0))
-        si = self.sr.snapIndicator
-        si.state = uiconst.UI_DISABLED
-        if si.parent != wnd:
-            uiutil.Transplant(si, wnd, idx=0)
         else:
-            uiutil.SetOrder(si, 0)
+            if self.sr.snapIndicator is None:
+                self.sr.snapIndicator = FillThemeColored(parent=None, colorType=uiconst.COLORTYPE_UIHILIGHTGLOW, align=uiconst.TOTOP_NOPUSH, height=20, padding=(2, 2, 2, 0))
+            si = self.sr.snapIndicator
+            si.state = uiconst.UI_DISABLED
+            if si.parent != wnd:
+                uiutil.Transplant(si, wnd, idx=0)
+            else:
+                uiutil.SetOrder(si, 0)
+            return
 
     def GetUtilMenuFunc(self):
         return getattr(self, 'utilMenuFunc', None)
@@ -561,7 +571,6 @@ class Window(WindowCore):
     def GetSideOffset(cls):
         if uicore.layer.sidePanels:
             return uicore.layer.sidePanels.GetSideOffset()
-        return (0, 0)
 
     def GetRegisteredState(self, stateName):
         if stateName == 'locked':
@@ -572,7 +581,7 @@ class Window(WindowCore):
     def IsLocked(self):
         return self._locked or self.IsPinned() and settings.char.windows.Get('lockwhenpinned', False)
 
-    def DefineIcons(self, icon, customicon = None, mainTop = -3):
+    def DefineIcons(self, icon, customicon=None, mainTop=-3):
         import types
         if customicon is not None:
             iconNo = customicon
@@ -587,6 +596,7 @@ class Window(WindowCore):
             else:
                 iconNo = mapping.get(icon, 'res:/ui/Texture/WindowIcons/warning.png')
         self.SetWndIcon(iconNo, mainTop=mainTop)
+        return
 
     def ConfirmFunction(self, button, *args):
         uicore.registry.Confirm(button)
@@ -601,13 +611,13 @@ class Window(WindowCore):
         self.ShowUnderlay()
         liteState = self.IsPinned()
 
-    def ShowDialog(self, modal = False, state = uiconst.UI_NORMAL):
+    def ShowDialog(self, modal=False, state=uiconst.UI_NORMAL):
         if modal:
             self.NoSeeThrough()
         return WindowCore.ShowDialog(self, modal, state)
 
     @classmethod
-    def GetDefaultLeftOffset(cls, width, align = None, left = 0):
+    def GetDefaultLeftOffset(cls, width, align=None, left=0):
         return sm.GetService('window').GetCameraLeftOffset(width, align, left)
 
     @classmethod
@@ -634,6 +644,7 @@ class Window(WindowCore):
                 wnd.CloseByUser()
         else:
             return cls.Open(*args, **kwds)
+        return
 
     def ObscuredByOtherWindows(self):
         intersecting = self.GetIntersectingWindows()
@@ -647,7 +658,7 @@ class Window(WindowCore):
 
         return False
 
-    def _Minimize(self, animate = True):
+    def _Minimize(self, animate=True):
         if self.destroyed or self.IsMinimized():
             return
         self.OnStartMinimize_(self)
@@ -674,7 +685,7 @@ class Window(WindowCore):
 
     @classmethod
     def GetSettingsVersion(cls):
-        return 1
+        pass
 
 
 from carbonui.control.window import WindowCoreOverride

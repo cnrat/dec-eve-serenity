@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\carbon\common\lib\inittools.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\carbon\common\lib\inittools.py
 import blue
 import bluepy
 import logmodule
@@ -14,6 +15,8 @@ def gettool():
         if split[0].strip() == '/tools' and len(split) > 1:
             tool = split[1].strip()
             return tool
+
+    return None
 
 
 def run_(tool):
@@ -87,3 +90,5 @@ def _ExecScript(path, tool):
         traceback.print_exc()
         logmodule.LogException()
         _LogAndTerm(str(e), tool)
+
+    return

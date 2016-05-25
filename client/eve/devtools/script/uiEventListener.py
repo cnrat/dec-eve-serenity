@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\devtools\script\uiEventListener.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\devtools\script\uiEventListener.py
 import uiprimitives
 import uicontrols
 import carbonui.const as uiconst
@@ -99,20 +100,22 @@ class BaseEventPanel(uiprimitives.Container):
     def _UpdateScroll(self):
         if self.isPaused:
             return
-        wndAbove = uiutil.GetWindowAbove(uicore.uilib.mouseOver)
-        if isinstance(wndAbove, form.UIEventListener) and uicore.uilib.rightbtn:
-            return
-        scrolllist = []
-        lastTime = None
-        for time, event in self.events[:self.showMax]:
-            if lastTime == time:
-                time = ''
-            else:
-                lastTime = time
-            label = time + '<t>' + self.GetScrollLabel(event)
-            scrolllist.append(uicontrols.ScrollEntryNode(decoClass=uicontrols.SE_GenericCore, label=label, fontsize=14, event=event, OnGetMenu=self.GetScrollEntryMenu))
+        else:
+            wndAbove = uiutil.GetWindowAbove(uicore.uilib.mouseOver)
+            if isinstance(wndAbove, form.UIEventListener) and uicore.uilib.rightbtn:
+                return
+            scrolllist = []
+            lastTime = None
+            for time, event in self.events[:self.showMax]:
+                if lastTime == time:
+                    time = ''
+                else:
+                    lastTime = time
+                label = time + '<t>' + self.GetScrollLabel(event)
+                scrolllist.append(uicontrols.ScrollEntryNode(decoClass=uicontrols.SE_GenericCore, label=label, fontsize=14, event=event, OnGetMenu=self.GetScrollEntryMenu))
 
-        self.scroll.Load(contentList=scrolllist, headers=self.SCROLL_HEADERS, ignoreSort=True)
+            self.scroll.Load(contentList=scrolllist, headers=self.SCROLL_HEADERS, ignoreSort=True)
+            return
 
     def GetScrollEntryMenu(self, entry):
         return (('Add to ignore', self.AddEventToIgnore, (entry,)),)
@@ -197,7 +200,6 @@ class WindowsEventPanel(BaseEventPanel):
                 return 'XBUTTON1'
             else:
                 return 'XBUTTON2'
-        return '-'
 
 
 class UIEventPanel(BaseEventPanel):
@@ -219,7 +221,7 @@ class UIEventPanel(BaseEventPanel):
         self.realEventHandler = uicore.uilib._TryExecuteHandler
         uicore.uilib._TryExecuteHandler = self._TryExecuteHandler
 
-    def _TryExecuteHandler(self, eventID, obj, eventArgs = None, param = None):
+    def _TryExecuteHandler(self, eventID, obj, eventArgs=None, param=None):
         handlerObj = self.realEventHandler(eventID, obj, eventArgs, param)
         if handlerObj:
             name = uicore.uilib.EVENTMAP[eventID]

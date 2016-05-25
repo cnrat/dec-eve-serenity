@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\client\script\ui\control\baseListEntry.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\client\script\ui\control\baseListEntry.py
 from carbonui.control.scrollentries import SE_BaseClassCore
 from carbonui.primitives.container import Container
 import carbonui.const as uiconst
@@ -23,28 +24,31 @@ class BaseListEntry(SE_BaseClassCore):
 
     @classmethod
     def GetCopyData(cls, node):
-        return ''
+        pass
 
     def GetHint(self):
         return self.node.hint
 
     @classmethod
-    def GetDynamicHeight(cls, node, width = None):
+    def GetDynamicHeight(cls, node, width=None):
         return node.height or cls.default_height
 
     def OnMouseHover(self, *args):
         if self.node.Get('OnMouseHover', None):
             self.node.OnMouseHover(self)
+        return
 
     def OnMouseEnter(self, *args):
         SE_BaseClassCore.OnMouseEnter(self, *args)
         if self.node.Get('OnMouseEnter', None):
             self.node.OnMouseEnter(self)
+        return
 
     def OnMouseExit(self, *args):
         SE_BaseClassCore.OnMouseExit(self, *args)
         if self.node.Get('OnMouseExit', None):
             self.node.OnMouseExit(self)
+        return
 
     def OnClick(self, *args):
         sm.GetService('audio').SendUIEvent('wise:/msg_ListEntryClick_play')
@@ -52,6 +56,7 @@ class BaseListEntry(SE_BaseClassCore):
             self.node.scroll.SelectNode(self.node)
         if self.node.Get('OnClick', None):
             self.node.OnClick(self)
+        return
 
     def OnDblClick(self, *args):
         self.node.scroll.SelectNode(self.node)
@@ -61,39 +66,44 @@ class BaseListEntry(SE_BaseClassCore):
                 func(self, *self.node.OnDblClick[1:])
             else:
                 self.node.OnDblClick(self)
+        return
 
     def OnMouseDown(self, *args):
         SE_BaseClassCore.OnMouseDown(self, *args)
         if self.node.Get('OnMouseDown', None):
             self.node.OnMouseDown(self)
+        return
 
     def OnMouseUp(self, *args):
         SE_BaseClassCore.OnMouseUp(self, *args)
         if self.node.Get('OnMouseUp', None):
             self.node.OnMouseUp(self)
+        return
 
     def GetMenu(self):
         if not self.node.Get('ignoreRightClick', 0):
             self.OnClick()
         if self.node.Get('GetMenu', None):
             return self.node.GetMenu(self)
-        return []
+        else:
+            return []
 
     def OnDropData(self, dragObj, nodes):
         if self.node.OnDropData:
             self.node.OnDropData(dragObj, nodes)
 
-    def DoSelectNode(self, toggle = 0):
+    def DoSelectNode(self, toggle=0):
         self.node.scroll.GetSelectedNodes(self.node, toggle=toggle)
 
-    def GetRadialMenuIndicator(self, create = True, *args):
+    def GetRadialMenuIndicator(self, create=True, *args):
         indicator = getattr(self, 'radialMenuIndicator', None)
         if indicator and not indicator.destroyed:
             return indicator
-        if not create:
+        elif not create:
             return
-        self.radialMenuIndicator = Fill(bgParent=self, color=(1, 1, 1, 0.25), name='radialMenuIndicator')
-        return self.radialMenuIndicator
+        else:
+            self.radialMenuIndicator = Fill(bgParent=self, color=(1, 1, 1, 0.25), name='radialMenuIndicator')
+            return self.radialMenuIndicator
 
     def ShowRadialMenuIndicator(self, slimItem, *args):
         indicator = self.GetRadialMenuIndicator(create=True)
@@ -112,7 +122,7 @@ class BaseListEntryCustomColumns(BaseListEntry):
         BaseListEntry.ApplyAttributes(self, attributes)
         self.columns = []
 
-    def AddColumnContainer(self, padRight = 1, width = 0):
+    def AddColumnContainer(self, padRight=1, width=0):
         column = Container(align=uiconst.TOLEFT, parent=self, clipChildren=True, padRight=padRight, width=width)
         self.columns.append(column)
         return column

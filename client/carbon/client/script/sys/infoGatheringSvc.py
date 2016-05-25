@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\carbon\client\script\sys\infoGatheringSvc.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\carbon\client\script\sys\infoGatheringSvc.py
 import service
 import blue
 import uthread
@@ -27,8 +28,9 @@ class InformationGatheringSvc(service.Service):
         self.loggedEventsEmpty = {}
         self.aggregateDict = {}
         self.clientWorkerInterval = 0
+        return
 
-    def Run(self, memStream = None):
+    def Run(self, memStream=None):
         stateAndConfig = sm.RemoteSvc('infoGatheringMgr').GetStateAndConfig()
         self.isEnabled = stateAndConfig.isEnabled
         self.serverEvents = stateAndConfig.infoTypes
@@ -44,7 +46,7 @@ class InformationGatheringSvc(service.Service):
     def GetEventIGSHandle(self, eventTypeID, **keywords):
         return partial(self.LogInfoEvent, eventTypeID=eventTypeID, **keywords)
 
-    def LogInfoEvent(self, eventTypeID, itemID = None, itemID2 = None, int_1 = None, int_2 = None, int_3 = None, char_1 = None, char_2 = None, char_3 = None, float_1 = None, float_2 = None, float_3 = None):
+    def LogInfoEvent(self, eventTypeID, itemID=None, itemID2=None, int_1=None, int_2=None, int_3=None, char_1=None, char_2=None, char_3=None, float_1=None, float_2=None, float_3=None):
         try:
             if eventTypeID in self.serverEvents:
                 if eventTypeID in self.serverOncePerRunEvents:
@@ -87,6 +89,8 @@ class InformationGatheringSvc(service.Service):
         except Exception:
             log.LogException('Error logging IGS information')
             sys.exc_clear()
+
+        return
 
     def SendInfoWorker(self):
         while self.isEnabled:

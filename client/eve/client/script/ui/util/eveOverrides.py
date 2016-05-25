@@ -1,6 +1,8 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\client\script\ui\util\eveOverrides.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\client\script\ui\util\eveOverrides.py
 import carbonui.const as uiconst
 from eve.client.script.ui.control.eveIcon import DraggableIcon
+from eve.client.script.ui.inflight.bracketsAndTargets.targetInBarFighter import TargetInBarFighter
 from eve.client.script.ui.util.uix import GetOwnerLogo, GetTechLevelIcon
 from eve.client.script.ui.control.allUserEntries import AllUserEntries
 from eve.client.script.ui.inflight.bracketsAndTargets.targetInBar import TargetInBar
@@ -55,7 +57,6 @@ def PrepareDrag_Override(dragContainer, dragSource, *args):
         if guid in ('xtriui.TypeIcon', 'listentry.DraggableItem', 'uicls.GenericDraggableForTypeID', 'listentry.SkillTreeEntry', 'listentry.Item', 'listentry.ContractItemSelect', 'listentry.RedeemToken', 'listentry.FittingModuleEntry', 'listentry.KillItems', 'listentry.CustomsItem', 'uicls.FightersHealthGauge'):
             icon.LoadIconByTypeID(node.typeID)
         elif guid in AllUserEntries():
-            charinfo = node.info or cfg.eveowners.Get(node.charID)
             GetOwnerLogo(icon, node.charID, iconSize, noServerCall=False)
         elif guid in iconDict:
             icon.LoadIcon(iconDict.get(guid))
@@ -87,9 +88,13 @@ def PrepareDrag_Override(dragContainer, dragSource, *args):
         elif guid == 'uiutil.InfoPanelDragData':
             icon.LoadIcon(node.infoPanelCls.default_iconTexturePath)
             icon.width = icon.height = 32
-        elif guid == 'uicls.TargetInBar':
+        elif guid in ('uicls.TargetInBar', 'uicls.TargetInBarFighter'):
+            if guid == 'uicls.TargetInBar':
+                targetType = TargetInBar
+            else:
+                targetType = TargetInBarFighter
             icon.Flush()
-            targetIcon = TargetInBar(align=uiconst.TOPLEFT, pos=(0, 0, 64, 64), parent=icon)
+            targetIcon = targetType(align=uiconst.TOPLEFT, pos=(0, 0, 64, 64), parent=icon)
             targetIcon.updatedamage = True
             targetIcon.AddUIObjects(slimItem=node.slimItem(), itemID=node.itemID)
             if getattr(node, 'OnBeginMoveTarget', None):
@@ -98,6 +103,8 @@ def PrepareDrag_Override(dragContainer, dragSource, *args):
             icon.LoadIcon(node.texturePath)
         elif getattr(node, 'LoadIcon', None) is not None:
             node.LoadIcon(icon, dad, iconSize)
+        elif getattr(node, 'nodeType', None) == 'AccessGroupEntry':
+            icon.LoadIcon('res:/UI/Texture/WindowIcons/accessGroups.png')
         x += 1
         if x >= 3:
             x = 0
@@ -112,10 +119,11 @@ def PrepareDrag_Override(dragContainer, dragSource, *args):
     return (0, 0)
 
 
-def MakeTypeIcon(icon, dad, typeID, iconSize, isCopy = False):
+def MakeTypeIcon(icon, dad, typeID, iconSize, isCopy=False):
     techIcon = GetTechLevelIcon(None, typeID=typeID)
     if techIcon:
         techIcon.left = icon.left
         techIcon.top = icon.top
         dad.children.append(techIcon)
     icon.LoadIconByTypeID(typeID=typeID, size=iconSize, isCopy=isCopy)
+    return

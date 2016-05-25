@@ -1,9 +1,10 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\client\script\dogma\clientDogmaLocation.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\client\script\dogma\clientDogmaLocation.py
 from dogma.dogmaLogging import *
 from dogma.dogmaWrappers import WrappedMethod
 import sys
 import weakref
-from inventorycommon.util import IsShipFittingFlag
+from inventorycommon.util import IsFittingFlag, IsFittingModule
 import util
 import math
 import uix
@@ -32,7 +33,7 @@ class DogmaLocation(BaseDogmaLocation):
      'OnHeatAdded',
      'OnHeatRemoved']
 
-    def __init__(self, broker, charBrain = None):
+    def __init__(self, broker, charBrain=None):
         super(DogmaLocation, self).__init__(broker)
         self.instanceCache = {}
         self.scatterAttributeChanges = True
@@ -54,9 +55,9 @@ class DogmaLocation(BaseDogmaLocation):
         self.shipIDBeingEmbarked = None
         self.locationName = 'ClientDogmaLocation'
         sm.RegisterNotify(self)
+        return
 
     def SetBrainData(self, charID, brain):
-        brainVersion, charEffects, shipEffects = brain
         self.brain = brain
 
     def GetBrainData(self, charID):
@@ -133,71 +134,73 @@ class DogmaLocation(BaseDogmaLocation):
 
     @WrappedMethod
     @telemetry.ZONE_METHOD
-    def MakeShipActive(self, shipID, shipState = None):
+    def MakeShipActive(self, shipID, shipState=None):
         uthread.pool('MakeShipActive', self._MakeShipActive, shipID, shipState)
 
     @WrappedMethod
     @telemetry.ZONE_METHOD
     def _MakeShipActive(self, shipID, shipState):
-        uthread.Lock(self, 'makeShipActive')
         if shipID is None:
             log.LogTraceback('Unexpectedly got shipID = None')
             return
-        if shipID == self.locationID:
+        elif shipID == self.locationID:
             log.LogTraceback('ClientDogmaLocation is attempting to activate itself as a characters shipID!')
             return
-        self.shipIDBeingDisembarked = self.GetCurrentShipID()
-        self.shipIDBeingEmbarked = shipID
-        try:
-            if self.GetCurrentShipID() == shipID:
-                self.shipIDBeingEmbarked = self.shipIDBeingDisembarked = None
-                return
-            while not session.IsItSafe():
-                self.LogInfo('MakeShipActive - session is mutating. Sleeping for 250ms')
-                blue.pyos.synchro.SleepSim(250)
-
-            self.UpdateRemoteDogmaLocation()
-            oldShipID = self.GetCurrentShipID()
-            if oldShipID and oldShipID in self.dogmaItems:
-                self.RemoveBrainEffects(oldShipID, session.charid, 'clientDogmaLocation._MakeShipActive')
-            if shipState is not None:
-                self.instanceCache, self.instanceFlagQuantityCache, self.wbData, heatStates = shipState
-            else:
-                try:
-                    self.instanceCache, self.instanceFlagQuantityCache, self.wbData, heatStates = self.remoteShipMgr.Board(shipID, session.shipid)
-                except Exception:
-                    raise
-
-            self.scatterAttributeChanges = False
+        else:
+            uthread.Lock(self, 'makeShipActive')
             try:
-                LogNotice('_MakeShipActive: Calling LoadItem on new shipID=', shipID)
-                if oldShipID is not None:
-                    LogNotice('_MakeShipActive: Unfitting oldShipID=', oldShipID)
-                    self.UnfitItemFromLocation(oldShipID, session.charid)
-                if shipID is not None:
-                    LogNotice('_MakeShipActive: Calling OnCharacterEmbarkation')
-                    if not oldShipID:
-                        self.LoadItem(session.charid)
-                        self.SetWeaponBanks(shipID, self.wbData)
-                    else:
-                        if oldShipID and oldShipID in self.dogmaItems:
-                            LogNotice('_MakeShipActive: Unloading oldShipID=', oldShipID)
-                            self.UnloadItem(oldShipID)
-                        self.OnCharacterEmbarkation(session.charid, shipID, switching=oldShipID is not None)
-                        LogNotice('_MakeShipActive: Calling SetWeaponBanks')
-                        self.SetWeaponBanks(shipID, self.wbData)
-                        self.LoadItemsInLocation(shipID)
-                        sm.ChainEvent('ProcessActiveShipChanged', shipID, oldShipID)
+                self.shipIDBeingDisembarked = self.GetCurrentShipID()
+                self.shipIDBeingEmbarked = shipID
+                if self.GetCurrentShipID() == shipID:
+                    self.shipIDBeingEmbarked = self.shipIDBeingDisembarked = None
+                    return
+                while not session.IsItSafe():
+                    self.LogInfo('MakeShipActive - session is mutating. Sleeping for 250ms')
+                    blue.pyos.synchro.SleepSim(250)
+
+                self.UpdateRemoteDogmaLocation()
+                oldShipID = self.GetCurrentShipID()
+                if oldShipID and oldShipID in self.dogmaItems:
+                    self.RemoveBrainEffects(oldShipID, session.charid, 'clientDogmaLocation._MakeShipActive')
+                if shipState is not None:
+                    self.instanceCache, self.instanceFlagQuantityCache, self.wbData, heatStates = shipState
+                else:
+                    try:
+                        self.instanceCache, self.instanceFlagQuantityCache, self.wbData, heatStates = self.remoteShipMgr.Board(shipID, session.shipid)
+                    except Exception:
+                        raise
+
+                self.scatterAttributeChanges = False
+                try:
+                    LogNotice('_MakeShipActive: Calling LoadItem on new shipID=', shipID)
+                    if oldShipID is not None:
+                        LogNotice('_MakeShipActive: Unfitting oldShipID=', oldShipID)
+                        self.UnfitItemFromLocation(oldShipID, session.charid)
+                    if shipID is not None:
+                        LogNotice('_MakeShipActive: Calling OnCharacterEmbarkation')
+                        if not oldShipID:
+                            self.LoadItem(session.charid)
+                            self.SetWeaponBanks(shipID, self.wbData)
+                        else:
+                            if oldShipID and oldShipID in self.dogmaItems:
+                                LogNotice('_MakeShipActive: Unloading oldShipID=', oldShipID)
+                                self.UnloadItem(oldShipID)
+                            self.OnCharacterEmbarkation(session.charid, shipID, switching=oldShipID is not None)
+                            LogNotice('_MakeShipActive: Calling SetWeaponBanks')
+                            self.SetWeaponBanks(shipID, self.wbData)
+                            self.LoadItemsInLocation(shipID)
+                            sm.ChainEvent('ProcessActiveShipChanged', shipID, oldShipID)
+                finally:
+                    self.scatterAttributeChanges = True
+
+                self.ClearInstanceCache()
             finally:
-                self.scatterAttributeChanges = True
+                self.shipIDBeingDisembarked = None
+                self.shipIDBeingEmbarked = None
+                uthread.UnLock(self, 'makeShipActive')
 
-            self.ClearInstanceCache()
-        finally:
-            self.shipIDBeingDisembarked = None
-            self.shipIDBeingEmbarked = None
-            uthread.UnLock(self, 'makeShipActive')
-
-        LogNotice('_MakeShipActive: DONE')
+            LogNotice('_MakeShipActive: DONE')
+            return
 
     def WaitForShip(self):
         startTime = blue.os.GetWallclockTime()
@@ -211,6 +214,7 @@ class DogmaLocation(BaseDogmaLocation):
         self.instanceCache = {}
         self.instanceFlagQuantityCache = {}
         self.wbData = None
+        return
 
     @telemetry.ZONE_METHOD
     def UpdateRemoteDogmaLocation(self):
@@ -224,6 +228,7 @@ class DogmaLocation(BaseDogmaLocation):
             self.remoteShipMgr = moniker.GetShipAccess()
             self.locationGroup = const.groupSolarSystem
             self.locationID = session.solarsystemid
+        return
 
     @telemetry.ZONE_METHOD
     def OnModuleAttributeChanges(self, changes):
@@ -260,6 +265,11 @@ class DogmaLocation(BaseDogmaLocation):
                 log.LogException('OnModuleAttributeChanges::Unexpected exception')
                 sys.exc_clear()
 
+    def LoadItem(self, itemKey, **kwargs):
+        if itemKey == session.locationid:
+            return itemKey
+        super(DogmaLocation, self).LoadItem(itemKey, **kwargs)
+
     @telemetry.ZONE_METHOD
     def FitItemToLocation(self, locationID, itemID, flagID):
         if self._IsLocationIDInvalidForFitting(locationID):
@@ -267,7 +277,7 @@ class DogmaLocation(BaseDogmaLocation):
         super(DogmaLocation, self).FitItemToLocation(locationID, itemID, flagID)
 
     @telemetry.ZONE_METHOD
-    def UnfitItemFromLocation(self, locationID, itemID, flushEffects = False):
+    def UnfitItemFromLocation(self, locationID, itemID, flushEffects=False):
         super(DogmaLocation, self).UnfitItemFromLocation(locationID, itemID, flushEffects)
         if locationID not in self.checkShipOnlineModulesPending:
             self.checkShipOnlineModulesPending.add(locationID)
@@ -283,6 +293,8 @@ class DogmaLocation(BaseDogmaLocation):
             if fittedItem.categoryID == const.categoryCharge:
                 return fittedItem
 
+        return None
+
     @telemetry.ZONE_METHOD
     def GetSubSystemInFlag(self, shipID, flagID):
         shipInv = self.broker.invCache.GetInventoryFromId(shipID, locationID=session.stationid2)
@@ -291,6 +303,7 @@ class DogmaLocation(BaseDogmaLocation):
             return None
         else:
             return self.dogmaItems[items[0].itemID]
+            return None
 
     @telemetry.ZONE_METHOD
     def GetItem(self, itemID):
@@ -312,9 +325,10 @@ class DogmaLocation(BaseDogmaLocation):
     def Activate(self, itemID, effectID):
         dogmaItem = self.dogmaItems[itemID]
         envInfo = dogmaItem.GetEnvironmentInfo()
-        env = Environment(envInfo.itemID, envInfo.charID, envInfo.shipID, envInfo.targetID, envInfo.otherID, effectID, weakref.proxy(self), None)
+        env = Environment(envInfo.itemID, envInfo.charID, envInfo.shipID, envInfo.targetID, envInfo.otherID, effectID, weakref.proxy(self), None, envInfo.structureID)
         env.dogmaLM = self
         self.StartEffect(effectID, itemID, env)
+        return
 
     @telemetry.ZONE_METHOD
     def PostStopEffectAction(self, effectID, dogmaItem, activationInfo, *args):
@@ -344,6 +358,7 @@ class DogmaLocation(BaseDogmaLocation):
             return self.GetAttributeValue(itemID, attributeID)
         else:
             return self.GetGodmaAttributeValue(itemID, attributeID)
+            return
 
     @telemetry.ZONE_METHOD
     def _GetMissingSkills(self, typeID):
@@ -378,7 +393,7 @@ class DogmaLocation(BaseDogmaLocation):
             self.LogInfo('LoadItemsInLocation %s' % itemID)
             self.UpdateRemoteDogmaLocation()
             itemInv = self.broker.invCache.GetInventoryFromId(itemID, locationID=self.locationID)
-            for item in itemInv.List():
+            for item in sorted(itemInv.List(), key=lambda x: x.categoryID != const.categoryModule):
                 try:
                     if dogmaItem.ValidFittingFlag(item.flagID):
                         self.items[item.itemID] = item
@@ -389,7 +404,7 @@ class DogmaLocation(BaseDogmaLocation):
                     log.LogException('LoadItemsInLocation %s, %s' % (itemID, evetypes.GetName(item.typeID)))
                     sys.exc_clear()
 
-    def UnloadItem(self, itemKey, item = None):
+    def UnloadItem(self, itemKey, item=None):
         super(DogmaLocation, self).UnloadItem(itemKey, item)
         if itemKey in self.items:
             del self.items[itemKey]
@@ -456,6 +471,7 @@ class DogmaLocation(BaseDogmaLocation):
         if self._IsLocationIDInvalidForFitting(item.locationID):
             return
         self.items[item.itemID] = item
+        self.LoadItem(item.itemID)
         self.FitItemToLocation(item.locationID, item.itemID, item.flagID)
 
     def OnItemChange(self, item, change):
@@ -465,12 +481,14 @@ class DogmaLocation(BaseDogmaLocation):
             if isinstance(item.itemID, tuple):
                 pass
             elif item.categoryID == const.categoryDrone:
+                self.LogNotice('Unfitting item as a result from item change', item, change)
                 self.UnfitItemFromLocation(self.GetCurrentShipID(), item.itemID)
                 self.UnloadItem(item.itemID)
             else:
                 self.UnfitItem(item.itemID)
         if not wasFitted and isFitted:
             try:
+                self.LogNotice('Fitting item as a result from item change', item, change)
                 self.FitItem(item)
             except Exception:
                 log.LogException('OnItemChange unexpectedly failed fitting item %s: (%s)' % (item.itemID, change))
@@ -511,17 +529,20 @@ class DogmaLocation(BaseDogmaLocation):
     def IsFitted(self, item):
         if self._IsLocationIDInvalidForFitting(item.locationID):
             return False
-        if not IsShipFittingFlag(item.flagID) and item.flagID != const.flagDroneBay:
+        if not IsFittingFlag(item.flagID) and item.flagID != const.flagDroneBay:
             return False
         if item[const.ixStackSize] <= 0:
             return False
         return True
 
     def _IsLocationIDInvalidForFitting(self, locationID):
+        if locationID == self.shipIDBeingDisembarked:
+            self.LogNotice('Ignoring location because the ship is being disembarked', locationID)
+            return True
         isLocationIDValidForFitting = locationID not in (self.GetCurrentShipID(), session.charid, self.shipIDBeingEmbarked)
         return isLocationIDValidForFitting
 
-    def OnAttributeChanged(self, attributeID, itemKey, value = None, oldValue = None):
+    def OnAttributeChanged(self, attributeID, itemKey, value=None, oldValue=None):
         value = super(DogmaLocation, self).OnAttributeChanged(attributeID, itemKey, value=value, oldValue=oldValue)
         if self.scatterAttributeChanges:
             sm.ScatterEvent('OnDogmaAttributeChanged', self.GetCurrentShipID(), itemKey, attributeID, value)
@@ -554,55 +575,59 @@ class DogmaLocation(BaseDogmaLocation):
             else:
                 capacity = self.GetAttributeValue(moduleID, const.attributeCapacity)
             return util.KeyVal(capacity=capacity, used=used)
-        return ret
+        else:
+            return ret
 
     def CapacitorSimulator(self, shipID):
         dogmaItem = self.dogmaItems[shipID]
         capacitorCapacity = self.GetAttributeValue(shipID, const.attributeCapacitorCapacity)
         rechargeTime = self.GetAttributeValue(shipID, const.attributeRechargeRate)
-        modules = []
-        totalCapNeed = 0
-        for moduleID, module in dogmaItem.GetFittedItems().iteritems():
-            if not module.IsOnline():
-                continue
-            try:
-                defaultEffectID = self.dogmaStaticMgr.GetDefaultEffect(module.typeID)
-            except KeyError:
-                defaultEffectID = None
-                sys.exc_clear()
-
-            if defaultEffectID is None:
-                continue
-            defaultEffect = self.dogmaStaticMgr.effects[defaultEffectID]
-            durationAttributeID = defaultEffect.durationAttributeID
-            dischargeAttributeID = defaultEffect.dischargeAttributeID
-            if durationAttributeID is None or dischargeAttributeID is None:
-                continue
-            duration = self.GetAttributeValue(moduleID, durationAttributeID)
-            capNeed = self.GetAttributeValue(moduleID, dischargeAttributeID)
-            modules.append([capNeed, long(duration * const.dgmTauConstant), 0])
-            totalCapNeed += capNeed / duration
-
-        rechargeRateAverage = capacitorCapacity / rechargeTime
-        peakRechargeRate = 2.5 * rechargeRateAverage
-        tau = rechargeTime / 5
-        TTL = None
-        if totalCapNeed > peakRechargeRate:
-            TTL = self.RunSimulation(capacitorCapacity, rechargeTime, modules)
-            loadBalance = 0
+        if not capacitorCapacity or not rechargeTime:
+            return (1, 0, 0, 0)
         else:
-            c = 2 * capacitorCapacity / tau
-            k = totalCapNeed / c
-            exponent = (1 - math.sqrt(1 - 4 * k)) / 2
-            if exponent == 0:
-                loadBalance = 1
+            modules = []
+            totalCapNeed = 0
+            for moduleID, module in dogmaItem.GetFittedItems().iteritems():
+                if not module.IsOnline():
+                    continue
+                try:
+                    defaultEffectID = self.dogmaStaticMgr.GetDefaultEffect(module.typeID)
+                except KeyError:
+                    defaultEffectID = None
+                    sys.exc_clear()
+
+                if defaultEffectID is None:
+                    continue
+                defaultEffect = self.dogmaStaticMgr.effects[defaultEffectID]
+                durationAttributeID = defaultEffect.durationAttributeID
+                dischargeAttributeID = defaultEffect.dischargeAttributeID
+                if durationAttributeID is None or dischargeAttributeID is None:
+                    continue
+                duration = self.GetAttributeValue(moduleID, durationAttributeID)
+                capNeed = self.GetAttributeValue(moduleID, dischargeAttributeID)
+                modules.append([capNeed, long(duration * const.dgmTauConstant), 0])
+                totalCapNeed += capNeed / duration
+
+            rechargeRateAverage = capacitorCapacity / rechargeTime
+            peakRechargeRate = 2.5 * rechargeRateAverage
+            tau = rechargeTime / 5
+            TTL = None
+            if totalCapNeed > peakRechargeRate:
+                TTL = self.RunSimulation(capacitorCapacity, rechargeTime, modules)
+                loadBalance = 0
             else:
-                t = -math.log(exponent) * tau
-                loadBalance = (1 - math.exp(-t / tau)) ** 2
-        return (peakRechargeRate,
-         totalCapNeed,
-         loadBalance,
-         TTL)
+                c = 2 * capacitorCapacity / tau
+                k = totalCapNeed / c
+                exponent = (1 - math.sqrt(1 - 4 * k)) / 2
+                if exponent == 0:
+                    loadBalance = 1
+                else:
+                    t = -math.log(exponent) * tau
+                    loadBalance = (1 - math.exp(-t / tau)) ** 2
+            return (peakRechargeRate,
+             totalCapNeed,
+             loadBalance,
+             TTL)
 
     def RunSimulation(self, capacitorCapacity, rechargeRate, modules):
         capacitor = capacitorCapacity
@@ -626,8 +651,6 @@ class DogmaLocation(BaseDogmaLocation):
         self.Activate(moduleID, const.effectOnline)
         dogmaItem = self.dogmaItems[moduleID]
         try:
-            if dogmaItem.ownerID != session.charid:
-                log.LogTraceback('OnlineModule character %s is attempting to online a module that he does not own!' % session.charid)
             self.remoteDogmaLM.SetModuleOnline(dogmaItem.locationID, moduleID)
         except UserError as e:
             if e.msg != 'EffectAlreadyActive2':
@@ -669,35 +692,37 @@ class DogmaLocation(BaseDogmaLocation):
 
         return ret
 
-    def LinkWeapons(self, shipID, toID, fromID, merge = True):
+    def LinkWeapons(self, shipID, toID, fromID, merge=True):
         if toID == fromID:
             return
-        toItem = self.dogmaItems[toID]
-        fromItem = self.dogmaItems[fromID]
-        for item in (toItem, fromItem):
-            if not item.IsOnline():
-                raise UserError('CantLinkModuleNotOnline')
-
-        if toItem.typeID != fromItem.typeID:
-            self.LogInfo('LinkWeapons::Modules not of same type', toItem, fromItem)
-            return
-        if toItem.groupID not in const.dgmGroupableGroupIDs:
-            self.LogInfo('group not groupable', toItem, fromItem)
-            return
-        if shipID is None or shipID != fromItem.locationID:
-            log.LogTraceback('LinkWeapons::Modules not located in the same place')
-        masterID = self.GetMasterModuleID(shipID, toID)
-        if not masterID:
-            masterID = toID
-        slaveID = self.IsInWeaponBank(shipID, fromID)
-        if slaveID:
-            if merge:
-                info = self.remoteDogmaLM.MergeModuleGroups(shipID, masterID, slaveID)
-            else:
-                info = self.remoteDogmaLM.PeelAndLink(shipID, masterID, slaveID)
         else:
-            info = self.remoteDogmaLM.LinkWeapons(shipID, masterID, fromID)
-        self.OnWeaponBanksChanged(shipID, info)
+            toItem = self.dogmaItems[toID]
+            fromItem = self.dogmaItems[fromID]
+            for item in (toItem, fromItem):
+                if not item.IsOnline():
+                    raise UserError('CantLinkModuleNotOnline')
+
+            if toItem.typeID != fromItem.typeID:
+                self.LogInfo('LinkWeapons::Modules not of same type', toItem, fromItem)
+                return
+            if toItem.groupID not in const.dgmGroupableGroupIDs:
+                self.LogInfo('group not groupable', toItem, fromItem)
+                return
+            if shipID is None or shipID != fromItem.locationID:
+                log.LogTraceback('LinkWeapons::Modules not located in the same place')
+            masterID = self.GetMasterModuleID(shipID, toID)
+            if not masterID:
+                masterID = toID
+            slaveID = self.IsInWeaponBank(shipID, fromID)
+            if slaveID:
+                if merge:
+                    info = self.remoteDogmaLM.MergeModuleGroups(shipID, masterID, slaveID)
+                else:
+                    info = self.remoteDogmaLM.PeelAndLink(shipID, masterID, slaveID)
+            else:
+                info = self.remoteDogmaLM.LinkWeapons(shipID, masterID, fromID)
+            self.OnWeaponBanksChanged(shipID, info)
+            return
 
     def UngroupModule(self, shipID, moduleID):
         slaveID = self.remoteDogmaLM.UnlinkModule(shipID, moduleID)
@@ -722,19 +747,21 @@ class DogmaLocation(BaseDogmaLocation):
         lastRequest = getattr(self, attributeName)
         if lastRequest is None:
             return 1.0
-        timeDiff = blue.os.GetSimTime() - lastRequest
-        waitTime = min(GROUPALL_THROTTLE_TIMER, GROUPALL_THROTTLE_TIMER - timeDiff)
-        opacity = max(0, 1 - float(waitTime) / GROUPALL_THROTTLE_TIMER)
-        return opacity
+        else:
+            timeDiff = blue.os.GetSimTime() - lastRequest
+            waitTime = min(GROUPALL_THROTTLE_TIMER, GROUPALL_THROTTLE_TIMER - timeDiff)
+            opacity = max(0, 1 - float(waitTime) / GROUPALL_THROTTLE_TIMER)
+            return opacity
 
     def IsInWeaponBank(self, shipID, itemID):
         slaveModulesByMasterModule = self.slaveModulesByMasterModule.get(shipID, {})
         if itemID in slaveModulesByMasterModule:
             return itemID
-        masterID = self.GetMasterModuleID(shipID, itemID)
-        if masterID is not None:
-            return masterID
-        return False
+        else:
+            masterID = self.GetMasterModuleID(shipID, itemID)
+            if masterID is not None:
+                return masterID
+            return False
 
     def GetGroupableTypes(self, shipID):
         groupableTypes = defaultdict(lambda : 0)
@@ -831,7 +858,8 @@ class DogmaLocation(BaseDogmaLocation):
         masterID = self.GetMasterModuleID(shipID, moduleID)
         if masterID is not None:
             return masterID
-        return moduleID
+        else:
+            return moduleID
 
     def _UnloadDBLessChargesToContainer(self, shipID, itemIDs, containerArgs, flag, quantity):
         if len(itemIDs) > 1:
@@ -848,7 +876,7 @@ class DogmaLocation(BaseDogmaLocation):
             inv = self.broker.invCache.GetInventoryFromId(locationID=session.stationid2, *containerArgs)
         inv.MultiAdd(itemIDs, shipID, flag=flag, fromManyFlags=True, qty=quantity)
 
-    def UnloadChargeToContainer(self, shipID, itemID, containerArgs, flag, quantity = None):
+    def UnloadChargeToContainer(self, shipID, itemID, containerArgs, flag, quantity=None):
         if isinstance(itemID, tuple):
             func = self._UnloadDBLessChargesToContainer
             itemIDs = self.GetSubLocationsInBank(shipID, itemID)
@@ -875,36 +903,38 @@ class DogmaLocation(BaseDogmaLocation):
         moduleID = self.GetSlotOther(shipID, flagID)
         if moduleID is None:
             return []
-        moduleIDs = self.GetModulesInBank(shipID, moduleID)
-        if not moduleIDs:
-            return []
-        shipDogmaItem = self.dogmaItems[shipID]
-        for moduleID in moduleIDs:
-            moduleDogmaItem = self.dogmaItems[moduleID]
-            chargeID = shipDogmaItem.subLocations.get(moduleDogmaItem.flagID, None)
-            if chargeID is not None:
-                ret.append(chargeID)
+        else:
+            moduleIDs = self.GetModulesInBank(shipID, moduleID)
+            if not moduleIDs:
+                return []
+            shipDogmaItem = self.dogmaItems[shipID]
+            for moduleID in moduleIDs:
+                moduleDogmaItem = self.dogmaItems[moduleID]
+                chargeID = shipDogmaItem.subLocations.get(moduleDogmaItem.flagID, None)
+                if chargeID is not None:
+                    ret.append(chargeID)
 
-        return ret
+            return ret
 
     def GetCrystalsInBank(self, shipID, itemID):
         flagID = self.dogmaItems[itemID].flagID
         moduleID = self.GetSlotOther(shipID, flagID)
         if moduleID is None:
             return []
-        moduleIDs = self.GetModulesInBank(shipID, moduleID)
-        if not moduleIDs:
-            return []
-        crystals = []
-        for moduleID in moduleIDs:
-            moduleDogmaItem = self.dogmaItems[moduleID]
-            crystal = self.GetChargeNonDB(shipID, moduleDogmaItem.flagID)
-            if crystal is not None:
-                crystals.append(crystal.itemID)
+        else:
+            moduleIDs = self.GetModulesInBank(shipID, moduleID)
+            if not moduleIDs:
+                return []
+            crystals = []
+            for moduleID in moduleIDs:
+                moduleDogmaItem = self.dogmaItems[moduleID]
+                crystal = self.GetChargeNonDB(shipID, moduleDogmaItem.flagID)
+                if crystal is not None:
+                    crystals.append(crystal.itemID)
 
-        return crystals
+            return crystals
 
-    def LoadChargeToModule(self, itemID, chargeTypeID, chargeItems = None, qty = None, preferSingletons = False):
+    def LoadChargeToModule(self, itemID, chargeTypeID, chargeItems=None, qty=None, preferSingletons=False):
         shipID = self.dogmaItems[itemID].locationID
         masterID = self.GetMasterModuleID(shipID, itemID)
         if masterID is None:
@@ -920,7 +950,7 @@ class DogmaLocation(BaseDogmaLocation):
             raise UserError('CannotLoadNotEnoughCharges')
         chargeLocationID = chargeItems[0].locationID
         for item in chargeItems:
-            if IsShipFittingFlag(item.flagID):
+            if IsFittingFlag(item.flagID):
                 raise UserError('CantMoveChargesBetweenModules')
 
         if preferSingletons:
@@ -943,12 +973,14 @@ class DogmaLocation(BaseDogmaLocation):
             itemIDs.append(item.itemID)
 
         self.remoteDogmaLM.LoadAmmoToBank(shipID, masterID, chargeTypeID, itemIDs, chargeLocationID)
+        return
 
     def LoadAmmoToModules(self, shipID, moduleIDs, chargeTypeID, itemID, ammoLocationID):
         self.CheckSkillRequirementsForType(None, chargeTypeID, 'FittingHasSkillPrerequisites')
         self.remoteDogmaLM.LoadAmmoToModules(shipID, moduleIDs, chargeTypeID, itemID, ammoLocationID)
+        return
 
-    def DropLoadChargeToModule(self, itemID, chargeTypeID, chargeItems, qty = None, preferSingletons = False):
+    def DropLoadChargeToModule(self, itemID, chargeTypeID, chargeItems, qty=None, preferSingletons=False):
         if uicore.uilib.Key(uiconst.VK_SHIFT):
             maxQty = 0
             for item in chargeItems:
@@ -967,8 +999,9 @@ class DogmaLocation(BaseDogmaLocation):
                 if qty <= 0:
                     return
         self.LoadChargeToModule(itemID, chargeTypeID, chargeItems=chargeItems, qty=qty, preferSingletons=preferSingletons)
+        return
 
-    def UnloadModuleToContainer(self, shipID, itemID, containerArgs, flag = None):
+    def UnloadModuleToContainer(self, shipID, itemID, containerArgs, flag=None):
         if self.IsInWeaponBank(shipID, itemID):
             ret = eve.Message('CustomQuestion', {'header': localization.GetByLabel('UI/Common/Confirm'),
              'question': localization.GetByLabel('UI/Fitting/ClearGroupModule')}, uiconst.YESNO)
@@ -991,22 +1024,34 @@ class DogmaLocation(BaseDogmaLocation):
             containerInv.Add(itemID, item.locationID, qty=None, flag=flag)
         else:
             containerInv.Add(itemID, item.locationID)
+        return
 
     def CheckCanFit(self, locationID, itemID, flagID, fromLocationID):
         item = self.broker.invCache.FetchItem(itemID, fromLocationID)
         if item is None:
             self.LogInfo('ClientDogmaLocation::CheckCanFit - unable to fetch item', locationID, itemID, flagID, fromLocationID)
             return
-        maxGroupFitted = self.dogmaStaticMgr.GetTypeAttribute(item.typeID, const.attributeMaxGroupFitted)
-        if maxGroupFitted is not None:
-            modulesByGroup = self.GetModuleListByShipGroup(locationID, item.groupID)
-            if len(modulesByGroup) >= maxGroupFitted:
-                shipItem = self.dogmaItems[locationID]
-                raise UserError('CantFitTooManyByGroup', {'ship': shipItem.typeID,
-                 'module': item.typeID,
-                 'groupName': evetypes.GetGroupNameByGroup(item.groupID),
-                 'noOfModules': int(maxGroupFitted),
-                 'noOfModulesFitted': len(modulesByGroup)})
+        else:
+            maxGroupFitted = self.dogmaStaticMgr.GetTypeAttribute(item.typeID, const.attributeMaxGroupFitted)
+            if maxGroupFitted is not None:
+                modulesByGroup = self.GetModuleListByShipGroup(locationID, item.groupID)
+                if len(modulesByGroup) >= maxGroupFitted:
+                    shipItem = self.dogmaItems[locationID]
+                    raise UserError('CantFitTooManyByGroup', {'ship': shipItem.typeID,
+                     'module': item.typeID,
+                     'groupName': evetypes.GetGroupNameByGroup(item.groupID),
+                     'noOfModules': int(maxGroupFitted),
+                     'noOfModulesFitted': len(modulesByGroup)})
+            maxTypeFitted = self.dogmaStaticMgr.GetTypeAttribute(item.typeID, const.attributeMaxTypeFitted)
+            if maxTypeFitted is not None:
+                modulesByType = self.GetModuleListByShipType(locationID, item.typeID)
+                if len(modulesByType) >= maxTypeFitted:
+                    shipItem = self.dogmaItems[locationID]
+                    raise UserError('CantFitTooManyByType', {'ship': shipItem.typeID,
+                     'module': item.typeID,
+                     'noOfModules': int(maxTypeFitted),
+                     'noOfModulesFitted': len(modulesByType)})
+            return
 
     def GetOnlineModules(self, shipID):
         return {module.flagID:moduleID for moduleID, module in self.dogmaItems[shipID].GetFittedItems().iteritems() if module.IsOnline()}
@@ -1034,6 +1079,7 @@ class DogmaLocation(BaseDogmaLocation):
             blue.pyos.synchro.Sleep(100)
 
         self.LogError('Failed to get dogmaItem in time', itemID)
+        return None
 
     def GetModifierString(self, itemID, attributeID):
         dogmaItem = self.dogmaItems[itemID]
@@ -1165,7 +1211,7 @@ class DogmaLocation(BaseDogmaLocation):
             chargeKey = chargesByFlag.get(flagID)
             if chargeKey is None:
                 continue
-            thisLauncherDps = self.GetLauncherDps(chargeKey, itemID, shipDogmaItem.ownerID, GAV)
+            thisLauncherDps = self.GetLauncherDps(chargeKey, itemID, shipDogmaItem.GetPilot(), GAV)
             missileDps += thisLauncherDps
 
         return (turretDps, missileDps)
@@ -1183,7 +1229,7 @@ class DogmaLocation(BaseDogmaLocation):
                 turretDps = damage * damageMultiplier / duration
         return turretDps * 1000
 
-    def GetLauncherDps(self, chargeKey, itemID, ownerID, GAV, damageMultiplier = None):
+    def GetLauncherDps(self, chargeKey, itemID, ownerID, GAV, damageMultiplier=None):
         missileDps = 0.0
         damage = self.GetDamageFromItem(chargeKey)
         duration = GAV(itemID, const.attributeRateOfFire)
@@ -1199,7 +1245,7 @@ class DogmaLocation(BaseDogmaLocation):
     def GetModulesLackingSkills(self):
         ret = []
         for moduleID, module in self.dogmaItems[self.GetCurrentShipID()].GetFittedItems().iteritems():
-            if module.categoryID == const.categoryModule and IsShipFittingFlag(module.flagID) and not const.flagRigSlot0 <= module.flagID <= const.flagRigSlot7:
+            if IsFittingModule(module.categoryID) and IsFittingFlag(module.flagID) and not const.flagRigSlot0 <= module.flagID <= const.flagRigSlot7:
                 if self._GetMissingSkills(module.typeID):
                     ret.append(moduleID)
 
@@ -1212,10 +1258,12 @@ class DogmaLocation(BaseDogmaLocation):
             self.LogInfo('OnServerBrainUpdated:ClientDomgaLocation has not embarked character to anything. Nothing to do.')
             self.ProcessBrainData(session.charid, brainData)
             return
-        with self.brainUpdate.Event(shipID):
-            self.RemoveBrainEffects(shipID, session.charid, 'clientDogmaLocation.OnServerBrainUpdated')
-            self.ProcessBrainData(session.charid, brainData)
-            self.ApplyBrainEffects(shipID, session.charid, 'clientDogmaLocation.OnServerBrainUpdated')
+        else:
+            with self.brainUpdate.Event(shipID):
+                self.RemoveBrainEffects(shipID, session.charid, 'clientDogmaLocation.OnServerBrainUpdated')
+                self.ProcessBrainData(session.charid, brainData)
+                self.ApplyBrainEffects(shipID, session.charid, 'clientDogmaLocation.OnServerBrainUpdated')
+            return
 
     def GetModifiedTypeAttribute(self, typeID, attributeID):
         return self.dogmaStaticMgr.GetTypeAttribute(typeID, attributeID)
@@ -1242,3 +1290,6 @@ class DogmaLocation(BaseDogmaLocation):
         heatAttribute = shipItem.attributes[heatID]
         sourceAttribute.RemoveOutgoingModifier(const.dgmAssModAdd, heatAttribute.incomingHeat)
         heatAttribute.RemoveIncomingModifier(const.dgmAssModAdd, sourceAttribute)
+
+    def GetSecurityClass(self):
+        return sm.GetService('map').GetSecurityClass(session.solarsystemid2)

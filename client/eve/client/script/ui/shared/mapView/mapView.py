@@ -1,7 +1,10 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\client\script\ui\shared\mapView\mapView.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\client\script\ui\shared\mapView\mapView.py
 import itertools
 import logging
+import log
 import math
+from brennivin.itertoolsext import Bundle
 from carbon.common.script.util.timerstuff import AutoTimer
 from carbonui.primitives.base import ScaleDpi
 from carbonui.primitives.fill import Fill
@@ -129,6 +132,7 @@ class MapView(Container):
         self.mapNavigation = None
         self.Reset()
         Container.Close(self, *args, **kwds)
+        return
 
     def UpdateDebugOutput(self):
         if self.destroyed:
@@ -157,6 +161,7 @@ class MapView(Container):
         self.starData = {}
         self.starColorByID = {}
         self.activeObjects = Bunch()
+        return
 
     def LoadSearchResult(self, searchResult):
         if searchResult:
@@ -198,61 +203,63 @@ class MapView(Container):
         if currentLineMode != self.lineMode:
             self.UpdateLines(hint='OnMapViewSettingChanged')
 
-    def InitMap(self, interestID = None):
+    def InitMap(self, interestID=None):
         if self.destroyed:
             return
-        self.LogInfo('MapView: InitMap')
-        scene = trinity.EveSpaceScene()
-        self.sceneContainer.scene = scene
-        self.sceneContainer.DisplaySpaceScene()
-        self.mapRoot = trinity.EveRootTransform()
-        self.mapRoot.name = 'mapRoot'
-        self.mapRoot.display = False
-        scene.objects.append(self.mapRoot)
-        self.layoutHandler = MapViewLayoutHandler(self)
-        self.markersHandler = MapViewMarkersHandler(self, self.sceneContainer.bracketCurveSet, self.infoLayer, eventHandler=self.mapNavigation)
-        self.bookmarkHandler = MapViewBookmarkHandler(self, loadUniverseBookmarks=True)
-        self.CreateStarParticles()
-        lineSet = self.CreateJumpLineSet()
-        self.solarSystemJumpLineSet = lineSet
-        self.layoutHandler.RegisterJumpLineSet(lineSet)
-        lineSet = self.CreateJumpLineSet()
-        self.extraJumpLineSet = lineSet
-        self.layoutHandler.RegisterExtraJumpLineSet(lineSet)
-        self.LoadJumpLines()
-        self.LoadAllianceJumpLines()
-        self.UpdateMapLayout()
-        if self.destroyed:
-            return
-        if self.destroyed:
-            return
-        self.starLegend = []
-        self.tileLegend = []
-        self.ShowMyLocation()
-        if self.destroyed:
-            return
-        self.ShowMyHomeStation()
-        if self.destroyed:
-            return
-        if self.destroyed:
-            return
-        if interestID:
-            self.SetActiveItemID(interestID, zoomToItem=True)
         else:
-            if self.mapViewID:
-                self.camera.LoadRegisteredCameraSettings(self.mapViewID)
-            activeOverlaySolarSystemID = settings.char.ui.Get('%s_overlayActiveState_%s' % (SETTING_PREFIX, self.mapViewID), None)
-            if IsWormholeSystem(session.solarsystemid2):
-                defaultActiveState = {'primaryItemID': const.locationUniverse}
+            self.LogInfo('MapView: InitMap')
+            scene = trinity.EveSpaceScene()
+            self.sceneContainer.scene = scene
+            self.sceneContainer.DisplaySpaceScene()
+            self.mapRoot = trinity.EveRootTransform()
+            self.mapRoot.name = 'mapRoot'
+            self.mapRoot.display = False
+            scene.objects.append(self.mapRoot)
+            self.layoutHandler = MapViewLayoutHandler(self)
+            self.markersHandler = MapViewMarkersHandler(self, self.sceneContainer.bracketCurveSet, self.infoLayer, eventHandler=self.mapNavigation)
+            self.bookmarkHandler = MapViewBookmarkHandler(self, loadUniverseBookmarks=True)
+            self.CreateStarParticles()
+            lineSet = self.CreateJumpLineSet()
+            self.solarSystemJumpLineSet = lineSet
+            self.layoutHandler.RegisterJumpLineSet(lineSet)
+            lineSet = self.CreateJumpLineSet()
+            self.extraJumpLineSet = lineSet
+            self.layoutHandler.RegisterExtraJumpLineSet(lineSet)
+            self.LoadJumpLines()
+            self.LoadAllianceJumpLines()
+            self.UpdateMapLayout()
+            if self.destroyed:
+                return
+            if self.destroyed:
+                return
+            self.starLegend = []
+            self.tileLegend = []
+            self.ShowMyLocation()
+            if self.destroyed:
+                return
+            self.ShowMyHomeStation()
+            if self.destroyed:
+                return
+            if self.destroyed:
+                return
+            if interestID:
+                self.SetActiveItemID(interestID, zoomToItem=True)
             else:
-                defaultActiveState = {'primaryItemID': session.solarsystemid2,
-                 'localID': (MARKERID_MYPOS, session.charid)}
-            activeState = settings.char.ui.Get('%s_activeState_%s' % (SETTING_PREFIX, self.mapViewID), defaultActiveState)
-            self.SetActiveState(**activeState)
-            if activeOverlaySolarSystemID:
-                self.SetActiveItemID(activeOverlaySolarSystemID)
-        self.OnCameraMoved()
-        self.StopLoadingBar('starmap_init')
+                if self.mapViewID:
+                    self.camera.LoadRegisteredCameraSettings(self.mapViewID)
+                activeOverlaySolarSystemID = settings.char.ui.Get('%s_overlayActiveState_%s' % (SETTING_PREFIX, self.mapViewID), None)
+                if IsWormholeSystem(session.solarsystemid2):
+                    defaultActiveState = {'primaryItemID': const.locationUniverse}
+                else:
+                    defaultActiveState = {'primaryItemID': session.solarsystemid2,
+                     'localID': (MARKERID_MYPOS, session.charid)}
+                activeState = settings.char.ui.Get('%s_activeState_%s' % (SETTING_PREFIX, self.mapViewID), defaultActiveState)
+                self.SetActiveState(**activeState)
+                if activeOverlaySolarSystemID:
+                    self.SetActiveItemID(activeOverlaySolarSystemID)
+            self.OnCameraMoved()
+            self.StopLoadingBar('starmap_init')
+            return
 
     @apply
     def camera():
@@ -288,37 +295,39 @@ class MapView(Container):
     def OnUIScalingChange(self, *args):
         self.markersHandler.ReloadAll()
 
-    def GetPickObjects(self, mouseX, mouseY, getMarkers = True):
+    def GetPickObjects(self, mouseX, mouseY, getMarkers=True):
         if not self.markersHandler:
             return
-        x, y = ScaleDpi(mouseX), ScaleDpi(mouseY)
-        vx, vy = self.sceneContainer.viewport.x, self.sceneContainer.viewport.y
-        lastDistance = None
-        picked = []
-        for markerID, marker in self.markersHandler.projectBrackets.iteritems():
-            if not marker.projectBracket.isInFront or not marker.positionPickable:
-                continue
-            mx, my = marker.projectBracket.rawProjectedPosition
-            if x - 7 < vx + mx < x + 8 and y - 7 < vy + my < y + 8:
-                distance = marker.projectBracket.cameraDistance
-                if distance < self.camera.backClip and (lastDistance is None or distance < lastDistance):
-                    if getMarkers:
-                        picked = [(markerID, marker)]
-                    else:
-                        picked = [markerID]
-                    lastDistance = distance
+        else:
+            x, y = ScaleDpi(mouseX), ScaleDpi(mouseY)
+            vx, vy = self.sceneContainer.viewport.x, self.sceneContainer.viewport.y
+            lastDistance = None
+            picked = []
+            for markerID, marker in self.markersHandler.projectBrackets.iteritems():
+                if not marker.projectBracket.isInFront or not marker.positionPickable:
+                    continue
+                mx, my = marker.projectBracket.rawProjectedPosition
+                if x - 7 < vx + mx < x + 8:
+                    if y - 7 < vy + my < y + 8:
+                        distance = marker.projectBracket.cameraDistance
+                        if distance < self.camera.backClip and (lastDistance is None or distance < lastDistance):
+                            picked = getMarkers and [(markerID, marker)]
+                        else:
+                            picked = [markerID]
+                        lastDistance = distance
 
-        return picked
+            return picked
 
     def GetItemMenu(self, itemID):
         item = self.mapSvc.GetItem(itemID, retall=True)
         if not item:
             return []
-        m = []
-        m.append(None)
-        filterFunc = [MenuLabel('UI/Commands/ShowLocationOnMap')]
-        m += sm.GetService('menu').CelestialMenu(itemID, noTrace=1, mapItem=item, filterFunc=filterFunc)
-        return m
+        else:
+            m = []
+            m.append(None)
+            filterFunc = [MenuLabel('UI/Commands/ShowLocationOnMap')]
+            m += sm.GetService('menu').CelestialMenu(itemID, noTrace=1, mapItem=item, filterFunc=filterFunc)
+            return m
 
     def ShowMyHomeStation(self):
         if self.destroyed:
@@ -330,16 +339,24 @@ class MapView(Container):
         except:
             pass
 
-        homeStationID = sm.RemoteSvc('charMgr').GetHomeStation()
+        homeStationRow = sm.RemoteSvc('charMgr').GetHomeStationRow()
+        homeStationID = homeStationRow.stationID
         if not homeStationID or self.destroyed:
             return
-        stationInfo = self.mapSvc.GetStation(homeStationID)
-        if IsWormholeRegion(stationInfo.regionID):
+        solarSystemID = homeStationRow.solarSystemID
+        regionID = self.mapSvc.GetRegionForSolarSystem(solarSystemID)
+        if IsWormholeRegion(regionID):
             return
-        mapNode = self.layoutHandler.GetNodeBySolarSystemID(stationInfo.solarSystemID)
+        mapNode = self.layoutHandler.GetNodeBySolarSystemID(solarSystemID)
         solarSystemPosition = mapNode.position
-        localPosition = mapViewUtil.SolarSystemPosToMapPos((stationInfo.x, stationInfo.y, stationInfo.z))
-        markerObject = self.markersHandler.AddSolarSystemBasedMarker(markerID, MarkerMyHome, stationInfo=stationInfo, solarSystemID=stationInfo.solarSystemID, mapPositionLocal=localPosition, mapPositionSolarSystem=solarSystemPosition)
+        if IsStation(homeStationID):
+            stationInfo = self.mapSvc.GetStation(homeStationID)
+            pos = (stationInfo.x, stationInfo.y, stationInfo.z)
+        else:
+            stationInfo = Bundle(stationID=homeStationID, stationTypeID=homeStationRow.stationTypeID)
+            pos = mapViewUtil.TryGetPosFromItemID(homeStationID, solarSystemID)
+        localPosition = mapViewUtil.SolarSystemPosToMapPos(pos)
+        markerObject = self.markersHandler.AddSolarSystemBasedMarker(markerID, MarkerMyHome, stationInfo=stationInfo, solarSystemID=solarSystemID, mapPositionLocal=localPosition, mapPositionSolarSystem=solarSystemPosition)
         self.markersAlwaysVisible.add(markerID)
 
     def RemoveMyLocation(self):
@@ -349,35 +366,37 @@ class MapView(Container):
     def ShowMyLocation(self):
         if self.destroyed:
             return
-        if self.mapRoot is None:
+        elif self.mapRoot is None:
             return
-        self.RemoveMyLocation()
-        markerID = (MARKERID_MYPOS, session.charid)
-        try:
-            self.markersAlwaysVisible.remove(markerID)
-        except:
-            pass
+        else:
+            self.RemoveMyLocation()
+            markerID = (MARKERID_MYPOS, session.charid)
+            try:
+                self.markersAlwaysVisible.remove(markerID)
+            except:
+                pass
 
-        markerObject = None
-        if not IsWormholeRegion(session.regionid):
-            mapNode = self.layoutHandler.GetNodeBySolarSystemID(session.solarsystemid2)
-            solarSystemPosition = mapNode.position
-            if session.stationid:
-                stationInfo = self.mapSvc.GetStation(session.stationid)
-                if self.destroyed:
-                    return
-                localPosition = mapViewUtil.SolarSystemPosToMapPos((stationInfo.x, stationInfo.y, stationInfo.z))
-                markerObject = self.markersHandler.AddSolarSystemBasedMarker(markerID, MarkerMyLocation, solarSystemID=stationInfo.solarSystemID, mapPositionLocal=localPosition, mapPositionSolarSystem=solarSystemPosition)
-            else:
-                bp = sm.GetService('michelle').GetBallpark()
-                if bp and bp.ego and bp.ego in bp.balls:
-                    ego = bp.balls[bp.ego]
-                    localPosition = mapViewUtil.SolarSystemPosToMapPos((ego.x, ego.y, ego.z))
+            markerObject = None
+            if not IsWormholeRegion(session.regionid):
+                mapNode = self.layoutHandler.GetNodeBySolarSystemID(session.solarsystemid2)
+                solarSystemPosition = mapNode.position
+                if session.stationid:
+                    stationInfo = self.mapSvc.GetStation(session.stationid)
+                    if self.destroyed:
+                        return
+                    localPosition = mapViewUtil.SolarSystemPosToMapPos((stationInfo.x, stationInfo.y, stationInfo.z))
+                    markerObject = self.markersHandler.AddSolarSystemBasedMarker(markerID, MarkerMyLocation, solarSystemID=stationInfo.solarSystemID, mapPositionLocal=localPosition, mapPositionSolarSystem=solarSystemPosition)
                 else:
-                    localPosition = (0.0, 0.0, 0.0)
-                markerObject = self.markersHandler.AddSolarSystemBasedMarker(markerID, MarkerMyLocation, trackObjectID=session.shipid or session.stationid, solarSystemID=session.solarsystemid2, mapPositionLocal=localPosition, mapPositionSolarSystem=solarSystemPosition)
-            self.markersAlwaysVisible.add(markerID)
-        self.ShowJumpDriveRange(markerObject)
+                    bp = sm.GetService('michelle').GetBallpark()
+                    if bp and bp.ego and bp.ego in bp.balls:
+                        ego = bp.balls[bp.ego]
+                        localPosition = mapViewUtil.SolarSystemPosToMapPos((ego.x, ego.y, ego.z))
+                    else:
+                        localPosition = (0.0, 0.0, 0.0)
+                    markerObject = self.markersHandler.AddSolarSystemBasedMarker(markerID, MarkerMyLocation, trackObjectID=session.shipid or session.stationid, solarSystemID=session.solarsystemid2, mapPositionLocal=localPosition, mapPositionSolarSystem=solarSystemPosition)
+                self.markersAlwaysVisible.add(markerID)
+            self.ShowJumpDriveRange(markerObject)
+            return
 
     def ShowJumpDriveRange(self, markerObject):
         if self.jumpDriveTransform:
@@ -385,23 +404,25 @@ class MapView(Container):
                 self.mapRoot.children.remove(self.jumpDriveTransform)
         if session.regionid > const.mapWormholeRegionMin:
             return
-        if markerObject is None:
+        elif markerObject is None:
             return
-        if self.abstractMode:
+        elif self.abstractMode:
             return
-        if session.shipid is None:
+        elif session.shipid is None:
             return
-        dogmaLM = sm.GetService('clientDogmaIM').GetDogmaLocation()
-        driveRange = dogmaLM.GetAttributeValue(session.shipid, const.attributeJumpDriveRange)
-        if driveRange is None or driveRange == 0:
+        else:
+            dogmaLM = sm.GetService('clientDogmaIM').GetDogmaLocation()
+            driveRange = dogmaLM.GetAttributeValue(session.shipid, const.attributeJumpDriveRange)
+            if driveRange is None or driveRange == 0:
+                return
+            scale = 2.0 * driveRange * const.LIGHTYEAR * UNIVERSE_SCALE
+            sphere = trinity.Load('res:/dx9/model/UI/JumpRangeBubble.red')
+            sphere.scaling = (scale, scale, scale)
+            sphere.name = 'jumpDriveRange'
+            self.mapRoot.children.append(sphere)
+            markerObject.RegisterTrackingTransform(sphere)
+            self.jumpDriveTransform = sphere
             return
-        scale = 2.0 * driveRange * const.LIGHTYEAR * UNIVERSE_SCALE
-        sphere = trinity.Load('res:/dx9/model/UI/JumpRangeBubble.red')
-        sphere.scaling = (scale, scale, scale)
-        sphere.name = 'jumpDriveRange'
-        self.mapRoot.children.append(sphere)
-        markerObject.RegisterTrackingTransform(sphere)
-        self.jumpDriveTransform = sphere
 
     def IsFlat(self):
         return self.abstractMode
@@ -499,48 +520,51 @@ class MapView(Container):
         camera = self.camera
         if camera is None:
             return
-        if not self.starParticles:
+        elif not self.starParticles:
             return
-        cameraDistance = self.camera.GetCameraDistanceFromInterest()
-        if cameraDistance < mapViewConst.AUDIO_SOLARSYSTEM_DISTANCE:
-            if self.inFocus:
-                self.ChangeAmbientAudioLoop('map_system_loop_play')
-            else:
-                self.ChangeAmbientAudioLoop('map_system_loop_window_play')
-        elif cameraDistance < mapViewConst.AUDIO_CONSTELLATION_DISTANCE:
-            if self.inFocus:
-                self.ChangeAmbientAudioLoop('map_constellation_loop_play')
-            else:
-                self.ChangeAmbientAudioLoop('map_constellation_loop_window_play')
-        elif self.inFocus:
-            self.ChangeAmbientAudioLoop('map_region_loop_play')
         else:
-            self.ChangeAmbientAudioLoop('map_region_loop_window_play')
-        aabbMin = self.starParticles.aabbMin
-        aabbMax = self.starParticles.aabbMax
-        bbSize = geo2.Vec3Add(geo2.Vec3Negate(aabbMin), aabbMax)
-        maxLength = geo2.Vec3Length(bbSize)
-        self.camera.frontClip = 0.1
-        self.camera.backClip = cameraDistance + maxLength
-        fadeOutFar = max(100.0, cameraDistance * 4)
-        self.distanceRangeStars.value = (cameraDistance,
-         fadeOutFar,
-         0,
-         0)
-        self.distanceRangeLines.value = (cameraDistance,
-         fadeOutFar * 100,
-         0,
-         0)
-        if self.markersHandler:
-            self.markersHandler.RegisterCameraTranslationFromParent(cameraDistance)
-        if self.currentSolarsystem:
-            self.currentSolarsystem.RegisterCameraTranslationFromParent(cameraDistance)
+            cameraDistance = self.camera.GetCameraDistanceFromInterest()
+            if cameraDistance < mapViewConst.AUDIO_SOLARSYSTEM_DISTANCE:
+                if self.inFocus:
+                    self.ChangeAmbientAudioLoop('map_system_loop_play')
+                else:
+                    self.ChangeAmbientAudioLoop('map_system_loop_window_play')
+            elif cameraDistance < mapViewConst.AUDIO_CONSTELLATION_DISTANCE:
+                if self.inFocus:
+                    self.ChangeAmbientAudioLoop('map_constellation_loop_play')
+                else:
+                    self.ChangeAmbientAudioLoop('map_constellation_loop_window_play')
+            elif self.inFocus:
+                self.ChangeAmbientAudioLoop('map_region_loop_play')
+            else:
+                self.ChangeAmbientAudioLoop('map_region_loop_window_play')
+            aabbMin = self.starParticles.aabbMin
+            aabbMax = self.starParticles.aabbMax
+            bbSize = geo2.Vec3Add(geo2.Vec3Negate(aabbMin), aabbMax)
+            maxLength = geo2.Vec3Length(bbSize)
+            self.camera.frontClip = 0.1
+            self.camera.backClip = cameraDistance + maxLength
+            fadeOutFar = max(100.0, cameraDistance * 4)
+            self.distanceRangeStars.value = (cameraDistance,
+             fadeOutFar,
+             0,
+             0)
+            self.distanceRangeLines.value = (cameraDistance,
+             fadeOutFar * 100,
+             0,
+             0)
+            if self.markersHandler:
+                self.markersHandler.RegisterCameraTranslationFromParent(cameraDistance)
+            if self.currentSolarsystem:
+                self.currentSolarsystem.RegisterCameraTranslationFromParent(cameraDistance)
+            return
 
     def ChangeAmbientAudioLoop(self, audioPath):
         if getattr(self, 'ambientAudioPath', None) != audioPath:
             self.ambientAudioPath = audioPath
             sm.GetService('audio').SendUIEvent('map_stop_all')
             sm.GetService('audio').SendUIEvent(audioPath)
+        return
 
     def GetStarData(self):
         return getattr(self, 'starData', {})
@@ -582,6 +606,7 @@ class MapView(Container):
         settings.char.ui.Set('%s_autoFocusEnabled_%s' % (SETTING_PREFIX, self.mapViewID), False)
         self.autoFocusEnabled = False
         self.camera.FollowMarker(None)
+        return
 
     def SetActiveItemID(self, itemID, **kwds):
         self.EnableAutoFocus()
@@ -606,123 +631,126 @@ class MapView(Container):
         if self.activeState:
             self.SetActiveState(**self.activeState)
 
-    def SetActiveState(self, primaryItemID, localID = None, updateCamera = True, zoomToItem = False, *args, **kwds):
+    def SetActiveState(self, primaryItemID, localID=None, updateCamera=True, zoomToItem=False, *args, **kwds):
         if localID == (MARKERID_MYPOS, session.charid):
             primaryItemID = session.solarsystemid2
         itemID = primaryItemID
         if IsWormholeSystem(itemID):
             return
-        if IsWormholeConstellation(itemID):
+        elif IsWormholeConstellation(itemID):
             return
-        if IsWormholeRegion(itemID):
+        elif IsWormholeRegion(itemID):
             return
-        self.activeState = {'primaryItemID': primaryItemID,
-         'localID': localID}
-        settings.char.ui.Set('%s_activeState_%s' % (SETTING_PREFIX, self.mapViewID), self.activeState)
-        keywords = {'flatten': self.abstractMode}
-        if self.mapMode == VIEWMODE_LAYOUT_REGIONS:
-            if IsRegion(itemID):
-                keywords['expandedItems'] = [itemID]
-            elif IsConstellation(itemID):
-                mapInfo = mapViewData.GetKnownConstellation(itemID)
-                keywords['expandedItems'] = [mapInfo.regionID]
-            elif IsSolarSystem(itemID):
-                mapInfo = mapViewData.GetKnownSolarSystem(itemID)
-                keywords['expandedItems'] = [mapInfo.regionID]
-        elif self.mapMode == VIEWMODE_LAYOUT_CONSTELLATIONS:
-            if IsConstellation(itemID):
-                keywords['expandedItems'] = [itemID]
-            elif IsSolarSystem(itemID):
-                mapInfo = mapViewData.GetKnownSolarSystem(itemID)
-                keywords['expandedItems'] = [mapInfo.constellationID]
-        self.layoutHandler.LoadLayout(self.mapMode, **keywords)
-        cameraPointOfInterest = None
-        cameraDistanceFromInterest = None
-        minCameraDistanceFromInterest = None
-        activeMarkers = []
-        activeObjects = Bunch()
-        self.jumpRouteHighlightID = None
-        if IsSolarSystem(itemID):
-            self.jumpRouteHighlightID = itemID
-            mapData = mapViewData.GetKnownSolarSystem(itemID)
-            self.LoadSolarSystemDetails(itemID)
-            radius = mapViewUtil.ScaleSolarSystemValue(self.currentSolarsystem.solarSystemRadius)
-            cameraDistanceFromInterest = mapViewUtil.GetTranslationFromParentWithRadius(radius, self.camera)
-            minCameraDistanceFromInterest = mapViewConst.MIN_CAMERA_DISTANCE
-            sm.GetService('audio').SendUIEvent('map_system_zoom_play')
-            activeMarkers.append(itemID)
-            constellationMapData = mapViewData.GetKnownConstellation(mapData.constellationID)
-            activeMarkers += mapData.neighbours
-            activeObjects.solarSystemID = itemID
-            activeObjects.constellationID = mapData.constellationID
-            activeObjects.regionID = mapData.regionID
-        elif IsConstellation(itemID):
-            mapData = mapViewData.GetKnownConstellation(itemID)
-            self.CloseCurrentSolarSystemIfAny()
-            positions = [ self.layoutHandler.GetNodeBySolarSystemID(solarSystemID).position for solarSystemID in mapData.solarSystemIDs ]
-            cameraPointOfInterest, radius = mapViewUtil.GetBoundingSphereRadiusCenter(positions, self.abstractMode)
-            cameraDistanceFromInterest = mapViewUtil.GetTranslationFromParentWithRadius(radius, self.camera)
-            minCameraDistanceFromInterest = cameraDistanceFromInterest * 0.5
-            sm.GetService('audio').SendUIEvent('map_constellation_zoom_play')
-            activeObjects.constellationID = itemID
-            activeObjects.regionID = mapData.regionID
-            activeMarkers += mapData.solarSystemIDs
-            activeMarkers.append(itemID)
-        elif IsRegion(itemID):
-            mapData = mapViewData.GetKnownRegion(itemID)
-            self.CloseCurrentSolarSystemIfAny()
-            positions = [ self.layoutHandler.GetNodeBySolarSystemID(solarSystemID).position for solarSystemID in mapData.solarSystemIDs ]
-            cameraPointOfInterest, radius = mapViewUtil.GetBoundingSphereRadiusCenter(positions, self.abstractMode)
-            cameraDistanceFromInterest = mapViewUtil.GetTranslationFromParentWithRadius(radius, self.camera)
-            minCameraDistanceFromInterest = cameraDistanceFromInterest * 0.25
-            sm.GetService('audio').SendUIEvent('map_region_zoom_play')
-            activeObjects.regionID = itemID
-            activeMarkers += mapData.constellationIDs
-            activeMarkers.append(itemID)
-        elif mapViewUtil.IsLandmark(itemID):
-            lm = self.mapSvc.GetLandmark(itemID * -1)
-            cameraPointOfInterest = mapViewUtil.WorldPosToMapPos(lm.position)
-            if self.abstractMode:
-                x, y, z = cameraPointOfInterest
-                cameraPointOfInterest = (x, 0.0, z)
-        elif itemID == const.locationUniverse:
-            cameraPointOfInterest = (0.0, 0.0, 0.0)
-            cameraDistanceFromInterest = self.camera.maxDistance
-            zoomToItem = True
         else:
-            updateCamera = False
-        if self.destroyed:
+            self.activeState = {'primaryItemID': primaryItemID,
+             'localID': localID}
+            settings.char.ui.Set('%s_activeState_%s' % (SETTING_PREFIX, self.mapViewID), self.activeState)
+            keywords = {'flatten': self.abstractMode}
+            if self.mapMode == VIEWMODE_LAYOUT_REGIONS:
+                if IsRegion(itemID):
+                    keywords['expandedItems'] = [itemID]
+                elif IsConstellation(itemID):
+                    mapInfo = mapViewData.GetKnownConstellation(itemID)
+                    keywords['expandedItems'] = [mapInfo.regionID]
+                elif IsSolarSystem(itemID):
+                    mapInfo = mapViewData.GetKnownSolarSystem(itemID)
+                    keywords['expandedItems'] = [mapInfo.regionID]
+            elif self.mapMode == VIEWMODE_LAYOUT_CONSTELLATIONS:
+                if IsConstellation(itemID):
+                    keywords['expandedItems'] = [itemID]
+                elif IsSolarSystem(itemID):
+                    mapInfo = mapViewData.GetKnownSolarSystem(itemID)
+                    keywords['expandedItems'] = [mapInfo.constellationID]
+            self.layoutHandler.LoadLayout(self.mapMode, **keywords)
+            cameraPointOfInterest = None
+            cameraDistanceFromInterest = None
+            minCameraDistanceFromInterest = None
+            activeMarkers = []
+            activeObjects = Bunch()
+            self.jumpRouteHighlightID = None
+            if IsSolarSystem(itemID):
+                self.jumpRouteHighlightID = itemID
+                mapData = mapViewData.GetKnownSolarSystem(itemID)
+                self.LoadSolarSystemDetails(itemID)
+                radius = mapViewUtil.ScaleSolarSystemValue(self.currentSolarsystem.solarSystemRadius)
+                cameraDistanceFromInterest = mapViewUtil.GetTranslationFromParentWithRadius(radius, self.camera)
+                minCameraDistanceFromInterest = mapViewConst.MIN_CAMERA_DISTANCE
+                sm.GetService('audio').SendUIEvent('map_system_zoom_play')
+                activeMarkers.append(itemID)
+                constellationMapData = mapViewData.GetKnownConstellation(mapData.constellationID)
+                activeMarkers += mapData.neighbours
+                activeObjects.solarSystemID = itemID
+                activeObjects.constellationID = mapData.constellationID
+                activeObjects.regionID = mapData.regionID
+            elif IsConstellation(itemID):
+                mapData = mapViewData.GetKnownConstellation(itemID)
+                self.CloseCurrentSolarSystemIfAny()
+                positions = [ self.layoutHandler.GetNodeBySolarSystemID(solarSystemID).position for solarSystemID in mapData.solarSystemIDs ]
+                cameraPointOfInterest, radius = mapViewUtil.GetBoundingSphereRadiusCenter(positions, self.abstractMode)
+                cameraDistanceFromInterest = mapViewUtil.GetTranslationFromParentWithRadius(radius, self.camera)
+                minCameraDistanceFromInterest = cameraDistanceFromInterest * 0.5
+                sm.GetService('audio').SendUIEvent('map_constellation_zoom_play')
+                activeObjects.constellationID = itemID
+                activeObjects.regionID = mapData.regionID
+                activeMarkers += mapData.solarSystemIDs
+                activeMarkers.append(itemID)
+            elif IsRegion(itemID):
+                mapData = mapViewData.GetKnownRegion(itemID)
+                self.CloseCurrentSolarSystemIfAny()
+                positions = [ self.layoutHandler.GetNodeBySolarSystemID(solarSystemID).position for solarSystemID in mapData.solarSystemIDs ]
+                cameraPointOfInterest, radius = mapViewUtil.GetBoundingSphereRadiusCenter(positions, self.abstractMode)
+                cameraDistanceFromInterest = mapViewUtil.GetTranslationFromParentWithRadius(radius, self.camera)
+                minCameraDistanceFromInterest = cameraDistanceFromInterest * 0.25
+                sm.GetService('audio').SendUIEvent('map_region_zoom_play')
+                activeObjects.regionID = itemID
+                activeMarkers += mapData.constellationIDs
+                activeMarkers.append(itemID)
+            elif mapViewUtil.IsLandmark(itemID):
+                lm = self.mapSvc.GetLandmark(itemID * -1)
+                cameraPointOfInterest = mapViewUtil.WorldPosToMapPos(lm.position)
+                if self.abstractMode:
+                    x, y, z = cameraPointOfInterest
+                    cameraPointOfInterest = (x, 0.0, z)
+            elif itemID == const.locationUniverse:
+                cameraPointOfInterest = (0.0, 0.0, 0.0)
+                cameraDistanceFromInterest = self.camera.maxDistance
+                zoomToItem = True
+            else:
+                updateCamera = False
+            if self.destroyed:
+                return
+            if not self.markersLoaded:
+                self.markersLoaded = True
+                self.LoadRegionMarkers()
+                self.LoadConstellationMarkers()
+                self.LoadSolarSystemMarkers()
+                self.LoadLandmarkMarkers()
+            if self.destroyed or not self.markersHandler:
+                return
+            markerObject = None
+            if localID:
+                markerObject = self.markersHandler.GetMarkerByID(localID)
+            if not markerObject:
+                markerObject = self.markersHandler.GetMarkerByID(itemID)
+            self.activeObjects = activeObjects
+            self.markersHandler.ActivateMarkers(activeMarkers)
+            if updateCamera:
+                if minCameraDistanceFromInterest:
+                    self.camera.SetMinCameraDistanceFromInterest(minCameraDistanceFromInterest)
+                if zoomToItem and cameraDistanceFromInterest:
+                    self.camera.ZoomToDistance(cameraDistanceFromInterest)
+                if markerObject and self.autoFocusEnabled:
+                    self.camera.FollowMarker(markerObject)
+                elif cameraPointOfInterest:
+                    self.camera.FollowMarker(None)
+                    self.camera.pointOfInterest = cameraPointOfInterest
             return
-        if not self.markersLoaded:
-            self.markersLoaded = True
-            self.LoadRegionMarkers()
-            self.LoadConstellationMarkers()
-            self.LoadSolarSystemMarkers()
-            self.LoadLandmarkMarkers()
-        if self.destroyed or not self.markersHandler:
-            return
-        markerObject = None
-        if localID:
-            markerObject = self.markersHandler.GetMarkerByID(localID)
-        if not markerObject:
-            markerObject = self.markersHandler.GetMarkerByID(itemID)
-        self.activeObjects = activeObjects
-        self.markersHandler.ActivateMarkers(activeMarkers)
-        if updateCamera:
-            if minCameraDistanceFromInterest:
-                self.camera.SetMinCameraDistanceFromInterest(minCameraDistanceFromInterest)
-            if zoomToItem and cameraDistanceFromInterest:
-                self.camera.ZoomToDistance(cameraDistanceFromInterest)
-            if markerObject and self.autoFocusEnabled:
-                self.camera.FollowMarker(markerObject)
-            elif cameraPointOfInterest:
-                self.camera.FollowMarker(None)
-                self.camera.pointOfInterest = cameraPointOfInterest
 
     def CloseCurrentSolarSystemIfAny(self):
         if self.currentSolarsystem:
             self.currentSolarsystem.Close()
         self.currentSolarsystem = None
+        return
 
     def LoadSolarSystemDetails(self, solarSystemID):
         current = self.currentSolarsystem
@@ -750,6 +778,7 @@ class MapView(Container):
                 uicore.animations.MorphVector3(self.currentSolarsystem.systemMapTransform, 'scaling', (0.0, 0.0, 0.0), (scaling, scaling, scaling), duration=max(0.1, min(1500.0, cameraParentTravel) / 2000.0))
             else:
                 self.currentSolarsystem.systemMapTransform.scaling = (scaling, scaling, scaling)
+        return
 
     def LoadBookmarkMarkers(self):
         if not self.destroyed and self.bookmarkHandler:
@@ -828,24 +857,27 @@ class MapView(Container):
     def LoadAllianceJumpLines(self):
         if not hasattr(session, 'allianceid') or session.allianceid is None:
             return
-        mapRemoteSvc = sm.RemoteSvc('map')
-        bridgesByLocation = mapRemoteSvc.GetAllianceJumpBridges()
-        jumpBridgeColor = JUMPBRIDGE_COLOR
-        defaultPos = (0, 0, 0)
-        lineSet = self.solarSystemJumpLineSet
-        for jumpFromSystemID, jumpToSystemID in bridgesByLocation:
-            if not IsSolarSystem(jumpToSystemID) or not IsSolarSystem(jumpFromSystemID):
-                self.LogWarn("DrawAllianceJumpLines had entry that wasn't a solarsystem:", jumpToSystemID, jumpFromSystemID)
-                continue
-            lineID = lineSet.AddCurvedLineCrt(defaultPos, jumpBridgeColor, defaultPos, jumpBridgeColor, defaultPos, 3)
-            lineData = mapViewData.PrimeJumpData(jumpFromSystemID, jumpToSystemID, JUMPBRIDGE_TYPE)
-            lineData.lineID = lineID
-            self.allianceJumpLines.append(lineID)
-            self.jumpLineInfoByLineID[lineID] = lineData
-            fromNode = self.layoutHandler.GetNodeBySolarSystemID(jumpFromSystemID)
-            fromNode.AddLineData(lineData)
-            toNode = self.layoutHandler.GetNodeBySolarSystemID(jumpToSystemID)
-            toNode.AddLineData(lineData)
+        else:
+            mapRemoteSvc = sm.RemoteSvc('map')
+            bridgesByLocation = mapRemoteSvc.GetAllianceJumpBridges()
+            jumpBridgeColor = JUMPBRIDGE_COLOR
+            defaultPos = (0, 0, 0)
+            lineSet = self.solarSystemJumpLineSet
+            for jumpFromSystemID, jumpToSystemID in bridgesByLocation:
+                if not IsSolarSystem(jumpToSystemID) or not IsSolarSystem(jumpFromSystemID):
+                    self.LogWarn("DrawAllianceJumpLines had entry that wasn't a solarsystem:", jumpToSystemID, jumpFromSystemID)
+                    continue
+                lineID = lineSet.AddCurvedLineCrt(defaultPos, jumpBridgeColor, defaultPos, jumpBridgeColor, defaultPos, 3)
+                lineData = mapViewData.PrimeJumpData(jumpFromSystemID, jumpToSystemID, JUMPBRIDGE_TYPE)
+                lineData.lineID = lineID
+                self.allianceJumpLines.append(lineID)
+                self.jumpLineInfoByLineID[lineID] = lineData
+                fromNode = self.layoutHandler.GetNodeBySolarSystemID(jumpFromSystemID)
+                fromNode.AddLineData(lineData)
+                toNode = self.layoutHandler.GetNodeBySolarSystemID(jumpToSystemID)
+                toNode.AddLineData(lineData)
+
+            return
 
     def SetExtraLineMapping(self, lineMapping):
         self.extraLineMapping = lineMapping
@@ -854,74 +886,76 @@ class MapView(Container):
         self.dirtyLineIDs = set()
         self._UpdateLines(hint='RefreshLines')
 
-    def UpdateLines(self, hint = '', **kwds):
+    def UpdateLines(self, hint='', **kwds):
         self.linesUpdateTimer = AutoTimer(100, self._UpdateLines, hint)
 
-    def _UpdateLines(self, hint = '', **kwds):
+    def _UpdateLines(self, hint='', **kwds):
         if self.destroyed:
             return
-        self.linesUpdateTimer = None
-        self.LogInfo('MapView UpdateLines ' + hint)
-        lineMode = GetMapViewSetting(VIEWMODE_LINES_SETTINGS, self.mapViewID)
-        if lineMode != self.lineMode:
-            self.dirtyLineIDs = set()
-            self.lineMode = lineMode
-        active = self.activeObjects
-        maxAlpha = 0.9
-        lineAlpha = {}
-        if lineMode == VIEWMODE_LINES_NONE:
-            baseLineAlphaModulate = 0.0
         else:
-            hiliteID = self.hilightID
-            if hiliteID is None:
-                hiliteID = active.solarSystemID or active.constellationID or active.regionID
-            if lineMode == VIEWMODE_LINES_ALL:
-                baseLineAlphaModulate = maxAlpha * 0.25
-            else:
+            self.linesUpdateTimer = None
+            self.LogInfo('MapView UpdateLines ' + hint)
+            lineMode = GetMapViewSetting(VIEWMODE_LINES_SETTINGS, self.mapViewID)
+            if lineMode != self.lineMode:
+                self.dirtyLineIDs = set()
+                self.lineMode = lineMode
+            active = self.activeObjects
+            maxAlpha = 0.9
+            lineAlpha = {}
+            if lineMode == VIEWMODE_LINES_NONE:
                 baseLineAlphaModulate = 0.0
-                if active.regionID and lineMode in (VIEWMODE_LINES_SELECTION_REGION, VIEWMODE_LINES_SELECTION_REGION_NEIGHBOURS) and not IsWormholeRegion(active.regionID):
-                    regionsToShow = [active.regionID]
-                    if lineMode == VIEWMODE_LINES_SELECTION_REGION_NEIGHBOURS:
-                        regionsToShow = regionsToShow + mapViewData.GetKnownRegion(active.regionID).neighbours
-                    solarSystemIDs = self.mapSvc.ExpandItems(regionsToShow)
-                    lineIDs = self.GetLineIDsForSolarSystemIDs(solarSystemIDs)
+            else:
+                hiliteID = self.hilightID
+                if hiliteID is None:
+                    hiliteID = active.solarSystemID or active.constellationID or active.regionID
+                if lineMode == VIEWMODE_LINES_ALL:
+                    baseLineAlphaModulate = maxAlpha * 0.25
+                else:
+                    baseLineAlphaModulate = 0.0
+                    if active.regionID and lineMode in (VIEWMODE_LINES_SELECTION_REGION, VIEWMODE_LINES_SELECTION_REGION_NEIGHBOURS) and not IsWormholeRegion(active.regionID):
+                        regionsToShow = [active.regionID]
+                        if lineMode == VIEWMODE_LINES_SELECTION_REGION_NEIGHBOURS:
+                            regionsToShow = regionsToShow + mapViewData.GetKnownRegion(active.regionID).neighbours
+                        solarSystemIDs = self.mapSvc.ExpandItems(regionsToShow)
+                        lineIDs = self.GetLineIDsForSolarSystemIDs(solarSystemIDs)
+                        for each in lineIDs:
+                            lineAlpha[each] = maxAlpha / 2
+
+                if IsSolarSystem(hiliteID) and not IsWormholeSystem(hiliteID):
+                    lineIDs = self.GetLineIDsForSolarSystemID(hiliteID)
                     for each in lineIDs:
-                        lineAlpha[each] = maxAlpha / 2
+                        lineAlpha[each] = maxAlpha
 
-            if IsSolarSystem(hiliteID) and not IsWormholeSystem(hiliteID):
-                lineIDs = self.GetLineIDsForSolarSystemID(hiliteID)
-                for each in lineIDs:
-                    lineAlpha[each] = maxAlpha
+                    hiliteItem = mapViewData.GetKnownSolarSystem(hiliteID)
+                    lineIDs = self.GetLineIDsForSolarSystemIDs(hiliteItem.neighbours)
+                    for each in lineIDs:
+                        lineAlpha[each] = maxAlpha
 
-                hiliteItem = mapViewData.GetKnownSolarSystem(hiliteID)
-                lineIDs = self.GetLineIDsForSolarSystemIDs(hiliteItem.neighbours)
-                for each in lineIDs:
-                    lineAlpha[each] = maxAlpha
+                elif IsConstellation(hiliteID) and not IsWormholeConstellation(hiliteID):
+                    hiliteItem = mapViewData.GetKnownConstellation(hiliteID)
+                    lineIDs = self.GetLineIDsForSolarSystemIDs(hiliteItem.solarSystemIDs)
+                    for each in lineIDs:
+                        lineAlpha[each] = maxAlpha
 
-            elif IsConstellation(hiliteID) and not IsWormholeConstellation(hiliteID):
-                hiliteItem = mapViewData.GetKnownConstellation(hiliteID)
-                lineIDs = self.GetLineIDsForSolarSystemIDs(hiliteItem.solarSystemIDs)
-                for each in lineIDs:
-                    lineAlpha[each] = maxAlpha
+                elif IsRegion(hiliteID) and not IsWormholeRegion(hiliteID):
+                    hiliteItem = mapViewData.GetKnownRegion(hiliteID)
+                    lineIDs = self.GetLineIDsForSolarSystemIDs(hiliteItem.solarSystemIDs)
+                    for each in lineIDs:
+                        lineAlpha[each] = maxAlpha
 
-            elif IsRegion(hiliteID) and not IsWormholeRegion(hiliteID):
-                hiliteItem = mapViewData.GetKnownRegion(hiliteID)
-                lineIDs = self.GetLineIDsForSolarSystemIDs(hiliteItem.solarSystemIDs)
-                for each in lineIDs:
-                    lineAlpha[each] = maxAlpha
+            showAllianceLines = GetMapViewSetting(VIEWMODE_LINES_SHOW_ALLIANCE_SETTINGS, self.mapViewID)
+            for lineID in self.allianceJumpLines:
+                lineAlpha[lineID] = maxAlpha if showAllianceLines else 0.0
 
-        showAllianceLines = GetMapViewSetting(VIEWMODE_LINES_SHOW_ALLIANCE_SETTINGS, self.mapViewID)
-        for lineID in self.allianceJumpLines:
-            lineAlpha[lineID] = maxAlpha if showAllianceLines else 0.0
+            self.UpdateLineColorData(lineAlpha, baseLineAlphaModulate)
+            if self.jumpRouteHighlightID:
+                self.UpdateHighlightJumpRoute()
+            self.UpdateAutopilotJumpRoute()
+            self.solarSystemJumpLineSet.SubmitChanges()
+            self.extraJumpLineSet.SubmitChanges()
+            return
 
-        self.UpdateLineColorData(lineAlpha, baseLineAlphaModulate)
-        if self.jumpRouteHighlightID:
-            self.UpdateHighlightJumpRoute()
-        self.UpdateAutopilotJumpRoute()
-        self.solarSystemJumpLineSet.SubmitChanges()
-        self.extraJumpLineSet.SubmitChanges()
-
-    def ChangeLineColor(self, lineSet, lineID, color, opacity = 1.0):
+    def ChangeLineColor(self, lineSet, lineID, color, opacity=1.0):
         if len(color) == 2:
             fromColor = self.ModulateAlpha(color[0], opacity)
             toColor = self.ModulateAlpha(color[1], opacity)
@@ -993,7 +1027,7 @@ class MapView(Container):
             else:
                 lineSet.ChangeLineAnimation(lineID, (0, 0, 0, 0), 0.0, 1.0)
 
-    def GetSystemColorBasedOnSecRating(self, ssID, alpha = 2.0):
+    def GetSystemColorBasedOnSecRating(self, ssID, alpha=2.0):
         ss = self.mapSvc.GetSecurityStatus(ssID)
         c = FmtSystemSecStatus(ss, 1)[1]
         return (c.r,
@@ -1006,31 +1040,34 @@ class MapView(Container):
         self.LogInfo('MapView.UpdateHighlightJumpRoute', targetID)
         if targetID in [session.solarsystemid2, session.constellationid, session.regionid]:
             return []
-        routeList = sm.GetService('starmap').ShortestGeneralPath(targetID)
-        if not len(routeList):
+        else:
+            routeList = sm.GetService('starmap').ShortestGeneralPath(targetID)
+            if not len(routeList):
+                return
+            GetSystemColorBasedOnSecRating = self.GetSystemColorBasedOnSecRating
+            lineSet = self.solarSystemJumpLineSet
+            for i in xrange(len(routeList) - 1):
+                fromID = routeList[i]
+                toID = routeList[i + 1]
+                lineID = self.GetLineIDForJumpBetweenSystems(fromID, toID)
+                if lineID is None:
+                    continue
+                jumpLineInfo = self.jumpLineInfoByLineID[lineID]
+                self.dirtyLineIDs.add(lineID)
+                if fromID == jumpLineInfo.fromSolarSystemID:
+                    fromColor = GetSystemColorBasedOnSecRating(fromID)
+                    toColor = GetSystemColorBasedOnSecRating(toID)
+                else:
+                    fromColor = GetSystemColorBasedOnSecRating(toID)
+                    toColor = GetSystemColorBasedOnSecRating(fromID)
+                lineSet.ChangeLineColor(lineID, fromColor, toColor)
+                lineSet.ChangeLineWidth(lineID, mapViewConst.AUTOPILOT_LINE_WIDTH)
+                lineLength = self.layoutHandler.GetDistanceBetweenSolarSystems(fromID, toID)
+                if lineLength:
+                    segmentScale = lineLength / mapViewConst.AUTOPILOT_LINE_TICKSIZE
+                    lineSet.ChangeLineAnimation(lineID, (0, 0, 0, 1.0), 0.0, segmentScale)
+
             return
-        GetSystemColorBasedOnSecRating = self.GetSystemColorBasedOnSecRating
-        lineSet = self.solarSystemJumpLineSet
-        for i in xrange(len(routeList) - 1):
-            fromID = routeList[i]
-            toID = routeList[i + 1]
-            lineID = self.GetLineIDForJumpBetweenSystems(fromID, toID)
-            if lineID is None:
-                continue
-            jumpLineInfo = self.jumpLineInfoByLineID[lineID]
-            self.dirtyLineIDs.add(lineID)
-            if fromID == jumpLineInfo.fromSolarSystemID:
-                fromColor = GetSystemColorBasedOnSecRating(fromID)
-                toColor = GetSystemColorBasedOnSecRating(toID)
-            else:
-                fromColor = GetSystemColorBasedOnSecRating(toID)
-                toColor = GetSystemColorBasedOnSecRating(fromID)
-            lineSet.ChangeLineColor(lineID, fromColor, toColor)
-            lineSet.ChangeLineWidth(lineID, mapViewConst.AUTOPILOT_LINE_WIDTH)
-            lineLength = self.layoutHandler.GetDistanceBetweenSolarSystems(fromID, toID)
-            if lineLength:
-                segmentScale = lineLength / mapViewConst.AUTOPILOT_LINE_TICKSIZE
-                lineSet.ChangeLineAnimation(lineID, (0, 0, 0, 1.0), 0.0, segmentScale)
 
     def UpdateAutopilotJumpRoute(self):
         GetSystemColorBasedOnSecRating = self.GetSystemColorBasedOnSecRating
@@ -1081,7 +1118,9 @@ class MapView(Container):
                 animationSpeed = mapViewConst.AUTOPILOT_LINE_ANIM_SPEED / segmentScale * animationDirection
                 lineSet.ChangeLineAnimation(lineID, (0, 0, 0, 0.75), animationSpeed, segmentScale)
 
-    def SetViewColorMode(self, colorMode, updateColorMode = True):
+        return
+
+    def SetViewColorMode(self, colorMode, updateColorMode=True):
         if colorMode in mapcommon.oldColorModeToNewColorMode:
             colorMode = mapcommon.oldColorModeToNewColorMode[colorMode]
         SetMapViewSetting(VIEWMODE_COLOR_SETTINGS, colorMode, self.mapViewID)
@@ -1096,16 +1135,18 @@ class MapView(Container):
         if not definition:
             self.LogWarn('MapView.UpdateMapViewColorMode, format function not found for colorMode', colorMode)
             return
-        colorInfo = KeyVal(solarSystemDict={}, colorList=None, legend=set(), colorType=colorHandler.STAR_COLORTYPE_PASSIVE)
-        loadArguments = definition.loadArguments or ()
-        definition.loadFunction(colorInfo, colorMode, *loadArguments)
-        if self.destroyed:
+        else:
+            colorInfo = KeyVal(solarSystemDict={}, colorList=None, legend=set(), colorType=colorHandler.STAR_COLORTYPE_PASSIVE)
+            loadArguments = definition.loadArguments or ()
+            definition.loadFunction(colorInfo, colorMode, *loadArguments)
+            if self.destroyed:
+                return
+            self.colorModeInfoPanel.LoadColorModeInfo(colorMode, definition, colorInfo)
+            self.starLegend = list(colorInfo.legend)
+            self.ApplyStarColors(colorInfo)
+            self.RefreshLines()
+            self.markersHandler.RefreshActiveAndHilightedMarkers()
             return
-        self.colorModeInfoPanel.LoadColorModeInfo(colorMode, definition, colorInfo)
-        self.starLegend = list(colorInfo.legend)
-        self.ApplyStarColors(colorInfo)
-        self.RefreshLines()
-        self.markersHandler.RefreshActiveAndHilightedMarkers()
 
     def GetColorCurve(self, colorList):
         colorCurve = trinity.TriColorCurve()
@@ -1166,6 +1207,7 @@ class MapView(Container):
 
         particleSystem.UpdateData()
         self.mapStars.display = 1
+        return
 
     def GetDefaultColorList(self):
         return [trinity.TriColor(1.0, 0.0, 0.0, 1.0), trinity.TriColor(1.0, 1.0, 0.0, 1.0), trinity.TriColor(0.0, 1.0, 0.0, 1.0)]

@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\carbon\common\script\net\machoNetPacket.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\carbon\common\script\net\machoNetPacket.py
 import types
 import carbon.common.script.sys.service as service
 import carbon.common.script.net.machobase as machobase
@@ -39,6 +40,7 @@ class MachoPacket():
                         raise TypeError('%s requires %s to be specified' % (self.__class__.__name__, each))
 
         self.pickleSize = 0
+        return
 
     def __getstate__(self):
         params = self.__machodesc__['params']
@@ -84,6 +86,8 @@ class MachoPacket():
             else:
                 tmp = params[i]
             setattr(self, tmp, body[i])
+
+        return
 
     def Response(self, *args, **keywords):
         if not self.__machodesc__.has_key('response'):
@@ -242,6 +246,8 @@ class MachoPacket():
         except Exception:
             log.LogException()
             return 'Packet containing crappy data'
+
+        return None
 
     __str__ = __repr__
 

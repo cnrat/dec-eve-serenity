@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\packages\carbonui\control\browser\sites.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\packages\carbonui\control\browser\sites.py
 import cPickle
 import hashlib
 import blue
@@ -50,6 +51,7 @@ class SitesSvc(service.Service):
         self.COMMUNITY_FLAG = 4
         self.AUTOTRUSTED_FLAG = 8
         self.LoadBookmarks()
+        return
 
     def Stop(self, *args):
         sm.GetService('urlhistory').SaveHistory()
@@ -128,6 +130,7 @@ class SitesSvc(service.Service):
             f.Close()
         if not self.bookmarkedSites:
             self.bookmarkedSites = []
+        return
 
     def SaveBookmarks(self):
         self.SaveSiteList(self.bookmarksFile, self.bookmarkedSites)
@@ -135,38 +138,39 @@ class SitesSvc(service.Service):
     def ReformatUrlForTrustList(self, url):
         if not url:
             return None
-        splitUrl = urlparse.urlsplit(url)
-        cleanedUrl = ''
-        scheme = urllib.quote(splitUrl.scheme.strip())
-        if scheme == 'http' or scheme == 'https':
-            cleanedUrl = '%s://' % scheme
-        elif scheme:
-            return None
-        netloc = splitUrl.netloc.strip()
-        try:
-            netloc = str(netloc)
-        except UnicodeEncodeError:
-            netloc = urllib.quote(netloc, safe=':@*')
-
-        path = splitUrl.path.strip()
-        path = urllib.quote(path, safe='/*')
-        if netloc == '' and path != '':
-            if path.startswith('.'):
-                cleanedUrl += '*'
-            cleanedUrl += path
-            if not cleanedUrl.endswith('/') and not cleanedUrl.endswith('/*'):
-                cleanedUrl += '/'
         else:
-            if netloc.startswith('.'):
-                cleanedUrl += '*'
-            cleanedUrl += netloc
-            if path == '':
-                cleanedUrl += '/'
-            else:
+            splitUrl = urlparse.urlsplit(url)
+            cleanedUrl = ''
+            scheme = urllib.quote(splitUrl.scheme.strip())
+            if scheme == 'http' or scheme == 'https':
+                cleanedUrl = '%s://' % scheme
+            elif scheme:
+                return None
+            netloc = splitUrl.netloc.strip()
+            try:
+                netloc = str(netloc)
+            except UnicodeEncodeError:
+                netloc = urllib.quote(netloc, safe=':@*')
+
+            path = splitUrl.path.strip()
+            path = urllib.quote(path, safe='/*')
+            if netloc == '' and path != '':
+                if path.startswith('.'):
+                    cleanedUrl += '*'
                 cleanedUrl += path
-        if cleanedUrl.endswith('/'):
-            cleanedUrl += '*'
-        return cleanedUrl
+                if not cleanedUrl.endswith('/') and not cleanedUrl.endswith('/*'):
+                    cleanedUrl += '/'
+            else:
+                if netloc.startswith('.'):
+                    cleanedUrl += '*'
+                cleanedUrl += netloc
+                if path == '':
+                    cleanedUrl += '/'
+                else:
+                    cleanedUrl += path
+            if cleanedUrl.endswith('/'):
+                cleanedUrl += '*'
+            return cleanedUrl
 
     def GetTrustedSites(self):
         trusted = {}
@@ -186,32 +190,34 @@ class SitesSvc(service.Service):
 
         return ignored
 
-    def AddTrustedSite(self, s, store = 1):
+    def AddTrustedSite(self, s, store=1):
         if not s:
             return
-        s = self.ReformatUrlForTrustList(s)
-        if s is None:
-            raise UserError('CannotTrustInvalidUrl')
-        temp_s = s
-        checkProtocol = True
-        if s.find('://') == -1:
-            temp_s = 'http://' + s
-            checkProtocol = False
-        splitUrl = urlparse.urlsplit(temp_s)
-        for trustUrl, trustData in self.trustedSites.iteritems():
-            if trustData.auto and self.Matches(trustData.protocol, trustData.hostname, trustData.path, splitUrl.scheme, splitUrl.netloc, splitUrl.path):
-                raise UserError('CannotTrustCCPTrusted')
+        else:
+            s = self.ReformatUrlForTrustList(s)
+            if s is None:
+                raise UserError('CannotTrustInvalidUrl')
+            temp_s = s
+            checkProtocol = True
+            if s.find('://') == -1:
+                temp_s = 'http://' + s
+                checkProtocol = False
+            splitUrl = urlparse.urlsplit(temp_s)
+            for trustUrl, trustData in self.trustedSites.iteritems():
+                if trustData.auto and self.Matches(trustData.protocol, trustData.hostname, trustData.path, splitUrl.scheme, splitUrl.netloc, splitUrl.path):
+                    raise UserError('CannotTrustCCPTrusted')
 
-        val = self.GetSiteKey()
-        val.trusted = 1
-        val.temporary = store ^ 1
-        val.protocol = splitUrl.scheme if checkProtocol else ''
-        val.hostname = splitUrl.netloc
-        val.path = splitUrl.path
-        self.trustedSites[s] = val
-        sm.ScatterEvent('OnTrustedSitesChange')
-        if store:
-            self.SaveTrusted()
+            val = self.GetSiteKey()
+            val.trusted = 1
+            val.temporary = store ^ 1
+            val.protocol = splitUrl.scheme if checkProtocol else ''
+            val.hostname = splitUrl.netloc
+            val.path = splitUrl.path
+            self.trustedSites[s] = val
+            sm.ScatterEvent('OnTrustedSitesChange')
+            if store:
+                self.SaveTrusted()
+            return
 
     def RemoveTrustedSite(self, s):
         if s in self.trustedSites:
@@ -345,44 +351,51 @@ class SitesSvc(service.Service):
             self.__PopulateSystemLists()
         if self.systemLists is None:
             return []
-        return self.systemLists.blacklist
+        else:
+            return self.systemLists.blacklist
 
     def GetBannedInChatList(self):
         if self.systemLists is None:
             self.__PopulateSystemLists()
         if self.systemLists is None:
             return []
-        return self.systemLists.bannedInChat
+        else:
+            return self.systemLists.bannedInChat
 
     def GetBrowserWhitelist(self):
         if self.systemLists is None:
             self.__PopulateSystemLists()
         if self.systemLists is None:
             return []
-        return self.systemLists.whitelist
+        else:
+            return self.systemLists.whitelist
 
     def GetCommunitySites(self):
         if self.systemLists is None:
             self.__PopulateSystemLists()
         if self.systemLists is None:
             return []
-        return self.systemLists.community
+        else:
+            return self.systemLists.community
 
     def GetAutoTrustedSites(self):
         if self.systemLists is None:
             self.__PopulateSystemLists()
         if self.systemLists is None:
             return []
-        return self.systemLists.autotrusted
+        else:
+            return self.systemLists.autotrusted
 
     def __PopulateSystemLists(self):
         flaggedSites = []
         try:
-            f = blue.ResFile()
-            if f.Open(self.flaggedSitesFile):
-                flaggedSites = cPickle.loads(f.Read())
-        except:
-            log.LogException('Error reading file from disk')
+            try:
+                f = blue.ResFile()
+                if f.Open(self.flaggedSitesFile):
+                    flaggedSites = cPickle.loads(f.Read())
+            except:
+                log.LogException('Error reading file from disk')
+
         finally:
             f.Close()
 
@@ -393,11 +406,13 @@ class SitesSvc(service.Service):
                 self.LogInfo('FlaggedSites: Download full list from server')
                 flaggedSites = sm.RemoteSvc('browserLockdownSvc').GetFlaggedSitesList()
                 try:
-                    f = blue.ResFile()
-                    f.Create(self.flaggedSitesFile)
-                    f.Write(cPickle.dumps(flaggedSites))
-                except:
-                    log.LogException('Error writing flaggedSites list to disk')
+                    try:
+                        f = blue.ResFile()
+                        f.Create(self.flaggedSitesFile)
+                        f.Write(cPickle.dumps(flaggedSites))
+                    except:
+                        log.LogException('Error writing flaggedSites list to disk')
+
                 finally:
                     f.Close()
 
@@ -437,6 +452,7 @@ class SitesSvc(service.Service):
         self.systemLists = None
         self.trustedSites = None
         sm.ScatterEvent('OnClientFlaggedListsChange')
+        return
 
 
 exports = {'svc.sites': SitesSvc}

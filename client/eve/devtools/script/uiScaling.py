@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\devtools\script\uiScaling.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\devtools\script\uiScaling.py
 import uiprimitives
 import uicontrols
 import carbonui.const as uiconst
@@ -20,6 +21,7 @@ class UIScaling(uicontrols.Window):
         self.scaleEdit = uicontrols.SinglelineEdit(parent=mainCont, name='scaleEdit', align=uiconst.TOPLEFT, floats=floats, setvalue=uicore.desktop.dpiScaling, width=50, top=18)
         applyBtn = uicontrols.Button(parent=mainCont, name='apply', align=uiconst.TOPLEFT, label='Apply', left=54, top=18, func=self.ScaleUI)
         resetBtn = uicontrols.Button(parent=mainCont, name='reset', align=uiconst.TOPLEFT, label='Reset', left=0, top=40, func=self.ResetUI)
+        return
 
     def GetChange(self):
         scaleValue = self.scaleEdit.GetValue()

@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\client\script\ui\services\eveFont.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\client\script\ui\services\eveFont.py
 import telemetry
 import fontConst
 import carbonui.languageConst as languageConst
@@ -17,7 +18,8 @@ class EveFontHandler(FontHandler):
     def GetFontFamilyBasedOnWindowsLanguageID(self, windowsLanguageID):
         if windowsLanguageID in fontConst.EVEFONTGROUP:
             return fontConst.FONTFAMILY_PER_WINDOWS_LANGUAGEID[languageConst.LANG_ENGLISH]
-        return fontConst.FONTFAMILY_PER_WINDOWS_LANGUAGEID.get(windowsLanguageID, None)
+        else:
+            return fontConst.FONTFAMILY_PER_WINDOWS_LANGUAGEID.get(windowsLanguageID, None)
 
     def OnUIRefresh(self):
         self.Prime()

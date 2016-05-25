@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\packages\carbonui\camera\debugCamera.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\packages\carbonui\camera\debugCamera.py
 import cameras
 import geo2
 import math
@@ -30,8 +31,9 @@ class DebugCamera(cameras.PolarCamera):
         self.showNormalCamera = showCamera
         self.lastCamPos = None
         self.debugRenderClient.ClearAllShapes()
+        return
 
-    def AdjustDebugCamYaw(self, delta, maxRotate = None, ignoreUpdate = True):
+    def AdjustDebugCamYaw(self, delta, maxRotate=None, ignoreUpdate=True):
         if self.IsUpdatingDebugCamera():
             cameras.PolarCamera.AdjustYaw(self, delta, maxRotate, ignoreUpdate)
 
@@ -52,8 +54,10 @@ class DebugCamera(cameras.PolarCamera):
         cameraStack = sm.GetService('cameraClient').GetCameraStack()
         if len(cameraStack) > 1 and cameraStack[-2] is not self:
             return cameraStack[-2]
-        if cameraStack[-1] is not self:
+        elif cameraStack[-1] is not self:
             return cameraStack[-1]
+        else:
+            return None
 
     def Update(self):
         normalCamera = self._GetNonDebugCamera()
@@ -80,6 +84,7 @@ class DebugCamera(cameras.PolarCamera):
             newPos = geo2.Vec3Add(poi, relativeVector)
             cameras.PolarCamera.SetPointOfInterest(self, newPos)
         cameras.PolarCamera.Update(self)
+        return
 
     def SetRotationWithYaw(self, yawValue):
         if not self.IsUpdatingDebugCamera():
@@ -131,7 +136,7 @@ class DebugCamera(cameras.PolarCamera):
             if normalCamera:
                 normalCamera.SetYawPitchDist(yaw, pitch, dist)
 
-    def SetYaw(self, value, ignoreUpdate = True):
+    def SetYaw(self, value, ignoreUpdate=True):
         if self.IsUpdatingDebugCamera():
             cameras.PolarCamera.SetYaw(self, value, ignoreUpdate)
         else:
@@ -139,7 +144,7 @@ class DebugCamera(cameras.PolarCamera):
             if normalCamera:
                 normalCamera.SetYaw(value, ignoreUpdate)
 
-    def AdjustYaw(self, delta, maxRotate = None, ignoreUpdate = True):
+    def AdjustYaw(self, delta, maxRotate=None, ignoreUpdate=True):
         if not self.IsUpdatingDebugCamera():
             normalCamera = self._GetNonDebugCamera()
             if normalCamera:
@@ -161,7 +166,7 @@ class DebugCamera(cameras.PolarCamera):
             if normalCamera:
                 normalCamera.SetZoom(zoom)
 
-    def SmoothMove(self, targetPosition, targetRotation, targetTilt, targetDist, durationMS, callbackOnEnd = None):
+    def SmoothMove(self, targetPosition, targetRotation, targetTilt, targetDist, durationMS, callbackOnEnd=None):
         if self.IsUpdatingDebugCamera():
             cameras.PolarCamera.SmoothMove(self, targetPosition, targetRotation, targetTilt, targetDist, durationMS, callbackOnEnd)
         else:

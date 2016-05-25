@@ -1,6 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\client\script\ui\shared\info\infosvc.py
-from carbon.common.lib.const import HOUR
-from carbon.common.script.util.format import FmtTime
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\client\script\ui\shared\info\infosvc.py
 from carbon.common.script.util.linkUtil import GetShowInfoLink
 from dogma.attributes.format import FormatValue, FormatUnit
 from dogma.attributes.format import GetFormatAndValue, GetFormattedAttributeAndValue
@@ -10,11 +9,12 @@ from eve.client.script.ui.control.entries import LocationGroup, LocationTextEntr
 from eve.client.script.ui.shared.info.infoUtil import GetAttributeTooltipTitleAndDescription
 from eve.client.script.ui.shared.mapView.mapViewUtil import OpenMap
 from eve.client.script.ui.shared.maps.mapcommon import STARMODE_SERVICE_SecurityOffice, STARMODE_SETTLED_SYSTEMS_BY_CORP
+from eve.client.script.ui.station import stationServiceConst
 from eve.client.script.ui.tooltips.tooltipsWrappers import TooltipHeaderDescriptionWrapper
 from eve.common.script.util import industryCommon
 from eveexceptions import UserError
 import evetypes
-from inventorycommon.util import GetTypeVolume
+from inventorycommon.util import GetTypeVolume, IsFittingModule
 from spacecomponents.client import factory
 import uicontrols
 import sys
@@ -93,7 +93,7 @@ class Info(service.Service):
     __dependencies__ = ['dataconfig', 'map']
     __startupdependencies__ = ['settings']
 
-    def Run(self, memStream = None):
+    def Run(self, memStream=None):
         self.LogInfo('Starting InfoSvc')
         self.wnds = []
         self.lastActive = None
@@ -101,6 +101,7 @@ class Info(service.Service):
         self.attributesByName = None
         self._usedWithTypeIDs = None
         self.ClearWnds()
+        return
 
     def OnItemChange(self, item, change):
         if item.categoryID != const.categoryCharge and (item.locationID == eve.session.shipid or const.ixLocationID in change and change[const.ixLocationID] == eve.session.shipid):
@@ -121,6 +122,8 @@ class Info(service.Service):
                 if each.itemID == item.itemID:
                     each.ReconstructInfoWindow(each.typeID)
 
+        return
+
     def DelayOnItemChange(self, item, change):
         self.itemchangeTimer = None
         for each in self.wnds:
@@ -130,7 +133,9 @@ class Info(service.Service):
             if each.itemID == eve.session.shipid and not each.IsMinimized():
                 each.ReconstructInfoWindow(each.typeID, each.itemID, each.rec)
 
-    def OnContactChange(self, contactIDs, contactType = None):
+        return
+
+    def OnContactChange(self, contactIDs, contactType=None):
         for contactID in contactIDs:
             self.UpdateWnd(contactID)
 
@@ -138,11 +143,38 @@ class Info(service.Service):
         for allianceid in (args[0], args[1]):
             self.UpdateWnd(allianceid)
 
+    def GetFighterAttributes(self):
+        if not hasattr(self, 'fighterAttributes'):
+            fighterAttributes = OrderedDict()
+            fighterAttributes[localization.GetByLabel('UI/Common/FighterBase')] = {'normalAttributes': [const.attributeTechLevel,
+                                  const.attributeVolume,
+                                  const.attributeMass,
+                                  const.attributeAgility,
+                                  const.attributeMaxVelocity,
+                                  const.attributeSignatureRadius,
+                                  const.attributeFighterSquadronMaxSize,
+                                  const.attributeFighterRefuelingTime]}
+            fighterAttributes[localization.GetByLabel('UI/Common/Shield')] = {'normalAttributes': [const.attributeShieldCapacity, const.attributeShieldRechargeRate],
+             'groupedAttributes': [('em', const.attributeShieldEmDamageResonance),
+                                   ('thermal', const.attributeShieldThermalDamageResonance),
+                                   ('kinetic', const.attributeShieldKineticDamageResonance),
+                                   ('explosive', const.attributeShieldExplosiveDamageResonance)]}
+            fighterAttributes[localization.GetByLabel('UI/Fitting/FittingWindow/Targeting')] = {'normalAttributes': [const.attributeScanResolution,
+                                  const.attributeMaxTargetRange,
+                                  const.attributeMaxLockedTargets,
+                                  const.attributeScanLadarStrength,
+                                  const.attributeScanMagnetometricStrength,
+                                  const.attributeScanRadarStrength,
+                                  const.attributeScanGravimetricStrength]}
+            self.fighterAttributes = fighterAttributes
+        return self.fighterAttributes
+
     def GetShipAndDroneAttributes(self):
         if not hasattr(self, 'shipAttributes'):
             shipAttributes = OrderedDict()
             shipAttributes[localization.GetByLabel('UI/Fitting/Structure')] = {'normalAttributes': [const.attributeHp,
                                   const.attributeCapacity,
+                                  const.attributeStructureDamageLimit,
                                   const.attributeDroneCapacity,
                                   const.attributeDroneBandwidth,
                                   const.attributeMass,
@@ -164,12 +196,12 @@ class Info(service.Service):
                                    ('thermal', const.attributeThermalDamageResonance),
                                    ('kinetic', const.attributeKineticDamageResonance),
                                    ('explosive', const.attributeExplosiveDamageResonance)]}
-            shipAttributes[localization.GetByLabel('UI/Common/Armor')] = {'normalAttributes': [const.attributeArmorHP],
+            shipAttributes[localization.GetByLabel('UI/Common/Armor')] = {'normalAttributes': [const.attributeArmorHP, const.attributeArmorDamageLimit],
              'groupedAttributes': [('em', const.attributeArmorEmDamageResonance),
                                    ('thermal', const.attributeArmorThermalDamageResonance),
                                    ('kinetic', const.attributeArmorKineticDamageResonance),
                                    ('explosive', const.attributeArmorExplosiveDamageResonance)]}
-            shipAttributes[localization.GetByLabel('UI/Common/Shield')] = {'normalAttributes': [const.attributeShieldCapacity, const.attributeShieldRechargeRate],
+            shipAttributes[localization.GetByLabel('UI/Common/Shield')] = {'normalAttributes': [const.attributeShieldCapacity, const.attributeShieldRechargeRate, const.attributeShieldDamageLimit],
              'groupedAttributes': [('em', const.attributeShieldEmDamageResonance),
                                    ('thermal', const.attributeShieldThermalDamageResonance),
                                    ('kinetic', const.attributeShieldKineticDamageResonance),
@@ -196,6 +228,17 @@ class Info(service.Service):
                                   const.attributeFalloff,
                                   const.attributeTrackingSpeed]}
             shipAttributes[localization.GetByLabel('UI/InfoWindow/SharedFacilities')] = {'normalAttributes': [const.attributeFleetHangarCapacity, const.attributeShipMaintenanceBayCapacity, const.attributeMaxJumpClones]}
+            shipAttributes[localization.GetByLabel('UI/InfoWindow/FighterFacilities')] = {'normalAttributes': [const.attributeFighterCapacity,
+                                  const.attributeFighterTubes,
+                                  const.attributeFighterLightSlots,
+                                  const.attributeFighterSupportSlots,
+                                  const.attributeFighterHeavySlots]}
+            shipAttributes[localization.GetByLabel('UI/InfoWindow/OnDeath')] = {'normalAttributes': [const.attributeOnDeathAOERadius,
+                                  const.attributeOnDeathSignatureRadius,
+                                  const.attributeOnDeathDamageEM,
+                                  const.attributeOnDeathDamageTherm,
+                                  const.attributeOnDeathDamageKin,
+                                  const.attributeOnDeathDamageExp]}
             shipAttributes[localization.GetByLabel('UI/InfoWindow/JumpDriveSystems')] = {'normalAttributes': [const.attributeJumpDriveCapacitorNeed,
                                   const.attributeJumpDriveRange,
                                   const.attributeJumpDriveConsumptionType,
@@ -287,12 +330,13 @@ class Info(service.Service):
                                                      'color': cargoCapacityColor}}
         return self.statusAttributeInfo
 
-    def Stop(self, memStream = None):
+    def Stop(self, memStream=None):
         self.ClearWnds()
         self.lastActive = None
         self.moniker = None
         self.attributesByName = None
         self.wnds = []
+        return
 
     def ClearWnds(self):
         self.wnds = []
@@ -301,55 +345,62 @@ class Info(service.Service):
                 if each is not None and not each.destroyed and each.windowID and each.windowID[0] == 'infowindow':
                     each.Close()
 
+        return
+
     def DoSessionChanging(self, isremote, session, change):
         self.moniker = None
         if session.charid is None:
             self.ClearWnds()
+        return
 
-    def GetSolarSystemReport(self, solarsystemID = None):
+    def GetSolarSystemReport(self, solarsystemID=None):
         solarsystemID = solarsystemID or eve.session.solarsystemid or eve.session.solarsystemid2
         if solarsystemID is None:
             return
-        items = self.map.GetSolarsystemItems(solarsystemID)
-        types = {}
-        for celestial in items:
-            types.setdefault(celestial.groupID, []).append(celestial)
+        else:
+            items = self.map.GetSolarsystemItems(solarsystemID)
+            types = {}
+            for celestial in items:
+                types.setdefault(celestial.groupID, []).append(celestial)
 
-        for groupID in types.iterkeys():
-            if groupID == const.groupStation:
-                continue
+            for groupID in types.iterkeys():
+                if groupID == const.groupStation:
+                    continue
 
-    def ShowInfo(self, typeID, itemID = None, new = 0, rec = None, parentID = None, abstractinfo = None, selectTabType = None):
+            return
+
+    def ShowInfo(self, typeID, itemID=None, new=0, rec=None, parentID=None, abstractinfo=None, selectTabType=None):
         if itemID == const.factionUnknown:
             eve.Message('KillerOfUnknownFaction')
             return
-        modal = uicore.registry.GetModalWindow()
-        createNew = new or not settings.user.ui.Get('useexistinginfownd', 1) or uicore.uilib.Key(uiconst.VK_SHIFT)
-        if len(self.wnds):
-            for each in self.wnds:
-                if each is None or each.destroyed:
-                    self.wnds.remove(each)
-
-        useWnd = None
-        if len(self.wnds) and not createNew:
-            if self.lastActive is not None and self.lastActive in self.wnds:
-                if not self.lastActive.destroyed:
-                    useWnd = self.lastActive
-            wnd = self.wnds[-1]
-            if not modal or modal and modal.parent == wnd.parent:
-                if not wnd.destroyed:
-                    useWnd = wnd
-        if useWnd and not modal:
-            useWnd.ReconstructInfoWindow(typeID, itemID, rec=rec, parentID=parentID, abstractinfo=abstractinfo, selectTabType=selectTabType)
-            useWnd.Maximize()
         else:
-            useWnd = InfoWindow.Open(windowID=('infowindow', blue.os.GetWallclockTime()), typeID=typeID, itemID=itemID, rec=rec, parentID=parentID, ignoreStack=modal, abstractinfo=abstractinfo, selectTabType=selectTabType)
-            self.wnds.append(useWnd)
-        if modal and not modal.destroyed and modal.windowID != 'progresswindow':
-            useWnd.ShowModal()
-        return useWnd
+            modal = uicore.registry.GetModalWindow()
+            createNew = new or not settings.user.ui.Get('useexistinginfownd', 1) or uicore.uilib.Key(uiconst.VK_SHIFT)
+            if len(self.wnds):
+                for each in self.wnds:
+                    if each is None or each.destroyed:
+                        self.wnds.remove(each)
 
-    def UpdateWnd(self, itemID, maximize = 0):
+            useWnd = None
+            if len(self.wnds) and not createNew:
+                if self.lastActive is not None and self.lastActive in self.wnds:
+                    if not self.lastActive.destroyed:
+                        useWnd = self.lastActive
+                wnd = self.wnds[-1]
+                if not modal or modal and modal.parent == wnd.parent:
+                    if not wnd.destroyed:
+                        useWnd = wnd
+            if useWnd and not modal:
+                useWnd.ReconstructInfoWindow(typeID, itemID, rec=rec, parentID=parentID, abstractinfo=abstractinfo, selectTabType=selectTabType)
+                useWnd.Maximize()
+            else:
+                useWnd = InfoWindow.Open(windowID=('infowindow', blue.os.GetWallclockTime()), typeID=typeID, itemID=itemID, rec=rec, parentID=parentID, ignoreStack=modal, abstractinfo=abstractinfo, selectTabType=selectTabType)
+                self.wnds.append(useWnd)
+            if modal and not modal.destroyed and modal.windowID != 'progresswindow':
+                useWnd.ShowModal()
+            return useWnd
+
+    def UpdateWnd(self, itemID, maximize=0):
         for wnd in self.wnds:
             if wnd.itemID == itemID or getattr(wnd.sr, 'corpID', None) == itemID or getattr(wnd.sr, 'allianceID', None) == itemID:
                 wnd.ReconstructInfoWindow(wnd.typeID, wnd.itemID)
@@ -357,16 +408,19 @@ class Info(service.Service):
                     wnd.Maximize()
                 break
 
+        return
+
     def UnregisterWindow(self, wnd, *args):
         if wnd in self.wnds:
             self.wnds.remove(wnd)
         if self.lastActive == wnd:
             self.lastActive = None
+        return
 
     def OnActivateWnd(self, wnd):
         self.lastActive = wnd
 
-    def GetRankEntry(self, rank, hilite = False):
+    def GetRankEntry(self, rank, hilite=False):
         facwarcurrrank = getattr(rank, 'currentRank', 1)
         facwarfaction = getattr(rank, 'factionID', None)
         if rank and facwarfaction is not None:
@@ -382,6 +436,8 @@ class Info(service.Service):
              'showinfo': 1,
              'line': 1})
             return entry
+        else:
+            return
 
     def GetMedalEntry(self, info, details, *args):
         d = details
@@ -434,7 +490,6 @@ class Info(service.Service):
     def GetCurrentShipCloneCount(self, attributeID):
         if util.GetActiveShip():
             return len(sm.GetService('clonejump').GetShipClones())
-        return 0
 
     def GetCurrentShipBayLoad(self, attributeID):
         attributeToInventoryFlagMap = {const.attributeCapacity: const.flagCargo,
@@ -456,34 +511,36 @@ class Info(service.Service):
          const.attributeSpecialFuelBayCapacity: const.flagSpecializedFuelBay}
         return sm.GetService('clientDogmaIM').GetDogmaLocation().GetCapacity(util.GetActiveShip(), attributeID, attributeToInventoryFlagMap[attributeID]).used
 
-    def GetStatusBarEntryForAttribute(self, attributeID, itemID = None, typeID = None):
+    def GetStatusBarEntryForAttribute(self, attributeID, itemID=None, typeID=None):
         if itemID is None or itemID != util.GetActiveShip():
             return
-        statusAttributeInfo = self.GetStatusAttributeInfo().get(attributeID, None)
-        if statusAttributeInfo is None:
-            return
-        GAV = self.GetGAVFunc(itemID, typeID)
-        total = GAV(attributeID)
-        if total == 0.0:
-            return
-        loadAttributeID = statusAttributeInfo.get('loadAttributeID', attributeID)
-        loadGetterFunc = statusAttributeInfo.get('loadAttributeFunc', GAV)
-        load = loadGetterFunc(loadAttributeID)
-        status = load / float(total)
-        attributeFormatInfo = dogmaAttributes.GetAttribute(attributeID)
-        text = localization.GetByLabel('UI/InfoWindow/StatusAttributeLabel', numerator=load, denominator=total, unit=FormatUnit(attributeFormatInfo.unitID))
-        return listentry.Get('StatusBar', {'attributeID': attributeID,
-         'label': statusAttributeInfo.get('label', attributeFormatInfo.displayName),
-         'text': text,
-         'value': status,
-         'iconID': attributeFormatInfo.iconID,
-         'color': statusAttributeInfo.get('color', util.Color.GRAY3),
-         'gradientBrightnessFactor': 1.2})
+        else:
+            statusAttributeInfo = self.GetStatusAttributeInfo().get(attributeID, None)
+            if statusAttributeInfo is None:
+                return
+            GAV = self.GetGAVFunc(itemID, typeID)
+            total = GAV(attributeID)
+            if total == 0.0:
+                return
+            loadAttributeID = statusAttributeInfo.get('loadAttributeID', attributeID)
+            loadGetterFunc = statusAttributeInfo.get('loadAttributeFunc', GAV)
+            load = loadGetterFunc(loadAttributeID)
+            status = load / float(total)
+            attributeFormatInfo = dogmaAttributes.GetAttribute(attributeID)
+            text = localization.GetByLabel('UI/InfoWindow/StatusAttributeLabel', numerator=load, denominator=total, unit=FormatUnit(attributeFormatInfo.unitID))
+            return listentry.Get('StatusBar', {'attributeID': attributeID,
+             'label': statusAttributeInfo.get('label', attributeFormatInfo.displayName),
+             'text': text,
+             'value': status,
+             'iconID': attributeFormatInfo.iconID,
+             'color': statusAttributeInfo.get('color', util.Color.GRAY3),
+             'gradientBrightnessFactor': 1.2})
 
     def UpdateDataShip(self, wnd, typeID, itemID):
         shipinfo = sm.GetService('godma').GetItem(itemID) if itemID is not None else None
         wnd.dynamicTabs.append(TAB_TRAITS)
-        attributeEntries, _ = self.GetShipAndDroneAttributeScrolllistAndAttributesList(itemID, typeID)
+        attributesByCaption = self.GetShipAndDroneAttributes()
+        attributeEntries, _ = self.GetItemAttributeScrolllistAndAttributesList(itemID, typeID, attributesByCaption)
         wnd.data[TAB_ATTIBUTES]['items'] += attributeEntries
         baseWarpSpeed = self.GetBaseWarpSpeed(typeID, shipinfo)
         if baseWarpSpeed:
@@ -508,6 +565,7 @@ class Info(service.Service):
               typeID,
               81)]
         wnd.dynamicTabs.append(TAB_SHIPAVAILABLESKINLICENSES)
+        return
 
     def ApplyAttributeTooltip(self, entries):
         for entry in entries:
@@ -562,12 +620,24 @@ class Info(service.Service):
     def ShowCharacterSheetCertificates(self):
         sm.GetService('charactersheet').OpenCertificates()
 
+    def UpdateStructure(self, wnd, typeID, itemID):
+        attributesByCaption = self.GetShipAndDroneAttributes()
+        attributeEntries, addedAttributes = self.GetItemAttributeScrolllistAndAttributesList(itemID, typeID, attributesByCaption)
+        wnd.data[TAB_ATTIBUTES]['items'] += attributeEntries
+        attributeScrollListForItem = self.GetAttributeScrollListForItem(itemID, typeID, banAttrs=addedAttributes + self.GetSkillAttrs())
+        if attributeScrollListForItem:
+            wnd.data[TAB_ATTIBUTES]['items'].append(listentry.Get('Header', {'label': localization.GetByLabel('UI/InfoWindow/Miscellaneous')}))
+            wnd.data[TAB_ATTIBUTES]['items'] += attributeScrollListForItem
+        wnd.dynamicTabs.append(TAB_REQUIREMENTS)
+        wnd.dynamicTabs.append(TAB_FITTING)
+
     def UpdateDataDrone(self, wnd, typeID, itemID):
         metaTypeScrollList, variationTypeDict = self.GetMetaTypeInfo(typeID)
         wnd.data[TAB_VARIATIONS]['items'] += metaTypeScrollList
         wnd.variationTypeDict = variationTypeDict
         self.InitVariationBottom(wnd)
-        attributeEntries, addedAttributes = self.GetShipAndDroneAttributeScrolllistAndAttributesList(itemID, typeID)
+        attributesByCaption = self.GetShipAndDroneAttributes()
+        attributeEntries, addedAttributes = self.GetItemAttributeScrolllistAndAttributesList(itemID, typeID, attributesByCaption)
         wnd.data[TAB_ATTIBUTES]['items'] += attributeEntries
         attributeScrollListForItem = self.GetAttributeScrollListForItem(itemID, typeID, banAttrs=addedAttributes + self.GetSkillAttrs())
         if attributeScrollListForItem:
@@ -575,11 +645,22 @@ class Info(service.Service):
             wnd.data[TAB_ATTIBUTES]['items'] += attributeScrollListForItem
         wnd.dynamicTabs.append(TAB_REQUIREMENTS)
 
-    def GetShipAndDroneAttributeScrolllistAndAttributesList(self, itemID, typeID):
+    def UpdateDataFighter(self, wnd, typeID, itemID):
+        metaTypeScrollList, variationTypeDict = self.GetMetaTypeInfo(typeID)
+        wnd.data[TAB_VARIATIONS]['items'] += metaTypeScrollList
+        wnd.variationTypeDict = variationTypeDict
+        self.InitVariationBottom(wnd)
+        attributesByCaption = self.GetFighterAttributes()
+        attributeEntries, addedAttributes = self.GetItemAttributeScrolllistAndAttributesList(itemID, typeID, attributesByCaption)
+        wnd.data[TAB_ATTIBUTES]['items'] += attributeEntries
+        wnd.dynamicTabs.append(TAB_FIGHTER_ABILITIES)
+        wnd.dynamicTabs.append(TAB_REQUIREMENTS)
+
+    def GetItemAttributeScrolllistAndAttributesList(self, itemID, typeID, attributesByCaption):
         attrDict = self.GetAttributeDictForType(typeID)
         addedAttributes = []
         scrollList = []
-        for caption, attrs in self.GetShipAndDroneAttributes().iteritems():
+        for caption, attrs in attributesByCaption.iteritems():
             normalAttributes = attrs['normalAttributes']
             groupedAttributes = attrs.get('groupedAttributes', [])
             shipAttr = [ each for each in normalAttributes if each in attrDict ]
@@ -618,7 +699,8 @@ class Info(service.Service):
          const.effectMedPower,
          const.effectLoPower,
          const.effectRigSlot,
-         const.effectSubSystem])
+         const.effectSubSystem,
+         const.effectServiceSlot])
         wnd.data[TAB_FITTING]['items'] += effectTypeScrollList
         attributeScrollListForItem = self.GetAttributeScrollListForItem(itemID=itemID, typeID=typeID, banAttrs=[const.attributeCpu,
          const.attributePower,
@@ -631,6 +713,7 @@ class Info(service.Service):
         fittingScrollListForItem = self.GetAttributeScrollListForItem(itemID=itemID, typeID=typeID, attrList=(const.attributeCpu,
          const.attributePower,
          const.attributeRigSize,
+         const.attributeServiceSlots,
          const.attributeUpgradeCost))
         wnd.data[TAB_FITTING]['items'] += fittingScrollListForItem
         wnd.dynamicTabs.append(TAB_REQUIREMENTS)
@@ -707,11 +790,12 @@ class Info(service.Service):
         if self.GetUsedWithTypeIDs(wnd.typeID):
             wnd.dynamicTabs.append(TAB_USEDWITH)
         self.InitVariationBottom(wnd)
+        return
 
     def ConstructUsedWithTypeIDs(self):
         usedWith = defaultdict(set)
         godmaStateManager = sm.GetService('godma').GetStateManager()
-        for typeID in evetypes.GetTypeIDsByCategory(const.categoryModule):
+        for typeID in evetypes.GetTypeIDsByCategories((const.categoryModule, const.categoryStructureModule)):
             if not evetypes.IsPublished(typeID):
                 continue
             godmaType = godmaStateManager.GetType(typeID)
@@ -761,6 +845,7 @@ class Info(service.Service):
             wnd.data[TAB_RANKS]['items'].append(self.GetRankEntry(rank))
         if not medalsEntries and not rank:
             wnd.dynamicTabs.append(TAB_DECORATIONS)
+        return
 
     def UpdateDataCorp(self, wnd, typeID, itemID):
         if not util.IsNPC(itemID):
@@ -905,8 +990,6 @@ class Info(service.Service):
                 if x > y:
                     return 1
 
-            return 0
-
         if corpmktinfo is not None:
             sellStuff = []
             buyStuff = []
@@ -960,6 +1043,7 @@ class Info(service.Service):
             agentCopy = acopy2
             self.GetAgentScrollGroups(agentCopy, wnd.data[TAB_AGENTS]['items'])
         wnd.dynamicTabs.append(TAB_STANDINGS)
+        return
 
     def UpdateDataAlliance(self, wnd):
         if not util.IsNPC(wnd.itemID):
@@ -1018,6 +1102,7 @@ class Info(service.Service):
             wnd.data[TAB_ATTIBUTES]['items'].append(listentry.Get(decoClass=listentry.LabelTextSides, data=data))
         wnd.dynamicTabs.append(TAB_MEMBERS)
         wnd.dynamicTabs.append(TAB_STANDINGS)
+        return
 
     def UpdateDataStargate(self, wnd, itemID):
         bp = sm.GetService('michelle').GetBallpark()
@@ -1040,6 +1125,8 @@ class Info(service.Service):
                      'text': destLabel,
                      'typeID': const.groupSolarSystem,
                      'itemID': each.locationID}))
+
+        return
 
     def GetCelestialStatisticsForCelestial(self, celestialID, celestialGroupID):
         statistics = {}
@@ -1202,6 +1289,7 @@ class Info(service.Service):
               ShowMap,
               [const.groupSolarSystem, const.groupConstellation, const.groupRegion].index(groupID),
               81)]
+        return
 
     def GetOrbitalBodies(self, wnd, itemID, solarsystemID, typeID):
         solarsystem = self.map.GetSolarsystemItems(solarsystemID, False)
@@ -1258,6 +1346,8 @@ class Info(service.Service):
                     entry = listentry.Get(entryType=None, data=data, decoClass=LocationTextEntry)
                     wnd.data[TAB_ORBITALBODIES]['items'].append(entry)
                 DrawOrbitItems(each.itemID, indent + 1)
+
+            return
 
         if sun:
             DrawOrbitItems(rootID, 0)
@@ -1361,7 +1451,6 @@ class Info(service.Service):
                 return -1
             if xname > yname:
                 return 1
-            return 0
 
         corpsOfFaction = sm.GetService('faction').GetCorpsOfFaction(itemID)
         corpsOfFaction = copy.copy(corpsOfFaction)
@@ -1479,6 +1568,8 @@ class Info(service.Service):
         except (UserError, RuntimeError):
             pass
 
+        return
+
     def UpdateDataOrbital(self, wnd, itemID):
         self.UpdateDataModule(wnd, wnd.typeID, itemID)
 
@@ -1496,6 +1587,7 @@ class Info(service.Service):
                 wnd.maintabs.ReloadVisible()
             else:
                 log.LogInfo('Unable to fetch tax rate for customs office in a different system')
+            return
 
         uthread.new(FetchDynamicAttributes, wnd, wnd.data[TAB_ATTIBUTES], itemID)
 
@@ -1521,6 +1613,7 @@ class Info(service.Service):
             attributeScrollListForType = self.GetAttributeScrollListForType(typeID=typeID, banAttrs=self.GetSkillAttrs())
             wnd.data[TAB_ATTIBUTES]['items'] += attributeScrollListForType
         wnd.dynamicTabs.append(TAB_REQUIREMENTS)
+        return
 
     def UpdateDataSecurityTag(self, wnd, typeID, itemID):
         attributeScrollListForItem = self.GetAttributeScrollListForItem(itemID=itemID, typeID=typeID)
@@ -1557,10 +1650,12 @@ class Info(service.Service):
                  'itemID': mapItem.itemID}))
 
         stationOwnerID = None
-        if eve.session.solarsystemid is not None:
-            slimitem = sm.GetService('michelle').GetBallpark().GetInvItem(itemID)
-            if slimitem is not None:
-                stationOwnerID = slimitem.ownerID
+        if session.solarsystemid is not None:
+            ballpark = sm.GetService('michelle').GetBallpark()
+            if ballpark:
+                slimitem = ballpark.GetInvItem(itemID)
+                if slimitem is not None:
+                    stationOwnerID = slimitem.ownerID
         if stationOwnerID is None and stationInfo and stationInfo.ownerID:
             stationOwnerID = stationInfo.ownerID
         if stationOwnerID is not None:
@@ -1570,12 +1665,13 @@ class Info(service.Service):
           self.SetDestination,
           (itemID,),
           81)]
+        return
 
-    def GetServicesForStation(self, stationInfo, itemID, iconoffset = 4):
+    def GetServicesForStation(self, stationInfo, itemID, iconoffset=4):
         serviceEntryList = []
         sortServices = []
         mask = stationInfo.serviceMask
-        for info in sm.GetService('station').GetStationServiceInfo(stationInfo=stationInfo):
+        for info in stationServiceConst.serviceData:
             if info.name == 'navyoffices':
                 faction = sm.GetService('faction').GetFaction(stationInfo.ownerID)
                 if not faction or faction not in [const.factionAmarrEmpire,
@@ -1646,6 +1742,7 @@ class Info(service.Service):
         wnd.dynamicTabs.append(TAB_REQUIREMENTS)
         if evetypes.GetGroupID(typeID) == const.groupProcessPins:
             wnd.dynamicTabs.append(TAB_SCHEMATICS)
+        return
 
     def UpdateDataPlanet(self, wnd, typeID, itemID, parentID):
         if sm.GetService('machoNet').GetGlobalConfig().get('enableDustLink'):
@@ -1654,6 +1751,7 @@ class Info(service.Service):
                 if slimitem is not None and slimitem.corpID is not None:
                     wnd.dynamicTabs.append(TAB_PLANETCONTROL)
         self.UpdateDataCelestial(wnd, typeID, itemID, parentID)
+        return
 
     def UpdateDataDogma(self, wnd, typeID):
         container = wnd.data[TAB_DOGMA]['items']
@@ -1703,6 +1801,8 @@ class Info(service.Service):
                 entry = listentry.Get('LabelTextTop', entryData)
                 container.append(entry)
 
+        return
+
     def UpdateDataConstructionPlatform(self, wnd, typeID, itemID):
         self.UpdateDataModule(wnd, typeID, itemID)
         wnd.dynamicTabs.append(TAB_MATERIALREQ)
@@ -1733,7 +1833,7 @@ class Info(service.Service):
               (wnd.itemID, wnd.typeID, bpData),
               81)]
 
-    def UpdateWindowData(self, wnd, typeID, itemID, parentID = None):
+    def UpdateWindowData(self, wnd, typeID, itemID, parentID=None):
         evetypes.RaiseIFNotExists(typeID)
         self.UpdateMarketButtons(wnd)
         self.UpdateComponentData(wnd, typeID, itemID)
@@ -1747,10 +1847,14 @@ class Info(service.Service):
             self.UpdateDataFaction(wnd, typeID, itemID)
         elif wnd.IsType(TYPE_SHIP):
             self.UpdateDataShip(wnd, typeID, itemID)
-        elif wnd.IsType(TYPE_MODULE, TYPE_STRUCTURE, TYPE_STRUCTUREUPGRADE, TYPE_APPAREL):
+        elif wnd.IsType(TYPE_STRUCTURE):
+            self.UpdateStructure(wnd, typeID, itemID)
+        elif wnd.IsType(TYPE_MODULE, TYPE_STRUCTURE_OLD, TYPE_STRUCTUREUPGRADE, TYPE_APPAREL, TYPE_STRUCTURE_MODULE):
             self.UpdateDataModule(wnd, typeID, itemID)
         elif wnd.IsType(TYPE_DRONE):
             self.UpdateDataDrone(wnd, typeID, itemID)
+        elif wnd.IsType(TYPE_FIGHTER):
+            self.UpdateDataFighter(wnd, typeID, itemID)
         elif wnd.IsType(TYPE_CUSTOMSOFFICE):
             self.UpdateDataOrbital(wnd, itemID)
         elif wnd.IsType(TYPE_SECURECONTAINER):
@@ -1816,6 +1920,7 @@ class Info(service.Service):
             self.UpdateDataDogma(wnd, typeID)
         if wnd.IsType(TYPE_SHIP) or wnd.IsType(TYPE_DRONE):
             self.ApplyAttributeTooltip(wnd.data[TAB_ATTIBUTES]['items'])
+        return
 
     def IsIndustryItem(self, typeID):
         if evetypes.GetGroupID(typeID) == const.groupStation:
@@ -1870,11 +1975,12 @@ class Info(service.Service):
         info = sm.GetService('godma').GetItem(itemID)
         if info is not None:
             return lambda attributeID: getattr(info, cfg.dgmattribs.Get(attributeID).attributeName)
-        dogmaLocation = sm.GetService('clientDogmaIM').GetDogmaLocation()
-        if dogmaLocation.IsItemLoaded(itemID):
-            return lambda attributeID: dogmaLocation.GetAttributeValue(itemID, attributeID)
-        info = sm.GetService('godma').GetStateManager().GetShipType(typeID)
-        return lambda attributeID: getattr(info, cfg.dgmattribs.Get(attributeID).attributeName)
+        else:
+            dogmaLocation = sm.GetService('clientDogmaIM').GetDogmaLocation()
+            if dogmaLocation.IsItemLoaded(itemID):
+                return lambda attributeID: dogmaLocation.GetAttributeValue(itemID, attributeID)
+            info = sm.GetService('godma').GetStateManager().GetShipType(typeID)
+            return lambda attributeID: getattr(info, cfg.dgmattribs.Get(attributeID).attributeName)
 
     def GetCertEntry(self, certificate, level):
         entry = {'label': certificate.GetName(),
@@ -1910,7 +2016,6 @@ class Info(service.Service):
                 return -1
             if xname > yname:
                 return 1
-            return 0
 
         agents.sort(lambda x, y: SortFunc(agents.header.index('level'), agents.header.index('agentID'), x, y))
         allAgents = sm.RemoteSvc('agentMgr').GetAgents().Index('agentID')
@@ -1932,7 +2037,7 @@ class Info(service.Service):
                 return 0
 
         divisions = divisions.keys()
-        divisions.sort(lambda x, y, npcDivisions = npcDivisions: SortDivisions(npcDivisions, x, y))
+        divisions.sort(lambda x, y, npcDivisions=npcDivisions: SortDivisions(npcDivisions, x, y))
         for divisionID in divisions:
             amt = 0
             for agent in agents:
@@ -1967,7 +2072,7 @@ class Info(service.Service):
         typeWnd = TypeCompare.Open()
         typeWnd.AddEntry(wnd.variationTypeDict)
 
-    def GetBaseWarpSpeed(self, typeID, shipinfo = None):
+    def GetBaseWarpSpeed(self, typeID, shipinfo=None):
         defaultWSM = 1.0
         defaultBWS = 3.0
         if shipinfo:
@@ -2008,9 +2113,11 @@ class Info(service.Service):
 
     def FindInContracts(self, typeID):
         sm.GetService('contracts').FindRelated(typeID, None, None, None, None, None)
+        return
 
     def ShowMarketDetails(self, typeID):
         uthread.new(sm.StartService('marketutils').ShowMarketDetails, typeID, None)
+        return
 
     def GetAllianceHistorySubContent(self, itemID):
         scrolllist = []
@@ -2301,7 +2408,7 @@ class Info(service.Service):
         invTypeInfo = self.GetMetaTypesFromTypeID(typeID)
         return self.GetTypesSortedByMetaScrollList(invTypeInfo)
 
-    def GetMetaTypesFromTypeID(self, typeID, groupOnly = 0):
+    def GetMetaTypesFromTypeID(self, typeID, groupOnly=0):
         tmp = None
         if typeID in cfg.invmetatypesByParent:
             tmp = copy.deepcopy(cfg.invmetatypesByParent[typeID])
@@ -2323,8 +2430,9 @@ class Info(service.Service):
             return grp
         else:
             return tmp
+            return
 
-    def GetAttributeScrollListForItem(self, itemID, typeID, attrList = None, banAttrs = []):
+    def GetAttributeScrollListForItem(self, itemID, typeID, attrList=None, banAttrs=[]):
         info = sm.GetService('godma').GetItem(itemID)
         if info:
             attributeDict = self.GetAttributeDictForItem(itemID, typeID)
@@ -2343,6 +2451,7 @@ class Info(service.Service):
                 return scrolllist
             scrolllist = self.GetAttributeScrollListForType(typeID=typeID, attrList=attrList, banAttrs=banAttrs, itemID=itemID)
             return scrolllist
+            return
 
     def GetSpaceComponentAttrItemInfo(self, typeID, itemID):
         scrolllist = []
@@ -2391,7 +2500,7 @@ class Info(service.Service):
 
         return suppressedAttributeIDs
 
-    def GetAttributeScrollListForType(self, typeID, attrList = None, attrValues = None, banAttrs = [], itemID = None):
+    def GetAttributeScrollListForType(self, typeID, attrList=None, attrValues=None, banAttrs=[], itemID=None):
         attributeDict = self.GetAttributeDictForType(typeID)
         scrolllist = self.GetAttributeScrollListFromAttributeDict(attrdict=attributeDict, attrList=attrList, attrValues=attrValues, banAttrs=banAttrs, itemID=itemID, typeID=typeID)
         return scrolllist
@@ -2445,7 +2554,7 @@ class Info(service.Service):
         newScrollEntries = uiutil.SortListOfTuples(newScrollEntries)
         return (newScrollEntries, attributesAdded)
 
-    def GetAttributeScrollListFromAttributeDict(self, attrdict, attrList = None, attrValues = None, banAttrs = [], itemID = None, typeID = None):
+    def GetAttributeScrollListFromAttributeDict(self, attrdict, attrList=None, attrValues=None, banAttrs=[], itemID=None, typeID=None):
         scrolllist = []
         if attrValues:
             for each in attrValues.displayAttributes:
@@ -2522,25 +2631,18 @@ class Info(service.Service):
         volume = evetypes.GetVolume(typeID)
         if const.attributeCapacity not in ret and capacity:
             ret[const.attributeCapacity] = capacity
-        if categoryID in (const.categoryCharge, const.categoryModule):
-            if const.attributeVolume not in ret and volume:
-                formatedValue = localization.formatters.FormatNumeric(volume, useGrouping=True)
-                value = localization.GetByLabel('UI/InfoWindow/ValueAndUnit', value=formatedValue, unit=FormatUnit(const.unitVolume))
-                ret[const.attributeVolume] = value
-        if categoryID in (const.categoryPlanetaryInteraction, const.categoryShip, const.categoryDrone):
-            if const.attributeVolume not in ret and volume:
-                value = localization.GetByLabel('UI/InfoWindow/ItemVolume', volume=volume, unit=FormatUnit(const.unitVolume))
-                packagedVolume = GetTypeVolume(typeID, 1)
-                if volume != packagedVolume:
-                    unit = FormatUnit(const.unitVolume)
-                    value = localization.GetByLabel('UI/InfoWindow/ItemVolumeWithPackagedVolume', volume=volume, packaged=packagedVolume, unit=unit)
-                ret[const.attributeVolume] = value
-        if categoryID in (const.categoryShip, const.categoryDrone):
-            mass = evetypes.GetMass(typeID)
-            if const.attributeMass not in ret and mass:
-                ret[const.attributeMass] = mass
         displayAttributes = self.AddDisplayAttributesForType(typeID)
         ret.update(displayAttributes)
+        if IsFittingModule(categoryID) and volume:
+            formatedValue = localization.formatters.FormatNumeric(volume, useGrouping=True)
+            value = localization.GetByLabel('UI/InfoWindow/ValueAndUnit', value=formatedValue, unit=FormatUnit(const.unitVolume))
+            ret[const.attributeVolume] = value
+        if categoryID in (const.categoryPlanetaryInteraction, const.categoryShip, const.categoryDrone):
+            packagedVolume = GetTypeVolume(typeID, 1)
+            if volume and volume != packagedVolume:
+                unit = FormatUnit(const.unitVolume)
+                value = localization.GetByLabel('UI/InfoWindow/ItemVolumeWithPackagedVolume', volume=volume, packaged=packagedVolume, unit=unit)
+                ret[const.attributeVolume] = value
         return ret
 
     def AddDisplayAttributesForType(self, typeID):
@@ -2561,34 +2663,37 @@ class Info(service.Service):
 
         return ret
 
-    def GetEntryForAttribute(self, attributeID, value, itemID = None, typeID = None):
+    def GetEntryForAttribute(self, attributeID, value, itemID=None, typeID=None):
         listItem = self.GetStatusBarEntryForAttribute(attributeID, itemID=itemID, typeID=typeID)
         if listItem:
             return listItem
-        formatInfo = GetFormattedAttributeAndValue(attributeID, value)
-        if not formatInfo:
-            return
-        if itemID and formatInfo.infoTypeID and typeID != formatInfo.infoTypeID:
-            itemID = None
-        listItem = listentry.Get(decoClass=listentry.LabelTextSides, data={'attributeID': attributeID,
-         'OnClick': (self.OnAttributeClick, attributeID, itemID),
-         'line': 1,
-         'label': formatInfo.displayName,
-         'text': formatInfo.value,
-         'iconID': formatInfo.iconID,
-         'typeID': formatInfo.infoTypeID,
-         'itemID': itemID})
-        return listItem
+        else:
+            formatInfo = GetFormattedAttributeAndValue(attributeID, value)
+            if not formatInfo:
+                return
+            if itemID and formatInfo.infoTypeID and typeID != formatInfo.infoTypeID:
+                itemID = None
+            listItem = listentry.Get(decoClass=listentry.LabelTextSides, data={'attributeID': attributeID,
+             'OnClick': (self.OnAttributeClick, attributeID, itemID),
+             'line': 1,
+             'label': formatInfo.displayName,
+             'text': formatInfo.value,
+             'iconID': formatInfo.iconID,
+             'typeID': formatInfo.infoTypeID,
+             'itemID': itemID})
+            return listItem
 
     def OnAttributeClick(self, id_, itemID):
         ctrl = uicore.uilib.Key(uiconst.VK_CONTROL)
         shift = uicore.uilib.Key(uiconst.VK_SHIFT)
         if not ctrl:
             return
-        if not shift and itemID is not None and (itemID >= const.minPlayerItem or util.IsCharacter(itemID)):
-            sm.GetService('godma').LogAttributeViaGodma(itemID, id_)
-        if eve.session.role & service.ROLE_CONTENT == service.ROLE_CONTENT and ctrl and shift:
-            self.GetUrlAdamDogmaAttribute(id_)
+        else:
+            if not shift and itemID is not None and (itemID >= const.minPlayerItem or util.IsCharacter(itemID)):
+                sm.GetService('godma').LogAttributeViaGodma(itemID, id_)
+            if eve.session.role & service.ROLE_CONTENT == service.ROLE_CONTENT and ctrl and shift:
+                self.GetUrlAdamDogmaAttribute(id_)
+            return
 
     def GetUrlAdamDogmaAttribute(self, id_):
         uthread.new(self.ClickURL, 'http://adam:50001/gd/type.py?action=DogmaModifyAttributeForm&attributeID=%s' % id_)
@@ -2639,7 +2744,7 @@ class Info(service.Service):
 
         return scrolllist
 
-    def GetReqSkillInfo(self, typeID, reqSkills = [], showPrereqSkills = True):
+    def GetReqSkillInfo(self, typeID, reqSkills=[], showPrereqSkills=True):
         scrolllist = []
         i = 1
         commands = []
@@ -2650,23 +2755,24 @@ class Info(service.Service):
             skills = reqSkills
         if skills is None:
             return
-        for skillID, lvl in skills:
-            ret = self.DrawSkillTree(skillID, lvl, scrolllist, 0, showPrereqSkills=showPrereqSkills)
-            commands += ret
-            i += 1
+        else:
+            for skillID, lvl in skills:
+                ret = self.DrawSkillTree(skillID, lvl, scrolllist, 0, showPrereqSkills=showPrereqSkills)
+                commands += ret
+                i += 1
 
-        cmds = {}
-        for typeID, level in commands:
-            typeID, level = int(typeID), int(level)
-            currentLevel = cmds.get(typeID, 0)
-            cmds[typeID] = max(currentLevel, level)
+            cmds = {}
+            for typeID, level in commands:
+                typeID, level = int(typeID), int(level)
+                currentLevel = cmds.get(typeID, 0)
+                cmds[typeID] = max(currentLevel, level)
 
-        if i > 1 and eve.session.role & service.ROLE_GMH == service.ROLE_GMH:
-            scrolllist.append(listentry.Get('Button', {'label': 'GMH: Give me these skills',
-             'caption': 'Give',
-             'OnClick': self.DoGiveSkills,
-             'args': (cmds,)}))
-        return scrolllist
+            if i > 1 and eve.session.role & service.ROLE_GMH == service.ROLE_GMH:
+                scrolllist.append(listentry.Get('Button', {'label': 'GMH: Give me these skills',
+                 'caption': 'Give',
+                 'OnClick': self.DoGiveSkills,
+                 'args': (cmds,)}))
+            return scrolllist
 
     def GetRecommendedFor(self, certID):
         recommendedFor = sm.StartService('certificates').GetCertificateRecommendationsFromCertificateID(certID)
@@ -2736,7 +2842,7 @@ class Info(service.Service):
          ('5', self.DoGiveSkills, ({typeID: 5}, None)))
         return (('GM: Modify skill level', subMenu), ('GM: typeID: %s' % typeID, blue.pyos.SetClipboardData, (str(typeID),)))
 
-    def DoCreateMaterials(self, commands, header = 'GML: Create in cargo', qty = 10, button = None):
+    def DoCreateMaterials(self, commands, header='GML: Create in cargo', qty=10, button=None):
         runs = {'qty': qty}
         if qty > 1:
             runs = uix.QtyPopup(100000, 1, qty, None, header)
@@ -2757,8 +2863,9 @@ class Info(service.Service):
                         sm.RemoteSvc('slash').SlashCmd('/load me %s %d' % (typeID, actualQty))
 
             sm.GetService('loading').ProgressWnd('Done', '', cntTo, cntTo)
+        return
 
-    def DrawSkillTree(self, typeID, lvl, scrolllist, indent, done = None, firstID = None, showPrereqSkills = True):
+    def DrawSkillTree(self, typeID, lvl, scrolllist, indent, done=None, firstID=None, showPrereqSkills=True):
         thisSet = [(typeID, lvl)]
         if done is None:
             done = []
@@ -2802,9 +2909,10 @@ class Info(service.Service):
     def FilterZero(self, value):
         if value == 0:
             return None
-        return value
+        else:
+            return value
 
-    def TypeHasEffect(self, effectID, itemEffectTypeInfo = None, typeID = None):
+    def TypeHasEffect(self, effectID, itemEffectTypeInfo=None, typeID=None):
         if itemEffectTypeInfo is None:
             itemEffectTypeInfo = cfg.dgmtypeeffects.get(typeID, [])
         for itemDgmEffect in itemEffectTypeInfo:

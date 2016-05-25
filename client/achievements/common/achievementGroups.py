@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\packages\achievements\common\achievementGroups.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\packages\achievements\common\achievementGroups.py
 from achievements.common.achievementConst import AchievementConsts
 from achievements.common.achievementGroup import AchievementGroup
 from opportunityTaskMap import OpportunityConst

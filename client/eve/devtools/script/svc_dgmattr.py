@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\devtools\script\svc_dgmattr.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\devtools\script\svc_dgmattr.py
 import sys
 import itertools
 import uiutil
@@ -98,6 +99,7 @@ class AttributeInspector(Window):
         Container(name='div', parent=main, height=5, align=uiconst.TOTOP)
         self.scroll = Scroll(parent=main)
         self.Refresh()
+        return
 
     def _GetListEntryForAttr(self, attrID, attrName, clientValsByAttrID, godmaValsByAttrID, serverValsByAttrID, baseValsByAttrID):
         notApplicable = '<color=green>[n/a]</color>'
@@ -229,11 +231,12 @@ class AttributeInspector(Window):
          'ServerVal',
          'Base'], fixedEntryHeight=18)
         self.scroll.Sort('Name')
+        return
 
     def GetServerDogmaLM(self):
         return self.stateManager.GetDogmaLM()
 
-    def ShowAttribute(self, attributeID, showServerSideGraph = True):
+    def ShowAttribute(self, attributeID, showServerSideGraph=True):
         l = locals
         attrName = self.stateManager.attributesByID[attributeID].attributeName
         try:

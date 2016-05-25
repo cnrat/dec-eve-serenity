@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\packages\spacecomponents\client\components\reinforce.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\packages\spacecomponents\client\components\reinforce.py
 from carbon.common.lib.const import SEC
 from carbon.common.script.util.format import FmtTimeInterval, FmtDate, FmtYesNo
 from spacecomponents.client.display import EntryData, TIMER_ICON
@@ -15,6 +16,7 @@ class Reinforce(Component):
         self.reinforceTimestamp = None
         self.SubscribeToMessage(MSG_ON_ADDED_TO_SPACE, self.OnSlimItemUpdated)
         self.SubscribeToMessage(MSG_ON_SLIM_ITEM_UPDATED, self.OnSlimItemUpdated)
+        return
 
     def OnSlimItemUpdated(self, slimItem):
         if slimItem.component_reinforce is not None:
@@ -22,6 +24,7 @@ class Reinforce(Component):
             self.isReinforced = isReinforced
             self.reinforceTimestamp = reinforceTimestamp
             self.SendMessage(MSG_ON_REINFORCE_TIMER_UPDATED, self, slimItem)
+        return
 
     def IsReinforced(self):
         return self.isReinforced

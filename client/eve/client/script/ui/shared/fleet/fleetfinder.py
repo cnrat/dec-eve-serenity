@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\client\script\ui\shared\fleet\fleetfinder.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\client\script\ui\shared\fleet\fleetfinder.py
 from eve.client.script.ui.control.themeColored import FrameThemeColored
 from eve.client.script.ui.shared.stateFlag import AddAndSetFlagIconFromData
 import uiprimitives
@@ -184,6 +185,7 @@ class FleetFinderWindow(uiprimitives.Container):
           84)]
         self.sr.myAdvertButtonWnd_Register = uicontrols.ButtonGroup(btns=self.myAdvertButtons_Register, parent=self.sr.myAdvertButtons, unisize=1)
         self.sr.myAdvertButtonWnd_Register.state = uiconst.UI_HIDDEN
+        return
 
     def LoadMyAdvert(self):
         self.sr.myAdvertText.text = ''
@@ -201,36 +203,38 @@ class FleetFinderWindow(uiprimitives.Container):
             self.sr.myAdvertCont.left = 10
             self.sr.myAdvertCaption.left = 0
             return
-        fleet = sm.GetService('fleet').GetMyFleetFinderAdvert()
-        if fleet is None:
-            caption = localization.GetByLabel('UI/Fleet/FleetRegistry/DoNotHaveAnAdvert')
+        else:
+            fleet = sm.GetService('fleet').GetMyFleetFinderAdvert()
+            if fleet is None:
+                caption = localization.GetByLabel('UI/Fleet/FleetRegistry/DoNotHaveAnAdvert')
+                self.sr.myAdvertCaption.text = caption
+                self.sr.myAdvertText.text = localization.GetByLabel('UI/Fleet/FleetRegistry/DoNotHaveAnAdvertDetailed')
+                self.sr.myAdvertDesc.state = uiconst.UI_HIDDEN
+                self.sr.myAdvertButtonWnd_Register.state = uiconst.UI_NORMAL
+                self.isNoAdvert = True
+                self.sr.myAdvertCont.left = 10
+                self.sr.myAdvertCaption.left = 0
+                if self.sr.dragIcon:
+                    self.sr.dragIcon.Close()
+                return
+            self.isNoAdvert = False
+            self.sr.myAdvertButtonWnd.state = uiconst.UI_NORMAL
+            caption = fleet.fleetName or localization.GetByLabel('UI/Fleet/FleetRegistry/UnnamedFleet')
             self.sr.myAdvertCaption.text = caption
-            self.sr.myAdvertText.text = localization.GetByLabel('UI/Fleet/FleetRegistry/DoNotHaveAnAdvertDetailed')
-            self.sr.myAdvertDesc.state = uiconst.UI_HIDDEN
-            self.sr.myAdvertButtonWnd_Register.state = uiconst.UI_NORMAL
-            self.isNoAdvert = True
-            self.sr.myAdvertCont.left = 10
-            self.sr.myAdvertCaption.left = 0
-            if self.sr.dragIcon:
-                self.sr.dragIcon.Close()
+            self.sr.dragIcon = dragIcon = AdvertDraggableIcon(name='theicon', align=uiconst.TOPLEFT, parent=self.sr.myAdvertCont, height=64, width=64, top=const.defaultPadding, left=const.defaultPadding, state=uiconst.UI_NORMAL, idx=0)
+            dragIcon.Startup(fleet)
+            dragIcon.hint = localization.GetByLabel('UI/Fleet/FleetRegistry/DragToShareAdvertHint')
+            dragIcon.state = uiconst.UI_NORMAL
+            text = self.GetFleetDetailsEntry(fleet)
+            h = 0
+            self.sr.myAdvertText.text = text
+            h += self.sr.myAdvertText.top + self.sr.myAdvertText.height
+            desc = fleet.description
+            self.sr.myAdvertDesc.padTop = h + 2
+            self.sr.myAdvertDesc.state = [uiconst.UI_NORMAL, uiconst.UI_HIDDEN][desc == '']
+            self.sr.myAdvertDesc.SetValue(desc)
+            self._OnResize()
             return
-        self.isNoAdvert = False
-        self.sr.myAdvertButtonWnd.state = uiconst.UI_NORMAL
-        caption = fleet.fleetName or localization.GetByLabel('UI/Fleet/FleetRegistry/UnnamedFleet')
-        self.sr.myAdvertCaption.text = caption
-        self.sr.dragIcon = dragIcon = AdvertDraggableIcon(name='theicon', align=uiconst.TOPLEFT, parent=self.sr.myAdvertCont, height=64, width=64, top=const.defaultPadding, left=const.defaultPadding, state=uiconst.UI_NORMAL, idx=0)
-        dragIcon.Startup(fleet)
-        dragIcon.hint = localization.GetByLabel('UI/Fleet/FleetRegistry/DragToShareAdvertHint')
-        dragIcon.state = uiconst.UI_NORMAL
-        text = self.GetFleetDetailsEntry(fleet)
-        h = 0
-        self.sr.myAdvertText.text = text
-        h += self.sr.myAdvertText.top + self.sr.myAdvertText.height
-        desc = fleet.description
-        self.sr.myAdvertDesc.padTop = h + 2
-        self.sr.myAdvertDesc.state = [uiconst.UI_NORMAL, uiconst.UI_HIDDEN][desc == '']
-        self.sr.myAdvertDesc.SetValue(desc)
-        self._OnResize()
 
     def SetInfoCont(self, entry):
         selected = util.GetAttrs(entry.sr.node, 'selected')
@@ -314,6 +318,7 @@ class FleetFinderWindow(uiprimitives.Container):
         if session.fleetid is not None:
             raise UserError('FleetYouAreAlreadyInFleet')
         sm.GetService('menu').InviteToFleet(session.charid)
+        return
 
     def EditDetail(self, *args):
         sm.GetService('fleet').OpenRegisterFleetWindow()
@@ -323,13 +328,15 @@ class FleetFinderWindow(uiprimitives.Container):
             raise UserError('CantUseFleetfinder')
         if session.fleetid is None:
             return
-        if sm.GetService('fleet').IsBoss():
-            if sm.GetService('fleet').options.isRegistered:
-                self.EditDetail()
-            else:
-                from eve.client.script.ui.shared.fleet.fleetregister import RegisterFleetWindow
-                RegisterFleetWindow.CloseIfOpen()
-                RegisterFleetWindow.Open()
+        else:
+            if sm.GetService('fleet').IsBoss():
+                if sm.GetService('fleet').options.isRegistered:
+                    self.EditDetail()
+                else:
+                    from eve.client.script.ui.shared.fleet.fleetregister import RegisterFleetWindow
+                    RegisterFleetWindow.CloseIfOpen()
+                    RegisterFleetWindow.Open()
+            return
 
     def Unregister(self, *args):
         sm.GetService('fleet').UnregisterFleet()
@@ -375,8 +382,9 @@ class FleetFinderWindow(uiprimitives.Container):
                 return
         if fleetID:
             sm.GetService('fleet').ApplyToJoinFleet(fleetID)
+        return
 
-    def DrawScrollList(self, filterScope = None, filterRange = None, filterStanding = None):
+    def DrawScrollList(self, filterScope=None, filterRange=None, filterStanding=None):
         fleets = self.fleets
         self.PrimeStuff(fleets)
         scrolllist = []
@@ -429,6 +437,7 @@ class FleetFinderWindow(uiprimitives.Container):
          localization.GetByLabel('UI/Fleet/FleetRegistry/MemberCount'),
          localization.GetByLabel('UI/Common/Description')]
         self.sr.scroll.Load(contentList=scrolllist, headers=headers, scrolltotop=0, noContentHint=localization.GetByLabel('UI/Fleet/FleetRegistry/SearchNoResult'))
+        return
 
     def PrimeStuff(self, fleets):
         pathfinderSvc = sm.GetService('clientPathfinderService')
@@ -455,15 +464,17 @@ class FleetFinderWindow(uiprimitives.Container):
             cfg.eveowners.Prime(namesForPriming)
         if len(locationsForPriming) > 0:
             cfg.evelocations.Prime(locationsForPriming)
+        return
 
-    def GetMyFleet(self, force = 0):
+    def GetMyFleet(self, force=0):
         if session.fleetid is None or not sm.GetService('fleet').options.isRegistered:
             return
-        myFleet = self.fleets.get(session.fleetid, None)
-        if myFleet is None or force:
-            self.GetFleets()
+        else:
             myFleet = self.fleets.get(session.fleetid, None)
-        return myFleet
+            if myFleet is None or force:
+                self.GetFleets()
+                myFleet = self.fleets.get(session.fleetid, None)
+            return myFleet
 
     def GetFleets(self):
         self.fleets = sm.GetService('fleet').GetFleetsForChar()

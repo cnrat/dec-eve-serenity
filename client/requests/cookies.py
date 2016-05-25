@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\packages\requests\cookies.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\packages\requests\cookies.py
 import time
 import collections
 from .compat import cookielib, urlparse, urlunparse, Morsel
@@ -42,7 +43,7 @@ class MockRequest(object):
     def has_header(self, name):
         return name in self._r.headers or name in self._new_headers
 
-    def get_header(self, name, default = None):
+    def get_header(self, name, default=None):
         return self._r.headers.get(name, self._new_headers.get(name, default))
 
     def add_header(self, key, val):
@@ -93,7 +94,7 @@ def get_cookie_header(jar, request):
     return r.get_new_headers().get('Cookie')
 
 
-def remove_cookie_by_name(cookiejar, name, domain = None, path = None):
+def remove_cookie_by_name(cookiejar, name, domain=None, path=None):
     clearables = []
     for cookie in cookiejar:
         if cookie.name == name:
@@ -104,6 +105,8 @@ def remove_cookie_by_name(cookiejar, name, domain = None, path = None):
     for domain, path, name in clearables:
         cookiejar.clear(domain, path, name)
 
+    return
+
 
 class CookieConflictError(RuntimeError):
     pass
@@ -111,7 +114,7 @@ class CookieConflictError(RuntimeError):
 
 class RequestsCookieJar(cookielib.CookieJar, collections.MutableMapping):
 
-    def get(self, name, default = None, domain = None, path = None):
+    def get(self, name, default=None, domain=None, path=None):
         try:
             return self._find_no_duplicates(name, domain, path)
         except KeyError:
@@ -121,12 +124,13 @@ class RequestsCookieJar(cookielib.CookieJar, collections.MutableMapping):
         if value is None:
             remove_cookie_by_name(self, name, domain=kwargs.get('domain'), path=kwargs.get('path'))
             return
-        if isinstance(value, Morsel):
-            c = morsel_to_cookie(value)
         else:
-            c = create_cookie(name, value, **kwargs)
-        self.set_cookie(c)
-        return c
+            if isinstance(value, Morsel):
+                c = morsel_to_cookie(value)
+            else:
+                c = create_cookie(name, value, **kwargs)
+            self.set_cookie(c)
+            return c
 
     def iterkeys(self):
         for cookie in iter(self):
@@ -174,7 +178,7 @@ class RequestsCookieJar(cookielib.CookieJar, collections.MutableMapping):
 
         return False
 
-    def get_dict(self, domain = None, path = None):
+    def get_dict(self, domain=None, path=None):
         dictionary = {}
         for cookie in iter(self):
             if (domain is None or cookie.domain == domain) and (path is None or cookie.path == path):
@@ -204,7 +208,7 @@ class RequestsCookieJar(cookielib.CookieJar, collections.MutableMapping):
         else:
             super(RequestsCookieJar, self).update(other)
 
-    def _find(self, name, domain = None, path = None):
+    def _find(self, name, domain=None, path=None):
         for cookie in iter(self):
             if cookie.name == name:
                 if domain is None or cookie.domain == domain:
@@ -212,8 +216,9 @@ class RequestsCookieJar(cookielib.CookieJar, collections.MutableMapping):
                         return cookie.value
 
         raise KeyError('name=%r, domain=%r, path=%r' % (name, domain, path))
+        return
 
-    def _find_no_duplicates(self, name, domain = None, path = None):
+    def _find_no_duplicates(self, name, domain=None, path=None):
         toReturn = None
         for cookie in iter(self):
             if cookie.name == name:
@@ -225,7 +230,9 @@ class RequestsCookieJar(cookielib.CookieJar, collections.MutableMapping):
 
         if toReturn:
             return toReturn
-        raise KeyError('name=%r, domain=%r, path=%r' % (name, domain, path))
+        else:
+            raise KeyError('name=%r, domain=%r, path=%r' % (name, domain, path))
+            return
 
     def __getstate__(self):
         state = self.__dict__.copy()
@@ -267,7 +274,7 @@ def morsel_to_cookie(morsel):
     return create_cookie(comment=morsel['comment'], comment_url=bool(morsel['comment']), discard=False, domain=morsel['domain'], expires=expires, name=morsel.key, path=morsel['path'], port=None, rest={'HttpOnly': morsel['httponly']}, rfc2109=False, secure=bool(morsel['secure']), value=morsel.value, version=morsel['version'] or 0)
 
 
-def cookiejar_from_dict(cookie_dict, cookiejar = None, overwrite = True):
+def cookiejar_from_dict(cookie_dict, cookiejar=None, overwrite=True):
     if cookiejar is None:
         cookiejar = RequestsCookieJar()
     if cookie_dict is not None:

@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\client\script\ui\shared\neocom\corporation\corp_ui_member_listentry.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\client\script\ui\shared\neocom\corporation\corp_ui_member_listentry.py
 import uicontrols
 import blue
 import sys
@@ -12,6 +13,7 @@ import carbonui.const as uiconst
 import corputil
 from corputil import *
 from carbon.common.script.sys.row import Row
+import util
 
 class CorpMemberRoleEntry(listentry.Generic):
     __guid__ = 'listentry.CorpMemberRoleEntry'
@@ -64,17 +66,22 @@ class CorpMemberRoleEntry(listentry.Generic):
         rows = self.sr.offices
         if rows and len(rows):
             for row in rows:
-                self.sr.bases.append((cfg.evelocations.Get(row.stationID).locationName, row.stationID))
+                if util.IsStation(row.locationID):
+                    self.sr.bases.append((cfg.evelocations.Get(row.locationID).locationName, row.locationID))
+
+        return
 
     def Lock(self):
         if self.sr.lock is None:
             self.sr.lock = uthread.Semaphore()
         self.sr.lock.acquire()
+        return
 
     def Unlock(self):
         self.sr.lock.release()
         if self.sr.lock.IsCool():
             self.sr.lock = None
+        return
 
     def GetViewRoleGroupingID(self):
         return self.sr.node.parent.sr.viewRoleGroupingID
@@ -143,50 +150,53 @@ class CorpMemberRoleEntry(listentry.Generic):
 
         try:
             try:
-                self.Lock()
-                s = blue.os.GetWallclockTimeNow()
-                if self.sr.node is None:
-                    return
-                if self.sr.node.rec is None or self.sr.node.rec.characterID != node.srcRec.characterID:
-                    self.sr.node = node
-                    self.GetMembersListData()
-                if 0 == len(self.sr.loadingCharacterID) or loadingCharacterID != self.sr.loadingCharacterID[-1]:
-                    return
-            finally:
-                self.LogInfo('Load 1 took %s ms.' % blue.os.TimeDiffInMs(s, blue.os.GetWallclockTimeNow()))
-                self.Unlock()
+                try:
+                    self.Lock()
+                    s = blue.os.GetWallclockTimeNow()
+                    if self.sr.node is None:
+                        return
+                    if self.sr.node.rec is None or self.sr.node.rec.characterID != node.srcRec.characterID:
+                        self.sr.node = node
+                        self.GetMembersListData()
+                    if 0 == len(self.sr.loadingCharacterID) or loadingCharacterID != self.sr.loadingCharacterID[-1]:
+                        return
+                finally:
+                    self.LogInfo('Load 1 took %s ms.' % blue.os.TimeDiffInMs(s, blue.os.GetWallclockTimeNow()))
+                    self.Unlock()
 
-            try:
-                self.Lock()
-                s = blue.os.GetWallclockTimeNow()
-                if self.sr.node is None:
-                    return
-                self.LoadColumns(loadingCharacterID)
-                if 0 == len(self.sr.loadingCharacterID) or loadingCharacterID != self.sr.loadingCharacterID[-1]:
-                    return
-            finally:
-                self.LogInfo('Load 2 took %s ms.' % blue.os.TimeDiffInMs(s, blue.os.GetWallclockTimeNow()))
-                self.Unlock()
+                try:
+                    self.Lock()
+                    s = blue.os.GetWallclockTimeNow()
+                    if self.sr.node is None:
+                        return
+                    self.LoadColumns(loadingCharacterID)
+                    if 0 == len(self.sr.loadingCharacterID) or loadingCharacterID != self.sr.loadingCharacterID[-1]:
+                        return
+                finally:
+                    self.LogInfo('Load 2 took %s ms.' % blue.os.TimeDiffInMs(s, blue.os.GetWallclockTimeNow()))
+                    self.Unlock()
 
-            try:
-                self.Lock()
-                s = blue.os.GetWallclockTimeNow()
-                if self.sr.node is None:
-                    return
-                self.UpdateLabelText()
-            finally:
-                self.LogInfo('Load 3 took %s ms.' % blue.os.TimeDiffInMs(s, blue.os.GetWallclockTimeNow()))
-                self.Unlock()
+                try:
+                    self.Lock()
+                    s = blue.os.GetWallclockTimeNow()
+                    if self.sr.node is None:
+                        return
+                    self.UpdateLabelText()
+                finally:
+                    self.LogInfo('Load 3 took %s ms.' % blue.os.TimeDiffInMs(s, blue.os.GetWallclockTimeNow()))
+                    self.Unlock()
 
-        except:
-            log.LogException()
-            sys.exc_clear()
+            except:
+                log.LogException()
+                sys.exc_clear()
+
         finally:
             if loadingCharacterID in self.sr.loadingCharacterID:
                 self.sr.loadingCharacterID.remove(loadingCharacterID)
 
         self.state = uiconst.UI_NORMAL
         self.sr.label.Update()
+        return
 
     def DataChanged(self, primaryKey, change):
         self.LogInfo('----------------------------------------------')
@@ -197,100 +207,103 @@ class CorpMemberRoleEntry(listentry.Generic):
         if change.has_key('corporationID') and change['corporationID'][1] == None:
             self.LogError('memberListEntry should have been removed for charID:', primaryKey)
             return
-        self.GetMembersListData()
-        self.UpdateLabelText()
-        viewRoleGroupingID = self.GetViewRoleGroupingID()
-        viewType = self.GetViewType()
-        if not (change.has_key('roles') and None not in change['roles'] and const.corpRoleDirector & change['roles'][0] != const.corpRoleDirector & change['roles'][1]):
-            if viewType == VIEW_ROLES:
-                roleGroup = self.sr.roleGroupings[viewRoleGroupingID]
-                if not change.has_key(roleGroup.appliesTo):
-                    self.LogInfo('DataChanged returning. Viewing roles have not changed')
-                    return
-            elif viewType == VIEW_GRANTABLE_ROLES:
-                roleGroup = self.sr.roleGroupings[viewRoleGroupingID]
-                if not change.has_key(roleGroup.appliesToGrantable):
-                    self.LogInfo('DataChanged returning. Viewing grantable roles have not changed')
-                    return
-            elif viewType == VIEW_TITLES:
-                if not change.has_key('titleMask'):
-                    self.LogInfo('DataChanged returning. Viewing titles have not changed')
-                    return
         else:
-            return self.Load(self.sr.node)
-        i = -1
-        self.LogInfo('change:', change)
-        old, new = self.GetRelevantChange(change)
-        if old is None:
-            old = 0
-        if new is None:
-            new = 0
-        for tabstop in self.GetTabStops():
-            i += 1
-            if i == 0:
-                continue
-            if i == 1:
-                if not change.has_key('baseID'):
-                    continue
-                column = self.sr.columns[i][0]
-                baseID = change['baseID'][1]
-                if isinstance(column, uicontrols.ComboCore):
-                    self.UpdateComboControl(column, baseID)
-                else:
-                    text = '-'
-                    if baseID is not None:
-                        text = cfg.evelocations.Get(baseID).locationName
-                    self.UpdateTextControl(column, text, column.width, column.left)
-                continue
-            columnNumber = i - 2
-            if viewType in (VIEW_ROLES, VIEW_GRANTABLE_ROLES):
-                roleGroup = self.sr.roleGroupings[viewRoleGroupingID]
-                column = roleGroup.columns[columnNumber]
-                columnName, subColumns = column
-                controlNumber = -1
-                for subColumn in subColumns:
-                    controlNumber += 1
-                    subColumnName, role = subColumn
-                    roleID = role.roleID
-                    if (old & roleID == roleID) == (new & roleID == roleID):
-                        continue
-                    control = self.sr.columns[i][controlNumber]
-                    value = self.GetRelevantRoles() & roleID == roleID
-                    text = '[%s]' % ['N', 'Y'][value]
-                    if isinstance(control, uicontrols.CheckboxCore):
-                        self.LogInfo('Updating checkbox')
-                        checked = control.GetValue()
-                        if checked == value:
-                            control.SetLabelText(subColumnName)
-                            continue
-                        control.SetLabelText(subColumnName + ' ' + text)
-                    else:
-                        self.LogInfo('Updating text control')
-                        control.text = text + ' ' + subColumnName
-
-            elif viewType == VIEW_TITLES:
-                titlesByID = sm.GetService('corp').GetTitles()
-                nextTitleID = 1
-                for ix in range(0, len(titlesByID)):
-                    titleID = nextTitleID
-                    title = titlesByID[titleID]
-                    nextTitleID = nextTitleID << 1
-                    if ix != columnNumber:
-                        continue
-                    if (old & titleID == titleID) == (new & titleID == titleID):
-                        continue
-                    control = self.sr.columns[i][0]
-                    value = self.GetRelevantRoles() & titleID == titleID
-                    text = '[%s]' % ['N', 'Y'][value]
-                    if isinstance(control, uicontrols.CheckboxCore):
-                        checked = control.GetValue()
-                        if checked != value:
-                            control.SetValue(value)
-                    else:
-                        control.text = text
-
+            self.GetMembersListData()
+            self.UpdateLabelText()
+            viewRoleGroupingID = self.GetViewRoleGroupingID()
+            viewType = self.GetViewType()
+            if not (change.has_key('roles') and None not in change['roles'] and const.corpRoleDirector & change['roles'][0] != const.corpRoleDirector & change['roles'][1]):
+                if viewType == VIEW_ROLES:
+                    roleGroup = self.sr.roleGroupings[viewRoleGroupingID]
+                    if not change.has_key(roleGroup.appliesTo):
+                        self.LogInfo('DataChanged returning. Viewing roles have not changed')
+                        return
+                elif viewType == VIEW_GRANTABLE_ROLES:
+                    roleGroup = self.sr.roleGroupings[viewRoleGroupingID]
+                    if not change.has_key(roleGroup.appliesToGrantable):
+                        self.LogInfo('DataChanged returning. Viewing grantable roles have not changed')
+                        return
+                elif viewType == VIEW_TITLES:
+                    if not change.has_key('titleMask'):
+                        self.LogInfo('DataChanged returning. Viewing titles have not changed')
+                        return
             else:
-                raise RuntimeError('UnknownViewType')
+                return self.Load(self.sr.node)
+            i = -1
+            self.LogInfo('change:', change)
+            old, new = self.GetRelevantChange(change)
+            if old is None:
+                old = 0
+            if new is None:
+                new = 0
+            for tabstop in self.GetTabStops():
+                i += 1
+                if i == 0:
+                    continue
+                if i == 1:
+                    if not change.has_key('baseID'):
+                        continue
+                    column = self.sr.columns[i][0]
+                    baseID = change['baseID'][1]
+                    if isinstance(column, uicontrols.ComboCore):
+                        self.UpdateComboControl(column, baseID)
+                    else:
+                        text = '-'
+                        if baseID is not None:
+                            text = cfg.evelocations.Get(baseID).locationName
+                        self.UpdateTextControl(column, text, column.width, column.left)
+                    continue
+                columnNumber = i - 2
+                if viewType in (VIEW_ROLES, VIEW_GRANTABLE_ROLES):
+                    roleGroup = self.sr.roleGroupings[viewRoleGroupingID]
+                    column = roleGroup.columns[columnNumber]
+                    columnName, subColumns = column
+                    controlNumber = -1
+                    for subColumn in subColumns:
+                        controlNumber += 1
+                        subColumnName, role = subColumn
+                        roleID = role.roleID
+                        if (old & roleID == roleID) == (new & roleID == roleID):
+                            continue
+                        control = self.sr.columns[i][controlNumber]
+                        value = self.GetRelevantRoles() & roleID == roleID
+                        text = '[%s]' % ['N', 'Y'][value]
+                        if isinstance(control, uicontrols.CheckboxCore):
+                            self.LogInfo('Updating checkbox')
+                            checked = control.GetValue()
+                            if checked == value:
+                                control.SetLabelText(subColumnName)
+                                continue
+                            control.SetLabelText(subColumnName + ' ' + text)
+                        else:
+                            self.LogInfo('Updating text control')
+                            control.text = text + ' ' + subColumnName
+
+                elif viewType == VIEW_TITLES:
+                    titlesByID = sm.GetService('corp').GetTitles()
+                    nextTitleID = 1
+                    for ix in range(0, len(titlesByID)):
+                        titleID = nextTitleID
+                        title = titlesByID[titleID]
+                        nextTitleID = nextTitleID << 1
+                        if ix != columnNumber:
+                            continue
+                        if (old & titleID == titleID) == (new & titleID == titleID):
+                            continue
+                        control = self.sr.columns[i][0]
+                        value = self.GetRelevantRoles() & titleID == titleID
+                        text = '[%s]' % ['N', 'Y'][value]
+                        if isinstance(control, uicontrols.CheckboxCore):
+                            checked = control.GetValue()
+                            if checked != value:
+                                control.SetValue(value)
+                        else:
+                            control.text = text
+
+                else:
+                    raise RuntimeError('UnknownViewType')
+
+            return
 
     def GetMembersListData(self):
         corporation = sm.GetService('corp').GetCorporation()
@@ -366,6 +379,7 @@ class CorpMemberRoleEntry(listentry.Generic):
          IAmDirector]
         self.sr.node.rec = Row(self.sr.rowHeader, line)
         self.LogInfo(self.sr.node.rec)
+        return
 
     def OnUpdateTabstops(self, tabstops):
         log.LogWarn('ENTRY>>OnUpdateTabstops')
@@ -374,128 +388,187 @@ class CorpMemberRoleEntry(listentry.Generic):
         rec = self.GetRec()
         if rec is None:
             return
-        self.LoadColumns(rec.characterID)
+        else:
+            self.LoadColumns(rec.characterID)
+            return
 
     def LoadColumns(self, loadingCharacterID):
         if len(self.sr.loadingCharacterID) and loadingCharacterID != self.sr.loadingCharacterID[-1]:
             return
-        data = self.sr.node
-        tabstops = self.GetTabStops()
-        viewtype = self.GetViewType()
-        nMaxColumnIndex = 0
-        rec = self.GetRec()
-        viewRoleGroupingID = self.GetViewRoleGroupingID()
-        if viewtype in (VIEW_ROLES, VIEW_GRANTABLE_ROLES):
-            roleGroup = self.sr.roleGroupings[viewRoleGroupingID]
-            nMaxColumnIndex = len(roleGroup.columns)
         else:
-            titles = sm.GetService('corp').GetTitles()
-            nMaxColumnIndex = len(titles)
-        oldColumns = []
-        if self.sr.columns:
-            oldColumns.extend(self.sr.columns)
-        self.sr.columns = [None] * (2 + nMaxColumnIndex)
-        align = uiconst.RELATIVE
-        height = 16
-        top = 3
-        maxHeight = 0
-        i = -1
-        previousTabPosition = 0
-        relevantRoles = self.GetRelevantRoles()
-        try:
-            for tabstop in tabstops:
-                if len(self.sr.loadingCharacterID) and loadingCharacterID != self.sr.loadingCharacterID[-1]:
-                    return
-                i += 1
-                text, column, columnContents = '', None, []
-                left = previousTabPosition + 4
-                width = tabstop - previousTabPosition - 4
-                if i == 0:
-                    if not oldColumns or oldColumns[i] is None:
-                        column = uicontrols.EveLabelMedium(text=rec.name, parent=self, width=width, left=left, top=top, state=uiconst.UI_DISABLED, maxLines=1)
-                        maxHeight = max(maxHeight, column.textheight)
-                        columnContents.append(column)
-                    else:
-                        oldColumn = oldColumns[i]
-                        column = oldColumn[0]
-                        self.UpdateTextControl(column, rec.name, width, left)
-                        columnContents = [column]
-                        oldColumns[i] = []
-                elif i == 1:
-                    canEditBase = corputil.CanEditBase(rec.isCEO, rec.IAmCEO, rec.IAmDirector)
-                    canRecycle = 0
-                    comboBoxes = []
-                    textControls = []
-                    if oldColumns and len(oldColumns) > i and oldColumns[i] is not None and len(oldColumns[i]):
-                        for column in oldColumns[i]:
-                            if isinstance(column, uicontrols.ComboCore):
-                                comboBoxes.append(column)
-                            elif isinstance(column, uicontrols.LabelCore):
-                                textControls.append(column)
-
-                        comboBoxesRequired = 0
-                        textControlsRequired = 0
-                        if canEditBase:
-                            comboBoxesRequired += 1
-                        else:
-                            textControlsRequired += 1
-                        if comboBoxesRequired == len(comboBoxes) and textControlsRequired == len(textControls):
-                            canRecycle = 1
-                    if not canRecycle:
-                        if canEditBase:
-                            s = blue.os.GetWallclockTimeNow()
-                            bFound = 0
-                            bases = []
-                            bases.extend(self.sr.bases)
-                            for locationName, locationID in self.sr.bases:
-                                if locationID == rec.baseID:
-                                    bFound = 1
-
-                            if bFound == 0:
-                                bases.append(('! ' + cfg.evelocations.Get(rec.baseID).locationName, rec.baseID))
-                            column = uicontrols.Combo(label='', parent=self, options=bases, name='baseID', select=rec.baseID, width=width - 7, pos=(left,
-                             3,
-                             0,
-                             0), align=uiconst.TOPLEFT, callback=self.OnComboChange)
-                            self.LogInfo('uicontrols.Combo took %s ms.' % blue.os.TimeDiffInMs(s, blue.os.GetWallclockTimeNow()))
-                            column.z = 1
-                        else:
-                            text = '-'
-                            if rec.baseID is not None:
-                                text = cfg.evelocations.Get(rec.baseID).locationName
-                            column = uicontrols.EveLabelMedium(text=text, parent=self, width=width, left=left, top=top, state=uiconst.UI_DISABLED, maxLines=1)
+            data = self.sr.node
+            tabstops = self.GetTabStops()
+            viewtype = self.GetViewType()
+            nMaxColumnIndex = 0
+            rec = self.GetRec()
+            viewRoleGroupingID = self.GetViewRoleGroupingID()
+            if viewtype in (VIEW_ROLES, VIEW_GRANTABLE_ROLES):
+                roleGroup = self.sr.roleGroupings[viewRoleGroupingID]
+                nMaxColumnIndex = len(roleGroup.columns)
+            else:
+                titles = sm.GetService('corp').GetTitles()
+                nMaxColumnIndex = len(titles)
+            oldColumns = []
+            if self.sr.columns:
+                oldColumns.extend(self.sr.columns)
+            self.sr.columns = [None] * (2 + nMaxColumnIndex)
+            align = uiconst.RELATIVE
+            height = 16
+            top = 3
+            maxHeight = 0
+            i = -1
+            previousTabPosition = 0
+            relevantRoles = self.GetRelevantRoles()
+            try:
+                for tabstop in tabstops:
+                    if len(self.sr.loadingCharacterID) and loadingCharacterID != self.sr.loadingCharacterID[-1]:
+                        return
+                    i += 1
+                    text, column, columnContents = '', None, []
+                    left = previousTabPosition + 4
+                    width = tabstop - previousTabPosition - 4
+                    if i == 0:
+                        if not oldColumns or oldColumns[i] is None:
+                            column = uicontrols.EveLabelMedium(text=rec.name, parent=self, width=width, left=left, top=top, state=uiconst.UI_DISABLED, maxLines=1)
                             maxHeight = max(maxHeight, column.textheight)
-                        columnContents.append(column)
-                    else:
-                        if canEditBase:
-                            combobox = comboBoxes.pop()
-                            self.UpdateComboControl(combobox, rec.baseID, width, left)
-                            columnContents.append(combobox)
+                            columnContents.append(column)
                         else:
-                            textControl = textControls.pop()
-                            text = '-'
-                            if rec.baseID is not None:
-                                text = cfg.evelocations.Get(rec.baseID).locationName
-                            self.UpdateTextControl(textControl, text, width, left)
-                            columnContents.append(textControl)
-                        oldColumns[i] = []
-                        oldColumns[i].extend(comboBoxes)
-                        oldColumns[i].extend(textControls)
-                else:
-                    columnNumber = i - 2
-                    if viewtype in (VIEW_ROLES, VIEW_GRANTABLE_ROLES):
-                        roleGroup = self.sr.roleGroupings[viewRoleGroupingID]
-                        column = roleGroup.columns[columnNumber]
-                        columnName, subColumns = column
-                        controlNumber = -1
-                        controlWidth = width / len(subColumns)
-                        for subColumn in subColumns:
-                            controlNumber += 1
-                            subColumnName, role = subColumn
-                            roleID = role.roleID
-                            value = relevantRoles & roleID == roleID
+                            oldColumn = oldColumns[i]
+                            column = oldColumn[0]
+                            self.UpdateTextControl(column, rec.name, width, left)
+                            columnContents = [column]
+                            oldColumns[i] = []
+                    elif i == 1:
+                        canEditBase = corputil.CanEditBase(rec.isCEO, rec.IAmCEO, rec.IAmDirector)
+                        canRecycle = 0
+                        comboBoxes = []
+                        textControls = []
+                        if oldColumns and len(oldColumns) > i and oldColumns[i] is not None and len(oldColumns[i]):
+                            for column in oldColumns[i]:
+                                if isinstance(column, uicontrols.ComboCore):
+                                    comboBoxes.append(column)
+                                elif isinstance(column, uicontrols.LabelCore):
+                                    textControls.append(column)
+
+                            comboBoxesRequired = 0
+                            textControlsRequired = 0
+                            if canEditBase:
+                                comboBoxesRequired += 1
+                            else:
+                                textControlsRequired += 1
+                            if comboBoxesRequired == len(comboBoxes) and textControlsRequired == len(textControls):
+                                canRecycle = 1
+                        if not canRecycle:
+                            if canEditBase:
+                                s = blue.os.GetWallclockTimeNow()
+                                bFound = 0
+                                bases = []
+                                bases.extend(self.sr.bases)
+                                for locationName, locationID in self.sr.bases:
+                                    if locationID == rec.baseID:
+                                        bFound = 1
+
+                                if bFound == 0:
+                                    bases.append(('! ' + cfg.evelocations.Get(rec.baseID).locationName, rec.baseID))
+                                column = uicontrols.Combo(label='', parent=self, options=bases, name='baseID', select=rec.baseID, width=width - 7, pos=(left,
+                                 3,
+                                 0,
+                                 0), align=uiconst.TOPLEFT, callback=self.OnComboChange)
+                                self.LogInfo('uicontrols.Combo took %s ms.' % blue.os.TimeDiffInMs(s, blue.os.GetWallclockTimeNow()))
+                                column.z = 1
+                            else:
+                                text = '-'
+                                if rec.baseID is not None:
+                                    text = cfg.evelocations.Get(rec.baseID).locationName
+                                column = uicontrols.EveLabelMedium(text=text, parent=self, width=width, left=left, top=top, state=uiconst.UI_DISABLED, maxLines=1)
+                                maxHeight = max(maxHeight, column.textheight)
+                            columnContents.append(column)
+                        else:
+                            if canEditBase:
+                                combobox = comboBoxes.pop()
+                                self.UpdateComboControl(combobox, rec.baseID, width, left)
+                                columnContents.append(combobox)
+                            else:
+                                textControl = textControls.pop()
+                                text = '-'
+                                if rec.baseID is not None:
+                                    text = cfg.evelocations.Get(rec.baseID).locationName
+                                self.UpdateTextControl(textControl, text, width, left)
+                                columnContents.append(textControl)
+                            oldColumns[i] = []
+                            oldColumns[i].extend(comboBoxes)
+                            oldColumns[i].extend(textControls)
+                    else:
+                        columnNumber = i - 2
+                        if viewtype in (VIEW_ROLES, VIEW_GRANTABLE_ROLES):
+                            roleGroup = self.sr.roleGroupings[viewRoleGroupingID]
+                            column = roleGroup.columns[columnNumber]
+                            columnName, subColumns = column
+                            controlNumber = -1
+                            controlWidth = width / len(subColumns)
+                            for subColumn in subColumns:
+                                controlNumber += 1
+                                subColumnName, role = subColumn
+                                roleID = role.roleID
+                                value = relevantRoles & roleID == roleID
+                                text = '[%s] %s' % (['N', 'Y'][value], subColumnName)
+                                canEditRole = self.GetCanEditRole(roleID)
+                                canRecycle = 0
+                                checkBoxes = []
+                                textControls = []
+                                if oldColumns and len(oldColumns) > i and oldColumns[i] is not None and len(oldColumns[i]):
+                                    for column in oldColumns[i]:
+                                        if isinstance(column, uicontrols.CheckboxCore):
+                                            checkBoxes.append(column)
+                                        elif isinstance(column, uicontrols.LabelCore):
+                                            textControls.append(column)
+
+                                    checkBoxesRequired = 0
+                                    textControlsRequired = 0
+                                    if canEditRole:
+                                        checkBoxesRequired += 1
+                                    else:
+                                        textControlsRequired += 1
+                                    if checkBoxesRequired == len(checkBoxes) and textControlsRequired == len(textControls):
+                                        canRecycle = 1
+                                if not canRecycle:
+                                    if canEditRole:
+                                        column = self.AddCheckBox(['%s' % i,
+                                         roleID,
+                                         subColumnName,
+                                         value], self, align, controlWidth, height, left, None)
+                                        self.AddMenuDelegator(column)
+                                    else:
+                                        column = uicontrols.EveLabelMedium(text=text, parent=self, width=controlWidth, left=left, top=top, state=uiconst.UI_DISABLED, maxLines=1)
+                                        maxHeight = max(maxHeight, column.textheight)
+                                    columnContents.append(column)
+                                    left += controlWidth
+                                else:
+                                    if canEditRole:
+                                        checkbox = checkBoxes.pop()
+                                        self.UpdateCheckBox(checkbox, ['%s' % i,
+                                         roleID,
+                                         subColumnName,
+                                         value], controlWidth, height, left)
+                                        columnContents.append(checkbox)
+                                    else:
+                                        textControl = textControls.pop()
+                                        self.UpdateTextControl(textControl, text, controlWidth, left)
+                                        columnContents.append(textControl)
+                                    left += controlWidth
+                                    oldColumns[i] = []
+                                    oldColumns[i].extend(checkBoxes)
+                                    oldColumns[i].extend(textControls)
+
+                        else:
+                            titlesByID = sm.GetService('corp').GetTitles()
+                            subColumnName = ''
+                            controlWidth = width
+                            titleID = 1 << columnNumber
+                            title = titlesByID[titleID]
+                            value = relevantRoles & titleID == titleID
                             text = '[%s] %s' % (['N', 'Y'][value], subColumnName)
-                            canEditRole = self.GetCanEditRole(roleID)
+                            canEditRole = self.GetCanEditRole(titleID)
                             canRecycle = 0
                             checkBoxes = []
                             textControls = []
@@ -517,10 +590,9 @@ class CorpMemberRoleEntry(listentry.Generic):
                             if not canRecycle:
                                 if canEditRole:
                                     column = self.AddCheckBox(['%s' % i,
-                                     roleID,
+                                     titleID,
                                      subColumnName,
                                      value], self, align, controlWidth, height, left, None)
-                                    self.AddMenuDelegator(column)
                                 else:
                                     column = uicontrols.EveLabelMedium(text=text, parent=self, width=controlWidth, left=left, top=top, state=uiconst.UI_DISABLED, maxLines=1)
                                     maxHeight = max(maxHeight, column.textheight)
@@ -530,7 +602,7 @@ class CorpMemberRoleEntry(listentry.Generic):
                                 if canEditRole:
                                     checkbox = checkBoxes.pop()
                                     self.UpdateCheckBox(checkbox, ['%s' % i,
-                                     roleID,
+                                     titleID,
                                      subColumnName,
                                      value], controlWidth, height, left)
                                     columnContents.append(checkbox)
@@ -542,72 +614,19 @@ class CorpMemberRoleEntry(listentry.Generic):
                                 oldColumns[i] = []
                                 oldColumns[i].extend(checkBoxes)
                                 oldColumns[i].extend(textControls)
+                    self.sr.columns[i] = columnContents
+                    previousTabPosition = tabstop
 
-                    else:
-                        titlesByID = sm.GetService('corp').GetTitles()
-                        subColumnName = ''
-                        controlWidth = width
-                        titleID = 1 << columnNumber
-                        title = titlesByID[titleID]
-                        value = relevantRoles & titleID == titleID
-                        text = '[%s] %s' % (['N', 'Y'][value], subColumnName)
-                        canEditRole = self.GetCanEditRole(titleID)
-                        canRecycle = 0
-                        checkBoxes = []
-                        textControls = []
-                        if oldColumns and len(oldColumns) > i and oldColumns[i] is not None and len(oldColumns[i]):
-                            for column in oldColumns[i]:
-                                if isinstance(column, uicontrols.CheckboxCore):
-                                    checkBoxes.append(column)
-                                elif isinstance(column, uicontrols.LabelCore):
-                                    textControls.append(column)
+            finally:
+                if oldColumns:
+                    for column in oldColumns:
+                        if column is None:
+                            continue
+                        for control in column:
+                            if control and not control.destroyed:
+                                control.Close()
 
-                            checkBoxesRequired = 0
-                            textControlsRequired = 0
-                            if canEditRole:
-                                checkBoxesRequired += 1
-                            else:
-                                textControlsRequired += 1
-                            if checkBoxesRequired == len(checkBoxes) and textControlsRequired == len(textControls):
-                                canRecycle = 1
-                        if not canRecycle:
-                            if canEditRole:
-                                column = self.AddCheckBox(['%s' % i,
-                                 titleID,
-                                 subColumnName,
-                                 value], self, align, controlWidth, height, left, None)
-                            else:
-                                column = uicontrols.EveLabelMedium(text=text, parent=self, width=controlWidth, left=left, top=top, state=uiconst.UI_DISABLED, maxLines=1)
-                                maxHeight = max(maxHeight, column.textheight)
-                            columnContents.append(column)
-                            left += controlWidth
-                        else:
-                            if canEditRole:
-                                checkbox = checkBoxes.pop()
-                                self.UpdateCheckBox(checkbox, ['%s' % i,
-                                 titleID,
-                                 subColumnName,
-                                 value], controlWidth, height, left)
-                                columnContents.append(checkbox)
-                            else:
-                                textControl = textControls.pop()
-                                self.UpdateTextControl(textControl, text, controlWidth, left)
-                                columnContents.append(textControl)
-                            left += controlWidth
-                            oldColumns[i] = []
-                            oldColumns[i].extend(checkBoxes)
-                            oldColumns[i].extend(textControls)
-                self.sr.columns[i] = columnContents
-                previousTabPosition = tabstop
-
-        finally:
-            if oldColumns:
-                for column in oldColumns:
-                    if column is None:
-                        continue
-                    for control in column:
-                        if control and not control.destroyed:
-                            control.Close()
+            return
 
     def UpdateLabelText(self):
         relevantRoles = self.GetRelevantRoles()
@@ -658,6 +677,7 @@ class CorpMemberRoleEntry(listentry.Generic):
                 label += newtext
 
         self.sr.node.label = label
+        return
 
     def GetCanEditRole(self, roleID):
         if type(roleID) == types.TupleType:
@@ -695,6 +715,7 @@ class CorpMemberRoleEntry(listentry.Generic):
         checkbox.OnChange = None
         checkbox.SetChecked(default)
         checkbox.OnChange = self.CheckBoxChange
+        return
 
     def AddCheckBox(self, config, where, align, width, height, left, group):
         cfgname, retval, desc, default = config
@@ -707,7 +728,7 @@ class CorpMemberRoleEntry(listentry.Generic):
         cbox.state = uiconst.UI_NORMAL
         return cbox
 
-    def UpdateComboControl(self, comboControl, value, width = None, left = None):
+    def UpdateComboControl(self, comboControl, value, width=None, left=None):
         self.LogInfo('comboControl:', comboControl)
         self.LogInfo('value:', value)
         comboControl.SelectItemByValue(value)
@@ -715,6 +736,7 @@ class CorpMemberRoleEntry(listentry.Generic):
             comboControl.width = width
         if left is not None:
             comboControl.left = left - 4
+        return
 
     def OnComboChange(self, combo, header, value, *args):
         self.LogInfo('combo:', combo)
@@ -791,7 +813,9 @@ class CorpMemberRoleEntry(listentry.Generic):
     def AddMenuDelegator(self, control):
         if control is None or control.destroyed:
             return
-        setattr(control, 'GetMenu', self.GetMenu)
+        else:
+            setattr(control, 'GetMenu', self.GetMenu)
+            return
 
     def GetMenu(self, *args):
         self.OnClick()

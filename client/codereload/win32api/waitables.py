@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\packages\codereload\win32api\waitables.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\packages\codereload\win32api\waitables.py
 import ctypes
 from ctypes.wintypes import BOOL, DWORD, HANDLE
 import weakref
@@ -30,13 +31,13 @@ class Waitables(object):
         self.waitables[handle] = callback
         return handle
 
-    def RemoveHandle(self, handle, close = False):
+    def RemoveHandle(self, handle, close=False):
         del self.waitables[handle]
         if close:
             if not ctypes.windll.kernel32.CloseHandle(HANDLE(handle)):
                 raise ctypes.WinError()
 
-    def Wait(self, milliseconds = 1000):
+    def Wait(self, milliseconds=1000):
         handles, callbacks = self.waitables.keys(), self.waitables.values()
         HandleArray = ctypes.c_void_p * len(handles)
         handles = HandleArray(*handles)
@@ -65,7 +66,7 @@ class Waitables(object):
             raise RuntimeError('Wait: Unknown return value from MsgWaitForMultipleObjectsEx:', ret)
 
 
-def WaitForSingleObject(handle, milliseconds = 0):
+def WaitForSingleObject(handle, milliseconds=0):
     ret = ctypes.windll.kernel32.WaitForSingleObject(handle, milliseconds)
     if ret == WAIT_OBJECT_0:
         return True

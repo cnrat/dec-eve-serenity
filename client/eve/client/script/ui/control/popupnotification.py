@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\client\script\ui\control\popupnotification.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\client\script\ui\control\popupnotification.py
 import uiprimitives
 import uicontrols
 import uiutil
@@ -54,8 +55,9 @@ class PopupNotification(uiprimitives.Container):
         self.height = max(self.height, totalHeight + 6)
         time = getattr(data, 'time', 10000)
         uthread.new(self.Kill, time)
+        return
 
-    def Kill(self, time = 10000):
+    def Kill(self, time=10000):
         blue.pyos.synchro.SleepWallclock(time)
         if not self or self.destroyed:
             return

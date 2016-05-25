@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\carbon\common\stdlib\email\generator.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\carbon\common\stdlib\email\generator.py
 __all__ = ['Generator', 'DecodedGenerator']
 import re
 import sys
@@ -23,7 +24,7 @@ def _is8bitstring(s):
 
 class Generator():
 
-    def __init__(self, outfp, mangle_from_ = True, maxheaderlen = 78):
+    def __init__(self, outfp, mangle_from_=True, maxheaderlen=78):
         self._fp = outfp
         self._mangle_from_ = mangle_from_
         self._maxheaderlen = maxheaderlen
@@ -31,7 +32,7 @@ class Generator():
     def write(self, s):
         self._fp.write(s)
 
-    def flatten(self, msg, unixfrom = False):
+    def flatten(self, msg, unixfrom=False):
         if unixfrom:
             ufrom = msg.get_unixfrom()
             if not ufrom:
@@ -56,6 +57,7 @@ class Generator():
         else:
             meth(self)
         self._fp.write(sfp.getvalue())
+        return
 
     def _dispatch(self, msg):
         main = msg.get_content_maintype()
@@ -68,6 +70,7 @@ class Generator():
             if meth is None:
                 meth = self._writeBody
         meth(msg)
+        return
 
     def _write_headers(self, msg):
         for h, v in msg.items():
@@ -87,11 +90,13 @@ class Generator():
         payload = msg.get_payload()
         if payload is None:
             return
-        if not isinstance(payload, basestring):
-            raise TypeError('string payload expected: %s' % type(payload))
-        if self._mangle_from_:
-            payload = fcre.sub('>From ', payload)
-        self._fp.write(payload)
+        else:
+            if not isinstance(payload, basestring):
+                raise TypeError('string payload expected: %s' % type(payload))
+            if self._mangle_from_:
+                payload = fcre.sub('>From ', payload)
+            self._fp.write(payload)
+            return
 
     _writeBody = _handle_text
 
@@ -129,6 +134,7 @@ class Generator():
         if msg.epilogue is not None:
             print >> self._fp
             self._fp.write(msg.epilogue)
+        return
 
     def _handle_multipart_signed(self, msg):
         old_maxheaderlen = self._maxheaderlen
@@ -167,12 +173,13 @@ _FMT = '[Non-text (%(type)s) part of message omitted, filename %(filename)s]'
 
 class DecodedGenerator(Generator):
 
-    def __init__(self, outfp, mangle_from_ = True, maxheaderlen = 78, fmt = None):
+    def __init__(self, outfp, mangle_from_=True, maxheaderlen=78, fmt=None):
         Generator.__init__(self, outfp, mangle_from_, maxheaderlen)
         if fmt is None:
             self._fmt = _FMT
         else:
             self._fmt = fmt
+        return
 
     def _dispatch(self, msg):
         for part in msg.walk():
@@ -193,18 +200,19 @@ class DecodedGenerator(Generator):
 _width = len(repr(sys.maxint - 1))
 _fmt = '%%0%dd' % _width
 
-def _make_boundary(text = None):
+def _make_boundary(text=None):
     token = random.randrange(sys.maxint)
     boundary = '===============' + _fmt % token + '=='
     if text is None:
         return boundary
-    b = boundary
-    counter = 0
-    while True:
-        cre = re.compile('^--' + re.escape(b) + '(--)?$', re.MULTILINE)
-        if not cre.search(text):
-            break
-        b = boundary + '.' + str(counter)
-        counter += 1
+    else:
+        b = boundary
+        counter = 0
+        while True:
+            cre = re.compile('^--' + re.escape(b) + '(--)?$', re.MULTILINE)
+            if not cre.search(text):
+                break
+            b = boundary + '.' + str(counter)
+            counter += 1
 
-    return b
+        return b

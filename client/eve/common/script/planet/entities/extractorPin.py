@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\common\script\planet\entities\extractorPin.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\common\script\planet\entities\extractorPin.py
 import const
 from eve.common.script.planet.entities.basePin import BasePin
 from eve.common.script.planet.entities.basePin import STATE_ACTIVE, STATE_IDLE
@@ -25,6 +26,7 @@ class ExtractorPin(BasePin):
         self.depositExpiryTime = None
         self.cycleTime = None
         self.installTime = None
+        return
 
     def GetCycleTime(self):
         return self.cycleTime
@@ -36,31 +38,33 @@ class ExtractorPin(BasePin):
         return self.eventHandler.GetTypeAttribute(self.typeID, const.attributePinExtractionQuantity)
 
     def CanAccept(self, typeID, quantity):
-        return 0
+        pass
 
     def AddCommodity(self, typeID, quantity):
-        return 0
+        pass
 
     def Run(self, runTime):
         self.lastRunTime = runTime
         if self.depositType is None:
             return {}
-        products = {}
-        if self.IsActive():
-            products[self.depositType] = self.depositQtyPerCycle if self.depositQtyPerCycle < self.depositQtyRemaining else self.depositQtyRemaining
-            self.depositQtyRemaining -= products[self.depositType]
-            if self.depositQtyRemaining <= 0:
-                self.ClearDeposit()
-        return products
+        else:
+            products = {}
+            if self.IsActive():
+                products[self.depositType] = self.depositQtyPerCycle if self.depositQtyPerCycle < self.depositQtyRemaining else self.depositQtyRemaining
+                self.depositQtyRemaining -= products[self.depositType]
+                if self.depositQtyRemaining <= 0:
+                    self.ClearDeposit()
+            return products
 
     def CanInstallDeposit(self):
         if self.depositType is None:
             return True
-        if self.depositQtyRemaining <= 0:
+        elif self.depositQtyRemaining <= 0:
             return True
-        return False
+        else:
+            return False
 
-    def InstallDeposit(self, cycleTime, depositProductTypeID, depositQtyPerCycle, depositTotalQty, depositExpiryTime, lastRunTime = None, installTime = None):
+    def InstallDeposit(self, cycleTime, depositProductTypeID, depositQtyPerCycle, depositTotalQty, depositExpiryTime, lastRunTime=None, installTime=None):
         self.depositType = int(depositProductTypeID)
         self.depositQtyPerCycle = depositQtyPerCycle
         if self.depositQtyPerCycle <= 0:
@@ -90,11 +94,13 @@ class ExtractorPin(BasePin):
         self.depositExpiryTime = None
         self.installTime = None
         self.SetState(STATE_IDLE)
+        return
 
     def CanActivate(self):
         if self.activityState < STATE_IDLE:
             return False
-        return self.depositType is not None and self.depositQtyRemaining > 0
+        else:
+            return self.depositType is not None and self.depositQtyRemaining > 0
 
     def IsActive(self):
         return self.depositType is not None and self.activityState > STATE_IDLE
@@ -102,13 +108,14 @@ class ExtractorPin(BasePin):
     def GetDepositInformation(self):
         if self.depositType is None:
             return
-        return [self.id,
-         int(self.depositType),
-         self.cycleTime / const.SEC,
-         self.depositQtyPerCycle,
-         self.depositQtyRemaining,
-         self.installTime,
-         self.depositExpiryTime]
+        else:
+            return [self.id,
+             int(self.depositType),
+             self.cycleTime / const.SEC,
+             self.depositQtyPerCycle,
+             self.depositQtyRemaining,
+             self.installTime,
+             self.depositExpiryTime]
 
     def IsProducer(self):
         return True
@@ -121,6 +128,7 @@ class ExtractorPin(BasePin):
             return {}
         else:
             return {self.depositType: self.depositQtyPerCycle}
+            return
 
     def GetTimeToDepletion(self):
         if self.depositType is not None and self.depositQtyPerCycle > 0:
@@ -135,7 +143,7 @@ class ExtractorPin(BasePin):
     def GetTimeToExpiry(self):
         return self.depositExpiryTime - blue.os.GetWallclockTime()
 
-    def Serialize(self, full = False):
+    def Serialize(self, full=False):
         data = BasePin.Serialize(self, full)
         data.cycleTime = self.cycleTime
         data.depositType = int(self.depositType) if self.depositType is not None else None

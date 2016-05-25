@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\client\script\ui\shared\spaceObjectUiPointer.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\client\script\ui\shared\spaceObjectUiPointer.py
 import evetypes
 import uicontrols
 import uicls
@@ -103,6 +104,7 @@ class SpaceObjectTypeUiPointer(object):
 
         self.lastUpdateTime = blue.os.GetSimTime()
         self.speed = 0.0
+        return
 
     def CalcVectorTo(self, contA, contB):
         x0, y0 = self.GetContainerPosition(contA)
@@ -154,19 +156,21 @@ class SpaceObjectTypeUiPointer(object):
         t = blue.os.GetSimTime()
         if t == self.lastUpdateTime:
             return
-        if sm.GetService('michelle').GetBall(self.itemID) is None:
+        elif sm.GetService('michelle').GetBall(self.itemID) is None:
             self.Close()
             return
-        self.UpdateBoxPosition()
-        bracketPos = self.GetContainerPosition(self.bracket)
-        boxPos = self.GetContainerPosition(self.floatingBox)
-        lineTo = self.GetLineConnectionPointOnBox(bracketPos, self.floatingBox)
-        cornerPos = geo2.Vec2Add(boxPos, lineTo)
-        vec = geo2.Vec2Subtract(bracketPos, cornerPos)
-        length = geo2.Vec2Length(vec)
-        vec = geo2.Scale(vec, (length - ICON_SIZE / 2) / length)
-        self.line.translationTo = geo2.Vec2Add(vec, lineTo)
-        self.line.translationFrom = lineTo
+        else:
+            self.UpdateBoxPosition()
+            bracketPos = self.GetContainerPosition(self.bracket)
+            boxPos = self.GetContainerPosition(self.floatingBox)
+            lineTo = self.GetLineConnectionPointOnBox(bracketPos, self.floatingBox)
+            cornerPos = geo2.Vec2Add(boxPos, lineTo)
+            vec = geo2.Vec2Subtract(bracketPos, cornerPos)
+            length = geo2.Vec2Length(vec)
+            vec = geo2.Scale(vec, (length - ICON_SIZE / 2) / length)
+            self.line.translationTo = geo2.Vec2Add(vec, lineTo)
+            self.line.translationFrom = lineTo
+            return
 
     def GetAABB(self, box):
         xMin = box.left

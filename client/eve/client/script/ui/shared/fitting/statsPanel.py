@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\client\script\ui\shared\fitting\statsPanel.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\client\script\ui\shared\fitting\statsPanel.py
 from carbonui import const as uiconst
 from carbonui.primitives.container import Container
 import dogma.const as dogmaConst
@@ -13,6 +14,7 @@ from eve.client.script.ui.shared.fitting.panels.offensePanel import OffensePanel
 from eve.client.script.ui.shared.fitting.panels.targetingPanel import TargetingPanel
 from eve.client.script.ui.shared.fitting.storedFittingsButtons import StoredFittingsButtons
 from eve.client.script.ui.tooltips.tooltipUtil import SetTooltipHeaderAndDescription
+from eve.common.script.sys.eveCfg import IsControllingStructure
 import evetypes
 import inventorycommon.const as invConst
 from localization import GetByLabel
@@ -35,7 +37,8 @@ class StatsPanel(Container):
         self.CreateOffensePanel()
         self.CreateDefensePanel()
         self.CreateTargetingPanel()
-        self.CreateNavigationPanel()
+        if not IsControllingStructure():
+            self.CreateNavigationPanel()
         self.CreateExpandableMenus()
         uthread.new(self.UpdateStats)
 
@@ -120,16 +123,17 @@ class StatsPanel(Container):
          'callback': self.LoadTargetingStats,
          'maxHeight': 84,
          'headerContent': self.targetingStatsParent.headerParent})
-        navigationInfo = self.GetSingleMenuPanelInfo({'label': 'UI/Fitting/FittingWindow/Navigation',
-         'content': self.navigationStatsParent,
-         'callback': self.LoadNavigationStats,
-         'maxHeight': 84,
-         'headerContent': self.navigationStatsParent.headerParent})
         menuData = [capInfo,
          offenseInfo,
          defenseInfo,
-         targetingInfo,
-         navigationInfo]
+         targetingInfo]
+        if not IsControllingStructure():
+            navigationInfo = self.GetSingleMenuPanelInfo({'label': 'UI/Fitting/FittingWindow/Navigation',
+             'content': self.navigationStatsParent,
+             'callback': self.LoadNavigationStats,
+             'maxHeight': 84,
+             'headerContent': self.navigationStatsParent.headerParent})
+            menuData.append(navigationInfo)
         return menuData
 
     def CreateExpandableMenus(self):
@@ -138,22 +142,22 @@ class StatsPanel(Container):
         menuData = self.GetMenuData()
         em.Load(menuData=menuData, prefsKey='fittingRightside')
 
-    def LoadNavigationStats(self, initialLoad = False):
+    def LoadNavigationStats(self, initialLoad=False):
         self.navigationStatsParent.LoadPanel(initialLoad=initialLoad)
 
-    def LoadTargetingStats(self, initialLoad = False):
+    def LoadTargetingStats(self, initialLoad=False):
         self.targetingStatsParent.LoadPanel(initialLoad=initialLoad)
 
-    def LoadOffenseStats(self, initialLoad = False):
+    def LoadOffenseStats(self, initialLoad=False):
         self.offenseStatsParent.LoadPanel(initialLoad)
 
     def UpdateOffenseStats(self):
         self.offenseStatsParent.UpdateOffenseStats()
 
-    def LoadDefenceStats(self, initialLoad = False):
+    def LoadDefenceStats(self, initialLoad=False):
         self.defenceStatsParent.LoadPanel(initialLoad)
 
-    def LoadCapacitorStats(self, initialLoad = False):
+    def LoadCapacitorStats(self, initialLoad=False):
         self.capacitorStatsParent.LoadPanel(initialLoad)
 
     def ExpandBestRepair(self, *args):
@@ -163,12 +167,13 @@ class StatsPanel(Container):
         return self.defenceStatsParent.UpdateBestRepair(item, modulesByGroupInShip, multiplyShieldCapacity, multiplyShieldRecharge)
 
     def UpdateNavigationPanel(self, multiplySpeed, typeAttributesByID):
-        self.navigationStatsParent.UpdateNavigationPanel(self.controller.GetItemID(), multiplySpeed, typeAttributesByID)
+        if not IsControllingStructure():
+            self.navigationStatsParent.UpdateNavigationPanel(self.controller.GetItemID(), multiplySpeed, typeAttributesByID)
 
     def UpdateTargetingPanel(self, maxLockedTargetsAdd, multiplyMaxTargetRange, sensorStrengthAttrs, sensorStrengthBonus, sensorStrengthBonusAttrs, sensorStrengthPercent, sensorStrengthPercentAttrs, typeAttributesByID):
         self.targetingStatsParent.UpdateTargetingPanel(self.controller.GetItemID(), maxLockedTargetsAdd, multiplyMaxTargetRange, sensorStrengthAttrs, sensorStrengthBonus, sensorStrengthBonusAttrs, sensorStrengthPercent, sensorStrengthPercentAttrs, typeAttributesByID)
 
-    def UpdateCapacitor(self, xtraCapacitor = 0.0, rechargeMultiply = 1.0, multiplyCapacitor = 1.0, reload = 0):
+    def UpdateCapacitor(self, xtraCapacitor=0.0, rechargeMultiply=1.0, multiplyCapacitor=1.0, reload=0):
         self.capacitorStatsParent.UpdateCapacitorPanel(self.controller.GetItemID(), xtraCapacitor, rechargeMultiply, multiplyCapacitor, reload)
 
     def UpdateDefensePanel(self, dsp, effectiveHp, effectiveHpColor, multiplyArmor, multiplyResistance, multiplyShieldCapacity, multiplyShieldRecharge, multiplyStructure, xtraArmor, xtraShield, xtraStructure):
@@ -177,10 +182,7 @@ class StatsPanel(Container):
     def UpdateStats(self):
         item = self.controller.GetGhostFittedItem()
         typeID = self.controller.GetGhostFittedTypeID()
-        if session.stationid2:
-            self.fittingSvcBtnGroup.stripBtn.Enable()
-        else:
-            self.fittingSvcBtnGroup.stripBtn.Disable()
+        self.fittingSvcBtnGroup.UpdateStripBtn()
         xtraArmor = 0.0
         multiplyArmor = 1.0
         multiplyRecharge = 1.0
@@ -293,16 +295,18 @@ class StatsPanel(Container):
         dsp = getattr(self, 'defenceStatsParent', None)
         if not dsp or dsp.destroyed:
             return
-        effectiveHp, effectiveHpColor = self.UpdateDefensePanel(dsp, effectiveHp, effectiveHpColor, multiplyArmor, multiplyResistance, multiplyShieldCapacity, multiplyShieldRecharge, multiplyStructure, xtraArmor, xtraShield, xtraStructure)
-        coloredEffeciveHpLabel = '<color=%s>' % hex(effectiveHpColor)
-        coloredEffeciveHpLabel += GetByLabel('UI/Fitting/FittingWindow/ColoredEffectiveHp', color=hex(effectiveHpColor), effectiveHp=int(effectiveHp))
-        coloredEffeciveHpLabel += '</color>'
-        self.defenceStatsParent.statusText.text = coloredEffeciveHpLabel
-        self.UpdateBestRepair(item, modulesByGroupInShip, multiplyShieldCapacity, multiplyShieldRecharge)
-        self.UpdateNavigationPanel(multiplySpeed, typeAttributesByID)
-        self.UpdateTargetingPanel(maxLockedTargetsAdd, multiplyMaxTargetRange, sensorStrengthAttrs, sensorStrengthBonus, sensorStrengthBonusAttrs, sensorStrengthPercent, sensorStrengthPercentAttrs, typeAttributesByID)
-        self.UpdateCapacitor(xtraCapacitor, multiplyRecharge, multiplyCapacitor, reload=1)
-        self.UpdateOffenseStats()
+        else:
+            effectiveHp, effectiveHpColor = self.UpdateDefensePanel(dsp, effectiveHp, effectiveHpColor, multiplyArmor, multiplyResistance, multiplyShieldCapacity, multiplyShieldRecharge, multiplyStructure, xtraArmor, xtraShield, xtraStructure)
+            coloredEffeciveHpLabel = '<color=%s>' % hex(effectiveHpColor)
+            coloredEffeciveHpLabel += GetByLabel('UI/Fitting/FittingWindow/ColoredEffectiveHp', color=hex(effectiveHpColor), effectiveHp=int(effectiveHp))
+            coloredEffeciveHpLabel += '</color>'
+            self.defenceStatsParent.statusText.text = coloredEffeciveHpLabel
+            self.UpdateBestRepair(item, modulesByGroupInShip, multiplyShieldCapacity, multiplyShieldRecharge)
+            self.UpdateNavigationPanel(multiplySpeed, typeAttributesByID)
+            self.UpdateTargetingPanel(maxLockedTargetsAdd, multiplyMaxTargetRange, sensorStrengthAttrs, sensorStrengthBonus, sensorStrengthBonusAttrs, sensorStrengthPercent, sensorStrengthPercentAttrs, typeAttributesByID)
+            self.UpdateCapacitor(xtraCapacitor, multiplyRecharge, multiplyCapacitor, reload=1)
+            self.UpdateOffenseStats()
+            return
 
     def MaxTargetRangeBonusMultiplier(self, typeID):
         typeeffects = cfg.dgmtypeeffects.get(typeID, [])
@@ -310,11 +314,15 @@ class StatsPanel(Container):
             if effect.effectID in (dogmaConst.effectShipMaxTargetRangeBonusOnline, dogmaConst.effectMaxTargetRangeBonus):
                 return 1
 
+        return None
+
     def ArmorOrShieldMultiplier(self, typeID):
         typeeffects = cfg.dgmtypeeffects.get(typeID, [])
         for effect in typeeffects:
             if effect.effectID == dogmaConst.effectShieldResonanceMultiplyOnline:
                 return 1
+
+        return None
 
     def ArmorShieldStructureMultiplierPostPercent(self, typeID):
         typeeffects = cfg.dgmtypeeffects.get(typeID, [])

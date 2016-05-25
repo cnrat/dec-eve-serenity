@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\packages\iconrendering\photo.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\packages\iconrendering\photo.py
 import blue
 import remotefilecache
 import trinity
@@ -27,7 +28,7 @@ def FreezeTime():
     trinity.app.ProcessMessages()
 
 
-def SetupScene(scene, transparentBackground = False, sunDirection = (-0.5, -0.5, -0.6), pbr = False):
+def SetupScene(scene, transparentBackground=False, sunDirection=(-0.5, -0.5, -0.6), pbr=False):
     scene.sunDirection = sunDirection
     scene.ambientColor = (1.0, 1.0, 1.0, 1.0)
     if pbr:
@@ -58,6 +59,7 @@ def SetupModel(model):
         model.translationCurve = None
     if hasattr(model, 'boosters'):
         model.boosters = None
+    return
 
 
 def CreateSprite(scale, size):
@@ -71,7 +73,7 @@ def CreateSprite(scale, size):
     return sprite
 
 
-def CreateRenderJob(size, view, projection, bgColor = None, transparent = False, postProcessingQuality = 2, supersampleQuality = 1):
+def CreateRenderJob(size, view, projection, bgColor=None, transparent=False, postProcessingQuality=2, supersampleQuality=1):
 
     def _GetRenderStepPosition(renderJob, name):
         for i, each in enumerate(renderJob.steps):
@@ -139,7 +141,7 @@ def CreateRenderJob(size, view, projection, bgColor = None, transparent = False,
     return renderJob
 
 
-def RenderToSurface(view, projection, size = 128, scene = None, bgColor = None, transparent = False, backgroundPath = None, overlayPath = None, techPath = None, iconPath = None, postProcessingQuality = 2, supersampleQuality = 1):
+def RenderToSurface(view, projection, size=128, scene=None, bgColor=None, transparent=False, backgroundPath=None, overlayPath=None, techPath=None, iconPath=None, postProcessingQuality=2, supersampleQuality=1):
     size *= 2 ** supersampleQuality
     renderJob = CreateRenderJob(size, view, projection, bgColor, transparent, postProcessingQuality, supersampleQuality)
     if scene:
@@ -167,15 +169,16 @@ def RenderToSurface(view, projection, size = 128, scene = None, bgColor = None, 
     return hostBitmap
 
 
-def RenderIcon(outPath, size = 128, backgroundPath = None, overlayPath = None, techPath = None, iconPath = None):
+def RenderIcon(outPath, size=128, backgroundPath=None, overlayPath=None, techPath=None, iconPath=None):
     transparent = True
     if backgroundPath:
         transparent = False
     hostBitmap = RenderToSurface(view=None, projection=None, size=size, scene=None, bgColor=None, transparent=transparent, backgroundPath=backgroundPath, overlayPath=overlayPath, techPath=techPath, iconPath=iconPath)
     hostBitmap.Save(outPath)
+    return
 
 
-def RenderSpaceScene(outPath, view, projection, scenePath, size = 128):
+def RenderSpaceScene(outPath, view, projection, scenePath, size=128):
     scene = None
     if scenePath:
         scene = blue.resMan.LoadObject(scenePath)
@@ -185,6 +188,7 @@ def RenderSpaceScene(outPath, view, projection, scenePath, size = 128):
     hostBitmap = RenderToSurface(scene=scene, view=view, projection=projection, size=size)
     hostBitmap.Save(outPath)
     trinity.app.ProcessMessages()
+    return
 
 
 def LoadSpaceObject(objectPath, sofDNA, scene, animationStates):
@@ -208,23 +212,24 @@ def LoadSpaceObject(objectPath, sofDNA, scene, animationStates):
 def GetViewProjectionForModel(model, scene, cameraAngle):
     if model is None:
         return (None, None)
-    boundingSphereRadius = model.GetBoundingSphereRadius()
-    if getattr(model, 'isAnimated', False):
-        boundingSphere = model.CalculateSkinnedBoundingSphere()
-        boundingSphereRadius = boundingSphere[3]
-        boundingSphereCenter = boundingSphere[:3]
-        bbMin, bbMax = model.GetLocalBoundingBox()
-        view, projection = camera_util.GetViewAndProjectionForSkinnedModel(model, scene=scene, boundingSphereRadius=boundingSphereRadius, boundingSphereCenter=boundingSphereCenter, boundingBoxMin=bbMin, boundingBoxMax=bbMax, cameraAngle=cameraAngle)
-    elif model.mesh is not None:
-        geometry = model.mesh.geometry
-        boundingSphereCenter = model.GetBoundingSphereCenter()
-        view, projection = camera_util.GetViewAndProjectionUsingMeshGeometry(geometry, scene=scene, boundingSphereRadius=boundingSphereRadius, boundingSphereCenter=boundingSphereCenter, cameraAngle=cameraAngle)
     else:
-        view, projection = camera_util.GetViewAndProjectionUsingBoundingSphere(boundingSphereRadius)
-    return (view, projection)
+        boundingSphereRadius = model.GetBoundingSphereRadius()
+        if getattr(model, 'isAnimated', False):
+            boundingSphere = model.CalculateSkinnedBoundingSphere()
+            boundingSphereRadius = boundingSphere[3]
+            boundingSphereCenter = boundingSphere[:3]
+            bbMin, bbMax = model.GetLocalBoundingBox()
+            view, projection = camera_util.GetViewAndProjectionForSkinnedModel(model, scene=scene, boundingSphereRadius=boundingSphereRadius, boundingSphereCenter=boundingSphereCenter, boundingBoxMin=bbMin, boundingBoxMax=bbMax, cameraAngle=cameraAngle)
+        elif model.mesh is not None:
+            geometry = model.mesh.geometry
+            boundingSphereCenter = model.GetBoundingSphereCenter()
+            view, projection = camera_util.GetViewAndProjectionUsingMeshGeometry(geometry, scene=scene, boundingSphereRadius=boundingSphereRadius, boundingSphereCenter=boundingSphereCenter, cameraAngle=cameraAngle)
+        else:
+            view, projection = camera_util.GetViewAndProjectionUsingBoundingSphere(boundingSphereRadius)
+        return (view, projection)
 
 
-def RenderSpaceObject(outPath, scenePath = '', objectPath = '', sofDNA = None, size = 128, bgColor = None, transparent = False, backgroundPath = None, overlayPath = None, techPath = None, cameraAngle = None, freezeTime = True, postProcessingQuality = 2, supersampleQuality = 2, modifyScene = None, sunDirection = None, animationStates = []):
+def RenderSpaceObject(outPath, scenePath='', objectPath='', sofDNA=None, size=128, bgColor=None, transparent=False, backgroundPath=None, overlayPath=None, techPath=None, cameraAngle=None, freezeTime=True, postProcessingQuality=2, supersampleQuality=2, modifyScene=None, sunDirection=None, animationStates=[]):
     if freezeTime:
         FreezeTime()
     trinity.GetVariableStore().RegisterVariable('DepthMap', trinity.TriTextureRes())
@@ -275,7 +280,7 @@ def _ApplyIsisEffect(ship, isSkinned):
     ship.mesh.additiveAreas.append(area)
 
 
-def RenderISISObject(outPath, model, isSkinned, size = 128):
+def RenderISISObject(outPath, model, isSkinned, size=128):
     scene = trinity.EveSpaceScene()
     SetupModel(model)
     _ApplyIsisEffect(model, isSkinned)
@@ -293,9 +298,10 @@ def RenderISISObject(outPath, model, isSkinned, size = 128):
     hostBitmap = RenderToSurface(scene=scene, view=view, projection=projection, size=size, transparent=False)
     hostBitmap.Save(outPath)
     trinity.app.ProcessMessages()
+    return
 
 
-def RenderISISObjectFromDNA(outPath, sofDNA, isSkinned = False, size = 128):
+def RenderISISObjectFromDNA(outPath, sofDNA, isSkinned=False, size=128):
     factory = GetSofFactory()
     model = factory.BuildFromDNA(sofDNA)
     blue.resMan.Wait()
@@ -314,7 +320,7 @@ def FitTurret(ship, slot, turretPath, turretFaction):
     return turretSet
 
 
-def RenderTurret(outPath, turretPath, turretFaction, size = 128, bgColor = None, transparent = False, usePreviewScene = True, postProcessingQuality = 2, supersampleQuality = 2):
+def RenderTurret(outPath, turretPath, turretFaction, size=128, bgColor=None, transparent=False, usePreviewScene=True, postProcessingQuality=2, supersampleQuality=2):
     if usePreviewScene:
         scene = blue.resMan.LoadObject('res:/dx9/scene/fitting/previewTurrets.red')
         model = blue.resMan.LoadObject('res:/dx9/model/ship/IconPreview/PreviewTurretShip.red')
@@ -336,7 +342,7 @@ def RenderTurret(outPath, turretPath, turretFaction, size = 128, bgColor = None,
     hostBitmap.Save(outPath)
 
 
-def RenderPin(outPath, objectPath, size = 128, freezeTime = True):
+def RenderPin(outPath, objectPath, size=128, freezeTime=True):
     if freezeTime:
         FreezeTime()
     model = blue.resMan.LoadObject(objectPath)
@@ -363,6 +369,7 @@ def RenderPin(outPath, objectPath, size = 128, freezeTime = True):
         view, projection = camera_util.GetViewAndProjectionUsingBoundingBox(bBoxMin, bBoxMax)
         hostBitmap = RenderToSurface(scene=scene, view=view, projection=projection, size=size, bgColor=bgColor, transparent=transparent)
         hostBitmap.Save(outPath)
+    return
 
 
 def SetupLensflare(lensflare):
@@ -374,8 +381,10 @@ def SetupLensflare(lensflare):
             if param.name == 'mainSizeFactor':
                 param.value = param.value + 1.0
 
+    return
 
-def RenderSun(outPath, objectPath, scenePath, size = 512, cameraAngle = (0, 0, 0), postProcessingQuality = 2, supersampleQuality = 2, modifyScene = None):
+
+def RenderSun(outPath, objectPath, scenePath, size=512, cameraAngle=(0, 0, 0), postProcessingQuality=2, supersampleQuality=2, modifyScene=None):
     scene = trinity.Load(scenePath)
     blue.resMan.Wait()
     lensflare = blue.resMan.LoadObject(objectPath)
@@ -437,7 +446,6 @@ def GetIconFileFromSheet(iconNo):
             return 32
         if sheetNum in sixteen:
             return 16
-        return 64
 
     if not iconNo:
         return
@@ -452,7 +460,7 @@ def GetIconFileFromSheet(iconNo):
         return 'res:/ui/texture/icons/%s_%s_%s.png' % (int(sheet), int(size), int(ix))
 
 
-def RenderApparel(outPath, sourceRes, size = 128):
+def RenderApparel(outPath, sourceRes, size=128):
     from PIL import Image
     remotefilecache.prefetch_single_file(sourceRes)
     src = blue.paths.ResolvePath(sourceRes)

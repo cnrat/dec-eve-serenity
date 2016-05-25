@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\carbon\common\script\net\httpAuth.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\carbon\common\script\net\httpAuth.py
 import base
 import cherrypy
 import httpJinja
@@ -29,23 +30,25 @@ def CheckCredentials(username, password):
     if macho.mode == 'client':
         cherrypy.session['machoSession'] = sess
         return
-    auth = base.GetServiceSession('cherry').ConnectToAnyService('authentication')
-    sptype = const.userConnectTypeServerPages
-    try:
-        sessstuff, _ = auth.Login(sess.sid, username, password, None, sptype, cherrypy.request.remote.ip)
-    except UserError:
-        return u'Incorrect username or password'
-    except Exception:
-        return u'Incorrect username or password'
+    else:
+        auth = base.GetServiceSession('cherry').ConnectToAnyService('authentication')
+        sptype = const.userConnectTypeServerPages
+        try:
+            sessstuff, _ = auth.Login(sess.sid, username, password, None, sptype, cherrypy.request.remote.ip)
+        except UserError:
+            return u'Incorrect username or password'
+        except Exception:
+            return u'Incorrect username or password'
 
-    session = CreateSession(username, password)
-    sessstuff['role'] |= sess.role
-    for otherSession in base.FindSessions('userid', [sessstuff['userid']]):
-        otherSession.LogSessionHistory('Usurped by user %s via HTTP using local authentication' % username)
-        base.CloseSession(otherSession)
+        session = CreateSession(username, password)
+        sessstuff['role'] |= sess.role
+        for otherSession in base.FindSessions('userid', [sessstuff['userid']]):
+            otherSession.LogSessionHistory('Usurped by user %s via HTTP using local authentication' % username)
+            base.CloseSession(otherSession)
 
-    cherrypy.session['machoSession'] = sess
-    sess.SetAttributes(sessstuff)
+        cherrypy.session['machoSession'] = sess
+        sess.SetAttributes(sessstuff)
+        return
 
 
 def CheckAuth(*args, **kwargs):
@@ -70,6 +73,7 @@ def CheckAuth(*args, **kwargs):
 
             else:
                 raise cherrypy.HTTPRedirect(authLogin)
+    return
 
 
 cherrypy.tools.auth = cherrypy.Tool('before_handler', CheckAuth)
@@ -148,7 +152,7 @@ class AuthController(object):
     def on_logout(self, username):
         pass
 
-    def get_loginform(self, username, msg = None, from_page = '/'):
+    def get_loginform(self, username, msg=None, from_page='/'):
         sp = cherrypy.sm.GetService('SP')
         try:
             background_color = sp.Color()
@@ -164,21 +168,23 @@ class AuthController(object):
 
     @cherrypy.expose
     @cherrypy.tools.jinja(template='AuthController_login.html')
-    def login(self, username = None, password = None, from_page = '/'):
+    def login(self, username=None, password=None, from_page='/'):
         if username is None or password is None:
             return self.get_loginform('', from_page=from_page)
-        error_msg = CheckCredentials(username, password)
-        if error_msg:
-            return self.get_loginform(username, error_msg, from_page)
-        cherrypy.session.regenerate()
-        cherrypy.session[SESSION_KEY] = cherrypy.request.login = username
-        self.on_login(username)
-        if from_page != '/':
-            from_page = base64.urlsafe_b64decode(str(from_page))
-        raise cherrypy.HTTPRedirect(from_page or '/')
+        else:
+            error_msg = CheckCredentials(username, password)
+            if error_msg:
+                return self.get_loginform(username, error_msg, from_page)
+            cherrypy.session.regenerate()
+            cherrypy.session[SESSION_KEY] = cherrypy.request.login = username
+            self.on_login(username)
+            if from_page != '/':
+                from_page = base64.urlsafe_b64decode(str(from_page))
+            raise cherrypy.HTTPRedirect(from_page or '/')
+            return
 
     @cherrypy.expose
-    def logout(self, from_page = '/'):
+    def logout(self, from_page='/'):
         sess = cherrypy.session
         username = sess.get(SESSION_KEY, None)
         sess[SESSION_KEY] = None
@@ -191,6 +197,7 @@ class AuthController(object):
             base.CloseSession(sess)
         EndSession()
         raise cherrypy.HTTPRedirect(from_page or '/')
+        return
 
 
 exports = {'httpAuth.CreateSession': CreateSession,

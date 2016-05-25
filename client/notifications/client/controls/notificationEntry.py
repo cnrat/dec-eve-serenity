@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\packages\notifications\client\controls\notificationEntry.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\packages\notifications\client\controls\notificationEntry.py
 from carbonui.primitives.containerAutoSize import ContainerAutoSize
 from eve.client.script.ui.shared.stateFlag import AddAndSetFlagIconFromData
 import localization
@@ -7,6 +8,7 @@ import carbon.common.script.util.format as formatUtil
 import carbonui.const as uiconst
 import eve.common.script.util.notificationconst as notificationConst
 import math
+from notifications.client.controls.notificationTextures import NOTIFICATION_TYPE_TO_TEXTURE
 from notifications.common.formatters.killMailBase import KillMailBaseFormatter
 from notifications.common.formatters.killMailFinalBlow import KillMailFinalBlowFormatter
 import uthread
@@ -73,68 +75,67 @@ class NotificationEntry(Container):
     def LoadContent(self):
         if self.contentLoaded:
             return
-        self.contentLoaded = True
-        self.filler = Frame(name='myFrame', bgParent=self, texturePath='res:/UI/Texture/classes/Notifications/historyBackReadUp.png', cornerSize=6, offset=-5)
-        self.leftContainer = Container(name='leftContainer', width=40, padding=(5, 5, 10, 5), parent=self, align=uiconst.TOLEFT)
-        self.rightContainer = ContainerAutoSize(name='rightContainer', width=MAINAREA_WIDTH, parent=self, align=uiconst.TOLEFT)
-        self.titleLabel = EveLabelMedium(name='subject', parent=self.rightContainer, align=uiconst.TOTOP, text=self.title, padding=TITLE_PADDING, bold=True)
-        if self.subtext:
-            self.subtextLabel = EveLabelMedium(name='subtext', parent=self.rightContainer, align=uiconst.TOTOP, text=self.subtext, padding=SUBTEXT_PADDING)
-        if self.notification:
-            texture = self.GetTexturePathForNotification(self.notification.typeID)
         else:
-            texture = 'res:/ui/Texture/WindowIcons/bountyoffice.png'
-        self.imageSprite = Sprite(name='MySprite', parent=self.leftContainer, texturePath=texture, align=uiconst.TOPLEFT, width=40, height=40)
-        self.characterSprite = Sprite(name='CharacterSprite', parent=self.leftContainer, texturePath=texture, align=uiconst.TOPLEFT, width=40, height=40, state=uiconst.UI_HIDDEN)
-        if self.created:
-            timeinterval = max(blue.os.GetWallclockTime() - self.created, 0)
-            createdText = localization.GetByLabel('Notifications/NotificationWidget/NotificationTimeAgo', time=timeinterval)
-            self.timeLabel = EveLabelSmall(name='timeLabel', parent=self.rightContainer, align=uiconst.TOTOP, color=(0.5, 0.5, 0.5), padding=TIMETEXT_PADDING)
-            self.timeLabel.text = createdText
-        notification = self.notification
-        if notification.typeID in [notificationConst.notificationTypeKillReportFinalBlow, notificationConst.notificationTypeKillReportVictim]:
-            shipTypeID = KillMailFinalBlowFormatter.GetVictimShipTypeID(notification.data)
-            if shipTypeID is not None:
-                parentContainer = self.leftContainer
-                Icon(parent=parentContainer, align=uiconst.TOPRIGHT, size=40, typeID=shipTypeID)
-                shipTechIcon = Sprite(name='techIcon', parent=parentContainer, width=16, height=16, idx=0)
-                uiUtils.GetTechLevelIcon(shipTechIcon, 0, shipTypeID)
-                self.imageSprite.GetDragData = lambda *args: self.MakeKillDragObject(notification)
-        if self.ShouldDisplayPortrait(notification):
-            item = cfg.eveowners.Get(notification.senderID)
-            if item.IsCharacter():
-                sm.GetService('photo').GetPortrait(notification.senderID, 128, self.characterSprite)
-                if notification.typeID in notificationConst.notificationShowStanding:
-                    charinfo = item
-                    self.imageSprite.GetMenu = lambda : sm.GetService('menu').GetMenuFormItemIDTypeID(notification.senderID, charinfo.typeID)
-                    self.imageSprite.GetDragData = lambda *args: self.MakeCharacterDragObject(notification.senderID)
-                    charData = KeyVal()
-                    charData.charID = notification.senderID
-                    charData.charinfo = charinfo
-                    AddAndSetFlagIconFromData(charData, parentCont=self.leftContainer, top=self.characterSprite.height - 10)
+            self.contentLoaded = True
+            self.filler = Frame(name='myFrame', bgParent=self, texturePath='res:/UI/Texture/classes/Notifications/historyBackReadUp.png', cornerSize=6, offset=-5)
+            self.leftContainer = Container(name='leftContainer', width=40, padding=(5, 5, 10, 5), parent=self, align=uiconst.TOLEFT)
+            self.rightContainer = ContainerAutoSize(name='rightContainer', width=MAINAREA_WIDTH, parent=self, align=uiconst.TOLEFT)
+            self.titleLabel = EveLabelMedium(name='subject', parent=self.rightContainer, align=uiconst.TOTOP, text=self.title, padding=TITLE_PADDING, bold=True)
+            if self.subtext:
+                self.subtextLabel = EveLabelMedium(name='subtext', parent=self.rightContainer, align=uiconst.TOTOP, text=self.subtext, padding=SUBTEXT_PADDING)
+            if self.notification:
+                texture = self.GetTexturePathForNotification(self.notification.typeID)
             else:
-                self.corpLogo = GetLogoIcon(itemID=notification.senderID, parent=self.leftContainer, align=uiconst.TOPLEFT, size=40, state=uiconst.UI_DISABLED, ignoreSize=True)
-            self.characterSprite.state = uiconst.UI_NORMAL
+                texture = 'res:/ui/Texture/WindowIcons/bountyoffice.png'
+            self.imageSprite = Sprite(name='MySprite', parent=self.leftContainer, texturePath=texture, align=uiconst.TOPLEFT, width=40, height=40)
+            self.characterSprite = Sprite(name='CharacterSprite', parent=self.leftContainer, texturePath=texture, align=uiconst.TOPLEFT, width=40, height=40, state=uiconst.UI_HIDDEN)
+            if self.created:
+                timeinterval = max(blue.os.GetWallclockTime() - self.created, 0)
+                createdText = localization.GetByLabel('Notifications/NotificationWidget/NotificationTimeAgo', time=timeinterval)
+                self.timeLabel = EveLabelSmall(name='timeLabel', parent=self.rightContainer, align=uiconst.TOTOP, color=(0.5, 0.5, 0.5), padding=TIMETEXT_PADDING)
+                self.timeLabel.text = createdText
+            notification = self.notification
+            if notification.typeID in [notificationConst.notificationTypeKillReportFinalBlow, notificationConst.notificationTypeKillReportVictim]:
+                shipTypeID = KillMailFinalBlowFormatter.GetVictimShipTypeID(notification.data)
+                if shipTypeID is not None:
+                    parentContainer = self.leftContainer
+                    Icon(parent=parentContainer, align=uiconst.TOPRIGHT, size=40, typeID=shipTypeID)
+                    shipTechIcon = Sprite(name='techIcon', parent=parentContainer, width=16, height=16, idx=0)
+                    uiUtils.GetTechLevelIcon(shipTechIcon, 0, shipTypeID)
+                    self.imageSprite.GetDragData = lambda *args: self.MakeKillDragObject(notification)
+            if self.ShouldDisplayPortrait(notification):
+                item = cfg.eveowners.Get(notification.senderID)
+                if item.IsCharacter():
+                    sm.GetService('photo').GetPortrait(notification.senderID, 128, self.characterSprite)
+                    if notification.typeID in notificationConst.notificationShowStanding:
+                        charinfo = item
+                        self.imageSprite.GetMenu = lambda : sm.GetService('menu').GetMenuFormItemIDTypeID(notification.senderID, charinfo.typeID)
+                        self.imageSprite.GetDragData = lambda *args: self.MakeCharacterDragObject(notification.senderID)
+                        charData = KeyVal()
+                        charData.charID = notification.senderID
+                        charData.charinfo = charinfo
+                        AddAndSetFlagIconFromData(charData, parentCont=self.leftContainer, top=self.characterSprite.height - 10)
+                else:
+                    self.corpLogo = GetLogoIcon(itemID=notification.senderID, parent=self.leftContainer, align=uiconst.TOPLEFT, size=40, state=uiconst.UI_DISABLED, ignoreSize=True)
+                self.characterSprite.state = uiconst.UI_NORMAL
+            return
 
     def BlinkFinished(self, *args):
         if self.blinkSprite and not self.blinkSprite.destroyed:
             self.blinkSprite.Close()
             self.blinkSprite = None
+        return
 
     def Blink(self):
         if self.blinkSprite is None:
             self.blinkSprite = Sprite(bgParent=self, name='blinkSprite', texturePath='res:/UI/Texture/classes/Neocom/buttonBlink.png', idx=0)
         self.blinkSprite.Show()
         uicore.animations.SpSwoopBlink(self.blinkSprite, rotation=math.pi * 0.75, duration=0.8, loops=1, callback=self.BlinkFinished)
+        return
 
     def GetTexturePathForNotification(self, notificationTypeID):
-        NOTIFICATION_TYPE_TO_TEXTURE = {1234: 'res:/UI/Texture/icons/50_64_11.png'}
-        tex = NOTIFICATION_TYPE_TO_TEXTURE.get(notificationTypeID)
-        if tex:
-            texture = tex
-        else:
-            texture = 'res:/UI/Texture/Icons/notifications/notificationIcon_%s.png' % notificationTypeID
-        if not blue.paths.exists(texture):
+        texture = NOTIFICATION_TYPE_TO_TEXTURE.get(notificationTypeID, '')
+        if not texture or not blue.paths.exists(texture):
             texture = None
         return texture
 

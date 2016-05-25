@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\carbon\common\stdlib\ConfigParser.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\carbon\common\stdlib\ConfigParser.py
 try:
     from collections import OrderedDict as _default_dict
 except ImportError:
@@ -31,7 +32,7 @@ class Error(Exception):
 
     message = property(_get_message, _set_message)
 
-    def __init__(self, msg = ''):
+    def __init__(self, msg=''):
         self.message = msg
         Exception.__init__(self, msg)
 
@@ -116,7 +117,7 @@ class MissingSectionHeaderError(ParsingError):
 
 class RawConfigParser():
 
-    def __init__(self, defaults = None, dict_type = _default_dict, allow_no_value = False):
+    def __init__(self, defaults=None, dict_type=_default_dict, allow_no_value=False):
         self._dict = dict_type
         self._sections = self._dict()
         self._defaults = self._dict()
@@ -171,7 +172,7 @@ class RawConfigParser():
 
         return read_ok
 
-    def readfp(self, fp, filename = None):
+    def readfp(self, fp, filename=None):
         if filename is None:
             try:
                 filename = fp.name
@@ -179,6 +180,7 @@ class RawConfigParser():
                 filename = '<???>'
 
         self._read(fp, filename)
+        return
 
     def get(self, section, option):
         opt = self.optionxform(option)
@@ -246,7 +248,7 @@ class RawConfigParser():
             option = self.optionxform(option)
             return option in self._sections[section] or option in self._defaults
 
-    def set(self, section, option, value = None):
+    def set(self, section, option, value=None):
         if not section or section == DEFAULTSECT:
             sectdict = self._defaults
         else:
@@ -274,6 +276,8 @@ class RawConfigParser():
                 fp.write('%s\n' % key)
 
             fp.write('\n')
+
+        return
 
     def remove_option(self, section, option):
         if not section or section == DEFAULTSECT:
@@ -363,10 +367,12 @@ class RawConfigParser():
                 if isinstance(val, list):
                     options[name] = '\n'.join(val)
 
+        return
+
 
 class ConfigParser(RawConfigParser):
 
-    def get(self, section, option, raw = False, vars = None):
+    def get(self, section, option, raw=False, vars=None):
         d = self._defaults.copy()
         try:
             d.update(self._sections[section])
@@ -388,8 +394,9 @@ class ConfigParser(RawConfigParser):
             return value
         else:
             return self._interpolate(section, option, value, d)
+            return
 
-    def items(self, section, raw = False, vars = None):
+    def items(self, section, raw=False, vars=None):
         d = self._defaults.copy()
         try:
             d.update(self._sections[section])
@@ -436,6 +443,7 @@ class ConfigParser(RawConfigParser):
             return match.group()
         else:
             return '%%(%s)s' % self.optionxform(s)
+            return
 
 
 class SafeConfigParser(ConfigParser):
@@ -480,7 +488,9 @@ class SafeConfigParser(ConfigParser):
             else:
                 raise InterpolationSyntaxError(option, section, "'%%' must be followed by '%%' or '(', found: %r" % (rest,))
 
-    def set(self, section, option, value = None):
+        return
+
+    def set(self, section, option, value=None):
         if self._optcre is self.OPTCRE or value:
             if not isinstance(value, basestring):
                 raise TypeError('option values must be strings')
@@ -490,3 +500,4 @@ class SafeConfigParser(ConfigParser):
             if '%' in tmp_value:
                 raise ValueError('invalid interpolation syntax in %r at position %d' % (value, tmp_value.find('%')))
         ConfigParser.set(self, section, option, value)
+        return

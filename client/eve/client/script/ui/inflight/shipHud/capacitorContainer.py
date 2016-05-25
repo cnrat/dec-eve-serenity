@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\client\script\ui\inflight\shipHud\capacitorContainer.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\client\script\ui\inflight\shipHud\capacitorContainer.py
 from carbon.common.script.util.mathUtil import DegToRad
 from carbon.common.script.util.timerstuff import AutoTimer
 from carbonui.primitives.container import Container
@@ -30,6 +31,7 @@ class CapacitorContainer(Container):
         self.controller = attributes.controller
         self.InitCapacitor()
         uthread.new(self.UpdateThread)
+        return
 
     def LoadTooltipPanel(self, tooltipPanel, *args):
         tooltipPanel.LoadGeneric3ColumnTemplate()
@@ -50,21 +52,23 @@ class CapacitorContainer(Container):
         if tooltipPanel.destroyed:
             self._capacitorTooltipUpdate = None
             return
-        maxCap = self.controller.GetCapacitorCapacityMax()
-        if maxCap is not None:
-            if not self.controller.IsLoaded():
-                self._capacitorTooltipUpdate = None
-                return
-            maxcap = self.controller.GetCapacitorCapacityMax()
-            load = self.controller.GetCapacitorCapacity()
-            portion = maxCap * max(0.0, min(1.0, maxcap and float(load / maxcap) or maxcap))
-            if portion:
-                capString = GetByLabel('Tooltips/Hud/Capacitor')
-                capString += '<br>'
-                capString += '%s / %s' % (FormatNumeric(portion, useGrouping=True, decimalPlaces=0), FormatNumeric(maxCap, useGrouping=True, decimalPlaces=0))
-                tooltipPanel.labelCapacitor.text = capString
-                value = portion / maxCap
-                tooltipPanel.valueLabelCapacitor.text = GetByLabel('UI/Common/Formatting/Percentage', percentage=value * 100)
+        else:
+            maxCap = self.controller.GetCapacitorCapacityMax()
+            if maxCap is not None:
+                if not self.controller.IsLoaded():
+                    self._capacitorTooltipUpdate = None
+                    return
+                maxcap = self.controller.GetCapacitorCapacityMax()
+                load = self.controller.GetCapacitorCapacity()
+                portion = maxCap * max(0.0, min(1.0, maxcap and float(load / maxcap) or maxcap))
+                if portion:
+                    capString = GetByLabel('Tooltips/Hud/Capacitor')
+                    capString += '<br>'
+                    capString += '%s / %s' % (FormatNumeric(portion, useGrouping=True, decimalPlaces=0), FormatNumeric(maxCap, useGrouping=True, decimalPlaces=0))
+                    tooltipPanel.labelCapacitor.text = capString
+                    value = portion / maxCap
+                    tooltipPanel.valueLabelCapacitor.text = GetByLabel('UI/Common/Formatting/Percentage', percentage=value * 100)
+            return
 
     @telemetry.ZONE_FUNCTION
     def InitCapacitor(self):
@@ -92,6 +96,7 @@ class CapacitorContainer(Container):
 
         self.AnimateCapacitorIn(newColumns, 1.0)
         self.initialized = 1
+        return
 
     def AnimateCapacitorOut(self, conts, duration):
         uthread.new(self.AnimateCapacitorOut_Thread, conts, duration)
@@ -123,46 +128,48 @@ class CapacitorContainer(Container):
         proportion = max(0.0, min(1.0, round(maxcap and load / maxcap or maxcap, 2)))
         if self.lastSetCapacitor == proportion:
             return
-        sm.ScatterEvent('OnCapacitorChange', load, maxcap, proportion)
-        good = trinity.TriColor(*COLOR_ORANGE)
-        bad = trinity.TriColor(*COLOR_DARK_ORANGE)
-        bad.Scale(1.0 - proportion)
-        good.Scale(proportion)
-        maxCap = self.controller.GetCapacitorCapacityMax()
-        if maxCap is not None and self.initialized and self.powerCells:
-            totalCells = len(self.powerCells)
-            visible = max(0, min(totalCells, int(proportion * totalCells)))
-            for ci, each in enumerate(self.powerCells):
-                if ci >= visible:
-                    each.SetRGB(0.5, 0.5, 0.5, 0.5)
-                    each.glowColor = (0, 0, 0, 1)
-                    each.glowFactor = 0.0
-                    each.glowExpand = 0.1
-                    each.shadowOffset = (0, 0)
-                else:
-                    each.SetRGB(0.125, 0.125, 0.125, 1)
-                    each.glowColor = (bad.r + good.r,
-                     bad.g + good.g,
-                     bad.b + good.b,
-                     1.0)
-                    each.glowFactor = 0.0
-                    each.glowExpand = 0.1
-                    each.shadowOffset = (0, 1)
+        else:
+            sm.ScatterEvent('OnCapacitorChange', load, maxcap, proportion)
+            good = trinity.TriColor(*COLOR_ORANGE)
+            bad = trinity.TriColor(*COLOR_DARK_ORANGE)
+            bad.Scale(1.0 - proportion)
+            good.Scale(proportion)
+            maxCap = self.controller.GetCapacitorCapacityMax()
+            if maxCap is not None and self.initialized and self.powerCells:
+                totalCells = len(self.powerCells)
+                visible = max(0, min(totalCells, int(proportion * totalCells)))
+                for ci, each in enumerate(self.powerCells):
+                    if ci >= visible:
+                        each.SetRGB(0.5, 0.5, 0.5, 0.5)
+                        each.glowColor = (0, 0, 0, 1)
+                        each.glowFactor = 0.0
+                        each.glowExpand = 0.1
+                        each.shadowOffset = (0, 0)
+                    else:
+                        each.SetRGB(0.125, 0.125, 0.125, 1)
+                        each.glowColor = (bad.r + good.r,
+                         bad.g + good.g,
+                         bad.b + good.b,
+                         1.0)
+                        each.glowFactor = 0.0
+                        each.glowExpand = 0.1
+                        each.shadowOffset = (0, 1)
 
-            if self.powerBlink is None:
-                self.powerBlink = Sprite(parent=self, name='powerblink', state=uiconst.UI_HIDDEN, texturePath='res:/UI/Texture/classes/ShipUI/capacitorCellGlow.png', align=uiconst.CENTERTOP, blendMode=trinity.TR2_SBM_ADDX2, color=COLOR_ORANGE)
-                r, g, b = COLOR_ORANGE
-                uicore.effect.BlinkSpriteRGB(self.powerBlink, r, g, b, 750, None)
-            if visible != 0 and visible < totalCells:
-                active = self.powerCells[visible - 1]
-                self.powerBlink.SetParent(active.parent, 0)
-                self.powerBlink.top = active.top
-                self.powerBlink.width = active.width + 3
-                self.powerBlink.height = active.height
-                self.powerBlink.state = uiconst.UI_DISABLED
-            else:
-                self.powerBlink.state = uiconst.UI_HIDDEN
-            self.lastSetCapacitor = proportion
+                if self.powerBlink is None:
+                    self.powerBlink = Sprite(parent=self, name='powerblink', state=uiconst.UI_HIDDEN, texturePath='res:/UI/Texture/classes/ShipUI/capacitorCellGlow.png', align=uiconst.CENTERTOP, blendMode=trinity.TR2_SBM_ADDX2, color=COLOR_ORANGE)
+                    r, g, b = COLOR_ORANGE
+                    uicore.effect.BlinkSpriteRGB(self.powerBlink, r, g, b, 750, None)
+                if visible != 0 and visible < totalCells:
+                    active = self.powerCells[visible - 1]
+                    self.powerBlink.SetParent(active.parent, 0)
+                    self.powerBlink.top = active.top
+                    self.powerBlink.width = active.width + 3
+                    self.powerBlink.height = active.height
+                    self.powerBlink.state = uiconst.UI_DISABLED
+                else:
+                    self.powerBlink.state = uiconst.UI_HIDDEN
+                self.lastSetCapacitor = proportion
+            return
 
     def GetMenu(self):
         return self.controller.GetMenu()

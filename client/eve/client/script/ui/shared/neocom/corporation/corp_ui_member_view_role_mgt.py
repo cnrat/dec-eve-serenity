@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\client\script\ui\shared\neocom\corporation\corp_ui_member_view_role_mgt.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\client\script\ui\shared\neocom\corporation\corp_ui_member_view_role_mgt.py
 import blue
 import uiprimitives
 import uicontrols
@@ -32,6 +33,7 @@ class CorpMembersViewRoleManagement(uiprimitives.Container):
         self.sr.members.AddListener(self)
         self.sr.scroll = None
         self.sr.ignoreDirtyFlag = False
+        return
 
     def LogInfo(self, *args):
         lg.Info(self.__guid__, *args)
@@ -50,31 +52,33 @@ class CorpMembersViewRoleManagement(uiprimitives.Container):
     def DataChanged(self, primaryKey, change):
         if not (self and not self.destroyed):
             return
-        if self.sr.progressTotal == 0:
-            self.sr.progressCurrent = 0
-            self.sr.progressTotal = 1
-        self.sr.progressCurrent += 1
-        sm.GetService('loading').ProgressWnd(cfg.eveowners.Get(primaryKey).ownerName, '', self.sr.progressCurrent, self.sr.progressTotal)
-        blue.pyos.synchro.Yield()
-        if self.sr.scroll is None:
-            return
-        for entry in self.sr.scroll.GetNodes():
-            if entry is None or entry is None or entry.rec is None:
-                continue
-            if entry.panel is None or entry.panel.destroyed:
-                continue
-            if entry.rec.characterID == primaryKey:
-                if change.has_key('corporationID') and change['corporationID'][1] == None:
-                    self.LogInfo('removing member list entry for charID:', primaryKey)
-                    self.sr.scroll.RemoveEntries([entry])
-                    self.LogInfo('member list entry removed for charID:', primaryKey)
+        else:
+            if self.sr.progressTotal == 0:
+                self.sr.progressCurrent = 0
+                self.sr.progressTotal = 1
+            self.sr.progressCurrent += 1
+            sm.GetService('loading').ProgressWnd(cfg.eveowners.Get(primaryKey).ownerName, '', self.sr.progressCurrent, self.sr.progressTotal)
+            blue.pyos.synchro.Yield()
+            if self.sr.scroll is None:
+                return
+            for entry in self.sr.scroll.GetNodes():
+                if entry is None or entry is None or entry.rec is None:
+                    continue
+                if entry.panel is None or entry.panel.destroyed:
+                    continue
+                if entry.rec.characterID == primaryKey:
+                    if change.has_key('corporationID') and change['corporationID'][1] == None:
+                        self.LogInfo('removing member list entry for charID:', primaryKey)
+                        self.sr.scroll.RemoveEntries([entry])
+                        self.LogInfo('member list entry removed for charID:', primaryKey)
+                        break
+                    entry.panel.DataChanged(primaryKey, change)
                     break
-                entry.panel.DataChanged(primaryKey, change)
-                break
 
-        if self.sr.progressCurrent >= self.sr.progressTotal:
-            self.sr.progressCurrent = 0
-            self.sr.progressTotal = 0
+            if self.sr.progressCurrent >= self.sr.progressTotal:
+                self.sr.progressCurrent = 0
+                self.sr.progressTotal = 0
+            return
 
     def CreateWindow(self):
         toppar = uiprimitives.Container(name='options', parent=self, align=uiconst.TOTOP, height=54)
@@ -124,6 +128,7 @@ class CorpMembersViewRoleManagement(uiprimitives.Container):
           81]]
         btns = uicontrols.ButtonGroup(btns=buttons)
         self.children.insert(0, btns)
+        return
 
     def Navigate(self, direction, *args):
         uthread.new(self.NavigateImpl, direction)
@@ -139,7 +144,7 @@ class CorpMembersViewRoleManagement(uiprimitives.Container):
             self.sr.viewFrom = 0
         self.PopulateView()
 
-    def PopulateView(self, memberIDs = None):
+    def PopulateView(self, memberIDs=None):
         nIndex = 0
         nCount = 0
         try:
@@ -238,6 +243,8 @@ class CorpMembersViewRoleManagement(uiprimitives.Container):
             sm.GetService('loading').ProgressWnd(localization.GetByLabel('UI/Common/Loading'), '', nCount, nCount)
             blue.pyos.synchro.Yield()
 
+        return
+
     def OnColumnChanged(self, tabstops):
         self.LogInfo('ENTRIES [', len(self.sr.scroll.GetNodes()), ']:', self.sr.scroll.GetNodes())
         for node in self.sr.scroll.GetNodes():
@@ -252,6 +259,8 @@ class CorpMembersViewRoleManagement(uiprimitives.Container):
             finally:
                 panel.Unlock()
 
+        return
+
     def OnComboChange(self, entry, header, value, *args):
         uthread.new(self.OnComboChangeImpl, entry.name, value)
 
@@ -265,103 +274,106 @@ class CorpMembersViewRoleManagement(uiprimitives.Container):
             self.sr.viewPerPage = value
             self.sr.viewFrom = 0
             return self.PopulateView()
-        if entryName == 'viewtype':
-            self.sr.viewType = value
-            if value == VIEW_TITLES:
-                self.sr.rolegroupCombo.state = uiconst.UI_HIDDEN
-            else:
-                self.sr.rolegroupCombo.state = uiconst.UI_NORMAL
-        elif entryName == 'rolegroup':
-            self.sr.viewRoleGroupingID = value
-        nIndex = 0
-        nCount = 0
-        try:
-            nCount = self.sr.viewPerPage
-            for entry in self.sr.scroll.GetNodes():
-                if entry is None or entry.rec is None:
-                    continue
-                if entry.panel is None or entry.panel.destroyed:
-                    continue
-                nCount += 1
-
-            strings = []
-            headers = self.GetHeaderValues()
-            headertabs = []
-            sortvalues = {}
-            roleGroup = self.sr.roleGroupings[self.sr.viewRoleGroupingID]
-            for entry in self.sr.scroll.GetNodes():
-                nIndex += 1
-                if entry is None or entry.rec is None:
-                    continue
-                rec = entry.rec
-                characterID = rec.characterID
-                ownerName = cfg.eveowners.Get(characterID).ownerName
-                sm.GetService('loading').ProgressWnd(localization.GetByLabel('UI/Common/Loading'), ownerName, nIndex, nCount)
-                blue.pyos.synchro.Yield()
-                sortvalues[characterID] = {localization.GetByLabel('UI/Common/Name'): ownerName}
-                baseID = rec.baseID
-                base = cfg.evelocations.GetIfExists(baseID)
-                if base is not None:
-                    baseName = base.locationName
+        else:
+            if entryName == 'viewtype':
+                self.sr.viewType = value
+                if value == VIEW_TITLES:
+                    self.sr.rolegroupCombo.state = uiconst.UI_HIDDEN
                 else:
-                    baseName = '-'
-                text = '%s<t>%s' % (ownerName, baseName)
-                sortvalues[characterID][localization.GetByLabel('UI/Corporations/CorporationWindow/Members/FindMemberInRole/Base')] = baseName.upper()
-                if self.sr.viewType == VIEW_TITLES:
-                    for title in sorted(sm.GetService('corp').GetTitles().itervalues(), key=lambda x: x.titleID):
-                        sortvalue = rec.titleMask & title.titleID == title.titleID
-                        text += '<t>[%s]' % sortvalue
-                        sortvalues[characterID][title.titleName] = str(sortvalue)
+                    self.sr.rolegroupCombo.state = uiconst.UI_NORMAL
+            elif entryName == 'rolegroup':
+                self.sr.viewRoleGroupingID = value
+            nIndex = 0
+            nCount = 0
+            try:
+                nCount = self.sr.viewPerPage
+                for entry in self.sr.scroll.GetNodes():
+                    if entry is None or entry.rec is None:
+                        continue
+                    if entry.panel is None or entry.panel.destroyed:
+                        continue
+                    nCount += 1
 
-                else:
-                    roles = getattr(rec, roleGroup.appliesTo)
-                    grantableRoles = getattr(rec, roleGroup.appliesToGrantable)
-                    for column in roleGroup.columns:
-                        columnName, subColumns = column
-                        newtext = '<t>'
-                        sortvalue = []
-                        for subColumn in subColumns:
-                            for subColumnName, role in subColumns:
-                                isChecked = [roles, grantableRoles][self.sr.viewType] & role.roleID == role.roleID
-                                if isChecked:
-                                    newtext += ' [X] %s' % subColumnName
-                                else:
-                                    newtext += ' [ ] %s' % subColumnName
-                                sortvalue.append(isChecked)
+                strings = []
+                headers = self.GetHeaderValues()
+                headertabs = []
+                sortvalues = {}
+                roleGroup = self.sr.roleGroupings[self.sr.viewRoleGroupingID]
+                for entry in self.sr.scroll.GetNodes():
+                    nIndex += 1
+                    if entry is None or entry.rec is None:
+                        continue
+                    rec = entry.rec
+                    characterID = rec.characterID
+                    ownerName = cfg.eveowners.Get(characterID).ownerName
+                    sm.GetService('loading').ProgressWnd(localization.GetByLabel('UI/Common/Loading'), ownerName, nIndex, nCount)
+                    blue.pyos.synchro.Yield()
+                    sortvalues[characterID] = {localization.GetByLabel('UI/Common/Name'): ownerName}
+                    baseID = rec.baseID
+                    base = cfg.evelocations.GetIfExists(baseID)
+                    if base is not None:
+                        baseName = base.locationName
+                    else:
+                        baseName = '-'
+                    text = '%s<t>%s' % (ownerName, baseName)
+                    sortvalues[characterID][localization.GetByLabel('UI/Corporations/CorporationWindow/Members/FindMemberInRole/Base')] = baseName.upper()
+                    if self.sr.viewType == VIEW_TITLES:
+                        for title in sorted(sm.GetService('corp').GetTitles().itervalues(), key=lambda x: x.titleID):
+                            sortvalue = rec.titleMask & title.titleID == title.titleID
+                            text += '<t>[%s]' % sortvalue
+                            sortvalues[characterID][title.titleName] = str(sortvalue)
 
-                        sortvalues[characterID][columnName] = str(sortvalue)
-                        text += newtext
+                    else:
+                        roles = getattr(rec, roleGroup.appliesTo)
+                        grantableRoles = getattr(rec, roleGroup.appliesToGrantable)
+                        for column in roleGroup.columns:
+                            columnName, subColumns = column
+                            newtext = '<t>'
+                            sortvalue = []
+                            for subColumn in subColumns:
+                                for subColumnName, role in subColumns:
+                                    isChecked = [roles, grantableRoles][self.sr.viewType] & role.roleID == role.roleID
+                                    if isChecked:
+                                        newtext += ' [X] %s' % subColumnName
+                                    else:
+                                        newtext += ' [ ] %s' % subColumnName
+                                    sortvalue.append(isChecked)
 
-                strings.append((text,
-                 9,
-                 2,
-                 0))
+                            sortvalues[characterID][columnName] = str(sortvalue)
+                            text += newtext
 
-            self.tabstops = uicore.font.MeasureTabstops(strings + [('<t>'.join(headers),
-              9,
-              2,
-              0)])
-            for entry in self.sr.scroll.GetNodes():
-                nIndex += 1
-                if entry is None or entry.rec is None:
-                    continue
-                characterID = entry.rec.characterID
-                text = cfg.eveowners.Get(characterID).ownerName
-                sm.GetService('loading').ProgressWnd(localization.GetByLabel('UI/Common/Loading'), text, nIndex, nCount)
+                    strings.append((text,
+                     9,
+                     2,
+                     0))
+
+                self.tabstops = uicore.font.MeasureTabstops(strings + [('<t>'.join(headers),
+                  9,
+                  2,
+                  0)])
+                for entry in self.sr.scroll.GetNodes():
+                    nIndex += 1
+                    if entry is None or entry.rec is None:
+                        continue
+                    characterID = entry.rec.characterID
+                    text = cfg.eveowners.Get(characterID).ownerName
+                    sm.GetService('loading').ProgressWnd(localization.GetByLabel('UI/Common/Loading'), text, nIndex, nCount)
+                    blue.pyos.synchro.Yield()
+                    for columnName, sortvalue in sortvalues[characterID].iteritems():
+                        entry.Set('sort_%s' % columnName, sortvalue)
+
+                    if entry.panel is None or entry.panel.destroyed:
+                        continue
+                    entry.panel.sr.loadingCharacterID = [characterID]
+                    entry.panel.LoadColumns(characterID)
+                    entry.panel.UpdateLabelText()
+
+                self.sr.scroll.LoadHeaders(headers)
+            finally:
+                sm.GetService('loading').ProgressWnd(localization.GetByLabel('UI/Common/Loading'), '', nCount, nCount)
                 blue.pyos.synchro.Yield()
-                for columnName, sortvalue in sortvalues[characterID].iteritems():
-                    entry.Set('sort_%s' % columnName, sortvalue)
 
-                if entry.panel is None or entry.panel.destroyed:
-                    continue
-                entry.panel.sr.loadingCharacterID = [characterID]
-                entry.panel.LoadColumns(characterID)
-                entry.panel.UpdateLabelText()
-
-            self.sr.scroll.LoadHeaders(headers)
-        finally:
-            sm.GetService('loading').ProgressWnd(localization.GetByLabel('UI/Common/Loading'), '', nCount, nCount)
-            blue.pyos.synchro.Yield()
+            return
 
     def GetHeaderValues(self):
         viewType = self.sr.viewType
@@ -420,6 +432,8 @@ class CorpMembersViewRoleManagement(uiprimitives.Container):
             return 0
         finally:
             sm.GetService('loading').StopCycle()
+
+        return
 
     def SaveChanges(self, *args):
         nodesToUpdate = []
@@ -566,3 +580,5 @@ class CorpMembersViewRoleManagement(uiprimitives.Container):
                 blue.pyos.synchro.SleepWallclock(500)
                 sm.GetService('loading').ProgressWnd(localization.GetByLabel('UI/Common/Updated'), '', nCount, nCount)
                 blue.pyos.synchro.Yield()
+
+        return

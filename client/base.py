@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\common\modules\nice\client\_nastyspace\base.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\common\modules\nice\client\_nastyspace\base.py
 from carbon.common.script.sys.basesession import CoreSession
 from carbon.common.script.sys.basesession import Session
 from carbon.common.script.sys.sessions import CachedMethodCalled

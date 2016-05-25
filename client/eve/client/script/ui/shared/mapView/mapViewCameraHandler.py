@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\client\script\ui\shared\mapView\mapViewCameraHandler.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\client\script\ui\shared\mapView\mapViewCameraHandler.py
 from carbon.common.script.util.mathCommon import GetYawAndPitchAnglesRad, GetLesserAngleBetweenYaws
 import eve.client.script.ui.shared.mapView.mapViewConst as mapViewConst
 import uthread
@@ -34,6 +35,7 @@ class MapViewCamera(object):
         self.projectionMatrix = trinity.TriProjection()
         self.enabled = True
         uthread.new(self.UpdateTick)
+        return
 
     def SetCapture(self, uiObject):
         self.cameraCapture = weakref.ref(uiObject)
@@ -42,6 +44,7 @@ class MapViewCamera(object):
         capture = self.GetCapture()
         if capture is uiObject:
             self.cameraCapture = None
+        return
 
     def GetCapture(self):
         if self.cameraCapture:
@@ -55,7 +58,7 @@ class MapViewCamera(object):
     def GetProjectionViewViewPort(self):
         return (self.projectionMatrix, self.viewMatrix, self.viewport)
 
-    def GetRayAndPointFromUI(self, x, y, projection2view = None, view2world = None):
+    def GetRayAndPointFromUI(self, x, y, projection2view=None, view2world=None):
         viewport = self.viewport
         mx = x - viewport.x
         my = y - viewport.y
@@ -90,6 +93,7 @@ class MapViewCamera(object):
     def Close(self):
         self.enabled = False
         self.callback = None
+        return
 
     def SetCallback(self, callback):
         self.callback = callback
@@ -184,6 +188,7 @@ class MapViewCamera(object):
         self.UpdateView()
         if self.callback:
             self.callback()
+        return
 
     def UpdateProjection(self):
         if self.viewport:
@@ -235,7 +240,7 @@ class MapViewCamera(object):
         pitch = math.pi / 2 - pitch
         return (yaw, pitch)
 
-    def OrbitMouseDelta(self, dx = 0, dy = 0):
+    def OrbitMouseDelta(self, dx=0, dy=0):
         yaw, pitch = self.GetYawPitch()
         self._yawSpeed -= dx * self.fieldOfView * 0.005
         pitchSpeed = self._pitchSpeed + dy * self.fieldOfView * 0.005
@@ -243,13 +248,13 @@ class MapViewCamera(object):
         pitchSpeed -= pitchSpeed + pitch - endPitch
         self._pitchSpeed = pitchSpeed
 
-    def SetPointOfInterest(self, pointOfInterest, duration = None, callback = None, sleep = False):
+    def SetPointOfInterest(self, pointOfInterest, duration=None, callback=None, sleep=False):
         if duration:
             uicore.animations.MorphVector3(self, 'pointOfInterest', startVal=self.pointOfInterest, endVal=pointOfInterest, duration=duration, callback=callback, sleep=sleep)
         else:
             self.pointOfInterest = pointOfInterest
 
-    def SetViewVector(self, viewVector, duration = None, callback = None, sleep = False):
+    def SetViewVector(self, viewVector, duration=None, callback=None, sleep=False):
         endRotation = geo2.QuaternionRotationArc((1.0, 0.0, 0.0), viewVector)
         if duration:
             curveSet = uicore.animations.MorphQuaternion(self, 'rotationAroundInterest', startVal=self.rotationAroundInterest, endVal=endRotation, duration=duration, callback=callback, sleep=sleep)
@@ -262,6 +267,7 @@ class MapViewCamera(object):
             self._pointOfInterestOverrideHandler = weakref.ref(handler)
         else:
             self._pointOfInterestOverrideHandler = None
+        return
 
     def GetPointOfInterestOverrideValue(self):
         if self._pointOfInterestOverrideHandler:
@@ -269,12 +275,12 @@ class MapViewCamera(object):
             if handler:
                 return handler.GetPointOfInterestOverride()
 
-    def ZoomMouseWheelDelta(self, dz, immediate = True):
+    def ZoomMouseWheelDelta(self, dz, immediate=True):
         dz = dz / 500.0
         setCameraDistance = max(self.minDistance, geo2.Vec3Length(self._eyePosition))
         self.ZoomToDistance(setCameraDistance + dz * setCameraDistance, immediate)
 
-    def ZoomMouseDelta(self, dx, dy, immediate = True):
+    def ZoomMouseDelta(self, dx, dy, immediate=True):
         dz = -dy / 100.0
         setCameraDistance = geo2.Vec3Length(self._eyePosition)
         self.ZoomToDistance(setCameraDistance + dz * setCameraDistance, immediate)
@@ -286,7 +292,7 @@ class MapViewCamera(object):
         if refresh:
             self.ZoomToDistance(minDistance)
 
-    def ZoomToDistance(self, endCameraDistance, immediate = True):
+    def ZoomToDistance(self, endCameraDistance, immediate=True):
         endCameraDistance = min(self.maxDistance, max(self.minDistance, endCameraDistance))
         eyePositionNorm = geo2.Vec3NormalizeD(self._eyePosition)
         self._eyePosition = geo2.Vec3ScaleD(eyePositionNorm, endCameraDistance)
@@ -301,6 +307,7 @@ class MapViewCamera(object):
             self.followMarker = weakref.ref(markerObject)
         else:
             self.followMarker = None
+        return
 
     def ClampAngle(self, angle):
         while angle < 0:

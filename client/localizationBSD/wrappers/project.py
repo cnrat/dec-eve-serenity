@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\packages\localizationBSD\wrappers\project.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\packages\localizationBSD\wrappers\project.py
 from . import AuthoringValidationError
 from .. import const as localizationBSDConst
 import bsdWrappers
@@ -8,7 +9,7 @@ class Project(bsdWrappers.BaseWrapper):
     __primaryTable__ = bsdWrappers.RegisterTable(localizationBSDConst.LOC_PROJECT_TABLE)
     _projectsToGroups = None
 
-    def Copy(self, keyID = None, keyID2 = None, keyID3 = None, **kw):
+    def Copy(self, keyID=None, keyID2=None, keyID3=None, **kw):
         raise NotImplementedError
 
     @classmethod
@@ -19,6 +20,7 @@ class Project(bsdWrappers.BaseWrapper):
         if projectRows:
             return projectRows[0]
         else:
+            return None
             return None
 
     def AddLanguageToProject(self, languageID):
@@ -115,6 +117,7 @@ class Project(bsdWrappers.BaseWrapper):
         if cls._projectsToGroups is None:
             bsdTableSvc = sm.GetService('bsdTable')
             cls._projectsToGroups = bsdTableSvc.GetTable(localizationBSDConst.PROJECT_GROUP_TABLE)
+        return
 
     def Delete(self):
         self._DeleteTags()
@@ -145,7 +148,7 @@ class Project(bsdWrappers.BaseWrapper):
         return False
 
     @classmethod
-    def Create(cls, projectName, projectDescription = None, workingDirectory = None, exportLocation = None, exportFileName = None, exportTypeName = None):
+    def Create(cls, projectName, projectDescription=None, workingDirectory=None, exportLocation=None, exportFileName=None, exportTypeName=None):
         if not projectName:
             raise AuthoringValidationError('Project name (%s) must be valid string.' % projectName)
         duplicateProjects = cls.GetWithFilter(projectName=projectName, _getDeleted=True)

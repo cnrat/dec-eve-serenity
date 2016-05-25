@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\packages\dogma\items\baseDogmaItem.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\packages\dogma\items\baseDogmaItem.py
 from slimDogmaItem import SlimDogmaItem
 from dogma import dogmaLogging as log
 import sys
@@ -17,6 +18,7 @@ class BaseDogmaItem(SlimDogmaItem):
         self.isDirty = False
         self.fittingFlags = set()
         self.cfg = eveCfg
+        return
 
     @TimedFunction('BaseDogmaItem::Load')
     def Load(self, item, instanceRow):
@@ -41,6 +43,8 @@ class BaseDogmaItem(SlimDogmaItem):
                 if type(value) is bool:
                     value = int(value)
                 attrs[attributeID].SetBaseValue(value)
+
+        return
 
     def PostLoadAction(self):
         pass
@@ -110,7 +114,7 @@ class BaseDogmaItem(SlimDogmaItem):
         pass
 
     def GetEnvironmentInfo(self):
-        return KeyVal(itemID=self.itemID, shipID=self.itemID, charID=None, otherID=None, targetID=None, effectID=None)
+        return KeyVal(itemID=self.GetItemID(), shipID=self.GetShipID(), charID=self.GetCharacterID(), otherID=self.GetOtherID(), targetID=self.GetTargetID(), effectID=self.GetEffectID(), structureID=self.GetStructureID())
 
     def GetPersistables(self):
         return set([self.itemID])
@@ -170,3 +174,24 @@ class BaseDogmaItem(SlimDogmaItem):
                 self.resistanceMatrix[attributeID] = [ self.GetValue(resAttributeID) for resAttributeID in resAttribs ]
 
             return self.resistanceMatrix
+
+    def GetItemID(self):
+        return self.itemID
+
+    def GetShipID(self):
+        return self.itemID
+
+    def GetCharacterID(self):
+        return None
+
+    def GetOtherID(self):
+        return None
+
+    def GetTargetID(self):
+        return None
+
+    def GetEffectID(self):
+        return None
+
+    def GetStructureID(self):
+        return None

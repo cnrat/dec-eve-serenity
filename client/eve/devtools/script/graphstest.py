@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\devtools\script\graphstest.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\devtools\script\graphstest.py
 from carbonui.graphs.axislabels import VerticalAxisLabels
 from carbonui.graphs.grid import Grid
 import trinity
@@ -31,7 +32,7 @@ class GraphsTest(uicontrols.Window):
         self.data = self.RandomData(60)
         self.LineGraph()
 
-    def RandomData(self, numValues = 30):
+    def RandomData(self, numValues=30):
         values = []
         prev_low = random.randint(5, 300)
         for i in xrange(numValues):

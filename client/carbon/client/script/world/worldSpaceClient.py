@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\carbon\client\script\world\worldSpaceClient.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\carbon\client\script\world\worldSpaceClient.py
 import collections
 import stackless
 import uthread
@@ -14,15 +15,17 @@ class WorldSpaceClient(BaseWorldSpaceService):
         self.activeWorldSpace = None
         self.showLoadingWindow = False
         self.instanceLoadedChannel = collections.defaultdict(list)
+        return
 
     def GetCurrentDistrict(self):
         if session.worldspaceid is None:
             return
-        worldSpaceTypeID = self.GetWorldSpaceTypeIDFromWorldSpaceID(session.worldspaceid)
-        if worldSpaceTypeID is None:
-            return
-        ws = GetWorldSpace(worldSpaceTypeID)
-        return ws.GetDistrictID()
+        else:
+            worldSpaceTypeID = self.GetWorldSpaceTypeIDFromWorldSpaceID(session.worldspaceid)
+            if worldSpaceTypeID is None:
+                return
+            ws = GetWorldSpace(worldSpaceTypeID)
+            return ws.GetDistrictID()
 
     def UnloadWorldSpaceInstance(self, instanceID):
         if self.IsInstanceLoaded(instanceID):
@@ -40,6 +43,8 @@ class WorldSpaceClient(BaseWorldSpaceService):
                 self.LogInfo('Unloaded worldspace instance', instanceID)
                 uthread.UnLock(self, 'Worldspace', instanceID)
 
+        return
+
     def _LoadWorldSpaceFromServer(self, instanceID, worldSpaceID):
         self.LogInfo('Creating worldSpace layout', worldSpaceID, 'for instance', instanceID)
         newWorldSpace = WorldSpaceScene(worldSpaceID, instanceID)
@@ -47,7 +52,7 @@ class WorldSpaceClient(BaseWorldSpaceService):
         self._FinishLoadingInstance(newWorldSpace)
         return newWorldSpace
 
-    def LoadWorldSpaceInstance(self, instanceID, worldSpaceTypeID = None):
+    def LoadWorldSpaceInstance(self, instanceID, worldSpaceTypeID=None):
         uthread.Lock(self, 'Worldspace', instanceID)
         try:
             self.LogInfo('Loading WorldSpaceInstance')
@@ -58,6 +63,8 @@ class WorldSpaceClient(BaseWorldSpaceService):
         finally:
             self.LogInfo('Done loading WorldSpaceInstance')
             uthread.UnLock(self, 'Worldspace', instanceID)
+
+        return
 
     def _FinishLoadingInstance(self, instance):
         worldSpaceID = instance.GetWorldSpaceID()
@@ -71,6 +78,7 @@ class WorldSpaceClient(BaseWorldSpaceService):
         del self.instanceLoadedChannel[worldSpaceID]
         self.LogInfo('Loaded worldspace from server: worldSpaceID', worldSpaceID, 'worldSpaceTypeID', worldSpaceTypeID)
         sm.ScatterEvent('OnWorldSpaceLoaded', worldSpaceTypeID, worldSpaceID)
+        return
 
     def WaitForInstance(self, instanceID):
         if not self.IsInstanceLoaded(instanceID):

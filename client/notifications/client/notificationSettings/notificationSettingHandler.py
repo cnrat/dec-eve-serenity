@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\packages\notifications\client\notificationSettings\notificationSettingHandler.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\packages\notifications\client\notificationSettings\notificationSettingHandler.py
 V_ALIGN = 'VAlign'
 H_ALIGN = 'HAlign'
 NOTIFICATION_SETTINGS = 'notificationSettings'
@@ -71,7 +72,7 @@ class NotificationSettingHandler(object):
      WIDGET_ENABLED: 'notificationSettingsWidgetEnabled',
      REPOSITION_COUNT_KEY: 'notificationSettingsRepositionCount'}
 
-    def __init__(self, settingHolder = None, noneMode = False, charSettingsHolder = None):
+    def __init__(self, settingHolder=None, noneMode=False, charSettingsHolder=None):
         if settingHolder is None:
             self.mainSettingsHolder = settings.char.notifications
         else:
@@ -79,6 +80,7 @@ class NotificationSettingHandler(object):
         if charSettingsHolder is None:
             self.mainCharacterSettingsHolder = settings.char.notifications
         self.noneMode = noneMode
+        return
 
     def GetNotificationWidgetEnabled(self):
         return self.GetSetting(WIDGET_ENABLED, default=True)

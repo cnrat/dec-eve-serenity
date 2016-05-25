@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\carbon\common\lib\cherrypy\test\benchmark.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\carbon\common\lib\cherrypy\test\benchmark.py
 import getopt
 import os
 curdir = os.path.join(os.getcwd(), os.path.dirname(__file__))
@@ -26,12 +27,12 @@ size_cache = {}
 class Root:
 
     def index(self):
-        return '<html>\n<head>\n    <title>CherryPy Benchmark</title>\n</head>\n<body>\n    <ul>\n        <li><a href="hello">Hello, world! (14 byte dynamic)</a></li>\n        <li><a href="static/index.html">Static file (14 bytes static)</a></li>\n        <li><form action="sizer">Response of length:\n            <input type=\'text\' name=\'size\' value=\'10\' /></form>\n        </li>\n    </ul>\n</body>\n</html>'
+        pass
 
     index.exposed = True
 
     def hello(self):
-        return 'Hello, world\r\n'
+        pass
 
     hello.exposed = True
 
@@ -61,7 +62,7 @@ app = cherrypy.tree.mount(Root(), SCRIPT_NAME, appconf)
 
 class NullRequest:
 
-    def __init__(self, local, remote, scheme = 'http'):
+    def __init__(self, local, remote, scheme='http'):
         pass
 
     def close(self):
@@ -88,7 +89,7 @@ class ABSession:
      ('time_per_request_concurrent', 'msec/req', ntob('^Time per request:\\s*([0-9.]+).*concurrent requests\\)$')),
      ('transfer_rate', 'KB/sec', ntob('^Transfer rate:\\s*([0-9.]+)'))]
 
-    def __init__(self, path = SCRIPT_NAME + '/hello', requests = 1000, concurrency = 10):
+    def __init__(self, path=SCRIPT_NAME + '/hello', requests=1000, concurrency=10):
         self.path = path
         self.requests = requests
         self.concurrency = concurrency
@@ -116,12 +117,14 @@ class ABSession:
             else:
                 setattr(self, attr, None)
 
+        return
+
 
 safe_threads = (25, 50, 100, 200, 400)
 if sys.platform in ('win32',):
     safe_threads = (10, 20, 30, 40, 50)
 
-def thread_report(path = SCRIPT_NAME + '/hello', concurrency = safe_threads):
+def thread_report(path=SCRIPT_NAME + '/hello', concurrency=safe_threads):
     sess = ABSession(path)
     attrs, names, patterns = list(zip(*sess.parse_patterns))
     avg = dict.fromkeys(attrs, 0.0)
@@ -144,9 +147,10 @@ def thread_report(path = SCRIPT_NAME + '/hello', concurrency = safe_threads):
             yield row
 
     yield ['Average'] + [ str(avg[attr] / len(concurrency)) for attr in attrs ]
+    return
 
 
-def size_report(sizes = (10, 100, 1000, 10000, 100000, 100000000), concurrency = 50):
+def size_report(sizes=(10, 100, 1000, 10000, 100000, 100000000), concurrency=50):
     sess = ABSession(concurrency=concurrency)
     attrs, names, patterns = list(zip(*sess.parse_patterns))
     yield ('bytes',) + names
@@ -177,7 +181,7 @@ def run_standard_benchmarks():
     print_report(size_report())
 
 
-def startup_modpython(req = None):
+def startup_modpython(req=None):
     global AB_PATH
     if cherrypy.engine.state == cherrypy._cpengine.STOPPED:
         if req:
@@ -190,10 +194,9 @@ def startup_modpython(req = None):
         cherrypy.engine.start()
     if cherrypy.engine.state == cherrypy._cpengine.STARTING:
         cherrypy.engine.wait()
-    return 0
 
 
-def run_modpython(use_wsgi = False):
+def run_modpython(use_wsgi=False):
     print 'Starting mod_python...'
     pyopts = []
     if '--null' in opts:
@@ -253,10 +256,12 @@ if __name__ == '__main__':
             if '--null' in opts:
                 print '\nUsing null Request object'
             try:
-                run_standard_benchmarks()
-            except:
-                print _cperror.format_exc()
-                raise
+                try:
+                    run_standard_benchmarks()
+                except:
+                    print _cperror.format_exc()
+                    raise
+
             finally:
                 cherrypy.engine.exit()
 

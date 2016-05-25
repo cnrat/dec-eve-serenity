@@ -1,14 +1,15 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\carbon\common\stdlib\encodings\utf_32_le.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\carbon\common\stdlib\encodings\utf_32_le.py
 import codecs
 encode = codecs.utf_32_le_encode
 
-def decode(input, errors = 'strict'):
+def decode(input, errors='strict'):
     return codecs.utf_32_le_decode(input, errors, True)
 
 
 class IncrementalEncoder(codecs.IncrementalEncoder):
 
-    def encode(self, input, final = False):
+    def encode(self, input, final=False):
         return codecs.utf_32_le_encode(input, self.errors)[0]
 
 

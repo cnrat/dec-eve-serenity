@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\client\script\ui\inflight\bracketsAndTargets\blinkingSpriteOnSharedCurve.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\client\script\ui\inflight\bracketsAndTargets\blinkingSpriteOnSharedCurve.py
 import uiprimitives
 import uicls
 import trinity
@@ -15,6 +16,7 @@ class BlinkingSpriteOnSharedCurve(uiprimitives.Sprite):
         toCurveValue = attributes.get('toCurveValue', 0.6)
         duration = attributes.get('duration', 0.5)
         self.SetupSharedBlinkingCurve(curveSetName, fromCurveValue, toCurveValue, duration)
+        return
 
     def SetupSharedBlinkingCurve(self, cuverSetName, fromCurveValue, toCurveValue, duration, *args):
         curveSet = getattr(uicore, cuverSetName, None)
@@ -38,6 +40,7 @@ class BlinkingSpriteOnSharedCurve(uiprimitives.Sprite):
         if getattr(self, 'blinkBinding', None) is not None:
             curveSet.bindings.remove(self.blinkBinding)
         self.blinkBinding = trinity.CreatePythonBinding(curveSet, curve, 'currentValue', self, 'opacity')
+        return
 
     def Close(self):
         if getattr(self, 'blinkBinding', None) is not None:
@@ -46,3 +49,4 @@ class BlinkingSpriteOnSharedCurve(uiprimitives.Sprite):
                 curveSet.bindings.remove(self.blinkBinding)
             self.blinkBinding = None
         uiprimitives.Sprite.Close(self)
+        return

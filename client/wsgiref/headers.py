@@ -1,9 +1,10 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\carbon\common\lib\wsgiref\headers.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\carbon\common\lib\wsgiref\headers.py
 from types import ListType, TupleType
 import re
 tspecials = re.compile('[ \\(\\)<>@,;:\\\\"/\\[\\]\\?=]')
 
-def _formatparam(param, value = None, quote = 1):
+def _formatparam(param, value=None, quote=1):
     if value is not None and len(value) > 0:
         if quote or tspecials.search(value):
             value = value.replace('\\', '\\\\').replace('"', '\\"')
@@ -12,6 +13,7 @@ def _formatparam(param, value = None, quote = 1):
             return '%s=%s' % (param, value)
     else:
         return param
+    return
 
 
 class Headers:
@@ -44,7 +46,7 @@ class Headers:
         name = name.lower()
         return [ kv[1] for kv in self._headers if kv[0].lower() == name ]
 
-    def get(self, name, default = None):
+    def get(self, name, default=None):
         name = name.lower()
         for k, v in self._headers:
             if k.lower() == name:
@@ -74,6 +76,7 @@ class Headers:
             return value
         else:
             return result
+            return
 
     def add_header(self, _name, _value, **_params):
         parts = []
@@ -86,3 +89,4 @@ class Headers:
                 parts.append(_formatparam(k.replace('_', '-'), v))
 
         self._headers.append((_name, '; '.join(parts)))
+        return

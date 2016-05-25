@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\carbon\common\script\entities\ActionObject.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\carbon\common\script\entities\ActionObject.py
 import service
 import geo2
 import GameWorld
@@ -28,9 +29,10 @@ class ActionObjectSvc(service.Service):
             spawnID = state.get('_spawnID', '<UNKNOWN>')
             self.LogError('ActionObject component ignored for recipeID=%s/spawnID=%s: no actionObjectID was set for it' % (recipeID, spawnID))
             return
-        actionObj = GameWorld.ActionObject()
-        self.preservedStates[actionObj] = state
-        return actionObj
+        else:
+            actionObj = GameWorld.ActionObject()
+            self.preservedStates[actionObj] = state
+            return actionObj
 
     def PrepareComponent(self, sceneID, entityID, component):
         actionObjID = self.preservedStates[component].get('actionObjectUID', None)
@@ -40,6 +42,7 @@ class ActionObjectSvc(service.Service):
         elif self.InitActionObject(component, int(actionObjID), entityID) is None:
             self.LogError('Error initializing ActionObject for entity ', entityID, ', expect missing assets!')
             del self.preservedStates[component]
+        return
 
     def SetupComponent(self, entity, component):
         if component in self.preservedStates:
@@ -49,6 +52,7 @@ class ActionObjectSvc(service.Service):
                     self.manager.SetActionStationInUse(component, component.actionStations[key], val)
 
             del self.preservedStates[component]
+        return
 
     def RegisterComponent(self, entity, component):
         pass
@@ -81,33 +85,36 @@ class ActionObjectSvc(service.Service):
         if aoData is None:
             self.LogError('Could not look up ActionObjectData for ActionObject with UID %d.' % actionObjectUID)
             return
-        actionObject.Init(aoData, entID)
-        self.manager.AddActionObject(actionObject)
-        return actionObject
+        else:
+            actionObject.Init(aoData, entID)
+            self.manager.AddActionObject(actionObject)
+            return actionObject
 
     def _LoadActionObjectData(self, actionObjectUID):
         aoDbData = self.GetActionObjectRecord(actionObjectUID)
         if aoDbData is None:
             self.LogError('Error getting ActionObject record with UID %d.' % actionObjectUID)
             return
-        aoData = GameWorld.ActionObjectData(actionObjectUID, str(aoDbData['Name']))
-        if self._LoadExitPoints(aoData) is False:
-            self.LogError('Error loading exit points for ActionObject data with UID %d.' % actionObjectUID)
-            return
-        if self._LoadActionStationLocalData(aoData) is False:
-            self.LogError('Error loading action stations for ActionObject data with UID %d.' % actionObjectUID)
-            return
-        self.manager.AddActionObjectData(aoData)
-        return aoData
+        else:
+            aoData = GameWorld.ActionObjectData(actionObjectUID, str(aoDbData['Name']))
+            if self._LoadExitPoints(aoData) is False:
+                self.LogError('Error loading exit points for ActionObject data with UID %d.' % actionObjectUID)
+                return
+            if self._LoadActionStationLocalData(aoData) is False:
+                self.LogError('Error loading action stations for ActionObject data with UID %d.' % actionObjectUID)
+                return
+            self.manager.AddActionObjectData(aoData)
+            return aoData
 
     def _LoadExitPointsToList(self, rows, destList):
         if rows is None:
             return True
-        for row in rows:
-            exitPoint = GameWorld.ActionExitPoint(row['pos'], row['rot'])
-            destList.append(exitPoint)
+        else:
+            for row in rows:
+                exitPoint = GameWorld.ActionExitPoint(row['pos'], row['rot'])
+                destList.append(exitPoint)
 
-        return True
+            return True
 
     def _LoadExitPoints(self, aoData):
         globalExitRows = self.GetActionObjectExits(aoData.UID, 0)
@@ -133,11 +140,12 @@ class ActionObjectSvc(service.Service):
         asDbData = self.GetActionStationRecord(asUID)
         if asDbData is None:
             return
-        asGlobalData = GameWorld.ActionStationGlobalData(asUID)
-        if self._LoadActionEntries(asGlobalData) is False:
-            return
-        self.manager.AddActionStationGlobalData(asGlobalData)
-        return asGlobalData
+        else:
+            asGlobalData = GameWorld.ActionStationGlobalData(asUID)
+            if self._LoadActionEntries(asGlobalData) is False:
+                return
+            self.manager.AddActionStationGlobalData(asGlobalData)
+            return asGlobalData
 
     def _LoadActionEntries(self, asGlobalData):
         actionMappingRows = self.GetActionStationActions(asGlobalData.UID)
@@ -165,6 +173,7 @@ class ActionObjectSvc(service.Service):
             if aoRow is not None:
                 return {'ID': aoRow.actionObjectID,
                  'Name': aoRow.actionObjectName}
+        return
 
     def GetActionStationRecord(self, actionStationTypeID):
         if actionStationTypeID is not None:
@@ -172,6 +181,7 @@ class ActionObjectSvc(service.Service):
             if asRow is not None:
                 return {'ID': asRow.actionStationTypeID,
                  'Name': asRow.actionStationTypeName}
+        return
 
     def GetActionStationActions(self, actionStationTypeID):
         rows = cfg.actionStationActions.get(actionStationTypeID)

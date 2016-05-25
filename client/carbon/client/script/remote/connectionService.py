@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\carbon\client\script\remote\connectionService.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\carbon\client\script\remote\connectionService.py
 from service import Service
 import blue
 import telemetry
@@ -45,6 +46,7 @@ class ConnectionService(Service):
         self.clocklastsynchronized = None
         self.lastLongCallTimestamp = 0
         blue.pyos.synchro.timesyncs.append(self.OnTimerResync)
+        return
 
     def Run(self, *args):
         Service.Run(self, *args)
@@ -86,7 +88,7 @@ class ConnectionService(Service):
         return response
 
     @telemetry.ZONE_METHOD
-    def OnProcessLoginProgress(self, what, prefix = None, current = 1, total = 1, response = None):
+    def OnProcessLoginProgress(self, what, prefix=None, current=1, total=1, response=None):
         if what not in LoginProgressLabels.keys():
             text = "Unexpected step in OnProcessLoginProgress, '%s'" % what
             log.LogTraceback(extraText=text, severity=log.LGERR)
@@ -104,37 +106,43 @@ class ConnectionService(Service):
         blue.pyos.synchro.Yield()
 
     @telemetry.ZONE_METHOD
-    def Login(self, loginparam, selchar = None):
+    def Login(self, loginparam, selchar=None):
         if self.reentrancyGaurd:
             return
-        self.reentrancyGaurd = 1
-        try:
-            if loginparam is None:
-                raise RuntimeError('loginparam can not be None anymore dude')
-            if loginparam[4]:
-                ct = 'udp'
-            else:
-                ct = 'tcp'
-            response = self.Connect(loginparam[2], loginparam[3], loginparam[0], loginparam[1], ct)
-            return response
-        finally:
-            self.reentrancyGaurd = 0
+        else:
+            self.reentrancyGaurd = 1
+            try:
+                if loginparam is None:
+                    raise RuntimeError('loginparam can not be None anymore dude')
+                if loginparam[4]:
+                    ct = 'udp'
+                else:
+                    ct = 'tcp'
+                response = self.Connect(loginparam[2], loginparam[3], loginparam[0], loginparam[1], ct)
+                return response
+            finally:
+                self.reentrancyGaurd = 0
+
+            return
 
     def LoginSso(self, token):
         if self.reentrancyGaurd:
             return
-        self.reentrancyGaurd = 1
-        try:
-            if token is None:
-                raise RuntimeError('Trying to do an SSO log in without an SSO token')
-            response = self.ConnectSso(serverInfo.GetServerIP(GetServerName()), GetServerPort(), token, 'tcp')
-            ssoAccessToken = response['access_token']
-            sm.GetService('crestConnectionService').SetSessionToken(ssoAccessToken)
-            return response
-        finally:
-            self.reentrancyGaurd = 0
+        else:
+            self.reentrancyGaurd = 1
+            try:
+                if token is None:
+                    raise RuntimeError('Trying to do an SSO log in without an SSO token')
+                response = self.ConnectSso(serverInfo.GetServerIP(GetServerName()), GetServerPort(), token, 'tcp')
+                ssoAccessToken = response['access_token']
+                sm.GetService('crestConnectionService').SetSessionToken(ssoAccessToken)
+                return response
+            finally:
+                self.reentrancyGaurd = 0
 
-    def Disconnect(self, silently = 0):
+            return
+
+    def Disconnect(self, silently=0):
         if self.reentrancyGaurd:
             return
         self.reentrancyGaurd = 1
@@ -186,46 +194,49 @@ class ConnectionService(Service):
                 driftFactor = min(0.95, max(0.02, driftFactor))
                 blue.os.timeSyncAdjustFactor = driftFactor
 
-    def SynchronizeClock(self, firstTime = 1, maxIterations = 5):
+    def SynchronizeClock(self, firstTime=1, maxIterations=5):
         log.general.Log('connection.synchronizeClock called', log.LGINFO)
         if not firstTime:
             if self.clocklastsynchronized is not None and blue.os.GetWallclockTime() - self.clocklastsynchronized < const.HOUR:
                 return
         if self.clocksynchronizing:
             return
-        self.clocklastsynchronized = blue.os.GetWallclockTime()
-        self.clocksynchronizing = 1
-        try:
-            diff = 0
-            goodCount = 0
-            lastElaps = None
-            log.general.Log('***   ***   ***   ***   Clock Synchronizing loop initiating      ***   ***   ***   ***', log.LGINFO)
-            for i in range(maxIterations):
-                myTime = blue.os.GetWallclockTimeNow()
-                serverTime = sm.ProxySvc('machoNet').GetTime()
-                now = blue.os.GetWallclockTimeNow()
-                elaps = now - myTime
-                serverTime += elaps / 2
-                diff = float(now - serverTime) / float(const.SEC)
-                if diff > 2.0 and not firstTime:
-                    logflag = log.LGERR
-                else:
-                    logflag = log.LGINFO
-                log.general.Log('Synchronizing clock diff %.3f sec elaps %f sec.' % (diff, elaps / float(const.SEC)), logflag)
-                if lastElaps is None or elaps < lastElaps and elaps < const.SEC:
-                    goodCount += 1
-                    log.general.Log('Synchronizing clock:  iteration completed, setting time', logflag)
-                    blue.pyos.synchro.ResetClock(serverTime)
-                    lastElaps = elaps
-                else:
-                    log.general.Log('Synchronizing clock:  iteration ignored as it was less accurate (%f) than our current time (%f)' % (elaps / float(const.SEC), lastElaps / float(const.SEC)), log.LGINFO)
-                if goodCount >= 3:
-                    break
-                firstTime = 0
+        else:
+            self.clocklastsynchronized = blue.os.GetWallclockTime()
+            self.clocksynchronizing = 1
+            try:
+                diff = 0
+                goodCount = 0
+                lastElaps = None
+                log.general.Log('***   ***   ***   ***   Clock Synchronizing loop initiating      ***   ***   ***   ***', log.LGINFO)
+                for i in range(maxIterations):
+                    myTime = blue.os.GetWallclockTimeNow()
+                    serverTime = sm.ProxySvc('machoNet').GetTime()
+                    now = blue.os.GetWallclockTimeNow()
+                    elaps = now - myTime
+                    serverTime += elaps / 2
+                    diff = float(now - serverTime) / float(const.SEC)
+                    if diff > 2.0 and not firstTime:
+                        logflag = log.LGERR
+                    else:
+                        logflag = log.LGINFO
+                    log.general.Log('Synchronizing clock diff %.3f sec elaps %f sec.' % (diff, elaps / float(const.SEC)), logflag)
+                    if lastElaps is None or elaps < lastElaps and elaps < const.SEC:
+                        goodCount += 1
+                        log.general.Log('Synchronizing clock:  iteration completed, setting time', logflag)
+                        blue.pyos.synchro.ResetClock(serverTime)
+                        lastElaps = elaps
+                    else:
+                        log.general.Log('Synchronizing clock:  iteration ignored as it was less accurate (%f) than our current time (%f)' % (elaps / float(const.SEC), lastElaps / float(const.SEC)), log.LGINFO)
+                    if goodCount >= 3:
+                        break
+                    firstTime = 0
 
-            log.general.Log('***   ***   ***   ***   Clock Synchronizing loop completed       ***   ***   ***   ***', log.LGINFO)
-        finally:
-            self.clocksynchronizing = 0
+                log.general.Log('***   ***   ***   ***   Clock Synchronizing loop completed       ***   ***   ***   ***', log.LGINFO)
+            finally:
+                self.clocksynchronizing = 0
+
+            return
 
     def IsClockSynchronizing(self):
         if self.clocksynchronizing:
@@ -279,9 +290,11 @@ class ConnectionService(Service):
     def TryAutomaticLogin(self):
         if GetLoginCredentials() is None or session.userid is not None:
             return
-        username, password = GetLoginCredentials()
-        self.Login((username,
-         password,
-         GetServerName(),
-         GetServerPort(),
-         None))
+        else:
+            username, password = GetLoginCredentials()
+            self.Login((username,
+             password,
+             GetServerName(),
+             GetServerPort(),
+             None))
+            return

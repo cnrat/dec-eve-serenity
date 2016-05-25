@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\client\script\ui\shared\fittingGhost\shipFittingControllerGhost.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\client\script\ui\shared\fittingGhost\shipFittingControllerGhost.py
 from dogma import const as dogmaConst
 from eve.client.script.ui.shared.fitting.fittingController import ShipFittingController
 from eve.client.script.ui.shared.fitting.fittingUtil import GHOST_FITTABLE_GROUPS, ModifiedAttribute, GetEffectiveHp
@@ -18,34 +19,36 @@ class ShipFittingControllerGhost(ShipFittingController):
      'OnSimulatedShipLoaded',
      'OnFakeUpdateFittingWindow']
 
-    def __init__(self, itemID, typeID = None):
+    def __init__(self, itemID, typeID=None):
         ShipFittingController.__init__(self, itemID, typeID)
         self.attributesBeforeGhostfitting = {}
 
     def OnFakeUpdateFittingWindow(self, *args):
         self._UpdateSlots()
 
-    def OnSimulatedShipLoaded(self, itemID, typeID = None):
+    def OnSimulatedShipLoaded(self, itemID, typeID=None):
         self.SetDogmaLocation()
         self.UpdateItem(itemID, typeID)
 
     def IsSimulated(self):
         return sm.GetService('fittingSvc').IsShipSimulated()
 
-    def SetGhostFittedItem(self, ghostItem = None):
+    def SetGhostFittedItem(self, ghostItem=None):
         if not self.IsSimulated():
             ShipFittingController.SetGhostFittedItem(self, ghostItem)
             return
-        self.ResetFakeItemInfo()
-        if ghostItem and evetypes.GetCategoryID(ghostItem.typeID) not in GHOST_FITTABLE_GROUPS:
+        else:
+            self.ResetFakeItemInfo()
+            if ghostItem and evetypes.GetCategoryID(ghostItem.typeID) not in GHOST_FITTABLE_GROUPS:
+                return
+            dogmaItem = None
+            if ghostItem:
+                self.attributesBeforeGhostfitting = self.GetCurrentAttributeValues()
+                dogmaItem = self.ghostFittingExtension.GhostFitItem(ghostItem)
+            self.ghostFittedItem = dogmaItem
+            self.on_item_ghost_fitted()
+            self.on_stats_changed()
             return
-        dogmaItem = None
-        if ghostItem:
-            self.attributesBeforeGhostfitting = self.GetCurrentAttributeValues()
-            dogmaItem = self.ghostFittingExtension.GhostFitItem(ghostItem)
-        self.ghostFittedItem = dogmaItem
-        self.on_item_ghost_fitted()
-        self.on_stats_changed()
 
     def ResetFakeItemInfo(self):
         self.attributesBeforeGhostfitting = {}
@@ -210,7 +213,7 @@ class ShipFittingControllerGhost(ShipFittingController):
     def GetDroneCapacity(self):
         return self.GetStatsInfo(dogmaConst.attributeDroneCapacity)
 
-    def GetStatsInfo(self, attributeID, higherIsBetter = True):
+    def GetStatsInfo(self, attributeID, higherIsBetter=True):
         oldValue = self.attributesBeforeGhostfitting.get(attributeID, None)
         currentValue = self.GetAttribute(attributeID)
         return ModifiedAttribute(value=currentValue, oldValue=oldValue, higherIsBetter=higherIsBetter, attributeID=attributeID)

@@ -1,9 +1,10 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\packages\dogma\mocks\mockDogmaItem.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\packages\dogma\mocks\mockDogmaItem.py
 from collections import defaultdict
 
 class MockDogmaItem(object):
 
-    def __init__(self, dogmaLocation, item, attributes = {}):
+    def __init__(self, dogmaLocation, item, attributes={}):
         dogmaLocation.dogmaItems[item.itemID] = self
         self.invItem = item
         self.itemID = item.itemID
@@ -26,6 +27,7 @@ class MockDogmaItem(object):
         self.locationReqSkillMods = defaultdict(lambda : defaultdict(set))
         self.ownerReqSkillMods = defaultdict(lambda : defaultdict(set))
         self.reqSkills = dogmaLocation.dogmaStaticMgr.GetRequiredSkills(item.typeID)
+        return
 
     def SetPilot(self, pilotID):
         self.pilotID = pilotID

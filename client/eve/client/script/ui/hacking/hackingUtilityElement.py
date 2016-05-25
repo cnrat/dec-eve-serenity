@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\client\script\ui\hacking\hackingUtilityElement.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\client\script\ui\hacking\hackingUtilityElement.py
 import uiprimitives
 import uicontrols
 import uicls
@@ -35,6 +36,7 @@ class UtilityElement(uiprimitives.Container):
         self.durationLabel = uicontrols.Label(name='durationLabel', parent=self, align=uiconst.CENTERTOP, top=-10, bold=True)
         uicore.animations.FadeTo(self, self.opacity, 0.5, duration=0.6)
         self.UpdateUtilityElementState()
+        return
 
     def UpdateUtilityElementState(self):
         oldSubtype = self.data.subtype if self.data else None
@@ -60,6 +62,7 @@ class UtilityElement(uiprimitives.Container):
         else:
             self.durationLabel.text = ''
         uicore.animations.SpColorMorphTo(self.iconSprite, self.iconSprite.GetRGB(), self.color, duration=0.1)
+        return
 
     def AnimInUseThread(self):
         while not self.destroyed and self.data.isInUse:
@@ -67,6 +70,7 @@ class UtilityElement(uiprimitives.Container):
 
         self.inUseThread = None
         self.opacity = 1.0
+        return
 
     def OnMouseEnter(self, *args):
         if self.data.subtype == hackingConst.SUBTYPE_NONE or self.data.isInUse:
@@ -98,7 +102,7 @@ class UtilityElement(uiprimitives.Container):
     def OnHackingUEInventoryChanged(self):
         self.UpdateUtilityElementState()
 
-    def OnHackingUEDurationReduced(self, index, coord = None):
+    def OnHackingUEDurationReduced(self, index, coord=None):
         if index == self.data.index:
             uicore.animations.FadeTo(self.mouseDownSprite, 0.8, 0.0, duration=0.6)
 

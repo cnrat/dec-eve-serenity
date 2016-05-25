@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\client\script\environment\effects\MicroJumpDrive.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\client\script\environment\effects\MicroJumpDrive.py
 from eve.client.script.environment.effects.GenericEffect import GenericEffect, ShipEffect, STOP_REASON_BALL_REMOVED, STOP_REASON_DEFAULT
 import trinity
 import blue
@@ -17,6 +18,7 @@ class MicroJumpDriveEngage(ShipEffect):
         ShipEffect.__init__(self, trigger, *args)
         self.playerEffect = None
         self.graphicID = None if args[0] is None else getattr(args[0], 'graphicID', None)
+        return
 
     def Prepare(self):
         ShipEffect.Prepare(self, False)
@@ -24,7 +26,7 @@ class MicroJumpDriveEngage(ShipEffect):
             self.playerEffect = self.RecycleOrLoad(self.secondaryGraphicFile)
             self.AddSoundToEffect(2)
 
-    def Stop(self, reason = STOP_REASON_DEFAULT):
+    def Stop(self, reason=STOP_REASON_DEFAULT):
         if reason == STOP_REASON_BALL_REMOVED:
             ShipEffect.Stop(self, reason)
 
@@ -35,6 +37,7 @@ class MicroJumpDriveEngage(ShipEffect):
             self.playerEffect = None
         if self.gfx is not None:
             ShipEffect.Stop(self)
+        return
 
     def Start(self, duration):
         if self.gfx is None:
@@ -61,6 +64,7 @@ class MicroJumpDriveEngage(ShipEffect):
             triggerDelayPlayer = duration - length
             uthread.new(self._TriggerPlaybackPlayer, triggerDelayPlayer)
         uthread.new(self._DelayedStop, duration + 2 * SECOND)
+        return
 
     def _SetCurveTime(self, duration):
         lastKey = self.controllerCurve.GetKeyCount() - 1
@@ -82,6 +86,7 @@ class MicroJumpDriveEngage(ShipEffect):
         soundEvent = MICROJUMPDRIVE_SOUND_EVENTS.get(self.graphicID, None)
         if soundEvent is not None:
             sm.GetService('audio').SendUIEvent(soundEvent)
+        return
 
 
 class MicroJumpDriveJump(GenericEffect):
@@ -91,30 +96,34 @@ class MicroJumpDriveJump(GenericEffect):
         GenericEffect.__init__(self, trigger, *args)
         self.position = trigger.graphicInfo
         self.gfxModel = None
+        return
 
     def Prepare(self):
         self.ball = self._SpawnClientBall(self.position)
         gfx = self.RecycleOrLoad(self.graphicFile)
         if gfx is None:
             return
-        model = getattr(self.GetEffectShipBall(), 'model', None)
-        if model is None:
+        else:
+            model = getattr(self.GetEffectShipBall(), 'model', None)
+            if model is None:
+                return
+            radius = model.GetBoundingSphereRadius()
+            gfx.scaling = (radius, radius, radius)
+            self.gfxModel = trinity.EveRootTransform()
+            self.gfxModel.children.append(gfx)
+            self.gfxModel.boundingSphereRadius = radius
+            self.gfxModel.translationCurve = self.ball
+            self.sourceObject = self.gfxModel
+            self.gfx = gfx
+            self.AddSoundToEffect(2)
             return
-        radius = model.GetBoundingSphereRadius()
-        gfx.scaling = (radius, radius, radius)
-        self.gfxModel = trinity.EveRootTransform()
-        self.gfxModel.children.append(gfx)
-        self.gfxModel.boundingSphereRadius = radius
-        self.gfxModel.translationCurve = self.ball
-        self.sourceObject = self.gfxModel
-        self.gfx = gfx
-        self.AddSoundToEffect(2)
 
     def Start(self, duration):
         if self.gfxModel is not None:
             self.AddToScene(self.gfxModel)
+        return
 
-    def Stop(self, reason = STOP_REASON_DEFAULT):
+    def Stop(self, reason=STOP_REASON_DEFAULT):
         self._DestroyClientBall(self.ball)
         self.ball = None
         self.sourceObject = None
@@ -123,3 +132,4 @@ class MicroJumpDriveJump(GenericEffect):
             self.RemoveFromScene(self.gfxModel)
             self.gfxModel.translationCurve = None
             self.gfxModel = None
+        return

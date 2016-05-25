@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\client\script\environment\spaceObject\stargate.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\client\script\environment\spaceObject\stargate.py
 import uthread
 import blue
 import eve.common.lib.appConst as const
@@ -17,6 +18,7 @@ class Stargate(SpaceObject):
         self.lightningTransform = None
         self.arrivalCurve = None
         self.departureCurve = None
+        return
 
     def _SetupStargateEffects(self, model):
         gateStateChild = None
@@ -35,19 +37,23 @@ class Stargate(SpaceObject):
 
         if gateStateChild is None:
             return
-        for each in gateStateChild.curveSets:
-            if each.name == 'ACTIVATE_STATE':
-                self.activationCurve = each
-            elif each.name == 'DEACTIVATE_STATE':
-                self.deactivationCurve = each
+        else:
+            for each in gateStateChild.curveSets:
+                if each.name == 'ACTIVATE_STATE':
+                    self.activationCurve = each
+                elif each.name == 'DEACTIVATE_STATE':
+                    self.deactivationCurve = each
 
-    def LoadModel(self, fileName = None, loadedModel = None):
+            return
+
+    def LoadModel(self, fileName=None, loadedModel=None):
         filename = self.typeData.get('graphicFile')
         model = self._LoadModelResource(filename)
         if model is not None:
             self._SetupStargateEffects(model)
         SpaceObject.LoadModel(self, loadedModel=model)
         self.SetStaticRotation()
+        return
 
     def Assemble(self):
         if hasattr(self.model, 'ChainAnimationEx'):
@@ -70,6 +76,7 @@ class Stargate(SpaceObject):
                 if self.deactivationCurve is not None:
                     self.deactivationCurve.Play()
                     self.deactivationCurve.StopAfter(self.deactivationCurve.GetMaxCurveDuration())
+            return
 
         if not self.isDeactivationThreadRunning:
             self.isDeactivationThreadRunning = True
@@ -84,13 +91,16 @@ class Stargate(SpaceObject):
             self.lightningTransform.display = True
         self.isActive = True
         self._ActivationCooldown()
+        return
 
     def JumpDeparture(self):
         if self.departureCurve is not None:
             self.departureCurve.Play()
             self.departureCurve.StopAfter(self.departureCurve.GetMaxCurveDuration())
+        return
 
     def JumpArrival(self):
         if self.arrivalCurve is not None:
             self.arrivalCurve.Play()
             self.arrivalCurve.StopAfter(self.arrivalCurve.GetMaxCurveDuration())
+        return

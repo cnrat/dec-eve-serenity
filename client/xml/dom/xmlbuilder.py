@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\carbon\common\stdlib\xml\dom\xmlbuilder.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\carbon\common\stdlib\xml\dom\xmlbuilder.py
 import copy
 import xml.dom
 from xml.dom.NodeFilter import NodeFilter
@@ -210,6 +211,7 @@ class DOMInputSource(object):
         self.publicId = None
         self.systemId = None
         self.baseURI = None
+        return
 
     def _get_byteStream(self):
         return self.byteStream
@@ -309,9 +311,11 @@ class DOMImplementationLS:
             raise xml.dom.NotSupportedErr('schemaType not yet supported')
         if mode == self.MODE_SYNCHRONOUS:
             return DOMBuilder()
-        if mode == self.MODE_ASYNCHRONOUS:
-            raise xml.dom.NotSupportedErr('asynchronous builders are not supported')
-        raise ValueError('unknown value for mode')
+        else:
+            if mode == self.MODE_ASYNCHRONOUS:
+                raise xml.dom.NotSupportedErr('asynchronous builders are not supported')
+            raise ValueError('unknown value for mode')
+            return
 
     def createDOMWriter(self):
         raise NotImplementedError("the writer interface hasn't been written yet!")

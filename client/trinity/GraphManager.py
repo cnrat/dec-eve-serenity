@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\packages\trinity\GraphManager.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\packages\trinity\GraphManager.py
 import blue
 from . import _trinity as trinity
 from .renderJob import renderJobs, CreateRenderJob
@@ -64,6 +65,8 @@ class GraphManager:
             self.colors['time'].append(each)
             self.colors['memory'].append(each)
 
+        return
+
     def AdjustViewports(self, bounds):
         self.bounds = bounds
         width = bounds[2]
@@ -99,23 +102,25 @@ class GraphManager:
     def SetEnabled(self, enable):
         if self.isEnabled == enable:
             return
-        if enable:
-            self.renderJob = self.AssembleRenderJob()
-            if self.renderJobContainer:
-                self.renderJobContainer.steps.append(self.renderJob)
-            else:
-                renderJobs.recurring.append(self.renderJob)
         else:
-            try:
+            if enable:
+                self.renderJob = self.AssembleRenderJob()
                 if self.renderJobContainer:
-                    self.renderJobContainer.steps.remove(self.renderJob)
+                    self.renderJobContainer.steps.append(self.renderJob)
                 else:
-                    renderJobs.recurring.remove(self.renderJob)
-            except blue.error:
-                pass
+                    renderJobs.recurring.append(self.renderJob)
+            else:
+                try:
+                    if self.renderJobContainer:
+                        self.renderJobContainer.steps.remove(self.renderJob)
+                    else:
+                        renderJobs.recurring.remove(self.renderJob)
+                except blue.error:
+                    pass
 
-            self.renderJob = None
-        self.isEnabled = enable
+                self.renderJob = None
+            self.isEnabled = enable
+            return
 
     def IsEnabled(self):
         return self.isEnabled
@@ -132,25 +137,26 @@ class GraphManager:
         if self.graphs.has_key(statisticName):
             print statisticName, 'is already being graphed'
             return self.graphs[statisticName][1]
-        lg = blue.statistics.GetAccumulator(statisticName)
-        if lg is not None:
-            print statisticName, 'already has an accumulator'
+        else:
+            lg = blue.statistics.GetAccumulator(statisticName)
+            if lg is not None:
+                print statisticName, 'already has an accumulator'
+                return lg
+            statsDesc = blue.statistics.GetDescriptions()
+            grpName = statsDesc[statisticName][1]
+            if len(self.colors[grpName]) == 0:
+                raise Exception('Too many graphs per category')
+            grp = self.graphGroups[grpName]
+            grp['graphs'].append(statisticName)
+            lg = trinity.Tr2LineGraph()
+            lg.name = statisticName
+            lg.color = self.colors[grpName].pop()
+            blue.statistics.SetAccumulator(statisticName, lg)
+            renderer = grp['renderer']
+            renderer.lineGraphs.append(lg)
+            self.graphs[statisticName] = [grp, lg]
+            self.AdjustViewports(self.bounds)
             return lg
-        statsDesc = blue.statistics.GetDescriptions()
-        grpName = statsDesc[statisticName][1]
-        if len(self.colors[grpName]) == 0:
-            raise Exception('Too many graphs per category')
-        grp = self.graphGroups[grpName]
-        grp['graphs'].append(statisticName)
-        lg = trinity.Tr2LineGraph()
-        lg.name = statisticName
-        lg.color = self.colors[grpName].pop()
-        blue.statistics.SetAccumulator(statisticName, lg)
-        renderer = grp['renderer']
-        renderer.lineGraphs.append(lg)
-        self.graphs[statisticName] = [grp, lg]
-        self.AdjustViewports(self.bounds)
-        return lg
 
     def RemoveGraph(self, statisticName):
         blue.statistics.SetAccumulator(statisticName, None)
@@ -164,6 +170,7 @@ class GraphManager:
         grpName = statsDesc[statisticName][1]
         self.colors[grpName].append(lg.color)
         self.AdjustViewports(self.bounds)
+        return
 
     def HasGraph(self, statisticName):
         return self.graphs.has_key(statisticName)

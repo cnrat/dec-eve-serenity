@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\client\script\ui\crimewatch\crimewatchHints.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\client\script\ui\crimewatch\crimewatchHints.py
 import evetypes
 import uiprimitives
 import localization
@@ -60,6 +61,7 @@ class TimerHint(uiprimitives.Container):
         uthread.new(self.UpdateTimer)
         self.opacity = 0.0
         uicore.animations.FadeIn(self, duration=0.5)
+        return
 
     def GetTimerFontSize(self):
         if session.languageID == 'ZH':
@@ -70,6 +72,7 @@ class TimerHint(uiprimitives.Container):
     def _OnClose(self):
         self.doUpdates = False
         self.parentTimer.timerHint = None
+        return
 
     def UpdateTimer(self):
         startTime = self.GetTime()
@@ -96,6 +99,7 @@ class TimerHint(uiprimitives.Container):
 
         uicore.animations.FadeOut(self, sleep=True)
         self.Close()
+        return
 
     def OnUpdate(self, timeLeft):
         self.time.text = FmtTime(timeLeft)
@@ -127,6 +131,7 @@ class EngagementEntry(uiprimitives.Container):
         self.stateFlag = FlagIconWithState(parent=self, align=uiconst.TOPRIGHT, left=13, top=4)
         self.LoadData()
         sm.RegisterNotify(self)
+        return
 
     def LoadData(self):
         self.SetTimer()
@@ -150,6 +155,7 @@ class EngagementEntry(uiprimitives.Container):
                 self.activeBlink.Stop()
                 self.activeBlink = None
                 self.time.opacity = 1.0
+        return
 
     def LazyLoadData(self):
         slimItem = sm.GetService('crimewatchSvc').GetSlimItemDataForCharID(self.charID)
@@ -160,6 +166,7 @@ class EngagementEntry(uiprimitives.Container):
             flagInfo = stateSvc.GetStatePropsColorAndBlink(flagCode)
             self.stateFlag.ModifyIcon(flagInfo=flagInfo)
             self.slimItem = copy.copy(slimItem)
+        return
 
     def OnClick(self):
         sm.GetService('info').ShowInfo(typeID=self.info.typeID, itemID=self.charID)
@@ -191,6 +198,7 @@ class EngagementEntry(uiprimitives.Container):
                 sm.ScatterEvent('OnEngagementTimerHintResize')
             else:
                 self.timeout = timeout
+        return
 
 
 class BaseAdvancedTimerHint(uicontrols.ContainerAutoSize):
@@ -235,6 +243,7 @@ class BaseAdvancedTimerHint(uicontrols.ContainerAutoSize):
     def _OnClose(self):
         self.doUpdates = False
         self.parentTimer.timerHint = None
+        return
 
 
 class EngagementTimerHint(BaseAdvancedTimerHint):
@@ -347,8 +356,9 @@ class BoosterEntry(uiprimitives.Container):
 
         self.height = max(padTop + 4, self.boosterSprite.height + 2)
         self.LoadData()
+        return
 
-    def GetBoosterEffectsInfo(self, effects, isNegative = False):
+    def GetBoosterEffectsInfo(self, effects, isNegative=False):
         dogmaLM = sm.GetService('clientDogmaIM').GetDogmaLocation()
         effectsTextList = []
         for eff in effects:
@@ -384,6 +394,7 @@ class BoosterEntry(uiprimitives.Container):
             self.activeBlink.Stop()
             self.activeBlink = None
             self.time.opacity = 1.0
+        return
 
     def OnClick(self):
         sm.GetService('info').ShowInfo(typeID=self.typeID, itemID=self.booster.itemID)
@@ -418,3 +429,4 @@ class JumpTimerHint(TimerHint):
         if getattr(self.parentTimer, 'fatigueRatio', None):
             time = FormatTimeInterval(long(remaining * self.parentTimer.fatigueRatio), color, color)
             self.next.text = localization.GetByLabel('UI/Crimewatch/Timers/JumpFatigueNextActivation', time=time)
+        return

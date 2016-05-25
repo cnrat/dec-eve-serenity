@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\packages\carbonui\util\settings.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\packages\carbonui\util\settings.py
 import blue
 import os
 from carbonui.util.bunch import Bunch
@@ -46,11 +47,12 @@ class SettingSection:
             if hasattr(self, 'section'):
                 return self.section.Get(self.name, attrName)
 
-        def Get(self, attrName, defValue = None):
+        def Get(self, attrName, defValue=None):
             retVal = self.__getattr__(attrName)
             if retVal is None:
                 return defValue
-            return retVal
+            else:
+                return retVal
 
         def __setattr__(self, attrName, value):
             if hasattr(self, 'section'):
@@ -60,6 +62,7 @@ class SettingSection:
 
         def Release(self):
             self.section = None
+            return
 
         def HasKey(self, attrName):
             return self.section.HasKey(self.name, attrName)
@@ -88,6 +91,7 @@ class SettingSection:
                 log.LogError('Error loading settings data file--', str(self))
 
         self.timeoutTimer = AutoTimer(autoStoreInterval * 1000, self.WriteToDisk)
+        return
 
     def GetValues(self, groupName):
         return self.datastore[groupName]
@@ -118,7 +122,7 @@ class SettingSection:
         self.datastore[groupName][settingName] = (blue.os.GetWallclockTime(), value)
         self.FlagDirty()
 
-    def Remove(self, groupName, settingName = None):
+    def Remove(self, groupName, settingName=None):
         if groupName in self.datastore:
             group = self.datastore[groupName]
             if settingName:
@@ -153,6 +157,7 @@ class SettingSection:
         self.timeoutTimer = None
         self.FlushOldEntries()
         self.WriteToDisk()
+        return
 
     def Save(self):
         self.FlushOldEntries()
@@ -198,6 +203,7 @@ class YAMLSettingSection(SettingSection):
                 log.LogError('Error loading settings data file -- ', traceback.format_exc())
 
         self.timeoutTimer = AutoTimer(autoStoreInterval * 1000, self.WriteToDisk)
+        return
 
     def WriteToDisk(self):
         uthread.new(self._WriterThreadFunc)
@@ -226,6 +232,7 @@ def LoadBaseSettings():
         filePath = blue.paths.ResolvePathForWriting(u'settings:/core_%s_%s.%s' % (sectionName, identifier or '_', extension))
         section = settingsClass(sectionName, filePath, 62, service=None)
         __builtin__.settings.Set(sectionName, section)
+        return
 
     for sectionName, identifier, format in sections:
         _LoadSettingsIntoBuiltins(sectionName, identifier, SettingSection, 'dat')
@@ -243,6 +250,7 @@ def LoadBaseSettings():
     settings.char.CreateGroup('windows')
     settings.char.CreateGroup('ui')
     settings.char.CreateGroup('zaction')
+    return
 
 
 def StringToUnicodeConstructor(loader, node):

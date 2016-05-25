@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\packages\carbonui\control\slider.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\packages\carbonui\control\slider.py
 from eve.client.script.ui.control.themeColored import SpriteThemeColored, FrameThemeColored
 import mathUtil
 import blue
@@ -96,6 +97,7 @@ class Slider(Container):
             self.SetValue(self.startVal, updateHandle=True)
         else:
             self.state = uiconst.UI_NORMAL
+        return
 
     def Prepare_Underlay_(self):
         self.barCont = Container(parent=self, name='barCont', align=uiconst.TOBOTTOM, state=uiconst.UI_NORMAL, hint=self.hint, height=self.barHeight + 2 * self.barPadding)
@@ -172,8 +174,9 @@ class Slider(Container):
                 ticks.append(line)
 
             self.barCont.ticks = ticks
+        return
 
-    def SetIncrements(self, increments, draw = 1):
+    def SetIncrements(self, increments, draw=1):
         if len(increments) < 3:
             return
         self.increments = [[], []]
@@ -196,30 +199,32 @@ class Slider(Container):
     def GetValue(self):
         return self.value
 
-    def MorphTo(self, value, time = 150.0):
+    def MorphTo(self, value, time=150.0):
         if getattr(self, 'morphTo', None) is not None:
             self.pendingMorph = (value, time)
             return
-        self.morphTo = value
-        startPos = self.value
-        endPos = value
-        start, ndt = blue.os.GetWallclockTime(), 0.0
-        while ndt != 1.0:
-            ndt = min(blue.os.TimeDiffInMs(start, blue.os.GetWallclockTime()) / time, 1.0)
-            newVal = mathUtil.Lerp(startPos, endPos, ndt)
-            self.SetValue(newVal, updateHandle=True)
-            blue.pyos.synchro.Yield()
+        else:
+            self.morphTo = value
+            startPos = self.value
+            endPos = value
+            start, ndt = blue.os.GetWallclockTime(), 0.0
+            while ndt != 1.0:
+                ndt = min(blue.os.TimeDiffInMs(start, blue.os.GetWallclockTime()) / time, 1.0)
+                newVal = mathUtil.Lerp(startPos, endPos, ndt)
+                self.SetValue(newVal, updateHandle=True)
+                blue.pyos.synchro.Yield()
 
-        self.morphTo = None
-        if getattr(self, 'pendingMorph', None):
-            value, time = self.pendingMorph
-            self.MorphTo(value, time)
-        self.pendingMorph = None
+            self.morphTo = None
+            if getattr(self, 'pendingMorph', None):
+                value, time = self.pendingMorph
+                self.MorphTo(value, time)
+            self.pendingMorph = None
+            return
 
-    def SlideTo(self, value, update = 1):
+    def SlideTo(self, value, update=1):
         print 'not supported, pass updateHandle=True into SetValue instead'
 
-    def UpdateHandle(self, nValue, useIncrements = True):
+    def UpdateHandle(self, nValue, useIncrements=True):
         maxX = self.GetMaxX()
         leftPercentage = max(0, nValue)
         if self.increments and useIncrements:
@@ -228,7 +233,7 @@ class Slider(Container):
         self.handle.left = int(left) - self.handleOffset
         self.handle.state = uiconst.UI_NORMAL
 
-    def SetValue(self, value, updateHandle = False, useIncrements = True, triggerCallback = True):
+    def SetValue(self, value, updateHandle=False, useIncrements=True, triggerCallback=True):
         if self.increments and useIncrements:
             value = self.FindClosest(self.RoundValue(value), self.increments[0])
         value = max(self.minValue, min(self.maxValue, value))

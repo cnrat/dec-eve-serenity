@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\devtools\script\autobot.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\devtools\script\autobot.py
 from itertools import chain
 import random
 from carbon.common.lib.const import HOUR, MSEC, SEC
@@ -78,6 +79,8 @@ def MatchLocationNameToId(locationText):
         if localization.GetByMessageID(loc.nameID).lower() == locationText:
             return locationId
 
+    return None
+
 
 def ConvertLocationsToSolarSystemIds(locationStringList):
     solarSystemIds = set()
@@ -110,7 +113,7 @@ class AutoBotService(Service):
     __servicename__ = SERVICENAME
     __displayname__ = SERVICENAME
 
-    def Run(self, memStream = None):
+    def Run(self, memStream=None):
         Service.Run(self, memStream)
         self.logLines = []
         self.passConfigByNumber = {}
@@ -121,6 +124,7 @@ class AutoBotService(Service):
          'solarsystems': set(),
          'locations': ''}
         self.slash = sm.RemoteSvc('slash')
+        return
 
     def Tr(self, solarSystemID):
         try:
@@ -190,62 +194,66 @@ class AutoBotService(Service):
 
     def _WorkerThread(self):
         try:
-            self.Log('worker thread started')
-            config = self.GetConfig().copy()
-            solarSystemIds = ConvertLocationsToSolarSystemIds(config['locations'])
-            minSec = config['minSecurity']
-            maxSec = config['maxSecurity']
-            self.Log('Security limits [%0.1f, %0.1f]' % (minSec, maxSec))
-            solarSystemIds = [ ssId for ssId in solarSystemIds if minSec <= cfg.mapSystemCache[ssId].securityStatus <= maxSec ]
-            random.shuffle(solarSystemIds)
-            if len(solarSystemIds) == 0:
-                self.Log('No valid systems to process. Exiting')
-            self.Log('Starting test run of %d solar systems' % len(solarSystemIds))
-            self.Tr(solarSystemIds[0])
-            if config['shipDna'] is not None:
-                self.SetupShip()
-            times = []
-            startTime = blue.os.GetWallclockTime()
-            lastTime = startTime
-            passes = config['passes']
-            passNumbers = sorted([ pNum for pNum, passConfig in passes.iteritems() if passConfig['enabled'] ])
-            for i, solarSystemID in enumerate(solarSystemIds):
-                for passNumber in passNumbers:
-                    passConfig = passes[passNumber]
-                    self.Log('Starting pass %d in location %d%s' % (passNumber, solarSystemID, ' with nuke' if passConfig['nuke'] else ''))
-                    self.Log('Autobot processing system %d of %d: %d %s and has been active for %.1f hours' % (i + 1,
-                     len(solarSystemIds),
-                     solarSystemID,
-                     cfg.evelocations.Get(solarSystemID).locationName,
-                     (blue.os.GetWallclockTime() - startTime) / float(HOUR)))
-                    self.Tr(solarSystemID)
-                    locationGroupIds = passConfig['locations']
-                    for locationID in GetLocations(locationGroupIds):
-                        self.Move(locationID)
-                        if passConfig['nuke']:
-                            message = 'clearing out location (%d) %s' % (locationID, cfg.evelocations.Get(locationID).locationName)
-                            self.Log(message)
-                            self.Nuke()
+            try:
+                self.Log('worker thread started')
+                config = self.GetConfig().copy()
+                solarSystemIds = ConvertLocationsToSolarSystemIds(config['locations'])
+                minSec = config['minSecurity']
+                maxSec = config['maxSecurity']
+                self.Log('Security limits [%0.1f, %0.1f]' % (minSec, maxSec))
+                solarSystemIds = [ ssId for ssId in solarSystemIds if minSec <= cfg.mapSystemCache[ssId].securityStatus <= maxSec ]
+                random.shuffle(solarSystemIds)
+                if len(solarSystemIds) == 0:
+                    self.Log('No valid systems to process. Exiting')
+                self.Log('Starting test run of %d solar systems' % len(solarSystemIds))
+                self.Tr(solarSystemIds[0])
+                if config['shipDna'] is not None:
+                    self.SetupShip()
+                times = []
+                startTime = blue.os.GetWallclockTime()
+                lastTime = startTime
+                passes = config['passes']
+                passNumbers = sorted([ pNum for pNum, passConfig in passes.iteritems() if passConfig['enabled'] ])
+                for i, solarSystemID in enumerate(solarSystemIds):
+                    for passNumber in passNumbers:
+                        passConfig = passes[passNumber]
+                        self.Log('Starting pass %d in location %d%s' % (passNumber, solarSystemID, ' with nuke' if passConfig['nuke'] else ''))
+                        self.Log('Autobot processing system %d of %d: %d %s and has been active for %.1f hours' % (i + 1,
+                         len(solarSystemIds),
+                         solarSystemID,
+                         cfg.evelocations.Get(solarSystemID).locationName,
+                         (blue.os.GetWallclockTime() - startTime) / float(HOUR)))
+                        self.Tr(solarSystemID)
+                        locationGroupIds = passConfig['locations']
+                        for locationID in GetLocations(locationGroupIds):
+                            self.Move(locationID)
+                            if passConfig['nuke']:
+                                message = 'clearing out location (%d) %s' % (locationID, cfg.evelocations.Get(locationID).locationName)
+                                self.Log(message)
+                                self.Nuke()
 
-                    minTime = passConfig['minTime']
-                    elapsedTime = blue.os.GetWallclockTime() - lastTime
-                    remainingTime = SEC * minTime - elapsedTime
-                    if remainingTime > 0:
-                        self.Log('Waiting for %s sec to enforce %s sec min time before next pass' % (remainingTime / SEC, minTime))
-                        blue.pyos.synchro.SleepWallclock(remainingTime / MSEC)
-                    nowTime = blue.os.GetWallclockTime()
-                    times.append(float(nowTime - lastTime) / SEC)
-                    lastTime = nowTime
+                        minTime = passConfig['minTime']
+                        elapsedTime = blue.os.GetWallclockTime() - lastTime
+                        remainingTime = SEC * minTime - elapsedTime
+                        if remainingTime > 0:
+                            self.Log('Waiting for %s sec to enforce %s sec min time before next pass' % (remainingTime / SEC, minTime))
+                            blue.pyos.synchro.SleepWallclock(remainingTime / MSEC)
+                        nowTime = blue.os.GetWallclockTime()
+                        times.append(float(nowTime - lastTime) / SEC)
+                        lastTime = nowTime
 
-                message = 'system process in %.1f sec. ' % times[-1]
-                message += 'average processsing time: %.1f sec' % (sum(times) / len(times))
-                self.Log(message)
+                    message = 'system process in %.1f sec. ' % times[-1]
+                    message += 'average processsing time: %.1f sec' % (sum(times) / len(times))
+                    self.Log(message)
 
-            self.Log('All done in %.1f sec' % ((lastTime - startTime) / SEC))
-        except Exception as e:
-            self.Log('Error: ' + str(e))
+                self.Log('All done in %.1f sec' % ((lastTime - startTime) / SEC))
+            except Exception as e:
+                self.Log('Error: ' + str(e))
+
         finally:
             self.CleanWorkerThread()
+
+        return
 
     def StopWorkerThread(self):
         if self.workerThread:
@@ -255,6 +263,7 @@ class AutoBotService(Service):
     def CleanWorkerThread(self):
         self.workerThread = None
         self.isWorking = False
+        return
 
 
 class AutoBotWindow(Window):
@@ -353,6 +362,7 @@ class AutoBotWindow(Window):
             config['shipDna'] = None
         sm.GetService('autobot').StartBot()
         self.logUpdated = AutoTimer(2000, self.UpdateLogText)
+        return
 
     def PauseBot(self, *args):
         sm.GetService('autobot').PauseBot()
@@ -360,6 +370,7 @@ class AutoBotWindow(Window):
     def StopBot(self, *args):
         sm.GetService('autobot').StopBot()
         self.logUpdated = None
+        return
 
     def ClearLogs(self, *args):
         sm.GetService('autobot').ClearLogs()

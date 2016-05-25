@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\client\script\ui\station\fitting\stanceSlot.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\client\script\ui\station\fitting\stanceSlot.py
 from carbonui.primitives.container import Container
 from eve.client.script.ui.inflight import shipstance
 
@@ -23,6 +24,8 @@ class StanceSlots(Container):
              32,
              32)
             self.shipstances.append(shipstance.ShipStanceButton(shipID=attributes.shipID, typeID=typeID, parent=self, pos=newPos))
+
+        return
 
     def ShowStances(self, shipID, typeID):
         for idx, kwargs in enumerate(shipstance.get_ship_stance_buttons_args(typeID, shipID)):

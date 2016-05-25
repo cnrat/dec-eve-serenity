@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\client\script\ui\shared\neocom\corporation\base_corporation_ui.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\client\script\ui\shared\neocom\corporation\base_corporation_ui.py
 from eve.client.script.ui.control.glowSprite import GlowSprite
 import service
 import uiprimitives
@@ -55,14 +56,14 @@ class CorporationUI(service.Service):
         service.Service.__init__(self)
         self.wasVisible = 0
 
-    def Run(self, memStream = None):
+    def Run(self, memStream=None):
         self.LogInfo('Starting Corporation')
         self.state = service.SERVICE_START_PENDING
         self.locks = {}
         self.ResetWindow()
         self.state = service.SERVICE_RUNNING
 
-    def Stop(self, memStream = None):
+    def Stop(self, memStream=None):
         wnd = self.GetWnd()
         if wnd and not wnd.destroyed:
             wnd.Close()
@@ -82,6 +83,7 @@ class CorporationUI(service.Service):
             self.wasVisible = 1
         if 'charid' in change and change['charid'][0] or 'userid' in change and change['userid'][0]:
             sm.StopService(self.__guid__[4:])
+        return
 
     def ProcessSessionChange(self, isRemote, session, change):
         if 'corpid' in change and bool(session.charid):
@@ -102,8 +104,9 @@ class CorporationUI(service.Service):
         if wnd is not None and not wnd.destroyed:
             if getattr(wnd.sr, 'maintabs', None) is not None:
                 wnd.sr.maintabs.ReloadVisible()
+        return
 
-    def GetWnd(self, haveto = 0, panelName = None, subPanelName = None):
+    def GetWnd(self, haveto=0, panelName=None, subPanelName=None):
         wnd = form.Corporation.GetIfOpen()
         if not wnd and haveto:
             wnd = form.Corporation.Open()
@@ -141,6 +144,7 @@ class CorporationUI(service.Service):
         self.alliances = None
         self.titles = None
         self.decorations = None
+        return
 
     def RefreshSize(self, *args):
         for panels in self.panels.values():
@@ -156,7 +160,7 @@ class CorporationUI(service.Service):
                     each.OnContentResize(0)
                     continue
 
-    def ResetWindow(self, bShowIfVisible = 0):
+    def ResetWindow(self, bShowIfVisible=0):
         uthread.Lock(self)
         try:
             self.panels = {}
@@ -170,15 +174,16 @@ class CorporationUI(service.Service):
         finally:
             uthread.UnLock(self)
 
-    def Show(self, panelName = None, subPanelName = None):
+    def Show(self, panelName=None, subPanelName=None):
         wnd = self.GetWnd(1, panelName, subPanelName)
         if wnd is not None and not wnd.destroyed:
             wnd.Maximize()
             if panelName:
                 wnd.sr.maintabs.ShowPanelByName(panelName)
                 self.panels[panelName.lower()][0].Load(subPanelName)
+        return
 
-    def Initialize(self, wnd, panelName = None, subPanelName = None):
+    def Initialize(self, wnd, panelName=None, subPanelName=None):
         self.subPanelName = subPanelName
         while eve.session.mutating:
             blue.pyos.BeNice()
@@ -377,10 +382,12 @@ class CorporationUI(service.Service):
         if wnd is None or wnd.destroyed:
             self.ResetWindow()
             return
-        uiutil.SetOrder(wnd.sr.maintabs, 0)
-        wnd.HideLoad()
-        wnd.state = uiconst.UI_NORMAL
-        uthread.new(sm.StartService('wallet').AskSetWalletDivision)
+        else:
+            uiutil.SetOrder(wnd.sr.maintabs, 0)
+            wnd.HideLoad()
+            wnd.state = uiconst.UI_NORMAL
+            uthread.new(sm.StartService('wallet').AskSetWalletDivision)
+            return
 
     def IsNewRolesEnabled(self):
         return bool(int(sm.GetService('machoNet').GetGlobalConfig().get('enableNewRolesTab', 1)))
@@ -392,116 +399,138 @@ class CorporationUI(service.Service):
         wnd = self.GetWnd()
         if wnd is None or wnd.destroyed:
             return
-        for k, v in self.panels.iteritems():
-            if k == args:
-                visible = uiconst.UI_PICKCHILDREN
-            else:
-                visible = uiconst.UI_HIDDEN
-            for panel in v:
-                panel.state = visible
-
-        if args == 'members':
-            wnd.sr.membersTabs.AutoSelect()
-        elif args == 'politics':
-            wnd.sr.politicsTabs.AutoSelect()
-        elif args == 'recruitment':
-            self.recruitment.Load(self.subPanelName)
         else:
-            self.panels[args][0].Load(args)
+            for k, v in self.panels.iteritems():
+                if k == args:
+                    visible = uiconst.UI_PICKCHILDREN
+                else:
+                    visible = uiconst.UI_HIDDEN
+                for panel in v:
+                    panel.state = visible
+
+            if args == 'members':
+                wnd.sr.membersTabs.AutoSelect()
+            elif args == 'politics':
+                wnd.sr.politicsTabs.AutoSelect()
+            elif args == 'recruitment':
+                self.recruitment.Load(self.subPanelName)
+            else:
+                self.panels[args][0].Load(args)
+            return
 
     def ShowLoad(self):
         wnd = self.GetWnd()
         if wnd is not None and not wnd.destroyed:
             wnd.ShowLoad()
             return 1
+        else:
+            return
 
     def HideLoad(self):
         wnd = self.GetWnd()
         if wnd is not None and not wnd.destroyed:
             wnd.HideLoad()
             return 1
+        else:
+            return
 
     def LoadLogo(self, corporationID):
         wnd = self.GetWnd()
         if wnd is not None and not wnd.destroyed:
             return self.panelHome.LoadLogo(corporationID)
+        else:
+            return
 
-    def LoadTop(self, icon, caption, subcaption = None):
+    def LoadTop(self, icon, caption, subcaption=None):
         if self.toparea is None:
             return
-        uiutil.FlushList(self.toparea.children[1:])
-        if icon is None and caption is None:
-            self.toparea.state = uiconst.UI_HIDDEN
         else:
-            self.toparea.state = uiconst.UI_DISABLED
-        self.toparea.children[0].top = -4
-        if icon is not None:
-            self.toparea.children[0].LoadIcon(icon)
-        uicontrols.WndCaptionLabel(text=caption, subcaption=subcaption, parent=self.toparea, align=uiconst.RELATIVE)
-        return self.toparea
+            uiutil.FlushList(self.toparea.children[1:])
+            if icon is None and caption is None:
+                self.toparea.state = uiconst.UI_HIDDEN
+            else:
+                self.toparea.state = uiconst.UI_DISABLED
+            self.toparea.children[0].top = -4
+            if icon is not None:
+                self.toparea.children[0].LoadIcon(icon)
+            uicontrols.WndCaptionLabel(text=caption, subcaption=subcaption, parent=self.toparea, align=uiconst.RELATIVE)
+            return self.toparea
 
     def OnSanctionedActionChanged(self, corpID, voteCaseID, change):
         self.LogInfo(self.__class__.__name__, 'OnSanctionedActionChanged')
         if self.sanctionable is not None:
             self.sanctionable.OnSanctionedActionChanged(corpID, voteCaseID, change)
+        return
 
     def OnCorporationVoteCaseChanged(self, corporationID, voteCaseID, change):
         self.LogInfo(self.__class__.__name__, 'OnCorporationVoteCaseChanged')
         if self.votes is not None:
             self.votes.OnCorporationVoteCaseChanged(corporationID, voteCaseID, change)
+        return
 
     def OnCorporationVoteCaseOptionChanged(self, corporationID, voteCaseID, optionID, change):
         self.LogInfo(self.__class__.__name__, 'OnCorporationVoteCaseOptionChanged')
         if self.votes is not None:
             self.votes.OnCorporationVoteCaseOptionChanged(corporationID, voteCaseID, optionID, change)
+        return
 
     def OnCorporationVoteChanged(self, corporationID, voteCaseID, characterID, change):
         self.LogInfo(self.__class__.__name__, 'OnCorporationVoteChanged')
         if self.votes is not None:
             self.votes.OnCorporationVoteChanged(corporationID, voteCaseID, characterID, change)
+        return
 
     def OnCorporationApplicationChanged(self, corpID, applicantID, applicationID, newApplication):
         self.LogInfo(self.__class__.__name__, 'OnCorporationApplicationChanged')
         if self.recruitment is not None:
             self.recruitment.OnCorporationApplicationChanged(corpID, applicantID, applicationID, newApplication)
         if applicantID == session.charid and util.IsStation(session.locationid):
-            lobby = form.Lobby.GetIfOpen()
+            from eve.client.script.ui.shared.dockedUI import GetLobbyClass
+            lobby = GetLobbyClass().GetIfOpen()
             if lobby:
                 lobby.ShowOffices()
+        return
 
     def OnCorporationRecruitmentAdChanged(self):
         self.LogInfo(self.__class__.__name__, 'OnCorporationRecruitmentAdChanged')
         if self.recruitment is not None:
             self.recruitment.OnCorporationRecruitmentAdChanged()
+        return
 
     def OnAllianceApplicationChanged(self, allianceID, corpID, change):
         self.LogInfo(self.__class__.__name__, 'OnAllianceApplicationChanged')
         if self.alliances is not None:
             self.alliances.OnAllianceApplicationChanged(allianceID, corpID, change)
+        return
 
     def OnAllianceMemberChanged(self, allianceID, corpID, change):
         self.LogInfo(self.__class__.__name__, 'OnAllianceMemberChanged')
         if self.alliances is not None:
             self.alliances.OnAllianceMemberChanged(allianceID, corpID, change)
+        return
 
     def OnAllianceRelationshipChanged(self, allianceID, toID, change):
         self.LogInfo(self.__class__.__name__, 'OnAllianceRelationshipChanged')
         if self.alliances is not None:
             self.alliances.OnAllianceRelationshipChanged(allianceID, toID, change)
+        return
 
     def OnAllianceChanged(self, allianceID, change):
         self.LogInfo(self.__class__.__name__, 'OnAllianceChanged')
         if self.alliances is not None:
             self.alliances.OnAllianceChanged(allianceID, change)
+        return
 
     def OnWarChanged(self, war, ownerIDs, change):
         self.LogInfo(self.__class__.__name__, 'OnWarChanged')
         if self.wars is not None:
             self.wars.OnWarChanged(war, ownerIDs, change)
+        return
 
     def GetMemberDetails(self, charid):
         if getattr(self, 'inited', 0) and getattr(self, 'members', None):
             self.members.MemberDetails(charid)
+        return
 
     def GetMemberHangarsData(self):
         hangars = {}
@@ -553,6 +582,7 @@ class CorporationUI(service.Service):
         self.LogInfo(self.__class__.__name__, 'OnTitleChanged')
         if self.titles is not None:
             self.titles.OnTitleChanged(corpID, titleID, change)
+        return
 
     def ApplyToJoinAlliance(self, allianceID):
         if not eve.session.corprole & const.corpRoleDirector == const.corpRoleDirector:
@@ -566,16 +596,19 @@ class CorporationUI(service.Service):
             applicationText = None
         if applicationText is not None:
             sm.GetService('corp').ApplyToJoinAlliance(allianceID, applicationText)
+        return
 
     def OnLockedItemChangeUI(self, itemID, ownerID, locationID, change):
         self.LogInfo(self.__class__.__name__, 'OnLockedItemChangeUI')
         if self.accounts is not None:
             self.accounts.OnLockedItemChangeUI(itemID, ownerID, locationID, change)
+        return
 
     def OnCorporationMedalAdded(self, *args):
         self.LogInfo(self.__class__.__name__, 'OnCorporationMedalAdded')
         if self.decorations is not None:
             self.decorations.OnCorporationMedalAdded(args)
+        return
 
 
 class CorporationWindow(uicontrols.Window):

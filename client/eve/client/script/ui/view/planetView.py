@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\client\script\ui\view\planetView.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\client\script\ui\view\planetView.py
 from viewstate import View
 import uicls
 import carbonui.const as uiconst
@@ -12,7 +13,7 @@ class PlanetView(View):
     __layerClass__ = uicls.PlanetLayer
     __suppressedOverlays__ = {'shipui', 'target'}
 
-    def CanEnter(self, planetID = None, **kwargs):
+    def CanEnter(self, planetID=None, **kwargs):
         canEnter = True
         if planetID is None:
             self.LogInfo('Must have a valid planetID to open planet view')
@@ -38,7 +39,7 @@ class PlanetView(View):
             currentPlanet.RevertChanges()
         return True
 
-    def LoadView(self, planetID = None, **kwargs):
+    def LoadView(self, planetID=None, **kwargs):
         planetUI = sm.GetService('planetUI')
         if self.IsActive():
             planetUI.Close(clearAll=False)
@@ -57,6 +58,7 @@ class PlanetView(View):
                 self.cachedCameraZoom = camera.zoom
         self.lastPlanetID = planetID
         sm.GetService('experimentClientSvc').LogWindowOpenedActions('PlanetaryInteraction')
+        return
 
     def UnloadView(self):
         planetUI = sm.GetService('planetUI')
@@ -70,3 +72,4 @@ class PlanetView(View):
         viewState.CloseSecondaryView('planet')
         planetID = getattr(self, 'lastPlanetID', None)
         viewState.ActivateView('planet', planetID=planetID)
+        return

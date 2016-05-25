@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\client\script\paperDoll\renderDrivers.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\client\script\paperDoll\renderDrivers.py
 import trinity
 import log
 import types
@@ -21,6 +22,7 @@ class RenderDriver:
 
     def __init__(self):
         self._chainedRenderDriver = None
+        return
 
     def SetChainedRenderDriver(self, chainedRenderDriver):
         if not isinstance(chainedRenderDriver, RenderDriver):
@@ -45,6 +47,7 @@ class RenderDriver:
             if newArgs is not None:
                 extraArgs.update(newArgs)
             second(self._chainedRenderDriver, *args, **extraArgs)
+            return
 
         return wrapped
 
@@ -76,6 +79,7 @@ class RenderDriverNCC(RenderDriver):
     def __init__(self):
         RenderDriver.__init__(self)
         self.wrinkleFx = None
+        return
 
     def OnBeginUpdate(self, doll):
         pass
@@ -93,55 +97,59 @@ class RenderDriverNCC(RenderDriver):
         self.wrinkleFx = []
         if not meshes:
             return
-        skinSpotLightShadowsActive = lambda : SkinSpotLightShadows.instance is not None
-        skinLightmapRendererActive = lambda : doll.skinLightmapRenderer is not None
-        tasklets = []
-        asyncMeshes = {}
+        else:
+            skinSpotLightShadowsActive = lambda : SkinSpotLightShadows.instance is not None
+            skinLightmapRendererActive = lambda : doll.skinLightmapRenderer is not None
+            tasklets = []
+            asyncMeshes = {}
 
-        def DoClothMesh(mesh):
-            isHair = False
-            isHair = self.BindClothShaders(mesh, doll, isHair)
-            if type(mesh.effect) == trinity.Tr2Effect:
-                loadingResources = []
-                if mesh.effect and type(mesh.effect) == trinity.Tr2Effect:
-                    loadingResources.append(mesh.effect.effectResource)
-                if mesh.effectReversed:
-                    loadingResources.append(mesh.effectReversed.effectResource)
-                pdCf.WaitForAll(loadingResources, lambda x: x.isLoading)
-                if mesh.effect:
-                    mesh.effect.PopulateParameters()
-                if mesh.effectReversed:
-                    mesh.effectReversed.PopulateParameters()
-            if SkinSpotLightShadows.instance is not None:
-                SkinSpotLightShadows.instance.CreateEffectParamsForMesh(mesh, isClothMesh=True)
-            if isHair and hasattr(mesh, 'useTransparentBatches'):
-                mesh.useTransparentBatches = True
+            def DoClothMesh(mesh):
+                isHair = False
+                isHair = self.BindClothShaders(mesh, doll, isHair)
+                if type(mesh.effect) == trinity.Tr2Effect:
+                    loadingResources = []
+                    if mesh.effect and type(mesh.effect) == trinity.Tr2Effect:
+                        loadingResources.append(mesh.effect.effectResource)
+                    if mesh.effectReversed:
+                        loadingResources.append(mesh.effectReversed.effectResource)
+                    pdCf.WaitForAll(loadingResources, lambda x: x.isLoading)
+                    if mesh.effect:
+                        mesh.effect.PopulateParameters()
+                    if mesh.effectReversed:
+                        mesh.effectReversed.PopulateParameters()
+                if SkinSpotLightShadows.instance is not None:
+                    SkinSpotLightShadows.instance.CreateEffectParamsForMesh(mesh, isClothMesh=True)
+                if isHair and hasattr(mesh, 'useTransparentBatches'):
+                    mesh.useTransparentBatches = True
+                return
 
-        for mesh in iter(meshes):
-            if type(mesh) is trinity.Tr2ClothingActor:
-                t = uthread.new(DoClothMesh, mesh)
-            else:
-                if skinSpotLightShadowsActive() or skinLightmapRendererActive():
-                    asyncMeshes[mesh] = False
-                if pdDef.DOLL_PARTS.HEAD in mesh.name:
-                    t = uthread.new(self.SetInteriorShader, *(asyncMeshes,
-                     mesh,
-                     self.wrinkleFx,
-                     doll))
+            for mesh in iter(meshes):
+                if type(mesh) is trinity.Tr2ClothingActor:
+                    t = uthread.new(DoClothMesh, mesh)
                 else:
-                    t = uthread.new(self.SetInteriorShader, *(asyncMeshes,
-                     mesh,
-                     None,
-                     doll))
-            tasklets.append(t)
-            uthread.schedule(t)
+                    if skinSpotLightShadowsActive() or skinLightmapRendererActive():
+                        asyncMeshes[mesh] = False
+                    if pdDef.DOLL_PARTS.HEAD in mesh.name:
+                        t = uthread.new(self.SetInteriorShader, *(asyncMeshes,
+                         mesh,
+                         self.wrinkleFx,
+                         doll))
+                    else:
+                        t = uthread.new(self.SetInteriorShader, *(asyncMeshes,
+                         mesh,
+                         None,
+                         doll))
+                tasklets.append(t)
+                uthread.schedule(t)
 
-        pdCf.WaitForAll(tasklets, lambda x: x.alive)
-        for mesh in asyncMeshes.iterkeys():
-            if skinSpotLightShadowsActive():
-                SkinSpotLightShadows.instance.CreateEffectParamsForMesh(mesh)
-            if skinLightmapRendererActive() and asyncMeshes[mesh]:
-                doll.skinLightmapRenderer.BindLightmapShader(mesh)
+            pdCf.WaitForAll(tasklets, lambda x: x.alive)
+            for mesh in asyncMeshes.iterkeys():
+                if skinSpotLightShadowsActive():
+                    SkinSpotLightShadows.instance.CreateEffectParamsForMesh(mesh)
+                if skinLightmapRendererActive() and asyncMeshes[mesh]:
+                    doll.skinLightmapRenderer.BindLightmapShader(mesh)
+
+            return
 
     def SetInteriorShader(self, asyncMeshes, mesh, wrinkleFx, doll):
         fx = pdCcf.GetEffectsFromMesh(mesh)
@@ -270,15 +278,15 @@ class RenderDriverCollapsePLP(RenderDriver):
                             if p.name == 'TransformUV0':
                                 return p.value
 
-        return (0, 0, 1, 1)
-
     def OnModifierUVChanged(self, modifier):
         source = self.sources.get(modifier, None)
         if source is None:
             return
-        uv = self.FindTransformUV(modifier.meshes)
-        source.upperLeftTexCoord = (uv[0], uv[1])
-        source.lowerRightTexCoord = (uv[2], uv[3])
+        else:
+            uv = self.FindTransformUV(modifier.meshes)
+            source.upperLeftTexCoord = (uv[0], uv[1])
+            source.lowerRightTexCoord = (uv[2], uv[3])
+            return
 
     def OnModifierRedfileLoaded(self, modifier, redfilePath):
         if not redfilePath or 'ragdoll' in redfilePath:
@@ -304,6 +312,8 @@ class RenderDriverCollapsePLP(RenderDriver):
                     if effect.name.lower().startswith('c_skin_'):
                         return effect
 
+            return None
+
         def TransferArrayOf(destEffect, sourceEffect):
             for p in sourceEffect.parameters:
                 if p.name.startswith('ArrayOf'):
@@ -319,200 +329,202 @@ class RenderDriverCollapsePLP(RenderDriver):
             del self.builder
             RenderDriver.OnEndUpdate(self, avatar, visualModel, doll, factory, **kwargs)
             return
-        sourceEffect = FindSkinEffect(visualModel.meshes)
-        collapsedEffect = None
-        collapseShadowMesh = pdCfg.PerformanceOptions.collapseShadowMesh and doll.overrideLod >= 0 and doll.overrideLod <= 1
-        collapseMainMesh = pdCfg.PerformanceOptions.collapseMainMesh and doll.overrideLod == 2
-        collapsePLPMesh = pdCfg.PerformanceOptions.collapsePLPMesh and doll.overrideLod >= 0
-        if collapseMainMesh:
-            collapsePLPMesh = True
-            collapseShadowMesh = False
-        if sourceEffect:
+        else:
+            sourceEffect = FindSkinEffect(visualModel.meshes)
+            collapsedEffect = None
+            collapseShadowMesh = pdCfg.PerformanceOptions.collapseShadowMesh and doll.overrideLod >= 0 and doll.overrideLod <= 1
+            collapseMainMesh = pdCfg.PerformanceOptions.collapseMainMesh and doll.overrideLod == 2
+            collapsePLPMesh = pdCfg.PerformanceOptions.collapsePLPMesh and doll.overrideLod >= 0
             if collapseMainMesh:
-                collapsedEffect = SkinLightmapRenderer.DuplicateEffect(sourceEffect, COLLAPSED_BASIC_EFFECT_PATH)
-            elif collapseShadowMesh or collapsePLPMesh:
-                collapsedEffect = SkinLightmapRenderer.DuplicateEffect(sourceEffect, COLLAPSED_SHADOW_EFFECT_PATH)
-        if collapsedEffect is None:
+                collapsePLPMesh = True
+                collapseShadowMesh = False
+            if sourceEffect:
+                if collapseMainMesh:
+                    collapsedEffect = SkinLightmapRenderer.DuplicateEffect(sourceEffect, COLLAPSED_BASIC_EFFECT_PATH)
+                elif collapseShadowMesh or collapsePLPMesh:
+                    collapsedEffect = SkinLightmapRenderer.DuplicateEffect(sourceEffect, COLLAPSED_SHADOW_EFFECT_PATH)
+            if collapsedEffect is None:
+                del self.sources
+                del self.builder
+                RenderDriver.OnEndUpdate(self, avatar, visualModel, doll, factory, **kwargs)
+                return
+            for param in collapsedEffect.parameters:
+                if param.name == 'TransformUV0':
+                    param.value = (0, 0, 1, 1)
+                    break
+
+            self.builder.collapseTransparentAreas = collapseMainMesh
+            if not collapseMainMesh and COLLAPSE_USE_PD_VISUALMODEL:
+                paperDollPrePassFixup.AddPrepassAreasToAvatar(avatar, visualModel, doll, factory.clothSimulationActive, **kwargs)
+                self.builder.collapseFromDepthNormal = True
+                self.builder.sourceSkinnedModel = visualModel
+                for modifier, inSource in self.sources.iteritems():
+                    for mesh in modifier.meshes:
+                        source = trinity.Tr2SkinnedModelBuilderSource()
+                        source.upperLeftTexCoord = inSource.upperLeftTexCoord
+                        source.lowerRightTexCoord = inSource.lowerRightTexCoord
+                        source.visualModelMeshName = mesh.name
+                        source.visualModelMeshGrannyPath = modifier.meshGeometryResPaths[mesh.name]
+                        if source.visualModelMeshGrannyPath != '':
+                            self.builder.sourceMeshesInfo.append(source)
+
+            else:
+                modifiers = self.sources.keys()
+                modifiers = sorted(modifiers, key=lambda x: x.name)
+                sources = map(self.sources.get, modifiers)
+                for source in sources:
+                    self.builder.sourceMeshesInfo.append(source)
+
+                self.builder.SetExtraArrayOf(['ArrayOfCutMaskInfluence',
+                 'ArrayOfMaterialLibraryID',
+                 'ArrayOfMaterial2LibraryID',
+                 'ArrayOfMaterialSpecularFactors'])
+                if not self.builder.PrepareForBuild():
+                    log.LogWarn('PD Collapse: PrepareForBuild failed')
+                else:
+                    buildCount = 0
+                    collapsedMeshes = {}
+                    while self.builder.Build():
+                        info = self.builder.GetCollapsedInfo()
+                        model = self.builder.GetSkinnedModel()
+                        if model is None:
+                            break
+                        for mesh in model.meshes:
+                            collapsedMeshes[mesh] = info
+
+                        model.meshes.removeAt(-1)
+                        buildCount += 1
+
+                if buildCount == 0:
+                    collapseShadowMesh = False
+                    collapseMainMesh = False
+                    collapsePLPMesh = False
+                if pdCfg.PerformanceOptions.collapseVerbose:
+                    if buildCount > 1 and doll.overrideLod == 2:
+                        log.LogWarn('PD Collapse: lod2 has ' + str(buildCount) + ' meshes after collapse (expected 1).')
+                    if buildCount > 3 and doll.overrideLod == 0:
+                        log.LogWarn('PD Collapse: lod0 has ' + str(buildCount) + ' meshes after collapse (expected 3 at most).')
+                if buildCount > 0:
+                    if collapseMainMesh:
+                        visualModel.meshes.removeAt(-1)
+                    elif collapsePLPMesh:
+                        for mesh in visualModel.meshes:
+                            mesh.depthAreas.removeAt(-1)
+                            mesh.depthNormalAreas.removeAt(-1)
+
+                    for count, mesh in enumerate(collapsedMeshes.iterkeys()):
+                        mesh.name = 'collapsed' + str(buildCount) + str(count)
+                        for area in mesh.opaqueAreas:
+                            TransferArrayOf(collapsedEffect, area.effect)
+                            area.effect = collapsedEffect
+
+                        def TransferArrayToTexture(cut, mat1, mat2, spec):
+                            pixels = []
+
+                            def GetFromArray(array, index, component=0, default=0):
+                                if array is None or not hasattr(array, 'value') or index >= len(array.value):
+                                    return default
+                                else:
+                                    v = array.value[index]
+                                    if type(v) == trinity.TriVector4:
+                                        return v.data[component]
+                                    return v
+
+                            OPT_CUTOUT = 8
+                            OPT_DOUBLE_MATERIAL = 16
+                            for x in xrange(32):
+                                infoList = collapsedMeshes.get(mesh, [])
+                                infoTuple = infoList[x] if x < len(infoList) else (0, 0, 0, 0)
+                                permute = infoTuple[3]
+                                table = paperDollPrePassFixup.MATERIAL_ID_TRANSPARENT_HACK_EXACT if infoTuple[1] == 2 else paperDollPrePassFixup.MATERIAL_ID_EXACT
+                                r = int(0.5 + 100 * GetFromArray(cut, x))
+                                if permute & OPT_CUTOUT:
+                                    r += 128
+                                g = int(GetFromArray(mat1, x))
+                                if permute & OPT_DOUBLE_MATERIAL:
+                                    b = int(GetFromArray(mat2, x))
+                                else:
+                                    b = g
+                                a = int(0.5 + 50 * GetFromArray(spec, x, component=2))
+                                pixels.append((x, 0, (a << 24) + (r << 16) + (g << 8) + b))
+
+                            hb = trinity.Tr2HostBitmap(32, 1, 1, trinity.PIXEL_FORMAT.B8G8R8A8_UNORM)
+                            hb.SetPixels(0, pixels, 0)
+                            lookup = trinity.TriTextureRes()
+                            lookup.CreateFromHostBitmap(hb)
+                            texParam = trinity.TriTextureParameter()
+                            texParam.name = 'CollapsedMeshArrayLookup'
+                            texParam.SetResource(lookup)
+                            return texParam
+
+                        if collapsePLPMesh:
+                            paperDollPrePassFixup.AddDepthNormalAreasToStandardMesh(mesh)
+                            for dn in mesh.depthNormalAreas:
+                                parameters = dn.effect.parameters
+                                dn.effect.defaultSituation = 'OPT_COLLAPSED_PLP DoubleMaterial'
+                                cut = parameters.get('ArrayOfCutMaskInfluence', None)
+                                mat1 = parameters.get('ArrayOfMaterialLibraryID', None)
+                                mat2 = parameters.get('ArrayOfMaterial2LibraryID', None)
+                                spec = parameters.get('ArrayOfMaterialSpecularFactors', None)
+                                texParam = TransferArrayToTexture(cut, mat1, mat2, spec)
+                                parameters['CollapsedMeshArrayLookup'] = texParam
+                                for remove in ['CutMaskInfluence',
+                                 'MaterialLibraryID',
+                                 'Material2LibraryID',
+                                 'MaterialSpecularFactors',
+                                 'ArrayOfCutMaskInfluence',
+                                 'ArrayOfMaterialLibraryID',
+                                 'ArrayOfMaterial2LibraryID',
+                                 'ArrayOfMaterialSpecularFactors']:
+                                    if parameters.get(remove, None) is not None:
+                                        del parameters[remove]
+
+                        if collapseMainMesh:
+                            for dn in mesh.opaqueAreas:
+                                parameters = dn.effect.parameters
+                                cut = pdCcf.FindParameterByName(dn.effect, 'ArrayOfCutMaskInfluence')
+                                mat1 = pdCcf.FindParameterByName(dn.effect, 'ArrayOfMaterialLibraryID')
+                                mat2 = pdCcf.FindParameterByName(dn.effect, 'ArrayOfMaterial2LibraryID')
+                                spec = pdCcf.FindParameterByName(dn.effect, 'ArrayOfMaterialSpecularFactors')
+                                texParam = TransferArrayToTexture(cut, mat1, mat2, spec)
+                                dn.effect.parameters.append(texParam)
+                                for remove in ['CutMaskInfluence',
+                                 'MaterialLibraryID',
+                                 'Material2LibraryID',
+                                 'MaterialSpecularFactors',
+                                 'ArrayOfCutMaskInfluence',
+                                 'ArrayOfMaterialLibraryID',
+                                 'ArrayOfMaterial2LibraryID',
+                                 'ArrayOfMaterialSpecularFactors']:
+                                    p = pdCcf.FindParameterByName(dn.effect, remove)
+                                    if p is not None:
+                                        dn.effect.parameters.remove(p)
+
+                        if collapseShadowMesh:
+                            pdCcf.MoveAreas(mesh.opaqueAreas, mesh.depthAreas)
+                            for d in mesh.depthAreas:
+                                d.effect = SkinLightmapRenderer.DuplicateEffect(d.effect, COLLAPSED_SHADOW_EFFECT_PATH)
+                                cut = pdCcf.FindParameterByName(d.effect, 'ArrayOfCutMaskInfluence')
+                                texParam = TransferArrayToTexture(cut, None, None, None)
+                                for r in d.effect.resources:
+                                    if r.name == 'CollapsedMeshArrayLookup':
+                                        d.effect.resources.remove(r)
+                                        break
+
+                                d.effect.resources.append(texParam)
+
+                        if not collapseMainMesh:
+                            mesh.opaqueAreas.removeAt(-1)
+                        visualModel.meshes.append(mesh)
+
             del self.sources
             del self.builder
-            RenderDriver.OnEndUpdate(self, avatar, visualModel, doll, factory, **kwargs)
-            return
-        for param in collapsedEffect.parameters:
-            if param.name == 'TransformUV0':
-                param.value = (0, 0, 1, 1)
-                break
-
-        self.builder.collapseTransparentAreas = collapseMainMesh
-        if not collapseMainMesh and COLLAPSE_USE_PD_VISUALMODEL:
-            paperDollPrePassFixup.AddPrepassAreasToAvatar(avatar, visualModel, doll, factory.clothSimulationActive, **kwargs)
-            self.builder.collapseFromDepthNormal = True
-            self.builder.sourceSkinnedModel = visualModel
-            for modifier, inSource in self.sources.iteritems():
-                for mesh in modifier.meshes:
-                    source = trinity.Tr2SkinnedModelBuilderSource()
-                    source.upperLeftTexCoord = inSource.upperLeftTexCoord
-                    source.lowerRightTexCoord = inSource.lowerRightTexCoord
-                    source.visualModelMeshName = mesh.name
-                    source.visualModelMeshGrannyPath = modifier.meshGeometryResPaths[mesh.name]
-                    if source.visualModelMeshGrannyPath != '':
-                        self.builder.sourceMeshesInfo.append(source)
-
-        else:
-            modifiers = self.sources.keys()
-            modifiers = sorted(modifiers, key=lambda x: x.name)
-            sources = map(self.sources.get, modifiers)
-            for source in sources:
-                self.builder.sourceMeshesInfo.append(source)
-
-        self.builder.SetExtraArrayOf(['ArrayOfCutMaskInfluence',
-         'ArrayOfMaterialLibraryID',
-         'ArrayOfMaterial2LibraryID',
-         'ArrayOfMaterialSpecularFactors'])
-        if not self.builder.PrepareForBuild():
-            log.LogWarn('PD Collapse: PrepareForBuild failed')
-        else:
-            buildCount = 0
-            collapsedMeshes = {}
-            while self.builder.Build():
-                info = self.builder.GetCollapsedInfo()
-                model = self.builder.GetSkinnedModel()
-                if model is None:
-                    break
-                for mesh in model.meshes:
-                    collapsedMeshes[mesh] = info
-
-                model.meshes.removeAt(-1)
-                buildCount += 1
-
-            if buildCount == 0:
-                collapseShadowMesh = False
-                collapseMainMesh = False
-                collapsePLPMesh = False
-            if pdCfg.PerformanceOptions.collapseVerbose:
-                if buildCount > 1 and doll.overrideLod == 2:
-                    log.LogWarn('PD Collapse: lod2 has ' + str(buildCount) + ' meshes after collapse (expected 1).')
-                if buildCount > 3 and doll.overrideLod == 0:
-                    log.LogWarn('PD Collapse: lod0 has ' + str(buildCount) + ' meshes after collapse (expected 3 at most).')
-            if buildCount > 0:
-                if collapseMainMesh:
-                    visualModel.meshes.removeAt(-1)
-                elif collapsePLPMesh:
-                    for mesh in visualModel.meshes:
-                        mesh.depthAreas.removeAt(-1)
-                        mesh.depthNormalAreas.removeAt(-1)
-
-                for count, mesh in enumerate(collapsedMeshes.iterkeys()):
-                    mesh.name = 'collapsed' + str(buildCount) + str(count)
-                    for area in mesh.opaqueAreas:
-                        TransferArrayOf(collapsedEffect, area.effect)
-                        area.effect = collapsedEffect
-
-                    def TransferArrayToTexture(cut, mat1, mat2, spec):
-                        pixels = []
-
-                        def GetFromArray(array, index, component = 0, default = 0):
-                            if array is None or not hasattr(array, 'value') or index >= len(array.value):
-                                return default
-                            v = array.value[index]
-                            if type(v) == trinity.TriVector4:
-                                return v.data[component]
-                            return v
-
-                        OPT_CUTOUT = 8
-                        OPT_DOUBLE_MATERIAL = 16
-                        for x in xrange(32):
-                            infoList = collapsedMeshes.get(mesh, [])
-                            infoTuple = infoList[x] if x < len(infoList) else (0, 0, 0, 0)
-                            permute = infoTuple[3]
-                            table = paperDollPrePassFixup.MATERIAL_ID_TRANSPARENT_HACK_EXACT if infoTuple[1] == 2 else paperDollPrePassFixup.MATERIAL_ID_EXACT
-                            r = int(0.5 + 100 * GetFromArray(cut, x))
-                            if permute & OPT_CUTOUT:
-                                r += 128
-                            g = int(GetFromArray(mat1, x))
-                            if permute & OPT_DOUBLE_MATERIAL:
-                                b = int(GetFromArray(mat2, x))
-                            else:
-                                b = g
-                            a = int(0.5 + 50 * GetFromArray(spec, x, component=2))
-                            pixels.append((x, 0, (a << 24) + (r << 16) + (g << 8) + b))
-
-                        hb = trinity.Tr2HostBitmap(32, 1, 1, trinity.PIXEL_FORMAT.B8G8R8A8_UNORM)
-                        hb.SetPixels(0, pixels, 0)
-                        lookup = trinity.TriTextureRes()
-                        lookup.CreateFromHostBitmap(hb)
-                        texParam = trinity.TriTextureParameter()
-                        texParam.name = 'CollapsedMeshArrayLookup'
-                        texParam.SetResource(lookup)
-                        return texParam
-
-                    if collapsePLPMesh:
-                        paperDollPrePassFixup.AddDepthNormalAreasToStandardMesh(mesh)
-                        for dn in mesh.depthNormalAreas:
-                            parameters = dn.effect.parameters
-                            dn.effect.defaultSituation = 'OPT_COLLAPSED_PLP DoubleMaterial'
-                            cut = parameters.get('ArrayOfCutMaskInfluence', None)
-                            mat1 = parameters.get('ArrayOfMaterialLibraryID', None)
-                            mat2 = parameters.get('ArrayOfMaterial2LibraryID', None)
-                            spec = parameters.get('ArrayOfMaterialSpecularFactors', None)
-                            texParam = TransferArrayToTexture(cut, mat1, mat2, spec)
-                            parameters['CollapsedMeshArrayLookup'] = texParam
-                            for remove in ['CutMaskInfluence',
-                             'MaterialLibraryID',
-                             'Material2LibraryID',
-                             'MaterialSpecularFactors',
-                             'ArrayOfCutMaskInfluence',
-                             'ArrayOfMaterialLibraryID',
-                             'ArrayOfMaterial2LibraryID',
-                             'ArrayOfMaterialSpecularFactors']:
-                                if parameters.get(remove, None) is not None:
-                                    del parameters[remove]
-
-                    if collapseMainMesh:
-                        for dn in mesh.opaqueAreas:
-                            parameters = dn.effect.parameters
-                            cut = pdCcf.FindParameterByName(dn.effect, 'ArrayOfCutMaskInfluence')
-                            mat1 = pdCcf.FindParameterByName(dn.effect, 'ArrayOfMaterialLibraryID')
-                            mat2 = pdCcf.FindParameterByName(dn.effect, 'ArrayOfMaterial2LibraryID')
-                            spec = pdCcf.FindParameterByName(dn.effect, 'ArrayOfMaterialSpecularFactors')
-                            texParam = TransferArrayToTexture(cut, mat1, mat2, spec)
-                            dn.effect.parameters.append(texParam)
-                            for remove in ['CutMaskInfluence',
-                             'MaterialLibraryID',
-                             'Material2LibraryID',
-                             'MaterialSpecularFactors',
-                             'ArrayOfCutMaskInfluence',
-                             'ArrayOfMaterialLibraryID',
-                             'ArrayOfMaterial2LibraryID',
-                             'ArrayOfMaterialSpecularFactors']:
-                                p = pdCcf.FindParameterByName(dn.effect, remove)
-                                if p is not None:
-                                    dn.effect.parameters.remove(p)
-
-                    if collapseShadowMesh:
-                        pdCcf.MoveAreas(mesh.opaqueAreas, mesh.depthAreas)
-                        for d in mesh.depthAreas:
-                            d.effect = SkinLightmapRenderer.DuplicateEffect(d.effect, COLLAPSED_SHADOW_EFFECT_PATH)
-                            cut = pdCcf.FindParameterByName(d.effect, 'ArrayOfCutMaskInfluence')
-                            texParam = TransferArrayToTexture(cut, None, None, None)
-                            for r in d.effect.resources:
-                                if r.name == 'CollapsedMeshArrayLookup':
-                                    d.effect.resources.remove(r)
-                                    break
-
-                            d.effect.resources.append(texParam)
-
-                    if not collapseMainMesh:
-                        mesh.opaqueAreas.removeAt(-1)
-                    visualModel.meshes.append(mesh)
-
-        del self.sources
-        del self.builder
-        newArgs = {'collapseShadowMesh': collapseShadowMesh,
-         'collapsePLPMesh': collapsePLPMesh,
-         'collapseMainMesh': collapseMainMesh}
-        kwargs.update(newArgs)
-        if collapseMainMesh or not COLLAPSE_USE_PD_VISUALMODEL:
-            paperDollPrePassFixup.AddPrepassAreasToAvatar(avatar, avatar.visualModel, doll, factory.clothSimulationActive, **kwargs)
-        else:
-            avatar.BindLowLevelShaders()
-        return newArgs
+            newArgs = {'collapseShadowMesh': collapseShadowMesh,
+             'collapsePLPMesh': collapsePLPMesh,
+             'collapseMainMesh': collapseMainMesh}
+            kwargs.update(newArgs)
+            if collapseMainMesh or not COLLAPSE_USE_PD_VISUALMODEL:
+                paperDollPrePassFixup.AddPrepassAreasToAvatar(avatar, avatar.visualModel, doll, factory.clothSimulationActive, **kwargs)
+            else:
+                avatar.BindLowLevelShaders()
+            return newArgs

@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\devtools\script\svc_gridload.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\devtools\script\svc_gridload.py
 import blue, uthread
 import log
 import service
@@ -13,7 +14,7 @@ class GridLoadSimulationTool(service.Service):
     def __init__(self):
         service.Service.__init__(self)
 
-    def Run(self, memStream = None):
+    def Run(self, memStream=None):
         self.state = service.SERVICE_START_PENDING
         Service.Run(self, memStream)
         self.numInQueue = 0
@@ -23,12 +24,12 @@ class GridLoadSimulationTool(service.Service):
         self.hasStarted = False
         self.state = service.SERVICE_RUNNING
 
-    def Stop(self, memStream = None):
+    def Stop(self, memStream=None):
         self.state = service.SERVICE_STOP_PENDING
         Service.Stop(self, memStream)
         self.state = service.SERVICE_STOPPED
 
-    def StartTest(self, initNumObjsToSpawn, spawnCountPerTick, unspawnCountPerTick, spawnTickIntervalInMS, unspawnTickIntervalInMS, spawningCharID = 0):
+    def StartTest(self, initNumObjsToSpawn, spawnCountPerTick, unspawnCountPerTick, spawnTickIntervalInMS, unspawnTickIntervalInMS, spawningCharID=0):
         self.numInQueue = 0
         self.go = True
         self.hasStarted = False

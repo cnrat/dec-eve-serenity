@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\carbon\common\script\net\http.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\carbon\common\script\net\http.py
 from jinja2 import escape
 import cherrypy
 import macho
@@ -15,9 +16,11 @@ def GetCookie(key):
     cookie = cherrypy.request.cookie
     if key in cookie:
         return cookie[key]
+    else:
+        return None
 
 
-def SetCookie(key, value, path = '/', maxAge = 3600, version = 1):
+def SetCookie(key, value, path='/', maxAge=3600, version=1):
     cookie = cherrypy.response.cookie
     cookie[key] = value
     cookie[key]['path'] = path
@@ -73,7 +76,7 @@ def Host():
 
 
 def RemoteAddress():
-    return ''
+    pass
 
 
 def AddHeader(headerKey, headerValue):
@@ -81,7 +84,7 @@ def AddHeader(headerKey, headerValue):
     response.headers[headerKey] = headerValue
 
 
-def ESPUrl(session, polarisID = None):
+def ESPUrl(session, polarisID=None):
     if macho.mode == 'proxy':
         if polarisID is None:
             polarisID = session.ConnectToSolServerService('DB2').CallProc('zcluster.Nodes_PolarisID')
@@ -96,15 +99,16 @@ def ESPUrl(session, polarisID = None):
         host, ports = tcpproxy.GetESPTunnelingAddressByNodeID()
         port = ports.get(polarisID)
         return 'http://%s:%s' % (host, port)
-    machoNetSvc = session.ConnectToProxyServerService('machoNet', polarisID)
-    transport_key = 'tcp:raw:http2' if prefs.GetValue('httpServerMode', 'ccp').lower() == 'ccp' else 'tcp:raw:http'
-    host, port = machoNetSvc.GetConnectionProperties()['internaladdress'].split(':')
-    refHost = Host().split(':')[0]
-    if refHost == 'localhost':
-        host = refHost
-    sub_number = 1 if cherrypy.request.app else 2
-    port = int(port) + macho.offsetMap[macho.mode][transport_key] - sub_number
-    return 'http://%s:%s' % (host, port)
+    else:
+        machoNetSvc = session.ConnectToProxyServerService('machoNet', polarisID)
+        transport_key = 'tcp:raw:http2' if prefs.GetValue('httpServerMode', 'ccp').lower() == 'ccp' else 'tcp:raw:http'
+        host, port = machoNetSvc.GetConnectionProperties()['internaladdress'].split(':')
+        refHost = Host().split(':')[0]
+        if refHost == 'localhost':
+            host = refHost
+        sub_number = 1 if cherrypy.request.app else 2
+        port = int(port) + macho.offsetMap[macho.mode][transport_key] - sub_number
+        return 'http://%s:%s' % (host, port)
 
 
 exports = {'http.SaveString': SaveString,

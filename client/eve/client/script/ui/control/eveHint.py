@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\client\script\ui\control\eveHint.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\client\script\ui\control\eveHint.py
 from eve.client.script.ui.control.eveFrame import Frame
 from eve.client.script.ui.control.eveIcon import Icon
 from eve.client.script.ui.control.eveLabel import EveLabelSmall
@@ -35,8 +36,9 @@ class BubbleHint(uiprimitives.Container):
         self.sr.frame = Frame(parent=self, texturePath='res:/UI/Texture/classes/Hint/background.png', rectWidth=18, rectHeight=18)
         self.content = uiprimitives.Container(name='content', parent=self, idx=0, padding=(2, 4, 2, 4))
         uiprimitives.Fill(parent=self, color=(0.0, 0.0, 0.0, 0.8), padding=(2, 2, 2, 2))
+        return
 
-    def ShowHint(self, hint, pointer = 0, textMaxWidth = 200):
+    def ShowHint(self, hint, pointer=0, textMaxWidth=200):
         self.content.Flush()
         if type(hint) != types.ListType:
             hint = [hint]
@@ -54,6 +56,7 @@ class BubbleHint(uiprimitives.Container):
         self.height = sum([ each.height for each in self.content.children ]) + 8
         self.SetPointer(pointer)
         self.data = (hint, pointer)
+        return
 
     def DecoEntryMouseExit(self, entry, f):
 
@@ -67,6 +70,7 @@ class BubbleHint(uiprimitives.Container):
                 callback(passedArgs, entry, *args)
             if f is not None:
                 f(entry, *args)
+            return
 
         return (OnMouseExit, entry)
 
@@ -81,17 +85,20 @@ class BubbleHint(uiprimitives.Container):
                 callback(passedArgs, entry, *args)
             else:
                 f(entry, *args)
+            return
 
         return (OnMouseEnter, entry)
 
     def OnEntryMouseExit(self, entry, *args):
         if getattr(entry, 'OnMouseExit', None) not in (None, self.OnEntryMouseExit):
             entry.OnMouseExit(entry, *args)
+        return
 
     def OnEntryMouseEnter(self, entry, *args):
         self.Expand()
         if getattr(entry, 'OnMouseEnter', None) not in (None, self.OnEntryMouseEnter):
             entry.OnMouseEnter(entry, *args)
+        return
 
     def OnMouseEnter(self, *args):
         self.Expand()
@@ -100,6 +107,7 @@ class BubbleHint(uiprimitives.Container):
         func = self.sr.Get('ExpandHint', None)
         if func:
             func(self, 1)
+        return
 
     def _ShowSubhint(self, passedArgs, entry):
         if not getattr(entry.sr, 'hilite', None):
@@ -119,19 +127,21 @@ class BubbleHint(uiprimitives.Container):
                 return
             hint = func(*args)
         else:
-            hint, = passedArgs
+            hint = passedArgs
         bubble = BubbleHint(parent=self.parent, align=uiconst.TOPLEFT, width=0, height=0, idx=0, state=uiconst.UI_NORMAL)
         bubble.ShowHint(hint, None, 100)
         if not self or self.destroyed:
             return
-        self.sr.sub = bubble
-        if self.parent:
-            pl, pt, pw, ph = self.parent.GetAbsolute()
-            ll, lt, lw, lh = entry.GetAbsolute()
-            bubble.left = ll - pl + lw - 6
-            bubble.top = lt - pt - 2
+        else:
+            self.sr.sub = bubble
+            if self.parent:
+                pl, pt, pw, ph = self.parent.GetAbsolute()
+                ll, lt, lw, lh = entry.GetAbsolute()
+                bubble.left = ll - pl + lw - 6
+                bubble.top = lt - pt - 2
+            return
 
-    def SetPointer(self, pointer, reposition = 1):
+    def SetPointer(self, pointer, reposition=1):
         self.sr.p0.state = uiconst.UI_HIDDEN
         self.sr.p1.state = uiconst.UI_HIDDEN
         self.sr.p2.state = uiconst.UI_HIDDEN
@@ -158,6 +168,7 @@ class BubbleHint(uiprimitives.Container):
         elif util.GetAttrs(self, 'parent') is not None:
             self.left = self.parent.width / 2 + 12
             self.top = self.parent.height / 2 - 8
+        return
 
     def GetEntry(self, id_):
         for each in self.content.children:
@@ -177,6 +188,7 @@ class BubbleHint(uiprimitives.Container):
             self.top = self.sr.top
         if getattr(self, 'data', None):
             self.SetPointer(self.data[1])
+        return
 
     def GetBubbleHint(self, *args):
         return sm.GetService('systemmap').GetBubbleHint(*args)
@@ -185,6 +197,7 @@ class BubbleHint(uiprimitives.Container):
         if self.sr.Get('sub', None):
             self.sr.sub.Close()
             self.sr.sub = None
+        return
 
     def _OnClose(self):
         self.ClearSubs()
@@ -215,7 +228,7 @@ class HintEntry(uiprimitives.Container):
         self.height = label.textheight + 1
         self.name = data.text
 
-        def AddIcon(iconNum, left = -1):
+        def AddIcon(iconNum, left=-1):
             Icon(icon=iconNum, parent=self, pos=(left,
              -2,
              16,
@@ -233,6 +246,7 @@ class HintEntry(uiprimitives.Container):
                 AddIcon(iconNum='ui_38_16_125')
         if data.talking:
             AddIcon(iconNum='ui_38_16_91', left=0)
+        return
 
     def GetBubble(self):
         return self.FindParentByName('bubblehint')
@@ -255,13 +269,15 @@ class HintEntry(uiprimitives.Container):
         bubble = self.GetBubble()
         if bubble is None:
             return
-        if len(passedArgs) == 2:
-            uthread.new(bubble._ShowSubhint, passedArgs, entry)
         else:
-            bubble._ShowSubhint(passedArgs, entry)
+            if len(passedArgs) == 2:
+                uthread.new(bubble._ShowSubhint, passedArgs, entry)
+            else:
+                bubble._ShowSubhint(passedArgs, entry)
+            return
 
     def OpenAssets(self, passedArgs, *args):
-        stationID, = passedArgs
+        stationID = passedArgs
         sm.GetService('assets').Show(stationID)
 
     def OpenAddressbook(self, contactType, *args):
@@ -272,7 +288,7 @@ class HintEntry(uiprimitives.Container):
 
 class HintEntryData():
 
-    def __init__(self, text, id = None, event = None, func = None, args = None, menuGetter = None, talking = False):
+    def __init__(self, text, id=None, event=None, func=None, args=None, menuGetter=None, talking=False):
         self.text = text
         self.event = event
         self.func = func

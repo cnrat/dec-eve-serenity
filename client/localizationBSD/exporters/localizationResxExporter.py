@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\packages\localizationBSD\exporters\localizationResxExporter.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\packages\localizationBSD\exporters\localizationResxExporter.py
 import localizationExporter
 from . import LocalizationExporterError
 import xml.etree.ElementTree
@@ -7,7 +8,7 @@ import codecs
 import cStringIO
 import zipfile
 
-def XMLPrettyPrintFromList(stringList, tab = '\t', nextLine = '\n'):
+def XMLPrettyPrintFromList(stringList, tab='\t', nextLine='\n'):
     listLen = len(stringList)
     currentLevel = 0
     newTokens = {}
@@ -43,7 +44,7 @@ class LocalizationResxExporter(localizationExporter.LocalizationExporterBase):
     headerXML = '\n  <xsd:schema id="root" xmlns="" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:msdata="urn:schemas-microsoft-com:xml-msdata">\n    <xsd:import namespace="http://www.w3.org/XML/1998/namespace" />\n    <xsd:element name="root" msdata:IsDataSet="true">\n      <xsd:complexType>\n        <xsd:choice maxOccurs="unbounded">\n          <xsd:element name="metadata">\n            <xsd:complexType>\n              <xsd:sequence>\n                <xsd:element name="value" type="xsd:string" minOccurs="0" />\n              </xsd:sequence>\n              <xsd:attribute name="name" use="required" type="xsd:string" />\n              <xsd:attribute name="type" type="xsd:string" />\n              <xsd:attribute name="mimetype" type="xsd:string" />\n              <xsd:attribute ref="xml:space" />\n            </xsd:complexType>\n          </xsd:element>\n          <xsd:element name="assembly">\n            <xsd:complexType>\n              <xsd:attribute name="alias" type="xsd:string" />\n              <xsd:attribute name="name" type="xsd:string" />\n            </xsd:complexType>\n          </xsd:element>\n          <xsd:element name="data">\n            <xsd:complexType>\n              <xsd:sequence>\n                <xsd:element name="value" type="xsd:string" minOccurs="0" msdata:Ordinal="1" />\n                <xsd:element name="comment" type="xsd:string" minOccurs="0" msdata:Ordinal="2" />\n              </xsd:sequence>\n              <xsd:attribute name="name" type="xsd:string" use="required" msdata:Ordinal="1" />\n              <xsd:attribute name="type" type="xsd:string" msdata:Ordinal="3" />\n              <xsd:attribute name="mimetype" type="xsd:string" msdata:Ordinal="4" />\n              <xsd:attribute ref="xml:space" />\n            </xsd:complexType>\n          </xsd:element>\n          <xsd:element name="resheader">\n            <xsd:complexType>\n              <xsd:sequence>\n                <xsd:element name="value" type="xsd:string" minOccurs="0" msdata:Ordinal="1" />\n              </xsd:sequence>\n              <xsd:attribute name="name" type="xsd:string" use="required" />\n            </xsd:complexType>\n          </xsd:element>\n        </xsd:choice>\n      </xsd:complexType>\n    </xsd:element>\n  </xsd:schema>\n  <resheader name="resmimetype">\n    <value>text/microsoft-resx</value>\n  </resheader>\n  <resheader name="version">\n    <value>2.0</value>\n  </resheader>\n  <resheader name="reader">\n    <value>System.Resources.ResXResourceReader, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>\n  </resheader>\n  <resheader name="writer">\n    <value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>\n  </resheader>\n'.replace('\n', '\r\n')
 
     @classmethod
-    def ExportWithProjectSettings(cls, projectID, exportLocation, exportFileName, getSubmittedOnly = True, bsdBranchID = None, **kwargs):
+    def ExportWithProjectSettings(cls, projectID, exportLocation, exportFileName, getSubmittedOnly=True, bsdBranchID=None, **kwargs):
         if not exportLocation or not exportFileName:
             raise LocalizationExporterError('Filepath strings are incomplete. exportLocation, exportFileName: %s, %s.' % (exportLocation, exportFileName))
         exportedFilenames = []
@@ -71,7 +72,7 @@ class LocalizationResxExporter(localizationExporter.LocalizationExporterBase):
         return exportedFilenames
 
     @classmethod
-    def ExportWithProjectSettingsToZipFileObject(cls, projectID, fileObject, exportFileName, getSubmittedOnly = True, bsdBranchID = None):
+    def ExportWithProjectSettingsToZipFileObject(cls, projectID, fileObject, exportFileName, getSubmittedOnly=True, bsdBranchID=None):
         exportedFilenames = []
         zipDataFile = zipfile.ZipFile(fileObject, 'w')
         resxDataDict = cls._WriteLocalizationDataToDicts(getSubmittedOnly, projectID, bsdBranchID)
@@ -88,7 +89,7 @@ class LocalizationResxExporter(localizationExporter.LocalizationExporterBase):
         return (zipDataFile, exportedFilenames)
 
     @classmethod
-    def _WriteLocalizationDataToDicts(cls, getSubmittedOnly, projectID, bsdBranchID = None):
+    def _WriteLocalizationDataToDicts(cls, getSubmittedOnly, projectID, bsdBranchID=None):
         ret = {}
         elementsList = cls._CreateXMLElements(projectID, getSubmittedOnly, bsdBranchID)
         for languageID, rootElement in elementsList:
@@ -109,7 +110,7 @@ class LocalizationResxExporter(localizationExporter.LocalizationExporterBase):
         return ret
 
     @classmethod
-    def _CreateXMLElements(cls, projectID, getSubmittedOnly, bsdBranchID = None):
+    def _CreateXMLElements(cls, projectID, getSubmittedOnly, bsdBranchID=None):
 
         def _FormatFullPath(pathString):
             return pathString.replace('/', cls.GROUP_SEPARATOR)
@@ -137,7 +138,7 @@ class LocalizationResxExporter(localizationExporter.LocalizationExporterBase):
         return elementsList
 
     @classmethod
-    def GetResourceNamesWithProjectSettings(cls, projectID, exportLocation, exportFileName, getSubmittedOnly = True, **kwargs):
+    def GetResourceNamesWithProjectSettings(cls, projectID, exportLocation, exportFileName, getSubmittedOnly=True, **kwargs):
         dbzlocalization = sm.GetService('DB2').GetSchema('zlocalization')
         languageCodesResultSet = dbzlocalization.Languages_SelectByProject(1 if getSubmittedOnly else 0, projectID)
         return [ os.path.join(exportLocation, exportFileName + '_' + languageRow.languageID + cls.FILE_EXT) for languageRow in languageCodesResultSet ]

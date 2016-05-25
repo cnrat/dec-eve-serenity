@@ -1,8 +1,10 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\client\script\ui\camera\baseSpaceCamera.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\client\script\ui\camera\baseSpaceCamera.py
 import math
 import audio2
+from eve.client.script.parklife import states
 from eve.client.script.ui.camera.baseCamera import Camera
-from eve.client.script.ui.camera.cameraUtil import IsBobbingEnabled, GetCameraMaxLookAtRange, GetBallPosition, GetBall
+from eve.client.script.ui.camera.cameraUtil import IsBobbingEnabled, GetCameraMaxLookAtRange, GetBallPosition, GetBall, IsAutoTrackingEnabled
 import evecamera
 from evecamera.animation import AnimationController
 from evecamera.shaker import ShakeController
@@ -17,7 +19,12 @@ BOBBING_SPEED = 0.5
 
 class BaseSpaceCamera(Camera):
     isBobbingCamera = False
-    __notifyevents__ = Camera.__notifyevents__[:] + ['OnSpecialFX']
+    minZoom = 700000
+    __notifyevents__ = Camera.__notifyevents__[:] + ['OnSpecialFX',
+     'DoBallsRemove',
+     'DoBallRemove',
+     'DoClientSideBallRemove',
+     'OnAutoTrackingChanged']
 
     def __init__(self):
         Camera.__init__(self)
@@ -32,6 +39,7 @@ class BaseSpaceCamera(Camera):
         self._bobbingOffset = None
         self._bobbingAngle = 0.0
         self._anchorBall = None
+        self._anchorOffset = None
         self.trackTarget = None
         self.cachedCameraTranslation = None
         self.targetTracker = evecamera.tracking.Tracker(self)
@@ -39,17 +47,20 @@ class BaseSpaceCamera(Camera):
         self.animationController = AnimationController(self)
         self.isManualControlEnabled = True
         self.audioListener = None
+        return
 
     @property
     def ego(self):
-        return session.shipid
+        return session.structureid or session.shipid
 
-    def ShakeCamera(self, magnitude, position, key = None):
+    def ShakeCamera(self, magnitude, position, key=None):
         behavior = CreateBehaviorFromMagnitudeAndPosition(magnitude, position, self)
         if behavior is None:
             return
-        behavior.key = key
-        self.shakeController.DoCameraShake(behavior)
+        else:
+            behavior.key = key
+            self.shakeController.DoCameraShake(behavior)
+            return
 
     def Update(self):
         Camera.Update(self)
@@ -92,6 +103,14 @@ class BaseSpaceCamera(Camera):
     def Track(self, itemID):
         self.LookAt(itemID)
 
+    def OnAutoTrackingChanged(self):
+        if IsAutoTrackingEnabled():
+            itemID = sm.GetService('state').GetExclState(states.selected)
+            self.Track(itemID)
+        else:
+            self.Track(None)
+        return
+
     def GetCameraParent(self):
         return self.trackTarget
 
@@ -122,48 +141,49 @@ class BaseSpaceCamera(Camera):
             ret = (0, 0, 0)
         else:
             ret = GetBallPosition(ball)
-        if self._eyeAndAtOffset:
-            ret = geo2.Vec3Subtract(ret, self._eyeAndAtOffset)
+        if self._anchorOffset:
+            ret = geo2.Vec3Subtract(ret, self._anchorOffset)
         return ret
 
     def _UpdateBobbingOffset(self):
         if not IsBobbingEnabled() or not self.isBobbingCamera:
             return
-        distance = geo2.Vec3Distance(self.atPosition, self.eyePosition)
-        distance = 0.5 * distance / 100.0
-        distance = max(1.0, min(distance, self.minZoom))
         self._bobbingAngle += 1.0 / blue.os.fps * BOBBING_SPEED
         if self._bobbingAngle > 2 * math.pi:
             self._bobbingAngle %= 2 * math.pi
-        idleYaw = distance * math.cos(self._bobbingAngle)
+        distance = geo2.Vec3Distance(self.atPosition, self.eyePosition)
+        idleYaw = distance * math.cos(self._bobbingAngle) / 400.0
         idlePitch = 1.2 * idleYaw * math.sin(self._bobbingAngle)
         bobbingOffset = (idleYaw, idlePitch, 0)
-        self._AddToAtOffset(bobbingOffset)
+        self._AddToEyeAndAtOffset(bobbingOffset)
 
     def CheckObjectTooFar(self, itemID):
         ball = GetBall(itemID)
         if not ball:
             return False
         ballPos = GetBallPosition(ball)
-        isTooFar = geo2.Vec3Length(ballPos) > GetCameraMaxLookAtRange()
-        return isTooFar
+        return geo2.Vec3Length(ballPos) > GetCameraMaxLookAtRange()
 
     def UpdateAnchorPos(self):
         bp = sm.GetService('michelle').GetBallpark()
-        if not bp:
+        if not bp or not bp.ego:
             return
         pos = bp.GetCurrentEgoPos()
         self._anchorBall = bp.AddClientSideBall(pos)
 
     def ResetAnchorPos(self):
         self._anchorBall = None
+        return
 
     def UpdateAnchorOffset(self):
         if self._anchorBall:
-            offset = GetBallPosition(self._anchorBall)
-            self._AddToEyeAndAtOffset(offset)
+            self._anchorOffset = GetBallPosition(self._anchorBall)
+            self._AddToEyeAndAtOffset(self._anchorOffset)
+        else:
+            self._anchorOffset = None
+        return
 
-    def OnSpecialFX(self, shipID, moduleID, moduleTypeID, targetID, otherTypeID, guid, isOffensive, start, active, duration = -1, repeat = None, startTime = None, timeFromStart = 0, graphicInfo = None):
+    def OnSpecialFX(self, shipID, moduleID, moduleTypeID, targetID, otherTypeID, guid, isOffensive, start, active, duration=-1, repeat=None, startTime=None, timeFromStart=0, graphicInfo=None):
         if guid == 'effects.Warping':
             if shipID in (self.ego, self.GetLookAtItemID()):
                 self.OnCurrentShipWarping()
@@ -188,9 +208,25 @@ class BaseSpaceCamera(Camera):
             blue.synchro.Yield()
 
         self.audioListener = None
+        return
 
-    def TranslateFromParentAccelerated(self, begin, end, durationSec, accelerationPower = 2.0):
+    def TranslateFromParentAccelerated(self, begin, end, durationSec, accelerationPower=2.0):
         self.animationController.Schedule(PanCameraAccelerated(begin, end, durationSec, accelerationPower))
 
     def IsLocked(self):
         return False
+
+    def DoClientSideBallRemove(self, ball):
+        self.DoBallRemove(ball)
+        if ball == self._anchorBall:
+            self.ResetAnchorPos()
+
+    def DoBallsRemove(self, pythonBalls, isRelease):
+        for ball, _, _ in pythonBalls:
+            self.DoBallRemove(ball)
+
+    def DoBallRemove(self, ball, *args, **kwargs):
+        self.OnBallRemoved(ball)
+
+    def OnBallRemoved(self, ball):
+        pass

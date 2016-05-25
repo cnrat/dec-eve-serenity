@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\client\script\ui\extras\cider.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\client\script\ui\extras\cider.py
 import blue
 import ctypes
 import log
@@ -20,7 +21,7 @@ class CiderService(service.Service):
         self.SetMultiThreadedOpenGL(self.GetMultiThreadedOpenGL())
         self.state = service.SERVICE_RUNNING
 
-    def SetFullscreen(self, fullscreenEnabled, setAPI = True):
+    def SetFullscreen(self, fullscreenEnabled, setAPI=True):
         if not blue.sysinfo.isTransgaming:
             return
         try:
@@ -30,7 +31,7 @@ class CiderService(service.Service):
         except:
             log.LogException()
 
-    def GetFullscreen(self, apiCheck = False):
+    def GetFullscreen(self, apiCheck=False):
         if apiCheck:
             return ctypes.windll.user32.TGIsFullscreen()
         return settings.public.ui.Get('MacFullscreen', True)

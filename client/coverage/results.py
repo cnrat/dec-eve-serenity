@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\carbon\common\stdlib\coverage\results.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\carbon\common\stdlib\coverage\results.py
 import os
 from coverage.backward import iitems, set, sorted
 from coverage.misc import format_lines, join_regex, NoSource
@@ -35,15 +36,17 @@ class Analysis(object):
         try_exts = TRY_EXTS.get(ext)
         if not try_exts:
             return (filename, None)
-        for try_ext in try_exts:
-            try_filename = base + try_ext
-            if os.path.exists(try_filename):
-                return (try_filename, None)
-            source = self.coverage.file_locator.get_zip_data(try_filename)
-            if source:
-                return (try_filename, source)
+        else:
+            for try_ext in try_exts:
+                try_filename = base + try_ext
+                if os.path.exists(try_filename):
+                    return (try_filename, None)
+                source = self.coverage.file_locator.get_zip_data(try_filename)
+                if source:
+                    return (try_filename, source)
 
-        raise NoSource("No source for code: '%s'" % filename)
+            raise NoSource("No source for code: '%s'" % filename)
+            return
 
     def missing_formatted(self):
         return format_lines(self.statements, self.missing)
@@ -114,7 +117,7 @@ class Numbers(object):
     _near0 = 1.0
     _near100 = 99.0
 
-    def __init__(self, n_files = 0, n_statements = 0, n_excluded = 0, n_missing = 0, n_branches = 0, n_partial_branches = 0, n_missing_branches = 0):
+    def __init__(self, n_files=0, n_statements=0, n_excluded=0, n_missing=0, n_branches=0, n_partial_branches=0, n_missing_branches=0):
         self.n_files = n_files
         self.n_statements = n_statements
         self.n_excluded = n_excluded

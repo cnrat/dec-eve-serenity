@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\client\script\util\bookmarkUtil.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\client\script\util\bookmarkUtil.py
 import localization
 import uiutil
 from collections import defaultdict
@@ -16,7 +17,7 @@ def GetMenuForBookmarks(bookmarks):
     return menu
 
 
-def GetFolderedMenu(bookmarksByFolder, folders, label, isSubMenu = True):
+def GetFolderedMenu(bookmarksByFolder, folders, label, isSubMenu=True):
     ret = []
     nonFolderedBookmarks = []
     for folderID, bookmarks in bookmarksByFolder.iteritems():

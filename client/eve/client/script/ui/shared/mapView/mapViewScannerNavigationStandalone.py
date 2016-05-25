@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\client\script\ui\shared\mapView\mapViewScannerNavigationStandalone.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\client\script\ui\shared\mapView\mapViewScannerNavigationStandalone.py
 from carbon.common.script.util.format import FmtDist
 from carbon.common.script.util.timerstuff import AutoTimer
 from carbon.common.script.util.mathUtil import RayToPlaneIntersection
@@ -49,6 +50,7 @@ class MapViewScannerNavigation(MapViewNavigation):
                 self.borderPickedProbeControl = borderPickedProbeControl
                 scenePickActive = bool(self.borderPickedProbeControl or self.cursorPickedProbeControl)
                 self.mapView.markersHandler.SetScenePickState(scenePickActive)
+        return
 
     def MapMarkerPickingOverride(self, *args, **kwds):
         self.PickScene(uicore.uilib.x, uicore.uilib.y)
@@ -82,7 +84,8 @@ class MapViewScannerNavigation(MapViewNavigation):
         lib = uicore.uilib
         if lib.leftbtn and (self.movingProbe or self.rangeProbe):
             return
-        return MapViewNavigation.OnMouseMove(self, *args)
+        else:
+            return MapViewNavigation.OnMouseMove(self, *args)
 
     def OnDblClick(self, *args):
         if self.destroyed:
@@ -112,6 +115,7 @@ class MapViewScannerNavigation(MapViewNavigation):
         if self.modifyHint and not self.modifyHint.destroyed:
             self.modifyHint.Close()
             self.modifyHint = None
+        return
 
     def UpdateModifyHintPosition(self):
         if self.modifyHint and not self.modifyHint.destroyed:
@@ -185,30 +189,31 @@ class MapViewScannerNavigation(MapViewNavigation):
         if mouseInsideProbes:
             return sm.StartService('scanSvc').GetProbeMenu(mouseInsideProbes[0].probeID)
 
-    def GetDotInCameraAlignedPlaneFromPosition(self, targetPlanePos, offsetMouse = (0, 0), debug = False):
+    def GetDotInCameraAlignedPlaneFromPosition(self, targetPlanePos, offsetMouse=(0, 0), debug=False):
         targetPlaneNormal = self.mapView.camera.GetZAxis()
         return self.GetDotOnTargetPlaneFromPosition(targetPlanePos, targetPlaneNormal, offsetMouse)
 
-    def GetDotInAxisAlignedPlaneFromPosition(self, targetPlanePos, offsetMouse = (0, 0)):
+    def GetDotInAxisAlignedPlaneFromPosition(self, targetPlanePos, offsetMouse=(0, 0)):
         if not self.activeTargetPlaneNormal:
             return None
-        return self.GetDotOnTargetPlaneFromPosition(targetPlanePos, self.activeTargetPlaneNormal, offsetMouse)
+        else:
+            return self.GetDotOnTargetPlaneFromPosition(targetPlanePos, self.activeTargetPlaneNormal, offsetMouse)
 
-    def GetDotOnTargetPlaneFromPosition(self, targetPlanePos, targetPlaneNormal, offsetMouse = (0, 0)):
+    def GetDotOnTargetPlaneFromPosition(self, targetPlanePos, targetPlaneNormal, offsetMouse=(0, 0)):
         oX, oY = offsetMouse
         x, y = ScaleDpi(uicore.uilib.x + oX), ScaleDpi(uicore.uilib.y + oY)
         ray, start = self.mapView.camera.GetRayAndPointFromUI(x, y)
         pos = RayToPlaneIntersection(start, ray, targetPlanePos, targetPlaneNormal)
         return pos
 
-    def GetRayToPlaneDenominator(self, targetPlaneNormal, offsetMouse = (0, 0)):
+    def GetRayToPlaneDenominator(self, targetPlaneNormal, offsetMouse=(0, 0)):
         oX, oY = offsetMouse
         x, y = ScaleDpi(uicore.uilib.x + oX), ScaleDpi(uicore.uilib.y + oY)
         ray, start = self.mapView.camera.GetRayAndPointFromUI(x, y)
         denom = geo2.Vec3Dot(targetPlaneNormal, ray)
         return denom
 
-    def PickProbes(self, pickBorder = False):
+    def PickProbes(self, pickBorder=False):
         mouseInsideProbes = []
         borderPick = []
         probeHandler = self.GetProbeHandler()

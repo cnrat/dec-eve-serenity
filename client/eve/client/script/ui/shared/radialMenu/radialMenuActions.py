@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\client\script\ui\shared\radialMenu\radialMenuActions.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\client\script\ui\shared\radialMenu\radialMenuActions.py
 from eve.client.script.ui.control.glowSprite import GlowSprite
 from eve.client.script.ui.control.themeColored import SpriteThemeColored
 import uiprimitives
@@ -57,8 +58,9 @@ class RadialMenuActionBase(uiprimitives.Transform):
         self.unavailableSlice = SpriteThemeColored(parent=self, name='unavailableSlice', state=uiconst.UI_DISABLED, texturePath=sliceTexturePath, align=uiconst.TOALL, colorType=uiconst.COLORTYPE_UIBASE, opacity=0.85)
         self.unavailableSlice.display = False
         self.sliceInUse = self.availableSlice
+        return
 
-    def SetButtonInfo(self, labelPath, labelArgs, buttonInfo = None, isEnabled = True, iconTexturePath = None):
+    def SetButtonInfo(self, labelPath, labelArgs, buttonInfo=None, isEnabled=True, iconTexturePath=None):
         self.labelPath = labelPath
         if isEnabled:
             self.labelText = localization.GetByLabel(labelPath, **labelArgs)
@@ -73,13 +75,15 @@ class RadialMenuActionBase(uiprimitives.Transform):
             self.SetIcon(iconTexturePath)
         if buttonInfo is None:
             return
-        buttonFunc = buttonInfo.func
-        buttonFuncArgs = buttonInfo.funcArgs
-        if not isinstance(buttonFunc, (types.MethodType, types.LambdaType)):
+        else:
+            buttonFunc = buttonInfo.func
+            buttonFuncArgs = buttonInfo.funcArgs
+            if not isinstance(buttonFunc, (types.MethodType, types.LambdaType)):
+                return
+            self.func = buttonFunc
+            self.funcArgs = buttonFuncArgs
+            self.commandName = getattr(buttonInfo, 'commandName', None)
             return
-        self.func = buttonFunc
-        self.funcArgs = buttonFuncArgs
-        self.commandName = getattr(buttonInfo, 'commandName', None)
 
     @telemetry.ZONE_METHOD
     def ShowButtonHilite(self):
@@ -127,7 +131,7 @@ class RadialMenuActionBase(uiprimitives.Transform):
         self.isDisabled = False
         self.icon.opacity = 1.0
 
-    def AnimateSize(self, sizeRatio = 0.5, duration = 0.5, grow = True):
+    def AnimateSize(self, sizeRatio=0.5, duration=0.5, grow=True):
         if grow:
             startHeight = sizeRatio * self.fullHeight
             startWidth = sizeRatio * self.fullWidth
@@ -141,7 +145,7 @@ class RadialMenuActionBase(uiprimitives.Transform):
         uicore.animations.MorphScalar(self, 'height', startVal=startHeight, endVal=endHeight, duration=duration)
         uicore.animations.MorphScalar(self, 'width', startVal=startWidth, endVal=endWidth, duration=duration)
 
-    def SelectButtonSlice(self, duration = 0.5):
+    def SelectButtonSlice(self, duration=0.5):
         self.ShowSelectionSlice()
         animationDuration = uix.GetTiDiAdjustedAnimationTime(duration, minTiDiValue=0.1, minValue=0.02)
         curvePoints = ([0.0, 0], [0.5, -10], [1, -10])
@@ -186,6 +190,7 @@ class RadialMenuRangeAction(RadialMenuActionBase):
          self.actionButtonTopPadding + 1,
          18,
          12), state=uiconst.UI_DISABLED, align=uiconst.CENTERTOP, texturePath='res:/UI/Texture/classes/RadialMenu/rangeArrow.png', idx=0)
+        return
 
     def SetEnabled(self):
         uicls.RadialMenuActionBase.SetEnabled(self)
@@ -200,38 +205,41 @@ class RadialMenuRangeAction(RadialMenuActionBase):
             self.currentRange = None
             self.percOfAllRange = None
             return (self.currentRange, self.percOfAllRange)
-        if length < self.minRangeDistance - self.actionButtonTopPadding:
+        elif length < self.minRangeDistance - self.actionButtonTopPadding:
             self.currentRange = self.defaultRange
             self.percOfAllRange = None
             return (self.currentRange, self.percOfAllRange)
-        numRangeOptions = len(self.rangeList)
-        lengthInEachStep = float((self.maxRangeDistance - self.minRangeDistance) / numRangeOptions)
-        lengthInRangeMeasurer = length - self.minRangeDistance
-        lengthInRangeMeasurer = self.FindLengthToUse(lengthInRangeMeasurer, currentDegree)
-        for i, eachRange in enumerate(self.rangeList):
-            lengthForThisStep = i * lengthInEachStep
-            if lengthInRangeMeasurer > lengthForThisStep:
-                continue
-            if i == 0:
-                self.currentRange = eachRange
-                self.percOfAllRange = 0
-                return (self.currentRange, self.percOfAllRange)
-            lengthForPreviousStep = lengthInEachStep * (i - 1)
-            previousStepDistance = self.rangeList[i - 1]
-            lengthInThisStep = lengthInRangeMeasurer - lengthForPreviousStep
-            percOfStep = float(lengthInThisStep) / lengthInEachStep
-            if self.usePreciseRanges:
-                currentRange = percOfStep * (eachRange - previousStepDistance) + previousStepDistance
-            else:
-                currentRange = previousStepDistance
-            percOfEachStep = 1.0 / (numRangeOptions - 1)
-            percOfAllRange = (i - 1 + percOfStep) * percOfEachStep
-            self.currentRange = currentRange
-            self.percOfAllRange = percOfAllRange
-            return (currentRange, self.percOfAllRange)
         else:
-            self.currentRange = self.rangeList[-1]
-            return (self.currentRange, 1)
+            numRangeOptions = len(self.rangeList)
+            lengthInEachStep = float((self.maxRangeDistance - self.minRangeDistance) / numRangeOptions)
+            lengthInRangeMeasurer = length - self.minRangeDistance
+            lengthInRangeMeasurer = self.FindLengthToUse(lengthInRangeMeasurer, currentDegree)
+            for i, eachRange in enumerate(self.rangeList):
+                lengthForThisStep = i * lengthInEachStep
+                if lengthInRangeMeasurer > lengthForThisStep:
+                    continue
+                if i == 0:
+                    self.currentRange = eachRange
+                    self.percOfAllRange = 0
+                    return (self.currentRange, self.percOfAllRange)
+                lengthForPreviousStep = lengthInEachStep * (i - 1)
+                previousStepDistance = self.rangeList[i - 1]
+                lengthInThisStep = lengthInRangeMeasurer - lengthForPreviousStep
+                percOfStep = float(lengthInThisStep) / lengthInEachStep
+                if self.usePreciseRanges:
+                    currentRange = percOfStep * (eachRange - previousStepDistance) + previousStepDistance
+                else:
+                    currentRange = previousStepDistance
+                percOfEachStep = 1.0 / (numRangeOptions - 1)
+                percOfAllRange = (i - 1 + percOfStep) * percOfEachStep
+                self.currentRange = currentRange
+                self.percOfAllRange = percOfAllRange
+                return (currentRange, self.percOfAllRange)
+            else:
+                self.currentRange = self.rangeList[-1]
+                return (self.currentRange, 1)
+
+            return
 
     def FindLengthToUse(self, length, currentDegree):
         if self.lastLength is None:
@@ -250,6 +258,7 @@ class RadialMenuRangeAction(RadialMenuActionBase):
     def OnButtonClick(self):
         if self.func and self.currentRange is not None:
             self.func(self.funcArgs, self.currentRange, self.percOfAllRange)
+        return
 
 
 class RadialMenuActioSecondLevel(RadialMenuActionBase):

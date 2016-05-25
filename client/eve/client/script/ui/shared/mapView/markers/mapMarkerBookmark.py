@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\client\script\ui\shared\mapView\markers\mapMarkerBookmark.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\client\script\ui\shared\mapView\markers\mapMarkerBookmark.py
 from eve.client.script.ui.inflight.scannerFiles.directionalScannerWindow import DirectionalScanner
 import eve.client.script.ui.shared.mapView.mapViewConst as mapViewConst
 from eve.client.script.ui.shared.mapView.mapViewUtil import MapPosToSolarSystemPos
@@ -61,5 +62,7 @@ class MarkerBookmark(MarkerIconBase):
         bookMarkInfo = self.bookmarkData
         if bookMarkInfo is None:
             return
-        if self.clientBall:
-            sm.GetService('menu').TryExpandActionMenu(itemID=self.clientBall.id, clickedObject=self, bookmarkInfo=self.bookmarkData, radialMenuClass=MapMarkerSpaceObjectRadialMenu, markerObject=self)
+        else:
+            if self.clientBall:
+                sm.GetService('menu').TryExpandActionMenu(itemID=self.clientBall.id, clickedObject=self, bookmarkInfo=self.bookmarkData, radialMenuClass=MapMarkerSpaceObjectRadialMenu, markerObject=self)
+            return

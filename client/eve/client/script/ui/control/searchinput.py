@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\client\script\ui\control\searchinput.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\client\script\ui\control\searchinput.py
 from carbon.common.script.util.timerstuff import AutoTimer
 from carbonui.primitives.container import Container
 from carbonui.primitives.frame import Frame
@@ -34,6 +35,7 @@ class SearchInput(SinglelineEdit):
         self.searchThread = None
         self.CloseResultMenu()
         SinglelineEdit.Close(self, *args, **kwds)
+        return
 
     def HasResultMenu(self):
         if self.searchResultMenu:
@@ -51,6 +53,7 @@ class SearchInput(SinglelineEdit):
             self.searchResultMenu = None
             if self.CloseMenuCallback:
                 self.CloseMenuCallback()
+        return
 
     def OnSearchInputChange(self, *args, **kwds):
         if not self.GetValue():
@@ -58,6 +61,7 @@ class SearchInput(SinglelineEdit):
             self.SearchForData()
         else:
             self.searchThread = AutoTimer(280, self.SearchForData)
+        return
 
     def SearchForData(self):
         self.searchThread = None
@@ -66,6 +70,7 @@ class SearchInput(SinglelineEdit):
             self.searchString = searchString
             valid = self.GetSearchEntries(searchString)
             self.ShowSearchResult(valid)
+        return
 
     def ShowSearchResult(self, result):
         searchResultMenu = None
@@ -76,32 +81,34 @@ class SearchInput(SinglelineEdit):
         if not result:
             self.CloseResultMenu()
             return
-        if not searchResultMenu:
-            l, t, w, h = self.GetAbsolute()
-            searchResultMenu = Container(name='resultMenuParent', parent=uicore.layer.utilmenu, pos=(l,
-             t + h + 1,
-             max(w, 200),
-             300), align=uiconst.TOPLEFT, opacity=0.0)
-            searchResultMenu.searchScroll = Scroll(parent=searchResultMenu, align=uiconst.TOALL, padding=1)
-            searchResultMenu.searchScroll.sr.underlay.opacity = 0.0
-            if self.OnSearchEntrySelected:
-                searchResultMenu.searchScroll.OnSelectionChange = self.OnSelectionChanged
-            MenuUnderlay(bgParent=searchResultMenu)
-            self.searchResultMenu = weakref.ref(searchResultMenu)
-            self.updateThread = AutoTimer(1, self.UpdateDropdownState)
-            startHeight = 0
         else:
-            startHeight = searchResultMenu.height
-        if self.scrollPosition and self.searchString == self.scrollPosition[0]:
-            scrollTo = self.scrollPosition[1]
-        else:
-            scrollTo = 0.0
-        self.scrollTo = scrollTo
-        searchResultMenu.searchScroll.LoadContent(contentList=result, scrollTo=scrollTo)
-        visibleEntriesHeight = sum([ node.height for node in searchResultMenu.searchScroll.sr.nodes[:self.searchResultVisibleEntries] ])
-        endHeight = min(searchResultMenu.searchScroll.GetContentHeight(), visibleEntriesHeight) + 4
-        uicore.animations.MorphScalar(searchResultMenu, 'height', startVal=startHeight, endVal=endHeight, duration=0.25, callback=self.SetScrollPosition)
-        uicore.animations.FadeTo(searchResultMenu, startVal=searchResultMenu.opacity, endVal=1.0, duration=0.5)
+            if not searchResultMenu:
+                l, t, w, h = self.GetAbsolute()
+                searchResultMenu = Container(name='resultMenuParent', parent=uicore.layer.utilmenu, pos=(l,
+                 t + h + 1,
+                 max(w, 200),
+                 300), align=uiconst.TOPLEFT, opacity=0.0)
+                searchResultMenu.searchScroll = Scroll(parent=searchResultMenu, align=uiconst.TOALL, padding=1)
+                searchResultMenu.searchScroll.sr.underlay.opacity = 0.0
+                if self.OnSearchEntrySelected:
+                    searchResultMenu.searchScroll.OnSelectionChange = self.OnSelectionChanged
+                MenuUnderlay(bgParent=searchResultMenu)
+                self.searchResultMenu = weakref.ref(searchResultMenu)
+                self.updateThread = AutoTimer(1, self.UpdateDropdownState)
+                startHeight = 0
+            else:
+                startHeight = searchResultMenu.height
+            if self.scrollPosition and self.searchString == self.scrollPosition[0]:
+                scrollTo = self.scrollPosition[1]
+            else:
+                scrollTo = 0.0
+            self.scrollTo = scrollTo
+            searchResultMenu.searchScroll.LoadContent(contentList=result, scrollTo=scrollTo)
+            visibleEntriesHeight = sum([ node.height for node in searchResultMenu.searchScroll.sr.nodes[:self.searchResultVisibleEntries] ])
+            endHeight = min(searchResultMenu.searchScroll.GetContentHeight(), visibleEntriesHeight) + 4
+            uicore.animations.MorphScalar(searchResultMenu, 'height', startVal=startHeight, endVal=endHeight, duration=0.25, callback=self.SetScrollPosition)
+            uicore.animations.FadeTo(searchResultMenu, startVal=searchResultMenu.opacity, endVal=1.0, duration=0.5)
+            return
 
     def SetScrollPosition(self, *args, **kwds):
         if self.searchResultMenu:
@@ -119,13 +126,15 @@ class SearchInput(SinglelineEdit):
         if self.destroyed:
             self.updateThread = None
             return
-        if not (self.searchResultMenu and self.searchResultMenu()):
+        elif not (self.searchResultMenu and self.searchResultMenu()):
             self.updateThread = None
             return
         wnd = GetWindowAbove(self)
         activeWindow = uicore.registry.GetActive()
         if wnd and wnd is not activeWindow and activeWindow is not uicore.desktop:
             self.CloseResultMenu()
+            return
+        else:
             return
 
     def GetSearchEntriesDemo(self, searchString):

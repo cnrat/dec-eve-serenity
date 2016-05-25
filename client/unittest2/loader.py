@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\carbon\common\stdlib\unittest2\loader.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\carbon\common\stdlib\unittest2\loader.py
 import os
 import re
 import sys
@@ -52,7 +53,7 @@ class TestLoader(unittest.TestLoader):
         loaded_suite = self.suiteClass(map(testCaseClass, testCaseNames))
         return loaded_suite
 
-    def loadTestsFromModule(self, module, use_load_tests = True):
+    def loadTestsFromModule(self, module, use_load_tests=True):
         tests = []
         for name in dir(module):
             obj = getattr(module, name)
@@ -63,9 +64,10 @@ class TestLoader(unittest.TestLoader):
         tests = self.suiteClass(tests)
         if use_load_tests and load_tests is not None:
             return load_tests(self, tests, None)
-        return tests
+        else:
+            return tests
 
-    def loadTestsFromName(self, name, module = None):
+    def loadTestsFromName(self, name, module=None):
         parts = name.split('.')
         if module is None:
             parts_copy = parts[:]
@@ -85,29 +87,31 @@ class TestLoader(unittest.TestLoader):
 
         if isinstance(obj, types.ModuleType):
             return self.loadTestsFromModule(obj)
-        if isinstance(obj, type) and issubclass(obj, unittest.TestCase):
+        elif isinstance(obj, type) and issubclass(obj, unittest.TestCase):
             return self.loadTestsFromTestCase(obj)
-        if isinstance(obj, types.UnboundMethodType) and isinstance(parent, type) and issubclass(parent, case.TestCase):
+        elif isinstance(obj, types.UnboundMethodType) and isinstance(parent, type) and issubclass(parent, case.TestCase):
             return self.suiteClass([parent(obj.__name__)])
-        if isinstance(obj, unittest.TestSuite):
+        elif isinstance(obj, unittest.TestSuite):
             return obj
-        if hasattr(obj, '__call__'):
-            test = obj()
-            if isinstance(test, unittest.TestSuite):
-                return test
-            if isinstance(test, unittest.TestCase):
-                return self.suiteClass([test])
-            raise TypeError('calling %s returned %s, not a test' % (obj, test))
         else:
-            raise TypeError("don't know how to make test from: %s" % obj)
+            if hasattr(obj, '__call__'):
+                test = obj()
+                if isinstance(test, unittest.TestSuite):
+                    return test
+                if isinstance(test, unittest.TestCase):
+                    return self.suiteClass([test])
+                raise TypeError('calling %s returned %s, not a test' % (obj, test))
+            else:
+                raise TypeError("don't know how to make test from: %s" % obj)
+            return
 
-    def loadTestsFromNames(self, names, module = None):
+    def loadTestsFromNames(self, names, module=None):
         suites = [ self.loadTestsFromName(name, module) for name in names ]
         return self.suiteClass(suites)
 
     def getTestCaseNames(self, testCaseClass):
 
-        def isTestMethod(attrname, testCaseClass = testCaseClass, prefix = self.testMethodPrefix):
+        def isTestMethod(attrname, testCaseClass=testCaseClass, prefix=self.testMethodPrefix):
             return attrname.startswith(prefix) and hasattr(getattr(testCaseClass, attrname), '__call__')
 
         testFnNames = filter(isTestMethod, dir(testCaseClass))
@@ -115,7 +119,7 @@ class TestLoader(unittest.TestLoader):
             testFnNames.sort(key=_CmpToKey(self.sortTestMethodsUsing))
         return testFnNames
 
-    def discover(self, start_dir, pattern = 'test*.py', top_level_dir = None):
+    def discover(self, start_dir, pattern='test*.py', top_level_dir=None):
         if top_level_dir is None and self._top_level_dir is not None:
             top_level_dir = self._top_level_dir
         elif top_level_dir is None:
@@ -175,10 +179,12 @@ class TestLoader(unittest.TestLoader):
                 else:
                     yield load_tests(self, tests, pattern)
 
+        return
+
 
 defaultTestLoader = TestLoader()
 
-def _makeLoader(prefix, sortUsing, suiteClass = None):
+def _makeLoader(prefix, sortUsing, suiteClass=None):
     loader = TestLoader()
     loader.sortTestMethodsUsing = sortUsing
     loader.testMethodPrefix = prefix
@@ -187,13 +193,13 @@ def _makeLoader(prefix, sortUsing, suiteClass = None):
     return loader
 
 
-def getTestCaseNames(testCaseClass, prefix, sortUsing = cmp):
+def getTestCaseNames(testCaseClass, prefix, sortUsing=cmp):
     return _makeLoader(prefix, sortUsing).getTestCaseNames(testCaseClass)
 
 
-def makeSuite(testCaseClass, prefix = 'test', sortUsing = cmp, suiteClass = suite.TestSuite):
+def makeSuite(testCaseClass, prefix='test', sortUsing=cmp, suiteClass=suite.TestSuite):
     return _makeLoader(prefix, sortUsing, suiteClass).loadTestsFromTestCase(testCaseClass)
 
 
-def findTestCases(module, prefix = 'test', sortUsing = cmp, suiteClass = suite.TestSuite):
+def findTestCases(module, prefix='test', sortUsing=cmp, suiteClass=suite.TestSuite):
     return _makeLoader(prefix, sortUsing, suiteClass).loadTestsFromModule(module)

@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\packages\requests\packages\urllib3\contrib\ntlmpool.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\packages\requests\packages\urllib3\contrib\ntlmpool.py
 try:
     from http.client import HTTPSConnection
 except ImportError:
@@ -63,7 +64,7 @@ class NTLMConnectionPool(HTTPSConnectionPool):
         log.debug('Connection established')
         return conn
 
-    def urlopen(self, method, url, body = None, headers = None, retries = 3, redirect = True, assert_same_host = True):
+    def urlopen(self, method, url, body=None, headers=None, retries=3, redirect=True, assert_same_host=True):
         if headers is None:
             headers = {}
         headers['Connection'] = 'Keep-Alive'

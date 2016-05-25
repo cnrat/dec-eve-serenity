@@ -1,11 +1,12 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\client\script\ui\camera\baseCamera.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\client\script\ui\camera\baseCamera.py
 import math
-from eve.client.script.ui.camera.cameraUtil import GetBall, GetBallPosition, GetDurationByDistance
+from eve.client.script.ui.camera.cameraUtil import GetBall, GetBallPosition, GetDurationByDistance, IsNanVector3, IsInfVector3, GetCameraInertiaMultiplier
+from logmodule import LogException
 import trinity
 import geo2
 import uthread
 import blue
-import logmodule as log
 import evegraphics.settings as gfxsettings
 K_ZOOMPOWER = 9
 
@@ -32,7 +33,7 @@ class Camera(object):
     kMinPitch = 0.05
     kMaxPitch = math.pi - kMinPitch
     kPanSpeed = 5.0
-    kPanStopDist = 50
+    kPanStopDist = 0.001
 
     def __init__(self):
         sm.RegisterNotify(self)
@@ -54,13 +55,16 @@ class Camera(object):
         self._eyeOffset = None
         self._atOffset = None
         self._eyeAndAtOffset = None
-        self._transitOffset = None
+        self._atTransitOffset = None
+        self._eyeTransitOffset = None
         self._effectOffset = None
         self.centerOffset = None
         self.isActive = False
+        self._transitDoneTime = None
         self.viewMatrix = trinity.TriView()
         self.projectionMatrix = trinity.TriProjection()
         self.updateThread = uthread.new(self.UpdateThread)
+        return
 
     def UpdateThread(self):
         while self.isActive:
@@ -68,6 +72,7 @@ class Camera(object):
             blue.synchro.Yield()
 
         self.updateThread = None
+        return
 
     def _Update(self):
         self._eyeOffset = None
@@ -76,14 +81,17 @@ class Camera(object):
         self.Update()
         self.UpdateProjection()
         self.UpdateView()
+        return
 
     def Update(self):
         self._UpdateTransitOffset()
         self._UpdateEffectOffset()
 
     def _UpdateTransitOffset(self):
-        if self._transitOffset:
-            self._AddToAtOffset(self._transitOffset)
+        if self._atTransitOffset:
+            self._AddToAtOffset(self._atTransitOffset)
+        if self._eyeTransitOffset:
+            self._AddToEyeOffset(self._eyeTransitOffset)
 
     def OnSetDevice(self, *args):
         if self.isActive:
@@ -102,10 +110,11 @@ class Camera(object):
         if self.updateThread:
             self.updateThread.kill()
             self.updateThread = None
-        self._transitOffset = None
+        self.OnTransitEnd()
         self._eyeAndAtOffset = None
         self._atOffset = None
         self._eyeOffset = None
+        return
 
     def UpdateProjection(self):
         aspectRatio = uicore.uilib.desktop.width / float(uicore.uilib.desktop.height)
@@ -113,18 +122,22 @@ class Camera(object):
         if fov <= 0.0:
             fov = 1.0
             self.ResetCameraPosition()
-            log.LogException('Camera: FOV Set to <= 0.0')
+            LogException('Camera: FOV Set to <= 0.0')
         if self.centerOffset:
             self._UpdateProjectionOffset(aspectRatio, fov)
         else:
             self._UpdateProjectionFov(aspectRatio, fov)
 
     def _UpdateProjectionFov(self, aspectRatio, fov):
+        if aspectRatio > 1.6:
+            fov *= 1.6 / aspectRatio
         self.projectionMatrix.PerspectiveFov(fov, aspectRatio, self._nearClip, self._farClip)
 
     def _UpdateProjectionOffset(self, aspectRatio, fov):
-        dX = aspectRatio * self._nearClip * math.tan(fov / 2)
-        dY = self._nearClip * math.tan(fov / 2.0)
+        tanFov = math.tan(fov / 2.0)
+        k = 1.6 / aspectRatio if aspectRatio > 1.6 else 1.0
+        dX = k * aspectRatio * self._nearClip * tanFov
+        dY = k * self._nearClip * tanFov
         left = -dX + dX * self.centerOffset
         right = dX + dX * self.centerOffset
         top = dY
@@ -136,29 +149,33 @@ class Camera(object):
 
     def OffsetAtPosition(self, atPosition):
         if self._atOffset:
-            atPosition = geo2.Vec3Add(atPosition, self._atOffset)
+            atPosition = geo2.Vec3AddD(atPosition, self._atOffset)
         if self._eyeAndAtOffset:
-            atPosition = geo2.Vec3Add(atPosition, self._eyeAndAtOffset)
+            atPosition = geo2.Vec3AddD(atPosition, self._eyeAndAtOffset)
         return atPosition
 
     def OffsetEyePosition(self, eyePosition):
         if self._eyeOffset:
-            eyePosition = geo2.Vec3Add(eyePosition, self._eyeOffset)
+            eyePosition = geo2.Vec3AddD(eyePosition, self._eyeOffset)
         if self._eyeAndAtOffset:
-            eyePosition = geo2.Vec3Add(eyePosition, self._eyeAndAtOffset)
+            eyePosition = geo2.Vec3AddD(eyePosition, self._eyeAndAtOffset)
         return eyePosition
 
     def _AddToEyeOffset(self, offset):
+        if IsInfVector3(offset) or IsNanVector3(offset):
+            LogException('Camera: Attempting to assign an invalid eyeOffset value: %s, %s' % (repr(offset), self))
         if not self._eyeOffset:
             self._eyeOffset = offset
         else:
-            self._eyeOffset = geo2.Vec3Add(self._eyeOffset, offset)
+            self._eyeOffset = geo2.Vec3AddD(self._eyeOffset, offset)
 
     def _AddToAtOffset(self, offset):
+        if IsInfVector3(offset) or IsNanVector3(offset):
+            LogException('Camera: Attempting to assign an invalid atOffset value: %s, %s' % (repr(offset), self))
         if not self._atOffset:
             self._atOffset = offset
         else:
-            self._atOffset = geo2.Vec3Add(self._atOffset, offset)
+            self._atOffset = geo2.Vec3AddD(self._atOffset, offset)
 
     def SetEffectOffset(self, offset):
         self._effectOffset = offset
@@ -168,6 +185,8 @@ class Camera(object):
             self._AddToEyeAndAtOffset(self._effectOffset)
 
     def _AddToEyeAndAtOffset(self, offset):
+        if IsInfVector3(offset) or IsNanVector3(offset):
+            LogException('Camera: Attempting to assign an invalid eyeAndAtOffset value: %s, %s' % (repr(offset), self))
         if not self._eyeAndAtOffset:
             self._eyeAndAtOffset = offset
         else:
@@ -200,7 +219,7 @@ class Camera(object):
         return self.GetLookAtDirection()
 
     def GetYaw(self):
-        x, y, z = self.GetLookAtDirection()
+        x, _, z = self.GetLookAtDirection()
         return -(math.atan2(z, x) + math.pi / 2)
 
     def GetPitch(self):
@@ -213,22 +232,28 @@ class Camera(object):
         return geo2.QuaternionRotationSetYawPitchRoll(yaw, pitch, 0.0)
 
     def GetLookAtDirection(self):
-        return geo2.Vec3Direction(self._eyePosition, self._atPosition)
+        return geo2.Vec3Direction(self._eyePosition, self.GetZoomToPoint())
 
     def GetLookAtDirectionWithOffset(self):
-        return geo2.Vec3Direction(self.eyePosition, self.atPosition)
+        eyePos = geo2.Vec3AddD(self._eyePosition, self._eyeOffset) if self._eyeOffset else self._eyePosition
+        atPos = geo2.Vec3AddD(self._atPosition, self._atOffset) if self._atOffset else self._atPosition
+        return geo2.Vec3Direction(eyePos, atPos)
 
-    def Pan(self, dx = 0, dy = 0, dz = 0):
+    def Pan(self, dx=0, dy=0, dz=0):
         if self.panTarget is None:
             self.panTarget = geo2.Vector(0, 0, 0)
         if dx:
-            self.panTarget += geo2.Scale(self.GetXAxis(), dx)
+            self._AddToPanTarget(dx, self.GetXAxis())
         if dy:
-            self.panTarget += geo2.Scale(self.GetYAxis(), dy)
+            self._AddToPanTarget(dy, self.GetYAxis())
         if dz:
-            self.panTarget += geo2.Scale(self.GetZAxis(), dz)
+            self._AddToPanTarget(dz, self.GetZAxis())
         if not self.panUpdateThread:
             self.panUpdateThread = uthread.new(self.PanUpdateThread)
+        return
+
+    def _AddToPanTarget(self, dx, axis):
+        self.panTarget = geo2.Vec3Add(self.panTarget, geo2.Scale(axis, dx))
 
     def PanTo(self, diff):
         self.panTarget = geo2.Vector(*diff)
@@ -238,31 +263,36 @@ class Camera(object):
     def PanAxis(self, axis, amount):
         if self.panTarget is None:
             self.panTarget = geo2.Vector(0, 0, 0)
-        self.panTarget += geo2.Scale(axis, amount)
+        self._AddToPanTarget(amount, axis)
         if not self.panUpdateThread:
             self.panUpdateThread = uthread.new(self.PanUpdateThread)
+        return
 
     def PanUpdateThread(self):
-        while True:
-            if self.panTarget is None:
-                break
-            distLeft = geo2.Vec3Length(self.panTarget)
-            if distLeft == 0:
-                break
-            dist = self._GetPanSpeed() / blue.os.fps
-            if distLeft < self.kPanStopDist:
-                dist *= self.kPanStopDist / distLeft
-            dist = min(dist, 1.0)
-            toMove = geo2.Vec3Scale(self.panTarget, dist)
-            self.eyePosition = geo2.Add(self._eyePosition, toMove)
-            self.atPosition = geo2.Add(self._atPosition, toMove)
-            self.panTarget -= toMove
-            if dist == 1.0:
-                break
-            blue.synchro.Yield()
+        try:
+            while True:
+                if self.panTarget is None:
+                    break
+                distLeft = geo2.Vec3LengthD(self.panTarget)
+                if distLeft == 0:
+                    break
+                if distLeft < self.kPanStopDist:
+                    dist = 1.0
+                else:
+                    dist = min(1.0, self._GetPanSpeed() / blue.os.fps)
+                toMove = geo2.Vec3ScaleD(self.panTarget, dist)
+                self.SetEyePosition(geo2.Vec3Add(self._eyePosition, toMove))
+                self.SetAtPosition(geo2.Vec3Add(self._atPosition, toMove))
+                self.panTarget = geo2.Vec3SubtractD(self.panTarget, toMove)
+                if dist == 1.0:
+                    break
+                blue.synchro.Yield()
 
-        self.panUpdateThread = None
-        self.panTarget = None
+        finally:
+            self.panUpdateThread = None
+            self.panTarget = None
+
+        return
 
     def IsZoomedOutCompletely(self):
         zoomValue = self.GetZoomValue()
@@ -282,12 +312,19 @@ class Camera(object):
     def Zoom(self, dz):
         if dz < 0 and self.IsZoomedInCompletely():
             return
-        if dz > 0 and self.IsZoomedOutCompletely():
+        elif dz > 0 and self.IsZoomedOutCompletely():
             return
-        if self.zoomTarget is None:
-            self.zoomTarget = self.GetZoomProportion()
-        self.zoomTarget += 0.3 * dz
-        self.zoomTarget = self._ClampZoomProp(self.zoomTarget)
+        else:
+            if self.zoomTarget is None:
+                self.zoomTarget = self.GetZoomProportion()
+            self.zoomTarget += 0.3 * dz
+            self.zoomTarget = self._ClampZoomProp(self.zoomTarget)
+            if not self.zoomUpdateThread:
+                self.zoomUpdateThread = uthread.new(self.ZoomUpdateThread)
+            return
+
+    def SetZoomTarget(self, proportion):
+        self.zoomTarget = self._ClampZoomProp(proportion)
         if not self.zoomUpdateThread:
             self.zoomUpdateThread = uthread.new(self.ZoomUpdateThread)
 
@@ -316,6 +353,8 @@ class Camera(object):
             self.zoomUpdateThread = None
             self.zoomTarget = None
 
+        return
+
     def _ClampZoomProp(self, ret):
         minZoomProp = self.GetMinZoomProp()
         return max(minZoomProp, min(ret, 1.0))
@@ -331,29 +370,38 @@ class Camera(object):
 
     def SetZoom(self, proportion):
         proportion = self._ClampZoomProp(proportion)
-        vec = self.GetLookAtDirection()
+        direction = self.GetLookAtDirection()
         distance = self.GetZoomDistanceByZoomProportion(proportion)
-        zoomVec = geo2.Vec3Scale(vec, distance)
-        self._eyePosition = geo2.Vec3Add(self._atPosition, zoomVec)
+        zoomVec = geo2.Vec3Scale(direction, distance)
+        self.SetEyePosition(geo2.Vec3Add(self.GetZoomToPoint(), zoomVec))
 
     zoom = property(GetZoom, SetZoom)
 
+    def GetZoomToPoint(self):
+        if self._atTransitOffset:
+            return geo2.Vec3Add(self._atPosition, self._atTransitOffset)
+        return self._atPosition
+
     def SetZoomDistance(self, distance):
         zoomVec = geo2.Vec3Scale(self.GetLookAtDirection(), distance)
-        self._eyePosition = geo2.Vec3Add(self._atPosition, zoomVec)
+        self.SetEyePosition(geo2.Vec3Add(self._atPosition, zoomVec))
 
     def FovZoom(self, dz):
         if self.fovTarget is not None:
             self.SetFovTarget(self.fovTarget + dz)
         else:
             self.SetFovTarget(self.fov + dz)
+        return
 
     def SetFovTarget(self, value):
         if self.fov == value:
             return
-        self.fovTarget = self._EnforceMinMaxFov(value)
-        if not self.fovUpdateThread:
-            self.fovUpdateThread = uthread.new(self.FovUpdateThread)
+        if math.fabs(self.fov - value) < 0.001 and not self.fovUpdateThread:
+            self.SetFov(value)
+        else:
+            self.fovTarget = self._EnforceMinMaxFov(value)
+            if not self.fovUpdateThread:
+                self.fovUpdateThread = uthread.new(self.FovUpdateThread)
 
     def FovUpdateThread(self):
         try:
@@ -379,8 +427,10 @@ class Camera(object):
             self.fovUpdateThread = None
             self.fovTarget = None
 
+        return
+
     def _GetFovSpeed(self):
-        multiplier = self._GetCameraSpeedMultiplier()
+        multiplier = GetCameraInertiaMultiplier()
         return self.kFovSpeed * multiplier
 
     def _EnforceMinMaxFov(self, value):
@@ -395,11 +445,12 @@ class Camera(object):
         self.panTarget = None
         self.orbitTarget = None
         self.fovTarget = None
+        return
 
     def GetZoomDistance(self):
-        dist = geo2.Vec3Distance(self._eyePosition, self._atPosition)
+        dist = geo2.Vec3Distance(self._eyePosition, self.GetZoomToPoint())
         if math.isinf(dist):
-            log.LogException('Error: Infinite camera distance:%s, %s, %s' % (repr(self.atPosition), repr(self.eyePosition), repr(dist)))
+            LogException('Error: Infinite camera distance:%s, %s' % (repr(dist), self))
             self.ResetCameraPosition()
             return 1.0
         return dist
@@ -414,16 +465,22 @@ class Camera(object):
         return zoomProp
 
     def GetZoomProportionByZoomDistance(self, zoomDist):
-        return ((zoomDist - self.maxZoom) / (self.minZoom - self.maxZoom)) ** (1.0 / K_ZOOMPOWER)
+        zoomProp = (zoomDist - self.maxZoom) / (self.minZoom - self.maxZoom)
+        return zoomProp ** (1.0 / K_ZOOMPOWER)
 
     def SetMaxZoom(self, value):
-        self.maxZoom = value
+        if value >= self.minZoom:
+            LogException('Camera: Cannot set maxZoom to a value larger than minZoom: value=%s, %s' % (value, self))
+        else:
+            self.maxZoom = value
 
     def SetMinZoom(self, value):
-        self.minZoom = value
+        if value <= self.maxZoom:
+            LogException('Camera: Cannot set minZoom to a value smaller than minZoom: value=%s, %s' % (value, self))
+        else:
+            self.minZoom = value
 
-    def Orbit(self, dx = 0, dy = 0):
-        diff = geo2.Subtract(self.eyePosition, self.atPosition)
+    def Orbit(self, dx=0, dy=0):
         if not self.orbitTarget:
             self.orbitTarget = (0, self.GetAngleLookAtToUpDirection())
         if gfxsettings.Get(gfxsettings.UI_CAMERA_INVERT_Y):
@@ -442,14 +499,11 @@ class Camera(object):
                     break
                 vLookAt = self.GetLookAtDirectionWithOffset()
                 currPitch = self.GetAngleLookAtToUpDirection()
-                if self._atOffset:
-                    offset = geo2.Vec3Add(self._atPosition, self._atOffset)
-                else:
-                    offset = self._atPosition
+                offset = self.GetOrbitPoint()
                 self.eyePosition = geo2.Subtract(self._eyePosition, offset)
                 yawRemaining = self._UpdateYaw()
                 pitchRemaining = self._UpdatePitch(currPitch, vLookAt)
-                self.eyePosition = geo2.Add(self._eyePosition, offset)
+                self.SetEyePosition(geo2.Add(self._eyePosition, offset))
                 if not pitchRemaining and not yawRemaining:
                     break
                 blue.synchro.Yield()
@@ -457,6 +511,15 @@ class Camera(object):
         finally:
             self.orbitUpdateThread = None
             self.orbitTarget = None
+
+        return
+
+    def GetOrbitPoint(self):
+        if self._atOffset:
+            offset = geo2.Vec3Add(self._atPosition, self._atOffset)
+        else:
+            offset = self._atPosition
+        return offset
 
     def _UpdatePitch(self, currPitch, vLookAt):
         targetPitch = self.orbitTarget[1]
@@ -466,30 +529,23 @@ class Camera(object):
                 pitch = pitchRemaining
                 pitchRemaining = None
             else:
-                pitch = self._GetOrbitSpeed() * pitchRemaining / blue.os.fps
+                pitch = pitchRemaining * self._GetOrbitSpeed()
             axis = geo2.Vec3Cross(vLookAt, self.upDirection)
             rotPitch = geo2.MatrixRotationAxis(axis, pitch)
-            self.eyePosition = geo2.Vec3Transform(self._eyePosition, rotPitch)
+            self.SetEyePosition(geo2.Vec3Transform(self._eyePosition, rotPitch))
         return pitchRemaining
 
     def _GetOrbitSpeed(self):
-        multiplier = self._GetCameraSpeedMultiplier()
-        return self.kOrbitSpeed * multiplier
-
-    def _GetCameraSpeedMultiplier(self):
-        multiplier = gfxsettings.Get(gfxsettings.UI_CAMERA_SPEED)
-        if multiplier < 0:
-            multiplier = 1.0 / (1.0 - multiplier)
-        else:
-            multiplier = 1.0 + multiplier
-        return multiplier
+        multiplier = GetCameraInertiaMultiplier()
+        speed = self.kOrbitSpeed * multiplier / blue.os.fps
+        return min(1.0, speed)
 
     def _GetZoomSpeed(self):
-        multiplier = self._GetCameraSpeedMultiplier()
+        multiplier = GetCameraInertiaMultiplier()
         return self.kZoomSpeed * multiplier
 
     def _GetPanSpeed(self):
-        multiplier = self._GetCameraSpeedMultiplier()
+        multiplier = GetCameraInertiaMultiplier()
         return self.kPanSpeed * multiplier
 
     def _UpdateYaw(self):
@@ -499,9 +555,9 @@ class Camera(object):
                 yaw = yawRemaining
                 yawRemaining = None
             else:
-                yaw = self._GetOrbitSpeed() * yawRemaining / blue.os.fps
+                yaw = yawRemaining * self._GetOrbitSpeed()
             rotYaw = geo2.MatrixRotationAxis(self.upDirection, yaw)
-            self.eyePosition = geo2.Vec3Transform(self._eyePosition, rotYaw)
+            self.SetEyePosition(geo2.Vec3Transform(self._eyePosition, rotYaw))
             self.orbitTarget[0] -= yaw
         return yawRemaining
 
@@ -515,7 +571,7 @@ class Camera(object):
     def GetActiveThreads(self):
         return (self.panTarget, self.orbitTarget, self.zoomTarget)
 
-    def Rotate(self, x = 0, y = 0):
+    def Rotate(self, x=0, y=0):
         xAxis = self.GetXAxis()
         yAxis = self.GetYAxis()
         self.atPosition = geo2.Subtract(self._atPosition, self._eyePosition)
@@ -528,7 +584,7 @@ class Camera(object):
     def GetDistanceFromLookAt(self):
         return geo2.Vec3Distance(self.eyePosition, self.atPosition)
 
-    def LookAt(self, itemID, radius = None):
+    def LookAt(self, itemID, radius=None):
         ball = GetBall(itemID)
         if not ball:
             return
@@ -540,108 +596,46 @@ class Camera(object):
         duration = GetDurationByDistance(self.eyePosition, eyePos1, 0.3, 0.6)
         self.TransitTo(atPos1, eyePos1, duration=duration)
 
-    def TransitTo(self, atPosition = None, eyePosition = None, duration = 1.0, smoothing = 0.1, numPoints = 1000, timeOffset = 0.0):
+    def LookAtMaintainDistance(self, itemID):
+        self.LookAt(itemID)
+
+    def TransitTo(self, atPosition=None, eyePosition=None, duration=1.0, smoothing=0.1, numPoints=1000, timeOffset=0.0):
         self.Transit(self.atPosition, self.eyePosition, atPosition, eyePosition, duration, smoothing, numPoints, timeOffset)
 
-    def Transit(self, atPos0, eyePos0, atPos1, eyePos1, duration = 1.0, smoothing = 0.1, numPoints = 1000, timeOffset = 0.0, callback = None):
+    def Transit(self, atPos0, eyePos0, atPos1, eyePos1, duration=1.0, smoothing=0.1, numPoints=1000, timeOffset=0.0, callback=None):
         newDir = geo2.Vec3Direction(eyePos1, atPos1)
         self.StopEyeAndAtAnimation()
-        if self._transitOffset:
-            atPos0 = geo2.Vec3Add(atPos0, self._transitOffset)
-        self._ConstructScalarCurve(duration)
-        atPoints = self.GetTransitAtCurve(eyePos0, atPos0, atPos1, newDir, smoothing, numPoints=numPoints)
-        eyePoints = self.GetTransitEyeCurve(eyePos0, atPos0, eyePos1, atPos1, newDir, atPoints)
-        atPoints = [ geo2.Vec3Subtract(p, atPoints[-1]) for p in atPoints ]
-        self._transitOffset = atPoints[0]
-        self._atPosition = atPos1
-        self._eyePosition = eyePos0
-        uicore.animations.MorphVector3(self, '_transitOffset', curveType=atPoints, duration=duration, timeOffset=timeOffset, callback=self.OnTransitEnd)
-        uicore.animations.MorphVector3(self, 'eyePosition', curveType=eyePoints, duration=duration, timeOffset=timeOffset, callback=callback)
+        if self._atTransitOffset:
+            atPos0 = geo2.Vec3Add(atPos0, self._atTransitOffset)
+        if self._eyeTransitOffset:
+            eyePos0 = geo2.Vec3Add(eyePos0, self._eyeTransitOffset)
+        self.SetAtPosition(atPos1)
+        self.SetEyePosition(eyePos1)
+        self._atTransitOffset = geo2.Vec3Subtract(atPos0, atPos1)
+        self._eyeTransitOffset = geo2.Vec3Subtract(eyePos0, eyePos1)
+        uicore.animations.MorphVector3(self, '_atTransitOffset', self._atTransitOffset, (0, 0, 0), duration=duration, timeOffset=timeOffset, callback=callback)
+        uicore.animations.MorphVector3(self, '_eyeTransitOffset', self._eyeTransitOffset, (0, 0, 0), duration=duration, timeOffset=timeOffset, callback=self.OnTransitEnd)
+        self._transitDoneTime = blue.os.GetWallclockTime() + SEC * duration
 
     def StopEyeAndAtAnimation(self):
         uicore.animations.StopAnimation(self, 'atPosition')
         uicore.animations.StopAnimation(self, 'eyePosition')
-        uicore.animations.StopAnimation(self, '_transitOffset')
-        self._transitOffset = None
+        uicore.animations.StopAnimation(self, '_atTransitOffset')
+        uicore.animations.StopAnimation(self, '_eyeTransitOffset')
+        self.OnTransitEnd()
         self.panTarget = None
         self.orbitTarget = None
         self.zoomTarget = None
+        self.fovTarget = None
+        return
 
     def IsInTransit(self):
-        return self._transitOffset is not None
+        return self._transitDoneTime is not None and blue.os.GetWallclockTime() < self._transitDoneTime
 
     def OnTransitEnd(self):
-        self._transitOffset = None
-
-    def GetTransitAtCurve(self, eyePos0, atPos0, atPos1, newDir, smoothing, numPoints):
-        currDir = geo2.Vec3Direction(eyePos0, atPos0)
-        angle = math.acos(geo2.Vec3Dot((currDir[0], 0, currDir[2]), (newDir[1], 0, newDir[2])))
-        if smoothing and angle:
-            offset = geo2.Vec3Normalize(geo2.Vec3Negate(newDir))
-            dist = geo2.Vec3Distance(atPos0, atPos1)
-            offset = geo2.Vec3Scale(offset, dist * angle * smoothing)
-        else:
-            offset = (0, 0, 0)
-        points = []
-        for i in xrange(numPoints + 1):
-            t = self._GetTimeValue(float(i) / numPoints)
-            offsetDist = 2 * (t - t ** 2)
-            point = geo2.Vec3Lerp(atPos0, atPos1, t)
-            point = geo2.Add(point, geo2.Vec3Scale(offset, offsetDist))
-            points.append(point)
-
-        return points
-
-    def GetTransitEyeCurve(self, eyePos0, atPos0, eyePos1, atPos1, newDir, atCurve):
-        currDir = geo2.Vec3Direction(eyePos0, atPos0)
-        try:
-            angle = math.acos(geo2.Vec3Dot(currDir, newDir))
-        except ValueError:
-            angle = 0
-
-        th0 = math.atan2(currDir[2], currDir[0])
-        th0 = self.ClampAngle(th0)
-        th1 = math.atan2(newDir[2], newDir[0])
-        th1 = self.ClampAngle(th1)
-        if th0 - th1 > math.pi:
-            th0 -= 2 * math.pi
-        elif th1 - th0 > math.pi:
-            th1 -= 2 * math.pi
-        r0 = geo2.Vec3Distance((eyePos0[0], 0, eyePos0[2]), (atPos0[0], 0, atPos0[2]))
-        r1 = geo2.Vec3Distance((eyePos1[0], 0, eyePos1[2]), (atPos1[0], 0, atPos1[2]))
-        y0 = eyePos0[1] - atPos0[1]
-        y1 = eyePos1[1] - atPos1[1]
-        points = []
-        for i, atPoint in enumerate(atCurve):
-            t = self._GetTimeValue(float(i) / len(atCurve))
-            r = r0 + t * (r1 - r0)
-            th = th0 + t * (th1 - th0)
-            y = y0 + t * (y1 - y0)
-            point = (r * math.cos(th), y, r * math.sin(th))
-            point = geo2.Vec3Add(point, atCurve[i])
-            points.append(point)
-
-        return points
-
-    def _GetTimeValue(self, t):
-        return self._transitCurve.GetValueAt(t)
-
-    def _ConstructScalarCurve(self, duration):
-        self._transitCurve = trinity.Tr2ScalarBezierCurve()
-        self._transitCurve.length = 1.0
-        self._transitCurve.endValue = 1.0
-        x = max(0.0, min(-0.3 + 0.6 * duration, 1.0))
-        self._transitCurve.controlPointA = (0.2 + 0.2 * (1.0 - x), 0.0)
-        self._transitCurve.controlPointB = (-(0.2 + x * 0.7), 0.0)
-
-    def ClampAngle(self, angle):
-        while angle < 0:
-            angle += 2 * math.pi
-
-        while angle >= 2 * math.pi:
-            angle -= 2 * math.pi
-
-        return angle
+        self._atTransitOffset = None
+        self._eyeTransitOffset = None
+        return
 
     def StopAnimations(self):
         uicore.animations.StopAllAnimations(self)
@@ -694,10 +688,14 @@ class Camera(object):
         return self.OffsetEyePosition(self._eyePosition)
 
     def SetEyePosition(self, value):
-        if self.IsNanVector3(value) or self.IsInfVector3(value):
+        if IsNanVector3(value) or IsInfVector3(value):
+            LogException('Attempting to assign an invalid eyePosition value: %s, %s' % (repr(value), self))
             self.ResetCameraPosition()
-            raise ValueError('Attempting to assign an invalid eyePosition value: %s' % repr(value))
-        self._eyePosition = value
+        elif value == self._atPosition:
+            LogException('Camera: Setting eyePosition to same value as atPosition: %s, %s' % (repr(value), self))
+            self.ResetCameraPosition()
+        else:
+            self._eyePosition = value
 
     eyePosition = property(GetEyePosition, SetEyePosition)
 
@@ -705,10 +703,14 @@ class Camera(object):
         return self.OffsetAtPosition(self._atPosition)
 
     def SetAtPosition(self, value):
-        if self.IsNanVector3(value) or self.IsInfVector3(value):
+        if IsNanVector3(value) or IsInfVector3(value):
+            LogException('Attempting to assign an invalid atPosition value: %s, %s' % (repr(value), self))
             self.ResetCameraPosition()
-            raise ValueError('Attempting to assign an invalid atPosition value: %s' % repr(value))
-        self._atPosition = value
+        elif value == self._eyePosition:
+            LogException('Camera: Setting atPosition to same value as eyePosition: %s, %s' % (repr(value), self))
+            self.ResetCameraPosition()
+        else:
+            self._atPosition = value
 
     atPosition = property(GetAtPosition, SetAtPosition)
 
@@ -724,20 +726,6 @@ class Camera(object):
 
     upDirection = property(GetUpDirection, SetUpDirection)
 
-    def IsNanVector3(self, values):
-        for value in values:
-            if math.isnan(value):
-                return True
-
-        return False
-
-    def IsInfVector3(self, values):
-        for value in values:
-            if value > math.fabs(1e+38):
-                return True
-
-        return False
-
     def GetTrackItemID(self):
         return None
 
@@ -745,10 +733,11 @@ class Camera(object):
         pass
 
     def ResetCameraPosition(self):
-        self.atPosition = self.default_atPosition
-        self.eyePosition = self.default_eyePosition
-        self.fov = self.default_fov
+        self._atPosition = self.default_atPosition
+        self._eyePosition = self.default_eyePosition
+        self._fov = self.default_fov
         self.trackTarget = None
+        return
 
     def ProjectWorldToCamera(self, vec):
         return geo2.Vec3Transform(vec, self.viewMatrix.transform)
@@ -756,3 +745,20 @@ class Camera(object):
     def IsInFrontOfCamera(self, vec):
         vec = self.ProjectWorldToCamera(vec)
         return vec[2] < -self.nearClip
+
+    def EnforceMinZoom(self):
+        if self.GetZoomDistance() < self.maxZoom:
+            self.SetZoom(self.GetMinZoomProp())
+
+    def __repr__(self):
+        return '<%s at %s. eyePos=%s, atPos=%s, eyeOffset=%s, atOffset=%s, eyeAndAtOffset=%s, minZoom=%s, maxZoom=%s, isActive=%s, fov=%s>' % (self.__class__.__name__,
+         id(self),
+         repr(self._eyePosition),
+         repr(self._atPosition),
+         repr(self._eyeOffset),
+         repr(self._atOffset),
+         repr(self._eyeAndAtOffset),
+         repr(self.minZoom),
+         repr(self.maxZoom),
+         repr(self.isActive),
+         repr(self.fov))

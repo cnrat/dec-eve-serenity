@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\packages\everesourceprefetch\__init__.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\packages\everesourceprefetch\__init__.py
 import blue
 import remotefilecache
 import logging
@@ -94,7 +95,7 @@ def PushToBack(key):
     remotefilecache.push_to_back(key)
 
 
-def _AddFolderListAsKey(folderList, key, condition = None):
+def _AddFolderListAsKey(folderList, key, condition=None):
     if condition == None:
         condition = lambda x: True
     file_set = set()
@@ -102,3 +103,4 @@ def _AddFolderListAsKey(folderList, key, condition = None):
         remotefilecache.gather_files_conditionally_to_prefetch(folder, condition, file_set, FILE_DEPENDENCIES)
 
     filesets[key] = list(file_set)
+    return

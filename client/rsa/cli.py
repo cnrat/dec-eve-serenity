@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\carbon\common\stdlib\rsa\cli.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\carbon\common\stdlib\rsa\cli.py
 from __future__ import with_statement, print_function
 import abc
 import sys
@@ -61,7 +62,7 @@ class CryptoOperation(object):
         self.output_help = self.output_help % self.__class__.__dict__
 
     @abc.abstractmethod
-    def perform_operation(self, indata, key, cli_args = None):
+    def perform_operation(self, indata, key, cli_args=None):
         pass
 
     def __call__(self):
@@ -116,7 +117,7 @@ class EncryptOperation(CryptoOperation):
     operation_past = 'encrypted'
     operation_progressive = 'encrypting'
 
-    def perform_operation(self, indata, pub_key, cli_args = None):
+    def perform_operation(self, indata, pub_key, cli_args=None):
         return rsa.encrypt(indata, pub_key)
 
 
@@ -128,7 +129,7 @@ class DecryptOperation(CryptoOperation):
     operation_progressive = 'decrypting'
     key_class = rsa.PrivateKey
 
-    def perform_operation(self, indata, priv_key, cli_args = None):
+    def perform_operation(self, indata, priv_key, cli_args=None):
         return rsa.decrypt(indata, priv_key)
 
 
@@ -219,7 +220,7 @@ class EncryptBigfileOperation(BigfileOperation):
     operation_past = 'encrypted'
     operation_progressive = 'encrypting'
 
-    def perform_operation(self, infile, outfile, pub_key, cli_args = None):
+    def perform_operation(self, infile, outfile, pub_key, cli_args=None):
         return rsa.bigfile.encrypt_bigfile(infile, outfile, pub_key)
 
 
@@ -231,7 +232,7 @@ class DecryptBigfileOperation(BigfileOperation):
     operation_progressive = 'decrypting'
     key_class = rsa.PrivateKey
 
-    def perform_operation(self, infile, outfile, priv_key, cli_args = None):
+    def perform_operation(self, infile, outfile, priv_key, cli_args=None):
         return rsa.bigfile.decrypt_bigfile(infile, outfile, priv_key)
 
 

@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\carbon\common\lib\jinja2\_markupsafe\_native.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\carbon\common\lib\jinja2\_markupsafe\_native.py
 from jinja2._markupsafe import Markup
 
 def escape(s):
@@ -10,7 +11,8 @@ def escape(s):
 def escape_silent(s):
     if s is None:
         return Markup()
-    return escape(s)
+    else:
+        return escape(s)
 
 
 def soft_unicode(s):

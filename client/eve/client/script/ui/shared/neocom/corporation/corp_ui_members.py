@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\client\script\ui\shared\neocom\corporation\corp_ui_members.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\client\script\ui\shared\neocom\corporation\corp_ui_members.py
 import uiprimitives
 import uicontrols
 import uix
@@ -31,6 +32,7 @@ class CorpMembers(uiprimitives.Container):
         self.sr.members.AddListener(self)
         self.sr.scroll = None
         self.sr.ignoreDirtyFlag = False
+        return
 
     def LogInfo(self, *args):
         lg.Info(self.__guid__, *args)
@@ -39,6 +41,7 @@ class CorpMembers(uiprimitives.Container):
         self.OnTabDeselect()
         if self.sr.members is not None:
             self.sr.members.RemoveListener(self)
+        return
 
     def OnTabDeselect(self):
         if not self.sr.ignoreDirtyFlag and self.IsDirty():
@@ -55,34 +58,36 @@ class CorpMembers(uiprimitives.Container):
     def DataChanged(self, primaryKey, change):
         if not (self and not self.destroyed):
             return
-        if self.destroyed or not hasattr(self, 'sr') or self.sr.scroll is None:
+        elif self.destroyed or not hasattr(self, 'sr') or self.sr.scroll is None:
             return
-        dataChangedBy = localization.GetByLabel('UI/Corporations/CorporationWindow/Members/UpdatedByUnknown')
-        if self.sr.progressTotal == 0:
-            self.sr.progressCurrent = 0
-            self.sr.progressTotal = 1
-        self.sr.progressCurrent += 1
-        sm.GetService('loading').ProgressWnd(cfg.eveowners.Get(primaryKey).ownerName, dataChangedBy, self.sr.progressCurrent, self.sr.progressTotal)
-        blue.pyos.synchro.Yield()
-        for entry in self.sr.scroll.GetNodes():
-            if entry is None or entry is None or entry.rec is None:
-                continue
-            if entry.panel is None or entry.panel.destroyed:
-                continue
-            if entry.rec.characterID == primaryKey:
-                if change.has_key('corporationID') and change['corporationID'][1] == None:
-                    self.LogInfo('removing member list entry for charID:', primaryKey)
-                    self.sr.scroll.RemoveEntries([entry])
-                    self.LogInfo('member list entry removed for charID:', primaryKey)
+        else:
+            dataChangedBy = localization.GetByLabel('UI/Corporations/CorporationWindow/Members/UpdatedByUnknown')
+            if self.sr.progressTotal == 0:
+                self.sr.progressCurrent = 0
+                self.sr.progressTotal = 1
+            self.sr.progressCurrent += 1
+            sm.GetService('loading').ProgressWnd(cfg.eveowners.Get(primaryKey).ownerName, dataChangedBy, self.sr.progressCurrent, self.sr.progressTotal)
+            blue.pyos.synchro.Yield()
+            for entry in self.sr.scroll.GetNodes():
+                if entry is None or entry is None or entry.rec is None:
+                    continue
+                if entry.panel is None or entry.panel.destroyed:
+                    continue
+                if entry.rec.characterID == primaryKey:
+                    if change.has_key('corporationID') and change['corporationID'][1] == None:
+                        self.LogInfo('removing member list entry for charID:', primaryKey)
+                        self.sr.scroll.RemoveEntries([entry])
+                        self.LogInfo('member list entry removed for charID:', primaryKey)
+                        break
+                    entry.panel.DataChanged(primaryKey, change)
                     break
-                entry.panel.DataChanged(primaryKey, change)
-                break
 
-        if self.sr.progressCurrent >= self.sr.progressTotal:
-            self.sr.progressCurrent = 0
-            self.sr.progressTotal = 0
+            if self.sr.progressCurrent >= self.sr.progressTotal:
+                self.sr.progressCurrent = 0
+                self.sr.progressTotal = 0
+            return
 
-    def Load(self, populateView = 1, *args):
+    def Load(self, populateView=1, *args):
         sm.GetService('corpui').LoadTop('res:/ui/Texture/WindowIcons/corporationmembers.png', localization.GetByLabel('UI/Corporations/Common/Members'))
         if not self.sr.Get('inited', 0):
             self.sr.inited = 1
@@ -133,6 +138,7 @@ class CorpMembers(uiprimitives.Container):
             self.children.insert(0, btns)
         if populateView:
             self.PopulateView()
+        return
 
     def Navigate(self, direction, *args):
         uthread.new(self.NavigateImpl, direction)
@@ -246,6 +252,8 @@ class CorpMembers(uiprimitives.Container):
             sm.GetService('loading').ProgressWnd(localization.GetByLabel('UI/Common/Loading'), '', count, count)
             blue.pyos.synchro.Yield()
 
+        return
+
     def OnColumnChanged(self, tabstops):
         self.LogInfo('ENTRIES [', len(self.sr.scroll.GetNodes()), ']:', self.sr.scroll.GetNodes())
         for node in self.sr.scroll.GetNodes():
@@ -260,6 +268,8 @@ class CorpMembers(uiprimitives.Container):
             finally:
                 panel.Unlock()
 
+        return
+
     def OnComboChange(self, entry, header, value, *args):
         uthread.new(self.OnComboChangeImpl, entry.name, value)
 
@@ -273,111 +283,114 @@ class CorpMembers(uiprimitives.Container):
             self.sr.viewFrom = 0
             self.sr.viewPerPage = value
             return self.PopulateView()
-        if entryName == 'viewtype':
-            self.sr.viewType = value
-            if value == VIEW_TITLES:
-                self.sr.rolegroupCombo.state = uiconst.UI_HIDDEN
-            else:
-                self.sr.rolegroupCombo.state = uiconst.UI_NORMAL
-        elif entryName == 'rolegroup':
-            self.sr.viewRoleGroupingID = value
-        nIndex = 0
-        nCount = 0
-        try:
-            nCount = self.sr.viewPerPage
-            for entry in self.sr.scroll.GetNodes():
-                if entry is None or entry.rec is None:
-                    continue
-                if entry.panel is None or entry.panel.destroyed:
-                    continue
-                nCount += 1
-
-            strings = []
-            headers = self.GetHeaderValues()
-            headertabs = []
-            sortvalues = {}
-            roleGroup = self.sr.roleGroupings[self.sr.viewRoleGroupingID]
-            for entry in self.sr.scroll.GetNodes():
-                nIndex += 1
-                if entry is None or entry.rec is None:
-                    continue
-                rec = entry.rec
-                characterID = rec.characterID
-                text = cfg.eveowners.Get(characterID).ownerName
-                sm.GetService('loading').ProgressWnd(localization.GetByLabel('UI/Common/Loading'), text, nIndex, nCount)
-                blue.pyos.synchro.Yield()
-                sortvalues[characterID] = {localization.GetByLabel('UI/Corporations/CorporationWindow/Members/CorpMemberName'): text}
-                baseID = rec.baseID
-                base = cfg.evelocations.GetIfExists(baseID)
-                if base is not None:
-                    baseName = base.locationName
+        else:
+            if entryName == 'viewtype':
+                self.sr.viewType = value
+                if value == VIEW_TITLES:
+                    self.sr.rolegroupCombo.state = uiconst.UI_HIDDEN
                 else:
-                    baseName = '-'
-                text += '<t>%s' % baseName
-                sortvalues[characterID]['base'] = baseName
-                if self.sr.viewType == VIEW_TITLES:
-                    for title in sorted(sm.GetService('corp').GetTitles().itervalues(), key=lambda x: x.titleID):
-                        sortvalue = rec.titleMask & title.titleID == title.titleID
-                        text += '<t>[%s]' % str(sortvalue)
-                        sortvalues[characterID][title.titleName.lower().replace(' ', '')] = str(sortvalue)
+                    self.sr.rolegroupCombo.state = uiconst.UI_NORMAL
+            elif entryName == 'rolegroup':
+                self.sr.viewRoleGroupingID = value
+            nIndex = 0
+            nCount = 0
+            try:
+                nCount = self.sr.viewPerPage
+                for entry in self.sr.scroll.GetNodes():
+                    if entry is None or entry.rec is None:
+                        continue
+                    if entry.panel is None or entry.panel.destroyed:
+                        continue
+                    nCount += 1
 
-                else:
-                    roles = getattr(rec, roleGroup.appliesTo)
-                    grantableRoles = getattr(rec, roleGroup.appliesToGrantable)
-                    for column in roleGroup.columns:
-                        columnName, subColumns = column
-                        newtext = '<t>'
-                        sortvalue = []
-                        for subColumn in subColumns:
-                            for subColumnName, role in subColumns:
-                                isChecked = [roles, grantableRoles][self.sr.viewType] & role.roleID == role.roleID
-                                if isChecked:
-                                    newtext += ' [X] %s' % subColumnName
-                                else:
-                                    newtext += ' [ ] %s' % subColumnName
-                                sortvalue.append(isChecked)
+                strings = []
+                headers = self.GetHeaderValues()
+                headertabs = []
+                sortvalues = {}
+                roleGroup = self.sr.roleGroupings[self.sr.viewRoleGroupingID]
+                for entry in self.sr.scroll.GetNodes():
+                    nIndex += 1
+                    if entry is None or entry.rec is None:
+                        continue
+                    rec = entry.rec
+                    characterID = rec.characterID
+                    text = cfg.eveowners.Get(characterID).ownerName
+                    sm.GetService('loading').ProgressWnd(localization.GetByLabel('UI/Common/Loading'), text, nIndex, nCount)
+                    blue.pyos.synchro.Yield()
+                    sortvalues[characterID] = {localization.GetByLabel('UI/Corporations/CorporationWindow/Members/CorpMemberName'): text}
+                    baseID = rec.baseID
+                    base = cfg.evelocations.GetIfExists(baseID)
+                    if base is not None:
+                        baseName = base.locationName
+                    else:
+                        baseName = '-'
+                    text += '<t>%s' % baseName
+                    sortvalues[characterID]['base'] = baseName
+                    if self.sr.viewType == VIEW_TITLES:
+                        for title in sorted(sm.GetService('corp').GetTitles().itervalues(), key=lambda x: x.titleID):
+                            sortvalue = rec.titleMask & title.titleID == title.titleID
+                            text += '<t>[%s]' % str(sortvalue)
+                            sortvalues[characterID][title.titleName.lower().replace(' ', '')] = str(sortvalue)
 
-                        sortvalues[characterID][columnName.lower().replace(' ', '')] = str(sortvalue)
-                        text += newtext
+                    else:
+                        roles = getattr(rec, roleGroup.appliesTo)
+                        grantableRoles = getattr(rec, roleGroup.appliesToGrantable)
+                        for column in roleGroup.columns:
+                            columnName, subColumns = column
+                            newtext = '<t>'
+                            sortvalue = []
+                            for subColumn in subColumns:
+                                for subColumnName, role in subColumns:
+                                    isChecked = [roles, grantableRoles][self.sr.viewType] & role.roleID == role.roleID
+                                    if isChecked:
+                                        newtext += ' [X] %s' % subColumnName
+                                    else:
+                                        newtext += ' [ ] %s' % subColumnName
+                                    sortvalue.append(isChecked)
 
-                strings.append((text,
-                 9,
-                 2,
-                 0))
+                            sortvalues[characterID][columnName.lower().replace(' ', '')] = str(sortvalue)
+                            text += newtext
 
-            self.tabstops = uicore.font.MeasureTabstops(strings + [('<t>'.join(headers),
-              9,
-              2,
-              0)])
-            fixed = {localization.GetByLabel('UI/Corporations/CorporationWindow/Members/CorpMemberBase'): 88}
-            for header in headers:
-                if header in (localization.GetByLabel('UI/Corporations/CorporationWindow/Members/CorpMemberName'), localization.GetByLabel('UI/Corporations/CorporationWindow/Members/CorpMemberBase')):
-                    continue
-                fixed[header] = 100
+                    strings.append((text,
+                     9,
+                     2,
+                     0))
 
-            self.sr.scroll.adjustableColumns = 1
-            for entry in self.sr.scroll.GetNodes():
-                nIndex += 1
-                if entry is None or entry.rec is None:
-                    continue
-                characterID = entry.rec.characterID
-                text = cfg.eveowners.Get(characterID).ownerName
-                sm.GetService('loading').ProgressWnd(localization.GetByLabel('UI/Common/Loading'), text, nIndex, nCount)
+                self.tabstops = uicore.font.MeasureTabstops(strings + [('<t>'.join(headers),
+                  9,
+                  2,
+                  0)])
+                fixed = {localization.GetByLabel('UI/Corporations/CorporationWindow/Members/CorpMemberBase'): 88}
+                for header in headers:
+                    if header in (localization.GetByLabel('UI/Corporations/CorporationWindow/Members/CorpMemberName'), localization.GetByLabel('UI/Corporations/CorporationWindow/Members/CorpMemberBase')):
+                        continue
+                    fixed[header] = 100
+
+                self.sr.scroll.adjustableColumns = 1
+                for entry in self.sr.scroll.GetNodes():
+                    nIndex += 1
+                    if entry is None or entry.rec is None:
+                        continue
+                    characterID = entry.rec.characterID
+                    text = cfg.eveowners.Get(characterID).ownerName
+                    sm.GetService('loading').ProgressWnd(localization.GetByLabel('UI/Common/Loading'), text, nIndex, nCount)
+                    blue.pyos.synchro.Yield()
+                    for columnName, sortvalue in sortvalues[characterID].iteritems():
+                        entry.Set('sort_%s' % columnName, sortvalue)
+
+                    if entry.panel is None or entry.panel.destroyed:
+                        continue
+                    entry.panel.sr.loadingCharacterID = [characterID]
+                    entry.panel.LoadColumns(characterID)
+                    entry.panel.UpdateLabelText()
+                    entry.panel.UpdateHint()
+
+                self.sr.scroll.LoadHeaders(headers)
+            finally:
+                sm.GetService('loading').ProgressWnd(localization.GetByLabel('UI/Common/Loading'), '', nCount, nCount)
                 blue.pyos.synchro.Yield()
-                for columnName, sortvalue in sortvalues[characterID].iteritems():
-                    entry.Set('sort_%s' % columnName, sortvalue)
 
-                if entry.panel is None or entry.panel.destroyed:
-                    continue
-                entry.panel.sr.loadingCharacterID = [characterID]
-                entry.panel.LoadColumns(characterID)
-                entry.panel.UpdateLabelText()
-                entry.panel.UpdateHint()
-
-            self.sr.scroll.LoadHeaders(headers)
-        finally:
-            sm.GetService('loading').ProgressWnd(localization.GetByLabel('UI/Common/Loading'), '', nCount, nCount)
-            blue.pyos.synchro.Yield()
+            return
 
     def GetHeaderValues(self):
         viewType = self.sr.viewType
@@ -442,6 +455,8 @@ class CorpMembers(uiprimitives.Container):
         finally:
             sm.GetService('loading').StopCycle()
 
+        return
+
     def SaveChanges(self, *args):
         nodesToUpdate = []
         try:
@@ -481,111 +496,114 @@ class CorpMembers(uiprimitives.Container):
         if nCount == 0:
             log.LogWarn('Nothing to save')
             return
-        self.sr.progressCurrent = 0
-        self.sr.progressTotal = nCount
-        nIndex = 0
-        try:
-            sm.GetService('loading').ProgressWnd(localization.GetByLabel('UI/Common/Updating'), '', nIndex, nCount)
-            blue.pyos.synchro.Yield()
-            rows = None
-            myRow = None
-            for node in nodesToUpdate:
-                entry = node.rec
-                src = node.srcRec
-                characterID = entry.characterID
-                title = src.title
-                divisionID = src.divisionID
-                squadronID = src.squadronID
-                roles = entry.roles
-                grantableRoles = entry.grantableRoles
-                rolesAtHQ = entry.rolesAtHQ
-                grantableRolesAtHQ = entry.grantableRolesAtHQ
-                rolesAtBase = entry.rolesAtBase
-                grantableRolesAtBase = entry.grantableRolesAtBase
-                rolesAtOther = entry.rolesAtOther
-                grantableRolesAtOther = entry.grantableRolesAtOther
-                baseID = entry.baseID
-                titleMask = entry.titleMask
-                if entry.titleMask == src.titleMask:
-                    titleMask = None
-                if roles & const.corpRoleDirector == const.corpRoleDirector:
-                    roles = const.corpRoleDirector
-                    grantableRoles = 0
-                    rolesAtHQ = 0
-                    grantableRolesAtHQ = 0
-                    rolesAtBase = 0
-                    grantableRolesAtBase = 0
-                    rolesAtOther = 0
-                    grantableRolesAtOther = 0
-                if characterID == eve.session.charid:
-                    if myRow is None:
-                        myRow = Rowset(['characterID',
-                         'title',
-                         'divisionID',
-                         'squadronID',
-                         'roles',
-                         'grantableRoles',
-                         'rolesAtHQ',
-                         'grantableRolesAtHQ',
-                         'rolesAtBase',
-                         'grantableRolesAtBase',
-                         'rolesAtOther',
-                         'grantableRolesAtOther',
-                         'baseID',
-                         'titleMask'])
-                    myRow.append([characterID,
-                     None,
-                     None,
-                     None,
-                     roles,
-                     grantableRoles,
-                     rolesAtHQ,
-                     grantableRolesAtHQ,
-                     rolesAtBase,
-                     grantableRolesAtBase,
-                     rolesAtOther,
-                     grantableRolesAtOther,
-                     baseID,
-                     titleMask])
-                else:
-                    if rows is None:
-                        rows = Rowset(['characterID',
-                         'title',
-                         'divisionID',
-                         'squadronID',
-                         'roles',
-                         'grantableRoles',
-                         'rolesAtHQ',
-                         'grantableRolesAtHQ',
-                         'rolesAtBase',
-                         'grantableRolesAtBase',
-                         'rolesAtOther',
-                         'grantableRolesAtOther',
-                         'baseID',
-                         'titleMask'])
-                    rows.append([characterID,
-                     None,
-                     None,
-                     None,
-                     roles,
-                     grantableRoles,
-                     rolesAtHQ,
-                     grantableRolesAtHQ,
-                     rolesAtBase,
-                     grantableRolesAtBase,
-                     rolesAtOther,
-                     grantableRolesAtOther,
-                     baseID,
-                     titleMask])
-
-            if rows is not None:
-                sm.GetService('corp').UpdateMembers(rows)
-                sm.ScatterEvent('OnRoleEdit', rows)
-            if myRow is not None:
-                sm.GetService('sessionMgr').PerformSessionChange('corp.UpdateMembers', sm.GetService('corp').UpdateMembers, myRow)
-        finally:
-            if nCount:
-                sm.GetService('loading').ProgressWnd(localization.GetByLabel('UI/Common/Updated'), '', nCount - 1, nCount)
-                blue.pyos.synchro.SleepWallclock(500)
-                sm.GetService('loading').ProgressWnd(localization.GetByLabel('UI/Common/Updated'), '', nCount, nCount)
+        else:
+            self.sr.progressCurrent = 0
+            self.sr.progressTotal = nCount
+            nIndex = 0
+            try:
+                sm.GetService('loading').ProgressWnd(localization.GetByLabel('UI/Common/Updating'), '', nIndex, nCount)
                 blue.pyos.synchro.Yield()
+                rows = None
+                myRow = None
+                for node in nodesToUpdate:
+                    entry = node.rec
+                    src = node.srcRec
+                    characterID = entry.characterID
+                    title = src.title
+                    divisionID = src.divisionID
+                    squadronID = src.squadronID
+                    roles = entry.roles
+                    grantableRoles = entry.grantableRoles
+                    rolesAtHQ = entry.rolesAtHQ
+                    grantableRolesAtHQ = entry.grantableRolesAtHQ
+                    rolesAtBase = entry.rolesAtBase
+                    grantableRolesAtBase = entry.grantableRolesAtBase
+                    rolesAtOther = entry.rolesAtOther
+                    grantableRolesAtOther = entry.grantableRolesAtOther
+                    baseID = entry.baseID
+                    titleMask = entry.titleMask
+                    if entry.titleMask == src.titleMask:
+                        titleMask = None
+                    if roles & const.corpRoleDirector == const.corpRoleDirector:
+                        roles = const.corpRoleDirector
+                        grantableRoles = 0
+                        rolesAtHQ = 0
+                        grantableRolesAtHQ = 0
+                        rolesAtBase = 0
+                        grantableRolesAtBase = 0
+                        rolesAtOther = 0
+                        grantableRolesAtOther = 0
+                    if characterID == eve.session.charid:
+                        if myRow is None:
+                            myRow = Rowset(['characterID',
+                             'title',
+                             'divisionID',
+                             'squadronID',
+                             'roles',
+                             'grantableRoles',
+                             'rolesAtHQ',
+                             'grantableRolesAtHQ',
+                             'rolesAtBase',
+                             'grantableRolesAtBase',
+                             'rolesAtOther',
+                             'grantableRolesAtOther',
+                             'baseID',
+                             'titleMask'])
+                        myRow.append([characterID,
+                         None,
+                         None,
+                         None,
+                         roles,
+                         grantableRoles,
+                         rolesAtHQ,
+                         grantableRolesAtHQ,
+                         rolesAtBase,
+                         grantableRolesAtBase,
+                         rolesAtOther,
+                         grantableRolesAtOther,
+                         baseID,
+                         titleMask])
+                    else:
+                        if rows is None:
+                            rows = Rowset(['characterID',
+                             'title',
+                             'divisionID',
+                             'squadronID',
+                             'roles',
+                             'grantableRoles',
+                             'rolesAtHQ',
+                             'grantableRolesAtHQ',
+                             'rolesAtBase',
+                             'grantableRolesAtBase',
+                             'rolesAtOther',
+                             'grantableRolesAtOther',
+                             'baseID',
+                             'titleMask'])
+                        rows.append([characterID,
+                         None,
+                         None,
+                         None,
+                         roles,
+                         grantableRoles,
+                         rolesAtHQ,
+                         grantableRolesAtHQ,
+                         rolesAtBase,
+                         grantableRolesAtBase,
+                         rolesAtOther,
+                         grantableRolesAtOther,
+                         baseID,
+                         titleMask])
+
+                if rows is not None:
+                    sm.GetService('corp').UpdateMembers(rows)
+                    sm.ScatterEvent('OnRoleEdit', rows)
+                if myRow is not None:
+                    sm.GetService('sessionMgr').PerformSessionChange('corp.UpdateMembers', sm.GetService('corp').UpdateMembers, myRow)
+            finally:
+                if nCount:
+                    sm.GetService('loading').ProgressWnd(localization.GetByLabel('UI/Common/Updated'), '', nCount - 1, nCount)
+                    blue.pyos.synchro.SleepWallclock(500)
+                    sm.GetService('loading').ProgressWnd(localization.GetByLabel('UI/Common/Updated'), '', nCount, nCount)
+                    blue.pyos.synchro.Yield()
+
+            return

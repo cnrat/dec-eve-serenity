@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\common\script\net\eveMachoNet.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\common\script\net\eveMachoNet.py
 import sys
 import base
 import util
@@ -33,6 +34,7 @@ class EveMachoNetService(macho.MachoNetService):
      'NarrowcastBySolarSystemIDs',
      'NarrowcastByStationIDs',
      'NarrowcastByStationID2s',
+     'NarrowcastByStructureIDs',
      'NarrowcastByUserIDs',
      'NarrowcastToClientAndObservers',
      'NarrowcastToObservers',
@@ -65,6 +67,7 @@ class EveMachoNetService(macho.MachoNetService):
      'SinglecastBySolarSystemID2',
      'SinglecastByStationID',
      'SinglecastByStationID2',
+     'SinglecastByStructureID',
      'SinglecastByUserID',
      'SinglecastByWorldSpaceID']
     __server_scattercast_session_variables__ = ('userid',
@@ -100,8 +103,9 @@ class EveMachoNetService(macho.MachoNetService):
             sys.exc_clear()
 
         self.clusterSolarsystemStatistics = ({}, {}, 0)
+        return
 
-    def Run(self, memStream = None):
+    def Run(self, memStream=None):
         svc.machoNet.Run(self, memStream)
         if macho.mode == 'server' and self.connectToCluster:
             self.dbzuser = self.DB2.GetSchema('zuser')
@@ -153,6 +157,7 @@ class EveMachoNetService(macho.MachoNetService):
             numSamples = min(self.proxyStatSmoothie, len(self.clusterSessionStatsHistory))
             self.clusterSolarsystemStatistics = (sol, station, numSamples)
         svc.machoNet.SetClusterSessionCounts(self, clusterSessionStatistics)
+        return
 
     def _StoreMetricsToDB(self, metrics):
         try:
@@ -210,6 +215,8 @@ class EveMachoNetService(macho.MachoNetService):
             if nodeID is not None:
                 self._addressCache.Set(serviceName, address, nodeID)
                 return nodeID
+
+        return
 
     def _GetNodeFromAddressAdjustments(self, service, address):
         if boot.role == 'server':
@@ -304,6 +311,17 @@ class EveMachoNetService(macho.MachoNetService):
                     elif idtype == 'allianceid':
                         nodeIDs = self.transportIDbyProxyNodeID.iterkeys()
                         done = 1
+                    elif idtype == 'structureid':
+                        solarSystemID = cfg.evelocations.Get(address.narrowcast[0]).solarSystemID
+                        nodeID = self.CheckAddressCache('beyonce', solarSystemID, lazyGetIfNotFound=True)
+                        if self.GetNodeID() == nodeID:
+                            if scattered:
+                                self.LogInfo('Scattercasting by solarsystemid on the right node.  Ignored.')
+                        else:
+                            self.LogWarn('Sending a packet by structureid on the wrong node.  Resorting to a scattercast.')
+                            self.LogWarn('nodeID: ', nodeID, ', my nodeID: ', self.GetNodeID(), ', structureid: ', address.narrowcast[0], 'solarSystemID: ', solarSystemID)
+                            nodeIDs = self.transportIDbyProxyNodeID.iterkeys()
+                            done = 1
                     else:
                         self.LogWarn('Sending a packet by some funky address type (', idtype, ').  Resorting to scattercast')
                         nodeIDs = self.transportIDbyProxyNodeID.iterkeys()
@@ -529,3 +547,4 @@ class EveMachoNetService(macho.MachoNetService):
                     kwargString = repr(CleanKeywordArgs(kwargs))
                 self.eventLog.LogOwnerEvent('ClientCall', charID, solarSystemID, userID, objectName, method, len(argString), argString[:1024], len(kwargString), kwargString[:1024])
                 self.eventLog.LogOwnerEventJson('ClientCall', charID, solarSystemID, userID=userID, objectName=objectName, method=method, argsLen=len(argString), args=argString[:1024], kwargsLen=len(kwargString), kwargs=kwargString[:1024])
+        return

@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\packages\stdlogutils\__init__.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\packages\stdlogutils\__init__.py
 import __builtin__
 import cStringIO
 import logging
@@ -13,21 +14,21 @@ try:
 except ImportError:
     devenv = None
 
-def GetStack(traceback_list, caughtAt_list = None, show_locals = 0, show_lines = True):
+def GetStack(traceback_list, caughtAt_list=None, show_locals=0, show_lines=True):
     stackText = GetStackDescriptionText(traceback_list, caughtAt_list, show_locals, show_lines)
     stackID = GetStackID(traceback_list, caughtAt_list)
     cleanStackText = CleanupStack(stackText)
     return (cleanStackText, stackID)
 
 
-def GetStackID(traceback_list, caughtAt_list = None):
+def GetStackID(traceback_list, caughtAt_list=None):
     miniStack = GetStackDescriptionText(traceback_list, caughtAt_list, show_locals=0, show_lines=False)
     miniStack = ''.join(miniStack)[-4000:]
     stackHash = zlib.adler32(miniStack)
     return (stackHash, miniStack)
 
 
-def GetStackDescriptionText(traceback_list, caughtAt_list = None, show_locals = 0, show_lines = True):
+def GetStackDescriptionText(traceback_list, caughtAt_list=None, show_locals=0, show_lines=True):
     if caughtAt_list is not None:
         stack = [' \nCaught at:\n']
         stack += FormatList(caughtAt_list, show_locals=0, show_lines=show_lines)
@@ -38,7 +39,7 @@ def GetStackDescriptionText(traceback_list, caughtAt_list = None, show_locals = 
     return stack
 
 
-def FormatList(traceback_list, show_locals = 0, show_lines = True):
+def FormatList(traceback_list, show_locals=0, show_lines=True):
     cleaned_list = []
     for line in traceback_list:
         l2 = list(line)
@@ -177,7 +178,7 @@ class FmtExt(Fmt):
 
 Fmt = FmtExt
 
-def getLoggerExt(name = None, defaultHandler = None, defaultFormatter = None):
+def getLoggerExt(name=None, defaultHandler=None, defaultFormatter=None):
     lo = logging.getLogger(name)
     if not lo.handlers and defaultHandler:
         if defaultFormatter:
@@ -189,7 +190,7 @@ def getLoggerExt(name = None, defaultHandler = None, defaultFormatter = None):
 GetTimestampedFilename = timestamped_filename
 GetTimestamp = timestamp
 
-def GetTimestampedFilename2(appname, basename = None, ext = '.log', fmt = '%Y-%m-%d-%H-%M-%S', timestruct = None, _getpid = os.getpid):
+def GetTimestampedFilename2(appname, basename=None, ext='.log', fmt='%Y-%m-%d-%H-%M-%S', timestruct=None, _getpid=os.getpid):
     if basename is None:
         basename = appname
     folder = devenv.GetAppFolder(appname, makedirs=True)
@@ -215,7 +216,7 @@ GetFilenamesFromLoggers = get_filenames_from_loggers
 RemoveOldFiles = remove_old_files
 _sentinel = object()
 
-def AppLogConfig(appname, prefs = None, defaultUseStdOut = False, defaultLogLevelName = 'INFO'):
+def AppLogConfig(appname, prefs=None, defaultUseStdOut=False, defaultLogLevelName='INFO'):
     if getattr(AppLogConfig, '__called', False):
         raise AssertionError('Should only be called once!')
 

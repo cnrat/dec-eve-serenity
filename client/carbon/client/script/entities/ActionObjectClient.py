@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\carbon\client\script\entities\ActionObjectClient.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\carbon\client\script\entities\ActionObjectClient.py
 import svc
 
 class ActionObjectClientSvc(svc.actionObjectSvc):
@@ -15,11 +16,13 @@ class ActionObjectClientSvc(svc.actionObjectSvc):
         self.actionObjectServer = None
         svc.actionObjectSvc.Run(self, *args)
         self.zactionClient = sm.GetService('zactionClient')
+        return
 
     def ProcessSessionChange(self, isRemote, session, change):
         if 'charid' in change:
             if self.actionObjectServer is None:
                 self.actionObjectServer = sm.RemoteSvc('actionObjectServerSvc')
+        return
 
     def GetActionList(self, entID, objectID):
         returnDict = {}
@@ -53,15 +56,16 @@ class ActionObjectClientSvc(svc.actionObjectSvc):
         actionList = self.GetActionList(entID, targetID)
         if not actionList:
             return
-        isEnabled = False
-        defaultActionID = None
-        for actionID, actionData in actionList.items():
-            if actionData[1] is True:
-                isEnabled = True
-                defaultActionID = actionID
-                break
+        else:
+            isEnabled = False
+            defaultActionID = None
+            for actionID, actionData in actionList.items():
+                if actionData[1] is True:
+                    isEnabled = True
+                    defaultActionID = actionID
+                    break
 
-        return (isEnabled, defaultActionID)
+            return (isEnabled, defaultActionID)
 
     def TriggerDefaultActionOnObject(self, entID, targetID):
         isEnabled, actionID = self.GetDefaultActionID(entID, targetID)

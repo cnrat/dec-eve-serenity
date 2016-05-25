@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\common\modules\nice\client\_nastyspace\uicls.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\common\modules\nice\client\_nastyspace\uicls.py
 from carbonui.control.animatedsprite import AnimSprite
 from carbonui.control.browser.browserEditBookMarksWindow import EditBookmarksWindowCore
 from carbonui.control.browser.browserHistoryWindow import BrowserHistoryWindowCore

@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\carbon\common\stdlib\coverage\templite.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\carbon\common\stdlib\coverage\templite.py
 import re, sys
 
 class Templite(object):
@@ -38,7 +39,7 @@ class Templite(object):
 
         self.ops = ops
 
-    def render(self, context = None):
+    def render(self, context=None):
         ctx = dict(self.context)
         if context:
             ctx.update(context)

@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\client\script\ui\services\clonejumpsvc.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\client\script\ui\services\clonejumpsvc.py
 import carbonui.const as uiconst
 import service
 import util
@@ -40,6 +41,7 @@ class CloneJump(service.Service):
         self.stationJumpClones = None
         self.cloneInstallOfferActive = 0
         self.lastCloneJumpTime = None
+        return
 
     def GetClones(self):
         self.GetCloneState()
@@ -54,7 +56,7 @@ class CloneJump(service.Service):
         lm.SetJumpCloneName(cloneID, newName)
 
     def GetLM(self):
-        if session.solarsystemid:
+        if session.solarsystemid or session.structureid:
             return util.Moniker('jumpCloneSvc', (session.solarsystemid, const.groupSolarSystem))
         else:
             return util.Moniker('jumpCloneSvc', (session.stationid2, const.groupStation))
@@ -66,6 +68,7 @@ class CloneJump(service.Service):
             self.jumpClones = kv.clones
             self.jumpCloneImplants = kv.implants
             self.timeLastJump = kv.timeLastJump
+        return
 
     def GetShipClones(self):
         shipID = util.GetActiveShip()
@@ -116,26 +119,38 @@ class CloneJump(service.Service):
                         message = localization.GetByLabel('UI/CloneJump/ReallyDestroyCloneInShip', owner=shipClones[cloneID].ownerID, ship=shipClones[cloneID].locationID)
         if not message:
             return
-        ret = eve.Message('AskAreYouSure', {'cons': message}, uiconst.YESNO)
-        if ret == uiconst.ID_YES:
-            lm = self.GetLM()
-            lm.DestroyInstalledClone(cloneID)
+        else:
+            ret = eve.Message('AskAreYouSure', {'cons': message}, uiconst.YESNO)
+            if ret == uiconst.ID_YES:
+                lm = self.GetLM()
+                lm.DestroyInstalledClone(cloneID)
+            return
 
     def InstallCloneInStation(self):
-        if not session.stationid2:
+        if not self.CanJumpCloneFromCurrentLocation():
             return
         lm = self.GetLM()
         ret = eve.Message('AskAcceptJumpCloneCost', {'cost': lm.GetPriceForClone()}, uiconst.YESNO)
         if ret == uiconst.ID_YES:
-            lm.InstallCloneInStation()
+            if session.stationid2:
+                lm.InstallCloneInStation()
+            else:
+                lm.InstallCloneInStructure()
 
     def CancelShipCloneInstallation(self, *args):
         sm.GetService('loading').ProgressWnd(localization.GetByLabel('UI/CloneJump/CloneInstallAborted'), '', 1, 1)
         lm = self.GetLM()
         lm.CancelShipCloneInstallation()
 
+    def CanJumpCloneFromCurrentLocation(self):
+        if session.stationid2:
+            return True
+        if session.structureid:
+            return True
+        return False
+
     def CloneJump(self, destLocationID):
-        if not session.stationid2:
+        if not self.CanJumpCloneFromCurrentLocation():
             eve.Message('NotAtStation')
             return
         for each in uicore.registry.GetWindows()[:]:
@@ -143,14 +158,17 @@ class CloneJump(service.Service):
                 each.CloseByUser()
 
         lm = self.GetLM()
+        cost = lm.GetPriceForClone()
+        if eve.Message('AskAcceptJumpCloneCost', {'cost': cost}, uiconst.YESNO) != uiconst.ID_YES:
+            return
         try:
-            sm.GetService('sessionMgr').PerformSessionChange('clonejump', lm.CloneJump, destLocationID, False)
+            sm.GetService('sessionMgr').PerformSessionChange('clonejump', lm.CloneJump, destLocationID, cost, False)
         except UserError as e:
-            if e.msg not in ('JumpCheckWillLoseExistingCloneAndImplants', 'JumpCheckWillLoseExistingClone', 'JumpCheckIntoShip'):
+            if e.msg not in ('JumpCheckWillLoseExistingCloneAndImplants', 'JumpCheckWillLoseExistingClone', 'JumpCheckIntoShip', 'JumpCheckIntoStructure'):
                 raise e
             if eve.Message(e.msg, {}, uiconst.YESNO) == uiconst.ID_YES:
                 eve.session.ResetSessionChangeTimer('Retrying with confirmation approval')
-                sm.GetService('sessionMgr').PerformSessionChange('clonejump', lm.CloneJump, destLocationID, True)
+                sm.GetService('sessionMgr').PerformSessionChange('clonejump', lm.CloneJump, destLocationID, cost, True)
             sys.exc_clear()
 
     def GetCloneAtLocation(self, locationID):
@@ -183,22 +201,26 @@ class CloneJump(service.Service):
             self.shipJumpClones = None
         if 'solarsystemid2' in change or 'solarsystemid' in change or 'stationid2' in change:
             self.stationJumpClones = None
+        return
 
     def OnJumpCloneCacheInvalidated(self):
         self.jumpClones = None
         self.jumpCloneImplants = None
         self.timeLastJump = None
         sm.ScatterEvent('OnCloneJumpUpdate')
+        return
 
     def OnShipJumpCloneCacheInvalidated(self, locationID, charID):
         if util.GetActiveShip() == locationID:
             self.shipJumpClones = None
             sm.ScatterEvent('OnShipCloneJumpUpdate')
+        return
 
     def OnStationJumpCloneCacheInvalidated(self, locationID, charID):
         if session.stationid2 == locationID:
             self.stationJumpClones = None
             sm.ScatterEvent('OnStationCloneJumpUpdate')
+        return
 
     def OnShipJumpCloneInstallationOffered(self, args):
         offeringCharID, targetCharID, shipID, b = (args[0],

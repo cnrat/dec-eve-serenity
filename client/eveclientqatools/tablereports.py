@@ -1,11 +1,12 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\packages\eveclientqatools\tablereports.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\packages\eveclientqatools\tablereports.py
 import blue
 import trinity
 import uicontrols
 import uthread
 import util
 
-def CreateTableWindow(name, caption, contentFunction, minWidth = 340, updateFreq = 1000):
+def CreateTableWindow(name, caption, contentFunction, minWidth=340, updateFreq=1000):
 
     def _closure():
         winID = 'Insider' + name + 'Window'
@@ -261,42 +262,50 @@ def ShowLODOverviewReport():
     def SpaceLODOverviewCont():
         scene = sm.GetService('sceneManager').GetActiveScene()
         content = []
-        trackingDict = {'trinity.EveEffectRoot': {key:0 for key in range(-1, 4)},
-         'trinity.EveShip2': {key:0 for key in range(-1, 4)},
-         'trinity.EveStation2': {key:0 for key in range(-1, 4)},
-         'trinity.EveRootTransform': {key:0 for key in range(-1, 4)},
-         'trinity.EveTurretSet': {key:0 for key in range(-1, 4)}}
-        label = '%s<t>%i<t>%i<t>%i<t>%i<t>%i'
+        trackingDict = {'trinity.EveEffectRoot': {key:0 for key in range(-1, 5)},
+         'trinity.EveEffectRoot2': {key:0 for key in range(-1, 5)},
+         'trinity.EveMobile': {key:0 for key in range(-1, 5)},
+         'trinity.EveShip2': {key:0 for key in range(-1, 5)},
+         'trinity.EveStation2': {key:0 for key in range(-1, 5)},
+         'trinity.EveRootTransform': {key:0 for key in range(-1, 5)},
+         'trinity.EveTurretSet': {key:0 for key in range(-1, 5)},
+         'trinity.EveSwarm': {key:0 for key in range(-1, 5)}}
+        label = '%s<t>%i<t>%i<t>%i<t>%i<t>%i<t>%i<t>%i'
         headers = ['key',
          'total',
-         'invalid',
-         'high',
+         'unspecified',
+         'low',
          'medium',
-         'low']
+         'high',
+         'ultra',
+         'invalid']
         if scene is None:
             return (content, label, headers)
-        for each in scene.objects:
-            if each.__bluetype__ not in trackingDict:
-                continue
-            trackingDict[each.__bluetype__][each.lodLevel] += 1
-            for turretSet in getattr(each, 'turretSets', []):
-                lod = trinity.Tr2LodResource.LOD_COUNT
-                if trinity.EveTurretSetLOD.LOD_HIGHEST == turretSet.lodLevel:
-                    lod = trinity.Tr2LodResource.LOD_MEDIUM
-                trackingDict['trinity.EveTurretSet'][lod] += 1
+        else:
+            for each in scene.objects:
+                if each.__bluetype__ not in trackingDict:
+                    continue
+                trackingDict[each.__bluetype__][each.lodLevel] += 1
+                for turretSet in getattr(each, 'turretSets', []):
+                    lod = trinity.Tr2LodResource.LOD_COUNT
+                    if trinity.EveTurretSetLOD.LOD_HIGHEST == turretSet.lodLevel:
+                        lod = trinity.Tr2LodResource.LOD_MEDIUM
+                    trackingDict['trinity.EveTurretSet'][lod] += 1
 
-        for each in trackingDict:
-            entry = trackingDict[each]
-            entryText = each.split('.')[1]
-            count = reduce(lambda x, y: x + y, entry.values())
-            content.append((entryText,
-             count,
-             entry[0],
-             entry[1],
-             entry[2],
-             entry[3]))
+            for each in trackingDict:
+                entry = trackingDict[each]
+                entryText = each.split('.')[1]
+                count = reduce(lambda x, y: x + y, entry.values())
+                content.append((entryText,
+                 count,
+                 entry[-1],
+                 entry[0],
+                 entry[1],
+                 entry[2],
+                 entry[3],
+                 entry[4]))
 
-        return (content, label, headers)
+            return (content, label, headers)
 
     CreateTableWindow('SpaceLOD', 'LOD Report', SpaceLODOverviewCont)()
 

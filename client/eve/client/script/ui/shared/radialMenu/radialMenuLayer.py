@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\client\script\ui\shared\radialMenu\radialMenuLayer.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\client\script\ui\shared\radialMenu\radialMenuLayer.py
 from carbonui.primitives.transform import Transform
 import carbonui.const as uiconst
 from carbonui.primitives.sprite import Sprite
@@ -53,13 +54,16 @@ class RadialMenuLayer(Transform):
         halfStepSize = stepSize / 2.0
         if not self.buttonDict:
             return None
-        if degree > 360 - halfStepSize:
-            degree = 0
-        for eachButtonCont in self.buttonDict.itervalues():
-            if eachButtonCont.degree - halfStepSize <= degree < eachButtonCont.degree + halfStepSize:
-                if eachButtonCont.actionButton.isDisabled:
-                    return None
-                return eachButtonCont
+        else:
+            if degree > 360 - halfStepSize:
+                degree = 0
+            for eachButtonCont in self.buttonDict.itervalues():
+                if eachButtonCont.degree - halfStepSize <= degree < eachButtonCont.degree + halfStepSize:
+                    if eachButtonCont.actionButton.isDisabled:
+                        return None
+                    return eachButtonCont
+
+            return None
 
     def HiliteOneButtonAndGetLabel(self, btnCont):
         label = None
@@ -112,6 +116,8 @@ class RadialMenuLayer(Transform):
             if animate:
                 self.AnimateButtonsIn(startingDegree)
 
+        return
+
     def AnimateButtonsIn(self, startingDegree):
         curveSet = None
         for eachButton in self.buttonDict.itervalues():
@@ -123,7 +129,9 @@ class RadialMenuLayer(Transform):
             animationDuration = uix.GetTiDiAdjustedAnimationTime(normalDuation=0.25, minTiDiValue=0.1, minValue=0.02)
             curveSet = uicore.animations.MorphScalar(eachButton, 'rotation', startVal=-startRad, endVal=-radians, duration=animationDuration, curveSet=curveSet)
 
-    def AddActionButton(self, counter, degree, isEmpty = False, *args, **kw):
+        return
+
+    def AddActionButton(self, counter, degree, isEmpty=False, *args, **kw):
         actionCont = self.buttonDict.get(counter, None)
         if actionCont is None or actionCont.destroyed:
             actionCont = ActionButtonParent(parent=self, pos=(0,
@@ -179,3 +187,4 @@ class RadialMenuShadow(SpriteThemeColored):
         uicore.animations.MorphScalar(self, 'height', startVal=shadowStartValue, endVal=shadowEndValue, duration=animationDuration, curveSet=curveSet)
         uicore.animations.MorphScalar(self, 'width', startVal=shadowStartValue, endVal=shadowEndValue, duration=animationDuration, curveSet=curveSet)
         uicore.animations.MorphScalar(self, 'opacity', startVal=startOpacity, endVal=endOpacity, duration=animationDuration, curveSet=curveSet)
+        return

@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\common\script\planet\entities\processPin.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\common\script\planet\entities\processPin.py
 from eve.common.script.planet.entities.basePin import BasePin
 from eve.common.script.planet.entities.basePin import STATE_ACTIVE, STATE_IDLE
 import blue
@@ -20,6 +21,7 @@ class ProcessPin(BasePin):
         self.receivedInputsLastCycle = True
         self.demands = {}
         self.products = {}
+        return
 
     def CanAccept(self, typeID, quantity):
         if typeID not in self.demands:
@@ -45,23 +47,25 @@ class ProcessPin(BasePin):
     def CanActivate(self):
         if self.activityState < STATE_IDLE:
             return False
-        if self.schematicID is None:
+        elif self.schematicID is None:
             return False
-        if self.IsActive():
+        elif self.IsActive():
             return True
-        if self.hasReceivedInputs or self.receivedInputsLastCycle:
+        elif self.hasReceivedInputs or self.receivedInputsLastCycle:
             return True
-        if not self.HasEnoughInputs():
+        elif not self.HasEnoughInputs():
             return False
-        return True
+        else:
+            return True
 
     def GetNextRunTime(self):
         if not self.IsActive() and self.HasEnoughInputs():
             return None
         else:
             return BasePin.GetNextRunTime(self)
+            return None
 
-    def CanRun(self, runTime = None):
+    def CanRun(self, runTime=None):
         if not self.IsActive() and not self.CanActivate():
             return False
         rt = runTime
@@ -70,7 +74,8 @@ class ProcessPin(BasePin):
         nextRunTime = self.GetNextRunTime()
         if nextRunTime is None or nextRunTime <= rt:
             return True
-        return False
+        else:
+            return False
 
     def Run(self, runTime):
         products = {}
@@ -172,7 +177,7 @@ class ProcessPin(BasePin):
             return True
         return BasePin.HasDifferingState(self, otherPin)
 
-    def Serialize(self, full = False):
+    def Serialize(self, full=False):
         data = BasePin.Serialize(self, full)
         data.schematicID = self.schematicID
         data.hasReceivedInputs = self.hasReceivedInputs

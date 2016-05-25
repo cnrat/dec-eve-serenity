@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\common\script\util\notificationconst.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\common\script\util\notificationconst.py
 notificationTypeOldLscMessages = 1
 notificationTypeCharTerminationMsg = 2
 notificationTypeCharMedalMsg = 3
@@ -160,6 +161,26 @@ notificationTypeBuddyConnectContactAdd = 166
 notificationTypeSovStructureSelfDestructRequested = 167
 notificationTypeSovStructureSelfDestructCancel = 168
 notificationTypeSovStructureSelfDestructFinished = 169
+notificationTypeCCPDevNews = 170
+notificationTypeCCPServerNews = 171
+notificationTypeCCPGameNews = 172
+notificationTypeCCPOutOfGameNews = 173
+notificationTypeServerShutdown = 180
+notificationTypeStructureFuelAlert = 181
+notificationTypeStructureAnchoring = 182
+notificationTypeStructureUnanchoring = 183
+notificationTypeStructureUnderAttack = 184
+notificationTypeStructureOnline = 185
+notificationTypeStructureLostShields = 186
+notificationTypeStructureLostArmor = 187
+notificationTypeStructureDestroyed = 188
+notificationTypeStructureItemsToAssetSafety = 190
+notificationTypeStructureItemsNeedAttention = 191
+notificationTypeStructureMarketOrdersCancelled = 192
+notificationTypeStructureLostDockingAccess = 195
+notificationTypeStructureOfficeRentalBill = 196
+notificationTypeStructureServicesOffline = 198
+notificationTypeStructureItemsDelivered = 199
 notificationTypeSkillEmptyQueue = 1002
 notificationTypeSkillFinished = 1000
 notificationTypeMailSummary = 1003
@@ -172,6 +193,7 @@ notificationTypeOpportunityFinished = 1011
 notificationTypeNewRedeemableItem = 1020
 notificationTypeGameTimeReceived = 1030
 notificationTypeGameTimeSent = 1031
+notificationTypeQuestComplete = 1040
 notificationTypeContactSignedOn = 2001
 notificationTypeContactSignedOff = 2002
 notificationToSettingDescription = {notificationTypeSovStructureSelfDestructRequested: 'Notifications/NotificationNames/StructureSelfDestructRequested',
@@ -344,7 +366,26 @@ notificationToSettingDescription = {notificationTypeSovStructureSelfDestructRequ
  notificationTypeStationServiceEnabled: 'Notifications/NotificationNames/SovereigntyServiceEnabled',
  notificationTypeStationServiceDisabled: 'Notifications/NotificationNames/SovereigntyServiceDisabled',
  notificationTypeStationServiceHalfCaptured: 'Notifications/NotificationNames/SovereigntyServiceHalfCaptured',
- notificationTypeInfrastructureHubBillAboutToExpire: 'Notifications/NotificationNames/SovereigntyIHubBillAboutToExpire'}
+ notificationTypeInfrastructureHubBillAboutToExpire: 'Notifications/NotificationNames/SovereigntyIHubBillAboutToExpire',
+ notificationTypeCCPDevNews: 'Notifications/NotificationNames/CCPDevNews',
+ notificationTypeCCPServerNews: 'Notifications/NotificationNames/CCPServerNews',
+ notificationTypeCCPGameNews: 'Notifications/NotificationNames/CCPGameNews',
+ notificationTypeCCPOutOfGameNews: 'Notifications/NotificationNames/CCPOutOfGameNews',
+ notificationTypeQuestComplete: 'Notifications/NotificationNames/QuestComplete',
+ notificationTypeStructureFuelAlert: 'Notifications/NotificationNames/StructureFuelAlert',
+ notificationTypeStructureAnchoring: 'Notifications/NotificationNames/StructureAnchoring',
+ notificationTypeStructureUnanchoring: 'Notifications/NotificationNames/StructureUnanchoring',
+ notificationTypeStructureUnderAttack: 'Notifications/NotificationNames/StructureUnderAttack',
+ notificationTypeStructureOnline: 'Notifications/NotificationNames/StructureOnline',
+ notificationTypeStructureLostShields: 'Notifications/NotificationNames/StructureLostShields',
+ notificationTypeStructureLostArmor: 'Notifications/NotificationNames/StructureLostArmor',
+ notificationTypeStructureDestroyed: 'Notifications/NotificationNames/StructureDestroyed',
+ notificationTypeStructureItemsToAssetSafety: 'Notifications/NotificationNames/StructureItemsToAssetSafety',
+ notificationTypeStructureItemsNeedAttention: 'Notifications/NotificationNames/StructureItemsNeedAttention',
+ notificationTypeStructureMarketOrdersCancelled: 'Notifications/NotificationNames/StructureMarketOrdersCancelled',
+ notificationTypeStructureLostDockingAccess: 'Notifications/NotificationNames/StructureLostDockingAccess',
+ notificationTypeStructureServicesOffline: 'Notifications/NotificationNames/StructureServicesOffline',
+ notificationTypeStructureItemsDelivered: 'Notifications/NotificationNames/StructureItemsDelivered'}
 groupUnread = 0
 groupAgents = 1
 groupBills = 2
@@ -359,6 +400,7 @@ groupBounties = 10
 groupInsurance = 11
 groupSkillTraining = 12
 groupOpportunities = 13
+groupCCPNotifications = 14
 groupTypes = {groupSkillTraining: [notificationTypeSkillEmptyQueue, notificationTypeSkillFinished, notificationTypeUnusedSkillPoints],
  groupAgents: [notificationTypeAgentMoveMsg,
                notificationTypeLocateCharMsg,
@@ -435,7 +477,8 @@ groupTypes = {groupSkillTraining: [notificationTypeSkillEmptyQueue, notification
              notificationTypeAchievementTaskFinished,
              notificationTypeNewRedeemableItem,
              notificationTypeGameTimeReceived,
-             notificationTypeGameTimeSent],
+             notificationTypeGameTimeSent,
+             notificationTypeStructureItemsDelivered],
  groupOld: [notificationTypeOldLscMessages],
  groupSov: [notificationTypeSovAllClaimFailMsg,
             notificationTypeSovCorpClaimFailMsg,
@@ -476,7 +519,19 @@ groupTypes = {groupSkillTraining: [notificationTypeSkillEmptyQueue, notification
                    notificationTypeOrbitalAttacked,
                    notificationTypeOrbitalReinforced,
                    notificationTypeOwnershipTransferred,
-                   notificationTypeDistrictAttacked],
+                   notificationTypeDistrictAttacked,
+                   notificationTypeStructureFuelAlert,
+                   notificationTypeStructureAnchoring,
+                   notificationTypeStructureUnanchoring,
+                   notificationTypeStructureUnderAttack,
+                   notificationTypeStructureOnline,
+                   notificationTypeStructureLostShields,
+                   notificationTypeStructureLostArmor,
+                   notificationTypeStructureDestroyed,
+                   notificationTypeStructureItemsToAssetSafety,
+                   notificationTypeStructureItemsNeedAttention,
+                   notificationTypeStructureMarketOrdersCancelled,
+                   notificationTypeStructureServicesOffline],
  groupWar: [notificationTypeAllWarDeclaredMsg,
             notificationTypeAllWarSurrenderMsg,
             notificationTypeAllWarRetractedMsg,
@@ -527,7 +582,11 @@ groupTypes = {groupSkillTraining: [notificationTypeSkillEmptyQueue, notification
                  notificationTypeBountyPlacedChar,
                  notificationTypeBountyPlacedCorp,
                  notificationTypeBountyPlacedAlliance],
- groupOpportunities: [notificationTypeAchievementTaskFinished, notificationTypeOpportunityFinished]}
+ groupOpportunities: [notificationTypeAchievementTaskFinished, notificationTypeOpportunityFinished, notificationTypeQuestComplete],
+ groupCCPNotifications: [notificationTypeCCPDevNews,
+                         notificationTypeCCPServerNews,
+                         notificationTypeCCPGameNews,
+                         notificationTypeCCPOutOfGameNews]}
 nonCommunicationTypes = [notificationTypeContactSignedOn,
  notificationTypeContactSignedOff,
  notificationTypeMailSummary,
@@ -539,7 +598,13 @@ nonCommunicationTypes = [notificationTypeContactSignedOn,
  notificationTypeKillReportVictim,
  notificationTypeAchievementTaskFinished,
  notificationTypeOpportunityFinished,
- notificationTypeNewRedeemableItem] + groupTypes[groupSkillTraining]
+ notificationTypeNewRedeemableItem,
+ notificationTypeCCPDevNews,
+ notificationTypeCCPServerNews,
+ notificationTypeCCPGameNews,
+ notificationTypeCCPOutOfGameNews,
+ notificationTypeServerShutdown,
+ notificationTypeQuestComplete] + groupTypes[groupSkillTraining]
 groupNamePaths = {groupAgents: 'Notifications/groupAgents',
  groupBills: 'Notifications/groupBills',
  groupContacts: 'Notifications/groupContacts',
@@ -563,7 +628,8 @@ groupNamePathsNewNotifications = {groupAgents: 'Notifications/groupAgents',
  groupBounties: 'Notifications/groupBounties',
  groupSkillTraining: 'Notifications/GroupNames/groupSkillTraining',
  groupInsurance: 'UI/Station/Insurance',
- groupOpportunities: 'Notifications/GroupNames/groupOpportunities'}
+ groupOpportunities: 'Notifications/GroupNames/groupOpportunities',
+ groupCCPNotifications: 'Notifications/GroupNames/groupCCPNotifications'}
 notificationGroupUnread = groupUnread
 notificationGroupAgents = groupAgents
 notificationGroupBills = groupBills
@@ -602,6 +668,8 @@ def GetTypeGroup(typeID):
     for groupID, typeIDs in groupTypes.iteritems():
         if typeID in typeIDs:
             return groupID
+
+    return None
 
 
 def IsTypeInCommunications(typeID):

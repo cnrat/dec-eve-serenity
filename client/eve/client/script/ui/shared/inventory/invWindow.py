@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\client\script\ui\shared\inventory\invWindow.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\client\script\ui\shared\inventory\invWindow.py
 from math import pi
 import blue
 import bracketUtils
@@ -44,6 +45,7 @@ TREE_DEFAULT_WIDTH = 160
 class Inventory(uicontrols.Window):
     __guid__ = 'form.Inventory'
     __notifyevents__ = ['OnSessionChanged',
+     'OnPrimaryViewChanged',
      'OnItemNameChange',
      'OnMultipleItemChange',
      'ProcessActiveShipChanged',
@@ -160,6 +162,7 @@ class Inventory(uicontrols.Window):
         self.ShowInvContLoadingWheel()
         uthread.new(self.ConstructFilters)
         uthread.new(self.RefreshTree)
+        return
 
     def InventorySettings(self, menuParent):
         openSecondary = settings.user.ui.Get('openSecondaryInv', False)
@@ -185,7 +188,7 @@ class Inventory(uicontrols.Window):
     def GetRegisteredPositionAndSize(self):
         return self.GetRegisteredPositionAndSizeByClass(self.windowID)
 
-    def RegisterPositionAndSize(self, key = None, windowID = None):
+    def RegisterPositionAndSize(self, key=None, windowID=None):
         windowID = self.windowID[0]
         uicontrols.Window.RegisterPositionAndSize(self, key, windowID)
 
@@ -241,7 +244,7 @@ class Inventory(uicontrols.Window):
             filterEntry = FilterEntry(parent=self.filterCont, filter=filt, eventListener=self)
             self.filterEntries.append(filterEntry)
 
-    def RemoveTreeEntry(self, entry, byUser = False, checkRemoveParent = False):
+    def RemoveTreeEntry(self, entry, byUser=False, checkRemoveParent=False):
         parent = entry.data.GetParent()
         if entry.childCont:
             for childEntry in entry.childCont.children[:]:
@@ -252,22 +255,24 @@ class Inventory(uicontrols.Window):
         if invID == self.rootInvID:
             self.Close()
             return
-        if invID in self.treeEntryByID:
-            self.treeEntryByID.pop(invID)
-        if invID in self.tempTreeEntryByID:
-            self.tempTreeEntryByID.pop(invID)
-        if entry.data in self.treeData.GetChildren():
-            self.treeData.RemoveChild(entry.data)
-        if invID == self.currInvID:
-            if not self.IsInvTreeExpanded():
-                self.Close()
-                return
-            self.ShowInvContainer(self.GetDefaultInvID())
-        entry.Close()
-        if checkRemoveParent and isinstance(parent, TreeDataInvFolder) and not parent.GetChildren():
-            parEntry = self.treeEntryByID.get(parent.GetID(), None)
-            if parEntry:
-                self.RemoveTreeEntry(parEntry, checkRemoveParent=True)
+        else:
+            if invID in self.treeEntryByID:
+                self.treeEntryByID.pop(invID)
+            if invID in self.tempTreeEntryByID:
+                self.tempTreeEntryByID.pop(invID)
+            if entry.data in self.treeData.GetChildren():
+                self.treeData.RemoveChild(entry.data)
+            if invID == self.currInvID:
+                if not self.IsInvTreeExpanded():
+                    self.Close()
+                    return
+                self.ShowInvContainer(self.GetDefaultInvID())
+            entry.Close()
+            if checkRemoveParent and isinstance(parent, TreeDataInvFolder) and not parent.GetChildren():
+                parEntry = self.treeEntryByID.get(parent.GetID(), None)
+                if parEntry:
+                    self.RemoveTreeEntry(parEntry, checkRemoveParent=True)
+            return
 
     def OnInvContScrollSelectionChanged(self, nodes):
         items = []
@@ -277,7 +282,7 @@ class Inventory(uicontrols.Window):
         self.UpdateSelectedItems(items)
 
     @telemetry.ZONE_METHOD
-    def UpdateSelectedItems(self, items = None):
+    def UpdateSelectedItems(self, items=None):
         if not session.IsItSafe():
             return
         if not self.invCont:
@@ -291,24 +296,27 @@ class Inventory(uicontrols.Window):
     def _UpdateSelectedItems(self):
         if self.destroyed:
             return
-        try:
-            while self.updateSelectedItemsPending is not None:
-                if session.mutating:
-                    break
-                items = self.updateSelectedItemsPending
-                if not items and self.invCont:
-                    iskItems = self.invCont.items
-                    self.UpdateIskPriceLabel(iskItems)
-                else:
-                    self.UpdateIskPriceLabel(items)
-                self.capacityGauge.SetSecondaryVolume(items)
-                self.capacityGauge.SetAdditionalVolume()
-                self.UpdateNumberOfItems(items)
-                self.updateSelectedItemsPending = None
-                blue.synchro.SleepWallclock(500)
+        else:
+            try:
+                while self.updateSelectedItemsPending is not None:
+                    if session.mutating:
+                        break
+                    items = self.updateSelectedItemsPending
+                    if not items and self.invCont:
+                        iskItems = self.invCont.items
+                        self.UpdateIskPriceLabel(iskItems)
+                    else:
+                        self.UpdateIskPriceLabel(items)
+                    self.capacityGauge.SetSecondaryVolume(items)
+                    self.capacityGauge.SetAdditionalVolume()
+                    self.UpdateNumberOfItems(items)
+                    self.updateSelectedItemsPending = None
+                    blue.synchro.SleepWallclock(500)
 
-        finally:
-            self.updateSelectedItemsThread = None
+            finally:
+                self.updateSelectedItemsThread = None
+
+            return
 
     def SetInvContViewMode(self, value):
         if self.invCont:
@@ -316,7 +324,7 @@ class Inventory(uicontrols.Window):
         self.UpdateSelectedItems()
 
     @telemetry.ZONE_METHOD
-    def UpdateNumberOfItems(self, items = None):
+    def UpdateNumberOfItems(self, items=None):
         items = items or []
         numFiltered = self.invCont.numFilteredItems
         if numFiltered:
@@ -335,16 +343,18 @@ class Inventory(uicontrols.Window):
     def OnInvContDragEnter(self, invID, nodes):
         if not session.IsItSafe():
             return
-        if invID != self.currInvID or self.invCont is None:
+        elif invID != self.currInvID or self.invCont is None:
             return
-        items = []
-        for node in nodes:
-            if getattr(node, 'item', None):
-                if self.invController.IsItemHereVolume(node.item):
-                    return
-                items.append(node.item)
+        else:
+            items = []
+            for node in nodes:
+                if getattr(node, 'item', None):
+                    if self.invController.IsItemHereVolume(node.item):
+                        return
+                    items.append(node.item)
 
-        self.capacityGauge.SetAdditionalVolume(items)
+            self.capacityGauge.SetAdditionalVolume(items)
+            return
 
     def OnInvContDragExit(self, invID, nodes):
         if not session.IsItSafe():
@@ -363,6 +373,7 @@ class Inventory(uicontrols.Window):
 
         text = localization.GetByLabel('UI/Inventory/EstIskPrice', iskString=util.FmtISKAndRound(total, False))
         self.totalPriceLabel.text = text
+        return
 
     def UpdateSpecialActionButtons(self):
         self.specialActionsCont.Flush()
@@ -420,6 +431,7 @@ class Inventory(uicontrols.Window):
         if self.dragHoverThread:
             self.dragHoverThread.kill()
             self.dragHoverThread = None
+        return
 
     def _OnTreeViewDragEnter(self, entry, dragObj, nodes):
         blue.synchro.SleepWallclock(1000)
@@ -449,7 +461,7 @@ class Inventory(uicontrols.Window):
             return False
 
     @telemetry.ZONE_METHOD
-    def ShowInvContainer(self, invID, branchHistory = True):
+    def ShowInvContainer(self, invID, branchHistory=True):
         if invID and not self.IsInvIDLegit(invID):
             invID = self.GetDefaultInvID(startFromInvID=invID)
             if invID not in self.treeEntryByID:
@@ -462,45 +474,47 @@ class Inventory(uicontrols.Window):
             self.HideInvContLoadingWheel()
             self.ExpandTree(animate=False)
             return
-        self.noInventoryLabel.Hide()
-        if self.invCont is not None and invID == self.invCont.invController.GetInvID():
-            return
-        entry = self.treeEntryByID.get(invID, None)
-        if entry is None:
-            return
-        try:
-            entry.data.invController.GetItems()
-        except UserError:
-            self.HideInvContLoadingWheel()
-            if not self.invCont:
-                self.ShowInvContainer(self.GetDefaultInvID())
-            raise
-
-        if self.invCont:
-            self.invCont.Close()
-        self.ShowInvContLoadingWheel()
-        if settings.user.ui.Get('keepInvQuickFilterInput', False):
-            quickFilterInput = self.quickFilter.GetQuickFilterInput()
         else:
-            quickFilterInput = None
-        self.invCont = entry.data.GetInvCont(parent=self.rightCont, activeFilters=self.GetActiveFilters(), name=self.GetWindowSettingsID(), quickFilterInput=quickFilterInput)
-        self.invController = self.invCont.invController
-        self.HideInvContLoadingWheel()
-        self.capacityGauge.SetInvCont(self.invCont)
-        self.invCont.scroll.OnSelectionChange = self.OnInvContScrollSelectionChanged
-        self.UpdateIskPriceLabel(self.invCont.invController.GetItems())
-        self.UpdateSpecialActionButtons()
-        self.quickFilter.SetInvCont(self.invCont)
-        self.viewBtns.UpdateButtons(['icons', 'details', 'list'].index(self.invCont.viewMode))
-        if branchHistory:
-            self.history.Append(invID)
-            self.UpdateHistoryButtons()
-        self.currInvID = invID
-        self.RegisterLastOpenInvID(invID)
-        self.UpdateSelectedState()
-        self.UpdateSubCaptionLabel()
-        self.UpdateNumberOfItems()
-        self.UpdateCapacityGaugeCompactMode()
+            self.noInventoryLabel.Hide()
+            if self.invCont is not None and invID == self.invCont.invController.GetInvID():
+                return
+            entry = self.treeEntryByID.get(invID, None)
+            if entry is None:
+                return
+            try:
+                entry.data.invController.GetItems()
+            except UserError:
+                self.HideInvContLoadingWheel()
+                if not self.invCont:
+                    self.ShowInvContainer(self.GetDefaultInvID())
+                raise
+
+            if self.invCont:
+                self.invCont.Close()
+            self.ShowInvContLoadingWheel()
+            if settings.user.ui.Get('keepInvQuickFilterInput', False):
+                quickFilterInput = self.quickFilter.GetQuickFilterInput()
+            else:
+                quickFilterInput = None
+            self.invCont = entry.data.GetInvCont(parent=self.rightCont, activeFilters=self.GetActiveFilters(), name=self.GetWindowSettingsID(), quickFilterInput=quickFilterInput)
+            self.invController = self.invCont.invController
+            self.HideInvContLoadingWheel()
+            self.capacityGauge.SetInvCont(self.invCont)
+            self.invCont.scroll.OnSelectionChange = self.OnInvContScrollSelectionChanged
+            self.UpdateIskPriceLabel(self.invCont.invController.GetItems())
+            self.UpdateSpecialActionButtons()
+            self.quickFilter.SetInvCont(self.invCont)
+            self.viewBtns.UpdateButtons(['icons', 'details', 'list'].index(self.invCont.viewMode))
+            if branchHistory:
+                self.history.Append(invID)
+                self.UpdateHistoryButtons()
+            self.currInvID = invID
+            self.RegisterLastOpenInvID(invID)
+            self.UpdateSelectedState()
+            self.UpdateSubCaptionLabel()
+            self.UpdateNumberOfItems()
+            self.UpdateCapacityGaugeCompactMode()
+            return
 
     def GetMenu(self):
         m = []
@@ -602,24 +616,26 @@ class Inventory(uicontrols.Window):
         entry = self.treeEntryByID.get(self.currInvID, None)
         if not entry:
             return
-        currData = entry.data
-        dataList = currData.GetAncestors()
-        dataList.append(currData)
-        self.breadcrumbInvIDs = []
-        text = ''
-        for i, data in enumerate(dataList[1:]):
-            if data != currData:
-                text += '<url=localsvc:service=inv&method=OnBreadcrumbTextClicked&linkNum=%d&windowID1=%s&windowID2=%s>' % (i, self.windowID[0], self.windowID[1])
-                text += '<color=#55FFFFFF>' + data.GetLabel() + ' > </color></url>'
-                self.breadcrumbInvIDs.append(data.GetID())
-            else:
-                text += data.GetLabel()
+        else:
+            currData = entry.data
+            dataList = currData.GetAncestors()
+            dataList.append(currData)
+            self.breadcrumbInvIDs = []
+            text = ''
+            for i, data in enumerate(dataList[1:]):
+                if data != currData:
+                    text += '<url=localsvc:service=inv&method=OnBreadcrumbTextClicked&linkNum=%d&windowID1=%s&windowID2=%s>' % (i, self.windowID[0], self.windowID[1])
+                    text += '<color=#55FFFFFF>' + data.GetLabel() + ' > </color></url>'
+                    self.breadcrumbInvIDs.append(data.GetID())
+                else:
+                    text += data.GetLabel()
 
-        w, _ = self.subCaptionCont.GetAbsoluteSize()
-        lw, _ = uicontrols.Label.MeasureTextSize(text)
-        if w < lw:
-            text = entry.data.GetLabel()
-        self.subCaptionLabel.SetText(text)
+            w, _ = self.subCaptionCont.GetAbsoluteSize()
+            lw, _ = uicontrols.Label.MeasureTextSize(text)
+            if w < lw:
+                text = entry.data.GetLabel()
+            self.subCaptionLabel.SetText(text)
+            return
 
     def OnBreadcrumbLinkClicked(self, linkNum):
         invID = self.breadcrumbInvIDs[linkNum]
@@ -627,7 +643,7 @@ class Inventory(uicontrols.Window):
             self.ShowInvContainer(invID)
 
     def GetNeocomGroupIcon(self):
-        return 'res:/UI/Texture/WindowIcons/folder_cargo.png'
+        pass
 
     def GetNeocomGroupLabel(self):
         return localization.GetByLabel('UI/Neocom/InventoryBtn')
@@ -644,10 +660,12 @@ class Inventory(uicontrols.Window):
             return self.windowID
 
     @staticmethod
-    def GetWindowIDFromInvID(invID = None):
+    def GetWindowIDFromInvID(invID=None):
         if invID is None:
             if session.stationid2:
                 return ('InventoryStation', None)
+            elif session.structureid:
+                return ('InventoryStructure', None)
             else:
                 return ('InventorySpace', None)
         else:
@@ -661,9 +679,10 @@ class Inventory(uicontrols.Window):
             if invCtrlName in 'StationCorpHangars':
                 return ('%s_%s' % invID, None)
             return ('%s' % invID[0], invID[1])
+        return
 
     @staticmethod
-    def OpenOrShow(invID = None, usePrimary = True, toggle = False, openFromWnd = None, **kw):
+    def OpenOrShow(invID=None, usePrimary=True, toggle=False, openFromWnd=None, **kw):
         if uicore.uilib.Key(uiconst.VK_SHIFT) or settings.user.ui.Get('openSecondaryInv', False):
             usePrimary = False
             openFromWnd = None
@@ -699,6 +718,8 @@ class Inventory(uicontrols.Window):
             windowID = Inventory.GetWindowIDFromInvID(None)
             if session.stationid2:
                 scope = 'station'
+            elif session.structureid:
+                scope = 'structure'
             else:
                 scope = 'inflight'
             rootInvID = None
@@ -730,15 +751,17 @@ class Inventory(uicontrols.Window):
         _, h = self.tree.GetAbsoluteSize()
         if h <= 0:
             return
-        entry = self.treeEntryByID.get(self.currInvID, None)
-        if not entry:
+        else:
+            entry = self.treeEntryByID.get(self.currInvID, None)
+            if not entry:
+                return
+            _, topEntry = entry.GetAbsolutePosition()
+            _, topScroll, _, height = self.tree.mainCont.GetAbsolute()
+            denum = height - entry.topRightCont.height
+            if denum:
+                fraction = float(topEntry - topScroll) / denum
+                self.tree.ScrollToVertical(fraction)
             return
-        _, topEntry = entry.GetAbsolutePosition()
-        _, topScroll, _, height = self.tree.mainCont.GetAbsolute()
-        denum = height - entry.topRightCont.height
-        if denum:
-            fraction = float(topEntry - topScroll) / denum
-            self.tree.ScrollToVertical(fraction)
 
     def OnDropData(self, dragObj, nodes):
         if self.invCont:
@@ -754,20 +777,23 @@ class Inventory(uicontrols.Window):
         if isinstance(entry.data, TreeDataInv):
             sm.ScatterEvent('OnInvContDragExit', obj, nodes)
             uthread.new(self._MoveItems, entry, nodes)
+        return
 
     def _MoveItems(self, entry, nodes):
         if not nodes:
             return
-        if isinstance(nodes[0], TreeDataInv):
-            item = nodes[0].invController.GetInventoryItem()
         else:
-            item = getattr(nodes[0], 'item', None)
-        if item and entry.data.invController.IsItemHere(item):
+            if isinstance(nodes[0], TreeDataInv):
+                item = nodes[0].invController.GetInventoryItem()
+            else:
+                item = getattr(nodes[0], 'item', None)
+            if item and entry.data.invController.IsItemHere(item):
+                return
+            if isinstance(nodes[0], TreeDataInv) and not nodes[0].invController.IsMovable():
+                return
+            if entry.data.invController.OnDropData(nodes):
+                entry.Blink()
             return
-        if isinstance(nodes[0], TreeDataInv) and not nodes[0].invController.IsMovable():
-            return
-        if entry.data.invController.OnDropData(nodes):
-            entry.Blink()
 
     def GetTreeEntryByItemID(self, itemID):
         ret = []
@@ -799,16 +825,22 @@ class Inventory(uicontrols.Window):
                     self.treeDataTemp.RemoveChild(entry.data)
                 if entry.data.IsRemovable():
                     self.RemoveTreeEntry(entry)
+        return
 
     def OnSessionChanged(self, isRemote, sess, change):
         if change.keys() == ['shipid']:
             return
         self.RefreshTree()
 
+    def OnPrimaryViewChanged(self, *args):
+        self.RefreshTree()
+
     def _IsInventoryItem(self, item):
         if item.groupID in CONTAINERGROUPS:
             return True
         if item.categoryID == const.categoryShip:
+            return True
+        if item.typeID == const.typeAssetSafetyWrap:
             return True
         return False
 
@@ -817,39 +849,43 @@ class Inventory(uicontrols.Window):
         self.UpdateSelectedItems()
 
     @telemetry.ZONE_METHOD
-    def OnInvChangeAny(self, item = None, change = None):
+    def OnInvChangeAny(self, item=None, change=None):
         if not self._IsInventoryItem(item):
             return
-        if item.itemID == util.GetActiveShip():
+        elif item.itemID == util.GetActiveShip():
             return
-        if item.categoryID == const.categoryShip and session.solarsystemid:
+        elif item.categoryID == const.categoryShip and not session.stationid2 and not session.structureid:
             return
-        if const.ixSingleton in change:
+        elif const.ixSingleton in change:
             self.RefreshTree()
             return
-        if not item.singleton:
+        elif not item.singleton:
             return
-        if const.ixLocationID in change or const.ixFlag in change:
-            if session.stationid and item.categoryID == const.categoryShip:
-                if session.charid in (item.ownerID, change.get(const.ixOwnerID, None)):
+        else:
+            if const.ixLocationID in change or const.ixFlag in change:
+                if session.stationid and item.categoryID == const.categoryShip:
+                    if session.charid in (item.ownerID, change.get(const.ixOwnerID, None)):
+                        self.RefreshTree()
+                elif session.solarsystemid and item.groupID in CONTAINERGROUPS:
+                    ownerIDs = (item.ownerID, change.get(const.ixOwnerID, None))
+                    if ownerIDs[0] == ownerIDs[1] == session.corpid:
+                        return
+                    if session.corpid in ownerIDs and session.charid not in ownerIDs:
+                        return
                     self.RefreshTree()
-            elif session.solarsystemid and item.groupID in CONTAINERGROUPS:
-                ownerIDs = (item.ownerID, change.get(const.ixOwnerID, None))
-                if ownerIDs[0] == ownerIDs[1] == session.corpid:
-                    return
-                if session.corpid in ownerIDs and session.charid not in ownerIDs:
-                    return
+                else:
+                    self.RefreshTree()
+            if const.ixOwnerID in change and item.typeID == const.typePlasticWrap:
                 self.RefreshTree()
-            else:
-                self.RefreshTree()
-        if const.ixOwnerID in change and item.typeID == const.typePlasticWrap:
-            self.RefreshTree()
+            return
 
     def GetSlimItem(self):
         itemID = self.invController.itemID
         bp = sm.GetService('michelle').GetBallpark()
         if bp:
             return bp.slimItems.get(itemID, None)
+        else:
+            return None
 
     @telemetry.ZONE_METHOD
     def RemoveItem(self, item):
@@ -857,6 +893,7 @@ class Inventory(uicontrols.Window):
             slimItem = self.GetSlimItem()
             if slimItem is not None and slimItem.groupID in invCtrl.LOOT_GROUPS:
                 self.RemoveWreckEntryOrClose()
+        return
 
     def OnWreckLootAll(self, invID, items):
         if invID == self.currInvID:
@@ -876,6 +913,7 @@ class Inventory(uicontrols.Window):
             slimItem = self.GetSlimItem()
             if slimItem is not None and slimItem.groupID not in LOOT_GROUPS_NOCLOSE:
                 self.CloseByUser()
+        return
 
     def SwitchToOtherLootable(self, oldEntry):
         lootableData = [ data for data in self.treeDataTemp.GetChildren() if data.GetID()[0] in ('ItemWreck', 'ItemFloatingCargo') ]
@@ -962,20 +1000,22 @@ class Inventory(uicontrols.Window):
     def UpdateCapacityGaugeCompactMode(self):
         if self.invController is None:
             return
-        if self.IsCompact():
-            if self.invController.hasCapacity:
-                self.topRightCont2.Show()
-                self.capacityGauge.padding = (1, 0, 0, 0)
-                self.capacityGauge.HideLabel()
-                self.topRightCont2.height = 5
-            else:
-                self.topRightCont2.Hide()
         else:
-            self.topRightCont2.Show()
-            if self.invController.hasCapacity:
-                self.capacityGauge.padding = (2, 5, 4, 4)
-                self.capacityGauge.ShowLabel()
-                self.topRightCont2.height = 24
+            if self.IsCompact():
+                if self.invController.hasCapacity:
+                    self.topRightCont2.Show()
+                    self.capacityGauge.padding = (1, 0, 0, 0)
+                    self.capacityGauge.HideLabel()
+                    self.topRightCont2.height = 5
+                else:
+                    self.topRightCont2.Hide()
+            else:
+                self.topRightCont2.Show()
+                if self.invController.hasCapacity:
+                    self.capacityGauge.padding = (2, 5, 4, 4)
+                    self.capacityGauge.ShowLabel()
+                    self.topRightCont2.height = 24
+            return
 
     def GetCompactToggleContainers(self):
         return (self.topRightCont1,
@@ -989,7 +1029,7 @@ class Inventory(uicontrols.Window):
         else:
             self.ExpandFilters()
 
-    def ExpandFilters(self, animate = True):
+    def ExpandFilters(self, animate=True):
         self.expandFiltersBtn.SetRotation(0)
         self.expandFiltersBtn.Disable()
         self.treeBottomCont.EnableDragResize()
@@ -1007,7 +1047,7 @@ class Inventory(uicontrols.Window):
         self.filterCont.Enable()
         settings.user.ui.Set('invFiltersExpanded_%s' % self.GetWindowSettingsID(), True)
 
-    def CollapseFilters(self, animate = True):
+    def CollapseFilters(self, animate=True):
         self.filterCont.Disable()
         self.expandFiltersBtn.Disable()
         self.expandFiltersBtn.SetRotation(pi)
@@ -1033,7 +1073,7 @@ class Inventory(uicontrols.Window):
         self.RefreshTree()
 
     @telemetry.ZONE_METHOD
-    def RefreshTree(self, invID = None):
+    def RefreshTree(self, invID=None):
         if invID:
             self.currInvID = invID
         while not session.IsItSafe():
@@ -1069,7 +1109,7 @@ class Inventory(uicontrols.Window):
             data = self.treeData
         return data is not None and isinstance(data, TreeDataInv) and data.HasInvCont()
 
-    def GetDefaultInvID(self, startFromInvID = None):
+    def GetDefaultInvID(self, startFromInvID=None):
         treeData = None
         if startFromInvID:
             treeData = self.treeData.GetChildByID(startFromInvID) or self.treeData
@@ -1080,6 +1120,7 @@ class Inventory(uicontrols.Window):
             return self.GetDefaultInvID()
         else:
             return invID
+            return
 
     def _IsValidDefaultInvID(self, data):
         if isinstance(data, TreeDataInv) and data.HasInvCont():
@@ -1102,6 +1143,8 @@ class Inventory(uicontrols.Window):
                 ret = self._GetDefaultInvID(data.GetChildren())
                 if ret:
                     return ret
+
+        return
 
     def ConstructTree(self):
         self.treeEntryByID = {}
@@ -1157,6 +1200,7 @@ class Inventory(uicontrols.Window):
             self.Close()
         else:
             self.ShowInvContainer(self.currInvID)
+        return
 
     def UpdateSelectedState(self):
         selectedIDs = self.treeData.GetPathToDescendant(self.currInvID) or self.treeDataTemp.GetPathToDescendant(self.currInvID) or []
@@ -1166,11 +1210,12 @@ class Inventory(uicontrols.Window):
                 entry.UpdateSelectedState(selectedIDs=selectedIDs)
 
     def UpdateRangeUpdater(self):
-        if session.solarsystemid is None and self.containersInRangeUpdater:
+        if util.InShipInSpace() and not self.containersInRangeUpdater:
+            self.containersInRangeUpdater = uthread.new(self.UpdateTreeViewEntriesInRange)
+        elif (session.structureid or session.stationid) and self.containersInRangeUpdater:
             self.containersInRangeUpdater.kill()
             self.containersInRangeUpdater = None
-        elif not self.containersInRangeUpdater:
-            self.containersInRangeUpdater = uthread.new(self.UpdateTreeViewEntriesInRange)
+        return
 
     def UpdateTreeViewEntriesInRange(self):
         while not self.destroyed:
@@ -1178,6 +1223,8 @@ class Inventory(uicontrols.Window):
                 self.containersInRangeUpdater = None
                 return
             self._UpdateTreeViewEntriesInRange()
+
+        return
 
     def _UpdateTreeViewEntriesInRange(self):
         for entry in self.treeEntryByID.values():
@@ -1202,6 +1249,7 @@ class Inventory(uicontrols.Window):
                 slimItem = sm.GetService('michelle').GetBallpark().slimItems[data.invController.itemID]
                 entry.iconColor = bracketUtils.GetIconColor(slimItem)
         entry.SetAccessability(canAccess)
+        return
 
     def OnExpandTreeBtn(self, *args):
         if self.dividerCont.pickState:
@@ -1220,7 +1268,7 @@ class Inventory(uicontrols.Window):
         if self.isTreeExpandedStateDetermined:
             settings.user.ui.Set('invTreeExpanded_%s' % self.GetWindowSettingsID(), isExpanded)
 
-    def IsInvTreeExpanded(self, getDefault = True):
+    def IsInvTreeExpanded(self, getDefault=True):
         return settings.user.ui.Get('invTreeExpanded_%s' % self.GetWindowSettingsID(), self.GetDefaultInvTreeExpanded())
 
     @staticmethod
@@ -1236,13 +1284,15 @@ class Inventory(uicontrols.Window):
     def GetDefaultInvTreeExpanded(self):
         if not self.rootInvID:
             return True
-        if not self.treeData:
+        elif not self.treeData:
             return None
         data = self.treeData.GetChildByID(self.rootInvID)
         if data:
             return data.HasChildren()
+        else:
+            return None
 
-    def ExpandTree(self, animate = True):
+    def ExpandTree(self, animate=True):
         self.expandTreeBtn.SetRotation(-pi / 2)
         self.expandTreeBtn.Disable()
         width = settings.user.ui.Get('invTreeViewWidth_%s' % self.GetWindowSettingsID(), TREE_DEFAULT_WIDTH)
@@ -1258,7 +1308,7 @@ class Inventory(uicontrols.Window):
         self.dividerCont.Enable()
         self.SetInvTreeExpandedSetting(True)
 
-    def CollapseTree(self, animate = True):
+    def CollapseTree(self, animate=True):
         self.dividerCont.Disable()
         self.expandTreeBtn.Disable()
         self.expandTreeBtn.SetRotation(pi / 2)
@@ -1287,6 +1337,7 @@ class InventoryPrimary(Inventory):
         else:
             invID = None
         self.RefreshTree(invID)
+        return
 
 
 class StationItems(Inventory):
@@ -1336,6 +1387,28 @@ class StationCorpDeliveries(Inventory):
     @classmethod
     def OnDropDataCls(cls, dragObj, nodes):
         return invCtrl.StationCorpDeliveries().OnDropData(nodes)
+
+
+class AssetSafetyDeliveries(Inventory):
+    __guid__ = 'form.AssetSafetyDeliveries'
+    default_windowID = ('AssetSafetyDeliveries', None)
+    default_scope = 'station'
+    default_iconNum = invCtrl.AssetSafetyDeliveries.iconName
+
+    @classmethod
+    def OnDropDataCls(cls, dragObj, nodes):
+        return None
+
+
+class AssetSafetyContainer(Inventory):
+    __guid__ = 'form.AssetSafetyContainer'
+    default_windowID = ('AssetSafetyContainer', None)
+    default_scope = 'station'
+    default_iconNum = invCtrl.AssetSafetyContainer.iconName
+
+    @classmethod
+    def OnDropDataCls(cls, dragObj, nodes):
+        return None
 
 
 class ActiveShipCargo(Inventory):

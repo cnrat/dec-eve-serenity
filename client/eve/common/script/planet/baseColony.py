@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\common\script\planet\baseColony.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\common\script\planet\baseColony.py
 import math
 import types
 import weakref
@@ -29,6 +30,7 @@ class BaseColony:
         self.simQueue = []
         self.currentSimTime = None
         self.temporaryIDMap = {}
+        return
 
     def RegisterTemporaryID(self, oldID, newID):
         self.temporaryIDMap[oldID] = newID
@@ -51,30 +53,35 @@ class BaseColony:
         self.simQueue = []
         self.currentSimTime = None
         self.RecalculateCurrentSimTime()
+        return
 
     def GetPin(self, pinID):
         if self.colonyData is None:
             return
-        return self.colonyData.GetPin(pinID)
+        else:
+            return self.colonyData.GetPin(pinID)
 
     def GetLink(self, endpoint1, endpoint2):
         if self.colonyData is None:
             return
-        if endpoint1 > endpoint2:
-            endpoint1, endpoint2 = endpoint2, endpoint1
-        return self.colonyData.GetLink(endpoint1, endpoint2)
+        else:
+            if endpoint1 > endpoint2:
+                endpoint1, endpoint2 = endpoint2, endpoint1
+            return self.colonyData.GetLink(endpoint1, endpoint2)
 
     def GetRoute(self, routeID):
         if self.colonyData is None:
             return
-        return self.colonyData.GetRoute(routeID)
+        else:
+            return self.colonyData.GetRoute(routeID)
 
     def Serialize(self):
         if self.colonyData is None:
             return
-        data = self.colonyData.Serialize()
-        data.currentSimTime = self.currentSimTime
-        return data
+        else:
+            data = self.colonyData.Serialize()
+            data.currentSimTime = self.currentSimTime
+            return data
 
     def GetPlanetRadius(self):
         return self.planet.radius
@@ -86,11 +93,14 @@ class BaseColony:
         if self.currentSimTime is None:
             self.LogWarn('AdvanceSimulation :: Unable to advance, currentSimTime is None')
             return
-        self.currentSimTime += advanceTime
-        if self.colonyData is not None:
-            for pin in self.colonyData.pins.itervalues():
-                if pin.lastRunTime is not None:
-                    pin.lastRunTime += advanceTime
+        else:
+            self.currentSimTime += advanceTime
+            if self.colonyData is not None:
+                for pin in self.colonyData.pins.itervalues():
+                    if pin.lastRunTime is not None:
+                        pin.lastRunTime += advanceTime
+
+            return
 
     @bluepy.TimedFunction('BaseColony::SchedulePin')
     def SchedulePin(self, pin):
@@ -107,35 +117,41 @@ class BaseColony:
             self.AddTimer(pin.id, self.currentSimTime)
         else:
             self.AddTimer(pin.id, nextRunTime)
+        return
 
-    def PrimeSimulation(self, simEndTime, clearQueue = True):
+    def PrimeSimulation(self, simEndTime, clearQueue=True):
         if clearQueue:
             self.simQueue = []
         if self.colonyData is None:
             return
-        for pin in self.colonyData.pins.itervalues():
-            if pin.CanRun(simEndTime):
-                self.SchedulePin(pin)
+        else:
+            for pin in self.colonyData.pins.itervalues():
+                if pin.CanRun(simEndTime):
+                    self.SchedulePin(pin)
+
+            return
 
     def RecalculateCurrentSimTime(self):
         if self.colonyData is None or len(self.colonyData.pins) < 1:
             self.currentSimTime = blue.os.GetWallclockTime()
             return
-        for pin in self.colonyData.pins.itervalues():
-            if not pin.IsStorage() and pin.lastRunTime is not None:
-                if self.currentSimTime is None:
-                    self.currentSimTime = pin.lastRunTime
-                elif pin.lastRunTime < self.currentSimTime:
-                    self.currentSimTime = pin.lastRunTime
+        else:
+            for pin in self.colonyData.pins.itervalues():
+                if not pin.IsStorage() and pin.lastRunTime is not None:
+                    if self.currentSimTime is None:
+                        self.currentSimTime = pin.lastRunTime
+                    elif pin.lastRunTime < self.currentSimTime:
+                        self.currentSimTime = pin.lastRunTime
 
-        if self.currentSimTime is None:
-            self.currentSimTime = blue.os.GetWallclockTime()
+            if self.currentSimTime is None:
+                self.currentSimTime = blue.os.GetWallclockTime()
+            return
 
     def AddTimer(self, pinID, runTime):
         self.LogInfo('AddTimer :: pinID', pinID, 'at', runTime)
         heapq.heappush(self.simQueue, (runTime, pinID))
 
-    def RunSimulation(self, runSimUntil = None, beNice = True):
+    def RunSimulation(self, runSimUntil=None, beNice=True):
         if self.colonyData is None:
             raise RuntimeError('Attempting to run simulation on a colony without attached colonyData')
         with self.planetBroker.LockedService(self.ownerID):
@@ -165,6 +181,7 @@ class BaseColony:
 
                 self.currentSimTime = simEndTime
             return simEndTime
+        return
 
     def EvaluatePin(self, pin):
         self.LogInfo('EvaluatePin ::', pin.id, '(', pin.typeID, ') at', self.currentSimTime)
@@ -196,8 +213,9 @@ class BaseColony:
             pin.hasReceivedInputs = True
         if not pin.IsActive() and pin.CanActivate():
             self.SchedulePin(pin)
+        return
 
-    def InstallSchematicForPin(self, charID, pinID, schematicID, skipSimulation = False):
+    def InstallSchematicForPin(self, charID, pinID, schematicID, skipSimulation=False):
         if self.colonyData is None:
             raise RuntimeError('Unable to perform schematic installation - no colony data')
         try:
@@ -213,6 +231,7 @@ class BaseColony:
         if not skipSimulation:
             self.StimulateIdlePin(processPin)
         self.OnSchematicInstalled(pinID, schematicID)
+        return
 
     def InstallProgram(self, charID, pinID, programType, cycleTime, expiryTime, qtyPerCycle, headRadius):
         if self.colonyData is None:
@@ -260,6 +279,8 @@ class BaseColony:
                 self.LogInfo('RouteCommodityOutput :: Redistributing added commods', commodsAdded, 'from', sourcePin.id, 'via', receivingPin.id)
                 self.RouteCommodityOutput(receivingPin, commodsAdded)
 
+        return
+
     def RouteCommodityInput(self, destinationPin):
         if self.colonyData is None:
             raise RuntimeError('No colony data attached - cannot route commodity input')
@@ -279,6 +300,8 @@ class BaseColony:
             self.LogInfo('RouteCommodityInput :: Routing', storedCommods, 'from', route.GetSourcePinID(), 'to', route.GetDestinationPinID())
             self.ExecuteRoute(routeID, storedCommods)
 
+        return
+
     def ExecuteRoute(self, routeID, commodities):
         if self.colonyData is None:
             raise RuntimeError('Unable to execute route - no colony data')
@@ -286,10 +309,11 @@ class BaseColony:
         if not route:
             self.LogError('ExecuteRoute :: Cannot find route', routeID)
             return (0, 0)
-        sourceID, destID, typeID, qty = route.GetRoutingInfo()
-        return self.TransferCommodities(sourceID, destID, typeID, qty, commodities)
+        else:
+            sourceID, destID, typeID, qty = route.GetRoutingInfo()
+            return self.TransferCommodities(sourceID, destID, typeID, qty, commodities)
 
-    def TransferCommodities(self, sourcePinID, destPinID, typeID, qty, commodities, maxAmount = None):
+    def TransferCommodities(self, sourcePinID, destPinID, typeID, qty, commodities, maxAmount=None):
         if self.colonyData is None:
             raise RuntimeError('Unable to execute route - no colony data')
         sourcePin = self.GetPin(sourcePinID)
@@ -298,18 +322,19 @@ class BaseColony:
         commodsToPush = {}
         if typeID not in commodities:
             return (0, 0)
-        amtToMove = min(commodities[typeID], qty)
-        if maxAmount is not None:
-            amtToMove = min(maxAmount, amtToMove)
-        if amtToMove <= 0:
-            return (0, 0)
-        destPin = self.GetPin(destPinID)
-        if not destPin:
-            raise RuntimeError('Unable to find pin', destPinID)
-        amtMoved = destPin.AddCommodity(typeID, amtToMove)
-        if sourcePin.IsStorage():
-            sourcePin.RemoveCommodity(typeID, amtMoved)
-        return (typeID, amtMoved)
+        else:
+            amtToMove = min(commodities[typeID], qty)
+            if maxAmount is not None:
+                amtToMove = min(maxAmount, amtToMove)
+            if amtToMove <= 0:
+                return (0, 0)
+            destPin = self.GetPin(destPinID)
+            if not destPin:
+                raise RuntimeError('Unable to find pin', destPinID)
+            amtMoved = destPin.AddCommodity(typeID, amtToMove)
+            if sourcePin.IsStorage():
+                sourcePin.RemoveCommodity(typeID, amtMoved)
+            return (typeID, amtMoved)
 
     def ExecuteExpeditedTransfer(self, sourceID, destinationID, commodities, minBandwidth, runTime):
         if self.colonyData is None:
@@ -331,18 +356,20 @@ class BaseColony:
 
         if len(commodsToPush) < 1:
             return
-        destPin = self.GetPin(destinationID)
-        if not destPin:
-            raise RuntimeError('Unable to find pin', destinationID)
-        commodsMoved = {}
-        for typeID, quantity in commodsToPush.iteritems():
-            commodsMoved[typeID] = destPin.AddCommodity(typeID, quantity)
+        else:
+            destPin = self.GetPin(destinationID)
+            if not destPin:
+                raise RuntimeError('Unable to find pin', destinationID)
+            commodsMoved = {}
+            for typeID, quantity in commodsToPush.iteritems():
+                commodsMoved[typeID] = destPin.AddCommodity(typeID, quantity)
 
-        for typeID, quantity in commodsMoved.iteritems():
-            sourcePin.RemoveCommodity(typeID, quantity)
+            for typeID, quantity in commodsMoved.iteritems():
+                sourcePin.RemoveCommodity(typeID, quantity)
 
-        sourcePin.ExecuteTransfer(runTime, GetExpeditedTransferTime(minBandwidth, commodsMoved))
-        self.StimulateIdlePin(destPin)
+            sourcePin.ExecuteTransfer(runTime, GetExpeditedTransferTime(minBandwidth, commodsMoved))
+            self.StimulateIdlePin(destPin)
+            return
 
     def ValidateCreatePin(self, charID, typeID, latitude, longitude):
         if self.colonyData is None:
@@ -368,6 +395,7 @@ class BaseColony:
         if powerOutput <= 0 and powerUsage + self.colonyData.GetColonyPowerUsage() > self.colonyData.GetColonyPowerSupply():
             raise UserError('CannotAddToColonyPowerUsageExceeded', {'typeName': evetypes.GetName(typeID)})
         self.PostValidateCreatePin(charID, typeID, latitude, longitude)
+        return
 
     def PreValidateCreatePin(self, charID, typeID, latitude, longitude):
         pass
@@ -382,6 +410,7 @@ class BaseColony:
         if pinID not in self.colonyData.pins:
             raise UserError('PinDoesNotExist')
         self.PostValidateRemovePin(charID, pinID)
+        return
 
     def PreValidateRemovePin(self, charID, pinID):
         pass
@@ -389,7 +418,7 @@ class BaseColony:
     def PostValidateRemovePin(self, charID, pinID):
         pass
 
-    def ValidateCreateLink(self, charID, endpoint1ID, endpoint2ID, linkTypeID, level = 0):
+    def ValidateCreateLink(self, charID, endpoint1ID, endpoint2ID, linkTypeID, level=0):
         if self.colonyData is None:
             raise RuntimeError('Unable to validate link creation - no colony data')
         if endpoint1ID > endpoint2ID:
@@ -420,6 +449,7 @@ class BaseColony:
         if addlPowerUsage + self.colonyData.GetColonyPowerUsage() > self.colonyData.GetColonyPowerSupply():
             raise UserError('CannotAddToColonyPowerUsageExceeded', {'typeName': evetypes.GetName(linkTypeID)})
         self.PostValidateCreateLink(charID, endpoint1ID, endpoint2ID, linkTypeID, level)
+        return
 
     def PreValidateCreateLink(self, charID, endpoint1ID, endpoint2ID, linkTypeID, level):
         pass
@@ -434,6 +464,7 @@ class BaseColony:
             endpoint1, endpoint2 = endpoint2, endpoint1
         if (endpoint1, endpoint2) not in self.colonyData.links:
             raise UserError('LinkDoesNotExist')
+        return
 
     def ValidateCreateRoute(self, charID, path, typeID, quantity):
         if self.colonyData is None:
@@ -504,6 +535,7 @@ class BaseColony:
             prevID = pinID
 
         self.PostValidateCreateRoute(path, typeID, quantity)
+        return
 
     def PreValidateCreateRoute(self, path, typeID, quantity):
         pass
@@ -516,6 +548,7 @@ class BaseColony:
             raise RuntimeError('Unable to validate route removal - no colony data')
         if routeID not in self.colonyData.routes:
             raise UserError('RouteDoesNotExist')
+        return
 
     def ValidateInstallSchematic(self, charID, pinID, schematicID):
         if self.colonyData is None:
@@ -540,6 +573,7 @@ class BaseColony:
         if not schematicObj:
             raise UserError('InvalidSchematic')
         self.PostValidateInstallSchematic(charID, pinID, schematicID)
+        return
 
     def PreValidateInstallSchematic(self, charID, pinID, schematicID):
         pass
@@ -571,6 +605,7 @@ class BaseColony:
             if powerDelta + self.colonyData.GetColonyPowerUsage() > self.colonyData.GetColonyPowerSupply():
                 raise UserError('CannotAddToColonyPowerUsageExceeded', {'typeName': evetypes.GetName(link.typeID)})
         self.PostValidateSetLinkLevel(charID, endpoint1ID, endpoint2ID, newLevel)
+        return
 
     def ValidateCommandCenterUpgrade(self, level):
         self.PreValidateCommandCenterUpgrade(level)
@@ -581,6 +616,7 @@ class BaseColony:
         if level > GetMaxCommandUpgradeLevel():
             raise RuntimeError('Trying to upgrade past maximum level')
         self.PostValidateCommandCenterUpgrade(level)
+        return
 
     def PostValidateCommandCenterUpgrade(self, level):
         pass
@@ -677,6 +713,7 @@ class BaseColony:
         if angleBetween > areaOfInfluence:
             raise UserError('CannotPlaceHeadTooFarAway', {'maxDist': util.FmtDist(areaOfInfluence * self.planet.radius)})
         self.PostValidateAddExtractorHead(pinID, latitude, longitude)
+        return
 
     def PreValidateAddExtractorHead(self, pinID, latitude, longitude):
         pass
@@ -696,6 +733,7 @@ class BaseColony:
         if pin.FindHead(headID) is None:
             raise UserError('CannotRemoveHeadNotPresent')
         self.PostValidateRemoveExtractorHead(pinID, headID)
+        return
 
     def PreValidateRemoveExtractorHead(self, pinID, headID):
         pass
@@ -725,6 +763,7 @@ class BaseColony:
         if angleBetween > areaOfInfluence:
             raise UserError('CannotPlaceHeadTooFarAway', {'maxDist': util.FmtDist(angleBetween * self.planet.radius)})
         self.PostValidateMoveExtractorHead(pinID, headID, latitude, longitude)
+        return
 
     def PreValidateMoveExtractorHead(self, pinID, headID, latitude, longitude):
         pass
@@ -744,6 +783,7 @@ class BaseColony:
         if headRadius < RADIUS_DRILLAREAMIN or headRadius > RADIUS_DRILLAREAMAX:
             raise RuntimeError('Cannot install a program with a completely bonkers radius')
         self.PostValidateInstallProgram(pinID, typeID, headRadius)
+        return
 
     def PreValidateInstallProgram(self, pinID, typeID, headRadius):
         pass
@@ -818,7 +858,7 @@ class BaseColony:
         raise NotImplementedError('GetTypeAttribute must be specifically implemented on the client and server')
 
     @bluepy.TimedFunction('BaseColony::CreateProgram')
-    def CreateProgram(self, harmonic, ecuPinID, resourceTypeID, points = None, headRadius = None):
+    def CreateProgram(self, harmonic, ecuPinID, resourceTypeID, points=None, headRadius=None):
         ecuPin = self.GetPin(ecuPinID)
         if points is None:
             points = ecuPin.heads

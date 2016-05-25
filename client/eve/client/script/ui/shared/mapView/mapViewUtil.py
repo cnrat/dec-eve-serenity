@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\client\script\ui\shared\mapView\mapViewUtil.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\client\script\ui\shared\mapView\mapViewUtil.py
 from eve.client.script.ui.shared.mapView import mapViewConst
 from eve.client.script.ui.shared.mapView.mapViewConst import MARKER_TYPES, UNIVERSE_SCALE, SOLARSYSTEM_SCALE, VIEWMODE_COLOR_SETTINGS
 import sys
@@ -118,7 +119,7 @@ colorModeLogName = {mapcommon.STARMODE_SERVICE_Paintshop: 'STARMODE_SERVICE_Pain
  mapcommon.STARMODE_CORPPROPERTY: 'STARMODE_CORPPROPERTY',
  mapcommon.STARMODE_SOV_GAIN: 'STARMODE_SOV_GAIN'}
 
-def LogColorModeUsage(useCase = ''):
+def LogColorModeUsage(useCase=''):
     colorMode = settings.char.ui.Get('%s_%s' % (VIEWMODE_COLOR_SETTINGS, mapViewConst.MAPVIEW_PRIMARY_ID), mapViewConst.DEFAULT_MAPVIEW_SETTINGS[VIEWMODE_COLOR_SETTINGS])
     if isinstance(colorMode, tuple):
         colorMode, _colorModeArgs = colorMode
@@ -127,7 +128,7 @@ def LogColorModeUsage(useCase = ''):
         uthread.new(sm.GetService('experimentClientSvc').LogMapColorModeLoadedCounter, logValue)
 
 
-def GetBoundingSphereRadiusCenter(vectors, isFlatten = False):
+def GetBoundingSphereRadiusCenter(vectors, isFlatten=False):
     minX = sys.maxint
     minY = sys.maxint
     minZ = sys.maxint
@@ -237,7 +238,7 @@ def ToggleMap(*args, **kwds):
             viewSvc.ActivateView('starmap', **kwds)
 
 
-def OpenMap(interestID = None, hightlightedSolarSystems = None, drawRoute = None, starColorMode = None, **kwds):
+def OpenMap(interestID=None, hightlightedSolarSystems=None, drawRoute=None, starColorMode=None, **kwds):
     if IsMapBetaPrimary():
         from eve.client.script.ui.shared.mapView.mapViewPanel import MapViewPanel
         mapPanel = MapViewPanel.GetPanel()
@@ -252,7 +253,7 @@ def OpenMap(interestID = None, hightlightedSolarSystems = None, drawRoute = None
         sm.GetService('viewState').ActivateView('starmap', interestID=interestID, hightlightedSolarSystems=hightlightedSolarSystems, drawRoute=drawRoute, starColorMode=starColorMode)
 
 
-def UpdateDebugOutput(debugOutput, camera = None, mapView = None, **kwds):
+def UpdateDebugOutput(debugOutput, camera=None, mapView=None, **kwds):
     debugText = ''
     if mapView:
         debugText += '<br>MapViewID %s' % mapView.mapViewID
@@ -265,7 +266,7 @@ def UpdateDebugOutput(debugOutput, camera = None, mapView = None, **kwds):
     debugOutput.text = debugText
 
 
-def CreateLineSet(pickEnabled = False, texturePath = None):
+def CreateLineSet(pickEnabled=False, texturePath=None):
     lineSet = trinity.EveCurveLineSet()
     tex2D = trinity.TriTextureParameter()
     tex2D.name = 'TexMap'
@@ -280,7 +281,7 @@ def CreateLineSet(pickEnabled = False, texturePath = None):
     return lineSet
 
 
-def CreatePlanarLineSet(pickEnabled = False, texturePath = None):
+def CreatePlanarLineSet(pickEnabled=False, texturePath=None):
     lineSet = trinity.EveCurveLineSet()
     lineSet.lineEffect = trinity.Tr2Effect()
     lineSet.lineEffect.effectFilePath = 'res:/Graphics/Effect/Managed/Space/SpecialFX/Lines/Lines3DPlanar.fx'
@@ -332,7 +333,7 @@ def CreateParticles():
     return (particleTransform, particles, distanceFadeControl)
 
 
-def DrawLineSetCircle(lineSet, centerPosition, outerPosition, segmentSize, lineColor = (0.3, 0.3, 0.3, 0.5), lineWeight = 2.0, animationSpeed = 0.0, dashSegments = 0, dashColor = None):
+def DrawLineSetCircle(lineSet, centerPosition, outerPosition, segmentSize, lineColor=(0.3, 0.3, 0.3, 0.5), lineWeight=2.0, animationSpeed=0.0, dashSegments=0, dashColor=None):
     orbitPos = geo2.Vector(*outerPosition)
     parentPos = geo2.Vector(*centerPosition)
     dirVec = orbitPos - parentPos
@@ -365,7 +366,7 @@ def DrawLineSetCircle(lineSet, centerPosition, outerPosition, segmentSize, lineC
     return lineIDs
 
 
-def DrawCircle(lineSet, centerPosition, radius, arcSegments = 4, startColor = (0.3, 0.3, 0.3, 0.5), endColor = (0.3, 0.3, 0.3, 0.5), **kwds):
+def DrawCircle(lineSet, centerPosition, radius, arcSegments=4, startColor=(0.3, 0.3, 0.3, 0.5), endColor=(0.3, 0.3, 0.3, 0.5), **kwds):
     lineIDs = set()
     arcAngle = math.pi * 2 / float(arcSegments)
     stepSize = 1.0 / float(arcSegments)
@@ -380,7 +381,7 @@ def DrawCircle(lineSet, centerPosition, radius, arcSegments = 4, startColor = (0
     return lineIDs
 
 
-def DrawCircularArc(lineSet, centerPosition, radius, angle, startAngle = 0.0, lineWidth = 1.0, startColor = (0.3, 0.3, 0.3, 0.5), endColor = (0.3, 0.3, 0.3, 0.5)):
+def DrawCircularArc(lineSet, centerPosition, radius, angle, startAngle=0.0, lineWidth=1.0, startColor=(0.3, 0.3, 0.3, 0.5), endColor=(0.3, 0.3, 0.3, 0.5)):
     cos = math.cos(startAngle)
     sin = math.sin(startAngle)
     p1 = geo2.Vec3Add(centerPosition, (-radius * cos, 0.0, -radius * sin))
@@ -390,3 +391,9 @@ def DrawCircularArc(lineSet, centerPosition, radius, angle, startAngle = 0.0, li
     lineID = lineSet.AddSpheredLineCrt(p1, startColor, p2, endColor, centerPosition, lineWidth)
     lineSet.ChangeLineSegmentation(lineID, int(math.degrees(angle)))
     return lineID
+
+
+def TryGetPosFromItemID(homeStationID, solarsystemID):
+    locationInfo = cfg.evelocations.Get(homeStationID)
+    if locationInfo.solarSystemID == solarsystemID and (locationInfo.x, locationInfo.y, locationInfo.z) != (0, 0, 0):
+        return (locationInfo.x, locationInfo.y, locationInfo.z)

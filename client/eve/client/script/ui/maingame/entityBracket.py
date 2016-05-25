@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\client\script\ui\maingame\entityBracket.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\client\script\ui\maingame\entityBracket.py
 import uiprimitives
 import uicontrols
 import carbonui.const as uiconst
@@ -52,6 +53,7 @@ class EntityBracket(uiprimitives.BoundingBoxBracket):
             rotation += math.pi / 2
 
         self.treeCont = uiprimitives.Container(name='treeCont', parent=self, state=uiconst.UI_DISABLED)
+        return
 
     def Close(self):
         uiprimitives.BoundingBoxBracket.Close(self)
@@ -62,6 +64,7 @@ class EntityBracket(uiprimitives.BoundingBoxBracket):
         self.cornersCont.OnMouseMove = None
         self.cornersCont.OnClick = None
         self.cornersCont.GetMenu = None
+        return
 
     def OnMouseEnter(self, *args):
         if self.hideThread:
@@ -74,6 +77,7 @@ class EntityBracket(uiprimitives.BoundingBoxBracket):
         if self.buttonCont.state == uiconst.UI_DISABLED:
             self.ShowActions()
         self.AnimBlinkCornersIn()
+        return
 
     def ShowActions(self):
         self.buttonCont.Flush()
@@ -174,6 +178,7 @@ class EntityBracket(uiprimitives.BoundingBoxBracket):
         if self.updateThread:
             self.updateThread.kill()
             self.updateThread = None
+        return
 
     def HideThread(self):
         while True:
@@ -210,7 +215,7 @@ class EntityBracket(uiprimitives.BoundingBoxBracket):
     def OnMouseMove(self, *args):
         sm.GetService('mouseInput').OnMouseMove(uicore.uilib.dx, uicore.uilib.dy, self.entity.entityID)
 
-    def AnimBlinkCornersIn(self, sleep = False):
+    def AnimBlinkCornersIn(self, sleep=False):
         self.StopAnimations()
         self.opacity = 1.0
         uicore.animations.FadeTo(obj=self.cornersCont, startVal=0.0, endVal=1.0, duration=0.1, loops=4, sleep=sleep)
@@ -231,6 +236,7 @@ class EntityBracket(uiprimitives.BoundingBoxBracket):
 
         if activeActionCount == 1:
             aoSvc.TriggerActionOnObject(session.charid, self.entity.entityID, activeActionID)
+        return
 
     def GetMenu(self):
         return sm.GetService('contextMenuClient').GetMenuForEntityID(self.entity.entityID)

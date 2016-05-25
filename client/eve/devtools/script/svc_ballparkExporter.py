@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\devtools\script\svc_ballparkExporter.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\devtools\script\svc_ballparkExporter.py
 import evetypes
 import form
 import carbonui.const as uiconst
@@ -27,6 +28,7 @@ class BallparkExporter(uicontrols.Window):
         uicontrols.Button(parent=buttonCont, align=uiconst.TOLEFT, label='Start', func=self.StartExport)
         uicontrols.Button(parent=buttonCont, align=uiconst.TOLEFT, label='Stop', func=self.StopExport)
         self.statusLabel = uicontrols.Label(parent=self.mainCont, align=uiconst.TOTOP, top=10, text='', state=uiconst.UI_NORMAL)
+        return
 
     def StartExport(self, *args):
         url = self.exportUrlEdit.GetText()
@@ -66,20 +68,22 @@ class BallparkExporterSvc(Service):
 
     def ExportTask(self, url):
         try:
-            self.UpdateState('Exporter loop starting')
-            bp = sm.GetService('michelle').GetBallpark()
-            self.exportCategories = (6, 18)
-            self.exportGroups = (12, 186)
-            lastTime = -1
-            while self.exportActive:
-                if lastTime != bp.currentTime:
-                    lastTime = bp.currentTime
-                    self.ExportToUrl(bp, url)
-                blue.pyos.synchro.SleepSim(300)
+            try:
+                self.UpdateState('Exporter loop starting')
+                bp = sm.GetService('michelle').GetBallpark()
+                self.exportCategories = (6, 18)
+                self.exportGroups = (12, 186)
+                lastTime = -1
+                while self.exportActive:
+                    if lastTime != bp.currentTime:
+                        lastTime = bp.currentTime
+                        self.ExportToUrl(bp, url)
+                    blue.pyos.synchro.SleepSim(300)
 
-            self.UpdateState('Export stopped')
-        except Exception as e:
-            self.UpdateState('<color=red>Something went wrong! %s' % e)
+                self.UpdateState('Export stopped')
+            except Exception as e:
+                self.UpdateState('<color=red>Something went wrong! %s' % e)
+
         finally:
             self.exportActive = False
 

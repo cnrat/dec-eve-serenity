@@ -1,11 +1,12 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\client\script\ui\shared\fitting\fittingController.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\client\script\ui\shared\fitting\fittingController.py
 from collections import defaultdict
 import sys
 from carbon.common.script.util.logUtil import LogInfo, LogException
 from eve.client.script.environment.t3shipSvc import NotEnoughSubSystems
-from eve.client.script.ui.shared.fitting.fittingSlotController import FittingSlotController, ShipFittingSlotController
+from eve.client.script.ui.shared.fitting.fittingSlotController import FittingSlotController, ShipFittingSlotController, StructureFittingSlotController, StructureFittingServiceSlotController
 from eve.client.script.ui.shared.fitting.fittingStatsChanges import FittingStatsChanges
-from eve.client.script.ui.shared.fitting.fittingUtil import IsCharge, ModifiedAttribute, NUM_SUBSYSTEM_SLOTS, TryFit, GHOST_FITTABLE_GROUPS, GetShipAttributeWithDogmaLocation
+from eve.client.script.ui.shared.fitting.fittingUtil import IsCharge, ModifiedAttribute, NUM_SUBSYSTEM_SLOTS, TryFit, GHOST_FITTABLE_GROUPS, GetShipAttributeWithDogmaLocation, GetBaseShapeSize
 import dogma.const as dogmaConst
 from eve.client.script.ui.shared.fittingGhost.controllerGhostFittingExtension import FittingControllerGhostFittingExtension
 from eve.client.script.ui.util.uix import skillfittingTutorial
@@ -14,14 +15,34 @@ from inventorycommon.util import IsShipFittingFlag, IsModularShip
 import shipmode
 import carbonui.const as uiconst
 import inventorycommon.const as invConst
-import inventorycommon.typeHelpers
 import evetypes
 import signals
+
+def GetFittingController(itemID):
+    if IsItemStructure(itemID):
+        item = sm.GetService('godma').GetItem(itemID)
+        return StructureFittingController(itemID, item.typeID)
+    else:
+        return ShipFittingController(itemID)
+
+
+def IsItemStructure(itemID):
+    item = sm.GetService('godma').GetItem(itemID)
+    isItemStructure = bool(item and item.categoryID == const.categoryStructure)
+    return isItemStructure
+
+
+def IsStructure(controller):
+    if isinstance(controller, StructureFittingController):
+        return True
+    return False
+
 
 class FittingController(object):
     __notifyevents__ = ['OnDogmaAttributeChanged',
      'OnStanceActive',
      'OnDogmaItemChange',
+     'OnGodmaFlushLocation',
      'OnAttributes',
      'OnAttribute',
      'ProcessActiveShipChanged',
@@ -35,7 +56,7 @@ class FittingController(object):
      4: (287.0, 31.0)}
     SLOT_CLASS = FittingSlotController
 
-    def __init__(self, itemID, typeID = None):
+    def __init__(self, itemID, typeID=None):
         sm.RegisterNotify(self)
         self.ghostFittingExtension = FittingControllerGhostFittingExtension()
         self._itemID = itemID
@@ -52,11 +73,16 @@ class FittingController(object):
         self.on_name_changed = signals.Signal()
         self.on_skin_material_changed = signals.Signal()
         self.on_stance_activated = signals.Signal()
+        self.on_should_close = signals.Signal()
         self.on_slots_with_menu_changed = signals.Signal()
         self.slotsByFlagID = {}
         self.slotFlagWithMenu = None
         self.ConstructSlotControllers()
         self._UpdateSkinMaterial()
+        return
+
+    def GetSlotClass(self, flagID):
+        return self.SLOT_CLASS
 
     def SetDogmaLocation(self):
         if self.IsSimulated():
@@ -75,13 +101,15 @@ class FittingController(object):
             group = []
             for i, flagID in enumerate(flagIDs):
                 invItem = self.GetFittedModulesByFlagID().get(flagID, None)
-                slotController = self.SLOT_CLASS(flagID=flagID, parentController=self)
+                slotClass = self.GetSlotClass(flagID)
+                slotController = slotClass(flagID=flagID, parentController=self)
                 self.slotsByFlagID[flagID] = slotController
                 group.append(slotController)
 
             self.slotsByGroups[groupIdx] = group
 
         self._UpdateSlots()
+        return
 
     def GetSlotsByGroups(self):
         return self.slotsByGroups
@@ -104,8 +132,11 @@ class FittingController(object):
         chargeItemID = charge.itemID if charge else None
         moduleItemID = module.itemID if module else None
         slot.SetModuleAndChargeIDs(moduleItemID, chargeItemID)
+        return
 
-    def UpdateItem(self, itemID, typeID = None):
+    def UpdateItem(self, itemID, typeID=None):
+        if IsItemStructure(self._itemID) != IsItemStructure(itemID):
+            self.on_should_close()
         self._itemID = itemID
         self._typeID = typeID
         self._UpdateSkinMaterial()
@@ -115,6 +146,7 @@ class FittingController(object):
     def _UpdateSkinMaterial(self):
         skin = sm.GetService('skinSvc').GetAppliedSkin(session.charid, self._itemID, self._typeID)
         self._skinMaterialSetID = skin.materialSetID if skin else None
+        return
 
     def SetSkinMaterialSetID(self, materialSetID):
         if materialSetID == self._skinMaterialSetID:
@@ -136,6 +168,9 @@ class FittingController(object):
             return self._typeID
         return self._GetDogmaItem().typeID
 
+    def IsShip(self):
+        return evetypes.GetCategoryID(self.GetTypeID()) == const.categoryShip
+
     def GetModelDNA(self):
         return BuildSOFDNAFromTypeID(self.GetTypeID(), materialSetID=self._skinMaterialSetID)
 
@@ -145,7 +180,7 @@ class FittingController(object):
     def GetFittedModules(self):
         return self._GetDogmaItem().GetFittedItems().values()
 
-    def SetGhostFittedItem(self, ghostItem = None):
+    def SetGhostFittedItem(self, ghostItem=None):
         if ghostItem and evetypes.GetCategoryID(ghostItem.typeID) not in GHOST_FITTABLE_GROUPS:
             return
         if self.IsSwitchingShips():
@@ -201,7 +236,7 @@ class FittingController(object):
         hiSlotAddition = 0
         medSlotAddition = 0
         lowSlotAddition = 0
-        if self.GetItemID():
+        if self.GetItemID() and self.IsShip():
             subSystemSlot = typeAttributesByID.get(dogmaConst.attributeSubSystemSlot, None)
             if subSystemSlot is not None:
                 slotOccupant = self.dogmaLocation.GetSubSystemInFlag(self.GetItemID(), int(subSystemSlot))
@@ -216,7 +251,7 @@ class FittingController(object):
     def GetHardpointAdditionInfo(self, typeAttributesByID):
         turretAddition = 0
         launcherAddition = 0
-        if self.GetItemID():
+        if self.GetItemID() and self.IsShip():
             subSystemSlot = typeAttributesByID.get(dogmaConst.attributeSubSystemSlot, None)
             if subSystemSlot is not None:
                 slotOccupant = self.dogmaLocation.GetSubSystemInFlag(self.GetItemID(), int(subSystemSlot))
@@ -257,27 +292,32 @@ class FittingController(object):
         if cfgname == 'evelocations' and entry[0] == self.GetItemID():
             self.on_name_changed()
 
+    def OnGodmaFlushLocation(self, locationID):
+        pass
+
     def OnDogmaItemChange(self, item, change):
         locationOrFlagIsInChange = const.ixFlag in change or const.ixLocationID in change
         didStacksizeFlagOrLocationChange = const.ixStackSize in change or locationOrFlagIsInChange
         if not didStacksizeFlagOrLocationChange:
             return
-        oldLocationID = change.get(const.ixLocationID, None)
-        if self.GetItemID() not in (oldLocationID, item.locationID):
+        else:
+            oldLocationID = change.get(const.ixLocationID, None)
+            if self.GetItemID() not in (oldLocationID, item.locationID):
+                return
+            if item.groupID in const.turretModuleGroups:
+                self.on_hardpoints_fitted()
+            updateSlotsAndStats = False
+            if self._IsSubsystemBeingLoaded(change, item):
+                self.on_subsystem_fitted(throttle=True)
+                updateSlotsAndStats = True
+            elif locationOrFlagIsInChange:
+                updateSlotsAndStats = True
+            if updateSlotsAndStats:
+                self._UpdateSlots()
+                self.on_stats_changed()
             return
-        if item.groupID in const.turretModuleGroups:
-            self.on_hardpoints_fitted()
-        updateSlotsAndStats = False
-        if self._IsSubsystemBeingLoaded(change, item):
-            self.on_subsystem_fitted(throttle=True)
-            updateSlotsAndStats = True
-        elif locationOrFlagIsInChange:
-            updateSlotsAndStats = True
-        if updateSlotsAndStats:
-            self._UpdateSlots()
-            self.on_stats_changed()
 
-    def OnAttribute(self, attributeName, item, value, updateStats = 1):
+    def OnAttribute(self, attributeName, item, value, updateStats=1):
         self.WaitForShip()
         try:
             self.GetService('godma').GetItem(item.itemID)
@@ -330,21 +370,25 @@ class FittingController(object):
         sm.UnregisterNotify(self)
 
     def OnDropData(self, dragObj, nodes):
-        skills = sm.GetService('skills').GetSkills()
-        for node in nodes:
-            if node.Get('__guid__', None) in ('xtriui.InvItem', 'listentry.InvItem'):
-                requiredSkills = sm.GetService('skills').GetRequiredSkills(node.rec.typeID)
-                for skillID, level in requiredSkills.iteritems():
-                    if getattr(skills.get(skillID, None), 'skillLevel', 0) < level:
-                        sm.GetService('tutorial').OpenTutorialSequence_Check(skillfittingTutorial)
-                        break
+        if not sm.GetService('invCache').AcceptPossibleRemovalTax([ n.item for n in nodes ]):
+            return
+        else:
+            skills = sm.GetService('skills').GetSkills()
+            for node in nodes:
+                if node.Get('__guid__', None) in ('xtriui.InvItem', 'listentry.InvItem'):
+                    requiredSkills = sm.GetService('skills').GetRequiredSkills(node.rec.typeID)
+                    for skillID, level in requiredSkills.iteritems():
+                        if getattr(skills.get(skillID, None), 'skillLevel', 0) < level:
+                            sm.GetService('tutorial').OpenTutorialSequence_Check(skillfittingTutorial)
+                            break
 
-        recs = []
-        for node in nodes:
-            if getattr(node, 'rec', None):
-                recs.append(node.rec)
+            recs = []
+            for node in nodes:
+                if getattr(node, 'rec', None):
+                    recs.append(node.rec)
 
-        TryFit(recs)
+            TryFit(recs, self.GetItemID())
+            return
 
     def OnStanceActive(self, shipID, stanceID):
         if self._itemID == shipID:
@@ -397,10 +441,12 @@ class FittingController(object):
     def HasStance(self):
         return shipmode.ship_has_stances(self.GetTypeID())
 
-    def StripFitting(self, prompt = True):
+    def StripFitting(self, prompt=True):
         if prompt and uicore.Message('AskStripShip', None, uiconst.YESNO, suppress=uiconst.ID_YES) != uiconst.ID_YES:
             return
-        sm.GetService('invCache').GetInventoryFromId(self.GetItemID()).StripFitting()
+        else:
+            sm.GetService('invCache').GetInventoryFromId(self.GetItemID()).StripFitting()
+            return
 
     def GetCharges(self):
         return self.dogmaLocation.GetSublocations(self.GetItemID())
@@ -434,6 +480,7 @@ class FittingController(object):
         if self.ghostFittedItem:
             return self.ghostFittedItem.typeID
         else:
+            return None
             return None
 
     def GetPowerLoad(self):
@@ -495,10 +542,16 @@ class FittingController(object):
     def GetCurrentAttributeValues(self):
         return {}
 
+    def IsFittableType(self, typeID):
+        return False
+
     def SetSlotWithMenu(self, newFlagID):
         oldFlagID = self.slotFlagWithMenu
         self.slotFlagWithMenu = newFlagID
         self.on_slots_with_menu_changed(oldFlagID, newFlagID)
+
+    def HasFighterBay(self):
+        return self.dogmaLocation.GetAccurateAttributeValue(self.GetItemID(), const.attributeFighterCapacity)
 
 
 class ShipFittingController(FittingController):
@@ -508,3 +561,24 @@ class ShipFittingController(FittingController):
      (2, invConst.loSlotFlags),
      (3, invConst.subSystemSlotFlags),
      (4, invConst.rigSlotFlags))
+
+    def IsFittableType(self, typeID):
+        return evetypes.GetCategoryID(typeID) in (const.categoryCharge, const.categorySubSystem, const.categoryModule)
+
+
+class StructureFittingController(FittingController):
+    SLOT_CLASS = StructureFittingSlotController
+    SLOT_CLASS_SERVICES = StructureFittingServiceSlotController
+    SLOTGROUPS = ((0, invConst.hiSlotFlags),
+     (1, invConst.medSlotFlags),
+     (2, invConst.loSlotFlags),
+     (4, invConst.rigSlotFlags),
+     (-1, invConst.serviceSlotFlags))
+
+    def IsFittableType(self, typeID):
+        return evetypes.GetCategoryID(typeID) in (const.categoryStructureModule, const.categoryCharge)
+
+    def GetSlotClass(self, flagID):
+        if flagID in invConst.serviceSlotFlags:
+            return self.SLOT_CLASS_SERVICES
+        return self.SLOT_CLASS

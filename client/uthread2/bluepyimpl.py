@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\packages\uthread2\bluepyimpl.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\packages\uthread2\bluepyimpl.py
 import blue
 from stacklesslib import locks, main
 from stackless import getcurrent
@@ -42,13 +43,15 @@ class _BluepyUthread(BaseUthreadImpl):
     def yield_(self):
         blue.synchro.Yield()
         main.mainloop.wakeup_tasklets(None)
+        return
 
     def get_current(self):
         current = getcurrent()
         result = getattr(current, 'localStorage', {}).get('uthread2_tasklet', None)
         if result:
             return result()
-        return _BluepyAutoTasklet(current)
+        else:
+            return _BluepyAutoTasklet(current)
 
     def Event(self):
         return locks.Event()

@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\carbon\common\stdlib\inspect.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\carbon\common\stdlib\inspect.py
 __author__ = 'Ka-Ping Yee <ping@lfw.org>'
 __date__ = '1 Jan 2001'
 import sys
@@ -96,7 +97,7 @@ def isabstract(object):
     return bool(isinstance(object, type) and object.__flags__ & TPFLAGS_IS_ABSTRACT)
 
 
-def getmembers(object, predicate = None):
+def getmembers(object, predicate=None):
     results = []
     for key in dir(object):
         try:
@@ -177,7 +178,8 @@ def getdoc(object):
 
     if not isinstance(doc, types.StringTypes):
         return None
-    return cleandoc(doc)
+    else:
+        return cleandoc(doc)
 
 
 def cleandoc(doc):
@@ -206,6 +208,7 @@ def cleandoc(doc):
         lines.pop(0)
 
     return string.join(lines, '\n')
+    return None
 
 
 def getfile(object):
@@ -261,13 +264,15 @@ def getsourcefile(object):
 
     if os.path.exists(filename):
         return filename
-    if hasattr(getmodule(object, filename), '__loader__'):
+    elif hasattr(getmodule(object, filename), '__loader__'):
         return filename
-    if filename in linecache.cache:
+    elif filename in linecache.cache:
         return filename
+    else:
+        return None
 
 
-def getabsfile(object, _filename = None):
+def getabsfile(object, _filename=None):
     if _filename is None:
         _filename = getsourcefile(object) or getfile(object)
     return os.path.normcase(os.path.abspath(_filename))
@@ -276,43 +281,45 @@ def getabsfile(object, _filename = None):
 modulesbyfile = {}
 _filesbymodname = {}
 
-def getmodule(object, _filename = None):
+def getmodule(object, _filename=None):
     if ismodule(object):
         return object
-    if hasattr(object, '__module__'):
+    elif hasattr(object, '__module__'):
         return sys.modules.get(object.__module__)
-    if _filename is not None and _filename in modulesbyfile:
+    elif _filename is not None and _filename in modulesbyfile:
         return sys.modules.get(modulesbyfile[_filename])
-    try:
-        file = getabsfile(object, _filename)
-    except TypeError:
-        return
+    else:
+        try:
+            file = getabsfile(object, _filename)
+        except TypeError:
+            return
 
-    if file in modulesbyfile:
-        return sys.modules.get(modulesbyfile[file])
-    for modname, module in sys.modules.items():
-        if ismodule(module) and hasattr(module, '__file__'):
-            f = module.__file__
-            if f == _filesbymodname.get(modname, None):
-                continue
-            _filesbymodname[modname] = f
-            f = getabsfile(module)
-            modulesbyfile[f] = modulesbyfile[os.path.realpath(f)] = module.__name__
+        if file in modulesbyfile:
+            return sys.modules.get(modulesbyfile[file])
+        for modname, module in sys.modules.items():
+            if ismodule(module) and hasattr(module, '__file__'):
+                f = module.__file__
+                if f == _filesbymodname.get(modname, None):
+                    continue
+                _filesbymodname[modname] = f
+                f = getabsfile(module)
+                modulesbyfile[f] = modulesbyfile[os.path.realpath(f)] = module.__name__
 
-    if file in modulesbyfile:
-        return sys.modules.get(modulesbyfile[file])
-    main = sys.modules['__main__']
-    if not hasattr(object, '__name__'):
+        if file in modulesbyfile:
+            return sys.modules.get(modulesbyfile[file])
+        main = sys.modules['__main__']
+        if not hasattr(object, '__name__'):
+            return
+        if hasattr(main, object.__name__):
+            mainobject = getattr(main, object.__name__)
+            if mainobject is object:
+                return main
+        builtin = sys.modules['__builtin__']
+        if hasattr(builtin, object.__name__):
+            builtinobject = getattr(builtin, object.__name__)
+            if builtinobject is object:
+                return builtin
         return
-    if hasattr(main, object.__name__):
-        mainobject = getattr(main, object.__name__)
-        if mainobject is object:
-            return main
-    builtin = sys.modules['__builtin__']
-    if hasattr(builtin, object.__name__):
-        builtinobject = getattr(builtin, object.__name__)
-        if builtinobject is object:
-            return builtin
 
 
 def findsource(object):
@@ -408,6 +415,7 @@ def getcomments(object):
                 comments[-1:] = []
 
             return string.join(comments, '')
+    return None
 
 
 class EndOfBlock(Exception):
@@ -484,7 +492,7 @@ def walktree(classes, children, parent):
     return results
 
 
-def getclasstree(classes, unique = 0):
+def getclasstree(classes, unique=0):
     children = {}
     roots = []
     for c in classes:
@@ -583,14 +591,14 @@ def joinseq(seq):
         return '(' + string.join(seq, ', ') + ')'
 
 
-def strseq(object, convert, join = joinseq):
+def strseq(object, convert, join=joinseq):
     if type(object) in (list, tuple):
-        return join(map(lambda o, c = convert, j = join: strseq(o, c, j), object))
+        return join(map(lambda o, c=convert, j=join: strseq(o, c, j), object))
     else:
         return convert(object)
 
 
-def formatargspec(args, varargs = None, varkw = None, defaults = None, formatarg = str, formatvarargs = lambda name: '*' + name, formatvarkw = lambda name: '**' + name, formatvalue = lambda value: '=' + repr(value), join = joinseq):
+def formatargspec(args, varargs=None, varkw=None, defaults=None, formatarg=str, formatvarargs=lambda name: '*' + name, formatvarkw=lambda name: '**' + name, formatvalue=lambda value: '=' + repr(value), join=joinseq):
     specs = []
     if defaults:
         firstdefault = len(args) - len(defaults)
@@ -607,9 +615,9 @@ def formatargspec(args, varargs = None, varkw = None, defaults = None, formatarg
     return '(' + string.join(specs, ', ') + ')'
 
 
-def formatargvalues(args, varargs, varkw, locals, formatarg = str, formatvarargs = lambda name: '*' + name, formatvarkw = lambda name: '**' + name, formatvalue = lambda value: '=' + repr(value), join = joinseq):
+def formatargvalues(args, varargs, varkw, locals, formatarg=str, formatvarargs=lambda name: '*' + name, formatvarkw=lambda name: '**' + name, formatvalue=lambda value: '=' + repr(value), join=joinseq):
 
-    def convert(name, locals = locals, formatarg = formatarg, formatvalue = formatvalue):
+    def convert(name, locals=locals, formatarg=formatarg, formatvalue=formatvalue):
         return formatarg(name) + formatvalue(locals[name])
 
     specs = []
@@ -709,7 +717,7 @@ def getcallargs(func, *positional, **named):
 
 Traceback = namedtuple('Traceback', 'filename lineno function code_context index')
 
-def getframeinfo(frame, context = 1):
+def getframeinfo(frame, context=1):
     if istraceback(frame):
         lineno = frame.tb_lineno
         frame = frame.tb_frame
@@ -739,7 +747,7 @@ def getlineno(frame):
     return frame.f_lineno
 
 
-def getouterframes(frame, context = 1):
+def getouterframes(frame, context=1):
     framelist = []
     while frame:
         framelist.append((frame,) + getframeinfo(frame, context))
@@ -748,7 +756,7 @@ def getouterframes(frame, context = 1):
     return framelist
 
 
-def getinnerframes(tb, context = 1):
+def getinnerframes(tb, context=1):
     framelist = []
     while tb:
         framelist.append((tb.tb_frame,) + getframeinfo(tb, context))
@@ -760,11 +768,11 @@ def getinnerframes(tb, context = 1):
 if hasattr(sys, '_getframe'):
     currentframe = sys._getframe
 else:
-    currentframe = lambda _ = None: None
+    currentframe = lambda _=None: None
 
-def stack(context = 1):
+def stack(context=1):
     return getouterframes(sys._getframe(1), context)
 
 
-def trace(context = 1):
+def trace(context=1):
     return getinnerframes(sys.exc_info()[2], context)

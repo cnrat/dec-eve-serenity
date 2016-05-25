@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\carbon\common\script\cef\componentViews\paperDollComponentView.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\carbon\common\script\cef\componentViews\paperDollComponentView.py
 from carbon.common.script.cef.baseComponentView import BaseComponentView
 
 class PaperDollComponentView(BaseComponentView):
@@ -17,6 +18,7 @@ class PaperDollComponentView(BaseComponentView):
         cls._AddInput(cls.GENDER, None, cls.RECIPE, const.cef.COMPONENTDATA_ARBITRARY_DROPDOWN_TYPE, callback=cls._GetGenderTypesEnum, displayName='Gender')
         cls._AddInput(cls.DNA, None, cls.RUNTIME, const.cef.COMPONENTDATA_NON_PRIMITIVE_TYPE, displayName='DNA')
         cls._AddInput(cls.TYPE_ID, 0, cls.RUNTIME, const.cef.COMPONENTDATA_ID_TYPE, displayName='Type ID')
+        return
 
     @staticmethod
     def _GetGenderTypesEnum(*args):

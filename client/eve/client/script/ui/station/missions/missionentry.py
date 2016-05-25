@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\client\script\ui\station\missions\missionentry.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\client\script\ui\station\missions\missionentry.py
 import localization
 import uiprimitives
 import uicontrols
@@ -15,6 +16,7 @@ class VirtualBaseMissionEntry(uicontrols.SE_BaseClassCore):
     def Startup(self, *etc):
         self.sr.label = uicontrols.EveLabelMedium(text='', parent=self, left=5, state=uiconst.UI_DISABLED, color=None, maxLines=1, align=uiconst.CENTERLEFT)
         self.sr.line = uiprimitives.Container(name='lineparent', align=uiconst.TOBOTTOM, parent=self, height=1)
+        return
 
     def GetHeight(_self, *args):
         node, width = args
@@ -24,6 +26,7 @@ class VirtualBaseMissionEntry(uicontrols.SE_BaseClassCore):
     def OnSelect(self, *args):
         if getattr(self, 'OnSelectCallback', None):
             apply(self.OnSelectCallback, args)
+        return
 
     def OnClick(self, *args):
         self.sr.node.scroll.SelectNode(self.sr.node)

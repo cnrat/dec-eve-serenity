@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\packages\carbonui\control\dragResizeCont.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\packages\carbonui\control\dragResizeCont.py
 import carbonui.const as uiconst
 from carbonui.primitives.container import Container
 
@@ -55,6 +56,7 @@ class DragResizeCont(Container):
         self.dragArea.OnMouseUp = self.OnDragAreaMouseUp
         self.dragArea.OnMouseMove = self.OnDragAreaMouseMove
         self.mainCont = Container(parent=self, name='mainCont')
+        return
 
     def _GetPos(self):
         if self.isHorizontal:
@@ -138,7 +140,7 @@ class DragResizeCont(Container):
         width, height = self.GetAbsoluteSize()
         self._UpdateSize(width, height)
 
-    def _UpdateSize(self, width = None, height = None):
+    def _UpdateSize(self, width=None, height=None):
         if not self.pickState:
             return
         size = width if self.isHorizontal else height

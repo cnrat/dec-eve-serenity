@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\packages\carbonui\services\settingsSvc.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\packages\carbonui\services\settingsSvc.py
 import blue
 import service
 import marshal
@@ -62,7 +63,6 @@ class SettingsSvc(service.Service):
              'shadowQuality',
              'lodQuality',
              'hdrEnabled',
-             'loadstationenv2',
              'resourceCacheEnabled',
              'postProcessingQuality',
              'resourceCacheEnabled',
@@ -123,6 +123,7 @@ class SettingsSvc(service.Service):
         if 'charid' in change and change['charid'][0] is None:
             self.LoadSettings()
             self.UpdateSettingsStatistics()
+        return
 
 
 def SettingsInfo():

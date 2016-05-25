@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\client\script\ui\login\characterCreationLayer.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\client\script\ui\login\characterCreationLayer.py
 from charactercreator.client.logging.stepLogger import StepLogger, StepInfoEventServiceLogger, FinalStepLogger, FinalStepInfoEventServiceLogger
 from eve.client.script.ui.login.charcreation.bloodlineDollLoader import BloodlineDollLoader
 from eve.client.script.ui.login.charcreation.portraitMaker import PortraitMaker, PortraitCameraConfigurator
@@ -73,7 +74,7 @@ class CharacterCreationLayer(uicls.LayerCore):
         if self.stepID == ccConst.BLOODLINESTEP:
             self.CorrectBloodlinePlacement()
 
-    def OnDisconnect(self, reason = 0, msg = ''):
+    def OnDisconnect(self, reason=0, msg=''):
         disconnectNotice = DisconnectNotice(logProvider=self)
         disconnectNotice.OnDisconnect(reason, msg)
 
@@ -147,12 +148,14 @@ class CharacterCreationLayer(uicls.LayerCore):
         sm.GetService('dynamicMusic').UpdateDynamicMusic()
         self.stepLogger = StepLogger(blue.os.GetWallclockTime)
         self.finalStepLogger = None
+        return
 
     def LogFinalResultsIfNeededAndDestroy(self):
         if self.finalStepLogger is not None:
             finalStepLogger = FinalStepInfoEventServiceLogger(sm.GetService('infoGatheringSvc').LogInfoEvent, sessionID=session.sid, userID=session.userid)
             finalStepLogger.LogFinalStepObjects(self.finalStepLogger.GetFinalStepResult())
             self.finalStepLogger = None
+        return
 
     def CreateANewFinalStepLogger(self):
         self.LogFinalResultsIfNeededAndDestroy()
@@ -200,6 +203,7 @@ class CharacterCreationLayer(uicls.LayerCore):
         self.Flush()
         self.CreateUI()
         self.SwitchStep(self.stepID)
+        return
 
     def OnHelpMouseEnter(self, btn, *args):
         btn.sr.icon.SetAlpha(1.0)
@@ -240,7 +244,7 @@ class CharacterCreationLayer(uicls.LayerCore):
         else:
             self.HideHelpText()
 
-    def SetHintText(self, modifier, hintText = ''):
+    def SetHintText(self, modifier, hintText=''):
         if self.stepID in (ccConst.CUSTOMIZATIONSTEP, ccConst.PORTRAITSTEP):
             self.sr.step.SetHintText(modifier, hintText)
 
@@ -257,7 +261,7 @@ class CharacterCreationLayer(uicls.LayerCore):
         return mode
 
     @telemetry.ZONE_METHOD
-    def SetCharDetails(self, charID = None, gender = None, bloodlineID = None, dollState = None):
+    def SetCharDetails(self, charID=None, gender=None, bloodlineID=None, dollState=None):
         self.ClearFacePortrait()
         self.dollState = dollState
         self.dna = None
@@ -283,6 +287,7 @@ class CharacterCreationLayer(uicls.LayerCore):
         self.sr.mainCont.Flush()
         self.stepLogger.Start()
         self.SwitchStep(stepID)
+        return
 
     @telemetry.ZONE_METHOD
     def GetInfo(self):
@@ -357,6 +362,7 @@ class CharacterCreationLayer(uicls.LayerCore):
         self.FadeFromBlack()
         self.UnfreezeAnimationIfNeeded()
         sm.GetService('dynamicMusic').UpdateDynamicMusic()
+        return
 
     def StartStep(self, toStep):
         self.stepLogger.SetStep(toStep)
@@ -390,9 +396,10 @@ class CharacterCreationLayer(uicls.LayerCore):
              'xFactor': self.camera.xFactor,
              'yFactor': self.camera.yFactor,
              'fieldOfView': self.camera.fieldOfView}
+        return
 
     @telemetry.ZONE_METHOD
-    def FadeToBlack(self, why = ''):
+    def FadeToBlack(self, why=''):
         self.ShowLoading(why=why, forceOn=True)
         uicore.effect.CombineEffects(self.sr.blackOut, alpha=1.0, time=500.0)
 
@@ -412,23 +419,24 @@ class CharacterCreationLayer(uicls.LayerCore):
             raise UserError('CCMustSelectRace')
         if self.IsInMinimalMode():
             return True
-        if not (max(self.stepsUsed) >= toStep or max(self.stepsUsed) + 1 == toStep):
-            raise UserError('CCStepUnavailable')
-        if toStep == ccConst.CUSTOMIZATIONSTEP and (self.raceID is None or self.bloodlineID is None or self.genderID is None):
-            raise UserError('CCMustSelectRaceAndBloodline')
-        isNamingStep = self.IsNamingStep(toStep)
-        if (toStep == ccConst.PORTRAITSTEP or isNamingStep) and not prefs.GetValue('ignoreCCValidation', False):
-            info = self.GetInfo()
-            self.ToggleClothes(forcedValue=0)
-            self.characterSvc.ValidateDollCustomizationComplete(info.charID)
-        currentStepID = None
-        if self.sr.step:
-            currentStepID = self.sr.step.stepID
-        if self.IsNamingStep(toStep) and currentStepID != ccConst.PORTRAITSTEP and self.GetActivePortrait() is None:
-            raise UserError('CCStepUnavailable')
-        if self.sr.step:
-            self.sr.step.ValidateStepComplete()
-        return True
+        else:
+            if not (max(self.stepsUsed) >= toStep or max(self.stepsUsed) + 1 == toStep):
+                raise UserError('CCStepUnavailable')
+            if toStep == ccConst.CUSTOMIZATIONSTEP and (self.raceID is None or self.bloodlineID is None or self.genderID is None):
+                raise UserError('CCMustSelectRaceAndBloodline')
+            isNamingStep = self.IsNamingStep(toStep)
+            if (toStep == ccConst.PORTRAITSTEP or isNamingStep) and not prefs.GetValue('ignoreCCValidation', False):
+                info = self.GetInfo()
+                self.ToggleClothes(forcedValue=0)
+                self.characterSvc.ValidateDollCustomizationComplete(info.charID)
+            currentStepID = None
+            if self.sr.step:
+                currentStepID = self.sr.step.stepID
+            if self.IsNamingStep(toStep) and currentStepID != ccConst.PORTRAITSTEP and self.GetActivePortrait() is None:
+                raise UserError('CCStepUnavailable')
+            if self.sr.step:
+                self.sr.step.ValidateStepComplete()
+            return True
 
     @telemetry.ZONE_METHOD
     def Approve(self, *args):
@@ -461,6 +469,7 @@ class CharacterCreationLayer(uicls.LayerCore):
             sm.GetService('loading').ProgressWnd(localization.GetByLabel('UI/CharacterCreation/Registering'), localization.GetByLabel('UI/Generic/Done'), 3, total)
 
         self.tryLoginElseCharacterSelection(charID)
+        return
 
     def CheckAndGetName(self):
         isAvailable = self.sr.step.CheckAvailability()
@@ -506,6 +515,8 @@ class CharacterCreationLayer(uicls.LayerCore):
                 if self and not self.destroyed:
                     self.UnlockEverything()
 
+        return
+
     def SaveAndEnterCurrentCharacter(self, characterName):
         charID = self.SaveCurrentCharacter(characterName, self.bloodlineID, self.genderID, self.activePortraitIndex)
         if charID:
@@ -533,6 +544,8 @@ class CharacterCreationLayer(uicls.LayerCore):
             sm.GetService('loading').ProgressWnd(localization.GetByLabel('UI/CharacterCreation/CharacterSelection'), localization.GetByLabel('UI/CharacterCreation/FailedToEnterGame'), 2, 2)
             uthread.pool('GameUI::ActivateView::charsel', sm.GetService('viewState').ActivateView, 'charsel')
             raise
+
+        return
 
     def OnEsc(self):
         self.Back()
@@ -615,9 +628,10 @@ class CharacterCreationLayer(uicls.LayerCore):
         self.ClearPortraitInfo()
         self.activePortraitIndex = 0
         self.activePortrait = None
+        return
 
     @telemetry.ZONE_METHOD
-    def SelectRace(self, raceID, check = 1):
+    def SelectRace(self, raceID, check=1):
         if self.raceID != raceID:
             oldRaceID = self.raceID
             if check and oldRaceID is not None and ccConst.BLOODLINESTEP in self.stepsUsed:
@@ -641,9 +655,10 @@ class CharacterCreationLayer(uicls.LayerCore):
         if raceAsString:
             everesourceprefetch.ScheduleFront('interior_' + raceAsString)
             everesourceprefetch.ScheduleFront('bloodline_select_' + raceAsString)
+        return
 
     @telemetry.ZONE_METHOD
-    def SelectBloodline(self, bloodlineID, check = 1):
+    def SelectBloodline(self, bloodlineID, check=1):
         if self.bloodlineID != bloodlineID:
             oldBloodlineID = self.bloodlineID
             if check and oldBloodlineID is not None and ccConst.CUSTOMIZATIONSTEP in self.stepsUsed:
@@ -659,24 +674,27 @@ class CharacterCreationLayer(uicls.LayerCore):
                 self.sr.step.OnBloodlineSelected(bloodlineID, oldBloodlineID)
             if self.bloodlineSelector is not None:
                 self.bloodlineSelector.SelectBloodline(bloodlineID)
+        return
 
     @telemetry.ZONE_METHOD
-    def SelectGender(self, genderID, check = 1):
+    def SelectGender(self, genderID, check=1):
         if not self.CanChangeGender():
             return
-        if check and self.genderID not in [None, genderID] and ccConst.CUSTOMIZATIONSTEP in self.stepsUsed:
-            if self.stepID == ccConst.CUSTOMIZATIONSTEP:
-                dnaLog = self.GetDollDNAHistory()
-                if dnaLog and len(dnaLog) > 1:
-                    if eve.Message('CharCreationLoseChangeGender', {}, uiconst.YESNO) != uiconst.ID_YES:
-                        return
-        self.genderID = genderID
-        self.ClearSteps(what='gender')
-        self.ResetClothesStorage()
-        if hasattr(self.sr.step, 'OnGenderSelected'):
-            self.sr.step.OnGenderSelected(genderID)
-        if getattr(self.sr.step.sr, 'historySlider'):
-            self.sr.step.sr.historySlider.LoadHistory(0)
+        else:
+            if check and self.genderID not in [None, genderID] and ccConst.CUSTOMIZATIONSTEP in self.stepsUsed:
+                if self.stepID == ccConst.CUSTOMIZATIONSTEP:
+                    dnaLog = self.GetDollDNAHistory()
+                    if dnaLog and len(dnaLog) > 1:
+                        if eve.Message('CharCreationLoseChangeGender', {}, uiconst.YESNO) != uiconst.ID_YES:
+                            return
+            self.genderID = genderID
+            self.ClearSteps(what='gender')
+            self.ResetClothesStorage()
+            if hasattr(self.sr.step, 'OnGenderSelected'):
+                self.sr.step.OnGenderSelected(genderID)
+            if getattr(self.sr.step.sr, 'historySlider'):
+                self.sr.step.sr.historySlider.LoadHistory(0)
+            return
 
     @telemetry.ZONE_METHOD
     def SelectAncestry(self, ancestryID):
@@ -721,6 +739,7 @@ class CharacterCreationLayer(uicls.LayerCore):
             self.UpdateBackdrop()
             if self.floor:
                 self.floor.display = not gfxsettings.Get(gfxsettings.UI_NCC_GREEN_SCREEN)
+        return
 
     @telemetry.ZONE_METHOD
     def TearDown(self):
@@ -743,6 +762,7 @@ class CharacterCreationLayer(uicls.LayerCore):
         self.animatingToPortraitID = None
         self.freezingAnimation = False
         self.colorCodedBackDrop = None
+        return
 
     @telemetry.ZONE_METHOD
     def StartRaceStep(self):
@@ -762,6 +782,7 @@ class CharacterCreationLayer(uicls.LayerCore):
         self.SetupCameraUpdateJob()
         self.camera.ToggleMode(ccConst.CAMERA_MODE_DEFAULT, avatar=None)
         paperDoll.SkinSpotLightShadows.SetupForCharacterCreator(self.scene)
+        return
 
     @telemetry.ZONE_METHOD
     def StartBloodlineStep(self):
@@ -784,6 +805,7 @@ class CharacterCreationLayer(uicls.LayerCore):
         info = self.GetInfo()
         if info.bloodlineID is not None:
             self.bloodlineSelector.SelectBloodline(info.bloodlineID)
+        return
 
     @telemetry.ZONE_METHOD
     def CorrectBloodlinePlacement(self):
@@ -796,7 +818,7 @@ class CharacterCreationLayer(uicls.LayerCore):
         self.camera.SetPointOfInterest((0, newHeight, 0))
 
     @telemetry.ZONE_METHOD
-    def SetAvatarScene(self, skipAddCharacter = False):
+    def SetAvatarScene(self, skipAddCharacter=False):
         info = self.GetInfo()
         if self.avatarScene is None:
             self.SetupScene(ccConst.SCENE_PATH_CUSTOMIZATION)
@@ -809,6 +831,7 @@ class CharacterCreationLayer(uicls.LayerCore):
             self.scene = self.avatarScene
         sceneManager = sm.GetService('sceneManager')
         sceneManager.SetActiveScene(self.scene, sceneKey='characterCreation')
+        return
 
     @telemetry.ZONE_METHOD
     def StartCustomizationStep(self, *args):
@@ -833,6 +856,7 @@ class CharacterCreationLayer(uicls.LayerCore):
         if not sm.StartService('device').SupportsSM3():
             self.RemoveBodyModifications()
         paperDoll.SkinSpotLightShadows.SetupForCharacterCreator(self.scene)
+        return
 
     def CameraMoveCB(self, viewMatrix):
         info = self.GetInfo()
@@ -900,6 +924,7 @@ class CharacterCreationLayer(uicls.LayerCore):
                 params = self.GetControlParametersFromPoseData(portraitData, fromDB=True).values()
                 self.characterSvc.SetControlParametersFromList(params, charID)
         self.alreadyLoadedOldPortraitData = True
+        return
 
     @telemetry.ZONE_METHOD
     def StartPortraitStep(self):
@@ -933,6 +958,7 @@ class CharacterCreationLayer(uicls.LayerCore):
         self.UpdateLights()
         paperDoll.SkinSpotLightShadows.SetupForCharacterCreator(self.scene)
         self.characterSvc.StartPosing(charID=info.charID, callback=self.sr.step.ChangeSculptingCursor)
+        return
 
     @telemetry.ZONE_METHOD
     def StartNamingStep(self, *args):
@@ -952,6 +978,7 @@ class CharacterCreationLayer(uicls.LayerCore):
         self.camera.SetPointOfInterest((0.0, self.camera.avatarEyeHeight / 2.0, 0.0))
         self.SetDefaultLighting()
         paperDoll.SkinSpotLightShadows.SetupForCharacterCreator(self.scene)
+        return
 
     def StartMinimalNamingStep(self):
         from eve.client.script.ui.login.charcreation.steps.characterNamingMinimal import CharacterNamingMinimal
@@ -970,38 +997,41 @@ class CharacterCreationLayer(uicls.LayerCore):
         self.SetDefaultLighting()
         paperDoll.SkinSpotLightShadows.SetupForCharacterCreator(self.scene)
         self.GenerateAndSetPortrait()
+        return
 
     @telemetry.ZONE_METHOD
-    def ClearSteps(self, what = None, force = 0, *args):
+    def ClearSteps(self, what=None, force=0, *args):
         stepAlreadyCleared = getattr(self.sr.step, 'stepAlreadyCleared', 0)
         if not force and stepAlreadyCleared or not getattr(self.sr.mainNav, 'ResetToStep', None):
             return
-        currentStepID = self.stepID
-        if currentStepID <= ccConst.NAMINGSTEP:
-            pass
-        if currentStepID <= ccConst.MINIMALNAMINGSTEP:
-            self.minimalDoll = None
-        if currentStepID <= ccConst.PORTRAITSTEP:
-            pass
-        if currentStepID <= ccConst.CUSTOMIZATIONSTEP:
-            self.ClearFacePortrait()
-            self.ClearPortraitInfo()
-            self.schoolID = None
-            self.ancestryID = None
-            if what in ('bloodline', 'race'):
+        else:
+            currentStepID = self.stepID
+            if currentStepID <= ccConst.NAMINGSTEP:
+                pass
+            if currentStepID <= ccConst.MINIMALNAMINGSTEP:
+                self.minimalDoll = None
+            if currentStepID <= ccConst.PORTRAITSTEP:
+                pass
+            if currentStepID <= ccConst.CUSTOMIZATIONSTEP:
+                self.ClearFacePortrait()
+                self.ClearPortraitInfo()
+                self.schoolID = None
+                self.ancestryID = None
+                if what in ('bloodline', 'race'):
+                    self.ancestryID = None
+                    self.schoolID = None
+            if currentStepID <= ccConst.BLOODLINESTEP:
+                self.avatarScene = None
+                self.characterSvc.TearDown()
                 self.ancestryID = None
                 self.schoolID = None
-        if currentStepID <= ccConst.BLOODLINESTEP:
-            self.avatarScene = None
-            self.characterSvc.TearDown()
-            self.ancestryID = None
-            self.schoolID = None
-        if currentStepID <= ccConst.RACESTEP:
-            self.TearDown()
-        self.stepsUsed = set(range(1, currentStepID)) or set([self.availableSteps[0]])
-        self.sr.mainNav.ResetToStep(currentStepID, stepsUsed=self.stepsUsed)
-        if self.sr.step:
-            self.sr.step.stepAlreadyCleared = 1
+            if currentStepID <= ccConst.RACESTEP:
+                self.TearDown()
+            self.stepsUsed = set(range(1, currentStepID)) or set([self.availableSteps[0]])
+            self.sr.mainNav.ResetToStep(currentStepID, stepsUsed=self.stepsUsed)
+            if self.sr.step:
+                self.sr.step.stepAlreadyCleared = 1
+            return
 
     @telemetry.ZONE_METHOD
     def Cleanup(self):
@@ -1015,6 +1045,7 @@ class CharacterCreationLayer(uicls.LayerCore):
         self.ClearCamera()
         sceneManager = sm.GetService('sceneManager')
         sceneManager.UnregisterScene('characterCreation')
+        return
 
     @telemetry.ZONE_METHOD
     def SetupScene(self, path):
@@ -1036,6 +1067,7 @@ class CharacterCreationLayer(uicls.LayerCore):
         sceneManager = sm.GetService('sceneManager')
         sceneManager.RegisterScene(scene, 'characterCreation')
         sceneManager.SetRegisteredScenes('characterCreation')
+        return
 
     @telemetry.ZONE_METHOD
     def ReduceLights(self):
@@ -1063,7 +1095,7 @@ class CharacterCreationLayer(uicls.LayerCore):
             doll.useFastShader = False
 
     @telemetry.ZONE_METHOD
-    def AddCharacter(self, charID, bloodlineID, genderID, scene = None, dna = None, validateColors = True):
+    def AddCharacter(self, charID, bloodlineID, genderID, scene=None, dna=None, validateColors=True):
         self.ResetDna()
         self.characterSvc.AddCharacterToScene(charID, scene or self.scene, ccUtil.GenderIDToPaperDollGender(genderID), dna=dna, bloodlineID=bloodlineID, updateDoll=False)
         self.doll = self.characterSvc.GetSingleCharactersDoll(charID)
@@ -1101,7 +1133,6 @@ class CharacterCreationLayer(uicls.LayerCore):
         modifier = self.characterSvc.GetModifiersByCategory(info.charID, modifierPath)
         if modifier:
             return modifier[0].weight
-        return 0.0
 
     @telemetry.ZONE_METHOD
     def GetAvailableColors(self, modifier):
@@ -1130,7 +1161,7 @@ class CharacterCreationLayer(uicls.LayerCore):
         return (retColors, activeColorIndex)
 
     @telemetry.ZONE_METHOD
-    def SetColorValue(self, modifier, primaryColor, secondaryColor = None, doUpdate = True, ignoreValidate = False):
+    def SetColorValue(self, modifier, primaryColor, secondaryColor=None, doUpdate=True, ignoreValidate=False):
         self._setColorsByCategory[modifier] = (primaryColor, secondaryColor)
         info = self.GetInfo()
         self.characterSvc.SetColorValueByCategory(info.charID, modifier, primaryColor, secondaryColor, doUpdate=False)
@@ -1153,32 +1184,32 @@ class CharacterCreationLayer(uicls.LayerCore):
         return self._setIntensityByCategory.get(category, 0.5)
 
     @telemetry.ZONE_METHOD
-    def SetRandomColorSpecularity(self, modifier, doUpdate = True):
+    def SetRandomColorSpecularity(self, modifier, doUpdate=True):
         self.SetColorSpecularity(modifier, random.random(), doUpdate=doUpdate)
 
     @telemetry.ZONE_METHOD
-    def SetColorSpecularity(self, modifier, specularity, doUpdate = True):
+    def SetColorSpecularity(self, modifier, specularity, doUpdate=True):
         self._setSpecularityByCategory[modifier] = specularity
         info = self.GetInfo()
         self.characterSvc.SetColorSpecularityByCategory(info.charID, modifier, specularity, doUpdate=doUpdate)
 
     @telemetry.ZONE_METHOD
-    def SetRandomHairDarkness(self, doUpdate = True):
+    def SetRandomHairDarkness(self, doUpdate=True):
         self.SetHairDarkness(random.random(), doUpdate=doUpdate)
 
     @telemetry.ZONE_METHOD
-    def SetHairDarkness(self, darkness, doUpdate = True):
+    def SetHairDarkness(self, darkness, doUpdate=True):
         info = self.GetInfo()
         self.characterSvc.SetHairDarkness(info.charID, darkness)
         if doUpdate:
             sm.GetService('character').UpdateDoll(info.charID, fromWhere='SetHairDarkness')
 
     @telemetry.ZONE_METHOD
-    def SetRandomIntensity(self, modifier, doUpdate = True):
+    def SetRandomIntensity(self, modifier, doUpdate=True):
         self.SetIntensity(modifier, random.random(), doUpdate=doUpdate)
 
     @telemetry.ZONE_METHOD
-    def SetIntensity(self, modifier, value, doUpdate = True):
+    def SetIntensity(self, modifier, value, doUpdate=True):
         info = self.GetInfo()
         if modifier == ccConst.muscle:
             self.characterSvc.SetCharacterMuscularity(info.charID, value, doUpdate=doUpdate)
@@ -1189,7 +1220,7 @@ class CharacterCreationLayer(uicls.LayerCore):
             self.characterSvc.SetWeightByCategory(info.charID, modifier, value, doUpdate=doUpdate)
 
     @telemetry.ZONE_METHOD
-    def SetItemType(self, itemType, weight = 1.0, doUpdate = True):
+    def SetItemType(self, itemType, weight=1.0, doUpdate=True):
         info = self.GetInfo()
         category = self.characterSvc.GetCategoryFromResPath(itemType[1][0])
         if category in CLOTHING_ITEMS:
@@ -1205,7 +1236,7 @@ class CharacterCreationLayer(uicls.LayerCore):
             self.characterSvc.UpdateDoll(info.charID, fromWhere='SetItemType')
 
     @telemetry.ZONE_METHOD
-    def SetStyle(self, category, style, variation = None, doUpdate = True):
+    def SetStyle(self, category, style, variation=None, doUpdate=True):
         info = self.GetInfo()
         if style or variation or category in CLOTHING_ITEMS:
             self.ToggleClothes(forcedValue=0, doUpdate=False)
@@ -1222,40 +1253,52 @@ class CharacterCreationLayer(uicls.LayerCore):
     def ValidateColors(self, category):
         if category not in ccConst.COLORMAPPING:
             return
-        info = self.GetInfo()
-        categoryColors = self.characterSvc.GetAvailableColorsForCategory(category, info.genderID, info.bloodlineID)
-        if not categoryColors:
-            return
-        primary, secondary = categoryColors
-        hasValidColor = False
-        modifier = self.characterSvc.GetModifiersByCategory(info.charID, category)
-        if modifier:
-            currentColor = modifier[0].GetColorizeData()
-            if secondary:
-                if modifier[0].metaData.numColorAreas > 1:
-                    for primaryColorTuple in primary:
-                        primaryColorName, primaryDisplayColor, primaryColorValue = primaryColorTuple
-                        pA, pB, pC = primaryColorValue['colors']
-                        for secondaryColorTuple in secondary:
-                            secondaryColorName, secondaryDisplayColor, secondaryColorValue = secondaryColorTuple
-                            srA, srB, srC = secondaryColorValue['colors']
-                            if pA == currentColor[0] and srB == currentColor[1] and srC == currentColor[2]:
-                                hasValidColor = True
-                                if category not in self._setColorsByCategory or self._setColorsByCategory[category][1] == None:
-                                    self.SetColorValue(category, primaryColorTuple, secondaryColorTuple, doUpdate=False, ignoreValidate=True)
+        else:
+            info = self.GetInfo()
+            categoryColors = self.characterSvc.GetAvailableColorsForCategory(category, info.genderID, info.bloodlineID)
+            if not categoryColors:
+                return
+            primary, secondary = categoryColors
+            hasValidColor = False
+            modifier = self.characterSvc.GetModifiersByCategory(info.charID, category)
+            if modifier:
+                currentColor = modifier[0].GetColorizeData()
+                if secondary:
+                    if modifier[0].metaData.numColorAreas > 1:
+                        for primaryColorTuple in primary:
+                            primaryColorName, primaryDisplayColor, primaryColorValue = primaryColorTuple
+                            pA, pB, pC = primaryColorValue['colors']
+                            for secondaryColorTuple in secondary:
+                                secondaryColorName, secondaryDisplayColor, secondaryColorValue = secondaryColorTuple
+                                srA, srB, srC = secondaryColorValue['colors']
+                                if pA == currentColor[0] and srB == currentColor[1] and srC == currentColor[2]:
+                                    hasValidColor = True
+                                    if category not in self._setColorsByCategory or self._setColorsByCategory[category][1] == None:
+                                        self.SetColorValue(category, primaryColorTuple, secondaryColorTuple, doUpdate=False, ignoreValidate=True)
+                                    break
+
+                            if hasValidColor:
                                 break
 
-                        if hasValidColor:
-                            break
+                        if not hasValidColor:
+                            for primaryColorTuple in primary:
+                                primaryColorName, primaryDisplayColor, primaryColorValue = primaryColorTuple
+                                if primaryColorValue['colors'] == currentColor:
+                                    hasValidColor = True
+                                    self.SetColorValue(category, primaryColorTuple, secondary[0], doUpdate=False, ignoreValidate=True)
+                                    break
 
-                    if not hasValidColor:
+                    else:
                         for primaryColorTuple in primary:
                             primaryColorName, primaryDisplayColor, primaryColorValue = primaryColorTuple
                             if primaryColorValue['colors'] == currentColor:
                                 hasValidColor = True
-                                self.SetColorValue(category, primaryColorTuple, secondary[0], doUpdate=False, ignoreValidate=True)
+                                if category not in self._setColorsByCategory:
+                                    self.SetColorValue(category, primaryColorTuple, None, doUpdate=False, ignoreValidate=True)
                                 break
-
+                        else:
+                            if category in self._setColorsByCategory:
+                                hasValidColor = True
                 else:
                     for primaryColorTuple in primary:
                         primaryColorName, primaryDisplayColor, primaryColorValue = primaryColorTuple
@@ -1264,66 +1307,59 @@ class CharacterCreationLayer(uicls.LayerCore):
                             if category not in self._setColorsByCategory:
                                 self.SetColorValue(category, primaryColorTuple, None, doUpdate=False, ignoreValidate=True)
                             break
-                    else:
-                        if category in self._setColorsByCategory:
-                            hasValidColor = True
-            else:
-                for primaryColorTuple in primary:
-                    primaryColorName, primaryDisplayColor, primaryColorValue = primaryColorTuple
-                    if primaryColorValue['colors'] == currentColor:
-                        hasValidColor = True
-                        if category not in self._setColorsByCategory:
-                            self.SetColorValue(category, primaryColorTuple, None, doUpdate=False, ignoreValidate=True)
-                        break
 
-            if not hasValidColor and primary:
-                if secondary:
-                    var2 = secondary[0]
-                else:
-                    var2 = None
-                self.SetColorValue(category, primary[0], var2, doUpdate=False, ignoreValidate=True)
+                if not hasValidColor and primary:
+                    if secondary:
+                        var2 = secondary[0]
+                    else:
+                        var2 = None
+                    self.SetColorValue(category, primary[0], var2, doUpdate=False, ignoreValidate=True)
+            return
 
     def UpdateColorSelectionFromDoll(self, category):
         if category not in ccConst.COLORMAPPING:
             return
-        info = self.GetInfo()
-        categoryColors = self.characterSvc.GetAvailableColorsForCategory(category, info.genderID, info.bloodlineID)
-        if not categoryColors:
-            return
-        primary, secondary = categoryColors
-        modifier = self.characterSvc.GetModifiersByCategory(info.charID, category)
-        if modifier:
-            corPrimary = None
-            corSecondary = None
-            try:
-                chosenPrimary, chosenSecondary = self.characterSvc.GetSingleCharactersMetadata(info.charID).typeColors[category]
-                for primaryColorTuple in primary:
-                    if primaryColorTuple[0] == chosenPrimary:
-                        corPrimary = primaryColorTuple
-                        break
-
-                if secondary and chosenSecondary:
-                    for secondaryColorTuple in secondary:
-                        if secondaryColorTuple[0] == chosenSecondary:
-                            corSecondary = secondaryColorTuple
+        else:
+            info = self.GetInfo()
+            categoryColors = self.characterSvc.GetAvailableColorsForCategory(category, info.genderID, info.bloodlineID)
+            if not categoryColors:
+                return
+            primary, secondary = categoryColors
+            modifier = self.characterSvc.GetModifiersByCategory(info.charID, category)
+            if modifier:
+                corPrimary = None
+                corSecondary = None
+                try:
+                    chosenPrimary, chosenSecondary = self.characterSvc.GetSingleCharactersMetadata(info.charID).typeColors[category]
+                    for primaryColorTuple in primary:
+                        if primaryColorTuple[0] == chosenPrimary:
+                            corPrimary = primaryColorTuple
                             break
 
-            except KeyError:
-                log.LogWarn('KeyError when getting Metadata for a single character in characterCreationLayer.UpdateColorSelectionFromDoll', info.charID, category)
+                    if secondary and chosenSecondary:
+                        for secondaryColorTuple in secondary:
+                            if secondaryColorTuple[0] == chosenSecondary:
+                                corSecondary = secondaryColorTuple
+                                break
 
-            if corPrimary is not None:
-                self._setColorsByCategory[category] = (corPrimary, corSecondary)
-            if category in self.characterSvc.characterMetadata[info.charID].typeWeights:
-                self._setIntensityByCategory[category] = self.characterSvc.characterMetadata[info.charID].typeWeights[category]
-            if category in self.characterSvc.characterMetadata[info.charID].typeSpecularity:
-                self._setSpecularityByCategory[category] = self.characterSvc.characterMetadata[info.charID].typeSpecularity[category]
+                except KeyError:
+                    log.LogWarn('KeyError when getting Metadata for a single character in characterCreationLayer.UpdateColorSelectionFromDoll', info.charID, category)
+
+                if corPrimary is not None:
+                    self._setColorsByCategory[category] = (corPrimary, corSecondary)
+                if category in self.characterSvc.characterMetadata[info.charID].typeWeights:
+                    self._setIntensityByCategory[category] = self.characterSvc.characterMetadata[info.charID].typeWeights[category]
+                if category in self.characterSvc.characterMetadata[info.charID].typeSpecularity:
+                    self._setSpecularityByCategory[category] = self.characterSvc.characterMetadata[info.charID].typeSpecularity[category]
+            return
 
     @telemetry.ZONE_METHOD
-    def ClearCategory(self, category, doUpdate = True):
+    def ClearCategory(self, category, doUpdate=True):
         self.SetStyle(category, style=None, doUpdate=doUpdate)
+        return
 
     @telemetry.ZONE_METHOD
-    def CheckDnaLog(self, trigger = None):
+    def CheckDnaLog(self, trigger=None):
         if self.sr.step and self.sr.step.sr.historySlider:
             currentIndex, maxIndex = self.sr.step.sr.historySlider.GetCurrentIndexAndMaxIndex()
             if currentIndex != maxIndex:
@@ -1338,6 +1374,7 @@ class CharacterCreationLayer(uicls.LayerCore):
             del self.camera.cameraBehaviors[:]
             self.camera.avatar = None
             self.camera = None
+        return
 
     @telemetry.ZONE_METHOD
     def SetDefaultLighting(self):
@@ -1355,11 +1392,13 @@ class CharacterCreationLayer(uicls.LayerCore):
             r.SetCallback(self.UpdateCamera)
             self.cameraUpdateJob.steps.append(r)
         sceneManager.characterRenderJob.SetCameraUpdate(self.cameraUpdateJob)
+        return
 
     @telemetry.ZONE_METHOD
     def UpdateCamera(self):
         if self.camera is not None:
             self.camera.Update()
+        return
 
     @telemetry.ZONE_METHOD
     def PickObjectUV(self, pos):
@@ -1378,22 +1417,26 @@ class CharacterCreationLayer(uicls.LayerCore):
         total = 3
         sm.GetService('loading').ProgressWnd(localization.GetByLabel('UI/CharacterCreation/Registering'), localization.GetByLabel('UI/CharacterCreation/CompilePrefs'), 1, total)
         try:
-            if self.portraitInfo[portraitID] is None:
-                raise UserError('CharCreationNoPortrait')
-            info = self.GetInfo()
-            charInfo = self.characterSvc.GetCharacterAppearanceInfo(info.charID)
-            charID = sm.GetService('cc').CreateCharacterWithDoll(charactername, bloodlineID, genderID, info.ancestryID, charInfo, self.portraitInfo[portraitID], info.schoolID)
-            sm.GetService('loading').ProgressWnd(localization.GetByLabel('UI/CharacterCreation/Registering'), localization.GetByLabel('UI/CharacterCreation/InsertingRecord'), 2, total)
-            sm.GetService('photo').AddPortrait(self.GetPortraitSnapshotPath(portraitID), charID)
-            sm.GetService('loading').ProgressWnd(localization.GetByLabel('UI/CharacterCreation/Registering'), localization.GetByLabel('UI/Generic/Done'), 3, total)
-            return charID
-        except UserError as what:
-            if not what.msg.startswith('CharNameInvalid'):
-                eve.Message(*what.args)
-                return
-            sm.GetService('loading').ProgressWnd(localization.GetByLabel('UI/CharacterCreation/Registering'), localization.GetByLabel('UI/CharacterCreation/FailedForSomeReason'), 3, total)
+            try:
+                if self.portraitInfo[portraitID] is None:
+                    raise UserError('CharCreationNoPortrait')
+                info = self.GetInfo()
+                charInfo = self.characterSvc.GetCharacterAppearanceInfo(info.charID)
+                charID = sm.GetService('cc').CreateCharacterWithDoll(charactername, bloodlineID, genderID, info.ancestryID, charInfo, self.portraitInfo[portraitID], info.schoolID)
+                sm.GetService('loading').ProgressWnd(localization.GetByLabel('UI/CharacterCreation/Registering'), localization.GetByLabel('UI/CharacterCreation/InsertingRecord'), 2, total)
+                sm.GetService('photo').AddPortrait(self.GetPortraitSnapshotPath(portraitID), charID)
+                sm.GetService('loading').ProgressWnd(localization.GetByLabel('UI/CharacterCreation/Registering'), localization.GetByLabel('UI/Generic/Done'), 3, total)
+                return charID
+            except UserError as what:
+                if not what.msg.startswith('CharNameInvalid'):
+                    eve.Message(*what.args)
+                    return
+                sm.GetService('loading').ProgressWnd(localization.GetByLabel('UI/CharacterCreation/Registering'), localization.GetByLabel('UI/CharacterCreation/FailedForSomeReason'), 3, total)
+
         finally:
             self.sessionSounds = []
+
+        return
 
     @telemetry.ZONE_METHOD
     def UpdateExistingCharacter(self, *args):
@@ -1426,6 +1469,7 @@ class CharacterCreationLayer(uicls.LayerCore):
         else:
             uthread.pool('GameUI::ActivateView::charsel', sm.GetService('viewState').ActivateView, 'charsel')
         self.DoLogEvent(finished=1)
+        return
 
     @telemetry.ZONE_METHOD
     def SetBackdrop(self, backdropPath):
@@ -1436,7 +1480,7 @@ class CharacterCreationLayer(uicls.LayerCore):
         self.poseID = poseID
 
     @telemetry.ZONE_METHOD
-    def SetLightScene(self, lightPath, scene = None):
+    def SetLightScene(self, lightPath, scene=None):
         scene = scene or self.scene
         lightScene = trinity.Load(lightPath)
         if scene:
@@ -1452,6 +1496,7 @@ class CharacterCreationLayer(uicls.LayerCore):
 
             if paperDoll.SkinSpotLightShadows.instance is not None:
                 paperDoll.SkinSpotLightShadows.instance.RefreshLights()
+        return
 
     @telemetry.ZONE_METHOD
     def SetLights(self, lightID):
@@ -1505,14 +1550,15 @@ class CharacterCreationLayer(uicls.LayerCore):
         return getattr(self, 'poseID', 0)
 
     @telemetry.ZONE_METHOD
-    def StartEditMode(self, callback = None, **kwds):
+    def StartEditMode(self, callback=None, **kwds):
         if callback is None and kwds.get('mode', None) == 'sculpt':
             callback = getattr(self.sr.step, 'ChangeSculptingCursor', None)
         info = self.GetInfo()
         self.characterSvc.StartEditMode(info.charID, self.scene, self.camera, callback=callback, **kwds)
+        return
 
     @telemetry.ZONE_METHOD
-    def UpdateBackdropLite(self, raceID, mouseEnter = False, *args):
+    def UpdateBackdropLite(self, raceID, mouseEnter=False, *args):
         bdScene = sm.GetService('sceneManager').Get2DBackdropScene()
         if not bdScene:
             return
@@ -1536,157 +1582,159 @@ class CharacterCreationLayer(uicls.LayerCore):
         bdScene = sm.GetService('sceneManager').Get2DBackdropScene()
         if not bdScene:
             return
-        bdScene.clearBackground = True
-        for each in bdScene.children[:]:
-            bdScene.children.remove(each)
-
-        for each in bdScene.curveSets[:]:
-            bdScene.curveSets.remove(each)
-
-        self.colorCodedBackDrop = None
-        desktopWidth = int(uicore.desktop.width * uicore.desktop.dpiScaling)
-        desktopHeight = int(uicore.desktop.height * uicore.desktop.dpiScaling)
-        size = min(desktopHeight, desktopWidth)
-        margin = -200
-        info = self.GetInfo()
-        if self.stepID == ccConst.RACESTEP:
-            self.colorCodedBackDrop = blue.resMan.GetResource('res:/UI/Texture/CharacterCreation/bg/RACE_Background_Colorcoded.png', 'raw')
-            bgSize = min(desktopWidth, desktopHeight) * 1.5
-            backdropSprite = trinity.Tr2Sprite2d()
-            backdropSprite.name = u'backdropSprite'
-            backdropSprite.displayWidth = bgSize
-            backdropSprite.displayHeight = bgSize
-            backdropSprite.displayX = (desktopWidth - bgSize) / 2
-            backdropSprite.displayY = (desktopHeight - bgSize) / 2
-            backdropSprite.texturePrimary = trinity.Tr2Sprite2dTexture()
-            backdropSprite.texturePrimary.resPath = 'res:/UI/Texture/CharacterCreation/bg/RACE_Background_START_None.dds'
-            backdropSprite.display = True
-            bdScene.children.append(backdropSprite)
-            for race in [const.raceAmarr,
-             const.raceMinmatar,
-             const.raceCaldari,
-             const.raceGallente]:
-                mouseoverSprite = trinity.Tr2Sprite2d()
-                mouseoverSprite.name = u'mouseoverSprite_%d' % race
-                mouseoverSprite.displayWidth = bgSize
-                mouseoverSprite.displayHeight = bgSize
-                mouseoverSprite.displayX = (desktopWidth - bgSize) / 2
-                mouseoverSprite.displayY = (desktopHeight - bgSize) / 2
-                mouseoverSprite.texturePrimary = trinity.Tr2Sprite2dTexture()
-                mouseoverSprite.texturePrimary.resPath = 'res:/UI/Texture/CharacterCreation/bg/RACE_Background_START_%d.dds' % race
-                mouseoverSprite.display = False
-                bdScene.children.append(mouseoverSprite)
-
-            if info.raceID:
-                self.UpdateBackdropLite(info.raceID)
-        elif self.stepID == ccConst.BLOODLINESTEP:
-            bgSize = max(desktopWidth, desktopHeight)
-            backdropSprite = trinity.Tr2Sprite2d()
-            backdropSprite.name = u'backdropSprite'
-            backdropSprite.displayWidth = bgSize
-            backdropSprite.displayHeight = bgSize
-            backdropSprite.displayY = (desktopHeight - bgSize) / 2
-            backdropSprite.displayX = (desktopWidth - bgSize) / 2
-            backdropSprite.texturePrimary = trinity.Tr2Sprite2dTexture()
-            backdropSprite.texturePrimary.resPath = 'res:/UI/Texture/CharacterCreation/bg/Bloodline_Background_%d.dds' % info.raceID
-            backdropSprite.display = True
-            bdScene.children.append(backdropSprite)
         else:
-            if gfxsettings.Get(gfxsettings.UI_NCC_GREEN_SCREEN):
+            bdScene.clearBackground = True
+            for each in bdScene.children[:]:
+                bdScene.children.remove(each)
+
+            for each in bdScene.curveSets[:]:
+                bdScene.curveSets.remove(each)
+
+            self.colorCodedBackDrop = None
+            desktopWidth = int(uicore.desktop.width * uicore.desktop.dpiScaling)
+            desktopHeight = int(uicore.desktop.height * uicore.desktop.dpiScaling)
+            size = min(desktopHeight, desktopWidth)
+            margin = -200
+            info = self.GetInfo()
+            if self.stepID == ccConst.RACESTEP:
+                self.colorCodedBackDrop = blue.resMan.GetResource('res:/UI/Texture/CharacterCreation/bg/RACE_Background_Colorcoded.png', 'raw')
+                bgSize = min(desktopWidth, desktopHeight) * 1.5
+                backdropSprite = trinity.Tr2Sprite2d()
+                backdropSprite.name = u'backdropSprite'
+                backdropSprite.displayWidth = bgSize
+                backdropSprite.displayHeight = bgSize
+                backdropSprite.displayX = (desktopWidth - bgSize) / 2
+                backdropSprite.displayY = (desktopHeight - bgSize) / 2
+                backdropSprite.texturePrimary = trinity.Tr2Sprite2dTexture()
+                backdropSprite.texturePrimary.resPath = 'res:/UI/Texture/CharacterCreation/bg/RACE_Background_START_None.dds'
+                backdropSprite.display = True
+                bdScene.children.append(backdropSprite)
+                for race in [const.raceAmarr,
+                 const.raceMinmatar,
+                 const.raceCaldari,
+                 const.raceGallente]:
+                    mouseoverSprite = trinity.Tr2Sprite2d()
+                    mouseoverSprite.name = u'mouseoverSprite_%d' % race
+                    mouseoverSprite.displayWidth = bgSize
+                    mouseoverSprite.displayHeight = bgSize
+                    mouseoverSprite.displayX = (desktopWidth - bgSize) / 2
+                    mouseoverSprite.displayY = (desktopHeight - bgSize) / 2
+                    mouseoverSprite.texturePrimary = trinity.Tr2Sprite2dTexture()
+                    mouseoverSprite.texturePrimary.resPath = 'res:/UI/Texture/CharacterCreation/bg/RACE_Background_START_%d.dds' % race
+                    mouseoverSprite.display = False
+                    bdScene.children.append(mouseoverSprite)
+
+                if info.raceID:
+                    self.UpdateBackdropLite(info.raceID)
+            elif self.stepID == ccConst.BLOODLINESTEP:
                 bgSize = max(desktopWidth, desktopHeight)
                 backdropSprite = trinity.Tr2Sprite2d()
-                backdropSprite.name = u'greenscreen'
+                backdropSprite.name = u'backdropSprite'
                 backdropSprite.displayWidth = bgSize
                 backdropSprite.displayHeight = bgSize
                 backdropSprite.displayY = (desktopHeight - bgSize) / 2
                 backdropSprite.displayX = (desktopWidth - bgSize) / 2
                 backdropSprite.texturePrimary = trinity.Tr2Sprite2dTexture()
-                backdropSprite.texturePrimary.resPath = 'res:/UI/Texture/CharacterCreation/backdrops/Background_1001_thumb.dds'
+                backdropSprite.texturePrimary.resPath = 'res:/UI/Texture/CharacterCreation/bg/Bloodline_Background_%d.dds' % info.raceID
                 backdropSprite.display = True
                 bdScene.children.append(backdropSprite)
             else:
-                if info.raceID == const.raceCaldari:
-                    rn = 'caldari'
-                    bgcolor = (74 / 255.0, 87 / 255.0, 97 / 255.0)
-                elif info.raceID == const.raceAmarr:
-                    rn = 'amarr'
-                    bgcolor = (93 / 255.0, 89 / 255.0, 74 / 255.0)
-                elif info.raceID == const.raceMinmatar:
-                    rn = 'minmatar'
-                    bgcolor = (92 / 255.0, 81 / 255.0, 80 / 255.0)
-                elif info.raceID == const.raceGallente:
-                    rn = 'gallente'
-                    bgcolor = (77 / 255.0, 94 / 255.0, 93 / 255.0)
-                else:
-                    rn = 'caldari'
-                    bgcolor = (74 / 255.0, 87 / 255.0, 97 / 255.0)
-                    log.LogWarn('Unknown raceID in characterCreationLayer.UpdateBackground', info.raceID)
-                mainHalo = trinity.Tr2Sprite2d()
-                mainHalo.name = u'mainHalo'
-                mainHalo.texturePrimary = trinity.Tr2Sprite2dTexture()
-                mainHalo.blendMode = trinity.TR2_SBM_ADD
-                r, g, b = bgcolor
-                mainHalo.color = (r * 0.75,
-                 g * 0.75,
-                 b * 0.75,
-                 1.0)
-                mainHalo.displayWidth = mainHalo.displayHeight = max(desktopWidth, desktopHeight) * 1.5
-                mainHalo.displayX = (desktopWidth - mainHalo.displayWidth) / 2
-                mainHalo.displayY = (desktopHeight - mainHalo.displayHeight) / 2
-                mainHalo.display = True
-                mainHalo.texturePrimary.resPath = 'res:/UI/Texture/CharacterCreation/mainCenterHalo.dds'
-                bdScene.children.append(mainHalo)
-            if self.stepID == ccConst.PORTRAITSTEP:
-                activeBackdrop = self.GetBackdrop()
-                if activeBackdrop:
-                    portraitBackground = trinity.Tr2Sprite2d()
-                    portraitBackground.name = u'portraitBackground'
-                    bdScene.children.insert(0, portraitBackground)
-                    portraitBackground.displayX = (desktopWidth - size) * 0.5
-                    portraitBackground.displayY = (desktopHeight - size) * 0.5
-                    portraitBackground.displayWidth = size
-                    portraitBackground.displayHeight = size
-                    if not portraitBackground.texturePrimary:
-                        portraitBackground.texturePrimary = trinity.Tr2Sprite2dTexture()
-                        portraitBackground.texturePrimary.resPath = activeBackdrop
-                    portraitBackground.color = (1, 1, 1, 1)
-                    portraitBackground.display = True
-                    portraitBackground.blendMode = trinity.TR2_SBM_BLEND
-            else:
                 if gfxsettings.Get(gfxsettings.UI_NCC_GREEN_SCREEN):
-                    return
-                mainSize = size - margin
-                cs = trinity.TriCurveSet()
-                cs.name = 'RotationCurveSet'
-                bdScene.curveSets.append(cs)
-                for textureNo, textureSize in ((1, 468 / 1024.0),
-                 (2, 580 / 1024.0),
-                 (3, 1.0),
-                 (4, 1.0)):
-                    tf = trinity.Tr2Sprite2dTransform()
-                    tf.name = u'tf'
-                    tf.displayX = desktopWidth * 0.5
-                    tf.displayY = desktopHeight * 0.5
-                    bdScene.children.append(tf)
-                    circleBG = trinity.Tr2Sprite2d()
-                    circleBG.name = u'circleBG'
-                    circleBG.texturePrimary = trinity.Tr2Sprite2dTexture()
-                    circleBG.texturePrimary.resPath = 'res:/UI/Texture/CharacterCreation/circularRaceBgs/%s_%s.dds' % (rn, textureNo)
-                    circleBG.color = (0.025, 0.025, 0.025, 1.0)
-                    circleBG.blendMode = trinity.TR2_SBM_BLEND
-                    circleBG.displayWidth = mainSize * textureSize
-                    circleBG.displayHeight = mainSize * textureSize
-                    circleBG.displayX = -circleBG.displayWidth * 0.5
-                    circleBG.displayY = -circleBG.displayHeight * 0.5
-                    circleBG.display = True
-                    tf.children.append(circleBG)
-                    rotationCurve = self.CreatePerlinCurve(cs, scale=16.0, offset=10.0, speed=0.001, alpha=0.9, beta=1.0 + random.random())
-                    self.CreateBinding(cs, rotationCurve, tf, 'rotation', 'value')
+                    bgSize = max(desktopWidth, desktopHeight)
+                    backdropSprite = trinity.Tr2Sprite2d()
+                    backdropSprite.name = u'greenscreen'
+                    backdropSprite.displayWidth = bgSize
+                    backdropSprite.displayHeight = bgSize
+                    backdropSprite.displayY = (desktopHeight - bgSize) / 2
+                    backdropSprite.displayX = (desktopWidth - bgSize) / 2
+                    backdropSprite.texturePrimary = trinity.Tr2Sprite2dTexture()
+                    backdropSprite.texturePrimary.resPath = 'res:/UI/Texture/CharacterCreation/backdrops/Background_1001_thumb.dds'
+                    backdropSprite.display = True
+                    bdScene.children.append(backdropSprite)
+                else:
+                    if info.raceID == const.raceCaldari:
+                        rn = 'caldari'
+                        bgcolor = (74 / 255.0, 87 / 255.0, 97 / 255.0)
+                    elif info.raceID == const.raceAmarr:
+                        rn = 'amarr'
+                        bgcolor = (93 / 255.0, 89 / 255.0, 74 / 255.0)
+                    elif info.raceID == const.raceMinmatar:
+                        rn = 'minmatar'
+                        bgcolor = (92 / 255.0, 81 / 255.0, 80 / 255.0)
+                    elif info.raceID == const.raceGallente:
+                        rn = 'gallente'
+                        bgcolor = (77 / 255.0, 94 / 255.0, 93 / 255.0)
+                    else:
+                        rn = 'caldari'
+                        bgcolor = (74 / 255.0, 87 / 255.0, 97 / 255.0)
+                        log.LogWarn('Unknown raceID in characterCreationLayer.UpdateBackground', info.raceID)
+                    mainHalo = trinity.Tr2Sprite2d()
+                    mainHalo.name = u'mainHalo'
+                    mainHalo.texturePrimary = trinity.Tr2Sprite2dTexture()
+                    mainHalo.blendMode = trinity.TR2_SBM_ADD
+                    r, g, b = bgcolor
+                    mainHalo.color = (r * 0.75,
+                     g * 0.75,
+                     b * 0.75,
+                     1.0)
+                    mainHalo.displayWidth = mainHalo.displayHeight = max(desktopWidth, desktopHeight) * 1.5
+                    mainHalo.displayX = (desktopWidth - mainHalo.displayWidth) / 2
+                    mainHalo.displayY = (desktopHeight - mainHalo.displayHeight) / 2
+                    mainHalo.display = True
+                    mainHalo.texturePrimary.resPath = 'res:/UI/Texture/CharacterCreation/mainCenterHalo.dds'
+                    bdScene.children.append(mainHalo)
+                if self.stepID == ccConst.PORTRAITSTEP:
+                    activeBackdrop = self.GetBackdrop()
+                    if activeBackdrop:
+                        portraitBackground = trinity.Tr2Sprite2d()
+                        portraitBackground.name = u'portraitBackground'
+                        bdScene.children.insert(0, portraitBackground)
+                        portraitBackground.displayX = (desktopWidth - size) * 0.5
+                        portraitBackground.displayY = (desktopHeight - size) * 0.5
+                        portraitBackground.displayWidth = size
+                        portraitBackground.displayHeight = size
+                        if not portraitBackground.texturePrimary:
+                            portraitBackground.texturePrimary = trinity.Tr2Sprite2dTexture()
+                            portraitBackground.texturePrimary.resPath = activeBackdrop
+                        portraitBackground.color = (1, 1, 1, 1)
+                        portraitBackground.display = True
+                        portraitBackground.blendMode = trinity.TR2_SBM_BLEND
+                else:
+                    if gfxsettings.Get(gfxsettings.UI_NCC_GREEN_SCREEN):
+                        return
+                    mainSize = size - margin
+                    cs = trinity.TriCurveSet()
+                    cs.name = 'RotationCurveSet'
+                    bdScene.curveSets.append(cs)
+                    for textureNo, textureSize in ((1, 468 / 1024.0),
+                     (2, 580 / 1024.0),
+                     (3, 1.0),
+                     (4, 1.0)):
+                        tf = trinity.Tr2Sprite2dTransform()
+                        tf.name = u'tf'
+                        tf.displayX = desktopWidth * 0.5
+                        tf.displayY = desktopHeight * 0.5
+                        bdScene.children.append(tf)
+                        circleBG = trinity.Tr2Sprite2d()
+                        circleBG.name = u'circleBG'
+                        circleBG.texturePrimary = trinity.Tr2Sprite2dTexture()
+                        circleBG.texturePrimary.resPath = 'res:/UI/Texture/CharacterCreation/circularRaceBgs/%s_%s.dds' % (rn, textureNo)
+                        circleBG.color = (0.025, 0.025, 0.025, 1.0)
+                        circleBG.blendMode = trinity.TR2_SBM_BLEND
+                        circleBG.displayWidth = mainSize * textureSize
+                        circleBG.displayHeight = mainSize * textureSize
+                        circleBG.displayX = -circleBG.displayWidth * 0.5
+                        circleBG.displayY = -circleBG.displayHeight * 0.5
+                        circleBG.display = True
+                        tf.children.append(circleBG)
+                        rotationCurve = self.CreatePerlinCurve(cs, scale=16.0, offset=10.0, speed=0.001, alpha=0.9, beta=1.0 + random.random())
+                        self.CreateBinding(cs, rotationCurve, tf, 'rotation', 'value')
 
-                cs.Play()
+                    cs.Play()
+            return
 
     @telemetry.ZONE_METHOD
-    def CreateBinding(self, curveSet, curve, destinationObject, attribute, sourceAttribute = 'currentValue'):
+    def CreateBinding(self, curveSet, curve, destinationObject, attribute, sourceAttribute='currentValue'):
         binding = trinity.TriValueBinding()
         curveSet.bindings.append(binding)
         binding.destinationObject = destinationObject
@@ -1696,7 +1744,7 @@ class CharacterCreationLayer(uicls.LayerCore):
         return binding
 
     @telemetry.ZONE_METHOD
-    def CreateScalarCurve(self, curveSet, length, endValue, startTimeOffset = 0.0, startValue = 0.0, cycle = False):
+    def CreateScalarCurve(self, curveSet, length, endValue, startTimeOffset=0.0, startValue=0.0, cycle=False):
         curve = trinity.Tr2ScalarCurve()
         if startTimeOffset:
             curve.AddKey(0.0, startValue)
@@ -1708,7 +1756,7 @@ class CharacterCreationLayer(uicls.LayerCore):
         return curve
 
     @telemetry.ZONE_METHOD
-    def CreatePerlinCurve(self, curveSet, scale = 1.0, offset = 6.0, speed = 1.1, alpha = 1.0, beta = 1.1):
+    def CreatePerlinCurve(self, curveSet, scale=1.0, offset=6.0, speed=1.1, alpha=1.0, beta=1.1):
         curve = trinity.TriPerlinCurve()
         curve.scale = scale
         curve.offset = offset
@@ -1726,8 +1774,6 @@ class CharacterCreationLayer(uicls.LayerCore):
             if path == light:
                 return i
 
-        return 1
-
     @telemetry.ZONE_METHOD
     def GetLightColorID(self):
         path = self.lightColorID
@@ -1735,8 +1781,6 @@ class CharacterCreationLayer(uicls.LayerCore):
         for i, light in enumerate(files):
             if path == light:
                 return i
-
-        return 1
 
     @telemetry.ZONE_METHOD
     def GetBackgroundID(self):
@@ -1753,12 +1797,13 @@ class CharacterCreationLayer(uicls.LayerCore):
     def CapturePortrait(self, portraitID, *args):
         if self.camera is None:
             return
-        poseData = self.characterSvc.GetPoseData()
-        if poseData is None:
-            return
-        self.portraitInfo[portraitID] = util.KeyVal(cameraPosition=self.camera.GetPosition(), cameraFieldOfView=self.camera.fieldOfView, cameraPoi=self.camera.GetPointOfInterest(), backgroundID=self.GetBackgroundID(), lightID=self.lightingID, lightColorID=self.lightColorID, lightIntensity=self.GetLightIntensity(), poseData=poseData)
-        maker = PortraitMaker(self.camera, self.backdropPath)
-        return maker.GetPortraitTexture(portraitID)
+        else:
+            poseData = self.characterSvc.GetPoseData()
+            if poseData is None:
+                return
+            self.portraitInfo[portraitID] = util.KeyVal(cameraPosition=self.camera.GetPosition(), cameraFieldOfView=self.camera.fieldOfView, cameraPoi=self.camera.GetPointOfInterest(), backgroundID=self.GetBackgroundID(), lightID=self.lightingID, lightColorID=self.lightColorID, lightIntensity=self.GetLightIntensity(), poseData=poseData)
+            maker = PortraitMaker(self.camera, self.backdropPath)
+            return maker.GetPortraitTexture(portraitID)
 
     @telemetry.ZONE_METHOD
     def GetPortraitSnapshotPath(self, portraitID):
@@ -1767,13 +1812,14 @@ class CharacterCreationLayer(uicls.LayerCore):
     @telemetry.ZONE_METHOD
     def ClearPortraitInfo(self):
         self.portraitInfo = [None] * ccConst.NUM_PORTRAITS
+        return
 
     @telemetry.ZONE_METHOD
     def GetPortraitInfo(self, portraitID):
         return self.portraitInfo[portraitID]
 
     @telemetry.ZONE_METHOD
-    def GetDNA(self, getHiddenModifiers = False, getWeightless = False):
+    def GetDNA(self, getHiddenModifiers=False, getWeightless=False):
         return self.doll.GetDNA(getHiddenModifiers=getHiddenModifiers, getWeightless=getWeightless)
 
     @telemetry.ZONE_METHOD
@@ -1797,7 +1843,7 @@ class CharacterCreationLayer(uicls.LayerCore):
         uicore.cmd.commandMap.LoadAcceleratorsByCategory('general')
 
     @telemetry.ZONE_METHOD
-    def ShowLoading(self, why = '', top = 200, forceOn = 0, *args):
+    def ShowLoading(self, why='', top=200, forceOn=0, *args):
         wheel = self.sr.loadingWheel
         wheel.top = top
         wheel.hint = why
@@ -1805,7 +1851,7 @@ class CharacterCreationLayer(uicls.LayerCore):
         wheel.Show()
 
     @telemetry.ZONE_METHOD
-    def HideLoading(self, why = '', forceOff = 0, *args):
+    def HideLoading(self, why='', forceOff=0, *args):
         wheel = self.sr.loadingWheel
         if not wheel.forcedOn or forceOff:
             self.sr.loadingWheel.Hide()
@@ -1828,18 +1874,20 @@ class CharacterCreationLayer(uicls.LayerCore):
             self.previewWindowWasOpenOn = None
             sm.GetService('preview').PreviewCharacter(charID)
         sm.GetService('dynamicMusic').UpdateDynamicMusic()
+        return
 
     @telemetry.ZONE_METHOD
-    def ExitToStation(self, updateDoll = True):
-        if session.worldspaceid is not None and gfxsettings.Get(gfxsettings.MISC_LOAD_STATION_ENV):
+    def ExitToStation(self, updateDoll=True):
+        if session.worldspaceid is not None:
             dna = self.GetDNA()
             sm.GetService('viewState').CloseSecondaryView()
         else:
             self.OnCloseView()
             change = {'stationid': (None, session.stationid)}
             sm.GetService('gameui').OnSessionChanged(isRemote=False, session=session, change=change)
+        return
 
-    def ToggleClothes(self, forcedValue = None, doUpdate = True, *args):
+    def ToggleClothes(self, forcedValue=None, doUpdate=True, *args):
         valueBefore = self.clothesOff
         if forcedValue is None:
             self.clothesOff = not self.clothesOff
@@ -1847,56 +1895,62 @@ class CharacterCreationLayer(uicls.LayerCore):
             self.clothesOff = forcedValue
         if valueBefore == self.clothesOff:
             return
-        info = self.GetInfo()
-        if info.charID in self.characterSvc.characters:
-            character = self.characterSvc.GetSingleCharacter(info.charID)
-            if self.clothesOff:
-                self.RemoveClothes(character, doUpdate=doUpdate)
-            else:
-                self.ReApplyClothes(character, doUpdate=doUpdate)
+        else:
+            info = self.GetInfo()
+            if info.charID in self.characterSvc.characters:
+                character = self.characterSvc.GetSingleCharacter(info.charID)
+                if self.clothesOff:
+                    self.RemoveClothes(character, doUpdate=doUpdate)
+                else:
+                    self.ReApplyClothes(character, doUpdate=doUpdate)
+            return
 
     @telemetry.ZONE_METHOD
-    def ReApplyClothes(self, character, doUpdate = True):
+    def ReApplyClothes(self, character, doUpdate=True):
         if not self.clothesStorage or character is None:
             return
-        doll = character.doll
-        bdm = doll.buildDataManager
-        modifiers = doll.SortModifiersForBatchAdding(self.clothesStorage.values())
-        for modifier in modifiers:
-            bdm.AddModifier(modifier)
+        else:
+            doll = character.doll
+            bdm = doll.buildDataManager
+            modifiers = doll.SortModifiersForBatchAdding(self.clothesStorage.values())
+            for modifier in modifiers:
+                bdm.AddModifier(modifier)
 
-        self.ResetClothesStorage()
-        if doUpdate:
-            sm.GetService('character').UpdateDollsAvatar(character)
+            self.ResetClothesStorage()
+            if doUpdate:
+                sm.GetService('character').UpdateDollsAvatar(character)
+            return
 
     @telemetry.ZONE_METHOD
-    def RemoveClothes(self, character, doUpdate = True):
+    def RemoveClothes(self, character, doUpdate=True):
         if self.clothesStorage or character is None:
             return
-        categoriesToRemove = paperDoll.BODY_CATEGORIES - (paperDoll.BODY_CATEGORIES.SKIN,
-         paperDoll.BODY_CATEGORIES.TATTOO,
-         paperDoll.BODY_CATEGORIES.TOPUNDERWEAR,
-         paperDoll.BODY_CATEGORIES.BOTTOMUNDERWEAR,
-         paperDoll.BODY_CATEGORIES.SKINTONE,
-         paperDoll.BODY_CATEGORIES.SKINTYPE,
-         paperDoll.BODY_CATEGORIES.SCARS)
-        categoriesToRemove = list(categoriesToRemove)
-        categoriesToRemove.sort(key=lambda x: -paperDoll.DESIRED_ORDER.index(x))
-        self.ResetClothesStorage()
-        bdm = character.doll.buildDataManager
-        for category in categoriesToRemove:
-            categoryModifiers = bdm.GetModifiersByCategory(category)
-            for modifier in categoryModifiers:
-                if modifier.respath not in paperDoll.DEFAULT_NUDE_PARTS:
-                    self.clothesStorage[category] = modifier
-                    bdm.RemoveModifier(modifier)
+        else:
+            categoriesToRemove = paperDoll.BODY_CATEGORIES - (paperDoll.BODY_CATEGORIES.SKIN,
+             paperDoll.BODY_CATEGORIES.TATTOO,
+             paperDoll.BODY_CATEGORIES.TOPUNDERWEAR,
+             paperDoll.BODY_CATEGORIES.BOTTOMUNDERWEAR,
+             paperDoll.BODY_CATEGORIES.SKINTONE,
+             paperDoll.BODY_CATEGORIES.SKINTYPE,
+             paperDoll.BODY_CATEGORIES.SCARS)
+            categoriesToRemove = list(categoriesToRemove)
+            categoriesToRemove.sort(key=lambda x: -paperDoll.DESIRED_ORDER.index(x))
+            self.ResetClothesStorage()
+            bdm = character.doll.buildDataManager
+            for category in categoriesToRemove:
+                categoryModifiers = bdm.GetModifiersByCategory(category)
+                for modifier in categoryModifiers:
+                    if modifier.respath not in paperDoll.DEFAULT_NUDE_PARTS:
+                        self.clothesStorage[category] = modifier
+                        bdm.RemoveModifier(modifier)
 
-        modifier = self.characterSvc.GetModifierByCategory(self.charID, ccConst.glasses)
-        if modifier:
-            self.clothesStorage[ccConst.glasses] = modifier
-            bdm.RemoveModifier(modifier)
-        if doUpdate:
-            sm.GetService('character').UpdateDollsAvatar(character)
+            modifier = self.characterSvc.GetModifierByCategory(self.charID, ccConst.glasses)
+            if modifier:
+                self.clothesStorage[ccConst.glasses] = modifier
+                bdm.RemoveModifier(modifier)
+            if doUpdate:
+                sm.GetService('character').UpdateDollsAvatar(character)
+            return
 
     def ResetClothesStorage(self, *args):
         self.clothesStorage.clear()
@@ -1930,10 +1984,12 @@ class CharacterCreationLayer(uicls.LayerCore):
     def StartDnaLogging(self):
         self.dnaList = []
         self.lastLitHistoryBit = None
+        return
 
     def ResetDna(self, *args):
         self.dnaList = None
         self.lastLitHistoryBit = None
+        return
 
     @telemetry.ZONE_METHOD
     def ClearDnaLogFromIndex(self, fromIndex):
@@ -1943,7 +1999,7 @@ class CharacterCreationLayer(uicls.LayerCore):
                 to = len(self.dnaList)
             self.dnaList = self.dnaList[:to]
 
-    def AskForPortraitConfirmation(self, characterName = None, *args):
+    def AskForPortraitConfirmation(self, characterName=None, *args):
         photo = self.GetActivePortrait()
         wnd = CCConfirmationWindow.Open(photo=photo, characterName=characterName)
         if wnd.ShowModal() == uiconst.ID_YES:
@@ -1955,7 +2011,7 @@ class CharacterCreationLayer(uicls.LayerCore):
     def GetDollDNAHistory(self):
         return self.dnaList
 
-    def TryStoreDna(self, lastUpdateRedundant, fromWhere, sculpting = 0, force = 0, allowReduntant = 0, *args):
+    def TryStoreDna(self, lastUpdateRedundant, fromWhere, sculpting=0, force=0, allowReduntant=0, *args):
         if not lastUpdateRedundant or fromWhere in ('RandomizeCharacterGroups', 'RandomizeCharacter', 'AddCharacter'):
             if not self.isopen:
                 return
@@ -1980,6 +2036,7 @@ class CharacterCreationLayer(uicls.LayerCore):
                 self.dnaList.append((dna, currMetadata))
                 if lastUpdateRedundant or force:
                     sm.ScatterEvent('OnHistoryUpdated')
+        return
 
     @telemetry.ZONE_METHOD
     def LoadDnaFromHistory(self, historyIndex):
@@ -2002,18 +2059,19 @@ class CharacterCreationLayer(uicls.LayerCore):
     def PassMouseEventToSculpt(self, type, x, y):
         if not hasattr(self, 'characterSvc'):
             return
-        pickValue = None
-        sculpting = self.characterSvc.GetSculpting()
-        if sculpting and self.characterSvc.GetSculptingActive():
-            if type == 'LeftDown':
-                pickValue = sculpting.PickWrapper(x, y)
-            elif type == 'LeftUp':
-                pickValue = sculpting.EndMotion(x, y)
-            elif type == 'Motion':
-                pickValue = sculpting.MotionWrapper(x, y)
-        return pickValue
+        else:
+            pickValue = None
+            sculpting = self.characterSvc.GetSculpting()
+            if sculpting and self.characterSvc.GetSculptingActive():
+                if type == 'LeftDown':
+                    pickValue = sculpting.PickWrapper(x, y)
+                elif type == 'LeftUp':
+                    pickValue = sculpting.EndMotion(x, y)
+                elif type == 'Motion':
+                    pickValue = sculpting.MotionWrapper(x, y)
+            return pickValue
 
-    def UpdateRaceMusic(self, raceID = None):
+    def UpdateRaceMusic(self, raceID=None):
         sm.GetService('dynamicMusic').UpdateDynamicMusic()
 
     def PickPortrait(self, newPortraitID):
@@ -2024,75 +2082,79 @@ class CharacterCreationLayer(uicls.LayerCore):
     def AnimateToStoredPortrait(self, newPortraitID):
         if self.stepID != ccConst.PORTRAITSTEP:
             return
-        if self.portraitInfo[newPortraitID] is None:
+        elif self.portraitInfo[newPortraitID] is None:
             return
-        if self.animateToStoredPortraitThread and self.animateToStoredPortraitThread.alive:
-            if self.animatingToPortraitID == newPortraitID:
-                return
-            self.animateToStoredPortraitThread.kill()
-        self.animateToStoredPortraitThread = uthread.new(self.AnimateToStoredPortrait_thread, newPortraitID)
+        else:
+            if self.animateToStoredPortraitThread and self.animateToStoredPortraitThread.alive:
+                if self.animatingToPortraitID == newPortraitID:
+                    return
+                self.animateToStoredPortraitThread.kill()
+            self.animateToStoredPortraitThread = uthread.new(self.AnimateToStoredPortrait_thread, newPortraitID)
+            return
 
     def AnimateToStoredPortrait_thread(self, newPortraitID):
         portraitInfo = self.portraitInfo[newPortraitID]
         if portraitInfo is None:
             return
-        newParams = self.GetControlParametersFromPortraitID(newPortraitID)
-        if newParams is None:
-            return
-        oldParams = self.GetControlParametersFromPortraitID(None)
-        if len(oldParams) < 1 or len(newParams) < 1:
-            return
-        self.animatingToPortraitID = newPortraitID
-        thereIsCamera = self.camera is not None
-        if thereIsCamera:
-            oldCameraPos = self.camera.cameraPosition
-            oldCameraPoi = self.camera.poi
-            oldCameraFov = self.camera.fieldOfView
-        info = self.GetInfo()
-        start, ndt = blue.os.GetWallclockTime(), 0.0
-        moveCamera = self.ShouldMoveCamera(portraitInfo.cameraPosition, portraitInfo.cameraPoi)
-        while ndt != 1.0:
-            timeValue = min(blue.os.TimeDiffInMs(start, blue.os.GetWallclockTime()) / 250.0, 1.0)
-            ndt = math.sin(timeValue * math.pi - math.pi / 2.0) / 2.0 + 0.5
-            params = []
-            for shortKey, keyAndValue in oldParams.iteritems():
-                longKey, value = keyAndValue
-                if shortKey == 'HeadLookTarget':
-                    lerpedValue = geo2.Lerp(value, newParams[shortKey][1], ndt)
-                elif shortKey == 'PortraitPoseNumber':
-                    continue
-                else:
-                    lerpedValue = mathUtil.Lerp(value, newParams[shortKey][1], ndt)
-                params.append([longKey, lerpedValue])
+        else:
+            newParams = self.GetControlParametersFromPortraitID(newPortraitID)
+            if newParams is None:
+                return
+            oldParams = self.GetControlParametersFromPortraitID(None)
+            if len(oldParams) < 1 or len(newParams) < 1:
+                return
+            self.animatingToPortraitID = newPortraitID
+            thereIsCamera = self.camera is not None
+            if thereIsCamera:
+                oldCameraPos = self.camera.cameraPosition
+                oldCameraPoi = self.camera.poi
+                oldCameraFov = self.camera.fieldOfView
+            info = self.GetInfo()
+            start, ndt = blue.os.GetWallclockTime(), 0.0
+            moveCamera = self.ShouldMoveCamera(portraitInfo.cameraPosition, portraitInfo.cameraPoi)
+            while ndt != 1.0:
+                timeValue = min(blue.os.TimeDiffInMs(start, blue.os.GetWallclockTime()) / 250.0, 1.0)
+                ndt = math.sin(timeValue * math.pi - math.pi / 2.0) / 2.0 + 0.5
+                params = []
+                for shortKey, keyAndValue in oldParams.iteritems():
+                    longKey, value = keyAndValue
+                    if shortKey == 'HeadLookTarget':
+                        lerpedValue = geo2.Lerp(value, newParams[shortKey][1], ndt)
+                    elif shortKey == 'PortraitPoseNumber':
+                        continue
+                    else:
+                        lerpedValue = mathUtil.Lerp(value, newParams[shortKey][1], ndt)
+                    params.append([longKey, lerpedValue])
 
-            sm.GetService('character').SetControlParametersFromList(params, info.charID)
-            if thereIsCamera and moveCamera:
-                posValue = geo2.Lerp(oldCameraPos, portraitInfo.cameraPosition, ndt)
-                poiValue = geo2.Lerp(oldCameraPoi, portraitInfo.cameraPoi, ndt)
-                self.cameraPos = posValue
-                self.cameraPoi = poiValue
-                self.camera.PlacePortraitCamera(self.cameraPos, self.cameraPoi)
-            blue.pyos.synchro.Yield()
+                sm.GetService('character').SetControlParametersFromList(params, info.charID)
+                if thereIsCamera and moveCamera:
+                    posValue = geo2.Lerp(oldCameraPos, portraitInfo.cameraPosition, ndt)
+                    poiValue = geo2.Lerp(oldCameraPoi, portraitInfo.cameraPoi, ndt)
+                    self.cameraPos = posValue
+                    self.cameraPoi = poiValue
+                    self.camera.PlacePortraitCamera(self.cameraPos, self.cameraPoi)
+                blue.pyos.synchro.Yield()
 
-        xFactor, yFactor = self.camera.GetCorrectCameraXandYFactors(portraitInfo.cameraPosition, portraitInfo.cameraPoi)
-        self.camera.xFactor = self.camera.xTarget = xFactor
-        self.camera.yFactor = self.camera.yTarget = yFactor
-        self.lightingID = portraitInfo.lightID
-        self.lightIntensity = portraitInfo.lightIntensity
-        self.lightColorID = portraitInfo.lightColorID
-        shouldSnapPortrait = False
-        path = self.GetBackgroundPathFromID(portraitInfo.backgroundID)
-        if path in ccConst.backgroundOptions or gfxsettings.Get(gfxsettings.UI_NCC_GREEN_SCREEN) and path in ccConst.greenscreenBackgroundOptions:
-            self.backdropPath = path
-        elif not gfxsettings.Get(gfxsettings.UI_NCC_GREEN_SCREEN):
-            shouldSnapPortrait = True
-        self.poseID = int(portraitInfo.poseData['PortraitPoseNumber'])
-        sm.GetService('character').SetControlParametersFromList([['ControlParameters|PortraitPoseNumber', float(self.poseID)]], info.charID)
-        uicore.layer.charactercreation.UpdateBackdrop()
-        self.UpdateLights()
-        sm.ScatterEvent('OnPortraitPicked')
-        if shouldSnapPortrait and self.sr.step:
-            self.sr.step.CapturePortrait(newPortraitID)
+            xFactor, yFactor = self.camera.GetCorrectCameraXandYFactors(portraitInfo.cameraPosition, portraitInfo.cameraPoi)
+            self.camera.xFactor = self.camera.xTarget = xFactor
+            self.camera.yFactor = self.camera.yTarget = yFactor
+            self.lightingID = portraitInfo.lightID
+            self.lightIntensity = portraitInfo.lightIntensity
+            self.lightColorID = portraitInfo.lightColorID
+            shouldSnapPortrait = False
+            path = self.GetBackgroundPathFromID(portraitInfo.backgroundID)
+            if path in ccConst.backgroundOptions or gfxsettings.Get(gfxsettings.UI_NCC_GREEN_SCREEN) and path in ccConst.greenscreenBackgroundOptions:
+                self.backdropPath = path
+            elif not gfxsettings.Get(gfxsettings.UI_NCC_GREEN_SCREEN):
+                shouldSnapPortrait = True
+            self.poseID = int(portraitInfo.poseData['PortraitPoseNumber'])
+            sm.GetService('character').SetControlParametersFromList([['ControlParameters|PortraitPoseNumber', float(self.poseID)]], info.charID)
+            uicore.layer.charactercreation.UpdateBackdrop()
+            self.UpdateLights()
+            sm.ScatterEvent('OnPortraitPicked')
+            if shouldSnapPortrait and self.sr.step:
+                self.sr.step.CapturePortrait(newPortraitID)
+            return
 
     def ShouldMoveCamera(self, newPos, newPoi):
         newDirection = geo2.Subtract(newPos, newPoi)
@@ -2115,50 +2177,54 @@ class CharacterCreationLayer(uicls.LayerCore):
             if portraitInfo is None:
                 return {}
             return self.GetControlParametersFromPoseData(portraitInfo.poseData)
-        info = self.GetInfo()
-        avatar = self.characterSvc.GetSingleCharactersAvatar(info.charID)
-        if avatar is None:
-            return {}
-        for controlParameter in paperDollUtil.FACIAL_POSE_PARAMETERS.__dict__.iterkeys():
-            if controlParameter.startswith('_'):
-                continue
-            longKey = PREFIX + controlParameter
-            value = avatar.animationUpdater.network.GetControlParameterValue(longKey)
-            params[controlParameter] = (longKey, value)
+        else:
+            info = self.GetInfo()
+            avatar = self.characterSvc.GetSingleCharactersAvatar(info.charID)
+            if avatar is None:
+                return {}
+            for controlParameter in paperDollUtil.FACIAL_POSE_PARAMETERS.__dict__.iterkeys():
+                if controlParameter.startswith('_'):
+                    continue
+                longKey = PREFIX + controlParameter
+                value = avatar.animationUpdater.network.GetControlParameterValue(longKey)
+                params[controlParameter] = (longKey, value)
 
-        return params
+            return params
 
-    def GetControlParametersFromPoseData(self, poseData, fromDB = False):
+    def GetControlParametersFromPoseData(self, poseData, fromDB=False):
         if poseData is None:
             return {}
-        if fromDB:
-            allParameterKeys = poseData.__keys__
         else:
-            allParameterKeys = poseData.keys()
-        params = {}
-        PREFIX = 'ControlParameters|'
-        for key in allParameterKeys:
-            if key in ('headLookTargetX', 'headLookTargetY', 'headLookTargetZ', 'cameraX', 'cameraY', 'cameraZ'):
-                continue
-            value = poseData[key]
             if fromDB:
-                key = key.replace(key[0], key[0].upper(), 1)
-            params[key] = (PREFIX + key, value)
+                allParameterKeys = poseData.__keys__
+            else:
+                allParameterKeys = poseData.keys()
+            params = {}
+            PREFIX = 'ControlParameters|'
+            for key in allParameterKeys:
+                if key in ('headLookTargetX', 'headLookTargetY', 'headLookTargetZ', 'cameraX', 'cameraY', 'cameraZ'):
+                    continue
+                value = poseData[key]
+                if fromDB:
+                    key = key.replace(key[0], key[0].upper(), 1)
+                params[key] = (PREFIX + key, value)
 
-        if fromDB:
-            params['HeadLookTarget'] = (PREFIX + 'HeadLookTarget', (poseData['headLookTargetX'], poseData['headLookTargetY'], poseData['headLookTargetZ']))
-        return params
+            if fromDB:
+                params['HeadLookTarget'] = (PREFIX + 'HeadLookTarget', (poseData['headLookTargetX'], poseData['headLookTargetY'], poseData['headLookTargetZ']))
+            return params
 
     def TryFreezeAnimation(self, *args):
         if sm.GetService('machoNet').GetGlobalConfig().get('disableFreezeAnimationInNCC'):
             return
-        if self.stepID != ccConst.CUSTOMIZATIONSTEP:
+        elif self.stepID != ccConst.CUSTOMIZATIONSTEP:
             return
-        info = self.GetInfo()
-        avatar = self.characterSvc.GetSingleCharactersAvatar(info.charID)
-        if avatar is not None:
-            avatar.animationUpdater.network.update = False
-            self.freezingAnimation = True
+        else:
+            info = self.GetInfo()
+            avatar = self.characterSvc.GetSingleCharactersAvatar(info.charID)
+            if avatar is not None:
+                avatar.animationUpdater.network.update = False
+                self.freezingAnimation = True
+            return
 
     def UnfreezeAnimationIfNeeded(self, *args):
         if self.freezingAnimation:
@@ -2167,8 +2233,9 @@ class CharacterCreationLayer(uicls.LayerCore):
             if avatar is not None:
                 avatar.animationUpdater.network.update = True
                 self.freezingAnimation = False
+        return
 
-    def DoLogEvent(self, finished = 1, *args):
+    def DoLogEvent(self, finished=1, *args):
         self.stepLogger.Stop()
         info = self.GetInfo()
         endTime = blue.os.GetWallclockTime()
@@ -2239,6 +2306,8 @@ class CharCreationNavigation(uiprimitives.Container):
                 return currentStep
             if currentStep is stepID:
                 nextStepUpcoming = True
+
+        return None
 
     def makeConnectors(self):
         left = 20
@@ -2320,58 +2389,61 @@ class CharCreationNavigation(uiprimitives.Container):
         return self.sr.Get('connector%s' % stepID)
 
     @telemetry.ZONE_METHOD
-    def PerformStepChange(self, stepID, stepsUsed, forceOpen = 0, time = None):
+    def PerformStepChange(self, stepID, stepsUsed, forceOpen=0, time=None):
         if not forceOpen:
             sm.StartService('audio').SendUIEvent(unicode('wise:/ui_icc_step_navigation_anim_play'))
         if not self.attributesApplied:
             return
-        if time is None:
-            time = self.ANIMATIONTIME
-        self.stepID = stepID
-        self.stepsUsed = stepsUsed
-        labelPath = self.stepLabelDict.get(stepID)
-        headerText = localization.GetByLabel(labelPath)
-        self.sr.header.text = headerText
-        self.sr.header.SetAlpha(1.0)
-        container = self.GetStepContainerViaGetAttr(stepID)
-        currentContainerStepID = container.id
-        stepsUsed = self.stepsUsed.copy()
-        try:
-            if (max(stepsUsed) >= currentContainerStepID or self.GetNextStepIDForStepID(max(stepsUsed)) == currentContainerStepID) and self.callbackFunc:
-                for availableStepID in self.availableSteps:
-                    connectorFade = self.GetConnectorFadeViaGetAttr(availableStepID)
-                    cont = self.GetStepContainerViaGetAttr(availableStepID)
-                    if connectorFade:
-                        if availableStepID == currentContainerStepID:
-                            connectorFade.state = uiconst.UI_DISABLED
-                        else:
-                            connectorFade.state = uiconst.UI_HIDDEN
-                    if cont and availableStepID != currentContainerStepID:
-                        cont.SetOpacity(self.NORMALOPACITY)
+        else:
+            if time is None:
+                time = self.ANIMATIONTIME
+            self.stepID = stepID
+            self.stepsUsed = stepsUsed
+            labelPath = self.stepLabelDict.get(stepID)
+            headerText = localization.GetByLabel(labelPath)
+            self.sr.header.text = headerText
+            self.sr.header.SetAlpha(1.0)
+            container = self.GetStepContainerViaGetAttr(stepID)
+            currentContainerStepID = container.id
+            stepsUsed = self.stepsUsed.copy()
+            try:
+                if (max(stepsUsed) >= currentContainerStepID or self.GetNextStepIDForStepID(max(stepsUsed)) == currentContainerStepID) and self.callbackFunc:
+                    for availableStepID in self.availableSteps:
+                        connectorFade = self.GetConnectorFadeViaGetAttr(availableStepID)
+                        cont = self.GetStepContainerViaGetAttr(availableStepID)
+                        if connectorFade:
+                            if availableStepID == currentContainerStepID:
+                                connectorFade.state = uiconst.UI_DISABLED
+                            else:
+                                connectorFade.state = uiconst.UI_HIDDEN
+                        if cont and availableStepID != currentContainerStepID:
+                            cont.SetOpacity(self.NORMALOPACITY)
 
-                cont = self.GetStepContainerViaGetAttr(currentContainerStepID)
-                if currentContainerStepID not in stepsUsed or forceOpen:
-                    connector = self.GetConnectorForStep(currentContainerStepID)
-                    if connector:
-                        if time:
-                            uicore.effect.CombineEffects(connector, width=32, time=time)
-                        else:
-                            connector.width = 32
-                        cont.SetOpacity(self.ACTIVEOPACITY)
-                        if currentContainerStepID not in [self.availableSteps[0], self.availableSteps[-1]]:
-                            self.OpenRight(container, time=time)
-                    nextStepID = self.GetNextStepIDForStepID(currentContainerStepID)
-                    nextStep = self.GetStepContainer(nextStepID)
-                    if nextStep:
-                        self.OpenLeft(nextStep, time=time)
-                        nextStep.state = uiconst.UI_NORMAL
-                if not container.destroyed and container.id == self.stepID:
-                    container.SetOpacity(self.ACTIVEOPACITY)
-        except AttributeError as e:
-            if self is None or self.destroyed or e.message == 'SetOpacity':
-                sm.GetService('cc').LogWarn('Attibute error ignored when performing step change')
-            else:
-                raise
+                    cont = self.GetStepContainerViaGetAttr(currentContainerStepID)
+                    if currentContainerStepID not in stepsUsed or forceOpen:
+                        connector = self.GetConnectorForStep(currentContainerStepID)
+                        if connector:
+                            if time:
+                                uicore.effect.CombineEffects(connector, width=32, time=time)
+                            else:
+                                connector.width = 32
+                            cont.SetOpacity(self.ACTIVEOPACITY)
+                            if currentContainerStepID not in [self.availableSteps[0], self.availableSteps[-1]]:
+                                self.OpenRight(container, time=time)
+                        nextStepID = self.GetNextStepIDForStepID(currentContainerStepID)
+                        nextStep = self.GetStepContainer(nextStepID)
+                        if nextStep:
+                            self.OpenLeft(nextStep, time=time)
+                            nextStep.state = uiconst.UI_NORMAL
+                    if not container.destroyed and container.id == self.stepID:
+                        container.SetOpacity(self.ACTIVEOPACITY)
+            except AttributeError as e:
+                if self is None or self.destroyed or e.message == 'SetOpacity':
+                    sm.GetService('cc').LogWarn('Attibute error ignored when performing step change')
+                else:
+                    raise
+
+            return
 
     @telemetry.ZONE_METHOD
     def OnStepClicked(self, stepClicked, *args):
@@ -2408,24 +2480,28 @@ class CharCreationNavigation(uiprimitives.Container):
         self.sr.header.SetAlpha(1.0)
 
     @telemetry.ZONE_METHOD
-    def OpenLeft(self, container, time = 0.0, *args):
+    def OpenLeft(self, container, time=0.0, *args):
         tlCont = getattr(container, 'tlCont', None)
         blCont = getattr(container, 'blCont', None)
         if time == 0.0:
             tlCont.height = blCont.height = 10
             return
-        uthread.new(uicore.effect.CombineEffects, tlCont, height=10, time=time)
-        uicore.effect.CombineEffects(blCont, height=10, time=time)
+        else:
+            uthread.new(uicore.effect.CombineEffects, tlCont, height=10, time=time)
+            uicore.effect.CombineEffects(blCont, height=10, time=time)
+            return
 
     @telemetry.ZONE_METHOD
-    def OpenRight(self, container, time = 0.0, *args):
+    def OpenRight(self, container, time=0.0, *args):
         trCont = getattr(container, 'trCont', None)
         brCont = getattr(container, 'brCont', None)
         if time == 0.0:
             trCont.height = brCont.height = 10
             return
-        uthread.new(uicore.effect.CombineEffects, trCont, height=10, time=time)
-        uicore.effect.CombineEffects(brCont, height=10, time=time)
+        else:
+            uthread.new(uicore.effect.CombineEffects, trCont, height=10, time=time)
+            uicore.effect.CombineEffects(brCont, height=10, time=time)
+            return
 
 
 class CCConfirmationWindow(uicontrols.Window):
@@ -2461,6 +2537,7 @@ class CCConfirmationWindow(uicontrols.Window):
         if characterName:
             nameText = uicontrols.EveLabelLarge(text='<center>%s' % characterName, parent=self.sr.leftSide, align=uiconst.TOTOP, top=260)
             self.height += nameText.textheight
+        return
 
     def Confirm(self, *args):
         self.result = True

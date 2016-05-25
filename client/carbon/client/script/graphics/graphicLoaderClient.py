@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\carbon\client\script\graphics\graphicLoaderClient.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\carbon\client\script\graphics\graphicLoaderClient.py
 import loadRequest
 import service
 import weakref
@@ -26,6 +27,7 @@ class GraphicLoaderClient(service.Service):
                 self.prioritizedLoadManager.Add(False, graphicRequest)
             else:
                 graphicRequest.AddComponent(component, callback)
+        return
 
     def _RemoveRequest(self, graphicID):
         del self.graphicRequests[graphicID]
@@ -36,3 +38,4 @@ class GraphicLoaderClient(service.Service):
             objectSet = weakref.WeakSet()
             self.loadedGraphics[graphicID] = objectSet
         objectSet.add(component)
+        return

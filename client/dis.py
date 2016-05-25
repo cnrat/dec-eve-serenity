@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\carbon\common\stdlib\dis.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\carbon\common\stdlib\dis.py
 import sys
 import types
 from opcode import *
@@ -16,38 +17,40 @@ _have_code = (types.MethodType,
  types.ClassType,
  type)
 
-def dis(x = None):
+def dis(x=None):
     if x is None:
         distb()
         return
-    if isinstance(x, types.InstanceType):
-        x = x.__class__
-    if hasattr(x, 'im_func'):
-        x = x.im_func
-    if hasattr(x, 'func_code'):
-        x = x.func_code
-    if hasattr(x, '__dict__'):
-        items = x.__dict__.items()
-        items.sort()
-        for name, x1 in items:
-            if isinstance(x1, _have_code):
-                print 'Disassembly of %s:' % name
-                try:
-                    dis(x1)
-                except TypeError as msg:
-                    print 'Sorry:', msg
-
-                print
-
-    elif hasattr(x, 'co_code'):
-        disassemble(x)
-    elif isinstance(x, str):
-        disassemble_string(x)
     else:
-        raise TypeError, "don't know how to disassemble %s objects" % type(x).__name__
+        if isinstance(x, types.InstanceType):
+            x = x.__class__
+        if hasattr(x, 'im_func'):
+            x = x.im_func
+        if hasattr(x, 'func_code'):
+            x = x.func_code
+        if hasattr(x, '__dict__'):
+            items = x.__dict__.items()
+            items.sort()
+            for name, x1 in items:
+                if isinstance(x1, _have_code):
+                    print 'Disassembly of %s:' % name
+                    try:
+                        dis(x1)
+                    except TypeError as msg:
+                        print 'Sorry:', msg
+
+                    print
+
+        elif hasattr(x, 'co_code'):
+            disassemble(x)
+        elif isinstance(x, str):
+            disassemble_string(x)
+        else:
+            raise TypeError, "don't know how to disassemble %s objects" % type(x).__name__
+        return
 
 
-def distb(tb = None):
+def distb(tb=None):
     if tb is None:
         try:
             tb = sys.last_traceback
@@ -58,9 +61,10 @@ def distb(tb = None):
             tb = tb.tb_next
 
     disassemble(tb.tb_frame.f_code, tb.tb_lasti)
+    return
 
 
-def disassemble(co, lasti = -1):
+def disassemble(co, lasti=-1):
     code = co.co_code
     labels = findlabels(code)
     linestarts = dict(findlinestarts(co))
@@ -111,8 +115,10 @@ def disassemble(co, lasti = -1):
                 print '(' + free[oparg] + ')',
         print
 
+    return
 
-def disassemble_string(code, lasti = -1, varnames = None, names = None, constants = None):
+
+def disassemble_string(code, lasti=-1, varnames=None, names=None, constants=None):
     labels = findlabels(code)
     n = len(code)
     i = 0
@@ -154,6 +160,8 @@ def disassemble_string(code, lasti = -1, varnames = None, names = None, constant
             elif op in hascompare:
                 print '(' + cmp_op[oparg] + ')',
         print
+
+    return
 
 
 disco = disassemble
@@ -197,6 +205,7 @@ def findlinestarts(code):
 
     if lineno != lastlineno:
         yield (addr, lineno)
+    return
 
 
 def _test():
@@ -220,6 +229,7 @@ def _test():
         fn = '<stdin>'
     code = compile(source, fn, 'exec')
     dis(code)
+    return
 
 
 if __name__ == '__main__':

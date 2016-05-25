@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\carbon\common\lib\werkzeug\wrappers.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\carbon\common\lib\werkzeug\wrappers.py
 import tempfile
 import urlparse
 from datetime import datetime, timedelta
@@ -32,7 +33,7 @@ class BaseRequest(object):
     list_storage_class = ImmutableList
     dict_storage_class = ImmutableTypeConversionDict
 
-    def __init__(self, environ, populate_request = True, shallow = False):
+    def __init__(self, environ, populate_request=True, shallow=False):
         self.environ = environ
         if populate_request and not shallow:
             self.environ['werkzeug.request'] = self
@@ -66,30 +67,32 @@ class BaseRequest(object):
     def application(cls, f):
         return _patch_wrapper(f, lambda *a: f(*(a[:-2] + (cls(a[-2]),)))(*a[-2:]))
 
-    def _get_file_stream(self, total_content_length, content_type, filename = None, content_length = None):
+    def _get_file_stream(self, total_content_length, content_type, filename=None, content_length=None):
         return default_stream_factory(total_content_length, content_type, filename, content_length)
 
     def _load_form_data(self):
         if 'stream' in self.__dict__:
             return
-        if self.shallow:
-            raise RuntimeError('A shallow request tried to consume form data.  If you really want to do that, set `shallow` to False.')
-        data = None
-        stream = _empty_stream
-        if self.environ['REQUEST_METHOD'] in ('POST', 'PUT'):
-            try:
-                data = parse_form_data(self.environ, self._get_file_stream, self.charset, self.encoding_errors, self.max_form_memory_size, self.max_content_length, cls=self.parameter_storage_class, silent=False)
-            except ValueError as e:
-                self._form_parsing_failed(e)
-
         else:
-            content_length = self.headers.get('content-length', type=int)
-            if content_length is not None:
-                stream = LimitedStream(self.environ['wsgi.input'], content_length)
-        if data is None:
-            data = (stream, self.parameter_storage_class(), self.parameter_storage_class())
-        d = self.__dict__
-        d['stream'], d['form'], d['files'] = data
+            if self.shallow:
+                raise RuntimeError('A shallow request tried to consume form data.  If you really want to do that, set `shallow` to False.')
+            data = None
+            stream = _empty_stream
+            if self.environ['REQUEST_METHOD'] in ('POST', 'PUT'):
+                try:
+                    data = parse_form_data(self.environ, self._get_file_stream, self.charset, self.encoding_errors, self.max_form_memory_size, self.max_content_length, cls=self.parameter_storage_class, silent=False)
+                except ValueError as e:
+                    self._form_parsing_failed(e)
+
+            else:
+                content_length = self.headers.get('content-length', type=int)
+                if content_length is not None:
+                    stream = LimitedStream(self.environ['wsgi.input'], content_length)
+            if data is None:
+                data = (stream, self.parameter_storage_class(), self.parameter_storage_class())
+            d = self.__dict__
+            d['stream'], d['form'], d['files'] = data
+            return
 
     def _form_parsing_failed(self, error):
         pass
@@ -199,7 +202,7 @@ class BaseResponse(object):
     default_mimetype = 'text/plain'
     implicit_sequence_conversion = True
 
-    def __init__(self, response = None, status = None, headers = None, mimetype = None, content_type = None, direct_passthrough = False):
+    def __init__(self, response=None, status=None, headers=None, mimetype=None, content_type=None, direct_passthrough=False):
         if isinstance(headers, Headers):
             self.headers = headers
         elif not headers:
@@ -228,6 +231,7 @@ class BaseResponse(object):
             self.data = response
         else:
             self.response = response
+        return
 
     def call_on_close(self, func):
         self._on_close.append(func)
@@ -240,7 +244,7 @@ class BaseResponse(object):
         return '<%s %s [%s]>' % (self.__class__.__name__, body_info, self.status)
 
     @classmethod
-    def force_type(cls, response, environ = None):
+    def force_type(cls, response, environ=None):
         if not isinstance(response, BaseResponse):
             if environ is None:
                 raise TypeError('cannot convert WSGI application into response objects without an environ')
@@ -249,7 +253,7 @@ class BaseResponse(object):
         return response
 
     @classmethod
-    def from_app(cls, app, environ, buffered = False):
+    def from_app(cls, app, environ, buffered=False):
         return cls(*_run_wsgi_app(app, environ, buffered))
 
     def _get_status_code(self):
@@ -257,6 +261,8 @@ class BaseResponse(object):
             return int(self.status.split(None, 1)[0])
         except ValueError:
             return 0
+
+        return None
 
     def _set_status_code(self, code):
         try:
@@ -281,7 +287,7 @@ class BaseResponse(object):
     del _get_data
     del _set_data
 
-    def _ensure_sequence(self, mutable = False):
+    def _ensure_sequence(self, mutable=False):
         if self.is_sequence:
             if mutable and not isinstance(self.response, list):
                 self.response = list(self.response)
@@ -296,8 +302,9 @@ class BaseResponse(object):
             self.response = list(self.iter_encoded())
             if close is not None:
                 self.call_on_close(close)
+        return
 
-    def iter_encoded(self, charset = None):
+    def iter_encoded(self, charset=None):
         if __debug__ and charset is not None:
             from warnings import warn
             warn(DeprecationWarning('charset was deprecated and is ignored.'), stacklevel=2)
@@ -308,10 +315,12 @@ class BaseResponse(object):
             else:
                 yield str(item)
 
-    def set_cookie(self, key, value = '', max_age = None, expires = None, path = '/', domain = None, secure = None, httponly = False):
+        return
+
+    def set_cookie(self, key, value='', max_age=None, expires=None, path='/', domain=None, secure=None, httponly=False):
         self.headers.add('Set-Cookie', dump_cookie(key, value, max_age, expires, path, domain, secure, httponly, self.charset))
 
-    def delete_cookie(self, key, path = '/', domain = None):
+    def delete_cookie(self, key, path='/', domain=None):
         self.set_cookie(key, expires=0, max_age=0, path=path, domain=domain)
 
     @property
@@ -472,17 +481,17 @@ class ETagResponseMixin(object):
                 self.status_code = 304
         return self
 
-    def add_etag(self, overwrite = False, weak = False):
+    def add_etag(self, overwrite=False, weak=False):
         if overwrite or 'etag' not in self.headers:
             self.set_etag(generate_etag(self.data), weak)
 
-    def set_etag(self, etag, weak = False):
+    def set_etag(self, etag, weak=False):
         self.headers['ETag'] = quote_etag(etag, weak)
 
     def get_etag(self):
         return unquote_etag(self.headers.get('ETag'))
 
-    def freeze(self, no_etag = False):
+    def freeze(self, no_etag=False):
         if not no_etag:
             self.add_etag()
         super(ETagResponseMixin, self).freeze()
@@ -590,24 +599,27 @@ class CommonResponseDescriptorsMixin(object):
         value = self.headers.get('retry-after')
         if value is None:
             return
-        if value.isdigit():
+        elif value.isdigit():
             return datetime.utcnow() + timedelta(seconds=int(value))
-        return parse_date(value)
+        else:
+            return parse_date(value)
 
     def _set_retry_after(self, value):
         if value is None:
             if 'retry-after' in self.headers:
                 del self.headers['retry-after']
             return
-        if isinstance(value, datetime):
-            value = http_date(value)
         else:
-            value = str(value)
-        self.headers['Retry-After'] = value
+            if isinstance(value, datetime):
+                value = http_date(value)
+            else:
+                value = str(value)
+            self.headers['Retry-After'] = value
+            return
 
     retry_after = property(_get_retry_after, _set_retry_after, doc='\n        The Retry-After response-header field can be used with a 503 (Service\n        Unavailable) response to indicate how long the service is expected\n        to be unavailable to the requesting client.\n\n        Time in seconds until expiration or date.')
 
-    def _set_property(name, doc = None):
+    def _set_property(name, doc=None):
 
         def fget(self):
 

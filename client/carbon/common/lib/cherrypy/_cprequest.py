@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\carbon\common\lib\cherrypy\_cprequest.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\carbon\common\lib\cherrypy\_cprequest.py
 import os
 import sys
 import time
@@ -16,7 +17,7 @@ class Hook(object):
     priority = 50
     kwargs = {}
 
-    def __init__(self, callback, failsafe = None, priority = None, **kwargs):
+    def __init__(self, callback, failsafe=None, priority=None, **kwargs):
         self.callback = callback
         if failsafe is None:
             failsafe = getattr(callback, 'failsafe', False)
@@ -25,6 +26,7 @@ class Hook(object):
             priority = getattr(callback, 'priority', 50)
         self.priority = priority
         self.kwargs = kwargs
+        return
 
     def __cmp__(self, other):
         return cmp(self.priority, other.priority)
@@ -44,7 +46,7 @@ class Hook(object):
 
 class HookMap(dict):
 
-    def __new__(cls, points = None):
+    def __new__(cls, points=None):
         d = dict.__new__(cls)
         for p in points or []:
             d[p] = []
@@ -54,7 +56,7 @@ class HookMap(dict):
     def __init__(self, *a, **kw):
         pass
 
-    def attach(self, point, callback, failsafe = None, priority = None, **kwargs):
+    def attach(self, point, callback, failsafe=None, priority=None, **kwargs):
         self[point].append(Hook(callback, failsafe, priority, **kwargs))
 
     def run(self, point):
@@ -75,6 +77,7 @@ class HookMap(dict):
 
         if exc:
             raise
+        return
 
     def __copy__(self):
         newmap = self.__class__()
@@ -172,7 +175,7 @@ class Request(object):
      'error_page': error_page_namespace,
      'tools': cherrypy.tools})
 
-    def __init__(self, local_host, remote_host, scheme = 'http', server_protocol = 'HTTP/1.1'):
+    def __init__(self, local_host, remote_host, scheme='http', server_protocol='HTTP/1.1'):
         self.local = local_host
         self.remote = remote_host
         self.scheme = scheme
@@ -181,6 +184,7 @@ class Request(object):
         self.error_page = self.error_page.copy()
         self.namespaces = self.namespaces.copy()
         self.stage = None
+        return
 
     def close(self):
         if not self.closed:
@@ -245,41 +249,43 @@ class Request(object):
         response = cherrypy.serving.response
         try:
             try:
-                if self.app is None:
-                    raise cherrypy.NotFound()
-                self.stage = 'process_headers'
-                self.process_headers()
-                self.hooks = self.__class__.hooks.copy()
-                self.toolmaps = {}
-                self.stage = 'get_resource'
-                self.get_resource(path_info)
-                self.body = _cpreqbody.RequestBody(self.rfile, self.headers, request_params=self.params)
-                self.namespaces(self.config)
-                self.stage = 'on_start_resource'
-                self.hooks.run('on_start_resource')
-                self.stage = 'process_query_string'
-                self.process_query_string()
-                if self.process_request_body:
-                    if self.method not in self.methods_with_bodies:
-                        self.process_request_body = False
-                self.stage = 'before_request_body'
-                self.hooks.run('before_request_body')
-                if self.process_request_body:
-                    self.body.process()
-                self.stage = 'before_handler'
-                self.hooks.run('before_handler')
-                if self.handler:
-                    self.stage = 'handler'
-                    response.body = self.handler()
-                self.stage = 'before_finalize'
-                self.hooks.run('before_finalize')
-                response.finalize()
-            except (cherrypy.HTTPRedirect, cherrypy.HTTPError):
-                inst = sys.exc_info()[1]
-                inst.set_response()
-                self.stage = 'before_finalize (HTTPError)'
-                self.hooks.run('before_finalize')
-                response.finalize()
+                try:
+                    if self.app is None:
+                        raise cherrypy.NotFound()
+                    self.stage = 'process_headers'
+                    self.process_headers()
+                    self.hooks = self.__class__.hooks.copy()
+                    self.toolmaps = {}
+                    self.stage = 'get_resource'
+                    self.get_resource(path_info)
+                    self.body = _cpreqbody.RequestBody(self.rfile, self.headers, request_params=self.params)
+                    self.namespaces(self.config)
+                    self.stage = 'on_start_resource'
+                    self.hooks.run('on_start_resource')
+                    self.stage = 'process_query_string'
+                    self.process_query_string()
+                    if self.process_request_body:
+                        if self.method not in self.methods_with_bodies:
+                            self.process_request_body = False
+                    self.stage = 'before_request_body'
+                    self.hooks.run('before_request_body')
+                    if self.process_request_body:
+                        self.body.process()
+                    self.stage = 'before_handler'
+                    self.hooks.run('before_handler')
+                    if self.handler:
+                        self.stage = 'handler'
+                        response.body = self.handler()
+                    self.stage = 'before_finalize'
+                    self.hooks.run('before_finalize')
+                    response.finalize()
+                except (cherrypy.HTTPRedirect, cherrypy.HTTPError):
+                    inst = sys.exc_info()[1]
+                    inst.set_response()
+                    self.stage = 'before_finalize (HTTPError)'
+                    self.hooks.run('before_finalize')
+                    response.finalize()
+
             finally:
                 self.stage = 'on_end_resource'
                 self.hooks.run('on_end_resource')
@@ -290,6 +296,8 @@ class Request(object):
             if self.throw_errors:
                 raise
             self.handle_error()
+
+        return
 
     def process_query_string(self):
         try:
@@ -354,11 +362,12 @@ class Request(object):
 
 class ResponseBody(object):
 
-    def __get__(self, obj, objclass = None):
+    def __get__(self, obj, objclass=None):
         if obj is None:
             return self
         else:
             return obj._body
+            return
 
     def __set__(self, obj, value):
         if isinstance(value, basestring):
@@ -371,6 +380,7 @@ class ResponseBody(object):
         elif value is None:
             value = []
         obj._body = value
+        return
 
 
 class Response(object):
@@ -394,6 +404,7 @@ class Response(object):
          'Server': 'CherryPy/' + cherrypy.__version__,
          'Date': httputil.HTTPDate(self.time)})
         self.cookie = SimpleCookie()
+        return
 
     def collapse_body(self):
         if isinstance(self.body, basestring):
@@ -431,6 +442,8 @@ class Response(object):
                 if isinstance(value, unicodestr):
                     value = headers.encode(value)
                 h.append((name, value))
+
+        return
 
     def check_timeout(self):
         if time.time() > self.time + self.timeout:

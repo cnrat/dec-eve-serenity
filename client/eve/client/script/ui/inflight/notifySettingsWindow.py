@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\client\script\ui\inflight\notifySettingsWindow.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\client\script\ui\inflight\notifySettingsWindow.py
 from carbonui import const as uiconst
 from eve.common.lib.appConst import soundNotifications
 from eveaudio.shiphealthnotification import SoundNotification
@@ -18,6 +19,7 @@ class NotifySettingsWindow(uicontrols.Window):
         self.SetCaption(localization.GetByLabel('UI/Inflight/NotifySettingsWindow/DamageAlertSettings'))
         self.MakeUnResizeable()
         self.SetupUi()
+        return
 
     def SetupUi(self):
         self.notifydata = []
@@ -55,6 +57,8 @@ class NotifySettingsWindow(uicontrols.Window):
              10))
             slider = uicontrols.Slider(parent=par, gethintfunc=self.GetSliderHint, endsliderfunc=self.SliderChange)
             slider.Startup(name, 0.0, 1.0, each['sliderSetting'])
+
+        return
 
     def GetSliderHint(self, idname, dname, value):
         return localization.GetByLabel('UI/Common/Formatting/Percentage', percentage=value * 100)

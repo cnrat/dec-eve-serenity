@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\client\script\ui\shared\neocom\skillqueueUI.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\client\script\ui\shared\neocom\skillqueueUI.py
 import base
 import blue
 from carbon.common.script.sys.service import ROLE_GMH
@@ -24,7 +25,9 @@ from eve.client.script.ui.control.eveIcon import Icon
 from eve.client.script.ui.control.eveLabel import EveLabelSmall, EveLabelMedium
 from eve.client.script.ui.control.eveScroll import Scroll
 from eve.client.script.ui.control.eveWindow import Window
+from eve.client.script.ui.control.utilMenu import UtilMenu
 from eve.client.script.ui.quickFilter import QuickFilterEdit
+from eve.client.script.ui.shared.comtool.lscchannel import ACTION_ICON
 from eve.client.script.ui.shared.monetization.events import LogMultiPilotTrainingBannerImpression
 from eve.client.script.ui.shared.monetization.multiTrainingOverlay import MultiTrainingOverlay
 from eve.client.script.ui.shared.monetization.trialPopup import ORIGIN_CHARACTERSHEET
@@ -44,8 +47,11 @@ FILTER_PARTIAL = 1
 FILTER_EXCLUDELVL5 = 2
 FITSINQUEUE_DEFAULT = 0
 
-def ShowMultiTrainingMessage():
-    uthread.Pool('skillqueueUI::ShowMultiTrainingMessage', _ShowMultiTrainingMessage)
+def ShowMultiTrainingMessageOrRaise(e):
+    if not MultiTrainingOverlay.IsSuppressed():
+        uthread.new(_ShowMultiTrainingMessage)
+    else:
+        raise e
 
 
 def _ShowMultiTrainingMessage():
@@ -80,7 +86,7 @@ class SkillQueue(Window):
         self.skillHandler = self.skills.GetSkillHandler()
         self.SetTopparentHeight(0)
         self.queueLastApplied = []
-        self.isSaving = 0
+        self.isSaving = False
         self.isApplying = False
         self.maxSkillqueueLength = charskills.GetSkillQueueTimeLength(session.userType)
         self.minWidth = 360
@@ -91,14 +97,7 @@ class SkillQueue(Window):
         self.skillQueueSvc = sm.GetService('skillqueue')
         self.ConstructLayout()
         self.Load()
-        self.SetHeaderIcon()
-        headerIcon = self.sr.headerIcon
-        headerIcon.GetMenu = self.GetSkillQueueWindowMenu
-        headerIcon.state = uiconst.UI_NORMAL
-
-    def GetSkillQueueWindowMenu(self):
-        m = [(uiutil.MenuLabel('UI/SkillQueue/AddSkillPlanToEndOfQueue'), self.ImportFromClipboard, ()), (uiutil.MenuLabel('UI/SkillQueue/ReplaceSkillsWithImportedPlan'), self.ImportFromClipboard, (1,))]
-        return m
+        return
 
     @telemetry.ZONE_METHOD
     def Load(self, *args):
@@ -136,7 +135,7 @@ class SkillQueue(Window):
         self.sr.rightOuterPar = Container(name='rightOuterPar', parent=self.sr.main, align=uiconst.TOALL, pos=(0, 0, 0, 0))
         self.sr.leftFooterPar = Container(parent=self.sr.leftOuterPar, align=uiconst.TOBOTTOM, height=26)
         self.sr.rightFooterPar = Container(parent=self.sr.rightOuterPar, align=uiconst.TOBOTTOM, height=26)
-        self.sr.leftHeader = Container(parent=self.sr.leftOuterPar, align=uiconst.TOTOP, height=62, top=0, clipChildren=1)
+        self.sr.leftHeader = Container(name='leftHeader', parent=self.sr.leftOuterPar, align=uiconst.TOTOP, height=62, top=0, clipChildren=1)
         self.sr.leftScroll = Scroll(parent=self.sr.leftOuterPar, padTop=const.defaultPadding, padBottom=const.defaultPadding)
         self.sr.leftScroll.SelectAll = self.DoNothing
         self.sr.leftScroll.sr.content.OnDropData = self.DoRemove
@@ -180,7 +179,7 @@ class SkillQueue(Window):
         applyBtn = Button(parent=self.sr.rightFooterPar, name='trainingQueueApplyBtn', label=localization.GetByLabel('UI/Commands/Apply'), pos=(const.defaultPadding,
          3,
          0,
-         0), func=self.SaveChanges, args=(True,))
+         0), func=self.ApplySkillQueue, args=(True,))
         self.sr.pauseBtn = Button(parent=self.sr.rightFooterPar, name='trainingQueuePauseBtn', label=localization.GetByLabel('UI/Commands/Pause'), pos=(applyBtn.left + applyBtn.width + 2,
          3,
          0,
@@ -190,10 +189,20 @@ class SkillQueue(Window):
          0,
          0), align=uiconst.TOPRIGHT, func=self.RemoveSkillFromQueue)
         addBtn = Button(parent=self.sr.leftFooterPar, name='trainingQueueAddBtn', label=localization.GetByLabel('UI/Commands/AddItem'), top=3, align=uiconst.CENTERTOP, func=self.AddSkillToQueue)
+        self.AddImportUtilMenu()
         self.sr.leftExpander = Icon(parent=self.sr.leftOuterPar, idx=0, size=16, state=uiconst.UI_NORMAL, icon='ui_1_16_99', top=2)
         self.sr.rightExpander = Icon(parent=self.sr.rightOuterPar, idx=0, size=16, state=uiconst.UI_HIDDEN, icon='ui_1_16_100', top=2)
         self.sr.leftExpander.OnClick = self.OnClickLeftExpander
         self.sr.rightExpander.OnClick = self.OnClickRightExpander
+        return
+
+    def AddImportUtilMenu(self):
+        structureTypeMenu = UtilMenu(menuAlign=uiconst.TOPLEFT, parent=self.sr.leftHeader, align=uiconst.BOTTOMRIGHT, pos=(4, 0, 32, 32), GetUtilMenu=self.GetImportMenu, texturePath='res:/UI/Texture/Shared/pasteFrom.png', iconSize=32, hint=localization.GetByLabel('UI/SkillQueue/ImportSkillPlan'))
+
+    def GetImportMenu(self, menuParent):
+        hint = localization.GetByLabel('UI/SkillQueue/ImportSkillplanFormatHint', typeID=const.typeSpaceshipCommand)
+        menuParent.AddIconEntry(icon=ACTION_ICON, text=localization.GetByLabel('UI/SkillQueue/AddSkillPlanToEndOfQueue'), hint=hint, callback=self.ImportFromClipboard)
+        menuParent.AddIconEntry(icon=ACTION_ICON, text=localization.GetByLabel('UI/SkillQueue/ReplaceSkillsWithImportedPlan'), hint=hint, callback=self.ImportFromClipboardReplace)
 
     def OnComboChange(self, combo, config, value):
         settings.user.ui.Set('skillqueue_comboFilter', value)
@@ -203,7 +212,7 @@ class SkillQueue(Window):
         settings.user.ui.Set(cb.name, bool(cb.checked))
         self.ReloadSkills()
 
-    def GrayButton(self, btn, gray = 1):
+    def GrayButton(self, btn, gray=1):
         inTraining = self.skillQueueSvc.SkillInTraining()
         if gray and not inTraining:
             btn.SetLabel(['<color=gray>', localization.GetByLabel('UI/Commands/Pause')])
@@ -233,42 +242,71 @@ class SkillQueue(Window):
         self.sr.leftOuterPar.state = uiconst.UI_PICKCHILDREN
         self.sr.rightExpander.state = uiconst.UI_HIDDEN
 
-    def SaveChanges(self, activate = True):
-        if self.isSaving == 1:
-            return
-        queue = self.skillQueueSvc.GetQueue()
+    def ApplySkillQueue(self, activate=True):
+        beginNewTransaction = True
         try:
-            self.isSaving = 1
+            try:
+                self.SaveChanges(activate=activate)
+            except UserError as e:
+                if e.msg == 'UserAlreadyHasSkillInTraining':
+                    beginNewTransaction = False
+                    ShowMultiTrainingMessageOrRaise(e)
+                else:
+                    raise
+
+        finally:
+            if beginNewTransaction:
+                self.skillQueueSvc.BeginTransaction()
+
+    def SaveChanges(self, activate=True):
+        if self.isSaving:
+            return
+        self.isSaving = True
+        try:
+            queue = self.skillQueueSvc.GetQueue()
             self.skillQueueSvc.CommitTransaction(activate=activate)
             self.queueLastApplied = queue
         finally:
-            if self and not self.destroyed:
-                self.skillQueueSvc.BeginTransaction()
-                self.isSaving = 0
+            self.isSaving = False
 
     def PauseTraining(self, *args):
         inTraining = self.skillQueueSvc.SkillInTraining()
         if inTraining:
             sm.StartService('skills').AbortTrain()
 
-    def _OnClose(self, *args):
+    def CloseByUser(self, *args):
         if self.isSaving:
+            super(SkillQueue, self).CloseByUser(*args)
             return
         queue = {x.queuePosition:(x.trainingTypeID, x.trainingToLevel) for x in self.skillQueueSvc.GetQueue()}
         queueLastApplied = {x.queuePosition:(x.trainingTypeID, x.trainingToLevel) for x in self.queueLastApplied}
-        if queue != queueLastApplied:
-            uthread.new(self.ConfirmSavingOnClose)
+        try:
+            if queue != queueLastApplied:
+                self.ConfirmSavingOnClose()
+            else:
+                self.skillQueueSvc.RollbackTransaction()
+        except UserError as e:
+            if e.msg == 'UserAlreadyHasSkillInTraining':
+                ShowMultiTrainingMessageOrRaise(e)
+            else:
+                raise
         else:
-            self.skillQueueSvc.RollbackTransaction()
+            super(SkillQueue, self).CloseByUser(*args)
 
     def ConfirmSavingOnClose(self):
         if eve.Message('QueueSaveChangesOnClose', {}, uiconst.YESNO, suppress=uiconst.ID_YES) == uiconst.ID_YES:
-            queue = self.skillQueueSvc.GetQueue()
-            self.skillQueueSvc.CommitTransaction()
+            try:
+                self.skillQueueSvc.CommitTransaction()
+            except UserError as e:
+                if e.msg == 'UserAlreadyHasSkillInTraining':
+                    self.skillQueueSvc.CommitTransaction(activate=False)
+                else:
+                    raise
+
         else:
             self.skillQueueSvc.RollbackTransaction()
 
-    def ReloadSkills(self, force = 0, time = 250):
+    def ReloadSkills(self, force=0, time=250):
         if self.expanded == 1 or force:
             self.skillTimer = base.AutoTimer(time, self.LoadSkills)
 
@@ -338,6 +376,7 @@ class SkillQueue(Window):
         pos = self.sr.leftScroll.GetScrollProportion()
         self.sr.leftScroll.sr.id = 'skillqueue_leftview'
         self.sr.leftScroll.Load(contentList=scrolllist, headers=[], scrollTo=pos, noContentHint=localization.GetByLabel('UI/SkillQueue/NoResultsForFilters'))
+        return
 
     def GetSubContent(self, data, *args):
         scrolllist = []
@@ -398,6 +437,7 @@ class SkillQueue(Window):
         scrolllist.append(lastDropEntry)
         self.sr.rightScroll.Load(contentList=scrolllist)
         self.UpdateTime()
+        return
 
     @telemetry.ZONE_METHOD
     def GetRightEntry(self, typeID, skill, trainToLevel, timeLeft, isAccelerated):
@@ -457,6 +497,7 @@ class SkillQueue(Window):
         self.queueEnds = timeEnd
         self.queueTimeLeft = timeLeft
         self.lasttime = blue.os.GetWallclockTime()
+        return
 
     def OnRightHeaderSizeChanged(self, *args, **kwds):
         if self.destroyed:
@@ -501,6 +542,8 @@ class SkillQueue(Window):
                 self.sr.sqTimeText.text = ''
             self.UpdateSQTimeTextSizes()
             blue.pyos.synchro.SleepWallclock(1000)
+
+        return
 
     def DrawTimeline(self):
         self.DrawBars()
@@ -548,9 +591,12 @@ class SkillQueue(Window):
 
             offset += width
 
+        return
+
     def _CheckConstructTimeline(self):
         if self.timelineCont is None:
             self.timelineCont = TimelineContainer(parent=self.sr.mainBar, barHeight=19, idx=0)
+        return
 
     def DrawTimelineTicks(self):
         INTERVALS = [(const.HOUR,
@@ -625,23 +671,24 @@ class SkillQueue(Window):
         finally:
             self.UpdateTime()
 
-    def AddSkillThroughSkillEntry(self, data, queue, idx = -1, refresh = 0):
+    def AddSkillThroughSkillEntry(self, data, queue, idx=-1, refresh=0):
         if not data.Get('trained', True):
             eve.Message('CustomNotify', {'notify': localization.GetByLabel('UI/SkillQueue/DoNotHaveSkill')})
             return False
-        nextLevel = self.skillQueueSvc.FindNextLevel(data.skillID, data.skill.skillLevel, queue)
-        if nextLevel is None or nextLevel > 5:
-            eve.Message('CustomNotify', {'notify': localization.GetByLabel('UI/SkillQueue/SkillFullyPlanned')})
-            return False
-        self.DoAddSkill(data.invtype, data.skill, nextLevel, idx)
-        if settings.user.ui.Get('skillqueue_fitsinqueue', FITSINQUEUE_DEFAULT):
-            self.ReloadSkills(time=2000)
-        if refresh:
-            self.UpdateTime()
-            self.ReloadEntriesIfNeeded()
-        return True
+        else:
+            nextLevel = self.skillQueueSvc.FindNextLevel(data.skillID, data.skill.skillLevel, queue)
+            if nextLevel is None or nextLevel > 5:
+                eve.Message('CustomNotify', {'notify': localization.GetByLabel('UI/SkillQueue/SkillFullyPlanned')})
+                return False
+            self.DoAddSkill(data.invtype, data.skill, nextLevel, idx)
+            if settings.user.ui.Get('skillqueue_fitsinqueue', FITSINQUEUE_DEFAULT):
+                self.ReloadSkills(time=2000)
+            if refresh:
+                self.UpdateTime()
+                self.ReloadEntriesIfNeeded()
+            return True
 
-    def AddSkillsThroughOtherEntry(self, skillID, idx, queue, nextLevel = None, refresh = 0):
+    def AddSkillsThroughOtherEntry(self, skillID, idx, queue, nextLevel=None, refresh=0):
         mySkills = sm.StartService('skills').GetSkills()
         skill = mySkills.get(skillID, None)
         if skill is None:
@@ -650,15 +697,16 @@ class SkillQueue(Window):
             nextLevel = self.skillQueueSvc.FindNextLevel(skillID, skill.skillLevel, queue)
         if nextLevel > 5:
             return
-        self.DoAddSkill(skillID, skill, nextLevel, idx)
-        if settings.user.ui.Get('skillqueue_fitsinqueue', FITSINQUEUE_DEFAULT):
-            self.ReloadSkills(time=2000)
-        self.UpdateTime()
-        self.ReloadEntriesIfNeeded()
-        sm.ScatterEvent('OnSkillQueueRefreshed')
-        return True
+        else:
+            self.DoAddSkill(skillID, skill, nextLevel, idx)
+            if settings.user.ui.Get('skillqueue_fitsinqueue', FITSINQUEUE_DEFAULT):
+                self.ReloadSkills(time=2000)
+            self.UpdateTime()
+            self.ReloadEntriesIfNeeded()
+            sm.ScatterEvent('OnSkillQueueRefreshed')
+            return True
 
-    def DoAddSkill(self, typeID, skill, trainToLevel, idx = -1):
+    def DoAddSkill(self, typeID, skill, trainToLevel, idx=-1):
         skillTypeID = typeID
         position = idx
         if position == -1:
@@ -676,6 +724,8 @@ class SkillQueue(Window):
                 uicore.cmd.OpenTrialUpsell(origin=ORIGIN_CHARACTERSHEET, reason='skillqueue', message=localization.GetByLabel('UI/TrialUpsell/SkillQueueBody'))
             else:
                 raise
+
+        return
 
     def MoveUp(self, *args):
         self.Move(-1)
@@ -699,7 +749,7 @@ class SkillQueue(Window):
             if data.skillID and condition:
                 self.DoMove(data, newIdx, queueLength)
 
-    def DoMove(self, data, newIdx, queueLength, movingBelow = 0):
+    def DoMove(self, data, newIdx, queueLength, movingBelow=0):
         trainToLevel = data.Get('trainToLevel', None)
         if data.skillID and trainToLevel:
             skillPos = newIdx
@@ -715,13 +765,16 @@ class SkillQueue(Window):
                 self.sr.rightScroll.SelectNode(data)
                 self.ChangeTimesOnEntriesInQueue()
                 self.UpdateQueuedSkillsRemoveButton()
+        return
 
     def RemoveSkillFromQueue(self, *args):
         selected = self.sr.rightScroll.GetSelected()
         self.DoRemove(None, selected)
+        return
 
     def RemoveToGroup(self, id, nodes):
         self.DoRemove(None, nodes)
+        return
 
     def DoRemove(self, dragObj, entries, *args):
         entries.reverse()
@@ -760,50 +813,54 @@ class SkillQueue(Window):
         nodes = self.sr.rightScroll.GetNodes()
         if not nodes:
             return
-        lastNode = nodes[-1]
-        if lastNode.__guid__ != 'SkillQueueLastDropEntry':
+        else:
+            lastNode = nodes[-1]
+            if lastNode.__guid__ != 'SkillQueueLastDropEntry':
+                return
+            if lastNode.panel is None:
+                return
+            func = getattr(lastNode.panel, funcName, None)
+            if func is None:
+                return
+            func(*args)
             return
-        if lastNode.panel is None:
-            return
-        func = getattr(lastNode.panel, funcName, None)
-        if func is None:
-            return
-        func(*args)
 
-    def DoDropData(self, dragObj, entries, idx = -1):
+    def DoDropData(self, dragObj, entries, idx=-1):
         queue = self.skillQueueSvc.GetQueue()
         self.ChangeDropIndicator('HideIndicator')
         if not entries:
             return
-        if idx == -1:
-            idx = len(queue)
-        data = entries[0]
-        if data.__guid__ == 'listentry.SkillQueueSkillEntry':
-            if data.Get('inQueue', None) and not uicore.uilib.Key(uiconst.VK_SHIFT):
-                movingBelow = 0
-                if idx > data.idx:
-                    movingBelow = 1
-                newIdx = max(0, idx)
-                if data.skillID:
-                    self.DoMove(data, newIdx, len(queue), movingBelow)
-            else:
+        else:
+            if idx == -1:
+                idx = len(queue)
+            data = entries[0]
+            if data.__guid__ == 'listentry.SkillQueueSkillEntry':
+                if data.Get('inQueue', None) and not uicore.uilib.Key(uiconst.VK_SHIFT):
+                    movingBelow = 0
+                    if idx > data.idx:
+                        movingBelow = 1
+                    newIdx = max(0, idx)
+                    if data.skillID:
+                        self.DoMove(data, newIdx, len(queue), movingBelow)
+                else:
+                    self.AddSkillThroughSkillEntry(data, queue, idx)
+            elif data.__guid__ == 'listentry.SkillEntry':
                 self.AddSkillThroughSkillEntry(data, queue, idx)
-        elif data.__guid__ == 'listentry.SkillEntry':
-            self.AddSkillThroughSkillEntry(data, queue, idx)
-        elif data.__guid__ in ('xtriui.InvItem', 'listentry.InvItem'):
-            category = util.GetAttrs(data, 'rec', 'categoryID')
-            if category == const.categorySkill:
-                sm.StartService('skills').InjectSkillIntoBrain([data.item])
-                blue.pyos.synchro.SleepWallclock(500)
-                self.AddSkillsThroughOtherEntry(data.item.typeID, idx, queue, nextLevel=1)
-        elif data.__guid__ == 'listentry.SkillTreeEntry':
-            self.AddSkillsThroughOtherEntry(data.typeID, idx, queue)
-        elif data.__guid__ == 'uicls.GenericDraggableForTypeID':
-            categoryID = evetypes.GetCategoryID(data.typeID)
-            if categoryID == const.categorySkill:
+            elif data.__guid__ in ('xtriui.InvItem', 'listentry.InvItem'):
+                category = util.GetAttrs(data, 'rec', 'categoryID')
+                if category == const.categorySkill:
+                    sm.StartService('skills').InjectSkillIntoBrain([data.item])
+                    blue.pyos.synchro.SleepWallclock(500)
+                    self.AddSkillsThroughOtherEntry(data.item.typeID, idx, queue, nextLevel=1)
+            elif data.__guid__ == 'listentry.SkillTreeEntry':
                 self.AddSkillsThroughOtherEntry(data.typeID, idx, queue)
-        self.UpdateTime()
-        self.ReloadEntriesIfNeeded()
+            elif data.__guid__ == 'uicls.GenericDraggableForTypeID':
+                categoryID = evetypes.GetCategoryID(data.typeID)
+                if categoryID == const.categorySkill:
+                    self.AddSkillsThroughOtherEntry(data.typeID, idx, queue)
+            self.UpdateTime()
+            self.ReloadEntriesIfNeeded()
+            return
 
     def UpdateQueuedSkillsRemoveButton(self):
         for node in self.sr.rightScroll.GetNodes():
@@ -825,7 +882,7 @@ class SkillQueue(Window):
                 isAccelerated = False
             self.ChangeTimeOnSingleEntry(node, timeLeft=addedTime, isAccelerated=isAccelerated)
 
-    def ChangeTimesOnEntriesInSkillList(self, nodeList = None):
+    def ChangeTimesOnEntriesInSkillList(self, nodeList=None):
         queue = self.skillQueueSvc.GetQueue()
         skills = self.skills.GetSkills()
         currentAttributes = self.skillQueueSvc.GetPlayerAttributeDict()
@@ -850,7 +907,9 @@ class SkillQueue(Window):
                 trainingTime = 0
             self.ChangeTimeOnSingleEntry(entry, trainingTime, False)
 
-    def ChangeTimeOnSingleEntry(self, node, timeLeft = 0, isAccelerated = False):
+        return
+
+    def ChangeTimeOnSingleEntry(self, node, timeLeft=0, isAccelerated=False):
         timeHasChanged = long(node.timeLeft) != long(timeLeft)
         node.timeLeft = timeLeft
         node.isAccelerated = isAccelerated
@@ -864,7 +923,7 @@ class SkillQueue(Window):
             node.panel.UpdateAcceleratedMarker()
             node.panel.FillBoxes(node.skill.skillLevel, node.trainToLevel)
 
-    def ReloadEntriesIfNeeded(self, force = 0):
+    def ReloadEntriesIfNeeded(self, force=0):
         self.ChangeTimesOnEntriesInQueue()
         self.UpdateQueuedSkillsRemoveButton()
         if self.expanded == 0 and not force:
@@ -879,6 +938,7 @@ class SkillQueue(Window):
             self.GrayButton(self.sr.pauseBtn, gray=1)
         else:
             self.GrayButton(self.sr.pauseBtn, gray=0)
+        return
 
     def OnSkillQueueChanged(self):
         self.queueLastApplied = self.skillQueueSvc.GetQueue()
@@ -890,15 +950,19 @@ class SkillQueue(Window):
     def OnUIRefresh(self, *args):
         if self.timelineCont is not None:
             self.timelineCont.Close()
+        return
 
     def DoNothing(self):
         pass
 
-    def ImportFromClipboard(self, clearQueue = 0, *args):
+    def ImportFromClipboardReplace(self):
+        return self.ImportFromClipboard(clearQueue=1)
+
+    def ImportFromClipboard(self, clearQueue=0, *args):
         sm.GetService('loading').ProgressWnd(localization.GetByLabel('UI/SkillQueue/ImportingSkillPlan'), '', 1, 6)
         uthread.new(self.ImportFromClipboard_thread, clearQueue)
 
-    def ImportFromClipboard_thread(self, clearQueue = 0, *args):
+    def ImportFromClipboard_thread(self, clearQueue=0, *args):
         importingText = localization.GetByLabel('UI/SkillQueue/ImportingSkillPlan')
         skillplanImporter = self.skillQueueSvc.GetSkillPlanImporter()
         sm.GetService('loading').ProgressWnd(importingText, '', 2, 6)
@@ -945,6 +1009,7 @@ class SkillQueue(Window):
         self.ReloadEntriesIfNeeded()
         sm.GetService('loading').ProgressWnd(importingText, '', 6, 6)
         self.DisplayMessage(importingStatus, failedLines)
+        return
 
     def DisplayMessage(self, importingStatus, failedLines):
         reasonsDict = {'QueueTooManySkills': localization.GetByLabel('UI/SkillQueue/TooManySkillsInQueue'),
@@ -977,18 +1042,23 @@ class SkillQueue(Window):
             customInfoText += '<br><br><b>%s</b><br>' % localization.GetByLabel('UI/SkillQueue/CouldNotReadLines')
             customInfoText += '<br>'.join(failedLines)
         eve.Message('CustomInfo', {'info': customInfoText}, modal=False)
+        return
 
     def ApplySkillPoints(self, *args):
         if self.isApplying:
             return
-        self.isApplying = True
-        try:
-            isTraining = self.skillQueueSvc.SkillInTraining() is not None
-            self.SaveChanges(activate=isTraining)
-            self.skillQueueSvc.ApplyFreeSkillPointsToQueue()
-            sm.GetService('audio').SendUIEvent('st_allocate_skillpoints_play')
-        finally:
-            self.isApplying = False
+        else:
+            self.isApplying = True
+            try:
+                isTraining = self.skillQueueSvc.SkillInTraining() is not None
+                self.SaveChanges(activate=isTraining)
+                self.skillQueueSvc.ApplyFreeSkillPointsToQueue()
+                self.skillQueueSvc.BeginTransaction()
+                sm.GetService('audio').SendUIEvent('st_allocate_skillpoints_play')
+            finally:
+                self.isApplying = False
+
+            return
 
 
 class SkillQueueSkillEntry(BaseSkillEntry):
@@ -1034,12 +1104,13 @@ class SkillQueueSkillEntry(BaseSkillEntry):
         if data.trained:
             queue = self.skillQueueSvc.GetQueue()
             isTypeActive = len(queue) and data.skill.typeID == queue[0].trainingTypeID
-            isRecordCurrentlyTraining = isTypeActive and (data.Get('inQueue', 0) == 0 or data.Get('currentLevel', -1) + 1 == data.Get('trainToLevel'))
-            if isRecordCurrentlyTraining:
+            isNextLevel = data.Get('currentLevel', -1) + 1 == data.Get('trainToLevel')
+            isNotQueuedRecord = data.Get('inQueue', 0) == 0
+            recordNeedsUpdating = isTypeActive and (isNotQueuedRecord or isNextLevel)
+            if recordNeedsUpdating:
                 uthread.new(self.UpdateTraining, data.skill)
             else:
                 skill = data.skill
-                spsThisLevel = self.skills.SkillpointsCurrentLevel(skill.typeID)
                 spsNextLevel = self.skills.SkillpointsNextLevel(skill.typeID)
                 if spsNextLevel is not None:
                     timeLeft = data.timeLeft
@@ -1048,7 +1119,11 @@ class SkillQueueSkillEntry(BaseSkillEntry):
                     else:
                         timeLeftText = ''
                     self.sr.timeLeftText.text = timeLeftText
-                self.UpdateHalfTrained()
+                recordIsPure = not (isNextLevel or not data.Get('inQueue', 0))
+                if recordIsPure:
+                    self.GetIcon('chapter')
+                else:
+                    self.UpdateHalfTrained()
         self.AdjustTimerContWidth()
         self.sr.levelParent.width = self.sr.levels.width + const.defaultPadding
         self.FillBoxes(data.skill.skillLevel, data.trainToLevel)
@@ -1057,6 +1132,7 @@ class SkillQueueSkillEntry(BaseSkillEntry):
         if self.inQueue == 1:
             self.sr.inTrainingHilite.state = uiconst.UI_HIDDEN
         self.UpdateAcceleratedMarker()
+        return
 
     def UpdateAcceleratedMarker(self):
         if not self.inQueue:
@@ -1083,6 +1159,8 @@ class SkillQueueSkillEntry(BaseSkillEntry):
             if box and i < trainToLevel:
                 box.SetRGB(*self.blueColor)
                 box.state = uiconst.UI_DISABLED
+
+        return
 
     def GetMenu(self):
         m = []
@@ -1114,6 +1192,7 @@ class SkillQueueSkillEntry(BaseSkillEntry):
             eve.Message('ListEntryClick')
             if self.sr.node.Get('OnClick', None):
                 self.sr.node.OnClick(self)
+        return
 
     def UpdateTraining(self, skill):
         if not self or self.destroyed:
@@ -1152,6 +1231,8 @@ class SkillQueueSkillEntry(BaseSkillEntry):
             log.LogException()
             sys.exc_clear()
 
+        return
+
     def GetDragData(self, *args):
         self.sr.node.scroll.SelectNode(self.sr.node)
         return [self.sr.node]
@@ -1170,14 +1251,16 @@ class SkillQueueSkillEntry(BaseSkillEntry):
     def OnDragEnter(self, dragObj, nodes, *args):
         if not self.inQueue or nodes is None:
             return
-        node = nodes[0]
-        allowedMove = self.skillQueueSvc.IsMoveAllowed(node, self.sr.node.idx)
-        self.sr.posIndicatorNo.state = uiconst.UI_HIDDEN
-        self.sr.posIndicatorYes.state = uiconst.UI_HIDDEN
-        if allowedMove == True:
-            self.sr.posIndicatorYes.state = uiconst.UI_DISABLED
-        elif allowedMove == False:
-            self.sr.posIndicatorNo.state = uiconst.UI_DISABLED
+        else:
+            node = nodes[0]
+            allowedMove = self.skillQueueSvc.IsMoveAllowed(node, self.sr.node.idx)
+            self.sr.posIndicatorNo.state = uiconst.UI_HIDDEN
+            self.sr.posIndicatorYes.state = uiconst.UI_HIDDEN
+            if allowedMove == True:
+                self.sr.posIndicatorYes.state = uiconst.UI_DISABLED
+            elif allowedMove == False:
+                self.sr.posIndicatorNo.state = uiconst.UI_DISABLED
+            return
 
     def OnDragExit(self, *args):
         if not self.inQueue:
@@ -1199,6 +1282,7 @@ class QueuedSkillEntry(SkillQueueSkillEntry):
         self.sr.infoicon.Close()
         self.removeButton = ButtonIcon(parent=self, align=uiconst.CENTERRIGHT, texturePath='res:/UI/Texture/Icons/105_32_12.png', left=-1, top=-1, width=24, height=24, iconSize=24, func=self.RemoveFromQueue)
         self.UpdateRemoveButton()
+        return
 
     def DrawTimeline(self, offset, segments):
         self._CheckConstructTimeline()
@@ -1210,6 +1294,7 @@ class QueuedSkillEntry(SkillQueueSkillEntry):
     def _CheckConstructTimeline(self):
         if self.timelineCont is None:
             self.timelineCont = TimelineContainer(parent=self.sr.bar, barHeight=6)
+        return
 
     def RemoveFromQueue(self):
         self.sr.node.RemoveFromQueue(self.sr.node)
@@ -1241,12 +1326,14 @@ class SkillQueueLastDropEntry(SE_BaseClassCore):
         if allowedMove is None:
             self.HideIndicator()
             return
-        if allowedMove:
-            color = self.OK_COLOR
         else:
-            color = self.NO_COLOR
-        self.posIndicator.SetRGBA(*color)
-        self.posIndicator.display = True
+            if allowedMove:
+                color = self.OK_COLOR
+            else:
+                color = self.NO_COLOR
+            self.posIndicator.SetRGBA(*color)
+            self.posIndicator.display = True
+            return
 
     def OnDragExit(self, *args):
         self.HideIndicator()

@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\client\script\ui\shared\neocom\Alliances\all_ui_home.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\client\script\ui\shared\neocom\Alliances\all_ui_home.py
 from eve.client.script.ui.control.entries import LabelTextSides
 from eve.client.script.ui.control.eveLabel import EveLabelSmall
 import blue
@@ -49,23 +50,30 @@ class FormAlliancesHome(uiprimitives.Container):
             corpNotInAllianceLabel = localization.GetByLabel('UI/Corporations/CorporationWindow/Alliances/Home/CorporationNotInAlliance', corpName=cfg.eveowners.Get(eve.session.corpid).ownerName)
             self.sr.scroll.Load(fixedEntryHeight=19, contentList=[], noContentHint=corpNotInAllianceLabel)
             return
-        self.LoadScroll()
+        else:
+            self.LoadScroll()
+            return
 
     def LoadScroll(self):
         if self is None or self.destroyed:
             return
-        if not self.sr.Get('scroll'):
+        elif not self.sr.Get('scroll'):
             return
-        try:
-            scrolllist = []
-            sm.GetService('corpui').ShowLoad()
-            self.ShowMyAllianceDetails(scrolllist)
-            self.sr.scroll.Load(contentList=scrolllist)
-        except:
-            log.LogException()
-            sys.exc_clear()
-        finally:
-            sm.GetService('corpui').HideLoad()
+        else:
+            try:
+                try:
+                    scrolllist = []
+                    sm.GetService('corpui').ShowLoad()
+                    self.ShowMyAllianceDetails(scrolllist)
+                    self.sr.scroll.Load(contentList=scrolllist)
+                except:
+                    log.LogException()
+                    sys.exc_clear()
+
+            finally:
+                sm.GetService('corpui').HideLoad()
+
+            return
 
     def ShowMyAllianceDetails(self, scrolllist):
         sm.GetService('corpui').ShowLoad()
@@ -82,7 +90,9 @@ class FormAlliancesHome(uiprimitives.Container):
         finally:
             sm.GetService('corpui').HideLoad()
 
-    def SetHint(self, hintstr = None):
+        return
+
+    def SetHint(self, hintstr=None):
         if self.sr.scroll:
             self.sr.scroll.ShowHint(hintstr)
 
@@ -180,17 +190,21 @@ class FormAlliancesHome(uiprimitives.Container):
         finally:
             sm.GetService('corpui').HideLoad()
 
+        return
+
     def OnAllianceChanged(self, allianceID, change):
         log.LogInfo('OnAllianceChanged allianceID', allianceID, 'change', change)
         if eve.session.allianceid != allianceID:
             return
-        if self.state != uiconst.UI_NORMAL:
+        elif self.state != uiconst.UI_NORMAL:
             log.LogInfo('OnAllianceChanged state != UI_NORMAL')
             return
-        if self.sr.scroll is None:
+        elif self.sr.scroll is None:
             log.LogInfo('OnAllianceChanged no scroll')
             return
-        self.ShowDetails()
+        else:
+            self.ShowDetails()
+            return
 
     def CreateAllianceForm(self, *args):
         wnd = form.CreateAllianceWnd.Open()
@@ -233,9 +247,11 @@ class FormAlliancesBulletins(uiprimitives.Container):
         self.messageArea.RemoveActiveFrame()
         if session.allianceid is not None:
             self.LoadBulletins()
+        return
 
     def AddBulletin(self, *args):
         sm.GetService('corp').EditBulletin(None, isAlliance=True)
+        return
 
     def LoadBulletins(self):
         scrollEntries = sm.GetService('corp').GetBulletinEntries(isAlliance=True)
@@ -281,7 +297,9 @@ class CreateAllianceWnd(uicontrols.Window):
             retval = None
         if retval is None:
             return
-        self.shortNameEdit.SetValue(retval)
+        else:
+            self.shortNameEdit.SetValue(retval)
+            return
 
     def Confirm(self, *args):
         allianceName = self.nameEdit.GetValue()
@@ -331,6 +349,7 @@ class SetShortNameWnd(uicontrols.Window):
             checked = False
 
         self.height = checkBoxCont.height + 70
+        return
 
     def Confirm(self, *args):
         shortName = ''
@@ -345,6 +364,7 @@ class SetShortNameWnd(uicontrols.Window):
     def Cancel(self, *args):
         self.result = None
         self.SetModalResult(0)
+        return
 
 
 class EditAllianceWnd(uicontrols.Window):
@@ -387,6 +407,7 @@ class PrimeTimeHourEntryHorizontal(LabelTextSides):
     def Startup(self, *args):
         listentry.LabelTextSides.Startup(self, args)
         self.primeTimeInfo = None
+        return
 
     def Load(self, node):
         self.primeTimeInfo = node.primeTimeInfo

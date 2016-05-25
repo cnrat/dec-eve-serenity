@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\packages\threadutils\__init__.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\packages\threadutils\__init__.py
 import threading
 import time
 import warnings
@@ -47,7 +48,7 @@ class Token(_Token):
 
 class throttle(object):
 
-    def __init__(self, f, interval_seconds, time_func = None):
+    def __init__(self, f, interval_seconds, time_func=None):
         self.f = f
         self.wait_seconds = interval_seconds
         self.time_since_step = 0.0
@@ -55,12 +56,14 @@ class throttle(object):
         self.next_call_args = None
         self.next_call_kwargs = None
         self._init_time_func(time_func)
+        return
 
     def _init_time_func(self, time_func):
         if time_func is None:
             self.time_func = time.time
         else:
             self.time_func = time_func
+        return
 
     def trigger_next_call_if_exists(self):
         uthread.sleep(self.wait_seconds)
@@ -69,6 +72,7 @@ class throttle(object):
             self.next_call = None
             self.next_call_args = None
             self.next_call_kwargs = None
+        return
 
     def __call__(self, *args, **kwargs):
         dt = self.time_func() - self.time_since_step

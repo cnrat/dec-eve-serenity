@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\carbon\common\lib\markdown\treeprocessors.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\carbon\common\lib\markdown\treeprocessors.py
 import re
 import inlinepatterns
 import markdown.util as util
@@ -19,7 +20,7 @@ def isString(s):
 
 class Processor():
 
-    def __init__(self, markdown_instance = None):
+    def __init__(self, markdown_instance=None):
         if markdown_instance:
             self.markdown = markdown_instance
 
@@ -50,13 +51,14 @@ class InlineProcessor(Treeprocessor):
             return (m.group(1), m.end())
         else:
             return (None, index + 1)
+            return None
 
     def __stashNode(self, node, type):
         placeholder, id = self.__makePlaceholder(type)
         self.stashed_nodes[id] = node
         return placeholder
 
-    def __handleInline(self, data, patternIndex = 0):
+    def __handleInline(self, data, patternIndex=0):
         if not isinstance(data, util.AtomicString):
             startIndex = 0
             while patternIndex < len(self.markdown.inlinePatterns):
@@ -66,7 +68,7 @@ class InlineProcessor(Treeprocessor):
 
         return data
 
-    def __processElementText(self, node, subnode, isText = True):
+    def __processElementText(self, node, subnode, isText=True):
         if isText:
             text = subnode.text
             subnode.text = None
@@ -82,6 +84,8 @@ class InlineProcessor(Treeprocessor):
         childResult.reverse()
         for newChild in childResult:
             node.insert(pos, newChild)
+
+        return
 
     def __processPlaceholders(self, data, parent):
 
@@ -136,28 +140,29 @@ class InlineProcessor(Treeprocessor):
 
         return result
 
-    def __applyPattern(self, pattern, data, patternIndex, startIndex = 0):
+    def __applyPattern(self, pattern, data, patternIndex, startIndex=0):
         match = pattern.getCompiledRegExp().match(data[startIndex:])
         leftData = data[:startIndex]
         if not match:
             return (data, False, 0)
-        node = pattern.handleMatch(match)
-        if node is None:
-            return (data, True, len(leftData) + match.span(len(match.groups()))[0])
-        if not isString(node):
-            if not isinstance(node.text, util.AtomicString):
-                for child in [node] + node._children:
-                    if not isString(node):
-                        if child.text:
-                            child.text = self.__handleInline(child.text, patternIndex + 1)
-                        if child.tail:
-                            child.tail = self.__handleInline(child.tail, patternIndex)
+        else:
+            node = pattern.handleMatch(match)
+            if node is None:
+                return (data, True, len(leftData) + match.span(len(match.groups()))[0])
+            if not isString(node):
+                if not isinstance(node.text, util.AtomicString):
+                    for child in [node] + node._children:
+                        if not isString(node):
+                            if child.text:
+                                child.text = self.__handleInline(child.text, patternIndex + 1)
+                            if child.tail:
+                                child.tail = self.__handleInline(child.tail, patternIndex)
 
-        placeholder = self.__stashNode(node, pattern.type())
-        return ('%s%s%s%s' % (leftData,
-          match.group(1),
-          placeholder,
-          match.groups()[-1]), True, 0)
+            placeholder = self.__stashNode(node, pattern.type())
+            return ('%s%s%s%s' % (leftData,
+              match.group(1),
+              placeholder,
+              match.groups()[-1]), True, 0)
 
     def run(self, tree):
         self.stashed_nodes = {}

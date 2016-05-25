@@ -1,16 +1,20 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\client\script\ui\shared\info\infoWindow.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\client\script\ui\shared\info\infoWindow.py
 import sys
 from carbon.common.lib.const import DAY
-from carbon.common.script.util.linkUtil import GetShowInfoLink, IsLink
+from carbon.common.script.util.linkUtil import GetShowInfoLink
 from entosis.entosisConst import EVENT_TYPE_TCU_DEFENSE, EVENT_TYPE_IHUB_DEFENSE
 from eve.client.script.ui.control.eveIcon import Icon
 from eve.client.script.ui.control.eveLabel import EveLabelMedium, Label
 from eve.client.script.ui.shared.industry.views.containersMETE import ContainerTE, ContainerME
 from eve.client.script.ui.shared.info.panels.PanelSovConstellation import PanelSovConstellation
+from eve.client.script.ui.shared.info.panels.panelFighterAbilities import PanelFighterAbilities
 from eve.client.script.ui.shared.info.panels.panelSov import PanelSov
 from eve.client.script.ui.shared.info.panels.panelUsedWith import PanelUsedWith
-from eve.client.script.ui.shared.stateFlag import FlagIconWithState
+from eve.client.script.ui.shared.stateFlag import FlagIconWithState, GetRelationShipFlag
+from eve.client.script.ui.util.linkUtil import IsLink
 import evetypes
+from fighters.client import GetSquadronClassResPath, GetSquadronClassTooltip
 import uiprimitives
 import types
 import state
@@ -90,6 +94,7 @@ class InfoWindow(Window):
          const.defaultPadding), clipChildren=0, state=uiconst.UI_PICKCHILDREN)
         self.mainiconparent = Container(name='mainiconparent', parent=self.toparea, align=uiconst.TOLEFT, state=uiconst.UI_NORMAL, padRight=6)
         self.techicon = Sprite(name='techIcon', parent=self.mainiconparent, align=uiconst.RELATIVE, left=0, width=16, height=16, idx=0)
+        self.fighterClassIcon = Sprite(parent=self.mainiconparent, name='fighterClass', align=uiconst.TOPRIGHT, left=0, width=16, height=16, idx=0)
         self.mainicon = Container(name='mainicon', parent=self.mainiconparent, align=uiconst.TOTOP, state=uiconst.UI_DISABLED)
         self.topRightContent = ContainerAutoSize(name='topRightContent', align=uiconst.TOTOP, parent=self.toparea, callback=self.OnTopRightContResized)
         self.captioncontainer = ContainerAutoSize(name='captioncontainer', parent=self.topRightContent, align=uiconst.TOTOP, state=uiconst.UI_DISABLED)
@@ -100,6 +105,7 @@ class InfoWindow(Window):
         self.goBackBtn = uicontrols.ButtonIcon(name='goBackBtn', parent=self.toparea, align=uiconst.TOPRIGHT, pos=(12, -5, 16, 16), iconSize=16, texturePath='res:/UI/Texture/icons/38_16_223.png', func=self.OnBack, hint=localization.GetByLabel('UI/Control/EveWindow/Previous'))
         self.mainContentCont = Container(name='mainContentCont', parent=self.sr.main, align=uiconst.TOALL, pos=(0, 0, 0, 0))
         uthread.new(self.ReconstructInfoWindow, typeID, itemID, rec=rec, parentID=parentID, abstractinfo=abstractinfo, selectTabType=selectTabType)
+        return
 
     def ReconstructSubContainer(self):
         self.mainContentCont.Flush()
@@ -126,7 +132,7 @@ class InfoWindow(Window):
             fakeNode.charID = self.itemID
             fakeNode.info = uiutil.Bunch(typeID=self.typeID, name=cfg.eveowners.Get(self.itemID).name)
             return [fakeNode]
-        if self.IsType(TYPE_CELESTIAL, TYPE_STATION) and self.itemID:
+        if self.IsType(TYPE_CELESTIAL, TYPE_STATION, TYPE_STRUCTURE) and self.itemID:
             fakeNode.__guid__ = 'xtriui.ListSurroundingsBtn'
             fakeNode.itemID = self.itemID
             fakeNode.label = self.captionText or localization.GetByLabel('UI/Common/Unknown')
@@ -169,6 +175,7 @@ class InfoWindow(Window):
         errorPar = uiutil.FindChild(self.sr.main, 'errorPar')
         if errorPar is not None:
             errorPar.Close()
+        return
 
     def OnTopRightContResized(self, *args):
         height = self.topRightContent.height
@@ -200,6 +207,7 @@ class InfoWindow(Window):
              self,
              ('selectSubtab', None, _subtabs),
              _subtabs])
+        return
 
     def ConstructCustomTab(self, tabgroup, tabType, tabName):
         name = localization.GetByLabel(tabName)
@@ -220,39 +228,43 @@ class InfoWindow(Window):
     def GetPanelByTabType(self, tabType):
         if tabType == TAB_NOTES:
             return PanelNotes(parent=self.mainContentCont, itemID=self.itemID)
-        if tabType == TAB_MASTERY:
+        elif tabType == TAB_MASTERY:
             return PanelMastery(parent=self.mainContentCont, typeID=self.typeID)
-        if tabType == TAB_CERTSKILLS:
+        elif tabType == TAB_CERTSKILLS:
             return PanelCertificateSkills(parent=self.mainContentCont, typeID=self.typeID, certificateID=self.abstractinfo.certificateID)
-        if tabType == TAB_REQUIREDFOR:
+        elif tabType == TAB_REQUIREDFOR:
             return PanelRequiredFor(parent=self.mainContentCont, typeID=self.typeID)
-        if tabType == TAB_INDUSTRY:
+        elif tabType == TAB_INDUSTRY:
             return PanelIndustry(parent=self.mainContentCont, bpData=self.GetBlueprintData())
-        if tabType == TAB_ITEMINDUSTRY:
+        elif tabType == TAB_ITEMINDUSTRY:
             return PanelItemIndustry(parent=self.mainContentCont, typeID=self.typeID)
-        if tabType == TAB_TRAITS:
-            if PanelTraits.TraitsVisible(self.typeID):
-                return PanelTraits(parent=self.mainContentCont, typeID=self.typeID)
-        elif tabType == TAB_REQUIREMENTS:
-            if PanelRequirements.RequirementsVisible(self.typeID):
-                return PanelRequirements(parent=self.mainContentCont, typeID=self.typeID)
         else:
-            if tabType == TAB_FITTING:
-                return PanelFitting(parent=self.mainContentCont, item=self.rec, itemID=self.itemID, typeID=self.typeID)
-            if tabType == TAB_USEDWITH:
-                return PanelUsedWith(parent=self.mainContentCont, typeID=self.typeID)
-            if tabType == TAB_SKINLICENSE:
-                return PanelSkinLicense(parent=self.mainContentCont, typeID=self.typeID)
-            if tabType == TAB_SKINMATERIAL:
-                return PanelSkinMaterial(parent=self.mainContentCont, typeID=self.typeID, itemID=self.itemID)
-            if tabType == TAB_SHIPAVAILABLESKINLICENSES:
-                return PanelShipAvailableSkinLicenses(parent=self.mainContentCont, typeID=self.typeID)
-            if tabType == TAB_SOV:
-                return PanelSov(parent=self.mainContentCont, solarsystemID=self.itemID)
-            if tabType == TAB_SOV_CONSTELLATION:
-                return PanelSovConstellation(parent=self.mainContentCont, constellationID=self.itemID)
+            if tabType == TAB_TRAITS:
+                if PanelTraits.TraitsVisible(self.typeID):
+                    return PanelTraits(parent=self.mainContentCont, typeID=self.typeID)
+            elif tabType == TAB_REQUIREMENTS:
+                if PanelRequirements.RequirementsVisible(self.typeID):
+                    return PanelRequirements(parent=self.mainContentCont, typeID=self.typeID)
+            else:
+                if tabType == TAB_FITTING:
+                    return PanelFitting(parent=self.mainContentCont, item=self.rec, itemID=self.itemID, typeID=self.typeID)
+                if tabType == TAB_USEDWITH:
+                    return PanelUsedWith(parent=self.mainContentCont, typeID=self.typeID)
+                if tabType == TAB_SKINLICENSE:
+                    return PanelSkinLicense(parent=self.mainContentCont, typeID=self.typeID)
+                if tabType == TAB_SKINMATERIAL:
+                    return PanelSkinMaterial(parent=self.mainContentCont, typeID=self.typeID, itemID=self.itemID)
+                if tabType == TAB_SHIPAVAILABLESKINLICENSES:
+                    return PanelShipAvailableSkinLicenses(parent=self.mainContentCont, typeID=self.typeID)
+                if tabType == TAB_SOV:
+                    return PanelSov(parent=self.mainContentCont, solarsystemID=self.itemID)
+                if tabType == TAB_SOV_CONSTELLATION:
+                    return PanelSovConstellation(parent=self.mainContentCont, constellationID=self.itemID)
+                if tabType == TAB_FIGHTER_ABILITIES:
+                    return PanelFighterAbilities(parent=self.mainContentCont, typeID=self.typeID)
+            return None
 
-    def ConstructMainTabs(self, widthRequirements, tabNumber, selectTabType = None):
+    def ConstructMainTabs(self, widthRequirements, tabNumber, selectTabType=None):
         tabgroup = []
         for listtype, subtabs, tabName in INFO_TABS:
             items = self.data[listtype]['items']
@@ -281,6 +293,7 @@ class InfoWindow(Window):
             if not autoSelectTab:
                 self.maintabs.SelectByIdx(tabNumber)
             widthRequirements.append(self.maintabs.totalTabWidth + 16)
+        return
 
     def UpdateHistoryButtons(self):
         if self.history.IsBackEnabled():
@@ -317,7 +330,7 @@ class InfoWindow(Window):
 
             widthRequirements.append(totalBtnWidth)
 
-    def ReconstructInfoWindow(self, typeID, itemID = None, rec = None, parentID = None, abstractinfo = None, tabNumber = None, branchHistory = True, selectTabType = None):
+    def ReconstructInfoWindow(self, typeID, itemID=None, rec=None, parentID=None, abstractinfo=None, tabNumber=None, branchHistory=True, selectTabType=None):
         if self.isLoading:
             self.pendingLoadData = (typeID,
              itemID,
@@ -328,77 +341,82 @@ class InfoWindow(Window):
              branchHistory,
              selectTabType)
             return
-        self._ReconstructInfoWindow(typeID, itemID, rec, parentID, abstractinfo, tabNumber, branchHistory, selectTabType)
-        if self.pendingLoadData:
-            pendingData = self.pendingLoadData
-            self.pendingLoadData = None
-            self.ReconstructInfoWindow(*pendingData)
+        else:
+            self._ReconstructInfoWindow(typeID, itemID, rec, parentID, abstractinfo, tabNumber, branchHistory, selectTabType)
+            if self.pendingLoadData:
+                pendingData = self.pendingLoadData
+                self.pendingLoadData = None
+                self.ReconstructInfoWindow(*pendingData)
+            return
 
-    def _ReconstructInfoWindow(self, typeID, itemID = None, rec = None, parentID = None, abstractinfo = None, tabNumber = None, branchHistory = True, selectTabType = None):
+    def _ReconstructInfoWindow(self, typeID, itemID=None, rec=None, parentID=None, abstractinfo=None, tabNumber=None, branchHistory=True, selectTabType=None):
         try:
-            self.ShowLoad()
-            self.isLoading = True
-            self.HideError()
-            if self.top == uicore.desktop.height:
-                self.Maximize()
-            else:
-                self.SetState(uiconst.UI_NORMAL)
-            if branchHistory and not self.history.IsEmpty():
-                self.UpdateHistoryData()
-            self.typeID = typeID
-            self.itemID = itemID
-            self.rec = rec
-            self.parentID = parentID
-            self.abstractinfo = abstractinfo
-            self.groupID = evetypes.GetGroupID(typeID)
-            self.categoryID = evetypes.GetCategoryID(typeID)
-            self.infoType = self.GetInfoWindowType()
-            self.corpinfo = None
-            self.allianceinfo = None
-            self.factioninfo = None
-            self.warfactioninfo = None
-            self.stationinfo = None
-            self.plasticinfo = None
-            self.corpID = None
-            self.allianceID = None
-            self.captionText = None
-            self.subCaptionText = None
-            self.ResetWindowData()
-            self.variationCompareBtn = None
-            self.maintabs = None
-            self.captioncontainer.Flush()
-            self.subinfolinkcontainer.Flush()
-            self.therestcontainer.Flush()
-            self.subinfolinkcontainer.height = 0
-            self.subinfolinkcontainer.padTop = 6
-            self.mainiconparent.GetDragData = self.GetMainIconDragData
-            self.mainiconparent.isDragObject = True
-            self.ReconstructSubContainer()
-            self.UpdateCaption()
-            self.UpdateHeaderActionMenu()
-            self.UpdateWindowIcon(typeID, itemID)
-            self.UpdateDescriptionCaptionAndSubCaption()
-            self.ConstructWindowHeader()
-            sm.GetService('info').UpdateWindowData(self, typeID, itemID, parentID=parentID)
-            self.CheckConstructOwnerButtonIcon(itemID)
-            if branchHistory:
-                self.history.Append(self.GetHistoryData())
-            self.UpdateHistoryButtons()
-            widthRequirements = [MINWIDTH]
-            self.ConstructMainTabs(widthRequirements, tabNumber, selectTabType)
-            self.ConstructBottomButtons(widthRequirements)
-            width = max(widthRequirements)
-            self.UpdateWindowMinSize(width)
-            self.toparea.state = uiconst.UI_PICKCHILDREN
-        except BadArgs as e:
-            self.ShowError(e.args)
-            sys.exc_clear()
+            try:
+                self.ShowLoad()
+                self.isLoading = True
+                self.HideError()
+                if self.top == uicore.desktop.height:
+                    self.Maximize()
+                else:
+                    self.SetState(uiconst.UI_NORMAL)
+                if branchHistory and not self.history.IsEmpty():
+                    self.UpdateHistoryData()
+                self.typeID = typeID
+                self.itemID = itemID
+                self.rec = rec
+                self.parentID = parentID
+                self.abstractinfo = abstractinfo
+                self.groupID = evetypes.GetGroupID(typeID)
+                self.categoryID = evetypes.GetCategoryID(typeID)
+                self.infoType = self.GetInfoWindowType()
+                self.corpinfo = None
+                self.allianceinfo = None
+                self.factioninfo = None
+                self.warfactioninfo = None
+                self.stationinfo = None
+                self.plasticinfo = None
+                self.corpID = None
+                self.allianceID = None
+                self.captionText = None
+                self.subCaptionText = None
+                self.ResetWindowData()
+                self.variationCompareBtn = None
+                self.maintabs = None
+                self.captioncontainer.Flush()
+                self.subinfolinkcontainer.Flush()
+                self.therestcontainer.Flush()
+                self.subinfolinkcontainer.height = 0
+                self.subinfolinkcontainer.padTop = 6
+                self.mainiconparent.GetDragData = self.GetMainIconDragData
+                self.mainiconparent.isDragObject = True
+                self.ReconstructSubContainer()
+                self.UpdateCaption()
+                self.UpdateHeaderActionMenu()
+                self.UpdateWindowIcon(typeID, itemID)
+                self.UpdateDescriptionCaptionAndSubCaption()
+                self.ConstructWindowHeader()
+                sm.GetService('info').UpdateWindowData(self, typeID, itemID, parentID=parentID)
+                self.CheckConstructOwnerButtonIcon(itemID)
+                if branchHistory:
+                    self.history.Append(self.GetHistoryData())
+                self.UpdateHistoryButtons()
+                widthRequirements = [MINWIDTH]
+                self.ConstructMainTabs(widthRequirements, tabNumber, selectTabType)
+                self.ConstructBottomButtons(widthRequirements)
+                width = max(widthRequirements)
+                self.UpdateWindowMinSize(width)
+                self.toparea.state = uiconst.UI_PICKCHILDREN
+            except BadArgs as e:
+                self.ShowError(e.args)
+                sys.exc_clear()
+
         finally:
             self.HideLoad()
             self.ShowHeaderButtons(1)
             self.isLoading = False
 
         uicore.registry.SetFocus(self)
+        return
 
     def UpdateHistoryData(self):
         self.history.UpdateCurrent(self.GetHistoryData())
@@ -419,10 +437,10 @@ class InfoWindow(Window):
 
     def GetOwnerIDToShow(self, itemID):
         if self.IsOwned():
-            if session.solarsystemid is not None:
-                slimitem = sm.GetService('michelle').GetBallpark().GetInvItem(itemID)
-                if slimitem is not None:
-                    return slimitem.ownerID
+            slimitem = sm.GetService('michelle').GetItem(itemID)
+            if slimitem is not None:
+                return slimitem.ownerID
+        return
 
     def CheckConstructOwnerButtonIcon(self, itemID):
         ownerID = self.GetOwnerIDToShow(itemID)
@@ -492,6 +510,7 @@ class InfoWindow(Window):
             self.ConstructHeaderSkillInjector()
         elif self.IsType(TYPE_SKILLEXTRACTOR):
             self.ConstructHeaderSkillExtractor()
+        return
 
     def ConstructHeaderCharacter(self):
         corpid = None
@@ -597,6 +616,7 @@ class InfoWindow(Window):
                         factionText = localization.GetByLabel('UI/FactionWarfare/MilitiaAndFaction', factionName=cfg.eveowners.Get(militiaFactionID).name)
                         factionLabel = uicontrols.EveLabelSmall(text=factionText, parent=subinfoCont, align=uiconst.TOLEFT, top=4)
                         subinfoCont.height = max(subinfoText.textheight + 2 * subinfoText.top, factionLabel.textheight + 2 * subinfoText.top)
+        return
 
     def ConstructHeaderShip(self):
         self.subinfolinkcontainer.height = 42
@@ -617,74 +637,78 @@ class InfoWindow(Window):
         left = 54 if shipOwnerID else 0
         if self.groupID == groupCapsule or self.IsType(TYPE_ENTITY) or self.IsType(TYPE_CELESTIAL):
             return
-        skills = sm.GetService('skills').GetRequiredSkills(self.typeID).items()
-        texturePath, hint = sm.GetService('skills').GetRequiredSkillsLevelTexturePathAndHint(skills, typeID=self.typeID)
-        skillSprite = Sprite(name='skillSprite', parent=self.subinfolinkcontainer, align=uiconst.CENTERLEFT, pos=(left,
-         0,
-         33,
-         33), texturePath=texturePath, hint=hint)
-        isTrialRestricted = sm.GetService('skills').IsTrialRestricted(self.typeID)
-        if isTrialRestricted:
-            skillSprite.OnClick = lambda *args: uicore.cmd.OpenSubscriptionPage(origin=ORIGIN_SHOWINFO, reason=':'.join(['ship', str(self.typeID)]))
         else:
-            skillSprite.OnClick = lambda *args: self.maintabs.ShowPanelByName(localization.GetByLabel('UI/InfoWindow/TabNames/Requirements'))
-        masterySprite = Sprite(name='masterySprite', parent=self.subinfolinkcontainer, align=uiconst.CENTERLEFT, pos=(left + 36,
-         0,
-         45,
-         45))
-        masterySprite.OnClick = lambda *args: self.maintabs.ShowPanelByName(localization.GetByLabel('UI/InfoWindow/TabNames/Mastery'))
-        shipMasteryLevel = sm.GetService('certificates').GetCurrCharMasteryLevel(self.typeID)
-        texturePath = sm.GetService('certificates').GetMasteryIconForLevel(shipMasteryLevel)
-        if shipMasteryLevel == 0:
-            hint = localization.GetByLabel('UI/InfoWindow/MasteryNone')
-        else:
-            hint = localization.GetByLabel('UI/InfoWindow/MasteryLevel', masteryLevel=shipMasteryLevel)
-        masterySprite.SetTexturePath(texturePath)
-        masterySprite.hint = hint
-        skinIcon = Sprite(parent=self.subinfolinkcontainer, align=uiconst.CENTERLEFT, state=uiconst.UI_HIDDEN, width=32, height=32, left=left + 84)
+            skills = sm.GetService('skills').GetRequiredSkills(self.typeID).items()
+            texturePath, hint = sm.GetService('skills').GetRequiredSkillsLevelTexturePathAndHint(skills, typeID=self.typeID)
+            skillSprite = Sprite(name='skillSprite', parent=self.subinfolinkcontainer, align=uiconst.CENTERLEFT, pos=(left,
+             0,
+             33,
+             33), texturePath=texturePath, hint=hint)
+            isTrialRestricted = sm.GetService('skills').IsTrialRestricted(self.typeID)
+            if isTrialRestricted:
+                skillSprite.OnClick = lambda *args: uicore.cmd.OpenSubscriptionPage(origin=ORIGIN_SHOWINFO, reason=':'.join(['ship', str(self.typeID)]))
+            else:
+                skillSprite.OnClick = lambda *args: self.maintabs.ShowPanelByName(localization.GetByLabel('UI/InfoWindow/TabNames/Requirements'))
+            masterySprite = Sprite(name='masterySprite', parent=self.subinfolinkcontainer, align=uiconst.CENTERLEFT, pos=(left + 36,
+             0,
+             45,
+             45))
+            masterySprite.OnClick = lambda *args: self.maintabs.ShowPanelByName(localization.GetByLabel('UI/InfoWindow/TabNames/Mastery'))
+            shipMasteryLevel = sm.GetService('certificates').GetCurrCharMasteryLevel(self.typeID)
+            texturePath = sm.GetService('certificates').GetMasteryIconForLevel(shipMasteryLevel)
+            if shipMasteryLevel == 0:
+                hint = localization.GetByLabel('UI/InfoWindow/MasteryNone')
+            else:
+                hint = localization.GetByLabel('UI/InfoWindow/MasteryLevel', masteryLevel=shipMasteryLevel)
+            masterySprite.SetTexturePath(texturePath)
+            masterySprite.hint = hint
+            skinIcon = Sprite(parent=self.subinfolinkcontainer, align=uiconst.CENTERLEFT, state=uiconst.UI_HIDDEN, width=32, height=32, left=left + 84)
 
-        def FetchAndShowAppliedSkin():
-            appliedSkin = sm.GetService('skinSvc').GetAppliedSkin(shipOwnerID, self.itemID, self.typeID)
-            if appliedSkin is None:
-                return
-            skinIcon.SetTexturePath(appliedSkin.iconTexturePath)
-            skinIcon.state = uiconst.UI_NORMAL
-            skinIcon.hint = appliedSkin.name
-            skinIcon.OnClick = lambda : sm.StartService('info').ShowInfo(const.typeSkinMaterial, itemID=appliedSkin.materialID)
-
-        uthread.new(FetchAndShowAppliedSkin)
-        if self.itemID:
-            insuranceCont = Container(parent=self.therestcontainer, align=uiconst.TOTOP, height=32)
-            insuranceLabel = uicontrols.EveLabelMedium(text='', parent=insuranceCont, align=uiconst.TOTOP, state=uiconst.UI_NORMAL)
-            timeLabel = uicontrols.EveLabelMedium(text='', parent=insuranceCont, align=uiconst.TOTOP)
-            bp = sm.GetService('michelle').GetBallpark()
-            isMine = False
-            if bp is not None:
-                slimItem = bp.GetInvItem(self.itemID)
-                if slimItem is not None:
-                    if slimItem.ownerID in (session.corpid, session.charid):
-                        isMine = True
-                elif not session.solarsystemid:
-                    isMine = True
-            if isMine or bp is None:
-                contract = sm.RemoteSvc('insuranceSvc').GetContractForShip(self.itemID)
-                price = sm.GetService('insurance').GetInsurancePrice(self.typeID)
-                if self.groupID in (groupTitan, groupSupercarrier) or price <= 0:
-                    insuranceLabel.text = ''
-                elif contract and contract.ownerID in (session.corpid, session.charid):
-                    insuranceName = sm.GetService('info').GetInsuranceName(contract.fraction)
-                    insuranceLabel.text = insuranceName
-                    payout = price * contract.fraction
-                    insuranceLabel.hint = util.FmtISK(payout)
-                    timeDiff = contract.endDate - blue.os.GetWallclockTime()
-                    days = timeDiff / DAY
-                    text = localization.GetByLabel('UI/Insurance/TimeLeft', time=timeDiff)
-                    if days < 5:
-                        timeLabel.color = util.Color.RED
-                    timeLabel.text = text
+            def FetchAndShowAppliedSkin():
+                appliedSkin = sm.GetService('skinSvc').GetAppliedSkin(shipOwnerID, self.itemID, self.typeID)
+                if appliedSkin is None:
+                    return
                 else:
-                    insuranceLabel.text = localization.GetByLabel('UI/Insurance/ShipUninsured')
-                    insuranceLabel.color = util.Color.RED
+                    skinIcon.SetTexturePath(appliedSkin.iconTexturePath)
+                    skinIcon.state = uiconst.UI_NORMAL
+                    skinIcon.hint = appliedSkin.name
+                    skinIcon.OnClick = lambda : sm.StartService('info').ShowInfo(const.typeSkinMaterial, itemID=appliedSkin.materialID)
+                    return
+
+            uthread.new(FetchAndShowAppliedSkin)
+            if self.itemID:
+                insuranceCont = Container(parent=self.therestcontainer, align=uiconst.TOTOP, height=32)
+                insuranceLabel = uicontrols.EveLabelMedium(text='', parent=insuranceCont, align=uiconst.TOTOP, state=uiconst.UI_NORMAL)
+                timeLabel = uicontrols.EveLabelMedium(text='', parent=insuranceCont, align=uiconst.TOTOP)
+                bp = sm.GetService('michelle').GetBallpark()
+                isMine = False
+                if bp is not None:
+                    slimItem = bp.GetInvItem(self.itemID)
+                    if slimItem is not None:
+                        if slimItem.ownerID in (session.corpid, session.charid):
+                            isMine = True
+                    elif not session.solarsystemid:
+                        isMine = True
+                if isMine or bp is None:
+                    contract = sm.RemoteSvc('insuranceSvc').GetContractForShip(self.itemID)
+                    price = sm.GetService('insurance').GetInsurancePrice(self.typeID)
+                    if self.groupID in (groupTitan, groupSupercarrier) or price <= 0:
+                        insuranceLabel.text = ''
+                    elif contract and contract.ownerID in (session.corpid, session.charid):
+                        insuranceName = sm.GetService('info').GetInsuranceName(contract.fraction)
+                        insuranceLabel.text = insuranceName
+                        payout = price * contract.fraction
+                        insuranceLabel.hint = util.FmtISK(payout)
+                        timeDiff = contract.endDate - blue.os.GetWallclockTime()
+                        days = timeDiff / DAY
+                        text = localization.GetByLabel('UI/Insurance/TimeLeft', time=timeDiff)
+                        if days < 5:
+                            timeLabel.color = util.Color.RED
+                        timeLabel.text = text
+                    else:
+                        insuranceLabel.text = localization.GetByLabel('UI/Insurance/ShipUninsured')
+                        insuranceLabel.color = util.Color.RED
+            return
 
     def ConstructHeaderMedalOrRibbon(self):
         info = sm.GetService('medals').GetMedalDetails(self.itemID).info[0]
@@ -753,6 +777,7 @@ class InfoWindow(Window):
 
                 bountyHint = localization.GetByLabel('UI/Station/BountyOffice/BountyHintCorp', corpBounty=util.FmtISK(corpBounty, 0), allianceBounty=util.FmtISK(allianceBounty, 0))
                 self.Wanted(bountyAmount, False, wanted, ownerIDs=bountyOwnerIDs, hint=bountyHint)
+        return
 
     def ConstructHeaderAlliance(self):
         warFactionID = sm.GetService('facwar').GetAllianceWarFactionID(self.itemID)
@@ -769,11 +794,13 @@ class InfoWindow(Window):
             bountyAmount = self.GetBountyAmount(*bountyOwnerIDs)
             wanted = bountyAmount > 0
             self.Wanted(bountyAmount, False, wanted, ownerIDs=bountyOwnerIDs)
+        return
 
     def ConstructHeaderFaction(self):
         if self.factioninfo is None:
             self.factioninfo = cfg.factions.GetIfExists(self.itemID)
         uicontrols.EveLabelMedium(text=localization.GetByLabel('UI/InfoWindow/HeadquartersLocation', location=self.factioninfo.solarSystemID), parent=self.captioncontainer, align=uiconst.TOTOP, state=uiconst.UI_DISABLED)
+        return
 
     def ConstructHeaderSkill(self):
         if sm.GetService('skills').HasSkill(self.typeID):
@@ -826,11 +853,13 @@ class InfoWindow(Window):
         ballpark = sm.GetService('michelle').GetBallpark()
         if not ballpark:
             return
-        slimItem = ballpark.GetInvItem(self.itemID)
-        if slimItem:
-            sourceInfo = getattr(slimItem, 'campaign_sourceInfo', None)
-            if sourceInfo:
-                return self.ConstructHeaderForEntoisItems(sourceInfo)
+        else:
+            slimItem = ballpark.GetInvItem(self.itemID)
+            if slimItem:
+                sourceInfo = getattr(slimItem, 'campaign_sourceInfo', None)
+                if sourceInfo:
+                    return self.ConstructHeaderForEntoisItems(sourceInfo)
+            return
 
     def ConstructHeaderEntosisNode(self):
         componentInstances = sm.GetService('info').GetComponentInstance(self.itemID)
@@ -913,16 +942,18 @@ class InfoWindow(Window):
     def GetBlueprintData(self):
         if self.abstractinfo and self.abstractinfo.Get('bpData', None):
             return self.abstractinfo.bpData
-        return sm.GetService('blueprintSvc').GetBlueprint(self.itemID, self.typeID)
+        else:
+            return sm.GetService('blueprintSvc').GetBlueprint(self.itemID, self.typeID)
 
     def UpdateWindowIcon(self, typeID, itemID):
         iWidth = iHeight = 64
         rendersize = 128
         self.mainicon.Flush()
         self.techicon.Hide()
+        self.fighterClassIcon.Hide()
         self.mainiconparent.cursor = None
         self.mainiconparent.OnClick = None
-        if self.IsType(TYPE_SHIP, TYPE_STATION, TYPE_STARGATE, TYPE_DRONE, TYPE_ENTITY, TYPE_CELESTIAL, TYPE_RANK, TYPE_ENTOSISNODE, TYPE_COMMANDNODEBEACON):
+        if self.IsType(TYPE_SHIP, TYPE_STATION, TYPE_STARGATE, TYPE_DRONE, TYPE_FIGHTER, TYPE_ENTITY, TYPE_CELESTIAL, TYPE_RANK, TYPE_ENTOSISNODE, TYPE_COMMANDNODEBEACON):
             iWidth = iHeight = 128
             if self.groupID == const.groupDestructibleStationServices:
                 iWidth = iHeight = 64
@@ -949,6 +980,11 @@ class InfoWindow(Window):
             if self.IsType(TYPE_SCHEMATIC):
                 sprite = uicontrols.Icon(parent=self.mainicon, icon='ui_27_64_3', align=uiconst.TOALL)
                 hasAbstractIcon = True
+        if self.IsType(TYPE_FIGHTER):
+            self.fighterClassIcon.Show()
+            texturePath = GetSquadronClassResPath(self.typeID)
+            self.fighterClassIcon.SetTexturePath(texturePath)
+            self.fighterClassIcon.hint = localization.GetByLabel(GetSquadronClassTooltip(self.typeID))
         if self.IsType(TYPE_SKINMATERIAL):
             material = sm.GetService('skinSvc').GetStaticMaterialByID(itemID)
             texturePath = material.iconTexturePath
@@ -992,6 +1028,7 @@ class InfoWindow(Window):
                 self.mainiconparent.OnClick = (self.OnPreviewClick, icon)
         self.mainiconparent.width = self.mainicon.width = iWidth
         self.mainiconparent.height = self.mainicon.height = iHeight
+        return
 
     def GetNeocomGroupLabel(self):
         return localization.GetByLabel('UI/InfoWindow/Information')
@@ -1190,8 +1227,9 @@ class InfoWindow(Window):
             self.data[TAB_DESCRIPTION]['text'] = desc
         self.captionText = capt or ''
         self.subCaptionText = subCapt or ''
+        return
 
-    def GetLocationTrace(self, itemID, trace, recursive = 0):
+    def GetLocationTrace(self, itemID, trace, recursive=0):
         parentID = sm.GetService('map').GetParent(itemID)
         if parentID != const.locationUniverse:
             parentItem = sm.GetService('map').GetItem(parentID)
@@ -1209,9 +1247,11 @@ class InfoWindow(Window):
                 label = localization.GetByLabel('UI/InfoWindow/SecurityLevelInLocationTrace', secLevel=util.FmtSystemSecStatus(sec))
                 trace += [label]
             return '<br>'.join(trace)
+            return
 
     def OnPreviewClick(self, obj, *args):
         sm.GetService('preview').PreviewType(obj.typeID, itemID=getattr(obj, 'itemID', None))
+        return
 
     def OpenPortraitWnd(self, charID, *args):
         PortraitWindow.CloseIfOpen()
@@ -1227,13 +1267,14 @@ class InfoWindow(Window):
     def GetActionMenu(self, itemID, typeID, invItem):
         if typeID == const.typeCertificate:
             return None
-        m = sm.GetService('menu').GetMenuFormItemIDTypeID(itemID, typeID, filterFunc=[localization.GetByLabel('UI/Commands/ShowInfo')], invItem=invItem, ignoreMarketDetails=0)
-        if self.IsType(TYPE_CHARACTER, TYPE_CORPORATION):
-            if not util.IsNPC(itemID) and not util.IsDustCharacter(itemID):
-                m.append((uiutil.MenuLabel('UI/InfoWindow/ShowContracts'), self.ShowContracts, (itemID,)))
-        if self.IsType(TYPE_CHARACTER) and not util.IsNPC(itemID) and not int(sm.GetService('machoNet').GetGlobalConfig().get('hideReportBot', 0)):
-            m.append((uiutil.MenuLabel('UI/InfoWindow/ReportBot'), self.ReportBot, (itemID,)))
-        return m
+        else:
+            m = sm.GetService('menu').GetMenuFormItemIDTypeID(itemID, typeID, filterFunc=[localization.GetByLabel('UI/Commands/ShowInfo')], invItem=invItem, ignoreMarketDetails=0)
+            if self.IsType(TYPE_CHARACTER, TYPE_CORPORATION):
+                if not util.IsNPC(itemID) and not util.IsDustCharacter(itemID):
+                    m.append((uiutil.MenuLabel('UI/InfoWindow/ShowContracts'), self.ShowContracts, (itemID,)))
+            if self.IsType(TYPE_CHARACTER) and not util.IsNPC(itemID) and not int(sm.GetService('machoNet').GetGlobalConfig().get('hideReportBot', 0)):
+                m.append((uiutil.MenuLabel('UI/InfoWindow/ReportBot'), self.ReportBot, (itemID,)))
+            return m
 
     def ReportBot(self, itemID, *args):
         if eve.Message('ConfirmReportBot', {'name': cfg.eveowners.Get(itemID).name}, uiconst.YESNO) != uiconst.ID_YES:
@@ -1247,35 +1288,7 @@ class InfoWindow(Window):
         sm.GetService('contracts').Show(lookup=cfg.eveowners.Get(itemID).name)
 
     def ShowRelationshipIcon(self, itemID, corpid, allianceid):
-        ret = sm.GetService('addressbook').GetRelationship(itemID, corpid, allianceid)
-        relationships = [ret.persToCorp,
-         ret.persToPers,
-         ret.persToAlliance,
-         ret.corpToPers,
-         ret.corpToCorp,
-         ret.corpToAlliance,
-         ret.allianceToPers,
-         ret.allianceToCorp,
-         ret.allianceToAlliance]
-        relationship = 0.0
-        for r in relationships:
-            if r != 0.0 and r > relationship or relationship == 0.0:
-                relationship = r
-
-        flag = None
-        iconNum = 0
-        if relationship > const.contactGoodStanding:
-            flag = state.flagStandingHigh
-            iconNum = 3
-        elif relationship > const.contactNeutralStanding and relationship <= const.contactGoodStanding:
-            flag = state.flagStandingGood
-            iconNum = 3
-        elif relationship < const.contactNeutralStanding and relationship >= const.contactBadStanding:
-            flag = state.flagStandingBad
-            iconNum = 4
-        elif relationship < const.contactBadStanding:
-            flag = state.flagStandingHorrible
-            iconNum = 4
+        flag = GetRelationShipFlag(itemID, corpid, allianceid)
         if not flag:
             return
         if itemID:
@@ -1290,7 +1303,7 @@ class InfoWindow(Window):
         icon.ChangeIconPos(*iconPos)
         uicore.animations.FadeTo(icon.flagBackground, startVal=0.0, endVal=0.6, duration=0.3, loops=1)
 
-    def GetCorpLogo(self, corpID, parent = None):
+    def GetCorpLogo(self, corpID, parent=None):
         logo = uiutil.GetLogoIcon(itemID=corpID, parent=parent, state=uiconst.UI_NORMAL, hint=localization.GetByLabel('UI/InfoWindow/ClickForCorpInfo'), align=uiconst.TOLEFT, pos=(0, 0, 64, 64), ignoreSize=True)
         parent.height = 64
         if not util.IsNPC(corpID):
@@ -1302,7 +1315,7 @@ class InfoWindow(Window):
         logo.OnClick = (self.ReconstructInfoWindow, const.typeCorporation, corpID)
         return logo
 
-    def Wanted(self, bounty, isChar, showSprite, isNPC = False, ownerIDs = None, hint = None):
+    def Wanted(self, bounty, isChar, showSprite, isNPC=False, ownerIDs=None, hint=None):
         if not isNPC:
             self.bountyOwnerIDs = (self.itemID,) if ownerIDs is None else ownerIDs
             uicls.PlaceBountyUtilMenu(parent=self.therestcontainer, ownerID=self.itemID, bountyOwnerIDs=self.bountyOwnerIDs)
@@ -1320,6 +1333,7 @@ class InfoWindow(Window):
         self.bountyLabelInfo.text = localization.GetByLabel('UI/Common/BountyAmount', bountyAmount=util.FmtISK(bounty, False))
         if hint is not None:
             self.bountyLabelInfo.hint = hint
+        return
 
     def OnBountyPlaced(self, ownerID):
         if ownerID == self.itemID:
@@ -1334,7 +1348,7 @@ class InfoWindow(Window):
         bountyAmounts = sm.GetService('bountySvc').GetBounties(*ownerIDs)
         return bountyAmounts
 
-    def ResetWindowData(self, tabs = None):
+    def ResetWindowData(self, tabs=None):
         self.data = {}
         self.dynamicTabs = []
         self.data['buttons'] = []
@@ -1412,6 +1426,7 @@ class InfoWindow(Window):
                 self.variationCompareBtn.state = uiconst.UI_PICKCHILDREN
             else:
                 self.variationCompareBtn.Hide()
+        return
 
     def _LogIGS(self, tabID):
         with util.ExceptionEater('infosvc _LogIGS'):
@@ -1439,7 +1454,7 @@ class InfoWindow(Window):
         if not self.data[TAB_UPGRADEMATERIALREQ]['inited']:
             t = sm.GetService('godma').GetType(self.typeID)
             materialList = cfg.invtypematerials.get(t.constructionType)
-            menuFunc = lambda itemID = t.constructionType: sm.GetService('menu').GetMenuFormItemIDTypeID(None, itemID, ignoreMarketDetails=0)
+            menuFunc = lambda itemID=t.constructionType: sm.GetService('menu').GetMenuFormItemIDTypeID(None, itemID, ignoreMarketDetails=0)
             upgradesIntoEntry = listentry.Get(decoClass=listentry.LabelTextSides, data={'line': 1,
              'label': localization.GetByLabel('UI/InfoWindow/UpgradesInto'),
              'text': evetypes.GetName(t.constructionType),
@@ -1449,7 +1464,7 @@ class InfoWindow(Window):
             self.data[TAB_UPGRADEMATERIALREQ]['items'].append(listentry.Get('Divider'))
             commands = []
             for _, resourceTypeID, quantity in materialList:
-                menuFunc = lambda itemID = resourceTypeID: sm.GetService('menu').GetMenuFormItemIDTypeID(None, itemID, ignoreMarketDetails=0)
+                menuFunc = lambda itemID=resourceTypeID: sm.GetService('menu').GetMenuFormItemIDTypeID(None, itemID, ignoreMarketDetails=0)
                 text = localization.formatters.FormatNumeric(quantity, useGrouping=True, decimalPlaces=0)
                 le = listentry.Get(decoClass=listentry.LabelTextSides, data={'line': 1,
                  'label': evetypes.GetName(resourceTypeID),
@@ -1469,7 +1484,7 @@ class InfoWindow(Window):
             self.data[TAB_UPGRADEMATERIALREQ]['inited'] = 1
         self.scroll.Load(fixedEntryHeight=27, contentList=self.data[TAB_UPGRADEMATERIALREQ]['items'])
 
-    def LoadGeneric(self, label, getSubContent, noContentHint = ''):
+    def LoadGeneric(self, label, getSubContent, noContentHint=''):
         if not self.data[label]['inited']:
             self.data[label]['items'].extend(getSubContent(self.itemID))
             self.data[label]['inited'] = True
@@ -1521,7 +1536,7 @@ class InfoWindow(Window):
                             else:
                                 numHours = cycle / 3600000L
                                 text = localization.GetByLabel('UI/InfoWindow/FuelRequirement', qty=row.quantity, numHours=numHours, extraText=extraText)
-                            menuFunc = lambda itemID = row.resourceTypeID: sm.StartService('menu').GetMenuFormItemIDTypeID(None, itemID, ignoreMarketDetails=0, filterFunc=['UI/Commands/ShowInfo'])
+                            menuFunc = lambda itemID=row.resourceTypeID: sm.StartService('menu').GetMenuFormItemIDTypeID(None, itemID, ignoreMarketDetails=0, filterFunc=['UI/Commands/ShowInfo'])
                             le = listentry.Get(decoClass=listentry.LabelTextSides, data={'line': 1,
                              'label': evetypes.GetName(row.resourceTypeID),
                              'text': text,
@@ -1539,6 +1554,7 @@ class InfoWindow(Window):
                  'args': (commands, '', 10)}))
             self.data[TAB_FUELREQ]['inited'] = 1
         self.scroll.Load(fixedEntryHeight=27, contentList=self.data[TAB_FUELREQ]['items'])
+        return
 
     def LoadMaterialRequirements(self):
         if not self.data[TAB_MATERIALREQ]['inited']:
@@ -1575,7 +1591,7 @@ class InfoWindow(Window):
                 for typeID, quantity in what:
                     amount = godma.GetType(typeID).moonMiningAmount
                     text = localization.GetByLabel('UI/Common/NumUnits', numItems=quantity * amount)
-                    menuFunc = lambda typeID = typeID: sm.GetService('menu').GetMenuFormItemIDTypeID(None, typeID, ignoreMarketDetails=0, filterFunc=['UI/Commands/ShowInfo'])
+                    menuFunc = lambda typeID=typeID: sm.GetService('menu').GetMenuFormItemIDTypeID(None, typeID, ignoreMarketDetails=0, filterFunc=['UI/Commands/ShowInfo'])
                     commands.append((typeID, quantity * amount))
                     le = listentry.Get(decoClass=listentry.LabelTextSides, data={'line': 1,
                      'label': evetypes.GetName(typeID),
@@ -1656,6 +1672,7 @@ class InfoWindow(Window):
             self.data[TAB_PRODUCTIONINFO]['items'] = schematicItems
             self.data[TAB_PRODUCTIONINFO]['inited'] = 1
         self.scroll.Load(contentList=self.data[TAB_PRODUCTIONINFO]['items'])
+        return
 
     def LoadPlanetControlInfo(self):
         controlLabel = TAB_PLANETCONTROL
@@ -1675,11 +1692,12 @@ class InfoWindow(Window):
             self.data[controlLabel]['items'] = lines
             self.data[controlLabel]['inited'] = 1
         self.scroll.Load(contentList=self.data[controlLabel]['items'], noContentHint=localization.GetByLabel('UI/InfoWindow/PlanetNotContested'))
+        return
 
 
 class BadArgs(RuntimeError):
 
-    def __init__(self, msgID, kwargs = None):
+    def __init__(self, msgID, kwargs=None):
         RuntimeError.__init__(self, msgID, kwargs or {})
 
 

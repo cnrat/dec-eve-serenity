@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\packages\carbonui\primitives\area.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\packages\carbonui\primitives\area.py
 from carbonui.control.label import LabelOverride as Label
 from carbonui.primitives.frame import FrameCoreOverride as Frame
 from carbonui.primitives.container import Container
@@ -22,6 +23,7 @@ class Area(Container):
         self.sr.splitareacontent = None
         self.sr.maincontainer = Container(parent=self, name='__maincontainer', align=uiconst.TOALL, state=uiconst.UI_PICKCHILDREN)
         self.Flush()
+        return
 
     def Width(self):
         w, h = self.GetAbsoluteSize()
@@ -31,7 +33,7 @@ class Area(Container):
         w, h = self.GetAbsoluteSize()
         return h
 
-    def Flush(self, label = None):
+    def Flush(self, label=None):
         if self.sr.splitareacontent:
             self.sr.splitareacontent.Close()
             self.sr.splitareacontent = None
@@ -39,6 +41,7 @@ class Area(Container):
             self.sr.content.Close()
             self.sr.content = None
         self.sr.content = Container(name='__content', align=uiconst.TOALL, parent=self.sr.maincontainer)
+        return
 
     def HideUnderlay(self):
         if self.sr.underlay:
@@ -48,7 +51,7 @@ class Area(Container):
         if self.sr.underlay:
             self.sr.underlay.state = uiconst.UI_DISABLED
 
-    def Split(self, splitConst, splitValue, adjustableID = False, line = 1, minSize = None):
+    def Split(self, splitConst, splitValue, adjustableID=False, line=1, minSize=None):
         if not self.sr.splitareacontent:
             self.sr.splitareacontent = Container(parent=self.sr.maincontainer, name='__splitareas_and_content', align=uiconst.TOALL, state=uiconst.UI_PICKCHILDREN)
             self.sr.content.SetParent(self.sr.splitareacontent)
@@ -119,7 +122,7 @@ class Area(Container):
         self._AdjustDividers()
 
     def GetMinSize(self):
-        return (0, 0)
+        pass
 
     def _GetMinSize(self, container):
         mWidth = 0
@@ -170,7 +173,7 @@ class Area(Container):
         self.sr.content.children.insert(idx, item)
 
     @telemetry.ZONE_METHOD
-    def _AdjustDividers(self, useSettings = False):
+    def _AdjustDividers(self, useSettings=False):
 
         def Crawl(p):
             errorHeight = 0.0
@@ -222,6 +225,8 @@ class Area(Container):
                 if hasattr(each, 'children'):
                     Crawl(each)
 
+            return
+
         if not self.destroyed and self.sr.splitareacontent:
             Crawl(self.sr.splitareacontent)
 
@@ -260,7 +265,7 @@ class Area(Container):
             area.height = min(ph - 10, max(10, area.height))
         self._AdjustDividers()
 
-    def LoadFrame(self, color = None, offset = -2, iconPath = 'ui_1_16_209', cornerSize = 7):
+    def LoadFrame(self, color=None, offset=-2, iconPath='ui_1_16_209', cornerSize=7):
         if not self.sr.frame:
             if self.sr.underlay:
                 idx = GetIndex(self.sr.underlay)
@@ -268,6 +273,6 @@ class Area(Container):
                 idx = -1
             self.sr.frame = Frame(name='__frame', color=color, frameConst=(iconPath, cornerSize, offset), parent=self, idx=idx)
 
-    def LoadUnderlay(self, color = None, offset = -2, iconPath = 'ui_1_16_161', cornerSize = 7):
+    def LoadUnderlay(self, color=None, offset=-2, iconPath='ui_1_16_161', cornerSize=7):
         if not self.sr.underlay:
             self.sr.underlay = Frame(name='__underlay', color=color, frameConst=(iconPath, cornerSize, offset), parent=self)

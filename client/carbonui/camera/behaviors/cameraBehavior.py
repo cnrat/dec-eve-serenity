@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\packages\carbonui\camera\behaviors\cameraBehavior.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\packages\carbonui\camera\behaviors\cameraBehavior.py
 
 
 class CameraBehavior(object):
@@ -8,6 +9,7 @@ class CameraBehavior(object):
         self.gameWorldClient = sm.GetService('gameWorldClient')
         self.gameWorld = None
         self._LoadGameWorld()
+        return
 
     def _LoadGameWorld(self):
         if self.gameWorldClient.HasGameWorld(session.worldspaceid):
@@ -23,6 +25,8 @@ class CameraBehavior(object):
         entity = sm.GetService('entityClient').FindEntityByID(entID)
         if entity and entity.HasComponent('paperdoll'):
             return entity.GetComponent('paperdoll').doll.avatar
+        else:
+            return None
 
     def Reset(self):
         pass

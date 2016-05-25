@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\packages\inventorycommon\typeHelpers.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\packages\inventorycommon\typeHelpers.py
 try:
     import eve.common.script.sys.eveCfg
     graphics = eve.common.script.sys.eveCfg.CfgGraphics
@@ -27,6 +28,8 @@ def GetGraphic(typeID):
     except Exception:
         pass
 
+    return None
+
 
 def GetGraphicFile(typeID):
     try:
@@ -46,11 +49,14 @@ def GetAnimationStates(typeID):
 def GetIcon(typeID):
     if typeID >= const.minDustTypeID:
         return fsdDustIcons().get(typeID, None)
-    try:
-        iconID = evetypes.GetIconID(typeID)
-        return icons().Get(iconID)
-    except Exception:
-        pass
+    else:
+        try:
+            iconID = evetypes.GetIconID(typeID)
+            return icons().Get(iconID)
+        except Exception:
+            pass
+
+        return None
 
 
 def GetIconFile(typeID):
@@ -68,12 +74,15 @@ def GetSound(typeID):
     except Exception:
         pass
 
+    return None
 
-def GetIllegality(typeID, factionID = None):
+
+def GetIllegality(typeID, factionID=None):
     if factionID:
         return invcontrabandFactionsByType().get(typeID, {}).get(factionID, None)
     else:
         return invcontrabandFactionsByType().get(typeID, {})
+        return None
 
 
 def GetShipType(typeID):
@@ -86,9 +95,13 @@ def GetAdjustedAveragePrice(typeID):
     except KeyError:
         return None
 
+    return None
+
 
 def GetAveragePrice(typeID):
     try:
         return _averageMarketPrice()[typeID].averagePrice
     except KeyError:
         return None
+
+    return None

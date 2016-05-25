@@ -1,7 +1,8 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\packages\iconrendering\nes_util.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\packages\iconrendering\nes_util.py
 import trinity
 
-def CreateAlpha(outPath, sourcePaths, backgroundPath = None):
+def CreateAlpha(outPath, sourcePaths, backgroundPath=None):
     rBmp = trinity.Tr2HostBitmap()
     rBmp.CreateFromFile(sourcePaths[0])
     gBmp = trinity.Tr2HostBitmap()
@@ -41,7 +42,7 @@ def CreateAlpha(outPath, sourcePaths, backgroundPath = None):
                     outputBmp.SetPixel(px, py, bgTriCol.AsInt())
                 else:
                     outputBmp.SetPixel(px, py, BLACKALPHA0)
-            elif GREENHUE - HUERANGE < gh < GREENHUE + HUERANGE and (360 - HUERANGE < rh <= 360 or REDHUE <= rh < REDHUE + HUERANGE) and BLUEHUE - HUERANGE < bh < BLUEHUE + HUERANGE:
+            elif ((GREENHUE - HUERANGE < gh < GREENHUE + HUERANGE and 360 - HUERANGE) < rh <= 360 or REDHUE <= rh < REDHUE + HUERANGE and BLUEHUE - HUERANGE) < bh < BLUEHUE + HUERANGE:
                 if gv == 1.0 and bv == 1.0 and rv == 1.0:
                     gTriCol.SetRGB(gTriCol.r, rTriCol.g, gTriCol.b, 1.0)
                     ch, cs, cv = gTriCol.GetHSV()
@@ -66,3 +67,4 @@ def CreateAlpha(outPath, sourcePaths, backgroundPath = None):
                 outputBmp.SetPixel(px, py, gTriCol.AsInt())
 
     outputBmp.Save(outPath)
+    return

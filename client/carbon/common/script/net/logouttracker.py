@@ -1,14 +1,17 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\carbon\common\script\net\logouttracker.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\carbon\common\script\net\logouttracker.py
 import logging
 logger = logging.getLogger(__name__)
 
 def TrackLogOut(reason, serverIp):
     import localization
     import ccpmetrics
+    logger.error('reason was %s' % reason)
+    logger.error('label was %s' % localization.GetByLabel('/Carbon/MachoNet/SocketWasClosed'))
     try:
-        cm = ccpmetrics.CCPMetrics(ccpmetrics.METRICS_SERVER, ccpmetrics.METRICS_SERVER_PORT)
+        metrics = ccpmetrics.Client('public-metrics.tech.ccp.is')
         if reason == localization.GetByLabel('/Carbon/MachoNet/SocketWasClosed'):
             logger.info('sending disconnect event')
-            cm.increment('eve_client_disconnect', tags={'serverIp': serverIp})
+            metrics.increment('eve_client_disconnect', tags={'serverIp': serverIp})
     except Exception:
         logger.exception('Failed to register disconnect')

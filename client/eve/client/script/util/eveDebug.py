@@ -1,13 +1,15 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\client\script\util\eveDebug.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\client\script\util\eveDebug.py
 
 
-def GetCharacterName(o = None):
+def GetCharacterName(o=None):
     if o is not None:
         return cfg.eveowners.Get(o.charID).name
     elif eve.session.charid:
         return cfg.eveowners.Get(eve.session.charid).name
     else:
         return 'no name'
+        return
 
 
 import carbon.common.script.util.autoexport as autoexport

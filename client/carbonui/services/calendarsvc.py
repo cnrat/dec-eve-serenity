@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\packages\carbonui\services\calendarsvc.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\packages\carbonui\services\calendarsvc.py
 import service
 import blue
 import const
@@ -60,7 +61,7 @@ class CalendarSvc(service.Service):
     def __init__(self):
         service.Service.__init__(self)
 
-    def Run(self, ms = None):
+    def Run(self, ms=None):
         self.state = service.SERVICE_START_PENDING
         self.events = {}
         self.eventDetails = {}
@@ -68,6 +69,7 @@ class CalendarSvc(service.Service):
         self.eventResponses = None
         self.calendarMgr = sm.RemoteSvc('calendarMgr')
         self.state = service.SERVICE_RUNNING
+        return
 
     def OpenNewEventWnd(self, year, month, monthday, *args):
         pass
@@ -75,10 +77,10 @@ class CalendarSvc(service.Service):
     def OpenExistingEventWnd(self, *args):
         pass
 
-    def CreateNewEvent(self, dateTime, duration, title, description, eventTag, important = 0, invitees = []):
+    def CreateNewEvent(self, dateTime, duration, title, description, eventTag, important=0, invitees=[]):
         pass
 
-    def IsInPast(self, year, month, monthday, hour = 0, min = 0, allowToday = 0, *args):
+    def IsInPast(self, year, month, monthday, hour=0, min=0, allowToday=0, *args):
         now = blue.os.GetWallclockTime()
         if allowToday:
             cyear, cmonth, cwd, cday, chour, cmin, csec, cms = util.GetTimeParts(now)
@@ -86,7 +88,7 @@ class CalendarSvc(service.Service):
         thisDay = blue.os.GetTimeFromParts(year, month, monthday, hour, min, 0, 0)
         return self.IsInPastFromBlueTime(thisDay, now)
 
-    def IsInPastFromBlueTime(self, then, now = None, *args):
+    def IsInPastFromBlueTime(self, then, now=None, *args):
         if now is None:
             now = blue.os.GetWallclockTime() + eveLocalization.GetTimeDelta() * const.SEC
         inPast = now > then
@@ -115,7 +117,7 @@ class CalendarSvc(service.Service):
     def GetMonthText(self, year, month, *args):
         return localization.GetByLabel(MONTHANDYEAR_NAME_TEXT[month - 1], year=year)
 
-    def OpenEventWnd(self, eventInfo, edit = 0, *args):
+    def OpenEventWnd(self, eventInfo, edit=0, *args):
         pass
 
     def OpenEditEventWnd(self, eventInfo, *args):
@@ -133,16 +135,16 @@ class CalendarSvc(service.Service):
     def GetActiveTags(self, *args):
         pass
 
-    def GetMyNextEvents(self, monthsAhead = 1):
+    def GetMyNextEvents(self, monthsAhead=1):
         return {}
 
-    def GetMyChangedEvents(self, monthsAhead = 1):
+    def GetMyChangedEvents(self, monthsAhead=1):
         return {}
 
     def LoadTagIcon(self, tag):
         return None
 
-    def LoadTagIconInContainer(self, tag, cont, left = 2, top = 4, *args):
+    def LoadTagIconInContainer(self, tag, cont, left=2, top=4, *args):
         pass
 
     def GetBrowsedMonth(self, direction, year, month):
@@ -163,38 +165,39 @@ class CalendarSvc(service.Service):
     def GetEventResponses(self, *args):
         return None
 
-    def GetEventMenu(self, eventInfo, myResponse = None, getJumpOption = True, *args):
+    def GetEventMenu(self, eventInfo, myResponse=None, getJumpOption=True, *args):
         m = []
         m.append((MenuLabel('/Carbon/UI/Calendar/ViewEvent'), self.OpenEventWnd, (eventInfo,)))
         if getattr(eventInfo, 'isDeleted', None):
             return m
-        canDelete = 0
-        if not self.IsInPastFromBlueTime(then=eventInfo.eventDateTime):
-            if eventInfo.ownerID != session.charid:
-                if eventInfo.flag in [const.calendarTagCorp, const.calendarTagAlliance]:
-                    if eventInfo.ownerID in [session.corpid, session.allianceid] and session.corprole & const.corpRoleChatManager == const.corpRoleChatManager:
-                        canDelete = 1
-                        m.append((MenuLabel('/Carbon/UI/Calendar/EditEvent'), self.OpenEditEventWnd, (eventInfo,)))
-                if myResponse is None:
-                    iconPath, myResponse = self.GetMyResponseIconFromID(eventInfo.eventID)
+        else:
+            canDelete = 0
+            if not self.IsInPastFromBlueTime(then=eventInfo.eventDateTime):
+                if eventInfo.ownerID != session.charid:
+                    if eventInfo.flag in [const.calendarTagCorp, const.calendarTagAlliance]:
+                        if eventInfo.ownerID in [session.corpid, session.allianceid] and session.corprole & const.corpRoleChatManager == const.corpRoleChatManager:
+                            canDelete = 1
+                            m.append((MenuLabel('/Carbon/UI/Calendar/EditEvent'), self.OpenEditEventWnd, (eventInfo,)))
+                    if myResponse is None:
+                        iconPath, myResponse = self.GetMyResponseIconFromID(eventInfo.eventID)
+                    m.append(None)
+                    if eventInfo.flag is not const.calendarTagCCP:
+                        if myResponse != const.eventResponseAccepted:
+                            m.append((MenuLabel('/Carbon/UI/Calendar/Accept'), self.RespondToEvent, (eventInfo.eventID, eventInfo, const.eventResponseAccepted)))
+                        if myResponse != const.eventResponseMaybe:
+                            m.append((MenuLabel('/Carbon/UI/Calendar/MaybeReply'), self.RespondToEvent, (eventInfo.eventID, eventInfo, const.eventResponseMaybe)))
+                        if myResponse != const.eventResponseDeclined:
+                            m.append((MenuLabel('/Carbon/UI/Calendar/Decline'), self.RespondToEvent, (eventInfo.eventID, eventInfo, const.eventResponseDeclined)))
+                elif eventInfo.flag == const.calendarTagPersonal:
+                    canDelete = 1
+                    m.append((MenuLabel('/Carbon/UI/Calendar/EditEvent'), self.OpenEditEventWnd, (eventInfo,)))
+            if getJumpOption:
                 m.append(None)
-                if eventInfo.flag is not const.calendarTagCCP:
-                    if myResponse != const.eventResponseAccepted:
-                        m.append((MenuLabel('/Carbon/UI/Calendar/Accept'), self.RespondToEvent, (eventInfo.eventID, eventInfo, const.eventResponseAccepted)))
-                    if myResponse != const.eventResponseMaybe:
-                        m.append((MenuLabel('/Carbon/UI/Calendar/MaybeReply'), self.RespondToEvent, (eventInfo.eventID, eventInfo, const.eventResponseMaybe)))
-                    if myResponse != const.eventResponseDeclined:
-                        m.append((MenuLabel('/Carbon/UI/Calendar/Decline'), self.RespondToEvent, (eventInfo.eventID, eventInfo, const.eventResponseDeclined)))
-            elif eventInfo.flag == const.calendarTagPersonal:
-                canDelete = 1
-                m.append((MenuLabel('/Carbon/UI/Calendar/EditEvent'), self.OpenEditEventWnd, (eventInfo,)))
-        if getJumpOption:
-            m.append(None)
-            m.append((MenuLabel('/Carbon/UI/Calendar/GotoDay'), self.JumpToDay, (eventInfo,)))
-        if canDelete:
-            m.append(None)
-            m.append((MenuLabel('/Carbon/UI/Calendar/DeleteEvent'), self.DeleteEvent, (eventInfo.eventID, eventInfo.ownerID)))
-        return m
+                m.append((MenuLabel('/Carbon/UI/Calendar/GotoDay'), self.JumpToDay, (eventInfo,)))
+            if canDelete:
+                m.append(None)
+                m.append((MenuLabel('/Carbon/UI/Calendar/DeleteEvent'), self.DeleteEvent, (eventInfo.eventID, eventInfo.ownerID)))
+            return m
 
     def GetEventHint(self, eventInfo, myResponse):
         time = eventInfo.eventTimeStamp
@@ -202,10 +205,10 @@ class CalendarSvc(service.Service):
         timeAndTitle = '%s %s' % (time, title)
         return timeAndTitle
 
-    def GetMyResponseIconFromID(self, eventID, long = 0, getDeleted = 0):
-        return ('', 0)
+    def GetMyResponseIconFromID(self, eventID, long=0, getDeleted=0):
+        pass
 
-    def FetchNextEvents(self, monthsAhead = 1):
+    def FetchNextEvents(self, monthsAhead=1):
         pass
 
     def JumpToDay(self, eventInfo):

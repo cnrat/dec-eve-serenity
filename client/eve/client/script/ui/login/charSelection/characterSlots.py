@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\client\script\ui\login\charSelection\characterSlots.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\client\script\ui\login\charSelection\characterSlots.py
 import uicontrols
 import uiprimitives
 import uiutil
@@ -107,19 +108,20 @@ class SmallSlot(Container):
         self.skillQueueCont = SkillQueueCont(parent=self.infoCont, padTop=self.distanceFromInnerFrameToContent_sides)
         self.AddCharacterDetailsLines()
         sm.RegisterNotify(self)
+        return
 
     def AddCharacterDetailsLines(self):
         self.skillContainer = CharacterDetailsLine(parent=self.infoCont, iconPath='res:/UI/Texture/classes/CharacterSelection/skills.png', text='')
         self.walletContainer = CharacterDetailsLine(parent=self.infoCont, iconPath='res:/UI/Texture/classes/CharacterSelection/isk.png', text='')
         self.mailContainer = CharacterDetailsLine(parent=self.infoCont, iconPath='res:/UI/Texture/classes/CharacterSelection/mail.png', text='', addLine=False)
 
-    def SetMouseExitState(self, animate = False):
+    def SetMouseExitState(self, animate=False):
         if self.enteringGameWithSlot:
             return
         self.mouseOverState = False
         self.SetDisabled(animate=animate)
 
-    def SetMouseOverState(self, animate = False):
+    def SetMouseOverState(self, animate=False):
         self.mouseOverState = True
         self.SetEnabled(animate=animate)
         SetColor(self.selectionFrame, csColors.OUTER_FRAME, animate=animate)
@@ -127,7 +129,7 @@ class SmallSlot(Container):
         SetColor(self.normalGlowFrame, csColors.FRAME_GLOW_ACTIVE, animate=animate)
         SetColor(self.normalFrame, csColors.INNER_FRAME_ACTIVE, animate=animate)
 
-    def SetEnabled(self, redeemMode = False, animate = False):
+    def SetEnabled(self, redeemMode=False, animate=False):
         if redeemMode:
             MakeTransparent(self.nameSelectionFillActive, animate=animate)
             SetColor(self.nameSelectionFillRedeemMode, csColors.NAME_CONT_FILL_ACTIVE, animate=animate)
@@ -143,7 +145,7 @@ class SmallSlot(Container):
         SetSaturation(self.portraitSprite, newSaturation=1.0, animate=animate)
         self.skillQueueCont.SetSelected(animate=animate)
 
-    def SetDisabled(self, animate = False):
+    def SetDisabled(self, animate=False):
         SetColor(self.normalFrame, csColors.INNER_FRAME_INACTIVE, animate=animate)
         SetColor(self.normalGlowFrame, csColors.FRAME_GLOW_INACTIVE, animate=animate)
         MakeTransparent(self.selectionFrame, animate=animate)
@@ -159,7 +161,7 @@ class SmallSlot(Container):
         SetSaturation(self.portraitSprite, newSaturation=csColors.PORTRAIT_INACTIVE_SATURATION, animate=animate)
         self.skillQueueCont.SetDeselected(animate=animate)
 
-    def SetInfoLineActiveState(self, isActive = True, animate = False):
+    def SetInfoLineActiveState(self, isActive=True, animate=False):
         for eachCont in (self.skillContainer, self.walletContainer, self.mailContainer):
             eachCont.SetActiveState(isActive=isActive, animate=animate)
 
@@ -184,7 +186,7 @@ class SmallSlot(Container):
         totalPadding = outerFrameToInnerFrame + innerFrameToConent
         return 2 * totalPadding
 
-    def GetSlotHeight(self, shipVisible = True):
+    def GetSlotHeight(self, shipVisible=True):
         w, infoContHeight = self.infoCont.GetAbsoluteSize()
         shipContHeight = self.shipAndLocationCont.GetHeight(shipVisible=shipVisible)
         nameContHeight = self.nameCont.height
@@ -195,7 +197,7 @@ class SmallSlot(Container):
         contentHeight = infoContHeight + shipContHeight + nameContHeight + totalPadding
         return contentHeight
 
-    def ExpandSlot(self, animate = True):
+    def ExpandSlot(self, animate=True):
         if animate:
             uicore.animations.MorphScalar(self, 'opacity', startVal=self.opacity, endVal=1.0, duration=csUtil.COLLAPSE_TIME)
         else:
@@ -205,7 +207,7 @@ class SmallSlot(Container):
     def SetActiveInRedeeemMode(self):
         pass
 
-    def CollapseSlot(self, animate = True):
+    def CollapseSlot(self, animate=True):
         self.shipAndLocationCont.CollapseShipSection(animate=animate)
 
     def OnIconMouseEnter(self, icon, buttonIconOnMouseEnter):
@@ -228,7 +230,7 @@ class SmallSlot(Container):
             return
         uicore.animations.BlinkOut(self, startVal=1.0, endVal=0.5, duration=0.3, loops=1, curveType=uiconst.ANIM_BOUNCE)
 
-    def AnimateSlotIn(self, animationOffset = 0.0, soundFunction = None, charContHeight = 100):
+    def AnimateSlotIn(self, animationOffset=0.0, soundFunction=None, charContHeight=100):
         self.enteringGameWithSlot = False
         minBlinkValue = 0.2
         blinkDuration = 0.1
@@ -276,8 +278,9 @@ class SmallSlot(Container):
         uicore.animations.MorphScalar(self.shipAndLocationCont, 'opacity', startVal=0.0, endVal=1.0, duration=shipLocationDuration, loops=1, timeOffset=shipLocationBlinkOffset)
         uicore.animations.BlinkIn(self.shipAndLocationCont.locationCont, startVal=1.0, endVal=minBlinkValue, duration=blinkDuration, loops=2, curveType=uiconst.ANIM_BOUNCE, timeOffset=shipLocationBlinkOffset)
         uicore.animations.BlinkIn(self.shipAndLocationCont.shipParentCont, startVal=1.0, endVal=minBlinkValue, duration=blinkDuration, loops=2, curveType=uiconst.ANIM_BOUNCE, timeOffset=shipLocationOffset)
+        return
 
-    def AnimateSlotOut(self, animationOffset = 0.0, soundFunction = None, charContHeight = 100):
+    def AnimateSlotOut(self, animationOffset=0.0, soundFunction=None, charContHeight=100):
         minBlinkValue = 0.2
         blinkDuration = 0.1
         uthread.new(soundFunction, event='character_selection_animobject', sleepTime=animationOffset)
@@ -324,6 +327,7 @@ class SmallSlot(Container):
         uicore.animations.MorphScalar(self.drawLineRight, 'padTop', startVal=0, endVal=(charContHeight - 30) / 2.0, duration=lineAnimationDuration, timeOffset=lineAnimationOffset)
         uicore.animations.MorphScalar(self.drawLineRight, 'padBottom', startVal=0, endVal=(charContHeight - 30) / 2.0, duration=lineAnimationDuration, timeOffset=lineAnimationOffset)
         uicore.animations.MorphScalar(self.drawLineRight, 'opacity', startVal=0.8, endVal=0, duration=lineFadeOutDuration, timeOffset=lineFadeOutOffset, curveType=uiconst.ANIM_BOUNCE)
+        return
 
     def PlaySelectedAnimation(self):
         self.enteringGameWithSlot = True
@@ -358,6 +362,7 @@ class SmallCharacterSlot(SmallSlot):
         self.timeCont = Container(parent=self.deleteCont, name='timeCont', align=uiconst.TORIGHT, width=20)
         self.timeLabel = uicontrols.EveLabelLargeBold(parent=self.timeCont, name='textLabel', align=uiconst.CENTERLEFT, text='00:00:00', state=uiconst.UI_DISABLED)
         self.timeCont.width = self.timeLabel.textwidth + 6
+        return
 
     def LoadSlot(self, charID, characterDetails):
         self.charID = charID
@@ -447,6 +452,7 @@ class SmallCharacterSlot(SmallSlot):
         self.skillQueueCont.SetSkillQueueActivityState(bool(currentSkill))
         self.SetDeleteUI(animate=False)
         self.slotLoaded = True
+        return
 
     def CountDown_thread(self):
         deletePrepareTime = self.characterDetails.GetDeletePrepareTime()
@@ -454,21 +460,23 @@ class SmallCharacterSlot(SmallSlot):
             self.countDownThread = None
             self.deleteButton1.display = False
             return
-        now = blue.os.GetWallclockTime()
-        timeLeft = deletePrepareTime - now
-        timeLeftText = localization.formatters.FormatTimeIntervalShort(long(max(0, timeLeft)), showFrom='hour', showTo='second')
-        self.timeLabel.text = timeLeftText
-        if timeLeft < 0:
-            self.countDownThread = None
-            self.deleteButton1.display = True
-            self.deleteButton1.ExpandButton()
-            uicore.animations.BlinkOut(self.timeLabel, startVal=1.0, endVal=0.0, duration=0.3, loops=3, curveType=uiconst.ANIM_WAVE)
+        else:
+            now = blue.os.GetWallclockTime()
+            timeLeft = deletePrepareTime - now
+            timeLeftText = localization.formatters.FormatTimeIntervalShort(long(max(0, timeLeft)), showFrom='hour', showTo='second')
+            self.timeLabel.text = timeLeftText
+            if timeLeft < 0:
+                self.countDownThread = None
+                self.deleteButton1.display = True
+                self.deleteButton1.ExpandButton()
+                uicore.animations.BlinkOut(self.timeLabel, startVal=1.0, endVal=0.0, duration=0.3, loops=3, curveType=uiconst.ANIM_WAVE)
+            return
 
     def LoadAllianceLogo(self, logo, allianceID):
         sm.GetService('photo').GetAllianceLogo(allianceID, 64, logo, orderIfMissing=True)
         logo.hint = cfg.eveowners.Get(allianceID).ownerName
 
-    def SetMouseExitState(self, animate = False):
+    def SetMouseExitState(self, animate=False):
         if self.enteringGameWithSlot or not self.slotLoaded:
             return
         preparingForDelete = self.characterDetails and bool(self.characterDetails.GetDeletePrepareTime())
@@ -478,7 +486,7 @@ class SmallCharacterSlot(SmallSlot):
         self.SetIconsColorInactive(animate=animate)
         self.AdjustNameLabel()
 
-    def SetMouseOverState(self, animate = False):
+    def SetMouseOverState(self, animate=False):
         if not self.slotLoaded:
             return
         SmallSlot.SetMouseOverState(self, animate=animate)
@@ -492,7 +500,7 @@ class SmallCharacterSlot(SmallSlot):
             fadeEnd = slotWidth - 20 - self.characterNameLabel.left
             self.characterNameLabel.SetRightAlphaFade(fadeEnd, maxFadeWidth=20)
 
-    def SetDisabled(self, animate = False):
+    def SetDisabled(self, animate=False):
         SmallSlot.SetDisabled(self, animate)
         if self.characterDetails.IsPreparingForDeletion():
             SetColor(self.portraitSprite, csColors.BIOMASS_PORTRAIT, animate=animate)
@@ -500,7 +508,7 @@ class SmallCharacterSlot(SmallSlot):
             SetSaturation(self.portraitSprite, newSaturation=csColors.PORTRAIT_INACTIVE_SATURATION, animate=animate)
         self.shipAndLocationCont.SetDeselected(animate=animate)
 
-    def SetIconsColorActive(self, animate = False):
+    def SetIconsColorActive(self, animate=False):
         SetEffectOpacity(self.allianceLogo, 0, animate=animate)
         SetSaturation(self.allianceLogo, 1.0, animate=animate)
         if isinstance(self.corpLogo, uicls.CorpIcon):
@@ -508,7 +516,7 @@ class SmallCharacterSlot(SmallSlot):
         else:
             SetEffectOpacity(self.corpLogo, 0, animate=animate)
 
-    def SetIconsColorInactive(self, animate = False):
+    def SetIconsColorInactive(self, animate=False):
         SetEffectOpacity(self.allianceLogo, csColors.PORTRAIT_INACTIVE_EFFECT_OPACITY, animate=animate)
         SetSaturation(self.allianceLogo, 0.0, animate=animate)
         if isinstance(self.corpLogo, uicls.CorpIcon):
@@ -516,7 +524,7 @@ class SmallCharacterSlot(SmallSlot):
         else:
             SetEffectOpacity(self.corpLogo, csColors.PORTRAIT_INACTIVE_EFFECT_OPACITY, animate=animate)
 
-    def SetPlayerCorpLogoColor(self, logo, isActive = True, animate = False):
+    def SetPlayerCorpLogoColor(self, logo, isActive=True, animate=False):
         for layerNum, eachSprite in enumerate(logo.children):
             if eachSprite.spriteEffect == trinity.TR2_SFX_MASK:
                 if isActive:
@@ -561,7 +569,7 @@ class SmallCharacterSlot(SmallSlot):
     def RefreshCharacterDetails(self, characterDetails):
         self.characterDetails = characterDetails
 
-    def SetDeleteUI(self, animate = True):
+    def SetDeleteUI(self, animate=True):
         deletePrepareTime = self.characterDetails.GetDeletePrepareTime()
         if deletePrepareTime:
             self.SetMouseExitState()
@@ -610,8 +618,10 @@ class SmallCharacterSlot(SmallSlot):
         if self.deleteCallback and deletePrepTime is None:
             self.deleteCallback(self.charID)
             return
-        if deletePrepTime and self.undoDeleteCallback:
-            self.undoDeleteCallback(self.charID)
+        else:
+            if deletePrepTime and self.undoDeleteCallback:
+                self.undoDeleteCallback(self.charID)
+            return
 
     def DeleteButton1Clicked(self):
         if self.terminateCallback:
@@ -653,11 +663,11 @@ class SmallEmptySlot(SmallSlot):
         self.skillQueueCont.SetSkillqueueForEmpty()
         self.SetMouseExitState()
 
-    def SetMouseExitState(self, animate = False):
+    def SetMouseExitState(self, animate=False):
         SmallSlot.SetMouseExitState(self, animate=animate)
         SetColor(self.plus, csColors.PLUS_INACTIVE, animate=animate)
 
-    def SetMouseOverState(self, animate = False):
+    def SetMouseOverState(self, animate=False):
         SmallSlot.SetMouseOverState(self, animate=animate)
         SetColor(self.plus, csColors.PLUS_ACTIVE, animate=animate)
 
@@ -688,7 +698,7 @@ class SkillQueueCont(Container):
             fadeEnd = availableWidth - 10
             self.skillText.SetRightAlphaFade(fadeEnd, maxFadeWidth=10)
 
-    def SetSkillQueueActivityState(self, isActive = True):
+    def SetSkillQueueActivityState(self, isActive=True):
         self.isActive = isActive
         if isActive:
             self.skillText.display = True
@@ -715,10 +725,10 @@ class SkillQueueCont(Container):
         self.skillEdge.display = False
         self.normalFrame.SetRGB(*csColors.SKILLQUEUE_FRAME_NOT_TRAINING_INACTIVE)
 
-    def SetProgress(self, progress = 0.0):
+    def SetProgress(self, progress=0.0):
         self.skillFill.width = progress
 
-    def SetSelected(self, animate = False):
+    def SetSelected(self, animate=False):
         SetColor(self.glowFrame, csColors.FRAME_GLOW_ACTIVE, animate=animate)
         SetColor(self.fill, csColors.SKILLQUEUE_BACKGROUND_ACTIVE, animate=animate)
         if self.isActive:
@@ -731,7 +741,7 @@ class SkillQueueCont(Container):
             SetColor(self.skillText, csColors.SKILLQUEUE_TEXT_NOT_TRAINING_ACTIVE, animate=animate)
             SetColor(self.timeText, csColors.SKILLQUEUE_TEXT_NOT_TRAINING_ACTIVE, animate=animate)
 
-    def SetDeselected(self, animate = False):
+    def SetDeselected(self, animate=False):
         SetColor(self.glowFrame, csColors.FRAME_GLOW_INACTIVE, animate=animate)
         SetColor(self.fill, csColors.SKILLQUEUE_BACKGROUND_INACTIVE, animate=animate)
         if self.isActive:
@@ -785,6 +795,7 @@ class CharacterDetailsLocation(Container):
         self.locationTextCont = Container(parent=self.locationCont, name='locationTextCont', align=uiconst.TOALL)
         self.textLabel = uicontrols.EveLabelLargeBold(parent=self.locationTextCont, name='textLabel', align=uiconst.CENTER, text=locationText, top=-10)
         self.extraTextLabel = uicontrols.EveLabelMedium(parent=self.locationTextCont, name='textLabel', align=uiconst.CENTER, text=extraText, top=10)
+        return
 
     def LoadInfo(self, characterDetails):
         self.characterDetails = characterDetails
@@ -819,8 +830,9 @@ class CharacterDetailsLocation(Container):
             self.shipScaleYCont.height = shipHeight
             self.shipScaleXCont.top = int(shipHeight / 2.0) + 10 + self.topOffset
             self.shipScaleYCont.left = -int(shipWidth / 2.0) - 15
+        return
 
-    def SetLocationText(self, fontColor = (1.0, 1.0, 1.0, 1.0), secColorAlpha = 1.0):
+    def SetLocationText(self, fontColor=(1.0, 1.0, 1.0, 1.0), secColorAlpha=1.0):
         if not self.characterDetails:
             return
         stationID = self.characterDetails.GetCurrentStation()
@@ -833,7 +845,10 @@ class CharacterDetailsLocation(Container):
             stationInfo = self.characterDetails.GetCurrentStationAndStationLocation()
             stationName = stationInfo.get('stationName', '')
             orbitName = stationInfo.get('shortOrbitName', '')
-            extraText = '>>> [%s] %s &lt;&lt;&lt;' % (orbitName, stationName)
+            if orbitName:
+                extraText = '>>> [%s] %s &lt;&lt;&lt;' % (orbitName, stationName)
+            else:
+                extraText = '>>> %s &lt;&lt;&lt;' % (stationName,)
         else:
             extraText = localization.GetByLabel('UI/CharacterSelection/NotDocked')
         securityText, secColor = util.FmtSystemSecStatus(securityStatus, 1)
@@ -858,7 +873,7 @@ class CharacterDetailsLocation(Container):
             self.extraTextLabel.SetAlign(uiconst.CENTER)
             self.extraTextLabel.SetRightAlphaFade(0, maxFadeWidth=0)
 
-    def GetHeight(self, shipVisible = True):
+    def GetHeight(self, shipVisible=True):
         if not shipVisible:
             return self.locationContHeight + max(self.shipNameLabel.textheight + 2 * self.shipNameLabel.top, 20)
         padding = self.paddingShipAlignmentTop + self.paddingShipAlignmentBottom
@@ -877,7 +892,7 @@ class CharacterDetailsLocation(Container):
         self.locationBg.SetRGB(*csColors.LOCATION_FILL_INACTIVE)
         self.vignette.SetRGB(*csColors.VIGNETTE_DISABLED)
 
-    def SetActiveState(self, isActive = True, animate = False):
+    def SetActiveState(self, isActive=True, animate=False):
         if isActive:
             self.SetLocationText(fontColor=csColors.LOCATION_TEXT_ACTIVE)
             SetColor(self.glowFrame, csColors.FRAME_GLOW_ACTIVE, animate=animate)
@@ -885,7 +900,7 @@ class CharacterDetailsLocation(Container):
             self.SetLocationText(fontColor=csColors.LOCATION_TEXT_INACTIVE, secColorAlpha=0.6)
             SetColor(self.glowFrame, csColors.FRAME_GLOW_INACTIVE, animate=animate)
 
-    def SetSelected(self, animate = False):
+    def SetSelected(self, animate=False):
         SetColor(self.shipGrid, csColors.GRID_ACTIVE, animate=animate)
         SetColor(self.shipIcon, csColors.SHIP_ICON_ACTIVE, animate=animate)
         SetColor(self.normalFrame, csColors.LOCATION_FRAME_ACTIVE, animate=animate)
@@ -893,7 +908,7 @@ class CharacterDetailsLocation(Container):
         SetColor(self.shipNameLabel, csColors.SHIP_NAME_ACTIVE, animate=animate)
         self.SetActiveVignetteColor(animate=animate)
 
-    def SetDeselected(self, animate = False):
+    def SetDeselected(self, animate=False):
         SetColor(self.shipGrid, csColors.GRID_INACTIVE, animate=animate)
         SetColor(self.shipIcon, csColors.SHIP_ICON_INACTIVE, animate=animate)
         SetColor(self.normalFrame, csColors.LOCATION_FRAME_INACTIVE, animate=animate)
@@ -901,19 +916,19 @@ class CharacterDetailsLocation(Container):
         SetColor(self.shipNameLabel, csColors.SHIP_NAME_INACTIVE, animate=animate)
         self.SetInactiveVignetteColor(animate=animate)
 
-    def SetActiveVignetteColor(self, animate = False):
+    def SetActiveVignetteColor(self, animate=False):
         if self.isEmptySlot:
             SetColor(self.vignette, csColors.VIGNETTE_DISABLED, animate=animate)
         else:
             SetColor(self.vignette, csColors.VIGNETTE_ACTIVE, animate=animate)
 
-    def SetInactiveVignetteColor(self, animate = False):
+    def SetInactiveVignetteColor(self, animate=False):
         if self.isEmptySlot:
             SetColor(self.vignette, csColors.VIGNETTE_DISABLED, animate=animate)
         else:
             SetColor(self.vignette, csColors.VIGNETTE_INACTIVE, animate=animate)
 
-    def CollapseShipSection(self, animate = True):
+    def CollapseShipSection(self, animate=True):
         newHeight = self.locationContHeight + max(self.shipNameLabel.textheight + 2 * self.shipNameLabel.top, 20)
         if animate:
             uicore.animations.MorphScalar(self.shipCont, 'opacity', startVal=self.shipCont.opacity, endVal=0, duration=0.2)
@@ -924,7 +939,7 @@ class CharacterDetailsLocation(Container):
             uicore.animations.StopAnimation(self, 'height')
             self.height = newHeight
 
-    def ExpandShipSection(self, animate = True):
+    def ExpandShipSection(self, animate=True):
         if animate:
             uicore.animations.MorphScalar(self.shipCont, 'opacity', startVal=self.shipCont.opacity, endVal=1.0, duration=0.6)
             uicore.animations.MorphScalar(self, 'height', startVal=self.height, endVal=self.fullHeight, duration=csUtil.COLLAPSE_TIME)
@@ -977,7 +992,7 @@ class CharacterDetailsLine(Container):
         self.icon2.SetTexturePath(texturePath)
         self.icon2.display = True
 
-    def SetActiveState(self, isActive = True, animate = False):
+    def SetActiveState(self, isActive=True, animate=False):
         if isActive:
             SetColor(self.textLabel, csColors.LINES_TEXT_ACTIVE, animate=animate)
             SetColor(self.icon, csColors.LINES_ICON_ACTIVE, animate=animate)
@@ -998,6 +1013,7 @@ class CharacterDetailsLine(Container):
         if bigTextLabel is None or bigTextLabel.destroyed:
             self.bigTextLabel = uicontrols.CaptionLabel(parent=self, name='bigTextLabel', align=uiconst.CENTER, text='', color=csColors.ADDCHARACTER_TEXT_ACTIVE, fontsize=14, uppercase=False, letterspace=0, bold=False)
         self.bigTextLabel.SetText(text)
+        return
 
     def AddLine(self):
         padBottom = 0
@@ -1025,6 +1041,7 @@ class DeleteButton(Container):
         self.onMouseExitCallback = attributes.get('onMouseExitCallback')
         self.iconCont = uiprimitives.Transform(parent=self, align=uiconst.CENTER, pos=(0, 0, 10, 10), state=uiconst.UI_DISABLED, rotation=rotation)
         self.icon = uiprimitives.Sprite(parent=self.iconCont, texturePath=texturePath, align=uiconst.TOPLEFT, pos=(0, 0, 10, 10), state=uiconst.UI_DISABLED, color=color)
+        return
 
     def OnClick(self, *args):
         if self.callback:
@@ -1043,13 +1060,13 @@ class DeleteButton(Container):
     def OnMouseExit(self, *args):
         self.icon.SetAlpha(1.0)
 
-    def ExpandButton(self, animate = True):
+    def ExpandButton(self, animate=True):
         if animate:
             uicore.animations.MorphScalar(self, 'width', startVal=self.width, endVal=self.fullWidth, duration=csUtil.COLLAPSE_TIME)
         else:
             self.width = self.fullWidth
 
-    def CollapseButton(self, animate = True):
+    def CollapseButton(self, animate=True):
         if animate:
             uicore.animations.MorphScalar(self, 'width', startVal=self.width, endVal=0, duration=csUtil.COLLAPSE_TIME)
         else:
@@ -1095,34 +1112,35 @@ class ShipScale(Container):
          spriteHeight), color=scaleColor, state=uiconst.UI_DISABLED)
 
 
-def GetShipBoundingBox(texturePath, ignoredColors = None):
+def GetShipBoundingBox(texturePath, ignoredColors=None):
     if texturePath is None:
         return
-    if ignoredColors is None:
-        ignoredColors = [(0, 0, 0, 1)]
-    image = blue.resMan.GetResource(texturePath, 'raw')
-    blue.resMan.Wait()
-    maxX = None
-    minX = None
-    maxY = None
-    minY = None
-    if not image.height:
-        return
-    for x in xrange(image.width):
-        for y in xrange(image.height):
-            color = image.GetPixelColor(x, y)
-            if color in ignoredColors:
-                continue
-            if minX is None:
-                minX = x
-            if maxX is None or maxX < x:
-                maxX = x
-            if minY is None or minY > y:
-                minY = y
-            if maxY is None or maxY < y:
-                maxY = y
+    else:
+        if ignoredColors is None:
+            ignoredColors = [(0, 0, 0, 1)]
+        image = blue.resMan.GetResource(texturePath, 'raw')
+        blue.resMan.Wait()
+        maxX = None
+        minX = None
+        maxY = None
+        minY = None
+        if not image.height:
+            return
+        for x in xrange(image.width):
+            for y in xrange(image.height):
+                color = image.GetPixelColor(x, y)
+                if color in ignoredColors:
+                    continue
+                if minX is None:
+                    minX = x
+                if maxX is None or maxX < x:
+                    maxX = x
+                if minY is None or minY > y:
+                    minY = y
+                if maxY is None or maxY < y:
+                    maxY = y
 
-    return {'maxX': maxX or image.width,
-     'minX': minX or 0,
-     'maxY': maxY or image.height,
-     'minY': minY or 0}
+        return {'maxX': maxX or image.width,
+         'minX': minX or 0,
+         'maxY': maxY or image.height,
+         'minY': minY or 0}

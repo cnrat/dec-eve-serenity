@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\common\modules\nice\client\_nastyspace\mapcommon.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\common\modules\nice\client\_nastyspace\mapcommon.py
 from eve.client.script.ui.shared.maps.mapcommon import ACTUAL_COLOR_OVERGLOWFACTOR
 from eve.client.script.ui.shared.maps.mapcommon import COLORCURVE_SECURITY
 from eve.client.script.ui.shared.maps.mapcommon import COLORMODE_CONSTELLATION

@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\carbon\client\script\graphics\spotLightClient.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\carbon\client\script\graphics\spotLightClient.py
 import cef
 import graphics
 import carbon.client.script.graphics.graphicWrappers.loadAndWrap as graphicWrappers
@@ -52,21 +53,25 @@ class SpotLightClient(graphics.LightClient):
         component = entity.GetComponent('spotLight')
         if component is None:
             return
-        dynamicShadows = sm.GetService('device').GetAppFeatureState('Interior.dynamicShadows', True)
-        shadowCasters = trinity.Tr2InteriorShadowCasterTypes
-        if dynamicShadows:
-            component.renderObject.shadowCasterTypes = component.originalShadowCasterTypes
-        elif component.originalShadowCasterTypes == shadowCasters.DynamicOnly:
-            component.renderObject.shadowCasterTypes = shadowCasters.None
-        elif component.originalShadowCasterTypes == shadowCasters.All:
-            component.renderObject.shadowCasterTypes = shadowCasters.StaticsOnly
+        else:
+            dynamicShadows = sm.GetService('device').GetAppFeatureState('Interior.dynamicShadows', True)
+            shadowCasters = trinity.Tr2InteriorShadowCasterTypes
+            if dynamicShadows:
+                component.renderObject.shadowCasterTypes = component.originalShadowCasterTypes
+            elif component.originalShadowCasterTypes == shadowCasters.DynamicOnly:
+                component.renderObject.shadowCasterTypes = shadowCasters.None
+            elif component.originalShadowCasterTypes == shadowCasters.All:
+                component.renderObject.shadowCasterTypes = shadowCasters.StaticsOnly
+            return
 
     def ApplyPerformanceLevelLightDisable(self, entity):
         component = entity.GetComponent('spotLight')
         if component is None:
             return
-        appPerformanceLevel = sm.GetService('device').GetAppFeatureState('Interior.lightPerformanceLevel', 2)
-        if component.performanceLevel > appPerformanceLevel:
-            component.renderObject.primaryLighting = False
         else:
-            component.renderObject.primaryLighting = component.originalPrimaryLighting
+            appPerformanceLevel = sm.GetService('device').GetAppFeatureState('Interior.lightPerformanceLevel', 2)
+            if component.performanceLevel > appPerformanceLevel:
+                component.renderObject.primaryLighting = False
+            else:
+                component.renderObject.primaryLighting = component.originalPrimaryLighting
+            return

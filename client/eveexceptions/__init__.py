@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\packages\eveexceptions\__init__.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\packages\eveexceptions\__init__.py
 import __builtin__
 import types
 if not hasattr(__builtin__, 'strx'):
@@ -8,21 +9,23 @@ class UserError(StandardError):
     __guid__ = 'exceptions.UserError'
     __persistvars__ = ['args', 'dict', 'msg']
 
-    def __init__(self, msg = None, *args):
+    def __init__(self, msg=None, *args):
         if getattr(msg, '__class__', None) == UserError:
             self.msg = msg.msg
             self.dict = msg.dict
             self.args = (self.msg, self.dict)
             return
-        if type(msg) not in [types.StringType, types.UnicodeType, types.NoneType]:
-            raise RuntimeError('Invalid argument, msg must be a string', msg)
-        self.msg = msg
-        if len(args) and type(args[0]) == type({}):
-            self.dict = args[0]
-            self.args = (self.msg, self.dict)
         else:
-            self.dict = None
-            self.args = (self.msg,) + args
+            if type(msg) not in [types.StringType, types.UnicodeType, types.NoneType]:
+                raise RuntimeError('Invalid argument, msg must be a string', msg)
+            self.msg = msg
+            if len(args) and type(args[0]) == type({}):
+                self.dict = args[0]
+                self.args = (self.msg, self.dict)
+            else:
+                self.dict = None
+                self.args = (self.msg,) + args
+            return
 
     def __str__(self):
         return 'User error, msg=%s, dict=%s' % (strx(self.msg), strx(self.dict))
@@ -51,6 +54,8 @@ class SQLError(RuntimeError):
              r[6],
              r[7]))
 
+        return
+
     def __str__(self):
         return '\nCode:        %r\nMessage:     %r\nErrorRecs:   %r\nSQL:         %r\nParamErrors: %r\nColErrors:   %r' % (self.code,
          self.msg,
@@ -67,7 +72,7 @@ class ConnectionError(RuntimeError):
 class UnmarshalError(StandardError):
     __guid__ = 'exceptions.SQLError'
 
-    def __init__(self, exception = None, value = None, size = 0, pos = 0, crc = 0):
+    def __init__(self, exception=None, value=None, size=0, pos=0, crc=0):
         self.exception = exception
         self.value = value
         self.size = size
@@ -85,7 +90,7 @@ class UnmarshalError(StandardError):
 class RoleNotAssignedError(StandardError):
     __guid__ = 'exceptions.RoleNotAssignedError'
 
-    def __init__(self, roles = None):
+    def __init__(self, roles=None):
         self.roles = roles
 
     def __str__(self):
@@ -96,7 +101,7 @@ class ServiceNotFound(StandardError):
     __guid__ = 'exceptions.ServiceNotFound'
     __persistvars__ = ['serviceName']
 
-    def __init__(self, serviceName = None):
+    def __init__(self, serviceName=None):
         self.serviceName = serviceName
         StandardError.__init__(self, serviceName)
 
@@ -108,7 +113,7 @@ class MethodNotCalledFromClient(StandardError):
     __guid__ = 'exception.MethodNotCalledFromClient'
     __persistvars__ = ['methodName']
 
-    def __init__(self, methodName = None):
+    def __init__(self, methodName=None):
         self.methodName = methodName
         StandardError.__init__(self, methodName)
 

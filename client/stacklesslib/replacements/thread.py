@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\carbon\common\stdlib\stacklesslib\replacements\thread.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\carbon\common\stdlib\stacklesslib\replacements\thread.py
 from __future__ import absolute_import
 import traceback
 import stackless
@@ -26,17 +27,19 @@ class Thread(stackless.tasklet):
         global _thread_count
         try:
             try:
-                func(*args, **kwargs)
-            except SystemExit:
-                raise TaskletExit
+                try:
+                    func(*args, **kwargs)
+                except SystemExit:
+                    raise TaskletExit
 
-        except Exception:
-            traceback.print_exc()
+            except Exception:
+                traceback.print_exc()
+
         finally:
             _thread_count -= 1
 
 
-def start_new_thread(function, args, kwargs = {}):
+def start_new_thread(function, args, kwargs={}):
     global _thread_count
     t = Thread()
     t(function, args, kwargs)
@@ -58,7 +61,7 @@ def get_ident():
 
 _stack_size = 0
 
-def stack_size(size = None):
+def stack_size(size=None):
     global _stack_size
     old = _stack_size
     if size is not None:
@@ -66,7 +69,7 @@ def stack_size(size = None):
     return old
 
 
-def allocate_lock(self = None):
+def allocate_lock(self=None):
     return LockType()
 
 

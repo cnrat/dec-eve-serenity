@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\packages\billboards\spacecomponents\client\billboard.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\packages\billboards\spacecomponents\client\billboard.py
 from billboards import get_billboard_system
 from spacecomponents.client.messages import MSG_ON_REMOVED_FROM_SPACE, MSG_ON_LOAD_OBJECT
 from spacecomponents.common.components.component import Component

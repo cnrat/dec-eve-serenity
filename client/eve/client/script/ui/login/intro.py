@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\client\script\ui\login\intro.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\client\script\ui\login\intro.py
 import uiprimitives
 import uicontrols
 import uthread
@@ -20,25 +21,28 @@ class Intro(uicls.LayerCore):
         sm.GetService('audio').SendUIEvent('music_login_resume')
         sm.GetService('ui').ForceCursorUpdate()
         self.Flush()
+        return
 
     def OnOpenView(self):
         if not sm.GetService('connection').IsConnected():
             return
-        self.opened = 0
-        self.movie = None
-        self.sr.movieCont = None
-        self.sr.subtitleCont = None
-        self.subtitles = None
-        self.fadeTime = 125
-        self.moviePath = 'res:/video/origins_intro.webm'
-        if blue.paths.FileExistsLocally(self.moviePath):
-            self.InitMovie()
-            self.InitSubtitles()
-            sm.StartService('audio').SendUIEvent('music_login_pause')
-            self.PlayMovie()
         else:
-            self.StopIntro()
-        self.opened = 1
+            self.opened = 0
+            self.movie = None
+            self.sr.movieCont = None
+            self.sr.subtitleCont = None
+            self.subtitles = None
+            self.fadeTime = 125
+            self.moviePath = 'res:/video/origins_intro.webm'
+            if blue.paths.FileExistsLocally(self.moviePath):
+                self.InitMovie()
+                self.InitSubtitles()
+                sm.StartService('audio').SendUIEvent('music_login_pause')
+                self.PlayMovie()
+            else:
+                self.StopIntro()
+            self.opened = 1
+            return
 
     def OnSetDevice(self):
         dimWidth, dimHeight = self.GetVideoDimensions(uicore.desktop.width, uicore.desktop.height, 1280, 720)
@@ -57,7 +61,7 @@ class Intro(uicls.LayerCore):
         self.movie = StreamingVideoSprite(parent=self.sr.movieCont, pos=(0,
          0,
          dimWidth,
-         dimHeight), align=uiconst.CENTER, videoPath=self.moviePath, videoAutoPlay=False, audioTrack=audioTrack)
+         dimHeight), align=uiconst.CENTER, videoPath=self.moviePath, audioTrack=audioTrack)
 
     def PlayMovie(self):
         self.movie.Play()
@@ -112,7 +116,7 @@ class Intro(uicls.LayerCore):
                  alpha), align=uiconst.TOALL, bold=False, state=uiconst.UI_DISABLED)
 
     def GetCurrentMovieTime(self):
-        return self.movie.mediaTime / 1000000
+        return (self.movie.mediaTime or 0) / 1000000
 
     def WatchMovie(self):
         while not self.destroyed:
@@ -124,6 +128,8 @@ class Intro(uicls.LayerCore):
             else:
                 return
             blue.pyos.synchro.SleepWallclock(20)
+
+        return
 
     def GetVideoDimensions(self, contWidth, contHeight, vidResWidth, vidResHeight):
         dimWidth = vidResWidth

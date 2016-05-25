@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\carbon\common\script\net\httpFlaskService.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\carbon\common\script\net\httpFlaskService.py
 from threading import Lock
 from werkzeug.wsgi import pop_path_info, peek_path_info
 
@@ -17,6 +18,7 @@ class ServerPageSubDispatcher(object):
                 app = self.create_app(prefix)
                 self.instances[prefix] = app
             return app
+        return
 
     def __call__(self, environ, start_response):
         app = self.get_application(peek_path_info(environ))

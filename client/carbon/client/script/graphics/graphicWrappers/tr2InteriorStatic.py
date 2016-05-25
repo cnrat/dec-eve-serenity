@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\carbon\client\script\graphics\graphicWrappers\tr2InteriorStatic.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\carbon\client\script\graphics\graphicWrappers\tr2InteriorStatic.py
 import carbon.client.script.graphics.graphicWrappers.baseGraphicWrapper as graphicWrappers
 import trinity
 import util
@@ -42,6 +43,7 @@ class Tr2InteriorStatic(util.BlueClassNotifyWrap('trinity.Tr2InteriorStatic'), g
     def RemoveFromScene(self, scene):
         scene.RemoveStatic(self)
         self.scene = None
+        return
 
     def OnTransformChange(self):
         pass

@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\packages\carbonui\control\layer.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\packages\carbonui\control\layer.py
 import carbonui.const as uiconst
 from carbonui.primitives.container import Container
 
@@ -29,6 +30,7 @@ class LayerCore(Container):
         self.decoClass = None
         self.form = self
         self.uiwindow = self
+        return
 
     def ReloadUIObject(self):
         newInstance = self.CloseView()
@@ -54,16 +56,19 @@ class LayerCore(Container):
         self.display = True
         if self.isopen or self.decoClass is None:
             return
-        if self.isopening:
+        elif self.isopening:
             return
-        self.isopening = True
-        if getattr(self, '__notifyevents__', None):
-            sm.RegisterNotify(self)
-        try:
-            self.OnOpenView()
-            self.isopen = True
-        finally:
-            self.isopening = False
+        else:
+            self.isopening = True
+            if getattr(self, '__notifyevents__', None):
+                sm.RegisterNotify(self)
+            try:
+                self.OnOpenView()
+                self.isopen = True
+            finally:
+                self.isopening = False
+
+            return
 
     def OnOpenView(self, *args):
         pass
@@ -71,41 +76,43 @@ class LayerCore(Container):
     def OnCloseView(self, *args):
         pass
 
-    def CloseView(self, recreate = True, *args):
+    def CloseView(self, recreate=True, *args):
         if not self.isopen:
             return
-        for l in self.children[:]:
-            if hasattr(l, 'CloseView'):
-                l.CloseView(recreate=True)
-            elif recreate:
-                l.Close()
-
-        wasopen = self.isopen
-        self.isopen = 0
-        if wasopen:
-            self.OnCloseView()
-        if self.isTopLevelWindow:
-            uicore.registry.CheckMoveActiveState(self)
-        if getattr(self, '__notifyevents__', None):
-            sm.UnregisterNotify(self)
-        if uicore.uilib.GetMouseCapture() is self:
-            uicore.uilib.ReleaseCapture()
-        if recreate:
-            parent = None
-            name = None
-            if self.parent:
-                parent = self.parent
-                name = self.name
-                idx = parent.children.index(self)
-            self.Close()
-            if parent is not None:
-                decoClass, subLayers = uicore.layerData.get(name, (None, None))
-                newInstance = parent.AddLayer(name, decoClass, subLayers, idx=idx)
-                return newInstance
         else:
-            self.display = False
+            for l in self.children[:]:
+                if hasattr(l, 'CloseView'):
+                    l.CloseView(recreate=True)
+                elif recreate:
+                    l.Close()
 
-    def AddLayer(self, name, decoClass = None, subLayers = None, idx = -1):
+            wasopen = self.isopen
+            self.isopen = 0
+            if wasopen:
+                self.OnCloseView()
+            if self.isTopLevelWindow:
+                uicore.registry.CheckMoveActiveState(self)
+            if getattr(self, '__notifyevents__', None):
+                sm.UnregisterNotify(self)
+            if uicore.uilib.GetMouseCapture() is self:
+                uicore.uilib.ReleaseCapture()
+            if recreate:
+                parent = None
+                name = None
+                if self.parent:
+                    parent = self.parent
+                    name = self.name
+                    idx = parent.children.index(self)
+                self.Close()
+                if parent is not None:
+                    decoClass, subLayers = uicore.layerData.get(name, (None, None))
+                    newInstance = parent.AddLayer(name, decoClass, subLayers, idx=idx)
+                    return newInstance
+            else:
+                self.display = False
+            return
+
+    def AddLayer(self, name, decoClass=None, subLayers=None, idx=-1):
         if decoClass:
             layer = decoClass(parent=self, name=name, idx=idx, align=uiconst.TOALL, state=uiconst.UI_PICKCHILDREN)
         else:

@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\packages\evecamera\shaker.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\packages\evecamera\shaker.py
 import blue
 import geo2
 import trinity
@@ -7,13 +8,14 @@ DEFAULT_NOISE_DAMP = 1.1
 
 class ShakeBehavior(object):
 
-    def __init__(self, key = None):
+    def __init__(self, key=None):
         self.key = key
         self.noiseCurve = None
         self.scaleCurve = None
         self.dampCurve = None
         self.noiseScale = DEFAULT_NOISE_SCALE
         self.noiseDamp = DEFAULT_NOISE_DAMP
+        return
 
 
 class ShakeController(object):
@@ -54,7 +56,7 @@ class ShakeController(object):
         self._Apply(shakeObj)
         self._currentBehavior = shakeObj
 
-    def EndCameraShake(self, key = None):
+    def EndCameraShake(self, key=None):
         if not self._isEnabled:
             return
         if self._currentBehavior.key == key:

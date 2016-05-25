@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\client\script\ui\shared\planet\orbitalMaterialUI.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\client\script\ui\shared\planet\orbitalMaterialUI.py
 import carbonui.const as uiconst
 import const
 import evetypes
@@ -65,6 +66,7 @@ class OrbitalMaterialUI(uicontrols.Window):
           None)]
         self.buttons = btns = uicontrols.ButtonGroup(btns=btns, parent=self.sr.footer, line=0)
         self.transferBtn = btns.GetBtnByIdx(0)
+        return
 
     def PopulateIcons(self):
         qtyByTypeID = defaultdict(lambda : util.KeyVal(qty=0, invItems=set()))
@@ -103,6 +105,7 @@ class OrbitalMaterialUI(uicontrols.Window):
         if const.ixLocationID in change or item.locationID == self.itemID and const.ixStackSize in change:
             if self.itemID in (item.locationID, change.get(const.ixLocationID, None)):
                 self.UpdateTypeQuantity(item.typeID)
+        return
 
     def UpdateTypeQuantity(self, typeID):
         inv = sm.GetService('invCache').GetInventoryFromId(self.itemID)
@@ -179,6 +182,8 @@ class OrbitalMaterialUI(uicontrols.Window):
                 continue
             icon.Hilite(quantity)
 
+        return
+
     def OnDragExit(self, *args):
         for icon in self.upgradeIconsByTypeID.itervalues():
             icon.Delite()
@@ -198,6 +203,7 @@ class UpgradeTypeIcon(uiprimitives.Container):
         self.containerID = attributes.containerID
         self.AddLayout()
         self.SetQuantity(attributes.qty)
+        return
 
     def AddLayout(self):
         self.sr.main = uiprimitives.Container(name='main', parent=self, align=uiconst.TOPLEFT, height=ICONHEIGHT, width=ICONWIDTH)
@@ -217,6 +223,7 @@ class UpgradeTypeIcon(uiprimitives.Container):
         self.sr.typeName = uicls.LabelLink(text=localization.GetByLabel('UI/UpgradeWindow/CenteredTypeText', type=self.typeID), parent=self.sr.typeNameContainer, align=uiconst.CENTERTOP, maxLines=3, width=ICONWIDTH, func=(sm.GetService('info').ShowInfo, self.typeID), hint=localization.GetByLabel('UI/Commands/ShowInfo'), top=3)
         self.sr.typeName.maxLines = None
         self.sr.frame = uicontrols.Frame(parent=self, state=uiconst.UI_HIDDEN)
+        return
 
     def HookInEvents(self, events):
         for container in (self, self.sr.typeName):
@@ -229,7 +236,7 @@ class UpgradeTypeIcon(uiprimitives.Container):
         self.DisplayQuantity(qty)
         self.hint = localization.GetByLabel('UI/UpgradeWindow/TypeIconToolTip', amount=self.qtyNeeded - self.qty, typeID=self.typeID)
 
-    def DisplayQuantity(self, qty, highlight = False):
+    def DisplayQuantity(self, qty, highlight=False):
         self.AnimateBar(min(int(ICONWIDTH * (float(qty) / self.qtyNeeded)), ICONWIDTH) - 1)
         if qty <= 0:
             self.sr.icon.opacity = 0.2
@@ -250,6 +257,7 @@ class UpgradeTypeIcon(uiprimitives.Container):
             self.animateThread = None
         uiEffects = uicls.UIEffects()
         self.animateThread = uiEffects.MorphUI(self.barContainer, 'width', width, ifWidthConstrain=0, time=250.0)
+        return
 
     def Hilite(self, quantity):
         totalQuantity = min(self.qty + quantity, self.qtyNeeded)

@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\carbon\common\stdlib\StringIO.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\carbon\common\stdlib\StringIO.py
 try:
     from errno import EINVAL
 except ImportError:
@@ -13,7 +14,7 @@ def _complain_ifclosed(closed):
 
 class StringIO:
 
-    def __init__(self, buf = ''):
+    def __init__(self, buf=''):
         if not isinstance(buf, basestring):
             buf = str(buf)
         self.buf = buf
@@ -43,7 +44,7 @@ class StringIO:
         _complain_ifclosed(self.closed)
         return False
 
-    def seek(self, pos, mode = 0):
+    def seek(self, pos, mode=0):
         _complain_ifclosed(self.closed)
         if self.buflist:
             self.buf += ''.join(self.buflist)
@@ -58,7 +59,7 @@ class StringIO:
         _complain_ifclosed(self.closed)
         return self.pos
 
-    def read(self, n = -1):
+    def read(self, n=-1):
         _complain_ifclosed(self.closed)
         if self.buflist:
             self.buf += ''.join(self.buflist)
@@ -71,7 +72,7 @@ class StringIO:
         self.pos = newpos
         return r
 
-    def readline(self, length = None):
+    def readline(self, length=None):
         _complain_ifclosed(self.closed)
         if self.buflist:
             self.buf += ''.join(self.buflist)
@@ -88,7 +89,7 @@ class StringIO:
         self.pos = newpos
         return r
 
-    def readlines(self, sizehint = 0):
+    def readlines(self, sizehint=0):
         total = 0
         lines = []
         line = self.readline()
@@ -101,7 +102,7 @@ class StringIO:
 
         return lines
 
-    def truncate(self, size = None):
+    def truncate(self, size=None):
         _complain_ifclosed(self.closed)
         if size is None:
             size = self.pos
@@ -111,6 +112,7 @@ class StringIO:
             self.pos = size
         self.buf = self.getvalue()[:size]
         self.len = size
+        return
 
     def write(self, s):
         _complain_ifclosed(self.closed)

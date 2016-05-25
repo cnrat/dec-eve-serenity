@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\packages\windowsutilities\windowStyles.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\packages\windowsutilities\windowStyles.py
 WS_OVERLAPPED = 0
 WS_POPUP = 2147483648L
 WS_CHILD = 1073741824

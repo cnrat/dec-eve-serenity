@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\client\script\ui\control\eveEditPlainText.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\client\script\ui\control\eveEditPlainText.py
 import evetypes
 import uicontrols
 import uix
@@ -23,147 +24,154 @@ class EditPlainText(uicontrols.EditPlainTextCore):
         uicontrols.EditPlainTextCore.OnDropDataDelegate(self, node, nodes)
         if self.readonly:
             return
-        uicore.registry.SetFocus(self)
-        for entry in nodes:
-            if entry.__guid__ in uiutil.AllUserEntries():
-                link = 'showinfo:' + str(entry.info.typeID) + '//' + str(entry.charID)
-                self.AddLink(entry.info.name, link)
-            elif entry.__guid__ == 'listentry.PlaceEntry' and self.allowPrivateDrops:
-                bookmarkID = entry.bm.bookmarkID
-                bookmarkSvc = sm.GetService('bookmarkSvc')
-                bms = bookmarkSvc.GetBookmarks()
-                if bookmarkID in bms:
-                    bookmark = bms[bookmarkID]
-                    hint, comment = bookmarkSvc.UnzipMemo(bookmark.memo)
-                link = 'showinfo:' + str(bms[bookmarkID].typeID) + '//' + str(bms[bookmarkID].itemID)
-                self.AddLink(hint, link)
-            elif entry.__guid__ == 'listentry.NoteItem' and self.allowPrivateDrops:
-                link = 'note:' + str(entry.noteID)
-                self.AddLink(entry.label, link)
-            elif entry.__guid__ in ('listentry.InvItem', 'xtriui.InvItem', 'xtriui.ShipUIModule', 'listentry.InvAssetItem', 'listentry.ItemCheckbox'):
-                if type(entry.rec.itemID) is tuple:
-                    link = 'showinfo:' + str(entry.rec.typeID)
-                else:
-                    link = 'showinfo:' + str(entry.rec.typeID) + '//' + str(entry.rec.itemID)
-                self.AddLink(entry.name, link)
-            elif entry.__guid__ == 'listentry.VirtualAgentMissionEntry':
-                link = 'fleetmission:' + str(entry.agentID) + '//' + str(entry.charID)
-                self.AddLink(entry.label, link)
-            elif entry.__guid__ in ('listentry.CertEntry', 'listentry.CertEntryBasic'):
-                link = 'CertEntry:%s//%s' % (entry.certID, entry.level)
-                self.AddLink(entry.label, link)
-            elif entry.__guid__ and entry.__guid__.startswith('listentry.ContractEntry'):
-                link = 'contract:' + str(entry.solarSystemID) + '//' + str(entry.contractID)
-                self.AddLink(entry.name.replace('&gt;', '>'), link)
-            elif entry.__guid__ == 'listentry.FleetFinderEntry':
-                link = 'fleet:%s' % entry.fleet.fleetID
-                self.AddLink(entry.fleet.fleetName or localization.GetByLabel('UI/Common/Unknown'), link)
-            elif entry.__guid__ in ('xtriui.ListSurroundingsBtn', 'listentry.LocationTextEntry', 'listentry.LabelLocationTextTop', 'listentry.LocationGroup', 'listentry.LocationSearchItem'):
-                if not entry.typeID and not entry.itemID:
-                    return
-                link = 'showinfo:' + str(entry.typeID) + '//' + str(entry.itemID)
-                displayLabel = getattr(entry, 'genericDisplayLabel', None) or entry.label
-                self.AddLink(displayLabel, link)
-            elif entry.__guid__ == 'listentry.FittingEntry':
-                PADDING = 12
-                link = 'fitting:' + sm.StartService('fittingSvc').GetStringForFitting(entry.fitting)
-                roomLeft = self.RoomLeft()
-                if roomLeft is not None:
-                    roomLeft = roomLeft - PADDING
-                    if len(link) >= roomLeft:
-                        if roomLeft < 14:
-                            raise UserError('LinkTooLong')
-                        if eve.Message('ConfirmTruncateLink', {'numchar': len(link),
-                         'maxchar': roomLeft}, uiconst.YESNO, suppress=uiconst.ID_YES) != uiconst.ID_YES:
-                            return
-                        link = link[:roomLeft]
-                self.AddLink(entry.fitting.name, link)
-            elif entry.__guid__ in ('listentry.GenericMarketItem', 'listentry.QuickbarItem', 'uicls.GenericDraggableForTypeID', 'listentry.DroneEntry', 'listentry.SkillTreeEntry'):
-                link = 'showinfo:' + str(entry.typeID)
-                label = getattr(entry, 'label', None) or getattr(entry, 'text', '')
-                self.AddLink(label, link)
-            elif entry.__guid__ == 'TextLink':
-                self.AddLink(entry.displayText, entry.url)
-            elif entry.__guid__ == 'listentry.ChannelField':
-                link = 'joinChannel:%s//%s//%s' % (entry.channel.channelID, None, None)
-                label = getattr(entry, 'genericDisplayLabel', None) or entry.label
-                self.AddLink(label, link)
-            elif entry.__guid__ in ('listentry.KillMail', 'listentry.KillMailCondensed', 'listentry.WarKillEntry'):
-                killmail = entry.mail
-                hashValue = util.GetKillReportHashValue(killmail)
-                if util.IsCharacter(killmail.victimCharacterID):
-                    victimName = cfg.eveowners.Get(killmail.victimCharacterID).name
-                    shipName = evetypes.GetName(killmail.victimShipTypeID)
-                    label = localization.GetByLabel('UI/Corporations/Wars/Killmails/KillLinkCharacter', charName=victimName, typeName=shipName)
-                else:
-                    shipName = evetypes.GetName(killmail.victimShipTypeID)
-                    label = localization.GetByLabel('UI/Corporations/Wars/Killmails/KillLinkStructure', typeName=shipName)
-                link = 'killReport:%d:%s' % (entry.mail.killID, hashValue)
-                self.AddLink(label, link)
-            elif entry.__guid__ == 'listentry.WarEntry':
-                warID = entry.war.warID
-                attackerID = entry.war.declaredByID
-                defenderID = entry.war.againstID
-                attackerName = cfg.eveowners.Get(attackerID).name
-                defenderName = cfg.eveowners.Get(defenderID).name
-                label = localization.GetByLabel('UI/Corporations/Wars/WarReportLink', attackerName=attackerName, defenderName=defenderName)
-                link = 'warReport:%d' % warID
-                self.AddLink(label, link)
-            elif entry.__guid__ == 'listentry.TutorialEntry':
-                tutorialID = entry.tutorialID
-                link = 'tutorial:%s' % tutorialID
-                label = entry.label
-                self.AddLink(label, link)
-            elif entry.__guid__ == 'listentry.RecruitmentEntry':
-                label = '%s - %s ' % (cfg.eveowners.Get(entry.advert.corporationID).name, entry.adTitle)
-                link = 'recruitmentAd:' + str(entry.advert.corporationID) + '//' + str(entry.advert.adID)
-                self.AddLink(label, link)
-            elif entry.__guid__ == 'listentry.DirectionalScanResults':
-                label = entry.typeName
-                link = 'showinfo:' + str(entry.typeID) + '//' + str(entry.itemID)
-                self.AddLink(label, link, addLineBreak=True)
-            elif entry.__guid__ in ('listentry.SkillEntry', 'listentry.SkillQueueSkillEntry'):
-                label = evetypes.GetName(entry.invtype)
-                link = 'showinfo:' + str(entry.invtype)
-                self.AddLink(label, link)
-            elif entry.__guid__ == 'listentry.TutorialVideoItem':
-                label = entry.fullTitle
-                link = 'tutorialvideo:' + str(entry.id)
-                self.AddLink(label, link)
-            elif entry.__guid__ in ('listentry.Item', 'listentry.ContractItemSelect', 'listentry.RedeemToken', 'listentry.FittingModuleEntry', 'listentry.KillItems'):
-                label = evetypes.GetName(entry.typeID)
-                link = 'showinfo:' + str(entry.typeID)
-                self.AddLink(label, link)
-            elif entry.__guid__ == 'listentry.PodGuideBrowseEntry':
-                label = entry.label
-                link = 'podGuideLink:%s' % entry.termID
-                self.AddLink(label, link)
-            elif entry.__guid__ == 'fakeentry.OverviewProfile':
-                progressText = localization.GetByLabel('UI/Overview/FetchingOverviewProfile')
-                sm.GetService('loading').ProgressWnd(progressText, '', 1, 2)
-                try:
-                    presetKeyVal = sm.RemoteSvc('overviewPresetMgr').StoreLinkAndGetID(entry.data)
-                    if presetKeyVal is None:
-                        raise UserError('OverviewProfileLoadingError')
+        else:
+            uicore.registry.SetFocus(self)
+            for entry in nodes:
+                if entry.__guid__ in uiutil.AllUserEntries():
+                    link = 'showinfo:' + str(entry.info.typeID) + '//' + str(entry.charID)
+                    self.AddLink(entry.info.name, link)
+                elif entry.__guid__ == 'listentry.PlaceEntry' and self.allowPrivateDrops:
+                    bookmarkID = entry.bm.bookmarkID
+                    bookmarkSvc = sm.GetService('bookmarkSvc')
+                    bms = bookmarkSvc.GetBookmarks()
+                    if bookmarkID in bms:
+                        bookmark = bms[bookmarkID]
+                        hint, comment = bookmarkSvc.UnzipMemo(bookmark.memo)
+                    link = 'showinfo:' + str(bms[bookmarkID].typeID) + '//' + str(bms[bookmarkID].itemID)
+                    self.AddLink(hint, link)
+                elif entry.__guid__ == 'listentry.NoteItem' and self.allowPrivateDrops:
+                    link = 'note:' + str(entry.noteID)
+                    self.AddLink(entry.label, link)
+                elif entry.__guid__ in ('listentry.InvItem', 'xtriui.InvItem', 'xtriui.ShipUIModule', 'listentry.InvAssetItem', 'listentry.ItemCheckbox'):
+                    if type(entry.rec.itemID) is tuple:
+                        link = 'showinfo:' + str(entry.rec.typeID)
                     else:
-                        presetKey = (presetKeyVal.hashvalue, presetKeyVal.sqID)
-                finally:
-                    sm.GetService('loading').ProgressWnd(progressText, '', 2, 2)
-
-                link = 'overviewPreset:%s//%s' % presetKey
-                label = entry.label
-                self.AddLink(label, link)
-            elif getattr(entry, 'typeID', None) == typeSkinMaterial:
-                link = 'showinfo:' + str(entry.typeID) + '//' + str(entry.materialID)
-                self.AddLink(entry.label, link)
-            else:
-                try:
-                    label = entry.GetLabel()
-                    link = entry.GetLink()
-                except AttributeError:
-                    pass
-                else:
+                        link = 'showinfo:' + str(entry.rec.typeID) + '//' + str(entry.rec.itemID)
+                    self.AddLink(entry.name, link)
+                elif entry.__guid__ == 'listentry.VirtualAgentMissionEntry':
+                    link = 'fleetmission:' + str(entry.agentID) + '//' + str(entry.charID)
+                    self.AddLink(entry.label, link)
+                elif entry.__guid__ in ('listentry.CertEntry', 'listentry.CertEntryBasic'):
+                    link = 'CertEntry:%s//%s' % (entry.certID, entry.level)
+                    self.AddLink(entry.label, link)
+                elif entry.__guid__ and entry.__guid__.startswith('listentry.ContractEntry'):
+                    link = 'contract:' + str(entry.solarSystemID) + '//' + str(entry.contractID)
+                    self.AddLink(entry.name.replace('&gt;', '>'), link)
+                elif entry.__guid__ == 'listentry.FleetFinderEntry':
+                    link = 'fleet:%s' % entry.fleet.fleetID
+                    self.AddLink(entry.fleet.fleetName or localization.GetByLabel('UI/Common/Unknown'), link)
+                elif entry.__guid__ in ('xtriui.ListSurroundingsBtn', 'listentry.LocationTextEntry', 'listentry.LabelLocationTextTop', 'listentry.LocationGroup', 'listentry.LocationSearchItem'):
+                    if not entry.typeID and not entry.itemID:
+                        return
+                    link = 'showinfo:' + str(entry.typeID) + '//' + str(entry.itemID)
+                    displayLabel = getattr(entry, 'genericDisplayLabel', None) or entry.label
+                    self.AddLink(displayLabel, link)
+                elif entry.__guid__ == 'listentry.FittingEntry':
+                    PADDING = 12
+                    link = 'fitting:' + sm.StartService('fittingSvc').GetStringForFitting(entry.fitting)
+                    roomLeft = self.RoomLeft()
+                    if roomLeft is not None:
+                        roomLeft = roomLeft - PADDING
+                        if len(link) >= roomLeft:
+                            if roomLeft < 14:
+                                raise UserError('LinkTooLong')
+                            if eve.Message('ConfirmTruncateLink', {'numchar': len(link),
+                             'maxchar': roomLeft}, uiconst.YESNO, suppress=uiconst.ID_YES) != uiconst.ID_YES:
+                                return
+                            link = link[:roomLeft]
+                    self.AddLink(entry.fitting.name, link)
+                elif entry.__guid__ in ('listentry.GenericMarketItem', 'listentry.QuickbarItem', 'uicls.GenericDraggableForTypeID', 'listentry.DroneEntry', 'listentry.SkillTreeEntry'):
+                    link = 'showinfo:' + str(entry.typeID)
+                    label = getattr(entry, 'label', None) or getattr(entry, 'text', '')
                     self.AddLink(label, link)
+                elif entry.__guid__ == 'TextLink':
+                    self.AddLink(entry.displayText, entry.url)
+                elif entry.__guid__ == 'listentry.ChannelField':
+                    link = 'joinChannel:%s//%s//%s' % (entry.channel.channelID, None, None)
+                    label = getattr(entry, 'genericDisplayLabel', None) or entry.label
+                    self.AddLink(label, link)
+                elif entry.__guid__ in ('listentry.KillMail', 'listentry.KillMailCondensed', 'listentry.WarKillEntry'):
+                    killmail = entry.mail
+                    hashValue = util.GetKillReportHashValue(killmail)
+                    if util.IsCharacter(killmail.victimCharacterID):
+                        victimName = cfg.eveowners.Get(killmail.victimCharacterID).name
+                        shipName = evetypes.GetName(killmail.victimShipTypeID)
+                        label = localization.GetByLabel('UI/Corporations/Wars/Killmails/KillLinkCharacter', charName=victimName, typeName=shipName)
+                    else:
+                        shipName = evetypes.GetName(killmail.victimShipTypeID)
+                        label = localization.GetByLabel('UI/Corporations/Wars/Killmails/KillLinkStructure', typeName=shipName)
+                    link = 'killReport:%d:%s' % (entry.mail.killID, hashValue)
+                    self.AddLink(label, link)
+                elif entry.__guid__ == 'listentry.WarEntry':
+                    warID = entry.war.warID
+                    attackerID = entry.war.declaredByID
+                    defenderID = entry.war.againstID
+                    attackerName = cfg.eveowners.Get(attackerID).name
+                    defenderName = cfg.eveowners.Get(defenderID).name
+                    label = localization.GetByLabel('UI/Corporations/Wars/WarReportLink', attackerName=attackerName, defenderName=defenderName)
+                    link = 'warReport:%d' % warID
+                    self.AddLink(label, link)
+                elif entry.__guid__ == 'listentry.TutorialEntry':
+                    tutorialID = entry.tutorialID
+                    link = 'tutorial:%s' % tutorialID
+                    label = entry.label
+                    self.AddLink(label, link)
+                elif entry.__guid__ == 'listentry.RecruitmentEntry':
+                    label = '%s - %s ' % (cfg.eveowners.Get(entry.advert.corporationID).name, entry.adTitle)
+                    link = 'recruitmentAd:' + str(entry.advert.corporationID) + '//' + str(entry.advert.adID)
+                    self.AddLink(label, link)
+                elif entry.__guid__ == 'listentry.DirectionalScanResults':
+                    label = entry.typeName
+                    link = 'showinfo:' + str(entry.typeID) + '//' + str(entry.itemID)
+                    self.AddLink(label, link, addLineBreak=True)
+                elif entry.__guid__ in ('listentry.SkillEntry', 'listentry.SkillQueueSkillEntry'):
+                    label = evetypes.GetName(entry.invtype)
+                    link = 'showinfo:' + str(entry.invtype)
+                    self.AddLink(label, link)
+                elif entry.__guid__ == 'listentry.TutorialVideoItem':
+                    label = entry.fullTitle
+                    link = 'tutorialvideo:' + str(entry.id)
+                    self.AddLink(label, link)
+                elif entry.__guid__ in ('listentry.Item', 'listentry.ContractItemSelect', 'listentry.RedeemToken', 'listentry.FittingModuleEntry', 'listentry.KillItems'):
+                    label = evetypes.GetName(entry.typeID)
+                    link = 'showinfo:' + str(entry.typeID)
+                    self.AddLink(label, link)
+                elif entry.__guid__ == 'listentry.PodGuideBrowseEntry':
+                    label = entry.label
+                    link = 'podGuideLink:%s' % entry.termID
+                    self.AddLink(label, link)
+                elif entry.__guid__ == 'fakeentry.OverviewProfile':
+                    progressText = localization.GetByLabel('UI/Overview/FetchingOverviewProfile')
+                    sm.GetService('loading').ProgressWnd(progressText, '', 1, 2)
+                    try:
+                        presetKeyVal = sm.RemoteSvc('overviewPresetMgr').StoreLinkAndGetID(entry.data)
+                        if presetKeyVal is None:
+                            raise UserError('OverviewProfileLoadingError')
+                        else:
+                            presetKey = (presetKeyVal.hashvalue, presetKeyVal.sqID)
+                    finally:
+                        sm.GetService('loading').ProgressWnd(progressText, '', 2, 2)
+
+                    link = 'overviewPreset:%s//%s' % presetKey
+                    label = entry.label
+                    self.AddLink(label, link)
+                elif getattr(entry, 'nodeType', None) == 'AccessGroupEntry':
+                    link = 'accessGroup:%s' % entry.groupID
+                    label = entry.label
+                    self.AddLink(label, link)
+                elif getattr(entry, 'typeID', None) == typeSkinMaterial:
+                    link = 'showinfo:' + str(entry.typeID) + '//' + str(entry.materialID)
+                    self.AddLink(entry.label, link)
+                else:
+                    try:
+                        label = entry.GetLabel()
+                        link = entry.GetLink()
+                    except AttributeError:
+                        pass
+                    else:
+                        self.AddLink(label, link)
+
+            return
 
     def ApplyGameSelection(self, what, data, changeObjs):
         if what == 6 and len(changeObjs):
@@ -264,7 +272,8 @@ class EditPlainText(uicontrols.EditPlainTextCore):
                 else:
                     anchor = key['link'] + key['txt']
             return anchor
-        return -1
+        else:
+            return -1
 
     def OnLinkTypeChange(self, chkbox, *args):
         if chkbox.GetValue():
@@ -288,17 +297,20 @@ class EditPlainText(uicontrols.EditPlainTextCore):
                         self.sr.searchbutt.state = uiconst.UI_NORMAL
                 elif self.sr.searchbutt != None:
                     self.sr.searchbutt.state = uiconst.UI_HIDDEN
+        return
 
     def OnSearch(self, *args):
         wnd = self.sr.searchbutt.FindParentByName(localization.GetByLabel('UI/Common/GenerateLink'))
         if not wnd:
             return
-        editParent = uiutil.FindChild(wnd, 'editField')
-        edit = uiutil.FindChild(editParent, 'edit_txt')
-        val = edit.GetValue().strip().lower()
-        name = self.DoSearch(self.key, val)
-        if name is not None:
-            edit.SetValue(name)
+        else:
+            editParent = uiutil.FindChild(wnd, 'editField')
+            edit = uiutil.FindChild(editParent, 'edit_txt')
+            val = edit.GetValue().strip().lower()
+            name = self.DoSearch(self.key, val)
+            if name is not None:
+                edit.SetValue(name)
+            return
 
     def DoSearch(self, key, val):
         self.itemID = None
@@ -351,7 +363,7 @@ class EditPlainText(uicontrols.EditPlainTextCore):
                 name = id[0]
         return name
 
-    def AskLink(self, label = '', lines = [], width = 280):
+    def AskLink(self, label='', lines=[], width=280):
         icon = uiconst.QUESTION
         format = [{'type': 'btline'}, {'type': 'text',
           'text': label,
@@ -362,37 +374,40 @@ class EditPlainText(uicontrols.EditPlainTextCore):
             return retval
         else:
             return
+            return
 
-    def AddLink(self, text, link = None, addLineBreak = False):
+    def AddLink(self, text, link=None, addLineBreak=False):
         self.SetSelectionRange(None, None)
         node = self.GetActiveNode()
         if node is None:
             return
-        text = uiutil.StripTags(text, stripOnly=['localized'])
-        shiftCursor = len(text)
-        stackCursorIndex = self.globalCursorPos - node.startCursorIndex + node.stackCursorIndex
-        glyphString = node.glyphString
-        glyphStringIndex = self.GetGlyphStringIndex(glyphString)
-        shift = 0
-        if stackCursorIndex != 0:
+        else:
+            text = uiutil.StripTags(text, stripOnly=['localized'])
+            shiftCursor = len(text)
+            stackCursorIndex = self.globalCursorPos - node.startCursorIndex + node.stackCursorIndex
+            glyphString = node.glyphString
+            glyphStringIndex = self.GetGlyphStringIndex(glyphString)
+            shift = 0
+            if stackCursorIndex != 0:
+                currentParams = self._activeParams.Copy()
+                self.InsertToGlyphString(glyphString, currentParams, u' ', stackCursorIndex)
+                shift += 1
             currentParams = self._activeParams.Copy()
-            self.InsertToGlyphString(glyphString, currentParams, u' ', stackCursorIndex)
+            currentParams.url = link
+            self.InsertToGlyphString(glyphString, currentParams, text, stackCursorIndex + shift)
+            shift += shiftCursor
+            currentParams = self._activeParams.Copy()
+            self.InsertToGlyphString(glyphString, currentParams, u' ', stackCursorIndex + shift)
             shift += 1
-        currentParams = self._activeParams.Copy()
-        currentParams.url = link
-        self.InsertToGlyphString(glyphString, currentParams, text, stackCursorIndex + shift)
-        shift += shiftCursor
-        currentParams = self._activeParams.Copy()
-        self.InsertToGlyphString(glyphString, currentParams, u' ', stackCursorIndex + shift)
-        shift += 1
-        self.UpdateGlyphString(glyphString, advance=shiftCursor, stackCursorIndex=stackCursorIndex)
-        self.SetCursorPos(self.globalCursorPos + shift)
-        self.UpdatePosition()
-        cursorAdvance = 1
-        if addLineBreak:
-            self.Insert(uiconst.VK_RETURN)
+            self.UpdateGlyphString(glyphString, advance=shiftCursor, stackCursorIndex=stackCursorIndex)
+            self.SetCursorPos(self.globalCursorPos + shift)
+            self.UpdatePosition()
+            cursorAdvance = 1
+            if addLineBreak:
+                self.Insert(uiconst.VK_RETURN)
+            return
 
-    def GetMenuDelegate(self, node = None):
+    def GetMenuDelegate(self, node=None):
         m = uicontrols.EditPlainTextCore.GetMenuDelegate(self, node)
         if not self.readonly:
             m.append(None)

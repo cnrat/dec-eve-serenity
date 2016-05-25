@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\client\script\entities\bracketClient.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\client\script\entities\bracketClient.py
 import service
 from eve.client.script.ui.maingame.entityBracket import EntityBracket
 
@@ -10,6 +11,7 @@ class BracketComponent:
         self.bracket = None
         self.maxWidth = 0.0
         self.maxHeight = 0.0
+        return
 
 
 class BracketClient(service.Service):
@@ -44,6 +46,7 @@ class BracketClient(service.Service):
         if component and component.bracketUI:
             component.bracketUI.Close()
             component.bracketUI = None
+        return
 
     def ReloadBrackets(self):
         for bracket in self.components.values():
@@ -73,3 +76,4 @@ class BracketClient(service.Service):
         bracket.bracketUI = EntityBracket(parent=uicore.layer.stationEntityBrackets, entity=entity, trackObject=renderObject, maxWidth=bracket.maxWidth, maxHeight=bracket.maxHeight)
         if uicore.layer.station.IsClosed():
             bracket.bracketUI.Close()
+        return

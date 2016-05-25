@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\devtools\script\spiffy.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\devtools\script\spiffy.py
 import uicontrols
 import uiprimitives
 import uix
@@ -13,7 +14,7 @@ import uthread
 import sys
 import carbonui.const as uiconst
 
-def Window(name, icon = None, closeFunc = None):
+def Window(name, icon=None, closeFunc=None):
     wnd = uicontrols.Window.Open(windowID=name)
     wnd.SetScope('all')
     if icon is None:
@@ -57,7 +58,7 @@ class MenuEntry(uiprimitives.Container):
         uiprimitives.Container.ApplyAttributes(self, attributes)
         triangleRight = uiprimitives.Sprite(parent=self, name='TriangleRight', pos=(3, 3, 10, 10), align=uiconst.TOPRIGHT, state=uiconst.UI_HIDDEN, texturePath='res:/UI/Texture/Shared/triangleRight.png')
 
-    def Setup(self, entry, menuobj = None, fontsize = None, addleft = 3):
+    def Setup(self, entry, menuobj=None, fontsize=None, addleft=3):
         self.hilited = self.ghosted = self.disabled = False
         self.flags = 0L
         self.action = self.args = self.iconmap = None
@@ -151,6 +152,7 @@ class MenuEntry(uiprimitives.Container):
             self.OnPostCreate(self)
         if self.hilited:
             self.OnMouseEnter()
+        return
 
     def OnMouseEnter(self, *args):
         if self.hilited or not self.disabled:
@@ -211,8 +213,9 @@ class Menu(uiprimitives.Container):
         self.hilitedentry = None
         entries = uiprimitives.Container(parent=self, name='entries', padding=(2, 2, 2, 2), align=uiconst.TOALL, state=uiconst.UI_PICKCHILDREN)
         underlay = uicontrols.WindowUnderlay(parent=self)
+        return
 
-    def Setup(self, menu, entryheight = 16, position = None, origin = 'topleft', caption = None, fromentry = None, reverse = False):
+    def Setup(self, menu, entryheight=16, position=None, origin='topleft', caption=None, fromentry=None, reverse=False):
         self.reverse = reverse
         self.origin = origin
         self.entryheight = entryheight
@@ -343,6 +346,7 @@ class Menu(uiprimitives.Container):
         self.left = left
         self.top = top
         self.state = uiconst.UI_NORMAL
+        return
 
     def OnEntryEnter(self, entry):
         MenuEntry.OnMouseEnter(entry)
@@ -374,11 +378,13 @@ class Menu(uiprimitives.Container):
                 self.DoEntryTrace(entry)
             self.submenu = Menu(parent=uicore.layer.menu, idx=0)
             self.submenu.Setup(entry.GetSubContent(), fromentry=entry, reverse=self.reverse, entryheight=self.entryheight)
+        return
 
     def DoSubmenuCollapse(self):
         if self.submenu:
             self.submenu.KillMe()
             self.submenu = None
+        return
 
     def DoEntryTrace(self, entry):
         fl, ft, fw, fh = self.fromentry.GetAbsolute()
@@ -407,15 +413,17 @@ class Menu(uiprimitives.Container):
             self.fromentry.OnMouseExit()
         if not self.destroyed:
             self.Close()
+        return
 
 
-def CreateMenu(menu = None, *args, **kwargs):
+def CreateMenu(menu=None, *args, **kwargs):
     if not menu:
         return None
-    ClearMenuLayer()
-    obj = Menu(parent=uicore.layer.menu)
-    obj.Setup(menu, *args, **kwargs)
-    return obj
+    else:
+        ClearMenuLayer()
+        obj = Menu(parent=uicore.layer.menu)
+        obj.Setup(menu, *args, **kwargs)
+        return obj
 
 
 class Scroll(uicontrols.Scroll):
@@ -439,57 +447,59 @@ class Scroll(uicontrols.Scroll):
         self.lowestsublevel = sl
         return root
 
-    def Sort(self, by = None, reversesort = 0, forceHilite = 0):
+    def Sort(self, by=None, reversesort=0, forceHilite=0):
         if self.smartSort:
             uicontrols.Scroll.Sort(self, by, reversesort, forceHilite)
             return
-        try:
-            idx = self.sr.headers.index(by)
-        except:
-            idx = None
+        else:
+            try:
+                idx = self.sr.headers.index(by)
+            except:
+                idx = None
 
-        def SubSort(entries):
-            groups = []
-            items = []
-            skip = 0
-            div = None
-            from eve.client.script.ui.control.listgroup import ListGroup as Group
-            for entry in entries:
-                val = (self.GetSortValue(by, entry, idx), entry.label or entry.text)
-                if entry.GetSubContent or isinstance(entry.panel, Group):
-                    groups.append((val, entry))
-                elif entry.__guid__ == 'listentry.Divider':
-                    div = entry
-                else:
-                    items.append((val, entry))
+            def SubSort(entries):
+                groups = []
+                items = []
+                skip = 0
+                div = None
+                from eve.client.script.ui.control.listgroup import ListGroup as Group
+                for entry in entries:
+                    val = (self.GetSortValue(by, entry, idx), entry.label or entry.text)
+                    if entry.GetSubContent or isinstance(entry.panel, Group):
+                        groups.append((val, entry))
+                    elif entry.__guid__ == 'listentry.Divider':
+                        div = entry
+                    else:
+                        items.append((val, entry))
 
-            groups.sort()
-            items.sort()
-            if reversesort:
-                groups.reverse()
-                items.reverse()
-            neworder = []
-            for g in groups:
-                entry = g[1]
-                neworder.append(entry)
-                if entry.subEntries:
-                    neworder += SubSort(entry.subEntries)
+                groups.sort()
+                items.sort()
+                if reversesort:
+                    groups.reverse()
+                    items.reverse()
+                neworder = []
+                for g in groups:
+                    entry = g[1]
+                    neworder.append(entry)
+                    if entry.subEntries:
+                        neworder += SubSort(entry.subEntries)
 
-            for i in items:
-                neworder.append(i[1])
+                for i in items:
+                    neworder.append(i[1])
 
-            if div:
-                neworder.append(div)
-            return neworder
+                if div:
+                    neworder.append(div)
+                return neworder
 
-        self.sr.entries = SubSort(self.GetRootEntries())
-        self.RefreshIndex('Sort')
-        self.UpdatePosition(fromWhere='Sort')
-        if self.sr.sortBy != by or forceHilite:
-            self.HiliteSorted(by, reversesort)
-            self.sr.sortBy = by
+            self.sr.entries = SubSort(self.GetRootEntries())
+            self.RefreshIndex('Sort')
+            self.UpdatePosition(fromWhere='Sort')
+            if self.sr.sortBy != by or forceHilite:
+                self.HiliteSorted(by, reversesort)
+                self.sr.sortBy = by
+            return
 
-    def RecursiveOpen(self, entry, recurse = True):
+    def RecursiveOpen(self, entry, recurse=True):
         if entry.GetSubContent and uicore.registry.GetListGroupOpenState(entry.id):
             entry.open = 1
             entry.subEntries = entry.GetSubContent(entry)
@@ -502,7 +512,9 @@ class Scroll(uicontrols.Scroll):
                 entry.subEntries.append(listentry.Get('Generic', {'label': 'No item',
                  'sublevel': entry.Get('sublevel', 0) + 1}))
             return entry.subEntries
-        entry.open = 0
+        else:
+            entry.open = 0
+            return None
 
     def ReloadEntry(self, entry):
         if entry.id:
@@ -515,7 +527,7 @@ class Scroll(uicontrols.Scroll):
             if entries:
                 self.AddEntries(entry.idx + 1, entries, entry)
 
-    def AddEntries(self, fromIdx, entries, parentEntry = None, **kwargs):
+    def AddEntries(self, fromIdx, entries, parentEntry=None, **kwargs):
         wnd = uix.GetWindowAbove(self)
         if wnd and not wnd.destroyed:
             wnd.ShowLoad()
@@ -561,6 +573,7 @@ class Scroll(uicontrols.Scroll):
 
         if wnd and not wnd.destroyed:
             wnd.HideLoad()
+        return
 
     def CollectEntries(self, fromEntry, storage):
         for entry in fromEntry.subEntries:

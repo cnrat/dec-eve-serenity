@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\client\script\ui\services\ccSvc.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\client\script\ui\services\ccSvc.py
 import copy
 import random
 import service
@@ -31,8 +32,9 @@ class CCSvc(service.Service):
         self.bloodlineDataByRaceID, self.bloodlineDataByID = (None, None)
         self.dollState = None
         self.availableTypeIDs = None
+        return
 
-    def GetCharacterSelectionData(self, force = 0):
+    def GetCharacterSelectionData(self, force=0):
         if self.characterSelectionData is None or force:
             self.characterSelectionData = CharacterSelectionData(sm.RemoteSvc('charUnboundMgr'), cfg, localization, uiutil)
             self.PrimeCharacterDetails(self.characterSelectionData.GetChars())
@@ -55,8 +57,9 @@ class CCSvc(service.Service):
         cfg.corptickernames.Prime(primeTickers)
         if len(primeLocations):
             cfg.evelocations.Prime(primeLocations)
+        return
 
-    def GetCharactersToSelect(self, force = 0):
+    def GetCharactersToSelect(self, force=0):
         return self.GetCharacterSelectionData(force).GetChars()
 
     def GetCharCreationInfo(self):
@@ -74,7 +77,7 @@ class CCSvc(service.Service):
         return self.charCreationInfo
 
     @telemetry.ZONE_METHOD
-    def GetData(self, attribute, keyVal = None, shuffle = 0):
+    def GetData(self, attribute, keyVal=None, shuffle=0):
         ccinfo = self.GetCharCreationInfo()
         if attribute in ('bloodlines', 'ancestries', 'schools') and hasattr(ccinfo, attribute):
             retval = getattr(ccinfo, attribute)
@@ -95,11 +98,12 @@ class CCSvc(service.Service):
                 return retval
         else:
             return None
+        return None
 
     def GoBack(self, *args):
         sm.GetService('viewState').ActivateView('charsel')
 
-    def GoCharacterCreation(self, charID, gender, bloodlineID, dollState = None):
+    def GoCharacterCreation(self, charID, gender, bloodlineID, dollState=None):
         uicore.layer.charactercreation.SetCharDetails(charID, gender, bloodlineID, dollState=dollState)
 
     def CreateCharacterWithDoll(self, charactername, bloodlineID, genderID, ancestryID, charInfo, portraitInfo, schoolID, *args):
@@ -108,7 +112,7 @@ class CCSvc(service.Service):
         return charID
 
     @telemetry.ZONE_METHOD
-    def CreateCharacterWithRandomDoll(self, bloodlineID, genderID, characterName, ancestryID = None, schoolID = None):
+    def CreateCharacterWithRandomDoll(self, bloodlineID, genderID, characterName, ancestryID=None, schoolID=None):
         portraitInfo = charactercreator.client.mockPortraitInfo.PortraitInfo.getMockyData()
         randomizer = cm.EveAvatarAndClothesRandomizer()
         randomizer.InitializeDollAndMetadata(genderID, bloodlineID)
@@ -141,26 +145,28 @@ class CCSvc(service.Service):
             return data[0]
 
     @telemetry.ZONE_METHOD
-    def GetRaceData(self, shuffle = 0, shuffleFirstTime = 0):
+    def GetRaceData(self, shuffle=0, shuffleFirstTime=0):
         if self.raceData is None:
             self.PrepareRaceData()
             if shuffleFirstTime:
                 shuffle = 1
         if shuffle == 0:
             return self.raceData
-        retval = copy.deepcopy(self.raceData)
-        random.shuffle(retval)
-        if shuffleFirstTime:
-            self.raceData = retval
-        return retval
+        else:
+            retval = copy.deepcopy(self.raceData)
+            random.shuffle(retval)
+            if shuffleFirstTime:
+                self.raceData = retval
+            return retval
 
     @telemetry.ZONE_METHOD
-    def GetRaceDataByID(self, raceID = None):
+    def GetRaceDataByID(self, raceID=None):
         if self.raceDataByID is None:
             self.PrepareRaceData()
         if raceID is None:
             return self.raceDataByID
-        return self.raceDataByID[raceID]
+        else:
+            return self.raceDataByID[raceID]
 
     @telemetry.ZONE_METHOD
     def GetBloodlineDataByRaceID(self, *args):
@@ -214,19 +220,21 @@ class CCSvc(service.Service):
 
     def ClearMyAvailabelTypeIDs(self, *args):
         self.availableTypeIDs = None
+        return
 
     def GetMyApparel(self):
         if getattr(self, 'availableTypeIDs', None) is not None:
             return self.availableTypeIDs
-        availableTypeIDs = set()
-        if session.stationid2:
-            try:
-                inv = self.invCache.GetInventory(const.containerHangar)
-                availableTypeIDs.update({i.typeID for i in inv.List() if i.categoryID == const.categoryApparel})
-                inv = self.invCache.GetInventoryFromId(session.charid)
-                availableTypeIDs.update({i.typeID for i in inv.List() if i.flagID == const.flagWardrobe})
-            except Exception as e:
-                log.LogException()
+        else:
+            availableTypeIDs = set()
+            if session.stationid2:
+                try:
+                    inv = self.invCache.GetInventory(const.containerHangar)
+                    availableTypeIDs.update({i.typeID for i in inv.List(const.flagHangar) if i.categoryID == const.categoryApparel})
+                    inv = self.invCache.GetInventoryFromId(session.charid)
+                    availableTypeIDs.update({i.typeID for i in inv.List() if i.flagID == const.flagWardrobe})
+                except Exception as e:
+                    log.LogException()
 
-        self.availableTypeIDs = availableTypeIDs
-        return self.availableTypeIDs
+            self.availableTypeIDs = availableTypeIDs
+            return self.availableTypeIDs

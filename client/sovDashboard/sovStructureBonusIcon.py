@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\packages\sovDashboard\sovStructureBonusIcon.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\packages\sovDashboard\sovStructureBonusIcon.py
 from carbonui.primitives.container import Container
 import carbonui.const as uiconst
 from carbonui.primitives.sprite import Sprite

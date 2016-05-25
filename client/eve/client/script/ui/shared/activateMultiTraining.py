@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\client\script\ui\shared\activateMultiTraining.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\client\script\ui\shared\activateMultiTraining.py
 import blue
 import functools
 import localization
@@ -41,6 +42,7 @@ class ActivateMultiTrainingWindow(Window):
         self.Layout()
         self.Reload()
         uthread.new(self.UpdateTimersThread)
+        return
 
     def Layout(self):
         self.HideHeader()
@@ -67,7 +69,7 @@ class ActivateMultiTrainingWindow(Window):
         Line(parent=self.container, align=uiconst.TOTOP, color=self.LINE_COLOR)
         self.closeButton = Button(parent=self.container, label=localization.GetByLabel('UI/Generic/Cancel'), func=self.Close, align=uiconst.TOTOP, fontsize=13, padding=(120, 10, 120, 30))
 
-    def Reload(self, delay = 0, force = False):
+    def Reload(self, delay=0, force=False):
         try:
             self.reloading = True
             blue.pyos.synchro.SleepWallclock(delay)
@@ -132,6 +134,8 @@ class ActivateMultiTrainingWindow(Window):
             self.UpdateTimers()
         finally:
             self.reloading = False
+
+        return
 
     def UpdateTimersThread(self):
         while not self.destroyed:

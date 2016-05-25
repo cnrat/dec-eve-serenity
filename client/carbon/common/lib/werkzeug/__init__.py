@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\carbon\common\lib\werkzeug\__init__.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\carbon\common\lib\werkzeug\__init__.py
 from types import ModuleType
 import sys
 all_by_module = {'werkzeug.debug': ['DebuggedApplication'],
@@ -140,9 +141,10 @@ class module(ModuleType):
                 setattr(self, extra_name, getattr(module, extra_name))
 
             return getattr(module, name)
-        if name in attribute_modules:
-            __import__('werkzeug.' + name)
-        return ModuleType.__getattribute__(self, name)
+        else:
+            if name in attribute_modules:
+                __import__('werkzeug.' + name)
+            return ModuleType.__getattribute__(self, name)
 
     def __dir__(self):
         result = list(new_module.__all__)

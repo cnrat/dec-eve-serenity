@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\packages\entosis\occupancyCalculator.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\packages\entosis\occupancyCalculator.py
 MIN_OCCUPANCY_BONUS = 1.0
 MAX_OCCUPANCY_BONUS = 6.0
 MILITARY_INDEX_TO_BONUS = {1: 0.6,

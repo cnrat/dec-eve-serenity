@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\carbon\common\lib\werkzeug\serving.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\carbon\common\lib\werkzeug\serving.py
 import os
 import socket
 import sys
@@ -79,8 +80,9 @@ class WSGIRequestHandler(BaseHTTPRequestHandler, object):
                 self.end_headers()
             self.wfile.write(data)
             self.wfile.flush()
+            return
 
-        def start_response(status, response_headers, exc_info = None):
+        def start_response(status, response_headers, exc_info=None):
             if exc_info:
                 try:
                     if headers_sent:
@@ -106,6 +108,8 @@ class WSGIRequestHandler(BaseHTTPRequestHandler, object):
                     application_iter.close()
                 application_iter = None
 
+            return
+
         try:
             execute(app)
         except (socket.error, socket.timeout) as e:
@@ -124,6 +128,8 @@ class WSGIRequestHandler(BaseHTTPRequestHandler, object):
 
             self.server.log('error', 'Error on request:\n%s', traceback.plaintext)
 
+        return
+
     def handle(self):
         try:
             return BaseHTTPRequestHandler.handle(self)
@@ -133,7 +139,9 @@ class WSGIRequestHandler(BaseHTTPRequestHandler, object):
             if self.server.ssl_context is None or not is_ssl_error():
                 raise
 
-    def connection_dropped(self, error, environ = None):
+        return
+
+    def connection_dropped(self, error, environ=None):
         pass
 
     def handle_one_request(self):
@@ -143,12 +151,13 @@ class WSGIRequestHandler(BaseHTTPRequestHandler, object):
         elif self.parse_request():
             return self.run_wsgi()
 
-    def send_response(self, code, message = None):
+    def send_response(self, code, message=None):
         self.log_request(code)
         if message is None:
             message = code in self.responses and self.responses[code][0] or ''
         if self.request_version != 'HTTP/0.9':
             self.wfile.write('%s %d %s\r\n' % (self.protocol_version, code, message))
+        return
 
     def version_string(self):
         return BaseHTTPRequestHandler.version_string(self).strip()
@@ -156,7 +165,7 @@ class WSGIRequestHandler(BaseHTTPRequestHandler, object):
     def address_string(self):
         return self.client_address[0]
 
-    def log_request(self, code = '-', size = '-'):
+    def log_request(self, code='-', size='-'):
         self.log('info', '"%s" %s %s', self.requestline, code, size)
 
     def log_error(self, *args):
@@ -194,7 +203,7 @@ def generate_adhoc_ssl_context():
     return ctx
 
 
-def is_ssl_error(error = None):
+def is_ssl_error(error=None):
     if error is None:
         error = sys.exc_info()[1]
     from OpenSSL import SSL
@@ -230,7 +239,7 @@ class BaseWSGIServer(HTTPServer, object):
     multithread = False
     multiprocess = False
 
-    def __init__(self, host, port, app, handler = None, passthrough_errors = False, ssl_context = None):
+    def __init__(self, host, port, app, handler=None, passthrough_errors=False, ssl_context=None):
         if handler is None:
             handler = WSGIRequestHandler
         self.address_family = select_ip_version(host, port)
@@ -249,6 +258,7 @@ class BaseWSGIServer(HTTPServer, object):
             self.ssl_context = ssl_context
         else:
             self.ssl_context = None
+        return
 
     def log(self, type, message, *args):
         _log(type, message, *args)
@@ -279,12 +289,12 @@ class ThreadedWSGIServer(ThreadingMixIn, BaseWSGIServer):
 class ForkingWSGIServer(ForkingMixIn, BaseWSGIServer):
     multiprocess = True
 
-    def __init__(self, host, port, app, processes = 40, handler = None, passthrough_errors = False, ssl_context = None):
+    def __init__(self, host, port, app, processes=40, handler=None, passthrough_errors=False, ssl_context=None):
         BaseWSGIServer.__init__(self, host, port, app, handler, passthrough_errors, ssl_context)
         self.max_children = processes
 
 
-def make_server(host, port, app = None, threaded = False, processes = 1, request_handler = None, passthrough_errors = False, ssl_context = None):
+def make_server(host, port, app=None, threaded=False, processes=1, request_handler=None, passthrough_errors=False, ssl_context=None):
     if threaded and processes > 1:
         raise ValueError('cannot have a multithreaded and multi process server.')
     else:
@@ -295,7 +305,7 @@ def make_server(host, port, app = None, threaded = False, processes = 1, request
         return BaseWSGIServer(host, port, app, request_handler, passthrough_errors, ssl_context)
 
 
-def reloader_loop(extra_files = None, interval = 1):
+def reloader_loop(extra_files=None, interval=1):
 
     def iter_module_files():
         for module in sys.modules.values():
@@ -311,6 +321,8 @@ def reloader_loop(extra_files = None, interval = 1):
                     if filename[-4:] in ('.pyc', '.pyo'):
                         filename = filename[:-1]
                     yield filename
+
+        return
 
     mtimes = {}
     while 1:
@@ -330,6 +342,8 @@ def reloader_loop(extra_files = None, interval = 1):
 
         time.sleep(interval)
 
+    return
+
 
 def restart_with_reloader():
     while 1:
@@ -347,7 +361,7 @@ def restart_with_reloader():
             return exit_code
 
 
-def run_with_reloader(main_func, extra_files = None, interval = 1):
+def run_with_reloader(main_func, extra_files=None, interval=1):
     if os.environ.get('WERKZEUG_RUN_MAIN') == 'true':
         thread.start_new_thread(main_func, ())
         try:
@@ -361,7 +375,7 @@ def run_with_reloader(main_func, extra_files = None, interval = 1):
         pass
 
 
-def run_simple(hostname, port, application, use_reloader = False, use_debugger = False, use_evalex = True, extra_files = None, reloader_interval = 1, threaded = False, processes = 1, request_handler = None, static_files = None, passthrough_errors = False, ssl_context = None):
+def run_simple(hostname, port, application, use_reloader=False, use_debugger=False, use_evalex=True, extra_files=None, reloader_interval=1, threaded=False, processes=1, request_handler=None, static_files=None, passthrough_errors=False, ssl_context=None):
     if use_debugger:
         from werkzeug.debug import DebuggedApplication
         application = DebuggedApplication(application, use_evalex)
@@ -385,3 +399,4 @@ def run_simple(hostname, port, application, use_reloader = False, use_debugger =
         run_with_reloader(inner, extra_files, reloader_interval)
     else:
         inner()
+    return

@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\carbon\client\script\graphics\graphicWrappers\baseGraphicWrapper.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\carbon\client\script\graphics\graphicWrappers\baseGraphicWrapper.py
 import geo2
 
 class BaseGraphicWrapper(object):
@@ -118,7 +119,7 @@ class TrinityTranslationRotationMixinWrapper(object):
             self.OnRotationChange()
 
     def GetScale(self):
-        return (1.0, 1.0, 1.0)
+        pass
 
     def SetScale(self, scale):
         pass

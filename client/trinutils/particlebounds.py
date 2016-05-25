@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\packages\trinutils\particlebounds.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\packages\trinutils\particlebounds.py
 import logging
 import greatergranny.grannyutils as grannyutils
 import remotefilecache
@@ -58,7 +59,7 @@ def _GetMaxPartSize(et):
 
 class ParticleBoundsSimulation(object):
 
-    def __init__(self, trinobj, pumpBlue = False, passes = 2, time = 3.0):
+    def __init__(self, trinobj, pumpBlue=False, passes=2, time=3.0):
         trinity.WaitForResourceLoads()
         self._passes = passes
         self._time = time
@@ -121,7 +122,7 @@ class ParticleBoundsSimulation(object):
             blue.os.Pump()
             ut.Yield()
 
-    def _UpdateBoundingBox(self, update, sorting = True):
+    def _UpdateBoundingBox(self, update, sorting=True):
         for ps in self.systems:
             ps.updateBoundingBox = update
             ps.requiresSorting = sorting

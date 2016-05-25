@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\carbon\client\script\graphics\graphicLoaderRequest.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\carbon\client\script\graphics\graphicLoaderRequest.py
 import loadRequest
 import weakref
 
@@ -10,6 +11,7 @@ class GraphicLoaderRequest(loadRequest.PrioritizedLoadRequest):
         self.graphicLoaderClient = graphicLoaderClient
         self.graphicID = graphicID
         self.components = weakref.WeakKeyDictionary()
+        return
 
     def GetName(self):
         modelPath = sm.GetService('graphicClient').GetModelFilePath(self.graphicID)

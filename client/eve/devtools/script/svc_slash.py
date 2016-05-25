@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\devtools\script\svc_slash.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\devtools\script\svc_slash.py
 from eve.devtools.script.slashError import Error
 import evetypes
 from service import *
@@ -25,7 +26,7 @@ TOKEN = '$'
 aliasFile = 'aliases.ini'
 macroFile = 'macros.ini'
 version = 2.4
-Message = lambda title, body, icon = triui.INFO: sm.GetService('gameui').MessageBox(body, title, buttons=uiconst.OK, icon=icon)
+Message = lambda title, body, icon=triui.INFO: sm.GetService('gameui').MessageBox(body, title, buttons=uiconst.OK, icon=icon)
 AsyncMessage = lambda *args: uthread.new(Message, *args)
 Progress = lambda title, text, current, total: sm.GetService('loading').ProgressWnd(title, text, current, total)
 
@@ -58,6 +59,8 @@ class InlineFunctionResolver():
             if rec.flag == flag:
                 return rec
 
+        return None
+
     def f_itemid(self, *args, **kw):
         return self._getinvrow(*args).itemID
 
@@ -65,58 +68,62 @@ class InlineFunctionResolver():
         return self._getinvrow(*args).typeID
 
 
-def GetCharacter(name, ignoreNotFound = False):
+def GetCharacter(name, ignoreNotFound=False):
     result = sm.RemoteSvc('lookupSvc').LookupCharacters(name, 1)
     if result:
         cfg.eveowners.Prime([ each.characterID for each in result ])
         return result[0]
-    try:
-        return cfg.eveowners.Get(int(name))
-    except:
-        if ignoreNotFound:
-            return None
-        AsyncMessage('No such character', 'Character not found:<br>  %s' % name)
-        raise UserError('IgnoreToTop')
+    else:
+        try:
+            return cfg.eveowners.Get(int(name))
+        except:
+            if ignoreNotFound:
+                return None
+            AsyncMessage('No such character', 'Character not found:<br>  %s' % name)
+            raise UserError('IgnoreToTop')
+
+        return None
 
 
 def Act(what, set, p):
     c = sm.GetService(SERVICENAME).GetChannel()
     if not c:
         return
-    short = False
-    if what == 'gag':
-        mode = chat.CHTMODE_LISTENER
-        verb = 'gagged'
-    elif what == 'ban':
+    else:
+        short = False
+        if what == 'gag':
+            mode = chat.CHTMODE_LISTENER
+            verb = 'gagged'
+        elif what == 'ban':
+            if set:
+                mode = chat.CHTMODE_DISALLOWED
+            else:
+                mode = chat.CHTMODE_NOTSPECIFIED
+                short = True
+            verb = 'banned'
+        else:
+            raise ValueError('unsupported action')
         if set:
-            mode = chat.CHTMODE_DISALLOWED
-        else:
-            mode = chat.CHTMODE_NOTSPECIFIED
-            short = True
-        verb = 'banned'
-    else:
-        raise ValueError('unsupported action')
-    if set:
-        try:
-            char, reason, duration = p.Parse('ssi')
-        except:
-            char, reason = p.Parse('ss')
-            duration = 30
+            try:
+                char, reason, duration = p.Parse('ssi')
+            except:
+                char, reason = p.Parse('ss')
+                duration = 30
 
-        if duration:
-            until = blue.os.GetWallclockTime() + duration * const.MIN
+            if duration:
+                until = blue.os.GetWallclockTime() + duration * const.MIN
+            else:
+                until = None
         else:
-            until = None
-    else:
-        char, = p.Parse('s')
-        reason = ''
-        until = blue.os.GetWallclockTime() - 30 * const.MIN
-    ret = GetCharacter(char)
-    if short:
-        sm.GetService('LSC').AccessControl(c.channelID, ret.characterID, mode)
-    else:
-        sm.GetService('LSC').AccessControl(c.channelID, ret.characterID, mode, until, reason)
-    return '%s has been %s%s' % (ret.characterName, ['un', ''][set], verb)
+            char = p.Parse('s')
+            reason = ''
+            until = blue.os.GetWallclockTime() - 30 * const.MIN
+        ret = GetCharacter(char)
+        if short:
+            sm.GetService('LSC').AccessControl(c.channelID, ret.characterID, mode)
+        else:
+            sm.GetService('LSC').AccessControl(c.channelID, ret.characterID, mode, until, reason)
+        return '%s has been %s%s' % (ret.characterName, ['un', ''][set], verb)
 
 
 class SlashService(Service):
@@ -131,7 +138,7 @@ class SlashService(Service):
         self.macros = {}
         Service.__init__(self)
 
-    def Run(self, memStream = None):
+    def Run(self, memStream=None):
         self.state = SERVICE_START_PENDING
         try:
             self.wnd = None
@@ -147,6 +154,7 @@ class SlashService(Service):
             sys.exc_clear()
 
         self.state = SERVICE_RUNNING
+        return
 
     def GetMacros(self):
         self.LoadMacrosAndAliases()
@@ -155,6 +163,7 @@ class SlashService(Service):
     def LoadMacrosAndAliases(self):
         defaultMacros = {'GMH: Unload All': '/unload me all',
          'WM: Remove All Drones': '/unspawn range=500000 only=categoryDrone',
+         'WM: Remove All Fighters': '/unspawn range=500000 only=categoryFighter',
          'WM: Remove All Wrecks': '/unspawn range=500000 only=groupWreck',
          'WM: Remove CargoContainers': '/unspawn range=500000 only=groupCargoContainer',
          'WM: Remove SecureContainers': '/unspawn range=500000 only=groupSecureCargoContainer',
@@ -185,7 +194,7 @@ class SlashService(Service):
         targetFile = os.path.join(sm.StartService('insider').GetInsiderDir(), fileName)
         blue.AtomicFileWrite(targetFile, text)
 
-    def Stop(self, memStream = None):
+    def Stop(self, memStream=None):
         if self.wnd and not self.wnd.destroyed:
             self.Hide()
         Service.Stop(self, memStream)
@@ -195,72 +204,75 @@ class SlashService(Service):
         if wnd:
             self.wnd.Maximize()
             return
-        self.wnd = wnd = uicontrols.Window.Open(windowID='slashcon')
-        wnd.DoClose = self.Hide
-        wnd.SetWndIcon(None)
-        wnd.SetTopparentHeight(0)
-        wnd.SetCaption('Slash')
-        wnd.SetMinSize([390, 224])
-        wnd.OnUIRefresh = None
-        main = uiprimitives.Container(name='con', parent=uiutil.GetChild(wnd, 'main'), pos=(const.defaultPadding,
-         const.defaultPadding,
-         const.defaultPadding,
-         const.defaultPadding))
-        i = wnd.sr.i = uiprimitives.Container(name='input', parent=main, align=uiconst.TOBOTTOM, height=20)
-        c = uiprimitives.Container(name='control', parent=main, align=uiconst.TOBOTTOM, height=24)
-        o = uiprimitives.Container(name='output', parent=main, align=uiconst.TOALL, pos=(0, 0, 0, 0))
-        t = uicontrols.Label(text='Command: ', parent=i, align=uiconst.TOLEFT, color=None, state=uiconst.UI_DISABLED, singleline=1)
-        input = wnd.sr.input = uicontrols.SinglelineEdit(name='slashCmd', parent=i, left=0, width=0, align=uiconst.TOALL)
-        input.OnKeyDown = (self.InputKey, input)
-        input.OnReturn = self.InputEnter
-        buttons = [['Clear',
-          self.Clear,
-          None,
-          81],
-         ['Exec Last',
-          self.ExLast,
-          None,
-          81],
-         ['Exec Once',
-          self.ExOnce,
-          None,
-          81],
-         ['Exec Loop',
-          self.ExLoop,
-          None,
-          81],
-         ['Abort',
-          self.ExAbort,
-          None,
-          81]]
-        controls = uicontrols.ButtonGroup(btns=buttons, line=0)
-        controls.align = uiconst.CENTER
-        controls.width = 69 * len(buttons) + 10
-        controls.height = 16
-        c.children.append(controls)
+        else:
+            self.wnd = wnd = uicontrols.Window.Open(windowID='slashcon')
+            wnd.DoClose = self.Hide
+            wnd.SetWndIcon(None)
+            wnd.SetTopparentHeight(0)
+            wnd.SetCaption('Slash')
+            wnd.SetMinSize([390, 224])
+            wnd.OnUIRefresh = None
+            main = uiprimitives.Container(name='con', parent=uiutil.GetChild(wnd, 'main'), pos=(const.defaultPadding,
+             const.defaultPadding,
+             const.defaultPadding,
+             const.defaultPadding))
+            i = wnd.sr.i = uiprimitives.Container(name='input', parent=main, align=uiconst.TOBOTTOM, height=20)
+            c = uiprimitives.Container(name='control', parent=main, align=uiconst.TOBOTTOM, height=24)
+            o = uiprimitives.Container(name='output', parent=main, align=uiconst.TOALL, pos=(0, 0, 0, 0))
+            t = uicontrols.Label(text='Command: ', parent=i, align=uiconst.TOLEFT, color=None, state=uiconst.UI_DISABLED, singleline=1)
+            input = wnd.sr.input = uicontrols.SinglelineEdit(name='slashCmd', parent=i, left=0, width=0, align=uiconst.TOALL)
+            input.OnKeyDown = (self.InputKey, input)
+            input.OnReturn = self.InputEnter
+            buttons = [['Clear',
+              self.Clear,
+              None,
+              81],
+             ['Exec Last',
+              self.ExLast,
+              None,
+              81],
+             ['Exec Once',
+              self.ExOnce,
+              None,
+              81],
+             ['Exec Loop',
+              self.ExLoop,
+              None,
+              81],
+             ['Abort',
+              self.ExAbort,
+              None,
+              81]]
+            controls = uicontrols.ButtonGroup(btns=buttons, line=0)
+            controls.align = uiconst.CENTER
+            controls.width = 69 * len(buttons) + 10
+            controls.height = 16
+            c.children.append(controls)
 
-        def checker(cb):
-            checked = cb.GetValue()
-            settings.user.ui.Set('slashasync', checked)
-            if checked:
-                wnd.sr.async.hint = 'Non-Blocking: ON<br>Remote slash commands do not block the slash console.<br>Note: Local slash commands always block<br>Click to disable non-blocking mode.'
-            else:
-                wnd.sr.async.hint = 'Non-Blocking: OFF<br>Remote slash commands block the slash console until they finish.<br>Note: Local slash commands always block<br>Click to enable non-blocking mode.'
-            cb.state = uiconst.UI_HIDDEN
-            cb.state = uiconst.UI_NORMAL
+            def checker(cb):
+                checked = cb.GetValue()
+                settings.user.ui.Set('slashasync', checked)
+                if checked:
+                    wnd.sr.async.hint = 'Non-Blocking: ON<br>Remote slash commands do not block the slash console.<br>Note: Local slash commands always block<br>Click to disable non-blocking mode.'
+                else:
+                    wnd.sr.async.hint = 'Non-Blocking: OFF<br>Remote slash commands block the slash console until they finish.<br>Note: Local slash commands always block<br>Click to enable non-blocking mode.'
+                cb.state = uiconst.UI_HIDDEN
+                cb.state = uiconst.UI_NORMAL
 
-        wnd.sr.async = uicontrols.Checkbox(text='Non-Blocking', parent=c, configName='slashasync', retval=0, checked=settings.user.ui.Get('slashasync', 0), callback=checker)
-        checker(wnd.sr.async)
-        wnd.sr.async.state = uiconst.UI_HIDDEN
-        output = wnd.sr.output = uicontrols.Edit(setvalue=self.outputcontents, parent=o, readonly=1)
-        output.autoScrollToBottom = 1
-        uicore.registry.SetFocus(input)
+            wnd.sr.async = uicontrols.Checkbox(text='Non-Blocking', parent=c, configName='slashasync', retval=0, checked=settings.user.ui.Get('slashasync', 0), callback=checker)
+            checker(wnd.sr.async)
+            wnd.sr.async.state = uiconst.UI_HIDDEN
+            output = wnd.sr.output = uicontrols.Edit(setvalue=self.outputcontents, parent=o, readonly=1)
+            output.autoScrollToBottom = 1
+            uicore.registry.SetFocus(input)
+            return
 
     def Hide(self, *args):
         if self.wnd:
             self.slashcontents = self.wnd.sr.input.GetValue()
             self.wnd.Close()
         self.wnd = None
+        return
 
     def ProcessRestartUI(self):
         if self.wnd:
@@ -360,7 +372,7 @@ class SlashService(Service):
         self.aborted = True
         self.busy = False
 
-    def Ex(self, this, count = 1):
+    def Ex(self, this, count=1):
         if not this:
             return
         if this[0] != '/':
@@ -472,7 +484,7 @@ class SlashService(Service):
 
         return (ret, localMatch)
 
-    def SlashCmd(self, command, fallThrough = True, isMacro = False):
+    def SlashCmd(self, command, fallThrough=True, isMacro=False):
         if command.startswith('//'):
             return sm.RemoteSvc('slash').SlashCmd(command[1:])
         return self._SlashCmd(command, fallThrough, isMacro)
@@ -560,21 +572,21 @@ class SlashService(Service):
 
         if fallThrough:
             return sm.RemoteSvc('slash').SlashCmd(commandLine)
+        else:
+            return
 
     def cmd_sethackingdifficulty(self, p):
         sm.GetService('hackingUI').SetDifficulty(p.Parse('i')[0])
-        return 'Ok'
 
     def cmd_sethackingvirusstats(self, p):
         integers = p.Parse('iii')
         sm.GetService('hackingUI').SetVirusStats(integers[0], integers[1], integers[2])
-        return 'Ok'
 
     def cmd_openhacking(self, p):
         sm.GetService('hackingUI').TriggerNewGame()
 
     def cmd_run(self, p):
-        filename, = p.Parse('s')
+        filename = p.Parse('s')
         if not os.path.exists(filename):
             filename += '.txt'
             if not os.path.exists(filename):
@@ -584,12 +596,10 @@ class SlashService(Service):
             if line.startswith('/'):
                 self.SlashCmd(line)
 
-        return 'Ok'
-
     def cmd_macromenu(self, p):
         return self.cmd_alias(p, True)
 
-    def cmd_alias(self, p, isMacro = False):
+    def cmd_alias(self, p, isMacro=False):
         what, rest = p.Parse('s?r')
         what = what.lower()
         if isMacro:
@@ -647,8 +657,6 @@ class SlashService(Service):
         for i in xrange(count):
             self.SlashCmd(rest)
 
-        return 'Ok'
-
     def cmd_chtgag(self, p):
         return Act('gag', True, p)
 
@@ -671,12 +679,11 @@ class SlashService(Service):
 
         text = ['character: %s (%s)' % (eve.session.charid, cfg.eveowners.Get(eve.session.charid).name), 'user: %s (type: %s)' % (eve.session.userid, eve.session.userType), 'role: 0x%08X (%s)' % (eve.session.role, ', '.join(roles))]
         AsyncMessage('Account Information', '<br>'.join(text))
-        return 'Ok'
 
     def cmd_hop(self, p):
         if eve.session.role & ROLE_WORLDMOD:
             return
-        dist, = p.Parse('i')
+        dist = p.Parse('i')
         if eve.session.stationid:
             raise Error("This obviously won't work in a station :)")
         bp = sm.GetService('michelle').GetBallpark()
@@ -686,11 +693,10 @@ class SlashService(Service):
         v.Scale(dist)
         sm.RemoteSvc('slash').SlashCmd('/tr me me offset=%d,%d,%d' % (int(v.x), int(v.y), int(v.z)))
         sm.GetService('menu').ClearAlignTargets()
-        return 'Ok'
 
     def cmd_online(self, p):
         import util
-        target, = p.Parse('s')
+        target = p.Parse('s')
         activeShipID = util.GetActiveShip()
         if session.stationid2 is not None and (target == 'me' or int(target) == activeShipID):
             dogmaLocation = sm.GetService('clientDogmaIM').GetDogmaLocation()
@@ -708,7 +714,7 @@ class SlashService(Service):
         return 'Ok'
 
     def cmd_super(self, p):
-        target, = p.Parse('s')
+        target = p.Parse('s')
         if target.lower() == 'me':
             victim = 'you'
             target = 'me'
@@ -722,10 +728,8 @@ class SlashService(Service):
         finally:
             Progress('Making %s Leet' % victim, 'Done!', 1, 1)
 
-        return 'Ok'
-
     def cmd_noob(self, p):
-        target, = p.Parse('s')
+        target = p.Parse('s')
         if target.lower() == 'me':
             victim = 'you'
             target = 'me'
@@ -739,8 +743,6 @@ class SlashService(Service):
         finally:
             Progress('Making %s n00b' % victim, 'Done!', 1, 1)
 
-        return 'Ok'
-
     def cmd_bp(self, p):
         try:
             name, rest = p.Parse('s?r')
@@ -749,7 +751,7 @@ class SlashService(Service):
         except param.Error:
             rest = ''
             try:
-                name, = p.Parse('r')
+                name = p.Parse('r')
             except param.Error:
                 return
 
@@ -758,17 +760,18 @@ class SlashService(Service):
             return sm.RemoteSvc('slash').SlashCmd('/bp %s %s' % (typeID, rest))
         else:
             return
+            return
 
     def cmd_createitem(self, p):
         qty = 1
         try:
-            name, = p.Parse('s')
+            name = p.Parse('s')
         except param.Error:
             try:
                 name, qty = p.Parse('ss')
             except param.Error:
                 try:
-                    name, = p.Parse('r')
+                    name = p.Parse('r')
                 except param.Error:
                     return
 
@@ -790,36 +793,36 @@ class SlashService(Service):
 
         if target.lower() != 'me' or rest == 'all' or rest.isdigit():
             return
-        matches = {}
-        for rec in sm.GetService('invCache').GetInventoryFromId(eve.session.shipid).List():
-            if rec.categoryID != const.categoryOwner:
-                typeName = evetypes.GetName(rec.typeID)
-                if rest in typeName.lower():
-                    matches[typeName] = rec.typeID
+        else:
+            matches = {}
+            for rec in sm.GetService('invCache').GetInventoryFromId(eve.session.shipid).List():
+                if rec.categoryID != const.categoryOwner:
+                    typeName = evetypes.GetName(rec.typeID)
+                    if rest in typeName.lower():
+                        matches[typeName] = rec.typeID
 
-        if not matches:
+            if not matches:
+                return
+            matches = matches.items()
+            matches.sort()
+            if len(matches) > 1:
+                ret = uix.ListWnd(matches, listtype='generic', caption='AutoComplete: %d types found' % len(matches))
+            else:
+                ret = matches[0]
+            if ret:
+                return sm.RemoteSvc('slash').SlashCmd('/unload me %s' % ret[1].typeID) or 'Ok'
             return
-        matches = matches.items()
-        matches.sort()
-        if len(matches) > 1:
-            ret = uix.ListWnd(matches, listtype='generic', caption='AutoComplete: %d types found' % len(matches))
-        else:
-            ret = matches[0]
-        if ret:
-            return sm.RemoteSvc('slash').SlashCmd('/unload me %s' % ret[1].typeID) or 'Ok'
-        else:
             return
 
     def cmd_dogmaupdate(self, p):
         sm.RemoteSvc('slash').SlashCmd('/dogmaupdate')
         sm.GetService('clientEffectCompiler').effects.clear()
         eve.Message('CustomNotify', {'notify': 'Server has regenerated the expressions and yours have been cleared'})
-        return 'Ok'
 
     def cmd_loadcontainer(self, p):
         return self.cmd_fit(p, cmd='load', categories=None)
 
-    def cmd_fit(self, p, cmd = 'fit', categories = -1):
+    def cmd_fit(self, p, cmd='fit', categories=-1):
         if categories == -1:
             categories = [const.categoryModule, const.categoryDrone, const.categoryCharge]
         qty = ''
@@ -866,7 +869,7 @@ class SlashService(Service):
             name, rest = p.Parse('sr')
         except param.Error:
             try:
-                name, = p.Parse('r')
+                name = p.Parse('r')
                 rest = ''
             except param.Error:
                 return
@@ -919,6 +922,7 @@ class SlashService(Service):
                     level = 5
                 return sm.RemoteSvc('slash').SlashCmd('/giveskill "%s" %s %s' % (target, typeID, level)) or 'Ok'
             return
+            return
 
     def cmd_removeskills(self, p):
         try:
@@ -935,6 +939,7 @@ class SlashService(Service):
             if typeID:
                 return sm.RemoteSvc('slash').SlashCmd('/removeskill "%s" %s' % (target, typeID)) or 'Ok'
             return
+            return
 
     def cmd_skillscopy(self, p):
         try:
@@ -947,8 +952,6 @@ class SlashService(Service):
             sm.RemoteSvc('slash').SlashCmd('/skillscopy "%s" "%s"' % (fromCharacter, toCharacter))
         finally:
             Progress('Copying Skills', 'Done!', 1, 1)
-
-        return 'Ok'
 
     def cmd_massfleetinvite(self, p):
         fleetSvc = sm.StartService('fleet')
@@ -975,21 +978,22 @@ class SlashService(Service):
         c = self.GetChannel()
         if not c or c.channelID == local:
             return
-        l = sm.GetService('LSC').channels.get(local, None)
-        if not l:
-            return Error('No local channel?!')
-        candidates = [ charID for charID in self.GetChannelUsers() if charID not in l.memberList ]
-        if session.charid in candidates:
-            candidates.remove(session.charid)
-        t = len(candidates)
-        c = 0
-        for charID in candidates:
-            c += 1
-            Progress('Transfering...', '[%d/%d] %s' % (c, t, cfg.eveowners.Get(charID).ownerName), c, t)
-            sm.RemoteSvc('slash').SlashCmd('/tr %d me noblock' % charID)
+        else:
+            l = sm.GetService('LSC').channels.get(local, None)
+            if not l:
+                return Error('No local channel?!')
+            candidates = [ charID for charID in self.GetChannelUsers() if charID not in l.memberList ]
+            if session.charid in candidates:
+                candidates.remove(session.charid)
+            t = len(candidates)
+            c = 0
+            for charID in candidates:
+                c += 1
+                Progress('Transfering...', '[%d/%d] %s' % (c, t, cfg.eveowners.Get(charID).ownerName), c, t)
+                sm.RemoteSvc('slash').SlashCmd('/tr %d me noblock' % charID)
 
-        Progress('Transfering...', 'All commands sent to the server', 1, 1)
-        return 'Ok'
+            Progress('Transfering...', 'All commands sent to the server', 1, 1)
+            return 'Ok'
 
     def cmd_massstanding(self, p):
         try:
@@ -1038,7 +1042,6 @@ class SlashService(Service):
             txt = 'Standings left unmodified'
         Progress('Setting standings...', 'Done!', 1, 1)
         eve.Message('CustomNotify', {'notify': txt})
-        return 'Ok'
 
     def cmd_pos(self, p):
         try:
@@ -1183,6 +1186,8 @@ class SlashService(Service):
         for typeID in self.GetAmmoTypesForWeapon(weaponItemID):
             return typeID
 
+        return None
+
     def cmd_ammo(self, p):
         try:
             typeID = p.Parse('s')[0]
@@ -1198,26 +1203,27 @@ class SlashService(Service):
 
         if typeID == 'clear':
             return 'Ok'
-        typeID = int(typeID)
-        blue.pyos.synchro.SleepSim(1000)
-        cmds = []
-        stateMgr = sm.GetService('godma').GetStateManager()
-        for row in shipInv.ListHardwareModules():
-            thisTypeID = typeID
-            if not self.IsLegalAmmo(row.itemID, typeID):
-                continue
-            if not thisTypeID:
-                thisTypeID = self.GetRandomAmmoForWeapon(row.itemID)
-            if not thisTypeID:
-                continue
-            self.LogNotice('/ammo: Putting %s into %s' % (thisTypeID, row.itemID))
-            ma = stateMgr.GetType(row.typeID)
-            num = int(ma.capacity / evetypes.GetVolume(thisTypeID))
-            if num > 0:
-                cmds.append('/fit me %d %d flag=%d' % (thisTypeID, num, row.flagID))
+        else:
+            typeID = int(typeID)
+            blue.pyos.synchro.SleepSim(1000)
+            cmds = []
+            stateMgr = sm.GetService('godma').GetStateManager()
+            for row in shipInv.ListHardwareModules():
+                thisTypeID = typeID
+                if not self.IsLegalAmmo(row.itemID, typeID):
+                    continue
+                if not thisTypeID:
+                    thisTypeID = self.GetRandomAmmoForWeapon(row.itemID)
+                if not thisTypeID:
+                    continue
+                self.LogNotice('/ammo: Putting %s into %s' % (thisTypeID, row.itemID))
+                ma = stateMgr.GetType(row.typeID)
+                num = int(ma.capacity / evetypes.GetVolume(thisTypeID))
+                if num > 0:
+                    cmds.append('/fit me %d %d flag=%d' % (thisTypeID, num, row.flagID))
 
-        uthread.parallel([ (sm.GetService('slash').SlashCmd, (cmd,)) for cmd in cmds ])
-        return 'Ok'
+            uthread.parallel([ (sm.GetService('slash').SlashCmd, (cmd,)) for cmd in cmds ])
+            return 'Ok'
 
     def cmd_sessionchangetimer(self, p):
         oldVal = base.sessionChangeDelay
@@ -1235,7 +1241,6 @@ class SlashService(Service):
         if sm.GetService('cc').NoExistingCustomization():
             return 1
         sm.GetService('gameui').GoCharacterCreationCurrentCharacter()
-        return 1
 
     def cmd_buyorders(self, p):
         if session.stationid is None:
@@ -1243,7 +1248,7 @@ class SlashService(Service):
         qty = 1
         orderRange = 32767
         try:
-            name, = p.Parse('s')
+            name = p.Parse('s')
         except param.Error:
             try:
                 name, qty = p.Parse('si')
@@ -1334,20 +1339,15 @@ class SlashService(Service):
         for order in orders:
             sm.GetService('marketQuote').CancelOrder(order.orderID, order.regionID)
 
-        return 'Ok'
-
     def cmd_reimbursebounties(self, p):
         sm.GetService('bountySvc').GMReimburseBounties()
-        return 'Ok'
 
     def cmd_clearbountycache(self, p):
         sm.GetService('bountySvc').GMClearBountyCache()
-        return 'Ok'
 
     def cmd_killright(self, p):
         sm.RemoteSvc('slash').SlashCmd('/killright %s' % p.line)
         sm.GetService('bountySvc').ClearAllKillRightData()
-        return 'Ok'
 
     def cmd_newscanner(self, p):
         cmd = p.Parse('s')
@@ -1396,9 +1396,8 @@ class SlashService(Service):
         roomID = int(p.Parse('i')[0])
         self.leveleditor = player = util.Moniker('keeper', session.userid)
         player.GotoRoom(roomID)
-        return 'Ok'
 
-    def MatchTypes(self, name, allowedCategories = None, allowedGroups = None, smart = True):
+    def MatchTypes(self, name, allowedCategories=None, allowedGroups=None, smart=True):
         name = name.strip('"')
         if not hasattr(self, 'typeIDByName'):
             d = self.typeIDByName = {}
@@ -1444,40 +1443,42 @@ class SlashService(Service):
         if smart and name.lower() in self.typeIDByName:
             typeID = self.typeIDByName[name.lower()]
             return [(evetypes.GetName(typeID), typeID)]
-        if name.isdigit():
-            typeName = evetypes.GetNameOrNone(int(name))
-            if typeName:
-                if 1 or _filter(int(name)):
-                    return [(typeName, int(name))]
-                raise Error("Type '%s' is not in the list of allowed types for this command" % rec.name)
         else:
-            name = name.lower().strip('"')
-        if len(name) < 3:
-            raise UserError('SlashError', {'reason': 'Autocompletion requires 3 or more characters'})
-        matches = []
-        count = 0
-        for typeName, typeID in self.typeIDByName.iteritems():
-            if not count % 500:
-                blue.pyos.synchro.Yield()
-            count += 1
-            if name in typeName:
-                if _filter(typeID):
-                    matches.append((evetypes.GetName(typeID), typeID))
+            if name.isdigit():
+                typeName = evetypes.GetNameOrNone(int(name))
+                if typeName:
+                    if 1 or _filter(int(name)):
+                        return [(typeName, int(name))]
+                    raise Error("Type '%s' is not in the list of allowed types for this command" % rec.name)
+            else:
+                name = name.lower().strip('"')
+            if len(name) < 3:
+                raise UserError('SlashError', {'reason': 'Autocompletion requires 3 or more characters'})
+            matches = []
+            count = 0
+            for typeName, typeID in self.typeIDByName.iteritems():
+                if not count % 500:
+                    blue.pyos.synchro.Yield()
+                count += 1
+                if name in typeName:
+                    if _filter(typeID):
+                        matches.append((evetypes.GetName(typeID), typeID))
 
-        return matches
+            return matches
 
-    def AutoComplete(self, name, allowedCategories = None, allowedGroups = None):
+    def AutoComplete(self, name, allowedCategories=None, allowedGroups=None):
         matches = self.MatchTypes(name, allowedCategories, allowedGroups)
         if not matches:
             return None
-        if len(matches) == 1:
-            ret = matches[0]
         else:
-            matches.sort()
-            ret = uix.ListWnd(matches, listtype='generic', caption='AutoComplete: %d types found' % len(matches))
-        if not ret:
-            raise Error('Cancelled')
-        return ret[1]
+            if len(matches) == 1:
+                ret = matches[0]
+            else:
+                matches.sort()
+                ret = uix.ListWnd(matches, listtype='generic', caption='AutoComplete: %d types found' % len(matches))
+            if not ret:
+                raise Error('Cancelled')
+            return ret[1]
 
     def GetChannel(self):
         f = sys._getframe().f_back

@@ -1,16 +1,17 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\packages\sofDnaLibrary\query.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\packages\sofDnaLibrary\query.py
 from sofDnaLibrary.dataLookup import GetDefaultTypeDnaInfoForDnaQuery, GetTypeFactionOverridesThatMatchFaction
 import time
 queryResultCache = {}
 
-def GenerateDnaString(hull, faction, race, dnaAddition = ''):
+def GenerateDnaString(hull, faction, race, dnaAddition=''):
     dna = '%s:%s:%s' % (hull, faction, race)
     if dnaAddition != '':
         dna += ':%s' % dnaAddition
     return dna
 
 
-def GetSkinnedDnaOfTypes(hullQuery = '.*', factionQuery = '.*', raceQuery = '.*'):
+def GetSkinnedDnaOfTypes(hullQuery='.*', factionQuery='.*', raceQuery='.*'):
     typesWithFactionOverrides = GetTypeFactionOverridesThatMatchFaction(factionQuery)
     typesMatchingHullAndRace = GetDefaultTypeDnaInfoForDnaQuery(hullQuery, '.*', raceQuery)
     typeDna = {}
@@ -24,7 +25,7 @@ def GetSkinnedDnaOfTypes(hullQuery = '.*', factionQuery = '.*', raceQuery = '.*'
     return typeDna
 
 
-def GetDefaultDnaOfTypes(hullQuery = '.*', factionQuery = '.*', raceQuery = '.*'):
+def GetDefaultDnaOfTypes(hullQuery='.*', factionQuery='.*', raceQuery='.*'):
     typesMatchingHullFactionAndRace = GetDefaultTypeDnaInfoForDnaQuery(hullQuery, factionQuery, raceQuery)
     typeDna = {}
     for typeID, typeInfo in typesMatchingHullFactionAndRace.iteritems():
@@ -33,7 +34,7 @@ def GetDefaultDnaOfTypes(hullQuery = '.*', factionQuery = '.*', raceQuery = '.*'
     return typeDna
 
 
-def GetAllVariationsOfDnaOfTypes(hullQuery = '.*', factionQuery = '.*', raceQuery = '.*'):
+def GetAllVariationsOfDnaOfTypes(hullQuery='.*', factionQuery='.*', raceQuery='.*'):
     dnaString = GenerateDnaString(hullQuery, factionQuery, raceQuery)
     print "Getting skinned dna for types that match the following dna string '%s'" % dnaString
     skinnedTypeDna = GetSkinnedDnaOfTypes(hullQuery, factionQuery, raceQuery)
@@ -46,7 +47,7 @@ def GetAllVariationsOfDnaOfTypes(hullQuery = '.*', factionQuery = '.*', raceQuer
     return typeDna
 
 
-def GetDnaStringMatchingQuery(hullQuery = '.*', factionQuery = '.*', raceQuery = '.*'):
+def GetDnaStringMatchingQuery(hullQuery='.*', factionQuery='.*', raceQuery='.*'):
     dnaQuery = GenerateDnaString(hullQuery, factionQuery, raceQuery)
     if dnaQuery in queryResultCache:
         print "Returning cached results for '%s'" % dnaQuery

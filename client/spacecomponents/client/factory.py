@@ -1,8 +1,10 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\packages\spacecomponents\client\factory.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\packages\spacecomponents\client\factory.py
 from billboards.spacecomponents.client import billboard
 from entosis.spacecomponents.client.disruptableStationService import DisruptableStationService
 from entosis.spacecomponents.client.entosisCommandNode import EntosisCommandNode
 from entosis.spacecomponents.client.entosisSovereigntyStructure import EntosisSovereigntyStructure
+from fighters.client.fighterSquadronComponent import FighterSquadronComponent
 from spacecomponents.common import componentConst
 from spacecomponents.client.components import dogmatic
 from spacecomponents.client.components import scoop
@@ -52,7 +54,8 @@ COMPONENTS = {componentConst.DEPLOY_CLASS: deploy.Deploy,
  componentConst.CONQUERABLE_STATION: EntosisSovereigntyStructure,
  componentConst.ITEM_TRADER: itemtrader.ItemTrader,
  componentConst.JUMP_POLARIZATION_CLASS: jumpPolarization.JumpPolarization,
- componentConst.BILLBOARD_CLASS: billboard.BillboardComponent}
+ componentConst.BILLBOARD_CLASS: billboard.BillboardComponent,
+ componentConst.FIGHTER_SQUADRON_CLASS: FighterSquadronComponent}
 
 def GetComponentClass(componentName):
     return COMPONENTS[componentName]

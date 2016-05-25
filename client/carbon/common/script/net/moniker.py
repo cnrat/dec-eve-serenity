@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\carbon\common\script\net\moniker.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\carbon\common\script\net\moniker.py
 import weakref
 import cPickle
 import uthread
@@ -17,7 +18,7 @@ class Moniker():
      '__bindParams',
      '__sessionCheck']
 
-    def __init__(self, serviceName = None, bindParams = None, nodeID = None, quicky = 0):
+    def __init__(self, serviceName=None, bindParams=None, nodeID=None, quicky=0):
         global allMonikers
         self.__serviceName = serviceName
         self.__bindParams = bindParams
@@ -26,6 +27,7 @@ class Moniker():
         self.__sessionCheck = None
         self.boundObject = None
         allMonikers[self] = 1
+        return
 
     def __del__(self):
         self.__ClearBoundObject()
@@ -59,6 +61,8 @@ class Moniker():
                      'serviceName': self.__serviceName,
                      'bindParams': self.__bindParams})
 
+        return
+
     def ToURLString(self):
         import binascii
         return binascii.b2a_hex(cPickle.dumps((self.__serviceName, self.__bindParams), 1))
@@ -84,6 +88,7 @@ class Moniker():
         self.boundObject = None
         self.__quicky = 2
         allMonikers[self] = 1
+        return
 
     __remobsuppmeth__ = ('RegisterObjectChangeHandler', 'UnRegisterObjectChangeHandler')
 
@@ -99,7 +104,7 @@ class Moniker():
         else:
             return MonikerCallWrap(self, key)
 
-    def __ClearBoundObject(self, disconnectDelay = 30):
+    def __ClearBoundObject(self, disconnectDelay=30):
         if self.boundObject is not None and isinstance(self.boundObject, base.ObjectConnection):
             try:
                 self.boundObject.DisconnectObject(disconnectDelay)
@@ -107,8 +112,9 @@ class Moniker():
                 pass
 
         self.boundObject = None
+        return
 
-    def Bind(self, sess = None, call = None):
+    def Bind(self, sess=None, call=None):
         localKeywords = ('machoTimeout', 'noCallThrottling')
         done = {}
         while 1:
@@ -161,6 +167,8 @@ class Moniker():
                     self.Unbind()
                     sys.exc_clear()
 
+        return
+
     def MonikeredCall(self, call, sess):
         retry = 0
         while 1:
@@ -192,17 +200,20 @@ class Moniker():
                     continue
                 raise
 
+        return
+
     def IsRunning(self):
         return self.__ResolveImpl(1)
 
     def QuickResolve(self):
         if self.__nodeID is None and self.__serviceName in sm.services:
             self.__nodeID = self.__ResolveImpl(self.__quicky)
+        return
 
-    def Resolve(self, sess = None):
+    def Resolve(self, sess=None):
         return self.__ResolveImpl(0, sess)
 
-    def __ResolveImpl(self, justQuery, sess = None):
+    def __ResolveImpl(self, justQuery, sess=None):
         if '__semaphoreR__' not in self.__dict__:
             self.__semaphoreR__ = uthread.Semaphore(('moniker::Resolve', self.__serviceName, self.__bindParams))
         self.__semaphoreR__.acquire()
@@ -228,6 +239,8 @@ class Moniker():
                 service = sm.services.get(self.__serviceName, None)
                 if service is None:
                     return
+            elif macho.mode == 'client' or base.IsInClientContext():
+                service = sess.ConnectToRemoteService(self.__serviceName)
             else:
                 service = sess.ConnectToAnyService(self.__serviceName)
             self.__nodeID = service.MachoResolveObject(self.__bindParams, justQuery)
@@ -238,6 +251,8 @@ class Moniker():
             return self.__nodeID
         finally:
             self.__semaphoreR__.release()
+
+        return
 
     def Unresolve(self):
         while 1:
@@ -253,7 +268,9 @@ class Moniker():
             finally:
                 self.__semaphoreR__.release()
 
-    def Unbind(self, disconnectDelay = 30):
+        return
+
+    def Unbind(self, disconnectDelay=30):
         if '__semaphoreB__' not in self.__dict__:
             self.__semaphoreB__ = uthread.Semaphore(('moniker::Bind', self.__serviceName, self.__bindParams))
         self.__semaphoreB__.acquire()
@@ -288,12 +305,14 @@ class MonikerCallWrap():
         finally:
             self.__dict__.clear()
 
+        return
+
 
 class UpdateMoniker(StandardError):
     __guid__ = 'util.UpdateMoniker'
     __passbyvalue__ = 1
 
-    def __init__(self, serviceName = None, bindParams = None, nodeID = None):
+    def __init__(self, serviceName=None, bindParams=None, nodeID=None):
         Exception.__init__(self, 'Update')
         self.serviceName = serviceName
         self.nodeID = nodeID

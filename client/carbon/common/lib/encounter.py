@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\carbon\common\lib\encounter.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\carbon\common\lib\encounter.py
 ENCOUNTER_SCHEMA = 'zencounter'
 _ENCOUNTER_PREFIX = ENCOUNTER_SCHEMA + '.'
 ENCOUNTER_TABLE_FULL_NAME = _ENCOUNTER_PREFIX + 'encounters'

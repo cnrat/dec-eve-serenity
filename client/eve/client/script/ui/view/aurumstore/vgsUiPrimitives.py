@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\client\script\ui\view\aurumstore\vgsUiPrimitives.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\client\script\ui\view\aurumstore\vgsUiPrimitives.py
 import math
 from carbon.common.script.util.format import FmtAmt
 import carbonui.const as uiconst
@@ -102,8 +103,9 @@ class AurAmountContainer(ContainerAutoSize):
         self.amountLabel = self.AddAurSection(amount)
         if baseAmount is not None and amount != baseAmount:
             self.baseAmountLabel = self.AddAurSection(baseAmount, color=VGS_SPECIAL_PRICE_COLOR, strikeThrough=True)
+        return
 
-    def AddAurSection(self, amount, color = None, strikeThrough = False):
+    def AddAurSection(self, amount, color=None, strikeThrough=False):
         cont = Container(parent=self, align=uiconst.TOLEFT, padRight=self.wordPadding)
         if strikeThrough:
             Sprite(parent=cont, align=uiconst.TOALL, texturePath='res:/UI/Texture/Vgs/strikethrough.png', padding=(0, 0, 0, 0), color=color or VGS_WHITE_TEXT_COLOR, state=uiconst.UI_DISABLED)
@@ -111,7 +113,7 @@ class AurAmountContainer(ContainerAutoSize):
         SetAmountForAurLabel(amountLabel, amount, self.aurSize, SPECIAL_COLOR_HEX if color else AUR_COLOR_HEX)
         return amountLabel
 
-    def SetAmount(self, amount, baseAmount = None):
+    def SetAmount(self, amount, baseAmount=None):
         SetAmountForAurLabel(self.amountLabel, amount, self.aurSize, AUR_COLOR_HEX)
         if baseAmount and amount != baseAmount:
             SetAmountForAurLabel(self.baseAmountLabel, baseAmount, self.aurSize, SPECIAL_COLOR_HEX)
@@ -140,7 +142,6 @@ class AurLabelHeader(AurAmountContainer):
 
 
 @Component(ButtonEffect())
-
 class ExitButton(Container):
     default_name = 'exitButton'
     default_width = 16
@@ -157,7 +158,6 @@ class ExitButton(Container):
 
 
 @Component(ButtonEffect(opacityIdle=0.0, opacityHover=0.25, opacityMouseDown=0.5, bgElementFunc=lambda parent, _: parent.highlight))
-
 class LogoHomeButton(Container):
     default_name = 'LogoHomeButton'
     default_width = 280
@@ -179,7 +179,6 @@ class LogoHomeButton(Container):
 
 
 @Component(ButtonEffect())
-
 class RedeemingQueueButton(Container):
     default_name = 'redeemingQueueButton'
     default_state = uiconst.UI_NORMAL
@@ -192,7 +191,6 @@ class RedeemingQueueButton(Container):
 
 
 @Component(ButtonEffect())
-
 class HeaderBuyAurButton(Container):
     default_state = uiconst.UI_NORMAL
     default_padding = (4, 2, 4, 2)
@@ -209,7 +207,6 @@ class HeaderBuyAurButton(Container):
 
 
 @Component(ButtonEffect())
-
 class DetailButton(Container):
     default_state = uiconst.UI_NORMAL
     default_height = 30
@@ -232,7 +229,6 @@ class DetailButton(Container):
 
 
 @Component(RadioButtonEffect(bgElementFunc=lambda parent, _: parent.highlight, opacityHover=0.3, opacityMouseDown=0.9, audioOnEntry='store_menuhover', audioOnClick='store_click'))
-
 class CategoryButton(Container):
     default_state = uiconst.UI_NORMAL
 
@@ -255,7 +251,6 @@ class CategoryButton(Container):
 
 
 @Component(RadioButtonEffect(bgElementFunc=lambda parent, _: parent.highlight, opacityHover=0.3, opacityMouseDown=0.7, audioOnEntry='store_menuhover', audioOnClick='store_click'))
-
 class SubCategoryButton(Container):
     default_state = uiconst.UI_NORMAL
 

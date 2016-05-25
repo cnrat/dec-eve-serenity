@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\client\script\ui\shared\uilog.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\client\script\ui\shared\uilog.py
 import evetypes
 import uicontrols
 import blue
@@ -36,7 +37,7 @@ class Logger(service.Service):
     __dependencies__ = []
     __update_on_reload__ = 0
 
-    def Run(self, memStream = None):
+    def Run(self, memStream=None):
         self.LogInfo('Starting Logger')
         self.broken = 0
         self.Reset()
@@ -50,8 +51,9 @@ class Logger(service.Service):
         self.cachedHitQualityText = {}
         self.notificationFontSize = settings.user.ui.Get('dmgnotifictions_fontsize', 12)
         uthread.new(self._PersistWorker)
+        return None
 
-    def Stop(self, memStream = None):
+    def Stop(self, memStream=None):
         self.DumpToLog()
         self.messages = []
         self.msglog = []
@@ -63,13 +65,13 @@ class Logger(service.Service):
         if not session.charid:
             self.Stop()
 
-    def GetTimePartsForLog(self, timestamp = None):
+    def GetTimePartsForLog(self, timestamp=None):
         if timestamp is None:
             timestamp = blue.os.GetWallclockTime()
         timestamp += localization.GetTimeDeltaSeconds() * const.SEC
         return blue.os.GetTimeParts(timestamp)
 
-    def GetLog(self, maxsize = const.petitionMaxCombatLogSize, *args):
+    def GetLog(self, maxsize=const.petitionMaxCombatLogSize, *args):
         LogInfo('Getting logfiles')
         self.DumpToLog()
         year, month, weekday, day, hour, minute, second, msec = self.GetTimePartsForLog()
@@ -143,7 +145,7 @@ class Logger(service.Service):
         self.addmsg = []
         return retval
 
-    def AddMessage(self, msg, msgtype = None):
+    def AddMessage(self, msg, msgtype=None):
         if msg.type == 'error' and not settings.user.ui.Get('logerrors', 0):
             return
         self.AddText(msg.text, msgtype or msg.type or 'notify', msg)
@@ -232,6 +234,7 @@ class Logger(service.Service):
             damageMessagesArgs['%s_ID' % argName] = objectID
 
         self.AddCombatMessage(msgKey, damageMessagesArgs)
+        return
 
     @telemetry.ZONE_METHOD
     def AddCombatMessage(self, msgKey, msgTextArgs):
@@ -261,34 +264,36 @@ class Logger(service.Service):
         msgFullText = cfg.GetMessageTypeAndText(msgKey, msgTextArgs)
         if msgFullText.type == 'error' and not settings.user.ui.Get('logerrors', 0):
             return
-        if doShowInspaceNotifications:
-            if logExtraNameText == notificationsExtraNameText:
-                msgLimited = msgFullText
-            else:
-                msgTextArgs['extraNameText'] = notificationsExtraNameText
-                msgLimited = cfg.GetMessageTypeAndText(msgKey, msgTextArgs)
-        logPostText = ''
-        notificationsPostText = ''
-        if 'weapon' in msgTextArgs:
-            extra = ' - %s' % evetypes.GetName(msgTextArgs['weapon'])
-            logPostText += extra
-            if showWeapon:
-                notificationsPostText += extra
-        if msgTextArgs.get('hitQualityText', ''):
-            extra = ' - %s' % msgTextArgs['hitQualityText']
-            logPostText += extra
-            if showQuality:
-                notificationsPostText += extra
-        fullText = msgFullText.text + logPostText
-        self.AddText(fullText, 'combat')
-        if doShowInspaceNotifications:
-            limitedText = msgLimited.text + notificationsPostText
-            hitQuality = msgTextArgs.get('hitQuality', None)
-            attackerID = msgTextArgs.get('attackerID', None)
-            self.Say(limitedText, hitQuality, attackerID)
+        else:
+            if doShowInspaceNotifications:
+                if logExtraNameText == notificationsExtraNameText:
+                    msgLimited = msgFullText
+                else:
+                    msgTextArgs['extraNameText'] = notificationsExtraNameText
+                    msgLimited = cfg.GetMessageTypeAndText(msgKey, msgTextArgs)
+            logPostText = ''
+            notificationsPostText = ''
+            if 'weapon' in msgTextArgs:
+                extra = ' - %s' % evetypes.GetName(msgTextArgs['weapon'])
+                logPostText += extra
+                if showWeapon:
+                    notificationsPostText += extra
+            if msgTextArgs.get('hitQualityText', ''):
+                extra = ' - %s' % msgTextArgs['hitQualityText']
+                logPostText += extra
+                if showQuality:
+                    notificationsPostText += extra
+            fullText = msgFullText.text + logPostText
+            self.AddText(fullText, 'combat')
+            if doShowInspaceNotifications:
+                limitedText = msgLimited.text + notificationsPostText
+                hitQuality = msgTextArgs.get('hitQuality', None)
+                attackerID = msgTextArgs.get('attackerID', None)
+                self.Say(limitedText, hitQuality, attackerID)
+            return
 
     @telemetry.ZONE_METHOD
-    def AddText(self, msgtext, msgtype = None, msg = None):
+    def AddText(self, msgtext, msgtype=None, msg=None):
         timestamp = blue.os.GetWallclockTime()
         if not self.broken:
             formattedTime = self.GetFormattedTime(timestamp)
@@ -322,6 +327,7 @@ class Logger(service.Service):
             message = uicontrols.CombatMessage(parent=uicore.layer.target, name='combatMessage', state=uiconst.UI_PICKCHILDREN)
             uicore.layer.target.message = message
         message.AddMessage(msgtext, hitQuality, attackerID)
+        return
 
     def ShowMessage(self, msgtype):
         return settings.user.ui.Get('show%slogmessages' % msgtype, 1)
@@ -333,38 +339,40 @@ class Logger(service.Service):
     def DumpToLogThread(self):
         if self.broken or not self.msglog:
             return
-        logfile = None
-        try:
-            filename = self.GetLogfileName()
+        else:
+            logfile = None
             try:
-                logfile = file(filename, 'a')
-            except:
-                if self.newfileAttempts < 3:
-                    LogWarn('Failed to open the logfile %s, creating new logfile...' % filename)
-                    filename = self.GetLogfileName(reset=True)
-                    LogWarn('new logfile name is: ', filename)
-                    self.newfileAttempts += 1
-                    logfile = file(filename, 'a')
-                else:
-                    self.broken = 1
-                    LogException(toAlertSvc=0)
-                sys.exc_clear()
-
-            if logfile:
+                filename = self.GetLogfileName()
                 try:
-                    logfile.writelines(self.msglog)
-                    logfile.close()
-                except IOError:
-                    LogException(toAlertSvc=0)
+                    logfile = file(filename, 'a')
+                except:
+                    if self.newfileAttempts < 3:
+                        LogWarn('Failed to open the logfile %s, creating new logfile...' % filename)
+                        filename = self.GetLogfileName(reset=True)
+                        LogWarn('new logfile name is: ', filename)
+                        self.newfileAttempts += 1
+                        logfile = file(filename, 'a')
+                    else:
+                        self.broken = 1
+                        LogException(toAlertSvc=0)
                     sys.exc_clear()
 
-                self.msglog = []
-        except:
-            LogException(toAlertSvc=0)
-            sys.exc_clear()
+                if logfile:
+                    try:
+                        logfile.writelines(self.msglog)
+                        logfile.close()
+                    except IOError:
+                        LogException(toAlertSvc=0)
+                        sys.exc_clear()
 
-        if logfile and not logfile.closed:
-            logfile.close()
+                    self.msglog = []
+            except:
+                LogException(toAlertSvc=0)
+                sys.exc_clear()
+
+            if logfile and not logfile.closed:
+                logfile.close()
+            return
 
     def CopyLog(self):
         self.DumpToLog()
@@ -381,8 +389,9 @@ class Logger(service.Service):
 
         if logfile and not logfile.closed:
             logfile.close()
+        return
 
-    def GetLogfileName(self, reset = False):
+    def GetLogfileName(self, reset=False):
         if reset:
             self.Reset()
         year, month, weekday, day, hour, minute, second, msec = self.GetTimePartsForLog(self.resettime)
@@ -422,6 +431,7 @@ class Logger(service.Service):
         else:
             msg.ExitDragMode()
             message.ExitDragMode()
+        return
 
     def IsInDragMode(self, *args):
         return self.inMovingMode
@@ -510,6 +520,7 @@ class LoggerWindow(uicontrols.Window):
                     self.sr.scroll.RemoveEntries(self.sr.scroll.GetNodes()[maxlog:])
                 else:
                     self.sr.scroll.RemoveEntries(self.sr.scroll.GetNodes()[:-maxlog])
+        return
 
     def GetMenu(self, *args):
         m = uicontrols.Window.GetMenu(self)
@@ -545,6 +556,7 @@ class LoggerWindow(uicontrols.Window):
         messageBox = getattr(uicore.layer.target, 'message', None)
         if messageBox and not messageBox.destroyed:
             messageBox.Close()
+        return
 
     def ChangeFontSize(self, value, *args):
         settings.user.ui.Set('dmgnotifictions_fontsize', value)
@@ -552,12 +564,14 @@ class LoggerWindow(uicontrols.Window):
         message = getattr(uicore.layer.target, 'message', None)
         if message:
             message.ChangeFontSize()
+        return
 
     def ChangeAlignment(self, value, *args):
         settings.user.ui.Set('dmgnotifictions_alignment', value)
         message = getattr(uicore.layer.target, 'message', None)
         if message:
             message.ChangeAlignment()
+        return
 
     def ResetDmgNotificationAlignment(self, *args):
         settings.char.ui.Delete('damageMessages_config')
@@ -568,6 +582,7 @@ class LoggerWindow(uicontrols.Window):
         message = itertoolsext.first_or_default(uicore.layer.abovemain.children, predicate=lambda each: each.name == 'message')
         if message:
             message.ResetAlignment()
+        return
 
     def SetNumMessageSettings(self, oldValue):
         if oldValue == 100:
@@ -659,12 +674,14 @@ class LoggerWindow(uicontrols.Window):
             text = localization.GetByLabel('UI/Accessories/Log/EnterMessageMovingMode')
             enterArgs = True
         menuParent.AddIconEntry(icon='res:/UI/Texture/classes/UtilMenu/BulletIcon.png', text=text, callback=(sm.GetService('logger').MoveNotifications, enterArgs))
+        return
 
     def OnEndMaximize(self, *args):
         self.LoadAllMessages()
 
     def _OnClose(self, *args):
         self.timer = None
+        return
 
     def ShowMessage(self, msgtype):
         return settings.user.ui.Get('show%slogmessages' % msgtype, 1)

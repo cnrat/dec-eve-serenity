@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\carbon\common\script\cef\componentViews\proximityTriggerComponentView.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\carbon\common\script\cef\componentViews\proximityTriggerComponentView.py
 from carbon.common.script.cef.baseComponentView import BaseComponentView
 
 class ProximityTriggerComponentView(BaseComponentView):
@@ -14,6 +15,7 @@ class ProximityTriggerComponentView(BaseComponentView):
         cls.RegisterComponent(cls)
         cls._AddInput(cls.RADIUS, 0.0, cls.RECIPE, const.cef.COMPONENTDATA_FLOAT_TYPE, displayName='Radius')
         cls._AddInput(cls.DIMENSIONS, None, cls.RUNTIME, const.cef.COMPONENTDATA_NON_PRIMITIVE_TYPE, displayName='Dimensions')
+        return
 
 
 ProximityTriggerComponentView.SetupInputs()

@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\common\script\planet\entities\baseLink.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\common\script\planet\entities\baseLink.py
 import weakref
 import const
 import evetypes
@@ -18,7 +19,7 @@ class BaseLink(object):
      'bandwidthUsage',
      'editModeLink']
 
-    def __init__(self, eventHandler, typeID, endpointPin1, endpointPin2, level = 0):
+    def __init__(self, eventHandler, typeID, endpointPin1, endpointPin2, level=0):
         if not isinstance(eventHandler, weakref.ProxyType) and eventHandler is not None:
             self.eventHandler = weakref.proxy(eventHandler)
         else:
@@ -36,6 +37,7 @@ class BaseLink(object):
         self.SetLinkLevel(level)
         self.bandwidthUsage = 0.0
         self.editModeLink = False
+        return
 
     def __str__(self):
         return 'PI Link [%s]-[%s]' % (self.endpoint1.id, self.endpoint2.id)
@@ -53,6 +55,7 @@ class BaseLink(object):
             raise RuntimeError('Adding invalid route object', routeObj)
         self.bandwidthUsage += routeObj.GetBandwidthUsage()
         self.routesTransiting.append(routeObj.routeID)
+        return
 
     def RemoveRoute(self, routeID):
         if routeID in self.routesTransiting:
@@ -104,8 +107,8 @@ class BaseLink(object):
     def GetBandwidthForLevel(self, level):
         return self.GetBaseBandwidth() * 2.0 ** level
 
-    def GetCpuUsage(self, params = None):
+    def GetCpuUsage(self, params=None):
         return planetCommon.GetCpuUsageForLink(self.typeID, self.GetDistance(), self.level, params=params)
 
-    def GetPowerUsage(self, params = None):
+    def GetPowerUsage(self, params=None):
         return planetCommon.GetPowerUsageForLink(self.typeID, self.GetDistance(), self.level, params=params)

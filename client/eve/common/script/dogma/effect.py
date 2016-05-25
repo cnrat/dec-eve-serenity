@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\common\script\dogma\effect.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\common\script\dogma\effect.py
 ApplyBrainEffect = {'M': lambda dogmaLM, targetID, fromAttrib, toAttribID, operation: dogmaLM.AddModifierWithSource(operation, targetID, toAttribID, fromAttrib),
  'LG': lambda dogmaLM, targetID, fromAttrib, toAttribID, operation, groupID: dogmaLM.AddLocationGroupModifierWithSource(operation, targetID, groupID, toAttribID, fromAttrib),
  'LRS': lambda dogmaLM, targetID, fromAttrib, toAttribID, operation, skillID: dogmaLM.AddLocationRequiredSkillModifierWithSource(operation, targetID, skillID, toAttribID, fromAttrib),
@@ -51,7 +52,7 @@ class Effect:
 
 class BrainEffect(object):
 
-    def __init__(self, fromAttrib, toItemID, modifierType, toAttribID, operation, extras = tuple()):
+    def __init__(self, fromAttrib, toItemID, modifierType, toAttribID, operation, extras=tuple()):
         self.fromAttrib = fromAttrib
         self.value = None
         self.toItemID = toItemID
@@ -60,6 +61,7 @@ class BrainEffect(object):
         self.operation = operation
         self.extras = extras
         self.skills = [fromAttrib.invItem.typeID]
+        return
 
     def GetLiteralKey(self):
         return (tuple(self.skills), self.value)
@@ -71,6 +73,7 @@ class BrainEffect(object):
     def ResolveValue(self):
         self.value = self.fromAttrib.GetValue()
         self.fromAttrib = None
+        return
 
     def GetTargetKey(self):
         return (self.toItemID,

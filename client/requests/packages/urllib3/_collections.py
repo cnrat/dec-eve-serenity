@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\packages\requests\packages\urllib3\_collections.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\packages\requests\packages\urllib3\_collections.py
 from collections import MutableMapping
 try:
     from threading import RLock
@@ -24,7 +25,7 @@ _Null = object()
 class RecentlyUsedContainer(MutableMapping):
     ContainerCls = OrderedDict
 
-    def __init__(self, maxsize = 10, dispose_func = None):
+    def __init__(self, maxsize=10, dispose_func=None):
         self._maxsize = maxsize
         self.dispose_func = dispose_func
         self._container = self.ContainerCls()

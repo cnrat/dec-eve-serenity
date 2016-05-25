@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\packages\localizationBSD\localizationTableToMessageUtil.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\packages\localizationBSD\localizationTableToMessageUtil.py
 from collections import namedtuple
 import log
 import blue
@@ -60,68 +61,69 @@ def UpdateMessage(mappingRule, key, messageID, messageText, context, columnName,
     if boot.role == 'server' and not sm.GetService('localizationServer').IsBSDTableDataLoaded():
         log.LogTraceback('Attempting to edit / create localization data without bsdTable wrappers being loaded. Edit ignored! Load the localizationBSD.MessageText bsdTable wrappers first.')
         return -1
-    _languageID = 'en-us'
-    for mapping in _mappingRules[mappingRule]:
-        group = MessageGroup.Get(mapping.parentID)
-        if mapping.lookup:
-            if lookup is None:
-                raise Exception('lookup defined in rule but not passed in!')
-            for lookupItem in lookup.split('/'):
-                if lookupItem == '':
-                    break
-                for groupItem in MessageGroup.GetMessageGroupsByParentID(parentID=group.groupID):
-                    if groupItem.groupName == lookupItem:
-                        group = groupItem
+    else:
+        _languageID = 'en-us'
+        for mapping in _mappingRules[mappingRule]:
+            group = MessageGroup.Get(mapping.parentID)
+            if mapping.lookup:
+                if lookup is None:
+                    raise Exception('lookup defined in rule but not passed in!')
+                for lookupItem in lookup.split('/'):
+                    if lookupItem == '':
                         break
-                else:
-                    raise Exception("Can't find MessageGroup(s) in lookup", lookup, lookupItem)
-
-        if mapping.pattern is not None:
-            groupName = mapping.pattern.format(*args)
-            groupID = _GetGroupID(group.groupID, key)
-            if groupID is None:
-                group = MessageGroup.Create(parentID=group.groupID, groupName=groupName)
-            else:
-                group = MessageGroup.Get(groupID)
-            if group.groupName != groupName:
-                group.groupName = groupName
-        if mapping.default:
-            message = None
-            if messageID is None or messageID == 'None' or messageID == '':
-                if messageText is not None and len(messageText) > 0:
-                    message = Message.Create(label=None, groupID=group.groupID, text=messageText, context='%s: %s' % (context, key))
-                    if '/jessica' in blue.pyos.GetArg():
-                        import bsd
-                        userID = bsd.login.GetCurrentUserIdOrLogin()
+                    for groupItem in MessageGroup.GetMessageGroupsByParentID(parentID=group.groupID):
+                        if groupItem.groupName == lookupItem:
+                            group = groupItem
+                            break
                     else:
-                        userID = session.userid
-                        if userID is None:
-                            raise RuntimeError("Can't edit BSD! No username for editing.")
-                    sm.GetService('BSD').RevisionEdit(userID, None, revisionID, **{columnName: message.messageID})
-            else:
-                message = Message.Get(int(messageID))
-                messageEnglishText = message.GetTextEntry(_languageID)
-                if messageText is None or len(messageText) == 0:
-                    if messageEnglishText is not None:
-                        messageEnglishText.text = ''
-                    if '/jessica' in blue.pyos.GetArg():
-                        import bsd
-                        userID = bsd.login.GetCurrentUserIdOrLogin()
-                    else:
-                        userID = session.userid
-                        if userID is None:
-                            raise RuntimeError("Can't edit BSD! No username for editing.")
-                    sm.GetService('BSD').RevisionEdit(userID, None, revisionID, **{columnName: None})
-                    message = None
-                elif messageEnglishText is not None:
-                    if messageEnglishText.text != messageText:
-                        messageEnglishText.text = messageText
-                else:
-                    message.AddTextEntry(_languageID, messageText)
-            if message is not None:
-                messageID = message.messageID
+                        raise Exception("Can't find MessageGroup(s) in lookup", lookup, lookupItem)
 
-    return messageID
+            if mapping.pattern is not None:
+                groupName = mapping.pattern.format(*args)
+                groupID = _GetGroupID(group.groupID, key)
+                if groupID is None:
+                    group = MessageGroup.Create(parentID=group.groupID, groupName=groupName)
+                else:
+                    group = MessageGroup.Get(groupID)
+                if group.groupName != groupName:
+                    group.groupName = groupName
+            if mapping.default:
+                message = None
+                if messageID is None or messageID == 'None' or messageID == '':
+                    if messageText is not None and len(messageText) > 0:
+                        message = Message.Create(label=None, groupID=group.groupID, text=messageText, context='%s: %s' % (context, key))
+                        if '/jessica' in blue.pyos.GetArg():
+                            import bsd
+                            userID = bsd.login.GetCurrentUserIdOrLogin()
+                        else:
+                            userID = session.userid
+                            if userID is None:
+                                raise RuntimeError("Can't edit BSD! No username for editing.")
+                        sm.GetService('BSD').RevisionEdit(userID, None, revisionID, **{columnName: message.messageID})
+                else:
+                    message = Message.Get(int(messageID))
+                    messageEnglishText = message.GetTextEntry(_languageID)
+                    if messageText is None or len(messageText) == 0:
+                        if messageEnglishText is not None:
+                            messageEnglishText.text = ''
+                        if '/jessica' in blue.pyos.GetArg():
+                            import bsd
+                            userID = bsd.login.GetCurrentUserIdOrLogin()
+                        else:
+                            userID = session.userid
+                            if userID is None:
+                                raise RuntimeError("Can't edit BSD! No username for editing.")
+                        sm.GetService('BSD').RevisionEdit(userID, None, revisionID, **{columnName: None})
+                        message = None
+                    elif messageEnglishText is not None:
+                        if messageEnglishText.text != messageText:
+                            messageEnglishText.text = messageText
+                    else:
+                        message.AddTextEntry(_languageID, messageText)
+                if message is not None:
+                    messageID = message.messageID
+
+        return messageID
 
 
 def DeleteMessageGroups(mappingRule, key, lookup, *args):
@@ -147,6 +149,8 @@ def DeleteMessageGroups(mappingRule, key, lookup, *args):
         if not g.Delete():
             log.LogError('Localization update tool:: Error deleting group with id %d and name %s' % (groupID, g.groupName))
 
+    return
+
 
 def _GetGroupID(parentID, key):
     SQL = "\n    SELECT groupID, groupName\n      FROM zlocalization.messageGroups\n     WHERE parentID = %(parentID)i AND\n           groupName like '%(key)s%%'\n    " % {'parentID': parentID,
@@ -154,8 +158,11 @@ def _GetGroupID(parentID, key):
     rs = sm.GetService('DB2').SQL(SQL)
     if len(rs) == 0:
         return None
-    if len(rs) == 1:
+    elif len(rs) == 1:
         return rs[0].groupID
-    for row in rs:
-        if row.groupName == key:
-            return row.groupID
+    else:
+        for row in rs:
+            if row.groupName == key:
+                return row.groupID
+
+        return None

@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\packages\datetimeutils\__init__.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\packages\datetimeutils\__init__.py
 import datetime
 import re
 import datetimeutils
@@ -39,9 +40,10 @@ def isostr_to_datetime(string):
             time_part = datetime.time()
         if found_date or found_time:
             return datetime.datetime.combine(date_part, time_part)
+    return None
 
 
-def any_to_datetime(temporal_object, default = _NOT_SUPPLIED, utc = True):
+def any_to_datetime(temporal_object, default=_NOT_SUPPLIED, utc=True):
     if default == _NOT_SUPPLIED:
         default = temporal_object
     try:
@@ -79,7 +81,7 @@ def _div_and_rest(total, chunk):
     return (divs, total - chunk * divs)
 
 
-def split_delta(delta, include_weeks = True):
+def split_delta(delta, include_weeks=True):
     parts = {'1st': None,
      '2nd': None,
      'is_past': False}
@@ -126,7 +128,7 @@ def split_delta(delta, include_weeks = True):
     return parts
 
 
-def deltastr(delta, default = ''):
+def deltastr(delta, default=''):
     if not isinstance(delta, datetime.timedelta):
         return default
     parts = split_delta(delta)
@@ -153,7 +155,7 @@ def deltastr(delta, default = ''):
         return default
 
 
-def ago(delta_or_date, default = '', utc = True):
+def ago(delta_or_date, default='', utc=True):
     if utc:
         now = datetime.datetime.utcnow()
     else:

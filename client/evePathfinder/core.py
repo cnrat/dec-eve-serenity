@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\packages\evePathfinder\core.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\packages\evePathfinder\core.py
 import time
 import logging
 from collections import defaultdict
@@ -94,6 +95,7 @@ class EvePathfinderCore(object):
         pyEvePathfinder.FindRoute(self.newPathfinderMap, self.newPathfinderGoal, cache.GetCacheForPathfinding())
         self.newPathfinderExecutionCount += 1
         log.debug('EvePathfinder pathfind done in: %f ms', (time.clock() - start) * 1000)
+        return
 
     def GetCachedEntry(self, stateInterface, fromID):
         raise MissingGetCacheEntryMethod('Pathfinder needs an external method to provide the caching strategy.')

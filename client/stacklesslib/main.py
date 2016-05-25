@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\carbon\common\stdlib\stacklesslib\main.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\carbon\common\stdlib\stacklesslib\main.py
 import heapq
 import sys
 import time
@@ -67,7 +68,6 @@ class EventQueue(object):
                     self.handle_exception(sys.exc_info())
 
             return len(batch)
-        return 0
 
     @property
     def is_due(self):
@@ -76,6 +76,8 @@ class EventQueue(object):
     def next_time(self):
         if self.queue:
             return self.queue[0][0]
+        else:
+            return None
 
     def handle_exception(self, exc_info):
         traceback.print_exception(*exc_info)
@@ -99,6 +101,7 @@ class LoopScheduler(object):
         def wakeup():
             if c.balance:
                 c.send(None)
+            return
 
         return (wakeup, c)
 
@@ -122,6 +125,8 @@ class LoopScheduler(object):
         for i in xrange(-self.chan.balance):
             self.chan.send(None)
 
+        return
+
 
 class MainLoop(object):
 
@@ -132,16 +137,17 @@ class MainLoop(object):
         self.event_queue = event_queue
         self.scheduler = scheduler
 
-    def get_wait_time(self, time, delay = None):
+    def get_wait_time(self, time, delay=None):
         if self.scheduler.is_due:
             return 0.0
-        if delay is None:
-            delay = self.max_wait_time
-        next_event = self.event_queue.next_time()
-        if next_event:
-            delay = min(delay, next_event - time)
-            delay = max(delay, 0.0)
-        return delay
+        else:
+            if delay is None:
+                delay = self.max_wait_time
+            next_event = self.event_queue.next_time()
+            if next_event:
+                delay = min(delay, next_event - time)
+                delay = max(delay, 0.0)
+            return delay
 
     def adjust_wait_times(self, deltaSeconds):
         self.event_queue.reschedule(deltaSeconds)
@@ -172,7 +178,7 @@ class MainLoop(object):
         self.scheduler.pump()
         self.event_queue.pump()
 
-    def run_tasklets(self, run_for = 0):
+    def run_tasklets(self, run_for=0):
         try:
             return stackless.run(run_for)
         except Exception:
@@ -185,7 +191,7 @@ class MainLoop(object):
         t = elapsed_time()
         self.wakeup_tasklets(t + 0.001)
 
-    def pump(self, run_for = 0):
+    def pump(self, run_for=0):
         t = elapsed_time()
         wait_time = self.get_wait_time(t)
         if wait_time:

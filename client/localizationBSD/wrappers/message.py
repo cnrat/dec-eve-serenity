@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\packages\localizationBSD\wrappers\message.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\packages\localizationBSD\wrappers\message.py
 from . import AuthoringValidationError
 from .. import const as localizationBSDConst
 from ..util import GetNumericLanguageIDFromLanguageID
@@ -19,7 +20,7 @@ class Message(bsdWrappers.BaseWrapper):
     _bsdSvc = None
     _APPEND_NEW = '(new)'
 
-    def GetLabelPath(self, projectID = None):
+    def GetLabelPath(self, projectID=None):
         from messageGroup import MessageGroup
         labelPath = '' if self.label is None else self.label
         if self.groupID is not None:
@@ -58,7 +59,7 @@ class Message(bsdWrappers.BaseWrapper):
         openedBy += ', '.join((bsdWrapper.cache.Row(const.cacheStaticUsers, userID).userName for userID in openedByUserIDs))
         return openedBy
 
-    def Copy(self, groupID, newLabel = None):
+    def Copy(self, groupID, newLabel=None):
         Message._ErrorIfInTransaction('Message Copy will not run within Transaction.')
         copyLabel = newLabel or self.label
         if not Message.CheckIfLabelUnique(copyLabel, groupID):
@@ -80,6 +81,7 @@ class Message(bsdWrappers.BaseWrapper):
             with bsd.BsdTransaction():
                 self._DeleteMetaData()
                 bsdWrappers.BaseWrapper.__setattr__(self, 'wordTypeID', None)
+        return
 
     def GetAllMetaDataEntries(self, languageID):
         metaDataForLanguage = []
@@ -99,6 +101,7 @@ class Message(bsdWrappers.BaseWrapper):
             return metaDataRows[0]
         else:
             return None
+            return None
 
     def GetMetaDataEntryByName(self, propertyName, languageID):
         propertyRows = self.__class__._propertyTable.GetRows(wordTypeID=self.wordTypeID, propertyName=propertyName, numericLanguageID=GetNumericLanguageIDFromLanguageID(languageID), _getDeleted=False)
@@ -109,14 +112,16 @@ class Message(bsdWrappers.BaseWrapper):
             if metaDataRows and len(metaDataRows):
                 return metaDataRows[0]
             return None
+            return None
 
-    def AddMetaDataEntry(self, wordPropertyID, metaDataValue, transactionBundle = None):
+    def AddMetaDataEntry(self, wordPropertyID, metaDataValue, transactionBundle=None):
         if self.wordTypeID == None:
             raise AuthoringValidationError('Before adding metadata, the wordType needs to be set on this messageID (%s).' % str(self.messageID))
         with bsd.BsdTransaction():
             locWordMetaData.WordMetaData.TransactionAwareCreate(wordPropertyID, self.messageID, metaDataValue, transactionBundle=transactionBundle)
+        return
 
-    def AddMetaDataEntryByName(self, propertyName, languageID, metaDataValue, transactionBundle = None):
+    def AddMetaDataEntryByName(self, propertyName, languageID, metaDataValue, transactionBundle=None):
         if self.wordTypeID == None:
             raise AuthoringValidationError('Before adding metadata, the wordType needs to be set on this messageID (%s).' % str(self.messageID))
         typeRow = locWordType.WordType.Get(self.wordTypeID)
@@ -125,6 +130,7 @@ class Message(bsdWrappers.BaseWrapper):
         typeName = typeRow.typeName
         with bsd.BsdTransaction():
             locWordMetaData.WordMetaData.TransactionAwareCreateFromPropertyName(typeName, propertyName, languageID, self.messageID, metaDataValue, transactionBundle)
+        return
 
     def GetTextEntry(self, languageID):
         return locMessageText.MessageText.Get(self.messageID, languageID)
@@ -135,6 +141,7 @@ class Message(bsdWrappers.BaseWrapper):
             locMessageText.MessageText.Create(self.messageID, languageID, text=text)
         else:
             raise AuthoringValidationError('Can not add duplicate text entry. messageID,languageID : (%s, %s)' % (str(self.messageID), languageID))
+        return
 
     def GetState(self):
         bsdState = super(Message, self).GetState()
@@ -146,7 +153,7 @@ class Message(bsdWrappers.BaseWrapper):
 
         return bsdState
 
-    def GetWordCount(self, languageID = 'en-us', includeMetadata = True):
+    def GetWordCount(self, languageID='en-us', includeMetadata=True):
         textEntry = self.GetTextEntry(languageID)
         if not textEntry:
             return 0
@@ -174,6 +181,7 @@ class Message(bsdWrappers.BaseWrapper):
             elif locWordType.WordType.Get(value) is None:
                 raise AuthoringValidationError('WordTypeID (%s) does not exist.' % str(value))
         bsdWrappers.BaseWrapper.__setattr__(self, key, value)
+        return
 
     def _DeleteChildren(self):
         with bsd.BsdTransaction('Deleting message: %s' % self.label):
@@ -202,9 +210,10 @@ class Message(bsdWrappers.BaseWrapper):
             cls._messageTextTable = bsdTableSvc.GetTable(localizationBSDConst.MESSAGE_TEXTS_TABLE)
             cls._propertyTable = bsdTableSvc.GetTable(localizationBSDConst.WORD_PROPERTIES_TABLE)
             cls._bsdSvc = sm.GetService('BSD')
+        return
 
     @classmethod
-    def Create(cls, label, groupID = None, text = '', context = None):
+    def Create(cls, label, groupID=None, text='', context=None):
         cls._ErrorIfInTransaction('Message Create will not run within Transaction. Use TransactionAwareCreate.')
         with bsd.BsdTransaction('Creating new message: %s' % label) as bsdTransaction:
             cls._TransactionAwareCreate(label, groupID, LOCALE_SHORT_ENGLISH, text, context, wordTypeID=None, transactionBundle=None)
@@ -212,14 +221,14 @@ class Message(bsdWrappers.BaseWrapper):
         return cls.Get(resultList[0][1].messageID)
 
     @classmethod
-    def TransactionAwareCreate(cls, label, groupID = None, text = '', context = None, transactionBundle = None):
+    def TransactionAwareCreate(cls, label, groupID=None, text='', context=None, transactionBundle=None):
         cls._ErrorIfNotInTransaction('Message TransactionAwareCreate will not run within Transaction. Use Create.')
         with bsd.BsdTransaction('Creating new message: %s' % label):
             actionIDsResult = cls._TransactionAwareCreate(label, groupID, LOCALE_SHORT_ENGLISH, text, context, wordTypeID=None, transactionBundle=transactionBundle)
         return actionIDsResult
 
     @classmethod
-    def _GetGroupRecord(cls, groupID, transactionBundle = None):
+    def _GetGroupRecord(cls, groupID, transactionBundle=None):
         from messageGroup import MessageGroup
         if transactionBundle and type(groupID) != int:
             currentGroup = transactionBundle.get(localizationBSDConst.BUNDLE_GROUP, {}).get(groupID, None)
@@ -228,7 +237,7 @@ class Message(bsdWrappers.BaseWrapper):
         return currentGroup
 
     @classmethod
-    def _GetWordTypeID(cls, groupID, transactionBundle = None):
+    def _GetWordTypeID(cls, groupID, transactionBundle=None):
         wordTypeID = None
         if groupID is not None:
             parentGroup = cls._GetGroupRecord(groupID, transactionBundle=transactionBundle)
@@ -237,7 +246,7 @@ class Message(bsdWrappers.BaseWrapper):
         return wordTypeID
 
     @classmethod
-    def _ValidateCreationOfMessage(cls, label, groupID, wordTypeID, transactionBundle = None):
+    def _ValidateCreationOfMessage(cls, label, groupID, wordTypeID, transactionBundle=None):
         if not cls.CheckIfLabelUnique(label, groupID, transactionBundle=transactionBundle):
             raise AuthoringValidationError('Label (%s) in groupID (%s) is not unique.' % (label, str(groupID)))
         if groupID != None:
@@ -254,7 +263,7 @@ class Message(bsdWrappers.BaseWrapper):
         return True
 
     @classmethod
-    def _TransactionAwareCreate(cls, label, groupID, languageID, text, context, wordTypeID = None, transactionBundle = None):
+    def _TransactionAwareCreate(cls, label, groupID, languageID, text, context, wordTypeID=None, transactionBundle=None):
         inheritedWordTypeID = Message._GetWordTypeID(groupID)
         if wordTypeID is None:
             wordTypeID = inheritedWordTypeID
@@ -273,7 +282,9 @@ class Message(bsdWrappers.BaseWrapper):
         messageTextTable.AddRow((reservedActionID, 'messageID'), dbLocaleID, text=text)
         if type(reservedActionID) == int:
             return {'reservedMessageID': reservedActionID}
-        raise AuthoringValidationError('Unexpected error. Possibly incorrect use of transactions. Expected actionID but instead got : %s ' % str(reservedActionID))
+        else:
+            raise AuthoringValidationError('Unexpected error. Possibly incorrect use of transactions. Expected actionID but instead got : %s ' % str(reservedActionID))
+            return
 
     @classmethod
     def _ErrorIfInTransaction(cls, errorMessage):
@@ -288,12 +299,12 @@ class Message(bsdWrappers.BaseWrapper):
             raise AuthoringValidationError(errorMessage)
 
     @staticmethod
-    def CheckIfLabelUnique(originalLabel, groupID, transactionBundle = None, _appendWord = None):
+    def CheckIfLabelUnique(originalLabel, groupID, transactionBundle=None, _appendWord=None):
         isUnique, label = Message._CheckLabelUniqueness(originalLabel, groupID, transactionBundle=transactionBundle, returnUnique=False, _appendWord=_appendWord)
         return isUnique
 
     @staticmethod
-    def GetUniqueLabel(originalLabel, groupID, transactionBundle = None, _appendWord = None):
+    def GetUniqueLabel(originalLabel, groupID, transactionBundle=None, _appendWord=None):
         isUnique, label = Message._CheckLabelUniqueness(originalLabel, groupID, transactionBundle=transactionBundle, returnUnique=True, _appendWord=_appendWord)
         return label
 
@@ -303,35 +314,36 @@ class Message(bsdWrappers.BaseWrapper):
         return primaryTable.GetRowByKey(_wrapperClass=Message, keyId1=messageID, _getDeleted=False)
 
     @staticmethod
-    def GetMessagesByGroupID(groupID, projectID = None):
+    def GetMessagesByGroupID(groupID, projectID=None):
         return Message.GetWithFilter(groupID=groupID)
 
     @staticmethod
-    def _CheckLabelUniqueness(originalLabel, groupID, transactionBundle = None, returnUnique = False, _appendWord = None):
+    def _CheckLabelUniqueness(originalLabel, groupID, transactionBundle=None, returnUnique=False, _appendWord=None):
         isOriginalLabelUnique = True
         if originalLabel is None:
             return (isOriginalLabelUnique, None)
-        primaryTable = bsdWrappers.GetTable(Message.__primaryTable__)
-        newLabel = originalLabel
-        while True:
-            labels = primaryTable.GetRows(label=newLabel, groupID=groupID, _getDeleted=True)
-            atLeastOneMatch = False
-            if transactionBundle:
-                for key, aLabel in transactionBundle[localizationBSDConst.BUNDLE_MESSAGE].iteritems():
-                    if aLabel.label == newLabel and aLabel.groupID == groupID:
-                        atLeastOneMatch = True
-                        break
+        else:
+            primaryTable = bsdWrappers.GetTable(Message.__primaryTable__)
+            newLabel = originalLabel
+            while True:
+                labels = primaryTable.GetRows(label=newLabel, groupID=groupID, _getDeleted=True)
+                atLeastOneMatch = False
+                if transactionBundle:
+                    for key, aLabel in transactionBundle[localizationBSDConst.BUNDLE_MESSAGE].iteritems():
+                        if aLabel.label == newLabel and aLabel.groupID == groupID:
+                            atLeastOneMatch = True
+                            break
 
-            if labels and len(labels) or atLeastOneMatch:
-                isOriginalLabelUnique = False
-                if returnUnique:
-                    newLabel = newLabel + (Message._APPEND_NEW if not _appendWord else _appendWord)
+                if labels and len(labels) or atLeastOneMatch:
+                    isOriginalLabelUnique = False
+                    if returnUnique:
+                        newLabel = newLabel + (Message._APPEND_NEW if not _appendWord else _appendWord)
+                    else:
+                        break
                 else:
                     break
-            else:
-                break
 
-        if returnUnique:
-            return (isOriginalLabelUnique, newLabel)
-        else:
+            if returnUnique:
+                return (isOriginalLabelUnique, newLabel)
             return (isOriginalLabelUnique, None)
+            return

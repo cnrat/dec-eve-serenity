@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\packages\fsdlite\storage.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\packages\fsdlite\storage.py
 import os
 import time
 import fnmatch
@@ -13,7 +14,7 @@ except ImportError:
 
 class Storage(collections.MutableMapping):
 
-    def __init__(self, data = None, cache = None, mapping = None, indexes = None, monitor = False, coerce = None):
+    def __init__(self, data=None, cache=None, mapping=None, indexes=None, monitor=False, coerce=None):
         self.extension = '.staticdata'
         self.cache_path = cache
         self.coerce = coerce or str
@@ -28,6 +29,7 @@ class Storage(collections.MutableMapping):
         self._file_init()
         self.monitor = monitor
         self.waiting = False
+        return
 
     def __getitem__(self, key):
         if key is None:
@@ -112,6 +114,7 @@ class Storage(collections.MutableMapping):
         self.files = None
         self._file_init()
         self.monitor = self.monitor
+        return
 
     def keys(self):
         if self.files:
@@ -123,7 +126,7 @@ class Storage(collections.MutableMapping):
     def Get(self, key):
         return self[key]
 
-    def prime(self, path = None):
+    def prime(self, path=None):
         keys = set(self.keys())
         for key, (filename, timestamp) in self.files.iteritems():
             if path is None or fnmatch.fnmatch(filename, path):
@@ -131,6 +134,8 @@ class Storage(collections.MutableMapping):
 
         for key in keys:
             self[key]
+
+        return
 
     def filter_keys(self, name, key):
         if self.cache:
@@ -159,6 +164,7 @@ class Storage(collections.MutableMapping):
     def _object_discard(self, key):
         key = self.coerce(key)
         self.objects.pop(key, None)
+        return
 
     def _cache_load(self, key):
         if self.cache:
@@ -191,13 +197,12 @@ class Storage(collections.MutableMapping):
             except KeyError:
                 pass
 
-        return 0
-
     def _set_cache(self, value):
         if value is not None and not isinstance(value, str):
             raise ValueError('Cache path must be a string')
         self.cache_path = value
         self._cache = None
+        return
 
     def _get_cache(self):
         if self.cache_path and self._cache is None:
@@ -214,6 +219,8 @@ class Storage(collections.MutableMapping):
                     for filename in files:
                         self._file_index(os.path.join(base, filename))
 
+        return
+
     def _file_index(self, filename):
         if fnmatch.fnmatch(filename, '*' + self.extension):
             key = self.coerce(self._file_key(filename))
@@ -223,6 +230,8 @@ class Storage(collections.MutableMapping):
             else:
                 self.files.pop(key, None)
             return key
+        else:
+            return
 
     def _file_changed(self, event, filename):
         key = self._file_index(filename)
@@ -267,8 +276,6 @@ class Storage(collections.MutableMapping):
             except KeyError:
                 return time.time()
 
-        return 0
-
     def _file_path(self, key):
         if self.path:
             return os.path.abspath(os.path.join(self.path, str(key) + self.extension))
@@ -289,6 +296,7 @@ class Storage(collections.MutableMapping):
             fsdlite.stop_file_monitor(monitor)
         if value and self.path:
             self.file_monitor = fsdlite.start_file_monitor(self.path, fsdlite.WeakMethod(self._file_changed))
+        return
 
     monitor = property(_get_monitor, _set_monitor)
 
@@ -328,15 +336,18 @@ class EveStorage(Storage):
             else:
                 raise ImportError
         except ImportError:
-            data = os.path.abspath(os.path.join(os.path.dirname(__file__), '../../eve/staticData/', data))
-            cache = os.path.abspath(os.path.join(os.path.dirname(__file__), '../../eve/autobuild/staticData/server', cache))
-            if not os.path.exists(data):
-                data = None
-            if not os.path.exists(os.path.dirname(cache)):
-                cache = None
+            if data is not None:
+                data = os.path.abspath(os.path.join(os.path.dirname(__file__), '../../eve/staticData/', data))
+                if not os.path.exists(data):
+                    data = None
+            if cache is not None:
+                cache = os.path.abspath(os.path.join(os.path.dirname(__file__), '../../eve/autobuild/staticData/server', cache))
+                if not os.path.exists(os.path.dirname(cache)):
+                    cache = None
 
         kwargs['monitor'] = monitor
         Storage.__init__(self, data, cache, *args, **kwargs)
+        return
 
 
 @contextlib.contextmanager

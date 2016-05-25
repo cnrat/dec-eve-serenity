@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\client\script\ui\shared\neocom\corporation\corp_ui_sanctionableactions.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\client\script\ui\shared\neocom\corporation\corp_ui_sanctionableactions.py
 import sys
 import blue
 import evetypes
@@ -65,11 +66,13 @@ class CorpSanctionableActions(uiprimitives.Container):
     def Refresh(self):
         if self is None or self.destroyed or not self.sr.inited:
             return
-        selectedTab = self.sr.tabs.GetSelectedArgs()
-        if selectedTab == 'ineffect':
-            self.ShowSanctionableActionsInEffect()
-        elif selectedTab == 'notineffect':
-            self.ShowSanctionableActionsNotInEffect()
+        else:
+            selectedTab = self.sr.tabs.GetSelectedArgs()
+            if selectedTab == 'ineffect':
+                self.ShowSanctionableActionsInEffect()
+            elif selectedTab == 'notineffect':
+                self.ShowSanctionableActionsNotInEffect()
+            return
 
     def OnSanctionedActionChanged(self, corpID, voteCaseID, change):
         self.Refresh()
@@ -142,6 +145,8 @@ class CorpSanctionableActions(uiprimitives.Container):
             log.LogException()
             sys.exc_clear()
 
+        return
+
     def GetInEffectSanctionedActionSubContent(self, nodedata, *args):
         try:
             row = nodedata.row
@@ -172,7 +177,9 @@ class CorpSanctionableActions(uiprimitives.Container):
             log.LogException()
             sys.exc_clear()
 
-    def ShowSanctionableActionsNotInEffect(self, showExpired = False, *args):
+        return None
+
+    def ShowSanctionableActionsNotInEffect(self, showExpired=False, *args):
         try:
             try:
                 sm.GetService('corpui').ShowLoad()
@@ -249,6 +256,8 @@ class CorpSanctionableActions(uiprimitives.Container):
             log.LogException()
             sys.exc_clear()
 
+        return
+
     def GetNotInEffectSanctionedActionSubContent(self, nodedata, *args):
         try:
             row = nodedata.row
@@ -287,7 +296,9 @@ class CorpSanctionableActions(uiprimitives.Container):
             log.LogException()
             sys.exc_clear()
 
-    def SetHint(self, hintstr = None):
+        return None
+
+    def SetHint(self, hintstr=None):
         if self.sr.scroll:
             self.sr.scroll.ShowHint(hintstr)
 

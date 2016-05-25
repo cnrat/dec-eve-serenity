@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\carbon\common\lib\cherrypy\test\test_http.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\carbon\common\lib\cherrypy\test\test_http.py
 import mimetypes
 import cherrypy
 from cherrypy._cpcompat import HTTPConnection, HTTPSConnection, ntob
@@ -30,12 +31,12 @@ class HTTPTests(helper.CPWebCase):
         class Root:
 
             def index(self, *args, **kwargs):
-                return 'Hello world!'
+                pass
 
             index.exposed = True
 
             def no_body(self, *args, **kwargs):
-                return 'Hello world!'
+                pass
 
             no_body.exposed = True
             no_body._cp_config = {'request.process_request_body': False}

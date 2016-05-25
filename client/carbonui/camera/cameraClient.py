@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\packages\carbonui\camera\cameraClient.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\packages\carbonui\camera\cameraClient.py
 import util
 import uthread
 import trinity
@@ -22,6 +23,7 @@ class CameraClient(CoreService):
         defaultCamera.SetTrinityMatrixObjects(self.trinityViewMatrix, self.trinityProjectionMatrix)
         self.sharedCameras = {'Basic Camera': defaultCamera}
         self.cameraStack = [defaultCamera]
+        return
 
     def RegisterCameraStartupInfo(self, yaw, pitch, zoom):
         self.cameraStartupInfo = util.KeyVal(yaw=yaw, pitch=pitch, zoom=zoom)
@@ -29,7 +31,7 @@ class CameraClient(CoreService):
         cam.yaw = yaw
         cam.pitch = pitch
 
-    def AddSharedCamera(self, cameraName, cameraObj, setActive = False, transitionBehaviors = []):
+    def AddSharedCamera(self, cameraName, cameraObj, setActive=False, transitionBehaviors=[]):
         cameraObj.SetTrinityMatrixObjects(self.trinityViewMatrix, self.trinityProjectionMatrix)
         self.sharedCameras[cameraName] = cameraObj
         if setActive:
@@ -44,6 +46,8 @@ class CameraClient(CoreService):
     def GetSharedCamera(self, cameraName):
         if cameraName in self.sharedCameras:
             return self.sharedCameras[cameraName]
+        else:
+            return None
 
     def ResetCameras(self):
         for camera in self.cameraStack:
@@ -63,7 +67,7 @@ class CameraClient(CoreService):
         self.audioListener = listener
         self.GetActiveCamera().audio2Listener = listener
 
-    def PushActiveCamera(self, cameraObj, transitionBehaviors = []):
+    def PushActiveCamera(self, cameraObj, transitionBehaviors=[]):
         cameraObj.SetTrinityMatrixObjects(self.trinityViewMatrix, self.trinityProjectionMatrix)
         if transitionBehaviors:
             uthread.new(self._PushAndTransition, cameraObj, transitionBehaviors).context = 'CameraClient::_PushAndTransitionNewCamera'
@@ -71,6 +75,7 @@ class CameraClient(CoreService):
             if self.audioListener is not None:
                 cameraObj.audio2Listener = self.audioListener
             self._PushNewCamera(cameraObj)
+        return
 
     def _PushAndTransition(self, cameraObj, transitionBehaviors):
         if self.audioListener is not None:
@@ -85,6 +90,7 @@ class CameraClient(CoreService):
         transitionCamera.SetTransitionTargets(self.GetActiveCamera(), cameraObj, pushing=True)
         self.transition = True
         self._PushNewCamera(transitionCamera)
+        return
 
     def _PushNewCamera(self, camera):
         if len(self.cameraStack):
@@ -103,7 +109,7 @@ class CameraClient(CoreService):
         self.GetActiveCamera().UpdateProjectionMatrix()
         self._CreateCameraRenderJob()
 
-    def PopActiveCamera(self, transitionBehaviors = []):
+    def PopActiveCamera(self, transitionBehaviors=[]):
         if len(self.cameraStack) > 1:
             if transitionBehaviors:
                 uthread.new(self._PopAndTransition, transitionBehaviors).context = 'CameraClient._PopAndTransition'
@@ -127,7 +133,7 @@ class CameraClient(CoreService):
         self.transition = True
         self._PushNewCamera(transitionCamera)
 
-    def SetDefaultCamera(self, camera, clearStack = True):
+    def SetDefaultCamera(self, camera, clearStack=True):
         if clearStack:
             self.cameraStack = [camera]
         else:

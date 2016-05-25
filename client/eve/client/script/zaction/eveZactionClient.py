@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\client\script\zaction\eveZactionClient.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\client\script\zaction\eveZactionClient.py
 import svc
 import yaml
 import const
@@ -22,6 +23,7 @@ class eveZactionClient(svc.zactionClient):
         if self.mouseInputService is not None:
             self.mouseInputService.RegisterCallback(const.INPUT_TYPE_LEFTCLICK, self.OnClick)
         self._LoadAnimationData()
+        return
 
     def _LoadAnimationData(self):
         ANIMATION_METADATA_PATH = 'res:/Animation/animInfo.yaml'
@@ -37,6 +39,7 @@ class eveZactionClient(svc.zactionClient):
         else:
             targetList = []
         self.clientProperties['TargetList'] = targetList
+        return
 
     def GetAnimationData(self):
         return self._animTypeData

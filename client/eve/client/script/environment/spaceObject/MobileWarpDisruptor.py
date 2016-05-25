@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\client\script\environment\spaceObject\MobileWarpDisruptor.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\client\script\environment\spaceObject\MobileWarpDisruptor.py
 from eve.client.script.environment.spaceObject.spaceObject import SpaceObject
 SOUND_EFFECT_EMITTER_NAME = 'forcefield_audio'
 
@@ -15,8 +16,9 @@ class MobileWarpDisruptor(SpaceObject):
             else:
                 self.SetColor('green')
         self.ScaleAttenuation(self.effectRadius)
+        return
 
-    def ShowForcefield(self, animated = True):
+    def ShowForcefield(self, animated=True):
         self.SetRadius(self.effectRadius)
         for cs in self.model.curveSets:
             if cs.name == 'Collapse':
@@ -36,7 +38,7 @@ class MobileWarpDisruptor(SpaceObject):
         scale = r / 20000.0
         self.model.curveSets[0].bindings[0].scale = scale
 
-    def Explode(self, explosionURL = None, scaling = 1.0, managed = False, delay = 0.0):
+    def Explode(self, explosionURL=None, scaling=1.0, managed=False, delay=0.0):
         explosionPath, (delay, scaling) = self.GetExplosionInfo()
         if not self.exploded:
             self.sm.ScatterEvent('OnShipExplode', self.GetModel())
@@ -46,8 +48,10 @@ class MobileWarpDisruptor(SpaceObject):
         emitter = self.GetNamedAudioEmitterFromObservers(SOUND_EFFECT_EMITTER_NAME)
         if emitter is not None:
             emitter.SetAttenuationScalingFactor(effectRadius)
+        return
 
     def FadeOutEffectSound(self):
         emitter = self.GetNamedAudioEmitterFromObservers(SOUND_EFFECT_EMITTER_NAME)
         if emitter is not None:
             emitter.SendEvent('fade_out')
+        return

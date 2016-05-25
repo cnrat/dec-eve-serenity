@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\client\script\ui\shared\neocom\assetsinfo.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\client\script\ui\shared\neocom\assetsinfo.py
 import service
 import blue
 import uthread
@@ -20,11 +21,11 @@ class AssetsSvc(service.Service):
     __dependencies__ = []
     __update_on_reload__ = 0
 
-    def Run(self, memStream = None):
+    def Run(self, memStream=None):
         self.LogInfo('Starting Assets')
         self.locationCache = {}
 
-    def Stop(self, memStream = None):
+    def Stop(self, memStream=None):
         wnd = self.GetWnd()
         if wnd and not wnd.destroyed:
             wnd.Close()
@@ -36,6 +37,7 @@ class AssetsSvc(service.Service):
             wnd = self.GetWnd()
             if wnd and not wnd.destroyed:
                 uthread.new(wnd.Refresh)
+        return
 
     def OnItemChange(self, item, change):
         itemLocationIDs = [item.locationID]
@@ -55,13 +57,14 @@ class AssetsSvc(service.Service):
                             wnd.sr.maintabs.ReloadVisible()
                     elif key in ('allitems', 'regitems', 'conitems', 'sysitems'):
                         uthread.new(wnd.UpdateLite, item.locationID, key, change.get(const.ixLocationID, item.locationID))
+        return
 
     def OnItemNameChange(self):
         wnd = self.GetWnd(0)
         if wnd:
             wnd.Refresh()
 
-    def Show(self, stationID = None):
+    def Show(self, stationID=None):
         wnd = self.GetWnd(1)
         if wnd is not None and not wnd.destroyed:
             wnd.Maximize()
@@ -75,20 +78,23 @@ class AssetsSvc(service.Service):
                             wnd.sr.scroll.PrepareSubContent(entry)
                             wnd.sr.scroll.ShowNodeIdx(entry.idx)
 
+        return
+
     def OnPostCfgDataChanged(self, what, data):
         if what == 'evelocations':
             wnd = self.GetWnd()
             if wnd is not None and not wnd.destroyed and wnd.key and wnd.key[:7] == 'station':
                 wnd.sr.maintabs.ReloadVisible()
+        return
 
-    def GetAll(self, key, blueprintOnly = 0, isCorp = 0, keyID = None, sortKey = 0):
+    def GetAll(self, key, blueprintOnly=0, isCorp=0, keyID=None, sortKey=0):
         stations = self.GetStations(blueprintOnly, isCorp)
         sortlocations = []
         mapSvc = sm.StartService('map')
         uiSvc = sm.StartService('ui')
         for station in stations:
             blue.pyos.BeNice()
-            solarsystemID = uiSvc.GetStation(station.stationID).solarSystemID
+            solarsystemID = station.solarSystemID
             loc = self.locationCache.get(solarsystemID, None)
             if loc is None:
                 constellationID = mapSvc.GetParent(solarsystemID)
@@ -117,7 +123,7 @@ class AssetsSvc(service.Service):
         sortlocations = uiutil.SortListOfTuples(sortlocations)
         return sortlocations
 
-    def GetStations(self, blueprintOnly = 0, isCorp = 0):
+    def GetStations(self, blueprintOnly=0, isCorp=0):
         stations = sm.GetService('invCache').GetInventory(const.containerGlobal).ListStations(blueprintOnly, isCorp)
         primeloc = []
         for station in stations:
@@ -127,12 +133,13 @@ class AssetsSvc(service.Service):
             cfg.evelocations.Prime(primeloc)
         return stations
 
-    def GetWnd(self, new = 0):
+    def GetWnd(self, new=0):
         if new:
             return form.AssetsWindow.Open()
         return form.AssetsWindow.GetIfOpen()
 
-    def SetHint(self, hintstr = None):
+    def SetHint(self, hintstr=None):
         wnd = self.GetWnd()
         if wnd is not None:
             wnd.SetHint(hintstr)
+        return

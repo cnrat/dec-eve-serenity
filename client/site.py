@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\carbon\common\stdlib\site.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\carbon\common\stdlib\site.py
 import sys
 import os
 import __builtin__
@@ -92,7 +93,7 @@ def addpackage(sitedir, name, known_paths):
     return known_paths
 
 
-def addsitedir(sitedir, known_paths = None):
+def addsitedir(sitedir, known_paths=None):
     if known_paths is None:
         known_paths = _init_pathinfo()
         reset = 1
@@ -119,22 +120,24 @@ def addsitedir(sitedir, known_paths = None):
 def check_enableusersite():
     if sys.flags.no_user_site:
         return False
-    if hasattr(os, 'getuid') and hasattr(os, 'geteuid'):
-        if os.geteuid() != os.getuid():
-            return None
-    if hasattr(os, 'getgid') and hasattr(os, 'getegid'):
-        if os.getegid() != os.getgid():
-            return None
-    return True
+    else:
+        if hasattr(os, 'getuid') and hasattr(os, 'geteuid'):
+            if os.geteuid() != os.getuid():
+                return None
+        if hasattr(os, 'getgid') and hasattr(os, 'getegid'):
+            if os.getegid() != os.getgid():
+                return None
+        return True
 
 
 def getuserbase():
     global USER_BASE
     if USER_BASE is not None:
         return USER_BASE
-    from sysconfig import get_config_var
-    USER_BASE = get_config_var('userbase')
-    return USER_BASE
+    else:
+        from sysconfig import get_config_var
+        USER_BASE = get_config_var('userbase')
+        return USER_BASE
 
 
 def getusersitepackages():
@@ -142,15 +145,16 @@ def getusersitepackages():
     user_base = getuserbase()
     if USER_SITE is not None:
         return USER_SITE
-    from sysconfig import get_path
-    import os
-    if sys.platform == 'darwin':
-        from sysconfig import get_config_var
-        if get_config_var('PYTHONFRAMEWORK'):
-            USER_SITE = get_path('purelib', 'osx_framework_user')
-            return USER_SITE
-    USER_SITE = get_path('purelib', '%s_user' % os.name)
-    return USER_SITE
+    else:
+        from sysconfig import get_path
+        import os
+        if sys.platform == 'darwin':
+            from sysconfig import get_config_var
+            if get_config_var('PYTHONFRAMEWORK'):
+                USER_SITE = get_path('purelib', 'osx_framework_user')
+                return USER_SITE
+        USER_SITE = get_path('purelib', '%s_user' % os.name)
+        return USER_SITE
 
 
 def addusersitepackages(known_paths):
@@ -219,7 +223,7 @@ def setquit():
         def __repr__(self):
             return 'Use %s() or %s to exit' % (self.name, eof)
 
-        def __call__(self, code = None):
+        def __call__(self, code=None):
             try:
                 sys.stdin.close()
             except:
@@ -234,35 +238,38 @@ def setquit():
 class _Printer(object):
     MAXLINES = 23
 
-    def __init__(self, name, data, files = (), dirs = ()):
+    def __init__(self, name, data, files=(), dirs=()):
         self.__name = name
         self.__data = data
         self.__files = files
         self.__dirs = dirs
         self.__lines = None
+        return
 
     def __setup(self):
         if self.__lines:
             return
-        data = None
-        for dir in self.__dirs:
-            for filename in self.__files:
-                filename = os.path.join(dir, filename)
-                try:
-                    fp = file(filename, 'rU')
-                    data = fp.read()
-                    fp.close()
+        else:
+            data = None
+            for dir in self.__dirs:
+                for filename in self.__files:
+                    filename = os.path.join(dir, filename)
+                    try:
+                        fp = file(filename, 'rU')
+                        data = fp.read()
+                        fp.close()
+                        break
+                    except IOError:
+                        pass
+
+                if data:
                     break
-                except IOError:
-                    pass
 
-            if data:
-                break
-
-        if not data:
-            data = self.__data
-        self.__lines = data.split('\n')
-        self.__linecnt = len(self.__lines)
+            if not data:
+                data = self.__data
+            self.__lines = data.split('\n')
+            self.__linecnt = len(self.__lines)
+            return
 
     def __repr__(self):
         self.__setup()
@@ -293,6 +300,8 @@ class _Printer(object):
                 if key == 'q':
                     break
 
+        return
+
 
 def setcopyright():
     __builtin__.copyright = _Printer('copyright', sys.copyright)
@@ -307,7 +316,7 @@ def setcopyright():
 class _Helper(object):
 
     def __repr__(self):
-        return 'Type help() for interactive help, or help(object) for help about object.'
+        pass
 
     def __call__(self, *args, **kwds):
         import pydoc
@@ -383,6 +392,7 @@ def main():
         execusercustomize()
     if hasattr(sys, 'setdefaultencoding'):
         del sys.setdefaultencoding
+    return
 
 
 main()
@@ -419,6 +429,7 @@ def _script():
         import textwrap
         print textwrap.dedent(help % (sys.argv[0], os.pathsep))
         sys.exit(10)
+    return
 
 
 if __name__ == '__main__':

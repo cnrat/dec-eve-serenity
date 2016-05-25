@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\packages\notifications\common\formatters\structureDestructCancel.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\packages\notifications\common\formatters\structureDestructCancel.py
 from localization import GetByLabel
 from notifications.common.formatters.baseFormatter import BaseNotificationFormatter
 STRUCTURE_TYPE_ID = 'structureTypeID'
@@ -18,7 +19,7 @@ class StructureDestructCancel(BaseNotificationFormatter):
         return data
 
     @staticmethod
-    def MakeSampleData(variant = 0):
+    def MakeSampleData(variant=0):
         return StructureDestructCancel.MakeData(1926, 30004797, 150135866)
 
     def _FormatSubject(self, data, notification):

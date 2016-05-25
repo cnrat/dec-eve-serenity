@@ -1,11 +1,12 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\client\script\ui\shared\systemMenu\systemmenu.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\client\script\ui\shared\systemMenu\systemmenu.py
 from carbonui.primitives.fill import Fill
 from carbonui.util.color import Color
 from eve.client.script.ui.camera.cameraUtil import IsNewCameraActive
-from eve.client.script.ui.control.eveCombo import Combo
 from eve.client.script.ui.control.eveWindowUnderlay import WindowUnderlay, BumpedUnderlay
 import sys
 from eve.client.script.ui.control.themeColored import LineThemeColored
+from eve.common.script.sys.eveCfg import IsDockedInStructure
 import uicontrols
 import blue
 import form
@@ -19,21 +20,17 @@ import trinity
 import uiprimitives
 import uix
 import uiutil
-import mathUtil
 import uthread
 import util
 import carbonui.const as uiconst
 import uicls
-import cameras
 import appUtils
 import telemetry
 import evegraphics.settings as gfxsettings
 from evegraphics.gamma import GammaSlider
-import trinity.evePostProcess as evePostProcess
 from eve.client.script.ui.shared.systemMenu.optimizeSettingsWindow import OptimizeSettingsWindow
 from eve.client.script.ui.shared.systemMenu.generalSettings import GenericSystemMenu
-from notifications.client.notificationSettings.notificationSettingConst import ExperimentalConst
-from eve.client.script.ui.tooltips.tooltipHandler import TOOLTIP_DELAY_GENERIC, TOOLTIP_SETTINGS_GENERIC, TOOLTIP_SETTINGS_BRACKET, TOOLTIP_DELAY_BRACKET, TOOLTIP_DELAY_MIN, TOOLTIP_DELAY_MAX
+from eve.client.script.ui.tooltips.tooltipHandler import TOOLTIP_SETTINGS_GENERIC, TOOLTIP_SETTINGS_BRACKET
 import localization
 import localization.settings
 CACHESIZES = [0,
@@ -79,13 +76,13 @@ class SystemMenu(uicls.LayerCore):
         self.sr.wnd = None
         self.closing = 0
         self.init_languageID = eve.session.languageID if session.userid else prefs.languageID
-        self.init_loadstationenv = gfxsettings.Get(gfxsettings.MISC_LOAD_STATION_ENV)
         self.init_dockshipsanditems = settings.char.windows.Get('dockshipsanditems', 0)
         self.init_stationservicebtns = settings.user.ui.Get('stationservicebtns', 1)
         self.tempStuff = []
         self.voiceFontList = None
         if sm.GetService('vivox').Enabled():
             sm.GetService('vivox').StopAudioTest()
+        return
 
     @telemetry.ZONE_METHOD
     def OnCloseView(self):
@@ -103,7 +100,7 @@ class SystemMenu(uicls.LayerCore):
         self.StationUpdateCheck()
         sm.GetService('settings').SaveSettings()
         if session.userid is not None:
-            sm.GetService('sceneManager').CheckCameraOffsets()
+            sm.GetService('sceneManager').UpdateCameraOffset()
             sm.GetService('cameraClient').ApplyUserSettings()
         if eve.session.charid:
             if sm.GetService('viewState').IsViewActive('starmap'):
@@ -111,6 +108,7 @@ class SystemMenu(uicls.LayerCore):
         sm.GetService('settings').LoadSettings()
         self.Reset()
         sm.UnregisterNotify(self)
+        return
 
     @telemetry.ZONE_METHOD
     def OnOpenView(self):
@@ -121,6 +119,7 @@ class SystemMenu(uicls.LayerCore):
         self.hideUI = not bool(eve.hiddenUIState)
         self.Setup()
         sm.RegisterNotify(self)
+        return
 
     def GetBackground(self):
         self.bg = Fill(parent=self.sr.wnd, color=Color.BLACK, opacity=0.0)
@@ -187,7 +186,7 @@ class SystemMenu(uicls.LayerCore):
         if eve.session.userid:
             if not sm.GetService('gameui').UsingSingleSignOn():
                 btn = uicontrols.Button(parent=btnPar, label=localization.GetByLabel('UI/SystemMenu/LogOff'), func=self.Logoff, left=btn.width + btn.left + 2, align=uiconst.CENTERRIGHT)
-            if session.solarsystemid is not None:
+            if util.InShipInSpace():
                 btn = uicontrols.Button(parent=btnPar, label=localization.GetByLabel('UI/Inflight/SafeLogoff'), func=self.SafeLogoff, left=btn.width + btn.left + 2, align=uiconst.CENTERRIGHT)
             btn = uicontrols.Button(parent=btnPar, label=localization.GetByLabel('UI/SystemMenu/YourPetitions'), func=self.Petition, left=10, align=uiconst.CENTERLEFT)
         if eve.session.charid and boot.region != 'optic':
@@ -199,12 +198,13 @@ class SystemMenu(uicls.LayerCore):
         if self.sr.wnd:
             self.sr.wnd.state = uiconst.UI_NORMAL
         self.gammaSlider = None
+        return
 
     def CloseMenuClick(self, *args):
         uicore.cmd.OnEsc()
 
     def SafeLogoff(self, button, *args):
-        if session.solarsystemid is None:
+        if not util.InShipInSpace():
             button.Close()
         else:
             uicore.cmd.OnEsc()
@@ -218,6 +218,7 @@ class SystemMenu(uicls.LayerCore):
         if func:
             uthread.new(func)
         uthread.new(uicore.registry.SetFocus, self.sr.menuarea)
+        return
 
     def InitDeviceSettings(self):
         self.settings = sm.GetService('device').GetSettings()
@@ -225,86 +226,88 @@ class SystemMenu(uicls.LayerCore):
         windowed = sm.GetService('device').IsWindowed(self.initsettings)
         self.uiScaleValue = sm.GetService('device').GetUIScaleValue(windowed)
 
-    def ProcessDeviceSettings(self, whatChanged = ''):
+    def ProcessDeviceSettings(self, whatChanged=''):
         left = 80
         where = self.sr.monitorsetup
         if not where:
             return
-        set = self.settings
-        deviceSvc = sm.GetService('device')
-        deviceSet = deviceSvc.GetSettings()
-        if where:
-            uiutil.FlushList(where.children[1:])
-        adapterOps = deviceSvc.GetAdaptersEnumerated()
-        windowOps = deviceSvc.GetWindowModes()
-        resolutionOps, refresh = deviceSvc.GetAdapterResolutionsAndRefreshRates(set)
-        windowed = deviceSvc.IsWindowed(set)
-        if bool(windowed) and gfxsettings.Get(gfxsettings.GFX_WINDOW_BORDER_FIXED):
-            set.Windowed = 2
-            windowed = 1
-        elif not windowed:
-            gfxsettings.Set(gfxsettings.GFX_WINDOW_BORDER_FIXED, False, pending=False)
-        setBB = deviceSvc.GetPreferedResolution(deviceSvc.IsWindowed(set))
-        triapp = trinity.app
-        if triapp.isMaximized and windowed:
-            setBB = (deviceSet.BackBufferWidth, deviceSet.BackBufferHeight)
-        currentResLabel = localization.GetByLabel('/Carbon/UI/Service/Device/ScreenSize', width=setBB[0], height=setBB[1])
-        currentRes = (currentResLabel, (setBB[0], setBB[1]))
-        if windowed and currentRes not in resolutionOps:
-            resolutionOps.append(currentRes)
-        scalingOps = deviceSvc.GetUIScalingOptions(height=setBB[1])
-        deviceData = [('header', localization.GetByLabel('UI/SystemMenu/DisplayAndGraphics/DisplaySetup/Header')),
-         ('toppush', 4),
-         ('combo',
-          ('Windowed', None, deviceSvc.IsWindowed(self.settings)),
-          localization.GetByLabel('UI/SystemMenu/DisplayAndGraphics/DisplaySetup/WindowedOrFullscreen'),
-          windowOps,
-          left,
-          localization.GetByLabel('UI/SystemMenu/DisplayAndGraphics/DisplaySetup/WindowedOrFullscreenTooltip'),
-          whatChanged == 'Windowed'),
-         ('combo',
-          ('BackBufferSize', None, (setBB[0], setBB[1])),
-          [localization.GetByLabel('UI/SystemMenu/DisplayAndGraphics/DisplaySetup/AdapterResolution'), localization.GetByLabel('UI/SystemMenu/DisplayAndGraphics/DisplaySetup/WindowSize')][windowed],
-          resolutionOps,
-          left,
-          [localization.GetByLabel('UI/SystemMenu/DisplayAndGraphics/DisplaySetup/AdapterResolutionTooltip'), localization.GetByLabel('UI/SystemMenu/DisplayAndGraphics/DisplaySetup/WindowSizeTooltip')][windowed],
-          whatChanged == 'BackBufferSize',
-          triapp.isMaximized and windowed),
-         ('combo',
-          ('UIScaling', None, self.uiScaleValue),
-          localization.GetByLabel('UI/SystemMenu/DisplayAndGraphics/DisplaySetup/UIScaling'),
-          scalingOps,
-          left,
-          localization.GetByLabel('UI/SystemMenu/DisplayAndGraphics/DisplaySetup/UIScalingTooltip'),
-          whatChanged == 'UIScaling'),
-         ('combo',
-          ('Adapter', None, set.Adapter),
-          localization.GetByLabel('UI/SystemMenu/DisplayAndGraphics/DisplaySetup/DisplayAdapter'),
-          adapterOps,
-          left,
-          localization.GetByLabel('UI/SystemMenu/DisplayAndGraphics/DisplaySetup/DisplayAdapterTooltip'),
-          whatChanged == 'Adapter')]
-        if blue.sysinfo.isTransgaming:
-            deviceData += [('checkbox',
-              ('MacMTOpenGL', ('public', 'ui'), bool(sm.GetService('cider').GetMultiThreadedOpenGL())),
-              localization.GetByLabel('UI/SystemMenu/DisplayAndGraphics/DisplaySetup/UseMultithreadedOpenGL'),
-              None,
-              None,
-              localization.GetByLabel('UI/SystemMenu/DisplayAndGraphics/DisplaySetup/UseMultithreadedOpenglToolTip'))]
-        options = deviceSvc.GetPresentationIntervalOptions(set)
-        if set.PresentationInterval not in [ val for label, val in options ]:
-            set.PresentationInterval = options[1][1]
-        deviceData.append(('combo',
-         ('PresentationInterval', None, set.PresentationInterval),
-         localization.GetByLabel('UI/SystemMenu/DisplayAndGraphics/DisplaySetup/PresentInterval'),
-         options,
-         left,
-         localization.GetByLabel('UI/SystemMenu/DisplayAndGraphics/DisplaySetup/PresentIntervalTooltip')))
-        if eve.session.userid:
-            deviceData.extend(self.ProcessCameraSettings())
-        self.ParseData(deviceData, where)
-        btnPar = uiprimitives.Container(name='btnpar', parent=where, align=uiconst.TOBOTTOM, height=32)
-        btn = uicontrols.Button(parent=btnPar, label=localization.GetByLabel('UI/Common/Buttons/Apply'), func=self.ApplyDeviceChanges, align=uiconst.CENTERTOP)
+        else:
+            set = self.settings
+            deviceSvc = sm.GetService('device')
+            deviceSet = deviceSvc.GetSettings()
+            if where:
+                uiutil.FlushList(where.children[1:])
+            adapterOps = deviceSvc.GetAdaptersEnumerated()
+            windowOps = deviceSvc.GetWindowModes()
+            resolutionOps, refresh = deviceSvc.GetAdapterResolutionsAndRefreshRates(set)
+            windowed = deviceSvc.IsWindowed(set)
+            if bool(windowed) and gfxsettings.Get(gfxsettings.GFX_WINDOW_BORDER_FIXED):
+                set.Windowed = 2
+                windowed = 1
+            elif not windowed:
+                gfxsettings.Set(gfxsettings.GFX_WINDOW_BORDER_FIXED, False, pending=False)
+            setBB = deviceSvc.GetPreferedResolution(deviceSvc.IsWindowed(set))
+            triapp = trinity.app
+            if triapp.isMaximized and windowed:
+                setBB = (deviceSet.BackBufferWidth, deviceSet.BackBufferHeight)
+            currentResLabel = localization.GetByLabel('/Carbon/UI/Service/Device/ScreenSize', width=setBB[0], height=setBB[1])
+            currentRes = (currentResLabel, (setBB[0], setBB[1]))
+            if windowed and currentRes not in resolutionOps:
+                resolutionOps.append(currentRes)
+            scalingOps = deviceSvc.GetUIScalingOptions(height=setBB[1])
+            deviceData = [('header', localization.GetByLabel('UI/SystemMenu/DisplayAndGraphics/DisplaySetup/Header')),
+             ('toppush', 4),
+             ('combo',
+              ('Windowed', None, deviceSvc.IsWindowed(self.settings)),
+              localization.GetByLabel('UI/SystemMenu/DisplayAndGraphics/DisplaySetup/WindowedOrFullscreen'),
+              windowOps,
+              left,
+              localization.GetByLabel('UI/SystemMenu/DisplayAndGraphics/DisplaySetup/WindowedOrFullscreenTooltip'),
+              whatChanged == 'Windowed'),
+             ('combo',
+              ('BackBufferSize', None, (setBB[0], setBB[1])),
+              [localization.GetByLabel('UI/SystemMenu/DisplayAndGraphics/DisplaySetup/AdapterResolution'), localization.GetByLabel('UI/SystemMenu/DisplayAndGraphics/DisplaySetup/WindowSize')][windowed],
+              resolutionOps,
+              left,
+              [localization.GetByLabel('UI/SystemMenu/DisplayAndGraphics/DisplaySetup/AdapterResolutionTooltip'), localization.GetByLabel('UI/SystemMenu/DisplayAndGraphics/DisplaySetup/WindowSizeTooltip')][windowed],
+              whatChanged == 'BackBufferSize',
+              triapp.isMaximized and windowed),
+             ('combo',
+              ('UIScaling', None, self.uiScaleValue),
+              localization.GetByLabel('UI/SystemMenu/DisplayAndGraphics/DisplaySetup/UIScaling'),
+              scalingOps,
+              left,
+              localization.GetByLabel('UI/SystemMenu/DisplayAndGraphics/DisplaySetup/UIScalingTooltip'),
+              whatChanged == 'UIScaling'),
+             ('combo',
+              ('Adapter', None, set.Adapter),
+              localization.GetByLabel('UI/SystemMenu/DisplayAndGraphics/DisplaySetup/DisplayAdapter'),
+              adapterOps,
+              left,
+              localization.GetByLabel('UI/SystemMenu/DisplayAndGraphics/DisplaySetup/DisplayAdapterTooltip'),
+              whatChanged == 'Adapter')]
+            if blue.sysinfo.isTransgaming:
+                deviceData += [('checkbox',
+                  ('MacMTOpenGL', ('public', 'ui'), bool(sm.GetService('cider').GetMultiThreadedOpenGL())),
+                  localization.GetByLabel('UI/SystemMenu/DisplayAndGraphics/DisplaySetup/UseMultithreadedOpenGL'),
+                  None,
+                  None,
+                  localization.GetByLabel('UI/SystemMenu/DisplayAndGraphics/DisplaySetup/UseMultithreadedOpenglToolTip'))]
+            options = deviceSvc.GetPresentationIntervalOptions(set)
+            if set.PresentationInterval not in [ val for label, val in options ]:
+                set.PresentationInterval = options[1][1]
+            deviceData.append(('combo',
+             ('PresentationInterval', None, set.PresentationInterval),
+             localization.GetByLabel('UI/SystemMenu/DisplayAndGraphics/DisplaySetup/PresentInterval'),
+             options,
+             left,
+             localization.GetByLabel('UI/SystemMenu/DisplayAndGraphics/DisplaySetup/PresentIntervalTooltip')))
+            if eve.session.userid:
+                deviceData.extend(self.ProcessCameraSettings())
+            self.ParseData(deviceData, where)
+            btnPar = uiprimitives.Container(name='btnpar', parent=where, align=uiconst.TOBOTTOM, height=32)
+            btn = uicontrols.Button(parent=btnPar, label=localization.GetByLabel('UI/Common/Buttons/Apply'), func=self.ApplyDeviceChanges, align=uiconst.CENTERTOP)
+            return
 
     def ProcessCameraSettings(self):
         self.cameraOffsetTextAdded = 0
@@ -317,8 +320,8 @@ class SystemMenu(uicls.LayerCore):
           10),
          ('toppush', 8),
          ('slider',
-          ('cameraMouseLookSpeedSlider', ('user', 'ui'), gfxsettings.GetDefault(gfxsettings.UI_CAMERA_SPEED)),
-          'UI/SystemMenu/DisplayAndGraphics/DisplaySetup/IncarnaCamera/CameraLookSpeed',
+          ('cameraInertiaSlider', ('user', 'ui'), gfxsettings.GetDefault(gfxsettings.UI_CAMERA_INERTIA)),
+          'UI/SystemMenu/DisplayAndGraphics/CameraSettings/CameraInertia',
           (-3.0, 3.0),
           120,
           10),
@@ -348,11 +351,11 @@ class SystemMenu(uicls.LayerCore):
           None,
           localization.GetByLabel('UI/SystemMenu/DisplayAndGraphics/DisplaySetup/OffsetUIWithCameraTooltip')),
          ('checkbox',
-          ('cameraSpeedOffset', ('user', 'ui'), gfxsettings.GetDefault(gfxsettings.UI_CAMERA_SPEED_OFFSET)),
-          localization.GetByLabel('UI/SystemMenu/DisplayAndGraphics/CameraSettings/ShipSpeedOffset'),
+          ('cameraSpeedOffset', ('user', 'ui'), gfxsettings.GetDefault(gfxsettings.UI_CAMERA_CENTER_OFFSET)),
+          localization.GetByLabel('UI/SystemMenu/DisplayAndGraphics/CameraSettings/CenterOffset'),
           None,
           None,
-          localization.GetByLabel('UI/SystemMenu/DisplayAndGraphics/CameraSettings/ShipSpeedOffsetTooltip')),
+          localization.GetByLabel('UI/SystemMenu/DisplayAndGraphics/CameraSettings/CenterOffsetTooltip')),
          ('checkbox',
           ('cameraDynamicFov', ('user', 'ui'), gfxsettings.GetDefault(gfxsettings.UI_CAMERA_DYNAMIC_FOV)),
           localization.GetByLabel('UI/SystemMenu/DisplayAndGraphics/CameraSettings/CameraDynamicFov'),
@@ -378,24 +381,26 @@ class SystemMenu(uicls.LayerCore):
         deviceSvc = sm.GetService('device')
         if self.settings is None:
             return
-        s = self.settings.copy()
-        fixedWindow = gfxsettings.Get(gfxsettings.GFX_WINDOW_BORDER_FIXED)
-        deviceChanged = deviceSvc.CheckDeviceDifference(s, True)
-        triapp = trinity.app
-        if not deviceChanged and blue.sysinfo.isTransgaming:
-            windowModeChanged = sm.GetService('cider').HasFullscreenModeChanged()
-            deviceChanged = deviceChanged or windowModeChanged
-        if deviceChanged:
-            deviceSvc.SetDevice(s, userModified=True)
-        elif triapp.fixedWindow != fixedWindow:
-            triapp.AdjustWindowForChange(s.Windowed, fixedWindow)
-            deviceSvc.UpdateWindowPosition(s)
-        windowed = deviceSvc.IsWindowed(self.settings)
-        currentUIScale = deviceSvc.GetUIScaleValue(windowed)
-        scaleValue = getattr(self, 'uiScaleValue', currentUIScale)
-        if scaleValue != currentUIScale:
-            if eve.Message('ScaleUI', {}, uiconst.YESNO, default=uiconst.ID_YES) == uiconst.ID_YES:
-                deviceSvc.SetUIScaleValue(scaleValue, windowed)
+        else:
+            s = self.settings.copy()
+            fixedWindow = gfxsettings.Get(gfxsettings.GFX_WINDOW_BORDER_FIXED)
+            deviceChanged = deviceSvc.CheckDeviceDifference(s, True)
+            triapp = trinity.app
+            if not deviceChanged and blue.sysinfo.isTransgaming:
+                windowModeChanged = sm.GetService('cider').HasFullscreenModeChanged()
+                deviceChanged = deviceChanged or windowModeChanged
+            if deviceChanged:
+                deviceSvc.SetDevice(s, userModified=True)
+            elif triapp.fixedWindow != fixedWindow:
+                triapp.AdjustWindowForChange(s.Windowed, fixedWindow)
+                deviceSvc.UpdateWindowPosition(s)
+            windowed = deviceSvc.IsWindowed(self.settings)
+            currentUIScale = deviceSvc.GetUIScaleValue(windowed)
+            scaleValue = getattr(self, 'uiScaleValue', currentUIScale)
+            if scaleValue != currentUIScale:
+                if eve.Message('ScaleUI', {}, uiconst.YESNO, default=uiconst.ID_YES) == uiconst.ID_YES:
+                    deviceSvc.SetUIScaleValue(scaleValue, windowed)
+            return
 
     def OnEndChangeDevice(self, *args):
         if self and not self.destroyed and self.isopen:
@@ -475,6 +480,7 @@ class SystemMenu(uicls.LayerCore):
         elif combo.name == 'localizationImportantNames':
             self.setImpNameSetting = value
             self.RefreshLanguage(allUI=False)
+        return
 
     def OnMicrophoneIntensityEvent(self, level):
         if not self or self.destroyed:
@@ -524,7 +530,7 @@ class SystemMenu(uicls.LayerCore):
         self.sr.audioInited = 0
         self.Audio(flush=True)
 
-    def ReloadCommands(self, key = None):
+    def ReloadCommands(self, key=None):
         if not key:
             key = self.sr.currentShortcutTabKey
         self.sr.currentShortcutTabKey = key
@@ -588,7 +594,7 @@ class SystemMenu(uicls.LayerCore):
 
         return valid
 
-    def ParseData(self, entries, parent, validateEntries = 1):
+    def ParseData(self, entries, parent, validateEntries=1):
         if validateEntries:
             validEntries = self.ValidateData(entries)
             if not validEntries:
@@ -722,6 +728,7 @@ class SystemMenu(uicls.LayerCore):
 
         if self.sr.maintabs and self.sr.menuarea and parent:
             self.ValidateMenuSize(parent)
+        return
 
     def ValidateMenuSize(self, column):
         colHeight = self.sr.maintabs.height + 100
@@ -740,15 +747,17 @@ class SystemMenu(uicls.LayerCore):
             self.cameraOffsetTextAdded = 1
         gfxsettings.Set(gfxsettings.UI_CAMERA_OFFSET, value, pending=False)
         sm.ScatterEvent('OnGraphicSettingsChanged', [gfxsettings.UI_CAMERA_OFFSET])
+        return
 
-    def OnSetCameraMouseLookSpeedSliderValue(self, value, *args):
-        if not getattr(self, 'cameraMouseLookSpeedTextAdded', 0):
-            if getattr(self, 'cameraMouseLookSpeedSlider', None) is None:
-                self.cameraMouseSpeedSlider = uiutil.FindChild(self, 'cameraMouseLookSpeedSlider')
-            self.AddCameraMouseLookSpeedHint(self.cameraMouseSpeedSlider)
-            self.cameraMouseLookSpeedTextAdded = 1
-        gfxsettings.Set(gfxsettings.UI_CAMERA_SPEED, value, pending=False)
-        sm.ScatterEvent('OnGraphicSettingsChanged', [gfxsettings.UI_CAMERA_SPEED])
+    def OnSetCameraInertiaSliderValue(self, value, *args):
+        if not getattr(self, 'cameraInertiaTextAdded', 0):
+            if getattr(self, 'cameraInertiaSlider', None) is None:
+                self.cameraInertiaSlider = uiutil.FindChild(self, 'cameraInertiaSlider')
+            self.AddCameraInertiaHint(self.cameraInertiaSlider)
+            self.cameraInertiaTextAdded = 1
+        gfxsettings.Set(gfxsettings.UI_CAMERA_INERTIA, value, pending=False)
+        sm.ScatterEvent('OnGraphicSettingsChanged', [gfxsettings.UI_CAMERA_INERTIA])
+        return
 
     def OnRadialMenuSliderValue(self, value, *args):
         if not getattr(self, 'radialMenuSpeedTextAdded', 0):
@@ -760,13 +769,14 @@ class SystemMenu(uicls.LayerCore):
             slowText = localization.GetByLabel('UI/SystemMenu/GeneralSettings/Inflight/LongRadialMenuDelay')
             uicontrols.EveLabelSmall(name='slower', text=slowText, parent=p, align=uiconst.TOPRIGHT, top=10, color=(1.0, 1.0, 1.0, 0.75))
             self.radialMenuSpeedTextAdded = 1
+        return
 
-    def AddCameraMouseLookSpeedHint(self, whichOne):
+    def AddCameraInertiaHint(self, whichOne):
         p = whichOne.parent
-        uicontrols.EveLabelSmall(name='slower', text=localization.GetByLabel('UI/SystemMenu/DisplayAndGraphics/DisplaySetup/IncarnaCamera/CameraSpeedSliderSlow'), parent=p, align=uiconst.TOPLEFT, top=10, color=(1.0, 1.0, 1.0, 0.75))
-        uicontrols.EveLabelSmall(name='faster', text=localization.GetByLabel('UI/SystemMenu/DisplayAndGraphics/DisplaySetup/IncarnaCamera/CameraSpeedSliderFast'), parent=p, align=uiconst.TOPRIGHT, top=10, color=(1.0, 1.0, 1.0, 0.75))
+        uicontrols.EveLabelSmall(name='slower', text=localization.GetByLabel('UI/SystemMenu/DisplayAndGraphics/CameraSettings/CameraInertiaSmooth'), parent=p, align=uiconst.TOPLEFT, top=10, color=(1.0, 1.0, 1.0, 0.75))
+        uicontrols.EveLabelSmall(name='faster', text=localization.GetByLabel('UI/SystemMenu/DisplayAndGraphics/CameraSettings/CameraInertiaStiff'), parent=p, align=uiconst.TOPRIGHT, top=10, color=(1.0, 1.0, 1.0, 0.75))
         uiprimitives.Line(name='centerLine', parent=p, width=2, height=10, align=uiconst.CENTER)
-        p.parent.hint = localization.GetByLabel('UI/SystemMenu/DisplayAndGraphics/DisplaySetup/IncarnaCamera/CameraSpeedSliderTooltip')
+        p.parent.hint = localization.GetByLabel('UI/SystemMenu/DisplayAndGraphics/CameraSettings/CameraInertiaTooltip')
         p.state = p.parent.state = uiconst.UI_NORMAL
 
     def AddCameraOffsetHint(self, whichOne):
@@ -776,16 +786,6 @@ class SystemMenu(uicls.LayerCore):
         uiprimitives.Line(name='centerLine', parent=p, width=2, height=10, align=uiconst.CENTER)
         p.parent.hint = localization.GetByLabel('UI/SystemMenu/DisplayAndGraphics/DisplaySetup/CameraCenterSliderTooltip')
         p.state = p.parent.state = uiconst.UI_NORMAL
-
-    def GetCameraMouseSpeedHintText(self, value):
-        if value == 0:
-            return localization.GetByLabel('UI/SystemMenu/DisplayAndGraphics/DisplaySetup/IncarnaCamera/CameraSpeedSliderDefaultValue')
-        elif value < 0:
-            value = abs(value) + 1.0
-            return localization.GetByLabel('UI/SystemMenu/DisplayAndGraphics/DisplaySetup/IncarnaCamera/CameraSpeedSliderSlowerValue', value=value)
-        else:
-            value += 1.0
-            return localization.GetByLabel('UI/SystemMenu/DisplayAndGraphics/DisplaySetup/IncarnaCamera/CameraSpeedSliderFasterValue', value=value)
 
     def GetCameraOffsetHintText(self, value):
         if value == 0:
@@ -813,522 +813,529 @@ class SystemMenu(uicls.LayerCore):
     def Generic(self):
         if self.sr.genericinited:
             return
-        parent = uiutil.GetChild(self.sr.wnd, 'generic_container')
-        parent.Flush()
-        if settings.public.generic.Get('showintro2', None) is None:
-            settings.public.generic.Set('showintro2', prefs.GetValue('showintro2', 1))
-        menu = GenericSystemMenu(mainParent=parent, parseDataFunction=self.ParseData, menuSizeColumnValidator=self.ValidateMenuSize)
-        menu.MakeColumn1(columnWidth=self.colWidth)
-        menu.MakeColumn2(columnWidth=self.colWidth)
-        menu.MakeColumn3(columnWidth=self.colWidth)
-        self.sr.genericinited = 1
+        else:
+            parent = uiutil.GetChild(self.sr.wnd, 'generic_container')
+            parent.Flush()
+            if settings.public.generic.Get('showintro2', None) is None:
+                settings.public.generic.Set('showintro2', prefs.GetValue('showintro2', 1))
+            menu = GenericSystemMenu(mainParent=parent, parseDataFunction=self.ParseData, menuSizeColumnValidator=self.ValidateMenuSize)
+            menu.MakeColumn1(columnWidth=self.colWidth)
+            menu.MakeColumn2(columnWidth=self.colWidth)
+            menu.MakeColumn3(columnWidth=self.colWidth)
+            self.sr.genericinited = 1
+            return
 
-    def Audio(self, flush = False):
+    def Audio(self, flush=False):
         if self.sr.audioInited:
             return
-        parent = uiutil.GetChild(self.sr.wnd, 'audio_container')
-        labelWidth = 125
-        if self.sr.audioPanels is None or len(self.sr.audioPanels) == 0:
-            self.sr.audioPanels = []
-            col1 = uiprimitives.Container(name='col1', align=uiconst.TOLEFT, width=self.colWidth, padLeft=8, parent=parent)
-            col1.isTabOrderGroup = 1
-            self.sr.audioPanels.append(col1)
         else:
-            col1 = self.sr.audioPanels[0]
-        BumpedUnderlay(isInFocus=True, parent=col1, idx=0)
-        audioSvc = sm.GetService('audio')
-        enabled = audioSvc.IsActivated()
-        turretSuppressed = audioSvc.GetTurretSuppression()
-        voiceCountLimited = audioSvc.GetVoiceCountLimitation()
-        oldJukeboxOverride = audioSvc.GetOldJukeboxOverride()
-        useDopplerEmitters = audioSvc.GetDopplerEmittersUsage()
-        useCombatMusic = audioSvc.GetCombatMusicUsage()
-        audioData = (('header', localization.GetByLabel('UI/SystemMenu/AudioAndChat/AudioEngine/Header')),
-         ('checkbox', ('audioEnabled', ('public', 'audio'), enabled), localization.GetByLabel('UI/SystemMenu/AudioAndChat/AudioEngine/AudioEnabled')),
-         ('header', localization.GetByLabel('UI/SystemMenu/AudioAndChat/VolumeLevel/Header')),
-         ('slider',
-          ('eveampGain', ('public', 'audio'), 0.25),
-          'UI/SystemMenu/AudioAndChat/VolumeLevel/MusicLevel',
-          (0.0, 1.0),
-          labelWidth),
-         ('slider',
-          ('uiGain', ('public', 'audio'), 0.5),
-          'UI/SystemMenu/AudioAndChat/VolumeLevel/UISoundLevel',
-          (0.0, 1.0),
-          labelWidth),
-         ('slider',
-          ('evevoiceGain', ('public', 'audio'), 0.7),
-          'UI/SystemMenu/AudioAndChat/VolumeLevel/UIVoiceLevel',
-          (0.0, 1.0),
-          labelWidth),
-         ('slider',
-          ('worldVolume', ('public', 'audio'), 0.7),
-          'UI/SystemMenu/AudioAndChat/VolumeLevel/WorldLevel',
-          (0.0, 1.0),
-          labelWidth),
-         ('slider',
-          ('masterVolume', ('public', 'audio'), 0.8),
-          'UI/SystemMenu/AudioAndChat/VolumeLevel/MasterLevel',
-          (0.0, 1.0),
-          labelWidth),
-         ('checkbox', ('suppressTurret', ('public', 'audio'), turretSuppressed), localization.GetByLabel('UI/SystemMenu/AudioAndChat/VolumeLevel/SuppressTurretSounds')),
-         ('checkbox', ('limitVoiceCount', ('public', 'audio'), voiceCountLimited), localization.GetByLabel('UI/SystemMenu/AudioAndChat/VolumeLevel/LimitVoiceCount')),
-         ('checkbox', ('overrideWithOldJukebox', ('public', 'audio'), oldJukeboxOverride), localization.GetByLabel('UI/SystemMenu/AudioAndChat/AudioEngine/OldJukeboxOverride')),
-         ('checkbox', ('useDopplerEmitters', ('public', 'audio'), useDopplerEmitters), localization.GetByLabel('UI/SystemMenu/AudioAndChat/AudioEngine/UseDopplerEmitters')),
-         ('checkbox', ('useCombatMusic', ('public', 'audio'), useCombatMusic), localization.GetByLabel('UI/SystemMenu/AudioAndChat/AudioEngine/UseCombatMusic')))
-        self.ParseData(audioData, col1)
-        if not session.userid:
+            parent = uiutil.GetChild(self.sr.wnd, 'audio_container')
+            labelWidth = 125
+            if self.sr.audioPanels is None or len(self.sr.audioPanels) == 0:
+                self.sr.audioPanels = []
+                col1 = uiprimitives.Container(name='col1', align=uiconst.TOLEFT, width=self.colWidth, padLeft=8, parent=parent)
+                col1.isTabOrderGroup = 1
+                self.sr.audioPanels.append(col1)
+            else:
+                col1 = self.sr.audioPanels[0]
+            BumpedUnderlay(isInFocus=True, parent=col1, idx=0)
+            audioSvc = sm.GetService('audio')
+            enabled = audioSvc.IsActivated()
+            turretSuppressed = audioSvc.GetTurretSuppression()
+            voiceCountLimited = audioSvc.GetVoiceCountLimitation()
+            oldJukeboxOverride = audioSvc.GetOldJukeboxOverride()
+            useDopplerEmitters = audioSvc.GetDopplerEmittersUsage()
+            useCombatMusic = audioSvc.GetCombatMusicUsage()
+            audioData = (('header', localization.GetByLabel('UI/SystemMenu/AudioAndChat/AudioEngine/Header')),
+             ('checkbox', ('audioEnabled', ('public', 'audio'), enabled), localization.GetByLabel('UI/SystemMenu/AudioAndChat/AudioEngine/AudioEnabled')),
+             ('header', localization.GetByLabel('UI/SystemMenu/AudioAndChat/VolumeLevel/Header')),
+             ('slider',
+              ('eveampGain', ('public', 'audio'), 0.25),
+              'UI/SystemMenu/AudioAndChat/VolumeLevel/MusicLevel',
+              (0.0, 1.0),
+              labelWidth),
+             ('slider',
+              ('uiGain', ('public', 'audio'), 0.5),
+              'UI/SystemMenu/AudioAndChat/VolumeLevel/UISoundLevel',
+              (0.0, 1.0),
+              labelWidth),
+             ('slider',
+              ('evevoiceGain', ('public', 'audio'), 0.7),
+              'UI/SystemMenu/AudioAndChat/VolumeLevel/UIVoiceLevel',
+              (0.0, 1.0),
+              labelWidth),
+             ('slider',
+              ('worldVolume', ('public', 'audio'), 0.7),
+              'UI/SystemMenu/AudioAndChat/VolumeLevel/WorldLevel',
+              (0.0, 1.0),
+              labelWidth),
+             ('slider',
+              ('masterVolume', ('public', 'audio'), 0.8),
+              'UI/SystemMenu/AudioAndChat/VolumeLevel/MasterLevel',
+              (0.0, 1.0),
+              labelWidth),
+             ('checkbox', ('suppressTurret', ('public', 'audio'), turretSuppressed), localization.GetByLabel('UI/SystemMenu/AudioAndChat/VolumeLevel/SuppressTurretSounds')),
+             ('checkbox', ('limitVoiceCount', ('public', 'audio'), voiceCountLimited), localization.GetByLabel('UI/SystemMenu/AudioAndChat/VolumeLevel/LimitVoiceCount')),
+             ('checkbox', ('overrideWithOldJukebox', ('public', 'audio'), oldJukeboxOverride), localization.GetByLabel('UI/SystemMenu/AudioAndChat/AudioEngine/OldJukeboxOverride')),
+             ('checkbox', ('useDopplerEmitters', ('public', 'audio'), useDopplerEmitters), localization.GetByLabel('UI/SystemMenu/AudioAndChat/AudioEngine/UseDopplerEmitters')),
+             ('checkbox', ('useCombatMusic', ('public', 'audio'), useCombatMusic), localization.GetByLabel('UI/SystemMenu/AudioAndChat/AudioEngine/UseCombatMusic')))
+            self.ParseData(audioData, col1)
+            if not session.userid:
+                self.sr.audioInited = True
+                return
+            if len(self.sr.audioPanels) < 2:
+                col2 = uiprimitives.Container(name='column3', align=uiconst.TOLEFT, width=self.colWidth, padLeft=8, parent=parent)
+                col2.isTabOrderGroup = 1
+                self.sr.audioPanels.append(col2)
+            else:
+                col2 = self.sr.audioPanels[1]
+            if flush:
+                col2.Flush()
+            BumpedUnderlay(isInFocus=True, parent=col2, idx=0)
+            advancedDisabled = not settings.user.audio.Get('soundLevel_advancedSettings', False)
+            audioData2 = (('leftpush', 6),
+             ('rightpush', 6),
+             ('checkbox',
+              ('soundLevel_advancedSettings', ('user', 'audio'), False),
+              localization.GetByLabel('UI/SystemMenu/AudioAndChat/AudioEngine/AdvancedAudioSettings'),
+              None,
+              None,
+              localization.GetByLabel('UI/SystemMenu/AudioAndChat/AudioEngine/AdvancedWarning')),
+             ('line',))
+            self.ParseData(audioData2, col2)
+            audioScroll2 = ScrollContainer(parent=col2, padding=(9, -5, -5, 1))
+            audioSliderSetting = (('soundLevel_custom_turrets', 'UI/SystemMenu/AudioAndChat/AudioEngine/Turrets'),
+             ('soundLevel_custom_impact', 'UI/SystemMenu/AudioAndChat/AudioEngine/Impact'),
+             ('soundLevel_custom_jumpgates', 'UI/SystemMenu/AudioAndChat/AudioEngine/Jumpgates'),
+             ('soundLevel_custom_wormholes', 'UI/SystemMenu/AudioAndChat/AudioEngine/Wormholes'),
+             ('soundLevel_custom_jumpactivation', 'UI/SystemMenu/AudioAndChat/AudioEngine/JumpActivation'),
+             ('soundLevel_custom_crimewatch', 'UI/SystemMenu/AudioAndChat/AudioEngine/Crimewatch'),
+             ('soundLevel_custom_explosions', 'UI/SystemMenu/AudioAndChat/AudioEngine/Explosions'),
+             ('soundLevel_custom_boosters', 'UI/SystemMenu/AudioAndChat/AudioEngine/Boosters'),
+             ('soundLevel_custom_stationext', 'UI/SystemMenu/AudioAndChat/AudioEngine/StationsExterior'),
+             ('soundLevel_custom_stationint', 'UI/SystemMenu/AudioAndChat/AudioEngine/StationsInterior'),
+             ('soundLevel_custom_modules', 'UI/SystemMenu/AudioAndChat/AudioEngine/Modules'),
+             ('soundLevel_custom_shipsounds', 'UI/SystemMenu/AudioAndChat/AudioEngine/ShipSounds'),
+             ('soundLevel_custom_warping', 'UI/SystemMenu/AudioAndChat/AudioEngine/Warping'),
+             ('soundLevel_custom_warpeffect', 'UI/SystemMenu/AudioAndChat/AudioEngine/WarpEffect'),
+             ('soundLevel_custom_mapisis', 'UI/SystemMenu/AudioAndChat/AudioEngine/MapIsis'),
+             ('soundLevel_custom_locking', 'UI/SystemMenu/AudioAndChat/AudioEngine/LockingSounds'),
+             ('soundLevel_custom_store', 'UI/SystemMenu/AudioAndChat/AudioEngine/Store'),
+             ('soundLevel_custom_planets', 'UI/SystemMenu/AudioAndChat/AudioEngine/Planets'),
+             ('soundLevel_custom_uiclick', 'UI/SystemMenu/AudioAndChat/AudioEngine/Uiclick'),
+             ('soundLevel_custom_radialmenu', 'UI/SystemMenu/AudioAndChat/AudioEngine/Radial'),
+             ('soundLevel_custom_uiinteraction', 'UI/SystemMenu/AudioAndChat/AudioEngine/Uiinteraction'),
+             ('soundLevel_custom_aura', 'UI/SystemMenu/AudioAndChat/AudioEngine/Aura'),
+             ('soundLevel_custom_hacking', 'UI/SystemMenu/AudioAndChat/AudioEngine/Hacking'),
+             ('soundLevel_custom_shieldlow', 'UI/SystemMenu/AudioAndChat/AudioEngine/shieldlow'),
+             ('soundLevel_custom_armorlow', 'UI/SystemMenu/AudioAndChat/AudioEngine/armorlow'),
+             ('soundLevel_custom_hulllow', 'UI/SystemMenu/AudioAndChat/AudioEngine/hulllow'),
+             ('soundLevel_custom_shipdamage', 'UI/SystemMenu/AudioAndChat/AudioEngine/ShipDamage'),
+             ('soundLevel_custom_cap', 'UI/SystemMenu/AudioAndChat/AudioEngine/cap'),
+             ('soundLevel_custom_atmosphere', 'UI/SystemMenu/AudioAndChat/AudioEngine/Atmosphere'),
+             ('soundLevel_custom_dungeonmusic', 'UI/SystemMenu/AudioAndChat/AudioEngine/DungeonMusic'),
+             ('soundLevel_custom_normalmusic', 'UI/SystemMenu/AudioAndChat/AudioEngine/NormalMusic'))
+            Container(parent=audioScroll2, align=uiconst.TOTOP, height=4)
+            for settingKey, messageLabel in audioSliderSetting:
+                SliderEntry(parent=audioScroll2, config=(settingKey, ('user', 'audio'), 0.5), minval=0.0, maxval=1.0, header=localization.GetByLabel(messageLabel), GetSliderValue=self.GetSliderValue, SetSliderLabel=self.SetSliderLabel, GetSliderHint=self.GetSliderHint, EndSetSliderValue=self.EndSliderValue, sliderWidth=80)
+
+            Container(parent=audioScroll2, align=uiconst.TOTOP, height=4)
+            if advancedDisabled:
+                audioScroll2.state = uiconst.UI_DISABLED
+                audioScroll2.opacity = 0.5
+            if len(self.sr.audioPanels) < 3:
+                col3 = uiprimitives.Container(name='col3', align=uiconst.TOLEFT, width=self.colWidth, padLeft=8, parent=parent)
+                col3.isTabOrderGroup = 1
+                self.sr.audioPanels.append(col3)
+            else:
+                col3 = self.sr.audioPanels[2]
+            if flush:
+                col3.Flush()
+            BumpedUnderlay(isInFocus=True, parent=col3)
+            advancedDisabled = not settings.user.audio.Get('inactiveSounds_advancedSettings', False)
+            audioData2 = (('leftpush', 6),
+             ('rightpush', 6),
+             ('checkbox',
+              ('inactiveSounds_advancedSettings', ('user', 'audio'), False),
+              localization.GetByLabel('UI/SystemMenu/AudioAndChat/AudioEngine/InactiveClientDampening'),
+              None,
+              None,
+              localization.GetByLabel('UI/SystemMenu/AudioAndChat/AudioEngine/InactiveInfo')),
+             ('line',),
+             ('leftpush', 15),
+             ('checkbox',
+              ('inactiveSounds_master', ('user', 'audio'), False),
+              localization.GetByLabel('UI/SystemMenu/AudioAndChat/AudioEngine/InactiveClientMasterDampening'),
+              None,
+              None,
+              None,
+              None,
+              advancedDisabled),
+             ('checkbox',
+              ('inactiveSounds_music', ('user', 'audio'), False),
+              localization.GetByLabel('UI/SystemMenu/AudioAndChat/AudioEngine/InactiveClientMusicDampening'),
+              None,
+              None,
+              None,
+              None,
+              advancedDisabled),
+             ('checkbox',
+              ('inactiveSounds_turrets', ('user', 'audio'), False),
+              localization.GetByLabel('UI/SystemMenu/AudioAndChat/AudioEngine/InactiveClientTurretsDampening'),
+              None,
+              None,
+              None,
+              None,
+              advancedDisabled),
+             ('checkbox',
+              ('inactiveSounds_shield', ('user', 'audio'), False),
+              localization.GetByLabel('UI/SystemMenu/AudioAndChat/AudioEngine/InactiveClientShieldDampening'),
+              None,
+              None,
+              None,
+              None,
+              advancedDisabled),
+             ('checkbox',
+              ('inactiveSounds_armor', ('user', 'audio'), False),
+              localization.GetByLabel('UI/SystemMenu/AudioAndChat/AudioEngine/InactiveClientArmorDampening'),
+              None,
+              None,
+              None,
+              None,
+              advancedDisabled),
+             ('checkbox',
+              ('inactiveSounds_hull', ('user', 'audio'), False),
+              localization.GetByLabel('UI/SystemMenu/AudioAndChat/AudioEngine/InactiveClientHullDampening'),
+              None,
+              None,
+              None,
+              None,
+              advancedDisabled),
+             ('checkbox',
+              ('inactiveSounds_shipsound', ('user', 'audio'), False),
+              localization.GetByLabel('UI/SystemMenu/AudioAndChat/AudioEngine/InactiveClientShipsoundDampening'),
+              None,
+              None,
+              None,
+              None,
+              advancedDisabled),
+             ('checkbox',
+              ('inactiveSounds_jumpgates', ('user', 'audio'), False),
+              localization.GetByLabel('UI/SystemMenu/AudioAndChat/AudioEngine/InactiveClientJumpgateDampening'),
+              None,
+              None,
+              None,
+              None,
+              advancedDisabled),
+             ('checkbox',
+              ('inactiveSounds_wormholes', ('user', 'audio'), False),
+              localization.GetByLabel('UI/SystemMenu/AudioAndChat/AudioEngine/InactiveClientWormholeDampening'),
+              None,
+              None,
+              None,
+              None,
+              advancedDisabled),
+             ('checkbox',
+              ('inactiveSounds_jumping', ('user', 'audio'), False),
+              localization.GetByLabel('UI/SystemMenu/AudioAndChat/AudioEngine/InactiveClientJumpingDampening'),
+              None,
+              None,
+              None,
+              None,
+              advancedDisabled),
+             ('checkbox',
+              ('inactiveSounds_aura', ('user', 'audio'), False),
+              localization.GetByLabel('UI/SystemMenu/AudioAndChat/AudioEngine/InactiveClientAuraDampening'),
+              None,
+              None,
+              None,
+              None,
+              advancedDisabled),
+             ('checkbox',
+              ('inactiveSounds_modules', ('user', 'audio'), False),
+              localization.GetByLabel('UI/SystemMenu/AudioAndChat/AudioEngine/InactiveClientModulesDampening'),
+              None,
+              None,
+              None,
+              None,
+              advancedDisabled),
+             ('checkbox',
+              ('inactiveSounds_explosions', ('user', 'audio'), False),
+              localization.GetByLabel('UI/SystemMenu/AudioAndChat/AudioEngine/InactiveClientExplosionsDampening'),
+              None,
+              None,
+              None,
+              None,
+              advancedDisabled),
+             ('checkbox',
+              ('inactiveSounds_warping', ('user', 'audio'), False),
+              localization.GetByLabel('UI/SystemMenu/AudioAndChat/AudioEngine/InactiveClientWarpingDampening'),
+              None,
+              None,
+              None,
+              None,
+              advancedDisabled),
+             ('checkbox',
+              ('inactiveSounds_locking', ('user', 'audio'), False),
+              localization.GetByLabel('UI/SystemMenu/AudioAndChat/AudioEngine/InactiveClientLockingDampening'),
+              None,
+              None,
+              None,
+              None,
+              advancedDisabled),
+             ('checkbox',
+              ('inactiveSounds_planets', ('user', 'audio'), False),
+              localization.GetByLabel('UI/SystemMenu/AudioAndChat/AudioEngine/InactiveClientPlanetsDampening'),
+              None,
+              None,
+              None,
+              None,
+              advancedDisabled),
+             ('checkbox',
+              ('inactiveSounds_impacts', ('user', 'audio'), False),
+              localization.GetByLabel('UI/SystemMenu/AudioAndChat/AudioEngine/InactiveClientImpactsDampening'),
+              None,
+              None,
+              None,
+              None,
+              advancedDisabled),
+             ('checkbox',
+              ('inactiveSounds_deployables', ('user', 'audio'), False),
+              localization.GetByLabel('UI/SystemMenu/AudioAndChat/AudioEngine/InactiveClientDeployablesDampening'),
+              None,
+              None,
+              None,
+              None,
+              advancedDisabled),
+             ('checkbox',
+              ('inactiveSounds_boosters', ('user', 'audio'), False),
+              localization.GetByLabel('UI/SystemMenu/AudioAndChat/AudioEngine/InactiveClientBoostersDampening'),
+              None,
+              None,
+              None,
+              None,
+              advancedDisabled),
+             ('checkbox',
+              ('inactiveSounds_pocos', ('user', 'audio'), False),
+              localization.GetByLabel('UI/SystemMenu/AudioAndChat/AudioEngine/InactiveClientPocosDampening'),
+              None,
+              None,
+              None,
+              None,
+              advancedDisabled),
+             ('checkbox',
+              ('inactiveSounds_stationint', ('user', 'audio'), False),
+              localization.GetByLabel('UI/SystemMenu/AudioAndChat/AudioEngine/InactiveClientStationIntDampening'),
+              None,
+              None,
+              None,
+              None,
+              advancedDisabled),
+             ('checkbox',
+              ('inactiveSounds_stationext', ('user', 'audio'), False),
+              localization.GetByLabel('UI/SystemMenu/AudioAndChat/AudioEngine/InactiveClientStationExtDampening'),
+              None,
+              None,
+              None,
+              None,
+              advancedDisabled))
+            self.ParseData(audioData2, col3)
             self.sr.audioInited = True
             return
-        if len(self.sr.audioPanels) < 2:
-            col2 = uiprimitives.Container(name='column3', align=uiconst.TOLEFT, width=self.colWidth, padLeft=8, parent=parent)
-            col2.isTabOrderGroup = 1
-            self.sr.audioPanels.append(col2)
-        else:
-            col2 = self.sr.audioPanels[1]
-        if flush:
-            col2.Flush()
-        BumpedUnderlay(isInFocus=True, parent=col2, idx=0)
-        advancedDisabled = not settings.user.audio.Get('soundLevel_advancedSettings', False)
-        audioData2 = (('leftpush', 6),
-         ('rightpush', 6),
-         ('checkbox',
-          ('soundLevel_advancedSettings', ('user', 'audio'), False),
-          localization.GetByLabel('UI/SystemMenu/AudioAndChat/AudioEngine/AdvancedAudioSettings'),
-          None,
-          None,
-          localization.GetByLabel('UI/SystemMenu/AudioAndChat/AudioEngine/AdvancedWarning')),
-         ('line',))
-        self.ParseData(audioData2, col2)
-        audioScroll2 = ScrollContainer(parent=col2, padding=(9, -5, -5, 1))
-        audioSliderSetting = (('soundLevel_custom_turrets', 'UI/SystemMenu/AudioAndChat/AudioEngine/Turrets'),
-         ('soundLevel_custom_impact', 'UI/SystemMenu/AudioAndChat/AudioEngine/Impact'),
-         ('soundLevel_custom_jumpgates', 'UI/SystemMenu/AudioAndChat/AudioEngine/Jumpgates'),
-         ('soundLevel_custom_wormholes', 'UI/SystemMenu/AudioAndChat/AudioEngine/Wormholes'),
-         ('soundLevel_custom_jumpactivation', 'UI/SystemMenu/AudioAndChat/AudioEngine/JumpActivation'),
-         ('soundLevel_custom_crimewatch', 'UI/SystemMenu/AudioAndChat/AudioEngine/Crimewatch'),
-         ('soundLevel_custom_explosions', 'UI/SystemMenu/AudioAndChat/AudioEngine/Explosions'),
-         ('soundLevel_custom_boosters', 'UI/SystemMenu/AudioAndChat/AudioEngine/Boosters'),
-         ('soundLevel_custom_stationext', 'UI/SystemMenu/AudioAndChat/AudioEngine/StationsExterior'),
-         ('soundLevel_custom_stationint', 'UI/SystemMenu/AudioAndChat/AudioEngine/StationsInterior'),
-         ('soundLevel_custom_modules', 'UI/SystemMenu/AudioAndChat/AudioEngine/Modules'),
-         ('soundLevel_custom_shipsounds', 'UI/SystemMenu/AudioAndChat/AudioEngine/ShipSounds'),
-         ('soundLevel_custom_warping', 'UI/SystemMenu/AudioAndChat/AudioEngine/Warping'),
-         ('soundLevel_custom_warpeffect', 'UI/SystemMenu/AudioAndChat/AudioEngine/WarpEffect'),
-         ('soundLevel_custom_mapisis', 'UI/SystemMenu/AudioAndChat/AudioEngine/MapIsis'),
-         ('soundLevel_custom_locking', 'UI/SystemMenu/AudioAndChat/AudioEngine/LockingSounds'),
-         ('soundLevel_custom_store', 'UI/SystemMenu/AudioAndChat/AudioEngine/Store'),
-         ('soundLevel_custom_planets', 'UI/SystemMenu/AudioAndChat/AudioEngine/Planets'),
-         ('soundLevel_custom_uiclick', 'UI/SystemMenu/AudioAndChat/AudioEngine/Uiclick'),
-         ('soundLevel_custom_radialmenu', 'UI/SystemMenu/AudioAndChat/AudioEngine/Radial'),
-         ('soundLevel_custom_uiinteraction', 'UI/SystemMenu/AudioAndChat/AudioEngine/Uiinteraction'),
-         ('soundLevel_custom_aura', 'UI/SystemMenu/AudioAndChat/AudioEngine/Aura'),
-         ('soundLevel_custom_hacking', 'UI/SystemMenu/AudioAndChat/AudioEngine/Hacking'),
-         ('soundLevel_custom_shieldlow', 'UI/SystemMenu/AudioAndChat/AudioEngine/shieldlow'),
-         ('soundLevel_custom_armorlow', 'UI/SystemMenu/AudioAndChat/AudioEngine/armorlow'),
-         ('soundLevel_custom_hulllow', 'UI/SystemMenu/AudioAndChat/AudioEngine/hulllow'),
-         ('soundLevel_custom_shipdamage', 'UI/SystemMenu/AudioAndChat/AudioEngine/ShipDamage'),
-         ('soundLevel_custom_cap', 'UI/SystemMenu/AudioAndChat/AudioEngine/cap'),
-         ('soundLevel_custom_atmosphere', 'UI/SystemMenu/AudioAndChat/AudioEngine/Atmosphere'),
-         ('soundLevel_custom_dungeonmusic', 'UI/SystemMenu/AudioAndChat/AudioEngine/DungeonMusic'),
-         ('soundLevel_custom_normalmusic', 'UI/SystemMenu/AudioAndChat/AudioEngine/NormalMusic'))
-        Container(parent=audioScroll2, align=uiconst.TOTOP, height=4)
-        for settingKey, messageLabel in audioSliderSetting:
-            SliderEntry(parent=audioScroll2, config=(settingKey, ('user', 'audio'), 0.5), minval=0.0, maxval=1.0, header=localization.GetByLabel(messageLabel), GetSliderValue=self.GetSliderValue, SetSliderLabel=self.SetSliderLabel, GetSliderHint=self.GetSliderHint, EndSetSliderValue=self.EndSliderValue, sliderWidth=80)
-
-        Container(parent=audioScroll2, align=uiconst.TOTOP, height=4)
-        if advancedDisabled:
-            audioScroll2.state = uiconst.UI_DISABLED
-            audioScroll2.opacity = 0.5
-        if len(self.sr.audioPanels) < 3:
-            col3 = uiprimitives.Container(name='col3', align=uiconst.TOLEFT, width=self.colWidth, padLeft=8, parent=parent)
-            col3.isTabOrderGroup = 1
-            self.sr.audioPanels.append(col3)
-        else:
-            col3 = self.sr.audioPanels[2]
-        if flush:
-            col3.Flush()
-        BumpedUnderlay(isInFocus=True, parent=col3)
-        advancedDisabled = not settings.user.audio.Get('inactiveSounds_advancedSettings', False)
-        audioData2 = (('leftpush', 6),
-         ('rightpush', 6),
-         ('checkbox',
-          ('inactiveSounds_advancedSettings', ('user', 'audio'), False),
-          localization.GetByLabel('UI/SystemMenu/AudioAndChat/AudioEngine/InactiveClientDampening'),
-          None,
-          None,
-          localization.GetByLabel('UI/SystemMenu/AudioAndChat/AudioEngine/InactiveInfo')),
-         ('line',),
-         ('leftpush', 15),
-         ('checkbox',
-          ('inactiveSounds_master', ('user', 'audio'), False),
-          localization.GetByLabel('UI/SystemMenu/AudioAndChat/AudioEngine/InactiveClientMasterDampening'),
-          None,
-          None,
-          None,
-          None,
-          advancedDisabled),
-         ('checkbox',
-          ('inactiveSounds_music', ('user', 'audio'), False),
-          localization.GetByLabel('UI/SystemMenu/AudioAndChat/AudioEngine/InactiveClientMusicDampening'),
-          None,
-          None,
-          None,
-          None,
-          advancedDisabled),
-         ('checkbox',
-          ('inactiveSounds_turrets', ('user', 'audio'), False),
-          localization.GetByLabel('UI/SystemMenu/AudioAndChat/AudioEngine/InactiveClientTurretsDampening'),
-          None,
-          None,
-          None,
-          None,
-          advancedDisabled),
-         ('checkbox',
-          ('inactiveSounds_shield', ('user', 'audio'), False),
-          localization.GetByLabel('UI/SystemMenu/AudioAndChat/AudioEngine/InactiveClientShieldDampening'),
-          None,
-          None,
-          None,
-          None,
-          advancedDisabled),
-         ('checkbox',
-          ('inactiveSounds_armor', ('user', 'audio'), False),
-          localization.GetByLabel('UI/SystemMenu/AudioAndChat/AudioEngine/InactiveClientArmorDampening'),
-          None,
-          None,
-          None,
-          None,
-          advancedDisabled),
-         ('checkbox',
-          ('inactiveSounds_hull', ('user', 'audio'), False),
-          localization.GetByLabel('UI/SystemMenu/AudioAndChat/AudioEngine/InactiveClientHullDampening'),
-          None,
-          None,
-          None,
-          None,
-          advancedDisabled),
-         ('checkbox',
-          ('inactiveSounds_shipsound', ('user', 'audio'), False),
-          localization.GetByLabel('UI/SystemMenu/AudioAndChat/AudioEngine/InactiveClientShipsoundDampening'),
-          None,
-          None,
-          None,
-          None,
-          advancedDisabled),
-         ('checkbox',
-          ('inactiveSounds_jumpgates', ('user', 'audio'), False),
-          localization.GetByLabel('UI/SystemMenu/AudioAndChat/AudioEngine/InactiveClientJumpgateDampening'),
-          None,
-          None,
-          None,
-          None,
-          advancedDisabled),
-         ('checkbox',
-          ('inactiveSounds_wormholes', ('user', 'audio'), False),
-          localization.GetByLabel('UI/SystemMenu/AudioAndChat/AudioEngine/InactiveClientWormholeDampening'),
-          None,
-          None,
-          None,
-          None,
-          advancedDisabled),
-         ('checkbox',
-          ('inactiveSounds_jumping', ('user', 'audio'), False),
-          localization.GetByLabel('UI/SystemMenu/AudioAndChat/AudioEngine/InactiveClientJumpingDampening'),
-          None,
-          None,
-          None,
-          None,
-          advancedDisabled),
-         ('checkbox',
-          ('inactiveSounds_aura', ('user', 'audio'), False),
-          localization.GetByLabel('UI/SystemMenu/AudioAndChat/AudioEngine/InactiveClientAuraDampening'),
-          None,
-          None,
-          None,
-          None,
-          advancedDisabled),
-         ('checkbox',
-          ('inactiveSounds_modules', ('user', 'audio'), False),
-          localization.GetByLabel('UI/SystemMenu/AudioAndChat/AudioEngine/InactiveClientModulesDampening'),
-          None,
-          None,
-          None,
-          None,
-          advancedDisabled),
-         ('checkbox',
-          ('inactiveSounds_explosions', ('user', 'audio'), False),
-          localization.GetByLabel('UI/SystemMenu/AudioAndChat/AudioEngine/InactiveClientExplosionsDampening'),
-          None,
-          None,
-          None,
-          None,
-          advancedDisabled),
-         ('checkbox',
-          ('inactiveSounds_warping', ('user', 'audio'), False),
-          localization.GetByLabel('UI/SystemMenu/AudioAndChat/AudioEngine/InactiveClientWarpingDampening'),
-          None,
-          None,
-          None,
-          None,
-          advancedDisabled),
-         ('checkbox',
-          ('inactiveSounds_locking', ('user', 'audio'), False),
-          localization.GetByLabel('UI/SystemMenu/AudioAndChat/AudioEngine/InactiveClientLockingDampening'),
-          None,
-          None,
-          None,
-          None,
-          advancedDisabled),
-         ('checkbox',
-          ('inactiveSounds_planets', ('user', 'audio'), False),
-          localization.GetByLabel('UI/SystemMenu/AudioAndChat/AudioEngine/InactiveClientPlanetsDampening'),
-          None,
-          None,
-          None,
-          None,
-          advancedDisabled),
-         ('checkbox',
-          ('inactiveSounds_impacts', ('user', 'audio'), False),
-          localization.GetByLabel('UI/SystemMenu/AudioAndChat/AudioEngine/InactiveClientImpactsDampening'),
-          None,
-          None,
-          None,
-          None,
-          advancedDisabled),
-         ('checkbox',
-          ('inactiveSounds_deployables', ('user', 'audio'), False),
-          localization.GetByLabel('UI/SystemMenu/AudioAndChat/AudioEngine/InactiveClientDeployablesDampening'),
-          None,
-          None,
-          None,
-          None,
-          advancedDisabled),
-         ('checkbox',
-          ('inactiveSounds_boosters', ('user', 'audio'), False),
-          localization.GetByLabel('UI/SystemMenu/AudioAndChat/AudioEngine/InactiveClientBoostersDampening'),
-          None,
-          None,
-          None,
-          None,
-          advancedDisabled),
-         ('checkbox',
-          ('inactiveSounds_pocos', ('user', 'audio'), False),
-          localization.GetByLabel('UI/SystemMenu/AudioAndChat/AudioEngine/InactiveClientPocosDampening'),
-          None,
-          None,
-          None,
-          None,
-          advancedDisabled),
-         ('checkbox',
-          ('inactiveSounds_stationint', ('user', 'audio'), False),
-          localization.GetByLabel('UI/SystemMenu/AudioAndChat/AudioEngine/InactiveClientStationIntDampening'),
-          None,
-          None,
-          None,
-          None,
-          advancedDisabled),
-         ('checkbox',
-          ('inactiveSounds_stationext', ('user', 'audio'), False),
-          localization.GetByLabel('UI/SystemMenu/AudioAndChat/AudioEngine/InactiveClientStationExtDampening'),
-          None,
-          None,
-          None,
-          None,
-          advancedDisabled))
-        self.ParseData(audioData2, col3)
-        self.sr.audioInited = True
 
     def Chat(self):
         if self.sr.chatInited:
             return
-        parent = uiutil.GetChild(self.sr.wnd, 'chat_container')
-        if self.sr.chatPanels is None or len(self.sr.chatPanels) == 0:
-            self.sr.chatPanels = []
-            col1 = uiprimitives.Container(name='column', align=uiconst.TOLEFT, width=self.colWidth, padLeft=8, parent=parent)
-            col1.isTabOrderGroup = 1
-            self.sr.chatPanels.append(col1)
         else:
-            col1 = self.sr.chatPanels[0]
-        BumpedUnderlay(isInFocus=True, parent=col1)
-        labelWidth = 125
-        voiceChatMenuAvailable = boot.region != 'optic'
-        if sm.GetService('vivox').LoggedIn() and voiceChatMenuAvailable:
-            keybindOptions = sm.GetService('vivox').GetAvailableKeyBindings()
-            try:
-                outputOps = [ (each[1], each[0]) for each in sm.GetService('vivox').GetAudioOutputDevices() ]
-            except:
-                log.LogException()
-                sys.exc_clear()
-                outputOps = []
+            parent = uiutil.GetChild(self.sr.wnd, 'chat_container')
+            if self.sr.chatPanels is None or len(self.sr.chatPanels) == 0:
+                self.sr.chatPanels = []
+                col1 = uiprimitives.Container(name='column', align=uiconst.TOLEFT, width=self.colWidth, padLeft=8, parent=parent)
+                col1.isTabOrderGroup = 1
+                self.sr.chatPanels.append(col1)
+            else:
+                col1 = self.sr.chatPanels[0]
+            BumpedUnderlay(isInFocus=True, parent=col1)
+            labelWidth = 125
+            voiceChatMenuAvailable = boot.region != 'optic'
+            if sm.GetService('vivox').LoggedIn() and voiceChatMenuAvailable:
+                keybindOptions = sm.GetService('vivox').GetAvailableKeyBindings()
+                try:
+                    outputOps = [ (each[1], each[0]) for each in sm.GetService('vivox').GetAudioOutputDevices() ]
+                except:
+                    log.LogException()
+                    sys.exc_clear()
+                    outputOps = []
 
-            try:
-                inputOps = [ (each[1], each[0]) for each in sm.GetService('vivox').GetAudioInputDevices() ]
-            except:
-                log.LogException()
-                sys.exc_clear()
-                inputOps = []
+                try:
+                    inputOps = [ (each[1], each[0]) for each in sm.GetService('vivox').GetAudioInputDevices() ]
+                except:
+                    log.LogException()
+                    sys.exc_clear()
+                    inputOps = []
 
-            joinedChannels = sm.GetService('vivox').GetJoinedChannels()
-            voiceHeader = localization.GetByLabel('UI/SystemMenu/AudioAndChat/VoiceSettings/Header')
-            voiceServerInfo = sm.GetService('vivox').GetServerInfo()
-            if voiceServerInfo:
-                voiceHeader = localization.GetByLabel('UI/SystemMenu/AudioAndChat/VoiceSettings/Header', server=voiceServerInfo)
-            vivoxData = [('header', voiceHeader),
-             ('checkbox',
-              ('voiceenabled', ('user', 'audio'), 1),
-              localization.GetByLabel('UI/SystemMenu/AudioAndChat/VoiceSettings/EveVoiceEnabled'),
-              None,
-              None,
-              localization.GetByLabel('UI/SystemMenu/AudioAndChat/VoiceSettings/EveVoiceEnabledTooltip')),
-             ('checkbox',
-              ('talkMutesGameSounds', ('user', 'audio'), 0),
-              localization.GetByLabel('UI/SystemMenu/AudioAndChat/VoiceSettings/MuteWhenITalk'),
-              None,
-              None,
-              localization.GetByLabel('UI/SystemMenu/AudioAndChat/VoiceSettings/MuteWhenITalkTooltip')),
-             ('checkbox',
-              ('listenMutesGameSounds', ('user', 'audio'), 0),
-              localization.GetByLabel('UI/SystemMenu/AudioAndChat/VoiceSettings/MuteWhenOthersTalk'),
-              None,
-              None,
-              localization.GetByLabel('UI/SystemMenu/AudioAndChat/VoiceSettings/MuteWhenOthersTalkTooltip')),
-             ('header', localization.GetByLabel('UI/SystemMenu/AudioAndChat/ChannelSpecification/Header')),
-             ('checkbox',
-              ('talkMoveToTopBtn', ('user', 'audio'), 0),
-              localization.GetByLabel('UI/SystemMenu/AudioAndChat/ChannelSpecification/MoveLastSpeakerToTop'),
-              None,
-              None,
-              localization.GetByLabel('UI/SystemMenu/AudioAndChat/ChannelSpecification/MoveLastSpeakerToTopTooltip')),
-             ('checkbox',
-              ('talkAutoJoinFleet', ('user', 'audio'), 1),
-              localization.GetByLabel('UI/SystemMenu/AudioAndChat/ChannelSpecification/AutoJoinFleetVoice'),
-              None,
-              None,
-              localization.GetByLabel('UI/SystemMenu/AudioAndChat/ChannelSpecification/AutoJoinFleetVoiceTooltip')),
-             ('checkbox',
-              ('talkChannelPriority', ('user', 'audio'), 0),
-              localization.GetByLabel('UI/SystemMenu/AudioAndChat/ChannelSpecification/ChannelPrioritize'),
-              None,
-              None,
-              localization.GetByLabel('UI/SystemMenu/AudioAndChat/ChannelSpecification/ChannelPrioritizeTooltip')),
-             ('header', localization.GetByLabel('UI/SystemMenu/AudioAndChat/GenericConfiguration/Header')),
-             ('toppush', 4),
-             ('combo',
-              ('talkBinding', ('user', 'audio'), 4),
-              localization.GetByLabel('UI/SystemMenu/AudioAndChat/GenericConfiguration/TalkKey'),
-              keybindOptions,
-              labelWidth),
-             ('combo',
-              ('TalkOutputDevice', ('user', 'audio'), 0),
-              localization.GetByLabel('UI/SystemMenu/AudioAndChat/GenericConfiguration/AudioOutputDevice'),
-              outputOps,
-              labelWidth),
-             ('combo',
-              ('TalkInputDevice', ('user', 'audio'), 0),
-              localization.GetByLabel('UI/SystemMenu/AudioAndChat/GenericConfiguration/AudioInputDevice'),
-              inputOps,
-              labelWidth),
-             ('slider',
-              ('TalkMicrophoneVolume', ('user', 'audio'), sm.GetService('vivox').defaultMicrophoneVolume),
-              'UI/SystemMenu/AudioAndChat/GenericConfiguration/InputVolume',
-              (0.0, 1.0),
-              labelWidth),
-             ('toppush', 4)]
-            self.ParseData(vivoxData, col1)
-            inputmeterpar = uiprimitives.Container(name='inputmeter', align=uiconst.TOTOP, height=12, parent=col1)
-            if not sm.GetService('vivox').GetSpeakingChannel() == 'Echo':
-                uix.GetContainerHeader(localization.GetByLabel('UI/SystemMenu/AudioAndChat/GenericConfiguration/TalkMeterInactive'), col1, 0)
+                joinedChannels = sm.GetService('vivox').GetJoinedChannels()
+                voiceHeader = localization.GetByLabel('UI/SystemMenu/AudioAndChat/VoiceSettings/Header')
+                voiceServerInfo = sm.GetService('vivox').GetServerInfo()
+                if voiceServerInfo:
+                    voiceHeader = localization.GetByLabel('UI/SystemMenu/AudioAndChat/VoiceSettings/Header', server=voiceServerInfo)
+                vivoxData = [('header', voiceHeader),
+                 ('checkbox',
+                  ('voiceenabled', ('user', 'audio'), 1),
+                  localization.GetByLabel('UI/SystemMenu/AudioAndChat/VoiceSettings/EveVoiceEnabled'),
+                  None,
+                  None,
+                  localization.GetByLabel('UI/SystemMenu/AudioAndChat/VoiceSettings/EveVoiceEnabledTooltip')),
+                 ('checkbox',
+                  ('talkMutesGameSounds', ('user', 'audio'), 0),
+                  localization.GetByLabel('UI/SystemMenu/AudioAndChat/VoiceSettings/MuteWhenITalk'),
+                  None,
+                  None,
+                  localization.GetByLabel('UI/SystemMenu/AudioAndChat/VoiceSettings/MuteWhenITalkTooltip')),
+                 ('checkbox',
+                  ('listenMutesGameSounds', ('user', 'audio'), 0),
+                  localization.GetByLabel('UI/SystemMenu/AudioAndChat/VoiceSettings/MuteWhenOthersTalk'),
+                  None,
+                  None,
+                  localization.GetByLabel('UI/SystemMenu/AudioAndChat/VoiceSettings/MuteWhenOthersTalkTooltip')),
+                 ('header', localization.GetByLabel('UI/SystemMenu/AudioAndChat/ChannelSpecification/Header')),
+                 ('checkbox',
+                  ('talkMoveToTopBtn', ('user', 'audio'), 0),
+                  localization.GetByLabel('UI/SystemMenu/AudioAndChat/ChannelSpecification/MoveLastSpeakerToTop'),
+                  None,
+                  None,
+                  localization.GetByLabel('UI/SystemMenu/AudioAndChat/ChannelSpecification/MoveLastSpeakerToTopTooltip')),
+                 ('checkbox',
+                  ('talkAutoJoinFleet', ('user', 'audio'), 1),
+                  localization.GetByLabel('UI/SystemMenu/AudioAndChat/ChannelSpecification/AutoJoinFleetVoice'),
+                  None,
+                  None,
+                  localization.GetByLabel('UI/SystemMenu/AudioAndChat/ChannelSpecification/AutoJoinFleetVoiceTooltip')),
+                 ('checkbox',
+                  ('talkChannelPriority', ('user', 'audio'), 0),
+                  localization.GetByLabel('UI/SystemMenu/AudioAndChat/ChannelSpecification/ChannelPrioritize'),
+                  None,
+                  None,
+                  localization.GetByLabel('UI/SystemMenu/AudioAndChat/ChannelSpecification/ChannelPrioritizeTooltip')),
+                 ('header', localization.GetByLabel('UI/SystemMenu/AudioAndChat/GenericConfiguration/Header')),
+                 ('toppush', 4),
+                 ('combo',
+                  ('talkBinding', ('user', 'audio'), 4),
+                  localization.GetByLabel('UI/SystemMenu/AudioAndChat/GenericConfiguration/TalkKey'),
+                  keybindOptions,
+                  labelWidth),
+                 ('combo',
+                  ('TalkOutputDevice', ('user', 'audio'), 0),
+                  localization.GetByLabel('UI/SystemMenu/AudioAndChat/GenericConfiguration/AudioOutputDevice'),
+                  outputOps,
+                  labelWidth),
+                 ('combo',
+                  ('TalkInputDevice', ('user', 'audio'), 0),
+                  localization.GetByLabel('UI/SystemMenu/AudioAndChat/GenericConfiguration/AudioInputDevice'),
+                  inputOps,
+                  labelWidth),
+                 ('slider',
+                  ('TalkMicrophoneVolume', ('user', 'audio'), sm.GetService('vivox').defaultMicrophoneVolume),
+                  'UI/SystemMenu/AudioAndChat/GenericConfiguration/InputVolume',
+                  (0.0, 1.0),
+                  labelWidth),
+                 ('toppush', 4)]
+                self.ParseData(vivoxData, col1)
+                inputmeterpar = uiprimitives.Container(name='inputmeter', align=uiconst.TOTOP, height=12, parent=col1)
+                if not sm.GetService('vivox').GetSpeakingChannel() == 'Echo':
+                    uix.GetContainerHeader(localization.GetByLabel('UI/SystemMenu/AudioAndChat/GenericConfiguration/TalkMeterInactive'), col1, 0)
+                else:
+                    subpar = uiprimitives.Container(name='im_sub', align=uiconst.TORIGHT, width=col1.width - labelWidth - 11, parent=inputmeterpar)
+                    BumpedUnderlay(isInFocus=True, parent=subpar, width=-1)
+                    self.maxInputMeterWidth = subpar.width - 4
+                    self.sr.inputmeter = uiprimitives.Fill(parent=subpar, left=2, top=2, width=1, height=inputmeterpar.height - 4, align=uiconst.RELATIVE, color=(1.0, 1.0, 1.0, 0.25))
+                    uicontrols.EveLabelSmall(text=localization.GetByLabel('UI/SystemMenu/AudioAndChat/GenericConfiguration/TalkMeter'), parent=inputmeterpar, top=2, state=uiconst.UI_NORMAL)
+                    sm.GetService('vivox').RegisterIntensityCallback(self)
+                    sm.GetService('vivox').StartAudioTest()
+                if sm.GetService('vivox').GetSpeakingChannel() == 'Echo':
+                    echoBtnLabel = localization.GetByLabel('UI/SystemMenu/AudioAndChat/GenericConfiguration/StopEchoTest')
+                    echoTextString = localization.GetByLabel('UI/SystemMenu/AudioAndChat/GenericConfiguration/EchoTestInstructions')
+                else:
+                    echoBtnLabel = localization.GetByLabel('UI/SystemMenu/AudioAndChat/GenericConfiguration/EchoTest')
+                    echoTextString = ''
+                btnPar = uiprimitives.Container(name='push', align=uiconst.TOTOP, height=30, parent=col1)
+                self.echoBtn = uicontrols.Button(parent=btnPar, label=echoBtnLabel, func=self.JoinLeaveEchoChannel, align=uiconst.CENTER)
+                uiprimitives.Container(name='push', align=uiconst.TOTOP, height=8, parent=col1)
+                self.echoText = uicontrols.EveLabelSmall(text=echoTextString, parent=col1, align=uiconst.TOTOP, state=uiconst.UI_NORMAL)
+            elif eve.session.userid and voiceChatMenuAvailable:
+                vivoxData = (('header', localization.GetByLabel('UI/SystemMenu/AudioAndChat/VoiceSettings/Header')),
+                 ('checkbox',
+                  ('voiceenabled', ('user', 'audio'), 1),
+                  localization.GetByLabel('UI/SystemMenu/AudioAndChat/VoiceSettings/EveVoiceEnabled'),
+                  None,
+                  None,
+                  localization.GetByLabel('UI/SystemMenu/AudioAndChat/VoiceSettings/EveVoiceEnabledTooltip')),
+                 ('checkbox',
+                  ('talkMutesGameSounds', ('user', 'audio'), 0),
+                  localization.GetByLabel('UI/SystemMenu/AudioAndChat/VoiceSettings/MuteWhenITalk'),
+                  None,
+                  None,
+                  localization.GetByLabel('UI/SystemMenu/AudioAndChat/VoiceSettings/MuteWhenITalkTooltip')),
+                 ('checkbox',
+                  ('listenMutesGameSounds', ('user', 'audio'), 0),
+                  localization.GetByLabel('UI/SystemMenu/AudioAndChat/VoiceSettings/MuteWhenOthersTalk'),
+                  None,
+                  None,
+                  localization.GetByLabel('UI/SystemMenu/AudioAndChat/VoiceSettings/MuteWhenOthersTalkTooltip')),
+                 ('header', localization.GetByLabel('UI/SystemMenu/AudioAndChat/ChannelSpecification/Header')),
+                 ('text', localization.GetByLabel('UI/SystemMenu/AudioAndChat/GenericConfiguration/NotConnected')))
+                self.ParseData(vivoxData, col1, 0)
+            elif voiceChatMenuAvailable:
+                vivoxData = (('header', localization.GetByLabel('UI/SystemMenu/AudioAndChat/VoiceSettings/Header')),
+                 ('text', localization.GetByLabel('UI/SystemMenu/AudioAndChat/GenericConfiguration/NotLoggedIn')),
+                 ('header', localization.GetByLabel('UI/SystemMenu/AudioAndChat/ChannelSpecification/Header')),
+                 ('text', localization.GetByLabel('UI/SystemMenu/AudioAndChat/GenericConfiguration/NotConnected')))
+                self.ParseData(vivoxData, col1, 0)
+            self.sr.chatInited = 1
+            if voiceChatMenuAvailable:
+                if len(self.sr.chatPanels) < 2:
+                    col2 = uiprimitives.Container(name='column2', align=uiconst.TOLEFT, width=self.colWidth, padLeft=8, parent=parent)
+                    col2.isTabOrderGroup = 1
+                    self.sr.chatPanels.append(col2)
+                else:
+                    col2 = self.sr.chatPanels[1]
             else:
-                subpar = uiprimitives.Container(name='im_sub', align=uiconst.TORIGHT, width=col1.width - labelWidth - 11, parent=inputmeterpar)
-                BumpedUnderlay(isInFocus=True, parent=subpar, width=-1)
-                self.maxInputMeterWidth = subpar.width - 4
-                self.sr.inputmeter = uiprimitives.Fill(parent=subpar, left=2, top=2, width=1, height=inputmeterpar.height - 4, align=uiconst.RELATIVE, color=(1.0, 1.0, 1.0, 0.25))
-                uicontrols.EveLabelSmall(text=localization.GetByLabel('UI/SystemMenu/AudioAndChat/GenericConfiguration/TalkMeter'), parent=inputmeterpar, top=2, state=uiconst.UI_NORMAL)
-                sm.GetService('vivox').RegisterIntensityCallback(self)
-                sm.GetService('vivox').StartAudioTest()
-            if sm.GetService('vivox').GetSpeakingChannel() == 'Echo':
-                echoBtnLabel = localization.GetByLabel('UI/SystemMenu/AudioAndChat/GenericConfiguration/StopEchoTest')
-                echoTextString = localization.GetByLabel('UI/SystemMenu/AudioAndChat/GenericConfiguration/EchoTestInstructions')
+                col2 = col1
+            BumpedUnderlay(isInFocus=True, parent=col2, idx=0)
+            dblClickUserOps = [(localization.GetByLabel('UI/Commands/ShowInfo'), 0), (localization.GetByLabel('UI/Chat/StartConversation'), 1)]
+            self.ParseData((('header', localization.GetByLabel('UI/SystemMenu/AudioAndChat/Chat/Header')),), col2, 0)
+            if eve.session.userid:
+                chatData = (('checkbox', ('logchat', ('user', 'ui'), 1), localization.GetByLabel('UI/SystemMenu/AudioAndChat/Chat/LogChatToFile')),
+                 ('checkbox', ('autoRejectInvitations', ('user', 'ui'), 0), localization.GetByLabel('UI/SystemMenu/AudioAndChat/Chat/AutoRejectInvitations')),
+                 ('toppush', 4),
+                 ('combo',
+                  ('dblClickUser', ('user', 'ui'), 0),
+                  localization.GetByLabel('UI/SystemMenu/AudioAndChat/Chat/OnDoubleClick'),
+                  dblClickUserOps,
+                  labelWidth),
+                 ('toppush', 4))
+                if voiceChatMenuAvailable and sm.GetService('vivox').LoggedIn():
+                    chatData += (('header', localization.GetByLabel('UI/SystemMenu/AudioAndChat/VoiceChatChannelSettings/Header')),
+                     ('checkbox', ('chatJoinCorporationChannelOnLogin', ('user', 'ui'), 0), localization.GetByLabel('UI/SystemMenu/AudioAndChat/VoiceChatChannelSettings/AutoJoinCorporation')),
+                     ('checkbox', ('chatJoinAllianceChannelOnLogin', ('user', 'ui'), 0), localization.GetByLabel('UI/SystemMenu/AudioAndChat/VoiceChatChannelSettings/AutoJoinAlliance')),
+                     ('header', localization.GetByLabel('UI/SystemMenu/AudioAndChat/VoiceFont/Header')))
             else:
-                echoBtnLabel = localization.GetByLabel('UI/SystemMenu/AudioAndChat/GenericConfiguration/EchoTest')
-                echoTextString = ''
-            btnPar = uiprimitives.Container(name='push', align=uiconst.TOTOP, height=30, parent=col1)
-            self.echoBtn = uicontrols.Button(parent=btnPar, label=echoBtnLabel, func=self.JoinLeaveEchoChannel, align=uiconst.CENTER)
-            uiprimitives.Container(name='push', align=uiconst.TOTOP, height=8, parent=col1)
-            self.echoText = uicontrols.EveLabelSmall(text=echoTextString, parent=col1, align=uiconst.TOTOP, state=uiconst.UI_NORMAL)
-        elif eve.session.userid and voiceChatMenuAvailable:
-            vivoxData = (('header', localization.GetByLabel('UI/SystemMenu/AudioAndChat/VoiceSettings/Header')),
-             ('checkbox',
-              ('voiceenabled', ('user', 'audio'), 1),
-              localization.GetByLabel('UI/SystemMenu/AudioAndChat/VoiceSettings/EveVoiceEnabled'),
-              None,
-              None,
-              localization.GetByLabel('UI/SystemMenu/AudioAndChat/VoiceSettings/EveVoiceEnabledTooltip')),
-             ('checkbox',
-              ('talkMutesGameSounds', ('user', 'audio'), 0),
-              localization.GetByLabel('UI/SystemMenu/AudioAndChat/VoiceSettings/MuteWhenITalk'),
-              None,
-              None,
-              localization.GetByLabel('UI/SystemMenu/AudioAndChat/VoiceSettings/MuteWhenITalkTooltip')),
-             ('checkbox',
-              ('listenMutesGameSounds', ('user', 'audio'), 0),
-              localization.GetByLabel('UI/SystemMenu/AudioAndChat/VoiceSettings/MuteWhenOthersTalk'),
-              None,
-              None,
-              localization.GetByLabel('UI/SystemMenu/AudioAndChat/VoiceSettings/MuteWhenOthersTalkTooltip')),
-             ('header', localization.GetByLabel('UI/SystemMenu/AudioAndChat/ChannelSpecification/Header')),
-             ('text', localization.GetByLabel('UI/SystemMenu/AudioAndChat/GenericConfiguration/NotConnected')))
-            self.ParseData(vivoxData, col1, 0)
-        elif voiceChatMenuAvailable:
-            vivoxData = (('header', localization.GetByLabel('UI/SystemMenu/AudioAndChat/VoiceSettings/Header')),
-             ('text', localization.GetByLabel('UI/SystemMenu/AudioAndChat/GenericConfiguration/NotLoggedIn')),
-             ('header', localization.GetByLabel('UI/SystemMenu/AudioAndChat/ChannelSpecification/Header')),
-             ('text', localization.GetByLabel('UI/SystemMenu/AudioAndChat/GenericConfiguration/NotConnected')))
-            self.ParseData(vivoxData, col1, 0)
-        self.sr.chatInited = 1
-        if voiceChatMenuAvailable:
-            if len(self.sr.chatPanels) < 2:
-                col2 = uiprimitives.Container(name='column2', align=uiconst.TOLEFT, width=self.colWidth, padLeft=8, parent=parent)
-                col2.isTabOrderGroup = 1
-                self.sr.chatPanels.append(col2)
-            else:
-                col2 = self.sr.chatPanels[1]
-        else:
-            col2 = col1
-        BumpedUnderlay(isInFocus=True, parent=col2, idx=0)
-        dblClickUserOps = [(localization.GetByLabel('UI/Commands/ShowInfo'), 0), (localization.GetByLabel('UI/Chat/StartConversation'), 1)]
-        self.ParseData((('header', localization.GetByLabel('UI/SystemMenu/AudioAndChat/Chat/Header')),), col2, 0)
-        if eve.session.userid:
-            chatData = (('checkbox', ('logchat', ('user', 'ui'), 1), localization.GetByLabel('UI/SystemMenu/AudioAndChat/Chat/LogChatToFile')),
-             ('checkbox', ('autoRejectInvitations', ('user', 'ui'), 0), localization.GetByLabel('UI/SystemMenu/AudioAndChat/Chat/AutoRejectInvitations')),
-             ('toppush', 4),
-             ('combo',
-              ('dblClickUser', ('user', 'ui'), 0),
-              localization.GetByLabel('UI/SystemMenu/AudioAndChat/Chat/OnDoubleClick'),
-              dblClickUserOps,
-              labelWidth),
-             ('toppush', 4))
-            if voiceChatMenuAvailable and sm.GetService('vivox').LoggedIn():
-                chatData += (('header', localization.GetByLabel('UI/SystemMenu/AudioAndChat/VoiceChatChannelSettings/Header')),
-                 ('checkbox', ('chatJoinCorporationChannelOnLogin', ('user', 'ui'), 0), localization.GetByLabel('UI/SystemMenu/AudioAndChat/VoiceChatChannelSettings/AutoJoinCorporation')),
-                 ('checkbox', ('chatJoinAllianceChannelOnLogin', ('user', 'ui'), 0), localization.GetByLabel('UI/SystemMenu/AudioAndChat/VoiceChatChannelSettings/AutoJoinAlliance')),
-                 ('header', localization.GetByLabel('UI/SystemMenu/AudioAndChat/VoiceFont/Header')))
-        else:
-            chatData = (('text', localization.GetByLabel('UI/SystemMenu/AudioAndChat/GenericConfiguration/NotLoggedIn')),)
-        self.ParseData(chatData, col2, 0)
-        if eve.session.charid and voiceChatMenuAvailable and sm.GetService('vivox').LoggedIn():
-            currentVoiceFont = settings.char.ui.Get('voiceFontName', localization.GetByLabel('UI/SystemMenu/AudioAndChat/VoiceFont/NoFontSelected'))
-            currentVoiceFontText = uicontrols.EveLabelSmall(text=localization.GetByLabel('UI/SystemMenu/AudioAndChat/VoiceFont/SelectedFont', selectedFont=currentVoiceFont), parent=col2, align=uiconst.TOTOP, top=4)
-            btnPar = uiprimitives.Container(name='push', align=uiconst.TOTOP, height=30, parent=col2)
-            self.voiceFontBtn = uicontrols.Button(parent=btnPar, label=localization.GetByLabel('UI/SystemMenu/AudioAndChat/VoiceFont/ChangeFont'), func=self.SelectVoiceFontDialog, args=(), align=uiconst.CENTER)
-            uiprimitives.Container(name='push', align=uiconst.TOTOP, height=8, parent=col2)
+                chatData = (('text', localization.GetByLabel('UI/SystemMenu/AudioAndChat/GenericConfiguration/NotLoggedIn')),)
+            self.ParseData(chatData, col2, 0)
+            if eve.session.charid and voiceChatMenuAvailable and sm.GetService('vivox').LoggedIn():
+                currentVoiceFont = settings.char.ui.Get('voiceFontName', localization.GetByLabel('UI/SystemMenu/AudioAndChat/VoiceFont/NoFontSelected'))
+                currentVoiceFontText = uicontrols.EveLabelSmall(text=localization.GetByLabel('UI/SystemMenu/AudioAndChat/VoiceFont/SelectedFont', selectedFont=currentVoiceFont), parent=col2, align=uiconst.TOTOP, top=4)
+                btnPar = uiprimitives.Container(name='push', align=uiconst.TOTOP, height=30, parent=col2)
+                self.voiceFontBtn = uicontrols.Button(parent=btnPar, label=localization.GetByLabel('UI/SystemMenu/AudioAndChat/VoiceFont/ChangeFont'), func=self.SelectVoiceFontDialog, args=(), align=uiconst.CENTER)
+                uiprimitives.Container(name='push', align=uiconst.TOTOP, height=8, parent=col2)
+            return
 
     def SelectVoiceFontDialog(self):
         wnd = form.VoiceFontSelectionWindow.GetIfOpen()
         if wnd is None:
             wnd = form.VoiceFontSelectionWindow.Open()
             wnd.ShowModal()
+        return
 
     def Displayandgraphics(self):
         if self.sr.displayandgraphicsinited:
@@ -1352,7 +1359,7 @@ class SystemMenu(uicls.LayerCore):
         self.ProcessGraphicsSettings()
         self.sr.displayandgraphicsinited = 1
 
-    def ProcessGraphicsSettings(self, status = None):
+    def ProcessGraphicsSettings(self, status=None):
         where = self.sr.Get('graphicssetup', None)
         where2 = self.sr.Get('graphicssetup2', None)
         deviceSvc = sm.GetService('device')
@@ -1423,12 +1430,6 @@ class SystemMenu(uicls.LayerCore):
           None,
           None,
           localization.GetByLabel('UI/SystemMenu/DisplayAndGraphics/GraphicContentSettings/HDRTooltip'))]
-        graphicsData2 += [('checkbox',
-          (gfxsettings.GetSettingKey(gfxsettings.MISC_LOAD_STATION_ENV), None, gfxsettings.GetPendingOrCurrent(gfxsettings.MISC_LOAD_STATION_ENV)),
-          localization.GetByLabel('UI/SystemMenu/DisplayAndGraphics/GraphicContentSettings/LoadStationEnvironment'),
-          None,
-          None,
-          localization.GetByLabel('UI/SystemMenu/DisplayAndGraphics/GraphicContentSettings/LoadStationEnvironmentTooltip'))]
         graphicsData2.append(('button',
          None,
          localization.GetByLabel('UI/SystemMenu/DisplayAndGraphics/GraphicContentSettings/Brightness'),
@@ -1585,6 +1586,7 @@ class SystemMenu(uicls.LayerCore):
              0))
             bottomLeftCounter += btn.width + 2
             bottomBtnPar.width = bottomLeftCounter
+        return
 
     def OpenOptimizeSettings(self):
         optimizeWnd = OptimizeSettingsWindow.GetIfOpen()
@@ -1595,6 +1597,7 @@ class SystemMenu(uicls.LayerCore):
             sm.GetService('sceneManager').ApplyClothSimulationSettings()
         else:
             self.optimizeWnd = optimizeWnd
+        return
 
     def ResetGraphicsSettings(self):
         gfxsettings.SetDefault(gfxsettings.GFX_HDR_ENABLED)
@@ -1609,7 +1612,6 @@ class SystemMenu(uicls.LayerCore):
         gfxsettings.SetDefault(gfxsettings.GFX_SHADOW_QUALITY)
         gfxsettings.SetDefault(gfxsettings.GFX_ANTI_ALIASING)
         gfxsettings.SetDefault(gfxsettings.GFX_BRIGHTNESS)
-        gfxsettings.SetDefault(gfxsettings.MISC_LOAD_STATION_ENV)
         if session.userid:
             gfxsettings.SetDefault(gfxsettings.UI_TURRETS_ENABLED)
             gfxsettings.SetDefault(gfxsettings.UI_EFFECTS_ENABLED)
@@ -1619,7 +1621,7 @@ class SystemMenu(uicls.LayerCore):
             gfxsettings.SetDefault(gfxsettings.UI_NCC_GREEN_SCREEN)
             gfxsettings.SetDefault(gfxsettings.UI_CAMERA_OFFSET)
             gfxsettings.SetDefault(gfxsettings.UI_CAMERA_INVERT_Y)
-            gfxsettings.SetDefault(gfxsettings.UI_CAMERA_SPEED)
+            gfxsettings.SetDefault(gfxsettings.UI_CAMERA_INERTIA)
             gfxsettings.SetDefault(gfxsettings.UI_ASTEROID_ATMOSPHERICS)
             gfxsettings.SetDefault(gfxsettings.UI_GODRAYS)
             gfxsettings.SetDefault(gfxsettings.UI_SHIPSKINSINSPACE_ENABLED)
@@ -1631,7 +1633,7 @@ class SystemMenu(uicls.LayerCore):
         deviceSvc = sm.GetService('device')
         dev = trinity.device
         changes = gfxsettings.ApplyPendingChanges(gfxsettings.SETTINGS_GROUP_DEVICE)
-        if session.userid:
+        if gfxsettings.IsInitialized(gfxsettings.SETTINGS_GROUP_UI):
             changes.extend(gfxsettings.ApplyPendingChanges(gfxsettings.SETTINGS_GROUP_UI))
         if gfxsettings.MISC_RESOURCE_CACHE_ENABLED in changes:
             deviceSvc.SetResourceCacheSize()
@@ -1674,34 +1676,36 @@ class SystemMenu(uicls.LayerCore):
     def Shortcuts(self):
         if self.sr.shortcutsinited:
             return
-        parent = uiutil.GetChild(self.sr.wnd, 'shortcuts_container')
-        parent.Load = self.LoadShortcutTabs
-        parent.Flush()
-        tabs = []
-        categories = [('window', localization.GetByLabel('UI/SystemMenu/Shortcuts/WindowTab')),
-         ('combat', localization.GetByLabel('UI/SystemMenu/Shortcuts/CombatTab')),
-         ('general', localization.GetByLabel('UI/SystemMenu/Shortcuts/GeneralTab')),
-         ('navigation', localization.GetByLabel('UI/SystemMenu/Shortcuts/NavigationTab')),
-         ('modules', localization.GetByLabel('UI/SystemMenu/Shortcuts/ModulesTab')),
-         ('drones', localization.GetByLabel('UI/SystemMenu/Shortcuts/DronesTab')),
-         ('charactercreator', localization.GetByLabel('UI/CharacterCreation')),
-         ('movement', localization.GetByLabel('UI/SystemMenu/Shortcuts/CharacterMovementTab'))]
-        for category, label in categories:
-            if category in uicore.cmd.GetCommandCategoryNames():
-                tabs.append([label,
-                 None,
-                 parent,
-                 category])
+        else:
+            parent = uiutil.GetChild(self.sr.wnd, 'shortcuts_container')
+            parent.Load = self.LoadShortcutTabs
+            parent.Flush()
+            tabs = []
+            categories = [('window', localization.GetByLabel('UI/SystemMenu/Shortcuts/WindowTab')),
+             ('combat', localization.GetByLabel('UI/SystemMenu/Shortcuts/CombatTab')),
+             ('general', localization.GetByLabel('UI/SystemMenu/Shortcuts/GeneralTab')),
+             ('navigation', localization.GetByLabel('UI/SystemMenu/Shortcuts/NavigationTab')),
+             ('modules', localization.GetByLabel('UI/SystemMenu/Shortcuts/ModulesTab')),
+             ('drones', localization.GetByLabel('UI/SystemMenu/Shortcuts/DronesTab')),
+             ('charactercreator', localization.GetByLabel('UI/CharacterCreation')),
+             ('movement', localization.GetByLabel('UI/SystemMenu/Shortcuts/CharacterMovementTab'))]
+            for category, label in categories:
+                if category in uicore.cmd.GetCommandCategoryNames():
+                    tabs.append([label,
+                     None,
+                     parent,
+                     category])
 
-        self.sr.shortcutTabs = uicontrols.TabGroup(name='tabs', parent=parent, padBottom=5, tabs=tabs, groupID='tabs', autoselecttab=1, idx=0)
-        col2 = uiprimitives.Container(name='column2', parent=parent)
-        col2.isTabOrderGroup = 1
-        shortcutoptions = uiprimitives.Container(name='options', align=uiconst.TOBOTTOM, height=30, top=0, parent=col2, padding=(5, 0, 5, 0))
-        btns = [(localization.GetByLabel('UI/SystemMenu/Shortcuts/EditShortcut'), self.OnEditShortcutBtnClicked, None), (localization.GetByLabel('UI/SystemMenu/Shortcuts/ClearShortcut'), self.OnClearShortcutBtnClicked, None)]
-        btnGroup = uicontrols.ButtonGroup(btns=btns, parent=shortcutoptions, line=False, subalign=uiconst.BOTTOMLEFT)
-        btn = uicontrols.Button(parent=shortcutoptions, label=localization.GetByLabel('UI/SystemMenu/Shortcuts/DefaultShortcuts'), func=self.RestoreShortcuts, top=0, align=uiconst.BOTTOMRIGHT)
-        self.sr.active_cmdscroll = uicontrols.Scroll(name='availscroll', align=uiconst.TOALL, parent=col2, padLeft=8, multiSelect=False, id='active_cmdscroll')
-        self.sr.shortcutsinited = 1
+            self.sr.shortcutTabs = uicontrols.TabGroup(name='tabs', parent=parent, padBottom=5, tabs=tabs, groupID='tabs', autoselecttab=1, idx=0)
+            col2 = uiprimitives.Container(name='column2', parent=parent)
+            col2.isTabOrderGroup = 1
+            shortcutoptions = uiprimitives.Container(name='options', align=uiconst.TOBOTTOM, height=30, top=0, parent=col2, padding=(5, 0, 5, 0))
+            btns = [(localization.GetByLabel('UI/SystemMenu/Shortcuts/EditShortcut'), self.OnEditShortcutBtnClicked, None), (localization.GetByLabel('UI/SystemMenu/Shortcuts/ClearShortcut'), self.OnClearShortcutBtnClicked, None)]
+            btnGroup = uicontrols.ButtonGroup(btns=btns, parent=shortcutoptions, line=False, subalign=uiconst.BOTTOMLEFT)
+            btn = uicontrols.Button(parent=shortcutoptions, label=localization.GetByLabel('UI/SystemMenu/Shortcuts/DefaultShortcuts'), func=self.RestoreShortcuts, top=0, align=uiconst.BOTTOMRIGHT)
+            self.sr.active_cmdscroll = uicontrols.Scroll(name='availscroll', align=uiconst.TOALL, parent=col2, padLeft=8, multiSelect=False, id='active_cmdscroll')
+            self.sr.shortcutsinited = 1
+            return
 
     def OnEditShortcutBtnClicked(self, *args):
         selected = self.sr.active_cmdscroll.GetSelected()
@@ -1719,123 +1723,125 @@ class SystemMenu(uicls.LayerCore):
     def LoadShortcutTabs(self, key):
         self.ReloadCommands(key)
 
-    def Resetsettings(self, reload = 0):
+    def Resetsettings(self, reload=0):
         if self.sr.resetsettingsinited:
             return
-        parent = uiutil.GetChild(self.sr.wnd, 'reset settings_container')
-        scrollTo = None
-        suppressScrollTo = None
-        defaultScrollTo = None
-        if reload:
-            scroll = uiutil.FindChild(parent, 'tutorialResetScroll')
-            if scroll:
-                scrollTo = scroll.GetScrollProportion()
-            scroll = uiutil.FindChild(parent, 'suppressResetScroll')
-            if scroll:
-                suppressScrollTo = scroll.GetScrollProportion()
-            scroll = uiutil.FindChild(parent, 'defaultResetScroll')
-            if scroll:
-                defaultScrollTo = scroll.GetScrollProportion()
-        uix.Flush(parent)
-        col1 = uiprimitives.Container(name='col1', align=uiconst.TOLEFT, width=self.colWidth, padLeft=8, parent=parent)
-        col1.isTabOrderGroup = 1
-        BumpedUnderlay(isInFocus=True, parent=col1)
-        uix.GetContainerHeader(localization.GetByLabel('UI/SystemMenu/ResetSettings/ResetSuppressMessageSettings/Header'), col1, 0)
-        scroll = uicontrols.Scroll(parent=col1)
-        scroll.name = 'suppressResetScroll'
-        scroll.HideBackground()
-        scrollList = []
-        i = 0
-        for each in settings.user.suppress.GetValues().keys():
-            label = self.GetConfigName(each)
-            entry = listentry.Get('Button', {'label': label,
-             'caption': localization.GetByLabel('UI/SystemMenu/ResetSettings/Reset'),
-             'OnClick': self.ConfigBtnClick,
-             'args': (each,),
-             'maxLines': None,
-             'entryWidth': self.colWidth - 16})
-            scrollList.append((label, entry))
-
-        scrollList = uiutil.SortListOfTuples(scrollList)
-        scroll.Load(contentList=scrollList, scrollTo=suppressScrollTo)
-        col2 = uiprimitives.Container(name='column2', align=uiconst.TOLEFT, width=self.colWidth, padLeft=8, parent=parent)
-        col2.isTabOrderGroup = 1
-        BumpedUnderlay(isInFocus=True, parent=col2)
-        uix.GetContainerHeader(localization.GetByLabel('UI/SystemMenu/ResetSettings/ResetToDefault/Header'), col2, (0, 1)[i >= 12])
-        scroll = uicontrols.Scroll(parent=col2)
-        scroll.name = 'defaultsResetScroll'
-        scroll.HideBackground()
-        scrollList = []
-        lst = [{'label': localization.GetByLabel('UI/SystemMenu/ResetSettings/ResetToDefault/WindowPosition'),
-          'caption': localization.GetByLabel('UI/SystemMenu/ResetSettings/Reset'),
-          'OnClick': self.ResetBtnClick,
-          'args': 'windows'},
-         {'label': localization.GetByLabel('UI/SystemMenu/ResetSettings/ResetToDefault/WindowColors'),
-          'caption': localization.GetByLabel('UI/SystemMenu/ResetSettings/Reset'),
-          'OnClick': self.ResetBtnClick,
-          'args': 'window color'},
-         {'label': localization.GetByLabel('UI/SystemMenu/ResetSettings/ResetToDefault/ClearAllSettings'),
-          'caption': localization.GetByLabel('UI/SystemMenu/ResetSettings/Clear'),
-          'OnClick': self.ResetBtnClick,
-          'args': 'clear settings'},
-         {'label': localization.GetByLabel('UI/SystemMenu/ResetSettings/ResetToDefault/ClearAllCacheFiles'),
-          'caption': localization.GetByLabel('UI/SystemMenu/ResetSettings/Clear'),
-          'OnClick': self.ResetBtnClick,
-          'args': 'clear cache'}]
-        if session.charid:
-            lst.append({'label': localization.GetByLabel('UI/SystemMenu/ResetSettings/ResetToDefault/ClearMailCache'),
-             'caption': localization.GetByLabel('UI/SystemMenu/ResetSettings/Clear'),
-             'OnClick': self.ResetBtnClick,
-             'args': 'clear mail'})
-            lst.append({'label': localization.GetByLabel('UI/SystemMenu/ResetSettings/ResetToDefault/NeocomButtons'),
-             'caption': localization.GetByLabel('UI/SystemMenu/ResetSettings/Reset'),
-             'OnClick': self.ResetBtnClick,
-             'args': 'reset neocom'})
-        if hasattr(sm.GetService('LSC'), 'spammerList'):
-            lst.append({'label': localization.GetByLabel('UI/SystemMenu/ResetSettings/ResetToDefault/ClearISKSpammerList'),
-             'caption': localization.GetByLabel('UI/SystemMenu/ResetSettings/Clear'),
-             'OnClick': self.ResetBtnClick,
-             'args': 'clear iskspammers'})
-        for each in lst:
-            scrollList.append(listentry.Get('Button', {'label': each['label'],
-             'caption': each['caption'],
-             'OnClick': each['OnClick'],
-             'args': (each['args'],),
-             'maxLines': None,
-             'entryWidth': self.colWidth - 16}))
-
-        scroll.Load(contentList=scrollList, scrollTo=suppressScrollTo)
-        isTutorialEnabled = sm.GetService('experimentClientSvc').IsTutorialEnabled()
-        tutorials = sm.GetService('tutorial').GetTutorials()
-        if tutorials and isTutorialEnabled:
-            col3 = uiprimitives.Container(name='column3', align=uiconst.TOLEFT, width=self.colWidth, padLeft=8, parent=parent)
-            col3.isTabOrderGroup = 1
-            BumpedUnderlay(isInFocus=True, parent=col3)
-            uix.GetContainerHeader(localization.GetByLabel('UI/SystemMenu/ResetSettings/Tutorial/Header'), col3, 0)
-            scroll = uicontrols.Scroll(parent=col3)
-            scroll.name = 'tutorialResetScroll'
+        else:
+            parent = uiutil.GetChild(self.sr.wnd, 'reset settings_container')
+            scrollTo = None
+            suppressScrollTo = None
+            defaultScrollTo = None
+            if reload:
+                scroll = uiutil.FindChild(parent, 'tutorialResetScroll')
+                if scroll:
+                    scrollTo = scroll.GetScrollProportion()
+                scroll = uiutil.FindChild(parent, 'suppressResetScroll')
+                if scroll:
+                    suppressScrollTo = scroll.GetScrollProportion()
+                scroll = uiutil.FindChild(parent, 'defaultResetScroll')
+                if scroll:
+                    defaultScrollTo = scroll.GetScrollProportion()
+            uix.Flush(parent)
+            col1 = uiprimitives.Container(name='col1', align=uiconst.TOLEFT, width=self.colWidth, padLeft=8, parent=parent)
+            col1.isTabOrderGroup = 1
+            BumpedUnderlay(isInFocus=True, parent=col1)
+            uix.GetContainerHeader(localization.GetByLabel('UI/SystemMenu/ResetSettings/ResetSuppressMessageSettings/Header'), col1, 0)
+            scroll = uicontrols.Scroll(parent=col1)
+            scroll.name = 'suppressResetScroll'
             scroll.HideBackground()
-            all = sm.GetService('tutorial').GetValidTutorials()
             scrollList = []
-            for tutorialID in all:
-                if tutorialID not in tutorials:
-                    continue
-                seqStat = sm.GetService('tutorial').GetSequenceStatus(tutorialID)
-                if seqStat:
-                    label = localization.GetByMessageID(tutorials[tutorialID].tutorialNameID)
-                    entry = listentry.Get('Button', {'label': label,
-                     'caption': localization.GetByLabel('UI/SystemMenu/ResetSettings/Reset'),
-                     'OnClick': self.TutorialResetBtnClick,
-                     'args': (tutorialID,),
-                     'maxLines': None,
-                     'entryWidth': self.colWidth - 16})
-                    scrollList.append((label, entry))
+            i = 0
+            for each in settings.user.suppress.GetValues().keys():
+                label = self.GetConfigName(each)
+                entry = listentry.Get('Button', {'label': label,
+                 'caption': localization.GetByLabel('UI/SystemMenu/ResetSettings/Reset'),
+                 'OnClick': self.ConfigBtnClick,
+                 'args': (each,),
+                 'maxLines': None,
+                 'entryWidth': self.colWidth - 16})
+                scrollList.append((label, entry))
 
             scrollList = uiutil.SortListOfTuples(scrollList)
-            scroll.Load(contentList=scrollList, scrollTo=scrollTo)
-        self.sr.resetsettingsinited = 1
+            scroll.Load(contentList=scrollList, scrollTo=suppressScrollTo)
+            col2 = uiprimitives.Container(name='column2', align=uiconst.TOLEFT, width=self.colWidth, padLeft=8, parent=parent)
+            col2.isTabOrderGroup = 1
+            BumpedUnderlay(isInFocus=True, parent=col2)
+            uix.GetContainerHeader(localization.GetByLabel('UI/SystemMenu/ResetSettings/ResetToDefault/Header'), col2, (0, 1)[i >= 12])
+            scroll = uicontrols.Scroll(parent=col2)
+            scroll.name = 'defaultsResetScroll'
+            scroll.HideBackground()
+            scrollList = []
+            lst = [{'label': localization.GetByLabel('UI/SystemMenu/ResetSettings/ResetToDefault/WindowPosition'),
+              'caption': localization.GetByLabel('UI/SystemMenu/ResetSettings/Reset'),
+              'OnClick': self.ResetBtnClick,
+              'args': 'windows'},
+             {'label': localization.GetByLabel('UI/SystemMenu/ResetSettings/ResetToDefault/WindowColors'),
+              'caption': localization.GetByLabel('UI/SystemMenu/ResetSettings/Reset'),
+              'OnClick': self.ResetBtnClick,
+              'args': 'window color'},
+             {'label': localization.GetByLabel('UI/SystemMenu/ResetSettings/ResetToDefault/ClearAllSettings'),
+              'caption': localization.GetByLabel('UI/SystemMenu/ResetSettings/Clear'),
+              'OnClick': self.ResetBtnClick,
+              'args': 'clear settings'},
+             {'label': localization.GetByLabel('UI/SystemMenu/ResetSettings/ResetToDefault/ClearAllCacheFiles'),
+              'caption': localization.GetByLabel('UI/SystemMenu/ResetSettings/Clear'),
+              'OnClick': self.ResetBtnClick,
+              'args': 'clear cache'}]
+            if session.charid:
+                lst.append({'label': localization.GetByLabel('UI/SystemMenu/ResetSettings/ResetToDefault/ClearMailCache'),
+                 'caption': localization.GetByLabel('UI/SystemMenu/ResetSettings/Clear'),
+                 'OnClick': self.ResetBtnClick,
+                 'args': 'clear mail'})
+                lst.append({'label': localization.GetByLabel('UI/SystemMenu/ResetSettings/ResetToDefault/NeocomButtons'),
+                 'caption': localization.GetByLabel('UI/SystemMenu/ResetSettings/Reset'),
+                 'OnClick': self.ResetBtnClick,
+                 'args': 'reset neocom'})
+            if hasattr(sm.GetService('LSC'), 'spammerList'):
+                lst.append({'label': localization.GetByLabel('UI/SystemMenu/ResetSettings/ResetToDefault/ClearISKSpammerList'),
+                 'caption': localization.GetByLabel('UI/SystemMenu/ResetSettings/Clear'),
+                 'OnClick': self.ResetBtnClick,
+                 'args': 'clear iskspammers'})
+            for each in lst:
+                scrollList.append(listentry.Get('Button', {'label': each['label'],
+                 'caption': each['caption'],
+                 'OnClick': each['OnClick'],
+                 'args': (each['args'],),
+                 'maxLines': None,
+                 'entryWidth': self.colWidth - 16}))
 
-    def RefreshLanguage(self, allUI = True):
+            scroll.Load(contentList=scrollList, scrollTo=suppressScrollTo)
+            isTutorialEnabled = sm.GetService('experimentClientSvc').IsTutorialEnabled()
+            tutorials = sm.GetService('tutorial').GetTutorials()
+            if tutorials and isTutorialEnabled:
+                col3 = uiprimitives.Container(name='column3', align=uiconst.TOLEFT, width=self.colWidth, padLeft=8, parent=parent)
+                col3.isTabOrderGroup = 1
+                BumpedUnderlay(isInFocus=True, parent=col3)
+                uix.GetContainerHeader(localization.GetByLabel('UI/SystemMenu/ResetSettings/Tutorial/Header'), col3, 0)
+                scroll = uicontrols.Scroll(parent=col3)
+                scroll.name = 'tutorialResetScroll'
+                scroll.HideBackground()
+                all = sm.GetService('tutorial').GetValidTutorials()
+                scrollList = []
+                for tutorialID in all:
+                    if tutorialID not in tutorials:
+                        continue
+                    seqStat = sm.GetService('tutorial').GetSequenceStatus(tutorialID)
+                    if seqStat:
+                        label = localization.GetByMessageID(tutorials[tutorialID].tutorialNameID)
+                        entry = listentry.Get('Button', {'label': label,
+                         'caption': localization.GetByLabel('UI/SystemMenu/ResetSettings/Reset'),
+                         'OnClick': self.TutorialResetBtnClick,
+                         'args': (tutorialID,),
+                         'maxLines': None,
+                         'entryWidth': self.colWidth - 16})
+                        scrollList.append((label, entry))
+
+                scrollList = uiutil.SortListOfTuples(scrollList)
+                scroll.Load(contentList=scrollList, scrollTo=scrollTo)
+            self.sr.resetsettingsinited = 1
+            return
+
+    def RefreshLanguage(self, allUI=True):
         self.sr.languageinited = 0
         if allUI:
             sm.ChainEvent('ProcessUIRefresh')
@@ -1859,66 +1865,68 @@ class SystemMenu(uicls.LayerCore):
     def _ShowLanguageSelectionOptions(self, parent):
         if boot.region == 'optic' and not eve.session.role & service.ROLEMASK_ELEVATEDPLAYER:
             return
-        langs = localization.GetLanguages()
-        serverOnlyLanguages = ['it', 'es']
-        for badLanguage in serverOnlyLanguages:
-            if badLanguage in langs:
-                langs.remove(badLanguage)
+        else:
+            langs = localization.GetLanguages()
+            serverOnlyLanguages = ['it', 'es']
+            for badLanguage in serverOnlyLanguages:
+                if badLanguage in langs:
+                    langs.remove(badLanguage)
 
-        if blue.sysinfo.isTransgaming:
-            langs.remove('ja')
-        mlsToDisplayNameLabel = {'JA': localization.GetByLabel('UI/SystemMenu/Language/LanguageJapanese'),
-         'DE': localization.GetByLabel('UI/SystemMenu/Language/LanguageGerman'),
-         'EN': localization.GetByLabel('UI/SystemMenu/Language/LanguageEnglish'),
-         'FR': localization.GetByLabel('UI/SystemMenu/Language/LanguageFrench'),
-         'RU': localization.GetByLabel('UI/SystemMenu/Language/LanguageRussian'),
-         'ZH': localization.GetByLabel('UI/SystemMenu/Language/LanguageChinese')}
-        if len(langs) > 1:
-            column1 = uiprimitives.Container(name='language_column_1', align=uiconst.TOLEFT, width=self.colWidth, padLeft=8, parent=parent)
-            column1.isTabOrderGroup = 1
-            BumpedUnderlay(isInFocus=True, parent=column1)
-            languageData = [('header', localization.GetByLabel('UI/SystemMenu/Language/Header'))]
-            self.ParseData(languageData, column1)
-            setLanguageID = getattr(self, 'setlanguageID', None)
-            gameLanguageID = session.languageID if session.userid else prefs.languageID
-            currentLang = setLanguageID or gameLanguageID
-            for lang in langs:
-                convertedID = localization.util.ConvertLanguageIDToMLS(lang)
-                text = mlsToDisplayNameLabel[convertedID]
-                checkbox = uicontrols.Checkbox(parent=column1, name='languageCheckbox_%s' % lang, text=text, retval=convertedID, groupname='languageSelection', checked=convertedID == currentLang, fontsize=12, configName='language', callback=self.OnCheckBoxChange)
+            if blue.sysinfo.isTransgaming:
+                langs.remove('ja')
+            mlsToDisplayNameLabel = {'JA': localization.GetByLabel('UI/SystemMenu/Language/LanguageJapanese'),
+             'DE': localization.GetByLabel('UI/SystemMenu/Language/LanguageGerman'),
+             'EN': localization.GetByLabel('UI/SystemMenu/Language/LanguageEnglish'),
+             'FR': localization.GetByLabel('UI/SystemMenu/Language/LanguageFrench'),
+             'RU': localization.GetByLabel('UI/SystemMenu/Language/LanguageRussian'),
+             'ZH': localization.GetByLabel('UI/SystemMenu/Language/LanguageChinese')}
+            if len(langs) > 1:
+                column1 = uiprimitives.Container(name='language_column_1', align=uiconst.TOLEFT, width=self.colWidth, padLeft=8, parent=parent)
+                column1.isTabOrderGroup = 1
+                BumpedUnderlay(isInFocus=True, parent=column1)
+                languageData = [('header', localization.GetByLabel('UI/SystemMenu/Language/Header'))]
+                self.ParseData(languageData, column1)
+                setLanguageID = getattr(self, 'setlanguageID', None)
+                gameLanguageID = session.languageID if session.userid else prefs.languageID
+                currentLang = setLanguageID or gameLanguageID
+                for lang in langs:
+                    convertedID = localization.util.ConvertLanguageIDToMLS(lang)
+                    text = mlsToDisplayNameLabel[convertedID]
+                    checkbox = uicontrols.Checkbox(parent=column1, name='languageCheckbox_%s' % lang, text=text, retval=convertedID, groupname='languageSelection', checked=convertedID == currentLang, fontsize=12, configName='language', callback=self.OnCheckBoxChange)
 
-            currentLanguageString = mlsToDisplayNameLabel[currentLang]
-            impNameOptions = [(currentLanguageString, 0), (localization.GetByLabel('UI/SystemMenu/Language/EnglishReplacement'), localization.const.IMPORTANT_EN_OVERRIDE)]
-            showTooltipOptions = setLanguageID and not localization.IsPrimaryLanguage(setLanguageID) or not setLanguageID and not localization.IsPrimaryLanguage(gameLanguageID)
-            if showTooltipOptions:
-                if not hasattr(self, 'setImpNameSetting'):
-                    self.setImpNameSetting = localization.settings.bilingualSettings.GetValue('localizationImportantNames')
-                if not hasattr(self, 'setLanguageTooltip'):
-                    self.setLanguageTooltip = localization.settings.bilingualSettings.GetValue('languageTooltip')
-                if not hasattr(self, 'setLocalizationHighlightImportant'):
-                    self.setLocalizationHighlightImportant = localization.settings.bilingualSettings.GetValue('localizationHighlightImportant')
-                if self.setImpNameSetting == localization.const.IMPORTANT_EN_OVERRIDE:
-                    checkboxCaption = localization.GetByLabel('UI/SystemMenu/Language/ShowTooltipInLanguage', language=currentLanguageString)
+                currentLanguageString = mlsToDisplayNameLabel[currentLang]
+                impNameOptions = [(currentLanguageString, 0), (localization.GetByLabel('UI/SystemMenu/Language/EnglishReplacement'), localization.const.IMPORTANT_EN_OVERRIDE)]
+                showTooltipOptions = setLanguageID and not localization.IsPrimaryLanguage(setLanguageID) or not setLanguageID and not localization.IsPrimaryLanguage(gameLanguageID)
+                if showTooltipOptions:
+                    if not hasattr(self, 'setImpNameSetting'):
+                        self.setImpNameSetting = localization.settings.bilingualSettings.GetValue('localizationImportantNames')
+                    if not hasattr(self, 'setLanguageTooltip'):
+                        self.setLanguageTooltip = localization.settings.bilingualSettings.GetValue('languageTooltip')
+                    if not hasattr(self, 'setLocalizationHighlightImportant'):
+                        self.setLocalizationHighlightImportant = localization.settings.bilingualSettings.GetValue('localizationHighlightImportant')
+                    if self.setImpNameSetting == localization.const.IMPORTANT_EN_OVERRIDE:
+                        checkboxCaption = localization.GetByLabel('UI/SystemMenu/Language/ShowTooltipInLanguage', language=currentLanguageString)
+                    else:
+                        english = mlsToDisplayNameLabel['EN']
+                        checkboxCaption = localization.GetByLabel('UI/SystemMenu/Language/ShowTooltipInLanguage', language=english)
+                    highlightImportant = localization.GetByLabel('UI/SystemMenu/Language/HighlightImportantNames')
+                    impNameData = [('header', localization.GetByLabel('UI/SystemMenu/Language/ImportantNames')),
+                     ('combo',
+                      ('localizationImportantNames', None, self.setImpNameSetting),
+                      localization.GetByLabel('UI/SystemMenu/Language/Display'),
+                      impNameOptions,
+                      LEFTPADDING,
+                      localization.GetByLabel('UI/SystemMenu/Language/ImportantNamesExplanation')),
+                     ('checkbox', ('languageTooltip', None, self.setLanguageTooltip), checkboxCaption),
+                     ('checkbox', ('highlightImportant', None, self.setLocalizationHighlightImportant), highlightImportant)]
                 else:
-                    english = mlsToDisplayNameLabel['EN']
-                    checkboxCaption = localization.GetByLabel('UI/SystemMenu/Language/ShowTooltipInLanguage', language=english)
-                highlightImportant = localization.GetByLabel('UI/SystemMenu/Language/HighlightImportantNames')
-                impNameData = [('header', localization.GetByLabel('UI/SystemMenu/Language/ImportantNames')),
-                 ('combo',
-                  ('localizationImportantNames', None, self.setImpNameSetting),
-                  localization.GetByLabel('UI/SystemMenu/Language/Display'),
-                  impNameOptions,
-                  LEFTPADDING,
-                  localization.GetByLabel('UI/SystemMenu/Language/ImportantNamesExplanation')),
-                 ('checkbox', ('languageTooltip', None, self.setLanguageTooltip), checkboxCaption),
-                 ('checkbox', ('highlightImportant', None, self.setLocalizationHighlightImportant), highlightImportant)]
-            else:
-                impNameData = []
-            impNameData.append(('button',
-             None,
-             localization.GetByLabel('UI/SystemMenu/Language/ApplyLanguageSettings'),
-             self.ApplyLanguageSettings))
-            self.ParseData(impNameData, column1)
+                    impNameData = []
+                impNameData.append(('button',
+                 None,
+                 localization.GetByLabel('UI/SystemMenu/Language/ApplyLanguageSettings'),
+                 self.ApplyLanguageSettings))
+                self.ParseData(impNameData, column1)
+            return
 
     def _ShowIMEAndVoiceOptions(self, parent):
         column2 = uiprimitives.Container(name='language_column_2', align=uiconst.TOLEFT, width=self.colWidth, padLeft=8, parent=parent)
@@ -1995,6 +2003,7 @@ class SystemMenu(uicls.LayerCore):
          'Apply QA Settings',
          self.ApplyQALanguageSettings))
         self.ParseData(localizationQAOptions, column)
+        return
 
     def DisplayPseudolocalizationSample(self, column):
         if session.languageID == 'EN':
@@ -2024,7 +2033,7 @@ class SystemMenu(uicls.LayerCore):
             self.setTextExpansionAmount = 0.0
             self.setSimulateTooltip = False
 
-    def AddSlider(self, where, config, minval, maxval, header, hint = '', usePrefs = 0, width = 160, height = 14, labelAlign = None, labelWidth = 0, startValue = None, step = None, leftHint = None, rightHint = None):
+    def AddSlider(self, where, config, minval, maxval, header, hint='', usePrefs=0, width=160, height=14, labelAlign=None, labelWidth=0, startValue=None, step=None, leftHint=None, rightHint=None):
         uiprimitives.Container(name='push', align=uiconst.TOTOP, height=[16, 4][labelAlign is not None], parent=where)
         _par = uiprimitives.Container(name=config[0] + '_slider', align=uiconst.TOTOP, height=height, state=uiconst.UI_PICKCHILDREN, parent=where)
         par = uiprimitives.Container(name=config[0] + '_slider_sub', parent=_par)
@@ -2060,6 +2069,8 @@ class SystemMenu(uicls.LayerCore):
             if colorName == findColor:
                 return color
 
+        return None
+
     def EndSliderValue(self, slider, *args):
         if slider.name == 'TalkMicrophoneVolume':
             value = slider.GetValue()
@@ -2074,9 +2085,10 @@ class SystemMenu(uicls.LayerCore):
             return localization.formatters.FormatNumeric(int(value * 255))
         elif idname == 'cameraOffset':
             return self.GetCameraOffsetHintText(value)
-        elif idname == 'cameraMouseLookSpeedSlider':
-            return self.GetCameraMouseSpeedHintText(value)
-        elif idname in ('actionMenuExpandTime', TOOLTIP_SETTINGS_GENERIC, TOOLTIP_SETTINGS_BRACKET):
+        elif idname in ('cameraInertiaSlider',
+         'actionMenuExpandTime',
+         TOOLTIP_SETTINGS_GENERIC,
+         TOOLTIP_SETTINGS_BRACKET):
             return ''
         else:
             return localization.formatters.FormatNumeric(int(value * 100))
@@ -2096,8 +2108,8 @@ class SystemMenu(uicls.LayerCore):
             sm.GetService('audio').SetVoiceVolume(value, persist=False)
         elif idname == 'cameraOffset':
             self.OnSetCameraSliderValue(value)
-        elif idname == 'cameraMouseLookSpeedSlider':
-            self.OnSetCameraMouseLookSpeedSliderValue(value)
+        elif idname == 'cameraInertiaSlider':
+            self.OnSetCameraInertiaSliderValue(value)
         else:
             if idname == 'actionMenuExpandTime':
                 return self.OnRadialMenuSliderValue(value)
@@ -2186,8 +2198,6 @@ class SystemMenu(uicls.LayerCore):
                 setting = gfxsettings.GetSettingFromSettingKey(config)
                 gfxsettings.Set(setting, checkbox.checked)
                 self.ProcessGraphicsSettings()
-                if setting == gfxsettings.MISC_LOAD_STATION_ENV:
-                    eve.Message('CustomInfo', {'info': localization.GetByLabel('UI/SystemMenu/DisplayAndGraphics/GraphicContentSettings/NeedToEnterCQ')})
             elif config == 'enableTextExpansion':
                 self.setEnableTextExpansion = checkbox.checked
                 if not checkbox.checked:
@@ -2231,6 +2241,7 @@ class SystemMenu(uicls.LayerCore):
                 sm.StartService('audio').SetDopplerEmittersUsage(checkbox.checked)
             elif config == 'useCombatMusic':
                 sm.StartService('audio').SetCombatMusicUsage(checkbox.checked)
+        return
 
     def GetConfigName(self, suppression):
         configTranslation = {'AgtDelayMission': localization.GetByLabel('UI/SystemMenu/ResetSettings/ResetSuppressMessageSettings/DelayMissionOfferDecision'),
@@ -2293,10 +2304,12 @@ class SystemMenu(uicls.LayerCore):
         sm.GetService('tutorial').SetSequenceStatus(tutorialID, tutorialID, None, 'reset')
         self.sr.resetsettingsinited = 0
         self.Resetsettings(1)
+        return
 
     def TutorialDoneResetBtnClick(self, btn, *args):
         sm.GetService('tutorial').SetSequenceDoneStatus(btn.tutorialID, None, None)
         btn.state = uiconst.UI_HIDDEN
+        return
 
     def ResetBtnClick(self, reset, *args):
         if reset == 'windows':
@@ -2328,17 +2341,20 @@ class SystemMenu(uicls.LayerCore):
             raise UserError('28DaysConvertOnlyInStation')
         if eve.Message('28DaysConvertMessage', {}, uiconst.YESNO) != uiconst.ID_YES:
             return
-        name = ''
-        while name is not None and IsIllegal(name):
-            name = uiutil.NamePopup(localization.GetByLabel('UI/SystemMenu/ConvertEveTimeCodeHeader'), localization.GetByLabel('UI/SystemMenu/ConvertEveTimeCodeTypeInCode'), name, maxLength=MAMMON_KEY_LENGTH)
+        else:
+            name = ''
+            while name is not None and IsIllegal(name):
+                name = uiutil.NamePopup(localization.GetByLabel('UI/SystemMenu/ConvertEveTimeCodeHeader'), localization.GetByLabel('UI/SystemMenu/ConvertEveTimeCodeTypeInCode'), name, maxLength=MAMMON_KEY_LENGTH)
 
-        if not name:
+            if not name:
+                return
+            sm.GetService('loading').ProgressWnd(localization.GetByLabel('UI/SystemMenu/ConvertEveTimeCodeHeader'), '.', 1, 2)
+            try:
+                sm.RemoteSvc('userSvc').ConvertETCToPilotLicence(name)
+            finally:
+                sm.GetService('loading').ProgressWnd(localization.GetByLabel('UI/SystemMenu/ConvertEveTimeCodeHeader'), '.', 2, 2)
+
             return
-        sm.GetService('loading').ProgressWnd(localization.GetByLabel('UI/SystemMenu/ConvertEveTimeCodeHeader'), '.', 1, 2)
-        try:
-            sm.RemoteSvc('userSvc').ConvertETCToPilotLicence(name)
-        finally:
-            sm.GetService('loading').ProgressWnd(localization.GetByLabel('UI/SystemMenu/ConvertEveTimeCodeHeader'), '.', 2, 2)
 
     def Petition(self, *args):
         self.CloseMenu()
@@ -2393,10 +2409,11 @@ class SystemMenu(uicls.LayerCore):
                 return
         localization.ClearImportantNameSetting()
         self.RefreshLanguage()
+        return
 
     def ApplyQALanguageSettings(self, *args):
 
-        def _setSetting(settingKey, controlID, defaultValue = False):
+        def _setSetting(settingKey, controlID, defaultValue=False):
             localization.settings.qaSettings.SetValue(settingKey, getattr(self, controlID, defaultValue))
 
         _setSetting('showMessageID', 'setShowMessageID')
@@ -2412,7 +2429,7 @@ class SystemMenu(uicls.LayerCore):
         self.RefreshLanguage()
 
     def StationUpdateCheck(self):
-        if eve.session.stationid:
+        if eve.session.stationid or IsDockedInStructure():
             if self.init_dockshipsanditems != settings.char.windows.Get('dockshipsanditems', 0):
                 sm.GetService('station').ReloadLobby()
             elif self.init_stationservicebtns != settings.user.ui.Get('stationservicebtns', 1):
@@ -2436,6 +2453,7 @@ class VoiceFontSelectionWindow(uicontrols.Window):
         self.voiceFonts = None
         sm.RegisterNotify(self)
         uthread.new(self.Display)
+        return
 
     def OnVoiceFontsReceived(self, voiceFontList):
         self.voiceFonts = [(localization.GetByLabel('UI/SystemMenu/AudioAndChat/VoiceFont/NoFontSelected'), 0)]
@@ -2483,6 +2501,7 @@ class VoiceFontSelectionWindow(uicontrols.Window):
           self.CloseByUser,
           (),
           66]], parent=mainContainer, idx=0)
+        return
 
     def Apply(self, *args):
         settings.char.ui.Set('voiceFontName', self.combo.GetKey())

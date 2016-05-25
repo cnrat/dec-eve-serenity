@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\client\script\ui\shared\fleet\fleetbroadcast.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\client\script\ui\shared\fleet\fleetbroadcast.py
 import blue
 from eve.client.script.ui.control import entries as listentry
 import uicontrols
@@ -36,7 +37,7 @@ class FleetBroadcastView(Container):
         header = self
         header.baseHeight = header.height
         self.panelHistory = Container(name='panelHistory', parent=self, left=const.defaultPadding, width=const.defaultPadding, top=const.defaultPadding, height=const.defaultPadding)
-        historyType = settings.user.ui.Get('fleetHistoryFilter', 'all')
+        historyType = settings.user.ui.Get('fleetHistoryFilter', 'broadcasthistory')
         comboPar = Container(parent=self.panelHistory, align=uiconst.TOTOP, height=36)
         ops = [(localization.GetByLabel('UI/Common/All'), 'all'),
          (localization.GetByLabel('UI/Fleet/FleetBroadcast/BroadcastHistory'), 'broadcasthistory'),
@@ -124,7 +125,9 @@ class FleetBroadcastView(Container):
         itemID = data.itemID
         if data.itemID == session.shipid or session.shipid is None or data.itemID is None or util.IsUniverseCelestial(data.itemID):
             return
-        sm.GetService('menu').TacticalItemClicked(itemID)
+        else:
+            sm.GetService('menu').TacticalItemClicked(itemID)
+            return
 
     def LoadVoiceHistory(self):
         scrolllist = []
@@ -302,6 +305,7 @@ class BroadcastSettings(uicontrols.Window):
 
         self.sr.scrollBroadcasts.sr.id = 'scrollBroadcasts'
         self.sr.scrollBroadcasts.Load(contentList=scrolllist)
+        return
 
     def Filter_OnCheckBoxChange(self, cb):
         sm.GetService('fleet').SetListenBroadcast(cb.data['key'], cb.checked)
@@ -339,7 +343,7 @@ class BroadcastSettingsEntry(listentry.Checkbox):
         return uiconst.POINT_LEFT_2
 
     def GetTooltipDelay(self):
-        return 50
+        pass
 
     def LoadColorTooltipPanel(self, tooltipPanel, *args):
         currentColor = self.sr.node.colorcoded

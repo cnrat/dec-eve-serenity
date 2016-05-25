@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\packages\carbonui\control\browser\browserutil.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\packages\carbonui\control\browser\browserutil.py
 from carbonui.primitives.frame import FrameCoreOverride as Frame
 import blue
 import urllib2
@@ -25,6 +26,7 @@ class NewBrowserForm():
         self.attrs = attrs
         self.browser = browser
         self.fields = []
+        return
 
     def fixup(self, m):
         return '&#' + hex(int(m.group(1)))[1:] + ';'
@@ -36,54 +38,59 @@ class NewBrowserForm():
         if self.submitting:
             uicore.Message('Busy')
             return
-        self.submitting = 1
-        e = []
-        for attrs, wnd in self.fields:
-            if not attrs.name:
-                continue
-            if getattr(attrs, 'type', None).lower() == 'submit' and wnd not in etc:
-                continue
-            getval = getattr(self, 'GetValue_%s' % attrs.type.lower(), lambda *args: None)
-            val = getval(wnd, attrs)
-            if val is not None:
-                e.append((attrs.name, val))
+        else:
+            self.submitting = 1
+            e = []
+            for attrs, wnd in self.fields:
+                if not attrs.name:
+                    continue
+                if getattr(attrs, 'type', None).lower() == 'submit' and wnd not in etc:
+                    continue
+                getval = getattr(self, 'GetValue_%s' % attrs.type.lower(), lambda *args: None)
+                val = getval(wnd, attrs)
+                if val is not None:
+                    e.append((attrs.name, val))
 
-        d = []
-        for key, val in e:
-            if type(val) == list:
-                for v in val:
-                    if isinstance(v, unicode):
-                        v = self.decode(v)
-                    d.append((key, v))
+            d = []
+            for key, val in e:
+                if type(val) == list:
+                    for v in val:
+                        if isinstance(v, unicode):
+                            v = self.decode(v)
+                        d.append((key, v))
 
-            else:
-                if isinstance(val, unicode):
-                    val = self.decode(val)
-                d.append((key, val))
+                else:
+                    if isinstance(val, unicode):
+                        val = self.decode(val)
+                    d.append((key, val))
 
-        s = urllib.urlencode(d)
-        if isinstance(s, unicode):
-            s = self.decode(val)
-        browser = GetBrowser(self.browser)
-        if not browser:
+            s = urllib.urlencode(d)
+            if isinstance(s, unicode):
+                s = self.decode(val)
+            browser = GetBrowser(self.browser)
+            if not browser:
+                return
+            if getattr(self.attrs, 'method', 'get').lower() == 'get':
+                if 'localsvc:' in self.attrs.action:
+                    from carbonui.control.baselink import BaseLinkCoreOverride as BaseLink
+                    BaseLink().LocalSvcCall(self.attrs.action[9:] + ''.join([ name for name, value in d ]))
+                    self.submitting = 0
+                else:
+                    browser.GoTo('?'.join((self.attrs.action, s)))
+            elif self.attrs.method.lower() == 'post':
+                browser.GoTo(self.attrs.action, s)
             return
-        if getattr(self.attrs, 'method', 'get').lower() == 'get':
-            if 'localsvc:' in self.attrs.action:
-                from carbonui.control.baselink import BaseLinkCoreOverride as BaseLink
-                BaseLink().LocalSvcCall(self.attrs.action[9:] + ''.join([ name for name, value in d ]))
-                self.submitting = 0
-            else:
-                browser.GoTo('?'.join((self.attrs.action, s)))
-        elif self.attrs.method.lower() == 'post':
-            browser.GoTo(self.attrs.action, s)
 
-    def GetField(self, name = None):
+    def GetField(self, name=None):
         if name is None:
             return self.fields[-1][1]
-        for attrs, wnd in self.fields:
-            if attrs.name == name:
-                return wnd
         else:
+            for attrs, wnd in self.fields:
+                if attrs.name == name:
+                    return wnd
+            else:
+                return
+
             return
 
     def GetFields(self):
@@ -111,7 +118,9 @@ class NewBrowserForm():
                 continue
             setval(wnd, attrs, d[attrs.name])
 
-    def AddInput(self, attrs, add = 1):
+        return
+
+    def AddInput(self, attrs, add=1):
         attrs.vspace = getattr(attrs, 'vspace', 1)
         if attrs.type is None:
             attrs.type = 'text'
@@ -123,36 +132,37 @@ class NewBrowserForm():
         browser = GetBrowser(self.browser)
         if not browser:
             return
-        if add:
-            self.fields.append((attrs, wnd))
-        attrs.control = wnd
-        attrs.align = getattr(attrs, 'align', None)
-        obj = Bunch()
-        obj.font = None
-        obj.key = 'input_%s' % attrs.type.lower()
-        obj.type = '<input>'
-        obj.attrs = attrs
-        wnd.state = uiconst.UI_HIDDEN
-        if hasattr(self.browser, 'sr'):
-            wnd.SetParent(self.browser.sr.cacheContainer)
-        startup = getattr(self, 'Startup_%s' % attrs.type.lower(), None)
-        if startup:
-            startup(wnd, attrs)
-        obj.width = wnd.width + 5
-        obj.height = wnd.height + 5
-        obj.valign = 1
-        if add:
-            obj.control = wnd
-            wnd.loaded = 1
         else:
-            wnd.Close()
-        return obj
+            if add:
+                self.fields.append((attrs, wnd))
+            attrs.control = wnd
+            attrs.align = getattr(attrs, 'align', None)
+            obj = Bunch()
+            obj.font = None
+            obj.key = 'input_%s' % attrs.type.lower()
+            obj.type = '<input>'
+            obj.attrs = attrs
+            wnd.state = uiconst.UI_HIDDEN
+            if hasattr(self.browser, 'sr'):
+                wnd.SetParent(self.browser.sr.cacheContainer)
+            startup = getattr(self, 'Startup_%s' % attrs.type.lower(), None)
+            if startup:
+                startup(wnd, attrs)
+            obj.width = wnd.width + 5
+            obj.height = wnd.height + 5
+            obj.valign = 1
+            if add:
+                obj.control = wnd
+                wnd.loaded = 1
+            else:
+                wnd.Close()
+            return obj
 
-    def AddTextArea(self, attrs, add = 1):
+    def AddTextArea(self, attrs, add=1):
         attrs.type = 'textarea'
         return self.AddInput(attrs, add)
 
-    def AddSelect(self, attrs, options, add = 1):
+    def AddSelect(self, attrs, options, add=1):
         attrs.type = 'select'
         attrs.options = options
         return self.AddInput(attrs, add)
@@ -188,6 +198,7 @@ class NewBrowserForm():
         Line(parent=wnd, align=uiconst.TOBOTTOM, color=color, weight=1)
         Line(parent=wnd, align=uiconst.TOLEFT, color=color, weight=1)
         Line(parent=wnd, align=uiconst.TORIGHT, color=color, weight=1)
+        return
 
     def GetValue_textarea(self, wnd, attrs):
         return wnd.GetValue().replace('<br>', '\r\n')
@@ -202,7 +213,7 @@ class NewBrowserForm():
          16))
         return wnd
 
-    def Startup_text(self, wnd, attrs, password = 0):
+    def Startup_text(self, wnd, attrs, password=0):
         wnd.OnReturn = self.OnSubmit
         if password:
             wnd.SetPasswordChar('*')
@@ -217,6 +228,7 @@ class NewBrowserForm():
             Line(parent=wnd, align=uiconst.TOBOTTOM, color=color, weight=1)
             Line(parent=wnd, align=uiconst.TOLEFT, color=color, weight=1)
             Line(parent=wnd, align=uiconst.TORIGHT, color=color, weight=1)
+        return
 
     GetValue_text = StdGetValue
     SetValue_text = StdSetValue
@@ -241,6 +253,7 @@ class NewBrowserForm():
         if not checked and attrs.__dict__.has_key('checked') and getattr(attrs, 'checked', None) is None:
             checked = 1
         wnd.SetChecked(checked, 0)
+        return
 
     def SetValue_checkbox(self, wnd, attrs, val):
         if val == attrs.value:
@@ -253,6 +266,7 @@ class NewBrowserForm():
         if checked:
             return attrs.value or 'on'
         else:
+            return None
             return None
 
     def Create_radio(self, attrs):
@@ -272,11 +286,12 @@ class NewBrowserForm():
              0,
              getattr(attrs, 'width', None) or 128,
              getattr(attrs, 'height', None) or int(attrs.size) * 18 - 1 + attrs.vspace * 2))
-        from carbonui.control.combo import ComboCoreOverride as Combo
-        c = Combo(name='selection_%s' % attrs.name, align=uiconst.RELATIVE)
-        if getattr(attrs, 'width', None) is not None:
-            c.width = getattr(attrs, 'width', None)
-        return c
+        else:
+            from carbonui.control.combo import ComboCoreOverride as Combo
+            c = Combo(name='selection_%s' % attrs.name, align=uiconst.RELATIVE)
+            if getattr(attrs, 'width', None) is not None:
+                c.width = getattr(attrs, 'width', None)
+            return c
 
     def Startup_select(self, wnd, attrs):
         if getattr(attrs, 'size', None) is not None or getattr(attrs, 'height', 0):
@@ -309,30 +324,32 @@ class NewBrowserForm():
                     default = key
                     break
 
-            if getattr(attrs, 'width', None) is not None:
-                wnd.Startup([ (k, v) for k, v, s in attrs.options ], default=default)
-            else:
-                wnd.Startup([ (k, v) for k, v, s in attrs.options ], default=default, adjustWidth=1)
-            clipper = wnd.GetChild('clipper')
-            clipper.clipChildren = 1
-            for each in wnd.children:
-                if each.name == 'selected':
-                    wnd.sr.activeframe = Frame(parent=each, color=getattr(attrs, 'fontcolor', None), padding=(-1, -1, -1, -1))
-                    wnd.sr.activeframe.state = uiconst.UI_HIDDEN
-                    Frame(parent=each, color=getattr(attrs, 'fontcolor', None))
-                    Container(name='push', parent=each, align=uiconst.TOTOP, pos=(0,
-                     0,
-                     0,
-                     attrs.vspace), idx=0)
-                    Container(name='push', parent=each, align=uiconst.TOBOTTOM, pos=(0,
-                     0,
-                     0,
-                     attrs.vspace), idx=0)
-                    for child in each.children:
-                        if child.name in ('_underlay',):
-                            child.Close()
+        if getattr(attrs, 'width', None) is not None:
+            wnd.Startup([ (k, v) for k, v, s in attrs.options ], default=default)
+        else:
+            wnd.Startup([ (k, v) for k, v, s in attrs.options ], default=default, adjustWidth=1)
+        clipper = wnd.GetChild('clipper')
+        clipper.clipChildren = 1
+        for each in wnd.children:
+            if each.name == 'selected':
+                wnd.sr.activeframe = Frame(parent=each, color=getattr(attrs, 'fontcolor', None), padding=(-1, -1, -1, -1))
+                wnd.sr.activeframe.state = uiconst.UI_HIDDEN
+                Frame(parent=each, color=getattr(attrs, 'fontcolor', None))
+                Container(name='push', parent=each, align=uiconst.TOTOP, pos=(0,
+                 0,
+                 0,
+                 attrs.vspace), idx=0)
+                Container(name='push', parent=each, align=uiconst.TOBOTTOM, pos=(0,
+                 0,
+                 0,
+                 attrs.vspace), idx=0)
+                for child in each.children:
+                    if child.name in ('_underlay',):
+                        child.Close()
 
-                    break
+                break
+
+        return
 
     def GetValue_select(self, wnd, attrs):
         v = wnd.GetValue()
@@ -430,12 +447,13 @@ class Css():
         cl = getattr(astack['attr'], 'class', '').lower()
         if csel['tag'] not in (tag, '*') and csel['tag']:
             return
-        if csel['class']:
-            if csel['class'] not in cl.split(' '):
+        else:
+            if csel['class']:
+                if csel['class'] not in cl.split(' '):
+                    return
+            if csel['id'] and tid != csel['id']:
                 return
-        if csel['id'] and tid != csel['id']:
-            return
-        return 1
+            return 1
 
     def SplitSelector(self, sel):
         s = {}
@@ -455,7 +473,7 @@ class Css():
         icount = sel.count('#')
         if ccount + acount + icount > 1:
             return
-        if ccount == 1:
+        elif ccount == 1:
             h = sel.split('.')
             if len(h) == 1:
                 s['class'] = h[0]
@@ -463,7 +481,7 @@ class Css():
                 s['tag'] = h[0]
                 s['class'] = h[1]
             return s
-        if acount == 1:
+        elif acount == 1:
             h = sel.split('[')
             if sel[-1] == ']':
                 if len(h) == 1:
@@ -474,7 +492,7 @@ class Css():
             else:
                 return
             return s
-        if icount == 1:
+        elif icount == 1:
             h = sel.split('#')
             if len(h) == 1:
                 s['id'] = h[0]
@@ -482,8 +500,9 @@ class Css():
                 s['tag'] = h[0]
                 s['id'] = h[1]
             return s
-        s['tag'] = sel
-        return s
+        else:
+            s['tag'] = sel
+            return s
 
     def GetClass(self, classID):
         classID = classID.lower()
@@ -492,6 +511,8 @@ class Css():
                 return c
             if c['class'] == classID:
                 return c
+
+        return None
 
     def HandlePseudoClass(self, pclass):
         links = [('link', 'link-color'),
@@ -572,6 +593,8 @@ class Css():
                         s['prio'] = 10000
                     self.classes.append(s)
 
+        return
+
     def ParseStyleData(self, cssdata):
         data = {}
         imp = {}
@@ -593,15 +616,17 @@ class Css():
 
         return (data, imp)
 
-    def ParseCSS(self, attrs = None):
+    def ParseCSS(self, attrs=None):
         self.s = {}
         sattr = getattr(attrs, 'style', None)
         if sattr:
             data, imp = self.ParseStyleData(sattr)
             data.update(imp)
             return self.ParseStyle(data)
+        else:
+            return
 
-    def ParseStyle(self, style = None):
+    def ParseStyle(self, style=None):
         if style:
             for k, v in style.iteritems():
                 if k in self.styleDict:
@@ -613,13 +638,16 @@ class Css():
         value = str(value).lower().strip()
         if value.isdigit():
             return int(value)
-        if value.endswith('%'):
+        elif value.endswith('%'):
             return value
-        if value[-2:] in self.absStyleUnits and value[:-2].isdigit():
+        elif value[-2:] in self.absStyleUnits and value[:-2].isdigit():
             return int(self.absStyleUnits[value[-2:]] * float(value[:-2].strip()))
-        try:
-            return int(value)
-        except:
+        else:
+            try:
+                return int(value)
+            except:
+                return None
+
             return None
 
     absStyleUnits = {'px': 1.0,
@@ -643,6 +671,7 @@ class Css():
             else:
                 self.s['font-size'] = int(v or 10)
                 self.s['font-family'] = 'sans'
+        return
 
     def ParseFontStyle(self, k, v):
         if v:
@@ -789,6 +818,8 @@ class Css():
                 if color:
                     self.s['background-color'] = color
 
+        return
+
     def ParseBackgroundRepeat(self, k, v):
         if v in ('repeat', 'repeat-x', 'repeat-y', 'no-repeat'):
             self.s['background-repeat'] = v
@@ -849,6 +880,7 @@ class Css():
             self.s['float'] = None
         elif v == 'inherit' and self.s.has_key('float'):
             del self.s['float']
+        return
 
     fontSize = {'small': 8,
      'x-small': 7,
@@ -954,7 +986,7 @@ class Css():
      'max-height': 'ParsePosAbsSize'}
 
 
-def GetStringFromURL(url, data = None, cookie = None):
+def GetStringFromURL(url, data=None, cookie=None):
     if cookie:
         header = {'Cookie': cookie}
     else:
@@ -1055,7 +1087,7 @@ def OpenLocalURL(url, r, data, cookie):
     return FakeResponse(content)
 
 
-def ParseURL(url, current = None):
+def ParseURL(url, current=None):
     url = url.encode('ascii')
     if current:
         current = current.encode('ascii')
@@ -1082,7 +1114,7 @@ def ParseURL(url, current = None):
       '')), fragment)
 
 
-def DirUp(url, force = 1):
+def DirUp(url, force=1):
     i = url[:-1].rfind('/')
     if i == -1:
         if force:
@@ -1097,7 +1129,8 @@ def DefaultHomepage():
         home = evebrowserutil.DefaultHomepage()
     if home is not None:
         return home
-    return 'http://www.google.com'
+    else:
+        return 'http://www.google.com'
 
 
 def DefaultCachePath():

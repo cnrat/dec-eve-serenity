@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\packages\carbonui\ui3d.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\packages\carbonui\ui3d.py
 import trinity
 import geo2
 from carbonui.primitives.desktop import UIRoot
@@ -69,6 +70,7 @@ class Container(UIRoot):
                 self.sceneParent.remove(self.transform)
         UIRoot.Close(self)
         uicore.uilib.RemoveRootObject(self)
+        return
 
     def OnInvalidate(self, device):
         pass
@@ -79,24 +81,25 @@ class Container(UIRoot):
     def PickObject(self, x, y):
         if self.sceneManager.GetActiveScene() != self.renderScene:
             return
-        rescale = 1.0 / 10000.0
-        projection = trinity.TriProjection()
-        projection.PerspectiveFov(trinity.GetFieldOfView(), trinity.GetAspectRatio(), trinity.GetFrontClip(), trinity.GetBackClip())
-        view = trinity.TriView()
-        view.transform = trinity.GetViewTransform()
-        scaling, rotation, translation = geo2.MatrixDecompose(self.transform.worldTransform)
-        pZ = geo2.Vec3Transform((0, 0, 1), self.transform.worldTransform)
-        surfaceNormal = geo2.Subtract(pZ, translation)
-        cameraZ = geo2.Vector(view.transform[0][2], view.transform[1][2], view.transform[2][2])
-        if geo2.Vec3Dot(surfaceNormal, cameraZ) < 0:
-            return
-        self.renderObject.translation = geo2.Vec3Scale(translation, rescale)
-        self.renderObject.rotation = rotation
-        self.renderObject.scaling = geo2.Vec3Scale(scaling, rescale)
-        scaling, rotation, translation = geo2.MatrixDecompose(view.transform)
-        translation = geo2.Vec3Scale(translation, rescale)
-        view.transform = geo2.MatrixTransformation(None, None, scaling, None, rotation, translation)
-        return self.renderObject.PickObject(x, y, projection, view, trinity.device.viewport)
+        else:
+            rescale = 1.0 / 10000.0
+            projection = trinity.TriProjection()
+            projection.PerspectiveFov(trinity.GetFieldOfView(), trinity.GetAspectRatio(), trinity.GetFrontClip(), trinity.GetBackClip())
+            view = trinity.TriView()
+            view.transform = trinity.GetViewTransform()
+            scaling, rotation, translation = geo2.MatrixDecompose(self.transform.worldTransform)
+            pZ = geo2.Vec3Transform((0, 0, 1), self.transform.worldTransform)
+            surfaceNormal = geo2.Subtract(pZ, translation)
+            cameraZ = geo2.Vector(view.transform[0][2], view.transform[1][2], view.transform[2][2])
+            if geo2.Vec3Dot(surfaceNormal, cameraZ) < 0:
+                return
+            self.renderObject.translation = geo2.Vec3Scale(translation, rescale)
+            self.renderObject.rotation = rotation
+            self.renderObject.scaling = geo2.Vec3Scale(scaling, rescale)
+            scaling, rotation, translation = geo2.MatrixDecompose(view.transform)
+            translation = geo2.Vec3Scale(translation, rescale)
+            view.transform = geo2.MatrixTransformation(None, None, scaling, None, rotation, translation)
+            return self.renderObject.PickObject(x, y, projection, view, trinity.device.viewport)
 
     def _GetColor(self):
         return self.renderColor.value

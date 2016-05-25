@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\packages\requests\packages\chardet\sjisprober.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\packages\requests\packages\chardet\sjisprober.py
 import sys
 from .mbcharsetprober import MultiByteCharSetProber
 from .codingstatemachine import CodingStateMachine
@@ -21,7 +22,7 @@ class SJISProber(MultiByteCharSetProber):
         self._mContextAnalyzer.reset()
 
     def get_charset_name(self):
-        return 'SHIFT_JIS'
+        pass
 
     def feed(self, aBuf):
         aLen = len(aBuf)

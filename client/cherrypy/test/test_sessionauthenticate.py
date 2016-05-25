@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\carbon\common\lib\cherrypy\test\test_sessionauthenticate.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\carbon\common\lib\cherrypy\test\test_sessionauthenticate.py
 import cherrypy
 from cherrypy.test import helper
 
@@ -27,6 +28,7 @@ class SessionAuthenticateTest(helper.CPWebCase):
             index.exposed = True
 
         cherrypy.tree.mount(Test())
+        return
 
     setup_server = staticmethod(setup_server)
 

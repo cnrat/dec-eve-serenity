@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\client\script\ui\control\listgroup.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\client\script\ui\control\listgroup.py
 from carbonui.control.scrollentries import SE_ListGroupCore
 from eve.client.script.ui.control.glowSprite import GlowSprite
 from eve.client.script.ui.control.themeColored import FillThemeColored
@@ -57,8 +58,9 @@ class VirtualGroupWindow(Window):
 
     def _OnClose(self, *args):
         self.sr.data = None
+        return
 
-    def LoadContent(self, newNode = None, newCaption = None):
+    def LoadContent(self, newNode=None, newCaption=None):
         if not self or self.destroyed:
             return
         if newNode:
@@ -78,26 +80,28 @@ class VirtualGroupWindow(Window):
         if getattr(self.sr.data, 'DropData', None):
             self.sr.data.DropData(self.sr.data.id, nodes)
             return
-        ids = []
-        myListGroupID = self.sr.data.id
-        for node in nodes:
-            if node.__guid__ not in self.sr.data.get('allowGuids', []):
-                log.LogWarn('dropnode.__guid__ has to be listed in group.node.allowGuids', node.__guid__, getattr(self.sr.data, 'allowGuids', []))
-                continue
-            if not node.Get('itemID', None):
-                log.LogWarn('dropitem data has to have itemID')
-                continue
-            currentListGroupID = node.Get('listGroupID', None)
-            ids.append((node.itemID, currentListGroupID, myListGroupID))
+        else:
+            ids = []
+            myListGroupID = self.sr.data.id
+            for node in nodes:
+                if node.__guid__ not in self.sr.data.get('allowGuids', []):
+                    log.LogWarn('dropnode.__guid__ has to be listed in group.node.allowGuids', node.__guid__, getattr(self.sr.data, 'allowGuids', []))
+                    continue
+                if not node.Get('itemID', None):
+                    log.LogWarn('dropitem data has to have itemID')
+                    continue
+                currentListGroupID = node.Get('listGroupID', None)
+                ids.append((node.itemID, currentListGroupID, myListGroupID))
 
-        for itemID, currentListGroupID, myListGroupID in ids:
-            if currentListGroupID and itemID:
-                uicore.registry.RemoveFromListGroup(currentListGroupID, itemID)
-            uicore.registry.AddToListGroup(myListGroupID, itemID)
+            for itemID, currentListGroupID, myListGroupID in ids:
+                if currentListGroupID and itemID:
+                    uicore.registry.RemoveFromListGroup(currentListGroupID, itemID)
+                uicore.registry.AddToListGroup(myListGroupID, itemID)
 
-        uicore.registry.ReloadGroupWindow(myListGroupID)
-        if getattr(self.sr.data, 'RefreshScroll', None):
-            self.sr.data.RefreshScroll()
+            uicore.registry.ReloadGroupWindow(myListGroupID)
+            if getattr(self.sr.data, 'RefreshScroll', None):
+                self.sr.data.RefreshScroll()
+            return
 
 
 class ListGroup(uicontrols.SE_ListGroupCore):
@@ -121,6 +125,7 @@ class ListGroup(uicontrols.SE_ListGroupCore):
         else:
             self.sr.fill = FillThemeColored(parent=self, padding=(1, 0, 1, 1), colorType=uiconst.COLORTYPE_UIHEADER, opacity=0.15)
         mainLinePar = uiprimitives.Container(parent=self, name='mainLinePar', align=uiconst.TOALL, idx=0, pos=(0, 0, 0, 0), state=uiconst.UI_DISABLED)
+        return
 
     def GetHeight(self, *args):
         node, _ = args
@@ -179,16 +184,20 @@ class ListGroup(uicontrols.SE_ListGroupCore):
             self.sr.icon.left -= iconSize + 2
         if node.panel is not self or self is None:
             return
-        self.ShowOpenState(node.get('forceOpen', False) or uicore.registry.GetListGroupOpenState(self.sr.id, default=node.Get('openByDefault', False)))
-        self.RefreshGroupWindow(0)
+        else:
+            self.ShowOpenState(node.get('forceOpen', False) or uicore.registry.GetListGroupOpenState(self.sr.id, default=node.Get('openByDefault', False)))
+            self.RefreshGroupWindow(0)
+            return
 
     def OnDblClick(self, *args):
         if self.sr.node.Get('OnDblClick', None):
             self.sr.node.OnDblClick(self)
             return
-        if self.sr.node.Get('BlockOpenWindow', 0):
+        elif self.sr.node.Get('BlockOpenWindow', 0):
             return
-        self.RefreshGroupWindow(create=1)
+        else:
+            self.RefreshGroupWindow(create=1)
+            return
 
     def RefreshGroupWindow(self, create):
         import form
@@ -248,6 +257,7 @@ class ListGroup(uicontrols.SE_ListGroupCore):
             self.sr.node.DragEnterCallback(self, drag)
         elif drag and getattr(drag[0], '__guid__', None) in self.sr.node.Get('allowGuids', []) + ['xtriui.DragIcon']:
             self.Select()
+        return
 
     def OnDragExit(self, dragObj, drag, *args):
         if not self.sr.node.selected:
@@ -268,14 +278,15 @@ class ListGroup(uicontrols.SE_ListGroupCore):
         SE_ListGroupCore.OnMouseExit(self, *args)
         self.sr.expander.OnMouseExit()
 
-    def GetRadialMenuIndicator(self, create = True, *args):
+    def GetRadialMenuIndicator(self, create=True, *args):
         indicator = getattr(self, 'radialMenuIndicator', None)
         if indicator and not indicator.destroyed:
             return indicator
-        if not create:
+        elif not create:
             return
-        self.radialMenuIndicator = uiprimitives.Fill(bgParent=self, color=(1, 1, 1, 0.1), name='radialMenuIndicator')
-        return self.radialMenuIndicator
+        else:
+            self.radialMenuIndicator = uiprimitives.Fill(bgParent=self, color=(1, 1, 1, 0.1), name='radialMenuIndicator')
+            return self.radialMenuIndicator
 
     def ShowRadialMenuIndicator(self, slimItem, *args):
         indicator = self.GetRadialMenuIndicator(create=True)

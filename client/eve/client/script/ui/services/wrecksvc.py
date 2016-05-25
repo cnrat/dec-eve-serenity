@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\client\script\ui\services\wrecksvc.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\client\script\ui\services\wrecksvc.py
 import blue
 import log
 import service
@@ -28,7 +29,7 @@ class WreckService(service.Service):
             log.LogException()
             sys.exc_clear()
 
-    def MarkViewed(self, itemID, isViewed, playSound = False):
+    def MarkViewed(self, itemID, isViewed, playSound=False):
         if self.IsMarkedViewed(itemID) == isViewed:
             return
         self._SetViewed(itemID, isViewed)

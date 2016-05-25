@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\carbon\common\lib\autoexec_client_core.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\carbon\common\lib\autoexec_client_core.py
 import __builtin__
 import os
 import sys
@@ -130,6 +131,7 @@ def Startup(appCacheDirs, userCacheDirs, servicesToRun):
             pr = pr.split(',')
             srvMng.StartService('webtools').SetVars(pr)
         srvMng.GetService('gameui').StartupUI(0)
+    return
 
 
 def _InitializeEveBuiltin():

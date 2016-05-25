@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\packages\brennivin\osutils.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\packages\brennivin\osutils.py
 import binascii as _binascii
 import contextlib as _contextlib
 import errno as _errno
@@ -13,7 +14,7 @@ altsep = _os.altsep
 if altsep is None:
     altsep = _os.sep
 
-def abspathex(path, relative_to, _ignore_this = False):
+def abspathex(path, relative_to, _ignore_this=False):
     absRelativeTo = _os.path.abspath(relative_to)
     with change_cwd(absRelativeTo):
         if _ignore_this:
@@ -36,6 +37,8 @@ def change_cwd(cwd):
             _os.chdir(orig)
         _changecwd_lock.release()
 
+    return
+
 
 @_contextlib.contextmanager
 def change_environ(key, newvalue):
@@ -51,6 +54,8 @@ def change_environ(key, newvalue):
             _os.environ.pop(key, None)
         else:
             _os.environ[key] = oldvalue
+
+    return
 
 
 def change_ext(path, ext):
@@ -72,7 +77,7 @@ def crc_from_filename(filename):
     return _binascii.crc32(data) & 4294967295L
 
 
-def iter_files(directory, pattern = '*'):
+def iter_files(directory, pattern='*'):
     for root, dirs, files in _os.walk(directory):
         for basename in files:
             if _fnmatch.fnmatch(basename, pattern):
@@ -80,11 +85,11 @@ def iter_files(directory, pattern = '*'):
                 yield filename
 
 
-def listdirex(path, pattern = '*.*'):
+def listdirex(path, pattern='*.*'):
     return [ _os.path.join(path, fn) for fn in _os.listdir(path) if _fnmatch.fnmatch(fn, pattern) ]
 
 
-def makedirs(path, mode = 511):
+def makedirs(path, mode=511):
     try:
         _os.makedirs(path, mode)
     except OSError as err:

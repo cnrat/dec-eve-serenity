@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\carbon\common\lib\cherrypy\lib\auth_digest.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\carbon\common\lib\cherrypy\lib\auth_digest.py
 """An implementation of the server-side of HTTP Digest Access
 Authentication, which is described in :rfc:`2617`.
 
@@ -36,6 +37,8 @@ def get_ha1_dict_plain(user_password_dict):
         password = user_password_dict.get(username)
         if password:
             return md5_hex('%s:%s:%s' % (username, realm, password))
+        else:
+            return None
 
     return get_ha1
 
@@ -65,7 +68,7 @@ def get_ha1_file_htdigest(filename):
     return get_ha1
 
 
-def synthesize_nonce(s, key, timestamp = None):
+def synthesize_nonce(s, key, timestamp=None):
     if timestamp is None:
         timestamp = int(time.time())
     h = md5_hex('%s:%s:%s' % (timestamp, s, key))
@@ -82,7 +85,7 @@ class HttpDigestAuthorization(object):
     def errmsg(self, s):
         return 'Digest Authorization header: %s' % s
 
-    def __init__(self, auth_header, http_method, debug = False):
+    def __init__(self, auth_header, http_method, debug=False):
         self.http_method = http_method
         self.debug = debug
         scheme, params = auth_header.split(' ', 1)
@@ -132,7 +135,7 @@ class HttpDigestAuthorization(object):
 
         return False
 
-    def is_nonce_stale(self, max_age_seconds = 600):
+    def is_nonce_stale(self, max_age_seconds=600):
         try:
             timestamp, hashpart = self.nonce.split(':', 1)
             if int(timestamp) + max_age_seconds > int(time.time()):
@@ -144,7 +147,7 @@ class HttpDigestAuthorization(object):
             TRACE('nonce is stale')
         return True
 
-    def HA2(self, entity_body = ''):
+    def HA2(self, entity_body=''):
         if self.qop is None or self.qop == 'auth':
             a2 = '%s:%s' % (self.http_method, self.uri)
         elif self.qop == 'auth-int':
@@ -153,7 +156,7 @@ class HttpDigestAuthorization(object):
             raise ValueError(self.errmsg('Unrecognized value for qop!'))
         return H(a2)
 
-    def request_digest(self, ha1, entity_body = ''):
+    def request_digest(self, ha1, entity_body=''):
         ha2 = self.HA2(entity_body)
         if self.qop:
             req = '%s:%s:%s:%s:%s' % (self.nonce,
@@ -169,7 +172,7 @@ class HttpDigestAuthorization(object):
         return digest
 
 
-def www_authenticate(realm, key, algorithm = 'MD5', nonce = None, qop = qop_auth, stale = False):
+def www_authenticate(realm, key, algorithm='MD5', nonce=None, qop=qop_auth, stale=False):
     if qop not in valid_qops:
         raise ValueError("Unsupported value for qop: '%s'" % qop)
     if algorithm not in valid_algorithms:
@@ -185,7 +188,7 @@ def www_authenticate(realm, key, algorithm = 'MD5', nonce = None, qop = qop_auth
     return s
 
 
-def digest_auth(realm, get_ha1, key, debug = False):
+def digest_auth(realm, get_ha1, key, debug=False):
     request = cherrypy.serving.request
     auth_header = request.headers.get('authorization')
     nonce_is_stale = False
@@ -215,3 +218,4 @@ def digest_auth(realm, get_ha1, key, debug = False):
         TRACE(header)
     cherrypy.serving.response.headers['WWW-Authenticate'] = header
     raise cherrypy.HTTPError(401, 'You are not authorized to access that resource')
+    return

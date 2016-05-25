@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\packages\carbonui\control\calendarCore.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\packages\carbonui\control\calendarCore.py
 from carbonui.primitives.frame import FrameCoreOverride as Frame
 from carbonui.primitives.sprite import Sprite
 from eve.client.script.ui.control.eveIcon import Icon
@@ -71,6 +72,7 @@ class Calendar(Container):
         self.disbleBack = False
         self.Setup()
         self.InsertData()
+        return
 
     def Setup(self):
         sm.RegisterNotify(self)
@@ -130,6 +132,7 @@ class Calendar(Container):
             row.height = 0
         self.SetSizes()
         self.sr.gridCont._OnSizeChange_NoBlock = self.OnGridContainerSize
+        return
 
     def GetDay(self, parent, width, configname):
         from eve.client.script.ui.shared.eveCalendar import CalendarDay
@@ -147,7 +150,7 @@ class Calendar(Container):
     def OnGridContainerSize(self, displayWidth, displayHeight):
         self.SetSizes((displayWidth, displayHeight))
 
-    def SetSizes(self, size = None):
+    def SetSizes(self, size=None):
         if size is None:
             w, h = self.sr.gridCont.GetAbsoluteSize()
         else:
@@ -184,7 +187,7 @@ class Calendar(Container):
         icon = Sprite(parent=self.sr.fwdBtn, texturePath='res:/UI/Texture/Icons/1_16_14.png', pos=(0, 0, 16, 16), hint=localization.GetByLabel('/Carbon/UI/Common/Next'))
         icon.OnClick = (self.ChangeMonth, 1)
 
-    def ChangeBrowseDisplay(self, btn, disable = 0):
+    def ChangeBrowseDisplay(self, btn, disable=0):
         if disable:
             btn.opacity = 0.3
             btn.state = uiconst.UI_DISABLED
@@ -202,7 +205,7 @@ class Calendar(Container):
         self.SetCurrentRLMonth()
         self.SetHeader()
 
-    def SetCurrentRLMonth(self, selectToday = True, *args):
+    def SetCurrentRLMonth(self, selectToday=True, *args):
         now = blue.os.GetWallclockTime()
         year, month, wd, monthday, hour, min, sec, ms = GetTimeParts(now)
         self.yearMonthInView = (year, month)
@@ -217,7 +220,7 @@ class Calendar(Container):
     def OnReloadEvents(self, *args):
         self.LoadEvents()
 
-    def AddMonthText(self, text = '', *args):
+    def AddMonthText(self, text='', *args):
         if self.sr.get('monthText', None) is None:
             self.sr.monthText = Label(parent=self.sr.monthTextCont, state=uiconst.UI_DISABLED, align=uiconst.CENTER, bold=1, uppercase=1, idx=0)
         return self.sr.monthText
@@ -237,11 +240,13 @@ class Calendar(Container):
                 day.SetDayName(dayName)
             j += 1
 
+        return
+
     def GetDayNameText(self, dayNumber):
         dayName = localization.GetByLabel(DAY_NAME_TEXT[dayNumber])
         return dayName
 
-    def SetMonth(self, year, month, updateInView = 0, *args):
+    def SetMonth(self, year, month, updateInView=0, *args):
         if updateInView:
             self.yearMonthInView = (year, month)
         i = 1
@@ -282,7 +287,7 @@ class Calendar(Container):
         self.SetMonthText(year, month)
         self.LoadEvents()
 
-    def ChangeDayBox(self, i, j, year, month, monthday = 0, notInMonth = 0):
+    def ChangeDayBox(self, i, j, year, month, monthday=0, notInMonth=0):
         day = self.sr.get('%s_%s' % (i, j), None)
         if day:
             today = False
@@ -291,8 +296,9 @@ class Calendar(Container):
                 if self.today == (year, month, monthday):
                     today = True
             day.SetDay(year, month, monthday=monthday, notInMonth=notInMonth, today=today)
+        return
 
-    def ChangeMonth(self, direction = 1, selectDay = 1, *args):
+    def ChangeMonth(self, direction=1, selectDay=1, *args):
         year, month = self.yearMonthInView
         if direction == -1 and self.disbleBack or direction == 1 and self.disbleForward:
             return False
@@ -324,7 +330,9 @@ class Calendar(Container):
         dayBox = self.dayBoxesByDates.get(date, None)
         if dayBox is None:
             return
-        dayBox.LoadEvents(eventsThisDay)
+        else:
+            dayBox.LoadEvents(eventsThisDay)
+            return
 
     def OnCalendarFilterChange(self, *args):
         self.OnReloadCalendar()
@@ -353,6 +361,7 @@ class Calendar(Container):
                     dayBox.SetSelectedFrameState(on=0)
 
             self.selectedDay.SetSelectedFrameState(on=1)
+        return
 
     def DoClickDay(self, day, *args):
         uthread.new(self.DoClickDay_thread, day)
@@ -371,7 +380,7 @@ class Calendar(Container):
         else:
             day.OpenSingleDayWnd()
 
-    def SelectNextDay(self, direction = 1, weekOrDay = 'day', *args):
+    def SelectNextDay(self, direction=1, weekOrDay='day', *args):
         currentlySelected = self.selectedDay
         if currentlySelected is None:
             newSelected = self.sr.get('1_0', None)
@@ -386,6 +395,7 @@ class Calendar(Container):
                 newSelected = validDay
             self.selectedDay = newSelected
         self.SelectDay()
+        return
 
     def CrawlForValidDay(self, newSelected, direction, weekOrDay, *args):
         configname = newSelected.configname
@@ -415,8 +425,9 @@ class Calendar(Container):
     def OpenDay(self, *args):
         if self.selectedDay is not None:
             self.selectedDay.OnDblClickDay()
+        return
 
-    def FindAnotherDay(self, selectedDay, direction, weekOrDay = 'day'):
+    def FindAnotherDay(self, selectedDay, direction, weekOrDay='day'):
         newSelected = selectedDay
         index = self.allDayBoxes.index(selectedDay)
         if weekOrDay == 'day':
@@ -467,15 +478,16 @@ class CalendarHeaderCore(Container):
         self.sr.dayNameCont = Container(name='dayNameCont', parent=self, align=uiconst.TOALL, pos=(0, 0, 0, 0))
         self.AddDayNameText()
 
-    def AddDayNameText(self, text = '', *args):
+    def AddDayNameText(self, text='', *args):
         if self.sr.get('dayNameText', None) is None:
             self.sr.dayNameText = Label(text=text, parent=self.sr.dayNameCont, state=uiconst.UI_DISABLED, align=uiconst.CENTER, bold=1, uppercase=1, idx=0)
         return self.sr.dayNameText
 
-    def SetDayName(self, text = None, *args):
+    def SetDayName(self, text=None, *args):
         self.AddDayNameText()
         if text is not None:
             self.sr.dayNameText.text = text
+        return
 
 
 class CalendarEventEntryCore(Container):
@@ -509,8 +521,9 @@ class CalendarEventEntryCore(Container):
         if onDblClick is not None:
             self.OnDblClick = onDblClick
         self.Prepare_(text, tagIcon, responseIconPath, hint)
+        return
 
-    def Prepare_(self, text = '', tagIcon = None, responseIconPath = None, hint = '', *args):
+    def Prepare_(self, text='', tagIcon=None, responseIconPath=None, hint='', *args):
         self.clipChildren = 1
         self.AddLabel(text)
         self.height = 14
@@ -533,15 +546,16 @@ class CalendarEventEntryCore(Container):
         if GetAttrs(self, 'sr', 'hilite'):
             self.sr.hilite.state = uiconst.UI_HIDDEN
 
-    def AddIconCont(self, responsePath = None, tagIcon = None, *args):
+    def AddIconCont(self, responsePath=None, tagIcon=None, *args):
         self.sr.tagCont = Container(name='statusCont', parent=self, align=uiconst.TOPRIGHT, pos=(0, 2, 14, 14), state=uiconst.UI_DISABLED, idx=0)
         self.sr.tagCont.autoPos = uiconst.AUTOPOSYCENTER
         self.sr.responseCont = Container(name='responseCont', parent=self, align=uiconst.TOPLEFT, pos=(1, 0, 10, 14), state=uiconst.UI_DISABLED)
         if tagIcon is not None:
             self.SetTag(tagIcon)
         self.SetStatus(self.sr.responseCont, responsePath)
+        return
 
-    def SetStatus(self, cont, iconPath = None):
+    def SetStatus(self, cont, iconPath=None):
         cont.Flush()
         if iconPath:
             Icon(icon=iconPath, parent=cont, align=uiconst.CENTER, pos=(0, 0, 16, 16))
@@ -567,6 +581,7 @@ class CalendarDayCore(Container):
         self.disabled = 0
         self.configname = attributes.get('configname', None)
         self.Prepare_()
+        return
 
     def Prepare_(self, *args):
         self.sr.day = Container(name='dayNumberCont', parent=self, align=uiconst.TOALL, pos=(1, 1, 1, 1))
@@ -597,45 +612,46 @@ class CalendarDayCore(Container):
         self.sr.todayFill = Frame(parent=self, name='todayFill', frameConst=uiconst.FRAME_FILLED_CORNER0, padding=(1, 1, 1, 1), color=(0.5, 0.5, 0.5, 0.75))
         self.sr.selectedFrame = Frame(parent=self, name='frame', frameConst=uiconst.FRAME_BORDER1_CORNER0, color=(0.5, 0.5, 0.5, 0.1), padding=(1, 1, 1, 1), state=uiconst.UI_HIDDEN)
 
-    def AddDayNumber(self, text = '', *args):
+    def AddDayNumber(self, text='', *args):
         if self.sr.get('dayNumberText', None) is None:
             self.sr.dayNumberText = Label(parent=self.sr.dayNumberCont, state=uiconst.UI_DISABLED, align=uiconst.TOPRIGHT, bold=1, uppercase=1, idx=0, fontsize=10)
         return self.sr.dayNumberText
 
-    def SetDayNumber(self, text = None, *args):
+    def SetDayNumber(self, text=None, *args):
         self.AddDayNumber()
         if text is not None:
             text = localization.formatters.FormatNumeric(text, decimalPlaces=0)
             self.sr.dayNumberText.text = text
+        return
 
-    def SetDayInfo(self, year, month, monthday = 0, *args):
+    def SetDayInfo(self, year, month, monthday=0, *args):
         self.year = year
         self.month = month
         self.monthday = monthday
 
-    def SetDay(self, year, month, monthday = 0, notInMonth = 0, today = False):
+    def SetDay(self, year, month, monthday=0, notInMonth=0, today=False):
         self.SetDayNumber(text=monthday)
         self.ChangeDayVisibility(disabled=notInMonth)
         self.ClearDay()
         self.SetDayInfo(year, month, monthday=monthday)
         self.SetTodayMarker(today=today)
 
-    def ChangeDayVisibility(self, disabled = 1, *args):
+    def ChangeDayVisibility(self, disabled=1, *args):
         self.disabled = disabled
         self.SetFillState(visible=not disabled)
         self.SetFrameState(visible=disabled)
         self.SetDayVisibility(visible=not disabled)
 
-    def SetFrameState(self, visible = 1):
+    def SetFrameState(self, visible=1):
         self.sr.frame.SetAlpha([0.0, 0.4][bool(visible)])
 
-    def SetFillState(self, visible = 1):
+    def SetFillState(self, visible=1):
         self.sr.fill.state = [uiconst.UI_HIDDEN, uiconst.UI_DISABLED][bool(visible)]
 
-    def SetDayVisibility(self, visible = 1):
+    def SetDayVisibility(self, visible=1):
         self.sr.day.opacity = [0.4, 1.0][bool(visible)]
 
-    def SetTodayMarker(self, today = False, *args):
+    def SetTodayMarker(self, today=False, *args):
         self.sr.todayFill.state = [uiconst.UI_HIDDEN, uiconst.UI_DISABLED][today == True]
 
     def GetMenu(self, *args):
@@ -651,7 +667,7 @@ class CalendarDayCore(Container):
             m += [(MenuLabel('/Carbon/UI/Calendar/ViewDay'), self.OpenSingleDayWnd)]
         return m
 
-    def SetSelectedFrameState(self, on = 0):
+    def SetSelectedFrameState(self, on=0):
         self.sr.selectedFrame.state = [uiconst.UI_HIDDEN, uiconst.UI_DISABLED][on]
 
     def OnMouseClickDay(self, *args):
@@ -762,6 +778,7 @@ class EventListCore(Container):
         scrolllist = SortListOfTuples(scrolllist, reverse=self.GetSortOrder())
         self.LoadScroll(scrolllist)
         self.OnResize()
+        return
 
     def SetupScroll(self, *args):
         pass
@@ -773,10 +790,11 @@ class EventListCore(Container):
         entry = self.GetEventEntry(eventKV)
         if entry is None:
             return
-        return (eventKV.eventDateTime, entry)
+        else:
+            return (eventKV.eventDateTime, entry)
 
     def GetSortOrder(self, *args):
-        return 0
+        pass
 
     def GetEventEntry(self, *args):
         return None

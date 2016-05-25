@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\carbon\common\lib\cherrypy\test\test_static.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\carbon\common\lib\cherrypy\test\test_static.py
 from cherrypy._cpcompat import HTTPConnection, HTTPSConnection, ntob
 from cherrypy._cpcompat import BytesIO
 import os
@@ -51,12 +52,12 @@ class StaticTest(helper.CPWebCase):
         class Static:
 
             def index(self):
-                return 'You want the Baron? You can have the Baron!'
+                pass
 
             index.exposed = True
 
             def dynamic(self):
-                return 'This is a DYNAMIC page'
+                pass
 
             dynamic.exposed = True
 

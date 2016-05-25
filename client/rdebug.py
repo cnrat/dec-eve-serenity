@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\carbon\common\lib\rdebug.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\carbon\common\lib\rdebug.py
 import traceback, stackless
 
 class DebugFile(object):
@@ -12,7 +13,7 @@ class DebugFile(object):
             self.write(line)
 
 
-def Traceback(tasklet = None):
+def Traceback(tasklet=None):
     if not tasklet:
         tasklet = stackless.getcurrent()
     print >> file, 'traceback for tasklet %s' % tasklet
@@ -57,7 +58,7 @@ def Quote(s):
     return '"' + s + '"'
 
 
-def GetModuleText(module = None):
+def GetModuleText(module=None):
     if module:
         f = module.__file__
     else:
@@ -66,5 +67,5 @@ def GetModuleText(module = None):
     return file(f).read().rstrip() + '\n'
 
 
-def GetModuleString(module = None):
+def GetModuleString(module=None):
     return Quote(GetModuleText(module))

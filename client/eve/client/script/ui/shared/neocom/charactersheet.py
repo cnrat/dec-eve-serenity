@@ -1,9 +1,11 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\client\script\ui\shared\neocom\charactersheet.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\client\script\ui\shared\neocom\charactersheet.py
+from collections import defaultdict, OrderedDict
 from carbonui.primitives.container import Container
 from carbonui.primitives.containerAutoSize import ContainerAutoSize
 from carbonui.primitives.flowcontainer import FlowContainer, CONTENT_ALIGN_CENTER
 from eve.client.script.ui.control.infoIcon import InfoIcon
-from eve.client.script.ui.control.themeColored import FillThemeColored
+from eve.client.script.ui.control.themeColored import FillThemeColored, LineThemeColored
 from eve.client.script.ui.shared.vgs.button import BuyButtonIsk, BuyButtonPlex
 import service
 import blue
@@ -68,19 +70,20 @@ class CharacterSheet(service.Service):
      'neocom',
      'crimewatchSvc']
 
-    def Run(self, memStream = None):
+    def Run(self, memStream=None):
         self.LogInfo('Starting Character Sheet')
         sm.FavourMe(self.OnSessionChanged)
         self.Reset()
         if not sm.GetService('skillqueue').SkillInTraining():
             sm.GetService('neocom').Blink('charactersheet')
 
-    def Stop(self, memStream = None):
+    def Stop(self, memStream=None):
         self.entryTmpl = None
         self.bio = None
         wnd = self.GetWnd()
         if wnd is not None and not wnd.destroyed:
             wnd.Close()
+        return
 
     def OnUIRefresh(self, *args):
         wnd = form.CharacterSheet.GetIfOpen()
@@ -92,6 +95,7 @@ class CharacterSheet(service.Service):
         if session.charid is None:
             self.Stop()
             self.Reset()
+        return
 
     def OnSessionChanged(self, isRemote, session, change):
         if 'corpid' in change:
@@ -102,6 +106,7 @@ class CharacterSheet(service.Service):
                 if selection:
                     self.showing = None
                     self.Load('employment')
+        return
 
     def OnRankChange(self, oldrank, newrank):
         if not session.warfactionid:
@@ -204,23 +209,28 @@ class CharacterSheet(service.Service):
 
     def OnKillNotification(self):
         sm.StartService('objectCaching').InvalidateCachedMethodCall('charMgr', 'GetRecentShipKillsAndLosses', 25, None)
+        return
 
     def OnUpdatedMedalsAvailable(self):
         sm.GetService('neocom').Blink('charactersheet')
         wnd = self.GetWnd()
         if wnd is None:
             return
-        wnd.sr.decoMedalList = None
-        if self.showing.startswith('mydecorations_'):
-            self.ShowMyDecorations(self.showing)
+        else:
+            wnd.sr.decoMedalList = None
+            if self.showing.startswith('mydecorations_'):
+                self.ShowMyDecorations(self.showing)
+            return
 
     def OnUpdatedMedalStatusAvailable(self):
         wnd = self.GetWnd()
         if wnd is None or wnd.destroyed:
             return
-        if self.showing.startswith('mydecorations_permissions'):
-            wnd.sr.decoMedalList = None
-            self.ShowMyDecorations(self.showing)
+        else:
+            if self.showing.startswith('mydecorations_permissions'):
+                wnd.sr.decoMedalList = None
+                self.ShowMyDecorations(self.showing)
+            return
 
     def OnRespecInfoUpdated(self):
         if self.showing == 'myattributes':
@@ -250,14 +260,17 @@ class CharacterSheet(service.Service):
         self.bio = None
         self.daysLeft = -1
         self.loading = False
+        return
 
     def Show(self):
         wnd = self.GetWnd(1)
         if wnd is not None and not wnd.destroyed:
             wnd.Maximize()
             return wnd
+        else:
+            return
 
-    def GetWnd(self, getnew = 0):
+    def GetWnd(self, getnew=0):
         if not getnew:
             return form.CharacterSheet.GetIfOpen()
         else:
@@ -373,10 +386,11 @@ class CharacterSheet(service.Service):
         navEntries = uiutil.SortListOfTuples(navEntries)
         return navEntries
 
-    def SetHint(self, hintstr = None):
+    def SetHint(self, hintstr=None):
         wnd = self.GetWnd()
         if wnd is not None:
             wnd.sr.scroll.ShowHint(hintstr)
+        return
 
     def OnCloseWnd(self, wnd, *args):
         if self.showing == 'bio':
@@ -385,6 +399,7 @@ class CharacterSheet(service.Service):
         self.showing = None
         settings.user.ui.Set('charsheetleftwidth', wnd.sr.leftSide.width)
         self.panels = []
+        return
 
     def OnSelectEntry(self, node):
         if node != []:
@@ -401,286 +416,293 @@ class CharacterSheet(service.Service):
         wnd = self.GetWnd()
         if not wnd:
             return
-        if self.loading or self.showing == key:
+        elif self.loading or self.showing == key:
             return
-        self.loading = True
-        try:
-            if self.showing == 'bio':
-                self.AutoSaveBio()
-            self.HideScrolls()
-            wnd.quickFilter.SetValue('')
-            for uielement in ['standingtabs',
-             'killstabs',
-             'skilltabs',
-             'btnContainer',
-             'mydecorationstabs',
-             'buttonParDeco',
-             'skillpanel',
-             'combatlogpanel',
-             'plexContainer']:
-                e = getattr(wnd.sr, uielement, None)
+        else:
+            self.loading = True
+            try:
+                if self.showing == 'bio':
+                    self.AutoSaveBio()
+                self.HideScrolls()
+                wnd.quickFilter.SetValue('')
+                for uielement in ['standingtabs',
+                 'killstabs',
+                 'skilltabs',
+                 'btnContainer',
+                 'mydecorationstabs',
+                 'buttonParDeco',
+                 'skillpanel',
+                 'combatlogpanel',
+                 'plexContainer']:
+                    e = getattr(wnd.sr, uielement, None)
+                    if e:
+                        e.state = uiconst.UI_HIDDEN
+
+                e = getattr(wnd, 'skinsPanel', None)
                 if e:
                     e.state = uiconst.UI_HIDDEN
-
-            e = getattr(wnd, 'skinsPanel', None)
-            if e:
-                e.state = uiconst.UI_HIDDEN
-            if key.startswith('mystandings'):
-                wnd.sr.scroll.state = uiconst.UI_PICKCHILDREN
-                if not wnd.sr.standingsinited:
-                    wnd.sr.standingsinited = 1
-                    tabs = uicontrols.TabGroup(name='tabparent', parent=wnd.sr.mainArea, idx=0, tabs=[[localization.GetByLabel('UI/CharacterSheet/CharacterSheetWindow/StandingTabs/LikedBy'),
-                      wnd.sr.scroll,
-                      self,
-                      'mystandings_to_positive'], [localization.GetByLabel('UI/CharacterSheet/CharacterSheetWindow/StandingTabs/DislikeBy'),
-                      wnd.sr.scroll,
-                      self,
-                      'mystandings_to_negative']], groupID='cs_standings')
-                    wnd.sr.standingtabs = tabs
-                    wnd.sr.standingtabs.AutoSelect()
-                    return
-                if getattr(wnd.sr, 'standingtabs', None):
+                if key.startswith('mystandings'):
+                    wnd.sr.scroll.state = uiconst.UI_PICKCHILDREN
+                    if not wnd.sr.standingsinited:
+                        wnd.sr.standingsinited = 1
+                        tabs = uicontrols.TabGroup(name='tabparent', parent=wnd.sr.mainArea, idx=0, tabs=[[localization.GetByLabel('UI/CharacterSheet/CharacterSheetWindow/StandingTabs/LikedBy'),
+                          wnd.sr.scroll,
+                          self,
+                          'mystandings_to_positive'], [localization.GetByLabel('UI/CharacterSheet/CharacterSheetWindow/StandingTabs/DislikeBy'),
+                          wnd.sr.scroll,
+                          self,
+                          'mystandings_to_negative']], groupID='cs_standings')
+                        wnd.sr.standingtabs = tabs
+                        wnd.sr.standingtabs.AutoSelect()
+                        return
+                    if getattr(wnd.sr, 'standingtabs', None):
+                        wnd.sr.standingtabs.state = uiconst.UI_NORMAL
                     wnd.sr.standingtabs.state = uiconst.UI_NORMAL
-                wnd.sr.standingtabs.state = uiconst.UI_NORMAL
-                if key == 'mystandings':
-                    wnd.sr.standingtabs.AutoSelect()
-                    return
-                self.SetHint()
-                if key == 'mystandings_to_positive':
-                    positive = True
-                else:
-                    positive = False
-                self.ShowStandings(positive)
-            elif key.startswith('myskills'):
-                wnd.sr.scroll.state = uiconst.UI_PICKCHILDREN
-                if not wnd.sr.skillsinited:
-                    wnd.sr.skillsinited = 1
-                    wnd.sr.skilltabs = uicontrols.TabGroup(name='tabparent', parent=wnd.sr.mainArea, idx=0, tabs=[[localization.GetByLabel('UI/CharacterSheet/CharacterSheetWindow/SkillTabs/Skills'),
-                      wnd.sr.scroll,
-                      self,
-                      'myskills_skills'], [localization.GetByLabel('UI/CharacterSheet/CharacterSheetWindow/CertTabs/Certificates'),
-                      wnd.sr.scroll,
-                      self,
-                      'myskills_certificates'], [localization.GetByLabel('UI/CharacterSheet/CharacterSheetWindow/SkillTabs/History'),
-                      wnd.sr.scroll,
-                      self,
-                      'myskills_skillhistory']], groupID='cs_skills', UIIDPrefix='characterSheetTab')
-                    wnd.sr.skilltabs.AutoSelect()
-                    return
-                if getattr(wnd.sr, 'skilltabs', None):
-                    wnd.sr.skilltabs.state = uiconst.UI_NORMAL
-                if key == 'myskills':
-                    if self.showing in ('myskills_skills', 'myskills_certificates'):
-                        if getattr(wnd.sr, 'skillpanel', None):
-                            wnd.sr.skillpanel.state = uiconst.UI_NORMAL
-                    wnd.sr.skilltabs.AutoSelect()
-                    return
-                self.SetHint()
-                self.ShowSkills(key)
-            elif key.startswith('mydecorations'):
-                wnd.sr.scroll.state = uiconst.UI_PICKCHILDREN
-                if not wnd.sr.mydecorationsinited:
-                    wnd.sr.mydecorationsinited = 1
-                    tabs = uicontrols.TabGroup(name='tabparent', parent=wnd.sr.mainArea, idx=0, tabs=[[localization.GetByLabel('UI/CharacterSheet/CharacterSheetWindow/DecoTabs/Ranks'),
-                      wnd.sr.scroll,
-                      self,
-                      'mydecorations_ranks'], [localization.GetByLabel('UI/CharacterSheet/CharacterSheetWindow/DecoTabs/Medals'),
-                      wnd.sr.scroll,
-                      self,
-                      'mydecorations_medals'], [localization.GetByLabel('UI/CharacterSheet/CharacterSheetWindow/DecoTabs/Permissions'),
-                      wnd.sr.scroll,
-                      self,
-                      'mydecorations_permissions']], groupID='cs_decorations')
-                    wnd.sr.mydecorationstabs = tabs
-                    wnd.sr.mydecorationstabs.AutoSelect()
-                    return
-                if getattr(wnd.sr, 'mydecorationstabs', None):
-                    wnd.sr.mydecorationstabs.state = uiconst.UI_NORMAL
-                if key == 'mydecorations':
-                    wnd.sr.mydecorationstabs.AutoSelect()
-                    if self.showing == 'mydecorations_permissions':
-                        wnd.sr.buttonParDeco.state = uiconst.UI_NORMAL
-                    return
-                self.SetHint()
-                self.ShowMyDecorations(key)
-            elif key.startswith('mykills'):
-                self.combatPageNum = 0
-                wnd.sr.scroll.state = uiconst.UI_PICKCHILDREN
-                if getattr(wnd.sr, 'combatlogpanel', None):
-                    wnd.sr.combatlogpanel.state = uiconst.UI_NORMAL
-                if not wnd.sr.killsinited:
-                    wnd.sr.killsinited = 1
-                    btnContainer = Container(name='pageBtnContainer', parent=wnd.sr.mainArea, align=uiconst.TOBOTTOM, idx=0, padBottom=4)
-                    btn = uix.GetBigButton(size=22, where=btnContainer, left=4, top=0)
-                    btn.SetAlign(uiconst.CENTERRIGHT)
-                    btn.hint = localization.GetByLabel('UI/CharacterSheet/CharacterSheetWindow/KillsTabs/ViewMore')
-                    btn.sr.icon.LoadIcon('ui_23_64_2')
-                    btn = uix.GetBigButton(size=22, where=btnContainer, left=4, top=0)
-                    btn.SetAlign(uiconst.CENTERLEFT)
-                    btn.hint = localization.GetByLabel('UI/CharacterSheet/CharacterSheetWindow/KillsTabs/ViewPrevious')
-                    btn.sr.icon.LoadIcon('ui_23_64_1')
-                    btnContainer.height = max([ c.height for c in btnContainer.children ])
-                    wnd.sr.btnContainer = btnContainer
+                    if key == 'mystandings':
+                        wnd.sr.standingtabs.AutoSelect()
+                        return
+                    self.SetHint()
+                    if key == 'mystandings_to_positive':
+                        positive = True
+                    else:
+                        positive = False
+                    self.ShowStandings(positive)
+                elif key.startswith('myskills'):
+                    wnd.sr.scroll.state = uiconst.UI_PICKCHILDREN
+                    if not wnd.sr.skillsinited:
+                        wnd.sr.skillsinited = 1
+                        wnd.sr.skilltabs = uicontrols.TabGroup(name='tabparent', parent=wnd.sr.mainArea, idx=0, tabs=[[localization.GetByLabel('UI/CharacterSheet/CharacterSheetWindow/SkillTabs/Skills'),
+                          wnd.sr.scroll,
+                          self,
+                          'myskills_skills'], [localization.GetByLabel('UI/CharacterSheet/CharacterSheetWindow/CertTabs/Certificates'),
+                          wnd.sr.scroll,
+                          self,
+                          'myskills_certificates'], [localization.GetByLabel('UI/CharacterSheet/CharacterSheetWindow/SkillTabs/History'),
+                          wnd.sr.scroll,
+                          self,
+                          'myskills_skillhistory']], groupID='cs_skills', UIIDPrefix='characterSheetTab')
+                        wnd.sr.skilltabs.AutoSelect()
+                        return
+                    if getattr(wnd.sr, 'skilltabs', None):
+                        wnd.sr.skilltabs.state = uiconst.UI_NORMAL
+                    if key == 'myskills':
+                        if self.showing in ('myskills_skills', 'myskills_certificates'):
+                            if getattr(wnd.sr, 'skillpanel', None):
+                                wnd.sr.skillpanel.state = uiconst.UI_NORMAL
+                        wnd.sr.skilltabs.AutoSelect()
+                        return
+                    self.SetHint()
+                    self.ShowSkills(key)
+                elif key.startswith('mydecorations'):
+                    wnd.sr.scroll.state = uiconst.UI_PICKCHILDREN
+                    if not wnd.sr.mydecorationsinited:
+                        wnd.sr.mydecorationsinited = 1
+                        tabs = uicontrols.TabGroup(name='tabparent', parent=wnd.sr.mainArea, idx=0, tabs=[[localization.GetByLabel('UI/CharacterSheet/CharacterSheetWindow/DecoTabs/Ranks'),
+                          wnd.sr.scroll,
+                          self,
+                          'mydecorations_ranks'], [localization.GetByLabel('UI/CharacterSheet/CharacterSheetWindow/DecoTabs/Medals'),
+                          wnd.sr.scroll,
+                          self,
+                          'mydecorations_medals'], [localization.GetByLabel('UI/CharacterSheet/CharacterSheetWindow/DecoTabs/Permissions'),
+                          wnd.sr.scroll,
+                          self,
+                          'mydecorations_permissions']], groupID='cs_decorations')
+                        wnd.sr.mydecorationstabs = tabs
+                        wnd.sr.mydecorationstabs.AutoSelect()
+                        return
+                    if getattr(wnd.sr, 'mydecorationstabs', None):
+                        wnd.sr.mydecorationstabs.state = uiconst.UI_NORMAL
+                    if key == 'mydecorations':
+                        wnd.sr.mydecorationstabs.AutoSelect()
+                        if self.showing == 'mydecorations_permissions':
+                            wnd.sr.buttonParDeco.state = uiconst.UI_NORMAL
+                        return
+                    self.SetHint()
+                    self.ShowMyDecorations(key)
+                elif key.startswith('mykills'):
+                    self.combatPageNum = 0
+                    wnd.sr.scroll.state = uiconst.UI_PICKCHILDREN
+                    if getattr(wnd.sr, 'combatlogpanel', None):
+                        wnd.sr.combatlogpanel.state = uiconst.UI_NORMAL
+                    if not wnd.sr.killsinited:
+                        wnd.sr.killsinited = 1
+                        btnContainer = Container(name='pageBtnContainer', parent=wnd.sr.mainArea, align=uiconst.TOBOTTOM, idx=0, padBottom=4)
+                        btn = uix.GetBigButton(size=22, where=btnContainer, left=4, top=0)
+                        btn.SetAlign(uiconst.CENTERRIGHT)
+                        btn.hint = localization.GetByLabel('UI/CharacterSheet/CharacterSheetWindow/KillsTabs/ViewMore')
+                        btn.sr.icon.LoadIcon('ui_23_64_2')
+                        btn = uix.GetBigButton(size=22, where=btnContainer, left=4, top=0)
+                        btn.SetAlign(uiconst.CENTERLEFT)
+                        btn.hint = localization.GetByLabel('UI/CharacterSheet/CharacterSheetWindow/KillsTabs/ViewPrevious')
+                        btn.sr.icon.LoadIcon('ui_23_64_1')
+                        btnContainer.height = max([ c.height for c in btnContainer.children ])
+                        wnd.sr.btnContainer = btnContainer
+                        self.ShowKills()
+                        self.showing = 'mykills'
+                        return
                     self.ShowKills()
-                    self.showing = 'mykills'
-                    return
-                self.ShowKills()
-            else:
-                if wnd.sr.standingsinited:
-                    wnd.sr.standingtabs.state = uiconst.UI_HIDDEN
-                if wnd.sr.skillsinited:
-                    wnd.sr.skilltabs.state = uiconst.UI_HIDDEN
-                if wnd.sr.mydecorationsinited:
-                    wnd.sr.mydecorationstabs.state = uiconst.UI_HIDDEN
-                self.SetHint()
-                if key == 'myattributes':
-                    self.ShowMyAttributes()
-                elif key == 'myimplants_boosters':
-                    self.ShowMyImplantsAndBoosters()
-                elif key == 'bio':
-                    self.ShowMyBio()
-                elif key == 'securitystatus':
-                    self.ShowSecurityStatus()
-                elif key == 'killrights':
-                    self.ShowKillRights()
-                elif key == 'jumpclones':
-                    self.ShowJumpClones()
-                elif key == 'employment':
-                    self.ShowEmploymentHistory()
-                elif key == 'mysettings':
-                    self.ShowSettings()
-                elif key == 'pilotlicense':
-                    self.ShowPilotLicense()
-                    LogOpenPilotLicense()
-                elif key == 'skins':
-                    self.ShowSkins()
-            self.showing = key
-        finally:
-            self.loading = False
+                else:
+                    if wnd.sr.standingsinited:
+                        wnd.sr.standingtabs.state = uiconst.UI_HIDDEN
+                    if wnd.sr.skillsinited:
+                        wnd.sr.skilltabs.state = uiconst.UI_HIDDEN
+                    if wnd.sr.mydecorationsinited:
+                        wnd.sr.mydecorationstabs.state = uiconst.UI_HIDDEN
+                    self.SetHint()
+                    if key == 'myattributes':
+                        self.ShowMyAttributes()
+                    elif key == 'myimplants_boosters':
+                        self.ShowMyImplantsAndBoosters()
+                    elif key == 'bio':
+                        self.ShowMyBio()
+                    elif key == 'securitystatus':
+                        self.ShowSecurityStatus()
+                    elif key == 'killrights':
+                        self.ShowKillRights()
+                    elif key == 'jumpclones':
+                        self.ShowJumpClones()
+                    elif key == 'employment':
+                        self.ShowEmploymentHistory()
+                    elif key == 'mysettings':
+                        self.ShowSettings()
+                    elif key == 'pilotlicense':
+                        self.ShowPilotLicense()
+                        LogOpenPilotLicense()
+                    elif key == 'skins':
+                        self.ShowSkins()
+                self.showing = key
+            finally:
+                self.loading = False
+
+            return
 
     def BuyPlexOnMarket(self, *args):
         uthread.new(sm.StartService('marketutils').ShowMarketDetails, const.typePilotLicence, None)
+        return
 
     def LoadGeneralInfo(self):
         if getattr(self, 'loadingGeneral', 0):
             return
-        wnd = self.GetWnd()
-        if wnd is None or wnd.destroyed:
-            return
-        self.loadingGeneral = 1
-        uix.Flush(wnd.sr.topParent)
-        characterName = cfg.eveowners.Get(eve.session.charid).name
-        if not getattr(self, 'charMgr', None):
-            self.charMgr = sm.RemoteSvc('charMgr')
-        if not getattr(self, 'cc', None):
-            self.charsvc = sm.GetService('cc')
-        wnd.sr.charinfo = charinfo = self.charMgr.GetPublicInfo(eve.session.charid)
-        if settings.user.ui.Get('charsheetExpanded', 1):
-            parent = wnd.sr.topParent
-            wnd.sr.picParent = Container(name='picpar', parent=parent, align=uiconst.TOPLEFT, width=200, height=200, left=const.defaultPadding, top=16)
-            wnd.sr.pic = uiprimitives.Sprite(parent=wnd.sr.picParent, align=uiconst.TOALL, left=1, top=1, height=1, width=1)
-            wnd.sr.pic.OnClick = self.OpenPortraitWnd
-            wnd.sr.pic.cursor = uiconst.UICURSOR_MAGNIFIER
-            uicontrols.Frame(parent=wnd.sr.picParent, opacity=0.2)
-            sm.GetService('photo').GetPortrait(eve.session.charid, 256, wnd.sr.pic)
-            infoTextPadding = wnd.sr.picParent.width + const.defaultPadding * 4
-            characterLink = localization.GetByLabel('UI/Contracts/ContractsWindow/ShowInfoLink', showInfoName=characterName, info=('showinfo', const.typeCharacterAmarr, session.charid))
-            wnd.sr.nameText = uicontrols.EveCaptionMedium(text=characterLink, parent=wnd.sr.topParent, left=infoTextPadding, top=12, state=uiconst.UI_NORMAL)
-            wnd.sr.raceinfo = raceinfo = cfg.races.Get(charinfo.raceID)
-            wnd.sr.bloodlineinfo = bloodlineinfo = cfg.bloodlines.Get(charinfo.bloodlineID)
-            wnd.sr.schoolinfo = schoolinfo = self.charsvc.GetData('schools', ['schoolID', charinfo.schoolID])
-            wnd.sr.ancestryinfo = ancestryinfo = self.charsvc.GetData('ancestries', ['ancestryID', charinfo.ancestryID])
-            if wnd is None or wnd.destroyed:
-                self.loadingGeneral = 0
-                return
-            securityStatus = self.crimewatchSvc.GetMySecurityStatus()
-            roundedSecurityStatus = localization.formatters.FormatNumeric(securityStatus, decimalPlaces=1)
-            cloneLocation = sm.RemoteSvc('charMgr').GetHomeStation()
-            if cloneLocation:
-                cloneLocationInfo = sm.GetService('ui').GetStation(cloneLocation)
-                if cloneLocationInfo:
-                    systemID = cloneLocationInfo.solarSystemID
-                    cloneLocationHint = localization.GetByLabel('UI/CharacterSheet/CharacterSheetWindow/CloneLocationHint', locationId=cloneLocation, systemId=systemID)
-                    cloneLocation = cfg.evelocations.Get(systemID).name
-                else:
-                    cloneLocationHint = cfg.evelocations.Get(cloneLocation).name
-                    cloneLocation = localization.GetByLabel('UI/CharacterSheet/CharacterSheetWindow/UnknownSystem')
-            else:
-                cloneLocation = localization.GetByLabel('UI/CharacterSheet/CharacterSheetWindow/UnknownSystem')
-                cloneLocationHint = ''
-            alliance = ''
-            if eve.session.allianceid:
-                cfg.eveowners.Prime([eve.session.allianceid])
-                alliance = (localization.GetByLabel('UI/Common/Alliance'), cfg.eveowners.Get(eve.session.allianceid).name, '')
-            faction = ''
-            if eve.session.warfactionid:
-                fac = sm.StartService('facwar').GetFactionalWarStatus()
-                faction = (localization.GetByLabel('UI/Common/Militia'), cfg.eveowners.Get(fac.factionID).name, '')
-            bounty = ''
-            bountyOwnerIDs = (session.charid, session.corpid, session.allianceid)
-            bountyAmount = sm.GetService('bountySvc').GetBounty(*bountyOwnerIDs)
-            bountyAmounts = sm.GetService('bountySvc').GetBounties(*bountyOwnerIDs)
-            charBounty = 0
-            corpBounty = 0
-            allianceBounty = 0
-            if len(bountyAmounts):
-                for ownerID, value in bountyAmounts.iteritems():
-                    if util.IsCharacter(ownerID):
-                        charBounty = value
-                    elif util.IsCorporation(ownerID):
-                        corpBounty = value
-                    elif util.IsAlliance(ownerID):
-                        allianceBounty = value
-
-            bountyHint = localization.GetByLabel('UI/Station/BountyOffice/BountyHint', charBounty=util.FmtISK(charBounty, 0), corpBounty=util.FmtISK(corpBounty, 0), allianceBounty=util.FmtISK(allianceBounty, 0))
-            bounty = (localization.GetByLabel('UI/Station/BountyOffice/Bounty'), util.FmtISK(bountyAmount, 0), bountyHint)
-            skillPoints = int(sm.GetService('skills').GetSkillPoints())
-            textList = [(localization.GetByLabel('UI/CharacterSheet/CharacterSheetWindow/SkillPoints'), localization.formatters.FormatNumeric(skillPoints, useGrouping=True), ''),
-             (localization.GetByLabel('UI/CharacterSheet/CharacterSheetWindow/HomeSystem'), cloneLocation, cloneLocationHint),
-             (localization.GetByLabel('UI/CharacterSheet/CharacterSheetWindow/CharacterBackground'), localization.GetByLabel('UI/CharacterSheet/CharacterSheetWindow/CharacterBackgroundInformation', raceName=localization.GetByMessageID(raceinfo.raceNameID), bloodlineName=localization.GetByMessageID(bloodlineinfo.bloodlineNameID), ancestryName=localization.GetByMessageID(ancestryinfo.ancestryNameID)), localization.GetByLabel('UI/CharacterSheet/CharacterSheetWindow/CharacterBackgroundHint')),
-             (localization.GetByLabel('UI/CharacterSheet/CharacterSheetWindow/DateOfBirth'), localization.formatters.FormatDateTime(charinfo.createDateTime, dateFormat='long', timeFormat='long'), ''),
-             (localization.GetByLabel('UI/CharacterSheet/CharacterSheetWindow/School'), localization.GetByMessageID(schoolinfo.schoolNameID), ''),
-             (localization.GetByLabel('UI/Common/Corporation'), cfg.eveowners.Get(eve.session.corpid).name, ''),
-             (localization.GetByLabel('UI/CharacterSheet/CharacterSheetWindow/SecurityStatus'), roundedSecurityStatus, localization.formatters.FormatNumeric(securityStatus, decimalPlaces=4))]
-            if faction:
-                textList.insert(len(textList) - 1, faction)
-            if alliance:
-                textList.insert(len(textList) - 1, alliance)
-            if bounty:
-                textList.insert(len(textList), bounty)
-            numLines = len(textList) + 2
-            mtext = 'Xg<br>' * numLines
-            mtext = mtext[:-4]
-            th = uix.GetTextHeight(mtext)
-            topParentHeight = max(220, th + const.defaultPadding * 2 + 2)
-            top = max(34, wnd.sr.nameText.top + wnd.sr.nameText.height)
-            leftContainer = Container(parent=wnd.sr.topParent, left=infoTextPadding, top=top, align=uiconst.TOPLEFT)
-            rightContainer = Container(parent=wnd.sr.topParent, top=top, align=uiconst.TOPLEFT)
-            subTop = 0
-            for label, value, hint in textList:
-                label = uicontrols.EveLabelMedium(text=label, parent=leftContainer, idx=0, state=uiconst.UI_NORMAL, align=uiconst.TOPLEFT, top=subTop)
-                label.hint = hint
-                label._tabMargin = 0
-                display = uicontrols.EveLabelMedium(text=value, parent=rightContainer, idx=0, state=uiconst.UI_NORMAL, align=uiconst.TOPLEFT, top=subTop)
-                display.hint = hint
-                display._tabMargin = 0
-                subTop += label.height
-
-            leftContainer.AutoFitToContent()
-            rightContainer.left = leftContainer.left + leftContainer.width + 20
-            rightContainer.AutoFitToContent()
-            wnd.SetTopparentHeight(max(topParentHeight, rightContainer.height, leftContainer.height))
         else:
-            wnd.SetTopparentHeight(18)
-        charsheetExpanded = settings.user.ui.Get('charsheetExpanded', 1)
-        if not charsheetExpanded:
-            uicontrols.EveLabelMedium(text=characterName, parent=wnd.sr.topParent, left=8, top=1, state=uiconst.UI_DISABLED)
-        expandOptions = [localization.GetByLabel('UI/CharacterSheet/CharacterSheetWindow/Expand'), localization.GetByLabel('UI/CharacterSheet/CharacterSheetWindow/Collapse')]
-        a = uicontrols.EveLabelSmall(text=expandOptions[charsheetExpanded], parent=wnd.sr.topParent, left=18, top=3, state=uiconst.UI_NORMAL, align=uiconst.TOPRIGHT, bold=True)
-        a.OnClick = self.ToggleGeneral
-        expander = uiprimitives.Sprite(parent=wnd.sr.topParent, pos=(6, 2, 11, 11), name='expandericon', state=uiconst.UI_NORMAL, texturePath=['res:/UI/Texture/Shared/expanderDown.png', 'res:/UI/Texture/Shared/expanderUp.png'][charsheetExpanded], align=uiconst.TOPRIGHT)
-        expander.OnClick = self.ToggleGeneral
-        self.loadingGeneral = 0
+            wnd = self.GetWnd()
+            if wnd is None or wnd.destroyed:
+                return
+            self.loadingGeneral = 1
+            uix.Flush(wnd.sr.topParent)
+            characterName = cfg.eveowners.Get(eve.session.charid).name
+            if not getattr(self, 'charMgr', None):
+                self.charMgr = sm.RemoteSvc('charMgr')
+            if not getattr(self, 'cc', None):
+                self.charsvc = sm.GetService('cc')
+            wnd.sr.charinfo = charinfo = self.charMgr.GetPublicInfo(eve.session.charid)
+            if settings.user.ui.Get('charsheetExpanded', 1):
+                parent = wnd.sr.topParent
+                wnd.sr.picParent = Container(name='picpar', parent=parent, align=uiconst.TOPLEFT, width=200, height=200, left=const.defaultPadding, top=16)
+                wnd.sr.pic = uiprimitives.Sprite(parent=wnd.sr.picParent, align=uiconst.TOALL, left=1, top=1, height=1, width=1)
+                wnd.sr.pic.OnClick = self.OpenPortraitWnd
+                wnd.sr.pic.cursor = uiconst.UICURSOR_MAGNIFIER
+                uicontrols.Frame(parent=wnd.sr.picParent, opacity=0.2)
+                sm.GetService('photo').GetPortrait(eve.session.charid, 256, wnd.sr.pic)
+                infoTextPadding = wnd.sr.picParent.width + const.defaultPadding * 4
+                characterLink = localization.GetByLabel('UI/Contracts/ContractsWindow/ShowInfoLink', showInfoName=characterName, info=('showinfo', const.typeCharacterAmarr, session.charid))
+                wnd.sr.nameText = uicontrols.EveCaptionMedium(text=characterLink, parent=wnd.sr.topParent, left=infoTextPadding, top=12, state=uiconst.UI_NORMAL)
+                wnd.sr.raceinfo = raceinfo = cfg.races.Get(charinfo.raceID)
+                wnd.sr.bloodlineinfo = bloodlineinfo = cfg.bloodlines.Get(charinfo.bloodlineID)
+                wnd.sr.schoolinfo = schoolinfo = self.charsvc.GetData('schools', ['schoolID', charinfo.schoolID])
+                wnd.sr.ancestryinfo = ancestryinfo = self.charsvc.GetData('ancestries', ['ancestryID', charinfo.ancestryID])
+                if wnd is None or wnd.destroyed:
+                    self.loadingGeneral = 0
+                    return
+                securityStatus = self.crimewatchSvc.GetMySecurityStatus()
+                roundedSecurityStatus = localization.formatters.FormatNumeric(securityStatus, decimalPlaces=1)
+                cloneLocationRow = sm.RemoteSvc('charMgr').GetHomeStationRow()
+                if cloneLocationRow:
+                    stationID = cloneLocationRow.stationID
+                    cloneLocationSystemID = cloneLocationRow.solarSystemID
+                    if cloneLocationSystemID:
+                        labelPath = 'UI/CharacterSheet/CharacterSheetWindow/CloneLocationHint'
+                        cloneLocationHint = localization.GetByLabel(labelPath, locationId=stationID, systemId=cloneLocationSystemID)
+                        cloneLocation = cfg.evelocations.Get(cloneLocationSystemID).name
+                    else:
+                        cloneLocationHint = cfg.evelocations.Get(stationID).name
+                        cloneLocation = localization.GetByLabel('UI/CharacterSheet/CharacterSheetWindow/UnknownSystem')
+                else:
+                    cloneLocation = localization.GetByLabel('UI/CharacterSheet/CharacterSheetWindow/UnknownSystem')
+                    cloneLocationHint = ''
+                alliance = ''
+                if eve.session.allianceid:
+                    cfg.eveowners.Prime([eve.session.allianceid])
+                    alliance = (localization.GetByLabel('UI/Common/Alliance'), cfg.eveowners.Get(eve.session.allianceid).name, '')
+                faction = ''
+                if eve.session.warfactionid:
+                    fac = sm.StartService('facwar').GetFactionalWarStatus()
+                    faction = (localization.GetByLabel('UI/Common/Militia'), cfg.eveowners.Get(fac.factionID).name, '')
+                bounty = ''
+                bountyOwnerIDs = (session.charid, session.corpid, session.allianceid)
+                bountyAmount = sm.GetService('bountySvc').GetBounty(*bountyOwnerIDs)
+                bountyAmounts = sm.GetService('bountySvc').GetBounties(*bountyOwnerIDs)
+                charBounty = 0
+                corpBounty = 0
+                allianceBounty = 0
+                if len(bountyAmounts):
+                    for ownerID, value in bountyAmounts.iteritems():
+                        if util.IsCharacter(ownerID):
+                            charBounty = value
+                        elif util.IsCorporation(ownerID):
+                            corpBounty = value
+                        elif util.IsAlliance(ownerID):
+                            allianceBounty = value
+
+                bountyHint = localization.GetByLabel('UI/Station/BountyOffice/BountyHint', charBounty=util.FmtISK(charBounty, 0), corpBounty=util.FmtISK(corpBounty, 0), allianceBounty=util.FmtISK(allianceBounty, 0))
+                bounty = (localization.GetByLabel('UI/Station/BountyOffice/Bounty'), util.FmtISK(bountyAmount, 0), bountyHint)
+                skillPoints = int(sm.GetService('skills').GetSkillPoints())
+                textList = [(localization.GetByLabel('UI/CharacterSheet/CharacterSheetWindow/SkillPoints'), localization.formatters.FormatNumeric(skillPoints, useGrouping=True), ''),
+                 (localization.GetByLabel('UI/CharacterSheet/CharacterSheetWindow/HomeSystem'), cloneLocation, cloneLocationHint),
+                 (localization.GetByLabel('UI/CharacterSheet/CharacterSheetWindow/CharacterBackground'), localization.GetByLabel('UI/CharacterSheet/CharacterSheetWindow/CharacterBackgroundInformation', raceName=localization.GetByMessageID(raceinfo.raceNameID), bloodlineName=localization.GetByMessageID(bloodlineinfo.bloodlineNameID), ancestryName=localization.GetByMessageID(ancestryinfo.ancestryNameID)), localization.GetByLabel('UI/CharacterSheet/CharacterSheetWindow/CharacterBackgroundHint')),
+                 (localization.GetByLabel('UI/CharacterSheet/CharacterSheetWindow/DateOfBirth'), localization.formatters.FormatDateTime(charinfo.createDateTime, dateFormat='long', timeFormat='long'), ''),
+                 (localization.GetByLabel('UI/CharacterSheet/CharacterSheetWindow/School'), localization.GetByMessageID(schoolinfo.schoolNameID), ''),
+                 (localization.GetByLabel('UI/Common/Corporation'), cfg.eveowners.Get(eve.session.corpid).name, ''),
+                 (localization.GetByLabel('UI/CharacterSheet/CharacterSheetWindow/SecurityStatus'), roundedSecurityStatus, localization.formatters.FormatNumeric(securityStatus, decimalPlaces=4))]
+                if faction:
+                    textList.insert(len(textList) - 1, faction)
+                if alliance:
+                    textList.insert(len(textList) - 1, alliance)
+                if bounty:
+                    textList.insert(len(textList), bounty)
+                numLines = len(textList) + 2
+                mtext = 'Xg<br>' * numLines
+                mtext = mtext[:-4]
+                th = uix.GetTextHeight(mtext)
+                topParentHeight = max(220, th + const.defaultPadding * 2 + 2)
+                top = max(34, wnd.sr.nameText.top + wnd.sr.nameText.height)
+                leftContainer = Container(parent=wnd.sr.topParent, left=infoTextPadding, top=top, align=uiconst.TOPLEFT)
+                rightContainer = Container(parent=wnd.sr.topParent, top=top, align=uiconst.TOPLEFT)
+                subTop = 0
+                for label, value, hint in textList:
+                    label = uicontrols.EveLabelMedium(text=label, parent=leftContainer, idx=0, state=uiconst.UI_NORMAL, align=uiconst.TOPLEFT, top=subTop)
+                    label.hint = hint
+                    label._tabMargin = 0
+                    display = uicontrols.EveLabelMedium(text=value, parent=rightContainer, idx=0, state=uiconst.UI_NORMAL, align=uiconst.TOPLEFT, top=subTop)
+                    display.hint = hint
+                    display._tabMargin = 0
+                    subTop += label.height
+
+                leftContainer.AutoFitToContent()
+                rightContainer.left = leftContainer.left + leftContainer.width + 20
+                rightContainer.AutoFitToContent()
+                wnd.SetTopparentHeight(max(topParentHeight, rightContainer.height, leftContainer.height))
+            else:
+                wnd.SetTopparentHeight(18)
+            charsheetExpanded = settings.user.ui.Get('charsheetExpanded', 1)
+            if not charsheetExpanded:
+                uicontrols.EveLabelMedium(text=characterName, parent=wnd.sr.topParent, left=8, top=1, state=uiconst.UI_DISABLED)
+            expandOptions = [localization.GetByLabel('UI/CharacterSheet/CharacterSheetWindow/Expand'), localization.GetByLabel('UI/CharacterSheet/CharacterSheetWindow/Collapse')]
+            a = uicontrols.EveLabelSmall(text=expandOptions[charsheetExpanded], parent=wnd.sr.topParent, left=18, top=3, state=uiconst.UI_NORMAL, align=uiconst.TOPRIGHT, bold=True)
+            a.OnClick = self.ToggleGeneral
+            expander = uiprimitives.Sprite(parent=wnd.sr.topParent, pos=(6, 2, 11, 11), name='expandericon', state=uiconst.UI_NORMAL, texturePath=['res:/UI/Texture/Shared/expanderDown.png', 'res:/UI/Texture/Shared/expanderUp.png'][charsheetExpanded], align=uiconst.TOPRIGHT)
+            expander.OnClick = self.ToggleGeneral
+            self.loadingGeneral = 0
+            return
 
     def OpenPortraitWnd(self, *args):
         form.PortraitWindow.CloseIfOpen()
@@ -697,67 +719,71 @@ class CharacterSheet(service.Service):
         wnd.sr.scroll.state = uiconst.UI_PICKCHILDREN
         if not wnd:
             return
-        wnd.sr.scroll.sr.id = 'charsheet_securitystatus'
-        wnd.sr.scroll.Clear()
-        scrolllist = []
-        for transaction in data:
-            if transaction.eventTypeID == logConst.eventSecStatusGmModification:
-                subject = localization.GetByLabel('UI/Generic/FormatStandingTransactions/subjectSetBySlashCmd')
-                body = localization.GetByLabel('UI/Generic/FormatStandingTransactions/messageResetBySlashCmd')
-            elif transaction.eventTypeID == logConst.eventSecStatusGmRollback:
-                subject = localization.GetByLabel('UI/Generic/FormatStandingTransactions/subjectSetBySlashCmd')
-                body = localization.GetByLabel('UI/Generic/FormatStandingTransactions/messageResetBySlashCmd')
-            elif transaction.eventTypeID == logConst.eventSecStatusIllegalAggression:
-                cfg.eveowners.Prime([transaction.otherOwnerID])
-                cfg.evelocations.Prime([transaction.locationID])
-                subject = localization.GetByLabel('UI/Generic/FormatStandingTransactions/subjectCombatAgression')
-                body = localization.GetByLabel('UI/Generic/FormatStandingTransactions/messageCombatAgression', locationID=transaction.locationID, ownerName=cfg.eveowners.Get(transaction.otherOwnerID).name, typeID=transaction.otherTypeID)
-            elif transaction.eventTypeID == logConst.eventSecStatusKillPirateNpc:
-                subject = localization.GetByLabel('UI/Generic/FormatStandingTransactions/subjectLawEnforcmentGain')
-                body = localization.GetByLabel('UI/Generic/FormatStandingTransactions/messageLawEnforcmentGain', name=cfg.eveowners.Get(transaction.otherOwnerID).name)
-            elif transaction.eventTypeID == logConst.eventSecStatusHandInTags:
-                subject = localization.GetByLabel('UI/Generic/FormatStandingTransactions/subjectHandInTags')
-                body = localization.GetByLabel('UI/Generic/FormatStandingTransactions/messageHandInTags')
-            if transaction.modification is not None:
-                modification = localization.GetByLabel('UI/CharacterSheet/CharacterSheetWindow/SecurityStatusScroll/Persentage', value=transaction.modification * 100.0, decimalPlaces=4)
-            else:
-                modification = ''
-            text = '%s<t>%s<t><right>%s</right><t>%s' % (util.FmtDate(transaction.eventDate, 'ls'),
-             modification,
-             localization.formatters.FormatNumeric(transaction.newValue, decimalPlaces=2),
-             subject)
-            hint = '%s<br>%s' % (localization.formatters.FormatNumeric(transaction.newValue, decimalPlaces=4), subject)
-            scrolllist.append(listentry.Get('StandingTransaction', {'sort_%s' % localization.GetByLabel('UI/Common/Date'): transaction.eventDate,
-             'sort_%s' % localization.GetByLabel('UI/Common/Change'): transaction.modification,
-             'line': 1,
-             'text': text,
-             'hint': hint,
-             'details': body,
-             'isNPC': True}))
+        else:
+            wnd.sr.scroll.sr.id = 'charsheet_securitystatus'
+            wnd.sr.scroll.Clear()
+            scrolllist = []
+            for transaction in data:
+                if transaction.eventTypeID == logConst.eventSecStatusGmModification:
+                    subject = localization.GetByLabel('UI/Generic/FormatStandingTransactions/subjectSetBySlashCmd')
+                    body = localization.GetByLabel('UI/Generic/FormatStandingTransactions/messageResetBySlashCmd')
+                elif transaction.eventTypeID == logConst.eventSecStatusGmRollback:
+                    subject = localization.GetByLabel('UI/Generic/FormatStandingTransactions/subjectSetBySlashCmd')
+                    body = localization.GetByLabel('UI/Generic/FormatStandingTransactions/messageResetBySlashCmd')
+                elif transaction.eventTypeID == logConst.eventSecStatusIllegalAggression:
+                    cfg.eveowners.Prime([transaction.otherOwnerID])
+                    cfg.evelocations.Prime([transaction.locationID])
+                    subject = localization.GetByLabel('UI/Generic/FormatStandingTransactions/subjectCombatAgression')
+                    body = localization.GetByLabel('UI/Generic/FormatStandingTransactions/messageCombatAgression', locationID=transaction.locationID, ownerName=cfg.eveowners.Get(transaction.otherOwnerID).name, typeID=transaction.otherTypeID)
+                elif transaction.eventTypeID == logConst.eventSecStatusKillPirateNpc:
+                    subject = localization.GetByLabel('UI/Generic/FormatStandingTransactions/subjectLawEnforcmentGain')
+                    body = localization.GetByLabel('UI/Generic/FormatStandingTransactions/messageLawEnforcmentGain', name=cfg.eveowners.Get(transaction.otherOwnerID).name)
+                elif transaction.eventTypeID == logConst.eventSecStatusHandInTags:
+                    subject = localization.GetByLabel('UI/Generic/FormatStandingTransactions/subjectHandInTags')
+                    body = localization.GetByLabel('UI/Generic/FormatStandingTransactions/messageHandInTags')
+                if transaction.modification is not None:
+                    modification = localization.GetByLabel('UI/CharacterSheet/CharacterSheetWindow/SecurityStatusScroll/Persentage', value=transaction.modification * 100.0, decimalPlaces=4)
+                else:
+                    modification = ''
+                text = '%s<t>%s<t><right>%s</right><t>%s' % (util.FmtDate(transaction.eventDate, 'ls'),
+                 modification,
+                 localization.formatters.FormatNumeric(transaction.newValue, decimalPlaces=2),
+                 subject)
+                hint = '%s<br>%s' % (localization.formatters.FormatNumeric(transaction.newValue, decimalPlaces=4), subject)
+                scrolllist.append(listentry.Get('StandingTransaction', {'sort_%s' % localization.GetByLabel('UI/Common/Date'): transaction.eventDate,
+                 'sort_%s' % localization.GetByLabel('UI/Common/Change'): transaction.modification,
+                 'line': 1,
+                 'text': text,
+                 'hint': hint,
+                 'details': body,
+                 'isNPC': True}))
 
-        if not wnd:
+            if not wnd:
+                return
+            headers = [localization.GetByLabel('UI/Common/Date'),
+             localization.GetByLabel('UI/Common/Change'),
+             localization.GetByLabel('UI/CharacterSheet/CharacterSheetWindow/SecurityStatus'),
+             localization.GetByLabel('UI/CharacterSheet/CharacterSheetWindow/SecurityStatusScroll/Subject')]
+            noChangesHint = localization.GetByLabel('UI/CharacterSheet/CharacterSheetWindow/SecurityStatusScroll/NoSecurityStatusChanges')
+            wnd.sr.scroll.Load(contentList=scrolllist, headers=headers, noContentHint=noChangesHint)
             return
-        headers = [localization.GetByLabel('UI/Common/Date'),
-         localization.GetByLabel('UI/Common/Change'),
-         localization.GetByLabel('UI/CharacterSheet/CharacterSheetWindow/SecurityStatus'),
-         localization.GetByLabel('UI/CharacterSheet/CharacterSheetWindow/SecurityStatusScroll/Subject')]
-        noChangesHint = localization.GetByLabel('UI/CharacterSheet/CharacterSheetWindow/SecurityStatusScroll/NoSecurityStatusChanges')
-        wnd.sr.scroll.Load(contentList=scrolllist, headers=headers, noContentHint=noChangesHint)
 
-    def ShowMyDecorations(self, key = None):
+    def ShowMyDecorations(self, key=None):
         wnd = self.GetWnd()
         if wnd is None:
             return
-        wnd.sr.buttonParDeco.state = uiconst.UI_HIDDEN
-        if key == 'mydecorations_ranks':
-            self.ShowMyRanks()
-        elif key == 'mydecorations_medals':
-            self.ShowMyMedals()
-        elif key == 'mydecorations_permissions':
-            wnd.sr.buttonParDeco.state = uiconst.UI_NORMAL
-            self.ShowMyDecorationPermissions()
+        else:
+            wnd.sr.buttonParDeco.state = uiconst.UI_HIDDEN
+            if key == 'mydecorations_ranks':
+                self.ShowMyRanks()
+            elif key == 'mydecorations_medals':
+                self.ShowMyMedals()
+            elif key == 'mydecorations_permissions':
+                wnd.sr.buttonParDeco.state = uiconst.UI_NORMAL
+                self.ShowMyDecorationPermissions()
+            return
 
-    def ShowMyMedals(self, charID = None):
+    def ShowMyMedals(self, charID=None):
         wnd = self.GetWnd()
         wnd.sr.scroll.state = uiconst.UI_PICKCHILDREN
         if charID is None:
@@ -766,8 +792,9 @@ class CharacterSheet(service.Service):
             wnd.sr.decoMedalList = self.GetMedalScroll(charID)
         wnd.sr.scroll.sr.id = 'charsheet_mymedals'
         wnd.sr.scroll.Load(contentList=wnd.sr.decoMedalList, noContentHint=localization.GetByLabel('UI/CharacterSheet/CharacterSheetWindow/DecoTabs/NoMedals'))
+        return
 
-    def GetMedalScroll(self, charID, noHeaders = False, publicOnly = False):
+    def GetMedalScroll(self, charID, noHeaders=False, publicOnly=False):
         scrolllist = []
         inDecoList = []
         publicDeco = (sm.StartService('medals').GetMedalsReceivedWithFlag(charID, [3]), localization.GetByLabel('UI/CharacterSheet/CharacterSheetWindow/DecoTabs/Public'))
@@ -807,6 +834,7 @@ class CharacterSheet(service.Service):
             wnd.sr.decoRankList = scrolllist[:]
         wnd.sr.scroll.sr.id = 'charsheet_myranks'
         wnd.sr.scroll.Load(contentList=wnd.sr.decoRankList, noContentHint=localization.GetByLabel('UI/CharacterSheet/CharacterSheetWindow/DecoTabs/NoRanks'))
+        return
 
     def ShowEmploymentHistory(self):
         wnd = self.GetWnd()
@@ -815,6 +843,7 @@ class CharacterSheet(service.Service):
             wnd.sr.employmentList = sm.GetService('info').GetEmploymentHistorySubContent(eve.session.charid)
         wnd.sr.scroll.sr.id = 'charsheet_employmenthistory'
         wnd.sr.scroll.Load(contentList=wnd.sr.employmentList)
+        return
 
     def ShowKillRights(self):
         scrolllist = []
@@ -880,53 +909,39 @@ class CharacterSheet(service.Service):
              'iconID': const.iconDuration,
              'countdownTime': 0}))
         if jumpClones:
-            d = {}
+            d = OrderedDict([('station', {}), ('shipOrStructure', {})])
             primeLocs = []
             for jc in jumpClones:
                 jumpCloneID = jc.jumpCloneID
                 locationID = jc.locationID
                 cloneName = jc.cloneName
                 primeLocs.append(locationID)
-                label = 'station' if util.IsStation(locationID) else 'ship'
-                if not d.has_key(label):
-                    d[label] = {locationID: (jumpCloneID, locationID, cloneName)}
-                else:
-                    d[label][locationID] = (jumpCloneID, locationID, cloneName)
+                destinationType = 'station' if util.IsStation(locationID) else 'shipOrStructure'
+                d[destinationType][locationID] = (jumpCloneID, locationID, cloneName)
 
             cfg.evelocations.Prime(primeLocs)
-            destroyedLocString = localization.GetByLabel('UI/CharacterSheet/CharacterSheetWindow/JumpCloneScroll/CloneLocationDestroyed')
-            destroyedLocName = localization.GetByLabel('UI/CharacterSheet/CharacterSheetWindow/JumpCloneScroll/DestroyedLocation')
-            for k in ('station', 'ship'):
-                if d.has_key(k):
-                    locIDs = d[k].keys()
-                    locNames = []
-                    for locID in locIDs:
-                        if locID in cfg.evelocations:
-                            locName = cfg.evelocations.Get(locID).name
-                            locString = localization.GetByLabel('UI/CharacterSheet/CharacterSheetWindow/JumpCloneScroll/CloneLocation', cloneLocation=locID)
-                        else:
-                            locName = destroyedLocName
-                            locString = destroyedLocString
-                        locNames.append((locName, locString, locID))
-
-                    locNames = localization.util.Sort(locNames, key=lambda x: x[0])
-                    for _, locationString, locationID in locNames:
-                        cloneName = d[k][locationID][2]
-                        label = '%s - %s' % (cloneName, locationString) if cloneName else locationString
-                        groupID = d[k][locationID]
-                        data = {'GetSubContent': self.GetCloneImplants,
-                         'label': label,
-                         'id': groupID,
-                         'jumpCloneID': d[k][locationID][0],
-                         'locationID': d[k][locationID][1],
-                         'cloneName': cloneName,
-                         'state': 'locked',
-                         'iconMargin': 18,
-                         'showicon': 'res:/ui/Texture/WindowIcons/jumpclones.png',
-                         'sublevel': 0,
-                         'MenuFunction': self.JumpCloneMenu,
-                         'showlen': 0}
-                        scrolllist.append(listentry.Get('Group', data))
+            for locInfo in d.itervalues():
+                locIDs = locInfo.keys()
+                locNames = self.GetLocNames(locIDs)
+                locNames = localization.util.Sort(locNames, key=lambda x: x[0])
+                for _, locationString, locationID in locNames:
+                    infoForLocation = locInfo[locationID]
+                    cloneName = infoForLocation[2]
+                    label = '%s - %s' % (cloneName, locationString) if cloneName else locationString
+                    groupID = infoForLocation
+                    data = {'GetSubContent': self.GetCloneImplants,
+                     'label': label,
+                     'id': groupID,
+                     'jumpCloneID': infoForLocation[0],
+                     'locationID': infoForLocation[1],
+                     'cloneName': cloneName,
+                     'state': 'locked',
+                     'iconMargin': 18,
+                     'showicon': 'res:/ui/Texture/WindowIcons/jumpclones.png',
+                     'sublevel': 0,
+                     'MenuFunction': self.JumpCloneMenu,
+                     'showlen': 0}
+                    scrolllist.append(listentry.Get('Group', data))
 
         wnd = self.GetWnd()
         if wnd:
@@ -935,21 +950,37 @@ class CharacterSheet(service.Service):
             noClonesFoundHint = localization.GetByLabel('UI/CharacterSheet/CharacterSheetWindow/JumpCloneScroll/NoJumpClonesFound')
             wnd.sr.scroll.Load(contentList=scrolllist, noContentHint=noClonesFoundHint)
 
+    def GetLocNames(self, locIDs):
+        locNames = []
+        destroyedLocString = localization.GetByLabel('UI/CharacterSheet/CharacterSheetWindow/JumpCloneScroll/CloneLocationDestroyed')
+        destroyedLocName = localization.GetByLabel('UI/CharacterSheet/CharacterSheetWindow/JumpCloneScroll/DestroyedLocation')
+        for locID in locIDs:
+            if locID in cfg.evelocations:
+                locName = cfg.evelocations.Get(locID).name
+                locString = localization.GetByLabel('UI/CharacterSheet/CharacterSheetWindow/JumpCloneScroll/CloneLocation', cloneLocation=locID)
+            else:
+                locName = destroyedLocName
+                locString = destroyedLocString
+            locNames.append((locName, locString, locID))
+
+        return locNames
+
     def GetCloneImplants(self, nodedata, *args):
         scrolllist = []
         godma = sm.GetService('godma')
-        scrolllist.append(listentry.Get('CloneButtons', {'locationID': nodedata.locationID,
-         'jumpCloneID': nodedata.jumpCloneID}))
         implants = uiutil.SortListOfTuples([ (getattr(godma.GetType(implant.typeID), 'implantness', None), implant) for implant in sm.GetService('clonejump').GetImplantsForClone(nodedata.jumpCloneID) ])
         if implants:
             for cloneImplantRow in implants:
                 scrolllist.append(listentry.Get('ImplantEntry', {'implant_booster': cloneImplantRow,
-                 'label': evetypes.GetName(cloneImplantRow.typeID)}))
+                 'label': evetypes.GetName(cloneImplantRow.typeID),
+                 'sublevel': 1}))
 
         else:
             noImplantsString = localization.GetByLabel('UI/CharacterSheet/CharacterSheetWindow/JumpCloneScroll/NoImplantsInstalled')
             scrolllist.append(listentry.Get('Text', {'label': noImplantsString,
              'text': noImplantsString}))
+        scrolllist.append(listentry.Get('CloneButtons', {'locationID': nodedata.locationID,
+         'jumpCloneID': nodedata.jumpCloneID}))
         return scrolllist
 
     def JumpCloneMenu(self, node):
@@ -975,28 +1006,30 @@ class CharacterSheet(service.Service):
         wnd = self.GetWnd()
         if not wnd or wnd.destroyed:
             return
-        wnd.sr.bioparent.state = uiconst.UI_PICKCHILDREN
-        if not getattr(self, 'bioinited', 0):
-            blue.pyos.synchro.Yield()
-            wnd.sr.bio = uicls.EditPlainText(parent=wnd.sr.bioparent, maxLength=MAXBIOLENGTH, showattributepanel=1)
-            wnd.sr.bio.sr.window = self
-            wnd.sr.bioparent.OnTabDeselect = self.AutoSaveBio
-            wnd.oldbio = ''
-            if not self.bio:
-                bio = sm.RemoteSvc('charMgr').GetCharacterDescription(eve.session.charid)
-                if bio is not None:
-                    self.bio = bio
-                else:
-                    self.bio = ''
-            if not wnd or wnd.destroyed:
-                return
-            if self.bio:
-                wnd.oldbio = self.bio
-            self.bioinited = 1
-        if wnd and not wnd.destroyed:
-            wnd.sr.bio.SetValue(wnd.oldbio or localization.GetByLabel('UI/CharacterSheet/CharacterSheetWindow/BioEdit/HereYouCanTypeBio'))
+        else:
+            wnd.sr.bioparent.state = uiconst.UI_PICKCHILDREN
+            if not getattr(self, 'bioinited', 0):
+                blue.pyos.synchro.Yield()
+                wnd.sr.bio = uicls.EditPlainText(parent=wnd.sr.bioparent, maxLength=MAXBIOLENGTH, showattributepanel=1)
+                wnd.sr.bio.sr.window = self
+                wnd.sr.bioparent.OnTabDeselect = self.AutoSaveBio
+                wnd.oldbio = ''
+                if not self.bio:
+                    bio = sm.RemoteSvc('charMgr').GetCharacterDescription(eve.session.charid)
+                    if bio is not None:
+                        self.bio = bio
+                    else:
+                        self.bio = ''
+                if not wnd or wnd.destroyed:
+                    return
+                if self.bio:
+                    wnd.oldbio = self.bio
+                self.bioinited = 1
+            if wnd and not wnd.destroyed:
+                wnd.sr.bio.SetValue(wnd.oldbio or localization.GetByLabel('UI/CharacterSheet/CharacterSheetWindow/BioEdit/HereYouCanTypeBio'))
+            return
 
-    def AutoSaveBio(self, edit = None, *args):
+    def AutoSaveBio(self, edit=None, *args):
         wnd = self.GetWnd()
         if not wnd:
             return
@@ -1035,6 +1068,7 @@ class CharacterSheet(service.Service):
             if selection:
                 self.showing = None
                 self.Load('mystandings')
+        return
 
     def ReloadMyRanks(self):
         wnd = self.GetWnd()
@@ -1044,6 +1078,7 @@ class CharacterSheet(service.Service):
             if selection:
                 self.showing = None
                 self.Load('mydecorations')
+        return
 
     def ShowMySkillHistory(self):
         wnd = self.GetWnd()
@@ -1108,12 +1143,14 @@ class CharacterSheet(service.Service):
         skillTypeID = getattr(nodeData, 'id', None)
         if skillTypeID is not None:
             self.ShowInfo(skillTypeID)
+        return
 
     def ShowInfo(self, *args):
         skillID = args[0]
         sm.StartService('info').ShowInfo(skillID, None)
+        return
 
-    def GetCombatEntries(self, recent, filterText = ''):
+    def GetCombatEntries(self, recent, filterText=''):
         showAsCondensed = settings.user.ui.Get('charsheet_condensedcombatlog', 0)
         if showAsCondensed:
             headers = [localization.GetByLabel('UI/Common/Date'),
@@ -1209,6 +1246,7 @@ class CharacterSheet(service.Service):
         kill = entry.sr.node.kill
         if kill is not None:
             OpenKillReport(kill)
+        return
 
     def GetCombatMenu(self, entry, *args):
         m = [(uiutil.MenuLabel('UI/CharacterSheet/CharacterSheetWindow/KillsTabs/CopyKillInfo'), self.GetCombatText, (entry.sr.node.kill, 1)), (uiutil.MenuLabel('UI/Control/Entries/CopyExternalKillLink'), self.GetCrestUrl, (entry.sr.node.kill,))]
@@ -1225,6 +1263,7 @@ class CharacterSheet(service.Service):
             if self.prevLossIDs and self.combatPageNum:
                 offset = self.prevLossIDs[self.combatPageNum]
             self.ShowCombatLosses(offset)
+        return
 
     def ShowKillsEx(self, recent, func, combatType, pageNum):
         if combatType == 'kills':
@@ -1276,7 +1315,7 @@ class CharacterSheet(service.Service):
         pos = wnd.sr.scroll.GetScrollProportion()
         wnd.sr.scroll.Load(contentList=scrolllist, headers=headers, scrollTo=pos, noContentHint=noContentHintText)
 
-    def GetCombatText(self, kill, isCopy = 0):
+    def GetCombatText(self, kill, isCopy=0):
         ret = util.CombatLog_CopyText(kill)
         if isCopy:
             blue.pyos.SetClipboardData(util.CleanKillMail(ret))
@@ -1297,12 +1336,12 @@ class CharacterSheet(service.Service):
         else:
             self.ShowCombatLosses()
 
-    def ShowCombatKills(self, startFrom = None, pageChange = 0, *args):
+    def ShowCombatKills(self, startFrom=None, pageChange=0, *args):
         recent = sm.GetService('info').GetKillsRecentKills(self.killentries, startFrom)
         self.combatPageNum = max(0, self.combatPageNum + pageChange)
         self.ShowKillsEx(recent, self.ShowCombatKills, 'kills', pageNum=self.combatPageNum)
 
-    def ShowCombatLosses(self, startFrom = None, pageChange = 0, *args):
+    def ShowCombatLosses(self, startFrom=None, pageChange=0, *args):
         recent = sm.GetService('info').GetKillsRecentLosses(self.killentries, startFrom)
         self.combatPageNum = max(0, self.combatPageNum + pageChange)
         self.ShowKillsEx(recent, self.ShowCombatLosses, 'losses', pageNum=self.combatPageNum)
@@ -1331,41 +1370,43 @@ class CharacterSheet(service.Service):
         wnd = self.GetWnd()
         if not wnd:
             return
-        self.certificateTimer = None
-        showOnlyMine = settings.user.ui.Get('charsheet_showOnlyMyCerts', False)
-        if getattr(wnd.sr, 'skillpanel', None):
-            wnd.sr.skillpanel.state = uiconst.UI_NORMAL
-        wnd.sr.scroll.state = uiconst.UI_PICKCHILDREN
-        self.SetHint()
-        scrolllist = []
-        myCategories = sm.GetService('certificates').GetMyCertificatesByCategoryID()
-        allCategories = sm.GetService('certificates').GetAllCertificatesByCategoryID()
-        if showOnlyMine:
-            visibleCategories = myCategories
         else:
-            visibleCategories = allCategories
-        myFilter = wnd.quickFilter.GetValue()
-        for groupID, certificates in visibleCategories.iteritems():
-            if len(myFilter):
-                certificates = uiutil.NiceFilter(self.FilterCertificates, certificates[:])
-            if len(certificates) == 0:
-                continue
-            label = localization.GetByLabel('UI/CharacterSheet/CharacterSheetWindow/CertTabs/CertificateGroupWithCount', groupName=evetypes.GetGroupNameByGroup(groupID), certificatesCompleted=len(myCategories[groupID]), certificatesTotal=len(allCategories[groupID]))
-            data = {'GetSubContent': self.GetCertSubContent,
-             'label': label,
-             'groupItems': certificates,
-             'id': ('charsheetGroups_cat', groupID),
-             'sublevel': 0,
-             'showlen': 0,
-             'showicon': 'hide',
-             'state': 'locked',
-             'forceOpen': bool(myFilter)}
-            scrolllist.append(listentry.Get('Group', data))
+            self.certificateTimer = None
+            showOnlyMine = settings.user.ui.Get('charsheet_showOnlyMyCerts', False)
+            if getattr(wnd.sr, 'skillpanel', None):
+                wnd.sr.skillpanel.state = uiconst.UI_NORMAL
+            wnd.sr.scroll.state = uiconst.UI_PICKCHILDREN
+            self.SetHint()
+            scrolllist = []
+            myCategories = sm.GetService('certificates').GetMyCertificatesByCategoryID()
+            allCategories = sm.GetService('certificates').GetAllCertificatesByCategoryID()
+            if showOnlyMine:
+                visibleCategories = myCategories
+            else:
+                visibleCategories = allCategories
+            myFilter = wnd.quickFilter.GetValue()
+            for groupID, certificates in visibleCategories.iteritems():
+                if len(myFilter):
+                    certificates = uiutil.NiceFilter(self.FilterCertificates, certificates[:])
+                if len(certificates) == 0:
+                    continue
+                label = localization.GetByLabel('UI/CharacterSheet/CharacterSheetWindow/CertTabs/CertificateGroupWithCount', groupName=evetypes.GetGroupNameByGroup(groupID), certificatesCompleted=len(myCategories[groupID]), certificatesTotal=len(allCategories[groupID]))
+                data = {'GetSubContent': self.GetCertSubContent,
+                 'label': label,
+                 'groupItems': certificates,
+                 'id': ('charsheetGroups_cat', groupID),
+                 'sublevel': 0,
+                 'showlen': 0,
+                 'showicon': 'hide',
+                 'state': 'locked',
+                 'forceOpen': bool(myFilter)}
+                scrolllist.append(listentry.Get('Group', data))
 
-        scrolllist = localization.util.Sort(scrolllist, key=lambda x: x.label)
-        wnd.sr.scroll.sr.id = 'charsheet_mycerts'
-        contentHint = localization.GetByLabel('UI/CharacterSheet/CharacterSheetWindow/CertTabs/NoCertificatesFound')
-        wnd.sr.scroll.Load(contentList=scrolllist, noContentHint=contentHint)
+            scrolllist = localization.util.Sort(scrolllist, key=lambda x: x.label)
+            wnd.sr.scroll.sr.id = 'charsheet_mycerts'
+            contentHint = localization.GetByLabel('UI/CharacterSheet/CharacterSheetWindow/CertTabs/NoCertificatesFound')
+            wnd.sr.scroll.Load(contentList=scrolllist, noContentHint=contentHint)
+            return
 
     def FilterCertificates(self, certificate):
         wnd = self.GetWnd()
@@ -1403,98 +1444,100 @@ class CharacterSheet(service.Service):
         return listentry.Get(data=certificate, decoClass=listentry.CertEntryBasic)
 
     @telemetry.ZONE_METHOD
-    def ShowMySkills(self, force = False):
+    def ShowMySkills(self, force=False):
         if not force and self.showing != 'myskills_skills':
             return
-        self.skillTimer = None
-        wnd = self.GetWnd()
-        if not wnd:
-            return
-        if getattr(wnd.sr, 'skillpanel', None):
-            wnd.sr.skillpanel.state = uiconst.UI_NORMAL
-        wnd.sr.scroll.state = uiconst.UI_PICKCHILDREN
-        advancedView = settings.user.ui.Get('charsheet_showSkills', 'trained') in ('mytrainable', 'alltrainable')
-        groups = sm.GetService('skills').GetSkillGroups(advancedView)
-        scrolllist = []
-        skillCount = sm.GetService('skills').GetSkillCount()
-        skillPoints = sm.StartService('skills').GetFreeSkillPoints()
-        if skillPoints > 0:
-            text = '<color=0xFF00FF00>' + localization.GetByLabel('UI/CharacterSheet/CharacterSheetWindow/SkillTabs/UnAllocatedSkillPoints', skillPoints=skillPoints) + '</color>'
-            hint = localization.GetByLabel('UI/CharacterSheet/CharacterSheetWindow/SkillTabs/ApplySkillHint')
-            scrolllist.append(listentry.Get('Text', {'text': text,
-             'hint': hint}))
-        currentSkillPoints = 0
-        for group, skills, untrained, intraining, inqueue, points in groups:
-            currentSkillPoints += points
+        else:
+            self.skillTimer = None
+            wnd = self.GetWnd()
+            if not wnd:
+                return
+            if getattr(wnd.sr, 'skillpanel', None):
+                wnd.sr.skillpanel.state = uiconst.UI_NORMAL
+            wnd.sr.scroll.state = uiconst.UI_PICKCHILDREN
+            advancedView = settings.user.ui.Get('charsheet_showSkills', 'trained') in ('mytrainable', 'alltrainable')
+            groups = sm.GetService('skills').GetSkillGroups(advancedView)
+            scrolllist = []
+            skillCount = sm.GetService('skills').GetSkillCount()
+            skillPoints = sm.StartService('skills').GetFreeSkillPoints()
+            if skillPoints > 0:
+                text = '<color=0xFF00FF00>' + localization.GetByLabel('UI/CharacterSheet/CharacterSheetWindow/SkillTabs/UnAllocatedSkillPoints', skillPoints=skillPoints) + '</color>'
+                hint = localization.GetByLabel('UI/CharacterSheet/CharacterSheetWindow/SkillTabs/ApplySkillHint')
+                scrolllist.append(listentry.Get('Text', {'text': text,
+                 'hint': hint}))
+            currentSkillPoints = 0
+            for group, skills, untrained, intraining, inqueue, points in groups:
+                currentSkillPoints += points
 
-        skillText = localization.GetByLabel('UI/CharacterSheet/CharacterSheetWindow/SkillTabs/YouCurrentlyHaveSkills', numSkills=skillCount, currentSkillPoints=currentSkillPoints)
-        scrolllist.append(listentry.Get('Text', {'text': skillText}))
+            skillText = localization.GetByLabel('UI/CharacterSheet/CharacterSheetWindow/SkillTabs/YouCurrentlyHaveSkills', numSkills=skillCount, currentSkillPoints=currentSkillPoints)
+            scrolllist.append(listentry.Get('Text', {'text': skillText}))
 
-        @telemetry.ZONE_METHOD
-        def Published(skill):
-            return evetypes.IsPublished(skill.typeID)
+            @telemetry.ZONE_METHOD
+            def Published(skill):
+                return evetypes.IsPublished(skill.typeID)
 
-        for group, skills, untrained, intraining, inqueue, points in groups:
-            untrained = filter(Published, untrained)
-            if not len(skills) and not advancedView:
-                continue
-            tempList = []
-            if advancedView and settings.user.ui.Get('charsheet_showSkills', 'trained') == 'mytrainable':
-                for utrained in untrained[:]:
-                    isSkillReqMet = sm.GetService('skills').IsSkillRequirementMet(utrained.typeID)
-                    isTrialRestricted = sm.GetService('skills').IsTrialRestricted(utrained.typeID)
-                    if isSkillReqMet and not isTrialRestricted:
-                        tempList.append(utrained)
-
-                combinedSkills = skills[:] + tempList[:]
-                if not len(skills) and tempList == []:
+            for group, skills, untrained, intraining, inqueue, points in groups:
+                untrained = filter(Published, untrained)
+                if not len(skills) and not advancedView:
                     continue
-            if settings.user.ui.Get('charsheet_showSkills', 'trained') == 'alltrainable':
-                combinedSkills = skills[:] + untrained[:]
-            numInQueueLabel = ''
-            label = None
-            if len(inqueue):
-                if len(intraining):
-                    labelPath = 'UI/CharacterSheet/CharacterSheetWindow/SkillTabs/SkillsInQueueTraining'
+                tempList = []
+                if advancedView and settings.user.ui.Get('charsheet_showSkills', 'trained') == 'mytrainable':
+                    for utrained in untrained[:]:
+                        isSkillReqMet = sm.GetService('skills').IsSkillRequirementMet(utrained.typeID)
+                        isTrialRestricted = sm.GetService('skills').IsTrialRestricted(utrained.typeID)
+                        if isSkillReqMet and not isTrialRestricted:
+                            tempList.append(utrained)
+
+                    combinedSkills = skills[:] + tempList[:]
+                    if not len(skills) and tempList == []:
+                        continue
+                if settings.user.ui.Get('charsheet_showSkills', 'trained') == 'alltrainable':
+                    combinedSkills = skills[:] + untrained[:]
+                numInQueueLabel = ''
+                label = None
+                if len(inqueue):
+                    if len(intraining):
+                        labelPath = 'UI/CharacterSheet/CharacterSheetWindow/SkillTabs/SkillsInQueueTraining'
+                    else:
+                        labelPath = 'UI/CharacterSheet/CharacterSheetWindow/SkillTabs/SkillsInQueue'
+                    numInQueueLabel = localization.GetByLabel(labelPath, skillsInQueue=len(inqueue))
+                if advancedView:
+                    label = localization.GetByLabel('UI/CharacterSheet/CharacterSheetWindow/SkillTabs/SkillGroupOverviewAdvanced', groupName=group.groupName, skills=len(skills), totalSkills=len(combinedSkills), points=points, skillsInQueue=numInQueueLabel)
                 else:
-                    labelPath = 'UI/CharacterSheet/CharacterSheetWindow/SkillTabs/SkillsInQueue'
-                numInQueueLabel = localization.GetByLabel(labelPath, skillsInQueue=len(inqueue))
-            if advancedView:
-                label = localization.GetByLabel('UI/CharacterSheet/CharacterSheetWindow/SkillTabs/SkillGroupOverviewAdvanced', groupName=group.groupName, skills=len(skills), totalSkills=len(combinedSkills), points=points, skillsInQueue=numInQueueLabel)
-            else:
-                label = localization.GetByLabel('UI/CharacterSheet/CharacterSheetWindow/SkillTabs/SkillGroupOverviewSimple', groupName=group.groupName, skills=len(skills), points=points, skillsInQueue=numInQueueLabel)
-                combinedSkills = skills[:]
-            if settings.user.ui.Get('charsheet_hideLevel5Skills', False) == True:
-                for skill in skills:
-                    if skill.skillLevel == 5:
-                        combinedSkills.remove(skill)
+                    label = localization.GetByLabel('UI/CharacterSheet/CharacterSheetWindow/SkillTabs/SkillGroupOverviewSimple', groupName=group.groupName, skills=len(skills), points=points, skillsInQueue=numInQueueLabel)
+                    combinedSkills = skills[:]
+                if settings.user.ui.Get('charsheet_hideLevel5Skills', False) == True:
+                    for skill in skills:
+                        if skill.skillLevel == 5:
+                            combinedSkills.remove(skill)
 
-            if settings.user.ui.Get('charsheet_hideUntrainedSkills', False) == True:
-                combinedSkills = filter(lambda s: s.skillPoints > 0, combinedSkills)
-            myFilter = wnd.quickFilter.GetValue()
-            if len(myFilter):
-                combinedSkills = uiutil.NiceFilter(wnd.quickFilter.QuickFilter, combinedSkills)
-            if len(combinedSkills) == 0:
-                continue
-            data = {'GetSubContent': self.GetSubContent,
-             'DragEnterCallback': self.OnGroupDragEnter,
-             'DeleteCallback': self.OnGroupDeleted,
-             'MenuFunction': self.GetMenu,
-             'label': label,
-             'groupItems': combinedSkills,
-             'inqueue': inqueue,
-             'id': ('myskills', group.groupID),
-             'tabs': [],
-             'state': 'locked',
-             'showicon': 'hide',
-             'showlen': 0,
-             'forceOpen': bool(myFilter)}
-            scrolllist.append(listentry.Get('Group', data))
+                if settings.user.ui.Get('charsheet_hideUntrainedSkills', False) == True:
+                    combinedSkills = filter(lambda s: s.skillPoints > 0, combinedSkills)
+                myFilter = wnd.quickFilter.GetValue()
+                if len(myFilter):
+                    combinedSkills = uiutil.NiceFilter(wnd.quickFilter.QuickFilter, combinedSkills)
+                if len(combinedSkills) == 0:
+                    continue
+                data = {'GetSubContent': self.GetSubContent,
+                 'DragEnterCallback': self.OnGroupDragEnter,
+                 'DeleteCallback': self.OnGroupDeleted,
+                 'MenuFunction': self.GetMenu,
+                 'label': label,
+                 'groupItems': combinedSkills,
+                 'inqueue': inqueue,
+                 'id': ('myskills', group.groupID),
+                 'tabs': [],
+                 'state': 'locked',
+                 'showicon': 'hide',
+                 'showlen': 0,
+                 'forceOpen': bool(myFilter)}
+                scrolllist.append(listentry.Get('Group', data))
 
-        scrolllist.append(listentry.Get('Space', {'height': 64}))
-        pos = wnd.sr.scroll.GetScrollProportion()
-        wnd.sr.scroll.sr.id = 'charsheet_myskills'
-        wnd.sr.scroll.Load(contentList=scrolllist, headers=[], scrollTo=pos)
+            scrolllist.append(listentry.Get('Space', {'height': 64}))
+            pos = wnd.sr.scroll.GetScrollProportion()
+            wnd.sr.scroll.sr.id = 'charsheet_myskills'
+            wnd.sr.scroll.Load(contentList=scrolllist, headers=[], scrollTo=pos)
+            return
 
     @telemetry.ZONE_METHOD
     def GetSubContent(self, data, *args):
@@ -1502,47 +1545,48 @@ class CharacterSheet(service.Service):
         wnd = self.GetWnd()
         if not wnd:
             return
-        skillQueueSvc = sm.GetService('skillqueue')
-        skillqueue = skillQueueSvc.GetServerQueue()
-        skillqueue = {(x.trainingTypeID, x.trainingToLevel):idx for idx, x in enumerate(skillqueue)}
-        mySkills = sm.GetService('skills').GetSkills()
-        skillsInQueue = data.inqueue
-        skillInTraining = skillQueueSvc.SkillInTraining()
-        toggleGroups = settings.user.ui.Get('charsheet_toggleOneSkillGroupAtATime', 1)
-        if toggleGroups and not data.forceOpen:
-            dataWnd = uicontrols.Window.GetIfOpen(unicode(data.id))
-            if not dataWnd:
-                for entry in wnd.sr.scroll.GetNodes():
-                    if entry.__guid__ != 'listentry.Group' or entry.id == data.id:
-                        continue
-                    if entry.open:
-                        if entry.panel:
-                            entry.panel.Toggle()
-                        else:
-                            uicore.registry.SetListGroupOpenState(entry.id, 0)
-                            entry.scroll.PrepareSubContent(entry)
+        else:
+            skillQueueSvc = sm.GetService('skillqueue')
+            skillqueue = skillQueueSvc.GetServerQueue()
+            skillqueue = {(x.trainingTypeID, x.trainingToLevel):idx for idx, x in enumerate(skillqueue)}
+            mySkills = sm.GetService('skills').GetSkills()
+            skillsInQueue = data.inqueue
+            skillInTraining = skillQueueSvc.SkillInTraining()
+            toggleGroups = settings.user.ui.Get('charsheet_toggleOneSkillGroupAtATime', 1)
+            if toggleGroups and not data.forceOpen:
+                dataWnd = uicontrols.Window.GetIfOpen(unicode(data.id))
+                if not dataWnd:
+                    for entry in wnd.sr.scroll.GetNodes():
+                        if entry.__guid__ != 'listentry.Group' or entry.id == data.id:
+                            continue
+                        if entry.open:
+                            if entry.panel:
+                                entry.panel.Toggle()
+                            else:
+                                uicore.registry.SetListGroupOpenState(entry.id, 0)
+                                entry.scroll.PrepareSubContent(entry)
 
-        skillsInGroup = localization.util.Sort(data.groupItems, key=lambda x: evetypes.GetName(x.typeID))
-        for skill in skillsInGroup:
-            inQueue = None
-            if skill.typeID in skillsInQueue:
-                for i in xrange(5, skill.skillLevel, -1):
-                    if (skill.typeID, i) in skillqueue:
-                        inQueue = i
-                        break
+            skillsInGroup = localization.util.Sort(data.groupItems, key=lambda x: evetypes.GetName(x.typeID))
+            for skill in skillsInGroup:
+                inQueue = None
+                if skill.typeID in skillsInQueue:
+                    for i in xrange(5, skill.skillLevel, -1):
+                        if (skill.typeID, i) in skillqueue:
+                            inQueue = i
+                            break
 
-            inTraining = 0
-            if skillInTraining and skill.typeID == skillInTraining.typeID:
-                inTraining = 1
-            data = {'invtype': skill.typeID,
-             'skill': skill,
-             'trained': skill.typeID in mySkills,
-             'plannedInQueue': inQueue,
-             'skillID': skill.typeID,
-             'inTraining': inTraining}
-            scrolllist.append(listentry.Get('SkillEntry', data))
+                inTraining = 0
+                if skillInTraining and skill.typeID == skillInTraining.typeID:
+                    inTraining = 1
+                data = {'invtype': skill.typeID,
+                 'skill': skill,
+                 'trained': skill.typeID in mySkills,
+                 'plannedInQueue': inQueue,
+                 'skillID': skill.typeID,
+                 'inTraining': inTraining}
+                scrolllist.append(listentry.Get('SkillEntry', data))
 
-        return scrolllist
+            return scrolllist
 
     def OnGroupDeleted(self, ids):
         pass
@@ -1603,56 +1647,59 @@ class CharacterSheet(service.Service):
                     settings.user.ui.Set(key, checkbox.data['retval'])
             else:
                 settings.user.ui.Set(key, checkbox.checked)
+        return
 
     def ShowMyImplantsAndBoosters(self):
         wnd = self.GetWnd()
         if not wnd:
             return
-        wnd.sr.scroll.state = uiconst.UI_PICKCHILDREN
-        self.SetHint()
-        mygodma = self.GetMyGodmaItem(eve.session.charid)
-        if not mygodma:
-            return
-        implants = mygodma.implants
-        boosters = mygodma.boosters
-        godma = sm.GetService('godma')
-        implants = uiutil.SortListOfTuples([ (getattr(godma.GetType(implant.typeID), 'implantness', None), implant) for implant in implants ])
-        boosters = uiutil.SortListOfTuples([ (getattr(godma.GetType(booster.boosterTypeID), 'boosterness', None), booster) for booster in boosters ])
-        scrolllist = []
-        if implants:
-            scrolllist.append(listentry.Get('Header', {'label': localization.GetByLabel('UI/CharacterSheet/CharacterSheetWindow/Augmentations/Implants', implantCount=len(implants))}))
-            for each in implants:
-                scrolllist.append(listentry.Get('ImplantEntry', {'implant_booster': each,
-                 'label': evetypes.GetName(each.typeID)}))
+        else:
+            wnd.sr.scroll.state = uiconst.UI_PICKCHILDREN
+            self.SetHint()
+            mygodma = self.GetMyGodmaItem(eve.session.charid)
+            if not mygodma:
+                return
+            implants = mygodma.implants
+            boosters = mygodma.boosters
+            godma = sm.GetService('godma')
+            implants = uiutil.SortListOfTuples([ (getattr(godma.GetType(implant.typeID), 'implantness', None), implant) for implant in implants ])
+            boosters = uiutil.SortListOfTuples([ (getattr(godma.GetType(booster.boosterTypeID), 'boosterness', None), booster) for booster in boosters ])
+            scrolllist = []
+            if implants:
+                scrolllist.append(listentry.Get('Header', {'label': localization.GetByLabel('UI/CharacterSheet/CharacterSheetWindow/Augmentations/Implants', implantCount=len(implants))}))
+                for each in implants:
+                    scrolllist.append(listentry.Get('ImplantEntry', {'implant_booster': each,
+                     'label': evetypes.GetName(each.typeID)}))
 
+                if boosters:
+                    scrolllist.append(listentry.Get('Divider'))
+            dogmaLocation = sm.GetService('clientDogmaIM').GetDogmaLocation()
+            staticMgr = dogmaLocation.dogmaStaticMgr
             if boosters:
-                scrolllist.append(listentry.Get('Divider'))
-        dogmaLocation = sm.GetService('clientDogmaIM').GetDogmaLocation()
-        staticMgr = dogmaLocation.dogmaStaticMgr
-        if boosters:
-            scrolllist.append(listentry.Get('Header', {'label': localization.GetByLabel('UI/CharacterSheet/CharacterSheetWindow/Augmentations/Boosters', boosterCount=len(boosters))}))
-            for each in boosters:
-                scrolllist.append(listentry.Get('ImplantEntry', {'implant_booster': each,
-                 'label': evetypes.GetName(each.boosterTypeID)}))
-                boosterEffects = staticMgr.passiveFilteredEffectsByType.get(each.boosterTypeID, [])
-                for effectID in boosterEffects:
-                    eff = cfg.dgmeffects.Get(effectID)
-                    chanceAttributeID = staticMgr.effects[effectID].fittingUsageChanceAttributeID
-                    if chanceAttributeID and effectID in each.sideEffectIDs:
-                        scrolllist.append(listentry.Get('IconEntry', {'line': 1,
-                         'hint': eff.displayName,
-                         'text': None,
-                         'label': eff.displayName,
-                         'icon': util.IconFile(eff.iconID),
-                         'selectable': 0,
-                         'iconoffset': 32,
-                         'iconsize': 22,
-                         'linecolor': (1.0, 1.0, 1.0, 0.125)}))
+                scrolllist.append(listentry.Get('Header', {'label': localization.GetByLabel('UI/CharacterSheet/CharacterSheetWindow/Augmentations/Boosters', boosterCount=len(boosters))}))
+                for each in boosters:
+                    scrolllist.append(listentry.Get('ImplantEntry', {'implant_booster': each,
+                     'label': evetypes.GetName(each.boosterTypeID)}))
+                    boosterEffects = staticMgr.passiveFilteredEffectsByType.get(each.boosterTypeID, [])
+                    for effectID in boosterEffects:
+                        eff = cfg.dgmeffects.Get(effectID)
+                        chanceAttributeID = staticMgr.effects[effectID].fittingUsageChanceAttributeID
+                        if chanceAttributeID and effectID in each.sideEffectIDs:
+                            scrolllist.append(listentry.Get('IconEntry', {'line': 1,
+                             'hint': eff.displayName,
+                             'text': None,
+                             'label': eff.displayName,
+                             'icon': util.IconFile(eff.iconID),
+                             'selectable': 0,
+                             'iconoffset': 32,
+                             'iconsize': 22,
+                             'linecolor': (1.0, 1.0, 1.0, 0.125)}))
 
-                scrolllist.append(listentry.Get('Divider'))
+                    scrolllist.append(listentry.Get('Divider'))
 
-        wnd.sr.scroll.sr.id = 'charsheet_implantandboosters'
-        wnd.sr.scroll.Load(fixedEntryHeight=32, contentList=scrolllist, noContentHint=localization.GetByLabel('UI/CharacterSheet/CharacterSheetWindow/Augmentations/NoImplantOrBoosterInEffect'))
+            wnd.sr.scroll.sr.id = 'charsheet_implantandboosters'
+            wnd.sr.scroll.Load(fixedEntryHeight=32, contentList=scrolllist, noContentHint=localization.GetByLabel('UI/CharacterSheet/CharacterSheetWindow/Augmentations/NoImplantOrBoosterInEffect'))
+            return
 
     def GetMyGodmaItem(self, itemID):
         ret = sm.GetService('godma').GetItem(itemID)
@@ -1674,7 +1721,7 @@ class CharacterSheet(service.Service):
 
         return localization.util.Sort(scrolllist, key=lambda x: x.label)
 
-    def GoTo(self, URL, data = None, args = {}, scrollTo = None):
+    def GoTo(self, URL, data=None, args={}, scrollTo=None):
         URL = URL.encode('cp1252', 'replace')
         if URL.startswith('showinfo:') or URL.startswith('evemail:') or URL.startswith('evemailto:'):
             self.output.GoTo(self, URL, data, args)
@@ -1730,52 +1777,59 @@ class CharacterSheet(service.Service):
         wnd = self.GetWnd()
         if not wnd:
             return
-        for entry in wnd.sr.scroll.GetNodes():
-            if entry.panel and getattr(entry.panel, 'OnColumnChanged', None):
-                entry.panel.OnColumnChanged()
+        else:
+            for entry in wnd.sr.scroll.GetNodes():
+                if entry.panel and getattr(entry.panel, 'OnColumnChanged', None):
+                    entry.panel.OnColumnChanged()
+
+            return
 
     def SaveDecorationPermissionsChanges(self):
         wnd = self.GetWnd()
         if not wnd:
             return
-        promptForDelete = False
-        changes = {}
-        for entry in wnd.sr.scroll.GetNodes():
-            if entry.panel and hasattr(entry.panel, 'flag'):
-                if entry.panel.HasChanged():
-                    if entry.panel.flag == 1:
-                        promptForDelete = True
-                    changes[entry.panel.sr.node.itemID] = entry.panel.flag
+        else:
+            promptForDelete = False
+            changes = {}
+            for entry in wnd.sr.scroll.GetNodes():
+                if entry.panel and hasattr(entry.panel, 'flag'):
+                    if entry.panel.HasChanged():
+                        if entry.panel.flag == 1:
+                            promptForDelete = True
+                        changes[entry.panel.sr.node.itemID] = entry.panel.flag
 
-        if promptForDelete == False or eve.Message('DeleteMedalConfirmation', {}, uiconst.YESNO) == uiconst.ID_YES:
-            if len(changes) > 0:
-                sm.StartService('medals').SetMedalStatus(changes)
-        wnd.sr.decoMedalList = None
+            if promptForDelete == False or eve.Message('DeleteMedalConfirmation', {}, uiconst.YESNO) == uiconst.ID_YES:
+                if len(changes) > 0:
+                    sm.StartService('medals').SetMedalStatus(changes)
+            wnd.sr.decoMedalList = None
+            return
 
     def SetAllDecorationPermissions(self):
         wnd = self.GetWnd()
         if not wnd:
             return
-        permissionList = [(localization.GetByLabel('UI/CharacterSheet/CharacterSheetWindow/DecoTabs/Private'), 2), (localization.GetByLabel('UI/CharacterSheet/CharacterSheetWindow/DecoTabs/Public'), 3)]
-        pickedPermission = uix.ListWnd(permissionList, 'generic', localization.GetByLabel('UI/CharacterSheet/CharacterSheetWindow/DecoTabs/SetAllDecorationPermissions'), localization.GetByLabel('UI/CharacterSheet/CharacterSheetWindow/PilotLicense/SaveAllChangesImmediately'), windowName='permissionPickerWnd')
-        if not pickedPermission:
+        else:
+            permissionList = [(localization.GetByLabel('UI/CharacterSheet/CharacterSheetWindow/DecoTabs/Private'), 2), (localization.GetByLabel('UI/CharacterSheet/CharacterSheetWindow/DecoTabs/Public'), 3)]
+            pickedPermission = uix.ListWnd(permissionList, 'generic', localization.GetByLabel('UI/CharacterSheet/CharacterSheetWindow/DecoTabs/SetAllDecorationPermissions'), localization.GetByLabel('UI/CharacterSheet/CharacterSheetWindow/PilotLicense/SaveAllChangesImmediately'), windowName='permissionPickerWnd')
+            if not pickedPermission:
+                return
+            permissionID = pickedPermission[1]
+            m, _ = sm.StartService('medals').GetMedalsReceived(session.charid)
+            myDecos = []
+            for each in m:
+                if each.status != 1:
+                    myDecos.append(each.medalID)
+
+            myDecos = list(set(myDecos))
+            updateDict = {}
+            for decoID in myDecos:
+                updateDict[decoID] = permissionID
+
+            if len(updateDict) > 0:
+                sm.StartService('medals').SetMedalStatus(updateDict)
+                wnd.sr.decoMedalList = None
+                self.ShowMyDecorations('mydecorations_permissions')
             return
-        permissionID = pickedPermission[1]
-        m, _ = sm.StartService('medals').GetMedalsReceived(session.charid)
-        myDecos = []
-        for each in m:
-            if each.status != 1:
-                myDecos.append(each.medalID)
-
-        myDecos = list(set(myDecos))
-        updateDict = {}
-        for decoID in myDecos:
-            updateDict[decoID] = permissionID
-
-        if len(updateDict) > 0:
-            sm.StartService('medals').SetMedalStatus(updateDict)
-            wnd.sr.decoMedalList = None
-            self.ShowMyDecorations('mydecorations_permissions')
 
     def ShowPilotLicense(self):
         wnd = self.GetWnd()
@@ -1851,7 +1905,7 @@ class CharacterSheet(service.Service):
         if self.showing == 'skins':
             self.ShowSkins()
 
-    def GetSubscriptionDays(self, force = False):
+    def GetSubscriptionDays(self, force=False):
         if self.daysLeft == -1 or force:
             charDetails = sm.RemoteSvc('charUnboundMgr').GetCharacterToSelect(eve.session.charid)
             self.daysLeft = getattr(charDetails[0], 'daysLeft', None) if len(charDetails) else None
@@ -1963,6 +2017,7 @@ class CharacterSheetWindow(uicontrols.Window):
         self._CheckShowT3ShipLossMessage()
         self.sr.nav.Load(contentList=scrolllist)
         self.sr.nav.SetSelected(min(len(navEntries) - 1, settings.char.ui.Get('charactersheetselection', 0)))
+        return
 
     @telemetry.ZONE_METHOD
     def _CheckShowT3ShipLossMessage(self):
@@ -2046,9 +2101,11 @@ class CloneButtons(uicontrols.SE_BaseClassCore):
     default_showHilite = False
 
     def Startup(self, args):
-        self.sr.JumpBtn = uicontrols.Button(parent=self, label=localization.GetByLabel('UI/CharacterSheet/CharacterSheetWindow/JumpCloneScroll/Jump'), align=uiconst.CENTER, func=self.OnClickJump)
+        jumpText = localization.GetByLabel('UI/CharacterSheet/CharacterSheetWindow/JumpCloneScroll/Jump')
+        self.sr.JumpBtn = uicontrols.Button(parent=self, label=jumpText, align=uiconst.CENTER, func=self.OnClickJump)
         destroyLabel = localization.GetByLabel('UI/CharacterSheet/CharacterSheetWindow/JumpCloneScroll/Destroy')
         self.sr.DecomissionBtn = uicontrols.Button(parent=self, label=destroyLabel, align=uiconst.CENTER, func=self.OnClickDecomission)
+        LineThemeColored(parent=self, align=uiconst.TOBOTTOM, opacity=0.4)
 
     def Load(self, node):
         self.sr.node = node
@@ -2062,7 +2119,7 @@ class CloneButtons(uicontrols.SE_BaseClassCore):
         validLocation = self.locationID in cfg.evelocations
         if validLocation:
             self.sr.DecomissionBtn.Enable()
-            if session.stationid:
+            if session.stationid or session.structureid:
                 self.sr.JumpBtn.Enable()
 
     def GetHeight(self, *args):
@@ -2093,8 +2150,9 @@ class CombatDetailsWnd(uicontrols.Window):
           81]], parent=self.sr.main)
         self.edit = uicontrols.Edit(parent=self.sr.main, align=uiconst.TOALL, readonly=True)
         self.UpdateDetails(ret)
+        return
 
-    def UpdateDetails(self, ret = ''):
+    def UpdateDetails(self, ret=''):
         self.edit.SetValue(ret)
 
 

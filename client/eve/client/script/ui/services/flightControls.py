@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\client\script\ui\services\flightControls.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\client\script\ui\services\flightControls.py
 import geo2
 import math
 import blue
@@ -44,7 +45,7 @@ class FlightControls(service.Service):
     def AttachShip(self):
         self.controls.PrimeKeys()
         ballpark = self.michelle.GetBallpark()
-        if ballpark and session.shipid:
+        if ballpark and session.shipid and not session.structureid:
             self.simulation.AttachShip(ballpark.GetBall(session.shipid))
         else:
             self.simulation.DetachShip()
@@ -81,7 +82,7 @@ class FlightSimulation(object):
     ENGAGE_TIME = 6.0
     RELEASE_TIME = 4.0
 
-    def __init__(self, callback, controls, throttle = None):
+    def __init__(self, callback, controls, throttle=None):
         self.callback = callback
         self.controls = controls
         self.throttle = throttle or 0
@@ -96,18 +97,21 @@ class FlightSimulation(object):
         self.lastCalled = 0
         self.worldRelative = True
         self.curve = trinity.Tr2QuaternionLerpCurve()
+        return
 
     def Start(self):
         if self.thread is None:
             self.ballpark.Start()
             self.thread = uthread.new(self.Update)
             self.thread.context = 'FlightSimulation::Update'
+        return
 
     def Stop(self):
         if self.thread is not None:
             self.ballpark.Pause()
             self.thread.kill()
             self.thread = None
+        return
 
     def SetWorldRelative(self, relative):
         self.worldRelative = relative
@@ -124,13 +128,15 @@ class FlightSimulation(object):
             if getattr(self, 'localModel', None):
                 self.DisableDebug()
                 self.EnableDebug()
+        return
 
-    def DetachShip(self, ship = None):
+    def DetachShip(self, ship=None):
         if ship in (self.ship, None):
             if self.ship and getattr(self.ship, 'model', None):
                 self.ship.model.rotationCurve = self.ship
             self.ship = None
             self.controlling = False
+        return
 
     def Update(self):
         while True:
@@ -152,6 +158,7 @@ class FlightSimulation(object):
             self.curve.endCurve = self.ship
             self.curve.start = 0
             self.curve.length = 1
+        return
 
     def CanControl(self):
         return self.ship.mode in (destiny.DSTBALL_ORBIT, destiny.DSTBALL_FOLLOW, destiny.DSTBALL_GOTO)
@@ -249,12 +256,14 @@ class FlightSimulation(object):
         self.remoteModel = None
         sm.GetService('sceneManager').GetRegisteredScene('default').objects.fremove(self.curveModel)
         self.curveModel = None
+        return
 
     def ToggleDebug(self):
         if getattr(self, 'localModel', None):
             self.DisableDebug()
         else:
             self.EnableDebug()
+        return
 
 
 class KeyboardControls(object):
@@ -317,16 +326,19 @@ class FlightControlStatistics(object):
         self.counters = collections.defaultdict(int)
         self.thread = None
         self.controls = controls
+        return
 
     def Start(self):
         if self.thread is None:
             self.thread = uthread.new(self.Update)
             self.thread.context = 'FlightControlStatistics::Update'
+        return
 
     def Stop(self):
         if self.thread is not None:
             self.thread.kill()
             self.thread = None
+        return
 
     def Update(self):
         while True:

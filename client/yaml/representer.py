@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\carbon\common\stdlib\yaml\representer.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\carbon\common\stdlib\yaml\representer.py
 __all__ = ['BaseRepresenter',
  'SafeRepresenter',
  'Representer',
@@ -21,12 +22,13 @@ class BaseRepresenter(object):
     yaml_representers = {}
     yaml_multi_representers = {}
 
-    def __init__(self, default_style = None, default_flow_style = None):
+    def __init__(self, default_style=None, default_flow_style=None):
         self.default_style = default_style
         self.default_flow_style = default_flow_style
         self.represented_objects = {}
         self.object_keeper = []
         self.alias_key = None
+        return
 
     def represent(self, data):
         node = self.represent_data(data)
@@ -34,6 +36,7 @@ class BaseRepresenter(object):
         self.represented_objects = {}
         self.object_keeper = []
         self.alias_key = None
+        return
 
     def get_classobj_bases(self, cls):
         bases = [cls]
@@ -86,7 +89,7 @@ class BaseRepresenter(object):
 
     add_multi_representer = classmethod(add_multi_representer)
 
-    def represent_scalar(self, tag, value, style = None):
+    def represent_scalar(self, tag, value, style=None):
         if style is None:
             style = self.default_style
         node = ScalarNode(tag, value, style=style)
@@ -94,7 +97,7 @@ class BaseRepresenter(object):
             self.represented_objects[self.alias_key] = node
         return node
 
-    def represent_sequence(self, tag, sequence, flow_style = None):
+    def represent_sequence(self, tag, sequence, flow_style=None):
         value = []
         node = SequenceNode(tag, value, flow_style=flow_style)
         if self.alias_key is not None:
@@ -113,7 +116,7 @@ class BaseRepresenter(object):
                 node.flow_style = best_style
         return node
 
-    def represent_mapping(self, tag, mapping, flow_style = None):
+    def represent_mapping(self, tag, mapping, flow_style=None):
         value = []
         node = MappingNode(tag, value, flow_style=flow_style)
         if self.alias_key is not None:
@@ -147,12 +150,14 @@ class SafeRepresenter(BaseRepresenter):
     def ignore_aliases(self, data):
         if data in [None, ()]:
             return True
-        if isinstance(data, (str,
+        elif isinstance(data, (str,
          unicode,
          bool,
          int,
          float)):
             return True
+        else:
+            return
 
     def represent_none(self, data):
         return self.represent_scalar(u'tag:yaml.org,2002:null', u'null')
@@ -228,7 +233,7 @@ class SafeRepresenter(BaseRepresenter):
         value = unicode(data.isoformat(' '))
         return self.represent_scalar(u'tag:yaml.org,2002:timestamp', value)
 
-    def represent_yaml_object(self, tag, data, cls, flow_style = None):
+    def represent_yaml_object(self, tag, data, cls, flow_style=None):
         if hasattr(data, '__getstate__'):
             state = data.__getstate__()
         else:
@@ -323,13 +328,14 @@ class Representer(SafeRepresenter):
             state = data.__dict__
         if args is None and isinstance(state, dict):
             return self.represent_mapping(u'tag:yaml.org,2002:python/object:' + class_name, state)
-        if isinstance(state, dict) and not state:
+        elif isinstance(state, dict) and not state:
             return self.represent_sequence(u'tag:yaml.org,2002:python/object/new:' + class_name, args)
-        value = {}
-        if args:
-            value['args'] = args
-        value['state'] = state
-        return self.represent_mapping(u'tag:yaml.org,2002:python/object/new:' + class_name, value)
+        else:
+            value = {}
+            if args:
+                value['args'] = args
+            value['state'] = state
+            return self.represent_mapping(u'tag:yaml.org,2002:python/object/new:' + class_name, value)
 
     def represent_object(self, data):
         cls = type(data)
@@ -361,18 +367,19 @@ class Representer(SafeRepresenter):
         function_name = u'%s.%s' % (function.__module__, function.__name__)
         if not args and not listitems and not dictitems and isinstance(state, dict) and newobj:
             return self.represent_mapping(u'tag:yaml.org,2002:python/object:' + function_name, state)
-        if not listitems and not dictitems and isinstance(state, dict) and not state:
+        elif not listitems and not dictitems and isinstance(state, dict) and not state:
             return self.represent_sequence(tag + function_name, args)
-        value = {}
-        if args:
-            value['args'] = args
-        if state or not isinstance(state, dict):
-            value['state'] = state
-        if listitems:
-            value['listitems'] = listitems
-        if dictitems:
-            value['dictitems'] = dictitems
-        return self.represent_mapping(tag + function_name, value)
+        else:
+            value = {}
+            if args:
+                value['args'] = args
+            if state or not isinstance(state, dict):
+                value['state'] = state
+            if listitems:
+                value['listitems'] = listitems
+            if dictitems:
+                value['dictitems'] = dictitems
+            return self.represent_mapping(tag + function_name, value)
 
 
 Representer.add_representer(str, Representer.represent_str)

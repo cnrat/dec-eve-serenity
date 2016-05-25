@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\client\script\environment\spaceObject\scannerProbe.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\client\script\environment\spaceObject\scannerProbe.py
 from eve.client.script.environment.spaceObject.spaceObject import SpaceObject
 import blue
 import uthread
@@ -10,7 +11,7 @@ class ScannerProbe(SpaceObject):
     def __init__(self):
         SpaceObject.__init__(self)
 
-    def Release(self, origin = None):
+    def Release(self, origin=None):
         SpaceObject.Release(self)
 
     def FakeWarp(self):
@@ -29,17 +30,20 @@ class ScannerProbe(SpaceObject):
         uthread.pool('ScannerProbe::HideBall', self.HideBall)
         uthread.pool('ScannerProbe::DelayedRemove', self.DelayedRemove, 3000, self.model)
         uthread.pool('ScannerProbe::DelayedRemove', self.DelayedRemove, 3000, gfx)
+        return
 
     def DelayedRemove(self, duration, gfx):
         if gfx is None:
             return
-        if duration != 0:
-            blue.pyos.synchro.SleepSim(duration)
-        if hasattr(gfx, 'translationCurve'):
-            gfx.translationCurve = None
-        scene = self.spaceMgr.GetScene()
-        if scene is not None:
-            scene.objects.fremove(gfx)
+        else:
+            if duration != 0:
+                blue.pyos.synchro.SleepSim(duration)
+            if hasattr(gfx, 'translationCurve'):
+                gfx.translationCurve = None
+            scene = self.spaceMgr.GetScene()
+            if scene is not None:
+                scene.objects.fremove(gfx)
+            return
 
     def HideBall(self):
         blue.pyos.synchro.SleepSim(500)
@@ -56,16 +60,19 @@ class ScannerProbe(SpaceObject):
         warpDisruptionStartTime = self.typeData['slimItem'].warpDisruptionStartTime
         if warpDisruptionStartTime is None:
             return
-        godmaStateManager = self.sm.GetService('godma').GetStateManager()
-        godmaType = godmaStateManager.GetType(self.typeID)
-        effectRadius = godmaType.warpScrambleRange
-        if effectRadius:
-            scale = self.model.scaling[0] / 20000.0 * effectRadius
-            self.model.scaling = (scale, scale, scale)
-        timeNow = blue.os.GetSimTime()
-        if blue.os.TimeDiffInMs(warpDisruptionStartTime, timeNow) < 10000.0:
-            for cs in self.model.curveSets:
-                cs.Play()
+        else:
+            godmaStateManager = self.sm.GetService('godma').GetStateManager()
+            godmaType = godmaStateManager.GetType(self.typeID)
+            effectRadius = godmaType.warpScrambleRange
+            if effectRadius:
+                scale = self.model.scaling[0] / 20000.0 * effectRadius
+                self.model.scaling = (scale, scale, scale)
+            timeNow = blue.os.GetSimTime()
+            if blue.os.TimeDiffInMs(warpDisruptionStartTime, timeNow) < 10000.0:
+                for cs in self.model.curveSets:
+                    cs.Play()
+
+            return
 
     def Explode(self):
         explosionURL = 'res:/Emitter/explosion_end.blue'

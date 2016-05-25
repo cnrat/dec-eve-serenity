@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\carbon\common\lib\wsgiref\util.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\carbon\common\lib\wsgiref\util.py
 import posixpath
 __all__ = ['FileWrapper',
  'guess_scheme',
@@ -9,7 +10,7 @@ __all__ = ['FileWrapper',
 
 class FileWrapper:
 
-    def __init__(self, filelike, blksize = 8192):
+    def __init__(self, filelike, blksize=8192):
         self.filelike = filelike
         self.blksize = blksize
         if hasattr(filelike, 'close'):
@@ -54,7 +55,7 @@ def application_uri(environ):
     return url
 
 
-def request_uri(environ, include_query = 1):
+def request_uri(environ, include_query=1):
     url = application_uri(environ)
     from urllib import quote
     path_info = quote(environ.get('PATH_INFO', ''))
@@ -71,21 +72,22 @@ def shift_path_info(environ):
     path_info = environ.get('PATH_INFO', '')
     if not path_info:
         return
-    path_parts = path_info.split('/')
-    path_parts[1:-1] = [ p for p in path_parts[1:-1] if p and p != '.' ]
-    name = path_parts[1]
-    del path_parts[1]
-    script_name = environ.get('SCRIPT_NAME', '')
-    script_name = posixpath.normpath(script_name + '/' + name)
-    if script_name.endswith('/'):
-        script_name = script_name[:-1]
-    if not name and not script_name.endswith('/'):
-        script_name += '/'
-    environ['SCRIPT_NAME'] = script_name
-    environ['PATH_INFO'] = '/'.join(path_parts)
-    if name == '.':
-        name = None
-    return name
+    else:
+        path_parts = path_info.split('/')
+        path_parts[1:-1] = [ p for p in path_parts[1:-1] if p and p != '.' ]
+        name = path_parts[1]
+        del path_parts[1]
+        script_name = environ.get('SCRIPT_NAME', '')
+        script_name = posixpath.normpath(script_name + '/' + name)
+        if script_name.endswith('/'):
+            script_name = script_name[:-1]
+        if not name and not script_name.endswith('/'):
+            script_name += '/'
+        environ['SCRIPT_NAME'] = script_name
+        environ['PATH_INFO'] = '/'.join(path_parts)
+        if name == '.':
+            name = None
+        return name
 
 
 def setup_testing_defaults(environ):

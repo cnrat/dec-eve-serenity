@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\carbon\common\stdlib\xml\dom\minicompat.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\carbon\common\stdlib\xml\dom\minicompat.py
 __all__ = ['NodeList',
  'EmptyNodeList',
  'StringTypes',
@@ -50,7 +51,7 @@ class EmptyNodeList(tuple):
         return None
 
     def _get_length(self):
-        return 0
+        pass
 
     def _set_length(self, value):
         raise xml.dom.NoModificationAllowedErr("attempt to modify read-only attribute 'length'")
@@ -61,7 +62,7 @@ class EmptyNodeList(tuple):
 def defproperty(klass, name, doc):
     get = getattr(klass, '_get_' + name).im_func
 
-    def set(self, value, name = name):
+    def set(self, value, name=name):
         raise xml.dom.NoModificationAllowedErr('attempt to modify read-only attribute ' + repr(name))
 
     prop = property(get, set, doc=doc)

@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\packages\watchdog\watchmedo.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\packages\watchdog\watchmedo.py
 import os.path
 import sys
 import yaml
@@ -19,11 +20,11 @@ logging.basicConfig(level=logging.INFO)
 CONFIG_KEY_TRICKS = 'tricks'
 CONFIG_KEY_PYTHON_PATH = 'python-path'
 
-def path_split(pathname_spec, separator = os.path.sep):
+def path_split(pathname_spec, separator=os.path.sep):
     return list(pathname_spec.split(separator))
 
 
-def add_to_sys_path(pathnames, index = 0):
+def add_to_sys_path(pathnames, index=0):
     for pathname in pathnames[::-1]:
         sys.path.insert(index, pathname)
 
@@ -36,7 +37,7 @@ def load_config(tricks_file_pathname):
     return config
 
 
-def parse_patterns(patterns_spec, ignore_patterns_spec, separator = ';'):
+def parse_patterns(patterns_spec, ignore_patterns_spec, separator=';'):
     patterns = patterns_spec.split(separator)
     ignore_patterns = ignore_patterns_spec.split(separator)
     if ignore_patterns == ['']:
@@ -66,6 +67,8 @@ def schedule_tricks(observer, tricks, pathname, recursive):
             handler = TrickClass(**value)
             trick_pathname = getattr(handler, 'source_directory', None) or pathname
             observer.schedule(handler, trick_pathname, recursive)
+
+    return
 
 
 @aliases('tricks')
@@ -138,6 +141,7 @@ def tricks_generate_yaml(args):
         output = open(args.append_to_file, 'ab')
         output.write(content)
         output.close()
+    return
 
 
 @arg('directories', nargs='*', default='.', help='directories to watch.')
@@ -198,6 +202,7 @@ def shell_command(args):
     handler = ShellCommandTrick(shell_command=args.command, patterns=patterns, ignore_patterns=ignore_patterns, ignore_directories=args.ignore_directories, wait_for_process=args.wait_for_process, drop_during_process=args.drop_during_process)
     observer = Observer(timeout=args.timeout)
     observe_with(observer, handler, args.directories, args.recursive)
+    return
 
 
 @arg('command', help='Long-running command to run in a subprocess.\n')

@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\carbon\client\script\util\monitor.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\carbon\client\script\util\monitor.py
 import operator
 import gc
 import service
@@ -37,12 +38,13 @@ class Monitor(service.Service):
     __servicename__ = 'monitor'
     __displayname__ = 'Monitor Service'
 
-    def Run(self, memStream = None):
+    def Run(self, memStream=None):
         self.LogInfo('Starting MonitorSvc')
         self.started = False
         self.logRunning = False
         self.logSaveHandle = None
         self.lastLogEntry = None
+        return
 
     def UpdateHeapHistory(self):
         heaps = blue.MemoryTrackerGetAllProcessHeapsSizes()
@@ -51,7 +53,7 @@ class Monitor(service.Service):
                 self.heaphistory[i] = []
             self.heaphistory[i].append((blue.os.GetWallclockTime(), h))
 
-    def Stop(self, memStream = None):
+    def Stop(self, memStream=None):
         if self.started:
             self.CleanUp()
 
@@ -71,6 +73,7 @@ class Monitor(service.Service):
             self.graphtimer = base.AutoTimer(20000, self.UpdateGraph)
             self.heapgraphtimer = base.AutoTimer(20000, self.UpdateHeapGraph)
         wnd.sr.updateTimer = None
+        return
 
     def ShowOutstandingTab(self):
         self.Show()
@@ -153,6 +156,7 @@ class Monitor(service.Service):
         if wnd is not None and not wnd.destroyed and self.tabs and hasattr(self.tabs, 'GetSelectedArgs') and self.tabs.GetSelectedArgs() in ('memory', 'performance'):
             self.LogInfo('Updating memory graph')
             self.GetGraph()
+        return
 
     def UpdateHeapGraph(self):
         wnd = self.GetWnd()
@@ -163,10 +167,13 @@ class Monitor(service.Service):
         except:
             pass
 
+        return
+
     def UpdateSize(self):
         uthread.new(self.GetGraph)
         uthread.new(self.GetHeapGraph)
         self.GetWnd(1).sr.updateTimer = None
+        return
 
     def CleanUp(self):
         wnd = self.GetWnd()
@@ -186,8 +193,9 @@ class Monitor(service.Service):
         self.showing = None
         self.settingsinited = 0
         self.pythonProfile = None
+        return
 
-    def GetWnd(self, new = 0):
+    def GetWnd(self, new=0):
         wnd = MonitorWnd.GetIfOpen()
         if wnd is None and new:
             wnd = MonitorWnd.Open()
@@ -380,6 +388,7 @@ class Monitor(service.Service):
             elif args == 'logs':
                 self.ShowLogs()
             self.showing = args
+        return
 
     def ShowLogs(self):
         wnd = self.GetWnd()
@@ -394,6 +403,7 @@ class Monitor(service.Service):
              'message'], fixedEntryHeight=18)
             self.lastLogEntry = None
             self.DoUpdateLogs()
+        return
 
     def LoadSettings(self):
         wnd = self.GetWnd()
@@ -426,6 +436,8 @@ class Monitor(service.Service):
               None]]:
                 uicontrols.Checkbox(text=label, parent=wnd.sr.settingsInner, configName=cfgname, retval=value, checked=checked, groupname=group, callback=self.CheckBoxChange, prefstype=('generic',))
 
+        return
+
     def CheckBoxChange(self, checkbox):
         config = checkbox.data['config']
         if config == 'resourceUnloading':
@@ -447,6 +459,7 @@ class Monitor(service.Service):
         self.totalVMDelta = 0
         self.maxPeaks = {}
         self.typeBag = {}
+        return
 
     def ResetCounters(self, *args):
         self.intvals = [5000,
@@ -466,7 +479,7 @@ class Monitor(service.Service):
         self.bytes_outTotal = 0
         self.bytes_inTotal = 0
 
-    def UpdateROT(self, force = False):
+    def UpdateROT(self, force=False):
         wnd = self.GetWnd()
         if wnd:
             try:
@@ -509,54 +522,59 @@ class Monitor(service.Service):
                 self.timer = None
                 sys.exc_clear()
 
+        return
+
     def UpdateUI(self):
         wnd = self.GetWnd()
         if not wnd or wnd.destroyed:
             return
-        hd, li = blue.pyos.ProbeStuff()
-        info = Row(list(hd), li)
-        virtualMem = info.pagefileUsage / 1024
-        if self.lastVM is None:
+        else:
+            hd, li = blue.pyos.ProbeStuff()
+            info = Row(list(hd), li)
+            virtualMem = info.pagefileUsage / 1024
+            if self.lastVM is None:
+                self.lastVM = virtualMem
+            delta = virtualMem - self.lastVM
+            self.totalVMDelta += delta
             self.lastVM = virtualMem
-        delta = virtualMem - self.lastVM
-        self.totalVMDelta += delta
-        self.lastVM = virtualMem
-        delta = delta or self.lastVMDelta
-        self.lastVMDelta = delta
-        dc = ['<color=0xff00ff00>', '<color=0xffff0000>'][delta > 0]
-        tdc = ['<color=0xff00ff00>', '<color=0xffff0000>'][self.totalVMDelta > 0]
-        try:
-            dev = trinity.device
-            iml = ''
-            if blue.logInMemory.isActive:
-                iml = 'In-memory logging <color=0xff00ff00>active</color> (%s / %s)' % (LOGTYPE_MAPPING.get(blue.logInMemory.threshold, ('Unknown', ''))[0], blue.logInMemory.capacity)
-            ciderVersion = ''
-            if blue.sysinfo.isTransgaming:
-                ciderVersion = ' - Cider: %s' % blue.win32.TGGetVersion()
-            fps = 'Fps: %.1f - %s%s' % (blue.os.fps, iml, ciderVersion)
-            if wnd.sr.fpsText.text != fps:
-                wnd.sr.fpsText.text = fps
-            vm = 'VM Size/D/TD: %sK / %s%sK<color=0xffffffff> / %s%sK<color=0xffb0b0b0>' % (util.FmtAmt(virtualMem),
-             dc,
-             util.FmtAmt(delta),
-             tdc,
-             util.FmtAmt(self.totalVMDelta))
-            if wnd.sr.vmText.text != vm:
-                wnd.sr.vmText.text = vm
-            inUse = util.FmtAmt(blue.motherLode.memUsage / 1024)
-            total = util.FmtAmt(blue.motherLode.maxMemUsage / 1024)
-            num = blue.motherLode.size()
-            vm = 'Resource Cache Usage: %sK / %sK - %s objects' % (inUse, total, num)
-            if wnd.sr.cacheText.text != vm:
-                wnd.sr.cacheText.text = vm
-            spaceMgr = sm.StartService('space')
-            mo = 'Lazy Queue: %s' % getattr(spaceMgr, 'lazyLoadQueueCount', 0)
-            if wnd.sr.queueText.text != mo:
-                wnd.sr.queueText.text = mo
-        except Exception as e:
-            print 'e', e
-            self.uitimer = None
-            sys.exc_clear()
+            delta = delta or self.lastVMDelta
+            self.lastVMDelta = delta
+            dc = ['<color=0xff00ff00>', '<color=0xffff0000>'][delta > 0]
+            tdc = ['<color=0xff00ff00>', '<color=0xffff0000>'][self.totalVMDelta > 0]
+            try:
+                dev = trinity.device
+                iml = ''
+                if blue.logInMemory.isActive:
+                    iml = 'In-memory logging <color=0xff00ff00>active</color> (%s / %s)' % (LOGTYPE_MAPPING.get(blue.logInMemory.threshold, ('Unknown', ''))[0], blue.logInMemory.capacity)
+                ciderVersion = ''
+                if blue.sysinfo.isTransgaming:
+                    ciderVersion = ' - Cider: %s' % blue.win32.TGGetVersion()
+                fps = 'Fps: %.1f - %s%s' % (blue.os.fps, iml, ciderVersion)
+                if wnd.sr.fpsText.text != fps:
+                    wnd.sr.fpsText.text = fps
+                vm = 'VM Size/D/TD: %sK / %s%sK<color=0xffffffff> / %s%sK<color=0xffb0b0b0>' % (util.FmtAmt(virtualMem),
+                 dc,
+                 util.FmtAmt(delta),
+                 tdc,
+                 util.FmtAmt(self.totalVMDelta))
+                if wnd.sr.vmText.text != vm:
+                    wnd.sr.vmText.text = vm
+                inUse = util.FmtAmt(blue.motherLode.memUsage / 1024)
+                total = util.FmtAmt(blue.motherLode.maxMemUsage / 1024)
+                num = blue.motherLode.size()
+                vm = 'Resource Cache Usage: %sK / %sK - %s objects' % (inUse, total, num)
+                if wnd.sr.cacheText.text != vm:
+                    wnd.sr.cacheText.text = vm
+                spaceMgr = sm.StartService('space')
+                mo = 'Lazy Queue: %s' % getattr(spaceMgr, 'lazyLoadQueueCount', 0)
+                if wnd.sr.queueText.text != mo:
+                    wnd.sr.queueText.text = mo
+            except Exception as e:
+                print 'e', e
+                self.uitimer = None
+                sys.exc_clear()
+
+            return
 
     def GetTrace(self, item):
         trace = ''
@@ -585,18 +603,21 @@ class Monitor(service.Service):
         wnd = self.GetWnd()
         if wnd is None:
             return
-        try:
-            while 1:
-                loggingToWindow = not (not wnd or wnd.destroyed or self.tabs.GetSelectedArgs() != 'logs')
-                if not loggingToWindow and self.logSaveHandle is None or not self.logRunning:
-                    return
-                self.DoUpdateLogs(loggingToWindow)
-                blue.pyos.synchro.SleepWallclock(LOGUPDATETIME)
+        else:
+            try:
+                while 1:
+                    loggingToWindow = not (not wnd or wnd.destroyed or self.tabs.GetSelectedArgs() != 'logs')
+                    if not loggingToWindow and self.logSaveHandle is None or not self.logRunning:
+                        return
+                    self.DoUpdateLogs(loggingToWindow)
+                    blue.pyos.synchro.SleepWallclock(LOGUPDATETIME)
 
-        finally:
-            self.logRunning = False
+            finally:
+                self.logRunning = False
 
-    def DoUpdateLogs(self, loggingToWindow = True):
+            return
+
+    def DoUpdateLogs(self, loggingToWindow=True):
         wnd = self.GetWnd()
         entries = blue.logInMemory.GetEntries()
         if entries:
@@ -650,6 +671,7 @@ class Monitor(service.Service):
             self.logSaveHandle.Close()
             self.logSaveHandle = None
         self.logRunning = False
+        return
 
     def ClearLogInMemory(self):
         blue.logInMemory.Clear()
@@ -747,65 +769,70 @@ class Monitor(service.Service):
         wnd = self.GetWnd()
         if not wnd or wnd.destroyed:
             return
-        try:
-            self.ticker += self.intvals[0]
-            if self.ticker > self.intvals[-1]:
-                self.ticker = self.intvals[0]
-            stats = sm.GetService('machoNet').GetConnectionProperties()
-            if self.laststats == {}:
-                self.laststats = stats
-            if self.lastresetstats != {}:
-                for key in stats.iterkeys():
-                    stats[key] = stats[key] - self.lastresetstats[key]
+        else:
+            try:
+                self.ticker += self.intvals[0]
+                if self.ticker > self.intvals[-1]:
+                    self.ticker = self.intvals[0]
+                stats = sm.GetService('machoNet').GetConnectionProperties()
+                if self.laststats == {}:
+                    self.laststats = stats
+                if self.lastresetstats != {}:
+                    for key in stats.iterkeys():
+                        stats[key] = stats[key] - self.lastresetstats[key]
 
-            props = [('Packets out', 'packets_out', 0),
-             ('Packets in', 'packets_in', 0),
-             ('Kilobytes out', 'bytes_out', 1),
-             ('Kilobytes in', 'bytes_in', 1)]
-            for i in xrange(len(self.counter) - 1):
-                self.counter[i].append([ stats[key] - self.laststats[key] for header, key, K in props ])
-                self.counter[i] = self.counter[i][-(self.intvals[i] / 1000):]
+                props = [('Packets out', 'packets_out', 0),
+                 ('Packets in', 'packets_in', 0),
+                 ('Kilobytes out', 'bytes_out', 1),
+                 ('Kilobytes in', 'bytes_in', 1)]
+                for i in xrange(len(self.counter) - 1):
+                    self.counter[i].append([ stats[key] - self.laststats[key] for header, key, K in props ])
+                    self.counter[i] = self.counter[i][-(self.intvals[i] / 1000):]
 
-            self.counter[-1].append([ stats[key] - self.laststats[key] for header, key, K in props ])
-            if wnd.state != uiconst.UI_NORMAL:
-                self.laststats = stats
-                return
-            valueIdx = 0
-            for header, key, K in props:
-                statusstr = '%s' % header
-                for intvals in self.counter:
-                    value = reduce(operator.add, [ intval[valueIdx] for intval in intvals ], 0)
-                    if not value:
-                        statusstr += '<t><right>-'
-                    else:
-                        statusstr += '<t><right>%s' % [value, '%.1f' % (value / 1024.0)][K]
+                self.counter[-1].append([ stats[key] - self.laststats[key] for header, key, K in props ])
+                if wnd.state != uiconst.UI_NORMAL:
+                    self.laststats = stats
+                    return
+                valueIdx = 0
+                for header, key, K in props:
+                    statusstr = '%s' % header
+                    for intvals in self.counter:
+                        value = reduce(operator.add, [ intval[valueIdx] for intval in intvals ], 0)
+                        if not value:
+                            statusstr += '<t><right>-'
+                        else:
+                            statusstr += '<t><right>%s' % [value, '%.1f' % (value / 1024.0)][K]
 
-                wnd.statusLabels[valueIdx].text = statusstr
+                    wnd.statusLabels[valueIdx].text = statusstr
+                    valueIdx += 1
+
+                wnd.statusLabels[valueIdx].text = 'Outstanding<t><right>%s' % stats['calls_outstanding']
                 valueIdx += 1
+                wnd.statusLabels[valueIdx].text = 'Blocking Calls<t><right>%s' % stats['blocking_calls']
+                valueIdx += 1
+                block_time = stats['blocking_call_times']
+                if block_time >= 0:
+                    secs = util.SecsFromBlueTimeDelta(block_time)
+                    wnd.statusLabels[valueIdx].text = 'Blocking time<t><right>%sH<t><right>%sM<t><right>%sS' % util.HoursMinsSecsFromSecs(secs)
+                elif not hasattr(self, 'warnedBlockingTimeNegative'):
+                    self.warnedBlockingTimeNegative = True
+                    log.LogTraceback('Blocking time is negative?')
+                self.laststats = stats
+            except:
+                self.timer = None
+                raise
 
-            wnd.statusLabels[valueIdx].text = 'Outstanding<t><right>%s' % stats['calls_outstanding']
-            valueIdx += 1
-            wnd.statusLabels[valueIdx].text = 'Blocking Calls<t><right>%s' % stats['blocking_calls']
-            valueIdx += 1
-            block_time = stats['blocking_call_times']
-            if block_time >= 0:
-                secs = util.SecsFromBlueTimeDelta(block_time)
-                wnd.statusLabels[valueIdx].text = 'Blocking time<t><right>%sH<t><right>%sM<t><right>%sS' % util.HoursMinsSecsFromSecs(secs)
-            elif not hasattr(self, 'warnedBlockingTimeNegative'):
-                self.warnedBlockingTimeNegative = True
-                log.LogTraceback('Blocking time is negative?')
-            self.laststats = stats
-        except:
-            self.timer = None
-            raise
+            return
 
     def GetGraphType(self):
         if self.tabs and hasattr(self.tabs, 'GetSelectedArgs'):
             return {'memory': GRAPH_MEMORY,
              'performance': GRAPH_PERFORMANCE,
              'heap': GRAPH_HEAP}.get(self.tabs.GetSelectedArgs(), None)
+        else:
+            return None
 
-    def GetObjects(self, num = 1000000, drill = None, textDrill = None, b = 0, e = 100):
+    def GetObjects(self, num=1000000, drill=None, textDrill=None, b=0, e=100):
         wnd = self.GetWnd()
         if not wnd or wnd.destroyed:
             return
@@ -1053,24 +1080,26 @@ class Monitor(service.Service):
         attr = attrs.get(typeName, None)
         if attr is None:
             return
-        dict = {}
-        for i in alldict[entry.sr.node.instType]:
-            stringval = ''
-            for a in attr:
-                stringval += str(getattr(i, a, None))[:24] + '<t>'
+        else:
+            dict = {}
+            for i in alldict[entry.sr.node.instType]:
+                stringval = ''
+                for a in attr:
+                    stringval += str(getattr(i, a, None))[:24] + '<t>'
 
-            dict.setdefault(stringval, []).append(i)
+                dict.setdefault(stringval, []).append(i)
 
-        scrolllist = []
-        for tp, inst in dict.iteritems():
-            if tp == 'None<t>' * len(attr):
-                continue
-            scrolllist.append(uicontrols.ScrollEntryNode(decoClass=uicontrols.SE_GenericCore, label='%s%s' % (tp, util.FmtAmt(len(inst)))))
+            scrolllist = []
+            for tp, inst in dict.iteritems():
+                if tp == 'None<t>' * len(attr):
+                    continue
+                scrolllist.append(uicontrols.ScrollEntryNode(decoClass=uicontrols.SE_GenericCore, label='%s%s' % (tp, util.FmtAmt(len(inst)))))
 
-        wnd = self.GetWnd()
-        if not wnd or wnd.destroyed:
+            wnd = self.GetWnd()
+            if not wnd or wnd.destroyed:
+                return
+            wnd.wnd.sr.scroll.Load(contentList=scrolllist, headers=attr + ['instances'], fixedEntryHeight=18)
             return
-        wnd.wnd.sr.scroll.Load(contentList=scrolllist, headers=attr + ['instances'], fixedEntryHeight=18)
 
     def CloseWnd(self, *args):
         self.settingsinited = 0
@@ -1083,6 +1112,7 @@ class Monitor(service.Service):
         self.lastVM = None
         self.lastVMDelta = 0
         self.totalVMDelta = 0
+        return
 
 
 class MonitorWnd(uicontrols.Window):

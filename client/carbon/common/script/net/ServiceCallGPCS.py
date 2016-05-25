@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\carbon\common\script\net\ServiceCallGPCS.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\carbon\common\script\net\ServiceCallGPCS.py
 import weakref
 import blue
 import base
@@ -214,26 +215,28 @@ class CoreServiceCall():
                         packet.oob['machoTimeout'] = machoTimeout
                     callTimer = base.CallTimer('%s::%s (ServiceCall\\Client)' % (service, method))
                     try:
-                        ret = self.ForwardCallDown(packet).payload
-                        self.UpdateSendServiceCallStats(service, method)
-                        self.LogMethodCall(ret, service, method, args, keywords)
-                    except util.UpdateMoniker as e:
-                        raise
-                    except RuntimeError:
-                        raise
-                    except UserError:
-                        raise
-                    except ProxyRedirect:
-                        raise
-                    except WrongMachoNode:
-                        raise
-                    except objectCaching.CacheOK:
-                        if cachedResultRecord is None:
+                        try:
+                            ret = self.ForwardCallDown(packet).payload
+                            self.UpdateSendServiceCallStats(service, method)
+                            self.LogMethodCall(ret, service, method, args, keywords)
+                        except util.UpdateMoniker as e:
                             raise
-                        sys.exc_clear()
-                        self.LogMethodCall(cachedResultRecord['lret'], service, method, args, keywords)
-                        sm.GetService('objectCaching').UpdateVersionCheckPeriod(cacheKey)
-                        return cachedResultRecord['lret']
+                        except RuntimeError:
+                            raise
+                        except UserError:
+                            raise
+                        except ProxyRedirect:
+                            raise
+                        except WrongMachoNode:
+                            raise
+                        except objectCaching.CacheOK:
+                            if cachedResultRecord is None:
+                                raise
+                            sys.exc_clear()
+                            self.LogMethodCall(cachedResultRecord['lret'], service, method, args, keywords)
+                            sm.GetService('objectCaching').UpdateVersionCheckPeriod(cacheKey)
+                            return cachedResultRecord['lret']
+
                     finally:
                         callTimer.Done()
 
@@ -268,8 +271,10 @@ class CoreServiceCall():
 
                 raise
 
+        return
+
     def _GetRemoteServiceCallVariables(self, session):
-        return ()
+        pass
 
     def _HandleServiceCallWrongNode(self, e, service, sessionVars1, sessionVars2):
         pass
@@ -357,6 +362,8 @@ class CoreServiceCall():
 
             return
 
+        return
+
     def LogMethodCall(self, result, logname, method, args, keywords):
         logChannel = log.methodcalls
         if logChannel.IsOpen(log.LGINFO):
@@ -399,7 +406,7 @@ class CoreServiceCall():
             finally:
                 PopMark(timer)
 
-    def ConnectToRemoteService(self, servicename, nodeID = None, sess = None):
+    def ConnectToRemoteService(self, servicename, nodeID=None, sess=None):
         if sess is None:
             sess = session.GetActualSession()
         return MachoServiceConnection(self, sess, servicename, nodeID)
@@ -508,6 +515,7 @@ class UberDude():
         else:
             self.channel = None
         self.tasklet = None
+        return
 
     def Done(self):
         self.ubercount -= 1
@@ -518,12 +526,12 @@ class UberDude():
             if self.tasklet:
                 self.tasklet.kill()
                 self.tasklet = None
+        return
 
     def Await(self, timeoutInterval):
         self.tasklet = uthread.new(self.__Timeout, timeoutInterval)
         if self.channel:
             return self.channel.receive()
-        return 0
 
     def __Timeout(self, timeoutInterval):
         try:
@@ -535,24 +543,28 @@ class UberDude():
         except TaskletExit:
             pass
 
+        return
+
 
 def UnterMachoRemoteServiceCall(self, dude, retvals, sess, nodeID, service, method, args, keywords):
     try:
-        if nodeID == sm.services['machoNet'].GetNodeID():
-            if 'machoTimeout' in keywords:
-                keywords = copy.copy(keywords)
-                del keywords['machoTimeout']
-            retvals.append((0, nodeID, apply(getattr(sess.ConnectToService(service), method), args, keywords)))
-        else:
-            retvals.append((0, nodeID, self.RemoteServiceCallWithoutTheStars(sess, nodeID, service, method, args, keywords)))
-    except StandardError as e:
-        log.LogException()
-        retvals.append((1, nodeID, e))
-        sys.exc_clear()
-    except Exception as e:
-        log.LogTraceback()
-        retvals.append((1, nodeID, e))
-        raise
+        try:
+            if nodeID == sm.services['machoNet'].GetNodeID():
+                if 'machoTimeout' in keywords:
+                    keywords = copy.copy(keywords)
+                    del keywords['machoTimeout']
+                retvals.append((0, nodeID, apply(getattr(sess.ConnectToService(service), method), args, keywords)))
+            else:
+                retvals.append((0, nodeID, self.RemoteServiceCallWithoutTheStars(sess, nodeID, service, method, args, keywords)))
+        except StandardError as e:
+            log.LogException()
+            retvals.append((1, nodeID, e))
+            sys.exc_clear()
+        except Exception as e:
+            log.LogTraceback()
+            retvals.append((1, nodeID, e))
+            raise
+
     finally:
         dude.Done()
 
@@ -575,7 +587,7 @@ class UberMachoServiceConnection():
         return '<UberMachoRemoteService:' + strx(self.__dict__['servicename']) + '>'
 
     def __nonzero__(self):
-        return 1
+        pass
 
     def __repr__(self):
         return str(self)
@@ -615,7 +627,7 @@ class UberMachoServiceCallWrapper():
 class MachoServiceConnection():
     blocking = True
 
-    def __init__(self, gpcs, sess, servicename, nodeID = None):
+    def __init__(self, gpcs, sess, servicename, nodeID=None):
         try:
             self.session = weakref.proxy(sess)
         except TypeError:

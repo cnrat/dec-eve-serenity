@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\carbon\common\lib\cherrypy\lib\caching.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\carbon\common\lib\cherrypy\lib\caching.py
 import datetime
 import sys
 import threading
@@ -24,7 +25,7 @@ class Cache(object):
 
 class AntiStampedeCache(dict):
 
-    def wait(self, key, timeout = 5, debug = False):
+    def wait(self, key, timeout=5, debug=False):
         value = self.get(key)
         if isinstance(value, threading._Event):
             if timeout is None:
@@ -44,13 +45,14 @@ class AntiStampedeCache(dict):
             e.result = None
             dict.__setitem__(self, key, e)
             return
-        if value is None:
-            if debug:
-                cherrypy.log('Timed out', 'TOOLS.CACHING')
-            e = threading.Event()
-            e.result = None
-            dict.__setitem__(self, key, e)
-        return value
+        else:
+            if value is None:
+                if debug:
+                    cherrypy.log('Timed out', 'TOOLS.CACHING')
+                e = threading.Event()
+                e.result = None
+                dict.__setitem__(self, key, e)
+            return value
 
     def __setitem__(self, key, value):
         existing = self.get(key)
@@ -110,11 +112,12 @@ class MemoryCache(Cache):
         uricache = self.store.get(uri)
         if uricache is None:
             return
-        header_values = [ request.headers.get(h, '') for h in uricache.selecting_headers ]
-        variant = uricache.wait(key=tuple(sorted(header_values)), timeout=self.antistampede_timeout, debug=self.debug)
-        if variant is not None:
-            self.tot_hist += 1
-        return variant
+        else:
+            header_values = [ request.headers.get(h, '') for h in uricache.selecting_headers ]
+            variant = uricache.wait(key=tuple(sorted(header_values)), timeout=self.antistampede_timeout, debug=self.debug)
+            if variant is not None:
+                self.tot_hist += 1
+            return variant
 
     def put(self, variant, size):
         request = cherrypy.serving.request
@@ -135,13 +138,15 @@ class MemoryCache(Cache):
                 uricache[tuple(sorted(header_values))] = variant
                 self.tot_puts += 1
                 self.cursize = total_size
+        return
 
     def delete(self):
         uri = cherrypy.url(qs=cherrypy.serving.request.query_string)
         self.store.pop(uri, None)
+        return
 
 
-def get(invalid_methods = ('POST', 'PUT', 'DELETE'), debug = False, **kwargs):
+def get(invalid_methods=('POST', 'PUT', 'DELETE'), debug=False, **kwargs):
     request = cherrypy.serving.request
     response = cherrypy.serving.response
     if not hasattr(cherrypy, '_cache'):
@@ -237,7 +242,7 @@ def tee_output():
     response.body = tee(response.body)
 
 
-def expires(secs = 0, force = False, debug = False):
+def expires(secs=0, force=False, debug=False):
     response = cherrypy.serving.response
     headers = response.headers
     cacheable = False

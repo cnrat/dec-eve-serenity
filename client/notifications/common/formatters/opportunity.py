@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\packages\notifications\common\formatters\opportunity.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\packages\notifications\common\formatters\opportunity.py
 from achievements.common.achievementGroups import GetAchievementGroup
 from achievements.common.opportunityTaskMap import GROUP_TO_REWARD
 import gatekeeper

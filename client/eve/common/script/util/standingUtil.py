@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\common\script\util\standingUtil.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\common\script\util\standingUtil.py
 CRIMINAL_FACTIONS = (500010, 500011, 500012, 500019, 500020)
 
 def GetStandingBonus(fromStanding, fromFactionID, skills):

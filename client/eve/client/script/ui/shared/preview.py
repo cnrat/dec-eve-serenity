@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\client\script\ui\shared\preview.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\client\script\ui\shared\preview.py
 from brennivin.itertoolsext import first, first_or_default
 from carbon.common.lib.GameWorld import GWAnimation
 from carbon.common.script.util.commonutils import Clamp
@@ -55,19 +56,21 @@ MESH_NAMES_BY_GROUPID = {invconst.groupApparelEyewear: [pd.ACCESSORIES_CATEGORIE
  invconst.groupApparelBottoms: [pd.BODY_CATEGORIES.BOTTOMOUTER],
  invconst.groupApparelFootwear: [pd.BODY_CATEGORIES.FEET],
  invconst.groupApparelHairStyles: [pd.DOLL_PARTS.HAIR, pd.DOLL_PARTS.HEAD],
- invconst.groupApparelMakeup: [pd.HEAD_CATEGORIES.MAKEUP]}
+ invconst.groupApparelMakeup: [pd.HEAD_CATEGORIES.MAKEUP],
+ invconst.groupApparelAugmentations: [pd.DOLL_PARTS.HEAD]}
 MANNEQUIN_RES_BY_GENDER = {pd.GENDER.MALE: 'res:/Graphics/Character/DNAFiles/Mannequin/MaleMannequin.prs',
  pd.GENDER.FEMALE: 'res:/Graphics/Character/DNAFiles/Mannequin/FemaleMannequin.prs'}
 PAPERDOLL_CATEGORIES_COVERING = {ccConst.bottommiddle: [ccConst.bottomouter]}
 
-def GetPaperDollResource(typeID, gender = None):
+def GetPaperDollResource(typeID, gender=None):
     assets = filter(lambda a: a.typeID == typeID, cfg.paperdollResources)
     if len(assets) == 0:
         log.LogWarn('PreviewWnd::PreviewType - No asset matched the typeID {}'.format(typeID))
         return None
-    default_asset = first(assets)
-    unisex_asset = first_or_default(assets, lambda a: a.resGender is None, default_asset)
-    return first_or_default(assets, lambda a: a.resGender == gender, unisex_asset)
+    else:
+        default_asset = first(assets)
+        unisex_asset = first_or_default(assets, lambda a: a.resGender is None, default_asset)
+        return first_or_default(assets, lambda a: a.resGender == gender, unisex_asset)
 
 
 def SetupAnimations(model, typeID):
@@ -81,6 +84,7 @@ def SetupAnimations(model, typeID):
         model.ChainAnimationEx('NormalLoop', 0, 0, 1.0)
     else:
         soanimation.TriggerDefaultStates(model)
+    return
 
 
 class Preview(service.Service):
@@ -91,11 +95,11 @@ class Preview(service.Service):
      'PreviewCharacter': []}
     __dependencies__ = []
 
-    def Run(self, memStream = None):
+    def Run(self, memStream=None):
         service.Service.Run(self, memStream=memStream)
         self.state = service.SERVICE_RUNNING
 
-    def PreviewType(self, typeID, subsystems = None, itemID = None, animate = True):
+    def PreviewType(self, typeID, subsystems=None, itemID=None, animate=True):
         wnd = PreviewWnd.GetIfOpen()
         if wnd:
             wnd.PreviewType(typeID=typeID, subsystems=subsystems, itemID=itemID, animate=animate)
@@ -106,19 +110,19 @@ class Preview(service.Service):
     def PreviewCharacter(self, charID):
         if charID in appConst.auraAgentIDs:
             return
-        dna = sm.RemoteSvc('paperDollServer').GetPaperDollData(charID)
-        if dna is None:
-            raise UserError('CharacterHasNoDNA', {'charID': charID})
-        wnd = PreviewCharacterWnd.GetIfOpen()
-        if wnd:
-            wnd.PreviewCharacter(charID=charID, dna=dna)
         else:
-            wnd = PreviewCharacterWnd.Open(charID=charID, dna=dna)
-        return wnd
+            dna = sm.RemoteSvc('paperDollServer').GetPaperDollData(charID)
+            if dna is None:
+                raise UserError('CharacterHasNoDNA', {'charID': charID})
+            wnd = PreviewCharacterWnd.GetIfOpen()
+            if wnd:
+                wnd.PreviewCharacter(charID=charID, dna=dna)
+            else:
+                wnd = PreviewCharacterWnd.Open(charID=charID, dna=dna)
+            return wnd
 
 
 @Component(ButtonEffect(opacityIdle=0.0, opacityHover=0.5, opacityMouseDown=1.0, bgElementFunc=lambda parent, _: parent.hilite, audioOnEntry='wise:/msg_ListEntryEnter_play', audioOnClick='wise:/msg_ListEntryClick_play'))
-
 class SidePanelButton(ContainerAutoSize):
     default_state = uiconst.UI_NORMAL
 
@@ -175,6 +179,7 @@ class PreviewWnd(Window):
         self.previewContainer = PreviewContainer(parent=mainCont, OnStartLoading=self.OnStartLoading, OnStopLoading=self.OnStopLoading)
         self.previewContainer.navigation.OnDropData = self.OnDropData
         self.PreviewType(self.typeID, subsystems, itemID, animate)
+        return
 
     def IsPanelExpanded(self):
         return self.IsPanelEnabled() and settings.user.ui.Get('previewPanel', 1)
@@ -187,11 +192,12 @@ class PreviewWnd(Window):
         settings.user.ui.Set('previewPanel', isExpanded)
         self.UpdateSidePanel(isExpanded)
 
-    def UpdateSidePanel(self, expanded = None):
+    def UpdateSidePanel(self, expanded=None):
         if expanded is None:
             expanded = settings.user.ui.Get('previewPanel', 1)
         width = self.PANEL_WIDTH if expanded else 0
         uicore.animations.MorphScalar(self.sidePanel, 'width', startVal=self.sidePanel.width, endVal=width, duration=0.3)
+        return
 
     def OnStartLoading(self, previewCont):
         uicore.animations.FadeIn(self.loadingWheel, duration=0.4)
@@ -208,39 +214,41 @@ class PreviewWnd(Window):
         context = self.previewContainer.context
         if not hasattr(context, 'typeID'):
             return
-        groupID = evetypes.GetGroupID(context.typeID)
-        categoryID = evetypes.GetCategoryID(context.typeID)
-        title = evetypes.GetName(context.typeID)
-        if hasattr(context, 'itemID'):
-            bp = sm.GetService('michelle').GetBallpark()
-            if bp:
-                slim = bp.GetInvItem(context.itemID)
-                if slim:
-                    title = slim.name
-        self.title.text = title
-        subtitle = ''
-        if categoryID != invconst.categoryApparel:
-            scene = self.previewContainer.sceneContainer.scene
-            model = first_or_default(getattr(scene, 'objects', []), None)
-            if model:
-                radius = round(model.GetBoundingSphereRadius() * 2, 0)
-                if groupID in invconst.turretModuleGroups or groupID in invconst.turretAmmoGroups:
-                    subtitle = localization.GetByLabel('UI/Preview/ShipSubLabelNoRace', groupName=evetypes.GetGroupName(context.typeID), length=FmtDist(radius))
-                else:
-                    raceID = evetypes.GetRaceID(context.typeID)
-                    race = cfg.races.Get(raceID) if raceID in cfg.races else None
-                    if race is None:
+        else:
+            groupID = evetypes.GetGroupID(context.typeID)
+            categoryID = evetypes.GetCategoryID(context.typeID)
+            title = evetypes.GetName(context.typeID)
+            if hasattr(context, 'itemID'):
+                bp = sm.GetService('michelle').GetBallpark()
+                if bp:
+                    slim = bp.GetInvItem(context.itemID)
+                    if slim:
+                        title = slim.name
+            self.title.text = title
+            subtitle = ''
+            if categoryID != invconst.categoryApparel:
+                scene = self.previewContainer.sceneContainer.scene
+                model = first_or_default(getattr(scene, 'objects', []), None)
+                if model:
+                    radius = round(model.GetBoundingSphereRadius() * 2, 0)
+                    if groupID in invconst.turretModuleGroups or groupID in invconst.turretAmmoGroups:
                         subtitle = localization.GetByLabel('UI/Preview/ShipSubLabelNoRace', groupName=evetypes.GetGroupName(context.typeID), length=FmtDist(radius))
                     else:
-                        raceName = localization.GetByMessageID(race.raceNameID)
-                        subtitle = localization.GetByLabel('UI/Preview/ShipSubLabel', raceName=raceName, groupName=evetypes.GetGroupName(context.typeID), length=FmtDist(radius))
-        self.subtitle.text = subtitle
-        if categoryID == invconst.categoryApparel:
-            self.descCont.Show()
-            description = evetypes.GetDescription(context.typeID) or ''
-            description = re.sub('<b>|</b>|\\r', '', description)
-            description = re.sub('\\n', '<br>', description)
-            self.desc.text = description
+                        raceID = evetypes.GetRaceID(context.typeID)
+                        race = cfg.races.Get(raceID) if raceID in cfg.races else None
+                        if race is None:
+                            subtitle = localization.GetByLabel('UI/Preview/ShipSubLabelNoRace', groupName=evetypes.GetGroupName(context.typeID), length=FmtDist(radius))
+                        else:
+                            raceName = localization.GetByMessageID(race.raceNameID)
+                            subtitle = localization.GetByLabel('UI/Preview/ShipSubLabel', raceName=raceName, groupName=evetypes.GetGroupName(context.typeID), length=FmtDist(radius))
+            self.subtitle.text = subtitle
+            if categoryID == invconst.categoryApparel:
+                self.descCont.Show()
+                description = evetypes.GetDescription(context.typeID) or ''
+                description = re.sub('<b>|</b>|\\r', '', description)
+                description = re.sub('\\n', '<br>', description)
+                self.desc.text = description
+            return
 
     def GetShipMenu(self, *args):
         return sm.GetService('menu').GetMenuFormItemIDTypeID(None, self.typeID, ignoreMarketDetails=False, filterFunc=[localization.GetByLabel('UI/Preview/Preview')])
@@ -260,8 +268,9 @@ class PreviewWnd(Window):
             itemID = node.itemID
         if typeID:
             self.PreviewType(typeID, itemID=itemID)
+        return
 
-    def PreviewType(self, typeID, subsystems = None, itemID = None, animate = True):
+    def PreviewType(self, typeID, subsystems=None, itemID=None, animate=True):
         uthread.new(self._PreviewType, typeID, subsystems, itemID, animate)
 
     def _PreviewType(self, typeID, subsystems, itemID, animate):
@@ -291,6 +300,7 @@ class PreviewWnd(Window):
             self.CloseSubSystemWnd()
         if newScene and animate:
             self.previewContainer.AnimEntry(-1.8, 0.2, -0.7, -0.3)
+        return
 
     def ClearText(self):
         self.title.text = ''
@@ -310,7 +320,7 @@ class PreviewWnd(Window):
     def CloseSubSystemWnd(self):
         AssembleShip.CloseIfOpen(windowID='PreviewSubSystems')
 
-    def Close(self, setClosed = False, *args, **kwds):
+    def Close(self, setClosed=False, *args, **kwds):
         Window.Close(self, setClosed, *args, **kwds)
         self.CloseSubSystemWnd()
 
@@ -391,6 +401,7 @@ class PreviewSceneContainer(SceneContainer):
         super(PreviewSceneContainer, self).ApplyAttributes(attributes)
         self._minY = None
         self._maxY = None
+        return
 
     @property
     def verticalPanLimits(self):
@@ -405,6 +416,7 @@ class PreviewSceneContainer(SceneContainer):
             minY, maxY = maxY, minY
         self._minY = minY
         self._maxY = maxY
+        return
 
     @property
     def verticalPanEnabled(self):
@@ -438,6 +450,7 @@ class PreviewContainer(Container):
         self.sceneContainer.Startup()
         self.navigation = PreviewNavigation(parent=self)
         self.navigation.Startup(self.sceneContainer)
+        return
 
     def Close(self):
         super(PreviewContainer, self).Close()
@@ -462,34 +475,36 @@ class PreviewContainer(Container):
         categoryID = evetypes.GetCategoryIDByGroup(groupID)
         if IsModularShip(typeID):
             return self.PreviewTech3Ship(typeID, subsystems=kwargs.get('subsystems'), scenePath=kwargs.get('scenePath'))
-        if categoryID == invconst.categoryApparel:
+        elif categoryID == invconst.categoryApparel:
             return self.PreviewApparel(typeID, gender=kwargs.get('gender'), background=kwargs.get('background'))
-        if groupID in invconst.turretModuleGroups:
+        elif groupID in invconst.turretModuleGroups:
             return self.PreviewTurret(typeID, scenePath=kwargs.get('scenePath'))
-        if groupID in invconst.turretAmmoGroups:
+        elif groupID in invconst.turretAmmoGroups:
             return self.PreviewAmmo(typeID, scenePath=kwargs.get('scenePath'))
-        if groupID == invconst.groupShipSkins or categoryID == invconst.categoryShip:
-            controller = kwargs.get('controller')
-            if controller is None:
-                return self.PreviewSkin(typeID, scenePath=kwargs.get('scenePath'))
-            else:
-                return self.PreviewSkinnedEntity(typeID, controller=kwargs.get('controller'), scenePath=kwargs.get('scenePath'))
         else:
-            return self.PreviewSpaceEntity(typeID, itemID=kwargs.get('itemID'), scenePath=kwargs.get('scenePath'))
+            if groupID == invconst.groupShipSkins or categoryID == invconst.categoryShip:
+                controller = kwargs.get('controller')
+                if controller is None:
+                    return self.PreviewSkin(typeID, scenePath=kwargs.get('scenePath'))
+                else:
+                    return self.PreviewSkinnedEntity(typeID, controller=kwargs.get('controller'), scenePath=kwargs.get('scenePath'))
+            else:
+                return self.PreviewSpaceEntity(typeID, itemID=kwargs.get('itemID'), scenePath=kwargs.get('scenePath'))
+            return
 
-    def PreviewAmmo(self, typeID, scenePath = None):
+    def PreviewAmmo(self, typeID, scenePath=None):
         context = AmmoSceneContext(typeID, scenePath=scenePath)
         return self.LoadScene(context)
 
-    def PreviewApparel(self, typeID, gender = None, background = None):
+    def PreviewApparel(self, typeID, gender=None, background=None):
         context = ApparelSceneContext(typeID, gender=gender, background=background)
         return self.LoadScene(context)
 
-    def PreviewCharacter(self, charID, dna = None, apparel = None, background = None):
+    def PreviewCharacter(self, charID, dna=None, apparel=None, background=None):
         context = CharacterSceneContext(charID, dna=dna, apparel=apparel, background=background)
         return self.LoadScene(context)
 
-    def PreviewSkinnedEntity(self, typeID, controller, scenePath = None):
+    def PreviewSkinnedEntity(self, typeID, controller, scenePath=None):
         if evetypes.GetCategoryID(typeID) == invconst.categoryShip:
             controller.typeID = typeID
             materialSetID = None
@@ -513,8 +528,9 @@ class PreviewContainer(Container):
         if self.skinController.previewed is not None:
             materialSetID = self.skinController.previewed.materialSetID
         uthread.new(self.PreviewSpaceEntity, typeID, materialSetID=materialSetID, scenePath=self.scenePath)
+        return
 
-    def PreviewSkin(self, typeID, scenePath = None):
+    def PreviewSkin(self, typeID, scenePath=None):
         if evetypes.GetCategoryID(typeID) == invconst.categoryShip:
             return self.PreviewSpaceEntity(typeID, scenePath=scenePath)
         else:
@@ -522,42 +538,43 @@ class PreviewContainer(Container):
             entityTypeID = skin.types[0]
             return self.PreviewSpaceEntity(entityTypeID, materialSetID=skin.materialSetID, scenePath=scenePath)
 
-    def PreviewSpaceEntity(self, typeID, itemID = None, materialSetID = None, scenePath = None):
+    def PreviewSpaceEntity(self, typeID, itemID=None, materialSetID=None, scenePath=None):
         context = SpaceEntitySceneContext(typeID, itemID=itemID, materialSetID=materialSetID, scenePath=scenePath)
         return self.LoadScene(context)
 
-    def PreviewSofDna(self, dna, dirt = None, scenePath = None):
+    def PreviewSofDna(self, dna, dirt=None, scenePath=None):
         context = SofDnaSceneContext(dna, dirt=dirt, scenePath=scenePath)
         return self.LoadScene(context)
 
-    def PreviewTech3Ship(self, typeID, subsystems = None, scenePath = None):
+    def PreviewTech3Ship(self, typeID, subsystems=None, scenePath=None):
         context = T3ShipSceneContext(typeID, subsystems=subsystems, scenePath=scenePath)
         return self.LoadScene(context)
 
-    def PreviewTurret(self, typeID, scenePath = None):
+    def PreviewTurret(self, typeID, scenePath=None):
         context = TurretSceneContext(typeID, scenePath=scenePath)
         return self.LoadScene(context)
 
-    def LoadScene(self, context, force = False):
+    def LoadScene(self, context, force=False):
         if context == self.context and not force:
             return False
-        success = True
-        try:
-            self._OnStartLoading()
-            self._Cleanup()
-            self.context = context
-            self.loadingThread = uthread.newJoinable(self.context.LoadScene, self.sceneContainer)
-            uthread.waitForJoinable(self.loadingThread, timeout=None)
-            self.UpdateViewPort()
-            self.loadingThread = None
-        except Exception:
-            if not self.destroyed:
-                log.LogException('Exception raised while loading preview for {context}'.format(context=str(context)))
-                sys.exc_clear()
-                success = False
+        else:
+            success = True
+            try:
+                self._OnStartLoading()
+                self._Cleanup()
+                self.context = context
+                self.loadingThread = uthread.newJoinable(self.context.LoadScene, self.sceneContainer)
+                uthread.waitForJoinable(self.loadingThread, timeout=None)
+                self.UpdateViewPort()
+                self.loadingThread = None
+            except Exception:
+                if not self.destroyed:
+                    log.LogException('Exception raised while loading preview for {context}'.format(context=str(context)))
+                    sys.exc_clear()
+                    success = False
 
-        self._OnStopLoading(success)
-        return success
+            self._OnStopLoading(success)
+            return success
 
     def Reload(self):
         if self.context:
@@ -575,7 +592,9 @@ class PreviewContainer(Container):
             log.LogException('Exception raised during preview container cleanup', severity=log.INFO)
             sys.exc_clear()
 
-    def AnimEntry(self, yaw0 = 0.0, pitch0 = 0.0, yaw1 = -0.5, pitch1 = -0.5, duration = 2.0):
+        return
+
+    def AnimEntry(self, yaw0=0.0, pitch0=0.0, yaw1=-0.5, pitch1=-0.5, duration=2.0):
         self.sceneContainer.AnimEntry(yaw0, pitch0, yaw1, pitch1, duration)
 
     def UpdateViewPort(self):
@@ -602,7 +621,7 @@ class SceneContext(object):
 
 class AmmoSceneContext(SceneContext):
 
-    def __init__(self, typeID, scenePath = None):
+    def __init__(self, typeID, scenePath=None):
         if evetypes.GetGroupID(typeID) not in invconst.turretAmmoGroups:
             raise InvalidPreviewType('%s (%s) is not a previewable ammo type' % (evetypes.GetName(typeID), typeID))
         self.typeID = typeID
@@ -642,13 +661,14 @@ class AmmoSceneContext(SceneContext):
 class ApparelSceneContext(SceneContext):
     relevantSettings = [gfxsettings.GFX_CHAR_TEXTURE_QUALITY]
 
-    def __init__(self, typeID, gender = None, background = None):
+    def __init__(self, typeID, gender=None, background=None):
         if evetypes.GetCategoryID(typeID) != invconst.categoryApparel:
             raise InvalidPreviewType('%s (%s) is not an apparel item' % (evetypes.GetName(typeID), typeID))
         self.typeID = typeID
         self.gender = gender
         self.background = background
         self.mannequin = None
+        return
 
     def __eq__(self, other):
         return isinstance(other, ApparelSceneContext) and self.typeID == other.typeID and self.gender == other.gender and self.background == other.background
@@ -699,15 +719,17 @@ class ApparelSceneContext(SceneContext):
         floorShadow = trinity.Load(ccConst.CUSTOMIZATION_FLOOR)
         sceneContainer.scene.dynamics.append(floorShadow)
         SetupInteriourCamera(sceneContainer, aabb)
+        return
 
     def Cleanup(self):
         self.mannequin = None
+        return
 
 
 class CharacterSceneContext(SceneContext):
     relevantSettings = [gfxsettings.GFX_CHAR_TEXTURE_QUALITY, gfxsettings.UI_NCC_GREEN_SCREEN, gfxsettings.GFX_CHAR_FAST_CHARACTER_CREATION]
 
-    def __init__(self, charID, dna = None, apparel = None, background = None):
+    def __init__(self, charID, dna=None, apparel=None, background=None):
         dna = dna or sm.RemoteSvc('paperDollServer').GetPaperDollData(charID)
         if dna is None:
             raise UserError('CharacterHasNoDNA', {'charID': charID})
@@ -715,6 +737,7 @@ class CharacterSceneContext(SceneContext):
         self.dna = dna
         self.apparel = apparel or []
         self.background = background
+        return
 
     def __eq__(self, other):
         return isinstance(other, CharacterSceneContext) and self.charID == other.charID and self.dna == other.dna and self.apparel == other.apparel and self.background == other.background
@@ -754,6 +777,7 @@ class CharacterSceneContext(SceneContext):
             sceneContainer.scene.apexScene.CreatePlane((0, 0, 0), (0, 1, 0), 0)
         aabb = character.visualModel.GetBoundingBoxInLocalSpace()
         SetupInteriourCamera(sceneContainer, aabb)
+        return
 
     def Cleanup(self):
         sm.GetService('character').RemoveCharacter(self.charID)
@@ -761,7 +785,7 @@ class CharacterSceneContext(SceneContext):
 
 class SpaceEntitySceneContext(SceneContext):
 
-    def __init__(self, typeID, itemID = None, materialSetID = None, scenePath = None):
+    def __init__(self, typeID, itemID=None, materialSetID=None, scenePath=None):
         if scenePath is None:
             raceID = evetypes.GetRaceID(typeID)
             scenePath = gfxutils.GetPreviewScenePath(raceID)
@@ -769,6 +793,7 @@ class SpaceEntitySceneContext(SceneContext):
         self.itemID = itemID
         self.materialSetID = materialSetID
         self.scenePath = scenePath
+        return
 
     def __eq__(self, other):
         return isinstance(other, SpaceEntitySceneContext) and self.typeID == other.typeID and self.itemID == other.itemID and self.materialSetID == other.materialSetID and self.scenePath == other.scenePath
@@ -803,16 +828,18 @@ class SpaceEntitySceneContext(SceneContext):
         trinity.WaitForResourceLoads()
         sceneContainer.AddToScene(model)
         SetupSpaceCamera(sceneContainer, model)
+        return
 
 
 class SofDnaSceneContext(SceneContext):
 
-    def __init__(self, dna, dirt = None, scenePath = None):
+    def __init__(self, dna, dirt=None, scenePath=None):
         if scenePath is None:
             scenePath = gfxutils.GetResPathFromGraphicID(20413)
         self.dna = dna
         self.dirt = dirt
         self.scenePath = scenePath
+        return
 
     def __eq__(self, other):
         return isinstance(other, SofDnaSceneContext) and self.dna == other.dna and self.scenePath == other.scenePath and self.dirt == other.dirt
@@ -827,11 +854,12 @@ class SofDnaSceneContext(SceneContext):
             model.dirtLevel = self.dirt
         sceneContainer.AddToScene(model)
         SetupSpaceCamera(sceneContainer, model)
+        return
 
 
 class T3ShipSceneContext(SceneContext):
 
-    def __init__(self, typeID, subsystems = None, scenePath = None):
+    def __init__(self, typeID, subsystems=None, scenePath=None):
         if not IsModularShip(typeID):
             raise InvalidPreviewType('%s (%s) is not a tech 3 ship' % (evetypes.GetName(typeID), typeID))
         subsystems = subsystems or {}
@@ -843,6 +871,7 @@ class T3ShipSceneContext(SceneContext):
         self.typeID = typeID
         self.subsystems = subsystems
         self.scenePath = scenePath
+        return
 
     def __eq__(self, other):
         return isinstance(other, T3ShipSceneContext) and self.typeID == other.typeID and self.subsystems == other.subsystems and self.scenePath == other.scenePath
@@ -858,7 +887,7 @@ class T3ShipSceneContext(SceneContext):
 
 class TurretSceneContext(SceneContext):
 
-    def __init__(self, typeID, scenePath = None):
+    def __init__(self, typeID, scenePath=None):
         if evetypes.GetGroupID(typeID) not in invconst.turretModuleGroups:
             raise InvalidPreviewType('%s (%s) is not a turret module' % (evetypes.GetName(typeID), typeID))
         self.typeID = typeID
@@ -886,15 +915,17 @@ class TurretSceneContext(SceneContext):
 
         sceneContainer.AddToScene(model)
         SetupSpaceCamera(sceneContainer, model)
+        return
 
 
 def SetupSpaceCamera(sceneContainer, model):
     sceneContainer.verticalPanLimits = None
     alpha = sceneContainer.fieldOfView / 2.0
     radius = model.GetBoundingSphereRadius()
-    maxZoom = max(radius * (1 / math.tan(alpha)) * 2, 1.0)
+    maxZoom = min(sceneContainer.backClip - radius, max(radius * (1 / math.tan(alpha)) * 2, 1.0))
     minZoom = radius + sceneContainer.frontClip
     sceneContainer.SetMinMaxZoom(minZoom, maxZoom)
+    return
 
 
 def SetupInteriourCamera(sceneContainer, boundingBox):
@@ -910,6 +941,7 @@ def SetupInteriourCamera(sceneContainer, boundingBox):
     sceneContainer.SetMinMaxZoom(minZoom, maxZoom)
     sceneContainer.zoom = 0.6
     sceneContainer.camera.maxPitch = 0.0
+    return
 
 
 class CaptureDollMeshChanges(object):

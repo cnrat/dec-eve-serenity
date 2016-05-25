@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\client\script\spacecomponents\countercontroller.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\client\script\spacecomponents\countercontroller.py
 import uthread
 from eve.client.script.ui.control.countdownTimer import CountdownTimer, TIMER_RUNNING_OUT_NO_ANIMATION
 import localization
@@ -25,6 +26,7 @@ class BaseCounterController(object):
         self.timer = None
         self.endTime = None
         self.CreateTimerIfAppropriate(slimItem)
+        return
 
     def CreateTimerIfAppropriate(self, slimItem):
         instance = self.componentRegistry.GetComponentForItem(slimItem.itemID, self.__componentClass__)
@@ -44,6 +46,7 @@ class BaseCounterController(object):
             self.timer = None
             self.bracket.SetSubLabelCallback(None)
             self.PlayEndSound()
+        return
 
     def UpdateTimerState(self, instance, slimItem):
         raise NotImplementedError('You need to implement the specific component logic')
@@ -52,18 +55,22 @@ class BaseCounterController(object):
         if self.timer is None:
             self.bracket.displaySubLabel = None
             return
-        timeLeft = long(max(0, self.endTime - self.__timerFunc__()))
-        return u'{label}: {time}'.format(label=localization.GetByLabel(self.__counterLabel__), time=localization.formatters.FormatTimeIntervalShortWritten(timeLeft, showFrom='day', showTo='second'))
+        else:
+            timeLeft = long(max(0, self.endTime - self.__timerFunc__()))
+            return u'{label}: {time}'.format(label=localization.GetByLabel(self.__counterLabel__), time=localization.formatters.FormatTimeIntervalShortWritten(timeLeft, showFrom='day', showTo='second'))
 
     def GetHorizontalLabelPixelOffset(self):
         if self.timer is None:
             return 0
-        return 6
+        else:
+            return 6
 
     def PlayEndSound(self):
         if self.__soundFinishedEvent__ is not None:
             sm.GetService('audio').SendUIEvent(self.__soundFinishedEvent__)
+        return
 
     def PlayInitialSound(self):
         if self.__soundInitialEvent__ is not None:
             sm.GetService('audio').SendUIEvent(self.__soundInitialEvent__)
+        return

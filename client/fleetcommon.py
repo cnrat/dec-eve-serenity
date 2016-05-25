@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\common\modules\nice\client\_nastyspace\fleetcommon.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\common\modules\nice\client\_nastyspace\fleetcommon.py
 from eve.common.script.util.fleetcommon import ALL_BROADCASTS
 from eve.common.script.util.fleetcommon import BROADCAST_ALL
 from eve.common.script.util.fleetcommon import BROADCAST_BUBBLE

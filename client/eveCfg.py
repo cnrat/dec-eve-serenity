@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\common\modules\nice\client\_nastyspace\eveCfg.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\common\modules\nice\client\_nastyspace\eveCfg.py
 from eve.common.script.sys.eveCfg import Constellation
 from eve.common.script.sys.eveCfg import InvCategory
 from eve.common.script.sys.eveCfg import InvGroup

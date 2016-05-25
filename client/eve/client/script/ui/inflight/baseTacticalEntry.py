@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\client\script\ui\inflight\baseTacticalEntry.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\client\script\ui\inflight\baseTacticalEntry.py
 import evetypes
 import uicontrols
 import uiprimitives
@@ -23,7 +24,7 @@ class BaseTacticalEntry(listentry.Generic):
     @telemetry.ZONE_METHOD
     def Load(self, node):
         data = node
-        selected, = sm.GetService('state').GetStates(data.itemID, [state.selected])
+        selected = sm.GetService('state').GetStates(data.itemID, [state.selected])
         node.selected = selected
         listentry.Generic.Load(self, node)
         self.sr.label.left = 20 + 16 * data.sublevel
@@ -34,29 +35,30 @@ class BaseTacticalEntry(listentry.Generic):
         if self.destroyed:
             self.sr.dmgTimer = None
             return
-        if not util.InBubble(self.GetShipID()):
+        elif not util.InBubble(self.GetShipID()):
             self.HideDamageDisplay()
             return False
-        d = self.sr.node
-        if not getattr(d, 'slimItem', None):
-            categoryID = evetypes.GetCategoryID(d.typeID)
         else:
-            slimItem = d.slimItem()
-            if not slimItem:
-                self.HideDamageDisplay()
-                return False
-            categoryID = slimItem.categoryID
-        shipID = self.GetShipID()
-        ret = False
-        if shipID and categoryID in (const.categoryShip, const.categoryDrone):
-            dmg = self.GetDamage(shipID)
-            if dmg is not None:
-                ret = self.SetDamageState(dmg)
-                if self.sr.dmgTimer is None:
-                    self.sr.dmgTimer = base.AutoTimer(1000, self.UpdateDamage)
+            d = self.sr.node
+            if not getattr(d, 'slimItem', None):
+                categoryID = evetypes.GetCategoryID(d.typeID)
             else:
-                self.HideDamageDisplay()
-        return ret
+                slimItem = d.slimItem()
+                if not slimItem:
+                    self.HideDamageDisplay()
+                    return False
+                categoryID = slimItem.categoryID
+            shipID = self.GetShipID()
+            ret = False
+            if shipID and categoryID in (const.categoryShip, const.categoryDrone):
+                dmg = self.GetDamage(shipID)
+                if dmg is not None:
+                    ret = self.SetDamageState(dmg)
+                    if self.sr.dmgTimer is None:
+                        self.sr.dmgTimer = base.AutoTimer(1000, self.UpdateDamage)
+                else:
+                    self.HideDamageDisplay()
+            return ret
 
     def ShowDamageDisplay(self):
         self.InitGauges()
@@ -70,10 +72,11 @@ class BaseTacticalEntry(listentry.Generic):
         if bp is None:
             self.sr.dmgTimer = None
             return
-        ret = bp.GetDamageState(itemID)
-        if ret is None:
-            self.sr.dmgTimer = None
-        return ret
+        else:
+            ret = bp.GetDamageState(itemID)
+            if ret is None:
+                self.sr.dmgTimer = None
+            return ret
 
     def GetHeight(self, *args):
         node, width = args
@@ -86,6 +89,8 @@ class BaseTacticalEntry(listentry.Generic):
     def GetShipID(self):
         if self.sr.node:
             return self.sr.node.itemID
+        else:
+            return None
 
     def OnMouseEnter(self, *args):
         listentry.Generic.OnMouseEnter(self, *args)
@@ -100,18 +105,20 @@ class BaseTacticalEntry(listentry.Generic):
     def OnStateChange(self, itemID, flag, isActive, *args):
         if util.GetAttrs(self, 'sr', 'node') is None:
             return
-        if self.sr.node.itemID != itemID:
+        elif self.sr.node.itemID != itemID:
             return
-        if flag == state.mouseOver:
-            if isActive:
-                self.ShowHilite()
-            else:
-                self.HideHilite()
-        elif flag == state.selected:
-            if isActive:
-                self.Select()
-            else:
-                self.Deselect()
+        else:
+            if flag == state.mouseOver:
+                if isActive:
+                    self.ShowHilite()
+                else:
+                    self.HideHilite()
+            elif flag == state.selected:
+                if isActive:
+                    self.Select()
+                else:
+                    self.Deselect()
+            return
 
     def Select(self, *args):
         listentry.Generic.Select(self, *args)

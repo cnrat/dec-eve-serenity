@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\devtools\script\outstandingmonitor.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\devtools\script\outstandingmonitor.py
 import blue
 import carbonui.const as uiconst
 from carbonui.control.scrollentries import ScrollEntryNode, SE_GenericCore

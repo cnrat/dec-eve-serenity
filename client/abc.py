@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\carbon\common\stdlib\abc.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\carbon\common\stdlib\abc.py
 import types
 from _weakrefset import WeakSet
 
@@ -46,7 +47,7 @@ class ABCMeta(type):
         cls._abc_registry.add(subclass)
         ABCMeta._abc_invalidation_counter += 1
 
-    def _dump_registry(cls, file = None):
+    def _dump_registry(cls, file=None):
         print >> file, 'Class: %s.%s' % (cls.__module__, cls.__name__)
         print >> file, 'Inv.counter: %s' % ABCMeta._abc_invalidation_counter
         for name in sorted(cls.__dict__.keys()):
@@ -65,7 +66,8 @@ class ABCMeta(type):
             if cls._abc_negative_cache_version == ABCMeta._abc_invalidation_counter and subtype in cls._abc_negative_cache:
                 return False
             return cls.__subclasscheck__(subtype)
-        return cls.__subclasscheck__(subclass) or cls.__subclasscheck__(subtype)
+        else:
+            return cls.__subclasscheck__(subclass) or cls.__subclasscheck__(subtype)
 
     def __subclasscheck__(cls, subclass):
         if subclass in cls._abc_cache:

@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\carbon\common\stdlib\yaml\serializer.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\carbon\common\stdlib\yaml\serializer.py
 __all__ = ['Serializer', 'SerializerError']
 from error import YAMLError
 from events import *
@@ -11,7 +12,7 @@ class SerializerError(YAMLError):
 class Serializer(object):
     ANCHOR_TEMPLATE = u'id%03d'
 
-    def __init__(self, encoding = None, explicit_start = None, explicit_end = None, version = None, tags = None):
+    def __init__(self, encoding=None, explicit_start=None, explicit_end=None, version=None, tags=None):
         self.use_encoding = encoding
         self.use_explicit_start = explicit_start
         self.use_explicit_end = explicit_end
@@ -21,6 +22,7 @@ class Serializer(object):
         self.anchors = {}
         self.last_anchor_id = 0
         self.closed = None
+        return
 
     def open(self):
         if self.closed is None:
@@ -30,6 +32,7 @@ class Serializer(object):
             raise SerializerError('serializer is closed')
         else:
             raise SerializerError('serializer is already opened')
+        return
 
     def close(self):
         if self.closed is None:
@@ -37,6 +40,7 @@ class Serializer(object):
         elif not self.closed:
             self.emit(StreamEndEvent())
             self.closed = True
+        return
 
     def serialize(self, node):
         if self.closed is None:
@@ -50,6 +54,7 @@ class Serializer(object):
         self.serialized_nodes = {}
         self.anchors = {}
         self.last_anchor_id = 0
+        return
 
     def anchor_node(self, node):
         if node in self.anchors:
@@ -65,6 +70,8 @@ class Serializer(object):
                 for key, value in node.value:
                     self.anchor_node(key)
                     self.anchor_node(value)
+
+        return
 
     def generate_anchor(self, node):
         self.last_anchor_id += 1
@@ -100,3 +107,4 @@ class Serializer(object):
 
                 self.emit(MappingEndEvent())
             self.ascend_resolver()
+        return

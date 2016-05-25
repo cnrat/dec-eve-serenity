@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\carbon\common\lib\markdown\extensions\def_list.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\carbon\common\lib\markdown\extensions\def_list.py
 import re
 import markdown
 from markdown.util import etree
@@ -48,6 +49,7 @@ class DefListProcessor(markdown.blockprocessors.BlockProcessor):
         self.parser.state.reset()
         if theRest:
             blocks.insert(0, theRest)
+        return
 
 
 class DefListIndentProcessor(markdown.blockprocessors.ListIndentProcessor):
@@ -66,5 +68,5 @@ class DefListExtension(markdown.Extension):
         md.parser.blockprocessors.add('deflist', DefListProcessor(md.parser), '>ulist')
 
 
-def makeExtension(configs = {}):
+def makeExtension(configs={}):
     return DefListExtension(configs=configs)

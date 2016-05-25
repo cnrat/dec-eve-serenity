@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\carbon\common\lib\werkzeug\debug\repr.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\carbon\common\lib\werkzeug\debug\repr.py
 import sys
 import re
 from traceback import format_exception_only
@@ -17,7 +18,7 @@ def debug_repr(obj):
     return DebugReprGenerator().repr(obj)
 
 
-def dump(obj = missing):
+def dump(obj=missing):
     gen = DebugReprGenerator()
     if obj is missing:
         rv = gen.dump_locals(sys._getframe(1).f_locals)
@@ -28,7 +29,7 @@ def dump(obj = missing):
 
 class _Helper(object):
 
-    def __call__(self, topic = None):
+    def __call__(self, topic=None):
         title = text = None
         if topic is not None:
             import pydoc
@@ -43,6 +44,7 @@ class _Helper(object):
                 text = paragraphs[0]
         rv = render_template('help_command.html', title=title, text=text)
         sys.stdout._write(rv)
+        return
 
 
 helper = _Helper()
@@ -66,7 +68,7 @@ class DebugReprGenerator(object):
     def __init__(self):
         self._stack = []
 
-    def _sequence_repr_maker(left, right, base = object(), limit = 8):
+    def _sequence_repr_maker(left, right, base=object(), limit=8):
 
         def proxy(self, obj, recursive):
             if recursive:
@@ -104,7 +106,7 @@ class DebugReprGenerator(object):
             pattern = 'r' + pattern
         return u're.compile(<span class="string regex">%s</span>)' % pattern
 
-    def string_repr(self, obj, limit = 70):
+    def string_repr(self, obj, limit=70):
         buf = ['<span class="string">']
         escaped = escape(obj)
         a = repr(escaped[:limit])
@@ -123,7 +125,7 @@ class DebugReprGenerator(object):
         buf.append('</span>')
         return _add_subclass_info(u''.join(buf), obj, (str, unicode))
 
-    def dict_repr(self, d, recursive, limit = 5):
+    def dict_repr(self, d, recursive, limit=5):
         if recursive:
             return _add_subclass_info(u'{...}', d, dict)
         buf = ['{']
@@ -147,28 +149,29 @@ class DebugReprGenerator(object):
     def dispatch_repr(self, obj, recursive):
         if obj is helper:
             return helper.get_help(None)
-        if isinstance(obj, (int,
+        elif isinstance(obj, (int,
          long,
          float,
          complex)):
             return u'<span class="number">%r</span>' % obj
-        if isinstance(obj, basestring):
+        elif isinstance(obj, basestring):
             return self.string_repr(obj)
-        if isinstance(obj, RegexType):
+        elif isinstance(obj, RegexType):
             return self.regex_repr(obj)
-        if isinstance(obj, list):
+        elif isinstance(obj, list):
             return self.list_repr(obj, recursive)
-        if isinstance(obj, tuple):
+        elif isinstance(obj, tuple):
             return self.tuple_repr(obj, recursive)
-        if isinstance(obj, set):
+        elif isinstance(obj, set):
             return self.set_repr(obj, recursive)
-        if isinstance(obj, frozenset):
+        elif isinstance(obj, frozenset):
             return self.frozenset_repr(obj, recursive)
-        if isinstance(obj, dict):
+        elif isinstance(obj, dict):
             return self.dict_repr(obj, recursive)
-        if deque is not None and isinstance(obj, deque):
+        elif deque is not None and isinstance(obj, deque):
             return self.deque_repr(obj, recursive)
-        return self.object_repr(obj)
+        else:
+            return self.object_repr(obj)
 
     def fallback_repr(self):
         try:
@@ -187,9 +190,11 @@ class DebugReprGenerator(object):
 
         self._stack.append(obj)
         try:
-            return self.dispatch_repr(obj, recursive)
-        except:
-            return self.fallback_repr()
+            try:
+                return self.dispatch_repr(obj, recursive)
+            except:
+                return self.fallback_repr()
+
         finally:
             self._stack.pop()
 

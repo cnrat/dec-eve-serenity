@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\client\script\ui\shared\fittingGhost\fittingSlotControllerGhost.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\client\script\ui\shared\fittingGhost\fittingSlotControllerGhost.py
 from eve.client.script.ui.shared.fitting.fittingSlotController import ShipFittingSlotController
 
 class ShipFittingSlotControllerGhost(ShipFittingSlotController):
@@ -6,7 +7,8 @@ class ShipFittingSlotControllerGhost(ShipFittingSlotController):
     def GetModule(self):
         if self.IsModulePreviewModule():
             return None
-        return self.dogmaModuleItem
+        else:
+            return self.dogmaModuleItem
 
     def IsModulePreviewModule(self):
         if not self.dogmaModuleItem:

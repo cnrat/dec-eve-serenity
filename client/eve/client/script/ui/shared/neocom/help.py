@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\client\script\ui\shared\neocom\help.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\client\script\ui\shared\neocom\help.py
 import blue
 from eve.client.script.ui.control.eveWindowUnderlay import BumpedUnderlay
 from eve.client.script.ui.control.themeColored import LineThemeColored
@@ -32,7 +33,7 @@ class _TutorialVideoItem(SE_BaseClassCore):
 
     def Startup(self, *etc):
         _textCont = ContainerAutoSize(parent=self, align=uiconst.TOALL, padLeft=20, padTop=4, clipChildren=True)
-        self.label = EveLabelMediumBold(text='', parent=_textCont, align=uiconst.TOTOP, state=uiconst.UI_NORMAL, padRight=40)
+        self.label = EveLabelMediumBold(text='', parent=_textCont, align=uiconst.TOTOP, padRight=40)
         self.text = EveLabelMedium(text='', parent=_textCont, align=uiconst.TOTOP, padRight=40)
         self.infoicon = ButtonIcon(left=2, parent=self, idx=0, iconSize=32, align=uiconst.CENTERRIGHT)
         self.infoicon.SetTexturePath('res:/ui/texture/icons/bigplay.png')
@@ -46,7 +47,6 @@ class _TutorialVideoItem(SE_BaseClassCore):
         self.label.text = self.node.title
         self.infoicon.node = node
         self.text.text = node.description
-        self.label.OnClick = play
         self.infoicon.func = play
 
     def _Click(self):
@@ -152,6 +152,7 @@ class HelpWindow(uicontrols.Window):
     def ProcessSessionChange(self, isremote, session, change):
         if session.charid is None:
             self.Close()
+        return
 
     def LoadTabPanel(self, args, panel, tabgroup):
         if args:
@@ -166,58 +167,65 @@ class HelpWindow(uicontrols.Window):
     def LoadTutorials(self, panel, *args):
         if self.tutorialsLoaded:
             return
-        scroll = uicontrols.Scroll(parent=panel, left=const.defaultPadding, top=const.defaultPadding, width=const.defaultPadding, height=const.defaultPadding)
-        scroll.multiSelect = 0
-        scroll.OnSelectionChange = self.OnScrollSelectionChange
-        scroll.Confirm = self.OpenSelectedTutorial
-        byCategs = sm.GetService('tutorial').GetTutorialsByCategory()
-        categsNames = []
-        for categoryID in byCategs.keys():
-            if categoryID is not None:
-                categoryInfo = sm.GetService('tutorial').GetCategory(categoryID)
-                categoryName = localization.GetByMessageID(categoryInfo.categoryNameID)
-                categoryDesc = localization.GetByMessageID(categoryInfo.descriptionID)
-                categsNames.append((categoryName, (categoryID, categoryDesc)))
-            else:
-                categsNames.append(('-- No category Set! --', (categoryID, '')))
+        else:
+            scroll = uicontrols.Scroll(parent=panel, left=const.defaultPadding, top=const.defaultPadding, width=const.defaultPadding, height=const.defaultPadding)
+            scroll.multiSelect = 0
+            scroll.OnSelectionChange = self.OnScrollSelectionChange
+            scroll.Confirm = self.OpenSelectedTutorial
+            byCategs = sm.GetService('tutorial').GetTutorialsByCategory()
+            categsNames = []
+            for categoryID in byCategs.keys():
+                if categoryID is not None:
+                    categoryInfo = sm.GetService('tutorial').GetCategory(categoryID)
+                    categoryName = localization.GetByMessageID(categoryInfo.categoryNameID)
+                    categoryDesc = localization.GetByMessageID(categoryInfo.descriptionID)
+                    categsNames.append((categoryName, (categoryID, categoryDesc)))
+                else:
+                    categsNames.append(('-- No category Set! --', (categoryID, '')))
 
-        categsNames.sort()
-        scrolllist = []
-        for label, (categoryID, hint) in categsNames:
-            if categoryID is None and not eve.session.role & (service.ROLE_GML | service.ROLE_WORLDMOD):
-                continue
-            data = {'GetSubContent': self.GetTutorialGroup,
-             'label': label,
-             'id': ('tutorial', categoryID),
-             'groupItems': byCategs[categoryID],
-             'showicon': 'hide',
-             'BlockOpenWindow': 1,
-             'state': 'locked',
-             'showlen': 0,
-             'hint': hint}
-            scrolllist.append(GetListEntry('Group', data))
+            categsNames.sort()
+            scrolllist = []
+            for label, (categoryID, hint) in categsNames:
+                if categoryID is None and not eve.session.role & (service.ROLE_GML | service.ROLE_WORLDMOD):
+                    continue
+                data = {'GetSubContent': self.GetTutorialGroup,
+                 'label': label,
+                 'id': ('tutorial', categoryID),
+                 'groupItems': byCategs[categoryID],
+                 'showicon': 'hide',
+                 'BlockOpenWindow': 1,
+                 'state': 'locked',
+                 'showlen': 0,
+                 'hint': hint}
+                scrolllist.append(GetListEntry('Group', data))
 
-        scroll.Load(contentList=scrolllist)
-        buttonList = [[localization.GetByLabel('UI/Help/OpenTutorial'), self.OpenSelectedTutorial, ()], [localization.GetByLabel('UI/Help/ShowCareerAgents'), self.ShowTutorialAgents, ('tutorials',)]]
-        if session.role & service.ROLE_CONTENT:
-            buttonList.append(['Clear Cache', self.CloseTutorialService, ()])
-        btns = uicontrols.ButtonGroup(btns=buttonList, line=1, unisize=0)
-        panel.children.insert(0, btns)
-        tutorialBtn = btns.sr.Get(localization.GetByLabel('UI/Help/ShowCareerAgents') + 'Btn')
-        if tutorialBtn:
-            tutorialBtn.hint = localization.GetByLabel('UI/Help/CareerAgentExplanation')
-        self.sr.tutorialBtns = btns
-        self.sr.tutorialScroll = scroll
-        self.tutorialsLoaded = True
+            scroll.Load(contentList=scrolllist)
+            buttonList = [[localization.GetByLabel('UI/Help/OpenTutorial'), self.OpenSelectedTutorial, ()], [localization.GetByLabel('UI/Help/ShowCareerAgents'), self.ShowTutorialAgents, ('tutorials',)]]
+            if session.role & service.ROLE_CONTENT:
+                buttonList.append(['Clear Cache', self.CloseTutorialService, ()])
+            btns = uicontrols.ButtonGroup(btns=buttonList, line=1, unisize=0)
+            panel.children.insert(0, btns)
+            tutorialBtn = btns.sr.Get(localization.GetByLabel('UI/Help/ShowCareerAgents') + 'Btn')
+            if tutorialBtn:
+                tutorialBtn.hint = localization.GetByLabel('UI/Help/CareerAgentExplanation')
+            self.sr.tutorialBtns = btns
+            self.sr.tutorialScroll = scroll
+            self.tutorialsLoaded = True
+            return
 
     def LoadTutorialVideos(self, panel, *args):
         if self.tutorialVideosLoaded:
             return
 
+        def LoadIcon(icon, *args):
+            icon.LoadIcon('res:/ui/texture/icons/bigplay_64.png')
+
         def GetSubContent(group):
             scrolllist = []
             for each in TUTORIAL_VIDEOS_INDEX.get_videos_in_group(group.index):
-                scrolllist.append(listentry.Get(data=each, decoClass=_TutorialVideoItem))
+                node = dict(each)
+                node['LoadIcon'] = LoadIcon
+                scrolllist.append(listentry.Get(data=node, decoClass=_TutorialVideoItem))
 
             return scrolllist
 
@@ -269,7 +277,7 @@ class HelpWindow(uicontrols.Window):
         sm.StopService('tutorial')
         self.CloseByUser()
 
-    def GetTutorialGroup(self, nodedata, newitems = 0):
+    def GetTutorialGroup(self, nodedata, newitems=0):
         if not len(nodedata.groupItems):
             return []
         scrolllist = []
@@ -295,7 +303,7 @@ class HelpWindow(uicontrols.Window):
             else:
                 openBtn.state = uiconst.UI_HIDDEN
 
-    def ShowTutorialAgents(self, fromWhere = '', *args):
+    def ShowTutorialAgents(self, fromWhere='', *args):
         if util.IsWormholeSystem(eve.session.solarsystemid) or eve.session.solarsystemid == const.solarSystemPolaris:
             raise UserError('NoAgentsInWormholes')
         sm.StartService('tutorial').ShowCareerFunnel()
@@ -319,6 +327,7 @@ class HelpWindow(uicontrols.Window):
         else:
             info = localization.GetByLabel('UI/Help/MustSelectSomething')
             raise UserError('CustomInfo', {'info': info})
+        return
 
     def OpenTutorial(self, entry):
         tutorialData = entry.sr.node.tutorialData
@@ -443,6 +452,7 @@ class HelpWindow(uicontrols.Window):
     def _OnClose(self, *args):
         if getattr(self, 'sr', None) and self.sr.Get('form', None):
             self.sr.form.Close()
+        return
 
 
 class TutorialEntry(GenericListEntry):

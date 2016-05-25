@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\client\script\ui\shared\planet\planetCommon.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\client\script\ui\shared\planet\planetCommon.py
 import evetypes
 import util
 import trinity
@@ -133,9 +134,10 @@ def GetContrastColorForCurrPlanet():
         if planetTypeID in DARKPLANETS:
             return util.Color.WHITE
         return util.Color.BLACK
+        return None
 
 
-def GetPickIntersectionPoint(x = None, y = None):
+def GetPickIntersectionPoint(x=None, y=None):
     if None in (x, y):
         x, y = int(uicore.uilib.x * uicore.desktop.dpiScaling), int(uicore.uilib.y * uicore.desktop.dpiScaling)
     device = trinity.device
@@ -148,9 +150,10 @@ def GetPickIntersectionPoint(x = None, y = None):
     pInt = GetSphereLineIntersectionPoint(lineP0, lineVec, sphereP0, sphereRad)
     if not pInt:
         return
-    ret = SurfacePoint(pInt.x, pInt.y, pInt.z)
-    ret.SetRadius(1.0)
-    return ret
+    else:
+        ret = SurfacePoint(pInt.x, pInt.y, pInt.z)
+        ret.SetRadius(1.0)
+        return ret
 
 
 def GetSphereLineIntersectionPoint(lineP0, lineVec, sphereP0, sphereRad):
@@ -163,18 +166,19 @@ def GetSphereLineIntersectionPoint(lineP0, lineVec, sphereP0, sphereRad):
     elif d == 0:
         t = -b / (2 * a)
         return lineP0 + lineVec * t / lineVec.Length()
-    d = math.sqrt(d)
-    t1 = (-b + d) / (2 * a)
-    t2 = (-b - d) / (2 * a)
-    lineLength = lineVec.Length()
-    P1 = lineP0 + lineVec * t1 / lineLength
-    P2 = lineP0 + lineVec * t2 / lineLength
-    l1 = (lineP0 - P1).LengthSq()
-    l2 = (lineP0 - P2).LengthSq()
-    if l1 < l2:
-        return P1
     else:
+        d = math.sqrt(d)
+        t1 = (-b + d) / (2 * a)
+        t2 = (-b - d) / (2 * a)
+        lineLength = lineVec.Length()
+        P1 = lineP0 + lineVec * t1 / lineLength
+        P2 = lineP0 + lineVec * t2 / lineLength
+        l1 = (lineP0 - P1).LengthSq()
+        l2 = (lineP0 - P2).LengthSq()
+        if l1 < l2:
+            return P1
         return P2
+        return None
 
 
 def NormalizeLatitude(angle):
@@ -221,7 +225,7 @@ def ConvertToDMS(value):
     return (degrees, int(minPart * 60), int(round(secPart * 60)))
 
 
-def GetPinCycleInfo(pin, cycleTime = None):
+def GetPinCycleInfo(pin, cycleTime=None):
     if cycleTime is None:
         cycleTime = pin.GetCycleTime()
     if pin.IsActive() and not pin.IsInEditMode():

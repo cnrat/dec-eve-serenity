@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\carbon\common\stdlib\coverage\execfile.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\carbon\common\stdlib\coverage\execfile.py
 import imp, marshal, os, sys
 from coverage.backward import exec_code_object, open_source
 from coverage.misc import ExceptionDuringRun, NoCode, NoSource
@@ -16,25 +17,27 @@ def run_python_module(modulename, args):
     openfile = None
     glo, loc = globals(), locals()
     try:
-        if '.' in modulename:
-            packagename, name = rsplit1(modulename, '.')
-            package = __import__(packagename, glo, loc, ['__path__'])
-            searchpath = package.__path__
-        else:
-            packagename, name = None, modulename
-            searchpath = None
-        openfile, pathname, _ = imp.find_module(name, searchpath)
-        if openfile is None and pathname is None:
-            raise NoSource('module does not live in a file: %r' % modulename)
-        if openfile is None:
-            packagename = modulename
-            name = '__main__'
-            package = __import__(packagename, glo, loc, ['__path__'])
-            searchpath = package.__path__
+        try:
+            if '.' in modulename:
+                packagename, name = rsplit1(modulename, '.')
+                package = __import__(packagename, glo, loc, ['__path__'])
+                searchpath = package.__path__
+            else:
+                packagename, name = None, modulename
+                searchpath = None
             openfile, pathname, _ = imp.find_module(name, searchpath)
-    except ImportError:
-        _, err, _ = sys.exc_info()
-        raise NoSource(str(err))
+            if openfile is None and pathname is None:
+                raise NoSource('module does not live in a file: %r' % modulename)
+            if openfile is None:
+                packagename = modulename
+                name = '__main__'
+                package = __import__(packagename, glo, loc, ['__path__'])
+                searchpath = package.__path__
+                openfile, pathname, _ = imp.find_module(name, searchpath)
+        except ImportError:
+            _, err, _ = sys.exc_info()
+            raise NoSource(str(err))
+
     finally:
         if openfile:
             openfile.close()
@@ -42,9 +45,10 @@ def run_python_module(modulename, args):
     pathname = os.path.abspath(pathname)
     args[0] = pathname
     run_python_file(pathname, args, package=packagename)
+    return
 
 
-def run_python_file(filename, args, package = None):
+def run_python_file(filename, args, package=None):
     old_main_mod = sys.modules['__main__']
     main_mod = imp.new_module('__main__')
     sys.modules['__main__'] = main_mod

@@ -1,5 +1,6 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\packages\dogma\items\characterDogmaItem.py
-from shipFittableDogmaItem import ShipFittableDogmaItem
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\packages\dogma\items\characterDogmaItem.py
+from fittableDogmaItem import FittableDogmaItem
 from utillib import strx, KeyVal, IsDustCharacter
 import weakref
 import sys
@@ -9,12 +10,13 @@ import inventorycommon.const as invconst
 from eve.common.script.sys.idCheckers import IsStation
 from ccpProfile import TimedFunction
 
-class CharacterDogmaItem(ShipFittableDogmaItem):
+class CharacterDogmaItem(FittableDogmaItem):
 
     def __init__(self, dogmaLocation, item, eveCfg, clientIDFunc):
         super(CharacterDogmaItem, self).__init__(dogmaLocation, item, eveCfg, clientIDFunc)
         self.fittedItems = {}
         self._activeShipID = None
+        return
 
     @property
     def activeShipID(self):
@@ -25,7 +27,9 @@ class CharacterDogmaItem(ShipFittableDogmaItem):
         if activeShipID is None and self._activeShipID is not None:
             log.LogTraceback('Active shipID is being set to None post initialization!')
             return
-        self._activeShipID = activeShipID
+        else:
+            self._activeShipID = activeShipID
+            return
 
     def GetOwnedItemsToModify(self):
         modItems = []
@@ -38,7 +42,6 @@ class CharacterDogmaItem(ShipFittableDogmaItem):
     @TimedFunction('CharacterDogmaItem::Load')
     def Load(self, item, instanceRow):
         super(CharacterDogmaItem, self).Load(item, instanceRow)
-        self.ownerID = self.itemID
         attrs = self.attributes
         char = self.dogmaLocation.GetCharacter(item.itemID, flush=True)
         if IsDustCharacter(item.itemID):
@@ -69,15 +72,26 @@ class CharacterDogmaItem(ShipFittableDogmaItem):
 
     def RegisterFittedItem(self, dogmaItem, flagID):
         self.dogmaLocation.moduleListsByShipGroup[self.itemID][dogmaItem.groupID].add(dogmaItem.itemID)
+        self.dogmaLocation.moduleListsByShipType[self.itemID][dogmaItem.typeID].add(dogmaItem.itemID)
         self.fittedItems[dogmaItem.itemID] = weakref.proxy(dogmaItem)
 
     def UnregisterFittedItem(self, dogmaItem):
         groupID = dogmaItem.groupID
+        typeID = dogmaItem.typeID
         itemID = dogmaItem.itemID
         try:
             self.dogmaLocation.moduleListsByShipGroup[self.itemID][groupID].remove(itemID)
         except KeyError:
             self.dogmaLocation.LogError("UnregisterFittedItem::Tried to remove item from mlsg but group wasn't there", strx(dogmaItem))
+            sys.exc_clear()
+        except IndexError:
+            self.dogmaLocation.LogError("UnregisterFittedItem::Tried to remove item from mlsg but it wasn't there", strx(dogmaItem))
+            sys.exc_clear()
+
+        try:
+            self.dogmaLocation.moduleListsByShipType[self.itemID][typeID].remove(itemID)
+        except KeyError:
+            self.dogmaLocation.LogError("UnregisterFittedItem::Tried to remove item from mlsg but type wasn't there", strx(dogmaItem))
             sys.exc_clear()
         except IndexError:
             self.dogmaLocation.LogError("UnregisterFittedItem::Tried to remove item from mlsg but it wasn't there", strx(dogmaItem))
@@ -103,12 +117,16 @@ class CharacterDogmaItem(ShipFittableDogmaItem):
             del self.dogmaLocation.pilotsByShipID[shipID]
         if self.itemID in self.dogmaLocation.moduleListsByShipGroup:
             del self.dogmaLocation.moduleListsByShipGroup[self.itemID]
+        if self.itemID in self.dogmaLocation.moduleListsByShipType:
+            del self.dogmaLocation.moduleListsByShipType[self.itemID]
         if self.itemID in self.dogmaLocation.scarecrows:
             while self.dogmaLocation.scarecrows[self.itemID].queue > 0:
                 self.dogmaLocation.scarecrows[self.itemID].send(True)
 
+        return
+
     def OnItemLoaded(self):
-        self.dogmaLocation.InitBrain(self.itemID, (-1, [], []))
+        self.dogmaLocation.InitBrain(self.itemID)
         initShipID = self.dogmaLocation.GetActiveShipID(self.itemID)
         if initShipID:
             self.dogmaLocation.OnCharacterEmbarkation(self.itemID, initShipID)
@@ -125,9 +143,6 @@ class CharacterDogmaItem(ShipFittableDogmaItem):
 
     def GetFittedItems(self):
         return self.fittedItems
-
-    def GetEnvironmentInfo(self):
-        return KeyVal(itemID=self.itemID, shipID=self.GetShipID(), charID=self.itemID, otherID=None, targetID=None, effectID=None)
 
     def GetPersistables(self):
         ret = super(CharacterDogmaItem, self).GetPersistables()
@@ -150,6 +165,11 @@ class CharacterDogmaItem(ShipFittableDogmaItem):
         locationID = self.invItem.locationID
         if locationID > invconst.minPlayerItem:
             return self.dogmaLocation.shipsByPilotID[self.itemID]
+        else:
+            return None
+
+    def GetCharacterID(self):
+        return self.itemID
 
     def HandleLocationChange(self, oldShipID):
         newShipID = self.activeShipID
@@ -159,37 +179,39 @@ class CharacterDogmaItem(ShipFittableDogmaItem):
         if newShipID == oldShipID:
             self.dogmaLocation.LogInfo('%s: HandleLocationChange does not need to do anything for character %s who is already in location %s' % (self.dogmaLocation.locationID, self.itemID, oldShipID))
             return
-        if shipByPilotID and oldShipID != shipByPilotID and oldShipID is not None:
-            log.LogTraceback('%s: HandleLocationChange expected to find character %s in ship %s but found him in ship %s' % (self.dogmaLocation.locationID,
+        else:
+            if shipByPilotID and oldShipID != shipByPilotID and oldShipID is not None:
+                log.LogTraceback('%s: HandleLocationChange expected to find character %s in ship %s but found him in ship %s' % (self.dogmaLocation.locationID,
+                 self.itemID,
+                 oldShipID,
+                 shipByPilotID))
+            self.dogmaLocation.LogInfo('%s: HandleLocationChange is changing location for character %s from %s to %s' % (self.dogmaLocation.locationID,
              self.itemID,
              oldShipID,
-             shipByPilotID))
-        self.dogmaLocation.LogInfo('%s: HandleLocationChange is changing location for character %s from %s to %s' % (self.dogmaLocation.locationID,
-         self.itemID,
-         oldShipID,
-         newShipID))
-        oldShipItem = self.dogmaLocation.dogmaItems.get(oldShipID, None)
-        try:
-            if oldShipItem:
-                oldShipItem.HandlePilotChange(None)
-                self._UnregisterAsOwnerForShipItems(oldShipItem)
-            if oldShipID in self.dogmaLocation.pilotsByShipID:
-                del self.dogmaLocation.pilotsByShipID[oldShipID]
-            self.dogmaLocation.shipsByPilotID[self.itemID] = newShipID
-            self.dogmaLocation.pilotsByShipID[newShipID] = self.itemID
-            super(CharacterDogmaItem, self).HandleLocationChange(newShipID)
-            newShipItem = self.dogmaLocation.dogmaItems.get(newShipID, None)
-            if newShipItem:
-                newShipItem.RegisterPilot(self)
-                newShipItem.HandlePilotChange(self.itemID)
-                newShipItem.ownerID = self.itemID
-                self._RegisterAsOwnerForShipItems(newShipItem)
-        except Exception as e:
-            self.dogmaLocation.shipsByPilotID[self.itemID] = oldShipID
-            self.dogmaLocation.pilotsByShipID[oldShipID] = self.itemID
-            if newShipID in self.dogmaLocation.pilotsByShipID:
-                del self.dogmaLocation.pilotsByShipID[newShipID]
-            raise e
+             newShipID))
+            oldShipItem = self.dogmaLocation.dogmaItems.get(oldShipID, None)
+            try:
+                if oldShipItem:
+                    oldShipItem.HandlePilotChange(None)
+                    self._UnregisterAsOwnerForShipItems(oldShipItem)
+                if self.dogmaLocation.pilotsByShipID.get(oldShipID) == self.itemID:
+                    del self.dogmaLocation.pilotsByShipID[oldShipID]
+                self.dogmaLocation.shipsByPilotID[self.itemID] = newShipID
+                self.dogmaLocation.pilotsByShipID[newShipID] = self.itemID
+                super(CharacterDogmaItem, self).HandleLocationChange(newShipID)
+                newShipItem = self.dogmaLocation.dogmaItems.get(newShipID, None)
+                if newShipItem:
+                    newShipItem.RegisterPilot(self)
+                    newShipItem.HandlePilotChange(self.itemID)
+                    self._RegisterAsOwnerForShipItems(newShipItem)
+            except Exception as e:
+                self.dogmaLocation.shipsByPilotID[self.itemID] = oldShipID
+                self.dogmaLocation.pilotsByShipID[oldShipID] = self.itemID
+                if newShipID in self.dogmaLocation.pilotsByShipID:
+                    del self.dogmaLocation.pilotsByShipID[newShipID]
+                raise e
+
+            return
 
     def _UnregisterAsOwnerForShipItems(self, oldShipItem):
         for item in oldShipItem.subItems:
@@ -198,6 +220,8 @@ class CharacterDogmaItem(ShipFittableDogmaItem):
                 self.ownedItems.remove(item)
             except KeyError:
                 self.dogmaLocation.LogError("item should have been registered as owned but wasn't", self.itemID, item.itemID, oldShipItem.itemID)
+
+        return
 
     def _RegisterAsOwnerForShipItems(self, newShipItem):
         for item in newShipItem.subItems:

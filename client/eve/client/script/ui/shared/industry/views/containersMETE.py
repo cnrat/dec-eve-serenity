@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\client\script\ui\shared\industry\views\containersMETE.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\client\script\ui\shared\industry\views\containersMETE.py
 import carbonui.const as uiconst
 from carbonui.primitives.container import Container
 from carbonui.primitives.sprite import Sprite
@@ -33,22 +34,24 @@ class BaseContainerMETE(Container):
             self.icon = None
             self.valueLabel = None
             return
-        mainCont = Container(name='mainCont', parent=self)
-        if showBG:
-            self.bg = StretchSpriteHorizontal(bgParent=mainCont, texturePath='res:/UI/Texture/Classes/Industry/Center/bgMETE.png')
-            FillThemeColored(bgParent=self, opacity=0.5)
         else:
-            self.bg = None
-        left = 8 if showBG else 2
-        self.icon = Sprite(name='icon', parent=mainCont, align=uiconst.TOPLEFT, state=uiconst.UI_DISABLED, pos=(left,
-         3,
-         self.ICONSIZE,
-         self.ICONSIZE), texturePath=self.ICONPATH, opacity=0.6)
-        self.valueLabel = EveLabelMediumBold(parent=mainCont, align=uiconst.TOPRIGHT, top=4, left=left)
-        self.removeIcon = Sprite(parent=mainCont, align=uiconst.CENTERRIGHT, state=uiconst.UI_HIDDEN, texturePath='res:/ui/texture/icons/73_16_45.png', pos=(0, 0, 12, 12), color=Color.RED, hint=localization.GetByLabel('UI/Industry/PreviewModeHint'))
-        self.removeIcon.OnClick = self.OnRemoveIconClick
-        self.previewEdit = SinglelineEdit(name='previewEdit', parent=mainCont, align=uiconst.CENTERRIGHT, state=uiconst.UI_HIDDEN, ints=(0, self.MAXVAL), OnChange=self.OnPreviewEdit, pos=(12, 0, 34, 20))
-        self.errorFrame = ErrorFrame(bgParent=self, padding=(1, 1, 1, 8))
+            mainCont = Container(name='mainCont', parent=self)
+            if showBG:
+                self.bg = StretchSpriteHorizontal(bgParent=mainCont, texturePath='res:/UI/Texture/Classes/Industry/Center/bgMETE.png')
+                FillThemeColored(bgParent=self, opacity=0.5)
+            else:
+                self.bg = None
+            left = 8 if showBG else 2
+            self.icon = Sprite(name='icon', parent=mainCont, align=uiconst.TOPLEFT, state=uiconst.UI_DISABLED, pos=(left,
+             3,
+             self.ICONSIZE,
+             self.ICONSIZE), texturePath=self.ICONPATH, opacity=0.6)
+            self.valueLabel = EveLabelMediumBold(parent=mainCont, align=uiconst.TOPRIGHT, top=4, left=left)
+            self.removeIcon = Sprite(parent=mainCont, align=uiconst.CENTERRIGHT, state=uiconst.UI_HIDDEN, texturePath='res:/ui/texture/icons/73_16_45.png', pos=(0, 0, 12, 12), color=Color.RED, hint=localization.GetByLabel('UI/Industry/PreviewModeHint'))
+            self.removeIcon.OnClick = self.OnRemoveIconClick
+            self.previewEdit = SinglelineEdit(name='previewEdit', parent=mainCont, align=uiconst.CENTERRIGHT, state=uiconst.UI_HIDDEN, ints=(0, self.MAXVAL), OnChange=self.OnPreviewEdit, pos=(12, 0, 34, 20))
+            self.errorFrame = ErrorFrame(bgParent=self, padding=(1, 1, 1, 8))
+            return
 
     def SetValue(self, value):
         if self.value * (value or 1) < 0.0:
@@ -96,6 +99,7 @@ class BaseContainerMETE(Container):
             self.jobData.timeEfficiency = None
             self.jobData.materialEfficiency = None
             self.jobData.update(self.jobData)
+        return
 
     def OnClick(self, *args):
         self.EnterPreviewMode()
@@ -123,7 +127,6 @@ class BaseContainerMETE(Container):
     def GetHint(self):
         if self.IsPreviewEnabled() and not self.IsPreviewActive():
             return '<br><br>' + localization.GetByLabel('UI/Industry/EnterPreviewModeHint')
-        return ''
 
 
 class ContainerTE(BaseContainerMETE):

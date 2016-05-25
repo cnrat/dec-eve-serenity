@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\carbon\common\script\sys\serviceManager.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\carbon\common\script\sys\serviceManager.py
 import time
 import __builtin__
 import bluepy
@@ -29,7 +30,7 @@ def ObjectShouldReceiveMessages(obj):
 class ServiceManager(logUtil.LogMixin):
     __guid__ = 'service.ServiceManager'
 
-    def __init__(self, startInline = []):
+    def __init__(self, startInline=[]):
         logUtil.LogMixin.__init__(self, 'svc.ServiceManager')
         self.state = service.SERVICE_START_PENDING
         self.services = {}
@@ -54,7 +55,7 @@ class ServiceManager(logUtil.LogMixin):
         for name, svcclass in self.classmap.values():
             self.classmapWithReplacements[name] = (name, getattr(svc, self.GetServiceImplementation(name)))
 
-    def Run(self, servicesToRun, servicesToBlock = []):
+    def Run(self, servicesToRun, servicesToBlock=[]):
         self.run = 1
         if self.state not in (service.SERVICE_START_PENDING, service.SERVICE_RUNNING):
             if self.state == service.SERVICE_STOPPED:
@@ -147,14 +148,16 @@ class ServiceManager(logUtil.LogMixin):
                 elif v.state not in (service.SERVICE_STOPPED, service.SERVICE_STOP_PENDING):
                     self.logChannel.Log("ServiceManager.Stop(), stopping service '" + str(k) + "'")
                     try:
-                        v.state = service.SERVICE_STOP_PENDING
-                        for notify in v.__notifyevents__:
-                            self.notify[notify].remove(v)
+                        try:
+                            v.state = service.SERVICE_STOP_PENDING
+                            for notify in v.__notifyevents__:
+                                self.notify[notify].remove(v)
 
-                        v.Stop(blue.MemStream())
-                    except StandardError:
-                        log.LogException()
-                        sys.exc_clear()
+                            v.Stop(blue.MemStream())
+                        except StandardError:
+                            log.LogException()
+                            sys.exc_clear()
+
                     finally:
                         v.state = service.SERVICE_STOPPED
 
@@ -200,7 +203,7 @@ class ServiceManager(logUtil.LogMixin):
 
         self.LogWarn('Reloading services - Done')
 
-    def StartServiceAndWaitForRunningState(self, serviceName, ms = None, reason = None):
+    def StartServiceAndWaitForRunningState(self, serviceName, ms=None, reason=None):
         srv = self.StartService(serviceName, ms=None, reason=reason)
         desiredStates = (service.SERVICE_RUNNING,)
         errorStates = (service.SERVICE_FAILED, service.SERVICE_STOPPED)
@@ -208,7 +211,7 @@ class ServiceManager(logUtil.LogMixin):
         return srv
 
     @telemetry.ZONE_METHOD
-    def WaitForServiceObjectState(self, svc, desiredStates, errorStates = (service.SERVICE_FAILED,)):
+    def WaitForServiceObjectState(self, svc, desiredStates, errorStates=(service.SERVICE_FAILED,)):
         i = 0
         sleepTimeMs = 1
         while svc.state not in desiredStates:
@@ -226,106 +229,114 @@ class ServiceManager(logUtil.LogMixin):
                 svc.LogWarn('WaitForServiceObjectState has been sleeping for a long time waiting for ', svc.__logname__, ' to either get to state ', desiredStates, 'current state is', svc.state)
             i += 1
 
+        return
+
     def GetServiceIfStarted(self, serviceName):
         if serviceName in self.services:
             srv = self.services[serviceName]
             self.WaitForServiceObjectState(srv, (service.SERVICE_RUNNING,))
             return srv
+        else:
+            return None
 
     def GetServiceIfRunning(self, serviceName):
         if self.IsServiceRunning(serviceName):
             srv = self.services[serviceName]
             return srv
+        else:
+            return None
 
-    def GetService(self, serviceName, ms = None):
+    def GetService(self, serviceName, ms=None):
         srv = self.services.get(serviceName, None)
         if srv and srv.state == service.SERVICE_RUNNING:
             return srv
-        if serviceName in self.services:
-            if self.services[serviceName].state in (service.SERVICE_START_PENDING, service.SERVICE_STARTING_DEPENDENCIES):
-                log.LogTraceback('Possible service deadlock detected!', toAlertSvc=False, severity=log.LGWARN)
-        return self.StartServiceAndWaitForRunningState(serviceName, ms, reason='GetService')
+        else:
+            if serviceName in self.services:
+                if self.services[serviceName].state in (service.SERVICE_START_PENDING, service.SERVICE_STARTING_DEPENDENCIES):
+                    log.LogTraceback('Possible service deadlock detected!', toAlertSvc=False, severity=log.LGWARN)
+            return self.StartServiceAndWaitForRunningState(serviceName, ms, reason='GetService')
 
     @telemetry.ZONE_METHOD
-    def StartService(self, serviceName, ms = None, reason = 'StartService'):
+    def StartService(self, serviceName, ms=None, reason='StartService'):
         telemetry.APPEND_TO_ZONE(serviceName)
         srv = self.services.get(serviceName, None)
         if srv and srv.state == service.SERVICE_RUNNING:
             return srv
-        if serviceName in self.services:
-            srv = self.services[serviceName]
         else:
-            if serviceName in self.blockedServices:
-                raise RuntimeError('%s has been blocked from running on this system' % serviceName)
-            srv = self.CreateServiceInstance(serviceName)
-            self.services[serviceName] = srv
-        if srv.state in (service.SERVICE_START_PENDING,):
+            if serviceName in self.services:
+                srv = self.services[serviceName]
+            else:
+                if serviceName in self.blockedServices:
+                    raise RuntimeError('%s has been blocked from running on this system' % serviceName)
+                srv = self.CreateServiceInstance(serviceName)
+                self.services[serviceName] = srv
+            if srv.state in (service.SERVICE_START_PENDING,):
+                return srv
+            if srv.state == service.SERVICE_STARTING_DEPENDENCIES:
+                desiredStates = (service.SERVICE_START_PENDING, service.SERVICE_RUNNING)
+                errorStates = (service.SERVICE_FAILED, service.SERVICE_STOPPED)
+                self.WaitForServiceObjectState(srv, desiredStates, errorStates)
+                return srv
+            if self.state in (service.SERVICE_STOP_PENDING, service.SERVICE_STOPPED):
+                raise RuntimeError, "Can't start service " + serviceName + ' when service manager is shutting down'
+            if srv.state == service.SERVICE_FAILED:
+                return srv
+            try:
+                r = reason
+                if reason in ('GetService', 'StartService'):
+                    up = 4
+                    if reason == 'StartService':
+                        up = 2
+                    r = '%s - called from %s' % (reason, log.WhoCalledMe(up))
+                self.LogInfo('Starting', serviceName, '. Reason:', r)
+            except:
+                pass
+
+            srv.state = service.SERVICE_STARTING_DEPENDENCIES
+            srv.__error__ = None
+            try:
+                self.dependants[serviceName] = []
+                if srv.__startupdependencies__:
+                    self.LogInfo('starting startup dependencies for %s, which are: %s' % (serviceName, str(srv.__startupdependencies__)))
+                    for each in srv.__startupdependencies__:
+                        if each == srv.__guid__.split('.')[1]:
+                            self.LogError('Found a service with a dependancy on it self:', each, '. The service reference will not be assigned, things will probaly blow up')
+                            continue
+                        if type(each) is str:
+                            each = (each, each)
+                        depname, asname = each
+                        if not self.IsServiceRunning(depname):
+                            self.LogInfo(serviceName, 'is waiting while', depname, 'is started')
+                        depService = self.StartServiceAndWaitForRunningState(depname, reason='startup dependency for %s' % serviceName)
+                        self.dependants[depname].append(serviceName)
+                        if getattr(boot, 'replaceDependencyServiceWrappers', 'false').lower() != 'true' or not depService.IsRunning():
+                            setattr(srv, asname, srv.session.ConnectToService(depname))
+                        else:
+                            setattr(srv, asname, depService)
+
+                srv.state = service.SERVICE_START_PENDING
+                if srv.__dependencies__:
+                    uthread.new(self._LoadServiceDependenciesAsych, srv, serviceName).context = serviceName + ' _LoadServiceDependenciesAsych'
+                for notify in srv.__notifyevents__:
+                    if not hasattr(srv, notify):
+                        raise RuntimeError('MissingSvcExportAttribute', serviceName, 'notify', notify)
+                    if not self.notify.has_key(notify):
+                        self.notify[notify] = []
+                    self.notify[notify].append(srv)
+
+            except Exception as e:
+                srv.state = service.SERVICE_FAILED
+                srv.__error__ = sys.exc_info()
+                raise
+
+            if ms:
+                ms.Seek(0)
+            args = (ms,)
+            if serviceName in self.startInline:
+                self.StartServiceRun(srv, args, serviceName)
+            else:
+                uthread.pool(serviceName + ' StartServiceRun', self.StartServiceRun, srv, args, serviceName)
             return srv
-        if srv.state == service.SERVICE_STARTING_DEPENDENCIES:
-            desiredStates = (service.SERVICE_START_PENDING, service.SERVICE_RUNNING)
-            errorStates = (service.SERVICE_FAILED, service.SERVICE_STOPPED)
-            self.WaitForServiceObjectState(srv, desiredStates, errorStates)
-            return srv
-        if self.state in (service.SERVICE_STOP_PENDING, service.SERVICE_STOPPED):
-            raise RuntimeError, "Can't start service " + serviceName + ' when service manager is shutting down'
-        if srv.state == service.SERVICE_FAILED:
-            return srv
-        try:
-            r = reason
-            if reason in ('GetService', 'StartService'):
-                up = 4
-                if reason == 'StartService':
-                    up = 2
-                r = '%s - called from %s' % (reason, log.WhoCalledMe(up))
-            self.LogInfo('Starting', serviceName, '. Reason:', r)
-        except:
-            pass
-
-        srv.state = service.SERVICE_STARTING_DEPENDENCIES
-        srv.__error__ = None
-        try:
-            self.dependants[serviceName] = []
-            if srv.__startupdependencies__:
-                self.LogInfo('starting startup dependencies for %s, which are: %s' % (serviceName, str(srv.__startupdependencies__)))
-                for each in srv.__startupdependencies__:
-                    if each == srv.__guid__.split('.')[1]:
-                        self.LogError('Found a service with a dependancy on it self:', each, '. The service reference will not be assigned, things will probaly blow up')
-                        continue
-                    if type(each) is str:
-                        each = (each, each)
-                    depname, asname = each
-                    if not self.IsServiceRunning(depname):
-                        self.LogInfo(serviceName, 'is waiting while', depname, 'is started')
-                    depService = self.StartServiceAndWaitForRunningState(depname, reason='startup dependency for %s' % serviceName)
-                    self.dependants[depname].append(serviceName)
-                    if getattr(boot, 'replaceDependencyServiceWrappers', 'false').lower() != 'true' or not depService.IsRunning():
-                        setattr(srv, asname, srv.session.ConnectToService(depname))
-                    else:
-                        setattr(srv, asname, depService)
-
-            srv.state = service.SERVICE_START_PENDING
-            if srv.__dependencies__:
-                uthread.new(self._LoadServiceDependenciesAsych, srv, serviceName).context = serviceName + ' _LoadServiceDependenciesAsych'
-            for notify in srv.__notifyevents__:
-                if not hasattr(srv, notify):
-                    raise RuntimeError('MissingSvcExportAttribute', serviceName, 'notify', notify)
-                if not self.notify.has_key(notify):
-                    self.notify[notify] = []
-                self.notify[notify].append(srv)
-
-        except Exception as e:
-            srv.state = service.SERVICE_FAILED
-            srv.__error__ = sys.exc_info()
-            raise
-
-        if ms:
-            ms.Seek(0)
-        args = (ms,)
-        if serviceName in self.startInline:
-            self.StartServiceRun(srv, args, serviceName)
-        else:
-            uthread.pool(serviceName + ' StartServiceRun', self.StartServiceRun, srv, args, serviceName)
-        return srv
 
     def _LoadServiceDependenciesAsych(self, srv, serviceName):
         self.LogInfo('starting dependencies for %s, which are: %s' % (serviceName, str(srv.__dependencies__)))
@@ -382,6 +393,8 @@ class ServiceManager(logUtil.LogMixin):
             return srv
         finally:
             stackless.getcurrent().block_trap = old_block_trap
+
+        return
 
     def VerifyServiceExports(self, srv, serviceName):
         for funcName, paramList in srv.__exportedcalls__.iteritems():
@@ -455,7 +468,7 @@ class ServiceManager(logUtil.LogMixin):
             svc.LogWarn('Service', namen, 'startup took %-3.3f' % t, ' seconds')
         print 'Service %s: %-3.3fs' % (namen, t)
 
-    def StopService(self, serviceName, halt = 1, ms = None):
+    def StopService(self, serviceName, halt=1, ms=None):
         self.LogInfo('Stopping %s' % serviceName)
         if not self.services.has_key(serviceName):
             return
@@ -482,7 +495,7 @@ class ServiceManager(logUtil.LogMixin):
             srv.state = service.SERVICE_STOPPED
             del self.services[serviceName]
 
-    def GetDependecyGraph(self, startupDependencies = False):
+    def GetDependecyGraph(self, startupDependencies=False):
         depGraph = DAG()
         import svc
         depAttr = '__dependencies__'
@@ -541,7 +554,7 @@ class ServiceManager(logUtil.LogMixin):
     def SendEvent(self, eventid, *args, **keywords):
         return self.SendEventWithoutTheStars(eventid, args, keywords)
 
-    def SendEventWithoutTheStars(self, eventid, args, keywords = None):
+    def SendEventWithoutTheStars(self, eventid, args, keywords=None):
         if keywords is None:
             keywords = {}
         if not eventid.startswith('Do'):
@@ -605,7 +618,7 @@ class ServiceManager(logUtil.LogMixin):
     def ChainEvent(self, eventid, *args, **keywords):
         return self.ChainEventWithoutTheStars(eventid, args, keywords)
 
-    def ChainEventWithoutTheStars(self, eventid, args, keywords = None):
+    def ChainEventWithoutTheStars(self, eventid, args, keywords=None):
         if keywords is None:
             keywords = {}
         if not eventid.startswith('Process'):
@@ -663,7 +676,7 @@ class ServiceManager(logUtil.LogMixin):
     def ScatterEvent(self, eventid, *args, **keywords):
         return self.ScatterEventWithoutTheStars(eventid, args, keywords)
 
-    def ScatterEventWithoutTheStars(self, eventid, args, keywords = None):
+    def ScatterEventWithoutTheStars(self, eventid, args, keywords=None):
         if keywords is None:
             keywords = {}
         if not eventid.startswith('On'):
@@ -709,10 +722,12 @@ class ServiceManager(logUtil.LogMixin):
             if toRemove in self.notifyObs[eventid]:
                 self.notifyObs[eventid].remove(toRemove)
 
+        return
+
     def NotifySessionChange(self, eventid, *args, **keywords):
         return self.NotifySessionChangeWithoutTheStars(eventid, args, keywords)
 
-    def NotifySessionChangeWithoutTheStars(self, eventid, args, keywords = None):
+    def NotifySessionChangeWithoutTheStars(self, eventid, args, keywords=None):
         if keywords is None:
             keywords = {}
         if eventid not in ('DoSessionChanging', 'ProcessSessionChange', 'OnSessionChanged'):

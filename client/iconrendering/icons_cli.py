@@ -1,12 +1,15 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\packages\iconrendering\icons_cli.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\packages\iconrendering\icons_cli.py
 import logging
 import argparse
 import os
 import sys
 import shutil
 import string
+import yaml
 import _appsetup
 import devenv
+import devenv.respathutils as respathutils
 import fsdauthoringutils
 import osutils
 import stdlogutils
@@ -58,37 +61,51 @@ def Main():
     if opts.checkout:
         L.debug('P4 Checkout started.')
         p4 = ccpp4.P4Init()
-    before = GetFiles(iconFolder)
+    dest_dict = GetDestDirs(renderFolder)
+    before = set(map(string.lower, dest_dict.keys()))
     after = GetFiles(renderFolder)
     added = list(after.difference(before))
     deleted = list(before.difference(after))
     filesToCompare = list(after.intersection(before))
     changed = []
     for fileName in filesToCompare:
-        iconPath = os.path.join(iconFolder, fileName)
+        iconResPath = dest_dict[fileName]
         renderPath = os.path.join(renderFolder, fileName)
-        diffResult = imgdiff.ImgDiff(iconPath, renderPath, normal=False, alpha=False)
-        error = diffResult['Color']['MeanAbsoluteError']
-        if error > TOLERANCE:
+        iconPath = respathutils.ExpandResPath(iconResPath, respathutils.GetClientRes())
+        if os.path.exists(iconPath):
+            diffResult = imgdiff.ImgDiff(iconPath, renderPath, normal=False, alpha=False)
+            error = diffResult['Color']['MeanAbsoluteError']
+            if error > TOLERANCE:
+                changed.append(fileName)
+        else:
             changed.append(fileName)
 
     if opts.checkout:
         for fileName in added + changed:
-            iconPath = os.path.join(iconFolder, fileName)
+            iconResPath = dest_dict[fileName]
+            iconPath = respathutils.ExpandResPath(iconResPath, respathutils.GetClientRes())
+            oldIconPath = os.path.join(RENDER_PATH, fileName)
             renderPath = os.path.join(renderFolder, fileName)
             L.debug('P4 Edit or Add: %s', fileName)
+            p4.EditOrAdd(oldIconPath)
             p4.EditOrAdd(iconPath)
+            icon_dir = os.path.dirname(iconPath)
+            if not os.path.exists(icon_dir):
+                os.makedirs(icon_dir)
+            shutil.copy(renderPath, oldIconPath)
             shutil.copy(renderPath, iconPath)
 
         allfiles = added + changed
-        GetPath = lambda fileName: os.path.join(iconFolder, fileName)
+        GetPath = lambda fileName: respathutils.ExpandResPath(dest_dict[fileName], respathutils.GetClientRes())
+        GetOldPath = lambda fileName: os.path.join(RENDER_PATH, fileName)
         if not (opts.takeonly or opts.respath):
             for deletedFile in deleted:
                 L.debug('P4 Deleting: %s', deletedFile)
                 p4.run_delete(GetPath(deletedFile))
+                p4.run_delete(GetOldPath(deletedFile))
 
             allfiles = allfiles + deleted
-        osfiles = map(GetPath, allfiles)
+        osfiles = map(GetPath, allfiles) + map(GetOldPath, allfiles)
         depotFiles = map(lambda wh: wh['depotFile'], p4.run_where(osfiles))
         if len(depotFiles):
             c = p4.Change(description='Ingame Icon generation.', files=depotFiles, save=False)
@@ -96,10 +113,60 @@ def Main():
         L.debug('P4 Checkout done.')
     if opts.cleanup:
         osutils.SafeRmTree(renderFolder)
+    return
 
 
 def GetFiles(root):
     return set(map(string.lower, os.listdir(root)))
+
+
+GRAPHICID_DATA = os.path.join(devenv.EVEROOT, 'staticData\\graphicIDs\\graphicIDs.staticdata')
+CONTENTRES = respathutils.GetContentRes().lower()
+RES_ROOT = CONTENTRES
+DX9_ROOT = os.path.join(RES_ROOT, 'dx9')
+
+def GetDestDirs(render_path):
+    files = os.listdir(render_path)
+    icon_dict = {}
+    icon_dest_dict = {}
+    for icon_filename in files:
+        graphicID = icon_filename.split('_')[0]
+        if int(graphicID) in icon_dict:
+            icon_dict[int(graphicID)].append(icon_filename.lower())
+        else:
+            icon_dict[int(graphicID)] = [icon_filename.lower()]
+
+    graphicid_file = open(GRAPHICID_DATA, 'r')
+    graphicids = yaml.load(graphicid_file.read())
+    graphicid_file.close()
+    assetdirs = {}
+    for dirpath, dirnames, filenames in os.walk(DX9_ROOT):
+        for filename in filenames:
+            if 'sofhull_' in filename:
+                assetdirs[filename.lower()] = dirpath.replace(RES_ROOT, 'res:').replace('\\', '/').lower()
+
+    for currID in icon_dict.keys():
+        if 'sofHullName' in graphicids[currID]:
+            sof_hull_name = graphicids[currID].get('sofHullName', '')
+            if sof_hull_name:
+                if 'state' in sof_hull_name.lower():
+                    red_name = 'sofhull_' + '_'.join(sof_hull_name.lower().split('_')[:-2]) + '.red'
+                    destdir = os.path.join(assetdirs[red_name], 'icons')
+                else:
+                    asset_dir = assetdirs.get('sofhull_' + sof_hull_name.lower() + '.red')
+                    if not asset_dir:
+                        continue
+                    destdir = os.path.join(asset_dir, 'icons')
+        else:
+            graphic_file = graphicids[currID].get('graphicFile', '')
+            if graphic_file:
+                destdir = os.path.join(os.path.dirname(graphic_file).lower(), 'icons')
+            else:
+                continue
+        for icon_name in icon_dict[currID]:
+            icon_dest_dict[icon_name] = os.path.join(destdir, icon_name)
+
+    return icon_dest_dict
 
 
 if __name__ == '__main__':

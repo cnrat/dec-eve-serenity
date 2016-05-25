@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\client\script\ui\shared\mapView\solarSystemViewPanel.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\client\script\ui\shared\mapView\solarSystemViewPanel.py
 from carbonui.primitives.container import Container
 from eve.client.script.ui.control.buttons import ButtonIcon
 from eve.client.script.ui.control.checkbox import Checkbox
@@ -47,6 +48,7 @@ class SolarSystemViewPanel(DockablePanel):
         uthread.new(self.LoadSolarSystem)
         if uicore.cmd.IsUIHidden():
             self.OnHideUI()
+        return
 
     def OnShowUI(self):
         self.toolbarContainer.display = True
@@ -93,9 +95,8 @@ class SolarSystemViewPanel(DockablePanel):
         if not self.destroyed:
             uthread.new(self.LoadSolarSystem)
 
-    def OnSetCameraOffset(self, camera, cameraOffset):
+    def OnSetCameraOffset(self, cameraOffset):
         if self.IsFullscreen():
-            cameraOffset = sm.GetService('sceneManager').GetCameraOffset('default')
             x = -(cameraOffset * 0.5 - 0.5)
             self.mapView.camera.cameraCenter = (x, 0.5)
         else:
@@ -108,36 +109,40 @@ class SolarSystemViewPanel(DockablePanel):
     def LoadSolarSystem(self):
         if self.destroyed:
             return
-        self.mapView.LoadSolarSystemDetails(session.solarsystemid2)
-        lastloaded = settings.char.ui.Get('solarSystemView_loaded_%s' % self.mapViewID, None)
-        settings.char.ui.Set('solarSystemView_loaded_%s' % self.mapViewID, session.solarsystemid2)
-        resetCamera = lastloaded != session.solarsystemid2
-        if resetCamera:
-            self.mapView.FrameSolarSystem()
-        self.mapView.sceneContainer.display = True
-        self.SetCaption(cfg.evelocations.Get(session.solarsystemid2).name)
-        if self.showRangeIndicator:
-            self.mapView.currentSolarsystem.ShowRangeIndicator()
-        probeScanner = ProbeScannerWindow.GetIfOpen()
-        if probeScanner:
-            self.StartProbeHandler()
-        directionalScanner = DirectionalScanner.GetIfOpen()
-        if directionalScanner:
-            self.StartDirectionalScanHandler()
+        else:
+            self.mapView.LoadSolarSystemDetails(session.solarsystemid2)
+            lastloaded = settings.char.ui.Get('solarSystemView_loaded_%s' % self.mapViewID, None)
+            settings.char.ui.Set('solarSystemView_loaded_%s' % self.mapViewID, session.solarsystemid2)
+            resetCamera = lastloaded != session.solarsystemid2
+            if resetCamera:
+                self.mapView.FrameSolarSystem()
+            self.mapView.sceneContainer.display = True
+            self.SetCaption(cfg.evelocations.Get(session.solarsystemid2).name)
+            if self.showRangeIndicator:
+                self.mapView.currentSolarsystem.ShowRangeIndicator()
+            probeScanner = ProbeScannerWindow.GetIfOpen()
+            if probeScanner:
+                self.StartProbeHandler()
+            directionalScanner = DirectionalScanner.GetIfOpen()
+            if directionalScanner:
+                self.StartDirectionalScanHandler()
+            return
 
     def LoadDScanTooltipPanel(self, tooltipPanel, *args):
         if uicore.uilib.leftbtn:
             return
-        tooltipPanel.columns = 2
-        tooltipPanel.AddLabelSmall(text=localization.GetByLabel('UI/Inflight/Scanner/DirectionalScan'), bold=True, cellPadding=(8, 4, 4, 2), colSpan=tooltipPanel.columns)
-        divider = LineThemeColored(align=uiconst.TOTOP, state=uiconst.UI_DISABLED, height=1, padding=(1, 1, 1, 0), opacity=0.3)
-        tooltipPanel.AddCell(divider, cellPadding=(0, 0, 0, 2), colSpan=tooltipPanel.columns)
-        for optionName, optionID, checked in ((localization.GetByLabel('UI/Inflight/Scanner/ShowScanCone'), 'showScanCone', GetScanConeDisplayState() == True), (localization.GetByLabel('UI/Inflight/Scanner/AlignWithCamera'), 'cameraAligned', GetActiveScanMode() == SCANMODE_CAMERA)):
-            checkBox = Checkbox(align=uiconst.TOPLEFT, text=optionName, checked=checked, wrapLabel=False, callback=self.OnSettingButtonCheckBoxChange, retval=optionID, prefstype=None)
-            tooltipPanel.AddCell(cellObject=checkBox, colSpan=tooltipPanel.columns, cellPadding=(5, 0, 5, 0))
+        else:
+            tooltipPanel.columns = 2
+            tooltipPanel.AddLabelSmall(text=localization.GetByLabel('UI/Inflight/Scanner/DirectionalScan'), bold=True, cellPadding=(8, 4, 4, 2), colSpan=tooltipPanel.columns)
+            divider = LineThemeColored(align=uiconst.TOTOP, state=uiconst.UI_DISABLED, height=1, padding=(1, 1, 1, 0), opacity=0.3)
+            tooltipPanel.AddCell(divider, cellPadding=(0, 0, 0, 2), colSpan=tooltipPanel.columns)
+            for optionName, optionID, checked in ((localization.GetByLabel('UI/Inflight/Scanner/ShowScanCone'), 'showScanCone', GetScanConeDisplayState() == True), (localization.GetByLabel('UI/Inflight/Scanner/AlignWithCamera'), 'cameraAligned', GetActiveScanMode() == SCANMODE_CAMERA)):
+                checkBox = Checkbox(align=uiconst.TOPLEFT, text=optionName, checked=checked, wrapLabel=False, callback=self.OnSettingButtonCheckBoxChange, retval=optionID, prefstype=None)
+                tooltipPanel.AddCell(cellObject=checkBox, colSpan=tooltipPanel.columns, cellPadding=(5, 0, 5, 0))
 
-        tooltipPanel.AddSpacer(width=2, height=2, colSpan=tooltipPanel.columns)
-        tooltipPanel.state = uiconst.UI_NORMAL
+            tooltipPanel.AddSpacer(width=2, height=2, colSpan=tooltipPanel.columns)
+            tooltipPanel.state = uiconst.UI_NORMAL
+            return
 
     def OnSettingButtonCheckBoxChange(self, checkbox, *args, **kwds):
         optionID = checkbox.data['value']

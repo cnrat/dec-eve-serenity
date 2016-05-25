@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\packages\carbonui\services\device.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\packages\carbonui\services\device.py
 import service
 import sys
 import blue
@@ -28,7 +29,7 @@ class Const(object):
 
 class AttribDict(dict):
 
-    def __init__(self, other = {}):
+    def __init__(self, other={}):
         dict.__init__(self, other)
 
     def __getattr__(self, attr):
@@ -83,7 +84,7 @@ class DeviceMgr(service.Service):
      trinity.DEPTH_STENCIL_FORMAT.D16_LOCKABLE,
      trinity.DEPTH_STENCIL_FORMAT.D32F_LOCKABLE]
 
-    def Run(self, memStream = None):
+    def Run(self, memStream=None):
         self.LogInfo('Starting DeviceMgr')
         self.cachedAdapterIdentifiers = []
         for adapter in range(trinity.adapters.GetAdapterCount()):
@@ -114,8 +115,9 @@ class DeviceMgr(service.Service):
         self.LogInfo('valid adapters: %s' % self.adapters)
         self.desktopMode = trinity.adapters.GetCurrentDisplayMode(trinity.adapters.DEFAULT_ADAPTER)
         self.preFullScreenPosition = None
+        return
 
-    def Stop(self, memStream = None):
+    def Stop(self, memStream=None):
         self.LogInfo('Stopping DeviceMgr')
         service.Service.Stop(self)
 
@@ -136,7 +138,7 @@ class DeviceMgr(service.Service):
         keepSettings = deviceSettings.Windowed and not triapp.isMaximized
         uthread.new(self.SetDevice, deviceSettings, keepSettings=keepSettings, updateWindowPosition=False)
 
-    def ForceSize(self, width = 512, height = 512):
+    def ForceSize(self, width=512, height=512):
         deviceSettings = self.GetSettings()
         deviceSettings.BackBufferWidth = width
         deviceSettings.BackBufferHeight = height
@@ -196,12 +198,12 @@ class DeviceMgr(service.Service):
         for dir in self.GetAppMipLevelSkipExclusionDirectories():
             trinity.AddMipLevelSkipExclusionDirectory(dir)
 
-    def PrepareMain(self, muteExceptions = False):
+    def PrepareMain(self, muteExceptions=False):
         safe = self.GetSaveMode().__dict__
         personal = gfxsettings.Get(gfxsettings.GFX_DEVICE_SETTINGS, default=safe).copy()
         if 'PresentationInterval' in personal and personal['PresentationInterval'] & 16 == 0:
             self.LogInfo('Upgrading PresentationInterval setting')
-            if personal['PresentationInterval'] == -0x80000000:
+            if personal['PresentationInterval'] == -2147483648:
                 personal['PresentationInterval'] = trinity.PRESENT_INTERVAL.IMMEDIATE
             elif personal['PresentationInterval'] == 0:
                 personal['PresentationInterval'] = trinity.PRESENT_INTERVAL.ONE
@@ -215,7 +217,7 @@ class DeviceMgr(service.Service):
         set.hDeviceWindow = triapp.GetHwnd()
         return self.SetDevice(set, hideTitle=not set.Windowed, keepSettings=False, muteExceptions=muteExceptions)
 
-    def ResetMonitor(self, fallback = 1, *args):
+    def ResetMonitor(self, fallback=1, *args):
         set = self.GetSaveMode()
         self.SetDevice(set, fallback=fallback, hideTitle=not set.Windowed)
 
@@ -238,7 +240,7 @@ class DeviceMgr(service.Service):
 
         return result
 
-    def GetValidWindowedFormats(self, adapter = 0, displayFormat = None):
+    def GetValidWindowedFormats(self, adapter=0, displayFormat=None):
         if not displayFormat:
             displayFormat = self.desktopMode.format
         if displayFormat not in self.validFormats:
@@ -253,7 +255,7 @@ class DeviceMgr(service.Service):
 
         return result
 
-    def GetValidFullscreenModes(self, adapter = 0):
+    def GetValidFullscreenModes(self, adapter=0):
         result = []
         for format in self.validFormats:
             try:
@@ -284,7 +286,6 @@ class DeviceMgr(service.Service):
                 return -1
             if x.format > y.format:
                 return 1
-            return 0
 
         result.sort(Cmp)
         for i in xrange(len(result)):
@@ -297,36 +298,37 @@ class DeviceMgr(service.Service):
             raise RuntimeError('No valid fullscreen modes found')
         return result
 
-    def GetDefaultWindowedMode(self, adapter = None, dim = None):
+    def GetDefaultWindowedMode(self, adapter=None, dim=None):
         formats = self.GetValidWindowedFormats(adapter)
         self.LogInfo('Valid windowed formats:', formats)
         if not formats:
             return
-        if dim:
-            width, height = dim
         else:
-            width, height = self.desktopMode.width, self.desktopMode.height
-        if width > self.desktopMode.width or height > self.desktopMode.height:
-            return
-        displayFormat = self.desktopMode.format
-        chosen = None
-        for f in formats:
-            if f[0] == displayFormat:
-                chosen = f
-                break
+            if dim:
+                width, height = dim
+            else:
+                width, height = self.desktopMode.width, self.desktopMode.height
+            if width > self.desktopMode.width or height > self.desktopMode.height:
+                return
+            displayFormat = self.desktopMode.format
+            chosen = None
+            for f in formats:
+                if f[0] == displayFormat:
+                    chosen = f
+                    break
 
-        if not chosen:
-            chosen = formats[0]
-        bbFormat, dsFormat = chosen
-        self.LogInfo('Chosen format', bbFormat, dsFormat)
-        result = {'Windowed': 1,
-         'BackBufferFormat': bbFormat,
-         'AutoDepthStencilFormat': dsFormat,
-         'BackBufferWidth': width,
-         'BackBufferHeight': height}
-        return result
+            if not chosen:
+                chosen = formats[0]
+            bbFormat, dsFormat = chosen
+            self.LogInfo('Chosen format', bbFormat, dsFormat)
+            result = {'Windowed': 1,
+             'BackBufferFormat': bbFormat,
+             'AutoDepthStencilFormat': dsFormat,
+             'BackBufferWidth': width,
+             'BackBufferHeight': height}
+            return result
 
-    def GetDefaultFullscreenMode(self, adapter, dim = None):
+    def GetDefaultFullscreenMode(self, adapter, dim=None):
         modes = self.GetValidFullscreenModes(adapter)
         if dim:
             a = {}
@@ -380,7 +382,7 @@ class DeviceMgr(service.Service):
          'BackBufferHeight': height}
         return result
 
-    def GetFailsafeMode(self, adapter, windowed, dimensions = None):
+    def GetFailsafeMode(self, adapter, windowed, dimensions=None):
         desktopdim = (self.desktopMode.width, self.desktopMode.height)
         if not dimensions:
             dimensions = desktopdim
@@ -412,7 +414,7 @@ class DeviceMgr(service.Service):
         creation.PresentationParameters = presentation
         return creation
 
-    def IsWindowed(self, devSettings = None):
+    def IsWindowed(self, devSettings=None):
         if devSettings is None:
             devSettings = self.GetSettings()
         return devSettings.Windowed
@@ -430,7 +432,6 @@ class DeviceMgr(service.Service):
             if valid:
                 if pp.AutoDepthStencilFormat in self.GetValidDepthStencilFormats(adapter, pp.BackBufferFormat):
                     return 1
-        return 0
 
     def FixupPresentation(self, adapter, pp):
         if self.ValidatePresentation(adapter, pp):
@@ -481,6 +482,7 @@ class DeviceMgr(service.Service):
             if lastFullScreen is not None:
                 return lastFullScreen
             return (trinity.device.adapterWidth, trinity.device.adapterHeight)
+        return
 
     def ToggleWindowed(self, *args):
         self.LogInfo('ToggleWindowed')
@@ -508,7 +510,7 @@ class DeviceMgr(service.Service):
         if type(device.get('PresentationInterval')) == long:
             device.PresentationInterval = int(device.PresentationInterval)
 
-    def SetDevice(self, device, tryAgain = 1, fallback = 0, keepSettings = 1, hideTitle = None, userModified = False, muteExceptions = False, updateWindowPosition = True):
+    def SetDevice(self, device, tryAgain=1, fallback=0, keepSettings=1, hideTitle=None, userModified=False, muteExceptions=False, updateWindowPosition=True):
         if hideTitle is None:
             hideTitle = not device.Windowed
         self.LogInfo('SetDevice: tryAgain', tryAgain, 'fallback', fallback, 'keepSettings', keepSettings, 'hideTitle', hideTitle, 'deviceDict', device.__dict__)
@@ -519,104 +521,105 @@ class DeviceMgr(service.Service):
         dev = trinity.device
         if not change and tryAgain and dev.DoesD3DDeviceExist():
             return True
-        sm.ChainEvent('ProcessDeviceChange')
-        pr = []
-        for k, v in device.__dict__.items():
-            pr.append((k, v))
-
-        pr.sort()
-        msg = 'SetDevice: Found a difference\n'
-        for k, v in pr:
-            extra = ''
-            if k in change:
-                extra = '   >> this one changed, it was ' + str(change[k][0])
-            msg += '        ' + str(k) + ':    ' + str(v) + extra + '\n'
-
-        self.LogInfo(msg)
-        triapp = trinity.app
-        if tryAgain:
-            self.BackupSettings()
-        try:
-            triapp.hideTitle = hideTitle
-            triapp.AdjustWindowForChange(device.Windowed, settings.public.device.Get('FixedWindow', False))
-            msg = 'SetDevice - trying again\n'
-            msg += 'Before:\n'
-            msg += repr(device.__dict__) + '\n'
-            if device.Adapter not in self.adapters:
-                device.Adapter = self.adapters[0]
-            device.__dict__.update(self.FixupPresentation(device.Adapter, device.__dict__))
-            msg += 'After:\n'
-            msg += repr(device.__dict__) + '\n'
-            self.LogInfo(msg)
-            dev = trinity.device
-            dev.viewport.width = device.BackBufferWidth
-            dev.viewport.height = device.BackBufferHeight
-            while True:
-                try:
-                    triapp.ChangeDevice(device.Adapter, 0, 0, device.__dict__)
-                    break
-                except trinity.D3DERR_DEVICELOST:
-                    blue.pyos.synchro.SleepWallclock(1000)
-
-        except Exception as e:
-            import traceback
-            self.LogInfo(traceback.format_exc())
-            self.LogInfo(repr(device.__dict__))
-            if trinity.device.GetRenderingPlatformID() == 2:
-                if prefs.HasKey('trinityPreferredPlatform') and prefs.GetValue('trinityPreferredPlatform') == 'dx11':
-                    prefs.SetValue('trinityPreferredPlatform', 'dx9')
-                    log.Quit('Failed to create device under DX11 - setting preferred platform to DX9')
-                else:
-                    log.Quit('Failed to create device under DX11')
-            if tryAgain and self.settingsBackup:
-                sys.exc_clear()
-                self.LogInfo('SetDevice failed, trying again with backup settings')
-                return self.SetDevice(self.settingsBackup, 0, keepSettings=keepSettings)
-            if not fallback:
-                sys.exc_clear()
-                self.LogInfo('SetDevice with backup settings failed, falling back to savemode')
-                set = self.GetSaveMode()
-                return self.SetDevice(set, fallback=1, tryAgain=0, hideTitle=not set.Windowed, keepSettings=False)
-            if muteExceptions:
-                log.LogException()
-                sys.exc_clear()
-            self.LogInfo('SetDevice failed completely')
-            return False
-
-        if updateWindowPosition:
-            self.UpdateWindowPosition(device)
         else:
-            wr = triapp.GetWindowRect()
-            triapp.SetWindowPos(wr.left, wr.top)
-        sm.ScatterEvent('OnSetDevice')
-        if uicore.desktop:
-            uicore.desktop.UpdateSize()
-        if keepSettings:
-            set = self.GetSettings()
-            keep = set.__dict__
-            del keep['hDeviceWindow']
-            gfxsettings.Set(gfxsettings.GFX_DEVICE_SETTINGS, keep, pending=False)
-            self.settings.SaveSettings()
-            self.LogInfo('Keeping device settings:', repr(keep))
-            if self.IsWindowed(set):
-                val = (set.BackBufferWidth, set.BackBufferHeight)
-                gfxsettings.Set(gfxsettings.GFX_RESOLUTION_WINDOWED, val, pending=False)
-            else:
-                val = (set.BackBufferWidth, set.BackBufferHeight)
-                gfxsettings.Set(gfxsettings.GFX_RESOLUTION_FULLSCREEN, val, pending=False)
-                if userModified and self.resolutionBackup and self.resolutionBackup != val:
-                    self.AskForConfirmation()
-        sm.ScatterEvent('OnEndChangeDevice', change)
-        unsupportedModels = ['SM_1_1', 'SM_2_0_LO', 'SM_2_0_HI']
-        maxCardModel = trinity.GetMaxShaderModelSupported()
-        if maxCardModel in unsupportedModels:
-            message = localization.GetByLabel('/Carbon/UI/Service/Device/ShaderModelNotSupportedMessage')
-            title = localization.GetByLabel('/Carbon/UI/Service/Device/ShaderModelNotSupportedTitle')
-            blue.os.ShowErrorMessageBox(title, message)
-            bluepy.Terminate('Shader Model version check failed')
-        return True
+            sm.ChainEvent('ProcessDeviceChange')
+            pr = []
+            for k, v in device.__dict__.items():
+                pr.append((k, v))
 
-    def UpdateWindowPosition(self, set = None):
+            pr.sort()
+            msg = 'SetDevice: Found a difference\n'
+            for k, v in pr:
+                extra = ''
+                if k in change:
+                    extra = '   >> this one changed, it was ' + str(change[k][0])
+                msg += '        ' + str(k) + ':    ' + str(v) + extra + '\n'
+
+            self.LogInfo(msg)
+            triapp = trinity.app
+            if tryAgain:
+                self.BackupSettings()
+            try:
+                triapp.hideTitle = hideTitle
+                triapp.AdjustWindowForChange(device.Windowed, settings.public.device.Get('FixedWindow', False))
+                msg = 'SetDevice - trying again\n'
+                msg += 'Before:\n'
+                msg += repr(device.__dict__) + '\n'
+                if device.Adapter not in self.adapters:
+                    device.Adapter = self.adapters[0]
+                device.__dict__.update(self.FixupPresentation(device.Adapter, device.__dict__))
+                msg += 'After:\n'
+                msg += repr(device.__dict__) + '\n'
+                self.LogInfo(msg)
+                dev = trinity.device
+                dev.viewport.width = device.BackBufferWidth
+                dev.viewport.height = device.BackBufferHeight
+                while True:
+                    try:
+                        triapp.ChangeDevice(device.Adapter, 0, 0, device.__dict__)
+                        break
+                    except trinity.D3DERR_DEVICELOST:
+                        blue.pyos.synchro.SleepWallclock(1000)
+
+            except Exception as e:
+                import traceback
+                self.LogInfo(traceback.format_exc())
+                self.LogInfo(repr(device.__dict__))
+                if trinity.device.GetRenderingPlatformID() == 2:
+                    if prefs.HasKey('trinityPreferredPlatform') and prefs.GetValue('trinityPreferredPlatform') == 'dx11':
+                        prefs.SetValue('trinityPreferredPlatform', 'dx9')
+                        log.Quit('Failed to create device under DX11 - setting preferred platform to DX9')
+                    else:
+                        log.Quit('Failed to create device under DX11')
+                if tryAgain and self.settingsBackup:
+                    sys.exc_clear()
+                    self.LogInfo('SetDevice failed, trying again with backup settings')
+                    return self.SetDevice(self.settingsBackup, 0, keepSettings=keepSettings)
+                if not fallback:
+                    sys.exc_clear()
+                    self.LogInfo('SetDevice with backup settings failed, falling back to savemode')
+                    set = self.GetSaveMode()
+                    return self.SetDevice(set, fallback=1, tryAgain=0, hideTitle=not set.Windowed, keepSettings=False)
+                if muteExceptions:
+                    log.LogException()
+                    sys.exc_clear()
+                self.LogInfo('SetDevice failed completely')
+                return False
+
+            if updateWindowPosition:
+                self.UpdateWindowPosition(device)
+            else:
+                wr = triapp.GetWindowRect()
+                triapp.SetWindowPos(wr.left, wr.top)
+            sm.ScatterEvent('OnSetDevice')
+            if uicore.desktop:
+                uicore.desktop.UpdateSize()
+            if keepSettings:
+                set = self.GetSettings()
+                keep = set.__dict__
+                del keep['hDeviceWindow']
+                gfxsettings.Set(gfxsettings.GFX_DEVICE_SETTINGS, keep, pending=False)
+                self.settings.SaveSettings()
+                self.LogInfo('Keeping device settings:', repr(keep))
+                if self.IsWindowed(set):
+                    val = (set.BackBufferWidth, set.BackBufferHeight)
+                    gfxsettings.Set(gfxsettings.GFX_RESOLUTION_WINDOWED, val, pending=False)
+                else:
+                    val = (set.BackBufferWidth, set.BackBufferHeight)
+                    gfxsettings.Set(gfxsettings.GFX_RESOLUTION_FULLSCREEN, val, pending=False)
+                    if userModified and self.resolutionBackup and self.resolutionBackup != val:
+                        self.AskForConfirmation()
+            sm.ScatterEvent('OnEndChangeDevice', change)
+            unsupportedModels = ['SM_1_1', 'SM_2_0_LO', 'SM_2_0_HI']
+            maxCardModel = trinity.GetMaxShaderModelSupported()
+            if maxCardModel in unsupportedModels:
+                message = localization.GetByLabel('/Carbon/UI/Service/Device/ShaderModelNotSupportedMessage')
+                title = localization.GetByLabel('/Carbon/UI/Service/Device/ShaderModelNotSupportedTitle')
+                blue.os.ShowErrorMessageBox(title, message)
+                bluepy.Terminate('Shader Model version check failed')
+            return True
+
+    def UpdateWindowPosition(self, set=None):
         if set is None:
             set = self.GetSettings()
         triapp = trinity.app
@@ -631,6 +634,7 @@ class DeviceMgr(service.Service):
             x = max(0, min(x, currentAdapter.width - set.BackBufferWidth))
             y = max(0, min(y, currentAdapter.height - set.BackBufferHeight))
         triapp.SetWindowPos(x, y)
+        return
 
     def AskForConfirmation(self):
         loadingSvc = sm.GetService('loading')
@@ -644,7 +648,7 @@ class DeviceMgr(service.Service):
     def KeepChanges(self, *args):
         pass
 
-    def CheckDeviceDifference(self, set, getChange = 0):
+    def CheckDeviceDifference(self, set, getChange=0):
         current = self.GetSettings()
         change = {}
         for k, v in set.__dict__.items():
@@ -658,9 +662,8 @@ class DeviceMgr(service.Service):
 
         if getChange:
             return change
-        return 0
 
-    def ForceSetup(self, device, z = 0):
+    def ForceSetup(self, device, z=0):
         dev = trinity.device
         dev.viewport.width = device.BackBufferWidth
         dev.viewport.height = device.BackBufferHeight
@@ -680,7 +683,7 @@ class DeviceMgr(service.Service):
         set.SwapEffect = trinity.SWAP_EFFECT.DISCARD
         return set
 
-    def CurrentAdapter(self, set = None):
+    def CurrentAdapter(self, set=None):
         set = set or self.GetSettings()
         return trinity.adapters.GetCurrentDisplayMode(set.Adapter)
 
@@ -712,7 +715,7 @@ class DeviceMgr(service.Service):
         else:
             return [(windowModeLabel, 1), (fullscreenModeLabel, 0)]
 
-    def GetBackbufferFormats(self, set = None):
+    def GetBackbufferFormats(self, set=None):
         set = set or self.GetSettings()
         options = []
         for formatVal in self.validFormats:
@@ -740,7 +743,7 @@ class DeviceMgr(service.Service):
         elif not set.FullScreen_RefreshRateInHz:
             set.FullScreen_RefreshRateInHz = currentAdapter.refreshRateDenominator
 
-    def GetAdapterResolutionsAndRefreshRates(self, set = None):
+    def GetAdapterResolutionsAndRefreshRates(self, set=None):
         currentAdapter = self.CurrentAdapter()
         set = set or self.GetSettings()
         if self.IsWindowed(set):
@@ -776,7 +779,7 @@ class DeviceMgr(service.Service):
             resoptions = [ (localization.GetByLabel('/Carbon/UI/Common/HertzShort', hertz=rr), rr) for rr in refresh[set.BackBufferWidth, set.BackBufferHeight] ]
         return (options, resoptions)
 
-    def GetStencilFormats(self, set = None):
+    def GetStencilFormats(self, set=None):
         set = set or self.GetSettings()
         options = []
         for bbFormat in self.depthStencilFormats:
@@ -786,7 +789,7 @@ class DeviceMgr(service.Service):
 
         return options
 
-    def GetPresentationIntervalOptions(self, set = None):
+    def GetPresentationIntervalOptions(self, set=None):
         set = set or self.GetSettings()
         options = []
         presentintvals = dict()
@@ -801,7 +804,7 @@ class DeviceMgr(service.Service):
 
         return options
 
-    def SupportsSM3(self, adapter = 0):
+    def SupportsSM3(self, adapter=0):
         return trinity.adapters.GetShaderVersion(adapter) >= 3.0
 
     def SetResourceCacheSize(self):
@@ -845,7 +848,7 @@ class DeviceMgr(service.Service):
         pass
 
     def GetAppShaderModel(self):
-        return 'SM_3_0_HI'
+        pass
 
     def GetAppSettings(self):
         return {}

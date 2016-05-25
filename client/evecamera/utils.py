@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\packages\evecamera\utils.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\packages\evecamera\utils.py
 import blue
 import evecamera
 import evecamera.animation as camanim
@@ -14,11 +15,12 @@ def GetARZoomMultiplier(aspectRatio):
 
 class LookAt_Pan(camanim.BaseCameraAnimation):
 
-    def __init__(self, setZ, duration = 0.5, cache = False):
+    def __init__(self, setZ, duration=0.5, cache=False):
         camanim.BaseCameraAnimation.__init__(self, camanim.PAN_ANIMATION, duration)
         self.isDone = True
         self.setZ = None if setZ < 0 else setZ
         self.cache = cache
+        return
 
     def Start(self, camera, simTime, clockTime):
         camanim.BaseCameraAnimation.Start(self, camera, simTime, clockTime)
@@ -28,6 +30,7 @@ class LookAt_Pan(camanim.BaseCameraAnimation):
             self.isDone = False
         else:
             self.endTrZ = self.setZ
+        return
 
     def End(self, camera):
         camera = camera
@@ -79,14 +82,16 @@ class LookAt_Translation(camanim.BaseCameraAnimation):
             self.startPos = (startPos.x, startPos.y, startPos.z)
         else:
             self.startPos = cameraParent.translation
+        return
 
     def _getEndPos(self):
         if hasattr(self.tracker.parent, 'modelWorldPosition'):
             return self.tracker.parent.modelWorldPosition
-        if getattr(self.tracker.parent, 'translationCurve', None) is not None:
+        elif getattr(self.tracker.parent, 'translationCurve', None) is not None:
             endPos = self.tracker.parent.translationCurve.GetVectorAt(blue.os.GetSimTime())
             return (endPos.x, endPos.y, endPos.z)
-        return self.tracker.parent.translation
+        else:
+            return self.tracker.parent.translation
 
     def _Tick(self, progress, camera):
         cameraParent = camera.GetCameraParent()
@@ -95,6 +100,7 @@ class LookAt_Translation(camanim.BaseCameraAnimation):
             self.starting = False
         endPos = self._getEndPos()
         cameraParent.translation = geo2.Vec3Lerp(self.startPos, endPos, progress)
+        return
 
     def End(self, camera):
         camera.GetCameraParent().translationCurve = self.tracker
@@ -113,13 +119,14 @@ class SetTranslationCurve(camanim.BaseCameraAnimation):
 
 class PanCamera(camanim.BaseCameraAnimation):
 
-    def __init__(self, cambeg = None, camend = None, duration = 0.5, cache = False, source = None):
+    def __init__(self, cambeg=None, camend=None, duration=0.5, cache=False, source=None):
         camanim.BaseCameraAnimation.__init__(self, camanim.PAN_ANIMATION, duration)
         self.source = source
         self.cambeg = cambeg
         self.camend = camend
         self.isDone = cambeg is None or camend is None
         self.cache = cache
+        return
 
     def _Tick(self, progress, camera):
         transl = mathUtil.Lerp(self.cambeg, self.camend, progress)
@@ -131,11 +138,12 @@ class PanCamera(camanim.BaseCameraAnimation):
             camera.translationFromParent = camera.CheckTranslationFromParent(self.camend)
         if self.cache:
             camera.CacheCameraTranslation()
+        return
 
 
 class PanCameraAccelerated(camanim.BaseCameraAnimation):
 
-    def __init__(self, start, end, duration = 0.5, accelerationPower = 2.0):
+    def __init__(self, start, end, duration=0.5, accelerationPower=2.0):
         camanim.BaseCameraAnimation.__init__(self, camanim.PAN_ANIMATION, duration)
         self.start = start
         self.end = end
@@ -168,16 +176,17 @@ def CreateBehaviorFromMagnitudeAndPosition(magnitude, shakeOrigin, camera):
     distance = geo2.Vec3Length(geo2.Vec3Subtract(shakeOrigin, camera.eyePosition))
     if isnan(distance):
         return
-    if distance < 700.0:
-        distance = 700.0
-    elif distance > 2000000000:
-        distance = 2000000000
-    actualMagnitude = 0.7 * magnitude / pow(distance, 0.7)
-    noiseScaleCurve.ScaleValue(actualMagnitude)
-    noiseDampCurve.ScaleValue(actualMagnitude)
-    if camera.noiseScaleCurve is not None and camera.noiseScaleCurve.value > noiseScaleCurve.keys[1].value:
-        return
-    behavior = camshake.ShakeBehavior()
-    behavior.scaleCurve = noiseScaleCurve
-    behavior.dampCurve = noiseDampCurve
-    return behavior
+    else:
+        if distance < 700.0:
+            distance = 700.0
+        elif distance > 2000000000:
+            distance = 2000000000
+        actualMagnitude = 0.7 * magnitude / pow(distance, 0.7)
+        noiseScaleCurve.ScaleValue(actualMagnitude)
+        noiseDampCurve.ScaleValue(actualMagnitude)
+        if camera.noiseScaleCurve is not None and camera.noiseScaleCurve.value > noiseScaleCurve.keys[1].value:
+            return
+        behavior = camshake.ShakeBehavior()
+        behavior.scaleCurve = noiseScaleCurve
+        behavior.dampCurve = noiseDampCurve
+        return behavior

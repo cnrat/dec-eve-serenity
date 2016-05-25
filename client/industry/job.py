@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\packages\industry\job.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\packages\industry\job.py
 import math
 import copy
 import random
@@ -68,6 +69,7 @@ class JobBase(industry.Base):
     def update(self, job):
         self._modifiers_cache = None
         self.on_updated(self)
+        return
 
     modifiers = industry.Property('_modifiers', 'on_dirty')
     skills = industry.Property('_skills', 'on_dirty')
@@ -118,6 +120,7 @@ class JobBase(industry.Base):
                 return len([ p for p in probabilities if p <= self.probability ])
         else:
             return self.runs
+        return
 
     successfulRuns = industry.Property('_successfulRuns', 'on_dirty', _get_successful_runs)
 
@@ -162,12 +165,14 @@ class JobBase(industry.Base):
         if value is None:
             self.productTypeID = None
             return
-        for product in products:
-            if value in (product, product.typeID):
-                self.productTypeID = product.typeID
-                return
+        else:
+            for product in products:
+                if value in (product, product.typeID):
+                    self.productTypeID = product.typeID
+                    return
 
-        raise KeyError('Invalid product option')
+            raise KeyError('Invalid product option')
+            return
 
     product = property(_get_product, _set_product)
 
@@ -231,8 +236,10 @@ class JobBase(industry.Base):
     def _get_distance(self):
         if self._distance is not None:
             return self._distance
-        if self.facility and self.facility.distance is not None:
+        elif self.facility and self.facility.distance is not None:
             return self.facility.distance
+        else:
+            return
 
     distance = industry.Property('_distance', 'on_dirty', _get_distance)
 
@@ -241,6 +248,7 @@ class JobBase(industry.Base):
             return self._materialEfficiency
         else:
             return self.blueprint.materialEfficiency
+            return
 
     materialEfficiency = industry.Property('_materialEfficiency', 'on_dirty', _get_material_efficiency)
 
@@ -249,6 +257,7 @@ class JobBase(industry.Base):
             return self._timeEfficiency
         else:
             return self.blueprint.timeEfficiency
+            return
 
     timeEfficiency = industry.Property('_timeEfficiency', 'on_dirty', _get_time_efficiency)
 
@@ -337,6 +346,7 @@ class Job(JobBase):
         self.materials
         self.errors
         self.on_updated(self)
+        return
 
     def _get_runs(self):
         return max(min(self._runs or 1, self.maxRuns), 1)
@@ -614,6 +624,7 @@ class Location(industry.Base):
         self.canView = None
         self.canTake = None
         industry.Base.__init__(self, **kwargs)
+        return
 
     def __eq__(self, location):
         return isinstance(location, Location) and self.itemID == location.itemID and self.typeID == location.typeID and self.ownerID == location.ownerID and self.flagID == location.flagID

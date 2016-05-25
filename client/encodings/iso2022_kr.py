@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\carbon\common\stdlib\encodings\iso2022_kr.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\carbon\common\stdlib\encodings\iso2022_kr.py
 import _codecs_iso2022, codecs
 import _multibytecodec as mbc
 codec = _codecs_iso2022.getcodec('iso2022_kr')

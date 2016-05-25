@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\carbon\common\stdlib\unittest\result.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\carbon\common\stdlib\unittest\result.py
 import os
 import sys
 import traceback
@@ -26,7 +27,7 @@ class TestResult(object):
     _testRunEntered = False
     _moduleSetUpFailed = False
 
-    def __init__(self, stream = None, descriptions = None, verbosity = None):
+    def __init__(self, stream=None, descriptions=None, verbosity=None):
         self.failfast = False
         self.failures = []
         self.errors = []
@@ -41,6 +42,7 @@ class TestResult(object):
         self._original_stdout = sys.stdout
         self._original_stderr = sys.stderr
         self._mirrorOutput = False
+        return
 
     def printErrors(self):
         pass
@@ -54,6 +56,7 @@ class TestResult(object):
                 self._stdout_buffer = StringIO()
             sys.stdout = self._stdout_buffer
             sys.stderr = self._stderr_buffer
+        return
 
     def startTestRun(self):
         pass

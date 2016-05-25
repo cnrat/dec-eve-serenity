@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\carbon\common\script\zaction\MovementProcs.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\carbon\common\script\zaction\MovementProcs.py
 import zaction
 FollowMode = zaction.ProcTypeDef(isMaster=True, procCategory='Movement', properties=[zaction.ProcPropertyTypeDef('FOLLOW_RANGE', 'F', userDataType=None, isPrivate=True), zaction.ProcPropertyTypeDef('FOLLOW_TELEPORT_ON_STUCK', 'B', userDataType=None, isPrivate=True), zaction.ProcPropertyTypeDef('FOLLOW_MIN_RANGE', 'F', userDataType=None, isPrivate=True)])
 IsInMovementMode = zaction.ProcTypeDef(isMaster=True, isConditional=True, procCategory='Movement', displayName='Is in movement mode', properties=[zaction.ProcPropertyTypeDef('evaluateTo', 'B', userDataType=None, isPrivate=True, displayName='Evaluate To True', default=True), zaction.ProcPropertyTypeDef('moveModeName', 'S', userDataType=None, isPrivate=True, displayName='Move Mode Name')], description='Validates if we are in a movement mode.')

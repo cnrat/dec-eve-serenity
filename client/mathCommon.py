@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\common\modules\nice\client\_nastyspace\mathCommon.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\common\modules\nice\client\_nastyspace\mathCommon.py
 from carbon.common.script.util.mathCommon import BoundedRotateQuatByYaw
 from carbon.common.script.util.mathCommon import CalcLinearIntpValue
 from carbon.common.script.util.mathCommon import CalcScaledValueOverInterval

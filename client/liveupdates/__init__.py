@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\packages\liveupdates\__init__.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\packages\liveupdates\__init__.py
 import binascii
 import cStringIO
 import imp
@@ -13,13 +14,13 @@ EXEC = 'EXEC'
 RESPONSE_KEYS = ('stdout', 'stderr', 'eval', 'exception', 'exceptionTrace')
 BASE64_KEYS = ('stdout', 'stderr', 'eval')
 
-def makemodule(name = 'liveupdateholder'):
+def makemodule(name='liveupdateholder'):
     m = imp.new_module(name)
     sys.modules[m.__name__] = name
     return m
 
 
-def runcode(code, module, mode = None):
+def runcode(code, module, mode=None):
     if mode is None:
         mode = EXEC
 
@@ -27,6 +28,7 @@ def runcode(code, module, mode = None):
         global evalresult
         if obj is not None:
             evalresult = obj
+        return
 
     evalresult = None
     ex = None
@@ -64,7 +66,7 @@ def runcode(code, module, mode = None):
     return data
 
 
-def runcode_safeio(code, module, mode = None, loads = marshal.loads, doBase64 = True):
+def runcode_safeio(code, module, mode=None, loads=marshal.loads, doBase64=True):
     realcode = loads(code)
     data = runcode(realcode, module, mode)
     result = dict(data)

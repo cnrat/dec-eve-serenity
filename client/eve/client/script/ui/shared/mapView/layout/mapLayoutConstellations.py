@@ -1,10 +1,11 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\client\script\ui\shared\mapView\layout\mapLayoutConstellations.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\client\script\ui\shared\mapView\layout\mapLayoutConstellations.py
 from eve.client.script.ui.shared.mapView.layout.mapLayoutBase import MapLayoutBase
 from eve.client.script.ui.shared.mapView.mapViewData import mapViewData
 
 class MapLayoutConstellations(MapLayoutBase):
 
-    def PrimeLayout(self, expandedItems = None, flatten = False):
+    def PrimeLayout(self, expandedItems=None, flatten=False):
         if (expandedItems, flatten) == self.cacheKey:
             return
         self.cacheKey = (expandedItems, flatten)

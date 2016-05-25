@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\client\script\ui\inflight\bracketsAndTargets\timedBracket.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\client\script\ui\inflight\bracketsAndTargets\timedBracket.py
 from eve.client.script.ui.inflight.bracketsAndTargets.inSpaceBracket import InSpaceBracket
 import blue
 from uiprimitives import Container, Fill
@@ -13,7 +14,7 @@ class TimedBracket(InSpaceBracket):
         container = Container(parent=self, align=uiconst.CENTER, top=12, height=30, width=64)
         self.timer = Timer(parent=container, align=uiconst.TOTOP, height=12, state=uiconst.UI_HIDDEN)
 
-    def Startup(self, slimItem, ball = None, transform = None):
+    def Startup(self, slimItem, ball=None, transform=None):
         InSpaceBracket.Startup(self, slimItem, ball=ball, transform=transform)
         self.SetUnlocking(slimItem)
 
@@ -28,6 +29,7 @@ class TimedBracket(InSpaceBracket):
         if slimItem.timerInfo is not None:
             startProportion, duration = self.GetAnimationInfo(*slimItem.timerInfo)
             self.Animate(startProportion, duration)
+        return
 
     def GetAnimationInfo(self, startTime, duration):
         durationInBlueTime = duration * const.SEC

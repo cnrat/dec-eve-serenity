@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\client\script\ui\login\charcreation\charCreationButtons.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\client\script\ui\login\charcreation\charCreationButtons.py
 import carbonui.const as uiconst
 import uiprimitives
 import charactercreator.const as ccConst
@@ -68,6 +69,7 @@ class RaceButton(BaseCCButton):
             uicore.layer.charactercreation.UpdateBackdropLite(raceID=None, mouseEnter=True)
         if self.mouseExitCallback is not None:
             self.mouseExitCallback()
+        return
 
     def OnClick(self, *args):
         if uicore.layer.charactercreation.raceID != self.raceID:
@@ -99,6 +101,7 @@ class BloodlineButton(BaseCCButton):
     def OnMouseEnter(self, *args):
         if self.mouseEnterCallback is not None:
             self.mouseEnterCallback(self.bloodlineID)
+        return
 
     def OnMouseEnterAppearanceChange(self, *args):
         BaseCCButton.OnMouseEnter(self, *args)
@@ -107,6 +110,7 @@ class BloodlineButton(BaseCCButton):
         BaseCCButton.OnMouseExit(self, *args)
         if self.mouseExitCallback is not None:
             self.mouseExitCallback()
+        return
 
 
 class GenderButton(BaseCCButton):

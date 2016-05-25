@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\client\script\ui\shared\monetization\multiTrainingOverlay.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\client\script\ui\shared\monetization\multiTrainingOverlay.py
 from carbonui import const as uiconst
 from carbonui.primitives.container import Container
 from carbonui.primitives.containerAutoSize import ContainerAutoSize
@@ -58,9 +59,13 @@ class MultiTrainingOverlay(Container):
     def OnSuppressChanged(self, checkbox):
         self.suppressed = self.suppressCheckbox.GetValue()
 
+    @classmethod
+    def IsSuppressed(cls):
+        return settings.user.suppress.Get(cls.SUPPRESS_KEY, False)
+
     @property
     def suppressed(self):
-        return settings.user.suppress.Get(self.SUPPRESS_KEY, False)
+        return self.IsSuppressed()
 
     @suppressed.setter
     def suppressed(self, suppressed):
@@ -73,18 +78,19 @@ class MultiTrainingOverlay(Container):
     def ShouldDisplay(self):
         if self.suppressed:
             return False
-        if sm.GetService('skillqueue').SkillInTraining() is not None:
+        elif sm.GetService('skillqueue').SkillInTraining() is not None:
             return False
-        queues = sm.GetService('skillqueue').GetMultipleCharacterTraining().items()
-        characterData = sm.GetService('cc').GetCharacterSelectionData()
-        activeQueues = 1 + len(queues)
-        usedQueues = 0
-        for characterDetails in characterData.details.values():
-            isTraining = characterDetails.GetSkillInTrainingInfo()['currentSkill'] is not None
-            if characterDetails.charID != session.charid and isTraining:
-                usedQueues += 1
+        else:
+            queues = sm.GetService('skillqueue').GetMultipleCharacterTraining().items()
+            characterData = sm.GetService('cc').GetCharacterSelectionData()
+            activeQueues = 1 + len(queues)
+            usedQueues = 0
+            for characterDetails in characterData.details.values():
+                isTraining = characterDetails.GetSkillInTrainingInfo()['currentSkill'] is not None
+                if characterDetails.charID != session.charid and isTraining:
+                    usedQueues += 1
 
-        return usedQueues == activeQueues
+            return usedQueues == activeQueues
 
     def Display(self):
         self.Load()
@@ -107,6 +113,7 @@ class MultiTrainingOverlay(Container):
             amount = RoundISK(tokenAveragePrice)
             text = localization.GetByLabel('UI/SkillQueue/MultiTrainingOverlay/EstimatedPrice', amount=amount)
         self.estimatePriceLabel.SetText(text)
+        return
 
     def Dismiss(self):
         self.Disable()
@@ -138,7 +145,7 @@ class MultiTrainingOverlay(Container):
         animations.MorphScalar(self.characters, 'left', startVal=self.characters.left, endVal=self.CHARACTERS_LEFT, duration=0.3)
         animations.MorphScalar(self.content, 'left', startVal=self.content.left, endVal=self.CONTENT_LEFT, duration=0.3)
 
-    def UpdateAlignment(self, budgetLeft = 0, budgetTop = 0, budgetWidth = 0, budgetHeight = 0, updateChildrenOnly = False):
+    def UpdateAlignment(self, budgetLeft=0, budgetTop=0, budgetWidth=0, budgetHeight=0, updateChildrenOnly=False):
         if budgetWidth < 640:
             self.EnterCompactMode()
         else:

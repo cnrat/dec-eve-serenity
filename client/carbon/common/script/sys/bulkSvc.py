@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\carbon\common\script\sys\bulkSvc.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\carbon\common\script\sys\bulkSvc.py
 import service
 import blue
 import os
@@ -15,7 +16,7 @@ VERSION_FILENAME = 'version'
 class BulkSvc(service.Service):
     __guid__ = 'svc.bulkSvc'
 
-    def Run(self, ms = None):
+    def Run(self, ms=None):
         self.state = service.SERVICE_START_PENDING
         self.lastLoginProgressID = 0
         self._isSystemFolderOK = None
@@ -38,16 +39,17 @@ class BulkSvc(service.Service):
             self.bulkMgr = self.session.ConnectToRemoteService('bulkMgr', nodeID=bulkNodeID)
             self.UpdateBulk()
         self.state = service.SERVICE_RUNNING
+        return
 
     def Connect(self):
         self.bulkMgr = sm.RemoteSvc('bulkMgr')
         self.UpdateBulk()
 
-    def UpdateLoginProgress(self, name, totalSteps = None):
+    def UpdateLoginProgress(self, name, totalSteps=None):
         self.lastLoginProgressID += 1
         cfg.ReportLoginProgress(name, self.lastLoginProgressID, totalSteps)
 
-    def UpdateBulk(self, doHashCheck = True):
+    def UpdateBulk(self, doHashCheck=True):
         self.LogInfo('Lets see if there is some new bulk data for us')
         self.CheckCacheVersion()
         versionData = self.GetVersion()
@@ -67,63 +69,65 @@ class BulkSvc(service.Service):
             versionData = self.GetVersion()
             self.LogInfo('bulk updated done, we are now at', versionData['changeID'])
             return
-        if doHashCheck:
-            hashValue = self.GetHash()
         else:
-            hashValue = None
-        updateData = self.bulkMgr.UpdateBulk(versionData['changeID'], hashValue, versionData['branch'])
-        updateType = updateData['type']
-        self.allowUnsubmitted = updateData['allowUnsubmitted']
-        if 'version' in updateData:
-            serverVersion = updateData['version']
-        if 'data' in updateData:
-            updateInfo = updateData['data']
-        if updateType == const.updateBulkStatusOK:
-            self.LogInfo('Bulk data is up to date:', versionData['changeID'])
-            return
-        if updateType == const.updateBulkStatusHashMismatch:
-            serverBulkIDs = updateInfo
-            clientBulkIDs = self.GetCurrentBulkIDs()
-            idsToRemove = [ cID for cID in clientBulkIDs if cID in serverBulkIDs ]
-            for bulkID in idsToRemove:
-                serverBulkIDs.remove(bulkID)
-                clientBulkIDs.remove(bulkID)
+            if doHashCheck:
+                hashValue = self.GetHash()
+            else:
+                hashValue = None
+            updateData = self.bulkMgr.UpdateBulk(versionData['changeID'], hashValue, versionData['branch'])
+            updateType = updateData['type']
+            self.allowUnsubmitted = updateData['allowUnsubmitted']
+            if 'version' in updateData:
+                serverVersion = updateData['version']
+            if 'data' in updateData:
+                updateInfo = updateData['data']
+            if updateType == const.updateBulkStatusOK:
+                self.LogInfo('Bulk data is up to date:', versionData['changeID'])
+                return
+            if updateType == const.updateBulkStatusHashMismatch:
+                serverBulkIDs = updateInfo
+                clientBulkIDs = self.GetCurrentBulkIDs()
+                idsToRemove = [ cID for cID in clientBulkIDs if cID in serverBulkIDs ]
+                for bulkID in idsToRemove:
+                    serverBulkIDs.remove(bulkID)
+                    clientBulkIDs.remove(bulkID)
 
-            self.LogInfo('We agreed on ', len(idsToRemove), 'bulk files. Need to add', len(serverBulkIDs), 'files and remove', len(clientBulkIDs), 'files')
-            self.UpdateFullBulkFiles(serverBulkIDs, clientBulkIDs)
-            self.UpdateBulk(False)
-            return
-        if updateType in [const.updateBulkStatusWrongBranch, const.updateBulkStatusClientNewer, const.updateBulkStatusTooManyRevisions]:
-            if updateType == const.updateBulkStatusWrongBranch:
-                self.LogError('Client is at different branch than the server so I need to fetch everything.')
-            elif updateType == const.updateBulkStatusClientNewer:
-                self.LogError('Client is at changeID', versionData['changeID'], 'but the server is at lower changeID', serverVersion, 'so I need to fetch everything.')
-            else:
-                self.LogWarn('The server has too many revisions for us. So we should fetch everything. We are at changeID', versionData['changeID'], 'server is at', serverVersion)
-            if updateType == const.updateBulkStatusTooManyRevisions:
-                systemFolderOK = True
-            else:
-                systemFolderOK = False
-            self.UpdateFullBulkFiles()
-            serverChangeID, branch = self.bulkMgr.GetVersion()
-            self.SetVersion(serverChangeID, versionData['branch'], systemFolderOK=systemFolderOK)
-            self.LogInfo('bulk updated done. We are now at', serverVersion)
-            return
-        if updateType == const.updateBulkStatusNeedToUpdate:
-            self.UpdateLoginProgress('loginprogress::gettingbulkdata', updateInfo['chunkCount'])
-            self.UpdateChangedRows(updateInfo['chunk'], updateInfo['changedTablesKeys'])
-            self.UpdateDeletedRows(updateInfo['toBeDeleted'], updateInfo['changedTablesKeys'])
-            for chunkNumber in xrange(1, updateInfo['chunkCount']):
-                self.LogInfo('We have more chunks. Now fetching chunk', chunkNumber)
+                self.LogInfo('We agreed on ', len(idsToRemove), 'bulk files. Need to add', len(serverBulkIDs), 'files and remove', len(clientBulkIDs), 'files')
+                self.UpdateFullBulkFiles(serverBulkIDs, clientBulkIDs)
+                self.UpdateBulk(False)
+                return
+            if updateType in [const.updateBulkStatusWrongBranch, const.updateBulkStatusClientNewer, const.updateBulkStatusTooManyRevisions]:
+                if updateType == const.updateBulkStatusWrongBranch:
+                    self.LogError('Client is at different branch than the server so I need to fetch everything.')
+                elif updateType == const.updateBulkStatusClientNewer:
+                    self.LogError('Client is at changeID', versionData['changeID'], 'but the server is at lower changeID', serverVersion, 'so I need to fetch everything.')
+                else:
+                    self.LogWarn('The server has too many revisions for us. So we should fetch everything. We are at changeID', versionData['changeID'], 'server is at', serverVersion)
+                if updateType == const.updateBulkStatusTooManyRevisions:
+                    systemFolderOK = True
+                else:
+                    systemFolderOK = False
+                self.UpdateFullBulkFiles()
+                serverChangeID, branch = self.bulkMgr.GetVersion()
+                self.SetVersion(serverChangeID, versionData['branch'], systemFolderOK=systemFolderOK)
+                self.LogInfo('bulk updated done. We are now at', serverVersion)
+                return
+            if updateType == const.updateBulkStatusNeedToUpdate:
                 self.UpdateLoginProgress('loginprogress::gettingbulkdata', updateInfo['chunkCount'])
-                toBeChanged = self.bulkMgr.GetChunk(versionData['changeID'], chunkNumber)
-                self.UpdateChangedRows(toBeChanged, updateInfo['changedTablesKeys'])
+                self.UpdateChangedRows(updateInfo['chunk'], updateInfo['changedTablesKeys'])
+                self.UpdateDeletedRows(updateInfo['toBeDeleted'], updateInfo['changedTablesKeys'])
+                for chunkNumber in xrange(1, updateInfo['chunkCount']):
+                    self.LogInfo('We have more chunks. Now fetching chunk', chunkNumber)
+                    self.UpdateLoginProgress('loginprogress::gettingbulkdata', updateInfo['chunkCount'])
+                    toBeChanged = self.bulkMgr.GetChunk(versionData['changeID'], chunkNumber)
+                    self.UpdateChangedRows(toBeChanged, updateInfo['changedTablesKeys'])
 
-            branch = updateInfo['branch']
-            self.SetVersion(serverVersion, branch)
-            self.LogInfo('bulk updated done, we are now at', serverVersion)
-        else:
-            raise RuntimeError('Unknown updateType from server', updateType)
+                branch = updateInfo['branch']
+                self.SetVersion(serverVersion, branch)
+                self.LogInfo('bulk updated done, we are now at', serverVersion)
+            else:
+                raise RuntimeError('Unknown updateType from server', updateType)
+            return
 
     def UpdateChangedRows(self, toBeChanged, allKeyNames):
         for bulkID in toBeChanged:
@@ -176,7 +180,7 @@ class BulkSvc(service.Service):
 
             self.SaveBulkToFile(bulkID, clientData)
 
-    def UpdateFullBulkFiles(self, toGet = None, toDelete = None):
+    def UpdateFullBulkFiles(self, toGet=None, toDelete=None):
         versionData = self.GetVersion()
         if versionData['changeID'] is None:
             serverChangeID, serverBranch = self.bulkMgr.GetVersion()
@@ -226,6 +230,7 @@ class BulkSvc(service.Service):
             self.DeleteBulkFile(bulkID)
 
         self.SetVersion(versionData['changeID'], versionData['branch'])
+        return
 
     def GetKeyValues(self, keyNames, row):
         numberOfKeys = len(keyNames)
@@ -240,125 +245,128 @@ class BulkSvc(service.Service):
         if not self.allowUnsubmitted:
             self.LogInfo('Server is not configured to allow fetching of unsubmitted BSD data')
             return
-        self.LogInfo('Updating cfg with unsubmitted BSD data')
-        unsubmitted = self.bulkMgr.GetUnsubmittedChanges()
-        if unsubmitted is None:
-            self.LogInfo('Server had no unsubmitted BSD data for us')
-            return
-        toBeChanged = unsubmitted['toBeChanged']
-        toBeDeleted = unsubmitted['toBeDeleted']
-        changedTablesKeys = unsubmitted['changedTablesKeys']
-        chunkCount = unsubmitted['chunkCount']
-        for chunkNumber in xrange(0, chunkCount):
-            self.LogInfo('Starting on unsubmitted chunk ', chunkNumber + 1, 'of', chunkCount)
-            if chunkNumber != 0:
-                toBeChanged = self.bulkMgr.GetUnsubmittedChunk(chunkNumber)
-            for bulkID, changes in toBeChanged.iteritems():
-                if bulkID in cfg.bulkIDsToCfgNames:
-                    for cfgName in cfg.bulkIDsToCfgNames[bulkID]:
-                        cfgEntry = getattr(cfg, cfgName, None)
-                        if isinstance(cfgEntry, Recordset):
-                            keyNames = changedTablesKeys[bulkID]
-                            for row in changes:
-                                try:
-                                    keyValues = self.GetKeyValues(keyNames, row)
-                                except KeyError as e:
-                                    self.LogError('Error in GetUnsubmittedChanges. Key does not exist in the row we wanted to update.', keyNames, row)
+        else:
+            self.LogInfo('Updating cfg with unsubmitted BSD data')
+            unsubmitted = self.bulkMgr.GetUnsubmittedChanges()
+            if unsubmitted is None:
+                self.LogInfo('Server had no unsubmitted BSD data for us')
+                return
+            toBeChanged = unsubmitted['toBeChanged']
+            toBeDeleted = unsubmitted['toBeDeleted']
+            changedTablesKeys = unsubmitted['changedTablesKeys']
+            chunkCount = unsubmitted['chunkCount']
+            for chunkNumber in xrange(0, chunkCount):
+                self.LogInfo('Starting on unsubmitted chunk ', chunkNumber + 1, 'of', chunkCount)
+                if chunkNumber != 0:
+                    toBeChanged = self.bulkMgr.GetUnsubmittedChunk(chunkNumber)
+                for bulkID, changes in toBeChanged.iteritems():
+                    if bulkID in cfg.bulkIDsToCfgNames:
+                        for cfgName in cfg.bulkIDsToCfgNames[bulkID]:
+                            cfgEntry = getattr(cfg, cfgName, None)
+                            if isinstance(cfgEntry, Recordset):
+                                keyNames = changedTablesKeys[bulkID]
+                                for row in changes:
+                                    try:
+                                        keyValues = self.GetKeyValues(keyNames, row)
+                                    except KeyError as e:
+                                        self.LogError('Error in GetUnsubmittedChanges. Key does not exist in the row we wanted to update.', keyNames, row)
+                                        continue
+
+                                    cfgEntry.data[keyValues] = row
+
+                            elif isinstance(cfgEntry, dbutil.CFilterRowset):
+                                filterColumnName = cfgEntry.columnName
+                                if cfgEntry.indexName is not None:
+                                    self.LogError('BulkSvc.GetUnsubmittedChanges() - Unsupported cfgEntry', cfgName.len(changes))
                                     continue
-
-                                cfgEntry.data[keyValues] = row
-
-                        elif isinstance(cfgEntry, dbutil.CFilterRowset):
-                            filterColumnName = cfgEntry.columnName
-                            if cfgEntry.indexName is not None:
-                                self.LogError('BulkSvc.GetUnsubmittedChanges() - Unsupported cfgEntry', cfgName.len(changes))
-                                continue
-                            for changedRow in changes:
-                                keyValue = changedRow[filterColumnName]
-                                if keyValue in cfgEntry:
-                                    cfgRows = cfgEntry[keyValue]
-                                    for i, cfgRow in enumerate(cfgRows):
-                                        for keyName in changedTablesKeys[bulkID]:
-                                            if cfgRow[keyName] != changedRow[keyName]:
+                                for changedRow in changes:
+                                    keyValue = changedRow[filterColumnName]
+                                    if keyValue in cfgEntry:
+                                        cfgRows = cfgEntry[keyValue]
+                                        for i, cfgRow in enumerate(cfgRows):
+                                            for keyName in changedTablesKeys[bulkID]:
+                                                if cfgRow[keyName] != changedRow[keyName]:
+                                                    break
+                                            else:
+                                                cfgEntry[keyValue][i] = changedRow
                                                 break
+
                                         else:
-                                            cfgEntry[keyValue][i] = changedRow
-                                            break
+                                            cfgEntry[keyValue].append(changedRow)
 
                                     else:
-                                        cfgEntry[keyValue].append(changedRow)
+                                        if len(cfgEntry) == 0:
+                                            rowDescriptor = changedRow.__header__
+                                        else:
+                                            rowDescriptor = cfgEntry.itervalues().next().header
+                                        cfgEntry[keyValue] = dbutil.CRowset(rowDescriptor, [changedRow])
 
-                                else:
-                                    if len(cfgEntry) == 0:
-                                        rowDescriptor = changedRow.__header__
-                                    else:
-                                        rowDescriptor = cfgEntry.itervalues().next().header
-                                    cfgEntry[keyValue] = dbutil.CRowset(rowDescriptor, [changedRow])
+                            elif isinstance(cfgEntry, dbutil.CRowset):
+                                toDelete = []
+                                keyNames = changedTablesKeys[bulkID]
+                                for i, row in enumerate(cfgEntry):
+                                    rowKey = self.GetKeyValues(keyNames, row)
+                                    if rowKey in changes:
+                                        toDelete.append(i)
 
-                        elif isinstance(cfgEntry, dbutil.CRowset):
-                            toDelete = []
-                            keyNames = changedTablesKeys[bulkID]
-                            for i, row in enumerate(cfgEntry):
-                                rowKey = self.GetKeyValues(keyNames, row)
-                                if rowKey in changes:
-                                    toDelete.append(i)
+                                toDelete.sort(reverse=True)
+                                for i in toDelete:
+                                    del cfgEntry[i]
 
-                            toDelete.sort(reverse=True)
-                            for i in toDelete:
-                                del cfgEntry[i]
+                            else:
+                                self.LogWarn('cfgEntry not of type: Recordset, CFilterRowset or CRowset. not updating unsubmitted revisions for it.', cfgName, bulkID)
 
-                        else:
-                            self.LogWarn('cfgEntry not of type: Recordset, CFilterRowset or CRowset. not updating unsubmitted revisions for it.', cfgName, bulkID)
+                    else:
+                        self.LogWarn('There is an unsubmitted change in bulk', bulkID, "and I don't know what cfg entry it belongs to. Skipping it")
 
-                else:
-                    self.LogWarn('There is an unsubmitted change in bulk', bulkID, "and I don't know what cfg entry it belongs to. Skipping it")
+            for bulkID, changes in toBeDeleted.iteritems():
+                if bulkID not in cfg.bulkIDsToCfgNames:
+                    self.LogWarn('There is unsubmitted delete change in bulk', bulkID, " that I don't know what cfg entry it belongs to. Skipping it")
+                    continue
+                for cfgName in cfg.bulkIDsToCfgNames[bulkID]:
+                    cfgEntry = getattr(cfg, cfgName, None)
+                    if isinstance(cfgEntry, Recordset):
+                        for key in changes:
+                            if key in cfgEntry.data:
+                                del cfgEntry.data[key]
+                            else:
+                                self.LogWarn("Can't find revision for an unsubmitted revisions I wanted to delete", cfgName)
 
-        for bulkID, changes in toBeDeleted.iteritems():
-            if bulkID not in cfg.bulkIDsToCfgNames:
-                self.LogWarn('There is unsubmitted delete change in bulk', bulkID, " that I don't know what cfg entry it belongs to. Skipping it")
-                continue
-            for cfgName in cfg.bulkIDsToCfgNames[bulkID]:
-                cfgEntry = getattr(cfg, cfgName, None)
-                if isinstance(cfgEntry, Recordset):
-                    for key in changes:
-                        if key in cfgEntry.data:
-                            del cfgEntry.data[key]
-                        else:
-                            self.LogWarn("Can't find revision for an unsubmitted revisions I wanted to delete", cfgName)
+                    elif isinstance(cfgEntry, dbutil.CFilterRowset):
+                        if cfgEntry.indexName is not None:
+                            self.LogError('BulkSvc.GetUnsubmittedChanges() - Unsupported cfgEntry', cfgName, len(changes))
+                            continue
+                        filterColumnName = cfgEntry.columnName
+                        keyNames = changedTablesKeys[bulkID]
+                        toDelete = []
+                        for filterKey, filterRows in cfgEntry.iteritems():
+                            for i, filterRow in enumerate(filterRows):
+                                key = tuple((getattr(filterRow, keyName, None) for keyName in keyNames))
+                                if key in changes:
+                                    toDelete.append((i, filterKey))
 
-                elif isinstance(cfgEntry, dbutil.CFilterRowset):
-                    if cfgEntry.indexName is not None:
-                        self.LogError('BulkSvc.GetUnsubmittedChanges() - Unsupported cfgEntry', cfgName, len(changes))
-                        continue
-                    filterColumnName = cfgEntry.columnName
-                    keyNames = changedTablesKeys[bulkID]
-                    toDelete = []
-                    for filterKey, filterRows in cfgEntry.iteritems():
-                        for i, filterRow in enumerate(filterRows):
-                            key = tuple((getattr(filterRow, keyName, None) for keyName in keyNames))
-                            if key in changes:
-                                toDelete.append((i, filterKey))
+                        toDelete.sort(reverse=True)
+                        for ix, filterKey in toDelete:
+                            del cfgEntry[filterKey][ix]
+                            if len(cfgEntry[filterKey]) == 0:
+                                del cfgEntry[filterKey]
 
-                    toDelete.sort(reverse=True)
-                    for ix, filterKey in toDelete:
-                        del cfgEntry[filterKey][ix]
-                        if len(cfgEntry[filterKey]) == 0:
-                            del cfgEntry[filterKey]
+                    elif isinstance(cfgEntry, dbutil.CRowset):
+                        toDelete = []
+                        keyNames = changedTablesKeys[bulkID]
+                        for i, row in enumerate(cfgEntry):
+                            rowKey = self.GetKeyValues(keyNames, row)
+                            if rowKey in changes:
+                                toDelete.append(i)
 
-                elif isinstance(cfgEntry, dbutil.CRowset):
-                    toDelete = []
-                    keyNames = changedTablesKeys[bulkID]
-                    for i, row in enumerate(cfgEntry):
-                        rowKey = self.GetKeyValues(keyNames, row)
-                        if rowKey in changes:
-                            toDelete.append(i)
+                        toDelete.sort(reverse=True)
+                        for i in toDelete:
+                            del cfgEntry[i]
 
-                    toDelete.sort(reverse=True)
-                    for i in toDelete:
-                        del cfgEntry[i]
+                    else:
+                        self.LogWarn('cfgEntry not of type: Recordset, CFilterRowset or CRowset. not deleting unsubmitted revisions for it.', cfgName, bulkID)
 
-                else:
-                    self.LogWarn('cfgEntry not of type: Recordset, CFilterRowset or CRowset. not deleting unsubmitted revisions for it.', cfgName, bulkID)
+            return
 
     def LoadBulkFromFile(self, bulkID):
         fileName = self.GetBulkCachePath() + str(bulkID) + BULK_FILE_EXT
@@ -373,7 +381,7 @@ class BulkSvc(service.Service):
             return blue.marshal.Load(marshalData)
         raise RuntimeError('File for bulk %d not found' % bulkID)
 
-    def BulkExists(self, bulkID, includeSystemFolder = True):
+    def BulkExists(self, bulkID, includeSystemFolder=True):
         fileName = self.GetBulkCachePath() + str(bulkID) + BULK_FILE_EXT
         if os.path.exists(fileName):
             return True
@@ -452,25 +460,26 @@ class BulkSvc(service.Service):
     def GetVersion(self):
         if self._versionData is not None:
             return self._versionData
-        marshalData = None
-        fileName = self.GetBulkCachePath() + VERSION_FILENAME
-        if os.path.exists(fileName):
-            with open(fileName, 'rb') as versionFile:
-                marshalData = versionFile.read()
         else:
-            fileName = BULK_SYSTEM_PATH + VERSION_FILENAME
+            marshalData = None
+            fileName = self.GetBulkCachePath() + VERSION_FILENAME
             if os.path.exists(fileName):
                 with open(fileName, 'rb') as versionFile:
                     marshalData = versionFile.read()
-        if marshalData is None:
-            return {'changeID': None,
-             'branch': None,
-             'fullFileLock': False,
-             'systemFolderOK': False}
-        self._versionData = blue.marshal.Load(marshalData)
-        return self._versionData
+            else:
+                fileName = BULK_SYSTEM_PATH + VERSION_FILENAME
+                if os.path.exists(fileName):
+                    with open(fileName, 'rb') as versionFile:
+                        marshalData = versionFile.read()
+            if marshalData is None:
+                return {'changeID': None,
+                 'branch': None,
+                 'fullFileLock': False,
+                 'systemFolderOK': False}
+            self._versionData = blue.marshal.Load(marshalData)
+            return self._versionData
 
-    def SetVersion(self, changeID, branch, fullFileLock = False, systemFolderOK = True):
+    def SetVersion(self, changeID, branch, fullFileLock=False, systemFolderOK=True):
         versionData = {'changeID': changeID,
          'branch': branch,
          'fullFileLock': fullFileLock,

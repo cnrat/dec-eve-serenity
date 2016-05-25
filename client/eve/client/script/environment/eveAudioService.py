@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\client\script\environment\eveAudioService.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\client\script\environment\eveAudioService.py
 import service
 import eveaudio
 from eveaudio.dynamicmusicsystem import DynamicMusicSystem
@@ -104,12 +105,14 @@ class DynamicMusicService(service.Service):
             self._SetDynamicMusicSwitchPopularity(pilotsInChannel)
             self.UpdateDynamicMusic()
 
-    def _SetDynamicMusicSwitchPopularity(self, pilotsInChannel = None):
+    def _SetDynamicMusicSwitchPopularity(self, pilotsInChannel=None):
         if not session.solarsystemid2:
             return
-        if pilotsInChannel is None:
-            pilotsInChannel = eveaudio.GetPilotsInSystem()
-        self.dynamicMusicSystem.SetDynamicMusicSwitchPopularity(pilotsInChannel, self._GetSecurityStatus())
+        else:
+            if pilotsInChannel is None:
+                pilotsInChannel = eveaudio.GetPilotsInSystem()
+            self.dynamicMusicSystem.SetDynamicMusicSwitchPopularity(pilotsInChannel, self._GetSecurityStatus())
+            return
 
     def _GetSecurityStatus(self):
         securityStatus = 1.0

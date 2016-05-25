@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\common\modules\nice\client\_nastyspace\movement.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\common\modules\nice\client\_nastyspace\movement.py
 from carbon.common.lib.movement import *
 from carbon.common.script.movement.movementService import CommonMovementComponent
 from carbon.common.script.movement.movementService import MovementService as movementService

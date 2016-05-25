@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\packages\decometaclass\decometaclass.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\packages\decometaclass\decometaclass.py
 try:
     import blue
 except:
@@ -17,7 +18,7 @@ class DecoMetaclass(type):
         cls.__nonpersistvars__ = cls.CombineLists('__nonpersistvars__')
         return cls
 
-    def __call__(cls, inst = None, initDict = None, *args, **kwargs):
+    def __call__(cls, inst=None, initDict=None, *args, **kwargs):
         if not inst:
             inst = blue.classes.CreateInstance(cls.__cid__)
         inst.__klass__ = cls

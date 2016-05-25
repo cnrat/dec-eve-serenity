@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\carbon\common\stdlib\quopri.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\carbon\common\stdlib\quopri.py
 __all__ = ['encode',
  'decode',
  'encodestring',
@@ -26,119 +27,125 @@ def quote(c):
     return ESCAPE + HEX[i // 16] + HEX[i % 16]
 
 
-def encode(input, output, quotetabs, header = 0):
+def encode(input, output, quotetabs, header=0):
     if b2a_qp is not None:
         data = input.read()
         odata = b2a_qp(data, quotetabs=quotetabs, header=header)
         output.write(odata)
         return
+    else:
 
-    def write(s, output = output, lineEnd = '\n'):
-        if s and s[-1:] in ' \t':
-            output.write(s[:-1] + quote(s[-1]) + lineEnd)
-        elif s == '.':
-            output.write(quote(s) + lineEnd)
-        else:
-            output.write(s + lineEnd)
-
-    prevline = None
-    while 1:
-        line = input.readline()
-        if not line:
-            break
-        outline = []
-        stripped = ''
-        if line[-1:] == '\n':
-            line = line[:-1]
-            stripped = '\n'
-        for c in line:
-            if needsquoting(c, quotetabs, header):
-                c = quote(c)
-            if header and c == ' ':
-                outline.append('_')
+        def write(s, output=output, lineEnd='\n'):
+            if s and s[-1:] in ' \t':
+                output.write(s[:-1] + quote(s[-1]) + lineEnd)
+            elif s == '.':
+                output.write(quote(s) + lineEnd)
             else:
-                outline.append(c)
+                output.write(s + lineEnd)
+
+        prevline = None
+        while 1:
+            line = input.readline()
+            if not line:
+                break
+            outline = []
+            stripped = ''
+            if line[-1:] == '\n':
+                line = line[:-1]
+                stripped = '\n'
+            for c in line:
+                if needsquoting(c, quotetabs, header):
+                    c = quote(c)
+                if header and c == ' ':
+                    outline.append('_')
+                else:
+                    outline.append(c)
+
+            if prevline is not None:
+                write(prevline)
+            thisline = EMPTYSTRING.join(outline)
+            while len(thisline) > MAXLINESIZE:
+                write(thisline[:MAXLINESIZE - 1], lineEnd='=\n')
+                thisline = thisline[MAXLINESIZE - 1:]
+
+            prevline = thisline
 
         if prevline is not None:
-            write(prevline)
-        thisline = EMPTYSTRING.join(outline)
-        while len(thisline) > MAXLINESIZE:
-            write(thisline[:MAXLINESIZE - 1], lineEnd='=\n')
-            thisline = thisline[MAXLINESIZE - 1:]
-
-        prevline = thisline
-
-    if prevline is not None:
-        write(prevline, lineEnd=stripped)
+            write(prevline, lineEnd=stripped)
+        return
 
 
-def encodestring(s, quotetabs = 0, header = 0):
+def encodestring(s, quotetabs=0, header=0):
     if b2a_qp is not None:
         return b2a_qp(s, quotetabs=quotetabs, header=header)
-    from cStringIO import StringIO
-    infp = StringIO(s)
-    outfp = StringIO()
-    encode(infp, outfp, quotetabs, header)
-    return outfp.getvalue()
+    else:
+        from cStringIO import StringIO
+        infp = StringIO(s)
+        outfp = StringIO()
+        encode(infp, outfp, quotetabs, header)
+        return outfp.getvalue()
 
 
-def decode(input, output, header = 0):
+def decode(input, output, header=0):
     if a2b_qp is not None:
         data = input.read()
         odata = a2b_qp(data, header=header)
         output.write(odata)
         return
-    new = ''
-    while 1:
-        line = input.readline()
-        if not line:
-            break
-        i, n = 0, len(line)
-        if n > 0 and line[n - 1] == '\n':
-            partial = 0
-            n = n - 1
-            while n > 0 and line[n - 1] in ' \t\r':
-                n = n - 1
-
-        else:
-            partial = 1
-        while i < n:
-            c = line[i]
-            if c == '_' and header:
-                new = new + ' '
-                i = i + 1
-            elif c != ESCAPE:
-                new = new + c
-                i = i + 1
-            elif i + 1 == n and not partial:
-                partial = 1
+    else:
+        new = ''
+        while 1:
+            line = input.readline()
+            if not line:
                 break
-            elif i + 1 < n and line[i + 1] == ESCAPE:
-                new = new + ESCAPE
-                i = i + 2
-            elif i + 2 < n and ishex(line[i + 1]) and ishex(line[i + 2]):
-                new = new + chr(unhex(line[i + 1:i + 3]))
-                i = i + 3
+            i, n = 0, len(line)
+            if n > 0 and line[n - 1] == '\n':
+                partial = 0
+                n = n - 1
+                while n > 0 and line[n - 1] in ' \t\r':
+                    n = n - 1
+
             else:
-                new = new + c
-                i = i + 1
+                partial = 1
+            while i < n:
+                c = line[i]
+                if c == '_' and header:
+                    new = new + ' '
+                    i = i + 1
+                elif c != ESCAPE:
+                    new = new + c
+                    i = i + 1
+                elif i + 1 == n and not partial:
+                    partial = 1
+                    break
+                elif i + 1 < n and line[i + 1] == ESCAPE:
+                    new = new + ESCAPE
+                    i = i + 2
+                elif i + 2 < n and ishex(line[i + 1]) and ishex(line[i + 2]):
+                    new = new + chr(unhex(line[i + 1:i + 3]))
+                    i = i + 3
+                else:
+                    new = new + c
+                    i = i + 1
 
-        if not partial:
-            output.write(new + '\n')
-            new = ''
+            if not partial:
+                output.write(new + '\n')
+                new = ''
 
-    if new:
-        output.write(new)
+        if new:
+            output.write(new)
+        return
 
 
-def decodestring(s, header = 0):
+def decodestring(s, header=0):
     if a2b_qp is not None:
         return a2b_qp(s, header=header)
-    from cStringIO import StringIO
-    infp = StringIO(s)
-    outfp = StringIO()
-    decode(infp, outfp, header=header)
-    return outfp.getvalue()
+    else:
+        from cStringIO import StringIO
+        infp = StringIO(s)
+        outfp = StringIO()
+        decode(infp, outfp, header=header)
+        return outfp.getvalue()
 
 
 def ishex(c):

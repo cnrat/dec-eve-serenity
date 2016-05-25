@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\client\script\ui\shared\mapView\markers\mapMarkerSpaceObjectRadialMenu.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\client\script\ui\shared\mapView\markers\mapMarkerSpaceObjectRadialMenu.py
 from eve.client.script.ui.inflight.scannerFiles.directionalScannerWindow import DirectionalScanner
 from eve.client.script.ui.shared.radialMenu.radialMenu import RadialMenuSpace
 from eve.client.script.ui.shared.radialMenu.radialMenuUtils import SimpleRadialMenuAction
@@ -9,7 +10,7 @@ class MapMarkerSpaceObjectRadialMenu(RadialMenuSpace):
         RadialMenuSpace.SetSpecificValues(self, attributes)
         self.markerObject = attributes.markerObject
 
-    def LoadButtons(self, parentLayer, optionsInfo, alternate = False, startingDegree = 0, animate = False, doReset = False):
+    def LoadButtons(self, parentLayer, optionsInfo, alternate=False, startingDegree=0, animate=False, doReset=False):
         if getattr(self, 'busyReloading', False):
             return
         self.busyReloading = True

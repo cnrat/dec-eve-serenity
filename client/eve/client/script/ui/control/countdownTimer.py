@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\client\script\ui\control\countdownTimer.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\client\script\ui\control\countdownTimer.py
 from math import pi
 from carbonui.primitives import container
 from carbonui.primitives import transform
@@ -42,6 +43,7 @@ class CountdownTimer(container.Container):
         self.SetTimerColor(self.color)
         self.SetExpiryTime(None, 0.0)
         self.PlayEntryAnimation()
+        return
 
     def SetupVariables(self, attributes):
         self.countsDown = attributes.Get('countsDown', False)
@@ -54,9 +56,11 @@ class CountdownTimer(container.Container):
         self.icon = None
         self.iconBlink = None
         self.rewind = False
+        self.paused = None
         self.ratio = 1.0
         self.animationThread = None
         self.activeAnimationCurves = None
+        return
 
     def CreateMainContentLayout(self):
         self.content = transform.Transform(parent=self, name='content', align=uiconst.CENTER, pos=(0, 0, 32, 32), state=uiconst.UI_NORMAL)
@@ -69,6 +73,7 @@ class CountdownTimer(container.Container):
             self.iconTransform.scalingCenter = (0.5, 0.5)
         else:
             self.icon = None
+        return
 
     def CreateTimerCycleLayout(self):
         self.circleSprite = sprite.Sprite(name='icon', parent=self.content, pos=(0, 0, 32, 32), texturePath='res:/UI/Texture/Crimewatch/Crimewatch_TimerCircle.png', state=uiconst.UI_DISABLED, align=uiconst.CENTER, opacity=ALPHA_EMPTY)
@@ -108,41 +113,49 @@ class CountdownTimer(container.Container):
         self.pointerContainer.rotation = rotation
         self.cycleContainer.rotation = rotation
 
-    def SetExpiryTime(self, timerExpiryTime, timerDuration, doAlert = False):
+    def SetExpiryTime(self, timerExpiryTime, timerDuration, timerPaused=None, doAlert=False):
         self.Reset(timerExpiryTime, timerDuration, doAlert)
+        self.paused = timerPaused
         if timerExpiryTime is None:
             self.PlayActiveAnimation()
         else:
             self.animationThread = uthread.new(self.Animate_Thread, timerExpiryTime, timerDuration)
+        return
+
+    def GetCurrentTime(self):
+        return self.paused or self.GetTime()
 
     def Reset(self, resetTo, timerDuration, doAlert):
         if self.animationThread is not None:
             self.animationThread.kill()
         uthread.new(self.Rewind_Thread, resetTo, timerDuration, doAlert)
+        return
 
     def Rewind_Thread(self, resetTo, timerDuration, doAlert):
         if self.rewind:
             return
-        if doAlert and self.resetAudioEvent:
-            sm.GetService('audio').SendUIEvent(self.resetAudioEvent)
-        self.rewind = True
-        ratio = self.ratio
-        startTime = self.GetTime()
-        distance = 1 - ratio
-        cycleSpeed = float(distance * REWIND_SPEED)
-        while not self.destroyed and cycleSpeed > 0:
-            if resetTo is not None:
-                resetRatio = self.GetRatio(resetTo - self.GetTime(), timerDuration)
-                if self.ratio >= resetRatio:
-                    break
-            elapsedTime = blue.os.TimeDiffInMs(startTime, self.GetTime())
-            toAdd = elapsedTime / cycleSpeed
-            self.SetRatio(ratio + toAdd)
-            blue.pyos.synchro.SleepWallclock(25)
+        else:
+            if doAlert and self.resetAudioEvent:
+                sm.GetService('audio').SendUIEvent(self.resetAudioEvent)
+            self.rewind = True
+            ratio = self.ratio
+            startTime = self.GetTime()
+            distance = 1 - ratio
+            cycleSpeed = float(distance * REWIND_SPEED)
+            while not self.destroyed and cycleSpeed > 0:
+                if resetTo is not None:
+                    resetRatio = self.GetRatio(resetTo - self.GetTime(), timerDuration)
+                    if self.ratio >= resetRatio:
+                        break
+                elapsedTime = blue.os.TimeDiffInMs(startTime, self.GetTime())
+                toAdd = elapsedTime / cycleSpeed
+                self.SetRatio(ratio + toAdd)
+                blue.pyos.synchro.SleepWallclock(25)
 
-        self.rewind = False
+            self.rewind = False
+            return
 
-    def FlipFlop(self, sprite, duration = 1.0, startValue = 0.0, endValue = 1.0, loops = 5):
+    def FlipFlop(self, sprite, duration=1.0, startValue=0.0, endValue=1.0, loops=5):
         curve = trinity.Tr2ScalarCurve()
         curve.length = duration
         curve.interpolation = trinity.TR2CURVE_LINEAR
@@ -165,7 +178,7 @@ class CountdownTimer(container.Container):
             if not self.rewind:
                 if self.ratio <= 0.0:
                     break
-                timeLeft = expiryTime - self.GetTime()
+                timeLeft = expiryTime - self.GetCurrentTime()
                 ratio = self.GetRatio(timeLeft, duration)
                 self.SetRatio(ratio)
                 if timeLeft < BLINK_BEFORE_DONE_TIME:
@@ -176,24 +189,28 @@ class CountdownTimer(container.Container):
 
         self.StopActiveAnimation()
         self.StopSoundLoop()
+        return
 
     def PlayTimerRunningOutAnimation(self):
         if self.timerRunningOutAnimation == TIMER_RUNNING_OUT_NO_ANIMATION:
             return
-        if self.iconBlink is not None:
+        elif self.iconBlink is not None:
             return
-        if self.timerRunningOutAnimation == TIMER_RUNNING_OUT_BLINK_ICON:
-            animationSprite = self.icon
         else:
-            animationSprite = self.content
-        self.iconBlink = self.FlipFlop(animationSprite, startValue=1.0, endValue=0.0)
-        if self.endingAudioEvent:
-            sm.GetService('audio').SendUIEvent(self.endingAudioEvent)
+            if self.timerRunningOutAnimation == TIMER_RUNNING_OUT_BLINK_ICON:
+                animationSprite = self.icon
+            else:
+                animationSprite = self.content
+            self.iconBlink = self.FlipFlop(animationSprite, startValue=1.0, endValue=0.0)
+            if self.endingAudioEvent:
+                sm.GetService('audio').SendUIEvent(self.endingAudioEvent)
+            return
 
     def StopTimerRunningOutAnimation(self):
         if self.iconBlink is not None:
             self.iconBlink.Stop()
             self.iconBlink = None
+        return
 
     def EndAnimation(self):
         self.SetRatio(0.0)
@@ -212,6 +229,7 @@ class CountdownTimer(container.Container):
                 sprite.opacity = 1.0
 
             self.activeAnimationCurves = None
+        return
 
     def SetSoundLoop(self, playEvent, stopEvent):
         self.sound_loop_play_event = playEvent
@@ -220,7 +238,9 @@ class CountdownTimer(container.Container):
     def StartSoundLoop(self):
         if self.sound_loop_play_event is not None:
             sm.GetService('audio').SendUIEvent(self.sound_loop_play_event)
+        return
 
     def StopSoundLoop(self):
         if self.sound_loop_stop_event is not None:
             sm.GetService('audio').SendUIEvent(self.sound_loop_stop_event)
+        return

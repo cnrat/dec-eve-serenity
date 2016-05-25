@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\client\script\ui\inflight\scannerFiles\directionalScanner.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\client\script\ui\inflight\scannerFiles\directionalScanner.py
 from carbon.common.script.util.format import FmtDist
 from carbon.common.script.util.mathUtil import DegToRad
 import carbonui.const as uiconst
@@ -57,6 +58,7 @@ class DirectionalScanner(Window):
         self.HideMainIcon()
         directionBox = Container(name='direction', parent=self.sr.main, align=uiconst.TOALL, left=const.defaultPadding, width=const.defaultPadding, top=const.defaultPadding, height=const.defaultPadding)
         self.SetupDScanUI(directionBox)
+        return
 
     def SetupDScanUI(self, directionBox):
         directionSettingsBox = Container(name='direction', parent=directionBox, align=uiconst.TOTOP, height=70, clipChildren=True, padLeft=2)
@@ -144,6 +146,7 @@ class DirectionalScanner(Window):
         buttonText = GetByLabel('UI/Inflight/Scanner/Scan')
         scanButton = Button(parent=innderAngleCont, label=buttonText, align=uiconst.CENTERLEFT, pos=(4, 0, 0, 0), func=self.DirectionSearch)
         scanButton.left = auLabel.left + auLabel.textwidth - scanButton.width
+        return
 
     def GetPresetOptions(self):
         p = sm.GetService('overviewPresetSvc').GetAllPresets().keys()
@@ -164,6 +167,7 @@ class DirectionalScanner(Window):
         presetSelected = settings.user.ui.Get('scanner_presetInUse', None)
         presetOptions = self.GetPresetOptions()
         self.presetsCombo.LoadOptions(entries=presetOptions, select=presetSelected)
+        return
 
     def UpdateAngleSliderLabel(self, label, sliderID, displayName, value):
         self.angleSliderLabel.text = GetByLabel('UI/Inflight/Scanner/AngleDegrees', value=value)
@@ -235,45 +239,47 @@ class DirectionalScanner(Window):
     def DirectionSearch(self, *args):
         if self.destroyed or self.busy:
             return
-        self.busy = True
-        self.ShowLoad()
-        self.scanresult = []
-        if self.sr.useoverview.checked:
-            selectedValue = self.presetsCombo.GetValue()
-            if selectedValue is None:
-                selectedValue = sm.GetService('overviewPresetSvc').GetActiveOverviewPresetName()
-            filters = sm.GetService('overviewPresetSvc').GetValidGroups(presetName=selectedValue)
-        camera = sm.GetService('sceneManager').GetActiveCamera()
-        if not camera:
+        else:
+            self.busy = True
+            self.ShowLoad()
+            self.scanresult = []
+            if self.sr.useoverview.checked:
+                selectedValue = self.presetsCombo.GetValue()
+                if selectedValue is None:
+                    selectedValue = sm.GetService('overviewPresetSvc').GetActiveOverviewPresetName()
+                filters = sm.GetService('overviewPresetSvc').GetValidGroups(presetName=selectedValue)
+            camera = sm.GetService('sceneManager').GetActiveCamera()
+            if not camera:
+                self.busy = False
+                self.HideLoad()
+                raise RuntimeError('No camera found?!')
+            vec = self.GetScanVector(camera)
+            rnge = self.dir_rangeinput.GetValue()
+            try:
+                result = self.scanSvc.ConeScan(self.scanangle, rnge * 1000, vec[0], vec[1], vec[2])
+            except (UserError, RuntimeError) as err:
+                result = None
+                self.busy = False
+                self.HideLoad()
+                raise err
+
+            settings.user.ui.Set('dir_scanrange', rnge)
+            if result:
+                bp = sm.GetService('michelle').GetBallpark()
+                if bp:
+                    for rec in result:
+                        if self.sr.useoverview.checked:
+                            if rec.groupID not in filters:
+                                continue
+                        if rec.id in bp.balls:
+                            self.scanresult.append([None, bp.balls[rec.id], rec])
+                        else:
+                            self.scanresult.append([None, None, rec])
+
+            self.ShowDirectionalSearchResult()
             self.busy = False
             self.HideLoad()
-            raise RuntimeError('No camera found?!')
-        vec = self.GetScanVector(camera)
-        rnge = self.dir_rangeinput.GetValue()
-        try:
-            result = self.scanSvc.ConeScan(self.scanangle, rnge * 1000, vec[0], vec[1], vec[2])
-        except (UserError, RuntimeError) as err:
-            result = None
-            self.busy = False
-            self.HideLoad()
-            raise err
-
-        settings.user.ui.Set('dir_scanrange', rnge)
-        if result:
-            bp = sm.GetService('michelle').GetBallpark()
-            if bp:
-                for rec in result:
-                    if self.sr.useoverview.checked:
-                        if rec.groupID not in filters:
-                            continue
-                    if rec.id in bp.balls:
-                        self.scanresult.append([None, bp.balls[rec.id], rec])
-                    else:
-                        self.scanresult.append([None, None, rec])
-
-        self.ShowDirectionalSearchResult()
-        self.busy = False
-        self.HideLoad()
+            return
 
     def GetScanVector(self, camera):
         rotQuat = camera.GetRotationQuat()
@@ -353,6 +359,7 @@ class DirectionalScanner(Window):
         else:
             headers = [GetByLabel('UI/Common/Name'), GetByLabel('UI/Common/Type'), GetByLabel('UI/Common/Distance')]
         self.sr.dirscroll.Load(contentList=scrolllist, headers=headers)
+        return
 
     def DirectionalResultMenu(self, entry, *args):
         if entry.sr.node.itemID:
@@ -365,6 +372,7 @@ class DirectionalScanner(Window):
         wnd = MapBrowserWnd.GetIfOpen()
         if wnd:
             wnd.SetTempAngle(angle)
+        return
 
     def EndSetSliderValue(self, *args):
         uthread.new(self.DirectionSearch)

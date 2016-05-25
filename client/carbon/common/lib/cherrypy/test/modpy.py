@@ -1,11 +1,12 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\carbon\common\lib\cherrypy\test\modpy.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\carbon\common\lib\cherrypy\test\modpy.py
 import os
 curdir = os.path.join(os.getcwd(), os.path.dirname(__file__))
 import re
 import time
 from cherrypy.test import helper
 
-def read_process(cmd, args = ''):
+def read_process(cmd, args=''):
     pipein, pipeout = os.popen4('%s %s' % (cmd, args))
     try:
         firstline = pipeout.readline()

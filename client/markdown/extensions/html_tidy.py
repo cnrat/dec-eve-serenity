@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\carbon\common\lib\markdown\extensions\html_tidy.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\carbon\common\lib\markdown\extensions\html_tidy.py
 import markdown
 try:
     import tidy
@@ -25,5 +26,5 @@ class TidyProcessor(markdown.postprocessors.Postprocessor):
         return unicode(tidy.parseString(text.encode(enc), **self.markdown.tidy_options), encoding=enc)
 
 
-def makeExtension(configs = None):
+def makeExtension(configs=None):
     return TidyExtension(configs=configs)

@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\client\script\ui\shared\neocom\calculator.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\client\script\ui\shared\neocom\calculator.py
 import sys
 import uiprimitives
 import uicontrols
@@ -178,6 +179,7 @@ class Calculator(uicontrols.Window):
         self.opStack = []
         self.lastOp = 0
         uicore.registry.SetFocus(self.sr.inpt)
+        return
 
     def SetLayout(self):
         expanded = settings.public.ui.Get('CalculatorExpanded', 1)
@@ -195,19 +197,19 @@ class Calculator(uicontrols.Window):
     def MouseDown(self, *args):
         uicore.registry.SetFocus(self.sr.inpt)
 
-    def SetInpt(self, value, new = True):
+    def SetInpt(self, value, new=True):
         self.sr.inpt.SetValue(value)
         self.newNumber = new
 
     def OnComboChange(self, combo, header, value, *args):
         self.SetInpt(value, False)
 
-    def OnInputPasted(self, paste, deleteStart = None, deleteEnd = None):
+    def OnInputPasted(self, paste, deleteStart=None, deleteEnd=None):
         self.SetInpt('0')
         for char in paste:
             self.OnCharInput(ord(char))
 
-    def OnCharInput(self, char, flag = None):
+    def OnCharInput(self, char, flag=None):
         _char = char
         text = self.sr.inpt.GetText()
         try:
@@ -278,6 +280,7 @@ class Calculator(uicontrols.Window):
         if getattr(btn, 'mem', None) is not None:
             number = str(btn.mem)
             self.SetInpt(number.replace('.', self.decimalSign), False)
+        return
 
     def GetMem1Menu(self):
         return self.GetMemMenu(self.sr.memBtn1)
@@ -349,6 +352,7 @@ class Calculator(uicontrols.Window):
         else:
             mem.hint = localization.GetByLabel('UI/Accessories/Calculator/EmptyBank', label=mem.label, empty=localization.GetByLabel('UI/Accessories/Calculator/Empty'))
         settings.public.ui.Set('CalculatorMem%s' % mem.nr, getattr(mem, 'mem', None))
+        return
 
     def CheckOperator(self):
         if str(self.stack[-1]) in self.prio.keys():

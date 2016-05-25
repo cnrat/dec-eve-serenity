@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\packages\entosis\spacecomponents\client\disruptableStationService.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\packages\entosis\spacecomponents\client\disruptableStationService.py
 import logging
 from entosis.spacecomponents.client.entosisCaptureTarget import EntosisCaptureTarget
 BRACKET_COLOR_ENABLED = (1.0, 1.0, 1.0)
@@ -30,6 +31,7 @@ class DisruptableStationService(EntosisCaptureTarget):
         if slimItem.isStationServiceEnabled is not None:
             self.isStationServiceEnabled = slimItem.isStationServiceEnabled
             self.__UpdateUI()
+        return
 
     def __UpdateUI(self):
         if self.isStationServiceEnabled is not None:
@@ -46,3 +48,4 @@ class DisruptableStationService(EntosisCaptureTarget):
             bracket = self.bracketSvc.GetBracket(self.itemID)
             if bracket is not None:
                 bracket.SetColor(*bracketColor)
+        return

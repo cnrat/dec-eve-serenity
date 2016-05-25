@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\packages\sensorsuite\overlay\signatures.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\packages\sensorsuite\overlay\signatures.py
 import math
 from carbonui.primitives.sprite import Sprite
 from carbonui.primitives.transform import Transform
@@ -6,23 +7,25 @@ from carbonui.uianimations import animations
 from inventorycommon.const import groupCosmicSignature
 import localization
 from probescanning.const import probeScanGroupSignatures
-from sensorsuite.overlay.anomalies import BaseScannableSiteData, AnomalyHandler
 from sensorsuite.overlay.brackets import SensorSuiteBracket, INNER_ICON_COLOR
+from sensorsuite.overlay.scannablesitedata import ScannableSiteData
+from sensorsuite.overlay.scannablesitehandler import ScannableSiteHandler
 from sensorsuite.overlay.siteconst import SITE_COLOR_SIGNATURE, SITE_SIGNATURE
 from sensorsuite.overlay.sitetype import SIGNATURE
 import carbonui.const as uiconst
 
-class SignatureSiteData(BaseScannableSiteData):
+class SignatureSiteData(ScannableSiteData):
     siteType = SIGNATURE
     baseColor = SITE_COLOR_SIGNATURE
     hoverSoundEvent = 'ui_scanner_state_signature'
     scanGroupID = probeScanGroupSignatures
     groupID = groupCosmicSignature
 
-    def __init__(self, siteID, position, targetID, difficulty, deviation, signalStrength, dungeonNameID = None):
-        BaseScannableSiteData.__init__(self, siteID, position, targetID, difficulty, dungeonNameID, None, None)
+    def __init__(self, siteID, position, targetID, difficulty, deviation, signalStrength, dungeonNameID=None):
+        ScannableSiteData.__init__(self, siteID, position, targetID, difficulty, dungeonNameID, None, None)
         self.deviation = deviation
         self.signalStrength = signalStrength
+        return
 
     def IsAccurate(self):
         return self.signalStrength >= 1.0
@@ -63,8 +66,9 @@ class SignatureBracket(SensorSuiteBracket):
         self.SetOuterBracketTextures()
         if self.data.dungeonNameID is not None:
             self.UpdateSiteName(localization.GetByMessageID(self.data.dungeonNameID))
+        return
 
-    def DoEntryAnimation(self, curveSet = None, enable = False):
+    def DoEntryAnimation(self, curveSet=None, enable=False):
         self.AnimateSpinningCircleEnter(curveSet, timeOffset=0.3)
         SensorSuiteBracket.DoEntryAnimation(self, curveSet=curveSet, enable=enable)
 
@@ -84,7 +88,7 @@ class SignatureBracket(SensorSuiteBracket):
         return self.data.targetID
 
 
-class SignatureHandler(AnomalyHandler):
+class SignatureHandler(ScannableSiteHandler):
     siteType = SIGNATURE
     filterIconPath = 'res:/UI/Texture/classes/SensorSuite/diamond2.png'
     filterLabel = 'UI/Inflight/Scanner/SignatureSiteFilterLabel'

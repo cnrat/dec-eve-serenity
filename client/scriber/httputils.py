@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\packages\scriber\httputils.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\packages\scriber\httputils.py
 import datetime as pydt
 import urllib
 import urlparse
@@ -51,6 +52,7 @@ class Url(object):
                     self.file = self.path_list[-1]
                     if self.file:
                         self.file_ext = self.file.split('.')[-1]
+        return
 
     def __str__(self):
         return self.raw
@@ -106,44 +108,44 @@ class MethodParams(object):
     def __contains__(self, item):
         return self.contains(item)
 
-    def raw(self, name, default = ''):
+    def raw(self, name, default=''):
         if self.contains(name):
             return self.data[name]
         return default
 
-    def str(self, name, default = ''):
+    def str(self, name, default=''):
         if self.contains(name):
             return urllib.unquote(self.data[name])
         return default
 
-    def int(self, name, default = 0):
+    def int(self, name, default=0):
         if self.contains(name):
             return typeutils.int_eval(self.data[name], default)
         return default
 
-    def float(self, name, default = 0.0):
+    def float(self, name, default=0.0):
         if self.contains(name):
             return typeutils.float_eval(self.data[name])
         return default
 
-    def bool(self, name, default = False):
+    def bool(self, name, default=False):
         if self.contains(name):
             return typeutils.bool_eval(self.data[name])
         return default
 
-    def datetime(self, name, default = pydt.datetime.now()):
+    def datetime(self, name, default=pydt.datetime.now()):
         if self.contains(name) and self.data[name]:
             return datetimeutils.any_to_datetime(self.data[name], default)
         return default
 
-    def date(self, name, default = pydt.datetime.now().date()):
+    def date(self, name, default=pydt.datetime.now().date()):
         if self.contains(name) and self.data[name]:
             val = datetimeutils.any_to_datetime(self.data[name], default)
             if isinstance(val, pydt.datetime):
                 return val.date()
         return default
 
-    def time(self, name, default = pydt.datetime.now().time()):
+    def time(self, name, default=pydt.datetime.now().time()):
         if self.contains(name) and self.data[name]:
             val = datetimeutils.any_to_datetime(self.data[name], default)
             if isinstance(val, pydt.datetime):
@@ -156,7 +158,7 @@ class MethodParams(object):
                 return True
         return False
 
-    def list(self, name, default = ()):
+    def list(self, name, default=()):
         if self.contains(name):
             if isinstance(self.data[name], (list, tuple)):
                 return self.data[name]
@@ -164,7 +166,7 @@ class MethodParams(object):
                 return [self.data[name]]
         return default
 
-    def str_list(self, name, default = ()):
+    def str_list(self, name, default=()):
         if self.contains(name):
             if isinstance(self.data[name], (list, tuple)):
                 return [ urllib.unquote(i) for i in self.data[name] ]
@@ -172,7 +174,7 @@ class MethodParams(object):
                 return [urllib.unquote(self.data[name])]
         return default
 
-    def int_list(self, name, default = (), item_default = 0):
+    def int_list(self, name, default=(), item_default=0):
         if self.contains(name):
             if isinstance(self.data[name], (list, tuple)):
                 return [ typeutils.int_eval(i, item_default) for i in self.data[name] ]
@@ -180,7 +182,7 @@ class MethodParams(object):
                 return [typeutils.int_eval(self.data[name], item_default)]
         return default
 
-    def float_list(self, name, default = (), item_default = 0.0):
+    def float_list(self, name, default=(), item_default=0.0):
         if self.contains(name):
             if isinstance(self.data[name], (list, tuple)):
                 return [ typeutils.float_eval(i, item_default) for i in self.data[name] ]
@@ -188,7 +190,7 @@ class MethodParams(object):
                 return [typeutils.float_eval(self.data[name], item_default)]
         return default
 
-    def bool_list(self, name, default = ()):
+    def bool_list(self, name, default=()):
         if self.contains(name):
             if isinstance(self.data[name], (list, tuple)):
                 return [ typeutils.bool_eval(i) for i in self.data[name] ]
@@ -228,56 +230,56 @@ class UnifiedParams(object):
             return True
         return False
 
-    def raw(self, name, default = ''):
+    def raw(self, name, default=''):
         if self.post_data.contains(name):
             return self.post_data.raw(name)
         if self.get_data.contains(name):
             return self.get_data.raw(name)
         return default
 
-    def str(self, name, default = ''):
+    def str(self, name, default=''):
         if self.post_data.contains(name):
             return self.post_data.str(name)
         if self.get_data.contains(name):
             return self.get_data.str(name)
         return default
 
-    def int(self, name, default = 0):
+    def int(self, name, default=0):
         if self.post_data.contains(name):
             return self.post_data.int(name)
         if self.get_data.contains(name):
             return self.get_data.int(name)
         return default
 
-    def float(self, name, default = 0.0):
+    def float(self, name, default=0.0):
         if self.post_data.contains(name):
             return self.post_data.float(name)
         if self.get_data.contains(name):
             return self.get_data.float(name)
         return default
 
-    def bool(self, name, default = False):
+    def bool(self, name, default=False):
         if self.post_data.contains(name):
             return self.post_data.bool(name)
         if self.get_data.contains(name):
             return self.get_data.bool(name)
         return default
 
-    def datetime(self, name, default = pydt.datetime.now()):
+    def datetime(self, name, default=pydt.datetime.now()):
         if self.post_data.contains(name):
             return self.post_data.datetime(name, default)
         if self.get_data.contains(name):
             return self.get_data.datetime(name, default)
         return default
 
-    def date(self, name, default = pydt.datetime.now().date()):
+    def date(self, name, default=pydt.datetime.now().date()):
         if self.post_data.contains(name):
             return self.post_data.date(name, default)
         if self.get_data.contains(name):
             return self.get_data.date(name, default)
         return default
 
-    def time(self, name, default = pydt.datetime.now().time()):
+    def time(self, name, default=pydt.datetime.now().time()):
         if self.post_data.contains(name):
             return self.post_data.time(name, default)
         if self.get_data.contains(name):
@@ -293,35 +295,35 @@ class UnifiedParams(object):
                 return True
         return False
 
-    def list(self, name, default = ()):
+    def list(self, name, default=()):
         if self.post_data.contains(name):
             return self.post_data.list(name)
         if self.get_data.contains(name):
             return self.get_data.list(name)
         return default
 
-    def str_list(self, name, default = ()):
+    def str_list(self, name, default=()):
         if self.post_data.contains(name):
             return self.post_data.str_list(name)
         if self.get_data.contains(name):
             return self.get_data.str_list(name)
         return default
 
-    def int_list(self, name, default = (), item_default = 0):
+    def int_list(self, name, default=(), item_default=0):
         if self.post_data.contains(name):
             return self.post_data.int_list(name, item_default=item_default)
         if self.get_data.contains(name):
             return self.get_data.int_list(name, item_default=item_default)
         return default
 
-    def float_list(self, name, default = (), item_default = 0.0):
+    def float_list(self, name, default=(), item_default=0.0):
         if self.post_data.contains(name):
             return self.post_data.float_list(name, item_default=item_default)
         if self.get_data.contains(name):
             return self.get_data.float_list(name, item_default=item_default)
         return default
 
-    def bool_list(self, name, default = ()):
+    def bool_list(self, name, default=()):
         if self.post_data.contains(name):
             return self.post_data.bool_list(name)
         if self.get_data.contains(name):
@@ -433,7 +435,7 @@ class CherryPyRequest(AbstractRequest):
 
 class Cookie(object):
 
-    def __init__(self, name, value, max_age = None, expires = None, path = '/', domain = None, secure = False, httponly = False):
+    def __init__(self, name, value, max_age=None, expires=None, path='/', domain=None, secure=False, httponly=False):
         self.name = name
         self.value = value
         self.max_age = max_age
@@ -474,7 +476,7 @@ class AbstractResponse(object):
     RESPONSE_TYPE_REDIRECT = 3
     RESPONSE_TYPE_ERROR = 4
 
-    def __init__(self, response_type = None):
+    def __init__(self, response_type=None):
         self.headers = {}
         self.set_cookies = {}
         self.delete_cookies = []
@@ -484,8 +486,9 @@ class AbstractResponse(object):
         self.session = None
         self.data = {}
         self.original_url = ''
+        return
 
-    def add_cookie(self, name, value, max_age = None, expires = None, path = '/', domain = None, secure = False, httponly = False):
+    def add_cookie(self, name, value, max_age=None, expires=None, path='/', domain=None, secure=False, httponly=False):
         self.set_cookies[name] = Cookie(name, value, max_age, expires, path, domain, secure, httponly)
 
     def delete_cookie(self, name):
@@ -503,21 +506,21 @@ class MetaResponse(AbstractResponse):
 
 class ScriptResponse(AbstractResponse):
 
-    def __init__(self, script = ''):
+    def __init__(self, script=''):
         super(ScriptResponse, self).__init__(AbstractResponse.RESPONSE_TYPE_SCRIPT)
         self.body = script
 
 
 class StaticResponse(AbstractResponse):
 
-    def __init__(self, body = ''):
+    def __init__(self, body=''):
         super(StaticResponse, self).__init__(AbstractResponse.RESPONSE_TYPE_STATIC)
         self.body = body
 
 
 class RedirectResponse(AbstractResponse):
 
-    def __init__(self, url = '', original_url = ''):
+    def __init__(self, url='', original_url=''):
         super(RedirectResponse, self).__init__(AbstractResponse.RESPONSE_TYPE_REDIRECT)
         self.body = url
         self.original_url = original_url
@@ -525,7 +528,7 @@ class RedirectResponse(AbstractResponse):
 
 class ErrorResponse(AbstractResponse):
 
-    def __init__(self, message = ''):
+    def __init__(self, message=''):
         super(ErrorResponse, self).__init__(AbstractResponse.RESPONSE_TYPE_ERROR)
         self.body = message
 
@@ -533,22 +536,23 @@ class ErrorResponse(AbstractResponse):
 def parse_request(request):
     if isinstance(request, AbstractRequest):
         return request
-    request_class = getattr(request, '__class__', None)
-    if request_class:
-        class_name = str(request_class)
-        if class_name.startswith("<class '"):
-            class_name = class_name[8:]
-        if class_name.endswith("'>"):
-            class_name = class_name[:-2]
-        if class_name.endswith('.net.httpService.Request'):
-            return MoonshineRequest(request)
-        if class_name.startswith('cherrypy.'):
-            return CherryPyRequest(request)
-        if class_name.startswith('django.'):
-            return DjangoRequest(request)
-        log.error('Unknown class_name: %s=' % class_name)
-    log.error('Unknown http request type: %s=%r' % (request_class, request))
-    return request
+    else:
+        request_class = getattr(request, '__class__', None)
+        if request_class:
+            class_name = str(request_class)
+            if class_name.startswith("<class '"):
+                class_name = class_name[8:]
+            if class_name.endswith("'>"):
+                class_name = class_name[:-2]
+            if class_name.endswith('.net.httpService.Request'):
+                return MoonshineRequest(request)
+            if class_name.startswith('cherrypy.'):
+                return CherryPyRequest(request)
+            if class_name.startswith('django.'):
+                return DjangoRequest(request)
+            log.error('Unknown class_name: %s=' % class_name)
+        log.error('Unknown http request type: %s=%r' % (request_class, request))
+        return request
 
 
 def url_append_qs(url, **kwargs):

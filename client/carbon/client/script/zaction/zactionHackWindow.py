@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\carbon\client\script\zaction\zactionHackWindow.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\carbon\client\script\zaction\zactionHackWindow.py
 import uiprimitives
 import uicontrols
 import base
@@ -55,10 +56,12 @@ class ZactionHackWindow(uicontrols.Window):
         self.forceButton = uicontrols.Button(parent=self.rightButtonContainer, align=uiconst.CENTER, label='Force Action!', func=self.ForceAction, pos=(0, 0, 0, 0))
         sm.RegisterNotify(self)
         self.sr.updateTimer = base.AutoTimer(100, self._UpdateCurrentAction)
+        return
 
     def _OnClose(self, *args):
         uicontrols.Window._OnClose(self, *args)
         self.sr.updateTimer = None
+        return
 
     def _GetAvailableActions(self):
         contentList = []

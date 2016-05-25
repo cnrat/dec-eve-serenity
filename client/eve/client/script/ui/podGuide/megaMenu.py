@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\client\script\ui\podGuide\megaMenu.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\client\script\ui\podGuide\megaMenu.py
 from carbonui.primitives.container import Container
 from carbonui.primitives.frame import Frame
 from carbonui.primitives.layoutGrid import LayoutGrid
@@ -39,6 +40,7 @@ class MegaMenu(Container):
     def Close(self, *args):
         Container.Close(self, *args)
         self.updateThread = None
+        return
 
     def UpdateMegaMenu(self, *args):
         if self.beingDestroyed:

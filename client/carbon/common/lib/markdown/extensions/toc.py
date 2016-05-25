@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\carbon\common\lib\markdown\extensions\toc.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\carbon\common\lib\markdown\extensions\toc.py
 import markdown
 from markdown.util import etree
 from markdown.extensions.headerid import slugify, unique, itertext
@@ -94,6 +95,7 @@ class TocTreeprocessor(markdown.treeprocessors.Treeprocessor):
                 toc = pp.run(toc)
 
             self.markdown.toc = toc
+        return
 
 
 class TocExtension(markdown.Extension):
@@ -106,11 +108,13 @@ class TocExtension(markdown.Extension):
         for key, value in configs:
             self.setConfig(key, value)
 
+        return
+
     def extendMarkdown(self, md, md_globals):
         tocext = TocTreeprocessor(md)
         tocext.config = self.getConfigs()
         md.treeprocessors.add('toc', tocext, '<prettify')
 
 
-def makeExtension(configs = {}):
+def makeExtension(configs={}):
     return TocExtension(configs=configs)

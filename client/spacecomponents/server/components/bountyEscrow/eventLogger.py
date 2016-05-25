@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\packages\spacecomponents\server\components\bountyEscrow\eventLogger.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\packages\spacecomponents\server\components\bountyEscrow\eventLogger.py
 from eveexceptions.exceptionEater import ExceptionEater
 EVENT_PAYISK = 'spacecomponent::iskMover_PayIsk'
 EVENT_CREATEITEMS = 'spacecomponent::itemCreator_CreateItems'

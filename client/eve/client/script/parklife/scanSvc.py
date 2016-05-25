@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\client\script\parklife\scanSvc.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\client\script\parklife\scanSvc.py
 import evetypes
 import service
 import util
@@ -74,6 +75,7 @@ class ScanSvc(service.Service):
         self.scanGroups[const.probeScanGroupShips] = localization.GetByLabel('UI/Inflight/Scanner/Ship')
         self.scanGroups[const.probeScanGroupStructures] = localization.GetByLabel('UI/Inflight/Scanner/Structure')
         self.scanGroups[const.probeScanGroupDronesAndProbes] = localization.GetByLabel('UI/Inflight/Scanner/DroneAndProbe')
+        return
 
     def GetScanMan(self):
         if self.remoteObject is None:
@@ -132,6 +134,7 @@ class ScanSvc(service.Service):
         probeIDs = probes.keys() if probes is not None else [session.shipid]
         self.scanHandler.SetProbesAsScanning(probeIDs)
         self.probeTracker.SetProbesAsMoving(probes)
+        return
 
     def OnProbeStateChanged(self, probeID, probeState):
         self.probeTracker.OnProbeStateChanged(probeID, probeState)
@@ -152,7 +155,9 @@ class ScanSvc(service.Service):
         resultIDs = self.GetIgnoredResults()
         descList = []
         for id in resultIDs:
-            descList.append((id, self.GetDisplayName(self.scanHandler.resultsHistory.GetResult(id))))
+            result = self.scanHandler.resultsHistory.GetResult(id)
+            if result.id:
+                descList.append((id, self.GetDisplayName(result)))
 
         return descList
 
@@ -162,8 +167,9 @@ class ScanSvc(service.Service):
     def OnProbesIdle(self, probes):
         self.probeTracker.OnProbesIdle(probes)
 
-    def UpdateProbeState(self, probeID, state, caller = None, notify = True):
+    def UpdateProbeState(self, probeID, state, caller=None, notify=True):
         self.probeTracker.UpdateProbeState(probeID, state, caller=None, notify=True)
+        return
 
     def UpdateProbePosition(self, probeID, position):
         self.probeTracker.UpdateProbePosition(probeID, position)
@@ -220,11 +226,13 @@ class ScanSvc(service.Service):
             snooze = (RECONNECT_DELAY_MINUTES * const.MIN - (blue.os.GetSimTime() - self.lastReconnection)) / const.MSEC
 
         sm.ScatterEvent('OnReconnectToProbesAvailable')
+        return
 
     def CanClaimProbes(self):
         if self.HasOnlineProbeLauncher() and (self.lastReconnection is None or blue.os.GetSimTime() - self.lastReconnection > RECONNECT_DELAY_MINUTES * const.MIN):
             return True
-        return False
+        else:
+            return False
 
     def HasOnlineProbeLauncher(self):
         shipItem = sm.GetService('godma').GetStateManager().GetItem(session.shipid)
@@ -258,7 +266,7 @@ class ScanSvc(service.Service):
         self.LogInfo('OnScannerInfoRemoved received: flushing scanner state')
         self.FlushScannerState()
 
-    def FlushScannerState(self, reinjectSites = True):
+    def FlushScannerState(self, reinjectSites=True):
         self.LogInfo('FlushScannerState: resetting state and scattering OnScannerDisconnected')
         self.probeTracker.Refresh()
         self.scanHandler = scanHandler.ScanHandler(self, sm.ScatterEvent, self.resultFilter)
@@ -269,38 +277,40 @@ class ScanSvc(service.Service):
         sm.StartService('audio').SendUIEvent(unicode('wise:/msg_scanner_moving_stop'))
         sm.StartService('audio').SendUIEvent(unicode('wise:/msg_scanner_analyzing_stop'))
         sm.ScatterEvent('OnScannerDisconnected')
+        return
 
     def IsScanning(self):
         self.scanHandler.IsScanning()
 
-    def GetProbeMenu(self, probeID, probeIDs = None, *args):
+    def GetProbeMenu(self, probeID, probeIDs=None, *args):
         menu = []
         if probeID == eve.session.shipid:
             return menu
-        bp = sm.StartService('michelle').GetBallpark(doWait=True)
-        if bp is None:
-            return menu
-        probeIDs = probeIDs or [probeID]
-        if probeID not in probeIDs:
-            probeIDs.append(probeID)
-        if eve.session.role & (service.ROLE_GML | service.ROLE_WORLDMOD):
-            menu.append(('CopyID', self._GMCopyID, (probeID,)))
-            menu.append(None)
-        if self.IsProbeActive(probeID):
-            menu.append((uiutil.MenuLabel('UI/Inflight/Scanner/DeactivateProbe'), self.SetProbeActiveStateOff_Check, (probeID, probeIDs)))
         else:
-            menu.append((uiutil.MenuLabel('UI/Inflight/Scanner/ActivateProbe'), self.SetProbeActiveStateOn_Check, (probeID, probeIDs)))
-        probes = self.GetProbeData()
-        if probeID in probes:
-            probe = probes[probeID]
-            scanRanges = self.GetScanRangeStepsByTypeID(probe.typeID)
-            menu.append((uiutil.MenuLabel('UI/Inflight/Scanner/ScanRange'), [ (util.FmtDist(range), self.SetScanRange_Check, (probeID,
-               probeIDs,
-               range,
-               index + 1)) for index, range in enumerate(scanRanges) ]))
-        menu.append((uiutil.MenuLabel('UI/Inflight/Scanner/RecoverProbe'), self.RecoverProbe_Check, (probeID, probeIDs)))
-        menu.append((uiutil.MenuLabel('UI/Inflight/Scanner/DestroyProbe'), self.DestroyProbe_Check, (probeID, probeIDs)))
-        return menu
+            bp = sm.StartService('michelle').GetBallpark(doWait=True)
+            if bp is None:
+                return menu
+            probeIDs = probeIDs or [probeID]
+            if probeID not in probeIDs:
+                probeIDs.append(probeID)
+            if eve.session.role & (service.ROLE_GML | service.ROLE_WORLDMOD):
+                menu.append(('CopyID', self._GMCopyID, (probeID,)))
+                menu.append(None)
+            if self.IsProbeActive(probeID):
+                menu.append((uiutil.MenuLabel('UI/Inflight/Scanner/DeactivateProbe'), self.SetProbeActiveStateOff_Check, (probeID, probeIDs)))
+            else:
+                menu.append((uiutil.MenuLabel('UI/Inflight/Scanner/ActivateProbe'), self.SetProbeActiveStateOn_Check, (probeID, probeIDs)))
+            probes = self.GetProbeData()
+            if probeID in probes:
+                probe = probes[probeID]
+                scanRanges = self.GetScanRangeStepsByTypeID(probe.typeID)
+                menu.append((uiutil.MenuLabel('UI/Inflight/Scanner/ScanRange'), [ (util.FmtDist(range), self.SetScanRange_Check, (probeID,
+                   probeIDs,
+                   range,
+                   index + 1)) for index, range in enumerate(scanRanges) ]))
+            menu.append((uiutil.MenuLabel('UI/Inflight/Scanner/RecoverProbe'), self.RecoverProbe_Check, (probeID, probeIDs)))
+            menu.append((uiutil.MenuLabel('UI/Inflight/Scanner/DestroyProbe'), self.DestroyProbe_Check, (probeID, probeIDs)))
+            return menu
 
     def _GMCopyID(self, id):
         blue.pyos.SetClipboardData(str(id))
@@ -366,6 +376,8 @@ class ScanSvc(service.Service):
                 if module.groupID == const.groupScanProbeLauncher:
                     return module
 
+        return None
+
     def FindModuleAndLaunchProbes(self, numProbes):
         ship = self.godma.GetItem(session.shipid)
         module = self.GetProbeLauncher()
@@ -384,7 +396,8 @@ class ScanSvc(service.Service):
         charge = self.godma.GetStateManager().GetSubLocation(session.shipid, flagID)
         if charge is None:
             return 0
-        return charge.quantity
+        else:
+            return charge.quantity
 
     def CanLaunchFormation(self, formationID):
         charges = self.GetChargesInProbeLauncher()
@@ -457,7 +470,7 @@ class ScanSvc(service.Service):
     def DeleteFilter(self, filterID):
         self.resultFilter.DeleteFilter(filterID)
 
-    def GetResults(self, useFilterSet = False):
+    def GetResults(self, useFilterSet=False):
         results, ignored, filtered, anomalies = self.scanHandler.GetResults(useFilterSet)
         results = [ util.KeyVal(**r) for r in results ]
         return (results,
@@ -503,6 +516,7 @@ class ScanSvc(service.Service):
             return evetypes.GetGroupNameByGroup(result.groupID)
         else:
             return ''
+            return
 
     def GetExplorationSiteType(self, attributeID):
         label = const.EXPLORATION_SITE_TYPES[attributeID]
@@ -526,7 +540,7 @@ class ScanSvc(service.Service):
     def GetResultForTargetID(self, targetID):
         return self.scanHandler.resultsHistory.GetResultAsDict(targetID)
 
-    def GetIgnoreResultMenu(self, targetID, scanGroupID = None):
+    def GetIgnoreResultMenu(self, targetID, scanGroupID=None):
         menu = []
         menu.append(None)
         menuSvc = sm.GetService('menu')
@@ -556,8 +570,9 @@ class ScanSvc(service.Service):
         if self.michelle.IsPositionWithinWarpDistance(scanResult.position):
             menu.extend(sm.GetService('menu').SolarsystemScanMenu(scanResult.targetID))
             menu.append(None)
+        _scanResultNameID, scanResultName = scanResult.GetScanName()
         menu.extend(self.GetAlignToMenu(scanResult.position))
-        bookmarkData = util.KeyVal(id=scanResult.targetID, position=scanResult.position, name=localization.GetByMessageID(scanResult.dungeonNameID))
+        bookmarkData = util.KeyVal(id=scanResult.targetID, position=scanResult.position, name=scanResultName)
         menu.append((uiutil.MenuLabel('UI/Inflight/BookmarkLocation'), sm.GetService('addressbook').BookmarkLocationPopup, (session.solarsystemid,
           None,
           None,
@@ -593,6 +608,7 @@ class ScanSvc(service.Service):
         wnd = Scanner.GetIfOpen()
         if wnd is not None:
             wnd.LoadFilterOptionsAndResults()
+        return
 
     def IsShowingAnomalies(self):
         return self.resultFilter.IsShowingAnomalies()

@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\client\script\ui\shared\neocom\neocom\neocom.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\client\script\ui\shared\neocom\neocom\neocom.py
 import carbonui.const as uiconst
 from carbonui.primitives.fill import Fill
 from eve.client.script.ui.control.resourceLoadingIndicator import ResourceLoadingIndicator
@@ -25,7 +26,8 @@ class Neocom(uiprimitives.Container):
      'OnEveMenuOpened',
      'OnEveMenuClosed',
      'OnCameraDragStart',
-     'OnCameraDragEnd']
+     'OnCameraDragEnd',
+     'OnQuestCompletedClient']
     default_name = 'Neocom'
     default_align = uiconst.TOLEFT
     default_state = uiconst.UI_NORMAL
@@ -65,6 +67,8 @@ class Neocom(uiprimitives.Container):
             except ServiceNotFound:
                 pass
 
+        return
+
     def _ConstructBackground(self):
         self.bgGradient = uicontrols.GradientSprite(bgParent=self, rgbData=((0, (1.0, 1.0, 1.0)),), alphaData=((0.0, 0.0), (1.0, 0.07)))
         self.blurredUnderlay = BlurredSceneUnderlay(bgParent=self, isPinned=True, isInFocus=True)
@@ -90,6 +94,7 @@ class Neocom(uiprimitives.Container):
             self.resizeLine.cursor = None
         else:
             self.resizeLine.cursor = uiconst.UICURSOR_LEFT_RIGHT_DRAG
+        return
 
     def OnReisizeLineMouseDown(self, *args):
         if not self.IsSizeLocked():
@@ -188,6 +193,7 @@ class Neocom(uiprimitives.Container):
         self.CheckOverflow()
         self.dragOverBtn = None
         sm.GetService('neocom').OnNeocomButtonsRecreated()
+        return
 
     def CheckOverflow(self):
         self.overflowButtons = []
@@ -288,6 +294,7 @@ class Neocom(uiprimitives.Container):
         self.buttonDragOffset = None
         btnUI.SetCorrectPosition()
         btnUI.isDragging = False
+        return
 
     def AddToFolder(self, btnUI, folderBtnUI, *args):
         btnUI.btnData.MoveTo(folderBtnUI.btnData)
@@ -306,6 +313,7 @@ class Neocom(uiprimitives.Container):
                 self.UpdateButtonPositions()
         else:
             self.dragOverBtn = None
+        return
 
     def UpdateButtonPositions(self):
         for btn in self.buttonCont.children:
@@ -313,20 +321,22 @@ class Neocom(uiprimitives.Container):
                 continue
             btn.SetCorrectPosition()
 
-    def _GetButtonByXCoord(self, x, offset = True):
+    def _GetButtonByXCoord(self, x, offset=True):
         buttons = sm.GetService('neocom').GetButtonData()
         if not buttons:
             return None
-        maxval = len(buttons)
-        if offset:
-            x += self.width / 2
-        index = max(0, x / self.width)
-        if index < maxval:
-            btnData = buttons[index]
-            button = btnData.btnUI
-            if button.display and not button.isDragging:
-                return button
         else:
+            maxval = len(buttons)
+            if offset:
+                x += self.width / 2
+            index = max(0, x / self.width)
+            if index < maxval:
+                btnData = buttons[index]
+                button = btnData.btnUI
+                if button.display and not button.isDragging:
+                    return button
+            else:
+                return None
             return None
 
     def OnButtonDragged(self, btn):
@@ -340,6 +350,7 @@ class Neocom(uiprimitives.Container):
         btn.top = max(minval, min(relY - self.buttonDragOffset, maxval))
         btn.isDragging = True
         self._CheckSwitch(btn)
+        return
 
     def OnHeadNodeChanged(self, id):
         if id == 'neocom':
@@ -357,7 +368,7 @@ class Neocom(uiprimitives.Container):
         uicore.animations.MorphScalar(self, 'left', self.left, endVal, duration=0.7)
         self.isHidden = True
 
-    def UnhideNeocom(self, sleep = False):
+    def UnhideNeocom(self, sleep=False):
         if not self.isHidden:
             return
         uicore.animations.MorphScalar(self, 'left', self.left, 0, duration=0.2, sleep=sleep)
@@ -410,3 +421,12 @@ class Neocom(uiprimitives.Container):
     def OnEveMenuClosed(self):
         for btn in self.buttonCont.children:
             uicore.animations.FadeTo(btn, btn.opacity, 1.0, duration=0.3)
+
+    def OnQuestCompletedClient(self, quest):
+        uthread.new(self._BlinkSkillQueueThreeTimes)
+
+    def _BlinkSkillQueueThreeTimes(self):
+        for _ in range(3):
+            if not self.skillTrainingCont.isBlinking:
+                self.skillTrainingCont.BlinkOnce()
+            blue.synchro.SleepWallclock(1000)

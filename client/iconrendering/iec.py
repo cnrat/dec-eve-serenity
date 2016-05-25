@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\packages\iconrendering\iec.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\packages\iconrendering\iec.py
 import os
 import platform
 import time
@@ -10,7 +11,7 @@ DO_RENDER_TYPES32 = 'Types32'
 DO_RENDER_TYPES64 = 'Types64'
 DO_RENDER_ICONS = 'Icons'
 
-def DoRender(mgr, takeonly = 'unknown', whatToRender = DO_RENDER_ALL, logger = None):
+def DoRender(mgr, takeonly='unknown', whatToRender=DO_RENDER_ALL, logger=None):
     starttime = time.clock()
     if whatToRender == DO_RENDER_ALL:
         mgr.RenderIEC()

@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\client\script\ui\shared\info\panels\panelFitting.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\client\script\ui\shared\info\panels\panelFitting.py
 import collections
 import itertools
 import const
@@ -31,10 +32,10 @@ FITTING_SLOT_INFO = [{'label': 'UI/InfoWindow/FittingHighPowerSlot',
   'attributeID': const.attributeUpgradeSlotsLeft,
   'flags': const.rigSlotFlags,
   'effectID': const.effectRigSlot},
- {'label': 'UI/InfoWindow/FittingSubsystemSlots',
-  'attributeID': const.attributeMaxSubSystems,
-  'flags': const.subSystemSlotFlags,
-  'effectID': const.effectSubSystem}]
+ {'label': 'UI/InfoWindow/FittingServiceSlots',
+  'attributeID': const.attributeServiceSlots,
+  'flags': const.serviceSlotFlags,
+  'effectID': const.effectServiceSlot}]
 
 class PanelFitting(Container):
 
@@ -49,6 +50,7 @@ class PanelFitting(Container):
             dogmaLocation = sm.GetService('clientDogmaIM').GetDogmaLocation()
             if dogmaLocation.IsItemLoaded(self.itemID):
                 self.item = dogmaLocation.GetItem(self.itemID)
+        return
 
     def Load(self):
         self.Flush()
@@ -95,6 +97,7 @@ class PanelFitting(Container):
         sortedEntryList.append(self.GetHardpointsEntry(turretSlotsUsed, launcherSlotsUsed))
         sortedEntryList.extend(uiutil.SortListOfTuples(entryList))
         fittingScroll.Load(contentList=filter(None, sortedEntryList))
+        return
 
     def GetFittingSlotEntry(self, slotInfo, moduleCount):
         slotCount = self.GetTotalSlotCount(slotInfo)
@@ -116,8 +119,9 @@ class PanelFitting(Container):
              'line': 1}
             entry = listentry.Get('LabelTextSides', data)
             return entry
+            return
 
-    def GetFittingEntry(self, typeID, quantity, isCharge = False):
+    def GetFittingEntry(self, typeID, quantity, isCharge=False):
         itemName = evetypes.GetName(typeID)
         if quantity > 1:
             label = GetByLabel('UI/InfoWindow/FittingItemLabelWithQuantity', quantity=quantity, itemName=itemName)
@@ -138,12 +142,13 @@ class PanelFitting(Container):
             launcherSlotCount += launcherSlotsUsed
         if turretSlotCount <= 0 and launcherSlotCount <= 0:
             return None
-        data = {'turretSlotsUsed': turretSlotsUsed,
-         'turretSlotCount': turretSlotCount,
-         'launcherSlotsUsed': launcherSlotsUsed,
-         'launcherSlotCount': launcherSlotCount}
-        entry = listentry.Get(decoClass=TurretAndLauncherSlotEntry, data=data)
-        return entry
+        else:
+            data = {'turretSlotsUsed': turretSlotsUsed,
+             'turretSlotCount': turretSlotCount,
+             'launcherSlotsUsed': launcherSlotsUsed,
+             'launcherSlotCount': launcherSlotCount}
+            entry = listentry.Get(decoClass=TurretAndLauncherSlotEntry, data=data)
+            return entry
 
     def GetTotalSlotCount(self, slotInfo):
         if slotInfo['attributeID'] == const.attributeUpgradeSlotsLeft:
@@ -167,10 +172,11 @@ class PanelFitting(Container):
                 return shipinfo.inventory.List()
         if self.item is None:
             return []
-        if self.item.ownerID == session.charid and util.IsStation(self.item.locationID):
+        elif self.item.ownerID == session.charid and util.IsStation(self.item.locationID):
             inventoryMgr = sm.GetService('invCache').GetInventoryMgr()
             return inventoryMgr.GetContainerContents(self.item.itemID, self.item.locationID)
-        return []
+        else:
+            return []
 
     def GetAttributeValue(self, attributeID):
         dogmaLocation = sm.GetService('clientDogmaIM').GetDogmaLocation()
@@ -255,7 +261,6 @@ class TurretAndLauncherSlotEntry(SE_BaseClassCore):
     def GetHeight(self, *args):
         node, width = args
         node.height = 30
-        return 30
 
     def LoadTooltipPanelForTurret(self, tooltipPanel, *args):
         turretsFitted = int(self.sr.node.get('turretSlotsUsed', 0))

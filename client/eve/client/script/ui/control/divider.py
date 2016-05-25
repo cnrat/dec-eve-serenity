@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\client\script\ui\control\divider.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\client\script\ui\control\divider.py
 import carbonui.const as uiconst
 import uiprimitives
 
@@ -16,8 +17,9 @@ class Divider(uiprimitives.Container):
         self.OnSizeChanged = None
         self.OnSizeChanging = None
         self.OnSizeChangeStarting = None
+        return
 
-    def Startup(self, victim, attribute, xory, minValue = 1, maxValue = 1600):
+    def Startup(self, victim, attribute, xory, minValue=1, maxValue=1600):
         self.sr.victim = victim
         self.attribute = attribute
         self.xory = xory
@@ -35,11 +37,12 @@ class Divider(uiprimitives.Container):
         self.dragging = 0
         self.OnSizeChanged()
 
-    def SetMinMax(self, minValue = None, maxValue = None):
+    def SetMinMax(self, minValue=None, maxValue=None):
         if minValue is not None:
             self.min = minValue
         if maxValue is not None:
             self.max = maxValue
+        return
 
     def OnMouseMove(self, *args):
         if self.dragging:
@@ -103,6 +106,7 @@ class DividedContainer(uiprimitives.Container):
         splitter.OnMouseMove = self.OnSplitterMouseMove
         self.splitter = splitter
         self.setupDone = True
+        return
 
     def OnSplitterMouseDown(self, *args):
         self.dragging = 1
@@ -122,6 +126,7 @@ class DividedContainer(uiprimitives.Container):
         self.dragging = 0
         self.totalValue = None
         self.OnSizeChanged()
+        return
 
     def OnSplitterMouseMove(self, *args):
         if self.dragging:
@@ -148,6 +153,7 @@ class DividedContainer(uiprimitives.Container):
             self.victimValue = newValue
             self.victimRatio = float(newValue) / self.totalValue
             self.OnSizeChanging()
+        return
 
     def _OnResize(self, *args):
         uiprimitives.Container._OnResize(self)
@@ -189,3 +195,4 @@ class DividedContainer(uiprimitives.Container):
         self.OnSizeChanged = None
         self.OnSizeChanging = None
         self.OnSizeChangeStarting = None
+        return

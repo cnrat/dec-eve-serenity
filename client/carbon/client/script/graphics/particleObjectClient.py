@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\carbon\client\script\graphics\particleObjectClient.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\carbon\client\script\graphics\particleObjectClient.py
 import cef
 import service
 import trinity
@@ -20,6 +21,7 @@ class ParticleObjectComponent:
         self.maxParticleRadius = 0
         self.shBoundsMin = (0, 0, 0)
         self.shBoundsMax = (0, 0, 0)
+        return
 
 
 class ParticleObjectClient(service.Service):
@@ -69,7 +71,9 @@ class ParticleObjectClient(service.Service):
     def SetupComponent(self, entity, component):
         if component.trinityObject is None:
             return
-        self.AddToScene(entity, component)
+        else:
+            self.AddToScene(entity, component)
+            return
 
     def AddToScene(self, entity, component):
         if component.trinityObject is None:
@@ -83,6 +87,7 @@ class ParticleObjectClient(service.Service):
         if positionComponent:
             component.callback = GameWorld.PlacementObserverWrapper(component.trinityObject)
             positionComponent.RegisterPlacementObserverWrapper(component.callback)
+        return
 
     def RegisterComponent(self, entity, component):
         self.particleObjectEntities.add(entity)
@@ -92,8 +97,10 @@ class ParticleObjectClient(service.Service):
             self.particleObjectEntities.remove(entity)
         if component.trinityObject is None:
             return
-        self.RemoveFromScene(entity, component)
-        component.destroyed = True
+        else:
+            self.RemoveFromScene(entity, component)
+            component.destroyed = True
+            return
 
     def RemoveFromScene(self, entity, component):
         if component.callback is not None and entity.HasComponent('position'):
@@ -103,6 +110,7 @@ class ParticleObjectClient(service.Service):
         if scene:
             scene.RemoveDynamic(component.trinityObject)
         component.trinityObject = None
+        return
 
     def OnGraphicSettingsChanged(self, changes):
         particlesEnabled = sm.GetService('device').GetAppFeatureState('Interior.ParticlesEnabled', True)
@@ -113,3 +121,5 @@ class ParticleObjectClient(service.Service):
                     self.RemoveFromScene(entity, particleComponent)
                 elif particlesEnabled and particleComponent.trinityObject is None:
                     self.AddToScene(entity, particleComponent)
+
+        return

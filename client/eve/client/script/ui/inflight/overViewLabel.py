@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\client\script\ui\inflight\overViewLabel.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\client\script\ui\inflight\overViewLabel.py
 import blue
 from eve.client.script.ui.control.themeColored import FillThemeColored, LineThemeColored
 import uthread
@@ -125,6 +126,7 @@ class OverviewLabel(uiprimitives.VisibleBase):
                     self.renderObject.textWidth = measurer.cursorX
                 self.height = self.ReverseScaleDpi(measurer.ascender - measurer.descender)
                 self.renderObject.textHeight = measurer.ascender - measurer.descender
+            return
 
         return property(**locals())
 
@@ -238,6 +240,7 @@ class SortHeaders(uiprimitives.Container):
         self.fixedColumns = None
         self.defaultColumn = None
         self.minSizeByColumnID = {}
+        return
 
     def SetDefaultColumn(self, columnID, direction):
         self.defaultColumn = (columnID, direction)
@@ -245,7 +248,7 @@ class SortHeaders(uiprimitives.Container):
     def SetMinSizeByColumnID(self, minSizes):
         self.minSizeByColumnID = minSizes
 
-    def CreateColumns(self, columns, fixedColumns = None):
+    def CreateColumns(self, columns, fixedColumns=None):
         self.headerContainer.Flush()
         self.columnIDs = columns
         self.fixedColumns = fixedColumns
@@ -279,6 +282,7 @@ class SortHeaders(uiprimitives.Container):
                 header.fill = FillThemeColored(parent=header, colorType=uiconst.COLORTYPE_UIHILIGHT, padLeft=-1, padRight=-1, opacity=0.75)
 
             self.UpdateActiveState()
+        return
 
     def SetSortIcon(self, texturePath):
         if self.customSortIcon != texturePath:
@@ -316,6 +320,8 @@ class SortHeaders(uiprimitives.Container):
                 else:
                     each.hint = None
 
+        return
+
     def GetCurrentColumns(self):
         return self.columnIDs
 
@@ -330,15 +336,16 @@ class SortHeaders(uiprimitives.Container):
                     currentActive, currentDirection = self.columnIDs[0], True
                 return (None, True)
             return (currentActive, currentDirection)
-        if self.defaultColumn is not None:
-            columnID, direction = self.defaultColumn
-            if columnID in self.columnIDs:
-                return self.defaultColumn
-        if self.columnIDs:
-            currentActive, currentDirection = self.columnIDs[0], True
-        return (currentActive, currentDirection)
+        else:
+            if self.defaultColumn is not None:
+                columnID, direction = self.defaultColumn
+                if columnID in self.columnIDs:
+                    return self.defaultColumn
+            if self.columnIDs:
+                currentActive, currentDirection = self.columnIDs[0], True
+            return (currentActive, currentDirection)
 
-    def SetCurrentActive(self, columnID, doCallback = True):
+    def SetCurrentActive(self, columnID, doCallback=True):
         currentActive, currentDirection = self.GetCurrentActive()
         if currentActive == columnID:
             sortDirection = not currentDirection

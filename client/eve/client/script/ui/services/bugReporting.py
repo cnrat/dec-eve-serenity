@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\client\script\ui\services\bugReporting.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\client\script\ui\services\bugReporting.py
 from eve.client.script.ui.control.eveLoadingWheel import LoadingWheel
 from service import Service, ROLE_GML
 import const
@@ -21,6 +22,8 @@ import mimetools
 import base
 from cStringIO import StringIO
 import gatekeeper
+import webbrowser
+from localization import GetByLabel
 from eveexceptions.exceptionEater import ExceptionEater
 import uicls
 import carbonui.const as uiconst
@@ -112,6 +115,7 @@ class BugReportingService(Service):
         self.screenshots = []
         self.wnd = None
         self.categories = None
+        return
 
     def StartCreateBugReport(self):
         self.OpenWindow()
@@ -155,6 +159,8 @@ class BugReportingService(Service):
                 subprocess.Popen(['dxdiag.exe', '/t', self.dxDiagFileName])
             except:
                 self.dxDiagFileName = None
+
+        return
 
     def SaveToDisk(self, data):
         data['screenshots'] = self.screenshots
@@ -243,7 +249,7 @@ class BugReportingService(Service):
             fileName = self.outputFolder + SCREENSHOT_NAME % blue.os.GetTime()
         return fileName
 
-    def GetScreenshot(self, n = None):
+    def GetScreenshot(self, n=None):
         if n > NUM_SCREENSHOTS - 1 or n is None and len(self.screenshots) >= NUM_SCREENSHOTS:
             raise UserError('CustomInfo', {'info': 'You have reached the maximum number of screenshots. Please delete a screenshot before grabbing abother one.'})
         fileName = self.GetScreenshotPath(n)
@@ -260,6 +266,7 @@ class BugReportingService(Service):
         self.wnd.Show()
         self.wnd.DoEditScreenshot(n)
         self.wnd.UpdateScreenshotButtons()
+        return
 
     def DeleteScreenshot(self, n):
         fileName = self.screenshots[n]
@@ -374,6 +381,15 @@ class BugReportingService(Service):
                 ret.append(language)
         if 'graphic' in categoryName:
             ret.append(trinity.platform)
+        platform = 'PlatformWin'
+        if blue.sysinfo.isTransgaming:
+            platform = 'PlatformMac'
+        elif blue.sysinfo.isWine:
+            if blue.sysinfo.wineHostOs.startswith('Darwin'):
+                platform = 'PlatformMac'
+            else:
+                platform = 'PlatformLinux'
+        ret.append(platform)
         return ret
 
     def SendDefectOrBugReport(self, data):
@@ -456,11 +472,12 @@ class BugReportingService(Service):
     def GetContentType(self, filename):
         return mimetypes.guess_type(filename)[0] or 'application/octet-stream'
 
-    def GetDefault(self, key, default = None):
+    def GetDefault(self, key, default=None):
         v = prefs.GetValue('bugReporting_%s' % key, None)
         if v:
             return v
-        return default
+        else:
+            return default
 
     def GetCategories(self):
         if self.categories is None:
@@ -484,13 +501,13 @@ class BugReportingWindow(uicontrols.Window):
         self.service.Init()
         self.screenshotWindow = None
         self.RegisterPositionTraceKeyEvents()
-        windowHeight = 430
-        caption = 'Report Bug'
+        windowHeight = 440
+        caption = GetByLabel('UI/BugReporting/ReportBug')
         self.SetTopparentHeight(0)
         self.SetCaption(caption)
-        self.SetMinSize((680, windowHeight))
+        self.SetMinSize((820, windowHeight))
         self.height = windowHeight
-        self.btns = uicontrols.ButtonGroup(btns=[('SEND',
+        self.btns = uicontrols.ButtonGroup(btns=[(GetByLabel('UI/BugReporting/Send'),
           self.ClickSend,
           (),
           84)], line=1)
@@ -498,6 +515,7 @@ class BugReportingWindow(uicontrols.Window):
         self.mainCont = uiprimitives.Container(parent=self.sr.main, name='mainCont', padding=const.defaultPadding)
         self.loadingWheel = LoadingWheel(parent=self.mainCont, align=uiconst.CENTER, width=64, height=64)
         uthread.new(self.FinishSettingUp)
+        return
 
     def FinishSettingUp(self):
         if not self or self.destroyed:
@@ -509,7 +527,8 @@ class BugReportingWindow(uicontrols.Window):
         self.loadingWheel.Close()
         self.ConstructMainCont()
         categories = self.service.GetCategories()
-        categories.insert(0, ['Select Category', ''])
+        initialOption = GetByLabel('UI/BugReporting/SelectCategory')
+        categories.insert(0, [initialOption, ''])
         self.categoryCombo.LoadOptions(categories)
 
     def HideAll(self):
@@ -522,37 +541,38 @@ class BugReportingWindow(uicontrols.Window):
 
     def ConstructMainCont(self):
         comboHeight = 20
-        helpTextHeight = 30
+        helpTextHeight = 20
         titleAlign = uiconst.TOPLEFT
         titleCont = uiprimitives.Container(name='titleCont', parent=self.mainCont, align=uiconst.TOTOP, height=36)
-        self.titleEdit = c = uicontrols.SinglelineEdit(parent=titleCont, name='titleEdit', align=titleAlign, width=250, top=12, height=20, label='Title')
-        buttonCont = uiprimitives.Container(name='buttonCont', parent=self.mainCont, align=uiconst.TOBOTTOM, height=20, top=0)
-        disclaimerCont = uiprimitives.Container(name='disclaimerCont', parent=self.mainCont, align=uiconst.TOBOTTOM, height=helpTextHeight, top=5)
-        categoryCont = uiprimitives.Container(name='categoryCont', parent=self.mainCont, align=uiconst.TOBOTTOM, height=comboHeight, top=5)
-        reproStepsCont = uiprimitives.Container(name='reproStepsCont', parent=self.mainCont, align=uiconst.TOBOTTOM, height=100, top=20)
+        self.titleEdit = c = uicontrols.SinglelineEdit(parent=titleCont, name='titleEdit', align=titleAlign, width=300, top=12, height=20, label=GetByLabel('UI/BugReporting/Summary'), hint=GetByLabel('UI/BugReporting/SummaryHint'))
+        self.categoryCombo = uicontrols.Combo(label=GetByLabel('UI/BugReporting/Category'), parent=titleCont, name='categoryCombo', left=320, top=12, width=130, options=[])
+        helpTextCont = uiprimitives.Container(name='helpTextCont', parent=self.mainCont, align=uiconst.TOBOTTOM, height=helpTextHeight, top=0)
+        buttonCont = uiprimitives.Container(name='buttonCont', parent=self.mainCont, align=uiconst.TOBOTTOM, height=20, top=5)
+        reproStepsCont = uiprimitives.Container(name='reproStepsCont', parent=self.mainCont, align=uiconst.TOBOTTOM, height=140, top=5)
         descriptionCont = uiprimitives.Container(name='descriptionCont', parent=self.mainCont, align=uiconst.TOALL, height=5, top=0)
-        uicontrols.EveLabelSmall(text='Description', parent=descriptionCont, left=2)
+        uicontrols.EveLabelSmall(text=GetByLabel('UI/BugReporting/Description'), parent=descriptionCont, left=2)
         desc = ''
-        self.descriptionEdit = uicls.EditPlainText(name='descriptionEdit', setvalue=desc, parent=descriptionCont, maxLength=2900, top=12)
-        uicontrols.EveLabelSmall(text='Reproduction Steps', parent=reproStepsCont, left=2)
-        self.reproStepsEdit = uicls.EditPlainText(name='reproStepsEdit', setvalue='', parent=reproStepsCont, maxLength=2900, top=12)
-        l = 0
-        self.categoryCombo = c = uicontrols.Combo(label='Category', parent=categoryCont, name='categoryCombo', width=110, options=[])
-        l += c.width
+        self.descriptionEdit = uicls.EditPlainText(name='descriptionEdit', hintText=GetByLabel('UI/BugReporting/DescriptionHintText'), setvalue=desc, parent=descriptionCont, maxLength=2900, top=12)
+        uicontrols.EveLabelSmall(text=GetByLabel('UI/BugReporting/ReproductionSteps'), parent=reproStepsCont, left=2)
+        self.reproStepsEdit = uicls.EditPlainText(name='reproStepsEdit', hintText=GetByLabel('UI/BugReporting/ReproductionStepsHintText'), setvalue='', parent=reproStepsCont, maxLength=2900, top=12)
+        uicontrols.EveLabelSmall(text=GetByLabel('UI/BugReporting/HelpText'), parent=helpTextCont, left=2, top=5)
+        uicontrols.Button(name='externalBugs', label=GetByLabel('UI/BugReporting/ExistingBugsButton'), parent=helpTextCont, func=self.OpenExternalBugs, align=uiconst.TORIGHT, hint=GetByLabel('UI/BugReporting/ExistingBugsHint'))
         self.editScreenshotButtons = []
         self.takeScreenshotButtons = []
         for i in xrange(NUM_SCREENSHOTS):
-            c = uicontrols.Button(name='editscreenshot_%s' % i, label='Edit screenshot %s' % (i + 1), parent=buttonCont, func=self.EditScreenshot, align=uiconst.TOLEFT)
+            text = GetByLabel('UI/BugReporting/EditScreenshot', screenshotNum=i + 1)
+            c = uicontrols.Button(name='editscreenshot_%s' % i, label=text, parent=buttonCont, func=self.EditScreenshot, align=uiconst.TOLEFT)
             self.editScreenshotButtons.append(c)
 
         for i in xrange(NUM_SCREENSHOTS):
-            c = uicontrols.Button(name='newscreenshot_%s' % i, label='New screenshot %s' % (i + 1), parent=buttonCont, func=self.NewScreenshot, align=uiconst.TOLEFT)
-            c.hint = 'You can also take a new screenshot by pressing CTRL+ALT+SHIFT+P'
+            text = GetByLabel('UI/BugReporting/NewScreenshot', screenshotNum=i + 1)
+            c = uicontrols.Button(name='newscreenshot_%s' % i, label=text, parent=buttonCont, func=self.NewScreenshot, align=uiconst.TOLEFT)
+            c.hint = GetByLabel('UI/BugReporting/NewScreenshotHint')
             self.takeScreenshotButtons.append(c)
 
         self.UpdateScreenshotButtons()
-        self.saveToDiskButton = uicontrols.Button(label='Save', parent=buttonCont, func=self.SaveToDisk, align=uiconst.TORIGHT)
-        self.loadFromDiskButton = uicontrols.Button(label='Load', parent=buttonCont, func=self.LoadFromDisk, align=uiconst.TORIGHT)
+        self.saveToDiskButton = uicontrols.Button(label=GetByLabel('UI/BugReporting/Save'), parent=buttonCont, func=self.SaveToDisk, align=uiconst.TORIGHT, hint=GetByLabel('UI/BugReporting/SaveHint'))
+        self.loadFromDiskButton = uicontrols.Button(label=GetByLabel('UI/BugReporting/Load'), parent=buttonCont, func=self.LoadFromDisk, align=uiconst.TORIGHT, hint=GetByLabel('UI/BugReporting/LoadHint'))
 
     def UpdateScreenshotButtons(self):
         for i, c in enumerate(self.editScreenshotButtons):
@@ -570,16 +590,6 @@ class BugReportingWindow(uicontrols.Window):
             self.takeScreenshotButtons[0].state = uiconst.UI_NORMAL
         elif i < NUM_SCREENSHOTS - 1:
             self.takeScreenshotButtons[i + 1].state = uiconst.UI_NORMAL
-
-    def ChangeRemember(self, *args):
-        checked = self.rememberCheck.GetValue()
-        prefs.SetValue('bugReporting_Remember', checked)
-        if checked:
-            prefs.SetValue('bugReporting_FixInStage', self.fixInCombo.GetValue())
-            prefs.SetValue('bugReporting_StartStage', self.stageCombo.GetValue())
-        else:
-            prefs.DeleteValue('bugReporting_FixInStage')
-            prefs.DeleteValue('bugReporting_StartStage')
 
     def EnableSendButton(self, enable):
         try:
@@ -616,40 +626,62 @@ class BugReportingWindow(uicontrols.Window):
         data = self.GetDataFromForm()
         if '' in (data['Title'], data['Description'], data['ReproductionSteps']) or not data['Category']:
             self.EnableSendButton(True)
-            eve.Message('CustomInfo', {'info': 'All fields must be filled out'})
+            eve.Message('CustomInfo', {'info': GetByLabel('UI/BugReporting/AllFields')})
             return
-        data['ClientBuildNumber'] = boot.build
-        if len(self.service.screenshots) == 0:
-            ret = eve.Message('CustomQuestion', {'header': 'A picture is worth...',
-             'question': 'You have not included a screenshot in your bug report.<br>A screenshot can go a long way to explain what the bug is all about.<br><br>Would you like to grab a screenshot to attach with your bug report?'}, uiconst.YESNO)
-            if ret == uiconst.ID_YES:
+        else:
+            data['ClientBuildNumber'] = boot.build
+            if len(self.service.screenshots) == 0:
+                ret = eve.Message('CustomQuestion', {'header': GetByLabel('UI/BugReporting/NoScreenshotsHeader'),
+                 'question': GetByLabel('UI/BugReporting/NoScreenshotsMessage')}, uiconst.YESNO)
+                if ret == uiconst.ID_YES:
+                    self.EnableSendButton(True)
+                    uthread.new(self.GetScreenshot, None)
+                    return
+            result = False
+            bugreportID = ''
+            attachments = False
+            self.loadingWheel = LoadingWheel(parent=self.sr.main, align=uiconst.CENTER, width=64, height=64)
+            self.mainCont.opacity = 0.3
+            try:
+                result = self.service.SendDefectOrBugReport(data)
+            except SendAttachmentError:
+                log.LogException()
+                attachments = False
+                result = True
+            except Exception as e:
+                log.LogException()
                 self.EnableSendButton(True)
-                uthread.new(self.GetScreenshot, None)
-                return
-        result = False
-        msg = 'You can access your bug reports <a href=shellexec:%s>here</a> (opens external browser).' % BUG_REPORTS_URL
-        self.loadingWheel = LoadingWheel(parent=self.sr.main, align=uiconst.CENTER, width=64, height=64)
-        self.mainCont.opacity = 0.3
-        try:
-            result = self.service.SendDefectOrBugReport(data)
-        except SendAttachmentError:
-            log.LogException()
-            msg = 'The bug report was successfully sent but there was an error adding the attachments. %s' % msg
-            result = True
-        except Exception as e:
-            log.LogException()
-            self.EnableSendButton(True)
-            self.mainCont.opacity = 1.0
-            self.loadingWheel.Close()
-            eve.Message('CustomInfo', {'info': 'An unknown error occurred when sending bug report.<br>Details: <br> %s' % e})
-        else:
-            msg = 'Your bug report was successfully sent and has the ID %s. %s' % (result['key'], msg)
+                self.mainCont.opacity = 1.0
+                self.loadingWheel.Close()
+                eve.Message('CustomInfo', {'info': GetByLabel('UI/BugReporting/SendError', errorMessage=e)})
+            else:
+                bugreportID = result['key']
+                attachments = True
 
-        if result:
-            self.Close()
-            eve.Message('CustomInfo', {'info': msg}, modal=False)
+            if result:
+                self.Close()
+                self.MessageSuccess(attachments, bugreportID)
+            else:
+                self.EnableSendButton(True)
+            return
+
+    def MessageSuccess(self, attachments, bugreportID):
+        header = GetByLabel('UI/BugReporting/ReportSentHeader')
+        if attachments:
+            msg = GetByLabel('UI/BugReporting/ReportSent', bugreportID=bugreportID)
         else:
-            self.EnableSendButton(True)
+            msg = GetByLabel('UI/BugReporting/ReportSentAttFail')
+        msg += '<br>' + GetByLabel('UI/BugReporting/OpenBugsExternal')
+        if eve.Message('CustomQuestion', {'header': header,
+         'question': msg}, uiconst.YESNO, modal=False) == uiconst.ID_YES:
+            webbrowser.open_new(BUG_REPORTS_URL)
+
+    def OpenExternalBugs(self, *args):
+        header = GetByLabel('UI/BugReporting/OpenBugsExternalHeader')
+        question = GetByLabel('UI/BugReporting/OpenBugsExternal')
+        if eve.Message('CustomQuestion', {'header': header,
+         'question': question}, uiconst.YESNO, modal=False) == uiconst.ID_YES:
+            webbrowser.open_new(BUG_REPORTS_URL)
 
     def NewScreenshot(self, button):
         n = int(button.name.split('_')[1])
@@ -688,19 +720,21 @@ class BugReportingWindow(uicontrols.Window):
     def SaveToDisk(self, *args):
         data = self.GetDataFromForm()
         self.service.SaveToDisk(data)
-        eve.Message('CustomNotify', {'notify': 'Your Bug Report has been saved to disk. To continue working on it later click Load.'})
+        eve.Message('CustomNotify', {'notify': GetByLabel('UI/BugReporting/SavedToDisk')})
 
     def LoadFromDisk(self, *args):
-        ret = eve.Message('CustomQuestion', {'header': 'Load from disk',
-         'question': 'Would you like to load up saved bug reporting data from disk and lose what you currently have written?'}, uiconst.YESNO)
+        ret = eve.Message('CustomQuestion', {'header': GetByLabel('UI/BugReporting/LoadFromDiskHeader'),
+         'question': GetByLabel('UI/BugReporting/LoadFromDisk')}, uiconst.YESNO)
         if ret != uiconst.ID_YES:
             return
-        data = self.service.LoadFromDisk()
-        self.titleEdit.SetValue(data.get('Title', ''))
-        self.descriptionEdit.SetValue(data.get('Description', ''))
-        self.reproStepsEdit.SetValue(data.get('ReproductionSteps', ''))
-        self.categoryCombo.SelectItemByValue(data.get('Category', None))
-        self.UpdateScreenshotButtons()
+        else:
+            data = self.service.LoadFromDisk()
+            self.titleEdit.SetValue(data.get('Title', ''))
+            self.descriptionEdit.SetValue(data.get('Description', ''))
+            self.reproStepsEdit.SetValue(data.get('ReproductionSteps', ''))
+            self.categoryCombo.SelectItemByValue(data.get('Category', None))
+            self.UpdateScreenshotButtons()
+            return
 
     def RegisterPositionTraceKeyEvents(self):
         self.keyDownCookie = uicore.event.RegisterForTriuiEvents(uiconst.UI_KEYDOWN, self.OnGlobalKeyDownCallback)
@@ -708,13 +742,14 @@ class BugReportingWindow(uicontrols.Window):
     def OnGlobalKeyDownCallback(self, wnd, eventID, (vkey, flag)):
         if self.destroyed:
             return False
-        ctrl = uicore.uilib.Key(uiconst.VK_CONTROL)
-        shift = uicore.uilib.Key(uiconst.VK_SHIFT)
-        alt = uicore.uilib.Key(uiconst.VK_MENU)
-        p = uicore.uilib.Key(uiconst.VK_P)
-        if ctrl and alt and shift and p:
-            uthread.new(self.GetScreenshot, None)
-        return True
+        else:
+            ctrl = uicore.uilib.Key(uiconst.VK_CONTROL)
+            shift = uicore.uilib.Key(uiconst.VK_SHIFT)
+            alt = uicore.uilib.Key(uiconst.VK_MENU)
+            p = uicore.uilib.Key(uiconst.VK_P)
+            if ctrl and alt and shift and p:
+                uthread.new(self.GetScreenshot, None)
+            return True
 
 
 class ScreenshotEditingWnd(uicontrols.Window):
@@ -723,7 +758,7 @@ class ScreenshotEditingWnd(uicontrols.Window):
 
     def ApplyAttributes(self, attributes):
         uicontrols.Window.ApplyAttributes(self, attributes)
-        self.SetCaption('Screenshot Editor')
+        self.SetCaption(GetByLabel('UI/BugReporting/ScreenshotEditor'))
         self.SetTopparentHeight(0)
         self.MakeUnstackable()
         self.NoSeeThrough()
@@ -742,7 +777,7 @@ class ScreenshotEditingWnd(uicontrols.Window):
         self.screenshotWidth = w or uicore.desktop.width
         self.screenshotHeight = h or uicore.desktop.height
         self.screenShotScaling = None
-        maxWidth = max(self.screenshotWidth / 2, 720)
+        maxWidth = max(self.screenshotWidth / 2, 955)
         self.SetMinSize([maxWidth, self.screenshotHeight / 2])
         topCont = uiprimitives.Container(name='topCont', parent=self.sr.main, align=uiconst.TOTOP, height=30, padding=const.defaultPadding)
         self.layoutAreaParent = uiprimitives.Container(parent=self.sr.main, padding=10)
@@ -751,15 +786,16 @@ class ScreenshotEditingWnd(uicontrols.Window):
         self.overlays = uiprimitives.Container(name='overlays', parent=self.layoutArea, align=uiconst.TOALL, clipChildren=True)
         self.screenshotSprite = uiprimitives.Sprite(name='screenshotSprite', parent=self.layoutArea, texturePath=self.screenshotPath, align=uiconst.TOALL, padding=0)
         self.screenshotSprite.ReloadTexture()
-        uicontrols.Button(label='Save', parent=topCont, func=self.SaveScreenshot, left=8, align=uiconst.CENTERRIGHT)
-        fb = uicontrols.Button(label='Add Frame', func=self.AddFrame, parent=topCont, left=8, align=uiconst.CENTERLEFT)
-        cfb = uicontrols.Button(label='Add Crop Frame', func=self.AddCropFrame, parent=topCont, left=fb.left + fb.width + 8, align=uiconst.CENTERLEFT)
-        la = uicontrols.Button(label='Add Left Arrow', func=self.AddLeftArrowFrame, parent=topCont, left=cfb.left + cfb.width + 8, align=uiconst.CENTERLEFT)
-        ra = uicontrols.Button(label='Add Right Arrow', func=self.AddRightArrowFrame, parent=topCont, left=la.left + la.width + 8, align=uiconst.CENTERLEFT)
-        tc = uicontrols.Button(label='Add Text', func=self.AddTextFrame, parent=topCont, left=ra.left + ra.width + 8, align=uiconst.CENTERLEFT)
-        cb = uicontrols.Button(label='New', func=self.NewScreenshot, parent=topCont, left=tc.left + tc.width + 20, align=uiconst.CENTERLEFT)
-        cb = uicontrols.Button(label='Delete', func=self.DeleteScreenshot, parent=topCont, left=cb.left + cb.width + 8, align=uiconst.CENTERLEFT)
+        uicontrols.Button(label=GetByLabel('UI/BugReporting/ScreenshotSave'), parent=topCont, func=self.SaveScreenshot, left=8, align=uiconst.CENTERRIGHT)
+        fb = uicontrols.Button(label=GetByLabel('UI/BugReporting/ScreenshotAddFrame'), func=self.AddFrame, parent=topCont, left=8, align=uiconst.CENTERLEFT)
+        cfb = uicontrols.Button(label=GetByLabel('UI/BugReporting/ScreenshotAddCropFrame'), func=self.AddCropFrame, parent=topCont, left=fb.left + fb.width + 8, align=uiconst.CENTERLEFT)
+        la = uicontrols.Button(label=GetByLabel('UI/BugReporting/ScreenshotAddLeftArrow'), func=self.AddLeftArrowFrame, parent=topCont, left=cfb.left + cfb.width + 8, align=uiconst.CENTERLEFT)
+        ra = uicontrols.Button(label=GetByLabel('UI/BugReporting/ScreenshotAddRightArrow'), func=self.AddRightArrowFrame, parent=topCont, left=la.left + la.width + 8, align=uiconst.CENTERLEFT)
+        tc = uicontrols.Button(label=GetByLabel('UI/BugReporting/ScreenshotAddText'), func=self.AddTextFrame, parent=topCont, left=ra.left + ra.width + 8, align=uiconst.CENTERLEFT)
+        cb = uicontrols.Button(label=GetByLabel('UI/BugReporting/ScreenshotButtonNew'), func=self.NewScreenshot, parent=topCont, left=tc.left + tc.width + 20, align=uiconst.CENTERLEFT)
+        cb = uicontrols.Button(label=GetByLabel('UI/BugReporting/ScreenshotDelete'), func=self.DeleteScreenshot, parent=topCont, left=cb.left + cb.width + 8, align=uiconst.CENTERLEFT)
         self.UpdateLayoutArea()
+        return
 
     def UpdateLayoutArea(self):
         prevScaling = self.screenShotScaling
@@ -876,6 +912,7 @@ class ScreenshotEditingWnd(uicontrols.Window):
             trinity.Tr2HostBitmap(baseTexture).Save(path)
         desktop.Close()
         self.CloseByUser()
+        return
 
     def OnScale_(self, *args):
         pass
@@ -915,6 +952,7 @@ class MoveableRect(uiprimitives.Container):
             self.AddColorObject(self.frame)
         self.UpdateColor()
         self.RegisterProportionalValues()
+        return
 
     def AddColorObject(self, obj):
         self.colorObjects.append(obj)
@@ -932,6 +970,7 @@ class MoveableRect(uiprimitives.Container):
 
     def EndScaling(self, obj, *args):
         self.modifyThread = None
+        return
 
     def OnMouseDown(self, *args):
         startProps = ('move',
@@ -945,6 +984,7 @@ class MoveableRect(uiprimitives.Container):
 
     def OnMouseUp(self, *args):
         self.modifyThread = None
+        return
 
     def ModifyRect(self, startProps, *args):
         side, cursorX, cursorY, l, t, w, h = startProps
@@ -992,6 +1032,7 @@ class MoveableRect(uiprimitives.Container):
             self.numLabel.top = -self.numLabel.textheight - 2
         if self.maskColor:
             self.UpdateMask()
+        return
 
     def UpdateMask(self):
         maskFills = getattr(self, 'maskFills', None)
@@ -1016,6 +1057,7 @@ class MoveableRect(uiprimitives.Container):
         self.maskFills[3].height = self.height
         self.maskFills[3].left = self.width
         self.maskFills[3].width = uicore.desktop.width
+        return
 
     def OnMouseEnter(self, *args):
         self.ShowControls()
@@ -1025,11 +1067,13 @@ class MoveableRect(uiprimitives.Container):
         if self.destroyed:
             self.mouseOverThread = None
             return
-        mo = uicore.uilib.mouseOver
-        if mo is self or uiutil.IsUnder(mo, self) or self.modifyThread:
+        else:
+            mo = uicore.uilib.mouseOver
+            if mo is self or uiutil.IsUnder(mo, self) or self.modifyThread:
+                return
+            self.mouseOverThread = None
+            self.HideControls()
             return
-        self.mouseOverThread = None
-        self.HideControls()
 
     def ShowControls(self):
         self.controls.Show()
@@ -1049,6 +1093,7 @@ class MoveableRect(uiprimitives.Container):
             tryNum += 1
 
         self.AssignNumber(tryNum)
+        return
 
     def AssignNumber(self, number):
         if getattr(self, 'numLabel', None) is None:
@@ -1058,6 +1103,7 @@ class MoveableRect(uiprimitives.Container):
         self.autoNumber = number
         self.numLabel.text = unicode(number)
         self.AddColorObject(self.numLabel)
+        return
 
     def OnNumberSizeChange(self, *args):
         screenShotWindow = uiutil.GetWindowAbove(self)
@@ -1067,14 +1113,15 @@ class MoveableRect(uiprimitives.Container):
             self.numLabel.top = -self.ReverseScaleDpi((self.numLabel.textheight + 2) * screenShotWindow.screenShotScaling)
 
     def GetMenu(self, *args):
-        m = [('Delete %s' % self.name, self.Delete), ('Numberate', self.Numberate)]
+        m = [(GetByLabel('UI/BugReporting/ScreenshotDeleteObject', object=self.name), self.Delete), (GetByLabel('UI/BugReporting/ScreenshotNumberate'), self.Numberate)]
         if self.maskColor:
             return m
-        m = m + [None,
-         ('RED', self.ChangeColor, ((1, 0, 0, 1),)),
-         ('GREEN', self.ChangeColor, ((0, 1, 0, 1),)),
-         ('BLUE', self.ChangeColor, ((0, 0, 1, 1),))]
-        return m
+        else:
+            m = m + [None,
+             (GetByLabel('UI/BugReporting/ScreenshotRed'), self.ChangeColor, ((1, 0, 0, 1),)),
+             (GetByLabel('UI/BugReporting/ScreenshotGreen'), self.ChangeColor, ((0, 1, 0, 1),)),
+             (GetByLabel('UI/BugReporting/ScreenshotBlue'), self.ChangeColor, ((0, 0, 1, 1),))]
+            return m
 
     def Delete(self, *args):
         uthread.new(self.Close)
@@ -1090,7 +1137,7 @@ class MoveableRect(uiprimitives.Container):
 
 class MoveableTextRect(MoveableRect):
     __guid__ = 'uicls.MoveableTextRect'
-    DEFAULTTEXT = 'Double click to edit'
+    DEFAULTTEXT = GetByLabel('UI/BugReporting/ScreenshotDefaultText')
     CONTROLS = ()
 
     def ApplyAttributes(self, attributes):
@@ -1102,6 +1149,7 @@ class MoveableTextRect(MoveableRect):
         self.sampleText._OnSizeChange_NoBlock = self.OnTextSizeChange
         self.UpdateColor()
         self.OnTextSizeChange()
+        return
 
     def OnTextSizeChange(self, *args):
         screenShotWindow = uiutil.GetWindowAbove(self)
@@ -1129,13 +1177,14 @@ class MoveableTextRect(MoveableRect):
         mo = uicore.uilib.mouseOver
         if mo is self or uiutil.IsUnder(mo, self):
             return True
-        if self.textEdit:
-            val = self.textEdit.GetValue()
-            self.sampleText.Show()
-            self.sampleText.text = val or self.DEFAULTTEXT
-            self.textEdit.Close()
-            self.textEdit = None
-        return False
+        else:
+            if self.textEdit:
+                val = self.textEdit.GetValue()
+                self.sampleText.Show()
+                self.sampleText.text = val or self.DEFAULTTEXT
+                self.textEdit.Close()
+                self.textEdit = None
+            return False
 
     def ChangeColor(self, color):
         uicls.MoveableRect.ChangeColor(self, color)
@@ -1143,6 +1192,7 @@ class MoveableTextRect(MoveableRect):
             self.sampleText.SetTextColor(color)
             self.underlay.SetRGB(*color)
             self.underlay.color.a = 0.1
+        return
 
     def UpdateProportionalPosition(self, newScaling):
         parWidth, parHeight = self.parent.GetAbsoluteSize()

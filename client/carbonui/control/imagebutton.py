@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\packages\carbonui\control\imagebutton.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\packages\carbonui\control\imagebutton.py
 import carbonui.const as uiconst
 import uthread
 import blue
@@ -27,6 +28,7 @@ class ImageButtonCore(Sprite):
             self.whileMouseDownFuncTasklet.kill()
         self.whileMouseDownFuncTasklet = None
         Sprite.Close(self, *args, **kw)
+        return
 
     def ApplyAttributes(self, attributes):
         Sprite.ApplyAttributes(self, attributes)
@@ -42,6 +44,7 @@ class ImageButtonCore(Sprite):
         self.SetMouseDownIcon(attributes.get('mousedownIcon', self.default_mousedownIcon), update=False)
         self.SetMouseOverIcon(attributes.get('mouseoverIcon', self.default_mouseoverIcon), update=False)
         self.SetMouseIdleIcon(attributes.get('idleIcon', self.default_idleIcon))
+        return
 
     def OnClick(self, *args):
         if self.ClickFunc:
@@ -71,6 +74,7 @@ class ImageButtonCore(Sprite):
         if self.whileMouseDownFuncTasklet and self.whileMouseDownFuncTasklet.alive:
             self.whileMouseDownFuncTasklet.kill()
             self.whileMouseDownFuncTasklet = None
+        return
 
     def OnMouseEnter(self, *args):
         self.UpdateIcon()
@@ -78,17 +82,17 @@ class ImageButtonCore(Sprite):
     def OnMouseExit(self, *args):
         self.UpdateIcon()
 
-    def SetMouseIdleIcon(self, icon, update = True):
+    def SetMouseIdleIcon(self, icon, update=True):
         self.idleIcon = icon
         if update:
             self.UpdateIcon()
 
-    def SetMouseDownIcon(self, icon, update = True):
+    def SetMouseDownIcon(self, icon, update=True):
         self.mousedownIcon = icon
         if update:
             self.UpdateIcon()
 
-    def SetMouseOverIcon(self, icon, update = True):
+    def SetMouseOverIcon(self, icon, update=True):
         self.mouseoverIcon = icon
         if update:
             self.UpdateIcon()

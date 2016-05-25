@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\packages\stdlogutils\logserver.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\packages\stdlogutils\logserver.py
 import logging
 import stdlogutils
 from blue import LogChannel
@@ -61,18 +62,18 @@ class ChannelWrapper(LogChannel):
     def IsLogChannelOpen(self, logflag):
         return _LogChannelIsOpen(self, logflag)
 
-    def Log(self, value, flag = LGINFO, backstack = 0, force = False):
+    def Log(self, value, flag=LGINFO, backstack=0, force=False):
         if ChannelWrapper.channelDict.get(flag, 1) or force:
             LogChannel.Log(self, value, flag, backstack)
 
-    def open(self, flag = LGINFO, bufsize = -1):
+    def open(self, flag=LGINFO, bufsize=-1):
         return LogChannelStream(self, flag, bufsize)
 
 
 class LogChannelStream(object):
     encoding = 'utf8'
 
-    def __init__(self, channel, mode, bufsize = -1):
+    def __init__(self, channel, mode, bufsize=-1):
         self.channel, self.mode, self.bufsize = channel, mode, bufsize
         self.buff = []
 
@@ -94,6 +95,7 @@ class LogChannelStream(object):
         if self.buff is not None:
             self.flush()
             self.buff = None
+        return
 
     def __enter__(self):
         return self
@@ -152,6 +154,8 @@ class LogServerHandler(logging.Handler):
             ch.Log(msg, severity)
         except Exception:
             self.handleError(record)
+
+        return
 
 
 def InitLoggingToLogserver(logLevel):

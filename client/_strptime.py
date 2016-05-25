@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\carbon\common\stdlib\_strptime.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\carbon\common\stdlib\_strptime.py
 import time
 import locale
 import calendar
@@ -105,6 +106,7 @@ class LocaleTime(object):
         self.LC_date_time = date_time[0]
         self.LC_date = date_time[1]
         self.LC_time = date_time[2]
+        return
 
     def __calc_timezone(self):
         try:
@@ -122,7 +124,7 @@ class LocaleTime(object):
 
 class TimeRE(dict):
 
-    def __init__(self, locale_time = None):
+    def __init__(self, locale_time=None):
         if locale_time:
             self.locale_time = locale_time
         else:
@@ -199,7 +201,7 @@ def _calc_julian_from_U_or_W(year, week_of_year, day_of_week, week_starts_Mon):
         return 1 + days_to_week + day_of_week
 
 
-def _strptime(data_string, format = '%a %b %d %H:%M:%S %Y'):
+def _strptime(data_string, format='%a %b %d %H:%M:%S %Y'):
     global _TimeRE_cache
     global _regex_cache
     with _cache_lock:
@@ -323,5 +325,5 @@ def _strptime(data_string, format = '%a %b %d %H:%M:%S %Y'):
       tz)), fraction)
 
 
-def _strptime_time(data_string, format = '%a %b %d %H:%M:%S %Y'):
+def _strptime_time(data_string, format='%a %b %d %H:%M:%S %Y'):
     return _strptime(data_string, format)[0]

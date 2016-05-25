@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\carbon\client\script\animation\headTrackAnimationBehavior.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\carbon\client\script\animation\headTrackAnimationBehavior.py
 import math
 import aiming
 import geo2
@@ -81,3 +82,4 @@ class HeadTrackAnimationBehavior(AnimationBehavior):
             if aimingManager.IsDebugRendering():
                 translation, orientation = controller.entityRef.animation.updater.network.GetBoneTransform(debugBoneName)
                 self.aimingClient.GetAimingManager(controller.entityRef.scene.sceneID).SetDebugUsedParams(controller.entityRef.entityID, -99, -99, MAXIMUM_HEAD_LOOK_ANGLE_YAW, MAXIMUM_HEAD_LOOK_ANGLE_PITCH, translation, orientation)
+        return

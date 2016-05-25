@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\carbon\common\lib\cherrypy\process\win32.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\carbon\common\lib\cherrypy\process\win32.py
 import os
 import win32api
 import win32con
@@ -53,7 +54,6 @@ class ConsoleCtrlHandler(plugins.SimplePlugin):
 
             self.bus.exit()
             return 1
-        return 0
 
 
 class Win32Bus(wspbus.Bus):
@@ -70,6 +70,8 @@ class Win32Bus(wspbus.Bus):
             self.events[state] = event
             return event
 
+        return
+
     def _get_state(self):
         return self._state
 
@@ -80,7 +82,7 @@ class Win32Bus(wspbus.Bus):
 
     state = property(_get_state, _set_state)
 
-    def wait(self, state, interval = 0.1, channel = None):
+    def wait(self, state, interval=0.1, channel=None):
         if isinstance(state, (tuple, list)):
             if self.state not in state:
                 events = tuple([ self._get_state_event(s) for s in state ])

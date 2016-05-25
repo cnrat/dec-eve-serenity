@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\devtools\script\windowManager.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\devtools\script\windowManager.py
 from carbonui.primitives.container import Container
 from carbonui.primitives.line import Line
 from eve.client.script.ui.control.buttons import Button
@@ -10,7 +11,6 @@ from eve.client.script.ui.inflight.activeitem import ActiveItem
 from eve.client.script.ui.inflight.drone import DroneView
 from eve.client.script.ui.inflight.overview import OverView
 from eve.client.script.ui.shared.maps.browserwindow import MapBrowserWnd
-from eve.client.script.ui.station.lobby import Lobby
 import carbonui.const as uiconst
 
 class WindowManager(Window):
@@ -45,6 +45,7 @@ class WindowManager(Window):
         Button(parent=buttonCont, label='Overview', align=uiconst.TOLEFT, func=self.ReloadOverview, padLeft=1)
         Button(parent=buttonCont, label='Mapbrowser', align=uiconst.TOLEFT, func=self.ReloadMapBrowser, padLeft=1)
         self.UpdateInfo(self.combo.GetKey(), self.combo.GetValue())
+        return
 
     def OnComboChanged(self, combo, key, wndCls):
         self.UpdateInfo(key, wndCls)
@@ -81,11 +82,13 @@ class WindowManager(Window):
             raise
 
         windowClass.Open(**attributes)
+        return
 
     def ReloadShipUI(self, *args):
         if eve.session.stationid is None:
             uicore.layer.shipui.CloseView()
             uicore.layer.shipui.OpenView()
+        return
 
     def ReloadNeocom(self, *args):
         sm.GetService('neocom').Reload()
@@ -94,9 +97,9 @@ class WindowManager(Window):
         sm.GetService('infoPanel').Reload()
 
     def ReloadLobby(self, *args):
-        if session.stationid:
-            Lobby.CloseIfOpen()
-            Lobby.Open()
+        if session.stationid or session.structureid:
+            from eve.client.script.ui.shared.dockedUI import ReloadLobbyWnd
+            ReloadLobbyWnd()
 
     def ReloadMapBrowser(self, *args):
         MapBrowserWnd.CloseIfOpen()

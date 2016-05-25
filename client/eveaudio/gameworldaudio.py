@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\packages\eveaudio\gameworldaudio.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\packages\eveaudio\gameworldaudio.py
 import collections
 import weakref
 import audio
@@ -21,8 +22,9 @@ class GameworldAudioMixin(object):
         self.audioEmitterPositionsByComponent = {}
         self.audioEmitterComponentGroupsByScene = collections.defaultdict(lambda : collections.defaultdict(list))
         self.obstructionPollThreadWR = None
+        return
 
-    def StartPolling(self, pollInterval = DEFAULT_OBSTRUCTION_POLL_INTERVAL):
+    def StartPolling(self, pollInterval=DEFAULT_OBSTRUCTION_POLL_INTERVAL):
         if self.obstructionPollThreadWR and self.obstructionPollThreadWR():
             return
         pollingTasklet = uthread.new(self._PollAudioPositions, pollInterval)
@@ -33,8 +35,9 @@ class GameworldAudioMixin(object):
         if self.obstructionPollThreadWR and self.obstructionPollThreadWR():
             self.obstructionPollThreadWR().kill()
             self.obstructionPollThreadWR = None
+        return
 
-    def _PollAudioPositions(self, pollInterval = DEFAULT_OBSTRUCTION_POLL_INTERVAL):
+    def _PollAudioPositions(self, pollInterval=DEFAULT_OBSTRUCTION_POLL_INTERVAL):
         entityClient = sm.GetService('entityClient')
         gameWorldClient = sm.GetService('gameWorldClient')
         while True:
@@ -62,6 +65,8 @@ class GameworldAudioMixin(object):
                         audioEntity.emitter.SetObstructionAndOcclusion(0, 0.0, 0.0)
 
             blue.pyos.synchro.SleepWallclock(pollInterval)
+
+        return
 
     def CreateComponent(self, name, state):
         component = audio.AudioEmitterComponent()
@@ -119,6 +124,7 @@ class GameworldAudioMixin(object):
             sound = cfg.sounds.GetIfExists(component.initialSoundID)
             if sound:
                 component.emitter.SendEvent(unicode(sound.soundFile[6:]))
+        return
 
     def RegisterComponent(self, entity, component):
         paperdollComponent = entity.GetComponent('paperdoll')
@@ -167,6 +173,7 @@ class GameworldAudioMixin(object):
                 component.emitter.SendEvent(u'fade_out')
                 component.emitter = None
                 del self.audioEmitterComponentGroupsByScene[entity.scene.sceneID][component.groupName]
+        return
 
     def OnEntitySceneLoaded(self, sceneID):
         uthread.new(self.SetupPlayerListener)
@@ -188,6 +195,7 @@ class GameworldAudioMixin(object):
         if sceneID in self.audioEmitterComponentsByScene:
             del self.audioEmitterComponentsByScene[sceneID]
         self.StopPolling()
+        return
 
     def ReportState(self, component, entity):
         state = collections.OrderedDict()

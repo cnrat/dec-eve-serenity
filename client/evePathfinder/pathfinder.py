@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\packages\evePathfinder\pathfinder.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\packages\evePathfinder\pathfinder.py
 from collections import defaultdict
 import sys
 from inventorycommon.util import IsWormholeSystem
@@ -23,7 +24,7 @@ class ClientPathfinder(object):
     def SetPodKillAvoidance(self, pkAvoid):
         self._autopilotStateInterface.SetPodKillAvoidance(pkAvoid)
 
-    def SetSystemAvoidance(self, pkAvoid = None):
+    def SetSystemAvoidance(self, pkAvoid=None):
         self._autopilotStateInterface.SetSystemAvoidance(pkAvoid)
 
     def GetAvoidanceItems(self):
@@ -94,11 +95,12 @@ class ClientPathfinder(object):
     def _GetJumpCount(self, stateInterface, fromID, toID):
         if fromID is None or toID is None:
             return
-        if fromID == toID:
+        elif fromID == toID:
             return 0
-        if IsWormholeSystem(fromID) or IsWormholeSystem(toID):
+        elif IsWormholeSystem(fromID) or IsWormholeSystem(toID):
             return sys.maxint
-        return self.pathfinderCore.GetJumpCountBetween(stateInterface, fromID, toID)
+        else:
+            return self.pathfinderCore.GetJumpCountBetween(stateInterface, fromID, toID)
 
     def GetJumpCount(self, fromID, toID):
         return self._GetJumpCount(self._standardStateInterface, fromID, toID)

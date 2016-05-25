@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\packages\eveclientqatools\performancebenchmark.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\packages\eveclientqatools\performancebenchmark.py
 import blue
 import math
 import evecamera
@@ -173,12 +174,21 @@ class PerformanceBenchmarkWindow(Window):
         self.camLock = False
         self.OnCamChange()
 
+    def _GetMemoryUsage(self):
+        try:
+            meg = 1.0 / 1024.0 / 1024.0
+            mem, pymem, workingset, pagefaults, bluemem = blue.pyos.cpuUsage[-1][2]
+            return mem * meg
+        except:
+            pass
+
     def ToggleBenchmark(self, *args):
 
         def _thread():
             frameTimes = []
             t0 = blue.os.GetWallclockTime()
             startTime = blue.os.GetWallclockTime()
+            startMem = self._GetMemoryUsage()
             while self.benchmarkRunning:
                 blue.synchro.Yield()
                 t1 = blue.os.GetWallclockTime()
@@ -198,6 +208,9 @@ class PerformanceBenchmarkWindow(Window):
             result = 'Min: %0.1fms Max: %0.1fms\n' % (minMS, maxMS)
             result += 'Median:  %0.1fms %0.1ffps\n' % (median, 1000.0 / median)
             result += 'Average: %0.1fms %0.1ffps\n' % (avg, 1000.0 / avg)
+            endMem = self._GetMemoryUsage()
+            result += 'Start Memory Usage: %0.1fmb\n' % (startMem,)
+            result += 'End Memory Usage: %0.1fmb\n' % (endMem,)
             TextBox('Benchmark Results', result)
             self.benchmarkButton.SetLabel('Start Benchmark')
 

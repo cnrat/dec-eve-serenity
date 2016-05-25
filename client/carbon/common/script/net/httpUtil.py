@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\carbon\common\script\net\httpUtil.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\carbon\common\script\net\httpUtil.py
 import blue
 import json
 import carbon.common.script.net.machobase as machobase
@@ -45,12 +46,12 @@ class ComplexEncoder(json.JSONEncoder):
 
 
 @bluepy.TimedFunction('Crest::ToJSON')
-def ToJSON(data, encoding = 'utf-8'):
+def ToJSON(data, encoding='utf-8'):
     return json.dumps(data, encoding=encoding)
 
 
 @bluepy.TimedFunction('Crest::ToComplexJSON')
-def ToComplexJSON(data, encoding = 'utf-8'):
+def ToComplexJSON(data, encoding='utf-8'):
     return json.dumps(data, cls=ComplexEncoder, encoding=encoding)
 
 

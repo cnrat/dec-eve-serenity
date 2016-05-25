@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\carbon\common\lib\werkzeug\wsgi.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\carbon\common\lib\werkzeug\wsgi.py
 import os
 import urllib
 import urlparse
@@ -13,7 +14,7 @@ def responder(f):
     return _patch_wrapper(f, lambda *a: f(*a)(*a[-2:]))
 
 
-def get_current_url(environ, root_only = False, strip_querystring = False, host_only = False):
+def get_current_url(environ, root_only=False, strip_querystring=False, host_only=False):
     tmp = [environ['wsgi.url_scheme'], '://', get_host(environ)]
     cat = tmp.append
     if host_only:
@@ -45,19 +46,20 @@ def pop_path_info(environ):
     path = environ.get('PATH_INFO')
     if not path:
         return None
-    script_name = environ.get('SCRIPT_NAME', '')
-    old_path = path
-    path = path.lstrip('/')
-    if path != old_path:
-        script_name += '/' * (len(old_path) - len(path))
-    if '/' not in path:
-        environ['PATH_INFO'] = ''
-        environ['SCRIPT_NAME'] = script_name + path
-        return path
-    segment, path = path.split('/', 1)
-    environ['PATH_INFO'] = '/' + path
-    environ['SCRIPT_NAME'] = script_name + segment
-    return segment
+    else:
+        script_name = environ.get('SCRIPT_NAME', '')
+        old_path = path
+        path = path.lstrip('/')
+        if path != old_path:
+            script_name += '/' * (len(old_path) - len(path))
+        if '/' not in path:
+            environ['PATH_INFO'] = ''
+            environ['SCRIPT_NAME'] = script_name + path
+            return path
+        segment, path = path.split('/', 1)
+        environ['PATH_INFO'] = '/' + path
+        environ['SCRIPT_NAME'] = script_name + segment
+        return segment
 
 
 def peek_path_info(environ):
@@ -66,7 +68,7 @@ def peek_path_info(environ):
         return segments[0]
 
 
-def extract_path_info(environ_or_baseurl, path_or_url, charset = 'utf-8', errors = 'ignore', collapse_http_schemes = True):
+def extract_path_info(environ_or_baseurl, path_or_url, charset='utf-8', errors='ignore', collapse_http_schemes=True):
     from werkzeug.urls import uri_to_iri, url_fix
 
     def _as_iri(obj):
@@ -104,15 +106,16 @@ def extract_path_info(environ_or_baseurl, path_or_url, charset = 'utf-8', errors
         return None
     if base_netloc != cur_netloc:
         return None
-    base_path = base_path.rstrip(u'/')
-    if not cur_path.startswith(base_path):
-        return None
-    return u'/' + cur_path[len(base_path):].lstrip(u'/')
+    else:
+        base_path = base_path.rstrip(u'/')
+        if not cur_path.startswith(base_path):
+            return None
+        return u'/' + cur_path[len(base_path):].lstrip(u'/')
 
 
 class SharedDataMiddleware(object):
 
-    def __init__(self, app, exports, disallow = None, cache = True, cache_timeout = 43200, fallback_mimetype = 'text/plain'):
+    def __init__(self, app, exports, disallow=None, cache=True, cache_timeout=43200, fallback_mimetype='text/plain'):
         self.app = app
         self.exports = {}
         self.cache = cache
@@ -133,6 +136,7 @@ class SharedDataMiddleware(object):
             from fnmatch import fnmatch
             self.is_allowed = lambda x: not fnmatch(x, disallow)
         self.fallback_mimetype = fallback_mimetype
+        return
 
     def is_allowed(self, filename):
         return True
@@ -154,10 +158,11 @@ class SharedDataMiddleware(object):
             path = posixpath.join(package_path, path)
             if path is None or not provider.has_resource(path):
                 return (None, None)
-            basename = posixpath.basename(path)
-            if filesystem_bound:
-                return (basename, self._opener(provider.get_resource_filename(manager, path)))
-            return (basename, lambda : (provider.get_resource_stream(manager, path), loadtime, 0))
+            else:
+                basename = posixpath.basename(path)
+                if filesystem_bound:
+                    return (basename, self._opener(provider.get_resource_filename(manager, path)))
+                return (basename, lambda : (provider.get_resource_stream(manager, path), loadtime, 0))
 
         return loader
 
@@ -170,7 +175,8 @@ class SharedDataMiddleware(object):
                 path = directory
             if os.path.isfile(path):
                 return (os.path.basename(path), self._opener(path))
-            return (None, None)
+            else:
+                return (None, None)
 
         return loader
 
@@ -199,29 +205,30 @@ class SharedDataMiddleware(object):
 
         if file_loader is None or not self.is_allowed(real_filename):
             return self.app(environ, start_response)
-        guessed_type = mimetypes.guess_type(real_filename)
-        mime_type = guessed_type[0] or self.fallback_mimetype
-        f, mtime, file_size = file_loader()
-        headers = [('Date', http_date())]
-        if self.cache:
-            timeout = self.cache_timeout
-            etag = self.generate_etag(mtime, file_size, real_filename)
-            headers += [('Etag', '"%s"' % etag), ('Cache-Control', 'max-age=%d, public' % timeout)]
-            if not is_resource_modified(environ, etag, last_modified=mtime):
-                f.close()
-                start_response('304 Not Modified', headers)
-                return []
-            headers.append(('Expires', http_date(time() + timeout)))
         else:
-            headers.append(('Cache-Control', 'public'))
-        headers.extend((('Content-Type', mime_type), ('Content-Length', str(file_size)), ('Last-Modified', http_date(mtime))))
-        start_response('200 OK', headers)
-        return wrap_file(environ, f)
+            guessed_type = mimetypes.guess_type(real_filename)
+            mime_type = guessed_type[0] or self.fallback_mimetype
+            f, mtime, file_size = file_loader()
+            headers = [('Date', http_date())]
+            if self.cache:
+                timeout = self.cache_timeout
+                etag = self.generate_etag(mtime, file_size, real_filename)
+                headers += [('Etag', '"%s"' % etag), ('Cache-Control', 'max-age=%d, public' % timeout)]
+                if not is_resource_modified(environ, etag, last_modified=mtime):
+                    f.close()
+                    start_response('304 Not Modified', headers)
+                    return []
+                headers.append(('Expires', http_date(time() + timeout)))
+            else:
+                headers.append(('Cache-Control', 'public'))
+            headers.extend((('Content-Type', mime_type), ('Content-Length', str(file_size)), ('Last-Modified', http_date(mtime))))
+            start_response('200 OK', headers)
+            return wrap_file(environ, f)
 
 
 class DispatcherMiddleware(object):
 
-    def __init__(self, app, mounts = None):
+    def __init__(self, app, mounts=None):
         self.app = app
         self.mounts = mounts or {}
 
@@ -246,7 +253,7 @@ class DispatcherMiddleware(object):
 
 class ClosingIterator(object):
 
-    def __init__(self, iterable, callbacks = None):
+    def __init__(self, iterable, callbacks=None):
         iterator = iter(iterable)
         self._next = iterator.next
         if callbacks is None:
@@ -259,6 +266,7 @@ class ClosingIterator(object):
         if iterable_close:
             callbacks.insert(0, iterable_close)
         self._callbacks = callbacks
+        return
 
     def __iter__(self):
         return self
@@ -271,13 +279,13 @@ class ClosingIterator(object):
             callback()
 
 
-def wrap_file(environ, file, buffer_size = 8192):
+def wrap_file(environ, file, buffer_size=8192):
     return environ.get('wsgi.file_wrapper', FileWrapper)(file, buffer_size)
 
 
 class FileWrapper(object):
 
-    def __init__(self, file, buffer_size = 8192):
+    def __init__(self, file, buffer_size=8192):
         self.file = file
         self.buffer_size = buffer_size
 
@@ -295,7 +303,7 @@ class FileWrapper(object):
         raise StopIteration()
 
 
-def make_line_iter(stream, limit = None, buffer_size = 10240):
+def make_line_iter(stream, limit=None, buffer_size=10240):
     if not isinstance(stream, LimitedStream):
         if limit is None:
             raise TypeError('stream not limited and no limit provided.')
@@ -316,10 +324,12 @@ def make_line_iter(stream, limit = None, buffer_size = 10240):
         buffer = chunks
         yield first_chunk
 
+    return
+
 
 class LimitedStream(object):
 
-    def __init__(self, stream, limit, silent = True):
+    def __init__(self, stream, limit, silent=True):
         self._read = stream.read
         self._readline = stream.readline
         self._pos = 0
@@ -342,7 +352,7 @@ class LimitedStream(object):
         from werkzeug.exceptions import BadRequest
         raise BadRequest('input stream exhausted')
 
-    def exhaust(self, chunk_size = 16384):
+    def exhaust(self, chunk_size=16384):
         to_read = self.limit - self._pos
         chunk = chunk_size
         while to_read > 0:
@@ -350,27 +360,29 @@ class LimitedStream(object):
             self.read(chunk)
             to_read -= chunk
 
-    def read(self, size = None):
+    def read(self, size=None):
         if self._pos >= self.limit:
             return self.on_exhausted()
-        if size is None:
-            size = self.limit
-        read = self._read(min(self.limit - self._pos, size))
-        self._pos += len(read)
-        return read
-
-    def readline(self, size = None):
-        if self._pos >= self.limit:
-            return self.on_exhausted()
-        if size is None:
-            size = self.limit - self._pos
         else:
-            size = min(size, self.limit - self._pos)
-        line = self._readline(size)
-        self._pos += len(line)
-        return line
+            if size is None:
+                size = self.limit
+            read = self._read(min(self.limit - self._pos, size))
+            self._pos += len(read)
+            return read
 
-    def readlines(self, size = None):
+    def readline(self, size=None):
+        if self._pos >= self.limit:
+            return self.on_exhausted()
+        else:
+            if size is None:
+                size = self.limit - self._pos
+            else:
+                size = min(size, self.limit - self._pos)
+            line = self._readline(size)
+            self._pos += len(line)
+            return line
+
+    def readlines(self, size=None):
         last_pos = self._pos
         result = []
         if size is not None:

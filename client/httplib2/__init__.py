@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\packages\httplib2\__init__.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\packages\httplib2\__init__.py
 from __future__ import generators
 __author__ = 'Joe Gregorio (joe@bitworking.org)'
 __copyright__ = 'Copyright 2006, Joe Gregorio'
@@ -82,7 +83,8 @@ else:
 def has_timeout(timeout):
     if hasattr(socket, '_GLOBAL_DEFAULT_TIMEOUT'):
         return timeout is not None and timeout is not socket._GLOBAL_DEFAULT_TIMEOUT
-    return timeout is not None
+    else:
+        return timeout is not None
 
 
 __all__ = ['Http',
@@ -272,7 +274,7 @@ WWW_AUTH_STRICT = re.compile('^(?:\\s*(?:,\\s*)?([^\\0-\\x1f\\x7f-\\xff()<>@,;:\
 WWW_AUTH_RELAXED = re.compile('^(?:\\s*(?:,\\s*)?([^ \\t\\r\\n=]+)\\s*=\\s*\\"?((?<=\\")(?:[^\\\\\\"]|\\\\.)*?(?=\\")|(?<!\\")[^ \\t\\r\\n,]+(?!\\"))\\"?)(.*)$')
 UNQUOTE_PAIRS = re.compile('\\\\(.)')
 
-def _parse_www_authenticate(headers, headername = 'www-authenticate'):
+def _parse_www_authenticate(headers, headername='www-authenticate'):
     retval = {}
     if headers.has_key(headername):
         try:
@@ -399,6 +401,7 @@ def _updateCache(request_headers, response_headers, content, cache, cachekey):
             header_str = re.sub('\r(?!\n)|(?<!\r)\n', '\r\n', header_str)
             text = ''.join([status_header, header_str, content])
             cache.set(cachekey, text)
+    return
 
 
 def _cnonce():
@@ -462,8 +465,9 @@ class DigestAuthentication(Authentication):
          ':',
          self.credentials[1]])
         self.challenge['nc'] = 1
+        return
 
-    def request(self, method, request_uri, headers, content, cnonce = None):
+    def request(self, method, request_uri, headers, content, cnonce=None):
         H = lambda x: _md5(x).hexdigest()
         KD = lambda s, d: H('%s:%s' % (s, d))
         A2 = ''.join([method, ':', request_uri])
@@ -614,7 +618,7 @@ AUTH_SCHEME_ORDER = ['hmacdigest',
 
 class FileCache(object):
 
-    def __init__(self, cache, safe = safename):
+    def __init__(self, cache, safe=safename):
         self.cache = cache
         self.safe = safe
         if not os.path.exists(cache):
@@ -649,7 +653,7 @@ class Credentials(object):
     def __init__(self):
         self.credentials = []
 
-    def add(self, name, password, domain = ''):
+    def add(self, name, password, domain=''):
         self.credentials.append((domain.lower(), name, password))
 
     def clear(self):
@@ -672,7 +676,7 @@ class AllHosts(object):
 class ProxyInfo(object):
     bypass_hosts = ()
 
-    def __init__(self, proxy_type, proxy_host, proxy_port, proxy_rdns = None, proxy_user = None, proxy_pass = None):
+    def __init__(self, proxy_type, proxy_host, proxy_port, proxy_rdns=None, proxy_user=None, proxy_pass=None):
         self.proxy_type = proxy_type
         self.proxy_host = proxy_host
         self.proxy_port = proxy_port
@@ -692,7 +696,7 @@ class ProxyInfo(object):
         return self.proxy_host != None and self.proxy_port != None
 
     @classmethod
-    def from_environment(cls, method = 'http'):
+    def from_environment(cls, method='http'):
         if method not in ('http', 'https'):
             return
         env_var = method + '_proxy'
@@ -710,7 +714,7 @@ class ProxyInfo(object):
         return pi
 
     @classmethod
-    def from_url(cls, url, method = 'http'):
+    def from_url(cls, url, method='http'):
         url = urlparse.urlparse(url)
         username = None
         password = None
@@ -750,7 +754,7 @@ class ProxyInfo(object):
 
 class HTTPConnectionWithTimeout(httplib.HTTPConnection):
 
-    def __init__(self, host, port = None, strict = None, timeout = None, proxy_info = None):
+    def __init__(self, host, port=None, strict=None, timeout=None, proxy_info=None):
         httplib.HTTPConnection.__init__(self, host, port, strict)
         self.timeout = timeout
         self.proxy_info = proxy_info
@@ -808,11 +812,12 @@ class HTTPConnectionWithTimeout(httplib.HTTPConnection):
 
         if not self.sock:
             raise socket.error, msg
+        return
 
 
 class HTTPSConnectionWithTimeout(httplib.HTTPSConnection):
 
-    def __init__(self, host, port = None, key_file = None, cert_file = None, strict = None, timeout = None, proxy_info = None, ca_certs = None, disable_ssl_certificate_validation = False):
+    def __init__(self, host, port=None, key_file=None, cert_file=None, strict=None, timeout=None, proxy_info=None, ca_certs=None, disable_ssl_certificate_validation=False):
         httplib.HTTPSConnection.__init__(self, host, port=port, key_file=key_file, cert_file=cert_file, strict=strict)
         self.timeout = timeout
         self.proxy_info = proxy_info
@@ -820,6 +825,7 @@ class HTTPSConnectionWithTimeout(httplib.HTTPSConnection):
             ca_certs = CA_CERTS
         self.ca_certs = ca_certs
         self.disable_ssl_certificate_validation = disable_ssl_certificate_validation
+        return
 
     def _GetValidHostsForCert(self, cert):
         if 'subjectAltName' in cert:
@@ -904,6 +910,7 @@ class HTTPSConnectionWithTimeout(httplib.HTTPSConnection):
 
         if not self.sock:
             raise socket.error, msg
+        return
 
 
 SCHEME_TO_CONNECTION = {'http': HTTPConnectionWithTimeout,
@@ -926,7 +933,7 @@ try:
 
     class AppEngineHttpConnection(object):
 
-        def __init__(self, host, port = None, key_file = None, cert_file = None, strict = None, timeout = None, proxy_info = None, ca_certs = None, disable_ssl_certificate_validation = False):
+        def __init__(self, host, port=None, key_file=None, cert_file=None, strict=None, timeout=None, proxy_info=None, ca_certs=None, disable_ssl_certificate_validation=False):
             self.host = host
             self.port = port
             self.timeout = timeout
@@ -936,6 +943,7 @@ try:
             self.scheme = 'http'
             self.validate_certificate = not disable_ssl_certificate_validation
             self.sock = True
+            return
 
         def request(self, method, url, body, headers):
             netloc = self.host
@@ -976,7 +984,7 @@ try:
 
     class AppEngineHttpsConnection(AppEngineHttpConnection):
 
-        def __init__(self, host, port = None, key_file = None, cert_file = None, strict = None, timeout = None, proxy_info = None, ca_certs = None, disable_ssl_certificate_validation = False):
+        def __init__(self, host, port=None, key_file=None, cert_file=None, strict=None, timeout=None, proxy_info=None, ca_certs=None, disable_ssl_certificate_validation=False):
             AppEngineHttpConnection.__init__(self, host, port, key_file, cert_file, strict, timeout, proxy_info, ca_certs, disable_ssl_certificate_validation)
             self.scheme = 'https'
 
@@ -988,7 +996,7 @@ except ImportError:
 
 class Http(object):
 
-    def __init__(self, cache = None, timeout = None, proxy_info = ProxyInfo.from_environment, ca_certs = None, disable_ssl_certificate_validation = False):
+    def __init__(self, cache=None, timeout=None, proxy_info=ProxyInfo.from_environment, ca_certs=None, disable_ssl_certificate_validation=False):
         self.proxy_info = proxy_info
         self.ca_certs = ca_certs
         self.disable_ssl_certificate_validation = disable_ssl_certificate_validation
@@ -1015,7 +1023,7 @@ class Http(object):
                 if challenges.has_key(scheme):
                     yield AUTH_SCHEME_CLASSES[scheme](cred, host, request_uri, headers, response, content, self)
 
-    def add_credentials(self, name, password, domain = ''):
+    def add_credentials(self, name, password, domain=''):
         self.credentials.add(name, password, domain)
 
     def add_certificate(self, key, cert, domain):
@@ -1147,7 +1155,7 @@ class Http(object):
     def _normalize_headers(self, headers):
         return _normalize_headers(headers)
 
-    def request(self, uri, method = 'GET', body = None, headers = None, redirections = DEFAULT_MAX_REDIRECTS, connection_type = None):
+    def request(self, uri, method='GET', body=None, headers=None, redirections=DEFAULT_MAX_REDIRECTS, connection_type=None):
         try:
             if headers is None:
                 headers = {}

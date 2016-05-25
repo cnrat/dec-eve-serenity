@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\packages\ccpProfile\blueTaskletImplementation.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\packages\ccpProfile\blueTaskletImplementation.py
 import blue
 from . import decorator
 EnterTasklet = blue.pyos.taskletTimer.EnterTasklet
@@ -26,7 +27,7 @@ class TimerPush(Timer):
         Timer.__init__(self, fullctx)
 
 
-def TimedFunction(context = None):
+def TimedFunction(context=None):
 
     def Wrapper(function, *args, **kwargs):
         newContext = EnterTasklet(context or repr(function))

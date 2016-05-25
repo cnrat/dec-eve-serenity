@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\client\script\environment\spaceObject\asteroid.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\client\script\environment\spaceObject\asteroid.py
 from eve.client.script.environment.spaceObject.spaceObject import SpaceObject
 import evecamera
 import trinity
@@ -18,92 +19,106 @@ class AsteroidEnvironment(object):
     def _InitFog(self):
         if not gfxSettings.Get(gfxSettings.UI_ASTEROID_FOG):
             return
-        ppJob = self.sceneManager.fisRenderJob.postProcessingJob
-        if self.isIcefield:
-            ppID = evePostProcess.POST_PROCESS_ICE_FOG
         else:
-            ppID = evePostProcess.POST_PROCESS_ASTEROID_FOG
-        pp = ppJob.AddPostProcess(ppID)
-        FogAmountParameters = None
-        AreaSizeParameters = None
-        AreaCenterParameters = None
-        for param in pp.postProcess.Find('trinity.Tr2Vector4Parameter'):
-            if param.name == 'FogParameters':
-                FogAmountParameters = param
-            elif param.name == 'AreaSize':
-                AreaSizeParameters = param
-            elif param.name == 'AreaCenter':
-                AreaCenterParameters = param
+            ppJob = self.sceneManager.fisRenderJob.postProcessingJob
+            if self.isIcefield:
+                ppID = evePostProcess.POST_PROCESS_ICE_FOG
+            else:
+                ppID = evePostProcess.POST_PROCESS_ASTEROID_FOG
+            pp = ppJob.AddPostProcess(ppID)
+            FogAmountParameters = None
+            AreaSizeParameters = None
+            AreaCenterParameters = None
+            for param in pp.postProcess.Find('trinity.Tr2Vector4Parameter'):
+                if param.name == 'FogParameters':
+                    FogAmountParameters = param
+                elif param.name == 'AreaSize':
+                    AreaSizeParameters = param
+                elif param.name == 'AreaCenter':
+                    AreaCenterParameters = param
 
-        for binding in self.distanceField.curveSet.bindings:
-            if binding.name == 'FogSize':
-                binding.sourceObject = self.distanceField
-                binding.destinationObject = AreaSizeParameters
-            elif binding.name == 'FogCenter':
-                binding.sourceObject = self.distanceField
-                binding.destinationObject = AreaCenterParameters
-            elif binding.name == 'FogAmount':
-                binding.destinationObject = FogAmountParameters
+            for binding in self.distanceField.curveSet.bindings:
+                if binding.name == 'FogSize':
+                    binding.sourceObject = self.distanceField
+                    binding.destinationObject = AreaSizeParameters
+                elif binding.name == 'FogCenter':
+                    binding.sourceObject = self.distanceField
+                    binding.destinationObject = AreaCenterParameters
+                elif binding.name == 'FogAmount':
+                    binding.destinationObject = FogAmountParameters
+
+            return
 
     def _InitCloudfield(self, scene, camera):
         if not gfxSettings.Get(gfxSettings.UI_ASTEROID_CLOUDFIELD):
             return
-        cf = trinity.Load(self._cloudfieldPath)
-        constraint = cf.Find('trinity.EveDustfieldConstraint')[0]
-        scene.cloudfield = cf
-        scene.cloudfieldConstraint = constraint
-        constraint.cameraView = camera.viewMatrix
-        colorParam = None
-        for each in cf.mesh.transparentAreas[0].effect.parameters:
-            if each.name == 'Color2':
-                colorParam = each
-                break
+        else:
+            cf = trinity.Load(self._cloudfieldPath)
+            constraint = cf.Find('trinity.EveDustfieldConstraint')[0]
+            scene.cloudfield = cf
+            scene.cloudfieldConstraint = constraint
+            constraint.cameraView = camera.viewMatrix
+            colorParam = None
+            for each in cf.mesh.transparentAreas[0].effect.parameters:
+                if each.name == 'Color2':
+                    colorParam = each
+                    break
 
-        for each in self.distanceField.curveSet.bindings:
-            if each.name == 'CloudfieldIntensity':
-                each.destinationObject = colorParam
-                break
+            for each in self.distanceField.curveSet.bindings:
+                if each.name == 'CloudfieldIntensity':
+                    each.destinationObject = colorParam
+                    break
+
+            return
 
     def _InitGodrays(self, scene):
         if sm.GetService('visualEffect').IsGodrayEnabled():
             return
-        if scene.sunBall is None:
+        elif scene.sunBall is None:
             return
-        scene.sunBall.EnableGodRays(True)
-        intensity = scene.sunBall.GetGodRaysIntensityParam()
-        for each in self.distanceField.curveSet.bindings:
-            if each.name == 'GodRayIntensity':
-                each.destinationObject = intensity
-                break
+        else:
+            scene.sunBall.EnableGodRays(True)
+            intensity = scene.sunBall.GetGodRaysIntensityParam()
+            for each in self.distanceField.curveSet.bindings:
+                if each.name == 'GodRayIntensity':
+                    each.destinationObject = intensity
+                    break
+
+            return
 
     def Add(self, asteroid):
         if not gfxSettings.Get(gfxSettings.UI_ASTEROID_ATMOSPHERICS):
             return
-        scene = self.sceneManager.GetRegisteredScene('default')
-        camera = self.sceneManager.GetActiveSpaceCamera()
-        if camera is None or scene is None:
+        else:
+            scene = self.sceneManager.GetRegisteredScene('default')
+            camera = self.sceneManager.GetActiveSpaceCamera()
+            if camera is None or scene is None:
+                return
+            if len(self.distanceField.objects) == 0:
+                self.isIcefield = asteroid.typeData['groupID'] == const.groupIce
+                self._InitFog()
+                self._InitCloudfield(scene, camera)
+                self._InitGodrays(scene)
+            if self.distanceField not in scene.distanceFields:
+                self.distanceField.cameraView = camera.viewMatrix
+                scene.distanceFields.append(self.distanceField)
+            self.distanceField.objects.append(asteroid)
             return
-        if len(self.distanceField.objects) == 0:
-            self.isIcefield = asteroid.typeData['groupID'] == const.groupIce
-            self._InitFog()
-            self._InitCloudfield(scene, camera)
-            self._InitGodrays(scene)
-        if self.distanceField not in scene.distanceFields:
-            self.distanceField.cameraView = camera.viewMatrix
-            scene.distanceFields.append(self.distanceField)
-        self.distanceField.objects.append(asteroid)
 
     def Remove(self, asteroid):
         if len(self.distanceField.objects) == 0:
             return
-        self.distanceField.objects.fremove(asteroid)
-        if len(self.distanceField.objects) == 0:
-            self.sceneManager.fisRenderJob.postProcessingJob.RemovePostProcess(evePostProcess.PP_GROUP_FOG)
-            scene = self.sceneManager.GetRegisteredScene('default')
-            if not sm.GetService('visualEffect').IsGodrayEnabled() and scene.sunBall is not None:
-                scene.sunBall.EnableGodRays(False)
-            scene.cloudfield = None
-            scene.cloudfieldConstraint = None
+        else:
+            self.distanceField.objects.fremove(asteroid)
+            if len(self.distanceField.objects) == 0:
+                self.sceneManager.fisRenderJob.postProcessingJob.RemovePostProcess(evePostProcess.PP_GROUP_FOG)
+                scene = self.sceneManager.GetRegisteredScene('default')
+                if scene is not None:
+                    if not sm.GetService('visualEffect').IsGodrayEnabled() and scene.sunBall is not None:
+                        scene.sunBall.EnableGodRays(False)
+                    scene.cloudfield = None
+                    scene.cloudfieldConstraint = None
+            return
 
 
 class Asteroid(SpaceObject):
@@ -113,8 +128,9 @@ class Asteroid(SpaceObject):
         SpaceObject.__init__(self)
         if Asteroid._asteroidEnvironment is None:
             Asteroid._asteroidEnvironment = AsteroidEnvironment()
+        return
 
-    def LoadModel(self, fileName = None, loadedModel = None):
+    def LoadModel(self, fileName=None, loadedModel=None):
         groupID = self.typeData.get('groupID')
         typeID = self.typeData.get('typeID')
         groupGraphics = cfg.groupGraphics.get(groupID, None)
@@ -133,41 +149,44 @@ class Asteroid(SpaceObject):
             Asteroid._asteroidEnvironment.Add(self)
         else:
             self.LogError('Could not load model for asteroid. groupID: %s, typeID: %s, graphicID: %s' % (groupID, typeID, graphicID))
+        return
 
     def Assemble(self):
         if self.model is None:
             self.LogError('Cannot Assemble Asteroid, model failed to load')
             return
-        self.model.modelScale = self.radius
-        pi = math.pi
-        identity = trinity.TriQuaternion()
-        cleanRotation = trinity.TriQuaternion()
-        preRotation = trinity.TriQuaternion()
-        postRotation = trinity.TriQuaternion()
-        rotKey = trinity.TriQuaternion()
-        r = random.Random()
-        r.seed(self.id)
-        preRotation.SetYawPitchRoll(r.random() * pi, r.random() * pi, r.random() * pi)
-        postRotation.SetYawPitchRoll(r.random() * pi, r.random() * pi, r.random() * pi)
-        curve = trinity.TriRotationCurve()
-        curve.extrapolation = trinity.TRIEXT_CYCLE
-        duration = 50.0 * math.log(self.radius)
-        rdur = r.random() * 50.0 * math.log(self.radius)
-        duration += rdur
-        for i in [0.0,
-         0.5,
-         1.0,
-         1.5,
-         2.0]:
-            cleanRotation.SetYawPitchRoll(0.0, pi * i, 0.0)
-            rotKey.SetIdentity()
-            rotKey.MultiplyQuaternion(preRotation)
-            rotKey.MultiplyQuaternion(cleanRotation)
-            rotKey.MultiplyQuaternion(postRotation)
-            curve.AddKey(duration * i, rotKey, identity, identity, trinity.TRIINT_SLERP)
+        else:
+            self.model.modelScale = self.radius
+            pi = math.pi
+            identity = trinity.TriQuaternion()
+            cleanRotation = trinity.TriQuaternion()
+            preRotation = trinity.TriQuaternion()
+            postRotation = trinity.TriQuaternion()
+            rotKey = trinity.TriQuaternion()
+            r = random.Random()
+            r.seed(self.id)
+            preRotation.SetYawPitchRoll(r.random() * pi, r.random() * pi, r.random() * pi)
+            postRotation.SetYawPitchRoll(r.random() * pi, r.random() * pi, r.random() * pi)
+            curve = trinity.TriRotationCurve()
+            curve.extrapolation = trinity.TRIEXT_CYCLE
+            duration = 50.0 * math.log(self.radius)
+            rdur = r.random() * 50.0 * math.log(self.radius)
+            duration += rdur
+            for i in [0.0,
+             0.5,
+             1.0,
+             1.5,
+             2.0]:
+                cleanRotation.SetYawPitchRoll(0.0, pi * i, 0.0)
+                rotKey.SetIdentity()
+                rotKey.MultiplyQuaternion(preRotation)
+                rotKey.MultiplyQuaternion(cleanRotation)
+                rotKey.MultiplyQuaternion(postRotation)
+                curve.AddKey(duration * i, rotKey, identity, identity, trinity.TRIINT_SLERP)
 
-        curve.Sort()
-        self.model.modelRotationCurve = curve
+            curve.Sort()
+            self.model.modelRotationCurve = curve
+            return
 
     def RemoveFromScene(self, model, scene):
         SpaceObject.RemoveFromScene(self, model, scene)

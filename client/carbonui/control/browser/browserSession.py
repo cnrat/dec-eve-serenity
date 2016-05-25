@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\packages\carbonui\control\browser\browserSession.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\packages\carbonui\control\browser\browserSession.py
 import corebrowserutil
 import blue
 import carbonui.const as uiconst
@@ -6,7 +7,7 @@ import localization
 
 class CoreBrowserSession():
 
-    def Startup(self, sessionName, initialUrl = None, browserEventHandler = None, autoHandleLockdown = True, *args):
+    def Startup(self, sessionName, initialUrl=None, browserEventHandler=None, autoHandleLockdown=True, *args):
         self.name = sessionName
         self.statusText = ''
         self.securityInfo = 0
@@ -33,8 +34,9 @@ class CoreBrowserSession():
             stat.type = 1
             blue.statistics.Register(stat)
         self.numRequestsStat = stat
+        return
 
-    def SetupBrowserSession(self, autoHandleLockdown = True):
+    def SetupBrowserSession(self, autoHandleLockdown=True):
         self.browserHostManager = sm.GetService('browserHostManager').GetBrowserHost()
         self.browser = sm.GetService('browserHostManager').GetNewBrowserView()
         self.AttachBrowserCallbacks()
@@ -65,11 +67,12 @@ class CoreBrowserSession():
         self.surfaceDirty = False
         self.surfaceReadyCallback = None
         self.AppCleanup()
+        return
 
     def _OnClientBrowserLockdownChange(self, *args):
         self.SetBrowserLockdown(sm.GetService('sites').IsBrowserInLockdown())
 
-    def BrowseTo(self, url = None, *args, **kwargs):
+    def BrowseTo(self, url=None, *args, **kwargs):
         actualUrl = url
         if actualUrl is None:
             actualUrl = 'about:blank'
@@ -78,6 +81,7 @@ class CoreBrowserSession():
         if type(actualUrl) is not str:
             actualUrl = actualUrl.encode('cp1252', 'ignore')
         self.browser.BrowseTo(actualUrl)
+        return
 
     def SetViewSourceMode(self, mode):
         self.isViewSourceMode = mode
@@ -218,40 +222,46 @@ class CoreBrowserSession():
     def AttachBrowserCallbacks(self):
         if self.browser is None:
             return
-        self.browser.OnChangeTargetURL = self._OnChangeTargetURL
-        self.browser.OnReceiveTitle = self._OnReceiveTitle
-        self.browser.OnBeginNavigation = self._OnBeginNavigation
-        self.browser.OnFinishLoading = self._OnFinishLoading
-        self.browser.OnBlockLoading = self._OnBlockLoading
-        self.browser.OnChangeCursor = self._OnChangeCursor
-        self.browser.OnBeginLoading = self._OnBeginLoading
-        self.browser.OnProcessSecurityInfo = self._OnProcessSecurityInfo
-        self.browser.OnChangeTooltip = self._OnChangeTooltip
-        self.browser.OnChangeKeyboardFocus = self._OnChangeKeyboardFocus
-        self.browser.OnJavascriptPrompt = self._OnJavascriptPrompt
-        self.browser.OnOpenContextMenu = self._OnOpenContextMenu
-        self.browser.OnBrowserViewCrash = self._OnBrowserViewCrash
-        self.browser.ProcessPaintRect = self._ProcessPaintRect
-        self.surfaceReadyCallback = None
+        else:
+            self.browser.OnChangeTargetURL = self._OnChangeTargetURL
+            self.browser.OnReceiveTitle = self._OnReceiveTitle
+            self.browser.OnBeginNavigation = self._OnBeginNavigation
+            self.browser.OnFinishLoading = self._OnFinishLoading
+            self.browser.OnBlockLoading = self._OnBlockLoading
+            self.browser.OnChangeCursor = self._OnChangeCursor
+            self.browser.OnBeginLoading = self._OnBeginLoading
+            self.browser.OnProcessSecurityInfo = self._OnProcessSecurityInfo
+            self.browser.OnChangeTooltip = self._OnChangeTooltip
+            self.browser.OnChangeKeyboardFocus = self._OnChangeKeyboardFocus
+            self.browser.OnJavascriptPrompt = self._OnJavascriptPrompt
+            self.browser.OnOpenContextMenu = self._OnOpenContextMenu
+            self.browser.OnBrowserViewCrash = self._OnBrowserViewCrash
+            self.browser.ProcessPaintRect = self._ProcessPaintRect
+            self.surfaceReadyCallback = None
+            return
 
     def ReattachBrowserSession(self):
         if self.browser is None or not self.browser.alive:
             self.SetupBrowserSession()
             if self.browserEventHandler and hasattr(self.browserEventHandler, 'OnReattachBrowserSession'):
                 self.browserEventHandler.OnReattachBrowserSession(self)
+        return
 
     def PerformCommand(self, cmd):
         self.browser.PerformCommand(cmd)
         if self.browserEventHandler is not None and hasattr(self.browserEventHandler, 'SetBrowserFocus'):
             self.browserEventHandler.SetBrowserFocus()
+        return
 
     def ViewSourceOfUrl(self, url):
         if self.browserEventHandler is not None and hasattr(self.browserEventHandler, 'ViewSourceOfUrl'):
             self.browserEventHandler.ViewSourceOfUrl(url)
+        return
 
     def LaunchNewTab(self, url):
         if self.browserEventHandler is not None and hasattr(self.browserEventHandler, 'AddTab'):
             self.browserEventHandler.AddTab(tabUrl=url)
+        return
 
     def CopyText(self, textToCopy):
         blue.pyos.SetClipboardData(textToCopy)
@@ -259,9 +269,11 @@ class CoreBrowserSession():
     def AddJavascriptCallback(self, callbackName, callbackFunction):
         if not self:
             return
-        if not hasattr(self, 'browser') or self.browser is None:
+        elif not hasattr(self, 'browser') or self.browser is None:
             return
-        self.browser.RegisterJavaScriptCallback(self.AppGetJavascriptObjectName(), callbackName, callbackFunction)
+        else:
+            self.browser.RegisterJavaScriptCallback(self.AppGetJavascriptObjectName(), callbackName, callbackFunction)
+            return
 
     def SetBrowserSize(self, width, height):
         if self.IsAlive():
@@ -279,10 +291,12 @@ class CoreBrowserSession():
             if vkey == uiconst.VK_RETURN:
                 return
             self.browser.InjectKeyDown(vkey, flag)
+        return
 
     def OnKeyUp(self, vkey, flag):
         if self.browser is not None and self.browser.alive:
             self.browser.InjectKeyUp(vkey, flag)
+        return
 
     def OnChar(self, char, flag):
         if self.browser is not None and self.browser.alive:
@@ -290,22 +304,28 @@ class CoreBrowserSession():
                 self.browser.InjectKeyDown(char, flag)
             self.browser.InjectChar(char, flag)
             return True
+        else:
+            return
 
     def OnMouseMove(self, x, y, *args):
         if self.browser is not None and self.browser.alive:
             self.browser.InjectMouseMove(x, y)
+        return
 
     def OnMouseDown(self, *args):
         if self.browser is not None and self.browser.alive:
             self.browser.InjectMouseDown(args[0])
+        return
 
     def OnMouseUp(self, *args):
         if self.browser is not None and self.browser.alive:
             self.browser.InjectMouseUp(args[0])
+        return
 
     def OnMouseWheel(self, *args):
         if self.browser is not None and self.browser.alive:
             self.browser.InjectMouseWheel(uicore.uilib.dz)
+        return
 
     def AppStartup(self, sessionName, initialUrl, browserEventHandler, autoHandleLockdown):
         pass
@@ -314,7 +334,7 @@ class CoreBrowserSession():
         pass
 
     def AppGetJavascriptObjectName(self):
-        return 'CCPBrowser'
+        pass
 
     def AppSetupBrowserSession(self):
         pass

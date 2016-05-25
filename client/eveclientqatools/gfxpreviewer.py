@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\packages\eveclientqatools\gfxpreviewer.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\packages\eveclientqatools\gfxpreviewer.py
 import evetypes
 import trinity
 import uicontrols
@@ -15,6 +16,7 @@ class ToolsWindow(object):
         self._caption = caption
         self._minWidth = 340
         self._onCloseHandler = None
+        return
 
     def SetCaption(self, caption):
         self._caption = caption
@@ -42,6 +44,7 @@ class ToolsWindow(object):
     def _OnClose(self):
         if self._onCloseHandler is not None:
             self._onCloseHandler()
+        return
 
 
 class ReportComponent(object):
@@ -62,13 +65,14 @@ class ReportComponent(object):
 
 class RadioButtonRibbon(ReportComponent):
 
-    def __init__(self, groupID = 'radioGroup', itemWidth = 200):
+    def __init__(self, groupID='radioGroup', itemWidth=200):
         ReportComponent.__init__(self)
         self.buttons = []
         self.eventFunction = None
         self.SetHeight(20)
         self._itemWidth = itemWidth
         self._groupID = groupID
+        return
 
     def AddButton(self, text, id):
         self.buttons.append((text, id))
@@ -86,6 +90,7 @@ class RadioButtonRibbon(ReportComponent):
         id = button.data['value']
         if self.eventFunction is not None:
             self.eventFunction(id)
+        return
 
 
 class TextEditComp(ReportComponent):
@@ -95,6 +100,7 @@ class TextEditComp(ReportComponent):
         self._handler = None
         self._textBox = None
         self._text = ''
+        return
 
     def SetHandler(self, handler):
         self._handler = handler
@@ -103,11 +109,13 @@ class TextEditComp(ReportComponent):
         self._text = text
         if self._textBox is not None:
             self._textBox.SetValue(unicode(text))
+        return
 
     def _textChanged(self, text):
         self._text = text
         if self._handler is not None:
             self._handler(text)
+        return
 
     def Show(self, parent, name, windowID):
         self._textBox = uicontrols.SinglelineEdit(parent=parent, align=self._alignment, OnChange=self._textChanged, setvalue=self._text, width=300)
@@ -126,10 +134,11 @@ class ButtonRibbon(ReportComponent):
         self.buttonHandlers[text] = handler
 
     def _buttonEvent(self, *args):
-        button, = args
+        button = args
         eventFunction = self.buttonHandlers[button.name]
         if eventFunction is not None:
             eventFunction()
+        return
 
     def _createButton(self, container, text):
         uicontrols.Button(parent=container, align=self._alignment, label=text, name=text, func=self._buttonEvent)
@@ -166,6 +175,7 @@ class AssetPreviewer(object):
         self.resource = None
         self._displayObjects = True
         self._messageFunc = None
+        return
 
     def Clear(self):
         self.graphicID = -1
@@ -175,6 +185,7 @@ class AssetPreviewer(object):
             scene = self._sceneManager.GetRegisteredScene('default')
             scene.objects.fremove(self.resource)
             self.resource = None
+        return
 
     def _getResourceFromTypeID(self, typeID):
         try:
@@ -185,7 +196,8 @@ class AssetPreviewer(object):
         if graphicID is None:
             self._showMessage('Could not get graphicID from typeID ' + str(typeID))
             return
-        return self._getResourceFromGraphicID(graphicID)
+        else:
+            return self._getResourceFromGraphicID(graphicID)
 
     def _getResourceFromGraphicID(self, graphicID):
         graphicInfo = cfg.graphics.GetIfExists(graphicID)
@@ -193,14 +205,16 @@ class AssetPreviewer(object):
         if resPath is None:
             self._showMessage('Could not get resPath from graphicID ' + str(graphicID))
             return
-        return self._getResourceFromResPath(resPath)
+        else:
+            return self._getResourceFromResPath(resPath)
 
     def _getResourceFromResPath(self, path):
         res = trinity.Load(path)
         if getattr(res, '__bluetype__', None) not in AssetPreviewer.supportedTypes:
             self._showMessage('resPath ' + path + ' does not contain a supported resource.')
             return
-        return res
+        else:
+            return res
 
     def Cleanup(self):
         self.Clear()
@@ -220,15 +234,18 @@ class AssetPreviewer(object):
             self.resource = self._getResourceFromResPath(source)
         if self.resource is None:
             return
-        scene = self._sceneManager.GetRegisteredScene('default')
-        scene.objects.append(self.resource)
-        self._showMessage(self.sourceType + ' ' + source + ' loaded successfully.')
+        else:
+            scene = self._sceneManager.GetRegisteredScene('default')
+            scene.objects.append(self.resource)
+            self._showMessage(self.sourceType + ' ' + source + ' loaded successfully.')
+            return
 
     def _showMessage(self, text):
         if self._messageFunc is None:
             print text
         else:
             self._messageFunc(text)
+        return
 
     def _toggleHideSceneObjects(self):
         self._displayObjects = not self._displayObjects

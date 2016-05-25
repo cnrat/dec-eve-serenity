@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\client\script\ui\view\spaceToSpaceTransition.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\client\script\ui\view\spaceToSpaceTransition.py
 import geo2
 import uthread
 import viewstate
@@ -6,7 +7,7 @@ import viewstate
 class SpaceToSpaceTransition(viewstate.Transition):
     __guid__ = 'viewstate.SpaceToSpaceTransition'
 
-    def __init__(self, sceneManager = None):
+    def __init__(self, sceneManager=None):
         self.sceneManager = sceneManager
         if self.sceneManager is None:
             self.sceneManager = sm.GetService('sceneManager')
@@ -14,6 +15,7 @@ class SpaceToSpaceTransition(viewstate.Transition):
         self.effect = None
         self.active = False
         viewstate.Transition.__init__(self)
+        return
 
     def _GetInflightCamera(self):
         return sm.GetService('sceneManager').GetActiveSpaceCamera()
@@ -42,6 +44,7 @@ class SpaceToSpaceTransition(viewstate.Transition):
         if planet is not None:
             items.append(planet)
         sm.GetService('space').PrioritizeLoadingForIDs(items)
+        return
 
     def _GetSceneFromPath(self, path):
         return self.sceneManager.LoadScene(path, inflight=False, registerKey='default', setupCamera=True, applyScene=False)[0]
@@ -50,6 +53,8 @@ class SpaceToSpaceTransition(viewstate.Transition):
         self.sceneManager.ApplyScene(scene, None, 'default')
         self.sceneManager.ApplySolarsystemAttributes(scene, camera)
         self.sceneManager.ApplySceneInflightAttributes(scene, camera)
+        self.sceneManager.AddPersistentSpaceObjects(scene)
+        return
 
     def _SetScene(self, scene):
         self.sceneManager.SetActiveScene(scene, 'default')
@@ -57,7 +62,7 @@ class SpaceToSpaceTransition(viewstate.Transition):
     def SetTransitionEffect(self, effect):
         self.effect = effect
 
-    def InitializeGateTransition(self, destSolarSystemID, destObjectID = None):
+    def InitializeGateTransition(self, destSolarSystemID, destObjectID=None):
         self.active = True
         self.destObjectID = destObjectID
         self.destSolarSystemID = destSolarSystemID
@@ -83,6 +88,7 @@ class SpaceToSpaceTransition(viewstate.Transition):
         self.camera = None
         self.effect = None
         self.active = False
+        return
 
     def Abort(self):
         self._ApplySceneInflightAttribs(self.sceneManager.GetRegisteredScene('default'), self.camera)
@@ -91,12 +97,15 @@ class SpaceToSpaceTransition(viewstate.Transition):
         self.camera = None
         self.effect = None
         self.active = False
+        return
 
     def ApplyDestinationScene(self):
         if self.effect is None:
             return
-        self.effect.SetScene(self.scene)
-        self._SetScene(self.scene)
+        else:
+            self.effect.SetScene(self.scene)
+            self._SetScene(self.scene)
+            return
 
     def StartTransition(self, fromView, toView):
         self.ApplyDestinationScene()

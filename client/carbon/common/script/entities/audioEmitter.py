@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\carbon\common\script\entities\audioEmitter.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\carbon\common\script\entities\audioEmitter.py
 INITIAL_EVENT_NAME = 'initialEventName'
 INITIAL_SOUND_ID = 'initialSoundID'
 EMITTER_GROUP_NAME = 'groupName'
@@ -10,6 +11,7 @@ class AudioEmitterComponent:
         self.initialEventName = None
         self.initialSoundID = None
         self.groupName = None
+        return
 
 
 import carbon.common.script.util.autoexport as autoexport

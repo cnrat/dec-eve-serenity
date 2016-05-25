@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\carbon\common\script\sys\crowset.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\carbon\common\script\sys\crowset.py
 import blue
 import const
 import weakref
@@ -32,7 +33,7 @@ class CRowset(list):
     def InsertNew(self, listOfValues):
         self.append(blue.DBRow(self.header, listOfValues))
 
-    def Sort(self, columnName, caseInsensitive = False, reverse = False):
+    def Sort(self, columnName, caseInsensitive=False, reverse=False):
         ix = self.header.Keys().index(columnName)
         if caseInsensitive:
             Key = lambda a: a[ix].upper()
@@ -45,7 +46,7 @@ class CRowset(list):
         ir.Build(self)
         return ir
 
-    def Filter(self, columnName, indexName = None, allowDuplicateCompoundKeys = False, giveMeSets = False):
+    def Filter(self, columnName, indexName=None, allowDuplicateCompoundKeys=False, giveMeSets=False):
         fr = CFilterRowset(self.header, columnName, indexName, allowDuplicateCompoundKeys, giveMeSets)
         fr.Build(self)
         return fr
@@ -55,7 +56,7 @@ class CRowset(list):
         for row in rowset:
             self.append(row)
 
-    def Unpack(self, colsNotToUnpack = []):
+    def Unpack(self, colsNotToUnpack=[]):
         l = []
         for row in self:
             entry = {}
@@ -122,7 +123,7 @@ class CIndexedRowset(dict):
 class CFilterRowset(dict):
     __guid__ = 'dbutil.CFilterRowset'
 
-    def __init__(self, header, columnName, indexName = None, allowDuplicateCompoundKeys = False, giveMeSets = False):
+    def __init__(self, header, columnName, indexName=None, allowDuplicateCompoundKeys=False, giveMeSets=False):
         self.header = header
         self.columnName = columnName
         self.indexName = indexName
@@ -177,6 +178,8 @@ class CFilterRowset(dict):
                     c = 0
                     blue.pyos.BeNice()
 
+        return
+
     def Rebuild(self, rowset):
         self.clear()
         self.Build(rowset)
@@ -191,24 +194,6 @@ class CFilterRowset(dict):
                     self[key].append(row)
                 else:
                     self[key] = CRowset(row.__header__, [row])
-
-
-class LinearDict(list):
-    __guid__ = 'dbutil.LinearDict'
-
-    def __contains__(self, keyValue):
-        for i in self:
-            if i[0] == keyValue:
-                return True
-
-        return list.__contains__(self, keyValue)
-
-    def __getitem__(self, keyValue):
-        for i in self:
-            if i[0] == keyValue:
-                return i
-
-        raise KeyError(keyValue)
 
 
 def SaveRowset(rs, filename, segmented):

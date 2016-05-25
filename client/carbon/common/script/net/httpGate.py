@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\carbon\common\script\net\httpGate.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\carbon\common\script\net\httpGate.py
 import service
 import json
 
@@ -11,15 +12,16 @@ class HttpGate(service.Service):
     __counters__ = {}
     __update_on_reload__ = 0
 
-    def Run(self, memStream = None):
+    def Run(self, memStream=None):
         self.LogInfo('Http Gate Server starting')
         self.server = self.WSGIService.StartServer(self.defaultApp, 8080)
 
-    def Stop(self, memStream = None):
+    def Stop(self, memStream=None):
         self.LogInfo('Http Gate Server stopping')
         self.WSGIService.StopServer(self.server)
         self.server = None
         self.LogInfo('Http Gate Server stopped')
+        return
 
     def defaultApp(self, environ, start_response):
         data = None

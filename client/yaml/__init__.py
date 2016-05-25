@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\carbon\common\stdlib\yaml\__init__.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\carbon\common\stdlib\yaml\__init__.py
 from __future__ import with_statement
 import contextlib
 from error import *
@@ -21,40 +22,42 @@ def ClearState(f):
     finally:
         f.state = f.states = None
 
+    return
 
-def scan(stream, Loader = Loader):
+
+def scan(stream, Loader=Loader):
     with ClearState(Loader(stream)) as loader:
         while loader.check_token():
             yield loader.get_token()
 
 
-def parse(stream, Loader = Loader):
+def parse(stream, Loader=Loader):
     loader = Loader(stream)
     with ClearState(loader):
         while loader.check_event():
             yield loader.get_event()
 
 
-def compose(stream, Loader = Loader):
+def compose(stream, Loader=Loader):
     loader = Loader(stream)
     with ClearState(loader):
         return loader.get_single_node()
 
 
-def compose_all(stream, Loader = Loader):
+def compose_all(stream, Loader=Loader):
     loader = Loader(stream)
     with ClearState(loader):
         while loader.check_node():
             yield loader.get_node()
 
 
-def load(stream, Loader = Loader):
+def load(stream, Loader=Loader):
     loader = Loader(stream)
     with ClearState(loader):
         return loader.get_single_data()
 
 
-def load_all(stream, Loader = Loader):
+def load_all(stream, Loader=Loader):
     loader = Loader(stream)
     with ClearState(loader):
         while loader.check_data():
@@ -69,7 +72,7 @@ def safe_load_all(stream):
     return load_all(stream, SafeLoader)
 
 
-def emit(events, stream = None, Dumper = Dumper, canonical = None, indent = None, width = None, allow_unicode = None, line_break = None):
+def emit(events, stream=None, Dumper=Dumper, canonical=None, indent=None, width=None, allow_unicode=None, line_break=None):
     getvalue = None
     if stream is None:
         from StringIO import StringIO
@@ -82,9 +85,10 @@ def emit(events, stream = None, Dumper = Dumper, canonical = None, indent = None
 
         if getvalue:
             return getvalue()
+    return
 
 
-def serialize_all(nodes, stream = None, Dumper = Dumper, canonical = None, indent = None, width = None, allow_unicode = None, line_break = None, encoding = 'utf-8', explicit_start = None, explicit_end = None, version = None, tags = None):
+def serialize_all(nodes, stream=None, Dumper=Dumper, canonical=None, indent=None, width=None, allow_unicode=None, line_break=None, encoding='utf-8', explicit_start=None, explicit_end=None, version=None, tags=None):
     getvalue = None
     if stream is None:
         if encoding is None:
@@ -102,13 +106,14 @@ def serialize_all(nodes, stream = None, Dumper = Dumper, canonical = None, inden
         dumper.close()
         if getvalue:
             return getvalue()
+    return
 
 
-def serialize(node, stream = None, Dumper = Dumper, **kwds):
+def serialize(node, stream=None, Dumper=Dumper, **kwds):
     return serialize_all([node], stream, Dumper=Dumper, **kwds)
 
 
-def dump_all(documents, stream = None, Dumper = Dumper, default_style = None, default_flow_style = None, canonical = None, indent = None, width = None, allow_unicode = None, line_break = None, encoding = 'utf-8', explicit_start = None, explicit_end = None, version = None, tags = None):
+def dump_all(documents, stream=None, Dumper=Dumper, default_style=None, default_flow_style=None, canonical=None, indent=None, width=None, allow_unicode=None, line_break=None, encoding='utf-8', explicit_start=None, explicit_end=None, version=None, tags=None):
     getvalue = None
     if stream is None:
         if encoding is None:
@@ -126,43 +131,44 @@ def dump_all(documents, stream = None, Dumper = Dumper, default_style = None, de
         dumper.close()
         if getvalue:
             return getvalue()
+    return
 
 
-def dump(data, stream = None, Dumper = Dumper, **kwds):
+def dump(data, stream=None, Dumper=Dumper, **kwds):
     return dump_all([data], stream, Dumper=Dumper, **kwds)
 
 
-def safe_dump_all(documents, stream = None, **kwds):
+def safe_dump_all(documents, stream=None, **kwds):
     return dump_all(documents, stream, Dumper=SafeDumper, **kwds)
 
 
-def safe_dump(data, stream = None, **kwds):
+def safe_dump(data, stream=None, **kwds):
     return dump_all([data], stream, Dumper=SafeDumper, **kwds)
 
 
-def add_implicit_resolver(tag, regexp, first = None, Loader = Loader, Dumper = Dumper):
+def add_implicit_resolver(tag, regexp, first=None, Loader=Loader, Dumper=Dumper):
     Loader.add_implicit_resolver(tag, regexp, first)
     Dumper.add_implicit_resolver(tag, regexp, first)
 
 
-def add_path_resolver(tag, path, kind = None, Loader = Loader, Dumper = Dumper):
+def add_path_resolver(tag, path, kind=None, Loader=Loader, Dumper=Dumper):
     Loader.add_path_resolver(tag, path, kind)
     Dumper.add_path_resolver(tag, path, kind)
 
 
-def add_constructor(tag, constructor, Loader = Loader):
+def add_constructor(tag, constructor, Loader=Loader):
     Loader.add_constructor(tag, constructor)
 
 
-def add_multi_constructor(tag_prefix, multi_constructor, Loader = Loader):
+def add_multi_constructor(tag_prefix, multi_constructor, Loader=Loader):
     Loader.add_multi_constructor(tag_prefix, multi_constructor)
 
 
-def add_representer(data_type, representer, Dumper = Dumper):
+def add_representer(data_type, representer, Dumper=Dumper):
     Dumper.add_representer(data_type, representer)
 
 
-def add_multi_representer(data_type, multi_representer, Dumper = Dumper):
+def add_multi_representer(data_type, multi_representer, Dumper=Dumper):
     Dumper.add_multi_representer(data_type, multi_representer)
 
 
@@ -173,6 +179,7 @@ class YAMLObjectMetaclass(type):
         if 'yaml_tag' in kwds and kwds['yaml_tag'] is not None:
             cls.yaml_loader.add_constructor(cls.yaml_tag, cls.from_yaml)
             cls.yaml_dumper.add_representer(cls, cls.to_yaml)
+        return
 
 
 class YAMLObject(object):

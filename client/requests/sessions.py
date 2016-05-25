@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\packages\requests\sessions.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\packages\requests\sessions.py
 import os
 from collections import Mapping
 from datetime import datetime
@@ -18,33 +19,35 @@ REDIRECT_STATI = (codes.moved,
  codes.temporary_moved)
 DEFAULT_REDIRECT_LIMIT = 30
 
-def merge_setting(request_setting, session_setting, dict_class = OrderedDict):
+def merge_setting(request_setting, session_setting, dict_class=OrderedDict):
     if session_setting is None:
         return request_setting
-    if request_setting is None:
+    elif request_setting is None:
         return session_setting
-    if not (isinstance(session_setting, Mapping) and isinstance(request_setting, Mapping)):
+    elif not (isinstance(session_setting, Mapping) and isinstance(request_setting, Mapping)):
         return request_setting
-    merged_setting = dict_class(to_key_val_list(session_setting))
-    merged_setting.update(to_key_val_list(request_setting))
-    for k, v in request_setting.items():
-        if v is None:
-            del merged_setting[k]
+    else:
+        merged_setting = dict_class(to_key_val_list(session_setting))
+        merged_setting.update(to_key_val_list(request_setting))
+        for k, v in request_setting.items():
+            if v is None:
+                del merged_setting[k]
 
-    return merged_setting
+        return merged_setting
 
 
-def merge_hooks(request_hooks, session_hooks, dict_class = OrderedDict):
+def merge_hooks(request_hooks, session_hooks, dict_class=OrderedDict):
     if session_hooks is None or session_hooks.get('response') == []:
         return request_hooks
-    if request_hooks is None or request_hooks.get('response') == []:
+    elif request_hooks is None or request_hooks.get('response') == []:
         return session_hooks
-    return merge_setting(request_hooks, session_hooks, dict_class)
+    else:
+        return merge_setting(request_hooks, session_hooks, dict_class)
 
 
 class SessionRedirectMixin(object):
 
-    def resolve_redirects(self, resp, req, stream = False, timeout = None, verify = True, cert = None, proxies = None):
+    def resolve_redirects(self, resp, req, stream=False, timeout=None, verify=True, cert=None, proxies=None):
         i = 0
         while 'location' in resp.headers and resp.status_code in REDIRECT_STATI:
             prepared_request = req.copy()
@@ -89,6 +92,8 @@ class SessionRedirectMixin(object):
             i += 1
             yield resp
 
+        return
+
 
 class Session(SessionRedirectMixin):
     __attrs__ = ['headers',
@@ -121,6 +126,7 @@ class Session(SessionRedirectMixin):
         self.adapters = OrderedDict()
         self.mount('https://', HTTPAdapter())
         self.mount('http://', HTTPAdapter())
+        return
 
     def __enter__(self):
         return self
@@ -140,7 +146,7 @@ class Session(SessionRedirectMixin):
         p.prepare(method=request.method.upper(), url=request.url, files=request.files, data=request.data, headers=merge_setting(request.headers, self.headers, dict_class=CaseInsensitiveDict), params=merge_setting(request.params, self.params), auth=merge_setting(auth, self.auth), cookies=merged_cookies, hooks=merge_hooks(request.hooks, self.hooks))
         return p
 
-    def request(self, method, url, params = None, data = None, headers = None, cookies = None, files = None, auth = None, timeout = None, allow_redirects = True, proxies = None, hooks = None, stream = None, verify = None, cert = None):
+    def request(self, method, url, params=None, data=None, headers=None, cookies=None, files=None, auth=None, timeout=None, allow_redirects=True, proxies=None, hooks=None, stream=None, verify=None, cert=None):
         method = builtin_str(method)
         req = Request(method=method.upper(), url=url, headers=headers, files=files, data=data or {}, params=params or {}, auth=auth, cookies=cookies, hooks=hooks)
         prep = self.prepare_request(req)
@@ -179,13 +185,13 @@ class Session(SessionRedirectMixin):
         kwargs.setdefault('allow_redirects', False)
         return self.request('HEAD', url, **kwargs)
 
-    def post(self, url, data = None, **kwargs):
+    def post(self, url, data=None, **kwargs):
         return self.request('POST', url, data=data, **kwargs)
 
-    def put(self, url, data = None, **kwargs):
+    def put(self, url, data=None, **kwargs):
         return self.request('PUT', url, data=data, **kwargs)
 
-    def patch(self, url, data = None, **kwargs):
+    def patch(self, url, data=None, **kwargs):
         return self.request('PATCH', url, data=data, **kwargs)
 
     def delete(self, url, **kwargs):

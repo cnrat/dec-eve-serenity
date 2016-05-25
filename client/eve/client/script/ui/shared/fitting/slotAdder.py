@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\client\script\ui\shared\fitting\slotAdder.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\client\script\ui\shared\fitting\slotAdder.py
 import math
 from carbonui.const import UI_NORMAL
 from carbonui.primitives.sprite import Sprite
@@ -10,7 +11,7 @@ import telemetry
 
 class SlotAdder(object):
 
-    def __init__(self, controller, slotClass = None):
+    def __init__(self, controller, slotClass=None):
         self.controller = controller
         scaleFactor = GetScaleFactor()
         self.width = int(round(44.0 * scaleFactor))
@@ -54,7 +55,7 @@ class SlotAdder(object):
 
 class HardpointAdder(object):
 
-    def __init__(self, attributeConst, cX, cY, isleftSide = False):
+    def __init__(self, attributeConst, cX, cY, isleftSide=False):
         self.isleftSide = isleftSide
         self.attribute = cfg.dgmattribs.Get(attributeConst)
         self.cX = cX

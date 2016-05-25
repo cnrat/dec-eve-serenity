@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\carbon\common\stdlib\stacklesslib\replacements\socket.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\carbon\common\stdlib\stacklesslib\replacements\socket.py
 from __future__ import absolute_import
 import asyncore
 from collections import deque
@@ -100,7 +101,7 @@ _socketobject_old = stdsocket._socketobject
 
 class _socketobject_new(_socketobject_old):
 
-    def __init__(self, family = AF_INET, type = SOCK_STREAM, proto = 0, _sock = None):
+    def __init__(self, family=AF_INET, type=SOCK_STREAM, proto=0, _sock=None):
         if _sock is None:
             _sock = _realsocket_old(family, type, proto)
             _sock = _fakesocket(_sock)
@@ -108,6 +109,7 @@ class _socketobject_new(_socketobject_old):
         _socketobject_old.__init__(self, family, type, proto, _sock)
         if not isinstance(self._sock, _fakesocket):
             raise RuntimeError('bad socket')
+        return
 
     def accept(self):
         sock, addr = self._sock.accept()
@@ -118,12 +120,12 @@ class _socketobject_new(_socketobject_old):
     accept.__doc__ = _socketobject_old.accept.__doc__
 
 
-def make_blocking_socket(family = AF_INET, type = SOCK_STREAM, proto = 0):
+def make_blocking_socket(family=AF_INET, type=SOCK_STREAM, proto=0):
     _sock = _realsocket_old(family, type, proto)
     return _socketobject_old(_sock=_sock)
 
 
-def install(pi = None):
+def install(pi=None):
     global poll_interval
     if stdsocket._realsocket is socket:
         raise StandardError('Still installed')
@@ -131,6 +133,7 @@ def install(pi = None):
     stdsocket.socket = stdsocket.SocketType = stdsocket._socketobject = _socketobject_new
     if pi is not None:
         poll_interval = pi
+    return
 
 
 def uninstall():
@@ -177,6 +180,8 @@ def ready_to_schedule(flag):
                 if attributeName in _fakesocket.__dict__:
                     _fakesocket.__dict__[storageAttributeName] = _fakesocket.__dict__[attributeName]
                 _fakesocket.__dict__[attributeName] = reroute_wrapper(attributeName)
+
+    return
 
 
 if sys.version_info[0] == 2 and sys.version_info[1] == 6:
@@ -229,6 +234,7 @@ class _fakesocket(asyncore_dispatcher):
             return ret
         else:
             return channel.receive()
+            return
 
     def _manage_receive_with_timeout(self, channel):
         if channel.balance < 0:
@@ -247,13 +253,14 @@ class _fakesocket(asyncore_dispatcher):
     def readable(self):
         if self.socket.type == SOCK_DGRAM:
             return True
-        if len(self.readQueue):
+        elif len(self.readQueue):
             return True
-        if self.acceptChannel is not None and self.acceptChannel.balance < 0:
+        elif self.acceptChannel is not None and self.acceptChannel.balance < 0:
             return True
-        if self.connectChannel is not None and self.connectChannel.balance < 0:
+        elif self.connectChannel is not None and self.connectChannel.balance < 0:
             return True
-        return False
+        else:
+            return False
 
     def writable(self):
         if self.socket.type != SOCK_DGRAM and not self.connected:
@@ -285,17 +292,17 @@ class _fakesocket(asyncore_dispatcher):
         self.writeQueue.append((channel, flags, data))
         return self.receive_with_timeout(channel)
 
-    def send(self, data, flags = 0):
+    def send(self, data, flags=0):
         return self._send(data, flags)
 
-    def sendall(self, data, flags = 0):
+    def sendall(self, data, flags=0):
         while len(data):
             nbytes = self._send(data, flags)
             if nbytes == 0:
                 raise Exception('completely unexpected situation, no data sent')
             data = data[nbytes:]
 
-    def sendto(self, sendData, sendArg1 = None, sendArg2 = None):
+    def sendto(self, sendData, sendArg1=None, sendArg2=None):
         if sendArg2 is not None:
             flags = sendArg1
             sendAddress = sendArg2
@@ -320,50 +327,51 @@ class _fakesocket(asyncore_dispatcher):
              0))
         return self.receive_with_timeout(waitChannel)
 
-    def _recv(self, methodName, args, sizeIdx = 0):
+    def _recv(self, methodName, args, sizeIdx=0):
         self._ensure_non_blocking_read()
         if self._fileno is None:
             return ''
-        if len(args) >= sizeIdx + 1:
-            generalArgs = list(args)
-            generalArgs[sizeIdx] = 0
-            generalArgs = tuple(generalArgs)
         else:
-            generalArgs = args
-        while True:
-            channel = None
-            if self.lastReadChannelRef is not None and self.lastReadTally < VALUE_MAX_NONBLOCKINGREAD_SIZE and self.lastReadCalls < VALUE_MAX_NONBLOCKINGREAD_CALLS:
-                channel = self.lastReadChannelRef()
-                self.lastReadChannelRef = None
-            if channel is None:
-                channel = make_channel()
-                channel.preference = -1
-                self.lastReadTally = self.lastReadCalls = 0
-                self.readQueue.append([channel, methodName, args])
+            if len(args) >= sizeIdx + 1:
+                generalArgs = list(args)
+                generalArgs[sizeIdx] = 0
+                generalArgs = tuple(generalArgs)
             else:
-                self.readQueue[0][1:] = (methodName, args)
-            try:
-                ret = self.receive_with_timeout(channel)
-            except stdsocket.error as e:
-                if isinstance(e, stdsocket.error) and e.args[0] == EWOULDBLOCK:
-                    continue
+                generalArgs = args
+            while True:
+                channel = None
+                if self.lastReadChannelRef is not None and self.lastReadTally < VALUE_MAX_NONBLOCKINGREAD_SIZE and self.lastReadCalls < VALUE_MAX_NONBLOCKINGREAD_CALLS:
+                    channel = self.lastReadChannelRef()
+                    self.lastReadChannelRef = None
+                if channel is None:
+                    channel = make_channel()
+                    channel.preference = -1
+                    self.lastReadTally = self.lastReadCalls = 0
+                    self.readQueue.append([channel, methodName, args])
                 else:
-                    raise
+                    self.readQueue[0][1:] = (methodName, args)
+                try:
+                    ret = self.receive_with_timeout(channel)
+                except stdsocket.error as e:
+                    if isinstance(e, stdsocket.error) and e.args[0] == EWOULDBLOCK:
+                        continue
+                    else:
+                        raise
 
-            break
+                break
 
-        self.lastReadChannelRef = weakref.ref(channel)
-        if isinstance(ret, types.StringTypes):
-            recvlen = len(ret)
-        elif methodName == 'recvfrom':
-            recvlen = len(ret[0])
-        elif methodName == 'recvfrom_into':
-            recvlen = ret[0]
-        else:
-            recvlen = ret
-        self.lastReadTally += recvlen
-        self.lastReadCalls += 1
-        return ret
+            self.lastReadChannelRef = weakref.ref(channel)
+            if isinstance(ret, types.StringTypes):
+                recvlen = len(ret)
+            elif methodName == 'recvfrom':
+                recvlen = len(ret[0])
+            elif methodName == 'recvfrom_into':
+                recvlen = ret[0]
+            else:
+                recvlen = ret
+            self.lastReadTally += recvlen
+            self.lastReadCalls += 1
+            return ret
 
     def recv(self, *args):
         if self.socket.type != SOCK_DGRAM and not self.connected:
@@ -386,17 +394,19 @@ class _fakesocket(asyncore_dispatcher):
     def close(self):
         if self._fileno is None:
             return
-        asyncore_dispatcher.close(self)
-        self.connected = False
-        self.accepting = False
-        while self.acceptChannel and self.acceptChannel.balance < 0:
-            self.acceptChannel.send_exception(stdsocket.error, EBADF, 'Bad file descriptor')
+        else:
+            asyncore_dispatcher.close(self)
+            self.connected = False
+            self.accepting = False
+            while self.acceptChannel and self.acceptChannel.balance < 0:
+                self.acceptChannel.send_exception(stdsocket.error, EBADF, 'Bad file descriptor')
 
-        while self.connectChannel and self.connectChannel.balance < 0:
-            self.connectChannel.send_exception(stdsocket.error, ECONNREFUSED, 'Connection refused')
+            while self.connectChannel and self.connectChannel.balance < 0:
+                self.connectChannel.send_exception(stdsocket.error, ECONNREFUSED, 'Connection refused')
 
-        self._clear_queue(self.writeQueue, stdsocket.error, ECONNRESET)
-        self._clear_queue(self.readQueue)
+            self._clear_queue(self.writeQueue, stdsocket.error, ECONNRESET)
+            self._clear_queue(self.readQueue)
+            return
 
     def _clear_queue(self, queue, *args):
         for t in queue:
@@ -444,18 +454,21 @@ class _fakesocket(asyncore_dispatcher):
                 return
             t[0].setsockopt(SOL_SOCKET, SO_REUSEADDR, 1)
             stackless.tasklet(self.acceptChannel.send)(t)
+        return
 
     def handle_connect(self):
         if self.socket.type != SOCK_DGRAM:
             if self.connectChannel and self.connectChannel.balance < 0:
                 self.wasConnected = True
                 self.connectChannel.send(None)
+        return
 
     def handle_close(self):
         self.connected = False
         self.accepting = False
         if self.connectChannel is not None:
             self.close()
+        return
 
     def handle_expt(self):
         if False:
@@ -498,7 +511,7 @@ class _fakesocket(asyncore_dispatcher):
             channel, flags, data = self.writeQueue[0]
             del self.writeQueue[0]
 
-            def asyncore_send(self, data, flags = 0):
+            def asyncore_send(self, data, flags=0):
                 try:
                     result = self.socket.send(data, flags)
                     return result

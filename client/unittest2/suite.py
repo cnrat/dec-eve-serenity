@@ -1,11 +1,12 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\carbon\common\stdlib\unittest2\suite.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\carbon\common\stdlib\unittest2\suite.py
 import unittest
 from unittest2 import case
 from unittest2 import util
 
 class TestSuite(unittest.TestSuite):
 
-    def __init__(self, tests = ()):
+    def __init__(self, tests=()):
         self._tests = []
         self.addTests(tests)
 

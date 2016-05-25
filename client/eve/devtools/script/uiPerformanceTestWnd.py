@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\devtools\script\uiPerformanceTestWnd.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\devtools\script\uiPerformanceTestWnd.py
 from eve.client.script.ui.control.buttons import Button
 from eve.client.script.ui.control.eveWindow import Window
 import carbonui.const as uiconst

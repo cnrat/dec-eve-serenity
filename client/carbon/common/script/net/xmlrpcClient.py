@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\carbon\common\script\net\xmlrpcClient.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\carbon\common\script\net\xmlrpcClient.py
 import service
 import contextlib
 import xmlrpclib
@@ -10,7 +11,7 @@ from service import ROLE_SERVICE
 
 class CachedMultiMap(object):
 
-    def __init__(self, highWater = 10, lowWater = None):
+    def __init__(self, highWater=10, lowWater=None):
         self.map = collections.defaultdict(list)
         self.times = {}
         self.time = 0
@@ -18,6 +19,7 @@ class CachedMultiMap(object):
         if lowWater is None:
             lowWater = self.highWater / 2
         self.lowWater = min(lowWater, self.highWater)
+        return
 
     def __len__(self):
         return len(self.times)
@@ -41,7 +43,7 @@ class CachedMultiMap(object):
         l[-1] = (t, v)
         return v
 
-    def Pop(self, key, first = False):
+    def Pop(self, key, first=False):
         l = self.map[key]
         try:
             t0, v = l.pop(0 if first else -1)
@@ -71,7 +73,7 @@ class CachedMultiMap(object):
 
 class RetryProxyMethod:
 
-    def __init__(self, send, name, retries = 3):
+    def __init__(self, send, name, retries=3):
         self.__send = send
         self.__name = name
         self.__retries = retries
@@ -91,7 +93,7 @@ class RetryProxyMethod:
 class RetryProxy(xmlrpclib.ServerProxy):
     __guid__ = 'xmlrpc.RetryProxy'
 
-    def __init__(self, uri, transport = None, encoding = None, verbose = 0, allow_none = 0, use_datetime = 0, retries = 3):
+    def __init__(self, uri, transport=None, encoding=None, verbose=0, allow_none=0, use_datetime=0, retries=3):
         xmlrpclib.ServerProxy.__init__(self, uri, transport, encoding, verbose, allow_none, use_datetime)
         self.__retries = retries
 
@@ -106,14 +108,14 @@ class XmlrpcClient(service.Service):
     __guid__ = 'svc.xmlrpcClient'
     __dependencies__ = []
 
-    def Run(self, memStream = None):
+    def Run(self, memStream=None):
         self.proxiesByKey = CachedMultiMap(10)
         self.dnsMap = {}
 
     def Stop(self, memStream):
         self.proxiesByKey.Clear()
 
-    def GetProxy(self, uri, proxyClass = xmlrpclib.ServerProxy, proxyArgs = ()):
+    def GetProxy(self, uri, proxyClass=xmlrpclib.ServerProxy, proxyArgs=()):
         key = (uri, proxyClass, proxyArgs)
         try:
             return (key, self.proxiesByKey.Pop(key))
@@ -121,7 +123,7 @@ class XmlrpcClient(service.Service):
             uri = self.FixUri(uri)
             return (key, proxyClass(uri, *proxyArgs))
 
-    def ReturnProxy(self, key, proxy, discard = False):
+    def ReturnProxy(self, key, proxy, discard=False):
         if not discard:
             self.proxiesByKey.Insert(key, proxy)
 
@@ -140,28 +142,30 @@ class XmlrpcClient(service.Service):
             event = locks.Event()
             self.dnsMap[key] = event
             try:
-                netloc = key
-                hostport = netloc.split(':')
-                if len(hostport) == 2:
-                    host, port = hostport
-                else:
-                    host, port = hostport[0], None
                 try:
-                    info = socket.getaddrinfo(host, port)
-                    info = [ e for e in info if e[0] == socket.AF_INET ]
-                    if info:
-                        if port is not None:
-                            host, port = info[0][4]
-                            netloc = host + ':' + str(port)
-                        else:
-                            netloc = host
-                except socket.gaierror:
-                    pass
+                    netloc = key
+                    hostport = netloc.split(':')
+                    if len(hostport) == 2:
+                        host, port = hostport
+                    else:
+                        host, port = hostport[0], None
+                    try:
+                        info = socket.getaddrinfo(host, port)
+                        info = [ e for e in info if e[0] == socket.AF_INET ]
+                        if info:
+                            if port is not None:
+                                host, port = info[0][4]
+                                netloc = host + ':' + str(port)
+                            else:
+                                netloc = host
+                    except socket.gaierror:
+                        pass
 
-            except:
-                del self.dnsMap[key]
-            else:
-                self.dnsMap[key] = netloc
+                except:
+                    del self.dnsMap[key]
+                else:
+                    self.dnsMap[key] = netloc
+
             finally:
                 event.set()
 
@@ -174,13 +178,15 @@ class XmlrpcClient(service.Service):
             return getattr(p, method)(*args)
 
     @contextlib.contextmanager
-    def Proxy(self, uri, proxyClass = xmlrpclib.ServerProxy, proxyArgs = ()):
+    def Proxy(self, uri, proxyClass=xmlrpclib.ServerProxy, proxyArgs=()):
         k, p = self.GetProxy(uri, proxyClass, proxyArgs)
         discard = False
         try:
-            yield p
-        except socket.error:
-            discard = True
-            raise
+            try:
+                yield p
+            except socket.error:
+                discard = True
+                raise
+
         finally:
             self.ReturnProxy(k, p, discard)

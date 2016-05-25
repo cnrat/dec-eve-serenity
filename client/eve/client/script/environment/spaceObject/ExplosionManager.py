@@ -1,14 +1,19 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\client\script\environment\spaceObject\ExplosionManager.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\client\script\environment\spaceObject\ExplosionManager.py
 import math
 from collections import deque
 import blue
+from eve.client.script.ui.camera.cameraUtil import IsNewCameraActive
+import evecamera
 import trinity
 import geo2
 import telemetry
 import uthread
+import random
 import carbon.common.script.util.logUtil as log
 import evecamera.utils as camutils
 import evegraphics.settings as gfxsettings
+from tacticalNavigation.ballparkFunctions import AddClientBall, RemoveClientBall
 SECOND = 10000000
 
 class Singleton(type):
@@ -16,6 +21,7 @@ class Singleton(type):
     def __init__(cls, mcs, bases, dic):
         super(Singleton, cls).__init__(mcs, bases, dic)
         cls.instance = None
+        return
 
     def __call__(cls, *args, **kw):
         if cls.instance is None:
@@ -91,7 +97,7 @@ class PooledExplosion:
 class ExplosionManager(object):
     __metaclass__ = Singleton
 
-    def __init__(self, limit = 100):
+    def __init__(self, limit=100):
         self.queue = []
         self.pooledExplosions = {}
         self.ageLimit = 20 * SECOND
@@ -104,19 +110,19 @@ class ExplosionManager(object):
             blue.synchro.SleepSim(1000)
             self._Prune()
 
-    def Preload(self, path, count = 1):
+    def Preload(self, path, count=1):
         if path not in self.pooledExplosions:
             self.pooledExplosions[path] = PooledExplosion(path)
         self.pooledExplosions[path].AddRef(count)
 
-    def Cancel(self, path, count = 1):
+    def Cancel(self, path, count=1):
         if path not in self.pooledExplosions:
             log.LogWarn('ExplosionManager::Cancel ' + path + ' not loaded.')
             return
         self.pooledExplosions[path].DecRef(count)
 
     @telemetry.ZONE_METHOD
-    def GetExplosion(self, path, scale = 1.0, preloaded = False, callback = None):
+    def GetExplosion(self, path, scale=1.0, preloaded=False, callback=None):
         if path not in self.pooledExplosions:
             if preloaded:
                 log.LogWarn('ExplosionManager::GetExplosion ' + path + ' not loaded.')
@@ -184,6 +190,7 @@ class ExplosionManager(object):
             model.loadedCallback = None
             pool.Push(model)
             pool.DecRef(1)
+        return
 
     def GetCount(self):
         return len(self.queue)
@@ -201,20 +208,67 @@ class ExplosionManager(object):
     def Stop(self):
         self.running = False
 
+    @staticmethod
+    def SetUpChildExplosion(explosionModel, explosionLocatorSets):
+        explosionChildren = explosionModel.Find('trinity.EveChildExplosion', 2)
+        if explosionLocatorSets is not None:
+            transforms = []
+            locators = [ (each[0], each[1]) for each in (explosionLocatorSets.locators if explosionLocatorSets else []) ]
+            random.shuffle(locators)
+            for position, direction in locators:
+                rotation = geo2.QuaternionRotationArc((0, 1, 0), direction)
+                transform = geo2.MatrixTransformation((0, 0, 0), (0, 0, 0, 1), (1, 1, 1), (0, 0, 0), rotation, position)
+                transforms.append(transform)
+
+            for each in explosionChildren:
+                each.SetLocalExplosionTransforms(transforms)
+
+        for each in explosionChildren:
+            each.Play()
+
+        return
+
+    @staticmethod
+    def PlayClientSideExplosionBall(gfxResPath, worldPos, rotation, explosionLocatorSets=None):
+        scene = sm.GetService('space').GetScene()
+        clientBall = AddClientBall(worldPos)
+        explosionModel = trinity.Load(gfxResPath)
+        explosionModel.translationCurve = clientBall
+        explosionModel.rotation = rotation
+        ExplosionManager.SetUpChildExplosion(explosionModel, explosionLocatorSets)
+        scene.objects.append(explosionModel)
+        secTillBallRemove = 60.0
+        if isinstance(explosionModel, trinity.EveEffectRoot2):
+            for child in explosionModel.effectChildren:
+                secTillBallRemove = max(secTillBallRemove, child.globalDuration)
+
+        uthread.new(ExplosionManager._DelayedBallRemove, clientBall, explosionModel, secTillBallRemove)
+
+    @staticmethod
+    def _DelayedBallRemove(clientBall, explosionModel, secTillBallRemove):
+        blue.synchro.Sleep(secTillBallRemove * 1000)
+        scene = sm.GetService('space').GetScene()
+        scene.objects.fremove(explosionModel)
+        RemoveClientBall(clientBall)
+
 
 def GetLodLevel(position, radius):
-    cam = sm.GetService('sceneManager').GetRegisteredCamera('default')
+    cam = sm.GetService('sceneManager').GetActiveSpaceCamera()
     if cam is None:
         return 1
-    distance = geo2.Vec3Length(geo2.Vec3Subtract((cam.pos.x, cam.pos.y, cam.pos.z), position))
+    if IsNewCameraActive():
+        distance = geo2.Vec3Distance(cam.eyePosition, position)
+    else:
+        distance = geo2.Vec3Length(geo2.Vec3Subtract((cam.pos.x, cam.pos.y, cam.pos.z), position))
     vp = trinity.device.viewport
     aspectRatio = vp.GetAspectRatio()
-    fov = cam.fieldOfView / camutils.GetARZoomMultiplier(aspectRatio)
+    fov = cam.fov / camutils.GetARZoomMultiplier(aspectRatio)
     lodQuality = gfxsettings.Get(gfxsettings.GFX_LOD_QUALITY)
     boundingSize = radius / (math.tan(fov / 2) * distance) * vp.height
     if boundingSize < 192 / lodQuality:
         return 1
-    return 0
+    else:
+        return 0
 
 
 exports = {'util.ExplosionManager': ExplosionManager,

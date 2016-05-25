@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\packages\UITree\main.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\packages\UITree\main.py
 __author__ = 'fridrik'
 import blue
 import trinity
@@ -123,6 +124,7 @@ class UITree(Window):
         self.ReloadUIRoots()
         uthread.new(self.UpdateInfo)
         self._keyDownCookie = uicore.uilib.RegisterForTriuiEvents([uiconst.UI_KEYDOWN], self.OnGlobalKeyDown)
+        return
 
     def OnSearchInputChange(self, *args):
         self.searchThread = base.AutoTimer(250, self.SearchTree)
@@ -134,40 +136,42 @@ class UITree(Window):
             self.searchResultParent.Hide()
             self.searchResultParent.Flush()
             return
-        self.searchResultParent.Flush()
-        res = []
-        searchFor = self.filterString.lower()
-
-        def Crawl(obj, path):
-            if obj is self:
-                return
-            if searchFor in obj.name.lower():
-                if path:
-                    res.append((obj, path + '/ <b>' + obj.name + '</b>'))
-                else:
-                    res.append((obj, '<b>' + obj.name + '</b>'))
-            if hasattr(obj, 'children'):
-                for each in obj.children:
-                    if path:
-                        Crawl(each, path + '/' + obj.name)
-                    else:
-                        Crawl(each, obj.name)
-
-        for root in uicore.uilib.rootObjects:
-            Crawl(root, '')
-
-        if res:
-            for obj, path in res[:20]:
-                label = Label(parent=self.searchResultParent, align=uiconst.TOTOP, text=path, state=uiconst.UI_NORMAL, padding=(10, 2, 10, 2))
-                label._searchObj = obj
-                label.hint = path
-                label.OnClick = (self.OnSearchResultClick, obj)
-
-            if len(res) > 20:
-                Label(parent=self.searchResultParent, align=uiconst.TOTOP, text='and even more... (%s found)' % len(res), padding=(10, 2, 10, 2))
         else:
-            Label(parent=self.searchResultParent, align=uiconst.TOTOP, text='No Match!', padding=(10, 3, 10, 3))
-        self.searchResultParent.Show()
+            self.searchResultParent.Flush()
+            res = []
+            searchFor = self.filterString.lower()
+
+            def Crawl(obj, path):
+                if obj is self:
+                    return
+                if searchFor in obj.name.lower():
+                    if path:
+                        res.append((obj, path + '/ <b>' + obj.name + '</b>'))
+                    else:
+                        res.append((obj, '<b>' + obj.name + '</b>'))
+                if hasattr(obj, 'children'):
+                    for each in obj.children:
+                        if path:
+                            Crawl(each, path + '/' + obj.name)
+                        else:
+                            Crawl(each, obj.name)
+
+            for root in uicore.uilib.rootObjects:
+                Crawl(root, '')
+
+            if res:
+                for obj, path in res[:20]:
+                    label = Label(parent=self.searchResultParent, align=uiconst.TOTOP, text=path, state=uiconst.UI_NORMAL, padding=(10, 2, 10, 2))
+                    label._searchObj = obj
+                    label.hint = path
+                    label.OnClick = (self.OnSearchResultClick, obj)
+
+                if len(res) > 20:
+                    Label(parent=self.searchResultParent, align=uiconst.TOTOP, text='and even more... (%s found)' % len(res), padding=(10, 2, 10, 2))
+            else:
+                Label(parent=self.searchResultParent, align=uiconst.TOTOP, text='No Match!', padding=(10, 3, 10, 3))
+            self.searchResultParent.Show()
+            return
 
     def OnSearchResultClick(self, obj):
         self.searchResultParent.Hide()
@@ -192,6 +196,7 @@ class UITree(Window):
         menuParent.AddCheckBox(text='Ignore fullscreen hilite', checked=checked, callback=(self.ToggleCheckboxSetting, 'IgnoreFullScreenPick'))
         menuParent.AddIconEntry(icon=None, text='Move To Desktop', callback=self.MoveToDesktop)
         menuParent.AddIconEntry(icon=None, text='Reload Textures', callback=self.ReloadTextures)
+        return
 
     def ReloadTextures(self):
         import blue
@@ -216,6 +221,7 @@ class UITree(Window):
         if getattr(self, '_selectedFrame', None):
             self._selectedFrame.Close()
         Window.Close(self, *args, **kwds)
+        return
 
     def OnGlobalKeyDown(self, *args, **kwds):
         if self.destroyed:
@@ -280,6 +286,8 @@ class UITree(Window):
             self._infoContainer.height = self._infoLabel.textheight + 5
             blue.pyos.synchro.SleepWallclock(100)
 
+        return
+
     def ShowSelectedObjectInUI(self, uiObject):
         if uiObject and hasattr(uiObject, 'GetAbsolute'):
             self._selectedFrame.pos = uiObject.GetAbsolute()
@@ -304,7 +312,7 @@ class UITree(Window):
 
         self.scroll.LoadContent(contentList=scrollNodes)
 
-    def _AddUIObject(self, uiObject, scrollList, lvl, isExpanded = False, objectLabel = None, isExpandable = False):
+    def _AddUIObject(self, uiObject, scrollList, lvl, isExpanded=False, objectLabel=None, isExpandable=False):
         if len(scrollList) > 1 and lvl:
             for i in xrange(1, len(scrollList) - 1):
                 last = scrollList[-i]
@@ -321,10 +329,11 @@ class UITree(Window):
         allPrefs = settings.user.ui.Get('UITreeExpandedObjects', {})
         if desktopObjectID not in allPrefs:
             return False
-        uiObjectID = id(uiObject)
-        if getattr(uiObject, 'parent', None):
-            uiObjectID = (id(uiObject.parent), uiObjectID)
-        return uiObjectID in allPrefs[desktopObjectID]
+        else:
+            uiObjectID = id(uiObject)
+            if getattr(uiObject, 'parent', None):
+                uiObjectID = (id(uiObject.parent), uiObjectID)
+            return uiObjectID in allPrefs[desktopObjectID]
 
     def ExpandUIObject(self, uiObject):
         uiObjectID = id(uiObject)
@@ -337,6 +346,7 @@ class UITree(Window):
         if uiObjectID not in allPrefs[desktopObjectID]:
             allPrefs[desktopObjectID].append(uiObjectID)
         settings.user.ui.Set('UITreeExpandedObjects', allPrefs)
+        return
 
     def ToggleExpandedObject(self, uiObject):
         uiObjectID = id(uiObject)
@@ -352,8 +362,9 @@ class UITree(Window):
             allPrefs[desktopObjectID].append(uiObjectID)
         settings.user.ui.Set('UITreeExpandedObjects', allPrefs)
         self.ReloadUIRoots()
+        return
 
-    def _CrawlUIObject(self, uiObject, scrollNodes, lvl, objectLabel = None):
+    def _CrawlUIObject(self, uiObject, scrollNodes, lvl, objectLabel=None):
         isExpandable = UITree._IsExpandable(uiObject)
         if isExpandable:
             isExpanded = self.IsExpanded(uiObject)
@@ -420,21 +431,24 @@ class UITree(Window):
                     elif hasattr(prop, 'TypeInfo'):
                         self._CrawlUIObject(prop, scrollNodes, lvl + 1, objectLabel=propertyName)
 
+        return
+
     @classmethod
     def _IsExpandable(cls, uiObject):
         if isinstance(uiObject, Base):
             return True
-        allC = dir(uiObject)
-        for propertyName in allC:
-            if propertyName.startswith('_'):
-                continue
-            prop = getattr(uiObject, propertyName, None)
-            if getattr(prop, '__bluetype__', None) in ('blue.List', 'blue.Dict'):
-                return True
-            if hasattr(prop, 'TypeInfo'):
-                return True
+        else:
+            allC = dir(uiObject)
+            for propertyName in allC:
+                if propertyName.startswith('_'):
+                    continue
+                prop = getattr(uiObject, propertyName, None)
+                if getattr(prop, '__bluetype__', None) in ('blue.List', 'blue.Dict'):
+                    return True
+                if hasattr(prop, 'TypeInfo'):
+                    return True
 
-        return False
+            return False
 
     def ShowUIObject(self, uiObject):
         traceUp = [uiObject]
@@ -455,74 +469,76 @@ class UITree(Window):
     def ShowPropertiesForObject(self, uiObject):
         if uiObject is None:
             return
-        try:
-            len(uiObject)
-            self.attributeScroll.LoadContent(contentList=[])
-            return
-        except:
-            pass
-
-        self._selectedObject = weakref.ref(uiObject)
-        level = 0
-        newNodes = []
-        if isinstance(uiObject, Base):
-            combined = []
-            if hasattr(uiObject, 'color'):
-                combined.append(('color', ('color.r', 'color.g', 'color.b', 'color.a')))
-            for propertyName, subs in combined:
-                propertyNode = ScrollEntryNode(decoClass=UITreePropertyEntry, uiObject=uiObject, level=level, propertyName=propertyName, combineProperties=subs)
-                newNodes.append(propertyNode)
-
-            basics = ['name',
-             'pos',
-             'opacity',
-             'padding',
-             'displayRect',
-             'display',
-             'pickState',
-             'align',
-             'clipChildren',
-             'pickRadius',
-             'absoluteCoordinates',
-             'cacheContents',
-             'text',
-             'blendMode',
-             'spriteEffect',
-             'effectAmount',
-             'effectAmount2',
-             'glowColor',
-             'glowFactor',
-             'glowExpand',
-             'useSizeFromTexture',
-             'rotation',
-             'rotationCenter',
-             'scale',
-             'scalingCenter',
-             'scalingRotation',
-             '',
-             '__guid__',
-             '__class__']
-            for propertyName in basics:
-                prop = getattr(uiObject, propertyName, '_!_')
-                if prop == '_!_':
-                    continue
-                propertyNode = ScrollEntryNode(decoClass=UITreePropertyEntry, uiObject=uiObject, level=level, propertyName=propertyName)
-                newNodes.append(propertyNode)
-
         else:
-            for attr in dir(uiObject):
-                if attr[0] == attr[0].upper():
-                    continue
-                if attr[0] == '_':
-                    continue
-                if attr in ('children', 'background'):
-                    continue
-                propertyNode = ScrollEntryNode(decoClass=UITreePropertyEntry, uiObject=uiObject, level=level, propertyName=attr)
-                newNodes.append((attr, propertyNode))
+            try:
+                len(uiObject)
+                self.attributeScroll.LoadContent(contentList=[])
+                return
+            except:
+                pass
 
-            newNodes = SortListOfTuples(newNodes)
-        self.ReloadUIRoots()
-        self.attributeScroll.LoadContent(contentList=newNodes)
+            self._selectedObject = weakref.ref(uiObject)
+            level = 0
+            newNodes = []
+            if isinstance(uiObject, Base):
+                combined = []
+                if hasattr(uiObject, 'color'):
+                    combined.append(('color', ('color.r', 'color.g', 'color.b', 'color.a')))
+                for propertyName, subs in combined:
+                    propertyNode = ScrollEntryNode(decoClass=UITreePropertyEntry, uiObject=uiObject, level=level, propertyName=propertyName, combineProperties=subs)
+                    newNodes.append(propertyNode)
+
+                basics = ['name',
+                 'pos',
+                 'opacity',
+                 'padding',
+                 'displayRect',
+                 'display',
+                 'pickState',
+                 'align',
+                 'clipChildren',
+                 'pickRadius',
+                 'absoluteCoordinates',
+                 'cacheContents',
+                 'text',
+                 'blendMode',
+                 'spriteEffect',
+                 'effectAmount',
+                 'effectAmount2',
+                 'glowColor',
+                 'glowFactor',
+                 'glowExpand',
+                 'useSizeFromTexture',
+                 'rotation',
+                 'rotationCenter',
+                 'scale',
+                 'scalingCenter',
+                 'scalingRotation',
+                 '',
+                 '__guid__',
+                 '__class__']
+                for propertyName in basics:
+                    prop = getattr(uiObject, propertyName, '_!_')
+                    if prop == '_!_':
+                        continue
+                    propertyNode = ScrollEntryNode(decoClass=UITreePropertyEntry, uiObject=uiObject, level=level, propertyName=propertyName)
+                    newNodes.append(propertyNode)
+
+            else:
+                for attr in dir(uiObject):
+                    if attr[0] == attr[0].upper():
+                        continue
+                    if attr[0] == '_':
+                        continue
+                    if attr in ('children', 'background'):
+                        continue
+                    propertyNode = ScrollEntryNode(decoClass=UITreePropertyEntry, uiObject=uiObject, level=level, propertyName=attr)
+                    newNodes.append((attr, propertyNode))
+
+                newNodes = SortListOfTuples(newNodes)
+            self.ReloadUIRoots()
+            self.attributeScroll.LoadContent(contentList=newNodes)
+            return
 
 
 class UITreeNumberInput(Container):
@@ -592,11 +608,13 @@ class UITreeNumberInput(Container):
     def OnMouseUp(self, *args):
         if self._propertyName in COMBOPROPERTIES:
             return
-        if self._editType in (int, float):
-            self._updateValue = None
-            self.ScrollValue(register=True)
+        else:
+            if self._editType in (int, float):
+                self._updateValue = None
+                self.ScrollValue(register=True)
+            return
 
-    def ScrollValue(self, register = False):
+    def ScrollValue(self, register=False):
         posDiff = (uicore.uilib.x - self._downPos) / 2
         alt = uicore.uilib.Key(uiconst.VK_MENU)
         shift = uicore.uilib.Key(uiconst.VK_SHIFT)
@@ -626,13 +644,13 @@ class UITreeNumberInput(Container):
                 newValue = min(max(newValue, mn), mx)
 
         self.SetPropertyValue(newValue)
-        if self._editType in (float,) and -1 <= newValue <= 1:
-            self._label.text = '%.3f' % newValue
-        else:
-            self._label.text = str(newValue)
-        self.UpdateSize()
-        if register:
-            self._value = newValue
+        if self._editType in (float,):
+            if -1 <= newValue <= 1:
+                self._label.text = '%.3f' % newValue
+            else:
+                self._label.text = str(newValue)
+            self.UpdateSize()
+            self._value = register and newValue
 
     def SetPropertyValue(self, value):
         obj = self._uiObject
@@ -654,6 +672,8 @@ class UITreeNumberInput(Container):
         except:
             pass
 
+        return
+
 
 INDENTSIZE = 18
 
@@ -673,47 +693,50 @@ class UITreeEntry(SE_BaseClassCore):
         self.CheckDestroyed()
         if self.loaded:
             return
-        self.loaded = True
-        if isinstance(node.uiObject, (Base,)):
-            self._label.text = node.uiObject.name or node.uiObject.__class__
-            if node.objectLabel:
-                self._label.text = '%s: %s' % (node.objectLabel, self._label.text)
         else:
-            self._label.italic = True
-            if node.objectLabel:
-                self._label.text = node.objectLabel
-            elif getattr(node.uiObject, 'name', None):
-                self._label.text = '%s (%s)' % (node.uiObject.name, node.uiObject.__typename__)
+            self.loaded = True
+            if isinstance(node.uiObject, (Base,)):
+                self._label.text = node.uiObject.name or node.uiObject.__class__
+                if node.objectLabel:
+                    self._label.text = '%s: %s' % (node.objectLabel, self._label.text)
             else:
-                self._label.text = node.uiObject.__typename__
-            self._label.color = (1.0, 1.0, 1.0, 0.5)
-        self._label.left = INDENTSIZE * node.level + 20
-        if hasattr(node.uiObject, 'Reload') or 'Reload' in getattr(node.uiObject, '__methods__', []):
-            reloadIcon = Sprite(texturePath=RESROOT + 'tinyReload.png', pos=(3, 0, 16, 16), parent=self, align=uiconst.CENTERRIGHT, idx=0)
-            reloadIcon.OnClick = self.ReloadUIObject
-        if node.isExpandable:
-            if node.isExpanded:
-                self._expandIcon.texturePath = RESROOT + 'containerExpanded_down.png'
-            else:
-                self._expandIcon.texturePath = RESROOT + 'containerCollapsed.png'
-        else:
-            self._expandIcon.texturePath = RESROOT + 'nonContainer.png'
-            self._expandIcon.state = uiconst.UI_DISABLED
-        self._expandIcon.left = INDENTSIZE * node.level
-        nextNode = node.scroll.GetNode(node.idx + 1)
-        if node.connectLevels is not None:
-            for i, connectLevel in enumerate(node.connectLevels):
-                if connectLevel == node.level:
-                    if not nextNode or connectLevel not in nextNode.connectLevels:
-                        texturePath = RESROOT + 'connectionL.png'
-                    else:
-                        texturePath = RESROOT + 'connectionT.png'
+                self._label.italic = True
+                if node.objectLabel:
+                    self._label.text = node.objectLabel
+                elif getattr(node.uiObject, 'name', None):
+                    self._label.text = '%s (%s)' % (node.uiObject.name, node.uiObject.__typename__)
                 else:
-                    texturePath = RESROOT + 'connectionI.png'
-                Sprite(parent=self, texturePath=texturePath, align=uiconst.CENTERLEFT, pos=((connectLevel - 1) * INDENTSIZE,
-                 0,
-                 INDENTSIZE,
-                 INDENTSIZE))
+                    self._label.text = node.uiObject.__typename__
+                self._label.color = (1.0, 1.0, 1.0, 0.5)
+            self._label.left = INDENTSIZE * node.level + 20
+            if hasattr(node.uiObject, 'Reload') or 'Reload' in getattr(node.uiObject, '__methods__', []):
+                reloadIcon = Sprite(texturePath=RESROOT + 'tinyReload.png', pos=(3, 0, 16, 16), parent=self, align=uiconst.CENTERRIGHT, idx=0)
+                reloadIcon.OnClick = self.ReloadUIObject
+            if node.isExpandable:
+                if node.isExpanded:
+                    self._expandIcon.texturePath = RESROOT + 'containerExpanded_down.png'
+                else:
+                    self._expandIcon.texturePath = RESROOT + 'containerCollapsed.png'
+            else:
+                self._expandIcon.texturePath = RESROOT + 'nonContainer.png'
+                self._expandIcon.state = uiconst.UI_DISABLED
+            self._expandIcon.left = INDENTSIZE * node.level
+            nextNode = node.scroll.GetNode(node.idx + 1)
+            if node.connectLevels is not None:
+                for i, connectLevel in enumerate(node.connectLevels):
+                    if connectLevel == node.level:
+                        if not nextNode or connectLevel not in nextNode.connectLevels:
+                            texturePath = RESROOT + 'connectionL.png'
+                        else:
+                            texturePath = RESROOT + 'connectionT.png'
+                    else:
+                        texturePath = RESROOT + 'connectionI.png'
+                    Sprite(parent=self, texturePath=texturePath, align=uiconst.CENTERLEFT, pos=((connectLevel - 1) * INDENTSIZE,
+                     0,
+                     INDENTSIZE,
+                     INDENTSIZE))
+
+            return
 
     def ReloadUIObject(self, *args):
         if hasattr(self.sr.node.uiObject, 'Reload'):
@@ -726,6 +749,7 @@ class UITreeEntry(SE_BaseClassCore):
             if not getattr(self, '_destroyedIndicator', None):
                 self._destroyedIndicator = Fill(parent=self, idx=0, color=(1, 0, 0, 0.3))
             self.state = uiconst.UI_DISABLED
+        return
 
     def UpdateSelected(self, selectedObject):
         if self.sr.node.uiObject and selectedObject is self.sr.node.uiObject:
@@ -734,6 +758,7 @@ class UITreeEntry(SE_BaseClassCore):
             self._selectedSprite.display = True
         elif getattr(self, '_selectedSprite', None):
             self._selectedSprite.display = False
+        return
 
     def UpdatePickHilite(self, hilitedObject):
         if hilitedObject and self.sr.node.uiObject:
@@ -769,7 +794,7 @@ class UITreeEntry(SE_BaseClassCore):
                 m.append(('Open In Jessica', self.OpenInJessica, (self.sr.node.uiObject,)))
         return m
 
-    def CallUIObjectAndReload(self, functionName, setFocus = False, *args):
+    def CallUIObjectAndReload(self, functionName, setFocus=False, *args):
         func = getattr(self.sr.node.uiObject, functionName, None)
         if func:
             returnValue = func()
@@ -778,6 +803,7 @@ class UITreeEntry(SE_BaseClassCore):
                 wnd = UITree.GetIfOpen()
                 if wnd:
                     uthread.new(wnd.ShowUIObject, returnValue)
+        return
 
     def MoveUIObject(self, direction):
         uiObject = self.sr.node.uiObject

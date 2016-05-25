@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\carbon\common\script\net\httpService.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\carbon\common\script\net\httpService.py
 import binascii
 import cStringIO
 import base
@@ -53,6 +54,7 @@ class Request():
         self.args = ''
         self.raw = ''
         self.tunnelinfo = None
+        return
 
     def ClientCertificate(self, key):
         return None
@@ -71,7 +73,8 @@ class Request():
     def Form(self, element):
         if not self.form.has_key(element):
             return None
-        return htmlwriter.Pythonize(self.form[element])
+        else:
+            return htmlwriter.Pythonize(self.form[element])
 
     def FormItems(self):
         return dict(((k, htmlwriter.Pythonize(v)) for k, v in self.form.items()))
@@ -79,9 +82,8 @@ class Request():
     def FormCheck(self, element):
         if self.Form(element) == 'on':
             return 1
-        return 0
 
-    def QueryStrings(self, raw = False):
+    def QueryStrings(self, raw=False):
         ret = {}
         for k, v in self.query.iteritems():
             if raw:
@@ -91,7 +93,7 @@ class Request():
 
         return ret
 
-    def QueryString(self, variable, caseInsensitive = False, raw = False, default = None):
+    def QueryString(self, variable, caseInsensitive=False, raw=False, default=None):
         if caseInsensitive:
             variable = variable.lower()
             for k, v in self.query.iteritems():
@@ -115,6 +117,7 @@ class Request():
         elif self.header.has_key(env):
             return self.header[env]
         else:
+            return None
             return None
 
     def ReadRequest(self):
@@ -285,7 +288,7 @@ class Request():
 
         return ret
 
-    def DumpRequest(self, withRaw = 0):
+    def DumpRequest(self, withRaw=0):
         print '************** R E Q U E S T ******************'
         print 'my url:', self.path
         print 'my paths:', self.paths
@@ -338,6 +341,8 @@ class Request():
                 return (username, util.PasswordString(password))
             except:
                 pass
+
+        return
 
 
 def GetSession(parent, request, response, sessionsBySID, sessionsByFlatkaka):
@@ -446,6 +451,7 @@ def GetSession(parent, request, response, sessionsBySID, sessionsByFlatkaka):
         response.authenticate = 1
         response.Flush()
         return
+        return
 
 
 class Response():
@@ -461,6 +467,7 @@ class Response():
         self.header = {}
         self.authenticate = 0
         self.done = 0
+        return
 
     def AddHeader(self, name, value):
         self.header[name] = value
@@ -485,6 +492,7 @@ class Response():
         self.buff.close()
         self.streamMode = None
         self.buff = cStringIO.StringIO()
+        return
 
     def End(self):
         raise RuntimeError('End not implemented just yet')
@@ -534,7 +542,7 @@ class Response():
 
         self.ep.Write(out)
 
-    def Redirect(self, url, args = None, **kwargs):
+    def Redirect(self, url, args=None, **kwargs):
         self.status = '302 Object Moved'
         if kwargs:
             if args and isinstance(args, dict):
@@ -585,6 +593,7 @@ class ESPSession():
     def Abandon(self):
         self.owner.OnSessionEnd(self.sessionID)
         self.owner = None
+        return
 
 
 class ConnectionService(service.Service):
@@ -618,6 +627,7 @@ class ConnectionService(service.Service):
                     del self.sessionsByFlatkaka[kaka]
             sess.LogSessionHistory('Session closed during OnSessionEnd')
             base.CloseSession(sess)
+        return
 
     def Init(self):
         if boot.role == 'client' and blue.pyos.packaged:
@@ -633,8 +643,9 @@ class ConnectionService(service.Service):
         self.threads = 0
         self.TimoutOutIntervalInMinutes = 5
         self.staticHeader = None
+        return
 
-    def Run(self, memStream = None):
+    def Run(self, memStream=None):
         self.Init()
         if self.acceptingHTTP == 0:
             self.LogInfo('Http server not running as no http=1 in prefs.ini')
@@ -724,36 +735,38 @@ class ConnectionService(service.Service):
     def GetStaticHeader(self):
         uthread.Lock('http.GetStaticHeader')
         try:
-            if self.staticHeader is None:
-                self.staticHeader = {}
-                self.staticHeader['CCP-codename'] = boot.codename
-                self.staticHeader['CCP-version'] = boot.version
-                self.staticHeader['CCP-build'] = boot.build
-                self.staticHeader['CCP-sync'] = boot.sync
-                self.staticHeader['CCP-clustermode'] = prefs.GetValue('clusterMode', 'n/a')
-                if boot.role == 'server':
-                    product = sm.GetService('cache').Setting('zsystem', 'Product')
-                    ebsVersion = sm.GetService('DB2').CallProc('zsystem.Versions_Select', product)[0].version
-                    bsdChangeList = sm.GetService('DB2').SQLInt('TOP 1 changeID', 'zstatic.changes', 'submitDate IS NOT NULL', 'submitDate DESC', 'branchID', sm.GetService('BSD').Setting(1))
-                    self.staticHeader['CCP-product'] = product
-                    self.staticHeader['CCP-EBS'] = ebsVersion
-                    self.staticHeader['CCP-StaticBranch'] = sm.GetService('BSD').BranchName()
-                    if len(bsdChangeList) > 0:
-                        self.staticHeader['CCP-StaticCL'] = bsdChangeList[0].changeID
-            if boot.role == 'proxy':
-                machoNet = sm.GetService('machoNet')
-                onlineCountEve = machoNet.GetClusterSessionCounts('EVE:Online')[0]
-                onlineCountDust = machoNet.GetClusterSessionCounts('DUST:Online')[0]
-                acl = machoNet.CheckACL(None, espCheck=True)
-                vipMode = machoNet.vipMode
-                self.staticHeader['CCP-onlineCount'] = onlineCountEve + onlineCountDust
-                self.staticHeader['CCP-onlineCountEve'] = onlineCountEve
-                self.staticHeader['CCP-onlineCountDust'] = onlineCountDust
-                self.staticHeader['CCP-ACL'] = acl[1] if acl else None
-                self.staticHeader['CCP-VIP'] = machoNet.vipMode
-        except Exception:
-            self.staticHeader = {'BADHEADER': ''}
-            log.LogException()
+            try:
+                if self.staticHeader is None:
+                    self.staticHeader = {}
+                    self.staticHeader['CCP-codename'] = boot.codename
+                    self.staticHeader['CCP-version'] = boot.version
+                    self.staticHeader['CCP-build'] = boot.build
+                    self.staticHeader['CCP-sync'] = boot.sync
+                    self.staticHeader['CCP-clustermode'] = prefs.GetValue('clusterMode', 'n/a')
+                    if boot.role == 'server':
+                        product = sm.GetService('cache').Setting('zsystem', 'Product')
+                        ebsVersion = sm.GetService('DB2').CallProc('zsystem.Versions_Select', product)[0].version
+                        bsdChangeList = sm.GetService('DB2').SQLInt('TOP 1 changeID', 'zstatic.changes', 'submitDate IS NOT NULL', 'submitDate DESC', 'branchID', sm.GetService('BSD').Setting(1))
+                        self.staticHeader['CCP-product'] = product
+                        self.staticHeader['CCP-EBS'] = ebsVersion
+                        self.staticHeader['CCP-StaticBranch'] = sm.GetService('BSD').BranchName()
+                        if len(bsdChangeList) > 0:
+                            self.staticHeader['CCP-StaticCL'] = bsdChangeList[0].changeID
+                if boot.role == 'proxy':
+                    machoNet = sm.GetService('machoNet')
+                    onlineCountEve = machoNet.GetClusterSessionCounts('EVE:Online')[0]
+                    onlineCountDust = machoNet.GetClusterSessionCounts('DUST:Online')[0]
+                    acl = machoNet.CheckACL(None, espCheck=True)
+                    vipMode = machoNet.vipMode
+                    self.staticHeader['CCP-onlineCount'] = onlineCountEve + onlineCountDust
+                    self.staticHeader['CCP-onlineCountEve'] = onlineCountEve
+                    self.staticHeader['CCP-onlineCountDust'] = onlineCountDust
+                    self.staticHeader['CCP-ACL'] = acl[1] if acl else None
+                    self.staticHeader['CCP-VIP'] = machoNet.vipMode
+            except Exception:
+                self.staticHeader = {'BADHEADER': ''}
+                log.LogException()
+
         finally:
             uthread.UnLock('http.GetStaticHeader')
 
@@ -835,6 +848,8 @@ class ConnectionService(service.Service):
                     if sess.esps.contents['timeoutTimer'] == None:
                         sess.esps.contents['timeoutTimer'] = 1
                         uthread.new(self.CheckSessionTimeout, sess, sess.requestCount)
+
+        return
 
     def GetSession(self, request, response):
         try:
@@ -967,6 +982,8 @@ class ConnectionService(service.Service):
              'trackID': trackID,
              'trackHttp': trackUrl,
              'trackHttps': trackUrl.replace('http:', 'https:')}
+        else:
+            return None
 
     def HandleException(self, sess, request, response, error, errfile):
         session = getattr(request, 'session', None)
@@ -1096,6 +1113,7 @@ class ConnectionService(service.Service):
             response.Write('</pre>%s</body></html>' % self._TrackPage('501 Internal Server Error', session))
             if not logWarning:
                 log.LogException(info + '\nRequest=\n' + '\n'.join(l))
+        return
 
     def CheckSessionTimeout(self, sess, oldRequestCount):
         blue.pyos.synchro.SleepWallclock(60000 * self.TimoutOutIntervalInMinutes)

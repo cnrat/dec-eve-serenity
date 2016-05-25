@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\carbon\common\script\sys\processHealthSvc.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\carbon\common\script\sys\processHealthSvc.py
 import _socket
 import service
 import base
@@ -83,7 +84,7 @@ class ProcessHealthSvc(service.Service):
         self.lastStartPos = 0
         self.columnNames = ('dateTime', 'pyDateTime', 'procCpu', 'threadCpu', 'blueMem', 'pyMem', 'virtualMem', 'runnable1', 'runnable2', 'watchdog time', 'spf', 'serviceCalls', 'callsFromClient', 'crestRequests')
 
-    def Run(self, memStream = None):
+    def Run(self, memStream=None):
         service.Service.Run(self, memStream)
         uthread.new(self.RunWorkerProcesses).context = 'svc.processHealth'
 
@@ -109,24 +110,25 @@ class ProcessHealthSvc(service.Service):
         sc = len(filter(lambda x: x.userid is not None and hasattr(x, 'clientID'), allsc))
         return sc
 
-    def FindClosestPythonLine(self, blueLine, startPos = 0):
+    def FindClosestPythonLine(self, blueLine, startPos=0):
         logLinesCopy = copy.copy(self.logLines[startPos:])
         if len(logLinesCopy) == 0:
             return (None, 0)
-        if blueLine['dateTime'] <= logLinesCopy[0]['pyDateTime']:
+        elif blueLine['dateTime'] <= logLinesCopy[0]['pyDateTime']:
             return (logLinesCopy[0], 0)
-        if blueLine['dateTime'] >= logLinesCopy[-1]['pyDateTime']:
+        elif blueLine['dateTime'] >= logLinesCopy[-1]['pyDateTime']:
             return (logLinesCopy[-1], len(logLinesCopy) + startPos)
-        for line in xrange(0, len(logLinesCopy) - 1):
-            blue.pyos.BeNice()
-            t1 = logLinesCopy[line]['pyDateTime']
-            t2 = logLinesCopy[line + 1]['pyDateTime']
-            if t1 <= blueLine['dateTime'] < t2:
-                return (logLinesCopy[line], line + startPos)
+        else:
+            for line in xrange(0, len(logLinesCopy) - 1):
+                blue.pyos.BeNice()
+                t1 = logLinesCopy[line]['pyDateTime']
+                t2 = logLinesCopy[line + 1]['pyDateTime']
+                if t1 <= blueLine['dateTime'] < t2:
+                    return (logLinesCopy[line], line + startPos)
 
-        return (None, 0, 0)
+            return (None, 0, 0)
 
-    def GetBlueDataAsDictList(self, minutes = 0):
+    def GetBlueDataAsDictList(self, minutes=0):
         data = bluepy.GetBlueInfo(minutes, isYield=False)
         ret = []
         for i in xrange(0, len(data.timeData)):
@@ -145,11 +147,11 @@ class ProcessHealthSvc(service.Service):
 
         return ret
 
-    def GetAllLogs(self, logAll = True):
+    def GetAllLogs(self, logAll=True):
         logs = self.GetProcessInfo()
         return self.FormatLog(logs, logAll)
 
-    def GetProcessInfo(self, minutes = 0, useIncrementalStartPos = False):
+    def GetProcessInfo(self, minutes=0, useIncrementalStartPos=False):
         uthread.Lock(self)
         try:
             if blue.os.GetWallclockTime() - self.cache.cacheTime < 25 * const.SEC and self.cache.minutes == minutes:
@@ -229,7 +231,7 @@ class ProcessHealthSvc(service.Service):
     def DoOnceEvery10Minutes(self):
         self.WriteLog(20, True)
 
-    def FormatLog(self, logLines, logAll = False):
+    def FormatLog(self, logLines, logAll=False):
         txt = ''
         allColumnNames = self.columnNames + tuple(sorted(set(logLines[0].iterkeys()).difference(self.columnNames)))
         if self.lastLoggedLine == 0 or logAll:
@@ -253,31 +255,33 @@ class ProcessHealthSvc(service.Service):
 
         return txt
 
-    def WriteLog(self, minutes = 0, useIncrementalStartPos = False):
+    def WriteLog(self, minutes=0, useIncrementalStartPos=False):
         dumpPath = prefs.GetValue('ProcessHealthLogPath', None)
         if dumpPath is None:
             self.LogInfo('Will not dump processhealth info since it is not configured in prefs (ProcessHealthLogPath)')
             return
-        self.LogInfo('WriteLog', minutes, useIncrementalStartPos)
-        startTime = blue.os.GetWallclockTime()
-        computerName = blue.pyos.GetEnv().get('COMPUTERNAME', 'unknown')
-        nodeID = sm.GetService('machoNet').GetNodeID()
-        nodeIndex = sm.GetService('machoNet').nodeIndex
-        if nodeID is None:
-            nodeID = 0
-        logLines = self.GetProcessInfo(minutes, useIncrementalStartPos)
-        txt = self.FormatLog(logLines)
-        if not os.path.exists(dumpPath):
-            os.makedirs(dumpPath)
-        fileName = 'PHS %s %s %s %s %s %s.txt' % (computerName,
-         nodeIndex,
-         nodeID,
-         boot.role,
-         blue.os.pid,
-         self.startDateTime)
-        fileName = os.path.join(dumpPath, fileName.replace(':', '.').replace(' ', '.'))
-        f = open(fileName, 'a+')
-        f.write(txt)
-        f.close()
-        diff = (blue.os.GetWallclockTime() - startTime) / float(const.SEC)
-        self.LogInfo('Finished writing out %s entries from processHealth into %s in %.3f seconds' % (len(logLines), fileName, diff))
+        else:
+            self.LogInfo('WriteLog', minutes, useIncrementalStartPos)
+            startTime = blue.os.GetWallclockTime()
+            computerName = blue.pyos.GetEnv().get('COMPUTERNAME', 'unknown')
+            nodeID = sm.GetService('machoNet').GetNodeID()
+            nodeIndex = sm.GetService('machoNet').nodeIndex
+            if nodeID is None:
+                nodeID = 0
+            logLines = self.GetProcessInfo(minutes, useIncrementalStartPos)
+            txt = self.FormatLog(logLines)
+            if not os.path.exists(dumpPath):
+                os.makedirs(dumpPath)
+            fileName = 'PHS %s %s %s %s %s %s.txt' % (computerName,
+             nodeIndex,
+             nodeID,
+             boot.role,
+             blue.os.pid,
+             self.startDateTime)
+            fileName = os.path.join(dumpPath, fileName.replace(':', '.').replace(' ', '.'))
+            f = open(fileName, 'a+')
+            f.write(txt)
+            f.close()
+            diff = (blue.os.GetWallclockTime() - startTime) / float(const.SEC)
+            self.LogInfo('Finished writing out %s entries from processHealth into %s in %.3f seconds' % (len(logLines), fileName, diff))
+            return

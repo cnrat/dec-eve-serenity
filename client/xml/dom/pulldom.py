@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\carbon\common\stdlib\xml\dom\pulldom.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\carbon\common\stdlib\xml\dom\pulldom.py
 import xml.sax
 import xml.sax.handler
 import types
@@ -20,7 +21,7 @@ class PullDOM(xml.sax.ContentHandler):
     _locator = None
     document = None
 
-    def __init__(self, documentFactory = None):
+    def __init__(self, documentFactory=None):
         from xml.dom import XML_NAMESPACE
         self.documentFactory = documentFactory
         self.firstEvent = [None, None]
@@ -35,6 +36,7 @@ class PullDOM(xml.sax.ContentHandler):
         self._ns_contexts = [{XML_NAMESPACE: 'xml'}]
         self._current_context = self._ns_contexts[-1]
         self.pending_events = []
+        return
 
     def pop(self):
         result = self.elementStack[-1]
@@ -50,6 +52,7 @@ class PullDOM(xml.sax.ContentHandler):
         self._xmlns_attrs.append((prefix or 'xmlns', uri))
         self._ns_contexts.append(self._current_context.copy())
         self._current_context[uri] = prefix or None
+        return
 
     def endPrefixMapping(self, prefix):
         self._current_context = self._ns_contexts.pop()
@@ -103,10 +106,12 @@ class PullDOM(xml.sax.ContentHandler):
         self.lastEvent[1] = [(START_ELEMENT, node), None]
         self.lastEvent = self.lastEvent[1]
         self.push(node)
+        return
 
     def endElementNS(self, name, tagName):
         self.lastEvent[1] = [(END_ELEMENT, self.pop()), None]
         self.lastEvent = self.lastEvent[1]
+        return
 
     def startElement(self, name, attrs):
         if self.document:
@@ -121,10 +126,12 @@ class PullDOM(xml.sax.ContentHandler):
         self.lastEvent[1] = [(START_ELEMENT, node), None]
         self.lastEvent = self.lastEvent[1]
         self.push(node)
+        return
 
     def endElement(self, name):
         self.lastEvent[1] = [(END_ELEMENT, self.pop()), None]
         self.lastEvent = self.lastEvent[1]
+        return
 
     def comment(self, s):
         if self.document:
@@ -134,6 +141,7 @@ class PullDOM(xml.sax.ContentHandler):
         else:
             event = [(COMMENT, s), None]
             self.pending_events.append(event)
+        return
 
     def processingInstruction(self, target, data):
         if self.document:
@@ -143,21 +151,25 @@ class PullDOM(xml.sax.ContentHandler):
         else:
             event = [(PROCESSING_INSTRUCTION, target, data), None]
             self.pending_events.append(event)
+        return
 
     def ignorableWhitespace(self, chars):
         node = self.document.createTextNode(chars)
         self.lastEvent[1] = [(IGNORABLE_WHITESPACE, node), None]
         self.lastEvent = self.lastEvent[1]
+        return
 
     def characters(self, chars):
         node = self.document.createTextNode(chars)
         self.lastEvent[1] = [(CHARACTERS, node), None]
         self.lastEvent = self.lastEvent[1]
+        return
 
     def startDocument(self):
         if self.documentFactory is None:
             import xml.dom.minidom
             self.documentFactory = xml.dom.minidom.Document.implementation
+        return
 
     def buildDocument(self, uri, tagname):
         node = self.documentFactory.createDocument(uri, tagname, None)
@@ -184,9 +196,11 @@ class PullDOM(xml.sax.ContentHandler):
     def endDocument(self):
         self.lastEvent[1] = [(END_DOCUMENT, self.document), None]
         self.pop()
+        return
 
     def clear(self):
         self.document = None
+        return
 
 
 class ErrorHandler:
@@ -275,6 +289,7 @@ class DOMEventStream:
         del self.pulldom
         self.parser = None
         self.stream = None
+        return
 
 
 class SAX2DOM(PullDOM):
@@ -312,7 +327,7 @@ class SAX2DOM(PullDOM):
 
 default_bufsize = 16364
 
-def parse(stream_or_string, parser = None, bufsize = None):
+def parse(stream_or_string, parser=None, bufsize=None):
     if bufsize is None:
         bufsize = default_bufsize
     if type(stream_or_string) in _StringTypes:
@@ -324,7 +339,7 @@ def parse(stream_or_string, parser = None, bufsize = None):
     return DOMEventStream(stream, parser, bufsize)
 
 
-def parseString(string, parser = None):
+def parseString(string, parser=None):
     try:
         from cStringIO import StringIO
     except ImportError:

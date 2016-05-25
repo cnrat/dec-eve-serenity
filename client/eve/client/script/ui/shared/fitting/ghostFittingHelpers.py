@@ -1,7 +1,8 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\client\script\ui\shared\fitting\ghostFittingHelpers.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\client\script\ui\shared\fitting\ghostFittingHelpers.py
 
 
-def TryGhostFitItemOnMouseAction(node, oldWindow = True):
+def TryGhostFitItemOnMouseAction(node, oldWindow=True):
     if oldWindow:
         from eve.client.script.ui.shared.fitting.fittingWnd import FittingWindow2
         wnd2 = FittingWindow2.GetIfOpen()
@@ -12,3 +13,4 @@ def TryGhostFitItemOnMouseAction(node, oldWindow = True):
         ghostFittingWnd = FittingWindowGhost.GetIfOpen()
         if ghostFittingWnd is not None:
             ghostFittingWnd.GhostFitItem(node)
+    return

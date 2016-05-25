@@ -1,12 +1,14 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\client\script\ui\inflight\shipHud\slotsContainer.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\client\script\ui\inflight\shipHud\slotsContainer.py
 import random
 from carbon.common.script.util.timerstuff import AutoTimer
 from carbonui.primitives.container import Container
-from carbonui.primitives.sprite import Sprite
 from eve.client.script.ui.control.eveIcon import Icon
 from eve.client.script.ui.control.eveLabel import EveLabelSmall
 from eve.client.script.ui.inflight.moondefencebutton import DefenceStructureButton
 from eve.client.script.ui.inflight.shipHud import GetSlotOrder
+from eve.client.script.ui.inflight.shipHud.groupAllIcon import GroupAllIcon
+from eve.client.script.ui.inflight.shipHud.overloadBtn import OverloadBtn
 from eve.client.script.ui.inflight.shipHud.shipSlot import ShipSlot
 import carbonui.const as uiconst
 import telemetry
@@ -42,6 +44,7 @@ class SlotsContainer(Container):
         self.totalSlaves = 0
         self.myHarpointFlags = []
         self.groupAllIcon = None
+        return
 
     def Close(self):
         Container.Close(self)
@@ -79,8 +82,9 @@ class SlotsContainer(Container):
         all[session.shipid] = current
         settings.user.ui.Set('slotOrder', all)
         self.InitSlots()
+        return
 
-    def LinkWeapons(self, master, slave, slotFlag1, slotFlag2, merge = False):
+    def LinkWeapons(self, master, slave, slotFlag1, slotFlag2, merge=False):
         dogmaLocation = sm.GetService('clientDogmaIM').GetDogmaLocation()
         groupID = evetypes.GetGroupID(master[0])
         areTurrets = groupID in const.dgmGroupableGroupIDs
@@ -98,10 +102,11 @@ class SlotsContainer(Container):
     def GetModuleType(self, flag):
         if not self.slotsByFlag.has_key(flag):
             return None
-        module = self.slotsByFlag[flag].sr.module
-        if not module:
-            return None
-        return module.GetModuleType()
+        else:
+            module = self.slotsByFlag[flag].sr.module
+            if not module:
+                return None
+            return module.GetModuleType()
 
     def GetModuleFromID(self, moduleID):
         return self.modulesByID.get(moduleID, None)
@@ -110,7 +115,7 @@ class SlotsContainer(Container):
         return self.modulesByID.get(moduleID, None)
 
     @telemetry.ZONE_METHOD
-    def InitDrawSlots(self, xstep, ystep, vgridrange, hgridrange, grid, myOrder, slotType = None):
+    def InitDrawSlots(self, xstep, ystep, vgridrange, hgridrange, grid, myOrder, slotType=None):
         for r in xrange(vgridrange):
             x, y = grid[r]
             for i in xrange(hgridrange):
@@ -134,6 +139,7 @@ class SlotsContainer(Container):
                     slot.sr.shortcutHint.top -= 4
 
         self.RefreshShortcuts()
+        return
 
     def RefreshShortcuts(self):
         for (r, i), slot in self.slotsByOrder.iteritems():
@@ -173,13 +179,15 @@ class SlotsContainer(Container):
                 continue
             module.SetDamage(damage / module.sr.moduleInfo.hp)
 
+        return
+
     def OnInvChange(self, item, change):
         if const.ixFlag in change:
             if IsShipFittingFlag(item.flagID) or IsShipFittingFlag(change[const.ixFlag]):
                 uthread.new(self.InitSlotsDelayed)
 
     def IsItemHere(self, rec):
-        return rec.locationID == session.shipid and rec.categoryID == const.categoryModule and rec.flagID not in (const.flagCargo, const.flagDroneBay)
+        return rec.locationID == session.shipid and rec.categoryID in (const.categoryModule, const.categoryStructureModule) and rec.flagID not in (const.flagCargo, const.flagDroneBay)
 
     def InitStructureSlots(self):
         currentControl = sm.GetService('pwn').GetCurrentControl()
@@ -216,52 +224,56 @@ class SlotsContainer(Container):
                 self._FitStructureSlot(moduleInfo, charges)
 
         self.CheckButtonVisibility(3, ['hiSlots'], 5, myOrder)
+        return
 
     @telemetry.ZONE_METHOD
-    def InitSlots(self, animate = False):
+    def InitSlots(self, animate=False):
         self.initSlotsDelayedTimer = None
         if self.destroyed:
             return
-        if animate:
-            self.AnimateModulesOut()
         else:
-            self.Flush()
-        self.modulesByID = {}
-        self.totalSlaves = 0
-        self.passiveFiltered = []
-        if self.controller.IsControllingTurret():
-            self.InitStructureSlots()
-        else:
-            charges = {}
-            for charge in self.controller.GetCharges():
-                charges[charge.flagID] = charge
-                if charge.stacksize == 0:
-                    sm.services['godma'].LogError('InitSlots.no quantity', charge, charge.flagID)
-
-            for module in self.controller.GetModules():
-                if module.categoryID == const.categoryCharge:
-                    charges[module.flagID] = module
-
-            xstep = int(ICONSIZE * 1.6)
-            ystep = int(ICONSIZE * 1.4)
-            vgridrange = 3
-            hgridrange = 8
-            grid = [[1.0, 0.0], [1.5, 1.0], [1.0, 2.0]]
-            myOrder = GetSlotOrder()
-            self.InitDrawSlots(xstep, ystep, vgridrange, hgridrange, grid, myOrder, slotType='shipslot')
-            self.InitOverloadBtns()
-            self.InitGroupAllButtons()
-            dogmaLocation = sm.StartService('clientDogmaIM').GetDogmaLocation()
-            IsSlave = lambda itemID: dogmaLocation.IsModuleSlave(itemID, session.shipid)
-            for moduleInfo in self.controller.GetModules():
-                if IsSlave(moduleInfo.itemID):
-                    self.totalSlaves += 1
-                    continue
-                self._FitSlot(moduleInfo, charges)
-
-            self.CheckButtonVisibility(0, ['hiSlots', 'medSlots', 'lowSlots'], None, myOrder)
             if animate:
-                self.AnimateModulesIn()
+                self.AnimateModulesOut()
+            else:
+                self.Flush()
+            self.modulesByID = {}
+            self.totalSlaves = 0
+            self.passiveFiltered = []
+            if self.controller.IsControllingTurret():
+                self.InitStructureSlots()
+            else:
+                charges = {}
+                for charge in self.controller.GetCharges():
+                    charges[charge.flagID] = charge
+                    if charge.stacksize == 0:
+                        sm.services['godma'].LogError('InitSlots.no quantity', charge, charge.flagID)
+
+                for module in self.controller.GetModules():
+                    if module.categoryID == const.categoryCharge:
+                        charges[module.flagID] = module
+
+                xstep = int(ICONSIZE * 1.6)
+                ystep = int(ICONSIZE * 1.4)
+                vgridrange = 3
+                hgridrange = 8
+                grid = [[1.0, 0.0], [1.5, 1.0], [1.0, 2.0]]
+                myOrder = GetSlotOrder()
+                self.InitDrawSlots(xstep, ystep, vgridrange, hgridrange, grid, myOrder, slotType='shipslot')
+                if not self.controller.IsControllingStructure():
+                    self.InitOverloadBtns()
+                self.InitGroupAllButtons()
+                dogmaLocation = sm.StartService('clientDogmaIM').GetDogmaLocation()
+                IsSlave = lambda itemID: dogmaLocation.IsModuleSlave(itemID, session.shipid)
+                for moduleInfo in self.controller.GetModules():
+                    if IsSlave(moduleInfo.itemID):
+                        self.totalSlaves += 1
+                        continue
+                    self._FitSlot(moduleInfo, charges)
+
+                self.CheckButtonVisibility(0, ['hiSlots', 'medSlots', 'lowSlots'], None, myOrder)
+                if animate:
+                    self.AnimateModulesIn()
+            return
 
     def InitSlotsDelayed(self):
         self.initSlotsDelayedTimer = AutoTimer(200, self.InitSlots)
@@ -270,6 +282,8 @@ class SlotsContainer(Container):
         self.closeSlotsDelayedTimer = None
         for child in toClose:
             child.Close()
+
+        return
 
     def AnimateModulesOut(self):
         toClose = self.children[:]
@@ -295,21 +309,8 @@ class SlotsContainer(Container):
 
     @telemetry.ZONE_METHOD
     def InitGroupAllButtons(self):
-        self.groupAllIcon = ic = Icon(parent=self, state=uiconst.UI_HIDDEN, icon='ui_73_16_251', idx=0, name='groupAllIcon', pos=(0, 9, 16, 16), hint='')
-        ic.orgPos = ic.top
-        ic.OnClick = self.OnGroupAllButtonClicked
-        ic.OnMouseDown = (self.OverloadRackBtnMouseDown, ic)
-        ic.OnMouseUp = (self.OverloadRackBtnMouseUp, ic)
+        self.groupAllIcon = GroupAllIcon(parent=self, idx=0)
         self.CheckGroupAllButton()
-
-    def OnGroupAllButtonClicked(self, *args):
-        if settings.user.ui.Get('lockModules', 0):
-            return
-        dogmaLocation = sm.GetService('clientDogmaIM').GetDogmaLocation()
-        if dogmaLocation.CanGroupAll(session.shipid):
-            dogmaLocation.LinkAllWeapons(session.shipid)
-        else:
-            dogmaLocation.UnlinkAllWeapons(session.shipid)
 
     @telemetry.ZONE_METHOD
     def InitOverloadBtns(self):
@@ -332,30 +333,10 @@ class SlotsContainer(Container):
         grid = [[13, 52], [20, 66], [13, 80]]
         for i, each in enumerate(FITKEYS):
             x, y = grid[i]
-            par = Container(parent=self, name='overloadBtn' + each, width=20, height=20, align=uiconst.TOPLEFT, left=x, top=y, state=uiconst.UI_NORMAL, pickRadius=8)
-            icon = Sprite(parent=par, align=uiconst.TOALL, pos=(0, 0, 0, 0), state=uiconst.UI_DISABLED, texturePath='res:/UI/Texture/classes/ShipUI/overloadBtn%sOff.png' % each)
-            par.OnClick = (self.OverloadRackBtnClick, par)
-            par.OnMouseDown = (self.OverloadRackBtnMouseDown, par)
-            par.OnMouseUp = (self.OverloadRackBtnMouseUp, par)
-            par.OnMouseExit = (self.OverloadRackBtnMouseExit, par)
-            par.orgPos = par.top
-            par.active = False
-            par.powerEffectID = getattr(const, 'effect%sPower' % each, None)
-            par.activationID = None
+            par = OverloadBtn(name='overloadBtn' + each, parent=self, left=x, top=y, fitKey=each, powerEffectID=getattr(const, 'effect%sPower' % each, None), activationID=None)
 
         self.CheckOverloadRackBtnState()
-
-    def OverloadRackBtnClick(self, btn, *args):
-        if settings.user.ui.Get('lockOverload', 0):
-            eve.Message('error')
-            eve.Message('LockedOverloadState')
-            return
-        if btn.active:
-            eve.Message('click')
-            sm.GetService('godma').StopOverloadRack(btn.activationID)
-        else:
-            eve.Message('click')
-            sm.GetService('godma').OverloadRack(btn.activationID)
+        return
 
     def OverloadRackBtnMouseDown(self, btn, *args):
         btn.top = btn.orgPos + 1
@@ -368,104 +349,110 @@ class SlotsContainer(Container):
 
     @telemetry.ZONE_METHOD
     def CheckOverloadRackBtnState(self):
-        if self.controller.IsControllingTurret():
+        if self.controller.IsControllingTurret() or self.controller.IsControllingStructure():
             return
-        if self.destroyed or not self:
+        elif self.destroyed or not self:
             return
-        if self.checkingoverloadrackstate:
+        elif self.checkingoverloadrackstate:
             self.checkingoverloadrackstate = 2
             return
-        self.checkingoverloadrackstate = 1
-        overloadEffectsByRack = {}
-        modulesByRack = {}
-        for module in self.controller.GetModules():
-            for key in module.effects.iterkeys():
-                effect = module.effects[key]
-                if effect.effectID in (const.effectHiPower, const.effectMedPower, const.effectLoPower):
-                    if effect.effectID not in modulesByRack:
-                        modulesByRack[effect.effectID] = []
-                    modulesByRack[effect.effectID].append(module)
-                    for key in module.effects.iterkeys():
-                        effect2 = module.effects[key]
-                        if effect2.effectCategory == const.dgmEffOverload:
-                            if effect.effectID not in overloadEffectsByRack:
-                                overloadEffectsByRack[effect.effectID] = []
-                            overloadEffectsByRack[effect.effectID].append(effect2)
+        else:
+            self.checkingoverloadrackstate = 1
+            overloadEffectsByRack = {}
+            modulesByRack = {}
+            for module in self.controller.GetModules():
+                for key in module.effects.iterkeys():
+                    effect = module.effects[key]
+                    if effect.effectID in (const.effectHiPower, const.effectMedPower, const.effectLoPower):
+                        if effect.effectID not in modulesByRack:
+                            modulesByRack[effect.effectID] = []
+                        modulesByRack[effect.effectID].append(module)
+                        for key in module.effects.iterkeys():
+                            effect2 = module.effects[key]
+                            if effect2.effectCategory == const.dgmEffOverload:
+                                if effect.effectID not in overloadEffectsByRack:
+                                    overloadEffectsByRack[effect.effectID] = []
+                                overloadEffectsByRack[effect.effectID].append(effect2)
 
-        i = 0
-        for each in FITKEYS:
-            btn = self.GetChild('overloadBtn' + each)
-            btn.activationID = None
-            btn.active = False
-            btn.children[0].LoadTexture('res:/UI/Texture/classes/ShipUI/overloadBtn%sOff.png' % each)
-            btn.hint = GetByLabel('UI/Inflight/OverloadRack')
-            btn.state = uiconst.UI_DISABLED
-            if btn.powerEffectID in modulesByRack:
-                btn.activationID = modulesByRack[btn.powerEffectID][0].itemID
-            if btn.powerEffectID in overloadEffectsByRack:
-                sumInactive = sum([ 1 for olEffect in overloadEffectsByRack[btn.powerEffectID] if not olEffect.isActive ])
-                if not sumInactive:
-                    btn.children[0].LoadTexture('res:/UI/Texture/classes/ShipUI/overloadBtn%sOn.png' % each)
-                    btn.active = True
-                    btn.hint = GetByLabel('UI/Inflight/StopOverloadingRack')
-            btn.state = uiconst.UI_NORMAL
+            i = 0
+            for each in FITKEYS:
+                btn = self.GetChild('overloadBtn' + each)
+                btn.activationID = None
+                btn.active = False
+                btn.children[0].LoadTexture('res:/UI/Texture/classes/ShipUI/overloadBtn%sOff.png' % each)
+                btn.hint = GetByLabel('UI/Inflight/OverloadRack')
+                btn.state = uiconst.UI_DISABLED
+                if btn.powerEffectID in modulesByRack:
+                    btn.activationID = modulesByRack[btn.powerEffectID][0].itemID
+                if btn.powerEffectID in overloadEffectsByRack:
+                    sumInactive = sum([ 1 for olEffect in overloadEffectsByRack[btn.powerEffectID] if not olEffect.isActive ])
+                    if not sumInactive:
+                        btn.children[0].LoadTexture('res:/UI/Texture/classes/ShipUI/overloadBtn%sOn.png' % each)
+                        btn.active = True
+                        btn.hint = GetByLabel('UI/Inflight/StopOverloadingRack')
+                btn.state = uiconst.UI_NORMAL
 
-        if self.checkingoverloadrackstate == 2:
+            if self.checkingoverloadrackstate == 2:
+                self.checkingoverloadrackstate = 0
+                return self.CheckOverloadRackBtnState()
             self.checkingoverloadrackstate = 0
-            return self.CheckOverloadRackBtnState()
-        self.checkingoverloadrackstate = 0
+            return
 
     def UpdateGroupAllButton(self):
         if self.destroyed:
             return
-        GetOpacity = sm.GetService('clientDogmaIM').GetDogmaLocation().GetGroupAllOpacity
-        if sm.GetService('clientDogmaIM').GetDogmaLocation().CanGroupAll(session.shipid):
-            attributeName = 'lastGroupAllRequest'
         else:
-            attributeName = 'lastUngroupAllRequest'
-        icon = self.groupAllIcon
-        if icon is None or icon.destroyed:
-            return
-        icon.state = uiconst.UI_DISABLED
-        while True:
-            opacity = GetOpacity(attributeName)
-            if opacity > 0.999:
-                break
-            icon.color.a = 0.2 + opacity * 0.6
-            blue.pyos.synchro.Yield()
-            if self.destroyed:
+            GetOpacity = sm.GetService('clientDogmaIM').GetDogmaLocation().GetGroupAllOpacity
+            if sm.GetService('clientDogmaIM').GetDogmaLocation().CanGroupAll(session.shipid):
+                attributeName = 'lastGroupAllRequest'
+            else:
+                attributeName = 'lastUngroupAllRequest'
+            icon = self.groupAllIcon
+            if icon is None or icon.destroyed:
                 return
+            icon.state = uiconst.UI_DISABLED
+            while True:
+                opacity = GetOpacity(attributeName)
+                if opacity > 0.999:
+                    break
+                icon.color.a = 0.2 + opacity * 0.6
+                blue.pyos.synchro.Yield()
+                if self.destroyed:
+                    return
 
-        icon.color.a = 1.0
-        icon.state = uiconst.UI_NORMAL
+            icon.color.a = 1.0
+            icon.state = uiconst.UI_NORMAL
+            return
 
     def CheckGroupAllButton(self):
         if self.destroyed:
             return
-        icon = self.groupAllIcon
-        if icon is None or icon.destroyed:
-            return
-        dogmaLocation = sm.GetService('clientDogmaIM').GetDogmaLocation()
-        for typeID, qty in dogmaLocation.GetGroupableTypes(session.shipid).iteritems():
-            if qty > 1:
-                break
         else:
-            icon.state = uiconst.UI_HIDDEN
-            return
+            icon = self.groupAllIcon
+            if icon is None or icon.destroyed:
+                return
+            dogmaLocation = sm.GetService('clientDogmaIM').GetDogmaLocation()
+            for typeID, qty in dogmaLocation.GetGroupableTypes(session.shipid).iteritems():
+                if qty > 1:
+                    break
+            else:
+                icon.state = uiconst.UI_HIDDEN
+                return
 
-        icon.state = uiconst.UI_NORMAL
-        if dogmaLocation.CanGroupAll(session.shipid):
-            icon.LoadIcon('ui_73_16_252')
-            hint = GetByLabel('UI/Inflight/GroupAllWeapons')
-        else:
-            icon.LoadIcon('ui_73_16_251')
-            hint = GetByLabel('UI/Inflight/UngroupAllWeapons')
-        if settings.user.ui.Get('lockModules', False):
-            hint = GetByLabel('UI/Inflight/Locked', unit=hint)
-        icon.hint = hint
-        if getattr(self, 'updateGroupAllButtonThread', None):
-            self.updateGroupAllButtonThread.kill()
-        self.updateGroupAllButtonThread = uthread.new(self.UpdateGroupAllButton)
+            icon.state = uiconst.UI_NORMAL
+            if dogmaLocation.CanGroupAll(session.shipid):
+                icon.LoadIcon('ui_73_16_252')
+                hint = GetByLabel('UI/Inflight/GroupAllWeapons')
+            else:
+                icon.LoadIcon('ui_73_16_251')
+                hint = GetByLabel('UI/Inflight/UngroupAllWeapons')
+            if settings.user.ui.Get('lockModules', False):
+                hint = GetByLabel('UI/Inflight/Locked', unit=hint)
+            icon.hint = hint
+            if getattr(self, 'updateGroupAllButtonThread', None):
+                self.updateGroupAllButtonThread.kill()
+            self.updateGroupAllButtonThread = uthread.new(self.UpdateGroupAllButton)
+            return
 
     @telemetry.ZONE_METHOD
     def CheckButtonVisibility(self, gidx, sTypes, totalslot, myOrder):
@@ -522,6 +509,8 @@ class SlotsContainer(Container):
 
             gidx += 1
 
+        return
+
     def GetNumSlots(self, slotType):
         if slotType == 'hiSlots':
             return self.controller.GetNumHiSlots()
@@ -534,30 +523,34 @@ class SlotsContainer(Container):
         showPassive = settings.user.ui.Get('showPassiveModules', 1)
         if moduleInfo.categoryID != const.categoryStarbase:
             return
-        if not showPassive and self.GetDefaultEffect(moduleInfo) is None:
+        elif not showPassive and self.GetDefaultEffect(moduleInfo) is None:
             self.passiveFiltered.append(moduleInfo.flagID)
             return
-        slot = self.slotsByFlag.get(moduleInfo.itemID, None)
-        if slot is None:
+        else:
+            slot = self.slotsByFlag.get(moduleInfo.itemID, None)
+            if slot is None:
+                return
+            elif slot.sr.module is not None:
+                return
+            self.FitStructureSlot(slot, moduleInfo, charges.get(moduleInfo.itemID, None))
             return
-        if slot.sr.module is not None:
-            return
-        self.FitStructureSlot(slot, moduleInfo, charges.get(moduleInfo.itemID, None))
 
     @telemetry.ZONE_METHOD
-    def _FitSlot(self, moduleInfo, charges, grey = 0, slotUIID = 'slot'):
+    def _FitSlot(self, moduleInfo, charges, grey=0, slotUIID='slot'):
         showPassive = settings.user.ui.Get('showPassiveModules', 1)
         if moduleInfo.categoryID == const.categoryCharge:
             return
-        if not showPassive and self.GetDefaultEffect(moduleInfo) is None:
+        elif not showPassive and self.GetDefaultEffect(moduleInfo) is None:
             self.passiveFiltered.append(moduleInfo.flagID)
             return
-        slot = self.slotsByFlag.get(moduleInfo.flagID, None)
-        if slot is None:
+        else:
+            slot = self.slotsByFlag.get(moduleInfo.flagID, None)
+            if slot is None:
+                return
+            elif slot.sr.module is not None:
+                return
+            self.FitSlot(slot, moduleInfo, charges.get(moduleInfo.flagID, None), grey=grey, slotUIID=slotUIID)
             return
-        if slot.sr.module is not None:
-            return
-        self.FitSlot(slot, moduleInfo, charges.get(moduleInfo.flagID, None), grey=grey, slotUIID=slotUIID)
 
     def GetDefaultEffect(self, moduleInfo):
         for key in moduleInfo.effects.iterkeys():
@@ -565,10 +558,12 @@ class SlotsContainer(Container):
             if self.IsEffectActivatible(effect):
                 return effect
 
+        return None
+
     def IsEffectActivatible(self, effect):
         return effect.isDefault and effect.effectName != 'online' and effect.effectCategory in (const.dgmEffActivation, const.dgmEffTarget)
 
-    def FitSlot(self, slot, moduleInfo, charge = None, grey = 0, slotUIID = 'slot'):
+    def FitSlot(self, slot, moduleInfo, charge=None, grey=0, slotUIID='slot'):
         pos = (slot.width - 48) / 2
         module = ModuleButton(parent=slot, align=uiconst.TOPLEFT, width=48, height=48, top=pos, left=pos, idx=0, state=uiconst.UI_NORMAL)
         module.Setup(moduleInfo, grey=grey)
@@ -589,7 +584,7 @@ class SlotsContainer(Container):
          const.flagHiSlot7]:
             self.myHarpointFlags.append(moduleInfo.flagID)
 
-    def FitStructureSlot(self, slot, moduleInfo, charge = None):
+    def FitStructureSlot(self, slot, moduleInfo, charge=None):
         pos = (slot.width - 48) / 2
         module = DefenceStructureButton(parent=slot, align=uiconst.TOPLEFT, width=64, height=250, top=0, left=0, idx=1, state=uiconst.UI_DISABLED)
         module.Setup(moduleInfo)
@@ -639,6 +634,8 @@ class SlotsContainer(Container):
                     uthread.new(module.AutoReload, 1, bestItemID, quant)
                     ammoList[bestItemID] -= quant
 
+        return
+
     def BlinkButton(self, key):
         btn = self.sr.Get(key.lower(), None) or self.sr.Get('%sBtn' % key.lower(), None)
         if not btn:
@@ -649,10 +646,12 @@ class SlotsContainer(Container):
 
         if not btn:
             return
-        if hasattr(btn.sr, 'icon'):
-            sm.GetService('ui').BlinkSpriteA(btn.sr.icon, 1.0, 1000, None, passColor=0)
         else:
-            sm.GetService('ui').BlinkSpriteA(btn, 1.0, 1000, None, passColor=0)
+            if hasattr(btn.sr, 'icon'):
+                sm.GetService('ui').BlinkSpriteA(btn.sr.icon, 1.0, 1000, None, passColor=0)
+            else:
+                sm.GetService('ui').BlinkSpriteA(btn, 1.0, 1000, None, passColor=0)
+            return
 
     def ChangeOpacityForRange(self, currentRange, *args):
         curveSet = None
@@ -667,6 +666,8 @@ class SlotsContainer(Container):
             elif round(module.opacity, 3) != 1.0:
                 curveSet = uicore.animations.MorphScalar(module, 'opacity', startVal=module.opacity, endVal=1.0, duration=animationDuration, curveSet=curveSet)
 
+        return
+
     def ResetModuleButtonOpacity(self, *args):
         for module in self.modulesByID.itervalues():
             module.StopAnimations()
@@ -677,6 +678,8 @@ class SlotsContainer(Container):
             moduleButton = self.modulesByID.get(moduleID, None)
             if moduleButton is not None:
                 moduleButton.UpdateOverloadState()
+
+        return
 
     def ResetSwapMode(self):
         for each in self.children:
@@ -695,6 +698,8 @@ class SlotsContainer(Container):
                     each.sr.module.CheckOnline()
                 each.sr.module.blockClick = 0
 
+        return
+
     def OnWeaponGroupsChanged(self):
         uthread.new(self.InitSlots)
 
@@ -708,6 +713,8 @@ class SlotsContainer(Container):
         slot = self.slotsByOrder.get((gidx, sidx), None)
         if slot and slot.sr.module and slot.sr.module.state == uiconst.UI_NORMAL:
             return slot.sr.module
+        else:
+            return
 
     def OnF(self, sidx, gidx):
         slot = self.slotsByOrder.get((gidx, sidx), None)
@@ -715,6 +722,7 @@ class SlotsContainer(Container):
             uthread.new(slot.sr.module.Click)
         else:
             uthread.new(eve.Message, 'Disabled')
+        return
 
     def OnFKeyOverload(self, sidx, gidx):
         slot = self.slotsByOrder.get((gidx, sidx), None)
@@ -723,14 +731,15 @@ class SlotsContainer(Container):
                 uthread.new(slot.sr.module.ToggleOverload)
         else:
             uthread.new(eve.Message, 'Disabled')
+        return
 
     def ToggleRackOverload(self, slotName):
-        if slotName not in FITKEYS or self.destroyed:
+        if slotName not in FITKEYS or self.destroyed or self.controller.IsControllingStructure():
             return
         btn = self.FindChild('overloadBtn' + slotName)
         if btn:
             if btn.activationID:
-                uthread.new(self.OverloadRackBtnClick, btn)
+                uthread.new(btn.OnClick)
             else:
                 uthread.new(eve.Message, 'Disabled')
 
@@ -755,6 +764,8 @@ class SlotsContainer(Container):
                         continue
                     elif moduleType and moduleType[0] == typeID:
                         slot.sr.module.ShowGroupHighlight()
+
+        return
 
     def ToggleShowPassive(self):
         settings.user.ui.Set('showPassiveModules', not settings.user.ui.Get('showPassiveModules', 1))

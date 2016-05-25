@@ -1,9 +1,10 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\client\script\ui\control\treeData.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\client\script\ui\control\treeData.py
 
 
 class TreeData(object):
 
-    def __init__(self, label = None, parent = None, children = None, icon = None, isRemovable = False, settings = None, **kw):
+    def __init__(self, label=None, parent=None, children=None, icon=None, isRemovable=False, settings=None, **kw):
         self._label = label
         self._children = children or []
         if isinstance(self._children, tuple):
@@ -62,20 +63,23 @@ class TreeData(object):
         if child in self._children:
             self._children.remove(child)
 
-    def GetChildByID(self, dataID, recursive = True):
+    def GetChildByID(self, dataID, recursive=True):
         if dataID == self.GetID():
             return self
-        if self.IsForceCollapsed():
+        elif self.IsForceCollapsed():
             return None
-        children = self.GetChildren()
-        for child in children:
-            if child.GetID() == dataID:
-                return child
+        else:
+            children = self.GetChildren()
+            for child in children:
+                if child.GetID() == dataID:
+                    return child
 
-        for child in children:
-            ret = child.GetChildByID(dataID)
-            if ret:
-                return ret
+            for child in children:
+                ret = child.GetChildByID(dataID)
+                if ret:
+                    return ret
+
+            return None
 
     def IsDraggable(self):
         return False
@@ -89,16 +93,19 @@ class TreeData(object):
     def IsForceCollapsed(self):
         return False
 
-    def GetPathToDescendant(self, dataID, forceGetChildren = False):
+    def GetPathToDescendant(self, dataID, forceGetChildren=False):
         if self.GetID() == dataID:
             return [self]
-        if self.HasChildren():
-            if not forceGetChildren and self.IsForceCollapsed():
-                return None
-            for child in self.GetChildren():
-                found = child.GetPathToDescendant(dataID, forceGetChildren)
-                if found:
-                    return [self] + found
+        else:
+            if self.HasChildren():
+                if not forceGetChildren and self.IsForceCollapsed():
+                    return None
+                for child in self.GetChildren():
+                    found = child.GetPathToDescendant(dataID, forceGetChildren)
+                    if found:
+                        return [self] + found
+
+            return None
 
     def GetAncestors(self):
         parent = self.GetParent()
@@ -109,7 +116,7 @@ class TreeData(object):
         else:
             return []
 
-    def GetDescendants(self, forceGetChildren = False):
+    def GetDescendants(self, forceGetChildren=False):
         ret = {}
         if self.HasChildren():
             if not forceGetChildren and self.IsForceCollapsed():

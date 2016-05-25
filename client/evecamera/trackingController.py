@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\packages\evecamera\trackingController.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\packages\evecamera\trackingController.py
 import trinity
 import math
 import geo2
@@ -46,7 +47,7 @@ class TrackingController:
         alphaY75 = alphaY * 0.75
         return (alphaX75, alphaY75)
 
-    def PointCameraToPos(self, camera, shipPos, itemPos, panSpeed, timeDelta, trackingPoint = None):
+    def PointCameraToPos(self, camera, shipPos, itemPos, panSpeed, timeDelta, trackingPoint=None):
         v2 = shipPos - itemPos
         v2.Normalize()
         yzProj = trinity.TriVector(0, v2.y, v2.z)

@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\client\script\parklife\playerOwned.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\client\script\parklife\playerOwned.py
 import blue
 import evetypes
 import service
@@ -61,7 +62,7 @@ class PlayerOwned(service.Service):
      'DoBallsRemove']
     __dependencies__ = ['godma', 'michelle']
 
-    def Run(self, memStream = None):
+    def Run(self, memStream=None):
         service.Service.Run(self, memStream)
         sm.FavourMe(self.DoBallsAdded)
         self.currenttargets = {}
@@ -75,29 +76,33 @@ class PlayerOwned(service.Service):
     def OnSlimItemChange(self, oldItem, newItem):
         if newItem.categoryID != const.categoryStarbase:
             return
-        if newItem.posState == oldItem.posState and newItem.posTimestamp == oldItem.posTimestamp and newItem.controllerID == oldItem.controllerID and newItem.incapacitated == oldItem.incapacitated:
+        elif newItem.posState == oldItem.posState and newItem.posTimestamp == oldItem.posTimestamp and newItem.controllerID == oldItem.controllerID and newItem.incapacitated == oldItem.incapacitated:
             return
-        if oldItem.controllerID is not None and newItem.controllerID == None:
-            uthread.new(self.RelinquishStructureControl, oldItem, silent=True, force=True)
-        stateName, stateTimestamp, stateDelay = self.GetStructureState(newItem)
-        if stateName == 'onlining':
-            uthread.pool('pwn::StalledOnlineEvent', self.StalledOnlineEvent, newItem.itemID, newItem.posState, stateTimestamp, stateDelay)
+        else:
+            if oldItem.controllerID is not None and newItem.controllerID == None:
+                uthread.new(self.RelinquishStructureControl, oldItem, silent=True, force=True)
+            stateName, stateTimestamp, stateDelay = self.GetStructureState(newItem)
+            if stateName == 'onlining':
+                uthread.pool('pwn::StalledOnlineEvent', self.StalledOnlineEvent, newItem.itemID, newItem.posState, stateTimestamp, stateDelay)
+            return
 
     def StalledOnlineEvent(self, itemID, posState, stateTimestamp, stateDelay):
         item = self.michelle.GetItem(itemID)
         if item is None or item.posState != posState or item.posTimestamp != stateTimestamp:
             return
-        x1, x2, stateDelay = self.GetStructureState(item)
-        blue.pyos.synchro.SleepWallclock(stateDelay)
-        item = self.michelle.GetItem(itemID)
-        if item is None:
-            return
-        if item.posState != posState or item.posTimestamp != stateTimestamp:
-            if item.posState != pos.STRUCTURE_ONLINE:
+        else:
+            x1, x2, stateDelay = self.GetStructureState(item)
+            blue.pyos.synchro.SleepWallclock(stateDelay)
+            item = self.michelle.GetItem(itemID)
+            if item is None:
                 return
-        sm.ScatterEvent('OnStructureFullyOnline', itemID)
-        if item.controlTowerID is not None:
-            sm.ScatterEvent('OnSpecialFX', item.controlTowerID, itemID, item.typeID, None, None, 'effects.StructureOnlined', 0, 1, 0)
+            if item.posState != posState or item.posTimestamp != stateTimestamp:
+                if item.posState != pos.STRUCTURE_ONLINE:
+                    return
+            sm.ScatterEvent('OnStructureFullyOnline', itemID)
+            if item.controlTowerID is not None:
+                sm.ScatterEvent('OnSpecialFX', item.controlTowerID, itemID, item.typeID, None, None, 'effects.StructureOnlined', 0, 1, 0)
+            return
 
     def CompareShipStructureHarmonic(self, shipID, itemID):
         item = self.michelle.GetItem(itemID)
@@ -120,9 +125,10 @@ class PlayerOwned(service.Service):
         shipBall = self.michelle.GetBall(shipID)
         if not shipBall or not fieldBall:
             return False
-        if fieldBall.harmonic != -1 and fieldBall.harmonic == shipBall.harmonic:
+        elif fieldBall.harmonic != -1 and fieldBall.harmonic == shipBall.harmonic:
             return True
-        return False
+        else:
+            return False
 
     def GetStructureState(self, slimItem):
         stateName = 'Unknown_State_%s' % slimItem.posState
@@ -184,8 +190,10 @@ class PlayerOwned(service.Service):
         password = uiutil.NamePopup(caption=localization.GetByLabel('UI/Inflight/POS/TowerShieldHarmonic'), label=localization.GetByLabel('UI/Inflight/POS/EnterTheSharedSecret'), setvalue='', maxLength=50, passwordChar='*')
         if password is None:
             return
-        posMgr = moniker.GetPOSMgr()
-        posMgr.SetTowerPassword(towerID, password)
+        else:
+            posMgr = moniker.GetPOSMgr()
+            posMgr.SetTowerPassword(towerID, password)
+            return
 
     def EnterShipPassword(self):
         format = [{'type': 'text',
@@ -206,155 +214,172 @@ class PlayerOwned(service.Service):
             else:
                 ship = moniker.GetShipAccess()
                 ship.SetShipPassword(retval['name'])
+        return
 
     def Anchor(self, itemID, position):
         item = sm.GetService('michelle').GetItem(itemID)
         if item is None:
             return
-        for row in cfg.dgmtypeeffects.get(item.typeID, []):
-            if row.effectID == const.effectAnchorDropForStructures:
-                posMgr = moniker.GetPOSMgr()
-                posMgr.AnchorStructure(itemID, position)
-                break
+        else:
+            for row in cfg.dgmtypeeffects.get(item.typeID, []):
+                if row.effectID == const.effectAnchorDropForStructures:
+                    posMgr = moniker.GetPOSMgr()
+                    posMgr.AnchorStructure(itemID, position)
+                    break
+
+            return
 
     def CheckAnchoringPosition(self, itemID, position):
         item = self.michelle.GetItem(itemID)
         if item is None:
             return
-        if item.categoryID != const.categoryStarbase:
-            raise UserError('CantConfigureThat')
-        bp = self.michelle.GetBallpark()
-        shipBall = bp.GetBall(session.shipid)
-        itemBall = bp.GetBall(itemID)
-        if item.groupID == const.groupControlTower:
-            actualDistance = bp.GetCenterDist(session.shipid, itemID) - shipBall.radius - itemBall.radius
-            if actualDistance > 30000:
-                raise UserError('CantConfigureDistant2', {'actual': actualDistance,
-                 'needed': 30000})
-            self.CheckForStructures(itemID)
         else:
-            towerID = self.LocateControlTower(itemID, 'CantAnchorRequireTower')
-            self.CheckTowerAvailablility(towerID, itemID)
+            if item.categoryID != const.categoryStarbase:
+                raise UserError('CantConfigureThat')
+            bp = self.michelle.GetBallpark()
+            shipBall = bp.GetBall(session.shipid)
+            itemBall = bp.GetBall(itemID)
+            if item.groupID == const.groupControlTower:
+                actualDistance = bp.GetCenterDist(session.shipid, itemID) - shipBall.radius - itemBall.radius
+                if actualDistance > 30000:
+                    raise UserError('CantConfigureDistant2', {'actual': actualDistance,
+                     'needed': 30000})
+                self.CheckForStructures(itemID)
+            else:
+                towerID = self.LocateControlTower(itemID, 'CantAnchorRequireTower')
+                self.CheckTowerAvailablility(towerID, itemID)
+            return
 
     def CheckForStructures(self, towerID):
         bp = self.michelle.GetBallpark()
         if bp is None:
             return
-        towerItem = self.michelle.GetItem(towerID)
-        if towerItem is None:
-            return
-        typeID = towerItem.typeID
-        maxRange = self.godma.GetType(typeID).maxStructureDistance
-        self.LogInfo('CheckForStructures', towerID, maxRange)
-        for ballID in bp.balls.itervalues():
-            if ballID < 0:
-                continue
-            self.LogInfo('CheckForStructures.iteration', ballID)
-            ballItem = self.michelle.GetItem(ballID)
-            if ballItem is None:
-                continue
-            if ballItem.categoryID == const.categoryStarbase:
-                ball = bp.GetBall(ballID)
-                if not ball.isFree:
-                    raise UserError('CantAnchorTowerInvalidStructures', {'typeID': ballItem.typeID})
-                self.LogInfo('Anchor ignore', evetypes.GetName(ballItem.typeID))
+        else:
+            towerItem = self.michelle.GetItem(towerID)
+            if towerItem is None:
+                return
+            typeID = towerItem.typeID
+            maxRange = self.godma.GetType(typeID).maxStructureDistance
+            self.LogInfo('CheckForStructures', towerID, maxRange)
+            for ballID in bp.balls.itervalues():
+                if ballID < 0:
+                    continue
+                self.LogInfo('CheckForStructures.iteration', ballID)
+                ballItem = self.michelle.GetItem(ballID)
+                if ballItem is None:
+                    continue
+                if ballItem.categoryID == const.categoryStarbase:
+                    ball = bp.GetBall(ballID)
+                    if not ball.isFree:
+                        raise UserError('CantAnchorTowerInvalidStructures', {'typeID': ballItem.typeID})
+                    self.LogInfo('Anchor ignore', evetypes.GetName(ballItem.typeID))
 
-    def LocateControlTower(self, locusID, raiseError = None):
+            return
+
+    def LocateControlTower(self, locusID, raiseError=None):
         bp = self.michelle.GetBallpark()
         if bp is None:
             return
-        for ballID in bp.GetBallIdsAndDistInRange(locusID, 300000):
-            if ballID < 0:
-                continue
-            item = self.michelle.GetItem(ballID)
-            if item is None or item.groupID != const.groupControlTower:
-                continue
-            maxDistance = self.godma.GetType(item.typeID).maxStructureDistance
-            if bp.DistanceBetween(ballID, locusID) <= maxDistance:
-                return ballID
+        else:
+            for ballID in bp.GetBallIdsAndDistInRange(locusID, 300000):
+                if ballID < 0:
+                    continue
+                item = self.michelle.GetItem(ballID)
+                if item is None or item.groupID != const.groupControlTower:
+                    continue
+                maxDistance = self.godma.GetType(item.typeID).maxStructureDistance
+                if bp.DistanceBetween(ballID, locusID) <= maxDistance:
+                    return ballID
 
-        if raiseError is not None:
-            item = self.michelle.GetItem(locusID)
-            raise UserError(raiseError, {'itemTypeID': item.typeID})
+            if raiseError is not None:
+                item = self.michelle.GetItem(locusID)
+                raise UserError(raiseError, {'itemTypeID': item.typeID})
+            return
 
     def CheckTowerAvailablility(self, towerID, structureID):
         if towerID is None:
             return
-        if towerID != structureID:
-            if not self.IsStructureFullyOnline(towerID):
-                raise UserError('CantTowerNotOnline')
+        else:
+            if towerID != structureID:
+                if not self.IsStructureFullyOnline(towerID):
+                    raise UserError('CantTowerNotOnline')
+            return
 
     def IsStructureFullyAnchored(self, itemID):
         slimItem = self.GetSlimItem(itemID)
         if slimItem is None:
             return 0
-        if slimItem.posState != pos.STRUCTURE_ANCHORED:
+        elif slimItem.posState != pos.STRUCTURE_ANCHORED:
             return 0
-        if slimItem.posTimestamp is not None:
-            godmaSM = self.godma.GetStateManager()
-            delayMs = godmaSM.GetType(slimItem.typeID).anchoringDelay
-            if blue.os.GetWallclockTime() - slimItem.posTimestamp < delayMs * 10000:
-                return 0
-        return 1
+        else:
+            if slimItem.posTimestamp is not None:
+                godmaSM = self.godma.GetStateManager()
+                delayMs = godmaSM.GetType(slimItem.typeID).anchoringDelay
+                if blue.os.GetWallclockTime() - slimItem.posTimestamp < delayMs * 10000:
+                    return 0
+            return 1
 
     def IsStructureFullyOnline(self, itemID):
         slimItem = self.GetSlimItem(itemID)
         if slimItem is None:
             return 0
-        if not hasattr(slimItem, 'posState'):
+        elif not hasattr(slimItem, 'posState'):
             return 0
-        if slimItem.posState not in ONLINE_STATES:
+        elif slimItem.posState not in ONLINE_STATES:
             return 0
-        if slimItem.posState == pos.STRUCTURE_ONLINING and slimItem.posTimestamp is not None:
-            godmaSM = self.godma.GetStateManager()
-            delayMs = godmaSM.GetType(slimItem.typeID).onliningDelay
-            if blue.os.GetWallclockTime() - slimItem.posTimestamp < delayMs * 10000:
-                return 0
-        return 1
+        else:
+            if slimItem.posState == pos.STRUCTURE_ONLINING and slimItem.posTimestamp is not None:
+                godmaSM = self.godma.GetStateManager()
+                delayMs = godmaSM.GetType(slimItem.typeID).onliningDelay
+                if blue.os.GetWallclockTime() - slimItem.posTimestamp < delayMs * 10000:
+                    return 0
+            return 1
 
     def IsStructureFullyUnanchored(self, itemID):
         slimItem = self.GetSlimItem(itemID)
         if slimItem is None:
             return 0
-        if slimItem.posState != pos.STRUCTURE_UNANCHORED:
+        elif slimItem.posState != pos.STRUCTURE_UNANCHORED:
             return 0
-        if slimItem.posTimestamp is not None:
-            godmaSM = self.godma.GetStateManager()
-            delayMs = godmaSM.GetType(slimItem.typeID).unanchoringDelay
-            if blue.os.GetWallclockTime() - slimItem.posTimestamp < delayMs * 10000:
-                return 0
-        return 1
+        else:
+            if slimItem.posTimestamp is not None:
+                godmaSM = self.godma.GetStateManager()
+                delayMs = godmaSM.GetType(slimItem.typeID).unanchoringDelay
+                if blue.os.GetWallclockTime() - slimItem.posTimestamp < delayMs * 10000:
+                    return 0
+            return 1
 
     def CanAnchorStructure(self, itemID):
         return self.IsStructureFullyUnanchored(itemID)
 
-    def CanOnlineStructure(self, itemID, fullyAnchored = None):
+    def CanOnlineStructure(self, itemID, fullyAnchored=None):
         return self.IsStructureFullyAnchored(itemID)
 
-    def CanOfflineStructure(self, itemID, fullyOnline = None):
+    def CanOfflineStructure(self, itemID, fullyOnline=None):
         return self.IsStructureFullyOnline(itemID)
 
     def CanUnanchorStructure(self, itemID):
         slimItem = self.GetSlimItem(itemID)
         if slimItem is None:
             return 0
-        godmaSM = self.godma.GetStateManager()
-        if slimItem.posState == pos.STRUCTURE_ANCHORED:
-            if slimItem.posTimestamp is not None:
-                delayMs = godmaSM.GetType(slimItem.typeID).anchoringDelay
-                if blue.os.GetWallclockTime() - slimItem.posTimestamp < delayMs * 10000:
-                    return 0
-        elif slimItem.posState in UNANCHORABLE_STATES:
-            return 0
-        return godmaSM.TypeHasEffect(slimItem.typeID, const.effectAnchorLiftForStructures)
+        else:
+            godmaSM = self.godma.GetStateManager()
+            if slimItem.posState == pos.STRUCTURE_ANCHORED:
+                if slimItem.posTimestamp is not None:
+                    delayMs = godmaSM.GetType(slimItem.typeID).anchoringDelay
+                    if blue.os.GetWallclockTime() - slimItem.posTimestamp < delayMs * 10000:
+                        return 0
+            elif slimItem.posState in UNANCHORABLE_STATES:
+                return 0
+            return godmaSM.TypeHasEffect(slimItem.typeID, const.effectAnchorLiftForStructures)
 
     def StructureIsOrphan(self, itemID):
         item = self.michelle.GetItem(itemID)
         if item is None:
             return False
-        if item.categoryID == const.categorySovereigntyStructure:
+        elif item.categoryID == const.categorySovereigntyStructure:
             return False
-        if item.groupID == const.groupControlTower:
+        elif item.groupID == const.groupControlTower:
             return False
         controlTowerID = item.controlTowerID
         if controlTowerID is None:
@@ -362,7 +387,8 @@ class PlayerOwned(service.Service):
         towerItem = self.michelle.GetItem(controlTowerID)
         if towerItem is None:
             return True
-        return False
+        else:
+            return False
 
     def DoBallsAdded(self, *args, **kw):
         import stackless
@@ -389,6 +415,8 @@ class PlayerOwned(service.Service):
                 log.LogTraceback()
                 sys.exc_clear()
 
+        return
+
     @telemetry.ZONE_METHOD
     def DoBallsRemove(self, pythonBalls, isRelease):
         for ball, slimItem, terminal in pythonBalls:
@@ -397,10 +425,12 @@ class PlayerOwned(service.Service):
     def DoBallRemove(self, ball, slimItem, terminal):
         if slimItem is None:
             return
-        if slimItem.categoryID != const.categoryStarbase:
+        elif slimItem.categoryID != const.categoryStarbase:
             return
-        if slimItem.controllerID == eve.session.charid:
-            uthread.new(self.RelinquishStructureControl, slimItem, silent=True, force=True)
+        else:
+            if slimItem.controllerID == eve.session.charid:
+                uthread.new(self.RelinquishStructureControl, slimItem, silent=True, force=True)
+            return
 
     def DoSessionChanging(self, isRemote, session, change):
         if 'stationid' in change:
@@ -411,13 +441,14 @@ class PlayerOwned(service.Service):
         item = sm.GetService('michelle').GetItem(structureID)
         if item is None:
             return 0
-        for row in cfg.dgmtypeattribs.get(item.typeID, []):
-            if row.attributeID == const.attributePosPlayerControlStructure:
-                return 1
+        else:
+            for row in cfg.dgmtypeattribs.get(item.typeID, []):
+                if row.attributeID == const.attributePosPlayerControlStructure:
+                    return 1
 
-        return 0
+            return 0
 
-    def AssumeStructureControl(self, slimItem, silent = False, force = False):
+    def AssumeStructureControl(self, slimItem, silent=False, force=False):
         item = sm.GetService('michelle').GetItem(slimItem.itemID) or slimItem
         if item and getattr(item, 'itemID', None) and (item.itemID in self.currentlyAssuming or item.itemID in self.currentcontrol):
             raise UserError('StructureControlled', {'item': (const.UE_TYPEID, item.typeID)})
@@ -442,8 +473,9 @@ class PlayerOwned(service.Service):
                     break
 
         self.currentlyAssuming.pop(item.itemID, None)
+        return
 
-    def RelinquishStructureControl(self, slimItem, silent = False, force = False):
+    def RelinquishStructureControl(self, slimItem, silent=False, force=False):
         item = sm.GetService('michelle').GetItem(slimItem.itemID) or slimItem
         if item and item.controllerID or force:
             for row in cfg.dgmtypeattribs.get(item.typeID, []):
@@ -472,42 +504,46 @@ class PlayerOwned(service.Service):
         slimItem = self.GetSlimItem(itemID)
         if slimItem is None:
             return (0, '')
-        controller = getattr(slimItem, 'controllerID', 0)
-        if controller:
-            ct = cfg.eveowners.Get(controller).name
         else:
-            ct = localization.GetByLabel('UI/Generic/NotAvailableShort')
-            if self.currenttargets.has_key(itemID):
-                del self.currenttargets[itemID]
-        return (controller, ct)
+            controller = getattr(slimItem, 'controllerID', 0)
+            if controller:
+                ct = cfg.eveowners.Get(controller).name
+            else:
+                ct = localization.GetByLabel('UI/Generic/NotAvailableShort')
+                if self.currenttargets.has_key(itemID):
+                    del self.currenttargets[itemID]
+            return (controller, ct)
 
     def GetDogmaLM(self):
         return self.godma.GetStateManager().GetDogmaLM()
 
-    def OnTargetOBO(self, what, sid = None, tid = None, reason = None):
+    def OnTargetOBO(self, what, sid=None, tid=None, reason=None):
         if what == 'add':
             self.currenttargets[sid] = tid
         elif what == 'lost':
             if self.currenttargets.has_key(sid):
                 del self.currenttargets[sid]
 
-    def ClrCurrentTarget(self, structureID = None):
+    def ClrCurrentTarget(self, structureID=None):
         if structureID and self.currenttargets.has_key(structureID):
             del self.currenttargets[structureID]
             del self.currentcontrol[structureID]
         elif structureID is None:
             self.currenttargets = {}
             self.currentcontrol = {}
+        return
 
-    def GetCurrentTarget(self, structureID = None):
+    def GetCurrentTarget(self, structureID=None):
         if structureID is None:
             return self.currenttargets
-        return self.currenttargets.get(structureID, None)
+        else:
+            return self.currenttargets.get(structureID, None)
 
-    def GetCurrentControl(self, structureID = None):
+    def GetCurrentControl(self, structureID=None):
         if structureID is None:
             return self.currentcontrol
-        return self.currentcontrol.get(structureID, None)
+        else:
+            return self.currentcontrol.get(structureID, None)
 
     def ProcessAllianceBridgeModePurge(self):
         self.allianceBridgesByShip.clear()
@@ -529,10 +565,12 @@ class PlayerOwned(service.Service):
             remoteSystemID = getattr(slim, 'remoteSystemID', None)
             if remoteStructureID and remoteSystemID:
                 return (remoteStructureID, remoteSystemID)
+        return
 
     def GetSlimItem(self, itemID):
         bp = sm.GetService('michelle').GetBallpark()
         if bp is None:
             return
-        slimItem = bp.GetInvItem(itemID)
-        return slimItem
+        else:
+            slimItem = bp.GetInvItem(itemID)
+            return slimItem

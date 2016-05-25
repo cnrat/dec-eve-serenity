@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\client\script\ui\shared\bookmarkFolderWindow.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\client\script\ui\shared\bookmarkFolderWindow.py
 import uicls
 import carbonui.const as uiconst
 import localization
@@ -43,6 +44,7 @@ class BookmarkFolderWindow(uicontrols.Window):
         buttonGroup = uicontrols.ButtonGroup(name='buttonGroup', parent=main, btns=buttons)
         submitButton = buttonGroup.GetBtnByIdx(0)
         submitButton.OnSetFocus()
+        return
 
     def GetButtons(self):
         return [(localization.GetByLabel('UI/Common/Submit'), self.Confirm, []), (localization.GetByLabel('UI/Common/Cancel'), self.Cancel, [])]
@@ -59,6 +61,7 @@ class BookmarkFolderWindow(uicontrols.Window):
             sm.GetService('bookmarkSvc').UpdateFolder(self.ownerID, self.folder.folderID, name)
         settings.char.ui.Set('bookmarkFolderDefaultOwner', self.ownerID)
         self.Close()
+        return
 
     def Cancel(self, *args):
         self.Close()

@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\carbon\common\lib\werkzeug\templates.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\carbon\common\lib\werkzeug\templates.py
 import sys
 import re
 import __builtin__ as builtins
@@ -83,7 +84,7 @@ class Parser(object):
     def fail(self, msg):
         raise TemplateSyntaxError(msg, self.filename, self.lineno)
 
-    def parse_python(self, expr, type = 'exec'):
+    def parse_python(self, expr, type='exec'):
         if isinstance(expr, unicode):
             expr = '\xef\xbb\xbf' + expr.encode('utf-8')
         try:
@@ -100,7 +101,7 @@ class Parser(object):
 
         return node.node
 
-    def parse(self, needle = ()):
+    def parse(self, needle=()):
         start_lineno = self.lineno
         result = []
         add = result.append
@@ -198,7 +199,6 @@ class Parser(object):
             if value:
                 nodes.append(ast.Const(value, lineno=lineno))
                 return value.count('\n')
-            return 0
 
         while 1:
             offset = text.find('$', pos)
@@ -260,19 +260,19 @@ class Context(object):
             return _decode_unicode(value, self.charset, self.errors)
         return unicode(value)
 
-    def get_value(self, as_unicode = True):
+    def get_value(self, as_unicode=True):
         rv = u''.join(self._buffer)
         if not as_unicode:
             return rv.encode(self.charset, self.errors)
         return rv
 
-    def __getitem__(self, key, default = undefined):
+    def __getitem__(self, key, default=undefined):
         try:
             return self._namespace[key]
         except KeyError:
             return getattr(builtins, key, default)
 
-    def get(self, key, default = None):
+    def get(self, key, default=None):
         return self.__getitem__(key, default)
 
     def __setitem__(self, key, value):
@@ -299,7 +299,7 @@ class Template(object):
      'url_quote_plus': urls.url_quote_plus,
      'url_encode': urls.url_encode}
 
-    def __init__(self, source, filename = '<template>', charset = 'utf-8', errors = 'strict', unicode_mode = True):
+    def __init__(self, source, filename='<template>', charset='utf-8', errors='strict', unicode_mode=True):
         if isinstance(source, str):
             source = _decode_unicode(source, charset, errors)
         if isinstance(filename, unicode):
@@ -312,7 +312,7 @@ class Template(object):
         self.unicode_mode = unicode_mode
 
     @classmethod
-    def from_file(cls, file, charset = 'utf-8', errors = 'strict', unicode_mode = True):
+    def from_file(cls, file, charset='utf-8', errors='strict', unicode_mode=True):
         close = False
         if isinstance(file, basestring):
             f = open(file, 'r')

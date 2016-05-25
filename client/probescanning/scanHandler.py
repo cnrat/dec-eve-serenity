@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\packages\probescanning\scanHandler.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\packages\probescanning\scanHandler.py
 import logging
 from collections import namedtuple
 from probescanning.const import probeResultPerfect, probeStateIdle, probeScanGroupAnomalies
@@ -16,6 +17,7 @@ class ScanHandler(object):
         self.scanningProbes = None
         self.scanSvc = scanSvc
         self.ScatterEvent = ScatterEvent
+        return
 
     def OnSystemScanStarted(self, startTime, durationMs, probes):
         self.logger.debug('OnSystemScanStarted. startTime = %s, durationMs = %s', startTime, durationMs)
@@ -45,7 +47,7 @@ class ScanHandler(object):
             self.ClearResults(*absentTargets)
 
     def InjectResults(self, results):
-        self.resultsHistory.RegisterResults(results, incrimentScanNumber=False)
+        self.resultsHistory.RegisterResults(results, incrementScanNumber=False)
         self.ScatterEvent('OnRefreshScanResults')
 
     def GetCurrentScan(self):
@@ -90,6 +92,7 @@ class ScanHandler(object):
     def StopScanning(self):
         self.currentScan = None
         self.scanningProbes = None
+        return
 
     def GetScanningProbes(self):
         return self.scanningProbes
@@ -103,7 +106,7 @@ class ScanHandler(object):
     def GetResultsHistory(self):
         return self.resultsHistory
 
-    def GetResults(self, useFilterSet = False):
+    def GetResults(self, useFilterSet=False):
         ignored = 0
         filtered = 0
         anomaliesFiltered = 0
@@ -116,7 +119,7 @@ class ScanHandler(object):
                 if not self.resultFilter.IsShowingAnomalies():
                     anomaliesFiltered += 1
                     continue
-            elif self.resultFilter.IsFiltered(result, useFilterSet):
+            elif self.resultFilter.IsFilteredOut(result, useFilterSet):
                 filtered += 1
                 continue
             results.append(result)

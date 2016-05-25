@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\client\script\ui\services\character.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\client\script\ui\services\character.py
 import service
 import paperDoll
 import paperDollSculpting
@@ -60,6 +61,7 @@ class Character(service.Service):
         self.cachedPortraitInfo = {}
         self.modifierLocationsByName = {}
         self.modifierLocationsByKey = {}
+        return
 
     def lazyprop(fn):
         attr_name = '_lazy_' + fn.__name__
@@ -87,7 +89,7 @@ class Character(service.Service):
     def Run(self, *etc):
         service.Service.Run(self, *etc)
 
-    def PopulateModifierLocationDicts(self, force = False):
+    def PopulateModifierLocationDicts(self, force=False):
         if not force and len(self.modifierLocationsByKey) > 0:
             return
         self.modifierLocationsByName = {}
@@ -114,6 +116,7 @@ class Character(service.Service):
                 pdc.doll.useFastShader = False
         if self.sculpting is not None:
             self.sculpting.SetupPickScene(doUpdate=False)
+        return
 
     @telemetry.ZONE_METHOD
     def PreloadItems(self, gender, items):
@@ -175,9 +178,10 @@ class Character(service.Service):
             self.characterMetadata[charID].typeColors.pop(category, None)
             self.characterMetadata[charID].typeSpecularity.pop(category, None)
             self.characterMetadata[charID].typeWeights.pop(category, None)
+        return
 
     @telemetry.ZONE_METHOD
-    def AddCharacterToScene(self, charID, scene, gender, bloodlineID = None, dna = None, position = (0.0, 0.0, 0.0), updateDoll = True, textureResolution = None, lod = None, noRandomize = False):
+    def AddCharacterToScene(self, charID, scene, gender, bloodlineID=None, dna=None, position=(0.0, 0.0, 0.0), updateDoll=True, textureResolution=None, lod=None, noRandomize=False):
         applyNewCharacterTypes = False
         if not noRandomize:
             noRandomize = prefs.GetValue('NoRandomize', 0)
@@ -204,24 +208,25 @@ class Character(service.Service):
         if character is None:
             log.LogError('AddCharacterToScene: Character', charID, 'not created')
             return
-        avatar = character.avatar
-        networkPath = ccConst.CHARACTER_CREATION_NETWORK
-        self.factory.CreateGWAnimation(avatar, networkPath)
-        network = avatar.animationUpdater.network
-        if network is not None:
-            network.SetControlParameter('ControlParameters|BindPose', 1.0)
-            if character.doll.gender == paperDoll.GENDER.FEMALE:
-                network.SetAnimationSetIndex(0)
-            else:
-                network.SetAnimationSetIndex(1)
-        if applyNewCharacterTypes and not noRandomize:
-            self.InitializeNewCharacter(charID, ccUtil.PaperDollGenderToGenderID(gender), bloodlineID)
-        elif dna is not None:
-            self.ApplyDBRowToDoll(charID, gender, bloodlineID, dna)
-            needUpdate = True
-        if needUpdate and updateDoll:
-            self.UpdateDoll(charID)
-        return character
+        else:
+            avatar = character.avatar
+            networkPath = ccConst.CHARACTER_CREATION_NETWORK
+            self.factory.CreateGWAnimation(avatar, networkPath)
+            network = avatar.animationUpdater.network
+            if network is not None:
+                network.SetControlParameter('ControlParameters|BindPose', 1.0)
+                if character.doll.gender == paperDoll.GENDER.FEMALE:
+                    network.SetAnimationSetIndex(0)
+                else:
+                    network.SetAnimationSetIndex(1)
+            if applyNewCharacterTypes and not noRandomize:
+                self.InitializeNewCharacter(charID, ccUtil.PaperDollGenderToGenderID(gender), bloodlineID)
+            elif dna is not None:
+                self.ApplyDBRowToDoll(charID, gender, bloodlineID, dna)
+                needUpdate = True
+            if needUpdate and updateDoll:
+                self.UpdateDoll(charID)
+            return character
 
     @telemetry.ZONE_METHOD
     def RemoveCharacter(self, charID):
@@ -249,6 +254,8 @@ class Character(service.Service):
 
                 del character.avatar.curveSets[:]
 
+        return
+
     @telemetry.ZONE_METHOD
     def TearDown(self):
         self.preloadedResources = []
@@ -267,6 +274,7 @@ class Character(service.Service):
             self.sculpting.pickScene = None
             self.sculpting = None
         self.scene = None
+        return
 
     @telemetry.ZONE_METHOD
     def GetModifierByPath(self, charID, path):
@@ -278,26 +286,27 @@ class Character(service.Service):
     def GetModifiersByCategory(self, charID, category):
         if charID not in self.characters:
             return None
-        doll = self.characters[charID].doll
-        ret = []
-        mods = doll.buildDataManager.GetModifiersAsList(includeFuture=True)
-        for m in mods:
-            resPath = m.GetResPath()
-            resPathSplit = resPath.split('/')
-            categSplit = category.split('/')
-            match = True
-            for i, each in enumerate(categSplit):
-                if not (len(resPathSplit) > i and resPathSplit[i] == each):
-                    match = False
-                    break
+        else:
+            doll = self.characters[charID].doll
+            ret = []
+            mods = doll.buildDataManager.GetModifiersAsList(includeFuture=True)
+            for m in mods:
+                resPath = m.GetResPath()
+                resPathSplit = resPath.split('/')
+                categSplit = category.split('/')
+                match = True
+                for i, each in enumerate(categSplit):
+                    if not (len(resPathSplit) > i and resPathSplit[i] == each):
+                        match = False
+                        break
 
-            if match:
-                ret.append(m)
+                if match:
+                    ret.append(m)
 
-        return ret
+            return ret
 
     @telemetry.ZONE_METHOD
-    def UpdateDoll(self, charID, fromWhere = None, registerDna = True):
+    def UpdateDoll(self, charID, fromWhere=None, registerDna=True):
         if charID not in self.characters:
             return
         doll = self.characters[charID].doll
@@ -319,27 +328,29 @@ class Character(service.Service):
         uthread.new(wait_t)
 
     @telemetry.ZONE_METHOD
-    def UpdateTattoos(self, charID, doUpdate = True, paperdoll = None):
+    def UpdateTattoos(self, charID, doUpdate=True, paperdoll=None):
         if charID not in self.characters and not paperdoll:
             return
-        if paperdoll is None:
-            pdc = self.characters[charID]
         else:
-            pdc = paperdoll
+            if paperdoll is None:
+                pdc = self.characters[charID]
+            else:
+                pdc = paperdoll
 
-        def fun_t():
-            while pdc.doll.IsBusyUpdating():
-                blue.synchro.Yield()
+            def fun_t():
+                while pdc.doll.IsBusyUpdating():
+                    blue.synchro.Yield()
 
-            tattooModifiers = pdc.doll.buildDataManager.GetModifiersByCategory(paperDoll.BODY_CATEGORIES.TATTOO)
-            if tattooModifiers:
-                for each in tattooModifiers:
-                    each.IsDirty = True
+                tattooModifiers = pdc.doll.buildDataManager.GetModifiersByCategory(paperDoll.BODY_CATEGORIES.TATTOO)
+                if tattooModifiers:
+                    for each in tattooModifiers:
+                        each.IsDirty = True
 
-            if doUpdate:
-                pdc.Update()
+                if doUpdate:
+                    pdc.Update()
 
-        uthread.new(fun_t)
+            uthread.new(fun_t)
+            return
 
     @telemetry.ZONE_METHOD
     def SetDollBloodline(self, charID, bloodlineID):
@@ -351,11 +362,12 @@ class Character(service.Service):
         self.AdaptDollAnimationData(paperDollUtil.bloodlineAssets[bloodlineID], self.characters[charID].avatar, gender)
 
     @telemetry.ZONE_METHOD
-    def ResetDoll(self, charID, bloodlineID = None):
+    def ResetDoll(self, charID, bloodlineID=None):
         if bloodlineID is not None:
             self.SetDollBloodline(charID, bloodlineID)
         if self.characterMetadata[charID].bloodlineID:
             self.ApplyItemToDoll(charID, 'head', paperDollUtil.bloodlineAssets[self.characterMetadata[charID].bloodlineID], doUpdate=True)
+        return
 
     @telemetry.ZONE_METHOD
     def AdaptDollAnimationData(self, bloodline, avatar, gender):
@@ -373,7 +385,7 @@ class Character(service.Service):
                 log.LogWarn('Invalid control parameter for bloodline: ' + param)
 
     @telemetry.ZONE_METHOD
-    def SetCharacterWeight(self, charID, weight, doUpdate = True):
+    def SetCharacterWeight(self, charID, weight, doUpdate=True):
         doll = self.characters[charID].doll
         avatar = self.characters[charID].avatar
         network = avatar.animationUpdater.network
@@ -410,6 +422,7 @@ class Character(service.Service):
         if doUpdate:
             self.UpdateTattoos(charID, doUpdate=False)
             self.UpdateDoll(charID, fromWhere='SetCharacterWeight')
+        return
 
     @telemetry.ZONE_METHOD
     def GetCharacterWeight(self, charID):
@@ -438,7 +451,7 @@ class Character(service.Service):
         return 0.5
 
     @telemetry.ZONE_METHOD
-    def SetCharacterMuscularity(self, charID, weight, doUpdate = True):
+    def SetCharacterMuscularity(self, charID, weight, doUpdate=True):
         doll = self.characters[charID].doll
         avatar = self.characters[charID].avatar
         for mod in MUSCLE_MODIFIER_PATH:
@@ -454,6 +467,7 @@ class Character(service.Service):
         if doUpdate:
             self.UpdateTattoos(charID, doUpdate=False)
             self.UpdateDoll(charID, fromWhere='SetCharacterMuscularity')
+        return
 
     @telemetry.ZONE_METHOD
     def GetCharacterMuscularity(self, charID):
@@ -474,7 +488,7 @@ class Character(service.Service):
         return ret
 
     @telemetry.ZONE_METHOD
-    def GetModifierByCategory(self, charID, category, getAll = False):
+    def GetModifierByCategory(self, charID, category, getAll=False):
         modifiers = self.GetModifiersByCategory(charID, category)
         if not modifiers:
             return None
@@ -487,6 +501,7 @@ class Character(service.Service):
                         return modifier
 
             return modifiers[0]
+            return None
 
     @telemetry.ZONE_METHOD
     def GetEyeshadowColors(self, bloodlineID, genderID):
@@ -498,14 +513,15 @@ class Character(service.Service):
         if genderID != ccConst.GENDERID_FEMALE:
             log.LogError('LoadEyeShadowColorVariations - can only use this for females')
             return []
-        cached = self.cachedEyeshadowColorVariations.get((bloodlineID, genderID))
-        if cached is not None:
-            return cached
-        if self.eyeshadowColorRestrictions is None:
-            self.eyeshadowColorRestrictions = [ccUtil.LoadFromYaml(ccConst.EYESHADOWCOLOR_RESTRICTION_FEMALE)]
-        variations = self.GetModifierColorVariation(bloodlineID, self.eyeshadowColorRestrictions[genderID], ccConst.EYESHADOWCOLORS[genderID])
-        self.cachedEyeshadowColorVariations[bloodlineID, genderID] = variations
-        return variations
+        else:
+            cached = self.cachedEyeshadowColorVariations.get((bloodlineID, genderID))
+            if cached is not None:
+                return cached
+            if self.eyeshadowColorRestrictions is None:
+                self.eyeshadowColorRestrictions = [ccUtil.LoadFromYaml(ccConst.EYESHADOWCOLOR_RESTRICTION_FEMALE)]
+            variations = self.GetModifierColorVariation(bloodlineID, self.eyeshadowColorRestrictions[genderID], ccConst.EYESHADOWCOLORS[genderID])
+            self.cachedEyeshadowColorVariations[bloodlineID, genderID] = variations
+            return variations
 
     @telemetry.ZONE_METHOD
     def GetHairColors(self, bloodlineID, genderID):
@@ -523,14 +539,15 @@ class Character(service.Service):
         if bloodlineID is None or genderID is None:
             log.LogError('LoadHairColorVariations - bloodlineID and genderID must not be None')
             return []
-        cached = self.cachedHairColorVariations.get((bloodlineID, genderID))
-        if cached is not None:
-            return cached
-        if self.hairColorRestrictions is None:
-            self.hairColorRestrictions = [ccUtil.LoadFromYaml(ccConst.HAIRCOLOR_RESTRICTION_FEMALE), ccUtil.LoadFromYaml(ccConst.HAIRCOLOR_RESTRICTION_MALE)]
-        variations = self.GetModifierColorVariation(bloodlineID, self.hairColorRestrictions[genderID], ccConst.HAIRCOLORS[genderID])
-        self.cachedHairColorVariations[bloodlineID, genderID] = variations
-        return variations
+        else:
+            cached = self.cachedHairColorVariations.get((bloodlineID, genderID))
+            if cached is not None:
+                return cached
+            if self.hairColorRestrictions is None:
+                self.hairColorRestrictions = [ccUtil.LoadFromYaml(ccConst.HAIRCOLOR_RESTRICTION_FEMALE), ccUtil.LoadFromYaml(ccConst.HAIRCOLOR_RESTRICTION_MALE)]
+            variations = self.GetModifierColorVariation(bloodlineID, self.hairColorRestrictions[genderID], ccConst.HAIRCOLORS[genderID])
+            self.cachedHairColorVariations[bloodlineID, genderID] = variations
+            return variations
 
     def GetHeadTattooColors(self, bloodlineID, genderID):
         colorVars = self.LoadHeadTattooVariations(bloodlineID, genderID)
@@ -541,14 +558,15 @@ class Character(service.Service):
         if bloodlineID is None or genderID is None:
             log.LogError('LoadHeadTattooVariations - bloodlineID and genderID must not be None')
             return []
-        cached = self.cachedHeadTattooColorVariations.get((bloodlineID, genderID))
-        if cached is not None:
-            return cached
-        if self.headTattooColorRestrictions is None:
-            self.headTattooColorRestrictions = [ccUtil.LoadFromYaml(ccConst.HEADTATTOOCOLOR_RESTRICTION_FEMALE), ccUtil.LoadFromYaml(ccConst.HEADTATTOOCOLOR_RESTRICTION_MALE)]
-        variations = self.GetModifierColorVariation(bloodlineID, self.headTattooColorRestrictions[genderID], ccConst.HEADTATTOOCOLORS[genderID])
-        self.cachedHeadTattooColorVariations[bloodlineID, genderID] = variations
-        return variations
+        else:
+            cached = self.cachedHeadTattooColorVariations.get((bloodlineID, genderID))
+            if cached is not None:
+                return cached
+            if self.headTattooColorRestrictions is None:
+                self.headTattooColorRestrictions = [ccUtil.LoadFromYaml(ccConst.HEADTATTOOCOLOR_RESTRICTION_FEMALE), ccUtil.LoadFromYaml(ccConst.HEADTATTOOCOLOR_RESTRICTION_MALE)]
+            variations = self.GetModifierColorVariation(bloodlineID, self.headTattooColorRestrictions[genderID], ccConst.HEADTATTOOCOLORS[genderID])
+            self.cachedHeadTattooColorVariations[bloodlineID, genderID] = variations
+            return variations
 
     @telemetry.ZONE_METHOD
     def GetModifierColorVariation(self, bloodlineID, restrictions, path):
@@ -626,59 +644,62 @@ class Character(service.Service):
                         hm.specularColorData = hairData.specularColorData
                         hm.SetColorVariation('none')
 
+        return
+
     @telemetry.ZONE_METHOD
     def GetAvailableColorsForCategory(self, categoryPath, genderID, bloodlineID):
         if categoryPath == ccConst.hair:
             return self.GetHairColors(bloodlineID, genderID)
-        if categoryPath == ccConst.t_head:
+        elif categoryPath == ccConst.t_head:
             return self.GetHeadTattooColors(bloodlineID, genderID)
-        if genderID == ccConst.GENDERID_FEMALE and categoryPath == ccConst.eyeshadow:
+        elif genderID == ccConst.GENDERID_FEMALE and categoryPath == ccConst.eyeshadow:
             return self.GetEyeshadowColors(bloodlineID, genderID)
-        if type(genderID) is int:
-            genderID = ccUtil.GenderIDToPaperDollGender(genderID)
-        combined = {}
-        typeData = self.GetAvailableTypesByCategory(categoryPath, genderID, bloodlineID, getTypesOnly=True)
-        for each in typeData:
-            modifier = self.factory.CollectBuildData(genderID, each[0])
-            combined.update(modifier.colorVariations)
+        else:
+            if type(genderID) is int:
+                genderID = ccUtil.GenderIDToPaperDollGender(genderID)
+            combined = {}
+            typeData = self.GetAvailableTypesByCategory(categoryPath, genderID, bloodlineID, getTypesOnly=True)
+            for each in typeData:
+                modifier = self.factory.CollectBuildData(genderID, each[0])
+                combined.update(modifier.colorVariations)
 
-        doneA = []
-        doneBC = []
-        retColorsA = []
-        retColorsBC = []
-        for colorName, colorData in combined.iteritems():
-            if categoryPath.startswith(ccConst.lipstick):
-                if colorName.find('_glossy') != -1 or colorName.find('_medium') != -1:
+            doneA = []
+            doneBC = []
+            retColorsA = []
+            retColorsBC = []
+            for colorName, colorData in combined.iteritems():
+                if categoryPath.startswith(ccConst.lipstick):
+                    if colorName.find('_glossy') != -1 or colorName.find('_medium') != -1:
+                        continue
+                displayColor = colorData.get('colors') if colorData else None
+                if displayColor is None:
+                    log.LogWarn('No colors in colorData when calling GetAvailableColorsForCategory', categoryPath, genderID, bloodlineID)
                     continue
-            displayColor = colorData.get('colors') if colorData else None
-            if displayColor is None:
-                log.LogWarn('No colors in colorData when calling GetAvailableColorsForCategory', categoryPath, genderID, bloodlineID)
-                continue
-            if type(displayColor) == types.TupleType or type(displayColor) == types.ListType:
-                displayColor = colorData['colors'][0]
-                r, g, b, a = displayColor
-            else:
-                r, g, b = displayColor
-            h, s, v = colorsys.rgb_to_hsv(r, g, b)
-            r, g, b = colorsys.hsv_to_rgb(h, s * 0.8, v * 0.8)
-            yiq = colorsys.rgb_to_yiq(r, g, b)
-            if colorName.lower().endswith('_bc'):
-                if colorData['colors'] not in doneBC:
-                    retColorsBC.append((yiq, (colorName, (r,
+                if type(displayColor) == types.TupleType or type(displayColor) == types.ListType:
+                    displayColor = colorData['colors'][0]
+                    r, g, b, a = displayColor
+                else:
+                    r, g, b = displayColor
+                h, s, v = colorsys.rgb_to_hsv(r, g, b)
+                r, g, b = colorsys.hsv_to_rgb(h, s * 0.8, v * 0.8)
+                yiq = colorsys.rgb_to_yiq(r, g, b)
+                if colorName.lower().endswith('_bc'):
+                    if colorData['colors'] not in doneBC:
+                        retColorsBC.append((yiq, (colorName, (r,
+                           g,
+                           b,
+                           1.0), colorData)))
+                        doneBC.append(colorData['colors'])
+                elif colorData['colors'] not in doneA:
+                    retColorsA.append((yiq, (colorName, (r,
                        g,
                        b,
                        1.0), colorData)))
-                    doneBC.append(colorData['colors'])
-            elif colorData['colors'] not in doneA:
-                retColorsA.append((yiq, (colorName, (r,
-                   g,
-                   b,
-                   1.0), colorData)))
-                doneA.append(colorData['colors'])
+                    doneA.append(colorData['colors'])
 
-        retColorsA = uiutil.SortListOfTuples(retColorsA)
-        retColorsBC = uiutil.SortListOfTuples(retColorsBC)
-        return (retColorsA, retColorsBC)
+            retColorsA = uiutil.SortListOfTuples(retColorsA)
+            retColorsBC = uiutil.SortListOfTuples(retColorsBC)
+            return (retColorsA, retColorsBC)
 
     @telemetry.ZONE_METHOD
     def GetCharacterColorVariations(self, charID, category):
@@ -725,7 +746,7 @@ class Character(service.Service):
         return (colors, selectedIndex)
 
     @telemetry.ZONE_METHOD
-    def GetAvailableTypesByCategory(self, category, gender, bloodline, getTypesOnly = False):
+    def GetAvailableTypesByCategory(self, category, gender, bloodline, getTypesOnly=False):
         if type(gender) is int:
             gender = ccUtil.GenderIDToPaperDollGender(gender)
         types = self.factory.ListTypes(gender, category)
@@ -756,11 +777,12 @@ class Character(service.Service):
 
         if getTypesOnly:
             return retData
-        ret = uiutil.SortListOfTuples(ret)
-        return ret
+        else:
+            ret = uiutil.SortListOfTuples(ret)
+            return ret
 
     @telemetry.ZONE_METHOD
-    def GetAvailableItemsByCategory(self, category, gender, bloodline, showVariations = False):
+    def GetAvailableItemsByCategory(self, category, gender, bloodline, showVariations=False):
         if type(gender) is int:
             gender = ccUtil.GenderIDToPaperDollGender(gender)
         items = self.factory.ListOptions(gender, category, showVariations)
@@ -773,67 +795,68 @@ class Character(service.Service):
         return '/'.join(parts[:-1])
 
     @telemetry.ZONE_METHOD
-    def ApplyTypeToDoll(self, charID, itemType, weight = 1.0, doUpdate = True, rawColorVariation = None):
+    def ApplyTypeToDoll(self, charID, itemType, weight=1.0, doUpdate=True, rawColorVariation=None):
         if itemType is None:
             return
-        self.PopulateModifierLocationDicts()
-        genderID = self.characterMetadata[charID].genderID
-        if type(itemType) is not tuple:
-            charGender = ccUtil.GenderIDToPaperDollGender(genderID)
-            itemTypeData = self.factory.GetItemType(itemType, gender=charGender)
-            if itemTypeData is None:
-                itemTypeLower = itemType.lower()
-                if paperDoll.BODY_CATEGORIES.TOPINNER in itemTypeLower:
-                    self.ApplyItemToDoll(charID, paperDoll.BODY_CATEGORIES.TOPINNER, None, removeFirst=True, doUpdate=False)
-                elif paperDoll.BODY_CATEGORIES.BOTTOMINNER in itemTypeLower:
-                    self.ApplyItemToDoll(charID, paperDoll.BODY_CATEGORIES.BOTTOMINNER, None, removeFirst=True, doUpdate=False)
-                else:
-                    log.LogError("Item type file is missing, can't be loaded", itemType)
-                return
-            assetID, assetTypeID = self.GetAssetAndTypeIDsFromPath(charGender, itemType)
-            itemType = (assetID, itemTypeData[:3], assetTypeID)
-        doll = self.characters[charID].doll
-        category = self.GetCategoryFromResPath(itemType[1][0])
-        godmaSvc = sm.GetService('godma')
-        modifierLocationKey = self.modifierLocationsByName.get(category, None)
-        toRemove = []
-        for otherCategory, otherResourceID in self.characterMetadata[charID].types.iteritems():
-            if otherResourceID is None:
-                continue
-            otherResource = cfg.paperdollResources.Get(otherResourceID)
-            if otherResource.typeID is None:
-                continue
-            for removeAttributeID in (const.attributeClothingRemovesCategory, const.attributeClothingRemovesCategory2):
-                removesCategory = godmaSvc.GetTypeAttribute2(otherResource.typeID, removeAttributeID)
-                if removesCategory == modifierLocationKey:
-                    toRemove.append(otherCategory)
+        else:
+            self.PopulateModifierLocationDicts()
+            genderID = self.characterMetadata[charID].genderID
+            if type(itemType) is not tuple:
+                charGender = ccUtil.GenderIDToPaperDollGender(genderID)
+                itemTypeData = self.factory.GetItemType(itemType, gender=charGender)
+                if itemTypeData is None:
+                    itemTypeLower = itemType.lower()
+                    if paperDoll.BODY_CATEGORIES.TOPINNER in itemTypeLower:
+                        self.ApplyItemToDoll(charID, paperDoll.BODY_CATEGORIES.TOPINNER, None, removeFirst=True, doUpdate=False)
+                    elif paperDoll.BODY_CATEGORIES.BOTTOMINNER in itemTypeLower:
+                        self.ApplyItemToDoll(charID, paperDoll.BODY_CATEGORIES.BOTTOMINNER, None, removeFirst=True, doUpdate=False)
+                    else:
+                        log.LogError("Item type file is missing, can't be loaded", itemType)
+                    return
+                assetID, assetTypeID = self.GetAssetAndTypeIDsFromPath(charGender, itemType)
+                itemType = (assetID, itemTypeData[:3], assetTypeID)
+            doll = self.characters[charID].doll
+            category = self.GetCategoryFromResPath(itemType[1][0])
+            godmaSvc = sm.GetService('godma')
+            modifierLocationKey = self.modifierLocationsByName.get(category, None)
+            toRemove = []
+            for otherCategory, otherResourceID in self.characterMetadata[charID].types.iteritems():
+                if otherResourceID is None:
+                    continue
+                otherResource = cfg.paperdollResources.Get(otherResourceID)
+                if otherResource.typeID is None:
+                    continue
+                for removeAttributeID in (const.attributeClothingRemovesCategory, const.attributeClothingRemovesCategory2):
+                    removesCategory = godmaSvc.GetTypeAttribute2(otherResource.typeID, removeAttributeID)
+                    if removesCategory == modifierLocationKey:
+                        toRemove.append(otherCategory)
 
-        for itemToRemove in toRemove:
-            self.ApplyItemToDoll(charID, itemToRemove, None, removeFirst=True, doUpdate=False)
+            for itemToRemove in toRemove:
+                self.ApplyItemToDoll(charID, itemToRemove, None, removeFirst=True, doUpdate=False)
 
-        activeMod = self.GetModifierByCategory(charID, category)
-        if activeMod:
-            doll.RemoveResource(activeMod.GetResPath(), self.factory)
-        modifier = doll.AddItemType(self.factory, itemType[1], weight, rawColorVariation)
-        self.characterMetadata[charID].types[category] = itemType[0]
-        myTypeID = itemType[2]
-        if myTypeID:
-            for removeAttributeID in (const.attributeClothingRemovesCategory, const.attributeClothingRemovesCategory2):
-                removesCategory = godmaSvc.GetTypeAttribute2(myTypeID, removeAttributeID)
-                if removesCategory:
-                    modifierLocationName = self.modifierLocationsByKey[int(removesCategory)]
-                    self.ApplyItemToDoll(charID, modifierLocationName, None, removeFirst=True, doUpdate=False)
+            activeMod = self.GetModifierByCategory(charID, category)
+            if activeMod:
+                doll.RemoveResource(activeMod.GetResPath(), self.factory)
+            modifier = doll.AddItemType(self.factory, itemType[1], weight, rawColorVariation)
+            self.characterMetadata[charID].types[category] = itemType[0]
+            myTypeID = itemType[2]
+            if myTypeID:
+                for removeAttributeID in (const.attributeClothingRemovesCategory, const.attributeClothingRemovesCategory2):
+                    removesCategory = godmaSvc.GetTypeAttribute2(myTypeID, removeAttributeID)
+                    if removesCategory:
+                        modifierLocationName = self.modifierLocationsByKey[int(removesCategory)]
+                        self.ApplyItemToDoll(charID, modifierLocationName, None, removeFirst=True, doUpdate=False)
 
-        if ccUtil.HasUserDefinedWeight(category):
-            self.characterMetadata[charID].typeWeights[category] = weight
-        if category in (ccConst.hair, ccConst.beard, ccConst.eyebrows):
-            self.SynchronizeHairColors(charID)
-        if doUpdate:
-            self.UpdateDoll(charID, fromWhere='ApplyTypeToDoll')
-        return modifier
+            if ccUtil.HasUserDefinedWeight(category):
+                self.characterMetadata[charID].typeWeights[category] = weight
+            if category in (ccConst.hair, ccConst.beard, ccConst.eyebrows):
+                self.SynchronizeHairColors(charID)
+            if doUpdate:
+                self.UpdateDoll(charID, fromWhere='ApplyTypeToDoll')
+            return modifier
 
     @telemetry.ZONE_METHOD
-    def ApplyItemToDoll(self, charID, category, name, removeFirst = False, variation = None, doUpdate = True):
+    def ApplyItemToDoll(self, charID, category, name, removeFirst=False, variation=None, doUpdate=True):
         doll = self.characters[charID].doll
         modifier = None
         modifierFoundForVariationSwitch = False
@@ -868,68 +891,71 @@ class Character(service.Service):
         return modifier
 
     @telemetry.ZONE_METHOD
-    def SetColorValueByCategory(self, charID, category, colorVar1, colorVar2, doUpdate = True):
+    def SetColorValueByCategory(self, charID, category, colorVar1, colorVar2, doUpdate=True):
         if colorVar1 is None:
             log.LogError('SetColorValue - No Color variation passed in!')
             return
-        color1Value, color1Name, color2Name, variation = self.GetColorsToUse(colorVar1, colorVar2)
-        modifier = self.GetModifierByCategory(charID, category)
-        if not modifier:
-            return
-        if color1Value:
-            self.characterMetadata[charID].typeColors[category] = (color1Name, None)
-            modifier.SetColorizeData(color1Value)
-        elif colorVar2 is not None:
-            self.characterMetadata[charID].typeColors[category] = (color1Name, color2Name)
-            modifier.SetColorVariationDirectly(variation)
         else:
-            self.characterMetadata[charID].typeColors[category] = (color1Name, None)
-            modifier.SetColorVariationDirectly(variation)
-        if category == ccConst.hair:
-            self.SynchronizeHairColors(charID)
-        if doUpdate:
-            self.UpdateDoll(charID, fromWhere='SetColorValueByCategory')
+            color1Value, color1Name, color2Name, variation = self.GetColorsToUse(colorVar1, colorVar2)
+            modifier = self.GetModifierByCategory(charID, category)
+            if not modifier:
+                return
+            if color1Value:
+                self.characterMetadata[charID].typeColors[category] = (color1Name, None)
+                modifier.SetColorizeData(color1Value)
+            elif colorVar2 is not None:
+                self.characterMetadata[charID].typeColors[category] = (color1Name, color2Name)
+                modifier.SetColorVariationDirectly(variation)
+            else:
+                self.characterMetadata[charID].typeColors[category] = (color1Name, None)
+                modifier.SetColorVariationDirectly(variation)
+            if category == ccConst.hair:
+                self.SynchronizeHairColors(charID)
+            if doUpdate:
+                self.UpdateDoll(charID, fromWhere='SetColorValueByCategory')
+            return
 
     def GetColorsToUse(self, colorVar1, colorVar2, *args):
         if colorVar1 is None:
             log.LogError('GetColorsToUse - No Color variation passed in!')
             return (None, None, None, None)
-        if len(colorVar1) == 3:
-            colorVar1 = (colorVar1[0], colorVar1[2])
-        if colorVar2 is not None and len(colorVar2) == 3:
-            colorVar2 = (colorVar2[0], colorVar2[2])
-        color1Name, color1Value = colorVar1
-        if type(color1Value) == types.TupleType:
-            return (color1Value,
-             color1Name,
-             None,
-             None)
-        elif colorVar2 is not None:
-            color2Name, color2Value = colorVar2
-            variation = {}
-            if color1Value:
-                if color2Value and 'colors' in color1Value:
-                    variation['colors'] = [color1Value['colors'][0], color2Value['colors'][1], color2Value['colors'][2]]
-                if 'pattern' in color1Value:
-                    variation['pattern'] = color1Value['pattern']
-                if color2Value and 'patternColors' in color1Value:
-                    variation['patternColors'] = [color1Value['patternColors'][0], color2Value['patternColors'][1], color2Value['patternColors'][2]]
-                if 'patternColors' in color1Value:
-                    variation['patternColors'] = color1Value['patternColors']
-                if color2Value and 'specularColors' in color1Value:
-                    variation['specularColors'] = [color1Value['specularColors'][0], color2Value['specularColors'][1], color2Value['specularColors'][2]]
-            return (None,
-             color1Name,
-             color2Name,
-             variation)
         else:
+            if len(colorVar1) == 3:
+                colorVar1 = (colorVar1[0], colorVar1[2])
+            if colorVar2 is not None and len(colorVar2) == 3:
+                colorVar2 = (colorVar2[0], colorVar2[2])
+            color1Name, color1Value = colorVar1
+            if type(color1Value) == types.TupleType:
+                return (color1Value,
+                 color1Name,
+                 None,
+                 None)
+            if colorVar2 is not None:
+                color2Name, color2Value = colorVar2
+                variation = {}
+                if color1Value:
+                    if color2Value and 'colors' in color1Value:
+                        variation['colors'] = [color1Value['colors'][0], color2Value['colors'][1], color2Value['colors'][2]]
+                    if 'pattern' in color1Value:
+                        variation['pattern'] = color1Value['pattern']
+                    if color2Value and 'patternColors' in color1Value:
+                        variation['patternColors'] = [color1Value['patternColors'][0], color2Value['patternColors'][1], color2Value['patternColors'][2]]
+                    if 'patternColors' in color1Value:
+                        variation['patternColors'] = color1Value['patternColors']
+                    if color2Value and 'specularColors' in color1Value:
+                        variation['specularColors'] = [color1Value['specularColors'][0], color2Value['specularColors'][1], color2Value['specularColors'][2]]
+                return (None,
+                 color1Name,
+                 color2Name,
+                 variation)
             return (None,
              color1Name,
              None,
              color1Value)
+            return
 
     @telemetry.ZONE_METHOD
-    def SetColorSpecularityByCategory(self, charID, category, specularity, doUpdate = True):
+    def SetColorSpecularityByCategory(self, charID, category, specularity, doUpdate=True):
         modifier = self.GetModifierByCategory(charID, category)
         if modifier:
             self.characterMetadata[charID].typeSpecularity[category] = specularity
@@ -950,7 +976,7 @@ class Character(service.Service):
         return self.characterMetadata[charID].typeSpecularity.get(category, 0.5)
 
     @telemetry.ZONE_METHOD
-    def SetWeightByCategory(self, charID, category, weight, doUpdate = True):
+    def SetWeightByCategory(self, charID, category, weight, doUpdate=True):
         modifier = self.GetModifierByCategory(charID, category)
         if not modifier and charID in self.characters:
             doll = self.characters[charID].doll
@@ -1000,7 +1026,7 @@ class Character(service.Service):
         uicore.layer.charactercreation.ChangeSculptCursor(zone, isFront)
 
     @telemetry.ZONE_METHOD
-    def StartEditMode(self, charID, scene, camera, mode = 'sculpt', showPreview = False, callback = None, pickCallback = None, inactiveZones = [], resetAll = False, skipPickSceneReset = False, useThread = 1):
+    def StartEditMode(self, charID, scene, camera, mode='sculpt', showPreview=False, callback=None, pickCallback=None, inactiveZones=[], resetAll=False, skipPickSceneReset=False, useThread=1):
         if useThread:
             uthread.new(self.StartEditMode_t, *(charID,
              scene,
@@ -1017,6 +1043,7 @@ class Character(service.Service):
             if character is None or character.doll.IsBusyUpdating():
                 return
             self.StartEditMode_t(charID, scene, camera, mode, showPreview, callback, pickCallback, inactiveZones, resetAll, skipPickSceneReset)
+        return
 
     @telemetry.ZONE_METHOD
     def StartEditMode_t(self, charID, scene, camera, mode, showPreview, callback, pickCallback, inactiveZones, resetAll, skipPickSceneReset):
@@ -1028,24 +1055,27 @@ class Character(service.Service):
 
         if character is None:
             return
-        if not self.sculpting or resetAll:
-            if self.sculpting and self.sculpting.highlightGhost:
-                if self.sculpting.highlightGhost.renderStepSlot and self.sculpting.highlightGhost.renderStepSlot.object:
-                    self.sculpting.highlightGhost.renderStepSlot.object.job = None
-            self.sculpting = paperDollSculpting.Sculpting(character.avatar, character.doll, scene, camera, self.factory, mode=mode, callback=callback, pickCallback=pickCallback, inactiveZones=inactiveZones)
         else:
-            self.sculpting.Reset(character.doll, character.avatar, camera=camera, mode=mode, callback=callback, pickCallback=pickCallback, inactiveZones=inactiveZones, skipPickSceneReset=skipPickSceneReset)
-        self.sculptingActive = True
-        gender = character.doll.gender
-        isMale = gender == 'male'
-        if showPreview:
-            self.sculpting.RunHighlightPreview(isMale)
+            if not self.sculpting or resetAll:
+                if self.sculpting and self.sculpting.highlightGhost:
+                    if self.sculpting.highlightGhost.renderStepSlot and self.sculpting.highlightGhost.renderStepSlot.object:
+                        self.sculpting.highlightGhost.renderStepSlot.object.job = None
+                self.sculpting = paperDollSculpting.Sculpting(character.avatar, character.doll, scene, camera, self.factory, mode=mode, callback=callback, pickCallback=pickCallback, inactiveZones=inactiveZones)
+            else:
+                self.sculpting.Reset(character.doll, character.avatar, camera=camera, mode=mode, callback=callback, pickCallback=pickCallback, inactiveZones=inactiveZones, skipPickSceneReset=skipPickSceneReset)
+            self.sculptingActive = True
+            gender = character.doll.gender
+            isMale = gender == 'male'
+            if showPreview:
+                self.sculpting.RunHighlightPreview(isMale)
+            return
 
     @telemetry.ZONE_METHOD
     def StopEditing(self, *args, **kwds):
         if self.sculpting is not None:
             self.sculpting.Stop()
         self.sculptingActive = False
+        return
 
     @telemetry.ZONE_METHOD
     def IsSculptingReady(self):
@@ -1054,12 +1084,13 @@ class Character(service.Service):
         return self.sculpting.IsReady()
 
     @telemetry.ZONE_METHOD
-    def StartPosing(self, charID, callback = None):
+    def StartPosing(self, charID, callback=None):
         avatar = self.characters[charID].avatar
         network = avatar.animationUpdater.network
         if network is not None:
             network.SetControlParameter('ControlParameters|BindPose', 0.0)
         uicore.layer.charactercreation.StartEditMode(showPreview=False, mode='animation', callback=callback)
+        return
 
     @telemetry.ZONE_METHOD
     def StopPosing(self, charID):
@@ -1067,6 +1098,7 @@ class Character(service.Service):
         network = avatar.animationUpdater.network
         if network is not None:
             network.SetControlParameter('ControlParameters|BindPose', 1.0)
+        return
 
     @telemetry.ZONE_METHOD
     def ChangePose(self, v, charID, *args):
@@ -1076,6 +1108,7 @@ class Character(service.Service):
             if network is not None:
                 controlParameter = 'ControlParameters|PortraitPoseNumber'
                 network.SetControlParameter(controlParameter, float(v))
+        return
 
     @telemetry.ZONE_METHOD
     def SetControlParametersFromList(self, params, charID):
@@ -1133,7 +1166,7 @@ class Character(service.Service):
         return self.sculptingActive
 
     @telemetry.ZONE_METHOD
-    def RandomizeCharacterSculpting(self, charID, doUpdate = False):
+    def RandomizeCharacterSculpting(self, charID, doUpdate=False):
         blue.synchro.Yield()
         if charID in self.characters:
             randomizer = paperDoll.EveDollRandomizer(self.factory)
@@ -1150,7 +1183,7 @@ class Character(service.Service):
                 self.UpdateDoll(charID, fromWhere='RandomizeCharacterSculpting')
 
     @telemetry.ZONE_METHOD
-    def RandomizeCharacterGroups(self, charID, categoryList, doUpdate = False, fullRandomization = False):
+    def RandomizeCharacterGroups(self, charID, categoryList, doUpdate=False, fullRandomization=False):
         if charID in self.characters:
             doHairDarkness = False
             for category in categoryList:
@@ -1186,8 +1219,9 @@ class Character(service.Service):
                 self.SetHairDarkness(charID, hairDarkness)
             if doUpdate:
                 self.UpdateDoll(charID, fromWhere='RandomizeCharacterGroups')
+        return
 
-    def RandomizeDollCategory(self, charID, category, oddsOfSelectingNone, addWeight = None, weightFrom = 0, weightTo = 1.0, fullRandomization = False):
+    def RandomizeDollCategory(self, charID, category, oddsOfSelectingNone, addWeight=None, weightFrom=0, weightTo=1.0, fullRandomization=False):
         blue.synchro.Yield()
         randomizer = paperDoll.EveDollRandomizer(self.factory)
         randomizer.gender = self.characters[charID].doll.gender
@@ -1204,23 +1238,27 @@ class Character(service.Service):
         defaultColorName = ccConst.DEFAULSKINCOLORFORBLOODLINE.get(bloodlineID)
         if defaultColorName is None:
             return
-        for eachType in allTypes:
-            assetID, typeInfo, typeID = eachType
-            if typeInfo[2] == defaultColorName:
-                self.ApplyTypeToDoll(charID, eachType, doUpdate=False)
-                return eachType
+        else:
+            for eachType in allTypes:
+                assetID, typeInfo, typeID = eachType
+                if typeInfo[2] == defaultColorName:
+                    self.ApplyTypeToDoll(charID, eachType, doUpdate=False)
+                    return eachType
+
+            return
 
     @telemetry.ZONE_METHOD
     def GetPoseData(self):
         if self.sculpting is None:
             return
-        self.sculpting.UpdateAnimation([])
-        poseDataDict = self.sculpting.animationController.GetAllControlParameterValuesByName(True)
-        for k in poseDataDict.keys():
-            if k not in paperDollUtil.FACIAL_POSE_PARAMETERS.__dict__:
-                del poseDataDict[k]
+        else:
+            self.sculpting.UpdateAnimation([])
+            poseDataDict = self.sculpting.animationController.GetAllControlParameterValuesByName(True)
+            for k in poseDataDict.keys():
+                if k not in paperDollUtil.FACIAL_POSE_PARAMETERS.__dict__:
+                    del poseDataDict[k]
 
-        return poseDataDict
+            return poseDataDict
 
     @telemetry.ZONE_METHOD
     def ValidateDollCustomizationComplete(self, charID):
@@ -1266,6 +1304,7 @@ class Character(service.Service):
         else:
             self.LogError('Asset ID', assetPath, 'does not have an associated ID!!')
             return (None, None)
+            return
 
     def GetCharacterAppearanceInfo(self, charID):
         dollDNA = self.characters[charID].doll.GetDNA()
@@ -1288,11 +1327,12 @@ class Character(service.Service):
             key = fmt % {'prefix': prefix,
              'dir': negName}
             return (key, abs(weight))
-        if weight > 0.0:
+        elif weight > 0.0:
             key = fmt % {'prefix': prefix,
              'dir': posName}
             return (key, abs(weight))
-        return (None, None)
+        else:
+            return (None, None)
 
     def CachePortraitInfo(self, charID, info):
         self.cachedPortraitInfo[charID] = info
@@ -1345,88 +1385,92 @@ class Character(service.Service):
         if dbRow is None:
             self.LogError('Not applying anything to paperdoll, since dbRow is None')
             return
-        for sculptRow in dbRow.sculpts:
-            sculptInto = sculptLocations.GetIfExists(sculptRow.sculptLocationID)
-            if sculptInto is None:
-                self.LogError('Sculpting information for ', sculptRow.sculptLocationID, 'is missing from BSD, skipping sculpting location.')
-                continue
-            for colName, posName, negName in WEIGHT_BREAK_DOWNS:
-                k, v = self.ConvertWeightKeyValue(getattr(sculptRow, colName, 0.0), sculptInto.weightKeyPrefix, posName, negName)
-                if k is not None and v is not None:
-                    catName = sculptInto.weightKeyCategory.lower()
-                    path = paperDoll.SEPERATOR_CHAR.join([catName, k])
-                    self.ApplyItemToDoll(charID, catName, k, doUpdate=False)
-                    self.SetWeightByCategory(charID, path, v, doUpdate=False)
-
-        modifierWeights = {}
-        for colorRow in dbRow.colors:
-            colorInfo = colors.GetIfExists(colorRow.colorID)
-            if colorInfo is None:
-                self.LogError('Color info missing for  ', colorRow.colorID)
-                continue
-            if colorInfo.hasWeight:
-                modifierWeights[colorInfo.colorKey] = colorRow.weight
-
-        modifierObjects = {}
-        for modifierRow in dbRow.modifiers:
-            modifierInfo = modifierLocations.GetIfExists(modifierRow.modifierLocationID)
-            resourcesInfo = resources.GetIfExists(modifierRow.paperdollResourceID)
-            if modifierInfo is None or resourcesInfo is None:
-                self.LogError('Modifier or resource information missing for ', modifierRow.modifierLocationID, modifierRow.paperdollResourceID)
-                continue
-            weight = modifierWeights.get(modifierInfo.modifierKey, 1.0)
-            if modifierRow.paperdollResourceVariation != 0 and modifierInfo.variationKey != '':
-                self.ApplyItemToDoll(charID, modifierInfo.variationKey, self.tuckingOptions[modifierInfo.variationKey], removeFirst=True, variation='v%d' % modifierRow.paperdollResourceVariation, doUpdate=False)
-            resPath = self.GetRelativePath(resourcesInfo.resPath)
-            modifierObjects[modifierInfo.modifierKey] = self.ApplyTypeToDoll(charID, resPath, weight=weight, doUpdate=False)
-
-        genderID = ccUtil.PaperDollGenderToGenderID(gender)
-        self.EnsureUnderwear(charID, genderID, bloodlineID)
-        for colorRow in dbRow.colors:
-            colorInfo = colors.GetIfExists(colorRow.colorID)
-            if colorInfo is None:
-                self.LogError('No color info for ', colorRow.colorID)
-                continue
-            colorNameInfo = colorNames.GetIfExists(colorRow.colorNameA)
-            if colorNameInfo is None:
-                self.LogError('colorA index not in BSD data ', colorRow.colorNameA)
-                continue
-            colorNameA = colorNameInfo.colorName
-            colorNameBC = None
-            if colorRow.colorNameBC != 0:
-                colorNameInfo = colorNames.GetIfExists(colorRow.colorNameBC)
-                if colorNameInfo is not None:
-                    colorNameBC = colorNameInfo.colorName
-                else:
-                    self.LogError('colorBC index not in BSD data ', colorRow.colorNameBC)
-            if colorInfo.colorKey == ccConst.skintone:
-                mod = self.ApplyItemToDoll(charID, ccConst.skintone, 'basic', doUpdate=False)
-                skinColor = (colorNameA, mod.colorVariations[colorNameA])
-                self.SetColorValueByCategory(charID, ccConst.skintone, skinColor, None, doUpdate=False)
-            else:
-                if colorInfo.colorKey not in modifierObjects:
-                    self.LogError('%s not in modifierObjects' % colorInfo.colorKey)
+        else:
+            for sculptRow in dbRow.sculpts:
+                sculptInto = sculptLocations.GetIfExists(sculptRow.sculptLocationID)
+                if sculptInto is None:
+                    self.LogError('Sculpting information for ', sculptRow.sculptLocationID, 'is missing from BSD, skipping sculpting location.')
                     continue
-                mod = modifierObjects[colorInfo.colorKey]
-                if colorNameA not in mod.colorVariations:
-                    colorVarA = ('default', mod.colorVariations.get('default', None))
-                else:
-                    colorVarA = (colorNameA, mod.colorVariations[colorNameA])
-                colorVarBC = None
-                if colorInfo.hasSecondary and colorNameBC is not None:
-                    colorVarBC = (colorNameBC, mod.colorVariations.get(colorNameBC, None))
-                self.SetColorValueByCategory(charID, colorInfo.colorKey, colorVarA, colorVarBC, doUpdate=False)
-                if colorInfo.hasGloss:
-                    self.SetColorSpecularityByCategory(charID, colorInfo.colorKey, colorRow.gloss, doUpdate=False)
-            if colorInfo.colorKey == ccConst.hair:
-                self.SetHairDarkness(charID, dbRow.appearance.hairDarkness)
-                self.SynchronizeHairColors(charID)
+                for colName, posName, negName in WEIGHT_BREAK_DOWNS:
+                    k, v = self.ConvertWeightKeyValue(getattr(sculptRow, colName, 0.0), sculptInto.weightKeyPrefix, posName, negName)
+                    if k is not None and v is not None:
+                        catName = sculptInto.weightKeyCategory.lower()
+                        path = paperDoll.SEPERATOR_CHAR.join([catName, k])
+                        self.ApplyItemToDoll(charID, catName, k, doUpdate=False)
+                        self.SetWeightByCategory(charID, path, v, doUpdate=False)
 
-    def RemoveFromCharacterDicts(self, charID, fromCharacterDict = True, fromMetadataDict = True):
+            modifierWeights = {}
+            for colorRow in dbRow.colors:
+                colorInfo = colors.GetIfExists(colorRow.colorID)
+                if colorInfo is None:
+                    self.LogError('Color info missing for  ', colorRow.colorID)
+                    continue
+                if colorInfo.hasWeight:
+                    modifierWeights[colorInfo.colorKey] = colorRow.weight
+
+            modifierObjects = {}
+            for modifierRow in dbRow.modifiers:
+                modifierInfo = modifierLocations.GetIfExists(modifierRow.modifierLocationID)
+                resourcesInfo = resources.GetIfExists(modifierRow.paperdollResourceID)
+                if modifierInfo is None or resourcesInfo is None:
+                    self.LogError('Modifier or resource information missing for ', modifierRow.modifierLocationID, modifierRow.paperdollResourceID)
+                    continue
+                weight = modifierWeights.get(modifierInfo.modifierKey, 1.0)
+                if modifierRow.paperdollResourceVariation != 0 and modifierInfo.variationKey != '':
+                    self.ApplyItemToDoll(charID, modifierInfo.variationKey, self.tuckingOptions[modifierInfo.variationKey], removeFirst=True, variation='v%d' % modifierRow.paperdollResourceVariation, doUpdate=False)
+                resPath = self.GetRelativePath(resourcesInfo.resPath)
+                modifierObjects[modifierInfo.modifierKey] = self.ApplyTypeToDoll(charID, resPath, weight=weight, doUpdate=False)
+
+            genderID = ccUtil.PaperDollGenderToGenderID(gender)
+            self.EnsureUnderwear(charID, genderID, bloodlineID)
+            for colorRow in dbRow.colors:
+                colorInfo = colors.GetIfExists(colorRow.colorID)
+                if colorInfo is None:
+                    self.LogError('No color info for ', colorRow.colorID)
+                    continue
+                colorNameInfo = colorNames.GetIfExists(colorRow.colorNameA)
+                if colorNameInfo is None:
+                    self.LogError('colorA index not in BSD data ', colorRow.colorNameA)
+                    continue
+                colorNameA = colorNameInfo.colorName
+                colorNameBC = None
+                if colorRow.colorNameBC != 0:
+                    colorNameInfo = colorNames.GetIfExists(colorRow.colorNameBC)
+                    if colorNameInfo is not None:
+                        colorNameBC = colorNameInfo.colorName
+                    else:
+                        self.LogError('colorBC index not in BSD data ', colorRow.colorNameBC)
+                if colorInfo.colorKey == ccConst.skintone:
+                    mod = self.ApplyItemToDoll(charID, ccConst.skintone, 'basic', doUpdate=False)
+                    skinColor = (colorNameA, mod.colorVariations[colorNameA])
+                    self.SetColorValueByCategory(charID, ccConst.skintone, skinColor, None, doUpdate=False)
+                else:
+                    if colorInfo.colorKey not in modifierObjects:
+                        self.LogError('%s not in modifierObjects' % colorInfo.colorKey)
+                        continue
+                    mod = modifierObjects[colorInfo.colorKey]
+                    if colorNameA not in mod.colorVariations:
+                        colorVarA = ('default', mod.colorVariations.get('default', None))
+                    else:
+                        colorVarA = (colorNameA, mod.colorVariations[colorNameA])
+                    colorVarBC = None
+                    if colorInfo.hasSecondary and colorNameBC is not None:
+                        colorVarBC = (colorNameBC, mod.colorVariations.get(colorNameBC, None))
+                    self.SetColorValueByCategory(charID, colorInfo.colorKey, colorVarA, colorVarBC, doUpdate=False)
+                    if colorInfo.hasGloss:
+                        self.SetColorSpecularityByCategory(charID, colorInfo.colorKey, colorRow.gloss, doUpdate=False)
+                if colorInfo.colorKey == ccConst.hair:
+                    self.SetHairDarkness(charID, dbRow.appearance.hairDarkness)
+                    self.SynchronizeHairColors(charID)
+
+            return
+
+    def RemoveFromCharacterDicts(self, charID, fromCharacterDict=True, fromMetadataDict=True):
         if fromCharacterDict:
             self.characters.pop(charID, None)
         if fromMetadataDict:
             self.characterMetadata.pop(charID, None)
+        return
 
     def IsChinaServer(self):
         return boot.region == 'optic'

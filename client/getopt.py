@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\common\stdlib\getopt.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\common\stdlib\getopt.py
 __all__ = ['GetoptError',
  'error',
  'getopt',
@@ -9,7 +10,7 @@ class GetoptError(Exception):
     opt = ''
     msg = ''
 
-    def __init__(self, msg, opt = ''):
+    def __init__(self, msg, opt=''):
         self.msg = msg
         self.opt = opt
         Exception.__init__(self, msg, opt)
@@ -20,7 +21,7 @@ class GetoptError(Exception):
 
 error = GetoptError
 
-def getopt(args, shortopts, longopts = []):
+def getopt(args, shortopts, longopts=[]):
     opts = []
     if type(longopts) == type(''):
         longopts = [longopts]
@@ -38,7 +39,7 @@ def getopt(args, shortopts, longopts = []):
     return (opts, args)
 
 
-def gnu_getopt(args, shortopts, longopts = []):
+def gnu_getopt(args, shortopts, longopts=[]):
     opts = []
     prog_args = []
     if isinstance(longopts, str):

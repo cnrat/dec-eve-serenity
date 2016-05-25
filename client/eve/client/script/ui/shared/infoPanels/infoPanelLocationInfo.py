@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\client\script\ui\shared\infoPanels\infoPanelLocationInfo.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\client\script\ui\shared\infoPanels\infoPanelLocationInfo.py
 from carbonui.primitives.container import Container
 from entosis.occupancyCalculator import GetOccupancyMultiplier
 from eve.client.script.ui.control.eveLabel import EveLabelMedium
@@ -21,6 +22,7 @@ import bookmarkUtil
 import uix
 import const
 from utillib import KeyVal
+import log
 
 class InfoPanelLocationInfo(InfoPanelBase):
     __guid__ = 'uicls.InfoPanelLocationInfo'
@@ -50,6 +52,7 @@ class InfoPanelLocationInfo(InfoPanelBase):
         self.tidiIndicator = uicls.tidiIndicator(parent=self.headerCont, name='tidiIndicator', align=uiconst.CENTERLEFT, pos=(0, 0, 24, 24))
         self.nearestLocationInfo = uicontrols.EveLabelMedium(name='nearestLocationInfo', parent=self.mainCont, align=uiconst.TOTOP)
         self.sovInfoContainer = Container(parent=self.mainCont, align=uiconst.TOTOP, height=42, padTop=2)
+        return
 
     @staticmethod
     def IsAvailable():
@@ -94,16 +97,26 @@ class InfoPanelLocationInfo(InfoPanelBase):
             self.headerButton.sr.typeID = const.typeSolarSystem
 
     @telemetry.ZONE_METHOD
-    def UpdateNearestOrStationLocationInfo(self, nearestBall = None):
+    def UpdateNearestOrStationLocationInfo(self, nearestBall=None):
         infoSettings = sm.GetService('infoPanel').GetLocationInfoSettings()
         nearestOrStationLabel = ''
         if 'nearest' in infoSettings and session.solarsystemid2:
-            if session.stationid2:
-                stationName = cfg.evelocations.Get(eve.stationItem.itemID).name
-                nearestOrStationLabel = "<url=showinfo:%d//%d alt='%s'>%s</url>" % (eve.stationItem.stationTypeID,
-                 eve.stationItem.itemID,
-                 localization.GetByLabel('UI/Generic/CurrentStation'),
-                 stationName)
+            if session.stationid2 or session.structureid:
+                try:
+                    if session.stationid2:
+                        itemID = session.stationid2
+                        typeID = eve.stationItem.stationTypeID
+                    else:
+                        itemID = session.structureid
+                        typeID = sm.GetService('invCache').GetInventory(const.containerStructure).GetTypeID()
+                    stationName = cfg.evelocations.Get(itemID).name
+                    nearestOrStationLabel = "<url=showinfo:%d//%d alt='%s'>%s</url>" % (typeID,
+                     itemID,
+                     localization.GetByLabel('UI/Generic/CurrentStation'),
+                     stationName)
+                except AttributeError as e:
+                    log.LogException('Failed when getting station/structure name')
+
             else:
                 nearestBall = nearestBall or self.GetNearestBall()
                 if nearestBall:
@@ -121,6 +134,7 @@ class InfoPanelLocationInfo(InfoPanelBase):
             self.nearestLocationInfo.state = uiconst.UI_NORMAL
         else:
             self.nearestLocationInfo.state = uiconst.UI_HIDDEN
+        return
 
     def FlushSovInfoContainer(self):
         self.sovInfoContainer.Flush()
@@ -145,17 +159,21 @@ class InfoPanelLocationInfo(InfoPanelBase):
         else:
             self.sovInfoContainer.display = False
 
-    def _GetSolarsystemFactionID(self, solarsystemID, isFacWar = False):
+    def _GetSolarsystemFactionID(self, solarsystemID, isFacWar=False):
         if isFacWar:
             factionID = self.facwarSvc.GetSystemOccupier(solarsystemID)
             return factionID
-        solarSystem = cfg.mapSystemCache.get(solarsystemID, None)
-        if solarSystem:
-            return getattr(solarSystem, 'factionID', None)
+        else:
+            solarSystem = cfg.mapSystemCache.get(solarsystemID, None)
+            if solarSystem:
+                return getattr(solarSystem, 'factionID', None)
+            return
 
     def GetAllianceIDFromCorpID(self, corpID):
         if corpID:
             return sm.GetService('corp').GetCorporation(corpID).allianceID
+        else:
+            return None
 
     def ShowMultiplyBonusesIcon(self, parent, isCapital, left, capitalOwnerID):
         devIndexInfo = self.sovSvc.GetIndexInfoForSolarsystem(session.solarsystemid2)
@@ -174,7 +192,7 @@ class InfoPanelLocationInfo(InfoPanelBase):
         self.sovInfoContainer.height = 10
         EveLabelMedium(parent=self.sovInfoContainer, text=localization.GetByLabel('UI/Neocom/Unclaimable'), align=uiconst.CENTERLEFT, state=uiconst.UI_NORMAL)
 
-    def DrawUnclaimableSystemInfo(self, factionID, isFacWar = None):
+    def DrawUnclaimableSystemInfo(self, factionID, isFacWar=None):
         tcuIcon = SovHolderIcon(parent=self.sovInfoContainer, align=uiconst.CENTERLEFT, structureInfo=KeyVal(typeID=const.typeTerritorialClaimUnit, solarSystemID=session.solarsystemid2, ownerID=factionID))
         factionText = localization.GetByLabel('UI/Contracts/ContractsWindow/ShowInfoLink', showInfoName=cfg.eveowners.Get(factionID).name, info=('showinfo', const.typeFaction, factionID))
         if isFacWar:
@@ -192,6 +210,7 @@ class InfoPanelLocationInfo(InfoPanelBase):
                 itemID = sovHolderIcon.structureInfo.get('itemID', None)
                 if itemID:
                     sm.GetService('menu').TryExpandActionMenu(itemID, sovHolderIcon)
+                return
 
             return OnMouseDownFunction
 
@@ -206,16 +225,19 @@ class InfoPanelLocationInfo(InfoPanelBase):
         isCapital = tcuInfo.get('isCapital', False)
         capitalOwnerID = tcuInfo.get('allianceID', None)
         self.ShowMultiplyBonusesIcon(self.sovInfoContainer, isCapital, xPos, capitalOwnerID)
+        return
 
     def CheckNearest(self):
         if not session.solarsystemid or not self.headerLabel:
             self.locationTimer = None
             return
-        nearestBall = self.GetNearestBall()
-        if nearestBall and self.nearby != nearestBall.id:
-            self.UpdateNearestOrStationLocationInfo(nearestBall)
+        else:
+            nearestBall = self.GetNearestBall()
+            if nearestBall and self.nearby != nearestBall.id:
+                self.UpdateNearestOrStationLocationInfo(nearestBall)
+            return
 
-    def GetNearestBall(self, fromBall = None, getDist = 0):
+    def GetNearestBall(self, fromBall=None, getDist=0):
         ballPark = sm.GetService('michelle').GetBallpark()
         if not ballPark:
             return
@@ -235,16 +257,19 @@ class InfoPanelLocationInfo(InfoPanelBase):
         if lst:
             return lst[0][1]
 
-    def OnSolarsystemSovStructureChanged(self, solarsystemID, whatChanged, sourceItemID = None):
+    def OnSolarsystemSovStructureChanged(self, solarsystemID, whatChanged, sourceItemID=None):
         if sourceItemID is None:
             if session.solarsystemid2 == solarsystemID and session.charid:
                 self.UpdateSOVLocationInfo()
             return
-        for buttonIcon in self.sovHolderIcons:
-            if ShouldUpdateStructureInfo(buttonIcon.structureInfo, sourceItemID):
-                newStructureInfo = self.sovSvc.GetSpecificSovStructuresInfoInSolarSystem(solarsystemID, sourceItemID)
-                buttonIcon.SolarsystemSovStructureChanged(sourceItemID, newStructureInfo, whatChanged)
-                return
+        else:
+            for buttonIcon in self.sovHolderIcons:
+                if ShouldUpdateStructureInfo(buttonIcon.structureInfo, sourceItemID):
+                    newStructureInfo = self.sovSvc.GetSpecificSovStructuresInfoInSolarSystem(solarsystemID, sourceItemID)
+                    buttonIcon.SolarsystemSovStructureChanged(sourceItemID, newStructureInfo, whatChanged)
+                    return
+
+            return
 
     def OnCapitalSystemChanged(self, change):
         allianceID, oldSolarSystemID, newSolarSystemID = change
@@ -252,6 +277,7 @@ class InfoPanelLocationInfo(InfoPanelBase):
             call_after_simtime_delay(self.UpdateSOVLocationInfo, 30)
         else:
             self.UpdateSOVLocationInfo()
+        return
 
     def OnPostCfgDataChanged(self, what, data):
         if what == 'evelocations':
@@ -310,149 +336,153 @@ class ListSurroundingsBtn(uicontrols.ButtonIcon):
     def GetMenu(self, *args):
         if eve.rookieState and eve.rookieState < 32:
             return []
-        m = []
-        if self.sr.Get('groupByType', 0):
-            typedict = {}
-            if self.sr.typeID and self.sr.itemID:
-                m += [(uiutil.MenuLabel('UI/Commands/ShowInfo'), sm.GetService('menu').ShowInfo, (self.sr.typeID, self.sr.itemID))]
-            menuItems = {const.groupAsteroidBelt: uiutil.MenuLabel('UI/Common/LocationTypes/AsteroidBelts'),
-             const.groupPlanet: uiutil.MenuLabel('UI/Common/LocationTypes/Planets'),
-             const.groupStargate: uiutil.MenuLabel('UI/Common/LocationTypes/Stargates'),
-             const.groupStation: uiutil.MenuLabel('UI/Common/LocationTypes/Stations')}
-            for item in self.sr.mapitems:
-                if item.groupID in (const.groupMoon, const.groupSun, const.groupSecondarySun):
-                    continue
-                if item.groupID not in typedict:
-                    typedict[item.groupID] = []
-                typedict[item.groupID].append(item)
-
-            listToSort = []
-            for groupID, itemList in typedict.iteritems():
-                menuLabel = menuItems[groupID]
-                path = menuLabel[0]
-                listToSort.append((localization.GetByLabel(path), (menuLabel, itemList)))
-
-            sortedList = uiutil.SortListOfTuples(listToSort)
-            for entry in sortedList:
-                menuLabel, itemList = entry
-                m.append((menuLabel, ('isDynamic', self.ExpandTypeMenu, (itemList,))))
-
-            bookmarks = {}
-            folders = {}
-            b, f = sm.GetService('bookmarkSvc').GetBookmarksAndFolders()
-            bookmarks.update(b)
-            folders.update(f)
-            bookmarkMenu = bookmarkUtil.GetBookmarkMenuForSystem(bookmarks, folders)
-            if bookmarkMenu:
-                m += bookmarkMenu
-            agentMenu = sm.GetService('journal').GetMyAgentJournalBookmarks()
-            if agentMenu:
-                agentMenu2 = []
-                for missionNameID, bms, agentID in agentMenu:
-                    if isinstance(missionNameID, (int, long)):
-                        missionName = localization.GetByMessageID(missionNameID)
-                    else:
-                        missionName = missionNameID
-                    agentMenuText = uiutil.MenuLabel('UI/Neocom/MissionNameSubmenu', {'missionName': missionName,
-                     'agent': agentID})
-                    tmp = [agentMenuText, []]
-                    for bm in bms:
-                        if bm.solarsystemID == session.solarsystemid2:
-                            txt = bm.hint
-                            systemName = cfg.evelocations.Get(bm.solarsystemID).name
-                            if bm.locationType == 'dungeon':
-                                txt = txt.replace(' - %s' % systemName, '')
-                            if '- Moon ' in txt:
-                                txt = txt.replace(' - Moon ', ' - M')
-                            if txt.endswith('- '):
-                                txt = txt[:-2]
-                            tmp[1].append((txt, ('isDynamic', self.CelestialMenu, (bm.itemID,
-                               None,
-                               None,
-                               0,
-                               None,
-                               None,
-                               bm))))
-
-                    if tmp[1]:
-                        agentMenu2.append(tmp)
-
-                if agentMenu2:
-                    agentMenuText = uiutil.MenuLabel('UI/Neocom/AgentMissionsSubmenu')
-                    m += [None, (agentMenuText, lambda : None)] + agentMenu2
-            contractsMenu = sm.GetService('contracts').GetContractsBookmarkMenu()
-            if contractsMenu:
-                m += contractsMenu
         else:
-            if not self.itemssorted:
-                self.sr.mapitems = uiutil.SortListOfTuples([ (item.itemName.lower(), item) for item in self.sr.mapitems ])
-                self.itemssorted = 1
-            maxmenu = 25
-            if len(self.sr.mapitems) > maxmenu:
-                groups = []
-                approxgroupcount = len(self.sr.mapitems) / float(maxmenu)
-                counter = 0
-                while counter < len(self.sr.mapitems):
-                    groups.append(self.sr.mapitems[counter:counter + maxmenu])
-                    counter = counter + maxmenu
+            m = []
+            if self.sr.Get('groupByType', 0):
+                typedict = {}
+                if self.sr.typeID and self.sr.itemID:
+                    m += [(uiutil.MenuLabel('UI/Commands/ShowInfo'), sm.GetService('menu').ShowInfo, (self.sr.typeID, self.sr.itemID))]
+                menuItems = {const.groupAsteroidBelt: uiutil.MenuLabel('UI/Common/LocationTypes/AsteroidBelts'),
+                 const.groupPlanet: uiutil.MenuLabel('UI/Common/LocationTypes/Planets'),
+                 const.groupStargate: uiutil.MenuLabel('UI/Common/LocationTypes/Stargates'),
+                 const.groupStation: uiutil.MenuLabel('UI/Common/LocationTypes/Stations')}
+                for item in self.sr.mapitems:
+                    if item.groupID in (const.groupMoon, const.groupSun, const.groupSecondarySun):
+                        continue
+                    if item.groupID not in typedict:
+                        typedict[item.groupID] = []
+                    typedict[item.groupID].append(item)
 
-                for group in groups:
-                    groupmenu = []
-                    for item in group:
-                        groupmenu.append((item.itemName or 'no name!', self.CelestialMenu(item.itemID, item)))
+                listToSort = []
+                for groupID, itemList in typedict.iteritems():
+                    menuLabel = menuItems[groupID]
+                    path = menuLabel[0]
+                    listToSort.append((localization.GetByLabel(path), (menuLabel, itemList)))
 
-                    if len(groupmenu):
-                        fromLetter = '???'
-                        if group[0].itemName:
-                            fromLetter = uiutil.StripTags(group[0].itemName)[0]
-                        toLetter = '???'
-                        if group[-1].itemName:
-                            toLetter = uiutil.StripTags(group[-1].itemName)[0]
-                        m.append((fromLetter + '...' + toLetter, groupmenu))
+                sortedList = uiutil.SortListOfTuples(listToSort)
+                for entry in sortedList:
+                    menuLabel, itemList = entry
+                    m.append((menuLabel, ('isDynamic', self.ExpandTypeMenu, (itemList,))))
 
-                return m
-            for item in self.sr.mapitems[:30]:
-                m.append((item.itemName or 'no name!', self.CelestialMenu(item.itemID, item)))
+                bookmarks = {}
+                folders = {}
+                b, f = sm.GetService('bookmarkSvc').GetBookmarksAndFolders()
+                bookmarks.update(b)
+                folders.update(f)
+                bookmarkMenu = bookmarkUtil.GetBookmarkMenuForSystem(bookmarks, folders)
+                if bookmarkMenu:
+                    m += bookmarkMenu
+                agentMenu = sm.GetService('journal').GetMyAgentJournalBookmarks()
+                if agentMenu:
+                    agentMenu2 = []
+                    for missionNameID, bms, agentID in agentMenu:
+                        if isinstance(missionNameID, (int, long)):
+                            missionName = localization.GetByMessageID(missionNameID)
+                        else:
+                            missionName = missionNameID
+                        agentMenuText = uiutil.MenuLabel('UI/Neocom/MissionNameSubmenu', {'missionName': missionName,
+                         'agent': agentID})
+                        tmp = [agentMenuText, []]
+                        for bm in bms:
+                            if bm.solarsystemID == session.solarsystemid2:
+                                txt = bm.hint
+                                systemName = cfg.evelocations.Get(bm.solarsystemID).name
+                                if bm.locationType == 'dungeon':
+                                    txt = txt.replace(' - %s' % systemName, '')
+                                if '- Moon ' in txt:
+                                    txt = txt.replace(' - Moon ', ' - M')
+                                if txt.endswith('- '):
+                                    txt = txt[:-2]
+                                tmp[1].append((txt, ('isDynamic', self.CelestialMenu, (bm.itemID,
+                                   None,
+                                   None,
+                                   0,
+                                   None,
+                                   None,
+                                   bm))))
 
-        m.append(None)
-        starmapSvc = sm.GetService('starmap')
-        showRoute = settings.user.ui.Get('neocomRouteVisible', 1)
-        infoSettings = sm.GetService('infoPanel').GetLocationInfoSettings()
-        if len(starmapSvc.GetWaypoints()) > 0:
-            m.append((uiutil.MenuLabel('UI/Neocom/ClearAllAutopilotWaypoints'), starmapSvc.ClearWaypoints, (None,)))
-        m.append(None)
-        m.append((uiutil.MenuLabel('UI/Neocom/ConfigureSubmenu'), self.ConfigureLocationInfo))
-        return m
+                        if tmp[1]:
+                            agentMenu2.append(tmp)
+
+                    if agentMenu2:
+                        agentMenuText = uiutil.MenuLabel('UI/Neocom/AgentMissionsSubmenu')
+                        m += [None, (agentMenuText, lambda : None)] + agentMenu2
+                contractsMenu = sm.GetService('contracts').GetContractsBookmarkMenu()
+                if contractsMenu:
+                    m += contractsMenu
+            else:
+                if not self.itemssorted:
+                    self.sr.mapitems = uiutil.SortListOfTuples([ (item.itemName.lower(), item) for item in self.sr.mapitems ])
+                    self.itemssorted = 1
+                maxmenu = 25
+                if len(self.sr.mapitems) > maxmenu:
+                    groups = []
+                    approxgroupcount = len(self.sr.mapitems) / float(maxmenu)
+                    counter = 0
+                    while counter < len(self.sr.mapitems):
+                        groups.append(self.sr.mapitems[counter:counter + maxmenu])
+                        counter = counter + maxmenu
+
+                    for group in groups:
+                        groupmenu = []
+                        for item in group:
+                            groupmenu.append((item.itemName or 'no name!', self.CelestialMenu(item.itemID, item)))
+
+                        if len(groupmenu):
+                            fromLetter = '???'
+                            if group[0].itemName:
+                                fromLetter = uiutil.StripTags(group[0].itemName)[0]
+                            toLetter = '???'
+                            if group[-1].itemName:
+                                toLetter = uiutil.StripTags(group[-1].itemName)[0]
+                            m.append((fromLetter + '...' + toLetter, groupmenu))
+
+                    return m
+                for item in self.sr.mapitems[:30]:
+                    m.append((item.itemName or 'no name!', self.CelestialMenu(item.itemID, item)))
+
+            m.append(None)
+            starmapSvc = sm.GetService('starmap')
+            showRoute = settings.user.ui.Get('neocomRouteVisible', 1)
+            infoSettings = sm.GetService('infoPanel').GetLocationInfoSettings()
+            if len(starmapSvc.GetWaypoints()) > 0:
+                m.append((uiutil.MenuLabel('UI/Neocom/ClearAllAutopilotWaypoints'), starmapSvc.ClearWaypoints, (None,)))
+            m.append(None)
+            m.append((uiutil.MenuLabel('UI/Neocom/ConfigureSubmenu'), self.ConfigureLocationInfo))
+            return m
 
     def DoWarpToHidden(self, instanceID):
         bp = sm.StartService('michelle').GetRemotePark()
         if bp is not None:
             bp.CmdWarpToStuff('epinstance', instanceID)
+        return
 
     def DoTutorial(self):
         bp = sm.GetService('michelle').GetRemotePark()
         if bp is not None and sm.GetService('space').CanWarp(forTut=True):
             eve.Message('Command', {'command': localization.GetByLabel('UI/Neocom/WarpingToTutorialSide')})
             bp.WarpToTutorial()
+        return
 
     def GetDragData(self, *args):
         itemID = self.sr.Get('itemID', None)
         typeID = self.sr.Get('typeID', None)
         if not itemID or not typeID:
             return []
-        label = ''
-        if typeID in (const.typeRegion, const.typeConstellation, const.typeSolarSystem):
-            label += cfg.evelocations.Get(itemID).name
-            elabel = {const.typeRegion: localization.GetByLabel('UI/Neocom/Region'),
-             const.typeConstellation: localization.GetByLabel('UI/Neocom/Constellation'),
-             const.typeSolarSystem: localization.GetByLabel('UI/Neocom/SolarSystem')}
-            label += ' %s' % elabel.get(typeID)
-        entry = util.KeyVal()
-        entry.itemID = itemID
-        entry.typeID = typeID
-        entry.__guid__ = 'xtriui.ListSurroundingsBtn'
-        entry.label = label
-        return [entry]
+        else:
+            label = ''
+            if typeID in (const.typeRegion, const.typeConstellation, const.typeSolarSystem):
+                label += cfg.evelocations.Get(itemID).name
+                elabel = {const.typeRegion: localization.GetByLabel('UI/Neocom/Region'),
+                 const.typeConstellation: localization.GetByLabel('UI/Neocom/Constellation'),
+                 const.typeSolarSystem: localization.GetByLabel('UI/Neocom/SolarSystem')}
+                label += ' %s' % elabel.get(typeID)
+            entry = util.KeyVal()
+            entry.itemID = itemID
+            entry.typeID = typeID
+            entry.__guid__ = 'xtriui.ListSurroundingsBtn'
+            entry.label = label
+            return [entry]
 
     @telemetry.ZONE_METHOD
     def ConfigureLocationInfo(self):

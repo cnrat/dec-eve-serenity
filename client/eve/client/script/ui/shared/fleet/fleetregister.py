@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\client\script\ui\shared\fleet\fleetregister.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\client\script\ui\shared\fleet\fleetregister.py
 import uiprimitives
 import uicontrols
 import util
@@ -21,8 +22,9 @@ class RegisterFleetWindow(uicontrols.Window):
         self.MakeUnResizeable()
         self.sr.scopeRadioButtons = []
         self.SetupStuff(fleetInfo)
+        return
 
-    def SetupStuff(self, fleetInfo = None):
+    def SetupStuff(self, fleetInfo=None):
         publicIsGood = False
         publicIsHigh = False
         localIsGood = False
@@ -86,11 +88,12 @@ class RegisterFleetWindow(uicontrols.Window):
         self.sr.submitButtons = uicontrols.ButtonGroup(btns=[[localization.GetByLabel('UI/Common/Buttons/Submit'), self.Submit, ()], [localization.GetByLabel('UI/Common/Buttons/Cancel'), self.CloseByUser, ()]], parent=self.sr.main, idx=0, padLeft=-self.sr.main.padLeft, padRight=-self.sr.main.padRight)
         windowHeight = sum([ each.height + each.padTop + each.padBottom for each in self.sr.main.children ]) + self.GetHeaderHeight() + self.sr.main.padTop + self.sr.main.padBottom
         self.SetMinSize([WINDOW_WIDTH, windowHeight], refresh=True)
+        return
 
     def SlideIt(self, startVal):
         self.sr.slider.SlideTo(startVal, 1)
 
-    def AddSlider(self, where, config, minval, maxval, header, hint = '', startVal = 0, padLeft = 0):
+    def AddSlider(self, where, config, minval, maxval, header, hint='', startVal=0, padLeft=0):
         h = 10
         _par = uiprimitives.Container(name=config + '_slider', parent=where, align=uiconst.TOTOP, padLeft=padLeft, height=10)
         par = uiprimitives.Container(name=config + '_slider_sub', parent=_par, align=uiconst.TOPLEFT, pos=(18, 0, 180, 10))
@@ -184,6 +187,7 @@ class RegisterFleetWindow(uicontrols.Window):
         fleetSvc.RegisterFleet(info)
         settings.user.ui.Set('fleetAdvert_lastAdvert', info)
         self.CloseByUser()
+        return
 
     def GetAllowedEntities(self, minRelationship):
         return sm.GetService('addressbook').GetContactsByMinRelationship(minRelationship)

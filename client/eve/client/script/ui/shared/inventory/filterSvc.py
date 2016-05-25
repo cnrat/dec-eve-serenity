@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\client\script\ui\shared\inventory\filterSvc.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\client\script\ui\shared\inventory\filterSvc.py
 from math import pi
 import evetypes
 from inventorycommon.util import GetItemVolume
@@ -52,44 +53,47 @@ class ItemFilterSvc(service.Service):
         if self.filtersByName is None:
             self.filtersByName = self.defaultFilters
         self.tempFilter = None
+        return
 
     def GetValue(self, condition, item):
         if condition == ITEM_CATEGORY:
             return item.categoryID
-        if condition == ITEM_GROUP:
+        elif condition == ITEM_GROUP:
             return item.groupID
-        if condition == ITEM_VOLUME:
+        elif condition == ITEM_VOLUME:
             return GetItemVolume(item)
-        if condition == ITEM_PRICE:
+        elif condition == ITEM_PRICE:
             price = util.GetAveragePrice(item)
             if price is not None:
                 price = util.RoundISK(price)
             return price
-        if condition == ITEM_STACKSIZE:
+        elif condition == ITEM_STACKSIZE:
             return item.stacksize
-        if condition == ITEM_ASSEMBLED:
+        elif condition == ITEM_ASSEMBLED:
             return item.singleton
-        if condition == ITEM_SLOT:
+        elif condition == ITEM_SLOT:
             effects = cfg.dgmtypeeffects.get(item.typeID, [])
             return [ effect.effectID for effect in effects ]
-        if condition == ITEM_NAME:
+        elif condition == ITEM_NAME:
             name = uix.GetItemName(item)
             return StripTags(name)
-        if condition == ITEM_METAGROUP:
+        elif condition == ITEM_METAGROUP:
             ret = int(sm.GetService('godma').GetTypeAttribute(item.typeID, const.attributeMetaGroupID, 0))
             if not ret:
                 ret = int(sm.GetService('godma').GetTypeAttribute(item.typeID, const.attributeTechLevel, 1))
                 if ret == 3:
                     ret = 14
             return ret
-        if condition == ITEM_METALEVEL:
+        elif condition == ITEM_METALEVEL:
             return int(sm.GetService('godma').GetTypeAttribute(item.typeID, const.attributeMetaLevel, 0))
-        if condition == ITEM_POWER:
+        elif condition == ITEM_POWER:
             return int(sm.GetService('godma').GetTypeAttribute(item.typeID, const.attributePower, 0))
-        if condition == ITEM_CPU:
+        elif condition == ITEM_CPU:
             return int(sm.GetService('godma').GetTypeAttribute(item.typeID, const.attributeCpu, 0))
-        if condition == ITEM_BLUEPRINT_COPY:
+        elif condition == ITEM_BLUEPRINT_COPY:
             return item.singleton == const.singletonBlueprintCopy
+        else:
+            return
 
     def _Filter(self, value, criteria, critValue):
         if criteria == CRIT_IS:
@@ -98,26 +102,28 @@ class ItemFilterSvc(service.Service):
             if isinstance(value, basestring):
                 return value.lower() == critValue.lower()
             return value == critValue
-        if criteria == CRIT_ISNOT:
+        elif criteria == CRIT_ISNOT:
             if isinstance(value, (tuple, list)):
                 return critValue not in value
             if isinstance(value, basestring):
                 return value.lower() != critValue.lower()
             return value != critValue
-        if criteria == CRIT_ISLESSTHAN:
+        elif criteria == CRIT_ISLESSTHAN:
             return value is not None and value < critValue
-        if criteria == CRIT_ISEQUALTO:
+        elif criteria == CRIT_ISEQUALTO:
             return value == critValue
-        if criteria == CRIT_ISGREATERTHAN:
+        elif criteria == CRIT_ISGREATERTHAN:
             return value is not None and value > critValue
-        if criteria == CRIT_STARTSWITH:
+        elif criteria == CRIT_STARTSWITH:
             return value.lower().startswith(critValue.lower())
-        if criteria == CRIT_NOTSTARTSWITH:
+        elif criteria == CRIT_NOTSTARTSWITH:
             return not value.lower().startswith(critValue.lower())
-        if criteria == CRIT_CONTAINS:
+        elif criteria == CRIT_CONTAINS:
             return value.lower().find(critValue.lower()) != -1
-        if criteria == CRIT_NOTCONTAINS:
+        elif criteria == CRIT_NOTCONTAINS:
             return value.lower().find(critValue.lower()) == -1
+        else:
+            return None
 
     def FilterItems(self, items, filt):
         func = lambda item: self.FilterItem(item, filt)
@@ -170,7 +176,7 @@ class ItemFilterSvc(service.Service):
         ret.sort(key=lambda x: x[0].lower())
         return ret
 
-    def SaveFilter(self, name, resultType, conditions, suppressWarn = False):
+    def SaveFilter(self, name, resultType, conditions, suppressWarn=False):
         if not name:
             raise UserError('SaveFilterNoName')
         if self.GetFilterByName(name) and not suppressWarn:
@@ -197,7 +203,7 @@ class ItemFilterSvc(service.Service):
             if key.lower() == name:
                 return filter
 
-    def RemoveFilter(self, name, suppressWarn = False):
+    def RemoveFilter(self, name, suppressWarn=False):
         if self.GetFilterByName(name):
             if not suppressWarn and uicore.Message('RemoveFilterPrompt', {}, uiconst.YESNO) != uiconst.ID_YES:
                 return
@@ -251,6 +257,7 @@ class FilterCreationWindow(uicontrols.Window):
                 self.AddEntry(isRemovable=True, condition=condition)
 
         self.AddEntry(isRemovable=False)
+        return
 
     def LoadFilter(self, filter):
         name, allOrAny, criterias = filter
@@ -261,7 +268,7 @@ class FilterCreationWindow(uicontrols.Window):
         self.allOrAny = button.data['value']
         self.ApplyFilter()
 
-    def AddEntry(self, isRemovable = False, condition = None):
+    def AddEntry(self, isRemovable=False, condition=None):
         entry = uicls.CriteriaEntry(parent=self.entryCont, condition=condition, controller=self, isRemovable=isRemovable, opacity=0.0)
         uicore.animations.FadeIn(entry)
 
@@ -271,6 +278,7 @@ class FilterCreationWindow(uicontrols.Window):
     def Close(self, *args, **kw):
         sm.GetService('itemFilter').SetTempFilter(None)
         uicontrols.Window.Close(self, *args, **kw)
+        return
 
     def GetFilter(self):
         criterias = []
@@ -317,6 +325,7 @@ class CriteriaEntry(uiprimitives.Container):
         self.filterDetailCont = uiprimitives.Container(name='filterDetailCont', parent=self)
         if condition:
             self.SetFilterType(*condition)
+        return
 
     def GetFilterTypeComboOptions(self):
         options = [('', 0),
@@ -366,7 +375,7 @@ class CriteriaEntry(uiprimitives.Container):
         if wnd:
             wnd.ApplyFilter()
 
-    def SetFilterType(self, filterType, criteria = None, value = None):
+    def SetFilterType(self, filterType, criteria=None, value=None):
         if not filterType:
             return
         self.filterType = filterType
@@ -388,7 +397,8 @@ class CriteriaEntry(uiprimitives.Container):
     def GetValue(self):
         if not self.filterType or not self.criteriaValue:
             return None
-        return self.criteriaValue.GetValue()
+        else:
+            return self.criteriaValue.GetValue()
 
 
 class CriteriaValueBase(uiprimitives.Container):
@@ -403,8 +413,9 @@ class CriteriaValueBase(uiprimitives.Container):
         self.value = attributes.Get('value', self.default_value)
         self.applyFilterPending = False
         self.applyFilterThread = None
+        return
 
-    def CreateCombo(self, options, width = 0.5, select = None):
+    def CreateCombo(self, options, width=0.5, select=None):
         return uicontrols.Combo(align=uiconst.TOLEFT_PROP, parent=self, width=width, padLeft=const.defaultPadding, options=options, select=None, callback=self.ApplyFilter)
 
     def ApplyFilter(self, *args):
@@ -423,6 +434,7 @@ class CriteriaValueBase(uiprimitives.Container):
             else:
                 self.applyFilterThread = None
             self.applyFilterPending = False
+        return
 
 
 class CriteriaValueBool(CriteriaValueBase):

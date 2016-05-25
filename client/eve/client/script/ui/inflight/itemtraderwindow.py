@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\client\script\ui\inflight\itemtraderwindow.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\client\script\ui\inflight\itemtraderwindow.py
 from eve.client.script.ui.control.eveWindow import Window
 import carbonui.const as uiconst
 from carbonui.primitives.container import Container
@@ -28,6 +29,7 @@ class ItemTraderWindow(Window):
         self.mainContainer = Container(name='mainContainer', parent=self.sr.main)
         self.ConstructInputSection()
         self.outputSection = None
+        return
 
     def ConstructButtons(self):
         buttonParent = FlowContainer(name='buttonParent', parent=self.sr.main, align=uiconst.TOBOTTOM, padding=6, autoHeight=True, centerContent=True, contentSpacing=(6, 6))

@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\client\script\util\profiling.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\client\script\util\profiling.py
 import base
 import blue
 import stackless
@@ -15,6 +16,7 @@ class TotalProfiler:
         self.timer = None
         self.startMem = 0
         self.snapshotDict = {}
+        return
 
     def Start(self):
         now = blue.os.GetWallclockTime()
@@ -81,7 +83,7 @@ class TotalProfiler:
 class FPSProfiler:
     __guid__ = 'profiling.FPSProfiler'
 
-    def Start(self, file, ms = 10000):
+    def Start(self, file, ms=10000):
         self.minValue = 10000000.0
         self.maxValue = -1.0
         self.num = 0
@@ -112,6 +114,7 @@ class FPSProfiler:
         file.write('<data name="max" type="float">' + str(self.maxValue) + '</data>\r\n')
         file.write('<data name="min" type="float">' + str(self.minValue) + '</data>\r\n')
         file.write('</FPS>\r\n')
+        return
 
 
 class DispatchProfiler:
@@ -120,6 +123,7 @@ class DispatchProfiler:
         self.startMem = None
         self.startNet = None
         self.started = 0
+        return
 
     def Start(self):
         self.started = 1
@@ -150,11 +154,12 @@ class DispatchProfiler:
         file.write('<Memory>\r\n')
         file.write('<data name="usage" type="int" signifier="Kb">' + str((self.endMem[1][7] - self.startMem[1][7]) / 1024) + '</data>\r\n')
         file.write('</Memory>\r\n')
+        return
 
 
 class Snapshot:
 
-    def __init__(self, name = ''):
+    def __init__(self, name=''):
         self.taskletStart = None
         self.taskletEnd = None
         self.memoryStart = 0
@@ -162,6 +167,7 @@ class Snapshot:
         self.start = blue.os.GetWallclockTimeNow()
         self.end = self.start
         self.name = name
+        return
 
     def ProcessTasklets(self):
         aDict = {}
@@ -195,8 +201,9 @@ class ProfilingScheduler(service.Service):
         self.dispatchProfiler = DispatchProfiler()
         self.timer = None
         self.snapshotDict = {}
+        return
 
-    def Run(self, memstream = None):
+    def Run(self, memstream=None):
         service.Service.Run(self, memstream)
         if not self.SetUpEnvironment():
             raise RuntimeError('environment not suitable for profiling')
@@ -214,7 +221,6 @@ class ProfilingScheduler(service.Service):
         if not eve.session.charid:
             eve.Message('CustomInfo', {'info': 'You have to be in the game to use the profiler'})
             return 0
-        return 1
 
     def StartProfiling(self, start, locationList):
         itemInPark = sm.GetService('michelle').GetBall(start)
@@ -275,6 +281,8 @@ class ProfilingScheduler(service.Service):
             blue.pyos.synchro.SleepWallclock(FPStime + 500)
             self.LogInfo(location, ' done.')
 
+        return
+
     def WarpTo(self, location):
         uthread.new(self.WarpTo_thread, location).context = 'svc.profiling.WarpTo'
 
@@ -291,6 +299,7 @@ class ProfilingScheduler(service.Service):
 
         self.LogInfo('Warping to ', location)
         bp.CmdWarpToStuff('item', location)
+        return
 
     def BeginSnapshot(self, name):
         if not self.dispatchProfiler.primed:
@@ -304,9 +313,11 @@ class ProfilingScheduler(service.Service):
 
     def OnWarpFinished(self):
         self.channel.send(None)
+        return
 
     def OnSessionChanged(self, *args):
         self.channel.send(None)
+        return
 
     def ShuntEvents(self):
         self.LogWarn('We had to kill some events')
@@ -328,7 +339,7 @@ def Start():
 
 class NonniEvent:
 
-    def __init__(self, sleepingTime = 0):
+    def __init__(self, sleepingTime=0):
         self.channel = stackless.channel()
         self.primed = 0
         self.receiving = 0
@@ -336,10 +347,10 @@ class NonniEvent:
 
     def Set(self):
         self.primed += 1
-        return 1
 
     def Release(self):
         self.channel.send(None)
+        return
 
     def Wait(self):
         if not self.primed:

@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\devtools\script\resmanmonitor.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\devtools\script\resmanmonitor.py
 import blue
 import carbonui.const as uiconst
 from carbonui.control.scrollentries import ScrollEntryNode, SE_GenericCore, SE_BaseClassCore
@@ -22,6 +23,7 @@ class NumberAttribute(SE_BaseClassCore):
         self.label = Label(parent=left)
         self.value = Label(parent=right, autoUpdate=True)
         self.GetValue = None
+        return
 
     def Load(self, node):
         self.GetValue = node.getvalue
@@ -108,7 +110,7 @@ class ResManMonitor(Window):
         listEntry = ScrollEntryNode(decoClass=SE_GenericCore, id=id, label=label, object_ref=wr)
         return listEntry
 
-    def AddKeys(self, contentList, keys, isCachedStr, filter = None):
+    def AddKeys(self, contentList, keys, isCachedStr, filter=None):
         for each in keys:
             wr = blue.motherLode.LookupAsWeakRef(each)
             if wr.object is not None:
@@ -116,6 +118,8 @@ class ResManMonitor(Window):
                 if not filter or filter.lower() in filename.lower():
                     listEntry = self.GetEntryForObject(wr, filename, isCachedStr)
                     contentList.append(listEntry)
+
+        return
 
     def PopulateScroll(self):
         contentList = []

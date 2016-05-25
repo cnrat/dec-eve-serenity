@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\packages\dogma\effects\modifiers.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\packages\dogma\effects\modifiers.py
 
 
 class BaseModifier(object):
@@ -10,11 +11,13 @@ class BaseModifier(object):
         self.modifyingAttributeID = modifyingAttributeID
         self.isShipModifier = domain == 'shipID'
         self.isCharModifier = domain == 'charID'
+        self.isStuctureModifier = domain == 'structureID'
 
     def _GetDomainID(self, env):
         if self.domain is None:
             return env.itemID
-        return getattr(env, self.domain)
+        else:
+            return getattr(env, self.domain)
 
     def Start(self, env, dogmaLM, itemID, shipID, charID, otherID, targetID):
         self._GetStartFunc(dogmaLM)(*self._GetArgs(env, itemID))
@@ -27,6 +30,9 @@ class BaseModifier(object):
 
     def IsCharModifier(self):
         return self.isCharModifier
+
+    def IsStructureModifier(self):
+        return self.isStuctureModifier
 
 
 class ItemModifier(BaseModifier):

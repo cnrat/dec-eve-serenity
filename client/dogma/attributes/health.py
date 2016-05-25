@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\packages\dogma\attributes\health.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\packages\dogma\attributes\health.py
 from dogma.const import attributeArmorHP, attributeArmorDamage, attributeShieldCharge, attributeShieldCapacity
 
 def GetCurrentArmorRatio(dogmaLM, itemId):
@@ -26,3 +27,12 @@ def GetMaxShieldAmount(dogmaLM, itemId):
 
 def GetCurrentShieldRatio(dogmaLM, itemId):
     return GetCurrentShieldAmount(dogmaLM, itemId) / GetMaxShieldAmount(dogmaLM, itemId)
+
+
+def SetArmorAmount(dogmaLM, itemId, amount):
+    dogmaLM.SetAttributeValue(itemId, attributeArmorDamage, amount)
+
+
+def SetArmorRatio(dogmaLM, itemId, ratio):
+    maxArmorHP = GetMaxArmorAmount(dogmaLM, itemId)
+    SetArmorAmount(dogmaLM, itemId, maxArmorHP * (1 - ratio))

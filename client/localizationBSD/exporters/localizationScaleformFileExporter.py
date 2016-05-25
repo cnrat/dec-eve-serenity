@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\packages\localizationBSD\exporters\localizationScaleformFileExporter.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\packages\localizationBSD\exporters\localizationScaleformFileExporter.py
 import localizationExporter
 from . import LocalizationExporterError
 import log
@@ -28,7 +29,7 @@ class LocalizationScaleformFileExporter(localizationExporter.LocalizationExporte
      'ja': (HEADER2, {'languageName': 'Japanese'})}
 
     @classmethod
-    def ExportWithProjectSettingsToZipFileObject(cls, projectID, fileObject, exportFileName, getSubmittedOnly = True, bsdBranchID = None):
+    def ExportWithProjectSettingsToZipFileObject(cls, projectID, fileObject, exportFileName, getSubmittedOnly=True, bsdBranchID=None):
         if not exportFileName:
             exportFileName = 'fontConfig.txt'
         fontConfig = cls._GetFileContents(projectID, getSubmittedOnly, bsdBranchID)
@@ -38,7 +39,7 @@ class LocalizationScaleformFileExporter(localizationExporter.LocalizationExporte
         return (zipDataFile, exportFileName)
 
     @classmethod
-    def ExportWithProjectSettings(cls, projectID, exportLocation, exportFileName, getSubmittedOnly = True, **kwargs):
+    def ExportWithProjectSettings(cls, projectID, exportLocation, exportFileName, getSubmittedOnly=True, **kwargs):
         if not exportLocation or not exportFileName:
             raise LocalizationExporterError('Filepath strings are incomplete. exportLocation, exportFileName: %s, %s.' % (exportLocation, exportFileName))
         fontConfig = cls._GetFileContents(projectID, getSubmittedOnly)
@@ -49,7 +50,7 @@ class LocalizationScaleformFileExporter(localizationExporter.LocalizationExporte
         return [filePath]
 
     @classmethod
-    def _GetFileContents(cls, projectID, getSubmittedOnly, bsdBranchID = None):
+    def _GetFileContents(cls, projectID, getSubmittedOnly, bsdBranchID=None):
         exportData = cls._GetLocalizationMessageDataForExport(projectID, getSubmittedOnly, bsdBranchID=bsdBranchID)
         folderPathToLabelsIndex = exportData[0]
         languageCodesResultSet = exportData[2]

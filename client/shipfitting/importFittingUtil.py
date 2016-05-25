@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\packages\shipfitting\importFittingUtil.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\packages\shipfitting\importFittingUtil.py
 import collections
 import inventorycommon.const as invconst
 import dogma.const as dogmaConst
@@ -20,6 +21,7 @@ slotDict = {dogmaConst.effectRigSlot: 'flagRigSlot',
  dogmaConst.effectLoPower: 'flagLoSlot'}
 NUM_SLOTS = 8
 validCategoryIDs = [invconst.categoryShip,
+ invconst.categoryStructureModule,
  invconst.categoryModule,
  invconst.categorySubSystem,
  invconst.categoryCharge,
@@ -59,25 +61,26 @@ class ImportFittingUtil(object):
             isEmpty = False
         if typeID is None and chargeTypeID is None and slotLocation is None:
             return
-        categoryID = None
-        capacity = None
-        chargeVolume = None
-        if evetypes.Exists(typeID):
-            categoryID = evetypes.GetCategoryID(typeID)
-            capacity = evetypes.GetCapacity(typeID)
-        if evetypes.Exists(chargeTypeID):
-            chargeVolume = evetypes.GetVolume(chargeTypeID)
-        info = {'typeName': typeName,
-         'typeID': typeID,
-         'categoryID': categoryID,
-         'capacity': capacity,
-         'numItems': numItems,
-         'chargeName': chargeName,
-         'chargeTypeID': chargeTypeID,
-         'chargeVolume': chargeVolume,
-         'slotLocation': slotLocation,
-         'isEmpty': isEmpty}
-        return info
+        else:
+            categoryID = None
+            capacity = None
+            chargeVolume = None
+            if evetypes.Exists(typeID):
+                categoryID = evetypes.GetCategoryID(typeID)
+                capacity = evetypes.GetCapacity(typeID)
+            if evetypes.Exists(chargeTypeID):
+                chargeVolume = evetypes.GetVolume(chargeTypeID)
+            info = {'typeName': typeName,
+             'typeID': typeID,
+             'categoryID': categoryID,
+             'capacity': capacity,
+             'numItems': numItems,
+             'chargeName': chargeName,
+             'chargeTypeID': chargeTypeID,
+             'chargeVolume': chargeVolume,
+             'slotLocation': slotLocation,
+             'isEmpty': isEmpty}
+            return info
 
     def GetAllItems(self, text):
         lines = GetItemLines(text)
@@ -100,6 +103,8 @@ class ImportFittingUtil(object):
         subsystemSlot = self.clientDogmaStaticSvc.GetTypeAttribute2(typeID, dogmaConst.attributeSubSystemSlot)
         if subsystemSlot:
             return int(subsystemSlot)
+        else:
+            return None
 
     def GetSlotNumbers(self, typeID):
         slotDict = {'flagRigSlot': self.clientDogmaStaticSvc.GetTypeAttribute2(typeID, dogmaConst.attributeRigSlots)}
@@ -179,3 +184,5 @@ def FindShipAndFittingName(text):
             parts = SplitAndStrip(shipInfo, CHARGE_SEPARATOR)
             commaIdx = shipInfo.find(CHARGE_SEPARATOR)
             return (parts[0], shipInfo[commaIdx + 1:].strip())
+
+    return None

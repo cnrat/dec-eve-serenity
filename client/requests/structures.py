@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\packages\requests\structures.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\packages\requests\structures.py
 import os
 import collections
 from itertools import islice
@@ -25,11 +26,12 @@ class IteratorProxy(object):
 
 class CaseInsensitiveDict(collections.MutableMapping):
 
-    def __init__(self, data = None, **kwargs):
+    def __init__(self, data=None, **kwargs):
         self._store = dict()
         if data is None:
             data = {}
         self.update(data, **kwargs)
+        return
 
     def __setitem__(self, key, value):
         self._store[key.lower()] = (key, value)
@@ -65,7 +67,7 @@ class CaseInsensitiveDict(collections.MutableMapping):
 
 class LookupDict(dict):
 
-    def __init__(self, name = None):
+    def __init__(self, name=None):
         self.name = name
         super(LookupDict, self).__init__()
 
@@ -75,5 +77,5 @@ class LookupDict(dict):
     def __getitem__(self, key):
         return self.__dict__.get(key, None)
 
-    def get(self, key, default = None):
+    def get(self, key, default=None):
         return self.__dict__.get(key, default)

@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\client\script\ui\login\charcreation\steps\characterBloodlineSelection.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\client\script\ui\login\charcreation\steps\characterBloodlineSelection.py
 from carbonui import const as uiconst
 from charactercreator import const as ccConst
 from eve.client.script.ui.login.charcreation.charCreation import BaseCharacterCreationStep
@@ -81,6 +82,7 @@ class CharacterBloodlineSelection(BaseCharacterCreationStep):
         self.sr.bloodlineText = uicls.CCLabel(parent=self.sr.bloodlineTextCont, fontsize=12, align=uiconst.BOTTOMLEFT, width=600, text='', letterspace=0, top=0, bold=0)
         if info.bloodlineID:
             self.GetBloodlineText()
+        return
 
     def UpdateLayout(self):
         if uicore.desktop.height <= 900:
@@ -98,6 +100,7 @@ class CharacterBloodlineSelection(BaseCharacterCreationStep):
         else:
             hilited = []
         uicore.layer.charactercreation.bloodlineSelector.HiliteBloodline(hilited)
+        return
 
     def GetTextWidth(self):
         blue.pyos.synchro.Yield()
@@ -137,6 +140,7 @@ class CharacterBloodlineSelection(BaseCharacterCreationStep):
             genderBtnMale.state = uiconst.UI_NORMAL
             genderBtnMale.Deselect()
         self.GetBloodlineText()
+        return
 
     def OnGenderSelected(self, genderID, *args):
         genderBtnFemale = self.sr.Get('genderBtn_%d_%d' % (self.bloodlineID, 0))
@@ -152,14 +156,16 @@ class CharacterBloodlineSelection(BaseCharacterCreationStep):
         info = self.GetInfo()
         if info.bloodlineID is None:
             return
-        if not len(self.bloodlineInfo):
-            self.bloodlineInfo = sm.GetService('cc').GetBloodlineDataByID()
-        color = self.raceFontColor.get(info.raceID, (1.0, 1.0, 1.0, 0.75))
-        blinfo = self.bloodlineInfo[info.bloodlineID]
-        bloodlineText = localization.GetByMessageID(blinfo.descriptionID)
-        self.sr.bloodlineText.color.SetRGB(*color)
-        self.sr.bloodlineText.text = bloodlineText
-        uthread.new(self.GetTextWidth)
+        else:
+            if not len(self.bloodlineInfo):
+                self.bloodlineInfo = sm.GetService('cc').GetBloodlineDataByID()
+            color = self.raceFontColor.get(info.raceID, (1.0, 1.0, 1.0, 0.75))
+            blinfo = self.bloodlineInfo[info.bloodlineID]
+            bloodlineText = localization.GetByMessageID(blinfo.descriptionID)
+            self.sr.bloodlineText.color.SetRGB(*color)
+            self.sr.bloodlineText.text = bloodlineText
+            uthread.new(self.GetTextWidth)
+            return
 
     def MakeUI(self):
         for bloodlineID in self.bloodlineIDs:
@@ -188,6 +194,7 @@ class CharacterBloodlineSelection(BaseCharacterCreationStep):
             genderBtnMale = self.sr.Get('genderBtn_%d_%d' % (bloodlineID, 1))
             genderBtnMale.SetAlign(uiconst.BOTTOMLEFT)
             genderBtnFemale.SetAlign(uiconst.BOTTOMRIGHT)
+        return
 
     def OnMouseMove(self, *args):
         uicls.BaseCharacterCreationStep.OnMouseMove(self, *args)
@@ -198,6 +205,7 @@ class CharacterBloodlineSelection(BaseCharacterCreationStep):
             bloodlineID, genderID = uicore.layer.charactercreation.bloodlineSelector.GetBloodlineAndGender(picked)
             if uicore.layer.charactercreation.bloodlineSelector is not None:
                 self.HiliteCorrectBloodlines(bloodlineID)
+        return
 
     def HiliteCorrectBloodlines(self, bloodlineID, *args):
         info = self.GetInfo()
@@ -218,3 +226,4 @@ class CharacterBloodlineSelection(BaseCharacterCreationStep):
                 hilited = []
             uicore.layer.charactercreation.bloodlineSelector.HiliteBloodline(hilited)
         self.hoveredBloodlineID = bloodlineID
+        return

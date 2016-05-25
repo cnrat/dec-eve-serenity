@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\carbon\common\lib\werkzeug\test.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\carbon\common\lib\werkzeug\test.py
 import sys
 import urllib
 import urlparse
@@ -16,7 +17,7 @@ from werkzeug.urls import url_encode, url_fix, iri_to_uri
 from werkzeug.wsgi import get_host, get_current_url
 from werkzeug.datastructures import FileMultiDict, MultiDict, CombinedMultiDict, Headers, FileStorage
 
-def stream_encode_multipart(values, use_tempfile = True, threshold = 1024 * 500, boundary = None, charset = 'utf-8'):
+def stream_encode_multipart(values, use_tempfile=True, threshold=1024 * 500, boundary=None, charset='utf-8'):
     if boundary is None:
         boundary = '---------------WerkzeugFormPart_%s%s' % (time(), random())
     _closure = [StringIO(), 0, False]
@@ -74,12 +75,12 @@ def stream_encode_multipart(values, use_tempfile = True, threshold = 1024 * 500,
     return (_closure[0], length, boundary)
 
 
-def encode_multipart(values, boundary = None, charset = 'utf-8'):
+def encode_multipart(values, boundary=None, charset='utf-8'):
     stream, length, boundary = stream_encode_multipart(values, use_tempfile=False, boundary=boundary, charset=charset)
     return (boundary, stream.read())
 
 
-def File(fd, filename = None, mimetype = None):
+def File(fd, filename=None, mimetype=None):
     from warnings import warn
     warn(DeprecationWarning('werkzeug.test.File is deprecated, use the EnvironBuilder or FileStorage instead'))
     return FileStorage(fd, filename=filename, content_type=mimetype)
@@ -144,7 +145,7 @@ class EnvironBuilder(object):
     wsgi_version = (1, 0)
     request_class = BaseRequest
 
-    def __init__(self, path = '/', base_url = None, query_string = None, method = 'GET', input_stream = None, content_type = None, content_length = None, errors_stream = None, multithread = False, multiprocess = False, run_once = False, headers = None, data = None, environ_base = None, environ_overrides = None, charset = 'utf-8'):
+    def __init__(self, path='/', base_url=None, query_string=None, method='GET', input_stream=None, content_type=None, content_length=None, errors_stream=None, multithread=False, multiprocess=False, run_once=False, headers=None, data=None, environ_base=None, environ_overrides=None, charset='utf-8'):
         if query_string is None and '?' in path:
             path, query_string = path.split('?', 1)
         self.charset = charset
@@ -197,6 +198,8 @@ class EnvironBuilder(object):
                     else:
                         self.form.setlistdefault(key).append(value)
 
+        return
+
     def _add_file_from_data(self, key, value):
         if isinstance(value, tuple):
             self.files.add_file(key, *value)
@@ -211,6 +214,7 @@ class EnvironBuilder(object):
             self.files.add_file(key, **value)
         else:
             self.files.add_file(key, value)
+        return
 
     def _get_base_url(self):
         return urlparse.urlunsplit((self.url_scheme,
@@ -232,6 +236,7 @@ class EnvironBuilder(object):
         self.script_root = script_root.rstrip('/')
         self.host = netloc
         self.url_scheme = scheme
+        return
 
     base_url = property(_get_base_url, _set_base_url, doc='\n        The base URL is a URL that is used to extract the WSGI\n        URL scheme, host (server name + server port) and the\n        script root (`SCRIPT_NAME`).')
     del _get_base_url
@@ -245,13 +250,15 @@ class EnvironBuilder(object):
                     return 'multipart/form-data'
                 return 'application/x-www-form-urlencoded'
             return
-        return ct
+        else:
+            return ct
 
     def _set_content_type(self, value):
         if value is None:
             self.headers.pop('Content-Type', None)
         else:
             self.headers['Content-Type'] = value
+        return
 
     content_type = property(_get_content_type, _set_content_type, doc='\n        The content type for the request.  Reflected from and to the\n        :attr:`headers`.  Do not set if you set :attr:`files` or\n        :attr:`form` for auto detection.')
     del _get_content_type
@@ -265,6 +272,7 @@ class EnvironBuilder(object):
             self.headers.pop('Content-Length', None)
         else:
             self.headers['Content-Length'] = str(value)
+        return
 
     content_length = property(_get_content_length, _set_content_length, doc='\n        The content length as integer.  Reflected from and to the\n        :attr:`headers`.  Do not set if you set :attr:`files` or\n        :attr:`form` for auto detection.')
     del _get_content_length
@@ -285,6 +293,7 @@ class EnvironBuilder(object):
         def setter(self, value):
             self._input_stream = None
             setattr(self, key, value)
+            return
 
         return property(getter, setter, doc)
 
@@ -298,6 +307,7 @@ class EnvironBuilder(object):
     def _set_input_stream(self, value):
         self._input_stream = value
         self._form = self._files = None
+        return
 
     input_stream = property(_get_input_stream, _set_input_stream, doc='\n        An optional input stream.  If you set this it will clear\n        :attr:`form` and :attr:`files`.')
     del _get_input_stream
@@ -308,11 +318,13 @@ class EnvironBuilder(object):
             if self._args is not None:
                 return url_encode(self._args, charset=self.charset)
             return ''
-        return self._query_string
+        else:
+            return self._query_string
 
     def _set_query_string(self, value):
         self._query_string = value
         self._args = None
+        return
 
     query_string = property(_get_query_string, _set_query_string, doc='\n        The query string.  If you set this to a string :attr:`args` will\n        no longer be available.')
     del _get_query_string
@@ -328,6 +340,7 @@ class EnvironBuilder(object):
     def _set_args(self, value):
         self._query_string = None
         self._args = value
+        return
 
     args = property(_get_args, _set_args, doc='\n        The URL arguments as :class:`MultiDict`.')
     del _get_args
@@ -344,7 +357,6 @@ class EnvironBuilder(object):
             return int(pieces[1])
         if self.url_scheme == 'https':
             return 443
-        return 80
 
     def __del__(self):
         self.close()
@@ -418,7 +430,7 @@ class EnvironBuilder(object):
             result.update(self.environ_overrides)
         return result
 
-    def get_request(self, cls = None):
+    def get_request(self, cls=None):
         if cls is None:
             cls = self.request_class
         return cls(self.get_environ())
@@ -430,7 +442,7 @@ class ClientRedirectError(Exception):
 
 class Client(object):
 
-    def __init__(self, application, response_wrapper = None, use_cookies = True):
+    def __init__(self, application, response_wrapper=None, use_cookies=True):
         self.application = application
         if response_wrapper is None:
             response_wrapper = lambda a, s, h: (a, s, h)
@@ -440,6 +452,7 @@ class Client(object):
         else:
             self.cookie_jar = None
         self.redirect_client = None
+        return
 
     def open(self, *args, **kwargs):
         as_tuple = kwargs.pop('as_tuple', False)
@@ -495,7 +508,8 @@ class Client(object):
         response = self.response_wrapper(*rv)
         if as_tuple:
             return (environ, response)
-        return response
+        else:
+            return response
 
     def get(self, *args, **kw):
         kw['method'] = 'GET'
@@ -529,12 +543,12 @@ def create_environ(*args, **kwargs):
         builder.close()
 
 
-def run_wsgi_app(app, environ, buffered = False):
+def run_wsgi_app(app, environ, buffered=False):
     environ = _get_environ(environ)
     response = []
     buffer = []
 
-    def start_response(status, headers, exc_info = None):
+    def start_response(status, headers, exc_info=None):
         if exc_info is not None:
             raise exc_info[0], exc_info[1], exc_info[2]
         response[:] = [status, headers]

@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\client\script\ui\shared\mapView\dockPanelMenu.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\client\script\ui\shared\mapView\dockPanelMenu.py
 from carbonui.primitives.container import Container
 import carbonui.const as uiconst
 from carbonui.primitives.sprite import Sprite
@@ -20,8 +21,9 @@ class DockPanelMenuContainer(Container):
     def Close(self, *args):
         Container.Close(self, *args)
         self.menus = None
+        return
 
-    def CreateMenu(self, settingsID, headerLabel = None, resizeable = True, fixedHeight = None, minExpandedHeight = MIN_MENU_HEIGHT, fillParent = False, expandedByDefault = False):
+    def CreateMenu(self, settingsID, headerLabel=None, resizeable=True, fixedHeight=None, minExpandedHeight=MIN_MENU_HEIGHT, fillParent=False, expandedByDefault=False):
         menu = DockPanelMenu(parent=self, headerLabel=headerLabel, settingsID=settingsID, align=uiconst.TOTOP, resizeable=resizeable, fixedHeight=fixedHeight, minExpandedHeight=minExpandedHeight, fillParent=fillParent, expandedByDefault=expandedByDefault, OnMenuResizeStartingCallback=self.OnMenuResizeStarting, OnMenuResizeCallback=self.OnMenuResize, OnMenuExpandCallback=self.OnMenuExpand, OnMenuCollapseCallback=self.OnMenuCollapse, GetMenuMaxHeight=self.GetMenuMaxHeight, GetFreeSpaceForMenu=self.GetFreeSpaceForMenu)
         self.menus.append(menu)
         return menu
@@ -242,6 +244,7 @@ class DockPanelMenu(Container):
         self.OnMenuCollapseCallback = None
         self.GetMenuMaxHeight = None
         self.GetFreeSpaceForMenu = None
+        return
 
     def OnMenuResizeStarting(self, *args):
         if self.OnMenuResizeStartingCallback:
@@ -255,7 +258,7 @@ class DockPanelMenu(Container):
     def SetMinMaxResizeValues(self, minValue, maxValue):
         self.resizeDivider.SetMinMax(minValue, maxValue)
 
-    def SetHeader(self, text, hint = None):
+    def SetHeader(self, text, hint=None):
         self.headerLabel.text = text
         if hint:
             self.headerLabel.state = uiconst.UI_NORMAL
@@ -290,7 +293,7 @@ class DockPanelMenu(Container):
         if self._expanded is True:
             self.RegisterSettings()
 
-    def Collapse(self, startup = False):
+    def Collapse(self, startup=False):
         endHeight = self._collapsedHeight
         self.setHeight = endHeight
         self._expanded = False
@@ -355,15 +358,16 @@ class DockPanelMenu(Container):
     def GetExpandedHeight(self):
         if self.fixedHeight:
             return self.fixedHeight
-        if self.fillParent and self.GetFreeSpaceForMenu:
-            expandedHeight = self.GetFreeSpaceForMenu(self)
         else:
-            current = settings.user.ui.Get('DockPanelMenuPrefs', {})
-            if self.settingsID in current:
-                expandedHeight = current[self.settingsID]['expandedHeight']
+            if self.fillParent and self.GetFreeSpaceForMenu:
+                expandedHeight = self.GetFreeSpaceForMenu(self)
             else:
-                expandedHeight = None
-        return max(self.minExpandedHeight, expandedHeight)
+                current = settings.user.ui.Get('DockPanelMenuPrefs', {})
+                if self.settingsID in current:
+                    expandedHeight = current[self.settingsID]['expandedHeight']
+                else:
+                    expandedHeight = None
+            return max(self.minExpandedHeight, expandedHeight)
 
     def GetMinHeight(self):
         if self.fixedHeight:

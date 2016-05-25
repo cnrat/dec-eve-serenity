@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\client\script\ui\inflight\scannerFiles\moonScanner.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\client\script\ui\inflight\scannerFiles\moonScanner.py
 import carbonui.const as uiconst
 from eve.client.script.ui.control.eveWindow import Window
 from eve.client.script.ui.inflight.moonscan import MoonScanView
@@ -23,6 +24,7 @@ class MoonScanner(Window):
          const.defaultPadding))
         self.sr.moonscanner.Startup()
         sm.GetService('moonScan').Refresh()
+        return
 
     def SetEntries(self, entries):
         self.sr.moonscanner.SetEntries(entries)

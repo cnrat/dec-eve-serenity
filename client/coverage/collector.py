@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\carbon\common\stdlib\coverage\collector.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\carbon\common\stdlib\coverage\collector.py
 import os, sys, threading
 try:
     from coverage.tracer import CTracer
@@ -23,48 +24,50 @@ class PyTracer(object):
         self.arcs = False
         self.thread = None
         self.stopped = False
+        return
 
     def _trace(self, frame, event, arg_unused):
         if self.stopped:
             return
-        if self.last_exc_back:
-            if frame == self.last_exc_back:
-                if self.arcs and self.cur_file_data:
-                    pair = (self.last_line, -self.last_exc_firstlineno)
-                    self.cur_file_data[pair] = None
-                self.cur_file_data, self.last_line = self.data_stack.pop()
-            self.last_exc_back = None
-        if event == 'call':
-            self.data_stack.append((self.cur_file_data, self.last_line))
-            filename = frame.f_code.co_filename
-            if filename not in self.should_trace_cache:
-                tracename = self.should_trace(filename, frame)
-                self.should_trace_cache[filename] = tracename
-            else:
-                tracename = self.should_trace_cache[filename]
-            if tracename:
-                if tracename not in self.data:
-                    self.data[tracename] = {}
-                self.cur_file_data = self.data[tracename]
-            else:
-                self.cur_file_data = None
-            self.last_line = -1
-        elif event == 'line':
-            if self.cur_file_data is not None:
-                if self.arcs:
-                    self.cur_file_data[self.last_line, frame.f_lineno] = None
+        else:
+            if self.last_exc_back:
+                if frame == self.last_exc_back:
+                    if self.arcs and self.cur_file_data:
+                        pair = (self.last_line, -self.last_exc_firstlineno)
+                        self.cur_file_data[pair] = None
+                    self.cur_file_data, self.last_line = self.data_stack.pop()
+                self.last_exc_back = None
+            if event == 'call':
+                self.data_stack.append((self.cur_file_data, self.last_line))
+                filename = frame.f_code.co_filename
+                if filename not in self.should_trace_cache:
+                    tracename = self.should_trace(filename, frame)
+                    self.should_trace_cache[filename] = tracename
                 else:
-                    self.cur_file_data[frame.f_lineno] = None
-            self.last_line = frame.f_lineno
-        elif event == 'return':
-            if self.arcs and self.cur_file_data:
-                first = frame.f_code.co_firstlineno
-                self.cur_file_data[self.last_line, -first] = None
-            self.cur_file_data, self.last_line = self.data_stack.pop()
-        elif event == 'exception':
-            self.last_exc_back = frame.f_back
-            self.last_exc_firstlineno = frame.f_code.co_firstlineno
-        return self._trace
+                    tracename = self.should_trace_cache[filename]
+                if tracename:
+                    if tracename not in self.data:
+                        self.data[tracename] = {}
+                    self.cur_file_data = self.data[tracename]
+                else:
+                    self.cur_file_data = None
+                self.last_line = -1
+            elif event == 'line':
+                if self.cur_file_data is not None:
+                    if self.arcs:
+                        self.cur_file_data[self.last_line, frame.f_lineno] = None
+                    else:
+                        self.cur_file_data[frame.f_lineno] = None
+                self.last_line = frame.f_lineno
+            elif event == 'return':
+                if self.arcs and self.cur_file_data:
+                    first = frame.f_code.co_firstlineno
+                    self.cur_file_data[self.last_line, -first] = None
+                self.cur_file_data, self.last_line = self.data_stack.pop()
+            elif event == 'exception':
+                self.last_exc_back = frame.f_back
+                self.last_exc_firstlineno = frame.f_code.co_firstlineno
+            return self._trace
 
     def start(self):
         self.thread = threading.currentThread()
@@ -75,11 +78,13 @@ class PyTracer(object):
         self.stopped = True
         if self.thread != threading.currentThread():
             return
-        if hasattr(sys, 'gettrace') and self.warn:
-            if sys.gettrace() != self._trace:
-                msg = 'Trace function changed, measurement is likely wrong: %r'
-                self.warn(msg % (sys.gettrace(),))
-        sys.settrace(None)
+        else:
+            if hasattr(sys, 'gettrace') and self.warn:
+                if sys.gettrace() != self._trace:
+                    msg = 'Trace function changed, measurement is likely wrong: %r'
+                    self.warn(msg % (sys.gettrace(),))
+            sys.settrace(None)
+            return
 
     def get_stats(self):
         return None
@@ -147,6 +152,7 @@ class Collector(object):
                 raise Exception('fullcoverage must be run with the C trace function.')
 
         threading.settrace(self._installation_trace)
+        return
 
     def stop(self):
         self.pause()
@@ -165,6 +171,7 @@ class Collector(object):
                     print '%16s: %s' % (k, stats[k])
 
         threading.settrace(None)
+        return
 
     def resume(self):
         for tracer in self.tracers:
@@ -184,6 +191,7 @@ class Collector(object):
             return line_data
         else:
             return self.data
+            return
 
     def get_arc_data(self):
         if self.branch:

@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\devtools\script\cameraDebugger.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\devtools\script\cameraDebugger.py
 from carbonui.util.color import Color
 import trinity
 import geo2
@@ -15,6 +16,7 @@ class CameraDebugger(object):
         self.updateThread = None
         self.camera = camera
         uthread.new(self.UpdateThread)
+        return
 
     def ConstructLineSet(self):
         self.lineSet = trinity.EveCurveLineSet()
@@ -41,6 +43,7 @@ class CameraDebugger(object):
         self.camera = None
         sm.GetService('sceneManager').GetActiveScene().objects.fremove(self.lineSet)
         self.lineSet = None
+        return
 
     def Update(self):
         self.lineSet.ClearLines()

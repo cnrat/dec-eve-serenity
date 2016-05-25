@@ -1,10 +1,11 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\packages\notifications\client\controls\stackFader.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\packages\notifications\client\controls\stackFader.py
 __author__ = 'aevar'
 from notifications.client.controls.autoCloser import AutoCloser
 
 class StackFader(object):
 
-    def __init__(self, container, startPosition, audioCallback, down = False, maxStackSize = 3, stackTimeSeconds = 3):
+    def __init__(self, container, startPosition, audioCallback, down=False, maxStackSize=3, stackTimeSeconds=3):
         self.maxStacked = maxStackSize
         self.slotHeight = 55
         self.slotSpacing = 5
@@ -39,6 +40,7 @@ class StackFader(object):
 
     def AnimateMoveItem(self, item, endYPosition):
         uicore.animations.MoveTo(item, startPos=(item.left, item.top), endPos=(item.left, endYPosition), duration=0.5, loops=1, curveType=2, callback=self.MoveAnimationFinished, sleep=False, timeOffset=0.0, curveSet=None)
+        return
 
     def MoveAnimationFinished(self, *args):
         pass
@@ -58,6 +60,7 @@ class StackFader(object):
         closer = AutoCloser(area=None, closeCallback=self.OnItemAutoClosed, monitorObject=item, thresholdInSeconds=self.stackTimeSeconds)
         closer.monitor()
         self.autoClosers.insert(0, closer)
+        return
 
     def OnItemAutoClosed(self, closer):
         idx = self.autoClosers.index(closer)

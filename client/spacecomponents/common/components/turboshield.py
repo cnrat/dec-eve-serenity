@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\packages\spacecomponents\common\components\turboshield.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\packages\spacecomponents\common\components\turboshield.py
 TURBO_SHIELD_STATE_ACTIVE = 0
 TURBO_SHIELD_STATE_INVULNERABLE = 1
 TURBO_SHIELD_STATE_RESISTIVE = 2

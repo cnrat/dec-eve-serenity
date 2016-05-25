@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\client\script\ui\control\scrollColumnHeader.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\client\script\ui\control\scrollColumnHeader.py
 from carbonui.primitives.container import Container
 from carbonui.primitives.sprite import Sprite
 from eve.client.script.ui.control.eveLabel import EveLabelSmall
@@ -38,6 +39,7 @@ class ScrollColumnHeader(Container):
             self.SetRightAlignedColumns(self.entryClass.GetRightAlignedColumns())
             self.SetStretchColumns(self.entryClass.GetStretchColumns())
             self.CreateColumns(self.entryClass.GetColumns())
+        return
 
     def Close(self, *args):
         Container.Close(self, *args)
@@ -45,6 +47,7 @@ class ScrollColumnHeader(Container):
         self.OnColumnSizeChange = None
         self.OnColumnSizeReset = None
         self.scroll = None
+        return
 
     def SetDefaultColumn(self, columnID, direction):
         self.defaultColumn = (columnID, direction)
@@ -99,6 +102,7 @@ class ScrollColumnHeader(Container):
             self.headers.append(header)
 
         self.UpdateActiveState()
+        return
 
     def UpdateActiveState(self):
         currentActive, currentDirection = self.GetActiveColumnAndDirection()
@@ -126,6 +130,8 @@ class ScrollColumnHeader(Container):
             else:
                 each.hint = None
 
+        return
+
     def GetColumns(self):
         return self.columnIDs
 
@@ -137,15 +143,16 @@ class ScrollColumnHeader(Container):
             if currentActive not in self.columnIDs:
                 return (None, True)
             return (currentActive, currentDirection)
-        if self.defaultColumn is not None:
-            columnID, direction = self.defaultColumn
-            if columnID in self.columnIDs:
-                return self.defaultColumn
-        if self.columnIDs:
-            currentActive, currentDirection = self.columnIDs[0], True
-        return (currentActive, currentDirection)
+        else:
+            if self.defaultColumn is not None:
+                columnID, direction = self.defaultColumn
+                if columnID in self.columnIDs:
+                    return self.defaultColumn
+            if self.columnIDs:
+                currentActive, currentDirection = self.columnIDs[0], True
+            return (currentActive, currentDirection)
 
-    def SetActiveColumn(self, columnID, doCallback = True):
+    def SetActiveColumn(self, columnID, doCallback=True):
         currentActive, currentDirection = self.GetActiveColumnAndDirection()
         if currentActive == columnID:
             sortDirection = not currentDirection

@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\carbon\common\stdlib\email\parser.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\carbon\common\stdlib\email\parser.py
 __all__ = ['Parser', 'HeaderParser']
 import warnings
 from cStringIO import StringIO
@@ -29,7 +30,7 @@ class Parser:
         if kws:
             raise TypeError('Unexpected keyword arguments')
 
-    def parse(self, fp, headersonly = False):
+    def parse(self, fp, headersonly=False):
         feedparser = FeedParser(self._class)
         if headersonly:
             feedparser._set_headersonly()
@@ -41,14 +42,14 @@ class Parser:
 
         return feedparser.close()
 
-    def parsestr(self, text, headersonly = False):
+    def parsestr(self, text, headersonly=False):
         return self.parse(StringIO(text), headersonly=headersonly)
 
 
 class HeaderParser(Parser):
 
-    def parse(self, fp, headersonly = True):
+    def parse(self, fp, headersonly=True):
         return Parser.parse(self, fp, True)
 
-    def parsestr(self, text, headersonly = True):
+    def parsestr(self, text, headersonly=True):
         return Parser.parsestr(self, text, True)

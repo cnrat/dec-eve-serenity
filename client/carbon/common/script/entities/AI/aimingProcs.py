@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\carbon\common\script\entities\AI\aimingProcs.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\carbon\common\script\entities\AI\aimingProcs.py
 from carbon.common.script.zaction.zactionCommon import ProcPropertyTypeDef, ProcTypeDef
 
 def GetAITargetList(propRow):

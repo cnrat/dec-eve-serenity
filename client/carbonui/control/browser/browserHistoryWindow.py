@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\packages\carbonui\control\browser\browserHistoryWindow.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\packages\carbonui\control\browser\browserHistoryWindow.py
 import carbonui.const as uiconst
 import localization
 from carbonui.control.window import WindowCoreOverride as Window
@@ -36,6 +37,7 @@ class BrowserHistoryWindowCore(Window):
 
         self.scroll.sr.id = 'history_window_scroll_id'
         self.scroll.Load(contentList=scrolllist, headers=[localization.GetByLabel('UI/Browser/BrowserHistory/Title'), localization.GetByLabel('UI/Browser/BrowserHistory/URL'), localization.GetByLabel('UI/Browser/BrowserHistory/Date')])
+        return
 
     def OnEntryClick(self, node):
         self.selectedEntry = node.sr.node.retval

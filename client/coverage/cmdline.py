@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\carbon\common\stdlib\coverage\cmdline.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\carbon\common\stdlib\coverage\cmdline.py
 import optparse, os, sys, traceback
 from coverage.backward import sorted
 from coverage.execfile import run_python_file, run_python_module
@@ -35,14 +36,15 @@ class CoverageOptionParser(optparse.OptionParser, object):
         self.set_defaults(actions=[], branch=None, debug=None, directory=None, fail_under=None, help=None, ignore_errors=None, include=None, omit=None, parallel_mode=None, module=None, pylib=None, rcfile=True, show_missing=None, source=None, timid=None, title=None, erase_first=None, version=None)
         self.disable_interspersed_args()
         self.help_fn = self.help_noop
+        return
 
-    def help_noop(self, error = None, topic = None, parser = None):
+    def help_noop(self, error=None, topic=None, parser=None):
         pass
 
     class OptionParserError(Exception):
         pass
 
-    def parse_args(self, args = None, options = None):
+    def parse_args(self, args=None, options=None):
         try:
             options, args = super(CoverageOptionParser, self).parse_args(args, options)
         except self.OptionParserError:
@@ -85,7 +87,7 @@ class ClassicOptionParser(CoverageOptionParser):
 
 class CmdOptionParser(CoverageOptionParser):
 
-    def __init__(self, action, options = None, defaults = None, usage = None, cmd = None, description = None):
+    def __init__(self, action, options=None, defaults=None, usage=None, cmd=None, description=None):
         if usage:
             usage = '%prog ' + usage
         super(CmdOptionParser, self).__init__(prog='coverage %s' % (cmd or action), usage=usage, description=description)
@@ -137,7 +139,7 @@ OK, ERR, FAIL_UNDER = (0, 1, 2)
 
 class CoverageScript(object):
 
-    def __init__(self, _covpkg = None, _run_python_file = None, _run_python_module = None, _help_fn = None):
+    def __init__(self, _covpkg=None, _run_python_file=None, _run_python_module=None, _help_fn=None):
         if _covpkg:
             self.covpkg = _covpkg
         else:
@@ -148,63 +150,66 @@ class CoverageScript(object):
         self.help_fn = _help_fn or self.help
         self.classic = False
         self.coverage = None
+        return
 
     def command_line(self, argv):
         if not argv:
             self.help_fn(topic='minimum_help')
             return OK
-        self.classic = argv[0].startswith('-')
-        if self.classic:
-            parser = ClassicOptionParser()
         else:
-            parser = CMDS.get(argv[0])
-            if not parser:
-                self.help_fn("Unknown command: '%s'" % argv[0])
-                return ERR
-            argv = argv[1:]
-        parser.help_fn = self.help_fn
-        ok, options, args = parser.parse_args(argv)
-        if not ok:
-            return ERR
-        if self.do_help(options, args, parser):
-            return OK
-        if not self.args_ok(options, args):
-            return ERR
-        source = unshell_list(options.source)
-        omit = unshell_list(options.omit)
-        include = unshell_list(options.include)
-        debug = unshell_list(options.debug)
-        self.coverage = self.covpkg.coverage(data_suffix=options.parallel_mode, cover_pylib=options.pylib, timid=options.timid, branch=options.branch, config_file=options.rcfile, source=source, omit=omit, include=include, debug=debug)
-        if 'debug' in options.actions:
-            return self.do_debug(args)
-        if 'erase' in options.actions or options.erase_first:
-            self.coverage.erase()
-        else:
-            self.coverage.load()
-        if 'execute' in options.actions:
-            self.do_execute(options, args)
-        if 'combine' in options.actions:
-            self.coverage.combine()
-            self.coverage.save()
-        report_args = dict(morfs=args, ignore_errors=options.ignore_errors, omit=omit, include=include)
-        if 'report' in options.actions:
-            total = self.coverage.report(show_missing=options.show_missing, **report_args)
-        if 'annotate' in options.actions:
-            self.coverage.annotate(directory=options.directory, **report_args)
-        if 'html' in options.actions:
-            total = self.coverage.html_report(directory=options.directory, title=options.title, **report_args)
-        if 'xml' in options.actions:
-            outfile = options.outfile
-            total = self.coverage.xml_report(outfile=outfile, **report_args)
-        if options.fail_under is not None:
-            if total >= options.fail_under:
-                return OK
+            self.classic = argv[0].startswith('-')
+            if self.classic:
+                parser = ClassicOptionParser()
             else:
-                return FAIL_UNDER
-        else:
-            return OK
+                parser = CMDS.get(argv[0])
+                if not parser:
+                    self.help_fn("Unknown command: '%s'" % argv[0])
+                    return ERR
+                argv = argv[1:]
+            parser.help_fn = self.help_fn
+            ok, options, args = parser.parse_args(argv)
+            if not ok:
+                return ERR
+            if self.do_help(options, args, parser):
+                return OK
+            if not self.args_ok(options, args):
+                return ERR
+            source = unshell_list(options.source)
+            omit = unshell_list(options.omit)
+            include = unshell_list(options.include)
+            debug = unshell_list(options.debug)
+            self.coverage = self.covpkg.coverage(data_suffix=options.parallel_mode, cover_pylib=options.pylib, timid=options.timid, branch=options.branch, config_file=options.rcfile, source=source, omit=omit, include=include, debug=debug)
+            if 'debug' in options.actions:
+                return self.do_debug(args)
+            if 'erase' in options.actions or options.erase_first:
+                self.coverage.erase()
+            else:
+                self.coverage.load()
+            if 'execute' in options.actions:
+                self.do_execute(options, args)
+            if 'combine' in options.actions:
+                self.coverage.combine()
+                self.coverage.save()
+            report_args = dict(morfs=args, ignore_errors=options.ignore_errors, omit=omit, include=include)
+            if 'report' in options.actions:
+                total = self.coverage.report(show_missing=options.show_missing, **report_args)
+            if 'annotate' in options.actions:
+                self.coverage.annotate(directory=options.directory, **report_args)
+            if 'html' in options.actions:
+                total = self.coverage.html_report(directory=options.directory, title=options.title, **report_args)
+            if 'xml' in options.actions:
+                outfile = options.outfile
+                total = self.coverage.xml_report(outfile=outfile, **report_args)
+            if options.fail_under is not None:
+                if total >= options.fail_under:
+                    return OK
+                else:
+                    return FAIL_UNDER
+            else:
+                return OK
+            return
 
-    def help(self, error = None, topic = None, parser = None):
+    def help(self, error=None, topic=None, parser=None):
         if error:
             print error
             print "Use 'coverage help' for help."
@@ -268,16 +273,18 @@ class CoverageScript(object):
         self.coverage.start()
         code_ran = True
         try:
-            if options.module:
-                sys.path[0] = ''
-                self.run_python_module(args[0], args)
-            else:
-                filename = args[0]
-                sys.path[0] = os.path.abspath(os.path.dirname(filename))
-                self.run_python_file(filename, args)
-        except NoSource:
-            code_ran = False
-            raise
+            try:
+                if options.module:
+                    sys.path[0] = ''
+                    self.run_python_module(args[0], args)
+                else:
+                    filename = args[0]
+                    sys.path[0] = os.path.abspath(os.path.dirname(filename))
+                    self.run_python_file(filename, args)
+            except NoSource:
+                code_ran = False
+                raise
+
         finally:
             self.coverage.stop()
             if code_ran:
@@ -318,9 +325,10 @@ class CoverageScript(object):
 def unshell_list(s):
     if not s:
         return None
-    if sys.platform == 'win32':
-        s = s.strip("'")
-    return s.split(',')
+    else:
+        if sys.platform == 'win32':
+            s = s.strip("'")
+        return s.split(',')
 
 
 HELP_TOPICS = {'classic': "Coverage.py version %(__version__)s\nMeasure, collect, and report on code coverage in Python programs.\n\nUsage:\n\ncoverage -x [-p] [-L] [--timid] MODULE.py [ARG1 ARG2 ...]\n    Execute the module, passing the given command-line arguments, collecting\n    coverage data.  With the -p option, include the machine name and process\n    id in the .coverage file name.  With -L, measure coverage even inside the\n    Python installed library, which isn't done by default.  With --timid, use a\n    simpler but slower trace method.\n\ncoverage -e\n    Erase collected coverage data.\n\ncoverage -c\n    Combine data from multiple coverage files (as created by -p option above)\n    and store it into a single file representing the union of the coverage.\n\ncoverage -r [-m] [-i] [-o DIR,...] [FILE1 FILE2 ...]\n    Report on the statement coverage for the given files.  With the -m\n    option, show line numbers of the statements that weren't executed.\n\ncoverage -b -d DIR [-i] [-o DIR,...] [FILE1 FILE2 ...]\n    Create an HTML report of the coverage of the given files.  Each file gets\n    its own page, with the file listing decorated to show executed, excluded,\n    and missed lines.\n\ncoverage -a [-d DIR] [-i] [-o DIR,...] [FILE1 FILE2 ...]\n    Make annotated copies of the given files, marking statements that\n    are executed with > and statements that are missed with !.\n\n-d DIR\n    Write output files for -b or -a to this directory.\n\n-i  Ignore errors while reporting or annotating.\n\n-o DIR,...\n    Omit reporting or annotating files when their filename path starts with\n    a directory listed in the omit list.\n    e.g. coverage -i -r -o c:\\python25,lib\\enthought\\traits\n\nCoverage data is saved in the file .coverage by default.  Set the\nCOVERAGE_FILE environment variable to save it somewhere else.\n",
@@ -328,7 +336,7 @@ HELP_TOPICS = {'classic': "Coverage.py version %(__version__)s\nMeasure, collect
  'minimum_help': "Code coverage for Python.  Use 'coverage help' for help.\n",
  'version': 'Coverage.py, version %(__version__)s.  %(__url__)s\n'}
 
-def main(argv = None):
+def main(argv=None):
     if argv is None:
         argv = sys.argv[1:]
     try:

@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\carbon\common\stdlib\unittest\signals.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\carbon\common\stdlib\unittest\signals.py
 import signal
 import weakref
 from functools import wraps
@@ -39,9 +40,10 @@ def installHandler():
         default_handler = signal.getsignal(signal.SIGINT)
         _interrupt_handler = _InterruptHandler(default_handler)
         signal.signal(signal.SIGINT, _interrupt_handler)
+    return
 
 
-def removeHandler(method = None):
+def removeHandler(method=None):
     if method is not None:
 
         @wraps(method)
@@ -54,5 +56,7 @@ def removeHandler(method = None):
                 signal.signal(signal.SIGINT, initial)
 
         return inner
-    if _interrupt_handler is not None:
-        signal.signal(signal.SIGINT, _interrupt_handler.default_handler)
+    else:
+        if _interrupt_handler is not None:
+            signal.signal(signal.SIGINT, _interrupt_handler.default_handler)
+        return

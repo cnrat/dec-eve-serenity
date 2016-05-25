@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\packages\evespacescene\supernova.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\packages\evespacescene\supernova.py
 import util
 import geo2
 import blue
@@ -19,6 +20,7 @@ class Supernova(object):
         self.nearDistance = 13.0
         self.model = None
         self.systemID = None
+        return
 
     def AddToScene(self, scene, systemID):
         if systemID != self.systemID:
@@ -34,8 +36,9 @@ class Supernova(object):
         self.model.modifier = 2
         self.model.name = 'Supernova'
         self.model.children.append(model)
+        return
 
-    def UpdatePosition(self, localPosition = None):
+    def UpdatePosition(self, localPosition=None):
         if not self.model:
             self._LoadModel()
         if not len(self.model.children):
@@ -64,12 +67,14 @@ class Supernova(object):
         if key != 'default':
             self.systemID = None
             return
-        if session.stationid is not None:
+        elif session.stationid is not None:
             return
-        systemID = session.solarsystemid
-        if util.IsWormholeSystem(systemID):
+        else:
+            systemID = session.solarsystemid
+            if util.IsWormholeSystem(systemID):
+                return
+            if not self.model:
+                self._LoadModel()
+            self.UpdatePosition()
+            self.AddToScene(scene, systemID)
             return
-        if not self.model:
-            self._LoadModel()
-        self.UpdatePosition()
-        self.AddToScene(scene, systemID)

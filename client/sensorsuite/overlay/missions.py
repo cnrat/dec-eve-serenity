@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\packages\sensorsuite\overlay\missions.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\packages\sensorsuite\overlay\missions.py
 from eve.client.script.ui.services.menuSvcExtras.movementFunctions import WarpToBookmark
 import localization
 from sensorsuite.overlay.bookmarks import GetBookmarkPosition, GetBookmarkSiteActions
@@ -66,3 +67,15 @@ class MissionHandler(SiteHandler):
 
     def GetSiteData(self, siteID, bookmark):
         return MissionSiteData(siteID, GetBookmarkPosition(bookmark), bookmark=bookmark)
+
+    def OnSitesUpdated(self, sites):
+        for agentMissionSiteId, siteData in sites.iteritems():
+            bookmark = self.bookmarkSvc.GetAgentBookmarks()[agentMissionSiteId]
+            self._UpdateSitePosition(siteData, bookmark)
+
+    def _UpdateSitePosition(self, siteData, bookmark):
+        bookmarkPosition = (bookmark.x, bookmark.y, bookmark.z)
+        if bookmarkPosition != siteData.position:
+            siteData.bookmark = bookmark
+            siteData.position = (bookmark.x, bookmark.y, bookmark.z)
+            self.siteController.UpdateSitePosition(siteData)

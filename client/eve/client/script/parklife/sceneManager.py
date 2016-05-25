@@ -1,7 +1,9 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\client\script\parklife\sceneManager.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\client\script\parklife\sceneManager.py
 from math import asin, atan2
 import blue
 import telemetry
+from eve.common.script.sys.eveCfg import IsDockedInStructure
 from eve.client.script.ui.camera import cameraClsByCameraID
 from eve.client.script.ui.camera.cameraBase import CameraBase
 from eve.client.script.ui.camera.cameraUtil import IsNewCameraActive
@@ -19,13 +21,12 @@ from eve.client.script.ui.view.viewStateConst import ViewState
 
 class SceneContext:
 
-    def __init__(self, scene = None, camera = None, sceneKey = 'default', sceneType = None, renderJob = None):
+    def __init__(self, scene=None, camera=None, sceneKey='default', sceneType=None, renderJob=None):
         self.scene = scene
         self.camera = camera
         self.sceneKey = sceneKey
         self.sceneType = sceneType
         self.renderJob = renderJob
-        self.activeCameraMode = None
 
 
 class SceneManager(service.Service):
@@ -48,7 +49,6 @@ class SceneManager(service.Service):
         self.ProcessImportsAndCreateScenes()
         self.primaryJob = SceneContext()
         self.secondaryJob = None
-        self.activeCameraMode = None
         self.loadingClearJob = trinity.CreateRenderJob()
         self.loadingClearJob.name = 'loadingClear'
         self.loadingClearJob.Clear((0, 0, 0, 1))
@@ -61,10 +61,12 @@ class SceneManager(service.Service):
         self._sharedResources = {}
         self.routeVisualizer = None
         self.podDeathScene = None
+        self._persistedSpaceObjects = {}
         if '/skiprun' not in blue.pyos.GetArg():
             self._EnableLoadingClear()
         limit = gfxsettings.Get(gfxsettings.GFX_LOD_QUALITY) * 30
         self.explosionManager = util.ExplosionManager(limit)
+        return
 
     def ProcessImportsAndCreateScenes(self):
         from trinity.sceneRenderJobSpace import CreateSceneRenderJobSpace
@@ -91,12 +93,18 @@ class SceneManager(service.Service):
         self._DisableLoadingClear()
         if self.secondaryJob is None:
             self.incarnaRenderJob.Enable()
+        return
 
     def RefreshJob(self, camera):
         sceneType = self.primaryJob.sceneType
         if sceneType == SCENE_TYPE_INTERIOR or sceneType == SCENE_TYPE_CHARACTER_CREATION:
             self.primaryJob.renderJob.SetActiveCamera(camera)
             uicore.uilib.SetSceneView(camera.viewMatrix, camera.projectionMatrix)
+
+    def DeactivateFISCamera(self):
+        currCam = self.GetActivePrimaryCamera()
+        if currCam and hasattr(currCam, 'OnDeactivated'):
+            currCam.OnDeactivated()
 
     def _CreateJobInterior(self):
         rj = self.incarnaRenderJob
@@ -111,11 +119,12 @@ class SceneManager(service.Service):
         self.characterRenderJob.EnableSculpting(True)
         self.characterRenderJob.Set2DBackdropScene(self.uiBackdropScene)
 
-    def _CreateJobFiS(self, rj = None):
+    def _CreateJobFiS(self, rj=None):
         if rj is None:
             rj = self.fisRenderJob
         rj.CreateBasicRenderSteps()
         rj.EnablePostProcessing(True)
+        return
 
     def GetFiSPostProcessingJob(self):
         return self.fisRenderJob.postProcessingJob
@@ -145,14 +154,10 @@ class SceneManager(service.Service):
             limit = gfxsettings.Get(gfxsettings.GFX_LOD_QUALITY) * 30
             self.explosionManager.SetLimit(limit)
         if gfxsettings.UI_CAMERA_OFFSET in changes:
-            self.CheckCameraOffsets()
-            sm.GetService('cameraClient').CheckCameraOffsets()
-        if gfxsettings.UI_CAMERA_SPEED in changes:
+            self.UpdateCameraOffset()
+            sm.GetService('cameraClient').UpdateCameraOffset()
+        if gfxsettings.UI_CAMERA_INERTIA in changes:
             sm.GetService('cameraClient').CheckMouseLookSpeed()
-        if gfxsettings.MISC_LOAD_STATION_ENV in changes:
-            val = gfxsettings.Get(gfxsettings.MISC_LOAD_STATION_ENV)
-            if sm.GetService('viewState').IsViewActive('hangar') and not val:
-                sm.GetService('station').ReloadLobby()
         if session.userid is not None:
             effectsEnabled = gfxsettings.Get(gfxsettings.UI_EFFECTS_ENABLED)
             if gfxsettings.UI_TRAILS_ENABLED in changes or gfxsettings.UI_EFFECTS_ENABLED in changes:
@@ -162,6 +167,7 @@ class SceneManager(service.Service):
                 scene = self.GetRegisteredScene('default')
                 if scene is not None and scene.sunBall is not None:
                     scene.sunBall.HandleGodraySetting()
+        return
 
     def GetIncarnaRenderJob(self):
         return self.incarnaRenderJob
@@ -176,6 +182,7 @@ class SceneManager(service.Service):
             self.backgroundProjection = trinity.TriProjection()
             backGroundCameraUpdateFunction = self.incarnaRenderJob.GetBackgroundCameraUpdateFunction(self.backgroundView, self.backgroundProjection, 10.0, 40000.0, sceneTranslation, sceneRotation)
             self.incarnaRenderJob.SetBackgroundCameraViewAndProjection(self.backgroundView, self.backgroundProjection, backGroundCameraUpdateFunction)
+        return
 
     @telemetry.ZONE_METHOD
     def OnSessionChanged(self, isremote, session, change):
@@ -191,49 +198,53 @@ class SceneManager(service.Service):
             if sceneType == SCENE_TYPE_INTERIOR:
                 self._EnableLoadingClear()
             return
-        self.primaryJob = SceneContext(sceneType=sceneType)
-        if sceneType == SCENE_TYPE_INTERIOR:
-            log.LogInfo('Setting up WiS interior scene rendering')
-            self.primaryJob.renderJob = self.incarnaRenderJob
-            self.characterRenderJob.Disable()
-            self.fisRenderJob.SetActiveScene(None)
-            self.fisRenderJob.Disable()
-            for each in self.registeredJobs:
-                each.object.UseFXAA(True)
+        else:
+            if sceneType != SCENE_TYPE_SPACE:
+                self.DeactivateFISCamera()
+            self.primaryJob = SceneContext(sceneType=sceneType)
+            if sceneType == SCENE_TYPE_INTERIOR:
+                log.LogInfo('Setting up WiS interior scene rendering')
+                self.primaryJob.renderJob = self.incarnaRenderJob
+                self.characterRenderJob.Disable()
+                self.fisRenderJob.SetActiveScene(None)
+                self.fisRenderJob.Disable()
+                for each in self.registeredJobs:
+                    each.object.UseFXAA(True)
 
-            self.ApplyClothSimulationSettings()
-            if getattr(self.secondaryJob, 'sceneType', None) == SCENE_TYPE_SPACE:
-                self.secondaryJob.renderJob.UseFXAA(True)
-            else:
-                self._EnableLoadingClear()
-        elif sceneType == SCENE_TYPE_CHARACTER_CREATION:
-            log.LogInfo('Setting up character creation scene rendering')
-            self.primaryJob.renderJob = self.characterRenderJob
-            self.incarnaRenderJob.SetScene(None)
-            self.incarnaRenderJob.SetBackgroundScene(None)
-            self.incarnaRenderJob.Disable()
-            self.fisRenderJob.SetActiveScene(None)
-            self.fisRenderJob.Disable()
-            self.ApplyClothSimulationSettings()
-            self._DisableLoadingClear()
-            self.characterRenderJob.Enable()
-        elif sceneType == SCENE_TYPE_SPACE:
-            log.LogInfo('Setting up space scene rendering')
-            self.primaryJob.renderJob = self.fisRenderJob
-            self.incarnaRenderJob.SetScene(None)
-            self.incarnaRenderJob.SetBackgroundScene(None)
-            self.incarnaRenderJob.Disable()
-            self.characterRenderJob.SetScene(None)
-            self.characterRenderJob.Disable()
-            self.fisRenderJob.UseFXAA(False)
-            for each in self.registeredJobs:
-                each.object.UseFXAA(False)
+                self.ApplyClothSimulationSettings()
+                if getattr(self.secondaryJob, 'sceneType', None) == SCENE_TYPE_SPACE:
+                    self.secondaryJob.renderJob.UseFXAA(True)
+                else:
+                    self._EnableLoadingClear()
+            elif sceneType == SCENE_TYPE_CHARACTER_CREATION:
+                log.LogInfo('Setting up character creation scene rendering')
+                self.primaryJob.renderJob = self.characterRenderJob
+                self.incarnaRenderJob.SetScene(None)
+                self.incarnaRenderJob.SetBackgroundScene(None)
+                self.incarnaRenderJob.Disable()
+                self.fisRenderJob.SetActiveScene(None)
+                self.fisRenderJob.Disable()
+                self.ApplyClothSimulationSettings()
+                self._DisableLoadingClear()
+                self.characterRenderJob.Enable()
+            elif sceneType == SCENE_TYPE_SPACE:
+                log.LogInfo('Setting up space scene rendering')
+                self.primaryJob.renderJob = self.fisRenderJob
+                self.incarnaRenderJob.SetScene(None)
+                self.incarnaRenderJob.SetBackgroundScene(None)
+                self.incarnaRenderJob.Disable()
+                self.characterRenderJob.SetScene(None)
+                self.characterRenderJob.Disable()
+                self.fisRenderJob.UseFXAA(False)
+                for each in self.registeredJobs:
+                    each.object.UseFXAA(False)
 
-            self._DisableLoadingClear()
-            if getattr(self.secondaryJob, 'sceneType', None) == SCENE_TYPE_SPACE:
-                self.secondaryJob.renderJob.UseFXAA(False)
-            if self.secondaryJob is None:
-                self.fisRenderJob.Enable()
+                self._DisableLoadingClear()
+                if getattr(self.secondaryJob, 'sceneType', None) == SCENE_TYPE_SPACE:
+                    self.secondaryJob.renderJob.UseFXAA(False)
+                if self.secondaryJob is None:
+                    self.fisRenderJob.Enable()
+            return
 
     @telemetry.ZONE_METHOD
     def Initialize(self, scene):
@@ -244,7 +255,10 @@ class SceneManager(service.Service):
         self.primaryJob = SceneContext(scene=scene, renderJob=self.fisRenderJob)
 
     def _ApplyCamera(self, jobContext, camera, **kwargs):
-        currCam = self.GetActiveCamera()
+        if jobContext == self.primaryJob:
+            currCam = self.GetActivePrimaryCamera()
+        else:
+            currCam = self.GetActiveSecondaryCamera()
         jobContext.camera = camera
         if jobContext.renderJob is not None:
             if isinstance(camera, CameraBase):
@@ -257,16 +271,12 @@ class SceneManager(service.Service):
             sm.ScatterEvent('OnActiveCameraChanged', camera.cameraID)
             if camera.cameraID in evecamera.INSPACE_CAMERAS:
                 self.UpdateSceneCameraReferences(camera)
-            if camera.cameraID in evecamera.INSPACE_CAMERAS_MAIN:
-                self.activeCameraMode = camera.cameraID
         if hasattr(camera, 'OnActivated'):
             camera.OnActivated(lastCamera=currCam, **kwargs)
-        if currCam and hasattr(currCam, 'OnDeactivated'):
+        if currCam and hasattr(currCam, 'OnDeactivated') and currCam != camera:
             currCam.OnDeactivated()
         self.UpdateBracketProjectionCamera()
-
-    def GetActiveCameraMode(self):
-        return self.activeCameraMode
+        return
 
     def UpdateSceneCameraReferences(self, camera):
         scene = self.GetRegisteredScene('default')
@@ -280,37 +290,48 @@ class SceneManager(service.Service):
             distanceField.cameraView = camera.viewMatrix
 
     @telemetry.ZONE_METHOD
-    def SetActiveCamera(self, camera, **kwargs):
+    def _SetActiveCamera(self, camera, **kwargs):
         if camera == self.GetActiveCamera():
             return
-        cameraID = getattr(camera, 'cameraID', None)
-        isInspaceCam = cameraID in evecamera.INSPACE_CAMERAS
-        if self.secondaryJob is None or isInspaceCam:
-            renderJob = self.primaryJob
         else:
-            renderJob = self.secondaryJob
-        self._ApplyCamera(renderJob, camera, **kwargs)
+            cameraID = getattr(camera, 'cameraID', None)
+            isInspaceCam = cameraID in evecamera.INSPACE_CAMERAS
+            if self.secondaryJob is None or isInspaceCam:
+                renderJob = self.primaryJob
+            else:
+                renderJob = self.secondaryJob
+            self._ApplyCamera(renderJob, camera, **kwargs)
+            return
 
     def UpdateBracketProjectionCamera(self):
         camera = self.GetActiveCamera()
         if camera:
             uicore.uilib.SetSceneCamera(camera)
 
-    def SetActiveCameraByID(self, cameraID, **kwargs):
-        activeCam = self.GetActiveCamera()
-        if activeCam and activeCam.cameraID == cameraID:
-            return
-        camera = self._GetOrCreateCamera(cameraID)
-        self.SetActiveCamera(camera, **kwargs)
-        return camera
-
     def _SetActiveCameraForScene(self, camera, sceneKey):
         if self.secondaryJob is not None and self.secondaryJob.sceneKey == sceneKey:
-            self.SetActiveCamera(camera)
+            self._SetActiveCamera(camera)
         elif self.primaryJob.sceneKey == sceneKey:
             self._ApplyCamera(self.primaryJob, camera)
             if self.secondaryJob is None:
                 self.UpdateBracketProjectionCamera()
+        return
+
+    def SetPrimaryCamera(self, cameraID, **kwargs):
+        activeCam = self.GetActivePrimaryCamera()
+        if activeCam and activeCam.cameraID == cameraID:
+            return
+        camera = self._GetOrCreateCamera(cameraID)
+        self._ApplyCamera(self.primaryJob, camera, **kwargs)
+        return camera
+
+    def SetSecondaryCamera(self, cameraID, **kwargs):
+        activeCam = self.GetActiveSecondaryCamera()
+        if activeCam and activeCam.cameraID == cameraID:
+            return
+        camera = self._GetOrCreateCamera(cameraID)
+        self._ApplyCamera(self.secondaryJob, camera, **kwargs)
+        return camera
 
     @telemetry.ZONE_METHOD
     def SetSecondaryScene(self, scene, sceneKey, sceneType):
@@ -328,15 +349,18 @@ class SceneManager(service.Service):
             self.secondaryJob.renderJob.UseFXAA(self.primaryJob.sceneType != SCENE_TYPE_SPACE)
             if newJob:
                 self.secondaryJob.renderJob.Enable()
+        return
 
     def ClearSecondaryScene(self):
         if self.secondaryJob is None:
             return
-        if self.secondaryJob.renderJob is not None:
-            self.secondaryJob.renderJob.Disable()
-        self.secondaryJob = None
+        else:
+            if self.secondaryJob.renderJob is not None:
+                self.secondaryJob.renderJob.Disable()
+            self.secondaryJob = None
+            return
 
-    def SetActiveScene(self, scene, sceneKey = None):
+    def SetActiveScene(self, scene, sceneKey=None):
         sceneType = SCENE_TYPE_INTERIOR
         if getattr(scene, '__bluetype__', None) == 'trinity.EveSpaceScene':
             sceneType = SCENE_TYPE_SPACE
@@ -351,6 +375,7 @@ class SceneManager(service.Service):
             self.primaryJob.scene = scene
             self.primaryJob.renderJob.SetScene(scene)
         self.UpdateBracketProjectionCamera()
+        return
 
     def RegisterJob(self, job):
         wr = blue.BluePythonWeakRef(job)
@@ -372,7 +397,7 @@ class SceneManager(service.Service):
         ret = self.GetActivePrimaryCamera()
         if ret is None:
             if IsNewCameraActive():
-                cameraID = self._GetActivePrimarySpaceCam()
+                cameraID = self.GetActivePrimarySpaceCam()
             else:
                 cameraID = evecamera.CAM_SPACE_PRIMARY
             ret = self._GetOrCreateCamera(cameraID)
@@ -384,7 +409,8 @@ class SceneManager(service.Service):
     def GetActiveCamera(self):
         if self.secondaryJob is not None:
             return self.GetActiveSecondaryCamera()
-        return self.GetActivePrimaryCamera()
+        else:
+            return self.GetActivePrimaryCamera()
 
     def GetActiveSecondaryCamera(self):
         return self.secondaryJob.camera
@@ -401,6 +427,7 @@ class SceneManager(service.Service):
             if hasattr(cam, 'OnDeactivated'):
                 cam.OnDeactivated()
             del self.registeredCameras[key]
+        return
 
     def RegisterCamera(self, camera):
         cameraID = camera.cameraID
@@ -408,31 +435,26 @@ class SceneManager(service.Service):
             return
         self.LogNotice('sceneManager::RegisterCamera', cameraID, camera)
         self.registeredCameras[camera.cameraID] = camera
-        self.SetCameraOffset(camera)
+        camera.centerOffset = self.GetCameraOffset()
 
-    def SetCameraOffset(self, camera):
-        cameraOffsetOverride = self.cameraOffsetOverride
-        if cameraOffsetOverride:
-            camera.centerOffset = cameraOffsetOverride * -0.01
+    def GetCameraOffset(self):
+        if self.cameraOffsetOverride:
+            return self.cameraOffsetOverride * -0.01
+        elif gfxsettings.IsInitialized(gfxsettings.SETTINGS_GROUP_UI):
+            return gfxsettings.Get(gfxsettings.UI_CAMERA_OFFSET) * -0.01
         else:
-            camera.centerOffset = gfxsettings.Get(gfxsettings.UI_CAMERA_OFFSET) * -0.01
-        defaultCamera = self.GetRegisteredCamera(evecamera.CAM_SPACE_PRIMARY)
-        if defaultCamera and camera is defaultCamera:
-            sm.ScatterEvent('OnSetCameraOffset', camera, camera.centerOffset)
+            return 0.0
 
     def SetCameraOffsetOverride(self, cameraOffsetOverride):
         self.cameraOffsetOverride = cameraOffsetOverride
-        self.CheckCameraOffsets()
+        self.UpdateCameraOffset()
 
-    def GetCameraOffset(self, cameraID):
-        camera = self.GetRegisteredCamera(cameraID)
-        if camera:
-            return camera.centerOffset
-        return 0.0
-
-    def CheckCameraOffsets(self):
+    def UpdateCameraOffset(self):
+        offset = self.GetCameraOffset()
         for cam in self.registeredCameras.itervalues():
-            self.SetCameraOffset(cam)
+            cam.centerOffset = offset
+
+        sm.ScatterEvent('OnSetCameraOffset', offset)
 
     def UnregisterScene(self, key):
         if key in self.registeredScenes:
@@ -444,7 +466,7 @@ class SceneManager(service.Service):
     def RegisterScene(self, scene, key):
         self.registeredScenes[key] = scene
 
-    def GetRegisteredScene(self, key, defaultOnActiveScene = 0):
+    def GetRegisteredScene(self, key, defaultOnActiveScene=0):
         if key in self.registeredScenes:
             return self.registeredScenes[key]
         if self.IsLoadingScene(key):
@@ -466,35 +488,38 @@ class SceneManager(service.Service):
         if self.primaryJob.sceneType != SCENE_TYPE_INTERIOR or key in self.overlaySceneKeys:
             scene = self.registeredScenes.get(key, None)
             if IsNewCameraActive() and key == evecamera.CAM_SPACE_PRIMARY:
-                cameraID = self._GetActivePrimarySpaceCam()
+                cameraID = self.GetActivePrimarySpaceCam()
                 camera = self.registeredCameras.get(cameraID, None)
             else:
                 camera = self.registeredCameras.get(key, None)
             self.SetActiveScene(scene, key)
             if camera:
-                self.SetActiveCamera(camera)
+                self._SetActiveCamera(camera)
+        return
 
     def GetActiveScene(self):
         if self.secondaryJob is not None:
             return self.secondaryJob.scene
-        return self.primaryJob.scene
+        else:
+            return self.primaryJob.scene
 
     def Get2DBackdropScene(self):
         return self.uiBackdropScene
 
     @telemetry.ZONE_METHOD
-    def Show2DBackdropScene(self, updateRenderJob = False):
+    def Show2DBackdropScene(self, updateRenderJob=False):
         self.showUIBackdropScene = True
         if updateRenderJob:
             self.characterRenderJob.Set2DBackdropScene(self.uiBackdropScene)
 
     @telemetry.ZONE_METHOD
-    def Hide2DBackdropScene(self, updateRenderJob = False):
+    def Hide2DBackdropScene(self, updateRenderJob=False):
         self.showUIBackdropScene = False
         if updateRenderJob:
             self.characterRenderJob.Set2DBackdropScene(None)
+        return
 
-    def GetScene(self, location = None):
+    def GetScene(self, location=None):
         if location is None:
             location = (eve.session.solarsystemid2, eve.session.constellationid, eve.session.regionid)
         resPath = cfg.GetNebula(*location)
@@ -512,18 +537,42 @@ class SceneManager(service.Service):
         scene = trinity.Load(scenePath)
         if scene is None:
             return ''
-        return scene.envMap1ResPath
+        else:
+            return scene.envMap1ResPath
 
     def CleanupSpaceResources(self):
         self._sharedResources = {}
 
-    def _GetSharedResource(self, path, key = None):
+    def RegisterPersistentSpaceObject(self, key, object):
+        if key in self._persistedSpaceObjects:
+            self.RemovePersistentSpaceObject(key)
+        self._persistedSpaceObjects[key] = object
+        scene = self.GetRegisteredScene('default', False)
+        if scene is not None:
+            scene.objects.append(object)
+        return
+
+    def GetPersistentSpaceObject(self, key):
+        obj = None
+        if key in self._persistedSpaceObjects:
+            obj = self._persistedSpaceObjects[obj]
+        return obj
+
+    def RemovePersistentSpaceObject(self, key):
+        obj = self._persistedSpaceObjects[key]
+        scene = self.GetRegisteredScene('default', False)
+        if scene is not None:
+            scene.objects.fremove(obj)
+        del self._persistedSpaceObjects[key]
+        return
+
+    def _GetSharedResource(self, path, key=None):
         comboKey = (path, key)
         if comboKey not in self._sharedResources:
             self._sharedResources[comboKey] = trinity.Load(path)
         return self._sharedResources[comboKey]
 
-    def _PrepareBackgroundLandscapes(self, scene, solarSystemID, constellationID = None):
+    def _PrepareBackgroundLandscapes(self, scene, solarSystemID, constellationID=None):
         starSeed = 0
         securityStatus = 1
         if constellationID is None:
@@ -540,6 +589,7 @@ class SceneManager(service.Service):
                 scene.starfield.numStars = 0
             else:
                 scene.starfield.numStars = 500 + int(250 * securityStatus)
+        return
 
     def _SetupUniverseStars(self, scene, solarsystemID):
         if gfxsettings.Get(gfxsettings.UI_EFFECTS_ENABLED) and solarsystemID is not None:
@@ -550,8 +600,13 @@ class SceneManager(service.Service):
                 scale = 10000000000.0
                 position = (here.x / scale, here.y / scale, -here.z / scale)
                 universe.children[0].translation = position
+        return
 
-    def ApplySolarsystemAttributes(self, scene, camera, solarsystemID = None):
+    def AddPersistentSpaceObjects(self, scene):
+        for spaceObject in self._persistedSpaceObjects.values():
+            scene.objects.append(spaceObject)
+
+    def ApplySolarsystemAttributes(self, scene, camera, solarsystemID=None):
         if solarsystemID is None:
             solarsystemID = session.solarsystemid
         if scene.dustfield is None:
@@ -562,8 +617,9 @@ class SceneManager(service.Service):
         scene.sunDiffuseColor = (1.5, 1.5, 1.5, 1.0)
         self._SetupUniverseStars(scene, solarsystemID)
         self._PrepareBackgroundLandscapes(scene, solarsystemID)
+        return
 
-    def ApplySceneInflightAttributes(self, scene, camera, bp = None):
+    def ApplySceneInflightAttributes(self, scene, camera, bp=None):
         if bp is None:
             bp = sm.GetService('michelle').GetBallpark()
         scene.ballpark = bp
@@ -577,8 +633,9 @@ class SceneManager(service.Service):
                 yaw = yaw - 0.3
                 pitch = pitch - 0.15
                 camera.SetOrbit(yaw, pitch)
+        return
 
-    def ApplyScene(self, scene, camera = None, registerKey = None):
+    def ApplyScene(self, scene, camera=None, registerKey=None):
         if registerKey is not None:
             self.RegisterScene(scene, registerKey)
             self.SetActiveScene(scene, registerKey)
@@ -588,8 +645,9 @@ class SceneManager(service.Service):
         else:
             self.SetActiveScene(scene, registerKey)
             if camera:
-                self.SetActiveCamera(camera)
+                self._SetActiveCamera(camera)
         sm.ScatterEvent('OnLoadScene', scene, registerKey)
+        return
 
     def _GetOrCreateCamera(self, cameraID):
         if cameraID in self.registeredCameras:
@@ -604,39 +662,44 @@ class SceneManager(service.Service):
         return camera
 
     @telemetry.ZONE_METHOD
-    def LoadScene(self, scenefile, inflight = 0, registerKey = None, setupCamera = True, applyScene = True):
+    def LoadScene(self, scenefile, inflight=0, registerKey=None, setupCamera=True, applyScene=True):
         scene = None
         camera = None
         try:
-            if registerKey:
-                self.sceneLoadedEvents[registerKey] = locks.Event(registerKey)
-            self.SetSceneType(SCENE_TYPE_SPACE)
-            sceneFromFile = trinity.Load(scenefile)
-            if sceneFromFile is None:
-                return
-            scene = sceneFromFile
-            if IsNewCameraActive() and registerKey == evecamera.CAM_SPACE_PRIMARY:
-                cameraID = self._GetActivePrimarySpaceCam()
-            else:
-                cameraID = registerKey
-            camera = self._GetOrCreateCamera(cameraID)
-            if inflight:
-                self.ApplySolarsystemAttributes(scene, camera)
-                self.ApplySceneInflightAttributes(scene, camera)
-            if applyScene:
-                self.ApplyScene(scene, camera, registerKey)
-        except Exception:
-            log.LogException('sceneManager::LoadScene')
-            sys.exc_clear()
+            try:
+                if registerKey:
+                    self.sceneLoadedEvents[registerKey] = locks.Event(registerKey)
+                self.SetSceneType(SCENE_TYPE_SPACE)
+                sceneFromFile = trinity.Load(scenefile)
+                if sceneFromFile is None:
+                    return
+                scene = sceneFromFile
+                if IsNewCameraActive() and registerKey == evecamera.CAM_SPACE_PRIMARY:
+                    cameraID = self.GetActivePrimarySpaceCam()
+                else:
+                    cameraID = registerKey
+                camera = self._GetOrCreateCamera(cameraID)
+                if inflight:
+                    self.ApplySolarsystemAttributes(scene, camera)
+                    self.ApplySceneInflightAttributes(scene, camera)
+                    self.AddPersistentSpaceObjects(scene)
+                if applyScene:
+                    self.ApplyScene(scene, camera, registerKey)
+            except Exception:
+                log.LogException('sceneManager::LoadScene')
+                sys.exc_clear()
+
         finally:
             if registerKey and registerKey in self.sceneLoadedEvents:
                 self.sceneLoadedEvents.pop(registerKey).set()
 
         return (scene, camera)
 
-    def _GetActivePrimarySpaceCam(self):
+    def GetActivePrimarySpaceCam(self):
+        if IsDockedInStructure():
+            return evecamera.CAM_SHIPORBIT
         return settings.char.ui.Get('spaceCameraID', evecamera.CAM_SHIPORBIT)
 
     def ActivatePrimarySpaceCam(self):
-        cameraID = self._GetActivePrimarySpaceCam()
-        self.SetActiveCameraByID(cameraID)
+        cameraID = self.GetActivePrimarySpaceCam()
+        self.SetPrimaryCamera(cameraID)

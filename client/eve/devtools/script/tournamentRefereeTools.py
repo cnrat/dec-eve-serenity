@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\devtools\script\tournamentRefereeTools.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\devtools\script\tournamentRefereeTools.py
 import evetypes
 import uicontrols
 import const
@@ -58,6 +59,7 @@ class TournamentRefereeTool(uicontrols.Window):
         self.solarsystemID = None
         self.pregameRangeTimer = None
         self.countdownTimer = None
+        return
 
     def ConstructLayout(self):
         svc = sm.GetService('allianceTournamentSvc')
@@ -103,6 +105,7 @@ class TournamentRefereeTool(uicontrols.Window):
                 tournamentDetails = tourneyMgr.QueryTournamentDetails(tourneyID)
                 ships = tournamentDetails['allowedShipList']
                 self.banOptions = sorted(ships)
+            return
 
         self.sr.tourneySelect = uicontrols.Combo(label='Select Tournament:', parent=self.allianceSelections, align=uiconst.TOTOP, padding=(5, 15, 5, 5), name='tourneySel', options=[('Select Tourney', None)] + tourneyOptions, callback=TourneySelChanged)
         self.sr.matchSelect = uicontrols.Combo(label='Select Match:', parent=self.allianceSelections, align=uiconst.TOTOP, padding=(5, 15, 5, 5), name='matchSel', options=[('Pick Tourney First', None)])
@@ -118,14 +121,14 @@ class TournamentRefereeTool(uicontrols.Window):
         self.blueUnlockBtn = uicontrols.Button(label='Unlock Member List', parent=blueButtons, align=uiconst.TOLEFT, func=self.UnlockMemberList, args=(1,), state=uiconst.UI_HIDDEN)
         self.blueTeleportBtn = uicontrols.Button(label='Teleport Players', parent=blueButtons, align=uiconst.TOLEFT, func=self.TeleportPlayers, args=(1,), state=uiconst.UI_HIDDEN)
         self.blueTeleportBeacon = uicontrols.Combo(label='Beacon select', parent=blueButtons, align=uiconst.TOLEFT, state=uiconst.UI_HIDDEN, options=[])
-        self.blueOverFleetBtn = uicontrols.Button(label='Override FleetID', parent=blueButtons, align=uiconst.TOLEFT, func=self.OverrideFleetID, args=(1,))
+        self.blueOverFleetBtn = uicontrols.Button(label='Override Fleet Boss charID', parent=blueButtons, align=uiconst.TOLEFT, func=self.OverrideFleetBossID, args=(1,))
         self.blueAddPlayerBtn = uicontrols.Button(label='Add Player', parent=blueButtons, align=uiconst.TOLEFT, func=self.AddPlayer, args=(1,), state=uiconst.UI_HIDDEN)
         uicontrols.Button(label='Refresh Info', parent=redButtons, align=uiconst.TOLEFT, func=self.RefreshShipPilotCheck, args=(0,))
         self.redLockBtn = uicontrols.Button(label='Lock Member List', parent=redButtons, align=uiconst.TOLEFT, func=self.LockMemberList, args=(0,))
         self.redUnlockBtn = uicontrols.Button(label='Unlock Member List', parent=redButtons, align=uiconst.TOLEFT, func=self.UnlockMemberList, args=(0,), state=uiconst.UI_HIDDEN)
         self.redTeleportBtn = uicontrols.Button(label='Teleport Players', parent=redButtons, align=uiconst.TOLEFT, func=self.TeleportPlayers, args=(0,), state=uiconst.UI_HIDDEN)
         self.redTeleportBeacon = uicontrols.Combo(label='Beacon select', parent=redButtons, align=uiconst.TOLEFT, state=uiconst.UI_HIDDEN, options=[])
-        self.redOverFleetBtn = uicontrols.Button(label='Override FleetID', parent=redButtons, align=uiconst.TOLEFT, func=self.OverrideFleetID, args=(0,))
+        self.redOverFleetBtn = uicontrols.Button(label='Override Fleet Boss charID', parent=redButtons, align=uiconst.TOLEFT, func=self.OverrideFleetBossID, args=(0,))
         self.redAddPlayerBtn = uicontrols.Button(label='Add Player', parent=redButtons, align=uiconst.TOLEFT, func=self.AddPlayer, args=(0,), state=uiconst.UI_HIDDEN)
         self.shipcheckBlueTeamLabel = uicontrols.Label(text='Blue Team', parent=blueTeamBox, color=(0.5, 0.5, 1, 1), align=uiconst.TOTOP)
         self.shipcheckRedTeamLabel = uicontrols.Label(text='Red Team', parent=redTeamBox, color=(1, 0.3, 0.3, 1), align=uiconst.TOTOP)
@@ -186,6 +189,7 @@ class TournamentRefereeTool(uicontrols.Window):
         tempContainer = uiprimitives.Container(parent=stepTwo, align=uiconst.TORIGHT_PROP, width=0.2)
         uicontrols.Button(label='Do Step 2', parent=tempContainer, func=self.PostGameStepTwo, align=uiconst.TOLEFT, padTop=5, padBottom=5)
         self.OnCompetitorTrackingStart(svc.competitorsByShipID)
+        return None
 
     def StartMatch(self, *args):
         self.banningScreen = uiprimitives.Container(name='banningScreen', parent=self.sr.main, state=uiconst.UI_HIDDEN, align=uiconst.TOALL, left=5, width=5)
@@ -230,6 +234,7 @@ class TournamentRefereeTool(uicontrols.Window):
         self.autoBanBlueCharID.SetValue(str(captainIDs[1]))
         self.blueTeamBanningHeader.text = 'Blue Team - %s' % (self.blueTeam,)
         self.LookupBanChars()
+        return
 
     def ProcessTournamentMatchUpdate(self, matchState):
         myMatchID = self.matchDetails[0]
@@ -397,6 +402,7 @@ class TournamentRefereeTool(uicontrols.Window):
             self.resetButton.state = uiconst.UI_NORMAL
         else:
             self.resetButton.state = uiconst.UI_HIDDEN
+        return
 
     def LookupBanChars(self, *args):
         try:
@@ -527,16 +533,16 @@ class TournamentRefereeTool(uicontrols.Window):
         self.matchMoniker.CleanupGrid(self.matchDetails[0])
         self.postgameStepTwoText.text = "<color='green'>%s</color>" % (self.postgameStepTwoText.text,)
 
-    def OverrideFleetID(self, teamIdx, *args):
+    def OverrideFleetBossID(self, teamIdx, *args):
         format = [{'type': 'edit',
-          'key': 'fleetid',
+          'key': 'fleetbossid',
           'setfocus': True,
-          'label': u'New FleetID'}]
-        retVal = uix.HybridWnd(format, u'Specify new fleetID', minW=250, minH=100)
+          'label': u'New Fleet Boss Char ID'}]
+        retVal = uix.HybridWnd(format, u'Specify new fleet boss charID', minW=250, minH=100)
         if retVal:
-            newFleetID = int(retVal['fleetid'])
-            if newFleetID:
-                self.matchMoniker.OverrideFleetID(self.matchDetails[0], teamIdx, newFleetID)
+            newFleetBossID = int(retVal['fleetbossid'])
+            if newFleetBossID:
+                self.matchMoniker.OverrideFleetBossID(self.matchDetails[0], teamIdx, newFleetBossID)
 
     def OverrideError(self, teamIdx, charID, errorString):
         ret = eve.Message('CustomQuestion', {'header': 'YOU FUCKING SURE DUDE?!?',
@@ -695,6 +701,7 @@ class TournamentRefereeTool(uicontrols.Window):
                 scrolllist.append(node)
 
         self.UpdateColumnSort(self.scroll, scrolllist, 'AtCompetitorsScroll')
+        return
 
     def OnCompetitorTrackingStart(self, competitorsByShipID):
         scrolllist = []
@@ -727,6 +734,7 @@ class TournamentRefereeTool(uicontrols.Window):
         if scrolllist:
             listentry.InitCustomTabstops('AtCompetitorsScroll', scrolllist)
             self.scroll.LoadContent(contentList=scrolllist)
+        return
 
     def DestroyShip(self, button):
         svc = sm.GetService('allianceTournamentSvc')
@@ -762,6 +770,7 @@ class RefWindowSpawningWindow(uicontrols.Window):
         self.MakeUnResizeable()
         self.ConstructLayout()
         self.nextWndIDNum = 0
+        return
 
     def ConstructLayout(self):
         uicontrols.Button(label='Create New Match', parent=self.sr.main, padding=(5, 5, 5, 5), func=self.NewMatch, align=uiconst.TOTOP)
@@ -807,6 +816,7 @@ class AllianceTournamentSvc(service.Service):
                 self.competitorsByShipID[ball.id] = data
 
         sm.ScatterEvent('OnCompetitorTrackingStart', self.competitorsByShipID)
+        return
 
     def MonitorCompetitorsTask(self):
         if self.isCompetitorsTrackingActive:

@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\carbon\common\lib\markdown\extensions\codehilite.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\carbon\common\lib\markdown\extensions\codehilite.py
 import markdown
 try:
     from pygments import highlight
@@ -10,7 +11,7 @@ except ImportError:
 
 class CodeHilite:
 
-    def __init__(self, src = None, linenos = False, guess_lang = True, css_class = 'codehilite', lang = None, style = 'default', noclasses = False, tab_length = 4):
+    def __init__(self, src=None, linenos=False, guess_lang=True, css_class='codehilite', lang=None, style='default', noclasses=False, tab_length=4):
         self.src = src
         self.lang = lang
         self.linenos = linenos
@@ -52,6 +53,7 @@ class CodeHilite:
             if classes:
                 class_str = ' class="%s"' % ' '.join(classes)
             return '<pre class="%s"><code%s>%s</code></pre>\n' % (self.css_class, class_str, txt)
+            return
 
     def _getLang(self):
         import re
@@ -72,6 +74,7 @@ class CodeHilite:
         else:
             lines.insert(0, fl)
         self.src = '\n'.join(lines).strip('\n')
+        return
 
 
 class HiliteTreeprocessor(markdown.treeprocessors.Treeprocessor):
@@ -110,5 +113,5 @@ class CodeHiliteExtension(markdown.Extension):
         md.registerExtension(self)
 
 
-def makeExtension(configs = {}):
+def makeExtension(configs={}):
     return CodeHiliteExtension(configs=configs)

@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\carbon\common\lib\cherrypy\test\test_refleaks.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\carbon\common\lib\cherrypy\test\test_refleaks.py
 import gc
 from cherrypy._cpcompat import HTTPConnection, HTTPSConnection, ntob
 import threading
@@ -20,7 +21,6 @@ class ReferenceTests(helper.CPWebCase):
 
             def index(self, *args, **kwargs):
                 cherrypy.request.thing = data
-                return 'Hello world!'
 
             index.exposed = True
 

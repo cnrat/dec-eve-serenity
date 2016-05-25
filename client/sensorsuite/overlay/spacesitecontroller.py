@@ -1,7 +1,9 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\packages\sensorsuite\overlay\spacesitecontroller.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\packages\sensorsuite\overlay\spacesitecontroller.py
 from sensorsuite.error import InvalidClientStateError
 import carbonui.const as uiconst
 from sensorsuite.overlay.sitestore import SiteMapStore
+from sensorsuite.overlay.sitetype import STRUCTURE
 from sensorsuite.overlay.spacelocations import SpaceLocations
 import sensorsuite.overlay.const as overlayConst
 import uthread2
@@ -37,22 +39,29 @@ class SpaceSiteController:
         self.siteHandlers[siteType] = handler
 
     def GetSiteHandler(self, siteType):
-        return self.siteHandlers[siteType]
+        if siteType in self.siteHandlers:
+            return self.siteHandlers[siteType]
+        else:
+            return None
 
-    def UpdateSiteVisibility(self):
+    def UpdateSiteVisibility(self, siteTypesToUpdate=None):
+        if not siteTypesToUpdate:
+            return
         for location in self.spaceLocations.GetLocations():
             siteData = location.siteData
-            removeResult = False
-            if not self.IsSiteVisible(siteData):
-                removeResult = True
-            elif not (self.sensorSuiteService.IsOverlayActive() or self.sensorSuiteService.sensorSweepActive):
-                removeResult = True
-            if removeResult:
-                self.RemoveResult(siteData)
+            if siteData.siteType in siteTypesToUpdate:
+                removeResult = False
+                if not self.IsSiteVisible(siteData):
+                    removeResult = True
+                elif not (self.sensorSuiteService.IsOverlayActive() or self.sensorSuiteService.sensorSweepActive):
+                    removeResult = True
+                if removeResult:
+                    self.RemoveResult(siteData)
 
         for siteData in self.GetVisibleSites():
-            if not self.spaceLocations.ContainsSite(siteData.siteID):
-                self.AddSiteToSpace(siteData)
+            if siteData.siteType in siteTypesToUpdate:
+                if not self.spaceLocations.ContainsSite(siteData.siteID):
+                    self.AddSiteToSpace(siteData)
 
     def NotifySiteChanged(self, siteData):
         self.sensorSuiteService.SendMessage(overlayConst.MESSAGE_ON_SENSOR_OVERLAY_SITE_CHANGED, siteData)
@@ -62,60 +71,85 @@ class SpaceSiteController:
             locData = self.spaceLocations.GetBySiteID(siteData.siteID)
             self.spaceLocations.RemoveLocation(siteData.siteID)
             locData.bracket.state = uiconst.UI_DISABLED
-            locData.bracket.DoExitAnimation(callback=lambda timeoutSeconds: self.ClearBracketAfterTimeout(timeoutSeconds, locData.bracket, locData.ballRef()))
+            locData.bracket.DoExitAnimation(callback=self._ClearBallAndBracket(locData))
         self.NotifySiteChanged(siteData)
 
-    def ClearBracketAfterTimeout(self, timeoutSeconds, bracket, ball):
-        uthread2.StartTasklet(self._ClearBracketAfterTimeout_Thread, timeoutSeconds, bracket, ball)
+    def _ClearBallAndBracket(self, locData):
+        return lambda timeoutSeconds: self._ClearBallAndBracketAfterTimeout(timeoutSeconds, locData.bracket, locData.ballRef())
 
-    def _ClearBracketAfterTimeout_Thread(self, timeoutSeconds, bracket, ball):
+    def _ClearBallAndBracketAfterTimeout(self, timeoutSeconds, bracket, ball):
+        uthread2.StartTasklet(self._ClearBallAndBracketAfterTimeout_Thread, timeoutSeconds, bracket, ball)
+
+    def _ClearBallAndBracketAfterTimeout_Thread(self, timeoutSeconds, bracket, ball):
         uthread2.SleepSim(timeoutSeconds)
-        self.CloseBracketAndBall(bracket, ball)
+        self._CloseBracketAndBall(bracket, ball)
 
-    def AddSiteToSpace(self, siteData, animate = True):
-        if not self.sensorSuiteService.IsSolarSystemReady():
+    def _IsBallFake(self, ballID):
+        return ballID is None or ballID < 0
+
+    def AddSiteToSpace(self, siteData, animate=True):
+        if self.spaceLocations.ContainsSite(siteData.siteID):
             return
-        if not self.IsSiteVisible(siteData):
+        elif not self.sensorSuiteService.IsSolarSystemReady():
             return
-        if self.sensorSuiteService.IsOverlayActive() or self.sensorSuiteService.sensorSweepActive:
-            bracket = self.MakeSiteLocationMarker(siteData)
-            if animate:
-                bracket.DoEntryAnimation(enable=True)
-        self.NotifySiteChanged(siteData)
+        elif not self.IsSiteVisible(siteData):
+            return
+        else:
+            if self.sensorSuiteService.IsOverlayActive() or self.sensorSuiteService.sensorSweepActive:
+                bracket = self.MakeSiteLocationMarker(siteData)
+                if bracket is None:
+                    return
+                if animate:
+                    bracket.DoEntryAnimation(enable=True)
+            self.NotifySiteChanged(siteData)
+            return
 
     def MakeSiteLocationMarker(self, siteData):
         ballpark = self.michelle.GetBallpark()
         if ballpark is None:
-            raise InvalidClientStateError('ballpark has gone missing')
-        ball = ballpark.AddClientSideBall(siteData.position, isGlobal=True)
-        siteData.ballID = ball.id
+            raise InvalidClientStateError('Ballpark has gone missing')
+        if siteData.siteType != STRUCTURE:
+            siteBall = ballpark.AddClientSideBall(siteData.position, isGlobal=True)
+        else:
+            siteBall = self.michelle.GetBall(siteData.siteID)
+            if siteBall is None:
+                return
+        siteData.ballID = siteBall.id
         bracketClass = siteData.GetBracketClass()
         bracket = bracketClass(name=str(siteData.siteID), parent=uicore.layer.sensorSuite, data=siteData)
         tracker = bracket.projectBracket
-        tracker.trackBall = ball
+        tracker.trackBall = siteBall
         tracker.name = str(siteData.siteID)
-        self.spaceLocations.AddLocation(ball, bracket, siteData)
+        self.spaceLocations.AddLocation(siteBall, bracket, siteData)
         if self.sensorSuiteService.IsOverlayActive():
             bracket.state = uiconst.UI_NORMAL
         else:
             bracket.state = uiconst.UI_DISABLED
         return bracket
 
-    def CloseBracketAndBall(self, bracket, ball):
+    def _CloseBracket(self, bracket):
         bracket.Close()
+
+    def _CloseBall(self, ball):
         if ball is not None:
             ballpark = self.michelle.GetBallpark()
-            if ball.id in ballpark.balls:
+            if self._IsBallFake(ball.id) and ball.id in ballpark.balls:
                 ballpark.RemoveClientSideBall(ball.id)
+        return
+
+    def _CloseBracketAndBall(self, bracket, ball):
+        self._CloseBracket(bracket)
+        self._CloseBall(ball)
 
     def ClearFromBallpark(self):
         ballpark = self.michelle.GetBallpark()
         if ballpark is not None:
             for data in self.spaceLocations.IterLocations():
                 ball = data.ballRef()
-                if ball is not None:
-                    if ball.id in ballpark.balls:
-                        ballpark.RemoveClientSideBall(ball.id)
+                if ball is not None and self._IsBallFake(ball.id) and ball.id in ballpark.balls:
+                    ballpark.RemoveClientSideBall(ball.id)
+
+        return
 
     def ProcessSiteDataUpdate(self, addedSites, removedSites, siteType, addSiteDataMethod):
         removedSiteData = []
@@ -136,3 +170,10 @@ class SpaceSiteController:
 
         if removedSiteData:
             self.sensorSuiteService.UpdateScanner(removedSiteData)
+
+    def UpdateSitePosition(self, siteData):
+        ballpark = self.michelle.GetBallpark()
+        if ballpark is not None:
+            ballpark.UpdateClientSideBallPosition(siteData.ballID, siteData.position)
+            self.sensorSuiteService.SendMessage(overlayConst.MESSAGE_ON_SENSOR_OVERLAY_SITE_MOVED, siteData)
+        return

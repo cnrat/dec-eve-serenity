@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\packages\evetypes\__init__.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\packages\evetypes\__init__.py
 import storages
 from evetypes.storages import TypeStorage, GroupStorage, CategoryStorage, Close
 from evetypes.localizationUtils import GetLocalizedTypeName, GetLocalizedTypeDescription, GetLocalizedCategoryName, GetLocalizedGroupName
@@ -212,6 +213,8 @@ def GetSofMaterialSetIDOrNone(typeID):
     except TypeNotFoundException:
         return
 
+    return
+
 
 def GetSofFactionNameOrNone(typeID):
     try:
@@ -220,6 +223,8 @@ def GetSofFactionNameOrNone(typeID):
             return str(sofFactionName)
     except TypeNotFoundException:
         return
+
+    return
 
 
 def IsPublished(typeID):
@@ -246,7 +251,7 @@ def GetCategoryNameID(typeID):
     return _GetAttributeForCategory(categoryID, 'categoryNameID')
 
 
-def GetDescription(typeID, languageID = None):
+def GetDescription(typeID, languageID=None):
     descriptionID = GetDescriptionID(typeID)
     return GetLocalizedTypeDescription(descriptionID, languageID)
 
@@ -257,8 +262,10 @@ def GetDescriptionOrNone(typeID):
     except TypeNotFoundException:
         return None
 
+    return None
 
-def GetName(typeID, languageID = None):
+
+def GetName(typeID, languageID=None):
     nameID = GetNameID(typeID)
     return GetLocalizedTypeName(nameID, languageID)
 
@@ -268,6 +275,8 @@ def GetNameOrNone(typeID):
         return GetName(typeID)
     except TypeNotFoundException:
         return None
+
+    return None
 
 
 def GetEnglishName(typeID):
@@ -279,7 +288,7 @@ def IsCategoryPublished(typeID):
     return _GetAttributeForCategory(categoryID, 'published')
 
 
-def GetCategoryName(typeID, languageID = None):
+def GetCategoryName(typeID, languageID=None):
     categoryID = GetCategoryID(typeID)
     categoryNameID = _GetAttributeForCategory(categoryID, 'categoryNameID')
     return GetLocalizedCategoryName(categoryNameID, languageID=languageID)
@@ -290,7 +299,7 @@ def UseGroupBasePrice(typeID):
     return _GetAttributeForGroup(groupID, 'useBasePrice')
 
 
-def GetGroupName(typeID, languageID = None):
+def GetGroupName(typeID, languageID=None):
     groupID = GetGroupID(typeID)
     groupNameID = _GetAttributeForGroup(groupID, 'groupNameID')
     return GetLocalizedGroupName(groupNameID, languageID=languageID)
@@ -325,7 +334,7 @@ def UseGroupBasePriceByGroup(groupID):
     return _GetAttributeForGroup(groupID, 'useBasePrice')
 
 
-def GetGroupNameByGroup(groupID, languageID = None):
+def GetGroupNameByGroup(groupID, languageID=None):
     groupNameID = _GetAttributeForGroup(int(groupID), 'groupNameID')
     return GetLocalizedGroupName(groupNameID, languageID=languageID)
 
@@ -358,7 +367,7 @@ def GetGroupIconIDByGroup(groupID):
     return _GetAttributeForGroup(int(groupID), 'iconID')
 
 
-def GetCategoryNameByGroup(groupID, languageID = None):
+def GetCategoryNameByGroup(groupID, languageID=None):
     categoryID = GetCategoryIDByGroup(groupID)
     categoryNameID = _GetAttributeForCategory(categoryID, 'categoryNameID')
     return GetLocalizedCategoryName(categoryNameID, languageID=languageID)
@@ -373,7 +382,10 @@ def GetCategoryIconIDByCategory(categoryID):
 
 
 def IsCategoryHardwareByCategory(categoryID):
-    return categoryID in (inventorycommon.const.categoryModule, inventorycommon.const.categoryImplant, inventorycommon.const.categorySubSystem)
+    return categoryID in (inventorycommon.const.categoryModule,
+     inventorycommon.const.categoryStructureModule,
+     inventorycommon.const.categoryImplant,
+     inventorycommon.const.categorySubSystem)
 
 
 def GetTypeIDsByCategory(categoryID):
@@ -397,7 +409,7 @@ def GetCategoryNameIDByCategory(categoryID):
     return _GetAttributeForCategory(categoryID, 'categoryNameID')
 
 
-def GetCategoryNameByCategory(categoryID, languageID = None):
+def GetCategoryNameByCategory(categoryID, languageID=None):
     categoryNameID = GetCategoryNameIDByCategory(categoryID)
     return GetLocalizedCategoryName(categoryNameID, languageID=languageID)
 
@@ -420,7 +432,7 @@ def GetTypeIDByNameDict():
         storage = TypeStorage()
         for typeID in Iterate():
             BeNice()
-            name = GetLocalizedTypeName(storage[typeID].typeNameID, None)
+            name = GetLocalizedTypeName(storage[typeID].typeNameID, None, important=False)
             if name is not None:
                 typeIDsByName[name.lower()] = typeID
 
@@ -449,3 +461,5 @@ def GetGroupIDByGroupName(groupName):
         return groupIDsByName[groupName.lower()]
     except KeyError as e:
         raise GroupNotFoundException(e)
+
+    return

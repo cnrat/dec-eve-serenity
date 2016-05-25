@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\packages\reprocessing\ui\states.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\packages\reprocessing\ui\states.py
 import inventorycommon.typeHelpers
 from reprocessing.ui.const import STATE_RESTRICTED, STATE_SUSPICIOUS
 
@@ -15,9 +16,12 @@ class States(object):
         valueOfOutput = sum((self._GetAveragePrice(typeID) * qty for typeID, qty in materials.iteritems()))
         if valueOfOutput * 2 < valueOfInput:
             return STATE_SUSPICIOUS
+        else:
+            return None
 
     def _GetAveragePrice(self, typeID):
         price = inventorycommon.typeHelpers.GetAveragePrice(typeID)
         if price is None:
             return 0.0
-        return price
+        else:
+            return price

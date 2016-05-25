@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\packages\localization\settings\bilingualSettings.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\packages\localization\settings\bilingualSettings.py
 _bilingualSettings = None
 IMPORTANT_NAME_NO_SETTING = 0
 IMPORTANT_NAME_ENGLISH = 1

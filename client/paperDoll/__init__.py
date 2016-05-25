@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\common\modules\nice\client\_nastyspace\paperDoll\__init__.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\common\modules\nice\client\_nastyspace\paperDoll\__init__.py
 from carbon.client.script.graphics.paperDollClient import PaperDollClientComponent
 from eve.common.script.paperDoll.paperDollDefinitions import USE_PNG
 from eve.common.script.paperDoll.paperDollDefinitions import TEXTURE_STUB

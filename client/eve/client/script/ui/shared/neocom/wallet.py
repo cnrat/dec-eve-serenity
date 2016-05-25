@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\client\script\ui\shared\neocom\wallet.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\client\script\ui\shared\neocom\wallet.py
 import sys
 import blue
 from eve.client.script.ui.control.utilMenu import UtilMenu
@@ -20,7 +21,7 @@ import log
 import localization
 import evetypes
 
-def FmtWalletCurrency(amt, currency = const.creditsISK, showFractions = None):
+def FmtWalletCurrency(amt, currency=const.creditsISK, showFractions=None):
     if showFractions is None:
         showFractions = settings.char.ui.Get('walletShowCents', False)
         if not showFractions and abs(amt) > 1:
@@ -73,6 +74,7 @@ class NoneNPCAccountOwnerDialog(uicontrols.Window):
          0,
          0), func=self.Search, btn_default=1)
         self.SetHint(localization.GetByLabel('UI/Common/TypeInSearch'))
+        return
 
     def Search(self, *args):
         scrolllist = []
@@ -102,6 +104,8 @@ class NoneNPCAccountOwnerDialog(uicontrols.Window):
             self.CheckSelected()
             self.HideLoad()
 
+        return
+
     def GetSearchStr(self):
         return self.sr.inpt.GetValue().strip()
 
@@ -112,11 +116,12 @@ class NoneNPCAccountOwnerDialog(uicontrols.Window):
         if self.searchStr != self.GetSearchStr():
             self.Search()
             return 0
-        if self.ownerID is None:
+        elif self.ownerID is None:
             return 0
-        return 1
+        else:
+            return 1
 
-    def SetHint(self, hintstr = None):
+    def SetHint(self, hintstr=None):
         if self.sr.scroll:
             self.sr.scroll.ShowHint(hintstr)
 
@@ -129,6 +134,7 @@ class NoneNPCAccountOwnerDialog(uicontrols.Window):
     def OnCancel(self, *args):
         self.ownerID = None
         self.CloseByUser()
+        return
 
     def CheckSelected(self, *args):
         sel = 1
@@ -136,7 +142,7 @@ class NoneNPCAccountOwnerDialog(uicontrols.Window):
             sel = self.sr.scroll.GetSelected()
         self.DisplayPickHint(bool(sel))
 
-    def DisplayPickHint(self, off = 1):
+    def DisplayPickHint(self, off=1):
         ep = self.sr.errorParent
         ep.state = uiconst.UI_HIDDEN
         uix.Flush(ep)
@@ -179,7 +185,7 @@ class WalletSvc(service.Service):
     __dependencies__ = ['window']
     __update_on_reload__ = 0
 
-    def Run(self, memStream = None):
+    def Run(self, memStream=None):
         self.LogInfo('Starting Wallet')
         self.Reset()
         self.blockWelcomeOnDivisionChange = False
@@ -195,11 +201,12 @@ class WalletSvc(service.Service):
         self.accKeys = sm.RemoteSvc('account').GetKeyMap()
         self.billTypeByBillTypeID = sm.RemoteSvc('billMgr').GetBillTypes().Index('billTypeID')
 
-    def Stop(self, memStream = None):
+    def Stop(self, memStream=None):
         wnd = self.GetWnd()
         if wnd is not None and not wnd.destroyed:
             wnd.Close()
         self.Reset()
+        return
 
     def GetBillTypes(self):
         return self.billTypeByBillTypeID
@@ -207,6 +214,7 @@ class WalletSvc(service.Service):
     def ProcessSessionChange(self, isremote, session, change):
         if session.charid is None:
             self.Stop()
+        return
 
     def DoSessionChanging(self, isremote, session, change):
         accountantStatusChanged = False
@@ -224,6 +232,7 @@ class WalletSvc(service.Service):
             wnd = self.GetWnd()
             self.wasVisible = wnd is not None and not wnd.destroyed and wnd.state != uiconst.UI_HIDDEN
             self.Stop()
+        return
 
     def OnSessionChanged(self, isremote, session, change):
         if getattr(self, 'wasVisible', False):
@@ -303,6 +312,7 @@ class WalletSvc(service.Service):
             if wnd:
                 wnd.Blink()
         sm.ScatterEvent('OnAccountChange_Local', accountKey, ownerID, balance)
+        return
 
     def PayBill(self, bill):
         if bill.debtorID == session.charid:
@@ -326,6 +336,7 @@ class WalletSvc(service.Service):
             toID = dlg.ownerID
         form.TransferMoneyWnd.CloseIfOpen()
         w = form.TransferMoneyWnd.Open(fromID=fromID, fromAccountKey=fromAccountKey, toID=toID, toAccountKey=toAccountKey)
+        return
 
     def GetAccountName(self, acctID):
         pass
@@ -349,6 +360,8 @@ class WalletSvc(service.Service):
                     prefs.SetValue('wallet_askcorpaccount_%s' % eve.session.corpid, 0)
             finally:
                 self.isSelectingWalletDivision = False
+
+        return
 
     def GetWealth(self):
         return self.wealth
@@ -377,11 +390,13 @@ class WalletSvc(service.Service):
         self.corpwallet = None
         self.mywallet = None
         self.maintabs = None
+        return
 
     def Show(self):
         wnd = self.GetWnd(1)
         if wnd is not None and not wnd.destroyed:
             wnd.Maximize()
+        return
 
     def AmAccountant(self):
         return bool(eve.session.corprole & const.corpRoleAccountant)
@@ -398,17 +413,19 @@ class WalletSvc(service.Service):
     def HaveAccessToCorpWalletDivision(self, division):
         if division is None:
             return False
-        return bool(eve.session.corprole & self.corpWalletRoles[division])
+        else:
+            return bool(eve.session.corprole & self.corpWalletRoles[division])
 
     def HaveReadAccessToCorpWalletDivision(self, division):
         if division is None:
             return False
-        return bool(eve.session.corprole & self.corpWalletRoles[division])
+        else:
+            return bool(eve.session.corprole & self.corpWalletRoles[division])
 
     def GetAccessibleWallets(self):
         return filter(self.HaveAccessToCorpWalletDivision, self.corpWalletRoles)
 
-    def GetWnd(self, new = 0):
+    def GetWnd(self, new=0):
         resetShowWelcomeToTrue = False
         try:
             wnd = form.Wallet.GetIfOpen()
@@ -427,7 +444,7 @@ class WalletSvc(service.Service):
         names = sm.GetService('corp').GetDivisionNames()
         return names[divisionID - 1000 + 8]
 
-    def Blink(self, mine = 0, subtabname = None, subsubtabname = None):
+    def Blink(self, mine=0, subtabname=None, subsubtabname=None):
         if self.maintabs:
             self.maintabs.BlinkPanelByName([localization.GetByLabel('UI/Wallet/WalletWindow/CorporationWallet'), localization.GetByLabel('UI/Wallet/WalletWindow/MyWallet')][mine])
         panel = [self.corpwallet, self.mywallet][mine]
@@ -437,7 +454,7 @@ class WalletSvc(service.Service):
     def OnCloseWnd(self, *args):
         self.Reset()
 
-    def SetBalance(self, label, amount, startamount, color, currency, cLeft, showFractions = None):
+    def SetBalance(self, label, amount, startamount, color, currency, cLeft, showFractions=None):
         start, ndt = blue.os.GetWallclockTime(), 0.0
         if settings.char.ui.Get('walletBalanceDelay', 1):
             while ndt != 1.0:
@@ -502,6 +519,7 @@ class WalletContainer(uiprimitives.Container):
          [],
          uiconst.UI_HIDDEN,
          uiconst.UI_HIDDEN)
+        return
 
     def TransferMoney(self, fromID, fromAccountKey, toID, toAccountKey):
         sm.GetService('wallet').TransferMoney(fromID, fromAccountKey, toID, toAccountKey)
@@ -509,7 +527,7 @@ class WalletContainer(uiprimitives.Container):
     def SelectWalletDivision(self, *args):
         sm.GetService('wallet').SelectWalletDivision()
 
-    def Startup(self, isCorpWallet = 0):
+    def Startup(self, isCorpWallet=0):
         if isCorpWallet:
             btns = [[localization.GetByLabel('UI/Wallet/WalletWindow/GiveMoney'),
               self.TransferMoney,
@@ -558,13 +576,16 @@ class WalletContainer(uiprimitives.Container):
             self.sr.moneystatus.text = localization.GetByLabel('UI/Wallet/WalletWindow/AccessDenied')
             self.loaded = 1
             return
-        uthread.new(self.RegisterWallet)
-        self.Register()
-        sm.GetService('neocom').BlinkOff('wallet')
+        else:
+            uthread.new(self.RegisterWallet)
+            self.Register()
+            sm.GetService('neocom').BlinkOff('wallet')
+            return
 
-    def SetHint(self, hintstr = None):
+    def SetHint(self, hintstr=None):
         if self.sr.scroll is not None:
             self.sr.scroll.ShowHint(hintstr)
+        return
 
     def _OnClose(self, *etc):
         self.Unregister()
@@ -579,6 +600,7 @@ class WalletContainer(uiprimitives.Container):
         if getattr(self, 'invCookie', None) is not None:
             sm.GetService('inv').Unregister(self.invCookie)
             self.invCookie = None
+        return
 
     def IsItemHere(self, item):
         return item.ownerID == self.ownerID and item.locationID == const.locationAbstract
@@ -717,235 +739,238 @@ class WalletContainer(uiprimitives.Container):
             if self.sr.tabs is not None:
                 self.sr.tabs.AutoSelect()
             return
-        self.SetHint()
-        if args in ('bills',):
-            if self.sr.scroll is not None:
-                self.sr.scroll.sr.id = WALLET_BILLS_SCROLLID
-            self.sr.billstabs.AutoSelect()
-            return
-        if args == 'billsIn':
-            self.ShowBillsIn()
-        elif args == 'billsOut':
-            self.ShowBillsOut()
-        elif args == 'automaticallyPaid':
-            self.ShowAutomaticallyPaid()
-        elif args == 'mybillsreceivable':
-            self.ShowMyBills('mybillsreceivable', 'receivable')
-        elif args == 'mybillspayable':
-            self.ShowMyBills('mybillspayable', 'payable')
-        elif args == 'automaticpayment':
-            self.ShowAutomaticPaymentOptions()
-        elif args == 'shares':
-            if self.sr.Get('sharestabs', None):
-                self.sr.sharestabs.AutoSelect()
+        else:
+            self.SetHint()
+            if args in ('bills',):
+                if self.sr.scroll is not None:
+                    self.sr.scroll.sr.id = WALLET_BILLS_SCROLLID
+                self.sr.billstabs.AutoSelect()
                 return
-            self.ShowMyShares()
-        elif args == 'shares_ownedby':
-            self.ShowMyShares()
-        elif args == 'shares_shareholders':
-            self.ShowShareholders()
-        elif args == 'journal':
-            if self.sr.scroll is not None:
-                self.sr.scroll.sr.id = WALLET_JOURNAL_SCROLLID
-            if not self.sr.journalinited:
-                self.sr.journalinited = 1
-                toppar = self.sr.journalOptions
-                sidepar = uiprimitives.Container(name='sidepar', align=uiconst.TOPRIGHT, parent=toppar, left=const.defaultPadding, top=const.defaultPadding, width=54, height=30)
-                btn = uix.GetBigButton(24, sidepar, 4, 6)
-                btn.OnClick = (self.BrowseJournal, -1)
-                btn.hint = localization.GetByLabel('UI/Common/Previous')
-                btn.state = uiconst.UI_HIDDEN
-                btn.sr.icon.LoadIcon('ui_23_64_1')
-                self.sr.journalBackBtn = btn
-                btn = uix.GetBigButton(24, sidepar, 28, 6)
-                btn.OnClick = (self.BrowseJournal, 1)
-                btn.hint = localization.GetByLabel('UI/Common/ViewMore')
-                btn.state = uiconst.UI_HIDDEN
-                btn.sr.icon.LoadIcon('ui_23_64_2')
-                self.sr.journalFwdBtn = btn
-                inpt = uicontrols.SinglelineEdit(name='fromdate', parent=toppar, setvalue=self.GetNow(), align=uiconst.TOPLEFT, left=5, top=16, maxLength=16, label=localization.GetByLabel('UI/Common/Date'))
-                inpt.AutoFitToText()
-                self.sr.journal_fromdate = inpt
-                keylist = []
-                reflist = []
-                SKIP_REF_TYPES = [const.refATMWithdraw,
-                 const.refATMDeposit,
-                 const.refBackwardCompatible,
-                 const.refFactorySlotRentalFee,
-                 18,
-                 const.refMissionExpiration,
-                 const.refMissionCompletion,
-                 const.refCourierMissionEscrow,
-                 const.refMissionCost,
-                 const.refAgentDonation,
-                 const.refAgentSecurityServices,
-                 32,
-                 const.refCSPAOfflineRefund,
-                 43,
-                 const.refMarketFinePaid,
-                 45,
-                 47,
-                 const.refTransactionTax,
-                 const.refDuplicating,
-                 const.refReverseEngineering]
-                for refType in sm.GetService('account').GetEntryTypes():
-                    if refType.entryTypeID not in SKIP_REF_TYPES and refType.entryTypeID < const.refMaxEve:
-                        reflist.append((refType.entryTypeName.lower(), [refType.entryTypeName, refType.entryTypeID]))
+            if args == 'billsIn':
+                self.ShowBillsIn()
+            elif args == 'billsOut':
+                self.ShowBillsOut()
+            elif args == 'automaticallyPaid':
+                self.ShowAutomaticallyPaid()
+            elif args == 'mybillsreceivable':
+                self.ShowMyBills('mybillsreceivable', 'receivable')
+            elif args == 'mybillspayable':
+                self.ShowMyBills('mybillspayable', 'payable')
+            elif args == 'automaticpayment':
+                self.ShowAutomaticPaymentOptions()
+            elif args == 'shares':
+                if self.sr.Get('sharestabs', None):
+                    self.sr.sharestabs.AutoSelect()
+                    return
+                self.ShowMyShares()
+            elif args == 'shares_ownedby':
+                self.ShowMyShares()
+            elif args == 'shares_shareholders':
+                self.ShowShareholders()
+            elif args == 'journal':
+                if self.sr.scroll is not None:
+                    self.sr.scroll.sr.id = WALLET_JOURNAL_SCROLLID
+                if not self.sr.journalinited:
+                    self.sr.journalinited = 1
+                    toppar = self.sr.journalOptions
+                    sidepar = uiprimitives.Container(name='sidepar', align=uiconst.TOPRIGHT, parent=toppar, left=const.defaultPadding, top=const.defaultPadding, width=54, height=30)
+                    btn = uix.GetBigButton(24, sidepar, 4, 6)
+                    btn.OnClick = (self.BrowseJournal, -1)
+                    btn.hint = localization.GetByLabel('UI/Common/Previous')
+                    btn.state = uiconst.UI_HIDDEN
+                    btn.sr.icon.LoadIcon('ui_23_64_1')
+                    self.sr.journalBackBtn = btn
+                    btn = uix.GetBigButton(24, sidepar, 28, 6)
+                    btn.OnClick = (self.BrowseJournal, 1)
+                    btn.hint = localization.GetByLabel('UI/Common/ViewMore')
+                    btn.state = uiconst.UI_HIDDEN
+                    btn.sr.icon.LoadIcon('ui_23_64_2')
+                    self.sr.journalFwdBtn = btn
+                    inpt = uicontrols.SinglelineEdit(name='fromdate', parent=toppar, setvalue=self.GetNow(), align=uiconst.TOPLEFT, left=5, top=16, maxLength=16, label=localization.GetByLabel('UI/Common/Date'))
+                    inpt.AutoFitToText()
+                    self.sr.journal_fromdate = inpt
+                    keylist = []
+                    reflist = []
+                    SKIP_REF_TYPES = [const.refATMWithdraw,
+                     const.refATMDeposit,
+                     const.refBackwardCompatible,
+                     const.refFactorySlotRentalFee,
+                     18,
+                     const.refMissionExpiration,
+                     const.refMissionCompletion,
+                     const.refCourierMissionEscrow,
+                     const.refMissionCost,
+                     const.refAgentDonation,
+                     const.refAgentSecurityServices,
+                     32,
+                     const.refCSPAOfflineRefund,
+                     43,
+                     const.refMarketFinePaid,
+                     45,
+                     47,
+                     const.refTransactionTax,
+                     const.refDuplicating,
+                     const.refReverseEngineering]
+                    for refType in sm.GetService('account').GetEntryTypes():
+                        if refType.entryTypeID not in SKIP_REF_TYPES and refType.entryTypeID < const.refMaxEve:
+                            reflist.append((refType.entryTypeName.lower(), [refType.entryTypeName, refType.entryTypeID]))
 
-                reflist = uiutil.SortListOfTuples(reflist)
-                if self.isCorpWallet:
-                    divisions = sm.GetService('corp').GetDivisionNames()
-                    for key, desc in zip(sm.GetService('account').GetKeyMap(), [ divisions[i] for i in xrange(8, 15) ]):
-                        if key.keyID == session.corpAccountKey or eve.session.corprole & (const.corpRoleAccountant | const.corpRoleJuniorAccountant):
-                            keylist.append([desc, key.keyID])
+                    reflist = uiutil.SortListOfTuples(reflist)
+                    if self.isCorpWallet:
+                        divisions = sm.GetService('corp').GetDivisionNames()
+                        for key, desc in zip(sm.GetService('account').GetKeyMap(), [ divisions[i] for i in xrange(8, 15) ]):
+                            if key.keyID == session.corpAccountKey or eve.session.corprole & (const.corpRoleAccountant | const.corpRoleJuniorAccountant):
+                                keylist.append([desc, key.keyID])
 
-                else:
-                    map = sm.GetService('account').GetKeyMap()[0]
-                    keylist.append((map.keyName, [map.keyName, map.keyID]))
-                    keylist = uiutil.SortListOfTuples(keylist)
-                lst = [(keylist,
-                  localization.GetByLabel('UI/Wallet/WalletWindow/AccountKey'),
-                  'accountkey',
-                  1000), ([[localization.GetByLabel('UI/Wallet/WalletWindow/AccountKeyAllTypes'), None]] + reflist,
-                  localization.GetByLabel('UI/Wallet/WalletWindow/AccountKeyReferenceType'),
-                  'accountreftype',
-                  None)]
-                if not self.isCorpWallet:
-                    lst = lst[1:]
-                left = inpt.left + inpt.width + 4
-                for i, (optlist, label, config, defval) in enumerate(lst):
-                    combo = uicontrols.Combo(label=label.replace('Reference', 'Ref.'), parent=toppar, options=optlist, name=config, select=settings.user.ui.Get(config, defval), callback=self.OnJournalComboChange, width=110, pos=(left,
-                     inpt.top,
-                     0,
-                     0), align=uiconst.TOPLEFT)
-                    self.sr.Set('journal_' + config, combo)
-                    left += (i + 1) * 114
-
-                self.sr.journalloadbutton = uicontrols.Button(parent=toppar, label=localization.GetByLabel('UI/Wallet/WalletWindow/BtnLoad'), pos=(const.defaultPadding,
-                 0,
-                 0,
-                 0), func=self.LoadJournal, align=uiconst.BOTTOMRIGHT)
-                sidepar.left = self.sr.journalloadbutton.width + const.defaultPadding
-            if self.sr.Get('buttons'):
-                self.sr.buttons.state = uiconst.UI_HIDDEN
-            if self.sr.Get('automaticPaybuttons'):
-                self.sr.automaticPaybuttons.state = uiconst.UI_HIDDEN
-            if self.isCorpWallet and not (const.corpRoleAccountant | const.corpRoleJuniorAccountant) & eve.session.corprole != 0:
-                self.sr.scroll.Clear()
-                self.sr.journalBackBtn.state = uiconst.UI_HIDDEN
-                self.sr.journalFwdBtn.state = uiconst.UI_HIDDEN
-                self.SetHint(localization.GetByLabel('UI/Wallet/WalletWindow/HintNeedAccountantRoles'))
-            else:
-                self.sr.scroll.Load(contentList=self.sr.lastJournalData[0], reversesort=1, headers=self.sr.lastJournalData[1])
-                self.sr.journalBackBtn.state = self.sr.lastJournalData[2]
-                self.sr.journalFwdBtn.state = self.sr.lastJournalData[3]
-                if not self.sr.scroll.GetNodes():
-                    self.SetHint(localization.GetByLabel('UI/Wallet/WalletWindow/HintClickLoadToFetch'))
-            uicore.registry.SetFocus(self.sr.journalloadbutton)
-        elif args == 'orders':
-            self.ShowOrders()
-        elif args == 'transactions':
-            if self.sr.scroll is not None:
-                self.sr.scroll.sr.id = WALLET_TRANSACTIONS_SCROLLID
-            if self.sr.Get('buttons'):
-                self.sr.buttons.state = uiconst.UI_HIDDEN
-            if self.sr.Get('automaticPaybuttons'):
-                self.sr.automaticPaybuttons.state = uiconst.UI_HIDDEN
-            if not self.sr.transactionsinited:
-                self.sr.buttons.state = uiconst.UI_HIDDEN
-                self.sr.automaticPaybuttons.state = uiconst.UI_HIDDEN
-                toppar = self.sr.transactionsOptions
-                sidepar = uiprimitives.Container(name='sidepar', align=uiconst.TOPRIGHT, parent=toppar, left=const.defaultPadding, top=const.defaultPadding, width=54, height=30)
-                btn = uix.GetBigButton(24, sidepar, 4, 6)
-                btn.OnClick = (self.BrowseTransactions, -1)
-                btn.hint = localization.GetByLabel('UI/Common/Previous')
-                btn.sr.icon.LoadIcon('ui_23_64_1')
-                self.sr.transBackBtn = btn
-                btn = uix.GetBigButton(24, sidepar, 28, 6)
-                btn.OnClick = (self.BrowseTransactions, 1)
-                btn.hint = localization.GetByLabel('UI/Common/ViewMore')
-                btn.sr.icon.LoadIcon('ui_23_64_2')
-                self.sr.transFwdBtn = btn
-                self.sr.transactionsinited = 1
-                filters_cont = uiprimitives.Container(name='filters_cont', parent=toppar, height=34, align=uiconst.TOTOP, idx=1)
-                self.sr.transfilters_cont = filters_cont
-                left = 5
-                top = 16
-                buySellOptions = [(localization.GetByLabel('UI/Wallet/WalletWindow/ComboBoth'), None), (localization.GetByLabel('UI/Wallet/WalletWindow/ComboBuy'), 1), (localization.GetByLabel('UI/Wallet/WalletWindow/ComboSell'), 0)]
-                self.sr.transactions_sellbuy = c = uicontrols.Combo(label=localization.GetByLabel('UI/Wallet/WalletWindow/ComboBuySellLabel'), parent=filters_cont, options=buySellOptions, name='accountkey', pos=(left,
-                 top,
-                 70,
-                 0), adjustWidth=1)
-                left += c.width + 4
-                if self.isCorpWallet:
-                    if sm.GetService('wallet').AmAccountantOrJuniorAccountant():
-                        accountOptions = [(localization.GetByLabel('UI/Wallet/WalletWindow/ComboALL'), None)]
                     else:
-                        accountOptions = []
-                    names = sm.GetService('corp').GetDivisionNames()
-                    for i, n in names.iteritems():
-                        if i >= 8:
-                            accountKey = 1000 + i - 8
-                            if sm.GetService('wallet').AmAccountantOrJuniorAccountant() or sm.GetService('wallet').HaveAccessToCorpWalletDivision(accountKey):
-                                accountOptions.append((n, accountKey))
+                        map = sm.GetService('account').GetKeyMap()[0]
+                        keylist.append((map.keyName, [map.keyName, map.keyID]))
+                        keylist = uiutil.SortListOfTuples(keylist)
+                    lst = [(keylist,
+                      localization.GetByLabel('UI/Wallet/WalletWindow/AccountKey'),
+                      'accountkey',
+                      1000), ([[localization.GetByLabel('UI/Wallet/WalletWindow/AccountKeyAllTypes'), None]] + reflist,
+                      localization.GetByLabel('UI/Wallet/WalletWindow/AccountKeyReferenceType'),
+                      'accountreftype',
+                      None)]
+                    if not self.isCorpWallet:
+                        lst = lst[1:]
+                    left = inpt.left + inpt.width + 4
+                    for i, (optlist, label, config, defval) in enumerate(lst):
+                        combo = uicontrols.Combo(label=label.replace('Reference', 'Ref.'), parent=toppar, options=optlist, name=config, select=settings.user.ui.Get(config, defval), callback=self.OnJournalComboChange, width=110, pos=(left,
+                         inpt.top,
+                         0,
+                         0), align=uiconst.TOPLEFT)
+                        self.sr.Set('journal_' + config, combo)
+                        left += (i + 1) * 114
 
-                    self.sr.transactions_accountKey = c = uicontrols.Combo(label=localization.GetByLabel('UI/Wallet/WalletWindow/AccountKey'), parent=filters_cont, options=accountOptions, name='accountkey', width=90, pos=(left,
-                     top,
+                    self.sr.journalloadbutton = uicontrols.Button(parent=toppar, label=localization.GetByLabel('UI/Wallet/WalletWindow/BtnLoad'), pos=(const.defaultPadding,
                      0,
-                     0))
-                    left += c.width + 4
-                    self.sr.transactions_who = c = uicontrols.SinglelineEdit(name='who', parent=toppar, label=localization.GetByLabel('UI/Wallet/WalletWindow/Member'), maxLength=100, pos=(left,
+                     0,
+                     0), func=self.LoadJournal, align=uiconst.BOTTOMRIGHT)
+                    sidepar.left = self.sr.journalloadbutton.width + const.defaultPadding
+                if self.sr.Get('buttons'):
+                    self.sr.buttons.state = uiconst.UI_HIDDEN
+                if self.sr.Get('automaticPaybuttons'):
+                    self.sr.automaticPaybuttons.state = uiconst.UI_HIDDEN
+                if self.isCorpWallet and not (const.corpRoleAccountant | const.corpRoleJuniorAccountant) & eve.session.corprole != 0:
+                    self.sr.scroll.Clear()
+                    self.sr.journalBackBtn.state = uiconst.UI_HIDDEN
+                    self.sr.journalFwdBtn.state = uiconst.UI_HIDDEN
+                    self.SetHint(localization.GetByLabel('UI/Wallet/WalletWindow/HintNeedAccountantRoles'))
+                else:
+                    self.sr.scroll.Load(contentList=self.sr.lastJournalData[0], reversesort=1, headers=self.sr.lastJournalData[1])
+                    self.sr.journalBackBtn.state = self.sr.lastJournalData[2]
+                    self.sr.journalFwdBtn.state = self.sr.lastJournalData[3]
+                    if not self.sr.scroll.GetNodes():
+                        self.SetHint(localization.GetByLabel('UI/Wallet/WalletWindow/HintClickLoadToFetch'))
+                uicore.registry.SetFocus(self.sr.journalloadbutton)
+            elif args == 'orders':
+                self.ShowOrders()
+            elif args == 'transactions':
+                if self.sr.scroll is not None:
+                    self.sr.scroll.sr.id = WALLET_TRANSACTIONS_SCROLLID
+                if self.sr.Get('buttons'):
+                    self.sr.buttons.state = uiconst.UI_HIDDEN
+                if self.sr.Get('automaticPaybuttons'):
+                    self.sr.automaticPaybuttons.state = uiconst.UI_HIDDEN
+                if not self.sr.transactionsinited:
+                    self.sr.buttons.state = uiconst.UI_HIDDEN
+                    self.sr.automaticPaybuttons.state = uiconst.UI_HIDDEN
+                    toppar = self.sr.transactionsOptions
+                    sidepar = uiprimitives.Container(name='sidepar', align=uiconst.TOPRIGHT, parent=toppar, left=const.defaultPadding, top=const.defaultPadding, width=54, height=30)
+                    btn = uix.GetBigButton(24, sidepar, 4, 6)
+                    btn.OnClick = (self.BrowseTransactions, -1)
+                    btn.hint = localization.GetByLabel('UI/Common/Previous')
+                    btn.sr.icon.LoadIcon('ui_23_64_1')
+                    self.sr.transBackBtn = btn
+                    btn = uix.GetBigButton(24, sidepar, 28, 6)
+                    btn.OnClick = (self.BrowseTransactions, 1)
+                    btn.hint = localization.GetByLabel('UI/Common/ViewMore')
+                    btn.sr.icon.LoadIcon('ui_23_64_2')
+                    self.sr.transFwdBtn = btn
+                    self.sr.transactionsinited = 1
+                    filters_cont = uiprimitives.Container(name='filters_cont', parent=toppar, height=34, align=uiconst.TOTOP, idx=1)
+                    self.sr.transfilters_cont = filters_cont
+                    left = 5
+                    top = 16
+                    buySellOptions = [(localization.GetByLabel('UI/Wallet/WalletWindow/ComboBoth'), None), (localization.GetByLabel('UI/Wallet/WalletWindow/ComboBuy'), 1), (localization.GetByLabel('UI/Wallet/WalletWindow/ComboSell'), 0)]
+                    self.sr.transactions_sellbuy = c = uicontrols.Combo(label=localization.GetByLabel('UI/Wallet/WalletWindow/ComboBuySellLabel'), parent=filters_cont, options=buySellOptions, name='accountkey', pos=(left,
                      top,
-                     80,
-                     0), adjustWidth=True, isCharacterField=True)
+                     70,
+                     0), adjustWidth=1)
                     left += c.width + 4
-                MAX_VAL = 214748364
-                self.sr.transactions_qty = c = uicontrols.SinglelineEdit(name='qty', parent=toppar, label=localization.GetByLabel('UI/Wallet/WalletWindow/MinQty'), maxLength=10, pos=(left,
-                 top,
-                 70,
-                 0), ints=(0, MAX_VAL), setvalue=0, adjustWidth=True)
-                left += c.width + 4
-                self.sr.transactions_minprice = c = uicontrols.SinglelineEdit(name='qty', parent=toppar, label=localization.GetByLabel('UI/Wallet/WalletWindow/MinValue'), maxLength=10, pos=(left,
-                 top,
-                 70,
-                 0), ints=(0, MAX_VAL), adjustWidth=True)
-                left += c.width + 4
-                self.sr.transactions_itemtype = c = uicontrols.SinglelineEdit(name='type', parent=toppar, label=localization.GetByLabel('UI/Wallet/WalletWindow/ItemType'), pos=(left,
-                 top,
-                 70,
-                 0), adjustWidth=True, isTypeField=True)
-                left += c.width + 4
-                self.sr.transactionsloadbutton = uicontrols.Button(parent=toppar, label=localization.GetByLabel('UI/Wallet/WalletWindow/BtnLoad'), func=self.ShowTransactionsFromBtn, pos=(const.defaultPadding,
-                 0,
-                 0,
-                 0), btn_default=1, align=uiconst.BOTTOMRIGHT)
-                sidepar.left = self.sr.transactionsloadbutton.width + const.defaultPadding
-            if self.isCorpWallet and not (const.corpRoleAccountant | const.corpRoleJuniorAccountant) & eve.session.corprole != 0:
-                self.sr.scroll.Clear()
-                self.sr.transBackBtn.state = uiconst.UI_HIDDEN
-                self.sr.transFwdBtn.state = uiconst.UI_HIDDEN
-                self.SetHint(localization.GetByLabel('UI/Wallet/WalletWindow/HintNeedAccountantRoles'))
-            else:
-                self.sr.scroll.Load(contentList=self.sr.lastTransactionData[0], reversesort=1, headers=self.sr.lastTransactionData[1])
-                self.sr.transBackBtn.state = self.sr.lastTransactionData[2]
-                self.sr.transFwdBtn.state = self.sr.lastTransactionData[3]
-                if not self.sr.scroll.GetNodes():
-                    self.SetHint(localization.GetByLabel('UI/Wallet/WalletWindow/HintClickLoadToFetch'))
-            uicore.registry.SetFocus(self.sr.transactionsloadbutton)
-        elif args == 'divisions':
-            if self.sr.scroll is not None:
-                self.sr.scroll.sr.id = WALLET_DIVISIONS_SCROLLID
-            if not self.sr.divisionsinited:
-                self.sr.buttons.state = uiconst.UI_HIDDEN
-                self.sr.automaticPaybuttons.state = uiconst.UI_HIDDEN
-            uthread.new(self.ShowDivisions)
-        if self.isDirty:
-            self.isDirty = False
-            self.GetMoney()
+                    if self.isCorpWallet:
+                        if sm.GetService('wallet').AmAccountantOrJuniorAccountant():
+                            accountOptions = [(localization.GetByLabel('UI/Wallet/WalletWindow/ComboALL'), None)]
+                        else:
+                            accountOptions = []
+                        names = sm.GetService('corp').GetDivisionNames()
+                        for i, n in names.iteritems():
+                            if i >= 8:
+                                accountKey = 1000 + i - 8
+                                if sm.GetService('wallet').AmAccountantOrJuniorAccountant() or sm.GetService('wallet').HaveAccessToCorpWalletDivision(accountKey):
+                                    accountOptions.append((n, accountKey))
+
+                        self.sr.transactions_accountKey = c = uicontrols.Combo(label=localization.GetByLabel('UI/Wallet/WalletWindow/AccountKey'), parent=filters_cont, options=accountOptions, name='accountkey', width=90, pos=(left,
+                         top,
+                         0,
+                         0))
+                        left += c.width + 4
+                        self.sr.transactions_who = c = uicontrols.SinglelineEdit(name='who', parent=toppar, label=localization.GetByLabel('UI/Wallet/WalletWindow/Member'), maxLength=100, pos=(left,
+                         top,
+                         80,
+                         0), adjustWidth=True, isCharacterField=True)
+                        left += c.width + 4
+                    MAX_VAL = 214748364
+                    self.sr.transactions_qty = c = uicontrols.SinglelineEdit(name='qty', parent=toppar, label=localization.GetByLabel('UI/Wallet/WalletWindow/MinQty'), maxLength=10, pos=(left,
+                     top,
+                     70,
+                     0), ints=(0, MAX_VAL), setvalue=0, adjustWidth=True)
+                    left += c.width + 4
+                    self.sr.transactions_minprice = c = uicontrols.SinglelineEdit(name='qty', parent=toppar, label=localization.GetByLabel('UI/Wallet/WalletWindow/MinValue'), maxLength=10, pos=(left,
+                     top,
+                     70,
+                     0), ints=(0, MAX_VAL), adjustWidth=True)
+                    left += c.width + 4
+                    self.sr.transactions_itemtype = c = uicontrols.SinglelineEdit(name='type', parent=toppar, label=localization.GetByLabel('UI/Wallet/WalletWindow/ItemType'), pos=(left,
+                     top,
+                     70,
+                     0), adjustWidth=True, isTypeField=True)
+                    left += c.width + 4
+                    self.sr.transactionsloadbutton = uicontrols.Button(parent=toppar, label=localization.GetByLabel('UI/Wallet/WalletWindow/BtnLoad'), func=self.ShowTransactionsFromBtn, pos=(const.defaultPadding,
+                     0,
+                     0,
+                     0), btn_default=1, align=uiconst.BOTTOMRIGHT)
+                    sidepar.left = self.sr.transactionsloadbutton.width + const.defaultPadding
+                if self.isCorpWallet and not (const.corpRoleAccountant | const.corpRoleJuniorAccountant) & eve.session.corprole != 0:
+                    self.sr.scroll.Clear()
+                    self.sr.transBackBtn.state = uiconst.UI_HIDDEN
+                    self.sr.transFwdBtn.state = uiconst.UI_HIDDEN
+                    self.SetHint(localization.GetByLabel('UI/Wallet/WalletWindow/HintNeedAccountantRoles'))
+                else:
+                    self.sr.scroll.Load(contentList=self.sr.lastTransactionData[0], reversesort=1, headers=self.sr.lastTransactionData[1])
+                    self.sr.transBackBtn.state = self.sr.lastTransactionData[2]
+                    self.sr.transFwdBtn.state = self.sr.lastTransactionData[3]
+                    if not self.sr.scroll.GetNodes():
+                        self.SetHint(localization.GetByLabel('UI/Wallet/WalletWindow/HintClickLoadToFetch'))
+                uicore.registry.SetFocus(self.sr.transactionsloadbutton)
+            elif args == 'divisions':
+                if self.sr.scroll is not None:
+                    self.sr.scroll.sr.id = WALLET_DIVISIONS_SCROLLID
+                if not self.sr.divisionsinited:
+                    self.sr.buttons.state = uiconst.UI_HIDDEN
+                    self.sr.automaticPaybuttons.state = uiconst.UI_HIDDEN
+                uthread.new(self.ShowDivisions)
+            if self.isDirty:
+                self.isDirty = False
+                self.GetMoney()
+            return
 
     def SetAccountKey(self, combo, label, value, *args):
         if value is not None:
             sm.GetService('corp').SetAccountKey(value)
+        return
 
     def AskSetWalletDivision(self):
         sm.StartService('wallet').AskSetWalletDivision()
@@ -953,18 +978,20 @@ class WalletContainer(uiprimitives.Container):
     def ParseItemType(self, wnd, *args):
         if self.destroyed:
             return
-        if not hasattr(self, 'parsingItemType'):
-            self.parsingItemType = None
-        typeID = DoParseItemType(wnd, self.parsingItemType, True)
-        if typeID:
-            self.parsingItemType = evetypes.GetName(typeID)
-        return typeID
+        else:
+            if not hasattr(self, 'parsingItemType'):
+                self.parsingItemType = None
+            typeID = DoParseItemType(wnd, self.parsingItemType, True)
+            if typeID:
+                self.parsingItemType = evetypes.GetName(typeID)
+            return typeID
 
-    def GetIssuer(self, string, exact = 0):
+    def GetIssuer(self, string, exact=0):
         ownerID = uix.Search(string.lower(), const.groupCharacter, const.categoryOwner, hideNPC=1, filterGroups=[const.groupCharacter], exact=exact, searchWndName='walletIssuerSearch')
         if ownerID:
             return (cfg.eveowners.Get(ownerID).name, ownerID)
-        return (string, None)
+        else:
+            return (string, None)
 
     def OnJournalComboChange(self, entry, header, value, *args):
         settings.user.ui.Set(entry.name, value)
@@ -973,7 +1000,7 @@ class WalletContainer(uiprimitives.Container):
         self.sr.journalbatches = []
         self.ShowJournal()
 
-    def UpdateBills(self, mine = True):
+    def UpdateBills(self, mine=True):
         if not self.sr.tabs:
             return
         mainTabArgs = self.sr.tabs.GetSelectedArgs()
@@ -1026,31 +1053,33 @@ class WalletContainer(uiprimitives.Container):
             hint = localization.GetByLabel('UI/Wallet/WalletWindow/HintNoReceivableBills')
         if self.destroyed:
             return
-        self.DoCfgPrimingForBills(bills)
-        scrolllist = []
-        for bill in bills:
-            data = util.KeyVal()
-            label = self.GetTextForBill(bill, data)
-            data.bill = bill
-            data.groupID = billID
-            data.label = label
-            data.billPaid = None
-            if billType == 'payable':
-                data.GetMenu = self.OnPayBillMenu
-                scrolllist.append(listentry.Get('Generic', data=data))
-            else:
-                scrolllist.append(listentry.Get('Generic', data=data))
+        else:
+            self.DoCfgPrimingForBills(bills)
+            scrolllist = []
+            for bill in bills:
+                data = util.KeyVal()
+                label = self.GetTextForBill(bill, data)
+                data.bill = bill
+                data.groupID = billID
+                data.label = label
+                data.billPaid = None
+                if billType == 'payable':
+                    data.GetMenu = self.OnPayBillMenu
+                    scrolllist.append(listentry.Get('Generic', data=data))
+                else:
+                    scrolllist.append(listentry.Get('Generic', data=data))
 
-        if not len(scrolllist):
-            self.SetHint(hint)
-        self.sr.scroll.Load(contentList=scrolllist, headers=[localization.GetByLabel('UI/Wallet/WalletWindow/ColHeaderBillType'),
-         localization.GetByLabel('UI/Wallet/WalletWindow/ColHeaderAmount'),
-         localization.GetByLabel('UI/Common/Date'),
-         localization.GetByLabel('UI/Wallet/WalletWindow/ColHeaderOwedBy'),
-         localization.GetByLabel('UI/Wallet/WalletWindow/ColHeaderCreditor'),
-         localization.GetByLabel('UI/Wallet/WalletWindow/ColHeaderInterest')])
-        if wnd and not wnd.destroyed:
-            wnd.HideLoad()
+            if not len(scrolllist):
+                self.SetHint(hint)
+            self.sr.scroll.Load(contentList=scrolllist, headers=[localization.GetByLabel('UI/Wallet/WalletWindow/ColHeaderBillType'),
+             localization.GetByLabel('UI/Wallet/WalletWindow/ColHeaderAmount'),
+             localization.GetByLabel('UI/Common/Date'),
+             localization.GetByLabel('UI/Wallet/WalletWindow/ColHeaderOwedBy'),
+             localization.GetByLabel('UI/Wallet/WalletWindow/ColHeaderCreditor'),
+             localization.GetByLabel('UI/Wallet/WalletWindow/ColHeaderInterest')])
+            if wnd and not wnd.destroyed:
+                wnd.HideLoad()
+            return
 
     def OnPayBillMenu(self, entry):
         if const.corpRoleAccountant & session.corprole == const.corpRoleAccountant:
@@ -1128,6 +1157,7 @@ class WalletContainer(uiprimitives.Container):
          localization.GetByLabel('UI/Wallet/WalletWindow/ColHeaderInterest'),
          localization.GetByLabel('UI/Wallet/WalletWindow/ColHeaderItemOrderID')]
         self.sr.scroll.Load(contentList=scrolllist, headers=headers)
+        return
 
     def ShowBillsOut(self):
         wnd = form.Wallet.GetIfOpen()
@@ -1164,6 +1194,7 @@ class WalletContainer(uiprimitives.Container):
          localization.GetByLabel('UI/Wallet/WalletWindow/ColHeaderInterest'),
          localization.GetByLabel('UI/Wallet/WalletWindow/ColHeaderItemOrderID')]
         self.sr.scroll.Load(contentList=scrolllist, headers=headers)
+        return
 
     def ShowAutomaticallyPaid(self):
         wnd = form.Wallet.GetIfOpen()
@@ -1205,6 +1236,7 @@ class WalletContainer(uiprimitives.Container):
          localization.GetByLabel('UI/Wallet/WalletWindow/ColHeaderInterest'),
          localization.GetByLabel('UI/Wallet/WalletWindow/ColHeaderItemOrderID')]
         self.sr.scroll.Load(contentList=scrolllist, headers=headers)
+        return
 
     def GetTextForBill(self, bill, data):
         billTypeName = cfg.billtypes.Get(bill.billTypeID).billTypeName
@@ -1381,7 +1413,7 @@ class WalletContainer(uiprimitives.Container):
 
         return scrolllist
 
-    def ShowJournal(self, browse = None):
+    def ShowJournal(self, browse=None):
         if self.isCorpWallet and not (const.corpRoleAccountant | const.corpRoleJuniorAccountant) & eve.session.corprole != 0:
             self.sr.scroll.Clear()
             self.SetHint(localization.GetByLabel('UI/Wallet/WalletWindow/HintNeedAccountantRoles'))
@@ -1567,56 +1599,61 @@ class WalletContainer(uiprimitives.Container):
             else:
                 r = description
             return r
+            return None
 
-    def _GetDerivedTransactions(self, transactionRecord, currency = const.creditsISK):
+    def _GetDerivedTransactions(self, transactionRecord, currency=const.creditsISK):
         keyvalTransaction = util.KeyVal(transactionRecord)
         keyvalTransaction.currency = currency
         keyvalTransaction.sortValue = keyvalTransaction.transactionID
         if keyvalTransaction.entryTypeID == const.refBountySurcharge:
             keyvalTransaction.sortValue += 0.2
             return [keyvalTransaction]
-        description = keyvalTransaction.description
-        entryTypeID = keyvalTransaction.entryTypeID
-        amount = keyvalTransaction.amount
-        derivedTransactions = [keyvalTransaction]
-        if not description or self.isCorpWallet:
+        else:
+            description = keyvalTransaction.description
+            entryTypeID = keyvalTransaction.entryTypeID
+            amount = keyvalTransaction.amount
+            derivedTransactions = [keyvalTransaction]
+            if not description or self.isCorpWallet:
+                return derivedTransactions
+
+            def AddDerivedCorporationTaxTransaction(entryTypeID, corpID, taxAmount, donorCorpID, mlsHintText):
+                taxTransaction = keyvalTransaction.copy()
+                taxTransaction.amount = -taxAmount
+                taxTransaction.sortValue += 0.5
+                taxTransaction.ownerID2 = corpID
+                corporationName = cfg.eveowners.Get(corpID).name
+                surchargePrcentage, surcharge = descriptionDict.get(const.refBountySurcharge, (0, 0))
+                taxPercentage = float(taxAmount) / (amount - surcharge + taxAmount) * 100
+                if donorCorpID is None:
+                    taxTransaction.description = localization.GetByLabel(mlsHintText, taxPercentage=taxPercentage, corporationName=corporationName, amountInIsk=FmtWalletCurrency(const.minCorporationTaxAmount, const.creditsISK))
+                else:
+                    donorCorporationName = cfg.eveowners.Get(donorCorpID).name
+                    taxTransaction.description = localization.GetByLabel(mlsHintText, taxPercentage=taxPercentage, corporationName=corporationName, donorCorporationName=donorCorporationName, amountInIsk=FmtWalletCurrency(const.minCorporationTaxAmount, const.creditsISK))
+                taxTransaction.entryTypeID = entryTypeID
+                keyvalTransaction.amount += taxAmount
+                keyvalTransaction.balance += taxAmount
+                derivedTransactions.insert(0, taxTransaction)
+                return
+
+            if description:
+                try:
+                    descriptionDict = yaml.load(description, Loader=yaml.CSafeLoader)
+                    if type(descriptionDict) == types.DictType:
+                        if const.refCorporationTaxNpcBounties in descriptionDict:
+                            AddDerivedCorporationTaxTransaction(const.refCorporationTaxNpcBounties, descriptionDict[const.refCorporationTaxNpcBounties][0], descriptionDict[const.refCorporationTaxNpcBounties][1], None, 'UI/Wallet/WalletWindow/HintNPCBountyTax')
+                        if const.refCorporationTaxAgentRewards in descriptionDict:
+                            AddDerivedCorporationTaxTransaction(const.refCorporationTaxAgentRewards, descriptionDict[const.refCorporationTaxAgentRewards][0], descriptionDict[const.refCorporationTaxAgentRewards][1], None, 'UI/Wallet/WalletWindow/HintAgentRewardTax')
+                        if const.refCorporationTaxAgentBonusRewards in descriptionDict:
+                            AddDerivedCorporationTaxTransaction(const.refCorporationTaxAgentBonusRewards, descriptionDict[const.refCorporationTaxAgentBonusRewards][0], descriptionDict[const.refCorporationTaxAgentBonusRewards][1], None, 'UI/Wallet/WalletWindow/HintAgentBonusRewardTax')
+                        if const.refCorporationTaxRewards in descriptionDict:
+                            AddDerivedCorporationTaxTransaction(const.refCorporationTaxRewards, descriptionDict[const.refCorporationTaxRewards][0], descriptionDict[const.refCorporationTaxRewards][1], keyvalTransaction.ownerID1, 'UI/Wallet/WalletWindow/HintCorporateRewardTax')
+                        if const.refProjectDiscoveryTaxRewards in descriptionDict:
+                            AddDerivedCorporationTaxTransaction(const.refProjectDiscoveryTaxRewards, descriptionDict[const.refProjectDiscoveryTaxRewards][0], descriptionDict[const.refProjectDiscoveryTaxRewards][1], None, 'UI/Wallet/WalletWindow/HintProjectDiscoveryRewardTax')
+                except yaml.scanner.ScannerError as e:
+                    log.LogError('wallet::_GetDerivedTransactions: ScannerError: Could not parse wallet transaction description:', description)
+                    sys.exc_clear()
+
             return derivedTransactions
-
-        def AddDerivedCorporationTaxTransaction(entryTypeID, corpID, taxAmount, donorCorpID, mlsHintText):
-            taxTransaction = keyvalTransaction.copy()
-            taxTransaction.amount = -taxAmount
-            taxTransaction.sortValue += 0.5
-            taxTransaction.ownerID2 = corpID
-            corporationName = cfg.eveowners.Get(corpID).name
-            surchargePrcentage, surcharge = descriptionDict.get(const.refBountySurcharge, (0, 0))
-            taxPercentage = float(taxAmount) / (amount - surcharge + taxAmount) * 100
-            if donorCorpID is None:
-                taxTransaction.description = localization.GetByLabel(mlsHintText, taxPercentage=taxPercentage, corporationName=corporationName, amountInIsk=FmtWalletCurrency(const.minCorporationTaxAmount, const.creditsISK))
-            else:
-                donorCorporationName = cfg.eveowners.Get(donorCorpID).name
-                taxTransaction.description = localization.GetByLabel(mlsHintText, taxPercentage=taxPercentage, corporationName=corporationName, donorCorporationName=donorCorporationName, amountInIsk=FmtWalletCurrency(const.minCorporationTaxAmount, const.creditsISK))
-            taxTransaction.entryTypeID = entryTypeID
-            keyvalTransaction.amount += taxAmount
-            keyvalTransaction.balance += taxAmount
-            derivedTransactions.insert(0, taxTransaction)
-
-        if description:
-            try:
-                descriptionDict = yaml.load(description, Loader=yaml.CSafeLoader)
-                if type(descriptionDict) == types.DictType:
-                    if const.refCorporationTaxNpcBounties in descriptionDict:
-                        AddDerivedCorporationTaxTransaction(const.refCorporationTaxNpcBounties, descriptionDict[const.refCorporationTaxNpcBounties][0], descriptionDict[const.refCorporationTaxNpcBounties][1], None, 'UI/Wallet/WalletWindow/HintNPCBountyTax')
-                    if const.refCorporationTaxAgentRewards in descriptionDict:
-                        AddDerivedCorporationTaxTransaction(const.refCorporationTaxAgentRewards, descriptionDict[const.refCorporationTaxAgentRewards][0], descriptionDict[const.refCorporationTaxAgentRewards][1], None, 'UI/Wallet/WalletWindow/HintAgentRewardTax')
-                    if const.refCorporationTaxAgentBonusRewards in descriptionDict:
-                        AddDerivedCorporationTaxTransaction(const.refCorporationTaxAgentBonusRewards, descriptionDict[const.refCorporationTaxAgentBonusRewards][0], descriptionDict[const.refCorporationTaxAgentBonusRewards][1], None, 'UI/Wallet/WalletWindow/HintAgentBonusRewardTax')
-                    if const.refCorporationTaxRewards in descriptionDict:
-                        AddDerivedCorporationTaxTransaction(const.refCorporationTaxRewards, descriptionDict[const.refCorporationTaxRewards][0], descriptionDict[const.refCorporationTaxRewards][1], keyvalTransaction.ownerID1, 'UI/Wallet/WalletWindow/HintCorporateRewardTax')
-            except yaml.scanner.ScannerError as e:
-                log.LogError('wallet::_GetDerivedTransactions: ScannerError: Could not parse wallet transaction description:', description)
-                sys.exc_clear()
-
-        return derivedTransactions
 
     def BrowseJournal(self, backforth, *args):
         self.ShowJournal(backforth)
@@ -1644,183 +1681,185 @@ class WalletContainer(uiprimitives.Container):
     def ShowTransactionsFromBtn(self, *args):
         self.ShowTransactions()
 
-    def ShowTransactions(self, browse = None, refreshing = 0):
+    def ShowTransactions(self, browse=None, refreshing=0):
         if self.isCorpWallet and not (const.corpRoleAccountant | const.corpRoleJuniorAccountant) & eve.session.corprole != 0:
             self.sr.scroll.Clear()
             self.SetHint(localization.GetByLabel('UI/Wallet/WalletWindow/HintNeedAccountantRoles'))
             return
-        wnd = form.Wallet.GetIfOpen()
-        if wnd and not wnd.destroyed:
-            wnd.ShowLoad()
         else:
-            return
-        self.sr.transBackBtn.state = uiconst.UI_HIDDEN
-        self.sr.transFwdBtn.state = uiconst.UI_HIDDEN
-        sellBuy = self.sr.transactions_sellbuy.GetValue()
-        typeID = None
-        txt = self.sr.transactions_itemtype.GetValue()
-        if txt == '':
-            typeID = None
-        else:
-            for t in sm.GetService('contracts').GetMarketTypes():
-                if txt.lower() == evetypes.GetName(t.typeID).lower():
-                    typeID = t.typeID
-                    break
-
-            if typeID is None:
-                typeID = self.ParseItemType(self.sr.transactions_itemtype)
-        clientID = None
-        quantity = self.sr.transactions_qty.GetValue()
-        if quantity == '':
-            quantity = None
-        else:
-            quantity = int(quantity)
-        fromDate = None
-        maxPrice = None
-        minPrice = self.sr.transactions_minprice.GetValue()
-        if minPrice == '':
-            minPrice = None
-        else:
-            minPrice = int(minPrice)
-        accountKey = self.sr.Get('transactions_accountKey', None)
-        if accountKey:
-            accountKey = accountKey.GetValue()
-        who = self.sr.Get('transactions_who', None)
-        memberID = None
-        if who:
-            name = who.GetValue()
-            if name != '' and name is not None:
-                name, memberID = self.GetIssuer(name)
-                who.SetValue(name)
-        wnd = form.Wallet.GetIfOpen()
-        if wnd and not wnd.destroyed:
-            wnd.ShowLoad()
-        else:
-            return
-        if self.isCorpWallet:
-            getterPrefix = 'Corp'
-        else:
-            getterPrefix = 'Char'
-        if browse == -1 and len(self.sr.transactionbatches) > 1:
-            transactions = self.sr.transactionbatches[-2]
-            self.sr.transactionbatches = self.sr.transactionbatches[:-1]
-        elif browse == 1 and len(self.sr.transactionbatches):
-            lastTran = self.sr.transactionbatches[-1][-1]
-            if self.isCorpWallet:
-                transactions = sm.GetService('marketQuote').GetMarketProxy().CorpGetTransactions(lastTran.transactionID, sellBuy, typeID, clientID, quantity, fromDate, maxPrice, minPrice, accountKey, memberID)
+            wnd = form.Wallet.GetIfOpen()
+            if wnd and not wnd.destroyed:
+                wnd.ShowLoad()
             else:
-                transactions = sm.GetService('marketQuote').GetMarketProxy().CharGetTransactions(lastTran.transactionID, sellBuy, typeID, clientID, quantity, fromDate, maxPrice, minPrice)
-            self.sr.transBackBtn.state = uiconst.UI_NORMAL
-            if len(transactions):
-                self.sr.transactionbatches += [transactions]
-        else:
-            if self.isCorpWallet:
-                transactions = sm.GetService('marketQuote').GetMarketProxy().CorpGetNewTransactions(sellBuy, typeID, clientID, quantity, fromDate, maxPrice, minPrice, accountKey, memberID)
-            else:
-                transactions = sm.GetService('marketQuote').GetMarketProxy().CharGetNewTransactions(sellBuy, typeID, clientID, quantity, fromDate, maxPrice, minPrice)
-            if len(transactions):
-                self.sr.transactionbatches = [transactions]
-        cfg.eveowners.Prime([ tr.clientID for tr in transactions ])
-        if self.isCorpWallet:
-            cfg.eveowners.Prime([ tr.characterID for tr in transactions ])
-        self.SetHint()
-        scrolllist = []
-        for tr in transactions:
-            hiliteAsCorp = not self.isCorpWallet and tr.corpTransaction
-            typeName = self.SafeGetName(tr.typeID)
-            quantity = util.FmtAmt(tr.quantity)
-            price = FmtWalletCurrency(tr.price, const.creditsISK)
-            location = localization.GetByLabel('UI/Wallet/WalletWindow/StationName', station=tr.stationID)
-            when = localization.GetByLabel('UI/Wallet/WalletWindow/FmtWalletDate', dt=tr.transactionDate)
-            lines = []
-            if hiliteAsCorp:
-                coloredWhen = '<color=0xff88bbff>%s</color><color=0xffffffff>' % when
-                lines.append(coloredWhen)
-            else:
-                uncoloredWhen = '%s<color=0xffffffff>' % when
-                lines.append(uncoloredWhen)
-            if tr.transactionType:
-                color = '<color=0xffff0000>'
-                sign = -1
-            else:
-                color = '<color=0xff00ff00>'
-                sign = +1
-            balance = tr.price * tr.quantity * sign
-            client = localization.GetByLabel('UI/Wallet/WalletWindow/CharacterName', charID=tr.clientID)
-            lines.append(typeName)
-            rightPrice = '<right>%s' % price
-            lines.append(rightPrice)
-            rightQty = '<right>%s' % quantity
-            lines.append(rightQty)
-            rightCurrency = '<right>%s%s<color=0xffffffff>' % (color, FmtWalletCurrency(balance, const.creditsISK))
-            lines.append(rightCurrency)
-            lines.append(localization.GetByLabel('UI/Wallet/WalletWindow/ISK'))
-            leftClient = '<left>%s' % client
-            lines.append(leftClient)
-            leftLocation = '<left>%s' % location
-            lines.append(leftLocation)
-            if self.isCorpWallet:
-                charName = localization.GetByLabel('UI/Wallet/WalletWindow/CharacterName', charID=tr.characterID)
-                acctName = sm.GetService('corp').GetCorpAccountName(tr.keyID)
-                lines.append(charName)
-                lines.append(acctName)
-            text = '<t>'.join(lines)
-            if hiliteAsCorp:
-                hint = '<br><color=0xff88bbff>' + localization.GetByLabel('UI/Wallet/WalletWindow/HintCorpTransaction') + '</color>'
-            else:
-                hint = ''
-            data = util.KeyVal()
-            data.rec = tr
-            data.label = text
-            data.clientID = tr.clientID
-            data.Set('sort_%s' % localization.GetByLabel('UI/Wallet/WalletWindow/ColHeaderQuantity'), tr.quantity)
-            data.Set('sort_%s' % localization.GetByLabel('UI/Wallet/WalletWindow/ColHeaderPrice'), tr.price)
-            data.Set('sort_%s' % localization.GetByLabel('UI/Wallet/WalletWindow/ColHeaderWhen'), tr.transactionID)
-            data.Set('sort_%s' % localization.GetByLabel('UI/Wallet/WalletWindow/ColHeaderCredit'), balance)
-            if self.isCorpWallet:
-                data.Set('sort_%s' % localization.GetByLabel('UI/Wallet/WalletWindow/ColHeaderWho'), charName)
-                data.Set('sort_%s' % localization.GetByLabel('UI/Wallet/WalletWindow/ColHeaderWalletDivision'), tr.keyID)
-            data.hint = hint
-            data.GetMenu = self.OnTransactionMenu
-            scrolllist.append(listentry.Get('Generic', data=data))
-
-        if len(transactions) >= 25:
-            self.sr.transFwdBtn.state = uiconst.UI_NORMAL
-        else:
-            self.sr.transFwdBtn.state = uiconst.UI_HIDDEN
-        if len(self.sr.transactionbatches) > 1:
-            self.sr.transBackBtn.state = uiconst.UI_NORMAL
-        else:
+                return
             self.sr.transBackBtn.state = uiconst.UI_HIDDEN
-        headers = [localization.GetByLabel('UI/Wallet/WalletWindow/ColHeaderWhen'),
-         localization.GetByLabel('UI/Wallet/WalletWindow/ColHeaderType'),
-         localization.GetByLabel('UI/Wallet/WalletWindow/ColHeaderPrice'),
-         localization.GetByLabel('UI/Wallet/WalletWindow/ColHeaderQuantity'),
-         localization.GetByLabel('UI/Wallet/WalletWindow/ColHeaderCredit'),
-         localization.GetByLabel('UI/Wallet/WalletWindow/ColHeaderCurrency'),
-         localization.GetByLabel('UI/Wallet/WalletWindow/ColHeaderClient'),
-         localization.GetByLabel('UI/Wallet/WalletWindow/ColHeaderWhere')]
-        if self.isCorpWallet:
-            headers.extend([localization.GetByLabel('UI/Wallet/WalletWindow/ColHeaderWho'), localization.GetByLabel('UI/Wallet/WalletWindow/ColHeaderWalletDivision')])
-        if scrolllist:
-            self.sr.scroll.sr.id = WALLET_TRANSACTIONS_SCROLLID
-            scrollTo = None
-            if refreshing:
-                scrollTo = self.sr.scroll.GetScrollProportion()
-            self.sr.scroll.Load(contentList=scrolllist, reversesort=1, headers=headers, scrollTo=scrollTo)
-        elif browse == 1:
-            self.sr.scroll.Load(contentList=scrolllist)
-            self.SetHint(localization.GetByLabel('UI/Wallet/WalletWindow/HintNoMoreTransactions'))
-            self.sr.transBackBtn.state = uiconst.UI_NORMAL
-        else:
-            self.sr.scroll.Load(contentList=scrolllist)
-            self.SetHint(localization.GetByLabel('UI/Wallet/WalletWindow/HintNoTransactionsFound'))
-        self.sr.lastTransactionData = (scrolllist[:],
-         self.sr.scroll.sr.headers,
-         self.sr.transBackBtn.state,
-         self.sr.transFwdBtn.state)
-        if wnd and not wnd.destroyed:
-            wnd.HideLoad()
+            self.sr.transFwdBtn.state = uiconst.UI_HIDDEN
+            sellBuy = self.sr.transactions_sellbuy.GetValue()
+            typeID = None
+            txt = self.sr.transactions_itemtype.GetValue()
+            if txt == '':
+                typeID = None
+            else:
+                for t in sm.GetService('contracts').GetMarketTypes():
+                    if txt.lower() == evetypes.GetName(t.typeID).lower():
+                        typeID = t.typeID
+                        break
+
+                if typeID is None:
+                    typeID = self.ParseItemType(self.sr.transactions_itemtype)
+            clientID = None
+            quantity = self.sr.transactions_qty.GetValue()
+            if quantity == '':
+                quantity = None
+            else:
+                quantity = int(quantity)
+            fromDate = None
+            maxPrice = None
+            minPrice = self.sr.transactions_minprice.GetValue()
+            if minPrice == '':
+                minPrice = None
+            else:
+                minPrice = int(minPrice)
+            accountKey = self.sr.Get('transactions_accountKey', None)
+            if accountKey:
+                accountKey = accountKey.GetValue()
+            who = self.sr.Get('transactions_who', None)
+            memberID = None
+            if who:
+                name = who.GetValue()
+                if name != '' and name is not None:
+                    name, memberID = self.GetIssuer(name)
+                    who.SetValue(name)
+            wnd = form.Wallet.GetIfOpen()
+            if wnd and not wnd.destroyed:
+                wnd.ShowLoad()
+            else:
+                return
+            if self.isCorpWallet:
+                getterPrefix = 'Corp'
+            else:
+                getterPrefix = 'Char'
+            if browse == -1 and len(self.sr.transactionbatches) > 1:
+                transactions = self.sr.transactionbatches[-2]
+                self.sr.transactionbatches = self.sr.transactionbatches[:-1]
+            elif browse == 1 and len(self.sr.transactionbatches):
+                lastTran = self.sr.transactionbatches[-1][-1]
+                if self.isCorpWallet:
+                    transactions = sm.GetService('marketQuote').GetMarketProxy().CorpGetTransactions(lastTran.transactionID, sellBuy, typeID, clientID, quantity, fromDate, maxPrice, minPrice, accountKey, memberID)
+                else:
+                    transactions = sm.GetService('marketQuote').GetMarketProxy().CharGetTransactions(lastTran.transactionID, sellBuy, typeID, clientID, quantity, fromDate, maxPrice, minPrice)
+                self.sr.transBackBtn.state = uiconst.UI_NORMAL
+                if len(transactions):
+                    self.sr.transactionbatches += [transactions]
+            else:
+                if self.isCorpWallet:
+                    transactions = sm.GetService('marketQuote').GetMarketProxy().CorpGetNewTransactions(sellBuy, typeID, clientID, quantity, fromDate, maxPrice, minPrice, accountKey, memberID)
+                else:
+                    transactions = sm.GetService('marketQuote').GetMarketProxy().CharGetNewTransactions(sellBuy, typeID, clientID, quantity, fromDate, maxPrice, minPrice)
+                if len(transactions):
+                    self.sr.transactionbatches = [transactions]
+            cfg.eveowners.Prime([ tr.clientID for tr in transactions ])
+            if self.isCorpWallet:
+                cfg.eveowners.Prime([ tr.characterID for tr in transactions ])
+            self.SetHint()
+            scrolllist = []
+            for tr in transactions:
+                hiliteAsCorp = not self.isCorpWallet and tr.corpTransaction
+                typeName = self.SafeGetName(tr.typeID)
+                quantity = util.FmtAmt(tr.quantity)
+                price = FmtWalletCurrency(tr.price, const.creditsISK)
+                location = localization.GetByLabel('UI/Wallet/WalletWindow/StationName', station=tr.stationID)
+                when = localization.GetByLabel('UI/Wallet/WalletWindow/FmtWalletDate', dt=tr.transactionDate)
+                lines = []
+                if hiliteAsCorp:
+                    coloredWhen = '<color=0xff88bbff>%s</color><color=0xffffffff>' % when
+                    lines.append(coloredWhen)
+                else:
+                    uncoloredWhen = '%s<color=0xffffffff>' % when
+                    lines.append(uncoloredWhen)
+                if tr.transactionType:
+                    color = '<color=0xffff0000>'
+                    sign = -1
+                else:
+                    color = '<color=0xff00ff00>'
+                    sign = +1
+                balance = tr.price * tr.quantity * sign
+                client = localization.GetByLabel('UI/Wallet/WalletWindow/CharacterName', charID=tr.clientID)
+                lines.append(typeName)
+                rightPrice = '<right>%s' % price
+                lines.append(rightPrice)
+                rightQty = '<right>%s' % quantity
+                lines.append(rightQty)
+                rightCurrency = '<right>%s%s<color=0xffffffff>' % (color, FmtWalletCurrency(balance, const.creditsISK))
+                lines.append(rightCurrency)
+                lines.append(localization.GetByLabel('UI/Wallet/WalletWindow/ISK'))
+                leftClient = '<left>%s' % client
+                lines.append(leftClient)
+                leftLocation = '<left>%s' % location
+                lines.append(leftLocation)
+                if self.isCorpWallet:
+                    charName = localization.GetByLabel('UI/Wallet/WalletWindow/CharacterName', charID=tr.characterID)
+                    acctName = sm.GetService('corp').GetCorpAccountName(tr.keyID)
+                    lines.append(charName)
+                    lines.append(acctName)
+                text = '<t>'.join(lines)
+                if hiliteAsCorp:
+                    hint = '<br><color=0xff88bbff>' + localization.GetByLabel('UI/Wallet/WalletWindow/HintCorpTransaction') + '</color>'
+                else:
+                    hint = ''
+                data = util.KeyVal()
+                data.rec = tr
+                data.label = text
+                data.clientID = tr.clientID
+                data.Set('sort_%s' % localization.GetByLabel('UI/Wallet/WalletWindow/ColHeaderQuantity'), tr.quantity)
+                data.Set('sort_%s' % localization.GetByLabel('UI/Wallet/WalletWindow/ColHeaderPrice'), tr.price)
+                data.Set('sort_%s' % localization.GetByLabel('UI/Wallet/WalletWindow/ColHeaderWhen'), tr.transactionID)
+                data.Set('sort_%s' % localization.GetByLabel('UI/Wallet/WalletWindow/ColHeaderCredit'), balance)
+                if self.isCorpWallet:
+                    data.Set('sort_%s' % localization.GetByLabel('UI/Wallet/WalletWindow/ColHeaderWho'), charName)
+                    data.Set('sort_%s' % localization.GetByLabel('UI/Wallet/WalletWindow/ColHeaderWalletDivision'), tr.keyID)
+                data.hint = hint
+                data.GetMenu = self.OnTransactionMenu
+                scrolllist.append(listentry.Get('Generic', data=data))
+
+            if len(transactions) >= 25:
+                self.sr.transFwdBtn.state = uiconst.UI_NORMAL
+            else:
+                self.sr.transFwdBtn.state = uiconst.UI_HIDDEN
+            if len(self.sr.transactionbatches) > 1:
+                self.sr.transBackBtn.state = uiconst.UI_NORMAL
+            else:
+                self.sr.transBackBtn.state = uiconst.UI_HIDDEN
+            headers = [localization.GetByLabel('UI/Wallet/WalletWindow/ColHeaderWhen'),
+             localization.GetByLabel('UI/Wallet/WalletWindow/ColHeaderType'),
+             localization.GetByLabel('UI/Wallet/WalletWindow/ColHeaderPrice'),
+             localization.GetByLabel('UI/Wallet/WalletWindow/ColHeaderQuantity'),
+             localization.GetByLabel('UI/Wallet/WalletWindow/ColHeaderCredit'),
+             localization.GetByLabel('UI/Wallet/WalletWindow/ColHeaderCurrency'),
+             localization.GetByLabel('UI/Wallet/WalletWindow/ColHeaderClient'),
+             localization.GetByLabel('UI/Wallet/WalletWindow/ColHeaderWhere')]
+            if self.isCorpWallet:
+                headers.extend([localization.GetByLabel('UI/Wallet/WalletWindow/ColHeaderWho'), localization.GetByLabel('UI/Wallet/WalletWindow/ColHeaderWalletDivision')])
+            if scrolllist:
+                self.sr.scroll.sr.id = WALLET_TRANSACTIONS_SCROLLID
+                scrollTo = None
+                if refreshing:
+                    scrollTo = self.sr.scroll.GetScrollProportion()
+                self.sr.scroll.Load(contentList=scrolllist, reversesort=1, headers=headers, scrollTo=scrollTo)
+            elif browse == 1:
+                self.sr.scroll.Load(contentList=scrolllist)
+                self.SetHint(localization.GetByLabel('UI/Wallet/WalletWindow/HintNoMoreTransactions'))
+                self.sr.transBackBtn.state = uiconst.UI_NORMAL
+            else:
+                self.sr.scroll.Load(contentList=scrolllist)
+                self.SetHint(localization.GetByLabel('UI/Wallet/WalletWindow/HintNoTransactionsFound'))
+            self.sr.lastTransactionData = (scrolllist[:],
+             self.sr.scroll.sr.headers,
+             self.sr.transBackBtn.state,
+             self.sr.transFwdBtn.state)
+            if wnd and not wnd.destroyed:
+                wnd.HideLoad()
+            return
 
     def SafeGetName(self, typeID):
         try:
@@ -1828,7 +1867,7 @@ class WalletContainer(uiprimitives.Container):
         except evetypes.TypeNotFoundException:
             return localization.GetByLabel('UI/Generic/Unknown')
 
-    def ShowDivisions(self, force = False):
+    def ShowDivisions(self, force=False):
         if self.sr.scroll:
             self.sr.scroll.Load(contentList=[])
         self.SetHint(localization.GetByLabel('UI/Wallet/WalletWindow/HintFetchingDivisions'))
@@ -1850,6 +1889,7 @@ class WalletContainer(uiprimitives.Container):
             self.sr.scroll.sr.id = WALLET_DIVISIONS_SCROLLID
             self.sr.scroll.Load(contentList=scrolllist, reversesort=1, headers=[localization.GetByLabel('UI/Wallet/WalletWindow/ColHeaderDivision'), localization.GetByLabel('UI/Wallet/WalletWindow/ColHeaderBalance')], scrollTo=scrollTo)
             self.SetHint(None)
+        return
 
     def DoSetAccountKey(self, key):
         sm.StartService('wallet').blockWelcomeOnDivisionChange = True
@@ -1905,10 +1945,12 @@ class WalletContainer(uiprimitives.Container):
                     self.sr.myorders.sr.tabs.BlinkPanelByName(subtabname)
                 if self.sr.billstabs and not self.sr.billstabs.destroyed:
                     self.sr.billstabs.BlinkPanelByName(subtabname)
+        return
 
     def Unload(self):
         if self.walletshell:
             self.walletshell = None
+        return
 
     def GetWallet(self):
         wallet = None
@@ -1919,7 +1961,7 @@ class WalletContainer(uiprimitives.Container):
                 wallet = sm.GetService('invCache').GetInventory(const.containerWallet)
         return wallet
 
-    def ShowMyShares(self, checkvis = 0):
+    def ShowMyShares(self, checkvis=0):
         if self.sr.Get('buttons'):
             self.sr.buttons.state = uiconst.UI_HIDDEN
         if self.sr.Get('automaticPaybuttons'):
@@ -1927,48 +1969,50 @@ class WalletContainer(uiprimitives.Container):
         if self.accessDenied:
             self.SetHint(localization.GetByLabel('UI/Wallet/WalletWindow/HintNeedAccountant'))
             return
-        if self.isCorpWallet and not (const.corpRoleAccountant | const.corpRoleJuniorAccountant) & eve.session.corprole != 0:
+        elif self.isCorpWallet and not (const.corpRoleAccountant | const.corpRoleJuniorAccountant) & eve.session.corprole != 0:
             self.sr.scroll.Clear()
             self.SetHint(localization.GetByLabel('UI/Wallet/WalletWindow/HintNeedAccountantRoles'))
             return
-        wnd = form.Wallet.GetIfOpen()
-        if wnd and not wnd.destroyed:
-            wnd.ShowLoad()
         else:
-            return
-        self.SetHint()
-        scrolllist = []
-        shareCertificates = sm.GetService('corp').GetSharesByShareholder(self.isCorpWallet)
-        for shareCertificate in shareCertificates.itervalues():
-            if not self or self.destroyed:
-                if wnd and hasattr(wnd, 'HideLoad'):
-                    wnd.HideLoad()
-                return
-            data = util.KeyVal()
-            data.ownerID = [eve.session.charid, eve.session.corpid][self.isCorpWallet]
-            data.corporationID = shareCertificate.corporationID
-            data.shares = shareCertificate.shares
-            data.GetMenu = self.OnSharesMenu
-            data.label = [cfg.eveowners.Get(data.ownerID).name, '<t>']
-            data.label += [cfg.eveowners.Get(data.corporationID).name, '<t>']
-            data.label += [util.FmtAmt(data.shares)]
-            scrolllist.append(listentry.Get('Generic', data=data))
-
-        if self.sr.scroll is not None:
-            self.sr.scroll.sr.id = WALLET_SHARES_SCROLLID
-        if scrolllist:
-            if self.sr.scroll is not None:
-                headers = [localization.GetByLabel('UI/Wallet/WalletWindow/ColHeaderOwner'), localization.GetByLabel('UI/Wallet/WalletWindow/ColHeaderCorporation'), localization.GetByLabel('UI/Wallet/WalletWindow/ColHeaderShares')]
-                self.sr.scroll.Load(fixedEntryHeight=24, contentList=scrolllist, headers=headers)
-        else:
-            if self.sr.scroll is not None:
-                self.sr.scroll.Clear()
-            if self.isCorpWallet:
-                self.SetHint(localization.GetByLabel('UI/Wallet/WalletWindow/HintNoCorpShares'))
+            wnd = form.Wallet.GetIfOpen()
+            if wnd and not wnd.destroyed:
+                wnd.ShowLoad()
             else:
-                self.SetHint(localization.GetByLabel('UI/Wallet/WalletWindow/HintNoShares'))
-        if wnd:
-            wnd.HideLoad()
+                return
+            self.SetHint()
+            scrolllist = []
+            shareCertificates = sm.GetService('corp').GetSharesByShareholder(self.isCorpWallet)
+            for shareCertificate in shareCertificates.itervalues():
+                if not self or self.destroyed:
+                    if wnd and hasattr(wnd, 'HideLoad'):
+                        wnd.HideLoad()
+                    return
+                data = util.KeyVal()
+                data.ownerID = [eve.session.charid, eve.session.corpid][self.isCorpWallet]
+                data.corporationID = shareCertificate.corporationID
+                data.shares = shareCertificate.shares
+                data.GetMenu = self.OnSharesMenu
+                data.label = [cfg.eveowners.Get(data.ownerID).name, '<t>']
+                data.label += [cfg.eveowners.Get(data.corporationID).name, '<t>']
+                data.label += [util.FmtAmt(data.shares)]
+                scrolllist.append(listentry.Get('Generic', data=data))
+
+            if self.sr.scroll is not None:
+                self.sr.scroll.sr.id = WALLET_SHARES_SCROLLID
+            if scrolllist:
+                if self.sr.scroll is not None:
+                    headers = [localization.GetByLabel('UI/Wallet/WalletWindow/ColHeaderOwner'), localization.GetByLabel('UI/Wallet/WalletWindow/ColHeaderCorporation'), localization.GetByLabel('UI/Wallet/WalletWindow/ColHeaderShares')]
+                    self.sr.scroll.Load(fixedEntryHeight=24, contentList=scrolllist, headers=headers)
+            else:
+                if self.sr.scroll is not None:
+                    self.sr.scroll.Clear()
+                if self.isCorpWallet:
+                    self.SetHint(localization.GetByLabel('UI/Wallet/WalletWindow/HintNoCorpShares'))
+                else:
+                    self.SetHint(localization.GetByLabel('UI/Wallet/WalletWindow/HintNoShares'))
+            if wnd:
+                wnd.HideLoad()
+            return
 
     def ShowShareholders(self):
         if self.sr.Get('buttons'):
@@ -1978,44 +2022,46 @@ class WalletContainer(uiprimitives.Container):
         if self.accessDenied:
             self.SetHint(localization.GetByLabel('UI/Wallet/WalletWindow/HintNeedAccountant'))
             return
-        if self.isCorpWallet and not (const.corpRoleAccountant | const.corpRoleJuniorAccountant) & eve.session.corprole != 0:
+        elif self.isCorpWallet and not (const.corpRoleAccountant | const.corpRoleJuniorAccountant) & eve.session.corprole != 0:
             self.sr.scroll.Clear()
             self.SetHint(localization.GetByLabel('UI/Wallet/WalletWindow/HintNeedAccountantRoles'))
             return
-        wnd = form.Wallet.GetIfOpen()
-        if wnd and not wnd.destroyed:
-            wnd.ShowLoad()
         else:
-            return
-        self.SetHint()
-        scrolllist = []
-        shares = sm.GetService('corp').GetShareholders()
-        for shareCertificate in shares.itervalues():
-            data = util.KeyVal()
-            data.ownerID = shareCertificate.shareholderID
-            if shareCertificate.shareholderCorporationID:
-                data.corporationID = shareCertificate.shareholderCorporationID
+            wnd = form.Wallet.GetIfOpen()
+            if wnd and not wnd.destroyed:
+                wnd.ShowLoad()
             else:
-                data.corporationID = shareCertificate.corporationID
-            data.shares = shareCertificate.shares
-            data.GetMenu = self.OnSharesMenu
-            data.label = [cfg.eveowners.Get(data.ownerID).name,
-             '<t>',
-             cfg.eveowners.Get(data.corporationID).name,
-             '<t>',
-             util.FmtAmt(data.shares)]
-            scrolllist.append(listentry.Get('Generic', data=data))
+                return
+            self.SetHint()
+            scrolllist = []
+            shares = sm.GetService('corp').GetShareholders()
+            for shareCertificate in shares.itervalues():
+                data = util.KeyVal()
+                data.ownerID = shareCertificate.shareholderID
+                if shareCertificate.shareholderCorporationID:
+                    data.corporationID = shareCertificate.shareholderCorporationID
+                else:
+                    data.corporationID = shareCertificate.corporationID
+                data.shares = shareCertificate.shares
+                data.GetMenu = self.OnSharesMenu
+                data.label = [cfg.eveowners.Get(data.ownerID).name,
+                 '<t>',
+                 cfg.eveowners.Get(data.corporationID).name,
+                 '<t>',
+                 util.FmtAmt(data.shares)]
+                scrolllist.append(listentry.Get('Generic', data=data))
 
-        if scrolllist:
-            if self.sr.scroll is not None:
-                headers = [localization.GetByLabel('UI/Wallet/WalletWindow/ColHeaderOwner'), localization.GetByLabel('UI/Wallet/WalletWindow/ColHeaderCorporation'), localization.GetByLabel('UI/Wallet/WalletWindow/ColHeaderShares')]
-                self.sr.scroll.Load(fixedEntryHeight=24, contentList=scrolllist, headers=headers)
-        else:
-            if self.sr.scroll is not None:
-                self.sr.scroll.Clear()
-            self.SetHint(localization.GetByLabel('UI/Wallet/WalletWindow/HintNoCorpShares'))
-        if wnd:
-            wnd.HideLoad()
+            if scrolllist:
+                if self.sr.scroll is not None:
+                    headers = [localization.GetByLabel('UI/Wallet/WalletWindow/ColHeaderOwner'), localization.GetByLabel('UI/Wallet/WalletWindow/ColHeaderCorporation'), localization.GetByLabel('UI/Wallet/WalletWindow/ColHeaderShares')]
+                    self.sr.scroll.Load(fixedEntryHeight=24, contentList=scrolllist, headers=headers)
+            else:
+                if self.sr.scroll is not None:
+                    self.sr.scroll.Clear()
+                self.SetHint(localization.GetByLabel('UI/Wallet/WalletWindow/HintNoCorpShares'))
+            if wnd:
+                wnd.HideLoad()
+            return
 
     def RegisterWallet(self):
         try:
@@ -2029,7 +2075,7 @@ class WalletContainer(uiprimitives.Container):
                 return
             raise
 
-    def GetShell(self, reload = 0):
+    def GetShell(self, reload=0):
         if not self.walletshell or reload:
             self.walletshell = self.GetWallet()
         return self.walletshell
@@ -2040,7 +2086,7 @@ class WalletContainer(uiprimitives.Container):
         wealth = sm.RemoteSvc('account').GetCashBalance(self.isCorpWallet)
         uthread.new(self.SetMoney, wealth, currency=const.creditsISK)
 
-    def SetMoney(self, amount, currency = const.creditsISK):
+    def SetMoney(self, amount, currency=const.creditsISK):
         if self.destroyed or self.accessDenied:
             return
         if currency == const.creditsISK and not util.GetAttrs(self, 'sr', 'moneystatus'):
@@ -2058,12 +2104,14 @@ class WalletContainer(uiprimitives.Container):
     def OnShareChange(self, shareholderID, corporationID, change):
         if not self.sr.Get('tabs', None):
             return
-        sharestabs = self.sr.Get('sharestabs', None)
-        if sharestabs:
-            if sharestabs.GetSelectedArgs() == 'shares_shareholders':
-                self.ShowShareholders()
-                return
-        self.ShowMyShares()
+        else:
+            sharestabs = self.sr.Get('sharestabs', None)
+            if sharestabs:
+                if sharestabs.GetSelectedArgs() == 'shares_shareholders':
+                    self.ShowShareholders()
+                    return
+            self.ShowMyShares()
+            return
 
 
 class GiveSharesDialog(uicontrols.Window):
@@ -2131,6 +2179,8 @@ class GiveSharesDialog(uicontrols.Window):
                 for child in logo.children:
                     child.state = uiconst.UI_DISABLED
 
+        return
+
     def Search(self, *args):
         self.searchStr = self.sr.inptOwner.GetValue().strip()
         self.ownerID = uix.Search(self.searchStr.lower(), const.groupCharacter, const.categoryOwner, hideNPC=1, filterGroups=[const.groupCharacter, const.groupCorporation], searchWndName='walletSearchSearch', hideDustChars=True)
@@ -2149,6 +2199,7 @@ class GiveSharesDialog(uicontrols.Window):
     def OnCancel(self, *args):
         self.ownerID = None
         self.CloseByUser()
+        return
 
     def TransferShares(self, toShareholderID, numberOfShares):
         if cfg.eveowners.Get(self.shareholderID).typeID == const.typeCorporation:
@@ -2191,6 +2242,7 @@ class WalletWindow(uicontrols.Window):
         walletSvc.corpwallet = corpwallet
         walletSvc.maintabs = maintabs
         UtilMenu(menuAlign=uiconst.TOPLEFT, parent=self.sr.main, align=uiconst.TOPRIGHT, GetUtilMenu=self.GetSettings, texturePath='res:/UI/Texture/SettingsCogwheel.png', iconSize=18, pos=(4, 0, 18, 18))
+        return
 
     def GetSettings(self, menuParent):
         for settingName, label, default in (('notifyAccountChange', 'UI/Wallet/WalletWindow/NotifyAccountChange', True),
@@ -2317,13 +2369,14 @@ class TransferMoneyWnd(uicontrols.Window):
           0]], parent=self.sr.main, idx=0)
         uicore.registry.SetFocus(self.amount)
         uthread.new(self.SetWindowSize)
+        return
 
     def SetWindowSize(self, *args):
         if self and not self.destroyed:
             self.height = self.minHeight
             self.SetMinSize([200, self.minHeight])
 
-    def SetEditText(self, text, format = 0):
+    def SetEditText(self, text, format=0):
         uicontrols.SinglelineEdit.SetText(self.amount, text, format)
 
     def Confirm(self, *args):
@@ -2333,10 +2386,12 @@ class TransferMoneyWnd(uicontrols.Window):
         reason = self.reason.GetValue()
         if amount <= 0:
             return
-        if self.showToAccount:
-            toAccountKey = self.combo.GetValue()
-        if self.fromID == session.charid:
-            sm.RemoteSvc('account').GiveCash(self.toID, amount, reason, toAccountKey=toAccountKey)
         else:
-            sm.RemoteSvc('account').GiveCashFromCorpAccount(self.toID, amount, self.fromAccountKey, toAccountKey=toAccountKey, reason=reason)
-        self.CloseByUser()
+            if self.showToAccount:
+                toAccountKey = self.combo.GetValue()
+            if self.fromID == session.charid:
+                sm.RemoteSvc('account').GiveCash(self.toID, amount, reason, toAccountKey=toAccountKey)
+            else:
+                sm.RemoteSvc('account').GiveCashFromCorpAccount(self.toID, amount, self.fromAccountKey, toAccountKey=toAccountKey, reason=reason)
+            self.CloseByUser()
+            return

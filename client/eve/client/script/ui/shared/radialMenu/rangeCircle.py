@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\client\script\ui\shared\radialMenu\rangeCircle.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\client\script\ui\shared\radialMenu\rangeCircle.py
 from carbonui.primitives.transform import Transform
 import carbonui.const as uiconst
 from carbonui.primitives.sprite import Sprite
@@ -36,24 +37,26 @@ class RangeCircle(Transform):
             self.rangeMeterLeftSide.display = False
             self.display = False
             return
-        sm.GetService('audio').SetGlobalRTPC('radial_value', percOfAllRange)
-        self.rangeMeterRightSide.display = True
-        self.display = True
-        self.rotation = mathUtil.DegToRad(-degree)
-        halfCircle = 180
-        changingDegree = halfCircle * (1 - percOfAllRange / 0.5)
-        if changingDegree < 0:
-            changingDegree += 360
-        if percOfAllRange > 0.5:
-            self.rangeMeterLeftSide.display = True
-            self.rangeMeterRightSide.rotationSecondary = 0
-            self.rangeMeterLeftSide.rotationSecondary = mathUtil.DegToRad(changingDegree)
         else:
-            self.rangeMeterLeftSide.display = False
-            self.rangeMeterRightSide.rotationSecondary = mathUtil.DegToRad(changingDegree)
-            self.rangeMeterLeftSide.rotationSecondary = 0
+            sm.GetService('audio').SetGlobalRTPC('radial_value', percOfAllRange)
+            self.rangeMeterRightSide.display = True
+            self.display = True
+            self.rotation = mathUtil.DegToRad(-degree)
+            halfCircle = 180
+            changingDegree = halfCircle * (1 - percOfAllRange / 0.5)
+            if changingDegree < 0:
+                changingDegree += 360
+            if percOfAllRange > 0.5:
+                self.rangeMeterLeftSide.display = True
+                self.rangeMeterRightSide.rotationSecondary = 0
+                self.rangeMeterLeftSide.rotationSecondary = mathUtil.DegToRad(changingDegree)
+            else:
+                self.rangeMeterLeftSide.display = False
+                self.rangeMeterRightSide.rotationSecondary = mathUtil.DegToRad(changingDegree)
+                self.rangeMeterLeftSide.rotationSecondary = 0
+            return
 
-    def AnimateFromCenter(self, curveSet, animationDuration, opacityRatio, grow, sleep = False):
+    def AnimateFromCenter(self, curveSet, animationDuration, opacityRatio, grow, sleep=False):
         if grow:
             startOpacity = opacityRatio
             endOpacity = 1.0

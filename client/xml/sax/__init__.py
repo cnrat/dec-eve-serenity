@@ -1,16 +1,17 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\carbon\common\stdlib\xml\sax\__init__.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\carbon\common\stdlib\xml\sax\__init__.py
 from xmlreader import InputSource
 from handler import ContentHandler, ErrorHandler
 from _exceptions import SAXException, SAXNotRecognizedException, SAXParseException, SAXNotSupportedException, SAXReaderNotAvailable
 
-def parse(source, handler, errorHandler = ErrorHandler()):
+def parse(source, handler, errorHandler=ErrorHandler()):
     parser = make_parser()
     parser.setContentHandler(handler)
     parser.setErrorHandler(errorHandler)
     parser.parse(source)
 
 
-def parseString(string, handler, errorHandler = ErrorHandler()):
+def parseString(string, handler, errorHandler=ErrorHandler()):
     try:
         from cStringIO import StringIO
     except ImportError:
@@ -24,6 +25,7 @@ def parseString(string, handler, errorHandler = ErrorHandler()):
     inpsrc = InputSource()
     inpsrc.setByteStream(StringIO(string))
     parser.parse(inpsrc)
+    return
 
 
 default_parser_list = ['xml.sax.expatreader']
@@ -38,7 +40,7 @@ _key = 'python.xml.sax.parser'
 if sys.platform[:4] == 'java' and sys.registry.containsKey(_key):
     default_parser_list = sys.registry.getProperty(_key).split(',')
 
-def make_parser(parser_list = []):
+def make_parser(parser_list=[]):
     for parser_name in parser_list + default_parser_list:
         try:
             return _create_parser(parser_name)
@@ -50,6 +52,7 @@ def make_parser(parser_list = []):
             pass
 
     raise SAXReaderNotAvailable('No parsers found', None)
+    return
 
 
 if sys.platform[:4] == 'java':

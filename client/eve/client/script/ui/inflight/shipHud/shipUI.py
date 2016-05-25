@@ -1,10 +1,13 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\client\script\ui\inflight\shipHud\shipUI.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\client\script\ui\inflight\shipHud\shipUI.py
 from carbonui.control.layer import LayerCore
 from carbonui.primitives.container import Container
 from carbonui.primitives.containerAutoSize import ContainerAutoSize
+from carbonui.primitives.frame import Frame
 from carbonui.primitives.line import Line
 from carbonui.primitives.sprite import Sprite
 from carbonui.util.color import Color
+from eve.client.script.parklife import states
 from eve.client.script.ui.control.buttons import ButtonIcon
 from eve.client.script.ui.control.eveLabel import *
 from eve.client.script.ui.control.themeColored import SpriteThemeColored
@@ -17,16 +20,22 @@ from eve.client.script.ui.inflight.shipHud.heatGauges import HeatGauges
 from eve.client.script.ui.inflight.shipHud.hpGauges import HPGauges
 from eve.client.script.ui.inflight.shipHud.hudButtonsCont import HudButtonsCont
 from eve.client.script.ui.inflight.notifySettingsWindow import NotifySettingsWindow
+from eve.client.script.ui.inflight.shipHud.hudShape import HUDShape, StructureHUDShape
+from eve.client.script.ui.inflight.shipHud.releaseControlBtn import ReleaseControlBtn
 from eve.client.script.ui.inflight.shipHud.safeLogoffTimer import SafeLogoffTimer
 from eve.client.script.ui.inflight.shipHud.activeShipController import ActiveShipController
 from eve.client.script.ui.inflight.shipHud.shipHudConst import SHIP_UI_HEIGHT, SHIP_UI_WIDTH
 from eve.client.script.ui.inflight.shipHud.slotsContainer import SlotsContainer
 from eve.client.script.ui.inflight.shipHud.speedGauge import SpeedGauge
 from eve.client.script.ui.inflight.shipSafetyButton import SafetyButton
+from eve.client.script.ui.inflight.squadrons.shipFighterState import GetShipFighterState
 from eve.client.script.ui.inflight.squadrons.squadronsUI import SquadronsUI
 from eve.client.script.ui.inflight.stanceButtons import StanceButtons
+from eve.client.script.ui.services.menuSvcExtras import movementFunctions
 from eve.client.script.ui.util.uix import GetSlimItemName
+from eve.client.script.ui.view.viewStateConst import ViewState
 from eve.client.script.util.settings import IsShipHudTopAligned, SetShipHudTopAligned
+from eve.common.script.sys.eveCfg import IsControllingStructure
 from gametime import GetDurationInClient
 from localization import GetByLabel
 from sensorsuite.overlay.sitecompass import Compass
@@ -63,7 +72,9 @@ class ShipUI(LayerCore):
      'OnSetCameraOffset',
      'ProcessShipEffect',
      'OnActiveCameraChanged',
-     'ProcessPOVCameraOrientation']
+     'ProcessPOVCameraOrientation',
+     'OnViewStateChanged',
+     'OnStateChange']
 
     def ApplyAttributes(self, attributes):
         LayerCore.ApplyAttributes(self, attributes)
@@ -72,6 +83,7 @@ class ShipUI(LayerCore):
         self.controller = ActiveShipController()
         self.controller.on_new_itemID.connect(self.OnShipChanged)
         self.ResetSelf()
+        return
 
     def ConstructCrosshairSprite(self):
         self.crosshairCont = Container(parent=self, align=uiconst.CENTER, width=500, height=500, state=uiconst.UI_HIDDEN)
@@ -79,9 +91,7 @@ class ShipUI(LayerCore):
         self.crosshairPitchSprite = SpriteThemeColored(parent=self.crosshairCont, align=uiconst.TOPLEFT, texturePath='res:/UI/Texture/Classes/Camera/pitch.png', width=500, height=500, colorType=uiconst.COLORTYPE_UIHILIGHT)
         self.crosshairRotationSprite = SpriteThemeColored(parent=self.crosshairCont, align=uiconst.TOPLEFT, texturePath='res:/UI/Texture/Classes/Camera/rotate.png', width=500, height=500, colorType=uiconst.COLORTYPE_UIHILIGHT)
         self.crosshairRotationSprite.useTransform = True
-        camera = sm.GetService('sceneManager').GetActiveCamera()
-        if camera:
-            self.UpdatePOVCrosshairState(camera.cameraID)
+        self.UpdatePOVCrosshairState()
 
     def ProcessPOVCameraOrientation(self, pitch, roll):
         self.crosshairRotationSprite.rotation = roll + math.pi / 2
@@ -89,16 +99,21 @@ class ShipUI(LayerCore):
         self.crosshairPitchSprite.top = 465 * prop
 
     def OnActiveCameraChanged(self, cameraID):
-        self.UpdatePOVCrosshairState(cameraID)
+        self.UpdatePOVCrosshairState()
 
-    def UpdatePOVCrosshairState(self, cameraID):
-        if cameraID == evecamera.CAM_SHIPPOV:
+    def OnViewStateChanged(self, oldState, newState):
+        self.UpdatePOVCrosshairState()
+
+    def UpdatePOVCrosshairState(self):
+        isSpaceView = sm.GetService('viewState').IsViewActive(ViewState.Space)
+        camera = sm.GetService('sceneManager').GetActiveCamera()
+        if isSpaceView and camera and camera.cameraID == evecamera.CAM_SHIPPOV:
             self.crosshairCont.state = uiconst.UI_DISABLED
             uicore.animations.FadeTo(self.crosshairCont, 0.0, 1.0, duration=0.6)
         else:
             self.crosshairCont.Hide()
 
-    def OnSetCameraOffset(self, camera, cameraOffset):
+    def OnSetCameraOffset(self, cameraOffset):
         self.UpdatePosition()
 
     def OnSetDevice(self):
@@ -114,6 +129,7 @@ class ShipUI(LayerCore):
     @telemetry.ZONE_METHOD
     def ResetSelf(self):
         self.sr.safetyButton = None
+        self.fighterHudBinding = None
         self.sr.selectedcateg = 0
         self.sr.pendingreloads = []
         self.sr.reloadsByID = {}
@@ -130,6 +146,7 @@ class ShipUI(LayerCore):
         self.setupShipTasklet = None
         self.logoffTimer = None
         self.Flush()
+        return
 
     def CheckPendingReloads(self):
         if self.sr.pendingreloads:
@@ -149,7 +166,7 @@ class ShipUI(LayerCore):
 
     @telemetry.ZONE_METHOD
     def UpdatePosition(self):
-        cameraOffset = sm.GetService('sceneManager').GetCameraOffset('default')
+        cameraOffset = sm.GetService('sceneManager').GetCameraOffset()
         halfWidth = uicore.desktop.width / 2
         baseOffset = -cameraOffset * halfWidth
         wndLeft = settings.char.windows.Get('shipuialignleftoffset', 0)
@@ -164,8 +181,28 @@ class ShipUI(LayerCore):
             self.hudContainer.SetAlign(uiconst.CENTERBOTTOM)
             self.ewarCont.SetAlign(uiconst.CENTERBOTTOM)
             self.sr.indicationContainer.top = -(self.ewarCont.height + self.sr.indicationContainer.height)
+        if self.IsFightersDetached():
+            left, top = settings.char.ui.Get('fightersDetachedPosition', (0, 0))
+            buttonWidth = 32
+            left = min(left, uicore.desktop.width - buttonWidth)
+            top = min(top, uicore.desktop.height - self.fighterCont.height)
+            self.fighterCont.left = left
+            self.fighterCont.top = top
+            settings.char.ui.Set('fightersDetachedPosition', (left, top))
+        self.AlignFighters()
         self.sr.shipAlertContainer.UpdatePosition()
         self.crosshairCont.left = baseOffset
+
+    def MakeFighterHudBinding(self):
+        cs = uicore.uilib.bracketCurveSet
+        self.fighterHudBinding = trinity.CreatePythonBinding(cs, self.compass, 'absoluteRight', self.fighterCont, 'left')
+
+    def RemoveFighterHudBinding(self):
+        if self.fighterHudBinding:
+            cs = uicore.uilib.bracketCurveSet
+            cs.bindings.fremove(self.fighterHudBinding)
+            self.fighterHudBinding = None
+        return
 
     def OnShipMouseDown(self, wnd, btn, *args):
         if btn != 0:
@@ -177,10 +214,57 @@ class ShipUI(LayerCore):
         uthread.new(self.BeginDrag)
 
     def GetShipuiOffsetMinMax(self, *args):
+        magicNumber = 275
+        if self.CheckShipHasFighterBay():
+            magicNumber = 300
         sidePanelsLeft, sidePanelsRight = uicore.layer.sidepanels.GetSideOffset()
-        maxRight = uicore.desktop.width / 2 - self.slotsContainer.width / 2 - 275 - sidePanelsRight
+        maxRight = uicore.desktop.width / 2 - self.slotsContainer.width / 2 - magicNumber - sidePanelsRight
         minLeft = -(uicore.desktop.width / 2 - 180) + sidePanelsLeft
         return (maxRight, minLeft)
+
+    def OnToggleShipSelected(self, *args):
+        if not self.CheckShipHasFighterBay():
+            return
+        if not self.IsFightersShown():
+            self.DeselectShip()
+            return
+        x, y = self.grab
+        currentX, currentY = uicore.uilib.x, self.hudContainer.left
+        if x != currentX or y != currentY:
+            return
+        if movementFunctions.IsSelectedForNavigation(session.shipid):
+            self.DeselectShip()
+        else:
+            self.SelectShip()
+            if not uicore.uilib.Key(uiconst.VK_CONTROL):
+                self.fighterCont.ClearSelection()
+
+    def SelectShip(self):
+        movementFunctions.SelectForNavigation(session.shipid)
+
+    def DeselectShip(self):
+        movementFunctions.DeselectForNavigation(session.shipid)
+
+    def OnStateChange(self, itemID, flag, flagState, *args):
+        if not self.CheckShipHasFighterBay():
+            return
+        if flag == states.selectedForNavigation and itemID == session.shipid:
+            if flagState:
+                self.ShowSelectionHilite()
+            else:
+                self.HideSelectionHilite()
+
+    def ShowSelectionHilite(self):
+        if self.shipSelectHilight.display:
+            return
+        self.shipSelectHilight.display = True
+        self.ringSprite.opacity = 0.2
+        self.bracketSprite.opacity = 3.0
+        uicore.animations.FadeTo(self.ringSprite, self.ringSprite.opacity, 1.0, duration=0.2)
+        uicore.animations.FadeTo(self.bracketSprite, self.bracketSprite.opacity, 1.0, duration=0.2)
+
+    def HideSelectionHilite(self):
+        self.shipSelectHilight.display = False
 
     def OnShipMouseUp(self, wnd, btn, *args):
         if btn != 0:
@@ -189,7 +273,7 @@ class ShipUI(LayerCore):
         self.dragging = False
 
     def BeginDrag(self, *args):
-        cameraOffset = sm.GetService('sceneManager').GetCameraOffset('default')
+        cameraOffset = sm.GetService('sceneManager').GetCameraOffset()
         halfWidth = uicore.desktop.width / 2
         baseOffset = -cameraOffset * halfWidth
         while not self.hudContainer.destroyed and getattr(self, 'dragging', 0):
@@ -213,9 +297,10 @@ class ShipUI(LayerCore):
         hudButtonsExpanded = settings.user.ui.Get('hudButtonsExpanded', 1)
         self.toggleLeftBtn.hint = [GetByLabel('UI/Inflight/ShowButtons'), GetByLabel('UI/Inflight/HideButtons')][hudButtonsExpanded]
         self.optionsCont = Container(parent=self.overlayContainer, name='optionsCont', pos=(190, 190, 16, 16), align=uiconst.TOPLEFT, state=uiconst.UI_PICKCHILDREN)
-        self.stopButton = StopButton(parent=self.overlayContainer, align=uiconst.TOPLEFT, controller=self.controller, left=75, top=155)
-        self.maxspeedButton = MaxSpeedButton(parent=self.overlayContainer, align=uiconst.TOPLEFT, controller=self.controller, left=168, top=155)
-        self.fighterToggleCont = Container(parent=self.overlayContainer, name='fighterToggleCont', pos=(202, 170, 32, 32), align=uiconst.TOPLEFT, state=uiconst.UI_PICKCHILDREN)
+        self.moduleToggleCont = Container(parent=self.overlayContainer, name='moduleToggleCont', pos=(206, 170, 24, 24), align=uiconst.TOPLEFT, state=uiconst.UI_PICKCHILDREN)
+        if not IsControllingStructure():
+            self.stopButton = StopButton(parent=self.overlayContainer, align=uiconst.TOPLEFT, controller=self.controller, left=75, top=155)
+            self.maxspeedButton = MaxSpeedButton(parent=self.overlayContainer, align=uiconst.TOPLEFT, controller=self.controller, left=168, top=155)
 
     @telemetry.ZONE_METHOD
     def OnOpenView(self):
@@ -224,25 +309,31 @@ class ShipUI(LayerCore):
         self.hudContainer = Container(name='hudContainer', parent=self, controller=self.controller, align=uiconst.CENTERBOTTOM, width=SHIP_UI_WIDTH, height=SHIP_UI_HEIGHT)
         self.overlayContainer = Container(parent=self.hudContainer, name='overlayContainer', pos=(0, 0, 256, 256), align=uiconst.CENTER, state=uiconst.UI_PICKCHILDREN, idx=0)
         self.ConstructOverlayContainer()
-        Sprite(parent=self.hudContainer, name='mainDot', pos=(0, 0, 160, 160), align=uiconst.CENTER, state=uiconst.UI_DISABLED, texturePath='res:/UI/Texture/classes/ShipUI/mainDOT.png', spriteEffect=trinity.TR2_SFX_DOT, blendMode=trinity.TR2_SBM_ADD)
-        self.shipuiMainShape = SpriteThemeColored(parent=self.hudContainer, name='shipuiMainShape', pos=(0, 0, 160, 160), align=uiconst.CENTER, state=uiconst.UI_DISABLED, texturePath='res:/UI/Texture/classes/ShipUI/mainUnderlay.png', opacity=1.0, colorType=uiconst.COLORTYPE_UIBASE)
+        if IsControllingStructure():
+            shipShape = StructureHUDShape(parent=self.hudContainer, align=uiconst.CENTER)
+        else:
+            shipShape = HUDShape(parent=self.hudContainer, align=uiconst.CENTER)
+        self.shipuiMainShape = shipShape.shipuiMainShape
         self.capacitorContainer = CapacitorContainer(parent=self.hudContainer, align=uiconst.CENTER, top=-1, controller=self.controller)
         self.capacitorContainer.OnMouseDown = (self.OnShipMouseDown, self.capacitorContainer)
         self.capacitorContainer.OnMouseUp = (self.OnShipMouseUp, self.capacitorContainer)
+        self.capacitorContainer.OnClick = self.OnToggleShipSelected
         heatPicker = Container(name='heatPicker', parent=self.hudContainer, align=uiconst.CENTER, width=160, height=160, pickRadius=43, state=uiconst.UI_NORMAL)
         self.heatGauges = HeatGauges(parent=heatPicker, align=uiconst.CENTERTOP, controller=self.controller)
         self.hpGauges = HPGauges(name='healthGauges', parent=self.hudContainer, align=uiconst.CENTER, pos=(0, -37, 148, 74), controller=self.controller)
-        self.speedGauge = SpeedGauge(parent=self.hudContainer, top=29, align=uiconst.CENTERBOTTOM, controller=self.controller)
+        if IsControllingStructure():
+            ReleaseControlBtn(parent=self.hudContainer, top=29, align=uiconst.CENTERBOTTOM, itemID=self.controller.GetItemID(), func=sm.GetService('structureControl').Alight)
+        else:
+            self.speedGauge = SpeedGauge(parent=self.hudContainer, top=29, align=uiconst.CENTERBOTTOM, controller=self.controller)
         self.compass = Compass(parent=self.hudContainer, pickRadius=-1)
+        self.shipSelectHilight = Container(name='navSelectHilight', parent=self.compass, align=uiconst.CENTER, state=uiconst.UI_DISABLED, width=206, height=206)
+        self.ringSprite = Sprite(bgParent=self.shipSelectHilight, texturePath='res:/UI/Texture/classes/ShipUI/Fighters/selectionRingLarge.png')
+        self.bracketSprite = Sprite(bgParent=self.shipSelectHilight, texturePath='res:/UI/Texture/classes/ShipUI/Fighters/selectionBracketLarge.png')
+        self.shipSelectHilight.display = False
         self.slotsContainer = SlotsContainer(parent=self.hudContainer, pos=(SLOTS_CONTAINER_LEFT,
          SLOTS_CONTAINER_TOP,
          SLOTS_CONTAINER_WIDTH,
          SLOTS_CONTAINER_HEIGHT), align=uiconst.CENTERLEFT, state=uiconst.UI_PICKCHILDREN, controller=self.controller)
-        self.fighterCont = SquadronsUI(parent=self.hudContainer, pos=(SLOTS_CONTAINER_LEFT + 24,
-         SLOTS_CONTAINER_TOP - 32,
-         SLOTS_CONTAINER_WIDTH,
-         SLOTS_CONTAINER_HEIGHT), state=uiconst.UI_PICKCHILDREN, align=uiconst.CENTERLEFT)
-        self.fighterCont.display = False
         self.stanceButtons = StanceButtons(parent=self.hudContainer, pos=(SLOTS_CONTAINER_LEFT + 8,
          1,
          40,
@@ -254,20 +345,41 @@ class ShipUI(LayerCore):
         self.sr.safetyButton = SafetyButton(parent=self.overlayContainer, left=40, top=28)
         self.ConstructReadoutCont()
         self.settingsMenu = UtilMenu(menuAlign=uiconst.BOTTOMLEFT, parent=self.optionsCont, align=uiconst.TOPLEFT, GetUtilMenu=self.GetHUDOptionMenu, pos=(0, 0, 16, 16), texturePath='res:/UI/Texture/Icons/73_16_50.png', hint=GetByLabel('UI/Inflight/Options'))
-        self.fighterToggleBtn = ButtonIcon(name='fighterToggleBtn', parent=self.fighterToggleCont, align=uiconst.TOPLEFT, width=32, height=32, iconSize=32, texturePath='res:/UI/Texture/classes/ShipUI/Fighters/widgetCorner_Up.png', downTexture='res:/UI/Texture/classes/ShipUI/Fighters/widgetCorner_Down.png', hoverTexture='res:/UI/Texture/classes/ShipUI/Fighters/widgetCorner_Over.png', func=self.OnToggleHudModules)
-        self.fighterToggleBtn.display = False
+        self.moduleToggleBtn = ButtonIcon(name='moduleToggleBtn', parent=self.moduleToggleCont, align=uiconst.TOPLEFT, width=24, height=24, iconSize=24, texturePath='res:/UI/Texture/classes/ShipUI/Fighters/toggleModules_Up.png', downTexture='res:/UI/Texture/classes/ShipUI/Fighters/toggleModules_Down.png', hoverTexture='res:/UI/Texture/classes/ShipUI/Fighters/toggleModules_Over.png', func=self.OnToggleHudModules)
+        self.moduleToggleBtn.display = False
+        self.DrawFighters()
         self.ConstructCrosshairSprite()
         self.hudContainer.state = uiconst.UI_PICKCHILDREN
         self.UpdatePosition()
         self.shipuiReady = True
         self.SetupShip()
 
-    def CheckFighterBayRoles(self):
+    def DrawFighters(self):
+        if hasattr(self, 'fighterCont'):
+            self.fighterCont.Close()
+        self.fighterCont = SquadronsUI(name='fighters', parent=self, state=uiconst.UI_PICKCHILDREN, parentFunc=self.OnToggleFightersDetached)
+        self.AlignFighters()
+        if self.IsFightersDetached():
+            left, top = settings.char.ui.Get('fightersDetachedPosition', (uicore.desktop.width / 2, uicore.desktop.height / 2 - 60))
+            self.fighterCont.left = left
+            self.fighterCont.top = top
+            self.slotsContainer.display = True
+            self.moduleToggleBtn.Disable()
+        self.SetFighterButtonsHint()
+        self.fighterCont.KeepSelection()
+
+    def SetFighterButtonsHint(self):
+        if self.IsFightersDetached():
+            self.fighterCont.fighterToggleBtn.hint = GetByLabel('UI/Inflight/HUDOptions/ClickToAttach')
+            self.moduleToggleBtn.hint = ''
+        else:
+            self.fighterCont.fighterToggleBtn.hint = GetByLabel('UI/Inflight/HUDOptions/DragToDetach')
+            self.moduleToggleBtn.hint = GetByLabel('UI/Inflight/HUDOptions/ClickToToggle')
+
+    def CheckShipHasFighterBay(self):
         shipTypeID = self.controller.GetTypeID()
         godmaSM = sm.GetService('godma').GetStateManager()
-        if bool(godmaSM.GetType(shipTypeID).fighterCapacity) and session.role & (service.ROLE_GML | service.ROLE_WORLDMOD):
-            return True
-        return False
+        return godmaSM.GetType(shipTypeID).fighterCapacity > 0
 
     def OptionsBtnMouseEnter(self, *args):
         self.options.SetAlpha(1.0)
@@ -283,6 +395,10 @@ class ShipUI(LayerCore):
     def SetButtonState(self):
         if settings.user.ui.Get('hudButtonsExpanded', 1):
             self.hudButtons.state = uiconst.UI_PICKCHILDREN
+            if IsControllingStructure():
+                self.hudButtons.autopilotBtn.Disable()
+            else:
+                self.hudButtons.autopilotBtn.Enable()
         else:
             self.hudButtons.state = uiconst.UI_HIDDEN
 
@@ -309,11 +425,13 @@ class ShipUI(LayerCore):
         blue.pyos.synchro.SleepSim(250)
         if self.assumingdelay is None:
             return
-        issuedAt = self.assumingdelay
-        if issuedAt != issueTime:
+        else:
+            issuedAt = self.assumingdelay
+            if issuedAt != issueTime:
+                return
+            self.assumingdelay = None
+            self.ShowStructureControl()
             return
-        self.assumingdelay = None
-        self.ShowStructureControl()
 
     def ShowStructureControl(self, *args):
         if self.controller.IsControllingTurret():
@@ -385,6 +503,7 @@ class ShipUI(LayerCore):
             text = GetByLabel('UI/Accessories/Log/EnterMessageMovingMode')
             enterArgs = True
         menuParent.AddIconEntry(icon='res:/UI/Texture/classes/UtilMenu/BulletIcon.png', text=text, callback=(sm.GetService('logger').MoveNotifications, enterArgs))
+        return
 
     def ShowNotifySettingsWindow(self):
         NotifySettingsWindow.Open()
@@ -400,6 +519,7 @@ class ShipUI(LayerCore):
         msg = getattr(uicore.layer.target, 'message', None)
         if msg:
             msg.Close()
+        return
 
     def CheckShowReadoutCont(self):
         if settings.user.ui.Get('showReadout', 0):
@@ -446,14 +566,68 @@ class ShipUI(LayerCore):
         settings.user.ui.Set('displayFighterUI', not settings.user.ui.Get('displayFighterUI', False))
         self.ShowHideFighters()
 
-    def ShowHideFighters(self):
-        displayFighters = settings.user.ui.Get('displayFighterUI', False)
-        if displayFighters == True and self.CheckFighterBayRoles():
-            self.fighterCont.display = True
-            self.slotsContainer.display = False
+    def OnToggleFightersDetached(self, *args):
+        isDetached = self.IsFightersDetached()
+        settings.user.ui.Set('detachFighterUI', not isDetached)
+        if isDetached:
+            self.AttachHudModules()
         else:
-            self.fighterCont.display = False
+            self.DetachHudModules()
+
+    def AttachHudModules(self):
+        self.moduleToggleBtn.Enable()
+        self.AlignFighters()
+        self.fighterCont.left = 0
+        self.fighterCont.top = 10
+        self.MakeFighterHudBinding()
+        self.ShowHideFighters()
+        self.SetFighterButtonsHint()
+
+    def DetachHudModules(self):
+        self.moduleToggleBtn.Disable()
+        self.slotsContainer.display = True
+        self.RemoveFighterHudBinding()
+        self.DrawFighters()
+
+    def InitFighters(self):
+        if not self.IsFightersDetached():
+            self.MakeFighterHudBinding()
+            self.ShowHideFighters()
+        else:
+            self.DetachHudModules()
             self.slotsContainer.display = True
+
+    def ShowHideFighters(self):
+        displayFighters = self.IsFightersShown()
+        isDetached = self.IsFightersDetached()
+        if self.CheckShipHasFighterBay():
+            if isDetached:
+                self.fighterCont.display = True
+                self.slotsContainer.display = True
+                return
+            if displayFighters == True:
+                self.fighterCont.display = True
+                self.slotsContainer.display = False
+                return
+        self.fighterCont.ClearSelection()
+        self.fighterCont.display = False
+        self.slotsContainer.display = True
+        self.DeselectShip()
+
+    def AlignFighters(self):
+        if self.IsFightersDetached():
+            self.fighterCont.SetAlign(uiconst.TOPLEFT)
+        elif IsShipHudTopAligned():
+            self.fighterCont.SetAlign(uiconst.TOTOP)
+        else:
+            self.fighterCont.SetAlign(uiconst.TOBOTTOM)
+            self.fighterCont.top = 10
+
+    def IsFightersDetached(self):
+        return settings.user.ui.Get('detachFighterUI', False)
+
+    def IsFightersShown(self):
+        return settings.user.ui.Get('displayFighterUI', False)
 
     def CheckExpandBtns(self):
         on = settings.user.ui.Get('hudButtonsExpanded', 1)
@@ -473,6 +647,7 @@ class ShipUI(LayerCore):
         radialMenu = RadialMenuScanner(name='radialMenu', parent=uicore.layer.menu, state=uiconst.UI_NORMAL, align=uiconst.TOPLEFT, anchorObject=button)
         uicore.layer.menu.radialMenu = radialMenu
         uicore.uilib.SetMouseCapture(radialMenu)
+        return
 
     def BlinkButton(self, key):
         self.slotsContainer.BlinkButton(key)
@@ -480,10 +655,12 @@ class ShipUI(LayerCore):
     def ChangeOpacityForRange(self, currentRange, *args):
         if getattr(self, 'slotContainer', None):
             self.slotsContainer.ChangeOpacityForRange(self, currentRange)
+        return
 
     def ResetModuleButtonOpacity(self, *args):
         if getattr(self, 'slotContainer', None):
             self.slotsContainer.ResetModuleButtonOpacity()
+        return
 
     def ToggleRackOverload(self, slotName):
         self.slotsContainer.ToggleRackOverload(slotName)
@@ -509,7 +686,7 @@ class ShipUI(LayerCore):
     def SwapSlots(self, slotFlag1, slotFlag2):
         self.slotsContainer.SwapSlots(slotFlag1, slotFlag2)
 
-    def LinkWeapons(self, master, slave, slotFlag1, slotFlag2, merge = False):
+    def LinkWeapons(self, master, slave, slotFlag1, slotFlag2, merge=False):
         self.slotsContainer.LinkWeapons(master, slave, slotFlag1, slotFlag2, merge)
 
     def GetModuleType(self, flag):
@@ -531,7 +708,51 @@ class ShipUI(LayerCore):
         return self.slotsContainer.GetModule(moduleID)
 
     def OnF(self, sidx, gidx):
-        self.slotsContainer.OnF(sidx, gidx)
+        if not self.CheckShipHasFighterBay():
+            self.slotsContainer.OnF(sidx, gidx)
+            return
+        else:
+            shipIsSelected, fightersSelected = movementFunctions.GetSelectedShipAndFighters()
+            if self.IsFightersDetached():
+                moduleIsActive = self.IsModuleActiveForFKey(sidx, gidx)
+                isAllAbilitiesActiveOrInCooldown = GetShipFighterState().IsAllAbilitiesInSlotActiveOrInCooldown(sidx)
+                if shipIsSelected:
+                    if isAllAbilitiesActiveOrInCooldown:
+                        if moduleIsActive is not None:
+                            self.slotsContainer.OnF(sidx, gidx)
+                        if moduleIsActive is None or moduleIsActive == True:
+                            self.fighterCont.OnF(sidx)
+                    else:
+                        self.fighterCont.OnF(sidx)
+                        if moduleIsActive == False:
+                            self.slotsContainer.OnF(sidx, gidx)
+                else:
+                    self.fighterCont.OnF(sidx)
+            elif self.IsFightersShown():
+                self.fighterCont.OnF(sidx)
+            else:
+                self.slotsContainer.OnF(sidx, gidx)
+            return
+
+    def GetModuleDefaultEffect(self, sidx, gidx):
+        slot = self.slotsContainer.slotsByOrder.get((gidx, sidx), None)
+        if not slot:
+            return
+        elif not slot.sr.module:
+            return
+        elif slot.sr.module.state != uiconst.UI_NORMAL:
+            return
+        elif slot.sr.module.def_effect is None:
+            return
+        else:
+            return slot.sr.module.def_effect
+
+    def IsModuleActiveForFKey(self, sidx, gidx):
+        defaultEffect = self.GetModuleDefaultEffect(sidx, gidx)
+        if defaultEffect:
+            return defaultEffect.isActive
+        else:
+            return None
 
     def OnFKeyOverload(self, sidx, gidx):
         self.slotsContainer.OnFKeyOverload(sidx, gidx)
@@ -560,10 +781,12 @@ class ShipUI(LayerCore):
     def DoBallRemove(self, ball, slimItem, terminal):
         if ball is None:
             return
-        log.LogInfo('DoBallRemove::shipui', ball.id)
-        if self.controller.GetBall() is not None and ball.id == self.controller.GetBall().id:
-            self.UnhookBall()
-        uthread.new(self.UpdateJammersAfterBallRemoval, ball.id)
+        else:
+            log.LogInfo('DoBallRemove::shipui', ball.id)
+            if self.controller.GetBall() is not None and ball.id == self.controller.GetBall().id:
+                self.UnhookBall()
+            uthread.new(self.UpdateJammersAfterBallRemoval, ball.id)
+            return
 
     def UpdateJammersAfterBallRemoval(self, ballID):
         jams = self.jammers.keys()
@@ -577,6 +800,7 @@ class ShipUI(LayerCore):
     def ProcessShipEffect(self, godmaStm, effectState):
         if effectState.error is not None:
             uthread.new(uicore.Message, effectState.error[0], effectState.error[1])
+        return
 
     def OnJamStart(self, sourceBallID, moduleID, targetBallID, jammingType, startTime, duration):
         durationInClient = GetDurationInClient(startTime, duration)
@@ -622,13 +846,14 @@ class ShipUI(LayerCore):
     def OnShipChanged(self, *args):
         self.SetupShip(animate=True)
 
-    def SetupShip(self, animate = False):
+    def SetupShip(self, animate=False):
         if self.setupShipTasklet is not None:
             self.setupShipTasklet.kill()
         self.setupShipTasklet = uthread.new(self._SetupShip, animate)
+        return
 
     @telemetry.ZONE_METHOD
-    def _SetupShip(self, animate = False):
+    def _SetupShip(self, animate=False):
         if self.destroyed or self.initing or not self.shipuiReady:
             return
         self.initing = True
@@ -647,11 +872,15 @@ class ShipUI(LayerCore):
             self.CheckControl()
             self.UpdateButtonsForShip()
             self.capacitorContainer.InitCapacitor()
+            self.DrawFighters()
+            self.InitFighters()
             self.ShowHideFighters()
-            if self.CheckFighterBayRoles():
-                self.fighterToggleBtn.display = True
+            if self.CheckShipHasFighterBay():
+                self.moduleToggleBtn.display = True
             else:
-                self.fighterToggleBtn.display = False
+                self.moduleToggleBtn.display = False
+                if self.shipSelectHilight.display:
+                    self.shipSelectHilight.display = False
             blue.pyos.synchro.SleepWallclock(200)
         finally:
             self.initing = False
@@ -703,12 +932,14 @@ class ShipUI(LayerCore):
         if self.logoffTimer is not None:
             self.logoffTimer.Close()
         self.logoffTimer = SafeLogoffTimer(parent=uicore.layer.abovemain, logoffTime=safeLogoffTime)
+        return
 
     def OnSafeLogoffActivated(self):
         if self.logoffTimer is not None:
             self.logoffTimer.timer.SetText('0.0')
             self.logoffTimer.timer.SetTextColor(Color.GREEN)
         sm.GetService('clientStatsSvc').OnProcessExit()
+        return
 
     def OnSafeLogoffAborted(self, reasonCode):
         self.AbortSafeLogoffTimer()
@@ -722,6 +953,7 @@ class ShipUI(LayerCore):
         if self.logoffTimer is not None:
             self.logoffTimer.AbortLogoff()
             self.logoffTimer = None
+        return
 
 
 class MaxSpeedButton(Sprite):

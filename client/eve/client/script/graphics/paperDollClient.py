@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\client\script\graphics\paperDollClient.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\client\script\graphics\paperDollClient.py
 import paperDollUtil
 import telemetry
 import eve.common.script.paperDoll.paperDollConfiguration as pdCfg
@@ -16,15 +17,7 @@ class EvePaperDollClient(PaperDollClient):
 
     def Run(self, *etc):
         PaperDollClient.Run(self, *etc)
-        doKick = False
-        try:
-            self.LogInfo('Early loading of paperDoll asset data requested, station environments enabled')
-            doKick = gfxsettings.Get(gfxsettings.MISC_LOAD_STATION_ENV)
-        except NameError:
-            doKick = True
-
-        if doKick:
-            kicker = self.dollFactory
+        kicker = self.dollFactory
 
     def _AppPerformanceOptions(self):
         pdCfg.PerformanceOptions.EnableEveOptimizations()

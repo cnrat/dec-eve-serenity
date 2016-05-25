@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\client\script\ui\services\jumpQueue.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\client\script\ui\services\jumpQueue.py
 import uthread
 import blue
 import localization
@@ -19,10 +20,12 @@ class JumpQueue(service.Service):
         self.jumpQueue = None
         self.queueCharID = None
         uthread.worker('jumpQueue::Timer', self.__Timer)
+        return
 
     def PrepareQueueForCharID(self, charID):
         self.jumpQueue = None
         self.queueCharID = charID
+        return
 
     def GetPreparedQueueCharID(self):
         return self.queueCharID
@@ -31,6 +34,7 @@ class JumpQueue(service.Service):
         if 'solarsystemid2' in change:
             self.LogInfo('Jump Queue:  DoSessionChanging is cleaning jump queue info')
             self.jumpQueue = None
+        return
 
     def __Timer(self):
         while self.state == service.SERVICE_RUNNING:
@@ -62,16 +66,19 @@ class JumpQueue(service.Service):
 
                 blue.pyos.synchro.SleepWallclock(4500)
 
+        return
+
     def IsJumpQueued(self):
         if self.jumpQueue is None:
             return False
-        if self.queueCharID in self.jumpQueue.jumpKeys:
-            if blue.os.GetWallclockTime() - self.jumpQueue.jumpKeys[self.queueCharID] < const.SEC * self.jumpQueue.keyLife:
-                self.jumpQueue = None
-            else:
-                return False
-        self.LogInfo('Jump Queued, queue=', self.jumpQueue)
-        return True
+        else:
+            if self.queueCharID in self.jumpQueue.jumpKeys:
+                if blue.os.GetWallclockTime() - self.jumpQueue.jumpKeys[self.queueCharID] < const.SEC * self.jumpQueue.keyLife:
+                    self.jumpQueue = None
+                else:
+                    return False
+            self.LogInfo('Jump Queued, queue=', self.jumpQueue)
+            return True
 
     def OnJumpQueueUpdate(self, solarsystemID, space, queue, jumpKeys, keyLife):
         if self.jumpQueue is None:
@@ -86,3 +93,4 @@ class JumpQueue(service.Service):
         else:
             self.LogInfo('Jump Queue:  ', self.queueCharID, ' is leaving queue for ', solarsystemID)
             self.jumpQueue = None
+        return

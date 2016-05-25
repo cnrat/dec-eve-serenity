@@ -1,10 +1,11 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\client\script\util\eveMisc.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\client\script\util\eveMisc.py
 import sys
 import uthread
 import carbonui.const as uiconst
 import util
 
-def LaunchFromShip(items, whoseBehalfID = None, ignoreWarning = False, maxQty = None):
+def LaunchFromShip(items, whoseBehalfID=None, ignoreWarning=False, maxQty=None):
     oldItems = []
     drones = False
     for item in items:
@@ -50,13 +51,16 @@ def LaunchFromShip(items, whoseBehalfID = None, ignoreWarning = False, maxQty = 
     for error in errorByLabel.itervalues():
         uthread.new(raise_, UserError(*error))
 
+    return
+
 
 def IsItemOfRepairableType(item):
     return item.singleton and (item.categoryID in (const.categoryDeployable,
      const.categoryShip,
      const.categoryDrone,
      const.categoryStarbase,
-     const.categoryModule) or item.groupID in (const.groupCargoContainer,
+     const.categoryModule,
+     const.categoryStructureModule) or item.groupID in (const.groupCargoContainer,
      const.groupSecureCargoContainer,
      const.groupAuditLogSecureContainer,
      const.groupFreightContainer,
@@ -87,6 +91,8 @@ def CSPAChargedActionForMany(message, obj, function, *args):
             return apply(getattr(obj, function), args, kwArgs)
         raise
 
+    return None
+
 
 def CSPAChargedAction(message, obj, function, *args):
     try:
@@ -100,6 +106,15 @@ def CSPAChargedAction(message, obj, function, *args):
             kwArgs = {'approvedCost': info['totalCost']}
             return apply(getattr(obj, function), args, kwArgs)
         raise
+
+    return None
+
+
+def GetRemoveServiceConfirmationQuestion(serviceTypeID):
+    confirmQuestionsByModuleID = {const.typeMarketHub: 'AskRemoveMarketStructureService',
+     const.typeCloningCenter: 'AskRemoveCloneStructureService'}
+    questionPath = confirmQuestionsByModuleID.get(serviceTypeID, 'AskRemoveStructureService')
+    return questionPath
 
 
 import carbon.common.script.util.autoexport as autoexport

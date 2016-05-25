@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\client\script\ui\control\eveScroll.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\client\script\ui\control\eveScroll.py
 from carbonui.control.menu import HasContextMenu, GetContextMenuOwner
 from carbonui.util import various_unsorted
 from carbonui.control.scroll import ScrollCore, ScrollHandle
@@ -29,10 +30,10 @@ class Scroll(ScrollCore):
     def Prepare_Underlay_(self):
         self.sr.underlay = BumpedUnderlay(parent=self, name='background')
 
-    def Startup(self, minZ = None):
+    def Startup(self, minZ=None):
         pass
 
-    def HideBackground(self, alwaysHidden = 0):
+    def HideBackground(self, alwaysHidden=0):
         frame = None
         if various_unsorted.GetAttrs(self, 'sr', 'underlay'):
             self.sr.underlay.state = uiconst.UI_HIDDEN
@@ -46,6 +47,7 @@ class Scroll(ScrollCore):
                 underlayFill.state = uiconst.UI_HIDDEN
         if alwaysHidden:
             self.SetNoBackgroundFlag(alwaysHidden)
+        return
 
     def OnMouseWheel(self, *etc):
         if getattr(self, 'wheeling', 0):
@@ -58,14 +60,13 @@ class Scroll(ScrollCore):
         self.Scroll(uicore.uilib.dz / 240.0)
         self.wheeling = 0
         self.sr.scrollcontrols.AnimFade()
-        return 1
 
-    def GetNoItemNode(self, text, sublevel = 0, *args):
+    def GetNoItemNode(self, text, sublevel=0, *args):
         import listentry
         return listentry.Get('Generic', {'label': text,
          'sublevel': sublevel})
 
-    def ShowHint(self, hint = None):
+    def ShowHint(self, hint=None):
         isNew = self.sr.hint is None or self.sr.hint.text != hint
         if self.sr.hint is None and hint:
             clipperWidth = self.GetContentWidth()
@@ -78,14 +79,16 @@ class Scroll(ScrollCore):
             self.sr.hint.state = uiconst.UI_HIDDEN
         if self.sr.hint and self.sr.hint.display and isNew:
             uicore.animations.FadeTo(self.sr.hint, 0.0, 0.5, duration=0.3)
+        return
 
-    def RecyclePanel(self, panel, fromWhere = None):
+    def RecyclePanel(self, panel, fromWhere=None):
         if panel.__guid__ == 'listentry.VirtualContainerRow':
             subnodes = [ node for node in panel.sr.node.internalNodes if node is not None ]
             for node in subnodes:
                 node.panel = None
 
         ScrollCore.RecyclePanel(self, panel, fromWhere)
+        return
 
 
 class ScrollControls(ScrollControlsCore):
@@ -94,6 +97,7 @@ class ScrollControls(ScrollControlsCore):
     def ApplyAttributes(self, attributes):
         ScrollControlsCore.ApplyAttributes(self, attributes)
         self.animFadeThread = None
+        return
 
     def Prepare_(self):
         self.Prepare_ScrollHandle_()
@@ -116,6 +120,7 @@ class ScrollControls(ScrollControlsCore):
         if uicore.uilib.mouseOver != self.sr.scrollhandle:
             self.sr.scrollhandle.OnMouseExit()
         self.animFadeThread = None
+        return
 
 
 class ColumnHeader(ColumnHeaderCore):

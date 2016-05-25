@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\carbon\common\script\util\animUtils.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\carbon\common\script\util\animUtils.py
 import math
 import geo2
 import mathCommon
@@ -125,7 +126,8 @@ def GetAnimInfoByName(animationDict, animName):
         pass
     if animName not in animationDict:
         return animationDict[const.animation.DEFAULT_ANIMATION_NAME]
-    return animationDict[animName]
+    else:
+        return animationDict[animName]
 
 
 def CallbackOnAnimationFinish(animInfo, callbackBundle):
@@ -172,7 +174,8 @@ def GetSynchedAnimPosition(entity):
             height = sm.GetService('gameWorldClient').GetFloorHeight(pos, entity.scene.sceneID)
             pos.y = height
         return pos
-    return entity.GetComponent('position').position
+    else:
+        return entity.GetComponent('position').position
 
 
 def SleepUntilImpact(animInfo):
@@ -203,12 +206,12 @@ def CanWalkToStartPositionForSynchedAnim(sourceEnt, targetEnt, animInfo, callbac
     gw.CanPathTo(sourceEntityPosition, endPos, const.AVATAR_RADIUS, const.AVATAR_HEIGHT, callback, callbackArgs)
 
 
-def GetModifiedAnimInfoByName(staticActionData, animName, atkEnt = None, vicEnt = None):
+def GetModifiedAnimInfoByName(staticActionData, animName, atkEnt=None, vicEnt=None):
     animInfo = staticActionData.GetAnimInfoByName(animName)
     return GetModifiedAnimInfo(animInfo, atkEnt, vicEnt)
 
 
-def GetModifiedAnimInfo(animInfo, atkEnt = None, vicEnt = None):
+def GetModifiedAnimInfo(animInfo, atkEnt=None, vicEnt=None):
     victimIndex = const.animation.METADATA_ON_VICTIM_INDEX
     listName = const.animation.METADATA_INDEXED_LIST
     index = 0

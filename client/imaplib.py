@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\carbon\common\stdlib\imaplib.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\carbon\common\stdlib\imaplib.py
 __version__ = '2.58'
 import binascii, errno, random, re, socket, subprocess, sys, time
 __all__ = ['IMAP4',
@@ -81,7 +82,7 @@ class IMAP4():
 
     mustquote = re.compile("[^\\w!#$%&'*+,.:;<=>?^`|~-]")
 
-    def __init__(self, host = '', port = IMAP4_PORT):
+    def __init__(self, host='', port=IMAP4_PORT):
         self.debug = Debug
         self.state = 'LOGOUT'
         self.literal = None
@@ -111,13 +112,14 @@ class IMAP4():
             return
 
         raise self.error('server not IMAP4 compliant')
+        return
 
     def __getattr__(self, attr):
         if attr in Commands:
             return getattr(self, attr.lower())
         raise AttributeError("Unknown IMAP4 command: '%s'" % attr)
 
-    def open(self, host = '', port = IMAP4_PORT):
+    def open(self, host='', port=IMAP4_PORT):
         self.host = host
         self.port = port
         self.sock = socket.create_connection((host, port))
@@ -135,10 +137,12 @@ class IMAP4():
     def shutdown(self):
         self.file.close()
         try:
-            self.sock.shutdown(socket.SHUT_RDWR)
-        except socket.error as e:
-            if e.errno != errno.ENOTCONN:
-                raise
+            try:
+                self.sock.shutdown(socket.SHUT_RDWR)
+            except socket.error as e:
+                if e.errno != errno.ENOTCONN:
+                    raise
+
         finally:
             self.sock.close()
 
@@ -150,8 +154,9 @@ class IMAP4():
         typ, dat = self._untagged_response('OK', [None], name)
         if dat[-1]:
             return (typ, dat)
-        typ, dat = self.noop()
-        return self._untagged_response(typ, dat, name)
+        else:
+            typ, dat = self.noop()
+            return self._untagged_response(typ, dat, name)
 
     def response(self, code):
         return self._untagged_response(code, [None], code.upper())
@@ -237,7 +242,7 @@ class IMAP4():
         typ, quotaroot = self._untagged_response(typ, dat, 'QUOTAROOT')
         return (typ, [quotaroot, quota])
 
-    def list(self, directory = '""', pattern = '*'):
+    def list(self, directory='""', pattern='*'):
         name = 'LIST'
         typ, dat = self._simple_command(name, directory, pattern)
         return self._untagged_response(typ, dat, name)
@@ -269,7 +274,7 @@ class IMAP4():
             return ('BYE', self.untagged_responses['BYE'])
         return (typ, dat)
 
-    def lsub(self, directory = '""', pattern = '*'):
+    def lsub(self, directory='""', pattern='*'):
         name = 'LSUB'
         typ, dat = self._simple_command(name, directory, pattern)
         return self._untagged_response(typ, dat, name)
@@ -306,7 +311,7 @@ class IMAP4():
             typ, dat = self._simple_command(name, *criteria)
         return self._untagged_response(typ, dat, name)
 
-    def select(self, mailbox = 'INBOX', readonly = False):
+    def select(self, mailbox='INBOX', readonly=False):
         self.untagged_responses = {}
         self.is_readonly = readonly
         if readonly:
@@ -317,10 +322,11 @@ class IMAP4():
         if typ != 'OK':
             self.state = 'AUTH'
             return (typ, dat)
-        self.state = 'SELECTED'
-        if 'READ-ONLY' in self.untagged_responses and not readonly:
-            raise self.readonly('%s is not writable' % mailbox)
-        return (typ, self.untagged_responses.get('EXISTS', [None]))
+        else:
+            self.state = 'SELECTED'
+            if 'READ-ONLY' in self.untagged_responses and not readonly:
+                raise self.readonly('%s is not writable' % mailbox)
+            return (typ, self.untagged_responses.get('EXISTS', [None]))
 
     def setacl(self, mailbox, who, what):
         return self._simple_command('SETACL', mailbox, who, what)
@@ -390,6 +396,7 @@ class IMAP4():
             ur[typ].append(dat)
         else:
             ur[typ] = [dat]
+        return
 
     def _check_bye(self):
         bye = self.untagged_responses.get('BYE')
@@ -428,23 +435,24 @@ class IMAP4():
 
         if literal is None:
             return tag
-        while 1:
-            while self._get_response():
-                if self.tagged_commands[tag]:
-                    return tag
+        else:
+            while 1:
+                while self._get_response():
+                    if self.tagged_commands[tag]:
+                        return tag
 
-            if literator:
-                literal = literator(self.continuation_response)
-            try:
-                self.send(literal)
-                self.send(CRLF)
-            except (socket.error, OSError) as val:
-                raise self.abort('socket error: %s' % val)
+                if literator:
+                    literal = literator(self.continuation_response)
+                try:
+                    self.send(literal)
+                    self.send(CRLF)
+                except (socket.error, OSError) as val:
+                    raise self.abort('socket error: %s' % val)
 
-            if not literator:
-                break
+                if not literator:
+                    break
 
-        return tag
+            return tag
 
     def _command_complete(self, name, tag):
         if name != 'LOGOUT':
@@ -509,6 +517,8 @@ class IMAP4():
             except self.abort as val:
                 raise
 
+        return
+
     def _get_line(self):
         line = self.readline()
         if not line:
@@ -531,11 +541,12 @@ class IMAP4():
     def _checkquote(self, arg):
         if type(arg) is not type(''):
             return arg
-        if len(arg) >= 2 and (arg[0], arg[-1]) in (('(', ')'), ('"', '"')):
+        elif len(arg) >= 2 and (arg[0], arg[-1]) in (('(', ')'), ('"', '"')):
             return arg
-        if arg and self.mustquote.search(arg) is None:
+        elif arg and self.mustquote.search(arg) is None:
             return arg
-        return self._quote(arg)
+        else:
+            return self._quote(arg)
 
     def _quote(self, arg):
         arg = arg.replace('\\', '\\\\')
@@ -548,10 +559,11 @@ class IMAP4():
     def _untagged_response(self, typ, dat, name):
         if typ == 'NO':
             return (typ, dat)
-        if name not in self.untagged_responses:
+        elif name not in self.untagged_responses:
             return (typ, [None])
-        data = self.untagged_responses.pop(name)
-        return (typ, data)
+        else:
+            data = self.untagged_responses.pop(name)
+            return (typ, data)
 
 
 try:
@@ -562,12 +574,12 @@ else:
 
     class IMAP4_SSL(IMAP4):
 
-        def __init__(self, host = '', port = IMAP4_SSL_PORT, keyfile = None, certfile = None):
+        def __init__(self, host='', port=IMAP4_SSL_PORT, keyfile=None, certfile=None):
             self.keyfile = keyfile
             self.certfile = certfile
             IMAP4.__init__(self, host, port)
 
-        def open(self, host = '', port = IMAP4_SSL_PORT):
+        def open(self, host='', port=IMAP4_SSL_PORT):
             self.host = host
             self.port = port
             self.sock = socket.create_connection((host, port))
@@ -618,7 +630,7 @@ class IMAP4_stream(IMAP4):
         self.command = command
         IMAP4.__init__(self)
 
-    def open(self, host = None, port = None):
+    def open(self, host=None, port=None):
         self.host = None
         self.port = None
         self.sock = None
@@ -626,6 +638,7 @@ class IMAP4_stream(IMAP4):
         self.process = subprocess.Popen(self.command, stdin=subprocess.PIPE, stdout=subprocess.PIPE, shell=True, close_fds=True)
         self.writefile = self.process.stdin
         self.readfile = self.process.stdout
+        return
 
     def read(self, size):
         return self.readfile.read(size)
@@ -652,7 +665,8 @@ class _Authenticator():
         ret = self.mech(self.decode(data))
         if ret is None:
             return '*'
-        return self.encode(ret)
+        else:
+            return self.encode(ret)
 
     def encode(self, inp):
         oup = ''
@@ -692,34 +706,35 @@ def Internaldate2tuple(resp):
     mo = InternalDate.match(resp)
     if not mo:
         return None
-    mon = Mon2num[mo.group('mon')]
-    zonen = mo.group('zonen')
-    day = int(mo.group('day'))
-    year = int(mo.group('year'))
-    hour = int(mo.group('hour'))
-    min = int(mo.group('min'))
-    sec = int(mo.group('sec'))
-    zoneh = int(mo.group('zoneh'))
-    zonem = int(mo.group('zonem'))
-    zone = (zoneh * 60 + zonem) * 60
-    if zonen == '-':
-        zone = -zone
-    tt = (year,
-     mon,
-     day,
-     hour,
-     min,
-     sec,
-     -1,
-     -1,
-     -1)
-    utc = time.mktime(tt)
-    lt = time.localtime(utc)
-    if time.daylight and lt[-1]:
-        zone = zone + time.altzone
     else:
-        zone = zone + time.timezone
-    return time.localtime(utc - zone)
+        mon = Mon2num[mo.group('mon')]
+        zonen = mo.group('zonen')
+        day = int(mo.group('day'))
+        year = int(mo.group('year'))
+        hour = int(mo.group('hour'))
+        min = int(mo.group('min'))
+        sec = int(mo.group('sec'))
+        zoneh = int(mo.group('zoneh'))
+        zonem = int(mo.group('zonem'))
+        zone = (zoneh * 60 + zonem) * 60
+        if zonen == '-':
+            zone = -zone
+        tt = (year,
+         mon,
+         day,
+         hour,
+         min,
+         sec,
+         -1,
+         -1,
+         -1)
+        utc = time.mktime(tt)
+        lt = time.localtime(utc)
+        if time.daylight and lt[-1]:
+            zone = zone + time.altzone
+        else:
+            zone = zone + time.timezone
+        return time.localtime(utc - zone)
 
 
 def Int2AP(num):

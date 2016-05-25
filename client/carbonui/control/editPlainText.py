@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\packages\carbonui\control\editPlainText.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\packages\carbonui\control\editPlainText.py
 from carbonui.control.scroll import ScrollCoreOverride as ScrollCore
 from carbonui.control.scrollentries import ScrollEntryNode, SE_BaseClassCore, SE_TextlineCore
 from carbonui.control.label import LabelOverride as Label
@@ -102,6 +103,7 @@ class EditPlainTextCore(ScrollCore):
         self.SetHintText(attributes.get('hintText', self.default_hintText))
         setvalue = attributes.get('setvalue', self.default_setvalue)
         self.SetValue(setvalue)
+        return
 
     def DisableScrolling(self):
         self.scrollEnabled = False
@@ -119,6 +121,7 @@ class EditPlainTextCore(ScrollCore):
 
         self.resizeTasklet = None
         super(EditPlainTextCore, self).Close(*args, **kwds)
+        return
 
     def Prepare_Underlay_(self):
         self.sr.backgroundColorContainer = Container(name='backgroundColorContainer', parent=self)
@@ -153,99 +156,103 @@ class EditPlainTextCore(ScrollCore):
         self.CheckHintText()
 
     @telemetry.ZONE_METHOD
-    def SetValue(self, text, scrolltotop = 0, cursorPos = None, preformatted = 0, html = 1, fontColor = None):
+    def SetValue(self, text, scrolltotop=0, cursorPos=None, preformatted=0, html=1, fontColor=None):
         if self.destroyed:
             return
-        text = text or ''
-        if not self.IsEnoughRoomForSet(len(StripTags(text))):
+        else:
+            text = text or ''
+            if not self.IsEnoughRoomForSet(len(StripTags(text))):
+                return
+            self.GetAbsolute()
+            self._activeParams = None
+            newGS = uicore.font.GetGlyphString()
+            for glyphString in self.sr.paragraphs:
+                glyphString.Reset()
+
+            self.sr.paragraphs = [newGS]
+            self.LoadContent(contentList=[])
+            self.UpdateGlyphString(newGS)
+            self.SetSelectionRange(None, None, updateCursor=False)
+            self.SetCursorPos(0)
+            self.SetSelectionInitPos(self.globalCursorPos)
+            for tag, paramName in BOOLTAGS:
+                setattr(self, 'tagStack_%s' % tag, [])
+
+            for paramName, defaultAttrName in VALUETAGS:
+                setattr(self, 'tagStack_%s' % paramName, [])
+
+            self._activeParams = None
+            scrollTo = None
+            if scrolltotop:
+                scrollTo = 0.0
+            elif self.autoScrollToBottom and self.GetScrollProportion() == 0.0:
+                scrollTo = 1.0
+            self.InsertText(text)
+            if not self.readonly:
+                self.SetCursorPos(cursorPos or 0)
+            if scrollTo is not None:
+                self.ScrollToProportion(scrollTo)
+            self.UpdateCharacterCounter()
             return
-        self.GetAbsolute()
-        self._activeParams = None
-        newGS = uicore.font.GetGlyphString()
-        for glyphString in self.sr.paragraphs:
-            glyphString.Reset()
-
-        self.sr.paragraphs = [newGS]
-        self.LoadContent(contentList=[])
-        self.UpdateGlyphString(newGS)
-        self.SetSelectionRange(None, None, updateCursor=False)
-        self.SetCursorPos(0)
-        self.SetSelectionInitPos(self.globalCursorPos)
-        for tag, paramName in BOOLTAGS:
-            setattr(self, 'tagStack_%s' % tag, [])
-
-        for paramName, defaultAttrName in VALUETAGS:
-            setattr(self, 'tagStack_%s' % paramName, [])
-
-        self._activeParams = None
-        scrollTo = None
-        if scrolltotop:
-            scrollTo = 0.0
-        elif self.autoScrollToBottom and self.GetScrollProportion() == 0.0:
-            scrollTo = 1.0
-        self.InsertText(text)
-        if not self.readonly:
-            self.SetCursorPos(cursorPos or 0)
-        if scrollTo is not None:
-            self.ScrollToProportion(scrollTo)
-        self.UpdateCharacterCounter()
 
     @telemetry.ZONE_METHOD
     def InsertText(self, text):
         if self.destroyed:
             return
-        text = text or ''
-        if not StripTags(text):
-            text = ''
-        if text.find('<h') != -1:
-            text = text.replace('<h1>', '<br><fontsize=28><b>').replace('</h1>', '</b></fontsize><br>')
-            text = text.replace('<h2>', '<br><fontsize=24><b>').replace('</h2>', '</b></fontsize><br>')
-            text = text.replace('<h3>', '<br><fontsize=20><b>').replace('</h3>', '</b></fontsize><br>')
-            text = text.replace('<h4>', '<br><fontsize=18><b>').replace('</h4>', '</b></fontsize><br>')
-            text = text.replace('<h5>', '<br><fontsize=16><b>').replace('</h5>', '</b></fontsize><br>')
-            text = text.replace('<h6>', '<br><fontsize=14><b>').replace('</h6>', '</b></fontsize><br>')
-        text = text.replace('\t', '    ')
-        lines = LINESPLIT.split(text)
-        node = self.GetActiveNode()
-        if node is None:
-            return
-        initCursor = self.globalCursorPos
-        advance = 0
-        stackCursorIndex = self.globalCursorPos - node.startCursorIndex + node.stackCursorIndex
-        glyphString = node.glyphString
-        for lineIdx, line in enumerate(lines):
-            text = line
-            if not self.ignoreTags and line.find('<') > -1 and line.find('>') > -1:
-                for each in line.split(u'>'):
-                    texttag = each.split(u'<', 1)
-                    if len(texttag) == 1:
-                        text, tag = self.Encode(texttag[0]), None
-                    else:
-                        text, tag = self.Encode(texttag[0]), texttag[1]
-                    params = self.GetFontParams()
-                    self.InsertToGlyphString(glyphString, params, text, stackCursorIndex)
+        else:
+            text = text or ''
+            if not StripTags(text):
+                text = ''
+            if text.find('<h') != -1:
+                text = text.replace('<h1>', '<br><fontsize=28><b>').replace('</h1>', '</b></fontsize><br>')
+                text = text.replace('<h2>', '<br><fontsize=24><b>').replace('</h2>', '</b></fontsize><br>')
+                text = text.replace('<h3>', '<br><fontsize=20><b>').replace('</h3>', '</b></fontsize><br>')
+                text = text.replace('<h4>', '<br><fontsize=18><b>').replace('</h4>', '</b></fontsize><br>')
+                text = text.replace('<h5>', '<br><fontsize=16><b>').replace('</h5>', '</b></fontsize><br>')
+                text = text.replace('<h6>', '<br><fontsize=14><b>').replace('</h6>', '</b></fontsize><br>')
+            text = text.replace('\t', '    ')
+            lines = LINESPLIT.split(text)
+            node = self.GetActiveNode()
+            if node is None:
+                return
+            initCursor = self.globalCursorPos
+            advance = 0
+            stackCursorIndex = self.globalCursorPos - node.startCursorIndex + node.stackCursorIndex
+            glyphString = node.glyphString
+            for lineIdx, line in enumerate(lines):
+                text = line
+                if not self.ignoreTags and line.find('<') > -1 and line.find('>') > -1:
+                    for each in line.split(u'>'):
+                        texttag = each.split(u'<', 1)
+                        if len(texttag) == 1:
+                            text, tag = self.Encode(texttag[0]), None
+                        else:
+                            text, tag = self.Encode(texttag[0]), texttag[1]
+                        params = self.GetFontParams()
+                        self.InsertToGlyphString(glyphString, params, text, stackCursorIndex)
+                        stackCursorIndex += len(text)
+                        advance += len(text)
+                        if tag:
+                            self.ParseTag(tag)
+
+                else:
+                    text = self.Encode(text)
+                    self.InsertToGlyphString(glyphString, self.GetFontParams(), text, stackCursorIndex)
                     stackCursorIndex += len(text)
                     advance += len(text)
-                    if tag:
-                        self.ParseTag(tag)
+                gsNodes = self.UpdateGlyphString(glyphString, 0, 0)
+                if lineIdx != len(lines) - 1:
+                    newGS = uicore.font.GetGlyphString()
+                    gsIndex = self.GetGlyphStringIndex(glyphString)
+                    self.InsertNewGlyphString(newGS, gsIndex + 1, gsNodes[-1].idx + 1)
+                    glyphString = newGS
+                    stackCursorIndex = len(newGS)
+                    advance += 1
 
-            else:
-                text = self.Encode(text)
-                self.InsertToGlyphString(glyphString, self.GetFontParams(), text, stackCursorIndex)
-                stackCursorIndex += len(text)
-                advance += len(text)
-            gsNodes = self.UpdateGlyphString(glyphString, 0, 0)
-            if lineIdx != len(lines) - 1:
-                newGS = uicore.font.GetGlyphString()
-                gsIndex = self.GetGlyphStringIndex(glyphString)
-                self.InsertNewGlyphString(newGS, gsIndex + 1, gsNodes[-1].idx + 1)
-                glyphString = newGS
-                stackCursorIndex = len(newGS)
-                advance += 1
-
-        self.UpdatePosition()
-        self.SetCursorPos(initCursor + advance)
-        self.CheckHintText()
+            self.UpdatePosition()
+            self.SetCursorPos(initCursor + advance)
+            self.CheckHintText()
+            return
 
     SetText = SetValue
 
@@ -358,7 +365,7 @@ class EditPlainTextCore(ScrollCore):
              color[2] * 255)
         return colorString
 
-    def GetValue(self, html = 1):
+    def GetValue(self, html=1):
 
         def FormatValue(value, html):
             if html:
@@ -494,7 +501,8 @@ class EditPlainTextCore(ScrollCore):
 
         if not StripTags(retString):
             return ''
-        return retString
+        else:
+            return retString
 
     def SetDefaultFontSize(self, size):
         for glyphString in self.sr.paragraphs:
@@ -543,12 +551,14 @@ class EditPlainTextCore(ScrollCore):
             else:
                 color = params.color
             self.sr.attribPanel.AttribStateChange(params.bold, params.italic, params.underline, params.fontsize, color, params.url)
+        return
 
     def UpdateCharacterCounter(self):
         if self.sr.attribPanel is not None:
             self.sr.attribPanel.UpdateCounter()
+        return
 
-    def GetMenuDelegate(self, node = None):
+    def GetMenuDelegate(self, node=None):
         m = []
         m.append((MenuLabel('/Carbon/UI/Controls/Common/CopyAll'), self.CopyAll))
         if self.HasSelection():
@@ -567,7 +577,7 @@ class EditPlainTextCore(ScrollCore):
         self.SetSelectionInitPos(fromIdx)
         self.SetCursorPos(toIdx)
 
-    def FindWordBoundariesFromGlobalCursor(self, wordShift = 0):
+    def FindWordBoundariesFromGlobalCursor(self, wordShift=0):
         text = self.GetAllText(newLineStr=' ')
         boundaries = []
         counter = 0
@@ -604,7 +614,7 @@ class EditPlainTextCore(ScrollCore):
         self.globalSelectionInitpos = globalIndex
 
     @telemetry.ZONE_METHOD
-    def SetSelectionRange(self, fromCharIndex, toCharIndex, updateCursor = True):
+    def SetSelectionRange(self, fromCharIndex, toCharIndex, updateCursor=True):
         if fromCharIndex == toCharIndex:
             fromCharIndex, toCharIndex = (None, None)
         globalSelectionRange = [fromCharIndex, toCharIndex]
@@ -614,9 +624,10 @@ class EditPlainTextCore(ScrollCore):
             self.SetSelectionInitPos(self.globalCursorPos)
         if updateCursor:
             self.RefreshCursorAndSelection()
+        return
 
     @telemetry.ZONE_METHOD
-    def SetCursorPos(self, globalIndex, updateActiveParams = True):
+    def SetCursorPos(self, globalIndex, updateActiveParams=True):
         if globalIndex == -1:
             globalIndex = self._maxGlobalCursorIndex
         maxIndex = 0
@@ -629,59 +640,61 @@ class EditPlainTextCore(ScrollCore):
         self.RefreshCursorAndSelection(updateActiveParams=updateActiveParams)
 
     @telemetry.ZONE_METHOD
-    def RefreshCursorAndSelection(self, updateActiveParams = True):
+    def RefreshCursorAndSelection(self, updateActiveParams=True):
         if self.destroyed:
             return
-        i = 0
-        stackShift = 0
-        lastGlyphString = None
-        globalCursorIndex = 0
-        stackCursor = 0
-        fromIdx, toIdx = self.globalSelectionRange
-        for node in self.sr.nodes:
-            if not issubclass(node.decoClass, SE_EditTextlineCore):
-                continue
-            if node._endIndex is None:
-                letterCountInLine = 0
-            else:
-                letterCountInLine = node._endIndex - node._startIndex
-            node.letterCountInLine = letterCountInLine
-            if lastGlyphString is not None and lastGlyphString is not node.glyphString:
-                stackShift += 1
-                stackCursor = 0
-            node.startCursorIndex = globalCursorIndex + stackShift
-            node.endCursorIndex = node.startCursorIndex + letterCountInLine
-            node.stackCursorIndex = stackCursor
-            globalCursorIndex += letterCountInLine
-            stackCursor += letterCountInLine
-            lastGlyphString = node.glyphString
-            if updateActiveParams and node.startCursorIndex <= self.globalCursorPos <= node.endCursorIndex:
-                self._activeNode = node
-                stackCursorIndex = self.globalCursorPos - node.startCursorIndex + node.stackCursorIndex
-                self._activeParams = self.GetPriorParams(node.glyphString, stackCursorIndex) or self.GetFontParams()
-                self._activeParams = self._activeParams.Copy()
-                self.UpdateAttributePanel()
+        else:
+            i = 0
+            stackShift = 0
+            lastGlyphString = None
+            globalCursorIndex = 0
+            stackCursor = 0
+            fromIdx, toIdx = self.globalSelectionRange
+            for node in self.sr.nodes:
+                if not issubclass(node.decoClass, SE_EditTextlineCore):
+                    continue
+                if node._endIndex is None:
+                    letterCountInLine = 0
+                else:
+                    letterCountInLine = node._endIndex - node._startIndex
+                node.letterCountInLine = letterCountInLine
+                if lastGlyphString is not None and lastGlyphString is not node.glyphString:
+                    stackShift += 1
+                    stackCursor = 0
+                node.startCursorIndex = globalCursorIndex + stackShift
+                node.endCursorIndex = node.startCursorIndex + letterCountInLine
+                node.stackCursorIndex = stackCursor
+                globalCursorIndex += letterCountInLine
+                stackCursor += letterCountInLine
+                lastGlyphString = node.glyphString
+                if updateActiveParams:
+                    if node.startCursorIndex <= self.globalCursorPos <= node.endCursorIndex:
+                        self._activeNode = node
+                        stackCursorIndex = self.globalCursorPos - node.startCursorIndex + node.stackCursorIndex
+                        self._activeParams = self.GetPriorParams(node.glyphString, stackCursorIndex) or self.GetFontParams()
+                        self._activeParams = self._activeParams.Copy()
+                        self.UpdateAttributePanel()
+                    if not self.readonly:
+                        if node.globalCursorPos is not None:
+                            node.globalCursorPos = None
+                            node.panel and node.panel.UpdateCursor()
+                if not fromIdx is None:
+                    if fromIdx <= node.startCursorIndex <= toIdx or not node.startCursorIndex <= fromIdx <= node.endCursorIndex:
+                        node.selectionStartIndex = None
+                        node.selectionEndIndex = None
+                    else:
+                        node.selectionStartIndex = max(0, fromIdx)
+                        node.selectionEndIndex = max(0, toIdx)
+                    node.panel and hasattr(node.panel, 'UpdateSelectionHilite') and node.panel.UpdateSelectionHilite()
+                i += 1
+
             if not self.readonly:
-                if node.globalCursorPos is not None:
-                    node.globalCursorPos = None
+                node = self.GetActiveNode()
+                if node:
+                    node.globalCursorPos = self.globalCursorPos
                     if node.panel:
                         node.panel.UpdateCursor()
-            if fromIdx is None or not (fromIdx <= node.startCursorIndex <= toIdx or node.startCursorIndex <= fromIdx <= node.endCursorIndex):
-                node.selectionStartIndex = None
-                node.selectionEndIndex = None
-            else:
-                node.selectionStartIndex = max(0, fromIdx)
-                node.selectionEndIndex = max(0, toIdx)
-            if node.panel and hasattr(node.panel, 'UpdateSelectionHilite'):
-                node.panel.UpdateSelectionHilite()
-            i += 1
-
-        if not self.readonly:
-            node = self.GetActiveNode()
-            if node:
-                node.globalCursorPos = self.globalCursorPos
-                if node.panel:
-                    node.panel.UpdateCursor()
+            return
 
     @telemetry.ZONE_METHOD
     def GetActiveNode(self):
@@ -705,7 +718,7 @@ class EditPlainTextCore(ScrollCore):
         return ret[:-2]
 
     @telemetry.ZONE_METHOD
-    def GetAllText(self, newLineStr = '\r\n'):
+    def GetAllText(self, newLineStr='\r\n'):
         ret = ''
         for glyphString in self.sr.paragraphs:
             ret += glyphString.GetText()
@@ -717,6 +730,7 @@ class EditPlainTextCore(ScrollCore):
         self._selecting = 0
         self.sr.scrollTimer = None
         self.SetCursorPos(self.globalCursorPos)
+        return
 
     def OnMouseDownDelegate(self, _node, *args):
         self._selecting = 1
@@ -734,6 +748,7 @@ class EditPlainTextCore(ScrollCore):
                 self.SetSelectionRange(None, None)
                 self.SetSelectionInitPos(self.globalCursorPos)
         self.sr.scrollTimer = AutoTimer(100, self.ScrollTimer)
+        return
 
     def SetCursorFromNodeAndMousePos(self, node):
         if node.panel is not None:
@@ -741,6 +756,7 @@ class EditPlainTextCore(ScrollCore):
             self.SetCursorPos(node.startCursorIndex + internalPos)
         else:
             self.SetCursorPos(-1)
+        return
 
     def GetLastTextline(self):
         totalLines = len(self.sr.content.children)
@@ -752,53 +768,58 @@ class EditPlainTextCore(ScrollCore):
     def CrawlForTextline(self, mo):
         if isinstance(mo, SE_EditTextlineCore):
             return mo
-        if mo.parent:
+        elif mo.parent:
             if mo.parent is uicore.desktop:
                 return None
             return self.CrawlForTextline(mo.parent)
+        else:
+            return None
 
     def ScrollTimer(self):
         if not self._selecting or self.globalSelectionInitpos is None:
             self.sr.scrollTimer = None
             return
-        if not uicore.uilib.leftbtn:
+        elif not uicore.uilib.leftbtn:
             self.sr.scrollTimer = None
             self._selecting = 0
             return
-        toAffect = None
-        if uicore.uilib.mouseOver.IsUnder(self):
-            toAffect = self.CrawlForTextline(uicore.uilib.mouseOver)
-        if toAffect is None:
-            toAffect = self.GetLineAtCursorLevel()
-        aL, aT, aW, aH = self.GetAbsolute()
-        if uicore.uilib.y < aT:
-            self.Scroll(1)
-        elif uicore.uilib.y > aT + aH:
-            self.Scroll(-1)
-        if toAffect is None:
-            return
-        node = toAffect.sr.node
-        if node is None:
-            return
-        self.SetCursorFromNodeAndMousePos(node)
-        if self.globalCursorPos > self.globalSelectionInitpos:
-            self.SetSelectionRange(self.globalSelectionInitpos, self.globalCursorPos)
         else:
-            self.SetSelectionRange(self.globalCursorPos, self.globalSelectionInitpos)
+            toAffect = None
+            if uicore.uilib.mouseOver.IsUnder(self):
+                toAffect = self.CrawlForTextline(uicore.uilib.mouseOver)
+            if toAffect is None:
+                toAffect = self.GetLineAtCursorLevel()
+            aL, aT, aW, aH = self.GetAbsolute()
+            if uicore.uilib.y < aT:
+                self.Scroll(1)
+            elif uicore.uilib.y > aT + aH:
+                self.Scroll(-1)
+            if toAffect is None:
+                return
+            node = toAffect.sr.node
+            if node is None:
+                return
+            self.SetCursorFromNodeAndMousePos(node)
+            if self.globalCursorPos > self.globalSelectionInitpos:
+                self.SetSelectionRange(self.globalSelectionInitpos, self.globalCursorPos)
+            else:
+                self.SetSelectionRange(self.globalCursorPos, self.globalSelectionInitpos)
+            return
 
     def GetLineAtCursorLevel(self):
         aL, aT, aW, aH = self.GetAbsolute()
         if uicore.uilib.y < aT:
             return self.sr.content.children[0]
-        if uicore.uilib.y > aT + aH:
+        elif uicore.uilib.y > aT + aH:
             return self.sr.content.children[-1]
-        each = None
-        for each in self.sr.content.children:
-            l, t, w, h = each.GetAbsolute()
-            if t < uicore.uilib.y <= t + h:
-                return each
+        else:
+            each = None
+            for each in self.sr.content.children:
+                l, t, w, h = each.GetAbsolute()
+                if t < uicore.uilib.y <= t + h:
+                    return each
 
-        return each
+            return each
 
     def OnDragEnterDelegate(self, node, nodes):
         if self.readonly:
@@ -824,23 +845,26 @@ class EditPlainTextCore(ScrollCore):
     def OnMouseUp(self, *args):
         self._selecting = 0
         self.sr.scrollTimer = None
+        return
 
     def OnMouseDown(self, button, *args):
         if button != uiconst.MOUSELEFT:
             return
-        if len(self.sr.content.children):
-            shift = uicore.uilib.Key(uiconst.VK_SHIFT)
-            lastEntry = self.sr.content.children[-1]
-            l, t, w, h = lastEntry.GetAbsolute()
-            if uicore.uilib.y > t + h:
-                if shift:
-                    selectionStartIndex, selectionEndIndex = self.globalSelectionRange
-                    self.SetSelectionRange(selectionStartIndex or self.globalCursorPos, self._maxGlobalCursorIndex, updateCursor=False)
-                else:
-                    self.SetSelectionRange(None, None, updateCursor=False)
-                    self.SetSelectionInitPos(self._maxGlobalCursorIndex)
-                self.SetCursorPos(self._maxGlobalCursorIndex)
-        self._selecting = 1
+        else:
+            if len(self.sr.content.children):
+                shift = uicore.uilib.Key(uiconst.VK_SHIFT)
+                lastEntry = self.sr.content.children[-1]
+                l, t, w, h = lastEntry.GetAbsolute()
+                if uicore.uilib.y > t + h:
+                    if shift:
+                        selectionStartIndex, selectionEndIndex = self.globalSelectionRange
+                        self.SetSelectionRange(selectionStartIndex or self.globalCursorPos, self._maxGlobalCursorIndex, updateCursor=False)
+                    else:
+                        self.SetSelectionRange(None, None, updateCursor=False)
+                        self.SetSelectionInitPos(self._maxGlobalCursorIndex)
+                    self.SetCursorPos(self._maxGlobalCursorIndex)
+            self._selecting = 1
+            return
 
     def OnKeyDown(self, vkey, flag, *args, **kw):
         ctrl = uicore.uilib.Key(uiconst.VK_CONTROL)
@@ -963,7 +987,7 @@ class EditPlainTextCore(ScrollCore):
                 self.ShowNodeIdx(node.idx)
         if self.readonly:
             return
-        if ctrl:
+        elif ctrl:
             if vkey == uiconst.VK_B:
                 self.ToggleBold()
             if vkey == uiconst.VK_U:
@@ -985,44 +1009,49 @@ class EditPlainTextCore(ScrollCore):
              uiconst.VK_SUBTRACT):
                 self.UpdateCharacterCounter()
             return
-        if vkey == uiconst.VK_DELETE:
-            self.OnChar(127, flag)
+        else:
+            if vkey == uiconst.VK_DELETE:
+                self.OnChar(127, flag)
+            return
 
     def ReadOnly(self, *args):
         self.readonly = True
         if self.sr.attribPanel is not None:
             self.sr.attribPanel.ShowOrHideCharacterCounter(showCounter=False)
+        return
 
     def Editable(self, *args):
         self.readonly = False
         if self.sr.attribPanel is not None:
             self.sr.attribPanel.ShowOrHideCharacterCounter(showCounter=True)
+        return
 
     def OnChar(self, char, flag):
         if self.readonly:
             return False
-        if char < 32 and char not in (uiconst.VK_RETURN, uiconst.VK_BACK):
+        elif char < 32 and char not in (uiconst.VK_RETURN, uiconst.VK_BACK):
             return False
-        if self.globalCursorPos is None:
+        elif self.globalCursorPos is None:
             return False
-        self.keybuffer.append(char)
-        if not self.updating:
-            if char == uiconst.VK_RETURN and not uicore.uilib.Key(uiconst.VK_SHIFT) and self.OnReturn:
-                self.keybuffer.pop(-1)
-                return uthread.new(self.OnReturn)
-            try:
-                self.updating = 1
-                while len(self.keybuffer):
-                    char = self.keybuffer.pop(0)
-                    if self.DeleteSelected() and char in [127, uiconst.VK_BACK]:
-                        continue
-                    self.Insert(char)
+        else:
+            self.keybuffer.append(char)
+            if not self.updating:
+                if char == uiconst.VK_RETURN and not uicore.uilib.Key(uiconst.VK_SHIFT) and self.OnReturn:
+                    self.keybuffer.pop(-1)
+                    return uthread.new(self.OnReturn)
+                try:
+                    self.updating = 1
+                    while len(self.keybuffer):
+                        char = self.keybuffer.pop(0)
+                        if self.DeleteSelected() and char in [127, uiconst.VK_BACK]:
+                            continue
+                        self.Insert(char)
 
-                self.UpdateCharacterCounter()
-            finally:
-                self.updating = 0
+                    self.UpdateCharacterCounter()
+                finally:
+                    self.updating = 0
 
-        return True
+            return True
 
     def SelectAll(self, *args):
         self.SetSelectionRange(0, self._maxGlobalCursorIndex)
@@ -1060,8 +1089,9 @@ class EditPlainTextCore(ScrollCore):
     def RoomLeft(self):
         if not self.maxletters:
             return None
-        currentLen = len(self.GetAllText())
-        return max(0, self.maxletters + len(self.GetSelectedText()) - currentLen)
+        else:
+            currentLen = len(self.GetAllText())
+            return max(0, self.maxletters + len(self.GetSelectedText()) - currentLen)
 
     def Paste(self, text):
         if self.ValidatePaste:
@@ -1072,14 +1102,16 @@ class EditPlainTextCore(ScrollCore):
             text = text[:roomLeft]
         if self.readonly or not text:
             return
-        self.DeleteSelected()
-        self.InsertText(text)
-        node = self.GetActiveNode()
-        if node:
-            self.ShowNodeIdx(node.idx)
-        self.UpdatePosition()
-        uicore.registry.SetFocus(self)
-        self.UpdateCharacterCounter()
+        else:
+            self.DeleteSelected()
+            self.InsertText(text)
+            node = self.GetActiveNode()
+            if node:
+                self.ShowNodeIdx(node.idx)
+            self.UpdatePosition()
+            uicore.registry.SetFocus(self)
+            self.UpdateCharacterCounter()
+            return
 
     def ValidatePaste(self, text):
         return text
@@ -1200,7 +1232,7 @@ class EditPlainTextCore(ScrollCore):
         return ret
 
     @telemetry.ZONE_METHOD
-    def UpdateGlyphString(self, glyphString, advance = None, stackCursorIndex = None):
+    def UpdateGlyphString(self, glyphString, advance=None, stackCursorIndex=None):
         allNodesUsingGlyphString = self.GetNodesWithGlyphString(glyphString)
         lineIndexes = self.CheckLineWrap(glyphString)
         if stackCursorIndex is not None:
@@ -1331,6 +1363,7 @@ class EditPlainTextCore(ScrollCore):
         gsIdx = self.GetGlyphStringIndex(glyphString)
         if gsIdx is not None:
             del self.sr.paragraphs[gsIdx]
+        return
 
     @telemetry.ZONE_METHOD
     def GetGlyphStringIndex(self, glyphString):
@@ -1343,98 +1376,100 @@ class EditPlainTextCore(ScrollCore):
         if char not in (uiconst.VK_BACK, 127) and not self.IsEnoughRoomForInsert(1):
             uicore.Message('uiwarning03')
             return
-        node = self.GetActiveNode()
-        if node is None:
-            return
-        stackCursorIndex = self.globalCursorPos - node.startCursorIndex + node.stackCursorIndex
-        glyphString = node.glyphString
-        glyphStringIndex = self.GetGlyphStringIndex(glyphString)
-        cursorAdvance = 0
-        setParams = None
-        if char == uiconst.VK_RETURN:
-            newGS = uicore.font.GetGlyphString()
-            newGS += glyphString[stackCursorIndex:]
-            glyphString.FlushFromIndex(stackCursorIndex)
-            gsNodes = self.UpdateGlyphString(glyphString)
-            gsIndex = self.GetGlyphStringIndex(glyphString)
-            self.InsertNewGlyphString(newGS, gsIndex + 1, gsNodes[-1].idx + 1)
-            self.RefreshNodes()
-            cursorAdvance = 1
-        elif char == 127:
-            if stackCursorIndex == len(glyphString):
-                if self.sr.paragraphs[-1] is not glyphString:
-                    idx = self.GetGlyphStringIndex(glyphString)
-                    glyphStringBelow = self.sr.paragraphs[idx + 1]
-                    glyphString += glyphStringBelow
-                    self.UpdateGlyphString(glyphString)
-                    self.RemoveGlyphString(glyphStringBelow)
-            else:
-                glyphString.Remove(stackCursorIndex, stackCursorIndex + 1)
-                self.UpdateGlyphString(glyphString, -1, stackCursorIndex + 1)
-        elif char == uiconst.VK_BACK:
-            setParams = self.GetPriorParams(node.glyphString, stackCursorIndex)
-            if stackCursorIndex > 0:
-                glyphString.Remove(stackCursorIndex - 1, stackCursorIndex)
-                self.UpdateGlyphString(glyphString, -1, stackCursorIndex - 1)
-                cursorAdvance = -1
-            elif glyphStringIndex > 0:
-                glyphStringAbove = self.sr.paragraphs[glyphStringIndex - 1]
-                glyphStringAbove += glyphString
-                self.RemoveGlyphString(glyphString)
-                self.UpdateGlyphString(glyphStringAbove)
-                cursorAdvance = -1
         else:
-            currentParams = self._activeParams.Copy()
-            unichar = unichr(char)
-            isLatinBased = uicore.font.IsLatinBased(unichar)
-            if isLatinBased or not uicore.imeHandler:
-                keyboardLanguageID = languageConst.LANG_ENGLISH
+            node = self.GetActiveNode()
+            if node is None:
+                return
+            stackCursorIndex = self.globalCursorPos - node.startCursorIndex + node.stackCursorIndex
+            glyphString = node.glyphString
+            glyphStringIndex = self.GetGlyphStringIndex(glyphString)
+            cursorAdvance = 0
+            setParams = None
+            if char == uiconst.VK_RETURN:
+                newGS = uicore.font.GetGlyphString()
+                newGS += glyphString[stackCursorIndex:]
+                glyphString.FlushFromIndex(stackCursorIndex)
+                gsNodes = self.UpdateGlyphString(glyphString)
+                gsIndex = self.GetGlyphStringIndex(glyphString)
+                self.InsertNewGlyphString(newGS, gsIndex + 1, gsNodes[-1].idx + 1)
+                self.RefreshNodes()
+                cursorAdvance = 1
+            elif char == 127:
+                if stackCursorIndex == len(glyphString):
+                    if self.sr.paragraphs[-1] is not glyphString:
+                        idx = self.GetGlyphStringIndex(glyphString)
+                        glyphStringBelow = self.sr.paragraphs[idx + 1]
+                        glyphString += glyphStringBelow
+                        self.UpdateGlyphString(glyphString)
+                        self.RemoveGlyphString(glyphStringBelow)
+                else:
+                    glyphString.Remove(stackCursorIndex, stackCursorIndex + 1)
+                    self.UpdateGlyphString(glyphString, -1, stackCursorIndex + 1)
+            elif char == uiconst.VK_BACK:
+                setParams = self.GetPriorParams(node.glyphString, stackCursorIndex)
+                if stackCursorIndex > 0:
+                    glyphString.Remove(stackCursorIndex - 1, stackCursorIndex)
+                    self.UpdateGlyphString(glyphString, -1, stackCursorIndex - 1)
+                    cursorAdvance = -1
+                elif glyphStringIndex > 0:
+                    glyphStringAbove = self.sr.paragraphs[glyphStringIndex - 1]
+                    glyphStringAbove += glyphString
+                    self.RemoveGlyphString(glyphString)
+                    self.UpdateGlyphString(glyphStringAbove)
+                    cursorAdvance = -1
             else:
-                keyboardLanguageID = uicore.imeHandler.GetKeyboardLanguageID()
-            fontFamily = uicore.font.GetFontFamilyBasedOnWindowsLanguageID(keyboardLanguageID)
-            currentParams.fontFamily = fontFamily
-            uicore.font.ResolveFontFamily(currentParams)
-            if currentParams.url:
-                if currentParams.has_key('loc'):
-                    currentParams.pop('loc')
-                nextParams = self.GetNextParams(glyphString, stackCursorIndex)
-                cursorOffset = 1
-                while nextParams and nextParams.has_key('loc') and nextParams.url is not None:
-                    nextParams.pop('loc')
-                    nextParams = self.GetNextParams(glyphString, stackCursorIndex + cursorOffset)
-                    cursorOffset += 1
-
-                prevParams = self.GetPriorParams(glyphString, stackCursorIndex)
-                cursorOffset = -1
-                while prevParams and prevParams.has_key('loc') and prevParams.url is not None:
-                    prevParams.pop('loc')
-                    prevParams = self.GetPriorParams(glyphString, stackCursorIndex + cursorOffset)
-                    cursorOffset -= 1
-
-                if unichar in ENDLINKCHARS:
+                currentParams = self._activeParams.Copy()
+                unichar = unichr(char)
+                isLatinBased = uicore.font.IsLatinBased(unichar)
+                if isLatinBased or not uicore.imeHandler:
+                    keyboardLanguageID = languageConst.LANG_ENGLISH
+                else:
+                    keyboardLanguageID = uicore.imeHandler.GetKeyboardLanguageID()
+                fontFamily = uicore.font.GetFontFamilyBasedOnWindowsLanguageID(keyboardLanguageID)
+                currentParams.fontFamily = fontFamily
+                uicore.font.ResolveFontFamily(currentParams)
+                if currentParams.url:
+                    if currentParams.has_key('loc'):
+                        currentParams.pop('loc')
                     nextParams = self.GetNextParams(glyphString, stackCursorIndex)
-                    if not nextParams or nextParams.url != currentParams.url:
+                    cursorOffset = 1
+                    while nextParams and nextParams.has_key('loc') and nextParams.url is not None:
+                        nextParams.pop('loc')
+                        nextParams = self.GetNextParams(glyphString, stackCursorIndex + cursorOffset)
+                        cursorOffset += 1
+
+                    prevParams = self.GetPriorParams(glyphString, stackCursorIndex)
+                    cursorOffset = -1
+                    while prevParams and prevParams.has_key('loc') and prevParams.url is not None:
+                        prevParams.pop('loc')
+                        prevParams = self.GetPriorParams(glyphString, stackCursorIndex + cursorOffset)
+                        cursorOffset -= 1
+
+                    if unichar in ENDLINKCHARS:
+                        nextParams = self.GetNextParams(glyphString, stackCursorIndex)
+                        if not nextParams or nextParams.url != currentParams.url:
+                            currentParams = currentParams.Copy()
+                            currentParams.url = None
+                            self.ResetToPreviousUrlParams(currentParams, glyphString, stackCursorIndex)
+                    elif stackCursorIndex == 0:
                         currentParams = currentParams.Copy()
                         currentParams.url = None
                         self.ResetToPreviousUrlParams(currentParams, glyphString, stackCursorIndex)
-                elif stackCursorIndex == 0:
-                    currentParams = currentParams.Copy()
-                    currentParams.url = None
-                    self.ResetToPreviousUrlParams(currentParams, glyphString, stackCursorIndex)
-            self.InsertToGlyphString(glyphString, currentParams, unichar, stackCursorIndex)
-            self.UpdateGlyphString(glyphString, advance=1, stackCursorIndex=stackCursorIndex)
-            cursorAdvance = 1
-        self.UpdatePosition()
-        self.OnChange()
-        self.SetCursorPos(self.globalCursorPos + cursorAdvance)
-        self.CheckHintText()
-        self.SetSelectionInitPos(self.globalCursorPos)
-        node = self.GetActiveNode()
-        if node:
-            self.ShowNodeIdx(node.idx)
-        if setParams:
-            self._activeParams = setParams.Copy()
-            self.UpdateAttributePanel()
+                self.InsertToGlyphString(glyphString, currentParams, unichar, stackCursorIndex)
+                self.UpdateGlyphString(glyphString, advance=1, stackCursorIndex=stackCursorIndex)
+                cursorAdvance = 1
+            self.UpdatePosition()
+            self.OnChange()
+            self.SetCursorPos(self.globalCursorPos + cursorAdvance)
+            self.CheckHintText()
+            self.SetSelectionInitPos(self.globalCursorPos)
+            node = self.GetActiveNode()
+            if node:
+                self.ShowNodeIdx(node.idx)
+            if setParams:
+                self._activeParams = setParams.Copy()
+                self.UpdateAttributePanel()
+            return
 
     def ResetToPreviousUrlParams(self, param, glyphString, stackCursorIndex):
         previousParams = None
@@ -1452,6 +1487,7 @@ class EditPlainTextCore(ScrollCore):
             param.bold = previousParams.bold
             param.italic = previousParams.italic
             param.underline = previousParams.underline
+        return
 
     def GetPriorParams(self, glyphString, stackCursorIndex):
         if len(glyphString):
@@ -1507,50 +1543,51 @@ class EditPlainTextCore(ScrollCore):
         fromIdx, toIdx = self.globalSelectionRange
         if fromIdx == toIdx:
             return
-        startGS = None
-        endGS = None
-        singleLineGS = None
-        rmCompletely = []
-        counter = 0
-        for gsIdx, glyphString in enumerate(self.sr.paragraphs):
-            gsLength = len(glyphString)
-            if fromIdx <= counter and counter + gsLength <= toIdx:
-                rmCompletely.append(glyphString)
-            elif counter <= fromIdx <= counter + gsLength and counter <= toIdx <= counter + gsLength:
-                singleLineGS = glyphString
-                self.RemoveFromGlyphString(glyphString, fromIdx - counter, toIdx - counter)
-            elif counter <= fromIdx <= counter + gsLength:
-                startGS = glyphString
-                startGS.FlushFromIndex(fromIdx - counter)
-            elif counter <= toIdx <= counter + gsLength:
-                endGS = glyphString
-                glyphString.FlushToIndex(toIdx - counter)
-            counter += gsLength
-            counter += 1
-            if counter >= toIdx:
-                break
-
-        if singleLineGS is not None:
-            self.UpdateGlyphString(singleLineGS)
-        elif startGS and endGS:
-            startGS += endGS
-            rmCompletely.append(endGS)
-            self.UpdateGlyphString(startGS)
-        elif startGS:
-            self.UpdateGlyphString(startGS)
-        elif endGS:
-            self.UpdateGlyphString(endGS)
-        for glyphString in rmCompletely:
-            self.RemoveGlyphString(glyphString)
-
-        if not self.sr.nodes:
-            self.SetValue('')
         else:
-            self.SetSelectionRange(None, None, updateCursor=False)
-            self.SetCursorPos(fromIdx)
-            self.SetSelectionInitPos(self.globalCursorPos)
-        self.UpdatePosition()
-        return 1
+            startGS = None
+            endGS = None
+            singleLineGS = None
+            rmCompletely = []
+            counter = 0
+            for gsIdx, glyphString in enumerate(self.sr.paragraphs):
+                gsLength = len(glyphString)
+                if fromIdx <= counter and counter + gsLength <= toIdx:
+                    rmCompletely.append(glyphString)
+                elif counter <= fromIdx <= counter + gsLength:
+                    singleLineGS = counter <= toIdx <= counter + gsLength and glyphString
+                    self.RemoveFromGlyphString(glyphString, fromIdx - counter, toIdx - counter)
+                elif counter <= fromIdx <= counter + gsLength:
+                    startGS = glyphString
+                    startGS.FlushFromIndex(fromIdx - counter)
+                elif counter <= toIdx <= counter + gsLength:
+                    endGS = glyphString
+                    glyphString.FlushToIndex(toIdx - counter)
+                counter += gsLength
+                counter += 1
+                if counter >= toIdx:
+                    break
+
+            if singleLineGS is not None:
+                self.UpdateGlyphString(singleLineGS)
+            elif startGS and endGS:
+                startGS += endGS
+                rmCompletely.append(endGS)
+                self.UpdateGlyphString(startGS)
+            elif startGS:
+                self.UpdateGlyphString(startGS)
+            elif endGS:
+                self.UpdateGlyphString(endGS)
+            for glyphString in rmCompletely:
+                self.RemoveGlyphString(glyphString)
+
+            if not self.sr.nodes:
+                self.SetValue('')
+            else:
+                self.SetSelectionRange(None, None, updateCursor=False)
+                self.SetCursorPos(fromIdx)
+                self.SetSelectionInitPos(self.globalCursorPos)
+            self.UpdatePosition()
+            return 1
 
     def GetSeletedCharData(self):
         fromIdx, toIdx = self.globalSelectionRange
@@ -1585,7 +1622,7 @@ class EditPlainTextCore(ScrollCore):
 
         return ret
 
-    def ApplySelection(self, what, data = None, toggle = False):
+    def ApplySelection(self, what, data=None, toggle=False):
         selectedData = self.GetSeletedCharData()
         if selectedData:
             node = self.GetActiveNode()
@@ -1654,6 +1691,7 @@ class EditPlainTextCore(ScrollCore):
             self.RemoveAnchor()
         self.RefreshCursorAndSelection(updateActiveParams=False)
         self.UpdatePosition()
+        return
 
     def ApplyGameSelection(self, *args):
         pass
@@ -1693,26 +1731,29 @@ class EditPlainTextCore(ScrollCore):
             self.resizeTasklet.kill()
             self.resizeTasklet = None
         self.resizeTasklet = uthread.new(self.DoSizeUpdate)
+        return
 
     @telemetry.ZONE_METHOD
     def DoSizeUpdate(self):
         if self.destroyed:
             return
-        self.resizing = 1
-        for glyphString in self.sr.paragraphs:
-            self.UpdateGlyphString(glyphString, 0, 0)
-
-        self.RefreshNodes()
-        if self.autoScrollToBottom and self.GetScrollProportion() == 0.0:
-            self.ScrollToProportion(1.0)
         else:
-            self.UpdatePosition()
-        self.RefreshCursorAndSelection()
-        self.resizeTasklet = None
-        self.resizing = 1
+            self.resizing = 1
+            for glyphString in self.sr.paragraphs:
+                self.UpdateGlyphString(glyphString, 0, 0)
+
+            self.RefreshNodes()
+            if self.autoScrollToBottom and self.GetScrollProportion() == 0.0:
+                self.ScrollToProportion(1.0)
+            else:
+                self.UpdatePosition()
+            self.RefreshCursorAndSelection()
+            self.resizeTasklet = None
+            self.resizing = 1
+            return
 
     @telemetry.ZONE_METHOD
-    def RefreshNodeIndexes(self, fromWhere = None):
+    def RefreshNodeIndexes(self, fromWhere=None):
         if self.destroyed:
             return
         for nodeidx, node in enumerate(self.sr.nodes):
@@ -1771,6 +1812,7 @@ class EditPlainTextCore(ScrollCore):
             stackCursorIndex = self.globalCursorPos - node.startCursorIndex + node.stackCursorIndex
             glyphString = node.glyphString
             self.ResetToPreviousUrlParams(self._activeParams, glyphString, stackCursorIndex)
+        return
 
     def HasText(self):
         for each in self.sr.paragraphs:
@@ -1794,6 +1836,7 @@ class SE_EditTextlineCore(SE_BaseClassCore, BaseLink):
         self.sr.textselection = None
         trinity.device.RegisterResource(self)
         uicore.textObjects.add(self)
+        return
 
     def OnChar(self, *args):
         pass
@@ -1810,6 +1853,7 @@ class SE_EditTextlineCore(SE_BaseClassCore, BaseLink):
             node.scroll.UpdatePosition()
         self.UpdateSelectionHilite()
         self.UpdateCursor()
+        return
 
     def GetSprite(self):
         if self.sr.sprite is None:
@@ -1821,9 +1865,10 @@ class SE_EditTextlineCore(SE_BaseClassCore, BaseLink):
             self.sr.sprite.texture = None
         if self.sr and self.sr.node:
             self.Load(self.sr.node)
+        return
 
     @telemetry.ZONE_METHOD
-    def RenderLine(self, createLinks = True):
+    def RenderLine(self, createLinks=True):
         if createLinks and self.sr.links:
             self.sr.links.Flush()
         node = self.sr.node
@@ -1837,20 +1882,22 @@ class SE_EditTextlineCore(SE_BaseClassCore, BaseLink):
             if self.sr.sprite:
                 self.sr.sprite.state = uiconst.UI_HIDDEN
             return
-        sprite, surf = self.GetSurface(node._width, node._baseHeight)
-        if not surf:
-            return
-        sprite.left = TEXTSIDEMARGIN
-        sprite.top = xtraHeight
-        k = surf.LockBuffer(None, False)
-        try:
-            buf = SE_TextlineCore.TexResBuf(k)
-            trinity.fontMan.ClearBuffer(buf.data, buf.width, buf.height, buf.pitch)
-            self.DrawLine(node.glyphString, buf, 0, node._baseHeight - node._baseLine, startIdx=node._startIndex, endIdx=node._endIndex, createLinks=createLinks)
-        finally:
-            surf.UnlockBuffer()
+        else:
+            sprite, surf = self.GetSurface(node._width, node._baseHeight)
+            if not surf:
+                return
+            sprite.left = TEXTSIDEMARGIN
+            sprite.top = xtraHeight
+            k = surf.LockBuffer(None, False)
+            try:
+                buf = SE_TextlineCore.TexResBuf(k)
+                trinity.fontMan.ClearBuffer(buf.data, buf.width, buf.height, buf.pitch)
+                self.DrawLine(node.glyphString, buf, 0, node._baseHeight - node._baseLine, startIdx=node._startIndex, endIdx=node._endIndex, createLinks=createLinks)
+            finally:
+                surf.UnlockBuffer()
 
-        sprite.state = uiconst.UI_DISABLED
+            sprite.state = uiconst.UI_DISABLED
+            return
 
     def GetUrlText(self, glyphString, startIdx, url):
         retText = ''
@@ -1870,7 +1917,7 @@ class SE_EditTextlineCore(SE_BaseClassCore, BaseLink):
         return retText
 
     @telemetry.ZONE_METHOD
-    def DrawLine(self, glyphString, buf, bx0, by0, startIdx, endIdx, createLinks = True):
+    def DrawLine(self, glyphString, buf, bx0, by0, startIdx, endIdx, createLinks=True):
         sprite = self.GetSprite()
         x = 0
         self.advanceByIndex.append(x)
@@ -1911,6 +1958,7 @@ class SE_EditTextlineCore(SE_BaseClassCore, BaseLink):
             i += 1
 
         self._currentWidth = self.ReverseScaleDpi(x)
+        return
 
     @telemetry.ZONE_METHOD
     def GetSurface(self, width, height):
@@ -1934,6 +1982,8 @@ class SE_EditTextlineCore(SE_BaseClassCore, BaseLink):
             log.LogWarn('Failed to create surface', e)
             log.LogException()
             return (sprite, None)
+
+        return
 
     def CreateLink(self, url):
         if not self.sr.links:
@@ -1971,7 +2021,7 @@ class SE_EditTextlineCore(SE_BaseClassCore, BaseLink):
             browser.sr.window.ShowHint('')
         self.HiliteLink()
 
-    def HiliteLink(self, linkUrl = None):
+    def HiliteLink(self, linkUrl=None):
         for entry in self.sr.node.scroll.sr.nodes:
             entry.hiliteLink = linkUrl
             if not entry.panel:
@@ -1979,12 +2029,15 @@ class SE_EditTextlineCore(SE_BaseClassCore, BaseLink):
             if entry.panel.sr.Get('links', None):
                 entry.panel.RenderLine(createLinks=False)
 
+        return
+
     def SelectionHandlerDelegate(self, funcName, args):
         handler = self.sr.node.Get('SelectionHandler', None)
         if handler:
             func = getattr(handler, funcName, None)
             if func:
                 return apply(func, args)
+        return
 
     def GetMenu(self):
         self.sr.node.scroll.ShowHint('')
@@ -2032,33 +2085,35 @@ class SE_EditTextlineCore(SE_BaseClassCore, BaseLink):
     def UpdateSelectionHilite(self):
         if not self.sr.node:
             return
-        scrollAbove = self.GetScrollAbove()
-        f = uicore.registry.GetFocus()
-        if not scrollAbove or scrollAbove is not f or not trinity.app.IsActive():
-            selectionAlpha = 0.125
         else:
-            selectionAlpha = 0.25
-        if self.sr.node.selectionStartIndex is not None:
-            if self.sr.textselection is None:
-                self.sr.textselection = Fill(parent=self, align=uiconst.TOPLEFT, state=uiconst.UI_HIDDEN)
-            self.sr.textselection.SetAlpha(selectionAlpha)
-            if self.sr.node.startCursorIndex <= self.sr.node.selectionStartIndex <= self.sr.node.endCursorIndex:
-                left = self.GetWidthToGlobalIndex(self.sr.node.selectionStartIndex)
+            scrollAbove = self.GetScrollAbove()
+            f = uicore.registry.GetFocus()
+            if not scrollAbove or scrollAbove is not f or not trinity.app.IsActive():
+                selectionAlpha = 0.125
             else:
-                left = 0
-            if self.sr.node.startCursorIndex <= self.sr.node.selectionEndIndex <= self.sr.node.endCursorIndex:
-                width = self.GetWidthToGlobalIndex(self.sr.node.selectionEndIndex)
-            elif len(self.sr.node.glyphString):
-                width = getattr(self, '_currentWidth', 0) or self.GetSprite().width
-            else:
-                width = 0
-            self.sr.textselection.left = left + TEXTSIDEMARGIN
-            self.sr.textselection.width = max(2, width - left)
-            self.sr.textselection.top = TEXTLINEMARGIN
-            self.sr.textselection.height = self.height
-            self.sr.textselection.state = uiconst.UI_DISABLED
-        elif self.sr.textselection:
-            self.sr.textselection.state = uiconst.UI_HIDDEN
+                selectionAlpha = 0.25
+            if self.sr.node.selectionStartIndex is not None:
+                if self.sr.textselection is None:
+                    self.sr.textselection = Fill(parent=self, align=uiconst.TOPLEFT, state=uiconst.UI_HIDDEN)
+                self.sr.textselection.SetAlpha(selectionAlpha)
+                if self.sr.node.startCursorIndex <= self.sr.node.selectionStartIndex <= self.sr.node.endCursorIndex:
+                    left = self.GetWidthToGlobalIndex(self.sr.node.selectionStartIndex)
+                else:
+                    left = 0
+                if self.sr.node.startCursorIndex <= self.sr.node.selectionEndIndex <= self.sr.node.endCursorIndex:
+                    width = self.GetWidthToGlobalIndex(self.sr.node.selectionEndIndex)
+                elif len(self.sr.node.glyphString):
+                    width = getattr(self, '_currentWidth', 0) or self.GetSprite().width
+                else:
+                    width = 0
+                self.sr.textselection.left = left + TEXTSIDEMARGIN
+                self.sr.textselection.width = max(2, width - left)
+                self.sr.textselection.top = TEXTLINEMARGIN
+                self.sr.textselection.height = self.height
+                self.sr.textselection.state = uiconst.UI_DISABLED
+            elif self.sr.textselection:
+                self.sr.textselection.state = uiconst.UI_HIDDEN
+            return
 
     def GetInternalCursorPos(self):
         if not self.sr.sprite:
@@ -2096,12 +2151,12 @@ class SE_EditTextlineCore(SE_BaseClassCore, BaseLink):
         elif self.sr.textcursor:
             self.sr.cursortimer = None
             self.sr.textcursor.state = uiconst.UI_HIDDEN
+        return
 
     def GetWidthToGlobalIndex(self, globalCursorPos):
         localIndex = globalCursorPos - self.sr.node.startCursorIndex
         if len(self.advanceByIndex) > localIndex:
             return self.advanceByIndex[localIndex]
-        return 0
 
     def GetCursorOffset(self):
         if self.sr.textcursor:
@@ -2114,13 +2169,15 @@ class SE_EditTextlineCore(SE_BaseClassCore, BaseLink):
                 self.sr.textcursor.state = uiconst.UI_HIDDEN
             self.sr.cursortimer = None
             return
-        if f and self.IsUnder(f) and self.sr.node.globalCursorPos is not None and self.sr.textcursor is not None:
-            self.sr.textcursor.state = [uiconst.UI_HIDDEN, uiconst.UI_DISABLED][self.sr.textcursor.state == uiconst.UI_HIDDEN]
-            if self.sr.cursortimer is None:
-                self.sr.cursortimer = AutoTimer(250, self.CursorBlink)
         else:
-            self.sr.cursortimer = None
-            self.sr.textcursor.state = uiconst.UI_HIDDEN
+            if f and self.IsUnder(f) and self.sr.node.globalCursorPos is not None and self.sr.textcursor is not None:
+                self.sr.textcursor.state = [uiconst.UI_HIDDEN, uiconst.UI_DISABLED][self.sr.textcursor.state == uiconst.UI_HIDDEN]
+                if self.sr.cursortimer is None:
+                    self.sr.cursortimer = AutoTimer(250, self.CursorBlink)
+            else:
+                self.sr.cursortimer = None
+                self.sr.textcursor.state = uiconst.UI_HIDDEN
+            return
 
     def GetCopyData(self, fromIdx, toIdx):
         return uicore.font.GetNodeCopyData(self.sr.node, fromIdx, toIdx)

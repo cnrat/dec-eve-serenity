@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\packages\watchdog\utils\event_backport.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\packages\watchdog\utils\event_backport.py
 from threading import Condition, Lock
 
 class Event(object):
@@ -27,7 +28,7 @@ class Event(object):
         finally:
             self.__cond.release()
 
-    def wait(self, timeout = None):
+    def wait(self, timeout=None):
         self.__cond.acquire()
         try:
             if not self.__flag:

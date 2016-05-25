@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\packages\achievements\common\achievementGroup.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\packages\achievements\common\achievementGroup.py
 
 
 class AchievementGroupData(object):
@@ -10,7 +11,7 @@ class AchievementGroupData(object):
 class AchievementGroup(object):
     _achievementTasks = None
 
-    def __init__(self, groupID, nameLabelPath, descriptionLabelPath, notificationPath, achievementTaskIDs, groupConnections, treePosition = None, triggeredBy = None, suggestedGroup = True, allAchievementGetter = None, completedAchievementGetter = None, *args, **kwargs):
+    def __init__(self, groupID, nameLabelPath, descriptionLabelPath, notificationPath, achievementTaskIDs, groupConnections, treePosition=None, triggeredBy=None, suggestedGroup=True, allAchievementGetter=None, completedAchievementGetter=None, *args, **kwargs):
         self.groupID = groupID
         self.groupName = nameLabelPath
         self.groupDescription = descriptionLabelPath
@@ -77,7 +78,7 @@ class AchievementGroup(object):
         completed = self.GetNumberOfCompleted()
         return completed / float(total)
 
-    def GetNextIncompleteTask(self, currentAchievementTaskID = None):
+    def GetNextIncompleteTask(self, currentAchievementTaskID=None):
         tasks = self._GetAchievementTasks()
         completed = self.GetAllCompletedAchievements()
         foundCurrent = currentAchievementTaskID is None
@@ -87,6 +88,8 @@ class AchievementGroup(object):
                 continue
             if foundCurrent and each.achievementID not in completed:
                 return each
+
+        return
 
     def GetFirstCompletedTask(self):
         tasks = self._GetAchievementTasks()

@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\carbon\common\script\sys\alert.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\carbon\common\script\sys\alert.py
 import cStringIO
 import zlib
 from service import *
@@ -55,7 +56,7 @@ class Alert(Service):
     __dependencies__ = ['machoNet']
     __notifyevents__ = ['OnBeanPrime']
 
-    def Run(self, memStream = None):
+    def Run(self, memStream=None):
         self.throttles = {}
         self.stacktraceLogMode = {}
         self.stacktracebeancounts = {}
@@ -97,6 +98,7 @@ class Alert(Service):
         self.tasklets.append(uthread.new(self.__mailqueue))
         self.tasklets.append(uthread.new(self.__BeanDeliveryBoy))
         self.LogInfo('Alert service will deliver errors up to the next tier every', prefs.GetValue('beanDeliveryTime', BEAN_DELIVERY_TIME), 'minutes (prefs.beanDeliveryTime)')
+        return
 
     def Stop(self, stream):
         r = Service.Stop(self, stream)
@@ -118,10 +120,12 @@ class Alert(Service):
     def DbZCluster(self):
         if self.schema is not None:
             return self.schema
-        if macho.mode != 'client':
+        elif macho.mode != 'client':
             self.schema = self.DB2.GetSchema('zcluster')
             return self.schema
-        self.LogError('No DB on Client! ')
+        else:
+            self.LogError('No DB on Client! ')
+            return
 
     def __GetMailServer(self):
         if not self.mail_server:
@@ -153,7 +157,7 @@ class Alert(Service):
 
         return self.mail_server
 
-    def Alert(self, sender, subject, message, throttle = None, recipients = None, html = 0, sysinfo = 0, attachments = []):
+    def Alert(self, sender, subject, message, throttle=None, recipients=None, html=0, sysinfo=0, attachments=[]):
         if throttle:
             if sender in self.throttles and self.throttles[sender] > blue.os.GetWallclockTime():
                 return self.throttles[sender]
@@ -201,25 +205,26 @@ class Alert(Service):
         errorID, logMode = self.stacktraceLogMode.get(stackIDHash, (None, None))
         if macho.mode == 'proxy' or errorID is None:
             return (errorID, logMode)
-        if not session.role & ROLE_SERVICE:
-            userID, charID, locationID1, locationID2 = self._GetSessionInfo()
-            kw = {'userID': userID,
-             'charID': charID,
-             'locationID1': locationID1,
-             'locationID2': locationID2}
-        for i in range(30):
-            errorID, logMode = self.stacktraceLogMode[stackIDHash]
-            if errorID is None:
-                blue.pyos.synchro.SleepWallclock(5000)
-                continue
-            break
+        else:
+            if not session.role & ROLE_SERVICE:
+                userID, charID, locationID1, locationID2 = self._GetSessionInfo()
+                kw = {'userID': userID,
+                 'charID': charID,
+                 'locationID1': locationID1,
+                 'locationID2': locationID2}
+            for i in range(30):
+                errorID, logMode = self.stacktraceLogMode[stackIDHash]
+                if errorID is None:
+                    blue.pyos.synchro.SleepWallclock(5000)
+                    continue
+                break
 
-        if errorID is not None:
-            if logMode == LOGGING_BATCHED:
-                self.stacktracebeancounts[errorID] = (self.stacktracebeancounts.get(errorID, [0])[0] + 1, blue.os.GetWallclockTime())
-            else:
-                self.LogError('Invalid Bean Counting mode: ', logMode)
-        return (errorID, logMode)
+            if errorID is not None:
+                if logMode == LOGGING_BATCHED:
+                    self.stacktracebeancounts[errorID] = (self.stacktracebeancounts.get(errorID, [0])[0] + 1, blue.os.GetWallclockTime())
+                else:
+                    self.LogError('Invalid Bean Counting mode: ', logMode)
+            return (errorID, logMode)
 
     def OnClusterStartup(self):
         if macho.mode != 'server':
@@ -262,21 +267,22 @@ class Alert(Service):
     def ExpandGroupBeans(self, compressedGroupBeans):
         if isinstance(compressedGroupBeans, dict):
             return compressedGroupBeans
-        res = None
-        try:
-            res = blue.marshal.Load(zlib.decompress(compressedGroupBeans))
-        except (UnmarshalError, zlib.error):
-            firstBit = '<error encoding>'
-            with util.ExceptionEater('Encoding some badness in the beancounter'):
-                firstBit = base64.b64encode(compressedGroupBeans[:1000])
-            self.LogError('BeanDelivery recieved a non-standard bean payload, likely not exefile in origin.  Session:', repr(session), 'First 1000char of compressed payload:', firstBit)
-            log.LogException('BeanDelivery recieved a non-standard bean payload')
-            with util.ExceptionEater('Reporting BeanDelivery error to Alert'):
-                message = 'The following session sent us a set of Beans that are probably all attacky:\n%s\n\n' % (repr(session),)
-                message += 'The compressed payload follows (base64 encoded):\n%s' % (base64.b64encode(compressedGroupBeans),)
-                self.Alert('BeanDelivery', 'Non-standard BeanCounting payload', message)
+        else:
+            res = None
+            try:
+                res = blue.marshal.Load(zlib.decompress(compressedGroupBeans))
+            except (UnmarshalError, zlib.error):
+                firstBit = '<error encoding>'
+                with util.ExceptionEater('Encoding some badness in the beancounter'):
+                    firstBit = base64.b64encode(compressedGroupBeans[:1000])
+                self.LogError('BeanDelivery recieved a non-standard bean payload, likely not exefile in origin.  Session:', repr(session), 'First 1000char of compressed payload:', firstBit)
+                log.LogException('BeanDelivery recieved a non-standard bean payload')
+                with util.ExceptionEater('Reporting BeanDelivery error to Alert'):
+                    message = 'The following session sent us a set of Beans that are probably all attacky:\n%s\n\n' % (repr(session),)
+                    message += 'The compressed payload follows (base64 encoded):\n%s' % (base64.b64encode(compressedGroupBeans),)
+                    self.Alert('BeanDelivery', 'Non-standard BeanCounting payload', message)
 
-        return res
+            return res
 
     def __BeanDeliveryBoy(self):
         while self.state == SERVICE_RUNNING:
@@ -371,6 +377,8 @@ class Alert(Service):
                 raise
                 sys.exc_clear()
 
+        return
+
     def BeanDelivery(self, beans):
         for errorID, v in beans.iteritems():
             c, l = v
@@ -379,7 +387,7 @@ class Alert(Service):
             else:
                 self.stacktracebeancounts[errorID] = v
 
-    def GroupBeanDelivery(self, compressedGroupBeans, nodeID = None):
+    def GroupBeanDelivery(self, compressedGroupBeans, nodeID=None):
         groupBeans = self.ExpandGroupBeans(compressedGroupBeans)
         for errorID, userReports in groupBeans.iteritems():
             for userID, data in userReports.iteritems():
@@ -414,20 +422,22 @@ class Alert(Service):
     def SendStackTraceAlert(self, stackID, stackTrace, mode, **kw):
         if getattr(self, 'state', SERVICE_START_PENDING) != SERVICE_RUNNING:
             return
-        if macho.mode == 'client':
-            if 'machoNet' not in sm.services or not sm.services['machoNet'].IsConnected():
-                return
-        f = stackless.getcurrent().frame
-        try:
-            while f:
-                f = f.f_back
-                if f and f.f_code.co_filename.endswith('alert.py') and f.f_code.co_name == '__SendStackTraceAlert':
+        else:
+            if macho.mode == 'client':
+                if 'machoNet' not in sm.services or not sm.services['machoNet'].IsConnected():
                     return
+            f = stackless.getcurrent().frame
+            try:
+                while f:
+                    f = f.f_back
+                    if f and f.f_code.co_filename.endswith('alert.py') and f.f_code.co_name == '__SendStackTraceAlert':
+                        return
 
-        finally:
-            f = None
+            finally:
+                f = None
 
-        uthread.pool('AlertSvc::__SendStackTraceAlert', self.SendStackTraceAlert_thread, stackID, stackTrace, mode, kw)
+            uthread.pool('AlertSvc::__SendStackTraceAlert', self.SendStackTraceAlert_thread, stackID, stackTrace, mode, kw)
+            return
 
     def SendStackTraceAlert_thread(self, stackID, stackTrace, mode, kw):
         if getattr(self, 'state', SERVICE_START_PENDING) != SERVICE_RUNNING:
@@ -446,17 +456,16 @@ class Alert(Service):
             kw['origin'] = ORIGIN_PROXY
         return self.__SendStackTraceAlert(stackID, stackTrace, mode, **kw)
 
-    def SendClientStackTraceAlert(self, stackID, stackTrace, mode, nextErrorKeyHash = None):
+    def SendClientStackTraceAlert(self, stackID, stackTrace, mode, nextErrorKeyHash=None):
         userID, charID, locationID1, locationID2 = self._GetSessionInfo()
         return self.__SendStackTraceAlert(stackID, stackTrace, mode, userID=userID, charID=charID, locationID1=locationID1, locationID2=locationID2, nextErrorKeyHash=nextErrorKeyHash, origin=ORIGIN_CLIENT)
 
-    def __SendStackTraceAlert(self, stackID, stackTrace, mode, nodeID = None, userID = None, charID = None, locationID1 = None, locationID2 = None, nextErrorKeyHash = None, origin = ORIGIN_SERVER):
+    def __SendStackTraceAlert(self, stackID, stackTrace, mode, nodeID=None, userID=None, charID=None, locationID1=None, locationID2=None, nextErrorKeyHash=None, origin=ORIGIN_SERVER):
 
         def GetArgumentsFromStackTrace(stackTrace):
             argPos = stackTrace.find('Arguments:')
             if argPos > 0:
                 return stackTrace[argPos:]
-            return ''
 
         uthread.Lock(self, 'SendStackTraceAlert', stackID[0])
         try:
@@ -607,7 +616,9 @@ class Alert(Service):
         finally:
             uthread.UnLock(self, 'SendStackTraceAlert', stackID[0])
 
-    def SendSimpleEmailAlert(self, message, recipients = None, subject = None, sysinfo = 1, html = 0, attachments = [], subjectonly = 0):
+        return
+
+    def SendSimpleEmailAlert(self, message, recipients=None, subject=None, sysinfo=1, html=0, attachments=[], subjectonly=0):
         self.LogInfo('SendSimpleEmailAlert ', (len(message),
          recipients,
          subject,
@@ -622,54 +633,56 @@ class Alert(Service):
         if not recipients:
             self.LogInfo('Not sending alert, no recipient specified', subject)
             return
-        timestamp = util.FmtDateEng(blue.os.GetWallclockTime(), 'ns')
-        if subject is None:
-            subject = 'Server Alert: Alert from node %s on %s at %s' % (sm.services['machoNet'].nodeID, self.computername, timestamp)
-        elif subjectonly == 0:
-            subject = 'Server Alert: %s at %s' % (subject, timestamp)
-        if sysinfo:
-            if html:
-                message += '<br>\n<br>\nSysinfo:<br><table border=1>\n'
-                for k, v in self.GetSysInfo():
-                    message += '<tr><td>%s</td><td>%s</td></tr>\n' % (k, v)
-
-            else:
-                message += '\n\n' + '-' * 78 + '\n'
-                for k, v in self.GetSysInfo():
-                    message += '%-15s%s\n' % (k + ':', v)
-
-        from email.MIMEText import MIMEText
-        from email.MIMEMultipart import MIMEMultipart
-        from email.MIMEBase import MIMEBase
-        from email import encoders
-        msg = MIMEMultipart()
-        if html:
-            subtype = 'html'
-            charset = 'iso8859'
         else:
-            subtype = 'plain'
-            charset = 'us-ascii'
-        if type(message) is unicode:
-            message = message.encode('utf-8')
-            charset = 'utf-8'
-        att = MIMEText(message, subtype, charset)
-        msg.attach(att)
-        subject = subject.replace('\n', '').replace('\r', '')
-        msg['Subject'] = subject
-        msg['From'] = self.mail_sender
-        msg['To'] = ', '.join(recipients)
-        for attName, attData in attachments:
-            io = cStringIO.StringIO()
-            zipfile = gzip.GzipFile(attName, 'w', 9, io)
-            zipfile.write(attData)
-            zipfile.close()
-            att = MIMEBase('application', 'gz')
-            att.set_payload(io.getvalue())
-            encoders.encode_base64(att)
-            att.add_header('Content-Disposition', 'attachment', filename=attName + '.gz')
-            msg.attach(att)
+            timestamp = util.FmtDateEng(blue.os.GetWallclockTime(), 'ns')
+            if subject is None:
+                subject = 'Server Alert: Alert from node %s on %s at %s' % (sm.services['machoNet'].nodeID, self.computername, timestamp)
+            elif subjectonly == 0:
+                subject = 'Server Alert: %s at %s' % (subject, timestamp)
+            if sysinfo:
+                if html:
+                    message += '<br>\n<br>\nSysinfo:<br><table border=1>\n'
+                    for k, v in self.GetSysInfo():
+                        message += '<tr><td>%s</td><td>%s</td></tr>\n' % (k, v)
 
-        self.SendMail(self.mail_sender, recipients, msg.as_string(0))
+                else:
+                    message += '\n\n' + '-' * 78 + '\n'
+                    for k, v in self.GetSysInfo():
+                        message += '%-15s%s\n' % (k + ':', v)
+
+            from email.MIMEText import MIMEText
+            from email.MIMEMultipart import MIMEMultipart
+            from email.MIMEBase import MIMEBase
+            from email import encoders
+            msg = MIMEMultipart()
+            if html:
+                subtype = 'html'
+                charset = 'iso8859'
+            else:
+                subtype = 'plain'
+                charset = 'us-ascii'
+            if type(message) is unicode:
+                message = message.encode('utf-8')
+                charset = 'utf-8'
+            att = MIMEText(message, subtype, charset)
+            msg.attach(att)
+            subject = subject.replace('\n', '').replace('\r', '')
+            msg['Subject'] = subject
+            msg['From'] = self.mail_sender
+            msg['To'] = ', '.join(recipients)
+            for attName, attData in attachments:
+                io = cStringIO.StringIO()
+                zipfile = gzip.GzipFile(attName, 'w', 9, io)
+                zipfile.write(attData)
+                zipfile.close()
+                att = MIMEBase('application', 'gz')
+                att.set_payload(io.getvalue())
+                encoders.encode_base64(att)
+                att.add_header('Content-Disposition', 'attachment', filename=attName + '.gz')
+                msg.attach(att)
+
+            self.SendMail(self.mail_sender, recipients, msg.as_string(0))
+            return
 
     def SendMail(self, *args, **kw):
         channel = None
@@ -679,47 +692,53 @@ class Alert(Service):
         self.mail_queue.put((channel, args, kw))
         if channel:
             return channel.receive()
+        else:
+            return
 
     def __mailqueue(self):
         self.LogInfo('Alert:  Starting Mail Queue thread')
         try:
-            while self.state != SERVICE_STOPPED:
-                try:
-                    channel, args, kw = self.mail_queue.get()
-                    self.LogInfo('Alert:  Got mail from Mail Queue')
-                    srv = self.__GetMailServer()
-                    if srv:
-                        self.LogInfo('Alert:  Sending mail')
-                        srv.sendmail(*args, **kw)
-                        self.LogInfo('Alert:  Mail sent')
-                        if channel:
-                            channel.send(True)
-                    else:
-                        self.LogWarn('Alert:  No mail server available, mail not sent.  sendmail args=', args, 'kw=', kw)
-                        if channel:
+            try:
+                while self.state != SERVICE_STOPPED:
+                    try:
+                        channel, args, kw = self.mail_queue.get()
+                        self.LogInfo('Alert:  Got mail from Mail Queue')
+                        srv = self.__GetMailServer()
+                        if srv:
+                            self.LogInfo('Alert:  Sending mail')
+                            srv.sendmail(*args, **kw)
+                            self.LogInfo('Alert:  Mail sent')
+                            if channel:
+                                channel.send(True)
+                        else:
+                            self.LogWarn('Alert:  No mail server available, mail not sent.  sendmail args=', args, 'kw=', kw)
+                            if channel:
+                                channel.send(False)
+                    except smtplib.SMTPServerDisconnected as e:
+                        self.mail_server = None
+                        self.mail_queue.put((channel, args, kw))
+                        self.LogWarn('Failed to send alert, SMTP server disconnected. Will try again in 1 minute. SMTP Error: %s' % str(e))
+                        sys.exc_clear()
+                        blue.pyos.synchro.SleepWallclock(60000)
+                    except TaskletExit:
+                        if 'channel' in locals() and channel is not None:
                             channel.send(False)
-                except smtplib.SMTPServerDisconnected as e:
-                    self.mail_server = None
-                    self.mail_queue.put((channel, args, kw))
-                    self.LogWarn('Failed to send alert, SMTP server disconnected. Will try again in 1 minute. SMTP Error: %s' % str(e))
-                    sys.exc_clear()
-                    blue.pyos.synchro.SleepWallclock(60000)
-                except TaskletExit:
-                    if 'channel' in locals() and channel is not None:
-                        channel.send(False)
-                    raise
-                except:
-                    if 'channel' in locals() and channel is not None:
-                        channel.send(False)
-                    self.LogError('Alert:  Unexpected error during mailqueue processing')
+                        raise
+                    except:
+                        if 'channel' in locals() and channel is not None:
+                            channel.send(False)
+                        self.LogError('Alert:  Unexpected error during mailqueue processing')
 
-        except TaskletExit:
-            if hasattr(self, 'state') and self.state not in (SERVICE_STOPPED, SERVICE_STOP_PENDING):
-                raise
+            except TaskletExit:
+                if hasattr(self, 'state') and self.state not in (SERVICE_STOPPED, SERVICE_STOP_PENDING):
+                    raise
+
         finally:
             self.LogInfo('Alert:  Stopping Mail Queue thread')
 
-    def GetCPULoad(self, seconds = 300):
+        return
+
+    def GetCPULoad(self, seconds=300):
         now = blue.os.GetWallclockTime()
         then = now - seconds * const.SEC
         total = 0L
@@ -740,7 +759,8 @@ class Alert(Service):
              session.charid,
              None,
              None)
-        return (None, None, None, None)
+        else:
+            return (None, None, None, None)
 
     def NotifyAllSolAndProxyOfLogModeChange(self, errorID, logMode):
         res = self.session.ConnectToAllServices('alert').LogModeChanged(errorID, logMode)
@@ -784,41 +804,43 @@ class Alert(Service):
                 userData.timestamp = blue.os.GetWallclockTime()
                 userData.users = set()
 
-    def DoNastyLoggingTest(self, randomUser = False, maxLoops = 500000, showProgress = False):
+    def DoNastyLoggingTest(self, randomUser=False, maxLoops=500000, showProgress=False):
         if prefs.clusterMode not in ('LOCAL', 'TEST'):
             print 'BAD BAD BOY!, you are not to call this on a live server!!!'
             return
         self.tasklets.append(uthread.new(self.__DoNastyErrorLogSimulation, randomUser, maxLoops, showProgress))
 
-    def __DoNastyErrorLogSimulation(self, randomUser = False, maxLoops = 50000, showProgress = False):
+    def __DoNastyErrorLogSimulation(self, randomUser=False, maxLoops=50000, showProgress=False):
         import random
         if prefs.clusterMode not in ('LOCAL', 'TEST'):
             print 'BAD BAD BOY!, you are not to call this on a live server!!!'
             return
-        if randomUser:
-            print 'DoNastyErrorLogSimulation is generating many errors with !!RANDOM!! User IDs'
         else:
-            print 'DoNastyErrorLogSimulation is generatijng many errors with session User ID'
-        userIDStart = 10000
-        userIDRange = 25
-        cnt = 0
-        while self.state == SERVICE_RUNNING and cnt < maxLoops:
-            blue.pyos.BeNice()
-            errorKey = '============ TEST EXCEPTION %d ============'
-            errorStack = '\n                            TEST EXCEPTION %d logged at  MM/DD/YYYY HH:MM:SS Unhandled exception in <TaskletExt object at 226a9588, abps=1001, ctxt=\'Tick:.SleepWallclock\'> \n                            Caught at: /common/lib/Fakebluepy.py(37) in CallWrapper \n                            Thrown at: /common/lib/Fakebluepy.py(24) in CallWrapper \n                                       /common/lib/Fakenasty.py(1344) in OnFileModified_ \n                                       /common/lib/Fakenasty.py(1595) in Bootstrap \n                                       /common/lib/Fakenasty.py(2295) in ImportFromFile \n                                       /common/lib/Fakenasty.py(468) in GetCode \n                                       /common/lib/Fakenasty.py(517) in Compile \n                                       /common/lib/Fakenasty.py(556) in Compile_int \n                                       Exception:     \n                                       File "D:/depot/games/EVE-DEV/eve/server/script/../../../carbon/common/script/sys/alert.py", line 329     \n\n\n                                       def SendStackTraceAlert(self, stackID, stackTrace, mode, **kw):       \n                                       ^    IndentationError: expected an indented block  \n                                       Arguments:    \n                                       self :  <nasty.Compilor object at 0x037D5F88>    \n                                       pathname :  \'script:/../../../carbon/common/script/sys/alert.py\' \n                                       Locals:     Lots! #%d\n                                       Thread Locals:   session was None  System Information:  Node ID: 1733 \n                                       | Node Name: RobertPC | Total CPU load: 0%% | Process memory in use: 420 MB | Physical memory left: 213 MB \n                         '
-            testUserID = None
-            cnt += 1
             if randomUser:
-                testUserID = random.randint(userIDStart, userIDStart + userIDRange)
-                if cnt % 100000 == 0:
-                    userIDStart += userIDRange
-            for i in range(10, 15):
-                self.SendStackTraceAlert((2000 + i, errorKey % i), errorStack % (i, cnt), 'error', userID=testUserID)
+                print 'DoNastyErrorLogSimulation is generating many errors with !!RANDOM!! User IDs'
+            else:
+                print 'DoNastyErrorLogSimulation is generatijng many errors with session User ID'
+            userIDStart = 10000
+            userIDRange = 25
+            cnt = 0
+            while self.state == SERVICE_RUNNING and cnt < maxLoops:
+                blue.pyos.BeNice()
+                errorKey = '============ TEST EXCEPTION %d ============'
+                errorStack = '\n                            TEST EXCEPTION %d logged at  MM/DD/YYYY HH:MM:SS Unhandled exception in <TaskletExt object at 226a9588, abps=1001, ctxt=\'Tick:.SleepWallclock\'> \n                            Caught at: /common/lib/Fakebluepy.py(37) in CallWrapper \n                            Thrown at: /common/lib/Fakebluepy.py(24) in CallWrapper \n                                       /common/lib/Fakenasty.py(1344) in OnFileModified_ \n                                       /common/lib/Fakenasty.py(1595) in Bootstrap \n                                       /common/lib/Fakenasty.py(2295) in ImportFromFile \n                                       /common/lib/Fakenasty.py(468) in GetCode \n                                       /common/lib/Fakenasty.py(517) in Compile \n                                       /common/lib/Fakenasty.py(556) in Compile_int \n                                       Exception:     \n                                       File "D:/depot/games/EVE-DEV/eve/server/script/../../../carbon/common/script/sys/alert.py", line 329     \n\n\n                                       def SendStackTraceAlert(self, stackID, stackTrace, mode, **kw):       \n                                       ^    IndentationError: expected an indented block  \n                                       Arguments:    \n                                       self :  <nasty.Compilor object at 0x037D5F88>    \n                                       pathname :  \'script:/../../../carbon/common/script/sys/alert.py\' \n                                       Locals:     Lots! #%d\n                                       Thread Locals:   session was None  System Information:  Node ID: 1733 \n                                       | Node Name: RobertPC | Total CPU load: 0%% | Process memory in use: 420 MB | Physical memory left: 213 MB \n                         '
+                testUserID = None
+                cnt += 1
+                if randomUser:
+                    testUserID = random.randint(userIDStart, userIDStart + userIDRange)
+                    if cnt % 100000 == 0:
+                        userIDStart += userIDRange
+                for i in range(10, 15):
+                    self.SendStackTraceAlert((2000 + i, errorKey % i), errorStack % (i, cnt), 'error', userID=testUserID)
 
-            if showProgress:
-                print '.',
-                if cnt % 100 == 0:
-                    print ''
-                    print 'cnt = ', cnt
+                if showProgress:
+                    print '.',
+                    if cnt % 100 == 0:
+                        print ''
+                        print 'cnt = ', cnt
 
-        print '============================== all done'
+            print '============================== all done'
+            return

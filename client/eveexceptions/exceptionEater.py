@@ -1,9 +1,10 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\packages\eveexceptions\exceptionEater.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\packages\eveexceptions\exceptionEater.py
 import logging
 
 class ExceptionEater(object):
 
-    def __init__(self, message = '', channel = None):
+    def __init__(self, message='', channel=None):
         self.message = message
         self.channel = channel
 

@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\devtools\script\svc_modtest.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\devtools\script\svc_modtest.py
 import evetypes
 import uix
 import uiutil
@@ -22,27 +23,31 @@ class ModTest(Service):
     __displayname__ = SERVICENAME
     __neocommenuitem__ = (('Module Test', '41_4'), 'Show', ROLE_QA)
 
-    def Run(self, memStream = None):
+    def Run(self, memStream=None):
         self.wnd = None
         self.ammo = None
+        return
 
     def InitGroups(self):
         if getattr(self, 'testgroups', None):
             return
-        self.testgroups = {}
-        t, a, p = self.GetModuleLists()
-        t = t + a
-        for x in t:
-            gid = evetypes.GetGroupID(x[0])
-            if gid not in (const.groupSiegeModule,
-             const.groupSuperWeapon,
-             const.groupJumpPortalGenerator,
-             const.groupMiningLaser):
-                self.testgroups[gid] = True
-            else:
-                self.testgroups[gid] = False
+        else:
+            self.testgroups = {}
+            t, a, p = self.GetModuleLists()
+            t = t + a
+            for x in t:
+                gid = evetypes.GetGroupID(x[0])
+                if gid not in (const.groupSiegeModule,
+                 const.groupSuperWeapon,
+                 const.groupJumpPortalGenerator,
+                 const.groupMiningLaser):
+                    self.testgroups[gid] = True
+                else:
+                    self.testgroups[gid] = False
 
-    def Stop(self, memStream = None):
+            return
+
+    def Stop(self, memStream=None):
         self.Hide()
         Service.Stop(self, memStream)
 
@@ -83,6 +88,7 @@ class ModTest(Service):
 
             scrolllist.sort(lambda a, b: cmp(a.label, b.label))
             wnd.sr.scroll.Load(contentList=scrolllist)
+        return
 
     def CheckBoxChange(self, checkbox):
         self.testgroups[checkbox.data['retval']] = checkbox.checked
@@ -91,6 +97,7 @@ class ModTest(Service):
         if self.wnd:
             self.wnd.Close()
             self.wnd = None
+        return
 
     def ProcessRestartUI(self):
         if self.wnd:
@@ -133,166 +140,172 @@ class ModTest(Service):
     def GetAmmo(self):
         if getattr(self, 'ammo', None):
             return
-        groups = {}
-        for groupID in evetypes.GetGroupIDsByCategory(const.categoryCharge):
-            groups[groupID] = True
+        else:
+            groups = {}
+            for groupID in evetypes.GetGroupIDsByCategory(const.categoryCharge):
+                groups[groupID] = True
 
-        self.ammo = {}
-        godma = sm.GetService('godma')
-        for typeID in evetypes.GetTypeIDsByGroups(groups.keys()):
-            groupID = evetypes.GetGroupID(typeID)
-            if groupID in self.ammo:
-                self.ammo[groupID].append(godma.GetType(typeID))
-            else:
-                self.ammo[groupID] = [godma.GetType(typeID)]
+            self.ammo = {}
+            godma = sm.GetService('godma')
+            for typeID in evetypes.GetTypeIDsByGroups(groups.keys()):
+                groupID = evetypes.GetGroupID(typeID)
+                if groupID in self.ammo:
+                    self.ammo[groupID].append(godma.GetType(typeID))
+                else:
+                    self.ammo[groupID] = [godma.GetType(typeID)]
+
+            return
 
     def Test(self, *args):
         if eve.session.stationid:
             return
-        self.Hide()
+        else:
+            self.Hide()
 
-        def _Click(module):
-            module.Click()
-            while module.sr.glow.state == uiconst.UI_HIDDEN:
-                blue.pyos.synchro.SleepWallclock(1)
-
-            try:
+            def _Click(module):
                 module.Click()
-            except:
-                pass
+                while module.sr.glow.state == uiconst.UI_HIDDEN:
+                    blue.pyos.synchro.SleepWallclock(1)
 
-        def _Idle(module):
-            return module.sr.glow.state == uiconst.UI_HIDDEN and module.sr.busy.state == uiconst.UI_HIDDEN and module.blinking == False and module.reloadingAmmo is False
+                try:
+                    module.Click()
+                except:
+                    pass
 
-        def _WaitForIdle(module, timeout = 60000, reason = None):
-            if reason:
-                print 'WaitForIdle: %s' % reason
-            blue.pyos.synchro.SleepWallclock(100)
-            timeout -= 100
-            while not _Idle(module) and timeout > 0:
+            def _Idle(module):
+                return module.sr.glow.state == uiconst.UI_HIDDEN and module.sr.busy.state == uiconst.UI_HIDDEN and module.blinking == False and module.reloadingAmmo is False
+
+            def _WaitForIdle(module, timeout=60000, reason=None):
+                if reason:
+                    print 'WaitForIdle: %s' % reason
                 blue.pyos.synchro.SleepWallclock(100)
                 timeout -= 100
+                while not _Idle(module) and timeout > 0:
+                    blue.pyos.synchro.SleepWallclock(100)
+                    timeout -= 100
 
-        self.GetAmmo()
-        t, a, p = self.GetModuleLists()
-        ship = sm.GetService('godma').GetItem(eve.session.shipid)
-        if eve.session.role & ROLE_PROGRAMMER:
-            if ship.cpuOutput != 13371337:
-                w = sm.RemoteSvc('slash')
-                w.SlashCmd('/dogma me cpuOutput = 13371337')
-                w.SlashCmd('/dogma me powerOutput = 10000000')
-                w.SlashCmd('/dogma me hiSlots = 8')
-                w.SlashCmd('/dogma me medSlots = 8')
-                w.SlashCmd('/dogma me lowSlots = 8')
-                w.SlashCmd('/dogma me rigSlots = 8')
-                w.SlashCmd('/dogma me upgradeCapacity = 10000')
-                w.SlashCmd('/dogma me turretSlotsLeft = 8')
-                w.SlashCmd('/dogma me launcherSlotsLeft = 8')
-                w.SlashCmd('/dogma me upgradeSlotsLeft = 8')
-                w.SlashCmd('/dogma me capacity = 1000000')
-                w.SlashCmd('/dogma me capacitorCapacity = 1000000')
-        errors = []
-        t = filter(lambda x: self.testgroups[x[0].groupID], t + a)
-        total = len(t)
-        current = 0
-        while t:
-            sm.RemoteSvc('slash').SlashCmd('/unload me all')
-            slotsLeft = {'hiPower': [ x + const.flagHiSlot0 for x in range(int(ship.hiSlots)) ],
-             'medPower': [ x + const.flagMedSlot0 for x in range(int(ship.medSlots)) ],
-             'loPower': [ x + const.flagLoSlot0 for x in range(int(ship.lowSlots)) ],
-             'rigSlot': [ x + const.flagRigSlot0 for x in range(int(ship.rigSlots)) ]}
-            for item in t[:]:
-                typeID, effects = item
-                Progress('Module Test', 'Fitting %d/%d: %s' % (current, total, evetypes.GetName(typeID)), current, total)
-                current += 1
-                try:
-                    slotType = [ eff.effectName for eff in effects if eff.effectName.endswith('Power') or eff.effectName == 'rigSlot' ][0]
-                    if slotsLeft[slotType]:
-                        sm.RemoteSvc('slash').SlashCmd('/fit me %s' % typeID)
-                        t.remove(item)
-                        flag = slotsLeft[slotType].pop(0)
-                        module = []
-                        while not module:
-                            blue.pyos.synchro.SleepSim(500)
-                            module = [ x for x in sm.GetService('godma').GetItem(eve.session.shipid).modules if x.flagID == flag ]
-
-                        if not eve.session.stationid:
-                            sm.RemoteSvc('slash').SlashCmd('/heal me capac=1')
-                        if slotsLeft.values() == [[],
-                         [],
-                         [],
-                         []]:
-                            break
-                except UserError as e:
-                    errors.append((typeID, str(e)))
-
-            Progress('Module Test', 'Testing, hold on...', current, total)
-            for itemID in sm.GetService('target').GetTargets():
-                slimItem = uix.GetBallparkRecord(itemID)
-                if slimItem.typeID == 12403:
-                    break
-            else:
-                itemID = sm.RemoteSvc('slash').SlashCmd('/spawn 12403 victim')
-                sm.GetService('target').ClearTargets()
-                sm.GetService('target').LockTarget(itemID)
-                slimItem = uix.GetBallparkRecord(itemID)
-
-            if slimItem:
-                sm.GetService('state').SetState(slimItem.itemID, state.selected, 1)
-                sm.GetService('state').SetState(slimItem.itemID, state.activeTarget, 1)
-            if not uicore.layer.shipui:
-                return
-            for module in uicore.layer.shipui.slotsContainer.modulesByID.itervalues():
-                module.SetRepeat(1000)
-                attr = sm.GetService('godma').GetType(module.sr.moduleInfo.typeID)
-                groups = []
-                for x in range(1, 4):
-                    if attr.AttributeExists('chargeGroup%d' % x):
-                        groups.append(getattr(attr, 'chargeGroup%d' % x))
-
-                if groups:
-                    module.SetAutoReload(0)
-                    for gid in groups:
-                        for ammo in self.ammo[gid]:
-                            if ammo.chargeSize == attr.chargeSize and evetypes.GetMarketGroupID(ammo.typeID):
-                                print '%s <- %s' % (evetypes.GetName(attr.typeID), evetypes.GetName(ammo.typeID))
-                                sm.RemoteSvc('slash').SlashCmd('/create %d' % ammo.typeID)
-                                try:
-                                    module.ChangeAmmo(module.id, 1, ammo.typeID)
-                                    _WaitForIdle(module, 2000, reason='pre-activate')
-                                    if attr.chargeSize == 4:
-                                        blue.pyos.synchro.SleepSim(5000)
-                                    else:
-                                        blue.pyos.synchro.SleepSim(1000)
-                                    _Click(module)
-                                    _WaitForIdle(module, reason='post-activate')
-                                except UserError as e:
-                                    errors.append((module.sr.moduleInfo.typeID, str(e)))
-
-                                sm.RemoteSvc('slash').SlashCmd('/unload me %d' % ammo.typeID)
-                                break
-
-                        break
-
-                else:
+            self.GetAmmo()
+            t, a, p = self.GetModuleLists()
+            ship = sm.GetService('godma').GetItem(eve.session.shipid)
+            if eve.session.role & ROLE_PROGRAMMER:
+                if ship.cpuOutput != 13371337:
+                    w = sm.RemoteSvc('slash')
+                    w.SlashCmd('/dogma me cpuOutput = 13371337')
+                    w.SlashCmd('/dogma me powerOutput = 10000000')
+                    w.SlashCmd('/dogma me hiSlots = 8')
+                    w.SlashCmd('/dogma me medSlots = 8')
+                    w.SlashCmd('/dogma me lowSlots = 8')
+                    w.SlashCmd('/dogma me rigSlots = 8')
+                    w.SlashCmd('/dogma me upgradeCapacity = 10000')
+                    w.SlashCmd('/dogma me turretSlotsLeft = 8')
+                    w.SlashCmd('/dogma me launcherSlotsLeft = 8')
+                    w.SlashCmd('/dogma me upgradeSlotsLeft = 8')
+                    w.SlashCmd('/dogma me capacity = 1000000')
+                    w.SlashCmd('/dogma me capacitorCapacity = 1000000')
+            errors = []
+            t = filter(lambda x: self.testgroups[x[0].groupID], t + a)
+            total = len(t)
+            current = 0
+            while t:
+                sm.RemoteSvc('slash').SlashCmd('/unload me all')
+                slotsLeft = {'hiPower': [ x + const.flagHiSlot0 for x in range(int(ship.hiSlots)) ],
+                 'medPower': [ x + const.flagMedSlot0 for x in range(int(ship.medSlots)) ],
+                 'loPower': [ x + const.flagLoSlot0 for x in range(int(ship.lowSlots)) ],
+                 'rigSlot': [ x + const.flagRigSlot0 for x in range(int(ship.rigSlots)) ]}
+                for item in t[:]:
+                    typeID, effects = item
+                    Progress('Module Test', 'Fitting %d/%d: %s' % (current, total, evetypes.GetName(typeID)), current, total)
+                    current += 1
                     try:
-                        _Click(module)
-                    except UserError as e:
-                        errors.append((module.sr.moduleInfo.typeID, str(e)))
+                        slotType = [ eff.effectName for eff in effects if eff.effectName.endswith('Power') or eff.effectName == 'rigSlot' ][0]
+                        if slotsLeft[slotType]:
+                            sm.RemoteSvc('slash').SlashCmd('/fit me %s' % typeID)
+                            t.remove(item)
+                            flag = slotsLeft[slotType].pop(0)
+                            module = []
+                            while not module:
+                                blue.pyos.synchro.SleepSim(500)
+                                module = [ x for x in sm.GetService('godma').GetItem(eve.session.shipid).modules if x.flagID == flag ]
 
-            busy = True
-            timeout = 30000
-            while busy and timeout > 0:
-                blue.pyos.synchro.SleepSim(250)
-                timeout -= 250
-                for module in uicore.layer.shipui.slotsContainer.modulesByID.itervalues():
-                    if not _Idle(module):
+                            if not eve.session.stationid:
+                                sm.RemoteSvc('slash').SlashCmd('/heal me capac=1')
+                            if slotsLeft.values() == [[],
+                             [],
+                             [],
+                             []]:
+                                break
+                    except UserError as e:
+                        errors.append((typeID, str(e)))
+
+                Progress('Module Test', 'Testing, hold on...', current, total)
+                for itemID in sm.GetService('target').GetTargets():
+                    slimItem = uix.GetBallparkRecord(itemID)
+                    if slimItem.typeID == 12403:
                         break
                 else:
-                    busy = False
+                    itemID = sm.RemoteSvc('slash').SlashCmd('/spawn 12403 victim')
+                    sm.GetService('target').ClearTargets()
+                    sm.GetService('target').LockTarget(itemID)
+                    slimItem = uix.GetBallparkRecord(itemID)
 
-        Progress('Module Test', 'Done!', 3, 4)
-        blue.pyos.synchro.Sleep(2000)
-        Progress('Module Test', 'Done!', 4, 4)
-        for typeID, errormsg in errors:
-            self.LogError('%d: %s' % (typeID, errormsg))
+                if slimItem:
+                    sm.GetService('state').SetState(slimItem.itemID, state.selected, 1)
+                    sm.GetService('state').SetState(slimItem.itemID, state.activeTarget, 1)
+                if not uicore.layer.shipui:
+                    return
+                for module in uicore.layer.shipui.slotsContainer.modulesByID.itervalues():
+                    module.SetRepeat(1000)
+                    attr = sm.GetService('godma').GetType(module.sr.moduleInfo.typeID)
+                    groups = []
+                    for x in range(1, 4):
+                        if attr.AttributeExists('chargeGroup%d' % x):
+                            groups.append(getattr(attr, 'chargeGroup%d' % x))
+
+                    if groups:
+                        module.SetAutoReload(0)
+                        for gid in groups:
+                            for ammo in self.ammo[gid]:
+                                if ammo.chargeSize == attr.chargeSize and evetypes.GetMarketGroupID(ammo.typeID):
+                                    print '%s <- %s' % (evetypes.GetName(attr.typeID), evetypes.GetName(ammo.typeID))
+                                    sm.RemoteSvc('slash').SlashCmd('/create %d' % ammo.typeID)
+                                    try:
+                                        module.ChangeAmmo(module.id, 1, ammo.typeID)
+                                        _WaitForIdle(module, 2000, reason='pre-activate')
+                                        if attr.chargeSize == 4:
+                                            blue.pyos.synchro.SleepSim(5000)
+                                        else:
+                                            blue.pyos.synchro.SleepSim(1000)
+                                        _Click(module)
+                                        _WaitForIdle(module, reason='post-activate')
+                                    except UserError as e:
+                                        errors.append((module.sr.moduleInfo.typeID, str(e)))
+
+                                    sm.RemoteSvc('slash').SlashCmd('/unload me %d' % ammo.typeID)
+                                    break
+
+                            break
+
+                    else:
+                        try:
+                            _Click(module)
+                        except UserError as e:
+                            errors.append((module.sr.moduleInfo.typeID, str(e)))
+
+                busy = True
+                timeout = 30000
+                while busy and timeout > 0:
+                    blue.pyos.synchro.SleepSim(250)
+                    timeout -= 250
+                    for module in uicore.layer.shipui.slotsContainer.modulesByID.itervalues():
+                        if not _Idle(module):
+                            break
+                    else:
+                        busy = False
+
+            Progress('Module Test', 'Done!', 3, 4)
+            blue.pyos.synchro.Sleep(2000)
+            Progress('Module Test', 'Done!', 4, 4)
+            for typeID, errormsg in errors:
+                self.LogError('%d: %s' % (typeID, errormsg))
+
+            return

@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\client\script\ui\shared\redeem\colorConst.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\client\script\ui\shared\redeem\colorConst.py
 from carbonui.util.color import GetColor
 REDEEM_BASE_COLOR = (0.6, 0.6, 0.6)
 REDEEM_BACKGROUND_COLOR = (0.0, 0.0, 0.0)

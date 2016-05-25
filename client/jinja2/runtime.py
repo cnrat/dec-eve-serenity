@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\carbon\common\lib\jinja2\runtime.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\carbon\common\lib\jinja2\runtime.py
 from itertools import chain, imap
 from jinja2.nodes import EvalContext, _context_function_types
 from jinja2.utils import Markup, partial, soft_unicode, escape, missing, concat, internalcode, next, object_type_repr
@@ -35,7 +36,7 @@ def unicode_join(seq):
     return concat(imap(unicode, seq))
 
 
-def new_context(environment, template_name, blocks, vars = None, shared = None, globals = None, locals = None):
+def new_context(environment, template_name, blocks, vars=None, shared=None, globals=None, locals=None):
     if vars is None:
         vars = {}
     if shared:
@@ -87,7 +88,7 @@ class Context(object):
 
         return BlockReference(name, self, blocks, index)
 
-    def get(self, key, default = None):
+    def get(self, key, default=None):
         try:
             return self[key]
         except KeyError:
@@ -120,7 +121,7 @@ class Context(object):
         except StopIteration:
             return __self.environment.undefined('value was undefined because a callable raised a StopIteration exception')
 
-    def derived(self, locals = None):
+    def derived(self, locals=None):
         context = new_context(self.environment, self.name, {}, self.parent, True, None, locals)
         context.vars.update(self.vars)
         context.eval_ctx = self.eval_ctx
@@ -185,7 +186,7 @@ class BlockReference(object):
 
 class LoopContext(object):
 
-    def __init__(self, iterable, recurse = None):
+    def __init__(self, iterable, recurse=None):
         self._iterator = iter(iterable)
         self._recurse = recurse
         self._after = self._safe_next()
@@ -194,6 +195,8 @@ class LoopContext(object):
             self._length = len(iterable)
         except (TypeError, AttributeError):
             self._length = None
+
+        return
 
     def cycle(self, *args):
         if not args:
@@ -309,7 +312,7 @@ class Macro(object):
 class Undefined(object):
     __slots__ = ('_undefined_hint', '_undefined_obj', '_undefined_name', '_undefined_exception')
 
-    def __init__(self, hint = None, obj = missing, name = None, exc = UndefinedError):
+    def __init__(self, hint=None, obj=missing, name=None, exc=UndefinedError):
         self._undefined_hint = hint
         self._undefined_obj = obj
         self._undefined_name = name
@@ -327,6 +330,7 @@ class Undefined(object):
         else:
             hint = self._undefined_hint
         raise self._undefined_exception(hint)
+        return
 
     @internalcode
     def __getattr__(self, name):
@@ -340,10 +344,10 @@ class Undefined(object):
         return unicode(self).encode('utf-8')
 
     def __unicode__(self):
-        return u''
+        pass
 
     def __len__(self):
-        return 0
+        pass
 
     def __iter__(self):
         pass
@@ -352,7 +356,7 @@ class Undefined(object):
         return False
 
     def __repr__(self):
-        return 'Undefined'
+        pass
 
 
 class DebugUndefined(Undefined):
@@ -363,7 +367,8 @@ class DebugUndefined(Undefined):
             if self._undefined_obj is missing:
                 return u'{{ %s }}' % self._undefined_name
             return '{{ no such element: %s[%r] }}' % (object_type_repr(self._undefined_obj), self._undefined_name)
-        return u'{{ undefined value printed: %s }}' % self._undefined_hint
+        else:
+            return u'{{ undefined value printed: %s }}' % self._undefined_hint
 
 
 class StrictUndefined(Undefined):

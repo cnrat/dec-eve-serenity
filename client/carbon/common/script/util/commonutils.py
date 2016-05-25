@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\carbon\common\script\util\commonutils.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\carbon\common\script\util\commonutils.py
 import re
 import blue
 from carbon.common.script.sys.service import ROLEMASK_ELEVATEDPLAYER
@@ -13,7 +14,7 @@ class Object:
     def __init__(self, **kw):
         self.__dict__.update(kw)
 
-    def Get(self, key, defval = None):
+    def Get(self, key, defval=None):
         return self.__dict__.get(key, defval)
 
     def Set(self, key, value):
@@ -51,7 +52,7 @@ def HasDialogueHyperlink(rawText):
     return hasHyperlink
 
 
-def StripTags(s, ignoredTags = tuple(), stripOnly = tuple()):
+def StripTags(s, ignoredTags=tuple(), stripOnly=tuple()):
     if not s or not isinstance(s, basestring):
         return s
     regex = '|'.join([ '</%s>|<%s>|<%s .*?>|<%s *=.*?>' % (tag,

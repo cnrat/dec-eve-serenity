@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\client\script\ui\view\aurumstore\loadingPanel.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\client\script\ui\view\aurumstore\loadingPanel.py
 from carbonui.primitives.container import Container
 from carbonui.primitives.sprite import Sprite
 from carbonui.util.color import Color
@@ -30,7 +31,7 @@ class LoadingPanel(Container):
         if self.enableClickToClose:
             self.Shutdown()
 
-    def ShowStoreUnavailable(self, message = None):
+    def ShowStoreUnavailable(self, message=None):
         self.enableClickToClose = True
         uicore.animations.FadeTo(self.logo, startVal=self.logo.opacity, endVal=0.25, duration=1, timeOffset=0.5)
         uicore.animations.FadeOut(self.loadingWheel, duration=1)

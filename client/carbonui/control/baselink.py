@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\packages\carbonui\control\baselink.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\packages\carbonui\control\baselink.py
 import blue
 from carbonui.util.bunch import Bunch
 from carbon.common.script.util import commonutils
@@ -22,6 +23,8 @@ class BaseLinkCore(Container):
             entry.url = self.url
             entry.displayText = self.linkText
             return [entry]
+        else:
+            return
 
     @classmethod
     def PrepareDrag(cls, dragContainer, dragSource, *args):
@@ -63,7 +66,10 @@ class BaseLinkCore(Container):
     def GetStandardLinkHint(self, *args, **kwds):
         return None
 
-    def GetLinkFormat(self, url, linkState = None, linkStyle = None):
+    def LoadTooltipPanel(self, tooltipPanel, *args):
+        pass
+
+    def GetLinkFormat(self, url, linkState=None, linkStyle=None):
         linkState = linkState or uiconst.LINK_IDLE
         fmt = Bunch()
         if linkState in (uiconst.LINK_IDLE, uiconst.LINK_DISABLED):
@@ -73,7 +79,7 @@ class BaseLinkCore(Container):
         fmt.bold = True
         return fmt
 
-    def FormatLinkParams(self, params, linkState = None, linkStyle = None):
+    def FormatLinkParams(self, params, linkState=None, linkStyle=None):
         if 'priorUrlColor' not in params:
             params.priorUrlColor = params.color
         if 'priorUrlBold' not in params:
@@ -91,6 +97,7 @@ class BaseLinkCore(Container):
             params.bold = linkFmt.bold
         if linkFmt.italic is not None:
             params.italic = linkFmt.italic
+        return
 
     def ClickGameLinks(self, parent, URL):
         return False
@@ -101,7 +108,8 @@ class BaseLinkCore(Container):
     def GetMenu(self):
         if getattr(self, 'url', None) is None:
             return []
-        return self.GetLinkMenu(self, self.url)
+        else:
+            return self.GetLinkMenu(self, self.url)
 
     def GetLinkMenu(self, parent, url):
         m = []
@@ -138,6 +146,7 @@ class BaseLinkCore(Container):
                 return
         if uicore.commandHandler:
             uicore.commandHandler.OpenBrowser(args)
+        return
 
     def LocalSvcCall(self, args):
         import htmlwriter

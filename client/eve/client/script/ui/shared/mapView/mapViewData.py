@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\client\script\ui\shared\mapView\mapViewData.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\client\script\ui\shared\mapView\mapViewData.py
 from carbonui.util.bunch import Bunch
 from eve.client.script.ui.shared.mapView.mapViewUtil import WorldPosToMapPos
 from eve.client.script.ui.shared.maps.mapcommon import SUN_DATA
@@ -123,6 +124,8 @@ class MapViewData(object):
         else:
             for jump in self.mapJumps:
                 yield jump
+
+        return
 
     def PrimeJumpData(self, fromSolarSystemID, toSolarSystemID, jumpType):
         jumpInfo = KeyVal()

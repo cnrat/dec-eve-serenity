@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\client\script\ui\shared\infoPanels\infoPanelMap.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\client\script\ui\shared\infoPanels\infoPanelMap.py
 from carbonui.primitives.container import Container
 from carbonui.primitives.fill import Fill
 from carbonui.primitives.flowcontainer import FlowContainer
@@ -69,6 +70,7 @@ class MapSettings(Container):
           self.sr.scroll,
           self,
           'mapsettings_other']], 'starmaptabs', autoselecttab=1)
+        return
 
     def ClickToggleFlatten(self, btn, *args):
         sm.GetService('starmap').ToggleFlattenMode()
@@ -109,24 +111,26 @@ class MapSettings(Container):
     def Search_thread(self, errorifnothing):
         if not self or self.destroyed:
             return
-        self.searchresult = None
-        search = self.sr.searchinput.GetValue().strip()
-        if len(search) < 1:
-            if errorifnothing:
-                raise UserError('Min3Chars')
-                return
-        elif len(search) < 3 and not localization.util.IsSearchTextIdeographic(localization.util.GetLanguageID(), search):
-            raise UserError('Min3Chars')
         else:
-            self.SetHint()
-            if self is not None and not self.destroyed:
-                pass
+            self.searchresult = None
+            search = self.sr.searchinput.GetValue().strip()
+            if len(search) < 1:
+                if errorifnothing:
+                    raise UserError('Min3Chars')
+                    return
+            elif len(search) < 3 and not localization.util.IsSearchTextIdeographic(localization.util.GetLanguageID(), search):
+                raise UserError('Min3Chars')
             else:
+                self.SetHint()
+                if self is not None and not self.destroyed:
+                    pass
+                else:
+                    return
+                self.searchresult = sm.GetService('map').FindByName(search)
+            if self.destroyed:
                 return
-            self.searchresult = sm.GetService('map').FindByName(search)
-        if self.destroyed:
+            self.ShowSearchResult()
             return
-        self.ShowSearchResult()
 
     def ShowSearchResult(self, *args):
         self.listtype = 'location'
@@ -159,10 +163,12 @@ class MapSettings(Container):
 
         if self is None or self.destroyed:
             return
-        headers = [localization.GetByLabel('UI/Map/MapPallet/hdrSearchName'), localization.GetByLabel('UI/Map/MapPallet/hdrSearchType')]
-        self.sr.scroll.Load(contentList=scrolllist, headers=headers)
-        if not len(scrolllist):
-            self.SetHint(localization.GetByLabel('UI/Map/MapPallet/lblSearchNothingFound'))
+        else:
+            headers = [localization.GetByLabel('UI/Map/MapPallet/hdrSearchName'), localization.GetByLabel('UI/Map/MapPallet/hdrSearchType')]
+            self.sr.scroll.Load(contentList=scrolllist, headers=headers)
+            if not len(scrolllist):
+                self.SetHint(localization.GetByLabel('UI/Map/MapPallet/lblSearchNothingFound'))
+            return
 
     def Confirm(self, *args):
         pass
@@ -303,7 +309,9 @@ class MapSettings(Container):
 
         if self.destroyed:
             return
-        self.sr.scroll.Load(contentList=scrolllist)
+        else:
+            self.sr.scroll.Load(contentList=scrolllist)
+            return
 
     def GetActiveStarColorMode(self):
         starscolorby = settings.user.ui.Get('starscolorby', mapcommon.STARMODE_SECURITY)
@@ -344,17 +352,18 @@ class MapSettings(Container):
         if not func:
             log.LogError('Missing function to provide options for', forGroup)
             return []
-        scrolllist = []
-        sublevel = 2 if forGroup.find('_') > 0 else 1
-        for label, flag in func():
-            config = ['starscolorby',
-             flag,
-             label,
-             starscolorby == flag]
-            entry = self.AddCheckBox(config, None, 'starscolorby', sublevel=sublevel)
-            scrolllist.append(entry)
+        else:
+            scrolllist = []
+            sublevel = 2 if forGroup.find('_') > 0 else 1
+            for label, flag in func():
+                config = ['starscolorby',
+                 flag,
+                 label,
+                 starscolorby == flag]
+                entry = self.AddCheckBox(config, None, 'starscolorby', sublevel=sublevel)
+                scrolllist.append(entry)
 
-        return scrolllist
+            return scrolllist
 
     def GetAllStarColorGroupLabels(self):
         self.GetStarColorGroupsSorted()
@@ -438,7 +447,7 @@ class MapSettings(Container):
 
         return scrolllist
 
-    def GetSubContent(self, data, newitems = 0):
+    def GetSubContent(self, data, newitems=0):
         if data.groupItems:
             return self.GetStarColorSubGroups(data.groupItems)
         if data.key in self.GetAllStarColorGroupLabels():
@@ -493,11 +502,11 @@ class MapSettings(Container):
 
         return scrolllist
 
-    def SetHint(self, hintstr = None):
+    def SetHint(self, hintstr=None):
         if self.sr.scroll:
             self.sr.scroll.ShowHint(hintstr)
 
-    def AddCheckBox(self, config, scrolllist, group = None, usecharsettings = 0, sublevel = 0):
+    def AddCheckBox(self, config, scrolllist, group=None, usecharsettings=0, sublevel=0):
         cfgname, retval, desc, default = config
         data = KeyVal()
         data.label = desc
@@ -513,6 +522,7 @@ class MapSettings(Container):
             scrolllist.append(listentry.Get('Checkbox', data=data))
         else:
             return listentry.Get('Checkbox', data=data)
+        return
 
     def CheckBoxChange(self, checkbox):
         starmapSvc = sm.GetService('starmap')
@@ -528,11 +538,12 @@ class MapSettings(Container):
             self.LoadSettings('mapsettings_other')
         if self.callback:
             self.callback(key)
+        return
 
     def AddSeperator(self, height, where):
         Container(name='push', align=uiconst.TOTOP, height=height, parent=where)
 
-    def AddHeader(self, header, where, height = 12):
+    def AddHeader(self, header, where, height=12):
         EveLabelMedium(text=header, parent=where, align=uiconst.TOTOP, height=12, state=uiconst.UI_NORMAL)
 
     def OnSelectionChange(self, selected):
@@ -547,6 +558,7 @@ class MapSettings(Container):
 
         if sm.GetService('viewState').IsViewActive('starmap'):
             sm.GetService('starmap').HighlightTiles(dataList, colorList)
+        return
 
 
 class LegendEntry(listentry.Generic):

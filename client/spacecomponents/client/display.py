@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\packages\spacecomponents\client\display.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\packages\spacecomponents\client\display.py
 import localization
 from dogma.attributes.format import GetFormattedAttributeAndValue
 COMPONENT_INFO_ORDER = ['deploy',
@@ -12,7 +13,7 @@ CYCLE_TIME_ICON = '22_21'
 RANGE_ICON = '22_15'
 BANNED_ICON = '77_12'
 
-def EntryData(entryClass, label, text = None, iconID = 0, typeID = None):
+def EntryData(entryClass, label, text=None, iconID=0, typeID=None):
     return (entryClass, {'line': 1,
       'label': label,
       'text': text,

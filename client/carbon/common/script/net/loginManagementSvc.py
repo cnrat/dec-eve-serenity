@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\carbon\common\script\net\loginManagementSvc.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\carbon\common\script\net\loginManagementSvc.py
 import sys
 import service
 import blue
@@ -22,6 +23,8 @@ def _QueueTicker(queue, name, svc):
             except:
                 log.LogException('Exception in _QueueTicker tasklet')
 
+    return
+
 
 class LoginManagementService(service.Service):
     __guid__ = 'svc.loginManagementSvc'
@@ -34,7 +37,7 @@ class LoginManagementService(service.Service):
      'QueuesDisabled': [service.ROLE_SERVICE]}
     __configvalues__ = {'enableQueuesInLocal': False}
 
-    def Run(self, memStream = None):
+    def Run(self, memStream=None):
         self.queuesByName = {}
 
     def Stop(self, memStream):
@@ -42,8 +45,9 @@ class LoginManagementService(service.Service):
             q.ticker = None
 
         service.Service.Stop(self, memStream)
+        return
 
-    def CreateQueue(self, qname, defMaxCompleteItems, defMaxReadyItems, defMaxReadyRate = sys.maxint, defMaxReadyGrowth = 0, defMaxQueuedItems = sys.maxint, defTimeout = 180.0, numCompleteFunc = None):
+    def CreateQueue(self, qname, defMaxCompleteItems, defMaxReadyItems, defMaxReadyRate=sys.maxint, defMaxReadyGrowth=0, defMaxQueuedItems=sys.maxint, defTimeout=180.0, numCompleteFunc=None):
         if qname is None:
             raise RuntimeError("'qname' cannot be None")
 
@@ -59,6 +63,8 @@ class LoginManagementService(service.Service):
             except ValueError:
                 self.LogError("Login Queue setting %s has invalid value '%s' in prefs, using default (%s)" % (prefKey, pref, defVal))
                 return int(defVal)
+
+            return
 
         maxReadyItems = GetOrSetPref('MaxReady', defMaxReadyItems)
         maxReadyRate = GetOrSetPref('MaxLoginRate', defMaxReadyRate)
@@ -82,11 +88,12 @@ class LoginManagementService(service.Service):
             queue.queueTimeout = timeout
             queue.ticker = uthread.new(_QueueTicker, queue, qname, self)
             return queue
+            return
 
-    def GetQueue(self, qname, default = None):
+    def GetQueue(self, qname, default=None):
         return self.queuesByName.get(qname, default)
 
-    def GetQueueStats(self, qname = None, default = None):
+    def GetQueueStats(self, qname=None, default=None):
         if qname is None:
             return {qname:self._GetQueueStats(queue) for qname, queue in self.queuesByName.iteritems()}
         else:
@@ -94,8 +101,9 @@ class LoginManagementService(service.Service):
             if queue is not None:
                 return self._GetQueueStats(queue)
             return default
+            return
 
-    def GetQueueSettings(self, qname = None, default = None):
+    def GetQueueSettings(self, qname=None, default=None):
         if qname is None:
             return {qname:self._GetQueueSettings(queue) for qname, queue in self.queuesByName.iteritems()}
         else:
@@ -103,6 +111,7 @@ class LoginManagementService(service.Service):
             if queue is not None:
                 return self._GetQueueSettings(queue)
             return default
+            return
 
     def SetQueueSettings(self, qname, **kwargs):
         if qname is None:
@@ -128,6 +137,7 @@ class LoginManagementService(service.Service):
                 setattr(queue, attrname, value)
                 prefKey = 'LoginQueue_' + qname + '_' + pref
                 prefs.SetValue(prefKey, value)
+            return
 
         UpdatePref('MaxQueuedItems', 'MaxInQueue', sys.maxint)
         UpdatePref('MaxReadyItems', 'MaxReady', sys.maxint)
@@ -135,6 +145,7 @@ class LoginManagementService(service.Service):
         UpdatePref('MaxCompleteItems', 'MaxLoggedIn', sys.maxint)
         UpdatePref('MaxReadyGrowth', 'ReadyGrowth', 0)
         UpdatePref('QueueTimeout', 'QueueTimeout', 0)
+        return
 
     def _GetQueueStats(self, queue):
         wait = queue.QueueFrontWaitTime()
@@ -156,3 +167,4 @@ class LoginManagementService(service.Service):
 
     def SignalTickerStop(self):
         self.ticker = None
+        return

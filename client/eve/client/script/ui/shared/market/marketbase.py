@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\client\script\ui\shared\market\marketbase.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\client\script\ui\shared\market\marketbase.py
 import base
 import blue
 from eve.client.script.ui.control import entries as listentry
@@ -6,9 +7,9 @@ from eve.client.script.ui.control.eveLabel import EveLabelSmall
 from eve.client.script.ui.control.infoIcon import InfoIcon
 from eve.client.script.ui.control.themeColored import LineThemeColored
 from eve.client.script.ui.shared.fitting.fittingUtil import FITKEYS
+from eve.client.script.ui.shared.market import GetTypeIDFromDragItem
 import evetypes
 import log
-from marketutil import GetTypeIDFromDragItem
 import service
 import sys
 from shipfitting.multiBuyUtil import BuyMultipleTypesWithQty
@@ -121,6 +122,7 @@ class MarketBase(uiprimitives.Container):
         self.parentDictionary = {}
         self.historyData = []
         self.historyIdx = None
+        return
 
     def _OnClose(self, *args):
         if self.groupListData is not None:
@@ -130,8 +132,9 @@ class MarketBase(uiprimitives.Container):
         settings.user.ui.Set('quickbar_lastid', self.lastid)
         settings.user.ui.Set('quickbar', self.folders)
         sm.UnregisterNotify(self)
+        return
 
-    def Startup(self, isStationMarket = 0):
+    def Startup(self, isStationMarket=0):
         self.idName = 'region'
         self.groupListData = settings.char.ui.Get('market_groupList', None)
         leftSide = uiprimitives.Container(name='leftSide', parent=self, align=uiconst.TOLEFT, padding=const.defaultPadding, width=settings.user.ui.Get('marketselectorwidth_%s' % self.idName, 180))
@@ -227,21 +230,23 @@ class MarketBase(uiprimitives.Container):
              localization.GetByLabel('Tooltips/Market/MarketCorpOrdersTab')])
         if self.destroyed:
             return
-        self.sr.typescroll = uicontrols.Scroll(name='typescroll', parent=leftSide, padTop=2)
-        self.sr.typescroll.multiSelect = 0
-        self.sr.typescroll.OnSelectionChange = self.CheckTypeScrollSelection
-        self.sr.typescroll.GetContentContainer().OnDropData = self.OnScrollDrop
-        self.sr.sbTabs.Startup(maintabs, 'tbselectortabs_%s' % self.idName, autoselecttab=1, UIIDPrefix='marketTab')
-        quickbarTab = self.sr.sbTabs.GetTabs()[1]
-        quickbarTab.OnTabDropData = self.OnQuickbarScrollDrop
-        self.sr.tabs.Startup(subtabs, 'marketsubtabs_%s' % self.idName, autoselecttab=1, UIIDPrefix='marketTab')
-        sm.RegisterNotify(self)
-        self.inited = 1
-        self.folders = settings.user.ui.Get('quickbar', {})
-        self.lastid = settings.user.ui.Get('quickbar_lastid', 0)
-        self.SetupFilters()
-        self.SetFilterHint()
-        self.maxdepth = 99
+        else:
+            self.sr.typescroll = uicontrols.Scroll(name='typescroll', parent=leftSide, padTop=2)
+            self.sr.typescroll.multiSelect = 0
+            self.sr.typescroll.OnSelectionChange = self.CheckTypeScrollSelection
+            self.sr.typescroll.GetContentContainer().OnDropData = self.OnScrollDrop
+            self.sr.sbTabs.Startup(maintabs, 'tbselectortabs_%s' % self.idName, autoselecttab=1, UIIDPrefix='marketTab')
+            quickbarTab = self.sr.sbTabs.GetTabs()[1]
+            quickbarTab.OnTabDropData = self.OnQuickbarScrollDrop
+            self.sr.tabs.Startup(subtabs, 'marketsubtabs_%s' % self.idName, autoselecttab=1, UIIDPrefix='marketTab')
+            sm.RegisterNotify(self)
+            self.inited = 1
+            self.folders = settings.user.ui.Get('quickbar', {})
+            self.lastid = settings.user.ui.Get('quickbar_lastid', 0)
+            self.SetupFilters()
+            self.SetFilterHint()
+            self.maxdepth = 99
+            return
 
     def OnDropOnMultibuyBtn(self, dragObj, nodes):
         buyDict = {}
@@ -259,18 +264,19 @@ class MarketBase(uiprimitives.Container):
         if buyDict:
             self.OpenMultiBuy(buyDict)
 
-    def OpenMultiBuy(self, buyDict = None):
+    def OpenMultiBuy(self, buyDict=None):
         if buyDict is None:
             buyDict = {}
         wnd = BuyMultipleTypesWithQty(buyDict)
         if wnd:
             wnd.Maximize()
+        return
 
     def SettingMenu(self, menuParent):
         menuParent.AddCheckBox(text=localization.GetByLabel('UI/Market/ShowOnlyAvailable'), checked=bool(settings.user.ui.Get('showonlyavailable', 1)), callback=(self.OnCheckboxChange, 'showonlyavailable'))
         menuParent.AddSpace()
         menuParent.AddText(text=localization.GetByLabel('UI/Market/RangeFilter'))
-        if session.stationid:
+        if session.stationid or session.structureid:
             menuParent.AddRadioButton(text=localization.GetByLabel('UI/Common/LocationTypes/Station'), checked=self.GetRange() == const.rangeStation, callback=(self.OnComboChange, const.rangeStation))
         menuParent.AddRadioButton(text=localization.GetByLabel('UI/Common/LocationTypes/SolarSystem'), checked=self.GetRange() == const.rangeSolarSystem, callback=(self.OnComboChange, const.rangeSolarSystem))
         menuParent.AddRadioButton(text=localization.GetByLabel('UI/Common/LocationTypes/Region'), checked=self.GetRange() == const.rangeRegion, callback=(self.OnComboChange, const.rangeRegion))
@@ -328,7 +334,7 @@ class MarketBase(uiprimitives.Container):
         self.LoadMarketData()
         self.ShowFiltersInUse()
 
-    def OnMarketQuickbarChange(self, fromMarket = 0, *args):
+    def OnMarketQuickbarChange(self, fromMarket=0, *args):
         if self and not self.destroyed:
             if not fromMarket:
                 self.lastid = settings.user.ui.Get('quickbar_lastid', 0)
@@ -397,8 +403,10 @@ class MarketBase(uiprimitives.Container):
         extraText = uiutil.NamePopup(label, typeNewTextLabel, setvalue=unicode(extraText), maxLength=25, validator=self.ValidateExtraText)
         if extraText is None:
             return
-        self.folders[groupID[1]].extraText = extraText
-        sm.ScatterEvent('OnMarketQuickbarChange')
+        else:
+            self.folders[groupID[1]].extraText = extraText
+            sm.ScatterEvent('OnMarketQuickbarChange')
+            return
 
     def ValidateExtraText(self, *args):
         pass
@@ -434,7 +442,7 @@ class MarketBase(uiprimitives.Container):
         marketRange = self.GetRange()
         if marketRange == const.rangeStation:
             self.asksForMyRange = quote.GetStationAsks()
-        elif marketRange == const.rangeSolarSystem:
+        elif marketRange == const.rangeSolarSystem or util.IsWormholeRegion(session.regionid):
             self.asksForMyRange = quote.GetSystemAsks()
         else:
             self.asksForMyRange = quote.GetRegionBest()
@@ -479,7 +487,7 @@ class MarketBase(uiprimitives.Container):
     def OnMetaGroupClicked(self, *args):
         self.sr.tabs.ShowPanelByName(localization.GetByLabel('UI/Common/Groups'))
 
-    def GetGroupListForBrowse(self, nodedata = None, newitems = 0):
+    def GetGroupListForBrowse(self, nodedata=None, newitems=0):
         scrolllist = []
         if nodedata and nodedata.marketGroupInfo.hasTypes:
             typesByMetaGroupID = self.GetTypesByMetaGroups(nodedata.typeIDs)
@@ -491,7 +499,10 @@ class MarketBase(uiprimitives.Container):
                 if metaGroupID in (const.metaGroupStoryline,
                  const.metaGroupFaction,
                  const.metaGroupOfficer,
-                 const.metaGroupDeadspace) and categoryID in (const.categoryModule, const.categoryDrone, const.categoryStarbase):
+                 const.metaGroupDeadspace) and categoryID in (const.categoryModule,
+                 const.categoryStructureModule,
+                 const.categoryDrone,
+                 const.categoryStarbase):
                     if metaGroupID in (const.metaGroupStoryline, const.metaGroupFaction):
                         label = localization.GetByLabel('UI/Market/FactionAndStoryline')
                     else:
@@ -594,6 +605,8 @@ class MarketBase(uiprimitives.Container):
         finally:
             self.state = uiconst.UI_PICKCHILDREN
 
+        return
+
     def GetAttrDict(self, typeID):
         ret = {}
         for each in cfg.dgmtypeattribs.get(typeID, []):
@@ -615,32 +628,33 @@ class MarketBase(uiprimitives.Container):
         ship = sm.GetService('godma').GetItem(eve.session.shipid)
         if ship is None:
             return 0
-        hiSlots = getattr(ship, 'hiSlots', 0)
-        medSlots = getattr(ship, 'medSlots', 0)
-        lowSlots = getattr(ship, 'lowSlots', 0)
-        rigSlots = getattr(ship, 'rigSlots', 0)
-        flags = []
-        for gidx in xrange(3):
-            for sidx in xrange(8):
-                flags.append(getattr(const, 'flag%sSlot%s' % (FITKEYS[gidx], sidx)))
+        else:
+            hiSlots = getattr(ship, 'hiSlots', 0)
+            medSlots = getattr(ship, 'medSlots', 0)
+            lowSlots = getattr(ship, 'lowSlots', 0)
+            rigSlots = getattr(ship, 'rigSlots', 0)
+            flags = []
+            for gidx in xrange(3):
+                for sidx in xrange(8):
+                    flags.append(getattr(const, 'flag%sSlot%s' % (FITKEYS[gidx], sidx)))
 
-        for module in ship.modules:
-            if module.flagID not in flags:
-                continue
-            for effect in module.effects.itervalues():
-                if effect.effectID == const.effectHiPower:
-                    hiSlots -= 1
-                elif effect.effectID == const.effectMedPower:
-                    medSlots -= 1
-                elif effect.effectID == const.effectLoPower:
-                    lowSlots -= 1
-                elif effect.effectID == const.effectRigSlot:
-                    rigSlots -= 1
+            for module in ship.modules:
+                if module.flagID not in flags:
+                    continue
+                for effect in module.effects.itervalues():
+                    if effect.effectID == const.effectHiPower:
+                        hiSlots -= 1
+                    elif effect.effectID == const.effectMedPower:
+                        medSlots -= 1
+                    elif effect.effectID == const.effectLoPower:
+                        lowSlots -= 1
+                    elif effect.effectID == const.effectRigSlot:
+                        rigSlots -= 1
 
-        return (hiSlots,
-         medSlots,
-         lowSlots,
-         rigSlots)
+            return (hiSlots,
+             medSlots,
+             lowSlots,
+             rigSlots)
 
     def GetMySkills(self):
         return sm.GetService('skills').MySkillLevelsByID()
@@ -842,9 +856,11 @@ class MarketBase(uiprimitives.Container):
             self.sr.detailtabs.Startup(detailtabs, 'marketdetailtabs', autoselecttab=1, UIIDPrefix='marketDetailsTab')
             self.detailsInited = 1
             return
-        if self.lastdetailTab:
-            self.sr.detailtabs.ShowPanelByName(self.lastdetailTab)
-        self.ShowFiltersInUse()
+        else:
+            if self.lastdetailTab:
+                self.sr.detailtabs.ShowPanelByName(self.lastdetailTab)
+            self.ShowFiltersInUse()
+            return
 
     def ShowFiltersInUse(self):
         filtersInUse = self.FiltersInUse2()
@@ -891,6 +907,7 @@ class MarketBase(uiprimitives.Container):
         mmo = uicontrols.Checkbox(text=GetByLabel('UI/Market/Marketbase/MarkMyOrders'), configName='hilitemyorders', retval=currentMyOrdersValue == 1, checked=currentMyOrdersValue, hint=GetByLabel('UI/Market/Marketbase/MarkMyOrdersHint'), callback=self.OnCheckboxChangeSett)
         grid.AddCell(cellObject=mmo, colSpan=4)
         menuParent.AddButton(text=GetByLabel('UI/Browser/BrowserSettings/ResetCacheLocation'), callback=self.ResetDetailsSettings)
+        return
 
     def MakeIntEdit(self, configName, isMin, parent, ints):
         if isMin:
@@ -944,16 +961,19 @@ class MarketBase(uiprimitives.Container):
             self.LoadMarketListOrSearch()
         self.OnOrderChangeTimer = None
         self.lastOnOrderChangeTime = blue.os.GetWallclockTime()
+        return
 
     def ShowInfoFromDetails(self, *args):
         typeID = self.GetTypeIDFromDetails()
         if typeID is not None:
             sm.GetService('info').ShowInfo(typeID)
+        return
 
     def PreviewFromDetails(self, *args):
         typeID = self.GetTypeIDFromDetails()
         if typeID is not None:
             sm.GetService('preview').PreviewType(typeID)
+        return
 
     def GetTypeIDFromDetails(self):
         typeID = None
@@ -993,7 +1013,7 @@ class MarketBase(uiprimitives.Container):
         if self.sr.typescroll:
             self.OpenOnTypeID(typeID)
 
-    def OpenOnTypeID(self, typeID, groupsToSkip = [], *args):
+    def OpenOnTypeID(self, typeID, groupsToSkip=[], *args):
         for node in self.sr.typescroll.GetNodes():
             if typeID in node.get('typeIDs', []) and node.id not in groupsToSkip:
                 if self.sr.typescroll.scrollingRange:
@@ -1011,7 +1031,9 @@ class MarketBase(uiprimitives.Container):
                 self.sr.typescroll.SelectNode(node)
                 break
 
-    def LoadQuickBar(self, selectFolder = 0, *args):
+        return
+
+    def LoadQuickBar(self, selectFolder=0, *args):
         self.sr.quickButtons.state = uiconst.UI_PICKCHILDREN
         self.selectFolder = selectFolder
         self.folders = settings.user.ui.Get('quickbar', {})
@@ -1030,7 +1052,9 @@ class MarketBase(uiprimitives.Container):
                 yesNo = eve.Message('AskAreYouSure', {'cons': msg}, uiconst.YESNO)
                 return [False, id][yesNo == uiconst.ID_YES]
             return id
-        self.sr.typescroll.Load(contentList=scrolllist)
+        else:
+            self.sr.typescroll.Load(contentList=scrolllist)
+            return
 
     def LoadOldQuickBar(self):
         items = settings.user.ui.Get('marketquickbar', [])
@@ -1057,7 +1081,7 @@ class MarketBase(uiprimitives.Container):
             self.sr.reloadBtn.state = uiconst.UI_HIDDEN
             self.AdjustRightButtonCont()
 
-    def LoadPriceHistory(self, invtype = None, *args):
+    def LoadPriceHistory(self, invtype=None, *args):
         invtype = invtype or self.GetSelection()
         if not invtype:
             return
@@ -1152,7 +1176,7 @@ class MarketBase(uiprimitives.Container):
         scrollList = [ item[1] for item in localization.util.Sort(scrollList, key=lambda x: x[0]) ]
         return scrollList
 
-    def GetSearchSubGroup(self, metaGroupID, types, sublevel = 0, categoryID = -1, *args):
+    def GetSearchSubGroup(self, metaGroupID, types, sublevel=0, categoryID=-1, *args):
         if metaGroupID in (const.metaGroupStoryline, const.metaGroupFaction):
             label = localization.GetByLabel('UI/Market/FactionAndStoryline')
         else:
@@ -1183,7 +1207,7 @@ class MarketBase(uiprimitives.Container):
         subList = [ item[1] for item in localization.util.Sort(subList, key=lambda x: x[0]) ]
         return subList
 
-    def GetSearchEntry(self, typeID, sublevel = 0, *args):
+    def GetSearchEntry(self, typeID, sublevel=0, *args):
         data = util.KeyVal()
         data.label = evetypes.GetName(typeID)
         data.GetMenu = self.OnTypeMenu
@@ -1203,11 +1227,13 @@ class MarketBase(uiprimitives.Container):
     def OnTypeClick(self, entry, *args):
         if not self.sr.typescroll.GetSelected():
             return
-        if self.loadingType:
+        elif self.loadingType:
             self.pendingType = 1
             return
-        self.sr.quickType = None
-        self.ReloadType()
+        else:
+            self.sr.quickType = None
+            self.ReloadType()
+            return
 
     def OnTypeMenu(self, entry):
         typeID = entry.sr.node.invtype
@@ -1227,14 +1253,14 @@ class MarketBase(uiprimitives.Container):
     def ShowInfo(self, typeID):
         sm.GetService('info').ShowInfo(typeID)
 
-    def AddTypeToQuickBar(self, typeID, parent = 0, extraText = ''):
+    def AddTypeToQuickBar(self, typeID, parent=0, extraText=''):
         settings.user.ui.Set('quickbar', self.folders)
         settings.user.ui.Set('quickbar_lastid', self.lastid)
         sm.GetService('marketutils').AddTypeToQuickBar(typeID, parent, fromMarket=True, extraText=extraText)
         self.lastid = settings.user.ui.Get('quickbar_lastid', 0)
         self.folders = settings.user.ui.Get('quickbar', {})
 
-    def LoadQuickType(self, quick = None, *args):
+    def LoadQuickType(self, quick=None, *args):
         if quick:
             self.sr.quickType = quick.invType
             self.ReloadType()
@@ -1258,39 +1284,41 @@ class MarketBase(uiprimitives.Container):
         if not typeID:
             self.loadingType = 0
             return
-        typeName = evetypes.GetName(typeID)
-        self.sr.detailTop.text = typeName
-        self.sr.detailIcon.attrs = uiutil.Bunch(width=64, height=64, src='typeicon:%s' % typeID, bumped=True, showfitting=True, showtechlevel=True)
-        self.sr.detailIcon.typeName = typeName
-        self.sr.detailIcon.LoadTypeIcon(typeID)
-        self.sr.detailIcon.SetState(uiconst.UI_NORMAL)
-        self.sr.detailIcon.Show()
-        left = self.sr.detailTop.left + self.sr.detailTop.textwidth + 8
-        top = self.sr.detailTop.top + 4
-        self.sr.detailInfoicon.state = uiconst.UI_NORMAL
-        self.sr.detailInfoicon.top = top
-        self.sr.detailInfoicon.left = left
-        self.browseBtn.display = True
-        self.browseBtn.top = top
-        self.browseBtn.left = left + 20
-        self.sr.detailTypeID = typeID
-        self.sr.requirements.LoadTypeRequirements(self.sr.detailTypeID)
-        if typeID == const.typePilotLicence:
-            self.buyPlexButton.Show()
         else:
-            self.buyPlexButton.Hide()
-        marketGroup, trace = sm.GetService('marketutils').FindMarketGroup(typeID)
-        if marketGroup:
-            self.sr.detailGroupTrace.sr.marketGroupInfo = marketGroup
-            self.sr.detailGroupTrace.text = trace
-            self.sr.detailGroupTrace.typeID = typeID
-        else:
-            self.sr.detailGroupTrace.text = ''
-            self.sr.detailGroupTrace.sr.marketGroupInfo = None
-            self.sr.detailGroupTrace.typeID = None
-        self.loadingType = 0
-        if self.pendingType:
-            self.ReloadType()
+            typeName = evetypes.GetName(typeID)
+            self.sr.detailTop.text = typeName
+            self.sr.detailIcon.attrs = uiutil.Bunch(width=64, height=64, src='typeicon:%s' % typeID, bumped=True, showfitting=True, showtechlevel=True)
+            self.sr.detailIcon.typeName = typeName
+            self.sr.detailIcon.LoadTypeIcon(typeID)
+            self.sr.detailIcon.SetState(uiconst.UI_NORMAL)
+            self.sr.detailIcon.Show()
+            left = self.sr.detailTop.left + self.sr.detailTop.textwidth + 8
+            top = self.sr.detailTop.top + 4
+            self.sr.detailInfoicon.state = uiconst.UI_NORMAL
+            self.sr.detailInfoicon.top = top
+            self.sr.detailInfoicon.left = left
+            self.browseBtn.display = True
+            self.browseBtn.top = top
+            self.browseBtn.left = left + 20
+            self.sr.detailTypeID = typeID
+            self.sr.requirements.LoadTypeRequirements(self.sr.detailTypeID)
+            if typeID == const.typePilotLicence:
+                self.buyPlexButton.Show()
+            else:
+                self.buyPlexButton.Hide()
+            marketGroup, trace = sm.GetService('marketutils').FindMarketGroup(typeID)
+            if marketGroup:
+                self.sr.detailGroupTrace.sr.marketGroupInfo = marketGroup
+                self.sr.detailGroupTrace.text = trace
+                self.sr.detailGroupTrace.typeID = typeID
+            else:
+                self.sr.detailGroupTrace.text = ''
+                self.sr.detailGroupTrace.sr.marketGroupInfo = None
+                self.sr.detailGroupTrace.typeID = None
+            self.loadingType = 0
+            if self.pendingType:
+                self.ReloadType()
+            return
 
     def GetSelection(self):
         if self.sr.quickType:
@@ -1298,8 +1326,10 @@ class MarketBase(uiprimitives.Container):
         selection = self.sr.typescroll.GetSelected()
         if not selection:
             return None
-        if hasattr(selection[0], 'invtype'):
+        elif hasattr(selection[0], 'invtype'):
             return selection[0].invtype
+        else:
+            return None
 
     def ResetQuickbar(self):
         if eve.Message('ResetQuickbar', buttons=uiconst.YESNO) != uiconst.ID_YES:
@@ -1341,7 +1371,7 @@ class MarketBase(uiprimitives.Container):
         self.LoadMarketData()
         self.ShowFiltersInUse()
 
-    def LoadQuickBarItems(self, selectFolder = 0, *args):
+    def LoadQuickBarItems(self, selectFolder=0, *args):
         import types
         scrolllist = []
         notes = self.GetItems(parent=0)
@@ -1429,7 +1459,7 @@ class MarketBase(uiprimitives.Container):
             m.append((uiutil.MenuLabel('UI/Market/Marketbase/AddGroupToQuickbarRoot'), self.FolderPopUp, (node, True)))
         return m
 
-    def FolderPopUp(self, node, root = False):
+    def FolderPopUp(self, node, root=False):
         self.tempLastid = self.lastid
         self.tempFolders = {}
         self.depth, firstID = self.AddGroupParent(nodedata=node)
@@ -1444,8 +1474,9 @@ class MarketBase(uiprimitives.Container):
 
             self.lastid = self.tempLastid
             settings.user.ui.Set('quickbar_lastid', self.lastid)
+        return
 
-    def GetGroupSubContent(self, nodedata, newitems = 0):
+    def GetGroupSubContent(self, nodedata, newitems=0):
         scrolllist = []
         notelist = self.GetItems(nodedata.id[1])
         if len(notelist):
@@ -1475,7 +1506,7 @@ class MarketBase(uiprimitives.Container):
                 nodedata.groupItems = self.GroupGetContentIDList(nodedata.id)
         return scrolllist
 
-    def GroupCreateEntry(self, id, sublevel, selectGroup = 0):
+    def GroupCreateEntry(self, id, sublevel, selectGroup=0):
         note, id = self.folders[id[1]], id[1]
         import types
         if type(note.label) == types.UnicodeType:
@@ -1503,7 +1534,7 @@ class MarketBase(uiprimitives.Container):
                 if data.get('sublevel', 0) + self.depth >= self.maxdepth:
                     return []
             return listentry.Get('QuickbarGroup', data)
-        if type(note.label) == types.IntType:
+        elif type(note.label) == types.IntType:
             groupID = ('quickbar', id)
             data = {'label': evetypes.GetName(note.label),
              'typeID': note.label,
@@ -1519,7 +1550,9 @@ class MarketBase(uiprimitives.Container):
              'invtype': note.label,
              'extraText': note.get('extraText', '')}
             return listentry.Get('QuickbarItem', data)
-        del self.folders[id]
+        else:
+            del self.folders[id]
+            return
 
     def OnDblClick(self, *args):
         pass
@@ -1543,7 +1576,7 @@ class MarketBase(uiprimitives.Container):
     def GroupChangeLabel(self, id, newname):
         self.RenameFolder(id[1], name=newname)
 
-    def RenameFolder(self, folderID = 0, entry = None, name = None, *args):
+    def RenameFolder(self, folderID=0, entry=None, name=None, *args):
         if name is None:
             folderNameLabel = localization.GetByLabel('UI/Market/Marketbase/FolderName')
             typeNewFolderNameLabel = localization.GetByLabel('UI/Market/Marketbase/TypeNewFolderName')
@@ -1555,7 +1588,7 @@ class MarketBase(uiprimitives.Container):
         sm.ScatterEvent('OnMarketQuickbarChange')
         return name
 
-    def NewFolder(self, folderID = 0, node = None, *args):
+    def NewFolder(self, folderID=0, node=None, *args):
         folderNameLabel = localization.GetByLabel('UI/Market/Marketbase/FolderName')
         typeFolderNameLabel = localization.GetByLabel('UI/Market/Marketbase/TypeFolderName')
         ret = uiutil.NamePopup(folderNameLabel, typeFolderNameLabel, maxLength=20)
@@ -1570,6 +1603,8 @@ class MarketBase(uiprimitives.Container):
             settings.user.ui.Set('quickbar_lastid', self.lastid)
             sm.ScatterEvent('OnMarketQuickbarChange')
             return n
+        else:
+            return
 
     def GroupDeleteFolder(self, id):
         import types
@@ -1623,6 +1658,7 @@ class MarketBase(uiprimitives.Container):
                 self.AddTypeToQuickBar(node.rec.typeID, parent=id[1])
 
         sm.ScatterEvent('OnMarketQuickbarChange')
+        return
 
     def OnScrollDrop(self, dropObj, nodes):
         if self.sr.sbTabs.GetSelectedArgs() != 'quickbar':
@@ -1641,7 +1677,7 @@ class MarketBase(uiprimitives.Container):
             elif node.__guid__ == 'listentry.FittingEntry':
                 self.AddFittingFolder(node)
 
-    def AddFittingFolder(self, node, parent = 0):
+    def AddFittingFolder(self, node, parent=0):
         self.lastid += 1
         fittingGroup = util.KeyVal()
         fittingGroup.parent = parent
@@ -1655,7 +1691,8 @@ class MarketBase(uiprimitives.Container):
          'medSlots': const.effectMedPower,
          'lowSlots': const.effectLoPower,
          'rigSlots': const.effectRigSlot,
-         'subSystems': const.effectSubSystem}
+         'subSystems': const.effectSubSystem,
+         'serviceSlots': const.effectServiceSlot}
         for rack, contents in rackTypes.iteritems():
             if len(contents):
                 name = None
@@ -1685,6 +1722,7 @@ class MarketBase(uiprimitives.Container):
 
         self.AddTypeToQuickBar(node.fitting.shipTypeID, parent=fittingGroup.id)
         sm.ScatterEvent('OnMarketQuickbarChange')
+        return
 
     def ShouldShowType(self, typeID):
         filterSkills = settings.user.ui.Get('showonlyskillsfor', 0)
@@ -1729,7 +1767,7 @@ class MarketBase(uiprimitives.Container):
 
         return ret
 
-    def MeetsRequirements(self, typeID, ship = None, reqTypeSkills = 0, reqTypeCpuPower = 0, hasSkill = 0):
+    def MeetsRequirements(self, typeID, ship=None, reqTypeSkills=0, reqTypeCpuPower=0, hasSkill=0):
         haveReqSkill = True
         haveReqPower = True
         haveReqCpu = True
@@ -1828,7 +1866,7 @@ class MarketBase(uiprimitives.Container):
         newValue = self.ConvertInput(value)
         settings.user.ui.Set('maxEdit_market_filters_buyorderdev', newValue)
 
-    def ConvertInput(self, value, numDecimals = None):
+    def ConvertInput(self, value, numDecimals=None):
         if not value:
             value = 0
         value = self.ConvertToPoint(value, numDecimals)
@@ -1962,7 +2000,7 @@ class MarketBase(uiprimitives.Container):
         settings.user.ui.Set('quickbar', settings.user.ui.Get('quickbar', {}))
         settings.user.ui.Set('autorefresh', settings.user.ui.Get('autorefresh', True))
 
-    def AddGroupParent(self, nodedata = None, newitems = 0):
+    def AddGroupParent(self, nodedata=None, newitems=0):
         marketGroupID = None
         self.parentDictionary = {}
         if nodedata:
@@ -1975,7 +2013,7 @@ class MarketBase(uiprimitives.Container):
         self.test.Close()
         return (depth, firstID)
 
-    def AddGroupChildren(self, nodedata = None):
+    def AddGroupChildren(self, nodedata=None):
         scrolllist = []
         if nodedata and nodedata.marketGroupInfo.hasTypes:
             parent = self.parentDictionary.get(nodedata.marketGroupInfo.marketGroupID, 0)
@@ -2008,7 +2046,7 @@ class MarketBase(uiprimitives.Container):
 
         return scrolllist
 
-    def InsertQuickbarGroupItem(self, label, parent, extraText = ''):
+    def InsertQuickbarGroupItem(self, label, parent, extraText=''):
         self.tempLastid += 1
         n = util.KeyVal()
         n.parent = parent
@@ -2018,7 +2056,7 @@ class MarketBase(uiprimitives.Container):
         self.tempFolders[n.id] = n
         return n.id
 
-    def ListWnd(self, lst, listtype = None, caption = None, hint = None, ordered = 0, minw = 200, minh = 256, minChoices = 1, maxChoices = 1, initChoices = [], validator = None, isModal = 1, scrollHeaders = [], iconMargin = 0, contentList = None):
+    def ListWnd(self, lst, listtype=None, caption=None, hint=None, ordered=0, minw=200, minh=256, minChoices=1, maxChoices=1, initChoices=[], validator=None, isModal=1, scrollHeaders=[], iconMargin=0, contentList=None):
         if caption is None:
             caption = localization.GetByLabel('UI/Market/Marketbase/SelectAFolder')
         import form
@@ -2038,8 +2076,9 @@ class MarketBase(uiprimitives.Container):
         else:
             wnd.DefineButtons(uiconst.CLOSE)
             wnd.Maximize()
+        return
 
-    def ConvertToPoint(self, value, numDigits = 0):
+    def ConvertToPoint(self, value, numDigits=0):
         ret = uiutil.ConvertDecimal(value, ',', '.', numDigits)
         if numDigits is not None:
             ret = '%.*f' % (numDigits, float(ret))
@@ -2069,12 +2108,14 @@ class MarketBase(uiprimitives.Container):
     def GoForward(self, *args):
         if self.historyIdx is None:
             return
-        if len(self.historyData) > self.historyIdx + 1:
-            self.historyIdx = max(0, self.historyIdx + 1)
-            typeID = self.historyData[min(self.historyIdx, len(self.historyData) - 1)]
-            marketWnd = RegionalMarket.GetIfOpen()
-            if marketWnd:
-                marketWnd.LoadTypeID_Ext(typeID)
+        else:
+            if len(self.historyData) > self.historyIdx + 1:
+                self.historyIdx = max(0, self.historyIdx + 1)
+                typeID = self.historyData[min(self.historyIdx, len(self.historyData) - 1)]
+                marketWnd = RegionalMarket.GetIfOpen()
+                if marketWnd:
+                    marketWnd.LoadTypeID_Ext(typeID)
+            return
 
     def ChangeBackAndForwardButtons(self):
         if self.historyIdx == 0:
@@ -2143,6 +2184,7 @@ class MarketGroupEntry(ContainerAutoSize):
             from eve.client.script.ui.shared.industry.industryWnd import Industry
             uicontrols.Button(parent=self.buttonCont, align=uiconst.TORIGHT, label=localization.GetByLabel('UI/Industry/ViewInIndustry'), func=Industry.OpenOrShowBlueprint, args=(None, typeID), padLeft=4)
         LineThemeColored(parent=self, align=uiconst.TOTOP, padTop=4)
+        return
 
 
 MINSCROLLHEIGHT = 64
@@ -2251,6 +2293,7 @@ class MarketData(uiprimitives.Container):
         self.inited = 1
         self.sr.buy_ActiveFilters = 1
         self.sr.sell_ActiveFilters = 1
+        return
 
     def OnDetailScrollSizeChanged(self):
         h = self.sr.buyParent.height
@@ -2419,6 +2462,7 @@ class MarketData(uiprimitives.Container):
                 self.sellFiltersActive2.text = ''
                 self.sr.sellIcon.state = uiconst.UI_HIDDEN
         self.loading = None
+        return
 
     def SetFilterIcon2(self, icon, on, *args):
         if on:
@@ -2496,7 +2540,7 @@ class MarketData(uiprimitives.Container):
          self.ignore_buyorder_min,
          self.ignore_buyorder_max]
 
-    def ApplyDetailFilters(self, data, activeFilters = 1):
+    def ApplyDetailFilters(self, data, activeFilters=1):
         if not activeFilters:
             return True
         if settings.user.ui.Get('market_filter_jumps', 0):
@@ -2568,7 +2612,7 @@ class QuickbarEntries(uiprimitives.Container):
         self.sr.nodes = []
         self.tooDeep = False
 
-    def __Load(self, contentList = [], maxDepth = 99, parentDepth = 0):
+    def __Load(self, contentList=[], maxDepth=99, parentDepth=0):
         if self.destroyed:
             return
         self.sr.nodes = []
@@ -2582,15 +2626,16 @@ class QuickbarEntries(uiprimitives.Container):
 
     Load = LoadContent = __Load
 
-    def AddEntry(self, idx, entry, update = 0, isSub = 0, fromW = None):
+    def AddEntry(self, idx, entry, update=0, isSub=0, fromW=None):
         _idx = idx
         if idx == -1:
             idx = len(self.GetNodes())
         entry.idx = idx
         if not self or not getattr(self, 'sr', None):
             return
-        self.ReloadEntry(entry)
-        return entry
+        else:
+            self.ReloadEntry(entry)
+            return entry
 
     def ReloadEntry(self, entry):
         if entry.id and entry.GetSubContent:
@@ -2600,7 +2645,7 @@ class QuickbarEntries(uiprimitives.Container):
                 return
             self.AddEntries(entry.idx + 1, subcontent, entry)
 
-    def AddEntries(self, fromIdx, entriesData, parentEntry = None):
+    def AddEntries(self, fromIdx, entriesData, parentEntry=None):
         if self.parentDepth > self.maxDepth:
             self.tooDeep = True
             return
@@ -2620,6 +2665,8 @@ class QuickbarEntries(uiprimitives.Container):
 
         if self.destroyed:
             return
+        else:
+            return
 
     def _OnClose(self):
         for each in self.GetNodes():
@@ -2627,6 +2674,7 @@ class QuickbarEntries(uiprimitives.Container):
             each.data = None
 
         self.sr.nodes = []
+        return
 
     def GetNodes(self):
         return self.sr.nodes
@@ -2635,7 +2683,7 @@ class QuickbarEntries(uiprimitives.Container):
 class SelectFolderWindow(ListWindow):
     default_windowID = 'SelectFolderWindow'
 
-    def GetError(self, checkNumber = 1):
+    def GetError(self, checkNumber=1):
         result = None
         if self.scroll.GetSelected():
             result = [self.scroll.GetSelected()[0].id[1], self.scroll.GetSelected()[0].sublevel]
@@ -2690,6 +2738,7 @@ class MarketGroupItemImage(Image):
             self.OnClick = (sm.GetService('preview').PreviewType, self.typeID)
         else:
             self.OnClick = None
+        return
 
     def GetDragData(self, *args):
         return [uiutil.Bunch(typeID=self.typeID, __guid__='listentry.GenericMarketItem', label=self.typeName, invtype=self.typeID)]

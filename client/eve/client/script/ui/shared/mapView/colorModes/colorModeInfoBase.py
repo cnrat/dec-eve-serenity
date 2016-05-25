@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\client\script\ui\shared\mapView\colorModes\colorModeInfoBase.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\client\script\ui\shared\mapView\colorModes\colorModeInfoBase.py
 from carbonui.control.scrollentries import ScrollEntryNode
 from carbonui.primitives.container import Container
 import carbonui.const as uiconst
@@ -25,21 +26,23 @@ class ColorModeInfoBase(Container):
     def LoadColorModeInfo(self, colorMode, colorModeInfo, colorData, *args):
         if not self.mapView:
             return
-        mapView = self.mapView()
-        if not mapView:
-            return
-        if callable(colorModeInfo.header):
-            label = colorModeInfo.header(colorMode)
         else:
-            label = colorModeInfo.header
-        self.headerLabel.text = label
-        if self.searchHandler:
-            if colorModeInfo.searchHandler and isinstance(self.searchHandler, colorModeInfo.searchHandler):
+            mapView = self.mapView()
+            if not mapView:
                 return
-            self.searchHandler.Close()
-            self.searchHandler = None
-        if colorModeInfo.searchHandler:
-            self.searchHandler = colorModeInfo.searchHandler(parent=self, mapView=mapView)
+            if callable(colorModeInfo.header):
+                label = colorModeInfo.header(colorMode)
+            else:
+                label = colorModeInfo.header
+            self.headerLabel.text = label
+            if self.searchHandler:
+                if colorModeInfo.searchHandler and isinstance(self.searchHandler, colorModeInfo.searchHandler):
+                    return
+                self.searchHandler.Close()
+                self.searchHandler = None
+            if colorModeInfo.searchHandler:
+                self.searchHandler = colorModeInfo.searchHandler(parent=self, mapView=mapView)
+            return
 
 
 class ColorModeInfoSearchBase(Container):
@@ -58,6 +61,7 @@ class ColorModeInfoSearchBase(Container):
         searchInput.ShowClearButton()
         searchInput.SetValue(settings.char.ui.Get('%s_searchString' % self.settingsKey, None))
         self.searchInput = searchInput
+        return
 
     def GetSearchData(self, searchString):
         searchString = searchString.lstrip()

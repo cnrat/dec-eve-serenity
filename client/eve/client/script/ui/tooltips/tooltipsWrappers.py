@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\client\script\ui\tooltips\tooltipsWrappers.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\client\script\ui\tooltips\tooltipsWrappers.py
 from eve.client.script.ui.control.tooltips import TooltipPanel
 import carbonui.const as uiconst
 
@@ -7,6 +8,7 @@ class TooltipBaseWrapper(object):
 
     def __init__(self, *args, **optionalKeywordArguments):
         self.tooltipPointer = optionalKeywordArguments.get('tooltipPointer', None)
+        return
 
     def GetProperty(self, propertyName):
         return getattr(self, '_' + propertyName)
@@ -25,6 +27,7 @@ class TooltipHeaderDescriptionWrapper(TooltipBaseWrapper):
         self._headerText = header
         self._descriptionText = description
         self.tooltipPanel = None
+        return
 
     headerText = property(lambda self: self.GetProperty('headerText'), lambda self, value: self.SetProperty('headerText', value, self.UpdateHeader))
     descriptionText = property(lambda self: self.GetProperty('descriptionText'), lambda self, value: self.SetProperty('descriptionText', value, self.UpdateDescription))
@@ -49,7 +52,9 @@ class TooltipHeaderDescriptionWrapper(TooltipBaseWrapper):
     def UpdateDescription(self):
         if not self.tooltipPanel or self.tooltipPanel.destroyed or self.tooltipPanel.beingDestroyed:
             return
-        if self.descrObj is None:
-            self.descrObj = self.CreateDescriptionObject()
         else:
-            self.descrObj.text = self._descriptionText
+            if self.descrObj is None:
+                self.descrObj = self.CreateDescriptionObject()
+            else:
+                self.descrObj.text = self._descriptionText
+            return

@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\carbon\common\stdlib\contextlib.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\carbon\common\stdlib\contextlib.py
 import sys
 from functools import wraps
 from warnings import warn
@@ -35,6 +36,8 @@ class GeneratorContextManager(object):
                 if sys.exc_info()[1] is not value:
                     raise
 
+        return
+
 
 def contextmanager(func):
 
@@ -52,15 +55,17 @@ def nested(*managers):
     vars = []
     exc = (None, None, None)
     try:
-        for mgr in managers:
-            exit = mgr.__exit__
-            enter = mgr.__enter__
-            vars.append(enter())
-            exits.append(exit)
+        try:
+            for mgr in managers:
+                exit = mgr.__exit__
+                enter = mgr.__enter__
+                vars.append(enter())
+                exits.append(exit)
 
-        yield vars
-    except:
-        exc = sys.exc_info()
+            yield vars
+        except:
+            exc = sys.exc_info()
+
     finally:
         while exits:
             exit = exits.pop()
@@ -72,6 +77,8 @@ def nested(*managers):
 
         if exc != (None, None, None):
             raise exc[0], exc[1], exc[2]
+
+    return
 
 
 class closing(object):

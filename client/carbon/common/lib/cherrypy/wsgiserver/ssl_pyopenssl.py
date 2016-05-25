@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\carbon\common\lib\cherrypy\wsgiserver\ssl_pyopenssl.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\carbon\common\lib\cherrypy\wsgiserver\ssl_pyopenssl.py
 import socket
 import threading
 import time
@@ -47,6 +48,8 @@ class SSL_fileobject(wsgiserver.CP_fileobject):
             if time.time() - start > self.ssl_timeout:
                 raise socket.timeout('timed out')
 
+        return
+
     def recv(self, *args, **kwargs):
         buf = []
         r = super(SSL_fileobject, self).recv
@@ -87,7 +90,7 @@ class pyOpenSSLAdapter(wsgiserver.SSLAdapter):
     private_key = None
     certificate_chain = None
 
-    def __init__(self, certificate, private_key, certificate_chain = None):
+    def __init__(self, certificate, private_key, certificate_chain=None):
         if SSL is None:
             raise ImportError('You must install pyOpenSSL to use HTTPS.')
         self.context = None
@@ -95,6 +98,7 @@ class pyOpenSSLAdapter(wsgiserver.SSLAdapter):
         self.private_key = private_key
         self.certificate_chain = certificate_chain
         self._environ = None
+        return
 
     def bind(self, sock):
         if self.context is None:
@@ -136,7 +140,7 @@ class pyOpenSSLAdapter(wsgiserver.SSLAdapter):
 
         return ssl_environ
 
-    def makefile(self, sock, mode = 'r', bufsize = -1):
+    def makefile(self, sock, mode='r', bufsize=-1):
         if SSL and isinstance(sock, SSL.ConnectionType):
             timeout = sock.gettimeout()
             f = SSL_fileobject(sock, mode, bufsize)

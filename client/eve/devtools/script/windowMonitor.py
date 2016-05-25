@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\devtools\script\windowMonitor.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\devtools\script\windowMonitor.py
 import form
 import string
 import carbonui.const as uiconst
@@ -167,6 +168,7 @@ class WindowMonitor(uicontrols.Window):
                 self.RemoveOpenedWindow(selected)
             elif selected in self.allWindows:
                 self.OpenedWindow(selected)
+        return
 
 
 class WindowMonitorEntry(listentry.Text):
@@ -200,17 +202,21 @@ class WindowMonitorEntry(listentry.Text):
         except:
             pass
 
+        return
+
 
 class CallbackList(list):
 
-    def __init__(self, value = [], func = None):
+    def __init__(self, value=[], func=None):
         list.__init__(self, value)
         self.func = func
 
     def append(self, thing):
         try:
-            uthread.new(self.func, thing)
-        except Exception as e:
-            print e
+            try:
+                uthread.new(self.func, thing)
+            except Exception as e:
+                print e
+
         finally:
             return list.append(self, thing)

@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\carbon\common\lib\cherrypy\test\test_caching.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\carbon\common\lib\cherrypy\test\test_caching.py
 import datetime
 import gzip
 from itertools import count
@@ -45,14 +46,12 @@ class CacheTest(helper.CPWebCase):
 
             a_gif.exposed = True
 
-            def long_process(self, seconds = '1'):
+            def long_process(self, seconds='1'):
                 try:
                     self.longlock.acquire()
                     time.sleep(float(seconds))
                 finally:
                     self.longlock.release()
-
-                return 'success!'
 
             long_process.exposed = True
 
@@ -85,7 +84,6 @@ class CacheTest(helper.CPWebCase):
                 cherrypy.response.headers['Etag'] = 'bibbitybobbityboo'
                 self._cp_config['tools.expires.force'] = True
                 self._cp_config['tools.expires.secs'] = 0
-                return 'being forceful'
 
             force.exposed = True
             force._cp_config = {'tools.expires.secs': 0}
@@ -93,19 +91,16 @@ class CacheTest(helper.CPWebCase):
             def dynamic(self):
                 cherrypy.response.headers['Etag'] = 'bibbitybobbityboo'
                 cherrypy.response.headers['Cache-Control'] = 'private'
-                return 'D-d-d-dynamic!'
 
             dynamic.exposed = True
 
             def cacheable(self):
                 cherrypy.response.headers['Etag'] = 'bibbitybobbityboo'
-                return "Hi, I'm cacheable."
 
             cacheable.exposed = True
 
             def specific(self):
                 cherrypy.response.headers['Etag'] = 'need_this_to_make_me_cacheable'
-                return 'I am being specific'
 
             specific.exposed = True
             specific._cp_config = {'tools.expires.secs': 86400}
@@ -115,7 +110,6 @@ class CacheTest(helper.CPWebCase):
 
             def wrongtype(self):
                 cherrypy.response.headers['Etag'] = 'need_this_to_make_me_cacheable'
-                return 'Woops'
 
             wrongtype.exposed = True
             wrongtype._cp_config = {'tools.expires.secs': Foo()}

@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\common\modules\nice\client\_nastyspace\xmlwriter.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\common\modules\nice\client\_nastyspace\xmlwriter.py
 from carbon.common.script.util.dhtmlxwriters import DHtmlXDataWriter
 from carbon.common.script.util.dhtmlxwriters import DHtmlXData_Default
 from carbon.common.script.util.dhtmlxwriters import DHtmlXData_Grid

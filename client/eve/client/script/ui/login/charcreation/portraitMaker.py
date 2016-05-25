@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\client\script\ui\login\charcreation\portraitMaker.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\client\script\ui\login\charcreation\portraitMaker.py
 import trinity
 import blue
 
@@ -59,7 +60,7 @@ import charactercreator.const as ccConst
 
 class PortraitCameraConfigurator:
 
-    def SetupPortraitCamera(self, camera, avatar, cameraPos = None, storedPortraitCameraSettings = None):
+    def SetupPortraitCamera(self, camera, avatar, cameraPos=None, storedPortraitCameraSettings=None):
         self.camera = camera
         if self.camera is None:
             self.camera = cameras.CharCreationCamera(avatar, ccConst.CAMERA_MODE_PORTRAIT)
@@ -79,6 +80,7 @@ class PortraitCameraConfigurator:
             self.camera.xFactor = self.storedPortraitCameraSettings['xFactor']
             self.camera.yFactor = self.storedPortraitCameraSettings['yFactor']
             self.camera.fieldOfView = self.storedPortraitCameraSettings['fieldOfView']
+        return
 
     def RevertToNormalCamera(self, camera, avatar):
         self.camera = camera

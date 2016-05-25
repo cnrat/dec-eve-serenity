@@ -1,10 +1,11 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\client\script\ui\shared\fitting\fittingStatsChanges.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\client\script\ui\shared\fitting\fittingStatsChanges.py
 NO_HILITE_GROUPS_DICT = {const.groupRemoteSensorBooster: [const.attributeCpu, const.attributePower],
  const.groupRemoteSensorDamper: [const.attributeCpu, const.attributePower]}
 
 class FittingStatsChanges(object):
 
-    def __init__(self, typeID = None):
+    def __init__(self, typeID=None):
         if typeID:
             dgmAttr = sm.GetService('godma').GetType(typeID)
             displayAttributes = dgmAttr.displayAttributes
@@ -48,6 +49,10 @@ class FittingStatsChanges(object):
         defaultValue = 1.0
         return self.GetAttributeValue(const.attributeDroneCapacity, defaultValue)
 
+    def GetExtraFighterSpaceMultiplier(self):
+        defaultValue = 1.0
+        return self.GetAttributeValue(const.attributeFighterCapacity, defaultValue)
+
     def GetAttributeValue(self, attributeID, defaultValue):
         if self.UseDefaultValue(attributeID) or attributeID not in self.allowedAttributesByID:
             return defaultValue
@@ -62,12 +67,12 @@ class FittingStatsChanges(object):
     def GetExtraValue(self, attributeID, startValue):
         return startValue + self.GetAttributeValue(attributeID, 0.0)
 
-    def GetExtraCpuLoad(self, startValue = 0.0):
+    def GetExtraCpuLoad(self, startValue=0.0):
         cpuLoad = self.GetExtraValue(const.attributeCpuLoad, startValue)
         cpuLoad = self.GetExtraValue(const.attributeCpu, cpuLoad)
         return cpuLoad
 
-    def GetExtraCpu(self, startValue = 0.0):
+    def GetExtraCpu(self, startValue=0.0):
         xtraCpu = self.GetExtraValue(const.attributeCpuOutput, startValue)
         if xtraCpu:
             skill = sm.GetService('skills').GetSkills().get(const.typeElectronics, None)
@@ -75,7 +80,7 @@ class FittingStatsChanges(object):
                 xtraCpu *= 1.0 + 0.05 * skill.skillLevel
         return xtraCpu
 
-    def GetExtraPowerLoad(self, startValue = 0.0):
+    def GetExtraPowerLoad(self, startValue=0.0):
         powerLoad = self.GetExtraValue(const.attributePowerLoad, startValue)
         powerLoad = self.GetExtraValue(const.attributePower, powerLoad)
         return powerLoad

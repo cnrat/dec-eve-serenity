@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\client\script\ui\station\fitting\fittingTooltipUtils.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\client\script\ui\station\fitting\fittingTooltipUtils.py
 from carbon.common.script.util.logUtil import LogError
 from eve.client.script.ui.tooltips.tooltipUtil import SetTooltipHeaderAndDescription
 import localization
@@ -11,6 +12,8 @@ tooltipLabelPathDict = {'ActiveDefenses': ('Tooltips/FittingWindow/ActiveDefense
  'CPU': ('Tooltips/FittingWindow/CPU', 'Tooltips/FittingWindow/CPU_description'),
  'DamagePerSecond': ('Tooltips/FittingWindow/DamagePerSecond', 'Tooltips/FittingWindow/DamagePerSecond_description'),
  'DroneBay': ('Tooltips/FittingWindow/DroneBay', 'Tooltips/FittingWindow/DroneBay_description'),
+ 'FighterBay': ('Tooltips/FittingWindow/FighterBay', 'Tooltips/FittingWindow/FighterBay_description'),
+ 'StructureAmmoHold': ('Tooltips/FittingWindow/StructureAmmoHold', 'Tooltips/FittingWindow/StructureAmmoHold_description'),
  'EffectiveHitPoints': ('Tooltips/FittingWindow/EffectiveHitPoints', 'Tooltips/FittingWindow/EffectiveHitPoints_description'),
  'InertiaModifier': ('Tooltips/FittingWindow/InertiaModifier', 'Tooltips/FittingWindow/InertiaModifier_description'),
  'LauncherHardPointBubbles': ('Tooltips/FittingWindow/LauncherHardPointBubbles', 'Tooltips/FittingWindow/LauncherHardPointBubbles_description'),
@@ -37,15 +40,16 @@ tooltipLabelPathDict = {'ActiveDefenses': ('Tooltips/FittingWindow/ActiveDefense
  'DamagePerSecondDrones': ('Tooltips/FittingWindow/DamagePerSecondDrones', 'Tooltips/FittingWindow/DamagePerSecondDrones_description'),
  'DamagePerSecondMissiles': ('Tooltips/FittingWindow/DamagePerSecondMissiles', 'Tooltips/FittingWindow/DamagePerSecondMissiles_description')}
 
-def SetFittingTooltipInfo(targetObject, tooltipName, includeDesc = True):
+def SetFittingTooltipInfo(targetObject, tooltipName, includeDesc=True):
     labelPaths = tooltipLabelPathDict.get(tooltipName, None)
     if not labelPaths:
         LogError('no valid labelpath for tooltipName=', tooltipName)
         return
-    headerLabelPath, descriptionLabelPath = labelPaths
-    if includeDesc and descriptionLabelPath:
-        descriptionText = localization.GetByLabel(descriptionLabelPath)
     else:
-        descriptionText = ''
-    headerText = localization.GetByLabel(headerLabelPath)
-    return SetTooltipHeaderAndDescription(targetObject, headerText, descriptionText)
+        headerLabelPath, descriptionLabelPath = labelPaths
+        if includeDesc and descriptionLabelPath:
+            descriptionText = localization.GetByLabel(descriptionLabelPath)
+        else:
+            descriptionText = ''
+        headerText = localization.GetByLabel(headerLabelPath)
+        return SetTooltipHeaderAndDescription(targetObject, headerText, descriptionText)

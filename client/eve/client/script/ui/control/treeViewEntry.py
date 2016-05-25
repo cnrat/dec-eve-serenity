@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\client\script\ui\control\treeViewEntry.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\client\script\ui\control\treeViewEntry.py
 from math import pi
 import blue
 from carbonui.primitives.container import Container
@@ -80,6 +81,7 @@ class TreeViewEntry(ContainerAutoSize):
             self.ShowChildCont(False, animate=False)
         if self.eventListener and hasattr(self.eventListener, 'RegisterID'):
             self.eventListener.RegisterID(self, self.data.GetID())
+        return
 
     def GetSpacerContWidth(self):
         return (1 + self.level) * self.LEFTPUSH + 8
@@ -99,56 +101,60 @@ class TreeViewEntry(ContainerAutoSize):
         children = self.data.GetChildren()
         if self.destroyed:
             return
-        if self.childCont is None:
-            self.childCont = ContainerAutoSize(parent=self, name='childCont', align=uiconst.TOTOP, clipChildren=True, state=uiconst.UI_HIDDEN)
-        if children:
-            for child in children:
-                cls = self.GetTreeViewEntryClassByTreeData(child)
-                child = cls(parent=self.childCont, parentEntry=self, level=self.level + 1, eventListener=self.eventListener, data=child, settingsID=self.settingsID, state=uiconst.UI_HIDDEN)
-                child.UpdateLabel()
+        else:
+            if self.childCont is None:
+                self.childCont = ContainerAutoSize(parent=self, name='childCont', align=uiconst.TOTOP, clipChildren=True, state=uiconst.UI_HIDDEN)
+            if children:
+                for child in children:
+                    cls = self.GetTreeViewEntryClassByTreeData(child)
+                    child = cls(parent=self.childCont, parentEntry=self, level=self.level + 1, eventListener=self.eventListener, data=child, settingsID=self.settingsID, state=uiconst.UI_HIDDEN)
+                    child.UpdateLabel()
 
-            if self.childCont.children:
-                self.childCont.children[-1].padBottom = 5
-            self.toggleBtn.state = uiconst.UI_NORMAL
+                if self.childCont.children:
+                    self.childCont.children[-1].padBottom = 5
+                self.toggleBtn.state = uiconst.UI_NORMAL
+            return
 
     def GetTreeViewEntryClassByTreeData(self, treeData):
         return TreeViewEntry
 
-    def ShowChildCont(self, show = True, animate = True):
+    def ShowChildCont(self, show=True, animate=True):
         if self.childCont is None or self.childCont.display == show or not self.data.HasChildren():
             return
-        for child in self.childCont.children:
-            self.ShowChild(child, show=show)
-
-        self.isToggling = True
-        if animate:
-            if show:
-                self.childCont.display = True
-                uicore.animations.Tr2DRotateTo(self.toggleBtnSprite, pi / 2, 0.0, duration=0.15)
-                self.childCont.DisableAutoSize()
-                _, height = self.childCont.GetAutoSize()
-                uicore.animations.FadeIn(self.childCont, duration=0.3)
-                uicore.animations.MorphScalar(self.childCont, 'height', self.childCont.height, height, duration=0.15, sleep=True)
-                self.childCont.EnableAutoSize()
-            else:
-                uicore.animations.Tr2DRotateTo(self.toggleBtnSprite, 0.0, pi / 2, duration=0.15)
-                self.childCont.DisableAutoSize()
-                uicore.animations.FadeOut(self.childCont, duration=0.15)
-                uicore.animations.MorphScalar(self.childCont, 'height', self.childCont.height, 0, duration=0.15, sleep=True)
-                self.childCont.display = False
-            self.toggleBtn.Enable()
         else:
-            self.childCont.display = show
-            if show:
-                self.toggleBtnSprite.rotation = 0.0
-                self.childCont.opacity = 1.0
-            else:
-                self.toggleBtnSprite.rotation = pi / 2
-                self.childCont.DisableAutoSize()
-                self.childCont.opacity = 0.0
-        self.isToggling = False
+            for child in self.childCont.children:
+                self.ShowChild(child, show=show)
 
-    def ShowChild(self, child, show = True):
+            self.isToggling = True
+            if animate:
+                if show:
+                    self.childCont.display = True
+                    uicore.animations.Tr2DRotateTo(self.toggleBtnSprite, pi / 2, 0.0, duration=0.15)
+                    self.childCont.DisableAutoSize()
+                    _, height = self.childCont.GetAutoSize()
+                    uicore.animations.FadeIn(self.childCont, duration=0.3)
+                    uicore.animations.MorphScalar(self.childCont, 'height', self.childCont.height, height, duration=0.15, sleep=True)
+                    self.childCont.EnableAutoSize()
+                else:
+                    uicore.animations.Tr2DRotateTo(self.toggleBtnSprite, 0.0, pi / 2, duration=0.15)
+                    self.childCont.DisableAutoSize()
+                    uicore.animations.FadeOut(self.childCont, duration=0.15)
+                    uicore.animations.MorphScalar(self.childCont, 'height', self.childCont.height, 0, duration=0.15, sleep=True)
+                    self.childCont.display = False
+                self.toggleBtn.Enable()
+            else:
+                self.childCont.display = show
+                if show:
+                    self.toggleBtnSprite.rotation = 0.0
+                    self.childCont.opacity = 1.0
+                else:
+                    self.toggleBtnSprite.rotation = pi / 2
+                    self.childCont.DisableAutoSize()
+                    self.childCont.opacity = 0.0
+            self.isToggling = False
+            return
+
+    def ShowChild(self, child, show=True):
         child.display = show
 
     def UpdateSelectedState(self, selectedIDs):
@@ -157,7 +163,7 @@ class TreeViewEntry(ContainerAutoSize):
         isChildSelected = not isSelected and invID in selectedIDs
         self.SetSelected(isSelected, isChildSelected)
 
-    def SetSelected(self, isSelected, isChildSelected = False):
+    def SetSelected(self, isSelected, isChildSelected=False):
         self.isSelected = isSelected
         if isSelected or self.selectedBG:
             self.CheckConstructSelectedBG()
@@ -202,16 +208,18 @@ class TreeViewEntry(ContainerAutoSize):
         if not self.isToggling:
             self.ToggleChildren()
 
-    def ToggleChildren(self, forceShow = False):
+    def ToggleChildren(self, forceShow=False):
         show = forceShow or self.childCont is None or not self.childCont.display
         toggleSettingsDict = settings.user.ui.Get('invTreeViewEntryToggle_%s' % self.settingsID, {})
         toggleSettingsDict[self.data.GetID()] = show
         settings.user.ui.Set('invTreeViewEntryToggle_%s' % self.settingsID, toggleSettingsDict)
         if not self.data.HasChildren():
             return
-        if not self.childrenInitialized:
-            self.ConstructChildren()
-        self.ShowChildCont(show)
+        else:
+            if not self.childrenInitialized:
+                self.ConstructChildren()
+            self.ShowChildCont(show)
+            return
 
     def GetMenu(self):
         m = self.data.GetMenu()
@@ -246,14 +254,17 @@ class TreeViewEntry(ContainerAutoSize):
     def CheckConstructHoverBG(self):
         if self.hoverBG is None:
             self.hoverBG = ListEntryUnderlay(bgParent=self.topRightCont)
+        return
 
     def CheckConstructSelectedBG(self):
         if self.selectedBG is None:
             self.selectedBG = FillThemeColored(bgParent=self.topRightCont, colorType=uiconst.COLORTYPE_UIHILIGHT, state=uiconst.UI_HIDDEN, opacity=0.5)
+        return
 
     def CheckConstructBlinkBG(self):
         if self.blinkBG is None:
             self.blinkBG = Fill(bgParent=self.topRightCont, color=(1.0, 1.0, 1.0, 0.0))
+        return
 
     def OnMouseEnter(self, *args):
         self.CheckConstructHoverBG()

@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\client\script\ui\shared\shipTree\shipTreeShipGroup.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\client\script\ui\shared\shipTree\shipTreeShipGroup.py
 from carbonui.primitives.containerAutoSize import ContainerAutoSize
 import carbonui.const as uiconst
 from eve.client.script.ui.control.eveLabel import EveHeaderMedium
@@ -52,7 +53,7 @@ class ShipTreeShipGroup(ContainerAutoSize):
             self.lineTop.opacity = 0.0
             self.lineBottom.opacity = 0.0
 
-    def UpdateState(self, i = 0, animate = True):
+    def UpdateState(self, i=0, animate=True):
         if self.zoomLevel == ZOOMED_OUT:
             opacity = 0.0
         elif self.node.IsLocked():
@@ -117,7 +118,7 @@ class ShipGroupIconAndSkillBar(ContainerAutoSize):
             m.append((text, blue.pyos.SetClipboardData, (str(self.node.shipGroupID),)))
         return m
 
-    def UpdateState(self, i, animate = True):
+    def UpdateState(self, i, animate=True):
         self.shipGroupIcon.UpdateState(i, animate)
         self.UpdateBars(i, animate)
 
@@ -127,7 +128,7 @@ class ShipGroupIconAndSkillBar(ContainerAutoSize):
     def OnSkillsChanged(self, *args):
         self.UpdateBars()
 
-    def UpdateBars(self, i = 0, animate = True):
+    def UpdateBars(self, i=0, animate=True):
         if self.node.IsLocked():
             self.skillBarCont.Hide()
         else:
@@ -157,6 +158,7 @@ class ShipGroupIcon(Container):
         self.bgFill = Fill(name='bgFill', bgParent=self, color=shipTreeConst.COLOR_BG)
         self.bgBlinkFill = None
         self.icon = Sprite(parent=self, align=uiconst.CENTER, state=uiconst.UI_DISABLED, texturePath=cfg.infoBubbleGroups[self.node.shipGroupID]['icon'], color=shipTreeConst.COLOR_HILIGHT, width=32, height=32)
+        return
 
     def OnShipTreeZoomChanged(self, zoom):
         self.UpdateState(0, True)
@@ -189,7 +191,7 @@ class ShipGroupIcon(Container):
         if self.bgBlinkFill:
             uicore.animations.FadeTo(self.bgBlinkFill, self.bgBlinkFill.opacity, 0.0, duration=0.3)
 
-    def UpdateState(self, i, animate = True):
+    def UpdateState(self, i, animate=True):
         zoomLevel = sm.GetService('shipTreeUI').GetZoomLevel()
         isLocked = self.node.IsLocked()
         opacity = OPACITY_LOCKED if isLocked else 1.0

@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\packages\localizationBSD\const.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\packages\localizationBSD\const.py
 LOCALE_ID_ENGLISH = 1033
 FSD_LOCALIZATION_PROJECT_ID = 192
 MESSAGES_TABLE = 'zlocalization.messages'

@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\carbon\common\lib\cherrypy\lib\encoding.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\carbon\common\lib\cherrypy\lib\encoding.py
 import struct
 import time
 import cherrypy
@@ -6,7 +7,7 @@ from cherrypy._cpcompat import basestring, BytesIO, ntob, set, unicodestr
 from cherrypy.lib import file_generator
 from cherrypy.lib import set_vary_header
 
-def decode(encoding = None, default_encoding = 'utf-8'):
+def decode(encoding=None, default_encoding='utf-8'):
     body = cherrypy.request.body
     if encoding is not None:
         if not isinstance(encoding, list):
@@ -16,6 +17,7 @@ def decode(encoding = None, default_encoding = 'utf-8'):
         if not isinstance(default_encoding, list):
             default_encoding = [default_encoding]
         body.attempt_charsets = body.attempt_charsets + default_encoding
+    return
 
 
 class ResponseEncoder:
@@ -38,6 +40,7 @@ class ResponseEncoder:
                 cherrypy.log('Replacing request.handler', 'TOOLS.ENCODE')
             self.oldhandler = request.handler
             request.handler = self
+        return
 
     def encode_stream(self, encoding):
         if encoding in self.attempted_charsets:
@@ -130,6 +133,7 @@ class ResponseEncoder:
             msg = 'Your client sent this Accept-Charset header: %s.' % ac
         msg += ' We tried these charsets: %s.' % ', '.join(self.attempted_charsets)
         raise cherrypy.HTTPError(406, msg)
+        return
 
     def __call__(self, *args, **kwargs):
         response = cherrypy.serving.response
@@ -202,7 +206,7 @@ def decompress(body):
     return data
 
 
-def gzip(compress_level = 5, mime_types = ['text/html', 'text/plain'], debug = False):
+def gzip(compress_level=5, mime_types=['text/html', 'text/plain'], debug=False):
     request = cherrypy.serving.request
     response = cherrypy.serving.response
     set_vary_header(response, 'Accept-Encoding')

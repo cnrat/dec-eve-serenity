@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\carbon\common\stdlib\cgi.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\carbon\common\stdlib\cgi.py
 __version__ = '2.6'
 from operator import attrgetter
 import sys
@@ -66,7 +67,7 @@ def nolog(*allargs):
 log = initlog
 maxlen = 0
 
-def parse(fp = None, environ = os.environ, keep_blank_values = 0, strict_parsing = 0):
+def parse(fp=None, environ=os.environ, keep_blank_values=0, strict_parsing=0):
     global maxlen
     if fp is None:
         fp = sys.stdin
@@ -103,12 +104,12 @@ def parse(fp = None, environ = os.environ, keep_blank_values = 0, strict_parsing
     return urlparse.parse_qs(qs, keep_blank_values, strict_parsing)
 
 
-def parse_qs(qs, keep_blank_values = 0, strict_parsing = 0):
+def parse_qs(qs, keep_blank_values=0, strict_parsing=0):
     warn('cgi.parse_qs is deprecated, use urlparse.parse_qs instead', PendingDeprecationWarning, 2)
     return urlparse.parse_qs(qs, keep_blank_values, strict_parsing)
 
 
-def parse_qsl(qs, keep_blank_values = 0, strict_parsing = 0):
+def parse_qsl(qs, keep_blank_values=0, strict_parsing=0):
     warn('cgi.parse_qsl is deprecated, use urlparse.parse_qsl instead', PendingDeprecationWarning, 2)
     return urlparse.parse_qsl(qs, keep_blank_values, strict_parsing)
 
@@ -202,10 +203,10 @@ def parse_header(line):
     pdict = {}
     for p in parts:
         i = p.find('=')
-        if i >= 0:
-            name = p[:i].strip().lower()
-            value = p[i + 1:].strip()
-            if len(value) >= 2 and value[0] == value[-1] == '"':
+        name = i >= 0 and p[:i].strip().lower()
+        value = p[i + 1:].strip()
+        if len(value) >= 2:
+            if value[0] == value[-1] == '"':
                 value = value[1:-1]
                 value = value.replace('\\\\', '\\').replace('\\"', '"')
             pdict[name] = value
@@ -233,7 +234,7 @@ class MiniFieldStorage():
 
 class FieldStorage():
 
-    def __init__(self, fp = None, headers = None, outerboundary = '', environ = os.environ, keep_blank_values = 0, strict_parsing = 0):
+    def __init__(self, fp=None, headers=None, outerboundary='', environ=os.environ, keep_blank_values=0, strict_parsing=0):
         method = 'GET'
         self.keep_blank_values = keep_blank_values
         self.strict_parsing = strict_parsing
@@ -303,6 +304,7 @@ class FieldStorage():
             self.read_multi(environ, keep_blank_values, strict_parsing)
         else:
             self.read_single()
+        return
 
     def __repr__(self):
         return 'FieldStorage(%r, %r, %r)' % (self.name, self.filename, self.value)
@@ -337,8 +339,9 @@ class FieldStorage():
             return found[0]
         else:
             return found
+            return
 
-    def getvalue(self, key, default = None):
+    def getvalue(self, key, default=None):
         if key in self:
             value = self[key]
             if type(value) is type([]):
@@ -348,7 +351,7 @@ class FieldStorage():
         else:
             return default
 
-    def getfirst(self, key, default = None):
+    def getfirst(self, key, default=None):
         if key in self:
             value = self[key]
             if type(value) is type([]):
@@ -419,6 +422,7 @@ class FieldStorage():
             self.list.append(part)
 
         self.skip_lines()
+        return
 
     def read_single(self):
         if self.length >= 0:
@@ -456,6 +460,7 @@ class FieldStorage():
                 self.file.write(self.__file.getvalue())
                 self.__file = None
         self.file.write(line)
+        return
 
     def read_lines_to_eof(self):
         while 1:
@@ -516,14 +521,14 @@ class FieldStorage():
                     break
             last_line_lfend = line.endswith('\n')
 
-    def make_file(self, binary = None):
+    def make_file(self, binary=None):
         import tempfile
         return tempfile.TemporaryFile('w+b')
 
 
 class FormContentDict(UserDict.UserDict):
 
-    def __init__(self, environ = os.environ, keep_blank_values = 0, strict_parsing = 0):
+    def __init__(self, environ=os.environ, keep_blank_values=0, strict_parsing=0):
         self.dict = self.data = parse(environ=environ, keep_blank_values=keep_blank_values, strict_parsing=strict_parsing)
         self.query_string = environ['QUERY_STRING']
 
@@ -602,6 +607,7 @@ class FormContent(FormContentDict):
             return self.dict[key]
         else:
             return None
+            return None
 
     def indexed_value(self, key, location):
         if key in self.dict:
@@ -611,11 +617,13 @@ class FormContent(FormContentDict):
                 return None
         else:
             return None
+        return None
 
     def value(self, key):
         if key in self.dict:
             return self.dict[key][0]
         else:
+            return None
             return None
 
     def length(self, key):
@@ -626,12 +634,13 @@ class FormContent(FormContentDict):
             return self.dict[key][0].strip()
         else:
             return None
+            return None
 
     def pars(self):
         return self.dict
 
 
-def test(environ = os.environ):
+def test(environ=os.environ):
     global maxlen
     print 'Content-type: text/html'
     print
@@ -647,7 +656,7 @@ def test(environ = os.environ):
         def f():
             exec 'testing print_exception() -- <I>italics?</I>'
 
-        def g(f = f):
+        def g(f=f):
             f()
 
         print '<H3>What follows is a test, not an actual exception:</H3>'
@@ -667,7 +676,7 @@ def test(environ = os.environ):
         print_exception()
 
 
-def print_exception(type = None, value = None, tb = None, limit = None):
+def print_exception(type=None, value=None, tb=None, limit=None):
     if type is None:
         type, value, tb = sys.exc_info()
     import traceback
@@ -676,9 +685,10 @@ def print_exception(type = None, value = None, tb = None, limit = None):
     list = traceback.format_tb(tb, limit) + traceback.format_exception_only(type, value)
     print '<PRE>%s<B>%s</B></PRE>' % (escape(''.join(list[:-1])), escape(list[-1]))
     del tb
+    return
 
 
-def print_environ(environ = os.environ):
+def print_environ(environ=os.environ):
     keys = environ.keys()
     keys.sort()
     print
@@ -734,7 +744,7 @@ def print_environ_usage():
     print '\n<H3>These environment variables could have been set:</H3>\n<UL>\n<LI>AUTH_TYPE\n<LI>CONTENT_LENGTH\n<LI>CONTENT_TYPE\n<LI>DATE_GMT\n<LI>DATE_LOCAL\n<LI>DOCUMENT_NAME\n<LI>DOCUMENT_ROOT\n<LI>DOCUMENT_URI\n<LI>GATEWAY_INTERFACE\n<LI>LAST_MODIFIED\n<LI>PATH\n<LI>PATH_INFO\n<LI>PATH_TRANSLATED\n<LI>QUERY_STRING\n<LI>REMOTE_ADDR\n<LI>REMOTE_HOST\n<LI>REMOTE_IDENT\n<LI>REMOTE_USER\n<LI>REQUEST_METHOD\n<LI>SCRIPT_NAME\n<LI>SERVER_NAME\n<LI>SERVER_PORT\n<LI>SERVER_PROTOCOL\n<LI>SERVER_ROOT\n<LI>SERVER_SOFTWARE\n</UL>\nIn addition, HTTP headers sent by the server may be passed in the\nenvironment as well.  Here are some common variable names:\n<UL>\n<LI>HTTP_ACCEPT\n<LI>HTTP_CONNECTION\n<LI>HTTP_HOST\n<LI>HTTP_PRAGMA\n<LI>HTTP_REFERER\n<LI>HTTP_USER_AGENT\n</UL>\n'
 
 
-def escape(s, quote = None):
+def escape(s, quote=None):
     s = s.replace('&', '&amp;')
     s = s.replace('<', '&lt;')
     s = s.replace('>', '&gt;')
@@ -743,7 +753,7 @@ def escape(s, quote = None):
     return s
 
 
-def valid_boundary(s, _vb_pattern = '^[ -~]{0,200}[!-~]$'):
+def valid_boundary(s, _vb_pattern='^[ -~]{0,200}[!-~]$'):
     import re
     return re.match(_vb_pattern, s)
 

@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\client\script\ui\shared\fittingGhost\browsers\hardwareBrowser.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\client\script\ui\shared\fittingGhost\browsers\hardwareBrowser.py
 from eve.client.script.ui.control import entries as listentry
 from eve.client.script.ui.shared.fittingGhost.browsers.browserUtil import GetTypesByMetaGroups, ShoulAddMetaGroupFolder, GetMetaGroupNameAndEntry, GetScrollListFromTypeListInNodedata, GetScrollListFromTypeList
 from eve.client.script.ui.shared.fittingGhost.browsers.filtering import GetValidTypeIDs
@@ -10,7 +11,7 @@ class HardwareBrowserListProvider(object):
         self.searchFittingHelper = searchFittingHelper
         self.onDropDataFunc = onDropDataFunc
 
-    def GetGroupListForBrowse(self, nodedata = None, marketGroupID = None):
+    def GetGroupListForBrowse(self, nodedata=None, marketGroupID=None):
         if nodedata and nodedata.marketGroupInfo.hasTypes:
             scrolllist = self.GetSubfoldersForScrolllist(nodedata)
         else:
@@ -58,31 +59,33 @@ def GetMarketGroupID(nodedata):
         return
     else:
         return nodedata.marketGroupInfo.marketGroupID
+        return
 
 
 def GetMarketGroupFromMarketGroupInfo(marketGroupInfo, level, subContentFunc, onDropDataFunc, searchHelper):
     typeIDs = GetValidTypeIDs(marketGroupInfo.types, searchHelper)
     if not typeIDs:
         return (None, None)
-    if level in (0, 1):
-        groupHint = marketGroupInfo.description
     else:
-        groupHint = ''
-    groupID = (marketGroupInfo.marketGroupName, marketGroupInfo.marketGroupID)
-    data = {'GetSubContent': subContentFunc,
-     'label': marketGroupInfo.marketGroupName,
-     'id': groupID,
-     'typeIDs': typeIDs,
-     'iconMargin': 18,
-     'showlen': 0,
-     'marketGroupInfo': marketGroupInfo,
-     'sublevel': level,
-     'state': 'locked',
-     'showicon': 'hide' if marketGroupInfo.hasTypes else None,
-     'iconID': marketGroupInfo.iconID,
-     'selected': False,
-     'BlockOpenWindow': 1,
-     'hint': groupHint,
-     'DropData': onDropDataFunc}
-    groupEntry = listentry.Get('Group', data)
-    return (groupEntry, groupID)
+        if level in (0, 1):
+            groupHint = marketGroupInfo.description
+        else:
+            groupHint = ''
+        groupID = (marketGroupInfo.marketGroupName, marketGroupInfo.marketGroupID)
+        data = {'GetSubContent': subContentFunc,
+         'label': marketGroupInfo.marketGroupName,
+         'id': groupID,
+         'typeIDs': typeIDs,
+         'iconMargin': 18,
+         'showlen': 0,
+         'marketGroupInfo': marketGroupInfo,
+         'sublevel': level,
+         'state': 'locked',
+         'showicon': 'hide' if marketGroupInfo.hasTypes else None,
+         'iconID': marketGroupInfo.iconID,
+         'selected': False,
+         'BlockOpenWindow': 1,
+         'hint': groupHint,
+         'DropData': onDropDataFunc}
+        groupEntry = listentry.Get('Group', data)
+        return (groupEntry, groupID)

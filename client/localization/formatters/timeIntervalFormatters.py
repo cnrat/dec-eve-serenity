@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\packages\localization\formatters\timeIntervalFormatters.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\packages\localization\formatters\timeIntervalFormatters.py
 import pytelemetry
 from .. import util
 from .. import const as locconst
@@ -53,13 +54,13 @@ TIME_INTERVAL_UNITS_VALUE_MAP = {TIME_CATEGORY_YEAR: appConst.YEAR365,
  TIME_CATEGORY_SECOND: appConst.SEC,
  TIME_CATEGORY_MILLISECOND: appConst.MSEC}
 
-def GetByLabel(label, languageID = None, **kwargs):
+def GetByLabel(label, languageID=None, **kwargs):
     import localization
     return localization.GetByLabel(label, languageID, **kwargs)
 
 
 @pytelemetry.zoning.ZONE_FUNCTION
-def _FormatTimeIntervalGetParts(value, showFrom, showTo, roundUp = False):
+def _FormatTimeIntervalGetParts(value, showFrom, showTo, roundUp=False):
     if value < 0:
         raise ValueError('Time value must be a positive number. value = %s' % value)
     if isinstance(value, float):
@@ -99,7 +100,7 @@ def _FormatTimeIntervalGetParts(value, showFrom, showTo, roundUp = False):
 
 
 @pytelemetry.zoning.ZONE_FUNCTION
-def FormatTimeIntervalShort(value, showFrom = 'year', showTo = 'second'):
+def FormatTimeIntervalShort(value, showFrom='year', showTo='second'):
     timeParts = _FormatTimeIntervalGetParts(value, showFrom, showTo)
     kwargs = {}
     for i, (partName, part) in enumerate(timeParts):
@@ -115,7 +116,7 @@ def FormatTimeIntervalShort(value, showFrom = 'year', showTo = 'second'):
         return GetByLabel(QUANTITY_TIME_SHORT_MAP[len(timeParts)], **kwargs)
 
 
-def FormatTimeInterval(value, color1 = None, color2 = None):
+def FormatTimeInterval(value, color1=None, color2=None):
     timeParts = _FormatTimeIntervalGetParts(value, 'day', 'second')
     timeParts = [ value for _, value in timeParts ]
     color1 = color1 or '#AAFFFFFF'
@@ -143,7 +144,7 @@ def FindFirstNonZeroIdx(values):
 
 
 @pytelemetry.zoning.ZONE_FUNCTION
-def FormatTimeIntervalShortWritten(value, showFrom = 'year', showTo = 'second'):
+def FormatTimeIntervalShortWritten(value, showFrom='year', showTo='second'):
     timeParts = _FormatTimeIntervalGetParts(value, showFrom, showTo, roundUp=True)
     kwargs = {}
     lastIdx = len(timeParts) - 1
@@ -160,7 +161,7 @@ def FormatTimeIntervalShortWritten(value, showFrom = 'year', showTo = 'second'):
 
 
 @pytelemetry.zoning.ZONE_FUNCTION
-def FormatTimeIntervalWritten(value, showFrom = 'year', showTo = 'second', languageID = None, maxParts = None):
+def FormatTimeIntervalWritten(value, showFrom='year', showTo='second', languageID=None, maxParts=None):
     timeParts = _FormatTimeIntervalGetParts(value, showFrom, showTo)
     timeParts = dict(timeParts)
     timeList = []

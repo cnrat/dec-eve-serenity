@@ -1,4 +1,6 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\client\script\ui\shared\fleet\fleetbroadcastexports.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\client\script\ui\shared\fleet\fleetbroadcastexports.py
+from eve.common.script.sys.eveCfg import InShipInSpace
 import util
 import state
 from fleetcommon import *
@@ -173,7 +175,7 @@ def GetMenu_WarpTo(charID, solarSystemID, locationID):
 
 
 def GetWarpLocationMenu(locationID):
-    if session.solarsystemid is None:
+    if not InShipInSpace():
         return []
     menuSvc = sm.GetService('menu')
     defaultWarpDist = menuSvc.GetDefaultActionDistance('WarpTo')
@@ -291,31 +293,33 @@ inBubble = 1
 inSystem = 2
 exSystem = 3
 
-def Where(charID, locationID = None):
+def Where(charID, locationID=None):
     if util.SlimItemFromCharID(charID) is not None:
         return inBubble
     elif locationID in (None, eve.session.solarsystemid):
         return inSystem
     else:
         return exSystem
+        return
 
 
 def GetRoleIconFromCharID(charID):
     if charID is None:
         return
-    info = sm.GetService('fleet').GetMemberInfo(int(charID))
-    if info is None:
-        return
-    if info.job & const.fleetJobCreator:
-        iconRole = '73_20'
     else:
-        iconRole = {const.fleetRoleLeader: '73_17',
-         const.fleetRoleWingCmdr: '73_18',
-         const.fleetRoleSquadCmdr: '73_19'}.get(info.role, None)
-    return iconRole
+        info = sm.GetService('fleet').GetMemberInfo(int(charID))
+        if info is None:
+            return
+        if info.job & const.fleetJobCreator:
+            iconRole = '73_20'
+        else:
+            iconRole = {const.fleetRoleLeader: '73_17',
+             const.fleetRoleWingCmdr: '73_18',
+             const.fleetRoleSquadCmdr: '73_19'}.get(info.role, None)
+        return iconRole
 
 
-def GetVoiceMenu(entry, charID = None, channel = None):
+def GetVoiceMenu(entry, charID=None, channel=None):
     if entry:
         charID = entry.sr.node.charID
         channel = entry.sr.node.channel
@@ -334,7 +338,7 @@ def GetVoiceMenu(entry, charID = None, channel = None):
     return m
 
 
-def GetBroadcastScopeName(scope, where = BROADCAST_UNIVERSE):
+def GetBroadcastScopeName(scope, where=BROADCAST_UNIVERSE):
     labelName = broadcastScopes.get(scope, {}).get(where, 'UI/Fleet/FleetBroadcast/BroadcastRangeAll')
     return localization.GetByLabel(labelName)
 

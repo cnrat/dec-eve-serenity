@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\packages\iconrendering\inventory_map.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\packages\iconrendering\inventory_map.py
 import pyodbc
 import evetypes
 import industry
@@ -20,11 +21,12 @@ def memoize(function):
 
 class InventoryMapper(object):
 
-    def __init__(self, branchID = 1):
+    def __init__(self, branchID=1):
         self.branchID = branchID
         self.typeData = {}
         self.dogmaAttributeValues = None
         self.InitializeData()
+        return
 
     def InitializeData(self):
         for typeID in evetypes.Iterate():
@@ -32,7 +34,7 @@ class InventoryMapper(object):
 
         self.blueprints = industry.BlueprintStorage()
 
-    def _ConnectAndExecute(self, execstr, params = None):
+    def _ConnectAndExecute(self, execstr, params=None):
         connection = pyodbc.connect('DRIVER={SQL Server};SERVER=sqldev1is;DATABASE=ebs_ADAM;Trusted_Connection=yes')
         if params:
             result = connection.execute(execstr, params)
@@ -40,7 +42,7 @@ class InventoryMapper(object):
             result = connection.execute(execstr)
         return result
 
-    def _ConstructQuery(self, selectStr, fromStr, whereStr = None):
+    def _ConstructQuery(self, selectStr, fromStr, whereStr=None):
         selectStr = 'SELECT %s' % selectStr
         fromStr = 'FROM zstatic.mappings M INNER JOIN %s D ON D.dataID = M.dataID' % fromStr
         if whereStr:
@@ -54,20 +56,21 @@ class InventoryMapper(object):
         key = (attributeID, typeID)
         if self.dogmaAttributeValues is not None:
             return self.dogmaAttributeValues.get(key, None)
-        query = self._ConstructQuery('D.valueFloat, D.valueInt, D.attributeID, D.typeID', 'dogma.typeAttributesTx')
-        self.dogmaAttributeValues = {}
-        for floatVal, intVal, attribID, tID in self._ConnectAndExecute(query).fetchall():
-            if attribID is None:
-                continue
-            if tID is None:
-                continue
-            k = (int(attribID), int(tID))
-            if floatVal is not None:
-                self.dogmaAttributeValues[k] = float(floatVal)
-            else:
-                self.dogmaAttributeValues[k] = int(intVal)
+        else:
+            query = self._ConstructQuery('D.valueFloat, D.valueInt, D.attributeID, D.typeID', 'dogma.typeAttributesTx')
+            self.dogmaAttributeValues = {}
+            for floatVal, intVal, attribID, tID in self._ConnectAndExecute(query).fetchall():
+                if attribID is None:
+                    continue
+                if tID is None:
+                    continue
+                k = (int(attribID), int(tID))
+                if floatVal is not None:
+                    self.dogmaAttributeValues[k] = float(floatVal)
+                else:
+                    self.dogmaAttributeValues[k] = int(intVal)
 
-        return self.dogmaAttributeValues.get(key, None)
+            return self.dogmaAttributeValues.get(key, None)
 
     def GetAllTypesData(self):
         for typeID, (groupID, categoryID, raceID) in self.typeData.iteritems():
@@ -98,6 +101,8 @@ class InventoryMapper(object):
         except KeyError:
             return None
 
+        return None
+
     @memoize
     def GetBlueprintThatMakesType(self, typeID):
         try:
@@ -105,7 +110,11 @@ class InventoryMapper(object):
         except KeyError:
             return None
 
+        return None
+
     def GetGroupAndCategoryByType(self, typeID):
         entry = self.typeData.get(typeID, None)
         if entry:
             return (entry[0], entry[1])
+        else:
+            return

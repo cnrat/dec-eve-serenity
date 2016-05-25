@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\client\script\parklife\areaWeapon.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\client\script\parklife\areaWeapon.py
 from appConst import defaultPadding
 from carbon.common.script.sys.service import Service
 import geo2
@@ -30,22 +31,41 @@ class AreaWeaponSvc(Service):
     targetStartOffset = None
     targetEndOffset = None
 
-    def Run(self, memStream = None):
+    def Run(self, memStream=None):
         self.LogInfo('Starting AreaWeapon Service')
+        self.startPosBox = None
+        self.endPosBox = None
+        return
 
     def SetTargetingOffsets(self, startOffset, endOffset):
         self.targetStartOffset = startOffset
         self.targetEndOffset = endOffset
-        self.startPosBox.SetText('%d, %d, %d' % (startOffset[0], startOffset[1], startOffset[2]))
-        self.endPosBox.SetText('%d, %d, %d' % (endOffset[0], endOffset[1], endOffset[2]))
+        if self.startPosBox is not None:
+            self.startPosBox.SetText('%d, %d, %d' % (startOffset[0], startOffset[1], startOffset[2]))
+        if self.endPosBox is not None:
+            self.endPosBox.SetText('%d, %d, %d' % (endOffset[0], endOffset[1], endOffset[2]))
+        return
 
-    def FireOnServer(self, moduleID):
+    def ActivateSinglePointTargetedModule(self, moduleID, effectID, destination):
+        sm.RemoteSvc('superWeaponMgr').ActivateSinglePointTargetedModule(moduleID, effectID, destination)
+
+    def FireAreaWeaponOnServer(self, moduleID):
         sm.RemoteSvc('superWeaponMgr').ActivateSlashModule(moduleID, self.targetStartOffset, self.targetEndOffset)
 
-    def _PlayLocalFireEffect(self, sourceID, duration = 20):
+    def FireBeamWeaponOnServer(self, moduleID):
+        sm.RemoteSvc('superWeaponMgr').ActivateBeamModule(moduleID, self.targetStartOffset)
+
+    def FireConeWeaponOnServer(self, moduleID):
+        sm.RemoteSvc('superWeaponMgr').ActivateConeModule(moduleID, self.targetStartOffset)
+
+    def FireHandOfGodOnServer(self, moduleID):
+        sm.RemoteSvc('superWeaponMgr').ActivateHandOfGodModule(moduleID)
+
+    def _PlayLocalFireEffect(self, sourceID, duration=20):
         ballpark = self.michelle.GetBallpark()
         graphicInfo = KeyVal(startTargetOffset=self.targetStartOffset, endTargetOffset=self.targetEndOffset, warmupDuration=10000, damageDuration=10000)
         ballpark.OnSpecialFX(sourceID, None, None, None, None, 'effects.SlashStretch', 0, 1, 0, duration * 1000, graphicInfo=graphicInfo)
+        return
 
     def ShowWindow(self):
         wnd = AreaWeaponToolsWindow.GetIfOpen()

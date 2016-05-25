@@ -1,5 +1,9 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\client\script\environment\invControllers.py
-from inventorycommon.util import GetItemVolume, IsShipFittingFlag, IsNPC
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\client\script\environment\invControllers.py
+from eve.common.script.mgt.fighterConst import TUBE_STATE_READY
+from eve.common.script.sys.eveCfg import InSpace
+from eve.common.script.util.inventoryFlagsCommon import inventoryFlagData
+from inventorycommon.util import GetItemVolume, IsFittingFlag, IsNPC, IsFittingModule, IsStructureServiceFlag
 import uix
 import uthread
 import util
@@ -12,6 +16,7 @@ import uiutil
 import telemetry
 import evetypes
 import inventorycommon.typeHelpers
+import inventorycommon.const as invConst
 from carbon.common.script.sys.row import Row
 LOOT_GROUPS = (const.groupWreck,
  const.groupCargoContainer,
@@ -27,6 +32,10 @@ LOOT_GROUPS = (const.groupWreck,
 LOOT_GROUPS_NOCLOSE = (const.groupAutoLooter, const.groupMobileHomes)
 ZERO_CAPACITY = Row(['capacity', 'used'], [0, 0.0])
 
+def GetNameForFlag(flagID):
+    return localization.GetByLabel(inventoryFlagData[flagID]['name'])
+
+
 class BaseInvContainer():
     __guid__ = 'invCtrl.BaseInvContainer'
     name = ''
@@ -40,8 +49,9 @@ class BaseInvContainer():
     isMovable = True
     filtersEnabled = True
     typeID = None
+    acceptsDrops = True
 
-    def __init__(self, itemID = None, typeID = None):
+    def __init__(self, itemID=None, typeID=None):
         self.itemID = itemID
         self.typeID = typeID
         self.invID = (self.__class__.__name__, itemID)
@@ -72,8 +82,7 @@ class BaseInvContainer():
         if self.locationFlag:
             return self._GetInvCacheContainer().List(flag=self.locationFlag)
         else:
-            invCacheContainer = self._GetInvCacheContainer()
-            return invCacheContainer.List()
+            return self._GetInvCacheContainer().List()
 
     def GetItem(self, itemID):
         for item in self.GetItems():
@@ -134,7 +143,8 @@ class BaseInvContainer():
     def DoesAcceptItem(self, item):
         if self.locationFlag and inventoryFlagsCommon.ShouldAllowAdd(self.locationFlag, item.categoryID, item.groupID, item.typeID) is not None:
             return False
-        return True
+        else:
+            return True
 
     def IsBookmarkDroppingAllowed(self):
         raise UserError('CanOnlyCreateVoucherInPersonalHangar')
@@ -147,16 +157,24 @@ class BaseInvContainer():
         flag = None
         if not self.CheckAndConfirmOneWayMove():
             return
-        if self.locationFlag:
-            flag = self.locationFlag
         else:
-            flag = const.flagNone
-        if flag == const.flagDroneBay:
-            raise UserError('ItemCannotBeInDroneBay')
-        isMove = not uicore.uilib.Key(uiconst.VK_SHIFT)
-        self._GetInvCacheContainer().AddBookmarks(bookmarkIDs, flag, isMove)
+            if self.locationFlag:
+                flag = self.locationFlag
+            else:
+                flag = const.flagNone
+            if flag == const.flagDroneBay:
+                raise UserError('ItemCannotBeInDroneBay')
+            isMove = not uicore.uilib.Key(uiconst.VK_SHIFT)
+            self._GetInvCacheContainer().AddBookmarks(bookmarkIDs, flag, isMove)
+            return
 
-    def __AddItem(self, itemID, sourceLocation, quantity, dividing = False):
+    def AddFightersFromTube(self, fighters):
+        fighterSvc = sm.GetService('fighters')
+        for fighter in fighters:
+            if fighter.squadronState == TUBE_STATE_READY:
+                fighterSvc.UnloadTubeToFighterBay(fighter.tubeFlagID)
+
+    def __AddItem(self, itemID, sourceLocation, quantity, dividing=False):
         dropLocation = self._GetInvCacheContainer().GetItem().itemID
         dogmaLocation = sm.GetService('clientDogmaIM').GetDogmaLocation()
         stateMgr = sm.StartService('godma').GetStateManager()
@@ -167,32 +185,34 @@ class BaseInvContainer():
                     return
         if not dividing and not self.CheckAndConfirmOneWayMove():
             return
-        if self.locationFlag:
-            item = stateMgr.GetItem(itemID)
-            if item and self.locationFlag == const.flagCargo and IsShipFittingFlag(item.flagID):
-                containerArgs = self._GetContainerArgs()
-                if item.categoryID == const.categoryCharge:
-                    return dogmaLocation.UnloadChargeToContainer(item.locationID, item.itemID, containerArgs, self.locationFlag, quantity)
-                if item.categoryID == const.categoryModule:
-                    return stateMgr.UnloadModuleToContainer(item.locationID, item.itemID, containerArgs, self.locationFlag)
-            else:
-                return self._GetInvCacheContainer().Add(itemID, sourceLocation, qty=quantity, flag=self.locationFlag)
         else:
-            lockFlag = None
-            typeID = self.GetTypeID()
-            if typeID and evetypes.GetGroupID(typeID) == const.groupAuditLogSecureContainer:
-                thisContainer = sm.GetService('invCache').GetInventoryFromId(self.itemID)
-                thisContainerItem = thisContainer.GetItem()
-                rolesAreNeeded = thisContainerItem is None or not util.IsStation(thisContainerItem.locationID) and thisContainerItem.locationID != session.shipid
-                if rolesAreNeeded:
-                    config = thisContainer.ALSCConfigGet()
-                    lockFlag = const.flagLocked if bool(config & const.ALSCLockAddedItems) else const.flagUnlocked
-                    if lockFlag == const.flagLocked and charsession.corprole & const.corpRoleEquipmentConfig == 0:
-                        if eve.Message('ConfirmAddLockedItemToAuditContainer', {}, uiconst.OKCANCEL) != uiconst.ID_OK:
-                            return
-            return self._GetInvCacheContainer().Add(itemID, sourceLocation, qty=quantity, flag=self.locationFlag)
+            if self.locationFlag:
+                item = stateMgr.GetItem(itemID)
+                if item and self.locationFlag == const.flagCargo and IsFittingFlag(item.flagID):
+                    containerArgs = self._GetContainerArgs()
+                    if item.categoryID == const.categoryCharge:
+                        return dogmaLocation.UnloadChargeToContainer(item.locationID, item.itemID, containerArgs, self.locationFlag, quantity)
+                    if IsFittingModule(item.categoryID):
+                        return stateMgr.UnloadModuleToContainer(item.locationID, item.itemID, containerArgs, self.locationFlag)
+                else:
+                    return self._GetInvCacheContainer().Add(itemID, sourceLocation, qty=quantity, flag=self.locationFlag)
+            else:
+                lockFlag = None
+                typeID = self.GetTypeID()
+                if typeID and evetypes.GetGroupID(typeID) == const.groupAuditLogSecureContainer:
+                    thisContainer = sm.GetService('invCache').GetInventoryFromId(self.itemID)
+                    thisContainerItem = thisContainer.GetItem()
+                    rolesAreNeeded = thisContainerItem is None or not util.IsStation(thisContainerItem.locationID) and thisContainerItem.locationID != session.shipid
+                    if rolesAreNeeded:
+                        config = thisContainer.ALSCConfigGet()
+                        lockFlag = const.flagLocked if bool(config & const.ALSCLockAddedItems) else const.flagUnlocked
+                        if lockFlag == const.flagLocked and charsession.corprole & const.corpRoleEquipmentConfig == 0:
+                            if eve.Message('ConfirmAddLockedItemToAuditContainer', {}, uiconst.OKCANCEL) != uiconst.ID_OK:
+                                return
+                return self._GetInvCacheContainer().Add(itemID, sourceLocation, qty=quantity, flag=self.locationFlag)
+            return
 
-    def _AddItem(self, item, forceQuantity = False, sourceLocation = None):
+    def _AddItem(self, item, forceQuantity=False, sourceLocation=None):
         locationID = session.locationid
         for i in xrange(2):
             try:
@@ -243,7 +263,9 @@ class BaseInvContainer():
                     raise
                 sys.exc_clear()
 
-    def PromptUserForQuantity(self, item, itemQuantity, sourceLocation = None):
+        return
+
+    def PromptUserForQuantity(self, item, itemQuantity, sourceLocation=None):
         if self.locationFlag is not None and item.flagID != self.locationFlag or item.locationID != getattr(self._GetInvCacheContainer(), 'itemID', None):
             if self.hasCapacity:
                 cap = self.GetCapacity()
@@ -266,86 +288,94 @@ class BaseInvContainer():
                 return
         if ret is not None:
             return ret['qty']
+        else:
+            return
 
     def MultiMerge(self, data, mergeSourceID):
         if not self.CheckAndConfirmOneWayMove():
             return
-        ret = None
-        try:
-            dataReduced = []
-            for d in data:
-                dataReduced.append((d[0], d[1], d[2]))
+        else:
+            ret = None
+            try:
+                dataReduced = []
+                for d in data:
+                    dataReduced.append((d[0], d[1], d[2]))
 
-            self._GetInvCacheContainer().MultiMerge(dataReduced, mergeSourceID)
-            return True
-        except UserError as what:
-            if len(data) == 1 and what.args[0] in ('NotEnoughCargoSpace', 'NotEnoughCargoSpaceOverload', 'NotEnoughDroneBaySpace', 'NotEnoughDroneBaySpaceOverload', 'NoSpaceForThat', 'NoSpaceForThatOverload', 'NotEnoughChargeSpace'):
-                cap = self.GetCapacity()
-                free = cap.capacity - cap.used
-                if free < 0:
-                    raise
-                item = data[0][3]
-                if item.typeID == const.typePlasticWrap:
-                    volume = sm.GetService('invCache').GetInventoryFromId(item.itemID).GetCapacity().used
-                else:
-                    volume = GetItemVolume(item, 1)
-                maxQty = min(item.stacksize, int(free / (volume or 1)))
-                if maxQty <= 0:
-                    if volume < 0.01:
-                        req = 0.01
+                self._GetInvCacheContainer().MultiMerge(dataReduced, mergeSourceID)
+                return True
+            except UserError as what:
+                if len(data) == 1 and what.args[0] in ('NotEnoughCargoSpace', 'NotEnoughCargoSpaceOverload', 'NotEnoughDroneBaySpace', 'NotEnoughDroneBaySpaceOverload', 'NoSpaceForThat', 'NoSpaceForThatOverload', 'NotEnoughChargeSpace'):
+                    cap = self.GetCapacity()
+                    free = cap.capacity - cap.used
+                    if free < 0:
+                        raise
+                    item = data[0][3]
+                    if item.typeID == const.typePlasticWrap:
+                        volume = sm.GetService('invCache').GetInventoryFromId(item.itemID).GetCapacity().used
                     else:
-                        req = volume
-                    eve.Message('NotEnoughCargoSpaceFor1Unit', {'type': item.typeID,
-                     'free': free,
-                     'required': req})
-                    return
-                if self._DBLessLimitationsCheck(what.args[0], item):
-                    return
-                if maxQty == item.stacksize:
-                    errmsg = localization.GetByLabel('UI/Common/NoMoreUnits')
+                        volume = GetItemVolume(item, 1)
+                    maxQty = min(item.stacksize, int(free / (volume or 1)))
+                    if maxQty <= 0:
+                        if volume < 0.01:
+                            req = 0.01
+                        else:
+                            req = volume
+                        eve.Message('NotEnoughCargoSpaceFor1Unit', {'type': item.typeID,
+                         'free': free,
+                         'required': req})
+                        return
+                    if self._DBLessLimitationsCheck(what.args[0], item):
+                        return
+                    if maxQty == item.stacksize:
+                        errmsg = localization.GetByLabel('UI/Common/NoMoreUnits')
+                    else:
+                        errmsg = localization.GetByLabel('UI/Common/NoRoomForMore')
+                    ret = uix.QtyPopup(int(maxQty), 0, int(maxQty), errmsg)
+                    if ret is None:
+                        quantity = None
+                    else:
+                        quantity = ret['qty']
+                    if quantity:
+                        self._GetInvCacheContainer().MultiMerge([(data[0][0], data[0][1], quantity)], mergeSourceID)
+                        return True
                 else:
-                    errmsg = localization.GetByLabel('UI/Common/NoRoomForMore')
-                ret = uix.QtyPopup(int(maxQty), 0, int(maxQty), errmsg)
-                if ret is None:
-                    quantity = None
-                else:
-                    quantity = ret['qty']
-                if quantity:
-                    self._GetInvCacheContainer().MultiMerge([(data[0][0], data[0][1], quantity)], mergeSourceID)
-                    return True
-            else:
-                raise
-            sys.exc_clear()
+                    raise
+                sys.exc_clear()
 
-    def StackAll(self, securityCode = None):
+            return
+
+    def StackAll(self, securityCode=None):
         if not self.CheckAndConfirmOneWayMove():
             return
-        if self.locationFlag:
+        elif self.locationFlag:
             retval = self._GetInvCacheContainer().StackAll(self.locationFlag)
             return retval
-        try:
-            if securityCode is None:
-                retval = self._GetInvCacheContainer().StackAll()
-            else:
-                retval = self._GetInvCacheContainer().StackAll(securityCode=securityCode)
-            return retval
-        except UserError as what:
-            if what.args[0] == 'PermissionDenied':
-                if securityCode:
-                    caption = localization.GetByLabel('UI/Menusvc/IncorrectPassword')
-                    label = localization.GetByLabel('UI/Menusvc/PleaseTryEnteringPasswordAgain')
+        else:
+            try:
+                if securityCode is None:
+                    retval = self._GetInvCacheContainer().StackAll()
                 else:
-                    caption = localization.GetByLabel('UI/Menusvc/PasswordRequired')
-                    label = localization.GetByLabel('UI/Menusvc/PleaseEnterPassword')
-                passw = uiutil.NamePopup(caption=caption, label=label, setvalue='', icon=-1, modal=1, btns=None, maxLength=50, passwordChar='*')
-                if passw == '':
-                    raise UserError('IgnoreToTop')
+                    retval = self._GetInvCacheContainer().StackAll(securityCode=securityCode)
+                return retval
+            except UserError as what:
+                if what.args[0] == 'PermissionDenied':
+                    if securityCode:
+                        caption = localization.GetByLabel('UI/Menusvc/IncorrectPassword')
+                        label = localization.GetByLabel('UI/Menusvc/PleaseTryEnteringPasswordAgain')
+                    else:
+                        caption = localization.GetByLabel('UI/Menusvc/PasswordRequired')
+                        label = localization.GetByLabel('UI/Menusvc/PleaseEnterPassword')
+                    passw = uiutil.NamePopup(caption=caption, label=label, setvalue='', icon=-1, modal=1, btns=None, maxLength=50, passwordChar='*')
+                    if passw == '':
+                        raise UserError('IgnoreToTop')
+                    else:
+                        retval = self.StackAll(securityCode=passw['name'])
+                        return retval
                 else:
-                    retval = self.StackAll(securityCode=passw['name'])
-                    return retval
-            else:
-                raise
-            sys.exc_clear()
+                    raise
+                sys.exc_clear()
+
+            return
 
     def _DBLessLimitationsCheck(self, errorName, item):
         return False
@@ -365,30 +395,38 @@ class BaseInvContainer():
         return (self.itemID,)
 
     def OnDropData(self, nodes):
-        bookmarkIDs = []
-        items = []
-        lockedNodes = [ node for node in nodes if getattr(node, 'locked', False) ]
-        if lockedNodes:
-            for node in lockedNodes:
-                nodes.remove(node)
+        if not self.acceptsDrops:
+            return
+        else:
+            bookmarkIDs = []
+            items = []
+            fighters = []
+            lockedNodes = [ node for node in nodes if getattr(node, 'locked', False) ]
+            if lockedNodes:
+                for node in lockedNodes:
+                    nodes.remove(node)
 
-            uicore.Message('SomeLockedItemsNotMoved')
-        for i, node in enumerate(nodes):
-            if getattr(node, '__guid__', None) == 'listentry.PlaceEntry' and self.IsBookmarkDroppingAllowed():
-                bookmarkIDs.append(node.bm.bookmarkID)
-                continue
-            if getattr(node, '__guid__', None) in ('xtriui.ShipUIModule', 'xtriui.InvItem', 'listentry.InvItem', 'xtriui.FittingSlot'):
-                items.append(node.item)
-            from eve.client.script.ui.shared.inventory.treeData import TreeDataInv
-            if isinstance(node, TreeDataInv) and node.invController.IsMovable():
-                items.append(node.invController.GetInventoryItem())
+                uicore.Message('SomeLockedItemsNotMoved')
+            for i, node in enumerate(nodes):
+                if getattr(node, '__guid__', None) == 'listentry.PlaceEntry' and self.IsBookmarkDroppingAllowed():
+                    bookmarkIDs.append(node.bm.bookmarkID)
+                    continue
+                if getattr(node, '__guid__', None) in ('xtriui.ShipUIModule', 'xtriui.InvItem', 'listentry.InvItem', 'xtriui.FittingSlot'):
+                    items.append(node.item)
+                from eve.client.script.ui.shared.inventory.treeData import TreeDataInv
+                if isinstance(node, TreeDataInv) and node.invController.IsMovable():
+                    items.append(node.invController.GetInventoryItem())
+                if getattr(node, '__guid__', None) == 'uicls.FightersHealthGauge':
+                    fighters.append(node)
 
-        if bookmarkIDs:
-            if len(bookmarkIDs) > const.maxBookmarkCopies:
-                eve.Message('CannotMoveBookmarks', {'maxBookmarkCopies': const.maxBookmarkCopies})
-                return
-            uthread.new(self.AddBookmarks, bookmarkIDs)
-        return self.AddItems(items)
+            if fighters:
+                return self.AddFightersFromTube(fighters)
+            if bookmarkIDs:
+                if len(bookmarkIDs) > const.maxBookmarkCopies:
+                    eve.Message('CannotMoveBookmarks', {'maxBookmarkCopies': const.maxBookmarkCopies})
+                    return
+                uthread.new(self.AddBookmarks, bookmarkIDs)
+            return self.AddItems(items)
 
     def AddItems(self, items):
         if len(items) > 1:
@@ -403,9 +441,11 @@ class BaseInvContainer():
             if session.shipid and self.itemID == session.shipid:
                 if self.itemID != sourceLocation and not sm.GetService('consider').ConfirmTakeIllicitGoods(items):
                     return
+            if not sm.GetService('invCache').AcceptPossibleRemovalTax(items):
+                return
             if len(items) == 1:
                 item = items[0]
-                if hasattr(item, 'flagID') and IsShipFittingFlag(item.flagID):
+                if hasattr(item, 'flagID') and IsFittingFlag(item.flagID):
                     if item.locationID == util.GetActiveShip():
                         if not self.CheckAndConfirmOneWayMove():
                             return
@@ -415,7 +455,13 @@ class BaseInvContainer():
                         containerArgs = self._GetContainerArgs()
                         if item.categoryID == const.categoryCharge:
                             return dogmaLocation.UnloadChargeToContainer(locationID, itemKey, containerArgs, self.locationFlag)
-                        if item.categoryID == const.categoryModule:
+                        if IsStructureServiceFlag(item.flagID):
+                            from eve.client.script.util.eveMisc import GetRemoveServiceConfirmationQuestion
+                            questionPath = GetRemoveServiceConfirmationQuestion(item.typeID)
+                            ret = eve.Message(questionPath, buttons=uiconst.YESNO)
+                            if ret != uiconst.ID_YES:
+                                return
+                        if IsFittingModule(item.categoryID):
                             return dogmaLocation.UnloadModuleToContainer(locationID, itemKey, containerArgs, self.locationFlag)
                 ret = self._AddItem(item, sourceLocation=sourceLocation)
                 if ret:
@@ -440,7 +486,7 @@ class BaseInvContainer():
                     if ret != uiconst.ID_YES:
                         return
             for item in items:
-                if item.categoryID == const.categoryCharge and IsShipFittingFlag(item.flagID):
+                if item.categoryID == const.categoryCharge and IsFittingFlag(item.flagID):
                     log.LogInfo('A module with a db item charge dropped from ship fitting into some container. Cannot use multimove, must remove charge first.')
                     ret = [self._AddItem(item)]
                     items.remove(item)
@@ -475,18 +521,18 @@ class ShipCargo(BaseInvContainer):
     hasCapacity = True
     locationFlag = const.flagCargo
 
-    def __init__(self, itemID = None, typeID = None):
+    def __init__(self, itemID=None, typeID=None):
         self.itemID = itemID or util.GetActiveShip()
         self.invID = (self.__class__.__name__, self.itemID)
         self.name = localization.GetByLabel('UI/Common/CargoHold')
 
     def GetMenu(self):
-        if self.itemID == util.GetActiveShip() and session.solarsystemid:
+        if self.itemID == session.shipid and InSpace():
             return sm.GetService('menu').GetMenuFormItemIDTypeID(self.itemID, self.GetTypeID())
         else:
             return BaseInvContainer.GetMenu(self)
 
-    def GetIconName(self, highliteIfActive = False):
+    def GetIconName(self, highliteIfActive=False):
         if highliteIfActive and self.itemID == util.GetActiveShip():
             return 'res:/UI/Texture/Icons/1337_64_11.png'
         else:
@@ -495,7 +541,6 @@ class ShipCargo(BaseInvContainer):
     def GetScope(self):
         if self.itemID == util.GetActiveShip():
             return 'station_inflight'
-        return 'station'
 
     def GetName(self):
         return cfg.evelocations.Get(self.itemID).name
@@ -519,7 +564,7 @@ class BaseShipBay(BaseInvContainer):
         return item.locationID == self.itemID and item.flagID == self.locationFlag
 
     def GetName(self):
-        return inventoryFlagsCommon.GetNameForFlag(self.locationFlag)
+        return GetNameForFlag(self.locationFlag)
 
     def GetScope(self):
         if self.itemID == util.GetActiveShip():
@@ -634,12 +679,13 @@ class BaseCorpContainer(BaseInvContainer):
     iconName = 'res:/UI/Texture/WindowIcons/corporation.png'
     isMovable = False
 
-    def __init__(self, itemID = None, divisionID = 0):
+    def __init__(self, itemID=None, divisionID=0):
         self.itemID = itemID
         self.SetDivisionID(divisionID)
         if self.roles is not None:
             self.SetAccess()
         self.invID = (self.__class__.__name__, self.itemID, divisionID)
+        return
 
     def GetName(self):
         if self.divisionID is not None:
@@ -647,16 +693,11 @@ class BaseCorpContainer(BaseInvContainer):
             return divisions[self.divisionID + 1]
         else:
             return localization.GetByLabel('UI/Inventory/CorporationHangars')
+            return
 
     def SetDivisionID(self, divisionID):
         self.divisionID = divisionID
-        self.locationFlag = {0: const.flagHangar,
-         1: const.flagCorpSAG2,
-         2: const.flagCorpSAG3,
-         3: const.flagCorpSAG4,
-         4: const.flagCorpSAG5,
-         5: const.flagCorpSAG6,
-         6: const.flagCorpSAG7}.get(divisionID, None)
+        self.locationFlag = const.stationFlagFromDivision.get(divisionID)
         self.roles = {0: (const.corpRoleHangarCanQuery1, const.corpRoleHangarCanTake1),
          1: (const.corpRoleHangarCanQuery2, const.corpRoleHangarCanTake2),
          2: (const.corpRoleHangarCanQuery3, const.corpRoleHangarCanTake3),
@@ -664,6 +705,7 @@ class BaseCorpContainer(BaseInvContainer):
          4: (const.corpRoleHangarCanQuery5, const.corpRoleHangarCanTake5),
          5: (const.corpRoleHangarCanQuery6, const.corpRoleHangarCanTake6),
          6: (const.corpRoleHangarCanQuery7, const.corpRoleHangarCanTake7)}.get(divisionID, None)
+        return
 
     def _GetInvCacheContainer(self):
         return sm.GetService('invCache').GetInventoryFromId(self.itemID)
@@ -672,23 +714,26 @@ class BaseCorpContainer(BaseInvContainer):
         return True
 
     def IsItemHere(self, item):
-        return item.locationID == self.itemID and (item.ownerID == session.corpid or session.solarsystemid and item.ownerID == sm.GetService('michelle').GetBallpark().slimItems[self.itemID].ownerID) and (self.locationFlag is None or item.flagID == self.locationFlag) and self.CheckCanQuery()
+        ballpark = sm.GetService('michelle').GetBallpark()
+        return item.locationID == self.itemID and (item.ownerID == session.corpid or ballpark and item.ownerID == ballpark.slimItems[self.itemID].ownerID) and (self.locationFlag is None or item.flagID == self.locationFlag) and self.CheckCanQuery()
 
     def CheckCanQuery(self):
         if self.roles is None:
             return True
-        role = self.roles[0]
-        if session.corprole & role == role:
-            return True
-        return False
+        else:
+            role = self.roles[0]
+            if session.corprole & role == role:
+                return True
+            return False
 
     def CheckCanTake(self):
         if self.roles is None:
             return True
-        role = self.roles[1]
-        if session.corprole & role == role:
-            return True
-        return False
+        else:
+            role = self.roles[1]
+            if session.corprole & role == role:
+                return True
+            return False
 
     def SetAccess(self):
         role = self.roles[1]
@@ -709,10 +754,11 @@ class StationCorpHangar(BaseCorpContainer):
     __guid__ = 'invCtrl.StationCorpHangar'
     hasCapacity = False
 
-    def __init__(self, itemID = None, divisionID = 0):
+    def __init__(self, itemID=None, divisionID=0):
         if itemID is None:
             itemID = sm.GetService('corp').GetOffice().itemID
         BaseCorpContainer.__init__(self, itemID, divisionID)
+        return
 
     def GetItems(self):
         office = sm.GetService('corp').GetOffice()
@@ -720,12 +766,14 @@ class StationCorpHangar(BaseCorpContainer):
             return []
         else:
             return BaseCorpContainer.GetItems(self)
+            return
 
     def GetCapacity(self):
         if sm.GetService('corp').GetOffice() is None:
             return ZERO_CAPACITY
         else:
             return BaseCorpContainer.GetCapacity(self)
+            return
 
     def GetMenu(self):
         return []
@@ -766,7 +814,8 @@ class POSCorpHangar(BaseCorpContainer):
             if bp.IsShipInRangeOfStructureControlTower(session.shipid, self.itemID):
                 return True
             return False
-        return True
+        else:
+            return True
 
     def IsItemHereVolume(self, item):
         return item.locationID == self.itemID and (item.ownerID == session.corpid or session.solarsystemid and item.ownerID == sm.GetService('michelle').GetBallpark().slimItems[self.itemID].ownerID) and self.CheckCanQuery()
@@ -780,7 +829,7 @@ class StationCorpMember(BaseInvContainer):
     locationFlag = const.flagHangar
     iconName = 'res:/ui/Texture/WindowIcons/member.png'
 
-    def __init__(self, itemID = None, ownerID = None):
+    def __init__(self, itemID=None, ownerID=None):
         self.itemID = itemID
         self.ownerID = ownerID
         self.invID = (self.__class__.__name__, itemID, ownerID)
@@ -817,7 +866,31 @@ class StationCorpDeliveries(BaseInvContainer):
         return (const.containerCorpMarket, session.corpid)
 
     def IsItemHere(self, item):
-        return item.flagID == const.flagCorpMarket and item.locationID == session.stationid and item.ownerID == session.corpid
+        return item.flagID == const.flagCorpMarket and item.locationID in (session.stationid, session.structureid) and item.ownerID == session.corpid
+
+
+class AssetSafetyDeliveries(BaseInvContainer):
+    __guid__ = 'invCtrl.AssetSafetyDeliveries'
+    scope = 'station'
+    acceptsDrops = False
+    locationFlag = const.flagAssetSafety
+    iconName = 'res:/UI/Texture/WindowIcons/personalDeliveries.png'
+    isMovable = False
+
+    def __init__(self, *args, **kwargs):
+        BaseInvContainer.__init__(self, *args, **kwargs)
+
+    def _GetInvCacheContainer(self):
+        return sm.GetService('invCache').GetInventory(const.containerHangar)
+
+    def _GetContainerArgs(self):
+        return (const.containerHangar,)
+
+    def IsItemHere(self, item):
+        return item.flagID == const.flagAssetSafety and item.locationID in (session.stationid, session.structureid) and (item.ownerID == session.charid or item.ownerID == session.corpid and session.corprole & const.corpRoleDirector)
+
+    def GetMenu(self):
+        return []
 
 
 class StationItems(BaseInvContainer):
@@ -891,7 +964,7 @@ class StationOwnerView(BaseInvContainer):
     oneWay = True
     viewOnly = True
 
-    def __init__(self, itemID = None, ownerID = None):
+    def __init__(self, itemID=None, ownerID=None):
         self.itemID = itemID
         self.ownerID = ownerID
         self.invID = (self.__class__.__name__, itemID, ownerID)
@@ -916,6 +989,7 @@ class BaseCelestialContainer(BaseInvContainer):
     def __init__(self, *args, **kwargs):
         BaseInvContainer.__init__(self, *args, **kwargs)
         self._isLootable = None
+        return
 
     def IsBookmarkDroppingAllowed(self):
         if self.locationFlag == const.flagShipHangar:
@@ -928,10 +1002,11 @@ class BaseCelestialContainer(BaseInvContainer):
             return item.locationID == self.itemID and item.flagID == self.locationFlag
         else:
             return item.locationID == self.itemID
+            return
 
     def IsInRange(self):
         bp = sm.GetService('michelle').GetBallpark()
-        if bp is None:
+        if bp is None or not InSpace():
             return True
         ball = bp.GetBall(self.itemID)
         if not ball:
@@ -939,11 +1014,12 @@ class BaseCelestialContainer(BaseInvContainer):
         item = sm.GetService('michelle').GetItem(self.itemID)
         if item is None:
             return False
-        if ball.surfaceDist > self.GetOperationalDistance(item.typeID):
+        elif ball.surfaceDist > self.GetOperationalDistance(item.typeID):
             if bp.IsShipInRangeOfStructureControlTower(session.shipid, self.itemID):
                 return True
             return False
-        return True
+        else:
+            return True
 
     def GetOperationalDistance(self, typeID):
         distance = sm.GetService('godma').GetTypeAttribute(typeID, const.attributeMaxOperationalDistance)
@@ -966,23 +1042,25 @@ class BaseCelestialContainer(BaseInvContainer):
     def GetTypeID(self):
         if self.typeID is not None:
             return self.typeID
-        bp = sm.GetService('michelle').GetBallpark()
-        if bp and self.itemID in bp.slimItems:
-            slimItem = bp.slimItems[self.itemID]
-            self.typeID = slimItem.typeID
         else:
-            self.typeID = BaseInvContainer.GetTypeID(self)
-        return self.typeID
+            bp = sm.GetService('michelle').GetBallpark()
+            if bp and self.itemID in bp.slimItems:
+                slimItem = bp.slimItems[self.itemID]
+                self.typeID = slimItem.typeID
+            else:
+                self.typeID = BaseInvContainer.GetTypeID(self)
+            return self.typeID
 
     def GetName(self):
         if self.name:
             return self.name
-        bp = sm.GetService('michelle').GetBallpark()
-        if bp:
-            slimItem = bp.slimItems.get(self.itemID, None)
-            if slimItem:
-                return uix.GetSlimItemName(slimItem)
-        return ''
+        else:
+            bp = sm.GetService('michelle').GetBallpark()
+            if bp:
+                slimItem = bp.slimItems.get(self.itemID, None)
+                if slimItem:
+                    return uix.GetSlimItemName(slimItem)
+            return ''
 
     def _DBLessLimitationsCheck(self, errorName, item):
         if errorName in ('NotEnoughCargoSpace', 'NotEnoughCargoSpaceOverload'):
@@ -1092,7 +1170,8 @@ class POSFuelBay(BaseCelestialContainer):
     def PromptUserForQuantity(self, item, itemQuantity, sourceLocation):
         if sourceLocation == self.itemID:
             return None
-        return BaseCelestialContainer.PromptUserForQuantity(self, item, itemQuantity)
+        else:
+            return BaseCelestialContainer.PromptUserForQuantity(self, item, itemQuantity)
 
 
 class POSJumpBridge(BaseCelestialContainer):
@@ -1132,7 +1211,8 @@ class POSMobileReactor(BaseCelestialContainer):
     def PromptUserForQuantity(self, item, itemQuantity, sourceLocation):
         if sourceLocation == self.itemID:
             return None
-        return BaseCelestialContainer.PromptUserForQuantity(self, item, itemQuantity)
+        else:
+            return BaseCelestialContainer.PromptUserForQuantity(self, item, itemQuantity)
 
 
 class POSSilo(BaseCelestialContainer):
@@ -1143,7 +1223,8 @@ class POSSilo(BaseCelestialContainer):
     def PromptUserForQuantity(self, item, itemQuantity, sourceLocation):
         if sourceLocation == self.itemID:
             return None
-        return BaseCelestialContainer.PromptUserForQuantity(self, item, itemQuantity)
+        else:
+            return BaseCelestialContainer.PromptUserForQuantity(self, item, itemQuantity)
 
 
 class POSConstructionPlatform(BaseCelestialContainer):
@@ -1169,7 +1250,7 @@ class ShipMaintenanceBay(BaseCelestialContainer):
     iconName = 'res:/ui/Texture/WindowIcons/settings.png'
 
     def GetName(self):
-        bayName = inventoryFlagsCommon.GetNameForFlag(self.locationFlag)
+        bayName = GetNameForFlag(self.locationFlag)
         if session.solarsystemid and self.itemID != util.GetActiveShip():
             return localization.GetByLabel('UI/Inventory/BayAndLocationName', bayName=evetypes.GetName(self.GetTypeID()), locationName=bayName)
         return bayName
@@ -1184,7 +1265,7 @@ class ShipFleetHangar(BaseCelestialContainer):
     iconName = 'res:/ui/Texture/WindowIcons/fleet.png'
 
     def GetName(self):
-        bayName = inventoryFlagsCommon.GetNameForFlag(self.locationFlag)
+        bayName = GetNameForFlag(self.locationFlag)
         if session.solarsystemid and self.itemID != util.GetActiveShip():
             return localization.GetByLabel('UI/Inventory/BayAndLocationName', bayName=evetypes.GetName(self.GetTypeID()), locationName=bayName)
         return bayName
@@ -1225,6 +1306,22 @@ class StationContainer(BaseCelestialContainer):
         return True
 
 
+class AssetSafetyContainer(StationContainer):
+    __guid__ = 'invCtrl.AssetSafetyContainer'
+    scope = 'station'
+    isMovable = False
+
+    def __init__(self, itemID=None, typeID=None, name=None):
+        StationContainer.__init__(self, itemID, typeID)
+        self.name = name
+
+    def GetName(self):
+        return self.name
+
+    def IsItemHere(self, item):
+        return item.locationID == self.itemID
+
+
 class ItemWreck(BaseCelestialContainer):
     __guid__ = 'invCtrl.ItemWreck'
     hasCapacity = False
@@ -1251,7 +1348,7 @@ class PlayerTrade(BaseInvContainer):
     filtersEnabled = False
     isMovable = False
 
-    def __init__(self, itemID = None, ownerID = None, tradeSession = None):
+    def __init__(self, itemID=None, ownerID=None, tradeSession=None):
         self.itemID = itemID
         self.ownerID = ownerID
         self.tradeSession = tradeSession
@@ -1285,6 +1382,146 @@ class SpaceComponentInventory(BaseCelestialContainer):
         return sm.GetService('menu').CelestialMenu(self.itemID)
 
 
+class StructureContainer(BaseInvContainer):
+
+    def IsInRange(self):
+        return session.structureid and self.itemID == session.structureid
+
+    def GetMenu(self):
+        return []
+
+
+class StructureBay(StructureContainer):
+
+    def IsItemHere(self, item):
+        return item.locationID == self.itemID and item.flagID == self.locationFlag and item.ownerID == self.GetOwnerID()
+
+
+class Structure(StructureContainer):
+    __guid__ = 'invCtrl.Structure'
+    iconName = 'res:/ui/Texture/WindowIcons/structurebrowser.png'
+
+    def GetName(self):
+        name = cfg.evelocations.Get(self.itemID).name
+        if not name:
+            name = evetypes.GetName(self.GetTypeID())
+        return name
+
+    def IsItemHere(self, item):
+        return False
+
+
+class StructureAmmoBay(StructureBay):
+    __guid__ = 'invCtrl.StructureAmmoBay'
+    iconName = 'res:/ui/Texture/WindowIcons/itemHangar.png'
+    locationFlag = const.flagCargo
+
+    def GetName(self):
+        return localization.GetByLabel('UI/Ship/AmmoHold')
+
+
+class StructureFuelBay(StructureBay):
+    __guid__ = 'invCtrl.StructureFuelBay'
+    iconName = 'res:/UI/Texture/WindowIcons/fuelbay.png'
+    locationFlag = const.flagStructureFuel
+
+    def GetName(self):
+        return localization.GetByLabel('UI/Ship/FuelBay')
+
+
+class StructureFighterBay(StructureBay):
+    __guid__ = 'invCtrl.StructureFighterBay'
+    iconName = 'res:/UI/Texture/WindowIcons/dronebay.png'
+    locationFlag = const.flagFighterBay
+    hasCapacity = True
+
+    def GetName(self):
+        return localization.GetByLabel('UI/Ship/FighterBay')
+
+
+class StructureItemHangar(StructureContainer):
+    __guid__ = 'invCtrl.StructureItemHangar'
+    iconName = 'res:/ui/Texture/WindowIcons/itemHangar.png'
+    locationFlag = const.flagHangar
+
+    def __init__(self, *args, **kwargs):
+        BaseInvContainer.__init__(self, *args, **kwargs)
+        self.name = localization.GetByLabel('UI/Inventory/ItemHangar')
+
+    def IsItemHere(self, item):
+        return item.locationID == self.itemID and item.ownerID == session.charid and item.flagID == const.flagHangar and item.categoryID != const.categoryShip
+
+
+class StructureShipHangar(StructureContainer):
+    __guid__ = 'invCtrl.StructureShipHangar'
+    iconName = 'res:/ui/Texture/WindowIcons/shiphangar.png'
+    locationFlag = const.flagHangar
+
+    def __init__(self, *args, **kwargs):
+        BaseInvContainer.__init__(self, *args, **kwargs)
+        self.name = localization.GetByLabel('UI/Inventory/ShipHangar')
+
+    def IsItemHere(self, item):
+        return item.locationID == self.itemID and item.ownerID == session.charid and item.flagID == const.flagHangar and item.categoryID == const.categoryShip
+
+
+class StructureDeliveriesHangar(StructureContainer):
+    __guid__ = 'invCtrl.StructureDeliveriesHangar'
+    iconName = 'res:/ui/Texture/WindowIcons/personalDeliveries.png'
+    locationFlag = const.flagDeliveries
+    isMovable = False
+
+    def __init__(self, *args, **kwargs):
+        BaseInvContainer.__init__(self, *args, **kwargs)
+        self.name = localization.GetByLabel('UI/Inventory/DeliveriesHangar')
+
+    def IsItemHere(self, item):
+        return item.locationID == self.itemID and item.ownerID == session.charid and item.flagID == const.flagDeliveries
+
+    def IsInRange(self):
+        return bool(self.GetItems())
+
+
+class StructureCorpHangar(BaseCorpContainer):
+    __guid__ = 'invCtrl.StructureCorpHangar'
+
+    def IsInRange(self):
+        return session.structureid and self.itemID == session.structureid
+
+    def GetMenu(self):
+        return []
+
+    def GetItems(self):
+        try:
+            return BaseCorpContainer.GetItems(self)
+        except UserError:
+            return []
+
+    def SetDivisionID(self, divisionID):
+        BaseCorpContainer.SetDivisionID(self, divisionID)
+        self.locationFlag = const.structureFlagFromDivision.get(divisionID)
+
+
+class AssetSafetyCorpContainer(StructureCorpHangar):
+    __guid__ = 'invCtrl.AssetSafetyCorpContainer'
+    scope = 'station'
+    isMovable = False
+
+    def GetName(self):
+        if self.divisionID == invConst.flagCorpMarket:
+            return localization.GetByLabel('UI/Neocom/DeliveriesHangarBtn')
+        return StructureCorpHangar.GetName(self)
+
+    def SetDivisionID(self, divisionID):
+        StructureCorpHangar.SetDivisionID(self, divisionID)
+        self.locationFlag = invConst.corpAssetSafetyFlagsFromDivision.get(divisionID)
+
+    def GetIconName(self):
+        if self.locationFlag == const.flagCorpMarket:
+            return 'res:/UI/Texture/WindowIcons/corpdeliveries.png'
+        return StructureCorpHangar.GetIconName(self)
+
+
 def GetInvCtrlFromInvID(invID):
     if invID is None:
         return
@@ -1293,6 +1530,8 @@ def GetInvCtrlFromInvID(invID):
     if cls:
         args = invID[1:]
         return cls(*args)
+    else:
+        return
 
 
 class ItemSiphonPseudoSilo(BaseCelestialContainer):

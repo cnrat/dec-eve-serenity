@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\client\script\ui\shared\neocom\addressBook\addressbookService.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\client\script\ui\shared\neocom\addressBook\addressbookService.py
 import math
 import sys
 import service
@@ -66,8 +67,9 @@ class AddressBookSvc(service.Service):
         self.contacts = None
         self.corporateContacts = None
         self.allianceContacts = None
+        return
 
-    def Run(self, memStream = None):
+    def Run(self, memStream=None):
         self.LogInfo('Starting AddressBook')
         self.Reset()
         if eve.session.charid:
@@ -85,7 +87,9 @@ class AddressBookSvc(service.Service):
         wnd = self.GetWnd()
         if wnd is None or wnd.destroyed or not wnd.inited:
             return
-        wnd.OnDropData(dragObj, nodes)
+        else:
+            wnd.OnDropData(dragObj, nodes)
+            return
 
     def ProcessSessionChange(self, isremote, session, change):
         if session.charid is None:
@@ -93,6 +97,7 @@ class AddressBookSvc(service.Service):
             self.Reset()
         elif 'solarsystemid' in change:
             self.RefreshWindow()
+        return
 
     def OnContactSlashCommand(self, contactID, level):
         if level is None:
@@ -111,6 +116,7 @@ class AddressBookSvc(service.Service):
         else:
             self.contacts[contactID].relationshipID = level
         sm.ScatterEvent('OnContactChange', [contactID], 'contact')
+        return
 
     def OnPersonalContactsUpdated(self, contactIDs, standing, inWatchlist):
         if self.contacts is None:
@@ -141,6 +147,8 @@ class AddressBookSvc(service.Service):
             if util.IsCharacter(contactID) and not util.IsNPC(contactID):
                 isOnline = sm.GetService('onlineStatus').GetOnlineStatus(contactID)
                 sm.ScatterEvent('OnClientContactChange', contactID, isOnline)
+
+        return
 
     def OnOrganizationContactsUpdated(self, ownerID, updates):
         if self.contacts is None:
@@ -176,6 +184,7 @@ class AddressBookSvc(service.Service):
                 contacts[contactID].labelMask = labelMask
 
         sm.ScatterEvent(event)
+        return
 
     def GetContacts(self):
         uthread.Lock(self, 'contacts')
@@ -224,7 +233,9 @@ class AddressBookSvc(service.Service):
         finally:
             uthread.UnLock(self, 'contacts')
 
-    def GetRelationship(self, charID, corporationID, allianceID = None):
+        return
+
+    def GetRelationship(self, charID, corporationID, allianceID=None):
         relationships = util.KeyVal()
         relationships.persToPers = const.contactNeutralStanding
         relationships.persToCorp = const.contactNeutralStanding
@@ -285,7 +296,9 @@ class AddressBookSvc(service.Service):
         self.RefreshWindow()
 
     def OnContactNoLongerContact(self, charID):
-        pass
+        if charID in self.contacts:
+            del self.contacts[charID]
+            self.RefreshWindow()
 
     def OnRefreshBookmarks(self):
         self.RefreshWindow()
@@ -354,13 +367,17 @@ class AddressBookSvc(service.Service):
                 btn = wnd.sr.bookmarkbtns.GetBtnByLabel(text)
                 btn.Enable()
 
+        return
+
     def CheckLocationID(self, locationID):
         bms = sm.GetService('bookmarkSvc').GetMyBookmarks()
         for bookmark in bms.itervalues():
             if bookmark.itemID == locationID:
                 return self.UnzipMemo(bookmark.memo)[0]
 
-    def BookmarkLocationPopup(self, locationid, typeID, parentID, note = None, scannerInfo = None, locationName = None):
+        return None
+
+    def BookmarkLocationPopup(self, locationid, typeID, parentID, note=None, scannerInfo=None, locationName=None):
         checkavail = self.CheckLocationID(locationid)
         if locationName is None:
             locationName = self.GetDefaultLocationName(locationid, scannerInfo)
@@ -370,6 +387,7 @@ class AddressBookSvc(service.Service):
                 return
         wnd = form.BookmarkLocationWindow.Open(locationID=locationid, typeID=typeID, parentID=parentID, scannerInfo=scannerInfo, locationName=locationName, note=note)
         uthread.new(uicore.registry.SetFocus, wnd.labelEdit)
+        return
 
     def GetDefaultLocationName(self, locationID, scannerInfo):
         if locationID in (session.solarsystemid, session.shipid):
@@ -393,7 +411,7 @@ class AddressBookSvc(service.Service):
                         locationName = localization.GetByLabel('UI/PeopleAndPlaces/NewBookmarkLocationLabel', loc=locationID, group=evetypes.GetGroupName(slimItem.typeID))
         return locationName
 
-    def UpdateBookmark(self, bookmarkID, ownerID = None, header = None, note = None, folderID = -1):
+    def UpdateBookmark(self, bookmarkID, ownerID=None, header=None, note=None, folderID=-1):
         bm = self.GetBookmark(bookmarkID)
         oldheader, oldnote = self.UnzipMemo(bm.memo)
         oldnote = bm.note
@@ -409,30 +427,34 @@ class AddressBookSvc(service.Service):
             ownerID = oldOwnerID
         if note == oldnote and header == oldheader and folderID == oldFolderID and ownerID == oldOwnerID:
             return
-        memo = self.ZipMemo(header[:100], '')
-        if bm.memo != memo or note != oldnote or folderID != oldFolderID or ownerID != oldOwnerID:
-            uthread.pool('AddressBook::CorpBookmarkMgr.UpdateBookmark', sm.GetService('bookmarkSvc').UpdateBookmark, bookmarkID, ownerID, memo, note, folderID)
+        else:
+            memo = self.ZipMemo(header[:100], '')
+            if bm.memo != memo or note != oldnote or folderID != oldFolderID or ownerID != oldOwnerID:
+                uthread.pool('AddressBook::CorpBookmarkMgr.UpdateBookmark', sm.GetService('bookmarkSvc').UpdateBookmark, bookmarkID, ownerID, memo, note, folderID)
+            return
 
-    def BookmarkLocation(self, itemID, name, comment, typeID, locationID = None, folderID = None):
+    def BookmarkLocation(self, itemID, name, comment, typeID, locationID=None, folderID=None):
         self.bookmarkSvc.BookmarkLocation(itemID, name, comment, typeID, locationID=locationID, folderID=folderID)
 
     def GetBookmark(self, bookmarkID):
         return sm.GetService('bookmarkSvc').GetBookmark(bookmarkID)
 
-    def DeleteBookmarks(self, ids, refreshWindow = True, alreadyDeleted = 0):
+    def DeleteBookmarks(self, ids, refreshWindow=True, alreadyDeleted=0):
         if eve.Message('RemoveLocation', {}, uiconst.YESNO, suppress=uiconst.ID_YES) != uiconst.ID_YES:
             return
-        wnd = self.GetWnd()
-        if wnd is not None and not wnd.destroyed:
-            wnd.ShowLoad()
-        try:
-            self.bookmarkSvc.DeleteBookmarks(ids)
-        finally:
+        else:
+            wnd = self.GetWnd()
             if wnd is not None and not wnd.destroyed:
-                wnd.HideLoad()
+                wnd.ShowLoad()
+            try:
+                self.bookmarkSvc.DeleteBookmarks(ids)
+            finally:
+                if wnd is not None and not wnd.destroyed:
+                    wnd.HideLoad()
 
-        if refreshWindow:
-            self.RefreshWindow()
+            if refreshWindow:
+                self.RefreshWindow()
+            return
 
     def EditBookmark(self, bm):
         if not hasattr(bm, 'note'):
@@ -451,9 +473,11 @@ class AddressBookSvc(service.Service):
         if wnd is not None and not wnd.destroyed and wnd.inited:
             if getattr(wnd.sr, 'maintabs', None) is not None:
                 wnd.sr.maintabs.ReloadVisible()
+        return
 
     def DropInAgents(self, dragObj, nodes):
         self.DropInPersonal(nodes, None)
+        return
 
     def DropInPersonalContact(self, dragObj, nodes):
         self.DropInPersonal(nodes, 'contact')
@@ -471,6 +495,8 @@ class AddressBookSvc(service.Service):
             else:
                 self.AddToAddressBook(what.itemID, contactType)
 
+        return
+
     def DropInBlocked(self, nodes):
         for what in nodes:
             if getattr(what, '__guid__', None) not in uiutil.AllUserEntries():
@@ -479,6 +505,8 @@ class AddressBookSvc(service.Service):
                 self.LogWarn('Skipping block item', what.itemID, 'as this item is not a character!')
                 continue
             self.BlockOwner(what.itemID)
+
+        return
 
     def DropInBuddyGroup(self, listID_groupID, nodes, *args):
         ids = []
@@ -495,8 +523,9 @@ class AddressBookSvc(service.Service):
 
         uicore.registry.ReloadGroupWindow(listID_groupID)
         self.RefreshWindow()
+        return
 
-    def GetWnd(self, new = 0):
+    def GetWnd(self, new=0):
         if new:
             return form.AddressBook.ToggleOpenClose()
         else:
@@ -518,28 +547,30 @@ class AddressBookSvc(service.Service):
         sm.GetService('neocom').Blink('addressbook')
         self.RefreshWindow()
 
-    def AddToPersonalMulti(self, charIDs, contactType = None, edit = 0):
+    def AddToPersonalMulti(self, charIDs, contactType=None, edit=0):
         if type(charIDs) != list:
             charIDs = [charIDs]
         for charID in charIDs:
             self.AddToPersonal(charID, contactType=contactType, refresh=charID == charIDs[-1], edit=edit)
 
-    def AddToPersonal(self, charID, contactType, refresh = 1, edit = 0):
+    def AddToPersonal(self, charID, contactType, refresh=1, edit=0):
         if charID == const.ownerSystem:
             eve.Message('CantbookmarkEveSystem')
             return
-        if contactType is None:
-            if charID not in self.agents:
-                try:
-                    character = cfg.eveowners.Get(charID)
-                except:
-                    log.LogWarn('User trying to bookmark character which is not in the owners table', charID)
-                    sys.exc_clear()
-                    return
-
-                self.AddToAddressBook(charID, contactType, edit)
         else:
-            self.AddToAddressBook(charID, contactType, edit)
+            if contactType is None:
+                if charID not in self.agents:
+                    try:
+                        character = cfg.eveowners.Get(charID)
+                    except:
+                        log.LogWarn('User trying to bookmark character which is not in the owners table', charID)
+                        sys.exc_clear()
+                        return
+
+                    self.AddToAddressBook(charID, contactType, edit)
+            else:
+                self.AddToAddressBook(charID, contactType, edit)
+            return
 
     def BlockOwner(self, ownerID):
         if ownerID == session.charid:
@@ -598,118 +629,120 @@ class AddressBookSvc(service.Service):
 
             sm.ScatterEvent('OnContactChange', [contactIDs], contactType)
 
-    def AddToAddressBook(self, contactID, contactType, edit = 0, labelID = None):
+    def AddToAddressBook(self, contactID, contactType, edit=0, labelID=None):
         if contactID == session.charid and contactType == 'contact':
             eve.Message('CustomInfo', {'info': localization.GetByLabel('UI/PeopleAndPlaces/CannotAddSelf')})
             return
-        if util.IsNPC(contactID) and not sm.GetService('agents').IsAgent(contactID) and util.IsCharacter(contactID):
+        elif util.IsNPC(contactID) and not sm.GetService('agents').IsAgent(contactID) and util.IsCharacter(contactID):
             eve.Message('CustomInfo', {'info': localization.GetByLabel('UI/PeopleAndPlaces/IsNotAnAgent', agentName=cfg.eveowners.Get(contactID).name)})
             return
-        if contactType is None and contactID in self.agents:
+        elif contactType is None and contactID in self.agents:
             eve.Message('CustomInfo', {'info': localization.GetByLabel('UI/PeopleAndPlaces/AlreadyAContact', contactName=cfg.eveowners.Get(contactID).name)})
             return
-        if contactType == 'contact':
-            if contactID in self.contacts and not edit:
-                eve.Message('CustomInfo', {'info': localization.GetByLabel('UI/PeopleAndPlaces/AlreadyAContact', contactName=cfg.eveowners.Get(contactID).name)})
-                return
-        if contactType == 'corpcontact':
-            if contactID in self.corporateContacts and not edit:
-                eve.Message('CustomInfo', {'info': localization.GetByLabel('UI/PeopleAndPlaces/AlreadyACorpContact', contactName=cfg.eveowners.Get(contactID).name)})
-                return
-        if contactType == 'alliancecontact':
-            if contactID in self.allianceContacts and not edit:
-                eve.Message('CustomInfo', {'info': localization.GetByLabel('UI/PeopleAndPlaces/AlreadyAnAllianceContact', contactName=cfg.eveowners.Get(contactID).name)})
-                return
-        inWatchlist = False
-        relationshipID = None
-        labelMask = 0
-        message = None
-        if util.IsNPC(contactID) and sm.GetService('agents').IsAgent(contactID):
-            sm.RemoteSvc('charMgr').AddContact(contactID)
-            self.agents.append(contactID)
-            self.RefreshWindow()
         else:
-            isContact = self.IsInAddressBook(contactID, contactType)
             if contactType == 'contact':
-                windowType = form.ContactManagementWnd
-                entityID = contactID
-                relationshipID = relationshipID
-                wasInWatchlist = inWatchlist
-                isContact = isContact
+                if contactID in self.contacts and not edit:
+                    eve.Message('CustomInfo', {'info': localization.GetByLabel('UI/PeopleAndPlaces/AlreadyAContact', contactName=cfg.eveowners.Get(contactID).name)})
+                    return
+            if contactType == 'corpcontact':
+                if contactID in self.corporateContacts and not edit:
+                    eve.Message('CustomInfo', {'info': localization.GetByLabel('UI/PeopleAndPlaces/AlreadyACorpContact', contactName=cfg.eveowners.Get(contactID).name)})
+                    return
+            if contactType == 'alliancecontact':
+                if contactID in self.allianceContacts and not edit:
+                    eve.Message('CustomInfo', {'info': localization.GetByLabel('UI/PeopleAndPlaces/AlreadyAnAllianceContact', contactName=cfg.eveowners.Get(contactID).name)})
+                    return
+            inWatchlist = False
+            relationshipID = None
+            labelMask = 0
+            message = None
+            if util.IsNPC(contactID) and sm.GetService('agents').IsAgent(contactID):
+                sm.RemoteSvc('charMgr').AddContact(contactID)
+                self.agents.append(contactID)
+                self.RefreshWindow()
             else:
-                windowType = form.CorpAllianceContactManagementWnd
-                entityID = contactID
-                relationshipID = relationshipID
-                wasInWatchlist = None
-                isContact = isContact
-            if isContact:
+                isContact = self.IsInAddressBook(contactID, contactType)
                 if contactType == 'contact':
-                    contact = self.contacts.get(contactID)
-                    relationshipID = contact.relationshipID
-                    inWatchlist = wasInWatchlist = contact.inWatchlist
-                    labelMask = contact.labelMask
-                    startupParams = (contactID,
-                     relationshipID,
-                     inWatchlist,
-                     isContact)
-                elif contactType == 'corpcontact':
-                    contact = self.corporateContacts.get(contactID)
-                    relationshipID = contact.relationshipID
-                    labelMask = contact.labelMask
-                    startupParams = (contactID, relationshipID, isContact)
-                elif contactType == 'alliancecontact':
-                    contact = self.allianceContacts.get(contactID)
-                    relationshipID = contact.relationshipID
-                    labelMask = contact.labelMask
-                    startupParams = (contactID, relationshipID, isContact)
-            wnd = windowType.Open(windowID='contactmanagement', entityID=entityID, level=relationshipID, watchlist=wasInWatchlist, isContact=isContact, contactType=contactType, labelID=labelID)
-            if wnd.ShowModal() == 1:
-                results = wnd.result
-                if contactType == 'contact':
-                    relationshipID = results[0]
-                    inWatchlist = results[1]
-                    sendNotification = results[2]
-                    message = results[3]
-                    contactLabel = results[4]
+                    windowType = form.ContactManagementWnd
+                    entityID = contactID
+                    relationshipID = relationshipID
+                    wasInWatchlist = inWatchlist
+                    isContact = isContact
                 else:
-                    relationshipID = results[0]
-                    contactLabel = results[1]
-                contact = util.KeyVal()
-                contact.contactID = contactID
-                contact.relationshipID = relationshipID
-                contact.inWatchlist = inWatchlist
-                contact.labelMask = labelMask
-                if contactType == 'contact':
-                    if isContact and edit:
-                        func = 'EditContact'
+                    windowType = form.CorpAllianceContactManagementWnd
+                    entityID = contactID
+                    relationshipID = relationshipID
+                    wasInWatchlist = None
+                    isContact = isContact
+                if isContact:
+                    if contactType == 'contact':
+                        contact = self.contacts.get(contactID)
+                        relationshipID = contact.relationshipID
+                        inWatchlist = wasInWatchlist = contact.inWatchlist
+                        labelMask = contact.labelMask
+                        startupParams = (contactID,
+                         relationshipID,
+                         inWatchlist,
+                         isContact)
+                    elif contactType == 'corpcontact':
+                        contact = self.corporateContacts.get(contactID)
+                        relationshipID = contact.relationshipID
+                        labelMask = contact.labelMask
+                        startupParams = (contactID, relationshipID, isContact)
+                    elif contactType == 'alliancecontact':
+                        contact = self.allianceContacts.get(contactID)
+                        relationshipID = contact.relationshipID
+                        labelMask = contact.labelMask
+                        startupParams = (contactID, relationshipID, isContact)
+                wnd = windowType.Open(windowID='contactmanagement', entityID=entityID, level=relationshipID, watchlist=wasInWatchlist, isContact=isContact, contactType=contactType, labelID=labelID)
+                if wnd.ShowModal() == 1:
+                    results = wnd.result
+                    if contactType == 'contact':
+                        relationshipID = results[0]
+                        inWatchlist = results[1]
+                        sendNotification = results[2]
+                        message = results[3]
+                        contactLabel = results[4]
                     else:
-                        func = 'AddContact'
-                    util.CSPAChargedAction('CSPAContactNotifyCheck', sm.RemoteSvc('charMgr'), func, contactID, relationshipID, inWatchlist, sendNotification, message)
-                    self.contacts[contactID] = contact
-                    if contactLabel is not None:
-                        self.AssignLabelFromWnd([contactID], contactLabel)
-                elif contactType == 'corpcontact':
-                    if isContact and edit:
-                        sm.GetService('corp').EditCorporateContact(contactID, relationshipID=relationshipID)
-                    else:
-                        sm.GetService('corp').AddCorporateContact(contactID, relationshipID=relationshipID)
-                    self.corporateContacts[contactID] = contact
-                    if contactLabel is not None:
-                        self.AssignLabelFromWnd([contactID], contactLabel)
-                elif contactType == 'alliancecontact':
-                    if isContact and edit:
-                        sm.GetService('alliance').EditAllianceContact(contactID, relationshipID=relationshipID)
-                    else:
-                        sm.GetService('alliance').AddAllianceContact(contactID, relationshipID=relationshipID)
-                    self.allianceContacts[contactID] = contact
-                    if contactLabel is not None:
-                        self.AssignLabelFromWnd([contactID], contactLabel)
-                sm.ScatterEvent('OnContactChange', [contactID], contactType)
-                if util.IsCharacter(contactID) and not util.IsNPC(contactID) and contact.inWatchlist and contactType == 'contact':
-                    isOnline = sm.GetService('onlineStatus').GetOnlineStatus(contactID)
-                    if not wasInWatchlist:
-                        sm.ScatterEvent('OnContactAddedToWatchlist', contactID, isOnline)
-                    sm.ScatterEvent('OnClientContactChange', contactID, isOnline)
+                        relationshipID = results[0]
+                        contactLabel = results[1]
+                    contact = util.KeyVal()
+                    contact.contactID = contactID
+                    contact.relationshipID = relationshipID
+                    contact.inWatchlist = inWatchlist
+                    contact.labelMask = labelMask
+                    if contactType == 'contact':
+                        if isContact and edit:
+                            func = 'EditContact'
+                        else:
+                            func = 'AddContact'
+                        util.CSPAChargedAction('CSPAContactNotifyCheck', sm.RemoteSvc('charMgr'), func, contactID, relationshipID, inWatchlist, sendNotification, message)
+                        self.contacts[contactID] = contact
+                        if contactLabel is not None:
+                            self.AssignLabelFromWnd([contactID], contactLabel)
+                    elif contactType == 'corpcontact':
+                        if isContact and edit:
+                            sm.GetService('corp').EditCorporateContact(contactID, relationshipID=relationshipID)
+                        else:
+                            sm.GetService('corp').AddCorporateContact(contactID, relationshipID=relationshipID)
+                        self.corporateContacts[contactID] = contact
+                        if contactLabel is not None:
+                            self.AssignLabelFromWnd([contactID], contactLabel)
+                    elif contactType == 'alliancecontact':
+                        if isContact and edit:
+                            sm.GetService('alliance').EditAllianceContact(contactID, relationshipID=relationshipID)
+                        else:
+                            sm.GetService('alliance').AddAllianceContact(contactID, relationshipID=relationshipID)
+                        self.allianceContacts[contactID] = contact
+                        if contactLabel is not None:
+                            self.AssignLabelFromWnd([contactID], contactLabel)
+                    sm.ScatterEvent('OnContactChange', [contactID], contactType)
+                    if util.IsCharacter(contactID) and not util.IsNPC(contactID) and contact.inWatchlist and contactType == 'contact':
+                        isOnline = sm.GetService('onlineStatus').GetOnlineStatus(contactID)
+                        if not wasInWatchlist:
+                            sm.ScatterEvent('OnContactAddedToWatchlist', contactID, isOnline)
+                        sm.ScatterEvent('OnClientContactChange', contactID, isOnline)
+            return
 
     def RemoveFromAddressBook(self, contactIDs, contactType):
         if contactType is None:
@@ -762,8 +795,9 @@ class AddressBookSvc(service.Service):
 
         if len(scatterList):
             sm.ScatterEvent('OnContactChange', scatterList, contactType)
+        return
 
-    def DeleteEntryMulti(self, charIDs, contactType = None):
+    def DeleteEntryMulti(self, charIDs, contactType=None):
         buddygroups = uicore.registry.GetListGroups('buddygroups')
         agentgroups = uicore.registry.GetListGroups('agentgroups')
         if not hasattr(charIDs, '__iter__'):
@@ -783,6 +817,7 @@ class AddressBookSvc(service.Service):
 
         else:
             self.RemoveFromAddressBook(charIDs, contactType)
+        return
 
     def OnGroupDeleted(self, ids):
         if len(ids):
@@ -811,16 +846,19 @@ class AddressBookSvc(service.Service):
                 contact = self.contacts.get(contactID, None)
                 if contact is not None:
                     return contact.relationshipID
+        return
 
     def IsInAddressBook(self, contactID, contactType):
         if self.contacts is None or self.allianceContacts is None or self.corporateContacts is None:
             self.GetContacts()
         if contactType == 'alliancecontact':
             return contactID in self.allianceContacts
-        if contactType == 'corpcontact':
+        elif contactType == 'corpcontact':
             return contactID in self.corporateContacts
-        if contactType == 'contact':
+        elif contactType == 'contact':
             return contactID in self.contacts or contactID in self.agents
+        else:
+            return
 
     def GetAddressBook(self):
         return self.contacts.keys()
@@ -832,9 +870,10 @@ class AddressBookSvc(service.Service):
         contact = self.contacts.get(ownerID, None)
         if contact is not None:
             return contact.inWatchlist
-        return False
+        else:
+            return False
 
-    def GetContactEntry(self, data, contact, onlineOnly = False, dblClick = None, contactType = None, contactLevel = None, labelMask = None, menuFunction = None, extraInfo = None, listentryType = 'User'):
+    def GetContactEntry(self, data, contact, onlineOnly=False, dblClick=None, contactType=None, contactLevel=None, labelMask=None, menuFunction=None, extraInfo=None, listentryType='User'):
         entryTuple = None
         charinfo = cfg.eveowners.Get(contact.contactID)
         if onlineOnly:
@@ -848,7 +887,7 @@ class AddressBookSvc(service.Service):
             entryTuple = (charinfo.name.lower(), entry)
         return entryTuple
 
-    def GetEntryLine(self, data, contact, dblClick = None, contactType = None, contactLevel = None, labelMask = None, menuFunction = None, extraInfo = None, listentryType = 'User'):
+    def GetEntryLine(self, data, contact, dblClick=None, contactType=None, contactLevel=None, labelMask=None, menuFunction=None, extraInfo=None, listentryType='User'):
         if data is None:
             data = uiutil.Bunch()
         if data.Get('groupID', None) == const.contactBlocked:
@@ -892,12 +931,14 @@ class AddressBookSvc(service.Service):
         ret = uiutil.NamePopup(localization.GetByLabel('UI/PeopleAndPlaces/LabelsLabelName'), localization.GetByLabel('UI/PeopleAndPlaces/LabelsTypeNewLabelName'), maxLength=const.mailMaxLabelSize, validator=self.CheckLabelName)
         if ret is None:
             return
-        name = ret
-        name = name.strip()
-        if name:
-            self.EditContactLabel(labelID, name=name)
+        else:
+            name = ret
+            name = name.strip()
+            if name:
+                self.EditContactLabel(labelID, name=name)
+            return
 
-    def EditContactLabel(self, labelID, name = None, color = None):
+    def EditContactLabel(self, labelID, name=None, color=None):
         if name is None and color is None or name == '':
             raise UserError('MailLabelMustProvideName')
         self.GetSvc().EditLabel(labelID, name, color)
@@ -909,8 +950,9 @@ class AddressBookSvc(service.Service):
             if labelID in labels:
                 labels[labelID].color = color
         sm.ScatterEvent('OnMyLabelsChanged', self.contactType, None)
+        return
 
-    def CreateContactLabel(self, name, color = None):
+    def CreateContactLabel(self, name, color=None):
         labelID = self.GetSvc().CreateLabel(name, color)
         labels = self.GetContactLabels(self.contactType)
         labels[labelID] = util.KeyVal(labelID=labelID, name=name, color=color)
@@ -937,6 +979,8 @@ class AddressBookSvc(service.Service):
         finally:
             uthread.UnLock(self, 'labels')
 
+        return
+
     def GetSvc(self):
         svc = ''
         if self.contactType == 'contact':
@@ -952,6 +996,8 @@ class AddressBookSvc(service.Service):
         myLabelNames = [ label.name for label in self.GetContactLabels(self.contactType).values() ]
         if name in myLabelNames:
             return localization.GetByLabel('UI/PeopleAndPlaces/LabelsLabelNameTaken')
+        else:
+            return None
 
     def DeleteContactLabelFromUI(self, labelID, labelName):
         if eve.Message('DeleteMailLabel', {'labelName': labelName}, uiconst.YESNO) == uiconst.ID_YES:
@@ -975,11 +1021,12 @@ class AddressBookSvc(service.Service):
             contacts[contactID].labelMask = contact.labelMask & const.maxLong - labelID
 
         sm.ScatterEvent('OnMyLabelsChanged', self.contactType, None)
+        return
 
     def AssignLabelFromMenu(self, selIDs, labelID, labelName):
         self.AssignLabelFromWnd(selIDs, labelID, labelName)
 
-    def AssignLabelFromWnd(self, selIDs, labelID, labelName = '', displayNotify = 1):
+    def AssignLabelFromWnd(self, selIDs, labelID, labelName='', displayNotify=1):
         self.GetSvc().AssignLabels(selIDs, labelID)
         if self.contactType == 'contact':
             contacts = self.contacts
@@ -1103,7 +1150,8 @@ class AddressBookSvc(service.Service):
         contact = contacts.get(ownerID, None)
         if contact is not None:
             return contact.labelMask
-        return 0
+        else:
+            return 0
 
     def ShowLabelMenuAndManageBtn(self, formType):
         if formType == 'contact':

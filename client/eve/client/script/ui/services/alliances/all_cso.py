@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\client\script\ui\services\alliances\all_cso.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\client\script\ui\services\alliances\all_cso.py
 from service import Service, SERVICE_START_PENDING, SERVICE_RUNNING
 from builtinmangler import CreateInstance
 import blue
@@ -52,7 +53,7 @@ class Alliances(Service):
     def GetObjectNames(self):
         return self.__functionalobjects__
 
-    def Run(self, memStream = None):
+    def Run(self, memStream=None):
         self.LogInfo('Starting Alliances')
         self.bulletins = None
         self.bulletinsTimestamp = 0
@@ -85,15 +86,18 @@ class Alliances(Service):
         self.state = SERVICE_RUNNING
         if eve.session.allianceid is not None:
             self.GetMoniker()
+        return
 
-    def Stop(self, memStream = None):
+    def Stop(self, memStream=None):
         self.__allianceMoniker = None
         self.__allianceMonikerAllianceID = None
+        return
 
     def RefreshMoniker(self):
         if self.__allianceMoniker is not None:
             self.__allianceMoniker = None
             self.__allianceMonikerAllianceID = None
+        return
 
     def GetMoniker(self):
         if self.__allianceMoniker is None:
@@ -122,6 +126,7 @@ class Alliances(Service):
 
         if 'charid' in change and change['charid'][0] or 'userid' in change and change['userid'][0]:
             sm.StopService(self.__guid__[4:])
+        return
 
     def OnSessionChanged(self, isremote, sess, change):
         if 'allianceid' in change:
@@ -132,21 +137,22 @@ class Alliances(Service):
                 self.GetMoniker()
             else:
                 self.RefreshMoniker()
+        return
 
     def OnAllianceChanged(self, allianceID, change):
         self.alliance.OnAllianceChanged(allianceID, change)
         self.members.ResetMembers()
 
-    def GetAlliance(self, allianceID = None):
+    def GetAlliance(self, allianceID=None):
         return self.alliance.GetAlliance(allianceID)
 
     def UpdateAlliance(self, description, url):
         return self.alliance.UpdateAlliance(description, url)
 
-    def GetRankedAlliances(self, maxLen = 100):
+    def GetRankedAlliances(self, maxLen=100):
         return self.alliance.GetRankedAlliances(maxLen)
 
-    def GetApplications(self, showRejected = False):
+    def GetApplications(self, showRejected=False):
         return self.applications.GetApplications(showRejected)
 
     def UpdateApplication(self, corpID, applicationText, state):
@@ -251,13 +257,13 @@ class Alliances(Service):
     def GetLabels(self):
         return self.GetMoniker().GetLabels()
 
-    def CreateLabel(self, name, color = 0):
+    def CreateLabel(self, name, color=0):
         return self.GetMoniker().CreateLabel(name, color)
 
     def DeleteLabel(self, labelID):
         self.GetMoniker().DeleteLabel(labelID)
 
-    def EditLabel(self, labelID, name = None, color = None):
+    def EditLabel(self, labelID, name=None, color=None):
         self.GetMoniker().EditLabel(labelID, name, color)
 
     def AssignLabels(self, contactIDs, labelMask):

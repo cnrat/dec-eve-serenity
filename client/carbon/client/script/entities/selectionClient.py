@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\carbon\client\script\entities\selectionClient.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\carbon\client\script\entities\selectionClient.py
 import service
 import collections
 import geo2
@@ -26,6 +27,7 @@ class SelectionClient(service.Service):
         self.InitModeToMethodDict()
         self.mouseInputService.RegisterCallback(const.INPUT_TYPE_MOUSEDOWN, self.OnMouseDown)
         self.renderableToEntity = {}
+        return
 
     def InitModeToMethodDict(self):
         self.modeToMethodDict = {SelectionClientComponent.ALWAYS_ACCEPT_MODE: self._TryAlwaysAcceptMode,
@@ -63,17 +65,18 @@ class SelectionClient(service.Service):
         pickedEntity = self.entityService.FindEntityByID(entityID)
         if not pickedEntity:
             return
-        if pickedEntity.HasComponent('selectionComponent'):
-            selectionComponent = pickedEntity.GetComponent('selectionComponent')
         else:
-            return
-        methodToCall = self.modeToMethodDict[selectionComponent.modeEnum]
-        selectionAccepted = methodToCall(selectionComponent, pickedEntity)
-        entityID = entityID if selectionAccepted else None
-        if entityID != self.selectedEntityID:
-            self.selectedEntityID = entityID
-            sm.ScatterEvent('OnEntitySelectionChanged', self.selectedEntityID)
-        return selectionAccepted
+            if pickedEntity.HasComponent('selectionComponent'):
+                selectionComponent = pickedEntity.GetComponent('selectionComponent')
+            else:
+                return
+            methodToCall = self.modeToMethodDict[selectionComponent.modeEnum]
+            selectionAccepted = methodToCall(selectionComponent, pickedEntity)
+            entityID = entityID if selectionAccepted else None
+            if entityID != self.selectedEntityID:
+                self.selectedEntityID = entityID
+                sm.ScatterEvent('OnEntitySelectionChanged', self.selectedEntityID)
+            return selectionAccepted
 
     def OnMouseDown(self, button, posX, posY, entityID):
         if entityID:

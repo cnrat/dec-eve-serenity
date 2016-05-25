@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\carbon\common\stdlib\yaml\tokens.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\carbon\common\stdlib\yaml\tokens.py
 
 
 class Token(object):
@@ -35,7 +36,7 @@ class DocumentEndToken(Token):
 class StreamStartToken(Token):
     id = '<stream start>'
 
-    def __init__(self, start_mark = None, end_mark = None, encoding = None):
+    def __init__(self, start_mark=None, end_mark=None, encoding=None):
         self.start_mark = start_mark
         self.end_mark = end_mark
         self.encoding = encoding
@@ -119,7 +120,7 @@ class TagToken(Token):
 class ScalarToken(Token):
     id = '<scalar>'
 
-    def __init__(self, value, plain, start_mark, end_mark, style = None):
+    def __init__(self, value, plain, start_mark, end_mark, style=None):
         self.value = value
         self.plain = plain
         self.start_mark = start_mark

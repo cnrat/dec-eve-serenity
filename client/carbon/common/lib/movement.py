@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\carbon\common\lib\movement.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\carbon\common\lib\movement.py
 AVATARTYPE_UNKNOWN = -1
 AVATARTYPE_CLIENT_LOCALPLAYER = 0
 AVATARTYPE_CLIENT_NPC = 1

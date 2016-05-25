@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\common\lib\shlex.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\common\lib\shlex.py
 import os.path
 import sys
 from collections import deque
@@ -11,7 +12,7 @@ __all__ = ['shlex', 'split']
 
 class shlex:
 
-    def __init__(self, instream = None, infile = None, posix = False):
+    def __init__(self, instream=None, infile=None, posix=False):
         if isinstance(instream, basestring):
             instream = StringIO(instream)
         if instream is not None:
@@ -43,13 +44,14 @@ class shlex:
         self.source = None
         if self.debug:
             print 'shlex: reading from %s, line %d' % (self.instream, self.lineno)
+        return
 
     def push_token(self, tok):
         if self.debug >= 1:
             print 'shlex: pushing token ' + repr(tok)
         self.pushback.appendleft(tok)
 
-    def push_source(self, newstream, newfile = None):
+    def push_source(self, newstream, newfile=None):
         if isinstance(newstream, basestring):
             newstream = StringIO(newstream)
         self.filestack.appendleft((self.infile, self.instream, self.lineno))
@@ -61,6 +63,7 @@ class shlex:
                 print 'shlex: pushing to file %s' % (self.infile,)
             else:
                 print 'shlex: pushing to stream %s' % (self.instream,)
+        return
 
     def pop_source(self):
         self.instream.close()
@@ -75,27 +78,28 @@ class shlex:
             if self.debug >= 1:
                 print 'shlex: popping token ' + repr(tok)
             return tok
-        raw = self.read_token()
-        if self.source is not None:
-            while raw == self.source:
-                spec = self.sourcehook(self.read_token())
-                if spec:
-                    newfile, newstream = spec
-                    self.push_source(newstream, newfile)
+        else:
+            raw = self.read_token()
+            if self.source is not None:
+                while raw == self.source:
+                    spec = self.sourcehook(self.read_token())
+                    if spec:
+                        newfile, newstream = spec
+                        self.push_source(newstream, newfile)
+                    raw = self.get_token()
+
+            while raw == self.eof:
+                if not self.filestack:
+                    return self.eof
+                self.pop_source()
                 raw = self.get_token()
 
-        while raw == self.eof:
-            if not self.filestack:
-                return self.eof
-            self.pop_source()
-            raw = self.get_token()
-
-        if self.debug >= 1:
-            if raw != self.eof:
-                print 'shlex: token=' + repr(raw)
-            else:
-                print 'shlex: token=EOF'
-        return raw
+            if self.debug >= 1:
+                if raw != self.eof:
+                    print 'shlex: token=' + repr(raw)
+                else:
+                    print 'shlex: token=EOF'
+            return raw
 
     def read_token(self):
         quoted = False
@@ -226,7 +230,7 @@ class shlex:
             newfile = os.path.join(os.path.dirname(self.infile), newfile)
         return (newfile, open(newfile, 'r'))
 
-    def error_leader(self, infile = None, lineno = None):
+    def error_leader(self, infile=None, lineno=None):
         if infile is None:
             infile = self.infile
         if lineno is None:
@@ -243,7 +247,7 @@ class shlex:
         return token
 
 
-def split(s, comments = False, posix = True):
+def split(s, comments=False, posix=True):
     lex = shlex(s, posix=posix)
     lex.whitespace_split = True
     if not comments:

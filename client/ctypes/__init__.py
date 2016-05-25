@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\carbon\common\stdlib\ctypes\__init__.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\carbon\common\stdlib\ctypes\__init__.py
 import os as _os, sys as _sys
 __version__ = '1.1.0'
 from _ctypes import Union, Structure, Array
@@ -18,7 +19,7 @@ if _os.name == 'posix' and _sys.platform == 'darwin':
         DEFAULT_MODE = RTLD_GLOBAL
 from _ctypes import FUNCFLAG_CDECL as _FUNCFLAG_CDECL, FUNCFLAG_PYTHONAPI as _FUNCFLAG_PYTHONAPI, FUNCFLAG_USE_ERRNO as _FUNCFLAG_USE_ERRNO, FUNCFLAG_USE_LASTERROR as _FUNCFLAG_USE_LASTERROR
 
-def create_string_buffer(init, size = None):
+def create_string_buffer(init, size=None):
     if isinstance(init, (str, unicode)):
         if size is None:
             size = len(init) + 1
@@ -26,14 +27,16 @@ def create_string_buffer(init, size = None):
         buf = buftype()
         buf.value = init
         return buf
-    if isinstance(init, (int, long)):
+    elif isinstance(init, (int, long)):
         buftype = c_char * init
         buf = buftype()
         return buf
-    raise TypeError(init)
+    else:
+        raise TypeError(init)
+        return
 
 
-def c_buffer(init, size = None):
+def c_buffer(init, size=None):
     return create_string_buffer(init, size)
 
 
@@ -96,13 +99,14 @@ from _ctypes import sizeof, byref, addressof, alignment, resize
 from _ctypes import get_errno, set_errno
 from _ctypes import _SimpleCData
 
-def _check_size(typ, typecode = None):
+def _check_size(typ, typecode=None):
     from struct import calcsize
     if typecode is None:
         typecode = typ._type_
     actual, required = sizeof(typ), calcsize(typecode)
     if actual != required:
         raise SystemError('sizeof(%s) wrong: %d instead of %d' % (typ, actual, required))
+    return
 
 
 class py_object(_SimpleCData):
@@ -262,7 +266,7 @@ else:
 
     POINTER(c_wchar).from_param = c_wchar_p.from_param
 
-    def create_unicode_buffer(init, size = None):
+    def create_unicode_buffer(init, size=None):
         if isinstance(init, (str, unicode)):
             if size is None:
                 size = len(init) + 1
@@ -270,11 +274,13 @@ else:
             buf = buftype()
             buf.value = init
             return buf
-        if isinstance(init, (int, long)):
+        elif isinstance(init, (int, long)):
             buftype = c_wchar * init
             buf = buftype()
             return buf
-        raise TypeError(init)
+        else:
+            raise TypeError(init)
+            return
 
 
 POINTER(c_char).from_param = c_char_p.from_param
@@ -287,6 +293,7 @@ def SetPointerType(pointer, cls):
     pointer.set_type(cls)
     _pointer_type_cache[cls] = pointer
     del _pointer_type_cache[id(pointer)]
+    return
 
 
 def ARRAY(typ, len):
@@ -297,7 +304,7 @@ class CDLL(object):
     _func_flags_ = _FUNCFLAG_CDECL
     _func_restype_ = c_int
 
-    def __init__(self, name, mode = DEFAULT_MODE, handle = None, use_errno = False, use_last_error = False):
+    def __init__(self, name, mode=DEFAULT_MODE, handle=None, use_errno=False, use_last_error=False):
         self._name = name
         flags = self._func_flags_
         if use_errno:
@@ -314,6 +321,7 @@ class CDLL(object):
             self._handle = _dlopen(self._name, mode)
         else:
             self._handle = handle
+        return
 
     def __repr__(self):
         return "<%s '%s', handle %x at %x>" % (self.__class__.__name__,
@@ -393,7 +401,7 @@ if _os.name in ('nt', 'ce'):
         GetLastError = windll.coredll.GetLastError
     from _ctypes import get_last_error, set_last_error
 
-    def WinError(code = None, descr = None):
+    def WinError(code=None, descr=None):
         if code is None:
             code = GetLastError()
         if descr is None:
@@ -433,7 +441,7 @@ def cast(obj, typ):
 
 _string_at = PYFUNCTYPE(py_object, c_void_p, c_int)(_string_at_addr)
 
-def string_at(ptr, size = -1):
+def string_at(ptr, size=-1):
     return _string_at(ptr, size)
 
 
@@ -444,7 +452,7 @@ except ImportError:
 else:
     _wstring_at = PYFUNCTYPE(py_object, c_void_p, c_int)(_wstring_at_addr)
 
-    def wstring_at(ptr, size = -1):
+    def wstring_at(ptr, size=-1):
         return _wstring_at(ptr, size)
 
 

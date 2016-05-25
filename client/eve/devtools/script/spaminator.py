@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\devtools\script\spaminator.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\devtools\script\spaminator.py
 import service
 import uicontrols
 import uiprimitives
@@ -25,8 +26,8 @@ SCROLL_HEADERS = ['Action',
 CAPTION = 'ISK Spaminator v0.6'
 
 class ISKSpammerToolSvc(service.Service):
+    """ISK Spaminator Tool"""
     __module__ = __name__
-    __doc__ = 'ISK Spaminator Tool'
     __exportedcalls__ = {'Show': []}
     __notifyevents__ = ['ProcessRestartUI', 'OnClientReady', 'OnLSC']
     __dependencies__ = []
@@ -52,6 +53,7 @@ class ISKSpammerToolSvc(service.Service):
         self.stats = None
         self.path = prefs.GetValue('SpaminatorWorkFolder', 'c:\\temp') + '\\'
         self.state = service.SERVICE_RUNNING
+        return
 
     def Start(self):
         uthread.new(self.DoStart)
@@ -98,55 +100,57 @@ class ISKSpammerToolSvc(service.Service):
         if self.wnd and 0:
             self.wnd.Maximize()
             return
-        self.wnd = wnd = uicontrols.Window.GetIfOpen(windowID='spaminator')
-        if not wnd:
-            self.wnd = wnd = uicontrols.Window.Open(windowID='spaminator')
-            wnd.DoClose = self.Hide
-            wnd.SetWndIcon(None)
-            wnd.SetTopparentHeight(0)
-            wnd.SetCaption(CAPTION)
-            wnd.SetMinSize([520, 256])
-            main = uiprimitives.Container(name='main', parent=uiutil.FindChild(wnd, 'main'), left=0, top=0)
-            buttonContainer = uiprimitives.Container(name='bottom', parent=main, align=uiconst.TOBOTTOM, height=30)
-            mainCont = uiprimitives.Container(name='mainCont', parent=main, isClipper=1, top=8, left=8)
-            settingsCont = uiprimitives.Container(name='settingsCont', parent=main, isClipper=1, top=8, left=8)
-            tabs = [['Main',
-              mainCont,
-              self,
-              'main'], ['Settings',
-              settingsCont,
-              self,
-              'settings']]
-            self.tabs = uicontrols.TabGroup(name='tabparent', parent=main, idx=1).Startup(tabs, 'monitortabs')
-            leftContainer = uiprimitives.Container(name='left', parent=settingsCont, align=uiconst.TOLEFT, width=250)
-            rightContainer = uiprimitives.Container(name='right', parent=settingsCont, align=uiconst.TOLEFT, width=250)
-            contents = ''
-            tc = uiprimitives.Container(name='titleContLeft', parent=leftContainer, align=uiconst.TOTOP, height=16)
-            uicontrols.Label(text='Automatic detention:', parent=tc, width=160, align=uiconst.TOPLEFT)
-            tc = uiprimitives.Container(name='titleContRight', parent=rightContainer, align=uiconst.TOTOP, height=16)
-            uicontrols.Label(text='Notify:', parent=tc, width=100, align=uiconst.TOPLEFT)
-            self.wnd.sr.detentionWindow = uicls.EditPlainText(setvalue='', parent=leftContainer, align=uiconst.TOALL)
-            self.wnd.sr.notifyWindow = uicls.EditPlainText(setvalue='', parent=rightContainer, align=uiconst.TOALL)
-            self.scrollCont = uiprimitives.Container(name='scrollCont', parent=mainCont, align=uiconst.TOALL)
-            self.scroll = uicontrols.Scroll(name='scroll', parent=self.scrollCont, padding=(const.defaultPadding,
-             const.defaultPadding,
-             const.defaultPadding,
-             const.defaultPadding), align=uiconst.TOALL)
-            self.scroll.Startup()
-            self.scroll.id = 'iskspammerscroll'
-            self.scroll.multiSelect = 0
-            self.scroll.Load(contentList=[], headers=SCROLL_HEADERS, scrolltotop=1)
-            btns = uicontrols.ButtonGroup(btns=[['Join Channels',
-              self.JoinChannels,
-              (),
-              None], ['Reset',
-              self.Reset,
-              (),
-              None], ['Start/Stop',
-              self.ToggleStartWatching,
-              (),
-              None]], parent=buttonContainer)
-        self.LoadConfig()
+        else:
+            self.wnd = wnd = uicontrols.Window.GetIfOpen(windowID='spaminator')
+            if not wnd:
+                self.wnd = wnd = uicontrols.Window.Open(windowID='spaminator')
+                wnd.DoClose = self.Hide
+                wnd.SetWndIcon(None)
+                wnd.SetTopparentHeight(0)
+                wnd.SetCaption(CAPTION)
+                wnd.SetMinSize([520, 256])
+                main = uiprimitives.Container(name='main', parent=uiutil.FindChild(wnd, 'main'), left=0, top=0)
+                buttonContainer = uiprimitives.Container(name='bottom', parent=main, align=uiconst.TOBOTTOM, height=30)
+                mainCont = uiprimitives.Container(name='mainCont', parent=main, isClipper=1, top=8, left=8)
+                settingsCont = uiprimitives.Container(name='settingsCont', parent=main, isClipper=1, top=8, left=8)
+                tabs = [['Main',
+                  mainCont,
+                  self,
+                  'main'], ['Settings',
+                  settingsCont,
+                  self,
+                  'settings']]
+                self.tabs = uicontrols.TabGroup(name='tabparent', parent=main, idx=1).Startup(tabs, 'monitortabs')
+                leftContainer = uiprimitives.Container(name='left', parent=settingsCont, align=uiconst.TOLEFT, width=250)
+                rightContainer = uiprimitives.Container(name='right', parent=settingsCont, align=uiconst.TOLEFT, width=250)
+                contents = ''
+                tc = uiprimitives.Container(name='titleContLeft', parent=leftContainer, align=uiconst.TOTOP, height=16)
+                uicontrols.Label(text='Automatic detention:', parent=tc, width=160, align=uiconst.TOPLEFT)
+                tc = uiprimitives.Container(name='titleContRight', parent=rightContainer, align=uiconst.TOTOP, height=16)
+                uicontrols.Label(text='Notify:', parent=tc, width=100, align=uiconst.TOPLEFT)
+                self.wnd.sr.detentionWindow = uicls.EditPlainText(setvalue='', parent=leftContainer, align=uiconst.TOALL)
+                self.wnd.sr.notifyWindow = uicls.EditPlainText(setvalue='', parent=rightContainer, align=uiconst.TOALL)
+                self.scrollCont = uiprimitives.Container(name='scrollCont', parent=mainCont, align=uiconst.TOALL)
+                self.scroll = uicontrols.Scroll(name='scroll', parent=self.scrollCont, padding=(const.defaultPadding,
+                 const.defaultPadding,
+                 const.defaultPadding,
+                 const.defaultPadding), align=uiconst.TOALL)
+                self.scroll.Startup()
+                self.scroll.id = 'iskspammerscroll'
+                self.scroll.multiSelect = 0
+                self.scroll.Load(contentList=[], headers=SCROLL_HEADERS, scrolltotop=1)
+                btns = uicontrols.ButtonGroup(btns=[['Join Channels',
+                  self.JoinChannels,
+                  (),
+                  None], ['Reset',
+                  self.Reset,
+                  (),
+                  None], ['Start/Stop',
+                  self.ToggleStartWatching,
+                  (),
+                  None]], parent=buttonContainer)
+            self.LoadConfig()
+            return
 
     def JoinChannels(self, *args):
         l = sm.GetService('LSC')
@@ -192,12 +196,14 @@ class ISKSpammerToolSvc(service.Service):
         else:
             return
         eve.Message('CustomNotify', {'notify': txt})
+        return
 
     def Hide(self, *args):
         self.StartWatching(False)
         if self.wnd:
             self.wnd.Close()
             self.wnd = None
+        return
 
     def ProcessRestartUI(self):
         if self.wnd:
@@ -238,94 +244,96 @@ class ISKSpammerToolSvc(service.Service):
         channelName = chat.GetDisplayName(channelID)
         if method != 'SendMessage' or not self.isRunning:
             return
-        self.stats['numMessages'] += 1
-        message = args[0]
-        sanitizedMessage = self.SanitizeMessage(message)
-        message = unicode(message).encode('UTF-8')
-        charID = who[2][0]
-        charName = who[2][1]
-        whoAllianceID, whoCorpID, who, whoRole, whoCorpRole, whoWarFactionID = who
-        suspect = self.IsMessageSuspect(sanitizedMessage)
-        if suspect is None:
-            return
-        try:
-            self.LogInfo('There is something suspect from character %s: %s...' % (who, suspect))
-        except:
-            pass
-
-        info = self.GetCharInfo(charID)
-        userID = info.charStatic.userID
-        userName = info.userStatic.userName
-        fullName = info.userStatic.fullName
-        email = info.userStatic.eMail
-        userType = info.userDynamic.userType
-        ipAddress = info.ipAddress
-        isIpMatch = False
-        if suspect[0] == 2:
-            if ipAddress in self.config['ipAddresses'] and 0:
-                self.LogInfo('Upgrading from notify to detention because of IP relationship', ipAddress)
-                suspect[0] = 1
-                isIpMatch = True
-        if suspect[0]:
-            if whoRole & service.ROLE_NEWBIE == 0:
-                self.LogInfo('... %s is not a newbie.' % who[1])
-                return
-            if not util.IsNPC(whoCorpID):
-                self.LogInfo('... %s is in a player corp.' % who[1])
-                return
-        if charID in self.suspects:
-            self.LogInfo('... %s is already a suspect.' % who[1])
-            return
-        message = message.decode('UTF-8', 'replace')
-        cleanmessage = message.replace('>', '&gt;').replace('<', '&lt;')
-        try:
-            self.LogInfo('... %s is really a suspect for saying %s!' % (charName, message))
-        except:
-            self.LogInfo('... %s is really a suspect for saying %s!' % (charName, 'unknown'))
-
-        self.lookedUpChars[charID] = info
-        if suspect[0] == 1:
-            act = '<b>DETENTION</b>'
-            self.stats['numDetention'] += 1
-            try:
-                self.LogError('I will place', who[1], 'in detention for saying', message)
-            except:
-                self.LogError('I will place', who[1], 'in detention for saying', 'unknown')
-
         else:
-            act = '<color=red>NOTIFY</color>'
-            self.stats['numNotify'] += 1
+            self.stats['numMessages'] += 1
+            message = args[0]
+            sanitizedMessage = self.SanitizeMessage(message)
+            message = unicode(message).encode('UTF-8')
+            charID = who[2][0]
+            charName = who[2][1]
+            whoAllianceID, whoCorpID, who, whoRole, whoCorpRole, whoWarFactionID = who
+            suspect = self.IsMessageSuspect(sanitizedMessage)
+            if suspect is None:
+                return
             try:
-                self.LogError('I will notify user of', who[1], 'for saying', message)
+                self.LogInfo('There is something suspect from character %s: %s...' % (who, suspect))
             except:
-                self.LogError('I will notify user of', who[1], 'for saying', 'unknown')
+                pass
 
-        self.suspects.add(charID)
-        act2 = ''
-        try:
+            info = self.GetCharInfo(charID)
+            userID = info.charStatic.userID
+            userName = info.userStatic.userName
+            fullName = info.userStatic.fullName
+            email = info.userStatic.eMail
+            userType = info.userDynamic.userType
+            ipAddress = info.ipAddress
+            isIpMatch = False
+            if suspect[0] == 2:
+                if ipAddress in self.config['ipAddresses'] and 0:
+                    self.LogInfo('Upgrading from notify to detention because of IP relationship', ipAddress)
+                    suspect[0] = 1
+                    isIpMatch = True
+            if suspect[0]:
+                if whoRole & service.ROLE_NEWBIE == 0:
+                    self.LogInfo('... %s is not a newbie.' % who[1])
+                    return
+                if not util.IsNPC(whoCorpID):
+                    self.LogInfo('... %s is in a player corp.' % who[1])
+                    return
+            if charID in self.suspects:
+                self.LogInfo('... %s is already a suspect.' % who[1])
+                return
+            message = message.decode('UTF-8', 'replace')
+            cleanmessage = message.replace('>', '&gt;').replace('<', '&lt;')
+            try:
+                self.LogInfo('... %s is really a suspect for saying %s!' % (charName, message))
+            except:
+                self.LogInfo('... %s is really a suspect for saying %s!' % (charName, 'unknown'))
+
+            self.lookedUpChars[charID] = info
             if suspect[0] == 1:
-                self.PlaceInDetention(charID)
-        except Exception as e:
-            raise
+                act = '<b>DETENTION</b>'
+                self.stats['numDetention'] += 1
+                try:
+                    self.LogError('I will place', who[1], 'in detention for saying', message)
+                except:
+                    self.LogError('I will place', who[1], 'in detention for saying', 'unknown')
 
-        ip = ipAddress
-        if isIpMatch:
-            ip = '<color=red>%s</color>' % ip
-        matchstring = suspect[1]
-        label = '%s<t>%s<t>%s<t>%s<t>%s<t>%s<t>%s<t>%s' % (act,
-         util.FmtDate(blue.os.GetTime(), 'ss'),
-         channelName,
-         charName,
-         userName,
-         ip,
-         matchstring,
-         cleanmessage[:64])
-        kv = {}
-        data = util.KeyVal(charID=charID, userID=userID, label=label, GetMenu=self.GetSpammerMenu, hint=cleanmessage, data=info)
-        l = listentry.Get('Generic', data=data)
-        self.scrolllist.append(l)
-        self.scroll.AddEntries(0, [l])
-        self.WriteLog(label)
+            else:
+                act = '<color=red>NOTIFY</color>'
+                self.stats['numNotify'] += 1
+                try:
+                    self.LogError('I will notify user of', who[1], 'for saying', message)
+                except:
+                    self.LogError('I will notify user of', who[1], 'for saying', 'unknown')
+
+            self.suspects.add(charID)
+            act2 = ''
+            try:
+                if suspect[0] == 1:
+                    self.PlaceInDetention(charID)
+            except Exception as e:
+                raise
+
+            ip = ipAddress
+            if isIpMatch:
+                ip = '<color=red>%s</color>' % ip
+            matchstring = suspect[1]
+            label = '%s<t>%s<t>%s<t>%s<t>%s<t>%s<t>%s<t>%s' % (act,
+             util.FmtDate(blue.os.GetTime(), 'ss'),
+             channelName,
+             charName,
+             userName,
+             ip,
+             matchstring,
+             cleanmessage[:64])
+            kv = {}
+            data = util.KeyVal(charID=charID, userID=userID, label=label, GetMenu=self.GetSpammerMenu, hint=cleanmessage, data=info)
+            l = listentry.Get('Generic', data=data)
+            self.scrolllist.append(l)
+            self.scroll.AddEntries(0, [l])
+            self.WriteLog(label)
+            return
 
     def WriteLog(self, label):
         try:
@@ -343,6 +351,7 @@ class ISKSpammerToolSvc(service.Service):
             self.config['detention'].append(wnd.reason)
             self.DoSaveConfig()
             self.LoadConfig()
+        return
 
     def GetSpammerMenu(self, entry):
         info = entry.sr.node.data
@@ -379,6 +388,8 @@ class ISKSpammerToolSvc(service.Service):
         for i in notify:
             if len(i) > 0 and m.find(i.lower()) >= 0:
                 return [2, i.lower()]
+
+        return None
 
     def PlaceInDetention(self, charID):
         ipAddresses = self.config['ipAddresses']

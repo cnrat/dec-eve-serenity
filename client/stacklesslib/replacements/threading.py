@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\carbon\common\stdlib\stacklesslib\replacements\threading.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\carbon\common\stdlib\stacklesslib\replacements\threading.py
 from __future__ import absolute_import
 import traceback
 import weakref
@@ -44,7 +45,7 @@ def activeCount():
 class Thread(object):
     nTasklet = 0
 
-    def __init__(self, group = None, target = None, name = None, args = (), kwargs = {}):
+    def __init__(self, group=None, target=None, name=None, args=(), kwargs={}):
         self.target = target
         if name is None:
             self.name = 'Tasklet-%d' % Thread.nTasklet
@@ -58,6 +59,7 @@ class Thread(object):
         self._alive = False
         self.ident = None
         self._daemon = self._set_daemon()
+        return
 
     def _set_daemon(self):
         self._daemon = current_thread().daemon
@@ -84,9 +86,11 @@ class Thread(object):
     @staticmethod
     def _taskfunc(self):
         try:
-            self.run()
-        except Exception:
-            traceback.print_exc()
+            try:
+                self.run()
+            except Exception:
+                traceback.print_exc()
+
         finally:
             self._alive = False
             del _active[self.ident]
@@ -99,7 +103,9 @@ class Thread(object):
         finally:
             self.target = self.args = self.kwargs = None
 
-    def join(self, timeout = None):
+        return
+
+    def join(self, timeout=None):
         if not self._started:
             raise RuntimeError, "Can't wait on a not-started thread."
         if currentThread() is self:
@@ -176,13 +182,13 @@ class _DummyThread(Thread):
     def _set_daemon(self):
         return False
 
-    def join(self, timeout = None):
+    def join(self, timeout=None):
         raise RuntimeError, 'cannot join a dummy thread'
 
 
 class Timer(Thread):
 
-    def __init__(self, interval, function, args = (), kwargs = {}):
+    def __init__(self, interval, function, args=(), kwargs={}):
         self._canceled = False
         self._interval = interval
         self._function = function

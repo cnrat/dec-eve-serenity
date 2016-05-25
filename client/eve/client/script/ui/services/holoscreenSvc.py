@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\client\script\ui\services\holoscreenSvc.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\client\script\ui\services\holoscreenSvc.py
 import evetypes
 import uiprimitives
 import blue
@@ -26,7 +27,7 @@ class HoloscreenSvc(service.Service):
     __notifyevents__ = ['OnSessionChanged', 'OnUIScalingChange']
     __dependencies__ = ['clientPathfinderService']
 
-    def Run(self, memStream = None):
+    def Run(self, memStream=None):
         self.mainScreen = None
         self.corpFinderScreen = None
         self.piScreen = None
@@ -37,6 +38,7 @@ class HoloscreenSvc(service.Service):
         self.piScreenDesktop = None
         self.playThread = None
         self.holoscreenMgr = sm.RemoteSvc('holoscreenMgr')
+        return
 
     def Restart(self):
         self.SetDefaultPlaylist()
@@ -59,6 +61,7 @@ class HoloscreenSvc(service.Service):
         self.mainScreenDesktop = None
         self.corpFinderScreenDesktop = None
         self.piScreenDesktop = None
+        return
 
     def OnMainScreenDesktopCreated(self, desktop, entityID):
         self.mainScreenDesktop = desktop
@@ -77,7 +80,7 @@ class HoloscreenSvc(service.Service):
         self.mainScreen.Close()
         self.OnMainScreenDesktopCreated(self.mainScreenDesktop, entityID=entityID)
 
-    def OnCorpFinderScreenDesktopCreated(self, desktop, entityID, newCorpID = None):
+    def OnCorpFinderScreenDesktopCreated(self, desktop, entityID, newCorpID=None):
         if newCorpID is None:
             newCorpID = session.corpid
         self.corpFinderScreenDesktop = desktop
@@ -86,17 +89,20 @@ class HoloscreenSvc(service.Service):
         else:
             self.corpFinderScreen = uiprimitives.Sprite(name='screenLeftFallback', parent=desktop, texturePath='res:/UI/Texture/classes/CQSideScreens/corpRecruitmentScreenBG.png', align=uiconst.TOALL)
             self.corpFinderScreen.entityID = entityID
+        return
 
     def OnSessionChanged(self, isremote, sess, change):
         if 'corpid' in change and change['corpid'][1]:
             if self.corpFinderScreen is not None:
                 self.corpFinderScreen.ConstructCorpLogo(change['corpid'][1])
+        return
 
     def OnUIScalingChange(self, *args):
         if self.mainScreen is not None:
             self.ReloadMainScreen()
+        return
 
-    def ReloadCorpFinderScreen(self, newCorpID = None):
+    def ReloadCorpFinderScreen(self, newCorpID=None):
         entityID = self.corpFinderScreen.entityID
         try:
             self.corpFinderScreen.Close()
@@ -167,6 +173,27 @@ class HoloscreenSvc(service.Service):
         customVideos = self.GetCustomVideoPlaylist()
         if customVideos:
             self.playlist = customVideos + self.playlist
+        self.GetStreamedVideoPlaylist()
+
+    def GetStreamedVideoPlaylist(self):
+        baseUrl = 'http://cdn1.eveonline.com/scope/'
+
+        def inner():
+            try:
+                index = urllib2.urlopen(baseUrl + 'cq.txt').readlines()
+            except urllib2.URLError:
+                return
+
+            for each in index:
+                each = each.strip()
+                if not each:
+                    continue
+                pos = random.randint(0, len(self.playlist))
+                self.playlist.insert(pos, (cqscreentemplates.FullscreenVideo, util.KeyVal(videoPath=baseUrl + each)))
+                if pos <= self.currTemplate:
+                    self.currTemplate += 1
+
+        uthread.new(inner)
 
     def GetCustomVideoPlaylist(self):
         path = blue.paths.ResolvePath(u'cache:/CQScreenVideos')
@@ -177,14 +204,15 @@ class HoloscreenSvc(service.Service):
                 pass
 
             return None
-        playlist = []
-        for fileName in os.listdir(path):
-            if fileName.endswith('.bik'):
-                videoPath = str(path + '/' + fileName)
-                data = util.KeyVal(videoPath=videoPath)
-                playlist.append((cqscreentemplates.FullscreenVideo, data))
+        else:
+            playlist = []
+            for fileName in os.listdir(path):
+                if fileName.endswith('.webm'):
+                    videoPath = str(path + '/' + fileName)
+                    data = util.KeyVal(videoPath=videoPath)
+                    playlist.append((cqscreentemplates.FullscreenVideo, data))
 
-        return playlist
+            return playlist
 
     @telemetry.ZONE_METHOD
     def GetSOVTemplateData(self):
@@ -198,6 +226,8 @@ class HoloscreenSvc(service.Service):
             data.middleText = localization.GetByLabel('UI/Station/Holoscreen/SOV/AllianceControlsSystem', alliance=newOwnerName, system='<color=WHITE>' + solarSystemName + '</color>')
             data.bottomText = localization.GetByLabel('UI/Station/Holoscreen/SOV/AllianceSoverigntySwitch', oldAlliance=oldOwnerName, newAlliance=newOwnerName, system=data.solarSystemID, region=regionID)
             return data
+        else:
+            return
 
     @telemetry.ZONE_METHOD
     def GetCareerAgentTemplateData(self):
@@ -235,164 +265,168 @@ class HoloscreenSvc(service.Service):
 
         if not nearAgentList:
             return None
-        chosenAgentID, chosenStationID = random.choice(nearAgentList)
-        careerAdData = util.KeyVal()
-        careerAdData.agentID = chosenAgentID
-        careerAdData.stationID = chosenStationID
-        careerAdData.jumpDistance = nearestDist
-        careerVideoPath = {const.agentDivisionBusiness: 'res:/video/cq/CQ_TEMPLATE_CAREER_TRADE_BUSINESS.bik',
-         const.agentDivisionExploration: 'res:/video/cq/CQ_TEMPLATE_CAREER_EXPLORATION.bik',
-         const.agentDivisionIndustry: 'res:/video/cq/CQ_TEMPLATE_CAREER_INDUSTRY.bik',
-         const.agentDivisionMilitary: 'res:/video/cq/CQ_TEMPLATE_CAREER_MILITARY.bik',
-         const.agentDivisionAdvMilitary: 'res:/video/cq/CQ_TEMPLATE_CAREER_ADVANCED_MILITARY.bik'}.get(chosenCareerType)
-        data = util.KeyVal()
-        data.charID = chosenAgentID
-        data.headingText = '<fontsize=60>' + careerText
-        data.subHeadingText = localization.GetByLabel('UI/Station/Holoscreen/CareerAgent/CareerAgentTitle')
-        data.mainText = '<fontsize=20>' + careerDesc + '\n\n' + localization.GetByLabel('UI/Station/Holoscreen/CareerAgent/AgentInfo', station=careerAdData.stationID)
-        data.clickFunc = sm.StartService('tutorial').ShowCareerFunnel
-        data.clickFuncLabel = localization.GetByLabel('UI/Station/Holoscreen/CareerAgent/OpenCareerAgentDirectory')
-        data.introVideoPath = 'res:/video/cq/LOGO_CONCORD.bik'
-        data.careerVideoPath = careerVideoPath
-        return data
+        else:
+            chosenAgentID, chosenStationID = random.choice(nearAgentList)
+            careerAdData = util.KeyVal()
+            careerAdData.agentID = chosenAgentID
+            careerAdData.stationID = chosenStationID
+            careerAdData.jumpDistance = nearestDist
+            careerVideoPath = {const.agentDivisionBusiness: 'res:/video/cq/CQ_TEMPLATE_CAREER_TRADE_BUSINESS.webm',
+             const.agentDivisionExploration: 'res:/video/cq/CQ_TEMPLATE_CAREER_EXPLORATION.webm',
+             const.agentDivisionIndustry: 'res:/video/cq/CQ_TEMPLATE_CAREER_INDUSTRY.webm',
+             const.agentDivisionMilitary: 'res:/video/cq/CQ_TEMPLATE_CAREER_MILITARY.webm',
+             const.agentDivisionAdvMilitary: 'res:/video/cq/CQ_TEMPLATE_CAREER_ADVANCED_MILITARY.webm'}.get(chosenCareerType)
+            data = util.KeyVal()
+            data.charID = chosenAgentID
+            data.headingText = '<fontsize=60>' + careerText
+            data.subHeadingText = localization.GetByLabel('UI/Station/Holoscreen/CareerAgent/CareerAgentTitle')
+            data.mainText = '<fontsize=20>' + careerDesc + '\n\n' + localization.GetByLabel('UI/Station/Holoscreen/CareerAgent/AgentInfo', station=careerAdData.stationID)
+            data.clickFunc = sm.StartService('tutorial').ShowCareerFunnel
+            data.clickFuncLabel = localization.GetByLabel('UI/Station/Holoscreen/CareerAgent/OpenCareerAgentDirectory')
+            data.introVideoPath = 'res:/video/cq/LOGO_CONCORD.webm'
+            data.careerVideoPath = careerVideoPath
+            return data
 
     @telemetry.ZONE_METHOD
     def GetIncursionTemplateData(self):
         incursionList = self.holoscreenMgr.GetTwoHourCache().incursionReport
         if not incursionList:
             return
-        chosenIncursion = random.choice(incursionList)
-        solarSystemName = cfg.evelocations.Get(chosenIncursion.stagingSolarSystemID).name
-        constellationID = sm.GetService('map').GetConstellationForSolarSystem(chosenIncursion.stagingSolarSystemID)
-        constellationName = cfg.evelocations.Get(constellationID).name
-        securityLevel = str(sm.GetService('map').GetSecurityStatus(chosenIncursion.stagingSolarSystemID))
-        jumpDistance = self.clientPathfinderService.GetJumpCountFromCurrent(chosenIncursion.stagingSolarSystemID)
-        jumpDistanceText = localization.GetByLabel('UI/Station/Holoscreen/Incursion/NumberOfJumps', jumps=jumpDistance)
-        data = util.KeyVal()
-        data.headingText = localization.GetByLabel('UI/Station/Holoscreen/Incursion/IncursionWarning')
-        data.introVideoPath = 'res:/video/cq/LOGO_CONCORD.bik'
-        data.videoPath = 'res:/video/cq/CQ_TEMPLATE_INCURSION.bik'
-        data.constellationText = '<color=orange>' + constellationName
-        data.systemInfoText = '<color=red>' + securityLevel
-        data.systemInfoText += ' <color=orange>' + solarSystemName
-        data.systemInfoText += ' <color=white>' + jumpDistanceText
-        data.influence = chosenIncursion.influence
-        data.bottomText = localization.GetByLabel('UI/Station/Holoscreen/Incursion/IncursionNewsFeed', constellation=constellationID)
-        data.clickFunc = sm.GetService('journal').ShowIncursionTab
-        data.clickArgs = (None,
-         None,
-         None,
-         True)
-        data.clickFuncLabel = localization.GetByLabel('UI/Station/Holoscreen/Incursion/IncursionLabel')
-        return data
+        else:
+            chosenIncursion = random.choice(incursionList)
+            solarSystemName = cfg.evelocations.Get(chosenIncursion.stagingSolarSystemID).name
+            constellationID = sm.GetService('map').GetConstellationForSolarSystem(chosenIncursion.stagingSolarSystemID)
+            constellationName = cfg.evelocations.Get(constellationID).name
+            securityLevel = str(sm.GetService('map').GetSecurityStatus(chosenIncursion.stagingSolarSystemID))
+            jumpDistance = self.clientPathfinderService.GetJumpCountFromCurrent(chosenIncursion.stagingSolarSystemID)
+            jumpDistanceText = localization.GetByLabel('UI/Station/Holoscreen/Incursion/NumberOfJumps', jumps=jumpDistance)
+            data = util.KeyVal()
+            data.headingText = localization.GetByLabel('UI/Station/Holoscreen/Incursion/IncursionWarning')
+            data.introVideoPath = 'res:/video/cq/LOGO_CONCORD.webm'
+            data.videoPath = 'res:/video/cq/CQ_TEMPLATE_INCURSION.webm'
+            data.constellationText = '<color=orange>' + constellationName
+            data.systemInfoText = '<color=red>' + securityLevel
+            data.systemInfoText += ' <color=orange>' + solarSystemName
+            data.systemInfoText += ' <color=white>' + jumpDistanceText
+            data.influence = chosenIncursion.influence
+            data.bottomText = localization.GetByLabel('UI/Station/Holoscreen/Incursion/IncursionNewsFeed', constellation=constellationID)
+            data.clickFunc = sm.GetService('journal').ShowIncursionTab
+            data.clickArgs = (None,
+             None,
+             None,
+             True)
+            data.clickFuncLabel = localization.GetByLabel('UI/Station/Holoscreen/Incursion/IncursionLabel')
+            return data
 
     @telemetry.ZONE_METHOD
     def GetShipExposureTemplateData(self):
         if not eve.stationItem:
             return
-        racialShips = {const.raceAmarr: [2006,
-                           20183,
-                           24696,
-                           24692,
-                           597,
-                           1944,
-                           624],
-         const.raceCaldari: [621,
-                             20185,
-                             24698,
-                             640,
-                             602,
-                             648,
-                             623],
-         const.raceGallente: [627,
-                              20187,
-                              24700,
-                              641,
-                              593,
-                              650,
-                              626],
-         const.raceMinmatar: [629,
-                              20189,
-                              24702,
-                              644,
-                              587,
-                              653,
-                              622]}
-        oreShipsList = [17478, 17476, 2998]
-        racialIntroVideos = {const.raceAmarr: 'res:/video/cq/LOGO_AMARR.bik',
-         const.raceCaldari: 'res:/video/cq/LOGO_CALDARI.bik',
-         const.raceGallente: 'res:/video/cq/LOGO_GALLENTE.bik',
-         const.raceMinmatar: 'res:/video/cq/LOGO_MINMATAR.bik'}
-        data = util.KeyVal()
-        if random.random() <= 0.3:
-            data.introVideoPath = 'res:/video/cq/LOGO_ORE.bik'
-            data.shipTypeID = random.choice(oreShipsList)
         else:
-            stationRace = evetypes.GetRaceID(eve.stationItem.stationTypeID)
-            if stationRace not in racialShips:
-                stationRace = const.raceGallente
-            data.introVideoPath = racialIntroVideos[stationRace]
-            data.shipTypeID = random.choice(racialShips[stationRace])
-        data.shipName = evetypes.GetName(data.shipTypeID)
-        data.shipGroupName = evetypes.GetGroupName(data.shipTypeID)
-        data.buttonText = localization.GetByLabel('UI/Station/Holoscreen/Common/AvailableOnMarketNow')
-        data.mainText = '<fontsize=30>' + localization.GetByLabel('UI/Station/Holoscreen/Ship/ShipDetailsTitle')
-        data.mainText += '\n<fontsize=25>' + evetypes.GetDescription(data.shipTypeID)
-        data.clickFunc = sm.GetService('marketutils').ShowMarketDetails
-        data.clickArgs = (data.shipTypeID, None)
-        data.clickFuncLabel = localization.GetByLabel('UI/Station/Holoscreen/Ship/OpenMarketForShip', ship=data.shipTypeID)
-        return data
+            racialShips = {const.raceAmarr: [2006,
+                               20183,
+                               24696,
+                               24692,
+                               597,
+                               1944,
+                               624],
+             const.raceCaldari: [621,
+                                 20185,
+                                 24698,
+                                 640,
+                                 602,
+                                 648,
+                                 623],
+             const.raceGallente: [627,
+                                  20187,
+                                  24700,
+                                  641,
+                                  593,
+                                  650,
+                                  626],
+             const.raceMinmatar: [629,
+                                  20189,
+                                  24702,
+                                  644,
+                                  587,
+                                  653,
+                                  622]}
+            oreShipsList = [17478, 17476, 2998]
+            racialIntroVideos = {const.raceAmarr: 'res:/video/cq/LOGO_AMARR.webm',
+             const.raceCaldari: 'res:/video/cq/LOGO_CALDARI.webm',
+             const.raceGallente: 'res:/video/cq/LOGO_GALLENTE.webm',
+             const.raceMinmatar: 'res:/video/cq/LOGO_MINMATAR.webm'}
+            data = util.KeyVal()
+            if random.random() <= 0.3:
+                data.introVideoPath = 'res:/video/cq/LOGO_ORE.webm'
+                data.shipTypeID = random.choice(oreShipsList)
+            else:
+                stationRace = evetypes.GetRaceID(eve.stationItem.stationTypeID)
+                if stationRace not in racialShips:
+                    stationRace = const.raceGallente
+                data.introVideoPath = racialIntroVideos[stationRace]
+                data.shipTypeID = random.choice(racialShips[stationRace])
+            data.shipName = evetypes.GetName(data.shipTypeID)
+            data.shipGroupName = evetypes.GetGroupName(data.shipTypeID)
+            data.buttonText = localization.GetByLabel('UI/Station/Holoscreen/Common/AvailableOnMarketNow')
+            data.mainText = '<fontsize=30>' + localization.GetByLabel('UI/Station/Holoscreen/Ship/ShipDetailsTitle')
+            data.mainText += '\n<fontsize=25>' + evetypes.GetDescription(data.shipTypeID)
+            data.clickFunc = sm.GetService('marketutils').ShowMarketDetails
+            data.clickArgs = (data.shipTypeID, None)
+            data.clickFuncLabel = localization.GetByLabel('UI/Station/Holoscreen/Ship/OpenMarketForShip', ship=data.shipTypeID)
+            return data
 
     @telemetry.ZONE_METHOD
     def GetRacialEpicArcTemplateData(self):
         epicArcList = self.holoscreenMgr.GetRuntimeCache().epicArcAgents
         if not epicArcList:
             return
-        if not eve.stationItem:
+        elif not eve.stationItem:
             return
-        epicArcData = random.choice(epicArcList)
-        data = util.KeyVal()
-        data.charID = epicArcData.agentID
-        data.headingText = ''
-        solarSystemID = sm.GetService('agents').GetSolarSystemOfAgent(epicArcData.agentID)
-        regionID = sm.GetService('map').GetRegionForSolarSystem(solarSystemID)
-        securityLevel = sm.GetService('map').GetSecurityStatus(solarSystemID)
-        data.mainText = '<fontsize=30><color=WHITE>' + localization.GetByLabel('UI/Station/Holoscreen/RacialEpicArc/AgentAdvert', system=solarSystemID, region=regionID, securityLevel=securityLevel)
-        epicArcDict = {48: (const.factionAmarrEmpire, localization.GetByLabel('UI/Station/Holoscreen/RacialEpicArc/AmarrNews')),
-         52: (const.factionGallenteFederation, localization.GetByLabel('UI/Station/Holoscreen/RacialEpicArc/GallenteNews')),
-         40: (const.factionCaldariState, localization.GetByLabel('UI/Station/Holoscreen/RacialEpicArc/CaldariNews')),
-         29: (const.factionSistersOfEVE, localization.GetByLabel('UI/Station/Holoscreen/RacialEpicArc/SistersNews')),
-         53: (const.factionMinmatarRepublic, localization.GetByLabel('UI/Station/Holoscreen/RacialEpicArc/MinmatarNews')),
-         56: (const.factionAngelCartel, localization.GetByLabel('UI/Station/Holoscreen/RacialEpicArc/AngelsNews')),
-         55: (const.factionGuristasPirates, localization.GetByLabel('UI/Station/Holoscreen/RacialEpicArc/GuristasNews'))}
-        if epicArcData.epicArcID not in epicArcDict:
-            return
-        data.factionID, data.bottomText = epicArcDict.get(epicArcData.epicArcID, '')
-        data.factionNameText = cfg.eveowners.Get(data.factionID).ownerName
-        data.introVideoPath = {const.factionAmarrEmpire: 'res:/video/cq/LOGO_AMARR.bik',
-         const.factionCaldariState: 'res:/video/cq/LOGO_CALDARI.bik',
-         const.factionGallenteFederation: 'res:/video/cq/LOGO_GALLENTE.bik',
-         const.factionMinmatarRepublic: 'res:/video/cq/LOGO_MINMATAR.bik',
-         const.factionAngelCartel: 'res:/video/cq/LOGO_ANGELCARTEL.bik',
-         const.factionGuristasPirates: 'res:/video/cq/LOGO_GURISTAS.bik',
-         const.factionSistersOfEVE: 'res:/video/cq/LOGO_SISTERSOFEVE.bik'}.get(data.factionID, None)
-        videoDict = {const.factionAmarrEmpire: 'res:/video/cq/CQ_TEMPLATE_EPICARC_AMARR.bik',
-         const.factionCaldariState: 'res:/video/cq/CQ_TEMPLATE_EPICARC_CALDARI.bik',
-         const.factionGallenteFederation: 'res:/video/cq/CQ_TEMPLATE_EPICARC_GALLENTE.bik',
-         const.factionMinmatarRepublic: 'res:/video/cq/CQ_TEMPLATE_EPICARC_MINMATAR.bik',
-         const.factionAngelCartel: 'res:/video/cq/CQ_TEMPLATE_EPICARC_MINMATAR.bik',
-         const.factionGuristasPirates: 'res:/video/cq/CQ_TEMPLATE_EPICARC_CALDARI.bik'}
-        factionKey = data.factionID
-        if factionKey not in videoDict:
-            factionKey = {const.raceAmarr: const.factionAmarrEmpire,
-             const.raceCaldari: const.factionCaldariState,
-             const.raceGallente: const.factionGallenteFederation,
-             const.raceMinmatar: const.factionMinmatarRepublic}.get(evetypes.GetRaceID(eve.stationItem.stationTypeID), const.factionGallenteFederation)
-        data.videoPath = videoDict.get(factionKey, 'res:/video/cq/CQ_TEMPLATE_EPICARC_GALLENTE.bik')
-        data.clickFunc = sm.GetService('agents').InteractWith
-        data.clickArgs = (data.charID,)
-        data.clickFuncLabel = localization.GetByLabel('UI/Station/Holoscreen/RacialEpicArc/StartAgentConversation')
-        return data
+        else:
+            epicArcData = random.choice(epicArcList)
+            data = util.KeyVal()
+            data.charID = epicArcData.agentID
+            data.headingText = ''
+            solarSystemID = sm.GetService('agents').GetSolarSystemOfAgent(epicArcData.agentID)
+            regionID = sm.GetService('map').GetRegionForSolarSystem(solarSystemID)
+            securityLevel = sm.GetService('map').GetSecurityStatus(solarSystemID)
+            data.mainText = '<fontsize=30><color=WHITE>' + localization.GetByLabel('UI/Station/Holoscreen/RacialEpicArc/AgentAdvert', system=solarSystemID, region=regionID, securityLevel=securityLevel)
+            epicArcDict = {48: (const.factionAmarrEmpire, localization.GetByLabel('UI/Station/Holoscreen/RacialEpicArc/AmarrNews')),
+             52: (const.factionGallenteFederation, localization.GetByLabel('UI/Station/Holoscreen/RacialEpicArc/GallenteNews')),
+             40: (const.factionCaldariState, localization.GetByLabel('UI/Station/Holoscreen/RacialEpicArc/CaldariNews')),
+             29: (const.factionSistersOfEVE, localization.GetByLabel('UI/Station/Holoscreen/RacialEpicArc/SistersNews')),
+             53: (const.factionMinmatarRepublic, localization.GetByLabel('UI/Station/Holoscreen/RacialEpicArc/MinmatarNews')),
+             56: (const.factionAngelCartel, localization.GetByLabel('UI/Station/Holoscreen/RacialEpicArc/AngelsNews')),
+             55: (const.factionGuristasPirates, localization.GetByLabel('UI/Station/Holoscreen/RacialEpicArc/GuristasNews'))}
+            if epicArcData.epicArcID not in epicArcDict:
+                return
+            data.factionID, data.bottomText = epicArcDict.get(epicArcData.epicArcID, '')
+            data.factionNameText = cfg.eveowners.Get(data.factionID).ownerName
+            data.introVideoPath = {const.factionAmarrEmpire: 'res:/video/cq/LOGO_AMARR.webm',
+             const.factionCaldariState: 'res:/video/cq/LOGO_CALDARI.webm',
+             const.factionGallenteFederation: 'res:/video/cq/LOGO_GALLENTE.webm',
+             const.factionMinmatarRepublic: 'res:/video/cq/LOGO_MINMATAR.webm',
+             const.factionAngelCartel: 'res:/video/cq/LOGO_ANGELCARTEL.webm',
+             const.factionGuristasPirates: 'res:/video/cq/LOGO_GURISTAS.webm',
+             const.factionSistersOfEVE: 'res:/video/cq/LOGO_SISTERSOFEVE.webm'}.get(data.factionID, None)
+            videoDict = {const.factionAmarrEmpire: 'res:/video/cq/CQ_TEMPLATE_EPICARC_AMARR.webm',
+             const.factionCaldariState: 'res:/video/cq/CQ_TEMPLATE_EPICARC_CALDARI.webm',
+             const.factionGallenteFederation: 'res:/video/cq/CQ_TEMPLATE_EPICARC_GALLENTE.webm',
+             const.factionMinmatarRepublic: 'res:/video/cq/CQ_TEMPLATE_EPICARC_MINMATAR.webm',
+             const.factionAngelCartel: 'res:/video/cq/CQ_TEMPLATE_EPICARC_MINMATAR.webm',
+             const.factionGuristasPirates: 'res:/video/cq/CQ_TEMPLATE_EPICARC_CALDARI.webm'}
+            factionKey = data.factionID
+            if factionKey not in videoDict:
+                factionKey = {const.raceAmarr: const.factionAmarrEmpire,
+                 const.raceCaldari: const.factionCaldariState,
+                 const.raceGallente: const.factionGallenteFederation,
+                 const.raceMinmatar: const.factionMinmatarRepublic}.get(evetypes.GetRaceID(eve.stationItem.stationTypeID), const.factionGallenteFederation)
+            data.videoPath = videoDict.get(factionKey, 'res:/video/cq/CQ_TEMPLATE_EPICARC_GALLENTE.webm')
+            data.clickFunc = sm.GetService('agents').InteractWith
+            data.clickArgs = (data.charID,)
+            data.clickFuncLabel = localization.GetByLabel('UI/Station/Holoscreen/RacialEpicArc/StartAgentConversation')
+            return data
 
     @telemetry.ZONE_METHOD
     def GetNPEEpicArcTemplateData(self):
@@ -404,7 +438,7 @@ class HoloscreenSvc(service.Service):
         data = util.KeyVal(charID=rookieData.characterID)
         charInfo = cfg.eveowners.Get(data.charID)
         createDate = util.FmtDate(rookieData.createDate)
-        data.introVideoPath = 'res:/video/cq/LOGO_CONCORD.bik'
+        data.introVideoPath = 'res:/video/cq/LOGO_CONCORD.webm'
         data.heading = localization.GetByLabel('UI/Station/Holoscreen/NPEEpicArc/NewPilotCertification')
         data.mainText = '<fontsize=25>' + localization.GetByLabel('UI/Station/Holoscreen/NPEEpicArc/CapsuleerStatus', owner=data.charID, completionDate=createDate)
         data.mainText += '<br><fontsize=20>' + localization.GetByLabel('UI/Station/Holoscreen/NPEEpicArc/CertificationDisclaimer')
@@ -420,30 +454,31 @@ class HoloscreenSvc(service.Service):
         topBounties = sm.GetService('bountySvc').GetTopPilotBounties()
         if not topBounties:
             return None
-        chosenBounty = random.choice(topBounties)
-        bountyAmount = util.FmtISK(chosenBounty.bounty, 0)
-        data = util.KeyVal()
-        data.introVideoPath = 'res:/video/cq/LOGO_SCOPE.bik'
-        data.charID = chosenBounty.targetID
-        data.heading = localization.GetByLabel('UI/Station/Holoscreen/Wanted/BountyOffer')
-        data.mainText = '<fontsize=30>' + localization.GetByLabel('UI/Station/Holoscreen/Wanted/BountyPost') + '\n'
-        data.mainText += '<fontsize=40><color=yellow>' + localization.GetByLabel('UI/Station/Holoscreen/Wanted/WantedCharacter', wanted=data.charID)
-        data.mainText += '</color>\n'
-        data.mainText += '<fontsize=30>' + localization.GetByLabel('UI/Station/Holoscreen/Wanted/BountyOffer') + '\n'
-        data.mainText += '<fontsize=40>' + localization.GetByLabel('UI/Station/Holoscreen/Wanted/BountyAmount', amount=bountyAmount) + '\n'
-        data.mainText += '<fontsize=20>' + localization.GetByLabel('UI/Station/Holoscreen/Wanted/WantedDisclaimer')
-        data.bottomText = localization.GetByLabel('UI/Station/Holoscreen/Wanted/MostWantedNewsFeed')
-        data.isWanted = True
-        data.wantedHeading = localization.GetByLabel('UI/Station/Holoscreen/Wanted/Header')
-        data.wantedText = localization.GetByLabel('UI/Station/Holoscreen/Wanted/Warning')
-        data.clickFunc = uicore.cmd.OpenBountyOffice
-        data.clickFuncLabel = localization.GetByLabel('UI/Station/Holoscreen/Wanted/ShowBountyOffice')
-        return data
+        else:
+            chosenBounty = random.choice(topBounties)
+            bountyAmount = util.FmtISK(chosenBounty.bounty, 0)
+            data = util.KeyVal()
+            data.introVideoPath = 'res:/video/cq/LOGO_SCOPE.webm'
+            data.charID = chosenBounty.targetID
+            data.heading = localization.GetByLabel('UI/Station/Holoscreen/Wanted/BountyOffer')
+            data.mainText = '<fontsize=30>' + localization.GetByLabel('UI/Station/Holoscreen/Wanted/BountyPost') + '\n'
+            data.mainText += '<fontsize=40><color=yellow>' + localization.GetByLabel('UI/Station/Holoscreen/Wanted/WantedCharacter', wanted=data.charID)
+            data.mainText += '</color>\n'
+            data.mainText += '<fontsize=30>' + localization.GetByLabel('UI/Station/Holoscreen/Wanted/BountyOffer') + '\n'
+            data.mainText += '<fontsize=40>' + localization.GetByLabel('UI/Station/Holoscreen/Wanted/BountyAmount', amount=bountyAmount) + '\n'
+            data.mainText += '<fontsize=20>' + localization.GetByLabel('UI/Station/Holoscreen/Wanted/WantedDisclaimer')
+            data.bottomText = localization.GetByLabel('UI/Station/Holoscreen/Wanted/MostWantedNewsFeed')
+            data.isWanted = True
+            data.wantedHeading = localization.GetByLabel('UI/Station/Holoscreen/Wanted/Header')
+            data.wantedText = localization.GetByLabel('UI/Station/Holoscreen/Wanted/Warning')
+            data.clickFunc = uicore.cmd.OpenBountyOffice
+            data.clickFuncLabel = localization.GetByLabel('UI/Station/Holoscreen/Wanted/ShowBountyOffice')
+            return data
 
     @telemetry.ZONE_METHOD
     def GetPlexTemplateData(self):
         data = util.KeyVal()
-        data.introVideoPath = 'res:/video/cq/LOGO_CONCORD.bik'
+        data.introVideoPath = 'res:/video/cq/LOGO_CONCORD.webm'
         data.headingText = '<fontsize=60>' + localization.GetByLabel('UI/Station/Holoscreen/PLEX/BuyPLEX')
         data.subHeadingText = '<fontsize=25>' + localization.GetByLabel('UI/Station/Holoscreen/PLEX/PLEX')
         data.buttonText = localization.GetByLabel('UI/Station/Holoscreen/Common/AvailableOnMarketNow')
@@ -457,18 +492,19 @@ class HoloscreenSvc(service.Service):
     def GetSkillTrainingTemplateData(self):
         if sm.GetService('skillqueue').SkillInTraining() is not None:
             return
-        data = util.KeyVal()
-        data.introVideoPath = 'res:/video/cq/LOGO_CONCORD.bik'
-        data.headingText = localization.GetByLabel('UI/Station/Holoscreen/SkillTraining/Title')
-        data.subHeadingText = localization.GetByLabel('UI/Station/Holoscreen/SkillTraining/Notification')
-        data.clickFunc = uicore.cmd.OpenSkillQueueWindow
-        data.clickFuncLabel = localization.GetByLabel('UI/Station/Holoscreen/SkillTraining/OpenSkillQueue')
-        return data
+        else:
+            data = util.KeyVal()
+            data.introVideoPath = 'res:/video/cq/LOGO_CONCORD.webm'
+            data.headingText = localization.GetByLabel('UI/Station/Holoscreen/SkillTraining/Title')
+            data.subHeadingText = localization.GetByLabel('UI/Station/Holoscreen/SkillTraining/Notification')
+            data.clickFunc = uicore.cmd.OpenSkillQueueWindow
+            data.clickFuncLabel = localization.GetByLabel('UI/Station/Holoscreen/SkillTraining/OpenSkillQueue')
+            return data
 
     @telemetry.ZONE_METHOD
     def GetVirtualGoodsStoreTemplateData(self):
         data = util.KeyVal()
-        data.introVideoPath = 'res:/video/cq/LOGO_QUAFE.bik'
+        data.introVideoPath = 'res:/video/cq/LOGO_QUAFE.webm'
         data.headingText = localization.GetByLabel('UI/Station/Holoscreen/VirtualGoods/VisitNeX')
         data.clickFunc = uicore.cmd.OpenStore
         data.clickFuncLabel = localization.GetByLabel('UI/Commands/OpenStore')

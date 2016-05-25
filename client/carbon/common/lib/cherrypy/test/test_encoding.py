@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\carbon\common\lib\cherrypy\test\test_encoding.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\carbon\common\lib\cherrypy\test\test_encoding.py
 import gzip
 import sys
 import cherrypy
@@ -35,7 +36,6 @@ class EncodingTests(helper.CPWebCase):
                 cherrypy.response.cookie['candy'] = 'bar'
                 cherrypy.response.cookie['candy']['domain'] = 'cherrypy.org'
                 cherrypy.response.headers['Some-Header'] = 'My d\xc3\xb6g has fleas'
-                return 'Any content'
 
             cookies_and_headers.exposed = True
 
@@ -46,7 +46,6 @@ class EncodingTests(helper.CPWebCase):
 
             def nontext(self, *args, **kwargs):
                 cherrypy.response.headers['Content-Type'] = 'application/binary'
-                return '\x00\x01\x02\x03'
 
             nontext.exposed = True
             nontext._cp_config = {'tools.encode.text_only': False,

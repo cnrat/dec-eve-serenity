@@ -1,9 +1,10 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\client\script\ui\camera\tacticalCameraController.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\client\script\ui\camera\tacticalCameraController.py
 import math
-from eve.client.script.ui.camera.cameraUtil import SetShipDirection, GetZoomDz, CheckInvertZoom
+from eve.client.script.ui.camera.cameraUtil import SetShipDirection, GetZoomDz, CheckInvertZoom, GetPanVectorForZoomToCursor
 from eve.client.script.ui.camera.baseCameraController import BaseCameraController
 import evecamera
-import geo2
+import carbonui.const as uiconst
 DIST_ORBIT_SWITCH = 20000
 
 class TacticalCameraController(BaseCameraController):
@@ -12,40 +13,39 @@ class TacticalCameraController(BaseCameraController):
     def OnMouseMove(self, *args):
         camera = self.GetCamera()
         if uicore.uilib.leftbtn and uicore.uilib.rightbtn:
-            k = 200.0
-            if camera.IsAttached():
-                camera.Zoom(-0.005 * CheckInvertZoom(uicore.uilib.dy))
-                if math.fabs(uicore.uilib.dx) > 1:
-                    camera.Orbit(0.01 * uicore.uilib.dx, 0.0)
-            else:
-                camera.Pan(0, 0, -k * CheckInvertZoom(uicore.uilib.dy))
+            if camera.IsAttached() and math.fabs(uicore.uilib.dx) > 1:
+                camera.Orbit(0.01 * uicore.uilib.dx, 0.0)
+            dz = CheckInvertZoom(uicore.uilib.dy)
+            self._Zoom(dz, -0.005, zoomToCursor=False)
         elif uicore.uilib.rightbtn:
-            k = 10 * (3.0 + camera.GetZoomDistance() / camera.minZoom)
+            k = 3.0
             camera.Pan(-k * uicore.uilib.dx, k * uicore.uilib.dy, 0)
         elif uicore.uilib.leftbtn:
-            k = evecamera.ORBIT_MOVE_DIST
+            k = evecamera.ORBIT_MOVE_DIST if camera.IsAttached() else 0.006
             camera.Orbit(k * uicore.uilib.dx, k * uicore.uilib.dy)
 
     def OnMouseWheel(self, *args):
         camera = self.GetCamera()
         dz = GetZoomDz()
-        if camera.IsAttached():
-            k = 0.0005
-            camera.Zoom(k * dz)
-        else:
-            k = 15.0 * dz
-            x, y, z = self.GetPanDirection()
-            camera.Pan(k * x, k * y, k * z)
-
-    def GetPanDirection(self):
-        camera = self.GetCamera()
-        th = math.radians(90 * camera.fov / 2.0)
-        dist = uicore.desktop.width / (2.0 * math.tan(th))
-        x = -(uicore.uilib.x - uicore.desktop.width / 2)
-        y = uicore.uilib.y - uicore.desktop.height / 2
-        return geo2.Vec3Normalize((x, y, dist))
+        k = 0.0005
+        self._Zoom(dz, k, zoomToCursor=True)
 
     def OnDblClick(self, *args):
         if uicore.uilib.rightbtn or uicore.uilib.mouseTravel > 6:
             return
         SetShipDirection(self.GetCamera())
+
+    def _Zoom(self, dz, k, zoomToCursor):
+        self.RecordZoomForAchievements(dz)
+        camera = self.GetCamera()
+        if uicore.uilib.Key(uiconst.VK_MENU):
+            camera.FovZoom(k * dz)
+        elif camera.IsAttached() or camera.IsTracking():
+            camera.Zoom(k * dz)
+        elif zoomToCursor:
+            x, y, z = GetPanVectorForZoomToCursor(camera.fov)
+            k = 1.5 * dz
+            camera.Pan(k * x, k * y, k * z)
+        else:
+            k = 20.0
+            camera.Pan(0, 0, -k * dz)

@@ -1,9 +1,10 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\packages\shipskins\storage.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\packages\shipskins\storage.py
 
 
 class LicensedSkin(object):
 
-    def __init__(self, skinID, expires = None):
+    def __init__(self, skinID, expires=None):
         self._skinID = skinID
         self._expires = expires
 
@@ -21,9 +22,10 @@ class LicensedSkin(object):
     def lastsLongerThan(self, other):
         if other is None:
             return True
-        if other.expires is None:
+        elif other.expires is None:
             return False
-        return self.expires is None or other.expires < self.expires
+        else:
+            return self.expires is None or other.expires < self.expires
 
 
 class Cache(dict):
@@ -46,14 +48,16 @@ class LicensedSkinStorage(object):
     def is_skin_licensed(self, characterID, skinID):
         if skinID is None:
             return True
-        self._check_skin_expiry(characterID, skinID)
-        return skinID in self.skins_by_charid[characterID]
+        else:
+            self._check_skin_expiry(characterID, skinID)
+            return skinID in self.skins_by_charid[characterID]
 
     def is_skin_permanently_licensed(self, characterID, skinID):
         if not self.is_skin_licensed(characterID, skinID):
             return False
-        skin = self.get_licensed_skin(characterID, skinID)
-        return skin.expires is None
+        else:
+            skin = self.get_licensed_skin(characterID, skinID)
+            return skin.expires is None
 
     def add_licensed_skin(self, characterID, skinID, duration):
         self._check_skin_expiry(characterID, skinID)
@@ -65,6 +69,7 @@ class LicensedSkinStorage(object):
         else:
             new_skin = self._update_licensed_skin(characterID, skinID, duration)
         self.skins_by_charid[characterID][skinID] = new_skin
+        return
 
     def get_licensed_skins(self, characterID):
         skins = self.skins_by_charid[characterID].values()
@@ -98,10 +103,12 @@ class LicensedSkinStorage(object):
         skins = self.skins_by_charid[characterID]
         if skinID not in skins:
             return
-        skin = skins[skinID]
-        if skin.expires is not None and skin.expires < self.clock():
-            self._remove_licensed_skin(characterID, skinID)
-            del self.skins_by_charid[characterID]
+        else:
+            skin = skins[skinID]
+            if skin.expires is not None and skin.expires < self.clock():
+                self._remove_licensed_skin(characterID, skinID)
+                del self.skins_by_charid[characterID]
+            return
 
     def _get_licensed_skins_map(self, characterID):
         skins = self._get_licensed_skins(characterID)
@@ -133,6 +140,7 @@ class AppliedSkinStorage(object):
             self.clear_applied_skin(characterID, itemID)
         else:
             self._insert_or_update(characterID, skinID, itemID)
+        return
 
     def clear_applied_skin(self, characterID, itemID):
         if itemID in self.applied_skins[characterID]:
@@ -142,11 +150,12 @@ class AppliedSkinStorage(object):
     def get_applied_skin_id(self, characterID, itemID):
         if itemID not in self.applied_skins[characterID]:
             return
-        skinID = self.applied_skins[characterID][itemID]
-        if not self.licensed_skins.is_skin_licensed(characterID, skinID):
-            self._remove_applied_skin(characterID, itemID)
-            skinID = None
-        return skinID
+        else:
+            skinID = self.applied_skins[characterID][itemID]
+            if not self.licensed_skins.is_skin_licensed(characterID, skinID):
+                self._remove_applied_skin(characterID, itemID)
+                skinID = None
+            return skinID
 
     def _insert_or_update(self, characterID, skinID, itemID):
         if itemID in self.applied_skins[characterID]:

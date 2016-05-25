@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\client\script\ui\services\medals.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\client\script\ui\services\medals.py
 from eve.client.script.ui.control.entries import PermissionEntry
 import service
 import util
@@ -25,7 +26,7 @@ class Medals(service.Service):
     def __init__(self):
         service.Service.__init__(self)
 
-    def Run(self, memStream = None):
+    def Run(self, memStream=None):
         self.LogInfo('Starting Medal Svc')
 
     def CreateMedal(self, title, description, graphics):
@@ -38,40 +39,44 @@ class Medals(service.Service):
             raise UserError('MedalDescriptionTooLong', {'maxLength': str(const.medalMaxDescriptionLength)})
         closeParent = True
         try:
-            sm.RemoteSvc('corporationSvc').CreateMedal(title, description, graphics)
-        except UserError as e:
-            if e.args[0] == 'ConfirmCreatingMedal':
-                d = dict(cost=localization.GetByLabel('UI/Map/StarMap/lblBoldName', name=util.FmtISK(e.dict.get('cost', 0))))
-                ret = eve.Message(e.msg, d, uiconst.YESNO, suppress=uiconst.ID_YES)
-                if ret == uiconst.ID_YES:
-                    try:
-                        sm.RemoteSvc('corporationSvc').CreateMedal(title, description, graphics, True)
-                    except UserError as e:
-                        if e.args[0] in ['MedalNameInvalid2', 'MedalDescriptionInvalid2']:
-                            eve.Message(e.msg, e.args[1])
-                            closeParent = False
-                        else:
-                            eve.Message(e.msg)
-                            closeParent = False
+            try:
+                sm.RemoteSvc('corporationSvc').CreateMedal(title, description, graphics)
+            except UserError as e:
+                if e.args[0] == 'ConfirmCreatingMedal':
+                    d = dict(cost=localization.GetByLabel('UI/Map/StarMap/lblBoldName', name=util.FmtISK(e.dict.get('cost', 0))))
+                    ret = eve.Message(e.msg, d, uiconst.YESNO, suppress=uiconst.ID_YES)
+                    if ret == uiconst.ID_YES:
+                        try:
+                            sm.RemoteSvc('corporationSvc').CreateMedal(title, description, graphics, True)
+                        except UserError as e:
+                            if e.args[0] in ['MedalNameInvalid2', 'MedalDescriptionInvalid2']:
+                                eve.Message(e.msg, e.args[1])
+                                closeParent = False
+                            else:
+                                eve.Message(e.msg)
+                                closeParent = False
 
-            elif e.args[0] == 'NotEnoughMoney':
-                eve.Message(e.msg, e.dict)
-                closeParent = False
-            elif e.args[0] in ['MedalNameInvalid']:
-                eve.Message(e.msg)
-                closeParent = False
-            elif e.args[0] in ['MedalNameTooLong', 'MedalDescriptionTooLong', 'MedalDescriptionTooShort']:
-                eve.Message(e.msg, e.args[1])
-                closeParent = False
-            else:
-                raise
+                elif e.args[0] == 'NotEnoughMoney':
+                    eve.Message(e.msg, e.dict)
+                    closeParent = False
+                elif e.args[0] in ['MedalNameInvalid']:
+                    eve.Message(e.msg)
+                    closeParent = False
+                elif e.args[0] in ['MedalNameTooLong', 'MedalDescriptionTooLong', 'MedalDescriptionTooShort']:
+                    eve.Message(e.msg, e.args[1])
+                    closeParent = False
+                else:
+                    raise
+
         finally:
             return closeParent
 
-    def SetMedalStatus(self, statusdict = None):
+    def SetMedalStatus(self, statusdict=None):
         if statusdict is None:
             return
-        sm.RemoteSvc('corporationSvc').SetMedalStatus(statusdict)
+        else:
+            sm.RemoteSvc('corporationSvc').SetMedalStatus(statusdict)
+            return
 
     def GetMedalStatuses(self):
         return sm.RemoteSvc('corporationSvc').GetMedalStatuses()
@@ -87,7 +92,7 @@ class Medals(service.Service):
 
         return recipients
 
-    def GetMedalsReceivedWithFlag(self, characterID, status = None):
+    def GetMedalsReceivedWithFlag(self, characterID, status=None):
         if status is None:
             status = [2, 3]
         ret = {}
@@ -108,7 +113,7 @@ class Medals(service.Service):
     def GetMedalDetails(self, medalID):
         return sm.RemoteSvc('corporationSvc').GetMedalDetails(medalID)
 
-    def GiveMedalToCharacters(self, medalID, recipientID, reason = ''):
+    def GiveMedalToCharacters(self, medalID, recipientID, reason=''):
         roles = const.corpRoleDirector | const.corpRolePersonnelManager
         if session.corprole & roles == 0:
             raise UserError('CrpAccessDenied', {'reason': localization.GetByLabel('UI/Corporations/CreateDecorationWindow/NeedRolesError')})

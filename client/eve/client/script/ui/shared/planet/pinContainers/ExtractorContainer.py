@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\client\script\ui\shared\planet\pinContainers\ExtractorContainer.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\client\script\ui\shared\planet\pinContainers\ExtractorContainer.py
 import evetypes
 import util
 import uicls
@@ -63,3 +64,4 @@ class ExtractorContainer(ObsoletePinContainer):
         self.amountPerCycleTxt.SetSubtext(localization.GetByLabel('UI/PI/Common/UnitsAmount', amount=self.pin.depositQtyPerCycle))
         attr = cfg.dgmattribs.GetIfExists(const.attributeLogisticalCapacity)
         self.amountPerHourTxt.SetSubtext(GetFormatAndValue(attr, self.pin.GetOutputVolumePerHour()))
+        return

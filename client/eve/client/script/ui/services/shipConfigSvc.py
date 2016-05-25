@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\client\script\ui\services\shipConfigSvc.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\client\script\ui\services\shipConfigSvc.py
 import util
 import locks
 import service
@@ -11,15 +12,17 @@ class ShipConfigSvc(service.Service):
     __notifyevents__ = ['OnSessionChanged']
     __startupdependencies__ = []
 
-    def Run(self, memstream_which_absolutely_noone_uses_anymore_but_no_one_gets_around_to_remove = None):
+    def Run(self, memstream_which_absolutely_noone_uses_anymore_but_no_one_gets_around_to_remove=None):
         self._ship = None
         self.shipid = util.GetActiveShip()
         self.config = None
+        return
 
     def _ClearCachedAttributes(self):
         self.shipid = util.GetActiveShip()
         self.config = None
         self._ship = None
+        return
 
     def OnSessionChanged(self, isRemote, session, change):
         if 'locationid' in change or 'shipid' in change:
@@ -31,23 +34,26 @@ class ShipConfigSvc(service.Service):
             self._ship = moniker.GetShipAccess()
         return self._ship
 
-    def GetShipConfig(self, shipID = None):
+    def GetShipConfig(self, shipID=None):
         if shipID is not None:
             return moniker.GetShipAccess().GetShipConfiguration(shipID)
-        if util.GetActiveShip() != self.shipid:
-            self._ClearCachedAttributes()
-        with locks.TempLock('%s:%s' % (self, self.shipid)):
-            if self.config is None:
-                self.config = self.ship.GetShipConfiguration(self.shipid)
-        return self.config
+        else:
+            if util.GetActiveShip() != self.shipid:
+                self._ClearCachedAttributes()
+            with locks.TempLock('%s:%s' % (self, self.shipid)):
+                if self.config is None:
+                    self.config = self.ship.GetShipConfiguration(self.shipid)
+            return self.config
 
     def SetShipConfig(self, key, value):
         lock = locks.TempLock('%s:%s' % (self, self.shipid))
         if lock.lockedWhen is not None:
             return
-        with lock:
-            self.ship.ConfigureShip({key: value})
-            self.config[key] = value
+        else:
+            with lock:
+                self.ship.ConfigureShip({key: value})
+                self.config[key] = value
+            return
 
     def ToggleFleetHangarFleetAccess(self):
         self.SetShipConfig('FleetHangar_AllowFleetAccess', not self.IsFleetHangarFleetAccessAllowed())

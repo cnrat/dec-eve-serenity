@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\packages\bluepy\__init__.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\packages\bluepy\__init__.py
 import atexit
 import blue
 import re
@@ -31,32 +32,35 @@ class TaskletExt(stackless.tasklet):
             exc = None
             try:
                 try:
-                    return method(*args, **kwds)
-                except TaskletExit as e:
-                    import logmodule as log
-                    t = stackless.getcurrent()
-                    log.general.Log('tasklet (%s) %s exiting with %r' % (t.tasklet_id, t, e), log.LGINFO)
-                except SystemExit as e:
-                    import logmodule as log
-                    log.general.Log('system %s exiting with %r' % (stackless.getcurrent(), e), log.LGINFO)
-                except Exception:
-                    import logmodule as log
-                    exc = sys.exc_info()
-                    log.LogException('Unhandled exception in %r' % stackless.getcurrent())
+                    try:
+                        return method(*args, **kwds)
+                    except TaskletExit as e:
+                        import logmodule as log
+                        t = stackless.getcurrent()
+                    except SystemExit as e:
+                        import logmodule as log
+                        log.general.Log('system %s exiting with %r' % (stackless.getcurrent(), e), log.LGINFO)
+                    except Exception:
+                        import logmodule as log
+                        exc = sys.exc_info()
+                        log.LogException('Unhandled exception in %r' % stackless.getcurrent())
 
-                return
-            except:
-                traceback.print_exc()
-                if exc:
-                    traceback.print_exception(exc[0], exc[1], exc[2])
+                    return
+                except:
+                    traceback.print_exc()
+                    if exc:
+                        traceback.print_exception(exc[0], exc[1], exc[2])
+
             finally:
                 exc = None
                 PopTimer(oldtimer)
                 current.endTime = blue.os.GetWallclockTimeNow()
 
+            return
+
         return CallWrapper
 
-    def __new__(self, ctx, method = None):
+    def __new__(self, ctx, method=None):
         global tasklet_id
         tid = tasklet_id
         tasklet_id += 1
@@ -140,7 +144,7 @@ def Shutdown(exitprocs):
         GetTaskletDump(True)
 
 
-def GetTaskletDump(logIt = True):
+def GetTaskletDump(logIt=True):
     import logmodule as log
     lines = []
     lines.append('GetTaskletDump:  %s TaskletExt objects alive' % len(tasklets))
@@ -204,7 +208,7 @@ class PyResFile(object):
      'mode',
      'softspace']
 
-    def __init__(self, path, mode = 'r', bufsize = -1):
+    def __init__(self, path, mode='r', bufsize=-1):
         self.rf = blue.ResFile()
         self.mode = mode
         self.name = path
@@ -221,7 +225,7 @@ class PyResFile(object):
             except:
                 raise IOError, 'could not open ' + path
 
-    def read(self, count = 0):
+    def read(self, count=0):
         try:
             return self.rf.read(count)
         except:
@@ -230,10 +234,10 @@ class PyResFile(object):
     def write(self, data):
         raise NotImplemented
 
-    def readline(self, size = 0):
+    def readline(self, size=0):
         raise NotImplemented
 
-    def readlines(self, sizehint = 0):
+    def readlines(self, sizehint=0):
         r = []
         while True:
             l = self.readline()
@@ -245,7 +249,7 @@ class PyResFile(object):
         for i in iterable:
             self.write(i)
 
-    def seek(self, where, whence = 0):
+    def seek(self, where, whence=0):
         if whence == 1:
             where += self.rf.pos
         elif whence == 2:
@@ -258,13 +262,15 @@ class PyResFile(object):
     def tell(self):
         return self.rf.pos
 
-    def truncate(self, size = None):
+    def truncate(self, size=None):
         if size is None:
             size = self.rf.pos
         try:
             self.rf.SetSize(size)
         except:
             raise IOError, 'could not trucated file %s to %d bytes' % (self.rf.filename, size)
+
+        return
 
     def flush():
         pass
@@ -298,7 +304,7 @@ blue.TaskletExt = TaskletExt
 blue.tasklets = tasklets
 stackless.taskletext = TaskletExt
 
-def GetBlueInfo(numMinutes = None, isYield = True):
+def GetBlueInfo(numMinutes=None, isYield=True):
     if numMinutes:
         trend = blue.pyos.cpuUsage[-numMinutes * 60 / 10:]
     else:
@@ -358,7 +364,7 @@ def GetBlueInfo(numMinutes = None, isYield = True):
     return ret
 
 
-def Terminate(reason = ''):
+def Terminate(reason=''):
     import logmodule as log
     log.general.Log('bluepy.Terminate - Reason: %s' % reason, log.LGNOTICE)
     try:

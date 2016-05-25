@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\carbon\common\stdlib\tokenize.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\carbon\common\stdlib\tokenize.py
 __author__ = 'Ka-Ping Yee <ping@lfw.org>'
 __credits__ = 'GvR, ESR, Tim Peters, Thomas Wouters, Fred Drake, Skip Montanaro, Raymond Hettinger'
 import string, re
@@ -131,7 +132,7 @@ def printtoken(type, token, srow_scol, erow_ecol, line):
      repr(token))
 
 
-def tokenize(readline, tokeneater = printtoken):
+def tokenize(readline, tokeneater=printtoken):
     try:
         tokenize_loop(readline, tokeneater)
     except StopTokenizing:
@@ -407,6 +408,7 @@ def generate_tokens(readline):
      (lnum, 0),
      (lnum, 0),
      '')
+    return
 
 
 if __name__ == '__main__':

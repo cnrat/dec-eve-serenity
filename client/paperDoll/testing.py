@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\common\modules\nice\client\_nastyspace\paperDoll\testing.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\common\modules\nice\client\_nastyspace\paperDoll\testing.py
 from eve.client.script.paperDoll.paperDollTests import BenchmarkTest
 from eve.client.script.paperDoll.paperDollTests import Benchmarker
 from eve.client.script.paperDoll.paperDollTests import CollectCharacterSelectionPaths

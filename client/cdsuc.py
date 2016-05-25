@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\carbon\common\lib\cdsuc.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\carbon\common\lib\cdsuc.py
 import types
 import itertools
 
@@ -19,7 +20,9 @@ class EnumList(object):
         val = self.__data.get(lname, None)
         if val:
             return val
-        raise AttributeError, name
+        else:
+            raise AttributeError, name
+            return
 
     def __iter__(self):
         for each in self.__data:

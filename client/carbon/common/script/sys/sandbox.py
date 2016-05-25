@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\carbon\common\script\sys\sandbox.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\carbon\common\script\sys\sandbox.py
 import dis
 
 def _get_opcodes(codeobj):
@@ -47,20 +48,21 @@ def test_expr(expr, allowed_codes):
     return c
 
 
-def eval_fingerprinted(expr, fingerprint, g = None, l = None):
+def eval_fingerprinted(expr, fingerprint, g=None, l=None):
     c = test_expr(expr, fingerprint)
     if l is not None:
         return eval(c, g, l)
-    if g is not None:
+    elif g is not None:
         return eval(c, g)
-    return eval(c)
+    else:
+        return eval(c)
 
 
-def eval_constant(expr, g = None, l = None):
+def eval_constant(expr, g=None, l=None):
     return eval_fingerprinted(expr, constant_codes, g, l)
 
 
-def eval_expression(expr, g = None, l = None):
+def eval_expression(expr, g=None, l=None):
     return eval_fingerprinted(expr, expression_codes, g, l)
 
 

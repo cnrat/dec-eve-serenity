@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\carbon\common\stdlib\gzip.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\carbon\common\stdlib\gzip.py
 import struct, sys, time, os
 import zlib
 import io
@@ -19,7 +20,7 @@ def read32(input):
     return struct.unpack('<I', input.read(4))[0]
 
 
-def open(filename, mode = 'rb', compresslevel = 9):
+def open(filename, mode='rb', compresslevel=9):
     return GzipFile(filename, mode, compresslevel)
 
 
@@ -27,7 +28,7 @@ class GzipFile(io.BufferedIOBase):
     myfileobj = None
     max_read_chunk = 10485760
 
-    def __init__(self, filename = None, mode = None, compresslevel = 9, fileobj = None, mtime = None):
+    def __init__(self, filename=None, mode=None, compresslevel=9, fileobj=None, mtime=None):
         if mode and 'b' not in mode:
             mode += 'b'
         if fileobj is None:
@@ -61,6 +62,7 @@ class GzipFile(io.BufferedIOBase):
         self.mtime = mtime
         if self.mode == WRITE:
             self._write_gzip_header()
+        return
 
     @property
     def filename(self):
@@ -103,6 +105,7 @@ class GzipFile(io.BufferedIOBase):
         self.fileobj.write('\xff')
         if fname:
             self.fileobj.write(fname + '\x00')
+        return
 
     def _init_read(self):
         self.crc = zlib.crc32('') & 4294967295L
@@ -153,44 +156,45 @@ class GzipFile(io.BufferedIOBase):
             self.offset += len(data)
         return len(data)
 
-    def read(self, size = -1):
+    def read(self, size=-1):
         self._check_closed()
         if self.mode != READ:
             import errno
             raise IOError(errno.EBADF, 'read() on write-only GzipFile object')
         if self.extrasize <= 0 and self.fileobj is None:
             return ''
-        readsize = 1024
-        if size < 0:
-            try:
-                while True:
-                    self._read(readsize)
-                    readsize = min(self.max_read_chunk, readsize * 2)
-
-            except EOFError:
-                size = self.extrasize
-
         else:
-            try:
-                while size > self.extrasize:
-                    self._read(readsize)
-                    readsize = min(self.max_read_chunk, readsize * 2)
+            readsize = 1024
+            if size < 0:
+                try:
+                    while True:
+                        self._read(readsize)
+                        readsize = min(self.max_read_chunk, readsize * 2)
 
-            except EOFError:
-                if size > self.extrasize:
+                except EOFError:
                     size = self.extrasize
 
-        offset = self.offset - self.extrastart
-        chunk = self.extrabuf[offset:offset + size]
-        self.extrasize = self.extrasize - size
-        self.offset += size
-        return chunk
+            else:
+                try:
+                    while size > self.extrasize:
+                        self._read(readsize)
+                        readsize = min(self.max_read_chunk, readsize * 2)
+
+                except EOFError:
+                    if size > self.extrasize:
+                        size = self.extrasize
+
+            offset = self.offset - self.extrastart
+            chunk = self.extrabuf[offset:offset + size]
+            self.extrasize = self.extrasize - size
+            self.offset += size
+            return chunk
 
     def _unread(self, buf):
         self.extrasize = len(buf) + self.extrasize
         self.offset -= len(buf)
 
-    def _read(self, size = 1024):
+    def _read(self, size=1024):
         if self.fileobj is None:
             raise EOFError, 'Reached EOF'
         if self._new_member:
@@ -216,6 +220,7 @@ class GzipFile(io.BufferedIOBase):
             self.fileobj.seek(-len(self.decompress.unused_data) + 8, 1)
             self._read_eof()
             self._new_member = True
+        return
 
     def _add_read_data(self, data):
         self.crc = zlib.crc32(data, self.crc) & 4294967295L
@@ -247,18 +252,20 @@ class GzipFile(io.BufferedIOBase):
     def close(self):
         if self.fileobj is None:
             return
-        if self.mode == WRITE:
-            self.fileobj.write(self.compress.flush())
-            write32u(self.fileobj, self.crc)
-            write32u(self.fileobj, self.size & 4294967295L)
-            self.fileobj = None
-        elif self.mode == READ:
-            self.fileobj = None
-        if self.myfileobj:
-            self.myfileobj.close()
-            self.myfileobj = None
+        else:
+            if self.mode == WRITE:
+                self.fileobj.write(self.compress.flush())
+                write32u(self.fileobj, self.crc)
+                write32u(self.fileobj, self.size & 4294967295L)
+                self.fileobj = None
+            elif self.mode == READ:
+                self.fileobj = None
+            if self.myfileobj:
+                self.myfileobj.close()
+                self.myfileobj = None
+            return
 
-    def flush(self, zlib_mode = zlib.Z_SYNC_FLUSH):
+    def flush(self, zlib_mode=zlib.Z_SYNC_FLUSH):
         self._check_closed()
         if self.mode == WRITE:
             self.fileobj.write(self.compress.flush(zlib_mode))
@@ -286,7 +293,7 @@ class GzipFile(io.BufferedIOBase):
     def seekable(self):
         return True
 
-    def seek(self, offset, whence = 0):
+    def seek(self, offset, whence=0):
         if whence:
             if whence == 1:
                 offset = self.offset + offset
@@ -310,7 +317,7 @@ class GzipFile(io.BufferedIOBase):
             self.read(count % 1024)
         return self.offset
 
-    def readline(self, size = -1):
+    def readline(self, size=-1):
         if size < 0:
             offset = self.offset - self.extrastart
             i = self.extrabuf.find('\n', offset) + 1

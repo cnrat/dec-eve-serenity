@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\client\script\ui\control\browser\eveTrustedSitePromptWindow.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\client\script\ui\control\browser\eveTrustedSitePromptWindow.py
 import localization
 import carbonui.const as uiconst
 from carbonui.control.browser.trustedSitePromptWindow import TrustedSitePromptWindowCore, TrustedSitePromptWindowCoreOverride

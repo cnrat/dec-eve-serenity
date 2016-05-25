@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\carbon\common\script\net\GPSExceptions.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\carbon\common\script\net\GPSExceptions.py
 import blue
 import eve.common.script.net.eveMachoNetVersion as eveMachoVersion
 import exceptions
@@ -9,6 +10,7 @@ class GPSException(StandardError):
     def __init__(self, *args):
         super(GPSException, self).__init__(*args)
         self.reason = args[0] if args else None
+        return
 
     def __repr__(self):
         return '<%s: reason=%r, args[1:]=%r>' % (self.__class__.__name__, self.reason, self.args[1:])
@@ -17,7 +19,7 @@ class GPSException(StandardError):
 class GPSTransportClosed(GPSException):
     __guid__ = 'exceptions.GPSTransportClosed'
 
-    def __init__(self, reason = None, reasonCode = None, reasonArgs = {}, machoVersion = None, version = None, build = None, codename = None, region = None, origin = None, loggedOnUserCount = None, exception = None):
+    def __init__(self, reason=None, reasonCode=None, reasonArgs={}, machoVersion=None, version=None, build=None, codename=None, region=None, origin=None, loggedOnUserCount=None, exception=None):
         args = (reason, exception) if exception else (reason,)
         super(GPSTransportClosed, self).__init__(*args)
         self.machoVersion = machoVersion or eveMachoVersion.machoVersion

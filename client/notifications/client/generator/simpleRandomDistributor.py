@@ -1,11 +1,12 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\packages\notifications\client\generator\simpleRandomDistributor.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\packages\notifications\client\generator\simpleRandomDistributor.py
 import uthread
 import random
 import blue
 
 class SimpleRandomDistributer(object):
 
-    def __init__(self, mininterval, maxinterval, generateCallback, finishedCallback, nowTimeProviderFunction, step = 1000, oddsOfEventPerCheck = 10, generateMax = 100):
+    def __init__(self, mininterval, maxinterval, generateCallback, finishedCallback, nowTimeProviderFunction, step=1000, oddsOfEventPerCheck=10, generateMax=100):
         self.mininterval = mininterval * 10000
         self.maxinterval = maxinterval * 10000
         self.timeSinceLastDistribution = 0
@@ -19,6 +20,7 @@ class SimpleRandomDistributer(object):
         self.oddOfEventPerCheck = 100 - oddsOfEventPerCheck
         self.generateMax = generateMax
         self.currentlyGenerated = 0
+        return
 
     def Start(self):
         uthread.new(self.Update)
@@ -51,6 +53,7 @@ class SimpleRandomDistributer(object):
             self.finishedCallback()
         self.finishedCallback = None
         self.callback = None
+        return
 
     def Abort(self):
         self.shouldRun = False

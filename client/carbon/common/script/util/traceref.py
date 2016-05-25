@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\carbon\common\script\util\traceref.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\carbon\common\script\util\traceref.py
 import gc
 import inspect
 import sys
@@ -6,7 +7,7 @@ import types
 import stackless
 import blue
 
-def ObjectHistogram(deltaFrom = {}):
+def ObjectHistogram(deltaFrom={}):
     hist = {}
     for obj in gc.get_objects():
         try:
@@ -49,7 +50,7 @@ def GetLiveObjectsByType(type_):
     return [ obj for obj in gc.get_objects() if isinstance(obj, type_) ]
 
 
-def _RawRefGraph(ob, ignore = (), depthLimit = None, breadthLimit = None):
+def _RawRefGraph(ob, ignore=(), depthLimit=None, breadthLimit=None):
 
     def Ignore(*obs):
         for ob in obs:
@@ -64,31 +65,36 @@ def _RawRefGraph(ob, ignore = (), depthLimit = None, breadthLimit = None):
             IgnoreFrame(f)
             f = f.f_back
 
-    def Graph(ob, depth = 0):
+        return
+
+    def Graph(ob, depth=0):
         blue.pyos.BeNice()
         if depthLimit is not None and depth > depthLimit:
             return
-        IgnoreCallStack()
-        ret[id(ob)] = rfrs = []
-        l = gc.get_referrers(ob)
-        Ignore(rfrs, l)
-        breadth = 0
-        for rfr in l:
-            if id(rfr) not in ignored:
-                breadth += 1
-                if breadthLimit is not None and breadth > breadthLimit:
-                    return
-                rfrs.append(rfr)
-                if id(rfr) not in ret:
-                    for type_ in [stackless.module,
-                     stackless.modict,
-                     stackless.frame,
-                     stackless.function,
-                     stackless.listiterator]:
-                        if isinstance(rfr, type_):
-                            break
-                    else:
-                        Graph(rfr, depth + 1)
+        else:
+            IgnoreCallStack()
+            ret[id(ob)] = rfrs = []
+            l = gc.get_referrers(ob)
+            Ignore(rfrs, l)
+            breadth = 0
+            for rfr in l:
+                if id(rfr) not in ignored:
+                    breadth += 1
+                    if breadthLimit is not None and breadth > breadthLimit:
+                        return
+                    rfrs.append(rfr)
+                    if id(rfr) not in ret:
+                        for type_ in [stackless.module,
+                         stackless.modict,
+                         stackless.frame,
+                         stackless.function,
+                         stackless.listiterator]:
+                            if isinstance(rfr, type_):
+                                break
+                        else:
+                            Graph(rfr, depth + 1)
+
+            return
 
     ret = {}
     ignored = set()
@@ -110,7 +116,7 @@ def TestRawRefGraph():
     pprint.pprint(_RawRefGraph(a))
 
 
-def TestAnnotatedRefGraph(verbose = False):
+def TestAnnotatedRefGraph(verbose=False):
 
     def ImportHack(name):
         return sys.modules.setdefault(name, types.ModuleType(name))
@@ -152,12 +158,12 @@ def TestAnnotatedRefGraph(verbose = False):
         die = True
 
 
-def PrintRefPaths(obj, ignore = (), verbose = False, depthLimit = None, breadthLimit = None):
+def PrintRefPaths(obj, ignore=(), verbose=False, depthLimit=None, breadthLimit=None):
 
     class loop:
         pass
 
-    def PathsFromRef(ref, prevPath = []):
+    def PathsFromRef(ref, prevPath=[]):
         newPath = prevPath + [ref]
         if ref.refs:
             ret = []
@@ -229,7 +235,7 @@ def PrintRefPaths(obj, ignore = (), verbose = False, depthLimit = None, breadthL
     map(PurgeRef, refs)
 
 
-def _AnnotatedRefGraph(obj, ignore = (), depthLimit = None, breadthLimit = None):
+def _AnnotatedRefGraph(obj, ignore=(), depthLimit=None, breadthLimit=None):
     handledAnnotations = {}
     handledIndices = set()
 
@@ -283,9 +289,12 @@ def _AnnotatedRefGraph(obj, ignore = (), depthLimit = None, breadthLimit = None)
     def FrameDetails(obj, rfr):
         if not isinstance(rfr, stackless.frame):
             return None
-        for name, val in rfr.f_locals.iteritems():
-            if val is obj and not IndexHandled(id(obj), id(rfr), 'frame_local', name):
-                return (rfr, 'frame_local', name)
+        else:
+            for name, val in rfr.f_locals.iteritems():
+                if val is obj and not IndexHandled(id(obj), id(rfr), 'frame_local', name):
+                    return (rfr, 'frame_local', name)
+
+            return None
 
     def FuncDetails(obj, rfr):
         for rfrfr in GetRefs(rfr):
@@ -302,6 +311,8 @@ def _AnnotatedRefGraph(obj, ignore = (), depthLimit = None, breadthLimit = None)
                                 IndexHandled(id(obj), id(rfr), 'seq', i)
                                 return (rfrfrfr, 'func_closure', i)
 
+        return None
+
     def AttrDetails(obj, rfr):
         if isinstance(rfr, stackless.modict):
             ret = DictDetails(obj, rfr)
@@ -316,12 +327,17 @@ def _AnnotatedRefGraph(obj, ignore = (), depthLimit = None, breadthLimit = None)
                 except TypeError:
                     sys.exc_clear()
 
+        return
+
     def DictDetails(obj, rfr):
         if not hasattr(rfr, 'iteritems'):
             return None
-        for key, val in rfr.iteritems():
-            if val is obj and not IndexHandled(id(obj), id(rfr), 'dict', key):
-                return (rfr, 'dict', key)
+        else:
+            for key, val in rfr.iteritems():
+                if val is obj and not IndexHandled(id(obj), id(rfr), 'dict', key):
+                    return (rfr, 'dict', key)
+
+            return None
 
     def SequenceDetails(obj, rfr):
         try:
@@ -338,9 +354,13 @@ def _AnnotatedRefGraph(obj, ignore = (), depthLimit = None, breadthLimit = None)
 
             raise
 
+        return None
+
     def UnknownDetails(obj, rfr):
         if not IndexHandled(id(obj), id(rfr), 'unknown', None):
             return (rfr, 'unknown', None)
+        else:
+            return
 
     def NextAnnotation(obj, rfr):
         for func in [FrameDetails,
@@ -352,6 +372,8 @@ def _AnnotatedRefGraph(obj, ignore = (), depthLimit = None, breadthLimit = None)
             ref = func(obj, rfr)
             if ref is not None:
                 return ref
+
+        return
 
     def AnnotateRefs(obj):
         ret = []
@@ -378,6 +400,8 @@ def _AnnotatedRefGraph(obj, ignore = (), depthLimit = None, breadthLimit = None)
         return AnnotateRefs(obj)
     finally:
         raw.clear()
+
+    return
 
 
 def ClassOrType(obj):

@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\client\script\ui\shared\vgs\views\pickOffer.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\client\script\ui\shared\vgs\views\pickOffer.py
 from carbonui import const as uiconst
 from carbonui.control.scrollContainer import ScrollContainer
 from carbonui.primitives.container import Container
@@ -17,6 +18,7 @@ class PickOfferView(Container):
         self.offers = attributes.offers
         self.onPick = attributes.get('onPick', None)
         self.Layout()
+        return
 
     def Layout(self):
         scroll = ScrollContainer(parent=self, align=uiconst.TOALL, pushContent=False)
@@ -33,7 +35,7 @@ class PickOfferView(Container):
             OfferEntry(parent=scroll, align=uiconst.TOTOP, padding=(self.PADDING,
              0,
              self.PADDING,
-             self.PADDING), offer=offer, onClick=lambda offer = offer: self.PickOffer(offer))
+             self.PADDING), offer=offer, onClick=lambda offer=offer: self.PickOffer(offer))
 
     def _SortOffers(self, offers):
 

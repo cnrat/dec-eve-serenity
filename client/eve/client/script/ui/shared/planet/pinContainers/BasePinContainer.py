@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\client\script\ui\shared\planet\pinContainers\BasePinContainer.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\client\script\ui\shared\planet\pinContainers\BasePinContainer.py
 from carbonui.primitives.container import Container
 from carbonui.primitives.containerAutoSize import ContainerAutoSize
 from carbonui.primitives.frame import Frame
@@ -87,6 +88,7 @@ class BasePinContainer(Window):
         self.updateInfoContTimer = base.AutoTimer(100, self._UpdateInfoCont)
         sm.GetService('audio').SendUIEvent('wise:/msg_pi_pininteraction_open_play')
         self.ResizeActionCont(None)
+        return
 
     def ShowDefaultPanel(self):
         if hasattr(self, 'defaultPanel'):
@@ -113,35 +115,38 @@ class BasePinContainer(Window):
         if self.showingActionContainer:
             self.showNext = panelCallback
             return
-        self.showNext = None
-        self.showingActionContainer = True
-        self.actionCont.Flush()
-        if self.lastCalled != name:
-            if args:
-                cont = panelCallback(*args)
-            else:
-                cont = panelCallback()
-            if cont:
-                cont.state = uiconst.UI_HIDDEN
-                self.lastCalled = name
-                cont.opacity = 0.0
-                self.ResizeActionCont(panelID)
-                cont.state = uiconst.UI_PICKCHILDREN
-                self.uiEffects.MorphUI(cont, 'opacity', 1.0, time=250.0, float=1, maxSteps=1000)
-                uicore.registry.SetFocus(cont)
         else:
-            self.HideCurrentPanel()
-        self.showingActionContainer = False
-        if self.showNext:
-            self.ShowPanel(self.showNext, panelID)
+            self.showNext = None
+            self.showingActionContainer = True
+            self.actionCont.Flush()
+            if self.lastCalled != name:
+                if args:
+                    cont = panelCallback(*args)
+                else:
+                    cont = panelCallback()
+                if cont:
+                    cont.state = uiconst.UI_HIDDEN
+                    self.lastCalled = name
+                    cont.opacity = 0.0
+                    self.ResizeActionCont(panelID)
+                    cont.state = uiconst.UI_PICKCHILDREN
+                    self.uiEffects.MorphUI(cont, 'opacity', 1.0, time=250.0, float=1, maxSteps=1000)
+                    uicore.registry.SetFocus(cont)
+            else:
+                self.HideCurrentPanel()
+            self.showingActionContainer = False
+            if self.showNext:
+                self.ShowPanel(self.showNext, panelID)
+            return
 
     def HideCurrentPanel(self):
         self.actionCont.Flush()
         self.ResizeActionCont()
         self.lastCalled = None
         self.buttonTextValue = ''
+        return
 
-    def _DrawAlignTopCont(self, height, name, padding = (0, 0, 0, 0), state = uiconst.UI_PICKCHILDREN):
+    def _DrawAlignTopCont(self, height, name, padding=(0, 0, 0, 0), state=uiconst.UI_PICKCHILDREN):
         return Container(parent=self.main, name=name, pos=(0,
          0,
          0,
@@ -246,7 +251,7 @@ class BasePinContainer(Window):
         edit.scrollEnabled = False
         return edit
 
-    def ResizeActionCont(self, panelID = None):
+    def ResizeActionCont(self, panelID=None):
         if panelID:
             minHeight, maxHeight = planetCommonUI.PANEL_MIN_MAX_HEIGHT[panelID]
             if maxHeight:
@@ -266,6 +271,7 @@ class BasePinContainer(Window):
         else:
             self.SetFixedHeight(None)
             self.SetMaxSize((self.default_maxSize[0], None))
+        return
 
     def _UpdateInfoCont(self):
         pass
@@ -298,6 +304,7 @@ class BasePinContainer(Window):
          localization.GetByLabel('UI/PI/Common/Type'),
          localization.GetByLabel('UI/Common/Amount'),
          localization.GetByLabel('UI/Common/Volume')])
+        return
 
     def OnStorageEntryDblClicked(self, entry):
         self._CreateRoute('storageContentScroll')
@@ -348,6 +355,7 @@ class BasePinContainer(Window):
                 scrolllist.append(listentry.Get('Item', data=data))
 
         self.productScroll.Load(contentList=scrolllist, noContentHint=localization.GetByLabel('UI/PI/Common/NoProductsPresent'), headers=[localization.GetByLabel('UI/Common/Amount'), localization.GetByLabel('UI/PI/Common/Type'), ''])
+        return
 
     def OnProductEntryClicked(self, entry):
         node = entry.sr.node
@@ -357,11 +365,13 @@ class BasePinContainer(Window):
         else:
             self.createRouteButton.state = uiconst.UI_HIDDEN
             self.deleteRouteButton.state = uiconst.UI_NORMAL
+        return
 
     def OnProductEntryDblClicked(self, entry):
         node = entry.sr.node
         if node.Get('routeID', None) is None:
             self._CreateRoute('productScroll')
+        return
 
     def _CreateRoute(self, scroll):
         selected = getattr(self, scroll).GetSelected()
@@ -373,9 +383,11 @@ class BasePinContainer(Window):
     def SubmitRoute(self):
         if not getattr(self, 'routeAmountEdit', None):
             return
-        sm.GetService('planetUI').myPinManager.CreateRoute(self.routeAmountEdit.GetValue())
-        self.HideCurrentPanel()
-        self.commodityToRoute = None
+        else:
+            sm.GetService('planetUI').myPinManager.CreateRoute(self.routeAmountEdit.GetValue())
+            self.HideCurrentPanel()
+            self.commodityToRoute = None
+            return
 
     def _DeleteRoute(self):
         selected = self.productScroll.GetSelected()
@@ -403,6 +415,7 @@ class BasePinContainer(Window):
             raise UserError('CannotTransferInEditMode')
         self.planetUISvc.myPinManager.EnterRouteMode(self.pin.id, None, oneoff=True)
         self.ShowPanel(self.PanelSelectTransferDest, planetCommonUI.PANEL_TRANSFER)
+        return
 
     def PanelDecommissionPin(self):
         typeName = evetypes.GetName(self.pin.typeID)
@@ -592,49 +605,52 @@ class BasePinContainer(Window):
          localization.GetByLabel('UI/Common/Commodity'),
          localization.GetByLabel('UI/Common/Quantity'),
          localization.GetByLabel('UI/PI/Common/Type')])
+        return
 
     def OnRouteEntryClick(self, *args):
         selectedRoutes = self.routeScroll.GetSelected()
         if len(selectedRoutes) < 1:
             self.routeInfo.state = uiconst.UI_HIDDEN
             return
-        selectedRouteData = selectedRoutes[0]
-        selectedRoute = None
-        colony = self.planetUISvc.GetCurrentPlanet().GetColony(session.charid)
-        links = colony.colonyData.GetLinksForPin(self.pin.id)
-        for linkedPinID in links:
-            link = colony.GetLink(self.pin.id, linkedPinID)
-            for routeID in link.routesTransiting:
-                if routeID == selectedRouteData.routeID:
-                    selectedRoute = route = colony.GetRoute(routeID)
-                    break
+        else:
+            selectedRouteData = selectedRoutes[0]
+            selectedRoute = None
+            colony = self.planetUISvc.GetCurrentPlanet().GetColony(session.charid)
+            links = colony.colonyData.GetLinksForPin(self.pin.id)
+            for linkedPinID in links:
+                link = colony.GetLink(self.pin.id, linkedPinID)
+                for routeID in link.routesTransiting:
+                    if routeID == selectedRouteData.routeID:
+                        selectedRoute = route = colony.GetRoute(routeID)
+                        break
 
-        if selectedRoute is None or not evetypes.Exists(selectedRoute.GetType()):
-            return
-        if selectedRoute.GetSourcePinID() == self.pin.id:
-            self.routeInfoSource.SetSubtext(localization.GetByLabel('UI/PI/Common/ThisStructure'))
-        else:
-            sourcePin = sm.GetService('planetUI').planet.GetPin(selectedRoute.GetSourcePinID())
-            self.routeInfoSource.SetSubtext(planetCommon.GetGenericPinName(sourcePin.typeID, sourcePin.id))
-        if selectedRoute.GetDestinationPinID() == self.pin.id:
-            self.routeInfoDest.SetSubtext(localization.GetByLabel('UI/PI/Common/ThisStructure'))
-        else:
-            destPin = sm.GetService('planetUI').planet.GetPin(selectedRoute.GetDestinationPinID())
-            self.routeInfoDest.SetSubtext(planetCommon.GetGenericPinName(destPin.typeID, destPin.id))
-        routeTypeID = route.GetType()
-        routeQty = route.GetQuantity()
-        self.routeInfoType.SetSubtext(localization.GetByLabel('UI/PI/Common/ItemAmount', itemName=evetypes.GetName(routeTypeID), amount=int(routeQty)))
-        bandwidthAttr = cfg.dgmattribs.Get(const.attributeLogisticalCapacity)
-        self.routeInfoBandwidth.SetSubtext(GetFormatAndValue(bandwidthAttr, selectedRoute.GetBandwidthUsage()))
-        createRouteBtn = self.routeInfoBtns.GetBtnByLabel(localization.GetByLabel('UI/PI/Common/CreateRoute'))
-        if createRouteBtn:
-            if selectedRoute.GetDestinationPinID() == self.pin.id:
-                createRouteBtn.state = uiconst.UI_NORMAL
+            if selectedRoute is None or not evetypes.Exists(selectedRoute.GetType()):
+                return
+            if selectedRoute.GetSourcePinID() == self.pin.id:
+                self.routeInfoSource.SetSubtext(localization.GetByLabel('UI/PI/Common/ThisStructure'))
             else:
-                createRouteBtn.state = uiconst.UI_HIDDEN
-        self.routeInfo.opacity = 0.0
-        self.routeInfo.state = uiconst.UI_PICKCHILDREN
-        self.uiEffects.MorphUI(self.routeInfo, 'opacity', 1.0, time=125.0, float=1, newthread=0, maxSteps=1000)
+                sourcePin = sm.GetService('planetUI').planet.GetPin(selectedRoute.GetSourcePinID())
+                self.routeInfoSource.SetSubtext(planetCommon.GetGenericPinName(sourcePin.typeID, sourcePin.id))
+            if selectedRoute.GetDestinationPinID() == self.pin.id:
+                self.routeInfoDest.SetSubtext(localization.GetByLabel('UI/PI/Common/ThisStructure'))
+            else:
+                destPin = sm.GetService('planetUI').planet.GetPin(selectedRoute.GetDestinationPinID())
+                self.routeInfoDest.SetSubtext(planetCommon.GetGenericPinName(destPin.typeID, destPin.id))
+            routeTypeID = route.GetType()
+            routeQty = route.GetQuantity()
+            self.routeInfoType.SetSubtext(localization.GetByLabel('UI/PI/Common/ItemAmount', itemName=evetypes.GetName(routeTypeID), amount=int(routeQty)))
+            bandwidthAttr = cfg.dgmattribs.Get(const.attributeLogisticalCapacity)
+            self.routeInfoBandwidth.SetSubtext(GetFormatAndValue(bandwidthAttr, selectedRoute.GetBandwidthUsage()))
+            createRouteBtn = self.routeInfoBtns.GetBtnByLabel(localization.GetByLabel('UI/PI/Common/CreateRoute'))
+            if createRouteBtn:
+                if selectedRoute.GetDestinationPinID() == self.pin.id:
+                    createRouteBtn.state = uiconst.UI_NORMAL
+                else:
+                    createRouteBtn.state = uiconst.UI_HIDDEN
+            self.routeInfo.opacity = 0.0
+            self.routeInfo.state = uiconst.UI_PICKCHILDREN
+            self.uiEffects.MorphUI(self.routeInfo, 'opacity', 1.0, time=125.0, float=1, newthread=0, maxSteps=1000)
+            return
 
 
 class IconButton(Container):
@@ -702,6 +718,7 @@ class CaptionAndSubtext(Container):
         self.iconSize = 25
         self.icon = None
         self.CreateLayout()
+        return
 
     def CreateLayout(self):
         l, t, w, h = self.GetAbsolute()
@@ -743,10 +760,11 @@ class CaptionAndSubtext(Container):
     def GetMenu(self):
         if not self.iconTypeID:
             return None
-        ret = [(uiutil.MenuLabel('UI/Commands/ShowInfo'), sm.GetService('info').ShowInfo, [self.iconTypeID])]
-        if session.role & ROLE_GML == ROLE_GML:
-            ret.append(('GM / WM Extras', self.GetGMMenu()))
-        return ret
+        else:
+            ret = [(uiutil.MenuLabel('UI/Commands/ShowInfo'), sm.GetService('info').ShowInfo, [self.iconTypeID])]
+            if session.role & ROLE_GML == ROLE_GML:
+                ret.append(('GM / WM Extras', self.GetGMMenu()))
+            return ret
 
     def GetGMMenu(self):
         ret = []

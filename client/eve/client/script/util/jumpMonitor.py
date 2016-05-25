@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\client\script\util\jumpMonitor.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\client\script\util\jumpMonitor.py
 from service import *
 import sys
 import blue
@@ -23,7 +24,7 @@ class jumpMonitor(Service):
     def __init__(self):
         Service.__init__(self)
 
-    def Run(self, memStream = None):
+    def Run(self, memStream=None):
         Service.Run(self, memStream)
         self.useJumpMonitor = False
         self.jumping = False
@@ -32,6 +33,7 @@ class jumpMonitor(Service):
         self.CheckJumpCompletedTimer = None
         self.checkBallpark = True
         self.state = SERVICE_RUNNING
+        return
 
     def Stop(self, stream):
         Service.Stop(self)
@@ -75,43 +77,45 @@ class jumpMonitor(Service):
     def DoSessionChanging(self, isremote, session, change):
         if not self.useJumpMonitor:
             return
-        if 'locationid' not in change or change['locationid'][0] is None:
+        elif 'locationid' not in change or change['locationid'][0] is None:
             return
-        if 'solarsystemid2' not in change:
+        elif 'solarsystemid2' not in change:
             return
-        if self.CheckJumpCompletedTimer:
-            self.LogError('JumpMonitor: Jump detected in DoSessionChanging but last jump not completed?')
-            reportingString = 'JumpMonitor: OVERLAPPED JUMP %s->%s type[%s] start:%d,local:%d,sess:%d,ballpark:%d ' % (self.jumpOrigin,
-             self.jumpDestination,
-             self.jumpType,
-             self.jumpStartTime,
-             self.localLoadedEnd,
-             self.sessionChangedEnd,
-             self.ballparkLoadedEnd)
-            reportingString += ' new jump: %s:%s ' % change['solarsystemid2']
-            uthread.new(sm.ProxySvc('clientStatLogger').LogString, reportingString)
-        if 'shipid' in change and change['shipid'][0] and not change['shipid'][1]:
-            self.jumpStartTime = blue.os.GetWallclockTime()
-            self.jumpType = 'podkill'
-            self.checkBallpark = False
-        elif 'stationid' in change and change['stationid'][0] and change['stationid'][1]:
-            self.jumpStartTime = blue.os.GetWallclockTime()
-            self.jumpType = 'clonejump'
-            self.checkBallpark = False
-        if self.jumpType is None:
-            self.jumpStartTime = blue.os.GetWallclockTime()
-            self.jumpType = '/tr'
-            self.checkBallpark = not ('stationid' in change and change['stationid'][1])
-        self.jumpOrigin = session.locationid
-        self.jumpDestination = change['locationid'][1]
-        self.jumping = True
-        self.sessionChanged = False
-        self.localLoaded = False
-        self.ballparkLoaded = False
-        self.localLoadedEnd = 0
-        self.sessionChangedEnd = 0
-        self.ballparkLoadedEnd = 0
-        self.CheckJumpCompletedTimer = base.AutoTimer(1000, self.CheckJumpCompleted)
+        else:
+            if self.CheckJumpCompletedTimer:
+                self.LogError('JumpMonitor: Jump detected in DoSessionChanging but last jump not completed?')
+                reportingString = 'JumpMonitor: OVERLAPPED JUMP %s->%s type[%s] start:%d,local:%d,sess:%d,ballpark:%d ' % (self.jumpOrigin,
+                 self.jumpDestination,
+                 self.jumpType,
+                 self.jumpStartTime,
+                 self.localLoadedEnd,
+                 self.sessionChangedEnd,
+                 self.ballparkLoadedEnd)
+                reportingString += ' new jump: %s:%s ' % change['solarsystemid2']
+                uthread.new(sm.ProxySvc('clientStatLogger').LogString, reportingString)
+            if 'shipid' in change and change['shipid'][0] and not change['shipid'][1]:
+                self.jumpStartTime = blue.os.GetWallclockTime()
+                self.jumpType = 'podkill'
+                self.checkBallpark = False
+            elif 'stationid' in change and change['stationid'][0] and change['stationid'][1]:
+                self.jumpStartTime = blue.os.GetWallclockTime()
+                self.jumpType = 'clonejump'
+                self.checkBallpark = False
+            if self.jumpType is None:
+                self.jumpStartTime = blue.os.GetWallclockTime()
+                self.jumpType = '/tr'
+                self.checkBallpark = not ('stationid' in change and change['stationid'][1])
+            self.jumpOrigin = session.locationid
+            self.jumpDestination = change['locationid'][1]
+            self.jumping = True
+            self.sessionChanged = False
+            self.localLoaded = False
+            self.ballparkLoaded = False
+            self.localLoadedEnd = 0
+            self.sessionChangedEnd = 0
+            self.ballparkLoadedEnd = 0
+            self.CheckJumpCompletedTimer = base.AutoTimer(1000, self.CheckJumpCompleted)
+            return
 
     def CheckJumpCompleted(self):
         if self.jumping and self.sessionChanged and self.localLoaded and (self.ballparkLoaded or not self.checkBallpark):
@@ -140,6 +144,7 @@ class jumpMonitor(Service):
             self.CheckJumpCompletedTimer = None
             self.jumpEndTime = blue.os.GetWallclockTime()
             self.jumping = False
+        return
 
     def OnSessionChanged(self, isRemote, session, change):
         if self.jumping and not self.sessionChanged and ('locationid' in change or 'solarsystemid' in change or 'solarsystemid2' in change):

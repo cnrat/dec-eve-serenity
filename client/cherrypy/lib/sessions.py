@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\carbon\common\lib\cherrypy\lib\sessions.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\carbon\common\lib\cherrypy\lib\sessions.py
 import datetime
 import os
 import random
@@ -34,7 +35,7 @@ class Session(object):
     regenerated = False
     debug = False
 
-    def __init__(self, id = None, **kwargs):
+    def __init__(self, id=None, **kwargs):
         self.id_observers = []
         self._data = {}
         for k, v in kwargs.items():
@@ -54,6 +55,7 @@ class Session(object):
                 self.id = None
                 self.missing = True
                 self._regenerate()
+        return
 
     def regenerate(self):
         self.regenerated = True
@@ -73,6 +75,7 @@ class Session(object):
 
         if old_session_was_locked:
             self.acquire_lock()
+        return
 
     def clean_up(self):
         pass
@@ -107,6 +110,7 @@ class Session(object):
             t.subscribe()
             cls.clean_thread = t
             t.start()
+        return
 
     def delete(self):
         self._delete()
@@ -126,7 +130,7 @@ class Session(object):
             self.load()
         del self._data[key]
 
-    def pop(self, key, default = missing):
+    def pop(self, key, default=missing):
         if not self.loaded:
             self.load()
         if default is missing:
@@ -144,7 +148,7 @@ class Session(object):
             self.load()
         return key in self._data
 
-    def get(self, key, default = None):
+    def get(self, key, default=None):
         if not self.loaded:
             self.load()
         return self._data.get(key, default)
@@ -154,7 +158,7 @@ class Session(object):
             self.load()
         self._data.update(d)
 
-    def setdefault(self, key, default = None):
+    def setdefault(self, key, default=None):
         if not self.loaded:
             self.load()
         return self._data.setdefault(key, default)
@@ -209,6 +213,7 @@ class RamSession(Session):
 
     def _delete(self):
         self.cache.pop(self.id, None)
+        return
 
     def acquire_lock(self):
         self.locked = True
@@ -227,7 +232,7 @@ class FileSession(Session):
     LOCK_SUFFIX = '.lock'
     pickle_protocol = pickle.HIGHEST_PROTOCOL
 
-    def __init__(self, id = None, **kwargs):
+    def __init__(self, id=None, **kwargs):
         kwargs['storage_path'] = os.path.abspath(kwargs['storage_path'])
         Session.__init__(self, id=id, **kwargs)
 
@@ -253,7 +258,7 @@ class FileSession(Session):
         path = self._get_file_path()
         return os.path.exists(path)
 
-    def _load(self, path = None):
+    def _load(self, path=None):
         if path is None:
             path = self._get_file_path()
         try:
@@ -265,6 +270,8 @@ class FileSession(Session):
 
         except (IOError, EOFError):
             return
+
+        return
 
     def _save(self, expiration_time):
         f = open(self._get_file_path(), 'wb')
@@ -279,7 +286,7 @@ class FileSession(Session):
         except OSError:
             pass
 
-    def acquire_lock(self, path = None):
+    def acquire_lock(self, path=None):
         if path is None:
             path = self._get_file_path()
         path += self.LOCK_SUFFIX
@@ -293,12 +300,14 @@ class FileSession(Session):
                 break
 
         self.locked = True
+        return
 
-    def release_lock(self, path = None):
+    def release_lock(self, path=None):
         if path is None:
             path = self._get_file_path()
         os.unlink(path + self.LOCK_SUFFIX)
         self.locked = False
+        return
 
     def clean_up(self):
         now = datetime.datetime.now()
@@ -315,6 +324,8 @@ class FileSession(Session):
                 finally:
                     self.release_lock(path)
 
+        return
+
     def __len__(self):
         return len([ fname for fname in os.listdir(self.storage_path) if fname.startswith(self.SESSION_PREFIX) and not fname.endswith(self.LOCK_SUFFIX) ])
 
@@ -322,7 +333,7 @@ class FileSession(Session):
 class PostgresqlSession(Session):
     pickle_protocol = pickle.HIGHEST_PROTOCOL
 
-    def __init__(self, id = None, **kwargs):
+    def __init__(self, id=None, **kwargs):
         Session.__init__(self, id, **kwargs)
         self.cursor = self.db.cursor()
 
@@ -349,9 +360,10 @@ class PostgresqlSession(Session):
         rows = self.cursor.fetchall()
         if not rows:
             return None
-        pickled_data, expiration_time = rows[0]
-        data = pickle.loads(pickled_data)
-        return (data, expiration_time)
+        else:
+            pickled_data, expiration_time = rows[0]
+            data = pickle.loads(pickled_data)
+            return (data, expiration_time)
 
     def _save(self, expiration_time):
         pickled_data = pickle.dumps(self._data, self.pickle_protocol)
@@ -446,45 +458,48 @@ def close():
     sess = getattr(cherrypy.serving, 'session', None)
     if getattr(sess, 'locked', False):
         sess.release_lock()
+    return
 
 
 close.failsafe = True
 close.priority = 90
 
-def init(storage_type = 'ram', path = None, path_header = None, name = 'session_id', timeout = 60, domain = None, secure = False, clean_freq = 5, persistent = True, debug = False, **kwargs):
+def init(storage_type='ram', path=None, path_header=None, name='session_id', timeout=60, domain=None, secure=False, clean_freq=5, persistent=True, debug=False, **kwargs):
     request = cherrypy.serving.request
     if hasattr(request, '_session_init_flag'):
         return
-    request._session_init_flag = True
-    id = None
-    if name in request.cookie:
-        id = request.cookie[name].value
-        if debug:
-            cherrypy.log('ID obtained from request.cookie: %r' % id, 'TOOLS.SESSIONS')
-    storage_class = storage_type.title() + 'Session'
-    storage_class = globals()[storage_class]
-    if not hasattr(cherrypy, 'session'):
-        if hasattr(storage_class, 'setup'):
-            storage_class.setup(**kwargs)
-    kwargs['timeout'] = timeout
-    kwargs['clean_freq'] = clean_freq
-    cherrypy.serving.session = sess = storage_class(id, **kwargs)
-    sess.debug = debug
-
-    def update_cookie(id):
-        cherrypy.serving.response.cookie[name] = id
-
-    sess.id_observers.append(update_cookie)
-    if not hasattr(cherrypy, 'session'):
-        cherrypy.session = cherrypy._ThreadLocalProxy('session')
-    if persistent:
-        cookie_timeout = timeout
     else:
-        cookie_timeout = None
-    set_response_cookie(path=path, path_header=path_header, name=name, timeout=cookie_timeout, domain=domain, secure=secure)
+        request._session_init_flag = True
+        id = None
+        if name in request.cookie:
+            id = request.cookie[name].value
+            if debug:
+                cherrypy.log('ID obtained from request.cookie: %r' % id, 'TOOLS.SESSIONS')
+        storage_class = storage_type.title() + 'Session'
+        storage_class = globals()[storage_class]
+        if not hasattr(cherrypy, 'session'):
+            if hasattr(storage_class, 'setup'):
+                storage_class.setup(**kwargs)
+        kwargs['timeout'] = timeout
+        kwargs['clean_freq'] = clean_freq
+        cherrypy.serving.session = sess = storage_class(id, **kwargs)
+        sess.debug = debug
+
+        def update_cookie(id):
+            cherrypy.serving.response.cookie[name] = id
+
+        sess.id_observers.append(update_cookie)
+        if not hasattr(cherrypy, 'session'):
+            cherrypy.session = cherrypy._ThreadLocalProxy('session')
+        if persistent:
+            cookie_timeout = timeout
+        else:
+            cookie_timeout = None
+        set_response_cookie(path=path, path_header=path_header, name=name, timeout=cookie_timeout, domain=domain, secure=secure)
+        return
 
 
-def set_response_cookie(path = None, path_header = None, name = 'session_id', timeout = 60, domain = None, secure = False):
+def set_response_cookie(path=None, path_header=None, name='session_id', timeout=60, domain=None, secure=False):
     cookie = cherrypy.serving.response.cookie
     cookie[name] = cherrypy.serving.session.id
     cookie[name]['path'] = path or cherrypy.serving.request.headers.get(path_header) or '/'
@@ -495,6 +510,7 @@ def set_response_cookie(path = None, path_header = None, name = 'session_id', ti
         cookie[name]['domain'] = domain
     if secure:
         cookie[name]['secure'] = 1
+    return
 
 
 def expire():

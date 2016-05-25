@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\client\script\ui\station\worldspaceCustomizationDefinitions.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\client\script\ui\station\worldspaceCustomizationDefinitions.py
 DEFAULT_GALLENTE = 1000168
 QUAFE_OWNER = 1000100
 themeSettings = {const.raceAmarr: {},

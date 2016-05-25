@@ -1,10 +1,11 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\carbon\client\script\graphics\graphicWrappers\loadAndWrap.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\carbon\client\script\graphics\graphicWrappers\loadAndWrap.py
 import trinity
 import log
 import weakref
 loadedObjects = weakref.WeakKeyDictionary()
 
-def LoadAndWrap(resPath, urgent = False, convertSceneType = True):
+def LoadAndWrap(resPath, urgent=False, convertSceneType=True):
     resPath = str(resPath)
     if urgent:
         triObject = trinity.LoadUrgent(resPath)
@@ -15,7 +16,7 @@ def LoadAndWrap(resPath, urgent = False, convertSceneType = True):
     log.LogError('Unable to load', resPath)
 
 
-def Wrap(triObject, resPath = None, convertSceneType = True):
+def Wrap(triObject, resPath=None, convertSceneType=True):
     import graphicWrappers
     resPath = str(resPath)
     wrapper = getattr(graphicWrappers, triObject.__typename__, None)
@@ -27,6 +28,8 @@ def Wrap(triObject, resPath = None, convertSceneType = True):
         if getattr(prefs, 'http', False):
             loadedObjects[obj] = True
         return obj
+    else:
+        return
 
 
 def GetLoadedObjects():

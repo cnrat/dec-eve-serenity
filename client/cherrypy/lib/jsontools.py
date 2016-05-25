@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\carbon\common\lib\cherrypy\lib\jsontools.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\carbon\common\lib\cherrypy\lib\jsontools.py
 import sys
 import cherrypy
 from cherrypy._cpcompat import basestring, ntou, json, json_encode, json_decode
@@ -13,7 +14,7 @@ def json_processor(entity):
         raise cherrypy.HTTPError(400, 'Invalid JSON document')
 
 
-def json_in(content_type = [ntou('application/json'), ntou('text/javascript')], force = True, debug = False, processor = json_processor):
+def json_in(content_type=[ntou('application/json'), ntou('text/javascript')], force=True, debug=False, processor=json_processor):
     request = cherrypy.serving.request
     if isinstance(content_type, basestring):
         content_type = [content_type]
@@ -33,7 +34,7 @@ def json_handler(*args, **kwargs):
     return json_encode(value)
 
 
-def json_out(content_type = 'application/json', debug = False, handler = json_handler):
+def json_out(content_type='application/json', debug=False, handler=json_handler):
     request = cherrypy.serving.request
     if debug:
         cherrypy.log('Replacing %s with JSON handler' % request.handler, 'TOOLS.JSON_OUT')
@@ -43,3 +44,4 @@ def json_out(content_type = 'application/json', debug = False, handler = json_ha
         if debug:
             cherrypy.log('Setting Content-Type to %s' % ct, 'TOOLS.JSON_OUT')
         cherrypy.serving.response.headers['Content-Type'] = content_type
+    return

@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\client\script\ui\shared\shipconfig.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\client\script\ui\shared\shipconfig.py
 import evetypes
 import uicontrols
 import listentry
@@ -9,6 +10,7 @@ import moniker
 import uicls
 import carbonui.const as uiconst
 import uix
+from eve.common.script.sys.eveCfg import InStructure
 
 class ShipConfig(uicontrols.Window):
     __guid__ = 'form.ShipConfig'
@@ -47,12 +49,14 @@ class ShipConfig(uicontrols.Window):
             self.sr.maintabs = uicontrols.TabGroup(name='tabparent', align=uiconst.TOTOP, height=18, parent=self.sr.main, idx=0, tabs=tabs, groupID='pospanel')
         else:
             uicontrols.CaptionLabel(text=localization.GetByLabel('UI/Ship/ShipConfig/ShipConfig'), parent=self.sr.main, size=18, uppercase=0, left=const.defaultPadding, width=const.defaultPadding, top=const.defaultPadding)
+        return
 
     def _OnClose(self, *args):
         self.shipid = None
         self.shipItem = None
         self.capacity = None
         self.tower = None
+        return
 
     def Load(self, key):
         eval('self.Show%s()' % key)
@@ -76,6 +80,7 @@ class ShipConfig(uicontrols.Window):
         totalClones = int(getattr(godmaSM.GetItem(self.shipItem.itemID), 'maxJumpClones', 0))
         self.sr.cloneInfo.text = localization.GetByLabel('UI/Ship/ShipConfig/NumJumpClones', numClones=numClones, totalClones=totalClones)
         self.panelsetup = 0
+        return
 
     def InitCloneFacilityPanel(self):
         panel = self.sr.clonefacilityPanel
@@ -87,7 +92,7 @@ class ShipConfig(uicontrols.Window):
           (),
           84)]
         self.cloneFacilityButtons = uicontrols.ButtonGroup(btns=btns, parent=panel)
-        if not session.solarsystemid:
+        if not session.solarsystemid or InStructure():
             self.cloneFacilityButtons.GetBtnByIdx(0).Disable()
         numClones = int(0)
         totalClones = int(getattr(sm.GetService('godma').GetItem(self.shipItem.itemID), 'maxJumpClones', 0))
@@ -103,35 +108,39 @@ class ShipConfig(uicontrols.Window):
         if not sm.GetService('clonejump').HasCloneReceivingBay():
             eve.Message('InviteClone1')
             return
-        godmaSM = sm.GetService('godma').GetStateManager()
-        opDist = getattr(godmaSM.GetType(self.shipItem.typeID), 'maxOperationalDistance', 0)
-        bp = sm.GetService('michelle').GetBallpark()
-        if not bp:
-            return
-        charIDs = [ slimItem.charID for slimItem in bp.slimItems.itervalues() if slimItem.charID and slimItem.charID != eve.session.charid and not util.IsNPC(slimItem.charID) and slimItem.surfaceDist <= opDist ]
-        if not charIDs:
-            eve.Message('InviteClone2')
-            return
-        lst = []
-        for charID in charIDs:
-            char = cfg.eveowners.Get(charID)
-            lst.append((char.name, charID, char.typeID))
+        else:
+            godmaSM = sm.GetService('godma').GetStateManager()
+            opDist = getattr(godmaSM.GetType(self.shipItem.typeID), 'maxOperationalDistance', 0)
+            bp = sm.GetService('michelle').GetBallpark()
+            if not bp:
+                return
+            charIDs = [ slimItem.charID for slimItem in bp.slimItems.itervalues() if slimItem.charID and slimItem.charID != eve.session.charid and not util.IsNPC(slimItem.charID) and slimItem.surfaceDist <= opDist ]
+            if not charIDs:
+                eve.Message('InviteClone2')
+                return
+            lst = []
+            for charID in charIDs:
+                char = cfg.eveowners.Get(charID)
+                lst.append((char.name, charID, char.typeID))
 
-        chosen = uix.ListWnd(lst, 'character', localization.GetByLabel('UI/Ship/ShipConfig/SelectAPilot'), None, 1, minChoices=1, isModal=1)
-        if chosen:
-            sm.GetService('clonejump').OfferShipCloneInstallation(chosen[1])
+            chosen = uix.ListWnd(lst, 'character', localization.GetByLabel('UI/Ship/ShipConfig/SelectAPilot'), None, 1, minChoices=1, isModal=1)
+            if chosen:
+                sm.GetService('clonejump').OfferShipCloneInstallation(chosen[1])
+            return
 
     def DestroyClone(self, *args):
         for each in self.sr.clonescroll.GetSelected():
             sm.GetService('clonejump').DestroyInstalledClone(each.cloneID)
 
     def GetShipItem(self):
-        if session.solarsystemid:
-            bp = sm.GetService('michelle').GetBallpark()
-            if bp and self.shipid in bp.slimItems:
-                return bp.slimItems[self.shipid]
-        elif session.stationid:
+        if session.stationid or InStructure():
             return sm.GetService('clientDogmaIM').GetDogmaLocation().GetShip()
+        else:
+            if session.solarsystemid:
+                bp = sm.GetService('michelle').GetBallpark()
+                if bp and self.shipid in bp.slimItems:
+                    return bp.slimItems[self.shipid]
+            return None
 
     def GetShipModules(self):
         typeID = self.shipItem.typeID

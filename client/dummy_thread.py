@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\carbon\common\stdlib\dummy_thread.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\carbon\common\stdlib\dummy_thread.py
 __all__ = ['error',
  'start_new_thread',
  'exit',
@@ -14,7 +15,7 @@ class error(Exception):
         self.args = args
 
 
-def start_new_thread(function, args, kwargs = {}):
+def start_new_thread(function, args, kwargs={}):
     global _interrupt
     global _main
     if type(args) != type(tuple()):
@@ -40,14 +41,14 @@ def exit():
 
 
 def get_ident():
-    return -1
+    pass
 
 
 def allocate_lock():
     return LockType()
 
 
-def stack_size(size = None):
+def stack_size(size=None):
     if size is not None:
         raise error('setting thread stack size not supported')
     return 0
@@ -58,7 +59,7 @@ class LockType(object):
     def __init__(self):
         self.locked_status = False
 
-    def acquire(self, waitflag = None):
+    def acquire(self, waitflag=None):
         if waitflag is None or waitflag:
             self.locked_status = True
             return True
@@ -67,6 +68,7 @@ class LockType(object):
             return True
         else:
             return False
+            return
 
     __enter__ = acquire
 

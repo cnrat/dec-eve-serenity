@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\packages\sensorsuite\overlay\sensorSuiteHint.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\packages\sensorsuite\overlay\sensorSuiteHint.py
 from math import sqrt, pi
 from carbon.common.lib.const import SEC, MSEC
 from carbonui.primitives.container import Container
@@ -17,6 +18,7 @@ import carbonui.const as uiconst
 import blue
 from eve.client.script.ui.control.eveLabel import EveLabelMediumBold, EveCaptionMedium
 from eve.client.script.ui.shared.mapView.mapViewUtil import OpenSolarSystemMap
+from eve.common.script.sys.eveCfg import InShipInSpace
 from inventorycommon.const import typeCosmicAnomaly, typeFaction, typeCorporation
 import uthread
 import trinity
@@ -39,6 +41,7 @@ def OpenProbeScanner(*_):
     wnd.SelectProbeScanner()
     OpenSolarSystemMap()
     wnd.LaunchFormation(formations.PINPOINT_FORMATION, 4)
+    return
 
 
 def IsRectBWithinA(a, b):
@@ -85,6 +88,7 @@ class PointerContainer(Container):
         self.lineTrace = None
         self._BindToAnchor(self.anchor)
         self.SetDockPlacement(self.dockPlacement)
+        return
 
     def _BindToAnchor(self, anchor):
         cs = uicore.uilib.bracketCurveSet
@@ -93,6 +97,8 @@ class PointerContainer(Container):
         self.bindings.append(trinity.CreateBinding(cs, anchor.renderObject, 'displayY', None, ''))
         for binding in self.bindings:
             binding.copyValueCallable = self._UpdateBoundValues
+
+        return
 
     def _UpdateBoundValues(self, *args):
         self.UpdatePosition()
@@ -197,6 +203,7 @@ class PointerContainer(Container):
         clipperCont = Container(name='clipper', parent=self, width=self.dockPointerLength if horizontal else pointerWidth, height=pointerWidth if horizontal else self.dockPointerLength, clipChildren=True, align=clipperAlign, top=0 if horizontal else -self.dockPointerLength, left=-self.dockPointerLength if horizontal else 0)
         transform = Transform(name='transform', parent=clipperCont, align=transformAlign, rotation=pi / 4, width=pointerSideWidth, height=pointerSideWidth, top=0 if horizontal else -pointerSideWidthHalf, left=-pointerSideWidthHalf if horizontal else 0)
         Fill(bgParent=transform, color=self.hintBgColor)
+        return
 
     def _OnClose(self):
         self._UnbindAnchor()
@@ -275,6 +282,7 @@ class BaseSensorSuiteHint(PointerContainer):
         self.probeScannerButton = Button(parent=self.contentContainer, top=8, left=4, icon='res:/UI/Texture/Icons/probe_scan.png', func=OpenProbeScanner, hint=localization.GetByLabel('UI/Inflight/Scanner/SensorOverlayProbeScanButtonHint'), align=uiconst.BOTTOMRIGHT)
         uicore.event.RegisterForTriuiEvents(uiconst.UI_MOUSEDOWN, self.OnGlobalMouseDown)
         self._updateThread = uthread.new(self.UpdateHint)
+        return
 
     def SetFactionIcon(self, factionID):
         iconID = LogoIcon.GetFactionIconID(factionID, isSmall=True)
@@ -285,6 +293,7 @@ class BaseSensorSuiteHint(PointerContainer):
                 self.ownerIcon.SetTexturePath(resPath[0])
                 self.iconCont.state = uiconst.UI_NORMAL
                 self.iconCont.OnClick = lambda : sm.GetService('info').ShowInfo(itemID=factionID, typeID=typeFaction)
+        return
 
     def SetOwnerIcon(self, ownerID):
         GetOwnerLogo(self.iconCont, ownerID, size=32)
@@ -357,11 +366,13 @@ class BaseSensorSuiteHint(PointerContainer):
                 animations.FadeOut(self, sleep=True)
                 uthread.new(self.Close)
 
+        return
+
     def OnUpdateHint(self):
         pass
 
     def UpdateWarpButton(self):
-        if self.data.IsAccurate() and self.michelle.IsPositionWithinWarpDistance(self.data.position):
+        if self.data.IsAccurate() and self.michelle.IsPositionWithinWarpDistance(self.data.position) and InShipInSpace():
             self.warpButton.Enable()
         else:
             self.warpButton.Disable()
@@ -371,6 +382,7 @@ class BaseSensorSuiteHint(PointerContainer):
         if self._updateThread is not None:
             self._updateThread.kill()
         self.callback()
+        return
 
     def DoUpdateLayout(self, dockPlacement):
         pass

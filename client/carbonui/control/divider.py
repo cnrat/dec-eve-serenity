@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\packages\carbonui\control\divider.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\packages\carbonui\control\divider.py
 import blue
 import carbonui.const as uiconst
 import uthread
@@ -11,6 +12,7 @@ class Divider(Container):
         Container.ApplyAttributes(self, attributes)
         self._dragging = False
         self._initCursor = None
+        return
 
     def OnMouseDown(self, *args):
         self.OnChangeStart_(self)

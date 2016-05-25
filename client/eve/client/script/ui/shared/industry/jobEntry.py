@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\client\script\ui\shared\industry\jobEntry.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\client\script\ui\shared\industry\jobEntry.py
 from carbonui.control.menuLabel import MenuLabel
 from carbonui.primitives.container import Container
 from carbonui.primitives.containerAutoSize import ContainerAutoSize
@@ -146,7 +147,7 @@ class JobEntry(BaseListEntryCustomColumns):
              jobData.endDate)
 
     @staticmethod
-    def GetHeaders(isPersonalJob = True):
+    def GetHeaders(isPersonalJob=True):
         if isPersonalJob:
             return ('',
              localization.GetByLabel('UI/Generic/Status'),
@@ -226,20 +227,22 @@ class JobStateContainer(Container):
     def ConstructLayout(self):
         if not self.jobData:
             return
-        if self.jobData.status == industry.STATUS_READY:
-            self.deliverBtn = Button(name='deliverBtn', parent=self, align=uiconst.TOALL, label='<b>' + localization.GetByLabel('UI/Industry/Deliver'), func=self.OnDeliverBtn, padding=2)
-            self.deliverBtn.width = self.deliverBtn.height = 0
-            self.deliverBtn.Blink(time=3000)
-            self.Enable()
         else:
-            self.Disable()
-            gaugeCont = ContainerAutoSize(name='gaugeCont', parent=self, align=uiconst.TOBOTTOM)
-            mainCont = Container(name='mainCont', parent=self)
-            self.deliverBtn = None
-            self.valueLabel = EveLabelMedium(parent=mainCont, align=uiconst.CENTERLEFT, left=4)
-        if self.jobData.status == industry.STATUS_INSTALLED:
-            color = industryUIConst.COLOR_MANUFACTURING if self.jobData.activityID == industry.MANUFACTURING else industryUIConst.COLOR_SCIENCE
-            self.gauge = Gauge(parent=gaugeCont, align=uiconst.TOTOP, state=uiconst.UI_DISABLED, color=color, height=6, gaugeHeight=6, padTop=1, backgroundColor=(1.0, 1.0, 1.0, 0.05))
+            if self.jobData.status == industry.STATUS_READY:
+                self.deliverBtn = Button(name='deliverBtn', parent=self, align=uiconst.TOALL, label='<b>' + localization.GetByLabel('UI/Industry/Deliver'), func=self.OnDeliverBtn, padding=2)
+                self.deliverBtn.width = self.deliverBtn.height = 0
+                self.deliverBtn.Blink(time=3000)
+                self.Enable()
+            else:
+                self.Disable()
+                gaugeCont = ContainerAutoSize(name='gaugeCont', parent=self, align=uiconst.TOBOTTOM)
+                mainCont = Container(name='mainCont', parent=self)
+                self.deliverBtn = None
+                self.valueLabel = EveLabelMedium(parent=mainCont, align=uiconst.CENTERLEFT, left=4)
+            if self.jobData.status == industry.STATUS_INSTALLED:
+                color = industryUIConst.COLOR_MANUFACTURING if self.jobData.activityID == industry.MANUFACTURING else industryUIConst.COLOR_SCIENCE
+                self.gauge = Gauge(parent=gaugeCont, align=uiconst.TOTOP, state=uiconst.UI_DISABLED, color=color, height=6, gaugeHeight=6, padTop=1, backgroundColor=(1.0, 1.0, 1.0, 0.05))
+            return
 
     def OnStatusChanged(self):
         self.Flush()
@@ -247,7 +250,7 @@ class JobStateContainer(Container):
         if self.jobData.status == industry.STATUS_DELIVERED:
             uicore.animations.FadeTo(self.valueLabel, 0.0, 1.0)
 
-    def UpdateValue(self, animate = False, num = 0):
+    def UpdateValue(self, animate=False, num=0):
         if not self.jobData or self.jobData.status in (industry.STATUS_READY, industry.STATUS_UNSUBMITTED):
             return
         if self.jobData.status == industry.STATUS_INSTALLED:

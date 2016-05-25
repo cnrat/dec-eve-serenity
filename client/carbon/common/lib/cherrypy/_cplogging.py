@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\carbon\common\lib\cherrypy\_cplogging.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\carbon\common\lib\cherrypy\_cplogging.py
 import datetime
 import logging
 logging.Logger.manager.emittedNoHandlerWarning = 1
@@ -15,7 +16,7 @@ class LogManager(object):
     access_log_format = '%(h)s %(l)s %(u)s %(t)s "%(r)s" %(s)s %(b)s "%(f)s" "%(a)s"'
     logger_root = None
 
-    def __init__(self, appid = None, logger_root = 'cherrypy'):
+    def __init__(self, appid=None, logger_root='cherrypy'):
         self.logger_root = logger_root
         self.appid = appid
         if appid is None:
@@ -27,6 +28,7 @@ class LogManager(object):
         self.error_log.setLevel(logging.INFO)
         self.access_log.setLevel(logging.INFO)
         cherrypy.engine.subscribe('graceful', self.reopen_files)
+        return
 
     def reopen_files(self):
         for log in (self.error_log, self.access_log):
@@ -37,7 +39,7 @@ class LogManager(object):
                     h.stream = open(h.baseFilename, h.mode)
                     h.release()
 
-    def error(self, msg = '', context = '', severity = logging.INFO, traceback = False):
+    def error(self, msg='', context='', severity=logging.INFO, traceback=False):
         if traceback:
             msg += _cperror.format_exc()
         self.error_log.log(severity, ' '.join((self.time(), context, msg)))
@@ -77,6 +79,8 @@ class LogManager(object):
         except:
             self(traceback=True)
 
+        return
+
     def time(self):
         now = datetime.datetime.now()
         monthnames = ['jan',
@@ -104,7 +108,9 @@ class LogManager(object):
             if getattr(h, '_cpbuiltin', None) == key:
                 return h
 
-    def _set_screen_handler(self, log, enable, stream = None):
+        return
+
+    def _set_screen_handler(self, log, enable, stream=None):
         h = self._get_builtin_handler(log, 'screen')
         if enable:
             if not h:
@@ -116,6 +122,7 @@ class LogManager(object):
                 log.addHandler(h)
         elif h:
             log.handlers.remove(h)
+        return
 
     def _get_screen(self):
         h = self._get_builtin_handler
@@ -152,7 +159,6 @@ class LogManager(object):
         h = self._get_builtin_handler(self.error_log, 'file')
         if h:
             return h.baseFilename
-        return ''
 
     def _set_error_file(self, newvalue):
         self._set_file_handler(self.error_log, newvalue)
@@ -163,7 +169,6 @@ class LogManager(object):
         h = self._get_builtin_handler(self.access_log, 'file')
         if h:
             return h.baseFilename
-        return ''
 
     def _set_access_file(self, newvalue):
         self._set_file_handler(self.access_log, newvalue)

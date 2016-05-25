@@ -1,11 +1,12 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\packages\crestclient\tokenClient.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\packages\crestclient\tokenClient.py
 from crestClient import CrestUserBase
 import requests
 import requests.auth
 
 class CrestUserSso(CrestUserBase):
 
-    def __init__(self, token, server, verify = False, language = 'EN'):
+    def __init__(self, token, server, verify=False, language='EN'):
         super(CrestUserSso, self).__init__(language)
         self.session = requests.session()
         self.server = server

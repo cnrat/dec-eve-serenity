@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\client\script\ui\control\tabGroup.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\client\script\ui\control\tabGroup.py
 from eve.client.script.ui.control.eveIcon import Icon
 from carbonui.primitives.container import Container
 from carbonui.primitives.dragdrop import DragDropObject
@@ -60,9 +61,10 @@ class TabGroup(Container):
         if tabs:
             self.Startup(tabs, groupID=groupID, autoselecttab=autoselecttab, UIIDPrefix=UIIDPrefix, silently=silently)
         sm.RegisterNotify(self)
+        return
 
     @telemetry.ZONE_METHOD
-    def Startup(self, tabs, groupID = None, _notUsed_callback = None, _notUsed_isSub = 0, _notUsed_detachable = 0, autoselecttab = 1, UIIDPrefix = None, silently = False):
+    def Startup(self, tabs, groupID=None, _notUsed_callback=None, _notUsed_isSub=0, _notUsed_detachable=0, autoselecttab=1, UIIDPrefix=None, silently=False):
         loadtabs = []
         for each in tabs:
             panelparent = None
@@ -93,6 +95,7 @@ class TabGroup(Container):
             loadtabs.append(tabData)
 
         self.LoadTabs(loadtabs, autoselecttab, settingsID=groupID, silently=silently)
+        return
 
     def OnUIScalingChange(self, *args):
         if not self.destroyed:
@@ -105,7 +108,7 @@ class TabGroup(Container):
         self.sr.tabsmenu = tri
 
     @telemetry.ZONE_METHOD
-    def LoadTabs(self, tabs, autoselecttab = 1, settingsID = None, iconOnly = False, silently = False):
+    def LoadTabs(self, tabs, autoselecttab=1, settingsID=None, iconOnly=False, silently=False):
         self._iconOnly = iconOnly
         self.sr.tabs = []
         self.sr.mytabs = []
@@ -130,6 +133,7 @@ class TabGroup(Container):
         self.UpdateSizes()
         if autoselecttab:
             self.AutoSelect(silently)
+        return
 
     def GetTabLinks(self):
         return [ (each.sr.label.text, self.SelectByIdx, (self.sr.tabs.index(each),)) for each in self.sr.tabs ]
@@ -139,114 +143,116 @@ class TabGroup(Container):
         self.UpdateSizes((width, height))
 
     @telemetry.ZONE_METHOD
-    def UpdateSizes(self, absSize = None):
+    def UpdateSizes(self, absSize=None):
         if not self._inited:
             return
-        if not (self.sr and self.sr.mytabs):
+        elif not (self.sr and self.sr.mytabs):
             return
-        if self._resizing:
+        elif self._resizing:
             return
-        self._resizing = 1
-        if not uiutil.IsUnder(self, uicore.desktop):
+        else:
+            self._resizing = 1
+            if not uiutil.IsUnder(self, uicore.desktop):
+                self._resizing = 0
+                return
+            if absSize:
+                mw, _ = absSize
+            else:
+                mw, _ = self.GetAbsoluteSize()
+            if self.destroyed:
+                return
+            for tab in self.sr.mytabs:
+                tab.UpdateTabSize()
+
+            totalTabWidth = sum([ each.sr.width for each in self.sr.mytabs ])
+            totalSpace = mw - self.leftMargin - self.rightMargin
+            needToShrink = max(0, totalTabWidth - totalSpace)
+            totalShrunk = 0
+            allMin = 1
+            for each in self.sr.mytabs:
+                portionOfFull = each.sr.width / float(totalTabWidth)
+                each.portionOfFull = portionOfFull
+                each.width = min(each.sr.width, max(self.minTabsize, each.sr.width - int(needToShrink * portionOfFull)))
+                if each.width > self.minTabsize:
+                    allMin = 0
+                totalShrunk += each.sr.width - each.width
+
+            needMore = max(0, needToShrink - totalShrunk)
+            while needMore and not allMin:
+                _allMin = 1
+                for each in self.sr.mytabs:
+                    if each.width > self.minTabsize and needMore > 0:
+                        each.width -= 1
+                        needMore = max(0, needMore - 1)
+                    if each.width > self.minTabsize:
+                        _allMin = 0
+
+                allMin = _allMin
+
+            allMin = 1
+            for each in self.sr.mytabs:
+                if each.width != self.minTabsize:
+                    allMin = 0
+
+            if self.sr.tabsmenu:
+                self.sr.tabsmenu.Close()
+                self.sr.tabsmenu = None
+            active = self.GetVisible(1)
+            i = 0
+            i2 = 0
+            totalWidth = 0
+            totalVisible = 0
+            hidden = 0
+            countActive = None
+            startHiddenIdx = None
+            for each in self.sr.mytabs:
+                if allMin and (hidden or totalWidth + each.width > totalSpace):
+                    if each == active:
+                        countActive = i2
+                    each.state = uiconst.UI_HIDDEN
+                    if hidden == 0:
+                        startHiddenIdx = i
+                    hidden = 1
+                    i2 += 1
+                else:
+                    each.state = uiconst.UI_NORMAL
+                    totalWidth += each.width
+                    totalVisible += 1
+                i += 1
+
+            if allMin:
+                if countActive is not None and startHiddenIdx is not None:
+                    totalWidth = 0
+                    totalVisible = 0
+                    i = 0
+                    for each in self.sr.mytabs:
+                        if i <= countActive:
+                            each.state = uiconst.UI_HIDDEN
+                        elif startHiddenIdx <= i <= startHiddenIdx + countActive:
+                            each.state = uiconst.UI_NORMAL
+                        if each.state == uiconst.UI_NORMAL:
+                            totalWidth += each.width
+                            totalVisible += 1
+                        i += 1
+
+            self.totalTabWidth = totalWidth
+            totalVisibleWidth = self.leftMargin
+            leftover = max(0, totalSpace - totalWidth)
+            for each in self.sr.mytabs:
+                if each.state == uiconst.UI_NORMAL:
+                    each.width = min(each.sr.width, max(self.minTabsize, each.width + leftover / totalVisible))
+                    totalVisibleWidth += each.width
+
+            if hidden:
+                self.Prepare_Tabsmenu_()
+                self.sr.tabsmenu.left = totalVisibleWidth
+                self.sr.tabsmenu.state = uiconst.UI_NORMAL
+            for tabgroup in self.sr.linkedrows:
+                if tabgroup != self:
+                    tabgroup.UpdateSizes()
+
             self._resizing = 0
             return
-        if absSize:
-            mw, _ = absSize
-        else:
-            mw, _ = self.GetAbsoluteSize()
-        if self.destroyed:
-            return
-        for tab in self.sr.mytabs:
-            tab.UpdateTabSize()
-
-        totalTabWidth = sum([ each.sr.width for each in self.sr.mytabs ])
-        totalSpace = mw - self.leftMargin - self.rightMargin
-        needToShrink = max(0, totalTabWidth - totalSpace)
-        totalShrunk = 0
-        allMin = 1
-        for each in self.sr.mytabs:
-            portionOfFull = each.sr.width / float(totalTabWidth)
-            each.portionOfFull = portionOfFull
-            each.width = min(each.sr.width, max(self.minTabsize, each.sr.width - int(needToShrink * portionOfFull)))
-            if each.width > self.minTabsize:
-                allMin = 0
-            totalShrunk += each.sr.width - each.width
-
-        needMore = max(0, needToShrink - totalShrunk)
-        while needMore and not allMin:
-            _allMin = 1
-            for each in self.sr.mytabs:
-                if each.width > self.minTabsize and needMore > 0:
-                    each.width -= 1
-                    needMore = max(0, needMore - 1)
-                if each.width > self.minTabsize:
-                    _allMin = 0
-
-            allMin = _allMin
-
-        allMin = 1
-        for each in self.sr.mytabs:
-            if each.width != self.minTabsize:
-                allMin = 0
-
-        if self.sr.tabsmenu:
-            self.sr.tabsmenu.Close()
-            self.sr.tabsmenu = None
-        active = self.GetVisible(1)
-        i = 0
-        i2 = 0
-        totalWidth = 0
-        totalVisible = 0
-        hidden = 0
-        countActive = None
-        startHiddenIdx = None
-        for each in self.sr.mytabs:
-            if allMin and (hidden or totalWidth + each.width > totalSpace):
-                if each == active:
-                    countActive = i2
-                each.state = uiconst.UI_HIDDEN
-                if hidden == 0:
-                    startHiddenIdx = i
-                hidden = 1
-                i2 += 1
-            else:
-                each.state = uiconst.UI_NORMAL
-                totalWidth += each.width
-                totalVisible += 1
-            i += 1
-
-        if allMin:
-            if countActive is not None and startHiddenIdx is not None:
-                totalWidth = 0
-                totalVisible = 0
-                i = 0
-                for each in self.sr.mytabs:
-                    if i <= countActive:
-                        each.state = uiconst.UI_HIDDEN
-                    elif startHiddenIdx <= i <= startHiddenIdx + countActive:
-                        each.state = uiconst.UI_NORMAL
-                    if each.state == uiconst.UI_NORMAL:
-                        totalWidth += each.width
-                        totalVisible += 1
-                    i += 1
-
-        self.totalTabWidth = totalWidth
-        totalVisibleWidth = self.leftMargin
-        leftover = max(0, totalSpace - totalWidth)
-        for each in self.sr.mytabs:
-            if each.state == uiconst.UI_NORMAL:
-                each.width = min(each.sr.width, max(self.minTabsize, each.width + leftover / totalVisible))
-                totalVisibleWidth += each.width
-
-        if hidden:
-            self.Prepare_Tabsmenu_()
-            self.sr.tabsmenu.left = totalVisibleWidth
-            self.sr.tabsmenu.state = uiconst.UI_NORMAL
-        for tabgroup in self.sr.linkedrows:
-            if tabgroup != self:
-                tabgroup.UpdateSizes()
-
-        self._resizing = 0
 
     def GetTabs(self):
         if not self.destroyed:
@@ -267,7 +273,7 @@ class TabGroup(Container):
         tabgroup.UpdateSizes()
 
     @telemetry.ZONE_METHOD
-    def AutoSelect(self, silently = 0):
+    def AutoSelect(self, silently=0):
         if self.destroyed:
             return
         idx = 0
@@ -275,7 +281,7 @@ class TabGroup(Container):
             idx = settings.user.tabgroups.Get(self._settingsID, 0)
         uthread.new(self.sr.tabs[min(len(self.sr.tabs) - 1, idx)].Select, silently=silently)
 
-    def SelectByIdx(self, idx, silent = 1):
+    def SelectByIdx(self, idx, silent=1):
         if len(self.sr.tabs) > idx:
             self.sr.tabs[idx].Select(silent)
 
@@ -283,19 +289,23 @@ class TabGroup(Container):
         idx = self.GetSelectedIdx()
         if idx is None:
             return
-        idx -= 1
-        if idx < 0:
-            idx = len(self.sr.tabs) - 1
-        self.SelectByIdx(idx, silent=False)
+        else:
+            idx -= 1
+            if idx < 0:
+                idx = len(self.sr.tabs) - 1
+            self.SelectByIdx(idx, silent=False)
+            return
 
     def SelectNext(self):
         idx = self.GetSelectedIdx()
         if idx is None:
             return
-        idx += 1
-        if idx > len(self.sr.tabs) - 1:
-            idx = 0
-        self.SelectByIdx(idx, silent=False)
+        else:
+            idx += 1
+            if idx > len(self.sr.tabs) - 1:
+                idx = 0
+            self.SelectByIdx(idx, silent=False)
+            return
 
     def GetSelectedIdx(self):
         for idx, tab in enumerate(self.sr.tabs):
@@ -307,21 +317,23 @@ class TabGroup(Container):
             if tab.sr.panel == panel:
                 tab.Select(1)
 
-    def ShowPanelByName(self, panelname, blink = 1):
+    def ShowPanelByName(self, panelname, blink=1):
         if panelname:
             tab = self.sr.Get('%s_tab' % panelname, None)
             if tab:
                 tab.Select(1)
         else:
             log.LogWarn('Trying to show panel', panelname)
+        return
 
-    def BlinkPanelByName(self, panelname, blink = 1):
+    def BlinkPanelByName(self, panelname, blink=1):
         if panelname:
             tab = self.sr.Get('%s_tab' % panelname, None)
             if tab:
                 tab.Blink(blink)
         else:
             log.LogWarn('Trying to blink panel', panelname)
+        return
 
     def _OnClose(self, *args):
         self.sr.callback = None
@@ -333,15 +345,19 @@ class TabGroup(Container):
         self.sr.tabs = None
         self.btns = []
         Container._OnClose(self, *args)
+        return
 
-    def GetVisible(self, retTab = 0):
+    def GetVisible(self, retTab=0):
         if self is None or self.destroyed:
             return
-        for tab in self.sr.tabs:
-            if tab.IsSelected():
-                if retTab:
-                    return tab
-                return tab.sr.panel
+        else:
+            for tab in self.sr.tabs:
+                if tab.IsSelected():
+                    if retTab:
+                        return tab
+                    return tab.sr.panel
+
+            return
 
     def ReloadVisible(self):
         tab = self.GetVisible(1)
@@ -352,6 +368,8 @@ class TabGroup(Container):
         for tab in self.sr.tabs:
             if tab.IsSelected():
                 return tab.sr.args
+
+        return None
 
 
 class Tab(Container):
@@ -385,6 +403,7 @@ class Tab(Container):
             self.sr.label.Close()
         self.sr.label = LabelThemeColored(parent=self.sr.clipper, state=uiconst.UI_DISABLED, align=uiconst.CENTERLEFT, name='tabLabel', fontsize=10)
         self.isTabStop = False
+        return
 
     @telemetry.ZONE_METHOD
     def Prepare_(self):
@@ -416,6 +435,7 @@ class Tab(Container):
         if hasattr(self.sr.panel, 'sr'):
             self.sr.panel.sr.tab = self
         self.name = data.name or data.label
+        return
 
     def Confirm(self, *args):
         self.OnClick()
@@ -426,7 +446,7 @@ class Tab(Container):
     def OnKillFocus(self, *etc):
         pass
 
-    def SetLabel(self, label, hint = None):
+    def SetLabel(self, label, hint=None):
         if self.destroyed:
             return
         if self.sr.tabgroup._iconOnly:
@@ -449,7 +469,7 @@ class Tab(Container):
             if self.sr.panel.OnDropData(dragObj, nodes):
                 self.BlinkOnDrop()
 
-    def Blink(self, onoff = 1):
+    def Blink(self, onoff=1):
         if onoff:
             self.selectedBG.Blink(uiconst.ANIM_REPEAT)
         else:
@@ -469,7 +489,7 @@ class Tab(Container):
         self.UpdateTabSize()
         self.sr.tabgroup.UpdateSizes()
 
-    def SetIcon(self, iconNo, shiftLabel = 14, hint = None, menufunc = None):
+    def SetIcon(self, iconNo, shiftLabel=14, hint=None, menufunc=None):
         if self.sr.icon:
             self.sr.icon.Close()
         self.sr.hint = hint
@@ -487,6 +507,7 @@ class Tab(Container):
         self.sr.hint = hint
         self.UpdateTabSize()
         self.sr.tabgroup.UpdateSizes()
+        return
 
     def OnClick(self, *args):
         if self.selecting:
@@ -502,7 +523,7 @@ class Tab(Container):
         return self._selected
 
     @telemetry.ZONE_METHOD
-    def Deselect(self, notify = True):
+    def Deselect(self, notify=True):
         self._selected = False
         self.ShowDeselected_()
         if self.sr.panel:
@@ -527,83 +548,85 @@ class Tab(Container):
         self.sr.label.opacity = 1.5
 
     @telemetry.ZONE_METHOD
-    def Select(self, silently = 0):
+    def Select(self, silently=0):
         if self.destroyed or self.selecting:
             return
-        self.selecting = 1
-        self.Blink(0)
-        if self is None or self.destroyed:
-            self.selecting = 0
-            self.sr.tabgroup.state = uiconst.UI_PICKCHILDREN
-            return
-        if len(self.sr.tabgroup.sr.linkedrows):
-            for tabgroup in self.sr.tabgroup.sr.linkedrows:
-                if self in tabgroup.sr.mytabs:
+        else:
+            self.selecting = 1
+            self.Blink(0)
+            if self is None or self.destroyed:
+                self.selecting = 0
+                self.sr.tabgroup.state = uiconst.UI_PICKCHILDREN
+                return
+            if len(self.sr.tabgroup.sr.linkedrows):
+                for tabgroup in self.sr.tabgroup.sr.linkedrows:
+                    if self in tabgroup.sr.mytabs:
+                        continue
+                    uiutil.SetOrder(tabgroup, 0)
+
+            for each in self.sr.tabgroup.sr.tabs:
+                if each.IsSelected():
+                    if hasattr(self.sr.code, 'UnloadTabPanel'):
+                        self.sr.code.UnloadTabPanel(each.sr.args, each.sr.panel, each.sr.tabgroup)
+                if each == self:
                     continue
-                uiutil.SetOrder(tabgroup, 0)
+                notify = True
+                if each.sr.panel and each.sr.panel is self.sr.panel or each.sr.panelparent and each.sr.panelparent is self.sr.panelparent:
+                    notify = False
+                each.Deselect(notify)
 
-        for each in self.sr.tabgroup.sr.tabs:
-            if each.IsSelected():
-                if hasattr(self.sr.code, 'UnloadTabPanel'):
-                    self.sr.code.UnloadTabPanel(each.sr.args, each.sr.panel, each.sr.tabgroup)
-            if each == self:
-                continue
-            notify = True
-            if each.sr.panel and each.sr.panel is self.sr.panel or each.sr.panelparent and each.sr.panelparent is self.sr.panelparent:
-                notify = False
-            each.Deselect(notify)
+            self._selected = True
+            self.ShowSelected_()
+            if self.sr.panelparent:
+                self.sr.panelparent.state = uiconst.UI_PICKCHILDREN
+                if hasattr(self.sr.panelparent, 'OnTabSelect'):
+                    self.sr.panelparent.OnTabSelect()
+            if self.sr.panel:
+                self.sr.panel.state = uiconst.UI_PICKCHILDREN
+                if hasattr(self.sr.panel, 'OnTabSelect'):
+                    self.sr.panel.OnTabSelect()
+            if self.sr.tabgroup.callback:
+                self.sr.tabgroup.callback(self.sr.tabgroup.GetSelectedIdx())
+            err = None
+            if self.sr.LoadTabCallback:
+                try:
+                    self.sr.LoadTabCallback(self.sr.args, self.sr.panel, self.sr.tabgroup)
+                finally:
+                    self.selecting = 0
 
-        self._selected = True
-        self.ShowSelected_()
-        if self.sr.panelparent:
-            self.sr.panelparent.state = uiconst.UI_PICKCHILDREN
-            if hasattr(self.sr.panelparent, 'OnTabSelect'):
-                self.sr.panelparent.OnTabSelect()
-        if self.sr.panel:
-            self.sr.panel.state = uiconst.UI_PICKCHILDREN
-            if hasattr(self.sr.panel, 'OnTabSelect'):
-                self.sr.panel.OnTabSelect()
-        if self.sr.tabgroup.callback:
-            self.sr.tabgroup.callback(self.sr.tabgroup.GetSelectedIdx())
-        err = None
-        if self.sr.LoadTabCallback:
-            try:
-                self.sr.LoadTabCallback(self.sr.args, self.sr.panel, self.sr.tabgroup)
-            finally:
-                self.selecting = 0
+            elif hasattr(self.sr.code, 'LoadTabPanel'):
+                try:
+                    self.sr.code.LoadTabPanel(self.sr.args, self.sr.panel, self.sr.tabgroup)
+                finally:
+                    self.selecting = 0
 
-        elif hasattr(self.sr.code, 'LoadTabPanel'):
-            try:
-                self.sr.code.LoadTabPanel(self.sr.args, self.sr.panel, self.sr.tabgroup)
-            finally:
-                self.selecting = 0
+            elif getattr(self.sr.code, 'Load', None):
+                try:
+                    self.sr.code.Load(self.sr.args)
+                except (StandardError,) as err:
+                    log.LogException(toMsgWindow=0)
+                    sys.exc_clear()
+                    if self.destroyed:
+                        return
+                    wnd = uiutil.GetWindowAbove(self)
+                    if wnd and not wnd.destroyed:
+                        wnd.HideLoad()
 
-        elif getattr(self.sr.code, 'Load', None):
-            try:
-                self.sr.code.Load(self.sr.args)
-            except (StandardError,) as err:
-                log.LogException(toMsgWindow=0)
-                sys.exc_clear()
-                if self.destroyed:
-                    return
+            if not silently:
+                par = self.sr.panelparent or self.sr.panel
                 wnd = uiutil.GetWindowAbove(self)
-                if wnd and not wnd.destroyed:
-                    wnd.HideLoad()
-
-        if not silently:
-            par = self.sr.panelparent or self.sr.panel
-            wnd = uiutil.GetWindowAbove(self)
-            if par and wnd and wnd == uicore.registry.GetActive():
-                uthread.new(uicore.registry.SetFocus, par)
-        if self.destroyed:
+                if par and wnd and wnd == uicore.registry.GetActive():
+                    uthread.new(uicore.registry.SetFocus, par)
+            if self.destroyed:
+                return
+            if self.sr.tabgroup._settingsID:
+                settings.user.tabgroups.Set(self.sr.tabgroup._settingsID, self.sr.tabgroup.sr.tabs.index(self))
+            if self and not self.destroyed:
+                self.sr.tabgroup.UpdateSizes()
+                self.selecting = 0
+            if err and isinstance(err, UserError):
+                raise err
             return
-        if self.sr.tabgroup._settingsID:
-            settings.user.tabgroups.Set(self.sr.tabgroup._settingsID, self.sr.tabgroup.sr.tabs.index(self))
-        if self and not self.destroyed:
-            self.sr.tabgroup.UpdateSizes()
-            self.selecting = 0
-        if err and isinstance(err, UserError):
-            raise err
 
     def OnMouseDown(self, *args):
         self._detachallowed = 1
@@ -639,3 +662,4 @@ class Tab(Container):
                     self.Close()
             else:
                 self._detachallowed = 0
+        return

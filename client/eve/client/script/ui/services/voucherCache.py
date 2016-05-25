@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\client\script\ui\services\voucherCache.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\client\script\ui\services\voucherCache.py
 import service
 import blue
 from carbon.common.script.sys.service import SERVICE_RUNNING
@@ -19,7 +20,7 @@ class VoucherCache(service.Service):
         self.data = {}
         self.names = {}
 
-    def Run(self, memStream = None):
+    def Run(self, memStream=None):
         self.LogInfo('Starting Voucher Cache Service')
         self.data = {}
         self.names = {}
@@ -27,7 +28,7 @@ class VoucherCache(service.Service):
         self.nameQueue = uthread.Channel('voucherCache._NameFetcher')
         uthread.new(self._NameFetcher, self.nameQueue)
 
-    def Stop(self, memStream = None):
+    def Stop(self, memStream=None):
         self.ReleaseVoucherSvc()
 
     def ProcessSessionChange(self, isremote, session, change):
@@ -37,14 +38,16 @@ class VoucherCache(service.Service):
     def GetVoucherSvc(self):
         if hasattr(self, 'moniker') and self.moniker is not None:
             return self.moniker
-        self.moniker = sm.RemoteSvc('voucher')
-        return self.moniker
+        else:
+            self.moniker = sm.RemoteSvc('voucher')
+            return self.moniker
 
     def ReleaseVoucherSvc(self):
         if hasattr(self, 'moniker') and self.moniker is not None:
             self.moniker = None
             self.data = {}
             self.names = {}
+        return
 
     def GetVoucher(self, voucherID):
         while eve.session.mutating:

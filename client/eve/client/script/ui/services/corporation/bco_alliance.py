@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\client\script\ui\services\corporation\bco_alliance.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\client\script\ui\services\corporation\bco_alliance.py
 import corpObject
 import blue
 
@@ -8,10 +9,12 @@ class CorpAllianceO(corpObject.base):
     def __init__(self, boundObject):
         corpObject.base.__init__(self, boundObject)
         self.__applicationsByAllianceID = None
+        return
 
     def DoSessionChanging(self, isRemote, session, change):
         if 'corpid' in change or 'allianceid' in change:
             self.__applicationsByAllianceID = None
+        return
 
     def GetSuggestedAllianceShortNames(self, allianceName):
         return self.GetCorpRegistry().GetSuggestedAllianceShortNames(allianceName)
@@ -58,3 +61,5 @@ class CorpAllianceO(corpObject.base):
 
         finally:
             sm.GetService('corpui').OnAllianceApplicationChanged(allianceID, corpID, change)
+
+        return

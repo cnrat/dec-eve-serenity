@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\devtools\script\svc_simulator.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\devtools\script\svc_simulator.py
 import evetypes
 import uicontrols
 import uiprimitives
@@ -46,8 +47,8 @@ class Simulator:
 
 
 class SimulatorService(Service):
+    """Capacitor Simulator"""
     __module__ = __name__
-    __doc__ = 'Capacitor Simulator'
     __exportedcalls__ = {'Show': []}
     __notifyevents__ = ['ProcessRestartUI', 'OnItemChange', 'OnClientReady']
     __dependencies__ = []
@@ -59,8 +60,9 @@ class SimulatorService(Service):
     def Run(self, *args):
         self.wnd = None
         self.checked = {}
+        return
 
-    def Stop(self, memStream = None):
+    def Stop(self, memStream=None):
         self.Hide()
         Service.Stop(self, memStream)
 
@@ -68,32 +70,35 @@ class SimulatorService(Service):
         if self.wnd:
             self.wnd.Maximize()
             return
-        self.wnd = wnd = uicontrols.Window.Open(windowID='Cap Simulator')
-        wnd._OnClose = self.Hide
-        wnd.SetWndIcon(None)
-        wnd.SetTopparentHeight(0)
-        wnd.SetCaption('Capacitor Simulator')
-        wnd.SetMinSize([256, 384])
-        main = uiprimitives.Container(name='main', parent=uiutil.GetChild(wnd, 'main'), pos=(const.defaultPadding,
-         const.defaultPadding,
-         const.defaultPadding,
-         const.defaultPadding))
-        bottom = uiprimitives.Container(name='bottom', parent=main, align=uiconst.TOBOTTOM, height=60)
-        wnd.sr.text = uicontrols.Label(text='<br><br><br><br>', parent=bottom, align=uiconst.TOALL, left=const.defaultPadding, state=uiconst.UI_NORMAL)
-        wnd.sr.scroll = uicontrols.Scroll(name='attributescroll', parent=main)
-        wnd.sr.scroll.sr.id = 'capsim_modulescroll'
-        wnd.sr.scroll.hiliteSorted = 0
-        btns = uicontrols.ButtonGroup(btns=[['Run Simulation',
-          self.Simulate,
-          (),
-          None]], parent=main, idx=0, unisize=0)
-        self.Load()
-        wnd.Maximize(1)
+        else:
+            self.wnd = wnd = uicontrols.Window.Open(windowID='Cap Simulator')
+            wnd._OnClose = self.Hide
+            wnd.SetWndIcon(None)
+            wnd.SetTopparentHeight(0)
+            wnd.SetCaption('Capacitor Simulator')
+            wnd.SetMinSize([256, 384])
+            main = uiprimitives.Container(name='main', parent=uiutil.GetChild(wnd, 'main'), pos=(const.defaultPadding,
+             const.defaultPadding,
+             const.defaultPadding,
+             const.defaultPadding))
+            bottom = uiprimitives.Container(name='bottom', parent=main, align=uiconst.TOBOTTOM, height=60)
+            wnd.sr.text = uicontrols.Label(text='<br><br><br><br>', parent=bottom, align=uiconst.TOALL, left=const.defaultPadding, state=uiconst.UI_NORMAL)
+            wnd.sr.scroll = uicontrols.Scroll(name='attributescroll', parent=main)
+            wnd.sr.scroll.sr.id = 'capsim_modulescroll'
+            wnd.sr.scroll.hiliteSorted = 0
+            btns = uicontrols.ButtonGroup(btns=[['Run Simulation',
+              self.Simulate,
+              (),
+              None]], parent=main, idx=0, unisize=0)
+            self.Load()
+            wnd.Maximize(1)
+            return
 
     def Hide(self, *args):
         if self.wnd:
             self.wnd.Close()
             self.wnd = None
+        return
 
     def ProcessRestartUI(self):
         if self.wnd:
@@ -191,17 +196,17 @@ class SimulatorService(Service):
                 sim.Run(failCapacity, ship.rechargeRate)
                 i += 1
 
-        totalSteps = int(log(sustainCapacity - failCapacity) / log(2) + 1.5) * 2 + 1
-        while sustainCapacity - failCapacity > 1 and i < 32:
-            Progress(min(i, totalSteps / 2 - 1), totalSteps)
-            tryCapacity = (sustainCapacity + failCapacity) / 2.0
-            sim.Reset()
-            sim.Run(tryCapacity, ship.rechargeRate)
-            if sim.duration < const.DAY:
-                failCapacity = tryCapacity
-            else:
-                sustainCapacity = tryCapacity
-            i += 1
+            totalSteps = int(log(sustainCapacity - failCapacity) / log(2) + 1.5) * 2 + 1
+            while sustainCapacity - failCapacity > 1 and i < 32:
+                Progress(min(i, totalSteps / 2 - 1), totalSteps)
+                tryCapacity = (sustainCapacity + failCapacity) / 2.0
+                sim.Reset()
+                sim.Run(tryCapacity, ship.rechargeRate)
+                if sim.duration < const.DAY:
+                    failCapacity = tryCapacity
+                else:
+                    sustainCapacity = tryCapacity
+                i += 1
 
         sustainRecharge = ship.rechargeRate / 1000.0
         t.text = t.text + 'Minimum cap/recharge needed for sustainability:<br>'
@@ -230,17 +235,17 @@ class SimulatorService(Service):
                 sim.Run(ship.capacitorCapacity, failRecharge)
                 i += 1
 
-        totalSteps = int(log(failRecharge - sustainRecharge) / log(2) + 0.5)
-        while failRecharge - sustainRecharge > 500 and i < 32:
-            Progress(min(i + totalSteps, totalSteps * 2 - 1), totalSteps * 2)
-            tryRecharge = (sustainRecharge + failRecharge) / 2.0
-            sim.Reset()
-            sim.Run(ship.capacitorCapacity, tryRecharge)
-            if sim.duration < const.DAY:
-                failRecharge = tryRecharge
-            else:
-                sustainRecharge = tryRecharge
-            i += 1
+            totalSteps = int(log(failRecharge - sustainRecharge) / log(2) + 0.5)
+            while failRecharge - sustainRecharge > 500 and i < 32:
+                Progress(min(i + totalSteps, totalSteps * 2 - 1), totalSteps * 2)
+                tryRecharge = (sustainRecharge + failRecharge) / 2.0
+                sim.Reset()
+                sim.Run(ship.capacitorCapacity, tryRecharge)
+                if sim.duration < const.DAY:
+                    failRecharge = tryRecharge
+                else:
+                    sustainRecharge = tryRecharge
+                i += 1
 
         sustainRecharge = sustainRecharge / 1000.0
         sustainCapacity = ship.capacitorCapacity

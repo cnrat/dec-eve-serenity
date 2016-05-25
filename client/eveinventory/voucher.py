@@ -1,11 +1,14 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\packages\eveinventory\voucher.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\packages\eveinventory\voucher.py
 import types
 import inventorycommon.const as invconst
 
-def GetObject(voucherItem, description = None):
+def GetObject(voucherItem, description=None):
     classType = VOUCHER_BY_TYPE.get(voucherItem.typeID, None)
     if classType is not None:
         return classType(voucherItem, description)
+    else:
+        return
 
 
 class Voucher:
@@ -16,7 +19,7 @@ class Voucher:
     __typeDefiningParameters__ = []
     __description__ = ''
 
-    def __init__(self, voucherItem = None, description = None):
+    def __init__(self, voucherItem=None, description=None):
         if voucherItem is not None:
             header = voucherItem.header
             data = voucherItem.line
@@ -25,6 +28,7 @@ class Voucher:
         self.__dict__['header'] = header
         self.__dict__['data'] = data
         self.__dict__['description'] = description
+        return
 
     def __getattr__(self, name):
         header = self.__dict__['header']
@@ -102,7 +106,6 @@ class Voucher:
             return 0
         if self.GetType() != other.GetType():
             return 0
-        return 1
 
     def GetVerbs(self):
         return self.__verbs__

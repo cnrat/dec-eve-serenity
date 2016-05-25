@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\client\script\ui\login\charSelection\timeLeftCounters.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\client\script\ui\login\charSelection\timeLeftCounters.py
 import uicontrols
 import uiprimitives
 import carbonui.const as uiconst
@@ -72,8 +73,9 @@ class CountDownTimer(Container):
         if addButton:
             btnText = attributes.get('btnText', '')
             self.AddButton(btnText=btnText)
+        return
 
-    def AddButton(self, btnText = ''):
+    def AddButton(self, btnText=''):
         buyBtn = uicontrols.Button(name='buyBtn', label=btnText, parent=self, align=uiconst.CENTERRIGHT, func=self.callback, pos=(4, 0, 0, 0))
         btnMouseExit = buyBtn.OnMouseExit
         buyBtn.OnMouseExit = (self.OnButtonMouseExit, btnMouseExit)

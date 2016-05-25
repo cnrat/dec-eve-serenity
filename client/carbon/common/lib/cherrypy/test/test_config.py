@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\carbon\common\lib\cherrypy\test\test_config.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\carbon\common\lib\cherrypy\test\test_config.py
 import os, sys
 localDir = os.path.join(os.getcwd(), os.path.dirname(__file__))
 from cherrypy._cpcompat import ntob, StringIO
@@ -51,7 +52,7 @@ def setup_server():
         nex = index
 
         def silly(self):
-            return 'Hello world'
+            pass
 
         silly.exposed = True
         silly._cp_config = {'response.headers.X-silly': 'sillyval'}

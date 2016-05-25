@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\client\script\ui\shared\planet\pinContainers\StorageFacilityContainer.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\client\script\ui\shared\planet\pinContainers\StorageFacilityContainer.py
 import carbonui.const as uiconst
 import evetypes
 import util
@@ -56,6 +57,7 @@ class StorageFacilityContainer(BasePinContainer):
             self.cooldownTimer.SetSubtext(localization.GetByLabel('UI/Common/Now'))
         else:
             self.cooldownTimer.SetSubtext(localization.GetByLabel('UI/PI/Common/TimeHourMinSec', time=self.pin.lastRunTime - blue.os.GetWallclockTime()))
+        return
 
     def _GetIconPos(self, iconNum):
         iconsInRow = 4

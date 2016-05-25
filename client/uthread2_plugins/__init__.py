@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\packages\uthread2_plugins\__init__.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\packages\uthread2_plugins\__init__.py
 import sys
 _all_implementations = []
 
@@ -87,9 +88,11 @@ def set_implementation(impl):
 def get_implementation():
     if _main_impl is not None:
         return _main_impl
-    if _all_implementations:
+    elif _all_implementations:
         return _all_implementations[0]
-    raise RuntimeError('No uthread implementations registered.')
+    else:
+        raise RuntimeError('No uthread implementations registered.')
+        return
 
 
 def get_all_implementations():

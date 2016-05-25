@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\client\script\ui\shared\shipTree\shipTreeShipIcon.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\client\script\ui\shared\shipTree\shipTreeShipIcon.py
 from carbonui.primitives.container import Container
 from carbonui.primitives.sprite import Sprite
 import carbonui.const as uiconst
@@ -54,8 +55,9 @@ class ShipTreeShipIcon(Container):
          self.width - 36,
          self.width - 36), idx=0)
         self.masteryIcon = Sprite(name='masterySprite', parent=self, align=uiconst.CENTERBOTTOM, state=uiconst.UI_DISABLED, pos=(0, -3, 45, 45), idx=0)
+        return
 
-    def UpdateState(self, animate = True):
+    def UpdateState(self, animate=True):
         self.masteryLevel = sm.GetService('certificates').GetCurrCharMasteryLevel(self.typeID)
         duration = 0.6 if animate else 0.01
         if self.groupNode.IsLocked():

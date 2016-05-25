@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\packages\watchdog\observers\polling.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\packages\watchdog\observers\polling.py
 from __future__ import with_statement
 import os
 import threading
@@ -10,11 +11,12 @@ from watchdog.events import DirMovedEvent, DirDeletedEvent, DirCreatedEvent, Dir
 
 class PollingEmitter(EventEmitter):
 
-    def __init__(self, event_queue, watch, timeout = DEFAULT_EMITTER_TIMEOUT, stat = default_stat, listdir = os.listdir):
+    def __init__(self, event_queue, watch, timeout=DEFAULT_EMITTER_TIMEOUT, stat=default_stat, listdir=os.listdir):
         EventEmitter.__init__(self, event_queue, watch, timeout)
         self._snapshot = None
         self._lock = threading.Lock()
         self._take_snapshot = lambda : DirectorySnapshot(self.watch.path, self.watch.is_recursive, stat=stat, listdir=listdir)
+        return
 
     def on_thread_start(self):
         self._snapshot = self._take_snapshot()
@@ -55,12 +57,12 @@ class PollingEmitter(EventEmitter):
 
 class PollingObserver(BaseObserver):
 
-    def __init__(self, timeout = DEFAULT_OBSERVER_TIMEOUT):
+    def __init__(self, timeout=DEFAULT_OBSERVER_TIMEOUT):
         BaseObserver.__init__(self, emitter_class=PollingEmitter, timeout=timeout)
 
 
 class PollingObserverVFS(BaseObserver):
 
-    def __init__(self, stat, listdir, polling_interval = 1):
+    def __init__(self, stat, listdir, polling_interval=1):
         emitter_cls = partial(PollingEmitter, stat=stat, listdir=listdir)
         BaseObserver.__init__(self, emitter_class=emitter_cls, timeout=polling_interval)

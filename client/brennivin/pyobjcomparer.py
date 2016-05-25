@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\packages\brennivin\pyobjcomparer.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\packages\brennivin\pyobjcomparer.py
 from pprint import pformat as _pformat
 from . import compat as _compat
 TOLERANCE = 0.0001
@@ -101,7 +102,7 @@ def get_compound_diff(a, b):
     return crumbs
 
 
-def assert_compare(a, b, print_objs = True):
+def assert_compare(a, b, print_objs=True):
     path = get_compound_diff(a, b)
     if path:
         contents = ['Value at path %s does not match.' % path]

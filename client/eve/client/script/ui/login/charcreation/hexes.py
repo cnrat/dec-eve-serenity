@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\client\script\ui\login\charcreation\hexes.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\client\script\ui\login\charcreation\hexes.py
 import math
 import carbonui.const as uiconst
 import uicls
@@ -39,6 +40,7 @@ class CCRacePicker(uiprimitives.Container):
         self.width = 200
         self.height = 206
         self.Setup()
+        return
 
     def Setup(self, *args):
         info = uicore.layer.charactercreation.GetInfo()
@@ -89,6 +91,7 @@ class CCRacePicker(uiprimitives.Container):
                  0,
                  self.hexHeight), align=uiconst.TOTOP)
                 genderText = uicls.CCLabel(parent=genderTextCont, fontsize=12, align=uiconst.CENTERLEFT, text=text, letterspace=1, left=left, bold=0, color=ccConst.COLOR50)
+        return
 
     def CreateRaceHex(self, *args):
         yOffset = int(0.5 * (self.padValue + self.hexHeight))
@@ -101,7 +104,7 @@ class CCRacePicker(uiprimitives.Container):
         self.ChangeStateOfAlmostAllConts(self.raceConts, uiconst.UI_HIDDEN, [self.raceID])
         self.SelectHex(self.raceConts.get(self.raceID), [])
 
-    def AddRaceHex(self, offsetMap, width, height, raceInfo, state = uiconst.UI_NORMAL, hexClassString = 'CCHexButtonRace2', *args):
+    def AddRaceHex(self, offsetMap, width, height, raceInfo, state=uiconst.UI_NORMAL, hexClassString='CCHexButtonRace2', *args):
         self.raceConts = {}
         isClickable = self.clickable and 'race' not in self.disabledHex
         for i, race in enumerate(raceInfo):
@@ -123,7 +126,7 @@ class CCRacePicker(uiprimitives.Container):
         self.ChangeStateOfAlmostAllConts(self.bloodlineConts, uiconst.UI_HIDDEN, [self.bloodlineID])
         self.SelectHex(self.bloodlineConts.get(self.bloodlineID), [])
 
-    def AddBloodlineHex(self, offsetMap, width, height, bloodlineInfo, state = uiconst.UI_NORMAL, hexClassString = 'CCHexButtonMedium', *args):
+    def AddBloodlineHex(self, offsetMap, width, height, bloodlineInfo, state=uiconst.UI_NORMAL, hexClassString='CCHexButtonMedium', *args):
         self.bloodlineConts = {}
         hexClass = getattr(uicls, hexClassString)
         isClickable = self.clickable and 'bloodline' not in self.disabledHex
@@ -142,7 +145,7 @@ class CCRacePicker(uiprimitives.Container):
         self.ChangeStateOfAlmostAllConts(self.genderConts, uiconst.UI_HIDDEN, [self.genderID])
         self.SelectHex(self.genderConts.get(self.genderID), [])
 
-    def AddGenderHex(self, offsetMap, width, height, genderInfo, state = uiconst.UI_NORMAL, hexClassString = 'CCHexButtonGender', *args):
+    def AddGenderHex(self, offsetMap, width, height, genderInfo, state=uiconst.UI_NORMAL, hexClassString='CCHexButtonGender', *args):
         self.genderConts = {}
         hexClass = getattr(uicls, hexClassString)
         isClickable = self.clickable and 'gender' not in self.disabledHex
@@ -160,12 +163,14 @@ class CCRacePicker(uiprimitives.Container):
         sm.StartService('audio').SendUIEvent(unicode('wise:/ui_icc_button_mouse_over_play'))
         if getattr(cont, 'frame', None) is not None:
             cont.frame.state = uiconst.UI_DISABLED
+        return
 
     def OnHexMouseExit(self, cont, *args):
         if getattr(cont, 'frame', None) is not None:
             cont.frame.state = uiconst.UI_HIDDEN
+        return
 
-    def _AnimateHexList(self, containerList, time = 100.0, attribute = 'left'):
+    def _AnimateHexList(self, containerList, time=100.0, attribute='left'):
         containerList.sort(key=operator.attrgetter(attribute))
         for cont in containerList:
             cont.state = uiconst.UI_NORMAL
@@ -230,6 +235,7 @@ class CCRacePicker(uiprimitives.Container):
             oldPick = info[0]
             info[selectedIdx] = oldPick
             info[0] = currentPick
+        return
 
     def OnGenderClicked(self, cont, *args):
         info = uicore.layer.charactercreation.GetInfo()
@@ -313,7 +319,7 @@ class CCRacePicker(uiprimitives.Container):
             uthread.new(step.LoadFaceMode)
         uicore.layer.charactercreation.FadeFromBlack()
 
-    def ClickingOnCurrent(self, id, cont, allConts, animate = False, what = [], *args):
+    def ClickingOnCurrent(self, id, cont, allConts, animate=False, what=[], *args):
         self.isActive = 1
         expanded = getattr(cont, 'expanded', 0)
         if expanded:
@@ -329,11 +335,11 @@ class CCRacePicker(uiprimitives.Container):
         self.ChangeStateOfAlmostAllConts(allConts, newState, [id], animate=True)
         cont.expanded = not expanded
 
-    def GetMainHexes(self, exceptWhat = [], *args):
+    def GetMainHexes(self, exceptWhat=[], *args):
         mainHexes = {text:cont for text, cont in [('race', self.raceConts.get(self.raceID, None)), ('bloodline', self.bloodlineConts.get(self.bloodlineID, None)), ('gender', self.genderConts.get(self.genderID, None))] if text not in exceptWhat}
         return mainHexes
 
-    def ChangeStateOfAlmostAllConts(self, allConts, newState, exceptIDs = [], animate = False):
+    def ChangeStateOfAlmostAllConts(self, allConts, newState, exceptIDs=[], animate=False):
         changed = []
         doAnimation = animate and newState == uiconst.UI_NORMAL
         for id, cont in allConts.iteritems():
@@ -355,10 +361,10 @@ class CCRacePicker(uiprimitives.Container):
 
         uthread.new(self._AnimateHexesThread, changedConts, attribute='top')
 
-    def _AnimateHexesThread(self, changedConts, attribute, time = 100.0, *args):
+    def _AnimateHexesThread(self, changedConts, attribute, time=100.0, *args):
         self._AnimateHexList(changedConts, time=time, attribute=attribute)
 
-    def SetSelectionState(self, cont, on = 1):
+    def SetSelectionState(self, cont, on=1):
         if not cont:
             return
         if on:
@@ -383,7 +389,7 @@ class CCRacePicker(uiprimitives.Container):
         self.opacity = 1.0
         self.ChangeHexOpacity(self.GetMainHexes().values(), opacity=1.0)
 
-    def ChangeHexOpacity(self, hexes, opacity = 1.0):
+    def ChangeHexOpacity(self, hexes, opacity=1.0):
         for h in hexes:
             h.opacity = opacity
             self.SetSelectionState(h, 0)
@@ -392,7 +398,6 @@ class CCRacePicker(uiprimitives.Container):
         if self.isActive and not isinstance(obj, uicls.CCHexButtonMedium):
             self.CloseAllExtraHexes()
             self.isActive = False
-        return 1
 
     def _OnClose(self, *args):
         uicore.event.UnregisterForTriuiEvents(self.sr.cookie)
@@ -487,21 +492,25 @@ class CCHexButtonMedium(uiprimitives.Container):
     def OnMouseEnter(self, *args):
         if not self.clickable:
             return
-        sm.StartService('audio').SendUIEvent(unicode('wise:/ui_icc_button_mouse_over_play'))
-        if getattr(self, 'frame', None) is not None:
-            self.frame.state = uiconst.UI_DISABLED
-        if getattr(self, 'bevel', None) is not None:
-            self.bevel.SetAlpha(0.5)
+        else:
+            sm.StartService('audio').SendUIEvent(unicode('wise:/ui_icc_button_mouse_over_play'))
+            if getattr(self, 'frame', None) is not None:
+                self.frame.state = uiconst.UI_DISABLED
+            if getattr(self, 'bevel', None) is not None:
+                self.bevel.SetAlpha(0.5)
+            return
 
     def OnMouseExit(self, *args):
         if not self.clickable:
             return
-        if getattr(self, 'frame', None) is not None:
-            self.frame.state = uiconst.UI_HIDDEN
-        if getattr(self, 'bevel', None) is not None:
-            self.bevel.SetAlpha(0.2)
+        else:
+            if getattr(self, 'frame', None) is not None:
+                self.frame.state = uiconst.UI_HIDDEN
+            if getattr(self, 'bevel', None) is not None:
+                self.bevel.SetAlpha(0.2)
+            return
 
-    def SelectHex(self, allConts = []):
+    def SelectHex(self, allConts=[]):
         sm.StartService('audio').SendUIEvent(unicode('wise:/ui_icc_button_mouse_down_play'))
         for c in allConts:
             c.normalCont.state = uiconst.UI_DISABLED

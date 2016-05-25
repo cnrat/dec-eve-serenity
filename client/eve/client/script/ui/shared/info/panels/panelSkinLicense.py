@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\client\script\ui\shared\info\panels\panelSkinLicense.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\client\script\ui\shared\info\panels\panelSkinLicense.py
 from carbonui.primitives.container import Container
 from eve.client.script.ui.control.entries import GetFromClass, Header, Item, LabelTextSides
 from eve.client.script.ui.control.eveScroll import Scroll
@@ -41,6 +42,7 @@ class PanelSkinLicense(Container):
 
         entries.extend(sorted(tempList, key=lambda x: x.label))
         self.scroll.Load(contentList=entries)
+        return
 
 
 class SkinMaterialEntry(LabelTextSides):

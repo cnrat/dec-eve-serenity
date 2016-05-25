@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\client\script\ui\shared\infoPanels\infoPanelIncursions.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\client\script\ui\shared\infoPanels\infoPanelIncursions.py
 import uicls
 import carbonui.const as uiconst
 import blue
@@ -63,6 +64,7 @@ class InfoPanelIncursions(uicls.InfoPanelBase):
          'padRight': 6}
         self.effects = self._GetEffectsForTale(iconParams)
         uthread.new(self.UpdateInfluenceThread)
+        return
 
     def _GetEffectsForTale(self, iconParams):
         data = sm.GetService('incursion').GetActiveIncursionData()
@@ -75,6 +77,7 @@ class InfoPanelIncursions(uicls.InfoPanelBase):
         self._SetFinalEncounterSpawned(data.hasFinalEncounter, data.templateClassID)
         influence = taleCommon.CalculateDecayedInfluence(data.influenceData)
         self.SetInfluence(influence, None, animate=False)
+        return
 
     def ConstructNormal(self):
         data = sm.GetService('incursion').GetActiveIncursionData()
@@ -92,6 +95,8 @@ class InfoPanelIncursions(uicls.InfoPanelBase):
         for effect in self.effects:
             icon = effect.GetIcon()
             icon.opacity = 0.0
+
+        return
 
     def OnEndModeChanged(self, oldMode):
         if self.mode == infoPanelConst.MODE_NORMAL and oldMode:
@@ -143,7 +148,9 @@ class InfoPanelIncursions(uicls.InfoPanelBase):
                     self.SetInfluence(newInfluence, False, True)
             blue.pyos.synchro.SleepWallclock(INCURSION_UPDATE_RATE)
 
-    def SetInfluence(self, influence, positiveProgress, animate = True):
+        return
+
+    def SetInfluence(self, influence, positiveProgress, animate=True):
         self.influenceBar.SetInfluence(influence, positiveProgress, animate)
         self.headerInfluenceBar.SetInfluence(influence, positiveProgress, animate)
         for effect in self.effects:
@@ -203,6 +210,7 @@ class BarFill(uiprimitives.Sprite):
         slice = attributes.get('slice', self.default_slice)
         if slice is not None:
             self.SetTextureSlice(slice)
+        return
 
     def SetTextureSlice(self, slice):
         self.SetTexturePath(slice)
@@ -256,7 +264,7 @@ class SystemInfluenceBar(uiprimitives.Container):
          w,
          h), name='redFill', parent=self.redBar, color=(1, 0, 0, 0.75))
 
-    def SetInfluence(self, influence, positiveProgress, animate = True):
+    def SetInfluence(self, influence, positiveProgress, animate=True):
         self.SetHint(localization.GetByLabel('UI/Incursion/HUD/InfluenceBarHint', influence=int(round((1.0 - influence) * 100))))
         if animate:
             self.targetInfluence = influence
@@ -306,6 +314,7 @@ class SystemInfluenceBar(uiprimitives.Container):
             count -= 1
 
         self.animationTimer = None
+        return
 
     def MoveRight(self, delta):
         self.blueArrows.SetBar(2.0 - delta)

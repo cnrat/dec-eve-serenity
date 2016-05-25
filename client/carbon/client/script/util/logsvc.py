@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\carbon\client\script\util\logsvc.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\carbon\client\script\util\logsvc.py
 import service
 
 class LoggingSvc(service.Service):
@@ -12,6 +13,7 @@ class LoggingSvc(service.Service):
     def Stop(self, *etc):
         service.Service.Stop(self, *etc)
         self.channels = None
+        return
 
     def Log(self, channelName, flag, *what):
         if self.channels is not None:
@@ -23,3 +25,5 @@ class LoggingSvc(service.Service):
                     self.channels[channelName].Log(u' '.join(map(unicode, what)).replace('\x00', '\\x00'), flag, 3)
                 except:
                     pass
+
+        return

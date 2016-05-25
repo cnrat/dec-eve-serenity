@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\client\script\ui\shared\fitting\panels\offensePanel.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\client\script\ui\shared\fitting\panels\offensePanel.py
 from carbonui import const as uiconst
 from carbonui.primitives.container import Container
 from carbonui.primitives.sprite import Sprite
@@ -15,7 +16,7 @@ class OffensePanel(BaseMenuPanel):
     def ApplyAttributes(self, attributes):
         BaseMenuPanel.ApplyAttributes(self, attributes)
 
-    def LoadPanel(self, initialLoad = False):
+    def LoadPanel(self, initialLoad=False):
         self.Flush()
         self.ResetStatsDicts()
         self.display = True

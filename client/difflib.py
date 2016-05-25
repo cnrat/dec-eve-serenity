@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\carbon\common\stdlib\difflib.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\carbon\common\stdlib\difflib.py
 __all__ = ['get_close_matches',
  'ndiff',
  'restore',
@@ -18,16 +19,16 @@ Match = _namedtuple('Match', 'a b size')
 def _calculate_ratio(matches, length):
     if length:
         return 2.0 * matches / length
-    return 1.0
 
 
 class SequenceMatcher():
 
-    def __init__(self, isjunk = None, a = '', b = '', autojunk = True):
+    def __init__(self, isjunk=None, a='', b='', autojunk=True):
         self.isjunk = isjunk
         self.a = self.b = None
         self.autojunk = autojunk
         self.set_seqs(a, b)
+        return
 
     def set_seqs(self, a, b):
         self.set_seq1(a)
@@ -36,16 +37,20 @@ class SequenceMatcher():
     def set_seq1(self, a):
         if a is self.a:
             return
-        self.a = a
-        self.matching_blocks = self.opcodes = None
+        else:
+            self.a = a
+            self.matching_blocks = self.opcodes = None
+            return
 
     def set_seq2(self, b):
         if b is self.b:
             return
-        self.b = b
-        self.matching_blocks = self.opcodes = None
-        self.fullbcount = None
-        self.__chain_b()
+        else:
+            self.b = b
+            self.matching_blocks = self.opcodes = None
+            self.fullbcount = None
+            self.__chain_b()
+            return
 
     def __chain_b(self):
         b = self.b
@@ -113,75 +118,77 @@ class SequenceMatcher():
     def get_matching_blocks(self):
         if self.matching_blocks is not None:
             return self.matching_blocks
-        la, lb = len(self.a), len(self.b)
-        queue = [(0,
-          la,
-          0,
-          lb)]
-        matching_blocks = []
-        while queue:
-            alo, ahi, blo, bhi = queue.pop()
-            i, j, k = x = self.find_longest_match(alo, ahi, blo, bhi)
-            if k:
-                matching_blocks.append(x)
-                if alo < i and blo < j:
-                    queue.append((alo,
-                     i,
-                     blo,
-                     j))
-                if i + k < ahi and j + k < bhi:
-                    queue.append((i + k,
-                     ahi,
-                     j + k,
-                     bhi))
+        else:
+            la, lb = len(self.a), len(self.b)
+            queue = [(0,
+              la,
+              0,
+              lb)]
+            matching_blocks = []
+            while queue:
+                alo, ahi, blo, bhi = queue.pop()
+                i, j, k = x = self.find_longest_match(alo, ahi, blo, bhi)
+                if k:
+                    matching_blocks.append(x)
+                    if alo < i and blo < j:
+                        queue.append((alo,
+                         i,
+                         blo,
+                         j))
+                    if i + k < ahi and j + k < bhi:
+                        queue.append((i + k,
+                         ahi,
+                         j + k,
+                         bhi))
 
-        matching_blocks.sort()
-        i1 = j1 = k1 = 0
-        non_adjacent = []
-        for i2, j2, k2 in matching_blocks:
-            if i1 + k1 == i2 and j1 + k1 == j2:
-                k1 += k2
-            else:
-                if k1:
-                    non_adjacent.append((i1, j1, k1))
-                i1, j1, k1 = i2, j2, k2
+            matching_blocks.sort()
+            i1 = j1 = k1 = 0
+            non_adjacent = []
+            for i2, j2, k2 in matching_blocks:
+                if i1 + k1 == i2 and j1 + k1 == j2:
+                    k1 += k2
+                else:
+                    if k1:
+                        non_adjacent.append((i1, j1, k1))
+                    i1, j1, k1 = i2, j2, k2
 
-        if k1:
-            non_adjacent.append((i1, j1, k1))
-        non_adjacent.append((la, lb, 0))
-        self.matching_blocks = non_adjacent
-        return map(Match._make, self.matching_blocks)
+            if k1:
+                non_adjacent.append((i1, j1, k1))
+            non_adjacent.append((la, lb, 0))
+            self.matching_blocks = non_adjacent
+            return map(Match._make, self.matching_blocks)
 
     def get_opcodes(self):
         if self.opcodes is not None:
             return self.opcodes
-        i = j = 0
-        self.opcodes = answer = []
-        for ai, bj, size in self.get_matching_blocks():
-            tag = ''
-            if i < ai and j < bj:
-                tag = 'replace'
-            elif i < ai:
-                tag = 'delete'
-            elif j < bj:
-                tag = 'insert'
-            if tag:
-                answer.append((tag,
-                 i,
-                 ai,
-                 j,
-                 bj))
-            i, j = ai + size, bj + size
-            if size:
-                answer.append(('equal',
-                 ai,
-                 i,
-                 bj,
-                 j))
+        else:
+            i = j = 0
+            self.opcodes = answer = []
+            for ai, bj, size in self.get_matching_blocks():
+                tag = ''
+                if i < ai and j < bj:
+                    tag = 'replace'
+                elif i < ai:
+                    tag = 'delete'
+                elif j < bj:
+                    tag = 'insert'
+                if tag:
+                    answer.append((tag,
+                     i,
+                     ai,
+                     j,
+                     bj))
+                i, j = ai + size, bj + size
+                if size:
+                    answer.append(('equal',
+                     ai,
+                     i,
+                     bj,
+                     j))
 
-        return answer
+            return answer
 
-    def get_grouped_opcodes(self, n = 3):
+    def get_grouped_opcodes(self, n=3):
         codes = self.get_opcodes()
         if not codes:
             codes = [('equal', 0, 1, 0, 1)]
@@ -249,7 +256,7 @@ class SequenceMatcher():
         return _calculate_ratio(min(la, lb), la + lb)
 
 
-def get_close_matches(word, possibilities, n = 3, cutoff = 0.6):
+def get_close_matches(word, possibilities, n=3, cutoff=0.6):
     if not n > 0:
         raise ValueError('n must be > 0: %r' % (n,))
     if not 0.0 <= cutoff <= 1.0:
@@ -276,7 +283,7 @@ def _count_leading(line, ch):
 
 class Differ():
 
-    def __init__(self, linejunk = None, charjunk = None):
+    def __init__(self, linejunk=None, charjunk=None):
         self.linejunk = linejunk
         self.charjunk = charjunk
 
@@ -367,6 +374,8 @@ class Differ():
         for line in self._fancy_helper(a, best_i + 1, ahi, b, best_j + 1, bhi):
             yield line
 
+        return
+
     def _fancy_helper(self, a, alo, ahi, b, blo, bhi):
         g = []
         if alo < ahi:
@@ -395,15 +404,15 @@ class Differ():
 
 import re
 
-def IS_LINE_JUNK(line, pat = re.compile('\\s*#?\\s*$').match):
+def IS_LINE_JUNK(line, pat=re.compile('\\s*#?\\s*$').match):
     return pat(line) is not None
 
 
-def IS_CHARACTER_JUNK(ch, ws = ' \t'):
+def IS_CHARACTER_JUNK(ch, ws=' \t'):
     return ch in ws
 
 
-def unified_diff(a, b, fromfile = '', tofile = '', fromfiledate = '', tofiledate = '', n = 3, lineterm = '\n'):
+def unified_diff(a, b, fromfile='', tofile='', fromfiledate='', tofiledate='', n=3, lineterm='\n'):
     started = False
     for group in SequenceMatcher(None, a, b).get_grouped_opcodes(n):
         if not started:
@@ -435,8 +444,10 @@ def unified_diff(a, b, fromfile = '', tofile = '', fromfiledate = '', tofiledate
                 for line in b[j1:j2]:
                     yield '+' + line
 
+    return
 
-def context_diff(a, b, fromfile = '', tofile = '', fromfiledate = '', tofiledate = '', n = 3, lineterm = '\n'):
+
+def context_diff(a, b, fromfile='', tofile='', fromfiledate='', tofiledate='', n=3, lineterm='\n'):
     started = False
     prefixmap = {'insert': '+ ',
      'delete': '- ',
@@ -472,39 +483,42 @@ def context_diff(a, b, fromfile = '', tofile = '', fromfiledate = '', tofiledate
                     for line in b[j1:j2]:
                         yield prefixmap[tag] + line
 
+    return
 
-def ndiff(a, b, linejunk = None, charjunk = IS_CHARACTER_JUNK):
+
+def ndiff(a, b, linejunk=None, charjunk=IS_CHARACTER_JUNK):
     return Differ(linejunk, charjunk).compare(a, b)
 
 
-def _mdiff(fromlines, tolines, context = None, linejunk = None, charjunk = IS_CHARACTER_JUNK):
+def _mdiff(fromlines, tolines, context=None, linejunk=None, charjunk=IS_CHARACTER_JUNK):
     import re
     change_re = re.compile('(\\++|\\-+|\\^+)')
     diff_lines_iterator = ndiff(fromlines, tolines, linejunk, charjunk)
 
-    def _make_line(lines, format_key, side, num_lines = [0, 0]):
+    def _make_line(lines, format_key, side, num_lines=[0, 0]):
         num_lines[side] += 1
         if format_key is None:
             return (num_lines[side], lines.pop(0)[2:])
-        if format_key == '?':
-            text, markers = lines.pop(0), lines.pop(0)
-            sub_info = []
-
-            def record_sub_info(match_object, sub_info = sub_info):
-                sub_info.append([match_object.group(1)[0], match_object.span()])
-                return match_object.group(1)
-
-            change_re.sub(record_sub_info, markers)
-            for key, (begin, end) in sub_info[::-1]:
-                text = text[0:begin] + '\x00' + key + text[begin:end] + '\x01' + text[end:]
-
-            text = text[2:]
         else:
-            text = lines.pop(0)[2:]
-            if not text:
-                text = ' '
-            text = '\x00' + format_key + text + '\x01'
-        return (num_lines[side], text)
+            if format_key == '?':
+                text, markers = lines.pop(0), lines.pop(0)
+                sub_info = []
+
+                def record_sub_info(match_object, sub_info=sub_info):
+                    sub_info.append([match_object.group(1)[0], match_object.span()])
+                    return match_object.group(1)
+
+                change_re.sub(record_sub_info, markers)
+                for key, (begin, end) in sub_info[::-1]:
+                    text = text[0:begin] + '\x00' + key + text[begin:end] + '\x01' + text[end:]
+
+                text = text[2:]
+            else:
+                text = lines.pop(0)[2:]
+                if not text:
+                    text = ' '
+                text = '\x00' + format_key + text + '\x01'
+            return (num_lines[side], text)
 
     def _line_iterator():
         lines = []
@@ -566,6 +580,8 @@ def _mdiff(fromlines, tolines, context = None, linejunk = None, charjunk = IS_CH
             else:
                 yield (from_line, to_line, True)
 
+        return
+
     def _line_pair_iterator():
         line_iterator = _line_iterator()
         fromlines, tolines = [], []
@@ -580,6 +596,8 @@ def _mdiff(fromlines, tolines, context = None, linejunk = None, charjunk = IS_CH
             from_line, fromDiff = fromlines.pop(0)
             to_line, to_diff = tolines.pop(0)
             yield (from_line, to_line, fromDiff or to_diff)
+
+        return
 
     line_pair_iterator = _line_pair_iterator()
     if context is None:
@@ -619,6 +637,8 @@ def _mdiff(fromlines, tolines, context = None, linejunk = None, charjunk = IS_CH
                     lines_to_write -= 1
                 yield (from_line, to_line, found_diff)
 
+    return
+
 
 _file_template = '\n<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"\n          "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">\n\n<html>\n\n<head>\n    <meta http-equiv="Content-Type"\n          content="text/html; charset=ISO-8859-1" />\n    <title></title>\n    <style type="text/css">%(styles)s\n    </style>\n</head>\n\n<body>\n    %(table)s%(legend)s\n</body>\n\n</html>'
 _styles = '\n        table.diff {font-family:Courier; border:medium;}\n        .diff_header {background-color:#e0e0e0}\n        td.diff_header {text-align:right}\n        .diff_next {background-color:#c0c0c0}\n        .diff_add {background-color:#aaffaa}\n        .diff_chg {background-color:#ffff77}\n        .diff_sub {background-color:#ffaaaa}'
@@ -632,13 +652,13 @@ class HtmlDiff(object):
     _legend = _legend
     _default_prefix = 0
 
-    def __init__(self, tabsize = 8, wrapcolumn = None, linejunk = None, charjunk = IS_CHARACTER_JUNK):
+    def __init__(self, tabsize=8, wrapcolumn=None, linejunk=None, charjunk=IS_CHARACTER_JUNK):
         self._tabsize = tabsize
         self._wrapcolumn = wrapcolumn
         self._linejunk = linejunk
         self._charjunk = charjunk
 
-    def make_file(self, fromlines, tolines, fromdesc = '', todesc = '', context = False, numlines = 5):
+    def make_file(self, fromlines, tolines, fromdesc='', todesc='', context=False, numlines=5):
         return self._file_template % dict(styles=self._styles, legend=self._legend, table=self.make_table(fromlines, tolines, fromdesc, todesc, context=context, numlines=numlines))
 
     def _tab_newline_replace(self, fromlines, tolines):
@@ -704,6 +724,8 @@ class HtmlDiff(object):
                 else:
                     todata = ('', ' ')
                 yield (fromdata, todata, flag)
+
+        return
 
     def _collect_lines(self, diffs):
         fromlist, tolist, flaglist = [], [], []
@@ -773,7 +795,7 @@ class HtmlDiff(object):
          next_href,
          next_id)
 
-    def make_table(self, fromlines, tolines, fromdesc = '', todesc = '', context = False, numlines = 5):
+    def make_table(self, fromlines, tolines, fromdesc='', todesc='', context=False, numlines=5):
         self._make_prefix()
         fromlines, tolines = self._tab_newline_replace(fromlines, tolines)
         if context:

@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\carbon\common\lib\cherrypy\__init__.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\carbon\common\lib\cherrypy\__init__.py
 __version__ = '3.2.0'
 from cherrypy._cpcompat import urljoin as _urljoin, urlencode as _urlencode
 from cherrypy._cpcompat import basestring, unicodestr
@@ -54,7 +55,7 @@ from cherrypy import _cpserver
 server = _cpserver.Server()
 server.subscribe()
 
-def quickstart(root = None, script_name = '', config = None):
+def quickstart(root=None, script_name='', config=None):
     if config:
         _global_conf_alias.update(config)
     tree.mount(root, script_name, config)
@@ -147,7 +148,7 @@ class _ThreadData(_local):
 
 thread_data = _ThreadData()
 
-def _cherrypy_pydoc_resolve(thing, forceload = 0):
+def _cherrypy_pydoc_resolve(thing, forceload=0):
     if isinstance(thing, _ThreadLocalProxy):
         thing = getattr(serving, thing.__attrname__)
     return _pydoc._builtin_resolve(thing, forceload)
@@ -189,7 +190,7 @@ def _buslog(msg, level):
 
 engine.subscribe('log', _buslog)
 
-def expose(func = None, alias = None):
+def expose(func=None, alias=None):
 
     def expose_(func):
         func.exposed = True
@@ -221,6 +222,7 @@ def expose(func = None, alias = None):
         parents = sys._getframe(1).f_locals
         alias = func
         return expose_
+    return
 
 
 def popargs(*args, **kwargs):
@@ -236,34 +238,35 @@ def popargs(*args, **kwargs):
     if handler is not None and (hasattr(handler, '__call__') or inspect.isclass(handler)):
         handler_call = True
 
-    def decorated(cls_or_self = None, vpath = None):
+    def decorated(cls_or_self=None, vpath=None):
         if inspect.isclass(cls_or_self):
             cls = cls_or_self
             setattr(cls, dispatch.Dispatcher.dispatch_method_name, decorated)
             return cls
-        self = cls_or_self
-        parms = {}
-        for arg in args:
-            if not vpath:
-                break
-            parms[arg] = vpath.pop(0)
-
-        if handler is not None:
-            if handler_call:
-                return handler(**parms)
-            else:
-                request.params.update(parms)
-                return handler
-        request.params.update(parms)
-        if vpath:
-            return getattr(self, vpath.pop(0), None)
         else:
+            self = cls_or_self
+            parms = {}
+            for arg in args:
+                if not vpath:
+                    break
+                parms[arg] = vpath.pop(0)
+
+            if handler is not None:
+                if handler_call:
+                    return handler(**parms)
+                else:
+                    request.params.update(parms)
+                    return handler
+            request.params.update(parms)
+            if vpath:
+                return getattr(self, vpath.pop(0), None)
             return self
+            return
 
     return decorated
 
 
-def url(path = '', qs = '', script_name = None, base = None, relative = None):
+def url(path='', qs='', script_name=None, base=None, relative=None):
     if isinstance(qs, (tuple, list, dict)):
         qs = _urlencode(qs)
     if qs:

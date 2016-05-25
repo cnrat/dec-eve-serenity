@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\packages\brennivin\itertoolsext.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\packages\brennivin\itertoolsext.py
 import datetime as _datetime
 import copy
 from itertools import *
@@ -12,7 +13,7 @@ if _compat.PY3K:
 
 class Bundle(dict):
 
-    def __init__(self, seq = None, **kwargs):
+    def __init__(self, seq=None, **kwargs):
         dict.__init__(self, (seq or ()), **kwargs)
 
     def __getattr__(self, item):
@@ -24,7 +25,7 @@ class Bundle(dict):
 
     __repr__ = __str__
 
-    def __deepcopy__(self, memo = None, _nil = []):
+    def __deepcopy__(self, memo=None, _nil=[]):
         return Bundle(copy.deepcopy(dict(self)))
 
 
@@ -45,7 +46,7 @@ class FrozenDict(dict):
         return self._hash
 
 
-def all(seq, predicate = bool):
+def all(seq, predicate=bool):
     for item in seq:
         if not predicate(item):
             return False
@@ -53,7 +54,7 @@ def all(seq, predicate = bool):
     return True
 
 
-def any(seq, predicate = bool):
+def any(seq, predicate=bool):
     for item in seq:
         if predicate(item):
             return True
@@ -61,7 +62,7 @@ def any(seq, predicate = bool):
     return False
 
 
-def bucket(seq, keyprojection = _identity, valueprojection = _identity):
+def bucket(seq, keyprojection=_identity, valueprojection=_identity):
     result = {}
     for item in seq:
         thisbucket = result.setdefault(keyprojection(item), [])
@@ -70,7 +71,7 @@ def bucket(seq, keyprojection = _identity, valueprojection = _identity):
     return result
 
 
-def count(seq, predicate = None):
+def count(seq, predicate=None):
     i = 0
     if predicate is None:
         try:
@@ -89,7 +90,7 @@ def count(seq, predicate = None):
     return i
 
 
-def datespan(startdate, enddate, delta = _datetime.timedelta(days=1)):
+def datespan(startdate, enddate, delta=_datetime.timedelta(days=1)):
     if startdate < enddate:
         compare = lambda current, end: current < end
         increment = lambda current: current + delta
@@ -102,14 +103,15 @@ def datespan(startdate, enddate, delta = _datetime.timedelta(days=1)):
         currentdate = increment(currentdate)
 
 
-def first(seq, predicate = None):
+def first(seq, predicate=None):
     if predicate is None:
         return next(islice(seq, 1))
-    filtered = ifilter(predicate, seq)
-    return next(filtered)
+    else:
+        filtered = ifilter(predicate, seq)
+        return next(filtered)
 
 
-def first_or_default(seq, predicate = None, default = None):
+def first_or_default(seq, predicate=None, default=None):
     try:
         return first(seq, predicate)
     except StopIteration:
@@ -137,14 +139,14 @@ def groups_of_n(seq, n):
     return [ seq[i:i + n] for i in range(0, len(seq), n) ]
 
 
-def last(seq, predicate = None):
+def last(seq, predicate=None):
     lastitem = last_or_default(seq, predicate, _unsupplied)
     if lastitem is _unsupplied:
         raise StopIteration()
     return lastitem
 
 
-def last_or_default(seq, predicate = None, default = None):
+def last_or_default(seq, predicate=None, default=None):
     lastitem = default
     for item in seq:
         if predicate:
@@ -180,7 +182,7 @@ def skip(sequence, number):
             cnt += 1
 
 
-def take(seq, number, predicate = None):
+def take(seq, number, predicate=None):
     if not isinstance(number, (int, float, _compat.long)):
         raise TypeError('number arg must be a number type.')
     yieldedcount = 0
@@ -191,8 +193,10 @@ def take(seq, number, predicate = None):
             yield item
             yieldedcount += 1
 
+    return
 
-def unique(seq, transform = _identity):
+
+def unique(seq, transform=_identity):
     seen = set()
     for item in seq:
         marker = transform(item)
@@ -202,7 +206,7 @@ def unique(seq, transform = _identity):
         yield item
 
 
-def treeyield_depthfirst(node, getchildren, getchild = None, yieldnode = False):
+def treeyield_depthfirst(node, getchildren, getchild=None, yieldnode=False):
     if yieldnode:
         yield node
     childEnumerator = getchildren(node)
@@ -215,7 +219,7 @@ def treeyield_depthfirst(node, getchildren, getchild = None, yieldnode = False):
             yield grandkid
 
 
-def treeyield_breadthfirst(node, getchildren, getchild = None, yieldnode = False):
+def treeyield_breadthfirst(node, getchildren, getchild=None, yieldnode=False):
     if yieldnode:
         yield node
     childEnumerator = getchildren(node)
@@ -278,7 +282,7 @@ def set_compound_attr(obj, value, *namesandindices):
     setattr(currentattr, namesandindices[-1], value)
 
 
-def dict_add(alpha, beta, adder_function = None):
+def dict_add(alpha, beta, adder_function=None):
     if adder_function is None:
         adder_function = lambda value_a, value_b: value_a + value_b
     for key in beta:
@@ -287,8 +291,10 @@ def dict_add(alpha, beta, adder_function = None):
         else:
             alpha[key] = beta[key]
 
+    return
 
-def shuffle(col, maxattempts = 5):
+
+def shuffle(col, maxattempts=5):
     ret = list(col)
     if not ret or len(ret) == 1:
         return ret

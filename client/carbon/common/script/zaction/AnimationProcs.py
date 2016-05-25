@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\carbon\common\script\zaction\AnimationProcs.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\carbon\common\script\zaction\AnimationProcs.py
 import blue
 import yaml
 from carbon.common.script.zaction.zactionCommon import ProcPropertyTypeDef, ProcTypeDef, ProcNameHelper
@@ -19,6 +20,8 @@ def GetAnimPropertyByName(animName, propertyName):
     anim = animInfo.get(animName, None)
     if anim is not None:
         return anim.get(propertyName, None)
+    else:
+        return
 
 
 def _AnimationProcNameHelper(name, procRow):

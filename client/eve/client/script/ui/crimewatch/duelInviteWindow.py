@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\client\script\ui\crimewatch\duelInviteWindow.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\client\script\ui\crimewatch\duelInviteWindow.py
 from eve.client.script.ui.shared.stateFlag import FlagIconWithState
 import uicls
 import carbonui.const as uiconst
@@ -105,6 +106,7 @@ class DuelInviteWindow(uicontrols.Window):
             flagCode = stateSvc.CheckFilteredFlagState(slimItem)
             flagInfo = stateSvc.GetStatePropsColorAndBlink(flagCode)
             stateFlag.ModifyIcon(flagInfo=flagInfo)
+        return
 
     def StartTimeout(self, expiryTime):
         self.expiryThread = uthread.new(self._DoTimeout, expiryTime)

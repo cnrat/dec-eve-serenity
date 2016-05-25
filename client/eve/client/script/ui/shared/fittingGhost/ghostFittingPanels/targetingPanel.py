@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\client\script\ui\shared\fittingGhost\ghostFittingPanels\targetingPanel.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\client\script\ui\shared\fittingGhost\ghostFittingPanels\targetingPanel.py
 from dogma import const as dogmaConst
 from eve.client.script.ui.shared.fitting.panels.attributePanel import AttributePanel
 from eve.client.script.ui.shared.fittingGhost.fittingUtilGhost import GetColoredText
@@ -7,7 +8,7 @@ from localization import GetByLabel, GetByMessageID
 class TargetingPanel(AttributePanel):
     attributesToShow = [('sensorStrength', dogmaConst.attributeScanResolution), (dogmaConst.attributeSignatureRadius, dogmaConst.attributeMaxLockedTargets)]
 
-    def LoadPanel(self, initialLoad = False):
+    def LoadPanel(self, initialLoad=False):
         AttributePanel.LoadPanel(self, initialLoad)
         activeShip = self.dogmaLocation.shipID
         sensorStrengthAttributeID, val = self.GetSensorStrengthAttribute(activeShip)
@@ -79,6 +80,7 @@ class TargetingPanel(AttributePanel):
         self.SetLabel('sensorStrength', coloredText)
         attributeInfo = cfg.dgmattribs.Get(maxSensorStrenghtAttributeID)
         self.LoadIcon('sensorStrength', attributeInfo.iconID)
+        return
 
     def SetSensorTooltip(self, maxSensor):
         return
@@ -87,3 +89,4 @@ class TargetingPanel(AttributePanel):
         if tooltipTitleID:
             tooltipTitle = GetByMessageID(tooltipTitleID)
             cont.tooltipPanelClassInfo.headerText = tooltipTitle
+        return

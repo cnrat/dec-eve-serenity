@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\packages\notifications\client\notificationCenter.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\packages\notifications\client\notificationCenter.py
 from achievements.client.achievementTreeWindow import AchievementTreeWindow
 import carbonui.const as uiconst
 from notifications.common.formatters.contractAssigned import ContractAssignedFormatter
@@ -59,7 +60,7 @@ class NotificationCenter:
         multiplyer = -2 if isDown else 1
         self.stackFader = StackFader(container=self.stackFaderContainer, startPosition=(40, 100 * multiplyer), down=isDown, audioCallback=self.audioCallback, maxStackSize=self.notificationSettingHandler.GetStackSize(), stackTimeSeconds=self.notificationSettingHandler.GetFadeTime())
 
-    def _initializeVariables(self, neededVerticalAlignment = None, neededHorizontalAlignment = None):
+    def _initializeVariables(self, neededVerticalAlignment=None, neededHorizontalAlignment=None):
         self.cacheIsInitialized = False
         self.layer = uicore.layer.abovemain
         self.notificationSettingHandler = NotificationSettingHandler()
@@ -85,6 +86,7 @@ class NotificationCenter:
         self.horizontalAlignment = neededHorizontalAlignment if neededHorizontalAlignment else wantedHorizontalAlignment
         self.expandEvaluator = ExpandEvaluator(screenWidth=uicore.desktop.width, screenHeight=uicore.desktop.height, preferredHeight=self.preferredHeight, minHistoryHeight=self.notificationSettingHandler.MIN_HISTORY_HEIGHT, maxHistoryHeight=self.notificationSettingHandler.MAX_HISTORY_HEIGHT, expandWidth=self.listWidth)
         self.transitioner = AlignmentTransitioner(verticalAlignment=self.verticalAlignment, horizontalAlignment=self.horizontalAlignment, wantedVertical=self.notificationSettingHandler.GetVerticalExpandAlignment(), wantedHorizontal=self.notificationSettingHandler.GetHorizontalExpandAlignment(), expandEvaluator=self.expandEvaluator)
+        return
 
     def SetCacheIsInitialized(self, isInitialized):
         self.cacheIsInitialized = isInitialized
@@ -99,7 +101,7 @@ class NotificationCenter:
     def _EnableUI(self):
         self.controlBottomContainer.state = uiconst.UI_PICKCHILDREN
 
-    def Construct(self, notificationProviderFunction, neededVerticalAlignment = None, neededHorizontalAlignment = None):
+    def Construct(self, notificationProviderFunction, neededVerticalAlignment=None, neededHorizontalAlignment=None):
         self.notificationProviderFunction = notificationProviderFunction
         self._initializeVariables(neededVerticalAlignment, neededHorizontalAlignment)
         self.LoadPositionValues()
@@ -179,6 +181,7 @@ class NotificationCenter:
                 self.dragMovable.StopDragMode()
                 self.dragMovable = None
             self.constructed = False
+        return
 
     def CleanUpNotifyEvents(self):
         for eventname in self.GetNotifyEvents():
@@ -246,6 +249,7 @@ class NotificationCenter:
             entry.OnClick = self.GetNotificationAction(entry, notification)
             self.displayingEntry = entry
             self.stackFader.AddItem(entry)
+        return
 
     def DisplaySingleNotification(self, notification):
         self.MakeAndDisplayNormalNotification(notification)
@@ -296,6 +300,10 @@ class NotificationCenter:
          notificationConst.notificationTypeCorpAppRejectMsg,
          notificationConst.notificationTypeCorpAppRejectCustomMsg):
             sm.GetService('corpui').Show('Recruitment', 'myApplications')
+        elif notification.typeID in notificationConst.groupTypes[notificationConst.groupCCPNotifications]:
+            eve.Message('CustomInfo', {'info': notification.data['text']}, modal=False)
+        elif notification.typeID == notificationConst.notificationTypeServerShutdown:
+            eve.Message('CustomInfo', {'info': notification.data['text']}, modal=False)
         else:
             MailInteractor().SelectByNotificationID(notification.notificationID, notificationTypeID=notification.typeID)
         sm.GetService('experimentClientSvc').LogWindowOpenedActions('notificationEntryClick')
@@ -391,6 +399,7 @@ class NotificationCenter:
         self.activeAutoCloser = AutoCloser(None, self.OnAutoCloserFire, self.notificationContainer, thresholdInSeconds=1.0, buffer=10)
         self.activeAutoCloser.monitor()
         self.watcherThread = uthread.new(self.ScrollWatcherThread)
+        return
 
     def ScrollWatcherThread(self):
         while True:
@@ -436,17 +445,19 @@ class NotificationCenter:
     def CloseDrawer(self):
         if self.isAnimating:
             return
-        self.isAnimating = True
-        self.scrollList.DisableEntryLoad()
-        if self.activeAutoCloser:
-            self.activeAutoCloser.Abort()
-            self.activeAutoCloser = None
-            self.watcherThread.kill()
-            self.watcherThread = None
-        self.isShowingDrawer = False
-        self._frameCloseAnimation()
+        else:
+            self.isAnimating = True
+            self.scrollList.DisableEntryLoad()
+            if self.activeAutoCloser:
+                self.activeAutoCloser.Abort()
+                self.activeAutoCloser = None
+                self.watcherThread.kill()
+                self.watcherThread = None
+            self.isShowingDrawer = False
+            self._frameCloseAnimation()
+            return
 
-    def ReconstructWithAlignments(self, neededVerticalAlignment = None, neededHorizontalAlignment = None, reOpen = False):
+    def ReconstructWithAlignments(self, neededVerticalAlignment=None, neededHorizontalAlignment=None, reOpen=False):
         self.deconstruct()
         self.Construct(self.notificationProviderFunction, neededVerticalAlignment=neededVerticalAlignment, neededHorizontalAlignment=neededHorizontalAlignment)
         self.reconstructCallBack()
@@ -480,6 +491,7 @@ class NotificationCenter:
         if self.horizontalAlignment is ExpandAlignmentConst.EXPAND_ALIGNMENT_HORIZONTAL_LEFT:
             endleftpoint = self.expandEvaluator.actualX - self.listWidth
             uicore.animations.MorphScalar(obj, 'left', startVal=obj.left, endVal=endleftpoint, duration=widthAnimationDuration, loops=1, curveType=2, callback=None, sleep=False, curveSet=None, timeOffset=0.0)
+        return
 
     def _frameOpenAnimation(self):
         self.dragMovable.SetEnabled(False)
@@ -555,6 +567,7 @@ class NotificationCenter:
         uicore.animations.MorphScalar(obj, 'width', startVal=obj.width, endVal=w, duration=widthAnimationDuration, loops=1, curveType=2, callback=self._postCloseAnimation, sleep=False, curveSet=None, timeOffset=heightAnimationWait)
         if self.horizontalAlignment is ExpandAlignmentConst.EXPAND_ALIGNMENT_HORIZONTAL_LEFT:
             uicore.animations.MorphScalar(obj, 'left', startVal=obj.left, endVal=x, duration=widthAnimationDuration, loops=1, curveType=2, callback=None, sleep=False, curveSet=None, timeOffset=heightAnimationWait)
+        return
 
     def _postCloseAnimation(self):
         self.HideFrame()
@@ -618,9 +631,11 @@ class NotificationCenter:
     def _LoadWidgetTooltipPanel(self, tooltipPanel, *args):
         if self.dragMovable.IsDragging():
             return
-        tooltipPanel.LoadGeneric1ColumnTemplate()
-        tooltipPanel.AddLabelShortcut(localization.GetByLabel('Notifications/NotificationWidget/NotificationWidgetTooltip'), None)
-        tooltipPanel.AddLabelMedium(text=localization.GetByLabel('Notifications/NotificationWidget/NotificationWidgetTooltipDesc'), wrapWidth=200)
+        else:
+            tooltipPanel.LoadGeneric1ColumnTemplate()
+            tooltipPanel.AddLabelShortcut(localization.GetByLabel('Notifications/NotificationWidget/NotificationWidgetTooltip'), None)
+            tooltipPanel.AddLabelMedium(text=localization.GetByLabel('Notifications/NotificationWidget/NotificationWidgetTooltipDesc'), wrapWidth=200)
+            return
 
     def _ConstructResizeLine(self):
         if self.verticalAlignment is ExpandAlignmentConst.EXPAND_ALIGNMENT_VERTICAL_UP:
@@ -654,19 +669,19 @@ class NotificationCenter:
         self.lastobservedValue = self.scrollList.verticalScrollBar.isDragging
         self.underlay = BumpedUnderlay(bgParent=self.scrollList)
 
-    def _ConstructNormalNotificationListEntry(self, notification, parent = None):
+    def _ConstructNormalNotificationListEntry(self, notification, parent=None):
         entry = NotificationEntry(parent=parent, align=uiconst.NOALIGN, created=notification.created, notification=notification, developerMode=self.isDeveloperMode)
         return entry
 
-    def _ConstructContactNotificationListEntry(self, notification, parent = None):
+    def _ConstructContactNotificationListEntry(self, notification, parent=None):
         entry = NotificationEntry(parent=parent, align=uiconst.NOALIGN, created=notification.created, notification=notification, developerMode=self.isDeveloperMode)
         return entry
 
-    def _ConstructNotificationPopup(self, notification, parent = None):
+    def _ConstructNotificationPopup(self, notification, parent=None):
         entry = NotificationEntry(parent=parent, align=uiconst.TOPLEFT, created=0, title=notification.subject, width=self.popupEntryWidth, notification=notification)
         return entry
 
-    def _ConstructNotificationContactPopup(self, notification, parent = None):
+    def _ConstructNotificationContactPopup(self, notification, parent=None):
         entry = NotificationEntry(parent=parent, align=uiconst.TOPLEFT, created=0, title=notification.subject, width=self.popupEntryWidth, notification=notification)
         return entry
 

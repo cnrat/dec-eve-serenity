@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\client\script\ui\shared\inventory\invContainers.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\client\script\ui\shared\inventory\invContainers.py
 from eve.client.script.ui.inflight.squadrons.fighterInvCont import FighterInvCont
 import uiprimitives
 import uicontrols
@@ -20,6 +21,7 @@ class _BaseCelestialContainer(invCont._InvContBase):
             self.restrictedButtonFill = uiprimitives.Fill(color=crimewatchConst.Colors.Suspect.GetRGBA(), opacity=0.3, name='criminalRestrictionFill', state=uiconst.UI_HIDDEN)
             self.restrictedButton = None
             uicore.event.RegisterForTriuiEvents(uiconst.UI_MOUSEMOVE, self._EnforceLootableContainerRestrictions)
+        return
 
     def RegisterSpecialActionButton(self, button):
         if self.invController.IsLootable():
@@ -133,6 +135,11 @@ class StationContainer(_BaseCelestialContainer):
     __invControllerClass__ = invCtrl.StationContainer
 
 
+class AssetSafetyContainer(_BaseCelestialContainer):
+    __guid__ = 'invCont.AssetSafetyContainer'
+    __invControllerClass__ = invCtrl.AssetSafetyContainer
+
+
 class ShipMaintenanceBay(_BaseCelestialContainer):
     __guid__ = 'invCont.ShipMaintenanceBay'
     __invControllerClass__ = invCtrl.ShipMaintenanceBay
@@ -228,6 +235,11 @@ class StationCorpDeliveries(invCont._InvContBase):
     __invControllerClass__ = invCtrl.StationCorpDeliveries
 
 
+class AssetSafetyDeliveries(invCont._InvContBase):
+    __guid__ = 'invCont.AssetSafetyDeliveries'
+    __invControllerClass__ = invCtrl.AssetSafetyDeliveries
+
+
 class StationOwnerView(invCont._InvContBase):
     __guid__ = 'invCont.StationOwnerView'
     __invControllerClass__ = invCtrl.StationOwnerView
@@ -292,3 +304,51 @@ class POSCorpHangar(invCont._InvContBase):
 class SpaceComponentInventory(_BaseCelestialContainer):
     __guid__ = 'invCont.SpaceComponentInventory'
     __invControllerClass__ = invCtrl.SpaceComponentInventory
+
+
+class Structure(invCont._InvContBase):
+    __guid__ = 'invCont.Structure'
+    __invControllerClass__ = invCtrl.Structure
+
+
+class StructureAmmoBay(invCont._InvContBase):
+    __guid__ = 'invCont.StructureAmmoBay'
+    __invControllerClass__ = invCtrl.StructureAmmoBay
+
+
+class StructureFuelBay(invCont._InvContBase):
+    __guid__ = 'invCont.StructureFuelBay'
+    __invControllerClass__ = invCtrl.StructureFuelBay
+
+
+class StructureFighterBay(FighterInvCont):
+    __guid__ = 'invCont.StructureFighterBay'
+    __invControllerClass__ = invCtrl.StructureFighterBay
+
+
+class StructureItemHangar(invCont._InvContBase):
+    __guid__ = 'invCont.StructureItemHangar'
+    __invControllerClass__ = invCtrl.StructureItemHangar
+
+
+class StructureShipHangar(invCont._InvContBase):
+    __guid__ = 'invCont.StructureShipHangar'
+    __invControllerClass__ = invCtrl.StructureShipHangar
+
+
+class StructureDeliveriesHangar(invCont._InvContBase):
+    __guid__ = 'invCont.StructureDeliveriesHangar'
+    __invControllerClass__ = invCtrl.StructureDeliveriesHangar
+
+
+class StructureCorpHangar(invCont._InvContBase):
+    __guid__ = 'invCont.StructureCorpHangar'
+    __invControllerClass__ = invCtrl.StructureCorpHangar
+
+    def _GetInvController(self, attributes):
+        return self.__invControllerClass__(itemID=attributes.itemID, divisionID=attributes.divisionID)
+
+
+class AssetSafetyCorpContainer(StructureCorpHangar):
+    __guid__ = 'invCont.AssetSafetyCorpContainer'
+    __invControllerClass__ = invCtrl.AssetSafetyCorpContainer

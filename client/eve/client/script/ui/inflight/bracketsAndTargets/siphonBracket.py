@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\client\script\ui\inflight\bracketsAndTargets\siphonBracket.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\client\script\ui\inflight\bracketsAndTargets\siphonBracket.py
 from eve.client.script.ui.inflight.bracketsAndTargets.inSpaceBracket import InSpaceBracket
 import util
 import localization
@@ -19,7 +20,7 @@ class SiphonSiloBracket(InSpaceBracket):
         container.fill = Fill(parent=inner, align=uiconst.TOLEFT_PROP, width=0, padding=(0, 0, 0, 0))
         self.capacityBar = container
 
-    def Startup(self, slimItem, ball = None, transform = None):
+    def Startup(self, slimItem, ball=None, transform=None):
         InSpaceBracket.Startup(self, slimItem, ball=ball, transform=transform)
 
     def SetHint(self, hint):
@@ -36,7 +37,7 @@ class SiphonSiloBracket(InSpaceBracket):
         self.SetHint(localization.GetByLabel('UI/Inventory/ContainerQuantityAndCapacity', quantity=capacityusage.used, capacity=capacityusage.capacity))
 
     def GetSiphonCapacityUsage(self):
-        ballpark = moniker.GetBallPark(session.solarsystemid)
+        ballpark = sm.GetService('michelle').GetRemotePark()
         capacity = ballpark.GetCapacityOfSiphon(self.slimItem.itemID)
         return capacity
 

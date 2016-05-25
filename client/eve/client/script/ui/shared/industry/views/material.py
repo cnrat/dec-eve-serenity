@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\client\script\ui\shared\industry\views\material.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\client\script\ui\shared\industry\views\material.py
 from math import pi
 from carbonui.const import UI_NORMAL, CENTERTOP, UI_DISABLED, CENTERBOTTOM, TOALL, BOTTOMLEFT
 from carbonui.control.menuLabel import MenuLabel
@@ -52,6 +53,7 @@ class MaterialBase(Container):
         self.bgFill = Sprite(name='bgFill', parent=self, align=TOALL, state=UI_DISABLED, texturePath='res:/UI/Texture/Classes/Industry/Input/bg.png', color=COLOR_FRAME, opacity=0.1)
         self.ConstructBackground()
         self.UpdateState()
+        return
 
     def ConstructBackground(self):
         pass
@@ -113,6 +115,7 @@ class Material(MaterialBase):
             sm.GetService('audio').SendUIEvent('ind_insufficientMaterials')
         elif not wasReady and self.isReady:
             sm.GetService('audio').SendUIEvent('ind_sufficientMaterials')
+        return
 
     def LoadTooltipPanel(self, tooltipPanel, *args):
         self.tooltipPanel = MaterialTooltipPanel(jobData=self.jobData, materialData=self.materialData, tooltipPanel=tooltipPanel)

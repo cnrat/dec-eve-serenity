@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\packages\dogma\effects\effectconverter.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\packages\dogma\effects\effectconverter.py
 import contextlib
 import yaml
 import dogma.const as dgmconst
@@ -111,6 +112,8 @@ class YamlExpressionGenerator:
                 return yaml_expression
         else:
             return [expression.get_expression()]
+
+        return
 
     def get_expression_by_operand_id(self, expression_row):
         operand_id = expression_row.operandID

@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\client\script\ui\shared\fittingGhost\leftPanel.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\client\script\ui\shared\fittingGhost\leftPanel.py
 from carbonui.control.dragResizeCont import DragResizeCont
 from carbonui.primitives.container import Container
 from carbonui.primitives.fill import Fill
@@ -65,6 +66,7 @@ class LeftPanel(Container):
         self.ammoScroll.sr.content.OnDropData = self.OnDropData
         self.scroll.sr.content.OnDropData = self.OnDropData
         sm.RegisterNotify(self)
+        return
 
     def Load(self):
         if self.loaded:
@@ -99,7 +101,7 @@ class LeftPanel(Container):
             self.ShowOrHideElements(display=True)
             self.LoadHardware()
 
-    def ShowOrHideElements(self, display = True):
+    def ShowOrHideElements(self, display=True):
         self.filterCont.display = display
         self.ammoScrollCont.display = display
         self.searchparent.display = display
@@ -168,6 +170,7 @@ class LeftPanel(Container):
             wnd = FittingMgmt.Open()
         if wnd is not None and not wnd.destroyed:
             wnd.Maximize()
+        return
 
     def OnSimulatedShipLoaded(self, *args):
         self.CreateCurrentShipCont()
@@ -222,6 +225,7 @@ class LeftPanel(Container):
 
         scrolllist = SortListOfTuples(scrolllist)
         self.ammoScroll.Load(contentList=scrolllist)
+        return
 
     def TryFit(self, entry, ammoTypeID):
         ghostFittingSvc = sm.GetService('ghostFittingSvc')
@@ -256,7 +260,7 @@ class LeftPanel(Container):
         ghostFittingSvc.UnfitModule(itemKey)
         sm.ScatterEvent('OnFakeUpdateFittingWindow')
 
-    def AddFilterButtons2(self, buttonData, parentCont, settingConfig, func, buttonSize = 26):
+    def AddFilterButtons2(self, buttonData, parentCont, settingConfig, func, buttonSize=26):
         for buttonType, texturePath in buttonData:
             cont = Container(parent=parentCont, pos=(0,
              0,

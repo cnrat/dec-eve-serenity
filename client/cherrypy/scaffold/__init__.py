@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\carbon\common\lib\cherrypy\scaffold\__init__.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\carbon\common\lib\cherrypy\scaffold\__init__.py
 import cherrypy
 from cherrypy import tools, url
 import os
@@ -17,12 +18,13 @@ class Root:
 
     default.exposed = True
 
-    def other(self, a = 2, b = 'bananas', c = None):
+    def other(self, a=2, b='bananas', c=None):
         cherrypy.response.headers['Content-Type'] = 'text/plain'
         if c is None:
             return 'Have %d %s.' % (int(a), b)
         else:
             return 'Have %d %s, %s.' % (int(a), b, c)
+            return
 
     other.exposed = True
     files = cherrypy.tools.staticdir.handler(section='/files', dir=os.path.join(local_dir, 'static'), match='\\.(css|gif|html?|ico|jpe?g|js|png|swf|xml)$')

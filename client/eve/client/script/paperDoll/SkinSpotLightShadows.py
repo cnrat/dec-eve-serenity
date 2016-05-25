@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\client\script\paperDoll\SkinSpotLightShadows.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\client\script\paperDoll\SkinSpotLightShadows.py
 import trinity
 import geo2
 import uthread
@@ -71,7 +72,7 @@ class SkinSpotLightShadows:
             self.dataParams[light].append(lightData)
             effect.RebuildCachedData()
 
-        def createMeshAreaParams(self, meshArea, isDecal, isCloth = False, isTranslucent = False):
+        def createMeshAreaParams(self, meshArea, isDecal, isCloth=False, isTranslucent=False):
             shadowEffect = trinity.Tr2Effect()
             shadowEffect.effectFilePath = SPOTLIGHT_SHADOW_EFFECT if not isCloth else SPOTLIGHT_SHADOW_EFFECT_CLOTH
             v = trinity.Tr2Vector4Parameter()
@@ -88,34 +89,37 @@ class SkinSpotLightShadows:
                 effect = meshArea.effectReversed
             if type(effect) is not trinity.Tr2Effect:
                 return
-            if effect and isDecal:
-                for p in effect.parameters:
-                    if p.name == 'TransformUV0':
-                        v = trinity.Tr2Vector4Parameter()
-                        v.name = p.name
-                        v.value = p.value
-                        shadowEffect.parameters.append(v)
-                    elif p.name == 'CutMaskInfluence':
-                        v = trinity.Tr2FloatParameter()
-                        v.name = p.name
-                        v.value = p.value
-                        shadowEffect.parameters.append(v)
+            else:
+                if effect and isDecal:
+                    for p in effect.parameters:
+                        if p.name == 'TransformUV0':
+                            v = trinity.Tr2Vector4Parameter()
+                            v.name = p.name
+                            v.value = p.value
+                            shadowEffect.parameters.append(v)
+                        elif p.name == 'CutMaskInfluence':
+                            v = trinity.Tr2FloatParameter()
+                            v.name = p.name
+                            v.value = p.value
+                            shadowEffect.parameters.append(v)
 
-                for r in effect.resources:
-                    if r.name == 'DiffuseMap' or r.name == 'CutMaskMap':
-                        t = trinity.TriTextureParameter()
-                        t.name = r.name
-                        t.SetResource(r.resource)
-                        shadowEffect.resources.append(t)
+                    for r in effect.resources:
+                        if r.name == 'DiffuseMap' or r.name == 'CutMaskMap':
+                            t = trinity.TriTextureParameter()
+                            t.name = r.name
+                            t.SetResource(r.resource)
+                            shadowEffect.resources.append(t)
 
-            shadowEffect.RebuildCachedData()
-            if effect:
-                pdCcf.AddWeakBlue(self, 'meshAreaShadowEffect', meshArea, shadowEffect)
-                pdCcf.AddWeakBlue(self, 'meshAreaOriginalEffect', meshArea, meshArea.effect)
+                shadowEffect.RebuildCachedData()
+                if effect:
+                    pdCcf.AddWeakBlue(self, 'meshAreaShadowEffect', meshArea, shadowEffect)
+                    pdCcf.AddWeakBlue(self, 'meshAreaOriginalEffect', meshArea, meshArea.effect)
+                return
 
         def inhibitShadows(self, meshArea):
             pdCcf.AddWeakBlue(self, 'meshAreaShadowEffect', meshArea, None)
             pdCcf.AddWeakBlue(self, 'meshAreaOriginalEffect', meshArea, meshArea.effect)
+            return
 
         def applyShadowEffect(self):
             if self.meshAreaShadowEffect:
@@ -139,6 +143,8 @@ class SkinSpotLightShadows:
             if len(selfRef.scene.lights) != len(selfRef.lights):
                 selfRef.RefreshLights()
 
+        return
+
     def RefreshLights(self):
         meshes = self.meshes
         self.CreateRenderJobsForScene()
@@ -150,7 +156,7 @@ class SkinSpotLightShadows:
             if instance():
                 instance().Refresh(immediateUpdate=True)
 
-    def __init__(self, scene, size = None, format = None, applyBlur = True, debugVisualize = False, debugNoFiltering = False, lightFilter = None):
+    def __init__(self, scene, size=None, format=None, applyBlur=True, debugVisualize=False, debugNoFiltering=False, lightFilter=None):
         size = size if size else SkinSpotLightShadows.DEFAULT_RESOLUTION
         trinity.device.RegisterResource(self)
         self.scene = scene
@@ -184,6 +190,7 @@ class SkinSpotLightShadows:
           0.5 + self.shiftV,
           0,
           1))
+        return
 
     def SetShadowMapResolution(self, size):
         self.width = self.height = size
@@ -203,25 +210,29 @@ class SkinSpotLightShadows:
         self.Clear(killThread=True)
         if self.scene is not None and hasattr(self.scene, 'updateShadowCubeMap'):
             self.scene.updateShadowCubeMap = self.oldShadowsEnabled
+        return
 
     @staticmethod
-    def SetupForCharacterCreator(scene, shadowMapSize = None, lightFilter = None):
+    def SetupForCharacterCreator(scene, shadowMapSize=None, lightFilter=None):
         if scene is None:
             return
-        if SkinSpotLightShadows.instance is not None:
-            if scene == SkinSpotLightShadows.instance.scene:
-                SkinSpotLightShadows.instance.RefreshLights()
-                return
-            SkinSpotLightShadows.instance.Clear(killThread=True)
-            SkinSpotLightShadows.instance = None
-        SkinSpotLightShadows.instance = SkinSpotLightShadows(scene, size=shadowMapSize, lightFilter=lightFilter)
-        SkinSpotLightShadows.instance.CreateRenderJobsForScene()
-        SkinSpotLightShadows.SetupFloorDropShadow(scene)
-        for dynamic in scene.dynamics:
-            if dynamic.__typename__ == 'Tr2IntSkinnedObject':
-                SkinSpotLightShadows.instance.SetupSkinnedObject(dynamic, createJobs=False)
+        else:
+            if SkinSpotLightShadows.instance is not None:
+                if scene == SkinSpotLightShadows.instance.scene:
+                    SkinSpotLightShadows.instance.RefreshLights()
+                    return
+                SkinSpotLightShadows.instance.Clear(killThread=True)
+                SkinSpotLightShadows.instance = None
+            SkinSpotLightShadows.instance = SkinSpotLightShadows(scene, size=shadowMapSize, lightFilter=lightFilter)
+            SkinSpotLightShadows.instance.CreateRenderJobsForScene()
+            SkinSpotLightShadows.SetupFloorDropShadow(scene)
+            for dynamic in scene.dynamics:
+                if dynamic.__typename__ == 'Tr2IntSkinnedObject':
+                    SkinSpotLightShadows.instance.SetupSkinnedObject(dynamic, createJobs=False)
 
-    def SetupSkinnedObject(self, object, createJobs = True):
+            return
+
+    def SetupSkinnedObject(self, object, createJobs=True):
         if createJobs:
             self.CreateRenderJobsForScene()
         if object and object.visualModel:
@@ -253,8 +264,9 @@ class SkinSpotLightShadows:
                 rj.UnscheduleRecurring()
 
         self.jobs = {}
+        return
 
-    def Clear(self, killThread = False):
+    def Clear(self, killThread=False):
         if killThread and self.watchdogThread is not None:
             self.watchdogThread.kill()
             self.watchdogThread = None
@@ -263,106 +275,109 @@ class SkinSpotLightShadows:
         self.RTs = {}
         pdCcf.DestroyWeakBlueDict(self.meshes)
         self.meshes = {}
+        return
 
     def ComputeProjectionMatrix(self, projection, light, viewmat):
         fov = light.coneAlphaOuter * 3.1415927 / 90.0
         projection.PerspectiveFov(fov, 1.0, 0.1, light.radius)
         if not self.scene or not self.autoOptimizeFrustum:
             return
-        model = None
-        for dynamic in self.scene.dynamics:
-            if dynamic.__typename__ == 'Tr2IntSkinnedObject':
-                if model is not None:
-                    return
-                model = dynamic
+        else:
+            model = None
+            for dynamic in self.scene.dynamics:
+                if dynamic.__typename__ == 'Tr2IntSkinnedObject':
+                    if model is not None:
+                        return
+                    model = dynamic
 
-        if model is None:
+            if model is None:
+                return
+            VP = geo2.MatrixMultiply(viewmat, projection.transform)
+            m = model.transform
+            mm = ((m._11,
+              m._12,
+              m._13,
+              m._14),
+             (m._21,
+              m._22,
+              m._23,
+              m._24),
+             (m._31,
+              m._32,
+              m._33,
+              m._34),
+             (m._41,
+              m._42,
+              m._43,
+              m._44))
+            obb = model.GetClippedWorldBoundingObb(mm)
+
+            def getPoint(i):
+                p = obb[3]
+                x = obb[0]
+                y = obb[1]
+                z = obb[2]
+                size = obb[4]
+                p = geo2.Vec3Add(p, geo2.Vec3Scale(x, size[0] if i & 1 else -size[0]))
+                p = geo2.Vec3Add(p, geo2.Vec3Scale(y, size[1] if i & 2 else -size[1]))
+                p = geo2.Vec3Add(p, geo2.Vec3Scale(z, size[2] if i & 4 else -size[2]))
+                return p
+
+            maxx = -1.0
+            maxy = -1.0
+            minx = 1.0
+            miny = 1.0
+            pClip = []
+            for i in xrange(8):
+                p = getPoint(i)
+                pClip.append((p[0],
+                 p[1],
+                 p[2],
+                 1))
+
+            pClip = geo2.Vec4TransformArray(pClip, VP)
+            for pp in pClip:
+                if pp[3] < 0.0001:
+                    continue
+                pp = (pp[0] / pp[3], pp[1] / pp[3], pp[2] / pp[3])
+                minx = min(minx, pp[0])
+                miny = min(miny, pp[1])
+                maxx = max(maxx, pp[0])
+                maxy = max(maxy, pp[1])
+
+            def clip(x):
+                if x < -1.0:
+                    return -1.0
+                if x > 1.0:
+                    return 1.0
+                return x
+
+            minx = clip(minx)
+            miny = clip(miny)
+            maxx = clip(maxx)
+            maxy = clip(maxy)
+            if minx >= maxx or miny >= maxy:
+                return
+            scalex = 2.0 / (maxx - minx)
+            scaley = 2.0 / (maxy - miny)
+            biasx = (minx + maxx) / (minx - maxx)
+            biasy = (miny + maxy) / (miny - maxy)
+            bias = ((scalex,
+              0,
+              0,
+              0),
+             (0,
+              scaley,
+              0,
+              0),
+             (0, 0, 1, 0),
+             (biasx,
+              biasy,
+              0,
+              1))
+            projM = geo2.MatrixMultiply(projection.transform, bias)
+            projection.CustomProjection(projM)
             return
-        VP = geo2.MatrixMultiply(viewmat, projection.transform)
-        m = model.transform
-        mm = ((m._11,
-          m._12,
-          m._13,
-          m._14),
-         (m._21,
-          m._22,
-          m._23,
-          m._24),
-         (m._31,
-          m._32,
-          m._33,
-          m._34),
-         (m._41,
-          m._42,
-          m._43,
-          m._44))
-        obb = model.GetClippedWorldBoundingObb(mm)
-
-        def getPoint(i):
-            p = obb[3]
-            x = obb[0]
-            y = obb[1]
-            z = obb[2]
-            size = obb[4]
-            p = geo2.Vec3Add(p, geo2.Vec3Scale(x, size[0] if i & 1 else -size[0]))
-            p = geo2.Vec3Add(p, geo2.Vec3Scale(y, size[1] if i & 2 else -size[1]))
-            p = geo2.Vec3Add(p, geo2.Vec3Scale(z, size[2] if i & 4 else -size[2]))
-            return p
-
-        maxx = -1.0
-        maxy = -1.0
-        minx = 1.0
-        miny = 1.0
-        pClip = []
-        for i in xrange(8):
-            p = getPoint(i)
-            pClip.append((p[0],
-             p[1],
-             p[2],
-             1))
-
-        pClip = geo2.Vec4TransformArray(pClip, VP)
-        for pp in pClip:
-            if pp[3] < 0.0001:
-                continue
-            pp = (pp[0] / pp[3], pp[1] / pp[3], pp[2] / pp[3])
-            minx = min(minx, pp[0])
-            miny = min(miny, pp[1])
-            maxx = max(maxx, pp[0])
-            maxy = max(maxy, pp[1])
-
-        def clip(x):
-            if x < -1.0:
-                return -1.0
-            if x > 1.0:
-                return 1.0
-            return x
-
-        minx = clip(minx)
-        miny = clip(miny)
-        maxx = clip(maxx)
-        maxy = clip(maxy)
-        if minx >= maxx or miny >= maxy:
-            return
-        scalex = 2.0 / (maxx - minx)
-        scaley = 2.0 / (maxy - miny)
-        biasx = (minx + maxx) / (minx - maxx)
-        biasy = (miny + maxy) / (miny - maxy)
-        bias = ((scalex,
-          0,
-          0,
-          0),
-         (0,
-          scaley,
-          0,
-          0),
-         (0, 0, 1, 0),
-         (biasx,
-          biasy,
-          0,
-          1))
-        projM = geo2.MatrixMultiply(projection.transform, bias)
-        projection.CustomProjection(projM)
 
     def UpdateViewProjForLight(self, stepView, stepProj, light, effectValue):
         eye = light.position
@@ -401,118 +416,120 @@ class SkinSpotLightShadows:
             light.importanceBias = -9999
             light.shadowCasterTypes = 0
             return
-        light.importanceScale = 0
-        light.importanceBias = -len(self.lights)
-        if SkinSpotLightShadows.REUSE_ENGINE_MAPS:
-            self.RTs[light] = light.GetShadowTextureRes()
+        else:
+            light.importanceScale = 0
+            light.importanceBias = -len(self.lights)
+            if SkinSpotLightShadows.REUSE_ENGINE_MAPS:
+                self.RTs[light] = light.GetShadowTextureRes()
+                rj = trinity.CreateRenderJob('render shadowmap ' + str(light))
+                self.jobs[light] = [rj]
+                cb = trinity.TriStepPythonCB()
+                cb.name = 'UpdateViewProjForLight'
+                cb.SetCallback(lambda : self.UpdateViewProjForLight(None, None, light, None))
+                rj.steps.append(cb)
+                rj.ScheduleRecurring()
+                return
             rj = trinity.CreateRenderJob('render shadowmap ' + str(light))
-            self.jobs[light] = [rj]
+            renderTarget = None
+            while self.width > 8:
+                renderTarget = trinity.Tr2RenderTarget(self.width, self.height, 1, self.format)
+                if renderTarget is None or not renderTarget.isValid:
+                    renderTarget = None
+                    self.width /= 2
+                    self.height /= 2
+                    pdCf.Yield()
+                else:
+                    break
+
+            self.RTs[light] = renderTarget
+            depthStencil = None
+            while self.width > 8:
+                depthStencil = trinity.Tr2DepthStencil(self.width, self.height, trinity.DEPTH_STENCIL_FORMAT.D24S8)
+                if depthStencil is None or not depthStencil.isValid:
+                    depthStencil = None
+                    self.width /= 2
+                    self.height /= 2
+                    pdCf.Yield()
+                else:
+                    break
+
+            if not renderTarget or not depthStencil or not renderTarget.isValid or not depthStencil.isValid:
+                return
+            v = None
+            rj.PushViewport()
+            rj.PushRenderTarget(renderTarget)
+            rj.PushDepthStencil(depthStencil)
+            clearColor = (100.0, 1.0, 1.0, 1.0)
+            rj.Clear(clearColor, 1.0)
+            vp = trinity.TriViewport()
+            vp.x = 0
+            vp.y = 0
+            vp.width = self.width
+            vp.height = self.height
+            rj.PushProjection()
+            rj.PushViewTransform()
+            rj.SetViewport(vp)
             cb = trinity.TriStepPythonCB()
             cb.name = 'UpdateViewProjForLight'
-            cb.SetCallback(lambda : self.UpdateViewProjForLight(None, None, light, None))
             rj.steps.append(cb)
-            rj.ScheduleRecurring()
-            return
-        rj = trinity.CreateRenderJob('render shadowmap ' + str(light))
-        renderTarget = None
-        while self.width > 8:
-            renderTarget = trinity.Tr2RenderTarget(self.width, self.height, 1, self.format)
-            if renderTarget is None or not renderTarget.isValid:
-                renderTarget = None
-                self.width /= 2
-                self.height /= 2
-                pdCf.Yield()
+            stepProj = rj.SetProjection(trinity.TriProjection())
+            stepView = rj.SetView(trinity.TriView())
+            self.UpdateViewProjForLight(stepView, stepProj, light, v)
+            cb.SetCallback(lambda : self.UpdateViewProjForLight(stepView, stepProj, light, v))
+
+            def applyVisualizer(doIt):
+                for meshData in self.meshes.itervalues():
+                    if doIt:
+                        meshData.applyShadowEffect()
+                    else:
+                        meshData.applyOriginalEffect()
+
+            cb = trinity.TriStepPythonCB()
+            cb.name = 'applyVisualizer(True)'
+            cb.SetCallback(lambda : applyVisualizer(True))
+            rj.steps.append(cb)
+            rj.RenderScene(self.scene)
+            cb = trinity.TriStepPythonCB()
+            cb.name = 'applyVisualizer(False)'
+            cb.SetCallback(lambda : applyVisualizer(False))
+            rj.steps.append(cb)
+            rj.PopDepthStencil()
+            rj.PopRenderTarget()
+            rj.PopViewTransform().name = 'TriStepPopViewTransform Restoring state'
+            rj.PopViewport()
+            rj.PopProjection()
+            if SkinSpotLightShadows.renderJob is not None and SkinSpotLightShadows.renderJob.object is not None:
+                step = trinity.TriStepRunJob()
+                step.job = rj
+                SkinSpotLightShadows.renderJob.object.steps.insert(0, step)
             else:
-                break
-
-        self.RTs[light] = renderTarget
-        depthStencil = None
-        while self.width > 8:
-            depthStencil = trinity.Tr2DepthStencil(self.width, self.height, trinity.DEPTH_STENCIL_FORMAT.D24S8)
-            if depthStencil is None or not depthStencil.isValid:
-                depthStencil = None
-                self.width /= 2
-                self.height /= 2
-                pdCf.Yield()
-            else:
-                break
-
-        if not renderTarget or not depthStencil or not renderTarget.isValid or not depthStencil.isValid:
-            return
-        v = None
-        rj.PushViewport()
-        rj.PushRenderTarget(renderTarget)
-        rj.PushDepthStencil(depthStencil)
-        clearColor = (100.0, 1.0, 1.0, 1.0)
-        rj.Clear(clearColor, 1.0)
-        vp = trinity.TriViewport()
-        vp.x = 0
-        vp.y = 0
-        vp.width = self.width
-        vp.height = self.height
-        rj.PushProjection()
-        rj.PushViewTransform()
-        rj.SetViewport(vp)
-        cb = trinity.TriStepPythonCB()
-        cb.name = 'UpdateViewProjForLight'
-        rj.steps.append(cb)
-        stepProj = rj.SetProjection(trinity.TriProjection())
-        stepView = rj.SetView(trinity.TriView())
-        self.UpdateViewProjForLight(stepView, stepProj, light, v)
-        cb.SetCallback(lambda : self.UpdateViewProjForLight(stepView, stepProj, light, v))
-
-        def applyVisualizer(doIt):
-            for meshData in self.meshes.itervalues():
-                if doIt:
-                    meshData.applyShadowEffect()
+                self.jobs[light] = [rj]
+                rj.ScheduleRecurring(insertFront=True)
+            if self.debugVisualize:
+                rj2 = trinity.CreateRenderJob('visualize shadowmap ' + str(light))
+                if light not in self.jobs:
+                    self.jobs[light] = [rj2]
                 else:
-                    meshData.applyOriginalEffect()
-
-        cb = trinity.TriStepPythonCB()
-        cb.name = 'applyVisualizer(True)'
-        cb.SetCallback(lambda : applyVisualizer(True))
-        rj.steps.append(cb)
-        rj.RenderScene(self.scene)
-        cb = trinity.TriStepPythonCB()
-        cb.name = 'applyVisualizer(False)'
-        cb.SetCallback(lambda : applyVisualizer(False))
-        rj.steps.append(cb)
-        rj.PopDepthStencil()
-        rj.PopRenderTarget()
-        rj.PopViewTransform().name = 'TriStepPopViewTransform Restoring state'
-        rj.PopViewport()
-        rj.PopProjection()
-        if SkinSpotLightShadows.renderJob is not None and SkinSpotLightShadows.renderJob.object is not None:
-            step = trinity.TriStepRunJob()
-            step.job = rj
-            SkinSpotLightShadows.renderJob.object.steps.insert(0, step)
-        else:
-            self.jobs[light] = [rj]
-            rj.ScheduleRecurring(insertFront=True)
-        if self.debugVisualize:
-            rj2 = trinity.CreateRenderJob('visualize shadowmap ' + str(light))
-            if light not in self.jobs:
-                self.jobs[light] = [rj2]
-            else:
-                self.jobs[light].append(rj2)
-            rj2.PushDepthStencil(None)
-            size = 200
-            vp2 = trinity.TriViewport()
-            vp2.x = 10
-            vp2.y = 10 + (size + 10) * (len(self.lights) - 1)
-            vp2.width = size
-            vp2.height = size
-            rj2.PushViewport()
-            rj2.PushProjection()
-            rj2.PushViewTransform()
-            rj2.SetViewport(vp2)
-            rj2.SetStdRndStates(trinity.RM_FULLSCREEN)
-            rj2.RenderTexture(renderTarget)
-            rj2.PopViewTransform()
-            rj2.PopProjection()
-            rj2.PopViewport()
-            rj2.PopDepthStencil()
-            rj2.ScheduleRecurring()
+                    self.jobs[light].append(rj2)
+                rj2.PushDepthStencil(None)
+                size = 200
+                vp2 = trinity.TriViewport()
+                vp2.x = 10
+                vp2.y = 10 + (size + 10) * (len(self.lights) - 1)
+                vp2.width = size
+                vp2.height = size
+                rj2.PushViewport()
+                rj2.PushProjection()
+                rj2.PushViewTransform()
+                rj2.SetViewport(vp2)
+                rj2.SetStdRndStates(trinity.RM_FULLSCREEN)
+                rj2.RenderTexture(renderTarget)
+                rj2.PopViewTransform()
+                rj2.PopProjection()
+                rj2.PopViewport()
+                rj2.PopDepthStencil()
+                rj2.ScheduleRecurring()
+            return
 
     def CreateRenderJobsForScene(self):
         self.Clear()
@@ -533,7 +550,9 @@ class SkinSpotLightShadows:
             if renderTarget is not None:
                 meshData.createEffectParamsForLight(effect, l, light, renderTarget, self.debugNoFiltering)
 
-    def CreateEffectParamsForMesh(self, mesh, isClothMesh = False):
+        return
+
+    def CreateEffectParamsForMesh(self, mesh, isClothMesh=False):
         meshData = self.MeshData(self.width, isClothMesh)
 
         def IsHair(mesh):
@@ -593,7 +612,7 @@ class SkinSpotLightShadows:
         else:
             pdCcf.AddWeakBlue(self, 'meshes', mesh, meshData)
 
-    def CreateShadowStep(renderJob, append = True):
+    def CreateShadowStep(renderJob, append=True):
         shadowStep = trinity.TriStepRunJob()
         shadowStep.name = 'Spotlight shadows'
         shadowStep.job = trinity.CreateRenderJob('Render shadowmaps')
@@ -605,68 +624,73 @@ class SkinSpotLightShadows:
         return shadowStep
 
     @staticmethod
-    def SetupFloorDropShadow(scene, doYield = True):
+    def SetupFloorDropShadow(scene, doYield=True):
         if scene is None or SkinSpotLightShadows.instance is None:
             return
+        else:
 
-        def SetupCurve(effect):
-            doll = scene.dynamics[0]
-            if doll is None:
-                return
-            setName = 'Dropshadow foot tracker'
-            set = None
-            for s in doll.curveSets:
-                if s.name == setName:
-                    set = s
-                    set.curves.removeAt(-1)
-                    set.bindings.removeAt(-1)
+            def SetupCurve(effect):
+                doll = scene.dynamics[0]
+                if doll is None:
+                    return
+                else:
+                    setName = 'Dropshadow foot tracker'
+                    set = None
+                    for s in doll.curveSets:
+                        if s.name == setName:
+                            set = s
+                            set.curves.removeAt(-1)
+                            set.bindings.removeAt(-1)
+                            break
+                    else:
+                        set = trinity.TriCurveSet()
+                        set.name = setName
+                        doll.curveSets.append(set)
+
+                    bones = ['LeftFoot', 'RightFoot']
+                    for bone in bones:
+                        curve = trinity.Tr2BoneMatrixCurve()
+                        curve.skinnedObject = doll
+                        curve.bone = bone
+                        curve.name = bone
+                        param = pdCcf.FindOrAddVec4(effect, bone)
+                        bind = trinity.TriValueBinding()
+                        bind.destinationObject = param
+                        bind.destinationAttribute = 'value'
+                        bind.sourceObject = curve
+                        bind.sourceAttribute = 'currentValue'
+                        bind.name = bone
+                        set.curves.append(curve)
+                        set.bindings.append(bind)
+
+                    set.Play()
+                    return
+
+            lights = scene.lights
+            frontMainLightIndex = 0
+            for light in lights:
+                if light.name == 'FrontMain':
+                    frontMainLightIndex = lights.index(light)
                     break
-            else:
-                set = trinity.TriCurveSet()
-                set.name = setName
-                doll.curveSets.append(set)
 
-            bones = ['LeftFoot', 'RightFoot']
-            for bone in bones:
-                curve = trinity.Tr2BoneMatrixCurve()
-                curve.skinnedObject = doll
-                curve.bone = bone
-                curve.name = bone
-                param = pdCcf.FindOrAddVec4(effect, bone)
-                bind = trinity.TriValueBinding()
-                bind.destinationObject = param
-                bind.destinationAttribute = 'value'
-                bind.sourceObject = curve
-                bind.sourceAttribute = 'currentValue'
-                bind.name = bone
-                set.curves.append(curve)
-                set.bindings.append(bind)
+            values = [(1, 0, 0, 0),
+             (0, 1, 0, 0),
+             (0, 0, 1, 0),
+             (0, 0, 0, 1)]
+            for cell in scene.cells:
+                for static in cell.statics:
+                    if SkinSpotLightShadows.instance is not None:
+                        SkinSpotLightShadows.instance.CreateEffectParamsForMesh(static, isClothMesh=False)
+                    for area in static.enlightenAreas:
+                        area.effect.effectFilePath = 'res:/Graphics/Effect/Managed/Interior/Avatar/PortraitDropShadow.fx'
+                        if doYield:
+                            while area.effect.effectResource.isLoading:
+                                pdCf.Yield()
 
-            set.Play()
+                        SetupCurve(area.effect)
+                        area.effect.RebuildCachedData()
+                        if frontMainLightIndex < len(values):
+                            p = pdCcf.FindOrAddVec4(area.effect, 'ShadowSelector')
+                            p.value = values[frontMainLightIndex]
 
-        lights = scene.lights
-        frontMainLightIndex = 0
-        for light in lights:
-            if light.name == 'FrontMain':
-                frontMainLightIndex = lights.index(light)
-                break
-
-        values = [(1, 0, 0, 0),
-         (0, 1, 0, 0),
-         (0, 0, 1, 0),
-         (0, 0, 0, 1)]
-        for cell in scene.cells:
-            for static in cell.statics:
-                if SkinSpotLightShadows.instance is not None:
-                    SkinSpotLightShadows.instance.CreateEffectParamsForMesh(static, isClothMesh=False)
-                for area in static.enlightenAreas:
-                    area.effect.effectFilePath = 'res:/Graphics/Effect/Managed/Interior/Avatar/PortraitDropShadow.fx'
-                    if doYield:
-                        while area.effect.effectResource.isLoading:
-                            pdCf.Yield()
-
-                    SetupCurve(area.effect)
-                    area.effect.RebuildCachedData()
-                    if frontMainLightIndex < len(values):
-                        p = pdCcf.FindOrAddVec4(area.effect, 'ShadowSelector')
-                        p.value = values[frontMainLightIndex]
+            return

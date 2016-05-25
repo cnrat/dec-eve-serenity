@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\packages\bugreporter\util.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\packages\bugreporter\util.py
 MIME_TYPES_BY_FILE_EXTENSION = {'323': 'text/h323',
  '3g2': 'video/3gpp2',
  '3gp': 'video/3gpp',

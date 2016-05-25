@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\common\modules\nice\client\_nastyspace\browserConst.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\common\modules\nice\client\_nastyspace\browserConst.py
 from carbonui.control.browser.browserConst import commandCopy
 from carbonui.control.browser.browserConst import commandCut
 from carbonui.control.browser.browserConst import commandDelete

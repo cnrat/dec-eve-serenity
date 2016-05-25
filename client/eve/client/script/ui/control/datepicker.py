@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\client\script\ui\control\datepicker.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\client\script\ui\control\datepicker.py
 import uiprimitives
 import uicontrols
 import blue
@@ -23,7 +24,7 @@ class DatePicker(uiprimitives.Container):
      localization.GetByLabel('UI/Common/Months/November'),
      localization.GetByLabel('UI/Common/Months/December')]
 
-    def Startup(self, now, withTime = False, timeparts = 4, startYear = None, yearRange = None):
+    def Startup(self, now, withTime=False, timeparts=4, startYear=None, yearRange=None):
         self.timeparts = timeparts
         if now is None:
             now = time.gmtime()
@@ -67,6 +68,7 @@ class DatePicker(uiprimitives.Container):
              0), align=uiconst.TOPLEFT, adjustWidth=True)
             self.width = self.hcombo.left + self.hcombo.width
             self.height = self.hcombo.height
+        return
 
     def OnComboChange(self, combo, header, value, *args):
         self.CheckDays()

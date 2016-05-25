@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\carbon\client\script\entities\combatLogWindow.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\carbon\client\script\entities\combatLogWindow.py
 import uicontrols
 import base
 import uicls
@@ -34,6 +35,7 @@ class CombatLogWindow(uicontrols.Window):
     def _OnClose(self, *args):
         uicontrols.Window._OnClose(self, *args)
         self.sr.updateTimer = None
+        return
 
     def _UpdateComboBoxes(self):
         self.entityList = self.zactionLoggerSvc.GetEntityList()
@@ -55,7 +57,7 @@ class CombatLogWindow(uicontrols.Window):
         self.selectedEntity = scrollEntry.sr.node.entID
         self._GetCombatLogLines(bForceUpdate=True)
 
-    def _GetCombatLogLines(self, bForceUpdate = False):
+    def _GetCombatLogLines(self, bForceUpdate=False):
         serverLineNumber = self.zactionLoggerSvc.GetLineNumber()
         serverComboElementVersion = self.zactionLoggerSvc.GetComboElementVersion()
         if bForceUpdate or serverLineNumber != self.lineNumber:

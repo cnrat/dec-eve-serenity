@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\client\script\paperDoll\paperDollPortrait.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\client\script\paperDoll\paperDollPortrait.py
 import math
 import os
 import geo2
@@ -47,226 +48,235 @@ class PortraitTools(object):
     def SetupWrinkleMapControls(self, avatar, effects, pdDoll):
         if avatar is None:
             return
-        set = trinity.TriCurveSet()
-        set.name = 'Wrinkles'
-        for s in avatar.curveSets:
-            if s.name == 'Wrinkles':
-                for bind in s.bindings:
-                    if hasattr(bind, 'copyValueCallable'):
-                        bind.copyValueCallable = None
+        else:
+            set = trinity.TriCurveSet()
+            set.name = 'Wrinkles'
+            for s in avatar.curveSets:
+                if s.name == 'Wrinkles':
+                    for bind in s.bindings:
+                        if hasattr(bind, 'copyValueCallable'):
+                            bind.copyValueCallable = None
 
-                avatar.curveSets.remove(s)
-                break
+                    avatar.curveSets.remove(s)
+                    break
 
-        avatar.curveSets.append(set)
-        weakAvatar = blue.BluePythonWeakRef(avatar)
-        pdDoll.LoadBindPose()
+            avatar.curveSets.append(set)
+            weakAvatar = blue.BluePythonWeakRef(avatar)
+            pdDoll.LoadBindPose()
 
-        def CreateBoneDriver(set, bone1, bone2, zone, min, max, oldMin, oldMax, curveDictionary, name, tweakData):
-            if bone1 in pdDoll.bindPose and bone1 in pdDoll.boneOffsets and bone2 in pdDoll.bindPose and bone2 in pdDoll.boneOffsets:
-                bindPosePos1 = pdDoll.bindPose[bone1]['translation']
-                offset1 = pdDoll.boneOffsets[bone1]['translation']
-                bindPosePos2 = pdDoll.bindPose[bone2]['translation']
-                offset2 = pdDoll.boneOffsets[bone2]['translation']
-                realPos1 = (bindPosePos1[0] / 100.0 + offset1[0], bindPosePos1[1] / 100.0 + offset1[1], bindPosePos1[2] / 100.0 + offset1[2])
-                realPos2 = (bindPosePos2[0] / 100.0 + offset2[0], bindPosePos2[1] / 100.0 + offset2[1], bindPosePos2[2] / 100.0 + offset2[2])
-                bindPoseDist = geo2.Vec3Distance(bindPosePos1, bindPosePos2) / 100.0
-                dist = geo2.Vec3Distance(realPos1, realPos2)
-                multiplier = dist / bindPoseDist
-                oldMin = oldMin * multiplier
-                oldMax = oldMax * multiplier
+            def CreateBoneDriver(set, bone1, bone2, zone, min, max, oldMin, oldMax, curveDictionary, name, tweakData):
+                if bone1 in pdDoll.bindPose and bone1 in pdDoll.boneOffsets and bone2 in pdDoll.bindPose and bone2 in pdDoll.boneOffsets:
+                    bindPosePos1 = pdDoll.bindPose[bone1]['translation']
+                    offset1 = pdDoll.boneOffsets[bone1]['translation']
+                    bindPosePos2 = pdDoll.bindPose[bone2]['translation']
+                    offset2 = pdDoll.boneOffsets[bone2]['translation']
+                    realPos1 = (bindPosePos1[0] / 100.0 + offset1[0], bindPosePos1[1] / 100.0 + offset1[1], bindPosePos1[2] / 100.0 + offset1[2])
+                    realPos2 = (bindPosePos2[0] / 100.0 + offset2[0], bindPosePos2[1] / 100.0 + offset2[1], bindPosePos2[2] / 100.0 + offset2[2])
+                    bindPoseDist = geo2.Vec3Distance(bindPosePos1, bindPosePos2) / 100.0
+                    dist = geo2.Vec3Distance(realPos1, realPos2)
+                    multiplier = dist / bindPoseDist
+                    oldMin = oldMin * multiplier
+                    oldMax = oldMax * multiplier
 
-            def GetOrMakeCurve(bone, set, curveDictionary, name):
-                curve = curveDictionary.get((weakAvatar, bone), None)
-                if curve is not None:
-                    return curve
-                curve = trinity.Tr2BoneMatrixCurve()
-                curve.bone = bone
-                curve.name = name
-                curveDictionary[weakAvatar, bone] = curve
-                set.curves.append(curve)
-                return curve
+                def GetOrMakeCurve(bone, set, curveDictionary, name):
+                    curve = curveDictionary.get((weakAvatar, bone), None)
+                    if curve is not None:
+                        return curve
+                    else:
+                        curve = trinity.Tr2BoneMatrixCurve()
+                        curve.bone = bone
+                        curve.name = name
+                        curveDictionary[weakAvatar, bone] = curve
+                        set.curves.append(curve)
+                        return curve
 
-            curve1 = GetOrMakeCurve(bone1, set, curveDictionary, 'bone1')
-            curve2 = GetOrMakeCurve(bone2, set, curveDictionary, 'bone2')
-            bind = trinity.TriValueBinding()
-            set.bindings.append(bind)
+                curve1 = GetOrMakeCurve(bone1, set, curveDictionary, 'bone1')
+                curve2 = GetOrMakeCurve(bone2, set, curveDictionary, 'bone2')
+                bind = trinity.TriValueBinding()
+                set.bindings.append(bind)
 
-            def distanceBinding(curve1, curve2, min, max, parameters, index, gamma):
+                def distanceBinding(curve1, curve2, min, max, parameters, index, gamma):
+                    avatar = weakAvatar.object
+                    if avatar is None:
+                        return
+                    else:
+                        curve1.skinnedObject = avatar
+                        curve2.skinnedObject = avatar
+                        if curve1.startValue == curve1.currentValue or curve2.startValue == curve2.currentValue:
+                            curve1.skinnedObject = None
+                            curve2.skinnedObject = None
+                            return
+                        p1 = curve1.currentValue[3]
+                        p2 = curve2.currentValue[3]
+                        dist = geo2.Vec3Distance(p1, p2)
+                        d = 1.0 - (dist - min) * 1 / (max - min)
+                        if d < 0:
+                            d = 0
+                        elif d > 1:
+                            d = 1
+                        if gamma != 1.0:
+                            d = math.pow(d, gamma)
+                        if False:
+                            trinity.GetDebugRenderer().DrawLine((p1[0], p1[1], p1[2]), 4294967295L, (p2[0], p2[1], p2[2]), 4294967295L)
+                            trinity.GetDebugRenderer().Print3D((p1[0], p1[1], p1[2]), 4294967295L, str(dist))
+                            trinity.GetDebugRenderer().Print3D((p2[0], p2[1], p2[2]), 4294967295L, str(d))
+                        for p_ in parameters:
+                            p = p_.object
+                            if p is None:
+                                continue
+                            if index == 1:
+                                p.v1 = d
+                            if index == 2:
+                                p.v2 = d
+                            if index == 3:
+                                p.v3 = d
+                            if index == 4:
+                                p.v4 = d
+
+                        curve1.skinnedObject = None
+                        curve2.skinnedObject = None
+                        return
+
+                zone = zone - 1
+                paramIndex = zone / 4 + 1
+                index = zone % 4 + 1
+                param = 'WrinkleNormalStrength' + str(paramIndex)
+                parameters = []
+                for fx in effects:
+                    for p in fx.parameters:
+                        if p.name == param:
+                            parameters.append(blue.BluePythonWeakRef(p))
+
+                gammaCurves = tweakData.get('gammaCurves', {})
+                gamma = gammaCurves.get(name, gammaCurves.get('default', 1.0))
+                bind.copyValueCallable = lambda source, dest: distanceBinding(curve1, curve2, oldMin, oldMax, parameters, index, gamma)
+
+            def CreateAxisDriver(set, jointName, zone, axis, maxValue, name, tweakData, pdDoll):
                 avatar = weakAvatar.object
-                if avatar is None:
+                if avatar is None or not hasattr(avatar, 'animationUpdater') or avatar.animationUpdater is None or not hasattr(avatar.animationUpdater, 'network') or avatar.animationUpdater.network is None:
                     return
-                curve1.skinnedObject = avatar
-                curve2.skinnedObject = avatar
-                if curve1.startValue == curve1.currentValue or curve2.startValue == curve2.currentValue:
-                    curve1.skinnedObject = None
-                    curve2.skinnedObject = None
-                    return
-                p1 = curve1.currentValue[3]
-                p2 = curve2.currentValue[3]
-                dist = geo2.Vec3Distance(p1, p2)
-                d = 1.0 - (dist - min) * 1 / (max - min)
-                if d < 0:
-                    d = 0
-                elif d > 1:
-                    d = 1
-                if gamma != 1.0:
-                    d = math.pow(d, gamma)
-                if False:
-                    trinity.GetDebugRenderer().DrawLine((p1[0], p1[1], p1[2]), 4294967295L, (p2[0], p2[1], p2[2]), 4294967295L)
-                    trinity.GetDebugRenderer().Print3D((p1[0], p1[1], p1[2]), 4294967295L, str(dist))
-                    trinity.GetDebugRenderer().Print3D((p2[0], p2[1], p2[2]), 4294967295L, str(d))
-                for p_ in parameters:
-                    p = p_.object
-                    if p is None:
-                        continue
-                    if index == 1:
-                        p.v1 = d
-                    if index == 2:
-                        p.v2 = d
-                    if index == 3:
-                        p.v3 = d
-                    if index == 4:
-                        p.v4 = d
-
-                curve1.skinnedObject = None
-                curve2.skinnedObject = None
-
-            zone = zone - 1
-            paramIndex = zone / 4 + 1
-            index = zone % 4 + 1
-            param = 'WrinkleNormalStrength' + str(paramIndex)
-            parameters = []
-            for fx in effects:
-                for p in fx.parameters:
-                    if p.name == param:
-                        parameters.append(blue.BluePythonWeakRef(p))
-
-            gammaCurves = tweakData.get('gammaCurves', {})
-            gamma = gammaCurves.get(name, gammaCurves.get('default', 1.0))
-            bind.copyValueCallable = lambda source, dest: distanceBinding(curve1, curve2, oldMin, oldMax, parameters, index, gamma)
-
-        def CreateAxisDriver(set, jointName, zone, axis, maxValue, name, tweakData, pdDoll):
-            avatar = weakAvatar.object
-            if avatar is None or not hasattr(avatar, 'animationUpdater') or avatar.animationUpdater is None or not hasattr(avatar.animationUpdater, 'network') or avatar.animationUpdater.network is None:
-                return
-            bind = trinity.TriValueBinding()
-            set.bindings.append(bind)
-            if not hasattr(avatar.animationUpdater, 'network'):
-                return
-            jointIndex = avatar.animationUpdater.network.GetBoneIndex(jointName)
-            if jointIndex == -1:
-                print "Error: Can't find bone for axis control: " + jointName
-                return
-            if not type(jointIndex) == type(1):
-                print 'Non-int returned for bone in axis: ' + str(jointIndex) + ', name:' + jointName
-                return
-            bindPosePos = pdDoll.bindPose[jointName]
-            if jointName in pdDoll.boneOffsets:
-                offset = pdDoll.boneOffsets[jointName]
-            else:
-                offset = {'translation': [0, 0, 0]}
-            startPos = [0,
-             0,
-             0,
-             0,
-             0,
-             0,
-             0,
-             0,
-             0,
-             (bindPosePos['translation'][0] + offset['translation'][0]) / 100.0,
-             (bindPosePos['translation'][1] + offset['translation'][1]) / 100.0,
-             (bindPosePos['translation'][2] + offset['translation'][2]) / 100.0]
-
-            def AxisBinding(startPos, jointIndex, axis, maxValue, parameters, index, gamma):
-                avatar = weakAvatar.object
-                if avatar is None:
-                    return
-                if not hasattr(avatar.animationUpdater, 'network') or avatar.animationUpdater.network is None:
-                    return
-                newPos = avatar.animationUpdater.network.GetRawTrackData(jointIndex)
-                diff = (newPos[9] - startPos[9], newPos[10] - startPos[10], newPos[11] - startPos[11])
-                value = 0
-                if axis == 'x':
-                    value = diff[0]
-                elif axis == 'y':
-                    value = diff[1]
-                elif axis == 'z':
-                    value = diff[2]
-                finalValue = 0
-                max = maxValue
-                if max < 0:
-                    max = -max
-                    value = -value
-                if value > max:
-                    finalValue = 1.0
-                elif value < 0:
-                    finalValue = 0.0
                 else:
-                    finalValue = value / max
-                if gamma != 1.0:
-                    finalValue = math.pow(finalValue, gamma)
-                for p_ in parameters:
-                    p = p_.object
-                    if p is None:
-                        continue
-                    if index == 1:
-                        p.v1 = finalValue
-                    if index == 2:
-                        p.v2 = finalValue
-                    if index == 3:
-                        p.v3 = finalValue
-                    if index == 4:
-                        p.v4 = finalValue
+                    bind = trinity.TriValueBinding()
+                    set.bindings.append(bind)
+                    if not hasattr(avatar.animationUpdater, 'network'):
+                        return
+                    jointIndex = avatar.animationUpdater.network.GetBoneIndex(jointName)
+                    if jointIndex == -1:
+                        print "Error: Can't find bone for axis control: " + jointName
+                        return
+                    if not type(jointIndex) == type(1):
+                        print 'Non-int returned for bone in axis: ' + str(jointIndex) + ', name:' + jointName
+                        return
+                    bindPosePos = pdDoll.bindPose[jointName]
+                    if jointName in pdDoll.boneOffsets:
+                        offset = pdDoll.boneOffsets[jointName]
+                    else:
+                        offset = {'translation': [0, 0, 0]}
+                    startPos = [0,
+                     0,
+                     0,
+                     0,
+                     0,
+                     0,
+                     0,
+                     0,
+                     0,
+                     (bindPosePos['translation'][0] + offset['translation'][0]) / 100.0,
+                     (bindPosePos['translation'][1] + offset['translation'][1]) / 100.0,
+                     (bindPosePos['translation'][2] + offset['translation'][2]) / 100.0]
 
-            zone = zone - 1
-            paramIndex = zone / 4 + 1
-            index = zone % 4 + 1
-            param = 'WrinkleNormalStrength' + str(paramIndex)
-            parameters = []
+                    def AxisBinding(startPos, jointIndex, axis, maxValue, parameters, index, gamma):
+                        avatar = weakAvatar.object
+                        if avatar is None:
+                            return
+                        elif not hasattr(avatar.animationUpdater, 'network') or avatar.animationUpdater.network is None:
+                            return
+                        else:
+                            newPos = avatar.animationUpdater.network.GetRawTrackData(jointIndex)
+                            diff = (newPos[9] - startPos[9], newPos[10] - startPos[10], newPos[11] - startPos[11])
+                            value = 0
+                            if axis == 'x':
+                                value = diff[0]
+                            elif axis == 'y':
+                                value = diff[1]
+                            elif axis == 'z':
+                                value = diff[2]
+                            finalValue = 0
+                            max = maxValue
+                            if max < 0:
+                                max = -max
+                                value = -value
+                            if value > max:
+                                finalValue = 1.0
+                            elif value < 0:
+                                finalValue = 0.0
+                            else:
+                                finalValue = value / max
+                            if gamma != 1.0:
+                                finalValue = math.pow(finalValue, gamma)
+                            for p_ in parameters:
+                                p = p_.object
+                                if p is None:
+                                    continue
+                                if index == 1:
+                                    p.v1 = finalValue
+                                if index == 2:
+                                    p.v2 = finalValue
+                                if index == 3:
+                                    p.v3 = finalValue
+                                if index == 4:
+                                    p.v4 = finalValue
+
+                            return
+
+                    zone = zone - 1
+                    paramIndex = zone / 4 + 1
+                    index = zone % 4 + 1
+                    param = 'WrinkleNormalStrength' + str(paramIndex)
+                    parameters = []
+                    for fx in effects:
+                        for p in fx.parameters:
+                            if p.name == param:
+                                parameters.append(blue.BluePythonWeakRef(p))
+
+                    gammaCurves = tweakData.get('gammaCurves', {})
+                    gamma = gammaCurves.get(name, gammaCurves.get('default', 1.0))
+                    bind.name = 'AxisBind'
+                    bind.copyValueCallable = lambda source, dest: AxisBinding(startPos, jointIndex, axis, maxValue, parameters, index, gamma)
+                    return
+
+            rootFolder = 'R:/'
+            if not legacy_r_drive.loadFromContent:
+                rootFolder = 'res:/'
+            faceSetupPath = rootFolder + 'Graphics/Character/Global/FaceSetup/BasicFace.face'
+            if pdDoll.gender != pdDef.GENDER.FEMALE:
+                faceSetupPath = rootFolder + 'Graphics/Character/Global/FaceSetup/BasicFaceMale.face'
+            if not blue.paths.exists(faceSetupPath):
+                return
+            data = pdDm.LoadYamlFileNicely(faceSetupPath)
+            faceTweaksPath = rootFolder + 'Graphics/Character/Global/FaceSetup/FaceTweakSettings.yaml'
+            tweakData = pdDm.LoadYamlFileNicely(faceTweaksPath)
+            curveDictionary = {}
+            if data:
+                for d in data:
+                    entry = data[d]
+                    if len(entry) == 7:
+                        CreateBoneDriver(set, entry[0], entry[1], entry[2], entry[3] / 100.0, entry[4] / 100.0, entry[5] / 100.0, entry[6] / 100.0, curveDictionary, d, tweakData)
+                    elif len(entry) == 4:
+                        CreateAxisDriver(set, entry[0], entry[1], entry[2], entry[3] / 100.0, d, tweakData, pdDoll)
+
+            wrinkleMultiplier = tweakData.get('wrinkleMultiplier', 1.0)
+            correctionMultiplier = tweakData.get('correctionMultiplier', 1.0)
             for fx in effects:
                 for p in fx.parameters:
-                    if p.name == param:
-                        parameters.append(blue.BluePythonWeakRef(p))
+                    if p.name == 'WrinkleParams':
+                        p.value = (wrinkleMultiplier,
+                         correctionMultiplier,
+                         0.0,
+                         0.0)
 
-            gammaCurves = tweakData.get('gammaCurves', {})
-            gamma = gammaCurves.get(name, gammaCurves.get('default', 1.0))
-            bind.name = 'AxisBind'
-            bind.copyValueCallable = lambda source, dest: AxisBinding(startPos, jointIndex, axis, maxValue, parameters, index, gamma)
-
-        rootFolder = 'R:/'
-        if not legacy_r_drive.loadFromContent:
-            rootFolder = 'res:/'
-        faceSetupPath = rootFolder + 'Graphics/Character/Global/FaceSetup/BasicFace.face'
-        if pdDoll.gender != pdDef.GENDER.FEMALE:
-            faceSetupPath = rootFolder + 'Graphics/Character/Global/FaceSetup/BasicFaceMale.face'
-        if not blue.paths.exists(faceSetupPath):
-            return
-        data = pdDm.LoadYamlFileNicely(faceSetupPath)
-        faceTweaksPath = rootFolder + 'Graphics/Character/Global/FaceSetup/FaceTweakSettings.yaml'
-        tweakData = pdDm.LoadYamlFileNicely(faceTweaksPath)
-        curveDictionary = {}
-        if data:
-            for d in data:
-                entry = data[d]
-                if len(entry) == 7:
-                    CreateBoneDriver(set, entry[0], entry[1], entry[2], entry[3] / 100.0, entry[4] / 100.0, entry[5] / 100.0, entry[6] / 100.0, curveDictionary, d, tweakData)
-                elif len(entry) == 4:
-                    CreateAxisDriver(set, entry[0], entry[1], entry[2], entry[3] / 100.0, d, tweakData, pdDoll)
-
-        wrinkleMultiplier = tweakData.get('wrinkleMultiplier', 1.0)
-        correctionMultiplier = tweakData.get('correctionMultiplier', 1.0)
-        for fx in effects:
-            for p in fx.parameters:
-                if p.name == 'WrinkleParams':
-                    p.value = (wrinkleMultiplier,
-                     correctionMultiplier,
-                     0.0,
-                     0.0)
-
-        set.Play()
-        return set
+            set.Play()
+            return set
 
     @staticmethod
     def BindLinearAvatarBRDF(effect, suffix):
@@ -373,6 +383,7 @@ class PortraitTools(object):
                 effect.resources.append(res)
 
             AddEyeCube(effect)
+        return
 
     def BindCustomShaders(effect, useFastShaders, doll):
         path = effect.effectFilePath.lower()
@@ -439,7 +450,7 @@ class PortraitTools(object):
         PortraitTools.TweakDiffuseSampler(effect)
 
     @staticmethod
-    def SetupStubble(meshes, name, stubblePath, adding = True):
+    def SetupStubble(meshes, name, stubblePath, adding=True):
         ret = []
         stubbleName = '{0}Stubble'.format(name)
         stubbleMeshes = (mesh for mesh in meshes if mesh.name.startswith(pdDef.DOLL_PARTS.HEAD))
@@ -488,8 +499,6 @@ class PortraitTools(object):
             if mod.stubblePath:
                 return 'active'
 
-        return ''
-
     @staticmethod
     def HandleUpdatedStubble(addedAndChangedModifiers, buildDataManager):
         stubbleMods = (mod for mod in addedAndChangedModifiers if mod.stubblePath)
@@ -519,14 +528,17 @@ class PortraitTools(object):
     def RebindDXT5ShadersForSM2(meshes):
         if meshes is None:
             return
-        for mesh in meshes:
-            effects = pdCcf.GetEffectsFromMesh(mesh)
-            for effect in effects:
-                path = effect.effectFilePath.lower()
-                if '_dxt5n.fx' not in path:
-                    continue
-                path = path[:-9] + '.fx'
-                if path not in pdDef.SHADERS_THAT_CAN_SWITCH_TO_FAST_SHADER_MODE:
-                    continue
-                path = path[:-3] + '_fast_dxt5n.fx'
-                effect.effectFilePath = path
+        else:
+            for mesh in meshes:
+                effects = pdCcf.GetEffectsFromMesh(mesh)
+                for effect in effects:
+                    path = effect.effectFilePath.lower()
+                    if '_dxt5n.fx' not in path:
+                        continue
+                    path = path[:-9] + '.fx'
+                    if path not in pdDef.SHADERS_THAT_CAN_SWITCH_TO_FAST_SHADER_MODE:
+                        continue
+                    path = path[:-3] + '_fast_dxt5n.fx'
+                    effect.effectFilePath = path
+
+            return

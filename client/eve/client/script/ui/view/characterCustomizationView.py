@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\client\script\ui\view\characterCustomizationView.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\client\script\ui\view\characterCustomizationView.py
 from eveaudio import EVE_INCARNA_BANKS
 from viewstate import View
 import uicls
@@ -17,7 +18,7 @@ class CharacterCustomizationView(View):
     def __init__(self):
         View.__init__(self)
 
-    def LoadView(self, charID = None, gender = None, dollState = None, bloodlineID = None, **kwargs):
+    def LoadView(self, charID=None, gender=None, dollState=None, bloodlineID=None, **kwargs):
         sm.GetService('audio').SwapBanks(EVE_INCARNA_BANKS)
         View.LoadView(self)
         self.LogInfo('Opening character creator with arguments', kwargs)
@@ -45,6 +46,7 @@ class CharacterCustomizationView(View):
         sm.GetService('sceneManager').SetSceneType(SCENE_TYPE_CHARACTER_CREATION)
         self.layer.SetCharDetails(charID, gender, bloodlineID, dollState=dollState)
         uicore.layer.main.display = False
+        return
 
     def UnloadView(self):
         View.UnloadView(self)

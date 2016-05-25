@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\client\script\parklife\playerOwnedTargetMgr.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\client\script\parklife\playerOwnedTargetMgr.py
 import sys
 import service
 import uthread
@@ -11,7 +12,7 @@ class PlayerOwnedTargetMgr(service.Service):
     __notifyevents__ = ['OnStateChange']
     __dependencies__ = ['michelle', 'godma']
 
-    def Run(self, memStream = None):
+    def Run(self, memStream=None):
         service.Service.Run(self, memStream)
         self.Reset()
 
@@ -39,14 +40,13 @@ class PlayerOwnedTargetMgr(service.Service):
         targetID = sm.GetService('pwn').GetCurrentTarget(sid)
         if targetID == tid:
             return 1
-        return 0
 
     def OrderTarget(self, who):
         if who not in self.needtarget[:]:
             self.needtarget.append(who)
         self.ShowTargetingCursor()
 
-    def CancelTargetOrder(self, who = None):
+    def CancelTargetOrder(self, who=None):
         if not who and len(self.needtarget):
             for each in self.needtarget:
                 if each and not each.destroyed:

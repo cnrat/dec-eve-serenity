@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\packages\requests\packages\urllib3\__init__.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\packages\requests\packages\urllib3\__init__.py
 __author__ = 'Andrey Petrov (andrey.petrov@shazow.net)'
 __license__ = 'MIT'
 __version__ = 'dev'
@@ -21,7 +22,7 @@ except ImportError:
 
 logging.getLogger(__name__).addHandler(NullHandler())
 
-def add_stderr_logger(level = logging.DEBUG):
+def add_stderr_logger(level=logging.DEBUG):
     logger = logging.getLogger(__name__)
     handler = logging.StreamHandler()
     handler.setFormatter(logging.Formatter('%(asctime)s %(levelname)s %(message)s'))

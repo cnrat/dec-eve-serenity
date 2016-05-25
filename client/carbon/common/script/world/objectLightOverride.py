@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\carbon\common\script\world\objectLightOverride.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\carbon\common\script\world\objectLightOverride.py
 
 
 class ObjectLightOverride(object):
@@ -40,12 +41,14 @@ class ObjectLightOverride(object):
     def GetColor(self):
         if self.mainRow.colorR is None or self.mainRow.colorG is None or self.mainRow.colorB is None or self.mainRow.colorA is None:
             return
-        return (self.mainRow.colorR,
-         self.mainRow.colorG,
-         self.mainRow.colorB,
-         self.mainRow.colorA)
+        else:
+            return (self.mainRow.colorR,
+             self.mainRow.colorG,
+             self.mainRow.colorB,
+             self.mainRow.colorA)
 
     def GetDirection(self):
         if self.mainRow.directionX is None or self.mainRow.directionY is None or self.mainRow.directionZ is None:
             return
-        return (self.mainRow.directionX, self.mainRow.directionY, self.mainRow.directionZ)
+        else:
+            return (self.mainRow.directionX, self.mainRow.directionY, self.mainRow.directionZ)

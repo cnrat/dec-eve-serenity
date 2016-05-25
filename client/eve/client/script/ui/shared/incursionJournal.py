@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\client\script\ui\shared\incursionJournal.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\client\script\ui\shared\incursionJournal.py
 import carbonui.const as uiconst
 from eve.client.script.ui.control.themeColored import LineThemeColored
 import uicontrols
@@ -82,6 +83,7 @@ class GlobalIncursionReportEntry(uicontrols.SE_BaseClassCore):
         self.autopilotButton.OnClick = lambda : sm.GetService('starmap').SetWaypoint(data.stagingSolarSystemID, clearOtherWaypoints=True)
         self.lpButton.OnClick = lambda : sm.GetService('journal').ShowIncursionTab(flag=IncursionTab.LPLog, taleID=data.taleID, constellationID=data.constellationID)
         self.loyaltyPoints.number.SetText(localization.GetByLabel('UI/Incursion/Journal/NumberLoyaltyPointsAcronym', points=util.FmtAmt(data.loyaltyPoints)))
+        return
 
     def GetDynamicHeight(node, width):
         rowHeader = localization.GetByLabel('UI/Incursion/Journal/ReportRowHeader', constellation=node.constellationID, constellationInfo=('showinfo', const.typeConstellation, node.constellationID))
@@ -108,6 +110,7 @@ class ReportNumber(uiprimitives.Container):
         uiprimitives.Container.ApplyAttributes(self, attributes)
         number = attributes.Get('number', 0)
         self.number = BigReportLabel(name='bignumber', parent=self, align=uiconst.CENTERRIGHT, text=str(number), fontsize=18, hint=attributes.Get('hint', None))
+        return
 
 
 class SmallReportLabel(uicontrols.Label):

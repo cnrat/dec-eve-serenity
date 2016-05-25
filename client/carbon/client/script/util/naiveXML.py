@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\carbon\client\script\util\naiveXML.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\carbon\client\script\util\naiveXML.py
 import sys
 
 class Field:
@@ -9,6 +10,7 @@ class Field:
         self.klass = ''
         self.attributes = {}
         self.subFields = None
+        return
 
     def FindField(self, lineNo):
         line = self.value[lineNo]
@@ -44,40 +46,44 @@ class Field:
         attribsStr = sub[:sub.find('>')]
         if not attribsStr:
             return None
-        attribs = attribsStr.split()
-        d = {}
-        for each in attribs:
-            key, value = each.split('=')
-            d[key] = value[1:-1]
+        else:
+            attribs = attribsStr.split()
+            d = {}
+            for each in attribs:
+                key, value = each.split('=')
+                d[key] = value[1:-1]
 
-        return d
+            return d
 
     def InitSubFields(self):
         if self.subFields != None:
             return
-        self.subFields = []
-        if type(self.value) != type([]):
-            print 'not list'
-        lineNo = 0
-        print 'len:', len(self.value)
-        while lineNo < len(self.value):
-            print lineNo
-            fieldName, startPlace = self.FindField(lineNo)
-            if fieldName:
-                endPlace = startPlace + len(fieldName)
-                actualFieldName = fieldName.split(' ', 1)
-                actualFieldName = actualFieldName[0]
-                endLine, endIx = self.FindClosure(lineNo, endPlace, actualFieldName)
-                f = Field()
-                f.klass = actualFieldName
-                f.attributes = self.FindAttributes(lineNo, actualFieldName)
-                if lineNo == endLine:
-                    f.value = self.value[lineNo][endPlace + 2:endIx - 2]
-                else:
-                    f.value = self.value[lineNo + 1:endLine]
-                lineNo = endLine
-                self.subFields.append(f)
-            lineNo += 1
+        else:
+            self.subFields = []
+            if type(self.value) != type([]):
+                print 'not list'
+            lineNo = 0
+            print 'len:', len(self.value)
+            while lineNo < len(self.value):
+                print lineNo
+                fieldName, startPlace = self.FindField(lineNo)
+                if fieldName:
+                    endPlace = startPlace + len(fieldName)
+                    actualFieldName = fieldName.split(' ', 1)
+                    actualFieldName = actualFieldName[0]
+                    endLine, endIx = self.FindClosure(lineNo, endPlace, actualFieldName)
+                    f = Field()
+                    f.klass = actualFieldName
+                    f.attributes = self.FindAttributes(lineNo, actualFieldName)
+                    if lineNo == endLine:
+                        f.value = self.value[lineNo][endPlace + 2:endIx - 2]
+                    else:
+                        f.value = self.value[lineNo + 1:endLine]
+                    lineNo = endLine
+                    self.subFields.append(f)
+                lineNo += 1
+
+            return
 
     def InitFromTextfile(self, file):
         self.value = file[1:-1]
@@ -99,11 +105,15 @@ class Field:
                 setattr(ret, 'data', field.value)
                 return ret
 
+        return
+
     def GetField(self, name):
         self.InitSubFields()
         for field in self.subFields:
             if field.klass == name:
                 return field
+
+        return None
 
     def GetFields(self, name):
         self.InitSubFields()

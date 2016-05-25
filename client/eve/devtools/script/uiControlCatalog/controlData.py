@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\devtools\script\uiControlCatalog\controlData.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\devtools\script\uiControlCatalog\controlData.py
 from eve.client.script.ui.control.treeData import TreeData
 import tokenize
 import StringIO
@@ -40,7 +41,7 @@ def GetNumSamples(text):
 
 class ControlData(TreeData):
 
-    def __init__(self, label, parent = None, children = None):
+    def __init__(self, label, parent=None, children=None):
         TreeData.__init__(self, label, parent, children)
 
     def GetLabel(self):

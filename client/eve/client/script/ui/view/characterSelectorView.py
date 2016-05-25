@@ -1,6 +1,6 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\client\script\ui\view\characterSelectorView.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\client\script\ui\view\characterSelectorView.py
 from viewstate import View
-from eve.client.script.ui.login.charsel import CharSelection
 from eve.client.script.ui.login.charSelection.characterSelection import CharacterSelection
 
 class CharacterSelectorView(View):

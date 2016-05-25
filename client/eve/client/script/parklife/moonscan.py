@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\client\script\parklife\moonscan.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\client\script\parklife\moonscan.py
 import service
 from eve.client.script.ui.inflight.scannerFiles.moonScanner import MoonScanner
 
@@ -14,6 +15,7 @@ class MoonScanSvc(service.Service):
         service.Service.Run(self, *etc)
         self.scans = {}
         self.wnd = None
+        return
 
     def OnMoonScanComplete(self, moonID, results):
         self.scans[moonID] = results

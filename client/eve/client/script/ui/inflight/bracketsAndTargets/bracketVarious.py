@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\client\script\ui\inflight\bracketsAndTargets\bracketVarious.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\client\script\ui\inflight\bracketsAndTargets\bracketVarious.py
 from eve.client.script.ui.control.eveIcon import Icon
 from eve.client.script.ui.control.eveLabel import Label
 import uiprimitives
@@ -79,6 +80,7 @@ class BracketSubIconNew(Icon):
         self.OnClick = None
         self.GetMenu = None
         Icon.Close(self, *args, **kw)
+        return
 
 
 class BracketLabel(Label):
@@ -120,10 +122,11 @@ class BracketLabel(Label):
         self.OnClick = None
         self.GetMenu = None
         Label.Close(self, *args, **kw)
+        return
 
 
 @telemetry.ZONE_METHOD
-def GetIconColor(slimItem, getSortValue = False, getColorHint = False):
+def GetIconColor(slimItem, getSortValue=False, getColorHint=False):
     iconColor = const.OVERVIEW_NORMAL_COLOR
     colorSortValue = 0
     colorHint = None
@@ -164,9 +167,10 @@ def GetIconColor(slimItem, getSortValue = False, getColorHint = False):
         if getColorHint:
             return (iconColor, colorSortValue, colorHint)
         return (iconColor, colorSortValue)
-    if getColorHint:
+    elif getColorHint:
         return (iconColor, colorHint)
-    return iconColor
+    else:
+        return iconColor
 
 
 def IsForbiddenContainer(slimItem):
@@ -175,9 +179,10 @@ def IsForbiddenContainer(slimItem):
     bp = sm.StartService('michelle').GetBallpark()
     if bp is None:
         return False
-    if bp.HaveLootRight(slimItem.itemID):
+    elif bp.HaveLootRight(slimItem.itemID):
         return False
-    return True
+    else:
+        return True
 
 
 def IsAbandonedContainer(slimItem):
@@ -186,9 +191,10 @@ def IsAbandonedContainer(slimItem):
     bp = sm.StartService('michelle').GetBallpark()
     if bp is None:
         return False
-    if bp.IsAbandoned(slimItem.itemID):
+    elif bp.IsAbandoned(slimItem.itemID):
         return True
-    return False
+    else:
+        return False
 
 
 def GetAbsolute(bracket):
@@ -203,7 +209,7 @@ def GetAbsolute(bracket):
      centerY + 8]
 
 
-def GetOverlaps(sender, useMousePosition = True, customBracketParent = None):
+def GetOverlaps(sender, useMousePosition=True, customBracketParent=None):
     overlaps = []
     if customBracketParent is None or customBracketParent is sender.parent:
         overlaps.append(sender)
@@ -239,6 +245,7 @@ class TargetingHairlines:
     def __init__(self):
         self.trace = None
         self.line = None
+        return
 
     def CreateHairlines(self, moduleID, bracket, target):
         self.trace = uiprimitives.VectorLineTrace(parent=uicore.layer.shipui, lineWidth=2.5, idx=-1, name='vectorlineTrace')
@@ -247,59 +254,63 @@ class TargetingHairlines:
         linePoints = self.GetHairlinePoints(moduleID, bracket, target)
         if linePoints is None:
             return
-        startPoint, midPoint, endPoint = linePoints
-        self.line.AddPoint(startPoint)
-        self.line.AddPoint(midPoint)
-        self.line.AddPoint(endPoint)
-        self.trace.AddPoint(startPoint)
-        self.trace.AddPoint(midPoint)
-        self.trace.AddPoint(endPoint)
-        return (self.trace, self.line)
+        else:
+            startPoint, midPoint, endPoint = linePoints
+            self.line.AddPoint(startPoint)
+            self.line.AddPoint(midPoint)
+            self.line.AddPoint(endPoint)
+            self.trace.AddPoint(startPoint)
+            self.trace.AddPoint(midPoint)
+            self.trace.AddPoint(endPoint)
+            return (self.trace, self.line)
 
     def UpdateHairlinePoints(self, moduleID, bracket, target):
         linePoints = self.GetHairlinePoints(moduleID, bracket, target)
         if linePoints is None:
             return
-        startPoint, midPoint, endPoint = linePoints
-        if self.line.renderObject is None or self.trace.renderObject is None:
-            sm.GetService('bracket').LogWarn('Hairlines were broken, new ones were made')
-            self.line.Close()
-            self.trace.Close()
-            self.CreateHairlines(moduleID, bracket, target)
-        self.line.renderObject.vertices[0].position = startPoint
-        self.line.renderObject.vertices[1].position = midPoint
-        self.line.renderObject.vertices[2].position = endPoint
-        self.line.renderObject.isDirty = True
-        self.trace.renderObject.vertices[0].position = startPoint
-        self.trace.renderObject.vertices[1].position = midPoint
-        self.trace.renderObject.vertices[2].position = endPoint
-        self.trace.renderObject.isDirty = True
-        self.ShowLines()
+        else:
+            startPoint, midPoint, endPoint = linePoints
+            if self.line.renderObject is None or self.trace.renderObject is None:
+                sm.GetService('bracket').LogWarn('Hairlines were broken, new ones were made')
+                self.line.Close()
+                self.trace.Close()
+                self.CreateHairlines(moduleID, bracket, target)
+            self.line.renderObject.vertices[0].position = startPoint
+            self.line.renderObject.vertices[1].position = midPoint
+            self.line.renderObject.vertices[2].position = endPoint
+            self.line.renderObject.isDirty = True
+            self.trace.renderObject.vertices[0].position = startPoint
+            self.trace.renderObject.vertices[1].position = midPoint
+            self.trace.renderObject.vertices[2].position = endPoint
+            self.trace.renderObject.isDirty = True
+            self.ShowLines()
+            return
 
     def GetHairlinePoints(self, moduleID, bracket, target, *args):
         moduleButton = uicore.layer.shipui.GetModuleFromID(moduleID)
         ro = bracket.GetRenderObject()
         if not ro or moduleButton is None:
             return
-        x = uicore.ScaleDpi(moduleButton.absoluteLeft + moduleButton.width / 2.0)
-        y = uicore.ScaleDpi(moduleButton.absoluteTop + moduleButton.height / 2.0)
-        startPoint = (x, y)
-        weapon = target.GetWeapon(moduleID)
-        if weapon:
-            endPointObject = weapon
         else:
-            endPointObject = target
-        x = uicore.ScaleDpi(endPointObject.absoluteLeft + endPointObject.width / 2.0)
-        y = uicore.ScaleDpi(endPointObject.absoluteTop + endPointObject.height / 2.0)
-        endPoint = (x, y)
-        x = ro.displayX
-        y = ro.displayY
-        l, r = uicore.layer.sidePanels.GetSideOffset()
-        x += uicore.ScaleDpi(l)
-        midPoint = (int(x + bracket.width / 2.0), int(y + bracket.height / 2.0))
-        return (startPoint, midPoint, endPoint)
+            x = uicore.ScaleDpi(moduleButton.absoluteLeft + moduleButton.width / 2.0)
+            y = uicore.ScaleDpi(moduleButton.absoluteTop + moduleButton.height / 2.0)
+            startPoint = (x, y)
+            weapon = target.GetWeapon(moduleID)
+            if weapon:
+                endPointObject = weapon
+            else:
+                endPointObject = target
+            x = uicore.ScaleDpi(endPointObject.absoluteLeft + endPointObject.width / 2.0)
+            y = uicore.ScaleDpi(endPointObject.absoluteTop + endPointObject.height / 2.0)
+            endPoint = (x, y)
+            x = ro.displayX
+            y = ro.displayY
+            l, r = uicore.layer.sidePanels.GetSideOffset()
+            x += uicore.ScaleDpi(l)
+            midPoint = (int(x + bracket.width / 2.0), int(y + bracket.height / 2.0))
+            return (startPoint, midPoint, endPoint)
 
-    def StartAnimation(self, reverse = False, *args):
+    def StartAnimation(self, reverse=False, *args):
         if reverse:
             start_values = (0.99, 0.0)
             end_values = (1.0, 0.01)

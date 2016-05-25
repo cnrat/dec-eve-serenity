@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\client\script\ui\inflight\drones\droneHandler.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\client\script\ui\inflight\drones\droneHandler.py
 import uthread
 import blue
 
@@ -14,6 +15,7 @@ class DroneHandler(object):
         self.fetchingInfoForDrones = set()
         self.clearTimestamp = None
         self.dogmaLM = sm.GetService('godma').GetDogmaLM()
+        return
 
     def FetchInBayDroneDamageToServer(self, droneIDs):
         droneIDsMissingDamage = self.FindDronesMissingDamageState(droneIDs)
@@ -40,10 +42,11 @@ class DroneHandler(object):
     def GetDamageStateForDrone(self, droneID):
         if self.IsDroneDamageReady(droneID):
             return self.droneDamageStatesByDroneIDs.get(droneID, None)
-        droneIDsMissingDamage = self.FindDronesMissingDamageState([droneID])
-        if droneIDsMissingDamage:
-            uthread.new(self.FetchInBayDroneDamageToServer, droneIDsMissingDamage)
-        return -1
+        else:
+            droneIDsMissingDamage = self.FindDronesMissingDamageState([droneID])
+            if droneIDsMissingDamage:
+                uthread.new(self.FetchInBayDroneDamageToServer, droneIDsMissingDamage)
+            return -1
 
     def IsDroneDamageReady(self, droneID):
         return droneID in self.droneDamageStatesByDroneIDs
@@ -56,17 +59,22 @@ class DroneHandler(object):
 
     def OnDroneControlLost(self, droneID):
         self.droneDamageStatesByDroneIDs.pop(droneID, None)
+        return
 
     def OnRepairDone(self, itemIDs, *args):
         for itemID in itemIDs:
             self.droneDamageStatesByDroneIDs.pop(itemID, None)
 
+        return
+
     def OnDamageStateChange(self, itemID, damageState):
         droneDamageInfo = self.droneDamageStatesByDroneIDs.get(itemID, None)
         if droneDamageInfo is None:
             return
-        timestamp = blue.os.GetSimTime()
-        droneDamageInfo.UpdateInfo(timestamp, damageState)
+        else:
+            timestamp = blue.os.GetSimTime()
+            droneDamageInfo.UpdateInfo(timestamp, damageState)
+            return
 
 
 def ConvertDroneStateToCorrectFormat(damageStateForDrones):

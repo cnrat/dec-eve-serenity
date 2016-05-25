@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\packages\evecamera\animation.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\packages\evecamera\animation.py
 import evecamera
 import blue
 import trinutils.callbackmanager as cbmanager
@@ -9,7 +10,7 @@ EXTRA_TRANSLATION_ANIMATION = 3
 
 class BaseCameraAnimation(object):
 
-    def __init__(self, modifier, duration, priority = evecamera.PRIORITY_NORMAL, useWallclock = True):
+    def __init__(self, modifier, duration, priority=evecamera.PRIORITY_NORMAL, useWallclock=True):
         self.modifier = modifier
         self.duration = duration
         self.timeStart = 0
@@ -79,6 +80,7 @@ class AnimationController(object):
             self._animations[animation.modifier] = None
         else:
             self._animations[animation.modifier] = animation
+        return
 
     def ClearAll(self):
         self._animations = AnimationController.GetEmptyAnimationDict()
@@ -90,14 +92,18 @@ class AnimationController(object):
             if each is not None and not each.useWallclock:
                 each.RebaseStartTime(offset)
 
+        return
+
     def Schedule(self, animation):
         mod = animation.modifier
         if self._animations[mod] is None:
             self._ApplyAnimation(animation)
             return
-        if self._animations[mod].priority <= animation.priority or self._animations[mod].isDone:
-            self._animations[mod].End(self._camera)
-            self._ApplyAnimation(animation)
+        else:
+            if self._animations[mod].priority <= animation.priority or self._animations[mod].isDone:
+                self._animations[mod].End(self._camera)
+                self._ApplyAnimation(animation)
+            return
 
     def Tick(self):
         simTime, clockTime = self._GetTime()
@@ -111,3 +117,5 @@ class AnimationController(object):
         for anim in clearAnimations:
             self._animations[anim].End(self._camera)
             self._animations[anim] = None
+
+        return

@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\carbon\common\lib\cherrypy\test\test_conn.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\carbon\common\lib\cherrypy\test\test_conn.py
 import socket
 import sys
 import time
@@ -26,7 +27,7 @@ def setup_server():
         page3 = index
 
         def hello(self):
-            return 'Hello, world!'
+            pass
 
         hello.exposed = True
 
@@ -35,7 +36,7 @@ def setup_server():
 
         timeout.exposed = True
 
-        def stream(self, set_cl = False):
+        def stream(self, set_cl=False):
             if set_cl:
                 cherrypy.response.headers['Content-Length'] = 10
 
@@ -48,7 +49,7 @@ def setup_server():
         stream.exposed = True
         stream._cp_config = {'response.stream': True}
 
-        def error(self, code = 500):
+        def error(self, code=500):
             raise cherrypy.HTTPError(code)
 
         error.exposed = True
@@ -67,7 +68,7 @@ def setup_server():
         custom.exposed = True
 
         def err_before_read(self):
-            return 'ok'
+            pass
 
         err_before_read.exposed = True
         err_before_read._cp_config = {'hooks.on_start_resource': raise500}

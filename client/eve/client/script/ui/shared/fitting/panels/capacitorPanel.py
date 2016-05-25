@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\client\script\ui\shared\fitting\panels\capacitorPanel.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\client\script\ui\shared\fitting\panels\capacitorPanel.py
 from carbon.common.script.util.mathUtil import DegToRad
 from carbonui import const as uiconst
 from carbonui.primitives.container import Container
@@ -23,8 +24,9 @@ class CapacitorPanel(BaseMenuPanel):
         self.capCapacityAttribute = cfg.dgmattribs.Get(dogmaConst.attributeCapacitorCapacity)
         self.rechargeRateAttribute = cfg.dgmattribs.Get(dogmaConst.attributeRechargeRate)
         self.maxcap = None
+        return
 
-    def LoadPanel(self, initialLoad = False):
+    def LoadPanel(self, initialLoad=False):
         self.Flush()
         self.display = True
         self.DrawPowerCore()
@@ -40,7 +42,7 @@ class CapacitorPanel(BaseMenuPanel):
         self.delteLabel = EveLabelMedium(text='', parent=self, idx=0, state=uiconst.UI_NORMAL, top=22, left=45, align=uiconst.TOPLEFT)
         self.delteLabel.hint = GetByLabel('UI/Fitting/FittingWindow/ExcessCapacitor')
 
-    def UpdateCapacitorPanel(self, shipID, xtraCapacitor = 0.0, rechargeMultiply = 1.0, multiplyCapacitor = 1.0, reload = 0):
+    def UpdateCapacitorPanel(self, shipID, xtraCapacitor=0.0, rechargeMultiply=1.0, multiplyCapacitor=1.0, reload=0):
         peakRechargeRate, totalCapNeed, loadBalance, TTL = self.dogmaLocation.CapacitorSimulator(shipID)
         self.SetHeaderText(TTL, loadBalance)
         if not self.panelLoaded or self.powerCoreCont.destroyed:

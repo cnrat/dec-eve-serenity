@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\client\script\ui\shared\mapView\mapViewBookmarkHandler.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\client\script\ui\shared\mapView\mapViewBookmarkHandler.py
 from carbonui.util.bunch import Bunch
 from eve.client.script.ui.shared.mapView.mapViewConst import MARKERID_BOOKMARK, MARKERS_OPTION_PERSONAL_LOCATION, MARKERS_OPTION_CORPORATION_LOCATION
 from eve.client.script.ui.shared.mapView.markers.mapMarkerBookmark import MarkerBookmark, MarkerBookmarkUniverseLevel
@@ -19,12 +20,13 @@ class MapViewBookmarkHandler(object):
     __notifyevents__ = ['OnBookmarkCreated', 'OnBookmarksDeleted']
     _mapView = None
 
-    def __init__(self, mapView, loadUniverseBookmarks = False):
+    def __init__(self, mapView, loadUniverseBookmarks=False):
         self.bookmarkSvc = sm.GetService('bookmarkSvc')
         self.mapView = mapView
         self.loadedSolarSystemID = None
         self.loadUniverseBookmarks = loadUniverseBookmarks
         sm.RegisterNotify(self)
+        return
 
     def StopHandler(self):
         sm.UnregisterNotify(self)
@@ -41,7 +43,7 @@ class MapViewBookmarkHandler(object):
 
         return property(**locals())
 
-    def OnBookmarkCreated(self, bookmarkID, comment, itemTypeID = None):
+    def OnBookmarkCreated(self, bookmarkID, comment, itemTypeID=None):
         bookmark = self.bookmarkSvc.GetBookmark(bookmarkID)
         if not bookmark:
             return
@@ -50,7 +52,7 @@ class MapViewBookmarkHandler(object):
     def OnBookmarksDeleted(self, bookmarkIDs):
         self.LoadBookmarkMarkers(loadSolarSystemID=self.loadedSolarSystemID)
 
-    def LoadBookmarkMarkers(self, loadSolarSystemID = None, showChanges = False):
+    def LoadBookmarkMarkers(self, loadSolarSystemID=None, showChanges=False):
         self.loadedSolarSystemID = loadSolarSystemID
         loadPersonal = IsMarkerGroupEnabled(MARKERS_OPTION_PERSONAL_LOCATION, self.mapView.mapViewID)
         loadCorporation = IsMarkerGroupEnabled(MARKERS_OPTION_CORPORATION_LOCATION, self.mapView.mapViewID)

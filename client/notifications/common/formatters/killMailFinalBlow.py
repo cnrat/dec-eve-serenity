@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\packages\notifications\common\formatters\killMailFinalBlow.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\packages\notifications\common\formatters\killMailFinalBlow.py
 import localization
 from notifications.common.formatters.killMailBase import KillMailBaseFormatter
 
@@ -29,9 +30,10 @@ class KillMailFinalBlowFormatter(KillMailBaseFormatter):
             notification.subject = localization.GetByLabel(self.subjectLabel, victimCharID=self.GetVictimID(notification.data))
         else:
             notification.subject = localization.GetByLabel(self.subjectLabelStructure, typeID=self.GetVictimShipTypeID(notification.data))
+        return
 
     @staticmethod
-    def MakeSampleData(variant = 1):
+    def MakeSampleData(variant=1):
         if variant is 1:
             ballisticDeflectionArrayID = 17184
             return KillMailFinalBlowFormatter.MakeData(killMailID=1, killMailHash='', victimID=None, victimShipTypeID=ballisticDeflectionArrayID)
@@ -39,3 +41,4 @@ class KillMailFinalBlowFormatter(KillMailBaseFormatter):
             rifterTypeID = 587
             firstCharacterId = 90000001
             return KillMailFinalBlowFormatter.MakeData(killMailID=1, killMailHash='', victimID=firstCharacterId, victimShipTypeID=rifterTypeID)
+            return None

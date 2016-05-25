@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\packages\starmap\util.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\packages\starmap\util.py
 from collections import namedtuple
 StarmapInterest = namedtuple('StarmapInterest', ['regionID', 'constellationID', 'solarSystemID'])
 
@@ -35,6 +36,8 @@ def Pairwise(l):
             yield (last, i)
         first = False
         last = i
+
+    return
 
 
 class SolarSystemMapInfo(object):

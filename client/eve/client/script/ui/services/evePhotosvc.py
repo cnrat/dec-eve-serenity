@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\client\script\ui\services\evePhotosvc.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\client\script\ui\services\evePhotosvc.py
 import evetypes
 import uiprimitives
 import service
@@ -62,7 +63,7 @@ def GetPictureFileName(typeID, graphicID, size):
     return name
 
 
-def GetCachePath(typeID, graphicID, size, itemID, blueprint = BLUEPRINT_NONE):
+def GetCachePath(typeID, graphicID, size, itemID, blueprint=BLUEPRINT_NONE):
     if evetypes.GetGroupID(typeID) in [const.groupSun, const.groupPlanet, const.groupMoon]:
         return u'cache:/Pictures/Planets/%s_%s_%s.dds' % (trinity.GetShaderModel(), itemID, size)
     elif blueprint == BLUEPRINT_COPY:
@@ -148,6 +149,7 @@ class EvePhoto(service.Service):
                 self.defaultImageServerForUser = 'http://%s.dev.image/' % username.replace('.', '_').lower()
                 self.LogInfo('Guessing ImageServer url as we are not in a build client: ', self.defaultImageServerForUser)
                 self.defaultMarketingImages = DEFAULT_MARKETING_TEST_IMAGE_SERVER
+        return
 
     def CheckAvail(self, path):
         pathLog = path if DoLogIt(path) else ''
@@ -162,8 +164,9 @@ class EvePhoto(service.Service):
             self.LogInfo('CheckAvail ', pathLog, " doesn't exist, and has been added to notavail")
             self.notavail[path] = 1
             return None
+            return None
 
-    def GetValidBlueprintPath(self, sprite, typeID, size = 64, blueprint = BLUEPRINT_NORMAL):
+    def GetValidBlueprintPath(self, sprite, typeID, size=64, blueprint=BLUEPRINT_NORMAL):
         graphicID = evetypes.GetGraphicID(typeID)
         cachePath = GetCachePath(typeID, graphicID, size, None, blueprint)
         resFile = blue.ResFile()
@@ -200,7 +203,7 @@ class EvePhoto(service.Service):
         photo.RenderIcon(cachePath, size=size, iconPath=iconPath, backgroundPath=backgroundPath, overlayPath=overlayPath)
         sprite.ReloadTexture()
 
-    def DoBlueprint(self, sprite, typeID, size = 64, blueprint = BLUEPRINT_NORMAL):
+    def DoBlueprint(self, sprite, typeID, size=64, blueprint=BLUEPRINT_NORMAL):
         if not sprite.texture:
             return
         texture = sprite.texture.resPath
@@ -212,7 +215,7 @@ class EvePhoto(service.Service):
             sprite.rectTop = 0
             sprite.rectHeight = 0
 
-    def GetScenePicture(self, res = 128, blur = 0):
+    def GetScenePicture(self, res=128, blur=0):
         scene = sm.GetService('sceneManager').GetRegisteredScene(None, defaultOnActiveScene=True)
         camera = sm.GetService('sceneManager').GetActiveCamera()
         depthTexture = scene.depthTexture
@@ -247,116 +250,119 @@ class EvePhoto(service.Service):
         pic.texture.atlasTexture.CopyFromHostBitmap(hostCopy)
         return pic
 
-    def GetTextureFromURL(self, path, currentURL = None, ignoreCache = 0, dontcache = 0, fromWhere = None, sizeonly = 0, retry = 1):
+    def GetTextureFromURL(self, path, currentURL=None, ignoreCache=0, dontcache=0, fromWhere=None, sizeonly=0, retry=1):
         if path.endswith('.blue'):
             return self.GetPic_blue(path)
-        fullPath = corebrowserutil.ParseURL(path, currentURL)[0]
-        if path.startswith('res:'):
+        else:
+            fullPath = corebrowserutil.ParseURL(path, currentURL)[0]
+            if path.startswith('res:'):
+                try:
+                    surface = trinity.Tr2HostBitmap()
+                    surface.CreateFromFile(path)
+                    w, h = surface.width, surface.height
+                    bw, bh = uiutil.GetBuffersize(w), uiutil.GetBuffersize(h)
+                    if sizeonly:
+                        return (path,
+                         w,
+                         h,
+                         bw,
+                         bh)
+                    return self.ReturnTexture(path, w, h, bw, bh)
+                except:
+                    self.LogError('Failed to load image', path)
+                    if self.urlloading.has_key(fullPath):
+                        del self.urlloading[fullPath]
+                    sys.exc_clear()
+                    return self.ErrorPic(sizeonly)
+
+            if ignoreCache:
+                sm.GetService('browserCache').InvalidateImage(fullPath)
+            while self.urlloading.has_key(fullPath):
+                blue.pyos.BeNice()
+
+            if not dontcache:
+                cacheData = sm.GetService('browserCache').GetFromCache(fullPath)
+                if cacheData and os.path.exists(cacheData[0].replace('cache:/', blue.paths.ResolvePath(u'cache:/'))):
+                    if sizeonly:
+                        return cacheData
+                    return self.ReturnTexture(*cacheData)
             try:
-                surface = trinity.Tr2HostBitmap()
-                surface.CreateFromFile(path)
-                w, h = surface.width, surface.height
-                bw, bh = uiutil.GetBuffersize(w), uiutil.GetBuffersize(h)
-                if sizeonly:
-                    return (path,
-                     w,
-                     h,
-                     bw,
-                     bh)
-                return self.ReturnTexture(path, w, h, bw, bh)
-            except:
-                self.LogError('Failed to load image', path)
+                self.urlloading[fullPath] = 1
+                ret = corebrowserutil.GetStringFromURL(fullPath)
+                cacheID = int(str(blue.os.GetWallclockTime()) + str(uthread.uniqueId() or uthread.uniqueId()))
+                imagestream = ret.read()
+                ext = None
+                if 'content-type' in ret.headers.keys() and ret.headers['content-type'].startswith('image/'):
+                    ext = ret.headers['content-type'][6:]
+                if ext == None or ext == 'png':
+                    header = imagestream[:16]
+                    for sig, sext in [('PNG', 'PNG'),
+                     ('GIF', 'GIF'),
+                     ('JFI', 'JPEG'),
+                     ('BM8', 'BMP')]:
+                        for i in xrange(0, 12):
+                            if header[i:i + 3] == sig:
+                                ext = sext
+                                break
+
+                    if not ext:
+                        header = imagestream[-16:]
+                        for sig, sext in [('XFILE', 'TGA')]:
+                            for i in xrange(0, 10):
+                                if header[i:i + 5] == sig:
+                                    ext = sext
+                                    break
+
+                if ext:
+                    filename = '%sBrowser/Img/%s.%s' % (blue.paths.ResolvePath(u'cache:/'), cacheID, ext)
+                    resfile = blue.classes.CreateInstance('blue.ResFile')
+                    if not resfile.Open(filename, 0):
+                        resfile.Create(filename)
+                    resfile.Write(imagestream)
+                    resfile.Close()
+                    if ext.upper() == 'GIF':
+                        g = DrawArea()
+                        g.setBgColor(Transparent)
+                        g.loadGIF(filename.replace(u'/', u'\\').encode('utf8'))
+                        ext = 'PNG'
+                        filename = u'%sBrowser/Img/%s.%s' % (blue.paths.ResolvePath(u'cache:/'), cacheID, ext)
+                        g.outPNG(filename.replace(u'/', u'\\').encode('utf8'))
+                    surface = trinity.Tr2HostBitmap()
+                    surface.CreateFromFile(filename)
+                    w, h = surface.width, surface.height
+                    bw, bh = uiutil.GetBuffersize(w), uiutil.GetBuffersize(h)
+                    cachePath = 'cache:/Browser/Img/%s.%s' % (cacheID, ext)
+                    if 'pragma' not in ret.headers.keys() or ret.headers['Pragma'].find('no-cache') == -1:
+                        sm.GetService('browserCache').Cache(fullPath, (cachePath,
+                         w,
+                         h,
+                         bw,
+                         bh))
+                    del self.urlloading[fullPath]
+                    if sizeonly:
+                        return (cachePath,
+                         w,
+                         h,
+                         bw,
+                         bh)
+                    return self.ReturnTexture(cachePath, w, h, bw, bh)
+                del self.urlloading[fullPath]
+                return self.ErrorPic(sizeonly)
+            except Exception as e:
+                if retry:
+                    sys.exc_clear()
+                    if self.urlloading.has_key(fullPath):
+                        del self.urlloading[fullPath]
+                    return self.GetTextureFromURL(path, currentURL, ignoreCache, dontcache, fromWhere, sizeonly, 0)
+                self.LogError(e, 'Failed to load image', repr(path))
                 if self.urlloading.has_key(fullPath):
                     del self.urlloading[fullPath]
                 sys.exc_clear()
                 return self.ErrorPic(sizeonly)
 
-        if ignoreCache:
-            sm.GetService('browserCache').InvalidateImage(fullPath)
-        while self.urlloading.has_key(fullPath):
-            blue.pyos.BeNice()
+            return
 
-        if not dontcache:
-            cacheData = sm.GetService('browserCache').GetFromCache(fullPath)
-            if cacheData and os.path.exists(cacheData[0].replace('cache:/', blue.paths.ResolvePath(u'cache:/'))):
-                if sizeonly:
-                    return cacheData
-                return self.ReturnTexture(*cacheData)
-        try:
-            self.urlloading[fullPath] = 1
-            ret = corebrowserutil.GetStringFromURL(fullPath)
-            cacheID = int(str(blue.os.GetWallclockTime()) + str(uthread.uniqueId() or uthread.uniqueId()))
-            imagestream = ret.read()
-            ext = None
-            if 'content-type' in ret.headers.keys() and ret.headers['content-type'].startswith('image/'):
-                ext = ret.headers['content-type'][6:]
-            if ext == None or ext == 'png':
-                header = imagestream[:16]
-                for sig, sext in [('PNG', 'PNG'),
-                 ('GIF', 'GIF'),
-                 ('JFI', 'JPEG'),
-                 ('BM8', 'BMP')]:
-                    for i in xrange(0, 12):
-                        if header[i:i + 3] == sig:
-                            ext = sext
-                            break
-
-                if not ext:
-                    header = imagestream[-16:]
-                    for sig, sext in [('XFILE', 'TGA')]:
-                        for i in xrange(0, 10):
-                            if header[i:i + 5] == sig:
-                                ext = sext
-                                break
-
-            if ext:
-                filename = '%sBrowser/Img/%s.%s' % (blue.paths.ResolvePath(u'cache:/'), cacheID, ext)
-                resfile = blue.classes.CreateInstance('blue.ResFile')
-                if not resfile.Open(filename, 0):
-                    resfile.Create(filename)
-                resfile.Write(imagestream)
-                resfile.Close()
-                if ext.upper() == 'GIF':
-                    g = DrawArea()
-                    g.setBgColor(Transparent)
-                    g.loadGIF(filename.replace(u'/', u'\\').encode('utf8'))
-                    ext = 'PNG'
-                    filename = u'%sBrowser/Img/%s.%s' % (blue.paths.ResolvePath(u'cache:/'), cacheID, ext)
-                    g.outPNG(filename.replace(u'/', u'\\').encode('utf8'))
-                surface = trinity.Tr2HostBitmap()
-                surface.CreateFromFile(filename)
-                w, h = surface.width, surface.height
-                bw, bh = uiutil.GetBuffersize(w), uiutil.GetBuffersize(h)
-                cachePath = 'cache:/Browser/Img/%s.%s' % (cacheID, ext)
-                if 'pragma' not in ret.headers.keys() or ret.headers['Pragma'].find('no-cache') == -1:
-                    sm.GetService('browserCache').Cache(fullPath, (cachePath,
-                     w,
-                     h,
-                     bw,
-                     bh))
-                del self.urlloading[fullPath]
-                if sizeonly:
-                    return (cachePath,
-                     w,
-                     h,
-                     bw,
-                     bh)
-                return self.ReturnTexture(cachePath, w, h, bw, bh)
-            del self.urlloading[fullPath]
-            return self.ErrorPic(sizeonly)
-        except Exception as e:
-            if retry:
-                sys.exc_clear()
-                if self.urlloading.has_key(fullPath):
-                    del self.urlloading[fullPath]
-                return self.GetTextureFromURL(path, currentURL, ignoreCache, dontcache, fromWhere, sizeonly, 0)
-            self.LogError(e, 'Failed to load image', repr(path))
-            if self.urlloading.has_key(fullPath):
-                del self.urlloading[fullPath]
-            sys.exc_clear()
-            return self.ErrorPic(sizeonly)
-
-    def ErrorPic(self, sizeonly = 0):
+    def ErrorPic(self, sizeonly=0):
         if sizeonly:
             return (NONE_PATH,
              32,
@@ -407,13 +413,15 @@ class EvePhoto(service.Service):
                         continue
                     self.portraits.RemoveFromCache(charID, size)
 
+        return
+
     def PortraitDownloaded(self, charID):
         self.pendingPortraitGeneration = settings.user.ui.Get('pendingPortraitGeneration', set())
         if charID in self.pendingPortraitGeneration:
             self.pendingPortraitGeneration.discard(charID)
             settings.user.ui.Set('pendingPortraitGeneration', self.pendingPortraitGeneration)
 
-    def GetPortrait(self, charID, size, sprite = None, orderIfMissing = True, callback = False, allowServerTrip = False):
+    def GetPortrait(self, charID, size, sprite=None, orderIfMissing=True, callback=False, allowServerTrip=False):
         self.InitializePortraits()
         if size > 64:
             defaultIcon = 'res:/UI/Texture/silhouette.png'
@@ -454,14 +462,14 @@ class EvePhoto(service.Service):
 
         sm.GetService('loading').ProgressWnd(localization.GetByLabel('UI/Shared/GeneratingPicture'), '', length, length)
 
-    def GetAllianceLogo(self, allianceID, size, sprite = None, orderIfMissing = True, callback = False):
+    def GetAllianceLogo(self, allianceID, size, sprite=None, orderIfMissing=True, callback=False):
         if self.allianceLogos is None:
             imageServer = self.GetImageServerURL('imageserverurl', self.defaultImageServerForUser)
             self.allianceLogos = RemoteImageCacher('Alliance', self, '.png', imageServer)
         callback = 'OnAllianceLogoReady' if callback else None
         return self.GetImage(allianceID, size, self.allianceLogos, sprite, orderIfMissing, callback, 'res:/UI/Texture/defaultAlliance.dds', isAlliance=True)
 
-    def GetImage(self, itemID, size, handler, sprite = None, orderIfMissing = True, callback = None, defaultIcon = 'res:/UI/Texture/notavailable.dds', isAlliance = False):
+    def GetImage(self, itemID, size, handler, sprite=None, orderIfMissing=True, callback=None, defaultIcon='res:/UI/Texture/notavailable.dds', isAlliance=False):
         if uicore.desktop.dpiScaling > 1.0 and not isAlliance:
             size = size * 2
         if not isinstance(itemID, numbers.Integral):
@@ -490,6 +498,8 @@ class EvePhoto(service.Service):
             return defaultIcon
         if isFresh:
             return path
+        else:
+            return
 
     def __FetchFromImageServer(self):
         self.LogInfo('Starting a image server thread')
@@ -513,6 +523,8 @@ class EvePhoto(service.Service):
 
         finally:
             self.fetchingFromImageServer -= 1
+
+        return
 
     def AddPortrait(self, portraitPath, charID):
         self.LogInfo('Adding portrait of', charID, 'from path', portraitPath)
@@ -540,6 +552,7 @@ class EvePhoto(service.Service):
         if self.portraits is not None:
             self.portraits.missingImages.pop(charID, None)
             self.portraits.AddToWatchList(charID, self.PortraitDownloaded)
+        return
 
     def _RemovePathFromNotAvailList(self, cachename):
         try:
@@ -548,58 +561,60 @@ class EvePhoto(service.Service):
         except:
             self.LogInfo(cachename, ' was not in the not avail list')
 
-    def Do2DMap(self, sprite, ids, idLevel, drawLevel, size = 256):
+    def Do2DMap(self, sprite, ids, idLevel, drawLevel, size=256):
         ssmap = Map2D()
         ssmap.Draw(ids, idLevel, drawLevel, size, sprite)
 
-    def GetIconByType(self, sprite, typeID, itemID = None, size = None, ignoreSize = False, isCopy = False):
+    def GetIconByType(self, sprite, typeID, itemID=None, size=None, ignoreSize=False, isCopy=False):
         if typeID is None or not evetypes.Exists(typeID):
             return
-        actSize = size or 64
-        categoryID = evetypes.GetCategoryID(typeID)
-        blueprint = BLUEPRINT_NONE
-        if categoryID == const.categoryBlueprint:
-            if isCopy:
-                blueprint = BLUEPRINT_COPY
-            else:
-                blueprint = BLUEPRINT_NORMAL
-            try:
-                typeID = cfg.blueprints.Get(typeID).productTypeID
-                categoryID = evetypes.GetCategoryID(typeID)
-            except KeyError:
-                return sprite.LoadIcon(icon=NOT_AVAILABLE_PATH, ignoreSize=ignoreSize)
-
-        elif categoryID == const.categoryInfantry:
-            blueprint = BLUEPRINT_DUST
-        elif categoryID == const.categoryAncientRelic:
-            blueprint = BLUEPRINT_RELIC
-        groupID = evetypes.GetGroupID(typeID)
-        if itemID and groupID in (const.groupRegion, const.groupConstellation, const.groupSolarSystem):
-            if not (util.IsSolarSystem(itemID) or util.IsConstellation(itemID) or util.IsRegion(itemID)):
-                log.LogError('Not valid itemID for 2D map, itemID: ', itemID, ', typeID: ', typeID)
-                log.LogTraceback()
-            level = [const.groupRegion, const.groupConstellation, const.groupSolarSystem].index(groupID) + 1
-            return self.Do2DMap(sprite, [itemID], level, level + 1, actSize)
-        if TypeIsRenderable(typeID, groupID, categoryID):
-            if groupID == const.groupCharacter:
-                return self.GetPortrait(itemID, actSize, sprite)
-            else:
-                return self.OrderByTypeID([[typeID,
-                  sprite,
-                  actSize,
-                  itemID,
-                  blueprint]])
-        elif groupID == const.groupShipSkins:
-            self.DoSkinLicenseIcon(typeID, sprite)
         else:
-            iconInfo = inventorycommon.typeHelpers.GetIcon(typeID)
-            if iconInfo and iconInfo.iconFile:
-                icon = iconInfo.iconFile.strip()
-                if icon:
-                    if blueprint != BLUEPRINT_NONE:
-                        return self.DoBlueprint(sprite, typeID, size=actSize, blueprint=blueprint)
-                    else:
-                        return sprite.LoadIcon(icon=icon, ignoreSize=ignoreSize)
+            actSize = size or 64
+            categoryID = evetypes.GetCategoryID(typeID)
+            blueprint = BLUEPRINT_NONE
+            if categoryID == const.categoryBlueprint:
+                if isCopy:
+                    blueprint = BLUEPRINT_COPY
+                else:
+                    blueprint = BLUEPRINT_NORMAL
+                try:
+                    typeID = cfg.blueprints.Get(typeID).productTypeID
+                    categoryID = evetypes.GetCategoryID(typeID)
+                except KeyError:
+                    return sprite.LoadIcon(icon=NOT_AVAILABLE_PATH, ignoreSize=ignoreSize)
+
+            elif categoryID == const.categoryInfantry:
+                blueprint = BLUEPRINT_DUST
+            elif categoryID == const.categoryAncientRelic:
+                blueprint = BLUEPRINT_RELIC
+            groupID = evetypes.GetGroupID(typeID)
+            if itemID and groupID in (const.groupRegion, const.groupConstellation, const.groupSolarSystem):
+                if not (util.IsSolarSystem(itemID) or util.IsConstellation(itemID) or util.IsRegion(itemID)):
+                    log.LogError('Not valid itemID for 2D map, itemID: ', itemID, ', typeID: ', typeID)
+                    log.LogTraceback()
+                level = [const.groupRegion, const.groupConstellation, const.groupSolarSystem].index(groupID) + 1
+                return self.Do2DMap(sprite, [itemID], level, level + 1, actSize)
+            if TypeIsRenderable(typeID, groupID, categoryID):
+                if groupID == const.groupCharacter:
+                    return self.GetPortrait(itemID, actSize, sprite)
+                else:
+                    return self.OrderByTypeID([[typeID,
+                      sprite,
+                      actSize,
+                      itemID,
+                      blueprint]])
+            elif groupID == const.groupShipSkins:
+                self.DoSkinLicenseIcon(typeID, sprite)
+            else:
+                iconInfo = inventorycommon.typeHelpers.GetIcon(typeID)
+                if iconInfo and iconInfo.iconFile:
+                    icon = iconInfo.iconFile.strip()
+                    if icon:
+                        if blueprint != BLUEPRINT_NONE:
+                            return self.DoBlueprint(sprite, typeID, size=actSize, blueprint=blueprint)
+                        else:
+                            return sprite.LoadIcon(icon=icon, ignoreSize=ignoreSize)
+            return
 
     def DoSkinLicenseIcon(self, typeID, sprite):
         skin = sm.GetService('skinSvc').GetSkinByLicenseType(typeID)
@@ -630,6 +645,7 @@ class EvePhoto(service.Service):
         if not self.byTypeID_IsRunning:
             uthread.pool('photo::OrderByTypeID', self.ProduceTypeIDs)
             self.byTypeID_IsRunning = 1
+        return
 
     def ExistsInCacheOrRenders(self, typeID, size, itemID, blueprint):
         graphicID = evetypes.GetGraphicID(typeID)
@@ -640,9 +656,11 @@ class EvePhoto(service.Service):
         renderPath = GetRenderPath(graphicID, size, blueprint)
         if blue.paths.exists(renderPath):
             return renderPath
-        cachePath = GetCachePath(typeID, graphicID, size, itemID, blueprint)
-        if self.CheckAvail(cachePath) is not None:
-            return cachePath
+        else:
+            cachePath = GetCachePath(typeID, graphicID, size, itemID, blueprint)
+            if self.CheckAvail(cachePath) is not None:
+                return cachePath
+            return
 
     def ProduceTypeIDs(self):
         while self.byTypeIDQue:
@@ -689,6 +707,7 @@ class EvePhoto(service.Service):
                 blue.pyos.synchro.Yield()
 
         self.byTypeID_IsRunning = 0
+        return
 
     def GetPlanetScene(self):
         scenepath = sm.GetService('sceneManager').GetScene()
@@ -702,33 +721,34 @@ class EvePhoto(service.Service):
         scene.backgroundRenderingEnabled = True
         return scene
 
-    def GetPlanetPhoto(self, itemID, typeID, size = 512):
+    def GetPlanetPhoto(self, itemID, typeID, size=512):
         graphicID = evetypes.GetGraphicID(typeID)
         outPath = GetCachePath(typeID, graphicID, size, itemID)
         planet = Planet()
         planet.GetPlanetByID(itemID, typeID)
         if planet.model is None or planet.model.highDetail is None:
             return NOT_AVAILABLE_PATH
-        planetTransform = trinity.EveTransform()
-        planetTransform.scaling = (100.0, 100.0, 100.0)
-        planetTransform.children.append(planet.model.highDetail)
-        scene = self.GetPlanetScene()
-        try:
-            planet.DoPreProcessEffectForPhotoSvc(size)
-        except:
-            del planetTransform.children[:]
-            return NOT_AVAILABLE_PATH
+        else:
+            planetTransform = trinity.EveTransform()
+            planetTransform.scaling = (100.0, 100.0, 100.0)
+            planetTransform.children.append(planet.model.highDetail)
+            scene = self.GetPlanetScene()
+            try:
+                planet.DoPreProcessEffectForPhotoSvc(size)
+            except:
+                del planetTransform.children[:]
+                return NOT_AVAILABLE_PATH
 
-        trinity.WaitForResourceLoads()
-        scene.sunDirection = (-1.0, 0.0, 0.0)
-        scene.sunDiffuseColor = (1.0, 1.0, 1.0, 1.0)
-        scene.objects.append(planetTransform)
-        view, projection = camera_util.GetViewAndProjectionUsingBoundingSphere(boundingSphereRadius=130)
-        bitmap = photo.RenderToSurface(view, projection, size, scene, transparent=False)
-        bitmap.Save(outPath)
-        del planetTransform.children[:]
-        self._RemovePathFromNotAvailList(outPath)
-        return outPath
+            trinity.WaitForResourceLoads()
+            scene.sunDirection = (-1.0, 0.0, 0.0)
+            scene.sunDiffuseColor = (1.0, 1.0, 1.0, 1.0)
+            scene.objects.append(planetTransform)
+            view, projection = camera_util.GetViewAndProjectionUsingBoundingSphere(boundingSphereRadius=130)
+            bitmap = photo.RenderToSurface(view, projection, size, scene, transparent=False)
+            bitmap.Save(outPath)
+            del planetTransform.children[:]
+            self._RemovePathFromNotAvailList(outPath)
+            return outPath
 
     def GetScenePath(self, raceID):
         scenePaths = {const.raceCaldari: 'res:/dx9/Scene/preview/ship_caldari.red',
@@ -761,7 +781,7 @@ class EvePhoto(service.Service):
         self._RemovePathFromNotAvailList(cachePath)
         return cachePath
 
-    def GetImageServerURL(self, clientCfgValue = 'imageserverurl', defaultServer = None):
+    def GetImageServerURL(self, clientCfgValue='imageserverurl', defaultServer=None):
         imageServer = sm.GetService('machoNet').GetGlobalConfig().get(clientCfgValue)
         if imageServer is None:
             imageServer = defaultServer
@@ -795,13 +815,15 @@ class RemoteImageCacher(object):
         if imageServer is None:
             self.LogError('RemoteImageCacher can not operate without a server URL!', imageServer)
             return
-        imageServer = imageServer.strip().encode('ascii')
-        self.imageUri = imageServer
-        if not imageServer.endswith('/'):
-            self.imageUri += '/'
-        self.imageUri += cacheItem + '/%s_%s' + suffix
-        self.LogInfo('RemoteImageCacher initialized with imageUri', self.imageUri)
-        self.initialized = True
+        else:
+            imageServer = imageServer.strip().encode('ascii')
+            self.imageUri = imageServer
+            if not imageServer.endswith('/'):
+                self.imageUri += '/'
+            self.imageUri += cacheItem + '/%s_%s' + suffix
+            self.LogInfo('RemoteImageCacher initialized with imageUri', self.imageUri)
+            self.initialized = True
+            return
 
     def Initialized(self):
         return self.initialized
@@ -809,7 +831,7 @@ class RemoteImageCacher(object):
     def AddToWatchList(self, itemID, callback):
         self.watchList[itemID] = callback
 
-    def GetCachePath(self, itemID, size, createPath = False):
+    def GetCachePath(self, itemID, size, createPath=False):
         basePath = self.cacheBasePath
         if self.cacheItem == 'Character' and size in (32, 64):
             basePath = '%sChat/%s/' % (self.cacheBasePath, itemID % 100)
@@ -826,7 +848,8 @@ class RemoteImageCacher(object):
         fileSystemPath = blue.paths.ResolvePath(cachePath)
         if os.path.exists(fileSystemPath):
             return (cachePath, self.__IsFresh(cachePath))
-        return (None, False)
+        else:
+            return (None, False)
 
     def MissingFromServer(self, itemID):
         lastTry = self.missingImages.get(itemID, None)
@@ -835,108 +858,115 @@ class RemoteImageCacher(object):
                 del self.missingImages[itemID]
                 return False
             return True
-        return False
+        else:
+            return False
 
-    def GetImage(self, itemID, size, forceUpdate = False):
+    def GetImage(self, itemID, size, forceUpdate=False):
         if not self.Initialized() or self.MissingFromServer(itemID) and not forceUpdate:
             return
-        uthread.Lock(self, itemID)
-        try:
+        else:
+            uthread.Lock(self, itemID)
             try:
-                cachePath = self.GetCachePath(itemID, size, createPath=True)
-            except Exception as e:
-                self.LogError('Failed to get image cache folder', repr(e))
-                self.initialized = False
-                return
-
-            cacheFile = blue.paths.ResolvePath(cachePath)
-            lastModified = self.GetLastModified(cachePath)
-            if forceUpdate or not self.__IsFresh(cachePath):
-                self.LogInfo('Get image for', itemID, 'is fetching/refreshing image. Forced = ', forceUpdate)
-                image, headerLastModifiedTime = self.__GetImageFromUrl(itemID, size, lastModified)
-                if image is None:
-                    self.LogInfo('No image found for', itemID, 'adding to missing images')
-                    self.missingImages[itemID] = time.time()
+                try:
+                    cachePath = self.GetCachePath(itemID, size, createPath=True)
+                except Exception as e:
+                    self.LogError('Failed to get image cache folder', repr(e))
+                    self.initialized = False
                     return
-                if image == NOT_MODIFIED:
-                    self.LogInfo('Image has not been modified, updating cached image')
-                    self.UpdateLastCheckedTime(cacheFile)
-                else:
-                    resfile = blue.classes.CreateInstance('blue.ResFile')
-                    try:
-                        if not resfile.Open(cachePath, 0):
-                            try:
-                                resfile.Create(cachePath)
-                            except Exception as e:
-                                self.LogError('Failed to get image cache folder', repr(e))
-                                self.initialized = False
-                                return
 
-                        resfile.Write(image)
-                        resfile.Close()
-                        self.InvalidateResManagerForResource(cachePath)
-                        self.FetchedCacheFile(cachePath, headerLastModifiedTime)
-                    except Exception as e:
-                        self.LogError('Failed to update cached image', repr(e))
+                cacheFile = blue.paths.ResolvePath(cachePath)
+                lastModified = self.GetLastModified(cachePath)
+                if forceUpdate or not self.__IsFresh(cachePath):
+                    self.LogInfo('Get image for', itemID, 'is fetching/refreshing image. Forced = ', forceUpdate)
+                    image, headerLastModifiedTime = self.__GetImageFromUrl(itemID, size, lastModified)
+                    if image is None:
+                        self.LogInfo('No image found for', itemID, 'adding to missing images')
+                        self.missingImages[itemID] = time.time()
                         return
+                    if image == NOT_MODIFIED:
+                        self.LogInfo('Image has not been modified, updating cached image')
+                        self.UpdateLastCheckedTime(cacheFile)
+                    else:
+                        resfile = blue.classes.CreateInstance('blue.ResFile')
+                        try:
+                            if not resfile.Open(cachePath, 0):
+                                try:
+                                    resfile.Create(cachePath)
+                                except Exception as e:
+                                    self.LogError('Failed to get image cache folder', repr(e))
+                                    self.initialized = False
+                                    return
 
-                    if itemID in self.watchList:
-                        self.LogInfo('RemoteImageCached removed item ', itemID, 'was an item in the watchlist.')
-                        self.watchList[itemID](itemID)
-                        del self.watchList[itemID]
-        finally:
-            uthread.UnLock(self, itemID)
+                            resfile.Write(image)
+                            resfile.Close()
+                            self.InvalidateResManagerForResource(cachePath)
+                            self.FetchedCacheFile(cachePath, headerLastModifiedTime)
+                        except Exception as e:
+                            self.LogError('Failed to update cached image', repr(e))
+                            return
 
-        return cachePath
+                        if itemID in self.watchList:
+                            self.LogInfo('RemoteImageCached removed item ', itemID, 'was an item in the watchlist.')
+                            self.watchList[itemID](itemID)
+                            del self.watchList[itemID]
+            finally:
+                uthread.UnLock(self, itemID)
 
-    def __GetImageFromUrl(self, charID, size, lastModified = None):
+            return cachePath
+
+    def __GetImageFromUrl(self, charID, size, lastModified=None):
         if not self.Initialized():
             return (None, None)
-        url = (self.imageUri % (charID, size)).strip().encode('ascii')
-        request = urllib2.Request(url, None)
-        self.LogInfo('Getting image from', url)
-        if lastModified:
-            cacheTime = datetime.datetime.utcfromtimestamp(lastModified)
-            cacheStamp = cacheTime.strftime('%a, %d %b %Y %H:%M:%S GMT')
-            request.add_header('If-Modified-Since', cacheStamp)
-            self.LogInfo('adding If-Modified-Since header for', cacheStamp)
-        try:
-            ret = self.opener.open(request)
-        except urllib2.HTTPError as e:
-            if e.code == NOT_MODIFIED:
-                self.LogInfo('Not Modified', url, 'since', lastModified, time.ctime(lastModified))
-                return (NOT_MODIFIED, None)
-            if e.code == TEMP_REDIRECT:
-                self.LogInfo('Temp Redirect while getting image', str(e))
+        else:
+            url = (self.imageUri % (charID, size)).strip().encode('ascii')
+            request = urllib2.Request(url, None)
+            self.LogInfo('Getting image from', url)
+            if lastModified:
+                cacheTime = datetime.datetime.utcfromtimestamp(lastModified)
+                cacheStamp = cacheTime.strftime('%a, %d %b %Y %H:%M:%S GMT')
+                request.add_header('If-Modified-Since', cacheStamp)
+                self.LogInfo('adding If-Modified-Since header for', cacheStamp)
+            try:
+                ret = self.opener.open(request)
+            except urllib2.HTTPError as e:
+                if e.code == NOT_MODIFIED:
+                    self.LogInfo('Not Modified', url, 'since', lastModified, time.ctime(lastModified))
+                    return (NOT_MODIFIED, None)
+                if e.code == TEMP_REDIRECT:
+                    self.LogInfo('Temp Redirect while getting image', str(e))
+                    return (None, None)
+                self.LogError('Error while fetching remote image', str(e))
+                sys.exc_clear()
                 return (None, None)
-            self.LogError('Error while fetching remote image', str(e))
-            sys.exc_clear()
-            return (None, None)
-        except urllib2.URLError as e:
-            self.LogError('Error while fetching remote image', str(e))
-            sys.exc_clear()
-            return (None, None)
-
-        try:
-            if 'content-type' not in ret.headers.keys() or not ret.headers['content-type'].startswith('image/'):
-                self.LogError(url, 'was not an actual image')
+            except urllib2.URLError as e:
+                self.LogError('Error while fetching remote image', str(e))
+                sys.exc_clear()
                 return (None, None)
-            lastModifiedTime = time.time()
-            if 'last-modified' in ret.headers.keys():
-                try:
-                    t = datetime.datetime.strptime(ret.headers['last-modified'], '%a, %d %b %Y %H:%M:%S GMT')
-                    lastModifiedTime = time.mktime(t.timetuple())
-                except:
-                    sys.exc_clear()
 
-            return (ret.read(), lastModifiedTime)
-        finally:
-            ret.close()
+            try:
+                if 'content-type' not in ret.headers.keys() or not ret.headers['content-type'].startswith('image/'):
+                    self.LogError(url, 'was not an actual image')
+                    return (None, None)
+                lastModifiedTime = time.time()
+                if 'last-modified' in ret.headers.keys():
+                    try:
+                        t = datetime.datetime.strptime(ret.headers['last-modified'], '%a, %d %b %Y %H:%M:%S GMT')
+                        lastModifiedTime = time.mktime(t.timetuple())
+                    except:
+                        sys.exc_clear()
+
+                return (ret.read(), lastModifiedTime)
+            finally:
+                ret.close()
+
+            return
 
     def GetLastModified(self, cachePath):
         filepath = blue.paths.ResolvePath(cachePath)
         if os.path.exists(filepath):
             return os.path.getmtime(filepath)
+        else:
+            return None
 
     def GetLastChecked(self, cachePath):
         return self.GetLastModified(cachePath)
@@ -955,6 +985,7 @@ class RemoteImageCacher(object):
 
     def UpdateLastCheckedTime(self, cacheFile):
         self.UpdateFileTimeStamp(cacheFile, None)
+        return
 
     def UpdateFileTimeStamp(self, cacheFile, timeStamp):
         try:
@@ -967,8 +998,9 @@ class RemoteImageCacher(object):
         lastModified = self.GetLastChecked(cachePath)
         if lastModified is None:
             return False
-        delta = time.time() - lastModified
-        return delta < MAX_CACHE_AGE
+        else:
+            delta = time.time() - lastModified
+            return delta < MAX_CACHE_AGE
 
     def RemoveFromCache(self, itemID, size):
         cachePath = self.GetCachePath(itemID, size)

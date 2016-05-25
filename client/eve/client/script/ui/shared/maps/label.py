@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\client\script\ui\shared\maps\label.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\client\script\ui\shared\maps\label.py
 import evecamera
 import uicontrols
 import uiprimitives
@@ -21,7 +22,7 @@ class MapLabel(uiprimitives.Bracket):
     preFullAlpha = None
 
     @telemetry.ZONE_METHOD
-    def Startup(self, name, itemID, typeID, tracker, cloud, mylocation = None):
+    def Startup(self, name, itemID, typeID, tracker, cloud, mylocation=None):
         self.trackTransform = tracker
         self.sr.cloud = cloud
         self.sr.id = itemID
@@ -30,29 +31,30 @@ class MapLabel(uiprimitives.Bracket):
         if name in ('', 'myDest', 'myloc'):
             uicore.animations.FadeTo(self, startVal=0.0, endVal=1.0, duration=0.1)
             return
-        frame = None
-        if itemID > 0:
-            if typeID == const.typeConstellation:
-                label = xtriui.ParentLabel(text='<b>' + name + '</b>', parent=self, left=154, top=4, fontsize=12, uppercase=1, state=uiconst.UI_NORMAL)
-                frame = uicontrols.Frame(parent=self, align=uiconst.RELATIVE)
-            else:
-                label = xtriui.ParentLabel(text=name, parent=self, left=154, letterspace=1, fontsize=9, uppercase=1, align=uiconst.CENTERLEFT, state=uiconst.UI_NORMAL)
-                label.top = -label.textheight / 2
         else:
-            label = xtriui.ParentLabel(text=name, parent=self, left=154, top=7, letterspace=1, fontsize=9, uppercase=1, state=uiconst.UI_NORMAL)
-        if not mylocation:
-            if self.sr.id < 0:
-                label.color.SetRGB(1.0, 0.96, 0.78, 1.0)
-        if typeID != const.typeSolarSystem:
-            label.left = (self.width - label.width) / 2
-        if frame:
-            frame.left = label.left - 5
-            frame.width = label.width + 10
-            frame.top = label.top - 3
-            frame.height = label.height + 6
-        label.state = uiconst.UI_NORMAL
-        uicore.animations.FadeTo(self, startVal=0.0, endVal=1.0, duration=0.1)
-        return self
+            frame = None
+            if itemID > 0:
+                if typeID == const.typeConstellation:
+                    label = xtriui.ParentLabel(text='<b>' + name + '</b>', parent=self, left=154, top=4, fontsize=12, uppercase=1, state=uiconst.UI_NORMAL)
+                    frame = uicontrols.Frame(parent=self, align=uiconst.RELATIVE)
+                else:
+                    label = xtriui.ParentLabel(text=name, parent=self, left=154, letterspace=1, fontsize=9, uppercase=1, align=uiconst.CENTERLEFT, state=uiconst.UI_NORMAL)
+                    label.top = -label.textheight / 2
+            else:
+                label = xtriui.ParentLabel(text=name, parent=self, left=154, top=7, letterspace=1, fontsize=9, uppercase=1, state=uiconst.UI_NORMAL)
+            if not mylocation:
+                if self.sr.id < 0:
+                    label.color.SetRGB(1.0, 0.96, 0.78, 1.0)
+            if typeID != const.typeSolarSystem:
+                label.left = (self.width - label.width) / 2
+            if frame:
+                frame.left = label.left - 5
+                frame.width = label.width + 10
+                frame.top = label.top - 3
+                frame.height = label.height + 6
+            label.state = uiconst.UI_NORMAL
+            uicore.animations.FadeTo(self, startVal=0.0, endVal=1.0, duration=0.1)
+            return self
 
     def OnMouseEnter(self, *args):
         return
@@ -64,6 +66,7 @@ class MapLabel(uiprimitives.Bracket):
         if self.preFullAlpha is None:
             self.preFullAlpha = self.children[0].color.a
         self.children[0].color.a = 1.0
+        return
 
     def OnMouseExit(self, *args):
         return
@@ -71,11 +74,13 @@ class MapLabel(uiprimitives.Bracket):
             if self.sr.typeID == const.typeConstellation:
                 sm.GetService('starmap').UpdateLines(None)
         self.ResetFullAlpha()
+        return
 
     def ResetFullAlpha(self):
         if self.preFullAlpha is not None:
             self.children[0].color.a = self.preFullAlpha
             self.preFullAlpha = None
+        return
 
     def OnClick(self, *args):
         sm.GetService('starmap').SetInterest(self.sr.id)
@@ -126,7 +131,7 @@ class TransformableLabel(object):
     __guid__ = 'xtriui.TransformableLabel'
     __persistvars__ = ['shader']
 
-    def __init__(self, text, parent, size = 72, shadow = 0, hspace = 8):
+    def __init__(self, text, parent, size=72, shadow=0, hspace=8):
         self.transform = trinity.EveTransform()
         self.transform.mesh = trinity.Tr2Mesh()
         self.transform.mesh.geometryResPath = 'res:/Model/Global/zsprite.gr2'
@@ -180,10 +185,12 @@ class TransformableLabel(object):
     def OnCreate(self, dev):
         if self.diffuseMap is None:
             return
-        if self.diffuseMap.resource is not None and self.diffuseMap.resource.isGood:
+        elif self.diffuseMap.resource is not None and self.diffuseMap.resource.isGood:
             return
-        height = self.measurer.ascender - self.measurer.descender
-        width = self.measurer.cursorX
-        tr = trinity.TriTextureRes(width, height, 1, trinity.PIXEL_FORMAT.B8G8R8A8_UNORM, trinity.BUFFER_USAGE_FLAGS.CPU_WRITE)
-        self.measurer.DrawToTexture(tr)
-        self.diffuseMap.SetResource(tr)
+        else:
+            height = self.measurer.ascender - self.measurer.descender
+            width = self.measurer.cursorX
+            tr = trinity.TriTextureRes(width, height, 1, trinity.PIXEL_FORMAT.B8G8R8A8_UNORM, trinity.BUFFER_USAGE_FLAGS.CPU_WRITE)
+            self.measurer.DrawToTexture(tr)
+            self.diffuseMap.SetResource(tr)
+            return

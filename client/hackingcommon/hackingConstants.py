@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\packages\hackingcommon\hackingConstants.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\packages\hackingcommon\hackingConstants.py
 GAMETYPE_HACKING = 0
 GAMETYPE_ARCHEOLOGY = 1
 GAMETYPE_MULTICORE = 2

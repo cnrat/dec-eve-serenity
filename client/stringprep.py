@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\carbon\common\stdlib\stringprep.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\carbon\common\stdlib\stringprep.py
 from unicodedata import ucd_3_2_0 as unicodedata
 
 def in_table_a1(code):
@@ -681,7 +682,8 @@ def map_table_b3(code):
     r = b3_exceptions.get(ord(code))
     if r is not None:
         return r
-    return code.lower()
+    else:
+        return code.lower()
 
 
 def map_table_b2(a):

@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\client\script\environment\effects\accelerationGate.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\client\script\environment\effects\accelerationGate.py
 from eve.client.script.environment.effects.GenericEffect import GenericEffect
 
 class AccelerationGate(GenericEffect):
@@ -13,3 +14,4 @@ class AccelerationGate(GenericEffect):
         if slimItem.dunMusicUrl is not None and targetID == eve.session.shipid:
             sm.GetService('audio').SendUIEvent(slimItem.dunMusicUrl.lower())
         self.PlayNamedAnimations(gateBall.model, 'Activation')
+        return

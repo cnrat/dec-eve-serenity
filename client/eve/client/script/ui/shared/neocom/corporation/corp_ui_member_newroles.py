@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\client\script\ui\shared\neocom\corporation\corp_ui_member_newroles.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\client\script\ui\shared\neocom\corporation\corp_ui_member_newroles.py
 from carbon.common.script.util.commonutils import StripTags
 from carbonui.primitives.container import Container
 from carbonui.util.bunch import Bunch
@@ -16,6 +17,7 @@ from localization import GetByLabel
 import blue
 import carbonui.const as uiconst
 import uthread
+import util
 PERMISSIONS = 1
 STATION_SERVICE = 2
 ACCOUNTING = 3
@@ -56,8 +58,9 @@ class CorpRolesNew(Container):
          0,
          const.defaultPadding,
          0), state=uiconst.UI_NORMAL)
+        return
 
-    def Load(self, populateView = 1, *args):
+    def Load(self, populateView=1, *args):
         sm.GetService('corpui').LoadTop('res:/ui/Texture/WindowIcons/corporationmembers.png', GetByLabel('UI/Corporations/Common/Members'))
         if not self.sr.Get('inited', 0):
             self.sr.inited = 1
@@ -114,6 +117,7 @@ class CorpRolesNew(Container):
             if len(searchString) < 3:
                 return []
             return searchUtil.SearchCharactersInCorp(searchString, self.memberIDs)
+            return
 
     def ChangeSort(self, scroll, activeColumn, activeDirection):
         scroll.Sort(activeColumn, activeDirection)
@@ -137,7 +141,7 @@ class CorpRolesNew(Container):
         roleGroupsBtns.AddButton(ACCESS, GetByLabel('UI/Corporations/RoleManagement/Access'))
         roleGroupsBtns.AddButton(GROUPS, GetByLabel('UI/Corporations/Common/Titles'))
 
-    def GetMembersToShow(self, searchedCharID = None, updateState = True):
+    def GetMembersToShow(self, searchedCharID=None, updateState=True):
         self.membersToShow = []
         if self.isSearched and searchedCharID:
             self.membersToShow.append(self.corpSvc.GetMember(searchedCharID))
@@ -275,7 +279,8 @@ class CorpRolesNew(Container):
         bases = [('-', None)]
         if offices:
             for office in offices:
-                bases.append((cfg.evelocations.Get(office.stationID).locationName, office.stationID))
+                if util.IsStation(office.locationID):
+                    bases.append((cfg.evelocations.Get(office.locationID).locationName, office.locationID))
 
         return bases
 
@@ -296,7 +301,7 @@ class CorpRolesNew(Container):
             self.roleScroll.display = True
             self.LoadRolesScroll()
 
-    def GetScrollList(self, decoClass, sortFunction, roleGroup = None, titles = None, divisionNames = None):
+    def GetScrollList(self, decoClass, sortFunction, roleGroup=None, titles=None, divisionNames=None):
         scrollList = []
         for member in self.membersToShow:
             scrollList.append(Bunch(decoClass=decoClass, member=member, charID=member.characterID, corp=self.corp, label=cfg.eveowners.Get(member.characterID).ownerName, roleGroup=roleGroup, GetSortValue=sortFunction, roleGroupings=self.roleGroupings, myBaseID=self.myBaseID, myGrantableRoles=self.myGrantableRoles, titles=titles, divisionNames=divisionNames, bases=self.bases))
@@ -306,14 +311,14 @@ class CorpRolesNew(Container):
 
         return scrollList
 
-    def GetHeaderSortValue(self, node, columnID, sortDirection):
+    def GetHeaderSortValue(self, node, columnID, sortDirection, idx=None):
         sortValue = (0, None)
         if sortDirection:
             sortValue = (1000, None)
         node.Set('sort_%s' % columnID, sortValue)
-        return self.GetSortValue(node, columnID, sortDirection)
+        return self.GetSortValue(node, columnID, sortDirection, idx=None)
 
-    def GetAccessSortValue(self, node, columnID, sortDirection):
+    def GetAccessSortValue(self, node, columnID, sortDirection, idx=None):
         self.SetNameAndBaseSorting(node)
         if node.Get('sort_%s' % columnID, None) is None:
             roleGrouping = self.roleGroupings
@@ -333,18 +338,18 @@ class CorpRolesNew(Container):
                         totalValue += checkValue
 
             node.Set('sort_%s' % columnID, (0, totalValue))
-        return self.GetSortValue(node, columnID, sortDirection)
+        return self.GetSortValue(node, columnID, sortDirection, idx=None)
 
-    def GetTitlesSortValue(self, node, columnID, sortDirection):
+    def GetTitlesSortValue(self, node, columnID, sortDirection, idx=None):
         self.SetNameAndBaseSorting(node)
         if node.Get('sort_%s' % columnID, None) is None:
             for title in sorted(self.titles.itervalues(), key=lambda x: x.titleID):
                 isChecked = node.member.titleMask & title.titleID == title.titleID
                 node.Set('sort_%s' % title.titleName, (0, isChecked))
 
-        return self.GetSortValue(node, columnID, sortDirection)
+        return self.GetSortValue(node, columnID, sortDirection, idx=None)
 
-    def GetRolesSortValue(self, node, columnID, sortDirection):
+    def GetRolesSortValue(self, node, columnID, sortDirection, idx=None):
         self.SetNameAndBaseSorting(node)
         if node.Get('sort_%s' % columnID, None) is None:
             roles = getattr(node.member, node.roleGroup.appliesTo)
@@ -358,14 +363,14 @@ class CorpRolesNew(Container):
                         checkValue = GetCheckStateForRole(roles, grantableRoles, role)
                         node.Set('sort_%s' % columnID, (0, checkValue))
 
-        return self.GetSortValue(node, columnID, sortDirection)
+        return self.GetSortValue(node, columnID, sortDirection, idx=None)
 
     def CheckIfDirectorOrCEO(self, node, roles):
         isCEO = node.member.characterID == node.corp.ceoID
         isDirector = roles & const.corpRoleDirector == const.corpRoleDirector
         return isDirector or isCEO
 
-    def GetSortValue(self, node, columnID, sortDirection):
+    def GetSortValue(self, node, columnID, sortDirection, idx=None):
         return node.Get('sort_%s' % columnID, (0, 0))
 
     def SetNameAndBaseSorting(self, node):
@@ -504,36 +509,39 @@ class CorpRolesNew(Container):
         nCount = len(nodesToUpdate)
         if nCount == 0:
             return
-        try:
-            sm.GetService('loading').ProgressWnd(GetByLabel('UI/Common/Updating'), '', 0, nCount)
-            blue.pyos.synchro.Yield()
-            rows = None
-            myRow = None
-            for node in nodesToUpdate:
-                row = self._CreateRowsToUpdate(node)
-                if node.rec.characterID == eve.session.charid:
-                    if myRow is None:
-                        myRow = Rowset(self.GetRowHeader())
-                    myRow.append(row)
-                else:
-                    if rows is None:
-                        rows = Rowset(self.GetRowHeader())
-                    rows.append(row)
-
-            if rows is not None:
-                self.corpSvc.UpdateMembers(rows)
-                sm.ScatterEvent('OnRoleEdit', rows)
-            if myRow is not None:
-                sm.GetService('sessionMgr').PerformSessionChange('corp.UpdateMembers', self.corpSvc.UpdateMembers, myRow)
-        finally:
-            if nCount:
-                for node in nodesToUpdate:
-                    self.UpdateOldRolesForNode(node)
-
-                sm.GetService('loading').ProgressWnd(GetByLabel('UI/Common/Updated'), '', nCount - 1, nCount)
-                blue.pyos.synchro.SleepWallclock(500)
-                sm.GetService('loading').ProgressWnd(GetByLabel('UI/Common/Updated'), '', nCount, nCount)
+        else:
+            try:
+                sm.GetService('loading').ProgressWnd(GetByLabel('UI/Common/Updating'), '', 0, nCount)
                 blue.pyos.synchro.Yield()
+                rows = None
+                myRow = None
+                for node in nodesToUpdate:
+                    row = self._CreateRowsToUpdate(node)
+                    if node.rec.characterID == eve.session.charid:
+                        if myRow is None:
+                            myRow = Rowset(self.GetRowHeader())
+                        myRow.append(row)
+                    else:
+                        if rows is None:
+                            rows = Rowset(self.GetRowHeader())
+                        rows.append(row)
+
+                if rows is not None:
+                    self.corpSvc.UpdateMembers(rows)
+                    sm.ScatterEvent('OnRoleEdit', rows)
+                if myRow is not None:
+                    sm.GetService('sessionMgr').PerformSessionChange('corp.UpdateMembers', self.corpSvc.UpdateMembers, myRow)
+            finally:
+                if nCount:
+                    for node in nodesToUpdate:
+                        self.UpdateOldRolesForNode(node)
+
+                    sm.GetService('loading').ProgressWnd(GetByLabel('UI/Common/Updated'), '', nCount - 1, nCount)
+                    blue.pyos.synchro.SleepWallclock(500)
+                    sm.GetService('loading').ProgressWnd(GetByLabel('UI/Common/Updated'), '', nCount, nCount)
+                    blue.pyos.synchro.Yield()
+
+            return
 
     def GetRowHeader(self):
         return ['characterID',

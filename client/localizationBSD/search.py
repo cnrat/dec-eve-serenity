@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\packages\localizationBSD\search.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\packages\localizationBSD\search.py
 from wrappers.project import Project
 from wrappers.messageGroup import MessageGroup
 from wrappers.message import Message
@@ -24,7 +25,7 @@ def _SearchById(searchType, searchText):
     return list(set(idList))
 
 
-def _SearchByStatus(statusID, projectID, rootGroupID, searchLanguageIDs = None):
+def _SearchByStatus(statusID, projectID, rootGroupID, searchLanguageIDs=None):
     if isinstance(statusID, basestring):
         try:
             statusID = int(statusID)
@@ -49,7 +50,7 @@ def _SearchByStatus(statusID, projectID, rootGroupID, searchLanguageIDs = None):
 
 class _SearchWithDatabaseQuery(object):
 
-    def __init__(self, exactPhraseOnly, caseSensitive, projectID = -1, rootGroupID = -1, languageIDList = None):
+    def __init__(self, exactPhraseOnly, caseSensitive, projectID=-1, rootGroupID=-1, languageIDList=None):
         self.exactPhraseOnly = exactPhraseOnly
         self.caseSensitive = caseSensitive
         self.projectID = projectID
@@ -58,6 +59,7 @@ class _SearchWithDatabaseQuery(object):
             self.languageIDList = map(str, languageIDList)
         else:
             self.languageIDList = None
+        return
 
     def _StartSqlQuery(self, columnName, tableName):
         if self.rootGroupID > 0:
@@ -99,7 +101,7 @@ class _SearchWithDatabaseQuery(object):
         return [ getattr(x, idColumn) for x in retRows ]
 
 
-def PerformSearch(searchType, searchText, searchLanguageIDs = None, projectID = -1, rootGroupID = -1, exactPhraseOnly = False, caseSensitive = False):
+def PerformSearch(searchType, searchText, searchLanguageIDs=None, projectID=-1, rootGroupID=-1, exactPhraseOnly=False, caseSensitive=False):
     msgs = []
     groups = []
     if searchType in (SEARCH_BY_MESSAGEID, SEARCH_BY_GROUPID):

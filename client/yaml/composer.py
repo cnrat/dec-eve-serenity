@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\carbon\common\stdlib\yaml\composer.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\carbon\common\stdlib\yaml\composer.py
 __all__ = ['Composer', 'ComposerError']
 from error import MarkedYAMLError
 from events import *
@@ -47,20 +48,21 @@ class Composer(object):
             if anchor not in self.anchors:
                 raise ComposerError(None, None, 'found undefined alias %r' % anchor.encode('utf-8'), event.start_mark)
             return self.anchors[anchor]
-        event = self.peek_event()
-        anchor = event.anchor
-        if anchor is not None:
-            if anchor in self.anchors:
-                raise ComposerError('found duplicate anchor %r; first occurence' % anchor.encode('utf-8'), self.anchors[anchor].start_mark, 'second occurence', event.start_mark)
-        self.descend_resolver(parent, index)
-        if self.check_event(ScalarEvent):
-            node = self.compose_scalar_node(anchor)
-        elif self.check_event(SequenceStartEvent):
-            node = self.compose_sequence_node(anchor)
-        elif self.check_event(MappingStartEvent):
-            node = self.compose_mapping_node(anchor)
-        self.ascend_resolver()
-        return node
+        else:
+            event = self.peek_event()
+            anchor = event.anchor
+            if anchor is not None:
+                if anchor in self.anchors:
+                    raise ComposerError('found duplicate anchor %r; first occurence' % anchor.encode('utf-8'), self.anchors[anchor].start_mark, 'second occurence', event.start_mark)
+            self.descend_resolver(parent, index)
+            if self.check_event(ScalarEvent):
+                node = self.compose_scalar_node(anchor)
+            elif self.check_event(SequenceStartEvent):
+                node = self.compose_sequence_node(anchor)
+            elif self.check_event(MappingStartEvent):
+                node = self.compose_mapping_node(anchor)
+            self.ascend_resolver()
+            return node
 
     def compose_scalar_node(self, anchor):
         event = self.get_event()

@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\common\modules\nice\client\_nastyspace\clientStatsCommon.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\common\modules\nice\client\_nastyspace\clientStatsCommon.py
 from eve.common.script.util.clientStatsCommon import CONTENT_TYPE_CLASSIC
 from eve.common.script.util.clientStatsCommon import CONTENT_TYPE_PREMIUM
 from eve.common.script.util.clientStatsCommon import ClientStatsDict

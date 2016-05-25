@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\carbon\common\lib\cherrypy\tutorial\tut09_files.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\carbon\common\lib\cherrypy\tutorial\tut09_files.py
 import os
 localDir = os.path.dirname(__file__)
 absDir = os.path.join(os.getcwd(), localDir)
@@ -8,7 +9,7 @@ from cherrypy.lib import static
 class FileDemo(object):
 
     def index(self):
-        return '\n        <html><body>\n            <h2>Upload a file</h2>\n            <form action="upload" method="post" enctype="multipart/form-data">\n            filename: <input type="file" name="myFile" /><br />\n            <input type="submit" />\n            </form>\n            <h2>Download a file</h2>\n            <a href=\'download\'>This one</a>\n        </body></html>\n        '
+        pass
 
     index.exposed = True
 

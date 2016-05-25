@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\carbon\common\lib\werkzeug\security.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\carbon\common\lib\werkzeug\security.py
 import hmac
 import string
 from random import SystemRandom
@@ -27,23 +28,24 @@ def gen_salt(length):
 def _hash_internal(method, salt, password):
     if method == 'plain':
         return password
-    if salt:
-        if method not in _hash_mods:
-            return
-        if isinstance(salt, unicode):
-            salt = salt.encode('utf-8')
-        h = hmac.new(salt, None, _hash_mods[method])
     else:
-        if method not in _hash_funcs:
-            return
-        h = _hash_funcs[method]()
-    if isinstance(password, unicode):
-        password = password.encode('utf-8')
-    h.update(password)
-    return h.hexdigest()
+        if salt:
+            if method not in _hash_mods:
+                return
+            if isinstance(salt, unicode):
+                salt = salt.encode('utf-8')
+            h = hmac.new(salt, None, _hash_mods[method])
+        else:
+            if method not in _hash_funcs:
+                return
+            h = _hash_funcs[method]()
+        if isinstance(password, unicode):
+            password = password.encode('utf-8')
+        h.update(password)
+        return h.hexdigest()
 
 
-def generate_password_hash(password, method = 'sha1', salt_length = 8):
+def generate_password_hash(password, method='sha1', salt_length=8):
     salt = method != 'plain' and gen_salt(salt_length) or ''
     h = _hash_internal(method, salt, password)
     if h is None:

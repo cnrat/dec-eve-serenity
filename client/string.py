@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\carbon\common\stdlib\string.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\carbon\common\stdlib\string.py
 whitespace = ' \t\n\r\x0b\x0c'
 lowercase = 'abcdefghijklmnopqrstuvwxyz'
 uppercase = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ'
@@ -15,7 +16,7 @@ l = map(chr, xrange(256))
 _idmap = str('').join(l)
 del l
 
-def capwords(s, sep = None):
+def capwords(s, sep=None):
     return (sep or ' ').join((x.capitalize() for x in s.split(sep)))
 
 
@@ -97,11 +98,13 @@ class Template:
             if named is not None:
                 val = mapping[named]
                 return '%s' % (val,)
-            if mo.group('escaped') is not None:
+            elif mo.group('escaped') is not None:
                 return self.delimiter
-            if mo.group('invalid') is not None:
-                self._invalid(mo)
-            raise ValueError('Unrecognized named group in pattern', self.pattern)
+            else:
+                if mo.group('invalid') is not None:
+                    self._invalid(mo)
+                raise ValueError('Unrecognized named group in pattern', self.pattern)
+                return
 
         return self.pattern.sub(convert, self.template)
 
@@ -132,9 +135,11 @@ class Template:
 
             if mo.group('escaped') is not None:
                 return self.delimiter
-            if mo.group('invalid') is not None:
+            elif mo.group('invalid') is not None:
                 return self.delimiter
-            raise ValueError('Unrecognized named group in pattern', self.pattern)
+            else:
+                raise ValueError('Unrecognized named group in pattern', self.pattern)
+                return
 
         return self.pattern.sub(convert, self.template)
 
@@ -156,29 +161,29 @@ def swapcase(s):
     return s.swapcase()
 
 
-def strip(s, chars = None):
+def strip(s, chars=None):
     return s.strip(chars)
 
 
-def lstrip(s, chars = None):
+def lstrip(s, chars=None):
     return s.lstrip(chars)
 
 
-def rstrip(s, chars = None):
+def rstrip(s, chars=None):
     return s.rstrip(chars)
 
 
-def split(s, sep = None, maxsplit = -1):
+def split(s, sep=None, maxsplit=-1):
     return s.split(sep, maxsplit)
 
 
 splitfields = split
 
-def rsplit(s, sep = None, maxsplit = -1):
+def rsplit(s, sep=None, maxsplit=-1):
     return s.rsplit(sep, maxsplit)
 
 
-def join(words, sep = ' '):
+def join(words, sep=' '):
     return sep.join(words)
 
 
@@ -212,11 +217,11 @@ def atof(s):
     return _float(s)
 
 
-def atoi(s, base = 10):
+def atoi(s, base=10):
     return _int(s, base)
 
 
-def atol(s, base = 10):
+def atol(s, base=10):
     return _long(s, base)
 
 
@@ -238,22 +243,23 @@ def zfill(x, width):
     return x.zfill(width)
 
 
-def expandtabs(s, tabsize = 8):
+def expandtabs(s, tabsize=8):
     return s.expandtabs(tabsize)
 
 
-def translate(s, table, deletions = ''):
+def translate(s, table, deletions=''):
     if deletions or table is None:
         return s.translate(table, deletions)
     else:
         return s.translate(table + s[:0])
+        return
 
 
 def capitalize(s):
     return s.capitalize()
 
 
-def replace(s, old, new, maxreplace = -1):
+def replace(s, old, new, maxreplace=-1):
     return s.replace(old, new, maxreplace)
 
 
@@ -305,11 +311,13 @@ class Formatter(object):
     def convert_field(self, value, conversion):
         if conversion == 'r':
             return repr(value)
-        if conversion == 's':
+        elif conversion == 's':
             return str(value)
-        if conversion is None:
+        elif conversion is None:
             return value
-        raise ValueError('Unknown conversion specifier {0!s}'.format(conversion))
+        else:
+            raise ValueError('Unknown conversion specifier {0!s}'.format(conversion))
+            return
 
     def parse(self, format_string):
         return format_string._formatter_parser()

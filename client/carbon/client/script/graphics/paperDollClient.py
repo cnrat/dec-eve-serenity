@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\carbon\client\script\graphics\paperDollClient.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\carbon\client\script\graphics\paperDollClient.py
 import service
 import collections
 import GameWorld
@@ -17,6 +18,7 @@ class PaperDollClientComponent(object):
         self.typeID = None
         self.dna = None
         self.gender = None
+        return
 
 
 class PaperDollClient(service.Service):
@@ -121,7 +123,7 @@ class PaperDollClient(service.Service):
         return dollDnaInfo
 
     @telemetry.ZONE_METHOD
-    def SpawnDoll(self, scene, entity, dollGender, dollDnaInfo, shouldLod, usePrepass = False, textureResolution = None, spawnAtLOD = 0):
+    def SpawnDoll(self, scene, entity, dollGender, dollDnaInfo, shouldLod, usePrepass=False, textureResolution=None, spawnAtLOD=0):
         positionComponent = entity.GetComponent('position')
         if dollDnaInfo is not None:
             doll = self.paperDollManager.SpawnPaperDollCharacterFromDNA(scene, str(entity.entityID), dollDnaInfo, position=positionComponent.position, gender=dollGender, lodEnabled=shouldLod, textureResolution=textureResolution, usePrepass=usePrepass, spawnAtLOD=spawnAtLOD)
@@ -133,12 +135,14 @@ class PaperDollClient(service.Service):
         if component.callback and entity.HasComponent('position'):
             entity.GetComponent('position').UnRegisterPlacementObserverWrapper(component.callback)
             component.callback = None
+        return
 
     def TearDownComponent(self, entity, component):
         component.doll.avatar.animationUpdater = None
         component.doll.avatar.worldTransformUpdater = None
         self.paperDollManager.RemovePaperDollCharacter(component.doll)
         component.doll = None
+        return
 
     def ToogleRenderAvatars(self):
         self.renderAvatars = not self.renderAvatars

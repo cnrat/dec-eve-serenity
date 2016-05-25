@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\carbon\client\script\environment\vivoxService.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\carbon\client\script\environment\vivoxService.py
 import uthread
 import service
 import hashlib
@@ -56,6 +57,7 @@ class VivoxService(service.Service):
         self.voiceMgr = sm.RemoteSvc('voiceMgr')
         self.AppRun(ms)
         self.LogInfo('vivox service started')
+        return
 
     def Enabled(self):
         if hasattr(settings.user, 'audio'):
@@ -69,11 +71,12 @@ class VivoxService(service.Service):
     def Subscriber(self):
         if not session.charid:
             return
-        if boot.region == 'optic':
+        elif boot.region == 'optic':
             return
-        if self.subscriber is None:
-            self.subscriber = sm.RemoteSvc('voiceMgr').VoiceEnabled()
-        return self.subscriber
+        else:
+            if self.subscriber is None:
+                self.subscriber = sm.RemoteSvc('voiceMgr').VoiceEnabled()
+            return self.subscriber
 
     def Init(self):
         if getattr(self, 'vivoxStatus', vivoxConstants.VIVOX_NONE) != vivoxConstants.VIVOX_NONE:
@@ -128,6 +131,7 @@ class VivoxService(service.Service):
                 uthread.pool('vivox::GetAvailableVoiceFontseve', self._GetAvailableVoiceFonts)
             else:
                 sm.ScatterEvent('OnVoiceFontsReceived', self.voiceFontList)
+        return
 
     def _GetAvailableVoiceFonts(self):
         self.connector.GetAvailableVoiceFonts()
@@ -184,7 +188,7 @@ class VivoxService(service.Service):
 
         return channels
 
-    def IsVoiceChannel(self, channelID, vivoxNamed = 0):
+    def IsVoiceChannel(self, channelID, vivoxNamed=0):
         if not vivoxNamed:
             vivoxChannelID = self.GetVivoxChannelName(channelID)
         else:
@@ -231,7 +235,7 @@ class VivoxService(service.Service):
 
             self.connector.Logout()
 
-    def JoinChannel(self, channelID, suppress = False, persist = True):
+    def JoinChannel(self, channelID, suppress=False, persist=True):
         if not self.Enabled():
             if suppress:
                 return
@@ -270,12 +274,14 @@ class VivoxService(service.Service):
     def _CreateChannel(self, vivoxChannelName):
         self.LogInfo('Requesting Creation of channel with name', vivoxChannelName)
         try:
-            isPersistent = self.IsChannelPersistent(vivoxChannelName)
-            isProtected = self.IsChannelProtected(vivoxChannelName)
-            uri = self.voiceMgr.CreateChannel(vivoxChannelName, isPersistent, isProtected)
-        except:
-            log.LogException()
-            sys.exc_clear()
+            try:
+                isPersistent = self.IsChannelPersistent(vivoxChannelName)
+                isProtected = self.IsChannelProtected(vivoxChannelName)
+                uri = self.voiceMgr.CreateChannel(vivoxChannelName, isPersistent, isProtected)
+            except:
+                log.LogException()
+                sys.exc_clear()
+
         finally:
             if len(uri) > 0:
                 uthread.pool('vivox::JoinChannel', self._JoinChannel, vivoxChannelName)
@@ -338,6 +344,7 @@ class VivoxService(service.Service):
             uthread.pool('vivox::Login', self._Login)
         else:
             self.AppCreateAccountFailed()
+        return
 
     def SetVoiceFont(self, voiceFontID):
         self.connector.SetVoiceFont(voiceFontID)
@@ -363,7 +370,7 @@ class VivoxService(service.Service):
         preferedInputDevice = self.connector.GetPreferredAudioInputDevice()
         return preferedInputDevice
 
-    def SetPreferredAudioInputDevice(self, device, restartAudioTest = 0):
+    def SetPreferredAudioInputDevice(self, device, restartAudioTest=0):
         self.connector.SetPreferredAudioInputDevice(device)
         if restartAudioTest:
             self.RestartAudioTest()
@@ -380,12 +387,12 @@ class VivoxService(service.Service):
         preferredOutputDevice = self.connector.GetPreferredAudioOutputDevice()
         return preferredOutputDevice
 
-    def SetPreferredAudioOutputDevice(self, device, restartAudioTest = 0):
+    def SetPreferredAudioOutputDevice(self, device, restartAudioTest=0):
         self.connector.SetPreferredAudioOutputDevice(device)
         if restartAudioTest:
             self.RestartAudioTest()
 
-    def SetMicrophoneVolume(self, volume, restartAudioTest = 0):
+    def SetMicrophoneVolume(self, volume, restartAudioTest=0):
         volume = vivoxConstants.VXVOLUME_MIN + int(volume * (vivoxConstants.VXVOLUME_MAX - vivoxConstants.VXVOLUME_MIN))
         self.connector.SetMicrophoneVolume(volume)
         if restartAudioTest:
@@ -397,7 +404,7 @@ class VivoxService(service.Service):
         else:
             return 0
 
-    def EnableGlobalPushToTalkMode(self, binding, key = None):
+    def EnableGlobalPushToTalkMode(self, binding, key=None):
         self.AppEnableGlobalPushToTalkMode(binding, key)
 
     def DisableGlobalPushToTalkMode(self):
@@ -461,7 +468,7 @@ class VivoxService(service.Service):
             self.LogInfo('LeaveEchoChannel')
             self._LeaveChannel('Echo')
 
-    def MuteParticipantForMe(self, charID, mute, vivoxChannelName = None):
+    def MuteParticipantForMe(self, charID, mute, vivoxChannelName=None):
         channels = self.members
         if vivoxChannelName is not None:
             if type(vivoxChannelName) in (types.TupleType, types.ListType):
@@ -478,6 +485,7 @@ class VivoxService(service.Service):
             self.mutedParticipants[charID] = charID
         elif self.mutedParticipants.has_key(charID):
             self.mutedParticipants.pop(charID)
+        return
 
     def GetMutedParticipants(self):
         return self.mutedParticipants
@@ -501,6 +509,7 @@ class VivoxService(service.Service):
 
     def UnregisterIntensityCallback(self):
         self.intensityCallback = None
+        return
 
     def OnInitialized(self, statusCode):
         if statusCode != 0:
@@ -613,6 +622,7 @@ class VivoxService(service.Service):
         if charid in self.mutedParticipants:
             self.MuteParticipantForMe(charid, 1, channelName)
         self.AppOnParticipantJoined(charid, channelName)
+        return
 
     def OnParticipantLeft(self, uri, channelName):
         charid = self.GetCharIdFromUri(uri)
@@ -627,6 +637,7 @@ class VivoxService(service.Service):
                     break
 
         self.AppOnParticipantLeft(uri, channelName)
+        return
 
     def OnParticipantStateChanged(self, uri, channelName, isSpeaking, isLocallyMuted, energy):
         pass
@@ -648,7 +659,7 @@ class VivoxService(service.Service):
     def AppOnKeyEvent(self, name, pressed):
         raise NotImplementedError("This is application specific functionality and must be implemented in your application's voice chat service.")
 
-    def _OnJoinedChannel(self, channelName = 0):
+    def _OnJoinedChannel(self, channelName=0):
         raise NotImplementedError("This is application specific functionality and must be implemented in your application's voice chat service.")
 
     def _OnLeftChannel(self, channelName):
@@ -660,10 +671,10 @@ class VivoxService(service.Service):
     def AppOnParticipantJoined(self, uri, channelName):
         raise NotImplementedError("This is application specific functionality and must be implemented in your application's voice chat service.")
 
-    def AppCanJoinChannel(self, channelID, suppress = False):
+    def AppCanJoinChannel(self, channelID, suppress=False):
         raise NotImplementedError("This is application specific functionality and must be implemented in your application's voice chat service.")
 
-    def AppCanJoinEchoChannel(self, suppress = False):
+    def AppCanJoinEchoChannel(self, suppress=False):
         raise NotImplementedError("This is application specific functionality and must be implemented in your application's voice chat service.")
 
     def AppGetAvailableKeyBindings(self):

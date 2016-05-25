@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\client\script\ui\shared\planet\surveyUI.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\client\script\ui\shared\planet\surveyUI.py
 import math
 import carbonui.const as uiconst
 from eve.client.script.ui.control.themeColored import FillThemeColored
@@ -65,6 +66,7 @@ class SurveyWindow(uicontrols.Window):
         self._ConstructCenterContainer()
         self._ConstructRightContainer()
         self._ConstructBottomContainer()
+        return
 
     def _ConstructLeftContainer(self):
         textCont = uiprimitives.Container(parent=self.leftCont, height=15, align=uiconst.TOTOP)
@@ -114,7 +116,7 @@ class SurveyWindow(uicontrols.Window):
         self.areaSlider.SetValue(newSliderValue, updateHandle=True)
         self.SetExtractorRadius()
 
-    def _GetNextSliderValue(self, increase = True):
+    def _GetNextSliderValue(self, increase=True):
         oldNumCycles = None
         sliderVal = self.areaSlider.value
         maxCount = 1000
@@ -168,31 +170,35 @@ class SurveyWindow(uicontrols.Window):
         accPerHour = const.HOUR * accOutput / accTime
         return localization.GetByLabel('UI/PI/Common/SurveyBarHint', numBar=numBar, value=value, accOutput=accOutput, accTime=accTime, accPerHour=accPerHour)
 
-    def UpdateProgram(self, replaceHeadID = None, point = None):
+    def UpdateProgram(self, replaceHeadID=None, point=None):
         if self.currentResource is None:
             return
-        heads = self.pin.heads[:]
-        if self.editsEnabled:
-            if replaceHeadID is not None:
-                for each in self.pin.heads:
-                    if each[0] == replaceHeadID:
-                        heads.remove(each)
-                        heads.append((replaceHeadID, point.phi, point.theta))
-                        break
-
-            colony = self.GetColony()
-            maxValue, cycleTime, numCycles, self.overlapValues = colony.CreateProgram(self.currentResource, self.pin.id, self.currResourceTypeID, points=heads, headRadius=self.currentRadius)
-            self.UpdateOverlapValues()
-            self.planetUISvc.myPinManager.SetEcuOverlapValues(self.pin.id, self.overlapValues)
         else:
-            maxValue, cycleTime, numCycles = self.pin.GetProgramParameters()
-        self.currCycleTime = cycleTime
-        xLabels = (localization.GetByLabel('UI/PI/Common/SurveyProgramStart'), util.FmtDate(cycleTime * numCycles))
-        self.UpdateBarGraph(maxValue, cycleTime, numCycles, xLabels)
+            heads = self.pin.heads[:]
+            if self.editsEnabled:
+                if replaceHeadID is not None:
+                    for each in self.pin.heads:
+                        if each[0] == replaceHeadID:
+                            heads.remove(each)
+                            heads.append((replaceHeadID, point.phi, point.theta))
+                            break
+
+                colony = self.GetColony()
+                maxValue, cycleTime, numCycles, self.overlapValues = colony.CreateProgram(self.currentResource, self.pin.id, self.currResourceTypeID, points=heads, headRadius=self.currentRadius)
+                self.UpdateOverlapValues()
+                self.planetUISvc.myPinManager.SetEcuOverlapValues(self.pin.id, self.overlapValues)
+            else:
+                maxValue, cycleTime, numCycles = self.pin.GetProgramParameters()
+            self.currCycleTime = cycleTime
+            xLabels = (localization.GetByLabel('UI/PI/Common/SurveyProgramStart'), util.FmtDate(cycleTime * numCycles))
+            self.UpdateBarGraph(maxValue, cycleTime, numCycles, xLabels)
+            return
 
     def UpdateOverlapValues(self):
         for id, headButton in enumerate(self.headButtons):
             headButton.SetOverlapValue(self.overlapValues.get(id, None))
+
+        return
 
     def UpdateBarGraph(self, maxValue, cycleTime, numCycles, xLabels):
         self.outputVals = self.pin.GetProgramOutputPrediction(maxValue, cycleTime, numCycles)
@@ -219,6 +225,7 @@ class SurveyWindow(uicontrols.Window):
             if self.barTimeIndicatorThread is not None:
                 self.barTimeIndicatorThread.kill()
                 self.barTimeIndicatorThread = None
+        return
 
     def _UpdateBarTimeIndicator(self):
         while self and not self.destroyed:
@@ -304,6 +311,7 @@ class SurveyWindow(uicontrols.Window):
             self.flashStateColorThread.kill()
         if flash:
             self.flashStateColorThread = uthread.new(self._FlashStateColor)
+        return
 
     def _FlashStateColor(self):
         CYCLETIME = 3.0
@@ -328,6 +336,7 @@ class SurveyWindow(uicontrols.Window):
         self.submitButton = btnGroup.GetBtnByLabel(btnName)
         self.SetCurrentResource(self.currResourceTypeID)
         self._SetSubmitButtonState()
+        return
 
     def _SetSubmitButtonState(self):
         nextEditTime = self.pin.GetNextEditTime()
@@ -340,6 +349,7 @@ class SurveyWindow(uicontrols.Window):
         else:
             self.submitButton.Enable()
             self.submitButton.SetHint('')
+        return
 
     def _UnlockStopButtonThread(self):
         nextEditTime = self.pin.GetNextEditTime()
@@ -361,6 +371,7 @@ class SurveyWindow(uicontrols.Window):
                 self.extractionHeadValues.pop(headID)
             self.headButtons[headID].SetValue(None)
         self.UpdateProgram()
+        return
 
     def OnBeginDragExtractionHead(self, headID, surfacePoint):
         sm.GetService('audio').SendUIEvent('wise:/msg_pi_extractor_play')
@@ -370,6 +381,7 @@ class SurveyWindow(uicontrols.Window):
         else:
             self.headButtons[headID].SetValue(0.0)
         self.headButtons[headID].HideFill()
+        return
 
     def OnEndDragExtractionHead(self):
         sm.GetService('audio').SendUIEvent('wise:/msg_pi_extractor_stop')
@@ -377,6 +389,7 @@ class SurveyWindow(uicontrols.Window):
         if self.dragThread is not None:
             self.dragThread.kill()
             self.dragThread = None
+        return
 
     def OnExtractionHeadMoved(self, headID, surfacePoint):
         self.UpdateHeadPosition(headID, surfacePoint)
@@ -386,6 +399,8 @@ class SurveyWindow(uicontrols.Window):
             if self.currentResource is not None:
                 self.UpdateProgram(replaceHeadID=headID, point=surfacePoint)
             blue.pyos.synchro.SleepWallclock(200)
+
+        return
 
     def UpdateHeadPosition(self, headID, surfacePoint):
         heads = self.pin.heads
@@ -400,6 +415,7 @@ class SurveyWindow(uicontrols.Window):
                 sm.GetService('audio').SetGlobalRTPC('volume_extractor_interference', 10 * overlapValue)
         else:
             self.headButtons[headID].SetValue(value=0.0)
+        return
 
     def UpdateHeadButtonValues(self):
         for headButton in self.headButtons:
@@ -407,7 +423,7 @@ class SurveyWindow(uicontrols.Window):
             self.extractionHeadValues[headButton.headID] = value
             headButton.SetValue(value)
 
-    def GetResourceLayerValueForHead(self, headID, surfacePoint = None):
+    def GetResourceLayerValueForHead(self, headID, surfacePoint=None):
         if self.currResourceTypeID:
             head = self.pin.FindHead(headID)
             if head:
@@ -423,6 +439,7 @@ class SurveyWindow(uicontrols.Window):
             if self.pin.FindHead(headID) is not None:
                 return 0.0
             return
+        return
 
     def PlaceProbeAtDefaultPosition(self, headID):
         OFFSET = 0.08
@@ -444,6 +461,7 @@ class SurveyWindow(uicontrols.Window):
             self.planet.InstallProgram(self.pin.id, self.currResourceTypeID, self.currentRadius)
         self.planetUISvc.myPinManager.ReRenderPin(self.pin)
         self.Close()
+        return
 
     def _Cancel(self, *args):
         self.planetUISvc.CancelInstallProgram(self.pin.id, self.pinData)
@@ -460,6 +478,7 @@ class SurveyWindow(uicontrols.Window):
         self._ConstructLeftContainer()
         self._ConstructRightContainer()
         self._ConstructBottomContainer()
+        return
 
     def OnResourceBtnClicked(self, typeID, *args):
         self.SetCurrentResource(typeID)
@@ -472,7 +491,7 @@ class SurveyWindow(uicontrols.Window):
         self.SetCurrentResourceText(self.currResourceTypeID)
         IconButton.OnMouseExit(btn)
 
-    def SetCurrentResource(self, typeID = None):
+    def SetCurrentResource(self, typeID=None):
         self.currResourceTypeID = typeID
         self.currentResource = None if typeID is None else self.planet.GetResourceHarmonic(typeID)
         for ibTypeID, ib in self.resourceIconButtons.iteritems():
@@ -491,6 +510,7 @@ class SurveyWindow(uicontrols.Window):
         self.UpdateHeadButtonValues()
         self.UpdateProgram()
         self.planetUISvc.ShowResource(typeID)
+        return
 
     def SetCurrentResourceText(self, typeID):
         if typeID:
@@ -505,8 +525,10 @@ class SurveyWindow(uicontrols.Window):
     def OnEditModeBuiltOrDestroyed(self):
         if not self or self.destroyed:
             return
-        if self.planet.GetPin(self.pin.id) is None:
-            self.Close()
+        else:
+            if self.planet.GetPin(self.pin.id) is None:
+                self.Close()
+            return
 
     def OnEditModeChanged(self, isEdit):
         if not self or self.destroyed:
@@ -546,8 +568,9 @@ class ExtractionHeadEntry(uiprimitives.Container):
         self.icon = uicontrols.Icon(parent=self, icon='ui_77_32_38', size=self.default_height, ignoreSize=True, state=uiconst.UI_DISABLED, left=-2)
         self.label = SubTextLabel(parent=self, text='', left=self.default_height, top=4)
         self.SetValue(self.value)
+        return
 
-    def SetValue(self, value = None, overlapValue = None):
+    def SetValue(self, value=None, overlapValue=None):
         self.value = value
         self.overlapValue = overlapValue
         if value is None:
@@ -560,16 +583,18 @@ class ExtractionHeadEntry(uiprimitives.Container):
                 txt = localization.GetByLabel('UI/PI/Common/SurveyHeadValue', value=value)
             self.opacity = 1.0
         self.label.text = txt
+        return
 
     def GetHint(self, *args):
         if self.value is None:
             return localization.GetByLabel('UI/PI/Common/SurveyInstallHeadHint', power=self.pin.GetExtractorHeadPowerUsage(), cpu=self.pin.GetExtractorHeadCpuUsage())
-        if self.overlapValue:
-            disturbanceText = localization.GetByLabel('UI/PI/Common/SurveyExtractorHeadDisturbanceHint', percentage=100 * self.overlapValue)
         else:
-            disturbanceText = ''
-        hint = localization.GetByLabel('UI/PI/Common/SurveyExtractorHeadHint', headID=self.headID + 1, value=self.value, disturbanceText=disturbanceText)
-        return hint
+            if self.overlapValue:
+                disturbanceText = localization.GetByLabel('UI/PI/Common/SurveyExtractorHeadDisturbanceHint', percentage=100 * self.overlapValue)
+            else:
+                disturbanceText = ''
+            hint = localization.GetByLabel('UI/PI/Common/SurveyExtractorHeadHint', headID=self.headID + 1, value=self.value, disturbanceText=disturbanceText)
+            return hint
 
     def SetOverlapValue(self, overlapValue):
         self.SetValue(self.value, overlapValue)
@@ -577,20 +602,24 @@ class ExtractionHeadEntry(uiprimitives.Container):
     def OnMouseEnter(self, *args):
         if not self or self.destroyed:
             return
-        self.ShowFill()
-        if self.value is None:
-            self.label.text = localization.GetByLabel('UI/PI/Common/SurveyInstall')
-            self.opacity = 1.0
-        sm.GetService('planetUI').myPinManager.OnExtractionHeadMouseEnter(self.ecuID, self.headID)
+        else:
+            self.ShowFill()
+            if self.value is None:
+                self.label.text = localization.GetByLabel('UI/PI/Common/SurveyInstall')
+                self.opacity = 1.0
+            sm.GetService('planetUI').myPinManager.OnExtractionHeadMouseEnter(self.ecuID, self.headID)
+            return
 
     def OnMouseExit(self, *args):
         if not self or self.destroyed:
             return
-        self.HideFill()
-        if self.value is None:
-            self.label.text = localization.GetByLabel('UI/PI/Common/SurveyDashSign')
-            self.opacity = 0.5
-        sm.GetService('planetUI').myPinManager.OnExtractionHeadMouseExit(self.ecuID, self.headID)
+        else:
+            self.HideFill()
+            if self.value is None:
+                self.label.text = localization.GetByLabel('UI/PI/Common/SurveyDashSign')
+                self.opacity = 0.5
+            sm.GetService('planetUI').myPinManager.OnExtractionHeadMouseExit(self.ecuID, self.headID)
+            return
 
     def ShowFill(self):
         if self.overlapValue:

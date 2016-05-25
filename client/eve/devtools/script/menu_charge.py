@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\devtools\script\menu_charge.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\devtools\script\menu_charge.py
 import operator
 import evetypes
 import uthread
@@ -9,8 +10,8 @@ import util
 from service import *
 
 class ChargeService(Service):
+    """Insider Charge"""
     __module__ = __name__
-    __doc__ = 'Insider Charge'
     __exportedcalls__ = {}
     __guid__ = 'svc.charge'
     __servicename__ = 'charge'
@@ -102,8 +103,10 @@ class ChargeService(Service):
 
             if addCmd:
                 sm.RemoteSvc('slash').SlashCmd(addCmd)
+            return
 
         uthread.parallel([ (_change, (flag, cmd)) for flag, cmd in tasks.itervalues() ])
+        return
 
     def Entry(self, a):
         return (self.Name(a), self.Fit, ([a],))
@@ -114,7 +117,7 @@ class ChargeService(Service):
     def ChargeMenu(self, *args, **kw):
         return self._Menu()
 
-    def _Menu(self, drones = False):
+    def _Menu(self, drones=False):
         dgm = sm.GetService('godma').GetStateManager()
         chargesByChargeGroup = {}
         chargesByLauncherGroup = {}
@@ -229,12 +232,12 @@ class ChargeService(Service):
                         else:
                             a = items[0]
 
-                    if not a.published:
-                        baseName = self.NA(baseName)
-                    if len(items) <= 4:
-                        processed.append((rangeMod[a.iconID], (baseName, self.Fit, (items,))))
-                    else:
-                        processed.append((rangeMod[a.iconID], (baseName, ('isDynamic', TurretSubMenu, (baseName, items)))))
+                        if not a.published:
+                            baseName = self.NA(baseName)
+                        if len(items) <= 4:
+                            processed.append((rangeMod[a.iconID], (baseName, self.Fit, (items,))))
+                        else:
+                            processed.append((rangeMod[a.iconID], (baseName, ('isDynamic', TurretSubMenu, (baseName, items)))))
 
                 processed.sort()
                 processed.reverse()

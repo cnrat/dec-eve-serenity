@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\packages\dogma\items\locationDogmaItem.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\packages\dogma\items\locationDogmaItem.py
 from baseDogmaItem import BaseDogmaItem
 from utillib import strx
 import weakref
@@ -31,6 +32,8 @@ class LocationDogmaItem(BaseDogmaItem):
             del self.fittedItems[self.itemID]
         if self.itemID in self.dogmaLocation.moduleListsByShipGroup:
             del self.dogmaLocation.moduleListsByShipGroup[self.itemID]
+        if self.itemID in self.dogmaLocation.moduleListsByShipType:
+            del self.dogmaLocation.moduleListsByShipType[self.itemID]
 
     def OnItemLoaded(self):
         self.dogmaLocation.LoadItemsInLocation(self.itemID)
@@ -54,19 +57,31 @@ class LocationDogmaItem(BaseDogmaItem):
             if subLocation != itemKey:
                 log.LogTraceback('RemoveSubLocation used for subloc with occupied flag %s' % strx((itemKey, subLocation)))
             del self.subLocations[flagID]
+        return
 
     def RegisterFittedItem(self, dogmaItem, flagID):
         if self.ValidFittingFlag(flagID) or dogmaItem.itemID == self.itemID or flagID == invconst.flagPilot:
             self.fittedItems[dogmaItem.itemID] = weakref.proxy(dogmaItem)
             self.dogmaLocation.moduleListsByShipGroup[self.itemID][dogmaItem.groupID].add(dogmaItem.itemID)
+            self.dogmaLocation.moduleListsByShipType[self.itemID][dogmaItem.typeID].add(dogmaItem.itemID)
 
     def UnregisterFittedItem(self, dogmaItem):
         groupID = dogmaItem.groupID
+        typeID = dogmaItem.typeID
         itemID = dogmaItem.itemID
         try:
             self.dogmaLocation.moduleListsByShipGroup[self.itemID][groupID].remove(itemID)
         except KeyError:
             self.dogmaLocation.LogError("UnregisterFittedItem::Tried to remove item from mlsg but group wasn't there", strx(dogmaItem))
+            sys.exc_clear()
+        except IndexError:
+            self.dogmaLocation.LogError("UnregisterFittedItem::Tried to remove item from mlsg but it wasn't there", strx(dogmaItem))
+            sys.exc_clear()
+
+        try:
+            self.dogmaLocation.moduleListsByShipType[self.itemID][typeID].remove(itemID)
+        except KeyError:
+            self.dogmaLocation.LogError("UnregisterFittedItem::Tried to remove item from mlsg but type wasn't there", strx(dogmaItem))
             sys.exc_clear()
         except IndexError:
             self.dogmaLocation.LogError("UnregisterFittedItem::Tried to remove item from mlsg but it wasn't there", strx(dogmaItem))
@@ -79,9 +94,6 @@ class LocationDogmaItem(BaseDogmaItem):
 
     def GetFittedItems(self):
         return self.fittedItems
-
-    def GetShipID(self):
-        return self.itemID
 
     def GetPersistables(self):
         ret = super(LocationDogmaItem, self).GetPersistables()
@@ -102,3 +114,6 @@ class LocationDogmaItem(BaseDogmaItem):
 
         stackTraceCount += super(LocationDogmaItem, self)._FlushEffects()
         return stackTraceCount
+
+    def GetCharacterID(self):
+        return self.GetPilot()

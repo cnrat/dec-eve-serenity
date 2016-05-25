@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\packages\shipfitting\fittingStuff.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\packages\shipfitting\fittingStuff.py
 import evetypes
 from fittingDogmaLocationUtil import CanFitModuleToShipTypeOrGroup, CheckCanFitType
 from inventorycommon.util import IsShipFittingFlag
@@ -26,17 +27,22 @@ def GetHardwareLayoutForShip(moduleTypeID, shipTypeID, dogmaStaticMgr, currentMo
         hardwareAttribs[const.attributeRigSlots] = int(GTA(shipTypeID, const.attributeRigSlots))
     elif const.effectSubSystem in typeEffects:
         hardwareAttribs[const.attributeMaxSubSystems] = int(GTA(shipTypeID, const.attributeMaxSubSystems))
+    elif const.effectServiceSlot in typeEffects:
+        hardwareAttribs[const.attributeServiceSlots] = int(GTA(shipTypeID, const.attributeServiceSlots))
     turretsFitted = 0
     launchersFitted = 0
     rigsFitted = 0
     calibration = 0
     shipHardwareModifierAttribs = dogmaStaticMgr.GetShipHardwareModifierAttribs()
     modulesByGroup = 0
+    modulesByType = 0
     for item in currentModuleList:
         if not IsShipFittingFlag(item.flagID):
             continue
         if item.groupID == groupID:
             modulesByGroup += 1
+        if item.typeID == typeID:
+            modulesByType += 1
         if const.flagHiSlot0 <= item.flagID <= const.flagHiSlot7:
             if isTurret:
                 if dogmaStaticMgr.TypeHasEffect(item.typeID, const.effectTurretFitted):
@@ -58,10 +64,11 @@ def GetHardwareLayoutForShip(moduleTypeID, shipTypeID, dogmaStaticMgr, currentMo
      launchersFitted,
      rigsFitted,
      calibration,
-     modulesByGroup)
+     modulesByGroup,
+     modulesByType)
 
 
-def IsModuleTooBig(moduleTypeID, shipTypeID, isCapitalShip = None):
+def IsModuleTooBig(moduleTypeID, shipTypeID, isCapitalShip=None):
     if isCapitalShip is None:
         isCapitalShip = evetypes.GetGroupID(shipTypeID) in cfg.GetShipGroupByClassType()[const.GROUP_CAPITALSHIPS]
     if not isCapitalShip:
@@ -84,12 +91,17 @@ def DoesModuleTypeIDFit(dogmaLocation, moduleTypeID, flagID):
     except UserError as e:
         if e.msg == 'CantFitTooManyByGroup':
             return 'CantFitTooManyByGroup'
+        if e.msg == 'CantFitTooManyByType':
+            return 'CantFitTooManyByType'
 
     currentModuleList = shipItem.GetFittedItems().values()
-    hardwareLayout, turretsFitted, launchersFitted, rigsFitted, totalCalibration, modulesByGroup = GetHardwareLayoutForShip(moduleTypeID, shipItem.typeID, dogmaStaticMgr, currentModuleList)
+    hardwareLayout, turretsFitted, launchersFitted, rigsFitted, totalCalibration, modulesByGroup, modulesByType = GetHardwareLayoutForShip(moduleTypeID, shipItem.typeID, dogmaStaticMgr, currentModuleList)
     maxGroupFitted = dogmaStaticMgr.GetTypeAttribute(moduleTypeID, const.attributeMaxGroupFitted)
     if maxGroupFitted is not None and maxGroupFitted <= modulesByGroup:
         return 'CantFitTooManyByGroup'
+    maxTypeFitted = dogmaStaticMgr.GetTypeAttribute(moduleTypeID, const.attributeMaxTypeFitted)
+    if maxTypeFitted is not None and maxTypeFitted <= modulesByType:
+        return 'CantFitTooManyByType'
     if dogmaStaticMgr.TypeHasEffect(moduleTypeID, const.effectLauncherFitted):
         balance = hardwareLayout[const.attributeLauncherSlotsLeft] - launchersFitted
         if balance < 1:
@@ -105,16 +117,23 @@ def DoesModuleTypeIDFit(dogmaLocation, moduleTypeID, flagID):
     firstSlot, firstNonSlot = GetValidSlotsForType(dogmaStaticMgr, hardwareLayout, moduleTypeID)
     if flagID < firstSlot or flagID >= firstNonSlot:
         return 'SlotNotPresent'
-    return ''
+    else:
+        return ''
+
+
+def IsFittable(effectID):
+    isFittable = effectID in (const.effectHiPower,
+     const.effectMedPower,
+     const.effectLoPower,
+     const.effectSubSystem,
+     const.effectRigSlot,
+     const.effectServiceSlot)
+    return isFittable
 
 
 def IsRightSlotForType(typeID, powerType):
     for effect in cfg.dgmtypeeffects.get(typeID, []):
-        if effect.effectID in (const.effectHiPower,
-         const.effectMedPower,
-         const.effectLoPower,
-         const.effectSubSystem,
-         const.effectRigSlot):
+        if IsFittable(effect.effectID):
             if effect.effectID == powerType:
                 return True
 
@@ -123,11 +142,7 @@ def IsRightSlotForType(typeID, powerType):
 
 def GetSlotTypeForType(typeID):
     for effect in cfg.dgmtypeeffects.get(typeID, []):
-        if effect.effectID in (const.effectHiPower,
-         const.effectMedPower,
-         const.effectLoPower,
-         const.effectSubSystem,
-         const.effectRigSlot):
+        if IsFittable(effect.effectID):
             return effect.effectID
 
 

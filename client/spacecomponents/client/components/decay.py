@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\packages\spacecomponents\client\components\decay.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\packages\spacecomponents\client\components\decay.py
 from carbon.common.lib.const import SEC
 from spacecomponents.client.display import EntryData, TIMER_ICON
 from spacecomponents.client.messages import MSG_ON_ADDED_TO_SPACE
@@ -12,6 +13,7 @@ class Decay(Component):
         self.SubscribeToMessage(MSG_ON_ADDED_TO_SPACE, self.OnAddedToSpace)
         self.SubscribeToMessage(MSG_ON_SLIM_ITEM_UPDATED, self.OnSlimItemUpdate)
         self.decayTimestamp = None
+        return
 
     def OnAddedToSpace(self, slimItem):
         self.OnSlimItemUpdate(slimItem)
@@ -19,6 +21,7 @@ class Decay(Component):
     def OnSlimItemUpdate(self, slimItem):
         if slimItem.component_decay is not None:
             self.decayTimestamp = slimItem.component_decay
+        return
 
     @staticmethod
     def GetAttributeInfo(godmaService, typeID, attributes, instance, localization):

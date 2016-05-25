@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\devtools\script\svc_gridutils.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\devtools\script\svc_gridutils.py
 import evetypes
 import uicontrols
 import blue
@@ -20,10 +21,11 @@ class GridUtilService(Service):
     __displayname__ = 'Grid Utils'
     __neocommenuitem__ = (('Grid Utilities', '56_2'), 'Show', ROLE_GML)
 
-    def Run(self, memStream = None):
+    def Run(self, memStream=None):
         self.wnd = None
+        return
 
-    def Stop(self, memStream = None):
+    def Stop(self, memStream=None):
         self.Hide()
         Service.Stop(self, memStream)
 
@@ -31,62 +33,65 @@ class GridUtilService(Service):
         if self.wnd:
             self.wnd.Maximize()
             return
-
-        def MakeButton1(where, x, y, map, size, function, label, hint = None):
-            button = uix.GetBigButton(size, where, left=x, top=y)
-            button.cursor = 1
-            button.name = label
-            if map != '':
-                button.sr.icon.LoadIcon(map)
-            button.OnClick = function
-            if hint:
-                button.hint = hint
-            return button
-
-        self.wnd = wnd = uicontrols.Window.Open(windowID=SERVICENAME)
-        wnd._OnClose = self.Hide
-        wnd.SetWndIcon(None)
-        wnd.SetTopparentHeight(0)
-        wnd.sr.main = uiutil.GetChild(wnd, 'main')
-        wnd.SetCaption('Grid Utilities')
-        x = const.defaultPadding
-        y = const.defaultPadding
-        size = 32
-        labelwidth = 128
-        for icon, label, func in [['56_4', 'Attract Jetcans', self.Attract],
-         ['58_15', 'Loot Jetcans', lambda *x: self.CombineLoot(True)],
-         ['26_11', 'Combine Containers', lambda *x: self.CombineLoot(False)],
-         ['54_9', 'Scoop Containers', self.Scoop],
-         ['56_2', 'Nuke Structures', self.NukeStructures],
-         ['56_1', 'Nuke Shuttles', self.NukeShuttles],
-         ['11_16', 'Nuke Cans/Drones', self.NukeGarbage]]:
-            MakeButton1(wnd.sr.main, x, y, icon, size, func, label, label)
-            if ORIENTATION == 0:
-                uicontrols.Label(text=label, parent=wnd.sr.main, width=200, left=x + size + 6, top=y + size / 2 - 6, color=None, state=uiconst.UI_DISABLED)
-                y += size
-            else:
-                x += size
-
-        if ORIENTATION == 0:
-            wnd.fixedWidth = wnd.width = const.defaultPadding + size - 1 + labelwidth + const.defaultPadding
-            wnd.fixedHeight = wnd.height = 20 + const.defaultPadding + y + const.defaultPadding
         else:
-            wnd.fixedWidth = wnd.width = const.defaultPadding + x - 1 + const.defaultPadding
-            wnd.fixedHeight = wnd.height = 20 + const.defaultPadding + size + const.defaultPadding
-        wnd.MakeUnResizeable()
-        wnd.Maximize(1)
+
+            def MakeButton1(where, x, y, map, size, function, label, hint=None):
+                button = uix.GetBigButton(size, where, left=x, top=y)
+                button.cursor = 1
+                button.name = label
+                if map != '':
+                    button.sr.icon.LoadIcon(map)
+                button.OnClick = function
+                if hint:
+                    button.hint = hint
+                return button
+
+            self.wnd = wnd = uicontrols.Window.Open(windowID=SERVICENAME)
+            wnd._OnClose = self.Hide
+            wnd.SetWndIcon(None)
+            wnd.SetTopparentHeight(0)
+            wnd.sr.main = uiutil.GetChild(wnd, 'main')
+            wnd.SetCaption('Grid Utilities')
+            x = const.defaultPadding
+            y = const.defaultPadding
+            size = 32
+            labelwidth = 128
+            for icon, label, func in [['56_4', 'Attract Jetcans', self.Attract],
+             ['58_15', 'Loot Jetcans', lambda *x: self.CombineLoot(True)],
+             ['26_11', 'Combine Containers', lambda *x: self.CombineLoot(False)],
+             ['54_9', 'Scoop Containers', self.Scoop],
+             ['56_2', 'Nuke Structures', self.NukeStructures],
+             ['56_1', 'Nuke Shuttles', self.NukeShuttles],
+             ['11_16', 'Nuke Cans/Drones', self.NukeGarbage]]:
+                MakeButton1(wnd.sr.main, x, y, icon, size, func, label, label)
+                if ORIENTATION == 0:
+                    uicontrols.Label(text=label, parent=wnd.sr.main, width=200, left=x + size + 6, top=y + size / 2 - 6, color=None, state=uiconst.UI_DISABLED)
+                    y += size
+                else:
+                    x += size
+
+            if ORIENTATION == 0:
+                wnd.fixedWidth = wnd.width = const.defaultPadding + size - 1 + labelwidth + const.defaultPadding
+                wnd.fixedHeight = wnd.height = 20 + const.defaultPadding + y + const.defaultPadding
+            else:
+                wnd.fixedWidth = wnd.width = const.defaultPadding + x - 1 + const.defaultPadding
+                wnd.fixedHeight = wnd.height = 20 + const.defaultPadding + size + const.defaultPadding
+            wnd.MakeUnResizeable()
+            wnd.Maximize(1)
+            return
 
     def Hide(self, *args):
         if self.wnd:
             self.wnd.Close()
             self.wnd = None
+        return
 
     def ProcessRestartUI(self):
         if self.wnd:
             self.Hide()
             self.Show()
 
-    def Do(self, text = '', title = 'Grid Utils', filterFunc = None, actionFunc = None, delay = 500):
+    def Do(self, text='', title='Grid Utils', filterFunc=None, actionFunc=None, delay=500):
         bp = sm.GetService('michelle').GetBallpark()
         if not bp:
             return

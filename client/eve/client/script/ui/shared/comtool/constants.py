@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\client\script\ui\shared\comtool\constants.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\client\script\ui\shared\comtool\constants.py
 CHANNEL_CUSTOM = 0
 CHANNEL_FLEET = 3
 exports = {'chatconst.CHANNEL_CUSTOM': CHANNEL_CUSTOM,

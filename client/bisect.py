@@ -1,7 +1,8 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\carbon\common\stdlib\bisect.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\carbon\common\stdlib\bisect.py
 
 
-def insort_right(a, x, lo = 0, hi = None):
+def insort_right(a, x, lo=0, hi=None):
     if lo < 0:
         raise ValueError('lo must be non-negative')
     if hi is None:
@@ -14,11 +15,12 @@ def insort_right(a, x, lo = 0, hi = None):
             lo = mid + 1
 
     a.insert(lo, x)
+    return
 
 
 insort = insort_right
 
-def bisect_right(a, x, lo = 0, hi = None):
+def bisect_right(a, x, lo=0, hi=None):
     if lo < 0:
         raise ValueError('lo must be non-negative')
     if hi is None:
@@ -35,7 +37,7 @@ def bisect_right(a, x, lo = 0, hi = None):
 
 bisect = bisect_right
 
-def insort_left(a, x, lo = 0, hi = None):
+def insort_left(a, x, lo=0, hi=None):
     if lo < 0:
         raise ValueError('lo must be non-negative')
     if hi is None:
@@ -48,9 +50,10 @@ def insort_left(a, x, lo = 0, hi = None):
             hi = mid
 
     a.insert(lo, x)
+    return
 
 
-def bisect_left(a, x, lo = 0, hi = None):
+def bisect_left(a, x, lo=0, hi=None):
     if lo < 0:
         raise ValueError('lo must be non-negative')
     if hi is None:

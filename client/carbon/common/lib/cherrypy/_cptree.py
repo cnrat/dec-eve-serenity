@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\carbon\common\lib\cherrypy\_cptree.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\carbon\common\lib\cherrypy\_cptree.py
 import os
 import cherrypy
 from cherrypy._cpcompat import ntou
@@ -16,7 +17,7 @@ class Application(object):
     response_class = _cprequest.Response
     relative_urls = False
 
-    def __init__(self, root, script_name = '', config = None):
+    def __init__(self, root, script_name='', config=None):
         self.log = _cplogging.LogManager(id(self), cherrypy.log.logger_root)
         self.root = root
         self.script_name = script_name
@@ -39,7 +40,8 @@ class Application(object):
     def _get_script_name(self):
         if self._script_name is None:
             return cherrypy.serving.request.wsgi_environ['SCRIPT_NAME'].rstrip('/')
-        return self._script_name
+        else:
+            return self._script_name
 
     def _set_script_name(self, value):
         if value:
@@ -52,7 +54,7 @@ class Application(object):
         _cpconfig.merge(self.config, config)
         self.namespaces(self.config.get('/', {}))
 
-    def find_config(self, path, key, default = None):
+    def find_config(self, path, key, default=None):
         trail = path or '/'
         while trail:
             nodeconf = self.config.get(trail, {})
@@ -100,7 +102,7 @@ class Tree(object):
     def __init__(self):
         self.apps = {}
 
-    def mount(self, root, script_name = '', config = None):
+    def mount(self, root, script_name='', config=None):
         if script_name is None:
             raise TypeError("The 'script_name' argument may not be None. Application objects may, however, possess a script_name of None (in order to inpect the WSGI environ for SCRIPT_NAME upon each request). You cannot mount such Applications on this Tree; you must pass them to a WSGI server interface directly.")
         script_name = script_name.rstrip('/')
@@ -119,11 +121,11 @@ class Tree(object):
         self.apps[script_name] = app
         return app
 
-    def graft(self, wsgi_callable, script_name = ''):
+    def graft(self, wsgi_callable, script_name=''):
         script_name = script_name.rstrip('/')
         self.apps[script_name] = wsgi_callable
 
-    def script_name(self, path = None):
+    def script_name(self, path=None):
         if path is None:
             try:
                 request = cherrypy.serving.request
@@ -138,6 +140,8 @@ class Tree(object):
                 return
             path = path[:path.rfind('/')]
 
+        return
+
     def __call__(self, environ, start_response):
         env1x = environ
         if environ.get(ntou('wsgi.version')) == (ntou('u'), 0):
@@ -147,13 +151,14 @@ class Tree(object):
         if sn is None:
             start_response('404 Not Found', [])
             return []
-        app = self.apps[sn]
-        environ = environ.copy()
-        if environ.get(u'wsgi.version') == (u'u', 0):
-            enc = environ[u'wsgi.url_encoding']
-            environ[u'SCRIPT_NAME'] = sn.decode(enc)
-            environ[u'PATH_INFO'] = path[len(sn.rstrip('/')):].decode(enc)
         else:
-            environ['SCRIPT_NAME'] = sn
-            environ['PATH_INFO'] = path[len(sn.rstrip('/')):]
-        return app(environ, start_response)
+            app = self.apps[sn]
+            environ = environ.copy()
+            if environ.get(u'wsgi.version') == (u'u', 0):
+                enc = environ[u'wsgi.url_encoding']
+                environ[u'SCRIPT_NAME'] = sn.decode(enc)
+                environ[u'PATH_INFO'] = path[len(sn.rstrip('/')):].decode(enc)
+            else:
+                environ['SCRIPT_NAME'] = sn
+                environ['PATH_INFO'] = path[len(sn.rstrip('/')):]
+            return app(environ, start_response)

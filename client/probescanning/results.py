@@ -1,9 +1,10 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\packages\probescanning\results.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\packages\probescanning\results.py
 from collections import defaultdict
 import logging
 import geo2
 from .util import ShouldCacheResult, IsExplorationSite, GetCenter, IsCacheable, IsPerfectResult
-from .const import probeResultPerfect
+from .const import probeResultGood, probeResultPerfect
 
 class Result(object):
 
@@ -23,20 +24,27 @@ class Result(object):
         self.certainties = []
         self.scanNumberPerfect = None
         self.isPerfect = False
+        self.isIdentified = False
+        self.itemID = None
+        return
 
     def AddEntry(self, entry, scanNumber):
         if self.IsCached():
             return
-        self.id = entry.id
-        self.data = getattr(entry, 'data', None)
-        self._SetPersistableAttributes(entry)
-        self.isPerfect = IsPerfectResult(entry)
-        self.pos = self._GetPosition(entry)
-        self.scanGroupID = entry.scanGroupID
-        self._AddCertainty(entry, scanNumber)
-        self._SetCachedState(entry, scanNumber)
+        else:
+            self.id = entry.id
+            self.data = getattr(entry, 'data', None)
+            self._SetPersistableAttributes(entry)
+            self.isPerfect = IsPerfectResult(entry)
+            self.pos = self._GetPosition(entry)
+            self.scanGroupID = entry.scanGroupID
+            self._AddCertainty(entry, scanNumber)
+            self._SetCachedState(entry, scanNumber)
+            self._SetIdentifiedState(entry)
+            return
 
     def _SetPersistableAttributes(self, entry):
+        self._AddPersistableAttribute('itemID', entry)
         self._AddPersistableAttribute('typeID', entry)
         self._AddPersistableAttribute('groupID', entry)
         self._AddPersistableAttribute('strengthAttributeID', entry)
@@ -47,6 +55,8 @@ class Result(object):
         return self.scanNumberPerfect is not None
 
     def IsValid(self, scanNumber):
+        if not self.id:
+            return False
         if IsExplorationSite(self):
             return True
         lastScanNumber, _ = self.certainties[-1]
@@ -66,7 +76,9 @@ class Result(object):
          'pos': self.pos,
          'factionID': self.factionID,
          'GetDistance': self._GetDistance,
-         'isPerfect': self.isPerfect}
+         'isPerfect': self.isPerfect,
+         'isIdentified': self.isIdentified,
+         'itemID': self.itemID}
 
     def _GetPosition(self, entry):
         if isinstance(entry.data, tuple):
@@ -87,6 +99,7 @@ class Result(object):
             return geo2.Vec3DistanceD(pos, self.pos)
         else:
             return
+            return
 
     def _GetCertainties(self, scanNumber):
         if self.IsCached():
@@ -101,8 +114,6 @@ class Result(object):
             if s == scanNumber:
                 return c
 
-        return 0.0
-
     def _AddGroupID(self, entry):
         self._AddPersistableAttribute('groupID', entry)
 
@@ -113,9 +124,11 @@ class Result(object):
         val = getattr(entry, attribute, None)
         if val is not None:
             setattr(self, attribute, val)
+        return
 
     def _AddTypeID(self, entry):
         self.typeID = getattr(entry, 'typeID', None)
+        return
 
     def _AddCertainty(self, entry, scanNumber):
         self.certainties.append((scanNumber, entry.certainty))
@@ -126,6 +139,12 @@ class Result(object):
         if ShouldCacheResult(entry):
             self.scanNumberPerfect = scanNumber
 
+    def _SetIdentifiedState(self, entry):
+        if self.isIdentified:
+            return
+        if entry.certainty >= probeResultGood:
+            self.isIdentified = True
+
 
 class ResultsHistory(object):
 
@@ -135,8 +154,8 @@ class ResultsHistory(object):
         self.logger = logging.getLogger('probescanning-ResultsHistory')
         self.cachedResults = {}
 
-    def RegisterResults(self, results, incrimentScanNumber = True):
-        if incrimentScanNumber:
+    def RegisterResults(self, results, incrementScanNumber=True):
+        if incrementScanNumber:
             self.scanNumber += 1
         if results:
             for result in results:
@@ -166,8 +185,12 @@ class ResultsHistory(object):
         except KeyError:
             return None
 
+        return None
+
     def GetResultAsDict(self, targetID):
         try:
             return self.resultsByTargetID[targetID].GetAsDict(self.scanNumber)
         except KeyError:
             return None
+
+        return None

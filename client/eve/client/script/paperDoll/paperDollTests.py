@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\client\script\paperDoll\paperDollTests.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\client\script\paperDoll\paperDollTests.py
 import itertools
 import trinity
 import blue
@@ -13,7 +14,7 @@ import paperDoll as PD
 class PerformanceTestResults(dict):
     __guid__ = 'paperDoll.testing.PerformanceTestResults'
 
-    def __init__(self, iterable = None):
+    def __init__(self, iterable=None):
         dict.__init__(self)
         if iterable:
             if type(iterable) == PerformanceTestResults:
@@ -37,6 +38,7 @@ class BenchmarkTest(object):
         self.scene = None
         self.usePrepass = False
         self.results = PerformanceTestResults()
+        return
 
     def _StartTest(self):
         with lock:
@@ -46,14 +48,14 @@ class BenchmarkTest(object):
         with lock:
             self.results.PunchOut('Test execution time')
 
-    def Execute_t(self, callBack = None):
+    def Execute_t(self, callBack=None):
         with lock:
             self._StartTest()
             self._EndTest()
             if callBack:
                 uthread.new(callBack)
 
-    def Execute(self, callBack = None):
+    def Execute(self, callBack=None):
         self.results.clear()
         self.testTasklet = uthread.new(self.Execute_t, callBack)
         uthread.schedule(self.testTasklet)
@@ -65,7 +67,7 @@ class BenchmarkTest(object):
 class SingleDollTest(BenchmarkTest):
     __guid__ = 'paperDoll.testing.SingleDollTest'
 
-    def __init__(self, startLOD, endLOD, resPath = None):
+    def __init__(self, startLOD, endLOD, resPath=None):
         BenchmarkTest.__init__(self)
         self.resPath = resPath
         self.startLOD = startLOD
@@ -102,7 +104,7 @@ class SingleDollTest(BenchmarkTest):
 class MultiDollTest(BenchmarkTest):
     __guid__ = 'paperDoll.testing.MultiDollTest'
 
-    def __init__(self, numChars = 32, maxLOD0 = 8, maxLOD1 = 16, maxLodQueueActive = None, resPaths = None, debugMode = False):
+    def __init__(self, numChars=32, maxLOD0=8, maxLOD1=16, maxLodQueueActive=None, resPaths=None, debugMode=False):
         BenchmarkTest.__init__(self)
         self.debugMode = debugMode
         self.respathsIterator = itertools.cycle(resPaths) if resPaths else None
@@ -116,6 +118,7 @@ class MultiDollTest(BenchmarkTest):
         PD.LodQueue.instance = PD.LodQueue()
         PD.PerformanceOptions.maxLodQueueActive = self.maxLodQueueActive
         PD.PerformanceOptions.maxLodQueueActiveUp = self.maxLodQueueActive
+        return
 
     def SpawnDolls(self, lod, count):
         for i in xrange(count):
@@ -154,7 +157,7 @@ class MultiDollTest(BenchmarkTest):
 class Benchmarker(object):
     _guid__ = 'paperDoll.testing.Benchmarker'
 
-    def __init__(self, factory, scene, usePrepass = False, enablePaperDollOptimizations = True):
+    def __init__(self, factory, scene, usePrepass=False, enablePaperDollOptimizations=True):
         if enablePaperDollOptimizations:
             PD.PerformanceOptions.EnableOptimizations()
         self.factory = factory
@@ -165,6 +168,7 @@ class Benchmarker(object):
         self.iterations = 20
         self.currentIteration = 0
         self.results = PerformanceTestResults()
+        return
 
     def SetTest(self, test):
         self.test = test
@@ -177,7 +181,7 @@ class Benchmarker(object):
     def ClearCaches(self):
         blue.motherLode.ClearCached()
 
-    def ExecuteTest(self, onTestExecution = None):
+    def ExecuteTest(self, onTestExecution=None):
 
         def OnTestEnd():
             result = self.test.GetResult()
@@ -266,7 +270,7 @@ def CreateEmptyScene():
     return scene
 
 
-def SetupScene(scene = None, sceneFile = None, usePrepass = False):
+def SetupScene(scene=None, sceneFile=None, usePrepass=False):
     if not sceneFile:
         scene = CreateEmptyScene()
     else:
@@ -300,7 +304,7 @@ def CollectCharacterSelectionPaths():
     return respaths
 
 
-def RunCrowdSpawnTest(coldCache = True, iterations = 20, respaths = None, maxLodQueueActive = 1, debugMode = False, nrPerLod = None):
+def RunCrowdSpawnTest(coldCache=True, iterations=20, respaths=None, maxLodQueueActive=1, debugMode=False, nrPerLod=None):
 
     def fun():
         results = PerformanceTestResults()
@@ -331,6 +335,8 @@ def RunCrowdSpawnTest(coldCache = True, iterations = 20, respaths = None, maxLod
             if not debugMode:
                 trinity.renderJobs.UnscheduleByName(DEFAULT_PREPASS_RENDERJOB_NAME)
 
+        return
+
     testTasklet = uthread.new(fun)
     uthread.schedule(testTasklet)
     try:
@@ -341,7 +347,7 @@ def RunCrowdSpawnTest(coldCache = True, iterations = 20, respaths = None, maxLod
         PD.BeFrameNice()
 
 
-def RunIncarnaCrowdTest(coldCache = True, iterations = 20, respaths = None, maxLodQueueActive = 1, debugMode = False):
+def RunIncarnaCrowdTest(coldCache=True, iterations=20, respaths=None, maxLodQueueActive=1, debugMode=False):
 
     def fun():
         results = PerformanceTestResults()
@@ -369,6 +375,8 @@ def RunIncarnaCrowdTest(coldCache = True, iterations = 20, respaths = None, maxL
             if not debugMode:
                 trinity.renderJobs.UnscheduleByName(DEFAULT_PREPASS_RENDERJOB_NAME)
 
+        return
+
     testTasklet = uthread.new(fun)
     uthread.schedule(testTasklet)
     try:
@@ -379,11 +387,11 @@ def RunIncarnaCrowdTest(coldCache = True, iterations = 20, respaths = None, maxL
         PD.BeFrameNice()
 
 
-def RunClothedSpawnTest(coldCache = True, iterations = 20, maxLodQueueActive = 1, debugMode = False):
+def RunClothedSpawnTest(coldCache=True, iterations=20, maxLodQueueActive=1, debugMode=False):
     RunCrowdSpawnTest(respaths=CollectCharacterSelectionPaths(), coldCache=coldCache, iterations=iterations, maxLodQueueActive=maxLodQueueActive, debugMode=debugMode)
 
 
-def RunSymmetricalSingleDollLODTest(coldCache = True, iterations = 20, respaths = None, printStatistics = True):
+def RunSymmetricalSingleDollLODTest(coldCache=True, iterations=20, respaths=None, printStatistics=True):
 
     def fun():
         results = PerformanceTestResults()
@@ -423,6 +431,8 @@ def RunSymmetricalSingleDollLODTest(coldCache = True, iterations = 20, respaths 
         finally:
             trinity.renderJobs.UnscheduleByName(DEFAULT_PREPASS_RENDERJOB_NAME)
 
+        return
+
     testTasklet = uthread.new(fun)
     uthread.schedule(testTasklet)
     try:
@@ -433,15 +443,15 @@ def RunSymmetricalSingleDollLODTest(coldCache = True, iterations = 20, respaths 
         PD.BeFrameNice()
 
 
-def RunSymmetricalSingleNudeLODTest(iterations = 20, coldCache = True, printStatistics = True):
+def RunSymmetricalSingleNudeLODTest(iterations=20, coldCache=True, printStatistics=True):
     RunSymmetricalSingleDollLODTest(iterations=iterations, printStatistics=printStatistics)
 
 
-def RunSymmetricalSingleClothedDollLODTest(iterations = 20, coldCache = True, printStatistics = True):
+def RunSymmetricalSingleClothedDollLODTest(iterations=20, coldCache=True, printStatistics=True):
     RunSymmetricalSingleDollLODTest(iterations=iterations, respaths=CollectCharacterSelectionPaths(), printStatistics=printStatistics)
 
 
-def RunComprehensiveSymmetricalDollLODTest(iterations = 20):
+def RunComprehensiveSymmetricalDollLODTest(iterations=20):
 
     def fun():
         RunSymmetricalSingleNudeLODTest(coldCache=True, iterations=iterations)

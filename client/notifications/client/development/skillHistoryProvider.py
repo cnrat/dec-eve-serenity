@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\packages\notifications\client\development\skillHistoryProvider.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\packages\notifications\client\development\skillHistoryProvider.py
 from notifications.client.development.skillHistoryRow import SkillHistoryRow
 from notifications.common.notification import Notification
 import localization
@@ -13,7 +14,7 @@ EVENT_TYPE_TO_ACTION = {const.skillEventClonePenalty: localization.GetByLabel('U
 
 class SkillHistoryProvider(object):
 
-    def __init__(self, scatterDebug = False, onlyShowAfterDate = None):
+    def __init__(self, scatterDebug=False, onlyShowAfterDate=None):
         self.skillSvc = sm.GetService('skills')
         self.scatterDebug = scatterDebug
         self.onlyShowAfterDate = onlyShowAfterDate

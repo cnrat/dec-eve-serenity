@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\packages\twitch\__init__.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\packages\twitch\__init__.py
 import trinity
 import urllib
 import _twitch as api
@@ -26,7 +27,7 @@ def login_with_token(clientID, token):
     api.LoginWithToken(str(clientID), str(token))
 
 
-def start_stream(streamTitle, gameName, targetFps = 30, includeAudio = True):
+def start_stream(streamTitle, gameName, targetFps=30, includeAudio=True):
     api.SetGameName(gameName)
     api.StartStream(streamTitle.encode('utf8'), targetFps, includeAudio, trinity.device)
 
@@ -57,18 +58,19 @@ def is_streaming():
     return api.GetState() >= api.STATE.STREAMING
 
 
-def is_valid_windowsize(size = None):
+def is_valid_windowsize(size=None):
     if size is None:
         params = trinity.device.GetPresentParameters()
         size = (params['BackBufferWidth'], params['BackBufferHeight'])
     width, height = size
     if width % 32 or height % 16:
         return False
-    if width > 1920:
+    elif width > 1920:
         return False
-    if height > 1200:
+    elif height > 1200:
         return False
-    return True
+    else:
+        return True
 
 
 def set_state_change_callback(callback):

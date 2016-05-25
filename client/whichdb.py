@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\carbon\common\stdlib\whichdb.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\carbon\common\stdlib\whichdb.py
 import os
 import struct
 import sys
@@ -54,22 +55,23 @@ def whichdb(filename):
     if len(s) != 4:
         return ''
     try:
-        magic, = struct.unpack('=l', s)
+        magic = struct.unpack('=l', s)
     except struct.error:
         return ''
 
     if magic == 324508366:
         return 'gdbm'
-    if magic in (398689, 1628767744):
+    elif magic in (398689, 1628767744):
         return 'bsddb185'
     try:
-        magic, = struct.unpack('=l', s16[-4:])
+        magic = struct.unpack('=l', s16[-4:])
     except struct.error:
         return ''
 
     if magic in (398689, 1628767744):
         return 'dbhash'
-    return ''
+    else:
+        return ''
 
 
 if __name__ == '__main__':

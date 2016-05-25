@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\client\script\environment\effects\Warp.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\client\script\environment\effects\Warp.py
 from math import cos, pow, sqrt, pi, sin
 import random
 import blue
@@ -25,44 +26,51 @@ class Warping(ShipEffect):
             self.fxSequencer.OnSpecialFX(shipID, None, None, None, None, 'effects.Warping', 0, 0, 0)
             self.fxSequencer.OnSpecialFX(shipID, None, None, None, None, 'effects.WarpOut', 0, 1, 0)
             return
-        ShipEffect.Prepare(self)
-        self.AlignToDirection()
+        else:
+            ShipEffect.Prepare(self)
+            self.AlignToDirection()
+            return
 
     def ModelChangeNotify(self, newModel):
         if newModel is None:
             return
-        self.shipModel = newModel
-        for binding in self.curveSet.bindings:
-            binding.sourceObject = self.shipModel.speed
+        else:
+            self.shipModel = newModel
+            for binding in self.curveSet.bindings:
+                binding.sourceObject = self.shipModel.speed
+
+            return
 
     def Start(self, duration):
         if self.gfx is None:
             return
-        self.gfx.display = False
-        self.hasExploded = False
-        self.hasWind = False
-        self.hasMoreCollisions = True
-        self.findNext = True
-        ShipEffect.Start(self, duration)
-        bp = sm.StartService('michelle').GetBallpark()
-        shipID = self.GetEffectShipID()
-        shipBall = bp.GetBall(shipID)
-        self.shipBall = shipBall
-        self.shipModel = getattr(shipBall, 'model', None)
-        self.shipBall.RegisterModelChangeNotification(self.ModelChangeNotify)
-        slimItem = bp.GetInvItem(shipID)
-        self.warpSpeedModifier = sm.StartService('godma').GetTypeAttribute(slimItem.typeID, const.attributeWarpSpeedMultiplier)
-        if self.warpSpeedModifier is None:
-            self.warpSpeedModifier = 1.0
-        space = sm.GetService('space')
-        self.SetupTunnelBindings()
-        self.nextCollision = None
-        self.insideSolid = False
-        self.destination = space.warpDestinationCache[3]
-        self.collisions = []
-        self.collisions = self.GetWarpCollisions(shipBall)
-        self.ControlFlow('NextCollision')
-        uthread.worker('FxSequencer::WarpEffectLoop', self.WarpLoop, shipBall)
+        else:
+            self.gfx.display = False
+            self.hasExploded = False
+            self.hasWind = False
+            self.hasMoreCollisions = True
+            self.findNext = True
+            ShipEffect.Start(self, duration)
+            bp = sm.StartService('michelle').GetBallpark()
+            shipID = self.GetEffectShipID()
+            shipBall = bp.GetBall(shipID)
+            self.shipBall = shipBall
+            self.shipModel = getattr(shipBall, 'model', None)
+            self.shipBall.RegisterModelChangeNotification(self.ModelChangeNotify)
+            slimItem = bp.GetInvItem(shipID)
+            self.warpSpeedModifier = sm.StartService('godma').GetTypeAttribute(slimItem.typeID, const.attributeWarpSpeedMultiplier)
+            if self.warpSpeedModifier is None:
+                self.warpSpeedModifier = 1.0
+            space = sm.GetService('space')
+            self.SetupTunnelBindings()
+            self.nextCollision = None
+            self.insideSolid = False
+            self.destination = space.warpDestinationCache[3]
+            self.collisions = []
+            self.collisions = self.GetWarpCollisions(shipBall)
+            self.ControlFlow('NextCollision')
+            uthread.worker('FxSequencer::WarpEffectLoop', self.WarpLoop, shipBall)
+            return
 
     def AddToScene(self, effect):
         scene = self.fxSequencer.GetScene()
@@ -73,6 +81,7 @@ class Warping(ShipEffect):
         scene = self.fxSequencer.GetScene()
         scene.warpTunnel = None
         self._RemoveLightingCurves(scene)
+        return
 
     def _SetupLightingCurves(self, scene):
         self.lightingCurveSet = trinity.TriCurveSet()
@@ -118,6 +127,7 @@ class Warping(ShipEffect):
         scene.curveSets.append(self.lightingCurveSet)
         self.lightingCurveSet.Play()
         uthread.new(self._AnimateLights, scene)
+        return
 
     def _AnimateLights(self, scene):
         while self.lightingCurveSet and scene.shLightingManager:
@@ -186,6 +196,7 @@ class Warping(ShipEffect):
                     pass
 
         self.lights = []
+        return
 
     def RecycleOrLoad(self, resPath):
         return blue.resMan.LoadObject(resPath)
@@ -271,6 +282,7 @@ class Warping(ShipEffect):
         self.enterPlanetEventCurve.curves[0].AddCallableKey(1.0, self.ControlFlow, ('EnterPlanet',))
         self.nextPlanetEventCurve.curves[0].AddKey(0.0, u'Start')
         self.nextPlanetEventCurve.curves[0].AddCallableKey(1.0, self.ControlFlow, ('NextCollision',))
+        return
 
     def TeardownTunnelBindings(self):
         if getattr(self, 'speedBinding', None) is not None:
@@ -282,6 +294,7 @@ class Warping(ShipEffect):
             del self.exitPlanetEventCurve.curves[0]
             del self.enterPlanetEventCurve.curves[0]
             del self.nextPlanetEventCurve.curves[0]
+        return
 
     def CalcEffectiveRadius(self, direction, planetPosition, planetRadius):
         distToMiddle = geo2.Vec3DotD(planetPosition, direction)
@@ -291,7 +304,8 @@ class Warping(ShipEffect):
         distToCenter = geo2.Vec3DistanceD(planetPosition, midPoint)
         if distToCenter > planetRadius:
             return None
-        return sqrt(planetRadius * planetRadius - distToCenter * distToCenter)
+        else:
+            return sqrt(planetRadius * planetRadius - distToCenter * distToCenter)
 
     def GetDistanceToTarget(self, direction, planetPosition):
         return geo2.Vec3DotD(planetPosition, direction)
@@ -326,7 +340,7 @@ class Warping(ShipEffect):
 
         return collisions
 
-    def FindNextCollision(self, destination, candidates, popCollision = True):
+    def FindNextCollision(self, destination, candidates, popCollision=True):
         minDist = None
         time = blue.os.GetSimTime()
         position = self.shipBall.GetVectorAt(blue.os.GetSimTime())
@@ -425,42 +439,47 @@ class Warping(ShipEffect):
         sm.StartService('FxSequencer').OnSpecialFX(ball.id, None, None, None, None, 'effects.Warping', 0, 0, 0)
         sm.ScatterEvent('OnWarpFinished')
         sm.StartService('space').StopWarpIndication()
+        return
 
-    def Stop(self, reason = STOP_REASON_DEFAULT):
+    def Stop(self, reason=STOP_REASON_DEFAULT):
         shipID = self.GetEffectShipID()
         if shipID != session.shipid:
             return
-        self.TeardownTunnelBindings()
-        if self.shipBall is not None:
-            self.shipBall.UnregisterModelChangeNotification(self.ModelChangeNotify)
-        self.shipBall = None
-        self.shipModel = None
-        ShipEffect.Stop(self)
+        else:
+            self.TeardownTunnelBindings()
+            if self.shipBall is not None:
+                self.shipBall.UnregisterModelChangeNotification(self.ModelChangeNotify)
+            self.shipBall = None
+            self.shipModel = None
+            ShipEffect.Stop(self)
+            return
 
     def ShakeCamera(self, ball):
         ballpark = sm.GetService('michelle').GetBallpark()
         if ballpark is None:
             return
-        speedVector = trinity.TriVector(ball.vx, ball.vy, ball.vz)
-        speed = speedVector.Length()
-        maxSpeed = ballpark.warpSpeed * const.AU - ball.maxVelocity
-        speed = (speed - ball.maxVelocity) / maxSpeed
-        speed = max(0.0, speed)
-        rumbleFactor = 0.5 - 0.5 * cos(6.28 * pow(speed, 0.1))
-        rumbleFactor = (rumbleFactor - 0.2) / 0.8
-        rumbleFactor = max(rumbleFactor, 0.0)
-        rumbleFactor = pow(rumbleFactor, 0.8)
-        shakeFactor = 0.7 * rumbleFactor
-        cam = self.GetCamera()
-        noisescaleCurve = trinity.TriScalarCurve()
-        noisescaleCurve.extrapolation = trinity.TRIEXT_CONSTANT
-        noisescaleCurve.AddKey(0.0, cam.noiseScale, 0.0, 0.0, trinity.TRIINT_LINEAR)
-        noisescaleCurve.AddKey(0.5, shakeFactor * 2.0, 0.0, 0.0, trinity.TRIINT_LINEAR)
-        noisescaleCurve.AddKey(5.0, 0.0, 0.0, 0.0, trinity.TRIINT_LINEAR)
-        noisescaleCurve.Sort()
-        behavior = shaker.ShakeBehavior('Warp')
-        behavior.scaleCurve = noisescaleCurve
-        cam.shakeController.DoCameraShake(behavior)
+        else:
+            speedVector = trinity.TriVector(ball.vx, ball.vy, ball.vz)
+            speed = speedVector.Length()
+            maxSpeed = ballpark.warpSpeed * const.AU - ball.maxVelocity
+            speed = (speed - ball.maxVelocity) / maxSpeed
+            speed = max(0.0, speed)
+            rumbleFactor = 0.5 - 0.5 * cos(6.28 * pow(speed, 0.1))
+            rumbleFactor = (rumbleFactor - 0.2) / 0.8
+            rumbleFactor = max(rumbleFactor, 0.0)
+            rumbleFactor = pow(rumbleFactor, 0.8)
+            shakeFactor = 0.7 * rumbleFactor
+            cam = self.GetCamera()
+            noisescaleCurve = trinity.TriScalarCurve()
+            noisescaleCurve.extrapolation = trinity.TRIEXT_CONSTANT
+            noisescaleCurve.AddKey(0.0, cam.noiseScale, 0.0, 0.0, trinity.TRIINT_LINEAR)
+            noisescaleCurve.AddKey(0.5, shakeFactor * 2.0, 0.0, 0.0, trinity.TRIINT_LINEAR)
+            noisescaleCurve.AddKey(5.0, 0.0, 0.0, 0.0, trinity.TRIINT_LINEAR)
+            noisescaleCurve.Sort()
+            behavior = shaker.ShakeBehavior('Warp')
+            behavior.scaleCurve = noisescaleCurve
+            cam.shakeController.DoCameraShake(behavior)
+            return
 
     def GetCamera(self):
         return sm.GetService('sceneManager').GetActiveSpaceCamera()
@@ -507,8 +526,11 @@ class Warping(ShipEffect):
             self.gfxModel.modelRotationCurve = trinity.TriRotationCurve(0.0, 0.0, 0.0, 1.0)
             self.gfxModel.modelRotationCurve.value = quat
         self.debugAligned = True
+        return
 
     def Repeat(self, duration):
         if self.gfx is None:
             return
-        effects.ShipEffect.Repeat(self)
+        else:
+            effects.ShipEffect.Repeat(self)
+            return

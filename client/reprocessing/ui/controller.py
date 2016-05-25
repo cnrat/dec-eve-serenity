@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\packages\reprocessing\ui\controller.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\packages\reprocessing\ui\controller.py
 from collections import defaultdict
 from reprocessing.ui.efficiencyCalculator import CalculateTheoreticalEfficiency
 
@@ -32,14 +33,18 @@ class Controller(object):
         self.inputGroups.UpdateGroups(items)
         self.inputItems.AddItems(items)
         self.SetEfficiency()
-        self.outputItems.UpdateItems()
+        self._UpdateOutputItems()
 
     def RemoveItem(self, itemID):
         item = self.inputItems.RemoveItem(itemID)
         self.inputGroups.RemoveItem(item)
         self.quotes.RemoveItem(itemID)
         self.SetEfficiency()
+        self._UpdateOutputItems()
+
+    def _UpdateOutputItems(self):
         self.outputItems.UpdateItems()
+        self.window.UpdateTotalIskCost(self.outputItems.GetTotalIskCost())
 
     def Reprocess(self):
         self.reprocessor.Reprocess(self.inputItems.GetItems(), self.GetActiveShipID())
@@ -55,11 +60,11 @@ class Controller(object):
     def SetEfficiency(self):
         typeIDs = self.inputItems.GetTypeIDsByGroup()
         if len(typeIDs):
-            categoryID = typeIDs.keys()[0]
+            typeID = typeIDs.values()[0][0]
             for group in self.inputGroups.groups:
-                efficiency = self.quotes.GetStationEfficiencyForCategoryID(categoryID)
+                efficiency = self.quotes.GetStationEfficiencyForType(typeID)
                 tax = self.quotes.stationTax
-                self.inputGroups.SetEfficiency(group, CalculateTheoreticalEfficiency(typeIDs[group], tax, efficiency), typeIDs)
+                self.inputGroups.SetEfficiency(group, CalculateTheoreticalEfficiency(typeIDs[group], efficiency), typeIDs)
                 self.inputGroups.SetTaxAndStationEfficiency(group, efficiency, tax)
 
     def GetOutputItems(self):

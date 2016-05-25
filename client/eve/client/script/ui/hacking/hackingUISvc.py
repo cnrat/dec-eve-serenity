@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\client\script\ui\hacking\hackingUISvc.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\client\script\ui\hacking\hackingUISvc.py
 import service
 import hackingcommon.hackingConstants as hackingConst
 import hackingUIConst
@@ -31,6 +32,7 @@ class HackingSvc(service.Service):
         self.virusInitialCoherence = 200
         self.virusInitialStrength = 30
         self.virusSlots = 3
+        return
 
     def SetDifficulty(self, difficulty):
         self.difficulty = difficulty
@@ -45,6 +47,7 @@ class HackingSvc(service.Service):
         self._ResetGameInfo()
         self.gameType = random.choice((hackingConst.GAMETYPE_HACKING, hackingConst.GAMETYPE_ARCHEOLOGY))
         self.hackingMgr.StartNewGameInstance(None, self.gameType, 22329, self.difficulty, self.virusInitialCoherence, self.virusInitialStrength, self.virusSlots)
+        return
 
     def QuitHackingAttempt(self):
         self.hackingMgr.QuitHackingAttempt()
@@ -198,6 +201,8 @@ class HackingSvc(service.Service):
             else:
                 blue.synchro.Yield()
 
+        return
+
     def ConstructUtilityElements(self, inventory):
         for i, element in enumerate(inventory):
             elementData = hackUI.UtilityElementData(index=i, **element)
@@ -253,6 +258,7 @@ class HackingSvc(service.Service):
             if self.tileDataByCoord[tileCoord].blocked:
                 sm.GetService('audio').SendUIEvent('minigame_error')
             self.hackingMgr.ClickedOnTile(tileCoord)
+        return
 
     def OnUtilityElementClicked(self, index, utilData):
         if index == self.selectedUtilElement:
@@ -263,8 +269,9 @@ class HackingSvc(service.Service):
         elif utilData.subtype in hackingConst.UE_SUBTYPES_APPLIED_TO_TARGET:
             sm.GetService('audio').SendUIEvent('minigame_inventory_add')
             self.SetSelectedUtilElement(index)
+        return
 
-    def SetSelectedUtilElement(self, index = None):
+    def SetSelectedUtilElement(self, index=None):
         self.selectedUtilElement = index
         for i, uiData in enumerate(self.utilityElements):
             uiData.isSelected = i == self.selectedUtilElement
@@ -289,7 +296,7 @@ class HackingSvc(service.Service):
 
         return [ self.tileDataByCoord[coord] for coord in ret ]
 
-    def SetTileHint(self, hint = None):
+    def SetTileHint(self, hint=None):
         wnd = form.HackingWindow.GetIfOpen()
         if wnd:
             wnd.SetTileHint(hint)

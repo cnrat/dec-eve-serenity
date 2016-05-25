@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\packages\carbonui\primitives\polygon.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\packages\carbonui\primitives\polygon.py
 import trinity
 import math
 import mathUtil
@@ -16,7 +17,7 @@ class Polygon(TexturedBase):
         del ro.triangles[:]
         del ro.vertices[:]
 
-    def MakeArc(self, radius = 32.0, outerRadius = 66.0, segments = 12, fromDeg = 0.0, toDeg = 90.0, innerColor = default_color, outerColor = default_color, feather = 3.0):
+    def MakeArc(self, radius=32.0, outerRadius=66.0, segments=12, fromDeg=0.0, toDeg=90.0, innerColor=default_color, outerColor=default_color, feather=3.0):
         self.Flush()
         ro = self.GetRenderObject()
         segmentStep = (toDeg - fromDeg) / float(segments)
@@ -68,7 +69,7 @@ class Polygon(TexturedBase):
                 triangle.index2 = i
                 ro.triangles.append(triangle)
 
-    def MakeCircle(self, radius = 64.0, segments = 12, centerColor = default_color, edgeColor = default_color):
+    def MakeCircle(self, radius=64.0, segments=12, centerColor=default_color, edgeColor=default_color):
         ro = self.GetRenderObject()
         del ro.triangles[:]
         del ro.vertices[:]
@@ -102,7 +103,7 @@ class Polygon(TexturedBase):
         triangle.index2 = 1
         ro.triangles.append(triangle)
 
-    def MakeRectangle(self, topLeft = (0, 0), topLeftColor = (1, 1, 1, 1), topRight = (64, 0), topRightColor = (1, 1, 1, 1), bottomRight = (64, 64), bottomRightColor = (1, 1, 1, 1), bottomLeft = (0, 64), bottomLeftColor = (1, 1, 1, 1)):
+    def MakeRectangle(self, topLeft=(0, 0), topLeftColor=(1, 1, 1, 1), topRight=(64, 0), topRightColor=(1, 1, 1, 1), bottomRight=(64, 64), bottomRightColor=(1, 1, 1, 1), bottomLeft=(0, 64), bottomLeftColor=(1, 1, 1, 1)):
         ro = self.GetRenderObject()
         del ro.triangles[:]
         del ro.vertices[:]
@@ -141,7 +142,7 @@ class Polygon(TexturedBase):
         triangle.index2 = 3
         ro.triangles.append(triangle)
 
-    def MakeGradient(self, width = 256, height = 256, colorPoints = [(0, (0, 0, 0, 1)), (1, (1, 1, 1, 1))], rotation = 0):
+    def MakeGradient(self, width=256, height=256, colorPoints=[(0, (0, 0, 0, 1)), (1, (1, 1, 1, 1))], rotation=0):
         ro = self.GetRenderObject()
         del ro.triangles[:]
         del ro.vertices[:]

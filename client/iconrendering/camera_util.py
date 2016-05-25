@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\packages\iconrendering\camera_util.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\packages\iconrendering\camera_util.py
 import geo2
 import trinity
 from math import sin, tan
@@ -21,12 +22,12 @@ def _GetViewMatrixFromAngle(cameraAngle, lookAt, cameraDistance):
     return (view_eye, view_at, geo2.Vector(*GETPHOTO_VIEW_UP))
 
 
-def _SphericalFit(radius, fov = GETPHOTO_FOV, fudge = 1.15):
+def _SphericalFit(radius, fov=GETPHOTO_FOV, fudge=1.15):
     alpha = fov / 2.0
     return radius / sin(alpha) * fudge
 
 
-def _GetViewAndProjectionUsingProjectedBoundingBox(calculateProjectedBoundingBox, scene = None, boundingSphereRadius = None, boundingSphereCenter = None, boundingBoxMin = None, boundingBoxMax = None, cameraAngle = None):
+def _GetViewAndProjectionUsingProjectedBoundingBox(calculateProjectedBoundingBox, scene=None, boundingSphereRadius=None, boundingSphereCenter=None, boundingBoxMin=None, boundingBoxMax=None, cameraAngle=None):
     cameraAngle = cameraAngle or GETPHOTO_ANGLE
     if boundingSphereRadius:
         radius = boundingSphereRadius
@@ -71,7 +72,7 @@ def _GetViewAndProjectionUsingProjectedBoundingBox(calculateProjectedBoundingBox
     return (view, projection)
 
 
-def GetViewAndProjectionUsingMeshGeometry(geometry, geometryMeshIdx = 0, scene = None, boundingSphereRadius = None, boundingSphereCenter = None, boundingBoxMin = None, boundingBoxMax = None, cameraAngle = None):
+def GetViewAndProjectionUsingMeshGeometry(geometry, geometryMeshIdx=0, scene=None, boundingSphereRadius=None, boundingSphereCenter=None, boundingBoxMin=None, boundingBoxMax=None, cameraAngle=None):
 
     def calculateProjectedBoundingBox(combinedTransform):
         return geometry.CalculateBoundingBoxFromTransform(geometryMeshIdx, combinedTransform)
@@ -79,7 +80,7 @@ def GetViewAndProjectionUsingMeshGeometry(geometry, geometryMeshIdx = 0, scene =
     return _GetViewAndProjectionUsingProjectedBoundingBox(calculateProjectedBoundingBox, scene, boundingSphereRadius=boundingSphereRadius, boundingSphereCenter=boundingSphereCenter, boundingBoxMin=boundingBoxMin, boundingBoxMax=boundingBoxMax, cameraAngle=cameraAngle)
 
 
-def GetViewAndProjectionForSkinnedModel(model, scene = None, boundingSphereRadius = None, boundingSphereCenter = None, boundingBoxMin = None, boundingBoxMax = None, cameraAngle = None):
+def GetViewAndProjectionForSkinnedModel(model, scene=None, boundingSphereRadius=None, boundingSphereCenter=None, boundingBoxMin=None, boundingBoxMax=None, cameraAngle=None):
 
     def calculateProjectedBoundingBox(combinedTransform):
         return model.CalculateSkinnedBoundingBoxFromTransform(combinedTransform)
@@ -87,7 +88,7 @@ def GetViewAndProjectionForSkinnedModel(model, scene = None, boundingSphereRadiu
     return _GetViewAndProjectionUsingProjectedBoundingBox(calculateProjectedBoundingBox, scene, boundingSphereRadius=boundingSphereRadius, boundingSphereCenter=boundingSphereCenter, boundingBoxMin=boundingBoxMin, boundingBoxMax=boundingBoxMax, cameraAngle=cameraAngle)
 
 
-def GetViewAndProjectionUsingBoundingBox(boundingBoxMin = None, boundingBoxMax = None, scene = None, cameraAngle = None):
+def GetViewAndProjectionUsingBoundingBox(boundingBoxMin=None, boundingBoxMax=None, scene=None, cameraAngle=None):
 
     def calculateProjectedBoundingBox(combinedTransform):
         edges = []
@@ -117,7 +118,7 @@ def GetViewAndProjectionUsingBoundingBox(boundingBoxMin = None, boundingBoxMax =
     return _GetViewAndProjectionUsingProjectedBoundingBox(calculateProjectedBoundingBox, scene, boundingBoxMin=boundingBoxMin, boundingBoxMax=boundingBoxMax, cameraAngle=cameraAngle, boundingSphereRadius=None, boundingSphereCenter=None)
 
 
-def GetViewAndProjectionUsingBoundingSphere(boundingSphereRadius, boundingSphereCenter = None, cameraAngle = None, distanceOverride = None, fov = GETPHOTO_FOV):
+def GetViewAndProjectionUsingBoundingSphere(boundingSphereRadius, boundingSphereCenter=None, cameraAngle=None, distanceOverride=None, fov=GETPHOTO_FOV):
     cameraAngle = cameraAngle or GETPHOTO_ANGLE
     boundingSphereCenter = boundingSphereCenter or (0.0, 0.0, 0.0)
     dist = distanceOverride if distanceOverride else _SphericalFit(boundingSphereRadius, fov)

@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\packages\scriber\ff.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\packages\scriber\ff.py
 
 
 def o(format_str, *args):
@@ -18,7 +19,7 @@ def o(format_str, *args):
         return format_str % args
 
 
-def pl(value, one_format = '', many_format = None, zero_format = None):
+def pl(value, one_format='', many_format=None, zero_format=None):
     if many_format is None:
         many_format = '%ss' % one_format
     if value == 0:
@@ -30,3 +31,4 @@ def pl(value, one_format = '', many_format = None, zero_format = None):
         if value == 1:
             return o(one_format, value)
         return o(many_format, value)
+    return

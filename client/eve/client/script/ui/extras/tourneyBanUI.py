@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\client\script\ui\extras\tourneyBanUI.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\client\script\ui\extras\tourneyBanUI.py
 import evetypes
 import service
 import uiprimitives
@@ -33,7 +34,7 @@ class TourneyBanUI(uicontrols.Window):
         self.SetMinSize((300, 375))
         self.SetTopparentHeight(0)
 
-    def SetModalResult(self, result, caller = None):
+    def SetModalResult(self, result, caller=None):
         if result == uiconst.ID_OK:
             return
         super(TourneyBanUI, self).SetModalResult(result, caller)
@@ -86,3 +87,4 @@ class TourneyBanUI(uicontrols.Window):
         if timeDiffMS == 0:
             self.MakeKillable()
             self.countdownTimer = None
+        return

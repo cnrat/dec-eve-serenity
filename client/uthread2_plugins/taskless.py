@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\packages\uthread2_plugins\taskless.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\packages\uthread2_plugins\taskless.py
 import time
 from . import BaseUthreadImpl, Tasklet
 
@@ -18,7 +19,7 @@ class _Event(object):
     def clear(self):
         self._isset = False
 
-    def wait(self, timeout = None):
+    def wait(self, timeout=None):
         if self.is_set():
             return True
         return False

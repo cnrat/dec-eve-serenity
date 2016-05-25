@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\carbon\client\script\graphics\graphicWrappers\tr2InteriorScene.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\carbon\client\script\graphics\graphicWrappers\tr2InteriorScene.py
 import blue
 import decometaclass
 import cef
@@ -42,17 +43,19 @@ class Tr2InteriorScene(decometaclass.WrapBlueClass('trinity.Tr2InteriorScene')):
         if cell in self.cells:
             self.cells.remove(cell)
 
-    def AddStatic(self, staticObj, cellName = 'DefaultCell', systemName = 0, id = None):
+    def AddStatic(self, staticObj, cellName='DefaultCell', systemName=0, id=None):
         if staticObj in self.objects:
             return
-        cell = self._GetCell(cellName)
-        cell.AddStatic(staticObj)
-        self.objects[staticObj] = cell
-        if id is None:
-            id = staticObj.objectID
-        uvData = self.cellData.get(cellName, {}).get(id, None)
-        if uvData:
-            staticObj.SetInstanceData(*uvData)
+        else:
+            cell = self._GetCell(cellName)
+            cell.AddStatic(staticObj)
+            self.objects[staticObj] = cell
+            if id is None:
+                id = staticObj.objectID
+            uvData = self.cellData.get(cellName, {}).get(id, None)
+            if uvData:
+                staticObj.SetInstanceData(*uvData)
+            return
 
     def RemoveStatic(self, staticObj):
         cell = self.objects.get(staticObj, None)
@@ -60,6 +63,7 @@ class Tr2InteriorScene(decometaclass.WrapBlueClass('trinity.Tr2InteriorScene')):
             cell.RemoveStatic(staticObj)
             self.objects[staticObj] = None
             self._RemoveCellIfEmpty(cell)
+        return
 
     def AddLight(self, lightObj):
         if lightObj in self.lights:
@@ -109,6 +113,7 @@ class Tr2InteriorScene(decometaclass.WrapBlueClass('trinity.Tr2InteriorScene')):
     def RemoveSkyboxTexture(self):
         self.backgroundEffect = None
         self.backgroundCubemapPath = ''
+        return
 
     def SetSkyboxTexture(self, texturePath):
         self.backgroundEffect = trinity.Tr2Effect()

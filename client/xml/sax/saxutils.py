@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\carbon\common\stdlib\xml\sax\saxutils.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\carbon\common\stdlib\xml\sax\saxutils.py
 import os, urlparse, urllib, types
 import handler
 import xmlreader
@@ -21,7 +22,7 @@ def __dict_replace(s, d):
     return s
 
 
-def escape(data, entities = {}):
+def escape(data, entities={}):
     data = data.replace('&', '&amp;')
     data = data.replace('>', '&gt;')
     data = data.replace('<', '&lt;')
@@ -30,7 +31,7 @@ def escape(data, entities = {}):
     return data
 
 
-def unescape(data, entities = {}):
+def unescape(data, entities={}):
     data = data.replace('&lt;', '<')
     data = data.replace('&gt;', '>')
     if entities:
@@ -38,7 +39,7 @@ def unescape(data, entities = {}):
     return data.replace('&amp;', '&')
 
 
-def quoteattr(data, entities = {}):
+def quoteattr(data, entities={}):
     entities = entities.copy()
     entities.update({'\n': '&#10;',
      '\r': '&#13;',
@@ -56,7 +57,7 @@ def quoteattr(data, entities = {}):
 
 class XMLGenerator(handler.ContentHandler):
 
-    def __init__(self, out = None, encoding = 'iso-8859-1'):
+    def __init__(self, out=None, encoding='iso-8859-1'):
         if out is None:
             import sys
             out = sys.stdout
@@ -66,6 +67,7 @@ class XMLGenerator(handler.ContentHandler):
         self._current_context = self._ns_contexts[-1]
         self._undeclared_ns_maps = []
         self._encoding = encoding
+        return
 
     def _write(self, text):
         if isinstance(text, str):
@@ -133,7 +135,7 @@ class XMLGenerator(handler.ContentHandler):
 
 class XMLFilterBase(xmlreader.XMLReader):
 
-    def __init__(self, parent = None):
+    def __init__(self, parent=None):
         xmlreader.XMLReader.__init__(self)
         self._parent = parent
 
@@ -223,7 +225,7 @@ class XMLFilterBase(xmlreader.XMLReader):
         self._parent = parent
 
 
-def prepare_input_source(source, base = ''):
+def prepare_input_source(source, base=''):
     if type(source) in _StringTypes:
         source = xmlreader.InputSource(source)
     elif hasattr(source, 'read'):

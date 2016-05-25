@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\client\script\ui\util\focusUtil.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\client\script\ui\util\focusUtil.py
 import carbonui.const as uiconst
 import trinity
 import logging
@@ -33,7 +34,6 @@ def HandleAppFocus(wnd, msgID, vkey):
     isFocused = vkey[0]
     if isFocused:
         CallPostponedFunctions()
-    return 1
 
 
 def postponeUntilFocus(func):

@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\carbon\common\stdlib\email\_parseaddr.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\carbon\common\stdlib\email\_parseaddr.py
 __all__ = ['mktime_tz',
  'parsedate',
  'parsedate_tz',
@@ -74,76 +75,77 @@ def parsedate_tz(data):
             data.append('')
     if len(data) < 5:
         return
-    data = data[:5]
-    dd, mm, yy, tm, tz = data
-    mm = mm.lower()
-    if mm not in _monthnames:
-        dd, mm = mm, dd.lower()
+    else:
+        data = data[:5]
+        dd, mm, yy, tm, tz = data
+        mm = mm.lower()
         if mm not in _monthnames:
+            dd, mm = mm, dd.lower()
+            if mm not in _monthnames:
+                return
+        mm = _monthnames.index(mm) + 1
+        if mm > 12:
+            mm -= 12
+        if dd[-1] == ',':
+            dd = dd[:-1]
+        i = yy.find(':')
+        if i > 0:
+            yy, tm = tm, yy
+        if yy[-1] == ',':
+            yy = yy[:-1]
+        if not yy[0].isdigit():
+            yy, tz = tz, yy
+        if tm[-1] == ',':
+            tm = tm[:-1]
+        tm = tm.split(':')
+        if len(tm) == 2:
+            thh, tmm = tm
+            tss = '0'
+        elif len(tm) == 3:
+            thh, tmm, tss = tm
+        else:
             return
-    mm = _monthnames.index(mm) + 1
-    if mm > 12:
-        mm -= 12
-    if dd[-1] == ',':
-        dd = dd[:-1]
-    i = yy.find(':')
-    if i > 0:
-        yy, tm = tm, yy
-    if yy[-1] == ',':
-        yy = yy[:-1]
-    if not yy[0].isdigit():
-        yy, tz = tz, yy
-    if tm[-1] == ',':
-        tm = tm[:-1]
-    tm = tm.split(':')
-    if len(tm) == 2:
-        thh, tmm = tm
-        tss = '0'
-    elif len(tm) == 3:
-        thh, tmm, tss = tm
-    else:
-        return
-    try:
-        yy = int(yy)
-        dd = int(dd)
-        thh = int(thh)
-        tmm = int(tmm)
-        tss = int(tss)
-    except ValueError:
-        return
-
-    if yy < 100:
-        if yy > 68:
-            yy += 1900
-        else:
-            yy += 2000
-    tzoffset = None
-    tz = tz.upper()
-    if tz in _timezones:
-        tzoffset = _timezones[tz]
-    else:
         try:
-            tzoffset = int(tz)
+            yy = int(yy)
+            dd = int(dd)
+            thh = int(thh)
+            tmm = int(tmm)
+            tss = int(tss)
         except ValueError:
-            pass
+            return
 
-    if tzoffset:
-        if tzoffset < 0:
-            tzsign = -1
-            tzoffset = -tzoffset
+        if yy < 100:
+            if yy > 68:
+                yy += 1900
+            else:
+                yy += 2000
+        tzoffset = None
+        tz = tz.upper()
+        if tz in _timezones:
+            tzoffset = _timezones[tz]
         else:
-            tzsign = 1
-        tzoffset = tzsign * (tzoffset // 100 * 3600 + tzoffset % 100 * 60)
-    return (yy,
-     mm,
-     dd,
-     thh,
-     tmm,
-     tss,
-     0,
-     1,
-     -1,
-     tzoffset)
+            try:
+                tzoffset = int(tz)
+            except ValueError:
+                pass
+
+        if tzoffset:
+            if tzoffset < 0:
+                tzsign = -1
+                tzoffset = -tzoffset
+            else:
+                tzsign = 1
+            tzoffset = tzsign * (tzoffset // 100 * 3600 + tzoffset % 100 * 60)
+        return (yy,
+         mm,
+         dd,
+         thh,
+         tmm,
+         tss,
+         0,
+         1,
+         -1,
+         tzoffset)
 
 
 def parsedate(data):
@@ -160,6 +162,7 @@ def mktime_tz(data):
     else:
         t = time.mktime(data[:8] + (0,))
         return t - data[9] - time.timezone
+        return
 
 
 def quote(str):
@@ -309,7 +312,7 @@ class AddrlistClass():
 
         return EMPTYSTRING.join(sdlist)
 
-    def getdelimited(self, beginchar, endchars, allowcomments = True):
+    def getdelimited(self, beginchar, endchars, allowcomments=True):
         if self.field[self.pos] != beginchar:
             return ''
         slist = ['']
@@ -342,7 +345,7 @@ class AddrlistClass():
     def getdomainliteral(self):
         return '[%s]' % self.getdelimited('[', ']\r', False)
 
-    def getatom(self, atomends = None):
+    def getatom(self, atomends=None):
         atomlist = ['']
         if atomends is None:
             atomends = self.atomends

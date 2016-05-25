@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\client\script\ui\shared\fittingGhost\slotGhost.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\client\script\ui\shared\fittingGhost\slotGhost.py
 import math
 import logging
 from carbonui.primitives.sprite import Sprite
@@ -57,6 +58,7 @@ class FittingSlotGhost(Transform):
         self.UpdateFitting()
         self.controller.on_online_state_change.connect(self.UpdateOnlineDisplay)
         self.controller.on_item_fitted.connect(self.UpdateFitting)
+        return
 
     def ConstructDontHaveLine(self):
         if self.dontHaveLine:
@@ -105,29 +107,31 @@ class FittingSlotGhost(Transform):
             if self.groupMark:
                 self.groupMark.Hide()
             return
-        groupNumber = ret.groupNumber
-        self.ConstructGroupMark()
-        self.groupMark.state = uiconst.UI_NORMAL
-        self.groupMark.rotation = -self.GetRotation()
-        if groupNumber < 0:
-            availGroups = [1,
-             2,
-             3,
-             4,
-             5,
-             6,
-             7,
-             8]
-            for masterID, groupNum in groupDict.iteritems():
-                if groupNum in availGroups:
-                    availGroups.remove(groupNum)
+        else:
+            groupNumber = ret.groupNumber
+            self.ConstructGroupMark()
+            self.groupMark.state = uiconst.UI_NORMAL
+            self.groupMark.rotation = -self.GetRotation()
+            if groupNumber < 0:
+                availGroups = [1,
+                 2,
+                 3,
+                 4,
+                 5,
+                 6,
+                 7,
+                 8]
+                for masterID, groupNum in groupDict.iteritems():
+                    if groupNum in availGroups:
+                        availGroups.remove(groupNum)
 
-            groupNumber = availGroups[0] if availGroups else ''
-        self.groupMark.texturePath = 'res:/UI/Texture/Icons/73_16_%s.png' % (176 + groupNumber)
-        self.groupMark.hint = localization.GetByLabel('UI/Fitting/GroupNumber', groupNumber=groupNumber)
-        groupDict[ret.masterID] = groupNumber
-        allGroupsDict[parentID] = groupDict
-        settings.user.ui.Set('linkedWeapons_groupsDict', allGroupsDict)
+                groupNumber = availGroups[0] if availGroups else ''
+            self.groupMark.texturePath = 'res:/UI/Texture/Icons/73_16_%s.png' % (176 + groupNumber)
+            self.groupMark.hint = localization.GetByLabel('UI/Fitting/GroupNumber', groupNumber=groupNumber)
+            groupDict[ret.masterID] = groupNumber
+            allGroupsDict[parentID] = groupDict
+            settings.user.ui.Set('linkedWeapons_groupsDict', allGroupsDict)
+            return
 
     def GetBankGroup(self, groupDict):
         module = self.controller.GetModule()
@@ -140,14 +144,15 @@ class FittingSlotGhost(Transform):
         masterID = self.controller.IsInWeaponBank()
         if not masterID:
             return None
-        if masterID in groupDict:
-            groupNumber = groupDict.get(masterID)
         else:
-            groupNumber = -1
-        ret = util.KeyVal()
-        ret.masterID = masterID
-        ret.groupNumber = groupNumber
-        return ret
+            if masterID in groupDict:
+                groupNumber = groupDict.get(masterID)
+            else:
+                groupNumber = -1
+            ret = util.KeyVal()
+            ret.masterID = masterID
+            ret.groupNumber = groupNumber
+            return ret
 
     def PrepareUtilButtons(self):
         for btn in self.utilButtons:
@@ -156,84 +161,87 @@ class FittingSlotGhost(Transform):
         self.utilButtons = []
         if not self.controller.GetModule():
             return
-        toggleLabel = localization.GetByLabel('UI/Fitting/PutOffline') if bool(self.controller.IsOnline) is True else localization.GetByLabel('UI/Fitting/PutOnline')
-        myrad, cos, sin, cX, cY = self.radCosSin
-        btns = []
-        if self.controller.GetCharge():
-            btns += [(localization.GetByLabel('UI/Fitting/RemoveCharge'),
-              'ui_38_16_200',
-              self.controller.Unfit,
-              1,
-              0), (localization.GetByLabel('UI/Fitting/ShowChargeInfo'),
-              'ui_38_16_208',
-              self.ShowChargeInfo,
-              1,
-              0), ('',
-              inventorycommon.typeHelpers.GetIconFile(self.controller.GetModuleTypeID()),
-              None,
-              1,
-              0)]
-        isRig = False
-        for effect in cfg.dgmtypeeffects.get(self.controller.GetModuleTypeID(), []):
-            if effect.effectID == const.effectRigSlot:
-                isRig = True
-                break
-
-        isSubSystem = evetypes.GetCategoryID(self.controller.GetModuleTypeID()) == const.categorySubSystem
-        isOnlinable = self.controller.IsOnlineable()
-        if isRig:
-            btns += [(localization.GetByLabel('UI/Fitting/Destroy'),
-              'ui_38_16_200',
-              self.controller.Unfit,
-              1,
-              0), (localization.GetByLabel('UI/Commands/ShowInfo'),
-              'ui_38_16_208',
-              self.ShowInfo,
-              1,
-              0)]
-        elif isSubSystem:
-            btns += [(localization.GetByLabel('UI/Commands/ShowInfo'),
-              'ui_38_16_208',
-              self.ShowInfo,
-              1,
-              0)]
         else:
-            btns += [(localization.GetByLabel('UI/Fitting/UnfitModule'),
-              'ui_38_16_200',
-              self.controller.UnfitModule,
-              1,
-              0), (localization.GetByLabel('UI/Commands/ShowInfo'),
-              'ui_38_16_208',
-              self.ShowInfo,
-              1,
-              0), (toggleLabel,
-              'ui_38_16_207',
-              self.ToggleOnline,
-              isOnlinable,
-              1)]
-        rad = myrad - 34
-        i = 0
-        for hint, icon, func, active, onlinebtn in btns:
-            left = int((rad - i * 16) * cos) + cX - 16 / 2
-            top = int((rad - i * 16) * sin) + cY - 16 / 2
-            icon = uicontrols.Icon(icon=icon, parent=self.parent, pos=(left,
-             top,
-             16,
-             16), idx=0, pickRadius=-1, ignoreSize=True)
-            icon.OnMouseEnter = self.ShowUtilButtons
-            icon.hint = hint
-            icon.color.a = 0.0
-            icon.isActive = active
-            if active:
-                icon.OnClick = func
-            elif self.controller.GetModule() is None or self.controller.SlotExists():
-                icon.hint = localization.GetByLabel('UI/Fitting/Disabled', moduleName=hint)
+            toggleLabel = localization.GetByLabel('UI/Fitting/PutOffline') if bool(self.controller.IsOnline) is True else localization.GetByLabel('UI/Fitting/PutOnline')
+            myrad, cos, sin, cX, cY = self.radCosSin
+            btns = []
+            if self.controller.GetCharge():
+                btns += [(localization.GetByLabel('UI/Fitting/RemoveCharge'),
+                  'ui_38_16_200',
+                  self.controller.Unfit,
+                  1,
+                  0), (localization.GetByLabel('UI/Fitting/ShowChargeInfo'),
+                  'ui_38_16_208',
+                  self.ShowChargeInfo,
+                  1,
+                  0), ('',
+                  inventorycommon.typeHelpers.GetIconFile(self.controller.GetModuleTypeID()),
+                  None,
+                  1,
+                  0)]
+            isRig = False
+            for effect in cfg.dgmtypeeffects.get(self.controller.GetModuleTypeID(), []):
+                if effect.effectID == const.effectRigSlot:
+                    isRig = True
+                    break
+
+            isSubSystem = evetypes.GetCategoryID(self.controller.GetModuleTypeID()) == const.categorySubSystem
+            isOnlinable = self.controller.IsOnlineable()
+            if isRig:
+                btns += [(localization.GetByLabel('UI/Fitting/Destroy'),
+                  'ui_38_16_200',
+                  self.controller.Unfit,
+                  1,
+                  0), (localization.GetByLabel('UI/Commands/ShowInfo'),
+                  'ui_38_16_208',
+                  self.ShowInfo,
+                  1,
+                  0)]
+            elif isSubSystem:
+                btns += [(localization.GetByLabel('UI/Commands/ShowInfo'),
+                  'ui_38_16_208',
+                  self.ShowInfo,
+                  1,
+                  0)]
             else:
-                icon.hint = localization.GetByLabel('UI/Fitting/CantOnlineIllegalSlot')
-            if onlinebtn == 1:
-                self.sr.onlineButton = icon
-            self.utilButtons.append(icon)
-            i += 1
+                btns += [(localization.GetByLabel('UI/Fitting/UnfitModule'),
+                  'ui_38_16_200',
+                  self.controller.UnfitModule,
+                  1,
+                  0), (localization.GetByLabel('UI/Commands/ShowInfo'),
+                  'ui_38_16_208',
+                  self.ShowInfo,
+                  1,
+                  0), (toggleLabel,
+                  'ui_38_16_207',
+                  self.ToggleOnline,
+                  isOnlinable,
+                  1)]
+            rad = myrad - 34
+            i = 0
+            for hint, icon, func, active, onlinebtn in btns:
+                left = int((rad - i * 16) * cos) + cX - 16 / 2
+                top = int((rad - i * 16) * sin) + cY - 16 / 2
+                icon = uicontrols.Icon(icon=icon, parent=self.parent, pos=(left,
+                 top,
+                 16,
+                 16), idx=0, pickRadius=-1, ignoreSize=True)
+                icon.OnMouseEnter = self.ShowUtilButtons
+                icon.hint = hint
+                icon.color.a = 0.0
+                icon.isActive = active
+                if active:
+                    icon.OnClick = func
+                elif self.controller.GetModule() is None or self.controller.SlotExists():
+                    icon.hint = localization.GetByLabel('UI/Fitting/Disabled', moduleName=hint)
+                else:
+                    icon.hint = localization.GetByLabel('UI/Fitting/CantOnlineIllegalSlot')
+                if onlinebtn == 1:
+                    self.sr.onlineButton = icon
+                self.utilButtons.append(icon)
+                i += 1
+
+            return
 
     def PrimeToEmptySlotHint(self):
         if self.controller.GetFlagID() in const.hiSlotFlags:
@@ -254,6 +262,7 @@ class FittingSlotGhost(Transform):
         self.flagIcon.state = uiconst.UI_HIDDEN
         self.UpdateGhostFittingIcons(None)
         self.Hilite(0)
+        return
 
     def EnableSlot(self):
         self.opacity = 1.0
@@ -268,91 +277,93 @@ class FittingSlotGhost(Transform):
     def UpdateFitting(self):
         if self.destroyed:
             return
-        if not self.controller.SlotExists() and not self.controller.GetModule():
+        elif not self.controller.SlotExists() and not self.controller.GetModule():
             if self.controller.IsSubsystemSlot() and self.controller.parentController.HasStance():
                 self.HideSlot()
             else:
                 self.DisableSlot()
             return
-        self.EnableSlot()
-        if not self.controller.GetModule() and not self.controller.GetCharge():
-            self.DisableDrag()
-        elif self.controller.SlotExists():
-            self.EnableDrag()
-        if self.controller.GetCharge():
-            chargeQty = self.controller.GetChargeQuantity()
-            if self.controller.GetModule() is None:
-                portion = 1.0
-            else:
-                cap = self.controller.GetChargeCapacity()
-                if cap.capacity == 0:
+        else:
+            self.EnableSlot()
+            if not self.controller.GetModule() and not self.controller.GetCharge():
+                self.DisableDrag()
+            elif self.controller.SlotExists():
+                self.EnableDrag()
+            if self.controller.GetCharge():
+                chargeQty = self.controller.GetChargeQuantity()
+                if self.controller.GetModule() is None:
                     portion = 1.0
                 else:
-                    portion = cap.used / cap.capacity
-            step = max(0, min(4, int(portion * 5.0)))
-            self.ConstructChargeIndicator()
-            self.chargeIndicator.rectTop = 10 * step
-            self.chargeIndicator.state = uiconst.UI_NORMAL
-            self.chargeIndicator.hint = '%s %d%%' % (evetypes.GetName(self.controller.GetCharge().typeID), portion * 100)
-        elif not self.controller.GetModule():
-            self.HideUtilButtons(1)
-            if self.chargeIndicator:
+                    cap = self.controller.GetChargeCapacity()
+                    if cap.capacity == 0:
+                        portion = 1.0
+                    else:
+                        portion = cap.used / cap.capacity
+                step = max(0, min(4, int(portion * 5.0)))
+                self.ConstructChargeIndicator()
+                self.chargeIndicator.rectTop = 10 * step
+                self.chargeIndicator.state = uiconst.UI_NORMAL
+                self.chargeIndicator.hint = '%s %d%%' % (evetypes.GetName(self.controller.GetCharge().typeID), portion * 100)
+            elif not self.controller.GetModule():
+                self.HideUtilButtons(1)
+                if self.chargeIndicator:
+                    self.chargeIndicator.Hide()
+            elif self.controller.IsChargeable():
+                self.ConstructChargeIndicator()
+                self.chargeIndicator.rectTop = 0
+                self.chargeIndicator.state = uiconst.UI_NORMAL
+                self.chargeIndicator.hint = localization.GetByLabel('UI/Fitting/NoCharge')
+            elif self.chargeIndicator:
                 self.chargeIndicator.Hide()
-        elif self.controller.IsChargeable():
-            self.ConstructChargeIndicator()
-            self.chargeIndicator.rectTop = 0
-            self.chargeIndicator.state = uiconst.UI_NORMAL
-            self.chargeIndicator.hint = localization.GetByLabel('UI/Fitting/NoCharge')
-        elif self.chargeIndicator:
-            self.chargeIndicator.Hide()
-        if self.controller.GetModule():
-            self.tooltipPanelClassInfo = TooltipModuleWrapper()
-            modulehint = evetypes.GetName(self.controller.GetModuleTypeID())
-            if self.controller.GetCharge():
-                modulehint += '<br>%s' % localization.GetByLabel('UI/Fitting/ChargeQuantity', charge=self.controller.GetCharge().typeID, chargeQuantity=chargeQty)
-            if not self.controller.SlotExists():
-                modulehint = localization.GetByLabel('UI/Fitting/SlotDoesNotExist')
-            self.hint = modulehint
-        else:
-            self.tooltipPanelClassInfo = None
-            self.hint = self._emptyHint
-            tooltipName = self._emptyTooltip
-            if tooltipName:
-                SetFittingTooltipInfo(targetObject=self, tooltipName=tooltipName, includeDesc=False)
-        self.PrepareUtilButtons()
-        iconSize = int(48 * GetScaleFactor())
-        self.flagIcon.SetSize(iconSize, iconSize)
-        if self.controller.GetCharge() or self.controller.GetModule():
-            self.flagIcon.LoadIconByTypeID((self.controller.GetCharge() or self.controller.GetModule()).typeID, ignoreSize=True)
-            self.flagIcon.rotation = -self.GetRotation()
-        else:
-            rev = 0
-            slotIcon = {const.flagSubSystemSlot0: 'res:/UI/Texture/Icons/81_64_9.png',
-             const.flagSubSystemSlot1: 'res:/UI/Texture/Icons/81_64_10.png',
-             const.flagSubSystemSlot2: 'res:/UI/Texture/Icons/81_64_11.png',
-             const.flagSubSystemSlot3: 'res:/UI/Texture/Icons/81_64_12.png',
-             const.flagSubSystemSlot4: 'res:/UI/Texture/Icons/81_64_13.png'}.get(self.controller.GetFlagID(), None)
-            if slotIcon is None:
-                slotIcon = {const.effectLoPower: 'res:/UI/Texture/Icons/81_64_5.png',
-                 const.effectMedPower: 'res:/UI/Texture/Icons/81_64_6.png',
-                 const.effectHiPower: 'res:/UI/Texture/Icons/81_64_7.png',
-                 const.effectRigSlot: 'res:/UI/Texture/Icons/81_64_8.png'}.get(self.controller.GetPowerType(), None)
+            if self.controller.GetModule():
+                self.tooltipPanelClassInfo = TooltipModuleWrapper()
+                modulehint = evetypes.GetName(self.controller.GetModuleTypeID())
+                if self.controller.GetCharge():
+                    modulehint += '<br>%s' % localization.GetByLabel('UI/Fitting/ChargeQuantity', charge=self.controller.GetCharge().typeID, chargeQuantity=chargeQty)
+                if not self.controller.SlotExists():
+                    modulehint = localization.GetByLabel('UI/Fitting/SlotDoesNotExist')
+                self.hint = modulehint
             else:
-                rev = 1
-            if slotIcon is not None:
-                self.flagIcon.LoadIcon(slotIcon, ignoreSize=True)
-            if rev:
-                self.flagIcon.rotation = mathUtil.DegToRad(180.0)
+                self.tooltipPanelClassInfo = None
+                self.hint = self._emptyHint
+                tooltipName = self._emptyTooltip
+                if tooltipName:
+                    SetFittingTooltipInfo(targetObject=self, tooltipName=tooltipName, includeDesc=False)
+            self.PrepareUtilButtons()
+            iconSize = int(48 * GetScaleFactor())
+            self.flagIcon.SetSize(iconSize, iconSize)
+            if self.controller.GetCharge() or self.controller.GetModule():
+                self.flagIcon.LoadIconByTypeID((self.controller.GetCharge() or self.controller.GetModule()).typeID, ignoreSize=True)
+                self.flagIcon.rotation = -self.GetRotation()
             else:
-                self.flagIcon.rotation = 0.0
-        self.SetGroup()
-        self.UpdateOnlineDisplay()
-        self.UpdateStatusDisplay()
-        self.UpdateGhostFittingIcons(self.controller.GetModule())
-        if not self.hilitedFromMathing:
-            self.Hilite(0)
+                rev = 0
+                slotIcon = {const.flagSubSystemSlot0: 'res:/UI/Texture/Icons/81_64_9.png',
+                 const.flagSubSystemSlot1: 'res:/UI/Texture/Icons/81_64_10.png',
+                 const.flagSubSystemSlot2: 'res:/UI/Texture/Icons/81_64_11.png',
+                 const.flagSubSystemSlot3: 'res:/UI/Texture/Icons/81_64_12.png',
+                 const.flagSubSystemSlot4: 'res:/UI/Texture/Icons/81_64_13.png'}.get(self.controller.GetFlagID(), None)
+                if slotIcon is None:
+                    slotIcon = {const.effectLoPower: 'res:/UI/Texture/Icons/81_64_5.png',
+                     const.effectMedPower: 'res:/UI/Texture/Icons/81_64_6.png',
+                     const.effectHiPower: 'res:/UI/Texture/Icons/81_64_7.png',
+                     const.effectRigSlot: 'res:/UI/Texture/Icons/81_64_8.png'}.get(self.controller.GetPowerType(), None)
+                else:
+                    rev = 1
+                if slotIcon is not None:
+                    self.flagIcon.LoadIcon(slotIcon, ignoreSize=True)
+                if rev:
+                    self.flagIcon.rotation = mathUtil.DegToRad(180.0)
+                else:
+                    self.flagIcon.rotation = 0.0
+            self.SetGroup()
+            self.UpdateOnlineDisplay()
+            self.UpdateStatusDisplay()
+            self.UpdateGhostFittingIcons(self.controller.GetModule())
+            if not self.hilitedFromMathing:
+                self.Hilite(0)
+            return
 
-    def ColorUnderlay(self, color = None):
+    def ColorUnderlay(self, color=None):
         a = self.sr.underlay.color.a
         r, g, b = color or (1.0, 1.0, 1.0)
         self.sr.underlay.color.SetRGB(r, g, b, a)
@@ -373,11 +384,12 @@ class FittingSlotGhost(Transform):
                 self.flagIcon.SetRGBA(1.0, 1.0, 1.0, 1.0)
             else:
                 self.flagIcon.SetRGBA(0.7, 0.0, 0.0, 0.5)
+        return
 
     def IsCharge(self, typeID):
         return evetypes.GetCategoryID(typeID) == const.categoryCharge
 
-    def Add(self, item, sourceLocation = None):
+    def Add(self, item, sourceLocation=None):
         if self.controller.parentController.IsSimulated():
             return self.AddSimulatedItem(item, sourceLocation)
         else:
@@ -386,6 +398,7 @@ class FittingSlotGhost(Transform):
                 return self.AddRealItem(item, sourceLocation)
             sm.GetService('ghostFittingSvc').LoadCurrentShip()
             return self.AddSimulatedItem(item, sourceLocation)
+            return
 
     def AddSimulatedItem(self, item, sourceLocation):
         if not IsRightSlotForType(item.typeID, self.controller.GetPowerType()):
@@ -395,46 +408,53 @@ class FittingSlotGhost(Transform):
         ghostFittingSvc.FitModuleToShipAndChangeState(shipID, self.controller.GetFlagID(), item.typeID)
         sm.ScatterEvent('OnFakeUpdateFittingWindow')
 
-    def AddRealItem(self, item, sourceLocation = None):
+    def AddRealItem(self, item, sourceLocation=None):
         if not getattr(item, 'typeID', None):
             return
-        if not RigFittingCheck(item):
+        elif not RigFittingCheck(item):
             return
-        requiredSkills = sm.GetService('skills').GetRequiredSkills(item.typeID)
-        for skillID, level in requiredSkills.iteritems():
-            if getattr(sm.GetService('skills').HasSkill(skillID), 'skillLevel', 0) < level:
-                sm.GetService('tutorial').OpenTutorialSequence_Check(uix.skillfittingTutorial)
-                break
+        else:
+            requiredSkills = sm.GetService('skills').GetRequiredSkills(item.typeID)
+            for skillID, level in requiredSkills.iteritems():
+                if getattr(sm.GetService('skills').HasSkill(skillID), 'skillLevel', 0) < level:
+                    sm.GetService('tutorial').OpenTutorialSequence_Check(uix.skillfittingTutorial)
+                    break
 
-        if self.IsCharge(item.typeID) and self.controller.IsChargeable():
-            self.controller.FitCharge(item)
-        validFitting = False
-        for effect in cfg.dgmtypeeffects.get(item.typeID, []):
-            if effect.effectID in (const.effectHiPower,
-             const.effectMedPower,
-             const.effectLoPower,
-             const.effectSubSystem,
-             const.effectRigSlot):
-                validFitting = True
-                if effect.effectID == self.controller.GetPowerType():
-                    shift = uicore.uilib.Key(uiconst.VK_SHIFT)
-                    isFitted = item.locationID == self.controller.GetParentID() and item.flagID != const.flagCargo
-                    if isFitted and shift:
-                        if self.controller.GetModule():
-                            if self.controller.GetModule().typeID == item.typeID:
-                                self.controller.LinkWithWeapon(item)
-                                return
-                            else:
-                                uicore.Message('CustomNotify', {'notify': localization.GetByLabel('UI/Fitting/GroupingIncompatible')})
-                                return
-                    self.controller.FitModule(item)
-                    return
-                uicore.Message('ItemDoesntFitPower', {'item': evetypes.GetName(item.typeID),
-                 'slotpower': cfg.dgmeffects.Get(self.controller.GetPowerType()).displayName,
-                 'itempower': cfg.dgmeffects.Get(effect.effectID).displayName})
+            if self.IsCharge(item.typeID) and self.controller.IsChargeable():
+                self.controller.FitCharge(item)
+            validFitting = False
+            for effect in cfg.dgmtypeeffects.get(item.typeID, []):
+                if self.IsFittableItem(effect.effectID):
+                    validFitting = True
+                    if effect.effectID == self.controller.GetPowerType():
+                        shift = uicore.uilib.Key(uiconst.VK_SHIFT)
+                        isFitted = item.locationID == self.controller.GetParentID() and item.flagID != const.flagCargo
+                        if isFitted and shift:
+                            if self.controller.GetModule():
+                                if self.controller.GetModule().typeID == item.typeID:
+                                    self.controller.LinkWithWeapon(item)
+                                    return
+                                else:
+                                    uicore.Message('CustomNotify', {'notify': localization.GetByLabel('UI/Fitting/GroupingIncompatible')})
+                                    return
+                        self.controller.FitModule(item)
+                        return
+                    uicore.Message('ItemDoesntFitPower', {'item': evetypes.GetName(item.typeID),
+                     'slotpower': cfg.dgmeffects.Get(self.controller.GetPowerType()).displayName,
+                     'itempower': cfg.dgmeffects.Get(effect.effectID).displayName})
 
-        if not validFitting:
-            raise UserError('ItemNotHardware', {'itemname': item.typeID})
+            if not validFitting:
+                raise UserError('ItemNotHardware', {'itemname': item.typeID})
+            return
+
+    def IsFittableItem(self, effect):
+        isFittableItem = effect.effectID in (const.effectHiPower,
+         const.effectMedPower,
+         const.effectLoPower,
+         const.effectSubSystem,
+         const.effectRigSlot,
+         const.effectServiceSlot)
+        return isFittableItem
 
     def GetMenu(self):
         if self.controller.GetModuleTypeID() and self.controller.GetModuleID():
@@ -454,6 +474,8 @@ class FittingSlotGhost(Transform):
                         m.append((uiutil.MenuLabel('UI/Fitting/PutOnline'), self.ToggleOnline))
             m += self.GetGroupMenu()
             return m
+        else:
+            return
 
     def GetGroupMenu(self, *args):
         masterID = self.controller.IsInWeaponBank()
@@ -475,34 +497,38 @@ class FittingSlotGhost(Transform):
     def OnClickSimulated(self):
         if self.controller.GetModule() is None:
             return
-        typeID = self.controller.GetModuleTypeID()
-        itemKey = self.controller.GetModuleID()
-        ghostFittingSvc = sm.GetService('ghostFittingSvc')
-        ghostFittingSvc.SwitchBetweenModes(itemKey, typeID)
-        self.UpdateStatusDisplay()
+        else:
+            typeID = self.controller.GetModuleTypeID()
+            itemKey = self.controller.GetModuleID()
+            ghostFittingSvc = sm.GetService('ghostFittingSvc')
+            ghostFittingSvc.SwitchBetweenModes(itemKey, typeID)
+            self.UpdateStatusDisplay()
+            return
 
     def UpdateStatusDisplay(self):
         self.HideElement(self.moduleSlotFill)
         if not self.controller.parentController.IsSimulated():
             return
-        itemKey = self.controller.GetModuleID()
-        typeID = self.controller.GetModuleTypeID()
-        if itemKey is None or typeID is None:
+        else:
+            itemKey = self.controller.GetModuleID()
+            typeID = self.controller.GetModuleTypeID()
+            if itemKey is None or typeID is None:
+                return
+            currentStatus = sm.GetService('ghostFittingSvc').GetModuleStatus(itemKey, typeID)
+            self.flagIcon.SetAlpha(1.0)
+            if currentStatus == OFFLINE:
+                self.flagIcon.SetAlpha(0.25)
+            elif currentStatus == ONLINE:
+                pass
+            elif currentStatus == ACTIVE:
+                self.ConstructModuleSlotFill()
+                self.moduleSlotFill.display = True
+                self.moduleSlotFill.SetRGB(1, 1, 1, 0.5)
+            elif currentStatus == OVERHEATED:
+                self.ConstructModuleSlotFill()
+                self.moduleSlotFill.display = True
+                self.moduleSlotFill.SetRGB(1, 0, 0, 0.5)
             return
-        currentStatus = sm.GetService('ghostFittingSvc').GetModuleStatus(itemKey, typeID)
-        self.flagIcon.SetAlpha(1.0)
-        if currentStatus == OFFLINE:
-            self.flagIcon.SetAlpha(0.25)
-        elif currentStatus == ONLINE:
-            pass
-        elif currentStatus == ACTIVE:
-            self.ConstructModuleSlotFill()
-            self.moduleSlotFill.display = True
-            self.moduleSlotFill.SetRGB(1, 1, 1, 0.5)
-        elif currentStatus == OVERHEATED:
-            self.ConstructModuleSlotFill()
-            self.moduleSlotFill.display = True
-            self.moduleSlotFill.SetRGB(1, 0, 0, 0.5)
 
     def ToggleOnline(self):
         self.controller.ToggleOnlineModule()
@@ -527,6 +553,7 @@ class FittingSlotGhost(Transform):
     def OnEndDrag(self, *args):
         if self.controller.GetModule() is not None:
             sm.ScatterEvent('OnResetSlotLinkingMode', self.controller.GetModule().typeID)
+        return
 
     def OnMouseEnter(self, *args):
         if self.controller.GetModule() is not None:
@@ -535,6 +562,7 @@ class FittingSlotGhost(Transform):
             self.hint = self._emptyHint
             self.Hilite(1)
             uicore.Message('ListEntryEnter')
+        return
 
     def OnMouseExit(self, *args):
         if not self.controller.GetModule():
@@ -553,12 +581,14 @@ class FittingSlotGhost(Transform):
             self.moduleButtonHint = None
             self.updateTimer = None
             return
-        if self.controller.GetModuleTypeID():
-            if self.controller.GetCharge():
-                chargeItemID = self.controller.GetCharge().itemID
-            else:
-                chargeItemID = None
-            self.moduleButtonHint.UpdateAllInfo(self.controller.GetModuleID(), chargeItemID, fromWhere='fitting')
+        else:
+            if self.controller.GetModuleTypeID():
+                if self.controller.GetCharge():
+                    chargeItemID = self.controller.GetCharge().itemID
+                else:
+                    chargeItemID = None
+                self.moduleButtonHint.UpdateAllInfo(self.controller.GetModuleID(), chargeItemID, fromWhere='fitting')
+            return
 
     def PositionHint(self, *args):
         myRotation = self.rotation + 2 * math.pi
@@ -600,14 +630,16 @@ class FittingSlotGhost(Transform):
 
         self.utilButtonsTimer = base.AutoTimer(500, self.HideUtilButtons)
 
-    def HideUtilButtons(self, force = 0):
+    def HideUtilButtons(self, force=0):
         mo = uicore.uilib.mouseOver
         if not force and (mo in self.utilButtons or mo == self or uiutil.IsUnder(mo, self)):
             return
-        for button in self.utilButtons:
-            button.color.a = 0.0
+        else:
+            for button in self.utilButtons:
+                button.color.a = 0.0
 
-        self.utilButtonsTimer = None
+            self.utilButtonsTimer = None
+            return
 
     def Hilite(self, state):
         if state:
@@ -627,6 +659,7 @@ class FittingSlotGhost(Transform):
                 self.SetHiliteFromMatching(1)
             if flagID is not None and self.controller.GetFlagID() == flagID:
                 self.SetHiliteFromMatching(1)
+        return
 
     def SetHiliteFromMatching(self, value):
         self.Hilite(value)
@@ -635,23 +668,25 @@ class FittingSlotGhost(Transform):
     def OnDropData(self, dragObj, nodes):
         if self.controller.GetModule() is not None and not self.controller.SlotExists():
             return
-        items, subSystemGroupIDs = self.GetDroppedItems(nodes)
-        chargeTypeID = None
-        chargeItems = []
-        for item in items:
-            if not getattr(item, 'typeID', None):
-                lg.Info('fittingUI', 'Dropped a non-item here', item)
-                return
-            if self.controller.IsChargeable() and self.IsCharge(item.typeID):
-                if chargeTypeID is None:
-                    chargeTypeID = item.typeID
-                if chargeTypeID == item.typeID:
-                    chargeItems.append(item)
-            else:
-                uthread.new(self.Add, item)
+        else:
+            items = self.GetDroppedItems(nodes)
+            chargeTypeID = None
+            chargeItems = []
+            for item in items:
+                if not getattr(item, 'typeID', None):
+                    lg.Info('fittingUI', 'Dropped a non-item here', item)
+                    return
+                if self.controller.IsChargeable() and self.IsCharge(item.typeID):
+                    if chargeTypeID is None:
+                        chargeTypeID = item.typeID
+                    if chargeTypeID == item.typeID:
+                        chargeItems.append(item)
+                else:
+                    uthread.new(self.Add, item)
 
-        if len(chargeItems):
-            self.controller.FitCharges(chargeItems)
+            if len(chargeItems):
+                self.controller.FitCharges(chargeItems)
+            return
 
     def _OnClose(self, *args):
         self.updateTimer = None
@@ -659,30 +694,20 @@ class FittingSlotGhost(Transform):
         if moduleButtonHint and not moduleButtonHint.destroyed:
             if moduleButtonHint.fromWhere == 'fitting':
                 uicore.layer.hint.moduleButtonHint.FadeOpacity(0.0)
+        return
 
     def GetDroppedItems(self, nodes):
         items = []
-        subSystemGroupIDs = set()
         for node in nodes:
             if node.__guid__ in ('listentry.InvItem', 'xtriui.InvItem'):
                 invType = node.rec
-                self.AddItemToCollections(invType.typeID, items, subSystemGroupIDs)
+                if self.controller.IsFittableType(invType.typeID):
+                    items.append(invType)
             elif node.__guid__ in ('listentry.GenericMarketItem', 'listentry.Item', 'listentry.FittingModuleEntry'):
-                invType = node.invtype
-                self.AddItemToCollections(node.typeID, items, subSystemGroupIDs, invType)
+                if self.controller.IsFittableType(node.typeID):
+                    items.append(node.invtype or util.KeyVal(typeID=node.typeID))
 
-        return (items, subSystemGroupIDs)
-
-    def AddItemToCollections(self, invTypeID, items, subSystemGroupIDs, invType = None):
-        if invType is None:
-            invType = util.KeyVal(typeID=invTypeID)
-        if evetypes.GetCategoryID(invTypeID) not in (const.categoryCharge, const.categorySubSystem, const.categoryModule):
-            return
-        if evetypes.GetCategoryID(invTypeID) == const.categorySubSystem:
-            if evetypes.GetGroupID(invTypeID) in subSystemGroupIDs:
-                return
-            subSystemGroupIDs.add(evetypes.GetGroupID(invTypeID))
-        items.append(invType)
+        return items
 
     def UpdateGhostFittingIcons(self, invItem):
         fittingSvc = sm.GetService('fittingSvc')
@@ -705,29 +730,33 @@ class FittingSlotGhost(Transform):
         self.sr.underlay.display = True
         if invItem is None or not session.stationid2:
             return
-        hangarInv = sm.GetService('invCache').GetInventory(const.containerHangar)
-        items = hangarInv.List()
-        for eachItem in items:
-            if eachItem.typeID == invItem.typeID:
-                return
+        else:
+            hangarInv = sm.GetService('invCache').GetInventory(const.containerHangar)
+            items = hangarInv.List(const.flagHangar)
+            for eachItem in items:
+                if eachItem.typeID == invItem.typeID:
+                    return
 
-        self.dontHaveLine.display = True
-        self.sr.underlay.display = False
+            self.dontHaveLine.display = True
+            self.sr.underlay.display = False
+            return
 
     def SetSkillIcon(self, invItem):
         if invItem is None:
             self.HideElement(self.skillSprite)
             return
-        fittingSvc = sm.GetService('fittingSvc')
-        if fittingSvc.IsShipSimulated():
-            dogmaLocation = fittingSvc.GetCurrentDogmaLocation()
-            missingSkills = dogmaLocation.CheckSkillRequirementsForType(invItem.typeID)
-            if missingSkills:
-                self.ConstructSkillSprite()
-                texturePath = 'res:/UI/Texture/Icons/38_16_194.png'
-                self.skillSprite.LoadTexture(texturePath)
-                self.skillSprite.display = True
+        else:
+            fittingSvc = sm.GetService('fittingSvc')
+            if fittingSvc.IsShipSimulated():
+                dogmaLocation = fittingSvc.GetCurrentDogmaLocation()
+                missingSkills = dogmaLocation.CheckSkillRequirementsForType(invItem.typeID)
+                if missingSkills:
+                    self.ConstructSkillSprite()
+                    texturePath = 'res:/UI/Texture/Icons/38_16_194.png'
+                    self.skillSprite.LoadTexture(texturePath)
+                    self.skillSprite.display = True
+                else:
+                    self.HideElement(self.skillSprite)
             else:
                 self.HideElement(self.skillSprite)
-        else:
-            self.HideElement(self.skillSprite)
+            return

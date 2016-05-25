@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\client\script\ui\station\fw\base_fw.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\client\script\ui\station\fw\base_fw.py
 from math import pi
 from eve.client.script.ui.control.themeColored import GradientThemeColored
 import uicontrols
@@ -40,6 +41,7 @@ class MilitiaWindow(uicontrols.Window):
         self.statisticsPanel = uiprimitives.Container(name='statisticsPanel', parent=self.sr.main, padding=const.defaultPadding, state=uiconst.UI_HIDDEN)
         self.rulesPanel = uiprimitives.Container(name='rulesPanel', parent=self.sr.main, padding=const.defaultPadding, state=uiconst.UI_HIDDEN)
         uthread.new(self.LoadTabPanels)
+        return
 
     def LoadTabPanels(self):
         self.FetchData()
@@ -136,6 +138,7 @@ class MilitiaWindow(uicontrols.Window):
             wrntext = uicontrols.EveHeaderSmall(text=warntxt, parent=warnTextCont, align=uiconst.TOALL, idx=0, top=8, left=72, width=6, state=uiconst.UI_NORMAL)
             warnTextCont.height = max(72, wrntext.textheight + 16)
         text = uicontrols.EveLabelMedium(text=infotxt, parent=textCont, align=uiconst.TOALL, state=uiconst.UI_NORMAL)
+        return
 
     def ConstructWarzonePanel(self):
         self.warzonePanel.Flush()
@@ -166,6 +169,8 @@ class MilitiaWindow(uicontrols.Window):
             uicontrols.Label(parent=cont, align=uiconst.TOTOP, text=text)
             self.infoScroll = uicontrols.Scroll(parent=cont, padBottom=5)
             self.LoadStatisticsScrollData(key)
+
+        return
 
     def ConstructRulesPanel(self):
         self.rulesPanel.Flush()
@@ -246,13 +251,17 @@ class MilitiaWindow(uicontrols.Window):
         bracket = self.bracketsByID.get(entry.sr.node.itemID, None)
         if not bracket:
             return
-        bracket.OnMouseEnter()
+        else:
+            bracket.OnMouseEnter()
+            return
 
     def OnSystemEntryMouseExit(self, entry):
         bracket = self.bracketsByID.get(entry.sr.node.itemID, None)
         if not bracket:
             return
-        bracket.OnMouseExit()
+        else:
+            bracket.OnMouseExit()
+            return
 
     def GetSystemScrollEntry(self, systemID):
         for node in self.systemsScroll.GetNodes():
@@ -355,6 +364,7 @@ class MilitiaWindow(uicontrols.Window):
             t = t + '\r\n%s' % each.label.replace('<t>', ',  ').replace('<b>', '').replace('</b>', '')
 
         blue.pyos.SetClipboardData(t)
+        return
 
     def CancelApplication(self, factionID):
         ret = eve.Message('CustomQuestion', {'header': localization.GetByLabel('UI/FactionWarfare/ConfirmCancelApplicationHeader'),
@@ -450,6 +460,8 @@ class MilitiaWindow(uicontrols.Window):
                 if disabledTxt:
                     btn.hint = localization.GetByLabel(disabledTxt)
                     btn.Disable()
+
+        return
 
     def ConstructNewFWPlayerHeader(self):
         self.topCont.Flush()
@@ -610,12 +622,14 @@ class MilitiaWindow(uicontrols.Window):
     def GetStatsData(self, what):
         if what == 'militia':
             return sm.StartService('facwar').GetStats_Militia()
-        if what == 'personal':
+        elif what == 'personal':
             return sm.StartService('facwar').GetStats_Personal()
-        if what == 'corp':
+        elif what == 'corp':
             return sm.StartService('facwar').GetStats_Corp(session.corpid)
-        if what == 'alliance':
+        elif what == 'alliance':
             return sm.StartService('facwar').GetStats_Alliance(session.allianceid)
+        else:
+            return None
 
     def GetStatsLabel(self, what):
         if what == 'militia':
@@ -626,7 +640,6 @@ class MilitiaWindow(uicontrols.Window):
             return localization.GetByLabel('UI/Generic/Corporation')
         if what == 'alliance':
             return localization.GetByLabel('UI/Common/Alliance')
-        return ''
 
     def GetStatsHeader(self, what, header):
         if what in ('personal', 'corp', 'alliance'):
@@ -643,7 +656,7 @@ class MilitiaWindow(uicontrols.Window):
         temp = temp[:-3]
         return temp
 
-    def GetMilitiaHeader(self, header, short = 0):
+    def GetMilitiaHeader(self, header, short=0):
         temp = [localization.GetByLabel('UI/Generic/Statistics')]
         for each in header:
             if short:

@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\packages\dogma\attributes\format.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\packages\dogma\attributes\format.py
 import math
 from eve.common.script.util.eveFormat import FmtDist2
 import evetypes
@@ -16,26 +17,25 @@ GENDER_DICT = {1: 'UI/Common/Gender/Male',
  2: 'UI/Common/Gender/Unisex',
  3: 'UI/Common/Gender/Female'}
 
-def FormatUnit(unitID, fmt = 'd'):
+def FormatUnit(unitID, fmt='d'):
     if unitID in (dogmaConst.unitTime, dogmaConst.unitLength):
         return ''
     if units.HasUnit(unitID) and fmt == 'd':
         return units.GetDisplayName(unitID)
-    return ''
 
 
-def FormatValue(value, unitID = None):
+def FormatValue(value, unitID=None):
     if value is None:
         return
-    if unitID == dogmaConst.unitTime:
+    elif unitID == dogmaConst.unitTime:
         return format.FmtDate(long(value * SEC), 'll')
-    if unitID == dogmaConst.unitMilliseconds:
+    elif unitID == dogmaConst.unitMilliseconds:
         return '%.2f' % (value / 1000.0)
-    if unitID == dogmaConst.unitLength:
+    elif unitID == dogmaConst.unitLength:
         return FmtDist2(value)
-    if unitID == dogmaConst.unitHour:
+    elif unitID == dogmaConst.unitHour:
         return format.FmtDate(long(value * HOUR), 'll')
-    if unitID == dogmaConst.unitMoney:
+    elif unitID == dogmaConst.unitMoney:
         return format.FmtAmt(value)
     if unitID in (dogmaConst.unitInverseAbsolutePercent, dogmaConst.unitInversedModifierPercent):
         value = float(round(1.0 - value, 6)) * 100
@@ -47,13 +47,13 @@ def FormatValue(value, unitID = None):
         value = eval(value)
     if unitID == dogmaConst.unitMass:
         return localization.formatters.FormatNumeric(value, decimalPlaces=0, useGrouping=True)
-    if not isinstance(value, basestring) and abs(value - int(value)) < 1e-10:
+    elif not isinstance(value, basestring) and abs(value - int(value)) < 1e-10:
         return format.FmtAmt(value)
-    if unitID == dogmaConst.unitAttributePoints:
+    elif unitID == dogmaConst.unitAttributePoints:
         return round(value, 1)
-    if unitID == dogmaConst.unitMaxVelocity:
+    elif unitID == dogmaConst.unitMaxVelocity:
         return localization.formatters.FormatNumeric(value, decimalPlaces=2, useGrouping=True)
-    if unitID in (dogmaConst.unitHitpoints,
+    elif unitID in (dogmaConst.unitHitpoints,
      dogmaConst.unitVolume,
      dogmaConst.unitInverseAbsolutePercent,
      dogmaConst.unitInversedModifierPercent):
@@ -63,7 +63,8 @@ def FormatValue(value, unitID = None):
         else:
             decimalPlaces = 2
         return localization.formatters.FormatNumeric(value, decimalPlaces=decimalPlaces, useGrouping=True)
-    return value
+    else:
+        return value
 
 
 def GetFormatAndValue(attributeType, value):
@@ -101,15 +102,16 @@ def GetFormattedAttributeAndValue(attributeID, value):
     attribute = attributes.GetAttribute(attributeID)
     if not attribute.published or not value:
         return
-    iconID = attribute.iconID
-    infoTypeID = None
-    if not iconID:
-        if attribute.unitID == dogmaConst.unitTypeID:
-            iconID = evetypes.GetIconID(value)
-            infoTypeID = int(value)
-        if attribute.unitID == dogmaConst.unitGroupID:
-            iconID = evetypes.GetGroupIconIDByGroup(value)
-        if attribute.unitID == dogmaConst.unitAttributeID:
-            iconID = attributes.GetIconID(value)
-    value = GetFormatAndValue(attribute, value)
-    return Bundle(displayName=attribute.displayName, value=value, iconID=iconID, infoTypeID=infoTypeID)
+    else:
+        iconID = attribute.iconID
+        infoTypeID = None
+        if not iconID:
+            if attribute.unitID == dogmaConst.unitTypeID:
+                iconID = evetypes.GetIconID(value)
+                infoTypeID = int(value)
+            if attribute.unitID == dogmaConst.unitGroupID:
+                iconID = evetypes.GetGroupIconIDByGroup(value)
+            if attribute.unitID == dogmaConst.unitAttributeID:
+                iconID = attributes.GetIconID(value)
+        value = GetFormatAndValue(attribute, value)
+        return Bundle(displayName=attribute.displayName, value=value, iconID=iconID, infoTypeID=infoTypeID)

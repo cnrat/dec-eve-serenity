@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\client\script\environment\spaceObject\planet.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\client\script\environment\spaceObject\planet.py
 import random
 import datetime
 import math
@@ -40,8 +41,9 @@ class Planet(SpaceObject):
         self.districtContainer.name = 'Districts'
         self.districtExplosions = trinity.EveTransform()
         self.districtExplosions.name = 'Explosions'
+        return
 
-    def Display(self, display = 1, canYield = True):
+    def Display(self, display=1, canYield=True):
         pass
 
     def LoadModel(self):
@@ -85,7 +87,7 @@ class Planet(SpaceObject):
         return cfg.mapSolarSystemContentCache.celestials[itemID].planetAttributes
 
     @telemetry.ZONE_METHOD
-    def LoadPlanet(self, itemID = None, forPhotoService = False, rotate = True, hiTextures = False):
+    def LoadPlanet(self, itemID=None, forPhotoService=False, rotate=True, hiTextures=False):
         if itemID is None:
             itemID = self.id
         self.itemID = itemID
@@ -96,16 +98,18 @@ class Planet(SpaceObject):
         if self.model is None:
             self.LogError('Could not create model for planet with id', itemID)
             return
-        self.model.translationCurve = self
-        self.model.highDetail = trinity.EveTransform()
-        self.model.scaling = self.radius
-        self.model.radius = self.radius
-        self.model.name = '%d' % itemID
-        if self.isInflightPlanet:
-            self.model.resourceCallback = self.ResourceCallback
-            scene = self.spaceMgr.GetScene()
-            if scene is not None:
-                scene.planets.append(self.model)
+        else:
+            self.model.translationCurve = self
+            self.model.highDetail = trinity.EveTransform()
+            self.model.scaling = self.radius
+            self.model.radius = self.radius
+            self.model.name = '%d' % itemID
+            if self.isInflightPlanet:
+                self.model.resourceCallback = self.ResourceCallback
+                scene = self.spaceMgr.GetScene()
+                if scene is not None:
+                    scene.planets.append(self.model)
+            return
 
     @telemetry.ZONE_METHOD
     def LoadRedFiles(self):
@@ -134,18 +138,19 @@ class Planet(SpaceObject):
         if planet is None:
             self.LogError('No planet was loaded!', presetPath)
             return False
-        planet.name = 'Planet'
-        self.model.highDetail.children.append(planet)
-        self.model.highDetail.children.append(self.districtContainer)
-        self.model.highDetail.children.append(self.districtExplosions)
-        self.__ModifyPlanetShader()
-        self.__CreateBakeEffect()
-        self.__CollectLargeResources()
-        self.__ApplyPlanetAttributesToDistricts()
-        if self.isInflightPlanet and not self.audioStarted:
-            self.audioStarted = True
-            self.SetupAmbientAudio()
-        return True
+        else:
+            planet.name = 'Planet'
+            self.model.highDetail.children.append(planet)
+            self.model.highDetail.children.append(self.districtContainer)
+            self.model.highDetail.children.append(self.districtExplosions)
+            self.__ModifyPlanetShader()
+            self.__CreateBakeEffect()
+            self.__CollectLargeResources()
+            self.__ApplyPlanetAttributesToDistricts()
+            if self.isInflightPlanet and not self.audioStarted:
+                self.audioStarted = True
+                self.SetupAmbientAudio()
+            return True
 
     def Release(self):
         if hasattr(self.model, 'resourceCallback'):
@@ -156,8 +161,9 @@ class Planet(SpaceObject):
         if scene:
             scene.planets.fremove(self.model)
         SpaceObject.Release(self, 'Planet')
+        return
 
-    def RemoveFromScene(self, model, scene = None):
+    def RemoveFromScene(self, model, scene=None):
         pass
 
     def GetPlanetByID(self, itemID, typeID):
@@ -168,38 +174,42 @@ class Planet(SpaceObject):
     def PrepareForWarp(self, distance, dest):
         if self.model is not None:
             self.model.PrepareForWarp(distance, dest)
+        return
 
     def WarpStopped(self):
         if self.model is not None:
             self.model.WarpStopped()
+        return
 
     def AddDistrict(self, uniqueName, centerNormal, size, enableBattle):
         if uniqueName in self.districts:
             self.LogError('District ' + str(uniqueName) + ' already exists for planet with id ' + str(self.itemID))
             return
-        randomDistrictNum = len(self.districts) % 10 + 1
-        randomDistrictResPath = 'res:/dx9/model/worldobject/Planet/Terrestrial/district/District%02d.red' % randomDistrictNum
-        newDistrict = trinity.Load(randomDistrictResPath)
-        if newDistrict is None:
-            self.LogError('District ' + str(randomDistrictResPath) + ' not found for planet with id ' + str(self.itemID))
-            return
-        newDistrict.name = uniqueName
-        newDistrict.centerNormal = centerNormal
-        for param in newDistrict.pinEffect.parameters:
-            if param.name == 'AnimatedFactors2':
-                param.value = (param.value[0],
-                 float(enableBattle),
-                 random.random(),
-                 param.value[3])
-                break
+        else:
+            randomDistrictNum = len(self.districts) % 10 + 1
+            randomDistrictResPath = 'res:/dx9/model/worldobject/Planet/Terrestrial/district/District%02d.red' % randomDistrictNum
+            newDistrict = trinity.Load(randomDistrictResPath)
+            if newDistrict is None:
+                self.LogError('District ' + str(randomDistrictResPath) + ' not found for planet with id ' + str(self.itemID))
+                return
+            newDistrict.name = uniqueName
+            newDistrict.centerNormal = centerNormal
+            for param in newDistrict.pinEffect.parameters:
+                if param.name == 'AnimatedFactors2':
+                    param.value = (param.value[0],
+                     float(enableBattle),
+                     random.random(),
+                     param.value[3])
+                    break
 
-        newDistrict.pinRadius = PLANET_DISTRICT_RADIUS_RATIO * size / self.radius
-        newDistrict.pinMaxRadius = PLANET_DISTRICT_RADIUS_RATIO * size / self.radius
-        newDistrict.pinRotation = 0.0
-        self.districts[uniqueName] = newDistrict
-        self.districtContainer.children.append(newDistrict)
-        self.districtsInfo[uniqueName] = {'num': randomDistrictNum}
-        self.__ApplyPlanetAttributesToDistricts()
+            newDistrict.pinRadius = PLANET_DISTRICT_RADIUS_RATIO * size / self.radius
+            newDistrict.pinMaxRadius = PLANET_DISTRICT_RADIUS_RATIO * size / self.radius
+            newDistrict.pinRotation = 0.0
+            self.districts[uniqueName] = newDistrict
+            self.districtContainer.children.append(newDistrict)
+            self.districtsInfo[uniqueName] = {'num': randomDistrictNum}
+            self.__ApplyPlanetAttributesToDistricts()
+            return
 
     def DelDistrict(self, uniqueName):
         if uniqueName not in self.districts:
@@ -235,32 +245,34 @@ class Planet(SpaceObject):
         if graphics is None:
             self.LogError('Explosion graphicsID ' + str(explosionGfxID) + " doesn't exist!")
             return
-        fx = trinity.Load(graphics.graphicFile)
-        if fx is None:
-            self.LogError('Explosion ' + str(graphics.graphicFile) + " doesn't exist!")
+        else:
+            fx = trinity.Load(graphics.graphicFile)
+            if fx is None:
+                self.LogError('Explosion ' + str(graphics.graphicFile) + " doesn't exist!")
+                return
+            if len(fx.curveSets) == 0:
+                self.LogError('Explosion ' + str(graphics.graphicFile) + ' has no curveSets! This is useless...')
+                return
+            direction = self.districts[uniqueName].centerNormal
+            rotMatrix1 = geo2.MatrixRotationAxis((direction[1], direction[2], direction[0]), random.random() * spreadOut * self.districts[uniqueName].pinRadius)
+            rotMatrix2 = geo2.MatrixRotationAxis(direction, random.uniform(0, 2.0 * math.pi))
+            direction = geo2.Vec3TransformNormal(direction, rotMatrix1)
+            direction = geo2.Vec3TransformNormal(direction, rotMatrix2)
+            fx.translation = direction
+            fx.scaling = (5000.0 / PLANET_SIZE_SCALE, 5000.0 / PLANET_SIZE_SCALE, 5000.0 / PLANET_SIZE_SCALE)
+            v1 = geo2.Vec3Cross(geo2.Vec3Normalize(direction), (0.0, 1.0, 0.0))
+            alpha = -math.acos(geo2.Vec3Dot(geo2.Vec3Normalize(direction), (0.0, 1.0, 0.0)))
+            fx.rotation = geo2.QuaternionRotationAxis(v1, alpha)
+            duration = fx.curveSets[0].GetMaxCurveDuration()
+            self.districtExplosions.children.append(fx)
+            uthread.new(self._RemoveExplosionFromDistrict, fx, duration)
             return
-        if len(fx.curveSets) == 0:
-            self.LogError('Explosion ' + str(graphics.graphicFile) + ' has no curveSets! This is useless...')
-            return
-        direction = self.districts[uniqueName].centerNormal
-        rotMatrix1 = geo2.MatrixRotationAxis((direction[1], direction[2], direction[0]), random.random() * spreadOut * self.districts[uniqueName].pinRadius)
-        rotMatrix2 = geo2.MatrixRotationAxis(direction, random.uniform(0, 2.0 * math.pi))
-        direction = geo2.Vec3TransformNormal(direction, rotMatrix1)
-        direction = geo2.Vec3TransformNormal(direction, rotMatrix2)
-        fx.translation = direction
-        fx.scaling = (5000.0 / PLANET_SIZE_SCALE, 5000.0 / PLANET_SIZE_SCALE, 5000.0 / PLANET_SIZE_SCALE)
-        v1 = geo2.Vec3Cross(geo2.Vec3Normalize(direction), (0.0, 1.0, 0.0))
-        alpha = -math.acos(geo2.Vec3Dot(geo2.Vec3Normalize(direction), (0.0, 1.0, 0.0)))
-        fx.rotation = geo2.QuaternionRotationAxis(v1, alpha)
-        duration = fx.curveSets[0].GetMaxCurveDuration()
-        self.districtExplosions.children.append(fx)
-        uthread.new(self._RemoveExplosionFromDistrict, fx, duration)
 
     def _RemoveExplosionFromDistrict(self, fxToRemove, delay):
         blue.synchro.SleepSim(delay * 1000.0)
         self.districtExplosions.children.remove(fxToRemove)
 
-    def ResourceCallback(self, create, size = 2048):
+    def ResourceCallback(self, create, size=2048):
         if create:
             pm = self.spaceMgr.planetManager
             if pm is None:
@@ -277,6 +289,7 @@ class Planet(SpaceObject):
             self.__FreeLargeResources()
             self.model.ready = False
             self.model.resourceActionPending = False
+        return
 
     def DoPreProcessEffectForPhotoSvc(self, size):
         renderTarget = trinity.Tr2RenderTarget(2 * size, size, 0, trinity.PIXEL_FORMAT.B8G8R8A8_UNORM)
@@ -285,143 +298,151 @@ class Planet(SpaceObject):
         vp.height = size
         if not self.LoadRedFiles():
             return
-        trinity.WaitForResourceLoads()
-        heightMapParam1 = self.__GetBakeShaderParameter('NormalHeight1', 'trinity.TriTextureParameter')
-        if heightMapParam1 is not None:
-            heightMapParam1.resourcePath = self.heightMapResPath1
-        heightMapParam2 = self.__GetBakeShaderParameter('NormalHeight2', 'trinity.TriTextureParameter')
-        if heightMapParam2 is not None:
-            heightMapParam2.resourcePath = self.heightMapResPath2
-        renderTargetSizeParam = self.__GetBakeShaderParameter('TargetTextureHeight', 'trinity.TriTextureParameter')
-        if renderTargetSizeParam is not None:
-            renderTargetSizeParam.value = size
-        trinity.WaitForResourceLoads()
-        rj = trinity.CreateRenderJob('Height normal Compositing')
-        rj.PushRenderTarget(renderTarget)
-        rj.SetViewport(vp)
-        rj.PushDepthStencil(None)
-        rj.Clear((0.0, 0.0, 0.0, 0.0))
-        rj.RenderEffect(self.effectHeight)
-        rj.PopDepthStencil()
-        rj.PopRenderTarget()
-        rj.GenerateMipMaps(renderTarget)
-        rj.ScheduleOnce()
-        rj.WaitForFinish()
-        tex = trinity.TriTextureRes()
-        tex.CreateAndCopyFromRenderTarget(renderTarget)
-        heightMapParamList = self.__GetPlanetShaderParameters('HeightMap', 'trinity.TriTextureParameter')
-        for heightMapParam in heightMapParamList:
-            heightMapParam.SetResource(tex)
+        else:
+            trinity.WaitForResourceLoads()
+            heightMapParam1 = self.__GetBakeShaderParameter('NormalHeight1', 'trinity.TriTextureParameter')
+            if heightMapParam1 is not None:
+                heightMapParam1.resourcePath = self.heightMapResPath1
+            heightMapParam2 = self.__GetBakeShaderParameter('NormalHeight2', 'trinity.TriTextureParameter')
+            if heightMapParam2 is not None:
+                heightMapParam2.resourcePath = self.heightMapResPath2
+            renderTargetSizeParam = self.__GetBakeShaderParameter('TargetTextureHeight', 'trinity.TriTextureParameter')
+            if renderTargetSizeParam is not None:
+                renderTargetSizeParam.value = size
+            trinity.WaitForResourceLoads()
+            rj = trinity.CreateRenderJob('Height normal Compositing')
+            rj.PushRenderTarget(renderTarget)
+            rj.SetViewport(vp)
+            rj.PushDepthStencil(None)
+            rj.Clear((0.0, 0.0, 0.0, 0.0))
+            rj.RenderEffect(self.effectHeight)
+            rj.PopDepthStencil()
+            rj.PopRenderTarget()
+            rj.GenerateMipMaps(renderTarget)
+            rj.ScheduleOnce()
+            rj.WaitForFinish()
+            tex = trinity.TriTextureRes()
+            tex.CreateAndCopyFromRenderTarget(renderTarget)
+            heightMapParamList = self.__GetPlanetShaderParameters('HeightMap', 'trinity.TriTextureParameter')
+            for heightMapParam in heightMapParamList:
+                heightMapParam.SetResource(tex)
+
+            return
 
     def DoPreProcessEffect(self, size, format, renderTarget):
         if renderTarget is None:
             self.model.resourceActionPending = False
             self.model.ready = True
             return
-        vp = trinity.TriViewport()
-        vp.width = 2 * size
-        vp.height = size
-        trinity.WaitForResourceLoads()
-        if self.model is None:
-            return
-        if len(self.modelRes) == 0:
-            if not self.LoadRedFiles():
-                self.model.resourceActionPending = False
-                self.model.ready = True
-                return
         else:
-            self.__ReloadLargeResources()
-        heightMapParam1 = self.__GetBakeShaderParameter('NormalHeight1', 'trinity.TriTextureParameter')
-        if heightMapParam1 is not None:
-            heightMapParam1.resourcePath = self.heightMapResPath1
-        heightMapParam2 = self.__GetBakeShaderParameter('NormalHeight2', 'trinity.TriTextureParameter')
-        if heightMapParam2 is not None:
-            heightMapParam2.resourcePath = self.heightMapResPath2
-        renderTargetSizeParam = self.__GetBakeShaderParameter('TargetTextureHeight', 'trinity.TriTextureParameter')
-        if renderTargetSizeParam is not None:
-            renderTargetSizeParam.value = size
-        trinity.WaitForResourceLoads()
-        if self.model is None:
-            return
-        rj = trinity.CreateRenderJob('Height normal Compositing')
-        rj.PushRenderTarget(renderTarget)
-        rj.SetViewport(vp)
-        rj.PushDepthStencil(None)
-        step = rj.Clear((0.0, 0.0, 0.0, 0.0), 1.0)
-        step.isDepthCleared = False
-        rj.RenderEffect(self.effectHeight)
-        rj.PopDepthStencil()
-        rj.PopRenderTarget()
-        rj.GenerateMipMaps(renderTarget)
-        rj.ScheduleOnce()
-        rj.WaitForFinish()
-        if self.model is None:
-            return
-        tex = trinity.TriTextureRes()
-        tex.CreateAndCopyFromRenderTargetWithSize(renderTarget, size * 2, size)
-        if heightMapParam1 is not None:
-            heightMapParam1.resourcePath = ''
-            heightMapParam1.SetResource(None)
-        if heightMapParam2 is not None:
-            heightMapParam2.resourcePath = ''
-            heightMapParam2.SetResource(None)
-        heightMapParamList = self.__GetPlanetShaderParameters('HeightMap', 'trinity.TriTextureParameter')
-        for heightMapParam in heightMapParamList:
-            heightMapParam.SetResource(tex)
+            vp = trinity.TriViewport()
+            vp.width = 2 * size
+            vp.height = size
+            trinity.WaitForResourceLoads()
+            if self.model is None:
+                return
+            if len(self.modelRes) == 0:
+                if not self.LoadRedFiles():
+                    self.model.resourceActionPending = False
+                    self.model.ready = True
+                    return
+            else:
+                self.__ReloadLargeResources()
+            heightMapParam1 = self.__GetBakeShaderParameter('NormalHeight1', 'trinity.TriTextureParameter')
+            if heightMapParam1 is not None:
+                heightMapParam1.resourcePath = self.heightMapResPath1
+            heightMapParam2 = self.__GetBakeShaderParameter('NormalHeight2', 'trinity.TriTextureParameter')
+            if heightMapParam2 is not None:
+                heightMapParam2.resourcePath = self.heightMapResPath2
+            renderTargetSizeParam = self.__GetBakeShaderParameter('TargetTextureHeight', 'trinity.TriTextureParameter')
+            if renderTargetSizeParam is not None:
+                renderTargetSizeParam.value = size
+            trinity.WaitForResourceLoads()
+            if self.model is None:
+                return
+            rj = trinity.CreateRenderJob('Height normal Compositing')
+            rj.PushRenderTarget(renderTarget)
+            rj.SetViewport(vp)
+            rj.PushDepthStencil(None)
+            step = rj.Clear((0.0, 0.0, 0.0, 0.0), 1.0)
+            step.isDepthCleared = False
+            rj.RenderEffect(self.effectHeight)
+            rj.PopDepthStencil()
+            rj.PopRenderTarget()
+            rj.GenerateMipMaps(renderTarget)
+            rj.ScheduleOnce()
+            rj.WaitForFinish()
+            if self.model is None:
+                return
+            tex = trinity.TriTextureRes()
+            tex.CreateAndCopyFromRenderTargetWithSize(renderTarget, size * 2, size)
+            if heightMapParam1 is not None:
+                heightMapParam1.resourcePath = ''
+                heightMapParam1.SetResource(None)
+            if heightMapParam2 is not None:
+                heightMapParam2.resourcePath = ''
+                heightMapParam2.SetResource(None)
+            heightMapParamList = self.__GetPlanetShaderParameters('HeightMap', 'trinity.TriTextureParameter')
+            for heightMapParam in heightMapParamList:
+                heightMapParam.SetResource(tex)
 
-        self.model.ready = True
-        self.model.resourceActionPending = False
+            self.model.ready = True
+            self.model.resourceActionPending = False
+            return
 
     def __CreateBakeEffect(self):
         self.effectHeight = trinity.Tr2Effect()
         if self.effectHeight is None:
             self.LogError('Could not create effect for planet with id', self.itemID)
             return
-        mainMesh = self.model.highDetail.children[0].meshLod
-        if mainMesh is None:
-            mainMesh = self.model.highDetail.children[0].mesh
-            errorMsg = 'No LODs found on planet.\n'
-            modelPath = 'modelPath=' + self.modelPath + '\n'
-            presetPath = 'presetPath=' + self.presetPath + '\n'
-            shaderPreset = 'shaderPreset=' + str(self.attributes.shaderPreset) + '\n'
-            self.LogError(errorMsg, modelPath, presetPath, shaderPreset)
-        if len(mainMesh.transparentAreas) > 0:
-            resPath = mainMesh.transparentAreas[0].effect.effectFilePath
-        elif len(mainMesh.opaqueAreas) > 0:
-            resPath = mainMesh.opaqueAreas[0].effect.effectFilePath
         else:
-            self.LogError('Unexpected program flow! Loading fallback shader.')
-            resPath = 'res:/Graphics/Effect/Managed/Space/Planet/EarthlikePlanet.fx'
-        resPath = resPath.replace('.fx', 'BlitHeight.fx')
-        self.effectHeight.effectFilePath = resPath
-        if self.__GetHeightMap1() is not None and self.__GetHeightMap2() is not None:
-            param1 = trinity.TriTextureParameter()
-            param1.name = 'NormalHeight1'
-            self.heightMapResPath1 = util.GraphicFile(self.__GetHeightMap1())
-            self.effectHeight.resources.append(param1)
-            param2 = trinity.TriTextureParameter()
-            param2.name = 'NormalHeight2'
-            self.heightMapResPath2 = util.GraphicFile(self.__GetHeightMap2())
-            self.effectHeight.resources.append(param2)
-            param3 = trinity.Tr2FloatParameter()
-            param3.name = 'Random'
-            param3.value = float(self.itemID % 100)
-            self.effectHeight.parameters.append(param3)
-            param4 = trinity.Tr2FloatParameter()
-            param4.name = 'TargetTextureHeight'
-            param4.value = 2048
-            self.effectHeight.parameters.append(param4)
-        paramList = self.__GetPlanetShaderParameters('', 'trinity.Tr2Vector4Parameter')
-        for param in paramList:
-            self.effectHeight.parameters.append(param)
+            mainMesh = self.model.highDetail.children[0].meshLod
+            if mainMesh is None:
+                mainMesh = self.model.highDetail.children[0].mesh
+                errorMsg = 'No LODs found on planet.\n'
+                modelPath = 'modelPath=' + self.modelPath + '\n'
+                presetPath = 'presetPath=' + self.presetPath + '\n'
+                shaderPreset = 'shaderPreset=' + str(self.attributes.shaderPreset) + '\n'
+                self.LogError(errorMsg, modelPath, presetPath, shaderPreset)
+            if len(mainMesh.transparentAreas) > 0:
+                resPath = mainMesh.transparentAreas[0].effect.effectFilePath
+            elif len(mainMesh.opaqueAreas) > 0:
+                resPath = mainMesh.opaqueAreas[0].effect.effectFilePath
+            else:
+                self.LogError('Unexpected program flow! Loading fallback shader.')
+                resPath = 'res:/Graphics/Effect/Managed/Space/Planet/EarthlikePlanet.fx'
+            resPath = resPath.replace('.fx', 'BlitHeight.fx')
+            self.effectHeight.effectFilePath = resPath
+            if self.__GetHeightMap1() is not None and self.__GetHeightMap2() is not None:
+                param1 = trinity.TriTextureParameter()
+                param1.name = 'NormalHeight1'
+                self.heightMapResPath1 = util.GraphicFile(self.__GetHeightMap1())
+                self.effectHeight.resources.append(param1)
+                param2 = trinity.TriTextureParameter()
+                param2.name = 'NormalHeight2'
+                self.heightMapResPath2 = util.GraphicFile(self.__GetHeightMap2())
+                self.effectHeight.resources.append(param2)
+                param3 = trinity.Tr2FloatParameter()
+                param3.name = 'Random'
+                param3.value = float(self.itemID % 100)
+                self.effectHeight.parameters.append(param3)
+                param4 = trinity.Tr2FloatParameter()
+                param4.name = 'TargetTextureHeight'
+                param4.value = 2048
+                self.effectHeight.parameters.append(param4)
+            paramList = self.__GetPlanetShaderParameters('', 'trinity.Tr2Vector4Parameter')
+            for param in paramList:
+                self.effectHeight.parameters.append(param)
 
-        paramList = self.__GetPlanetShaderParameters('', 'trinity.Tr2FloatParameter')
-        for param in paramList:
-            self.effectHeight.parameters.append(param)
+            paramList = self.__GetPlanetShaderParameters('', 'trinity.Tr2FloatParameter')
+            for param in paramList:
+                self.effectHeight.parameters.append(param)
 
-        resList = self.__GetPlanetShaderParameters('', 'trinity.TriTextureParameter')
-        for res in resList:
-            self.effectHeight.resources.append(res)
+            resList = self.__GetPlanetShaderParameters('', 'trinity.TriTextureParameter')
+            for res in resList:
+                self.effectHeight.resources.append(res)
+
+            return
 
     def __GetPopulation(self):
         if self.attributes is None:
@@ -431,6 +452,8 @@ class Planet(SpaceObject):
         except Exception as e:
             self.LogError('Could not get attribute population.' + str(self.attributes), e)
 
+        return
+
     def __GetShaderPreset(self):
         if self.attributes is None:
             raise RuntimeError('Planet was not loaded. Can not get shaderPreset of an unloaded planet.')
@@ -438,6 +461,8 @@ class Planet(SpaceObject):
             return self.attributes.shaderPreset
         except Exception as e:
             self.LogError('Could not get attribute shaderPreset.' + str(self.attributes), e)
+
+        return
 
     def __GetHeightMap1(self):
         if self.attributes is None:
@@ -447,6 +472,8 @@ class Planet(SpaceObject):
         except Exception as e:
             self.LogError('Could not get attribute heightMap1.' + str(self.attributes), e)
 
+        return
+
     def __GetHeightMap2(self):
         if self.attributes is None:
             raise RuntimeError('Planet was not loaded. Can not get heightMap2 of an unloaded planet.')
@@ -455,31 +482,37 @@ class Planet(SpaceObject):
         except Exception as e:
             self.LogError('Could not get attribute heightMap2.' + str(self.attributes), e)
 
-    def __GetPlanetShaderParameters(self, paramName = '', paramType = ''):
+        return
+
+    def __GetPlanetShaderParameters(self, paramName='', paramType=''):
         retList = []
         if self.model == None:
             return retList
-        planetParent = None
-        for child in self.model.highDetail.children:
-            if child.name == 'Planet':
-                planetParent = child
-                break
+        else:
+            planetParent = None
+            for child in self.model.highDetail.children:
+                if child.name == 'Planet':
+                    planetParent = child
+                    break
 
-        if planetParent is not None:
-            paramList = planetParent.Find(paramType)
-            for param in paramList:
-                if paramName == param.name or paramName == '':
-                    retList.append(param)
+            if planetParent is not None:
+                paramList = planetParent.Find(paramType)
+                for param in paramList:
+                    if paramName == param.name or paramName == '':
+                        retList.append(param)
 
-        return retList
+            return retList
 
     def __GetBakeShaderParameter(self, paramName, paramType):
         if self.effectHeight == None:
             return
-        paramList = self.effectHeight.Find(paramType)
-        for param in paramList:
-            if param.name == paramName:
-                return param
+        else:
+            paramList = self.effectHeight.Find(paramType)
+            for param in paramList:
+                if param.name == paramName:
+                    return param
+
+            return
 
     def __GetDistrictsShaderParameters(self, paramName):
         retList = []
@@ -637,3 +670,4 @@ class Planet(SpaceObject):
         if self.model is not None:
             if len(self.model.highDetail.children) != 0:
                 PropagateResToChildren('HeightMap', 'HeightMap')
+        return

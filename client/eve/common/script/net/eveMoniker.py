@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\common\script\net\eveMoniker.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\common\script\net\eveMoniker.py
 import macho
 import const
 from util import Moniker
@@ -56,7 +57,9 @@ def GetEntityAccess():
         moniker = Moniker('entity', session.solarsystemid2)
         moniker.SetSessionCheck({'solarsystemid': session.solarsystemid})
         return moniker
-    raise RuntimeError('EntityAccess only available in-flight but session is %s' % (session,))
+    else:
+        raise RuntimeError('EntityAccess only available in-flight but session is %s' % (session,))
+        return
 
 
 def GetEntityLocation():
@@ -64,7 +67,9 @@ def GetEntityLocation():
         moniker = Moniker('entity', session.solarsystemid2)
         moniker.SetSessionCheck({'solarsystemid2': session.solarsystemid2})
         return moniker
-    raise RuntimeError('EntityLocation only available with in a valid solarsystem %s' % (session,))
+    else:
+        raise RuntimeError('EntityLocation only available with in a valid solarsystem %s' % (session,))
+        return
 
 
 def GetPOSMgr():
@@ -72,12 +77,20 @@ def GetPOSMgr():
         moniker = Moniker('posMgr', session.solarsystemid)
         moniker.SetSessionCheck({'solarsystemid': session.solarsystemid})
         return moniker
-    raise RuntimeError('POSMgr only available in-flight but session is %s' % (session,))
+    else:
+        raise RuntimeError('POSMgr only available in-flight but session is %s' % (session,))
+        return
 
 
 def GetReprocessingManager():
-    moniker = GetReprocessingManagerEx(session.stationid2)
-    moniker.SetSessionCheck({'stationid2': session.stationid2})
+    if session.structureid:
+        moniker = GetReprocessingManagerEx(session.structureid)
+        moniker.SetSessionCheck({'structureid': session.structureid})
+    elif session.stationid2:
+        moniker = GetReprocessingManagerEx(session.stationid2)
+        moniker.SetSessionCheck({'stationid2': session.stationid2})
+    else:
+        raise RuntimeError('asked for reprocessing manager in a weird place')
     return moniker
 
 
@@ -139,7 +152,7 @@ def GetCourierMissionCreator(stationID):
     return Moniker('missionMgr', ('courier', stationID))
 
 
-def GetAgent(agentID, stationID = None):
+def GetAgent(agentID, stationID=None):
     if stationID is not None:
         nodeID = sm.services['machoNet'].CheckAddressCache('station', stationID)
         if nodeID is not None:
@@ -153,7 +166,7 @@ def GetCorpRegistry():
     return moniker
 
 
-def GetCorpRegistryEx(corpID, isMaster = 0):
+def GetCorpRegistryEx(corpID, isMaster=0):
     if macho.mode == 'server':
         isMaster = isMaster or sm.StartServiceAndWaitForRunningState('corpRegistry').IsCorpLocal(corpID)
     return Moniker('corpRegistry', (corpID, isMaster))
@@ -167,7 +180,7 @@ def GetAlliance():
     return moniker
 
 
-def GetAllianceEx(allianceID, isMaster = 0):
+def GetAllianceEx(allianceID, isMaster=0):
     if macho.mode == 'server':
         isMaster = isMaster or sm.StartServiceAndWaitForRunningState('allianceRegistry').IsAllianceLocal(allianceID)
     return Moniker('allianceRegistry', (allianceID, isMaster))
@@ -184,7 +197,7 @@ def GetWar():
     return moniker
 
 
-def GetWarEx(allianceOrCorpID, isMaster = 0):
+def GetWarEx(allianceOrCorpID, isMaster=0):
     if macho.mode == 'server':
         isMaster = isMaster or sm.StartServiceAndWaitForRunningState('warRegistry').IsAllianceOrCorpLocal(allianceOrCorpID)
     return Moniker('warRegistry', (allianceOrCorpID, isMaster))
@@ -194,7 +207,7 @@ def GetWarStatistic(warID):
     return Moniker('warStatisticMgr', warID)
 
 
-def GetFleet(fleetID = None):
+def GetFleet(fleetID=None):
     fleetID = fleetID or session.fleetid
     moniker = Moniker('fleetObjectHandler', fleetID)
     return moniker

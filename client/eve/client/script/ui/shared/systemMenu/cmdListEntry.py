@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\client\script\ui\shared\systemMenu\cmdListEntry.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\client\script\ui\shared\systemMenu\cmdListEntry.py
 import carbonui.const as uiconst
 import localization
 import listentry
@@ -43,3 +44,4 @@ class CmdListEntry(listentry.Generic):
     def RefreshCallback(self):
         if self.sr.node.Get('refreshcallback', None):
             self.sr.node.refreshcallback()
+        return

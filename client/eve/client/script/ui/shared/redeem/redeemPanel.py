@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\client\script\ui\shared\redeem\redeemPanel.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\client\script\ui\shared\redeem\redeemPanel.py
 import math
 from eveexceptions.exceptionEater import ExceptionEater
 from eve.client.script.ui.tooltips.tooltipsWrappers import TooltipHeaderDescriptionWrapper
@@ -55,6 +56,7 @@ class RedeemPanel(uicontrols.ContainerAutoSize):
         self.top = -self.height
         self.display = False
         self.CollapsePanel(False)
+        return
 
     def Close(self):
         with ExceptionEater('Could not unsubscribe from RedeemingQueueUpdated event'):
@@ -90,7 +92,7 @@ class RedeemPanel(uicontrols.ContainerAutoSize):
         else:
             self.CollapsePanel()
 
-    def ExpandPanel(self, animate = True, showNewItems = True, duration = REDEEM_ITEM_POP_IN_TIME, timeOffset = 0.0):
+    def ExpandPanel(self, animate=True, showNewItems=True, duration=REDEEM_ITEM_POP_IN_TIME, timeOffset=0.0):
         self.UpdateDisplay(timeOffset=0.0)
         self.redeemButton.Expand(animate, duration=duration, timeOffset=timeOffset)
         self.redeemContainer.Expand(animate, showNewItems=showNewItems, duration=duration, timeOffset=timeOffset)
@@ -98,7 +100,7 @@ class RedeemPanel(uicontrols.ContainerAutoSize):
         if animate:
             sm.GetService('audio').SendUIEvent('character_redeem_start')
 
-    def CollapsePanel(self, animate = True, duration = REDEEM_ITEM_POP_IN_TIME, timeOffset = 0.0, callback = None):
+    def CollapsePanel(self, animate=True, duration=REDEEM_ITEM_POP_IN_TIME, timeOffset=0.0, callback=None):
         self.redeemButton.Collapse(animate, duration=duration, timeOffset=timeOffset)
         self.redeemContainer.Collapse(animate, duration=duration, timeOffset=timeOffset, callback=callback)
         self.isCollapsed = True
@@ -119,7 +121,7 @@ class RedeemPanel(uicontrols.ContainerAutoSize):
     def RedeemItems(self, redeemedItems):
         self.redeemContainer.TokensRedeemed(redeemedItems)
 
-    def ShowPanel(self, animate = True, duration = 0.3, timeOffset = 0.0):
+    def ShowPanel(self, animate=True, duration=0.3, timeOffset=0.0):
         if self.IsHidden() and animate:
             self.CollapsePanel(animate=False)
             self.Show()
@@ -128,7 +130,7 @@ class RedeemPanel(uicontrols.ContainerAutoSize):
             self.top = 0
             self.Show()
 
-    def HidePanel(self, animate = True, duration = 0.3, timeOffset = 0.0):
+    def HidePanel(self, animate=True, duration=0.3, timeOffset=0.0):
         if not self.IsHidden() and animate:
             if not self.isCollapsed:
                 self.redeemContainer.Collapse(animate)
@@ -138,7 +140,7 @@ class RedeemPanel(uicontrols.ContainerAutoSize):
             self.top = -self.height
             self.Hide()
 
-    def UpdateDisplay(self, animate = True, duration = 0.3, timeOffset = 0.0):
+    def UpdateDisplay(self, animate=True, duration=0.3, timeOffset=0.0):
         self.redeemContainer.UpdateTokens()
         if self.redeemContainer.HasRedeemItems() and self.IsHidden():
             self.ShowPanel(animate=animate, duration=duration, timeOffset=timeOffset)
@@ -188,13 +190,13 @@ class RedeemButton(Transform):
         self.captionCont.height = max(self.availableLabel.textheight + 10, self.expanderIcon.height)
         self.height = self.captionCont.height
 
-    def Expand(self, animate = True, duration = REDEEM_ITEM_POP_IN_TIME, timeOffset = 0.0):
+    def Expand(self, animate=True, duration=REDEEM_ITEM_POP_IN_TIME, timeOffset=0.0):
         self.Animate(0, animate, duration, timeOffset)
 
-    def Collapse(self, animate = True, duration = REDEEM_ITEM_POP_IN_TIME, timeOffset = 0.0):
+    def Collapse(self, animate=True, duration=REDEEM_ITEM_POP_IN_TIME, timeOffset=0.0):
         self.Animate(math.pi, animate, duration, timeOffset)
 
-    def Animate(self, endVal, animate, duration, timeOffset = 0.0):
+    def Animate(self, endVal, animate, duration, timeOffset=0.0):
         if animate:
             uicore.animations.MorphScalar(self.expanderIcon, 'rotation', startVal=self.expanderIcon.rotation, endVal=endVal, duration=duration, timeOffset=timeOffset)
         else:
@@ -244,7 +246,6 @@ class RedeemContainer(Container):
     def GetInstructionHeight(self):
         if self.instructionText:
             return DRAG_TEXT_CONTAINER_HEIGHT
-        return 0
 
     def UpdateTokens(self):
         self.tokens = self.GetTokens()
@@ -277,6 +278,7 @@ class RedeemContainer(Container):
                 self.allTokens[tokenKey] = self.CreateRedeemToken(token)
 
         self.SetTokenContainerWidth()
+        return
 
     def TokensRedeemed(self, redeemedItems):
         for tokenKey in redeemedItems:
@@ -284,6 +286,8 @@ class RedeemContainer(Container):
             if t:
                 t.AnimateOut(callback=t.Close)
             self.tokens.pop(tokenKey)
+
+        return
 
     def PopToken(self, token):
         return self.allTokens.pop(self.ExtractTokenKey(token), None)
@@ -310,7 +314,7 @@ class RedeemContainer(Container):
         minWidth = parentWidth if self.containerWidth == 0 else self.containerWidth
         self.tokenContainer.width = min(minWidth, width)
 
-    def Expand(self, animate, showNewItems = True, duration = REDEEM_ITEM_POP_IN_TIME, timeOffset = 0.0):
+    def Expand(self, animate, showNewItems=True, duration=REDEEM_ITEM_POP_IN_TIME, timeOffset=0.0):
         heightValue = self.expandedHeight
         if animate:
             uicore.animations.MorphScalar(self, 'height', startVal=self.height, endVal=heightValue, duration=duration, timeOffset=timeOffset)
@@ -325,7 +329,7 @@ class RedeemContainer(Container):
             if self.instructionText:
                 self.instructionLabel.opacity = 1.0
 
-    def Collapse(self, animate, duration = REDEEM_ITEM_POP_IN_TIME, timeOffset = 0.0, callback = None):
+    def Collapse(self, animate, duration=REDEEM_ITEM_POP_IN_TIME, timeOffset=0.0, callback=None):
         heightValue = 0
         if animate:
             uicore.animations.MorphScalar(self, 'height', startVal=self.height, endVal=heightValue, duration=duration, callback=callback)
@@ -362,7 +366,7 @@ class StaticRedeemContainer(RedeemContainer):
 
 class RedeemTokenObject(object):
 
-    def __init__(self, typeID = -1, quantity = 0, expireDateTime = 0, stationID = 0, tokenID = 0, massTokenID = 0):
+    def __init__(self, typeID=-1, quantity=0, expireDateTime=0, stationID=0, tokenID=0, massTokenID=0):
         self.typeID = typeID
         self.quantity = quantity
         self.expireDateTime = expireDateTime
@@ -374,6 +378,7 @@ class RedeemTokenObject(object):
         if evetypes.Exists(typeID):
             self.typeName = evetypes.GetName(typeID)
             self.portionSize = evetypes.GetPortionSize(typeID)
+        return
 
     def __repr__(self):
         return 'RedeemToken %s' % [self.typeID,
@@ -391,7 +396,6 @@ def GetRedeemableTokenBorder(parent, _):
 
 
 @Component(ButtonEffect(opacityIdle=0.0, opacityHover=1.0, bgElementFunc=GetRedeemableTokenBorder))
-
 class RedeemableToken(Transform):
     default_tokenSize = DEFAULT_TOKEN_SIZE
     default_align = uiconst.TOLEFT
@@ -432,6 +436,7 @@ class RedeemableToken(Transform):
         self.isNew = False
         self.tooltipPanelClassInfo = TooltipHeaderDescriptionWrapper(header=self.redeemTokenData.typeName, description=self.GenerateHintText())
         self.scale = (0.0, 0.0)
+        return
 
     def GetTokenHeight(self):
         tokenHeight = self.tokenSize
@@ -478,7 +483,6 @@ class RedeemableToken(Transform):
     def PrepareDrag(self, dragContainer, dragSource):
         t = RedeemableToken(parent=dragContainer, redeemTokenData=self.redeemTokenData, desc=self.desc, tokenSize=self.tokenSize, align=uiconst.TOPLEFT, minimized=True)
         t.AnimateIn()
-        return (0, 0)
 
     def KillDragContainer(self, dragContainer):
         uthread.new(self.KillDragContainer_thread, dragContainer)
@@ -493,14 +497,14 @@ class RedeemableToken(Transform):
     def SetScale(self, scale):
         self.scale = scale
 
-    def AnimateIn(self, animate = True, timeOffset = 0.0, callback = None):
+    def AnimateIn(self, animate=True, timeOffset=0.0, callback=None):
         endScale = (1.0, 1.0)
         if animate:
             uicore.animations.Tr2DScaleTo(self, startScale=self.scale, endScale=endScale, duration=REDEEM_ITEM_POP_IN_TIME, timeOffset=timeOffset, callback=callback)
         else:
             self.scale = endScale
 
-    def AnimateOut(self, animate = True, timeOffset = 0.0, callback = None):
+    def AnimateOut(self, animate=True, timeOffset=0.0, callback=None):
         endScale = (0.0, 0.0)
         if animate:
             uicore.animations.Tr2DScaleTo(self, startScale=self.scale, endScale=endScale, duration=REDEEM_ITEM_POP_IN_TIME, timeOffset=timeOffset, callback=callback)
@@ -522,3 +526,4 @@ class RedeemableToken(Transform):
         Transform.Close(self)
         if self.closeCallback is not None:
             self.closeCallback()
+        return

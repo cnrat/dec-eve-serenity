@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\client\script\ui\services\eveSettingsSvc.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\client\script\ui\services\eveSettingsSvc.py
 import uicontrols
 import log
 import svc
@@ -31,12 +32,14 @@ class EveSettingsSvc(svc.settings):
     def FixListgroupSettings(self):
         if not session.charid:
             return
-        if settings.char.ui.Get('listgroupSettingsUpdated', 0):
+        elif settings.char.ui.Get('listgroupSettingsUpdated', 0):
             return
-        for key, value in settings.char.ui.Get('listgroups', {}).iteritems():
-            for key2, value2 in value.iteritems():
-                items = value2.pop('items', None)
-                if items is not None:
-                    value2['groupItems'] = items
+        else:
+            for key, value in settings.char.ui.Get('listgroups', {}).iteritems():
+                for key2, value2 in value.iteritems():
+                    items = value2.pop('items', None)
+                    if items is not None:
+                        value2['groupItems'] = items
 
-        settings.char.ui.Set('listgroupSettingsUpdated', 1)
+            settings.char.ui.Set('listgroupSettingsUpdated', 1)
+            return

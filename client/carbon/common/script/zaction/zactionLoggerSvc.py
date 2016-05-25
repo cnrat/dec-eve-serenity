@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\carbon\common\script\zaction\zactionLoggerSvc.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\carbon\common\script\zaction\zactionLoggerSvc.py
 import time
 import service
 import re
@@ -74,6 +75,7 @@ class ZactionLoggerService(service.Service):
         else:
             self.LogError('zactionLoggerSvc: %s : invalid property %s referenced' % (boot.role, postDot))
             return self.INVALID_VALUE_DEFAULT
+            return
 
     def _GetEntityNameString(self, targetID, entID, preDot, postDot):
         entityID = self._GetReferencedEntity(targetID, entID, postDot)
@@ -86,20 +88,21 @@ class ZactionLoggerService(service.Service):
         success, targetID = GameWorld.GetTargetIDForCurrentPythonProc('TargetType')
         if not success:
             return False
-        subbedChat = self.GetSubbedAttributeString(chatString, targetID, entID)
-        curTime = time.strftime('%X', time.gmtime())
-        self.bNewElementAdded = self.UpdateLogEntityList(entID)
-        if [logCategory, logCategory] not in self.combatLogCategoryList:
-            self.combatLogCategoryList.append([logCategory, logCategory])
-            self.comboElementVersion += 1
-        subbedChat = curTime + self.SEPERATOR + subbedChat
-        logLine = (subbedChat, entID, logCategory)
-        self.combatLog.append(logLine)
-        self.lineNumber += 1
-        while len(self.combatLog) > MAX_COMBAT_LOG_LENGTH:
-            self.combatLog.pop(0)
+        else:
+            subbedChat = self.GetSubbedAttributeString(chatString, targetID, entID)
+            curTime = time.strftime('%X', time.gmtime())
+            self.bNewElementAdded = self.UpdateLogEntityList(entID)
+            if [logCategory, logCategory] not in self.combatLogCategoryList:
+                self.combatLogCategoryList.append([logCategory, logCategory])
+                self.comboElementVersion += 1
+            subbedChat = curTime + self.SEPERATOR + subbedChat
+            logLine = (subbedChat, entID, logCategory)
+            self.combatLog.append(logLine)
+            self.lineNumber += 1
+            while len(self.combatLog) > MAX_COMBAT_LOG_LENGTH:
+                self.combatLog.pop(0)
 
-        return True
+            return True
 
     def GetCombatLog(self, entityFilter, categoryFilter):
         messageList = []

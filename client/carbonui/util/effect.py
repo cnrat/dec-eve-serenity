@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\packages\carbonui\util\effect.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\packages\carbonui\util\effect.py
 import uthread
 import blue
 import mathUtil
@@ -15,7 +16,7 @@ class UIEffects:
             self.remPending = []
         self.remPending.append(id(sprite))
 
-    def BlinkSpriteA(self, sprite, a, time = 1000.0, maxCount = 10, passColor = 1, minA = 0.0, timeFunc = blue.os.GetWallclockTime):
+    def BlinkSpriteA(self, sprite, a, time=1000.0, maxCount=10, passColor=1, minA=0.0, timeFunc=blue.os.GetWallclockTime):
         if not hasattr(self, 'blinksA'):
             self.blinksA = {}
         key = id(sprite)
@@ -32,7 +33,7 @@ class UIEffects:
             self.blink_running = True
             uthread.new(self._BlinkThread).context = 'UIObject::effect._BlinkThread'
 
-    def BlinkSpriteRGB(self, sprite, r, g, b, time = 1000.0, maxCount = 10, passColor = 1, timeFunc = blue.os.GetWallclockTime):
+    def BlinkSpriteRGB(self, sprite, r, g, b, time=1000.0, maxCount=10, passColor=1, timeFunc=blue.os.GetWallclockTime):
         if not hasattr(self, 'blinksRGB'):
             self.blinksRGB = {}
         key = id(sprite)
@@ -163,7 +164,9 @@ class UIEffects:
             self.blink_running = False
             log.LogException()
 
-    def Fade(self, fr, to, object, time = 500.0, timeFunc = blue.os.GetWallclockTime):
+        return
+
+    def Fade(self, fr, to, object, time=500.0, timeFunc=blue.os.GetWallclockTime):
         affectOpacity = hasattr(object, 'opacity')
         ndt = 0.0
         start = timeFunc()
@@ -177,7 +180,7 @@ class UIEffects:
             if not object or getattr(object, 'destroyed', False):
                 return
 
-    def FadeRGB(self, fr, to, sprite, time = 500.0, timeFunc = blue.os.GetWallclockTime):
+    def FadeRGB(self, fr, to, sprite, time=500.0, timeFunc=blue.os.GetWallclockTime):
         ndt = 0.0
         start = timeFunc()
         while ndt != 1.0:
@@ -187,7 +190,7 @@ class UIEffects:
             if not object or getattr(object, 'destroyed', False):
                 return
 
-    def Rotate(self, uitransform, time = 1.0, fromRot = 360.0, toRot = 0.0, timeFunc = blue.os.GetWallclockTime):
+    def Rotate(self, uitransform, time=1.0, fromRot=360.0, toRot=0.0, timeFunc=blue.os.GetWallclockTime):
         uthread.new(self._Rotate, uitransform, time, fromRot, toRot, timeFunc).context = 'UIObject::effect._Rotate'
 
     def _Rotate(self, uitransform, time, fromRot, toRot, timeFunc):
@@ -201,7 +204,7 @@ class UIEffects:
             uitransform.SetRotation(rad)
             blue.pyos.synchro.Yield()
 
-    def CombineEffects(self, item, opacity = None, alpha = None, left = None, top = None, width = None, height = None, rgb = None, _11 = None, _12 = None, time = 250.0, closeWhenDone = False, abortFunction = None, callback = None, doneCallback = None, timeFunc = blue.os.GetWallclockTime):
+    def CombineEffects(self, item, opacity=None, alpha=None, left=None, top=None, width=None, height=None, rgb=None, _11=None, _12=None, time=250.0, closeWhenDone=False, abortFunction=None, callback=None, doneCallback=None, timeFunc=blue.os.GetWallclockTime):
         sOpacity = None
         if opacity is not None and hasattr(item, 'opacity'):
             sOpacity = item.opacity
@@ -279,50 +282,53 @@ class UIEffects:
             doneCallback(item)
         if closeWhenDone and not item.destroyed:
             item.Close()
+        return
 
-    def MorphUI(self, item, attrname, tval, time = 500.0, newthread = 1, ifWidthConstrain = 1, maxSteps = 100, float = 0, endState = None, timeFunc = blue.os.GetWallclockTime):
+    def MorphUI(self, item, attrname, tval, time=500.0, newthread=1, ifWidthConstrain=1, maxSteps=100, float=0, endState=None, timeFunc=blue.os.GetWallclockTime):
         cval = getattr(item, attrname, None)
         if cval is None:
             log.LogError('Attribute not found %s' % attrname)
             return
-        if cval == tval:
+        elif cval == tval:
             return
-        if newthread:
+        elif newthread:
             return uthread.new(self.MorphUI, item, attrname, tval, time, 0, ifWidthConstrain, maxSteps, float, endState=None)
-        start, ndt = timeFunc(), 0.0
-        steps = 0
-        while ndt != 1.0:
-            if steps > maxSteps:
-                log.LogWarn('MorphUI::Exceeded maxSteps')
-                setattr(item, attrname, tval)
+        else:
+            start, ndt = timeFunc(), 0.0
+            steps = 0
+            while ndt != 1.0:
+                if steps > maxSteps:
+                    log.LogWarn('MorphUI::Exceeded maxSteps')
+                    setattr(item, attrname, tval)
+                    if attrname == 'width' and ifWidthConstrain:
+                        setattr(item, 'height', tval)
+                    break
+                try:
+                    ndt = max(ndt, min(blue.os.TimeDiffInMs(start, timeFunc()) / time, 1.0))
+                except:
+                    log.LogWarn('MorphUI::Failed getting time diff. Diff should not exceed %s but is %s' % (time, start - blue.os.GetWallclockTimeNow()))
+                    ndt = 1.0
+
+                if ndt < 0.0:
+                    log.LogWarn('MorphUI::Got fubar TimeDiffInMs, propably because of the timesync... ignoring', start, time)
+                    setattr(item, attrname, tval)
+                    if attrname == 'width' and ifWidthConstrain:
+                        setattr(item, 'height', tval)
+                    break
+                val = mathUtil.Lerp(cval, tval, ndt)
+                if not float:
+                    val = int(val)
+                setattr(item, attrname, val)
                 if attrname == 'width' and ifWidthConstrain:
-                    setattr(item, 'height', tval)
-                break
-            try:
-                ndt = max(ndt, min(blue.os.TimeDiffInMs(start, timeFunc()) / time, 1.0))
-            except:
-                log.LogWarn('MorphUI::Failed getting time diff. Diff should not exceed %s but is %s' % (time, start - blue.os.GetWallclockTimeNow()))
-                ndt = 1.0
+                    setattr(item, 'height', val)
+                blue.pyos.synchro.Yield()
+                steps += 1
 
-            if ndt < 0.0:
-                log.LogWarn('MorphUI::Got fubar TimeDiffInMs, propably because of the timesync... ignoring', start, time)
-                setattr(item, attrname, tval)
-                if attrname == 'width' and ifWidthConstrain:
-                    setattr(item, 'height', tval)
-                break
-            val = mathUtil.Lerp(cval, tval, ndt)
-            if not float:
-                val = int(val)
-            setattr(item, attrname, val)
-            if attrname == 'width' and ifWidthConstrain:
-                setattr(item, 'height', val)
-            blue.pyos.synchro.Yield()
-            steps += 1
+            if endState is not None:
+                item.state = endState
+            return
 
-        if endState is not None:
-            item.state = endState
-
-    def Morph(self, func, time = 500.0, newthread = 1, timeFunc = blue.os.GetWallclockTime):
+    def Morph(self, func, time=500.0, newthread=1, timeFunc=blue.os.GetWallclockTime):
         if newthread:
             uthread.new(self.Morph, func, time, newthread=0, timeFunc=timeFunc).context = 'UIObject::effect.Morph'
             return
@@ -339,12 +345,12 @@ class UIEffects:
             func(val)
             blue.pyos.synchro.Yield()
 
-    def MorphUIMassSpringDamper(self, item, attrname = None, newVal = 1.0, newthread = 1, float = 1, minVal = -10000000000.0, maxVal = 10000000000.0, dampRatio = 0.11, frequency = 20.0, initSpeed = 0.0, maxTime = 1.0, callback = None, initVal = None, timeFunc = blue.os.GetWallclockTime):
+    def MorphUIMassSpringDamper(self, item, attrname=None, newVal=1.0, newthread=1, float=1, minVal=-10000000000.0, maxVal=10000000000.0, dampRatio=0.11, frequency=20.0, initSpeed=0.0, maxTime=1.0, callback=None, initVal=None, timeFunc=blue.os.GetWallclockTime):
         if newthread:
             return uthread.new(self._MorphUIMassSpringDamper, item, attrname, newVal, newthread, float, minVal, maxVal, dampRatio, frequency, initSpeed, maxTime, callback, initVal, timeFunc)
         self._MorphUIMassSpringDamper(item, attrname, newVal, newthread, float, minVal, maxVal, dampRatio, frequency, initSpeed, maxTime, callback, initVal, timeFunc)
 
-    def _MorphUIMassSpringDamper(self, item, attrname, newVal, newthread, float, minVal, maxVal, dampRatio, frequency, initSpeed, maxTime, callback, initVal = None, timeFunc = blue.os.GetWallclockTime):
+    def _MorphUIMassSpringDamper(self, item, attrname, newVal, newthread, float, minVal, maxVal, dampRatio, frequency, initSpeed, maxTime, callback, initVal=None, timeFunc=blue.os.GetWallclockTime):
         if initVal is None and attrname is not None:
             initVal = getattr(item, attrname)
         if initVal == newVal:
@@ -392,3 +398,4 @@ class UIEffects:
             if item and item.destroyed:
                 return
             callback(item, newVal)
+        return

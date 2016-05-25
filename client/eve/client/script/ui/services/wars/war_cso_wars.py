@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\client\script\ui\services\wars\war_cso_wars.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\client\script\ui\services\wars\war_cso_wars.py
 import util
 import warObject
 import blue
@@ -18,7 +19,7 @@ class WarsO(warObject.base):
     def GetCostOfWarAgainst(self, ownerID):
         return self.GetMoniker().GetCostOfWarAgainst(ownerID)
 
-    def GetWars(self, ownerID, forceRefresh = 0):
+    def GetWars(self, ownerID, forceRefresh=0):
         if ownerID in self.warsByOwnerID:
             if forceRefresh or blue.os.TimeDiffInMs(self.warsByOwnerID[ownerID][0], blue.os.GetWallclockTime()) > 43200000:
                 del self.warsByOwnerID[ownerID]
@@ -50,22 +51,23 @@ class WarsO(warObject.base):
     def GetRelationship(self, ownerID):
         if ownerID == eve.session.corpid:
             return const.warRelationshipYourCorp
-        if ownerID == eve.session.allianceid:
+        elif ownerID == eve.session.allianceid:
             return const.warRelationshipYourAlliance
-        myWarEntityID = session.corpid if session.allianceid is None else session.allianceid
-        wars = self.GetWars(myWarEntityID)
-        entities = (ownerID, myWarEntityID)
-        if util.IsAtWar(wars.itervalues(), entities):
-            return const.warRelationshipAtWarCanFight
-        for war in wars.itervalues():
-            if myWarEntityID == war.againstID and ownerID in war.allies:
-                return const.warRelationshipAlliesAtWar
-            if ownerID == war.againstID and myWarEntityID in war.allies:
-                return const.warRelationshipAlliesAtWar
-            if ownerID in war.allies and myWarEntityID in war.allies:
-                return const.warRelationshipAlliesAtWar
+        else:
+            myWarEntityID = session.corpid if session.allianceid is None else session.allianceid
+            wars = self.GetWars(myWarEntityID)
+            entities = (ownerID, myWarEntityID)
+            if util.IsAtWar(wars.itervalues(), entities):
+                return const.warRelationshipAtWarCanFight
+            for war in wars.itervalues():
+                if myWarEntityID == war.againstID and ownerID in war.allies:
+                    return const.warRelationshipAlliesAtWar
+                if ownerID == war.againstID and myWarEntityID in war.allies:
+                    return const.warRelationshipAlliesAtWar
+                if ownerID in war.allies and myWarEntityID in war.allies:
+                    return const.warRelationshipAlliesAtWar
 
-        return const.warRelationshipUnknown
+            return const.warRelationshipUnknown
 
     def CheckLazyWarCache(self, ownerID):
         lk = ('LWC', ownerID)
@@ -87,8 +89,6 @@ class WarsO(warObject.base):
             if (war.declaredByID == ownerID or war.againstID == ownerID or ownerID in war.allies) and util.IsWarInHostileState(war):
                 return 1
 
-        return 0
-
     def CheckForStartOrEndOfWar(self):
         wars = self.GetWars(eve.session.allianceid or eve.session.corpid)
         yesterday = blue.os.GetWallclockTime() - (const.DAY + const.HOUR)
@@ -107,12 +107,15 @@ class WarsO(warObject.base):
                         sm.GetService('tactical').InvalidateFlags()
                         self.warsStarted.append(war.warID)
 
+        return
+
     def IsAllyInWar(self, warID):
         warEntityID = session.allianceid or session.corpid
         war = self.warsByWarID.get(warID, None)
         if war is None:
             return False
-        allyRow = war.allies.get(warEntityID, None)
-        if allyRow is not None and allyRow.timeFinished > blue.os.GetWallclockTime():
-            return True
-        return False
+        else:
+            allyRow = war.allies.get(warEntityID, None)
+            if allyRow is not None and allyRow.timeFinished > blue.os.GetWallclockTime():
+                return True
+            return False

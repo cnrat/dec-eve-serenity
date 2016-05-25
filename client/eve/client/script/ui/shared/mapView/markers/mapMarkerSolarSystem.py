@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\client\script\ui\shared\mapView\markers\mapMarkerSolarSystem.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\client\script\ui\shared\mapView\markers\mapMarkerSolarSystem.py
 from carbonui.primitives.base import ScaleDpi
 from carbonui.primitives.container import Container
 from carbonui.primitives.fill import Fill
@@ -44,6 +45,7 @@ class MarkerLabelSolarSystem(MarkerSolarSystemBased):
     def DestroyRenderObject(self):
         MarkerSolarSystemBased.DestroyRenderObject(self)
         self.hilightContainer = None
+        return
 
     def UpdateSolarSystemPosition(self, solarSystemPosition):
         self.mapPositionSolarSystem = solarSystemPosition
@@ -98,6 +100,7 @@ class MarkerLabelSolarSystem(MarkerSolarSystemBased):
                 self.extraContainer.Close()
                 self.extraContainer = None
         self.lastUpdateCameraValues = None
+        return
 
     def GetExtraContainerDisplayOffset(self):
         return (ScaleDpi(CIRCLESIZE + LABEL_LEFT_MARGIN), self.markerContainer.renderObject.displayHeight)
@@ -133,6 +136,7 @@ class ExtraInfoContainer(Container):
     def Close(self, *args):
         Container.Close(self, *args)
         self.markerObject = None
+        return
 
     def SetText(self, text):
         self.label.text = text

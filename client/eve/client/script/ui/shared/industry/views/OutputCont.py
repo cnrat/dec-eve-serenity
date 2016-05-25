@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\client\script\ui\shared\industry\views\OutputCont.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\client\script\ui\shared\industry\views\OutputCont.py
 from math import pi
 import blue
 import carbonui.const as uiconst
@@ -65,6 +66,7 @@ class OutputCont(Container):
         self.state = uiconst.UI_DISABLED if self.jobData is None else uiconst.UI_PICKCHILDREN
         self.costCont.UpdateState()
         self.timeCont.UpdateState()
+        return
 
     def AnimEntry(self):
         if self.jobData:
@@ -97,6 +99,7 @@ class TimeContainer(Container):
         self.timeCaption = IndustryCaptionLabel(name='timeCaption', parent=self)
         self.timeLabel = EveLabelLarge(name='timeLabel', parent=self, top=13)
         self.errorFrame = ErrorFrame(bgParent=self, padding=(-2, -2, 0, -2))
+        return
 
     def UpdateState(self):
         if self.updateTimeThread:
@@ -105,12 +108,14 @@ class TimeContainer(Container):
         if not self.jobData:
             self.timeLabel.text = ''
             return
-        if self.jobData.IsInstalled():
-            self.timeCaption.text = GetByLabel('UI/Industry/TimeLeft')
-            self.updateTimeThread = uthread.new(self.UpdateTimeThread)
         else:
-            self.timeCaption.text = GetByLabel('UI/Industry/JobDuration')
-            self.timeLabel.text = self.jobData.GetJobTimeLeftLabel()
+            if self.jobData.IsInstalled():
+                self.timeCaption.text = GetByLabel('UI/Industry/TimeLeft')
+                self.updateTimeThread = uthread.new(self.UpdateTimeThread)
+            else:
+                self.timeCaption.text = GetByLabel('UI/Industry/JobDuration')
+                self.timeLabel.text = self.jobData.GetJobTimeLeftLabel()
+            return
 
     def UpdateTimeThread(self):
         while not self.destroyed:
@@ -147,24 +152,27 @@ class CostContainer(Container):
         self.walletCombo.GetHint = self.GetWalletComboHint
         self.costLabel = EveLabelLarge(name='costLabel', parent=textCont, align=uiconst.TOTOP, padLeft=4)
         self.errorFrame = ErrorFrame(bgParent=self, padding=(0, -2, 0, -2))
+        return
 
     def UpdateWalletCombo(self):
         if not self.jobData or not self.jobData.accounts or len(self.jobData.accounts) <= 1:
             self.walletCombo.Hide()
             return
-        self.walletCombo.Show()
-        options = []
-        for ownerID, divisionID in sorted(self.jobData.accounts):
-            label = self.GetWalletName(ownerID, divisionID)
-            texturePath = self.GetWalletIcon(ownerID)
-            options.append((label,
-             (ownerID, divisionID),
-             None,
-             texturePath))
+        else:
+            self.walletCombo.Show()
+            options = []
+            for ownerID, divisionID in sorted(self.jobData.accounts):
+                label = self.GetWalletName(ownerID, divisionID)
+                texturePath = self.GetWalletIcon(ownerID)
+                options.append((label,
+                 (ownerID, divisionID),
+                 None,
+                 texturePath))
 
-        self.walletCombo.LoadOptions(options)
-        if self.jobData:
-            self.walletCombo.SelectItemByValue(self.jobData.account)
+            self.walletCombo.LoadOptions(options)
+            if self.jobData:
+                self.walletCombo.SelectItemByValue(self.jobData.account)
+            return
 
     def OnWalletCombo(self, combo, key, value):
         self.jobData.account = value

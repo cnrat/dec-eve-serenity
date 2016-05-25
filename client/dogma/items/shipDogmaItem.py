@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\packages\dogma\items\shipDogmaItem.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\packages\dogma\items\shipDogmaItem.py
 import weakref
 from collections import defaultdict
 from itertools import izip
@@ -76,8 +77,8 @@ class ShipDogmaItem(LocationDogmaItem):
     def SetDrones(self, drones):
         self.drones = drones
 
-    def GetEnvironmentInfo(self):
-        return KeyVal(itemID=self.itemID, shipID=self.itemID, charID=self.GetPilot(), otherID=None, targetID=None, effectID=None)
+    def GetCharacterID(self):
+        return self.GetPilot()
 
     def GetPersistables(self):
         ret = super(ShipDogmaItem, self).GetPersistables()

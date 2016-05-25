@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\packages\textImporting\importSkillplan.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\packages\textImporting\importSkillplan.py
 from textImporting import GetValidNamesAndTypesDict, GetLines, SplitAndStrip
 import inventorycommon.const as invconst
 
@@ -14,29 +15,32 @@ class ImportSkillPlan(object):
         self.validLevelStrings = ('1', '2', '3', '4', '5')
 
     def GetSkillsToAdd(self, text):
-        lines = GetLines(text)
-        skillsAndLevels = []
-        failed = []
-        for eachLine in lines:
-            parts = SplitAndStrip(eachLine, ' ')
-            if not parts:
-                continue
-            levelString = parts[-1]
-            if levelString in self.validLevelStrings:
-                level = int(levelString)
-            else:
-                level = self.levelDict.get(levelString.lower(), None)
-            if not level:
-                failed.append(eachLine)
-                continue
-            skillName = ' '.join(parts[:-1]).strip()
-            typeID = self.nameAndTypeIDsDict.get(skillName.lower(), None)
-            if typeID:
-                skillsAndLevels.append((typeID, level))
-            else:
-                failed.append(eachLine)
+        if not text:
+            return ([], [''])
+        else:
+            lines = GetLines(text)
+            skillsAndLevels = []
+            failed = []
+            for eachLine in lines:
+                parts = SplitAndStrip(eachLine, ' ')
+                if not parts:
+                    continue
+                levelString = parts[-1]
+                if levelString in self.validLevelStrings:
+                    level = int(levelString)
+                else:
+                    level = self.levelDict.get(levelString.lower(), None)
+                if not level:
+                    failed.append(eachLine)
+                    continue
+                skillName = ' '.join(parts[:-1]).strip()
+                typeID = self.nameAndTypeIDsDict.get(skillName.lower(), None)
+                if typeID:
+                    skillsAndLevels.append((typeID, level))
+                else:
+                    failed.append(eachLine)
 
-        return (skillsAndLevels, failed)
+            return (skillsAndLevels, failed)
 
 
 class SkillPlanImportingStatus(object):
@@ -48,7 +52,7 @@ class SkillPlanImportingStatus(object):
         self.skillLevelsAdded = 0
         self.tooManySkills = False
 
-    def AddToFailed(self, typeID, skillLevel, reason = None):
+    def AddToFailed(self, typeID, skillLevel, reason=None):
         infoTuple = (typeID, skillLevel, reason)
         if reason == 'QueueCannotTrainPreviouslyTrainedSkills':
             self.alreadyTrainedLevels.append(infoTuple)
@@ -69,9 +73,11 @@ class SkillPlanImportingStatus(object):
     def ReasonForFailingForLowerLevel(self, typeID, skillLevel):
         if typeID not in self.failedSkillTypeIDs:
             return None
-        failureInfo = self.failedSkillTypeIDs[typeID]
-        if skillLevel > failureInfo[0]:
-            return failureInfo[1]
+        else:
+            failureInfo = self.failedSkillTypeIDs[typeID]
+            if skillLevel > failureInfo[0]:
+                return failureInfo[1]
+            return None
 
     def IncreaseAddedCount(self):
         self.skillLevelsAdded += 1

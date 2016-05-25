@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\client\script\ui\control\expandablemenu.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\client\script\ui\control\expandablemenu.py
 from eve.client.script.ui.control.themeColored import FillThemeColored
 import uicontrols
 import uiprimitives
@@ -18,8 +19,9 @@ class ExpandableMenuContainer(uiprimitives.Container):
         self.sizecallback = None
         self.sr.menus = None
         self.sr.menusByLabel = None
+        return
 
-    def Load(self, menuData, prefsKey = None):
+    def Load(self, menuData, prefsKey=None):
         self.sr.menus = []
         self.sr.menusByLabel = {}
         self.singleton = bool(len(menuData) == 1)
@@ -39,8 +41,9 @@ class ExpandableMenuContainer(uiprimitives.Container):
 
             else:
                 uthread.new(self.children[0].Expand)
+        return
 
-    def AutoCollapseIfNeeded(self, ignoreMenu = None):
+    def AutoCollapseIfNeeded(self, ignoreMenu=None):
         if getattr(self, '_autoCollapsing', False):
             return
         self._autoCollapsing = True
@@ -82,7 +85,7 @@ class ExpandableMenu(uiprimitives.Container):
     __guid__ = 'xtriui.ExpandableMenu'
     default_clipChildren = True
 
-    def AddHeaderContent(self, content, hideOnMaximize = 1):
+    def AddHeaderContent(self, content, hideOnMaximize=1):
         self._hideHeaderContentOnMaximize = hideOnMaximize
         self.sr.headerContent = content
         self.sr.headerParent.children.append(content)
@@ -91,7 +94,7 @@ class ExpandableMenu(uiprimitives.Container):
         elif hideOnMaximize:
             self.sr.headerContent.opacity = 0.0
 
-    def Load(self, label, content, callback, dropCallback = None, maxHeight = None, headerContent = None, hideHeaderContentOnMaximize = 1, expandedByDefault = 1):
+    def Load(self, label, content, callback, dropCallback=None, maxHeight=None, headerContent=None, hideHeaderContentOnMaximize=1, expandedByDefault=1):
         self._changing = False
         self._break = False
         self._expanded = False
@@ -132,8 +135,9 @@ class ExpandableMenu(uiprimitives.Container):
                 return
         self.Collapse(startup=1)
         self._loaded = True
+        return
 
-    def SetHeader(self, newlabel, addon = 0, hint = None):
+    def SetHeader(self, newlabel, addon=0, hint=None):
         if addon:
             newlabel = self._headerLabel + newlabel
         self.sr.headerLabel.text = '<b>' + newlabel + '</b>'
@@ -151,7 +155,7 @@ class ExpandableMenu(uiprimitives.Container):
             else:
                 self.Expand()
 
-    def Expand(self, lastHeight = None, time = None, startup = False, *args):
+    def Expand(self, lastHeight=None, time=None, startup=False, *args):
         if self._changing:
             return
         self._changing = True
@@ -221,7 +225,7 @@ class ExpandableMenu(uiprimitives.Container):
                     del current[self.prefsKey]
                 settings.user.ui.Set('expandableMenu', current)
 
-    def Collapse(self, startup = 0):
+    def Collapse(self, startup=0):
         if self._changing:
             self._break = True
         self._changing = True

@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\carbon\common\stdlib\weakref.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\carbon\common\stdlib\weakref.py
 import UserDict
 from _weakref import getweakrefcount, getweakrefs, ref, proxy, CallableProxyType, ProxyType, ReferenceType
 from _weakrefset import WeakSet
@@ -21,10 +22,11 @@ class WeakValueDictionary(UserDict.UserDict):
 
     def __init__(self, *args, **kw):
 
-        def remove(wr, selfref = ref(self)):
+        def remove(wr, selfref=ref(self)):
             self = selfref()
             if self is not None:
                 del self.data[wr.key]
+            return
 
         self._remove = remove
         UserDict.UserDict.__init__(self, *args, **kw)
@@ -35,6 +37,7 @@ class WeakValueDictionary(UserDict.UserDict):
             raise KeyError, key
         else:
             return o
+        return
 
     def __contains__(self, key):
         try:
@@ -79,7 +82,7 @@ class WeakValueDictionary(UserDict.UserDict):
 
         return new
 
-    def get(self, key, default = None):
+    def get(self, key, default=None):
         try:
             wr = self.data[key]
         except KeyError:
@@ -90,6 +93,7 @@ class WeakValueDictionary(UserDict.UserDict):
             return default
         else:
             return o
+            return
 
     def items(self):
         L = []
@@ -106,6 +110,8 @@ class WeakValueDictionary(UserDict.UserDict):
             if value is not None:
                 yield (wr.key, value)
 
+        return
+
     def iterkeys(self):
         return self.data.iterkeys()
 
@@ -121,12 +127,16 @@ class WeakValueDictionary(UserDict.UserDict):
             if obj is not None:
                 yield obj
 
+        return
+
     def popitem(self):
         while 1:
             key, wr = self.data.popitem()
             o = wr()
             if o is not None:
                 return (key, o)
+
+        return
 
     def pop(self, key, *args):
         try:
@@ -140,8 +150,9 @@ class WeakValueDictionary(UserDict.UserDict):
             raise KeyError, key
         else:
             return o
+        return
 
-    def setdefault(self, key, default = None):
+    def setdefault(self, key, default=None):
         try:
             wr = self.data[key]
         except KeyError:
@@ -150,7 +161,7 @@ class WeakValueDictionary(UserDict.UserDict):
 
         return wr()
 
-    def update(self, dict = None, **kwargs):
+    def update(self, dict=None, **kwargs):
         d = self.data
         if dict is not None:
             if not hasattr(dict, 'items'):
@@ -160,6 +171,7 @@ class WeakValueDictionary(UserDict.UserDict):
 
         if len(kwargs):
             self.update(kwargs)
+        return
 
     def valuerefs(self):
         return self.data.values()
@@ -188,17 +200,19 @@ class KeyedRef(ref):
 
 class WeakKeyDictionary(UserDict.UserDict):
 
-    def __init__(self, dict = None):
+    def __init__(self, dict=None):
         self.data = {}
 
-        def remove(k, selfref = ref(self)):
+        def remove(k, selfref=ref(self)):
             self = selfref()
             if self is not None:
                 del self.data[k]
+            return
 
         self._remove = remove
         if dict is not None:
             self.update(dict)
+        return
 
     def __delitem__(self, key):
         del self.data[ref(key)]
@@ -233,7 +247,7 @@ class WeakKeyDictionary(UserDict.UserDict):
 
         return new
 
-    def get(self, key, default = None):
+    def get(self, key, default=None):
         return self.data.get(ref(key), default)
 
     def has_key(self, key):
@@ -267,6 +281,8 @@ class WeakKeyDictionary(UserDict.UserDict):
             if key is not None:
                 yield (key, value)
 
+        return
+
     def iterkeyrefs(self):
         return self.data.iterkeys()
 
@@ -275,6 +291,8 @@ class WeakKeyDictionary(UserDict.UserDict):
             obj = wr()
             if obj is not None:
                 yield obj
+
+        return
 
     def __iter__(self):
         return self.iterkeys()
@@ -301,13 +319,15 @@ class WeakKeyDictionary(UserDict.UserDict):
             if o is not None:
                 return (o, value)
 
+        return
+
     def pop(self, key, *args):
         return self.data.pop(ref(key), *args)
 
-    def setdefault(self, key, default = None):
+    def setdefault(self, key, default=None):
         return self.data.setdefault(ref(key, self._remove), default)
 
-    def update(self, dict = None, **kwargs):
+    def update(self, dict=None, **kwargs):
         d = self.data
         if dict is not None:
             if not hasattr(dict, 'items'):
@@ -317,3 +337,4 @@ class WeakKeyDictionary(UserDict.UserDict):
 
         if len(kwargs):
             self.update(kwargs)
+        return

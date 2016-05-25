@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\carbon\client\script\graphics\lightAnimationComponent.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\carbon\client\script\graphics\lightAnimationComponent.py
 import service
 import blue
 
@@ -11,6 +12,7 @@ class LightAnimationComponent(object):
         self.animationLength = None
         self.animationStartDelay = None
         self.light = None
+        return
 
 
 class LightAnimationComponentManager(service.Service):
@@ -23,6 +25,7 @@ class LightAnimationComponentManager(service.Service):
         service.Service.__init__(self)
         self.uiDesktop = None
         self.isServiceReady = False
+        return
 
     def Run(self, *etc):
         service.Service.Run(self, *etc)
@@ -63,12 +66,17 @@ class LightAnimationComponentManager(service.Service):
                     for idx in xrange(keyCount):
                         curve.SetKeyTime(idx, curve.GetKeyTime(idx) + component.animationStartDelay)
 
+        return
+
     def RegisterComponent(self, entity, component):
         if component.curveSet is not None:
             component.curveSet.PlayFrom(blue.os.TimeDiffInMs(self.synchronizedTime, blue.os.GetWallclockTime()) / 1000.0)
+        return
 
     def UnRegisterComponent(self, entity, component):
         if component.curveSet is not None and component.light is not None:
             component.light.curveSets.remove(component.curveSet)
             for b in component.curveSet.bindings:
                 b.destinationObject = None
+
+        return

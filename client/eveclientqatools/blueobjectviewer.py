@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\packages\eveclientqatools\blueobjectviewer.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\packages\eveclientqatools\blueobjectviewer.py
 from eve.client.script.ui.control import entries as listentry
 import carbonui.const as uiconst
 import uicontrols
@@ -8,7 +9,7 @@ TYPE_BLUE_LIST = 'blue.List'
 
 class BlueTreeMaster(object):
 
-    def __init__(self, maxRecursion = 20):
+    def __init__(self, maxRecursion=20):
         self.blueObjects = {}
         self.maxRecursion = maxRecursion
 
@@ -28,6 +29,7 @@ class BaseNode(object):
         self.master = treeMaster
         self.value = None
         BaseNode._nextID += 1
+        return
 
     def GetDisplayName(self):
         return self.displayName
@@ -49,8 +51,9 @@ class BlueListNode(BaseNode):
         self.displayName = parentAttr
         self.typeName = 'blue.List'
         self.value = None
+        return
 
-    def Refresh(self, cnt = 0):
+    def Refresh(self, cnt=0):
         if cnt > self.master.maxRecursion:
             return
         self.value = getattr(self.parent, self.parentAttr)
@@ -68,26 +71,32 @@ class BlueObjectNode(BaseNode):
         self.members = []
         self.value = None
         self.master.RegisterBlueObject(self)
+        return
 
-    def Refresh(self, cnt = 0):
+    def Refresh(self, cnt=0):
         if cnt > self.master.maxRecursion:
             return
-        self.members = []
-        if self.value is None:
-            return
-        for attr in self.value.__members__:
-            if not attr.startswith('__') and self.GetMemberByAttr(attr) is None:
-                m = GetMember(self.master, self.value, attr)
-                if m is not None:
-                    self.members.append((attr, m))
+        else:
+            self.members = []
+            if self.value is None:
+                return
+            for attr in self.value.__members__:
+                if not attr.startswith('__') and self.GetMemberByAttr(attr) is None:
+                    m = GetMember(self.master, self.value, attr)
+                    if m is not None:
+                        self.members.append((attr, m))
 
-        for each in self.members:
-            each[1].Refresh(cnt + 1)
+            for each in self.members:
+                each[1].Refresh(cnt + 1)
+
+            return
 
     def GetMemberByAttr(self, attr):
         for k, val in self.members:
             if k == attr:
                 return val
+
+        return None
 
 
 class BlueObjectChildNode(BlueObjectNode):
@@ -99,7 +108,7 @@ class BlueObjectChildNode(BlueObjectNode):
         self.displayName = parentAttr
         self.typeName = blueType
 
-    def Refresh(self, cnt = 0):
+    def Refresh(self, cnt=0):
         if cnt > self.master.maxRecursion:
             return
         self.value = getattr(self.parent, self.parentAttr)
@@ -123,9 +132,11 @@ class ValueNode(BaseNode):
         self.parent = parent
         self.attr = parentAttr
         self.value = None
+        return
 
-    def Refresh(self, cnt = 0):
+    def Refresh(self, cnt=0):
         self.value = getattr(self.parent, self.attr, None)
+        return
 
 
 class ChooserNode(ValueNode):
@@ -135,54 +146,57 @@ class ChooserNode(ValueNode):
         self.displayName = parentAttr
         self.options = options
 
-    def Refresh(self, cnt = 0):
+    def Refresh(self, cnt=0):
         current = getattr(self.parent, self.attr, None)
         if current is None:
             self.value = None
         else:
             self.value = self.options[current]
+        return
 
 
 def GetMember(master, obj, attr):
     if obj is None:
         return
-    val = getattr(obj, attr)
-    trinityType = None
-    try:
-        iid = obj.TypeInfo()[2][attr]['iid_name']
-        if iid and hasattr(trinity, iid):
-            trinityType = 'trinity.' + iid
-    except:
-        pass
-
-    blueType = getattr(val, '__bluetype__', None)
-    if blueType == TYPE_BLUE_LIST:
-        return BlueListNode(master, obj, attr)
-    if trinityType is not None:
-        node = master.GetNodeForBlueObject(val)
-        if node is None or val is None:
-            return BlueObjectChildNode(master, obj, attr, trinityType)
-        else:
-            return node
-    if type(val) == int:
-        if obj.TypeInfo()[2][attr]['choosers']:
-            choosers = obj.TypeInfo()[2][attr]['choosers']
-            options = {}
-            for name, value, desc in choosers:
-                options[value] = name
-
-            return ChooserNode(master, obj, attr, options)
-        else:
-            return ValueNode(master, obj, attr)
     else:
-        if type(val) == str or type(val) == unicode:
-            return ValueNode(master, obj, attr)
-        if type(val) == float:
-            return ValueNode(master, obj, attr)
-        if type(val) == bool:
-            return ValueNode(master, obj, attr)
-        if type(val) == tuple:
-            return ValueNode(master, obj, attr)
+        val = getattr(obj, attr)
+        trinityType = None
+        try:
+            iid = obj.TypeInfo()[2][attr]['iid_name']
+            if iid and hasattr(trinity, iid):
+                trinityType = 'trinity.' + iid
+        except:
+            pass
+
+        blueType = getattr(val, '__bluetype__', None)
+        if blueType == TYPE_BLUE_LIST:
+            return BlueListNode(master, obj, attr)
+        if trinityType is not None:
+            node = master.GetNodeForBlueObject(val)
+            if node is None or val is None:
+                return BlueObjectChildNode(master, obj, attr, trinityType)
+            else:
+                return node
+        if type(val) == int:
+            if obj.TypeInfo()[2][attr]['choosers']:
+                choosers = obj.TypeInfo()[2][attr]['choosers']
+                options = {}
+                for name, value, desc in choosers:
+                    options[value] = name
+
+                return ChooserNode(master, obj, attr, options)
+            else:
+                return ValueNode(master, obj, attr)
+        else:
+            if type(val) == str or type(val) == unicode:
+                return ValueNode(master, obj, attr)
+            if type(val) == float:
+                return ValueNode(master, obj, attr)
+            if type(val) == bool:
+                return ValueNode(master, obj, attr)
+            if type(val) == tuple:
+                return ValueNode(master, obj, attr)
+        return
 
 
 class TreeListWnd:
@@ -228,7 +242,7 @@ class TreeListWnd:
         else:
             return self.GetAnEntryNode(sublevel, map_node)
 
-    def GroupGetSubContent(self, node, newitems = 0):
+    def GroupGetSubContent(self, node, newitems=0):
         ret = []
         sublevel = node.get('sublevel', 0)
         map_node = node.id[1]
@@ -244,6 +258,7 @@ class TreeListWnd:
 
     def DoSomeContent(self):
         self.scroll.Load(contentList=self.GetContent(), headers=self.headers, fixedEntryHeight=None)
+        return
 
 
 def Show(obj):

@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\client\script\ui\shared\planet\planetEditModeContainer.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\client\script\ui\shared\planet\planetEditModeContainer.py
 import carbonui.const as uiconst
 import evetypes
 import uiprimitives
@@ -30,6 +31,7 @@ class PlanetEditModeContainer(uicontrols.ContainerAutoSize):
         self.buildContainer = uicontrols.ContainerAutoSize(parent=self, name='buildContainer', align=uiconst.TOTOP)
         self.CreateLayout()
         sm.RegisterNotify(self)
+        return
 
     def CreateLayout(self):
         icon = 'ui_44_32_7'
@@ -85,6 +87,8 @@ class PlanetEditModeContainer(uicontrols.ContainerAutoSize):
                     return
                 raise
 
+        return
+
     def OnBuildIconButtonMouseEnter(self, buildEntry, *args):
         buildEntry.headerContainer.fill = uiprimitives.Fill(parent=buildEntry.headerContainer)
 
@@ -103,6 +107,7 @@ class PlanetEditModeContainer(uicontrols.ContainerAutoSize):
         buildEntry.structureScroll.state = uiconst.UI_NORMAL
         uicore.effect.MorphUI(buildEntry.structureScroll, 'opacity', 1, float=1, time=250.0)
         self.activeBuildEntry = buildEntry
+        return
 
     def HideActiveStructureGroup(self):
         uicore.effect.MorphUI(self.activeBuildEntry.structureScroll, 'opacity', 0, float=1, time=250.0)
@@ -202,7 +207,7 @@ class PlanetEditModeContainer(uicontrols.ContainerAutoSize):
     def OnPlanetCommandCenterDeployedOrRemoved(self):
         self.ResetBuildbuttons()
 
-    def OnItemChange(self, item = None, change = None):
+    def OnItemChange(self, item=None, change=None):
         locationIdx = const.ixLocationID
         if session.shipid not in (item[locationIdx], change.get(locationIdx, 'No location change')):
             return
@@ -213,13 +218,15 @@ class PlanetEditModeContainer(uicontrols.ContainerAutoSize):
         uicore.effect.MorphUI(self.buildContainer, 'opacity', 0.0, time=250.0, newthread=False, float=True)
         if not self or self.destroyed:
             return
-        self.buildContainer.Flush()
-        self.activeBuildEntry = None
-        self.CreateLayout()
-        blue.pyos.synchro.SleepWallclock(300)
-        if not self or self.destroyed:
+        else:
+            self.buildContainer.Flush()
+            self.activeBuildEntry = None
+            self.CreateLayout()
+            blue.pyos.synchro.SleepWallclock(300)
+            if not self or self.destroyed:
+                return
+            uicore.effect.MorphUI(self.buildContainer, 'opacity', 1.0, time=250.0, newthread=False, float=True)
             return
-        uicore.effect.MorphUI(self.buildContainer, 'opacity', 1.0, time=250.0, newthread=False, float=True)
 
     def OnSessionChanged(self, isRemote, sess, change):
         self.ResetBuildbuttons()

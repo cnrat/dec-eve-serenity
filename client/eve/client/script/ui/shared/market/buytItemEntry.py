@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\client\script\ui\shared\market\buytItemEntry.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\client\script\ui\shared\market\buytItemEntry.py
 from carbon.common.script.util.format import FmtAmt
 from carbon.common.script.util.linkUtil import GetShowInfoLink
 from carbon.common.script.util.timerstuff import AutoTimer
@@ -43,6 +44,7 @@ class BuyItemContainer(BuySellItemContainerBase):
         self.DrawUI()
         self.UpdateUIElements()
         self.GetBestPrice()
+        return
 
     def DrawUI(self):
         self.errorBg = ErrorFrame(bgParent=self)
@@ -76,6 +78,7 @@ class BuyItemContainer(BuySellItemContainerBase):
     def ShowNoSellOrders(self):
         if self.newBestPrice is None:
             uicore.animations.FadeIn(self.errorBg, 0.35, duration=0.3)
+        return
 
     def DrawQty(self):
         self.qtySubCont = ContainerAutoSize(name='qtySubCont', parent=self.qtyCont, align=uiconst.TOTOP, callback=self.PositionQtyContainer)
@@ -84,6 +87,7 @@ class BuyItemContainer(BuySellItemContainerBase):
         self.qtyEdit.OnMouseWheel = self.OnMouseWheelForQtyEdit
         self.qtyTotal = EveLabelMediumBold(text='', parent=self.qtySubCont, padLeft=8, padTop=6, align=uiconst.TOTOP, state=uiconst.UI_NORMAL, autoFadeSides=35)
         self.SetTotalQtyText()
+        return
 
     def OnMouseWheelForQtyEdit(self, *args):
         if uicore.registry.GetFocus() != self.qtyEdit:
@@ -173,17 +177,19 @@ class BuyItemContainer(BuySellItemContainerBase):
         self.adjustQtyTimer = None
         if self.destroyed:
             return
-        self.qty = self.GetQty()
-        self.SetTotalQtyText()
-        self.GetBestPrice()
-        self.SetPrice()
-        self.deltaContainer.display = True
-        self.UpdateDelta()
-        self.GetTotalSum()
-        self.wheel.display = False
-        self.isUpdating = False
-        if self.parentEditFunc:
-            self.parentEditFunc(args)
+        else:
+            self.qty = self.GetQty()
+            self.SetTotalQtyText()
+            self.GetBestPrice()
+            self.SetPrice()
+            self.deltaContainer.display = True
+            self.UpdateDelta()
+            self.GetTotalSum()
+            self.wheel.display = False
+            self.isUpdating = False
+            if self.parentEditFunc:
+                self.parentEditFunc(args)
+            return
 
     def SetTotalQtyText(self):
         totalQty = self.GetTotalQty()
@@ -196,6 +202,7 @@ class BuyItemContainer(BuySellItemContainerBase):
             self.qtyTotal.hint = GetByLabel('UI/Market/MarketQuote/TotalAmountToBuy', numOrders=self.orderMultiplier, qty=self.GetQty())
         else:
             self.qtyTotal.display = False
+        return
 
     def GetPrice(self):
         return self.newBestPrice
@@ -260,6 +267,7 @@ class BuyItemContainer(BuySellItemContainerBase):
     def ConstructBlinkBG(self):
         if self.blinkBG is None:
             self.blinkBG = Sprite(name='blinkBg', bgParent=self, align=uiconst.TOALL, state=uiconst.UI_DISABLED, texturePath='res:/UI/Texture/classes/InvItem/bgSelected.png', opacity=0.0, idx=0)
+        return
 
     def OnDropData(self, dragSource, dragData):
         if self.dropParentFunc:

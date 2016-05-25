@@ -1,10 +1,11 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\client\script\ui\hacking\hackingTileData.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\client\script\ui\hacking\hackingTileData.py
 import hackingUIConst
 
 class TileData(object):
     __guid__ = 'hackingui.TileData'
 
-    def __init__(self, id = None, type = None, subtype = None, coord = None, blocked = False, hidden = False, strength = 0, coherence = 0):
+    def __init__(self, id=None, type=None, subtype=None, coord=None, blocked=False, hidden=False, strength=0, coherence=0):
         self.id = id
         self.type = type
         self.subtype = subtype

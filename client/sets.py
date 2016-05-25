@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\carbon\common\stdlib\sets.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\carbon\common\stdlib\sets.py
 from itertools import ifilter, ifilterfalse
 __all__ = ['BaseSet', 'Set', 'ImmutableSet']
 import warnings
@@ -19,7 +20,7 @@ class BaseSet(object):
 
     __str__ = __repr__
 
-    def _repr(self, sorted = False):
+    def _repr(self, sorted=False):
         elements = self._data.keys()
         if sorted:
             elements.sort()
@@ -137,6 +138,8 @@ class BaseSet(object):
                 raise
             return transform() in self._data
 
+        return
+
     def issubset(self, other):
         self._binary_sanity_check(other)
         if len(self) > len(other):
@@ -184,40 +187,44 @@ class BaseSet(object):
         if isinstance(iterable, BaseSet):
             data.update(iterable._data)
             return
-        value = True
-        if type(iterable) in (list, tuple, xrange):
-            it = iter(iterable)
-            while True:
-                try:
-                    for element in it:
-                        data[element] = value
-
-                    return
-                except TypeError:
-                    transform = getattr(element, '__as_immutable__', None)
-                    if transform is None:
-                        raise
-                    data[transform()] = value
-
         else:
-            for element in iterable:
-                try:
-                    data[element] = value
-                except TypeError:
-                    transform = getattr(element, '__as_immutable__', None)
-                    if transform is None:
-                        raise
-                    data[transform()] = value
+            value = True
+            if type(iterable) in (list, tuple, xrange):
+                it = iter(iterable)
+                while True:
+                    try:
+                        for element in it:
+                            data[element] = value
+
+                        return
+                    except TypeError:
+                        transform = getattr(element, '__as_immutable__', None)
+                        if transform is None:
+                            raise
+                        data[transform()] = value
+
+            else:
+                for element in iterable:
+                    try:
+                        data[element] = value
+                    except TypeError:
+                        transform = getattr(element, '__as_immutable__', None)
+                        if transform is None:
+                            raise
+                        data[transform()] = value
+
+            return
 
 
 class ImmutableSet(BaseSet):
     __slots__ = ['_hashcode']
 
-    def __init__(self, iterable = None):
+    def __init__(self, iterable=None):
         self._hashcode = None
         self._data = {}
         if iterable is not None:
             self._update(iterable)
+        return
 
     def __hash__(self):
         if self._hashcode is None:
@@ -234,16 +241,17 @@ class ImmutableSet(BaseSet):
 class Set(BaseSet):
     __slots__ = []
 
-    def __init__(self, iterable = None):
+    def __init__(self, iterable=None):
         self._data = {}
         if iterable is not None:
             self._update(iterable)
+        return
 
     def __getstate__(self):
         return (self._data,)
 
     def __setstate__(self, data):
-        self._data, = data
+        self._data = data
 
     def __ior__(self, other):
         self._binary_sanity_check(other)
@@ -311,6 +319,8 @@ class Set(BaseSet):
                 raise
             self._data[transform()] = True
 
+        return
+
     def remove(self, element):
         try:
             del self._data[element]
@@ -319,6 +329,8 @@ class Set(BaseSet):
             if transform is None:
                 raise
             del self._data[transform()]
+
+        return
 
     def discard(self, element):
         try:

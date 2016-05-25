@@ -1,10 +1,11 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\carbon\common\lib\werkzeug\contrib\limiter.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\carbon\common\lib\werkzeug\contrib\limiter.py
 from warnings import warn
 from werkzeug import LimitedStream
 
 class StreamLimitMiddleware(object):
 
-    def __init__(self, app, maximum_size = 10485760):
+    def __init__(self, app, maximum_size=10485760):
         self.app = app
         self.maximum_size = maximum_size
 

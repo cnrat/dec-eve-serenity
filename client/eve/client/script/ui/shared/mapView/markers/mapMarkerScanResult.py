@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\client\script\ui\shared\mapView\markers\mapMarkerScanResult.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\client\script\ui\shared\mapView\markers\mapMarkerScanResult.py
 from carbon.common.script.util.format import FmtDist
 from eve.client.script.ui.shared.mapView.markers.mapMarkerBase_Icon import MarkerIconBase
 from eve.client.script.ui.shared.mapView.markers.mapMarkerSpaceObjectRadialMenu import MapMarkerSpaceObjectRadialMenu
@@ -61,6 +62,7 @@ class MarkerScanResult(MarkerIconBase):
             overlapStackContainer = self.overlapStackContainer
             self.overlapStackContainer = None
             overlapStackContainer.Close()
+        return
 
     def Load(self):
         if self.isLoaded:
@@ -135,11 +137,12 @@ class MarkerScanResult(MarkerIconBase):
         bp = sm.GetService('michelle').GetBallpark()
         if bp is None:
             return
-        if not bp.ego:
+        elif not bp.ego:
             return
-        ego = bp.balls[bp.ego]
-        myPos = (ego.x, ego.y, ego.z)
-        return self.resultData.GetDistance(myPos)
+        else:
+            ego = bp.balls[bp.ego]
+            myPos = (ego.x, ego.y, ego.z)
+            return self.resultData.GetDistance(myPos)
 
     def OnMouseDown(self, *args):
         siteData = SiteDataFromScanResult(self.resultData)

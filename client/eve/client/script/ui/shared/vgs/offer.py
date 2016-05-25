@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\client\script\ui\shared\vgs\offer.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\client\script\ui\shared\vgs\offer.py
 from carbonui import const as uiconst
 from carbonui.primitives.container import Container
 from carbonui.primitives.containerAutoSize import ContainerAutoSize
@@ -53,6 +54,7 @@ class Offer(Container):
         self.image = attributes.get('showImage', self.default_showImage)
         self.onClick = attributes.get('onClick', None)
         self.Layout()
+        return
 
     def Layout(self):
         self.imageLayer = Transform(parent=self, align=uiconst.CENTER, scalingCenter=(0.5, 0.5), bgColor=self.BACKGROUND_COLOR)
@@ -76,12 +78,13 @@ class Offer(Container):
          2))
         if self.offer.label is not None:
             self.RIBBON_TYPE(parent=self, align=self.RIBBON_ALIGN, label=self.offer.label, idx=0)
+        return
 
     def OnClick(self, *args):
         if callable(self.onClick):
             self.onClick()
 
-    def UpdateAlignment(self, budgetLeft = 0, budgetTop = 0, budgetWidth = 0, budgetHeight = 0, updateChildrenOnly = False):
+    def UpdateAlignment(self, budgetLeft=0, budgetTop=0, budgetWidth=0, budgetHeight=0, updateChildrenOnly=False):
         size = max(self.displayWidth, self.displayHeight)
         self.imageLayer.width = size
         self.imageLayer.height = size
@@ -99,7 +102,9 @@ class OfferProductList(LayoutGrid):
         for typeID, quantity in products:
             self.AddProduct(typeID, quantity=quantity)
 
-    def AddProduct(self, typeID, quantity = 1):
+        return
+
+    def AddProduct(self, typeID, quantity=1):
         self.AddRow(rowClass=OfferProductRow, typeID=typeID, quantity=quantity, iconSize=self.iconSize)
 
 
@@ -114,6 +119,7 @@ class OfferProductRow(LayoutGridRow):
         self.quantity = attributes.get('quantity', 1)
         self.iconSize = attributes.get('iconSize', None) or self.default_iconSize
         self.Layout()
+        return
 
     def Layout(self):
         self.AddCell(cellObject=self._PrepareProductIcon())
@@ -140,6 +146,7 @@ class OfferProductRow(LayoutGridRow):
     def _GetAbstractInfo(self):
         if evetypes.GetCategoryID(self.typeID) != categoryBlueprint:
             return None
-        bpSvc = sm.GetService('blueprintSvc')
-        bpData = bpSvc.GetBlueprintTypeCopy(self.typeID, original=False)
-        return KeyVal(bpData=bpData)
+        else:
+            bpSvc = sm.GetService('blueprintSvc')
+            bpData = bpSvc.GetBlueprintTypeCopy(self.typeID, original=False)
+            return KeyVal(bpData=bpData)

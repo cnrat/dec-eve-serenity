@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\packages\achievements\common\achievementLoader.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\packages\achievements\common\achievementLoader.py
 from achievements.common.achievement import Achievement
 from ..common.achievementController import AchievementSimpleCondition
 import localization
@@ -9,7 +10,7 @@ class AchievementLoader:
         import fsdSchemas.binaryLoader as fsdBinaryLoader
         return fsdBinaryLoader.LoadFSDDataForCFG('res:/staticdata/achievements.static')
 
-    def GetAchievements(self, getDisabled = False):
+    def GetAchievements(self, getDisabled=False):
         rawData = self._LoadRawAchievementData()
         return self.ConstructAchievementDictFromData(rawData, getDisabled=getDisabled)
 
@@ -19,21 +20,22 @@ class AchievementLoader:
                 simplecondition = value.simpleConditions[conditionid]
                 achievement.AddCondition(AchievementSimpleCondition(statName=simplecondition.statistic, targetValue=simplecondition.targetValue))
 
-    def ConstructAchievementDictFromData(self, loadedAchievements, getDisabled = False):
+    def ConstructAchievementDictFromData(self, loadedAchievements, getDisabled=False):
         achievements = {}
         if loadedAchievements is None:
             print 'LogError'
             return {}
-        for key, value in loadedAchievements.iteritems():
-            if not getDisabled and not value.isEnabled:
-                continue
-            notificationTextID = getattr(value, 'notificationTextID', None)
-            if notificationTextID:
-                notificationText = localization.GetByMessageID(value.notificationTextID)
-            else:
-                notificationText = None
-            achievement = Achievement(achievementID=key, name=localization.GetByMessageID(value.nameID), description=localization.GetByMessageID(value.descriptionID), notificationText=notificationText, isClientAchievement=value.isClientAchievement, isEnabled=value.isEnabled)
-            self.AddConditions(achievement, value)
-            achievements[key] = achievement
+        else:
+            for key, value in loadedAchievements.iteritems():
+                if not getDisabled and not value.isEnabled:
+                    continue
+                notificationTextID = getattr(value, 'notificationTextID', None)
+                if notificationTextID:
+                    notificationText = localization.GetByMessageID(value.notificationTextID)
+                else:
+                    notificationText = None
+                achievement = Achievement(achievementID=key, name=localization.GetByMessageID(value.nameID), description=localization.GetByMessageID(value.descriptionID), notificationText=notificationText, isClientAchievement=value.isClientAchievement, isEnabled=value.isEnabled)
+                self.AddConditions(achievement, value)
+                achievements[key] = achievement
 
-        return achievements
+            return achievements

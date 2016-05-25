@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\client\script\ui\shared\vgs\views\purchaseView.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\client\script\ui\shared\vgs\views\purchaseView.py
 import blue
 from carbonui import const as uiconst
 from carbonui.control.scrollContainer import ScrollContainer
@@ -29,6 +30,7 @@ class PurchaseView(Container):
         self.onCloseView = attributes.onCloseView
         self.panel = None
         uthread.new(self.Layout)
+        return
 
     def Layout(self):
         self.panelCont = Container(parent=self, align=uiconst.TOBOTTOM, height=220)
@@ -82,6 +84,7 @@ class PurchaseView(Container):
             blue.synchro.SleepWallclock(2000)
             typeID = self.controller.activatableProductTypeID
             self.DisplayPanel(ActivatePromptPanel(typeID=typeID, onActivate=lambda : self.ActivateProduct(typeID), onCancel=self.onCloseView))
+        return
 
     @contextlib.contextmanager
     def _MinimumActionDelay(self, delay):
@@ -172,6 +175,7 @@ class PurchaseSuccessPanel(BasePanel):
         if subText:
             self.subTextCont = ContainerAutoSize(parent=mainCont, align=uiconst.TOTOP, top=12, opacity=0)
             VgsLabelSmall(parent=self.subTextCont, align=uiconst.CENTER, width=460, text='<center>%s</center>' % subText)
+        return
 
     def AnimEntry(self):
         super(PurchaseSuccessPanel, self).AnimEntry()

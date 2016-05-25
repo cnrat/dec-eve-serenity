@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\carbon\common\lib\cherrypy\lib\profiler.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\carbon\common\lib\cherrypy\lib\profiler.py
 
 
 def new_func_strip_path(func_name):
@@ -24,7 +25,7 @@ _count = 0
 
 class Profiler(object):
 
-    def __init__(self, path = None):
+    def __init__(self, path=None):
         if not path:
             path = os.path.join(os.path.dirname(__file__), 'profile')
         self.path = path
@@ -43,7 +44,7 @@ class Profiler(object):
     def statfiles(self):
         return [ f for f in os.listdir(self.path) if f.startswith('cp_') and f.endswith('.prof') ]
 
-    def stats(self, filename, sortby = 'cumulative'):
+    def stats(self, filename, sortby='cumulative'):
         sio = BytesIO()
         if sys.version_info >= (2, 5):
             s = pstats.Stats(os.path.join(self.path, filename), stream=sio)
@@ -66,7 +67,7 @@ class Profiler(object):
         return response
 
     def index(self):
-        return "<html>\n        <head><title>CherryPy profile data</title></head>\n        <frameset cols='200, 1*'>\n            <frame src='menu' />\n            <frame name='main' src='' />\n        </frameset>\n        </html>\n        "
+        pass
 
     index.exposed = True
 
@@ -90,7 +91,7 @@ class Profiler(object):
 
 class ProfileAggregator(Profiler):
 
-    def __init__(self, path = None):
+    def __init__(self, path=None):
         global _count
         Profiler.__init__(self, path)
         self.count = _count = _count + 1
@@ -105,7 +106,7 @@ class ProfileAggregator(Profiler):
 
 class make_app:
 
-    def __init__(self, nextapp, path = None, aggregate = False):
+    def __init__(self, nextapp, path=None, aggregate=False):
         if profile is None or pstats is None:
             msg = "Your installation of Python does not have a profile module. If you're on Debian, try `sudo apt-get install python-profiler`. See http://www.cherrypy.org/wiki/ProfilingOnDebian for details."
             warnings.warn(msg)
@@ -115,6 +116,7 @@ class make_app:
             self.profiler = ProfileAggregator(path)
         else:
             self.profiler = Profiler(path)
+        return
 
     def __call__(self, environ, start_response):
 
@@ -128,7 +130,7 @@ class make_app:
         return self.profiler.run(gather)
 
 
-def serve(path = None, port = 8080):
+def serve(path=None, port=8080):
     if profile is None or pstats is None:
         msg = "Your installation of Python does not have a profile module. If you're on Debian, try `sudo apt-get install python-profiler`. See http://www.cherrypy.org/wiki/ProfilingOnDebian for details."
         warnings.warn(msg)
@@ -137,6 +139,7 @@ def serve(path = None, port = 8080):
      'server.thread_pool': 10,
      'environment': 'production'})
     cherrypy.quickstart(Profiler(path))
+    return
 
 
 if __name__ == '__main__':

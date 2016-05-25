@@ -1,9 +1,10 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\packages\notifications\client\development\baseHistoryProvider.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\packages\notifications\client\development\baseHistoryProvider.py
 
 
 class BaseHistoryProvider(object):
 
-    def __init__(self, scatterDebug = False, onlyShowAfterDate = None):
+    def __init__(self, scatterDebug=False, onlyShowAfterDate=None):
         self.scatterDebug = scatterDebug
         self.onlyShowAfterDate = onlyShowAfterDate
 

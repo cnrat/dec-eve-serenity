@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\packages\spacecomponents\server\components\microJumpDriver.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\packages\spacecomponents\server\components\microJumpDriver.py
 import sys
 from eveexceptions import UserError
 from eveexceptions.const import UE_DIST, UE_AMT
@@ -27,6 +28,7 @@ class MicroJumpDriver(Component):
         self.microJumpingShips = set()
         self.componentRegistry.SubscribeToItemMessage(itemID, MSG_ON_ADDED_TO_SPACE, self.OnAddedToSpace)
         self.componentRegistry.SubscribeToItemMessage(itemID, MSG_ON_REMOVED_FROM_SPACE, self.OnRemovedFromSpace)
+        return
 
     def Initialize(self, ballpark):
         self.ballpark = ballpark
@@ -77,16 +79,18 @@ class MicroJumpDriver(Component):
             return
 
         try:
-            if shipID in self.microJumpingShips:
-                logger.error('ShipID %s is marked as already in the process of jumping', shipID)
-            else:
-                self.microJumpingShips.add(shipID)
-            self.InitiateMicroJump(shipID)
-            self.SleepSim(self.spoolUpDurationMillisec)
-            self.FinalizeMicroJump(shipID)
-        except Exception:
-            logger.exception('Micro jump thread failed to complete')
-            self.AbortMicroJumpForShip(shipID)
+            try:
+                if shipID in self.microJumpingShips:
+                    logger.error('ShipID %s is marked as already in the process of jumping', shipID)
+                else:
+                    self.microJumpingShips.add(shipID)
+                self.InitiateMicroJump(shipID)
+                self.SleepSim(self.spoolUpDurationMillisec)
+                self.FinalizeMicroJump(shipID)
+            except Exception:
+                logger.exception('Micro jump thread failed to complete')
+                self.AbortMicroJumpForShip(shipID)
+
         finally:
             self.microJumpingShips.discard(shipID)
 
@@ -118,6 +122,7 @@ class MicroJumpDriver(Component):
          0,
          self.spoolUpDurationMillisec)
         self.ballpark.AddToSystemHistory(shipID, ('OnSpecialFX', args))
+        return
 
     @ExportCall
     def StartMicroJumpDriveForShip(self, sess):

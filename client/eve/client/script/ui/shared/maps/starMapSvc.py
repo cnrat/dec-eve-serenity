@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\client\script\ui\shared\maps\starMapSvc.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\client\script\ui\shared\maps\starMapSvc.py
 from eve.client.script.ui.camera.starmapCamera import StarmapCamera
 from eve.client.script.ui.control.infoIcon import InfoIcon
 from eve.client.script.ui.inflight.bracket import Bracket
@@ -124,7 +125,7 @@ class StarMapSvc(service.Service):
     __startupdependencies__ = ['settings']
     __update_on_reload__ = 0
 
-    def Run(self, memStream = None):
+    def Run(self, memStream=None):
         self.HINT_LOCATION_HEADERS = (localization.GetByLabel('UI/Common/LocationTypes/Region'),
          localization.GetByLabel('UI/Common/Constellation'),
          localization.GetByLabel('UI/Common/SolarSystem'),
@@ -143,14 +144,17 @@ class StarMapSvc(service.Service):
         self.knownRegions = None
         self.mapJumps = None
         self.LogInfo('Starmap cache cleared')
+        return
 
-    def Stop(self, memStream = None):
+    def Stop(self, memStream=None):
         if trinity.device is None:
             return
-        self.LogInfo('Map svc')
-        self.Reset()
+        else:
+            self.LogInfo('Map svc')
+            self.Reset()
+            return
 
-    def Open(self, interestID = None, starColorMode = None, *args):
+    def Open(self, interestID=None, starColorMode=None, *args):
         OpenMap(interestID=interestID, starColorMode=starColorMode)
 
     def OnAvoidanceItemsChanged(self):
@@ -185,6 +189,7 @@ class StarMapSvc(service.Service):
         self.sceneManager.UnregisterScene('starmap')
         self.sceneManager.UnregisterCamera(evecamera.CAM_STARMAP)
         self.mylocation = None
+        return
 
     @telemetry.ZONE_METHOD
     def Reset(self):
@@ -246,6 +251,7 @@ class StarMapSvc(service.Service):
         self.minimizedWindows = []
         self.stationCountCache = None
         self.warFactionByOwner = None
+        return
 
     def GetInterest(self):
         if self.interest is None:
@@ -268,52 +274,56 @@ class StarMapSvc(service.Service):
                  trinity.TriColor(*overrideColor))
 
         self.HighlightSolarSystems(processedData, [ trinity.TriColor(r, g, b) for r, g, b in tricolors ])
+        return
 
     def PickSolarSystemID(self):
         if self.starParticles is None:
             return
-        projection, view, viewport = uix.GetFullscreenProjectionViewAndViewport()
-        x, y = int(uicore.uilib.x * uicore.desktop.dpiScaling), int(uicore.uilib.y * uicore.desktop.dpiScaling)
-        particleID = trinity.PickParticle(self.starParticles, x, y, self.mapStars.worldTransform, view, projection, viewport, self.GetStarPickRadius())
-        return self.particleIDToSystemIDMap.get(particleID, None)
+        else:
+            projection, view, viewport = uix.GetFullscreenProjectionViewAndViewport()
+            x, y = int(uicore.uilib.x * uicore.desktop.dpiScaling), int(uicore.uilib.y * uicore.desktop.dpiScaling)
+            particleID = trinity.PickParticle(self.starParticles, x, y, self.mapStars.worldTransform, view, projection, viewport, self.GetStarPickRadius())
+            return self.particleIDToSystemIDMap.get(particleID, None)
 
     def PickParticle(self):
         if self.starParticles is None:
             return
-        try:
-            projection, view, viewport = uix.GetFullscreenProjectionViewAndViewport()
-        except AttributeError:
-            return
-
-        x, y = uicore.ScaleDpi(uicore.uilib.x), uicore.ScaleDpi(uicore.uilib.y)
-        particleID = trinity.PickParticle(self.starParticles, x, y, self.mapStars.worldTransform, view, projection, viewport, self.GetStarPickRadius())
-        if particleID != -1:
-            return particleID
         else:
+            try:
+                projection, view, viewport = uix.GetFullscreenProjectionViewAndViewport()
+            except AttributeError:
+                return
+
+            x, y = uicore.ScaleDpi(uicore.uilib.x), uicore.ScaleDpi(uicore.uilib.y)
+            particleID = trinity.PickParticle(self.starParticles, x, y, self.mapStars.worldTransform, view, projection, viewport, self.GetStarPickRadius())
+            if particleID != -1:
+                return particleID
+            return
             return
 
     def GetItemMenu(self, itemID):
         item = self.map.GetItem(itemID, retall=True)
         if not item:
             return []
-        m = []
-        itemLabel = uiutil.MenuLabel('UI/Map/StarMap/ItemMenuLabel', {'loc': itemID,
-         'item': item.typeID})
-        m.append((itemLabel, self.SetInterest, (item.itemID,)))
-        parentID = self.map.GetParent(item.itemID)
-        while parentID != const.locationUniverse:
-            parent = self.map.GetItem(parentID)
-            if parent is not None:
-                parentLabel = uiutil.MenuLabel('UI/Map/StarMap/ItemMenuParentLabel', {'loc': parentID,
-                 'item': parent.typeID})
-                m.append((parentLabel, self.SetInterest, (parentID,)))
-            parentID = self.map.GetParent(parentID)
+        else:
+            m = []
+            itemLabel = uiutil.MenuLabel('UI/Map/StarMap/ItemMenuLabel', {'loc': itemID,
+             'item': item.typeID})
+            m.append((itemLabel, self.SetInterest, (item.itemID,)))
+            parentID = self.map.GetParent(item.itemID)
+            while parentID != const.locationUniverse:
+                parent = self.map.GetItem(parentID)
+                if parent is not None:
+                    parentLabel = uiutil.MenuLabel('UI/Map/StarMap/ItemMenuParentLabel', {'loc': parentID,
+                     'item': parent.typeID})
+                    m.append((parentLabel, self.SetInterest, (parentID,)))
+                parentID = self.map.GetParent(parentID)
 
-        m.append(None)
-        m += sm.GetService('menu').CelestialMenu(itemID, noTrace=1, mapItem=item)
-        m.append(None)
-        m.append((uiutil.MenuLabel('UI/Map/StarMap/CenterOnScreen'), self.SetInterest, (itemID, 1)))
-        return m
+            m.append(None)
+            m += sm.GetService('menu').CelestialMenu(itemID, noTrace=1, mapItem=item)
+            m.append(None)
+            m.append((uiutil.MenuLabel('UI/Map/StarMap/CenterOnScreen'), self.SetInterest, (itemID, 1)))
+            return m
 
     @telemetry.ZONE_METHOD
     def MakeBroadcastBracket(self, gbType, itemID, charID):
@@ -321,35 +331,38 @@ class StarMapSvc(service.Service):
             raise NotImplementedError
         if self.mapRoot is None:
             return
-        sysname = cfg.evelocations.Get(itemID).name.encode('utf-8')
-        tracker = trinity.EveTransform()
-        tracker.name = '__fleetbroadcast_%s' % sysname
-        self.mapRoot.children.append(tracker)
-        loc = self.map.GetItem(itemID)
-        pos = (loc.x * STARMAP_SCALE, loc.y * STARMAP_SCALE, loc.z * STARMAP_SCALE)
-        tracker.translation = pos
-        anchor = Bracket(parent=uicore.layer.starmap, state=uiconst.UI_DISABLED, width=1, height=1, align=uiconst.NOALIGN, name='fleetBroadcastAnchor_%s' % sysname)
-        anchor.itemID = itemID
-        anchor.display = True
-        anchor.trackTransform = tracker
-        iconPath = fleetbr.types['TravelTo']['bigIcon']
-        icon = uicontrols.Icon(icon=iconPath, parent=anchor, idx=0, pos=(0, 0, 32, 32), align=uiconst.TOPLEFT, state=uiconst.UI_NORMAL)
-        icon.name = 'fleetBroadcastIcon_%s' % sysname
-        icon.hint = fleetbr.GetCaption_TravelTo(charID, itemID, itemID)
-        icon.GetMenu = fleetbr.MenuGetter('TravelTo', charID, itemID)
+        else:
+            sysname = cfg.evelocations.Get(itemID).name.encode('utf-8')
+            tracker = trinity.EveTransform()
+            tracker.name = '__fleetbroadcast_%s' % sysname
+            self.mapRoot.children.append(tracker)
+            loc = self.map.GetItem(itemID)
+            pos = (loc.x * STARMAP_SCALE, loc.y * STARMAP_SCALE, loc.z * STARMAP_SCALE)
+            tracker.translation = pos
+            anchor = Bracket(parent=uicore.layer.starmap, state=uiconst.UI_DISABLED, width=1, height=1, align=uiconst.NOALIGN, name='fleetBroadcastAnchor_%s' % sysname)
+            anchor.itemID = itemID
+            anchor.display = True
+            anchor.trackTransform = tracker
+            iconPath = fleetbr.types['TravelTo']['bigIcon']
+            icon = uicontrols.Icon(icon=iconPath, parent=anchor, idx=0, pos=(0, 0, 32, 32), align=uiconst.TOPLEFT, state=uiconst.UI_NORMAL)
+            icon.name = 'fleetBroadcastIcon_%s' % sysname
+            icon.hint = fleetbr.GetCaption_TravelTo(charID, itemID, itemID)
+            icon.GetMenu = fleetbr.MenuGetter('TravelTo', charID, itemID)
 
-        def Cleanup(*args):
-            try:
-                self.mapRoot.children.fremove(tracker)
-            except (AttributeError, ValueError):
-                sys.exc_clear()
+            def Cleanup(*args):
+                try:
+                    self.mapRoot.children.fremove(tracker)
+                except (AttributeError, ValueError):
+                    sys.exc_clear()
 
-        icon.OnClose = Cleanup
-        return anchor
+            icon.OnClose = Cleanup
+            return anchor
 
     def GetCloudNumFromItemID(self, itemID):
         if itemID in self.solarSystemIDToParticleID:
             return self.solarSystemIDToParticleID[itemID]
+        else:
+            return None
 
     def GetItemIDFromParticleID(self, particleID):
         solarSystemID = None
@@ -358,44 +371,46 @@ class StarMapSvc(service.Service):
         return solarSystemID
 
     @telemetry.ZONE_METHOD
-    def UpdateHint(self, nav = None):
+    def UpdateHint(self, nav=None):
         if getattr(self, 'doinghint', 0):
             return
-        self.doinghint = 1
-        if self.starParticles is None:
+        else:
+            self.doinghint = 1
+            if self.starParticles is None:
+                self.doinghint = 0
+                return
+            projection, view, viewport = uix.GetFullscreenProjectionViewAndViewport()
+            x, y = uicore.ScaleDpi(uicore.uilib.x), uicore.ScaleDpi(uicore.uilib.y)
+            particleID = trinity.PickParticle(self.starParticles, x, y, self.mapStars.worldTransform, view, projection, viewport, self.GetStarPickRadius())
+            if getattr(self, 'lastpick', None) == particleID:
+                self.doinghint = 0
+                return
+            hint = ''
+            if particleID in self.particleIDToSystemIDMap:
+                itemID = self.particleIDToSystemIDMap[particleID]
+                item = self.map.GetItem(itemID)
+                hint = item.itemName
+                hierarchy = self.map.GetParentLocationID(itemID)
+                if hierarchy:
+                    locs = []
+                    for locationID in hierarchy[1:]:
+                        if locationID is not None:
+                            if locationID not in locs:
+                                locs.append(locationID)
+
+                    if len(locs):
+                        cfg.evelocations.Prime(locs)
+                    hintParts = []
+                    for i, locationID in enumerate(hierarchy[1:]):
+                        if locationID is not None:
+                            hintParts.appen('%s %s' % (cfg.evelocations.Get(locationID).name, self.HINT_LOCATION_HEADERS[i]))
+
+                    hint = ' - '.join(hintParts)
+            self.lastpick = particleID
+            if nav:
+                nav.hint = hint
             self.doinghint = 0
             return
-        projection, view, viewport = uix.GetFullscreenProjectionViewAndViewport()
-        x, y = uicore.ScaleDpi(uicore.uilib.x), uicore.ScaleDpi(uicore.uilib.y)
-        particleID = trinity.PickParticle(self.starParticles, x, y, self.mapStars.worldTransform, view, projection, viewport, self.GetStarPickRadius())
-        if getattr(self, 'lastpick', None) == particleID:
-            self.doinghint = 0
-            return
-        hint = ''
-        if particleID in self.particleIDToSystemIDMap:
-            itemID = self.particleIDToSystemIDMap[particleID]
-            item = self.map.GetItem(itemID)
-            hint = item.itemName
-            hierarchy = self.map.GetParentLocationID(itemID)
-            if hierarchy:
-                locs = []
-                for locationID in hierarchy[1:]:
-                    if locationID is not None:
-                        if locationID not in locs:
-                            locs.append(locationID)
-
-                if len(locs):
-                    cfg.evelocations.Prime(locs)
-                hintParts = []
-                for i, locationID in enumerate(hierarchy[1:]):
-                    if locationID is not None:
-                        hintParts.appen('%s %s' % (cfg.evelocations.Get(locationID).name, self.HINT_LOCATION_HEADERS[i]))
-
-                hint = ' - '.join(hintParts)
-        self.lastpick = particleID
-        if nav:
-            nav.hint = hint
-        self.doinghint = 0
 
     def RemoveChild(self, tf, childname):
         for each in tf.children[:]:
@@ -413,20 +428,22 @@ class StarMapSvc(service.Service):
             return
         if session.regionid > const.mapWormholeRegionMin:
             return
-        shipID = util.GetActiveShip()
-        if shipID is None:
+        else:
+            shipID = util.GetActiveShip()
+            if shipID is None:
+                return
+            dogmaLM = sm.GetService('clientDogmaIM').GetDogmaLocation()
+            driveRange = dogmaLM.GetAttributeValue(shipID, const.attributeJumpDriveRange)
+            if driveRange is None or driveRange == 0:
+                return
+            scale = 2.0 * driveRange * const.LIGHTYEAR * STARMAP_SCALE
+            sphere = trinity.Load('res:/dx9/model/UI/JumpRangeBubble.red')
+            sphere.scaling = (scale, scale, scale)
+            sphere.name = 'jumpDriveRange'
+            if self.IsFlat():
+                sphere.display = False
+            self.mylocation.trackerTransform.children.append(sphere)
             return
-        dogmaLM = sm.GetService('clientDogmaIM').GetDogmaLocation()
-        driveRange = dogmaLM.GetAttributeValue(shipID, const.attributeJumpDriveRange)
-        if driveRange is None or driveRange == 0:
-            return
-        scale = 2.0 * driveRange * const.LIGHTYEAR * STARMAP_SCALE
-        sphere = trinity.Load('res:/dx9/model/UI/JumpRangeBubble.red')
-        sphere.scaling = (scale, scale, scale)
-        sphere.name = 'jumpDriveRange'
-        if self.IsFlat():
-            sphere.display = False
-        self.mylocation.trackerTransform.children.append(sphere)
 
     def RemoveMyLocation(self):
         self.RemoveChild(self.mapRoot, '__mylocation')
@@ -434,116 +451,122 @@ class StarMapSvc(service.Service):
             self.mylocationBracket.Close()
             self.mylocationBracket = None
             self.mylocation = None
+        return
 
     @telemetry.ZONE_METHOD
     def ShowWhereIAm(self):
         if self.mapRoot is None:
             return
-        if session.regionid > const.mapWormholeRegionMin:
-            self.RemoveMyLocation()
         else:
-            locationid = session.solarsystemid2
-            if getattr(self, 'mylocation', None) is None:
+            if session.regionid > const.mapWormholeRegionMin:
                 self.RemoveMyLocation()
-                tracker = trinity.EveTransform()
-                tracker.name = '__mylocation'
-                self.mapRoot.children.append(tracker)
-                label = self.GetCurrLocationBracket()
-                label.Startup('myloc', locationid, None, tracker, None, 1)
-                label.clipChildren = False
-                labeltext = uicontrols.EveHeaderSmall(text=localization.GetByLabel('UI/Map/StarMap/lblYouAreHere'), parent=label, left=210, align=uiconst.CENTERLEFT, state=uiconst.UI_DISABLED, idx=0)
-                sm.GetService('ui').BlinkSpriteA(labeltext, 1.0, 750, None, passColor=0, minA=0.5)
-                self.labeltext = labeltext
-                self.mylocationBracket = label
             else:
-                tracker = self.mylocation.trackerTransform
-            pos = self.knownSolarSystems[locationid].scaledCenter
-            tracker.translation = pos
-            bp = sm.GetService('michelle').GetBallpark()
-            if bp is not None:
-                ship = bp.GetBall(session.shipid)
-                if ship is not None:
-                    shipPos = geo2.Vector(ship.x, ship.y, ship.z)
-                    shipPos *= STARMAP_SCALE
-                    pos += shipPos
-                    tracker.translation = pos
-            self.mylocation = util.KeyVal(locationID=locationid, trackerTransform=tracker)
-        self.ShowDestination()
-        self.ShowJumpDriveRange()
+                locationid = session.solarsystemid2
+                if getattr(self, 'mylocation', None) is None:
+                    self.RemoveMyLocation()
+                    tracker = trinity.EveTransform()
+                    tracker.name = '__mylocation'
+                    self.mapRoot.children.append(tracker)
+                    label = self.GetCurrLocationBracket()
+                    label.Startup('myloc', locationid, None, tracker, None, 1)
+                    label.clipChildren = False
+                    labeltext = uicontrols.EveHeaderSmall(text=localization.GetByLabel('UI/Map/StarMap/lblYouAreHere'), parent=label, left=210, align=uiconst.CENTERLEFT, state=uiconst.UI_DISABLED, idx=0)
+                    sm.GetService('ui').BlinkSpriteA(labeltext, 1.0, 750, None, passColor=0, minA=0.5)
+                    self.labeltext = labeltext
+                    self.mylocationBracket = label
+                else:
+                    tracker = self.mylocation.trackerTransform
+                pos = self.knownSolarSystems[locationid].scaledCenter
+                tracker.translation = pos
+                bp = sm.GetService('michelle').GetBallpark()
+                if bp is not None:
+                    ship = bp.GetBall(session.shipid)
+                    if ship is not None:
+                        shipPos = geo2.Vector(ship.x, ship.y, ship.z)
+                        shipPos *= STARMAP_SCALE
+                        pos += shipPos
+                        tracker.translation = pos
+                self.mylocation = util.KeyVal(locationID=locationid, trackerTransform=tracker)
+            self.ShowDestination()
+            self.ShowJumpDriveRange()
+            return
 
     @telemetry.ZONE_METHOD
     def ShowDestination(self):
         if not self.viewState.IsViewActive('starmap'):
             return
-        waypoints = self.GetWaypoints()
-        self.mydestination = getattr(self, 'mydestination', [])
-        if len(self.mydestination) == 0:
-            if len(waypoints) == 0:
-                return
         else:
-            for waypoint in self.mydestination:
-                waypoint.label.Close()
-                self.mapRoot.children.fremove(waypoint.tracker)
-
-        self.mydestination = []
-        lastWaypoint = session.solarsystemid2
-        totalJumps = 0
-        if len(waypoints) > 0:
-            currentExtractWaypoint = waypoints[0]
-            waypointIndex = 0
-            waypointDestinationList = []
-            currentDestinationList = [lastWaypoint]
-            for locationID in self.destinationPath:
-                currentDestinationList.append(locationID)
-                if locationID == currentExtractWaypoint:
-                    waypointDestinationList.append(currentDestinationList)
-                    currentDestinationList = [locationID]
-                    waypointIndex += 1
-                    if waypointIndex == len(waypoints):
-                        break
-                    currentExtractWaypoint = waypoints[waypointIndex]
-
-        else:
-            waypointDestinationList = []
-        waypointLabels = {}
-        for waypointIndex, waypointID in enumerate(waypoints):
-            destinations = []
-            if waypointIndex < len(waypointDestinationList):
-                for destination in waypointDestinationList[waypointIndex]:
-                    if util.IsSolarSystem(destination):
-                        destinations.append(destination)
-
-            targetItemName = cfg.evelocations.Get(waypointID).locationName
-            wpIdx = waypointIndex + 1
-            if not len(destinations):
-                wpLabel = localization.GetByLabel('UI/Map/StarMap/ShowDestinationWaypointUnreachable', waypointNumber=wpIdx, targetName=targetItemName)
+            waypoints = self.GetWaypoints()
+            self.mydestination = getattr(self, 'mydestination', [])
+            if len(self.mydestination) == 0:
+                if len(waypoints) == 0:
+                    return
             else:
-                totalJumps = totalJumps + len(destinations) - 1
-                wpLabel = localization.GetByLabel('UI/Map/StarMap/ShowDestinationWaypoint', waypointNumber=wpIdx, targetName=targetItemName, jumps=totalJumps)
-            tracker = trinity.EveTransform()
-            tracker.name = '__waypoint_%d' % waypointIndex
-            if self.mapRoot:
-                self.mapRoot.children.append(tracker)
-            label = self.GetCurrLocationBracket()
-            label.Startup('myDest', waypointID, const.groupSolarSystem, tracker, None, 1)
-            label.clipChildren = False
-            if util.IsStation(waypointID):
-                waypointID = cfg.stations.Get(waypointID).solarSystemID
-            if waypointID in waypointLabels:
-                labeltext = waypointLabels[waypointID]
-                labeltext.text += '\n%s' % wpLabel
+                for waypoint in self.mydestination:
+                    waypoint.label.Close()
+                    self.mapRoot.children.fremove(waypoint.tracker)
+
+            self.mydestination = []
+            lastWaypoint = session.solarsystemid2
+            totalJumps = 0
+            if len(waypoints) > 0:
+                currentExtractWaypoint = waypoints[0]
+                waypointIndex = 0
+                waypointDestinationList = []
+                currentDestinationList = [lastWaypoint]
+                for locationID in self.destinationPath:
+                    currentDestinationList.append(locationID)
+                    if locationID == currentExtractWaypoint:
+                        waypointDestinationList.append(currentDestinationList)
+                        currentDestinationList = [locationID]
+                        waypointIndex += 1
+                        if waypointIndex == len(waypoints):
+                            break
+                        currentExtractWaypoint = waypoints[waypointIndex]
+
             else:
-                labeltext = uicontrols.EveHeaderSmall(text=wpLabel, parent=label, left=210, top=5, align=uiconst.TOPLEFT, state=uiconst.UI_DISABLED, idx=0)
-                waypointLabels[waypointID] = labeltext
-            if waypointID == session.solarsystemid2:
-                labeltext.top = 20
-            labeltext.color.SetRGB(1.0, 1.0, 0.0)
-            sm.GetService('ui').BlinkSpriteA(labeltext, 1.0, 750, None, passColor=0, minA=0.5)
-            location = cfg.evelocations.Get(waypointID)
-            pos = (location.x * STARMAP_SCALE, location.y * STARMAP_SCALE, location.z * STARMAP_SCALE)
-            tracker.translation = pos
-            self.mydestination.append(util.KeyVal(waypointID=waypointID, tracker=tracker, label=label))
-            label.state = uiconst.UI_DISABLED
+                waypointDestinationList = []
+            waypointLabels = {}
+            for waypointIndex, waypointID in enumerate(waypoints):
+                destinations = []
+                if waypointIndex < len(waypointDestinationList):
+                    for destination in waypointDestinationList[waypointIndex]:
+                        if util.IsSolarSystem(destination):
+                            destinations.append(destination)
+
+                targetItemName = cfg.evelocations.Get(waypointID).locationName
+                wpIdx = waypointIndex + 1
+                if not len(destinations):
+                    wpLabel = localization.GetByLabel('UI/Map/StarMap/ShowDestinationWaypointUnreachable', waypointNumber=wpIdx, targetName=targetItemName)
+                else:
+                    totalJumps = totalJumps + len(destinations) - 1
+                    wpLabel = localization.GetByLabel('UI/Map/StarMap/ShowDestinationWaypoint', waypointNumber=wpIdx, targetName=targetItemName, jumps=totalJumps)
+                tracker = trinity.EveTransform()
+                tracker.name = '__waypoint_%d' % waypointIndex
+                if self.mapRoot:
+                    self.mapRoot.children.append(tracker)
+                label = self.GetCurrLocationBracket()
+                label.Startup('myDest', waypointID, const.groupSolarSystem, tracker, None, 1)
+                label.clipChildren = False
+                if util.IsStation(waypointID):
+                    waypointID = cfg.stations.Get(waypointID).solarSystemID
+                if waypointID in waypointLabels:
+                    labeltext = waypointLabels[waypointID]
+                    labeltext.text += '\n%s' % wpLabel
+                else:
+                    labeltext = uicontrols.EveHeaderSmall(text=wpLabel, parent=label, left=210, top=5, align=uiconst.TOPLEFT, state=uiconst.UI_DISABLED, idx=0)
+                    waypointLabels[waypointID] = labeltext
+                if waypointID == session.solarsystemid2:
+                    labeltext.top = 20
+                labeltext.color.SetRGB(1.0, 1.0, 0.0)
+                sm.GetService('ui').BlinkSpriteA(labeltext, 1.0, 750, None, passColor=0, minA=0.5)
+                location = cfg.evelocations.Get(waypointID)
+                pos = (location.x * STARMAP_SCALE, location.y * STARMAP_SCALE, location.z * STARMAP_SCALE)
+                tracker.translation = pos
+                self.mydestination.append(util.KeyVal(waypointID=waypointID, tracker=tracker, label=label))
+                label.state = uiconst.UI_DISABLED
+
+            return
 
     def GetCurrLocationBracket(self):
         currentLocation = MapLabel(parent=uicore.layer.starmap, name='currentlocation', pos=(0, 0, 280, 20), align=uiconst.NOALIGN, state=uiconst.UI_PICKCHILDREN, dock=False)
@@ -559,76 +582,79 @@ class StarMapSvc(service.Service):
         registeredScene = self.sceneManager.GetRegisteredScene('starmap')
         if not self.flattened or registeredScene is None:
             return
-        try:
-            uicore.desktop.state = uiconst.UI_DISABLED
-            start = blue.os.GetSimTime()
-            cameraParent = self.GetCameraParent()
-            current = self.mapRoot.rotationCurve.GetQuaternionAt(start)
-            self.mapRoot.rotationCurve.keys[0].value = (current.x,
-             current.y,
-             current.z,
-             current.w)
-            self.mapRoot.rotationCurve.keys[1].time = 1.0
-            self.mapRoot.rotationCurve.keys[1].value = MAP_XYZW_ROTATION
-            self.mapRoot.rotationCurve.start = start
-            redrawRoute = False
-            if self.autoPilotRoute or self.genericRoute:
-                redrawRoute = True
-                self.ClearRoute('autoPilotRoute')
-            redrawGenericRoute = False
-            if self.genericRoute:
-                redrawGenericRoute = True
-                self.ClearRoute('genericRoute')
-            if self.rollCamera:
-                self.rollCamera = False
-                self.starmapCamera.OrbitParent(0.0, 10.0)
-            self.UpdateHexMap(isFlat=False)
-            if getattr(self, 'mylocation', None):
-                for each in self.mylocation.trackerTransform.children[:]:
-                    if each.name == 'jumpDriveRange':
-                        each.display = True
+        else:
+            try:
+                uicore.desktop.state = uiconst.UI_DISABLED
+                start = blue.os.GetSimTime()
+                cameraParent = self.GetCameraParent()
+                current = self.mapRoot.rotationCurve.GetQuaternionAt(start)
+                self.mapRoot.rotationCurve.keys[0].value = (current.x,
+                 current.y,
+                 current.z,
+                 current.w)
+                self.mapRoot.rotationCurve.keys[1].time = 1.0
+                self.mapRoot.rotationCurve.keys[1].value = MAP_XYZW_ROTATION
+                self.mapRoot.rotationCurve.start = start
+                redrawRoute = False
+                if self.autoPilotRoute or self.genericRoute:
+                    redrawRoute = True
+                    self.ClearRoute('autoPilotRoute')
+                redrawGenericRoute = False
+                if self.genericRoute:
+                    redrawGenericRoute = True
+                    self.ClearRoute('genericRoute')
+                if self.rollCamera:
+                    self.rollCamera = False
+                    self.starmapCamera.OrbitParent(0.0, 10.0)
+                self.UpdateHexMap(isFlat=False)
+                if getattr(self, 'mylocation', None):
+                    for each in self.mylocation.trackerTransform.children[:]:
+                        if each.name == 'jumpDriveRange':
+                            each.display = True
 
-            posEnd = self.interestEndPos
-            posBegin = cameraParent.translation
-            self.regionLabelParent.display = False
-            ndt = 0.0
-            while ndt != 1.0:
-                ndt = max(0.0, min(blue.os.TimeDiffInMs(start, blue.os.GetSimTime()) / 1000.0, 1.0))
-                self.mapRoot.scaling = self.solarSystemJumpLineSet.scaling = (1.0, mathUtil.Lerp(0.0001, 1.0, ndt), 1.0)
-                if posBegin and posEnd:
-                    pos = geo2.Vec3Lerp(posBegin, posEnd, ndt)
-                    cameraParent.translation = pos
-                lineSet = self.solarSystemJumpLineSet
-                for lineID, curveInfo in self.curvedLineInfoByLineID.iteritems():
-                    midPos, offsetVec = curveInfo
-                    scaledOffset = geo2.Vec3Scale(offsetVec, ndt)
-                    lineSet.ChangeLineIntermediateCrt(lineID, geo2.Vec3Add(midPos, scaledOffset))
+                posEnd = self.interestEndPos
+                posBegin = cameraParent.translation
+                self.regionLabelParent.display = False
+                ndt = 0.0
+                while ndt != 1.0:
+                    ndt = max(0.0, min(blue.os.TimeDiffInMs(start, blue.os.GetSimTime()) / 1000.0, 1.0))
+                    self.mapRoot.scaling = self.solarSystemJumpLineSet.scaling = (1.0, mathUtil.Lerp(0.0001, 1.0, ndt), 1.0)
+                    if posBegin and posEnd:
+                        pos = geo2.Vec3Lerp(posBegin, posEnd, ndt)
+                        cameraParent.translation = pos
+                    lineSet = self.solarSystemJumpLineSet
+                    for lineID, curveInfo in self.curvedLineInfoByLineID.iteritems():
+                        midPos, offsetVec = curveInfo
+                        scaledOffset = geo2.Vec3Scale(offsetVec, ndt)
+                        lineSet.ChangeLineIntermediateCrt(lineID, geo2.Vec3Add(midPos, scaledOffset))
 
-                lineSet.SubmitChanges()
-                blue.pyos.synchro.Yield()
+                    lineSet.SubmitChanges()
+                    blue.pyos.synchro.Yield()
 
-            for labelTransform in self.regionLabelParent.children:
-                x, y, z = labelTransform.scaling
-                labelTransform.scaling = (x, y * 0.0001, z)
+                for labelTransform in self.regionLabelParent.children:
+                    x, y, z = labelTransform.scaling
+                    labelTransform.scaling = (x, y * 0.0001, z)
 
-            if GetUserUiSetting('rlabel_region', 1):
-                self.regionLabelParent.display = True
-            self.flattened = 0
-            SetUserUiSetting('mapFlattened', self.flattened)
-            sm.ScatterEvent('OnFlattenModeChanged', self.flattened)
-            if redrawRoute:
-                self.UpdateRoute()
-            if redrawGenericRoute and self.genericRoutePath:
-                self.DrawRouteTo(targetID=self.genericRoutePath[-1], sourceID=self.genericRoutePath[0])
-            self.OnCameraMoved()
-        finally:
-            uicore.desktop.state = uiconst.UI_NORMAL
+                if GetUserUiSetting('rlabel_region', 1):
+                    self.regionLabelParent.display = True
+                self.flattened = 0
+                SetUserUiSetting('mapFlattened', self.flattened)
+                sm.ScatterEvent('OnFlattenModeChanged', self.flattened)
+                if redrawRoute:
+                    self.UpdateRoute()
+                if redrawGenericRoute and self.genericRoutePath:
+                    self.DrawRouteTo(targetID=self.genericRoutePath[-1], sourceID=self.genericRoutePath[0])
+                self.OnCameraMoved()
+            finally:
+                uicore.desktop.state = uiconst.UI_NORMAL
+
+            return
 
     def GetCameraParent(self):
         return sm.GetService('sceneManager').GetRegisteredCamera(evecamera.CAM_STARMAP).GetCameraParent()
 
     @telemetry.ZONE_METHOD
-    def Flatten(self, initing = False):
+    def Flatten(self, initing=False):
         if not initing:
             registeredScene = self.sceneManager.GetRegisteredScene('starmap')
             if self.flattened or registeredScene is None:
@@ -708,6 +734,8 @@ class StarMapSvc(service.Service):
             self.OnCameraMoved()
         finally:
             uicore.desktop.state = uiconst.UI_NORMAL
+
+        return
 
     def ToggleFlattenMode(self):
         if not self.changingPerspective:
@@ -865,6 +893,8 @@ class StarMapSvc(service.Service):
             for jump in self.mapJumps:
                 yield jump
 
+        return
+
     def GetKnownSolarSystem(self, solarSystemID):
         return self.GetKnownUniverseSolarSystems()[solarSystemID]
 
@@ -898,6 +928,7 @@ class StarMapSvc(service.Service):
         icon.LoadTooltipPanel = self.LoadSolarSystemTooltipPanel
         self.uicursor.trackTransform = self.cursor
         self.uicursor.dock = False
+        return
 
     def LoadSolarSystemTooltipPanel(self, tooltipPanel, *args):
         tooltipPanel.LoadGeneric2ColumnTemplate()
@@ -909,41 +940,43 @@ class StarMapSvc(service.Service):
         mapData = mapSvc.GetItem(itemID)
         if mapData is None:
             return
-        securityColor = mapSvc.GetSystemColor(itemID)
-        typeID = None
-        groupID = None
-        if mapData:
-            displayName = mapData.itemName
-            typeID = mapData.typeID
-            groupID = evetypes.GetGroupID(mapData.typeID)
-        if groupID is None:
-            return
-        tooltipPanel.AddLabelLarge(text=displayName, bold=True)
-        tooltipPanel.AddCell(cellObject=InfoIcon(typeID=typeID, itemID=itemID, align=uiconst.TOPRIGHT, left=-3))
-        tooltipPanel.state = uiconst.UI_NORMAL
-        ss = mapSvc.GetSecurityStatus(itemID)
-        if ss is not None:
-            tooltipPanel.AddLabelMedium(text=localization.GetByLabel('Tooltips/Map/SecurityStatus'))
-            tooltipPanel.AddLabelMedium(text=ss, align=uiconst.CENTERRIGHT, color=(securityColor.r,
-             securityColor.g,
-             securityColor.b,
-             1.0), cellPadding=(10, 0, 0, 0))
-        data = starmapSvc.GetStarData()
-        if particleID in data:
-            hintFunc, hintArgs = data[particleID]
-            particleHint = hintFunc(*hintArgs)
-            if particleHint:
-                tooltipPanel.AddCell(Line(align=uiconst.TOTOP, color=(1, 1, 1, 0.2)), colSpan=tooltipPanel.columns, cellPadding=(-11, 3, -11, 3))
-                starColorModeLabel = maputils.GetActiveStarColorModeLabel()
-                if starColorModeLabel:
-                    tooltipPanel.AddLabelMedium(text=starColorModeLabel, bold=True, colSpan=tooltipPanel.columns)
-                if isinstance(particleHint, (list, tuple)):
-                    for each in particleHint:
-                        tooltipPanel.AddLabelSmall(text=each, state=uiconst.UI_NORMAL, colSpan=tooltipPanel.columns)
+        else:
+            securityColor = mapSvc.GetSystemColor(itemID)
+            typeID = None
+            groupID = None
+            if mapData:
+                displayName = mapData.itemName
+                typeID = mapData.typeID
+                groupID = evetypes.GetGroupID(mapData.typeID)
+            if groupID is None:
+                return
+            tooltipPanel.AddLabelLarge(text=displayName, bold=True)
+            tooltipPanel.AddCell(cellObject=InfoIcon(typeID=typeID, itemID=itemID, align=uiconst.TOPRIGHT, left=-3))
+            tooltipPanel.state = uiconst.UI_NORMAL
+            ss = mapSvc.GetSecurityStatus(itemID)
+            if ss is not None:
+                tooltipPanel.AddLabelMedium(text=localization.GetByLabel('Tooltips/Map/SecurityStatus'))
+                tooltipPanel.AddLabelMedium(text=ss, align=uiconst.CENTERRIGHT, color=(securityColor.r,
+                 securityColor.g,
+                 securityColor.b,
+                 1.0), cellPadding=(10, 0, 0, 0))
+            data = starmapSvc.GetStarData()
+            if particleID in data:
+                hintFunc, hintArgs = data[particleID]
+                particleHint = hintFunc(*hintArgs)
+                if particleHint:
+                    tooltipPanel.AddCell(Line(align=uiconst.TOTOP, color=(1, 1, 1, 0.2)), colSpan=tooltipPanel.columns, cellPadding=(-11, 3, -11, 3))
+                    starColorModeLabel = maputils.GetActiveStarColorModeLabel()
+                    if starColorModeLabel:
+                        tooltipPanel.AddLabelMedium(text=starColorModeLabel, bold=True, colSpan=tooltipPanel.columns)
+                    if isinstance(particleHint, (list, tuple)):
+                        for each in particleHint:
+                            tooltipPanel.AddLabelSmall(text=each, state=uiconst.UI_NORMAL, colSpan=tooltipPanel.columns)
 
-                else:
-                    tooltipPanel.AddLabelSmall(text=particleHint, state=uiconst.UI_NORMAL, colSpan=tooltipPanel.columns)
-        uthread.new(self.UpdateTooltipPosition, tooltipPanel)
+                    else:
+                        tooltipPanel.AddLabelSmall(text=particleHint, state=uiconst.UI_NORMAL, colSpan=tooltipPanel.columns)
+            uthread.new(self.UpdateTooltipPosition, tooltipPanel)
+            return
 
     def UpdateTooltipPosition(self, tooltipPanel):
         while not tooltipPanel.destroyed:
@@ -1073,7 +1106,7 @@ class StarMapSvc(service.Service):
     def GetUICursor(self):
         return self.uicursor
 
-    def ShowCursorInterest(self, solarsystemID, particleID = None):
+    def ShowCursorInterest(self, solarsystemID, particleID=None):
         if solarsystemID and not util.IsWormholeSystem(solarsystemID):
             self.cursor.translation = self.GetKnownSolarSystem(solarsystemID).scaledCenter
             self.uicursor.solarsystemID = solarsystemID
@@ -1084,6 +1117,7 @@ class StarMapSvc(service.Service):
             self.uicursor.solarsystemID = None
             self.uicursor.particleID = None
             self.uicursor.display = False
+        return
 
     def IsRegionLabelVisible(self, regionID, regionOfInterest, regionLabelSelection):
         if regionLabelSelection == SHOW_ALL_REGION_LABELS:
@@ -1097,63 +1131,67 @@ class StarMapSvc(service.Service):
         return False
 
     @telemetry.ZONE_METHOD
-    def CheckAllLabels(self, hint = ''):
+    def CheckAllLabels(self, hint=''):
         if getattr(self, 'checkingalllabels', 0) or self.mapRoot is None:
             return
-        self.checkingalllabels = 1
-        labelsToShow = []
-        labelsToRemove = self.labels.keys()
-        regionOfInterest, constellationOfInterest, systemOfInterest = self.GetInterest()
-        showSolarSystemNames = GetUserUiSetting('label_solarsystem', 1)
-        showConstellationNames = GetUserUiSetting('label_constellation', 1)
-        regionLabelSelection = GetUserUiSetting('rlabel_region', 1)
-        if regionLabelSelection == SHOW_NO_REGION_LABELS:
-            if self.regionLabelParent:
-                self.regionLabelParent.display = 0
         else:
-            if self.regionLabelParent:
-                self.regionLabelParent.display = 1
-            if self.regionLabels:
-                for regionID in self.GetKnownUniverseRegions():
-                    showLabel = self.IsRegionLabelVisible(regionID, regionOfInterest, regionLabelSelection)
-                    self.regionLabels[regionID].SetDisplay(showLabel)
+            self.checkingalllabels = 1
+            labelsToShow = []
+            labelsToRemove = self.labels.keys()
+            regionOfInterest, constellationOfInterest, systemOfInterest = self.GetInterest()
+            showSolarSystemNames = GetUserUiSetting('label_solarsystem', 1)
+            showConstellationNames = GetUserUiSetting('label_constellation', 1)
+            regionLabelSelection = GetUserUiSetting('rlabel_region', 1)
+            if regionLabelSelection == SHOW_NO_REGION_LABELS:
+                if self.regionLabelParent:
+                    self.regionLabelParent.display = 0
+            else:
+                if self.regionLabelParent:
+                    self.regionLabelParent.display = 1
+                if self.regionLabels:
+                    for regionID in self.GetKnownUniverseRegions():
+                        showLabel = self.IsRegionLabelVisible(regionID, regionOfInterest, regionLabelSelection)
+                        self.regionLabels[regionID].SetDisplay(showLabel)
 
-        if GetUserUiSetting('label_landmarknames', 1):
-            for landmarkID in self.map.GetLandmarks().iterkeys():
-                labelsToShow.append(landmarkID * -1)
+            if GetUserUiSetting('label_landmarknames', 1):
+                for landmarkID in self.map.GetLandmarks().iterkeys():
+                    labelsToShow.append(landmarkID * -1)
 
-        if systemOfInterest is not None and not util.IsWormholeSystem(systemOfInterest):
+            if systemOfInterest is not None and not util.IsWormholeSystem(systemOfInterest):
+                if showSolarSystemNames:
+                    labelsToShow += [systemOfInterest] + self.GetKnownSolarSystem(systemOfInterest).neighbours
+                constellationID = self.GetKnownSolarSystem(systemOfInterest).constellationID
+                if showConstellationNames and not util.IsWormholeConstellation(constellationID):
+                    labelsToShow.append(constellationID)
+            elif constellationOfInterest is not None and not util.IsWormholeConstellation(constellationOfInterest):
+                if showConstellationNames:
+                    labelsToShow += [constellationOfInterest] + self.GetKnownConstellation(constellationOfInterest).neighbours
+                if showSolarSystemNames:
+                    labelsToShow += self.GetKnownConstellation(constellationOfInterest).solarSystemIDs
+            elif showConstellationNames and not util.IsWormholeRegion(regionOfInterest):
+                labelsToShow += self.GetKnownRegion(regionOfInterest).constellationIDs
             if showSolarSystemNames:
-                labelsToShow += [systemOfInterest] + self.GetKnownSolarSystem(systemOfInterest).neighbours
-            constellationID = self.GetKnownSolarSystem(systemOfInterest).constellationID
-            if showConstellationNames and not util.IsWormholeConstellation(constellationID):
-                labelsToShow.append(constellationID)
-        elif constellationOfInterest is not None and not util.IsWormholeConstellation(constellationOfInterest):
-            if showConstellationNames:
-                labelsToShow += [constellationOfInterest] + self.GetKnownConstellation(constellationOfInterest).neighbours
-            if showSolarSystemNames:
-                labelsToShow += self.GetKnownConstellation(constellationOfInterest).solarSystemIDs
-        elif showConstellationNames and not util.IsWormholeRegion(regionOfInterest):
-            labelsToShow += self.GetKnownRegion(regionOfInterest).constellationIDs
-        if showSolarSystemNames:
-            for wayPointID in self.GetDestinationPath():
-                if wayPointID not in labelsToShow and wayPointID is not None:
-                    labelsToShow.append(wayPointID)
+                for wayPointID in self.GetDestinationPath():
+                    if wayPointID not in labelsToShow and wayPointID is not None:
+                        labelsToShow.append(wayPointID)
 
-        if hasattr(self, 'focusLabel'):
-            if self.focusLabel is not None and self.focusLabel not in labelsToShow:
-                labelsToShow.append(self.focusLabel)
-        new = [ x for x in labelsToShow if x not in labelsToRemove and not util.IsStation(x) ]
-        old = [ x for x in labelsToRemove if x not in labelsToShow ]
-        self.ClearLabels(old)
-        self.CreateLabels(new)
-        self.CheckLabelDist()
-        self.checkingalllabels = 0
+            if hasattr(self, 'focusLabel'):
+                if self.focusLabel is not None and self.focusLabel not in labelsToShow:
+                    labelsToShow.append(self.focusLabel)
+            new = [ x for x in labelsToShow if x not in labelsToRemove and not util.IsStation(x) ]
+            old = [ x for x in labelsToRemove if x not in labelsToShow ]
+            self.ClearLabels(old)
+            self.CreateLabels(new)
+            self.CheckLabelDist()
+            self.checkingalllabels = 0
+            return
 
     def CheckLabelDist(self):
         if self.mapRoot is None:
             return
-        uthread.new(self.CheckCloudLabels, 'checkLabelDist')
+        else:
+            uthread.new(self.CheckCloudLabels, 'checkLabelDist')
+            return
 
     @telemetry.ZONE_METHOD
     def OnCameraMoved(self):
@@ -1161,57 +1199,61 @@ class StarMapSvc(service.Service):
             self.distanceRangeStars.value = (0, 0, 0, 0)
             self.distanceRangeLines.value = (0, 0, 0, 0)
             return
-        camera = self.sceneManager.GetRegisteredCamera(evecamera.CAM_STARMAP)
-        if camera is None:
+        else:
+            camera = self.sceneManager.GetRegisteredCamera(evecamera.CAM_STARMAP)
+            if camera is None:
+                return
+            geoView = camera.viewMatrix.transform
+            aabbMin = self.starParticles.aabbMin
+            aabbMax = self.starParticles.aabbMax
+            p = geo2.Vec3Transform(aabbMin, geoView)
+            znear = zfar = geo2.Vec3Length(p)
+
+            def Update(x, y, z, znear, zfar):
+                p = geo2.Vec3Transform((x, y, z), geoView)
+                dist = geo2.Vec3Length(p)
+                return (min(znear, dist), max(zfar, dist))
+
+            znear, zfar = Update(aabbMin[0], aabbMax[1], aabbMin[2], znear, zfar)
+            znear, zfar = Update(aabbMin[0], aabbMin[1], aabbMax[2], znear, zfar)
+            znear, zfar = Update(aabbMin[0], aabbMax[1], aabbMax[2], znear, zfar)
+            znear, zfar = Update(aabbMax[0], aabbMin[1], aabbMin[2], znear, zfar)
+            znear, zfar = Update(aabbMax[0], aabbMax[1], aabbMin[2], znear, zfar)
+            znear, zfar = Update(aabbMax[0], aabbMin[1], aabbMax[2], znear, zfar)
+            znear, zfar = Update(aabbMax[0], aabbMax[1], aabbMax[2], znear, zfar)
+            znear = max(0, znear)
+            if zfar <= znear:
+                zfar = znear + 1
+            self.distanceRangeStars.value = (znear,
+             1.0 / (zfar - znear),
+             0,
+             0)
+            self.distanceRangeLines.value = (znear,
+             1.0 / (zfar - znear),
+             0,
+             0)
             return
-        geoView = camera.viewMatrix.transform
-        aabbMin = self.starParticles.aabbMin
-        aabbMax = self.starParticles.aabbMax
-        p = geo2.Vec3Transform(aabbMin, geoView)
-        znear = zfar = geo2.Vec3Length(p)
-
-        def Update(x, y, z, znear, zfar):
-            p = geo2.Vec3Transform((x, y, z), geoView)
-            dist = geo2.Vec3Length(p)
-            return (min(znear, dist), max(zfar, dist))
-
-        znear, zfar = Update(aabbMin[0], aabbMax[1], aabbMin[2], znear, zfar)
-        znear, zfar = Update(aabbMin[0], aabbMin[1], aabbMax[2], znear, zfar)
-        znear, zfar = Update(aabbMin[0], aabbMax[1], aabbMax[2], znear, zfar)
-        znear, zfar = Update(aabbMax[0], aabbMin[1], aabbMin[2], znear, zfar)
-        znear, zfar = Update(aabbMax[0], aabbMax[1], aabbMin[2], znear, zfar)
-        znear, zfar = Update(aabbMax[0], aabbMin[1], aabbMax[2], znear, zfar)
-        znear, zfar = Update(aabbMax[0], aabbMax[1], aabbMax[2], znear, zfar)
-        znear = max(0, znear)
-        if zfar <= znear:
-            zfar = znear + 1
-        self.distanceRangeStars.value = (znear,
-         1.0 / (zfar - znear),
-         0,
-         0)
-        self.distanceRangeLines.value = (znear,
-         1.0 / (zfar - znear),
-         0,
-         0)
 
     @telemetry.ZONE_METHOD
-    def CheckCloudLabels(self, reason = ''):
+    def CheckCloudLabels(self, reason=''):
         if doingDebug == 1:
             self.LogInfo('checkloudlabels ', reason)
         if getattr(self, 'checkinglabels', 0):
             return
-        setattr(self, 'checkinglabels', 1)
-        sel = self.GetInterest()
-        dst = self.GetDestination()
-        for label in self.labels.itervalues():
-            if label is not None and not label.destroyed:
-                if len(label.children):
-                    if label.sr.id in sel or label.sr.id == getattr(self, 'highlightLabel', -1) or label.sr.id == dst:
-                        label.children[0].color.a = 1.0
-                    else:
-                        label.children[0].color.a = 0.7
+        else:
+            setattr(self, 'checkinglabels', 1)
+            sel = self.GetInterest()
+            dst = self.GetDestination()
+            for label in self.labels.itervalues():
+                if label is not None and not label.destroyed:
+                    if len(label.children):
+                        if label.sr.id in sel or label.sr.id == getattr(self, 'highlightLabel', -1) or label.sr.id == dst:
+                            label.children[0].color.a = 1.0
+                        else:
+                            label.children[0].color.a = 0.7
 
-        setattr(self, 'checkinglabels', 0)
+            setattr(self, 'checkinglabels', 0)
+            return
 
     def GetStarData(self):
         return getattr(self, 'starData', {})
@@ -1235,14 +1277,16 @@ class StarMapSvc(service.Service):
         toPoint = geo2.PlaneIntersectLine(pickPlane, toRay.startPos, toRay.startPos + geo2.Vector(*toRay.normal) * 1000000.0)
         if toPoint is None:
             return
-        fromPoint = geo2.PlaneIntersectLine(pickPlane, fromRay.startPos, fromRay.startPos + geo2.Vector(*fromRay.normal) * 1000000.0)
-        if fromPoint is None:
+        else:
+            fromPoint = geo2.PlaneIntersectLine(pickPlane, fromRay.startPos, fromRay.startPos + geo2.Vector(*fromRay.normal) * 1000000.0)
+            if fromPoint is None:
+                return
+            offset = geo2.Vector(*fromPoint) - toPoint
+            cameraParent.translation = geo2.Vec3Add(cameraParent.translation, offset)
+            uthread.new(self.CheckLabelDist)
             return
-        offset = geo2.Vector(*fromPoint) - toPoint
-        cameraParent.translation = geo2.Vec3Add(cameraParent.translation, offset)
-        uthread.new(self.CheckLabelDist)
 
-    def GetWorldPosFromLocalCoord(self, vector = None, flatten = True):
+    def GetWorldPosFromLocalCoord(self, vector=None, flatten=True):
         pos = geo2.Vector(*(vector or self.localCameraParent.translation))
         if flatten and self.IsFlat():
             pos.y = 0.0
@@ -1251,7 +1295,7 @@ class StarMapSvc(service.Service):
         return geo2.Vector(*pos)
 
     @telemetry.ZONE_METHOD
-    def SetInterest(self, itemID = None, forceframe = None, forcezoom = None):
+    def SetInterest(self, itemID=None, forceframe=None, forcezoom=None):
         if forceframe is None:
             forceframe = GetUserUiSetting('mapautoframe', 1)
         if forcezoom is None:
@@ -1261,75 +1305,77 @@ class StarMapSvc(service.Service):
             self.LogInfo('setinterest ', itemID, forceframe)
         if self.mapRoot is None:
             return
-        dollyEndval = None
-        camDuration = None
-        interest = self.GetInterest()
-        if util.IsWormholeSystem(itemID):
-            itemID = DEFAULT_SOLAR_SYSTEM_ID
-        itemID = itemID or interest.solarSystemID or interest.constellationID or interest.regionID or session.regionid
-        endPos = self.GetWorldPosFromLocalCoord(flatten=True)
-        self.interestEndPos = self.GetWorldPosFromLocalCoord(flatten=False)
-        if itemID is None:
-            return
-        if itemID == const.locationUniverse:
-            dollyEndval = 20000.0
-        elif itemID < 0:
-            lm = self.map.GetLandmark(itemID * -1)
-            scaledCenter = geo2.Scale(geo2.Vector(*lm.position), STARMAP_SCALE)
-            self.localCameraParent.translation = scaledCenter
+        else:
+            dollyEndval = None
+            camDuration = None
+            interest = self.GetInterest()
+            if util.IsWormholeSystem(itemID):
+                itemID = DEFAULT_SOLAR_SYSTEM_ID
+            itemID = itemID or interest.solarSystemID or interest.constellationID or interest.regionID or session.regionid
             endPos = self.GetWorldPosFromLocalCoord(flatten=True)
             self.interestEndPos = self.GetWorldPosFromLocalCoord(flatten=False)
-        else:
-            self.UpdateLines(itemID, hint='SetInterest')
-            scaledCenter = (0.0, 0.0, 0.0)
-            if util.IsSolarSystem(itemID):
-                system = self.GetKnownSolarSystem(itemID)
-                scaledCenter = system.scaledCenter
-                self.interest = StarmapInterest(system.regionID, system.constellationID, itemID)
-            elif util.IsConstellation(itemID):
-                constellation = self.GetKnownConstellation(itemID)
-                scaledCenter = constellation.scaledCenter
-                self.interest = StarmapInterest(constellation.regionID, itemID, None)
-            elif util.IsRegion(itemID) and self.regionLabels:
-                scaledCenter = self.GetKnownRegion(itemID).scaledCenter
-                self.interest = StarmapInterest(itemID, None, None)
-                for regionID in self.knownRegions:
-                    self.regionLabels[regionID].SetHighlight(False)
-
-                if not util.IsWormholeRegion(itemID):
-                    self.regionLabels[itemID].SetHighlight(True)
-            scaledCenter = geo2.Vector(scaledCenter[0], 0.0 if self.IsFlat() else scaledCenter[1], scaledCenter[2])
-            camera = self.sceneManager.GetRegisteredCamera(evecamera.CAM_STARMAP)
-            dollyEndval = camera.translationFromParent
-            if forceframe and forcezoom:
+            if itemID is None:
+                return
+            if itemID == const.locationUniverse:
+                dollyEndval = 20000.0
+            elif itemID < 0:
+                lm = self.map.GetLandmark(itemID * -1)
+                scaledCenter = geo2.Scale(geo2.Vector(*lm.position), STARMAP_SCALE)
+                self.localCameraParent.translation = scaledCenter
+                endPos = self.GetWorldPosFromLocalCoord(flatten=True)
+                self.interestEndPos = self.GetWorldPosFromLocalCoord(flatten=False)
+            else:
+                self.UpdateLines(itemID, hint='SetInterest')
+                scaledCenter = (0.0, 0.0, 0.0)
                 if util.IsSolarSystem(itemID):
-                    dollyEndval = ZOOM_MIN_STARMAP + (ZOOM_MAX_STARMAP - ZOOM_MIN_STARMAP) * 0.05
-                else:
-                    item = self.map.GetItem(itemID)
-                    mx = abs(item.xMin) + item.xMax
-                    my = abs(item.yMin) + item.yMax
-                    mz = abs(item.zMin) + item.zMax
-                    size = geo2.Scale(geo2.Vector(mx, my, mz), STARMAP_SCALE)
-                    radius = max(*size) * 0.5
-                    camangle = camera.fieldOfView * 0.5
-                    dollyEndval = radius / sin(camangle) * cos(camangle)
-            self.localCameraParent.translation = scaledCenter
-            endPos = self.GetWorldPosFromLocalCoord()
-            self.interestEndPos = self.GetWorldPosFromLocalCoord(flatten=False)
-            cameraParent = self.GetCameraParent()
-            mapPos = geo2.Vector(*cameraParent.translation)
-            camDuration = max(0.25, min(1.0, geo2.Vec3Length(endPos - mapPos) * 1e-05))
-        if self.mapRoot is None:
+                    system = self.GetKnownSolarSystem(itemID)
+                    scaledCenter = system.scaledCenter
+                    self.interest = StarmapInterest(system.regionID, system.constellationID, itemID)
+                elif util.IsConstellation(itemID):
+                    constellation = self.GetKnownConstellation(itemID)
+                    scaledCenter = constellation.scaledCenter
+                    self.interest = StarmapInterest(constellation.regionID, itemID, None)
+                elif util.IsRegion(itemID) and self.regionLabels:
+                    scaledCenter = self.GetKnownRegion(itemID).scaledCenter
+                    self.interest = StarmapInterest(itemID, None, None)
+                    for regionID in self.knownRegions:
+                        self.regionLabels[regionID].SetHighlight(False)
+
+                    if not util.IsWormholeRegion(itemID):
+                        self.regionLabels[itemID].SetHighlight(True)
+                scaledCenter = geo2.Vector(scaledCenter[0], 0.0 if self.IsFlat() else scaledCenter[1], scaledCenter[2])
+                camera = self.sceneManager.GetRegisteredCamera(evecamera.CAM_STARMAP)
+                dollyEndval = camera.translationFromParent
+                if forceframe and forcezoom:
+                    if util.IsSolarSystem(itemID):
+                        dollyEndval = ZOOM_MIN_STARMAP + (ZOOM_MAX_STARMAP - ZOOM_MIN_STARMAP) * 0.05
+                    else:
+                        item = self.map.GetItem(itemID)
+                        mx = abs(item.xMin) + item.xMax
+                        my = abs(item.yMin) + item.yMax
+                        mz = abs(item.zMin) + item.zMax
+                        size = geo2.Scale(geo2.Vector(mx, my, mz), STARMAP_SCALE)
+                        radius = max(*size) * 0.5
+                        camangle = camera.fieldOfView * 0.5
+                        dollyEndval = radius / sin(camangle) * cos(camangle)
+                self.localCameraParent.translation = scaledCenter
+                endPos = self.GetWorldPosFromLocalCoord()
+                self.interestEndPos = self.GetWorldPosFromLocalCoord(flatten=False)
+                cameraParent = self.GetCameraParent()
+                mapPos = geo2.Vector(*cameraParent.translation)
+                camDuration = max(0.25, min(1.0, geo2.Vec3Length(endPos - mapPos) * 1e-05))
+            if self.mapRoot is None:
+                return
+            if forceframe:
+                uthread.new(self.MoveInterest, endPos, (camDuration or 0.2) * 1000.0)
+                if forcezoom and dollyEndval is not None:
+                    self.Dolly(dollyEndval, camDuration or 0.2)
+            self.CheckAllLabels('SetInterest')
+            self.UpdateLines()
             return
-        if forceframe:
-            uthread.new(self.MoveInterest, endPos, (camDuration or 0.2) * 1000.0)
-            if forcezoom and dollyEndval is not None:
-                self.Dolly(dollyEndval, camDuration or 0.2)
-        self.CheckAllLabels('SetInterest')
-        self.UpdateLines()
 
     @telemetry.ZONE_METHOD
-    def MoveInterest(self, posEnd, time = 500.0):
+    def MoveInterest(self, posEnd, time=500.0):
         uicore.desktop.state = uiconst.UI_DISABLED
         count = 50
         while getattr(self, 'moving', False) and count:
@@ -1337,26 +1383,28 @@ class StarMapSvc(service.Service):
             count -= 1
 
         try:
-            self.moving = True
-            cameraParent = self.GetCameraParent()
-            startPos = cameraParent.translation
-            posBegin = geo2.Vector(*startPos)
-            start = blue.os.GetWallclockTime()
-            ndt = 0.0
-            while ndt != 1.0:
-                ndt = max(0.0, min(blue.os.TimeDiffInMs(start, blue.os.GetWallclockTime()) / time, 1.0))
-                if posBegin and posEnd:
-                    pos = geo2.Vec3Lerp(posBegin, posEnd, ndt)
-                    cameraParent.translation = pos
-                blue.pyos.synchro.Yield()
+            try:
+                self.moving = True
+                cameraParent = self.GetCameraParent()
+                startPos = cameraParent.translation
+                posBegin = geo2.Vector(*startPos)
+                start = blue.os.GetWallclockTime()
+                ndt = 0.0
+                while ndt != 1.0:
+                    ndt = max(0.0, min(blue.os.TimeDiffInMs(start, blue.os.GetWallclockTime()) / time, 1.0))
+                    if posBegin and posEnd:
+                        pos = geo2.Vec3Lerp(posBegin, posEnd, ndt)
+                        cameraParent.translation = pos
+                    blue.pyos.synchro.Yield()
 
-        except AttributeError:
-            pass
+            except AttributeError:
+                pass
+
         finally:
             uicore.desktop.state = uiconst.UI_NORMAL
             self.moving = False
 
-    def Dolly(self, end, length = 2.0):
+    def Dolly(self, end, length=2.0):
         camera = self.sceneManager.GetRegisteredCamera(evecamera.CAM_STARMAP)
         beg = camera.translationFromParent
         end = camera.CheckTranslationFromParent(end)
@@ -1381,7 +1429,7 @@ class StarMapSvc(service.Service):
 
         self.regionLabelParent = regionLabelParent
 
-    def DrawRouteTo(self, targetID, verbose = 1, sourceID = None):
+    def DrawRouteTo(self, targetID, verbose=1, sourceID=None):
         self.LogInfo('DrawRouteTo ', targetID)
         if targetID == session.solarsystemid2:
             self.ClearRoute('genericRoute')
@@ -1453,16 +1501,18 @@ class StarMapSvc(service.Service):
         self.genericRoutePath = None
         self.ClearRoute('genericRoute')
         self.UpdateLines(updateColor=True)
+        return
 
-    def ClearRoute(self, routeName = 'autoPilotRoute'):
+    def ClearRoute(self, routeName='autoPilotRoute'):
         route = getattr(self, routeName, None)
         if route:
             scene = self.sceneManager.GetRegisteredScene('starmap')
             if route.model in scene.objects:
                 scene.objects.fremove(route.model)
             setattr(self, routeName, None)
+        return
 
-    def ShortestGeneralPath(self, targetID, sourceID = None):
+    def ShortestGeneralPath(self, targetID, sourceID=None):
         if sourceID is None:
             sourceID = session.solarsystemid2
         if util.IsConstellation(targetID):
@@ -1482,7 +1532,8 @@ class StarMapSvc(service.Service):
 
         if not len(paths):
             return []
-        return min(paths, key=lambda p: len(p))
+        else:
+            return min(paths, key=lambda p: len(p))
 
     def GetAllFactions(self):
         return list(cfg.mapFactionsOwningSolarSystems)
@@ -1507,11 +1558,14 @@ class StarMapSvc(service.Service):
     def GetDestination(self):
         if self.destinationPath != [None]:
             return self.destinationPath[-1]
+        else:
+            return
 
     def GetDestinationPath(self):
         if not len(self.destinationPath):
             return [None]
-        return self.destinationPath
+        else:
+            return self.destinationPath
 
     def GetFactionOrAllianceColor(self, entityID):
         if not hasattr(self, 'factionOrAllianceColors'):
@@ -1567,33 +1621,35 @@ class StarMapSvc(service.Service):
         self.allianceJumpLines = []
         if not hasattr(session, 'allianceid') or session.allianceid is None:
             return
-        m = sm.RemoteSvc('map')
-        bridgesByLocation = m.GetAllianceJumpBridges()
-        jumpBridgeColor = ScaleColour(mapcommon.JUMPBRIDGE_COLOR, mapcommon.JUMPBRIDGE_COLOR_SCALE)
-        lineSet = self.solarSystemJumpLineSet
-        for toLocID, fromLocID in bridgesByLocation:
-            if not util.IsSolarSystem(toLocID) or not util.IsSolarSystem(fromLocID):
-                self.LogWarn("DrawAllianceJumpLines had entry that wasn't a solarsystem:", toLocID, fromLocID)
-                continue
-            toPos = self.GetKnownSolarSystem(toLocID).scaledCenter
-            fromPos = self.GetKnownSolarSystem(fromLocID).scaledCenter
-            worldUp = geo2.Vector(0.0, 1.0, 0.0)
-            linkVec = geo2.Vec3Subtract(toPos, fromPos)
-            normLinkVec = geo2.Vec3Normalize(linkVec)
-            rightVec = geo2.Vec3Cross(worldUp, normLinkVec)
-            upVec = geo2.Vec3Cross(rightVec, normLinkVec)
-            offsetVec = geo2.Vec3Scale(geo2.Vec3Normalize(upVec), geo2.Vec3Length(linkVec) * mapcommon.JUMPBRIDGE_CURVE_SCALE)
-            midPos = geo2.Vec3Scale(geo2.Vec3Add(toPos, fromPos), 0.5)
-            splinePos = geo2.Vec3Add(midPos, offsetVec)
-            lineID = lineSet.AddCurvedLineCrt(toPos, jumpBridgeColor, fromPos, jumpBridgeColor, splinePos, 2)
-            lineSet.ChangeLineAnimation(lineID, mapcommon.JUMPBRIDGE_COLOR, mapcommon.JUMPBRIDGE_ANIMATION_SPEED, 1)
-            info = util.KeyVal(lineID=lineID, toID=toLocID, toPos=toPos, toColor=jumpBridgeColor, fromID=fromLocID, fromPos=fromPos, fromColor=jumpBridgeColor)
-            self.allianceJumpLines.append(lineID)
-            self.currentLineColour[lineID] = (jumpBridgeColor, jumpBridgeColor)
-            self.jumpLineInfoByLineID[lineID] = info
-            self.curvedLineInfoByLineID[lineID] = (midPos, offsetVec)
+        else:
+            m = sm.RemoteSvc('map')
+            bridgesByLocation = m.GetAllianceJumpBridges()
+            jumpBridgeColor = ScaleColour(mapcommon.JUMPBRIDGE_COLOR, mapcommon.JUMPBRIDGE_COLOR_SCALE)
+            lineSet = self.solarSystemJumpLineSet
+            for toLocID, fromLocID in bridgesByLocation:
+                if not util.IsSolarSystem(toLocID) or not util.IsSolarSystem(fromLocID):
+                    self.LogWarn("DrawAllianceJumpLines had entry that wasn't a solarsystem:", toLocID, fromLocID)
+                    continue
+                toPos = self.GetKnownSolarSystem(toLocID).scaledCenter
+                fromPos = self.GetKnownSolarSystem(fromLocID).scaledCenter
+                worldUp = geo2.Vector(0.0, 1.0, 0.0)
+                linkVec = geo2.Vec3Subtract(toPos, fromPos)
+                normLinkVec = geo2.Vec3Normalize(linkVec)
+                rightVec = geo2.Vec3Cross(worldUp, normLinkVec)
+                upVec = geo2.Vec3Cross(rightVec, normLinkVec)
+                offsetVec = geo2.Vec3Scale(geo2.Vec3Normalize(upVec), geo2.Vec3Length(linkVec) * mapcommon.JUMPBRIDGE_CURVE_SCALE)
+                midPos = geo2.Vec3Scale(geo2.Vec3Add(toPos, fromPos), 0.5)
+                splinePos = geo2.Vec3Add(midPos, offsetVec)
+                lineID = lineSet.AddCurvedLineCrt(toPos, jumpBridgeColor, fromPos, jumpBridgeColor, splinePos, 2)
+                lineSet.ChangeLineAnimation(lineID, mapcommon.JUMPBRIDGE_COLOR, mapcommon.JUMPBRIDGE_ANIMATION_SPEED, 1)
+                info = util.KeyVal(lineID=lineID, toID=toLocID, toPos=toPos, toColor=jumpBridgeColor, fromID=fromLocID, fromPos=fromPos, fromColor=jumpBridgeColor)
+                self.allianceJumpLines.append(lineID)
+                self.currentLineColour[lineID] = (jumpBridgeColor, jumpBridgeColor)
+                self.jumpLineInfoByLineID[lineID] = info
+                self.curvedLineInfoByLineID[lineID] = (midPos, offsetVec)
 
-        lineSet.SubmitChanges()
+            lineSet.SubmitChanges()
+            return
 
     def GetHiliteItem(self, hiliteID):
         hiliteItem = None
@@ -1606,59 +1662,63 @@ class StarMapSvc(service.Service):
         return hiliteItem
 
     @telemetry.ZONE_METHOD
-    def UpdateLines(self, hiliteID = None, updateColor = False, showlines = None, hint = '', path = None):
+    def UpdateLines(self, hiliteID=None, updateColor=False, showlines=None, hint='', path=None):
         if not sm.GetService('viewState').IsViewActive('starmap'):
             return
-        if showlines is None:
-            showlines = GetUserUiSetting('showlines', SHOW_ALL)
-        showAllianceLines = GetUserUiSetting('map_alliance_jump_lines', 1)
-        interest = self.GetInterest()
-        if showlines == SHOW_NONE:
-            self.SetJumpLineAlpha(0.0)
         else:
-            if hiliteID is None:
-                hiliteID = interest.solarSystemID or interest.constellationID or interest.regionID
-            if showlines == SHOW_ALL:
-                self.SetJumpLineAlpha(0.5)
-            else:
+            if showlines is None:
+                showlines = GetUserUiSetting('showlines', SHOW_ALL)
+            showAllianceLines = GetUserUiSetting('map_alliance_jump_lines', 1)
+            interest = self.GetInterest()
+            if showlines == SHOW_NONE:
                 self.SetJumpLineAlpha(0.0)
-                if showlines > SHOW_SELECTION and not util.IsWormholeRegion(interest.regionID):
-                    regionsToShow = [interest.regionID]
-                    if showlines == SHOW_NEIGHBORS:
-                        regionsToShow = regionsToShow + self.GetKnownRegion(interest.regionID).neighbours
+            else:
+                if hiliteID is None:
+                    hiliteID = interest.solarSystemID or interest.constellationID or interest.regionID
+                if showlines == SHOW_ALL:
+                    self.SetJumpLineAlpha(0.5)
+                else:
                     self.SetJumpLineAlpha(0.0)
-                    regionIDs = self.map.ExpandItems(regionsToShow)
-                    lineIDs = self.GetLineIDsForSystemList(regionIDs)
-                    self.SetJumpLineAlpha(0.5, lineIDs)
-            if util.IsSolarSystem(hiliteID) and not util.IsWormholeSystem(hiliteID):
-                lineIDs = self.GetLineIDsForSystemID(hiliteID)
-                self.SetJumpLineAlpha(1.0, lineIDs)
-                lineIDs = self.GetLineIDsForSystemList(self.GetHiliteItem(hiliteID).neighbours)
-                self.SetJumpLineAlpha(0.6, lineIDs)
-            elif util.IsConstellation(hiliteID) and not util.IsWormholeConstellation(hiliteID):
-                lineIDs = self.GetLineIDsForSystemList(self.GetHiliteItem(hiliteID).solarSystemIDs)
-                self.SetJumpLineAlpha(1.0, lineIDs)
-            elif util.IsRegion(hiliteID) and not util.IsWormholeRegion(hiliteID):
-                lineIDs = self.GetLineIDsForSystemList(self.GetHiliteItem(hiliteID).solarSystemIDs)
-                self.SetJumpLineAlpha(1.0, lineIDs)
-        if updateColor:
-            self.UpdateLineColor()
-        self.SetJumpLineAlpha(1.0 if showAllianceLines else 0.0, self.allianceJumpLines)
-        if path:
-            self.ShowPath(path)
-        if self.genericRoutePath:
-            self.ShowPath(self.genericRoutePath)
-        self.ShowDestinationPath()
-        self.solarSystemJumpLineSet.SubmitChanges()
+                    if showlines > SHOW_SELECTION and not util.IsWormholeRegion(interest.regionID):
+                        regionsToShow = [interest.regionID]
+                        if showlines == SHOW_NEIGHBORS:
+                            regionsToShow = regionsToShow + self.GetKnownRegion(interest.regionID).neighbours
+                        self.SetJumpLineAlpha(0.0)
+                        regionIDs = self.map.ExpandItems(regionsToShow)
+                        lineIDs = self.GetLineIDsForSystemList(regionIDs)
+                        self.SetJumpLineAlpha(0.5, lineIDs)
+                if util.IsSolarSystem(hiliteID) and not util.IsWormholeSystem(hiliteID):
+                    lineIDs = self.GetLineIDsForSystemID(hiliteID)
+                    self.SetJumpLineAlpha(1.0, lineIDs)
+                    lineIDs = self.GetLineIDsForSystemList(self.GetHiliteItem(hiliteID).neighbours)
+                    self.SetJumpLineAlpha(0.6, lineIDs)
+                elif util.IsConstellation(hiliteID) and not util.IsWormholeConstellation(hiliteID):
+                    lineIDs = self.GetLineIDsForSystemList(self.GetHiliteItem(hiliteID).solarSystemIDs)
+                    self.SetJumpLineAlpha(1.0, lineIDs)
+                elif util.IsRegion(hiliteID) and not util.IsWormholeRegion(hiliteID):
+                    lineIDs = self.GetLineIDsForSystemList(self.GetHiliteItem(hiliteID).solarSystemIDs)
+                    self.SetJumpLineAlpha(1.0, lineIDs)
+            if updateColor:
+                self.UpdateLineColor()
+            self.SetJumpLineAlpha(1.0 if showAllianceLines else 0.0, self.allianceJumpLines)
+            if path:
+                self.ShowPath(path)
+            if self.genericRoutePath:
+                self.ShowPath(self.genericRoutePath)
+            self.ShowDestinationPath()
+            self.solarSystemJumpLineSet.SubmitChanges()
+            return
 
     @telemetry.ZONE_METHOD
-    def SetJumpLineAlpha(self, alpha, lineIDs = None):
+    def SetJumpLineAlpha(self, alpha, lineIDs=None):
         lineSet = self.solarSystemJumpLineSet
         if lineIDs is None:
             lineIDs = self.jumpLineInfoByLineID.iterkeys()
         for lineID in lineIDs:
             fromColor, toColor = self.currentLineColour[lineID]
             self.ChangeLineColor(lineSet, lineID, OverrideAlpha(fromColor, alpha), OverrideAlpha(toColor, alpha))
+
+        return
 
     @telemetry.ZONE_METHOD
     def ChangeLineColor(self, lineSet, lineID, fromColor, toColor):
@@ -1672,12 +1732,14 @@ class StarMapSvc(service.Service):
         lineSet.ChangeLineColor(lineID, newFromColor, newToColor)
 
     @telemetry.ZONE_METHOD
-    def SetJumpLineColor(self, color, lineIDs = None):
+    def SetJumpLineColor(self, color, lineIDs=None):
         lineSet = self.solarSystemJumpLineSet
         if lineIDs is None:
             lineIDs = self.jumpLineInfoByLineID.iterkeys()
         for lineID in lineIDs:
             self.ChangeLineColor(lineSet, lineID, color, color)
+
+        return
 
     @telemetry.ZONE_METHOD
     def SetJumpLineColors(self, lineIDs, fromColor, toColor):
@@ -1706,7 +1768,7 @@ class StarMapSvc(service.Service):
         self.ChangeLineColor(lineSet, lineID, fromColor, toColor)
 
     @telemetry.ZONE_METHOD
-    def SetStarParticleAlpha(self, alpha, particleIDs = None):
+    def SetStarParticleAlpha(self, alpha, particleIDs=None):
         particleSystem = self.starParticles
         if particleIDs is None:
             particleItemsIterator = enumerate(self.particleColors)
@@ -1715,8 +1777,10 @@ class StarMapSvc(service.Service):
         for key, color in particleItemsIterator:
             particleSystem.SetItemElement(key, 2, OverrideAlpha(color, alpha))
 
+        return
+
     @telemetry.ZONE_METHOD
-    def SetStarParticleColor(self, newColor, particleIDs = None):
+    def SetStarParticleColor(self, newColor, particleIDs=None):
         particleSystem = self.starParticles
         if particleIDs is None:
             particleItemsIterator = enumerate(self.particleColors)
@@ -1726,13 +1790,17 @@ class StarMapSvc(service.Service):
             c = OverrideColour(originalColor, newColor)
             particleSystem.SetItemElement(key, 2, c)
 
+        return
+
     @telemetry.ZONE_METHOD
-    def SetStarParticleSize(self, size, particleIDs = None):
+    def SetStarParticleSize(self, size, particleIDs=None):
         particleSystem = self.starParticles
         if particleIDs is None:
             particleIDs = xrange(len(self.particleColors))
         for id in particleIDs:
             particleSystem.SetItemElement(id, 1, size)
+
+        return
 
     @telemetry.ZONE_METHOD
     def UpdateLineColor(self):
@@ -1828,8 +1896,10 @@ class StarMapSvc(service.Service):
                     continue
                 self.SetColourGradientToLineBetweenSystems(fromID, toID, GetSystemColorBasedOnSecRating(fromID), GetSystemColorBasedOnSecRating(toID))
 
+        return
+
     @telemetry.ZONE_METHOD
-    def HighlightNeighborStars(self, solarSystemID = None):
+    def HighlightNeighborStars(self, solarSystemID=None):
         interest = self.GetInterest()
         if solarSystemID is None:
             solarSystemID = interest.solarSystemID
@@ -1845,6 +1915,7 @@ class StarMapSvc(service.Service):
             self.SetStarParticleAlpha(alpha, pointIDs)
 
         self.starParticles.UpdateData()
+        return
 
     def RegisterStarColorModes(self):
         self.starColorHandlers = {mapcommon.STARMODE_ASSETS: (localization.GetByLabel('UI/Map/StarMap/ShowAssets'), starModeHandler.ColorStarsByAssets),
@@ -1939,9 +2010,10 @@ class StarMapSvc(service.Service):
          mapcommon.STARMODE_INDUSTRY_INVENTION_COST_INDEX: (localization.GetByLabel('UI/Map/StarMap/IndustryCostModifer'), starModeHandler.ColorStarsByIndustryCostModifier, industry.INVENTION)}
         if session.role & ROLE_GML:
             self.starColorHandlers[mapcommon.STARMODE_INCURSIONGM] = (localization.GetByLabel('UI/Map/StarMap/IncursionsGm'), starModeHandler.ColorStarsByIncursionsGM)
+        return
 
     @telemetry.ZONE_METHOD
-    def SetStarColorMode(self, starColorMode = None):
+    def SetStarColorMode(self, starColorMode=None):
         if starColorMode is None:
             starColorMode = GetUserUiSetting('starscolorby', mapcommon.STARMODE_SECURITY)
         self.LogInfo('SetStarColorMode ', starColorMode)
@@ -1959,6 +2031,7 @@ class StarMapSvc(service.Service):
         blue.pyos.synchro.SleepWallclock(1)
         self.HighlightSolarSystems(colorInfo.solarSystemDict, colorInfo.colorList, colorInfo.overglowFactor)
         self.StopLoadingBar('set_star_color')
+        return
 
     def GetFacWarData(self):
         currentSystemVPs = sm.GetService('facwar').GetCurrentSystemVictoryPoints()
@@ -1995,7 +2068,7 @@ class StarMapSvc(service.Service):
         return colorCurve.GetColorAt(long(const.SEC * time))
 
     @telemetry.ZONE_METHOD
-    def HighlightSolarSystems(self, solarSystemDict, colorList = None, overglowFactor = 0.0):
+    def HighlightSolarSystems(self, solarSystemDict, colorList=None, overglowFactor=0.0):
         self.starData = {}
         colorCurve = self.GetColorCurve(colorList or self.GetDefaultColorList())
         self.overglowFactor.value = overglowFactor
@@ -2029,12 +2102,13 @@ class StarMapSvc(service.Service):
 
         self.starParticles.UpdateData()
         self.mapStars.display = 1
+        return
 
     def GetDefaultColorList(self):
         return [trinity.TriColor(1.0, 0.0, 0.0), trinity.TriColor(1.0, 1.0, 0.0), trinity.TriColor(0.0, 1.0, 0.0)]
 
     @telemetry.ZONE_METHOD
-    def HighlightSolarSystemsBulk(self, solarSystemList, size, colorList = None):
+    def HighlightSolarSystemsBulk(self, solarSystemList, size, colorList=None):
         self.starData = {}
         if colorList is None:
             colorList = (1.0, 0.0, 0.0)
@@ -2052,11 +2126,12 @@ class StarMapSvc(service.Service):
         self.SetStarParticleColor(colorList, particles2highlight)
         self.starParticles.UpdateData()
         self.mapStars.display = 1
+        return
 
     def GetRegionLabel(self, labelID):
         return self.regionLabels[labelID]
 
-    def GetRouteType(self, label = False):
+    def GetRouteType(self, label=False):
         pfRouteType = GetUserUiSetting('pfRouteType', 'safe')
         if label:
             return {'shortest': localization.GetByLabel('UI/Map/StarMap/Shortest'),
@@ -2080,7 +2155,7 @@ class StarMapSvc(service.Service):
         self.SetWaypoint(solarSystemID, clearOtherWaypoints, first)
 
     @telemetry.ZONE_METHOD
-    def SetWaypoint(self, destinationID, clearOtherWaypoints = False, first = False):
+    def SetWaypoint(self, destinationID, clearOtherWaypoints=False, first=False):
         waypoints = self.GetWaypoints()
         if destinationID in waypoints:
             eve.Message('WaypointAlreadySet')
@@ -2116,7 +2191,7 @@ class StarMapSvc(service.Service):
         return GetCharUiSetting('autopilot_waypoints', [])
 
     @telemetry.ZONE_METHOD
-    def ClearWaypoints(self, locationID = None):
+    def ClearWaypoints(self, locationID=None):
         self.LogInfo('Map: ClearWaypoints')
         if locationID is not None:
             waypoints = self.GetWaypoints()
@@ -2138,9 +2213,10 @@ class StarMapSvc(service.Service):
             self.UpdateLines(hint='ClearWaypoints', updateColor=True)
             self.ShowDestination()
             self.CheckAllLabels('ClearWaypoints')
+        return
 
     @telemetry.ZONE_METHOD
-    def GetRouteFromWaypoints(self, waypoints, startSystem = None):
+    def GetRouteFromWaypoints(self, waypoints, startSystem=None):
         if startSystem is None:
             startSystem = session.solarsystemid2
         if IsWormholeSystem(startSystem):
@@ -2149,9 +2225,10 @@ class StarMapSvc(service.Service):
             fullWaypointList = [startSystem] + waypoints
         if len(fullWaypointList) <= 1:
             return fullWaypointList
-        self.LogInfo('Calling pathfinder with waypoint list', str(waypoints))
-        destinationPath = self.clientPathfinderService.GetWaypointPath(fullWaypointList)
-        return destinationPath or []
+        else:
+            self.LogInfo('Calling pathfinder with waypoint list', str(waypoints))
+            destinationPath = self.clientPathfinderService.GetWaypointPath(fullWaypointList)
+            return destinationPath or []
 
     @telemetry.ZONE_METHOD
     def GetRouteBetween(self, fromID, toID):
@@ -2160,7 +2237,7 @@ class StarMapSvc(service.Service):
         return route or []
 
     @telemetry.ZONE_METHOD
-    def UpdateRoute(self, updateLabels = 1, fakeUpdate = 0, autopilotSaysRouteDone = False):
+    def UpdateRoute(self, updateLabels=1, fakeUpdate=0, autopilotSaysRouteDone=False):
         if not updateLabels:
             if getattr(self, 'doingRouteUpdate', 0) == 1:
                 return
@@ -2190,48 +2267,51 @@ class StarMapSvc(service.Service):
             self.LogInfo('UpdateRoute done no wp')
             self.doingRouteUpdate = 0
             return
-        if not fakeUpdate or not hasattr(self, 'destinationPath') or self.destinationPath[0] != session.solarsystemid:
-            self.LogInfo('Getting route from waypoints')
-            destinationPath = self.GetRouteFromWaypoints(waypoints)
         else:
-            destinationPath = self.destinationPath[1:]
-        if not len(destinationPath):
-            if len(self.destinationPath) and (util.IsSolarSystem(self.destinationPath[0]) or self.destinationPath[0] is None or autopilotSaysRouteDone):
-                self.destinationPath = [None]
-                if self.viewState.IsViewActive('starmap'):
-                    self.UpdateLines(hint='UpdateRoute2')
-                self.ShowDestination()
-                sm.ScatterEvent('OnDestinationSet', None)
-                self.LogInfo('UpdateRoute done no route to wp')
-                self.doingRouteUpdate = 0
-                return
-            destinationPath = self.destinationPath
-        self.destinationPath = destinationPath
-        if self.destinationPath[0] == session.solarsystemid2:
-            self.LogWarn('self destination path 0 is own solarsystem, picking next node instead. Path: ', self.destinationPath)
-            self.destinationPath = self.destinationPath[1:]
-            if not len(self.destinationPath):
-                self.destinationPath = [None]
-        if self.viewState.IsViewActive('starmap'):
+            if not fakeUpdate or not hasattr(self, 'destinationPath') or self.destinationPath[0] != session.solarsystemid:
+                self.LogInfo('Getting route from waypoints')
+                destinationPath = self.GetRouteFromWaypoints(waypoints)
+            else:
+                destinationPath = self.destinationPath[1:]
+            if not len(destinationPath):
+                if len(self.destinationPath) and (util.IsSolarSystem(self.destinationPath[0]) or self.destinationPath[0] is None or autopilotSaysRouteDone):
+                    self.destinationPath = [None]
+                    if self.viewState.IsViewActive('starmap'):
+                        self.UpdateLines(hint='UpdateRoute2')
+                    self.ShowDestination()
+                    sm.ScatterEvent('OnDestinationSet', None)
+                    self.LogInfo('UpdateRoute done no route to wp')
+                    self.doingRouteUpdate = 0
+                    return
+                destinationPath = self.destinationPath
+            self.destinationPath = destinationPath
+            if self.destinationPath[0] == session.solarsystemid2:
+                self.LogWarn('self destination path 0 is own solarsystem, picking next node instead. Path: ', self.destinationPath)
+                self.destinationPath = self.destinationPath[1:]
+                if not len(self.destinationPath):
+                    self.destinationPath = [None]
+            if self.viewState.IsViewActive('starmap'):
+                if updateLabels:
+                    route = MapRoute()
+                    pathOnlySolarSystems = [ locationID for locationID in destinationPath if util.IsSolarSystem(locationID) ]
+                    route.DrawRoute([session.solarsystemid2] + pathOnlySolarSystems, flattened=self.flattened, rotationQuaternion=self.GetCurrentStarmapRotation())
+                    self.autoPilotRoute = route
+                    scene = self.sceneManager.GetRegisteredScene('starmap')
+                    scene.objects.append(route.model)
+                    self.ShowDestination()
+                    self.CheckAllLabels('UpdateRoute')
+                self.UpdateLines(hint='UpdateRoute3', updateColor=True)
             if updateLabels:
-                route = MapRoute()
-                pathOnlySolarSystems = [ locationID for locationID in destinationPath if util.IsSolarSystem(locationID) ]
-                route.DrawRoute([session.solarsystemid2] + pathOnlySolarSystems, flattened=self.flattened, rotationQuaternion=self.GetCurrentStarmapRotation())
-                self.autoPilotRoute = route
-                scene = self.sceneManager.GetRegisteredScene('starmap')
-                scene.objects.append(route.model)
-                self.ShowDestination()
-                self.CheckAllLabels('UpdateRoute')
-            self.UpdateLines(hint='UpdateRoute3', updateColor=True)
-        if updateLabels:
-            sm.ScatterEvent('OnDestinationSet', self.destinationPath[0])
-        self.LogInfo('UpdateRoute done')
-        self.doingRouteUpdate = 0
+                sm.ScatterEvent('OnDestinationSet', self.destinationPath[0])
+            self.LogInfo('UpdateRoute done')
+            self.doingRouteUpdate = 0
+            return
 
     def GetCurrentStarmapRotation(self):
         if len(self.mapRoot.rotationCurve.keys) > 0:
             return self.mapRoot.rotationCurve.keys[-1].value
         else:
+            return None
             return None
 
     @telemetry.ZONE_METHOD
@@ -2244,7 +2324,7 @@ class StarMapSvc(service.Service):
         self.UpdateHexMap()
 
     @telemetry.ZONE_METHOD
-    def UpdateHexMap(self, isFlat = None):
+    def UpdateHexMap(self, isFlat=None):
         showHexMap = GetUserUiSetting('map_tile_no_tiles', 1) == 0
         showUnflattened = GetUserUiSetting('map_tile_show_unflattened', 0)
         self.tileLegend = []
@@ -2264,6 +2344,7 @@ class StarMapSvc(service.Service):
             self.tileLegend = self.hexMap.legend
         else:
             self.hexMap.Enable(False)
+        return
 
     def HighlightTiles(self, dataList, colorList):
         self.hexMap.HighlightTiles(dataList, colorList)
@@ -2285,8 +2366,10 @@ class StarMapSvc(service.Service):
                     del self.labels[labelID]
             self.AddLabel(labelID)
 
+        return
+
     @telemetry.ZONE_METHOD
-    def ClearLabels(self, labelids = 'all'):
+    def ClearLabels(self, labelids='all'):
         labels = getattr(self, 'labels', {})
         if labelids == 'all':
             labelids = labels.keys()
@@ -2298,6 +2381,8 @@ class StarMapSvc(service.Service):
                 del labels[labelID]
             if self.labeltrackers[labelID] in self.labeltrackersTF.children:
                 self.labeltrackersTF.children.remove(self.labeltrackers[labelID])
+
+        return
 
     def AddLabel(self, itemID):
         if itemID > 0:
@@ -2315,12 +2400,14 @@ class StarMapSvc(service.Service):
             typeID = const.typeMapLandmark
         if not itemName:
             return
-        label = MapLabel(parent=uicore.layer.starmap, name=itemName, align=uiconst.NOALIGN, state=uiconst.UI_PICKCHILDREN, dock=False, width=300, height=32)
-        label.Startup(itemName, itemID, typeID, tracker, None)
-        self.labels[itemID] = label
+        else:
+            label = MapLabel(parent=uicore.layer.starmap, name=itemName, align=uiconst.NOALIGN, state=uiconst.UI_PICKCHILDREN, dock=False, width=300, height=32)
+            label.Startup(itemName, itemID, typeID, tracker, None)
+            self.labels[itemID] = label
+            return
 
     @telemetry.ZONE_METHOD
-    def AddTracker(self, name, itemID, x = 0.0, y = 0.0, z = 0.0, factor = None):
+    def AddTracker(self, name, itemID, x=0.0, y=0.0, z=0.0, factor=None):
         if itemID in self.labeltrackers and self.labeltrackers[itemID] not in self.labeltrackersTF.children:
             self.labeltrackersTF.children.append(self.labeltrackers[itemID])
             return self.labeltrackers[itemID]
@@ -2335,15 +2422,18 @@ class StarMapSvc(service.Service):
         if getattr(self, 'loadingBarActive', None) is None:
             self.loading.ProgressWnd(tile, action, 0, total)
             self.loadingBarActive = key
+        return
 
     def UpdateLoadingBar(self, key, tile, action, part, total):
         if getattr(self, 'loadingBarActive', None) == key:
             self.loading.ProgressWnd(tile, action, part, total)
+        return
 
     def StopLoadingBar(self, key):
         if getattr(self, 'loadingBarActive', None) == key:
             self.loading.StopCycle()
             self.loadingBarActive = None
+        return
 
     def _IsInWormholeSystemWithInsufficientWaypoints(self):
         return util.IsWormholeSystem(session.solarsystemid2) and len(self.destinationPath) == 1
@@ -2353,6 +2443,7 @@ class StarMapSvc(service.Service):
             return
         else:
             return self.destinationPath[:]
+            return
 
     def OnAutopilotUpdated(self):
         self.UpdateRoute()
@@ -2361,8 +2452,9 @@ class StarMapSvc(service.Service):
         self.MOD_landmarks = []
         self.MOD_showLandmarks = 0
         self.MOD_selectedLandmark = None
+        return
 
-    def LM_DownloadLandmarks(self, filterNo = None):
+    def LM_DownloadLandmarks(self, filterNo=None):
         self.LM_ClearLandmarks()
         landmarks = sm.RemoteSvc('config').GetMapLandmarks()
         for landmark in landmarks:
@@ -2399,6 +2491,7 @@ class StarMapSvc(service.Service):
         self.MOD_landmarks = []
         self.MOD_selectedLandmark = None
         del self.landmarkTF.children[:]
+        return
 
 
 class LandMarkIdentifier(decometaclass.WrapBlueClass('trinity.EveTransform')):
@@ -2418,6 +2511,7 @@ class LandMarkIdentifier(decometaclass.WrapBlueClass('trinity.EveTransform')):
         sphere.children[0].scaling = (2.0, 2.0, 2.0)
         self.children.append(sphere)
         self.frustrumCull = 0
+        return
 
     def UpdateRadius(self):
         rad = max(80.0, self.radius)

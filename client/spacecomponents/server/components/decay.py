@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\packages\spacecomponents\server\components\decay.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\packages\spacecomponents\server\components\decay.py
 import logging
 from carbon.common.lib import const
 from eve.common.script.mgt.appLogConst import eventSpaceComponentDecayed
@@ -27,6 +28,7 @@ class Decay(object):
         componentRegistry.SubscribeToItemMessage(self.itemID, 'OnAddedToSpace', self.OnAddedToSpace)
         componentRegistry.SubscribeToItemMessage(self.itemID, 'OnRemovedFromSpace', self.OnRemovedFromSpace)
         componentRegistry.SubscribeToItemMessage(self.itemID, MSG_ON_PLAYER_INTERACTION, self.OnPlayerInteraction)
+        return
 
     def OnAddedToSpace(self, ballpark, spaceComponentDB):
         logger.debug('Decay.OnAddedToSpace %d', self.itemID)
@@ -46,6 +48,7 @@ class Decay(object):
         logger.debug('Decay.OnRemovedFromSpace %d', self.itemID)
         self.decayTimestamp = None
         spaceComponentDB.DecayStates_Delete(self.itemID)
+        return
 
     def OnPlayerInteraction(self):
         logger.debug('Decay.OnPlayerInteraction %d', self.itemID)
@@ -83,6 +86,7 @@ class Decay(object):
         item = self.ballpark.inventory2.GetItem(self.itemID)
         self.eventLogger.LogDecayed(item)
         self.ballpark.dbLog.LogItemGenericEvent(None, eventSpaceComponentDecayed, self.itemID, referenceID=self.ballpark.solarsystemID, int_1=self.typeID)
+        return
 
     def HandleSlashCommand(self, action, ballpark, spaceComponentDB):
         logger.debug('Decay.HandleSlashCommand %d %s', self.itemID, action)
@@ -140,6 +144,7 @@ def PersistToDB(component, spaceComponentDB):
         decayTimestampWallclock = SimTimeToWallclockTime(component.decayTimestamp, simTimeNow, wallclockTimeNow)
     logger.debug('Decay.PersistToDB %d, %s', component.itemID, decayTimestampWallclock)
     spaceComponentDB.DecayStates_Update(component.itemID, decayTimestampWallclock)
+    return
 
 
 def HandleSlashCommand(itemID, action, ballpark, componentRegistry, spaceComponentDB):

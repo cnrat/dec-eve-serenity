@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\client\script\ui\services\redeemsvc.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\client\script\ui\services\redeemsvc.py
 import evetypes
 import service
 from eve.client.script.ui.control import entries as listentry
@@ -21,12 +22,13 @@ class RedeemService(service.Service):
     def __init__(self):
         service.Service.__init__(self)
         self.tokens = None
+        return
 
     def Run(self, *args):
         service.Service.Run(self, *args)
         self.GetRedeemTokens()
 
-    def GetRedeemTokens(self, force = False):
+    def GetRedeemTokens(self, force=False):
         if self.tokens is None or force:
             self.tokens = sm.RemoteSvc('userSvc').GetRedeemTokens()
         return self.tokens
@@ -50,6 +52,7 @@ class RedeemService(service.Service):
             wnd.left -= 160
         if wnd is not None and not wnd.destroyed:
             wnd.Maximize()
+        return
 
     def CloseRedeemWindow(self):
         RedeemWindow.CloseIfOpen()
@@ -174,6 +177,7 @@ class RedeemWindow(uicontrols.Window):
                 dWidth, dHeight = uicontrols.EveLabelMedium.MeasureTextSize(util.FmtDate(blue.os.GetWallclockTime(), 'ln'))
                 self.sr.itemsScroll.sr.fixedColumns = {localization.GetByLabel('UI/Common/Expires'): dWidth + 16}
             self.sr.itemsScroll.Load(contentList=scrollList, headers=headers)
+        return
 
     def ProcessToken(self, token):
         description = token.description or (localization.GetByLabel(token.label) if token.label else '')
@@ -182,28 +186,29 @@ class RedeemWindow(uicontrols.Window):
             msg = localization.GetByLabel('UI/RedeemWindow/UnknownType') + '<t>%d<t>%s' % (quantity, description)
             log.LogWarn("A Token was found that we don't know about", token.typeID, 'ignoring it for now! Coming Soon(tm)')
             return listentry.Get('Generic', {'label': msg})
-        if token.expireDateTime:
-            description = '%s<t>%s' % (description, localization.GetByLabel('UI/RedeemWindow/RedeemExpires', expires=token.expireDateTime).replace('<br>', ''))
-        if token.stationID:
-            description = localization.GetByLabel('UI/RedeemWindow/RedeemableTo', desc=description, station=token.stationID)
-            selectedTokenStation = token.stationID
         else:
-            selectedTokenStation = self.stationID
-        self.selectedTokens[token.tokenID, token.massTokenID] = selectedTokenStation
-        quantity *= evetypes.GetPortionSize(token.typeID)
-        label = '%s<t>%s<t>%s' % (evetypes.GetName(token.typeID), quantity, description)
-        return listentry.Get('RedeemToken', {'itemID': None,
-         'tokenID': token.tokenID,
-         'massTokenID': token.massTokenID,
-         'info': token,
-         'typeID': token.typeID,
-         'stationID': token.stationID,
-         'label': label,
-         'quantity': quantity,
-         'getIcon': 1,
-         'retval': (token.tokenID, token.massTokenID, selectedTokenStation),
-         'OnChange': self.OnTokenChange,
-         'checked': True})
+            if token.expireDateTime:
+                description = '%s<t>%s' % (description, localization.GetByLabel('UI/RedeemWindow/RedeemExpires', expires=token.expireDateTime).replace('<br>', ''))
+            if token.stationID:
+                description = localization.GetByLabel('UI/RedeemWindow/RedeemableTo', desc=description, station=token.stationID)
+                selectedTokenStation = token.stationID
+            else:
+                selectedTokenStation = self.stationID
+            self.selectedTokens[token.tokenID, token.massTokenID] = selectedTokenStation
+            quantity *= evetypes.GetPortionSize(token.typeID)
+            label = '%s<t>%s<t>%s' % (evetypes.GetName(token.typeID), quantity, description)
+            return listentry.Get('RedeemToken', {'itemID': None,
+             'tokenID': token.tokenID,
+             'massTokenID': token.massTokenID,
+             'info': token,
+             'typeID': token.typeID,
+             'stationID': token.stationID,
+             'label': label,
+             'quantity': quantity,
+             'getIcon': 1,
+             'retval': (token.tokenID, token.massTokenID, selectedTokenStation),
+             'OnChange': self.OnTokenChange,
+             'checked': True})
 
     def OnRedeemingTokensUpdated(self):
         self.UpdateRedeemingWindowContent()
@@ -213,21 +218,23 @@ class RedeemWindow(uicontrols.Window):
             raise UserError('RedeemOnlyInStation')
         if not len(self.selectedTokens.keys()):
             return
-        if self.IsMultipleStations():
-            stations = ''
-            for stationID in set(self.selectedTokens.values()):
-                stations += '%s<br>' % cfg.evelocations.Get(stationID).name
-
-            if eve.Message('RedeemConfirmClaimMultiple', {'char': self.charID,
-             'stations': stations}, uiconst.YESNO, default=uiconst.ID_NO) != uiconst.ID_YES:
-                return
         else:
-            redeemStation = self.selectedTokens.values()[0]
-            if eve.Message('RedeemConfirmClaim', {'char': self.charID,
-             'station': redeemStation}, uiconst.YESNO, default=uiconst.ID_NO) != uiconst.ID_YES:
-                return
-        sm.StartService('redeem').ClaimRedeemTokens(self.selectedTokens.keys(), self.charID)
-        self.Close()
+            if self.IsMultipleStations():
+                stations = ''
+                for stationID in set(self.selectedTokens.values()):
+                    stations += '%s<br>' % cfg.evelocations.Get(stationID).name
+
+                if eve.Message('RedeemConfirmClaimMultiple', {'char': self.charID,
+                 'stations': stations}, uiconst.YESNO, default=uiconst.ID_NO) != uiconst.ID_YES:
+                    return
+            else:
+                redeemStation = self.selectedTokens.values()[0]
+                if eve.Message('RedeemConfirmClaim', {'char': self.charID,
+                 'station': redeemStation}, uiconst.YESNO, default=uiconst.ID_NO) != uiconst.ID_YES:
+                    return
+            sm.StartService('redeem').ClaimRedeemTokens(self.selectedTokens.keys(), self.charID)
+            self.Close()
+            return
 
     def OnTokenChange(self, checkbox, *args):
         tokenID, massTokenID, stationID = checkbox.data['retval']
@@ -260,6 +267,7 @@ class RedeemWindow(uicontrols.Window):
             self.sr.redeemBtn.state = uiconst.UI_DISABLED
         if hasattr(self, 'redeemToLabel'):
             self.redeemToLabel.text = text
+        return
 
     def IsMultipleStations(self):
         return len(set(self.selectedTokens.values())) > 1
@@ -273,6 +281,7 @@ class RedeemToken(listentry.Item):
         listentry.Item.ApplyAttributes(self, attributes)
         self.sr.overlay = uiprimitives.Container(name='overlay', align=uiconst.TOPLEFT, parent=self, height=1)
         self.sr.tlicon = None
+        return
 
     def Startup(self, *args):
         listentry.Item.Startup(self, args)
@@ -280,6 +289,7 @@ class RedeemToken(listentry.Item):
         cbox.data = {}
         self.sr.checkbox = cbox
         self.sr.checkbox.state = uiconst.UI_NORMAL
+        return
 
     def Load(self, args):
         listentry.Item.Load(self, args)
@@ -309,6 +319,7 @@ class RedeemToken(listentry.Item):
         isIt = not self.sr.checkbox.checked
         self.sr.checkbox.SetChecked(isIt)
         self.sr.node.scroll.sr.lastSelected = idx
+        return
 
     def GetMenu(self):
         return [(uiutil.MenuLabel('UI/Commands/ShowInfo'), self.ShowInfo, (self.sr.node,))]
@@ -320,7 +331,7 @@ class RedeemToken(listentry.Item):
 
 class RedeemingNotification(Notification):
 
-    def __init__(self, tokens, created = None):
+    def __init__(self, tokens, created=None):
         created = created or blue.os.GetWallclockTime()
         super(RedeemingNotification, self).__init__(notificationID=-1, typeID=notificationTypeNewRedeemableItem, senderID=None, receiverID=None, processed=False, created=created, data=None)
         numTokens = len(tokens)
@@ -329,6 +340,7 @@ class RedeemingNotification(Notification):
             token = tokens[0]
             quantity = token.quantity * evetypes.GetPortionSize(token.typeID)
             self.subtext = localization.GetByLabel('UI/Contracts/ContractsWindow/TypeNameWithQuantity', typeID=token.typeID, quantity=quantity)
+        return
 
     def Activate(self):
         sm.GetService('redeem').OpenRedeemWindow()

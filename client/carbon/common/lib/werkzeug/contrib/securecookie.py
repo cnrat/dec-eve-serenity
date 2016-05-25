@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\carbon\common\lib\werkzeug\contrib\securecookie.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\carbon\common\lib\werkzeug\contrib\securecookie.py
 import sys
 import cPickle as pickle
 from hmac import new as hmac
@@ -26,12 +27,13 @@ class SecureCookie(ModificationTrackingDict):
     serialization_method = pickle
     quote_base64 = True
 
-    def __init__(self, data = None, secret_key = None, new = True):
+    def __init__(self, data=None, secret_key=None, new=True):
         ModificationTrackingDict.__init__(self, data or ())
         if secret_key is not None:
             secret_key = str(secret_key)
         self.secret_key = secret_key
         self.new = new
+        return
 
     def __repr__(self):
         return '<%s %s%s>' % (self.__class__.__name__, dict.__repr__(self), self.should_save and '*' or '')
@@ -59,7 +61,9 @@ class SecureCookie(ModificationTrackingDict):
         except:
             raise UnquoteError()
 
-    def serialize(self, expires = None):
+        return
+
+    def serialize(self, expires=None):
         if self.secret_key is None:
             raise RuntimeError('no secret key defined')
         if expires:
@@ -121,13 +125,13 @@ class SecureCookie(ModificationTrackingDict):
         return cls(items, secret_key, False)
 
     @classmethod
-    def load_cookie(cls, request, key = 'session', secret_key = None):
+    def load_cookie(cls, request, key='session', secret_key=None):
         data = request.cookies.get(key)
         if not data:
             return cls(secret_key=secret_key)
         return cls.unserialize(data, secret_key)
 
-    def save_cookie(self, response, key = 'session', expires = None, session_expires = None, max_age = None, path = '/', domain = None, secure = None, httponly = False, force = False):
+    def save_cookie(self, response, key='session', expires=None, session_expires=None, max_age=None, path='/', domain=None, secure=None, httponly=False, force=False):
         if force or self.should_save:
             data = self.serialize(session_expires or expires)
             response.set_cookie(key, data, expires=expires, max_age=max_age, path=path, domain=domain, secure=secure, httponly=httponly)

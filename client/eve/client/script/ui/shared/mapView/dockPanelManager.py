@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\client\script\ui\shared\mapView\dockPanelManager.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\client\script\ui\shared\mapView\dockPanelManager.py
 from eve.client.script.ui.shared.mapView.dockPanelConst import ALL_PANELS
 from eve.client.script.ui.shared.mapView.dockPanelUtil import RegisterPanelSettings
 from eve.client.script.ui.view.viewStateConst import ViewState
@@ -25,6 +26,8 @@ class DockablePanelManager(object):
         panel = self.panels.get(panelID, None)
         if panel and not panel.destroyed:
             return panel
+        else:
+            return
 
     def GetPanels(self):
         return self.panels
@@ -69,6 +72,7 @@ class DockablePanelManager(object):
             sm.GetService('sceneManager').SetCameraOffsetOverride(-100 + int(200 * viewCenterProportion))
         else:
             sm.GetService('sceneManager').SetCameraOffsetOverride(None)
+        return
 
     def OnSetDevice(self, *args, **kwds):
         for panel in self.panels.values():

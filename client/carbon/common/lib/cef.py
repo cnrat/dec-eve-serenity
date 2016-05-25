@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\carbon\common\lib\cef.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\carbon\common\lib\cef.py
 SCHEMA = 'zentity'
 _PREFIX = 'zentity.'
 INGREDIENT_INITS_TABLE_FULL_NAME = _PREFIX + 'ingredientInitialValues'

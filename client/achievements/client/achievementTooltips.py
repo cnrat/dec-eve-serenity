@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\packages\achievements\client\achievementTooltips.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\packages\achievements\client\achievementTooltips.py
 from carbonui.primitives.container import Container
 from carbonui.primitives.sprite import Sprite
 from eve.client.script.ui.control.eveLabel import EveLabelSmall, EveLabelMediumBold, EveLabelMedium, Label
@@ -40,6 +41,7 @@ class ExtraInfoEntry(Container):
         iconColor = info.get('color', None)
         if iconColor:
             self.icon.SetRGB(*iconColor)
+        return
 
     def UpdateAlignment(self, *args, **kwds):
         retVal = Container.UpdateAlignment(self, *args, **kwds)

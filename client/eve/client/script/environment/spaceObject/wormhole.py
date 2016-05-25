@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\client\script\environment\spaceObject\wormhole.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\client\script\environment\spaceObject\wormhole.py
 import blue
 import uthread
 import eve.common.lib.appConst as const
@@ -17,8 +18,9 @@ class Wormhole(SpaceObject):
         self.targetNebulaPath = None
         self.wormholeSize = 1.0
         self.wormholeAge = 1
+        return
 
-    def Release(self, origin = None):
+    def Release(self, origin=None):
         SpaceObject.Release(self)
 
     def OnSlimItemUpdated(self, newItem):
@@ -40,38 +42,42 @@ class Wormhole(SpaceObject):
         blue.pyos.synchro.SleepSim(1000)
         if self.model is None:
             return
-        i = 0
-        time = 2000.0
-        start, ndt = blue.os.GetSimTime(), 0.0
-        while ndt < 1.0:
-            ndt = max(ndt, min(blue.os.TimeDiffInMs(start, blue.os.GetSimTime()) / time, 1.0))
-            val = Lerp(self.wormholeSize, newSize, ndt)
-            sz = val
-            self.model.scaling = (sz, sz, sz)
-            blue.pyos.synchro.Yield()
-            i += 1
-            if self.model is None:
-                return
+        else:
+            i = 0
+            time = 2000.0
+            start, ndt = blue.os.GetSimTime(), 0.0
+            while ndt < 1.0:
+                ndt = max(ndt, min(blue.os.TimeDiffInMs(start, blue.os.GetSimTime()) / time, 1.0))
+                val = Lerp(self.wormholeSize, newSize, ndt)
+                sz = val
+                self.model.scaling = (sz, sz, sz)
+                blue.pyos.synchro.Yield()
+                i += 1
+                if self.model is None:
+                    return
 
-        self.wormholeSize = newSize
-        blue.pyos.synchro.SleepSim(2000)
-        self.SetWobbleSpeed()
+            self.wormholeSize = newSize
+            blue.pyos.synchro.SleepSim(2000)
+            self.SetWobbleSpeed()
+            return
 
-    def SetWobbleSpeed(self, spd = None):
+    def SetWobbleSpeed(self, spd=None):
         if self.model is None:
             return
-        curve = self.FindCurveSet('Wobble')
-        slimItem = self.typeData.get('slimItem')
-        if curve is None or slimItem is None:
+        else:
+            curve = self.FindCurveSet('Wobble')
+            slimItem = self.typeData.get('slimItem')
+            if curve is None or slimItem is None:
+                return
+            defaultWobble = 1.0
+            if slimItem.wormholeAge == 2:
+                defaultWobble += 4.0
+            elif slimItem.wormholeAge == 1:
+                defaultWobble += 1.0
+            spd = spd or defaultWobble
+            self.LogInfo('Setting Wobble speed to', spd)
+            curve.scale = spd
             return
-        defaultWobble = 1.0
-        if slimItem.wormholeAge == 2:
-            defaultWobble += 4.0
-        elif slimItem.wormholeAge == 1:
-            defaultWobble += 1.0
-        spd = spd or defaultWobble
-        self.LogInfo('Setting Wobble speed to', spd)
-        curve.scale = spd
 
     def Assemble(self):
         slimItem = self.typeData.get('slimItem')
@@ -103,18 +109,22 @@ class Wormhole(SpaceObject):
     def FindCurveSet(self, name):
         if self.model is None:
             return
-        for b in self.model.Find('trinity.TriCurveSet'):
-            if b.name == name:
-                return b
+        else:
+            for b in self.model.Find('trinity.TriCurveSet'):
+                if b.name == name:
+                    return b
+
+            return
 
     def Explode(self):
         if self.exploded:
             return False
-        self.exploded = True
-        if self.model is None:
-            return False
-        uthread.worker('wormhole:PlayDeath', self.PlayDeath)
-        return 4000
+        else:
+            self.exploded = True
+            if self.model is None:
+                return False
+            uthread.worker('wormhole:PlayDeath', self.PlayDeath)
+            return 4000
 
     def PlayDeath(self):
         self.PlaySound('worldobject_wormhole_collapse_play')

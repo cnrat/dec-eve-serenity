@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\client\script\ui\login\charSelection\characterSelectionColors.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\client\script\ui\login\charSelection\characterSelectionColors.py
 from carbonui.util.color import GetColor
 BASECOLOR1 = (118 / 255.0, 163 / 255.0, 255 / 255.0)
 BASECOLOR2 = (255 / 255.0, 149 / 255.0, 0 / 255.0)

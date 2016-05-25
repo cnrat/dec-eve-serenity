@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\devtools\script\svc_typebrowser.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\devtools\script\svc_typebrowser.py
 import blue
 import evetypes
 import uix
@@ -58,42 +59,44 @@ class TypeBrowser(Service):
         if wnd:
             self.wnd.Maximize()
             return
-        self.wnd = wnd = uicontrols.Window.Open(windowID='typedb')
-        wnd.SetWndIcon(None)
-        wnd.SetMinSize([350, 270])
-        wnd.SetTopparentHeight(0)
-        wnd.SetCaption('Type Browser')
-        mainpar = uiutil.GetChild(wnd, 'main')
-        wnd.sr.tabs = uicontrols.TabGroup(name='tabsparent', parent=mainpar)
-        main = uiprimitives.Container(name='main', parent=mainpar, padding=(const.defaultPadding,
-         const.defaultPadding,
-         const.defaultPadding,
-         const.defaultPadding))
-        body = uiprimitives.Container(name='body', parent=main, align=uiconst.TOALL, pos=(0, 0, 0, 0))
-        wnd.sr.browser = uicontrols.Scroll(name='scroll', parent=body, pos=(0, 0, 0, 0))
-        wnd.sr.browser.multiSelect = False
-        wnd.sr.browser.Startup()
-        searchParent = uiprimitives.Container(name='search', parent=body, align=uiconst.TOALL, pos=(0, 0, 0, 0))
-        searchTop = uiprimitives.Container(name='search', parent=searchParent, height=25, align=uiconst.TOTOP)
-        btn = uicontrols.Button(parent=searchTop, label='Search', func=self.Search, align=uiconst.TORIGHT)
-        wnd.sr.input = uicontrols.SinglelineEdit(name='Search', parent=searchTop, width=-1, left=1, align=uiconst.TOALL)
-        uiprimitives.Container(name='div', parent=searchParent, height=5, align=uiconst.TOTOP)
-        wnd.sr.input.OnReturn = self.Search
-        wnd.sr.scroll = uicontrols.Scroll(parent=searchParent)
-        wnd.sr.scroll.multiSelect = False
-        wnd.sr.tabs.Startup([['Browse',
-          wnd.sr.browser,
-          self,
-          0], ['Search',
-          searchParent,
-          self,
-          1]], 'typebrowsertabs')
-        self.Search()
-        stuff = self.GetContent(None, False)
-        wnd.sr.browser.Load(contentList=stuff, headers=['Name', 'typeID'])
-        wnd.sr.browser.Sort('Name')
+        else:
+            self.wnd = wnd = uicontrols.Window.Open(windowID='typedb')
+            wnd.SetWndIcon(None)
+            wnd.SetMinSize([350, 270])
+            wnd.SetTopparentHeight(0)
+            wnd.SetCaption('Type Browser')
+            mainpar = uiutil.GetChild(wnd, 'main')
+            wnd.sr.tabs = uicontrols.TabGroup(name='tabsparent', parent=mainpar)
+            main = uiprimitives.Container(name='main', parent=mainpar, padding=(const.defaultPadding,
+             const.defaultPadding,
+             const.defaultPadding,
+             const.defaultPadding))
+            body = uiprimitives.Container(name='body', parent=main, align=uiconst.TOALL, pos=(0, 0, 0, 0))
+            wnd.sr.browser = uicontrols.Scroll(name='scroll', parent=body, pos=(0, 0, 0, 0))
+            wnd.sr.browser.multiSelect = False
+            wnd.sr.browser.Startup()
+            searchParent = uiprimitives.Container(name='search', parent=body, align=uiconst.TOALL, pos=(0, 0, 0, 0))
+            searchTop = uiprimitives.Container(name='search', parent=searchParent, height=25, align=uiconst.TOTOP)
+            btn = uicontrols.Button(parent=searchTop, label='Search', func=self.Search, align=uiconst.TORIGHT)
+            wnd.sr.input = uicontrols.SinglelineEdit(name='Search', parent=searchTop, width=-1, left=1, align=uiconst.TOALL)
+            uiprimitives.Container(name='div', parent=searchParent, height=5, align=uiconst.TOTOP)
+            wnd.sr.input.OnReturn = self.Search
+            wnd.sr.scroll = uicontrols.Scroll(parent=searchParent)
+            wnd.sr.scroll.multiSelect = False
+            wnd.sr.tabs.Startup([['Browse',
+              wnd.sr.browser,
+              self,
+              0], ['Search',
+              searchParent,
+              self,
+              1]], 'typebrowsertabs')
+            self.Search()
+            stuff = self.GetContent(None, False)
+            wnd.sr.browser.Load(contentList=stuff, headers=['Name', 'typeID'])
+            wnd.sr.browser.Sort('Name')
+            return
 
-    def GetContent(self, node, newitems = 0):
+    def GetContent(self, node, newitems=0):
         rows = []
         if node is None:
             for categoryID in evetypes.IterateCategories():
@@ -152,7 +155,7 @@ class TypeBrowser(Service):
             for typeID in evetypes.GetTypeIDsByGroup(groupID):
                 ids.append(typeID)
 
-        def _crea(listOftypeIDs, what = '/createitem', qty = 1, maxValue = 2147483647):
+        def _crea(listOftypeIDs, what='/createitem', qty=1, maxValue=2147483647):
             if uicore.uilib.Key(uiconst.VK_SHIFT):
                 result = uix.QtyPopup(maxvalue=maxValue, minvalue=1, caption=what, label=u'Quantity', hint='')
                 if result:
@@ -162,7 +165,7 @@ class TypeBrowser(Service):
             for typeID in listOftypeIDs:
                 sm.StartService('slash').SlashCmd('/createitem %d %d' % (typeID, qty))
 
-        def _load(listOftypeIDs, what = '/load', qty = 1, maxValue = 2147483647):
+        def _load(listOftypeIDs, what='/load', qty=1, maxValue=2147483647):
             if uicore.uilib.Key(uiconst.VK_SHIFT):
                 result = uix.QtyPopup(maxvalue=maxValue, minvalue=1, caption=what, label=u'Quantity', hint='')
                 if result:
@@ -209,3 +212,4 @@ class TypeBrowser(Service):
         if self.wnd:
             self.wnd.Close()
             self.wnd = None
+        return

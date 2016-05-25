@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\client\script\ui\shared\twitch\twitchSvc.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\client\script\ui\shared\twitch\twitchSvc.py
 import service
 import twitch
 from localization import GetByLabel
@@ -17,6 +18,7 @@ class Twitch(service.Service):
     def Run(self, *args):
         self.streamStartTime = None
         twitch.set_state_change_callback(self.OnTwitchStateChanged)
+        return
 
     def OnTwitchStateChanged(self, state):
         sm.ScatterEvent('OnTwitchStreamingStateChange', state)
@@ -41,12 +43,15 @@ class Twitch(service.Service):
         setting = self.characterSettings.Get('twitch')
         if setting is None or isinstance(setting, dict):
             return setting
-        return yaml.load(setting, Loader=yaml.CLoader)
+        else:
+            return yaml.load(setting, Loader=yaml.CLoader)
 
-    def GetSetting(self, settingName, default = None):
+    def GetSetting(self, settingName, default=None):
         twitchSettings = self.GetSettings()
         if twitchSettings is not None:
             return twitchSettings.get(settingName, default)
+        else:
+            return
 
     def GetUsername(self):
         return self.GetSetting('username')
@@ -95,6 +100,7 @@ class Twitch(service.Service):
         self._SaveSettings(username, token, title, fps)
         self.streamStartTime = blue.os.GetWallclockTime()
         self.LogTwitchEvent(['twitchUsername', 'title'], 'StreamStarted', username, title)
+        return
 
     def _SaveSettings(self, username, token, title, fps):
         twitchSettings = {'username': username,
@@ -104,12 +110,14 @@ class Twitch(service.Service):
             twitchSettings['token'] = token
         twitchSettings = yaml.safe_dump(twitchSettings)
         self.characterSettings.Save('twitch', twitchSettings)
+        return
 
     def StopStream(self):
         twitch.stop_stream()
         if self.streamStartTime is not None:
             streamTime = (blue.os.GetWallclockTime() - self.streamStartTime) / const.SEC
             self.LogTwitchEvent(['duration'], 'StreamStopped', streamTime)
+        return
 
     def OnEndChangeDevice(self, *args):
         if twitch.is_streaming():

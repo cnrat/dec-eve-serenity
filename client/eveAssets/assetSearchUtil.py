@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\packages\eveAssets\assetSearchUtil.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\packages\eveAssets\assetSearchUtil.py
 import re
 from collections import namedtuple
 import dogma.const as dogmaConst
@@ -130,6 +131,7 @@ class AssetKeywordSearch(object):
             return item.stacksize >= quantity
 
         conditions.append(CheckMinQuantity)
+        return
 
     def MatchMaximumQuantity(self, conditions, value):
         try:
@@ -143,6 +145,7 @@ class AssetKeywordSearch(object):
             return item.stacksize <= quantity
 
         conditions.append(CheckMaxQuantity)
+        return
 
     def MatchMetalevel(self, conditions, value):
         try:
@@ -157,6 +160,7 @@ class AssetKeywordSearch(object):
             return level == metaLevel
 
         conditions.append(CheckMetaLevel)
+        return
 
     def MatchMetagroup(self, conditions, value):
         groupName = value
@@ -188,6 +192,7 @@ class AssetKeywordSearch(object):
             return level == techLevel
 
         conditions.append(CheckTechLevel)
+        return
 
     def MatchMinSecurity(self, conditions, value):
         try:
@@ -207,6 +212,7 @@ class AssetKeywordSearch(object):
                 return matched
 
         conditions.append(CheckMinSecurity)
+        return
 
     def MatchMaxSecurity(self, conditions, value):
         try:
@@ -226,6 +232,7 @@ class AssetKeywordSearch(object):
                 return matched
 
         conditions.append(CheckMaxSecurity)
+        return
 
     def MatchSecurityClass(self, conditions, value):
         if IsPartOfText(self.highSecurityText, value):
@@ -251,6 +258,7 @@ class AssetKeywordSearch(object):
                 return matched
 
         conditions.append(CheckSecurityClass)
+        return
 
     def MatchSolarSystem(self, conditions, value):
         name = value
@@ -319,16 +327,18 @@ class AssetKeywordSearch(object):
         def CheckBlueprintType(item):
             if value == '':
                 return True
-            if isBpo is None:
+            elif isBpo is None:
                 return False
-            if item.categoryID == invConst.categoryBlueprint:
-                if isBpo:
-                    return item.singleton != appConst.singletonBlueprintCopy
-                else:
-                    return item.singleton == appConst.singletonBlueprintCopy
-            return False
+            else:
+                if item.categoryID == invConst.categoryBlueprint:
+                    if isBpo:
+                        return item.singleton != appConst.singletonBlueprintCopy
+                    else:
+                        return item.singleton == appConst.singletonBlueprintCopy
+                return False
 
         conditions.append(CheckBlueprintType)
+        return
 
     def GetSearchKeywords(self):
         keywords = [KeywordOption(self.getByLabelFunc('UI/Inventory/AssetSearch/KeywordType'), self.getByLabelFunc('UI/Inventory/AssetSearch/DescriptionType'), None, self.MatchType),

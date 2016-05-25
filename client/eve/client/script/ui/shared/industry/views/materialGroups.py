@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\client\script\ui\shared\industry\views\materialGroups.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\client\script\ui\shared\industry\views\materialGroups.py
 from math import acos, cos, sin, asin, pi, fabs
 import carbonui.const as uiconst
 from carbonui.primitives.container import Container
@@ -43,6 +44,7 @@ class MaterialGroups(Container):
         self.ConstructLines(groupsData)
         self.UpdateState()
         self.AnimEntry()
+        return
 
     def DrawBigConnectorCircle(self, groupsData):
         x, y = self.GetPointBigCircleLeft()
@@ -116,6 +118,7 @@ class MaterialGroups(Container):
         self.noItemsRequiredLabel.text = text
         uicore.animations.FadeTo(self.noItemsRequiredLabel, 0.0, 0.9, duration=0.6)
         self.animateTextThread = None
+        return
 
     def GetInnerCircleIntersectPoint(self, y):
         pCenter = self.GetPointCenter()
@@ -201,7 +204,7 @@ class MaterialGroups(Container):
 
         self.DrawLineToCenter(self.GetPointCenterLeft())
 
-    def AnimEntry(self, animate = True):
+    def AnimEntry(self, animate=True):
         k = 0.05
         for i, materialGroup in enumerate(self.materialGroups):
             if animate:
@@ -244,8 +247,9 @@ class MaterialGroups(Container):
         self.ConstructLines(groupsData)
         self.UpdateState(animate=False)
         self.AnimEntry()
+        return
 
-    def UpdateState(self, animate = True):
+    def UpdateState(self, animate=True):
         isReady = self.IsAllGroupsReady()
         for i, line in enumerate(self.lines):
             line.UpdateColor(isReady, animate=animate)

@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\common\script\mgt\appLogConst.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\common\script\mgt\appLogConst.py
 groupAlliance = 12
 groupAutoBilling = 32
 groupCalendar = 28
@@ -60,6 +61,8 @@ eventCalendarGMCCPEvent = 302
 eventCalendarGMDelete = 300
 eventCalendarGMEdit = 299
 eventCalendarGMRecover = 301
+eventCharacterActiveShipChanged = 353
+eventCharacterActiveShipLogon = 352
 eventCharacterAdd = 1
 eventCharacterAddSuper = 18
 eventCharacterAttributeRespecFree = 51
@@ -571,5 +574,12 @@ eventSpaceComponentExitReinforce = 392
 eventSpaceComponentDeployed = 393
 eventSpaceComponentScooped = 394
 eventSpaceComponentExploding = 395
+movementEvents = (eventMovementDock,
+ eventMovementUndock,
+ eventMovementJump,
+ eventMovementPortalArrayJump,
+ eventMovementCynosuralGeneratorArrayJump,
+ eventMovementWormholeJump,
+ eventStarbasePortalArrayJump)
 import carbon.common.script.util.autoexport as autoexport
 exports = autoexport.AutoExports('logConst', locals())

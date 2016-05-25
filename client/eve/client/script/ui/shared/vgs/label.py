@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\client\script\ui\shared\vgs\label.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\client\script\ui\shared\vgs\label.py
 from carbon.common.script.util.format import FmtAmt
 import carbonui.const as uiconst
 from carbonui.primitives.container import Container
@@ -103,15 +104,16 @@ class AurPriceTag(ContainerAutoSize):
         iskWorth = self._CalculateEstimatedIskWorth(amount)
         if iskWorth is not None:
             self.AddEstimatedIskPrice(iskWorth)
+        return
 
-    def AddAurAmount(self, amount, color = None, strikeThrough = False):
+    def AddAurAmount(self, amount, color=None, strikeThrough=False):
         self.AddLabel(FmtAmt(amount), font=self.AUR_FONT_CLASS, color=color, strikeThrough=strikeThrough)
 
     def AddEstimatedIskPrice(self, amount):
         label = localization.GetByLabel('UI/VirtualGoodsStore/EstimatedIskPrice', amount=amount)
         self.AddLabel(label, font=self.ISK_FONT_CLASS, color=self.ISK_FONT_COLOR)
 
-    def AddLabel(self, text, font, color = None, strikeThrough = False):
+    def AddLabel(self, text, font, color=None, strikeThrough=False):
         color = color or FONT_COLOR_WHITE
         cont = Container(parent=self, align=uiconst.TOLEFT, padRight=self.WORD_PADDING)
         if strikeThrough:
@@ -127,8 +129,9 @@ class AurPriceTag(ContainerAutoSize):
 
         if plexPrice is None:
             return
-        iskPerAur = plexPrice / Plex2AurExchangeRatio
-        return RoundISK(aurAmount * iskPerAur)
+        else:
+            iskPerAur = plexPrice / Plex2AurExchangeRatio
+            return RoundISK(aurAmount * iskPerAur)
 
 
 class AurPriceTagLarge(AurPriceTag):

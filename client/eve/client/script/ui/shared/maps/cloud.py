@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\client\script\ui\shared\maps\cloud.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\client\script\ui\shared\maps\cloud.py
 import util
 import uiutil
 import decometaclass
@@ -14,7 +15,7 @@ class LabelTracker(decometaclass.WrapBlueClass('trinity.TriTransform')):
     def Initialize(self, name, itemID):
         self.sr.itemID = itemID
 
-    def SetTranslation(self, x = 0.0, y = 0.0, z = 0.0, factor = None):
+    def SetTranslation(self, x=0.0, y=0.0, z=0.0, factor=None):
         self.translation.SetXYZ(x, y, z)
         if factor:
             self.translation.Scale(factor)

@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\carbon\common\lib\cherrypy\test\modwsgi.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\carbon\common\lib\cherrypy\test\modwsgi.py
 import os
 curdir = os.path.abspath(os.path.dirname(__file__))
 import re
@@ -7,7 +8,7 @@ import time
 import cherrypy
 from cherrypy.test import helper, webtest
 
-def read_process(cmd, args = ''):
+def read_process(cmd, args=''):
     pipein, pipeout = os.popen4('%s %s' % (cmd, args))
     try:
         firstline = pipeout.readline()

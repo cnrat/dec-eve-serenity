@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\packages\localization\propertyHandlers\npcOrganizationPropertyHandler.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\packages\localization\propertyHandlers\npcOrganizationPropertyHandler.py
 import const
 import eveLocalization
 from basePropertyHandler import BasePropertyHandler
@@ -15,20 +16,24 @@ class NpcOrganizationPropertyHandler(BasePropertyHandler):
      locconst.LOCALE_SHORT_FRENCH: ('nameWithArticle', 'genitiveName')}
 
     def _GetName(self, npcOrganizationID, languageID, *args, **kwargs):
-        if const.minFaction <= npcOrganizationID <= const.maxFaction or const.minNPCCorporation <= npcOrganizationID <= const.maxNPCCorporation:
+        if (const.minFaction <= npcOrganizationID <= const.maxFaction or const.minNPCCorporation) <= npcOrganizationID <= const.maxNPCCorporation:
             try:
                 return cfg.eveowners.Get(npcOrganizationID).name
             except KeyError:
                 log.LogException()
                 return '[no npcOrganization: %d]' % npcOrganizationID
 
+        return None
+
     def _GetRawName(self, npcOrganizationID, languageID, *args, **kwargs):
-        if const.minFaction <= npcOrganizationID <= const.maxFaction or const.minNPCCorporation <= npcOrganizationID <= const.maxNPCCorporation:
+        if (const.minFaction <= npcOrganizationID <= const.maxFaction or const.minNPCCorporation) <= npcOrganizationID <= const.maxNPCCorporation:
             try:
                 return cfg.eveowners.Get(npcOrganizationID).GetRawName(languageID)
             except KeyError:
                 log.LogException()
                 return '[no npcOrganization: %d]' % npcOrganizationID
+
+        return None
 
     if boot.role != 'client':
         _GetName = _GetRawName

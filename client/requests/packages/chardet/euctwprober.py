@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\packages\requests\packages\chardet\euctwprober.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\packages\requests\packages\chardet\euctwprober.py
 from .mbcharsetprober import MultiByteCharSetProber
 from .codingstatemachine import CodingStateMachine
 from .chardistribution import EUCTWDistributionAnalysis
@@ -13,4 +14,4 @@ class EUCTWProber(MultiByteCharSetProber):
         self.reset()
 
     def get_charset_name(self):
-        return 'EUC-TW'
+        pass

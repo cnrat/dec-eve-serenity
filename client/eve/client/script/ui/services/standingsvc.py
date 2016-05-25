@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\client\script\ui\services\standingsvc.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\client\script\ui\services\standingsvc.py
 from itertools import starmap
 import math
 from eve.client.script.ui.control.infoIcon import InfoIcon
@@ -90,10 +91,10 @@ class Standing(service.Service):
                     newval = max(min(10.0 * m, maxAbs), minAbs)
                     self.npccorpstandings[fromID] = blue.DBRow(self.fromStandingHeader, [fromID, newval])
 
-    def Run(self, memStream = None):
+    def Run(self, memStream=None):
         self.__RefreshStandings()
 
-    def Stop(self, memStream = None):
+    def Stop(self, memStream=None):
         pass
 
     def CanUseAgent(self, factionID, corporationID, agentID, level, agentTypeID):
@@ -198,7 +199,7 @@ class Standing(service.Service):
             bonus = localization.GetByLabel('UI/Standings/Common/BonusAdded', bonus=bonus[0], value=standing)
         return (standing, bonus)
 
-    def GetStandingEntry(self, ownerID, fromID, toID, standing, showBonuses = 1, label = None):
+    def GetStandingEntry(self, ownerID, fromID, toID, standing, showBonuses=1, label=None):
         self.__Init()
         if standing >= 9.995:
             standing = 10.0
@@ -345,7 +346,7 @@ class Standing(service.Service):
 
         return scrolllist
 
-    def GetStandingEntries(self, positive, whoID, exclude = {}, emptyMessage = 1):
+    def GetStandingEntries(self, positive, whoID, exclude={}, emptyMessage=1):
         self.__Init()
         if whoID is None:
             whoID = eve.session.charid
@@ -403,7 +404,6 @@ class Standing(service.Service):
                 return -1
             if x[1].lower() > y[1].lower():
                 return 1
-            return 0
 
         def PosSortFunc(x, y):
             if x[0] > y[0]:
@@ -414,7 +414,6 @@ class Standing(service.Service):
                 return -1
             if x[1].lower() > y[1].lower():
                 return 1
-            return 0
 
         if positive:
             SortFunc = PosSortFunc
@@ -471,7 +470,7 @@ class Standing(service.Service):
              'text': text}))
         return scrolllist
 
-    def GetTransactionWnd(self, fromID, toID = None):
+    def GetTransactionWnd(self, fromID, toID=None):
         self.__Init()
         if fromID != toID:
             wnd = StandingTransactionsWnd.Open()
@@ -530,6 +529,8 @@ class StandingTransactionsWnd(uicontrols.Window):
             self.sr.Set(label.replace(' ', '') + 'Combo', combo)
             i += 1
 
+        return
+
     def OnComboChange(self, entry, header, value, *args):
         if self.sr.Get('data'):
             if entry.name == 'eventType':
@@ -537,12 +538,14 @@ class StandingTransactionsWnd(uicontrols.Window):
                 self.sr.data[0] = None
             self.page = 0
             uthread.pool('standing::OnComboChange', self.Load, self.sr.data[1], self.sr.data[2])
+        return
 
     def OnReturn(self, *args):
         if self.sr.Get('data'):
             self.sr.data[5] = util.ParseDate(self.sr.fromdate.GetValue())
             self.sr.data[0] = None
             uthread.pool('standing::OnReturn', self.Load, self.sr.data[1], self.sr.data[2])
+        return
 
     def Browse(self, direction, *args):
         if self.sr.Get('data') and self.sr.data[3]:
@@ -560,118 +563,122 @@ class StandingTransactionsWnd(uicontrols.Window):
             self.sr.data[0] = eventID
             self.page += direction
             uthread.pool('standing::Browse', self.Load, self.sr.data[1], self.sr.data[2])
+        return
 
     def GetNow(self):
         return util.FmtDate(blue.os.GetWallclockTime(), 'sn')
 
-    def Load(self, fromID, toID, purge = 0, onPage = None):
+    def Load(self, fromID, toID, purge=0, onPage=None):
         if getattr(self, 'loading', 0):
             return
-        self.loading = 1
-        if onPage is not None:
-            self.page = onPage
-        try:
-            self.sr.scroll.Clear()
-            if fromID and toID:
-                if util.IsCharacter(fromID) and util.IsCharacter(toID):
-                    standing = localization.GetByLabel('UI/Standings/TransactionWindow/TitleFromCharacterToCharacter', fromID=fromID, toID=toID)
-                elif util.IsCharacter(fromID):
-                    standing = localization.GetByLabel('UI/Standings/TransactionWindow/TitleFromCharacterToCorp', fromID=fromID, toName=cfg.eveowners.Get(toID).name)
+        else:
+            self.loading = 1
+            if onPage is not None:
+                self.page = onPage
+            try:
+                self.sr.scroll.Clear()
+                if fromID and toID:
+                    if util.IsCharacter(fromID) and util.IsCharacter(toID):
+                        standing = localization.GetByLabel('UI/Standings/TransactionWindow/TitleFromCharacterToCharacter', fromID=fromID, toID=toID)
+                    elif util.IsCharacter(fromID):
+                        standing = localization.GetByLabel('UI/Standings/TransactionWindow/TitleFromCharacterToCorp', fromID=fromID, toName=cfg.eveowners.Get(toID).name)
+                    elif util.IsCharacter(toID):
+                        standing = localization.GetByLabel('UI/Standings/TransactionWindow/TitleFromCorpToCharacter', fromName=cfg.eveowners.Get(fromID).name, toID=toID)
+                    else:
+                        standing = localization.GetByLabel('UI/Standings/TransactionWindow/TitleFromCorpToCorp', fromName=cfg.eveowners.Get(fromID).name, toName=cfg.eveowners.Get(toID).name)
+                elif fromID:
+                    if util.IsCharacter(fromID):
+                        standing = localization.GetByLabel('UI/Standings/TransactionWindow/TitleFromCharacterToAny', fromID=fromID)
+                    else:
+                        standing = localization.GetByLabel('UI/Standings/TransactionWindow/TitleFromCorpToAny', fromName=cfg.eveowners.Get(fromID).name)
                 elif util.IsCharacter(toID):
-                    standing = localization.GetByLabel('UI/Standings/TransactionWindow/TitleFromCorpToCharacter', fromName=cfg.eveowners.Get(fromID).name, toID=toID)
+                    standing = localization.GetByLabel('UI/Standings/TransactionWindow/TitleFromAnyToCharacter', toID=toID)
                 else:
-                    standing = localization.GetByLabel('UI/Standings/TransactionWindow/TitleFromCorpToCorp', fromName=cfg.eveowners.Get(fromID).name, toName=cfg.eveowners.Get(toID).name)
-            elif fromID:
-                if util.IsCharacter(fromID):
-                    standing = localization.GetByLabel('UI/Standings/TransactionWindow/TitleFromCharacterToAny', fromID=fromID)
+                    standing = localization.GetByLabel('UI/Standings/TransactionWindow/TitleFromAnyToCorp', toName=cfg.eveowners.Get(toID).name)
+                self.SetCaption(standing)
+                scrolllist = []
+                if not self.sr.Get('data') or purge:
+                    self.sr.data = [None,
+                     None,
+                     None,
+                     [],
+                     None,
+                     None,
+                     1]
+                eventType = self.sr.data[4]
+                eventID = self.sr.data[0]
+                eventDateTime = self.sr.data[5]
+                direction = self.sr.data[6]
+                if eventDateTime is not None:
+                    if direction == 1:
+                        eventDateTime += const.HOUR * 23 + const.MIN * 59 + const.SEC * 59
+                data = sm.RemoteSvc('standing2').GetStandingTransactions(fromID, toID, direction, eventID, eventType, eventDateTime)
+                self.sr.data = [eventID,
+                 fromID,
+                 toID,
+                 data,
+                 eventType,
+                 eventDateTime,
+                 direction]
+                if self.page > 0:
+                    self.sr.backBtn.state = uiconst.UI_NORMAL
                 else:
-                    standing = localization.GetByLabel('UI/Standings/TransactionWindow/TitleFromCorpToAny', fromName=cfg.eveowners.Get(fromID).name)
-            elif util.IsCharacter(toID):
-                standing = localization.GetByLabel('UI/Standings/TransactionWindow/TitleFromAnyToCharacter', toID=toID)
-            else:
-                standing = localization.GetByLabel('UI/Standings/TransactionWindow/TitleFromAnyToCorp', toName=cfg.eveowners.Get(toID).name)
-            self.SetCaption(standing)
-            scrolllist = []
-            if not self.sr.Get('data') or purge:
-                self.sr.data = [None,
-                 None,
-                 None,
-                 [],
-                 None,
-                 None,
-                 1]
-            eventType = self.sr.data[4]
-            eventID = self.sr.data[0]
-            eventDateTime = self.sr.data[5]
-            direction = self.sr.data[6]
-            if eventDateTime is not None:
-                if direction == 1:
-                    eventDateTime += const.HOUR * 23 + const.MIN * 59 + const.SEC * 59
-            data = sm.RemoteSvc('standing2').GetStandingTransactions(fromID, toID, direction, eventID, eventType, eventDateTime)
-            self.sr.data = [eventID,
-             fromID,
-             toID,
-             data,
-             eventType,
-             eventDateTime,
-             direction]
-            if self.page > 0:
-                self.sr.backBtn.state = uiconst.UI_NORMAL
-            else:
-                self.sr.backBtn.state = uiconst.UI_HIDDEN
-            if self.sr.data[3]:
-                self.sr.data[0] = self.sr.data[3][0].eventID
-                if len(self.sr.data[3]) < 25:
+                    self.sr.backBtn.state = uiconst.UI_HIDDEN
+                if self.sr.data[3]:
+                    self.sr.data[0] = self.sr.data[3][0].eventID
+                    if len(self.sr.data[3]) < 25:
+                        self.sr.fwdBtn.state = uiconst.UI_HIDDEN
+                    else:
+                        self.sr.fwdBtn.state = uiconst.UI_NORMAL
+                else:
                     self.sr.fwdBtn.state = uiconst.UI_HIDDEN
+                if self.sr.data[3]:
+                    for each in self.sr.data[3]:
+                        isNPC = False
+                        subject, body = util.FmtStandingTransaction(each)
+                        when = util.FmtDate(each.eventDateTime, 'ls')
+                        mod = '%-2.4f' % (each.modification * 100.0)
+                        while mod and mod[-1] == '0':
+                            if mod[-2:] == '.0':
+                                break
+                            mod = mod[:-1]
+
+                        if fromID is None:
+                            extraFrom = cfg.eveowners.Get(each.fromID).name + '<t>'
+                        else:
+                            if util.IsNPC(fromID):
+                                isNPC = True
+                            extraFrom = ''
+                        if toID is None:
+                            extraTo = cfg.eveowners.Get(each.toID).name + '<t>'
+                        else:
+                            extraTo = ''
+                        text = '%s<t>%s<t>%s%s%s %%<t>%s' % (each.eventID,
+                         when,
+                         extraFrom,
+                         extraTo,
+                         mod,
+                         subject)
+                        scrolllist.append(listentry.Get('StandingTransaction', {'line': 1,
+                         'text': text,
+                         'details': body,
+                         'sort_%s' % localization.GetByLabel('UI/Common/Value'): float(mod),
+                         'isNPC': isNPC}))
+
                 else:
-                    self.sr.fwdBtn.state = uiconst.UI_NORMAL
-            else:
-                self.sr.fwdBtn.state = uiconst.UI_HIDDEN
-            if self.sr.data[3]:
-                for each in self.sr.data[3]:
-                    isNPC = False
-                    subject, body = util.FmtStandingTransaction(each)
-                    when = util.FmtDate(each.eventDateTime, 'ls')
-                    mod = '%-2.4f' % (each.modification * 100.0)
-                    while mod and mod[-1] == '0':
-                        if mod[-2:] == '.0':
-                            break
-                        mod = mod[:-1]
+                    scrolllist.append(listentry.Get('Text', {'line': 1,
+                     'text': localization.GetByLabel('UI/Standings/TransactionWindow/NoTransactions')}))
+                h = [localization.GetByLabel('UI/Common/ID'), localization.GetByLabel('UI/Common/Date')]
+                if fromID is None:
+                    h += [localization.GetByLabel('UI/Common/From')]
+                if toID is None:
+                    h += [localization.GetByLabel('UI/Common/To')]
+                h += [localization.GetByLabel('UI/Common/Value'), localization.GetByLabel('UI/Common/Reason')]
+                self.sr.scroll.Load(fixedEntryHeight=32, contentList=scrolllist, headers=h, reversesort=1, sortby=localization.GetByLabel('UI/Common/ID'))
+            finally:
+                self.loading = 0
 
-                    if fromID is None:
-                        extraFrom = cfg.eveowners.Get(each.fromID).name + '<t>'
-                    else:
-                        if util.IsNPC(fromID):
-                            isNPC = True
-                        extraFrom = ''
-                    if toID is None:
-                        extraTo = cfg.eveowners.Get(each.toID).name + '<t>'
-                    else:
-                        extraTo = ''
-                    text = '%s<t>%s<t>%s%s%s %%<t>%s' % (each.eventID,
-                     when,
-                     extraFrom,
-                     extraTo,
-                     mod,
-                     subject)
-                    scrolllist.append(listentry.Get('StandingTransaction', {'line': 1,
-                     'text': text,
-                     'details': body,
-                     'sort_%s' % localization.GetByLabel('UI/Common/Value'): float(mod),
-                     'isNPC': isNPC}))
-
-            else:
-                scrolllist.append(listentry.Get('Text', {'line': 1,
-                 'text': localization.GetByLabel('UI/Standings/TransactionWindow/NoTransactions')}))
-            h = [localization.GetByLabel('UI/Common/ID'), localization.GetByLabel('UI/Common/Date')]
-            if fromID is None:
-                h += [localization.GetByLabel('UI/Common/From')]
-            if toID is None:
-                h += [localization.GetByLabel('UI/Common/To')]
-            h += [localization.GetByLabel('UI/Common/Value'), localization.GetByLabel('UI/Common/Reason')]
-            self.sr.scroll.Load(fixedEntryHeight=32, contentList=scrolllist, headers=h, reversesort=1, sortby=localization.GetByLabel('UI/Common/ID'))
-        finally:
-            self.loading = 0
+            return
 
 
 class StandingTransaction(listentry.Text):
@@ -694,9 +701,10 @@ class StandingTransaction(listentry.Text):
         if self.isNPC:
             self.ShowTransactionDetails()
 
-    def ShowTransactionDetails(self, details = None, *args):
+    def ShowTransactionDetails(self, details=None, *args):
         details = details if details != None else self.sr.details
         uix.TextBox(localization.GetByLabel('UI/Standings/TransactionWindow/Details'), details)
+        return
 
 
 class StandingEntry(uicontrols.SE_BaseClassCore):
@@ -707,6 +715,7 @@ class StandingEntry(uicontrols.SE_BaseClassCore):
         self.sr.iconParent = uiprimitives.Container(parent=self, left=1, top=0, width=32, height=32, align=uiconst.TOPLEFT, state=uiconst.UI_PICKCHILDREN)
         self.sr.infoicon = InfoIcon(parent=self, idx=0, left=2, align=uiconst.CENTERRIGHT)
         self.sr.infoicon.OnClick = self.ShowInfo
+        return
 
     def Load(self, node):
         self.sr.node = node
@@ -724,6 +733,7 @@ class StandingEntry(uicontrols.SE_BaseClassCore):
             logo = uicontrols.Icon(icon=None, **iconParams)
             sm.GetService('photo').GetPortrait(data.ownerInfo.ownerID, 64, logo)
         self.sr.label.left = 36
+        return
 
     def OnDblClick(self, *args):
         self.ShowTransactions(self.sr.node)
@@ -731,32 +741,39 @@ class StandingEntry(uicontrols.SE_BaseClassCore):
     def ShowTransactions(self, node):
         node = node if node != None else self.sr.node
         sm.GetService('standing').GetTransactionWnd(node.fromID, node.toID)
+        return
 
-    def ShowCompositions(self, node = None):
+    def ShowCompositions(self, node=None):
         node = node if node != None else self.sr.node
         sm.GetService('standing').GetCompositionWnd(node.fromID, node.toID)
+        return
 
-    def EditStandings(self, node = None):
+    def EditStandings(self, node=None):
         node = node if node != None else self.sr.node
         sm.GetService('standing').GetEditWnd(eve.session.charid, node.toID)
+        return
 
-    def ResetStandings(self, node = None):
+    def ResetStandings(self, node=None):
         node = node if node != None else self.sr.node
         if eve.Message('StandingsConfirmReset', {'who': cfg.eveowners.Get(node.toID).name}, uix.YESNO, suppress=uix.ID_YES) == uix.ID_YES:
             sm.GetService('standing').ResetStandings(eve.session.charid, node.toID)
+        return
 
-    def EditCorpStandings(self, node = None):
+    def EditCorpStandings(self, node=None):
         node = node if node != None else self.sr.node
         sm.GetService('standing').GetEditWnd(eve.session.corpid, node.toID)
+        return
 
-    def ResetCorpStandings(self, node = None):
+    def ResetCorpStandings(self, node=None):
         node = node if node != None else self.sr.node
         if eve.Message('StandingsConfirmResetCorp', {'who': cfg.eveowners.Get(node.toID).name}, uix.YESNO, suppress=uix.ID_YES) == uix.ID_YES:
             sm.GetService('standing').ResetStandings(eve.session.corpid, node.toID)
+        return
 
-    def ShowInfo(self, node = None, *args):
+    def ShowInfo(self, node=None, *args):
         if self.sr.node.Get('ownerInfo', None):
             sm.GetService('info').ShowInfo(self.sr.node.ownerInfo.typeID, self.sr.node.ownerInfo.ownerID)
+        return
 
     def GetMenu(self):
         m = []
@@ -815,7 +832,7 @@ class FactionStandingEntry(uicontrols.SE_BaseClassCore):
         logo = uiutil.GetLogoIcon(itemID=toInfo.ownerID, **iconParams)
         self.sr.label.left = 36
 
-    def ShowInfo(self, node = None, *args):
+    def ShowInfo(self, node=None, *args):
         toInfo = cfg.eveowners.Get(self.sr.node.toInfo)
         sm.GetService('info').ShowInfo(toInfo.typeID, toInfo.ownerID)
 
@@ -843,7 +860,7 @@ class StandingCompositionsWnd(uicontrols.Window):
         textParent = uiprimitives.Container(name='text', parent=self.sr.main, idx=0, align=uiconst.TOTOP, height=72)
         self.sr.helpNote = uicontrols.EveLabelMedium(text=localization.GetByLabel('UI/Standings/CompositionWindow/NPCToPlayerCorp'), parent=textParent, align=uiconst.TOTOP, left=6, top=3, state=uiconst.UI_NORMAL)
 
-    def Load(self, fromID, toID, purge = 0):
+    def Load(self, fromID, toID, purge=0):
         if getattr(self, 'loading', 0):
             return
         self.loading = 1

@@ -1,9 +1,10 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\packages\requests\packages\urllib3\fields.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\packages\requests\packages\urllib3\fields.py
 import email.utils
 import mimetypes
 from .packages import six
 
-def guess_content_type(filename, default = 'application/octet-stream'):
+def guess_content_type(filename, default='application/octet-stream'):
     if filename:
         return mimetypes.guess_type(filename)[0] or default
     return default
@@ -28,7 +29,7 @@ def format_header_param(name, value):
 
 class RequestField(object):
 
-    def __init__(self, name, data, filename = None, headers = None):
+    def __init__(self, name, data, filename=None, headers=None):
         self._name = name
         self._filename = filename
         self.data = data
@@ -81,7 +82,7 @@ class RequestField(object):
         lines.append('\r\n')
         return '\r\n'.join(lines)
 
-    def make_multipart(self, content_disposition = None, content_type = None, content_location = None):
+    def make_multipart(self, content_disposition=None, content_type=None, content_location=None):
         self.headers['Content-Disposition'] = content_disposition or 'form-data'
         self.headers['Content-Disposition'] += '; '.join(['', self._render_parts((('name', self._name), ('filename', self._filename)))])
         self.headers['Content-Type'] = content_type

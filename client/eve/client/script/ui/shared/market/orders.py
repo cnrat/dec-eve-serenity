@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\client\script\ui\shared\market\orders.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\client\script\ui\shared\market\orders.py
 import blue
 import evetypes
 import uiprimitives
@@ -10,6 +11,7 @@ import carbonui.const as uiconst
 import log
 import localization
 import uiutil
+from eve.common.lib.appConst import rangeRegion, rangeStation, rangeSolarSystem
 MINSCROLLHEIGHT = 64
 LEFTSIDEWIDTH = 74
 
@@ -25,10 +27,11 @@ class MarketOrders(uiprimitives.Container):
         sm.UnregisterNotify(self)
         self.lastUpdateTime = None
         self.refreshOrdersTimer = None
+        return
 
     def OnOwnOrdersChanged(self, orders, reason, isCorp):
-        if self and not self.destroyed and self.state != uiconst.UI_HIDDEN:
-            self.RefreshOrders()
+        if self:
+            not self.destroyed and self.state != uiconst.UI_HIDDEN and self.RefreshOrders()
 
     def RefreshOrders(self):
         if self.lastUpdateTime and self.refreshOrdersTimer is None:
@@ -39,6 +42,7 @@ class MarketOrders(uiprimitives.Container):
                 self.refreshOrdersTimer = base.AutoTimer(int(diff), self._RefreshOrders)
         else:
             self._RefreshOrders()
+        return
 
     def _RefreshOrders(self):
         if self and not self.destroyed:
@@ -47,11 +51,12 @@ class MarketOrders(uiprimitives.Container):
             self.ShowOrders(isCorp=self.isCorp, refreshing=1)
             self.refreshOrdersTimer = None
             self.lastUpdateTime = blue.os.GetWallclockTime()
+        return
 
-    def Setup(self, where = None):
+    def Setup(self, where=None):
         self.isCorp = None
         self.where = where
-        self.limits = sm.GetService('marketQuote').GetSkillLimits()
+        self.limits = sm.GetService('marketQuote').GetSkillLimits(None)
         par = uiprimitives.Container(name='counter', parent=self, align=uiconst.TOBOTTOM, height=60, clipChildren=1)
         self.sr.counter = uicontrols.EveLabelMedium(parent=par, align=uiconst.TOLEFT, padding=const.defaultPadding, tabs=[175, 500], state=uiconst.UI_NORMAL)
         self.sr.counter2 = uicontrols.EveLabelMedium(parent=par, align=uiconst.TOLEFT, padding=(12,
@@ -94,6 +99,7 @@ class MarketOrders(uiprimitives.Container):
         w, h = self.GetAbsoluteSize()
         self._OnSizeChange_NoBlock(w, h)
         self.ordersInited = 1
+        return
 
     def ExportToFile(self, *args):
         if self.isCorp:
@@ -103,71 +109,75 @@ class MarketOrders(uiprimitives.Container):
         if len(orders) == 0:
             eve.Message('CustomInfo', {'info': localization.GetByLabel('UI/Market/MarketWindow/ExportNoData')})
             return
-        date = util.FmtDateEng(blue.os.GetWallclockTime())
-        f = blue.classes.CreateInstance('blue.ResFile')
-        directory = blue.sysinfo.GetUserDocumentsDirectory() + '/EVE/logs/Marketlogs/'
-        filename = '%s-%s.txt' % ([localization.GetByLabel('UI/Market/Orders/MyOrders'), localization.GetByLabel('UI/Market/Orders/CorporationOrders')][self.isCorp], util.FmtDateEng(blue.os.GetWallclockTime(), 'ls').replace(':', ''))
-        filename = uiutil.SanitizeFilename(filename)
-        if not f.Open(directory + filename, 0):
-            f.Create(directory + filename)
-        first = 1
-        dateIdx = -1
-        numSell = numBuy = 0
-        for order in orders:
-            if first:
+        else:
+            date = util.FmtDateEng(blue.os.GetWallclockTime())
+            f = blue.classes.CreateInstance('blue.ResFile')
+            directory = blue.sysinfo.GetUserDocumentsDirectory() + '/EVE/logs/Marketlogs/'
+            filename = '%s-%s.txt' % ([localization.GetByLabel('UI/Market/Orders/MyOrders'), localization.GetByLabel('UI/Market/Orders/CorporationOrders')][self.isCorp], util.FmtDateEng(blue.os.GetWallclockTime(), 'ls').replace(':', ''))
+            filename = uiutil.SanitizeFilename(filename)
+            if not f.Open(directory + filename, 0):
+                f.Create(directory + filename)
+            first = 1
+            dateIdx = -1
+            numSell = numBuy = 0
+            for order in orders:
+                if first:
+                    for key in order.__columns__:
+                        f.Write('%s,' % key)
+                        if key == 'charID':
+                            f.Write('charName,')
+                        elif key == 'regionID':
+                            f.Write('regionName,')
+                        elif key == 'stationID':
+                            f.Write('stationName,')
+                        elif key == 'solarSystemID':
+                            f.Write('solarSystemName,')
+
+                    f.Write('\r\n')
+                    first = 0
                 for key in order.__columns__:
-                    f.Write('%s,' % key)
-                    if key == 'charID':
-                        f.Write('charName,')
-                    elif key == 'regionID':
-                        f.Write('regionName,')
-                    elif key == 'stationID':
-                        f.Write('stationName,')
-                    elif key == 'solarSystemID':
-                        f.Write('solarSystemName,')
+                    o = getattr(order, key, None)
+                    if key == 'bid':
+                        if o > 0:
+                            numBuy += 1
+                        else:
+                            numSell += 1
+                    if key == 'issueDate':
+                        f.Write('%s,' % util.FmtDateEng(o, 'el').replace('T', ' '))
+                    elif key == 'charID':
+                        f.Write('%s,%s,' % (o, str(cfg.eveowners.Get(o).name.encode('utf-8'))))
+                    elif key in ('stationID', 'regionID', 'solarSystemID'):
+                        f.Write('%s,%s,' % (o, cfg.evelocations.Get(o).name.encode('utf-8')))
+                    else:
+                        f.Write('%s,' % o)
 
                 f.Write('\r\n')
-                first = 0
-            for key in order.__columns__:
-                o = getattr(order, key, None)
-                if key == 'bid':
-                    if o > 0:
-                        numBuy += 1
-                    else:
-                        numSell += 1
-                if key == 'issueDate':
-                    f.Write('%s,' % util.FmtDateEng(o, 'el').replace('T', ' '))
-                elif key == 'charID':
-                    f.Write('%s,%s,' % (o, str(cfg.eveowners.Get(o).name.encode('utf-8'))))
-                elif key in ('stationID', 'regionID', 'solarSystemID'):
-                    f.Write('%s,%s,' % (o, cfg.evelocations.Get(o).name.encode('utf-8')))
-                else:
-                    f.Write('%s,' % o)
 
-            f.Write('\r\n')
-
-        f.Close()
-        eve.Message('PersonalMarketExportInfo', {'sell': numSell,
-         'buy': numBuy,
-         'filename': '<b>' + filename + '</b>',
-         'directory': '<b>%s</b>' % directory})
+            f.Close()
+            eve.Message('PersonalMarketExportInfo', {'sell': numSell,
+             'buy': numBuy,
+             'filename': '<b>' + filename + '</b>',
+             'directory': '<b>%s</b>' % directory})
+            return
 
     def GetLimitText(self, limit):
-        if limit == -1:
+        if limit == rangeStation:
             text = localization.GetByLabel('UI/Market/Orders/LimitedToStations')
-        elif limit == 0:
+        elif limit == rangeSolarSystem:
             text = localization.GetByLabel('UI/Market/Orders/LimitedToSystem')
-        elif limit == 50:
+        elif limit == rangeRegion:
             text = localization.GetByLabel('UI/Market/Orders/LimitedToRegions')
         else:
             text = localization.GetByLabel('UI/Market/Orders/LimitedToJumps', jumps=limit)
         return text
 
-    def UpdateCounter(self, current = None):
-        if current is None:
+    def UpdateCounter(self, orders=None):
+        if orders is None:
             current = 0
+        else:
+            current = len(orders)
         maxCount = self.limits['cnt']
-        self.sr.counter.text = localization.GetByLabel('UI/Market/Orders/OrdersRemaining', remaining=maxCount - current, maxCount=maxCount, escrow=util.FmtISK(self.totalEscrow, showFractionsAlways=False), totalLeft=util.FmtISK(self.totalLeft, showFractionsAlways=False), feeLimit=round(self.limits['fee'] * 100, 2), accLimit=round(self.limits['acc'] * 100, 2), income=util.FmtISK(self.totalIncome, showFractionsAlways=False), expenses=util.FmtISK(self.totalExpenses, showFractionsAlways=False))
+        self.sr.counter.text = localization.GetByLabel('UI/Market/Orders/OrdersRemaining', remaining=maxCount - current, maxCount=maxCount, escrow=util.FmtISK(self.totalEscrow, showFractionsAlways=False), totalLeft=util.FmtISK(self.totalLeft, showFractionsAlways=False), feeLimit=const.marketCommissionPercentage if not orders else round(sum((self.limits.GetBrokersFeeForLocation(o.stationID) * 100 for o in orders)) / len(orders), 2), accLimit=round(self.limits['acc'], 2) * 100, income=util.FmtISK(self.totalIncome, showFractionsAlways=False), expenses=util.FmtISK(self.totalExpenses, showFractionsAlways=False))
         askLimit = self.limits['ask']
         bidLimit = self.limits['bid']
         modLimit = self.limits['mod']
@@ -177,6 +187,7 @@ class MarketOrders(uiprimitives.Container):
         else:
             self.sr.counter2.text = localization.GetByLabel('UI/Market/Orders/OrderRanges', askLimit=self.GetLimitText(askLimit), bidLimit=self.GetLimitText(bidLimit), modLimit=self.GetLimitText(modLimit), visLimit=self.GetLimitText(visLimit))
         self.sr.counter.parent.height = max(60, self.sr.counter.textheight + const.defaultPadding * 2, self.sr.counter2.textheight + const.defaultPadding * 2)
+        return
 
     def OnOrderBuyColumnChanged(self, *args):
         self.ShowOrders(isCorp=self.isCorp)
@@ -184,7 +195,7 @@ class MarketOrders(uiprimitives.Container):
     def OnOrderSellColumnChanged(self, *args):
         self.ShowOrders(isCorp=self.isCorp)
 
-    def ShowOrders(self, isCorp = False, refreshing = 0):
+    def ShowOrders(self, isCorp=False, refreshing=0):
         if isCorp is None:
             isCorp = False
         if self.isCorp is None:
@@ -220,59 +231,62 @@ class MarketOrders(uiprimitives.Container):
             orders = sm.GetService('marketQuote').GetMyOrders()
         if self.destroyed:
             return
-        self.totalEscrow = 0.0
-        self.totalLeft = 0.0
-        self.totalIncome = 0.0
-        self.totalExpenses = 0.0
-        buySelected = self.sr.buyScroll.GetSelected()
-        sellSelected = self.sr.sellScroll.GetSelected()
-        funcs = sm.GetService('marketutils').GetFuncMaps()
-        for order in orders:
-            scroll = [self.sr.sellScroll, self.sr.buyScroll][order.bid]
-            if scroll == self.sr.sellScroll:
-                self.totalIncome += order.price * order.volRemaining
-            else:
-                self.totalExpenses += order.price * order.volRemaining
-            data = util.KeyVal()
-            data.label = ''
-            data.typeID = order.typeID
-            data.order = order
-            data.OnDblClick = self.ShowMarketDetilsForTypeInOrder
-            if evetypes.Exists(order.typeID):
-                data.showinfo = 1
-            selected = [sellSelected, buySelected][order.bid]
-            if selected and selected[0].order.orderID == order.orderID:
-                data.isSelected = 1
-            visibleHeaders = [visibleSHeaders, visibleBHeaders][order.bid]
-            for header in visibleHeaders:
-                header = uiutil.StripTags(header, stripOnly=['localized'])
-                funcName = funcs.get(header, None)
-                if funcName == 'GetQuantity':
-                    funcName = 'GetQuantitySlashVolume'
-                if funcName and hasattr(marketUtil, funcName):
-                    apply(getattr(marketUtil, funcName, None), (order, data))
+        else:
+            self.totalEscrow = 0.0
+            self.totalLeft = 0.0
+            self.totalIncome = 0.0
+            self.totalExpenses = 0.0
+            buySelected = self.sr.buyScroll.GetSelected()
+            sellSelected = self.sr.sellScroll.GetSelected()
+            funcs = sm.GetService('marketutils').GetFuncMaps()
+            for order in orders:
+                scroll = [self.sr.sellScroll, self.sr.buyScroll][order.bid]
+                if scroll == self.sr.sellScroll:
+                    self.totalIncome += order.price * order.volRemaining
                 else:
-                    log.LogWarn('Unsupported header in record', header, order)
-                    data.label += '###<t>'
+                    self.totalExpenses += order.price * order.volRemaining
+                data = util.KeyVal()
+                data.label = ''
+                data.typeID = order.typeID
+                data.order = order
+                data.OnDblClick = self.ShowMarketDetilsForTypeInOrder
+                if evetypes.Exists(order.typeID):
+                    data.showinfo = 1
+                selected = [sellSelected, buySelected][order.bid]
+                if selected and selected[0].order.orderID == order.orderID:
+                    data.isSelected = 1
+                visibleHeaders = [visibleSHeaders, visibleBHeaders][order.bid]
+                for header in visibleHeaders:
+                    header = uiutil.StripTags(header, stripOnly=['localized'])
+                    funcName = funcs.get(header, None)
+                    if funcName == 'GetQuantity':
+                        funcName = 'GetQuantitySlashVolume'
+                    if funcName and hasattr(marketUtil, funcName):
+                        apply(getattr(marketUtil, funcName, None), (order, data))
+                    else:
+                        log.LogWarn('Unsupported header in record', header, order)
+                        data.label += '###<t>'
 
-            data.label = data.label.rstrip('<t>')
-            [sscrollList, bscrollList][order.bid].append(listentry.Get('OrderEntry', data=data))
-            if order.bid:
-                self.totalEscrow += order.escrow
-                self.totalLeft += order.volRemaining * order.price - order.escrow
+                data.label = data.label.rstrip('<t>')
+                [sscrollList, bscrollList][order.bid].append(listentry.Get('OrderEntry', data=data))
+                if order.bid:
+                    self.totalEscrow += order.escrow
+                    self.totalLeft += order.volRemaining * order.price - order.escrow
 
-        buyScrollTo = None
-        sellScrollTo = None
-        if refreshing:
-            buyScrollTo = self.sr.buyScroll.GetScrollProportion()
-            sellScrollTo = self.sr.sellScroll.GetScrollProportion()
-        self.sr.sellScroll.Load(contentList=sscrollList, headers=sheaders, scrollTo=sellScrollTo, noContentHint=localization.GetByLabel('UI/Market/Orders/NoOrdersFound'))
-        self.sr.buyScroll.Load(contentList=bscrollList, headers=bheaders, scrollTo=buyScrollTo, noContentHint=localization.GetByLabel('UI/Market/Orders/NoOrdersFound'))
-        if not isCorp:
-            self.UpdateCounter(len(orders))
+            buyScrollTo = None
+            sellScrollTo = None
+            if refreshing:
+                buyScrollTo = self.sr.buyScroll.GetScrollProportion()
+                sellScrollTo = self.sr.sellScroll.GetScrollProportion()
+            self.sr.sellScroll.Load(contentList=sscrollList, headers=sheaders, scrollTo=sellScrollTo, noContentHint=localization.GetByLabel('UI/Market/Orders/NoOrdersFound'))
+            self.sr.buyScroll.Load(contentList=bscrollList, headers=bheaders, scrollTo=buyScrollTo, noContentHint=localization.GetByLabel('UI/Market/Orders/NoOrdersFound'))
+            if not isCorp:
+                self.UpdateCounter(orders)
+            return
 
     def ShowMarketDetilsForTypeInOrder(self, order):
         sm.StartService('marketutils').ShowMarketDetails(order.typeID, None)
+        return
 
 
 class OrderEntry(listentry.Generic):
@@ -289,16 +303,20 @@ class OrderEntry(listentry.Generic):
         m += sm.GetService('menu').GetMenuFormItemIDTypeID(None, self.sr.node.order.typeID, ignoreMarketDetails=0)
         m.append(None)
         stationInfo = sm.GetService('ui').GetStation(self.sr.node.order.stationID)
-        m += [(uiutil.MenuLabel('UI/Common/Location'), sm.GetService('menu').CelestialMenu(self.sr.node.order.stationID, typeID=stationInfo.stationTypeID, parentID=stationInfo.solarSystemID))]
+        typeID = None if stationInfo is None else stationInfo.stationTypeID
+        solarSystemID = cfg.evelocations.Get(self.sr.node.order.stationID).solarSystemID
+        m += [(uiutil.MenuLabel('UI/Common/Location'), sm.GetService('menu').CelestialMenu(self.sr.node.order.stationID, typeID=typeID, parentID=solarSystemID))]
         return m
 
     def ShowInfo(self, *args):
         sm.GetService('info').ShowInfo(self.sr.node.order.typeID)
 
-    def CancelOffer(self, node = None):
+    def CancelOffer(self, node=None):
         node = node if node != None else self.sr.node
         sm.GetService('marketutils').CancelOffer(node.order)
+        return
 
-    def ModifyPrice(self, node = None):
+    def ModifyPrice(self, node=None):
         node = node if node != None else self.sr.node
         sm.GetService('marketutils').ModifyOrder(node.order)
+        return

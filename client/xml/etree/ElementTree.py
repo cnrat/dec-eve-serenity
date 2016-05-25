@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\carbon\common\stdlib\xml\etree\ElementTree.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\carbon\common\stdlib\xml\etree\ElementTree.py
 __all__ = ['Comment',
  'dump',
  'Element',
@@ -27,18 +28,21 @@ import warnings
 
 class _SimpleElementPath(object):
 
-    def find(self, element, tag, namespaces = None):
+    def find(self, element, tag, namespaces=None):
         for elem in element:
             if elem.tag == tag:
                 return elem
 
-    def findtext(self, element, tag, default = None, namespaces = None):
+        return None
+
+    def findtext(self, element, tag, default=None, namespaces=None):
         elem = self.find(element, tag)
         if elem is None:
             return default
-        return elem.text or ''
+        else:
+            return elem.text or ''
 
-    def iterfind(self, element, tag, namespaces = None):
+    def iterfind(self, element, tag, namespaces=None):
         if tag[:3] == './/':
             for elem in element.iter(tag[3:]):
                 yield elem
@@ -47,7 +51,7 @@ class _SimpleElementPath(object):
             if elem.tag == tag:
                 yield elem
 
-    def findall(self, element, tag, namespaces = None):
+    def findall(self, element, tag, namespaces=None):
         return list(self.iterfind(element, tag, namespaces))
 
 
@@ -70,7 +74,7 @@ class Element(object):
     text = None
     tail = None
 
-    def __init__(self, tag, attrib = {}, **extra):
+    def __init__(self, tag, attrib={}, **extra):
         attrib = attrib.copy()
         attrib.update(extra)
         self.tag = tag
@@ -122,24 +126,25 @@ class Element(object):
         warnings.warn("This method will be removed in future versions.  Use 'list(elem)' or iteration over elem instead.", DeprecationWarning, stacklevel=2)
         return self._children
 
-    def find(self, path, namespaces = None):
+    def find(self, path, namespaces=None):
         return ElementPath.find(self, path, namespaces)
 
-    def findtext(self, path, default = None, namespaces = None):
+    def findtext(self, path, default=None, namespaces=None):
         return ElementPath.findtext(self, path, default, namespaces)
 
-    def findall(self, path, namespaces = None):
+    def findall(self, path, namespaces=None):
         return ElementPath.findall(self, path, namespaces)
 
-    def iterfind(self, path, namespaces = None):
+    def iterfind(self, path, namespaces=None):
         return ElementPath.iterfind(self, path, namespaces)
 
     def clear(self):
         self.attrib.clear()
         self._children = []
         self.text = self.tail = None
+        return
 
-    def get(self, key, default = None):
+    def get(self, key, default=None):
         return self.attrib.get(key, default)
 
     def set(self, key, value):
@@ -151,7 +156,7 @@ class Element(object):
     def items(self):
         return self.attrib.items()
 
-    def iter(self, tag = None):
+    def iter(self, tag=None):
         if tag == '*':
             tag = None
         if tag is None or self.tag == tag:
@@ -160,7 +165,9 @@ class Element(object):
             for e in e.iter(tag):
                 yield e
 
-    def getiterator(self, tag = None):
+        return
+
+    def getiterator(self, tag=None):
         warnings.warn("This method will be removed in future versions.  Use 'elem.iter()' or 'list(elem.iter())' instead.", PendingDeprecationWarning, stacklevel=2)
         return list(self.iter(tag))
 
@@ -168,19 +175,22 @@ class Element(object):
         tag = self.tag
         if not isinstance(tag, basestring) and tag is not None:
             return
-        if self.text:
-            yield self.text
-        for e in self:
-            for s in e.itertext():
-                yield s
+        else:
+            if self.text:
+                yield self.text
+            for e in self:
+                for s in e.itertext():
+                    yield s
 
-            if e.tail:
-                yield e.tail
+                if e.tail:
+                    yield e.tail
+
+            return
 
 
 _Element = _ElementInterface = Element
 
-def SubElement(parent, tag, attrib = {}, **extra):
+def SubElement(parent, tag, attrib={}, **extra):
     attrib = attrib.copy()
     attrib.update(extra)
     element = parent.makeelement(tag, attrib)
@@ -188,13 +198,13 @@ def SubElement(parent, tag, attrib = {}, **extra):
     return element
 
 
-def Comment(text = None):
+def Comment(text=None):
     element = Element(Comment)
     element.text = text
     return element
 
 
-def ProcessingInstruction(target, text = None):
+def ProcessingInstruction(target, text=None):
     element = Element(ProcessingInstruction)
     element.text = target
     if text:
@@ -206,7 +216,7 @@ PI = ProcessingInstruction
 
 class QName(object):
 
-    def __init__(self, text_or_uri, tag = None):
+    def __init__(self, text_or_uri, tag=None):
         if tag:
             text_or_uri = '{%s}%s' % (text_or_uri, tag)
         self.text = text_or_uri
@@ -225,7 +235,7 @@ class QName(object):
 
 class ElementTree(object):
 
-    def __init__(self, element = None, file = None):
+    def __init__(self, element=None, file=None):
         self._root = element
         if file:
             self.parse(file)
@@ -236,7 +246,7 @@ class ElementTree(object):
     def _setroot(self, element):
         self._root = element
 
-    def parse(self, source, parser = None):
+    def parse(self, source, parser=None):
         if not hasattr(source, 'read'):
             source = open(source, 'rb')
         if not parser:
@@ -250,38 +260,38 @@ class ElementTree(object):
         self._root = parser.close()
         return self._root
 
-    def iter(self, tag = None):
+    def iter(self, tag=None):
         return self._root.iter(tag)
 
-    def getiterator(self, tag = None):
+    def getiterator(self, tag=None):
         warnings.warn("This method will be removed in future versions.  Use 'tree.iter()' or 'list(tree.iter())' instead.", PendingDeprecationWarning, stacklevel=2)
         return list(self.iter(tag))
 
-    def find(self, path, namespaces = None):
+    def find(self, path, namespaces=None):
         if path[:1] == '/':
             path = '.' + path
             warnings.warn('This search is broken in 1.3 and earlier, and will be fixed in a future version.  If you rely on the current behaviour, change it to %r' % path, FutureWarning, stacklevel=2)
         return self._root.find(path, namespaces)
 
-    def findtext(self, path, default = None, namespaces = None):
+    def findtext(self, path, default=None, namespaces=None):
         if path[:1] == '/':
             path = '.' + path
             warnings.warn('This search is broken in 1.3 and earlier, and will be fixed in a future version.  If you rely on the current behaviour, change it to %r' % path, FutureWarning, stacklevel=2)
         return self._root.findtext(path, default, namespaces)
 
-    def findall(self, path, namespaces = None):
+    def findall(self, path, namespaces=None):
         if path[:1] == '/':
             path = '.' + path
             warnings.warn('This search is broken in 1.3 and earlier, and will be fixed in a future version.  If you rely on the current behaviour, change it to %r' % path, FutureWarning, stacklevel=2)
         return self._root.findall(path, namespaces)
 
-    def iterfind(self, path, namespaces = None):
+    def iterfind(self, path, namespaces=None):
         if path[:1] == '/':
             path = '.' + path
             warnings.warn('This search is broken in 1.3 and earlier, and will be fixed in a future version.  If you rely on the current behaviour, change it to %r' % path, FutureWarning, stacklevel=2)
         return self._root.iterfind(path, namespaces)
 
-    def write(self, file_or_filename, encoding = None, xml_declaration = None, default_namespace = None, method = None):
+    def write(self, file_or_filename, encoding=None, xml_declaration=None, default_namespace=None, method=None):
         if not method:
             method = 'xml'
         elif method not in _serialize:
@@ -307,12 +317,13 @@ class ElementTree(object):
             serialize(write, self._root, encoding, qnames, namespaces)
         if file_or_filename is not file:
             file.close()
+        return
 
     def write_c14n(self, file):
         return self.write(file, method='c14n')
 
 
-def _namespaces(elem, encoding, default_namespace = None):
+def _namespaces(elem, encoding, default_namespace=None):
     qnames = {None: None}
     namespaces = {}
     if default_namespace:
@@ -342,6 +353,8 @@ def _namespaces(elem, encoding, default_namespace = None):
                 qnames[qname] = encode(qname)
         except TypeError:
             _raise_serialization_error(qname)
+
+        return
 
     try:
         iterate = elem.iter
@@ -419,6 +432,7 @@ def _serialize_xml(write, elem, encoding, qnames, namespaces):
                 write(' />')
     if elem.tail:
         write(_escape_cdata(elem.tail, encoding))
+    return
 
 
 HTML_EMPTY = ('area',
@@ -486,6 +500,7 @@ def _serialize_html(write, elem, encoding, qnames, namespaces):
                 write('</' + tag + '>')
     if elem.tail:
         write(_escape_cdata(elem.tail, encoding))
+    return
 
 
 def _serialize_text(write, elem, encoding):
@@ -572,7 +587,7 @@ def _escape_attrib_html(text, encoding):
         _raise_serialization_error(text)
 
 
-def tostring(element, encoding = None, method = None):
+def tostring(element, encoding=None, method=None):
 
     class dummy:
         pass
@@ -584,7 +599,7 @@ def tostring(element, encoding = None, method = None):
     return ''.join(data)
 
 
-def tostringlist(element, encoding = None, method = None):
+def tostringlist(element, encoding=None, method=None):
 
     class dummy:
         pass
@@ -605,13 +620,13 @@ def dump(elem):
         sys.stdout.write('\n')
 
 
-def parse(source, parser = None):
+def parse(source, parser=None):
     tree = ElementTree()
     tree.parse(source, parser)
     return tree
 
 
-def iterparse(source, events = None, parser = None):
+def iterparse(source, events=None, parser=None):
     if not hasattr(source, 'read'):
         source = open(source, 'rb')
     if not parser:
@@ -637,26 +652,26 @@ class _IterParseIterator(object):
                     parser.ordered_attributes = 1
                     parser.specified_attributes = 1
 
-                    def handler(tag, attrib_in, event = event, append = append, start = self._parser._start_list):
+                    def handler(tag, attrib_in, event=event, append=append, start=self._parser._start_list):
                         append((event, start(tag, attrib_in)))
 
                     parser.StartElementHandler = handler
                 except AttributeError:
 
-                    def handler(tag, attrib_in, event = event, append = append, start = self._parser._start):
+                    def handler(tag, attrib_in, event=event, append=append, start=self._parser._start):
                         append((event, start(tag, attrib_in)))
 
                     parser.StartElementHandler = handler
 
             elif event == 'end':
 
-                def handler(tag, event = event, append = append, end = self._parser._end):
+                def handler(tag, event=event, append=append, end=self._parser._end):
                     append((event, end(tag)))
 
                 parser.EndElementHandler = handler
             elif event == 'start-ns':
 
-                def handler(prefix, uri, event = event, append = append):
+                def handler(prefix, uri, event=event, append=append):
                     try:
                         uri = (uri or '').encode('ascii')
                     except UnicodeError:
@@ -667,12 +682,15 @@ class _IterParseIterator(object):
                 parser.StartNamespaceDeclHandler = handler
             elif event == 'end-ns':
 
-                def handler(prefix, event = event, append = append):
+                def handler(prefix, event=event, append=append):
                     append((event, None))
+                    return
 
                 parser.EndNamespaceDeclHandler = handler
             else:
                 raise ValueError('unknown event %r' % event)
+
+        return
 
     def next(self):
         while 1:
@@ -694,18 +712,20 @@ class _IterParseIterator(object):
                 self._index = self._index + 1
                 return item
 
+        return
+
     def __iter__(self):
         return self
 
 
-def XML(text, parser = None):
+def XML(text, parser=None):
     if not parser:
         parser = XMLParser(target=TreeBuilder())
     parser.feed(text)
     return parser.close()
 
 
-def XMLID(text, parser = None):
+def XMLID(text, parser=None):
     if not parser:
         parser = XMLParser(target=TreeBuilder())
     parser.feed(text)
@@ -721,7 +741,7 @@ def XMLID(text, parser = None):
 
 fromstring = XML
 
-def fromstringlist(sequence, parser = None):
+def fromstringlist(sequence, parser=None):
     if not parser:
         parser = XMLParser(target=TreeBuilder())
     for text in sequence:
@@ -732,7 +752,7 @@ def fromstringlist(sequence, parser = None):
 
 class TreeBuilder(object):
 
-    def __init__(self, element_factory = None):
+    def __init__(self, element_factory=None):
         self._data = []
         self._elem = []
         self._last = None
@@ -740,6 +760,7 @@ class TreeBuilder(object):
         if element_factory is None:
             element_factory = Element
         self._factory = element_factory
+        return
 
     def close(self):
         return self._last
@@ -753,6 +774,7 @@ class TreeBuilder(object):
                 else:
                     self._last.text = text
             self._data = []
+        return
 
     def data(self, data):
         self._data.append(data)
@@ -775,7 +797,7 @@ class TreeBuilder(object):
 
 class XMLParser(object):
 
-    def __init__(self, html = 0, target = None, encoding = None):
+    def __init__(self, html=0, target=None, encoding=None):
         try:
             from xml.parsers import expat
         except ImportError:
@@ -815,6 +837,8 @@ class XMLParser(object):
             self.version = 'Expat %d.%d.%d' % expat.version_info
         except AttributeError:
             pass
+
+        return
 
     def _raiseerror(self, value):
         err = ParseError(value)
@@ -923,6 +947,7 @@ class XMLParser(object):
                     self.__doctype(name, pubid, system[1:-1])
                     self.doctype(name, pubid, system[1:-1])
                 self._doctype = None
+        return
 
     def doctype(self, name, pubid, system):
         warnings.warn('This method of XMLParser is deprecated.  Define doctype() method on the TreeBuilder target.', DeprecationWarning)

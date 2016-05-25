@@ -1,5 +1,8 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\client\script\ui\services\menuSvcExtras\movementFunctions.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\client\script\ui\services\menuSvcExtras\movementFunctions.py
 import sys
+from eve.client.script.parklife import states
+from eve.common.script.sys.eveCfg import CheckShipHasFighterBay
 import uix
 import uiutil
 import util
@@ -11,50 +14,62 @@ import eve.client.script.ui.util.defaultRangeUtils as defaultRangeUtils
 import const
 import log
 from eveexceptions import UserError
+ORBIT_RANGES = (500, 1000, 2500, 5000, 7500, 10000, 15000, 20000, 25000, 30000)
+KEEP_AT_RANGE_RANGES = (500, 1000, 2500, 5000, 7500, 10000, 15000, 20000, 25000, 30000)
 
 def SetDefaultDist(key):
     if not key:
         return
-    minDist, maxDist = {'Orbit': (500, 1000000),
-     'KeepAtRange': (50, 1000000),
-     'WarpTo': (const.minWarpEndDistance, const.maxWarpEndDistance)}.get(key, (500, 1000000))
-    current = sm.GetService('menu').GetDefaultActionDistance(key)
-    current = current or ''
-    fromDist = util.FmtAmt(minDist)
-    toDist = util.FmtAmt(maxDist)
-    if key == 'KeepAtRange':
-        hint = localization.GetByLabel('UI/Inflight/SetDefaultKeepAtRangeDistanceHint', fromDist=fromDist, toDist=toDist)
-        caption = localization.GetByLabel('UI/Inflight/SetDefaultKeepAtRangeDistance')
-    elif key == 'Orbit':
-        hint = localization.GetByLabel('UI/Inflight/SetDefaultOrbitDistanceHint', fromDist=fromDist, toDist=toDist)
-        caption = localization.GetByLabel('UI/Inflight/SetDefaultOrbitDistance')
-    elif key == 'WarpTo':
-        hint = localization.GetByLabel('UI/Inflight/SetDefaultWarpWithinDistanceHint', fromDist=fromDist, toDist=toDist)
-        caption = localization.GetByLabel('UI/Inflight/SetDefaultWarpWithinDistance')
     else:
-        hint = ''
-        caption = ''
-    r = uix.QtyPopup(maxvalue=maxDist, minvalue=minDist, setvalue=current, hint=hint, caption=caption, label=None, digits=0)
-    if r:
-        newRange = max(minDist, min(maxDist, r['qty']))
-        defaultRangeUtils.UpdateRangeSetting(key, newRange)
+        minDist, maxDist = {'Orbit': (500, 1000000),
+         'KeepAtRange': (50, 1000000),
+         'WarpTo': (const.minWarpEndDistance, const.maxWarpEndDistance)}.get(key, (500, 1000000))
+        current = sm.GetService('menu').GetDefaultActionDistance(key)
+        current = current or ''
+        fromDist = util.FmtAmt(minDist)
+        toDist = util.FmtAmt(maxDist)
+        if key == 'KeepAtRange':
+            hint = localization.GetByLabel('UI/Inflight/SetDefaultKeepAtRangeDistanceHint', fromDist=fromDist, toDist=toDist)
+            caption = localization.GetByLabel('UI/Inflight/SetDefaultKeepAtRangeDistance')
+        elif key == 'Orbit':
+            hint = localization.GetByLabel('UI/Inflight/SetDefaultOrbitDistanceHint', fromDist=fromDist, toDist=toDist)
+            caption = localization.GetByLabel('UI/Inflight/SetDefaultOrbitDistance')
+        elif key == 'WarpTo':
+            hint = localization.GetByLabel('UI/Inflight/SetDefaultWarpWithinDistanceHint', fromDist=fromDist, toDist=toDist)
+            caption = localization.GetByLabel('UI/Inflight/SetDefaultWarpWithinDistance')
+        else:
+            hint = ''
+            caption = ''
+        r = uix.QtyPopup(maxvalue=maxDist, minvalue=minDist, setvalue=current, hint=hint, caption=caption, label=None, digits=0)
+        if r:
+            newRange = max(minDist, min(maxDist, r['qty']))
+            defaultRangeUtils.UpdateRangeSetting(key, newRange)
+        return
 
 
-def GetKeepAtRangeRanges():
-    keepRangeRanges = [500,
-     1000,
-     2500,
-     5000,
-     7500,
-     10000,
-     15000,
-     20000,
-     25000,
-     30000]
-    return keepRangeRanges
+def GetKeepAtRangeMenu(itemID, dist, currentDistance):
+    keepRangeMenu = _GetRangeMenu(itemID=itemID, dist=dist, currentDistance=currentDistance, rangesList=KEEP_AT_RANGE_RANGES, mainFunc=KeepAtRange, setDefaultFunc=defaultRangeUtils.SetDefaultKeepAtRangeDist, atCurrentRangeLabel='UI/Inflight/KeepAtCurrentRange', setDefaultLabel='UI/Inflight/Submenus/SetDefaultWarpRange')
+    return keepRangeMenu
 
 
-def GetDefaultDist(key, itemID = None, minDist = 500, maxDist = 1000000):
+def GetOrbitMenu(itemID, dist, currentDistance):
+    orbitMenu = _GetRangeMenu(itemID=itemID, dist=dist, currentDistance=currentDistance, rangesList=ORBIT_RANGES, mainFunc=Orbit, setDefaultFunc=defaultRangeUtils.SetDefaultOrbitDist, atCurrentRangeLabel='UI/Inflight/OrbitAtCurrentRange', setDefaultLabel='UI/Inflight/Submenus/SetDefaultWarpRange')
+    return orbitMenu
+
+
+def _GetRangeMenu(itemID, dist, currentDistance, rangesList, mainFunc, setDefaultFunc, atCurrentRangeLabel, setDefaultLabel, *args):
+    rangeMenu = []
+    rangeSubMenu = []
+    for eachRange in rangesList:
+        fmtRange = util.FmtDist(eachRange)
+        rangeSubMenu.append((fmtRange, setDefaultFunc, (eachRange,)))
+        rangeMenu.append((fmtRange, mainFunc, (itemID, eachRange)))
+
+    rangeMenu += [(uiutil.MenuLabel(atCurrentRangeLabel, {'currentDistance': currentDistance}), mainFunc, (itemID, dist)), None, (uiutil.MenuLabel(setDefaultLabel), rangeSubMenu)]
+    return rangeMenu
+
+
+def GetDefaultDist(key, itemID=None, minDist=500, maxDist=1000000):
     drange = sm.GetService('menu').GetDefaultActionDistance(key)
     if drange is None:
         dist = ''
@@ -89,41 +104,169 @@ def GetDefaultDist(key, itemID = None, minDist = 500, maxDist = 1000000):
     return drange
 
 
-def KeepAtRange(itemID, followRange = None):
-    if _IsInvalidMovementTarget(itemID):
-        return
-    if followRange is None:
-        followRange = GetDefaultDist('KeepAtRange', itemID, minDist=const.approachRange)
-    bp = sm.StartService('michelle').GetRemotePark()
-    if bp is not None and followRange is not None:
-        sm.GetService('space').SetIndicationTextForcefully(ballMode=destiny.DSTBALL_FOLLOW, followId=itemID, followRange=int(followRange))
-        bp.CmdFollowBall(itemID, followRange)
-        if not sm.GetService('machoNet').GetGlobalConfig().get('newAutoNavigationKillSwitch', False):
-            sm.GetService('autoPilot').CancelSystemNavigation()
-        sm.GetService('flightPredictionSvc').OptionActivated('KeepAtRange', itemID, followRange)
+def GetSelectedShipAndFighters():
+    selectedFighterIDs = GetFightersSelectedForNavigation()
+    shipIsSelected = len(selectedFighterIDs) == 0 or IsSelectedForNavigation(session.shipid)
+    return (shipIsSelected, selectedFighterIDs)
 
 
-def Orbit(itemID, followRange = None):
-    if _IsInvalidMovementTarget(itemID):
+def GetFightersSelectedForNavigation():
+    if not CheckShipHasFighterBay(session.shipid):
+        return []
+    selectedItemIDs = sm.GetService('state').GetStatesForFlag(states.selectedForNavigation)
+    fighterIDsInSpace = sm.GetService('fighters').shipFighterState.GetAllFighterIDsInSpace()
+    return [ fighterItemID for fighterItemID in fighterIDsInSpace if fighterItemID in selectedItemIDs ]
+
+
+def IsSelectedForNavigation(itemID):
+    return sm.GetService('state').GetState(itemID, states.selectedForNavigation)
+
+
+def SelectForNavigation(itemID):
+    if not CheckShipHasFighterBay(session.shipid):
         return
-    if followRange is None:
-        followRange = GetDefaultDist('Orbit')
-    bp = sm.StartService('michelle').GetRemotePark()
-    if bp is not None and followRange is not None:
+    sm.GetService('state').SetState(itemID, states.selectedForNavigation, True)
+
+
+def DeselectForNavigation(itemID):
+    sm.GetService('state').SetState(itemID, states.selectedForNavigation, False)
+
+
+def ToggleSelectForNavigation(itemID):
+    if IsSelectedForNavigation(itemID):
+        DeselectForNavigation(itemID)
+    else:
+        SelectForNavigation(itemID)
+
+
+def DeselectAllForNavigation():
+    sm.GetService('state').ResetByFlag(states.selectedForNavigation)
+
+
+def _IsAlreadyFollowingBallAtRange(ballID, targetID, targetRange, moveMode=destiny.DSTBALL_FOLLOW):
+    ball = sm.GetService('michelle').GetBall(ballID)
+    if ball is None:
+        return
+    else:
+        return ball.mode == moveMode and ball.followId == targetID and ball.followRange == targetRange
+
+
+def _GetMovementDistanceOrDefault(targetID, targetRange, action, **kwargs):
+    if targetRange is None:
+        return GetDefaultDist(action, targetID, **kwargs)
+    else:
+        return targetRange
+
+
+def KeepAtRange(targetID, followRange=None):
+    if _IsInvalidMovementTarget(targetID):
+        return
+    else:
+        followRange = _GetMovementDistanceOrDefault(targetID, followRange, 'KeepAtRange', minDist=const.approachRange)
+        if followRange is None:
+            return
+        shipIsSelected, selectedFighterIDs = GetSelectedShipAndFighters()
+        if shipIsSelected:
+            _Ship_KeepAtRange(targetID, followRange)
+        if selectedFighterIDs:
+            sm.GetService('fighters').CmdMovementFollow(selectedFighterIDs, targetID, followRange)
+        return
+
+
+def _Ship_KeepAtRange(targetID, followRange):
+    if _IsAlreadyFollowingBallAtRange(session.shipid, targetID, followRange):
+        return
+    sm.GetService('space').SetIndicationTextForcefully(ballMode=destiny.DSTBALL_FOLLOW, followId=targetID, followRange=int(followRange))
+    bp = sm.GetService('michelle').GetRemotePark()
+    bp.CmdFollowBall(targetID, followRange)
+    if not sm.GetService('machoNet').GetGlobalConfig().get('newAutoNavigationKillSwitch', False):
+        sm.GetService('autoPilot').CancelSystemNavigation()
+    sm.GetService('flightPredictionSvc').OptionActivated('KeepAtRange', targetID, followRange)
+
+
+def Orbit(targetID, followRange=None):
+    if _IsInvalidMovementTarget(targetID):
+        return
+    else:
+        followRange = _GetMovementDistanceOrDefault(targetID, followRange, 'Orbit')
+        if followRange is None:
+            return
         followRange = float(followRange) if followRange < 10.0 else int(followRange)
-        sm.GetService('space').SetIndicationTextForcefully(ballMode=destiny.DSTBALL_ORBIT, followId=itemID, followRange=followRange)
-        bp.CmdOrbit(itemID, followRange)
-        if not sm.GetService('machoNet').GetGlobalConfig().get('newAutoNavigationKillSwitch', False):
-            sm.GetService('autoPilot').CancelSystemNavigation()
-        sm.GetService('flightPredictionSvc').OptionActivated('Orbit', itemID, followRange)
-        try:
-            slimItem = sm.GetService('michelle').GetItem(itemID)
-            if slimItem:
-                sm.ScatterEvent('OnClientEvent_Orbit', slimItem)
-            else:
-                log.LogTraceback('Failed at scattering orbit event')
-        except Exception as e:
+        shipIsSelected, selectedFighterIDs = GetSelectedShipAndFighters()
+        if shipIsSelected:
+            _Ship_Orbit(targetID, followRange)
+        if selectedFighterIDs:
+            sm.GetService('fighters').CmdMovementOrbit(selectedFighterIDs, targetID, followRange)
+        return
+
+
+def _Ship_Orbit(targetID, followRange):
+    if _IsAlreadyFollowingBallAtRange(session.shipid, targetID, followRange, moveMode=destiny.DSTBALL_ORBIT):
+        return
+    sm.GetService('space').SetIndicationTextForcefully(ballMode=destiny.DSTBALL_ORBIT, followId=targetID, followRange=followRange)
+    bp = sm.GetService('michelle').GetRemotePark()
+    bp.CmdOrbit(targetID, followRange)
+    if not sm.GetService('machoNet').GetGlobalConfig().get('newAutoNavigationKillSwitch', False):
+        sm.GetService('autoPilot').CancelSystemNavigation()
+    sm.GetService('flightPredictionSvc').OptionActivated('Orbit', targetID, followRange)
+    try:
+        slimItem = sm.GetService('michelle').GetItem(targetID)
+        if slimItem:
+            sm.ScatterEvent('OnClientEvent_Orbit', slimItem)
+        else:
             log.LogTraceback('Failed at scattering orbit event')
+    except Exception as e:
+        log.LogTraceback('Failed at scattering orbit event')
+
+
+def Approach(targetID, cancelAutoNavigation=True):
+    if _IsInvalidMovementTarget(targetID):
+        return
+    shipIsSelected, selectedFighterIDs = GetSelectedShipAndFighters()
+    if shipIsSelected:
+        ShipApproach(targetID, cancelAutoNavigation)
+    if selectedFighterIDs:
+        sm.GetService('fighters').CmdMovementFollow(selectedFighterIDs, targetID, const.approachRange)
+
+
+def ShipApproach(targetID, cancelAutoNavigation=True):
+    autoPilot = sm.GetService('autoPilot')
+    if not sm.GetService('machoNet').GetGlobalConfig().get('newAutoNavigationKillSwitch', False):
+        if cancelAutoNavigation:
+            autoPilot.CancelSystemNavigation()
+    else:
+        autoPilot.AbortWarpAndTryCommand()
+        autoPilot.AbortApproachAndTryCommand(targetID)
+    approachRange = const.approachRange
+    if _IsAlreadyFollowingBallAtRange(session.shipid, targetID, approachRange):
+        return
+    sm.GetService('space').SetIndicationTextForcefully(ballMode=destiny.DSTBALL_FOLLOW, followId=targetID, followRange=approachRange)
+    bp = sm.GetService('michelle').GetRemotePark()
+    bp.CmdFollowBall(targetID, approachRange)
+    sm.GetService('flightPredictionSvc').OptionActivated('Approach', targetID, approachRange)
+    sm.ScatterEvent('OnClientEvent_Approach')
+
+
+def GoToPoint(position):
+    bp = sm.GetService('michelle').GetRemotePark()
+    if bp is not None:
+        shipIsSelected, selectedFighterIDs = GetSelectedShipAndFighters()
+        if selectedFighterIDs:
+            _Fighters_GoToPoint(selectedFighterIDs, position)
+        if shipIsSelected:
+            _Ship_GoToPoint(bp, position)
+    return
+
+
+def _Ship_GoToPoint(bp, position):
+    if not sm.GetService('machoNet').GetGlobalConfig().get('newAutoNavigationKillSwitch', False):
+        sm.GetService('autoPilot').CancelSystemNavigation()
+    bp.CmdGotoPoint(*position)
+
+
+def _Fighters_GoToPoint(fighterIDs, position):
+    fighterSvc = sm.GetService('fighters')
+    fighterSvc.CmdGotoPoint(fighterIDs, position)
 
 
 def GetWarpToRanges():
@@ -143,10 +286,12 @@ def DockOrJumpOrActivateGate(itemID):
     bp = sm.StartService('michelle').GetBallpark()
     menuSvc = sm.GetService('menu')
     if bp:
-        groupID = bp.GetInvItem(itemID).groupID
-        if groupID == const.groupStation:
-            menuSvc.Dock(itemID)
-        if groupID == const.groupStargate:
+        item = bp.GetInvItem(itemID)
+        if item.groupID == const.groupStation:
+            menuSvc.DockStation(itemID)
+        elif item.categoryID == const.categoryStructure:
+            sm.GetService('structureDocking').Dock(itemID)
+        elif item.groupID == const.groupStargate:
             bp = sm.StartService('michelle').GetBallpark()
             slimItem = bp.slimItems.get(itemID)
             if slimItem:
@@ -154,12 +299,15 @@ def DockOrJumpOrActivateGate(itemID):
                 if not jump:
                     return
                 menuSvc.StargateJump(itemID, jump.toCelestialID, jump.locationID)
-        elif groupID == const.groupWarpGate:
+        elif item.groupID == const.groupWarpGate:
             menuSvc.ActivateAccelerationGate(itemID)
 
 
 def _IsInvalidMovementTarget(itemID):
-    return itemID == session.shipid or sm.GetService('sensorSuite').IsSiteBall(itemID)
+    if sm.GetService('michelle').GetRemotePark() is None:
+        return False
+    else:
+        return itemID == session.shipid or sm.GetService('sensorSuite').IsSiteBall(itemID)
 
 
 def ApproachLocation(bookmark):
@@ -171,9 +319,10 @@ def ApproachLocation(bookmark):
         else:
             bp.CmdGotoBookmark(bookmark.bookmarkID)
             sm.ScatterEvent('OnClientEvent_Approach')
+    return
 
 
-def WarpToBookmark(bookmark, warpRange = 20000.0, fleet = False):
+def WarpToBookmark(bookmark, warpRange=20000.0, fleet=False):
     bp = sm.StartService('michelle').GetRemotePark()
     if bp:
         if getattr(bookmark, 'agentID', 0) and hasattr(bookmark, 'locationNumber'):
@@ -184,9 +333,10 @@ def WarpToBookmark(bookmark, warpRange = 20000.0, fleet = False):
                 sm.GetService('autoPilot').CancelSystemNavigation()
             bp.CmdWarpToStuff('bookmark', bookmark.bookmarkID, minRange=warpRange, fleet=fleet)
             sm.StartService('space').WarpDestination(bookmarkID=bookmark.bookmarkID)
+    return
 
 
-def WarpFleetToBookmark(bookmark, warpRange = 20000.0, fleet = True):
+def WarpFleetToBookmark(bookmark, warpRange=20000.0, fleet=True):
     bp = sm.StartService('michelle').GetRemotePark()
     if bp:
         if getattr(bookmark, 'agentID', 0) and hasattr(bookmark, 'locationNumber'):
@@ -196,33 +346,36 @@ def WarpFleetToBookmark(bookmark, warpRange = 20000.0, fleet = True):
             if not sm.GetService('machoNet').GetGlobalConfig().get('newAutoNavigationKillSwitch', False):
                 sm.GetService('autoPilot').CancelSystemNavigation()
             bp.CmdWarpToStuff('bookmark', bookmark.bookmarkID, minRange=warpRange, fleet=fleet)
+    return
 
 
-def WarpToItem(itemID, warpRange = None, cancelAutoNavigation = True):
+def WarpToItem(itemID, warpRange=None, cancelAutoNavigation=True):
     if itemID == session.shipid:
         return
-    siteBracket = sm.GetService('sensorSuite').GetBracketByBallID(itemID)
-    if siteBracket:
-        siteBracket.data.WarpToAction(None, warpRange)
-        return
-    if warpRange is None:
-        warprange = sm.GetService('menu').GetDefaultActionDistance('WarpTo')
     else:
-        warprange = warpRange
-    bp = sm.StartService('michelle').GetRemotePark()
-    if bp is not None and sm.StartService('space').CanWarp(itemID):
-        if not sm.GetService('machoNet').GetGlobalConfig().get('newAutoNavigationKillSwitch', False):
-            if cancelAutoNavigation:
-                sm.GetService('autoPilot').CancelSystemNavigation()
+        siteBracket = sm.GetService('sensorSuite').GetBracketByBallID(itemID)
+        if siteBracket:
+            siteBracket.data.WarpToAction(None, warpRange)
+            return
+        if warpRange is None:
+            warprange = sm.GetService('menu').GetDefaultActionDistance('WarpTo')
         else:
-            sm.GetService('autoPilot').AbortWarpAndTryCommand(itemID)
-            sm.GetService('autoPilot').AbortApproachAndTryCommand()
-        bp.CmdWarpToStuff('item', itemID, minRange=warprange)
-        sm.StartService('space').WarpDestination(celestialID=itemID)
-        sm.GetService('flightPredictionSvc').OptionActivated('AlignTo', itemID)
+            warprange = warpRange
+        bp = sm.StartService('michelle').GetRemotePark()
+        if bp is not None and sm.StartService('space').CanWarp(itemID):
+            if not sm.GetService('machoNet').GetGlobalConfig().get('newAutoNavigationKillSwitch', False):
+                if cancelAutoNavigation:
+                    sm.GetService('autoPilot').CancelSystemNavigation()
+            else:
+                sm.GetService('autoPilot').AbortWarpAndTryCommand(itemID)
+                sm.GetService('autoPilot').AbortApproachAndTryCommand()
+            bp.CmdWarpToStuff('item', itemID, minRange=warprange)
+            sm.StartService('space').WarpDestination(celestialID=itemID)
+            sm.GetService('flightPredictionSvc').OptionActivated('AlignTo', itemID)
+        return
 
 
-def WarpToDistrict(districtID, warpRange = None, cancelAutoNavigation = True):
+def WarpToDistrict(districtID, warpRange=None, cancelAutoNavigation=True):
     if warpRange is None:
         warprange = sm.GetService('menu').GetDefaultActionDistance('WarpTo')
     else:
@@ -236,43 +389,46 @@ def WarpToDistrict(districtID, warpRange = None, cancelAutoNavigation = True):
             sm.GetService('autoPilot').AbortWarpAndTryCommand(districtID)
             sm.GetService('autoPilot').AbortApproachAndTryCommand()
         bp.CmdWarpToStuff('district', districtID, minRange=warprange)
+    return
 
 
 def RealDock(itemID):
     bp = sm.StartService('michelle').GetBallpark()
     if not bp:
         return
-    if sm.GetService('viewState').HasActiveTransition():
+    elif sm.GetService('viewState').HasActiveTransition():
         return
-    eve.Message('OnDockingRequest')
-    eve.Message('CustomNotify', {'notify': localization.GetByLabel('UI/Inflight/RequestToDockAt', station=itemID)})
-    paymentRequired = 0
-    try:
-        bp = sm.GetService('michelle').GetRemotePark()
-        if bp is not None:
-            log.LogNotice('Docking', itemID)
-            if uicore.uilib.Key(uiconst.VK_CONTROL) and uicore.uilib.Key(uiconst.VK_SHIFT) and uicore.uilib.Key(uiconst.VK_MENU) and session.role & service.ROLE_GML:
-                success = sm.GetService('sessionMgr').PerformSessionChange('dock', bp.CmdTurboDock, itemID)
-            else:
-                success = sm.GetService('sessionMgr').PerformSessionChange('dock', bp.CmdDock, itemID, session.shipid)
-    except UserError as e:
-        if e.msg == 'DockingRequestDeniedPaymentRequired':
-            sys.exc_clear()
-            paymentRequired = e.args[1]['amount']
-        else:
-            raise
-    except Exception as e:
-        raise
-
-    if paymentRequired:
-        if eve.Message('AskPayDockingFee', {'cost': paymentRequired}, uiconst.YESNO) == uiconst.ID_YES:
+    else:
+        eve.Message('OnDockingRequest')
+        eve.Message('CustomNotify', {'notify': localization.GetByLabel('UI/Inflight/RequestToDockAt', station=itemID)})
+        paymentRequired = 0
+        try:
             bp = sm.GetService('michelle').GetRemotePark()
             if bp is not None:
-                session.ResetSessionChangeTimer('Retrying with docking payment')
-                if uicore.uilib.Key(uiconst.VK_CONTROL) and session.role & service.ROLE_GML:
-                    sm.GetService('sessionMgr').PerformSessionChange('dock', bp.CmdTurboDock, itemID, paymentRequired)
+                log.LogNotice('Docking', itemID)
+                if uicore.uilib.Key(uiconst.VK_CONTROL) and uicore.uilib.Key(uiconst.VK_SHIFT) and uicore.uilib.Key(uiconst.VK_MENU) and session.role & service.ROLE_GML:
+                    success = sm.GetService('sessionMgr').PerformSessionChange('dock', bp.CmdTurboDock, itemID)
                 else:
-                    sm.GetService('sessionMgr').PerformSessionChange('dock', bp.CmdDock, itemID, session.shipid, paymentRequired)
+                    success = sm.GetService('sessionMgr').PerformSessionChange('dock', bp.CmdDock, itemID, session.shipid)
+        except UserError as e:
+            if e.msg == 'DockingRequestDeniedPaymentRequired':
+                sys.exc_clear()
+                paymentRequired = e.args[1]['amount']
+            else:
+                raise
+        except Exception as e:
+            raise
+
+        if paymentRequired:
+            if eve.Message('AskPayDockingFee', {'cost': paymentRequired}, uiconst.YESNO) == uiconst.ID_YES:
+                bp = sm.GetService('michelle').GetRemotePark()
+                if bp is not None:
+                    session.ResetSessionChangeTimer('Retrying with docking payment')
+                    if uicore.uilib.Key(uiconst.VK_CONTROL) and session.role & service.ROLE_GML:
+                        sm.GetService('sessionMgr').PerformSessionChange('dock', bp.CmdTurboDock, itemID, paymentRequired)
+                    else:
+                        sm.GetService('sessionMgr').PerformSessionChange('dock', bp.CmdDock, itemID, session.shipid, paymentRequired)
+        return
 
 
 def RealActivateAccelerationGate(itemID):

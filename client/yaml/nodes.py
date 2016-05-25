@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\carbon\common\stdlib\yaml\nodes.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\carbon\common\stdlib\yaml\nodes.py
 
 
 class Node(object):
@@ -18,7 +19,7 @@ class Node(object):
 class ScalarNode(Node):
     id = 'scalar'
 
-    def __init__(self, tag, value, start_mark = None, end_mark = None, style = None):
+    def __init__(self, tag, value, start_mark=None, end_mark=None, style=None):
         self.tag = tag
         self.value = value
         self.start_mark = start_mark
@@ -28,7 +29,7 @@ class ScalarNode(Node):
 
 class CollectionNode(Node):
 
-    def __init__(self, tag, value, start_mark = None, end_mark = None, flow_style = None):
+    def __init__(self, tag, value, start_mark=None, end_mark=None, flow_style=None):
         self.tag = tag
         self.value = value
         self.start_mark = start_mark

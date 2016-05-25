@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\packages\windowsutilities\windowsEvents.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\packages\windowsutilities\windowsEvents.py
 WM_NULL = 0
 WM_CREATE = 1
 WM_DESTROY = 2

@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\packages\achievements\client\achievementTreeWindow.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\packages\achievements\client\achievementTreeWindow.py
 import weakref
 from achievements.client.achievementGroupEntry import AchievementGroupEntry
 from achievements.client.achievementSettings import OpportunitiesSettingsMenu
@@ -108,11 +109,13 @@ class ActiveAchievementInfo(Container):
         if self.destroyed:
             self.mouseOverTimer = None
             return
-        if uicore.uilib.mouseOver.IsUnder(self):
-            self.StopAnimations()
-            self.opacity = 1.0
-        elif not self.resetToActiveTimer:
-            self.resetToActiveTimer = AutoTimer(3000, self.ResetToActive)
+        else:
+            if uicore.uilib.mouseOver.IsUnder(self):
+                self.StopAnimations()
+                self.opacity = 1.0
+            elif not self.resetToActiveTimer:
+                self.resetToActiveTimer = AutoTimer(3000, self.ResetToActive)
+            return
 
     def ResetToActive(self):
         resetTimer = False
@@ -126,10 +129,12 @@ class ActiveAchievementInfo(Container):
             uicore.animations.FadeTo(self, startVal=self.opacity, endVal=1.0, duration=0.1)
             self.resetToActiveTimer = AutoTimer(3000, self.ResetToActive)
             return
-        activeAchievementGroupID = sm.GetService('achievementSvc').GetActiveAchievementGroupID()
-        if activeAchievementGroupID and self.loadedAchievementGroupID != activeAchievementGroupID:
-            uicore.animations.FadeTo(self, startVal=1.0, endVal=0.0, duration=1.0, callback=self.LoadActiveGroup)
-        self.resetToActiveTimer = None
+        else:
+            activeAchievementGroupID = sm.GetService('achievementSvc').GetActiveAchievementGroupID()
+            if activeAchievementGroupID and self.loadedAchievementGroupID != activeAchievementGroupID:
+                uicore.animations.FadeTo(self, startVal=1.0, endVal=0.0, duration=1.0, callback=self.LoadActiveGroup)
+            self.resetToActiveTimer = None
+            return
 
     def LoadActiveGroup(self):
         activeAchievementGroupID = sm.GetService('achievementSvc').GetActiveAchievementGroupID()
@@ -460,27 +465,30 @@ class AchievementTreeSlot(Container):
         self.mouseEnterDelay = None
         if uicore.uilib.mouseOver is self:
             sm.ScatterEvent('OnAchievementTreeMouseOver', self.achievementGroupID)
+        return
 
     def CheckMouseOver(self):
         if uicore.uilib.mouseOver is self:
             return
-        if uicore.uilib.mouseOver.IsUnder(self):
+        elif uicore.uilib.mouseOver.IsUnder(self):
             return
-        if self.nameLabel and uicore.uilib.mouseOver is self.nameLabel:
+        elif self.nameLabel and uicore.uilib.mouseOver is self.nameLabel:
             return
-        self.moTimer = None
-        activeGroupID = sm.GetService('achievementSvc').GetActiveAchievementGroupID()
-        if activeGroupID == self.achievementGroupID:
-            r, g, b, a = sm.GetService('uiColor').GetUIColor(uiconst.COLORTYPE_UIHILIGHT)
-            uicore.animations.SpColorMorphTo(self.backgroundSprite, startColor=(r,
-             g,
-             b,
-             1.5), endColor=(r,
-             g,
-             b,
-             1.5), duration=0.1, curveType=uiconst.ANIM_OVERSHOT)
         else:
-            uicore.animations.FadeTo(self.backgroundSprite, startVal=self.backgroundSprite.opacity, endVal=0.5, duration=0.1)
+            self.moTimer = None
+            activeGroupID = sm.GetService('achievementSvc').GetActiveAchievementGroupID()
+            if activeGroupID == self.achievementGroupID:
+                r, g, b, a = sm.GetService('uiColor').GetUIColor(uiconst.COLORTYPE_UIHILIGHT)
+                uicore.animations.SpColorMorphTo(self.backgroundSprite, startColor=(r,
+                 g,
+                 b,
+                 1.5), endColor=(r,
+                 g,
+                 b,
+                 1.5), duration=0.1, curveType=uiconst.ANIM_OVERSHOT)
+            else:
+                uicore.animations.FadeTo(self.backgroundSprite, startVal=self.backgroundSprite.opacity, endVal=0.5, duration=0.1)
+            return
 
     def GetBounds(self):
         return (self.left,
@@ -560,6 +568,7 @@ class AchievementTree(Container):
         Container.Close(self, *args)
         self.connections = None
         self.slotsByID = None
+        return
 
     def OnMouseWheel(self, dz):
         return
@@ -586,20 +595,23 @@ class AchievementTree(Container):
         if button == uiconst.MOUSELEFT:
             self.dragThread = None
             self.ClampPosition()
+        return
 
     def PanUpdate(self):
         if uicore.uilib.GetMouseCapture() is not self:
             self.dragThread = None
             self.ClampPosition()
             return
-        startLeft, startTop, startX, startY = self.dragData
-        dX = uicore.uilib.x - startX
-        dY = uicore.uilib.y - startY
-        self.left = startLeft + dX
-        self.top = startTop + dY
-        self.ClampPosition(smooth=False)
+        else:
+            startLeft, startTop, startX, startY = self.dragData
+            dX = uicore.uilib.x - startX
+            dY = uicore.uilib.y - startY
+            self.left = startLeft + dX
+            self.top = startTop + dY
+            self.ClampPosition(smooth=False)
+            return
 
-    def ClampPosition(self, smooth = True):
+    def ClampPosition(self, smooth=True):
         mL, mT, mR, mB = self.treeMargin
         pW = ReverseScaleDpi(self.parent.displayWidth)
         pH = ReverseScaleDpi(self.parent.displayHeight)
@@ -623,7 +635,7 @@ class AchievementTree(Container):
             self.top = top
         self.RegisterPosition(position=(left, top))
 
-    def RegisterPosition(self, position = None):
+    def RegisterPosition(self, position=None):
         pW = ReverseScaleDpi(self.parent.displayWidth)
         pH = ReverseScaleDpi(self.parent.displayHeight)
         if position:

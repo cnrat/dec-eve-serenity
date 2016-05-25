@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\carbon\common\script\sys\counterService.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\carbon\common\script\sys\counterService.py
 import blue
 import service
 import uthread
@@ -34,10 +35,10 @@ class Counter:
     def Reset(self):
         self.counter = 0
 
-    def Add(self, value = 1):
+    def Add(self, value=1):
         self.counter += value
 
-    def Dec(self, value = 1):
+    def Dec(self, value=1):
         self.counter -= value
 
     def Set(self, value):
@@ -68,7 +69,7 @@ class TrafficCounter(Counter):
         self.lastperfrom = {}
         self.lastperfrom = defaultdict(lambda : 0)
 
-    def Add(self, value = 1):
+    def Add(self, value=1):
         self.currval += value
         self.total += 1
         if value > self.maxval:
@@ -76,11 +77,11 @@ class TrafficCounter(Counter):
         if (not self.minval or value < self.minval) and value:
             self.minval = value
 
-    def AddFrom(self, nodeID, value = 1):
+    def AddFrom(self, nodeID, value=1):
         self.perfrom[nodeID] += value
         self.Add(value)
 
-    def Dec(self, value = 1):
+    def Dec(self, value=1):
         raise AttributeError('Dec is cwap on TrafficCounter')
 
     def Set(self, value):
@@ -156,7 +157,7 @@ class StatCounter(Counter):
         self.maxval = 0
         self.count = 0
 
-    def Add(self, value = 1):
+    def Add(self, value=1):
         self.lastval = value
         self.total += value
         self.count += 1
@@ -165,7 +166,7 @@ class StatCounter(Counter):
         if (not self.minval or value < self.minval) and value:
             self.minval = value
 
-    def Dec(self, value = 1):
+    def Dec(self, value=1):
         raise NotImplementedError
 
     def Set(self, value):
@@ -210,13 +211,13 @@ class ListCounter(Counter):
     def Reset(self):
         self.counter = []
 
-    def Add(self, value = 1):
+    def Add(self, value=1):
         if len(self.counter) == 0:
             self.counter.append(value)
         else:
             self.counter.append(self.counter[-1] + value)
 
-    def Dec(self, value = 1):
+    def Dec(self, value=1):
         if len(self.counter) == 0:
             self.counter.append(value)
         else:
@@ -296,11 +297,12 @@ class CoreCounterService(service.Service):
     __configvalues__ = {'countersInterval': 15,
      'logStart': 0}
 
-    def Run(self, memStream = None):
+    def Run(self, memStream=None):
         self.counters = []
         self.timer = None
         if self.logStart:
             self.StartLogging()
+        return
 
     def GetHtmlStateDetails(self, k, v, detailed):
         import htmlwriter
@@ -349,6 +351,7 @@ class CoreCounterService(service.Service):
                 else:
                     desc = desc + 'The counter service is currently configured in such a manner that logging will <b>not</b> be started'
                 return ('Start Logging?', desc)
+        return
 
     def Stop(self, memStream):
         pass
@@ -362,7 +365,9 @@ class CoreCounterService(service.Service):
             if s.name == name:
                 return s
 
-    def CreateCounter(self, name, type = 'normal'):
+        return None
+
+    def CreateCounter(self, name, type='normal'):
         counter = self.FindCounter(name)
         if counter:
             return counter
@@ -389,6 +394,8 @@ class CoreCounterService(service.Service):
             if s.name == name:
                 return s
 
+        return None
+
     def DestroyCounter(self, name):
         found = None
         for s in self.counters:
@@ -398,6 +405,7 @@ class CoreCounterService(service.Service):
 
         if found != None:
             self.counters.remove(found)
+        return
 
     def StartLogging(self):
         uthread.new(self.StartLogging_thread).context = 'counterService::FlushDaemon'

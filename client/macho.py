@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\common\modules\nice\client\_nastyspace\macho.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\common\modules\nice\client\_nastyspace\macho.py
 from carbon.common.script.net.machoNet import AssignLogName
 from carbon.common.script.net.machoNet import Dumps
 from carbon.common.script.net.machoNet import DumpsSanitized

@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\packages\localization\util.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\packages\localization\util.py
 import pytelemetry.zoning as telemetry
 from carbon.common.script.util.commonutils import StripTags
 import internalUtil
@@ -29,7 +30,7 @@ def GetDefaultServerLanguageID():
         return locconst.LOCALE_SHORT_ENGLISH
 
 
-def StandardizedLanguageIDOrDefault(fromLanguageID = None):
+def StandardizedLanguageIDOrDefault(fromLanguageID=None):
     if not fromLanguageID:
         return internalUtil.GetLanguageID()
     else:
@@ -55,7 +56,7 @@ def GetSortFunc(languageID):
 
 
 @telemetry.ZONE_FUNCTION
-def Sort(iterable, cmp = None, key = lambda x: x, reverse = False, languageID = None):
+def Sort(iterable, cmp=None, key=lambda x: x, reverse=False, languageID=None):
     import localization
     if cmp:
         raise ValueError("Passing a compare function into Sort defeats the purpose of using a language-aware sort.  You probably want to use the 'key' parameter instead.")
@@ -74,7 +75,8 @@ def Sort(iterable, cmp = None, key = lambda x: x, reverse = False, languageID = 
             return ret
 
         return sorted(iterable, cmp=cmpFunc, key=lambda x: StripTags(getPronunciation(key(x))), reverse=reverse)
-    return sorted(iterable, cmp=cmpFunc, key=lambda x: StripTags(key(x)), reverse=reverse)
+    else:
+        return sorted(iterable, cmp=cmpFunc, key=lambda x: StripTags(key(x)), reverse=reverse)
 
 
 def IsSearchTextIdeographic(languageID, textString):

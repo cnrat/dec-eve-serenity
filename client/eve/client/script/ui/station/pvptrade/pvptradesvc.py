@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\client\script\ui\station\pvptrade\pvptradesvc.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\client\script\ui\station\pvptrade\pvptradesvc.py
 import service
 import form
 import uicontrols
@@ -9,43 +10,55 @@ class PVPTradeService(service.Service):
     __exportedcalls__ = {'StartTradeSession': []}
     __notifyevents__ = ['OnTrade']
 
-    def StartTradeSession(self, charID):
+    def StartTradeSession(self, charID, tradeItems=None):
         tradeSession = sm.RemoteSvc('trademgr').InitiateTrade(charID)
-        tradeContainerID = tradeSession.List().tradeContainerID
-        checkWnd = uicontrols.Window.GetIfOpen(windowID='trade_%d' % tradeContainerID)
+        windowID = self.GetWindowIDForTradeSession(tradeSession)
+        checkWnd = uicontrols.Window.GetIfOpen(windowID=windowID)
         if checkWnd and not checkWnd.destroyed:
             checkWnd.Maximize()
         else:
-            self.OnInitiate(charID, tradeSession)
+            self.OnInitiate(charID, tradeSession, tradeItems)
+
+    def GetWindowIDForTradeSession(self, tradeSession):
+        tradeContainerID = tradeSession.List().tradeContainerID
+        return self.GetWindowID(tradeContainerID)
+
+    def GetWindowID(self, tradeContainerID=None):
+        windowID = ('tradeWnd', tradeContainerID)
+        return windowID
 
     def OnTrade(self, what, *args):
         self.LogInfo('OnTrade', what, args)
         getattr(self, 'On' + what)(*args)
 
-    def OnInitiate(self, charID, tradeSession):
+    def OnInitiate(self, charID, tradeSession, tradeItems=None):
         self.LogInfo('OnInitiate', charID, tradeSession)
-        tradeContainerID = tradeSession.List().tradeContainerID
-        checkWnd = uicontrols.Window.GetIfOpen(windowID='trade_%d' % tradeContainerID)
+        windowID = self.GetWindowIDForTradeSession(tradeSession)
+        checkWnd = uicontrols.Window.GetIfOpen(windowID=windowID)
         if checkWnd:
             return
-        form.PVPTrade.Open(windowID='trade_%d' % tradeContainerID, tradeSession=tradeSession)
+        form.PVPTrade.Open(windowID=windowID, tradeSession=tradeSession, tradeItems=tradeItems)
 
     def OnCancel(self, containerID):
-        w = uicontrols.Window.GetIfOpen(windowID='trade_' + str(containerID))
+        windowID = self.GetWindowID(containerID)
+        w = uicontrols.Window.GetIfOpen(windowID=windowID)
         if w:
             w.OnCancel()
 
     def OnStateToggle(self, containerID, state):
-        w = uicontrols.Window.GetIfOpen(windowID='trade_' + str(containerID))
+        windowID = self.GetWindowID(containerID)
+        w = uicontrols.Window.GetIfOpen(windowID=windowID)
         if w:
             w.OnStateToggle(state)
 
     def OnMoneyOffer(self, containerID, money):
-        w = uicontrols.Window.GetIfOpen(windowID='trade_' + str(containerID))
+        windowID = self.GetWindowID(containerID)
+        w = uicontrols.Window.GetIfOpen(windowID=windowID)
         if w:
             w.OnMoneyOffer(money)
 
     def OnTradeComplete(self, containerID):
-        w = uicontrols.Window.GetIfOpen(windowID='trade_' + str(containerID))
+        windowID = self.GetWindowID(containerID)
+        w = uicontrols.Window.GetIfOpen(windowID=windowID)
         if w:
             w.OnTradeComplete()

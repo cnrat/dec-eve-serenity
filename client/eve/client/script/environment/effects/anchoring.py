@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\client\script\environment\effects\anchoring.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\client\script\environment\effects\anchoring.py
 from eve.client.script.environment.effects.GenericEffect import GenericEffect, STOP_REASON_DEFAULT
 
 class AnchoringEffect(GenericEffect):
@@ -11,6 +12,7 @@ class AnchoringEffect(GenericEffect):
             self.ballIDs = [trigger.shipID]
         self.fxSequencer = sm.GetService('FxSequencer')
         self.gfx = None
+        return
 
     def SetState(self, stateName):
         ballID = self.ballIDs[0]
@@ -27,21 +29,25 @@ class AnchorDrop(AnchoringEffect):
         ball = self.fxSequencer.GetBall(ballID)
         if ball is None:
             return
-        if hasattr(ball, 'BeginStructureAnchoring'):
-            self.fxSequencer.LogInfo('AnchorDrop: calling BeginStructureAnchoring')
-            ball.BeginStructureAnchoring(self.timeFromStart)
         else:
-            self.SetState('yellow')
-            AnchoringEffect.Start(self, duration)
+            if hasattr(ball, 'BeginStructureAnchoring'):
+                self.fxSequencer.LogInfo('AnchorDrop: calling BeginStructureAnchoring')
+                ball.BeginStructureAnchoring(self.timeFromStart)
+            else:
+                self.SetState('yellow')
+                AnchoringEffect.Start(self, duration)
+            return
 
-    def Stop(self, reason = STOP_REASON_DEFAULT):
+    def Stop(self, reason=STOP_REASON_DEFAULT):
         ballID = self.ballIDs[0]
         ball = self.fxSequencer.GetBall(ballID)
         if ball is None:
             return
-        if not hasattr(ball, 'BeginStructureAnchoring'):
-            self.SetState('red')
-            AnchoringEffect.Stop(self)
+        else:
+            if not hasattr(ball, 'BeginStructureAnchoring'):
+                self.SetState('red')
+                AnchoringEffect.Stop(self)
+            return
 
 
 class AnchorLift(AnchoringEffect):
@@ -52,18 +58,22 @@ class AnchorLift(AnchoringEffect):
         ball = self.fxSequencer.GetBall(ballID)
         if ball is None:
             return
-        if hasattr(ball, 'BeginStructureUnAnchoring'):
-            self.fxSequencer.LogInfo('AnchorDrop: calling BeginStructureUnAnchoring ')
-            ball.BeginStructureUnAnchoring(self.timeFromStart)
         else:
-            self.SetState('yellow')
-            AnchoringEffect.Start(self, duration)
+            if hasattr(ball, 'BeginStructureUnAnchoring'):
+                self.fxSequencer.LogInfo('AnchorDrop: calling BeginStructureUnAnchoring ')
+                ball.BeginStructureUnAnchoring(self.timeFromStart)
+            else:
+                self.SetState('yellow')
+                AnchoringEffect.Start(self, duration)
+            return
 
-    def Stop(self, reason = STOP_REASON_DEFAULT):
+    def Stop(self, reason=STOP_REASON_DEFAULT):
         ballID = self.ballIDs[0]
         ball = self.fxSequencer.GetBall(ballID)
         if ball is None:
             return
-        if not hasattr(ball, 'SetCapsuleGraphics'):
-            self.SetState('green')
-            AnchoringEffect.Stop(self)
+        else:
+            if not hasattr(ball, 'SetCapsuleGraphics'):
+                self.SetState('green')
+                AnchoringEffect.Stop(self)
+            return

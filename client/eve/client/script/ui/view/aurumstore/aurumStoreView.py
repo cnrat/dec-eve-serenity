@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\client\script\ui\view\aurumstore\aurumStoreView.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\client\script\ui\view\aurumstore\aurumStoreView.py
 from eve.client.script.ui.view.aurumstore.loadingPanel import LoadingPanel
 import uthread
 import carbonui.const as uiconst
@@ -34,6 +35,7 @@ class AurumStoreView(View):
         self._SearchTasklet = None
         uthread.new(self.SetupStoreData)
         sm.GetService('audio').SendUIEvent('store_view_start')
+        return
 
     def SetupStoreData(self):
         logger.debug('SetupStoreData')
@@ -42,46 +44,48 @@ class AurumStoreView(View):
             logger.warn('SetupStoreData - Session has no userid. Store will be unavailable')
             loadingPanel.ShowStoreUnavailable()
             return
-        try:
-            self.store = sm.GetService('vgsService').GetStore()
-            logger.debug('SetupStoreData - Spawning Get* threads')
-            getRootCategoryListTasklet = uthread.newJoinable(self.store.GetRootCategoryList)
-            getAccountTasklet = uthread.newJoinable(self.store.GetAccount)
-            getOffersTasklet = uthread.newJoinable(self.store.GetOffers)
-            logger.debug('SetupStoreData - Creating AurumStoreContainer')
-            self.storeContainer = AurumStoreContainer(parent=self.layer)
-            logger.debug('SetupStoreData - Joining on Get* threads')
-            rootCategoryList = uthread.waitForJoinable(getRootCategoryListTasklet, timeout=STORE_REQUEST_TIMEOUT)
-            account = uthread.waitForJoinable(getAccountTasklet, timeout=STORE_REQUEST_TIMEOUT)
-            aurumAmount = account.GetAurumBalance()
-            uthread.waitForJoinable(getOffersTasklet, timeout=STORE_REQUEST_TIMEOUT)
-            logger.debug('SetupStoreData - Populating UI')
-            self.storeContainer.SetCategories(rootCategoryList)
-            self.storeContainer.LoadLandingPage()
-            self.viewOpenedTimer = sm.GetService('viewState').lastViewOpenTime
-            self.SubscribeToStoreEvents()
-        except uthread.TaskletWaitTimeout:
-            logger.warn('SetupStoreData timed out, store will be unavailable')
-            loadingPanel.ShowStoreUnavailable(localization.GetByLabel('UI/VirtualGoodsStore/StoreUnavailableTimeout'))
-            raise
-        except ServiceUnavailableException as e:
-            message = None
-            if 'certificate verify failed' in e.message:
-                message = localization.GetByLabel('UI/VirtualGoodsStore/StoreUnavailableSSL')
-            loadingPanel.ShowStoreUnavailable(message)
-            raise
-        except Exception as e:
-            message = None
-            logger.warn('SetupStoreData - Store loading failed')
-            if e.message == 'tokenMissing':
-                message = localization.GetByLabel('UI/VirtualGoodsStore/StoreUnavailableToken')
-            loadingPanel.ShowStoreUnavailable(message)
-            raise
+        else:
+            try:
+                self.store = sm.GetService('vgsService').GetStore()
+                logger.debug('SetupStoreData - Spawning Get* threads')
+                getRootCategoryListTasklet = uthread.newJoinable(self.store.GetRootCategoryList)
+                getAccountTasklet = uthread.newJoinable(self.store.GetAccount)
+                getOffersTasklet = uthread.newJoinable(self.store.GetOffers)
+                logger.debug('SetupStoreData - Creating AurumStoreContainer')
+                self.storeContainer = AurumStoreContainer(parent=self.layer)
+                logger.debug('SetupStoreData - Joining on Get* threads')
+                rootCategoryList = uthread.waitForJoinable(getRootCategoryListTasklet, timeout=STORE_REQUEST_TIMEOUT)
+                account = uthread.waitForJoinable(getAccountTasklet, timeout=STORE_REQUEST_TIMEOUT)
+                aurumAmount = account.GetAurumBalance()
+                uthread.waitForJoinable(getOffersTasklet, timeout=STORE_REQUEST_TIMEOUT)
+                logger.debug('SetupStoreData - Populating UI')
+                self.storeContainer.SetCategories(rootCategoryList)
+                self.storeContainer.LoadLandingPage()
+                self.viewOpenedTimer = sm.GetService('viewState').lastViewOpenTime
+                self.SubscribeToStoreEvents()
+            except uthread.TaskletWaitTimeout:
+                logger.warn('SetupStoreData timed out, store will be unavailable')
+                loadingPanel.ShowStoreUnavailable(localization.GetByLabel('UI/VirtualGoodsStore/StoreUnavailableTimeout'))
+                raise
+            except ServiceUnavailableException as e:
+                message = None
+                if 'certificate verify failed' in e.message:
+                    message = localization.GetByLabel('UI/VirtualGoodsStore/StoreUnavailableSSL')
+                loadingPanel.ShowStoreUnavailable(message)
+                raise
+            except Exception as e:
+                message = None
+                logger.warn('SetupStoreData - Store loading failed')
+                if e.message == 'tokenMissing':
+                    message = localization.GetByLabel('UI/VirtualGoodsStore/StoreUnavailableToken')
+                loadingPanel.ShowStoreUnavailable(message)
+                raise
 
-        logger.debug('SetupStoreData - Loading completed successfully, showing store')
-        uicore.animations.FadeOut(loadingPanel, duration=0.5, timeOffset=0.5, sleep=True)
-        loadingPanel.Close()
-        self.storeContainer.SetAUR(aurumAmount)
+            logger.debug('SetupStoreData - Loading completed successfully, showing store')
+            uicore.animations.FadeOut(loadingPanel, duration=0.5, timeOffset=0.5, sleep=True)
+            loadingPanel.Close()
+            self.storeContainer.SetAUR(aurumAmount)
+            return
 
     def SubscribeToStoreEvents(self):
         self.store.GetAccount().SubscribeToAurumBalanceChanged(self.storeContainer.SetAUR)
@@ -100,6 +104,7 @@ class AurumStoreView(View):
             self.storeContainer.Close()
         uicore.layer.main.display = True
         uicore.layer.abovemain.display = True
+        return
 
     def OnShowUI(self):
         if not self._debug:
@@ -111,14 +116,15 @@ class AurumStoreView(View):
         uicore.layer.vgssuppress.opacity = 0.0
         uicore.layer.vgssuppress.state = uiconst.UI_DISABLED
 
-    def ActivateSuppressLayer(self, duration = 0.25, clickCallback = None):
+    def ActivateSuppressLayer(self, duration=0.25, clickCallback=None):
         self.SetupSuppressLayer()
         uicore.layer.vgssuppress.state = uiconst.UI_NORMAL
         if clickCallback is not None:
             uicore.layer.vgssuppress.OnClick = clickCallback
         uicore.animations.FadeTo(uicore.layer.vgssuppress, uicore.layer.vgssuppress.opacity, 0.7, duration=duration)
+        return
 
-    def DeactivateSuppressLayer(self, duration = 0.25, callback = None):
+    def DeactivateSuppressLayer(self, duration=0.25, callback=None):
         uicore.layer.vgssuppress.state = uiconst.UI_DISABLED
         uicore.animations.FadeOut(uicore.layer.vgssuppress, duration=duration, sleep=True, callback=callback)
 
@@ -128,6 +134,7 @@ class AurumStoreView(View):
                 if self._SearchTasklet is not None:
                     self._SearchTasklet.kill()
         self._SearchTasklet = uthread.new(self._Search, searchString)
+        return
 
     def _GetViewTime(self):
         return blue.os.GetWallclockTime() - self.viewOpenedTimer

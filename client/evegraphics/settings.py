@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\packages\evegraphics\settings.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\packages\evegraphics\settings.py
 import trinity
 import threadutils
 from yamlext.blueutil import ReadYamlFile
@@ -21,7 +22,6 @@ GFX_UI_SCALE_FULLSCREEN = (SETTINGS_GROUP_DEVICE, 'UIScaleFullscreen')
 GFX_RESOLUTION_WINDOWED = (SETTINGS_GROUP_DEVICE, 'WindowedResolution')
 GFX_RESOLUTION_FULLSCREEN = (SETTINGS_GROUP_DEVICE, 'FullScreenResolution')
 GFX_WINDOW_BORDER_FIXED = (SETTINGS_GROUP_DEVICE, 'FixedWindow')
-MISC_LOAD_STATION_ENV = (SETTINGS_GROUP_DEVICE, 'loadstationenv2')
 MISC_RESOURCE_CACHE_ENABLED = (SETTINGS_GROUP_DEVICE, 'resourceCacheEnabled')
 GFX_DEVICE_SETTINGS = (SETTINGS_GROUP_DEVICE, 'DeviceSettings')
 GFX_BRIGHTNESS = (SETTINGS_GROUP_DEVICE, 'brightness')
@@ -42,13 +42,12 @@ UI_CAMERA_OFFSET = (SETTINGS_GROUP_UI, 'cameraOffset')
 UI_OFFSET_UI_WITH_CAMERA = (SETTINGS_GROUP_UI, 'offsetUIwithCamera')
 UI_CAMERA_SHAKE_ENABLED = (SETTINGS_GROUP_UI, 'cameraShakeEnabled')
 UI_CAMERA_BOBBING_ENABLED = (SETTINGS_GROUP_UI, 'cameraBobbingEnabled')
-UI_CAMERA_SPEED_OFFSET = (SETTINGS_GROUP_UI, 'cameraSpeedOffset')
+UI_CAMERA_CENTER_OFFSET = (SETTINGS_GROUP_UI, 'cameraSpeedOffset')
 UI_CAMERA_DYNAMIC_FOV = (SETTINGS_GROUP_UI, 'cameraDynamicFov')
-UI_CAMERA_SPEED = 'cameraSpeed'
 UI_ADVANCED_CAMERA = (SETTINGS_GROUP_UI, 'advancedCamera')
 UI_INVERT_CAMERA_ZOOM = (SETTINGS_GROUP_UI, 'invertCameraZoom')
 UI_CAMERA_INVERT_Y = (SETTINGS_GROUP_UI, 'cameraInvertY')
-UI_CAMERA_SPEED = (SETTINGS_GROUP_UI, 'cameraSpeed')
+UI_CAMERA_INERTIA = (SETTINGS_GROUP_UI, 'cameraInertia')
 UI_NCC_GREEN_SCREEN = (SETTINGS_GROUP_UI, 'NCCgreenscreen')
 UI_SHIPSKINSINSPACE_ENABLED = (SETTINGS_GROUP_UI, 'shipskinsInSpaceEnabled')
 AA_TYPE_MSAA = 4096
@@ -112,11 +111,12 @@ def GetDeviceClassification():
     deviceClassifications = _LoadDeviceClassifications()
     if (vendorID, deviceID) in deviceClassifications['high']:
         return DEVICE_HIGH_END
-    if (vendorID, deviceID) in deviceClassifications['medium']:
+    elif (vendorID, deviceID) in deviceClassifications['medium']:
         return DEVICE_MID_RANGE
-    if (vendorID, deviceID) in deviceClassifications['low']:
+    elif (vendorID, deviceID) in deviceClassifications['low']:
         return DEVICE_LOW_END
-    return DEVICE_HIGH_END
+    else:
+        return DEVICE_HIGH_END
 
 
 SECONDARY_LIGHTING_INTENSITY = 7
@@ -127,8 +127,7 @@ if not trinity.renderJobUtils.DeviceSupportsIntZ():
     MAX_SHADER_MODEL = SHADER_MODEL_MEDIUM
 else:
     MAX_SHADER_MODEL = SHADER_MODEL_HIGH
-defaultCommonSettings = {SETTINGS_GROUP_DEVICE: {MISC_LOAD_STATION_ENV: 1,
-                         MISC_RESOURCE_CACHE_ENABLED: 0,
+defaultCommonSettings = {SETTINGS_GROUP_DEVICE: {MISC_RESOURCE_CACHE_ENABLED: 0,
                          GFX_UI_SCALE_WINDOWED: 1.0,
                          GFX_UI_SCALE_FULLSCREEN: 1.0,
                          GFX_RESOLUTION_WINDOWED: None,
@@ -163,11 +162,11 @@ defaultCommonSettings = {SETTINGS_GROUP_DEVICE: {MISC_LOAD_STATION_ENV: 1,
                      UI_CAMERA_SHAKE_ENABLED: 1,
                      UI_CAMERA_BOBBING_ENABLED: 1,
                      UI_CAMERA_DYNAMIC_FOV: 1,
-                     UI_CAMERA_SPEED_OFFSET: 1,
+                     UI_CAMERA_CENTER_OFFSET: 1,
                      UI_ADVANCED_CAMERA: 0,
                      UI_INVERT_CAMERA_ZOOM: 0,
                      UI_CAMERA_INVERT_Y: 0,
-                     UI_CAMERA_SPEED: 0.0,
+                     UI_CAMERA_INERTIA: 0.0,
                      UI_NCC_GREEN_SCREEN: 0}}
 defaultClassificationSettings = {SETTINGS_GROUP_DEVICE: {DEVICE_HIGH_END: {GFX_POST_PROCESSING_QUALITY: 2,
                                            GFX_SHADOW_QUALITY: 2,
@@ -210,6 +209,8 @@ def GetSettingFromSettingKey(key):
         for setting in defaultClassificationSettings[group][GetDeviceClassification()]:
             if key == GetSettingKey(setting):
                 return setting
+
+    return None
 
 
 class GraphicsSettings(object):
@@ -284,6 +285,9 @@ class GraphicsSettings(object):
         group = self._GetPendingGroup(groupName)
         group.clear()
 
+    def IsInitialized(self, groupName):
+        return groupName in self.settingsGroups
+
     @staticmethod
     def GetGlobal():
         if GraphicsSettings._globalInstance is None:
@@ -291,15 +295,16 @@ class GraphicsSettings(object):
         return GraphicsSettings._globalInstance
 
 
-def Get(setting, default = None):
+def Get(setting, default=None):
     gfx = GraphicsSettings.GetGlobal()
     value = gfx.Get(setting)
     if value is None:
         return default
-    return value
+    else:
+        return value
 
 
-def Set(setting, value, pending = True):
+def Set(setting, value, pending=True):
     gfx = GraphicsSettings.GetGlobal()
     if pending:
         gfx.SetPending(setting, value)
@@ -307,7 +312,7 @@ def Set(setting, value, pending = True):
         gfx.Set(setting, value)
 
 
-def SetDefault(setting, pending = True):
+def SetDefault(setting, pending=True):
     gfx = GraphicsSettings.GetGlobal()
     if pending:
         gfx.SetPending(setting, GetDefault(setting))
@@ -328,6 +333,11 @@ def ApplyPendingChanges(groupName):
 def ClearPendingChanges(groupName):
     gfx = GraphicsSettings.GetGlobal()
     gfx.ClearPendingChanges(groupName)
+
+
+def IsInitialized(groupName):
+    gfx = GraphicsSettings.GetGlobal()
+    return gfx.IsInitialized(groupName)
 
 
 def ValidateSettings():

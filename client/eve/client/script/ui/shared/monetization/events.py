@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\client\script\ui\shared\monetization\events.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\client\script\ui\shared\monetization\events.py
 from eveexceptions.exceptionEater import ExceptionEater
 
 def _LogEvent(event, columns, *args):
@@ -8,6 +9,7 @@ def _LogEvent(event, columns, *args):
 
 def LogMultiPilotTrainingBannerImpression():
     _LogEvent('MultiPilotTrainingBannerImpression', ['activeQueues', 'usedQueues'], None, None)
+    return
 
 
 def LogCharacterSheetPilotLicenseImpression():

@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\packages\carbonui\primitives\vectorlinetrace.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\packages\carbonui\primitives\vectorlinetrace.py
 import carbonui.const as uiconst
 import trinity
 import geo2
@@ -111,7 +112,7 @@ class VectorLineTrace(TexturedBase):
 
         return property(**locals())
 
-    def AddPoint(self, pos, color = (1.0, 1.0, 1.0, 1.0), name = '', idx = -1):
+    def AddPoint(self, pos, color=(1.0, 1.0, 1.0, 1.0), name='', idx=-1):
         v = trinity.Tr2Sprite2dLineTraceVertex()
         x, y = pos
         x = uicore.ScaleDpiF(x)
@@ -121,7 +122,7 @@ class VectorLineTrace(TexturedBase):
         v.name = name
         self.renderObject.vertices.insert(idx, v)
 
-    def AddPoints(self, posList, color = (1.0, 1.0, 1.0, 1.0)):
+    def AddPoints(self, posList, color=(1.0, 1.0, 1.0, 1.0)):
         for pos in posList:
             self.AddPoint(pos, color)
 

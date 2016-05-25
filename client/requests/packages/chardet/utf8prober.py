@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\packages\requests\packages\chardet\utf8prober.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\packages\requests\packages\chardet\utf8prober.py
 from . import constants
 from .charsetprober import CharSetProber
 from .codingstatemachine import CodingStateMachine
@@ -18,7 +19,7 @@ class UTF8Prober(CharSetProber):
         self._mNumOfMBChar = 0
 
     def get_charset_name(self):
-        return 'utf-8'
+        pass
 
     def feed(self, aBuf):
         for c in aBuf:

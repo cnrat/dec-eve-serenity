@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\client\script\ui\shared\info\panels\PanelSkinMaterial.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\client\script\ui\shared\info\panels\PanelSkinMaterial.py
 import carbonui.const as uiconst
 from carbonui.primitives.container import Container
 from carbonui.primitives.flowcontainer import FlowContainer, CONTENT_ALIGN_RIGHT
@@ -53,3 +54,4 @@ class ShipSkinMaterialEntry(Item):
         typeID = self.typeID
         itemID = None
         sm.StartService('info').ShowInfo(typeID, itemID=itemID)
+        return

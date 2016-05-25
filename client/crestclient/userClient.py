@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\packages\crestclient\userClient.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\packages\crestclient\userClient.py
 from crestClient import CrestUserBase, CONTENT_TYPE
 import requests
 import requests.auth
@@ -24,7 +25,7 @@ class CrestUserLogin(CrestUserBase):
 
 class CrestAuth(requests.auth.AuthBase):
 
-    def __init__(self, username, password, server, scope, client, secret, character = None):
+    def __init__(self, username, password, server, scope, client, secret, character=None):
         self.server = server
         self.username = username
         self.password = password
@@ -33,6 +34,7 @@ class CrestAuth(requests.auth.AuthBase):
         self.secret = secret
         self.character = character
         self.authorization = None
+        return
 
     def __call__(self, request):
         if self.authorization:

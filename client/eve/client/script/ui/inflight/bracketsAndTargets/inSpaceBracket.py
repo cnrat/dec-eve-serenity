@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\client\script\ui\inflight\bracketsAndTargets\inSpaceBracket.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\client\script\ui\inflight\bracketsAndTargets\inSpaceBracket.py
 import math
 import weakref
 from eve.client.script.spacecomponents.activatecontroller import ActivateCounterController
@@ -8,6 +9,7 @@ from eve.client.script.spacecomponents.jumppolarizationcontroller import JumpPol
 from eve.client.script.ui.control.eveHint import BubbleHint
 from eve.client.script.ui.inflight.bracket import BracketShadowLabel
 from eve.client.script.ui.inflight.bracketsAndTargets.bracketVarious import GetMinDispRangeForOwnShip
+from eve.client.script.ui.inflight.squadrons.squadronManagementCont import SquadronNumber
 from eve.client.script.ui.shared.maps.maputils import GetMyPos
 from eve.client.script.ui.shared.stateFlag import FlagIconWithState
 import evetypes
@@ -71,6 +73,7 @@ class InSpaceBracket(uiprimitives.Bracket):
     scanAttributeChangeFlag = False
     iconTop = 0
     tagAndTargetStr = None
+    squadronNumber = None
     _originalIconColor = None
     _fleetTag = None
     _fleetTargetNo = None
@@ -82,11 +85,13 @@ class InSpaceBracket(uiprimitives.Bracket):
         if getattr(self, 'subLabel', None):
             self.subLabel.Close()
         self.subLabel = None
+        return
 
     def CloseLabel(self):
         if getattr(self, 'label', None):
             self.label.Close()
         self.label = None
+        return
 
     def Close(self, *args, **kw):
         self.subItemsUpdateTimer = None
@@ -102,9 +107,10 @@ class InSpaceBracket(uiprimitives.Bracket):
             self.capture.Close()
             self.capture = None
         uiprimitives.Bracket.Close(self, *args, **kw)
+        return
 
     @telemetry.ZONE_METHOD
-    def Startup(self, slimItem, ball = None, transform = None):
+    def Startup(self, slimItem, ball=None, transform=None):
         self.iconNo, dockType, minDist, maxDist, iconOffset, logflag = self.data
         self.slimItem = slimItem
         self.itemID = slimItem.itemID
@@ -127,6 +133,7 @@ class InSpaceBracket(uiprimitives.Bracket):
                 self.sr.icon.SetTexturePath(OWN_BRACKET_PATH)
             self.showMyIconDist = GetMinDispRangeForOwnShip(self.slimItem.typeID)
             self.projectBracket.bracketUpdateCallback = self.OnOwnBracketUpdated
+        return
 
     def IsFloating(self):
         bracketRO = self.renderObject
@@ -155,28 +162,33 @@ class InSpaceBracket(uiprimitives.Bracket):
         projectBracket = self.projectBracket
         if projectBracket:
             projectBracket.bracket = None
+        return
 
     @telemetry.ZONE_METHOD
     def LoadIcon(self, iconNo):
         if getattr(self, 'noIcon', 0) == 1:
             return
-        if self.sr.icon is None:
-            icon = uiprimitives.Sprite(parent=self, name='mainicon', state=uiconst.UI_DISABLED, pos=(0, 0, 16, 16), texturePath=iconNo, align=uiconst.CENTER)
-            if self.fadeColor:
-                self.color = icon.color
-            else:
-                icon.color.a = 0.75
-            self.sr.icon = icon
         else:
-            self.sr.icon.LoadIcon(iconNo)
+            if self.sr.icon is None:
+                icon = uiprimitives.Sprite(parent=self, name='mainicon', state=uiconst.UI_DISABLED, pos=(0, 0, 16, 16), texturePath=iconNo, align=uiconst.CENTER)
+                if self.fadeColor:
+                    self.color = icon.color
+                else:
+                    icon.color.a = 0.75
+                self.sr.icon = icon
+            else:
+                self.sr.icon.LoadIcon(iconNo)
+            return
 
     def _ShowLabel(self):
         blue.pyos.synchro.SleepWallclock(50)
         if self.destroyed:
             return
-        over = uicore.uilib.mouseOver
-        if getattr(over, 'stateItemID', None) == self.itemID:
-            self.ShowLabel()
+        else:
+            over = uicore.uilib.mouseOver
+            if getattr(over, 'stateItemID', None) == self.itemID:
+                self.ShowLabel()
+            return
 
     def ShowLabel(self, *args):
         if not self.destroyed and (self.displayName == '' or not getattr(self, 'showLabel', True)):
@@ -196,9 +208,10 @@ class InSpaceBracket(uiprimitives.Bracket):
     def SubLabelExists(self):
         if self.subLabel is None:
             return False
-        if self.subLabel.destroyed:
+        elif self.subLabel.destroyed:
             return False
-        return True
+        else:
+            return True
 
     def CreateSubLabelIfNeeded(self):
         if self.SubLabelExists():
@@ -226,7 +239,9 @@ class InSpaceBracket(uiprimitives.Bracket):
             if value is None:
                 self._ball = None
                 return
-            self._ball = weakref.ref(value)
+            else:
+                self._ball = weakref.ref(value)
+                return
 
         return property(**locals())
 
@@ -241,12 +256,14 @@ class InSpaceBracket(uiprimitives.Bracket):
                 return self._slimItem()
             else:
                 return None
+                return None
 
         def fset(self, value):
             if value is None:
                 self._slimItem = None
             else:
                 self._slimItem = weakref.ref(value)
+            return
 
         return property(**locals())
 
@@ -275,22 +292,25 @@ class InSpaceBracket(uiprimitives.Bracket):
         ball = self.ball
         if ball:
             return ball.surfaceDist
-        slimItem = self.GetSlimItem()
-        if slimItem:
-            ballPark = sm.GetService('michelle').GetBallpark()
-            if ballPark and slimItem.itemID in ballPark.balls:
-                return ballPark.balls[slimItem.itemID].surfaceDist
-        elif self.trackTransform or self.sr.trackTransform:
-            tf = self.trackTransform or self.sr.trackTransform
-            trans = tf.translation
-            pos = trinity.TriVector(trans[0], trans[1], trans[2])
-            myPos = GetMyPos()
-            return (pos - myPos).Length()
+        else:
+            slimItem = self.GetSlimItem()
+            if slimItem:
+                ballPark = sm.GetService('michelle').GetBallpark()
+                if ballPark and slimItem.itemID in ballPark.balls:
+                    return ballPark.balls[slimItem.itemID].surfaceDist
+            elif self.trackTransform or self.sr.trackTransform:
+                tf = self.trackTransform or self.sr.trackTransform
+                trans = tf.translation
+                pos = trinity.TriVector(trans[0], trans[1], trans[2])
+                myPos = GetMyPos()
+                return (pos - myPos).Length()
+            return None
 
     def HideBubble(self):
         if self.sr.bubble is not None:
             self.sr.bubble.Close()
             self.sr.bubble = None
+        return
 
     def ShowBubble(self, hint):
         if self.sr.bubble is not None:
@@ -303,6 +323,7 @@ class InSpaceBracket(uiprimitives.Bracket):
             bubble.ShowHint(hint, pointer)
             self.sr.bubble = bubble
             self.sr.bubble.state = uiconst.UI_NORMAL
+        return
 
     def GetLockedPositionTopBottomMargin(self):
         hasBubble = bool(self.sr.bubble)
@@ -324,7 +345,7 @@ class InSpaceBracket(uiprimitives.Bracket):
         self.scanAttributeChangeFlag = True
 
     @telemetry.ZONE_METHOD
-    def UpdateFlagPositions(self, icon = None):
+    def UpdateFlagPositions(self, icon=None):
         if icon is None:
             icon = self.sr.icon
         flag = self.sr.flag
@@ -337,64 +358,67 @@ class InSpaceBracket(uiprimitives.Bracket):
                 flag.width = flag.height = 9
                 flag.left = icon.left + 9
                 flag.top = icon.top + 8
+        return
 
     @telemetry.ZONE_METHOD
     def CountDown(self, target):
         if self.destroyed:
             return
-        self.scanAttributeChangeFlag = False
-        if not target:
-            return
-        if not target.IsTargetingIndicatorsEnabled():
-            return
-        slimItem = self.slimItem
-        source = eve.session.shipid
-        time = sm.GetService('bracket').GetScanSpeed(source, slimItem)
-        leftTimer = target.leftTimer
-        rightTimer = target.rightTimer
-        leftTimer.display = True
-        rightTimer.display = True
-        leftTimer.rotationSecondary = math.pi
-        rightTimer.rotationSecondary = math.pi
-        leftTimer.opacity = 0.4
-        rightTimer.opacity = 0.4
-        t = target.lockingText
-        targetSvc = sm.GetService('target')
-        startTime = targetSvc.GetTargetingStartTime(slimItem.itemID)
-        if startTime is None:
-            return
-        lockedText = localization.GetByLabel('UI/Inflight/Brackets/TargetLocked')
-        while not self.destroyed:
+        else:
+            self.scanAttributeChangeFlag = False
+            if not target:
+                return
             if not target.IsTargetingIndicatorsEnabled():
                 return
-            now = blue.os.GetSimTime()
-            dt = blue.os.TimeDiffInMs(startTime, now)
-            if self.scanAttributeChangeFlag:
-                waitRatio = dt / float(time)
-                self.scanAttributeChangeFlag = False
-                time = sm.GetService('bracket').GetScanSpeed(source, slimItem)
-                startTime = now - long(time * waitRatio * 10000)
-                dt = blue.os.TimeDiffInMs(startTime, now)
-            if t.destroyed:
+            slimItem = self.slimItem
+            source = eve.session.shipid
+            time = sm.GetService('bracket').GetScanSpeed(source, slimItem)
+            leftTimer = target.leftTimer
+            rightTimer = target.rightTimer
+            leftTimer.display = True
+            rightTimer.display = True
+            leftTimer.rotationSecondary = math.pi
+            rightTimer.rotationSecondary = math.pi
+            leftTimer.opacity = 0.4
+            rightTimer.opacity = 0.4
+            t = target.lockingText
+            targetSvc = sm.GetService('target')
+            startTime = targetSvc.GetTargetingStartTime(slimItem.itemID)
+            if startTime is None:
                 return
-            t.text = util.FmtAmt((time - dt) / 1000.0, showFraction=1)
-            if dt > time:
-                t.text = lockedText
-                break
-            ratio = (time - dt) / time
-            if ratio > 0.5:
-                rightTimer.rotationSecondary = math.pi + ratio * 2 * math.pi
-                leftTimer.rotationSecondary = math.pi
-            else:
-                leftTimer.rotationSecondary = ratio * 2 * math.pi
-                rightTimer.rotationSecondary = 0
-            blue.pyos.synchro.Sleep(TARGETTING_UI_UPDATE_RATE)
+            lockedText = localization.GetByLabel('UI/Inflight/Brackets/TargetLocked')
+            while not self.destroyed:
+                if not target.IsTargetingIndicatorsEnabled():
+                    return
+                now = blue.os.GetSimTime()
+                dt = blue.os.TimeDiffInMs(startTime, now)
+                if self.scanAttributeChangeFlag:
+                    waitRatio = dt / float(time)
+                    self.scanAttributeChangeFlag = False
+                    time = sm.GetService('bracket').GetScanSpeed(source, slimItem)
+                    startTime = now - long(time * waitRatio * 10000)
+                    dt = blue.os.TimeDiffInMs(startTime, now)
+                if t.destroyed:
+                    return
+                t.text = util.FmtAmt((time - dt) / 1000.0, showFraction=1)
+                if dt > time:
+                    t.text = lockedText
+                    break
+                ratio = (time - dt) / time
+                if ratio > 0.5:
+                    rightTimer.rotationSecondary = math.pi + ratio * 2 * math.pi
+                    leftTimer.rotationSecondary = math.pi
+                else:
+                    leftTimer.rotationSecondary = ratio * 2 * math.pi
+                    rightTimer.rotationSecondary = 0
+                blue.pyos.synchro.Sleep(TARGETTING_UI_UPDATE_RATE)
 
-        if not target.IsTargetingIndicatorsEnabled():
+            if not target.IsTargetingIndicatorsEnabled():
+                return
+            leftTimer.rotationSecondary = 0
+            rightTimer.rotationSecondary = 0
+            target.BlinkArrowsAndText()
             return
-        leftTimer.rotationSecondary = 0
-        rightTimer.rotationSecondary = 0
-        target.BlinkArrowsAndText()
 
     def GBEnemySpotted(self, active, fleetBroadcastID, charID):
         self.NearIDFleetBroadcast(active, fleetBroadcastID, charID, 'EnemySpotted')
@@ -413,13 +437,15 @@ class InSpaceBracket(uiprimitives.Bracket):
         inBubble = bool(util.SlimItemFromCharID(charID))
         if inBubble:
             return self.FleetBroadcast(active, broadcastType, fleetBroadcastID, charID)
-        if not active:
-            if fleetBroadcastID == getattr(self, 'fleetBroadcastID', None):
-                if self.fleetBroadcastIcon is not None:
-                    self.fleetBroadcastIcon.Close()
-                    self.fleetBroadcastIcon = None
-                    self.UpdateSubItems()
-                self.fleetBroadcastSender = self.fleetBroadcastType = self.fleetBroadcastID = None
+        else:
+            if not active:
+                if fleetBroadcastID == getattr(self, 'fleetBroadcastID', None):
+                    if self.fleetBroadcastIcon is not None:
+                        self.fleetBroadcastIcon.Close()
+                        self.fleetBroadcastIcon = None
+                        self.UpdateSubItems()
+                    self.fleetBroadcastSender = self.fleetBroadcastType = self.fleetBroadcastID = None
+            return
 
     def GetHostileUI(self):
         if self.sr.hostile:
@@ -436,40 +462,43 @@ class InSpaceBracket(uiprimitives.Bracket):
         return threat
 
     @telemetry.ZONE_METHOD
-    def GetHitSprite(self, create = True, *args):
+    def GetHitSprite(self, create=True, *args):
         hitSprite = getattr(self, 'hitSprite', None)
         if hitSprite and not hitSprite.destroyed:
             return hitSprite
-        if not create:
+        elif not create:
             return
-        texturePath = 'res:/UI/Texture/classes/Bracket/damageDealer.png'
-        hitSprite = uiprimitives.Sprite(parent=self, name='hitSprite', pos=(0, 0, 100, 100), state=uiconst.UI_PICKCHILDREN, texturePath=texturePath, align=uiconst.CENTER)
-        self.hitSprite = hitSprite
-        hitSprite.SetRGB(1, 0, 0, 0)
-        return hitSprite
+        else:
+            texturePath = 'res:/UI/Texture/classes/Bracket/damageDealer.png'
+            hitSprite = uiprimitives.Sprite(parent=self, name='hitSprite', pos=(0, 0, 100, 100), state=uiconst.UI_PICKCHILDREN, texturePath=texturePath, align=uiconst.CENTER)
+            self.hitSprite = hitSprite
+            hitSprite.SetRGB(1, 0, 0, 0)
+            return hitSprite
 
     @telemetry.ZONE_METHOD
-    def GetCanTargetSprite(self, create = True, *args):
+    def GetCanTargetSprite(self, create=True, *args):
         canTargetSprite = getattr(self, 'canTargetSprite', None)
         if canTargetSprite and not canTargetSprite.destroyed:
             return canTargetSprite
-        if not create:
+        elif not create:
             return
-        canTargetSprite = uiprimitives.Sprite(parent=self, name='canTargetSprite', pos=(0, 0, 40, 40), state=uiconst.UI_PICKCHILDREN, texturePath='res:/UI/Texture/classes/Bracket/canTarget2.png', align=uiconst.CENTER)
-        self.canTargetSprite = canTargetSprite
-        canTargetSprite.SetRGB(1.0, 1.0, 1.0, 0.05)
-        return canTargetSprite
+        else:
+            canTargetSprite = uiprimitives.Sprite(parent=self, name='canTargetSprite', pos=(0, 0, 40, 40), state=uiconst.UI_PICKCHILDREN, texturePath='res:/UI/Texture/classes/Bracket/canTarget2.png', align=uiconst.CENTER)
+            self.canTargetSprite = canTargetSprite
+            canTargetSprite.SetRGB(1.0, 1.0, 1.0, 0.05)
+            return canTargetSprite
 
     @telemetry.ZONE_METHOD
-    def GetRadialMenuIndicator(self, create = True, *args):
+    def GetRadialMenuIndicator(self, create=True, *args):
         radialMenuSprite = getattr(self, 'radialMenuSprite', None)
         if radialMenuSprite and not radialMenuSprite.destroyed:
             return radialMenuSprite
-        if not create:
+        elif not create:
             return
-        radialMenuSprite = uiprimitives.Sprite(name='radialMenuSprite', parent=self, texturePath='res:/UI/Texture/classes/RadialMenu/bracketHilite.png', pos=(0, 0, 20, 20), color=(0.5, 0.5, 0.5, 0.5), idx=-1, align=uiconst.CENTER, state=uiconst.UI_DISABLED)
-        self.radialMenuSprite = radialMenuSprite
-        return radialMenuSprite
+        else:
+            radialMenuSprite = uiprimitives.Sprite(name='radialMenuSprite', parent=self, texturePath='res:/UI/Texture/classes/RadialMenu/bracketHilite.png', pos=(0, 0, 20, 20), color=(0.5, 0.5, 0.5, 0.5), idx=-1, align=uiconst.CENTER, state=uiconst.UI_DISABLED)
+            self.radialMenuSprite = radialMenuSprite
+            return radialMenuSprite
 
     def GetActiveTargetUI(self):
         return uicls.ActiveTargetOnBracket(parent=self, itemID=self.itemID)
@@ -504,10 +533,12 @@ class InSpaceBracket(uiprimitives.Bracket):
     def OnOwnBracketUpdated(self, projectBracket):
         if self.sr.icon is None or self.sr.icon.destroyed or getattr(self.sr.icon, 'showingMyShip', False):
             return
-        if projectBracket.cameraDistance > self.showMyIconDist:
-            self.sr.icon.display = True
         else:
-            self.sr.icon.display = False
+            if projectBracket.cameraDistance > self.showMyIconDist:
+                self.sr.icon.display = True
+            else:
+                self.sr.icon.display = False
+            return
 
     def ShowOwnShip(self):
         if self.sr.icon:
@@ -526,6 +557,7 @@ class InSpaceBracket(uiprimitives.Bracket):
             if sm.GetService('menu').TryExpandActionMenu(self.itemID, self):
                 return
         sm.GetService('viewState').GetView('inflight').layer.looking = True
+        return
 
     def OnMouseEnter(self, *args):
         if uicore.uilib.leftbtn:
@@ -568,183 +600,215 @@ class InSpaceBracket(uiprimitives.Bracket):
                 sm.GetService('menu').Activate(slimItem)
             self.sr.clicktime = None
         else:
-            sm.GetService('state').SetState(self.itemID, state.selected, 1)
+            self.OnClickSelect()
             if sm.GetService('target').IsTarget(self.itemID):
                 sm.GetService('state').SetState(self.itemID, state.activeTarget, 1)
             elif uicore.uilib.Key(uiconst.VK_CONTROL) and uicore.uilib.Key(uiconst.VK_SHIFT):
                 sm.GetService('fleet').SendBroadcast_Target(self.itemID)
             self.sr.clicktime = blue.os.GetWallclockTime()
+        self.OnTacticalItemClick()
+        return
+
+    def OnClickSelect(self):
+        sm.GetService('state').SetState(self.itemID, state.selected, 1)
+
+    def OnTacticalItemClick(self):
         sm.GetService('menu').TacticalItemClicked(self.itemID)
 
     @telemetry.ZONE_METHOD
     def Load_update(self, slimItem, *args):
         if slimItem is None:
             return
-        self.stateItemID = slimItem.itemID
-        selected, hilited, attacking, hostile, targeting, targeted, activeTarget = sm.GetService('state').GetStates(self.stateItemID, [state.selected,
-         state.mouseOver,
-         state.threatAttackingMe,
-         state.threatTargetsMe,
-         state.targeting,
-         state.targeted,
-         state.activeTarget])
-        self.Select(selected)
-        self.Hilite(hilited)
-        self.Targeted(targeted)
-        self.ActiveTarget(activeTarget)
-        self.UpdateIconColor(slimItem)
-        if not activeTarget:
-            self.Targeting(targeting)
-        if self.updateItem:
-            self.UpdateFlagAndBackground(slimItem)
-            self.Attacking(attacking)
-            self.Hostile(not attacking and hostile, attacking)
         else:
-            if self.sr.flag:
-                self.sr.flag.Close()
-                self.sr.flag = None
-            self.RemoveBackgroundColor()
-            if self.sr.hostile_attacking:
-                self.sr.hostile_attacking.Close()
-                self.sr.hostile_attacking = None
-            if self.sr.hostile:
-                self.sr.hostile.Close()
-                self.sr.hostile = None
-        fleetTag = sm.GetService('fleet').GetTargetTag(slimItem.itemID)
-        self.AddFleetTag(fleetTag)
-        if slimItem.groupID == const.groupWreck:
-            uthread.worker('bracket.WreckEmpty', self.WreckEmpty, slimItem.isEmpty)
-        elif slimItem.hackingSecurityState is not None:
-            uthread.new(self.SetHackingIcon, slimItem.hackingSecurityState)
-        broadcastID, broadcastType, broadcastData = sm.GetService('fleet').GetCurrentFleetBroadcastOnItem(slimItem.itemID)
-        if broadcastID is not None:
-            uthread.worker('bracket.UpdateFleetBroadcasts', self.UpdateFleetBroadcasts, broadcastID, broadcastType, broadcastData)
+            self.stateItemID = slimItem.itemID
+            selected, hilited, attacking, hostile, targeting, targeted, activeTarget = sm.GetService('state').GetStates(self.stateItemID, [state.selected,
+             state.mouseOver,
+             state.threatAttackingMe,
+             state.threatTargetsMe,
+             state.targeting,
+             state.targeted,
+             state.activeTarget])
+            self.Select(selected)
+            self.Hilite(hilited)
+            self.Targeted(targeted)
+            self.ActiveTarget(activeTarget)
+            self.UpdateIconColor(slimItem)
+            if not activeTarget:
+                self.Targeting(targeting)
+            if self.updateItem:
+                self.UpdateFlagAndBackground(slimItem)
+                self.Attacking(attacking)
+                self.Hostile(not attacking and hostile, attacking)
+            else:
+                if self.sr.flag:
+                    self.sr.flag.Close()
+                    self.sr.flag = None
+                self.RemoveBackgroundColor()
+                if self.sr.hostile_attacking:
+                    self.sr.hostile_attacking.Close()
+                    self.sr.hostile_attacking = None
+                if self.sr.hostile:
+                    self.sr.hostile.Close()
+                    self.sr.hostile = None
+            fleetTag = sm.GetService('fleet').GetTargetTag(slimItem.itemID)
+            self.AddFleetTag(fleetTag)
+            if slimItem.groupID == const.groupWreck:
+                uthread.worker('bracket.WreckEmpty', self.WreckEmpty, slimItem.isEmpty)
+            elif slimItem.hackingSecurityState is not None:
+                uthread.new(self.SetHackingIcon, slimItem.hackingSecurityState)
+            broadcastID, broadcastType, broadcastData = sm.GetService('fleet').GetCurrentFleetBroadcastOnItem(slimItem.itemID)
+            if broadcastID is not None:
+                uthread.worker('bracket.UpdateFleetBroadcasts', self.UpdateFleetBroadcasts, broadcastID, broadcastType, broadcastData)
+            return
 
     @telemetry.ZONE_METHOD
     def UpdateFleetBroadcasts(self, broadcastID, broadcastType, broadcastData):
         if self.destroyed:
             return
-        for typeName in fleetbr.types:
-            if broadcastType == getattr(state, 'gb%s' % typeName):
-                handler = getattr(self, 'GB%s' % typeName, None)
-                if handler is None:
-                    self.FleetBroadcast(True, typeName, broadcastID, *broadcastData)
-                else:
-                    handler(True, broadcastID, *broadcastData)
-                break
+        else:
+            for typeName in fleetbr.types:
+                if broadcastType == getattr(state, 'gb%s' % typeName):
+                    handler = getattr(self, 'GB%s' % typeName, None)
+                    if handler is None:
+                        self.FleetBroadcast(True, typeName, broadcastID, *broadcastData)
+                    else:
+                        handler(True, broadcastID, *broadcastData)
+                    break
+
+            return
 
     def RefreshBounty(self):
         self.UpdateFlagAndBackground(self.slimItem)
+
+    def UpdateSquadronNumber(self, tubeFlagID):
+        if tubeFlagID is None:
+            if self.squadronNumber:
+                self.squadronNumber.Close()
+                self.squadronNumber = None
+        else:
+            self.squadronNumber = SquadronNumber(parent=self, top=-10, left=-10)
+            self.squadronNumber.SetColor(False)
+            self.squadronNumber.SetText(tubeFlagID)
+        return
 
     @telemetry.ZONE_METHOD
     def UpdateFlagAndBackground(self, slimItem, *args):
         if self.destroyed or not self.updateItem:
             return
-        try:
-            if slimItem.groupID != const.groupAgentsinSpace and (slimItem.ownerID and util.IsNPC(slimItem.ownerID) or slimItem.charID and util.IsNPC(slimItem.charID)):
-                if self.sr.flag:
-                    self.sr.flag.Close()
-                    self.sr.flag = None
-                self.RemoveBackgroundColor()
-            else:
-                stateSvc = sm.GetService('state')
-                iconFlag, backgroundFlag = stateSvc.GetIconAndBackgroundFlags(slimItem)
-                icon = None
-                if self.sr.icon and self.sr.icon.display:
-                    icon = self.sr.icon
-                if icon and iconFlag and iconFlag != -1:
-                    if self.sr.flag is None:
-                        self.sr.flag = FlagIconWithState(parent=self, state=uiconst.UI_DISABLED, align=uiconst.TOPLEFT)
-                    flagInfo = stateSvc.GetStatePropsColorAndBlink(iconFlag)
-                    self.sr.flag.ModifyIcon(flagInfo=flagInfo, showHint=False)
-                    if settings.user.overview.Get('useSmallColorTags', 0):
-                        self.sr.flag.ChangeFlagPos(icon.left + 10, icon.top + 10, 5, 5)
-                    else:
-                        self.sr.flag.ChangeFlagPos(icon.left + 9, icon.top + 8, 9, 9)
-                    hideIcon = settings.user.overview.Get('useSmallColorTags', 0)
-                    self.sr.flag.ChangeIconVisibility(display=not hideIcon)
-                elif self.sr.flag:
-                    self.sr.flag.Close()
-                    self.sr.flag = None
-                if backgroundFlag and backgroundFlag != -1:
-                    r, g, b, a = stateSvc.GetStateBackgroundColor(backgroundFlag)
-                    a = a * 0.5
-                    if not self.sr.bgColor:
-                        self.sr.bgColor = uiprimitives.Sprite(bgParent=self, name='bgColor', texturePath='res:/UI/Texture/classes/Bracket/bracketBackground.png', color=(r,
-                         g,
-                         b,
-                         a))
-                    else:
-                        self.sr.bgColor.SetRGBA(r, g, b, a)
-                    blink = stateSvc.GetStateBackgroundBlink(backgroundFlag)
-                    if blink:
-                        if not self.sr.bgColor.HasAnimation('opacity'):
-                            uicore.animations.FadeTo(self.sr.bgColor, startVal=0.0, endVal=a, duration=0.75, loops=uiconst.ANIM_REPEAT, curveType=uiconst.ANIM_WAVE)
-                    else:
-                        self.sr.bgColor.StopAnimations()
-                elif self.sr.bgColor:
+        else:
+            try:
+                if slimItem.groupID != const.groupAgentsinSpace and (slimItem.ownerID and util.IsNPC(slimItem.ownerID) or slimItem.charID and util.IsNPC(slimItem.charID)):
+                    if self.sr.flag:
+                        self.sr.flag.Close()
+                        self.sr.flag = None
                     self.RemoveBackgroundColor()
-        except AttributeError:
-            if not self.destroyed:
-                raise
+                else:
+                    stateSvc = sm.GetService('state')
+                    iconFlag, backgroundFlag = stateSvc.GetIconAndBackgroundFlags(slimItem)
+                    icon = None
+                    if self.sr.icon and self.sr.icon.display:
+                        icon = self.sr.icon
+                    if icon and iconFlag and iconFlag != -1:
+                        if self.sr.flag is None:
+                            self.sr.flag = FlagIconWithState(parent=self, state=uiconst.UI_DISABLED, align=uiconst.TOPLEFT)
+                        flagInfo = stateSvc.GetStatePropsColorAndBlink(iconFlag)
+                        self.sr.flag.ModifyIcon(flagInfo=flagInfo, showHint=False)
+                        if settings.user.overview.Get('useSmallColorTags', 0):
+                            self.sr.flag.ChangeFlagPos(icon.left + 10, icon.top + 10, 5, 5)
+                        else:
+                            self.sr.flag.ChangeFlagPos(icon.left + 9, icon.top + 8, 9, 9)
+                        hideIcon = settings.user.overview.Get('useSmallColorTags', 0)
+                        self.sr.flag.ChangeIconVisibility(display=not hideIcon)
+                    elif self.sr.flag:
+                        self.sr.flag.Close()
+                        self.sr.flag = None
+                    if backgroundFlag and backgroundFlag != -1:
+                        r, g, b, a = stateSvc.GetStateBackgroundColor(backgroundFlag)
+                        a = a * 0.5
+                        if not self.sr.bgColor:
+                            self.sr.bgColor = uiprimitives.Sprite(bgParent=self, name='bgColor', texturePath='res:/UI/Texture/classes/Bracket/bracketBackground.png', color=(r,
+                             g,
+                             b,
+                             a))
+                        else:
+                            self.sr.bgColor.SetRGBA(r, g, b, a)
+                        blink = stateSvc.GetStateBackgroundBlink(backgroundFlag)
+                        if blink:
+                            if not self.sr.bgColor.HasAnimation('opacity'):
+                                uicore.animations.FadeTo(self.sr.bgColor, startVal=0.0, endVal=a, duration=0.75, loops=uiconst.ANIM_REPEAT, curveType=uiconst.ANIM_WAVE)
+                        else:
+                            self.sr.bgColor.StopAnimations()
+                    elif self.sr.bgColor:
+                        self.RemoveBackgroundColor()
+            except AttributeError:
+                if not self.destroyed:
+                    raise
+
+            return
 
     def RemoveBackgroundColor(self, *args):
         if self.sr.bgColor and self.sr.bgColor in self.background:
             self.background.remove(self.sr.bgColor)
             self.sr.bgColor = None
+        return
 
     @telemetry.ZONE_METHOD
     def UpdateIconColor(self, slimItem):
         if self.destroyed:
             return
-        if self.sr.icon is None or not slimItem:
+        elif self.sr.icon is None or not slimItem:
             return
-        if self.sr.node and self.sr.node.iconColor is not None:
-            iconColor = self.sr.node.iconColor
         else:
-            iconColor = bracketUtils.GetIconColor(slimItem)
-        self.SetColor(*iconColor)
-        if slimItem.groupID in (const.groupWreck, const.groupSpawnContainer) and sm.GetService('wreck').IsViewedWreck(slimItem.itemID):
-            self.SetViewState(isViewed=True)
+            if self.sr.node and self.sr.node.iconColor is not None:
+                iconColor = self.sr.node.iconColor
+            else:
+                iconColor = bracketUtils.GetIconColor(slimItem)
+            self.SetColor(*iconColor)
+            if slimItem.groupID in (const.groupWreck, const.groupSpawnContainer) and sm.GetService('wreck').IsViewedWreck(slimItem.itemID):
+                self.SetViewState(isViewed=True)
+            return
 
     @telemetry.ZONE_METHOD
     def OnStateChange(self, itemID, flag, status, *args):
         if self.stateItemID != itemID:
             return
-        if flag == state.mouseOver:
-            self.Hilite(status)
-        elif flag == state.selected:
-            self.Select(status)
-        elif flag == state.threatTargetsMe:
-            attacking = sm.StartService('state').GetStates(itemID, [state.threatAttackingMe])
-            if attacking is not None and len(attacking) > 0:
-                attacking = attacking[0]
-            else:
-                attacking = 0
-            self.Hostile(status, attacking=attacking)
-        elif flag == state.threatAttackingMe:
-            self.Attacking(status)
-        elif flag == state.targeted:
-            self.Targeted(status)
-        elif flag == state.targeting:
-            self.Targeting(status)
-        elif flag == state.activeTarget:
-            self.ActiveTarget(status)
-        elif flag == state.flagWreckAlreadyOpened:
-            self.SetViewState(isViewed=status)
-        elif flag == state.flagWreckEmpty:
-            self.WreckEmpty(status)
         else:
-            for name in fleetbr.types:
-                if flag == getattr(state, 'gb%s' % name):
-                    handler = getattr(self, 'GB%s' % name, None)
-                    if handler is None:
-                        self.FleetBroadcast(status, name, *args)
-                    else:
-                        handler(status, *args)
-                    break
+            if flag == state.mouseOver:
+                self.Hilite(status)
+            elif flag == state.selected:
+                self.Select(status)
+            elif flag == state.threatTargetsMe:
+                attacking = sm.StartService('state').GetStates(itemID, [state.threatAttackingMe])
+                if attacking is not None and len(attacking) > 0:
+                    attacking = attacking[0]
+                else:
+                    attacking = 0
+                self.Hostile(status, attacking=attacking)
+            elif flag == state.threatAttackingMe:
+                self.Attacking(status)
+            elif flag == state.targeted:
+                self.Targeted(status)
+            elif flag == state.targeting:
+                self.Targeting(status)
+            elif flag == state.activeTarget:
+                self.ActiveTarget(status)
+            elif flag == state.flagWreckAlreadyOpened:
+                self.SetViewState(isViewed=status)
+            elif flag == state.flagWreckEmpty:
+                self.WreckEmpty(status)
+            else:
+                for name in fleetbr.types:
+                    if flag == getattr(state, 'gb%s' % name):
+                        handler = getattr(self, 'GB%s' % name, None)
+                        if handler is None:
+                            self.FleetBroadcast(status, name, *args)
+                        else:
+                            handler(status, *args)
+                        break
 
-    def SetColor(self, r, g, b, _save = True):
+            return
+
+    def SetColor(self, r, g, b, _save=True):
         if _save:
             self._originalIconColor = (r, g, b)
         self.sr.icon.SetRGB(r, g, b)
@@ -803,15 +867,17 @@ class InSpaceBracket(uiprimitives.Bracket):
             self.fleetTagAndTarget.Close()
             self.fleetTagAndTarget = None
         self.UpdateSubItems()
+        return
 
     @telemetry.ZONE_METHOD
-    def GBTarget(self, active, fleetBroadcastID, charID, targetNo = None):
+    def GBTarget(self, active, fleetBroadcastID, charID, targetNo=None):
         self.FleetBroadcast(active, 'Target', fleetBroadcastID, charID)
         if active:
             self._fleetTargetNo = targetNo
         else:
             self._fleetTargetNo = None
         self.UpdateFleetTagAndTarget()
+        return
 
     @telemetry.ZONE_METHOD
     def FleetBroadcast(self, active, broadcastType, fleetBroadcastID, charID):
@@ -834,6 +900,7 @@ class InSpaceBracket(uiprimitives.Bracket):
                 self.fleetBroadcastIcon = None
                 self.UpdateSubItems()
             self.fleetBroadcastSender = self.fleetBroadcastType = self.fleetBroadcastID = None
+        return
 
     def _UpdateSubItems(self):
         self.UpdateSubItems()
@@ -962,10 +1029,12 @@ class InSpaceBracket(uiprimitives.Bracket):
     def UpdateSubLabelText(self):
         if self.subLabel is None:
             return
-        if not self.subLabelCallback:
+        elif not self.subLabelCallback:
             return
-        self.displaySubLabel = self.subLabelCallback()
-        self.subLabel.text = self.displaySubLabel or ''
+        else:
+            self.displaySubLabel = self.subLabelCallback()
+            self.subLabel.text = self.displaySubLabel or ''
+            return
 
     def GetSubLabelCallback(self):
         return self.subLabelCallback
@@ -977,48 +1046,55 @@ class InSpaceBracket(uiprimitives.Bracket):
             self.displaySubLabel = None
         else:
             self.displaySubLabel = callback()
+        return
 
     @telemetry.ZONE_METHOD
     def UpdateSubItems(self):
         if self.destroyed:
             return
-        bracketRO = self.renderObject
-        x, y = bracketRO.displayX, bracketRO.displayY
-        bracketLayerWidth = uicore.layer.bracket.renderObject.displayWidth
-        labelsXOffset = 0
-        if self.fleetBroadcastIcon:
-            labelsXOffset = self._UpdateFleetBroadcastIcon(bracketLayerWidth, labelsXOffset, x, y)
-        if self.label:
-            newStr = self.displayName
-            if newStr is None:
-                sm.GetService('bracket').RemoveBracket(self.itemID)
-                return
-            if getattr(self, 'showDistance', 1):
-                distance = self.GetDistance()
-                if distance:
-                    newStr += ' ' + util.FmtDist(distance)
-            self.label.text = newStr
-        elif self.slimItem.categoryID == 6 and self.slimItem.groupID != 29:
-            if prefs.GetValue('bracketsAlwaysShowShipText', False):
-                self.ShowLabel()
-                self.overrideLabel = True
-            else:
-                self.overrideLabel = False
-        self.UpdateSubLabelText()
-        mainLabelsYOffset = 0
-        maxLabelWidth = 0
-        if self.label:
-            maxLabelWidth = max(maxLabelWidth, self.label.textwidth)
-        if self.SubLabelExists():
-            maxLabelWidth = max(maxLabelWidth, self.subLabel.textwidth)
-        if self.fleetTagAndTarget:
-            mainLabelsYOffset, maxLabelWidth = self._UpdateFleetTagAndTargetOffset(bracketLayerWidth, labelsXOffset, mainLabelsYOffset, maxLabelWidth, x, y)
-        if self.label:
-            self._UpdateLabelOffsets(bracketLayerWidth, labelsXOffset, mainLabelsYOffset, maxLabelWidth, x)
-        if not (self.label or self.subLabel or self.fleetBroadcastIcon or self.fleetTagAndTarget):
-            self.subItemsUpdateTimer = None
-        elif not getattr(self, 'subItemsUpdateTimer', None):
-            self.subItemsUpdateTimer = base.AutoTimer(500, self._UpdateSubItems)
+        else:
+            bracketRO = self.renderObject
+            x, y = bracketRO.displayX, bracketRO.displayY
+            bracketLayerWidth = uicore.layer.bracket.renderObject.displayWidth
+            labelsXOffset = 0
+            if self.fleetBroadcastIcon:
+                labelsXOffset = self._UpdateFleetBroadcastIcon(bracketLayerWidth, labelsXOffset, x, y)
+            if self.label:
+                newStr = self.displayName
+                if newStr is None:
+                    sm.GetService('bracket').RemoveBracket(self.itemID)
+                    return
+                if hasattr(self, 'GetDocked'):
+                    docked = self.GetDocked()
+                    if docked is not None:
+                        newStr += ' [{}]'.format(docked)
+                if getattr(self, 'showDistance', 1):
+                    distance = self.GetDistance()
+                    if distance:
+                        newStr += ' ' + util.FmtDist(distance)
+                self.label.text = newStr
+            elif self.slimItem.categoryID == 6 and self.slimItem.groupID != 29:
+                if prefs.GetValue('bracketsAlwaysShowShipText', False):
+                    self.ShowLabel()
+                    self.overrideLabel = True
+                else:
+                    self.overrideLabel = False
+            self.UpdateSubLabelText()
+            mainLabelsYOffset = 0
+            maxLabelWidth = 0
+            if self.label:
+                maxLabelWidth = max(maxLabelWidth, self.label.textwidth)
+            if self.SubLabelExists():
+                maxLabelWidth = max(maxLabelWidth, self.subLabel.textwidth)
+            if self.fleetTagAndTarget:
+                mainLabelsYOffset, maxLabelWidth = self._UpdateFleetTagAndTargetOffset(bracketLayerWidth, labelsXOffset, mainLabelsYOffset, maxLabelWidth, x, y)
+            if self.label:
+                self._UpdateLabelOffsets(bracketLayerWidth, labelsXOffset, mainLabelsYOffset, maxLabelWidth, x)
+            if not (self.label or self.subLabel or self.fleetBroadcastIcon or self.fleetTagAndTarget):
+                self.subItemsUpdateTimer = None
+            elif not getattr(self, 'subItemsUpdateTimer', None):
+                self.subItemsUpdateTimer = base.AutoTimer(500, self._UpdateSubItems)
+            return
 
     def getActiveStateOverride(self, activeState):
         targetSvc = sm.GetService('target')
@@ -1040,6 +1116,7 @@ class InSpaceBracket(uiprimitives.Bracket):
                 self.sr.activeTarget = None
             if self.sr.targetItem:
                 self.sr.targetItem.ChangeLineOpacity(faded=1)
+        return
 
     @telemetry.ZONE_METHOD
     def Targeted(self, state):
@@ -1065,6 +1142,7 @@ class InSpaceBracket(uiprimitives.Bracket):
             if self.sr.targetItem:
                 self.sr.targetItem.Close()
                 self.sr.targetItem = None
+        return
 
     @telemetry.ZONE_METHOD
     def Targeting(self, state):
@@ -1077,6 +1155,7 @@ class InSpaceBracket(uiprimitives.Bracket):
                 self.sr.targetItem.ShowTargetingIndicators()
         elif self.sr.targetItem:
             self.sr.targetItem.HideTargetingIndicators()
+        return
 
     @telemetry.ZONE_METHOD
     def Hilite(self, status):
@@ -1092,9 +1171,10 @@ class InSpaceBracket(uiprimitives.Bracket):
             if self.sr.hilite:
                 self.sr.hilite.Close()
                 self.sr.hilite = None
+        return
 
     @telemetry.ZONE_METHOD
-    def Hostile(self, state, attacking = 0):
+    def Hostile(self, state, attacking=0):
         if state:
             if self.sr.hostile_attacking is not None:
                 self.sr.hostile_attacking.Close()
@@ -1106,6 +1186,7 @@ class InSpaceBracket(uiprimitives.Bracket):
             attckingIcon = self.sr.hostile
             self.sr.hostile = None
             attckingIcon.Close()
+        return
 
     @telemetry.ZONE_METHOD
     def Attacking(self, state):
@@ -1122,51 +1203,56 @@ class InSpaceBracket(uiprimitives.Bracket):
             attckingIcon = self.sr.hostile_attacking
             self.sr.hostile_attacking = None
             attckingIcon.Close()
+        return
 
     @telemetry.ZONE_METHOD
     def UpdateStructureState(self, slimItem):
         if not util.IsStarbase(slimItem.categoryID):
             return
-        self.lastPosEvent = blue.os.GetWallclockTime()
-        stateName, stateTimestamp, stateDelay = sm.GetService('pwn').GetStructureState(slimItem)
-        if self.sr.posStatus is None:
-            self.sr.posStatus = uicontrols.EveLabelSmall(text=POS_STRUCTURE_STATE[stateName], parent=self, left=24, top=30, state=uiconst.UI_NORMAL)
         else:
-            self.sr.posStatus.text = POS_STRUCTURE_STATE[stateName]
-        if stateName in ('anchoring', 'onlining', 'unanchoring', 'reinforced', 'operating', 'incapacitated'):
-            uthread.new(self.StructureProgress, self.lastPosEvent, stateName, stateTimestamp, stateDelay)
+            self.lastPosEvent = blue.os.GetWallclockTime()
+            stateName, stateTimestamp, stateDelay = sm.GetService('pwn').GetStructureState(slimItem)
+            if self.sr.posStatus is None:
+                self.sr.posStatus = uicontrols.EveLabelSmall(text=POS_STRUCTURE_STATE[stateName], parent=self, left=24, top=30, state=uiconst.UI_NORMAL)
+            else:
+                self.sr.posStatus.text = POS_STRUCTURE_STATE[stateName]
+            if stateName in ('anchoring', 'onlining', 'unanchoring', 'reinforced', 'operating', 'incapacitated'):
+                uthread.new(self.StructureProgress, self.lastPosEvent, stateName, stateTimestamp, stateDelay)
+            return
 
     @telemetry.ZONE_METHOD
     def UpdateOrbitalState(self, slimItem):
         if not util.IsOrbital(slimItem.categoryID):
             return
-        self.lastOrbitalEvent = blue.os.GetWallclockTime()
-        if slimItem.orbitalState in (entityConst.STATE_ANCHORING, entityConst.STATE_ONLINING, entityConst.STATE_SHIELD_REINFORCE) or slimItem.groupID == const.groupOrbitalConstructionPlatforms:
-            statusString = bracketUtils.GetEntityStateString(slimItem.orbitalState)
-            if self.sr.orbitalStatus is None:
-                self.sr.orbitalStatus = uicontrols.EveLabelSmall(text=statusString, parent=self, left=24, top=30, state=uiconst.UI_NORMAL)
-            else:
-                self.sr.orbitalStatus.text = statusString
-        if slimItem.orbitalState in (entityConst.STATE_UNANCHORED, entityConst.STATE_IDLE, entityConst.STATE_ANCHORED) and slimItem.groupID != const.groupOrbitalConstructionPlatforms:
-            if self.sr.orbitalStatus is not None:
-                self.sr.orbitalStatus.Close()
-                self.sr.orbitalStatus = None
-        if slimItem.orbitalHackerID is not None:
-            if self.sr.orbitalHack is None:
-                self.sr.orbitalHack = uicls.HackingNumberGrid(parent=self, width=140, height=140, numCellRows=7, cellsPerRow=7, cellHeight=20, cellWidth=20, align=uiconst.CENTERTOP, top=-150)
-                self.sr.orbitalHack.BeginColorCycling()
-            progress = 0.0 if slimItem.orbitalHackerProgress is None else slimItem.orbitalHackerProgress
-            self.sr.orbitalHack.SetProgress(progress)
-        elif self.sr.orbitalHack is not None:
-            self.sr.orbitalHack.StopColorCycling()
-            self.children.remove(self.sr.orbitalHack)
-            self.sr.orbitalHack = None
-        if slimItem.orbitalState in (entityConst.STATE_ONLINING,
-         entityConst.STATE_OFFLINING,
-         entityConst.STATE_ANCHORING,
-         entityConst.STATE_UNANCHORING,
-         entityConst.STATE_SHIELD_REINFORCE):
-            uthread.new(self.OrbitalProgress, self.lastOrbitalEvent, slimItem)
+        else:
+            self.lastOrbitalEvent = blue.os.GetWallclockTime()
+            if slimItem.orbitalState in (entityConst.STATE_ANCHORING, entityConst.STATE_ONLINING, entityConst.STATE_SHIELD_REINFORCE) or slimItem.groupID == const.groupOrbitalConstructionPlatforms:
+                statusString = bracketUtils.GetEntityStateString(slimItem.orbitalState)
+                if self.sr.orbitalStatus is None:
+                    self.sr.orbitalStatus = uicontrols.EveLabelSmall(text=statusString, parent=self, left=24, top=30, state=uiconst.UI_NORMAL)
+                else:
+                    self.sr.orbitalStatus.text = statusString
+            if slimItem.orbitalState in (entityConst.STATE_UNANCHORED, entityConst.STATE_IDLE, entityConst.STATE_ANCHORED) and slimItem.groupID != const.groupOrbitalConstructionPlatforms:
+                if self.sr.orbitalStatus is not None:
+                    self.sr.orbitalStatus.Close()
+                    self.sr.orbitalStatus = None
+            if slimItem.orbitalHackerID is not None:
+                if self.sr.orbitalHack is None:
+                    self.sr.orbitalHack = uicls.HackingNumberGrid(parent=self, width=140, height=140, numCellRows=7, cellsPerRow=7, cellHeight=20, cellWidth=20, align=uiconst.CENTERTOP, top=-150)
+                    self.sr.orbitalHack.BeginColorCycling()
+                progress = 0.0 if slimItem.orbitalHackerProgress is None else slimItem.orbitalHackerProgress
+                self.sr.orbitalHack.SetProgress(progress)
+            elif self.sr.orbitalHack is not None:
+                self.sr.orbitalHack.StopColorCycling()
+                self.children.remove(self.sr.orbitalHack)
+                self.sr.orbitalHack = None
+            if slimItem.orbitalState in (entityConst.STATE_ONLINING,
+             entityConst.STATE_OFFLINING,
+             entityConst.STATE_ANCHORING,
+             entityConst.STATE_UNANCHORING,
+             entityConst.STATE_SHIELD_REINFORCE):
+                uthread.new(self.OrbitalProgress, self.lastOrbitalEvent, slimItem)
+            return
 
     @telemetry.ZONE_METHOD
     def UpdatePlanetaryLaunchContainer(self, slimItem):
@@ -1183,6 +1269,7 @@ class InSpaceBracket(uiprimitives.Bracket):
 
         if getattr(self, 'planetaryLaunchContainerThreadRunning', False) == False and slimItem.launchTime is not None:
             uthread.new(self.PlanetaryLaunchContainerProgress, slimItem.launchTime, long(slimItem.launchTime + const.piLaunchOrbitDecayTime))
+        return
 
     @telemetry.ZONE_METHOD
     def PlanetaryLaunchContainerProgress(self, startTime, endTime):
@@ -1302,6 +1389,8 @@ class InSpaceBracket(uiprimitives.Bracket):
         finally:
             self.captureTaskletRunning = False
 
+        return
+
     @telemetry.ZONE_METHOD
     def GetCaptureTimeString(self, portion):
         if self.captureData['captureID'] == 'contested':
@@ -1318,183 +1407,194 @@ class InSpaceBracket(uiprimitives.Bracket):
     def SetCaptureLogo(self, teamID):
         if teamID == 'contested' or teamID is None:
             return
-        if self.sr.Get('captureLogo'):
-            if self.sr.captureLogo.name == cfg.eveowners.Get(teamID).name:
-                self.sr.captureLogo.state = uiconst.UI_DISABLED
-                return
-            self.sr.captureLogo.Close()
-        raceIDByTeamID = {const.factionCaldariState: const.raceCaldari,
-         const.factionMinmatarRepublic: const.raceMinmatar,
-         const.factionAmarrEmpire: const.raceAmarr,
-         const.factionGallenteFederation: const.raceGallente}
-        self.sr.captureLogo = uicls.LogoIcon(itemID=raceIDByTeamID.get(teamID, teamID), parent=self.capture, state=uiconst.UI_DISABLED, size=32, pos=(-70, 22, 32, 32), name=cfg.eveowners.Get(teamID).name, align=uiconst.RELATIVE, ignoreSize=True)
+        else:
+            if self.sr.Get('captureLogo'):
+                if self.sr.captureLogo.name == cfg.eveowners.Get(teamID).name:
+                    self.sr.captureLogo.state = uiconst.UI_DISABLED
+                    return
+                self.sr.captureLogo.Close()
+            raceIDByTeamID = {const.factionCaldariState: const.raceCaldari,
+             const.factionMinmatarRepublic: const.raceMinmatar,
+             const.factionAmarrEmpire: const.raceAmarr,
+             const.factionGallenteFederation: const.raceGallente}
+            self.sr.captureLogo = uicls.LogoIcon(itemID=raceIDByTeamID.get(teamID, teamID), parent=self.capture, state=uiconst.UI_DISABLED, size=32, pos=(-70, 22, 32, 32), name=cfg.eveowners.Get(teamID).name, align=uiconst.RELATIVE, ignoreSize=True)
+            return
 
     @telemetry.ZONE_METHOD
     def StructureProgress(self, lastPosEvent, stateName, stateTimestamp, stateDelay):
         if self.destroyed:
             return
-        t = self.sr.posStatus
-        uicontrols.Frame(parent=self, align=uiconst.RELATIVE, width=82, height=13, left=18, top=30, color=(1.0, 1.0, 1.0, 0.5))
-        p = uiprimitives.Fill(parent=self, align=uiconst.RELATIVE, width=80, height=11, left=19, top=31, color=(1.0, 1.0, 1.0, 0.25))
-        startTime = blue.os.GetWallclockTime()
-        if stateDelay:
-            stateDelay = float(stateDelay * const.MSEC)
-        doneStr = {'anchoring': localization.GetByLabel('UI/Entities/States/Anchored'),
-         'onlining': localization.GetByLabel('UI/Entities/States/Online'),
-         'unanchoring': localization.GetByLabel('UI/Entities/States/Unanchored'),
-         'reinforced': localization.GetByLabel('UI/Entities/States/Online'),
-         'operating': localization.GetByLabel('UI/Entities/States/Operating'),
-         'incapacitated': localization.GetByLabel('UI/Entities/States/Incapacitated')}.get(stateName, localization.GetByLabel('UI/Entities/States/Done'))
-        endTime = 0
-        if stateDelay:
-            endTime = stateTimestamp + stateDelay
-        while 1 and endTime:
+        else:
+            t = self.sr.posStatus
+            uicontrols.Frame(parent=self, align=uiconst.RELATIVE, width=82, height=13, left=18, top=30, color=(1.0, 1.0, 1.0, 0.5))
+            p = uiprimitives.Fill(parent=self, align=uiconst.RELATIVE, width=80, height=11, left=19, top=31, color=(1.0, 1.0, 1.0, 0.25))
+            startTime = blue.os.GetWallclockTime()
+            if stateDelay:
+                stateDelay = float(stateDelay * const.MSEC)
+            doneStr = {'anchoring': localization.GetByLabel('UI/Entities/States/Anchored'),
+             'onlining': localization.GetByLabel('UI/Entities/States/Online'),
+             'unanchoring': localization.GetByLabel('UI/Entities/States/Unanchored'),
+             'reinforced': localization.GetByLabel('UI/Entities/States/Online'),
+             'operating': localization.GetByLabel('UI/Entities/States/Operating'),
+             'incapacitated': localization.GetByLabel('UI/Entities/States/Incapacitated')}.get(stateName, localization.GetByLabel('UI/Entities/States/Done'))
+            endTime = 0
+            if stateDelay:
+                endTime = stateTimestamp + stateDelay
+            while 1 and endTime:
+                if not self or self.destroyed or lastPosEvent != self.lastPosEvent:
+                    return
+                timeLeft = endTime - blue.os.GetWallclockTime()
+                portion = timeLeft / stateDelay
+                timeLeftSec = timeLeft / 1000.0
+                if timeLeft <= 0:
+                    t.text = doneStr
+                    break
+                t.text = localization.GetByLabel('UI/Inflight/Brackets/StructureProgress', stateName=POS_STRUCTURE_STATE[stateName], timeRemaining=long(timeLeft))
+                p.width = int(80 * portion)
+                blue.pyos.synchro.SleepWallclock(900)
+
+            blue.pyos.synchro.SleepWallclock(250)
+            if not self or self.destroyed:
+                return
+            for each in self.children[-2:]:
+                if each is not None and not getattr(each, 'destroyed', 0):
+                    each.Close()
+
+            if lastPosEvent != self.lastPosEvent:
+                return
+            t.text = ''
+            blue.pyos.synchro.SleepWallclock(250)
             if not self or self.destroyed or lastPosEvent != self.lastPosEvent:
                 return
-            timeLeft = endTime - blue.os.GetWallclockTime()
-            portion = timeLeft / stateDelay
-            timeLeftSec = timeLeft / 1000.0
-            if timeLeft <= 0:
-                t.text = doneStr
-                break
-            t.text = localization.GetByLabel('UI/Inflight/Brackets/StructureProgress', stateName=POS_STRUCTURE_STATE[stateName], timeRemaining=long(timeLeft))
-            p.width = int(80 * portion)
-            blue.pyos.synchro.SleepWallclock(900)
-
-        blue.pyos.synchro.SleepWallclock(250)
-        if not self or self.destroyed:
+            t.text = doneStr
+            blue.pyos.synchro.SleepWallclock(250)
+            if not self or self.destroyed or lastPosEvent != self.lastPosEvent:
+                return
+            t.text = ''
+            blue.pyos.synchro.SleepWallclock(250)
+            if not self or self.destroyed or lastPosEvent != self.lastPosEvent:
+                return
+            t.text = doneStr
             return
-        for each in self.children[-2:]:
-            if each is not None and not getattr(each, 'destroyed', 0):
-                each.Close()
-
-        if lastPosEvent != self.lastPosEvent:
-            return
-        t.text = ''
-        blue.pyos.synchro.SleepWallclock(250)
-        if not self or self.destroyed or lastPosEvent != self.lastPosEvent:
-            return
-        t.text = doneStr
-        blue.pyos.synchro.SleepWallclock(250)
-        if not self or self.destroyed or lastPosEvent != self.lastPosEvent:
-            return
-        t.text = ''
-        blue.pyos.synchro.SleepWallclock(250)
-        if not self or self.destroyed or lastPosEvent != self.lastPosEvent:
-            return
-        t.text = doneStr
 
     @telemetry.ZONE_METHOD
     def OrbitalProgress(self, lastOrbitalEvent, slimItem):
         if self.destroyed:
             return
-        t = self.sr.orbitalStatus
-        uicontrols.Frame(parent=self, align=uiconst.TOPLEFT, width=82, height=13, left=18, top=30, color=(1.0, 1.0, 1.0, 0.5))
-        p = uiprimitives.Fill(parent=self, align=uiconst.TOPLEFT, width=80, height=11, left=19, top=31, color=(1.0, 1.0, 1.0, 0.25))
-        stateName = bracketUtils.GetEntityStateString(slimItem.orbitalState)
-        stateTimestamp = slimItem.orbitalTimestamp
-        stateDelay = None
-        doneText = localization.GetByLabel('UI/Entities/States/Done')
-        godmaSM = sm.GetService('godma').GetStateManager()
-        if slimItem.orbitalState == entityConst.STATE_ANCHORING:
-            stateDelay = godmaSM.GetType(slimItem.typeID).anchoringDelay
-            doneText = bracketUtils.GetEntityStateString(entityConst.STATE_ANCHORED)
-        elif slimItem.orbitalState == entityConst.STATE_ONLINING:
-            stateName = localization.GetByLabel('UI/Entities/States/Upgrading')
-            stateDelay = godmaSM.GetType(slimItem.typeID).onliningDelay
-            doneText = localization.GetByLabel('UI/Entities/States/Online')
-        elif slimItem.orbitalState == entityConst.STATE_UNANCHORING:
-            stateDelay = godmaSM.GetType(slimItem.typeID).unanchoringDelay
-            doneText = bracketUtils.GetEntityStateString(entityConst.STATE_UNANCHORED)
-        elif slimItem.orbitalState == entityConst.STATE_SHIELD_REINFORCE:
-            doneText = bracketUtils.GetEntityStateString(entityConst.STATE_ANCHORED)
-        if stateDelay:
-            stateDelay = float(stateDelay * const.MSEC)
         else:
-            stateDelay = const.DAY
-        timeLeft = stateTimestamp - blue.os.GetWallclockTime()
-        try:
-            while timeLeft > 0:
-                blue.pyos.synchro.SleepWallclock(900)
-                if not self or self.destroyed or lastOrbitalEvent != self.lastOrbitalEvent:
-                    return
-                timeLeft = stateTimestamp - blue.os.GetWallclockTime()
-                portion = max(0.0, min(1.0, timeLeft / stateDelay))
-                t.text = localization.GetByLabel('UI/Inflight/Brackets/StructureProgress', stateName=stateName, timeRemaining=long(timeLeft))
-                p.width = int(80 * portion)
+            t = self.sr.orbitalStatus
+            uicontrols.Frame(parent=self, align=uiconst.TOPLEFT, width=82, height=13, left=18, top=30, color=(1.0, 1.0, 1.0, 0.5))
+            p = uiprimitives.Fill(parent=self, align=uiconst.TOPLEFT, width=80, height=11, left=19, top=31, color=(1.0, 1.0, 1.0, 0.25))
+            stateName = bracketUtils.GetEntityStateString(slimItem.orbitalState)
+            stateTimestamp = slimItem.orbitalTimestamp
+            stateDelay = None
+            doneText = localization.GetByLabel('UI/Entities/States/Done')
+            godmaSM = sm.GetService('godma').GetStateManager()
+            if slimItem.orbitalState == entityConst.STATE_ANCHORING:
+                stateDelay = godmaSM.GetType(slimItem.typeID).anchoringDelay
+                doneText = bracketUtils.GetEntityStateString(entityConst.STATE_ANCHORED)
+            elif slimItem.orbitalState == entityConst.STATE_ONLINING:
+                stateName = localization.GetByLabel('UI/Entities/States/Upgrading')
+                stateDelay = godmaSM.GetType(slimItem.typeID).onliningDelay
+                doneText = localization.GetByLabel('UI/Entities/States/Online')
+            elif slimItem.orbitalState == entityConst.STATE_UNANCHORING:
+                stateDelay = godmaSM.GetType(slimItem.typeID).unanchoringDelay
+                doneText = bracketUtils.GetEntityStateString(entityConst.STATE_UNANCHORED)
+            elif slimItem.orbitalState == entityConst.STATE_SHIELD_REINFORCE:
+                doneText = bracketUtils.GetEntityStateString(entityConst.STATE_ANCHORED)
+            if stateDelay:
+                stateDelay = float(stateDelay * const.MSEC)
+            else:
+                stateDelay = const.DAY
+            timeLeft = stateTimestamp - blue.os.GetWallclockTime()
+            try:
+                while timeLeft > 0:
+                    blue.pyos.synchro.SleepWallclock(900)
+                    if not self or self.destroyed or lastOrbitalEvent != self.lastOrbitalEvent:
+                        return
+                    timeLeft = stateTimestamp - blue.os.GetWallclockTime()
+                    portion = max(0.0, min(1.0, timeLeft / stateDelay))
+                    t.text = localization.GetByLabel('UI/Inflight/Brackets/StructureProgress', stateName=stateName, timeRemaining=long(timeLeft))
+                    p.width = int(80 * portion)
 
+                t.text = doneText
+                blue.pyos.synchro.SleepWallclock(250)
+                if not self or self.destroyed:
+                    return
+            finally:
+                if self and not self.destroyed:
+                    t.text = doneText
+                    for each in self.children[-2:]:
+                        if each is not None and not getattr(each, 'destroyed', 0):
+                            each.Close()
+
+            if lastOrbitalEvent != self.lastOrbitalEvent:
+                return
+            t.text = ''
+            blue.pyos.synchro.SleepWallclock(250)
+            if not self or self.destroyed or lastOrbitalEvent != self.lastOrbitalEvent:
+                return
             t.text = doneText
             blue.pyos.synchro.SleepWallclock(250)
-            if not self or self.destroyed:
+            if not self or self.destroyed or lastOrbitalEvent != self.lastOrbitalEvent:
                 return
-        finally:
-            if self and not self.destroyed:
-                t.text = doneText
-                for each in self.children[-2:]:
-                    if each is not None and not getattr(each, 'destroyed', 0):
-                        each.Close()
-
-        if lastOrbitalEvent != self.lastOrbitalEvent:
+            t.text = ''
+            blue.pyos.synchro.SleepWallclock(250)
+            if not self or self.destroyed or lastOrbitalEvent != self.lastOrbitalEvent:
+                return
+            t.text = doneText
             return
-        t.text = ''
-        blue.pyos.synchro.SleepWallclock(250)
-        if not self or self.destroyed or lastOrbitalEvent != self.lastOrbitalEvent:
-            return
-        t.text = doneText
-        blue.pyos.synchro.SleepWallclock(250)
-        if not self or self.destroyed or lastOrbitalEvent != self.lastOrbitalEvent:
-            return
-        t.text = ''
-        blue.pyos.synchro.SleepWallclock(250)
-        if not self or self.destroyed or lastOrbitalEvent != self.lastOrbitalEvent:
-            return
-        t.text = doneText
 
     @telemetry.ZONE_METHOD
     def SetBracketAnchoredState(self, slimItem):
         if not evetypes.GetIsGroupAnchorableByGroup(slimItem.groupID):
             return
-        if not slimItem or slimItem.itemID == eve.session.shipid or slimItem.ownerID != eve.session.charid and slimItem.ownerID != eve.session.corpid:
+        elif not slimItem or slimItem.itemID == eve.session.shipid or slimItem.ownerID != eve.session.charid and slimItem.ownerID != eve.session.corpid:
             return
-        ball = self.ball
-        if ball is None:
-            bp = sm.GetService('michelle').GetBallpark()
-            ball = bp.GetBall(slimItem.itemID)
-            if not ball:
-                return
-        _iconNo, _dockType, _minDist, _maxDist, _iconOffset, _logflag = sm.GetService('bracket').GetBracketProps(slimItem, ball)
-        iconNo, dockType, minDist, maxDist, iconOffset, logflag = self.data
-        for each in self.children:
-            if each.name == 'anchoredicon':
-                if ball.isFree:
-                    self.data = (iconNo,
-                     dockType,
-                     _minDist,
-                     _maxDist,
-                     iconOffset,
-                     logflag)
-                    each.Close()
-                return
+        else:
+            ball = self.ball
+            if ball is None:
+                bp = sm.GetService('michelle').GetBallpark()
+                ball = bp.GetBall(slimItem.itemID)
+                if not ball:
+                    return
+            _iconNo, _dockType, _minDist, _maxDist, _iconOffset, _logflag = sm.GetService('bracket').GetBracketProps(slimItem, ball)
+            iconNo, dockType, minDist, maxDist, iconOffset, logflag = self.data
+            for each in self.children:
+                if each.name == 'anchoredicon':
+                    if ball.isFree:
+                        self.data = (iconNo,
+                         dockType,
+                         _minDist,
+                         _maxDist,
+                         iconOffset,
+                         logflag)
+                        each.Close()
+                    return
 
-        if not ball.isFree:
-            self.data = (iconNo,
-             dockType,
-             0.0,
-             1e+32,
-             iconOffset,
-             logflag)
-            uiprimitives.Sprite(icon='res:/UI/Texture/Icons/38_16_15', name='anchoredicon', parent=self, pos=(0, 16, 16, 16), align=uiconst.TOPLEFT)
+            if not ball.isFree:
+                self.data = (iconNo,
+                 dockType,
+                 0.0,
+                 1e+32,
+                 iconOffset,
+                 logflag)
+                uiprimitives.Sprite(icon='res:/UI/Texture/Icons/38_16_15', name='anchoredicon', parent=self, pos=(0, 16, 16, 16), align=uiconst.TOPLEFT)
+            return
 
     @telemetry.ZONE_METHOD
     def UpdateHackProgress(self, hackProgress):
         if self.sr.orbitalHackLocal is None:
             return
-        self.sr.orbitalHackLocal.SetValue(hackProgress)
+        else:
+            self.sr.orbitalHackLocal.SetValue(hackProgress)
+            return
 
     @telemetry.ZONE_METHOD
     def BeginHacking(self):
         if self.sr.orbitalHackLocal is None:
             self.sr.orbitalHackLocal = uicls.HackingProgressBar(parent=self, height=20, width=120, align=uiconst.CENTERBOTTOM, top=-50, color=(0.0, 0.8, 0.0, 1.0), backgroundColor=(0.25, 0.0, 0.0, 1.0))
+        return
 
     def _StopHacking(self):
         blue.pyos.synchro.SleepWallclock(5000)
@@ -1502,19 +1602,23 @@ class InSpaceBracket(uiprimitives.Bracket):
             self.sr.orbitalHackLocal.state = uiconst.UI_HIDDEN
             self.sr.orbitalHackLocal.Close()
             self.sr.orbitalHackLocal = None
+        return
 
-    def StopHacking(self, success = False):
+    def StopHacking(self, success=False):
         if self.sr.orbitalHackLocal is not None:
             self.sr.orbitalHackLocal.Finalize(complete=success)
             uthread.new(self._StopHacking)
+        return
 
-    def ShowRadialMenuIndicator(self, slimItem = None, *args):
+    def ShowRadialMenuIndicator(self, slimItem=None, *args):
         if getattr(self, 'invisible', False) and (self.sr.selection is None or not self.sr.selection.display):
             return
-        mySprite = self.GetRadialMenuIndicator(create=True)
-        mySprite.display = True
+        else:
+            mySprite = self.GetRadialMenuIndicator(create=True)
+            mySprite.display = True
+            return
 
-    def HideRadialMenuIndicator(self, slimItem = None, *args):
+    def HideRadialMenuIndicator(self, slimItem=None, *args):
         mySprite = self.GetRadialMenuIndicator(create=False)
         if mySprite:
             mySprite.display = False
@@ -1538,6 +1642,7 @@ class InSpaceBracket(uiprimitives.Bracket):
                 self.CreateCounterController(BountyEscrowCounterController, componentRegistry, slimItem)
             if HasJumpPolarizationComponent(slimItem.typeID):
                 self.CreateCounterController(JumpPolarizationCounterController, componentRegistry, slimItem)
+        return
 
     def IsSelectedOrHilted(self):
         stateSvc = sm.GetService('state')

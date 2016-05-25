@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\client\script\ui\services\clippingsvc.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\client\script\ui\services\clippingsvc.py
 import service
 import log
 
@@ -11,7 +12,7 @@ class ZServer(service.Service):
         service.Service.__init__(self)
         self.takenZs = []
 
-    def GetZ(self, minZ = None):
+    def GetZ(self, minZ=None):
         if minZ and minZ <= 20:
             raise RuntimeError('minZs under 20 are reserved!')
         for i in xrange(minZ or 1000, 99998, 4):

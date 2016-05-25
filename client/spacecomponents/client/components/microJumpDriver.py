@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\packages\spacecomponents\client\components\microJumpDriver.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\packages\spacecomponents\client\components\microJumpDriver.py
 from carbonui.control.menuLabel import MenuLabel
 from carbon.common.script.util.format import FmtDist
 from carbon.common.lib.const import SEC, MSEC
@@ -24,6 +25,7 @@ class MicroJumpDriver(Component):
         self.SubscribeToMessage(MSG_ON_SLIM_ITEM_UPDATED, self.OnSlimItemUpdated)
         self.lastEndTime = None
         self.spoolUpDurationMillisec = self.attributes.spoolUpDurationMillisec
+        return
 
     def OnSlimItemUpdated(self, slimItem):
         if slimItem.component_microJumpDriver is not None:
@@ -35,6 +37,7 @@ class MicroJumpDriver(Component):
                 self.UThreadNew(self._StartVisualEffectThread)
             elif endTime > self.lastEndTime:
                 self.lastEndTime = endTime
+        return
 
     def _StartVisualEffectThread(self):
         self.TriggerEffect('trigger')
@@ -49,11 +52,14 @@ class MicroJumpDriver(Component):
             self.lastEndTime = None
             self.TriggerEffect('active')
 
+        return
+
     def TriggerEffect(self, effectName):
         logger.debug('TriggerEffect %s', effectName)
         ball = sm.GetService('michelle').GetBall(self.itemID)
         if ball is not None:
             ball.TriggerAnimation(effectName)
+        return
 
     @staticmethod
     def GetAttributeInfo(godmaService, typeID, attributes, instance, localization):

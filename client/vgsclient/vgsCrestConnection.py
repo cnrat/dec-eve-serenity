@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\packages\vgsclient\vgsCrestConnection.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\packages\vgsclient\vgsCrestConnection.py
 import collections
 import logging
 Product = collections.namedtuple('Product', ['id', 'name', 'href'])
@@ -30,10 +31,12 @@ class VgsCrestConnection:
         self.crestConnectionService = crestConnectionService
         self.store = None
         self.vgsRoot = None
+        return
 
     def ClearCache(self):
         self.store = None
         self.vgsRoot = None
+        return
 
     def _GetUserSession(self):
         return self.crestConnectionService.GetUserSession()
@@ -62,6 +65,8 @@ class VgsCrestConnection:
         for account in accounts:
             if account['currency'] == AUR_CURRENCY:
                 return self._GetUserSession().Get(account['href'], accept='vnd.ccp.eve.VgsAccount-v1')
+
+        return None
 
     def GetProducts(self):
         return [ CreateProductFromJson(productJson) for productJson in self._GetProductsJson() ]
@@ -107,7 +112,7 @@ class VgsCrestConnection:
     def GetOffer(self, offerUri):
         return self._GetUserSession().Get(offerUri)
 
-    def BuyOffer(self, offer, qty = 1):
+    def BuyOffer(self, offer, qty=1):
         root = self._GetVgsRoot()
         store = self._GetVgsStore()
         sale = {'storeId': store['id'],
@@ -118,7 +123,7 @@ class VgsCrestConnection:
         response = self._GetUserSession().Post(root['sales']['href'], payload=sale, content='vnd.ccp.eve.VgsSale-v1', header=True)
         return response
 
-    def GetSales(self, salesUri = None):
+    def GetSales(self, salesUri=None):
         if salesUri:
             uri = salesUri
         else:

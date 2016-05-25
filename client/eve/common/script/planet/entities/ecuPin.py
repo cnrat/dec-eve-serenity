@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\common\script\planet\entities\ecuPin.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\common\script\planet\entities\ecuPin.py
 import math
 from eve.common.script.planet.entities.basePin import BasePin
 from eve.common.script.planet.entities.basePin import STATE_ACTIVE, STATE_IDLE
@@ -27,6 +28,7 @@ class EcuPin(BasePin):
         self.expiryTime = None
         self.heads = []
         self.headRadius = None
+        return
 
     def GetCycleTime(self):
         return self.cycleTime
@@ -41,60 +43,65 @@ class EcuPin(BasePin):
         return self.eventHandler.GetTypeAttribute(self.typeID, const.attributeEcuAreaOfInfluence)
 
     def CanAccept(self, typeID, quantity):
-        return 0
+        pass
 
     def AddCommodity(self, typeID, quantity):
-        return 0
+        pass
 
     def Run(self, runTime):
         self.lastRunTime = runTime
         if self.programType is None:
             return {}
-        products = {}
-        if self.IsActive():
-            products[self.programType] = self.GetProgramOutput(runTime)
-            if self.expiryTime <= runTime:
-                self.SetState(STATE_IDLE)
-        return products
+        else:
+            products = {}
+            if self.IsActive():
+                products[self.programType] = self.GetProgramOutput(runTime)
+                if self.expiryTime <= runTime:
+                    self.SetState(STATE_IDLE)
+            return products
 
     def CanInstallProgram(self, runTime):
         if self.programType is None:
             return True
-        if runTime is not None:
-            if self.expiryTime <= runTime:
-                return True
-            nextEditTime = self.installTime + PROGRAM_INSTALLATION_COOLDOWN
-            if nextEditTime <= runTime:
-                return True
-            raise UserError('CantInstallProgramNeedsCooldown', {'ecu': (const.UE_TYPEID, self.typeID),
-             'timeDiff': util.FmtDate(nextEditTime - runTime)})
         else:
-            return True
+            if runTime is not None:
+                if self.expiryTime <= runTime:
+                    return True
+                nextEditTime = self.installTime + PROGRAM_INSTALLATION_COOLDOWN
+                if nextEditTime <= runTime:
+                    return True
+                raise UserError('CantInstallProgramNeedsCooldown', {'ecu': (const.UE_TYPEID, self.typeID),
+                 'timeDiff': util.FmtDate(nextEditTime - runTime)})
+            else:
+                return True
+            return
 
     def GetNextEditTime(self):
         if self.installTime is None:
             return
-        return self.installTime + PROGRAM_INSTALLATION_COOLDOWN
+        else:
+            return self.installTime + PROGRAM_INSTALLATION_COOLDOWN
 
-    def InstallProgram(self, programType, cycleTime, expiryTime, qtyPerCycle, headRadius, lastRunTime = None, installTime = None):
+    def InstallProgram(self, programType, cycleTime, expiryTime, qtyPerCycle, headRadius, lastRunTime=None, installTime=None):
         if qtyPerCycle <= 0:
             self.LogError('ownerID', self.ownerID, '| ECU pin error, zero qtyPerCycle. Defaulting to', EXTRACTOR_MAX_CYCLES, 'cycles to extract')
             return
-        self.programType = int(programType)
-        self.qtyPerCycle = qtyPerCycle
-        self.expiryTime = expiryTime
-        self.cycleTime = cycleTime
-        self.SetState(STATE_ACTIVE)
-        if lastRunTime is not None:
-            self.lastRunTime = lastRunTime
         else:
-            self.lastRunTime = blue.os.GetWallclockTime()
-        if installTime is not None:
-            self.installTime = installTime
-        else:
-            self.installTime = self.lastRunTime
-        self.headRadius = headRadius
-        return self.lastRunTime
+            self.programType = int(programType)
+            self.qtyPerCycle = qtyPerCycle
+            self.expiryTime = expiryTime
+            self.cycleTime = cycleTime
+            self.SetState(STATE_ACTIVE)
+            if lastRunTime is not None:
+                self.lastRunTime = lastRunTime
+            else:
+                self.lastRunTime = blue.os.GetWallclockTime()
+            if installTime is not None:
+                self.installTime = installTime
+            else:
+                self.installTime = self.lastRunTime
+            self.headRadius = headRadius
+            return self.lastRunTime
 
     def ClearProgram(self):
         self.programType = None
@@ -102,11 +109,13 @@ class EcuPin(BasePin):
         self.expiryTime = None
         self.installTime = None
         self.SetState(STATE_IDLE)
+        return
 
     def CanActivate(self):
         if self.activityState < STATE_ACTIVE:
             return False
-        return self.programType is not None
+        else:
+            return self.programType is not None
 
     def IsActive(self):
         return self.programType is not None and self.activityState > STATE_IDLE
@@ -114,17 +123,20 @@ class EcuPin(BasePin):
     def GetProgramInformation(self):
         if self.programType is None:
             return
-        return [self.id,
-         int(self.programType),
-         self.cycleTime / const.MIN if self.cycleTime is not None else None,
-         self.qtyPerCycle,
-         self.installTime,
-         self.expiryTime,
-         self.headRadius]
+        else:
+            return [self.id,
+             int(self.programType),
+             self.cycleTime / const.MIN if self.cycleTime is not None else None,
+             self.qtyPerCycle,
+             self.installTime,
+             self.expiryTime,
+             self.headRadius]
 
     def GetProgramParameters(self):
         if self.programType is not None:
             return (self.qtyPerCycle, self.cycleTime, int((self.expiryTime - self.installTime) / self.cycleTime))
+        else:
+            return
 
     def IsProducer(self):
         return True
@@ -137,18 +149,20 @@ class EcuPin(BasePin):
             return {}
         else:
             return {self.programType: self.qtyPerCycle}
+            return
 
     def GetProductMaxOutput(self):
         if self.programType is None:
             return {}
-        return {self.programType: self.GetMaxOutput()}
+        else:
+            return {self.programType: self.GetMaxOutput()}
 
     def GetTimeToExpiry(self):
         if self.activityState <= STATE_IDLE:
             return 0
         return self.expiryTime - blue.os.GetWallclockTime()
 
-    def Serialize(self, full = False):
+    def Serialize(self, full=False):
         data = BasePin.Serialize(self, full)
         data.cycleTime = self.cycleTime
         data.programType = int(self.programType) if self.programType is not None else None
@@ -162,6 +176,8 @@ class EcuPin(BasePin):
     def GetExtractionType(self):
         if self.programType is not None:
             return int(self.programType)
+        else:
+            return
 
     def HasDifferingProgram(self, otherPin):
         if self.installTime != otherPin.installTime:
@@ -181,7 +197,9 @@ class EcuPin(BasePin):
             if head[0] == index:
                 return head
 
-    def AddHead(self, headID = None, latitude = None, longitude = None):
+        return None
+
+    def AddHead(self, headID=None, latitude=None, longitude=None):
         if len(self.heads) >= planetCommon.ECU_MAX_HEADS:
             return
         else:
@@ -208,6 +226,7 @@ class EcuPin(BasePin):
                 newHeadIndex = lastHead[0] + 1
             self.heads.insert(newHeadIndex, (newHeadIndex, latitude, longitude))
             return newHeadIndex
+            return
 
     def RemoveHead(self, index):
         headIdx = None
@@ -217,6 +236,7 @@ class EcuPin(BasePin):
 
         if headIdx is not None:
             self.heads.pop(headIdx)
+        return
 
     def SetHeads(self, heads):
         self.heads = heads[:]
@@ -233,7 +253,7 @@ class EcuPin(BasePin):
             self.headRadius = 0.01
         return self.headRadius
 
-    def GetPowerUsage(self, numHeads = None):
+    def GetPowerUsage(self, numHeads=None):
         if numHeads is None:
             numHeads = len(self.heads)
         ecuPowerLoad = self.eventHandler.GetTypeAttribute(self.typeID, const.attributePowerLoad)
@@ -242,7 +262,7 @@ class EcuPin(BasePin):
     def GetExtractorHeadPowerUsage(self):
         return self.eventHandler.GetTypeAttribute(self.typeID, const.attributeExtractorHeadPower)
 
-    def GetCpuUsage(self, numHeads = None):
+    def GetCpuUsage(self, numHeads=None):
         if numHeads is None:
             numHeads = len(self.heads)
         ecuCpuLoad = self.eventHandler.GetTypeAttribute(self.typeID, const.attributeCpuLoad)
@@ -251,7 +271,7 @@ class EcuPin(BasePin):
     def GetExtractorHeadCpuUsage(self):
         return self.eventHandler.GetTypeAttribute(self.typeID, const.attributeExtractorHeadCPU)
 
-    def GetMaxOutput(self, baseOutput = None, cycleTime = None):
+    def GetMaxOutput(self, baseOutput=None, cycleTime=None):
         if baseOutput is None:
             baseOutput = self.qtyPerCycle
         if cycleTime is None:
@@ -262,7 +282,7 @@ class EcuPin(BasePin):
     def GetAttribute(self, attributeID):
         return self.eventHandler.GetTypeAttribute(self.typeID, attributeID)
 
-    def GetProgramOutput(self, currentTime, baseValue = None, cycleTime = None, startTime = None):
+    def GetProgramOutput(self, currentTime, baseValue=None, cycleTime=None, startTime=None):
         if baseValue is None:
             baseValue = self.qtyPerCycle
         if cycleTime is None:

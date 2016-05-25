@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\carbon\common\script\cef\componentViews\interiorPlaceableComponentView.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\carbon\common\script\cef\componentViews\interiorPlaceableComponentView.py
 from carbon.common.script.cef.baseComponentView import BaseComponentView
 import blue
 
@@ -24,6 +25,7 @@ class InteriorPlaceableComponentView(BaseComponentView):
         cls._AddInput('probeOffsetZ', 0.0, cls.RECIPE, const.cef.COMPONENTDATA_FLOAT_TYPE, displayName='SH Probe Offset Z')
         cls._AddInput('depthOffset', 0.0, cls.RECIPE, const.cef.COMPONENTDATA_FLOAT_TYPE, displayName='Transparency Depth Offset')
         cls._AddInput('scale', '(1.0,1.0,1.0)', cls.RECIPE, const.cef.COMPONENTDATA_FLOAT_VECTOR_AS_STRING_TYPE, displayName='Scale')
+        return
 
     @classmethod
     def ValidateComponent(cls, result, recipeID, recipeDict):
@@ -36,6 +38,7 @@ class InteriorPlaceableComponentView(BaseComponentView):
         scale = recipeDict[cls.__COMPONENT_ID__]['scale']
         if scale != '(1.0,1.0,1.0)' and const.cef.COLLISION_MESH_COMPONENT_ID in recipeDict:
             result.AddMessage('Cannot scale a placeable with collision')
+        return
 
 
 InteriorPlaceableComponentView.SetupInputs()

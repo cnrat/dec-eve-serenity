@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\carbon\common\script\net\WSGIService.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\carbon\common\script\net\WSGIService.py
 import service
 import uthread
 import socket
@@ -10,14 +11,14 @@ from cherrypy.wsgiserver.ssl_builtin import BuiltinSSLAdapter
 
 class TaskletThreadPool(object):
 
-    def __init__(self, server, min = 10, max = -1):
+    def __init__(self, server, min=10, max=-1):
         self.server = server
         self.min = min
 
     def start(self):
         pass
 
-    def stop(self, timeout = None):
+    def stop(self, timeout=None):
         pass
 
     def put(self, obj):
@@ -43,14 +44,14 @@ wsgiserver.ThreadPool = TaskletThreadPool
 
 class MyCherryPyWSGIServer(wsgiserver.CherryPyWSGIServer):
 
-    def bind(self, family, type, proto = 0):
+    def bind(self, family, type, proto=0):
         super(MyCherryPyWSGIServer, self).bind(family, type, proto)
         self.socket.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 0)
 
 
 class CherryServerRunner(object):
 
-    def __init__(self, server, ntasks = 2, ssl = False):
+    def __init__(self, server, ntasks=2, ssl=False):
         self.server = server
         self.running = False
         self.ntasks = ntasks - 1
@@ -131,7 +132,7 @@ class WSGIService(service.Service):
         if k == 'blockingSend':
             return ('block on send', v)
 
-    def Run(self, memStream = None):
+    def Run(self, memStream=None):
         self.runners = {}
         self.state = service.SERVICE_RUNNING
         self.idx = 1
@@ -153,7 +154,7 @@ class WSGIService(service.Service):
             self.StopRunners(runners)
             self.runners[idx] = (args, self.StartServerInt(args))
 
-    def StartServer(self, middleware, port, protocol = 'HTTP/1.1', enableIPv6 = True, serverName = None, ssl = None):
+    def StartServer(self, middleware, port, protocol='HTTP/1.1', enableIPv6=True, serverName=None, ssl=None):
         args = (middleware,
          port,
          protocol,
@@ -178,7 +179,7 @@ class WSGIService(service.Service):
         self.LogInfo('%s WSGI server running: %r' % (type, args))
         return runners
 
-    def StartCherry(self, middleware, port, protocol = 'HTTP/1.1', enableIPv6 = True, serverName = None, ssl = None):
+    def StartCherry(self, middleware, port, protocol='HTTP/1.1', enableIPv6=True, serverName=None, ssl=None):
         if ssl:
 
             def Adapter(runner):

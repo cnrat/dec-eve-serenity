@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\packages\sensorsuite\overlay\brackets.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\packages\sensorsuite\overlay\brackets.py
 from carbon.common.lib import telemetry
 from carbon.common.script.util.format import FmtDist
 from carbon.common.script.util.timerstuff import AutoTimer
@@ -99,6 +100,7 @@ class SensorSuiteBracket(Bracket):
         self.lastRoundedDistance = None
         if self.isScrollEntry:
             self.UpdateLabel()
+        return
 
     def GetBracketLabelText(self):
         return self.data.GetName()
@@ -119,6 +121,7 @@ class SensorSuiteBracket(Bracket):
         totalLabelWidth = self.codeLabel.width + self.distanceLabel.width + DISTANCE_CELL_SPACING
         self.labelContainer.opacity = 1.0
         self.labelContainer.width = max(MIN_LABEL_SIZE, totalLabelWidth)
+        return
 
     def UpdateSiteName(self, text):
         self.siteName.SetText(text)
@@ -134,7 +137,7 @@ class SensorSuiteBracket(Bracket):
         for sprite in self.outerSprites:
             sprite.color = color
 
-    def AnimateFrameEnter(self, curveSet, timeOffset = 0.0, callback = None):
+    def AnimateFrameEnter(self, curveSet, timeOffset=0.0, callback=None):
         moveDist = 40
         for index, (x, y) in enumerate(OUTER_BRACKET_ORIENTATIONS):
             sprite = self.outerSprites[index]
@@ -147,7 +150,7 @@ class SensorSuiteBracket(Bracket):
     def AnimateEnableCenterIcon(self, curveSet):
         animations.FadeTo(self.icon, loops=4, duration=0.2, startVal=0.0, endVal=self.iconOpacity, curveType=uiconst.ANIM_LINEAR, curveSet=curveSet)
 
-    def AnimateRadiatingCircles(self, curveSet, timeOffset = 0.0):
+    def AnimateRadiatingCircles(self, curveSet, timeOffset=0.0):
         if self.isScrollEntry:
             return
         circleTimeOffset = 0.15 + timeOffset
@@ -167,15 +170,16 @@ class SensorSuiteBracket(Bracket):
 
     def StopLabelUpdates(self):
         self.labelUpdateTimer = None
+        return
 
-    def DoEntryAnimation(self, curveSet = None, enable = False):
+    def DoEntryAnimation(self, curveSet=None, enable=False):
         callback = self.DoEnableAnimation if enable else None
         self.AnimateCenterIcon(curveSet)
         self.AnimateRadiatingCircles(curveSet, timeOffset=0.2)
         self.AnimateFrameEnter(curveSet, timeOffset=1.0, callback=callback)
         return curveSet
 
-    def DoExitAnimation(self, callback = None):
+    def DoExitAnimation(self, callback=None):
         curveSet = None
         duration = 0.5
         fadeOffset = 0.6
@@ -184,10 +188,12 @@ class SensorSuiteBracket(Bracket):
         animations.FadeTo(self, startVal=self.opacity, endVal=0.0, duration=duration, curveSet=curveSet, timeOffset=fadeOffset)
         self.StopLabelUpdates()
         callback(duration + fadeOffset)
+        return
 
     def DoEnableAnimation(self):
         curveSet = None
         self.AnimateEnableCenterIcon(curveSet)
+        return
 
     def DoShowAnimation(self):
         curveSet = None
@@ -226,13 +232,14 @@ class SensorSuiteBracket(Bracket):
 
     def OnMouseDown(self, *args):
         sm.GetService('menu').TryExpandActionMenu(None, self, siteData=self.data)
+        return
 
-    def ShowRadialMenuIndicator(self, slimItem = None, *args):
+    def ShowRadialMenuIndicator(self, slimItem=None, *args):
         if not self.radialMenuSprite:
             self.radialMenuSprite = Sprite(name='radialMenuSprite', parent=self, texturePath='res:/UI/Texture/classes/RadialMenu/bracketHilite.png', pos=(0, 0, 20, 20), color=(0.5, 0.5, 0.5, 0.5), align=uiconst.CENTER, state=uiconst.UI_DISABLED)
         self.radialMenuSprite.display = True
         self.labelContainer.display = False
 
-    def HideRadialMenuIndicator(self, slimItem = None, *args):
+    def HideRadialMenuIndicator(self, slimItem=None, *args):
         if self.radialMenuSprite:
             self.radialMenuSprite.display = False

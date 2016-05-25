@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\packages\eveclientqatools\assetlab.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\packages\eveclientqatools\assetlab.py
 from eve.client.script.ui.control.eveWindow import Window
 from eve.client.script.ui.control.eveLabel import Label
 from eve.client.script.ui.control.buttonGroup import ButtonGroup
@@ -38,6 +39,7 @@ class AssetLabWindow(Window):
             self.scene.sunDirection = (0.0, 0.0, -1.0)
             model = GetModel()
             GoToX(model, 10000000000.0)
+            return
 
         Label(name='goLabel', parent=self.sr.main, align=uiconst.TOTOP, text='Fly')
 

@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\client\script\ui\station\worldspaceCustomization.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\client\script\ui\station\worldspaceCustomization.py
 import worldspaceCustomizationDefinitions
 import evetypes
 
@@ -22,19 +23,19 @@ def ApplyWorldspaceCustomization():
     UpdateEnlightenTexture()
 
 
-def UpdateFlares(r = 1, g = 1, b = 1, a = 1):
+def UpdateFlares(r=1, g=1, b=1, a=1):
     MultiplyColorValue('trinity.Tr2InteriorFlare', r, g, b, a)
 
 
-def UpdateSpotPointLights(r = 1, g = 1, b = 1, a = 1):
+def UpdateSpotPointLights(r=1, g=1, b=1, a=1):
     MultiplyColorValue('trinity.Tr2InteriorLightSource', r, g, b, a)
 
 
-def UpdateCylendricalLights(r = 1, g = 1, b = 1, a = 1):
+def UpdateCylendricalLights(r=1, g=1, b=1, a=1):
     MultiplyColorValue('trinity.Tr2InteriorCylinderLight', r, g, b, a)
 
 
-def MultiplyColorValue(trinityObjectName, r = 1, g = 1, b = 1, a = 1):
+def MultiplyColorValue(trinityObjectName, r=1, g=1, b=1, a=1):
     scene = sm.GetService('sceneManager').incarnaRenderJob.scene.object
     for effect in scene.Find(trinityObjectName):
         currentColor = effect.color
@@ -67,7 +68,7 @@ def UpdateShaderParameters(params):
                 SetShaderMaterialValue(each.effect.parameters, entry.parameter, entry.value, entry.hdr)
 
 
-def SetShaderMaterialValue(parameter, effectEntry, value, modifier = 1.0):
+def SetShaderMaterialValue(parameter, effectEntry, value, modifier=1.0):
     if isinstance(value, basestring):
         parameter[effectEntry].resourcePath = value
     elif isinstance(value, float):

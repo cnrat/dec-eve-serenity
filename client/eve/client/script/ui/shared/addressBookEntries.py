@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\client\script\ui\shared\addressBookEntries.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\client\script\ui\shared\addressBookEntries.py
 import uicontrols
 import uiprimitives
 import uicls
@@ -42,6 +43,7 @@ class PlaceEntry(uicontrols.SE_BaseClassCore):
         dropDataFunc = getattr(node, 'DropData')
         if dropDataFunc is not None:
             self.OnDropData = dropDataFunc
+        return
 
     def GetHeight(_self, *args):
         node, width = args
@@ -54,14 +56,16 @@ class PlaceEntry(uicontrols.SE_BaseClassCore):
     def SetHint(self, *args):
         if not (self.sr and self.sr.node):
             return
-        bookmark = self.sr.node.bm
-        hint = self.sr.node.hint
-        destination = sm.GetService('starmap').GetDestination()
-        if destination is not None and destination == bookmark.itemID:
-            hint = localization.GetByLabel('UI/PeopleAndPlaces/BookmarkHintCurrent', hintText=hint)
         else:
-            hint = localization.GetByLabel('UI/PeopleAndPlaces/BookmarkHint', hintText=hint)
-        self.hint = hint
+            bookmark = self.sr.node.bm
+            hint = self.sr.node.hint
+            destination = sm.GetService('starmap').GetDestination()
+            if destination is not None and destination == bookmark.itemID:
+                hint = localization.GetByLabel('UI/PeopleAndPlaces/BookmarkHintCurrent', hintText=hint)
+            else:
+                hint = localization.GetByLabel('UI/PeopleAndPlaces/BookmarkHint', hintText=hint)
+            self.hint = hint
+            return
 
     def OnDblClick(self, *args):
         sm.GetService('addressbook').EditBookmark(self.sr.bm)
@@ -71,6 +75,7 @@ class PlaceEntry(uicontrols.SE_BaseClassCore):
         eve.Message('ListEntryClick')
         if self.sr.node.Get('OnClick', None):
             self.sr.node.OnClick(self)
+        return
 
     def ShowInfo(self, *args):
         sm.GetService('info').ShowInfo(const.typeBookmark, self.sr.bm.bookmarkID)
@@ -131,7 +136,7 @@ class PlaceEntry(uicontrols.SE_BaseClassCore):
         if bp:
             bp.CmdWarpToStuff('bookmark', self.sr.bm.bookmarkID)
 
-    def Delete(self, bmIDs = None):
+    def Delete(self, bmIDs=None):
         ids = bmIDs or [ entry.bm.bookmarkID for entry in self.sr.node.scroll.GetSelected() ]
         if ids:
             sm.GetService('addressbook').DeleteBookmarks(ids)
@@ -140,14 +145,15 @@ class PlaceEntry(uicontrols.SE_BaseClassCore):
         bookMarkInfo = self.sr.bm
         sm.GetService('menu').TryExpandActionMenu(itemID=bookMarkInfo.itemID, clickedObject=self, bookmarkInfo=bookMarkInfo)
 
-    def GetRadialMenuIndicator(self, create = True, *args):
+    def GetRadialMenuIndicator(self, create=True, *args):
         indicator = getattr(self, 'radialMenuIndicator', None)
         if indicator and not indicator.destroyed:
             return indicator
-        if not create:
+        elif not create:
             return
-        self.radialMenuIndicator = uiprimitives.Fill(bgParent=self, color=(1, 1, 1, 0.1), name='radialMenuIndicator')
-        return self.radialMenuIndicator
+        else:
+            self.radialMenuIndicator = uiprimitives.Fill(bgParent=self, color=(1, 1, 1, 0.1), name='radialMenuIndicator')
+            return self.radialMenuIndicator
 
     def ShowRadialMenuIndicator(self, slimItem, *args):
         indicator = self.GetRadialMenuIndicator(create=True)

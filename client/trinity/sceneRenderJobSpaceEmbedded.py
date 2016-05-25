@@ -1,10 +1,11 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\packages\trinity\sceneRenderJobSpaceEmbedded.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\packages\trinity\sceneRenderJobSpaceEmbedded.py
 import logging
 from . import _trinity as trinity
 from .sceneRenderJobSpace import SceneRenderJobSpace
 logger = logging.getLogger(__name__)
 
-def CreateEmbeddedRenderJobSpace(name = None, stageKey = None):
+def CreateEmbeddedRenderJobSpace(name=None, stageKey=None):
     newRJ = SceneRenderJobSpaceEmbedded()
     if name is not None:
         newRJ.ManualInit(name)
@@ -41,6 +42,7 @@ class SceneRenderJobSpaceEmbedded(SceneRenderJobSpace):
         SceneRenderJobSpace._ManualInit(self, name)
         self.updateJob = None
         self.useTAA = False
+        return
 
     def SetupStencilBlitEffect(self):
         self.stencilBlitEffect = trinity.Tr2Effect()
@@ -56,7 +58,7 @@ class SceneRenderJobSpaceEmbedded(SceneRenderJobSpace):
     def SetOffscreen(self, isOffscreen):
         self.isOffscreen = isOffscreen
 
-    def SetStencil(self, path = None):
+    def SetStencil(self, path=None):
         self.stencilPath = path
         self.SetupStencilBlitEffect()
         if path is not None:
@@ -66,6 +68,7 @@ class SceneRenderJobSpaceEmbedded(SceneRenderJobSpace):
         self._RefreshAntiAliasing()
         self._CreateRenderTargets()
         self._RefreshRenderTargets()
+        return
 
     def EnableFXAA(self, enable):
         pass
@@ -81,6 +84,7 @@ class SceneRenderJobSpaceEmbedded(SceneRenderJobSpace):
         self.offscreenDepthStencil = None
         self.blitMapParameter.SetResource(None)
         SceneRenderJobSpace.DoReleaseResources(self, level)
+        return
 
     def DoPrepareResources(self):
         if not self.enabled or not self.canCreateRenderTargets:
@@ -109,24 +113,28 @@ class SceneRenderJobSpaceEmbedded(SceneRenderJobSpace):
     def _GetDestinationRTForPostProcessing(self):
         if self.customBackBuffer is not None:
             return self.customBackBuffer
-        if self.offscreenRenderTarget is not None:
+        elif self.offscreenRenderTarget is not None:
             return self.offscreenRenderTarget
+        else:
+            return
 
     def _CreateRenderTargets(self):
         if not self.prepared:
             return
-        SceneRenderJobSpace._CreateRenderTargets(self)
-        vp = self.GetViewport()
-        self.rtWidth = vp.width
-        self.rtHeight = vp.height
-        if self.customBackBuffer is None:
-            self.offscreenRenderTarget = trinity.Tr2RenderTarget(vp.width, vp.height, 1, self.bbFormat)
-            self.finalTexture = self.offscreenRenderTarget
         else:
-            self.finalTexture = trinity.Tr2RenderTarget(vp.width, vp.height, 1, self.customBackBuffer.format)
-        if self.customDepthStencil is None:
-            self.offscreenDepthStencil = trinity.Tr2DepthStencil(vp.width, vp.height, trinity.DEPTH_STENCIL_FORMAT.AUTO)
-        self.finalTexture.name = 'finalTexture'
+            SceneRenderJobSpace._CreateRenderTargets(self)
+            vp = self.GetViewport()
+            self.rtWidth = vp.width
+            self.rtHeight = vp.height
+            if self.customBackBuffer is None:
+                self.offscreenRenderTarget = trinity.Tr2RenderTarget(vp.width, vp.height, 1, self.bbFormat)
+                self.finalTexture = self.offscreenRenderTarget
+            else:
+                self.finalTexture = trinity.Tr2RenderTarget(vp.width, vp.height, 1, self.customBackBuffer.format)
+            if self.customDepthStencil is None:
+                self.offscreenDepthStencil = trinity.Tr2DepthStencil(vp.width, vp.height, trinity.DEPTH_STENCIL_FORMAT.AUTO)
+            self.finalTexture.name = 'finalTexture'
+            return
 
     def SetRenderTargets(self, *args):
         SceneRenderJobSpace.SetRenderTargets(self, *args)
@@ -168,6 +176,7 @@ class SceneRenderJobSpaceEmbedded(SceneRenderJobSpace):
                     self.blitMapParameter.SetResource(stencilTriTextureRes)
                     self.AddStep('FINAL_BLIT_EMBEDDED', trinity.TriStepRenderEffect(self.stencilBlitEffect))
         self.AddStep('POP_BLIT_DEPTH', trinity.TriStepPopDepthStencil())
+        return
 
     def GetBackBufferSize(self):
         vp = self.GetViewport()
@@ -184,4 +193,9 @@ class SceneRenderJobSpaceEmbedded(SceneRenderJobSpace):
     def _GetRTForDepthPass(self):
         if self.finalTexture is not None:
             return self.finalTexture
-        return SceneRenderJobSpace._GetRTForDepthPass(self)
+        else:
+            return SceneRenderJobSpace._GetRTForDepthPass(self)
+
+    def ApplyBaseSettings(self):
+        SceneRenderJobSpace.ApplyBaseSettings(self)
+        self.gpuParticlesEnabled = False

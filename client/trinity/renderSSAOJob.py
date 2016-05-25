@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\packages\trinity\renderSSAOJob.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\packages\trinity\renderSSAOJob.py
 import math
 import random
 import struct
@@ -206,56 +207,57 @@ def CreateSsaoRenderJob(options, width, height, outputRT):
     randomTexture = CreateRandomTexture(options)
     if not randomTexture.isGood:
         return
-    linearizeDepth = CreateMaterial('linearizeDepth')
-    shaderSSAO = CreateMaterial('normalFree useNormals')
-    linearizeDepthAndPackAODepth = CreateMaterial('linearizeDepthAndPack')
-    blurX = CreateMaterial('blurX')
-    if not options.disableBlending:
-        blurY = CreateMaterial('blurY blend')
     else:
-        blurY = CreateMaterial('blurY')
-    SetMaterialConstants(options, width, height, linearizeDepth, linearizeDepthAndPackAODepth, blurX, blurY, shaderSSAO, randomTexture)
-    curHistoryAOZRT = trinity.Tr2RenderTarget(width, height, 1, trinity.PIXEL_FORMAT.R16G16_FLOAT)
-    fullResAOZRT = trinity.Tr2RenderTarget(width, height, 1, trinity.PIXEL_FORMAT.R16G16_FLOAT)
-    if options.resolutionMode == SSAO_HALF_RES_AO:
-        linDepthRT = trinity.Tr2RenderTarget(width / 2, height / 2, 1, trinity.PIXEL_FORMAT.R32_FLOAT)
-        halfResAORT = trinity.Tr2RenderTarget(width / 2, height / 2, 1, trinity.PIXEL_FORMAT.R8_UNORM)
-        outputAOZ = halfResAORT
-    else:
-        linDepthRT = trinity.Tr2RenderTarget(width, height, 1, trinity.PIXEL_FORMAT.R32_FLOAT)
-        outputAOZ = curHistoryAOZRT
-    AddMaterialParam(shaderSSAO, 'DepthMap', linDepthRT)
-    AddMaterialParam(shaderSSAO, 'RandomMap', randomTexture)
-    if options.resolutionMode == SSAO_HALF_RES_AO:
-        AddMaterialParam(linearizeDepthAndPackAODepth, 'SSAOMap', halfResAORT)
-    AddMaterialParam(blurX, 'SSAOMap', curHistoryAOZRT)
-    AddMaterialParam(blurY, 'SSAOMap', fullResAOZRT)
-    linearizeDepth.BindLowLevelShader([])
-    shaderSSAO.BindLowLevelShader([])
-    linearizeDepthAndPackAODepth.BindLowLevelShader([])
-    blurX.BindLowLevelShader([])
-    blurY.BindLowLevelShader([])
-    rj = trinity.TriRenderJob()
-    AddStep(rj, 'SAVE_DS', trinity.TriStepPushDepthStencil(None))
-    AddStep(rj, 'SAVE_RT', trinity.TriStepPushRenderTarget())
-    cb = GetSSAOCallbackStep(options, width, height, shaderSSAO, linearizeDepth, linearizeDepthAndPackAODepth)
-    AddStep(rj, 'UPDATE_CONSTANTS', trinity.TriStepPythonCB(cb))
-    AddStep(rj, 'SET_FULLSCREEN_STATES', trinity.TriStepSetStdRndStates(trinity.RM_FULLSCREEN))
-    AddStep(rj, 'SET_LINEAR_DEPTH_RT', trinity.TriStepSetRenderTarget(linDepthRT))
-    AddStep(rj, 'LINEARIZE_DEPTH', trinity.TriStepRenderFullScreenShader(linearizeDepth))
-    AddStep(rj, 'SET_AO_RT', trinity.TriStepSetRenderTarget(outputAOZ))
-    AddStep(rj, 'RENDER_AO', trinity.TriStepRenderFullScreenShader(shaderSSAO))
-    if options.resolutionMode == SSAO_HALF_RES_AO:
-        AddStep(rj, 'SET_TEMP_AO_RT', trinity.TriStepSetRenderTarget(curHistoryAOZRT))
-        AddStep(rj, 'PACK_DEPTH_AND_AO', trinity.TriStepRenderFullScreenShader(linearizeDepthAndPackAODepth))
-    AddStep(rj, 'SET_FULL_AO_RT', trinity.TriStepSetRenderTarget(fullResAOZRT))
-    AddStep(rj, 'BLUR_X', trinity.TriStepRenderFullScreenShader(blurX))
-    if outputRT is None:
-        AddStep(rj, 'RESTORE_RT', trinity.TriStepPopRenderTarget())
-    else:
-        AddStep(rj, 'SET_OUTPUT_RT', trinity.TriStepSetRenderTarget(outputRT))
-    AddStep(rj, 'BLUR_Y', trinity.TriStepRenderFullScreenShader(blurY))
-    if outputRT:
-        AddStep(rj, 'RESTORE_RT', trinity.TriStepPopRenderTarget())
-    AddStep(rj, 'RESTORE_DS', trinity.TriStepPopDepthStencil())
-    return rj
+        linearizeDepth = CreateMaterial('linearizeDepth')
+        shaderSSAO = CreateMaterial('normalFree useNormals')
+        linearizeDepthAndPackAODepth = CreateMaterial('linearizeDepthAndPack')
+        blurX = CreateMaterial('blurX')
+        if not options.disableBlending:
+            blurY = CreateMaterial('blurY blend')
+        else:
+            blurY = CreateMaterial('blurY')
+        SetMaterialConstants(options, width, height, linearizeDepth, linearizeDepthAndPackAODepth, blurX, blurY, shaderSSAO, randomTexture)
+        curHistoryAOZRT = trinity.Tr2RenderTarget(width, height, 1, trinity.PIXEL_FORMAT.R16G16_FLOAT)
+        fullResAOZRT = trinity.Tr2RenderTarget(width, height, 1, trinity.PIXEL_FORMAT.R16G16_FLOAT)
+        if options.resolutionMode == SSAO_HALF_RES_AO:
+            linDepthRT = trinity.Tr2RenderTarget(width / 2, height / 2, 1, trinity.PIXEL_FORMAT.R32_FLOAT)
+            halfResAORT = trinity.Tr2RenderTarget(width / 2, height / 2, 1, trinity.PIXEL_FORMAT.R8_UNORM)
+            outputAOZ = halfResAORT
+        else:
+            linDepthRT = trinity.Tr2RenderTarget(width, height, 1, trinity.PIXEL_FORMAT.R32_FLOAT)
+            outputAOZ = curHistoryAOZRT
+        AddMaterialParam(shaderSSAO, 'DepthMap', linDepthRT)
+        AddMaterialParam(shaderSSAO, 'RandomMap', randomTexture)
+        if options.resolutionMode == SSAO_HALF_RES_AO:
+            AddMaterialParam(linearizeDepthAndPackAODepth, 'SSAOMap', halfResAORT)
+        AddMaterialParam(blurX, 'SSAOMap', curHistoryAOZRT)
+        AddMaterialParam(blurY, 'SSAOMap', fullResAOZRT)
+        linearizeDepth.BindLowLevelShader([])
+        shaderSSAO.BindLowLevelShader([])
+        linearizeDepthAndPackAODepth.BindLowLevelShader([])
+        blurX.BindLowLevelShader([])
+        blurY.BindLowLevelShader([])
+        rj = trinity.TriRenderJob()
+        AddStep(rj, 'SAVE_DS', trinity.TriStepPushDepthStencil(None))
+        AddStep(rj, 'SAVE_RT', trinity.TriStepPushRenderTarget())
+        cb = GetSSAOCallbackStep(options, width, height, shaderSSAO, linearizeDepth, linearizeDepthAndPackAODepth)
+        AddStep(rj, 'UPDATE_CONSTANTS', trinity.TriStepPythonCB(cb))
+        AddStep(rj, 'SET_FULLSCREEN_STATES', trinity.TriStepSetStdRndStates(trinity.RM_FULLSCREEN))
+        AddStep(rj, 'SET_LINEAR_DEPTH_RT', trinity.TriStepSetRenderTarget(linDepthRT))
+        AddStep(rj, 'LINEARIZE_DEPTH', trinity.TriStepRenderFullScreenShader(linearizeDepth))
+        AddStep(rj, 'SET_AO_RT', trinity.TriStepSetRenderTarget(outputAOZ))
+        AddStep(rj, 'RENDER_AO', trinity.TriStepRenderFullScreenShader(shaderSSAO))
+        if options.resolutionMode == SSAO_HALF_RES_AO:
+            AddStep(rj, 'SET_TEMP_AO_RT', trinity.TriStepSetRenderTarget(curHistoryAOZRT))
+            AddStep(rj, 'PACK_DEPTH_AND_AO', trinity.TriStepRenderFullScreenShader(linearizeDepthAndPackAODepth))
+        AddStep(rj, 'SET_FULL_AO_RT', trinity.TriStepSetRenderTarget(fullResAOZRT))
+        AddStep(rj, 'BLUR_X', trinity.TriStepRenderFullScreenShader(blurX))
+        if outputRT is None:
+            AddStep(rj, 'RESTORE_RT', trinity.TriStepPopRenderTarget())
+        else:
+            AddStep(rj, 'SET_OUTPUT_RT', trinity.TriStepSetRenderTarget(outputRT))
+        AddStep(rj, 'BLUR_Y', trinity.TriStepRenderFullScreenShader(blurY))
+        if outputRT:
+            AddStep(rj, 'RESTORE_RT', trinity.TriStepPopRenderTarget())
+        AddStep(rj, 'RESTORE_DS', trinity.TriStepPopDepthStencil())
+        return rj

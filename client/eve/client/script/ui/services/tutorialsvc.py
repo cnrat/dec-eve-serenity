@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\client\script\ui\services\tutorialsvc.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\client\script\ui\services\tutorialsvc.py
 import eve.common.lib.appConst as const
 import service
 import uicontrols
@@ -72,6 +73,7 @@ class TutorialSvc(service.Service):
 
         self.careerAgents = {}
         self.tutorialNoob = True
+        return
 
     def LogTutorialEvent(self, columnNames, *args):
         if not sm.GetService('machoNet').GetGlobalConfig().get('disableTutorialLogging', 0):
@@ -89,8 +91,9 @@ class TutorialSvc(service.Service):
         self.audioEmitter = audio2.AudEmitter('Tutorial Audio')
         self.LogPageCompletion = None
         self.waitingForCriteria = None
+        return
 
-    def Stop(self, memStream = None):
+    def Stop(self, memStream=None):
         if not sm.IsServiceRunning('window'):
             return
         tutorialBrowser = self.GetTutorialBrowser(create=0)
@@ -106,6 +109,7 @@ class TutorialSvc(service.Service):
         self.uipointerSvc.RemoveSpaceObjectUiPointers()
         self.waitingForCriteria = None
         eve.SetRookieState(None)
+        return
 
     def CreateComponent(self, name, state):
         component = ProximityOpenTutorialComponent()
@@ -123,7 +127,7 @@ class TutorialSvc(service.Service):
         state['radius'] = component.radius
         return state
 
-    def PackUpForSceneTransfer(self, component, destinationSceneID = None):
+    def PackUpForSceneTransfer(self, component, destinationSceneID=None):
         return self.PackUpForClientTransfer(component)
 
     def UnPackFromSceneTransfer(self, component, entity, state):
@@ -141,11 +145,12 @@ class TutorialSvc(service.Service):
         else:
             stat[sequenceID] = (tutorialID, pageNo)
         settings.char.ui.Set('SequenceDoneStatus', stat)
+        return
 
     def GetSequenceStatus(self, sequenceID):
         return settings.char.ui.Get('SequenceStatus', {}).get(sequenceID, None)
 
-    def SetSequenceStatus(self, sequenceID, tutorialID, pageNo, status = None):
+    def SetSequenceStatus(self, sequenceID, tutorialID, pageNo, status=None):
         tutorialBrowser = self.GetTutorialBrowser(create=0)
         if tutorialBrowser and hasattr(tutorialBrowser, 'startTime'):
             time = (blue.os.GetWallclockTime() - tutorialBrowser.startTime) / const.SEC
@@ -160,7 +165,8 @@ class TutorialSvc(service.Service):
             if eve.session.solarsystemid2 and tutorialID != uix.tutorial:
                 sm.GetService('neocom').BlinkStopAll()
             if eve.session.stationid:
-                lobby = LobbyWindow.GetIfOpen()
+                from eve.client.script.ui.shared.dockedUI import GetLobbyClass
+                lobby = GetLobbyClass().GetIfOpen()
                 if lobby:
                     lobby.StopAllBlinkButtons()
             del stat[sequenceID]
@@ -197,13 +203,14 @@ class TutorialSvc(service.Service):
             if tutorialID in sequence:
                 return sequenceID
 
-    def GetNextInSequence(self, tutorialID, sequenceID, direction = 1):
+    def GetNextInSequence(self, tutorialID, sequenceID, direction=1):
         seq = self._GetSequence(sequenceID)
         if tutorialID in seq:
             if direction == 1 and tutorialID != seq[-1]:
                 return seq[seq.index(tutorialID) + direction]
             if direction == -1 and tutorialID != seq[0]:
                 return seq[seq.index(tutorialID) + direction]
+        return None
 
     def GetOtherRookieFilter(self, key):
         return {'defaultchannels': 28.5}.get(key.lower(), 1000)
@@ -233,7 +240,7 @@ class TutorialSvc(service.Service):
 
         return byCategs
 
-    def GetValidTutorials(self, newbie = True):
+    def GetValidTutorials(self, newbie=True):
         validTutorials = []
         for categoryID, tutorials in self.GetTutorialsByCategory().iteritems():
             if categoryID is None:
@@ -247,7 +254,8 @@ class TutorialSvc(service.Service):
         pageState = self.GetCurrentTutorial()
         if pageState is None:
             return False
-        return True
+        else:
+            return True
 
     def GetCurrentTutorial(self):
         tutorialBrowser = self.GetTutorialBrowser(create=0)
@@ -269,6 +277,7 @@ class TutorialSvc(service.Service):
             self.OpenTutorial(tutorialID=uix.tutorialTutorials)
         else:
             self.OpenTutorial(tutorialID=tut.tutorialID, pageNo=tut.pageNo, pageID=tut.pageID, VID=tut.VID, force=True)
+        return
 
     def _IsNewbie(self):
         return session.role & ROLE_NEWBIE == ROLE_NEWBIE or settings.user.ui.Get('bornDaysAgo%s' % session.charid, 0) < 30
@@ -290,40 +299,42 @@ class TutorialSvc(service.Service):
             blue.pyos.synchro.SleepWallclock(3000)
             uthread.new(self._StartupTutorial)
 
-    def OpenTutorialSequence_Check(self, tutorialID = None, force = 0, click = 0, pageNo = None, ignoreSettings = False):
+    def OpenTutorialSequence_Check(self, tutorialID=None, force=0, click=0, pageNo=None, ignoreSettings=False):
         self.LogInfo('OpenTutorialSequence_Check', tutorialID, force, click, pageNo)
         if not sm.GetService('experimentClientSvc').IsTutorialEnabled():
             self.LogInfo('Will not open tutorial. Disabled by cohort')
             return
-        if not ignoreSettings and not self._IsTutorialEnabled():
+        elif not ignoreSettings and not self._IsTutorialEnabled():
             self.LogInfo('Will not open tutorial. Disabled in settings')
             return
-        if tutorialID not in self.GetValidTutorials():
+        elif tutorialID not in self.GetValidTutorials():
             self.LogWarn('TutorialSvc: Attempting to open tutorial', tutorialID, 'which is not a valid tutorial ID')
             return
-        tut = self.GetCurrentTutorial()
-        if tut is not None:
-            if tutorialID == tut.tutorialID and tut.sequenceID:
-                tutorialBrowser = self.GetTutorialBrowser(create=0)
-                if tutorialBrowser is not None:
-                    if not tutorialBrowser.done:
-                        self.LogInfo('Will not open tutorial. Tutorial already open')
-                        return
-        seqStat = self.GetSequenceStatus(tutorialID)
-        if seqStat == 'done' and force:
-            stat = settings.char.ui.Get('SequenceStatus', {})
-            if tutorialID in stat:
-                del stat[tutorialID]
-                settings.char.ui.Set('SequenceStatus', stat)
-                seqStat = self.GetSequenceStatus(tutorialID)
-        if seqStat == 'done':
-            self.LogInfo('Will not open tutorial. Sequence is completed')
-            return
-        if seqStat and not force:
-            _tutorialID, pageNo = seqStat
-            self.OpenTutorial(_tutorialID, pageNo, force=force, click=click)
         else:
-            self.OpenTutorial(tutorialID, pageNo=pageNo, force=force, click=click)
+            tut = self.GetCurrentTutorial()
+            if tut is not None:
+                if tutorialID == tut.tutorialID and tut.sequenceID:
+                    tutorialBrowser = self.GetTutorialBrowser(create=0)
+                    if tutorialBrowser is not None:
+                        if not tutorialBrowser.done:
+                            self.LogInfo('Will not open tutorial. Tutorial already open')
+                            return
+            seqStat = self.GetSequenceStatus(tutorialID)
+            if seqStat == 'done' and force:
+                stat = settings.char.ui.Get('SequenceStatus', {})
+                if tutorialID in stat:
+                    del stat[tutorialID]
+                    settings.char.ui.Set('SequenceStatus', stat)
+                    seqStat = self.GetSequenceStatus(tutorialID)
+            if seqStat == 'done':
+                self.LogInfo('Will not open tutorial. Sequence is completed')
+                return
+            if seqStat and not force:
+                _tutorialID, pageNo = seqStat
+                self.OpenTutorial(_tutorialID, pageNo, force=force, click=click)
+            else:
+                self.OpenTutorial(tutorialID, pageNo=pageNo, force=force, click=click)
+            return
 
     def _GetNextTutorial(self, tutorialID):
         tutorialConnections = self._GetTutorialConnections()
@@ -332,14 +343,17 @@ class TutorialSvc(service.Service):
             if not nextID:
                 nextID = tutorialConnections[tutorialID].get(0, None)
             return nextID
+        else:
+            return
 
-    def GetTutorialBrowser(self, create = 1):
+    def GetTutorialBrowser(self, create=1):
         if not sm.GetService('experimentClientSvc').IsTutorialEnabled():
             return None
-        tutorialBrowser = TutorialWindow.GetIfOpen()
-        if not tutorialBrowser and create:
-            tutorialBrowser = TutorialWindow.Open(backFunc=self._Back, nextFunc=self._Next)
-        return tutorialBrowser
+        else:
+            tutorialBrowser = TutorialWindow.GetIfOpen()
+            if not tutorialBrowser and create:
+                tutorialBrowser = TutorialWindow.Open(backFunc=self._Back, nextFunc=self._Next)
+            return tutorialBrowser
 
     def GetCategory(self, categoryID):
         if self.categories is None:
@@ -356,6 +370,8 @@ class TutorialSvc(service.Service):
 
         if categoryID in self.categories:
             return self.categories[categoryID]
+        else:
+            return
 
     def GetCriteria(self, criteriaID):
         if self.criterias is None:
@@ -370,6 +386,8 @@ class TutorialSvc(service.Service):
 
         if criteriaID in self.criterias:
             return self.criterias[criteriaID]
+        else:
+            return
 
     def GetAction(self, actionID):
         if self.actions is None:
@@ -380,6 +398,8 @@ class TutorialSvc(service.Service):
 
         if actionID in self.actions:
             return self.actions[actionID]
+        else:
+            return
 
     def __PopulateTutorialsAndConnections(self):
         try:
@@ -464,7 +484,7 @@ class TutorialSvc(service.Service):
     def OnServerTutorialRequest(self, tutorialID):
         self.OpenTutorialFromOutside(tutorialID, force=1, fromServer=True)
 
-    def OpenTutorialFromOutside(self, tutorialID, ask = 0, force = 1, ignoreSettings = False, fromServer = False):
+    def OpenTutorialFromOutside(self, tutorialID, ask=0, force=1, ignoreSettings=False, fromServer=False):
         if not sm.GetService('experimentClientSvc').IsTutorialEnabled():
             if not fromServer:
                 sm.GetService('experimentClientSvc').LogAttemptToClickTutorialLink(tutorialID)
@@ -480,14 +500,15 @@ class TutorialSvc(service.Service):
     def GetTutorialInfo(self, tutorialID):
         if tutorialID in self.tutorialInfos:
             return self.tutorialInfos[tutorialID]
-        try:
-            tutData = sm.RemoteSvc('tutorialSvc').GetTutorialInfo(tutorialID)
-        except KeyError:
-            sys.exc_clear()
-            return None
+        else:
+            try:
+                tutData = sm.RemoteSvc('tutorialSvc').GetTutorialInfo(tutorialID)
+            except KeyError:
+                sys.exc_clear()
+                return None
 
-        self.tutorialInfos[tutorialID] = tutData
-        return tutData
+            self.tutorialInfos[tutorialID] = tutData
+            return tutData
 
     def OnSessionChanged(self, isRemote, session, change):
         self.UnhideTutorialWindow()
@@ -502,6 +523,7 @@ class TutorialSvc(service.Service):
                 funnel.CloseByUser()
                 return
             funnel.RefreshEntries()
+        return
 
     def OnCloseApp(self):
         tutorialBrowser = self.GetTutorialBrowser(create=0)
@@ -511,6 +533,7 @@ class TutorialSvc(service.Service):
             pageNo = tutorialBrowser.current.pageNo
             if tutorialID is not None and pageNo is not None:
                 sm.RemoteSvc('tutorialSvc').LogAppClosed(tutorialID, pageNo, int(time))
+        return
 
     def OnCloseWnd(self, *args):
         uthread.new(self.Cleanup)
@@ -576,6 +599,7 @@ class TutorialSvc(service.Service):
                          'numKeyboardClicks'], 'PrevPage', tutorialID, pageNo, nextTutorialID, nextPageNo, sequenceID, timeSpent, numClicks, numKeys)
                     self.OpenTutorial(nextTutorialID, [-1, None][tutorialBrowser.reverseBack], VID=VID, checkBack=1)
                     return
+        return
 
     def _Next(self, *args):
         tut = self.GetCurrentTutorial()
@@ -632,6 +656,7 @@ class TutorialSvc(service.Service):
                      'numMouseClicks',
                      'numKeyboardClicks'], 'NextPage', tutorialID, oldPageNo, tutorialID, tut.pageNo + 1, tut.sequenceID, timeSpent, numClicks, numKeys)
                 self.OpenTutorial(tutorialID, tut.pageNo + 1, tut.pageID, VID=tut.VID)
+        return
 
     def ShowCareerFunnel(self):
         CareerFunnelWindow.Open()
@@ -639,15 +664,18 @@ class TutorialSvc(service.Service):
     def _ExecutePageAction(self, pageActionID):
         if pageActionID is None:
             return
-        if int(pageActionID) == const.tutorialPagesActionOpenCareerFunnel:
-            if not util.IsWormholeSystem(eve.session.solarsystemid):
-                self.ShowCareerFunnel()
+        else:
+            if int(pageActionID) == const.tutorialPagesActionOpenCareerFunnel:
+                if not util.IsWormholeSystem(eve.session.solarsystemid):
+                    self.ShowCareerFunnel()
+            return
 
     def GiveGoodies(self, tutorialID, pageID, pageNo):
         retVal = self._GiveTutorialGoodies(tutorialID, pageID, pageNo)
         if retVal is not None:
             stationName = cfg.evelocations.Get(retVal).name
             eve.Message('TutorialGoodiesNotEnoughSpaceInCargo', {'stationName': stationName})
+        return
 
     def SlashCmd(self, slash):
         split = slash.split(' ')
@@ -665,13 +693,14 @@ class TutorialSvc(service.Service):
         bp = sm.GetService('michelle').GetBallpark()
         if not bp:
             return
-        ship = bp.GetBall(eve.session.shipid)
-        if ship is None:
-            return
-        elif ship.mode == destiny.DSTBALL_WARP:
-            return True
         else:
+            ship = bp.GetBall(eve.session.shipid)
+            if ship is None:
+                return
+            if ship.mode == destiny.DSTBALL_WARP:
+                return True
             return False
+            return
 
     def __WarpToTutorial(self):
         errMsg = 'TutYouAreNotInANewbieSystem'
@@ -680,7 +709,8 @@ class TutorialSvc(service.Service):
                 return (1, None)
             self._ShowWarpToButton()
             return (1, None)
-        return (2, errMsg)
+        else:
+            return (2, errMsg)
 
     def _ShowWarpToButton(self):
         browser = self.GetTutorialBrowser()
@@ -697,6 +727,7 @@ class TutorialSvc(service.Service):
         bp.CmdWarpToStuff('tutorial', None)
         self.waitingForWarpConfirm = False
         self._RevertWarpToButton()
+        return
 
     def _RevertWarpToButton(self):
         browser = self.GetTutorialBrowser()
@@ -708,7 +739,7 @@ class TutorialSvc(service.Service):
     def _GiveTutorialGoodies(self, tutorialID, pageID, pageNo):
         return sm.RemoteSvc('tutorialLocationSvc').GiveTutorialGoodies(tutorialID, pageID, pageNo)
 
-    def OpenTutorial(self, tutorialID = None, pageNo = None, pageID = None, force = 0, VID = None, skipCriteria = False, checkBack = 0, click = 0):
+    def OpenTutorial(self, tutorialID=None, pageNo=None, pageID=None, force=0, VID=None, skipCriteria=False, checkBack=0, click=0):
         if not sm.GetService('experimentClientSvc').IsTutorialEnabled():
             return
         sequenceID = self._GetSequenceIDForTutorial(tutorialID)
@@ -743,14 +774,15 @@ class TutorialSvc(service.Service):
         doneTutorialID = self._GetSequenceDoneStatus(sequenceID)[0]
         if doneTutorialID is None:
             return False
-        seq = self._GetSequence(sequenceID)
-        for _tutorialID in seq:
-            if _tutorialID == tutorialID:
-                return True
-            if _tutorialID == doneTutorialID:
-                return False
+        else:
+            seq = self._GetSequence(sequenceID)
+            for _tutorialID in seq:
+                if _tutorialID == tutorialID:
+                    return True
+                if _tutorialID == doneTutorialID:
+                    return False
 
-        return False
+            return False
 
     def CheckAccelerationGateActivation(self):
         if getattr(self, 'nogateactivate', None):
@@ -763,7 +795,7 @@ class TutorialSvc(service.Service):
                     return False
         return True
 
-    def CheckWarpDriveActivation(self, currentSequenceID = None, currentTutorialID = None):
+    def CheckWarpDriveActivation(self, currentSequenceID=None, currentTutorialID=None):
         if getattr(self, 'nowarpactive', None):
             split_criteria = self.nowarpactive.criteriaName.split('.')
             if len(split_criteria) > 1:
@@ -782,19 +814,20 @@ class TutorialSvc(service.Service):
                         return False
         return True
 
-    def _IsInInventory(self, inventory, key, id, pre = '', flags = None):
+    def _IsInInventory(self, inventory, key, id, pre='', flags=None):
         if not inventory:
             return False
-        key = key.lower()
-        func = getattr(inventory, 'List%s' % pre, None)
-        for rec in func():
-            if key.startswith('category') and rec.categoryID == id or key.startswith('group') and rec.groupID == id or key.startswith('type') and rec.typeID == id:
-                if not flags:
-                    return True
-                if rec.flagID in flags:
-                    return True
+        else:
+            key = key.lower()
+            func = getattr(inventory, 'List%s' % pre, None)
+            for rec in func():
+                if key.startswith('category') and rec.categoryID == id or key.startswith('group') and rec.groupID == id or key.startswith('type') and rec.typeID == id:
+                    if not flags:
+                        return True
+                    if rec.flagID in flags:
+                        return True
 
-        return False
+            return False
 
     def SetCriterias(self, criterias):
         self.nogateactivate = None
@@ -808,7 +841,9 @@ class TutorialSvc(service.Service):
                 elif funcName.lower() == 'IfNotTutorialDoneThenNoWarp'.lower():
                     self.nowarpactive = criteriaData
 
-    def ParseCriterias(self, criterias, what = '', tutorialBrowser = None, tutorialID = None):
+        return
+
+    def ParseCriterias(self, criterias, what='', tutorialBrowser=None, tutorialID=None):
         for criteriaData in self._PrioritizeCriterias(criterias):
             split_criteria = criteriaData.criteriaName.split('.')
             if len(split_criteria) > 1:
@@ -840,29 +875,33 @@ class TutorialSvc(service.Service):
                 else:
                     log.LogError('Unknown precondition', funcName, 'Precondition_%s' % funcName.capitalize())
 
+        return
+
     def _WaitForCriteria(self, key, funcName, func, tutorialBrowser):
         k = (funcName, key)
         if k == self.waitingForCriteria:
             self.LogWarn('Already waiting for', k)
             return
-        self.waitingForCriteria = k
-        self.waiting = tutorialBrowser
-        while self.waiting and not self.waiting.destroyed and not func(key):
-            blue.pyos.synchro.SleepWallclock(250)
+        else:
+            self.waitingForCriteria = k
+            self.waiting = tutorialBrowser
+            while self.waiting and not self.waiting.destroyed and not func(key):
+                blue.pyos.synchro.SleepWallclock(250)
 
-        self.waitingForCriteria = None
-        if self.waiting and not self.waiting.destroyed:
-            if self.waiting and self.waiting.current:
-                tut = self.waiting.current
-                with util.ExceptionEater('eventLog'):
-                    diffMouseClicks = uicore.uilib.GetGlobalClickCount() - self.numMouseClicks
-                    diffKeyboardClicks = uicore.uilib.GetGlobalKeyDownCount() - self.numKeyboardClicks
-                    self.LogTutorialEvent(['tutorialID',
-                     'pageNo',
-                     'sequenceID',
-                     'numMouseClicks',
-                     'numKeyboardClicks'], 'CriteriaMet', tut.tutorialID, tut.pageNo, tut.sequenceID, diffMouseClicks, diffKeyboardClicks)
-            self._ReloadTutorialBrowser(self.waiting)
+            self.waitingForCriteria = None
+            if self.waiting and not self.waiting.destroyed:
+                if self.waiting and self.waiting.current:
+                    tut = self.waiting.current
+                    with util.ExceptionEater('eventLog'):
+                        diffMouseClicks = uicore.uilib.GetGlobalClickCount() - self.numMouseClicks
+                        diffKeyboardClicks = uicore.uilib.GetGlobalKeyDownCount() - self.numKeyboardClicks
+                        self.LogTutorialEvent(['tutorialID',
+                         'pageNo',
+                         'sequenceID',
+                         'numMouseClicks',
+                         'numKeyboardClicks'], 'CriteriaMet', tut.tutorialID, tut.pageNo, tut.sequenceID, diffMouseClicks, diffKeyboardClicks)
+                self._ReloadTutorialBrowser(self.waiting)
+            return
 
     def _PrioritizeCriterias(self, criterias):
         criteriaData = [ self.GetCriteria(criteria.criteriaID) for criteria in criterias ]
@@ -978,7 +1017,7 @@ class TutorialSvc(service.Service):
         key = key.lower()
         if key == 'map':
             return sm.GetService('viewState').IsViewActive('systemmap', 'starmap')
-        if key == 'tacticaloverlay':
+        elif key == 'tacticaloverlay':
             return sm.GetService('tactical').IsTacticalOverlayActive()
         if key in ('ships', 'items', 'cargo', 'dronebay'):
             wnd = InventoryWindow.GetIfOpen()
@@ -994,9 +1033,10 @@ class TutorialSvc(service.Service):
                 return wnd.currInvID == ('ShipDroneBay', util.GetActiveShip())
         if bool(uicontrols.Window.IsOpen(key)):
             return True
-        if eve.session.stationid and sm.GetService('station').GetSvc(key) is not None:
+        elif eve.session.stationid and sm.GetService('station').GetSvc(key) is not None:
             return True
-        return False
+        else:
+            return False
 
     def Precondition_Wndclosed(self, key):
         return not self.Precondition_Wndopen(key)
@@ -1053,7 +1093,7 @@ class TutorialSvc(service.Service):
             return module.def_effect.isActive
         return False
 
-    def Precondition_Checkship(self, key, condname = 'Precondition_Checkship'):
+    def Precondition_Checkship(self, key, condname='Precondition_Checkship'):
         if eve.session.shipid:
             id = getattr(const, key, None)
             if not id:
@@ -1072,7 +1112,7 @@ class TutorialSvc(service.Service):
     def Precondition_Checknotinship(self, key):
         return not self.Precondition_Checkship(key, 'Precondition_Checknotinship')
 
-    def Precondition_Checkfitted(self, key, condname = 'Precondition_Checkfitted'):
+    def Precondition_Checkfitted(self, key, condname='Precondition_Checkfitted'):
         if eve.session.shipid:
             id = getattr(const, key, None)
             if not id:
@@ -1080,25 +1120,27 @@ class TutorialSvc(service.Service):
                 return False
             inventory = sm.GetService('invCache').GetInventoryFromId(eve.session.shipid)
             return self._IsInInventory(inventory, key, id, flags=uix.FittingFlags())
-        return False
+        else:
+            return False
 
     def Precondition_Checknotfitted(self, key):
         return not self.Precondition_Checkfitted(key, 'Precondition_Checknotfitted')
 
-    def Precondition_Checkhangar(self, key, condname = 'Precondition_Checkhangar'):
+    def Precondition_Checkhangar(self, key, condname='Precondition_Checkhangar'):
         if eve.session.stationid:
             id = getattr(const, key, None)
             if not id:
                 log.LogWarn('%s Failed:, %s not found in const' % (condname, key))
                 return False
             inventory = sm.GetService('invCache').GetInventory(const.containerHangar)
-            return self._IsInInventory(inventory, key, id)
-        return False
+            return self._IsInInventory(inventory, key, id, 'Hangar')
+        else:
+            return False
 
     def Precondition_Checknotinhangar(self, key):
         return not self.Precondition_Checkhangar(key, 'Precondition_Checknotinhangar')
 
-    def Precondition_Checkcargo(self, key, condname = 'Precondition_Checkcargo'):
+    def Precondition_Checkcargo(self, key, condname='Precondition_Checkcargo'):
         if eve.session.shipid:
             id = getattr(const, key, None)
             if not id:
@@ -1106,12 +1148,13 @@ class TutorialSvc(service.Service):
                 return False
             inventory = sm.GetService('invCache').GetInventoryFromId(eve.session.shipid)
             return self._IsInInventory(inventory, key, id, 'Cargo')
-        return False
+        else:
+            return False
 
     def Precondition_Checknotincargo(self, key):
         return not self.Precondition_Checkcargo(key, 'Precondition_Checknotincargo')
 
-    def Precondition_Checkdronebay(self, key, condname = 'Precondition_Checkdronebay'):
+    def Precondition_Checkdronebay(self, key, condname='Precondition_Checkdronebay'):
         if eve.session.shipid:
             id = getattr(const, key, None)
             if not id:
@@ -1119,7 +1162,8 @@ class TutorialSvc(service.Service):
                 return False
             inventory = sm.GetService('invCache').GetInventoryFromId(eve.session.shipid)
             return self._IsInInventory(inventory, key, id, 'DroneBay')
-        return False
+        else:
+            return False
 
     def Precondition_Checknotindronebay(self, key):
         return not self.Precondition_Checkdronebay(key, 'Precondition_Checknotindronebay')
@@ -1131,22 +1175,24 @@ class TutorialSvc(service.Service):
         inTraining = sm.GetService('skillqueue').SkillInTraining()
         if not inTraining:
             return False
-        if key == '*':
+        elif key == '*':
             return True
         id = getattr(const, key, None)
         if not id:
             log.LogWarn('Precondition_Checkskilltraining Failed:, %s not found in const' % key)
             return False
-        if inTraining.typeID == id:
+        elif inTraining.typeID == id:
             return True
-        return False
+        else:
+            return False
 
     def Precondition_Checkhasskill(self, key):
         id = getattr(const, key, None)
         if not id:
             log.LogWarn('Precondition_Checkhasskill Failed:, %s not found in const' % key)
             return False
-        return not not sm.GetService('skills').HasSkill(id)
+        else:
+            return not not sm.GetService('skills').HasSkill(id)
 
     def Precondition_Stationbtnblink(self, key):
         if eve.session.stationid:
@@ -1237,20 +1283,21 @@ class TutorialSvc(service.Service):
     def Precondition_Entityspawnproximity(self, key):
         if not session.worldspaceid:
             return False
-        spawnIDType, distance = key.split(':')
-        spawnIDType = int(spawnIDType)
-        distance = float(distance)
-        worldspaceTypeID = sm.GetService('worldSpaceClient').GetWorldSpaceTypeIDFromWorldSpaceID(session.worldspaceid)
-        spawnID = self.entitySpawnDict.get(spawnIDType, {}).get(worldspaceTypeID, None)
-        if spawnID is None or spawnID not in cfg.entitySpawns:
-            return False
-        spawnRow = cfg.entitySpawns.Get(spawnID)
-        spawnPosition = (spawnRow.spawnPointX, spawnRow.spawnPointY, spawnRow.spawnPointZ)
-        playerEnt = sm.GetService('entityClient').GetPlayerEntity()
-        if not playerEnt:
-            return False
-        playerPos = playerEnt.GetComponent('position').position
-        return geo2.Vec3Distance(playerPos, spawnPosition) <= distance
+        else:
+            spawnIDType, distance = key.split(':')
+            spawnIDType = int(spawnIDType)
+            distance = float(distance)
+            worldspaceTypeID = sm.GetService('worldSpaceClient').GetWorldSpaceTypeIDFromWorldSpaceID(session.worldspaceid)
+            spawnID = self.entitySpawnDict.get(spawnIDType, {}).get(worldspaceTypeID, None)
+            if spawnID is None or spawnID not in cfg.entitySpawns:
+                return False
+            spawnRow = cfg.entitySpawns.Get(spawnID)
+            spawnPosition = (spawnRow.spawnPointX, spawnRow.spawnPointY, spawnRow.spawnPointZ)
+            playerEnt = sm.GetService('entityClient').GetPlayerEntity()
+            if not playerEnt:
+                return False
+            playerPos = playerEnt.GetComponent('position').position
+            return geo2.Vec3Distance(playerPos, spawnPosition) <= distance
 
     def Precondition_Inspaceorentityspawnproximity(self, key):
         if self.Precondition_Session('inflight'):
@@ -1272,6 +1319,8 @@ class TutorialSvc(service.Service):
                 function(action.actionData)
             else:
                 self.LogError('unable to find the requested tutorial action type', action)
+
+        return
 
     def _ActionWaitForCriteria(self, criteria, actionData, func):
         tasklet = uthread.new(self._ActionWaitForCriteriaTasklet, criteria, actionData, func)
@@ -1339,6 +1388,7 @@ class TutorialSvc(service.Service):
         tutorialID = int(tutorialID)
         pageNo = int(pageNo) if pageNo else None
         self.OpenTutorialSequence_Check(tutorialID=tutorialID, force=True, pageNo=pageNo)
+        return
 
     def RetrieveIsTutorialNoob(self):
         return blue.os.GetWallclockTime() < sm.RemoteSvc('userSvc').GetCreateDate() + 14 * const.DAY
@@ -1353,46 +1403,48 @@ class TutorialSvc(service.Service):
         sequenceDoneStatus = settings.char.ui.Get('SequenceDoneStatus', None)
         if showTutorials is not None and sequenceStatus is not None and sequenceDoneStatus is not None:
             return
-        rs = sm.RemoteSvc('tutorialSvc').GetCharacterTutorialState()
-        if not rs or len(rs) == 0:
+        else:
+            rs = sm.RemoteSvc('tutorialSvc').GetCharacterTutorialState()
+            if not rs or len(rs) == 0:
+                return
+            tutorials = self.GetTutorials()
+            previousTutorialIdFromTutorialId = {}
+            for tutorialID in tutorials.keys():
+                tutorial = tutorials[tutorialID]
+                nextTutorialID = self._GetNextTutorial(tutorialID)
+                if not nextTutorialID:
+                    continue
+                previousTutorialIdFromTutorialId[nextTutorialID] = tutorialID
+
+            sequenceStatus = {}
+            sequenceDoneStatus = {}
+            for r in rs:
+                showTutorials = int(r.eventTypeID != 158)
+                if not showTutorials:
+                    continue
+                sequence = []
+                tutorialID = r.tutorialID
+                i = 0
+                while tutorialID not in self.GetValidTutorials():
+                    i += 1
+                    if i > 100:
+                        break
+                    tutorialID = previousTutorialIdFromTutorialId.get(tutorialID, None)
+                    if tutorialID:
+                        sequence.append(tutorialID)
+
+                sequenceStatus[tutorialID] = [(r.tutorialID, r.pageID), 'done'][r.eventTypeID in (155, 158)]
+                sequenceDoneStatus[tutorialID] = (r.tutorialID, 1)
+
+            if showTutorials is not None:
+                settings.char.ui.Set('showTutorials', showTutorials)
+            if len(sequenceStatus):
+                settings.char.ui.Set('SequenceStatus', sequenceStatus)
+            if len(sequenceDoneStatus):
+                settings.char.ui.Set('SequenceDoneStatus', sequenceDoneStatus)
             return
-        tutorials = self.GetTutorials()
-        previousTutorialIdFromTutorialId = {}
-        for tutorialID in tutorials.keys():
-            tutorial = tutorials[tutorialID]
-            nextTutorialID = self._GetNextTutorial(tutorialID)
-            if not nextTutorialID:
-                continue
-            previousTutorialIdFromTutorialId[nextTutorialID] = tutorialID
 
-        sequenceStatus = {}
-        sequenceDoneStatus = {}
-        for r in rs:
-            showTutorials = int(r.eventTypeID != 158)
-            if not showTutorials:
-                continue
-            sequence = []
-            tutorialID = r.tutorialID
-            i = 0
-            while tutorialID not in self.GetValidTutorials():
-                i += 1
-                if i > 100:
-                    break
-                tutorialID = previousTutorialIdFromTutorialId.get(tutorialID, None)
-                if tutorialID:
-                    sequence.append(tutorialID)
-
-            sequenceStatus[tutorialID] = [(r.tutorialID, r.pageID), 'done'][r.eventTypeID in (155, 158)]
-            sequenceDoneStatus[tutorialID] = (r.tutorialID, 1)
-
-        if showTutorials is not None:
-            settings.char.ui.Set('showTutorials', showTutorials)
-        if len(sequenceStatus):
-            settings.char.ui.Set('SequenceStatus', sequenceStatus)
-        if len(sequenceDoneStatus):
-            settings.char.ui.Set('SequenceDoneStatus', sequenceDoneStatus)
-
-    def ChangeTutorialWndState(self, visible = 0):
+    def ChangeTutorialWndState(self, visible=0):
         tutorialWnd = TutorialWindow.GetIfOpen()
         if tutorialWnd:
             if tutorialWnd.IsMinimized():
@@ -1434,6 +1486,7 @@ class TutorialSvc(service.Service):
             self.uipointerSvc.AddSpaceObjectTypeUiPointer(typeID, groupID, message, hint, self.GetTutorialBrowser(create=False))
         else:
             self.LogWarn('Tutorial Dungeon UI Pointer did not find a typeID nor groupID', kwargs)
+        return
 
     def ParseActionDataToDict(self, actionData):
         kwargs = {}

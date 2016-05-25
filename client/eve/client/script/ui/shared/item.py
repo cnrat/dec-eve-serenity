@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\client\script\ui\shared\item.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\client\script\ui\shared\item.py
 from carbonui.control.scrollentries import SE_BaseClassCore
 from carbonui.util.color import Color
 from eve.client.script.ui.control.eveWindowUnderlay import ListEntryUnderlay
@@ -7,6 +8,7 @@ from eve.client.script.ui.shared.fitting.ghostFittingHelpers import TryGhostFitI
 from eve.client.script.ui.shared.market.sellMulti import SellItems
 from eve.common.script.util import industryCommon
 import evetypes
+from fighters.client import GetSquadronClassResPath, GetSquadronClassTooltip
 from inventorycommon.util import GetItemVolume, IsShipFittingFlag
 import uicontrols
 import uiprimitives
@@ -61,6 +63,7 @@ class InvItem(uicontrols.SE_BaseClassCore):
         self.blinkBG = None
         self.lockedIcon = None
         self.darkenedBG = None
+        return
 
     @staticmethod
     def GetInvItemHeight():
@@ -100,6 +103,7 @@ class InvItem(uicontrols.SE_BaseClassCore):
                     locked = item.flagID == const.flagLocked or sm.GetService('corp').IsItemLocked(item)
                     log.LogInfo('Locked:', locked, 'item:', item)
                     self.SetLockState(locked)
+        return
 
     def SetState(self, state):
         self.viewOnly = state
@@ -131,6 +135,7 @@ class InvItem(uicontrols.SE_BaseClassCore):
     def Reset(self):
         self.viewOnly = 0
         self.subTypeID = None
+        return
 
     def PreLoad(node):
         if node.viewMode in ('list', 'details'):
@@ -150,6 +155,7 @@ class InvItem(uicontrols.SE_BaseClassCore):
                 self._hiliteFill.SetFixedColor(COLOR_ACTIVESHIP)
             else:
                 self._hiliteFill.SetFixedColor(None)
+        return
 
     def Load(self, node):
         self.sr.node = node
@@ -162,6 +168,7 @@ class InvItem(uicontrols.SE_BaseClassCore):
         self.isShip = self.rec.categoryID == const.categoryShip and self.rec.singleton
         self.isUnassembledShip = self.rec.categoryID == const.categoryShip and not self.rec.singleton
         self.isStation = self.rec.categoryID == const.categoryStation and self.rec.groupID == const.groupStation
+        self.isStructure = self.rec.categoryID == const.categoryStructure
         self.isContainer = self.rec.groupID in (const.groupWreck,
          const.groupCargoContainer,
          const.groupSecureCargoContainer,
@@ -173,101 +180,109 @@ class InvItem(uicontrols.SE_BaseClassCore):
          const.groupAuditLogSecureContainer,
          const.groupFreightContainer) and not self.rec.singleton
         self.isHardware = evetypes.IsCategoryHardwareByCategory(evetypes.GetCategoryID(node.invtype))
+        self.isFighter = self.rec.categoryID == const.categoryFighter
         self.sr.node.isBlueprint = evetypes.GetCategoryID(node.invtype) == const.categoryBlueprint
         if self.sr.node.isBlueprint:
             self.sr.node.isCopy = self.sr.node.isBlueprint and self.rec.singleton == const.singletonBlueprintCopy
         if self.sr.node is None:
             return
-        self.Reset()
-        self.name = uix.GetItemName(node.item, self.sr.node)
-        self.quantity = self.rec.stacksize
-        listFlag = self.sr.node.viewMode in ('list', 'details')
-        if util.GetActiveShip() == self.sr.node.item.itemID:
-            if self.activeShipHighlite is None:
-                if listFlag:
-                    padding = (0, 0, 0, 1)
-                else:
-                    padding = (-5, -3, -5, -6)
-                self.activeShipHighlite = uiprimitives.Container(name='activeShipHighlite', parent=self, idx=-1)
-                uicontrols.Frame(texturePath='res:/UI/Texture/Classes/InvItem/bgSelected.png', color=COLOR_ACTIVESHIP, parent=self.activeShipHighlite, padding=padding)
-                uicontrols.Frame(parent=self.activeShipHighlite, color=COLOR_ACTIVESHIP, padding=padding, opacity=0.4)
-        elif self.activeShipHighlite:
-            self.activeShipHighlite.Close()
-            self.activeShipHighlite = None
-        self.UpdateHiliteFillColor()
-        if self.sr.node.Get('selected', 0):
-            self.Select(animate=False)
         else:
-            self.Deselect(animate=False)
-        attribs = node.Get('godmaattribs', {})
-        self.powerType = None
-        for icon in (self.sr.ammosize_icon, self.sr.slotsize_icon, self.sr.contraband_icon):
-            if icon:
-                icon.Hide()
+            self.Reset()
+            self.name = uix.GetItemName(node.item, self.sr.node)
+            self.quantity = self.rec.stacksize
+            listFlag = self.sr.node.viewMode in ('list', 'details')
+            if util.GetActiveShip() == self.sr.node.item.itemID:
+                if self.activeShipHighlite is None:
+                    if listFlag:
+                        padding = (0, 0, 0, 1)
+                    else:
+                        padding = (-5, -3, -5, -6)
+                    self.activeShipHighlite = uiprimitives.Container(name='activeShipHighlite', parent=self, idx=-1)
+                    uicontrols.Frame(texturePath='res:/UI/Texture/Classes/InvItem/bgSelected.png', color=COLOR_ACTIVESHIP, parent=self.activeShipHighlite, padding=padding)
+                    uicontrols.Frame(parent=self.activeShipHighlite, color=COLOR_ACTIVESHIP, padding=padding, opacity=0.4)
+            elif self.activeShipHighlite:
+                self.activeShipHighlite.Close()
+                self.activeShipHighlite = None
+            self.UpdateHiliteFillColor()
+            if self.sr.node.Get('selected', 0):
+                self.Select(animate=False)
+            else:
+                self.Deselect(animate=False)
+            attribs = node.Get('godmaattribs', {})
+            self.powerType = None
+            for icon in (self.sr.ammosize_icon, self.sr.slotsize_icon, self.sr.contraband_icon):
+                if icon:
+                    icon.Hide()
 
-        if self.isHardware:
-            if self.sr.node.viewMode != 'list':
-                if attribs.has_key(const.attributeChargeSize):
-                    self.ConstructAmmoSizeIcon()
-                    self.sr.ammosize_icon.rectLeft = [0,
-                     16,
-                     32,
-                     48,
-                     64][int(attribs[const.attributeChargeSize]) - 1]
-                elif attribs.has_key(const.attributeRigSize):
-                    self.ConstructAmmoSizeIcon()
-                    self.sr.ammosize_icon.rectLeft = [0,
-                     16,
-                     32,
-                     48,
-                     64][int(attribs[const.attributeRigSize]) - 1]
-            for effect in cfg.dgmtypeeffects.get(self.rec.typeID, []):
-                if effect.effectID in (const.effectRigSlot,
-                 const.effectHiPower,
-                 const.effectMedPower,
-                 const.effectLoPower):
-                    if self.sr.node.viewMode != 'list':
-                        effinfo = cfg.dgmeffects.Get(effect.effectID)
-                        iconNo = {const.effectRigSlot: 'ui_38_16_124',
-                         const.effectHiPower: 'ui_38_16_123',
-                         const.effectMedPower: 'ui_38_16_122',
-                         const.effectLoPower: 'ui_38_16_121'}[effect.effectID]
+            if self.isHardware:
+                if self.sr.node.viewMode != 'list':
+                    if attribs.has_key(const.attributeChargeSize):
+                        self.ConstructAmmoSizeIcon()
+                        self.sr.ammosize_icon.rectLeft = [0,
+                         16,
+                         32,
+                         48,
+                         64][int(attribs[const.attributeChargeSize]) - 1]
+                    elif attribs.has_key(const.attributeRigSize):
+                        self.ConstructAmmoSizeIcon()
+                        self.sr.ammosize_icon.rectLeft = [0,
+                         16,
+                         32,
+                         48,
+                         64][int(attribs[const.attributeRigSize]) - 1]
+                for effect in cfg.dgmtypeeffects.get(self.rec.typeID, []):
+                    if effect.effectID in (const.effectRigSlot,
+                     const.effectHiPower,
+                     const.effectMedPower,
+                     const.effectLoPower):
+                        if self.sr.node.viewMode != 'list':
+                            effinfo = cfg.dgmeffects.Get(effect.effectID)
+                            iconNo = {const.effectRigSlot: 'ui_38_16_124',
+                             const.effectHiPower: 'ui_38_16_123',
+                             const.effectMedPower: 'ui_38_16_122',
+                             const.effectLoPower: 'ui_38_16_121'}[effect.effectID]
+                            self.ConstructSlotSizeIcon()
+                            self.sr.slotsize_icon.LoadIcon(iconNo, ignoreSize=True)
+                        self.powerType = effect.effectID
+                        continue
+                    if self.sr.node.viewMode != 'list' and effect.effectID == const.effectSubSystem and const.attributeSubSystemSlot in attribs:
+                        subsystemFlag = attribs.get(const.attributeSubSystemSlot, None)
+                        iconNo = 'ui_38_16_42'
                         self.ConstructSlotSizeIcon()
                         self.sr.slotsize_icon.LoadIcon(iconNo, ignoreSize=True)
-                    self.powerType = effect.effectID
-                    continue
-                if self.sr.node.viewMode != 'list' and effect.effectID == const.effectSubSystem and const.attributeSubSystemSlot in attribs:
-                    subsystemFlag = attribs.get(const.attributeSubSystemSlot, None)
-                    iconNo = 'ui_38_16_42'
-                    self.ConstructSlotSizeIcon()
-                    self.sr.slotsize_icon.LoadIcon(iconNo, ignoreSize=True)
 
-        elif self.rec.groupID == const.groupVoucher:
-            if self.rec.typeID != const.typeBookmark:
-                self.subTypeID = self.sr.node.voucher.GetTypeInfo()[1]
-        elif self.rec.categoryID == const.categoryCharge and attribs.has_key(const.attributeChargeSize):
-            self.ConstructAmmoSizeIcon()
-            self.sr.ammosize_icon.rectLeft = [0,
-             16,
-             32,
-             48,
-             64][int(attribs[const.attributeChargeSize]) - 1]
-        if 0 < len(inventorycommon.typeHelpers.GetIllegality(self.sr.node.invtype)) and inventorycommon.typeHelpers.GetIllegality(self.sr.node.invtype).get(sm.GetService('map').GetItem(eve.session.solarsystemid2).factionID, None) is not None:
-            self.ConstructContrabandIcon()
-        if listFlag:
-            self.sr.label.width = uicore.desktop.width
-        if self.sr.node.viewMode == 'icons':
-            self.LoadMainIcon()
-        self.UpdateLabel()
-        self.LoadTechLevelIcon(node.item.typeID)
-        locked = node.Get('locked', 0)
-        viewOnly = node.Get('viewOnly', 0)
-        self.SetLockState(locked)
-        if not locked:
-            self.SetState(viewOnly)
-        if self.isStation:
-            self.DisableDrag()
-        self.OnInvClipboardChanged()
+            elif self.rec.groupID == const.groupVoucher:
+                if self.rec.typeID != const.typeBookmark:
+                    self.subTypeID = self.sr.node.voucher.GetTypeInfo()[1]
+            elif self.rec.categoryID == const.categoryCharge and attribs.has_key(const.attributeChargeSize):
+                self.ConstructAmmoSizeIcon()
+                self.sr.ammosize_icon.rectLeft = [0,
+                 16,
+                 32,
+                 48,
+                 64][int(attribs[const.attributeChargeSize]) - 1]
+            if 0 < len(inventorycommon.typeHelpers.GetIllegality(self.sr.node.invtype)) and inventorycommon.typeHelpers.GetIllegality(self.sr.node.invtype).get(sm.GetService('map').GetItem(eve.session.solarsystemid2).factionID, None) is not None:
+                self.ConstructContrabandIcon()
+            if listFlag:
+                self.sr.label.width = uicore.desktop.width
+            if self.sr.node.viewMode == 'icons':
+                self.LoadMainIcon()
+            self.UpdateLabel()
+            self.LoadTechLevelIcon(node.item.typeID)
+            locked = node.Get('locked', 0)
+            viewOnly = node.Get('viewOnly', 0)
+            if self.sr.node.viewMode != 'list':
+                if self.isFighter:
+                    self.ConstructFighterClassIcon()
+                elif self.sr.fighterClass:
+                    self.sr.fighterClass.display = False
+            self.SetLockState(locked)
+            if not locked:
+                self.SetState(viewOnly)
+            if self.isStation:
+                self.DisableDrag()
+            self.OnInvClipboardChanged()
+            return
 
     def ConstructFlagsCont(self):
         if self.sr.flags is None:
@@ -275,12 +290,31 @@ class InvItem(uicontrols.SE_BaseClassCore):
                 self.sr.flags = uiprimitives.Container(parent=self, idx=0, name='flags', pos=(5, 20, 32, 16), align=uiconst.TOPLEFT, state=uiconst.UI_PICKCHILDREN)
             elif self.sr.node.viewMode == 'icons':
                 self.sr.flags = uiprimitives.Container(parent=self, idx=0, name='flags', pos=(0, 37, 32, 16), align=uiconst.TOPRIGHT, state=uiconst.UI_PICKCHILDREN)
+        return
+
+    def ConstructFighterClassCont(self):
+        if self.sr.fighterClass is None:
+            if self.sr.node.viewMode == 'details':
+                self.sr.fighterClass = uiprimitives.Container(parent=self, idx=0, name='fighterClass', pos=(26, 0, 16, 16), align=uiconst.TOPLEFT, state=uiconst.UI_PICKCHILDREN, bgColor=(0.1, 0.1, 0.1, 0.7))
+            elif self.sr.node.viewMode == 'icons':
+                self.sr.fighterClass = uiprimitives.Container(parent=self, idx=0, name='fighterClass', pos=(0, 0, 16, 16), align=uiconst.TOPRIGHT, state=uiconst.UI_PICKCHILDREN, bgColor=(0.1, 0.1, 0.1, 0.7))
+        self.sr.fighterClass.display = False
+        return
 
     def ConstructSlotSizeIcon(self):
         self.ConstructFlagsCont()
         if not self.sr.slotsize_icon:
             self.sr.slotsize_icon = uicontrols.Icon(parent=self.sr.flags, name='slotSize', pos=(0, 0, 16, 16), align=uiconst.TORIGHT, hint=localization.GetByLabel('UI/Inventory/FittingConstraint'))
         self.sr.slotsize_icon.state = uiconst.UI_DISABLED
+
+    def ConstructFighterClassIcon(self):
+        self.ConstructFighterClassCont()
+        if not self.sr.fighterClassIcon:
+            self.sr.fighterClassIcon = uiprimitives.Sprite(parent=self.sr.fighterClass, name='fighterClass', pos=(0, 0, 16, 16))
+        texturePath = GetSquadronClassResPath(self.typeID)
+        self.sr.fighterClassIcon.LoadTexture(texturePath)
+        self.sr.fighterClassIcon.hint = localization.GetByLabel(GetSquadronClassTooltip(self.typeID))
+        self.sr.fighterClass.display = True
 
     def ConstructAmmoSizeIcon(self):
         self.ConstructFlagsCont()
@@ -294,28 +328,31 @@ class InvItem(uicontrols.SE_BaseClassCore):
             self.sr.contraband_icon = uiprimitives.Sprite(parent=self.sr.flags, name='contrabandIcon', pos=(0, 0, 16, 16), align=uiconst.TORIGHT, texturePath='res:/UI/Texture/classes/InvItem/contrabandIcon.png', hint=localization.GetByLabel('UI/Inventory/ItemIsContraband'))
         self.sr.contraband_icon.state = uiconst.UI_DISABLED
 
-    def LoadTechLevelIcon(self, typeID = None):
+    def LoadTechLevelIcon(self, typeID=None):
         tlicon = uix.GetTechLevelIcon(self.sr.tlicon, 0, typeID)
         if tlicon is not None and util.GetAttrs(tlicon, 'parent') is None:
             self.sr.tlicon = tlicon
             tlicon.SetParent(self, 0)
+        return
 
-    def UpdateLabel(self, new = 0):
+    def UpdateLabel(self, new=0):
         label = uix.GetItemLabel(self.rec, self.sr.node, new)
         if self.sr.node.viewMode in ('list', 'details'):
             self.sr.label.text = label
             return
-        self.sr.label.text = label
-        quantity = uix.GetItemQty(self.sr.node, 'ss')
-        if self.rec.singleton or self.rec.typeID in (const.typeBookmark,):
-            if self.sr.qtypar:
-                self.sr.qtypar.Close()
-                self.sr.qtypar = None
+        else:
+            self.sr.label.text = label
+            quantity = uix.GetItemQty(self.sr.node, 'ss')
+            if self.rec.singleton or self.rec.typeID in (const.typeBookmark,):
+                if self.sr.qtypar:
+                    self.sr.qtypar.Close()
+                    self.sr.qtypar = None
+                return
+            if not self.sr.qtypar:
+                self.sr.qtypar = uiprimitives.Container(parent=self, idx=0, name='qtypar', pos=(0, 53, 32, 11), align=uiconst.TOPRIGHT, state=uiconst.UI_DISABLED, bgColor=(0, 0, 0, 0.95))
+                self.sr.quantity_label = uicontrols.Label(parent=self.sr.qtypar, left=2, maxLines=1, fontsize=9)
+            self.sr.quantity_label.text = quantity
             return
-        if not self.sr.qtypar:
-            self.sr.qtypar = uiprimitives.Container(parent=self, idx=0, name='qtypar', pos=(0, 53, 32, 11), align=uiconst.TOPRIGHT, state=uiconst.UI_DISABLED, bgColor=(0, 0, 0, 0.95))
-            self.sr.quantity_label = uicontrols.Label(parent=self.sr.qtypar, left=2, maxLines=1, fontsize=9)
-        self.sr.quantity_label.text = quantity
 
     def GetMenu(self):
         if self.sr.node:
@@ -331,6 +368,7 @@ class InvItem(uicontrols.SE_BaseClassCore):
             return sm.GetService('menu').InvItemMenu(args) + [None] + containerMenu
         else:
             return sm.GetService('menu').InvItemMenu(self.rec, self.viewOnly)
+            return
 
     def GetHeight(self, *args):
         node, width = args
@@ -347,33 +385,37 @@ class InvItem(uicontrols.SE_BaseClassCore):
             else:
                 self.sr.node.scroll.SelectNode(self.sr.node)
                 eve.Message('ListEntryClick')
+        return
 
     def OnMouseEnter(self, *args):
         if uicore.uilib.leftbtn:
             return
-        SE_BaseClassCore.OnMouseEnter(self, *args)
-        self.sr.hint = ''
-        if getattr(self, 'rec', None):
-            TryGhostFitItemOnMouseAction(self.rec)
-        if self.sr.node and self.sr.node.viewMode == 'icons':
-            self.sr.hint = '%s%s' % ([uix.GetItemQty(self.sr.node, 'ln') + ' - ', ''][bool(self.rec.singleton)], uix.GetItemName(self.sr.node.item, self.sr.node))
+        else:
+            SE_BaseClassCore.OnMouseEnter(self, *args)
+            self.sr.hint = ''
+            if getattr(self, 'rec', None):
+                TryGhostFitItemOnMouseAction(self.rec)
+            if self.sr.node and self.sr.node.viewMode == 'icons':
+                self.sr.hint = '%s%s' % ([uix.GetItemQty(self.sr.node, 'ln') + ' - ', ''][bool(self.rec.singleton)], uix.GetItemName(self.sr.node.item, self.sr.node))
+            return
 
     def GetHint(self, *args):
         if not self.sr.node:
             return
-        ret = uix.GetItemName(self.sr.node.item, self.sr.node)
-        if self.rec.stacksize > 1:
-            quantity = uix.GetItemQty(self.sr.node, 'ln')
-            ret = localization.GetByLabel('UI/Inventory/QuantityAndName', quantity=quantity, name=ret)
-        marketPrice = util.GetAveragePrice(self.rec)
-        if marketPrice is None:
-            marketPriceStr = localization.GetByLabel('UI/Inventory/PriceUnavailable')
         else:
-            marketPriceStr = util.FmtISKAndRound(marketPrice)
-        ret += '<br>' + localization.GetByLabel('UI/Inventory/ItemEstimatedPrice', estPrice=marketPriceStr)
-        if self.rec.stacksize > 1 and marketPrice:
-            ret += '<br>' + localization.GetByLabel('UI/Inventory/ItemEstimatedPriceStack', estPrice=util.FmtISKAndRound(marketPrice * self.rec.stacksize))
-        return ret
+            ret = uix.GetItemName(self.sr.node.item, self.sr.node)
+            if self.rec.stacksize > 1:
+                quantity = uix.GetItemQty(self.sr.node, 'ln')
+                ret = localization.GetByLabel('UI/Inventory/QuantityAndName', quantity=quantity, name=ret)
+            marketPrice = util.GetAveragePrice(self.rec)
+            if marketPrice is None:
+                marketPriceStr = localization.GetByLabel('UI/Inventory/PriceUnavailable')
+            else:
+                marketPriceStr = util.FmtISKAndRound(marketPrice)
+            ret += '<br>' + localization.GetByLabel('UI/Inventory/ItemEstimatedPrice', estPrice=marketPriceStr)
+            if self.rec.stacksize > 1 and marketPrice:
+                ret += '<br>' + localization.GetByLabel('UI/Inventory/ItemEstimatedPriceStack', estPrice=util.FmtISKAndRound(marketPrice * self.rec.stacksize))
+            return ret
 
     def ConstructHiliteFill(self):
         if not self._hiliteFill:
@@ -384,7 +426,9 @@ class InvItem(uicontrols.SE_BaseClassCore):
         SE_BaseClassCore.OnMouseExit(self, *args)
         if getattr(self, 'Draggable_dragging', 0):
             return
-        TryGhostFitItemOnMouseAction(None)
+        else:
+            TryGhostFitItemOnMouseAction(None)
+            return
 
     def OnDblClick(self, *args):
         if self.sr.node and self.sr.node.Get('OnDblClick', None):
@@ -406,31 +450,41 @@ class InvItem(uicontrols.SE_BaseClassCore):
                 return
             if self.isShip and session.stationid:
                 sm.StartService('station').TryActivateShip(self.rec)
+            elif self.isShip and session.structureid:
+                sm.StartService('structureDocking').ActivateShip(self.rec.itemID)
             elif self.isUnassembledShip:
                 sm.GetService('menu').AssembleShip([self.rec])
             elif self.isUnassembledContainer:
                 sm.GetService('menu').AssembleContainer([self.rec])
             elif self.typeID == const.typeSkillExtractor:
                 ActivateSkillExtractor(self.rec)
+            elif self.isStructure:
+                sm.GetService('structureDeployment').Deploy(self.rec)
+        return
 
     def OnMouseDown(self, *args):
         if getattr(self, 'powerType', None):
             TryGhostFitItemOnMouseAction(self.rec)
         uicontrols.SE_BaseClassCore.OnMouseDown(self, *args)
+        return
 
     def GetDragData(self, *args):
         if not self.sr.node:
             return None
-        nodes = self.sr.node.scroll.GetSelectedNodes(self.sr.node)
-        for node in nodes:
-            if not getattr(node, 'viewOnly', False):
-                return nodes
+        else:
+            nodes = self.sr.node.scroll.GetSelectedNodes(self.sr.node)
+            for node in nodes:
+                if not getattr(node, 'viewOnly', False):
+                    return nodes
+
+            return None
 
     def OnEndDrag(self, dragSource, dropLocation, dragData):
         if self is dragSource:
             wnd = SellItems.GetIfOpen()
             if dropLocation.IsUnder(wnd) or dropLocation is wnd:
                 wnd.DropItems(None, dragData)
+        return
 
     def OnMouseUp(self, btn, *args):
         if uicore.uilib.mouseOver != self:
@@ -439,6 +493,7 @@ class InvItem(uicontrols.SE_BaseClassCore):
                 if main is not None:
                     main.Hilite(None)
         uicontrols.SE_BaseClassCore.OnMouseUp(self, btn, *args)
+        return
 
     def OpenShipCargo(self):
         if not self.rec.ownerID == eve.session.charid:
@@ -458,42 +513,46 @@ class InvItem(uicontrols.SE_BaseClassCore):
         if self.rec.ownerID not in (eve.session.charid, eve.session.corpid):
             eve.Message('CantDoThatWithSomeoneElsesStuff')
             return
-        wnd = uiutil.GetWindowAbove(self)
-        if self.rec.typeID == const.typePlasticWrap:
-            InventoryWindow.OpenOrShow(invID=('StationContainer', self.rec.itemID), openFromWnd=wnd)
-        elif sm.StartService('menu').CheckSameLocation(self.rec):
-            invID = ('StationContainer', self.rec.itemID)
-            InventoryWindow.OpenOrShow(invID=invID, openFromWnd=wnd)
         else:
-            location = self.rec.locationID
-            if not session.stationid or util.IsStation(location) and location != session.stationid:
-                log.LogInfo('Trying to open a container in', location, 'while actor is in', session.stationid)
-                return
-            inventory = sm.GetService('invCache').GetInventoryFromId(location)
-            if not inventory:
-                return
-            item = inventory.GetItem()
-            if not item:
-                return
-            category = getattr(item, 'categoryID', None)
-            if category == const.categoryShip and item.locationID == session.stationid:
+            wnd = uiutil.GetWindowAbove(self)
+            if self.rec.typeID == const.typePlasticWrap:
                 InventoryWindow.OpenOrShow(invID=('StationContainer', self.rec.itemID), openFromWnd=wnd)
+            elif sm.StartService('menu').CheckSameLocation(self.rec):
+                invID = ('StationContainer', self.rec.itemID)
+                InventoryWindow.OpenOrShow(invID=invID, openFromWnd=wnd)
+            else:
+                location = self.rec.locationID
+                if not session.stationid or util.IsStation(location) and location != session.stationid:
+                    log.LogInfo('Trying to open a container in', location, 'while actor is in', session.stationid)
+                    return
+                inventory = sm.GetService('invCache').GetInventoryFromId(location)
+                if not inventory:
+                    return
+                item = inventory.GetItem()
+                if not item:
+                    return
+                category = getattr(item, 'categoryID', None)
+                if category == const.categoryShip and item.locationID == session.stationid:
+                    InventoryWindow.OpenOrShow(invID=('StationContainer', self.rec.itemID), openFromWnd=wnd)
+            return
 
     def OnDragEnter(self, dragObj, nodes):
         if self.sr.node.container:
             self.sr.node.container.OnDragEnter(dragObj, nodes)
         if not nodes or not getattr(nodes[0], 'rec', None):
             return
-        isStackable = False
-        if not self.rec.singleton:
-            for node in nodes:
-                if not getattr(node.rec, 'singleton', False) and node.rec.typeID == self.rec.typeID and node.rec.itemID != self.rec.itemID:
-                    isStackable = True
-                    break
+        else:
+            isStackable = False
+            if not self.rec.singleton:
+                for node in nodes:
+                    if not getattr(node.rec, 'singleton', False) and node.rec.typeID == self.rec.typeID and node.rec.itemID != self.rec.itemID:
+                        isStackable = True
+                        break
 
-        if self.isContainer or self.isShip or isStackable:
-            self.ConstructBlinkBG()
-            uicore.animations.FadeIn(self.blinkBG, 0.3, duration=0.2)
+            if self.isContainer or self.isShip or isStackable:
+                self.ConstructBlinkBG()
+                uicore.animations.FadeIn(self.blinkBG, 0.3, duration=0.2)
+            return
 
     def OnDragExit(self, dragObj, nodes):
         if self.sr.node.container:
@@ -519,106 +578,122 @@ class InvItem(uicontrols.SE_BaseClassCore):
             if invCtrl.ShipCargo(self.rec.itemID).OnDropData(nodes):
                 self.Blink()
             return
-        if self.isContainer:
+        elif self.isContainer:
             if invCtrl.StationContainer(self.rec.itemID).OnDropData(nodes):
                 self.Blink()
             return
-        mergeToMe = []
-        notUsed = []
-        sourceID = None
-        for node in nodes:
-            if getattr(node, '__guid__', None) not in ('xtriui.ShipUIModule', 'xtriui.InvItem', 'listentry.InvItem'):
-                notUsed.append(node)
-                continue
-            if node.item.itemID == self.sr.node.item.itemID:
-                notUsed.append(node)
-                continue
-            if node.item.typeID == self.sr.node.item.typeID and not isinstance(self.sr.node.item.itemID, tuple) and not getattr(node.item, 'singleton', False) and not self.sr.node.item.singleton:
-                mergeToMe.append(node.item)
-            else:
-                notUsed.append(node)
-            if sourceID is None:
-                sourceID = node.rec.locationID
+        else:
+            mergeToMe = []
+            notUsed = []
+            fighters = []
+            sourceID = None
+            for node in nodes:
+                if getattr(node, '__guid__', None) == 'uicls.FightersHealthGauge':
+                    fighters.append(node)
+                    continue
+                if getattr(node, '__guid__', None) not in ('xtriui.ShipUIModule', 'xtriui.InvItem', 'listentry.InvItem'):
+                    notUsed.append(node)
+                    continue
+                if node.item.itemID == self.sr.node.item.itemID:
+                    notUsed.append(node)
+                    continue
+                if node.item.typeID == self.sr.node.item.typeID and not isinstance(self.sr.node.item.itemID, tuple) and not getattr(node.item, 'singleton', False) and not self.sr.node.item.singleton:
+                    mergeToMe.append(node.item)
+                else:
+                    notUsed.append(node)
+                if sourceID is None:
+                    sourceID = node.rec.locationID
 
-        if sourceID is None:
-            log.LogInfo('OnDropData: Moot operation with ', nodes)
-            return
-        if mergeToMe:
-            containerItem = sm.GetService('invCache').GetInventoryFromId(self.rec.locationID).GetItem()
-            if session.solarsystemid and containerItem.itemID == mergeToMe[0].locationID and containerItem.ownerID not in (session.charid, session.corpid, session.allianceid):
+            if fighters:
+                invCtrl.ShipFighterBay(self.rec.itemID).AddFightersFromTube(fighters)
                 return
-        shift = uicore.uilib.Key(uiconst.VK_SHIFT)
-        mergeData = []
-        stateMgr = sm.StartService('godma').GetStateManager()
-        dogmaLocation = sm.GetService('clientDogmaIM').GetDogmaLocation()
-        singletons = []
-        for invItem in mergeToMe:
-            if invItem.stacksize == 1:
-                quantity = 1
-            elif shift:
-                ret = uix.QtyPopup(invItem.stacksize, 1, 1, None, localization.GetByLabel('UI/Inventory/ItemActions/StackItems'))
-                if ret is not None:
-                    quantity = ret['qty']
-                else:
-                    quantity = None
-            else:
-                quantity = invItem.stacksize
-            if not quantity:
-                continue
-            if invItem.categoryID == const.categoryCharge and IsShipFittingFlag(invItem.flagID):
-                if type(invItem.itemID) is tuple:
-                    flag = invItem.itemID[1]
-                    chargeIDs = dogmaLocation.GetSubLocationsInBank(invItem.locationID, invItem.itemID)
-                    if chargeIDs:
-                        for chargeID in chargeIDs:
-                            charge = dogmaLocation.dogmaItems[chargeID]
-                            mergeData.append((charge.itemID,
-                             self.rec.itemID,
-                             dogmaLocation.GetAttributeValue(chargeID, const.attributeQuantity),
-                             charge))
-
+            elif sourceID is None:
+                log.LogInfo('OnDropData: Moot operation with ', nodes)
+                return
+            if mergeToMe:
+                mergeAllowed = self._IsMergeAllowed(mergeToMe)
+                if not mergeAllowed:
+                    return
+            shift = uicore.uilib.Key(uiconst.VK_SHIFT)
+            mergeData = []
+            stateMgr = sm.StartService('godma').GetStateManager()
+            dogmaLocation = sm.GetService('clientDogmaIM').GetDogmaLocation()
+            singletons = []
+            for invItem in mergeToMe:
+                if invItem.stacksize == 1:
+                    quantity = 1
+                elif shift:
+                    ret = uix.QtyPopup(invItem.stacksize, 1, 1, None, localization.GetByLabel('UI/Inventory/ItemActions/StackItems'))
+                    if ret is not None:
+                        quantity = ret['qty']
                     else:
-                        mergeData.append((invItem.itemID,
-                         self.rec.itemID,
-                         quantity,
-                         invItem))
+                        quantity = None
                 else:
-                    crystalIDs = dogmaLocation.GetCrystalsInBank(invItem.locationID, invItem.itemID)
-                    if crystalIDs:
-                        for crystalID in crystalIDs:
-                            crystal = dogmaLocation.GetItem(crystalID)
-                            if crystal.singleton:
-                                singletons.append(crystalID)
-                            else:
-                                mergeData.append((crystal.itemID,
+                    quantity = invItem.stacksize
+                if not quantity:
+                    continue
+                if invItem.categoryID == const.categoryCharge and IsShipFittingFlag(invItem.flagID):
+                    if type(invItem.itemID) is tuple:
+                        flag = invItem.itemID[1]
+                        chargeIDs = dogmaLocation.GetSubLocationsInBank(invItem.locationID, invItem.itemID)
+                        if chargeIDs:
+                            for chargeID in chargeIDs:
+                                charge = dogmaLocation.dogmaItems[chargeID]
+                                mergeData.append((charge.itemID,
                                  self.rec.itemID,
-                                 crystal.stacksize,
-                                 crystal))
+                                 dogmaLocation.GetAttributeValue(chargeID, const.attributeQuantity),
+                                 charge))
 
+                        else:
+                            mergeData.append((invItem.itemID,
+                             self.rec.itemID,
+                             quantity,
+                             invItem))
                     else:
-                        mergeData.append((invItem.itemID,
-                         self.rec.itemID,
-                         quantity,
-                         invItem))
-            else:
-                mergeData.append((invItem.itemID,
-                 self.rec.itemID,
-                 quantity,
-                 invItem))
+                        crystalIDs = dogmaLocation.GetCrystalsInBank(invItem.locationID, invItem.itemID)
+                        if crystalIDs:
+                            for crystalID in crystalIDs:
+                                crystal = dogmaLocation.GetItem(crystalID)
+                                if crystal.singleton:
+                                    singletons.append(crystalID)
+                                else:
+                                    mergeData.append((crystal.itemID,
+                                     self.rec.itemID,
+                                     crystal.stacksize,
+                                     crystal))
 
-        if singletons and util.GetAttrs(self, 'sr', 'node', 'rec', 'flagID'):
-            flag = self.sr.node.rec.flagID
-            inv = sm.GetService('invCache').GetInventoryFromId(self.rec.locationID)
-            if inv:
-                inv.MultiAdd(singletons, sourceID, flag=flag, fromManyFlags=True)
-        if mergeData and util.GetAttrs(self, 'sr', 'node', 'container', 'invController', 'MultiMerge'):
-            invController = self.sr.node.container.invController
-            sm.ScatterEvent('OnInvContDragExit', invController.GetInvID(), [])
-            if invController.MultiMerge(mergeData, sourceID):
-                sm.GetService('audio').SendUIEvent('ui_state_stack')
-                self.Blink()
-        if notUsed and util.GetAttrs(self, 'sr', 'node', 'container', 'OnDropData'):
-            self.sr.node.container.OnDropData(dragObj, notUsed)
+                        else:
+                            mergeData.append((invItem.itemID,
+                             self.rec.itemID,
+                             quantity,
+                             invItem))
+                else:
+                    mergeData.append((invItem.itemID,
+                     self.rec.itemID,
+                     quantity,
+                     invItem))
+
+            if singletons and util.GetAttrs(self, 'sr', 'node', 'rec', 'flagID'):
+                flag = self.sr.node.rec.flagID
+                inv = sm.GetService('invCache').GetInventoryFromId(self.rec.locationID)
+                if inv:
+                    inv.MultiAdd(singletons, sourceID, flag=flag, fromManyFlags=True)
+            if mergeData and util.GetAttrs(self, 'sr', 'node', 'container', 'invController', 'MultiMerge'):
+                invController = self.sr.node.container.invController
+                sm.ScatterEvent('OnInvContDragExit', invController.GetInvID(), [])
+                if invController.MultiMerge(mergeData, sourceID):
+                    sm.GetService('audio').SendUIEvent('ui_state_stack')
+                    self.Blink()
+            if notUsed and util.GetAttrs(self, 'sr', 'node', 'container', 'OnDropData'):
+                self.sr.node.container.OnDropData(dragObj, notUsed)
+            return
+
+    def _IsMergeAllowed(self, mergeToMe):
+        if session.stationid2 or session.structureid:
+            return True
+        containerItem = sm.GetService('invCache').GetInventoryFromId(self.rec.locationID).GetItem()
+        mergeNotAllowed = containerItem.itemID == mergeToMe[0].locationID and containerItem.ownerID not in (session.charid, session.corpid, session.allianceid)
+        return not mergeNotAllowed
 
     def Blink(self):
         self.ConstructBlinkBG()
@@ -627,6 +702,7 @@ class InvItem(uicontrols.SE_BaseClassCore):
     def ConstructBlinkBG(self):
         if self.blinkBG is None:
             self.blinkBG = uiprimitives.Sprite(name='blinkBg', parent=self.iconCont, align=uiconst.TOALL, state=uiconst.UI_DISABLED, texturePath='res:/UI/Texture/classes/InvItem/bgSelected.png', opacity=0.0, idx=0)
+        return
 
     @classmethod
     def GetCopyData(cls, node):
@@ -675,7 +751,7 @@ class Item(InvItem):
 class InvBlueprintItem(Item):
     __guid__ = 'listentry.InvBlueprintItem'
 
-    def UpdateLabel(self, new = 0):
+    def UpdateLabel(self, new=0):
         InvItem.UpdateLabel(self, new)
         self.sr.node.label += self.GetExtraColumnsText(self.sr.node)
         if self.sr.node.viewMode in ('list', 'details'):
@@ -712,7 +788,7 @@ class InvBlueprintItem(Item):
 class ItemWithVolume(Item):
     __guid__ = 'listentry.InvItemWithVolume'
 
-    def UpdateLabel(self, new = 0):
+    def UpdateLabel(self, new=0):
         InvItem.UpdateLabel(self, new)
         if util.GetAttrs(self, 'sr', 'node', 'remote'):
             return
@@ -761,6 +837,7 @@ class ItemCheckbox(Item):
         if self.sr.tlicon:
             self.sr.tlicon.left += 1
             self.sr.tlicon.top += 2
+        return
 
     def OnChange(self, checkbox):
         pass
@@ -777,16 +854,18 @@ class ItemCheckbox(Item):
         if self.sr.checkbox.groupName is None:
             self.sr.checkbox.SetChecked(not self.sr.checkbox.checked)
             return
-        for node in self.sr.node.scroll.GetNodes():
-            if node.Get('__guid__', None) == 'listentry.Checkbox' and node.Get('group', None) == self.sr.checkbox.groupName:
-                if node.panel:
-                    node.panel.sr.checkbox.SetChecked(0, 0)
-                    node.checked = 0
-                else:
-                    node.checked = 0
+        else:
+            for node in self.sr.node.scroll.GetNodes():
+                if node.Get('__guid__', None) == 'listentry.Checkbox' and node.Get('group', None) == self.sr.checkbox.groupName:
+                    if node.panel:
+                        node.panel.sr.checkbox.SetChecked(0, 0)
+                        node.checked = 0
+                    else:
+                        node.checked = 0
 
-        if not self.destroyed:
-            self.sr.checkbox.SetChecked(1)
+            if not self.destroyed:
+                self.sr.checkbox.SetChecked(1)
+            return
 
 
 class InvAssetItem(Item):

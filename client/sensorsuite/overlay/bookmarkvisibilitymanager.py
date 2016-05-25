@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\packages\sensorsuite\overlay\bookmarkvisibilitymanager.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\packages\sensorsuite\overlay\bookmarkvisibilitymanager.py
 import logging
 from carbon.common.script.util.timerstuff import AutoTimer
 logger = logging.getLogger(__name__)
@@ -8,6 +9,7 @@ class BookmarkFolderVisibilityManager:
 
     def __init__(self):
         self.bookmarkFolderIdsHiddenFromSensorOverlay = None
+        return
 
     def LoadFolderVisibility(self):
         logger.debug('Loading folder visibility settings')
@@ -19,6 +21,7 @@ class BookmarkFolderVisibilityManager:
         settingsString = ','.join([ str(folderID) for folderID in self.bookmarkFolderIdsHiddenFromSensorOverlay ])
         sm.GetService('characterSettings').Save(FOLDER_VISIBILITY_SETTING, settingsString)
         self.persistVisibleFoldersTimer = None
+        return
 
     def IsFolderVisible(self, folderID):
         if self.bookmarkFolderIdsHiddenFromSensorOverlay is None:

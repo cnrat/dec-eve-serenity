@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\packages\requests\packages\urllib3\contrib\pyopenssl.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\packages\requests\packages\urllib3\contrib\pyopenssl.py
 from ndg.httpsclient.ssl_peer_verification import SUBJ_ALT_NAME_SUPPORT
 from ndg.httpsclient.subj_alt_name import SubjectAltName as BaseSubjectAltName
 import OpenSSL.SSL
@@ -62,7 +63,7 @@ def get_subj_alt_name(peer_cert):
 
 class fileobject(_fileobject):
 
-    def read(self, size = -1):
+    def read(self, size=-1):
         rbufsize = max(self._rbufsize, self.default_bufsize)
         buf = self._rbuf
         buf.seek(0, 2)
@@ -110,7 +111,7 @@ class fileobject(_fileobject):
 
             return buf.getvalue()
 
-    def readline(self, size = -1):
+    def readline(self, size=-1):
         buf = self._rbuf
         buf.seek(0, 2)
         if buf.tell() > 0:
@@ -201,6 +202,7 @@ class fileobject(_fileobject):
                 buf_len += n
 
             return buf.getvalue()
+            return
 
 
 class WrappedSocket(object):
@@ -212,7 +214,7 @@ class WrappedSocket(object):
     def fileno(self):
         return self.socket.fileno()
 
-    def makefile(self, mode, bufsize = -1):
+    def makefile(self, mode, bufsize=-1):
         return fileobject(self.connection, mode, bufsize)
 
     def settimeout(self, timeout):
@@ -224,7 +226,7 @@ class WrappedSocket(object):
     def close(self):
         return self.connection.shutdown()
 
-    def getpeercert(self, binary_form = False):
+    def getpeercert(self, binary_form=False):
         x509 = self.connection.get_peer_certificate()
         if not x509:
             return x509
@@ -238,7 +240,7 @@ def _verify_callback(cnx, x509, err_no, err_depth, return_code):
     return err_no == 0
 
 
-def ssl_wrap_socket(sock, keyfile = None, certfile = None, cert_reqs = None, ca_certs = None, server_hostname = None, ssl_version = None):
+def ssl_wrap_socket(sock, keyfile=None, certfile=None, cert_reqs=None, ca_certs=None, server_hostname=None, ssl_version=None):
     ctx = OpenSSL.SSL.Context(_openssl_versions[ssl_version])
     if certfile:
         ctx.use_certificate_file(certfile)

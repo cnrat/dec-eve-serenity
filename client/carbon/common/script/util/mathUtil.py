@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\carbon\common\script\util\mathUtil.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\carbon\common\script\util\mathUtil.py
 import math
 import geo2
 DEG_2_RAD = math.pi / 180.0
@@ -56,15 +57,20 @@ def RadToDeg(degs):
     return degs * RAD_2_DEG
 
 
-def RayToPlaneIntersection(P, d, Q, n):
+def RayToPlaneIntersection(P, d, Q, n, returnSign=False):
+    position = P
+    sign = 1
     denom = geo2.Vec3Dot(n, d)
-    if abs(denom) < 1e-05:
-        return P
-    else:
+    if abs(denom) >= 1e-05:
         distance = -geo2.Vec3Dot(Q, n)
         t = -(geo2.Vec3Dot(n, P) + distance) / denom
+        if t < 0:
+            sign = -1
         S = geo2.Add(geo2.Scale(d, t), P)
-        return S
+        position = S
+    if returnSign:
+        return (position, sign)
+    return position
 
 
 import carbon.common.script.util.autoexport as autoexport

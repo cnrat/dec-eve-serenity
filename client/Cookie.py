@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\carbon\common\stdlib\Cookie.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\carbon\common\stdlib\Cookie.py
 import string
 try:
     from cPickle import dumps, loads
@@ -186,7 +187,7 @@ _Translator = {'\x00': '\\000',
  '\xff': '\\377'}
 _idmap = ''.join((chr(x) for x in xrange(256)))
 
-def _quote(str, LegalChars = _LegalChars, idmap = _idmap, translate = string.translate):
+def _quote(str, LegalChars=_LegalChars, idmap=_idmap, translate=string.translate):
     if '' == translate(str, idmap, LegalChars):
         return str
     else:
@@ -249,7 +250,7 @@ _monthname = [None,
  'Nov',
  'Dec']
 
-def _getdate(future = 0, weekdayname = _weekdayname, monthname = _monthname):
+def _getdate(future=0, weekdayname=_weekdayname, monthname=_monthname):
     from time import gmtime, time
     now = time()
     year, month, day, hh, mm, ss, wd, y, z = gmtime(now + future)
@@ -277,6 +278,8 @@ class Morsel(dict):
         for K in self._reserved:
             dict.__setitem__(self, K, '')
 
+        return
+
     def __setitem__(self, K, V):
         K = K.lower()
         if K not in self._reserved:
@@ -286,7 +289,7 @@ class Morsel(dict):
     def isReservedKey(self, K):
         return K.lower() in self._reserved
 
-    def set(self, key, val, coded_val, LegalChars = _LegalChars, idmap = _idmap, translate = string.translate):
+    def set(self, key, val, coded_val, LegalChars=_LegalChars, idmap=_idmap, translate=string.translate):
         if key.lower() in self._reserved:
             raise CookieError('Attempt to set a reserved key: %s' % key)
         if '' != translate(key, idmap, LegalChars):
@@ -295,7 +298,7 @@ class Morsel(dict):
         self.value = val
         self.coded_value = coded_val
 
-    def output(self, attrs = None, header = 'Set-Cookie:'):
+    def output(self, attrs=None, header='Set-Cookie:'):
         return '%s %s' % (header, self.OutputString(attrs))
 
     __str__ = output
@@ -303,10 +306,10 @@ class Morsel(dict):
     def __repr__(self):
         return '<%s: %s=%s>' % (self.__class__.__name__, self.key, repr(self.value))
 
-    def js_output(self, attrs = None):
+    def js_output(self, attrs=None):
         return '\n        <script type="text/javascript">\n        <!-- begin hiding\n        document.cookie = "%s";\n        // end hiding -->\n        </script>\n        ' % (self.OutputString(attrs).replace('"', '\\"'),)
 
-    def OutputString(self, attrs = None):
+    def OutputString(self, attrs=None):
         result = []
         RA = result.append
         RA('%s=%s' % (self.key, self.coded_value))
@@ -345,7 +348,7 @@ class BaseCookie(dict):
         strval = str(val)
         return (strval, strval)
 
-    def __init__(self, input = None):
+    def __init__(self, input=None):
         if input:
             self.load(input)
 
@@ -358,7 +361,7 @@ class BaseCookie(dict):
         rval, cval = self.value_encode(value)
         self.__set(key, rval, cval)
 
-    def output(self, attrs = None, header = 'Set-Cookie:', sep = '\r\n'):
+    def output(self, attrs=None, header='Set-Cookie:', sep='\r\n'):
         result = []
         items = self.items()
         items.sort()
@@ -378,7 +381,7 @@ class BaseCookie(dict):
 
         return '<%s: %s>' % (self.__class__.__name__, _spacejoin(L))
 
-    def js_output(self, attrs = None):
+    def js_output(self, attrs=None):
         result = []
         items = self.items()
         items.sort()
@@ -394,7 +397,7 @@ class BaseCookie(dict):
             for k, v in rawdata.items():
                 self[k] = v
 
-    def __ParseString(self, str, patt = _CookiePattern):
+    def __ParseString(self, str, patt=_CookiePattern):
         i = 0
         n = len(str)
         M = None
@@ -415,6 +418,8 @@ class BaseCookie(dict):
                 self.__set(K, rval, cval)
                 M = self[K]
 
+        return
+
 
 class SimpleCookie(BaseCookie):
 
@@ -428,7 +433,7 @@ class SimpleCookie(BaseCookie):
 
 class SerialCookie(BaseCookie):
 
-    def __init__(self, input = None):
+    def __init__(self, input=None):
         warnings.warn('SerialCookie class is insecure; do not use it', DeprecationWarning)
         BaseCookie.__init__(self, input)
 
@@ -441,7 +446,7 @@ class SerialCookie(BaseCookie):
 
 class SmartCookie(BaseCookie):
 
-    def __init__(self, input = None):
+    def __init__(self, input=None):
         warnings.warn('Cookie/SmartCookie class is insecure; do not use it', DeprecationWarning)
         BaseCookie.__init__(self, input)
 

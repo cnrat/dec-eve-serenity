@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\packages\spacecomponents\server\components\warpDisruption.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\packages\spacecomponents\server\components\warpDisruption.py
 from spacecomponents.common.components.component import Component
 from spacecomponents.server.messages import MSG_ON_ACTIVE, MSG_ON_REMOVED_FROM_SPACE
 from spacecomponents.common.componentConst import WARP_DISRUPTION_CLASS

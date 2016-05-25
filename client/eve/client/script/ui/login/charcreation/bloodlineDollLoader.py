@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\client\script\ui\login\charcreation\bloodlineDollLoader.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\client\script\ui\login\charcreation\bloodlineDollLoader.py
 import paperDoll as PD
 import eve.client.script.ui.login.charcreation.bloodlineSelector as BS
 import GameWorld
@@ -30,3 +31,4 @@ class BloodlineDollLoader(object):
             animation.network.SetControlParameter('ControlParameters|BloodlinePoseNumber', poseID)
             animation.network.SetControlParameter('ControlParameters|Selected', 1.0)
             avatar.animationUpdater = animation
+        return

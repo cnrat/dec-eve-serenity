@@ -1,32 +1,59 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\packages\sensorsuite\overlay\controllers\probescanner.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\packages\sensorsuite\overlay\controllers\probescanner.py
 from eveexceptions.exceptionEater import ExceptionEater
-from inventorycommon.const import groupCosmicAnomaly, groupCosmicSignature
-import localization
-from probescanning.const import probeScanGroupAnomalies, probeScanGroupSignatures
+from inventorycommon.const import categoryStructure
+from probescanning.const import probeScanGroupAnomalies, probeScanGroupSignatures, probeScanGroupStructures
 from sensorsuite.error import InvalidClientStateError
-from sensorsuite.overlay import sitetype
 from sensorsuite.overlay.anomalies import AnomalySiteData
+from sensorsuite.overlay.scannablesitedata import BaseScannableSiteData
 from sensorsuite.overlay.signatures import SignatureSiteData
-from sensorsuite.overlay.sitetype import SIGNATURE
+from sensorsuite.overlay.sitetype import ANOMALY, SIGNATURE, STRUCTURE
+from sensorsuite.overlay.structures import StructureSiteData
 from utillib import KeyVal
 import logging
 logger = logging.getLogger(__name__)
+POSITIONAL_SITE_TYPES = [ANOMALY, STRUCTURE]
 
 def GetSitesAsProbeResults(sites):
     results = []
     for site in sites:
-        data = site.position if site.GetSiteType() == sitetype.ANOMALY else site.deviation
-        pos = None if site.GetSiteType() == sitetype.ANOMALY else site.position
-        results.append(KeyVal(id=site.targetID, certainty=site.signalStrength, prevCertainty=site.signalStrength, groupID=site.groupID, strengthAttributeID=site.scanStrengthAttribute, scanGroupID=probeScanGroupAnomalies if site.GetSiteType() == sitetype.ANOMALY else probeScanGroupSignatures, data=data, pos=pos, dungeonName=localization.GetByMessageID(site.dungeonNameID), dungeonNameID=site.dungeonNameID, typeID=groupCosmicAnomaly if site.GetSiteType() == sitetype.ANOMALY else groupCosmicSignature))
+        data, pos = GetSitePositionalData(site)
+        nameID, name = GetSiteScanName(site)
+        results.append(KeyVal(id=site.targetID, certainty=site.signalStrength, prevCertainty=site.signalStrength, groupID=site.groupID, strengthAttributeID=site.scanStrengthAttribute, scanGroupID=site.scanGroupID, data=data, pos=pos, dungeonName=name, dungeonNameID=nameID, typeID=site.groupID))
 
     return results
+
+
+def GetSitePositionalData(site):
+    data = site.position if IsSitePositional(site) else site.deviation
+    pos = None if IsSitePositional(site) else site.position
+    return (data, pos)
+
+
+def IsSitePositional(site):
+    return site.GetSiteType() in POSITIONAL_SITE_TYPES
+
+
+def GetSiteScanName(site):
+    if isinstance(site, BaseScannableSiteData):
+        return site.GetScanName()
+    else:
+        return (None, '')
 
 
 def SiteDataFromScanResult(result):
     if result.scanGroupID == probeScanGroupAnomalies:
         return AnomalySiteData(result.id, result.pos, result.id, None, result.dungeonNameID, None, None)
-    else:
+    elif result.scanGroupID == probeScanGroupSignatures:
         return SignatureSiteData(result.id, result.pos, result.id, None, None, result.certainty, dungeonNameID=result.dungeonNameID)
+    elif result.scanGroupID == probeScanGroupStructures:
+        return StructureSiteData(result.itemID, result.typeID, result.groupID, categoryStructure, result.pos, result.id)
+    else:
+        return GetDefaultSiteData(result)
+
+
+def GetDefaultSiteData(result):
+    return SignatureSiteData(result.id, result.pos, result.id, None, None, result.certainty, dungeonNameID=result.dungeonNameID)
 
 
 class ProbeScannerController:
@@ -74,18 +101,15 @@ class ProbeScannerController:
                 for sigData_ in updateSigData:
                     self.UpdateScanData(sigData_)
 
+        return
+
     def UpdateScanData(self, sigData):
         bracket = self.siteController.spaceLocations.GetBracketBySiteID(sigData.siteID)
         if bracket:
             bracket.UpdateScanData()
 
-    def GetCosmicAnomalyItemIDFromTargetID(self, targetID):
-        for site in self.siteController.siteMaps.IterSitesByKey(sitetype.ANOMALY):
-            if site.targetID == targetID:
-                return site.siteID
-
     def GetAllSites(self):
-        return GetSitesAsProbeResults(self.siteController.siteMaps.IterSitesByKeys(sitetype.SIGNATURE, sitetype.ANOMALY))
+        return GetSitesAsProbeResults(self.siteController.siteMaps.IterSitesByKeys(SIGNATURE, ANOMALY))
 
     def InjectSiteScanResults(self, sites):
         probeResults = GetSitesAsProbeResults(sites)

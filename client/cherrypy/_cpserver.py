@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\carbon\common\lib\cherrypy\_cpserver.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\carbon\common\lib\cherrypy\_cpserver.py
 import warnings
 import cherrypy
 from cherrypy.lib import attributes
@@ -41,8 +42,9 @@ class Server(ServerAdapter):
         self.httpserver = None
         self.interrupt = None
         self.running = False
+        return
 
-    def httpserver_from_self(self, httpserver = None):
+    def httpserver_from_self(self, httpserver=None):
         if httpserver is None:
             httpserver = self.instance
         if httpserver is None:
@@ -62,9 +64,10 @@ class Server(ServerAdapter):
     def _get_bind_addr(self):
         if self.socket_file:
             return self.socket_file
-        if self.socket_host is None and self.socket_port is None:
+        elif self.socket_host is None and self.socket_port is None:
             return
-        return (self.socket_host, self.socket_port)
+        else:
+            return (self.socket_host, self.socket_port)
 
     def _set_bind_addr(self, value):
         if value is None:
@@ -81,6 +84,8 @@ class Server(ServerAdapter):
                 self.socket_file = None
             except ValueError:
                 raise ValueError('bind_addr must be a (host, port) tuple (for TCP sockets) or a string (for Unix domain sockets), not %r' % value)
+
+        return
 
     bind_addr = property(_get_bind_addr, _set_bind_addr, doc='A (host, port) tuple for TCP sockets or a str for Unix domain sockets.')
 

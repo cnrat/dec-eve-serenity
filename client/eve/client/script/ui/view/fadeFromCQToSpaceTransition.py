@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\client\script\ui\view\fadeFromCQToSpaceTransition.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\client\script\ui\view\fadeFromCQToSpaceTransition.py
 import blue
 import uiprimitives
 import viewstate
@@ -8,11 +9,12 @@ import util
 class FadeFromCQToSpaceTransition(viewstate.Transition):
     __guid__ = 'viewstate.FadeFromCQToSpaceTransition'
 
-    def __init__(self, fadeTimeMS = 1000, fadeInTimeMS = None, fadeOutTimeMS = None, **kwargs):
+    def __init__(self, fadeTimeMS=1000, fadeInTimeMS=None, fadeOutTimeMS=None, **kwargs):
         viewstate.Transition.__init__(self, **kwargs)
         self.fadeInTimeMS = fadeInTimeMS or fadeTimeMS
         self.fadeOutTimeMS = fadeOutTimeMS or fadeTimeMS
         self.fadeLayer = None
+        return
 
     def StartTransition(self, fromView, toView):
         viewstate.Transition.StartTransition(self, fromView, toView)
@@ -32,3 +34,4 @@ class FadeFromCQToSpaceTransition(viewstate.Transition):
         self.fadeLayer.Close()
         del self.fadeLayer
         viewstate.Transition.EndTransition(self, fromView, toView)
+        return

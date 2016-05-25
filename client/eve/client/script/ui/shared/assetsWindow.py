@@ -1,9 +1,14 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\client\script\ui\shared\assetsWindow.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\client\script\ui\shared\assetsWindow.py
 import dbutil
+from carbonui.control.menuLabel import MenuLabel
+from eve.client.script.ui.shared.assets.assetSafetyControllers import SafetyControllerCharacter
+from eve.client.script.ui.shared.assetsSearch import SearchBox
 from eveAssets.assetSearchUtil import SearchNamesHelper, AssetKeywordSearch, IsPartOfText, ParseString
 import carbonui.const as uiconst
 from eve.client.script.ui.shared.inventory.invWindow import Inventory as InventoryWindow
 from eve.client.script.ui.util.uix import IsValidNamedItem
+from eve.client.script.ui.shared.assets.assetSafety import AssetSafetyCont
 from eveAssets.assetSearching import GetSearchResults, GetFakeRowset
 import evetypes
 import localization
@@ -14,7 +19,6 @@ import uthread
 import blue
 import util
 from eve.client.script.ui.control import entries as listentry
-import assets
 import sys
 from collections import defaultdict
 from eve.client.script.ui.control.entries import LocationGroup
@@ -23,8 +27,8 @@ import log
 class AssetsWindow(uicontrols.Window):
     __guid__ = 'form.AssetsWindow'
     __notifyevents__ = ['OnDestinationSet']
-    default_width = 395
-    default_height = 400
+    default_width = 550
+    default_height = 450
     default_minSize = (395, 256)
     default_windowID = 'assets'
     default_captionLabelPath = 'Tooltips/Neocom/PersonalAssets'
@@ -39,6 +43,7 @@ class AssetsWindow(uicontrols.Window):
         self.invalidateOpenState_allitems = 1
         self.invalidateOpenState_conitems = 1
         self.invalidateOpenState_sysitems = 1
+        self.safetyCont = None
         self.searchlist = None
         self.pending = None
         self.loading = 0
@@ -54,8 +59,9 @@ class AssetsWindow(uicontrols.Window):
         self.searchText = None
         self.scrollPosition = defaultdict(float)
         self.Refresh()
+        return
 
-    def OnDestinationSet(self, destinationID = None):
+    def OnDestinationSet(self, destinationID=None):
         self.Refresh()
 
     def ReloadTabs(self, *args):
@@ -98,10 +104,14 @@ class AssetsWindow(uicontrols.Window):
           self.sr.scroll,
           self,
           'sysitems'],
-         [localization.GetByLabel('UI/Common/Buttons/Search'),
+         [localization.GetByLabel('UI/Inventory/AssetSearch/SearchInStations'),
           self.sr.scroll,
           self,
-          'search']]
+          'search'],
+         [localization.GetByLabel('UI/Inventory/AssetSafety/Safety'),
+          self.sr.scroll,
+          self,
+          'safety']]
         if eve.session.stationid:
             tabs.insert(4, [localization.GetByLabel('UI/Common/LocationTypes/Station'),
              self.sr.scroll,
@@ -114,18 +124,34 @@ class AssetsWindow(uicontrols.Window):
         if assetSearchBox:
             self.searchText = assetSearchBox.GetValue()
 
-    def Load(self, key, reloadStationID = None):
+    def Load(self, key, reloadStationID=None):
         if self.loading:
             self.pending = (key, reloadStationID)
             return
         uthread.new(self._Load, key, reloadStationID)
 
-    def _Load(self, key, reloadStationID = None):
+    def _Load(self, key, reloadStationID=None):
         self.loading = 1
         self.pending = None
         if key != self.key:
             self.scrollPosition[self.key] = self.sr.scroll.GetScrollProportion()
         self.key = key
+        if self.safetyCont:
+            self.safetyCont.display = False
+        if key == 'safety':
+
+            def Hide(cont):
+                if cont:
+                    cont.display = False
+
+            Hide(self.sr.scroll)
+            Hide(self.sr.search_cont)
+            Hide(self.sr.filt_cont)
+            Hide(self.sr.station_tabs)
+            if self.safetyCont is None or self.safetyCont.destroyed:
+                self.safetyCont = AssetSafetyCont(parent=self.sr.main, padding=4, controller=SafetyControllerCharacter())
+            self.safetyCont.display = True
+            self.safetyCont.Load()
         if key[:7] == 'station':
             if not self.station_inited:
                 idx = self.sr.main.children.index(self.sr.maintabs)
@@ -201,7 +227,7 @@ class AssetsWindow(uicontrols.Window):
                 sprite.LoadTooltipPanel = self.LoadInfoTooltip
                 button = uicontrols.Button(parent=buttonCont, label=localization.GetByLabel('UI/Common/Buttons/Search'), left=sprite.left + sprite.width + const.defaultPadding, top=top, func=self.Search, align=uiconst.TOPRIGHT)
                 buttonCont.width = button.width + const.defaultPadding * 3 + sprite.width
-                self.sr.searchtype = assets.SearchBox(name='assetssearchtype', parent=self.sr.search_cont, left=const.defaultPadding, padBottom=1, width=0, top=top, label=localization.GetByLabel('UI/Common/SearchText'), maxLength=100, OnReturn=self.Search, align=uiconst.TOALL, keywords=self.searchKeywords, isTypeField=True)
+                self.sr.searchtype = SearchBox(name='assetssearchtype', parent=self.sr.search_cont, left=const.defaultPadding, padBottom=1, width=0, top=top, label=localization.GetByLabel('UI/Common/SearchText'), maxLength=100, OnReturn=self.Search, align=uiconst.TOALL, keywords=self.searchKeywords, isTypeField=True)
                 self._RestoreSearchText()
                 self.search_inited = 1
             if self.sr.Get('filt_cont', None):
@@ -213,6 +239,7 @@ class AssetsWindow(uicontrols.Window):
         self.loading = 0
         if self.pending:
             self.Load(*self.pending)
+        return
 
     def _RestoreSearchText(self):
         if self.searchText:
@@ -268,7 +295,7 @@ class AssetsWindow(uicontrols.Window):
         containersInfoByStations = defaultdict(lambda : defaultdict(tuple))
         for containerID, itemsInContainer in itemsByContainerID.iteritems():
             containerItem = allContainersByItemIDs.get(containerID)
-            if containerItem.typeID == const.typePlasticWrap:
+            if containerItem and containerItem.typeID == const.typePlasticWrap:
                 continue
             if containerItem:
                 containersInfoByStations[containerItem.locationID][containerID] = (containerItem, itemsInContainer)
@@ -278,9 +305,11 @@ class AssetsWindow(uicontrols.Window):
 
         sortlocations = []
         for stationID, stationItems in stations.iteritems():
-            solarsystemID = uiSvc.GetStation(stationID).solarSystemID
+            stationData = uiSvc.GetStation(stationID)
+            if stationData is None:
+                continue
             stationsContainersInfo = containersInfoByStations.get(stationID, {})
-            sortlocations.append((solarsystemID,
+            sortlocations.append((stationData.solarSystemID,
              stationID,
              stationItems,
              stationsContainersInfo))
@@ -290,6 +319,7 @@ class AssetsWindow(uicontrols.Window):
         self.searchlist = sortlocations
         sortKey = self.sr.sortcombosearch.GetValue()
         self.ShowSearch(sortKey)
+        return
 
     def ShowAll(self, key, keyID, sortKey, *args):
         if keyID is None:
@@ -336,66 +366,70 @@ class AssetsWindow(uicontrols.Window):
 
         if self.destroyed:
             return
-        setattr(self, 'invalidateOpenState_%s' % key, 0)
-        locText = {'allitems': localization.GetByLabel('UI/Inventory/AssetsWindow/NoAssetsAtStation'),
-         'regitems': localization.GetByLabel('UI/Inventory/AssetsWindow/NoAssetsInRegion'),
-         'conitems': localization.GetByLabel('UI/Inventory/AssetsWindow/NoAssetsInConstellation'),
-         'sysitems': localization.GetByLabel('UI/Inventory/AssetsWindow/NoAssetsInSolarSystem')}
-        scrollPosition = self.scrollPosition[key]
-        self.sr.scroll.Load(contentList=scrolllist, headers=uix.GetInvItemDefaultHeaders(), noContentHint=locText[key], scrollTo=scrollPosition)
-        self.HideLoad()
+        else:
+            setattr(self, 'invalidateOpenState_%s' % key, 0)
+            locText = {'allitems': localization.GetByLabel('UI/Inventory/AssetsWindow/NoAssetsAtStation'),
+             'regitems': localization.GetByLabel('UI/Inventory/AssetsWindow/NoAssetsInRegion'),
+             'conitems': localization.GetByLabel('UI/Inventory/AssetsWindow/NoAssetsInConstellation'),
+             'sysitems': localization.GetByLabel('UI/Inventory/AssetsWindow/NoAssetsInSolarSystem')}
+            scrollPosition = self.scrollPosition[key]
+            self.sr.scroll.Load(contentList=scrolllist, headers=uix.GetInvItemDefaultHeaders(), noContentHint=locText[key], scrollTo=scrollPosition)
+            self.HideLoad()
+            return
 
     def ShowStationItems(self, key):
         self.ShowLoad()
         hangarInv = sm.GetService('invCache').GetInventory(const.containerHangar)
-        items = hangarInv.List()
+        items = hangarInv.List(const.flagHangar)
         if not len(items):
             self.SetHint(localization.GetByLabel('UI/Inventory/AssetsWindow/NoAssets'))
             return
-        assetsList = []
-        self.sr.scroll.Load(fixedEntryHeight=42, contentList=[], headers=uix.GetInvItemDefaultHeaders())
-        itemname = ' ' + key
-        itemSet = set()
-        for each in items:
-            if each.flagID not in (const.flagHangar, const.flagWallet):
-                continue
-            if key == 'ships':
-                if each.categoryID != const.categoryShip:
-                    continue
-            elif key == 'modules':
-                if not evetypes.IsCategoryHardwareByCategory(evetypes.GetCategoryID(each.typeID)):
-                    continue
-            elif key == 'minerals':
-                if each.groupID != const.groupMineral:
-                    continue
-            elif key == 'charges':
-                if each.categoryID != const.categoryCharge:
-                    continue
-            else:
-                itemname = None
-                if each.categoryID == const.categoryShip or evetypes.IsCategoryHardwareByCategory(evetypes.GetCategoryID(each.typeID)) or each.groupID == const.groupMineral or each.categoryID == const.categoryCharge:
-                    continue
-            itemSet.add(each)
-
-        self.PrimeLocationNames(itemSet)
-        for eachItem in itemSet:
-            assetsList.append(listentry.Get('InvAssetItem', data=uix.GetItemData(eachItem, 'details', scrollID=self.sr.scroll.sr.id)))
-
-        locText = {'ships': localization.GetByLabel('UI/Inventory/AssetsWindow/NoShipsAtStation'),
-         'modules': localization.GetByLabel('UI/Inventory/AssetsWindow/NoModulesAtStation'),
-         'minerals': localization.GetByLabel('UI/Inventory/AssetsWindow/NoMineralsAtStation'),
-         'charges': localization.GetByLabel('UI/Inventory/AssetsWindow/NoChargesAtStation')}
-        if not assetsList:
-            if not itemname:
-                self.SetHint(localization.GetByLabel('UI/Inventory/AssetsWindow/NoAssetsInCategoryAtStation'))
-            else:
-                self.SetHint(locText[key])
         else:
-            self.SetHint()
-        self.sr.scroll.Load(contentList=assetsList, sortby='label', headers=uix.GetInvItemDefaultHeaders())
-        self.HideLoad()
+            assetsList = []
+            self.sr.scroll.Load(fixedEntryHeight=42, contentList=[], headers=uix.GetInvItemDefaultHeaders())
+            itemname = ' ' + key
+            itemSet = set()
+            for each in items:
+                if each.flagID not in (const.flagHangar, const.flagWallet):
+                    continue
+                if key == 'ships':
+                    if each.categoryID != const.categoryShip:
+                        continue
+                elif key == 'modules':
+                    if not evetypes.IsCategoryHardwareByCategory(evetypes.GetCategoryID(each.typeID)):
+                        continue
+                elif key == 'minerals':
+                    if each.groupID != const.groupMineral:
+                        continue
+                elif key == 'charges':
+                    if each.categoryID != const.categoryCharge:
+                        continue
+                else:
+                    itemname = None
+                    if each.categoryID == const.categoryShip or evetypes.IsCategoryHardwareByCategory(evetypes.GetCategoryID(each.typeID)) or each.groupID == const.groupMineral or each.categoryID == const.categoryCharge:
+                        continue
+                itemSet.add(each)
 
-    def GetLocationData(self, solarsystemID, station, key, expanded = 0, forceClosed = 0, scrollID = None, sortKey = None, fakeItems = None, fakeJumps = None, path = ()):
+            self.PrimeLocationNames(itemSet)
+            for eachItem in itemSet:
+                assetsList.append(listentry.Get('InvAssetItem', data=uix.GetItemData(eachItem, 'details', scrollID=self.sr.scroll.sr.id)))
+
+            locText = {'ships': localization.GetByLabel('UI/Inventory/AssetsWindow/NoShipsAtStation'),
+             'modules': localization.GetByLabel('UI/Inventory/AssetsWindow/NoModulesAtStation'),
+             'minerals': localization.GetByLabel('UI/Inventory/AssetsWindow/NoMineralsAtStation'),
+             'charges': localization.GetByLabel('UI/Inventory/AssetsWindow/NoChargesAtStation')}
+            if not assetsList:
+                if not itemname:
+                    self.SetHint(localization.GetByLabel('UI/Inventory/AssetsWindow/NoAssetsInCategoryAtStation'))
+                else:
+                    self.SetHint(locText[key])
+            else:
+                self.SetHint()
+            self.sr.scroll.Load(contentList=assetsList, sortby='label', headers=uix.GetInvItemDefaultHeaders())
+            self.HideLoad()
+            return
+
+    def GetLocationData(self, solarsystemID, station, key, forceClosed=0, scrollID=None, sortKey=None, fakeItems=None, path=()):
         location = cfg.evelocations.Get(station.stationID)
         if forceClosed:
             uicore.registry.SetListGroupOpenState(('assetslocations_%s' % key, location.locationID), 0)
@@ -501,19 +535,19 @@ class AssetsWindow(uicontrols.Window):
             groupEntries = self.GetContainerGroupEntries(containersInfo, data.scrollID)
             scrolllist.extend(groupEntries)
             for each in items:
-                if each.flagID not in (const.flagHangar, const.flagWallet):
+                if each.flagID not in (const.flagHangar, const.flagWallet, const.flagAssetSafety):
                     continue
                 scrolllist.append(listentry.Get('InvAssetItem', data=uix.GetItemData(each, 'details', scrollID=data.scrollID)))
 
             return scrolllist
-        if session.stationid and data.location.locationID == eve.session.stationid:
+        if session.stationid and data.location.locationID in (session.stationid, session.structureid):
             hangarInv = sm.GetService('invCache').GetInventory(const.containerHangar)
             items = hangarInv.List()
             scrolllist = []
             self.PrimeVoucherNames(items)
             self.PrimeLocationNames(items)
             for each in items:
-                if each.flagID not in (const.flagHangar, const.flagWallet):
+                if each.flagID not in (const.flagHangar, const.flagWallet, const.flagAssetSafety):
                     continue
                 scrolllist.append(listentry.Get('InvAssetItem', data=uix.GetItemData(each, 'details', scrollID=data.scrollID)))
 
@@ -553,33 +587,26 @@ class AssetsWindow(uicontrols.Window):
     def UpdateLite(self, stationID, key, fromID):
         if not self or self.destroyed:
             return
-        self.ShowLoad()
-        station = None
-        stations = sm.StartService('assets').GetStations()
-        for station in stations:
-            if station.stationID == stationID:
-                break
-
-        if station:
-            solarsystemID = sm.StartService('ui').GetStation(station.stationID).solarSystemID
-            pos = self.sr.scroll.GetScrollProportion()
-            searchKey = set()
-            searchKey.add(('assetslocations_%s' % key, stationID))
-            if fromID:
-                searchKey.add(('assetslocations_%s' % key, fromID))
+        else:
+            self.ShowLoad()
             destPathList = sm.GetService('starmap').GetDestinationPath()
-            for node in self.sr.scroll.GetNodes():
-                if node.Get('id', None) in searchKey:
-                    node.data = self.GetLocationData(solarsystemID, station, key, scrollID=self.sr.scroll.sr.id, path=destPathList)
-                    if node.panel:
-                        node.panel.Load(node)
-                    self.sr.scroll.PrepareSubContent(node)
-                    self.sr.scroll.ScrollToProportion(pos)
+            assetStations = sm.StartService('assets').GetStations().Index('stationID')
+            searchKey = 'assetslocations_%s' % key
+            affectedNodes = [ node for node in self.sr.scroll.GetNodes() if node.Get('id', None) in ((searchKey, stationID), (searchKey, fromID)) ]
+            for node in affectedNodes:
+                locationID = node.Get('id')[1]
+                station = assetStations[locationID]
+                node.data = self.GetLocationData(station.solarSystemID, station, key, scrollID=self.sr.scroll.sr.id, path=destPathList)
+                if node.panel:
+                    node.panel.Load(node)
+                self.sr.scroll.PrepareSubContent(node)
+                self.sr.scroll.ScrollToProportion(self.sr.scroll.GetScrollProportion())
 
-        self.Refresh()
-        self.HideLoad()
+            self.Refresh()
+            self.HideLoad()
+            return
 
-    def ShowSearch(self, sortKey = None, *args):
+    def ShowSearch(self, sortKey=None, *args):
         if sortKey is None:
             sortKey = settings.char.ui.Get('assetsSearchSortKey', None)
         settings.char.ui.Set('assetsSearchSortKey', sortKey)
@@ -607,12 +634,36 @@ class AssetsWindow(uicontrols.Window):
             scrollPosition = self.scrollPosition.get('search', 0)
             self.sr.scroll.Load(contentList=scrolllist, headers=uix.GetInvItemDefaultHeaders(), noContentHint=localization.GetByLabel('UI/Common/NothingFound'), scrollTo=scrollPosition)
         self.HideLoad()
+        return
 
     def GetMenuLocationMenu(self, node):
-        stationInfo = sm.StartService('ui').GetStation(node.location.locationID)
-        return sm.StartService('menu').CelestialMenu(node.location.locationID, typeID=stationInfo.stationTypeID, parentID=stationInfo.solarSystemID)
+        locationID = node.location.locationID
+        if util.IsStation(locationID):
+            stationInfo = sm.StartService('ui').GetStation(locationID)
+            stationTypeID = stationInfo.stationTypeID
+            solarSystemID = stationInfo.solarSystemID
+        else:
+            stations = sm.GetService('invCache').GetInventory(const.containerGlobal).ListStations()
+            for station in stations:
+                if station.stationID == locationID:
+                    stationTypeID = station.typeID
+                    solarSystemID = station.solarSystemID
+                    break
 
-    def SetHint(self, hintstr = None):
+        menu = sm.StartService('menu').CelestialMenu(node.location.locationID, typeID=stationTypeID, parentID=solarSystemID)
+        if not util.IsStation(locationID):
+            if session.structureid != locationID:
+                if util.IsWormholeSystem(solarSystemID):
+                    label = MenuLabel('UI/Inventory/AssetSafety/MoveItemsToSpace')
+                else:
+                    label = MenuLabel('UI/Inventory/AssetSafety/MoveItemsToSafety')
+                menu.append((label, self.MoveItemsInStructureToAssetSafety, (solarSystemID, locationID)))
+        return menu
+
+    def MoveItemsInStructureToAssetSafety(self, solarSystemID, structureID):
+        sm.GetService('assetSafety').MoveItemsInStructureToAssetSafetyForCharacter(solarSystemID, structureID)
+
+    def SetHint(self, hintstr=None):
         if self.sr.scroll:
             self.sr.scroll.ShowHint(hintstr)
 

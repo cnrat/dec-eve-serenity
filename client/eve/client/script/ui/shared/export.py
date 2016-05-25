@@ -1,6 +1,9 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\client\script\ui\shared\export.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\client\script\ui\shared\export.py
 import uiprimitives
 import uicontrols
+from carbon.common.script.util.commonutils import StripTags
+from textImporting import StripImportantSymbol
 import util
 from eve.client.script.ui.control import entries as listentry
 import os
@@ -8,6 +11,7 @@ import blue
 import codecs
 import sys
 import carbonui.const as uiconst
+from inventorycommon.util import IsShipFittable
 import localization
 import uiutil
 import operator
@@ -33,6 +37,7 @@ class ImportBaseWindow(uicontrols.Window):
         else:
             self.dirpath = os.path.join(blue.sysinfo.GetUserDocumentsDirectory(), 'EVE', 'Overview')
         self.ConstructLayout()
+        return
 
     def ConstructLayout(self, *args):
         self.sr.fileContainer = uiprimitives.Container(name='fileContainer', align=uiconst.TOLEFT, parent=self.sr.main, padTop=const.defaultPadding, width=256)
@@ -62,6 +67,7 @@ class ImportBaseWindow(uicontrols.Window):
           None]], parent=self.sr.profilesContainer, idx=0)
         self.sr.importProfilesBtn.state = uiconst.UI_HIDDEN
         self.RefreshFileList()
+        return
 
     def RefreshFileList(self, *args):
         fileList = self.GetFilesByExt('.xml')
@@ -128,6 +134,7 @@ class ExportBaseWindow(uicontrols.Window):
         self.SetWndIcon(None)
         self.SetMinSize([370, 270])
         self.ConstructLayout()
+        return
 
     def ConstructLayout(self, *args):
         self.topCont = uiprimitives.Container(name='topCont', align=uiconst.TOTOP, height=14, parent=self.sr.main)
@@ -283,6 +290,8 @@ class ExportFittingsWindow(ExportBaseWindow):
         finally:
             newdoc.unlink()
 
+        return
+
     def GetSlotFromFlag(self, flag):
         if flag >= const.flagHiSlot0 and flag <= const.flagHiSlot7:
             return 'hi slot ' + str(flag - const.flagHiSlot0)
@@ -366,7 +375,9 @@ class ImportFittingsWindow(ImportBaseWindow):
                         description = ''
                     shipTypeName = fitting.getElementsByTagName('shipType')[0].attributes['value'].value
                     try:
-                        shipTypeID = evetypes.GetTypeIDByName(shipTypeName)
+                        cleanShipTypeName = StripTags(shipTypeName)
+                        cleanShipTypeName = StripImportantSymbol(cleanShipTypeName)
+                        shipTypeID = evetypes.GetTypeIDByName(cleanShipTypeName)
                     except evetypes.TypeNotFoundException:
                         sys.exc_clear()
                         borkedTypeNames.add(shipTypeName)
@@ -377,7 +388,9 @@ class ImportFittingsWindow(ImportBaseWindow):
                     for hardwareElement in fitting.getElementsByTagName('hardware'):
                         typeName = hardwareElement.attributes['type'].value
                         try:
-                            typeID = evetypes.GetTypeIDByName(typeName)
+                            cleanTypeName = StripTags(typeName)
+                            cleanTypeName = StripImportantSymbol(cleanTypeName)
+                            typeID = evetypes.GetTypeIDByName(cleanTypeName)
                         except evetypes.TypeNotFoundException:
                             borkedTypeNames.add(typeName)
                             sys.exc_clear()
@@ -388,7 +401,7 @@ class ImportFittingsWindow(ImportBaseWindow):
                         if flag is None:
                             borkedFlags.add(typeName)
                             continue
-                        if evetypes.GetCategoryID(typeID) in [const.categoryModule, const.categorySubSystem]:
+                        if IsShipFittable(evetypes.GetCategoryID(typeID)):
                             qty = 1
                         else:
                             qty = hardwareElement.attributes['qty'].value
@@ -424,6 +437,8 @@ class ImportFittingsWindow(ImportBaseWindow):
             self.CloseByUser()
         finally:
             doc.unlink()
+
+        return
 
     def GetFlagFromSlot(self, slot):
         if slot == 'drone bay':
@@ -550,7 +565,7 @@ class ImportOverviewWindow(ImportBaseWindow):
         self.yamlSettingsDict = settingDict
         self.ConstructScrollList(initPresetsSelected=True)
 
-    def ConstructScrollList(self, initPresetsSelected = False):
+    def ConstructScrollList(self, initPresetsSelected=False):
         if self.fileType != 'yaml':
             return
         allChecked = True
@@ -778,6 +793,8 @@ class ImportOverviewWindow(ImportBaseWindow):
         finally:
             doc.unlink()
 
+        return
+
     def ImportYaml(self):
         tabPresetNamesToImport = []
         tabsChanged = False
@@ -831,6 +848,7 @@ class ImportLegacyFittingsWindow(ExportBaseWindow):
         self.SetMinSize([370, 270])
         self.SetCaption(localization.GetByLabel('UI/Fitting/MoveToServer'))
         self.ConstructLayout()
+        return
 
     def ConstructLayout(self, *args):
         self.countSelectedText = ''
@@ -855,6 +873,7 @@ class ImportLegacyFittingsWindow(ExportBaseWindow):
          const.defaultPadding,
          const.defaultPadding))
         self.ConstructScrollList()
+        return
 
     def ConstructScrollList(self):
         fittings = self.fittingSvc.GetLegacyClientFittings()
@@ -889,6 +908,7 @@ class ImportLegacyFittingsWindow(ExportBaseWindow):
         self.sr.scroll.Load(contentList=scrolllist)
         self.totalLocalFittings = len(fittingList)
         self.OnSelectionChanged(None)
+        return
 
     def Import(self, *args):
         impl = getDOMImplementation()
@@ -974,6 +994,8 @@ class ImportLegacyFittingsWindow(ExportBaseWindow):
             self.CloseByUser()
         finally:
             newdoc.unlink()
+
+        return
 
     def GetSlotFromFlag(self, flag):
         if flag >= const.flagHiSlot0 and flag <= const.flagHiSlot7:
@@ -1144,7 +1166,7 @@ class ExportOverviewWindow(ExportBaseWindow):
         self.ConstructScrollList()
 
 
-def GetGeneralOverviewSettingsEntry(onChangeFunc, checked = True):
+def GetGeneralOverviewSettingsEntry(onChangeFunc, checked=True):
     data = util.KeyVal()
     data.label = localization.GetByLabel('UI/Overview/GeneralOverviewSettings')
     data.checked = checked
@@ -1154,7 +1176,7 @@ def GetGeneralOverviewSettingsEntry(onChangeFunc, checked = True):
     return listentry.Get('Checkbox', data=data)
 
 
-def GetOverviewProfileEntry(onChangeFunc, checked = True):
+def GetOverviewProfileEntry(onChangeFunc, checked=True):
     data = util.KeyVal()
     data.label = localization.GetByLabel('UI/Overview/OverviewProfile')
     data.checked = checked
@@ -1165,7 +1187,7 @@ def GetOverviewProfileEntry(onChangeFunc, checked = True):
     return listentry.Get('Checkbox', data=data)
 
 
-def GetTabPresetEntry(eachProfileName, onChangeFunc, checked = True):
+def GetTabPresetEntry(eachProfileName, onChangeFunc, checked=True):
     data = util.KeyVal()
     data.label = localization.GetByLabel('UI/Overview/TabPresetName', presetName=eachProfileName)
     data.checked = checked

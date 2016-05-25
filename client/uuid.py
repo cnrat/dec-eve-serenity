@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\carbon\common\stdlib\uuid.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\carbon\common\stdlib\uuid.py
 __author__ = 'Ka-Ping Yee <ping@zesty.ca>'
 RESERVED_NCS, RFC_4122, RESERVED_MICROSOFT, RESERVED_FUTURE = ['reserved for NCS compatibility',
  'specified in RFC 4122',
@@ -7,7 +8,7 @@ RESERVED_NCS, RFC_4122, RESERVED_MICROSOFT, RESERVED_FUTURE = ['reserved for NCS
 
 class UUID(object):
 
-    def __init__(self, hex = None, bytes = None, bytes_le = None, fields = None, int = None, version = None):
+    def __init__(self, hex=None, bytes=None, bytes_le=None, fields=None, int=None, version=None):
         if [hex,
          bytes,
          bytes_le,
@@ -57,6 +58,7 @@ class UUID(object):
             int &= -1133367955888714851287041L
             int |= version << 76L
         self.__dict__['int'] = int
+        return
 
     def __cmp__(self, other):
         if isinstance(other, UUID):
@@ -195,6 +197,8 @@ def _find_mac(command, args, hw_identifiers, get_index):
         except IOError:
             continue
 
+    return
+
 
 def _ifconfig_getnode():
     for args in ('', '-a', '-av'):
@@ -207,9 +211,11 @@ def _ifconfig_getnode():
     mac = _find_mac('arp', '-an', [ip_addr], lambda i: -1)
     if mac:
         return mac
-    mac = _find_mac('lanscan', '-ai', ['lan0'], lambda i: 0)
-    if mac:
-        return mac
+    else:
+        mac = _find_mac('lanscan', '-ai', ['lan0'], lambda i: 0)
+        if mac:
+            return mac
+        return
 
 
 def _ipconfig_getnode():
@@ -225,14 +231,15 @@ def _ipconfig_getnode():
 
     for dir in dirs:
         try:
-            pipe = os.popen(os.path.join(dir, 'ipconfig') + ' /all')
-        except IOError:
-            continue
-        else:
-            for line in pipe:
-                value = line.split(':')[-1].strip().lower()
-                if re.match('([0-9a-f][0-9a-f]-){5}[0-9a-f][0-9a-f]', value):
-                    return int(value.replace('-', ''), 16)
+            try:
+                pipe = os.popen(os.path.join(dir, 'ipconfig') + ' /all')
+            except IOError:
+                continue
+            else:
+                for line in pipe:
+                    value = line.split(':')[-1].strip().lower()
+                    if re.match('([0-9a-f][0-9a-f]-){5}[0-9a-f][0-9a-f]', value):
+                        return int(value.replace('-', ''), 16)
 
         finally:
             pipe.close()
@@ -316,51 +323,55 @@ def getnode():
     global _node
     if _node is not None:
         return _node
-    import sys
-    if sys.platform == 'win32':
-        getters = [_windll_getnode, _netbios_getnode, _ipconfig_getnode]
     else:
-        getters = [_unixdll_getnode, _ifconfig_getnode]
-    for getter in getters + [_random_getnode]:
-        try:
-            _node = getter()
-        except:
-            continue
+        import sys
+        if sys.platform == 'win32':
+            getters = [_windll_getnode, _netbios_getnode, _ipconfig_getnode]
+        else:
+            getters = [_unixdll_getnode, _ifconfig_getnode]
+        for getter in getters + [_random_getnode]:
+            try:
+                _node = getter()
+            except:
+                continue
 
-        if _node is not None:
-            return _node
+            if _node is not None:
+                return _node
+
+        return
 
 
 _last_timestamp = None
 
-def uuid1(node = None, clock_seq = None):
+def uuid1(node=None, clock_seq=None):
     global _last_timestamp
-    if _uuid_generate_time and node is clock_seq is None:
-        _buffer = ctypes.create_string_buffer(16)
+    if _uuid_generate_time:
+        _buffer = node is clock_seq is None and ctypes.create_string_buffer(16)
         _uuid_generate_time(_buffer)
         return UUID(bytes=_buffer.raw)
-    import time
-    nanoseconds = int(time.time() * 1000000000.0)
-    timestamp = int(nanoseconds // 100) + 122192928000000000L
-    if _last_timestamp is not None and timestamp <= _last_timestamp:
-        timestamp = _last_timestamp + 1
-    _last_timestamp = timestamp
-    if clock_seq is None:
-        import random
-        clock_seq = random.randrange(16384L)
-    time_low = timestamp & 4294967295L
-    time_mid = timestamp >> 32L & 65535L
-    time_hi_version = timestamp >> 48L & 4095L
-    clock_seq_low = clock_seq & 255L
-    clock_seq_hi_variant = clock_seq >> 8L & 63L
-    if node is None:
-        node = getnode()
-    return UUID(fields=(time_low,
-     time_mid,
-     time_hi_version,
-     clock_seq_hi_variant,
-     clock_seq_low,
-     node), version=1)
+    else:
+        import time
+        nanoseconds = int(time.time() * 1000000000.0)
+        timestamp = int(nanoseconds // 100) + 122192928000000000L
+        if _last_timestamp is not None and timestamp <= _last_timestamp:
+            timestamp = _last_timestamp + 1
+        _last_timestamp = timestamp
+        if clock_seq is None:
+            import random
+            clock_seq = random.randrange(16384L)
+        time_low = timestamp & 4294967295L
+        time_mid = timestamp >> 32L & 65535L
+        time_hi_version = timestamp >> 48L & 4095L
+        clock_seq_low = clock_seq & 255L
+        clock_seq_hi_variant = clock_seq >> 8L & 63L
+        if node is None:
+            node = getnode()
+        return UUID(fields=(time_low,
+         time_mid,
+         time_hi_version,
+         clock_seq_hi_variant,
+         clock_seq_low,
+         node), version=1)
 
 
 def uuid3(namespace, name):

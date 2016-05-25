@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\client\script\remote\michelle.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\client\script\remote\michelle.py
 import sys
 import math
 import collections
@@ -22,7 +23,14 @@ import telemetry
 import geo2
 import const
 from spacecomponents.client.factory import COMPONENTS
+import uthread2
+from gametime import Timer
+from eve.client.script.ui.view.viewStateConst import ViewOverlay
+from eve.client.script.ui.shared.fitting.fittingController import FittingController
+from operator import attrgetter
+import evetypes
 from utillib import KeyVal
+VISIBILITY_RANGE = 50000000
 
 class Michelle(service.Service):
     __guid__ = 'svc.michelle'
@@ -45,11 +53,12 @@ class Michelle(service.Service):
      'OnDroneActivityChange',
      'OnAudioActivated',
      'DoSimClockRebase',
-     'OnSessionChanged']
+     'OnPrimaryViewChanged']
     __dependencies__ = ['machoNet',
      'dataconfig',
      'crimewatchSvc',
-     'godma']
+     'godma',
+     'viewState']
 
     def Run(self, ms):
         self.state = service.SERVICE_START_PENDING
@@ -68,42 +77,168 @@ class Michelle(service.Service):
             self.logInfo = False
         self.state = service.SERVICE_RUNNING
         self.jumpTimer = GetJumpTimer()
+        return
 
-    def OnSessionChanged(self, isRemote, session, change):
-        if 'locationid' in change:
-            oldLocation, newLocation = change['locationid']
-            if util.IsSolarSystem(oldLocation):
+    def OnPrimaryViewChanged(self, *args):
+        self.UpdateBallpark()
+
+    def UpdateBallpark(self):
+        if session.solarsystemid and self.viewState.IsPrimaryViewActive('inflight', 'structure'):
+            if self.__bp and self.__bp.solarsystemID != session.solarsystemid:
                 self.RemoveBallpark()
-                self.LogInfo('Removed ballpark for', oldLocation)
-            if util.IsSolarSystem(newLocation):
+            if self.__bp is None:
                 sm.GetService('space')
-                self.LogInfo('Adding new ballpark for', newLocation)
-                self.AddBallpark(newLocation)
+                self.AddBallpark(session.solarsystemid)
+                self.DetectAndFixMissingHudModules()
+            sm.ScatterEvent('OnEnterSpace')
+        else:
+            self.RemoveBallpark()
+        if self.__bp is None:
+            sm.GetService('sceneManager').UnregisterScene('default')
+            sm.GetService('sceneManager').CleanupSpaceResources()
+            blue.recycler.Clear()
+        return
+
+    @telemetry.ZONE_METHOD
+    def DetectAndFixMissingHudModules(self):
+        try:
+            t = uthread2.StartTasklet(self._DetectAndFixMissingHudModules)
+            t.context = 'michelle.py::DetectAndFixMissingHudModules (EVE-120280)'
+        except Exception as e:
+            log.LogException("Exception in Unnar's magical _DetectAndFixMissingHudModules. Thank god we're not taking that seriously. %s" % e)
+
+    def _DetectAndFixMissingHudModules(self):
+
+        def _IsPassiveModule(typeID):
+            effects = cfg.dgmtypeeffects.get(typeID, [])
+            activeEffectsList = [ effect for effect in effects if effect.isDefault and cfg.dgmeffects.Get(effect.effectID).effectName != 'online' and cfg.dgmeffects.Get(effect.effectID).effectCategory in (const.dgmEffActivation, const.dgmEffTarget) ]
+            return len(activeEffectsList) == 0
+
+        def _GetReducedModuleList(listName, modules, attrgetters):
+            ret = []
+            godma = sm.StartService('godma')
+            reportString = ''
+            for module in modules:
+                itemID = attrgetters['itemID'](module)
+                typeID = attrgetters['typeID'](module)
+                flagID = attrgetters['flagID'](module)
+                reportString += '\nModule %s (%s):\n' % (itemID, evetypes.GetName(typeID))
+                godmaItem = None
+                if not isinstance(itemID, tuple):
+                    godmaItem = godma.GetItem(itemID)
+                if isinstance(itemID, tuple) or godmaItem and godmaItem.typeID != typeID:
+                    newItemIDReport = 'Checking if I need to substitute parent module itemID.... %s\n'
+                    itemWrapper = godma.GetItem(session.shipid)
+                    sloccupants = itemWrapper.GetSlotOccupants(flagID)
+                    for sloccupant in sloccupants:
+                        if sloccupant.flagID == flagID and sloccupant.typeID == typeID and sloccupant.itemID != itemID:
+                            newItemIDReport = newItemIDReport % 'itemID %s -> %s' % (itemID, sloccupant.itemID)
+                            reportString += newItemIDReport
+                            itemID = sloccupant.itemID
+                            godmaItem = godma.GetItem(itemID)
+                            break
+                    else:
+                        newItemIDReport = newItemIDReport % 'Nope!'
+                        reportString += newItemIDReport
+
+                if not godmaItem:
+                    reportString += 'ABORT: No godma item found!\n'
+                    continue
+                if not const.flagLoSlot0 <= flagID <= const.flagHiSlot7:
+                    reportString += 'ABORT: Is not a module!\n'
+                    continue
+                if clientDogmaLM.IsModuleSlave(itemID, session.shipid):
+                    reportString += 'ABORT: Is a slave module!\n'
+                    continue
+                if evetypes.GetCategoryID(typeID) == const.categoryCharge:
+                    reportString += 'ABORT: Is a charge category!\n'
+                    continue
+                if _IsPassiveModule(typeID) and hidePassive:
+                    reportString += 'ABORT: Is filtered by passive settings!\n'
+                    continue
+                reportString += 'Added (%s, %s, %s)\n' % (itemID, typeID, flagID)
+                ret.append((itemID, typeID, flagID))
+
+            ret.sort()
+            return (ret, reportString)
+
+        sleepUntil = blue.os.GetWallclockTime() + 10 * const.SEC
+        log.LogInfo('_DetectAndFixMissingHudModules sleeping until %s' % util.FmtDate(sleepUntil))
+        sessionWaitTimer = Timer(blue.os.GetWallclockTime, blue.synchro.SleepWallclock, const.MIN)
+        sessionWaitTimer.SleepUntil(sleepUntil)
+        if not self.viewState.IsPrimaryViewActive('inflight'):
+            log.LogInfo('_DetectAndFixMissingHudModules slept until player was no longer in space. Aborting check!')
+            return
+        else:
+            log.LogInfo('_DetectAndFixMissingHudModules done sleeping! Checking HUD module state against clientdogma!')
+            hidePassive = not settings.user.ui.Get('showPassiveModules', True)
+            shipUI = sm.GetService('viewState').overlaysByName.get(ViewOverlay.ShipUI, None)
+            if not shipUI:
+                log.LogInfo('Viewstate not found. Bailing.')
+                return
+            clientDogmaLM = sm.GetService('clientDogmaIM').GetDogmaLocation()
+            hudController = getattr(shipUI, 'controller', None)
+            slotsContainer = getattr(shipUI, 'slotsContainer', None)
+            if not hudController or not slotsContainer:
+                log.LogInfo("No controller found in shipUI. We're not in space yet!")
+                return
+            attrgetters = {'itemID': attrgetter('itemID'),
+             'typeID': attrgetter('typeID'),
+             'flagID': attrgetter('flagID')}
+            dogmaModules, dogmaReport = _GetReducedModuleList('dogmaModules', FittingController(session.shipid).GetFittedModules(), attrgetters)
+            godmaModules, godmaReport = _GetReducedModuleList('godmaModules', hudController.GetModules(), attrgetters)
+            attrgetters = {'itemID': attrgetter('id'),
+             'typeID': attrgetter('sr.moduleInfo.typeID'),
+             'flagID': attrgetter('sr.moduleInfo.flagID')}
+            shipModuleButtons, shipModuleReport = _GetReducedModuleList('shipUIButtons', [ x for x in shipUI.slotsContainer.modulesByID.itervalues() ], attrgetters)
+            if dogmaModules != godmaModules:
+                dogmaReport = '\n---------------- %s ----------------\n=>%s\n%s' % ('dogmaModules', dogmaModules, dogmaReport)
+                godmaReport = '\n---------------- %s ----------------\n=>%s\n%s' % ('godmaModules', godmaModules, godmaReport)
+                log.LogException('_DetectAndFixMissingHudModules found missing modules in spaceUI data! I will attempt to refresh godma items and redraw!\n%s %s' % (dogmaReport, godmaReport))
+                sm.GetService('godma').GetStateManager().ForcePrimeLocation([session.shipid])
+                shipUI.SetupShip()
+            elif dogmaModules != shipModuleButtons:
+                dogmaReport = '\n---------------- %s ----------------\n=>%s\n%s' % ('dogmaModules', dogmaModules, dogmaReport)
+                godmaReport = '\n---------------- %s ----------------\n=>%s\n%s' % ('godmaModules', godmaModules, godmaReport)
+                shipModuleReport = '\n---------------- %s ----------------\n=>%s\n%s' % ('shipUIButtons', shipModuleButtons, shipModuleReport)
+                log.LogException('_DetectAndFixMissingHudModules found missing modules in spaceUI view. I will attempt to redraw!\n%s%s%s' % (dogmaReport, godmaReport, shipModuleReport))
+                shipUI.SetupShip()
+            return
 
     def OnFleetStateChange(self, fleetState):
         if self.__bp is not None:
             self.__bp.OnFleetStateChange(fleetState)
+        return
 
     def OnDroneStateChange(self, droneID, ownerID, controllerID, activityState, droneTypeID, controllerOwnerID, targetID):
         if self.__bp is not None:
             self.__bp.OnDroneStateChange(droneID, ownerID, controllerID, activityState, droneTypeID, controllerOwnerID, targetID)
+        return
 
     def OnDroneActivityChange(self, droneID, activityID, activity):
         if self.__bp is not None:
             self.__bp.OnDroneActivityChange(droneID, activityID, activity)
+        return
 
     def GetFleetState(self):
         if self.__bp is None:
             return
-        if session.fleetid is None:
+        elif session.fleetid is None:
             return
-        if self.__bp.fleetState is None:
-            self.__bp.fleetState = self.GetRemotePark().GetFleetState()
-        return self.__bp.fleetState
+        else:
+            if self.__bp.fleetState is None:
+                self.__bp.fleetState = self.GetRemotePark().GetFleetState()
+            return self.__bp.fleetState
 
     def Refresh(self):
         if self.__bp is not None:
             self.__bp.Refresh()
+        return
+
+    def RequestReset(self):
+        if self.__bp is not None:
+            self.__bp.RequestReset()
+        return
 
     def Stop(self, ms):
         if self.__bp is not None:
@@ -111,6 +246,7 @@ class Michelle(service.Service):
             self.__bp = None
         self.ballQueue.non_blocking_put(None)
         self.quit = 1
+        return
 
     def AddBallpark(self, solarsystemID):
         self.LogNotice('Adding ballpark', solarsystemID)
@@ -138,99 +274,125 @@ class Michelle(service.Service):
         if self.__bp is not None:
             self.__bp.Release()
             self.__bp = None
+        return
 
-    def GetBallpark(self, doWait = False):
+    def GetBallpark(self, doWait=False):
         if self.bpReady:
             return self.__bp
         elif not doWait:
             return None
-        WAIT_TIME = 1
-        MAX_TRIES = 30
-        tries = 0
-        while not self.bpReady and tries < MAX_TRIES:
-            self.LogInfo('Waiting for ballpark', tries)
-            tries = tries + 1
-            blue.pyos.synchro.SleepSim(WAIT_TIME * 1000)
-
-        if not self.bpReady:
-            logstring = 'Failed to get a valid ballpark in time after trying %d times' % tries
-            self.LogError(logstring)
-            if session.charid:
-                uthread.new(sm.ProxySvc('clientStatLogger').LogString, logstring)
-            return None
         else:
+            WAIT_TIME = 1
+            MAX_TRIES = 30
+            tries = 0
+            while not self.bpReady and tries < MAX_TRIES:
+                self.LogInfo('Waiting for ballpark', tries)
+                tries = tries + 1
+                blue.pyos.synchro.SleepSim(WAIT_TIME * 1000)
+
+            if not self.bpReady:
+                logstring = 'Failed to get a valid ballpark in time after trying %d times' % tries
+                self.LogError(logstring)
+                if session.charid:
+                    uthread.new(sm.ProxySvc('clientStatLogger').LogString, logstring)
+                return None
             return self.__bp
+            return None
 
     def GetRemotePark(self):
         if self.__bp is None:
             return
-        return self.__bp.remoteBallpark
+        else:
+            return self.__bp.remoteBallpark
 
     def GetBallparkForScene(self, scene):
         self.LogInfo('GetBallpark object', self.__bp, 'now has:', sys.getrefcount(self.__bp), 'references')
         if not self.__bp:
             return None
-        if self.__bp not in self.scenes:
-            self.scenes[self.__bp] = []
-        self.scenes[self.__bp].append(scene)
-        return self.__bp
+        else:
+            if self.__bp not in self.scenes:
+                self.scenes[self.__bp] = []
+            self.scenes[self.__bp].append(scene)
+            return self.__bp
 
     def GetBall(self, id):
         if self.__bp is not None:
             return self.__bp.GetBall(id)
         else:
             return
+            return
 
     def GetItem(self, id):
         if self.__bp is not None:
             return self.__bp.GetInvItem(id)
+        else:
+            return
+
+    def InWarp(self):
+        ball = self.GetBall(session.shipid)
+        return ball and ball.mode == destiny.DSTBALL_WARP
+
+    def IsBallVisible(self, id):
+        if self.__bp is not None:
+            return self.__bp.IsBallVisible(id)
+        else:
+            return False
+            return
 
     def GetDroneState(self, droneID):
         if self.__bp is not None:
             return self.__bp.stateByDroneID.get(droneID, None)
+        else:
+            return
 
     def GetDroneActivity(self, droneID):
         if self.__bp is not None:
             return self.__bp.activityByDrone.get(droneID, None)
+        else:
+            return
 
     def GetDrones(self):
         if self.__bp is not None:
             return self.__bp.stateByDroneID
+        else:
+            return
 
-    def DoDestinyUpdate(self, state, waitForBubble, dogmaMessages = [], doDump = True):
+    def DoDestinyUpdate(self, state, waitForBubble, dogmaMessages=[], doDump=True):
         self.LogInfo('DoDestinyUpdate call for tick', state[0][0], 'containing', len(state), 'updates.  waitForBubble=', waitForBubble)
         if self.__bp is None:
-            raise RuntimeError('No ballpark for update')
-        if dogmaMessages:
-            self.LogInfo('OnMultiEvent has', len(dogmaMessages), 'messages')
-            sm.ScatterEvent('OnMultiEvent', dogmaMessages)
-        expandedStates = []
-        for action in state:
-            if action[1][0] == 'PackagedAction':
-                try:
-                    unpackagedActions = blue.marshal.Load(action[1][1])
-                    expandedStates.extend(unpackagedActions)
-                except:
-                    log.LogException('Exception whilst expanding a PackagedAction')
-                    sys.exc_clear()
-
-            else:
-                expandedStates.append(action)
-
-        state = expandedStates
-        timestamps = set()
-        for action in state:
-            timestamps.add(action[0])
-
-        if len(timestamps) > 1:
-            self.LogError('Found update batch with', len(state), 'items and', len(timestamps), 'timestamps')
+            return
+        else:
+            if dogmaMessages:
+                self.LogInfo('OnMultiEvent has', len(dogmaMessages), 'messages')
+                sm.ScatterEvent('OnMultiEvent', dogmaMessages)
+            expandedStates = []
             for action in state:
-                self.LogError('Action:', action)
+                if action[1][0] == 'PackagedAction':
+                    try:
+                        unpackagedActions = blue.marshal.Load(action[1][1])
+                        expandedStates.extend(unpackagedActions)
+                    except:
+                        log.LogException('Exception whilst expanding a PackagedAction')
+                        sys.exc_clear()
 
-            sm.GetService('clientStatsSvc').OnFatalDesync()
-            if not self.__bp.hideDesyncSymptoms:
-                uthread.new(eve.Message, 'CustomInfo', {'info': 'Desync mismatched updates problem occurred'})
-        self.__bp.FlushState(state, waitForBubble, doDump)
+                else:
+                    expandedStates.append(action)
+
+            state = expandedStates
+            timestamps = set()
+            for action in state:
+                timestamps.add(action[0])
+
+            if len(timestamps) > 1:
+                self.LogError('Found update batch with', len(state), 'items and', len(timestamps), 'timestamps')
+                for action in state:
+                    self.LogError('Action:', action)
+
+                sm.GetService('clientStatsSvc').OnFatalDesync()
+                if not self.__bp.hideDesyncSymptoms:
+                    uthread.new(eve.Message, 'CustomInfo', {'info': 'Desync mismatched updates problem occurred'})
+            self.__bp.FlushState(state, waitForBubble, doDump)
+            return
 
     def DoDestinyUpdates(self, updates):
         self.LogInfo('DoDestinyUpdates call, count=', len(updates))
@@ -252,10 +414,11 @@ class Michelle(service.Service):
     def GetCharIDFromShipID(self, shipID):
         if self.__bp is None:
             return
-        if shipID not in self.__bp.slimItems:
+        elif shipID not in self.__bp.slimItems:
             return
-        slimItem = self.__bp.slimItems[shipID]
-        return slimItem.charID
+        else:
+            slimItem = self.__bp.slimItems[shipID]
+            return slimItem.charID
 
     def GetRelativity(self):
         lpark = self.GetBallpark()
@@ -307,6 +470,8 @@ class Michelle(service.Service):
                 self.LogError('In michelle.Dispatcher')
                 log.LogException()
                 sys.exc_clear()
+
+        return
 
     def ProcessDispatchOrders(self, orders):
         ownersToPrime, tickersToPrime, allyTickersToPrime, stuffToAdd, newState, locationsToPrime = orders
@@ -365,55 +530,59 @@ class Michelle(service.Service):
             timer = t.PushTimer(blue.pyos.taskletTimer.GetCurrent() + '::OnNewState')
             sm.ScatterEvent('OnNewState', newState)
             t.PopTimer(timer)
+        return
 
     def HandleBallNotInParkError(self, ball):
         reportBallNotInPark = prefs.GetValue('reportBallNotInPark', False)
         if not reportBallNotInPark:
             return
-        now = blue.os.GetWallclockTime()
-        ballID = ball.id
-        if ballID in self.ballNotInParkErrors and ballID not in self.handledBallErrors:
-            diff = now - self.ballNotInParkErrors[ballID]
-            if 5 * const.SEC < diff:
-                if not self.logChannel.IsOpen(4):
-                    print 'Ball', ballID, 'not in park!'
-                else:
-                    self.LogError('-----------------------------------------------------------------------------------')
-                    self.LogError('BALL NOT IN PARK:', ballID)
-                    self.LogError('-----------------------------------------------------------------------------------')
-                    self.LogError('Ball has not been in park for', diff / const.SEC, 'seconds.')
-                    self.LogError("Probable cause is trinity graphics that haven't been cleaned up.")
-                    self.LogError('Ball Info:')
-                    self.LogError('\tBall deco type:', getattr(ball, '__class__', '?'))
-                    self.LogError('\tModel:', getattr(ball, 'model', None))
-                    self.LogError('\tExploded:', getattr(ball, 'exploded', '?'))
-                    if ball.ballpark is None:
-                        self.LogError('\tNot in any ballpark')
-                    else:
-                        self.LogError('\tIn Ballpark:', getattr(ball.ballpark, 'solarsystemID', '?'))
-                    slimItem = self.GetItem(ball.id)
-                    if slimItem:
-                        self.LogError('Slim Item Info:')
-                        self.LogError('\tType:', slimItem.typeID)
-                    self.LogError('Checking Scene')
-                    scene = sm.GetService('sceneManager').GetActiveScene()
-                    if scene is not None:
-                        for obj in scene.objects:
-                            if len([ foundBall for foundBall in obj.Find('destiny.ClientBall') if foundBall == ball ]):
-                                if hasattr(obj, 'display'):
-                                    obj.display = 0
-                                if hasattr(obj, 'update'):
-                                    obj.update = 0
-                                self.LogError('\tAttached to', obj.__bluetype__, 'named', getattr(obj, 'name', '?'), ' in Scene')
-
-                self.handledBallErrors.add(ballID)
-                del self.ballNotInParkErrors[ballID]
         else:
-            self.ballNotInParkErrors[ballID] = now
+            now = blue.os.GetWallclockTime()
+            ballID = ball.id
+            if ballID in self.ballNotInParkErrors and ballID not in self.handledBallErrors:
+                diff = now - self.ballNotInParkErrors[ballID]
+                if 5 * const.SEC < diff:
+                    if not self.logChannel.IsOpen(4):
+                        print 'Ball', ballID, 'not in park!'
+                    else:
+                        self.LogError('-----------------------------------------------------------------------------------')
+                        self.LogError('BALL NOT IN PARK:', ballID)
+                        self.LogError('-----------------------------------------------------------------------------------')
+                        self.LogError('Ball has not been in park for', diff / const.SEC, 'seconds.')
+                        self.LogError("Probable cause is trinity graphics that haven't been cleaned up.")
+                        self.LogError('Ball Info:')
+                        self.LogError('\tBall deco type:', getattr(ball, '__class__', '?'))
+                        self.LogError('\tModel:', getattr(ball, 'model', None))
+                        self.LogError('\tExploded:', getattr(ball, 'exploded', '?'))
+                        if ball.ballpark is None:
+                            self.LogError('\tNot in any ballpark')
+                        else:
+                            self.LogError('\tIn Ballpark:', getattr(ball.ballpark, 'solarsystemID', '?'))
+                        slimItem = self.GetItem(ball.id)
+                        if slimItem:
+                            self.LogError('Slim Item Info:')
+                            self.LogError('\tType:', slimItem.typeID)
+                        self.LogError('Checking Scene')
+                        scene = sm.GetService('sceneManager').GetActiveScene()
+                        if scene is not None:
+                            for obj in scene.objects:
+                                if len([ foundBall for foundBall in obj.Find('destiny.ClientBall') if foundBall == ball ]):
+                                    if hasattr(obj, 'display'):
+                                        obj.display = 0
+                                    if hasattr(obj, 'update'):
+                                        obj.update = 0
+                                    self.LogError('\tAttached to', obj.__bluetype__, 'named', getattr(obj, 'name', '?'), ' in Scene')
+
+                    self.handledBallErrors.add(ballID)
+                    del self.ballNotInParkErrors[ballID]
+            else:
+                self.ballNotInParkErrors[ballID] = now
+            return
 
     def OnAudioActivated(self):
         if self.__bp is not None:
             self.__bp.OnAudioActivated()
+        return
 
     def DoSimClockRebase(self, times):
         oldSimTime, newSimTime = times
@@ -502,11 +671,13 @@ class Park(decometaclass.WrapBlueClass('destiny.Ballpark')):
          'OnDroneStateChange',
          'OnSovereigntyChanged'])
         self.componentRegistry = self.broker.GetComponentRegistry()
+        return
 
     def __del__(self):
         self.remoteBallpark = None
         self.broker = None
         self.states = []
+        return
 
     def RequestReset(self):
         self.validState = False
@@ -557,6 +728,8 @@ class Park(decometaclass.WrapBlueClass('destiny.Ballpark')):
                 self.broker.LogInfo(*lastState)
             self.broker.LogInfo(' ')
 
+        return
+
     def DoPreTick(self, stamp):
         if not self.hideDesyncSymptoms:
             while len(self.history) > 0:
@@ -591,7 +764,7 @@ class Park(decometaclass.WrapBlueClass('destiny.Ballpark')):
                     return
                 self._parent_Evolve()
 
-    def StoreState(self, midTick = False):
+    def StoreState(self, midTick=False):
         if self.dirty or not self.isRunning:
             return
         ms = blue.MemStream()
@@ -623,12 +796,14 @@ class Park(decometaclass.WrapBlueClass('destiny.Ballpark')):
             del self.broker.scenes[self]
         self.validState = False
         self.solItem = None
+        self.remoteBallpark.Unbind()
         self.remoteBallpark = None
         self.slimItems = {}
         self.damageState = {}
         self.activityByDrone = {}
         self.history = []
         self.latestSetStateTime = 0
+        return
 
     def SetState(self, bag):
         self.componentRegistry = self.broker.CreateComponentRegistry()
@@ -675,7 +850,7 @@ class Park(decometaclass.WrapBlueClass('destiny.Ballpark')):
         self.researchLevel = bag.researchLevel
         sm.ScatterEvent('OnBallparkSetState')
 
-    def QueueBallData(self, ballQueueData, newState = None):
+    def QueueBallData(self, ballQueueData, newState=None):
         self.broker.ballQueue.non_blocking_put((ballQueueData.ownersToPrime,
          ballQueueData.tickersToPrime,
          ballQueueData.allyTickersToPrime,
@@ -686,17 +861,18 @@ class Park(decometaclass.WrapBlueClass('destiny.Ballpark')):
     def GetDamageState(self, itemID):
         if itemID not in self.damageState:
             return
-        mainctx = blue.pyos.taskletTimer.EnterTasklet('Michelle::GetDamageState')
-        try:
-            state, time = self.damageState[itemID]
-            if not state:
-                return
-            ret = CalculateCurrentDamageStateValues(state, time)
-            ret = ret + list(state[-2:])
-        finally:
-            blue.pyos.taskletTimer.ReturnFromTasklet(mainctx)
+        else:
+            mainctx = blue.pyos.taskletTimer.EnterTasklet('Michelle::GetDamageState')
+            try:
+                state, time = self.damageState[itemID]
+                if not state:
+                    return
+                ret = CalculateCurrentDamageStateValues(state, time)
+                ret = ret + list(state[-2:])
+            finally:
+                blue.pyos.taskletTimer.ReturnFromTasklet(mainctx)
 
-        return ret
+            return ret
 
     def DistanceBetween(self, srcID, dstID):
         dist = self.GetSurfaceDist(srcID, dstID)
@@ -710,27 +886,28 @@ class Park(decometaclass.WrapBlueClass('destiny.Ballpark')):
         structureSlim = self.slimItems.get(structureID)
         if structureSlim is None:
             return False
-        controlTowerID = None
-        if structureSlim.groupID == const.groupControlTower:
-            controlTowerID = structureID
-        elif structureSlim.controlTowerID is not None:
-            controlTowerID = structureSlim.controlTowerID
-        if controlTowerID is None:
-            return False
-        towerSlim = self.slimItems.get(controlTowerID)
-        if towerSlim is None:
-            return False
-        towerShieldRadius = self.broker.godma.GetStateManager().GetType(towerSlim.typeID).shieldRadius
-        return self.GetCenterDist(controlTowerID, shipID) < towerShieldRadius
+        else:
+            controlTowerID = None
+            if structureSlim.groupID == const.groupControlTower:
+                controlTowerID = structureID
+            elif structureSlim.controlTowerID is not None:
+                controlTowerID = structureSlim.controlTowerID
+            if controlTowerID is None:
+                return False
+            towerSlim = self.slimItems.get(controlTowerID)
+            if towerSlim is None:
+                return False
+            towerShieldRadius = self.broker.godma.GetStateManager().GetType(towerSlim.typeID).shieldRadius
+            return self.GetCenterDist(controlTowerID, shipID) < towerShieldRadius
 
-    def RebaseStates(self, wipe = 0):
+    def RebaseStates(self, wipe=0):
         if self.broker.logInfo:
             self.broker.LogInfo('State history rebased at', self.currentTime)
         self.states = []
         if not wipe:
             self.StoreState()
 
-    def FlushSimulationHistory(self, newBaseSnapshot = True):
+    def FlushSimulationHistory(self, newBaseSnapshot=True):
         if self.broker.logInfo:
             self.broker.LogInfo('State history rebased at', self.currentTime, 'newBaseSnapshot', newBaseSnapshot)
         lastMidState = None
@@ -746,6 +923,8 @@ class Park(decometaclass.WrapBlueClass('destiny.Ballpark')):
             for item in self.states:
                 if self.broker.logInfo:
                     self.broker.LogInfo('State entry', item)
+
+        return
 
     def SynchroniseToSimulationTime(self, stamp):
         if self.broker.logInfo:
@@ -773,7 +952,7 @@ class Park(decometaclass.WrapBlueClass('destiny.Ballpark')):
             self.broker.LogInfo('SynchroniseToSimulationTime found:', self.currentTime)
         return 1
 
-    def FlushState(self, state, waitForBubble, doDump = True):
+    def FlushState(self, state, waitForBubble, doDump=True):
         self.broker.LogInfo('Server Update with', len(state), 'event(s) added to history')
         if len(state) == 0:
             self.broker.LogWarn('Empty state received from remote ballpark')
@@ -900,7 +1079,7 @@ class Park(decometaclass.WrapBlueClass('destiny.Ballpark')):
         else:
             self.broker.LogInfo('Events ignored')
 
-    def TerminalExplosion(self, shipID, bubbleID = None, ballIsGlobal = False):
+    def TerminalExplosion(self, shipID, bubbleID=None, ballIsGlobal=False):
         pass
 
     def ProcessBallAdd(self, slimItem, ballQueueData):
@@ -919,22 +1098,28 @@ class Park(decometaclass.WrapBlueClass('destiny.Ballpark')):
             if util.IsCelestial(slimItem.itemID) or util.IsStargate(slimItem.itemID):
                 ballQueueData.locationsToPrime.append(slimItem.itemID)
             elif slimItem.itemID >= const.minFakeItem and slimItem.nameID is not None:
-                cfg.evelocations.Hint(slimItem.itemID, [slimItem.itemID,
+                location = [slimItem.itemID,
                  '',
+                 self.solarsystemID,
                  ball.x,
                  ball.y,
                  ball.z,
-                 slimItem.nameID])
+                 slimItem.nameID]
+                cfg.evelocations.Hint(slimItem.itemID, location)
             elif not (slimItem.categoryID == const.categoryAsteroid or slimItem.groupID == const.groupHarvestableCloud):
-                cfg.evelocations.Hint(slimItem.itemID, [slimItem.itemID,
+                location = [slimItem.itemID,
                  slimItem.name,
+                 self.solarsystemID,
                  ball.x,
                  ball.y,
                  ball.z,
-                 slimItem.nameID])
+                 slimItem.nameID]
+                cfg.evelocations.Hint(slimItem.itemID, location)
         if self.componentRegistry.GetComponentClassesForTypeID(slimItem.typeID):
             self.componentRegistry.CreateComponentInstances(slimItem.itemID, slimItem.typeID)
             self.componentRegistry.SendMessageToItem(slimItem.itemID, MSG_ON_ADDED_TO_SPACE, slimItem)
+        sm.ScatterEvent('OnBallAdded', slimItem)
+        return
 
     def AddBalls(self, chunk):
         state, slims, damageDict = chunk
@@ -975,18 +1160,26 @@ class Park(decometaclass.WrapBlueClass('destiny.Ballpark')):
             self.ProcessBallAdd(slimItem, ballQueueData)
 
         self.QueueBallData(ballQueueData)
+        return
 
-    def AddClientSideBall(self, position, isGlobal = False):
+    def AddClientSideBall(self, position, isGlobal=False):
         x, y, z = position
         ball = self.AddBall(self.clientBallNextID, 1.0, 0.0, 0, False, isGlobal, False, False, False, x, y, z, 0, 0, 0, 0, 0)
         self.clientBallNextID -= 1
         return ball
 
     def RemoveClientSideBall(self, ballID):
+        ball = self.GetBall(ballID)
         self._parent_RemoveBall(ballID, 0)
+        if ball:
+            sm.SendEvent('DoClientSideBallRemove', ball)
+
+    def UpdateClientSideBallPosition(self, ballID, position):
+        ball = self.GetBall(ballID)
+        ball.x, ball.y, ball.z = position
 
     @telemetry.ZONE_METHOD
-    def RemoveBall(self, ballID, terminal = False, bubbleID = -1):
+    def RemoveBall(self, ballID, terminal=False, bubbleID=-1):
         if self.broker.logInfo:
             self.broker.LogInfo('Removing ball', ballID, '(terminal)' if terminal else '')
         ball = self.balls.get(ballID, None)
@@ -1004,16 +1197,18 @@ class Park(decometaclass.WrapBlueClass('destiny.Ballpark')):
             del self.activityByDrone[ballID]
         if ballID not in self.slimItems:
             return
-        slimItem = self.slimItems[ballID]
-        if ballID > destiny.DSTLOCALBALLS:
-            if ball is None:
-                self.broker.LogWarn('DoBallRemove sending a None ball', slimItem, terminal)
-            sm.SendEvent('DoBallRemove', ball, slimItem, terminal)
-        if ballID in self.slimItems:
-            del self.slimItems[ballID]
+        else:
+            slimItem = self.slimItems[ballID]
+            if ballID > destiny.DSTLOCALBALLS:
+                if ball is None:
+                    self.broker.LogWarn('DoBallRemove sending a None ball', slimItem, terminal)
+                sm.SendEvent('DoBallRemove', ball, slimItem, terminal)
+            if ballID in self.slimItems:
+                del self.slimItems[ballID]
+            return
 
     @telemetry.ZONE_METHOD
-    def RemoveBalls(self, ballIDs, exploders = None, isRelease = False):
+    def RemoveBalls(self, ballIDs, exploders=None, isRelease=False):
         if exploders:
             if self.broker.logInfo:
                 self.broker.LogInfo('RemoveBalls: Has exploders')
@@ -1053,14 +1248,19 @@ class Park(decometaclass.WrapBlueClass('destiny.Ballpark')):
             if ballID in self.slimItems:
                 del self.slimItems[ballID]
 
+        return
+
     def DeleteComponents(self, itemID):
         if self.componentRegistry is None:
             return
-        self.componentRegistry.SendMessageToItem(itemID, MSG_ON_REMOVED_FROM_SPACE)
-        try:
-            self.componentRegistry.DeleteComponentInstances(itemID)
-        except KeyError:
-            pass
+        else:
+            self.componentRegistry.SendMessageToItem(itemID, MSG_ON_REMOVED_FROM_SPACE)
+            try:
+                self.componentRegistry.DeleteComponentInstances(itemID)
+            except KeyError:
+                pass
+
+            return
 
     def GetBallsAndItems(self):
         ballList = []
@@ -1076,6 +1276,22 @@ class Park(decometaclass.WrapBlueClass('destiny.Ballpark')):
     def GetBallById(self, ballID):
         return self.GetBall(ballID)
 
+    def GetWarpinPoint(self, ballID):
+        ball = self.GetBall(ballID)
+        item = self.GetInvItem(ballID)
+        if item.groupID == const.groupPlanet:
+            return util.GetPlanetWarpInPoint(ballID, (ball.x, ball.y, ball.z), ball.radius)
+        else:
+            return util.GetWarpInPoint(ballID, (ball.x, ball.y, ball.z), ball.radius)
+
+    def GetWarpinPoints(self):
+        balls = []
+        for ball in self.globals.itervalues():
+            if ball.radius > 90000:
+                balls.append((ball, self.GetInvItem(ball.id), self.GetWarpinPoint(ball.id)))
+
+        return balls
+
     def OnFleetStateChange(self, fleetState):
         self.broker.LogInfo('OnFleetStateChange', fleetState)
         self.fleetState = fleetState
@@ -1084,6 +1300,8 @@ class Park(decometaclass.WrapBlueClass('destiny.Ballpark')):
         if self.slimItems.has_key(objectID):
             slim = self.slimItems[objectID]
             return getattr(slim, 'lootRights', None)
+        else:
+            return None
 
     def IsAbandoned(self, objectID):
         if self.slimItems.has_key(objectID):
@@ -1136,6 +1354,7 @@ class Park(decometaclass.WrapBlueClass('destiny.Ballpark')):
                 if self.IsSubSystemChange(oldSlim, newSlim):
                     ball.OnSubSystemChanged(newSlim)
             self.componentRegistry.SendMessageToItem(itemID, MSG_ON_SLIM_ITEM_UPDATED, newSlim)
+        return
 
     def OnDroneStateChange(self, itemID, ownerID, controllerID, activityState, typeID, controllerOwnerID, targetID):
         if session.charid != ownerID and session.shipid != controllerID:
@@ -1145,24 +1364,26 @@ class Park(decometaclass.WrapBlueClass('destiny.Ballpark')):
                 del self.activityByDrone[itemID]
             sm.ScatterEvent('OnDroneControlLost', itemID)
             return
-        state = self.stateByDroneID.get(itemID, None)
-        if state is None:
-            oldActivityState = None
-            self.stateByDroneID.UpdateLI([[itemID,
-              ownerID,
-              controllerID,
-              activityState,
-              typeID,
-              controllerOwnerID,
-              targetID]], 'droneID')
         else:
-            state.ownerID = ownerID
-            state.controllerID = controllerID
-            state.controllerOwnerID = controllerOwnerID
-            oldActivityState = state.activityState
-            state.activityState = activityState
-            state.targetID = targetID
-        sm.ScatterEvent('OnDroneStateChange2', itemID, oldActivityState, activityState)
+            state = self.stateByDroneID.get(itemID, None)
+            if state is None:
+                oldActivityState = None
+                self.stateByDroneID.UpdateLI([[itemID,
+                  ownerID,
+                  controllerID,
+                  activityState,
+                  typeID,
+                  controllerOwnerID,
+                  targetID]], 'droneID')
+            else:
+                state.ownerID = ownerID
+                state.controllerID = controllerID
+                state.controllerOwnerID = controllerOwnerID
+                oldActivityState = state.activityState
+                state.activityState = activityState
+                state.targetID = targetID
+            sm.ScatterEvent('OnDroneStateChange2', itemID, oldActivityState, activityState)
+            return
 
     def OnDroneActivityChange(self, droneID, activityID, activity):
         if not activity:
@@ -1193,7 +1414,7 @@ class Park(decometaclass.WrapBlueClass('destiny.Ballpark')):
         self.damageState[shipID] = (damageState, blue.os.GetSimTime())
         sm.ScatterEvent('OnFleetDamageStateChange', shipID, self.GetDamageState(shipID))
 
-    def OnSpecialFX(self, shipID, moduleID, moduleTypeID, targetID, otherTypeID, guid, isOffensive, start, active, duration = -1, repeat = None, startTime = None, timeFromStart = 0, graphicInfo = None):
+    def OnSpecialFX(self, shipID, moduleID, moduleTypeID, targetID, otherTypeID, guid, isOffensive, start, active, duration=-1, repeat=None, startTime=None, timeFromStart=0, graphicInfo=None):
         if isinstance(moduleID, collections.Iterable):
             for m in moduleID:
                 sm.ScatterEvent('OnSpecialFX', shipID, m, moduleTypeID, targetID, otherTypeID, guid, isOffensive, start, active, duration, repeat, startTime, timeFromStart, graphicInfo)
@@ -1201,7 +1422,7 @@ class Park(decometaclass.WrapBlueClass('destiny.Ballpark')):
         else:
             sm.ScatterEvent('OnSpecialFX', shipID, moduleID, moduleTypeID, targetID, otherTypeID, guid, isOffensive, start, active, duration, repeat, startTime, timeFromStart, graphicInfo)
 
-    def ScatterEwars(self, shipID, moduleID, moduleTypeID, targetID, otherTypeID, guid, isOffensive, start, active, duration = -1, repeat = None, startTime = None, timeFromStart = 0, graphicInfo = None):
+    def ScatterEwars(self, shipID, moduleID, moduleTypeID, targetID, otherTypeID, guid, isOffensive, start, active, duration=-1, repeat=None, startTime=None, timeFromStart=0, graphicInfo=None):
         if isinstance(moduleID, collections.Iterable):
             for m in moduleID:
                 sm.ScatterEvent('OnEwarOnConnect', shipID, m, moduleTypeID, targetID)
@@ -1225,15 +1446,33 @@ class Park(decometaclass.WrapBlueClass('destiny.Ballpark')):
         if ball is not None:
             if hasattr(ball, 'EnterWarp'):
                 ball.EnterWarp()
+        return
 
     def OnDeactivatingWarp(self, srcID, stamp):
         ball = self.GetBall(srcID)
         if ball is not None:
             if hasattr(ball, 'ExitWarp'):
                 ball.ExitWarp()
+        return
 
     def GetSpewContainerManager(self):
         return self.spewContainerManager
+
+    def IsBallVisible(self, ballID):
+        if not self.ego:
+            return False
+        elif ballID == self.ego:
+            return True
+        else:
+            try:
+                distance = self.GetSurfaceDist(self.ego, ballID)
+                if distance is not None and distance < VISIBILITY_RANGE:
+                    return True
+                return False
+            except RuntimeError:
+                return False
+
+            return
 
     def GetBallsInRange(self, fromID, radius):
         balls = []

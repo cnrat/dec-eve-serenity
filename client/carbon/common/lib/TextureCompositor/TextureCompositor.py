@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\carbon\common\lib\TextureCompositor\TextureCompositor.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\carbon\common\lib\TextureCompositor\TextureCompositor.py
 import trinity
 import blue
 import types
@@ -58,7 +59,7 @@ class TextureCompositor(object):
     __metaclass__ = telemetry.ZONE_PER_METHOD
     cachedEffects = None
 
-    def __init__(self, renderTarget = None, resData = None, targetWidth = 0):
+    def __init__(self, renderTarget=None, resData=None, targetWidth=0):
         self.renderJob = None
         self.renderTarget = renderTarget
         self.resourcesToLoad = []
@@ -68,6 +69,7 @@ class TextureCompositor(object):
         self.SetStartingState()
         if not TextureCompositor.cachedEffects:
             TextureCompositor.cachedEffects = GetEffectsToCache()
+        return
 
     def SetStartingState(self):
         self.isReady = False
@@ -76,7 +78,7 @@ class TextureCompositor(object):
         self.texturesByResourceID = {}
         self.resourcesToLoad = []
 
-    def CreateResource(self, effect, paramName, resPath, cutoutName = None, paramType = None, mapType = ''):
+    def CreateResource(self, effect, paramName, resPath, cutoutName=None, paramType=None, mapType=''):
         if paramType is None:
             paramType = trinity.TriTextureParameter()
         paramRes = None
@@ -123,7 +125,7 @@ class TextureCompositor(object):
                 self.resourcesToLoad.append(paramRes)
         return param
 
-    def AppendResource(self, effect, paramName, resPath, cutoutName = None, paramType = None, mapType = ''):
+    def AppendResource(self, effect, paramName, resPath, cutoutName=None, paramType=None, mapType=''):
         effect.resources.append(self.CreateResource(effect, paramName, resPath, cutoutName, paramType, mapType))
 
     def CreateParameter(self, paramType, paramName, paramValue):
@@ -147,7 +149,7 @@ class TextureCompositor(object):
             self.resourcesToLoad.append(effect.effectResource)
         return effect
 
-    def Start(self, clear = True):
+    def Start(self, clear=True):
         self.renderJob = trinity.CreateRenderJob('Texture Compositing')
         self.renderJob.PushRenderTarget(self.renderTarget)
         self.renderJob.PushDepthStencil(None)
@@ -155,6 +157,7 @@ class TextureCompositor(object):
             cl = self.renderJob.Clear((0.0, 1.0, 0.0, 0.0), 1.0)
             cl.isDepthCleared = False
         self.renderJob.SetStdRndStates(trinity.RM_FULLSCREEN)
+        return
 
     def End(self):
         isDone = False
@@ -180,6 +183,7 @@ class TextureCompositor(object):
                 RESOURCE_LOAD_COUNTER[paramRes.path] = count + 1
 
         self.isReady = True
+        return None
 
     def SetShaderPath(self, effect, newPath):
         if newPath.split('/')[-1] in COMPOSITE_SHADER_PATHS:
@@ -187,7 +191,7 @@ class TextureCompositor(object):
             if effect.effectResource.isLoading:
                 self.resourcesToLoad.append(effect.effectResource)
 
-    def Finalize(self, format, w, h, generateMipmap = False, textureToCopyTo = None, compressionSettings = None, mapType = None):
+    def Finalize(self, format, w, h, generateMipmap=False, textureToCopyTo=None, compressionSettings=None, mapType=None):
         isPC = not blue.sysinfo.isTransgaming
         doCompression = compressionSettings is not None and compressionSettings.compressTextures and compressionSettings.AllowCompress(mapType) and isPC
         if doCompression:
@@ -260,22 +264,23 @@ class TextureCompositor(object):
         self.isDone = True
         if self.renderJob.status != trinity.RJ_DONE:
             return
-        if not doCompression:
+        elif not doCompression:
             if textureToCopyTo is not None:
                 return textureToCopyTo
             tex = trinity.TriTextureRes()
             tex.CreateAndCopyFromRenderTarget(self.renderTarget)
             return tex
-        hostBitmap = trinity.Tr2HostBitmap(self.renderTarget)
-        tex = trinity.TriTextureRes()
-        compressionFormat = COMPRESS_DXT5n if mapType is NORMAL_MAP else COMPRESS_DXT5
-        hostBitmap.Compress(compressionFormat, compressionSettings.qualityLevel, tex)
-        while not tex.isPrepared:
-            blue.synchro.Yield()
+        else:
+            hostBitmap = trinity.Tr2HostBitmap(self.renderTarget)
+            tex = trinity.TriTextureRes()
+            compressionFormat = COMPRESS_DXT5n if mapType is NORMAL_MAP else COMPRESS_DXT5
+            hostBitmap.Compress(compressionFormat, compressionSettings.qualityLevel, tex)
+            while not tex.isPrepared:
+                blue.synchro.Yield()
 
-        return tex
+            return tex
 
-    def CompositeTexture(self, effect, subrect = None):
+    def CompositeTexture(self, effect, subrect=None):
         if self.renderTarget:
             vp = trinity.TriViewport()
             if subrect:
@@ -291,7 +296,7 @@ class TextureCompositor(object):
             self.renderJob.SetViewport(vp)
             self.renderJob.RenderEffect(effect)
 
-    def CopyBlitTexture(self, path, subrect = None, srcRect = None, isNormalMap = False, alphaMultiplier = 1.0):
+    def CopyBlitTexture(self, path, subrect=None, srcRect=None, isNormalMap=False, alphaMultiplier=1.0):
         effect = self.MakeEffect('Copyblit')
         self.AppendResource(effect, 'Texture', path, 'TextureReverseUV', mapType='N' if isNormalMap else '')
         if srcRect:
@@ -303,7 +308,7 @@ class TextureCompositor(object):
         self.renderJob.SetRenderState(trinity.D3DRS_DESTBLENDALPHA, trinity.TRIBLEND_ZERO)
         self.CompositeTexture(effect, subrect)
 
-    def MaskedNormalBlitTexture(self, path, strength, subrect = None, srcRect = None):
+    def MaskedNormalBlitTexture(self, path, strength, subrect=None, srcRect=None):
         effect = self.MakeEffect('MaskedNormalBlit')
         self.AppendResource(effect, 'Texture', path, 'TextureReverseUV')
         self.AppendParameter(effect, trinity.Tr2FloatParameter(), 'Strength', strength)
@@ -315,7 +320,7 @@ class TextureCompositor(object):
         self.renderJob.SetRenderState(trinity.D3DRS_DESTBLENDALPHA, trinity.TRIBLEND_ONE)
         self.CompositeTexture(effect, subrect)
 
-    def TwistNormalBlitTexture(self, path, strength, subrect = None, srcRect = None):
+    def TwistNormalBlitTexture(self, path, strength, subrect=None, srcRect=None):
         effect = self.MakeEffect('TwistNormalBlit')
         self.AppendResource(effect, 'Texture', path, 'TextureReverseUV')
         self.AppendParameter(effect, trinity.Tr2FloatParameter(), 'Strength', strength)
@@ -327,7 +332,7 @@ class TextureCompositor(object):
         self.renderJob.SetRenderState(trinity.D3DRS_DESTBLENDALPHA, trinity.TRIBLEND_ONE)
         self.CompositeTexture(effect, subrect)
 
-    def FillColor(self, color, subrect = None, skipAlpha = False, addAlpha = False):
+    def FillColor(self, color, subrect=None, skipAlpha=False, addAlpha=False):
         effect = self.MakeEffect('ColorFill')
         self.AppendParameter(effect, trinity.Tr2Vector4Parameter(), 'color1', color)
         self.renderJob.SetRenderState(trinity.D3DRS_SEPARATEALPHABLENDENABLE, 1)
@@ -342,7 +347,7 @@ class TextureCompositor(object):
             self.renderJob.SetRenderState(trinity.D3DRS_DESTBLENDALPHA, trinity.TRIBLEND_ZERO)
         self.CompositeTexture(effect, subrect)
 
-    def SubtractAlphaFromAlpha(self, path, subrect = None, srcRect = None):
+    def SubtractAlphaFromAlpha(self, path, subrect=None, srcRect=None):
         effect = self.MakeEffect('BlitIntoAlpha1')
         self.AppendResource(effect, 'Texture', path, 'TextureReverseUV')
         if srcRect:
@@ -353,7 +358,7 @@ class TextureCompositor(object):
         self.renderJob.SetRenderState(trinity.D3DRS_DESTBLENDALPHA, trinity.TRIBLEND_ONE)
         self.CompositeTexture(effect, subrect)
 
-    def BlitTextureIntoAlpha(self, path, subrect = None, srcRect = None):
+    def BlitTextureIntoAlpha(self, path, subrect=None, srcRect=None):
         effect = self.MakeEffect('BlitIntoAlpha1')
         effect2 = self.MakeEffect('BlitIntoAlpha2')
         self.AppendResource(effect, 'Texture', path, 'TextureReverseUV')
@@ -372,7 +377,7 @@ class TextureCompositor(object):
         self.renderJob.SetRenderState(trinity.D3DRS_DESTBLENDALPHA, trinity.TRIBLEND_ONE)
         self.CompositeTexture(effect2, subrect)
 
-    def BlitTextureIntoAlphaWithMask(self, path, mask, subrect = None, srcRect = None):
+    def BlitTextureIntoAlphaWithMask(self, path, mask, subrect=None, srcRect=None):
         effect = self.MakeEffect('BlitIntoAlpha1')
         effect2 = self.MakeEffect('BlitIntoAlpha2')
         self.AppendResource(effect, 'Texture', path, 'TextureReverseUV')
@@ -391,7 +396,7 @@ class TextureCompositor(object):
         self.renderJob.SetRenderState(trinity.D3DRS_DESTBLENDALPHA, trinity.TRIBLEND_ONE)
         self.CompositeTexture(effect2, subrect)
 
-    def BlitAlphaIntoAlphaWithMask(self, path, mask, subrect = None, srcRect = None):
+    def BlitAlphaIntoAlphaWithMask(self, path, mask, subrect=None, srcRect=None):
         effect = self.MakeEffect('BlitIntoAlpha1')
         effect2 = self.MakeEffect('BlitIntoAlpha2')
         self.AppendResource(effect, 'Texture', mask, 'TextureReverseUV')
@@ -410,7 +415,7 @@ class TextureCompositor(object):
         self.renderJob.SetRenderState(trinity.D3DRS_DESTBLENDALPHA, trinity.TRIBLEND_ONE)
         self.CompositeTexture(effect2, subrect)
 
-    def BlitAlphaIntoAlphaWithMaskAndZones(self, path, mask, zone, values, subrect = None, srcRect = None):
+    def BlitAlphaIntoAlphaWithMaskAndZones(self, path, mask, zone, values, subrect=None, srcRect=None):
         effect = self.MakeEffect('BlitIntoAlpha1')
         effect2 = self.MakeEffect('BlitIntoAlphaWithZones')
         self.AppendResource(effect, 'Texture', mask, 'TextureReverseUV')
@@ -431,7 +436,7 @@ class TextureCompositor(object):
         self.renderJob.SetRenderState(trinity.D3DRS_DESTBLENDALPHA, trinity.TRIBLEND_ONE)
         self.CompositeTexture(effect2, subrect)
 
-    def BlitTexture(self, path, maskPath, weight, subrect = None, addAlpha = False, skipAlpha = False, srcRect = None, multAlpha = False, isNormalMap = False):
+    def BlitTexture(self, path, maskPath, weight, subrect=None, addAlpha=False, skipAlpha=False, srcRect=None, multAlpha=False, isNormalMap=False):
         effect = self.MakeEffect('SimpleBlit')
         self.AppendResource(effect, 'Texture', path, 'TextureReverseUV', mapType='N' if isNormalMap else '')
         self.AppendResource(effect, 'MaskMap', maskPath, 'MaskReverseUV')
@@ -452,7 +457,7 @@ class TextureCompositor(object):
             self.renderJob.SetRenderState(trinity.D3DRS_DESTBLENDALPHA, trinity.TRIBLEND_ZERO)
         self.CompositeTexture(effect, subrect)
 
-    def ColorizedBlitTexture(self, detail, zone, overlay, color1, color2, color3, subrect = None, addAlpha = False, skipAlpha = False, useAlphaTest = False, srcRect = None, weight = 1.0, mask = None):
+    def ColorizedBlitTexture(self, detail, zone, overlay, color1, color2, color3, subrect=None, addAlpha=False, skipAlpha=False, useAlphaTest=False, srcRect=None, weight=1.0, mask=None):
         if useAlphaTest:
             effect = self.MakeEffect('ColorizedBlit_AlphaTest')
         else:
@@ -488,7 +493,7 @@ class TextureCompositor(object):
             self.renderJob.SetRenderState(trinity.D3DRS_DESTBLENDALPHA, trinity.TRIBLEND_ZERO)
         self.CompositeTexture(effect, subrect)
 
-    def ColorizedCopyBlitTexture(self, detail, zone, overlay, color1, color2, color3, subrect = None, addAlpha = False, srcRect = None, weight = 1.0):
+    def ColorizedCopyBlitTexture(self, detail, zone, overlay, color1, color2, color3, subrect=None, addAlpha=False, srcRect=None, weight=1.0):
         effect = self.MakeEffect('ColorizedCopyBlit')
         effect.StartUpdate()
         res = []
@@ -511,7 +516,7 @@ class TextureCompositor(object):
         self.renderJob.SetRenderState(trinity.D3DRS_DESTBLENDALPHA, trinity.TRIBLEND_ZERO)
         self.CompositeTexture(effect, subrect)
 
-    def PatternBlitTexture(self, pattern, detail, zone, overlay, patterncolor1, patterncolor2, patterncolor3, color2, color3, subrect = None, patternTransform = (0, 0, 8, 8), patternRotation = 0.0, addAlpha = False, skipAlpha = False, srcRect = None):
+    def PatternBlitTexture(self, pattern, detail, zone, overlay, patterncolor1, patterncolor2, patterncolor3, color2, color3, subrect=None, patternTransform=(0, 0, 8, 8), patternRotation=0.0, addAlpha=False, skipAlpha=False, srcRect=None):
         effect = self.MakeEffect('PatternBlit')
         effect.StartUpdate()
         res = []
@@ -587,6 +592,7 @@ class AtlasData(object):
         else:
             log.LogWarn('Atlas texture miss: %s' % path)
             return (None, None)
+            return None
 
 
 def GetAsResource(resPath):
@@ -608,3 +614,4 @@ def GetAsResource(resPath):
         raise Exception('Invalid resourced passed to texture compositor!')
     else:
         return paramRes
+    return

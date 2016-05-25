@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\carbon\common\lib\cherrypy\tutorial\tut05_derived_objects.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\carbon\common\lib\cherrypy\tutorial\tut05_derived_objects.py
 import cherrypy
 
 class Page:
@@ -8,7 +9,7 @@ class Page:
         return '\n            <html>\n            <head>\n                <title>%s</title>\n            <head>\n            <body>\n            <h2>%s</h2>\n        ' % (self.title, self.title)
 
     def footer(self):
-        return '\n            </body>\n            </html>\n        '
+        pass
 
 
 class HomePage(Page):

@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\carbon\common\lib\ai.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\carbon\common\lib\ai.py
 AI_SCHEMA = 'zai'
 _AI_PREFIX = AI_SCHEMA + '.'
 DECISION_NODE_TYPES = DECISION_NODE_NONE, DECISION_NODE_ROOT, DECISION_NODE_IF, DECISION_NODE_TASK = [None] + range(3)

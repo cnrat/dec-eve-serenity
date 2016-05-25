@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\client\script\parklife\state.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\client\script\parklife\state.py
 from localization import GetByLabel
 import service
 import states as state
@@ -15,6 +16,7 @@ TURQUOISE = (0.0,
  0.63,
  0.57,
  1.0)
+DRONES_AND_FIGHTERS = (const.categoryDrone, const.categoryFighter)
 NORELATIONSHIP_SENTINEL = "Just a string which will be used as a sentinel value.  We use 'is' to compare it so it doesn't matter that it's hella long."
 STATE_COLORS = {'purple': ((0.6,
              0.15,
@@ -195,6 +197,7 @@ class StateSvc(service.Service):
          ('background', state.flagAtWarMilitia): True}
         self.ewarStates = {'warpScramblerMWD': (state.flagWarpScrambledMWD, const.iconModuleWarpScramblerMWD),
          'warpScrambler': (state.flagWarpScrambled, const.iconModuleWarpScrambler),
+         'fighterTackle': (state.flagWarpScrambled, const.iconModuleFighterTackle),
          'focusedWarpScrambler': (state.flagWarpScrambledMWD, const.iconModuleFocusedWarpScrambler),
          'webify': (state.flagWebified, const.iconModuleStasisWeb),
          'electronic': (state.flagECMd, const.iconModuleECM),
@@ -214,6 +217,7 @@ class StateSvc(service.Service):
         self.ewarStateItems = self.ewarStates.items()
         self.shouldLogError = True
         self.InitFilter()
+        return
 
     def OnSessionChanged(self, isRemote, session, change):
         if 'corpid' in change or 'allianceid' in change:
@@ -288,7 +292,7 @@ class StateSvc(service.Service):
              state.flagECMd: StateProperty(GetByLabel('UI/Services/State/InflightState/Jamming'), '', '', GetByLabel('UI/Services/State/InflightState/JammingHint'), 0, None, None),
              state.flagSensorDampened: StateProperty(GetByLabel('UI/Services/State/InflightState/SensorDamping'), '', '', GetByLabel('UI/Services/State/InflightState/SensorDampingHint'), 0, None, None),
              state.flagTrackingDisrupted: StateProperty(GetByLabel('UI/Services/State/InflightState/TrackingDisrupting'), '', '', GetByLabel('UI/Services/State/InflightState/TrackingDisruptingHint'), 0, None, None),
-             state.flagGuidanceDisrupted: StateProperty(GetByLabel('UI/Services/State/InflightState/GuidanceDisrupting'), '', '', GetByLabel('UI/Services/State/InflightState/GuidanceDisruptingHint'), 0, None, None),
+             state.flagGuidanceDisrupted: StateProperty(GetByLabel('UI/Services/State/InflightState/GuidanceDisrupting'), '', '', GetByLabel('UI/Services/State/InflightState/TrackingDisruptingHint'), 0, None, None),
              state.flagTargetPainted: StateProperty(GetByLabel('UI/Services/State/InflightState/Painting'), '', '', GetByLabel('UI/Services/State/InflightState/PaintingHint'), 0, None, None),
              state.flagEnergyLeeched: StateProperty(GetByLabel('UI/Services/State/InflightState/EnergyLeeched'), '', '', GetByLabel('UI/Services/State/InflightState/EnergyLeechedHint'), 0, None, None),
              state.flagEnergyNeut: StateProperty(GetByLabel('UI/Services/State/InflightState/EnergyNeutralizing'), '', '', GetByLabel('UI/Services/State/InflightState/EnergyNeutralizingHint'), 0, None, None),
@@ -302,7 +306,7 @@ class StateSvc(service.Service):
         return self.smartFilterProps
 
     @telemetry.ZONE_METHOD
-    def GetStateProps(self, st = None):
+    def GetStateProps(self, st=None):
         props = self.GetProps()
         if st is not None:
             if st in props:
@@ -314,6 +318,7 @@ class StateSvc(service.Service):
                 return self.defaultProp
         else:
             return props
+        return
 
     @telemetry.ZONE_METHOD
     def GetActiveStateOrder(self, where):
@@ -335,8 +340,9 @@ class StateSvc(service.Service):
         ret = settings.user.overview.Get(where.lower() + 'Order', default)
         if ret is None:
             return default
-        ret.extend([ flag for flag in default if flag not in ret ])
-        return ret
+        else:
+            ret.extend([ flag for flag in default if flag not in ret ])
+            return ret
 
     @telemetry.ZONE_METHOD
     def GetStateState(self, where, flag):
@@ -359,7 +365,7 @@ class StateSvc(service.Service):
         return STATE_COLORS
 
     @telemetry.ZONE_METHOD
-    def GetStateColor(self, flag, where = 'flag'):
+    def GetStateColor(self, flag, where='flag'):
         self.InitColors()
         color = self.stateColors.get((where, flag))
         if color:
@@ -387,7 +393,8 @@ class StateSvc(service.Service):
     def GetStatePropsColorAndBlink(self, flagCode):
         if not flagCode:
             return None
-        return util.KeyVal(flagCode=flagCode, flagProperties=self.GetStateProps(flagCode), flagColor=self.GetStateFlagColor(flagCode), flagBlink=self.GetStateFlagBlink(flagCode))
+        else:
+            return util.KeyVal(flagCode=flagCode, flagProperties=self.GetStateProps(flagCode), flagColor=self.GetStateFlagColor(flagCode), flagBlink=self.GetStateFlagBlink(flagCode))
 
     @telemetry.ZONE_METHOD
     def GetStateBlink(self, where, flag):
@@ -412,7 +419,7 @@ class StateSvc(service.Service):
         flag, gid = self.ewarStates[ewarType]
         return flag
 
-    def GetEwarTypeByEwarState(self, flag = None):
+    def GetEwarTypeByEwarState(self, flag=None):
         if not getattr(self, 'ewartypebystate', {}):
             ret = {}
             for ewarType, (f, gid) in self.ewarStateItems:
@@ -454,7 +461,7 @@ class StateSvc(service.Service):
         self.cachedStateSettings = {}
         self.NotifyOnStateSetupChange('stateBlink')
 
-    def InitColors(self, reset = 0):
+    def InitColors(self, reset=0):
         if reset:
             self.cachedStateSettings = {}
         if not self.stateColorsInited or reset:
@@ -617,6 +624,7 @@ class StateSvc(service.Service):
         settings.user.overview.Set('shipLabels', self.shipLabels)
         self.cachedStateSettings = {}
         sm.GetService('bracket').UpdateLabels()
+        return
 
     def NotifyOnStateSetupChange(self, reason):
         self.notifyStateChangeTimer = base.AutoTimer(1000, self._NotifyOnStateSetupChange, reason)
@@ -624,6 +632,7 @@ class StateSvc(service.Service):
     def _NotifyOnStateSetupChange(self, reason):
         self.notifyStateChangeTimer = None
         sm.ScatterEvent('OnStateSetupChange', reason)
+        return
 
     @telemetry.ZONE_METHOD
     def CheckIfUpdateItem(self, slimItem):
@@ -650,6 +659,9 @@ class StateSvc(service.Service):
         else:
             return itemID in self.states[flag]
 
+    def GetStatesForFlag(self, flag):
+        return self.states.get(flag, {}).keys()
+
     @telemetry.ZONE_METHOD
     def GetExclState(self, flag):
         return self.exclusives.get(flag, None)
@@ -665,6 +677,7 @@ class StateSvc(service.Service):
         else:
             sm.ScatterEvent('OnStateChange', itemID, flag, 0, *args)
             self.exclusives[flag] = None
+        return
 
     @telemetry.ZONE_METHOD
     def SetState(self, itemID, flag, state, *args):
@@ -703,17 +716,20 @@ class StateSvc(service.Service):
     def DoBallRemove(self, ball, slimItem, terminal):
         if ball is None:
             return
-        self.LogInfo('DoBallRemove::state', ball.id)
-        if ball.id in self.exclusives.itervalues():
-            for state in self.exclusive:
-                if self.GetExclState(state) == ball.id:
-                    self.SetState(ball.id, state, 0)
+        else:
+            self.LogInfo('DoBallRemove::state', ball.id)
+            if ball.id in self.exclusives.itervalues():
+                for state in self.exclusive:
+                    if self.GetExclState(state) == ball.id:
+                        self.SetState(ball.id, state, 0)
 
-        if ball.id == session.shipid:
+            if ball.id == session.shipid:
+                return
+            for stateDict in self.states.values():
+                if ball.id in stateDict:
+                    del stateDict[ball.id]
+
             return
-        for stateDict in self.states.values():
-            if ball.id in stateDict:
-                del stateDict[ball.id]
 
     def GetAllShipLabels(self):
         return [{'state': 1,
@@ -750,44 +766,49 @@ class StateSvc(service.Service):
     def GetIconAndBackgroundFlags(self, slimItem):
         if slimItem is None:
             return (0, 0)
-        flag = self.CheckStates(slimItem, 'flag')
-        background = self.CheckStates(slimItem, 'background')
-        return (flag or 0, background or 0)
+        else:
+            flag = self.CheckStates(slimItem, 'flag')
+            background = self.CheckStates(slimItem, 'background')
+            return (flag or 0, background or 0)
 
     @telemetry.ZONE_METHOD
     def CheckStates(self, slimItem, what):
         if slimItem is None:
             return
-        if not (slimItem.ownerID in [None, const.ownerSystem] or util.IsNPC(slimItem.ownerID)):
-            relationships = self._GetRelationship(slimItem)
         else:
-            relationships = None
-        for functionName in self.GetActiveStateOrderFunctionNames(what):
-            fullFunctionName = 'Check' + functionName
-            checkFunction = getattr(self, fullFunctionName, None)
-            if checkFunction:
-                if checkFunction(slimItem, relationships):
-                    return getattr(state, 'flag' + functionName, None)
+            if not (slimItem.ownerID in [None, const.ownerSystem] or util.IsNPC(slimItem.ownerID)):
+                relationships = self._GetRelationship(slimItem)
+            else:
+                relationships = None
+            for functionName in self.GetActiveStateOrderFunctionNames(what):
+                fullFunctionName = 'Check' + functionName
+                checkFunction = getattr(self, fullFunctionName, None)
+                if checkFunction:
+                    if checkFunction(slimItem, relationships):
+                        return getattr(state, 'flag' + functionName, None)
+
+            return
 
     @telemetry.ZONE_METHOD
-    def CheckFilteredFlagState(self, slimItem, excludedFlags = ()):
+    def CheckFilteredFlagState(self, slimItem, excludedFlags=()):
         if slimItem is None:
             return 0
-        if not (slimItem.ownerID in [None, const.ownerSystem] or util.IsNPC(slimItem.ownerID)):
-            relationships = self._GetRelationship(slimItem)
         else:
-            relationships = None
-        for flag in self.GetActiveStateOrder('flag'):
-            if flag in excludedFlags:
-                continue
-            flagName = self.GetStateProps(flag).label
-            fullFunctionName = 'Check' + flagName
-            checkFunction = getattr(self, fullFunctionName, None)
-            if checkFunction:
-                if checkFunction(slimItem, relationships):
-                    return getattr(state, 'flag' + flagName, 0)
+            if not (slimItem.ownerID in [None, const.ownerSystem] or util.IsNPC(slimItem.ownerID)):
+                relationships = self._GetRelationship(slimItem)
+            else:
+                relationships = None
+            for flag in self.GetActiveStateOrder('flag'):
+                if flag in excludedFlags:
+                    continue
+                flagName = self.GetStateProps(flag).label
+                fullFunctionName = 'Check' + flagName
+                checkFunction = getattr(self, fullFunctionName, None)
+                if checkFunction:
+                    if checkFunction(slimItem, relationships):
+                        return getattr(state, 'flag' + flagName, 0)
 
-        return 0
+            return 0
 
     @telemetry.ZONE_METHOD
     def _GetRelationship(self, item):
@@ -801,80 +822,86 @@ class StateSvc(service.Service):
         ownerID = slimItem.ownerID
         if ownerID is None or ownerID == const.ownerSystem or util.IsNPC(ownerID):
             return False
-        return True
-
-    @telemetry.ZONE_METHOD
-    def CheckStandingHigh(self, slimItem, relationships = NORELATIONSHIP_SENTINEL):
-        if not self.IsStandingRelevant(slimItem):
-            return False
-        if relationships is NORELATIONSHIP_SENTINEL:
-            relationships = self._GetRelationship(slimItem)
-        if not relationships:
-            return False
-        if getattr(slimItem, 'categoryID', None) not in const.stateFilteredCategories:
-            return False
-        if self.IfAnyRelations(IsHighStanding, self.GetAllRelationshipGroups(relationships)):
+        else:
             return True
-        return False
 
     @telemetry.ZONE_METHOD
-    def CheckStandingGood(self, slimItem, relationships = NORELATIONSHIP_SENTINEL):
+    def CheckStandingHigh(self, slimItem, relationships=NORELATIONSHIP_SENTINEL):
         if not self.IsStandingRelevant(slimItem):
             return False
         if relationships is NORELATIONSHIP_SENTINEL:
             relationships = self._GetRelationship(slimItem)
         if not relationships:
             return False
-        if getattr(slimItem, 'categoryID', None) not in const.stateFilteredCategories:
+        elif getattr(slimItem, 'categoryID', None) not in const.stateFilteredCategories:
             return False
-        if self.IfAnyRelations(IsGoodStanding, self.GetAllRelationshipGroups(relationships)):
+        elif self.IfAnyRelations(IsHighStanding, self.GetAllRelationshipGroups(relationships)):
             return True
-        return False
+        else:
+            return False
 
     @telemetry.ZONE_METHOD
-    def CheckStandingNeutral(self, slimItem, relationships = NORELATIONSHIP_SENTINEL):
+    def CheckStandingGood(self, slimItem, relationships=NORELATIONSHIP_SENTINEL):
         if not self.IsStandingRelevant(slimItem):
             return False
         if relationships is NORELATIONSHIP_SENTINEL:
             relationships = self._GetRelationship(slimItem)
         if not relationships:
             return False
-        if getattr(slimItem, 'categoryID', None) not in const.stateFilteredCategories:
+        elif getattr(slimItem, 'categoryID', None) not in const.stateFilteredCategories:
             return False
-        if relationships.hasRelationship:
-            if not self.IfAllRelations(IsNeutralStanding, self.GetAllRelationshipGroups(relationships)):
+        elif self.IfAnyRelations(IsGoodStanding, self.GetAllRelationshipGroups(relationships)):
+            return True
+        else:
+            return False
+
+    @telemetry.ZONE_METHOD
+    def CheckStandingNeutral(self, slimItem, relationships=NORELATIONSHIP_SENTINEL):
+        if not self.IsStandingRelevant(slimItem):
+            return False
+        else:
+            if relationships is NORELATIONSHIP_SENTINEL:
+                relationships = self._GetRelationship(slimItem)
+            if not relationships:
                 return False
-            if not self.CheckSameCorp(slimItem) and not self.CheckSameAlliance(slimItem):
-                return True
-        return False
+            if getattr(slimItem, 'categoryID', None) not in const.stateFilteredCategories:
+                return False
+            if relationships.hasRelationship:
+                if not self.IfAllRelations(IsNeutralStanding, self.GetAllRelationshipGroups(relationships)):
+                    return False
+                if not self.CheckSameCorp(slimItem) and not self.CheckSameAlliance(slimItem):
+                    return True
+            return False
 
     @telemetry.ZONE_METHOD
-    def CheckStandingBad(self, slimItem, relationships = NORELATIONSHIP_SENTINEL):
+    def CheckStandingBad(self, slimItem, relationships=NORELATIONSHIP_SENTINEL):
         if not self.IsStandingRelevant(slimItem):
             return False
         if relationships is NORELATIONSHIP_SENTINEL:
             relationships = self._GetRelationship(slimItem)
         if not relationships:
             return False
-        if getattr(slimItem, 'categoryID', None) not in const.stateFilteredCategories:
+        elif getattr(slimItem, 'categoryID', None) not in const.stateFilteredCategories:
             return False
-        if self.IfAnyRelations(IsBadStanding, self.GetAllRelationshipGroups(relationships)):
+        elif self.IfAnyRelations(IsBadStanding, self.GetAllRelationshipGroups(relationships)):
             return True
-        return False
+        else:
+            return False
 
     @telemetry.ZONE_METHOD
-    def CheckStandingHorrible(self, slimItem, relationships = NORELATIONSHIP_SENTINEL):
+    def CheckStandingHorrible(self, slimItem, relationships=NORELATIONSHIP_SENTINEL):
         if not self.IsStandingRelevant(slimItem):
             return False
         if relationships is NORELATIONSHIP_SENTINEL:
             relationships = self._GetRelationship(slimItem)
         if not relationships:
             return False
-        if getattr(slimItem, 'categoryID', None) not in const.stateFilteredCategories:
+        elif getattr(slimItem, 'categoryID', None) not in const.stateFilteredCategories:
             return False
-        if self.IfAnyRelations(IsHorribleStanding, self.GetAllRelationshipGroups(relationships)):
+        elif self.IfAnyRelations(IsHorribleStanding, self.GetAllRelationshipGroups(relationships)):
             return True
-        return False
+        else:
+            return False
 
     def GetAllRelationshipGroups(self, relationships):
         ret = []
@@ -899,60 +926,60 @@ class StateSvc(service.Service):
         return all((standingCheck(relationship) for relationship in relationshipGroup))
 
     @telemetry.ZONE_METHOD
-    def CheckSameCorp(self, slimItem, relationships = NORELATIONSHIP_SENTINEL):
+    def CheckSameCorp(self, slimItem, relationships=NORELATIONSHIP_SENTINEL):
         if self.logme:
             self.LogInfo('Tactical::CheckSameCorp', slimItem)
         return getattr(slimItem, 'corpID', None) == session.corpid and getattr(slimItem, 'categoryID', None) in const.stateFilteredCategories
 
     @telemetry.ZONE_METHOD
-    def CheckSameAlliance(self, slimItem, relationships = NORELATIONSHIP_SENTINEL):
+    def CheckSameAlliance(self, slimItem, relationships=NORELATIONSHIP_SENTINEL):
         if self.logme:
             self.LogInfo('Tactical::CheckSameAlliance', slimItem)
         return session.allianceid and getattr(slimItem, 'allianceID', None) == session.allianceid and getattr(slimItem, 'categoryID', None) in const.stateFilteredCategories
 
     @telemetry.ZONE_METHOD
-    def CheckSameFleet(self, slimItem, relationships = NORELATIONSHIP_SENTINEL):
+    def CheckSameFleet(self, slimItem, relationships=NORELATIONSHIP_SENTINEL):
         if self.logme:
             self.LogInfo('Tactical::CheckSameFleet', slimItem)
         if session.fleetid:
             charID = getattr(slimItem, 'charID', None)
-            if charID or getattr(slimItem, 'categoryID', None) == const.categoryDrone:
+            if charID or getattr(slimItem, 'categoryID', None) in DRONES_AND_FIGHTERS:
                 if charID is None:
                     charID = slimItem.ownerID
                 return sm.GetService('fleet').IsMember(charID)
         return 0
 
     @telemetry.ZONE_METHOD
-    def CheckSameMilitia(self, slimItem, relationships = NORELATIONSHIP_SENTINEL):
+    def CheckSameMilitia(self, slimItem, relationships=NORELATIONSHIP_SENTINEL):
         if self.logme:
             self.LogInfo('Tactical::CheckSameMilitia', slimItem)
         if session.warfactionid:
-            if (getattr(slimItem, 'charID', None) or getattr(slimItem, 'categoryID', None) == const.categoryDrone) and getattr(slimItem, 'corpID', None):
+            if (getattr(slimItem, 'charID', None) or getattr(slimItem, 'categoryID', None) in DRONES_AND_FIGHTERS) and getattr(slimItem, 'corpID', None):
                 slimItemWarFactionID = getattr(slimItem, 'warFactionID', None)
                 if slimItemWarFactionID is not None:
                     return facwarCommon.IsFriendlyFaction(slimItemWarFactionID, session.warfactionid)
         return 0
 
     @telemetry.ZONE_METHOD
-    def CheckAgentInteractable(self, slimItem, relationships = NORELATIONSHIP_SENTINEL):
+    def CheckAgentInteractable(self, slimItem, relationships=NORELATIONSHIP_SENTINEL):
         if self.logme:
             self.LogInfo('Tactical::CheckAgentInteractable', slimItem)
         return getattr(slimItem, 'groupID', None) == const.groupAgentsinSpace
 
     @telemetry.ZONE_METHOD
-    def CheckIsWanted(self, slimItem, relationships = NORELATIONSHIP_SENTINEL):
+    def CheckIsWanted(self, slimItem, relationships=NORELATIONSHIP_SENTINEL):
         if self.logme:
             self.LogInfo('Tactical::CheckIsWanted', slimItem)
         return self.bountySvc.QuickHasBounty(slimItem)
 
     @telemetry.ZONE_METHOD
-    def CheckHasKillRight(self, slimItem, relationships = NORELATIONSHIP_SENTINEL):
+    def CheckHasKillRight(self, slimItem, relationships=NORELATIONSHIP_SENTINEL):
         if self.logme:
             self.LogInfo('Tactical::CheckIsWanted', slimItem)
         return self.bountySvc.QuickHasKillRight(slimItem)
 
     @telemetry.ZONE_METHOD
-    def CheckAtWarCanFight(self, slimItem, relationships = NORELATIONSHIP_SENTINEL):
+    def CheckAtWarCanFight(self, slimItem, relationships=NORELATIONSHIP_SENTINEL):
         if self.logme:
             self.LogInfo('Tactical::CheckAtWarCanFight', slimItem)
         id = getattr(slimItem, 'allianceID', None) or getattr(slimItem, 'corpID', None)
@@ -962,9 +989,10 @@ class StateSvc(service.Service):
             return self.atWar[id] == const.warRelationshipAtWarCanFight
         else:
             return 0
+            return
 
     @telemetry.ZONE_METHOD
-    def CheckAlliesAtWar(self, slimItem, relationships = NORELATIONSHIP_SENTINEL):
+    def CheckAlliesAtWar(self, slimItem, relationships=NORELATIONSHIP_SENTINEL):
         if self.logme:
             self.LogInfo('Tactical::CheckAlliesAtWar', slimItem)
         ownerID = getattr(slimItem, 'allianceID', None) or getattr(slimItem, 'corpID', None)
@@ -972,10 +1000,11 @@ class StateSvc(service.Service):
             if ownerID not in self.alliesAtWar:
                 self.alliesAtWar[ownerID] = sm.GetService('war').GetRelationship(ownerID)
             return self.alliesAtWar[ownerID] == const.warRelationshipAlliesAtWar
-        return 0
+        else:
+            return 0
 
     @telemetry.ZONE_METHOD
-    def CheckAtWarMilitia(self, slimItem, relationships = NORELATIONSHIP_SENTINEL):
+    def CheckAtWarMilitia(self, slimItem, relationships=NORELATIONSHIP_SENTINEL):
         if self.logme:
             self.LogInfo('Tactical::CheckAtWarMilitia', slimItem)
         if session.warfactionid and getattr(slimItem, 'warFactionID', None):
@@ -983,57 +1012,63 @@ class StateSvc(service.Service):
             if id not in self.atWar:
                 self.atWar[id] = facwarCommon.IsEnemyFaction(slimItem.warFactionID, session.warfactionid)
             return self.atWar[id] == True
-        return 0
+        else:
+            return 0
 
     @telemetry.ZONE_METHOD
-    def CheckDangerous(self, slimItem, relationships = NORELATIONSHIP_SENTINEL):
+    def CheckDangerous(self, slimItem, relationships=NORELATIONSHIP_SENTINEL):
         if self.logme:
             self.LogInfo('Tactical::CheckDangerous', slimItem)
-        if getattr(slimItem, 'charID', None) and -0.1 > (getattr(slimItem, 'securityStatus', None) or 0) >= const.outlawSecurityStatus:
-            return 1
-        return 0
+        if getattr(slimItem, 'charID', None):
+            return -0.1 > (getattr(slimItem, 'securityStatus', None) or 0) >= const.outlawSecurityStatus and 1
+        else:
+            return 0
 
     @telemetry.ZONE_METHOD
-    def CheckOutlaw(self, slimItem, relationships = NORELATIONSHIP_SENTINEL):
+    def CheckOutlaw(self, slimItem, relationships=NORELATIONSHIP_SENTINEL):
         if self.logme:
             self.LogInfo('Tactical::CheckOutlaw', slimItem)
         if getattr(slimItem, 'charID', None) and util.IsOutlawStatus(getattr(slimItem, 'securityStatus', None) or 0):
             return 1
-        return 0
+        else:
+            return 0
 
     @telemetry.ZONE_METHOD
-    def CheckWreckEmpty(self, slimItem, relationships = NORELATIONSHIP_SENTINEL):
+    def CheckWreckEmpty(self, slimItem, relationships=NORELATIONSHIP_SENTINEL):
         return getattr(slimItem, 'groupID', None) == const.groupWreck and slimItem.isEmpty
 
     @telemetry.ZONE_METHOD
-    def CheckNoStanding(self, slimItem, relationships = NORELATIONSHIP_SENTINEL):
+    def CheckNoStanding(self, slimItem, relationships=NORELATIONSHIP_SENTINEL):
         if relationships is NORELATIONSHIP_SENTINEL:
             relationships = self._GetRelationship(slimItem)
         return (not relationships or not relationships.hasRelationship) and util.IsCharacter(getattr(slimItem, 'ownerID', None)) and getattr(slimItem, 'categoryID', None) in const.stateFilteredCategories
 
     @telemetry.ZONE_METHOD
-    def CheckWreckViewed(self, slimItem, relationships = NORELATIONSHIP_SENTINEL):
+    def CheckWreckViewed(self, slimItem, relationships=NORELATIONSHIP_SENTINEL):
         return sm.GetService('wreck').IsViewedWreck(slimItem.itemID)
 
     @telemetry.ZONE_METHOD
-    def CheckCriminal(self, slimItem, relationships = NORELATIONSHIP_SENTINEL):
+    def CheckCriminal(self, slimItem, relationships=NORELATIONSHIP_SENTINEL):
         charID = getattr(slimItem, 'charID', None)
         if charID is not None:
             return sm.GetService('crimewatchSvc').IsCriminal(charID)
-        return False
+        else:
+            return False
 
     @telemetry.ZONE_METHOD
-    def CheckSuspect(self, slimItem, relationships = NORELATIONSHIP_SENTINEL):
+    def CheckSuspect(self, slimItem, relationships=NORELATIONSHIP_SENTINEL):
         charID = getattr(slimItem, 'charID', None)
         if charID is not None:
             return sm.GetService('crimewatchSvc').IsSuspect(charID)
-        return False
+        else:
+            return False
 
-    def CheckLimitedEngagement(self, slimItem, relationships = NORELATIONSHIP_SENTINEL):
+    def CheckLimitedEngagement(self, slimItem, relationships=NORELATIONSHIP_SENTINEL):
         charID = getattr(slimItem, 'charID', None)
         if charID is not None:
             return sm.GetService('crimewatchSvc').HasLimitedEngagmentWith(charID)
-        return False
+        else:
+            return False
 
     def CheckMultiSelected(self, slimItem):
         return slimItem.itemID in self.states[state.multiSelected]

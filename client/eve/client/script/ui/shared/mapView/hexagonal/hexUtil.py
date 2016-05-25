@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\client\script\ui\shared\mapView\hexagonal\hexUtil.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\client\script\ui\shared\mapView\hexagonal\hexUtil.py
 __author__ = 'fridrik'
 import geo2
 import math
@@ -98,10 +99,11 @@ def line_intersection(line1, line2):
     div = det(xdiff, ydiff)
     if div == 0:
         return None
-    d = (det(*line1), det(*line2))
-    x = det(d, xdiff) / div
-    y = det(d, ydiff) / div
-    return (x, y)
+    else:
+        d = (det(*line1), det(*line2))
+        x = det(d, xdiff) / div
+        y = det(d, ydiff) / div
+        return (x, y)
 
 
 def line(p1, p2):
@@ -210,7 +212,7 @@ def closest_point_on_seg(seg_a, seg_b, circ_pos):
     return closest
 
 
-def segment_circle(seg_a, seg_b, circ_pos, circ_rad = 1):
+def segment_circle(seg_a, seg_b, circ_pos, circ_rad=1):
     closest = closest_point_on_seg(seg_a, seg_b, circ_pos)
     dist_v = geo2.Vec2Subtract(circ_pos, closest)
     return dist_v
@@ -300,7 +302,7 @@ def axial_neighbours(column_row, isFlatTop):
     return ret
 
 
-def neighbours_amount_step(column_row, amount, step, isFlatTop, exact = False):
+def neighbours_amount_step(column_row, amount, step, isFlatTop, exact=False):
     startpos = column_row
     ret = []
     i = 0

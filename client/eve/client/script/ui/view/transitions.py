@@ -1,5 +1,7 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\client\script\ui\view\transitions.py
-from eve.client.script.ui.camera.spaceCamera import SpaceCamera
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\client\script\ui\view\transitions.py
+from eve.client.script.ui.view.viewStateConst import ViewState
+import evecamera
 import uiprimitives
 import uicontrols
 from viewstate import Transition, FadeToCQTransition
@@ -13,7 +15,7 @@ import uthread
 class FadeToBlackTransition(Transition):
     __guid__ = 'viewstate.FadeToBlackTransition'
 
-    def __init__(self, fadeTimeMS = 1000, fadeInTimeMS = None, fadeOutTimeMS = None, **kwargs):
+    def __init__(self, fadeTimeMS=1000, fadeInTimeMS=None, fadeOutTimeMS=None, **kwargs):
         Transition.__init__(self, **kwargs)
         self.fadeInTimeMS = fadeInTimeMS or fadeTimeMS
         self.fadeOutTimeMS = fadeOutTimeMS or fadeTimeMS
@@ -30,11 +32,12 @@ class FadeToBlackTransition(Transition):
 class FadeToBlackLiteTransition(Transition):
     __guid__ = 'viewstate.FadeToBlackLiteTransition'
 
-    def __init__(self, fadeTimeMS = 1000, fadeInTimeMS = None, fadeOutTimeMS = None, **kwargs):
+    def __init__(self, fadeTimeMS=1000, fadeInTimeMS=None, fadeOutTimeMS=None, **kwargs):
         Transition.__init__(self, **kwargs)
         self.fadeInTimeMS = fadeInTimeMS or fadeTimeMS
         self.fadeOutTimeMS = fadeOutTimeMS or fadeTimeMS
         self.fadeLayer = None
+        return
 
     def StartTransition(self, fromView, toView):
         Transition.StartTransition(self, fromView, toView)
@@ -61,6 +64,7 @@ class DeathTransition(Transition):
         self.minWaitSeconds = 2
         self.notifyContainer = None
         self.startTime = None
+        return
 
     def StartTransition(self, fromView, toView):
         Transition.StartTransition(self, fromView, toView)
@@ -81,8 +85,8 @@ class DeathTransition(Transition):
         for notificationTypeID in self.DELAYED_NOTIFICATIONS:
             sm.GetService('notificationSvc').ProcessDelayedNotifications(notificationTypeID)
 
-        import form
-        lobby = form.Lobby.GetIfOpen()
+        from eve.client.script.ui.shared.dockedUI import GetLobbyClass
+        lobby = GetLobbyClass().GetIfOpen()
         if lobby:
             lobby.BlinkButton('medical')
 
@@ -94,32 +98,29 @@ class DeathTransition(Transition):
         if deathScene:
             try:
                 deathHandler.podDeathScene = None
-                camera = SpaceCamera()
-                sceneManager.SetActiveCamera(camera)
-                camera.frontClip = 6.0
+                sceneManager.SetPrimaryCamera(evecamera.CAM_DEATHSCENE)
                 corpse = deathHandler.GetCorpseModel()
                 corpse.name = 'myCorpse'
                 deathScene.objects.insert(0, corpse)
                 pod = deathHandler.GetCapsuleModel()
                 deathScene.objects.append(pod)
-                duration = max(blue.os.desiredSimDilation, 0.2) * 1.75
-                uicore.animations.MorphScalar(camera, 'translationFromParent', startVal=camera.translationFromParent, endVal=8.0, duration=duration, loops=1)
-                uicore.animations.MorphScalar(camera, 'fieldOfView', startVal=camera.fieldOfView, endVal=0.55, duration=duration, loops=1)
                 sceneManager.SetActiveScene(deathScene)
             except Exception as e:
-                log.LogTraceback('Failed at loading podDeathScene', channel='svc.viewState', exception=e)
+                log.LogTraceback('Failed at loading podDeathScene: %s' % repr(e), channel='svc.viewState')
 
         else:
             log.LogTraceback('Unable to load podDeathScene', channel='svc.viewState')
         self.notifyContainer = uiprimitives.Container(name='notifyContainer', parent=uicore.desktop, state=uiconst.UI_DISABLED, align=uiconst.BOTTOMLEFT, pos=(20, 0, 500, 100))
         uthread.new(self.WriteCloneActivationText_thread)
+        return
 
     def WriteCloneActivationText_thread(self, *args):
         blue.synchro.SleepSim(1000)
         redColor = (0.9, 0.1, 0.1)
         cloneText = localization.GetByLabel('UI/Inflight/ActivatingClone')
-        if session.stationid:
-            locationName = cfg.evelocations.Get(session.stationid).name
+        currentLocation = session.stationid or session.structureid
+        if currentLocation:
+            locationName = cfg.evelocations.Get(currentLocation).name
         else:
             locationName = ''
         cloneSubText = localization.GetByLabel('UI/Inflight/ActivatingCloneSubText', locationName=locationName)
@@ -152,13 +153,13 @@ class DeathTransition(Transition):
         self.endWaitTime = None
         self.startTime = None
         self.breakFromLoop = False
+        return
 
     def ClearBlock(self, *args):
         now = blue.os.GetWallclockTime()
         if now < self.startTime + self.minWaitSeconds * const.SEC:
             return 1
         self.breakFromLoop = True
-        return 1
 
 
 class SpaceToStationTransition(Transition):
@@ -167,29 +168,55 @@ class SpaceToStationTransition(Transition):
     def __init__(self, **kwargs):
         Transition.__init__(self, **kwargs)
         self.hangarDock = FadeToBlackLiteTransition(500)
-        self.cqDock = FadeToCQTransition(fadeTimeMS=200, fallbackView='hangar', allowReopen=False)
+        self.cqDock = FadeToCQTransition(fadeTimeMS=200, fallbackView=ViewState.Hangar, allowReopen=False)
         self.cloning = DeathTransition()
 
     def StartTransition(self, fromView, toView):
         Transition.StartTransition(self, fromView, toView)
-        if toView.name == 'hangar':
+        if toView.name == ViewState.Hangar:
             if self.transitionReason == 'clone':
                 self.cloning.StartTransition(fromView, toView)
             else:
                 self.hangarDock.StartTransition(fromView, toView)
-        elif toView.name == 'station':
+        elif toView.name == ViewState.Station:
             if self.transitionReason == 'clone':
                 self.cloning.StartTransition(fromView, toView)
             self.cqDock.StartTransition(fromView, toView)
 
     def EndTransition(self, fromView, toView):
-        if toView.name == 'hangar':
+        if toView.name == ViewState.Hangar:
             if self.transitionReason == 'clone':
                 self.cloning.EndTransition(fromView, toView)
             else:
                 self.hangarDock.EndTransition(fromView, toView)
-        elif toView.name == 'station':
+        elif toView.name == ViewState.Station:
             if self.transitionReason == 'clone':
                 self.cloning.EndTransition(fromView, toView)
             self.cqDock.EndTransition(fromView, toView)
+        Transition.EndTransition(self, fromView, toView)
+
+
+class SpaceToStructureTransition(Transition):
+    __guid__ = 'viewstate.SpaceToStructureTransition'
+
+    def __init__(self, **kwargs):
+        Transition.__init__(self, **kwargs)
+        self.dock = self.GetDockTransition()
+        self.cloning = DeathTransition()
+
+    def GetDockTransition(self):
+        return Transition()
+
+    def StartTransition(self, fromView, toView):
+        Transition.StartTransition(self, fromView, toView)
+        if self.transitionReason == 'clone':
+            self.cloning.StartTransition(fromView, toView)
+        else:
+            self.dock.StartTransition(fromView, toView)
+
+    def EndTransition(self, fromView, toView):
+        if self.transitionReason == 'clone':
+            self.cloning.EndTransition(fromView, toView)
+        else:
+            self.dock.EndTransition(fromView, toView)
         Transition.EndTransition(self, fromView, toView)

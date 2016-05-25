@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\client\script\ui\shared\fittingGhost\fittingRadialMenu.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\client\script\ui\shared\fittingGhost\fittingRadialMenu.py
 from eve.client.script.ui.shared.radialMenu.radialMenuUtils import SimpleRadialMenuAction, RadialMenuOptionsInfo, RadialMenuSizeInfo
 from eve.client.script.ui.inflight.radialMenuShipUI import RadialMenuShipUI
 RMO_SizeInfo = RadialMenuSizeInfo(width=220, height=220, shadowSize=256, rangeSize=128, sliceCount=8, buttonWidth=100, buttonHeight=70, buttonPaddingTop=12, buttonPaddingBottom=6, actionDistance=110)

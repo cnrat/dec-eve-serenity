@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\client\script\ui\shared\market\buySellMultiBase.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\client\script\ui\shared\market\buySellMultiBase.py
 import math
 from carbonui import const as uiconst
 from carbonui.control.scrollContainer import ScrollContainer
@@ -43,7 +44,7 @@ class SellBuyItemsWindow(Window):
         self.SetCaption(GetByLabel(self.captionTextPath))
         self.scope = 'station_inflight'
         self.SetTopparentHeight(0)
-        mainCont = Container(parent=self.sr.main, name='mainCont', padding=4)
+        self.mainCont = mainCont = Container(parent=self.sr.main, name='mainCont', padding=4)
         self.infoCont = Container(parent=mainCont, name='bottomCont', align=uiconst.TOBOTTOM, height=88, padTop=4)
         Line(parent=self.infoCont, align=uiconst.TOTOP)
         self.bottomLeft = Container(parent=self.infoCont, name='bottomLeft', padLeft=6, padTop=6)
@@ -63,6 +64,7 @@ class SellBuyItemsWindow(Window):
         if corpAcctName is not None:
             self.DrawCheckBox(corpAcctName)
         self.globalDragHover = uicore.event.RegisterForTriuiEvents(uiconst.UI_MOUSEHOVER, self.OnGlobalMouseHover)
+        return
 
     def StartAddItemsThread(self):
         if len(self.preItems):
@@ -77,6 +79,7 @@ class SellBuyItemsWindow(Window):
         self.hasDrawn = False
         self.addItemsThread = None
         self.baseStationID = None
+        return
 
     def DrawNumbers(self):
         self.numbersGrid = LayoutGrid(parent=self.bottomRight, columns=2, align=uiconst.TORIGHT, top=self.numbersGridTop)
@@ -107,6 +110,7 @@ class SellBuyItemsWindow(Window):
             corpAcctName = sm.GetService('corp').GetMyCorpAccountName()
             if corpAcctName is not None:
                 return corpAcctName
+        return
 
     def OnUseCorp(self, *args):
         if self.useCorp.checked:
@@ -143,19 +147,22 @@ class SellBuyItemsWindow(Window):
     def DrawDraggedItems(self, dragData):
         if not self.IsAllowedGuid(getattr(dragData[0], '__guid__', None)):
             return
-        self.hasDrawn = True
-        uicore.animations.FadeOut(self.dropLabel, duration=0.15)
-        noOfItems = len(dragData)
-        noOfAvailable = math.floor((self.width - 16) / 28)
-        for i, dragItem in enumerate(dragData):
-            c = Container(parent=self.fakeItemsCont, align=uiconst.TOLEFT, padding=2, width=24)
-            if noOfItems > noOfAvailable and i == noOfAvailable - 1:
-                icon = Sprite(parent=c, texturePath='res:/UI/Texture/classes/MultiSell/DotDotDot.png', state=uiconst.UI_DISABLED, width=24, height=24, align=uiconst.CENTER)
-                icon.SetAlpha(0.6)
-                return
-            typeID = self.GetTypeIDFromDragItem(dragItem)
-            icon = Icon(parent=c, typeID=typeID, state=uiconst.UI_DISABLED)
-            icon.SetSize(24, 24)
+        else:
+            self.hasDrawn = True
+            uicore.animations.FadeOut(self.dropLabel, duration=0.15)
+            noOfItems = len(dragData)
+            noOfAvailable = math.floor((self.width - 16 - self.dropCont.padLeft - self.dropCont.padRight) / 28)
+            for i, dragItem in enumerate(dragData):
+                c = Container(parent=self.fakeItemsCont, align=uiconst.TOLEFT, padding=2, width=24)
+                if noOfItems > noOfAvailable and i == noOfAvailable - 1:
+                    icon = Sprite(parent=c, texturePath='res:/UI/Texture/classes/MultiSell/DotDotDot.png', state=uiconst.UI_DISABLED, width=24, height=24, align=uiconst.CENTER)
+                    icon.SetAlpha(0.6)
+                    return
+                typeID = self.GetTypeIDFromDragItem(dragItem)
+                icon = Icon(parent=c, typeID=typeID, state=uiconst.UI_DISABLED)
+                icon.SetSize(24, 24)
+
+            return
 
     def GetTypeIDFromDragItem(self, dragItem):
         getTypeID = dragItem.item.typeID
@@ -223,8 +230,9 @@ class SellBuyItemsWindow(Window):
     def GetStationLocationText(self):
         if self.baseStationID is None:
             return ''
-        stationLocation = cfg.evelocations.Get(self.baseStationID).locationName
-        return stationLocation
+        else:
+            stationLocation = cfg.evelocations.Get(self.baseStationID).locationName
+            return stationLocation
 
     def DisplayErrorHints(self):
         hintTextList = self.GetErrorHints()

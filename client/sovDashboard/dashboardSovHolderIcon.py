@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\packages\sovDashboard\dashboardSovHolderIcon.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\packages\sovDashboard\dashboardSovHolderIcon.py
 from carbonui.primitives.container import Container
 import carbonui.const as uiconst
 from carbonui.primitives.layoutGrid import LayoutGrid
@@ -44,12 +45,13 @@ class SovHolderIcon(Container):
         allianceID = self.structureInfo.get('allianceID', None)
         if allianceID:
             return self.LoadTooltipWithOwner(*args, **kwds)
-        return self.LoadTooltipPanelNoOwner(*args, **kwds)
+        else:
+            return self.LoadTooltipPanelNoOwner(*args, **kwds)
 
     def GetTooltipPointer(self):
         return uiconst.POINT_TOP_2
 
-    def UpdateStructureState(self, updateGauge = False):
+    def UpdateStructureState(self, updateGauge=False):
         texturePath = self.GetTexturePaths(self.structureInfo['typeID'])
         ownerID = self.structureInfo.get('ownerID', None)
         allianceID = self.structureInfo.get('allianceID', None)
@@ -67,16 +69,19 @@ class SovHolderIcon(Container):
             self.sovHolderIcon.SetAlpha(dashboardConst.NO_STRUCTURE_ALPHA)
         if updateGauge:
             self.UpdateScore()
+        return
 
-    def UpdateScore(self, animate = True):
+    def UpdateScore(self, animate=True):
         if self.structureStatusBar is None or self.structureStatusBar.destroyed:
             return
-        self.structureStatusBar.UpdateStructureInfo(self.structureInfo, animate=animate)
-        if animate:
-            uicore.animations.MorphScalar(self.structureStatusBar, 'opacity', startVal=self.structureStatusBar.opacity, endVal=0.5, curveType=uiconst.ANIM_WAVE, duration=0.2, loops=3)
+        else:
+            self.structureStatusBar.UpdateStructureInfo(self.structureInfo, animate=animate)
+            if animate:
+                uicore.animations.MorphScalar(self.structureStatusBar, 'opacity', startVal=self.structureStatusBar.opacity, endVal=0.5, curveType=uiconst.ANIM_WAVE, duration=0.2, loops=3)
+            return
 
     @staticmethod
-    def GetTexturePaths(structureTypeID, large = False):
+    def GetTexturePaths(structureTypeID, large=False):
         if structureTypeID == const.typeOutpostConstructionPlatform:
             texturePath = 'res:/ui/Texture/classes/Sov/station.png'
             if large:
@@ -110,6 +115,7 @@ class SovHolderIcon(Container):
         tooltipPanel.AddCell(cellObject=statusContainer, colSpan=2)
         timeLabel = SovStatusTimeLabel(align=uiconst.CENTER, state=uiconst.UI_NORMAL, structureInfo=self.structureInfo, width=190)
         tooltipPanel.AddCell(cellObject=timeLabel, colSpan=2)
+        return
 
     def LoadTooltipPanelNoStructure(self, tooltipPanel, *args):
         tooltipPanel.state = uiconst.UI_NORMAL

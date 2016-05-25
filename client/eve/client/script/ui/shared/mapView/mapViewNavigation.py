@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\client\script\ui\shared\mapView\mapViewNavigation.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\client\script\ui\shared\mapView\mapViewNavigation.py
 from carbon.common.script.util.mathUtil import RayToPlaneIntersection
 from carbon.common.script.util.timerstuff import AutoTimer
 from carbonui.control.menuLabel import MenuLabel
@@ -24,6 +25,7 @@ class MapViewNavigation(Container):
         self.mapView = None
         self.pickTimer = None
         self.cameraUpdateTimer = None
+        return
 
     def ApplyAttributes(self, attributes):
         Container.ApplyAttributes(self, attributes)
@@ -34,38 +36,40 @@ class MapViewNavigation(Container):
         if self.destroyed:
             self.cameraUpdateTimer = None
             return
-        if not (uicore.uilib.leftbtn or uicore.uilib.rightbtn):
+        elif not (uicore.uilib.leftbtn or uicore.uilib.rightbtn):
             self.cameraUpdateTimer = None
             return
-        if uicore.registry.GetFocus() is not self:
+        elif uicore.registry.GetFocus() is not self:
             self.cameraUpdateTimer = None
             return
-        camera = self.mapView.camera
-        mouseX, mouseY = trinity.GetCursorPos()
-        if uicore.uilib.leftbtn:
-            if (mouseX, mouseY) != self.leftMouseDownPosition or self.doLeftMouseUp is False:
-                self.doLeftMouseUp = False
-                oldX, oldY = self.leftMouseDownPosition
-                dx = mouseX - oldX
-                dy = mouseY - oldY
-                self.leftMouseDownPosition = (mouseX, mouseY)
-                if uicore.uilib.rightbtn:
+        else:
+            camera = self.mapView.camera
+            mouseX, mouseY = trinity.GetCursorPos()
+            if uicore.uilib.leftbtn:
+                if (mouseX, mouseY) != self.leftMouseDownPosition or self.doLeftMouseUp is False:
+                    self.doLeftMouseUp = False
+                    oldX, oldY = self.leftMouseDownPosition
+                    dx = mouseX - oldX
+                    dy = mouseY - oldY
+                    self.leftMouseDownPosition = (mouseX, mouseY)
+                    if uicore.uilib.rightbtn:
+                        self.doRightMouseUp = False
+                        modifier = uicore.mouseInputHandler.GetCameraZoomModifier()
+                        camera.ZoomMouseDelta(dx, modifier * dy)
+                    else:
+                        camera.OrbitMouseDelta(dx, dy)
+            elif uicore.uilib.rightbtn:
+                if (mouseX, mouseY) != self.rightMouseDownPosition or self.doRightMouseUp is False:
                     self.doRightMouseUp = False
-                    modifier = uicore.mouseInputHandler.GetCameraZoomModifier()
-                    camera.ZoomMouseDelta(dx, modifier * dy)
-                else:
-                    camera.OrbitMouseDelta(dx, dy)
-        elif uicore.uilib.rightbtn:
-            if (mouseX, mouseY) != self.rightMouseDownPosition or self.doRightMouseUp is False:
-                self.doRightMouseUp = False
-                initRayToPlaneIntersection, initPointOfInterest, initTargetPlaneNormal, projection2view, view2world = self.rightButtonCameraData
-                x, y = ScaleDpi(uicore.uilib.x), ScaleDpi(uicore.uilib.y)
-                ray, start = self.mapView.camera.GetRayAndPointFromUI(x, y, projection2view, view2world)
-                rayToPlaneIntersection = RayToPlaneIntersection(start, ray, initPointOfInterest, initTargetPlaneNormal)
-                rayToPlaneIntersectionDiff = geo2.Vec3Subtract(initRayToPlaneIntersection, rayToPlaneIntersection)
-                newPointOfInterest = geo2.Vec3Add(initPointOfInterest, rayToPlaneIntersectionDiff)
-                camera.SetPointOfInterest(newPointOfInterest)
-                self.mapView.DisableAutoFocus()
+                    initRayToPlaneIntersection, initPointOfInterest, initTargetPlaneNormal, projection2view, view2world = self.rightButtonCameraData
+                    x, y = ScaleDpi(uicore.uilib.x), ScaleDpi(uicore.uilib.y)
+                    ray, start = self.mapView.camera.GetRayAndPointFromUI(x, y, projection2view, view2world)
+                    rayToPlaneIntersection = RayToPlaneIntersection(start, ray, initPointOfInterest, initTargetPlaneNormal)
+                    rayToPlaneIntersectionDiff = geo2.Vec3Subtract(initRayToPlaneIntersection, rayToPlaneIntersection)
+                    newPointOfInterest = geo2.Vec3Add(initPointOfInterest, rayToPlaneIntersectionDiff)
+                    camera.SetPointOfInterest(newPointOfInterest)
+                    self.mapView.DisableAutoFocus()
+            return
 
     def CheckPick(self):
         if uicore.uilib.mouseOver is not self or uicore.uilib.leftbtn or uicore.uilib.rightbtn:
@@ -88,6 +92,7 @@ class MapViewNavigation(Container):
             self.mapView.SetHilightItem(pickInfo[0])
         else:
             self.mapView.SetHilightItem(None)
+        return
 
     def MapMarkerPickingOverride(self, *args, **kwds):
         return False
@@ -109,9 +114,11 @@ class MapViewNavigation(Container):
         self.clickTimer = None
         if self.destroyed:
             return
-        pickInfo = self.mapView.GetPickObjects(mouseX, mouseY, getMarkers=True)
-        if pickInfo:
-            self.mapView.SetActiveMarker(pickInfo[0][1], zoomToItem=zoomTo)
+        else:
+            pickInfo = self.mapView.GetPickObjects(mouseX, mouseY, getMarkers=True)
+            if pickInfo:
+                self.mapView.SetActiveMarker(pickInfo[0][1], zoomToItem=zoomTo)
+            return
 
     def _PrimeForCameraPanning(self):
         projection2view = geo2.MatrixInverse(self.mapView.camera.projectionMatrix.transform)
@@ -155,7 +162,6 @@ class MapViewNavigation(Container):
         if camera:
             modifier = uicore.mouseInputHandler.GetCameraZoomModifier()
             camera.ZoomMouseWheelDelta(modifier * uicore.uilib.dz)
-        return 1
 
     def OnMouseMove(self, *args):
         pass
@@ -166,24 +172,25 @@ class MapViewNavigation(Container):
     def GetMenu(self):
         if not self.doRightMouseUp:
             return
-        pickInfo = self.mapView.GetPickObjects(uicore.uilib.x, uicore.uilib.y)
-        if pickInfo and len(pickInfo) == 1:
-            return self.GetMenuForObjectID(pickInfo[0][0])
-        locations = [(MenuLabel('UI/Map/Navigation/menuSolarSystem'), self.mapView.SetActiveItemID, (session.solarsystemid2,)), (MenuLabel('UI/Map/Navigation/menuConstellation'), self.mapView.SetActiveItemID, (session.constellationid,)), (MenuLabel('UI/Map/Navigation/menuRegion'), self.mapView.SetActiveItemID, (session.regionid,))]
-        m = [(MenuLabel('UI/Map/Navigation/menuSelectCurrent'), locations)]
-        mapSvc = sm.GetService('map')
-        waypoints = sm.StartService('starmap').GetWaypoints()
-        if len(waypoints):
-            waypointList = []
-            wpCount = 1
-            for waypointID in waypoints:
-                waypointItem = mapSvc.GetItem(waypointID)
-                caption = MenuLabel('UI/Map/Navigation/menuWaypointEntry', {'itemName': waypointItem.itemName,
-                 'wpCount': wpCount})
-                waypointList += [(caption, self.mapView.SetActiveItemID, (waypointID,))]
-                wpCount += 1
+        else:
+            pickInfo = self.mapView.GetPickObjects(uicore.uilib.x, uicore.uilib.y)
+            if pickInfo and len(pickInfo) == 1:
+                return self.GetMenuForObjectID(pickInfo[0][0])
+            locations = [(MenuLabel('UI/Map/Navigation/menuSolarSystem'), self.mapView.SetActiveItemID, (session.solarsystemid2,)), (MenuLabel('UI/Map/Navigation/menuConstellation'), self.mapView.SetActiveItemID, (session.constellationid,)), (MenuLabel('UI/Map/Navigation/menuRegion'), self.mapView.SetActiveItemID, (session.regionid,))]
+            m = [(MenuLabel('UI/Map/Navigation/menuSelectCurrent'), locations)]
+            mapSvc = sm.GetService('map')
+            waypoints = sm.StartService('starmap').GetWaypoints()
+            if len(waypoints):
+                waypointList = []
+                wpCount = 1
+                for waypointID in waypoints:
+                    waypointItem = mapSvc.GetItem(waypointID)
+                    caption = MenuLabel('UI/Map/Navigation/menuWaypointEntry', {'itemName': waypointItem.itemName,
+                     'wpCount': wpCount})
+                    waypointList += [(caption, self.mapView.SetActiveItemID, (waypointID,))]
+                    wpCount += 1
 
-            m.append((MenuLabel('UI/Map/Navigation/menuSelectWaypoint'), waypointList))
-            m.append(None)
-            m.append((MenuLabel('UI/Map/Navigation/menuClearWaypoints'), sm.StartService('starmap').ClearWaypoints, (None,)))
-        return m
+                m.append((MenuLabel('UI/Map/Navigation/menuSelectWaypoint'), waypointList))
+                m.append(None)
+                m.append((MenuLabel('UI/Map/Navigation/menuClearWaypoints'), sm.StartService('starmap').ClearWaypoints, (None,)))
+            return m

@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\client\script\ui\inflight\shipHud\speedGauge.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\client\script\ui\inflight\shipHud\speedGauge.py
 import sys
 import math
 from carbon.common.script.util.format import FmtDist
@@ -36,6 +37,7 @@ class SpeedGauge(Container):
         Sprite(parent=self.speedNeedle, name='needle', pos=(0, 0, 24, 12), align=uiconst.TOPLEFT, state=uiconst.UI_DISABLED, texturePath='res:/UI/Texture/classes/ShipUI/heatGaugeNeedle.png')
         Sprite(parent=self.speedNeedle, name='speedGaugeSprite', texturePath='res:/UI/Texture/classes/ShipUI/speedoOverlay.png', pos=(-8, -73, 79, 79), state=uiconst.UI_DISABLED)
         self.speedTimer = uthread.new(self.UpdateSpeedThread)
+        return
 
     def OnClick(self, *args):
         uthread.new(self.controller.SetSpeed, self.GetCurrMouseSpeedPortion())
@@ -53,19 +55,21 @@ class SpeedGauge(Container):
         if tooltipPanel.destroyed:
             self._speedTooltipUpdate = None
             return
-        if not self.controller.IsLoaded():
+        elif not self.controller.IsLoaded():
             self._speedTooltipUpdate = None
             return
-        if self.controller.IsInWarp():
-            fmtSpeed = FmtDist(self.controller.GetSpeed(), 2)
-            tooltipPanel._valueLabelSpeed.text = '%s/s' % fmtSpeed
-            tooltipPanel._setSpeedValue.text = GetByLabel('UI/Inflight/CanNotChangeSpeedWhileWarping')
         else:
-            fmtSpeed = self.controller.GetSpeedFormatted()
-            tooltipPanel._valueLabelSpeed.text = fmtSpeed
-            portion = self.GetCurrMouseSpeedPortion()
-            speed = self.controller.GetSpeedAtFormatted(portion)
-            tooltipPanel._setSpeedValue.text = GetByLabel('UI/Inflight/ClickToSetSpeedTo', speed=speed)
+            if self.controller.IsInWarp():
+                fmtSpeed = FmtDist(self.controller.GetSpeed(), 2)
+                tooltipPanel._valueLabelSpeed.text = '%s/s' % fmtSpeed
+                tooltipPanel._setSpeedValue.text = GetByLabel('UI/Inflight/CanNotChangeSpeedWhileWarping')
+            else:
+                fmtSpeed = self.controller.GetSpeedFormatted()
+                tooltipPanel._valueLabelSpeed.text = fmtSpeed
+                portion = self.GetCurrMouseSpeedPortion()
+                speed = self.controller.GetSpeedAtFormatted(portion)
+                tooltipPanel._setSpeedValue.text = GetByLabel('UI/Inflight/ClickToSetSpeedTo', speed=speed)
+            return
 
     def StopShip(self):
         self.controller.StopShip()
@@ -106,4 +110,3 @@ class SpeedGauge(Container):
                 return 1.0
             else:
                 return factor
-        return 0.5

@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\packages\carbonui\camera\transitionCamera.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\packages\carbonui\camera\transitionCamera.py
 import util
 import cameras
 
@@ -10,8 +11,9 @@ class TransitionCamera(cameras.BasicCamera):
         self.fromCamera = None
         self.toCamera = None
         self.pushing = False
+        return
 
-    def SetTransitionTargets(self, fromCamera, toCamera, pushing = True):
+    def SetTransitionTargets(self, fromCamera, toCamera, pushing=True):
         self.fromCamera = fromCamera
         self.toCamera = toCamera
         self.pushing = pushing
@@ -25,7 +27,7 @@ class TransitionCamera(cameras.BasicCamera):
         self.fromFov = self.fromCamera.fieldOfView
         self.toFov = self.toCamera.fieldOfView
 
-    def PerformPick(self, x, y, ignoreEntID = -1):
+    def PerformPick(self, x, y, ignoreEntID=-1):
         pass
 
     def DoneTransitioning(self):

@@ -1,4 +1,5 @@
-#Embedded file name: C:\jamieb_jamieb-pc_STABLE_1796\fsdSchemas\schemaOptimizer.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: C:\jamieb_jamieb-pc_STABLE_1796\fsdSchemas\schemaOptimizer.py
 import copy
 import collections
 import ctypes
@@ -62,6 +63,7 @@ def IsUsedInTarget(schema, target):
         return True
     else:
         return False
+        return
 
 
 def GetLargeEnoughUnsignedTypeForMaxValue(i):
@@ -408,7 +410,7 @@ def LoadReferencedSchema(reference, pathRoot):
     return schema
 
 
-def OptimizeSchema(schema, target, pathRoot = None):
+def OptimizeSchema(schema, target, pathRoot=None):
     reference = schema.get('schemaReference', None)
     if reference is not None:
         schema = LoadReferencedSchema(reference, pathRoot)
@@ -424,6 +426,7 @@ def OptimizeSchema(schema, target, pathRoot = None):
         if schemaType in builtInCTypesObjectTypes:
             newSchema['size'] = ctypes.sizeof(builtInCTypesObjectTypes[schemaType])
         return newSchema
+        return
 
 
 def orderedDict_representer(dumper, data):

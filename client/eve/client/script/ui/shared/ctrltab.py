@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\client\script\ui\shared\ctrltab.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\client\script\ui\shared\ctrltab.py
 import math
 import uicontrols
 import carbonui.const as uiconst
@@ -62,6 +63,7 @@ class CtrlTabWindow(uicontrols.Window):
          ICONWIDTH), state=uiconst.UI_HIDDEN)
         uiprimitives.Fill(parent=self.sr.selectionBoxMouse, color=SELECTCOLOR)
         self.sr.windowText = uicontrols.EveLabelLarge(parent=self.sr.main, align=uiconst.TOBOTTOM, color=(1, 1, 1, 1), state=uiconst.UI_DISABLED, padding=BORDER)
+        return
 
     def SetWindowSize(self):
         self.width = BLOCKSIZE * NUMCOLS + SPACINGWIDTH + 2 * BORDER + 2
@@ -89,6 +91,7 @@ class CtrlTabWindow(uicontrols.Window):
          'caption': self.showOrHideMessage,
          'iconNum': 'res:/UI/texture/WindowIcons/hidewindows.png',
          'isShowOrHideIcon': True})
+        return
 
     def RenderSelectionBox(self):
         self.sr.selectionBox.left, self.sr.selectionBox.top = self.IndexToPosition(self.selectionBoxIndex)
@@ -121,6 +124,7 @@ class CtrlTabWindow(uicontrols.Window):
         self.sr.selectionBoxMouse.state = uiconst.UI_HIDDEN
         if self.selectionBoxIndex is not None:
             self.SetText(self.windowIcons[self.selectionBoxIndex]['caption'])
+        return
 
     def OnMouseClickIcon(self, icon):
         self.selectionBoxIndex = icon['id']
@@ -147,6 +151,7 @@ class CtrlTabWindow(uicontrols.Window):
             self.SetText(' ')
         else:
             self.SetText(self.windowIcons[self.selectionBoxIndex]['caption'])
+        return
 
     def Prev(self):
         self.Maximize()
@@ -162,6 +167,7 @@ class CtrlTabWindow(uicontrols.Window):
             self.SetText(' ')
         else:
             self.SetText(self.windowIcons[self.selectionBoxIndex]['caption'])
+        return
 
     def ChooseHilited(self):
         winIcon = self.windowIcons[self.selectionBoxIndex]

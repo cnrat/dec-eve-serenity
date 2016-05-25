@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\carbon\common\lib\jinja2\meta.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\carbon\common\lib\jinja2\meta.py
 from jinja2 import nodes
 from jinja2.compiler import CodeGenerator
 
@@ -47,3 +48,5 @@ def find_referenced_templates(ast):
 
         else:
             yield
+
+    return

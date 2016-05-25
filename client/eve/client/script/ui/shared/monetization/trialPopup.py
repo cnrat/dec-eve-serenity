@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\client\script\ui\shared\monetization\trialPopup.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\client\script\ui\shared\monetization\trialPopup.py
 import carbonui.const as uiconst
 from eve.client.script.ui.control.themeColored import LineThemeColored
 import localization
@@ -56,6 +57,7 @@ class TrialPopup(Window):
             raise RuntimeError('Origin Not defined for upsell')
         self._LogWindowOpened()
         self.Layout()
+        return
 
     def Layout(self):
         self.HideHeader()

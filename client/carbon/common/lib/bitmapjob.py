@@ -1,8 +1,9 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\carbon\common\lib\bitmapjob.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\carbon\common\lib\bitmapjob.py
 import trinity
 import blue
 
-def makeBitmapStep(filePath, scaleToFit = True, color = (1.0, 1.0, 1.0, 1.0), targetSize = None):
+def makeBitmapStep(filePath, scaleToFit=True, color=(1.0, 1.0, 1.0, 1.0), targetSize=None):
     tex = trinity.TriTextureParameter()
     tex.name = 'Texture'
     tex.resourcePath = filePath
@@ -58,14 +59,14 @@ def makeBitmapStep(filePath, scaleToFit = True, color = (1.0, 1.0, 1.0, 1.0), ta
     return trinity.TriStepRenderEffect(fx)
 
 
-def addBitmapRenderJob(filePath, scaleToFit = True, color = (1.0, 1.0, 1.0, 1.0), targetSize = None):
+def addBitmapRenderJob(filePath, scaleToFit=True, color=(1.0, 1.0, 1.0, 1.0), targetSize=None):
     rj = trinity.CreateRenderJob('Background bitmap')
     step = makeBitmapStep(filePath, scaleToFit=scaleToFit, color=color, targetSize=targetSize)
     rj.steps.append(step)
     rj.ScheduleRecurring()
 
 
-def makeCubemapStep(filePath, scaleToFit = True, color = (1.0, 1.0, 1.0, 1.0), cubeFace = 0, targetSize = None):
+def makeCubemapStep(filePath, scaleToFit=True, color=(1.0, 1.0, 1.0, 1.0), cubeFace=0, targetSize=None):
     tex = trinity.TriTextureParameter()
     tex.name = 'BlitSource'
     tex.resourcePath = filePath
@@ -112,7 +113,7 @@ def makeCubemapStep(filePath, scaleToFit = True, color = (1.0, 1.0, 1.0, 1.0), c
     return trinity.TriStepRenderEffect(fx)
 
 
-def addCubemapRenderJob(filePath, scaleToFit = True, color = (1.0, 1.0, 1.0, 1.0), cubeFace = 0, targetSize = None):
+def addCubemapRenderJob(filePath, scaleToFit=True, color=(1.0, 1.0, 1.0, 1.0), cubeFace=0, targetSize=None):
     rj = trinity.CreateRenderJob('Background cubemap')
     step = makeCubemapStep(filePath, scaleToFit=scaleToFit, color=color, cubeFace=cubeFace, targetSize=targetSize)
     rj.steps.append(step)

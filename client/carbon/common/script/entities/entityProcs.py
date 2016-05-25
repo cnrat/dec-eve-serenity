@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\carbon\common\script\entities\entityProcs.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\carbon\common\script\entities\entityProcs.py
 import service
 import GameWorld
 import uthread
@@ -24,31 +25,33 @@ class EntityProcSvc(service.Service):
         if entity is None:
             self.LogError('GetEntitySceneID: Entity with ID ', ENTID, ' not found!')
             return False
-        GameWorld.AddPropertyForCurrentPythonProc({'entitySceneID': entity.scene.sceneID})
-        return True
+        else:
+            GameWorld.AddPropertyForCurrentPythonProc({'entitySceneID': entity.scene.sceneID})
+            return True
 
     def _GetBonePosRot(self, ENTID, boneName, posProp, rotProp):
         entity = self.entityService.FindEntityByID(ENTID)
         if entity is None:
             self.LogError('GetBonePosRot: Entity with ID ', ENTID, ' not found!')
             return False
-        animClient = entity.GetComponent('animation')
-        posComp = entity.GetComponent('position')
-        if animClient is not None and posComp is not None:
-            if animClient.controller is not None:
-                boneTransform = animClient.controller.animationNetwork.GetBoneTransform(boneName)
-                if boneTransform:
-                    translation, orientation = boneTransform
-                    translation = geo2.QuaternionTransformVector(posComp.rotation, translation)
-                    translation = geo2.Vec3Add(posComp.position, translation)
-                    orientation = geo2.QuaternionMultiply(posComp.rotation, orientation)
-                    translation = list(translation)
-                    orientation = list(orientation)
-                    GameWorld.AddPropertyForCurrentPythonProc({posProp: translation})
-                    GameWorld.AddPropertyForCurrentPythonProc({rotProp: orientation})
-                    return True
-        self.LogError('GetBonePosRot: Missing critical data in entity!')
-        return False
+        else:
+            animClient = entity.GetComponent('animation')
+            posComp = entity.GetComponent('position')
+            if animClient is not None and posComp is not None:
+                if animClient.controller is not None:
+                    boneTransform = animClient.controller.animationNetwork.GetBoneTransform(boneName)
+                    if boneTransform:
+                        translation, orientation = boneTransform
+                        translation = geo2.QuaternionTransformVector(posComp.rotation, translation)
+                        translation = geo2.Vec3Add(posComp.position, translation)
+                        orientation = geo2.QuaternionMultiply(posComp.rotation, orientation)
+                        translation = list(translation)
+                        orientation = list(orientation)
+                        GameWorld.AddPropertyForCurrentPythonProc({posProp: translation})
+                        GameWorld.AddPropertyForCurrentPythonProc({rotProp: orientation})
+                        return True
+            self.LogError('GetBonePosRot: Missing critical data in entity!')
+            return False
 
     def _SetEntityPosition(self, ENTID, ALIGN_POSITION, ALIGN_ROTATION, MotionState):
         uthread.worker('_SetEntityPosition', self._SetEntityPositionTasklet, ENTID, ALIGN_POSITION, ALIGN_ROTATION, MotionState)
@@ -69,6 +72,7 @@ class EntityProcSvc(service.Service):
                         movementComponent.moveModeManager.PushMoveMode(GameWorld.KeyFrameMode(ALIGN_POSITION, ALIGN_ROTATION))
                     elif MotionState is MOTIONSTATE_CHARACTER:
                         movementComponent.moveModeManager.RestoreDefaultMode()
+        return
 
     def _AllowPlayerMoveControl(self, inControl):
         nav = sm.GetService('navigation')

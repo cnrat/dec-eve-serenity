@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\carbon\common\lib\cherrypy\_cperror.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\carbon\common\lib\cherrypy\_cperror.py
 from cgi import escape as _escape
 from sys import exc_info as _exc_info
 from traceback import format_exception as _format_exception
@@ -15,7 +16,7 @@ class TimeoutError(CherryPyException):
 
 class InternalRedirect(CherryPyException):
 
-    def __init__(self, path, query_string = ''):
+    def __init__(self, path, query_string=''):
         import cherrypy
         self.request = cherrypy.serving.request
         self.query_string = query_string
@@ -31,7 +32,7 @@ class HTTPRedirect(CherryPyException):
     urls = None
     encoding = 'utf-8'
 
-    def __init__(self, urls, status = None, encoding = None):
+    def __init__(self, urls, status=None, encoding=None):
         import cherrypy
         request = cherrypy.serving.request
         if isinstance(urls, basestring):
@@ -55,6 +56,7 @@ class HTTPRedirect(CherryPyException):
                 raise ValueError('status must be between 300 and 399.')
         self.status = status
         CherryPyException.__init__(self, abs_urls, status)
+        return
 
     def set_response(self):
         import cherrypy
@@ -84,6 +86,7 @@ class HTTPRedirect(CherryPyException):
             response.headers.pop('Content-Length', None)
         else:
             raise ValueError('The %s status code is unknown.' % status)
+        return
 
     def __call__(self):
         raise self
@@ -118,7 +121,7 @@ class HTTPError(CherryPyException):
     code = None
     reason = None
 
-    def __init__(self, status = 500, message = None):
+    def __init__(self, status=500, message=None):
         self.status = status
         try:
             self.code, self.reason, defaultmsg = _httputil.valid_status(status)
@@ -143,6 +146,7 @@ class HTTPError(CherryPyException):
         content = self.get_error_page(self.status, traceback=tb, message=self._message)
         response.body = content
         _be_ie_unfriendly(self.code)
+        return
 
     def get_error_page(self, *args, **kwargs):
         return get_error_page(*args, **kwargs)
@@ -153,13 +157,14 @@ class HTTPError(CherryPyException):
 
 class NotFound(HTTPError):
 
-    def __init__(self, path = None):
+    def __init__(self, path=None):
         if path is None:
             import cherrypy
             request = cherrypy.serving.request
             path = request.script_name + request.path_info
         self.args = (path,)
         HTTPError.__init__(self, 404, "The path '%s' was not found." % path)
+        return
 
 
 _HTTPErrorTemplate = '<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"\n"http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">\n<html>\n<head>\n    <meta http-equiv="Content-Type" content="text/html; charset=utf-8"></meta>\n    <title>%(status)s</title>\n    <style type="text/css">\n    #powered_by {\n        margin-top: 20px;\n        border-top: 2px solid black;\n        font-style: italic;\n    }\n\n    #traceback {\n        color: red;\n    }\n    </style>\n</head>\n    <body>\n        <h2>%(status)s</h2>\n        <p>%(message)s</p>\n        <pre id="traceback">%(traceback)s</pre>\n    <div id="powered_by">\n    <span>Powered by <a href="http://www.cherrypy.org">CherryPy %(version)s</a></span>\n    </div>\n    </body>\n</html>\n'
@@ -229,16 +234,17 @@ def _be_ie_unfriendly(status):
         response.headers['Content-Length'] = str(len(content))
 
 
-def format_exc(exc = None):
+def format_exc(exc=None):
     if exc is None:
         exc = _exc_info()
     if exc == (None, None, None):
         return ''
-    import traceback
-    return ''.join(traceback.format_exception(*exc))
+    else:
+        import traceback
+        return ''.join(traceback.format_exception(*exc))
 
 
-def bare_error(extrabody = None):
+def bare_error(extrabody=None):
     body = 'Unrecoverable error in the server.'
     if extrabody is not None:
         if not isinstance(extrabody, str):

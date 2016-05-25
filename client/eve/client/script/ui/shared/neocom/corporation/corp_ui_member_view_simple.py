@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\client\script\ui\shared\neocom\corporation\corp_ui_member_view_simple.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\client\script\ui\shared\neocom\corporation\corp_ui_member_view_simple.py
 import uiprimitives
 import uicontrols
 import uthread
@@ -18,6 +19,7 @@ class CorpMembersViewSimple(uiprimitives.Container):
         self.viewPerPage = 10
         self.viewFrom = 0
         self.labelResults = None
+        return
 
     def CreateWindow(self):
         wndOutputArea = uiprimitives.Container(name='output', parent=self, align=uiconst.TOTOP, height=48)
@@ -52,7 +54,7 @@ class CorpMembersViewSimple(uiprimitives.Container):
         self.outputScrollContainer = uiprimitives.Container(name='output', parent=self, align=uiconst.TOALL, pos=(0, 0, 0, 0))
         self.scroll = uicontrols.Scroll(parent=self.outputScrollContainer)
 
-    def PopulateView(self, memberIDs = None):
+    def PopulateView(self, memberIDs=None):
         if memberIDs is not None:
             self.memberIDs = memberIDs
             self.labelResults.text = (localization.GetByLabel('UI/Corporations/CorporationWindow/Members/FindMemberInRole/SimpleView/ResultsLabelPopulated', numResults=len(self.memberIDs)),)
@@ -74,6 +76,7 @@ class CorpMembersViewSimple(uiprimitives.Container):
 
         scrolllist = scrolllist[nFrom:nTo]
         self.scroll.Load(None, scrolllist)
+        return
 
     def OnComboChange(self, entry, header, value, *args):
         if entry.name == 'membersperpage':

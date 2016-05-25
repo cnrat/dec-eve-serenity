@@ -1,4 +1,5 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\client\script\ui\station\lobby.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\client\script\ui\station\lobby.py
 import blue
 from carbon.common.script.util.format import FmtAmt, CaseFoldCompare
 from carbonui.control.basicDynamicScroll import BasicDynamicScroll
@@ -21,6 +22,7 @@ from eve.client.script.ui.control.tabGroup import TabGroup
 from eve.client.script.ui.control.themeColored import LineThemeColored
 from eve.client.script.ui.control.utilMenu import UtilMenu
 from eve.client.script.ui.quickFilter import QuickFilterEdit
+from eve.client.script.ui.station import stationServiceConst
 import log
 import sys
 from inventorycommon.util import IsNPC
@@ -216,8 +218,10 @@ class Lobby(Window):
         self.LoadServiceButtons()
         if self.destroyed:
             return
-        sm.RegisterNotify(self)
-        self.UpdateGuestTabText()
+        else:
+            sm.RegisterNotify(self)
+            self.UpdateGuestTabText()
+            return
 
     def OnButtonGroupSelection(self, buttonID):
         settings.user.ui.Set('stationsLobbyTabs', buttonID)
@@ -251,14 +255,9 @@ class Lobby(Window):
 
         self.cqLabel = EveLabelMedium(parent=self.cqCont, align=uiconst.CENTERTOP, top=8 + height, width=100)
         self.UpdateCQButton()
-        if gfxsettings.Get(gfxsettings.MISC_LOAD_STATION_ENV):
-            self.cqSpriteCont.OnClick = self.OnCQClicked
-            self.cqSpriteCont.OnMouseEnter = self.OnCQMouseEnter
-            self.cqSpriteCont.OnMouseExit = self.OnCQMouseExit
-        else:
-            self.cqSpriteCont.hint = localization.GetByLabel('UI/Station/CannotEnterCaptainsQuarters')
-            for s in self.cqSprites:
-                s.opacity = 0.2
+        self.cqSpriteCont.OnClick = self.OnCQClicked
+        self.cqSpriteCont.OnMouseEnter = self.OnCQMouseEnter
+        self.cqSpriteCont.OnMouseExit = self.OnCQMouseExit
 
     def OnCQClicked(self, *args):
         self.OnCQMouseExit()
@@ -280,7 +279,7 @@ class Lobby(Window):
         for i, s in enumerate(self.cqSprites):
             uicore.animations.SpColorMorphTo(s, startColor=(s.color.r, s.color.g, s.color.b), endColor=endColor, duration=0.1)
 
-    def UpdateCQButton(self, viewName = None):
+    def UpdateCQButton(self, viewName=None):
         isInCQ = False
         if viewName is not None:
             isInCQ = viewName == 'station'
@@ -291,6 +290,7 @@ class Lobby(Window):
         else:
             self.cqLabel.text = '<center>' + localization.GetByLabel('UI/Commands/EnterCQ') + '</center>'
         self.cqCont.height = self.cqLabel.height + self.cqSpriteCont.height + 6
+        return
 
     def IsInCQ(self):
         viewStateSvc = sm.GetService('viewState')
@@ -299,6 +299,7 @@ class Lobby(Window):
             return True
         else:
             return False
+            return
 
     def AddUndockButton(self, parent):
         scale = 1.0
@@ -339,11 +340,13 @@ class Lobby(Window):
         if self.undockCont is not None:
             self.undockCont.opacity = 0.5
             self.undockCont.state = uiconst.UI_DISABLED
+        return
 
     def _EnableUndockButton(self):
         if self.undockCont is not None:
             self.undockCont.opacity = 1.0
             self.undockCont.state = uiconst.UI_NORMAL
+        return
 
     def LockUndockButton(self):
         self.undock_button_is_locked = True
@@ -374,17 +377,20 @@ class Lobby(Window):
         if undockProgress is None:
             self.UpdateUndockButton()
             return
-        i = int(undockProgress * 3)
-        if i < 3:
-            self.UpdateUndockButton()
-            uicore.animations.SpGlowFadeIn(self.undockSprites[i], glowColor=(1.0, 1.0, 0.8, 0.2), glowExpand=1, loops=1, duration=0.2)
         else:
-            self.undockLabel.text = '<center>' + localization.GetByLabel('UI/Station/UndockingConfirmed') + '</center>'
-            for i, s in enumerate(self.undockSprites):
-                uicore.animations.StopAllAnimations(s)
-                s.glowColor = (0, 0, 0, 0)
-                uicore.animations.SpColorMorphTo(s, startColor=(1, 0.8, 0), endColor=(1, 0, 0), loops=1000, duration=1, curveType=uiconst.ANIM_WAVE, timeOffset=i * 0.1 - 0.5, includeAlpha=False)
-                uicore.animations.SpGlowFadeIn(s, glowColor=(1.0, 1.0, 0.8, 0.2), glowExpand=1, loops=1000, duration=1, curveType=uiconst.ANIM_WAVE, timeOffset=i * 0.1)
+            i = int(undockProgress * 3)
+            if i < 3:
+                self.UpdateUndockButton()
+                uicore.animations.SpGlowFadeIn(self.undockSprites[i], glowColor=(1.0, 1.0, 0.8, 0.2), glowExpand=1, loops=1, duration=0.2)
+            else:
+                self.undockLabel.text = '<center>' + localization.GetByLabel('UI/Station/UndockingConfirmed') + '</center>'
+                for i, s in enumerate(self.undockSprites):
+                    uicore.animations.StopAllAnimations(s)
+                    s.glowColor = (0, 0, 0, 0)
+                    uicore.animations.SpColorMorphTo(s, startColor=(1, 0.8, 0), endColor=(1, 0, 0), loops=1000, duration=1, curveType=uiconst.ANIM_WAVE, timeOffset=i * 0.1 - 0.5, includeAlpha=False)
+                    uicore.animations.SpGlowFadeIn(s, glowColor=(1.0, 1.0, 0.8, 0.2), glowExpand=1, loops=1000, duration=1, curveType=uiconst.ANIM_WAVE, timeOffset=i * 0.1)
+
+            return
 
     def UpdateUndockButton(self):
         if self.stationSvc.exitingstation:
@@ -430,7 +436,7 @@ class Lobby(Window):
             if hasattr(icon, 'stationServiceIDs') and serviceID in icon.stationServiceIDs:
                 self.SetServiceButtonState(icon, [serviceID])
 
-    def OnAgentMissionChange(self, actionID, agentID, tutorialID = None):
+    def OnAgentMissionChange(self, actionID, agentID, tutorialID=None):
         if self.selectedGroupButtonID == AGENTSPANEL:
             self.ShowAgents()
 
@@ -457,31 +463,17 @@ class Lobby(Window):
                     button.serviceStatus = localization.GetByLabel('UI/Station/Lobby/Enabled')
                     button.serviceEnabled = True
 
+        return
+
     def LoadServiceButtons(self):
         parent = self.serviceButtons
         parent.Flush()
-        services = sm.GetService('station').GetStationServiceInfo()
-        serviceMask = eve.stationItem.serviceMask
         icon = None
         stationservicebtns = settings.user.ui.Get('stationservicebtns', 1)
         btnsize = BIGBUTTONSIZE
         if stationservicebtns:
             btnsize = SMALLBUTTONSIZE
-        haveServices = []
-        for service in services:
-            hasStationService = False
-            combinedServiceMask = sum(service.serviceIDs)
-            if serviceMask & combinedServiceMask > 0:
-                hasStationService = True
-                if service.name == 'navyoffices':
-                    if not sm.GetService('facwar').CheckStationElegibleForMilitia():
-                        hasStationService = False
-                elif service.name == 'securityoffice':
-                    if not sm.GetService('securityOfficeSvc').CanAccessServiceInStation(session.stationid2):
-                        hasStationService = False
-            if hasStationService or -1 in service.serviceIDs:
-                haveServices.append(service)
-
+        haveServices = self.GetCurrentStationServices()
         for service in reversed(haveServices):
             button = BigButton(parent=parent, width=btnsize, height=btnsize, name=service.name, align=uiconst.NOALIGN)
             button.Startup(btnsize, btnsize, iconOpacity=0.75)
@@ -498,6 +490,26 @@ class Lobby(Window):
             self.SetServiceButtonState(button, service.serviceIDs)
             button.LoadTooltipPanel = self.LoadServiceButtonTooltipPanel
 
+        return
+
+    def GetCurrentStationServices(self):
+        serviceMask = eve.stationItem.serviceMask
+        haveServices = []
+        for serviceData in stationServiceConst.serviceData:
+            if stationServiceConst.serviceIDAlwaysPresent in serviceData.serviceIDs:
+                haveServices.append(serviceData)
+                continue
+            elif serviceMask & sum(serviceData.serviceIDs) > 0:
+                if serviceData.name == 'navyoffices':
+                    if not sm.GetService('facwar').CheckStationElegibleForMilitia():
+                        continue
+                elif serviceData.name == 'securityoffice':
+                    if not sm.GetService('securityOfficeSvc').CanAccessServiceInStation(session.stationid2):
+                        continue
+                haveServices.append(serviceData)
+
+        return haveServices
+
     def LoadServiceButtonTooltipPanel(self, tooltipPanel, tooltipOwner, *args):
         tooltipPanel.LoadGeneric3ColumnTemplate()
         command = uicore.cmd.commandMap.GetCommandByName(tooltipOwner.cmdStr)
@@ -510,12 +522,11 @@ class Lobby(Window):
         sm.GetService('station').LoadSvc(btn.name)
 
     def CheckCanAccessService(self, serviceName):
-        services = sm.GetService('station').GetStationServiceInfo()
-        for service in services:
-            if service.name == serviceName:
+        for serviceData in stationServiceConst.serviceData:
+            if serviceData.name == serviceName:
                 corpStationMgr = None
                 now = blue.os.GetWallclockTime()
-                for stationServiceID in service.serviceIDs:
+                for stationServiceID in serviceData.serviceIDs:
                     doCheck = 1
                     time, result = (None, None)
                     if self.sr.serviceAccessCache.has_key(stationServiceID):
@@ -536,42 +547,49 @@ class Lobby(Window):
                     if result is not None:
                         raise result
 
+        return
+
     def LoadButtons(self):
         if self.destroyed:
             return
-        btns = []
-        officeExists = sm.GetService('corp').GetOffice() is not None
-        canRent = session.corprole & const.corpRoleCanRentOffice == const.corpRoleCanRentOffice
-        canMove = session.corprole & const.corpRoleDirector == const.corpRoleDirector
-        if canRent and not officeExists:
-            rentLabel = localization.GetByLabel('UI/Station/Lobby/RentOffice')
-            btns.append([rentLabel, self.RentOffice, None])
-        if canMove and officeExists:
-            btns.append([localization.GetByLabel('UI/Station/Hangar/UnrentOffice'), self.UnrentOffice, None])
-        if canMove:
-            isHQHere = sm.GetService('corp').GetCorporation().stationID == session.stationid2
-            if not isHQHere:
-                hqLabel = localization.GetByLabel('UI/Station/Lobby/MoveHeadquartersHere')
-                btns.append([hqLabel, self.SetHQ, None])
-            if not officeExists and sm.GetService('corp').HasCorpImpoundedItemsAtStation():
-                btns.append([localization.GetByLabel('UI/Inventory/ReleaseItems'), self.ReleaseImpoundedItems, None])
-        if sm.GetService('corp').DoesCharactersCorpOwnThisStation():
-            mgmtLabel = localization.GetByLabel('UI/Station/Lobby/StationManagement')
-            btns.append([mgmtLabel, self.OpenStationManagement, None])
-        if self.destroyed:
+        else:
+            btns = []
+            officeExists = sm.GetService('corp').GetOffice() is not None
+            canRent = session.corprole & const.corpRoleCanRentOffice == const.corpRoleCanRentOffice
+            canMove = session.corprole & const.corpRoleDirector == const.corpRoleDirector
+            if canRent and not officeExists:
+                rentLabel = localization.GetByLabel('UI/Station/Lobby/RentOffice')
+                btns.append([rentLabel, self.RentOffice, None])
+            if canMove and officeExists:
+                btns.append([localization.GetByLabel('UI/Station/Hangar/UnrentOffice'), self.UnrentOffice, None])
+            if canMove:
+                isHQHere = sm.GetService('corp').GetCorporation().stationID == session.stationid2
+                if not isHQHere:
+                    hqLabel = localization.GetByLabel('UI/Station/Lobby/MoveHeadquartersHere')
+                    btns.append([hqLabel, self.SetHQ, None])
+                if not officeExists and sm.GetService('corp').HasCorpImpoundedItemsAtStation():
+                    btns.append([localization.GetByLabel('UI/Inventory/ReleaseItems'), self.ReleaseImpoundedItems, None])
+            if sm.GetService('corp').DoesCharactersCorpOwnThisStation():
+                mgmtLabel = localization.GetByLabel('UI/Station/Lobby/StationManagement')
+                btns.append([mgmtLabel, self.OpenStationManagement, None])
+            if self.destroyed:
+                return
+            self.officesButtons.Flush()
+            for label, func, args in btns:
+                Button(parent=self.officesButtons, label=label, func=func, args=args, align=uiconst.NOALIGN)
+
             return
-        self.officesButtons.Flush()
-        for label, func, args in btns:
-            Button(parent=self.officesButtons, label=label, func=func, args=args, align=uiconst.NOALIGN)
 
     def ReleaseImpoundedItems(self, *args):
         corpStationMgr = sm.GetService('corp').GetCorpStationManager()
         cost = corpStationMgr.GetQuoteForGettingCorpJunkBack()
         if eve.Message('CrpJunkAcceptCost', {'cost': FmtAmt(cost)}, uiconst.YESNO) != uiconst.ID_YES:
             return
-        corpStationMgr.PayForReturnOfCorpJunk(cost)
-        sm.GetService('corp').hasImpoundedItemsCacheTime = None
-        self.LoadButtons()
+        else:
+            corpStationMgr.PayForReturnOfCorpJunk(cost)
+            sm.GetService('corp').hasImpoundedItemsCacheTime = None
+            self.LoadButtons()
+            return
 
     def UnrentOffice(self, *args):
         items = invCtrl.StationCorpHangar(divisionID=None).GetItems()
@@ -586,6 +604,7 @@ class Lobby(Window):
         corpStationMgr = sm.GetService('corp').GetCorpStationManager()
         sm.GetService('corp').hasImpoundedItemsCacheTime = None
         corpStationMgr.CancelRentOfOffice()
+        return
 
     def OpenStationManagement(self, *args):
         uthread.new(uicore.cmd.OpenStationManagement)
@@ -617,33 +636,35 @@ class Lobby(Window):
     def OnCharNowInStation(self, rec):
         if self.destroyed or not session.stationid2:
             return
-        self.UpdateGuestTabText()
-        if self.selectedGroupButtonID == GUESTSPANEL:
-            charID, corpID, allianceID, warFactionID = rec
-            cfg.eveowners.Prime([charID])
-            if self.destroyed:
-                return
-            newcharinfo = cfg.eveowners.Get(charID)
-            idx = 0
-            for each in self.guestScroll.GetNodes():
-                if each.charID == charID:
+        else:
+            self.UpdateGuestTabText()
+            if self.selectedGroupButtonID == GUESTSPANEL:
+                charID, corpID, allianceID, warFactionID = rec
+                cfg.eveowners.Prime([charID])
+                if self.destroyed:
                     return
-                if CaseFoldCompare(each.info.name, newcharinfo.name) > 0:
-                    break
-                idx += 1
+                newcharinfo = cfg.eveowners.Get(charID)
+                idx = 0
+                for each in self.guestScroll.GetNodes():
+                    if each.charID == charID:
+                        return
+                    if CaseFoldCompare(each.info.name, newcharinfo.name) > 0:
+                        break
+                    idx += 1
 
-            filteredGuest = None
-            guestFilter = self.quickFilter.GetValue()
-            if len(guestFilter):
-                filteredGuest = NiceFilter(self.quickFilter.QuickFilter, newcharinfo.name)
-            if filteredGuest or len(guestFilter) == 0:
-                entry = GetListEntry(self.userEntry, {'charID': charID,
-                 'info': newcharinfo,
-                 'label': newcharinfo.name,
-                 'corpID': corpID,
-                 'allianceID': allianceID,
-                 'warFactionID': warFactionID})
-                self.guestScroll.AddNodes(idx, [entry])
+                filteredGuest = None
+                guestFilter = self.quickFilter.GetValue()
+                if len(guestFilter):
+                    filteredGuest = NiceFilter(self.quickFilter.QuickFilter, newcharinfo.name)
+                if filteredGuest or len(guestFilter) == 0:
+                    entry = GetListEntry(self.userEntry, {'charID': charID,
+                     'info': newcharinfo,
+                     'label': newcharinfo.name,
+                     'corpID': corpID,
+                     'allianceID': allianceID,
+                     'warFactionID': warFactionID})
+                    self.guestScroll.AddNodes(idx, [entry])
+            return
 
     @telemetry.ZONE_METHOD
     def OnCharNoLongerInStation(self, rec):
@@ -657,39 +678,41 @@ class Lobby(Window):
                     self.guestScroll.RemoveNodes([entry])
                     return
 
-    def ShowGuests(self, condensed = None, *args):
+    def ShowGuests(self, condensed=None, *args):
         if self.selectedGroupButtonID != GUESTSPANEL:
             return
-        if condensed is not None:
-            settings.user.ui.Set('guestCondensedUserList', condensed)
-        self.SetGuestEntryType()
-        guests = sm.GetService('station').GetGuests()
-        ownerIDs = guests.keys()
-        cfg.eveowners.Prime(ownerIDs)
-        guestFilter = self.quickFilter.GetValue()
-        if len(guestFilter):
-            filterData = [ KeyVal(name=cfg.eveowners.Get(charID).name, charID=charID) for charID in ownerIDs ]
-            filterGuests = NiceFilter(self.quickFilter.QuickFilter, filterData)
-            ownerIDs = [ each.charID for each in filterGuests ]
-        if self.destroyed:
-            return
-        scrolllist = []
-        for charID in ownerIDs:
-            if charID not in guests:
-                continue
-            corpID, allianceID, warFactionID = guests[charID]
-            charinfo = cfg.eveowners.Get(charID)
-            scrolllist.append((charinfo.name.lower(), GetListEntry(self.userEntry, {'charID': charID,
-              'info': charinfo,
-              'label': charinfo.name,
-              'corpID': corpID,
-              'allianceID': allianceID,
-              'warFactionID': warFactionID})))
+        else:
+            if condensed is not None:
+                settings.user.ui.Set('guestCondensedUserList', condensed)
+            self.SetGuestEntryType()
+            guests = sm.GetService('station').GetGuests()
+            ownerIDs = guests.keys()
+            cfg.eveowners.Prime(ownerIDs)
+            guestFilter = self.quickFilter.GetValue()
+            if len(guestFilter):
+                filterData = [ KeyVal(name=cfg.eveowners.Get(charID).name, charID=charID) for charID in ownerIDs ]
+                filterGuests = NiceFilter(self.quickFilter.QuickFilter, filterData)
+                ownerIDs = [ each.charID for each in filterGuests ]
+            if self.destroyed:
+                return
+            scrolllist = []
+            for charID in ownerIDs:
+                if charID not in guests:
+                    continue
+                corpID, allianceID, warFactionID = guests[charID]
+                charinfo = cfg.eveowners.Get(charID)
+                scrolllist.append((charinfo.name.lower(), GetListEntry(self.userEntry, {'charID': charID,
+                  'info': charinfo,
+                  'label': charinfo.name,
+                  'corpID': corpID,
+                  'allianceID': allianceID,
+                  'warFactionID': warFactionID})))
 
-        scrolllist = SortListOfTuples(scrolllist)
-        self.guestScroll.Clear()
-        self.guestScroll.AddNodes(0, scrolllist)
-        self.UpdateGuestTabText()
+            scrolllist = SortListOfTuples(scrolllist)
+            self.guestScroll.Clear()
+            self.guestScroll.AddNodes(0, scrolllist)
+            self.UpdateGuestTabText()
+            return
 
     def UpdateGuestTabText(self):
         numGuests = len(sm.GetService('station').GetGuests())
@@ -847,17 +870,23 @@ class Lobby(Window):
             finally:
                 self.sr.isRentOfficeOpening = 0
 
+        return
+
     def ShowShips(self):
         if self.sr.shipsContainer is None:
             return
-        self.mainButtonGroup.SelectByID(INVENTORYPANEL)
-        self.inventoryTabs.ShowPanel(self.sr.shipsContainer)
+        else:
+            self.mainButtonGroup.SelectByID(INVENTORYPANEL)
+            self.inventoryTabs.ShowPanel(self.sr.shipsContainer)
+            return
 
     def ShowItems(self):
         if self.sr.itemsContainer is None:
             return
-        self.mainButtonGroup.SelectByID(INVENTORYPANEL)
-        self.inventoryTabs.ShowPanel(self.sr.itemsContainer)
+        else:
+            self.mainButtonGroup.SelectByID(INVENTORYPANEL)
+            self.inventoryTabs.ShowPanel(self.sr.itemsContainer)
+            return
 
     def ReloadOfficesIfVisible(self):
         if self.selectedGroupButtonID == OFFICESPANEL:
@@ -966,6 +995,7 @@ class OfficeEntry(SE_BaseClassCore):
                 self.sr.buttonCnt.state = uiconst.UI_PICKCHILDREN
         else:
             self.sr.buttonCnt.state = uiconst.UI_HIDDEN
+        return
 
     def GetHeight(self, *args):
         node, width = args

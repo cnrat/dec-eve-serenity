@@ -1,17 +1,20 @@
-#Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\carbon\common\stdlib\cProfile.py
+# Python bytecode 2.7 (decompiled from Python 2.7)
+# Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\carbon\common\stdlib\cProfile.py
 __all__ = ['run',
  'runctx',
  'help',
  'Profile']
 import _lsprof
 
-def run(statement, filename = None, sort = -1):
+def run(statement, filename=None, sort=-1):
     prof = Profile()
     result = None
     try:
-        prof = prof.run(statement)
-    except SystemExit:
-        pass
+        try:
+            prof = prof.run(statement)
+        except SystemExit:
+            pass
+
     finally:
         if filename is not None:
             prof.dump_stats(filename)
@@ -21,13 +24,15 @@ def run(statement, filename = None, sort = -1):
     return result
 
 
-def runctx(statement, globals, locals, filename = None, sort = -1):
+def runctx(statement, globals, locals, filename=None, sort=-1):
     prof = Profile()
     result = None
     try:
-        prof = prof.runctx(statement, globals, locals)
-    except SystemExit:
-        pass
+        try:
+            prof = prof.runctx(statement, globals, locals)
+        except SystemExit:
+            pass
+
     finally:
         if filename is not None:
             prof.dump_stats(filename)
@@ -44,7 +49,7 @@ def help():
 
 class Profile(_lsprof.Profiler):
 
-    def print_stats(self, sort = -1):
+    def print_stats(self, sort=-1):
         import pstats
         pstats.Stats(self).strip_dirs().sort_stats(sort).print_stats()
 
